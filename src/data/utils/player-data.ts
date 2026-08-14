@@ -15,13 +15,16 @@ import { getPlayerMultiSpecialExchangeCampaignsSync, getPlayerPeriodicRewardPoin
 import { getPlayerOptionsSync } from "../domains/option"
 import { getPlayerPartyGroupListSync } from "../domains/party"
 import { getPlayerTriggeredTutorialsSync } from "../domains/tutorial"
-import { computeAwakeSummary, createCharacterAwakeEligibilityResolver, filterToActiveMissions, reconcileAwakeUnlocksFromProgress } from "../../lib/mission/index"
-import { computeManaBoardAwakeFromNodes, mergeManaBoardAwakeMaps } from "../../lib/character-helpers"
+import { computeAwakeSummary, filterToActiveMissions, reconcileAwakeUnlocksFromProgress } from "../../lib/mission/index"
+import {
+    computeManaBoardAwakeFromNodes,
+    filterCharacterManaBoardAwakeLevels,
+    mergeManaBoardAwakeMaps,
+    reconcilePlayerManaBoardCompletionSync,
+} from "../../lib/character-helpers"
 import { getDb } from "../db"
 import { getCarnivalSaveStateSync } from "../../lib/carnival-save-state"
 import { getContentSnapshot } from "../../content/runtime/content-snapshot"
-import { getPlayerCharacterAwakeUnlockRecordSync } from "../domains/character_awake"
-import { reconcileInterruptedStartTutorialSync } from "../../lib/start-tutorial-state"
 
 /**
  * Generates default player data.
@@ -42,9 +45,9 @@ export function getDefaultPlayerData(): Omit<Player, 'id'> {
         lastLoginTime: now,
         comment: "よろしくお願いします",
         vmoney: 100,
-        freeVmoney: 100,
+        freeVmoney: 10000,
         rankPoint: 0,
-        starCrumb: 2,
+        starCrumb: 20000,
         bondToken: 10,
         expPool: 0,
         expPooledTime: now,
@@ -52,7 +55,7 @@ export function getDefaultPlayerData(): Omit<Player, 'id'> {
         partySlot: 1,
         degreeId: 1,
         birth: 19900101,
-        freeMana: 2000,
+        freeMana: 20000,
         paidMana: 2000,
         enableAuto3x: false,
         totalStaminaUsed: 0,
@@ -82,29 +85,40 @@ export function getClientSerializedData(
     options: SerializePlayerDataOptions
 ): ClientPlayerData | null {
 
-    reconcileInterruptedStartTutorialSync(playerId)
+    // Old/imported saves can lack the bond-token row that marks a completed
+    // base board as receivable. Repair it before loading the response snapshot.
+    reconcilePlayerManaBoardCompletionSync(playerId)
+
     const playerData = getPlayerSync(playerId)
     if (playerData === null) return null
 
     const doSerializeRushEventData = options.serializeRushEventData ?? false
 
     // Compute awake mission summary for /load injection
-    const awakeEligibility = createCharacterAwakeEligibilityResolver(playerId)
-    const awakeSummary = computeAwakeSummary(playerId, awakeEligibility)
+    const awakeSummary = computeAwakeSummary(playerId)
     awakeSummary.manaBoardAwakeMap = reconcileAwakeUnlocksFromProgress(
         playerId,
         awakeSummary.activeMissionList.map(mission => ({
             missionId: mission.mission_id,
             progress: mission.progress_value,
-        })),
-        awakeEligibility,
+        }))
     ).all
 
     // The client uses mana_board_awake both to unlock the Awake tab and as the
     // target node-awake level. Keep mission unlocks and persisted node state.
-    const nodeAwakeLevels = awakeEligibility.manaNodeAwakeLevels
+    const nodeAwakeLevels = getPlayerCharactersManaNodeAwakeLevelsSync(playerId)
+    const learnedManaNodes = getPlayerCharactersManaNodesSync(playerId)
+    const missionAwakeMap = new Map<string, Record<number, number>>()
+    for (const [characterId, levels] of awakeSummary.manaBoardAwakeMap) {
+        const visible = filterCharacterManaBoardAwakeLevels(
+            Number(characterId),
+            levels,
+            learnedManaNodes[characterId] ?? [],
+        )
+        if (Object.keys(visible).length > 0) missionAwakeMap.set(characterId, visible)
+    }
     const manaBoardAwakeMap = mergeManaBoardAwakeMaps(
-        awakeSummary.manaBoardAwakeMap,
+        missionAwakeMap,
         computeManaBoardAwakeFromNodes(nodeAwakeLevels)
     )
 
@@ -113,8 +127,8 @@ export function getClientSerializedData(
         dailyChallengePointList: getPlayerDailyChallengePointListSync(playerId),
         triggeredTutorial: getPlayerTriggeredTutorialsSync(playerId),
         clearedRegularMissionList: getPlayerClearedRegularMissionListSync(playerId),
-        characterList: awakeEligibility.characters,
-        characterManaNodeList: awakeEligibility.manaNodes,
+        characterList: getPlayerCharactersSync(playerId),
+        characterManaNodeList: learnedManaNodes,
         characterManaNodeAwakeLevels: nodeAwakeLevels,
         manaBoardAwakeMap,
         partyGroupList: getPlayerPartyGroupListSync(playerId),
@@ -162,7 +176,6 @@ export function getMergedPlayerDataSync(
         characterList: getPlayerCharactersSync(playerId),
         characterManaNodeList: getPlayerCharactersManaNodesSync(playerId),
         characterManaNodeAwakeLevels: getPlayerCharactersManaNodeAwakeLevelsSync(playerId),
-        characterAwakeUnlocks: getPlayerCharacterAwakeUnlockRecordSync(playerId),
         partyGroupList: getPlayerPartyGroupListSync(playerId),
         itemList: getPlayerItemsSync(playerId),
         equipmentList: getPlayerEquipmentListSync(playerId),

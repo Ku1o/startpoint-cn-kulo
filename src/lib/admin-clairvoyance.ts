@@ -1,4 +1,6 @@
-import { getContentSnapshot } from "../content/runtime/content-snapshot"
+import gachasJson from "../../assets/gacha.json"
+import characterJson from "../../assets/character.json"
+import characterTextJson from "../../assets/cdndata/character_text.json"
 
 const SHORT_TERM_MAX_DAYS = 60
 const CHARACTER_GACHA_TYPE = 0
@@ -28,7 +30,7 @@ interface CharacterMeta {
     element?: number
 }
 
-type CharacterTextRows = Record<string, readonly (readonly string[])[]>
+type CharacterTextRow = string[][]
 
 export interface ClairvoyanceCharacter {
     id: number
@@ -70,6 +72,10 @@ export interface ClairvoyanceTimeline {
     searchIndex: ClairvoyanceSearchRow[]
 }
 
+const gachas = gachasJson as Record<string, RawGacha>
+const characterMeta = characterJson as Record<string, CharacterMeta>
+const characterText = characterTextJson as Record<string, CharacterTextRow>
+
 function parseCdnDate(value: string): Date {
     return new Date(`${value.replace(" ", "T")}+08:00`)
 }
@@ -78,10 +84,7 @@ function durationDays(startDate: string, endDate: string): number {
     return (parseCdnDate(endDate).getTime() - parseCdnDate(startDate).getTime()) / 86400_000
 }
 
-function getCharacterName(
-    characterText: CharacterTextRows,
-    characterId: number,
-): { name: string; title: string } {
+function getCharacterName(characterId: number): { name: string; title: string } {
     const text = characterText[String(characterId)]?.[0]
     return {
         name: text?.[0] || `#${characterId}`,
@@ -89,11 +92,7 @@ function getCharacterName(
     }
 }
 
-function toRateUpCharacters(
-    rawGacha: RawGacha,
-    characterMeta: Record<string, CharacterMeta>,
-    characterText: CharacterTextRows,
-): ClairvoyanceCharacter[] {
+function toRateUpCharacters(rawGacha: RawGacha): ClairvoyanceCharacter[] {
     const byId = new Map<number, RawGachaPoolItem>()
     for (const pool of Object.values(rawGacha.pool ?? {})) {
         for (const item of pool) {
@@ -104,7 +103,7 @@ function toRateUpCharacters(
     return [...byId.values()]
         .sort((a, b) => b.rank - a.rank || a.id - b.id)
         .map((item) => {
-            const text = getCharacterName(characterText, item.id)
+            const text = getCharacterName(item.id)
             const meta = characterMeta[String(item.id)]
             return {
                 id: item.id,
@@ -120,18 +119,13 @@ function toRateUpCharacters(
         })
 }
 
-function toGacha(
-    id: string,
-    rawGacha: RawGacha,
-    characterMeta: Record<string, CharacterMeta>,
-    characterText: CharacterTextRows,
-): ClairvoyanceGacha | null {
+function toGacha(id: string, rawGacha: RawGacha): ClairvoyanceGacha | null {
     if (rawGacha.type !== CHARACTER_GACHA_TYPE) return null
     const pageKind = rawGacha.pageKind ?? NORMAL_PAGE_KIND
     if (pageKind !== NORMAL_PAGE_KIND) return null
     const days = durationDays(rawGacha.startDate, rawGacha.endDate)
     if (days <= 0 || days > SHORT_TERM_MAX_DAYS) return null
-    const rateUpCharacters = toRateUpCharacters(rawGacha, characterMeta, characterText)
+    const rateUpCharacters = toRateUpCharacters(rawGacha)
     if (rateUpCharacters.length === 0) return null
     return {
         id: Number(id),
@@ -170,12 +164,8 @@ function buildSearchIndex(timeline: ClairvoyanceGacha[]): ClairvoyanceSearchRow[
 }
 
 export function buildShortUpCharacterGachaTimeline(now: Date = new Date()): ClairvoyanceTimeline {
-    const repository = getContentSnapshot().repository
-    const gachas = repository.table<Record<string, RawGacha>>("gacha.json")
-    const characterMeta = repository.table<Record<string, CharacterMeta>>("character.json")
-    const characterText = repository.table<CharacterTextRows>("cdndata/character_text.json")
     const timeline = Object.entries(gachas)
-        .map(([id, rawGacha]) => toGacha(id, rawGacha, characterMeta, characterText))
+        .map(([id, rawGacha]) => toGacha(id, rawGacha))
         .filter((gacha): gacha is ClairvoyanceGacha => gacha !== null)
         .sort((a, b) => a.startTime.localeCompare(b.startTime) || a.id - b.id)
     const nowMs = now.getTime()

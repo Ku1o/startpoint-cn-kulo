@@ -113,6 +113,12 @@
     "element": 0,
     "skill_count": 6
   },
+  "111069": {
+    "name": "",
+    "rarity": 5,
+    "element": 0,
+    "skill_count": 6
+  },
   "111081": {
     "name": "",
     "rarity": 5,
@@ -144,6 +150,12 @@
     "skill_count": 6
   },
   "111111": {
+    "name": "",
+    "rarity": 5,
+    "element": 0,
+    "skill_count": 6
+  },
+  "111117": {
     "name": "",
     "rarity": 5,
     "element": 0,
@@ -196,6 +208,24 @@
     "rarity": 5,
     "element": 0,
     "skill_count": 3
+  },
+  "111171": {
+    "name": "",
+    "rarity": 5,
+    "element": 0,
+    "skill_count": 6
+  },
+  "111177": {
+    "name": "",
+    "rarity": 5,
+    "element": 0,
+    "skill_count": 6
+  },
+  "111183": {
+    "name": "",
+    "rarity": 5,
+    "element": 0,
+    "skill_count": 6
   },
   "113001": {
     "name": "",
@@ -299,6 +329,12 @@
     "element": 1,
     "skill_count": 6
   },
+  "121057": {
+    "name": "",
+    "rarity": 5,
+    "element": 1,
+    "skill_count": 6
+  },
   "121069": {
     "name": "",
     "rarity": 5,
@@ -359,6 +395,12 @@
     "element": 1,
     "skill_count": 6
   },
+  "121123": {
+    "name": "",
+    "rarity": 5,
+    "element": 1,
+    "skill_count": 6
+  },
   "121129": {
     "name": "",
     "rarity": 5,
@@ -400,6 +442,42 @@
     "rarity": 5,
     "element": 1,
     "skill_count": 3
+  },
+  "121171": {
+    "name": "",
+    "rarity": 5,
+    "element": 1,
+    "skill_count": 6
+  },
+  "121177": {
+    "name": "",
+    "rarity": 5,
+    "element": 1,
+    "skill_count": 6
+  },
+  "121183": {
+    "name": "",
+    "rarity": 5,
+    "element": 1,
+    "skill_count": 6
+  },
+  "121189": {
+    "name": "",
+    "rarity": 5,
+    "element": 1,
+    "skill_count": 6
+  },
+  "123001": {
+    "name": "",
+    "rarity": 5,
+    "element": 1,
+    "skill_count": 6
+  },
+  "129999": {
+    "element": 1,
+    "name": "赛瑞斯",
+    "rarity": 5,
+    "skill_count": 6
   },
   "131001": {
     "name": "",
@@ -599,6 +677,36 @@
     "element": 2,
     "skill_count": 3
   },
+  "131164": {
+    "name": "",
+    "rarity": 5,
+    "element": 2,
+    "skill_count": 6
+  },
+  "131170": {
+    "name": "",
+    "rarity": 5,
+    "element": 2,
+    "skill_count": 6
+  },
+  "131176": {
+    "name": "",
+    "rarity": 5,
+    "element": 2,
+    "skill_count": 6
+  },
+  "131182": {
+    "name": "",
+    "rarity": 5,
+    "element": 2,
+    "skill_count": 6
+  },
+  "139999": {
+    "element": 4,
+    "name": "史黛拉（夏日）",
+    "rarity": 5,
+    "skill_count": 3
+  },
   "141001": {
     "name": "",
     "rarity": 5,
@@ -761,6 +869,12 @@
     "element": 3,
     "skill_count": 6
   },
+  "141129": {
+    "name": "",
+    "rarity": 5,
+    "element": 3,
+    "skill_count": 6
+  },
   "141135": {
     "name": "",
     "rarity": 5,
@@ -802,6 +916,42 @@
     "rarity": 5,
     "element": 3,
     "skill_count": 3
+  },
+  "141177": {
+    "name": "",
+    "rarity": 5,
+    "element": 3,
+    "skill_count": 6
+  },
+  "141183": {
+    "name": "",
+    "rarity": 5,
+    "element": 3,
+    "skill_count": 6
+  },
+  "141189": {
+    "name": "",
+    "rarity": 5,
+    "element": 3,
+    "skill_count": 6
+  },
+  "141201": {
+    "name": "",
+    "rarity": 5,
+    "element": 3,
+    "skill_count": 6
+  },
+  "149998": {
+    "element": 3,
+    "name": "风巨蜥",
+    "rarity": 5,
+    "skill_count": 6
+  },
+  "149999": {
+    "element": 4,
+    "name": "杰拉德",
+    "rarity": 5,
+    "skill_count": 6
   },
   "151001": {
     "name": "",
@@ -917,6 +1067,12 @@
     "element": 4,
     "skill_count": 6
   },
+  "151057": {
+    "name": "",
+    "rarity": 5,
+    "element": 4,
+    "skill_count": 6
+  },
   "151063": {
     "name": "",
     "rarity": 5,
@@ -960,6 +1116,12 @@
     "skill_count": 6
   },
   "151105": {
+    "name": "",
+    "rarity": 5,
+    "element": 4,
+    "skill_count": 6
+  },
+  "151111": {
     "name": "",
     "rarity": 5,
     "element": 4,
@@ -1018,6 +1180,12 @@
     "rarity": 5,
     "element": 4,
     "skill_count": 3
+  },
+  "151182": {
+    "name": "",
+    "rarity": 5,
+    "element": 4,
+    "skill_count": 6
   },
   "153001": {
     "name": "",
@@ -1199,6 +1367,12 @@
     "element": 5,
     "skill_count": 3
   },
+  "161141": {
+    "name": "",
+    "rarity": 5,
+    "element": 5,
+    "skill_count": 6
+  },
   "161147": {
     "name": "",
     "rarity": 5,
@@ -1247,10 +1421,34 @@
     "element": 5,
     "skill_count": 3
   },
+  "161195": {
+    "name": "",
+    "rarity": 5,
+    "element": 5,
+    "skill_count": 6
+  },
+  "161201": {
+    "name": "",
+    "rarity": 5,
+    "element": 5,
+    "skill_count": 6
+  },
   "163001": {
     "name": "",
     "rarity": 5,
     "element": 5,
+    "skill_count": 6
+  },
+  "169998": {
+    "name": "拉芙",
+    "rarity": 5,
+    "element": 5,
+    "skill_count": 6
+  },
+  "169999": {
+    "element": 5,
+    "name": "基诺维",
+    "rarity": 5,
     "skill_count": 6
   },
   "211001": {
@@ -1386,6 +1584,12 @@
     "skill_count": 6
   },
   "213001": {
+    "name": "",
+    "rarity": 4,
+    "element": 0,
+    "skill_count": 6
+  },
+  "213007": {
     "name": "",
     "rarity": 4,
     "element": 0,
@@ -2111,6 +2315,12 @@
     "element": 5,
     "skill_count": 6
   },
+  "261053": {
+    "name": "",
+    "rarity": 4,
+    "element": 5,
+    "skill_count": 6
+  },
   "261059": {
     "name": "",
     "rarity": 4,
@@ -2143,7 +2353,7 @@
   },
   "261089": {
     "name": "",
-    "rarity": 4,
+    "rarity": 5,
     "element": 5,
     "skill_count": 3
   },
@@ -2166,6 +2376,12 @@
     "skill_count": 6
   },
   "263009": {
+    "name": "",
+    "rarity": 4,
+    "element": 5,
+    "skill_count": 6
+  },
+  "263015": {
     "name": "",
     "rarity": 4,
     "element": 5,
@@ -2849,184 +3065,10 @@
     "element": 0,
     "skill_count": 3
   },
-  "151182": {
-    "name": "",
-    "rarity": 5,
-    "element": 4,
-    "skill_count": 6
-  },
-  "151111": {
-    "name": "",
-    "rarity": 5,
-    "element": 4,
-    "skill_count": 6
-  },
-  "161201": {
-    "name": "",
-    "rarity": 5,
-    "element": 5,
-    "skill_count": 6
-  },
-  "111069": {
-    "name": "",
+  "179999": {
+    "name": "罗尔夫",
     "rarity": 5,
     "element": 0,
-    "skill_count": 6
-  },
-  "121057": {
-    "name": "",
-    "rarity": 5,
-    "element": 1,
-    "skill_count": 6
-  },
-  "151057": {
-    "name": "",
-    "rarity": 5,
-    "element": 4,
-    "skill_count": 6
-  },
-  "261053": {
-    "name": "",
-    "rarity": 4,
-    "element": 5,
-    "skill_count": 6
-  },
-  "213007": {
-    "name": "",
-    "rarity": 4,
-    "element": 0,
-    "skill_count": 6
-  },
-  "111117": {
-    "name": "",
-    "rarity": 5,
-    "element": 0,
-    "skill_count": 6
-  },
-  "121123": {
-    "name": "",
-    "rarity": 5,
-    "element": 1,
-    "skill_count": 6
-  },
-  "263015": {
-    "name": "",
-    "rarity": 4,
-    "element": 5,
-    "skill_count": 6
-  },
-  "111183": {
-    "name": "",
-    "rarity": 5,
-    "element": 0,
-    "skill_count": 6
-  },
-  "121189": {
-    "name": "",
-    "rarity": 5,
-    "element": 1,
-    "skill_count": 6
-  },
-  "141189": {
-    "name": "",
-    "rarity": 5,
-    "element": 3,
-    "skill_count": 6
-  },
-  "111177": {
-    "name": "",
-    "rarity": 5,
-    "element": 0,
-    "skill_count": 6
-  },
-  "131176": {
-    "name": "",
-    "rarity": 5,
-    "element": 2,
-    "skill_count": 6
-  },
-  "121183": {
-    "name": "",
-    "rarity": 5,
-    "element": 1,
-    "skill_count": 6
-  },
-  "141183": {
-    "name": "",
-    "rarity": 5,
-    "element": 3,
-    "skill_count": 6
-  },
-  "131170": {
-    "name": "",
-    "rarity": 5,
-    "element": 2,
-    "skill_count": 6
-  },
-  "121177": {
-    "name": "",
-    "rarity": 5,
-    "element": 1,
-    "skill_count": 6
-  },
-  "161195": {
-    "name": "",
-    "rarity": 5,
-    "element": 5,
-    "skill_count": 6
-  },
-  "141177": {
-    "name": "",
-    "rarity": 5,
-    "element": 3,
-    "skill_count": 6
-  },
-  "131164": {
-    "name": "",
-    "rarity": 5,
-    "element": 2,
-    "skill_count": 6
-  },
-  "111171": {
-    "name": "",
-    "rarity": 5,
-    "element": 0,
-    "skill_count": 6
-  },
-  "121171": {
-    "name": "",
-    "rarity": 5,
-    "element": 1,
-    "skill_count": 6
-  },
-  "141201": {
-    "name": "",
-    "rarity": 5,
-    "element": 3,
-    "skill_count": 6
-  },
-  "131182": {
-    "name": "",
-    "rarity": 5,
-    "element": 2,
-    "skill_count": 6
-  },
-  "161141": {
-    "name": "",
-    "rarity": 5,
-    "element": 5,
-    "skill_count": 6
-  },
-  "141129": {
-    "name": "",
-    "rarity": 5,
-    "element": 3,
-    "skill_count": 6
-  },
-  "123001": {
-    "name": "",
-    "rarity": 5,
-    "element": 1,
-    "skill_count": 6
+    "skill_count": 3
   }
 }

@@ -12,11 +12,6 @@ export interface MissionBattleCounters {
     rankSCount: number
     rankACount: number
     rankBCount: number
-    challengeDungeonClearCount: number
-    singleScoreMax: number
-    singleClearTimeMin: number
-    bossBattleClearCount: number
-    skillUseCount: number
 }
 
 export interface MissionBattleResult {
@@ -24,10 +19,6 @@ export interface MissionBattleResult {
     isHost?: boolean
     accomplished: boolean
     clearRank?: number | null
-    questCategory?: number
-    score?: number
-    clearTime?: number
-    skillUseCount?: number
 }
 
 const EMPTY_COUNTERS: Readonly<MissionBattleCounters> = Object.freeze({
@@ -42,11 +33,6 @@ const EMPTY_COUNTERS: Readonly<MissionBattleCounters> = Object.freeze({
     rankSCount: 0,
     rankACount: 0,
     rankBCount: 0,
-    challengeDungeonClearCount: 0,
-    singleScoreMax: 0,
-    singleClearTimeMin: 0,
-    bossBattleClearCount: 0,
-    skillUseCount: 0,
 })
 
 export function getMissionBattleCountersSync(playerId: number): MissionBattleCounters {
@@ -55,9 +41,7 @@ export function getMissionBattleCountersSync(playerId: number): MissionBattleCou
                multi_play_count, multi_clear_count,
                multi_host_clear_count, multi_guest_clear_count,
                single_rank_ss_count,
-               rank_ss_count, rank_s_count, rank_a_count, rank_b_count,
-               challenge_dungeon_clear_count, single_score_max, single_clear_time_min,
-               boss_battle_clear_count, skill_use_count
+               rank_ss_count, rank_s_count, rank_a_count, rank_b_count
         FROM players_mission_battle_counters
         WHERE player_id = ?
     `).get(playerId) as Record<string, number> | undefined
@@ -74,11 +58,6 @@ export function getMissionBattleCountersSync(playerId: number): MissionBattleCou
         rankSCount: row.rank_s_count,
         rankACount: row.rank_a_count,
         rankBCount: row.rank_b_count,
-        challengeDungeonClearCount: row.challenge_dungeon_clear_count,
-        singleScoreMax: row.single_score_max,
-        singleClearTimeMin: row.single_clear_time_min,
-        bossBattleClearCount: row.boss_battle_clear_count,
-        skillUseCount: row.skill_use_count,
     }
 }
 
@@ -97,28 +76,6 @@ export function recordMissionBattleResultSync(
     const rankS = result.accomplished && result.clearRank === 4 ? 1 : 0
     const rankA = result.accomplished && result.clearRank === 3 ? 1 : 0
     const rankB = result.accomplished && result.clearRank === 2 ? 1 : 0
-    const challengeDungeonClear = result.questCategory === 13 && result.accomplished ? 1 : 0
-    const singleScore = !result.isMulti
-        && result.accomplished
-        && typeof result.score === "number"
-        && Number.isSafeInteger(result.score)
-        && result.score >= 0
-        ? result.score
-        : 0
-    const singleClearTime = !result.isMulti
-        && result.accomplished
-        && typeof result.clearTime === "number"
-        && Number.isSafeInteger(result.clearTime)
-        && result.clearTime > 0
-        ? result.clearTime
-        : 0
-    const bossBattleClear = result.questCategory === 2 && result.accomplished ? 1 : 0
-    const skillUseCount = result.accomplished
-        && typeof result.skillUseCount === "number"
-        && Number.isSafeInteger(result.skillUseCount)
-        && result.skillUseCount >= 0
-        ? result.skillUseCount
-        : 0
 
     getDb().prepare(`
         INSERT INTO players_mission_battle_counters (
@@ -126,10 +83,8 @@ export function recordMissionBattleResultSync(
             multi_play_count, multi_clear_count,
             multi_host_clear_count, multi_guest_clear_count,
             single_rank_ss_count,
-            rank_ss_count, rank_s_count, rank_a_count, rank_b_count,
-            challenge_dungeon_clear_count, single_score_max, single_clear_time_min,
-            boss_battle_clear_count, skill_use_count
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            rank_ss_count, rank_s_count, rank_a_count, rank_b_count
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(player_id) DO UPDATE SET
             single_play_count = single_play_count + excluded.single_play_count,
             single_clear_count = single_clear_count + excluded.single_clear_count,
@@ -141,17 +96,7 @@ export function recordMissionBattleResultSync(
             rank_ss_count = rank_ss_count + excluded.rank_ss_count,
             rank_s_count = rank_s_count + excluded.rank_s_count,
             rank_a_count = rank_a_count + excluded.rank_a_count,
-            rank_b_count = rank_b_count + excluded.rank_b_count,
-            challenge_dungeon_clear_count = challenge_dungeon_clear_count
-                + excluded.challenge_dungeon_clear_count,
-            single_score_max = MAX(single_score_max, excluded.single_score_max),
-            single_clear_time_min = CASE
-                WHEN single_clear_time_min = 0 THEN excluded.single_clear_time_min
-                WHEN excluded.single_clear_time_min = 0 THEN single_clear_time_min
-                ELSE MIN(single_clear_time_min, excluded.single_clear_time_min)
-            END,
-            boss_battle_clear_count = boss_battle_clear_count + excluded.boss_battle_clear_count,
-            skill_use_count = skill_use_count + excluded.skill_use_count
+            rank_b_count = rank_b_count + excluded.rank_b_count
     `).run(
         playerId,
         singlePlay,
@@ -165,10 +110,5 @@ export function recordMissionBattleResultSync(
         rankS,
         rankA,
         rankB,
-        challengeDungeonClear,
-        singleScore,
-        singleClearTime,
-        bossBattleClear,
-        skillUseCount,
     )
 }

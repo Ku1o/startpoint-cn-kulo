@@ -1,70 +1,65 @@
-# 商店与兑换
+# 商店系统修复文档
+> 状态: 已修复   关键文件: src/data/domains/*, assets/general_shop.json   相关端点: /shop/buy, /shop/get_sales_list
 
-本文描述 `/shop/get_sales_list`、`/shop/buy` 及相关商店资产的当前职责。狂热激战的兼容商店边界见[狂热激战](./rush-event.md)，星之粒角色/装备兑换见 `src/routes/api/exchange.ts`。
+本文记录四个独立但相关的商店问题及其维护方式。
 
-## 数据与入口
+---
 
-| 数据或模块 | 用途 |
-|---|---|
-| `assets/general_shop.json` | 通用商店 |
-| `assets/cdn_general_shop_whitelist.json` | 当前客户端确实存在的 GeneralShop ID |
-| `assets/boss_coin_shop.json` | Boss 币分类商品 |
-| `assets/shop_select_item_campaign.json` | 选择式商店活动的开放期和合法 lineup |
-| `assets/star_grain_shop.json` | 星之粒商店与组合奖励 |
-| `assets/equipment_enhancement_shop.json` | 追忆装备阶段强化商品 |
-| `src/data/domains/shopPurchase.ts` | 玩家按商店类型、日/月周期和总量记录购买次数 |
-| `src/data/domains/shop-campaign-lineup.ts` | 玩家首次选择的 campaign lineup |
-| `src/lib/event-shop-purchase.ts` | 通用购买校验与事务 |
-| `src/routes/api/shop.ts` | 列表与购买端点 |
+## 一、GeneralShop 进店 C8601 闪退
 
-运行时商品读取由 `src/lib/assets.ts` 和当前 Content repository 接线决定。某张资产存在不等于客户端一定有对应 ID；返回列表仍需遵守客户端主数据和活动开放期。
+### 错误现象
 
-## 商品列表
+进入游戏商店 → 报错 C8601（"指定的Key不存在。key=301132"）
 
-`/shop/get_sales_list` 按客户端请求组合来源：
+### 根因
 
-1. `shop_types` 读取普通商店类型；
-2. `event_list` 按活动类型与活动 ID 合并活动商品；
-3. `boss_coin_shop_category_ids` 按 Boss 分类合并商品；
-4. `equipment_enhancement_shop_category_ids` 限制追忆装备强化分类；
-5. 使用统一服务器时间过滤尚未开放或已经结束的商品；
-6. 读取玩家购买记录，计算当前日、当前月、总累计及最终剩余库存。
+服务器 `shop/get_sales_list` 返回的商品 ID `301132` 在客户端 CDN 主数据二进制中不存在。
 
-GeneralShop 额外通过 `cdn_general_shop_whitelist.json` 过滤客户端主数据中不存在的商品，避免返回未知 ID 触发 C8601。该白名单只用于 GeneralShop；其他类型依赖各自的受控运行资产。
+| 数据来源 | 版本 | 说明 |
+|---------|------|------|
+| `assets/general_shop.json`（服务器） | 含 275 条，84 条不在 CDN 中 | 来自 `wf-assets-cn` 1.4.54 |
+| CDN 二进制 `upload/38/9ee6cc...`（客户端） | 版本 **1.4.48**，290 个条目 | 最后更新于 diff 1.4.47→1.4.48 |
 
-追忆装备强化不是普通堆叠购买。列表按 `groupId` 汇总阶段，并根据玩家当前 `enhancementLevel` 返回下一可购买阶段、剩余级数和 group 信息；满级时仍返回组信息，但库存为 0。
+**关键事实**：
+- 该 CDN 二进制在 1.4.48 之后的 diff（1.4.48→1.4.49 ~ 1.4.53→1.4.54）中均未被更新
+- 商品 301132 的 `availableFrom` 为 `2024-10-29`，而 CDN 二进制构建于 2024-08-01
+- 客户端调用链：`ShopProductRepository/getProductsByRemoteResponse()` → `MasterBinaryMap/getIndex(301132)` → **key 不存在** → C8601
 
-## 通用购买事务
+### 修复：CDN 白名单过滤
 
-`/shop/buy` 先校验 viewer、商品、正整数购买数量、库存与余额。普通购买由 `executeGenericShopPurchaseSync()` 在单一 SQLite 事务内完成：
+**原理**：解析 CDN 二进制文件（orderedmap 格式），提取其中已有的 270 个 GeneralShop 商品 ID，在 `/get_sales_list` 响应中过滤掉不在名单内的商品。
 
 1. 读取最新玩家状态与购买次数；
 2. 对活动商店执行开放期校验；
 3. 校验 Mana、星导石、羁绊证或道具成本；
 4. 扣除货币和道具；
 5. 按购买数量展开并发放全部奖励；
-6. 按商店类型累加当前日、当前月和总购买次数；若支付类型为玛纳，同时累计 Active Mission 的实际玛纳消费量；
+6. 累加 `players_shop_purchases`；若支付类型为玛纳，同时累计 Active Mission 的实际玛纳消费量；
 7. 返回最终玩家、物品、角色与装备状态。
 
-任一步失败都回滚整个购买，不保留“已扣成本但未发奖”或“已发奖但未记库存”的部分状态。购买数量必须是正安全整数。
+| 文件 | 变更 |
+|------|------|
+| `assets/cdn_general_shop_whitelist.json` | 新增，270 个有效商品 ID 的白名单 |
+| `src/routes/api/shop.ts` | 在 `get_sales_list` 中，`ShopType.GENERAL (8)` 的商品若不在白名单则跳过 |
 
-官方表中的 `buy_max_count` 只限制单次请求数量，不是永久库存。总次数限制来自 `max_frequency`，周期限制来自 `daily_stock` 和 `monthly_stock`；列表中的 `stock_quantity` 取三个剩余限制的最小值，三者都未配置时返回 `-1`。日库存按北京时间每日 05:00 重置，月库存按每月 1 日北京时间 05:00 重置；General Shop 的 `specified_months` 会把月周期锚定到指定月份。商品 ID 在不同商店类型之间允许重名，所有计数都以 `shop_type + shop_item_id` 隔离。
+**CDN 二进制 orderedmap 格式解析**（供后续其他 shop type 参考）：
 
-升级前的 `players_shop_purchases` 没有商店类型。服务端会先保留为未知类型的兼容累计，并在该商品首次于某个明确商店购买时一次性迁入该类型；迁入后删除旧源记录，避免重启后重复导入。旧数据本身无法证明重名商品属于哪个商店，因此首次迁入前仍属于兼容边界。
+```
+文件整体结构：
+┌──────────────────────────────────────────────────┐
+│ [4 bytes LE] header_compressed_size              │
+│ [header_compressed_size bytes] zlib 压缩的 header │
+│ [剩余字节] 每个 entry 的 value 数据               │
+└──────────────────────────────────────────────────┘
 
-支持的通用奖励包括道具、经验池、玛纳、角色和装备。角色响应会经过觉醒解锁发布协调，避免商店获得角色时丢失当前应公开的 `mana_board_awake` 状态。
-
-## 批量购买
-
-`/shop/bulk_buy` 接受客户端的 `shop_type` 与 `buy_item_list` 映射。当前只开放国服 1.8.1 客户端确认使用批量入口的活动道具商店（type 4）和 Boss Coin 商店（type 7）；General、星之粒与追忆装备强化继续走各自单品或专用流程。
-
-批次先使用同一个服务器时间快照解析全部商品，并汇总货币成本、道具成本、单次上限、日/月/总库存与奖励。所有余额校验都基于批次开始时的库存，因此本批商品奖励不能反过来支付本批另一件商品的成本。预检通过后，成本扣除、全部奖励、每件商品的周期购买数、玛纳任务事实和响应状态在同一 SQLite 事务内提交；任一商品失败会回滚整批。
-
-活动商品过期沿用客户端已确认的 `2053`。商品不存在、数量非法、库存不足或余额不足沿用 HTTP 400，不猜测国服专用业务错误码。单品与批量入口共用同一周期键和库存校验，不会把 `daily_stock` 或 `monthly_stock` 误当永久库存。
-
-## 追忆装备强化
-
-`ShopType.TREASURE_EQUIPMENT` 使用独立路径：
+Header 解压后（zlib.inflateSync）：
+┌──────────────────────────────────────────────────┐
+│ [4 bytes LE] entry_count                         │
+│ [entry_count × 8 bytes] 交错存储：              │
+│   key_end_pos[i] (4 bytes LE)  — key 字符串结束偏移│
+│   value_end_pos[i] (4 bytes LE) — value 数据结束偏移│
+│ [剩余字节] 无分隔符的 key 字符串拼接（UTF-8）      │
+└──────────────────────────────────────────────────┘
 
 - 商品描述目标装备、阶段与 `enhancementMaxLevel`；
 - `planEquipmentEnhancementPurchase()` 根据当前强化等级计算目标等级；
@@ -81,32 +76,11 @@ GeneralShop 额外通过 `cdn_general_shop_whitelist.json` 过滤客户端主数
 
 重建工具 `tools/rebuild_star_grain_shop.ts` 从 CN 主数据的六组奖励槽生成运行资产。非法或部分填写的槽位会使生成失败，不静默丢弃奖励。生成器属于数据维护工具，普通服务启动不会自动执行它。
 
-## 星之粒角色与装备兑换
-
-`/exchange/star_crumb` 根据 `star_crumb_exchange.json` 与 `star_crumb_exchange_cost.json` 解析兑换目标和成本。事务内重新读取玩家星之粒余额与角色/装备持有状态，再统一完成扣款、角色/道具/装备发放及道具累计获得记录；角色内部的 bond token 写入也受同一外层事务保护。任一步抛错都会整体回滚，不使用可能遗漏异常分支的手工退款。
-
-新角色成功入库后仍经过觉醒解锁响应协调。该协调位于兑换事务提交后且为 fail-soft，不改变兑换扣款与奖励的原子结果。
-
 ## Boss 币与活动商店
 
 Boss 币列表严格按客户端传入的 category ID 查询 `boss_coin_shop.json`。分类不存在时返回空集合，不猜测相邻分类，也不把其他活动商品混入。
 
 活动商店的开放期使用统一服务器时间。列表过滤开放期，购买时再次校验，避免客户端持有旧列表后购买已经关闭的商品。狂热激战部分活动在官方 CN 数据中缺少完整商品与代币定义，当前兼容来源和推测性边界单独记录在[狂热激战](./rush-event.md)。
-
-## 选择式 Campaign Lineup
-
-`/shop/get_campaign_lineup_id` 与 `/shop/set_campaign_lineup_id` 只接受 Event Item Shop（type 4）和 Boss Coin Shop（type 7）。Content Sync 同时读取以下官方表，并生成统一的 `shop_select_item_campaign.json`：
-
-- `event_shop_select_item_campaign.orderedmap`；
-- `event_shop_select_item_campaign_lineup.orderedmap`；
-- `boss_coin_shop_select_item_campaign.orderedmap`；
-- `boss_coin_shop_select_item_campaign_lineup.orderedmap`。
-
-商品转换保留 `campaignId` 和可选的 `lineupId`。没有 campaign 的普通商品以及有 campaign、无 lineup 的公共商品始终进入候选；带 lineup 的商品只有在玩家为同一 `shop_type + campaign_id` 选择了该 lineup 后才会出现在列表中。`/buy` 与 `/bulk_buy` 会再次执行相同授权，不能通过手写商品 ID 绕过列表过滤。
-
-玩家选择保存在 `players_shop_campaign_lineups`。首次选择写入；相同值的传输重试幂等成功；不同值拒绝且不覆盖第一次选择。国服客户端只明确处理活动期外码 `1652`，因此服务端只在已知 campaign 期外返回该码；非法 campaign、非法 lineup 和重复改选使用 HTTP 400，不虚构未知业务码。开放期按国服 UTC+8 解释，首尾均包含，并统一使用全局服务器时间。
-
-CN 1.4.54 的 Event Shop 共有 6 个选择活动、27 个 lineup，bundled fallback 中 246 个相关商品已从官方表回填，其中 111 个是公共商品、135 个属于指定 lineup。同期 Boss Coin 选择活动和 lineup 表均为空，服务端原样生成空表，不推测补充。后续 CDN 出现合法 Boss Coin 定义时，Content Sync 会按同一规则自动生成。
 
 ## 玩家序列化边界
 
@@ -118,28 +92,222 @@ CN 1.4.54 的 Event Shop 共有 6 个选择活动、27 个 lineup，bundled fall
 { multiplied_id, awake_level }
 ```
 
-不得使用旧字段 `mana_node_multiplied_id`，也不得在商店处理中复制一套独立序列化逻辑。
+**过滤效果**：
 
-## 已知边界
+| 统计 | 数量 |
+|------|------|
+| 白名单中的商品（可返回） | 191 |
+| 被过滤的商品（不在 CDN） | 84 |
+| 其中 2024-08-01 后添加 | 24（含 301132） |
+| 其中 2024-08-01 前但不在此 CDN 二进制 | 60（310xxx 范围，来自后续版本数据） |
 
-- 并非全部商店表都已由 Content Sync 动态生成；未接入转换器的类型继续使用版本内置资产；
-- GeneralShop 白名单需要与受支持客户端 CDN 同步维护；
-- 狂热激战兼容商店仍含推测性数据，不能标记为官方 CDN 完整还原；
-- 支付服务不提供真实雷霆 IAP；
-- 商店客户端全类型、全部库存周期和异常回滚尚未形成完整人工验收矩阵。
+### 已知限制
 
-## 验证入口
+- 白名单仅覆盖 **GeneralShop (type 8)**。BossCoin/Treasure/StarGrain/EventItem 未做 CDN 过滤
+- 若客户端 CDN 版本更新，白名单需同步重建（运行解析脚本重新提取）
 
-主要相关测试：
+---
 
-- `tools/shop_repository.test.cjs`；
-- `tools/shop_repository_integration.test.cjs`；
-- `tools/rush_event_shop.test.cjs`；
-- `tools/rush_event_shop_route.test.cjs`；
-- `tools/shop_campaign_lineup.test.cjs`；
-- `tools/shop_bulk_purchase.test.cjs`；
-- `tools/shop_purchase_period_storage.test.cjs`；
-- `tools/star_grain_material_pack.test.cjs`；
-- `tools/equipment_enhancement.test.cjs`。
+## 二、进游戏卡死 C8707
 
-修改商店业务代码后运行 `npm run test:changed`；重建星之粒资产时单独运行 generator 测试；模块提交前运行 `npm run verify:full`。
+### 错误现象
+
+游戏启动 → `/load` 返回后卡住 → 客户端 Beacon 日志反复打印：
+
+```
+ERR:C8707|data.user_character_mana_node_list[k][i]:302330201のデータが渡されましたが、Object型が期待されています。
+```
+
+### 根因
+
+**两个问题叠加：**
+
+**问题 1 — 数据库脏数据**：玩家 20（莫方）的角色 `151165` 被写入了 16 条无效的 mana_node 记录，`value` 为 `302330201`~`302330221`（不是合法的节点 ID，合法值应为 1、2 等小数字）。
+
+**问题 2 — 序列化格式错误**：`/load` 端点中 `user_character_mana_node_list` 以扁平数字数组发送（`{ charId: [201, 202] }`），但客户端期望的是对象数组（`{ charId: [{ mana_node_multiplied_id: 201 }, { mana_node_multiplied_id: 202 }] }`）。
+
+当节点列表为空数组 `[]` 时，客户端不检查元素类型，所以平时不报错。一旦有非空数组，客户端逐一校验元素，发现是数字而非 Object，抛出 C8707。
+
+### 修复
+
+| 组件 | 变更 |
+|------|------|
+| 数据库 | 删除 `players_characters_mana_nodes` 中 player=20, character=151165 的 16 条垃圾数据 |
+| `src/data/types.ts` | `UserCharacterManaNodeList` 类型从 `Record<string, number[]>` 改为 `Record<string, { mana_node_multiplied_id: number }[]>` |
+| `src/data/utils.ts` | `serializePlayerData()` 中包装 node ID 为 `{ mana_node_multiplied_id }` 对象 |
+| `src/data/utils.ts` | `deserializePlayerData()` 中解包对象还原为内部 `number[]` 格式 |
+
+**序列化代码**（`utils.ts:308`）：
+
+```typescript
+"user_character_mana_node_list": (() => {
+    const list: Record<string, { mana_node_multiplied_id: number }[]> = {}
+    for (const [charId, nodeIds] of Object.entries(toSerialize.characterManaNodeList)) {
+        list[charId] = nodeIds.map(id => ({ mana_node_multiplied_id: id }))
+    }
+    return list
+})(),
+```
+
+**反序列化代码**（`utils.ts:634`）：
+
+```typescript
+const rawCharacterManaNodeList = toDeserialize['user_character_mana_node_list']
+const characterManaNodeList: Record<string, number[]> = {}
+for (const [charId, nodes] of Object.entries(rawCharacterManaNodeList)) {
+    characterManaNodeList[charId] = (nodes as { mana_node_multiplied_id: number }[]).map(n => n.mana_node_multiplied_id)
+}
+```
+
+### 数据格式对照
+
+| 场景 | 格式 |
+|------|------|
+| `/load` 响应（发给客户端） | `{ charId: [{ mana_node_multiplied_id: N }] }` |
+| `/character/unlock` 响应 | `{ charId: [{ mana_node_multiplied_id: N }] }` |
+| 数据库 `players_characters_mana_nodes.value` | 数字（如 `1`） |
+| 内部 `MergedPlayerData.characterManaNodeList` | `Record<string, number[]>` |
+
+---
+
+## 三、Boss币商店内容为空
+
+### 错误现象
+
+进入 Boss币商店 → 不报错，但每个 boss 标签页均显示"无商品"
+
+### 根因
+
+**客户端请求的类别 ID 与服务器数据不匹配。**
+
+客户端 CDN 主数据中的 `BossCoinShopCategory` 有 50 个类别（1-39、51-58、60-66、70-71）。但服务器 `assets/boss_coin_shop.json` 只有 27 个类别（1-33），缺失 34-39、51-58、60-66、70-71 共 21 个类别。
+
+客户端进入每个 boss 标签页时，发送该页对应的 `boss_coin_shop_category_ids`（如 `[60]`、`[61]`），服务器 `getBossCoinShopItemsSync(categoryId)` 查不到数据，返回 `null` → `toParseShopItems` 中 BOSS_COIN 条目数为 0 → `sales_list` 为空。
+
+**调试日志验证**：
+
+```
+[shop:req] viewer=9 types=[7] bossCats=[60] events=0
+[shop:res] totalSales=0 byType={} toParseItems={"7":0}
+```
+
+`bossCats=[60]` — 客户端请求类别 60，但旧数据中无此类别。
+
+### 修复：从 wf-assets-cn 重建 Boss 商店数据
+
+**工具脚本**：`tools/rebuild_boss_coin_shop.ts`
+
+**数据源**：`wf-assets-cn/orderedmap/shop/boss_coin_shop.json`（6566 条，原始格式为扁平数组）
+
+**wf-assets-cn 原始格式**（每条是一个 50 元素的字符串数组）：
+
+```
+key = 商品 ID（如 "10000"）
+value = [[
+  [0] = category_id     [17] = cost_item_id   [25] = availableFrom
+  [1] = sub_category     [18] = cost_amount    [26] = availableUntil
+  [6] = item_name                             [27] = stock
+  [12] = icon_path                             [32] = reward_type
+  [13] = rarity                                [33] = reward_item_id
+                                               [34] = reward_count
+]]
+```
+
+**目标格式**（starpoint-cn 嵌套 JSON）：
+
+```json
+{
+  "categoryId": {
+    "itemId": {
+      "costs": [{ "id": N, "amount": N }],
+      "rewards": [{ "type": N, "id": N, "count": N }],
+      "availableFrom": "YYYY-MM-DD HH:mm:ss",
+      "availableUntil": "YYYY-MM-DD HH:mm:ss" | null,
+      "stock": N
+    }
+  }
+}
+```
+
+**脚本逻辑**：
+1. 遍历 wf-assets-cn 全部 6566 条
+2. 按 `[0]`（category_id）分组
+3. 解析每个商品的 costs/rewards/dates
+4. **保留已存在的商品**（星标-cn 中手动修改过的日期不被覆盖），仅新增不存在的
+5. 输出 `boss_coin_shop.json` 和 `boss_coin_shop_item_category_map.json`
+
+**处理结果**：
+
+| 指标 | 旧值 | 新值 |
+|------|------|------|
+| 类别数 | 27 | 50 |
+| 商品总数 | 4567 | 6132 |
+| 新增类别 | — | 34-39, 51-58, 60-66, 70-71 |
+| 现有类别新增商品 | — | 各 13-111 条 |
+
+**注意**：新增商品使用 wf-assets-cn 的原始日期（多为 2025-06 至 2025-07），在当前服务器时间下均有效。如果未来服务器时间调整导致过期，需重新评估日期。
+
+### 后续维护
+
+**若客户端 CDN 版本更新导致新增更多类别**：
+1. 检查日志中 `[shop:req]` 打印的 `bossCats` 是否包含未知 ID
+2. 从最新 `wf-assets-cn/orderedmap/shop/boss_coin_shop.json` 重新运行 `tools/rebuild_boss_coin_shop.ts`
+3. 验证新类别商品 `availableFrom` 是否在服务器时间范围内
+
+**若需修改过期时间**：
+- 直接编辑 `assets/boss_coin_shop.json` 中对应商品的 `availableUntil` 字段
+- 设为 `null` 表示永久有效
+
+---
+
+## 四、星之粒属性培育素材箱奖励缺失
+
+### 错误现象与语义
+
+星之粒兑换所商品 `100017～100022` 购买后只发放第一项 `10001×1`，对应属性的五项培育素材没有到账。
+
+这些商品不是购买后进入背包、再通过道具接口开启的箱子，而是购买时立即展开的组合奖励。服务端继续使用现有 `/shop/buy` 多奖励发放链路，不创建 ID 为 `100017～100022` 的背包道具，也不接入 `/item/use_item`。
+
+### 主数据来源与生成规则
+
+重建工具 `tools/rebuild_star_grain_shop.ts` 以 `wf-assets-cn/orderedmap/shop/star_grain_shop.json` 为奖励的唯一来源。每个商品按以下六组固定字段解析 `type/id/count`：
+
+```
+25～27、28～30、31～33、34～36、37～39、40～42
+```
+
+- 完整空槽会被跳过。
+- 非空槽的 `type`、`id`、`count` 必须是合法整数，其中 `type` 只能是 `ShopItemRewardType` 的 `0～4`、`id > 0`、`count > 0`。
+- 非法槽位会终止重建，错误同时标明商品 ID 与槽位起点，避免生成部分或静默降级的奖励。
+- 旧资产不再保留或覆盖组合奖励；现有 `availableFrom`、`availableUntil` 人工日期覆盖语义保持不变。
+- 不存在有效 CN 来源的旧商品会从重建结果中删除，不保留 orphan 商品及其旧奖励。
+
+重建后 `100017～100022` 均为六项奖励。`100017` 的完整内容为 `10001×1、1×175、2×140、3×75、4×25、99×25`，其余五种属性按 CN 主数据映射对应素材 ID。`100038～100051` 等已有组合奖励同样从六槽主数据生成，专项测试负责防止回归。
+
+### 验证与维护
+
+```bash
+npx ts-node tools/rebuild_star_grain_shop.ts
+node tools/star_grain_material_pack.test.cjs
+```
+
+专项测试先逐项比较当前资产中的 CN 六槽与服务端 `rewards`，并确认素材箱商品 ID 不会作为自身奖励进入背包；通过这些断言后才连续运行两次生成器，比较完整标准输出、资产字节和 SHA-256，避免测试先修复陈旧资产再误判通过。
+
+---
+
+## 相关文件索引
+
+| 文件 | 用途 |
+|------|------|
+| `src/routes/api/shop.ts` | 商店 API 端点（含白名单过滤 + 调试日志） |
+| `assets/cdn_general_shop_whitelist.json` | GeneralShop CDN 白名单（270 个 ID） |
+| `assets/boss_coin_shop.json` | Boss 币商店商品数据（50 类别，6132 条） |
+| `assets/boss_coin_shop_item_category_map.json` | Boss 币商品 → 类别映射 |
+| `assets/general_shop.json` | 通用商店商品数据 |
+| `assets/star_grain_shop.json` | 星之粒兑换所商品与组合奖励数据 |
+| `src/data/utils.ts` | 玩家数据序列化（含 mana_node 格式修复） |
+| `src/data/types.ts` | 数据类型定义 |
+| `tools/rebuild_boss_coin_shop.ts` | Boss 币商店数据重建工具 |
+| `tools/rebuild_star_grain_shop.ts` | 从 CN 主数据重建星之粒兑换所资产 |
+| `tools/star_grain_material_pack.test.cjs` | 素材箱及既有组合奖励一致性测试 |
+| `docs/shop_fixes.md` | 本文档 |

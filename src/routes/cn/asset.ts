@@ -1,316 +1,282 @@
-import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify"
-import path from "node:path"
-import {
-    CdnPlannerError,
-    planCdnUpdate,
-    type CdnPlannerErrorCode,
-} from "../../content/cdn/planner"
-import {
-    isValidAssetVersion,
-    parseAssetProviderConfig,
-    type AssetModeEnvironment,
-    type AssetProviderConfig,
-} from "../../content/cdn/asset-mode"
-import { normalizeCdnBaseUrl, serializeCdnUpdatePlan } from "../../content/cdn/protocol"
-import type { ContentSnapshot } from "../../content/runtime/content-snapshot"
-import { getContentSnapshot } from "../../content/runtime/content-snapshot"
-import { generateDataHeaders } from "../../utils"
+import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
+import { generateDataHeaders } from "../../utils";
+import { readdirSync, statSync, existsSync } from "fs";
+import path from "path";
 
-type AssetRouteEnvironment = AssetModeEnvironment
+const CN_PORT = process.env.CN_LISTEN_PORT || "8001";
+const CDN_BASE = process.env.CDN_BASE_URL;
 
-export type AssetTargetSummary =
-    | { readonly type: "string"; readonly length: number; readonly value?: string; readonly truncated: boolean }
-    | { readonly type: "array"; readonly length: number }
-    | { readonly type: "object"; readonly keyCount: number }
-    | { readonly type: "null" }
-    | { readonly type: "boolean" | "number" | "undefined" }
+export const FULL_ARCHIVE_SUBDIRS = [
+    "archive-common-full",
+    "archive-medium-full",
+    "archive-android-full",
+    "archive-ios-full",
+] as const;
 
-export interface AssetTargetMismatchWarning {
-    readonly clientTarget: AssetTargetSummary
-    readonly snapshotTargetVersion: string
-}
+export const DIFF_ARCHIVE_SUBDIRS = [
+    "archive-common-diff",
+    "archive-medium-diff",
+    "archive-android-diff",
+    "archive-ios-diff",
+] as const;
 
-export type AssetRouteErrorCode = "CONTENT_SNAPSHOT_UNAVAILABLE" | "ASSET_SERVICE_ERROR"
-export type AssetRouteLogCode = AssetRouteErrorCode | CdnPlannerErrorCode
-
-export interface AssetRouteErrorDetails {
-    readonly code: AssetRouteLogCode
-    readonly error: unknown
-    readonly route: string
-}
-
-export type AssetRouteErrorLogger = (details: AssetRouteErrorDetails) => void
-
-export interface CnAssetRouteOptions {
-    readonly getSnapshot?: () => ContentSnapshot
-    readonly provider?: AssetProviderConfig
-    readonly env?: AssetRouteEnvironment
-    readonly warn?: (details: AssetTargetMismatchWarning) => void
-    readonly logError?: AssetRouteErrorLogger
-    readonly resolveListenHost?: (listenHost: string) => string
+/** Get CDN base URL from request Host header, fall back to CDN_BASE_URL env or default. */
+function getCdnBase(request: FastifyRequest): string {
+    if (CDN_BASE) return CDN_BASE;
+    const host = request.headers.host || `localhost:${CN_PORT}`;
+    return `http://${host}/patch/cn`;
 }
 
 function headerValue(request: FastifyRequest, name: string): string | undefined {
-    const value = request.headers[name]
-    return typeof value === "string" ? value : undefined
+    const value = request.headers[name];
+    return typeof value === "string" ? value : undefined;
 }
 
-export function getCdnBase(
-    env: AssetRouteEnvironment = process.env,
-    resolveListenHost?: (listenHost: string) => string,
-): string {
-    const provider = parseAssetProviderConfig({
-        projectRoot: path.resolve(__dirname, "../../.."),
-        env,
-        resolveListenHost,
-    })
-    if (provider.mode === "client-owned") {
-        throw new Error("client-owned asset mode does not expose a CDN base URL")
-    }
-    return provider.baseUrl
+/**
+ * CN iOS clients use the same asset update chain as Android clients.
+ * Numeric platform values are sent by some client builds (1 = iOS, 2 = Android).
+ */
+export function isSupportedAssetDevice(device?: string): boolean {
+    if (device === undefined) return true;
+    const normalized = device.toLowerCase();
+    return normalized === "1"
+        || normalized === "2"
+        || normalized === "android"
+        || normalized === "ios";
 }
 
-function summarizeClientTarget(value: unknown): AssetTargetSummary {
-    if (typeof value === "string") {
-        const summary: AssetTargetSummary = {
-            type: "string",
-            length: value.length,
-            truncated: value.length > 64,
-        }
-        return /^\d+(?:\.\d+){1,3}$/.test(value) && value.length <= 64
-            ? { ...summary, value }
-            : summary
-    }
-    if (Array.isArray(value)) return { type: "array", length: value.length }
-    if (value === null) return { type: "null" }
-    if (typeof value === "object") return { type: "object", keyCount: Object.keys(value).length }
-    if (typeof value === "boolean") return { type: "boolean" }
-    if (typeof value === "number") return { type: "number" }
-    if (typeof value === "undefined") return { type: "undefined" }
-    return { type: "undefined" }
+export function isIosAssetDevice(device?: string): boolean {
+    const normalized = device?.toLowerCase();
+    return normalized === "1" || normalized === "ios";
 }
 
-export function getCdnVersionInfo(
-    baseUrl: string,
-    snapshot: ContentSnapshot = getContentSnapshot(),
-) {
-    const normalizedBaseUrl = normalizeCdnBaseUrl(baseUrl)
+export function getEntityListName(device?: string): string {
+    return isIosAssetDevice(device)
+        ? "10939-ios_medium.csv"
+        : "10939-android_medium.csv";
+}
+
+export function getFullArchiveSubdirs(device?: string): readonly string[] {
+    return [
+        "archive-common-full",
+        "archive-medium-full",
+        isIosAssetDevice(device) ? "archive-ios-full" : "archive-android-full",
+    ];
+}
+
+export function getDiffArchiveSubdirs(device?: string): readonly string[] {
+    return [
+        "archive-common-diff",
+        "archive-medium-diff",
+        isIosAssetDevice(device) ? "archive-ios-diff" : "archive-android-diff",
+    ];
+}
+
+/** Detect CDN path-list dir name: `EntityLists` (cn_cdn) or `entities` (cn_cdn_new). */
+function entityListsDirName(): string {
+    if (existsSync(path.join(cdnDir, "EntityLists"))) return "EntityLists";
+    if (existsSync(path.join(cdnDir, "entities"))) return "entities";
+    return "EntityLists";
+}
+
+export function getVersionInfo(baseUrl: string, totalSize: number, device?: string) {
+    const el = entityListsDirName();
+    const entityBase = el === "entities" ? `${baseUrl}/${el}/files/` : `${baseUrl}/${el}/`;
     return {
-        base_url: `${normalizedBaseUrl}/`,
-        files_list: `${normalizedBaseUrl}/recovery/empty.csv`,
-        total_size: snapshot.cdn.installedBytes,
-        delayed_assets_size: 0,
+        base_url: entityBase,
+        files_list: `${baseUrl}/${el}/${getEntityListName(device)}`,
+        total_size: totalSize,
+        delayed_assets_size: 0
+    };
+}
+
+function buildArchiveList(baseUrl: string, cdnDir: string, subdir: string): { location: string; size: number; sha256: string }[] {
+    const dir = path.join(cdnDir, subdir);
+    try {
+        return readdirSync(dir)
+            .filter(f => f.endsWith(".zip"))
+            .map(f => {
+                const stats = statSync(path.join(dir, f));
+                return {
+                    location: `${baseUrl}/${subdir}/${f}`,
+                    size: stats.size,
+                    sha256: ""
+                };
+            });
+    } catch (e) {
+        console.error(`[CDN] buildArchiveList failed for ${subdir}:`, (e as Error).message);
+        return [];
     }
 }
 
-const PLANNER_CLIENT_MESSAGES: Readonly<Partial<Record<CdnPlannerErrorCode, string>>> = {
-    UNKNOWN_CURRENT_VERSION: "unknown current asset version",
-    UNSUPPORTED_PLATFORM: "unsupported asset platform",
-    UNSUPPORTED_ASSET_SIZE_KIND: "unsupported asset size kind",
+function parseVersion(v: string): number[] {
+    return v.split(".").map(Number);
 }
 
-function plannerStatus(code: CdnPlannerErrorCode): number {
-    return PLANNER_CLIENT_MESSAGES[code] === undefined ? 500 : 400
-}
-
-const ERROR_MESSAGES: Readonly<Record<AssetRouteErrorCode, string>> = {
-    CONTENT_SNAPSHOT_UNAVAILABLE: "content snapshot is unavailable",
-    ASSET_SERVICE_ERROR: "asset service is unavailable",
-}
-
-export function sendAssetRouteError(
-    request: FastifyRequest,
-    reply: FastifyReply,
-    code: AssetRouteErrorCode,
-    error: unknown,
-    logError: AssetRouteErrorLogger | undefined,
-    contentType = "application/json",
-) {
-    const details = { code, error, route: request.routeOptions.url ?? request.url }
-    if (logError) logError(details)
-    else request.log.error({ err: error, code, route: details.route }, "CN asset route failed")
-    return reply.status(500).type(contentType).send({ code, message: ERROR_MESSAGES[code] })
-}
-
-function sendPlannerError(
-    request: FastifyRequest,
-    reply: FastifyReply,
-    error: CdnPlannerError,
-    logError: AssetRouteErrorLogger | undefined,
-) {
-    const status = plannerStatus(error.code)
-    if (status === 400) {
-        return reply.status(status).type("application/json").send({
-            code: error.code,
-            message: PLANNER_CLIENT_MESSAGES[error.code],
-        })
+function compareVersion(a: string, b: string): number {
+    const av = parseVersion(a), bv = parseVersion(b);
+    for (let i = 0; i < 3; i++) {
+        if (av[i] !== bv[i]) return av[i] - bv[i];
     }
-
-    const details = {
-        code: error.code,
-        error,
-        route: request.routeOptions.url ?? request.url,
-    }
-    if (logError) logError(details)
-    else request.log.error(
-        { err: error, code: error.code, route: details.route },
-        "CN asset planner failed",
-    )
-    return reply.status(status).type("application/json").send({
-        code: error.code,
-        message: "asset update plan is unavailable",
-    })
+    return 0;
 }
 
-const routes = async (fastify: FastifyInstance, options: CnAssetRouteOptions) => {
-    const snapshot = options.getSnapshot ?? getContentSnapshot
-    const env = options.env ?? process.env
-    const getProvider = (): AssetProviderConfig => options.provider ?? parseAssetProviderConfig({
-        projectRoot: path.resolve(__dirname, "../../.."),
-        env,
-        resolveListenHost: options.resolveListenHost,
-    })
-
-    fastify.post("/version_info", async (request, reply) => {
-        let provider: AssetProviderConfig
+function buildDiffList(
+    baseUrl: string,
+    cdnDir: string,
+    clientVersion: string,
+    targetVersion: string,
+    device?: string,
+): { original_version: string; version: string; archive: { location: string; size: number; sha256: string }[] }[] {
+    const groups = new Map<string, { original_version: string; archive: { location: string; size: number; sha256: string }[] }>();
+    
+    // CDN diff archives
+    for (const subdir of getDiffArchiveSubdirs(device)) {
+        const dir = path.join(cdnDir, subdir);
         try {
-            provider = getProvider()
-        } catch (error) {
-            return sendAssetRouteError(request, reply, "ASSET_SERVICE_ERROR", error, options.logError)
+            for (const f of readdirSync(dir).filter(f => f.endsWith(".zip"))) {
+                const match = f.match(/pinball-(\d+\.\d+\.\d+)-(\d+\.\d+\.\d+)-\d+-/);
+                if (match) {
+                    const from = match[1];
+                    const to = match[2];
+                    const stats = statSync(path.join(dir, f));
+                    if (!groups.has(to)) groups.set(to, { original_version: from, archive: [] });
+                    groups.get(to)!.archive.push({ location: `${baseUrl}/${subdir}/${f}`, size: stats.size, sha256: "" });
+                }
+            }
+        } catch (e) {
+            console.error(`[CDN] buildDiffList failed for ${subdir}:`, (e as Error).message);
         }
-        if (provider.mode === "client-owned") {
-            return reply.type("application/json").send({
-                data_headers: generateDataHeaders({ asset_update: false }),
-                data: {
-                    base_url: "",
-                    files_list: "",
-                    total_size: 0,
-                    delayed_assets_size: 0,
-                },
-            })
+    }
+    
+    // Asset patch archives (active patches only)
+    const patchDir = path.join(__dirname, "..", "..", "..", "assets", "asset-patch", "active");
+    try {
+        for (const f of readdirSync(patchDir).filter(f => f.endsWith(".zip"))) {
+            const match = f.match(/pinball-(\d+\.\d+\.\d+)-(\d+\.\d+\.\d+)-\d+-/);
+            if (match) {
+                const from = match[1];
+                const to = match[2];
+                const stats = statSync(path.join(patchDir, f));
+                if (!groups.has(to)) groups.set(to, { original_version: from, archive: [] });
+                groups.get(to)!.archive.push({ location: `${baseUrl}/asset-patch/active/${f}`, size: stats.size, sha256: "" });
+            }
         }
+    } catch (e) {
+        console.error(`[PATCH] buildDiffList failed for active patches:`, (e as Error).message);
+    }
+    
+    return [...groups.entries()]
+        // The client totals every returned archive for its confirmation
+        // dialog. Do not expose unrelated historical update steps.
+        .filter(([version]) =>
+            compareVersion(version, clientVersion) > 0
+            && compareVersion(version, targetVersion) <= 0
+        )
+        .sort(([a], [b]) => compareVersion(a, b))
+        .map(([version, data]) => ({ original_version: data.original_version, version, archive: data.archive }));
+}
 
-        let contentSnapshot: ContentSnapshot
+const envCdnDir = process.env.CDN_DIR || ".cdn";
+const cdnDir = path.isAbsolute(envCdnDir) ? path.join(envCdnDir, "cn") : path.join(__dirname, "..", "..", "..", envCdnDir, "cn");
+
+function sumArchiveSizes(archives: { size: number }[]): number {
+    return archives.reduce((total, archive) => total + archive.size, 0);
+}
+
+/** Calculate only the archives this client will actually download. */
+export function getAssetDownloadSize(resVer?: string, device?: string): number {
+    const { computeAssetTarget } = require("../../lib/version");
+    const { targetVersion, isFirstTime: first, fullVersion } = computeAssetTarget(resVer);
+    const fullArchives = first
+        ? [
+            ...getFullArchiveSubdirs(device).flatMap(subdir => buildArchiveList("", cdnDir, subdir)),
+        ]
+        : [];
+    const diffBaseVersion = first ? fullVersion : (resVer ?? fullVersion);
+    const diffArchives = buildDiffList("", cdnDir, diffBaseVersion, targetVersion, device)
+        .flatMap(group => group.archive);
+    return sumArchiveSizes(fullArchives) + sumArchiveSizes(diffArchives);
+}
+
+// 启动时扫描一次，动态计算总大小
+const TOTAL_SIZE = (() => {
+    let total = 0;
+    for (const subdir of [...FULL_ARCHIVE_SUBDIRS, ...DIFF_ARCHIVE_SUBDIRS]) {
         try {
-            contentSnapshot = snapshot()
-        } catch (error) {
-            return sendAssetRouteError(
-                request,
-                reply,
-                "CONTENT_SNAPSHOT_UNAVAILABLE",
-                error,
-                options.logError,
-            )
+            for (const f of readdirSync(path.join(cdnDir, subdir)).filter(f => f.endsWith(".zip")))
+                total += statSync(path.join(cdnDir, subdir, f)).size;
+        } catch (e) {
+            console.error(`[CDN] TOTAL_SIZE failed for ${subdir}:`, (e as Error).message);
         }
+    }
+    return total;
+})();
 
-        try {
-            return reply.type("application/json").send({
-                data_headers: generateDataHeaders(),
-                data: getCdnVersionInfo(provider.baseUrl, contentSnapshot),
-            })
-        } catch (error) {
-            return sendAssetRouteError(request, reply, "ASSET_SERVICE_ERROR", error, options.logError)
-        }
-    })
+const routes = async (fastify: FastifyInstance) => {
+    fastify.post("/version_info", async (request: FastifyRequest, reply: FastifyReply) => {
+        const baseUrl = getCdnBase(request);
+        const resVer = request.headers['res_ver'] as string | undefined;
+        const device = headerValue(request, "device");
+        reply.type("application/json");
+        reply.status(200).send({
+            data_headers: generateDataHeaders(),
+            data: getVersionInfo(baseUrl, getAssetDownloadSize(resVer, device), device)
+        });
+    });
 
-    fastify.post("/get_path", async (request, reply) => {
-        const device = headerValue(request, "device")?.toLowerCase()
-        if (device !== undefined && device !== "2" && device !== "android") {
+    fastify.post("/get_path", async (request: FastifyRequest, reply: FastifyReply) => {
+        const device = headerValue(request, "device");
+        if (!isSupportedAssetDevice(device)) {
             return reply.status(400).type("application/json").send({
                 code: "UNSUPPORTED_PLATFORM",
-                message: `unsupported DEVICE header: ${device}`,
-            })
+                message: `unsupported DEVICE header: ${device?.toLowerCase()}`
+            });
         }
 
-        const assetSize = headerValue(request, "asset_size")?.toLowerCase() ?? "fulfill"
-        if (assetSize !== "fulfill" && assetSize !== "shortened" && assetSize !== "delayed") {
-            return reply.status(400).type("application/json").send({
-                code: "UNSUPPORTED_ASSET_SIZE_KIND",
-                message: `unsupported ASSET_SIZE header: ${assetSize}`,
-            })
-        }
+        const baseUrl = getCdnBase(request);
+        const resVer = request.headers['res_ver'] as string | undefined;
+        const { computeAssetTarget } = require("../../lib/version");
+        const { targetVersion, isFirstTime: first, fullVersion } = computeAssetTarget(resVer);
 
-        let provider: AssetProviderConfig
-        try {
-            provider = getProvider()
-        } catch (error) {
-            return sendAssetRouteError(request, reply, "ASSET_SERVICE_ERROR", error, options.logError)
-        }
+        const fullArchives = first
+            ? [
+                ...getFullArchiveSubdirs(device).flatMap(subdir => buildArchiveList(baseUrl, cdnDir, subdir)),
+            ]
+            : [];
 
-        const currentVersion = headerValue(request, "res_ver")
-        if (provider.mode === "client-owned") {
-            if (!isValidAssetVersion(currentVersion)) {
-                return reply.status(400).type("application/json").send({
-                    code: "INVALID_RES_VERSION",
-                    message: "a valid RES_VER header is required in client-owned asset mode",
-                })
-            }
-            return reply.status(200).type("application/json").send({
-                data_headers: generateDataHeaders({ asset_update: false }),
-                data: {
-                    info: {
-                        client_asset_version: currentVersion,
-                        target_asset_version: currentVersion,
-                        eventual_target_asset_version: currentVersion,
-                        is_initial: false,
-                    },
-                    full: null,
-                    diff: null,
-                    asset_version_hash: "",
-                    delayed_assets_size: 0,
+        const diffBaseVersion = first ? fullVersion : (resVer ?? fullVersion);
+        const diffArchives = buildDiffList(
+            baseUrl,
+            cdnDir,
+            diffBaseVersion,
+            targetVersion,
+            device,
+        );
+
+        reply.type("application/json");
+        reply.status(200).send({
+            data_headers: generateDataHeaders({ asset_update: true }),
+            data: {
+                info: {
+                    client_asset_version: resVer ?? "",
+                    target_asset_version: targetVersion,
+                    eventual_target_asset_version: targetVersion,
+                    is_initial: first,
+                    latest_maj_first_version: "1.4.0"
                 },
-            })
-        }
-
-        let contentSnapshot: ContentSnapshot
-        try {
-            contentSnapshot = snapshot()
-        } catch (error) {
-            return sendAssetRouteError(
-                request,
-                reply,
-                "CONTENT_SNAPSHOT_UNAVAILABLE",
-                error,
-                options.logError,
-            )
-        }
-
-        const plannerCurrentVersion = currentVersion ?? null
-        try {
-            const body = request.body as { target_asset_version?: unknown } | null | undefined
-            const clientTarget = body?.target_asset_version
-            if (clientTarget !== undefined && clientTarget !== contentSnapshot.cdn.targetVersion) {
-                const warning = {
-                    clientTarget: summarizeClientTarget(clientTarget),
-                    snapshotTargetVersion: contentSnapshot.cdn.targetVersion,
-                }
-                if (options.warn) options.warn(warning)
-                else request.log.warn(warning, "ignoring client asset target that differs from pinned snapshot")
+                full: {
+                    version: fullVersion,
+                    archive: fullArchives
+                },
+                diff: diffArchives,
+                asset_version_hash: ""
             }
+        });
+    });
+};
 
-            const plan = planCdnUpdate(contentSnapshot.cdn, {
-                currentVersion: plannerCurrentVersion,
-                targetVersion: contentSnapshot.cdn.targetVersion,
-                platform: "android",
-                assetSizeKind: "fulfill",
-                isInitial: plannerCurrentVersion === null,
-            })
-            const data = serializeCdnUpdatePlan(plan, {
-                baseUrl: provider.baseUrl,
-                currentVersion: plannerCurrentVersion,
-                targetVersion: contentSnapshot.cdn.targetVersion,
-            })
-            return reply.status(200).type("application/json").send({
-                data_headers: generateDataHeaders({ asset_update: true }),
-                data,
-            })
-        } catch (error) {
-            if (error instanceof CdnPlannerError) {
-                return sendPlannerError(request, reply, error, options.logError)
-            }
-            return sendAssetRouteError(request, reply, "ASSET_SERVICE_ERROR", error, options.logError)
-        }
-    })
-}
+export default routes;
 
-export default routes
+export const CDN_TOTAL_SIZE = TOTAL_SIZE;
+export const ENTITY_LISTS_DIR = entityListsDirName();

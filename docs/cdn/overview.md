@@ -1,7 +1,7 @@
 # CDN 机制与架构总览
 > 状态: 核心机制   关键文件: src/routes/cn/asset.ts   相关端点: /asset/get_path, /asset/version_info
 
-World Flipper 国服（Leiting CN）CDN 私服的目录结构、文件寻址、版本链、服务端 API 与关键配置。客户端逆向下载流程见 `client-flow.md`，当前故障决策树见 `debugging.md`。
+World Flipper 国服（Leiting CN）CDN 私服的目录结构、文件寻址、版本链、服务端 API 与关键配置。客户端逆向下载流程见 `client-flow.md`，排查/构建/信标/已知问题见 `debugging.md`。
 
 ---
 
@@ -20,7 +20,7 @@ World Flipper 国服（Leiting CN）CDN 私服的目录结构、文件寻址、�
 | 服务端 | 基于 `starpoint/`（全球服）改造为 `starpoint-cn/` | — |
 | SWF 补丁 | `starview/` Rust + FFDec 工具链 | — |
 
-> 参考：当前项目只支持本地准备的官方 CN 1.4.54 CDN；其他地区、版本和自制资源不属于运行支持范围。
+> 参考：官方完整 CDN（含全部语言/平台）约 ~30GB，每语言约 ~12GB（来自上游 Starpoint 全球服 `npm run cdn` / `download_cdn.bat` 下载工具，停服后已失效；CN 资料用 `wfax` 获取，见 debugging.md 数据对齐工具链）。
 
 ### CN APK 版本对照
 
@@ -40,7 +40,7 @@ World Flipper 国服（Leiting CN）CDN 私服的目录结构、文件寻址、�
 
 ```
 .cdn/cn/
-├── EntityLists/ 或 entities/
+├── EntityLists/
 │   ├── 10939-android_medium.csv   — Android 中画质资源清单（137,820 行，16.3MB）
 │   ├── 10939-ios_medium.csv       — iOS 中画质资源清单（16.2MB）
 │   ├── PathFile                   — 官方 get_path 响应快照（167KB，JSON，参考用）
@@ -126,7 +126,7 @@ if (bundleFiles.contains(hash)) {
 path = root + "/production/" + prefix + "/" + hash
 ```
 
-Bundle 白名单会影响同一路径在 bundle 与下载目录之间的读取优先级。出现 C8601 时按[排查手册](./debugging.md)先确认版本、Catalog、下载和解压边界，不把单一历史案例作为所有 C8601 的通用根因。
+> ⚠️ 这是 C8601 的机制根源：CharacterTable 的 bundle stub（`69828cac...`）在白名单中被**优先**加载，导致 CDN 中完整的 505 条目版本无法生效。详见 debugging.md 关键发现时间线。
 
 ### CharacterTable 发现
 
@@ -134,7 +134,7 @@ EntityLists CSV 中包含 `master/character/character.orderedmap` 的哈希路�
 
 ### SHA256 校验行为
 
-客户端 `AssetGetPathRealRemote.successHandler` 不负责用该字段校验 ZIP；EntityLists CSV 中的 SHA256 用于校验 ZIP 内解压后的单个文件。服务端仍按固定 Catalog 返回每个归档的 SHA256，使清单可审计且与 Bundle 校验工具共用同一事实来源。
+客户端 `AssetGetPathRealRemote.successHandler` **不校验** ZIP 文件的 SHA256（`sha256: ""` 保持空即可）。EntityLists CSV 中的 SHA256 用于校验 ZIP 内**解压后的单个文件**。验证结果：CDN 文件实际 SHA256 与 CSV 记录一致（urlsafe base64 格式），CDN 文件完整性正确。
 
 ---
 
@@ -147,7 +147,7 @@ pinball-{from-version}-{to-version}-{index}-{hash}.zip
     从 1.4.0 升级到 1.4.1，第 1 个包
 ```
 
-官方 1.4.54 基线 Catalog 的版本链（全量 + 增量）覆盖 `1.4.0 → 1.4.54`：
+版本链（全量 + 增量），Diff 范围 `1.4.0 → 1.4.54`（54 组）：
 
 ```
 full: 1.4.0 基版 (490 ZIPs, 9.3GB)
@@ -169,50 +169,62 @@ full: 1.4.0 基版 (490 ZIPs, 9.3GB)
 | Header | `asset_size` / `ASSET_SIZE` | `fulfill`（全量）或 `shortened`（部分） |
 | Body | `target_asset_version` | 可选 |
 
-### 初始下载响应
+### full-only 响应（无 diff）
 
 ```json
 {
   "info": {
-    "client_asset_version": "",
-    "target_asset_version": "1.4.54",
-    "eventual_target_asset_version": "1.4.54",
-    "is_initial": true
+    "client_asset_version": null,
+    "target_asset_version": "1.4.0",
+    "eventual_target_asset_version": "1.4.0",
+    "is_initial": true,
+    "latest_maj_first_version": "1.4.0"
   },
   "full": {
     "version": "1.4.0",
-    "archive": [{ "location": "http://...", "size": 123, "sha256": "..." }]
+    "archive": [{ "location": "http://...", "size": N, "sha256": "" }]
   },
+  "diff": [],
+  "asset_version_hash": ""
+}
+```
+
+### full+diff 响应
+
+```json
+{
+  "info": {
+    "client_asset_version": "",          // ← 客户端当前版本（空字符串，非 null，匹配全局服格式）
+    "target_asset_version": "1.4.54",     // ← 目标版本
+    "eventual_target_asset_version": "1.4.54",
+    "is_initial": true,                  // ← 强制全量下载
+    "latest_maj_first_version": "1.4.0"
+  },
+  "full": { "version": "1.4.0", "archive": [...] },
   "diff": [
-    { "original_version": "1.4.0", "version": "1.4.1", "archive": [] }
+    { "original_version": "1.4.0", "version": "1.4.1", "archive": [...] },
+    { "original_version": "1.4.1", "version": "1.4.2", "archive": [...] },
+    ...
+    { "original_version": "1.4.53", "version": "1.4.54", "archive": [...] }
   ],
-  "asset_version_hash": "",
-  "delayed_assets_size": 0
+  "asset_version_hash": ""
 }
 ```
 
 **关键字段**：
-- `is_initial` 只在请求未上报 `RES_VER` 时为 `true`。
-- `client_asset_version` 原样表达客户端当前版本，初始请求使用空字符串。
-- `target_asset_version` 始终来自进程固定 Content snapshot，不接受 Body 覆盖。
-- `full` 和 `diff` 都由 Catalog planner 生成；已是目标版本时两者均为 `null`。
-- 归档 `size` 和 `sha256` 来自 Catalog，不在请求时扫描目录计算。
+- `is_initial: true` — 告知客户端这是首次下载，需下载全部 full ZIP
+- `diff[]` — 增量链，客户端按 `original_version` 链式追加下载
+- `client_asset_version` — 空字符串 `""`（非 null）
+- `sha256: ""` — 客户端源码不校验此字段，保持空即可
 
 ### 版本决策逻辑
 
 ```typescript
-const currentVersion = request.headers['res_ver'] ?? null;
-const targetVersion = contentSnapshot.cdn.targetVersion;
-const plan = planCdnUpdate(contentSnapshot.cdn, {
-    currentVersion,
-    targetVersion,
-    isInitial: currentVersion === null,
-    platform: "android",
-    assetSizeKind: "fulfill"
-});
+const resVer = request.headers['res_ver'] as string | undefined;
+const targetVer = resVer ?? highestDiff;    // 首次 → 1.4.54
+const clientVer = resVer ?? null;           // null → 首次下载
+const isInitial = true;                     // 强制全量下载
 ```
-
-服务端只接受 Catalog 中唯一可达的更新路径。未知当前版本、无路径或多路径歧义都会明确失败；不会扫描 diff 目录自动发现新版本或归档。
 
 ---
 
@@ -224,18 +236,18 @@ const plan = planCdnUpdate(contentSnapshot.cdn, {
 
 ```json
 {
-  "base_url": "http://HOST:8001/patch/cn/",
-  "files_list": "http://HOST:8001/patch/cn/recovery/empty.csv",
-  "total_size": 123456789,
+  "base_url": "http://IP:8001/patch/cn/EntityLists/",
+  "files_list": "http://IP:8001/patch/cn/EntityLists/empty.csv",
+  "total_size": 10735093396,
   "delayed_assets_size": 0
 }
 ```
 
 | 字段 | 作用 |
 |------|------|
-| `base_url` | 当前 Asset Provider 的下载根路径 |
-| `files_list` | 固定兼容用零字节 Recovery CSV |
-| `total_size` | 当前固定 Catalog 的 `installedBytes`，不是固定 700 MB 桩值 |
+| `base_url` | recovery 下载根路径 |
+| `files_list` | 指向 `empty.csv` 跳过 sufficiency check；指向 `10939-android_medium.csv` 则激活完整检查 |
+| `total_size` | 显示给用户的下载大小（启动时动态扫描 ZIP 计算） |
 | `delayed_assets_size` | shortened 模式延迟下载量（=0 时 shortened = fulfill） |
 
 ### `POST /api/index.php/asset/get_path`
@@ -246,30 +258,39 @@ const plan = planCdnUpdate(contentSnapshot.cdn, {
 
 文件：`src/routes/cn/load.ts:wrapOptionFields()`
 
-`client-owned` 模式使用客户端上报且格式合法的 `RES_VER`；`local` 和 `remote` 模式使用进程固定 Content snapshot 的 `targetVersion`。
+```typescript
+d.available_asset_version = resVer ?? "1.4.0";
+```
 
 客户端用此值与 `info.json.version` 比对，决定是否触发 `get_path` 下载流程。
 
 ### 静态文件服务
 
-文件：`src/routes/cn/cdnFiles.ts`。local 模式仅供给 Catalog allowlist 内的 ZIP；CDN 根内的非 ZIP 普通文件可按路径请求。两类文件都执行根目录、符号链接和文件类型边界检查；remote/client-owned 不注册本地 CDN 文件路由。
+文件：`src/cn-server.ts`
+
+```typescript
+fastify.register(fastifyStatic, {
+    root: ".cdn",
+    prefix: "/patch"   // → .cdn/cn/archive-*/XXX.zip → /patch/cn/archive-*/XXX.zip
+});
+```
 
 ### `POST /assetintitle/version_info_in_title`（标题页）
 
-文件：`src/routes/cn/assetInTitle.ts`，与主 `version_info` 共用固定 Content snapshot 和 Asset Provider 配置。
+文件：`src/cn-server.ts:89` — 引用 `cn/asset.ts` 导出的 `CDN_TOTAL_SIZE`，与主 `version_info` 同步。
 
 ### 版本判断全链路
 
 | 阶段 | 位置 | 字段 | 当前值 |
 |------|------|------|------|
-| 加载判断 | `cn/load.ts` | `available_asset_version` | client-owned 使用 `RES_VER`；其他模式使用 snapshot target |
-| 下载目标 | `cn/asset.ts` | `client_asset_version` | `RES_VER ?? ""` |
-| 下载目标 | `cn/asset.ts` | `target_asset_version` | snapshot `targetVersion` |
-| 是否全量 | `cn/asset.ts` | `is_initial` | `RES_VER` 缺失时为 `true` |
-| 增量列表 | `cn/asset.ts` | `diff` | Catalog 中从当前版本到目标版本的唯一路径 |
-| Recovery | `cn/asset.ts` | `files_list` | `recovery/empty.csv` |
-| 下载根 | `cn/asset.ts` | `base_url` | Asset Provider `baseUrl` |
-| 显示大小 | `cn/asset.ts` | `total_size` | Catalog `installedBytes` |
+| 加载判断 | `cn/load.ts:21` | `available_asset_version` | `resVer ?? "1.4.0"` |
+| 下载目标 | `cn/asset.ts:114` | `client_asset_version` | `resVer ?? ""` |
+| 下载目标 | `cn/asset.ts:115` | `target_asset_version` | `resVer ?? "1.4.54"` |
+| 是否全量 | `cn/asset.ts:117` | `is_initial` | `true` |
+| 增量列表 | `cn/asset.ts` | `diff` | 54 组（1.4.0→1.4.54） |
+| 完整检查 | `cn/asset.ts:14` | `files_list` | `entities/10939-android_medium.csv` |
+| 完整检查 | `cn/asset.ts:13` | `base_url` | `CDN_BASE/EntityLists/` |
+| 显示大小 | `cn/asset.ts` | `total_size` | 动态扫描计算（~10GB） |
 | 延迟下载 | `cn/asset.ts` | `delayed_assets_size` | `0` |
 | 客户端 | `info.json` | `version` | 服务端写入 |
 | 客户端 | `info.json` | `assetRecoveryInfo` | 缺失文件列表 |
@@ -285,8 +306,8 @@ const plan = planCdnUpdate(contentSnapshot.cdn, {
 | `/api/index.php/load` | POST | 获取玩家数据 + available_asset_version | `cn/load.ts` |
 | `/api/index.php/asset/version_info` | POST | CDN 版本查询（total_size, files_list, delayed_assets_size） | `cn/asset.ts` |
 | `/api/index.php/asset/get_path` | POST | ZIP 列表获取（full + diff chain） | `cn/asset.ts` |
-| `/patch/cn/archive-*/pinball-*.zip` | GET | planner 返回归档后按需下载 | `cn/cdnFiles.ts` |
-| `/patch/cn/recovery/empty.csv` | GET | Recovery 兼容 CSV | `cn/cdnFiles.ts` |
+| `/patch/cn/archive-*/pinball-*.zip` | GET | **ZIP 下载**（每次 490+187=677 次） | `cn-server.ts` fastifyStatic |
+| `/patch/cn/EntityLists/10939-android_medium.csv` | GET | Sufficiency check CSV 下载 | `cn-server.ts` fastifyStatic |
 
 **附加功能：**
 
@@ -298,41 +319,67 @@ const plan = planCdnUpdate(contentSnapshot.cdn, {
 | `/crash` | POST | 崩溃日志上报 | `cn-server.ts` 内置 |
 | `/debug?loc=<ext>` | GET | **信标上报**（Beacon 系统） | `cn-server.ts` 内置 |
 
-教程路由由 `src/routes/api/tutorial.ts` 注册并持久化当前步骤。`tool/custom_notify` 仍是兼容空响应；标题页 Asset 路由与主 Asset Provider 共用固定 Content snapshot。
+**教程相关：**
+
+| 端点 | 方法 | 调用时机 | 实现文件 |
+|------|------|------|------|
+| `/api/index.php/tutorial/update_step` | POST | 教程步骤推进 | `cn-server.ts` stub |
+| `/api/index.php/tutorial/finish_trigger` | POST | 教程完成 | `cn-server.ts` stub |
+
+**当前 stub 响应：**
+
+| 端点 | 响应 | 影响 |
+|------|------|------|
+| `tutorial/update_step` | `{ step, start_time, mail_arrived: false }` | 教程重播（未持久化，`enable_newbie=false` 缓解） |
+| `tutorial/finish_trigger` | `[]`（附带 viewer_id） | 教程完成未保存 |
+| `tool/custom_notify` | `{}` | 不影响主流程 |
+| `assetintitle/version_info_in_title` | 与 version_info 同步（TOTAL_SIZE 动态） | 无影响 |
 
 ### 服务端文件索引
 
 | 文件 | 职责 |
 |------|------|
-| `src/routes/cn/asset.ts` | CDN API（version_info, get_path）+ Catalog planner |
-| `src/routes/cn/assetInTitle.ts` | 标题页版本查询，共用 snapshot 和 Asset Provider |
-| `src/routes/cn/cdnFiles.ts` | local 模式 Catalog allowlist 文件供给与路径边界检查 |
+| `src/routes/cn/asset.ts` | CDN API（version_info, get_path）+ TOTAL_SIZE 动态计算 |
 | `src/routes/cn/load.ts` | load 响应 + wrapOptionFields + available_asset_version |
-| `src/cn-server.ts` | 主入口、路由装配、`/debug` 与 `/crash` |
-| `src/routes/api/tutorial.ts` | 教程步骤与触发记录 |
-| `src/data/domains/` | SQLite 玩家领域数据 |
+| `src/cn-server.ts` | 主入口 + 静态文件服务 + tutorial stub + /debug + /crash |
+| `src/routes/api/tutorial.ts` | 教程完整逻辑（已导入但 CN 版本未启用） |
+| `src/data/wdfpData.ts` | SQLite 玩家数据 |
 
 ---
 
 ## 关键配置点
 
-### `total_size` 的来源
+### `TOTAL_SIZE` 动态计算
 
-`version_info.total_size` 直接读取进程固定 Catalog 的 `installedBytes`。Catalog 在内容初始化时完成解析和校验，请求路径不会扫描 ZIP、重新计算大小或发现新归档。更换官方 CDN 或加入新版本后，必须先由内容同步生成包含新 Catalog 的 Release。
+`cn/asset.ts` 在模块加载时扫描全部 ZIP，计算总大小：
+
+```typescript
+const TOTAL_SIZE = (() => {
+    let total = 0;
+    for (const subdir of ["archive-common-full", "archive-medium-full", "archive-android-full",
+                          "archive-common-diff", "archive-medium-diff", "archive-android-diff"]) {
+        for (const f of readdirSync(path.join(cdnDir, subdir)).filter(f => f.endsWith(".zip")))
+            total += statSync(path.join(cdnDir, subdir, f)).size;
+    }
+    return total;
+})();
+```
+
+只在启动时执行一次（~100ms），换 CDN 无需手动更新代码。
 
 ### `files_list`
 
 | 值 | 效果 |
 |------|------|
-| `recovery/empty.csv` | 当前固定兼容行为：返回零字节 CSV，不提供逐文件 Recovery |
+| `empty.csv` | sufficiency check 空操作，不弹 recovery 对话框 |
+| `10939-android_medium.csv`（正式） | sufficiency check 激活，检测所有缺失文件 |
 
 ### `diff: []` vs `diff: [...]`
 
 | 配置 | 下载内容 | 场景 |
 |------|------|------|
-| `full + diff` | 初始请求按 Catalog 返回 full base 和到目标版本的唯一路径 | 首次下载 |
-| `diff` | 已知旧版本只返回剩余的唯一增量路径 | 版本升级 |
-| `full: null, diff: null` | 客户端已处于目标版本 | 无需下载 |
+| `diff: []` | 仅 full ZIP（490 个，~9.3GB） | 调试/极简模式 |
+| `diff: [...]` | full + 增量（677 个，~10GB） | 生产模式，覆盖全版本文件 |
 
 ### `delayed_assets_size: 0`
 
@@ -357,13 +404,14 @@ const plan = planCdnUpdate(contentSnapshot.cdn, {
 | `enableAssetSufficiencyCheck`（原始） | `true`（所有版本） |
 | `fullResourceVersion`（原始） | `"1.0.19"`（所有版本） |
 | `enable_newbie`（服务端） | `false`（修改后，避免教程重播） |
+| `ANDROID_SERIAL`（构建） | 必设，否则跳过安装 |
 
 ---
 
 ## 已知限制
 
-- **不做请求级哈希**：归档 SHA256 在 Catalog 中固定记录并随清单返回；文件请求只执行边界、类型和大小检查，不在每次下载时重新计算摘要。
+- **SHA256 字段为空**：`buildArchiveList()` 不计算 ZIP 文件哈希，但不影响客户端行为（客户端不校验 ZIP sha256）。
 - **不支持多语言/多平台**：仅 CN Android 配置。
-- **CDN 来源与目录兼容**：`cn_cdn.rar` 来自 shijtswydl.leiting.com 官方 CDN（停止服务前下载）。两份 CN CDN dump（`cn_cdn.rar` 与 `cn_cdn_new/WF__CN2.zip`）byte-level 完全一致，唯一差异是目录名 `entities/` vs `EntityLists/`。Content Sync 和离线 Catalog 生成均支持两种名称；两者同时存在时确定性优先 `EntityLists/`。换 CDN 不能解决任何文件内容缺失问题。
+- **CDN 来源**：`cn_cdn.rar` 来自 shijtswydl.leiting.com 官方 CDN（停止服务前下载）。两份 CN CDN dump（`cn_cdn.rar` 与 `cn_cdn_new/WF__CN2.zip`）byte-level 完全一致，唯一差异是目录名 `entities/` vs `EntityLists/`，换 CDN 不能解决任何缺失文件或兼容性问题。
 
-CDN 同步、下载大小、Range、C8601 和业务表不一致的当前诊断顺序见[排查手册](./debugging.md)。
+> C8601 / 键体系不匹配 / recovery 循环 / bundle stub 等**问题与修复状态**记录在 `debugging.md`（关键发现时间线 + 已知问题与修复状态）。

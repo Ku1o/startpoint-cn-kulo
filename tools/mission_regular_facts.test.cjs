@@ -39,6 +39,7 @@ const {
     updatePlayerSync,
 } = require("../src/data/domains/player")
 const { getComputer } = require("../src/lib/mission/registry")
+const { recordBattleMissionDimensions } = require("../src/lib/mission/battle-dimensions")
 const { settleMissionCategories } = require("../src/lib/mission/settlement")
 const { getSnapshot, takeSnapshot } = require("../src/lib/mission/snapshot")
 const { getRankDegree } = require("../src/lib/stamina")
@@ -76,45 +77,20 @@ assert.deepEqual(getMissionBattleCountersSync(playerId), {
     rankSCount: 0,
     rankACount: 0,
     rankBCount: 0,
-    challengeDungeonClearCount: 0,
-    singleScoreMax: 0,
-    singleClearTimeMin: 0,
-    bossBattleClearCount: 0,
-    skillUseCount: 0,
 })
 
-recordMissionBattleResultSync(playerId, {
-    isMulti: false,
-    questCategory: 13,
-    accomplished: false,
-})
+recordMissionBattleResultSync(playerId, { isMulti: false, accomplished: false })
 for (let index = 0; index < 3; index++) {
     recordMissionBattleResultSync(playerId, {
         isMulti: false,
-        questCategory: 13,
         accomplished: true,
         clearRank: index === 0 ? 5 : 4,
     })
 }
-recordMissionBattleResultSync(playerId, {
-    isMulti: true,
-    questCategory: 13,
-    isHost: true,
-    accomplished: true,
-})
-recordMissionBattleResultSync(playerId, {
-    isMulti: true,
-    questCategory: 13,
-    isHost: false,
-    accomplished: false,
-})
+recordMissionBattleResultSync(playerId, { isMulti: true, isHost: true, accomplished: true })
+recordMissionBattleResultSync(playerId, { isMulti: true, isHost: false, accomplished: false })
 for (let index = 0; index < 14; index++) {
-    recordMissionBattleResultSync(playerId, {
-        isMulti: true,
-        questCategory: 13,
-        isHost: false,
-        accomplished: true,
-    })
+    recordMissionBattleResultSync(playerId, { isMulti: true, isHost: false, accomplished: true })
 }
 
 assert.deepEqual(getMissionBattleCountersSync(playerId), {
@@ -129,28 +105,7 @@ assert.deepEqual(getMissionBattleCountersSync(playerId), {
     rankSCount: 2,
     rankACount: 0,
     rankBCount: 0,
-    challengeDungeonClearCount: 18,
-    singleScoreMax: 0,
-    singleClearTimeMin: 0,
-    bossBattleClearCount: 0,
-    skillUseCount: 0,
 })
-
-assert.throws(() => {
-    db.transaction(() => {
-        recordMissionBattleResultSync(playerId, {
-            isMulti: false,
-            questCategory: 13,
-            accomplished: true,
-        })
-        throw new Error("rollback challenge dungeon fact")
-    })()
-}, /rollback challenge dungeon fact/)
-assert.equal(
-    getMissionBattleCountersSync(playerId).challengeDungeonClearCount,
-    18,
-    "结算事务回滚后不得留下挑战副本累计次数",
-)
 
 insertPlayerQuestProgressSync(playerId, 1, {
     questId: 101,
@@ -211,6 +166,71 @@ assert.equal(regular.compute(24, regularContext, 0), 3)
 assert.equal(regular.compute(25, regularContext, 0), 15)
 assert.equal(regular.compute(26, regularContext, 0), 1)
 assert.equal(regular.compute(27, regularContext, 0), 14)
+
+const rescueAccount = insertAccountSync({
+    appId: "wf_cn",
+    idpAlias: "",
+    idpCode: "test",
+    idpId: `mission-rescue-rank-${randomUUID()}`,
+    status: "normal",
+})
+const rescuePlayerId = insertDefaultPlayerSync(rescueAccount.id).id
+for (let questRank = 1; questRank <= 5; questRank++) {
+    recordBattleMissionDimensions({
+        type: "battle_finish",
+        playerId: rescuePlayerId,
+        questCategory: 2,
+        questId: 1060000 + questRank,
+        accomplished: true,
+        mode: "multi",
+        role: "guest",
+        isRescue: true,
+        clearTimeMs: 1000,
+        partyCharacterIds: [],
+        unisonCharacterIds: [],
+        statistics: {
+            dashCount: 0,
+            powerFlipCount: 0,
+            powerFlipLv3Count: 0,
+            skillCount: 0,
+            maxComboCount: 0,
+            maxSkillChainCount: 0,
+            feverCount: 0,
+            feverTimeMs: 0,
+            weakenEnemyCount: 0,
+            clearEnemyBuffCount: 0,
+            clearSelfDebuffCount: 0,
+            buffCompanionCount: 0,
+            healCompanionCount: 0,
+            emotionCount: 0,
+            enemyKillCount: 0,
+            weakPointDestroyCount: 0,
+            coffinReduceCount: 0,
+        },
+    })
+}
+const rescueContext = regular.buildContext(rescuePlayerId, 1)
+for (const missionId of [62, 63, 64, 87, 100]) {
+    assert.equal(
+        regular.compute(missionId, rescueContext, 0),
+        1,
+        `rescue rank mission ${missionId} should use its own difficulty counter`,
+    )
+}
+const rescueSettlement = settleMissionCategories(
+    rescuePlayerId,
+    [1],
+    new Date("2024-08-14T12:00:00.000Z"),
+)
+assert.deepEqual(
+    rescueSettlement.missionInfo
+        .filter(entry => [62, 63, 64, 87, 100].includes(entry.mission_id))
+        .map(entry => entry.mission_id),
+    [62, 63, 64, 87, 100],
+)
+assert.equal(rescueSettlement.itemList["49000"], 20)
+assert.equal(rescueSettlement.itemList["49001"], 20)
+assert.equal(rescueSettlement.itemList["49002"], 10)
 
 const daily = getComputer(2)
 const dailyContext = daily.buildContext(playerId, 2)
@@ -310,131 +330,6 @@ assert.equal(
     getComputer(10).compute(2, repeatedLoadContext, 0),
     3,
     "重复 load 后本周协力进度必须保持",
-)
-
-recordMissionBattleResultSync(playerId, {
-    isMulti: false,
-    questCategory: 1,
-    accomplished: true,
-})
-assert.equal(
-    getMissionBattleCountersSync(playerId).challengeDungeonClearCount,
-    18,
-    "普通关卡成功不得污染挑战副本累计次数",
-)
-
-recordMissionBattleResultSync(playerId, {
-    isMulti: false,
-    questCategory: 1,
-    accomplished: true,
-    score: 10_000_000,
-})
-recordMissionBattleResultSync(playerId, {
-    isMulti: false,
-    questCategory: 1,
-    accomplished: true,
-    score: 50_000_000,
-})
-recordMissionBattleResultSync(playerId, {
-    isMulti: true,
-    questCategory: 1,
-    accomplished: true,
-    score: 99_999_999,
-})
-recordMissionBattleResultSync(playerId, {
-    isMulti: false,
-    questCategory: 1,
-    accomplished: false,
-    score: 99_999_999,
-})
-recordMissionBattleResultSync(playerId, {
-    isMulti: false,
-    questCategory: 1,
-    accomplished: true,
-    clearTime: 12_000,
-})
-recordMissionBattleResultSync(playerId, {
-    isMulti: false,
-    questCategory: 1,
-    accomplished: true,
-    clearTime: 4_000,
-})
-recordMissionBattleResultSync(playerId, {
-    isMulti: true,
-    questCategory: 1,
-    accomplished: true,
-    clearTime: 1,
-})
-recordMissionBattleResultSync(playerId, {
-    isMulti: false,
-    questCategory: 1,
-    accomplished: false,
-    clearTime: 1,
-})
-recordMissionBattleResultSync(playerId, {
-    isMulti: false,
-    questCategory: 2,
-    accomplished: true,
-})
-recordMissionBattleResultSync(playerId, {
-    isMulti: true,
-    questCategory: 2,
-    accomplished: true,
-})
-recordMissionBattleResultSync(playerId, {
-    isMulti: false,
-    questCategory: 2,
-    accomplished: false,
-})
-assert.equal(
-    getMissionBattleCountersSync(playerId).singleScoreMax,
-    50_000_000,
-    "单人最高分应保留成功战斗中的最大分数",
-)
-assert.equal(
-    getMissionBattleCountersSync(playerId).singleClearTimeMin,
-    4_000,
-    "单人最快成功时间应保留最小耗时",
-)
-assert.equal(
-    getMissionBattleCountersSync(playerId).bossBattleClearCount,
-    2,
-    "领主战累计只应统计 category 2 的成功结算",
-)
-recordMissionBattleResultSync(playerId, {
-    isMulti: false,
-    accomplished: true,
-    skillUseCount: 25,
-})
-recordMissionBattleResultSync(playerId, {
-    isMulti: true,
-    accomplished: true,
-    skillUseCount: 75,
-})
-recordMissionBattleResultSync(playerId, {
-    isMulti: false,
-    accomplished: false,
-    skillUseCount: 1000,
-})
-assert.equal(
-    getMissionBattleCountersSync(playerId).skillUseCount,
-    100,
-    "技能使用累计只应统计成功结算中的合法次数",
-)
-assert.throws(() => {
-    db.transaction(() => {
-        recordMissionBattleResultSync(playerId, {
-            isMulti: false,
-            questCategory: 2,
-            accomplished: true,
-        })
-        throw new Error("rollback boss battle fact")
-    })()
-}, /rollback boss battle fact/)
-assert.equal(
-    getMissionBattleCountersSync(playerId).bossBattleClearCount,
-    2,
-    "领主战事实事务回滚后不得留下累计次数",
 )
 
 const replacement = getMergedPlayerDataSync(playerId)

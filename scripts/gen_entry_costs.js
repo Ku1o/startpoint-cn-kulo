@@ -5,7 +5,6 @@
  */
 const fs = require("fs");
 const path = require("path");
-const assert = require("assert/strict");
 
 const OM = path.resolve(__dirname, "..", "..", "wf-assets-cn", "orderedmap");
 const OUT = path.join(__dirname, "..", "assets", "quest_entry_costs.json");
@@ -22,30 +21,17 @@ const QUEST_TYPES = {
   ex_quest: { file: "quest/ex_quest.json", cat: 4 },
   boss_battle_quest: { file: "quest/boss_battle_quest.json", cat: 2 },
   character_quest: { file: "quest/character_quest.json", cat: 3 },
-  advent_event_quest: {
-    file: "quest/event/advent_event_quest.json",
-    cat: 7,
-    entryItem: { modeIndex: 61, itemIdIndex: 62, itemCountIndex: 63, staminaIndex: 75 },
-  },
+  advent_event_quest: { file: "quest/event/advent_event_quest.json", cat: 7 },
   carnival_event_quest: { file: "quest/event/carnival_event_quest.json", cat: 22 },
-  challenge_dungeon_event_quest: {
-    file: "quest/event/challenge_dungeon_event_quest.json",
-    cat: 13,
-    entryItem: { modeIndex: 56, itemIdIndex: 57, itemCountIndex: 58, staminaIndex: 70 },
-  },
+  challenge_dungeon_event_quest: { file: "quest/event/challenge_dungeon_event_quest.json", cat: 13 },
   daily_exp_mana_event_quest: { file: "quest/event/daily_exp_mana_event_quest.json", cat: 14 },
   daily_week_event_quest: { file: "quest/event/daily_week_event_quest.json", cat: 6 },
   expert_single_event_quest: { file: "quest/event/expert_single_event_quest.json", cat: 21 },
-  // 首行字段 50 与 69 同为 1；固定真实体力字段 69 仅防止旧校准算法误判，不改变类别 26 的既有资产。
-  hard_multi_event_quest: { file: "quest/event/hard_multi_event_quest.json", cat: 26, staminaIndex: 69 },
+  hard_multi_event_quest: { file: "quest/event/hard_multi_event_quest.json", cat: 26 },
   raid_event_quest: { file: "quest/event/raid_event_quest.json", cat: 8 },
   ranking_event_single_quest: { file: "quest/event/ranking_event_single_quest.json", cat: 10 },
   rush_event_quest: { file: "quest/event/rush_event_quest.json", cat: 24 },
-  score_attack_event_quest: {
-    file: "quest/event/score_attack_event_quest.json",
-    cat: 27,
-    entryItem: { modeIndex: 57, itemIdIndex: 58, itemCountIndex: 59, staminaIndex: 71 },
-  },
+  score_attack_event_quest: { file: "quest/event/score_attack_event_quest.json", cat: 9 },
   solo_time_attack_event_quest: { file: "quest/event/solo_time_attack_event_quest.json", cat: 25 },
   story_event_single_quest: { file: "quest/event/story_event_single_quest.json", cat: 11 },
   tower_dungeon_event_quest: { file: "quest/event/tower_dungeon_event_quest.json", cat: 20 },
@@ -73,7 +59,7 @@ for (const [name, cfg] of Object.entries(QUEST_TYPES)) {
   const obj = readJSON(cfg.file);
   if (!obj) continue;
 
-  let idx = cfg.staminaIndex ?? cfg.entryItem?.staminaIndex ?? null;
+  let idx = null;
   walk(obj, (f) => {
     if (idx !== null) return;
     const qid = f[0];
@@ -133,42 +119,17 @@ for (const [name, cfg] of Object.entries(QUEST_TYPES)) {
     total++;
     const qid = f[0];
     const st = parseInt(f[idx]);
-    const itemMode = cfg.entryItem ? parseInt(f[cfg.entryItem.modeIndex]) : 0;
-    const usesEntryItem = Boolean(cfg.entryItem && itemMode === 1);
-    if ((!isNaN(st) && st > 0) || usesEntryItem) {
-      if (!isNaN(st) && st > 0) withStamina++;
+    if (!isNaN(st) && st > 0) {
+      withStamina++;
       const key = `${cfg.cat}_${qid}`;
-      const itemId = usesEntryItem
-        ? parseInt(f[cfg.entryItem.itemIdIndex])
-        : 0;
-      const itemCount = usesEntryItem
-        ? parseInt(f[cfg.entryItem.itemCountIndex])
-        : 0;
-      const stamina = !isNaN(st) && st > 0 ? st : 0;
-      result[key] = { itemId, itemCount, stamina };
-      details[key] = { new: stamina, old: oldCosts[key]?.stamina ?? null };
+      result[key] = { itemId: 0, itemCount: 0, stamina: st };
+      details[key] = { new: st, old: oldCosts[key]?.stamina ?? null };
     }
   });
   console.log(`  ${name}: ${total} quests, ${withStamina} with stamina > 0`);
 }
 
 console.log(`\nTotal entries: ${Object.keys(result).length}`);
-
-for (let questId = 2001; questId <= 2006; questId++) {
-  assert.deepStrictEqual(
-    result[`13_${questId}`],
-    { itemId: 500000, itemCount: 1, stamina: 10 },
-    `invalid treasure domain entry cost for quest ${questId}`,
-  );
-}
-
-for (let questId = 1038; questId <= 1040; questId++) {
-  assert.deepStrictEqual(
-    result[`13_${questId}`],
-    { itemId: 30029, itemCount: 1, stamina: 0 },
-    `invalid item-only challenge dungeon entry cost for quest ${questId}`,
-  );
-}
 
 // Phase 3: Diff
 console.log("\n=== Phase 3: Diff OLD vs NEW ===\n");

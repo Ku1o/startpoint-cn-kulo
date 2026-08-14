@@ -1,18 +1,16 @@
-// Tracks pairwise party history and writes atomic Character Awake battle facts.
+// Tracks party member co-clears (pairwise) for multi-character awake missions
+// When 3+ specific characters must be in the same party, this tracks their co-appearances
 
 import { getDb } from "../../../data/db"
+import { incrementPlayerCategoryMissionSync } from "../../../data/domains/mission"
 import {
-    ensurePlayerCategoryMissionProgressSync,
-    incrementPlayerCategoryMissionsIfSafeSync,
-} from "../../../data/domains/mission"
-import {
-    getAwakeBattleProgressFacts,
+    getMatchedAwakeDirectBattleMissionIds,
     normalizeCharacterPair,
 } from "../../mission/awake-battle-rules"
 import { getCharacterRaces, getRaceKeyString } from "./race-utils"
 import type { FinishContext } from "./types"
 
-export function trackPartyCoClears(ctx: FinishContext): void {
+export function trackPartyCoClears(ctx: FinishContext): number[] {
     const ids: number[] = []
     const allRaces: string[] = []
     for (const c of ctx.party.characters) {
@@ -60,11 +58,9 @@ export function trackPartyCoClears(ctx: FinishContext): void {
         `).run(ctx.playerId, raceKey)
     }
 
-    const facts = getAwakeBattleProgressFacts(ctx, raceKey)
-    if (facts.increments.length > 0) {
-        incrementPlayerCategoryMissionsIfSafeSync(ctx.playerId, 9, facts.increments)
+    const matchedMissionIds = getMatchedAwakeDirectBattleMissionIds(ctx, raceKey)
+    for (const missionId of matchedMissionIds) {
+        incrementPlayerCategoryMissionSync(ctx.playerId, 9, missionId, 1)
     }
-    for (const fact of facts.maxima) {
-        ensurePlayerCategoryMissionProgressSync(ctx.playerId, 9, fact.missionId, fact.progress)
-    }
+    return matchedMissionIds
 }

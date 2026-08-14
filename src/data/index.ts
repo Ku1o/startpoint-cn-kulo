@@ -1,229 +1,130 @@
-import sqlite3, { Database as BetterSqlite3Database } from "better-sqlite3";
-import * as fs from "fs";
-import * as path from "path";
+import sqlite3, { Database as BetterSqlite3Database } from 'better-sqlite3';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
+import path from "path";
+import { updateBeforeInit as updateWdfpDataBefore, updateAfterInit as updateWdfpDataAfter} from "./updaters/wdfpData";
 import initWdfpData from "./initializers/wdfpData";
-import {
-    updateAfterInit as updateWdfpDataAfter,
-    updateBeforeInit as updateWdfpDataBefore,
-} from "./updaters/wdfpData";
-import {
-    prepareDataVolume,
-    resolveRuntimeDataPaths,
-    RuntimeDataPaths,
-} from "../runtime/data-paths";
-import { createBetterSqlite3Database } from "../runtime/native-binding";
+import { ensureCascadeDeleteIndexes } from "../lib/admin-account-cleanup";
 
-// better-sqlite3 supports addon objects although the installed type declaration only lists paths.
-const sqlite3WithExternalAddon = sqlite3 as unknown as (
-    databasePath: string,
-    options?: { nativeBinding?: string | object },
-) => BetterSqlite3Database;
+// Use __dirname so DB path is relative to the source file, not process.cwd()
+const dataDir = process.env.DATA_DIR
+    ? path.resolve(process.env.DATA_DIR)
+    : path.resolve(__dirname, "../../.database")
+const versionFileExtension = ".version"
+if (!existsSync(dataDir)) {
+    // make the data directory since it doesn't exist
+    try {
+        mkdirSync(dataDir)
+    } catch (error) {
+        throw new Error(`Failed to create the data directory. Reason: ${(error as Error).message}`)
+    }
+}
 
 export const enum Database {
-    WDFP_DATA,
+    WDFP_DATA
 }
 
-export interface DatabaseMigrations {
-    latestVersion: number;
-    init?: (database: BetterSqlite3Database, exists: boolean) => void;
-    updateBefore?: (database: BetterSqlite3Database, currentVersion: number) => void;
-    updateAfter?: (database: BetterSqlite3Database, currentVersion: number) => void;
+interface DatabaseMetadata {
+    path: string
+    latestVersion: number
+    init?: (database: BetterSqlite3Database, exists: boolean) => void
+    updateBefore?: (database: BetterSqlite3Database, currentVersion: number) => void
+    updateAfter?: (database: BetterSqlite3Database, currentVersion: number) => void
 }
 
-export interface DatabaseInitializationOptions {
-    paths?: RuntimeDataPaths;
-    migrations?: DatabaseMigrations;
-    databaseFactory?: (databasePath: string) => BetterSqlite3Database;
-}
-
-export interface DatabaseStatus {
-    open: boolean;
-    ready: boolean;
-    schema: number | null;
-}
-
-export interface DatabaseCheckpointResult {
-    mode: "TRUNCATE";
-    busy: number;
-    log: number;
-    checkpointed: number;
-}
-
-export class DatabaseLifecycleError extends Error {
-    readonly cause: unknown;
-
-    constructor(operation: string, cause: unknown) {
-        super(`Database ${operation} failed`);
-        this.name = "DatabaseLifecycleError";
-        this.cause = cause;
+const databasesMetadata: {[key in Database]: DatabaseMetadata} = {
+    [Database.WDFP_DATA]: {
+        path: "/wdfp_data.db",
+        init: initWdfpData,
+        updateBefore: updateWdfpDataBefore,
+        updateAfter: updateWdfpDataAfter,
+        latestVersion: 8
     }
 }
 
-const defaultMigrations: DatabaseMigrations = {
-    latestVersion: 14,
-    init: initWdfpData,
-    updateBefore: updateWdfpDataBefore,
-    updateAfter: updateWdfpDataAfter,
-};
+const loadedDatabases: {
+    [key in Database]?: BetterSqlite3Database
+} = {}
 
-let loadedDatabase: BetterSqlite3Database | null = null;
-let loadedSchema: number | null = null;
-let initializingDatabase = false;
-
-function requireOpenDatabase(): BetterSqlite3Database {
-    if (loadedDatabase === null || !loadedDatabase.open || loadedSchema === null) {
-        loadedDatabase = null;
-        loadedSchema = null;
-        throw new Error("Database is not initialized; call initializeDatabase() first");
-    }
-    return loadedDatabase;
-}
-
-function readLegacyVersion(versionPath: string): number {
-    if (!fs.existsSync(versionPath)) return 0;
-    const contents = fs.readFileSync(versionPath, "utf8").trim();
-    if (!/^\d+$/.test(contents)) return 0;
-    const version = Number(contents);
-    return Number.isSafeInteger(version) ? version : 0;
-}
-
-function publishLegacyVersion(versionPath: string, version: number): void {
-    const temporaryPath = path.join(
-        path.dirname(versionPath),
-        `.${path.basename(versionPath)}.${process.pid}.${Date.now()}.tmp`,
-    );
-    let descriptor: number | null = null;
-
-    try {
-        descriptor = fs.openSync(temporaryPath, "wx");
-        fs.writeFileSync(descriptor, version.toString(), "utf8");
-        fs.fsyncSync(descriptor);
-        fs.closeSync(descriptor);
-        descriptor = null;
-        fs.renameSync(temporaryPath, versionPath);
-    } catch (error) {
-        if (descriptor !== null) {
-            try { fs.closeSync(descriptor); } catch { /* preserve publication error */ }
-        }
-        try { fs.unlinkSync(temporaryPath); } catch { /* temporary file may not exist */ }
-        throw error;
-    }
-}
-
-function readUserVersion(database: BetterSqlite3Database): number {
-    const version = database.pragma("user_version", { simple: true });
-    if (typeof version !== "number" || !Number.isSafeInteger(version) || version < 0) {
-        throw new Error("SQLite returned an invalid schema version");
-    }
-    return version;
-}
-
-export function initializeDatabase(
-    options: DatabaseInitializationOptions = {},
+export default function getDatabase(
+    database: Database
 ): BetterSqlite3Database {
-    if (initializingDatabase) {
-        throw new Error("Database initialization is already in progress");
-    }
-    if (loadedDatabase?.open && loadedSchema !== null) return loadedDatabase;
-    loadedDatabase = null;
-    loadedSchema = null;
-    initializingDatabase = true;
+    // don't try to load an already-loaded database
+    const isLoaded = loadedDatabases[database]
+    if (isLoaded) return isLoaded
 
-    let database: BetterSqlite3Database | null = null;
-    try {
-        const paths = prepareDataVolume(options.paths ?? resolveRuntimeDataPaths());
-        const migrations = options.migrations ?? defaultMigrations;
-        if (!Number.isSafeInteger(migrations.latestVersion) || migrations.latestVersion < 0) {
-            throw new Error("Database latest schema version is invalid");
+    // get metadata
+    const metadata = databasesMetadata[database]
+
+    const relativeDatabasePath = metadata.path
+    const absoluteDatabasePath = path.join(dataDir, relativeDatabasePath)
+    // check if the db already exists
+    const dbExists = existsSync(absoluteDatabasePath)
+
+    // get the database's version
+    let currentVersion: number = 0
+    const versionFilePath = path.join(dataDir, `${relativeDatabasePath}${versionFileExtension}`)
+    if (dbExists && existsSync(versionFilePath)) {
+        const fileContents = readFileSync(versionFilePath).toString('utf-8')
+        const versionNumber = Number(fileContents)
+        currentVersion = isNaN(versionNumber) ? currentVersion : versionNumber
+    }
+
+    // create new db
+    const db = new sqlite3(absoluteDatabasePath)
+
+    // set pragma
+    db.pragma('journal_mode = WAL')
+    db.pragma('busy_timeout = 1000')
+    db.pragma('foreign_keys = OFF')
+
+    // call init & update function
+    const init = metadata.init
+    const updateBefore = metadata.updateBefore
+    const updateAfter = metadata.updateAfter
+    if (init !== undefined) {
+        try {
+            // try to update before initialization
+            const latestVersion = metadata.latestVersion
+            const updateRequired = dbExists && metadata.latestVersion > currentVersion
+            console.log(`[DB] init: dbExists=${dbExists} currentVersion=${currentVersion} latestVersion=${latestVersion} updateRequired=${updateRequired}`)
+            if (updateRequired && updateBefore !== undefined) {
+                console.log("Updating wdfp_data.db...")
+                updateBefore(db, currentVersion)
+            }
+
+            // initialize
+            console.log("[DB] calling init...")
+            init(db, dbExists)
+            console.log("[DB] init done")
+
+            // try to update after initialization
+            if (updateRequired && updateAfter !== undefined) {
+                updateAfter(db, currentVersion)
+                console.log("Successfully updated wdfp_data.db")
+            }
+
+            const createdCleanupIndexes = ensureCascadeDeleteIndexes(db)
+            if (createdCleanupIndexes > 0) {
+                console.log(`[DB] created ${createdCleanupIndexes} cascade-delete indexes`)
+            }
+
+            // write version file
+            writeFileSync(versionFilePath, latestVersion.toString(), { encoding: 'utf-8' })
+        } catch (error) {
+            console.log(error)
+            console.log(`Initalization failed for module ${metadata.path}. Error: ${error}`)
         }
-        const databaseExists = fs.existsSync(paths.databaseFile);
-
-        const databaseFactory = options.databaseFactory
-            ?? ((databasePath: string) => createBetterSqlite3Database(
-                sqlite3WithExternalAddon,
-                databasePath,
-            ));
-        database = databaseFactory(paths.databaseFile);
-
-        const userVersion = readUserVersion(database);
-        const currentVersion = userVersion === 0 && databaseExists
-            ? readLegacyVersion(paths.databaseVersionFile)
-            : userVersion;
-        if (currentVersion > migrations.latestVersion) {
-            throw new Error("Database schema is newer than this server supports");
-        }
-
-        database.pragma("journal_mode = WAL");
-        database.pragma("foreign_keys = OFF");
-
-        const updateRequired = databaseExists && currentVersion < migrations.latestVersion;
-        database.transaction(() => {
-            if (updateRequired) migrations.updateBefore?.(database!, currentVersion);
-            migrations.init?.(database!, databaseExists);
-            if (updateRequired) migrations.updateAfter?.(database!, currentVersion);
-            database!.pragma(`user_version = ${migrations.latestVersion}`);
-        })();
-
-        database.pragma("foreign_keys = ON");
-        publishLegacyVersion(paths.databaseVersionFile, migrations.latestVersion);
-
-        loadedDatabase = database;
-        loadedSchema = migrations.latestVersion;
-        return database;
-    } catch (error) {
-        if (database?.open) {
-            try { database.close(); } catch { /* preserve initialization error */ }
-        }
-        loadedDatabase = null;
-        loadedSchema = null;
-        throw new DatabaseLifecycleError("initialization", error);
-    } finally {
-        initializingDatabase = false;
     }
+
+    // re-enable foreign keys
+    db.pragma('foreign_keys = ON')
+
+    // add to loaded databases
+    loadedDatabases[database] = db
+
+    return db
 }
 
-export function getDatabaseStatus(): DatabaseStatus {
-    if (loadedDatabase === null || !loadedDatabase.open || loadedSchema === null) {
-        return { open: false, ready: false, schema: null };
-    }
-    return { open: true, ready: true, schema: loadedSchema };
-}
-
-export function checkpointDatabase(): DatabaseCheckpointResult {
-    const database = requireOpenDatabase();
-    try {
-        const rows = database.pragma("wal_checkpoint(TRUNCATE)") as Array<{
-            busy: number;
-            log: number;
-            checkpointed: number;
-        }>;
-        const result = rows[0];
-        if (result === undefined) throw new Error("SQLite returned no checkpoint result");
-        return { mode: "TRUNCATE", ...result };
-    } catch (error) {
-        throw new DatabaseLifecycleError("checkpoint", error);
-    }
-}
-
-export function closeDatabase(): boolean {
-    if (loadedDatabase === null) return false;
-    const database = loadedDatabase;
-    if (!database.open) {
-        loadedDatabase = null;
-        loadedSchema = null;
-        return false;
-    }
-    try {
-        database.close();
-    } catch (error) {
-        throw new DatabaseLifecycleError("close", error);
-    }
-    loadedDatabase = null;
-    loadedSchema = null;
-    return true;
-}
-
-export default function getDatabase(database: Database): BetterSqlite3Database {
-    if (database !== Database.WDFP_DATA) throw new Error("Unknown database");
-    return requireOpenDatabase();
+export function initializeDatabase(): BetterSqlite3Database {
+    return getDatabase(Database.WDFP_DATA)
 }

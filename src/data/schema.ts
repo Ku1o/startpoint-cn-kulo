@@ -66,6 +66,16 @@ const schemaColumns = {
         column: "unlocked",
         definition: "INTEGER NOT NULL DEFAULT 0",
     },
+    "players_quest_progress.s_plus_reward_received": {
+        table: "players_quest_progress",
+        column: "s_plus_reward_received",
+        definition: "INTEGER NOT NULL DEFAULT 0",
+    },
+    "players_active_quests.is_multi_host": {
+        table: "players_active_quests",
+        column: "is_multi_host",
+        definition: "INTEGER NOT NULL DEFAULT 0",
+    },
     "device_bindings.name": {
         table: "device_bindings",
         column: "name",
@@ -149,31 +159,6 @@ const schemaColumns = {
     "players_mission_battle_counters.single_rank_ss_count": {
         table: "players_mission_battle_counters",
         column: "single_rank_ss_count",
-        definition: "INTEGER NOT NULL DEFAULT 0",
-    },
-    "players_mission_battle_counters.challenge_dungeon_clear_count": {
-        table: "players_mission_battle_counters",
-        column: "challenge_dungeon_clear_count",
-        definition: "INTEGER NOT NULL DEFAULT 0",
-    },
-    "players_mission_battle_counters.single_score_max": {
-        table: "players_mission_battle_counters",
-        column: "single_score_max",
-        definition: "INTEGER NOT NULL DEFAULT 0",
-    },
-    "players_mission_battle_counters.single_clear_time_min": {
-        table: "players_mission_battle_counters",
-        column: "single_clear_time_min",
-        definition: "INTEGER NOT NULL DEFAULT 0",
-    },
-    "players_mission_battle_counters.boss_battle_clear_count": {
-        table: "players_mission_battle_counters",
-        column: "boss_battle_clear_count",
-        definition: "INTEGER NOT NULL DEFAULT 0",
-    },
-    "players_mission_battle_counters.skill_use_count": {
-        table: "players_mission_battle_counters",
-        column: "skill_use_count",
         definition: "INTEGER NOT NULL DEFAULT 0",
     },
     "players_active_mission_counters.total_equipment_equip_count": {

@@ -14,8 +14,7 @@
     "userCost": {
       "type": 2,
       "amount": 50
-    },
-    "maxFrequency": 1
+    }
   },
   "100002": {
     "costs": [],
@@ -32,8 +31,7 @@
     "userCost": {
       "type": 2,
       "amount": 50
-    },
-    "maxFrequency": 1
+    }
   },
   "200001": {
     "costs": [
@@ -128,8 +126,7 @@
     ],
     "availableFrom": "2020-08-21 12:00:00",
     "availableUntil": "2020-10-31 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300002": {
     "costs": [
@@ -147,8 +144,7 @@
     ],
     "availableFrom": "2020-08-21 12:00:00",
     "availableUntil": "2020-10-31 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300003": {
     "costs": [
@@ -170,8 +166,7 @@
     ],
     "availableFrom": "2020-08-21 12:00:00",
     "availableUntil": "2020-10-31 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300004": {
     "costs": [
@@ -198,8 +193,7 @@
     ],
     "availableFrom": "2020-08-21 12:00:00",
     "availableUntil": "2020-10-31 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300005": {
     "costs": [
@@ -226,8 +220,7 @@
     ],
     "availableFrom": "2020-08-21 12:00:00",
     "availableUntil": "2020-10-31 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300006": {
     "costs": [
@@ -244,8 +237,7 @@
     ],
     "availableFrom": "2020-08-21 12:00:00",
     "availableUntil": "2020-10-31 11:59:59",
-    "stock": 5,
-    "maxFrequency": 5
+    "stock": 5
   },
   "300007": {
     "costs": [
@@ -263,8 +255,7 @@
     ],
     "availableFrom": "2020-10-31 12:00:00",
     "availableUntil": "2021-01-31 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300008": {
     "costs": [
@@ -287,8 +278,7 @@
     ],
     "availableFrom": "2020-10-31 12:00:00",
     "availableUntil": "2021-01-31 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300009": {
     "costs": [
@@ -306,8 +296,7 @@
     ],
     "availableFrom": "2020-10-31 12:00:00",
     "availableUntil": "2021-01-31 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300010": {
     "costs": [
@@ -329,8 +318,7 @@
     ],
     "availableFrom": "2020-10-31 12:00:00",
     "availableUntil": "2021-01-31 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300011": {
     "costs": [
@@ -357,8 +345,7 @@
     ],
     "availableFrom": "2020-10-31 12:00:00",
     "availableUntil": "2021-01-31 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300012": {
     "costs": [
@@ -385,8 +372,7 @@
     ],
     "availableFrom": "2020-10-31 12:00:00",
     "availableUntil": "2021-01-31 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300013": {
     "costs": [
@@ -403,8 +389,7 @@
     ],
     "availableFrom": "2020-10-31 12:00:00",
     "availableUntil": "2021-01-31 11:59:59",
-    "stock": 5,
-    "maxFrequency": 5
+    "stock": 5
   },
   "230001": {
     "costs": [
@@ -422,8 +407,7 @@
     ],
     "availableFrom": "2021-09-10 12:00:00",
     "availableUntil": "2021-10-01 04:59:59",
-    "stock": 10,
-    "maxFrequency": 10
+    "stock": 10
   },
   "230002": {
     "costs": [
@@ -441,8 +425,7 @@
     ],
     "availableFrom": "2021-10-01 05:00:00",
     "availableUntil": "2021-11-01 04:59:59",
-    "stock": 10,
-    "maxFrequency": 10
+    "stock": 10
   },
   "230003": {
     "costs": [
@@ -460,8 +443,7 @@
     ],
     "availableFrom": "2021-11-01 05:00:00",
     "availableUntil": "2021-12-01 04:59:59",
-    "stock": 10,
-    "maxFrequency": 10
+    "stock": 10
   },
   "230004": {
     "costs": [
@@ -479,8 +461,7 @@
     ],
     "availableFrom": "2021-12-01 05:00:00",
     "availableUntil": "2022-01-01 04:59:59",
-    "stock": 10,
-    "maxFrequency": 10
+    "stock": 10
   },
   "230005": {
     "costs": [
@@ -498,8 +479,7 @@
     ],
     "availableFrom": "2022-01-01 05:00:00",
     "availableUntil": "2022-02-01 04:59:59",
-    "stock": 10,
-    "maxFrequency": 10
+    "stock": 10
   },
   "230006": {
     "costs": [
@@ -517,8 +497,7 @@
     ],
     "availableFrom": "2022-02-01 05:00:00",
     "availableUntil": "2022-03-01 04:59:59",
-    "stock": 10,
-    "maxFrequency": 10
+    "stock": 10
   },
   "230007": {
     "costs": [
@@ -536,8 +515,7 @@
     ],
     "availableFrom": "2022-03-01 05:00:00",
     "availableUntil": "2022-04-01 04:59:59",
-    "stock": 10,
-    "maxFrequency": 10
+    "stock": 10
   },
   "230008": {
     "costs": [
@@ -555,8 +533,7 @@
     ],
     "availableFrom": "2022-04-01 05:00:00",
     "availableUntil": "2022-05-01 04:59:59",
-    "stock": 10,
-    "maxFrequency": 10
+    "stock": 10
   },
   "230009": {
     "costs": [
@@ -574,8 +551,7 @@
     ],
     "availableFrom": "2022-05-01 05:00:00",
     "availableUntil": "2022-06-01 04:59:59",
-    "stock": 10,
-    "maxFrequency": 10
+    "stock": 10
   },
   "230010": {
     "costs": [
@@ -593,8 +569,7 @@
     ],
     "availableFrom": "2022-06-01 05:00:00",
     "availableUntil": "2022-07-01 04:59:59",
-    "stock": 10,
-    "maxFrequency": 10
+    "stock": 10
   },
   "230011": {
     "costs": [
@@ -612,8 +587,7 @@
     ],
     "availableFrom": "2022-07-01 05:00:00",
     "availableUntil": "2022-08-01 04:59:59",
-    "stock": 10,
-    "maxFrequency": 10
+    "stock": 10
   },
   "230012": {
     "costs": [
@@ -631,8 +605,7 @@
     ],
     "availableFrom": "2022-08-01 05:00:00",
     "availableUntil": "2022-09-01 04:59:59",
-    "stock": 10,
-    "maxFrequency": 10
+    "stock": 10
   },
   "230013": {
     "costs": [
@@ -650,8 +623,7 @@
     ],
     "availableFrom": "2022-09-01 05:00:00",
     "availableUntil": null,
-    "stock": 10,
-    "monthlyStock": 10
+    "stock": 10
   },
   "300022": {
     "costs": [
@@ -674,8 +646,7 @@
     ],
     "availableFrom": "2021-04-28 12:00:00",
     "availableUntil": "2021-07-16 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300023": {
     "costs": [
@@ -693,8 +664,7 @@
     ],
     "availableFrom": "2021-04-28 12:00:00",
     "availableUntil": "2021-07-16 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300024": {
     "costs": [
@@ -712,8 +682,7 @@
     ],
     "availableFrom": "2021-04-28 12:00:00",
     "availableUntil": "2021-07-16 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300025": {
     "costs": [
@@ -731,8 +700,7 @@
     ],
     "availableFrom": "2021-04-28 12:00:00",
     "availableUntil": "2021-07-16 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300026": {
     "costs": [
@@ -750,8 +718,7 @@
     ],
     "availableFrom": "2021-04-28 12:00:00",
     "availableUntil": "2021-07-16 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300027": {
     "costs": [
@@ -773,8 +740,7 @@
     ],
     "availableFrom": "2021-04-28 12:00:00",
     "availableUntil": "2021-07-16 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300028": {
     "costs": [
@@ -801,8 +767,7 @@
     ],
     "availableFrom": "2021-04-28 12:00:00",
     "availableUntil": "2021-07-16 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300029": {
     "costs": [
@@ -829,8 +794,7 @@
     ],
     "availableFrom": "2021-04-28 12:00:00",
     "availableUntil": "2021-07-16 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300030": {
     "costs": [
@@ -847,8 +811,7 @@
     ],
     "availableFrom": "2021-04-28 12:00:00",
     "availableUntil": "2021-07-16 11:59:59",
-    "stock": 5,
-    "maxFrequency": 5
+    "stock": 5
   },
   "300031": {
     "costs": [
@@ -871,8 +834,7 @@
     ],
     "availableFrom": "2021-07-16 12:00:00",
     "availableUntil": "2021-11-27 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300032": {
     "costs": [
@@ -890,8 +852,7 @@
     ],
     "availableFrom": "2021-07-16 12:00:00",
     "availableUntil": "2021-11-27 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300033": {
     "costs": [
@@ -909,8 +870,7 @@
     ],
     "availableFrom": "2021-07-16 12:00:00",
     "availableUntil": "2021-11-27 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300034": {
     "costs": [
@@ -928,8 +888,7 @@
     ],
     "availableFrom": "2021-07-16 12:00:00",
     "availableUntil": "2021-11-27 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300035": {
     "costs": [
@@ -947,8 +906,7 @@
     ],
     "availableFrom": "2021-07-16 12:00:00",
     "availableUntil": "2021-11-27 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300036": {
     "costs": [
@@ -966,8 +924,7 @@
     ],
     "availableFrom": "2021-07-16 12:00:00",
     "availableUntil": "2021-11-27 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300037": {
     "costs": [
@@ -989,8 +946,7 @@
     ],
     "availableFrom": "2021-07-16 12:00:00",
     "availableUntil": "2021-11-27 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300038": {
     "costs": [
@@ -1017,8 +973,7 @@
     ],
     "availableFrom": "2021-07-16 12:00:00",
     "availableUntil": "2021-11-27 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300039": {
     "costs": [
@@ -1045,8 +1000,7 @@
     ],
     "availableFrom": "2021-07-16 12:00:00",
     "availableUntil": "2021-11-27 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300040": {
     "costs": [
@@ -1063,8 +1017,7 @@
     ],
     "availableFrom": "2021-07-16 12:00:00",
     "availableUntil": "2021-11-27 11:59:59",
-    "stock": 5,
-    "maxFrequency": 5
+    "stock": 5
   },
   "300014": {
     "costs": [
@@ -1087,8 +1040,7 @@
     ],
     "availableFrom": "2021-01-31 12:00:00",
     "availableUntil": "2021-04-28 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300015": {
     "costs": [
@@ -1106,8 +1058,7 @@
     ],
     "availableFrom": "2021-01-31 12:00:00",
     "availableUntil": "2021-04-28 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300016": {
     "costs": [
@@ -1125,8 +1076,7 @@
     ],
     "availableFrom": "2021-01-31 12:00:00",
     "availableUntil": "2021-04-28 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300017": {
     "costs": [
@@ -1144,8 +1094,7 @@
     ],
     "availableFrom": "2021-01-31 12:00:00",
     "availableUntil": "2021-04-28 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300018": {
     "costs": [
@@ -1167,8 +1116,7 @@
     ],
     "availableFrom": "2021-01-31 12:00:00",
     "availableUntil": "2021-04-28 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300019": {
     "costs": [
@@ -1195,8 +1143,7 @@
     ],
     "availableFrom": "2021-01-31 12:00:00",
     "availableUntil": "2021-04-28 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300020": {
     "costs": [
@@ -1223,8 +1170,7 @@
     ],
     "availableFrom": "2021-01-31 12:00:00",
     "availableUntil": "2021-04-28 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300021": {
     "costs": [
@@ -1241,8 +1187,7 @@
     ],
     "availableFrom": "2021-01-31 12:00:00",
     "availableUntil": "2021-04-28 11:59:59",
-    "stock": 5,
-    "maxFrequency": 5
+    "stock": 5
   },
   "300052": {
     "costs": [
@@ -1265,8 +1210,7 @@
     ],
     "availableFrom": "2023-11-23 12:00:00",
     "availableUntil": "2023-12-07 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300053": {
     "costs": [
@@ -1284,8 +1228,7 @@
     ],
     "availableFrom": "2023-11-23 12:00:00",
     "availableUntil": "2023-12-07 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300054": {
     "costs": [
@@ -1303,8 +1246,7 @@
     ],
     "availableFrom": "2023-11-23 12:00:00",
     "availableUntil": "2023-12-07 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300055": {
     "costs": [
@@ -1322,8 +1264,7 @@
     ],
     "availableFrom": "2023-11-23 12:00:00",
     "availableUntil": "2023-12-07 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300056": {
     "costs": [
@@ -1341,8 +1282,7 @@
     ],
     "availableFrom": "2023-11-23 12:00:00",
     "availableUntil": "2023-12-07 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300057": {
     "costs": [
@@ -1360,8 +1300,7 @@
     ],
     "availableFrom": "2023-11-23 12:00:00",
     "availableUntil": "2023-12-07 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300058": {
     "costs": [
@@ -1379,8 +1318,7 @@
     ],
     "availableFrom": "2023-11-23 12:00:00",
     "availableUntil": "2023-12-07 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300059": {
     "costs": [
@@ -1402,8 +1340,7 @@
     ],
     "availableFrom": "2023-11-23 12:00:00",
     "availableUntil": "2023-12-07 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300060": {
     "costs": [
@@ -1430,8 +1367,7 @@
     ],
     "availableFrom": "2023-11-23 12:00:00",
     "availableUntil": "2023-12-07 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300061": {
     "costs": [
@@ -1458,8 +1394,7 @@
     ],
     "availableFrom": "2023-11-23 12:00:00",
     "availableUntil": "2023-12-07 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300062": {
     "costs": [
@@ -1476,8 +1411,7 @@
     ],
     "availableFrom": "2023-11-23 12:00:00",
     "availableUntil": "2023-12-07 11:59:59",
-    "stock": 5,
-    "maxFrequency": 5
+    "stock": 5
   },
   "300085": {
     "costs": [
@@ -1500,8 +1434,7 @@
     ],
     "availableFrom": "2024-04-25 12:00:00",
     "availableUntil": "2024-05-23 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300086": {
     "costs": [
@@ -1519,8 +1452,7 @@
     ],
     "availableFrom": "2024-04-25 12:00:00",
     "availableUntil": "2024-05-23 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300087": {
     "costs": [
@@ -1538,8 +1470,7 @@
     ],
     "availableFrom": "2024-04-25 12:00:00",
     "availableUntil": "2024-05-23 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300088": {
     "costs": [
@@ -1557,8 +1488,7 @@
     ],
     "availableFrom": "2024-04-25 12:00:00",
     "availableUntil": "2024-05-23 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300089": {
     "costs": [
@@ -1576,8 +1506,7 @@
     ],
     "availableFrom": "2024-04-25 12:00:00",
     "availableUntil": "2024-05-23 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300090": {
     "costs": [
@@ -1595,8 +1524,7 @@
     ],
     "availableFrom": "2024-04-25 12:00:00",
     "availableUntil": "2024-05-23 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300091": {
     "costs": [
@@ -1614,8 +1542,7 @@
     ],
     "availableFrom": "2024-04-25 12:00:00",
     "availableUntil": "2024-05-23 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300092": {
     "costs": [
@@ -1637,8 +1564,7 @@
     ],
     "availableFrom": "2024-04-25 12:00:00",
     "availableUntil": "2024-05-23 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300093": {
     "costs": [
@@ -1665,8 +1591,7 @@
     ],
     "availableFrom": "2024-04-25 12:00:00",
     "availableUntil": "2024-05-23 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300094": {
     "costs": [
@@ -1693,8 +1618,7 @@
     ],
     "availableFrom": "2024-04-25 12:00:00",
     "availableUntil": "2024-05-23 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300095": {
     "costs": [
@@ -1711,8 +1635,7 @@
     ],
     "availableFrom": "2024-04-25 12:00:00",
     "availableUntil": "2024-05-23 11:59:59",
-    "stock": 5,
-    "maxFrequency": 5
+    "stock": 5
   },
   "300108": {
     "costs": [
@@ -1735,8 +1658,7 @@
     ],
     "availableFrom": "2024-07-04 12:00:00",
     "availableUntil": "2024-08-29 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300109": {
     "costs": [
@@ -1754,8 +1676,7 @@
     ],
     "availableFrom": "2024-07-04 12:00:00",
     "availableUntil": "2024-08-29 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300110": {
     "costs": [
@@ -1773,8 +1694,7 @@
     ],
     "availableFrom": "2024-07-04 12:00:00",
     "availableUntil": "2024-08-29 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300111": {
     "costs": [
@@ -1792,8 +1712,7 @@
     ],
     "availableFrom": "2024-07-04 12:00:00",
     "availableUntil": "2024-08-29 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300112": {
     "costs": [
@@ -1811,8 +1730,7 @@
     ],
     "availableFrom": "2024-07-04 12:00:00",
     "availableUntil": "2024-08-29 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300113": {
     "costs": [
@@ -1830,8 +1748,7 @@
     ],
     "availableFrom": "2024-07-04 12:00:00",
     "availableUntil": "2024-08-29 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300114": {
     "costs": [
@@ -1849,8 +1766,7 @@
     ],
     "availableFrom": "2024-07-04 12:00:00",
     "availableUntil": "2024-08-29 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300115": {
     "costs": [
@@ -1872,8 +1788,7 @@
     ],
     "availableFrom": "2024-07-04 12:00:00",
     "availableUntil": "2024-08-29 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300116": {
     "costs": [
@@ -1891,8 +1806,7 @@
     ],
     "availableFrom": "2024-07-04 12:00:00",
     "availableUntil": "2024-08-29 11:59:59",
-    "stock": 2,
-    "maxFrequency": 2
+    "stock": 2
   },
   "300117": {
     "costs": [
@@ -1919,8 +1833,7 @@
     ],
     "availableFrom": "2024-07-04 12:00:00",
     "availableUntil": "2024-08-29 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300118": {
     "costs": [
@@ -1947,8 +1860,7 @@
     ],
     "availableFrom": "2024-07-04 12:00:00",
     "availableUntil": "2024-08-29 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300119": {
     "costs": [
@@ -1965,8 +1877,7 @@
     ],
     "availableFrom": "2024-07-04 12:00:00",
     "availableUntil": "2024-08-29 11:59:59",
-    "stock": 5,
-    "maxFrequency": 5
+    "stock": 5
   },
   "300120": {
     "costs": [
@@ -1989,8 +1900,7 @@
     ],
     "availableFrom": "2024-08-29 12:00:00",
     "availableUntil": "2024-12-05 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300121": {
     "costs": [
@@ -2008,8 +1918,7 @@
     ],
     "availableFrom": "2024-08-29 12:00:00",
     "availableUntil": "2024-12-05 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300122": {
     "costs": [
@@ -2027,8 +1936,7 @@
     ],
     "availableFrom": "2024-08-29 12:00:00",
     "availableUntil": "2024-12-05 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300123": {
     "costs": [
@@ -2046,8 +1954,7 @@
     ],
     "availableFrom": "2024-08-29 12:00:00",
     "availableUntil": "2024-12-05 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300124": {
     "costs": [
@@ -2065,8 +1972,7 @@
     ],
     "availableFrom": "2024-08-29 12:00:00",
     "availableUntil": "2024-12-05 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300125": {
     "costs": [
@@ -2084,8 +1990,7 @@
     ],
     "availableFrom": "2024-08-29 12:00:00",
     "availableUntil": "2024-12-05 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300126": {
     "costs": [
@@ -2103,8 +2008,7 @@
     ],
     "availableFrom": "2024-08-29 12:00:00",
     "availableUntil": "2024-12-05 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300127": {
     "costs": [
@@ -2126,8 +2030,7 @@
     ],
     "availableFrom": "2024-08-29 12:00:00",
     "availableUntil": "2024-12-05 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300128": {
     "costs": [
@@ -2145,8 +2048,7 @@
     ],
     "availableFrom": "2024-08-29 12:00:00",
     "availableUntil": "2024-12-05 11:59:59",
-    "stock": 2,
-    "maxFrequency": 2
+    "stock": 2
   },
   "300129": {
     "costs": [
@@ -2173,8 +2075,7 @@
     ],
     "availableFrom": "2024-08-29 12:00:00",
     "availableUntil": "2024-12-05 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300130": {
     "costs": [
@@ -2201,8 +2102,7 @@
     ],
     "availableFrom": "2024-08-29 12:00:00",
     "availableUntil": "2024-12-05 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300131": {
     "costs": [
@@ -2219,8 +2119,7 @@
     ],
     "availableFrom": "2024-08-29 12:00:00",
     "availableUntil": "2024-12-05 11:59:59",
-    "stock": 5,
-    "maxFrequency": 5
+    "stock": 5
   },
   "300144": {
     "costs": [
@@ -2243,8 +2142,7 @@
     ],
     "availableFrom": "2025-02-27 12:00:00",
     "availableUntil": "2025-05-15 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300145": {
     "costs": [
@@ -2262,8 +2160,7 @@
     ],
     "availableFrom": "2025-02-27 12:00:00",
     "availableUntil": "2025-05-15 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300146": {
     "costs": [
@@ -2281,8 +2178,7 @@
     ],
     "availableFrom": "2025-02-27 12:00:00",
     "availableUntil": "2025-05-15 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300147": {
     "costs": [
@@ -2300,8 +2196,7 @@
     ],
     "availableFrom": "2025-02-27 12:00:00",
     "availableUntil": "2025-05-15 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300148": {
     "costs": [
@@ -2319,8 +2214,7 @@
     ],
     "availableFrom": "2025-02-27 12:00:00",
     "availableUntil": "2025-05-15 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300149": {
     "costs": [
@@ -2338,8 +2232,7 @@
     ],
     "availableFrom": "2025-02-27 12:00:00",
     "availableUntil": "2025-05-15 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300150": {
     "costs": [
@@ -2357,8 +2250,7 @@
     ],
     "availableFrom": "2025-02-27 12:00:00",
     "availableUntil": "2025-05-15 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300151": {
     "costs": [
@@ -2380,8 +2272,7 @@
     ],
     "availableFrom": "2025-02-27 12:00:00",
     "availableUntil": "2025-05-15 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300152": {
     "costs": [
@@ -2399,8 +2290,7 @@
     ],
     "availableFrom": "2025-02-27 12:00:00",
     "availableUntil": "2025-05-15 11:59:59",
-    "stock": 2,
-    "maxFrequency": 2
+    "stock": 2
   },
   "300153": {
     "costs": [
@@ -2427,8 +2317,7 @@
     ],
     "availableFrom": "2025-02-27 12:00:00",
     "availableUntil": "2025-05-15 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300154": {
     "costs": [
@@ -2455,8 +2344,7 @@
     ],
     "availableFrom": "2025-02-27 12:00:00",
     "availableUntil": "2025-05-15 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300155": {
     "costs": [
@@ -2473,8 +2361,7 @@
     ],
     "availableFrom": "2025-02-27 12:00:00",
     "availableUntil": "2025-05-15 11:59:59",
-    "stock": 5,
-    "maxFrequency": 5
+    "stock": 5
   },
   "300168": {
     "costs": [
@@ -2497,8 +2384,7 @@
     ],
     "availableFrom": "2025-05-29 12:00:00",
     "availableUntil": "2025-06-26 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300169": {
     "costs": [
@@ -2516,8 +2402,7 @@
     ],
     "availableFrom": "2025-05-29 12:00:00",
     "availableUntil": "2025-06-26 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300170": {
     "costs": [
@@ -2535,8 +2420,7 @@
     ],
     "availableFrom": "2025-05-29 12:00:00",
     "availableUntil": "2025-06-26 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300171": {
     "costs": [
@@ -2554,8 +2438,7 @@
     ],
     "availableFrom": "2025-05-29 12:00:00",
     "availableUntil": "2025-06-26 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300172": {
     "costs": [
@@ -2573,8 +2456,7 @@
     ],
     "availableFrom": "2025-05-29 12:00:00",
     "availableUntil": "2025-06-26 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300173": {
     "costs": [
@@ -2592,8 +2474,7 @@
     ],
     "availableFrom": "2025-05-29 12:00:00",
     "availableUntil": "2025-06-26 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300174": {
     "costs": [
@@ -2611,8 +2492,7 @@
     ],
     "availableFrom": "2025-05-29 12:00:00",
     "availableUntil": "2025-06-26 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300175": {
     "costs": [
@@ -2634,8 +2514,7 @@
     ],
     "availableFrom": "2025-05-29 12:00:00",
     "availableUntil": "2025-06-26 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300176": {
     "costs": [
@@ -2653,8 +2532,7 @@
     ],
     "availableFrom": "2025-05-29 12:00:00",
     "availableUntil": "2025-06-26 11:59:59",
-    "stock": 2,
-    "maxFrequency": 2
+    "stock": 2
   },
   "300177": {
     "costs": [
@@ -2681,8 +2559,7 @@
     ],
     "availableFrom": "2025-05-29 12:00:00",
     "availableUntil": "2025-06-26 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300178": {
     "costs": [
@@ -2709,8 +2586,7 @@
     ],
     "availableFrom": "2025-05-29 12:00:00",
     "availableUntil": "2025-06-26 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300179": {
     "costs": [
@@ -2727,8 +2603,7 @@
     ],
     "availableFrom": "2025-05-29 12:00:00",
     "availableUntil": "2025-06-26 11:59:59",
-    "stock": 5,
-    "maxFrequency": 5
+    "stock": 5
   },
   "220025": {
     "costs": [
@@ -2750,8 +2625,7 @@
     ],
     "availableFrom": "2022-09-01 05:00:00",
     "availableUntil": "2022-10-01 04:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "220026": {
     "costs": [
@@ -2773,8 +2647,7 @@
     ],
     "availableFrom": "2022-10-01 05:00:00",
     "availableUntil": "2022-11-01 04:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "220027": {
     "costs": [
@@ -2796,8 +2669,7 @@
     ],
     "availableFrom": "2022-11-01 05:00:00",
     "availableUntil": "2022-12-01 04:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "220028": {
     "costs": [
@@ -2819,8 +2691,7 @@
     ],
     "availableFrom": "2022-12-01 05:00:00",
     "availableUntil": "2023-01-01 04:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "220032": {
     "costs": [],
@@ -2833,8 +2704,7 @@
     ],
     "availableFrom": "2023-01-01 05:00:00",
     "availableUntil": null,
-    "stock": 1,
-    "monthlyStock": 1
+    "stock": 1
   },
   "220019": {
     "costs": [
@@ -2856,8 +2726,7 @@
     ],
     "availableFrom": "2022-03-01 05:00:00",
     "availableUntil": "2022-04-01 04:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "220020": {
     "costs": [
@@ -2879,8 +2748,7 @@
     ],
     "availableFrom": "2022-04-01 05:00:00",
     "availableUntil": "2022-05-01 04:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "220021": {
     "costs": [
@@ -2902,8 +2770,7 @@
     ],
     "availableFrom": "2022-05-01 05:00:00",
     "availableUntil": "2022-06-01 04:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "220022": {
     "costs": [
@@ -2925,8 +2792,7 @@
     ],
     "availableFrom": "2022-06-01 05:00:00",
     "availableUntil": "2022-07-01 04:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "220023": {
     "costs": [
@@ -2948,8 +2814,7 @@
     ],
     "availableFrom": "2022-07-01 05:00:00",
     "availableUntil": "2022-08-01 04:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "220024": {
     "costs": [
@@ -2971,8 +2836,7 @@
     ],
     "availableFrom": "2022-08-01 05:00:00",
     "availableUntil": "2022-09-01 04:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "220018": {
     "costs": [
@@ -2994,8 +2858,7 @@
     ],
     "availableFrom": "2022-02-01 05:00:00",
     "availableUntil": "2022-03-01 04:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "220013": {
     "costs": [
@@ -3017,8 +2880,7 @@
     ],
     "availableFrom": "2021-09-01 05:00:00",
     "availableUntil": "2021-10-01 04:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "220014": {
     "costs": [
@@ -3040,8 +2902,7 @@
     ],
     "availableFrom": "2021-10-01 05:00:00",
     "availableUntil": "2021-11-01 04:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "220015": {
     "costs": [
@@ -3063,8 +2924,7 @@
     ],
     "availableFrom": "2021-11-01 05:00:00",
     "availableUntil": "2021-12-01 04:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "220016": {
     "costs": [
@@ -3086,8 +2946,7 @@
     ],
     "availableFrom": "2021-12-01 05:00:00",
     "availableUntil": "2022-01-01 04:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "220017": {
     "costs": [
@@ -3109,8 +2968,7 @@
     ],
     "availableFrom": "2022-01-01 05:00:00",
     "availableUntil": "2022-02-01 04:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "220011": {
     "costs": [
@@ -3132,8 +2990,7 @@
     ],
     "availableFrom": "2021-07-01 05:00:00",
     "availableUntil": "2021-08-01 04:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "220012": {
     "costs": [
@@ -3155,8 +3012,7 @@
     ],
     "availableFrom": "2021-08-01 05:00:00",
     "availableUntil": "2021-09-01 04:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "220008": {
     "costs": [
@@ -3178,8 +3034,7 @@
     ],
     "availableFrom": "2021-04-01 05:00:00",
     "availableUntil": "2021-05-01 04:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "220009": {
     "costs": [
@@ -3201,8 +3056,7 @@
     ],
     "availableFrom": "2021-05-01 05:00:00",
     "availableUntil": "2021-06-01 04:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "220010": {
     "costs": [
@@ -3224,8 +3078,7 @@
     ],
     "availableFrom": "2021-06-01 05:00:00",
     "availableUntil": "2021-07-01 04:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "220005": {
     "costs": [
@@ -3247,8 +3100,7 @@
     ],
     "availableFrom": "2021-01-01 05:00:00",
     "availableUntil": "2021-02-01 04:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "220006": {
     "costs": [
@@ -3270,8 +3122,7 @@
     ],
     "availableFrom": "2021-02-01 05:00:00",
     "availableUntil": "2021-03-01 04:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "220007": {
     "costs": [
@@ -3293,8 +3144,7 @@
     ],
     "availableFrom": "2021-03-01 05:00:00",
     "availableUntil": "2021-04-01 04:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "220001": {
     "costs": [
@@ -3316,8 +3166,7 @@
     ],
     "availableFrom": "2020-09-18 12:00:00",
     "availableUntil": "2020-11-01 04:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "220002": {
     "costs": [
@@ -3339,8 +3188,7 @@
     ],
     "availableFrom": "2020-09-18 12:00:00",
     "availableUntil": "2020-11-01 04:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "220003": {
     "costs": [
@@ -3362,8 +3210,7 @@
     ],
     "availableFrom": "2020-11-01 05:00:00",
     "availableUntil": "2020-12-01 04:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "220004": {
     "costs": [
@@ -3385,8 +3232,7 @@
     ],
     "availableFrom": "2020-12-01 05:00:00",
     "availableUntil": "2021-01-01 04:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300180": {
     "costs": [
@@ -3409,8 +3255,7 @@
     ],
     "availableFrom": "2025-06-26 12:00:00",
     "availableUntil": null,
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 999
   },
   "300181": {
     "costs": [
@@ -3540,8 +3385,7 @@
     ],
     "availableFrom": "2025-06-26 12:00:00",
     "availableUntil": null,
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300188": {
     "costs": [
@@ -3559,8 +3403,7 @@
     ],
     "availableFrom": "2025-06-26 12:00:00",
     "availableUntil": null,
-    "stock": 2,
-    "maxFrequency": 2
+    "stock": 2
   },
   "300189": {
     "costs": [
@@ -3587,8 +3430,7 @@
     ],
     "availableFrom": "2025-06-26 12:00:00",
     "availableUntil": null,
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300190": {
     "costs": [
@@ -3615,8 +3457,7 @@
     ],
     "availableFrom": "2025-06-26 12:00:00",
     "availableUntil": null,
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300191": {
     "costs": [
@@ -3633,8 +3474,7 @@
     ],
     "availableFrom": "2025-06-26 12:00:00",
     "availableUntil": null,
-    "stock": 5,
-    "maxFrequency": 5
+    "stock": 5
   },
   "300192": {
     "costs": [
@@ -3675,8 +3515,7 @@
     ],
     "availableFrom": "2025-05-15 12:00:00",
     "availableUntil": "2025-05-29 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300157": {
     "costs": [
@@ -3694,8 +3533,7 @@
     ],
     "availableFrom": "2025-05-15 12:00:00",
     "availableUntil": "2025-05-29 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300158": {
     "costs": [
@@ -3713,8 +3551,7 @@
     ],
     "availableFrom": "2025-05-15 12:00:00",
     "availableUntil": "2025-05-29 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300159": {
     "costs": [
@@ -3732,8 +3569,7 @@
     ],
     "availableFrom": "2025-05-15 12:00:00",
     "availableUntil": "2025-05-29 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300160": {
     "costs": [
@@ -3751,8 +3587,7 @@
     ],
     "availableFrom": "2025-05-15 12:00:00",
     "availableUntil": "2025-05-29 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300161": {
     "costs": [
@@ -3770,8 +3605,7 @@
     ],
     "availableFrom": "2025-05-15 12:00:00",
     "availableUntil": "2025-05-29 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300162": {
     "costs": [
@@ -3789,8 +3623,7 @@
     ],
     "availableFrom": "2025-05-15 12:00:00",
     "availableUntil": "2025-05-29 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300163": {
     "costs": [
@@ -3812,8 +3645,7 @@
     ],
     "availableFrom": "2025-05-15 12:00:00",
     "availableUntil": "2025-05-29 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300164": {
     "costs": [
@@ -3831,8 +3663,7 @@
     ],
     "availableFrom": "2025-05-15 12:00:00",
     "availableUntil": "2025-05-29 11:59:59",
-    "stock": 2,
-    "maxFrequency": 2
+    "stock": 2
   },
   "300165": {
     "costs": [
@@ -3859,8 +3690,7 @@
     ],
     "availableFrom": "2025-05-15 12:00:00",
     "availableUntil": "2025-05-29 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300166": {
     "costs": [
@@ -3887,8 +3717,7 @@
     ],
     "availableFrom": "2025-05-15 12:00:00",
     "availableUntil": "2025-05-29 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300167": {
     "costs": [
@@ -3905,8 +3734,7 @@
     ],
     "availableFrom": "2025-05-15 12:00:00",
     "availableUntil": "2025-05-29 11:59:59",
-    "stock": 5,
-    "maxFrequency": 5
+    "stock": 5
   },
   "300132": {
     "costs": [
@@ -3929,8 +3757,7 @@
     ],
     "availableFrom": "2024-12-05 12:00:00",
     "availableUntil": "2025-02-27 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300133": {
     "costs": [
@@ -3948,8 +3775,7 @@
     ],
     "availableFrom": "2024-12-05 12:00:00",
     "availableUntil": "2025-02-27 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300134": {
     "costs": [
@@ -3967,8 +3793,7 @@
     ],
     "availableFrom": "2024-12-05 12:00:00",
     "availableUntil": "2025-02-27 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300135": {
     "costs": [
@@ -3986,8 +3811,7 @@
     ],
     "availableFrom": "2024-12-05 12:00:00",
     "availableUntil": "2025-02-27 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300136": {
     "costs": [
@@ -4005,8 +3829,7 @@
     ],
     "availableFrom": "2024-12-05 12:00:00",
     "availableUntil": "2025-02-27 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300137": {
     "costs": [
@@ -4024,8 +3847,7 @@
     ],
     "availableFrom": "2024-12-05 12:00:00",
     "availableUntil": "2025-02-27 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300138": {
     "costs": [
@@ -4043,8 +3865,7 @@
     ],
     "availableFrom": "2024-12-05 12:00:00",
     "availableUntil": "2025-02-27 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300139": {
     "costs": [
@@ -4066,8 +3887,7 @@
     ],
     "availableFrom": "2024-12-05 12:00:00",
     "availableUntil": "2025-02-27 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300140": {
     "costs": [
@@ -4085,8 +3905,7 @@
     ],
     "availableFrom": "2024-12-05 12:00:00",
     "availableUntil": "2025-02-27 11:59:59",
-    "stock": 2,
-    "maxFrequency": 2
+    "stock": 2
   },
   "300141": {
     "costs": [
@@ -4113,8 +3932,7 @@
     ],
     "availableFrom": "2024-12-05 12:00:00",
     "availableUntil": "2025-02-27 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300142": {
     "costs": [
@@ -4141,8 +3959,7 @@
     ],
     "availableFrom": "2024-12-05 12:00:00",
     "availableUntil": "2025-02-27 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300143": {
     "costs": [
@@ -4159,8 +3976,7 @@
     ],
     "availableFrom": "2024-12-05 12:00:00",
     "availableUntil": "2025-02-27 11:59:59",
-    "stock": 5,
-    "maxFrequency": 5
+    "stock": 5
   },
   "300096": {
     "costs": [
@@ -4183,8 +3999,7 @@
     ],
     "availableFrom": "2024-05-23 12:00:00",
     "availableUntil": "2024-07-04 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300097": {
     "costs": [
@@ -4202,8 +4017,7 @@
     ],
     "availableFrom": "2024-05-23 12:00:00",
     "availableUntil": "2024-07-04 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300098": {
     "costs": [
@@ -4221,8 +4035,7 @@
     ],
     "availableFrom": "2024-05-23 12:00:00",
     "availableUntil": "2024-07-04 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300099": {
     "costs": [
@@ -4240,8 +4053,7 @@
     ],
     "availableFrom": "2024-05-23 12:00:00",
     "availableUntil": "2024-07-04 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300100": {
     "costs": [
@@ -4259,8 +4071,7 @@
     ],
     "availableFrom": "2024-05-23 12:00:00",
     "availableUntil": "2024-07-04 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300101": {
     "costs": [
@@ -4278,8 +4089,7 @@
     ],
     "availableFrom": "2024-05-23 12:00:00",
     "availableUntil": "2024-07-04 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300102": {
     "costs": [
@@ -4297,8 +4107,7 @@
     ],
     "availableFrom": "2024-05-23 12:00:00",
     "availableUntil": "2024-07-04 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300103": {
     "costs": [
@@ -4320,8 +4129,7 @@
     ],
     "availableFrom": "2024-05-23 12:00:00",
     "availableUntil": "2024-07-04 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300104": {
     "costs": [
@@ -4339,8 +4147,7 @@
     ],
     "availableFrom": "2024-05-23 12:00:00",
     "availableUntil": "2024-07-04 11:59:59",
-    "stock": 2,
-    "maxFrequency": 2
+    "stock": 2
   },
   "300105": {
     "costs": [
@@ -4367,8 +4174,7 @@
     ],
     "availableFrom": "2024-05-23 12:00:00",
     "availableUntil": "2024-07-04 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300106": {
     "costs": [
@@ -4395,8 +4201,7 @@
     ],
     "availableFrom": "2024-05-23 12:00:00",
     "availableUntil": "2024-07-04 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300107": {
     "costs": [
@@ -4413,8 +4218,7 @@
     ],
     "availableFrom": "2024-05-23 12:00:00",
     "availableUntil": "2024-07-04 11:59:59",
-    "stock": 5,
-    "maxFrequency": 5
+    "stock": 5
   },
   "300074": {
     "costs": [
@@ -4437,8 +4241,7 @@
     ],
     "availableFrom": "2024-01-25 12:00:00",
     "availableUntil": "2024-04-25 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300075": {
     "costs": [
@@ -4456,8 +4259,7 @@
     ],
     "availableFrom": "2024-01-25 12:00:00",
     "availableUntil": "2024-04-25 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300076": {
     "costs": [
@@ -4475,8 +4277,7 @@
     ],
     "availableFrom": "2024-01-25 12:00:00",
     "availableUntil": "2024-04-25 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300077": {
     "costs": [
@@ -4494,8 +4295,7 @@
     ],
     "availableFrom": "2024-01-25 12:00:00",
     "availableUntil": "2024-04-25 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300078": {
     "costs": [
@@ -4513,8 +4313,7 @@
     ],
     "availableFrom": "2024-01-25 12:00:00",
     "availableUntil": "2024-04-25 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300079": {
     "costs": [
@@ -4532,8 +4331,7 @@
     ],
     "availableFrom": "2024-01-25 12:00:00",
     "availableUntil": "2024-04-25 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300080": {
     "costs": [
@@ -4551,8 +4349,7 @@
     ],
     "availableFrom": "2024-01-25 12:00:00",
     "availableUntil": "2024-04-25 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300081": {
     "costs": [
@@ -4574,8 +4371,7 @@
     ],
     "availableFrom": "2024-01-25 12:00:00",
     "availableUntil": "2024-04-25 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300082": {
     "costs": [
@@ -4602,8 +4398,7 @@
     ],
     "availableFrom": "2024-01-25 12:00:00",
     "availableUntil": "2024-04-25 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300083": {
     "costs": [
@@ -4630,8 +4425,7 @@
     ],
     "availableFrom": "2024-01-25 12:00:00",
     "availableUntil": "2024-04-25 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300084": {
     "costs": [
@@ -4648,8 +4442,7 @@
     ],
     "availableFrom": "2024-01-25 12:00:00",
     "availableUntil": "2024-04-25 11:59:59",
-    "stock": 5,
-    "maxFrequency": 5
+    "stock": 5
   },
   "300063": {
     "costs": [
@@ -4672,8 +4465,7 @@
     ],
     "availableFrom": "2023-12-07 12:00:00",
     "availableUntil": "2024-01-25 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300064": {
     "costs": [
@@ -4691,8 +4483,7 @@
     ],
     "availableFrom": "2023-12-07 12:00:00",
     "availableUntil": "2024-01-25 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300065": {
     "costs": [
@@ -4710,8 +4501,7 @@
     ],
     "availableFrom": "2023-12-07 12:00:00",
     "availableUntil": "2024-01-25 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300066": {
     "costs": [
@@ -4729,8 +4519,7 @@
     ],
     "availableFrom": "2023-12-07 12:00:00",
     "availableUntil": "2024-01-25 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300067": {
     "costs": [
@@ -4748,8 +4537,7 @@
     ],
     "availableFrom": "2023-12-07 12:00:00",
     "availableUntil": "2024-01-25 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300068": {
     "costs": [
@@ -4767,8 +4555,7 @@
     ],
     "availableFrom": "2023-12-07 12:00:00",
     "availableUntil": "2024-01-25 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300069": {
     "costs": [
@@ -4786,8 +4573,7 @@
     ],
     "availableFrom": "2023-12-07 12:00:00",
     "availableUntil": "2024-01-25 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300070": {
     "costs": [
@@ -4809,8 +4595,7 @@
     ],
     "availableFrom": "2023-12-07 12:00:00",
     "availableUntil": "2024-01-25 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300071": {
     "costs": [
@@ -4837,8 +4622,7 @@
     ],
     "availableFrom": "2023-12-07 12:00:00",
     "availableUntil": "2024-01-25 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300072": {
     "costs": [
@@ -4865,8 +4649,7 @@
     ],
     "availableFrom": "2023-12-07 12:00:00",
     "availableUntil": "2024-01-25 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300073": {
     "costs": [
@@ -4883,8 +4666,7 @@
     ],
     "availableFrom": "2023-12-07 12:00:00",
     "availableUntil": "2024-01-25 11:59:59",
-    "stock": 5,
-    "maxFrequency": 5
+    "stock": 5
   },
   "300041": {
     "costs": [
@@ -4907,8 +4689,7 @@
     ],
     "availableFrom": "2023-09-07 12:00:00",
     "availableUntil": "2023-11-23 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300042": {
     "costs": [
@@ -4926,8 +4707,7 @@
     ],
     "availableFrom": "2023-09-07 12:00:00",
     "availableUntil": "2023-11-23 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300043": {
     "costs": [
@@ -4945,8 +4725,7 @@
     ],
     "availableFrom": "2023-09-07 12:00:00",
     "availableUntil": "2023-11-23 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300044": {
     "costs": [
@@ -4964,8 +4743,7 @@
     ],
     "availableFrom": "2023-09-07 12:00:00",
     "availableUntil": "2023-11-23 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300045": {
     "costs": [
@@ -4983,8 +4761,7 @@
     ],
     "availableFrom": "2023-09-07 12:00:00",
     "availableUntil": "2023-11-23 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300046": {
     "costs": [
@@ -5002,8 +4779,7 @@
     ],
     "availableFrom": "2023-09-07 12:00:00",
     "availableUntil": "2023-11-23 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300047": {
     "costs": [
@@ -5021,8 +4797,7 @@
     ],
     "availableFrom": "2023-09-07 12:00:00",
     "availableUntil": "2023-11-23 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300048": {
     "costs": [
@@ -5044,8 +4819,7 @@
     ],
     "availableFrom": "2023-09-07 12:00:00",
     "availableUntil": "2023-11-23 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300049": {
     "costs": [
@@ -5072,8 +4846,7 @@
     ],
     "availableFrom": "2023-09-07 12:00:00",
     "availableUntil": "2023-11-23 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300050": {
     "costs": [
@@ -5100,8 +4873,7 @@
     ],
     "availableFrom": "2023-09-07 12:00:00",
     "availableUntil": "2023-11-23 11:59:59",
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "300051": {
     "costs": [
@@ -5118,8 +4890,7 @@
     ],
     "availableFrom": "2023-09-07 12:00:00",
     "availableUntil": "2023-11-23 11:59:59",
-    "stock": 5,
-    "maxFrequency": 5
+    "stock": 5
   },
   "400002": {
     "costs": [
@@ -5191,8 +4962,7 @@
     ],
     "availableFrom": "2024-08-16 12:00:00",
     "availableUntil": "2024-10-11 11:59:59",
-    "stock": 5,
-    "maxFrequency": 5
+    "stock": 5
   },
   "400020": {
     "costs": [
@@ -5264,8 +5034,7 @@
     ],
     "availableFrom": "2024-10-11 12:00:00",
     "availableUntil": "2024-11-07 11:59:59",
-    "stock": 5,
-    "maxFrequency": 5
+    "stock": 5
   },
   "400024": {
     "costs": [
@@ -5337,8 +5106,7 @@
     ],
     "availableFrom": "2024-11-07 12:00:00",
     "availableUntil": "2025-01-02 11:59:59",
-    "stock": 5,
-    "maxFrequency": 5
+    "stock": 5
   },
   "400028": {
     "costs": [
@@ -5410,8 +5178,7 @@
     ],
     "availableFrom": "2025-01-02 12:00:00",
     "availableUntil": "2025-03-27 11:59:59",
-    "stock": 5,
-    "maxFrequency": 5
+    "stock": 5
   },
   "400032": {
     "costs": [
@@ -5483,8 +5250,7 @@
     ],
     "availableFrom": "2025-03-27 12:00:00",
     "availableUntil": "2025-06-19 11:59:59",
-    "stock": 5,
-    "maxFrequency": 5
+    "stock": 5
   },
   "400036": {
     "costs": [
@@ -5556,8 +5322,7 @@
     ],
     "availableFrom": "2025-06-19 12:00:00",
     "availableUntil": "2050-11-30 11:59:59",
-    "stock": 5,
-    "maxFrequency": 5
+    "stock": 5
   },
   "110001": {
     "costs": [
@@ -5583,8 +5348,7 @@
     ],
     "availableFrom": "2024-08-20 12:00:00",
     "availableUntil": null,
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "110002": {
     "costs": [
@@ -5610,8 +5374,7 @@
     ],
     "availableFrom": "2024-08-20 12:00:00",
     "availableUntil": null,
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "110003": {
     "costs": [
@@ -5637,8 +5400,7 @@
     ],
     "availableFrom": "2024-08-20 12:00:00",
     "availableUntil": null,
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "110004": {
     "costs": [
@@ -5664,8 +5426,7 @@
     ],
     "availableFrom": "2024-08-20 12:00:00",
     "availableUntil": null,
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "110005": {
     "costs": [
@@ -5691,8 +5452,7 @@
     ],
     "availableFrom": "2024-08-20 12:00:00",
     "availableUntil": null,
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "110006": {
     "costs": [
@@ -5718,8 +5478,7 @@
     ],
     "availableFrom": "2024-08-20 12:00:00",
     "availableUntil": null,
-    "stock": 1,
-    "maxFrequency": 1
+    "stock": 1
   },
   "100007": {
     "costs": [],
@@ -5736,8 +5495,7 @@
     "userCost": {
       "type": 2,
       "amount": 50
-    },
-    "maxFrequency": 1
+    }
   },
   "100008": {
     "costs": [],
@@ -5754,8 +5512,7 @@
     "userCost": {
       "type": 2,
       "amount": 50
-    },
-    "maxFrequency": 1
+    }
   },
   "100003": {
     "costs": [],
@@ -5772,8 +5529,7 @@
     "userCost": {
       "type": 2,
       "amount": 50
-    },
-    "maxFrequency": 1
+    }
   },
   "100004": {
     "costs": [],
@@ -5790,8 +5546,7 @@
     "userCost": {
       "type": 2,
       "amount": 50
-    },
-    "maxFrequency": 1
+    }
   },
   "100005": {
     "costs": [],
@@ -5808,8 +5563,7 @@
     "userCost": {
       "type": 2,
       "amount": 50
-    },
-    "maxFrequency": 1
+    }
   },
   "100006": {
     "costs": [],
@@ -5826,8 +5580,7 @@
     "userCost": {
       "type": 2,
       "amount": 50
-    },
-    "maxFrequency": 1
+    }
   },
   "240001": {
     "costs": [
@@ -5849,8 +5602,7 @@
     ],
     "availableFrom": "2022-01-24 12:00:00",
     "availableUntil": "2022-02-01 04:59:59",
-    "stock": 10,
-    "maxFrequency": 10
+    "stock": 10
   },
   "240002": {
     "costs": [
@@ -5872,8 +5624,7 @@
     ],
     "availableFrom": "2022-02-01 05:00:00",
     "availableUntil": "2022-03-01 04:59:59",
-    "stock": 10,
-    "maxFrequency": 10
+    "stock": 10
   },
   "240003": {
     "costs": [
@@ -5895,8 +5646,7 @@
     ],
     "availableFrom": "2022-03-01 05:00:00",
     "availableUntil": "2022-04-01 04:59:59",
-    "stock": 10,
-    "maxFrequency": 10
+    "stock": 10
   },
   "240004": {
     "costs": [
@@ -5918,8 +5668,7 @@
     ],
     "availableFrom": "2022-04-01 05:00:00",
     "availableUntil": "2022-05-01 04:59:59",
-    "stock": 10,
-    "maxFrequency": 10
+    "stock": 10
   },
   "240005": {
     "costs": [
@@ -5941,8 +5690,7 @@
     ],
     "availableFrom": "2022-05-01 05:00:00",
     "availableUntil": "2022-06-01 04:59:59",
-    "stock": 10,
-    "maxFrequency": 10
+    "stock": 10
   },
   "240006": {
     "costs": [
@@ -5964,8 +5712,7 @@
     ],
     "availableFrom": "2022-06-01 05:00:00",
     "availableUntil": "2022-07-01 04:59:59",
-    "stock": 10,
-    "maxFrequency": 10
+    "stock": 10
   },
   "240007": {
     "costs": [
@@ -5987,8 +5734,7 @@
     ],
     "availableFrom": "2022-07-01 05:00:00",
     "availableUntil": "2022-08-01 04:59:59",
-    "stock": 10,
-    "maxFrequency": 10
+    "stock": 10
   },
   "240008": {
     "costs": [
@@ -6010,8 +5756,7 @@
     ],
     "availableFrom": "2022-08-01 05:00:00",
     "availableUntil": "2022-09-01 04:59:59",
-    "stock": 10,
-    "maxFrequency": 10
+    "stock": 10
   },
   "240009": {
     "costs": [
@@ -6033,8 +5778,7 @@
     ],
     "availableFrom": "2022-09-01 05:00:00",
     "availableUntil": "2022-10-01 04:59:59",
-    "stock": 10,
-    "maxFrequency": 10
+    "stock": 10
   },
   "240010": {
     "costs": [
@@ -6056,8 +5800,7 @@
     ],
     "availableFrom": "2022-10-01 05:00:00",
     "availableUntil": "2022-11-01 04:59:59",
-    "stock": 10,
-    "maxFrequency": 10
+    "stock": 10
   },
   "240011": {
     "costs": [
@@ -6079,8 +5822,7 @@
     ],
     "availableFrom": "2022-11-01 05:00:00",
     "availableUntil": "2022-12-01 04:59:59",
-    "stock": 10,
-    "maxFrequency": 10
+    "stock": 10
   },
   "240012": {
     "costs": [
@@ -6102,8 +5844,7 @@
     ],
     "availableFrom": "2022-12-01 05:00:00",
     "availableUntil": "2023-01-01 04:59:59",
-    "stock": 10,
-    "maxFrequency": 10
+    "stock": 10
   },
   "240013": {
     "costs": [
@@ -6125,8 +5866,7 @@
     ],
     "availableFrom": "2023-01-01 05:00:00",
     "availableUntil": "2023-02-01 04:59:59",
-    "stock": 10,
-    "maxFrequency": 10
+    "stock": 10
   },
   "240014": {
     "costs": [
@@ -6148,7 +5888,203 @@
     ],
     "availableFrom": "2023-02-01 05:00:00",
     "availableUntil": null,
-    "stock": 10,
-    "monthlyStock": 10
+    "stock": 10
+  },
+  "9100001": {
+    "costs": [
+      {
+        "id": 49002,
+        "amount": 200
+      }
+    ],
+    "rewards": [
+      {
+        "type": 0,
+        "id": 5010005,
+        "count": 1
+      }
+    ],
+    "availableFrom": "2015-12-31 23:59:59",
+    "availableUntil": null,
+    "stock": 1
+  },
+  "9100002": {
+    "costs": [
+      {
+        "id": 49002,
+        "amount": 200
+      }
+    ],
+    "rewards": [
+      {
+        "type": 0,
+        "id": 5030005,
+        "count": 1
+      }
+    ],
+    "availableFrom": "2015-12-31 23:59:59",
+    "availableUntil": null,
+    "stock": 1
+  },
+  "9100003": {
+    "costs": [
+      {
+        "id": 49002,
+        "amount": 200
+      }
+    ],
+    "rewards": [
+      {
+        "type": 0,
+        "id": 5040022,
+        "count": 1
+      }
+    ],
+    "availableFrom": "2015-12-31 23:59:59",
+    "availableUntil": null,
+    "stock": 1
+  },
+  "9100004": {
+    "costs": [
+      {
+        "id": 49002,
+        "amount": 200
+      }
+    ],
+    "rewards": [
+      {
+        "type": 0,
+        "id": 5020024,
+        "count": 1
+      }
+    ],
+    "availableFrom": "2015-12-31 23:59:59",
+    "availableUntil": null,
+    "stock": 1
+  },
+  "9100005": {
+    "costs": [
+      {
+        "id": 49002,
+        "amount": 200
+      }
+    ],
+    "rewards": [
+      {
+        "type": 0,
+        "id": 5070027,
+        "count": 1
+      }
+    ],
+    "availableFrom": "2015-12-31 23:59:59",
+    "availableUntil": null,
+    "stock": 1
+  },
+  "9100006": {
+    "costs": [
+      {
+        "id": 49002,
+        "amount": 200
+      }
+    ],
+    "rewards": [
+      {
+        "type": 0,
+        "id": 5050026,
+        "count": 1
+      }
+    ],
+    "availableFrom": "2015-12-31 23:59:59",
+    "availableUntil": null,
+    "stock": 1
+  },
+  "9100007": {
+    "costs": [
+      {
+        "id": 49002,
+        "amount": 200
+      }
+    ],
+    "rewards": [
+      {
+        "type": 0,
+        "id": 5020041,
+        "count": 1
+      }
+    ],
+    "availableFrom": "2015-12-31 23:59:59",
+    "availableUntil": null,
+    "stock": 1
+  },
+  "9100008": {
+    "costs": [
+      {
+        "id": 49002,
+        "amount": 200
+      }
+    ],
+    "rewards": [
+      {
+        "type": 0,
+        "id": 5060044,
+        "count": 1
+      }
+    ],
+    "availableFrom": "2015-12-31 23:59:59",
+    "availableUntil": null,
+    "stock": 1
+  },
+  "9100009": {
+    "costs": [
+      {
+        "id": 49001,
+        "amount": 100
+      }
+    ],
+    "rewards": [
+      {
+        "type": 0,
+        "id": 49002,
+        "count": 100
+      }
+    ],
+    "availableFrom": "2015-12-31 23:59:59",
+    "availableUntil": null,
+    "stock": 999
+  },
+  "9100010": {
+    "costs": [
+      {
+        "id": 49000,
+        "amount": 100
+      }
+    ],
+    "rewards": [
+      {
+        "type": 0,
+        "id": 49002,
+        "count": 100
+      }
+    ],
+    "availableFrom": "2015-12-31 23:59:59",
+    "availableUntil": null,
+    "stock": 999
+  },
+  "9100011": {
+    "costs": [
+      {
+        "id": 100000,
+        "amount": 5000
+      }
+    ],
+    "rewards": [
+      {
+        "type": 1,
+        "count": 5000
+      }
+    ],
+    "availableFrom": "2015-12-31 23:59:59",
+    "availableUntil": null,
+    "stock": 9999
   }
 }

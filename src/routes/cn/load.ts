@@ -1,28 +1,31 @@
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
-import path from "node:path";
 import { generateDataHeaders, getServerTime, getServerDate } from "../../utils";
 import { collectPlayerDataPooledExpSync, dailyResetPlayerDataSync, getPlayerSync, updatePlayerSync } from "../../data/domains/player"
-import { getPlayerActiveQuestSync, updatePlayerActiveQuestEntryItemCountSync } from "../../data/domains/quest_active"
+import { deletePlayerActiveQuestSync, getPlayerActiveQuestSync } from "../../data/domains/quest_active"
 import { getSession } from "../../data/domains/session"
 import { getClientSerializedData } from "../../data/utils";
+import { getContentSnapshot } from "../../content/runtime/content-snapshot";
+import { reconcileActiveMissionFacts } from "../../lib/mission/active-reconciliation";
 import { resolvePlayerIdSync } from "../../data/activeAccount";
 import { getDisplayHost } from "../../multi/room/serializer";
 import { getRoom } from "../../multi/room/manager";
 import { runPermanentValidators } from "../../lib/validate";
-import { restoreActiveQuestFromStorage } from "../../lib/quest/entry-lifecycle";
-import { ActiveQuest, publishActiveQuest, runAbortActiveQuestTransaction } from "../../lib/quest/active-quest-service";
-import type { StartEntryCost } from "../../lib/quest/start-entry";
-import { getContentSnapshot } from "../../content/runtime/content-snapshot";
+import { activeQuests } from "../api/singleBattleQuest";
+import { getFavoritePartyGroupListSync } from "../../lib/profileFavorite";
+import { gameVerboseLog } from "../../lib/game-logging";
+import { shouldResetMode15RunForStaleActiveQuest } from "../../lib/mode15-active-quest-recovery";
 import {
-    parseAssetProviderConfig,
-    resolveAssetLoadState,
-    type AssetProviderConfig,
-} from "../../content/cdn/asset-mode";
-import bundledQuestEntryCosts from "../../../assets/quest_entry_costs.json";
-import { getRuntimeContentTableSync } from "../../content/runtime/table-access";
-import { reconcileActiveMissionFacts } from "../../lib/mission/active-reconciliation";
-import { recordEventLoginMissionFactSync } from "../../lib/mission/event-entry-facts";
-import { setCnMsgpackPendingCommit } from "./msgpack";
+    cleanupLegacyMode15RescueProgressSync,
+    isMode15RuntimeLoaded,
+    isMode15Quest,
+    MODE15_RUSH_EVENT_ID,
+    resetMode15RunSync,
+} from "../../lib/mode15-optional";
+import {
+    getDefaultPlayerRushEventSync,
+    getPlayerRushEventSync,
+    insertPlayerRushEventSync,
+} from "../../data/domains/rushEvent";
 
 interface CnLoadBody {
     device_id: number;
@@ -38,8 +41,10 @@ interface CnLoadBody {
     viewer_id?: number;
 }
 
-function wrapOptionFields(d: any, availableAssetVersion: string) {
-    d.available_asset_version = availableAssetVersion;
+function wrapOptionFields(d: any, playerId: number, resVer?: string) {
+    // Report effective server version (CDN + patches) to trigger client update
+    const { getEffectiveVersion } = require("../../lib/version");
+    d.available_asset_version = getEffectiveVersion();
 
     if (d.user_info) {
         if (typeof d.user_info.last_login_time === 'number') {
@@ -89,25 +94,13 @@ function wrapOptionFields(d: any, availableAssetVersion: string) {
     d.special_exchange_campaign_list = [];
     d.win_lottery_active_mission_list = [];
     d.stars_gacha_campaign_list = [];
-    // Build favorite_party_group_list from user_party_group_list
-    // Required for HomeScene kind=1 (profile_favorite) to work without F1010
-    // fromPartyInfo expects party_name/party_edited (not name/edited like fromPartyInfoLite)
-    d.favorite_party_group_list = Object.entries(d.user_party_group_list || {}).map(([groupId, group]: [string, any]) => ({
-        party_group_id: Number(groupId),
-        party_group_color_id: group.color_id,
-        party_list: Object.entries(group.list || {}).map(([partyId, party]: [string, any]) => ({
-            party_id: Number(partyId),
-            party_name: party.name,
-            character_ids: party.character_ids,
-            unison_character_ids: party.unison_character_ids,
-            equipment_ids: party.equipment_ids,
-            ability_soul_ids: party.ability_soul_ids,
-            options: party.options,
-            party_edited: party.edited,
-            current_battle_power: party.current_battle_power,
-            before_battle_power: party.before_battle_power,
-        }))
-    }));
+    // Profile favorites are stored separately as party category 99.  Do not
+    // rebuild them from the normal SET1 party, or the chosen favorite is lost
+    // on every load.
+    d.favorite_party_group_list = getFavoritePartyGroupListSync(
+        playerId,
+        d.user_info?.leader_character_id || 1,
+    );
 
     d.ranking_event_reward = [];
     d.party_list = [];
@@ -119,15 +112,7 @@ function wrapOptionFields(d: any, availableAssetVersion: string) {
     return d;
 }
 
-export interface CnLoadRouteOptions {
-    readonly assetProvider?: AssetProviderConfig;
-}
-
-const routes = async (fastify: FastifyInstance, options: CnLoadRouteOptions) => {
-    const assetProvider = options.assetProvider ?? parseAssetProviderConfig({
-        projectRoot: path.resolve(__dirname, "../../.."),
-    });
-
+const routes = async (fastify: FastifyInstance) => {
     fastify.post("/load", async (request: FastifyRequest, reply: FastifyReply) => {
         try {
         const body = request.body as CnLoadBody;
@@ -157,52 +142,80 @@ const routes = async (fastify: FastifyInstance, options: CnLoadRouteOptions) => 
             updatePlayerSync({ id: player.id, lastLoginTime: now });
         }
 
-        let activeQuest: ActiveQuest | null = getPlayerActiveQuestSync(playerId);
-        if (activeQuest) {
-            const roomExists = activeQuest.roomNumber ? getRoom(activeQuest.roomNumber) : true;
-            if (!roomExists) {
-                console.log(`[CN-LOAD] active quest room ${activeQuest.roomNumber} not found, cancelling`);
-                runAbortActiveQuestTransaction(playerId, {
-                    playId: activeQuest.playId,
-                    questId: activeQuest.questId,
-                    category: activeQuest.category,
-                });
-                activeQuest = null;
-            } else {
-                activeQuest = restoreActiveQuestFromStorage(playerId, activeQuest, {
-                    getEntryCost: (category, questId) => (
-                        getRuntimeContentTableSync(
-                            "quest_entry_costs.json",
-                            bundledQuestEntryCosts as Record<string, StartEntryCost>,
-                        )
-                    )[`${category}_${questId}`],
-                    persistEntryItemCount: updatePlayerActiveQuestEntryItemCountSync,
-                    publishActiveQuest,
-                });
-            }
-        }
-
-        const contentSnapshot = getContentSnapshot();
         reconcileActiveMissionFacts({
             playerId,
-            repository: contentSnapshot.repository,
+            repository: getContentSnapshot().repository,
             now: getServerTime() * 1000,
-        });
+        })
+        const removedMode15RescueRows = cleanupLegacyMode15RescueProgressSync(playerId)
+        if (removedMode15RescueRows > 0) {
+            console.log(`[MODE15] removed legacy rescue progress: player=${playerId} rows=${removedMode15RescueRows}`)
+        }
+        // AdventEvent quest visibility points at Mode15's Rush quests.  The
+        // legacy client cannot resolve that cross-event condition until the
+        // corresponding Rush event exists in its player model.  A completed
+        // or failed run removes the server row, so recreate the empty shell
+        // before serializing /load instead of requiring a visit to Rush first.
+        if (
+            isMode15RuntimeLoaded()
+            && getPlayerRushEventSync(playerId, MODE15_RUSH_EVENT_ID) === null
+        ) {
+            insertPlayerRushEventSync(
+                playerId,
+                getDefaultPlayerRushEventSync(MODE15_RUSH_EVENT_ID),
+            )
+            console.log(`[MODE15] initialized Rush state during load: player=${playerId}`)
+        }
+        // Include Rush state in the initial payload so the legacy client can
+        // evaluate cross-event clear conditions on a cold visit. Optional
+        // saved party slots are normalized to null before packing (rather than
+        // MessagePack's unsupported undefined extension, 0xD4).
+        const clientData = getClientSerializedData(playerId, {
+            viewerId: accountId,
+            serializeRushEventData: true,
+        }) as any;
+        if (clientData === null) {
+            return reply.status(500).send({ error: "Internal Server Error", message: "No player data." });
+        }
 
-        const responsePayload = (() => {
-            const clientData = getClientSerializedData(playerId, { viewerId: accountId }) as any;
-            if (clientData === null) throw new Error("No player data.");
+        const resVer = request.headers['res_ver'] as string | undefined;
+        gameVerboseLog(() => `[CN-LOAD] res_ver=${resVer || '(not sent)'} account=${accountId} player=${playerId} party_slot=${clientData?.user_info?.party_slot}`);
+        wrapOptionFields(clientData, playerId, resVer);
 
-            const resVer = request.headers['res_ver'] as string | undefined;
-            console.log(`[CN-LOAD] res_ver=${resVer || '(not sent)'} account=${accountId} player=${playerId} party_slot=${clientData?.user_info?.party_slot}`);
-            const snapshotTargetVersion = assetProvider.mode === "client-owned"
-                ? ""
-                : contentSnapshot.cdn.targetVersion;
-            const assetState = resolveAssetLoadState(assetProvider, resVer, snapshotTargetVersion);
-            wrapOptionFields(clientData, assetState.availableAssetVersion);
-
-            // Inject unfinished quest lists for battle recovery
-            if (activeQuest) {
+        // Inject unfinished quest lists for battle recovery
+        const activeQuest = getPlayerActiveQuestSync(playerId);
+        if (activeQuest) {
+            // A multiplayer client can disconnect during settlement before its
+            // own finish request removes the active quest.  Once the room has
+            // already returned to the lobby, that battle can no longer be
+            // resumed and exposing it as unfinished traps the client in a loop.
+            const activeRoom = activeQuest.roomNumber ? getRoom(activeQuest.roomNumber) : undefined;
+            const roomExists = activeQuest.roomNumber ? !!activeRoom : true;
+            const completedMultiRoom = activeQuest.isMulti && !!activeRoom && activeRoom.raising_state !== 4;
+            const noLongerInCurrentBattle = activeQuest.isMulti
+                && !!activeRoom
+                && activeRoom.raising_state === 4
+                && activeRoom.expected_real_viewer_ids.length > 0
+                && !activeRoom.expected_real_viewer_ids.includes(accountId);
+            if (!roomExists || completedMultiRoom || noLongerInCurrentBattle) {
+                const mode15Quest = isMode15Quest(activeQuest.category, activeQuest.questId);
+                // Multiplayer rescue guests never own the Mode15 run represented
+                // by this room. Loading-stage disconnects may remove them from the
+                // room before /cn/load recovers their stale active quest, so only
+                // a persisted host marker is authoritative once the room is gone.
+                const shouldResetMode15Run = shouldResetMode15RunForStaleActiveQuest(
+                    mode15Quest,
+                    activeQuest,
+                );
+                gameVerboseLog(() => `[CN-LOAD] stale active quest cleared: room=${activeQuest.roomNumber} exists=${roomExists} state=${activeRoom?.raising_state ?? "missing"} mode15=${mode15Quest} multiHost=${activeQuest.isMultiHost} reset=${shouldResetMode15Run}`);
+                if (shouldResetMode15Run) {
+                    resetMode15RunSync(playerId);
+                }
+                deletePlayerActiveQuestSync(playerId);
+                delete activeQuests[playerId];
+                clientData.unfinished_quest_list = [];
+                clientData.unfinished_multi_quest_list = [];
+            } else {
                 const entry = { play_id: activeQuest.playId, continue_count: activeQuest.continueCount };
                 if (activeQuest.isMulti) {
                     clientData.unfinished_quest_list = [];
@@ -211,27 +224,21 @@ const routes = async (fastify: FastifyInstance, options: CnLoadRouteOptions) => 
                     clientData.unfinished_quest_list = [entry];
                     clientData.unfinished_multi_quest_list = [];
                 }
-            } else {
-                clientData.unfinished_quest_list = [];
-                clientData.unfinished_multi_quest_list = [];
             }
-
-            const payload = {
-                data_headers: generateDataHeaders({
-                    asset_update: assetState.assetUpdate,
-                    viewer_id: accountId,
-                    servertime: getServerTime(),
-                }),
-                data: clientData
-            };
-            return payload;
-        })();
+        } else {
+            clientData.unfinished_quest_list = [];
+            clientData.unfinished_multi_quest_list = [];
+        }
 
         reply.header("content-type", "application/x-msgpack");
-        setCnMsgpackPendingCommit(reply, () => {
-            recordEventLoginMissionFactSync(playerId, now);
+        reply.status(200).send({
+            data_headers: generateDataHeaders({
+                asset_update: true,
+                viewer_id: accountId,
+                servertime: getServerTime(),
+            }),
+            data: clientData
         });
-        reply.status(200).send(responsePayload);
         } catch(e: any) {
             console.error(`[CN-LOAD] ERROR:`, e.message, e.stack);
             return reply.status(500).send({ error: "Internal Server Error", message: e.message });

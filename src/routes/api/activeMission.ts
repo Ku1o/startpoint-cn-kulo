@@ -11,6 +11,7 @@ import { resolvePlayerIdSync } from "../../data/activeAccount";
 import { reconcileAwakeUnlockCharacterList, validateMissionRewardClaims } from "../../lib/mission/index";
 import { MissionRewardGranter } from "../../lib/mission/grants";
 import { getContentSnapshot } from "../../content/runtime/content-snapshot";
+import { gameVerboseLog } from "../../lib/game-logging";
 
 const routes = async (fastify: FastifyInstance) => {
     fastify.post("/receive", async (request: FastifyRequest, reply: FastifyReply) => {
@@ -82,7 +83,7 @@ const routes = async (fastify: FastifyInstance) => {
         })()
 
         const resultList = [...resultByMission.values()]
-        console.log(`[ACTIVE_MISSION] receive viewer=${viewerId} missions=${requestList.length} items=${Object.keys(granter.itemList).length}`)
+        gameVerboseLog(() => `[ACTIVE_MISSION] receive viewer=${viewerId} missions=${requestList.length} items=${Object.keys(granter.itemList).length}`)
 
         reply.header("content-type", "application/x-msgpack")
         return reply.status(200).send({

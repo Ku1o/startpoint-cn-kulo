@@ -2,6 +2,7 @@ import { getDb } from "../db";
 import { PartyCategory, PlayerParty, PlayerPartyGroup, RawPlayerParty, RawPlayerPartyGroup } from "../types";
 import { deserializeBoolean, serializeBoolean } from "../utils";
 import { insertMissingPartyGroupListSync } from "../../lib/party-group-persistence";
+import { gameVerboseLog } from "../../lib/game-logging";
 
 export function getPlayerPartyGroupListSync(
     playerId: number,
@@ -57,14 +58,14 @@ export function getPlayerPartyGroupListSync(
         }
     }
     // Log group summary
-    console.log(`[PARTY-READ] player=${playerId} groups=${Object.keys(final).length} totalParties=${rawParties.length}`)
+    gameVerboseLog(() => `[PARTY-READ] player=${playerId} groups=${Object.keys(final).length} totalParties=${rawParties.length}`)
     return final
 }
 
 function insertPlayerPartySync(playerId: number, slot: number | string, groupId: number | string, party: PlayerParty) {
     const db = getDb();
     db.prepare(`
-    INSERT INTO players_parties (slot, name, character_id_1, character_id_2, character_id_3,
+    INSERT INTO players_parties (slot, name, character_id_1, character_id_2, character_id_3, 
         unison_character_1, unison_character_2, unison_character_3, equipment_1, equipment_2,
         equipment_3, ability_soul_1, ability_soul_2, ability_soul_3, edited, player_id, group_id, category,
         current_battle_power, before_battle_power)
@@ -129,29 +130,28 @@ export function updatePlayerPartySync(playerId: number, slot: number, party: Pla
         slot, playerId, groupId, party.category
     )
     if (result.changes === 0) {
-        console.log(`[PARTY-DB] insert: player=${playerId} group=${groupId} slot=${slot} name="${party.name}" chars=${party.characterIds.filter(Boolean).length}`)
+        gameVerboseLog(() => `[PARTY-DB] insert: player=${playerId} group=${groupId} slot=${slot} name="${party.name}" chars=${party.characterIds.filter(Boolean).length}`)
         // Ensure group exists
         const groupExists = db.prepare('SELECT id FROM players_party_groups WHERE id = ? AND player_id = ? AND category = ?').get(groupId, playerId, party.category)
         if (!groupExists) {
-                console.log(`[PARTY-DB] new group: player=${playerId} id=${groupId}`)
+                gameVerboseLog(() => `[PARTY-DB] new group: player=${playerId} id=${groupId}`)
                     db.prepare('INSERT INTO players_party_groups (id, color_id, player_id, category) VALUES (?, ?, ?, ?)').run(groupId, 15, playerId, party.category)
         }
         insertPlayerPartySync(playerId, slot, groupId, party)
     } else {
-        console.log(`[PARTY-DB] update: player=${playerId} group=${groupId} slot=${slot} name="${party.name}" chars=${party.characterIds.filter(Boolean).length}`)
+        gameVerboseLog(() => `[PARTY-DB] update: player=${playerId} group=${groupId} slot=${slot} name="${party.name}" chars=${party.characterIds.filter(Boolean).length}`)
     }
 }
 
 export function updatePlayerPartyGroupSync(
     playerId: number, groupId: number, colorId: number,
     category: PartyCategory = PartyCategory.NORMAL
-): boolean {
+) {
     const db = getDb();
-    const result = db.prepare(`
+    db.prepare(`
     UPDATE players_party_groups SET color_id = ?
     WHERE id = ? AND player_id = ? AND category = ?
     `).run(colorId, groupId, playerId, category)
-    return result.changes === 1
 }
 
 /**

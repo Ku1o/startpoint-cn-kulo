@@ -6,27 +6,22 @@ export interface PartyCharacter {
     id?: number | null
 }
 
+export interface PartyEquipment {
+    id?: number | null
+}
+
 export interface QuestStatistics {
     clear_phase: number
     party: {
         unison_characters: (PartyCharacter | null)[]
         characters: PartyCharacter[]
+        equipments?: (PartyEquipment | null)[]
     }
     zones?: {
         use_power_flip_count?: number
         use_dash_count?: number
-        use_skill_count?: number
-        send_emotion_count?: number
-        encoffinment_count?: number
-        skill_point_over_on_start?: number
-        damage_deal_total?: number
-        members?: ({
-            debuff_r?: number
-            origin_damage?: number
-            [key: string]: any
-        } | null)[]
+        encoffin_count?: number
     }[]
-    client_checks?: string[]
     max_combo_count?: number
     [key: string]: any
 }
@@ -38,7 +33,6 @@ export interface FinishContext {
     questAccomplished: boolean
     clearTime: number
     clearRank: number | null
-    score?: number
     party: QuestStatistics['party']
     statistics: QuestStatistics
     equipmentElements?: readonly number[]

@@ -6,7 +6,6 @@ export type {
     MultiMate,
     MultiRoom,
     NpcMateTemplate,
-    RoomNpcAssignment,
     QuestCategory,
 } from "../lib/types"
 
@@ -103,35 +102,16 @@ export interface QuestStatisticsParty {
 export interface QuestStatistics {
     clear_phase: number
     party: QuestStatisticsParty
-    zones?: {
-        skill_point_over_on_start?: number
-        members?: ({
-            debuff_r?: number
-            [key: string]: any
-        } | null)[]
-    }[]
 }
 
 export interface MultiFinishBody {
     viewer_id: number
     quest_id: number
     category: number
-    room_number?: string
-    clear_phase?: number
-    statistics: QuestStatistics & Record<string, unknown>
-    quest_statistics?: QuestStatistics
+    room_number: string
+    clear_phase: number
+    quest_statistics: QuestStatistics
     play_id: string
-    add_mana: number
-    score: number
-    continue_count: number
-    elapsed_time_ms: number
-    is_accomplished: boolean
-    is_restored: boolean
-    equipment_element?: unknown
-    contribution_score?: number
-    mate_player_result?: Array<{ viewer_id?: number }>
-    isolated?: boolean
-    priority_factors?: unknown
     battle_time: number
     battle_ended_at: number
     api_count: number
@@ -158,8 +138,6 @@ export interface PlayContinueBody {
     category: number
     room_number: string
     play_id: string
-    statistics?: Record<string, unknown>
-    payment_type?: number
     api_count: number
 }
 
@@ -172,6 +150,9 @@ export interface RestoreRoomBody {
 export interface ShareRoomBody {
     viewer_id: number
     room_number: string
+    category?: number
+    quest_id?: number
+    share_type_list?: number[]
     api_count: number
 }
 
@@ -191,6 +172,23 @@ export interface MicroCommunityBody {
 export interface SummonResponse {
     mate1: import("../lib/types").MultiMate | null
     mate2: import("../lib/types").MultiMate | null
+}
+
+// === Active quest state (shared with singleBattleQuest.ts) ===
+export interface ActiveQuest {
+    questId: number
+    category: number
+    useBossBoostPoint: boolean
+    useBoostPoint: boolean
+    isAutoStartMode: boolean
+    isMulti: boolean
+    roomNumber?: string
+    matePlayerIds?: number[]
+    mateComIds?: number[]
+    entryItemId?: number
+    eventId?: number
+    playId: string
+    continueCount: number
 }
 
 // === State machine enums ===

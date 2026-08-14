@@ -1,3 +1,4 @@
+import { getPlayerCharactersManaNodesSync, getPlayerCharactersSync } from "../../data/domains/character"
 import { upsertPlayerCharacterAwakeUnlockSync } from "../../data/domains/character_awake"
 import {
     getPlayerCategoryMissionsSync,
@@ -10,9 +11,9 @@ import { buildManaBoardAwakeCharacterList } from "../character-helpers"
 import { MissionRewardGranter } from "./grants"
 import { getAwakeMissionRewardStageDefinition } from "./rewards"
 import { getCompletedStageNumbers } from "./stages"
+import { getMissionFinalTargetProgress, getMissionIdsByCategory } from "./stages"
 import { getCharacterIdFromMission } from "./character-queries"
-import { createCharacterAwakeEligibilityResolver } from "./awake-eligibility"
-import type { CharacterAwakeEligibilityResolver } from "./awake-eligibility"
+import { getComputer } from "./registry"
 
 export interface AwakeMissionComputedProgress {
     missionId: number
@@ -31,13 +32,65 @@ export interface AwakeMissionSettlementResult {
     characterList: Record<string, unknown>[]
     equipmentList: Object[]
     degreeIds: number[]
+    passCardPoints: Record<string, number>
     userInfo?: Record<string, number>
+}
+
+export function getAwakeBattleMissionIds(
+    characterIds: readonly number[],
+    directlyChangedMissionIds: readonly number[] = [],
+): number[] {
+    const targetCharacterIds = new Set(
+        characterIds.filter(characterId => Number.isSafeInteger(characterId) && characterId > 0),
+    )
+    const missionIds = new Set(
+        directlyChangedMissionIds.filter(missionId => Number.isSafeInteger(missionId) && missionId > 0),
+    )
+    for (const missionId of getMissionIdsByCategory(9)) {
+        if (targetCharacterIds.has(Number(getCharacterIdFromMission(missionId)))) {
+            missionIds.add(missionId)
+        }
+    }
+    return [...missionIds]
+}
+
+export function settleAwakeMissionCandidates(
+    playerId: number,
+    missionIds: readonly number[],
+    evaluationTime: Date,
+): AwakeMissionSettlementResult {
+    const uniqueMissionIds = [...new Set(missionIds)]
+    if (uniqueMissionIds.length === 0) {
+        return {
+            missionInfo: [], itemList: {}, characterList: [], equipmentList: [],
+            degreeIds: [], passCardPoints: {},
+        }
+    }
+    const persisted = getPlayerCategoryMissionsSync(playerId, 9)
+    const computer = getComputer(9)
+    const context = computer.buildContext(playerId, 9, evaluationTime, uniqueMissionIds)
+    const progressList = uniqueMissionIds.map(missionId => {
+        const dbProgress = persisted[String(missionId)]?.progress ?? 0
+        const computed = computer.compute(missionId, context, dbProgress)
+        const monotonicProgress = Math.max(
+            0,
+            dbProgress,
+            Number.isFinite(computed) ? computed : 0,
+        )
+        const finalTarget = getMissionFinalTargetProgress(9, missionId)
+        return {
+            missionId,
+            progress: finalTarget === undefined
+                ? monotonicProgress
+                : Math.min(monotonicProgress, finalTarget),
+        }
+    })
+    return settleAwakeMissionRewards(playerId, progressList)
 }
 
 export function settleAwakeMissionRewards(
     playerId: number,
-    progressList: AwakeMissionComputedProgress[],
-    resolver: CharacterAwakeEligibilityResolver = createCharacterAwakeEligibilityResolver(playerId),
+    progressList: AwakeMissionComputedProgress[]
 ): AwakeMissionSettlementResult {
     const progressByMissionId = new Map<number, number>()
     for (const entry of progressList) {
@@ -46,12 +99,10 @@ export function settleAwakeMissionRewards(
             progressByMissionId.set(entry.missionId, entry.progress)
         }
     }
-    const aggregatedProgressList = [...progressByMissionId]
-        .map(([missionId, progress]) => ({ missionId, progress }))
-        .filter(({ missionId }) => resolver.isNewUnlockEligible(
-            Number(getCharacterIdFromMission(missionId)),
-            missionId,
-        ))
+    const aggregatedProgressList = [...progressByMissionId].map(([missionId, progress]) => ({
+        missionId,
+        progress,
+    }))
 
     const player = getPlayerSync(playerId)
     if (!player) throw new Error(`Player ${playerId} not found during CharacterAwake settlement.`)
@@ -101,9 +152,10 @@ export function settleAwakeMissionRewards(
         granter.persistPlayer()
     })()
 
-    const unlockCharacterList = buildManaBoardAwakeCharacterList(
-        resolver.characters,
-        unlockMap
+    const unlockCharacterList = unlockMap.size === 0 ? [] : buildManaBoardAwakeCharacterList(
+        getPlayerCharactersSync(playerId),
+        unlockMap,
+        getPlayerCharactersManaNodesSync(playerId),
     )
     const characterList = [
         ...(granter.characterList as Record<string, unknown>[]),
@@ -116,6 +168,7 @@ export function settleAwakeMissionRewards(
         characterList,
         equipmentList: granter.equipmentList,
         degreeIds: granter.degreeList,
+        passCardPoints: {},
         ...(granter.hasPlayerChanges() ? { userInfo: granter.getUserInfo() } : {}),
     }
 }

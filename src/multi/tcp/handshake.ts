@@ -6,7 +6,13 @@
 // HandshakeResult: Accept=0, Denied=1, Reconnect=2, Exception=3, Complete=4
 
 import * as net from "net"
-import { addRoomMember, getRoom, isRoomMember } from "../room/manager"
+import {
+    getSession,
+} from "../../data/domains/session"
+import { getAccountPlayers } from "../../data/domains/account"
+import {
+    getPlayerSync,
+} from "../../data/domains/player"
 import {
     getPlayerPartyGroupListSync,
 } from "../../data/domains/party"
@@ -18,22 +24,12 @@ import {
     getPlayerEquipmentSync,
 } from "../../data/domains/equipment"
 import { PartyCategory, PlayerParty } from "../../data/types"
+import { getRankDegree } from "../../lib/stamina"
+import { getRoom } from "../room/manager"
 import { sessionManager } from "../state/SessionManager"
 import type { SessionClient } from "../state/SessionManager"
+import { gameVerboseLog } from "../../lib/game-logging"
 import { ClientState } from "../types"
-import { getPlayerRankLevel, resolveMultiPlayerContext } from "../player-context"
-
-export interface HandshakeLifecycleGuard {
-    /** Identifies the session-server generation that accepted this socket. */
-    readonly generation: number
-    /** Must be checked immediately before registering session or room state. */
-    isAccepting(): boolean
-}
-
-const unmanagedLifecycle: HandshakeLifecycleGuard = Object.freeze({
-    generation: 0,
-    isAccepting: () => true,
-})
 
 export function buildRealParty(playerId: number, targetParty?: PlayerParty): any {
     const emptyChar = [1]
@@ -146,12 +142,8 @@ export function buildRealParty(playerId: number, targetParty?: PlayerParty): any
     }
 }
 
-export async function handleHandshake(
-    socket: net.Socket,
-    data: any,
-    lifecycle: HandshakeLifecycleGuard = unmanagedLifecycle,
-): Promise<void> {
-    console.log(`[TCP] handshake:`, JSON.stringify(data).substring(0, 200))
+export async function handleHandshake(socket: net.Socket, data: any): Promise<void> {
+    gameVerboseLog(() => `[TCP] handshake: ${JSON.stringify(data).substring(0, 200)}`)
 
     const socklet = data.socklet
     const roomNumber = data.room_number || data.roomNumber
@@ -164,27 +156,22 @@ export async function handleHandshake(
             return
         }
 
-        if (!lifecycle.isAccepting()) return
-        const normalizedRoomNumber = String(roomNumber)
-        const normalizedConnectionId = String(connectionId)
-        const room = getRoom(normalizedRoomNumber)
-        const participant = room?.raising_state === 4
-            ? sessionManager.getBattleParticipant(normalizedRoomNumber, normalizedConnectionId)
-            : undefined
-        if (!participant || sessionManager.getBattleClient(normalizedConnectionId)) {
-            sessionManager.sendJson(socket, [3, "HANDSHAKE_DENIED"])
-            socket.end()
-            return
-        }
+        const roomId = String(roomNumber)
+        // The battle handshake does not carry viewerId.  Resolve it from the
+        // lobby connection that issued the same connection_id.  Leaving every
+        // battle client as viewer 0 makes unrelated host/guest sockets look
+        // like duplicate connections and causes one side to be replaced.
+        const roomClient = sessionManager.getRoomClientByConnectionId(roomId, String(connectionId))
         const battleClient = sessionManager.createClient(
             socket,
-            participant.viewerId,
-            normalizedRoomNumber,
-            normalizedConnectionId,
-            participant.playerId,
+            roomClient?.viewerId ?? 0,
+            roomId,
+            String(connectionId),
+            roomClient?.playerId ?? null,
         )
+        battleClient.roomGeneration = roomClient?.roomGeneration ?? getRoom(roomId)?.lobby_generation ?? 0
         battleClient.isBattle = true
-        sessionManager.addBattleClient(normalizedConnectionId, battleClient)
+        sessionManager.addBattleClient(String(connectionId), battleClient)
         sessionManager.sendJson(socket, [0, roomNumber, ""])
         return
     }
@@ -197,52 +184,112 @@ export async function handleHandshake(
             return
         }
 
-        const normalizedRoomNumber = String(roomNumber)
-        const normalizedViewerId = Number(viewerId)
-        const room = getRoom(normalizedRoomNumber)
-        const categoryMatches = data.questCategory === undefined
-            || Number(data.questCategory) === room?.category
-        const questMatches = data.questId === undefined
-            || Number(data.questId) === room?.quest_id
-        const occupiedRealPlayerSlots = room?.member_viewer_ids.length ?? 0
-        const existingMember = room ? isRoomMember(room, normalizedViewerId) : false
-        if (!room
-            || (room.raising_state !== 1 && room.raising_state !== 2)
-            || !categoryMatches
-            || !questMatches
-            || (!existingMember && occupiedRealPlayerSlots >= 3)) {
+        const roomId = String(roomNumber)
+        if (!getRoom(roomId)) {
+            // CN does not ship the room_not_found UiString used by this denied
+            // packet. A stale notice must never turn into client error C8601.
             sessionManager.sendJson(socket, [3, "HANDSHAKE_DENIED"])
             socket.end()
             return
         }
 
-        const ctx = await resolveMultiPlayerContext(normalizedViewerId)
-        if (!ctx) {
+        const session = await getSession(String(viewerId))
+        if (!session) {
             sessionManager.sendJson(socket, [3, "HANDSHAKE_DENIED"])
             socket.end()
             return
         }
 
-        if (!lifecycle.isAccepting()) return
+        const playerIds = await getAccountPlayers(session.accountId)
+        if (!playerIds || playerIds.length === 0 || isNaN(playerIds[0])) {
+            sessionManager.sendJson(socket, [3, "HANDSHAKE_DENIED"])
+            socket.end()
+            return
+        }
 
-        const { playerId, player } = ctx
+        const player = getPlayerSync(playerIds[0])
+        if (!player) {
+            sessionManager.sendJson(socket, [3, "HANDSHAKE_DENIED"])
+            socket.end()
+            return
+        }
+
+        // HTTP room selection and TCP connection are separate operations. Two
+        // guests can pass the HTTP capacity check concurrently, so re-check the
+        // live room atomically immediately before accepting this socket.
+        const currentRoom = getRoom(roomId)
+        if (!currentRoom) {
+            sessionManager.sendJson(socket, [3, "HANDSHAKE_DENIED"])
+            socket.end()
+            return
+        }
+        // A socket can emit close/error immediately before this handshake while
+        // its indexed room client is still waiting for the event-loop cleanup.
+        // Do not let that short race make a rescue room look full.
+        const indexedClients = sessionManager.getClientsInRoom(roomId, currentRoom.lobby_generation)
+            .filter(client => !client.isBattle)
+        for (const indexedClient of indexedClients) {
+            if (indexedClient.socket.destroyed
+                || !indexedClient.socket.readable
+                || !indexedClient.socket.writable) {
+                sessionManager.removeClient(indexedClient)
+            }
+        }
+        const liveClients = sessionManager.getClientsInRoom(roomId, currentRoom.lobby_generation)
+            .filter(client => !client.isBattle
+                && !client.socket.destroyed
+                && client.socket.readable
+                && client.socket.writable)
+        const liveViewerIds = new Set(liveClients.map(client => client.viewerId))
+        const viewerAlreadyConnected = liveViewerIds.has(Number(viewerId))
+        const isReturningMember = currentRoom.host_viewer_id === Number(viewerId)
+            || currentRoom.expected_real_viewer_ids.includes(Number(viewerId))
+            || currentRoom.mates.some(mate => mate.viewer_id === Number(viewerId))
+        const waitingForExpectedMember = currentRoom.lobby_generation > 0
+            && currentRoom.expected_real_viewer_ids.some(expectedViewerId => !liveViewerIds.has(expectedViewerId))
+        const roomUnavailable = (!viewerAlreadyConnected && liveClients.length >= 3)
+            || (!isReturningMember && currentRoom.raising_state === 4)
+            || (!isReturningMember && waitingForExpectedMember)
+            || sessionManager.isRoomRestoreBlocked(roomId, Number(viewerId))
+
+        if (roomUnavailable) {
+            const reasons = [
+                !viewerAlreadyConnected && liveClients.length >= 3 ? "full" : "",
+                !isReturningMember && currentRoom.raising_state === 4 ? "battle_started" : "",
+                !isReturningMember && waitingForExpectedMember ? "waiting_for_returning_member" : "",
+                sessionManager.isRoomRestoreBlocked(roomId, Number(viewerId)) ? "restore_blocked" : "",
+            ].filter(Boolean).join(",")
+            console.warn(
+                `[TCP] room handshake unavailable: viewer=${viewerId} room=${roomId}`
+                + ` live=${liveClients.length} state=${currentRoom.raising_state}`
+                + ` reason=${reasons || "unknown"}`,
+            )
+            // Normal stale/full cases are filtered before the TCP handshake.
+            // Keep a protocol-level race fallback without looking up a missing
+            // CN UiString key (room_full/room_not_found both cause C8601).
+            sessionManager.sendJson(socket, [3, "HANDSHAKE_DENIED"])
+            socket.end()
+            return
+        }
+
+        const playerId = playerIds[0]
         const connectionId = data.connection_id || data.connectionId || `${socket.remoteAddress}:${socket.remotePort}`
-        const client = sessionManager.createClient(socket, normalizedViewerId, normalizedRoomNumber, String(connectionId), playerId)
+        const client = sessionManager.createClient(socket, Number(viewerId), roomId, String(connectionId), playerId)
         client.clientState.tryTransition(ClientState.Handshaking)
 
         const party = buildRealParty(playerId)
         const yourSelf = {
-            viewerId: normalizedViewerId,
+            viewerId: Number(viewerId),
             playerId: playerId,
             name: player.name,
-            rank: getPlayerRankLevel(player.rankPoint || 0),
+            rank: getRankDegree(player.rankPoint || 0),
             degreeId: player.degreeId || 1,
             mainCharacterId: player.leaderCharacterId,
             party,
             connectionId,
             playerRoleKind: player.role || 1,
             isNewbie: !!player.tutorialStep,
-            isHost: normalizedViewerId === room.host_viewer_id,
+            isHost: true,
             entryTime: Date.now(),
             currentPartyId: player.partySlot || 1,
             autoplayMode: false,
@@ -256,8 +303,6 @@ export async function handleHandshake(
         }
         client.yourself = yourSelf
 
-        if (!lifecycle.isAccepting()) return
-        addRoomMember(normalizedRoomNumber, normalizedViewerId)
         sessionManager.addClientToRoom(client)
         sessionManager.sendJson(socket, [0, connectionId, roomNumber])
         return

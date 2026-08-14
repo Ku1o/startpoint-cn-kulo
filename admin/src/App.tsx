@@ -3,11 +3,11 @@ import { Layout, Menu, Grid, Button, Drawer, Space } from "antd"
 import {
     Database,
     Gauge,
+    LogOut,
     Clock3,
     Mail as MailIcon,
     Menu as MenuIcon,
     Moon,
-    Settings2,
     Sparkles,
     Sun,
     Users,
@@ -19,7 +19,6 @@ import PlayerDetail from "./pages/PlayerDetail"
 import Mail from "./pages/Mail"
 import Seeds from "./pages/Seeds"
 import TimeControl from "./pages/TimeControl"
-import GameplaySettings from "./pages/GameplaySettings"
 import logoUrl from "./assets/logo.png"
 
 const { Sider, Content, Header } = Layout
@@ -30,8 +29,7 @@ const menuItems = [
     { key: "/time", icon: <Clock3 size={18} />, label: "时间 / 千里眼" },
     { key: "/accounts", icon: <Users size={18} />, label: "账号 / 存档" },
     { key: "/mail", icon: <MailIcon size={18} />, label: "邮件" },
-    { key: "/seeds", icon: <Database size={18} />, label: "动画种子" },
-    { key: "/settings", icon: <Settings2 size={18} />, label: "游戏设置" },
+    { key: "/seeds", icon: <Database size={18} />, label: "种子管理" },
 ]
 
 const pageTitles: Record<string, string> = {
@@ -39,8 +37,7 @@ const pageTitles: Record<string, string> = {
     "/time": "时间 / 千里眼",
     "/accounts": "账号 / 存档",
     "/mail": "邮件",
-    "/seeds": "动画种子",
-    "/settings": "游戏设置",
+    "/seeds": "种子管理",
 }
 
 interface AppProps {
@@ -54,6 +51,13 @@ export default function App({ dark, onToggleDark }: AppProps) {
     const screens = useBreakpoint()
     const isMobile = !screens.md
     const [drawerOpen, setDrawerOpen] = useState(false)
+    const logout = async () => {
+        try {
+            await fetch("/admin-logout", { method: "POST" })
+        } finally {
+            window.location.replace("/admin-login")
+        }
+    }
 
     const selected = menuItems.find(m => m.key !== "/" && location.pathname.startsWith(m.key))?.key
         ?? "/"
@@ -109,6 +113,14 @@ export default function App({ dark, onToggleDark }: AppProps) {
                             aria-label="切换明暗模式"
                             title={dark ? "切换到浅色" : "切换到深色"}
                         />
+                        <Button
+                            type="text"
+                            danger
+                            icon={<LogOut size={18} />}
+                            onClick={logout}
+                            aria-label="退出管理面板"
+                            title="退出管理面板"
+                        />
                     </Space>
                 </Header>
                 <Content className="admin-content">
@@ -119,7 +131,6 @@ export default function App({ dark, onToggleDark }: AppProps) {
                         <Route path="/players/:playerId" element={<PlayerDetail />} />
                         <Route path="/mail" element={<Mail />} />
                         <Route path="/seeds" element={<Seeds />} />
-                        <Route path="/settings" element={<GameplaySettings />} />
                         <Route path="*" element={<Navigate to="/" replace />} />
                     </Routes>
                 </Content>

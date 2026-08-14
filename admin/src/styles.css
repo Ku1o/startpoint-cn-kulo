@@ -4,23 +4,23 @@
 }
 
 :root {
-  --admin-bg: #101827;
-  --admin-bg-deep: #09111f;
-  --admin-surface: #172133;
-  --admin-surface-raised: #1d2a41;
-  --admin-border: #2e4263;
-  --admin-border-strong: #4b6d9f;
-  --admin-text: #f5f8ff;
-  --admin-muted: #afbdd1;
-  --admin-primary: #48d6d2;
-  --admin-primary-strong: #8df4ee;
-  --admin-accent: #ffd34f;
-  --admin-accent-strong: #fff08a;
-  --admin-info: #67a7ff;
-  --admin-danger: #ff6b91;
-  --admin-success: #64e6a2;
-  --admin-warning: #ffb84a;
-  --admin-shadow: 0 12px 26px rgb(3 9 21 / 28%);
+  --admin-bg: #f4f7fb;
+  --admin-bg-deep: #eaf0f7;
+  --admin-surface: #ffffff;
+  --admin-surface-raised: #f3f7fb;
+  --admin-border: #c7d3e3;
+  --admin-border-strong: #7890ad;
+  --admin-text: #172033;
+  --admin-muted: #58677c;
+  --admin-primary: #087f83;
+  --admin-primary-strong: #05686c;
+  --admin-accent: #956b00;
+  --admin-accent-strong: #735100;
+  --admin-info: #1f63b8;
+  --admin-danger: #c72e5a;
+  --admin-success: #1f7a4f;
+  --admin-warning: #9a5b00;
+  --admin-shadow: 0 10px 24px rgb(35 58 88 / 12%);
 }
 
 html[data-admin-theme="dark"] {
@@ -54,8 +54,8 @@ body {
   background:
     radial-gradient(circle at 18% 8%, color-mix(in srgb, var(--admin-primary) 18%, transparent) 0 1px, transparent 2px),
     radial-gradient(circle at 82% 18%, color-mix(in srgb, var(--admin-accent) 24%, transparent) 0 1px, transparent 2px),
-    linear-gradient(90deg, rgb(255 255 255 / 4%) 1px, transparent 1px),
-    linear-gradient(rgb(255 255 255 / 4%) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(35 58 88 / 6%) 1px, transparent 1px),
+    linear-gradient(rgb(35 58 88 / 6%) 1px, transparent 1px),
     linear-gradient(180deg, var(--admin-bg) 0%, var(--admin-bg-deep) 100%),
     var(--admin-bg);
   background-size: 360px 220px, 420px 260px, 24px 24px, 24px 24px, auto, auto;

@@ -13,13 +13,6 @@ import { clientSerializeDate } from "../../data/utils"
 import { resolvePlayerIdSync } from "../../data/activeAccount";
 import { characterMaxOverLimits } from "./character"
 import orderedExAbility from "../../../assets/ex_ability.json"
-import { getMailArrivedSync } from "../../lib/mail-notification";
-import { getDb } from "../../data/db";
-import {
-    deletePendingExBoostDrawSync,
-    getPendingExBoostDrawSync,
-    upsertPendingExBoostDrawSync,
-} from "../../data/domains/ex_boost";
 
 interface ExBoostDrawBody {
     character_id: number,
@@ -114,6 +107,8 @@ function freshPools(): { A: Record<number, number[]>, B: Record<number, number[]
     }
 }
 
+const playerDraws: Record<number, ExBoostDrawResult> = {}
+
 // ---- Draw logic ----
 
 function drawOneAbility(groupPools: Record<number, number[]>, probs: MaterialProbs, group: 'A' | 'B'): number | null {
@@ -199,61 +194,6 @@ const drawExpBoost = async (request: FastifyRequest, reply: FastifyReply, autoAc
         "error": "Bad Request", "message": "Attempt to use wrong item with different element from character."
     })
 
-    const pendingDraw = getPendingExBoostDrawSync(playerId)
-    if (pendingDraw !== null) {
-        if (autoAccept || pendingDraw.characterId !== characterId) return reply.status(400).send({
-            "error": "Bad Request", "message": "An EX boost draw is already pending."
-        })
-        const currentCostItemAmount = getPlayerItemSync(playerId, costItemId) ?? 0
-        reply.header("content-type", "application/x-msgpack")
-        return reply.status(200).send({
-            data_headers: generateDataHeaders({ viewer_id: viewerId }),
-            data: {
-                character_id: characterId,
-                draw_result: {
-                    status_id: pendingDraw.statusId,
-                    ability_id_list: pendingDraw.abilityIdList,
-                },
-                item_list: { [String(costItemId)]: currentCostItemAmount },
-                mail_arrived: getMailArrivedSync(playerId),
-            },
-        })
-    }
-
-    if (autoAccept && characterData.exBoost !== undefined) {
-        const currentCostItemAmount = getPlayerItemSync(playerId, costItemId) ?? 0
-        reply.header("content-type", "application/x-msgpack")
-        return reply.status(200).send({
-            data_headers: generateDataHeaders({ viewer_id: viewerId }),
-            data: {
-                character_list: [{
-                    character_id: characterId,
-                    viewer_id: viewerId,
-                    entry_count: characterData.entryCount,
-                    evolution_level: characterData.evolutionLevel,
-                    over_limit_step: characterData.overLimitStep,
-                    protection: characterData.protection,
-                    exp: characterData.exp,
-                    stack: characterData.stack,
-                    mana_board_index: characterData.manaBoardIndex,
-                    bond_token_list: characterData.bondTokenList.map(bt => ({
-                        mana_board_index: bt.manaBoardIndex,
-                        status: bt.status,
-                    })),
-                    ex_boost: {
-                        status_id: characterData.exBoost.statusId,
-                        ability_id_list: characterData.exBoost.abilityIdList,
-                    },
-                    create_time: clientSerializeDate(characterData.joinTime),
-                    update_time: clientSerializeDate(characterData.joinTime),
-                    join_time: clientSerializeDate(characterData.joinTime),
-                }],
-                item_list: { [String(costItemId)]: currentCostItemAmount },
-                mail_arrived: getMailArrivedSync(playerId),
-            },
-        })
-    }
-
     const costItemAmount = getPlayerItemSync(playerId, costItemId)
     if (costItemAmount === null) return reply.status(400).send({
         "error": "Bad Request", "message": "You do not own item."
@@ -276,6 +216,9 @@ const drawExpBoost = async (request: FastifyRequest, reply: FastifyReply, autoAc
         "error": "Internal Server Error", "message": "Status pool not found."
     })
 
+    // deduct
+    updatePlayerItemSync(playerId, costItemId, afterCostItemAmount)
+
     const draw = drawExBoostAbilities(costItemId, exStatusPool)
     const drawResult: ExBoostDrawResult = {
         characterId, statusId: draw.statusId, abilityIdList: draw.abilityIdList
@@ -285,12 +228,9 @@ const drawExpBoost = async (request: FastifyRequest, reply: FastifyReply, autoAc
 
     reply.header("content-type", "application/x-msgpack")
     if (autoAccept) {
-        getDb().transaction(() => {
-            updatePlayerItemSync(playerId, costItemId, afterCostItemAmount)
-            updatePlayerCharacterSync(playerId, characterId, {
-                exBoost: { statusId: drawResult.statusId, abilityIdList: drawResult.abilityIdList }
-            })
-        })()
+        updatePlayerCharacterSync(playerId, characterId, {
+            exBoost: { statusId: drawResult.statusId, abilityIdList: drawResult.abilityIdList }
+        })
         return reply.status(200).send({
             data_headers: headers,
             data: {
@@ -312,21 +252,18 @@ const drawExpBoost = async (request: FastifyRequest, reply: FastifyReply, autoAc
                     join_time: clientSerializeDate(characterData.joinTime),
                 }],
                 item_list: { [String(costItemId)]: afterCostItemAmount },
-                mail_arrived: getMailArrivedSync(playerId),
+                mail_arrived: false,
             },
         })
     } else {
-        getDb().transaction(() => {
-            updatePlayerItemSync(playerId, costItemId, afterCostItemAmount)
-            upsertPendingExBoostDrawSync(playerId, drawResult)
-        })()
+        playerDraws[playerId] = drawResult
         return reply.status(200).send({
             data_headers: headers,
             data: {
                 character_id: characterId,
                 draw_result: { status_id: drawResult.statusId, ability_id_list: drawResult.abilityIdList },
                 item_list: { [String(costItemId)]: afterCostItemAmount },
-                mail_arrived: getMailArrivedSync(playerId),
+                mail_arrived: false,
             },
         })
     }
@@ -337,7 +274,7 @@ const routes = async (fastify: FastifyInstance) => {
         const body = request.body as ExBoostSelectBody
         const viewerId = body.viewer_id
         const isConfirm = body.is_confirm
-        if (!Number.isSafeInteger(viewerId) || viewerId <= 0 || typeof isConfirm !== "boolean") return reply.status(400).send({
+        if (isNaN(viewerId)) return reply.status(400).send({
             "error": "Bad Request", "message": "Invalid request body."
         })
         const viewerIdSession = await getSession(viewerId.toString())
@@ -348,26 +285,23 @@ const routes = async (fastify: FastifyInstance) => {
         if (playerId === null) return reply.status(500).send({
             "error": "Internal Server Error", "message": "No players bound to account."
         })
-        const drawResult = getPendingExBoostDrawSync(playerId)
-        if (drawResult === null) return reply.status(400).send({
+        const drawResult = playerDraws[playerId]
+        if (drawResult === undefined) return reply.status(400).send({
             "error": "Bad Request", "message": "No draw result to select."
         })
         const headers = generateDataHeaders({ viewer_id: viewerId })
+        delete playerDraws[playerId]
         if (!isConfirm) {
-            deletePendingExBoostDrawSync(playerId)
-            return reply.status(200).send({ data_headers: headers, data: { mail_arrived: getMailArrivedSync(playerId) } })
+            return reply.status(200).send({ data_headers: headers, data: { mail_arrived: false } })
         }
         const characterId = drawResult.characterId
         const characterData = getPlayerCharacterSync(playerId, characterId)
         if (characterData === null) return reply.status(400).send({
             "error": "Bad Request", "message": "Player does not own character."
         })
-        getDb().transaction(() => {
-            updatePlayerCharacterSync(playerId, characterId, {
-                exBoost: { statusId: drawResult.statusId, abilityIdList: drawResult.abilityIdList }
-            })
-            deletePendingExBoostDrawSync(playerId)
-        })()
+        updatePlayerCharacterSync(playerId, characterId, {
+            exBoost: { statusId: drawResult.statusId, abilityIdList: drawResult.abilityIdList }
+        })
         return reply.status(200).send({
             data_headers: headers,
             data: {
@@ -387,7 +321,7 @@ const routes = async (fastify: FastifyInstance) => {
                     update_time: clientSerializeDate(new Date()),
                     join_time: clientSerializeDate(characterData.joinTime),
                 }],
-                mail_arrived: getMailArrivedSync(playerId),
+                mail_arrived: false,
             },
         })
     })

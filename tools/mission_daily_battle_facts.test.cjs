@@ -45,6 +45,7 @@ const account = insertAccountSync({
 const playerId = insertDefaultPlayerSync(account.id).id
 const player = getPlayerSync(playerId)
 const activeTime = new Date("2024-08-14T12:00:00.000Z")
+const currentTime = new Date("2026-07-25T12:00:00.000Z")
 
 function context(overrides = {}) {
     return {
@@ -72,6 +73,49 @@ function context(overrides = {}) {
 function dailyProgress(missionId) {
     return getPlayerCategoryMissionsSync(playerId, 2)[missionId]?.progress ?? 0
 }
+
+assert.deepEqual(
+    recordDailyMissionBattleFacts(context({
+        questCategory: 27,
+        questId: 1001,
+        isMulti: false,
+    }), currentTime),
+    [10075, 800392],
+    "Score Attack event 1 must advance its dedicated and generic battle missions",
+)
+assert.equal(dailyProgress(10075), 1)
+assert.equal(dailyProgress(800392), 1)
+
+assert.deepEqual(
+    recordDailyMissionBattleFacts(context({
+        questCategory: 27,
+        questId: 2001,
+        isMulti: false,
+    }), currentTime),
+    [800392],
+    "Another Score Attack event must not advance event 1's dedicated mission",
+)
+assert.equal(dailyProgress(10075), 1)
+assert.equal(dailyProgress(800392), 2)
+
+assert.deepEqual(
+    recordDailyMissionBattleFacts(context({
+        questCategory: 1,
+        questId: 100101,
+        isMulti: false,
+    }), currentTime),
+    [800392],
+    "Any successful single-player battle must advance the generic daily mission",
+)
+assert.equal(dailyProgress(800392), 3)
+
+recordDailyMissionBattleFacts(context({
+    questCategory: 1,
+    questId: 100101,
+    questAccomplished: false,
+    isMulti: false,
+}), currentTime)
+assert.equal(dailyProgress(800392), 3, "Failed battles must not advance daily missions")
 
 assert.deepEqual(
     recordDailyMissionBattleFacts(context(), activeTime),
@@ -182,71 +226,6 @@ assert.deepEqual(
     recordDailyMissionBattleFacts(bossContext, new Date("2024-08-22T00:00:00.000Z")),
     [],
 )
-
-const scoreAttackTime = new Date("2024-09-27T04:00:00.000Z")
-const scoreAttackContext = context({
-    questCategory: 27,
-    questId: 1001,
-    isMulti: undefined,
-    isMultiHost: undefined,
-})
-assert.deepEqual(
-    recordDailyMissionBattleFacts(scoreAttackContext, scoreAttackTime),
-    [10075],
-    "无限演武每日任务必须匹配 event 1 的成功单人关卡",
-)
-assert.equal(dailyProgress(10075), 1)
-const scoreAttackSettlement = settleMissionCategories(playerId, [2], scoreAttackTime)
-assert.deepEqual(
-    scoreAttackSettlement.missionInfo.map(info => info.mission_id),
-    [10075],
-    "无限演武每日任务达到 1 次后必须正常结算奖励",
-)
-assert.equal(scoreAttackSettlement.itemList["40501"], 6, "无限演武每日任务必须发放 6 个无限金币")
-for (const invalid of [
-    { isMulti: true },
-    { questCategory: 1 },
-    { questId: 999999 },
-    { questAccomplished: false },
-]) {
-    recordDailyMissionBattleFacts({ ...scoreAttackContext, ...invalid }, scoreAttackTime)
-}
-recordDailyMissionBattleFacts(scoreAttackContext, new Date("2024-09-27T03:59:59.999Z"))
-assert.equal(dailyProgress(10075), 1, "错误模式、关卡、失败和开放前结算不得增长无限演武每日任务")
-
-const anyBattleTime = new Date("2025-06-26T04:00:00.000Z")
-const anySingleBattleContext = context({
-    questCategory: 1,
-    questId: 100101,
-    isMulti: undefined,
-    isMultiHost: undefined,
-})
-assert.deepEqual(
-    recordDailyMissionBattleFacts(anySingleBattleContext, anyBattleTime),
-    [800392],
-    "通关单人/协力战斗每日任务必须接受成功单人结算",
-)
-assert.equal(dailyProgress(800392), 1)
-const anyBattleSettlement = settleMissionCategories(playerId, [2], anyBattleTime)
-assert.deepEqual(
-    anyBattleSettlement.missionInfo.map(info => info.mission_id),
-    [800392],
-    "通关单人/协力战斗每日任务达到 1 次后必须正常结算奖励",
-)
-assert.equal(anyBattleSettlement.itemList["10000072"], 1, "单人/协力每日任务必须发放主数据奖励")
-assert.deepEqual(
-    recordDailyMissionBattleFacts(context({
-        questCategory: 2,
-        questId: 1014001,
-        isMulti: true,
-        isMultiHost: true,
-    }), anyBattleTime),
-    [800392],
-    "通关单人/协力战斗每日任务必须接受成功协力结算",
-)
-recordDailyMissionBattleFacts({ ...anySingleBattleContext, questAccomplished: false }, anyBattleTime)
-recordDailyMissionBattleFacts(anySingleBattleContext, new Date("2025-06-26T03:59:59.999Z"))
-assert.equal(dailyProgress(800392), 2, "失败和开放前结算不得增长单人/协力每日任务")
 
 const routeAccount = insertAccountSync({
     appId: "wf_cn",

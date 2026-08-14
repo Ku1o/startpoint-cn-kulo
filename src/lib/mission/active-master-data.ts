@@ -62,33 +62,59 @@ const eventDefinitions = buildEventDefinitions()
 
 const missionById = new Map(missionDefinitions.map(definition => [definition.missionId, definition]))
 const eventById = new Map(eventDefinitions.map(definition => [definition.eventId, definition]))
+const repositoryMissionDefinitions = new WeakMap<ReadonlyContentRepository, readonly ActiveMissionMasterDefinition[]>()
+const repositoryEventDefinitions = new WeakMap<ReadonlyContentRepository, readonly ActiveMissionEventMasterDefinition[]>()
+const repositoryMissionById = new WeakMap<ReadonlyContentRepository, ReadonlyMap<number, ActiveMissionMasterDefinition>>()
+const repositoryEventById = new WeakMap<ReadonlyContentRepository, ReadonlyMap<number, ActiveMissionEventMasterDefinition>>()
+
+function cachedMissionDefinitions(
+    repository: ReadonlyContentRepository,
+): readonly ActiveMissionMasterDefinition[] {
+    const cached = repositoryMissionDefinitions.get(repository)
+    if (cached) return cached
+    const definitions = buildMissionDefinitions(repository)
+    repositoryMissionDefinitions.set(repository, definitions)
+    repositoryMissionById.set(repository, new Map(definitions.map(definition => [definition.missionId, definition])))
+    return definitions
+}
+
+function cachedEventDefinitions(
+    repository: ReadonlyContentRepository,
+): readonly ActiveMissionEventMasterDefinition[] {
+    const cached = repositoryEventDefinitions.get(repository)
+    if (cached) return cached
+    const definitions = buildEventDefinitions(repository)
+    repositoryEventDefinitions.set(repository, definitions)
+    repositoryEventById.set(repository, new Map(definitions.map(definition => [definition.eventId, definition])))
+    return definitions
+}
 
 export function getActiveMissionMasterDefinitions(
     repository?: ReadonlyContentRepository,
 ): readonly ActiveMissionMasterDefinition[] {
-    return repository ? buildMissionDefinitions(repository) : missionDefinitions
+    return repository ? cachedMissionDefinitions(repository) : missionDefinitions
 }
 
 export function getActiveMissionMasterDefinition(
     missionId: number,
     repository?: ReadonlyContentRepository,
 ): ActiveMissionMasterDefinition | undefined {
-    return repository
-        ? buildMissionDefinitions(repository).find(definition => definition.missionId === missionId)
-        : missionById.get(missionId)
+    if (!repository) return missionById.get(missionId)
+    cachedMissionDefinitions(repository)
+    return repositoryMissionById.get(repository)?.get(missionId)
 }
 
 export function getActiveMissionEventMasterDefinitions(
     repository?: ReadonlyContentRepository,
 ): readonly ActiveMissionEventMasterDefinition[] {
-    return repository ? buildEventDefinitions(repository) : eventDefinitions
+    return repository ? cachedEventDefinitions(repository) : eventDefinitions
 }
 
 export function getActiveMissionEventMasterDefinition(
     eventId: number,
     repository?: ReadonlyContentRepository,
 ): ActiveMissionEventMasterDefinition | undefined {
-    return repository
-        ? buildEventDefinitions(repository).find(definition => definition.eventId === eventId)
-        : eventById.get(eventId)
+    if (!repository) return eventById.get(eventId)
+    cachedEventDefinitions(repository)
+    return repositoryEventById.get(repository)?.get(eventId)
 }

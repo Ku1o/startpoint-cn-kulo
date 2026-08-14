@@ -2,14 +2,13 @@
 // Returns active_mission_list (Array format for data.active_mission_list)
 
 import { getPlayerCategoryMissionsSync } from "../../data/domains/mission"
+import { getPlayerCharactersSync } from "../../data/domains/character"
 import { getPlayerCharacterAwakeUnlocksSync } from "../../data/domains/character_awake"
 import { getComputer } from "./registry"
 import { getMissionIdsByCategory, getMissionStageIds } from "./stages"
 import { getCharacterIdFromMission } from "./character-queries"
 import type { CategoryContext } from "./types"
-import { createCharacterAwakeEligibilityResolver } from "./awake-eligibility"
-import type { CharacterAwakeEligibilityResolver } from "./awake-eligibility"
-import { buildAwakeContext } from "./computer-awake"
+import { getServerDate } from "../../utils"
 
 export interface AwakeMissionEntry {
     mission_id: number
@@ -22,12 +21,9 @@ export interface AwakeSummary {
     manaBoardAwakeMap: Map<string, Record<number, number>>
 }
 
-export function computeAwakeSummary(
-    playerId: number,
-    resolver: CharacterAwakeEligibilityResolver = createCharacterAwakeEligibilityResolver(playerId),
-): AwakeSummary {
+export function computeAwakeSummary(playerId: number): AwakeSummary {
     const activeMissions = getPlayerCategoryMissionsSync(playerId, 9)
-    const playerChars = resolver.characters
+    const playerChars = getPlayerCharactersSync(playerId)
     const awakeMissionIds = getMissionIdsByCategory(9)
 
     const charMissionMap = new Map<string, number[]>()
@@ -38,7 +34,7 @@ export function computeAwakeSummary(
     }
 
     const computer = getComputer(9)
-    const ctx = buildAwakeContext(playerId, playerChars) as CategoryContext
+    const ctx = computer.buildContext(playerId, 9, getServerDate()) as CategoryContext
 
     const activeMissionList: AwakeMissionEntry[] = []
     const manaBoardAwakeMap = getPlayerCharacterAwakeUnlocksSync(playerId)
@@ -47,8 +43,6 @@ export function computeAwakeSummary(
         if (!playerChars[charKId]) continue
 
         for (const missionId of missionIds) {
-            if (!resolver.isNewUnlockEligible(Number(charKId), missionId)) continue
-
             const dbProgress = activeMissions[String(missionId)]?.progress ?? 0
             const progress = computer.compute(missionId, ctx, dbProgress)
             const allStageIds = getMissionStageIds(9, missionId)

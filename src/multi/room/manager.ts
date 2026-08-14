@@ -1,7 +1,8 @@
-import { randomBytes, randomInt } from "crypto";
+import { randomInt } from "crypto";
 import { MultiRoom, QuestCategory, RoomState } from "../types";
 import { getServerTime } from "../../utils";
 import { sessionManager } from "../state/SessionManager";
+import { gameVerboseLog } from "../../lib/game-logging";
 
 const rooms = new Map<string, MultiRoom>();
 
@@ -14,21 +15,6 @@ const REMAINING_NOTIFY_MS = 30000; // send RemainingTime float 30s before disban
 
 // Track which rooms have already been notified (to avoid repeat floats)
 const notifiedRooms = new Set<string>();
-
-type RoomCleanupTimer = ReturnType<typeof setInterval>;
-
-export interface RoomCleanupOptions {
-    intervalMs?: number;
-    createInterval?: (callback: () => void, intervalMs: number) => RoomCleanupTimer;
-    clearInterval?: (timer: RoomCleanupTimer) => void;
-}
-
-export interface RoomCleanupStatus {
-    readonly running: boolean;
-}
-
-let cleanupTimer: RoomCleanupTimer | null = null;
-let clearCleanupInterval: ((timer: RoomCleanupTimer) => void) | null = null;
 
 function cleanExpiredRooms() {
     const now = Date.now();
@@ -46,7 +32,7 @@ function cleanExpiredRooms() {
         if (remaining > 0 && remaining <= REMAINING_NOTIFY_MS && !notifiedRooms.has(roomNumber)) {
             sessionManager.broadcastToRoom(roomNumber, [1, [7, Math.ceil(remaining / 1000)]])
             notifiedRooms.add(roomNumber)
-            console.log(`[MULTI] RemainingTime sent: room=${roomNumber} seconds=${Math.ceil(remaining / 1000)}`)
+            gameVerboseLog(() => `[MULTI] RemainingTime sent: room=${roomNumber} seconds=${Math.ceil(remaining / 1000)}`)
         }
 
         if (idleAge > timeout) {
@@ -56,48 +42,30 @@ function cleanExpiredRooms() {
             cleaned++;
         }
     }
-    if (cleaned > 0) console.log(`[MULTI] expired rooms cleaned: ${cleaned}`);
+    if (cleaned > 0) gameVerboseLog(() => `[MULTI] expired rooms cleaned: ${cleaned}`);
 }
+setInterval(cleanExpiredRooms, CLEAN_INTERVAL_MS);
 
-export function startRoomCleanup(options: RoomCleanupOptions = {}): void {
-    if (cleanupTimer) return;
-
-    const createInterval = options.createInterval ?? setInterval;
-    const clearIntervalHandle = options.clearInterval ?? clearInterval;
-    const timer = createInterval(cleanExpiredRooms, options.intervalMs ?? CLEAN_INTERVAL_MS);
-    try {
-        timer.unref();
-    } catch (error) {
-        clearIntervalHandle(timer);
-        throw error;
-    }
-    cleanupTimer = timer;
-    clearCleanupInterval = clearIntervalHandle;
-}
-
-export function stopRoomCleanup(): void {
-    if (!cleanupTimer) return;
-    const timer = cleanupTimer;
-    const clearIntervalHandle = clearCleanupInterval ?? clearInterval;
-    cleanupTimer = null;
-    clearCleanupInterval = null;
-    clearIntervalHandle(timer);
-}
-
-export function getRoomCleanupStatus(): RoomCleanupStatus {
-    return Object.freeze({ running: cleanupTimer !== null });
-}
+export const STATIC_ACCESS_TOKEN = "multi_battle_quest_access_token";
 
 export function generateRoomNumber(): string {
     return String(randomInt(100000, 999999));
 }
 
-export function generateRoomAccessToken(): string {
-    let token: string;
-    do {
-        token = randomBytes(24).toString("base64url");
-    } while (getRoomByToken(token));
-    return token;
+export function isRoomWaitingForExpectedMember(room: MultiRoom): boolean {
+    if (room.lobby_generation <= 0 || room.expected_real_viewer_ids.length === 0) {
+        return false
+    }
+
+    const liveViewerIds = new Set(
+        sessionManager.getClientsInRoom(room.room_number, room.lobby_generation)
+            .filter(client => !client.isBattle
+                && !client.socket.destroyed
+                && client.socket.readable
+                && client.socket.writable)
+            .map(client => client.viewerId),
+    )
+    return room.expected_real_viewer_ids.some(viewerId => !liveViewerIds.has(viewerId))
 }
 
 export function createRoom(
@@ -113,7 +81,7 @@ export function createRoom(
     const roomNumber = generateRoomNumber();
     const room: MultiRoom = {
         room_number: roomNumber,
-        access_token: generateRoomAccessToken(),
+        access_token: STATIC_ACCESS_TOKEN,
         category,
         quest_id: questId,
         host_viewer_id: hostViewerId,
@@ -125,21 +93,23 @@ export function createRoom(
         raising_state: 2,
         room_sequence: roomSequence++,
         host_entry_time: getServerTime(),
-        member_viewer_ids: [hostViewerId],
         mates: [],
         share_room_options: 0,
         is_npc_mode: isNpcMode,
         npc_count: 0,
-        npc_roster: [],
+        expected_real_viewer_ids: [],
+        lobby_generation: 0,
+        rematch_wait_started_at: null,
+        settlement_return_pending: false,
     };
     rooms.set(roomNumber, room);
-    console.log(`[MULTI] room created: ${roomNumber} host=${hostViewerId} category=${category} quest=${questId}`);
+    gameVerboseLog(() => `[MULTI] room created: ${roomNumber} host=${hostViewerId} category=${category} quest=${questId}`);
     return room;
 }
 
 export function getRoom(roomNumber: string): MultiRoom | undefined {
     const room = rooms.get(roomNumber);
-    if (!room) console.log(`[MULTI] room not found: ${roomNumber}`);
+    if (!room) gameVerboseLog(() => `[MULTI] room not found: ${roomNumber}`);
     return room;
 }
 
@@ -160,30 +130,10 @@ export function getRooms(categoryId: number, eventId?: number): MultiRoom[] {
     return result;
 }
 
-export function isRoomMember(room: MultiRoom, viewerId: number): boolean {
-    return room.member_viewer_ids.includes(viewerId);
-}
-
-export function addRoomMember(roomNumber: string, viewerId: number): boolean {
-    const room = rooms.get(roomNumber);
-    if (!room) return false;
-    if (!room.member_viewer_ids.includes(viewerId)) room.member_viewer_ids.push(viewerId);
-    return true;
-}
-
-export function removeRoomMember(roomNumber: string, viewerId: number): boolean {
-    const room = rooms.get(roomNumber);
-    if (!room || viewerId === room.host_viewer_id) return false;
-    const index = room.member_viewer_ids.indexOf(viewerId);
-    if (index < 0) return false;
-    room.member_viewer_ids.splice(index, 1);
-    return true;
-}
-
 export function updateRoomState(roomNumber: string, state: number): boolean {
     const room = rooms.get(roomNumber);
     if (!room) return false;
-    console.log(`[MULTI] room state: ${roomNumber} → ${state}`);
+    gameVerboseLog(() => `[MULTI] room state: ${roomNumber} → ${state}`);
     room.raising_state = state;
     return true;
 }
@@ -195,7 +145,11 @@ export function setRoomBattle(roomNumber: string): boolean {
 export function disbandRoom(roomNumber: string): boolean {
     const deleted = rooms.delete(roomNumber);
     if (deleted) {
-        console.log(`[MULTI] room deleted: ${roomNumber}`);
+        gameVerboseLog(() => `[MULTI] room deleted: ${roomNumber}`);
+        try {
+            const { stopRandomRecruitment } = require("../recruitment")
+            stopRandomRecruitment(roomNumber)
+        } catch (e) {}
         sessionManager.removeRoomState(roomNumber);
     }
     return deleted;

@@ -9,10 +9,15 @@ import { generateDataHeaders, getServerTime, realToVirtual } from "../../utils";
 import { sellItemSync } from "../../lib/item-sell";
 import { AccountId, PlayerId } from "../../lib/types";
 import { computeRealTimeStamina } from "../../lib/stamina";
+import itemData from "../../../assets/item_data.json";
 import { reconcileAwakeUnlockCharacterList } from "../../lib/mission";
-import { getMailArrivedSync } from "../../lib/mail-notification";
-import { getItemEffectSync } from "../../lib/assets";
-import { getDb } from "../../data/db";
+
+interface ItemEffectInfo {
+    effectKind: number
+    effectValue: number
+}
+
+const ITEM_EFFECTS: Record<number, ItemEffectInfo> = itemData as Record<number, ItemEffectInfo>
 
 const routes = async (fastify: FastifyInstance) => {
     fastify.post("/use_item", async (request: FastifyRequest, reply: FastifyReply) => {
@@ -44,7 +49,6 @@ const routes = async (fastify: FastifyInstance) => {
         const itemUpdates: { id: number; newCount: number }[] = []
         let hasStaminaItem = false
 
-        const requestedCounts = new Map<number, number>()
         for (const itemReq of body.items) {
             const itemId = itemReq.id
             const requestCount = itemReq.number
@@ -57,12 +61,8 @@ const routes = async (fastify: FastifyInstance) => {
                 console.warn(`[ITEM-USE] invalid count: ${requestCount} for item ${itemId}`)
                 continue
             }
-            requestedCounts.set(itemId, (requestedCounts.get(itemId) ?? 0) + requestCount)
-        }
 
-        for (const [itemId, requestCount] of requestedCounts) {
-
-            const effectInfo = getItemEffectSync(itemId)
+            const effectInfo = ITEM_EFFECTS[itemId]
             if (!effectInfo) {
                 console.warn(`[ITEM-USE] item ${itemId} not in effect table, skipping`)
                 continue
@@ -122,16 +122,15 @@ const routes = async (fastify: FastifyInstance) => {
 
         const afterStamina = Math.min(currentStamina + totalStaminaRecovery, maxOverflow)
 
-        getDb().transaction(() => {
-            for (const upd of itemUpdates) {
-                updatePlayerItemSync(playerId, upd.id, upd.newCount)
-            }
-            updatePlayerSync({
-                id: playerId,
-                stamina: afterStamina,
-                staminaHealTime: new Date()
-            })
-        })()
+        // Batch update
+        for (const upd of itemUpdates) {
+            updatePlayerItemSync(playerId, upd.id, upd.newCount)
+        }
+        updatePlayerSync({
+            id: playerId,
+            stamina: afterStamina,
+            staminaHealTime: new Date()
+        })
 
         console.log(`[ITEM-USE] player ${playerId}: stamina ${currentStamina}->${afterStamina} (+${totalStaminaRecovery}), items: ${JSON.stringify(itemUpdates)}`)
 
@@ -149,8 +148,7 @@ const routes = async (fastify: FastifyInstance) => {
                     "stamina": afterStamina,
                     "stamina_heal_time": realToVirtual(new Date())
                 },
-                "item_list": itemListMap,
-                "mail_arrived": getMailArrivedSync(playerId)
+                "item_list": itemListMap
             }
         })
     })
@@ -187,14 +185,14 @@ const routes = async (fastify: FastifyInstance) => {
 
         console.log(`[ITEM_SELL] account=${accountId} player=${playerId}: item ${itemId} ×${sellNumber} sold, mana +${result.manaGained} (${result.freeMana - result.manaGained} -> ${result.freeMana})`)
 
+        reply.header("content-type", "application/x-msgpack")
         const responseData: Record<string, unknown> = {
             "item_list": { [itemId]: result.newCount },
             "user_info": { "free_mana": result.freeMana },
-            "mail_arrived": getMailArrivedSync(playerId)
+            "mail_arrived": false
         }
         if (characterList.length > 0) responseData.character_list = characterList
 
-        reply.header("content-type", "application/x-msgpack")
         return reply.status(200).send({
             "data_headers": generateDataHeaders({ viewer_id: viewerId }),
             "data": responseData

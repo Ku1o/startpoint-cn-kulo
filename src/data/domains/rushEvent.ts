@@ -319,12 +319,11 @@ export function insertPlayerRushEventClearedFolderSync(
     playerId: number,
     eventId: number,
     folderId: number
-): boolean {
-    const result = getDb().prepare(`
+) {
+    getDb().prepare(`
     INSERT OR IGNORE INTO players_rush_events_cleared_folders (player_id, event_id, folder_id)
     VALUES (?, ?, ?)
     `).run(playerId, eventId, folderId)
-    return result.changes === 1
 }
 
 /**
@@ -404,24 +403,26 @@ export function serializePlayerRushEventPlayedParty(
     deserialized: PlayerRushEventPlayedParty
 ): UserRushEventPlayedParty {
     return {
-        character_id_1: deserialized.characterIds[0],
-        character_id_2: deserialized.characterIds[1],
-        character_id_3: deserialized.characterIds[2],
-        unison_character_id_1: deserialized.unisonCharacterIds[0],
-        unison_character_id_2: deserialized.unisonCharacterIds[1],
-        unison_character_id_3: deserialized.unisonCharacterIds[2],
-        equipment_id_1: deserialized.equipmentIds[0],
-        equipment_id_2: deserialized.equipmentIds[1],
-        equipment_id_3: deserialized.equipmentIds[2],
-        ability_soul_id_1: deserialized.abilitySoulIds[0],
-        ability_soul_id_2: deserialized.abilitySoulIds[1],
-        ability_soul_id_3: deserialized.abilitySoulIds[2],
-        evolution_img_level_1: deserialized.evolutionImgLevels[0],
-        evolution_img_level_2: deserialized.evolutionImgLevels[1],
-        evolution_img_level_3: deserialized.evolutionImgLevels[2],
-        unison_evolution_img_level_1: deserialized.unisonEvolutionImgLevels[0],
-        unison_evolution_img_level_2: deserialized.unisonEvolutionImgLevels[1],
-        unison_evolution_img_level_3: deserialized.unisonEvolutionImgLevels[2],
+        // The legacy client cannot decode MessagePack's undefined extension
+        // (fixext1, 0xD4). Optional saved party slots must be explicit nulls.
+        character_id_1: deserialized.characterIds[0] ?? null,
+        character_id_2: deserialized.characterIds[1] ?? null,
+        character_id_3: deserialized.characterIds[2] ?? null,
+        unison_character_id_1: deserialized.unisonCharacterIds[0] ?? null,
+        unison_character_id_2: deserialized.unisonCharacterIds[1] ?? null,
+        unison_character_id_3: deserialized.unisonCharacterIds[2] ?? null,
+        equipment_id_1: deserialized.equipmentIds[0] ?? null,
+        equipment_id_2: deserialized.equipmentIds[1] ?? null,
+        equipment_id_3: deserialized.equipmentIds[2] ?? null,
+        ability_soul_id_1: deserialized.abilitySoulIds[0] ?? null,
+        ability_soul_id_2: deserialized.abilitySoulIds[1] ?? null,
+        ability_soul_id_3: deserialized.abilitySoulIds[2] ?? null,
+        evolution_img_level_1: deserialized.evolutionImgLevels[0] ?? null,
+        evolution_img_level_2: deserialized.evolutionImgLevels[1] ?? null,
+        evolution_img_level_3: deserialized.evolutionImgLevels[2] ?? null,
+        unison_evolution_img_level_1: deserialized.unisonEvolutionImgLevels[0] ?? null,
+        unison_evolution_img_level_2: deserialized.unisonEvolutionImgLevels[1] ?? null,
+        unison_evolution_img_level_3: deserialized.unisonEvolutionImgLevels[2] ?? null,
     }
 }
 

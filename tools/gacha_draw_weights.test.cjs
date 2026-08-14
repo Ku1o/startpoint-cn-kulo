@@ -1,11 +1,11 @@
-require("ts-node/register/transpile-only");
+require("ts-node/register");
 
 const assert = require("assert");
 
 const {
   drawGachaWithMetadataSync,
   selectWeightedIndexByRoll,
-} = require("../src/lib/gacha-draw.ts");
+} = require("../src/lib/gacha.ts");
 
 assert.strictEqual(selectWeightedIndexByRoll([0, 1000], 1), 1);
 assert.strictEqual(selectWeightedIndexByRoll([50, 950], 50), 0);

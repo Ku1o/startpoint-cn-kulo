@@ -3,6 +3,8 @@ import { randomBytes } from "crypto";
 import { RawSession, Session, SessionType } from "../types";
 import { generateViewerId } from "../../utils";
 
+const MULTI_COM_VIEWER_ID_MIN = 900000000;
+
 /**
  * Converts a RawSession into a Session.
  * 
@@ -80,6 +82,52 @@ export function getViewerIdSync(accountId: number): number {
 }
 
 /**
+ * Reassigns legacy human viewer IDs that overlap the multiplayer COM range.
+ * Only the VIEWER session token changes; account, player and device bindings
+ * remain attached to the same account_id.
+ */
+export function migrateUnsafeViewerIdsSync(): number {
+    const db = getDb();
+    const unsafeSessions = db.prepare(`
+        SELECT token, account_id
+        FROM sessions
+        WHERE type = ? AND CAST(token AS INTEGER) >= ?
+    `).all(SessionType.VIEWER, MULTI_COM_VIEWER_ID_MIN) as Array<{
+        token: string;
+        account_id: number;
+    }>;
+
+    if (unsafeSessions.length === 0) return 0;
+
+    const tokenExists = db.prepare(`SELECT 1 FROM sessions WHERE token = ? LIMIT 1`);
+    const updateToken = db.prepare(`
+        UPDATE sessions
+        SET token = ?
+        WHERE token = ? AND account_id = ? AND type = ?
+    `);
+
+    return db.transaction(() => {
+        let migrated = 0;
+        for (const session of unsafeSessions) {
+            let replacement = "";
+            for (let attempt = 0; attempt < 10000; attempt += 1) {
+                const candidate = String(generateViewerId());
+                if (!tokenExists.get(candidate)) {
+                    replacement = candidate;
+                    break;
+                }
+            }
+            if (!replacement) {
+                throw new Error("Unable to allocate a safe viewer ID for legacy session migration");
+            }
+            updateToken.run(replacement, session.token, session.account_id, SessionType.VIEWER);
+            migrated += 1;
+        }
+        return migrated;
+    })();
+}
+
+/**
  * Device binding: maps device_id → account_id
  */
 export function getDeviceBindingSync(deviceId: number): { device_id: number, account_id: number, name: string | null } | null {
@@ -101,8 +149,8 @@ export function getAllDeviceBindingsSync(): { device_id: number, account_id: num
     return getDb().prepare(`SELECT device_id, account_id, name FROM device_bindings`).all() as any[]
 }
 
-export function updateDeviceBindingNameSync(deviceId: number, name: string | null): boolean {
-    return getDb().prepare(`UPDATE device_bindings SET name = ? WHERE device_id = ?`).run(name, deviceId).changes === 1
+export function updateDeviceBindingNameSync(deviceId: number, name: string | null): void {
+    getDb().prepare(`UPDATE device_bindings SET name = ? WHERE device_id = ?`).run(name, deviceId)
 }
 
 /**

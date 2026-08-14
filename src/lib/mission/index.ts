@@ -7,14 +7,16 @@ export type { MissionComputer, CategoryContext, ComputerRegistry, PlayerQuestPro
 export { getComputer } from "./registry"
 
 // Stages
-export { getMissionIdsByCategory, getCurrentStage, getCompletedStageNumbers, getMissionStageIds, isMissionProgressComplete } from "./stages"
+export { getMissionIdsByCategory, getCurrentStage, getCompletedStageNumbers, getMissionStageIds, getMissionFinalTargetProgress, isMissionProgressComplete } from "./stages"
 
 // Rewards
 export type { ActiveMissionReward, AwakeMissionRewardStageDefinition, AwakeMissionSpecialReward, MissionRewardStageDefinition } from "./rewards"
 export { getActiveMissionRewards, getAwakeMissionRewards, getAwakeMissionRewardStageDefinition, getCollectMissionRewards, getDailyMissionRewards, getDegreeMissionRewards, getEventMissionRewards, getMissionRewardStageDefinition, getRegularMissionRewards, getWeeklyMissionRewards } from "./rewards"
 export type { MissionSettlementInfo, MissionSettlementResult, MissionSettlementScope } from "./settlement"
-export { settleMissionCategories } from "./settlement"
+export { settleMissionCategories, settleMissionCategoriesAsync } from "./settlement"
 export { mergeMissionSettlementResponse } from "./response"
+export { settleDegreeMissionResponse } from "./degree-response"
+export { getDegreeMissionIdsForConditionTypes } from "./computer-degree"
 
 // Patterns (for update_mission_progress)
 export type { PatternMatch } from "./patterns"
@@ -50,12 +52,12 @@ export { getCharacterStoryQuestIds, getCharacterIdFromMission } from "./characte
 // Awake summary (for /load response)
 export { computeAwakeSummary } from "./compute-awake-summary"
 export type { AwakeMissionComputedProgress, AwakeMissionInfo, AwakeMissionSettlementResult } from "./awake-settlement"
-export { settleAwakeMissionRewards } from "./awake-settlement"
+export { getAwakeBattleMissionIds, settleAwakeMissionCandidates, settleAwakeMissionRewards } from "./awake-settlement"
 export type { AwakeUnlockProgress, AwakeUnlockReconciliationResult } from "./awake-unlock"
 export { reconcileAwakeUnlocks, reconcileAwakeUnlocksFromProgress } from "./awake-unlock"
-export type { CharacterAwakeBaseReadiness, CharacterAwakeEligibilityResolver } from "./awake-eligibility"
-export { createCharacterAwakeEligibilityResolver, getCharacterAwakeBaseReadiness, isCharacterAwakeBaseReady, isCharacterAwakeNewUnlockEligible } from "./awake-eligibility"
 export { reconcileAwakeUnlockCharacterList } from "./awake-unlock-response"
+export { collectPartyCharacterIds, summarizeBattleStatistics } from "./events"
+export { recordBattleMissionDimensionsSafe } from "./battle-dimensions"
 
 // Degree helpers
 export { getTargetDegree } from "./computer-degree"

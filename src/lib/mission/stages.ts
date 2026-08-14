@@ -83,3 +83,19 @@ export function getMissionStageIds(category: number, missionId: number): number[
     if (!stages) return []
     return stages.map(s => s.stage)
 }
+
+/**
+ * Returns the largest progress value the client ever needs for a mission.
+ *
+ * Several degree conditions are backed by lifetime counters or score values
+ * that can grow far beyond the final reward threshold. Persisting and
+ * returning the raw value is unnecessary and can overflow older clients.
+ */
+export function getMissionFinalTargetProgress(
+    category: number,
+    missionId: number,
+): number | undefined {
+    const stages = missionStageLookup[category]?.[String(missionId)]
+    if (!stages || stages.length === 0) return undefined
+    return Math.max(...stages.map(stage => stage.targetProgress))
+}

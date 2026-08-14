@@ -1,5 +1,5 @@
 import getDatabase, { Database } from ".";
 
-export function getDb() {
-    return getDatabase(Database.WDFP_DATA);
-}
+const db = getDatabase(Database.WDFP_DATA)
+
+export function getDb() { return db; }

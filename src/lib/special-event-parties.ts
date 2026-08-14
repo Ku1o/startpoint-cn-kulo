@@ -15,23 +15,15 @@ export function isPartyCategory(value: number): value is PartyCategory {
 export function hasValidPartyCategory(
     value: unknown,
 ): value is { party_category: PartyCategory } {
-    if (value === null || typeof value !== "object" || !("party_category" in value)) {
-        return false
-    }
+    if (value === null || typeof value !== "object" || !("party_category" in value)) return false
     const category = (value as { party_category: unknown }).party_category
     return typeof category === "number" && isPartyCategory(category)
-}
-
-export function resolvePartyGroupColorId(
-    group: Pick<PlayerPartyGroup, "colorId"> | undefined,
-): number {
-    return group?.colorId ?? 15
 }
 
 export function getGlobalPartyId(groupId: number, slot: number): number {
     if (!Number.isInteger(groupId) || groupId < 1 || groupId > 12
         || !Number.isInteger(slot) || slot < 1 || slot > 10) {
-        throw new RangeError("Party group or slot is outside the CN protocol range")
+        throw new RangeError("Party group or slot is outside the CN protocol range.")
     }
     return (groupId - 1) * 10 + slot
 }
@@ -42,6 +34,12 @@ export function parseGlobalPartyId(partyId: number): { groupId: number, slot: nu
         groupId: Math.floor((partyId - 1) / 10) + 1,
         slot: ((partyId - 1) % 10) + 1,
     }
+}
+
+export function resolvePartyGroupColorId(
+    group: Pick<PlayerPartyGroup, "colorId"> | undefined,
+): number {
+    return group?.colorId ?? 15
 }
 
 function copyParty(party: PlayerParty, category: PartyCategory): PlayerParty {
@@ -63,25 +61,17 @@ export function mergePartyGroupsForCategory(
     category: PartyCategory,
 ): Record<string, PlayerPartyGroup> {
     const result: Record<string, PlayerPartyGroup> = {}
-    const sources = [defaults, legacyFallback, existing]
-
-    for (const source of sources) {
+    for (const source of [defaults, legacyFallback, existing]) {
         for (const [groupId, group] of Object.entries(source)) {
-            const target = result[groupId] ?? {
-                list: {},
-                colorId: group.colorId,
-                category,
-            }
+            const target = result[groupId] ?? { list: {}, colorId: group.colorId, category }
             target.colorId = group.colorId
             target.category = category
-
             for (const [slot, party] of Object.entries(group.list)) {
                 target.list[slot] = copyParty(party, category)
             }
             result[groupId] = target
         }
     }
-
     return result
 }
 
@@ -102,7 +92,6 @@ export function ensureSpecialEventPartyGroupsSync(
         defaults,
         category,
     )
-
     dependencies.ensureGroups(playerId, completeGroups)
     return dependencies.getGroups(playerId, category)
 }

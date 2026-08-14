@@ -223,25 +223,27 @@ export interface RawPlayerQuestProgress {
     section: number
     quest_id: number
     finished: number
+    host_finished?: number
     unlocked: number
     high_score?: number
     clear_rank?: number
     best_elapsed_time_ms?: number
     leader_character_id?: number
     multi_clear_count?: number
-    host_finished?: number | null
+    s_plus_reward_received?: number
 }
 
 export interface PlayerQuestProgress {
     questId: number
     finished: boolean
+    hostFinished?: boolean
     highScore?: number
     clearRank?: number
     bestElapsedTimeMs?: number
     leaderCharacterId?: number
     multiClearCount?: number
+    sPlusRewardReceived?: boolean
     unlocked?: boolean
-    hostFinished?: boolean
 }
 
 export interface RawPlayerGachaInfo {
@@ -640,11 +642,11 @@ export interface UserEquipment {
 export interface UserQuestProgress {
     quest_id: number
     finished: boolean
+    host_finished?: boolean
     unlocked?: boolean
     high_score?: number
     best_elapsed_time_ms?: number
     clear_rank?: number
-    host_finished?: boolean
 }
 
 export interface UserGachaInfo {
@@ -740,7 +742,6 @@ export interface MergedPlayerData {
     characterList: Record<string, PlayerCharacter>,
     characterManaNodeList: Record<string, number[]>,
     characterManaNodeAwakeLevels?: Record<string, Record<number, number>>,
-    characterAwakeUnlocks?: Record<string, Record<number, number>>,
     manaBoardAwakeMap?: Map<string, Record<number, number>>,
     partyGroupList: Record<string, PlayerPartyGroup>,
     itemList: Record<string, number>,
@@ -760,10 +761,7 @@ export interface MergedPlayerData {
     // rush event data
     rushEventList?: PlayerRushEvent[],
     rushEventClearedFolderList?: Record<string, PlayerRushEventClearedFolders>,
-    rushEventPlayedPartyList?: Record<string, PlayerRushEventPlayedParty[]>,
-    carnivalEventRecords?: PlayerCarnivalEventRecord[],
-    carnivalRewardClaims?: PlayerCarnivalRewardClaim[],
-    degreeIds?: number[]
+    rushEventPlayedPartyList?: Record<string, PlayerRushEventPlayedParty[]>
 }
 
 export interface RawPlayerCarnivalEventRecord {
@@ -800,9 +798,9 @@ export interface RawPlayerActiveQuest {
     use_boost_point: number
     is_auto_start_mode: number
     is_multi: number
+    is_multi_host: number
     room_number: string | null
     entry_item_id: number | null
-    entry_item_count: number | null
     event_id: number | null
     continue_count: number
 }
@@ -816,9 +814,9 @@ export interface PlayerActiveQuest {
     useBoostPoint: boolean
     isAutoStartMode: boolean
     isMulti: boolean
+    isMultiHost: boolean
     roomNumber: string | null
     entryItemId: number | null
-    entryItemCount: number | null
     eventId: number | null
     continueCount: number
 }

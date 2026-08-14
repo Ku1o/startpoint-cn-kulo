@@ -2,9 +2,17 @@ node_modules
 out
 mitm_redirect
 .database
+.database/**
+.logs
+.logs/**
+logs
+logs/**
+.migration-backups
+.migration-backups/**
+.codex-backups
+.codex-backups/**
 scripts/in
 .cdn
-.content/
 .misc
 scripts/__pycache__
 dist
@@ -28,3 +36,49 @@ tsconfig.tsbuildinfo
 assets/gacha_odds/
 .cdn/zip_index.json
 tmp/
+
+# Runtime output and local-only state
+*.log
+*.sqlite
+*.sqlite3
+*.db
+*.db-shm
+*.db-wal
+save_*.json
+assets/save_data.json
+wdfp_data*
+
+# Local secrets and signing material
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+*.apk
+*.aab
+
+# Generated patch workspaces and historical backups
+assets/asset-patch/production/
+assets/asset-patch/retired/
+assets/asset-patch/archive/
+assets/asset-patch/inactive/
+client-patch/releases/
+tools/**/work/
+tools/**/production/
+mod-tools-upstream/
+
+# Local history and one-off rollback snapshots
+*.bak
+*.bak-*
+*.backup
+*.backup-*
+*.before-*
+*.old
+*.orig
+*.rej
+*.tmp
+*~
+
+# Personal local workspace
+弹国服/

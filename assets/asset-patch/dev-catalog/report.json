@@ -1,0 +1,921 @@
+{
+  "summary": {
+    "archives": 713,
+    "canonical_deduplicated": 1,
+    "canonical_reordered": 1,
+    "officialInstalledBytes": 10177212635,
+    "mergedInstalledBytes": 10302359106,
+    "modRows": 942,
+    "mergedRows": 138668,
+    "issues": 151
+  },
+  "targetVersion": "1.4.77",
+  "issues": [
+    {
+      "code": "DEV_LAYOUT_ENTITYLISTS",
+      "message": "EntityLists directory is named 'entities'; dev scanner only reads 'EntityLists' (rename or hardlink required)",
+      "category": "layout",
+      "relative_path": "entities"
+    },
+    {
+      "code": "DEV_INVALID_ARCHIVE_NAME",
+      "message": "archive name suffix is not hex; dev scanner rejects it: pinball-1.4.54-1.4.55-1-mod07141843.zip",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.54-1.4.55-1-mod07141843.zip"
+    },
+    {
+      "code": "DEV_FOREIGN_ROOT",
+      "message": "archive lives outside the CDN root; dev scanner never reads asset-patch/active/ (relocation into archive-common-diff required)",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.54-1.4.55-1-mod07141843.zip"
+    },
+    {
+      "code": "DEV_INVALID_ARCHIVE_NAME",
+      "message": "archive name suffix is not hex; dev scanner rejects it: pinball-1.4.55-1.4.56-1-mod-ability-damage-party-balanced-v5.zip",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.55-1.4.56-1-mod-ability-damage-party-balanced-v5.zip"
+    },
+    {
+      "code": "DEV_FOREIGN_ROOT",
+      "message": "archive lives outside the CDN root; dev scanner never reads asset-patch/active/ (relocation into archive-common-diff required)",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.55-1.4.56-1-mod-ability-damage-party-balanced-v5.zip"
+    },
+    {
+      "code": "DEV_INVALID_ARCHIVE_NAME",
+      "message": "archive name suffix is not hex; dev scanner rejects it: pinball-1.4.56-1.4.57-1-consolidated-ability-v7-and-custom-drops.zip",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.56-1.4.57-1-consolidated-ability-v7-and-custom-drops.zip"
+    },
+    {
+      "code": "DEV_FOREIGN_ROOT",
+      "message": "archive lives outside the CDN root; dev scanner never reads asset-patch/active/ (relocation into archive-common-diff required)",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.56-1.4.57-1-consolidated-ability-v7-and-custom-drops.zip"
+    },
+    {
+      "code": "DEV_INVALID_ARCHIVE_NAME",
+      "message": "archive name suffix is not hex; dev scanner rejects it: pinball-1.4.57-1.4.58-1-shop-stock-999-consolidated.zip",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.57-1.4.58-1-shop-stock-999-consolidated.zip"
+    },
+    {
+      "code": "DEV_FOREIGN_ROOT",
+      "message": "archive lives outside the CDN root; dev scanner never reads asset-patch/active/ (relocation into archive-common-diff required)",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.57-1.4.58-1-shop-stock-999-consolidated.zip"
+    },
+    {
+      "code": "DEV_INVALID_ARCHIVE_NAME",
+      "message": "archive name suffix is not hex; dev scanner rejects it: pinball-1.4.58-1.4.59-1-independent-warmup-v10-cd-balance-nephteim-voice-rescue-fragment-display.zip",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.58-1.4.59-1-independent-warmup-v10-cd-balance-nephteim-voice-rescue-fragment-display.zip"
+    },
+    {
+      "code": "DEV_FOREIGN_ROOT",
+      "message": "archive lives outside the CDN root; dev scanner never reads asset-patch/active/ (relocation into archive-common-diff required)",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.58-1.4.59-1-independent-warmup-v10-cd-balance-nephteim-voice-rescue-fragment-display.zip"
+    },
+    {
+      "code": "DEV_INVALID_ARCHIVE_NAME",
+      "message": "archive name suffix is not hex; dev scanner rejects it: pinball-1.4.59-1.4.60-1-stella139999.zip",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.59-1.4.60-1-stella139999.zip"
+    },
+    {
+      "code": "DEV_FOREIGN_ROOT",
+      "message": "archive lives outside the CDN root; dev scanner never reads asset-patch/active/ (relocation into archive-common-diff required)",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.59-1.4.60-1-stella139999.zip"
+    },
+    {
+      "code": "DEV_INVALID_ARCHIVE_NAME",
+      "message": "archive name suffix is not hex; dev scanner rejects it: pinball-1.4.59-1.4.60-2-stella139999.zip",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.59-1.4.60-2-stella139999.zip"
+    },
+    {
+      "code": "DEV_FOREIGN_ROOT",
+      "message": "archive lives outside the CDN root; dev scanner never reads asset-patch/active/ (relocation into archive-common-diff required)",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.59-1.4.60-2-stella139999.zip"
+    },
+    {
+      "code": "DEV_INVALID_ARCHIVE_NAME",
+      "message": "archive name suffix is not hex; dev scanner rejects it: pinball-1.4.59-1.4.60-3-stella139999.zip",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.59-1.4.60-3-stella139999.zip"
+    },
+    {
+      "code": "DEV_FOREIGN_ROOT",
+      "message": "archive lives outside the CDN root; dev scanner never reads asset-patch/active/ (relocation into archive-common-diff required)",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.59-1.4.60-3-stella139999.zip"
+    },
+    {
+      "code": "DEV_INVALID_ARCHIVE_NAME",
+      "message": "archive name suffix is not hex; dev scanner rejects it: pinball-1.4.59-1.4.60-4-stella139999.zip",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.59-1.4.60-4-stella139999.zip"
+    },
+    {
+      "code": "DEV_FOREIGN_ROOT",
+      "message": "archive lives outside the CDN root; dev scanner never reads asset-patch/active/ (relocation into archive-common-diff required)",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.59-1.4.60-4-stella139999.zip"
+    },
+    {
+      "code": "DEV_INVALID_ARCHIVE_NAME",
+      "message": "archive name suffix is not hex; dev scanner rejects it: pinball-1.4.59-1.4.60-5-stella139999.zip",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.59-1.4.60-5-stella139999.zip"
+    },
+    {
+      "code": "DEV_FOREIGN_ROOT",
+      "message": "archive lives outside the CDN root; dev scanner never reads asset-patch/active/ (relocation into archive-common-diff required)",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.59-1.4.60-5-stella139999.zip"
+    },
+    {
+      "code": "DEV_INVALID_ARCHIVE_NAME",
+      "message": "archive name suffix is not hex; dev scanner rejects it: pinball-1.4.59-1.4.60-6-fragment-exchange.zip",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.59-1.4.60-6-fragment-exchange.zip"
+    },
+    {
+      "code": "DEV_FOREIGN_ROOT",
+      "message": "archive lives outside the CDN root; dev scanner never reads asset-patch/active/ (relocation into archive-common-diff required)",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.59-1.4.60-6-fragment-exchange.zip"
+    },
+    {
+      "code": "DEV_INVALID_ARCHIVE_NAME",
+      "message": "archive name suffix is not hex; dev scanner rejects it: pinball-1.4.60-1.4.61-1-post60-terminal-overlay-sixpack-v2.zip",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.60-1.4.61-1-post60-terminal-overlay-sixpack-v2.zip"
+    },
+    {
+      "code": "DEV_FOREIGN_ROOT",
+      "message": "archive lives outside the CDN root; dev scanner never reads asset-patch/active/ (relocation into archive-common-diff required)",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.60-1.4.61-1-post60-terminal-overlay-sixpack-v2.zip"
+    },
+    {
+      "code": "DEV_INVALID_ARCHIVE_NAME",
+      "message": "archive name suffix is not hex; dev scanner rejects it: pinball-1.4.60-1.4.61-2-post60-terminal-overlay-sixpack-v2.zip",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.60-1.4.61-2-post60-terminal-overlay-sixpack-v2.zip"
+    },
+    {
+      "code": "DEV_FOREIGN_ROOT",
+      "message": "archive lives outside the CDN root; dev scanner never reads asset-patch/active/ (relocation into archive-common-diff required)",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.60-1.4.61-2-post60-terminal-overlay-sixpack-v2.zip"
+    },
+    {
+      "code": "DEV_INVALID_ARCHIVE_NAME",
+      "message": "archive name suffix is not hex; dev scanner rejects it: pinball-1.4.60-1.4.61-3-post60-terminal-overlay-sixpack-v2.zip",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.60-1.4.61-3-post60-terminal-overlay-sixpack-v2.zip"
+    },
+    {
+      "code": "DEV_FOREIGN_ROOT",
+      "message": "archive lives outside the CDN root; dev scanner never reads asset-patch/active/ (relocation into archive-common-diff required)",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.60-1.4.61-3-post60-terminal-overlay-sixpack-v2.zip"
+    },
+    {
+      "code": "DEV_INVALID_ARCHIVE_NAME",
+      "message": "archive name suffix is not hex; dev scanner rejects it: pinball-1.4.60-1.4.61-4-post60-terminal-overlay-sixpack-v2.zip",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.60-1.4.61-4-post60-terminal-overlay-sixpack-v2.zip"
+    },
+    {
+      "code": "DEV_FOREIGN_ROOT",
+      "message": "archive lives outside the CDN root; dev scanner never reads asset-patch/active/ (relocation into archive-common-diff required)",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.60-1.4.61-4-post60-terminal-overlay-sixpack-v2.zip"
+    },
+    {
+      "code": "DEV_INVALID_ARCHIVE_NAME",
+      "message": "archive name suffix is not hex; dev scanner rejects it: pinball-1.4.60-1.4.61-5-post60-terminal-overlay-sixpack-v2.zip",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.60-1.4.61-5-post60-terminal-overlay-sixpack-v2.zip"
+    },
+    {
+      "code": "DEV_FOREIGN_ROOT",
+      "message": "archive lives outside the CDN root; dev scanner never reads asset-patch/active/ (relocation into archive-common-diff required)",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.60-1.4.61-5-post60-terminal-overlay-sixpack-v2.zip"
+    },
+    {
+      "code": "DEV_INVALID_ARCHIVE_NAME",
+      "message": "archive name suffix is not hex; dev scanner rejects it: pinball-1.4.60-1.4.61-6-post60-terminal-overlay-sixpack-v2.zip",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.60-1.4.61-6-post60-terminal-overlay-sixpack-v2.zip"
+    },
+    {
+      "code": "DEV_FOREIGN_ROOT",
+      "message": "archive lives outside the CDN root; dev scanner never reads asset-patch/active/ (relocation into archive-common-diff required)",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.60-1.4.61-6-post60-terminal-overlay-sixpack-v2.zip"
+    },
+    {
+      "code": "DEV_INVALID_ARCHIVE_NAME",
+      "message": "archive name suffix is not hex; dev scanner rejects it: pinball-1.4.61-1.4.62-1-0806194711-hide-deep-abyss-entry-cache-v2.zip",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.61-1.4.62-1-0806194711-hide-deep-abyss-entry-cache-v2.zip"
+    },
+    {
+      "code": "DEV_FOREIGN_ROOT",
+      "message": "archive lives outside the CDN root; dev scanner never reads asset-patch/active/ (relocation into archive-common-diff required)",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.61-1.4.62-1-0806194711-hide-deep-abyss-entry-cache-v2.zip"
+    },
+    {
+      "code": "DEV_INVALID_ARCHIVE_NAME",
+      "message": "archive name suffix is not hex; dev scanner rejects it: pinball-1.4.62-1.4.63-1-ginovi-wind-dragon-balance-cache-v2.zip",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.62-1.4.63-1-ginovi-wind-dragon-balance-cache-v2.zip"
+    },
+    {
+      "code": "DEV_FOREIGN_ROOT",
+      "message": "archive lives outside the CDN root; dev scanner never reads asset-patch/active/ (relocation into archive-common-diff required)",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.62-1.4.63-1-ginovi-wind-dragon-balance-cache-v2.zip"
+    },
+    {
+      "code": "DEV_FOREIGN_ROOT",
+      "message": "archive lives outside the CDN root; dev scanner never reads asset-patch/active/ (relocation into archive-common-diff required)",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.63-1.4.64-1-0807185447.zip"
+    },
+    {
+      "code": "DEV_FOREIGN_ROOT",
+      "message": "archive lives outside the CDN root; dev scanner never reads asset-patch/active/ (relocation into archive-common-diff required)",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.64-1.4.65-1-0807201059.zip"
+    },
+    {
+      "code": "DEV_FOREIGN_ROOT",
+      "message": "archive lives outside the CDN root; dev scanner never reads asset-patch/active/ (relocation into archive-common-diff required)",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.65-1.4.66-1-0807203058.zip"
+    },
+    {
+      "code": "DEV_FOREIGN_ROOT",
+      "message": "archive lives outside the CDN root; dev scanner never reads asset-patch/active/ (relocation into archive-common-diff required)",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.66-1.4.67-1-0807204308.zip"
+    },
+    {
+      "code": "DEV_INVALID_ARCHIVE_NAME",
+      "message": "archive name suffix is not hex; dev scanner rejects it: pinball-1.4.67-1.4.68-1-battle-atlas-crop-fix.zip",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.67-1.4.68-1-battle-atlas-crop-fix.zip"
+    },
+    {
+      "code": "DEV_FOREIGN_ROOT",
+      "message": "archive lives outside the CDN root; dev scanner never reads asset-patch/active/ (relocation into archive-common-diff required)",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.67-1.4.68-1-battle-atlas-crop-fix.zip"
+    },
+    {
+      "code": "DEV_INVALID_ARCHIVE_NAME",
+      "message": "archive name suffix is not hex; dev scanner rejects it: pinball-1.4.68-1.4.69-1-0807230819-light-dark-dragon-redesign.zip",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.68-1.4.69-1-0807230819-light-dark-dragon-redesign.zip"
+    },
+    {
+      "code": "DEV_FOREIGN_ROOT",
+      "message": "archive lives outside the CDN root; dev scanner never reads asset-patch/active/ (relocation into archive-common-diff required)",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.68-1.4.69-1-0807230819-light-dark-dragon-redesign.zip"
+    },
+    {
+      "code": "DEV_FOREIGN_ROOT",
+      "message": "archive lives outside the CDN root; dev scanner never reads asset-patch/active/ (relocation into archive-common-diff required)",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.68-1.4.69-1-0807230819.zip"
+    },
+    {
+      "code": "DEV_INVALID_ARCHIVE_NAME",
+      "message": "archive name suffix is not hex; dev scanner rejects it: pinball-1.4.69-1.4.70-1-mode15final70.zip",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.69-1.4.70-1-mode15final70.zip"
+    },
+    {
+      "code": "DEV_FOREIGN_ROOT",
+      "message": "archive lives outside the CDN root; dev scanner never reads asset-patch/active/ (relocation into archive-common-diff required)",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.69-1.4.70-1-mode15final70.zip"
+    },
+    {
+      "code": "DEV_INVALID_ARCHIVE_NAME",
+      "message": "archive name suffix is not hex; dev scanner rejects it: pinball-1.4.69-1.4.70-2-mode15final70.zip",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.69-1.4.70-2-mode15final70.zip"
+    },
+    {
+      "code": "DEV_FOREIGN_ROOT",
+      "message": "archive lives outside the CDN root; dev scanner never reads asset-patch/active/ (relocation into archive-common-diff required)",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.69-1.4.70-2-mode15final70.zip"
+    },
+    {
+      "code": "DEV_FOREIGN_ROOT",
+      "message": "archive lives outside the CDN root; dev scanner never reads asset-patch/active/ (relocation into archive-common-diff required)",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.70-1.4.71-1-0809181408.zip"
+    },
+    {
+      "code": "DEV_INVALID_ARCHIVE_NAME",
+      "message": "archive name suffix is not hex; dev scanner rejects it: pinball-1.4.71-1.4.72-1-merge7274into72.zip",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.71-1.4.72-1-merge7274into72.zip"
+    },
+    {
+      "code": "DEV_FOREIGN_ROOT",
+      "message": "archive lives outside the CDN root; dev scanner never reads asset-patch/active/ (relocation into archive-common-diff required)",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.71-1.4.72-1-merge7274into72.zip"
+    },
+    {
+      "code": "DEV_FOREIGN_ROOT",
+      "message": "archive lives outside the CDN root; dev scanner never reads asset-patch/active/ (relocation into archive-common-diff required)",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.72-1.4.73-1-0811190633.zip"
+    },
+    {
+      "code": "DEV_FOREIGN_ROOT",
+      "message": "archive lives outside the CDN root; dev scanner never reads asset-patch/active/ (relocation into archive-common-diff required)",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.73-1.4.74-1-0811222236.zip"
+    },
+    {
+      "code": "DEV_INVALID_ARCHIVE_NAME",
+      "message": "archive name suffix is not hex; dev scanner rejects it: pinball-1.4.74-1.4.75-1-0812tower2.zip",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.74-1.4.75-1-0812tower2.zip"
+    },
+    {
+      "code": "DEV_FOREIGN_ROOT",
+      "message": "archive lives outside the CDN root; dev scanner never reads asset-patch/active/ (relocation into archive-common-diff required)",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.74-1.4.75-1-0812tower2.zip"
+    },
+    {
+      "code": "DEV_INVALID_ARCHIVE_NAME",
+      "message": "archive name suffix is not hex; dev scanner rejects it: pinball-1.4.75-1.4.76-1-0812-abyss-reroll-lilith-fix.zip",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.75-1.4.76-1-0812-abyss-reroll-lilith-fix.zip"
+    },
+    {
+      "code": "DEV_FOREIGN_ROOT",
+      "message": "archive lives outside the CDN root; dev scanner never reads asset-patch/active/ (relocation into archive-common-diff required)",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.75-1.4.76-1-0812-abyss-reroll-lilith-fix.zip"
+    },
+    {
+      "code": "DEV_FOREIGN_ROOT",
+      "message": "archive lives outside the CDN root; dev scanner never reads asset-patch/active/ (relocation into archive-common-diff required)",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.76-1.4.77-1-08131347.zip"
+    },
+    {
+      "code": "DEV_FOREIGN_ROOT",
+      "message": "archive lives outside the CDN root; dev scanner never reads asset-patch/active/ (relocation into archive-common-diff required)",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.76-1.4.77-2-08131347.zip"
+    },
+    {
+      "code": "DEV_FOREIGN_ROOT",
+      "message": "archive lives outside the CDN root; dev scanner never reads asset-patch/active/ (relocation into archive-common-diff required)",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.76-1.4.77-3-08131347.zip"
+    },
+    {
+      "code": "DEV_ENTITY_ROW_SKIPPED",
+      "message": "zip member is not an upload path: 05/bb64721a22ff30bb7c8bac44ba9461c3d2c0d5",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.69-1.4.70-1-mode15final70.zip"
+    },
+    {
+      "code": "DEV_ENTITY_ROW_SKIPPED",
+      "message": "zip member is not an upload path: 0a/ec155b261ae7801d4c9a9bb579f88fe5bcc324",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.69-1.4.70-1-mode15final70.zip"
+    },
+    {
+      "code": "DEV_ENTITY_ROW_SKIPPED",
+      "message": "zip member is not an upload path: 0b/97162ce6d40c473cbac39fa21427688922a48a",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.69-1.4.70-1-mode15final70.zip"
+    },
+    {
+      "code": "DEV_ENTITY_ROW_SKIPPED",
+      "message": "zip member is not an upload path: 0f/e68a8014c2ec146348efa0b733189633eab8ce",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.69-1.4.70-1-mode15final70.zip"
+    },
+    {
+      "code": "DEV_ENTITY_ROW_SKIPPED",
+      "message": "zip member is not an upload path: 19/a4aa442b3249499356e7a3f6370e530bfe355e",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.69-1.4.70-1-mode15final70.zip"
+    },
+    {
+      "code": "DEV_ENTITY_ROW_SKIPPED",
+      "message": "zip member is not an upload path: 1d/ac7a87ff49740559ceff88c28b71f833693370",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.69-1.4.70-1-mode15final70.zip"
+    },
+    {
+      "code": "DEV_ENTITY_ROW_SKIPPED",
+      "message": "zip member is not an upload path: 30/363f8364e183905b2d0b48b8718b7165135bc2",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.69-1.4.70-1-mode15final70.zip"
+    },
+    {
+      "code": "DEV_ENTITY_ROW_SKIPPED",
+      "message": "zip member is not an upload path: 3c/e4708d78cc133ca88fd20edcaecdbfc1a5d975",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.69-1.4.70-1-mode15final70.zip"
+    },
+    {
+      "code": "DEV_ENTITY_ROW_SKIPPED",
+      "message": "zip member is not an upload path: 48/bd931bce4f30c62b124a693b683581c32c9483",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.69-1.4.70-1-mode15final70.zip"
+    },
+    {
+      "code": "DEV_ENTITY_ROW_SKIPPED",
+      "message": "zip member is not an upload path: 62/94d3a44330c5f5518bb08b3bd46068d8605936",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.69-1.4.70-1-mode15final70.zip"
+    },
+    {
+      "code": "DEV_ENTITY_ROW_SKIPPED",
+      "message": "zip member is not an upload path: 66/f9d2033ba737bfe0562ba847fe6e6599d9154a",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.69-1.4.70-1-mode15final70.zip"
+    },
+    {
+      "code": "DEV_ENTITY_ROW_SKIPPED",
+      "message": "zip member is not an upload path: 6b/ef338822b2c963eb40c67b3d43a3b3f911ad73",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.69-1.4.70-1-mode15final70.zip"
+    },
+    {
+      "code": "DEV_ENTITY_ROW_SKIPPED",
+      "message": "zip member is not an upload path: 72/9edf423a2a32ad7948bb61488845271025caf2",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.69-1.4.70-1-mode15final70.zip"
+    },
+    {
+      "code": "DEV_ENTITY_ROW_SKIPPED",
+      "message": "zip member is not an upload path: 82/93e535e806d70640f45950db1fe14ed9482bdf",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.69-1.4.70-1-mode15final70.zip"
+    },
+    {
+      "code": "DEV_ENTITY_ROW_SKIPPED",
+      "message": "zip member is not an upload path: 83/903fea09cc8b86eaec48356e1b5692fd3486ee",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.69-1.4.70-1-mode15final70.zip"
+    },
+    {
+      "code": "DEV_ENTITY_ROW_SKIPPED",
+      "message": "zip member is not an upload path: 87/1304471157da89e59ec26eb6df303c1eeafbe6",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.69-1.4.70-1-mode15final70.zip"
+    },
+    {
+      "code": "DEV_ENTITY_ROW_SKIPPED",
+      "message": "zip member is not an upload path: 89/b6c0d1c0da0778139bac9007a937a8b5194a3f",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.69-1.4.70-1-mode15final70.zip"
+    },
+    {
+      "code": "DEV_ENTITY_ROW_SKIPPED",
+      "message": "zip member is not an upload path: 8a/b96162f1210de71fafa87333abe257dc619183",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.69-1.4.70-1-mode15final70.zip"
+    },
+    {
+      "code": "DEV_ENTITY_ROW_SKIPPED",
+      "message": "zip member is not an upload path: 8e/d3874807da6b5881be725cf6198d7a50ead0e0",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.69-1.4.70-1-mode15final70.zip"
+    },
+    {
+      "code": "DEV_ENTITY_ROW_SKIPPED",
+      "message": "zip member is not an upload path: 91/79892d704f88d98191c00548bce106402ad5b5",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.69-1.4.70-1-mode15final70.zip"
+    },
+    {
+      "code": "DEV_ENTITY_ROW_SKIPPED",
+      "message": "zip member is not an upload path: 92/917c6aeceee7cf73b275883653bcb89a43f3df",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.69-1.4.70-1-mode15final70.zip"
+    },
+    {
+      "code": "DEV_ENTITY_ROW_SKIPPED",
+      "message": "zip member is not an upload path: 94/3d61781791557a1c61e3efa34124fba6e6ed7d",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.69-1.4.70-1-mode15final70.zip"
+    },
+    {
+      "code": "DEV_ENTITY_ROW_SKIPPED",
+      "message": "zip member is not an upload path: a3/dc1ca3cf91c916620844007484e2d328fd9f69",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.69-1.4.70-1-mode15final70.zip"
+    },
+    {
+      "code": "DEV_ENTITY_ROW_SKIPPED",
+      "message": "zip member is not an upload path: a4/731a843d4dc0c84120bf8c88784c1e74c03baa",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.69-1.4.70-1-mode15final70.zip"
+    },
+    {
+      "code": "DEV_ENTITY_ROW_SKIPPED",
+      "message": "zip member is not an upload path: a5/30887c43e10df0de2462410f4d8fde30ae470a",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.69-1.4.70-1-mode15final70.zip"
+    },
+    {
+      "code": "DEV_ENTITY_ROW_SKIPPED",
+      "message": "zip member is not an upload path: b3/155b283c72f27094fc0d8f90100de409816c8e",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.69-1.4.70-1-mode15final70.zip"
+    },
+    {
+      "code": "DEV_ENTITY_ROW_SKIPPED",
+      "message": "zip member is not an upload path: b6/595dedd9cfa79b7e6eccab25dd9a2a81b066a2",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.69-1.4.70-1-mode15final70.zip"
+    },
+    {
+      "code": "DEV_ENTITY_ROW_SKIPPED",
+      "message": "zip member is not an upload path: bc/09e5206fc0e8f07cedded16d8397e02a257307",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.69-1.4.70-1-mode15final70.zip"
+    },
+    {
+      "code": "DEV_ENTITY_ROW_SKIPPED",
+      "message": "zip member is not an upload path: c7/428142e8bf6ca3dcd9445f67d0c882765710c7",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.69-1.4.70-1-mode15final70.zip"
+    },
+    {
+      "code": "DEV_ENTITY_ROW_SKIPPED",
+      "message": "zip member is not an upload path: c9/23046b12debf5aba98518453c59c20ea7ca7b0",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.69-1.4.70-1-mode15final70.zip"
+    },
+    {
+      "code": "DEV_ENTITY_ROW_SKIPPED",
+      "message": "zip member is not an upload path: cb/52fe5450a828c00583b68b76f446d1aad40d2e",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.69-1.4.70-1-mode15final70.zip"
+    },
+    {
+      "code": "DEV_ENTITY_ROW_SKIPPED",
+      "message": "zip member is not an upload path: cd/6336795a27ea33bf8d0c5d5a9bfb466bedcf1e",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.69-1.4.70-1-mode15final70.zip"
+    },
+    {
+      "code": "DEV_ENTITY_ROW_SKIPPED",
+      "message": "zip member is not an upload path: e6/e407d1adb48131eaefdf5ec32208f3d4f46910",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.69-1.4.70-1-mode15final70.zip"
+    },
+    {
+      "code": "DEV_ENTITY_ROW_SKIPPED",
+      "message": "zip member is not an upload path: ea/a696d2930b207eaa004627bcd8032f72c2c014",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.69-1.4.70-1-mode15final70.zip"
+    },
+    {
+      "code": "DEV_ENTITY_ROW_SKIPPED",
+      "message": "zip member is not an upload path: ec/d8f66b60947ca05643c4080a6cc925c750b9d6",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.69-1.4.70-1-mode15final70.zip"
+    },
+    {
+      "code": "DEV_ENTITY_ROW_SKIPPED",
+      "message": "zip member is not an upload path: ed/0c612a25f183a10d46430d1024b1f9c61eba51",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.69-1.4.70-1-mode15final70.zip"
+    },
+    {
+      "code": "DEV_ENTITY_ROW_SKIPPED",
+      "message": "zip member is not an upload path: ed/eaaebf36258c406305cba912f18c2712d6e3cd",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.69-1.4.70-1-mode15final70.zip"
+    },
+    {
+      "code": "DEV_ENTITY_ROW_SKIPPED",
+      "message": "zip member is not an upload path: f3/3b82ac4c4ac0b839fa932acf9b0b72bbce445e",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.69-1.4.70-1-mode15final70.zip"
+    },
+    {
+      "code": "DEV_ENTITY_ROW_SKIPPED",
+      "message": "zip member is not an upload path: f3/921ba88d5f256d84dd474ab6f499097afd7212",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.69-1.4.70-1-mode15final70.zip"
+    },
+    {
+      "code": "DEV_ENTITY_ROW_SKIPPED",
+      "message": "zip member is not an upload path: f4/7b227ebbdedc6de7c5f36fa0f96a3f80f9d9c3",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.69-1.4.70-1-mode15final70.zip"
+    },
+    {
+      "code": "DEV_ENTITY_ROW_SKIPPED",
+      "message": "zip member is not an upload path: fe/1035fdd920d54f65f6797bad2d4ac054feb10d",
+      "category": "scanner",
+      "relative_path": "asset-patch/active/pinball-1.4.69-1.4.70-1-mode15final70.zip"
+    },
+    {
+      "code": "MISSING_ARCHIVE_LAYER",
+      "message": "diff edge 1.4.54 -> 1.4.55 is missing quality",
+      "category": "archive",
+      "relative_path": "asset-patch/active/pinball-1.4.54-1.4.55-1-mod07141843.zip"
+    },
+    {
+      "code": "MISSING_ARCHIVE_LAYER",
+      "message": "diff edge 1.4.54 -> 1.4.55 is missing platform",
+      "category": "archive",
+      "relative_path": "asset-patch/active/pinball-1.4.54-1.4.55-1-mod07141843.zip"
+    },
+    {
+      "code": "MISSING_ARCHIVE_LAYER",
+      "message": "diff edge 1.4.55 -> 1.4.56 is missing quality",
+      "category": "archive",
+      "relative_path": "asset-patch/active/pinball-1.4.55-1.4.56-1-mod-ability-damage-party-balanced-v5.zip"
+    },
+    {
+      "code": "MISSING_ARCHIVE_LAYER",
+      "message": "diff edge 1.4.55 -> 1.4.56 is missing platform",
+      "category": "archive",
+      "relative_path": "asset-patch/active/pinball-1.4.55-1.4.56-1-mod-ability-damage-party-balanced-v5.zip"
+    },
+    {
+      "code": "MISSING_ARCHIVE_LAYER",
+      "message": "diff edge 1.4.56 -> 1.4.57 is missing quality",
+      "category": "archive",
+      "relative_path": "asset-patch/active/pinball-1.4.56-1.4.57-1-consolidated-ability-v7-and-custom-drops.zip"
+    },
+    {
+      "code": "MISSING_ARCHIVE_LAYER",
+      "message": "diff edge 1.4.56 -> 1.4.57 is missing platform",
+      "category": "archive",
+      "relative_path": "asset-patch/active/pinball-1.4.56-1.4.57-1-consolidated-ability-v7-and-custom-drops.zip"
+    },
+    {
+      "code": "MISSING_ARCHIVE_LAYER",
+      "message": "diff edge 1.4.57 -> 1.4.58 is missing quality",
+      "category": "archive",
+      "relative_path": "asset-patch/active/pinball-1.4.57-1.4.58-1-shop-stock-999-consolidated.zip"
+    },
+    {
+      "code": "MISSING_ARCHIVE_LAYER",
+      "message": "diff edge 1.4.57 -> 1.4.58 is missing platform",
+      "category": "archive",
+      "relative_path": "asset-patch/active/pinball-1.4.57-1.4.58-1-shop-stock-999-consolidated.zip"
+    },
+    {
+      "code": "MISSING_ARCHIVE_LAYER",
+      "message": "diff edge 1.4.58 -> 1.4.59 is missing quality",
+      "category": "archive",
+      "relative_path": "asset-patch/active/pinball-1.4.58-1.4.59-1-independent-warmup-v10-cd-balance-nephteim-voice-rescue-fragment-display.zip"
+    },
+    {
+      "code": "MISSING_ARCHIVE_LAYER",
+      "message": "diff edge 1.4.58 -> 1.4.59 is missing platform",
+      "category": "archive",
+      "relative_path": "asset-patch/active/pinball-1.4.58-1.4.59-1-independent-warmup-v10-cd-balance-nephteim-voice-rescue-fragment-display.zip"
+    },
+    {
+      "code": "MISSING_ARCHIVE_LAYER",
+      "message": "diff edge 1.4.59 -> 1.4.60 is missing quality",
+      "category": "archive",
+      "relative_path": "asset-patch/active/pinball-1.4.59-1.4.60-1-stella139999.zip"
+    },
+    {
+      "code": "MISSING_ARCHIVE_LAYER",
+      "message": "diff edge 1.4.59 -> 1.4.60 is missing platform",
+      "category": "archive",
+      "relative_path": "asset-patch/active/pinball-1.4.59-1.4.60-1-stella139999.zip"
+    },
+    {
+      "code": "MISSING_ARCHIVE_LAYER",
+      "message": "diff edge 1.4.60 -> 1.4.61 is missing quality",
+      "category": "archive",
+      "relative_path": "asset-patch/active/pinball-1.4.60-1.4.61-1-post60-terminal-overlay-sixpack-v2.zip"
+    },
+    {
+      "code": "MISSING_ARCHIVE_LAYER",
+      "message": "diff edge 1.4.60 -> 1.4.61 is missing platform",
+      "category": "archive",
+      "relative_path": "asset-patch/active/pinball-1.4.60-1.4.61-1-post60-terminal-overlay-sixpack-v2.zip"
+    },
+    {
+      "code": "MISSING_ARCHIVE_LAYER",
+      "message": "diff edge 1.4.61 -> 1.4.62 is missing quality",
+      "category": "archive",
+      "relative_path": "asset-patch/active/pinball-1.4.61-1.4.62-1-0806194711-hide-deep-abyss-entry-cache-v2.zip"
+    },
+    {
+      "code": "MISSING_ARCHIVE_LAYER",
+      "message": "diff edge 1.4.61 -> 1.4.62 is missing platform",
+      "category": "archive",
+      "relative_path": "asset-patch/active/pinball-1.4.61-1.4.62-1-0806194711-hide-deep-abyss-entry-cache-v2.zip"
+    },
+    {
+      "code": "MISSING_ARCHIVE_LAYER",
+      "message": "diff edge 1.4.62 -> 1.4.63 is missing quality",
+      "category": "archive",
+      "relative_path": "asset-patch/active/pinball-1.4.62-1.4.63-1-ginovi-wind-dragon-balance-cache-v2.zip"
+    },
+    {
+      "code": "MISSING_ARCHIVE_LAYER",
+      "message": "diff edge 1.4.62 -> 1.4.63 is missing platform",
+      "category": "archive",
+      "relative_path": "asset-patch/active/pinball-1.4.62-1.4.63-1-ginovi-wind-dragon-balance-cache-v2.zip"
+    },
+    {
+      "code": "MISSING_ARCHIVE_LAYER",
+      "message": "diff edge 1.4.63 -> 1.4.64 is missing quality",
+      "category": "archive",
+      "relative_path": "asset-patch/active/pinball-1.4.63-1.4.64-1-0807185447.zip"
+    },
+    {
+      "code": "MISSING_ARCHIVE_LAYER",
+      "message": "diff edge 1.4.63 -> 1.4.64 is missing platform",
+      "category": "archive",
+      "relative_path": "asset-patch/active/pinball-1.4.63-1.4.64-1-0807185447.zip"
+    },
+    {
+      "code": "MISSING_ARCHIVE_LAYER",
+      "message": "diff edge 1.4.64 -> 1.4.65 is missing quality",
+      "category": "archive",
+      "relative_path": "asset-patch/active/pinball-1.4.64-1.4.65-1-0807201059.zip"
+    },
+    {
+      "code": "MISSING_ARCHIVE_LAYER",
+      "message": "diff edge 1.4.64 -> 1.4.65 is missing platform",
+      "category": "archive",
+      "relative_path": "asset-patch/active/pinball-1.4.64-1.4.65-1-0807201059.zip"
+    },
+    {
+      "code": "MISSING_ARCHIVE_LAYER",
+      "message": "diff edge 1.4.65 -> 1.4.66 is missing quality",
+      "category": "archive",
+      "relative_path": "asset-patch/active/pinball-1.4.65-1.4.66-1-0807203058.zip"
+    },
+    {
+      "code": "MISSING_ARCHIVE_LAYER",
+      "message": "diff edge 1.4.65 -> 1.4.66 is missing platform",
+      "category": "archive",
+      "relative_path": "asset-patch/active/pinball-1.4.65-1.4.66-1-0807203058.zip"
+    },
+    {
+      "code": "MISSING_ARCHIVE_LAYER",
+      "message": "diff edge 1.4.66 -> 1.4.67 is missing quality",
+      "category": "archive",
+      "relative_path": "asset-patch/active/pinball-1.4.66-1.4.67-1-0807204308.zip"
+    },
+    {
+      "code": "MISSING_ARCHIVE_LAYER",
+      "message": "diff edge 1.4.66 -> 1.4.67 is missing platform",
+      "category": "archive",
+      "relative_path": "asset-patch/active/pinball-1.4.66-1.4.67-1-0807204308.zip"
+    },
+    {
+      "code": "MISSING_ARCHIVE_LAYER",
+      "message": "diff edge 1.4.67 -> 1.4.68 is missing quality",
+      "category": "archive",
+      "relative_path": "asset-patch/active/pinball-1.4.67-1.4.68-1-battle-atlas-crop-fix.zip"
+    },
+    {
+      "code": "MISSING_ARCHIVE_LAYER",
+      "message": "diff edge 1.4.67 -> 1.4.68 is missing platform",
+      "category": "archive",
+      "relative_path": "asset-patch/active/pinball-1.4.67-1.4.68-1-battle-atlas-crop-fix.zip"
+    },
+    {
+      "code": "MISSING_ARCHIVE_LAYER",
+      "message": "diff edge 1.4.68 -> 1.4.69 is missing quality",
+      "category": "archive",
+      "relative_path": "asset-patch/active/pinball-1.4.68-1.4.69-1-0807230819-light-dark-dragon-redesign.zip"
+    },
+    {
+      "code": "MISSING_ARCHIVE_LAYER",
+      "message": "diff edge 1.4.68 -> 1.4.69 is missing platform",
+      "category": "archive",
+      "relative_path": "asset-patch/active/pinball-1.4.68-1.4.69-1-0807230819-light-dark-dragon-redesign.zip"
+    },
+    {
+      "code": "MISSING_ARCHIVE_LAYER",
+      "message": "diff edge 1.4.69 -> 1.4.70 is missing quality",
+      "category": "archive",
+      "relative_path": "asset-patch/active/pinball-1.4.69-1.4.70-1-mode15final70.zip"
+    },
+    {
+      "code": "MISSING_ARCHIVE_LAYER",
+      "message": "diff edge 1.4.69 -> 1.4.70 is missing platform",
+      "category": "archive",
+      "relative_path": "asset-patch/active/pinball-1.4.69-1.4.70-1-mode15final70.zip"
+    },
+    {
+      "code": "MISSING_ARCHIVE_LAYER",
+      "message": "diff edge 1.4.70 -> 1.4.71 is missing quality",
+      "category": "archive",
+      "relative_path": "asset-patch/active/pinball-1.4.70-1.4.71-1-0809181408.zip"
+    },
+    {
+      "code": "MISSING_ARCHIVE_LAYER",
+      "message": "diff edge 1.4.70 -> 1.4.71 is missing platform",
+      "category": "archive",
+      "relative_path": "asset-patch/active/pinball-1.4.70-1.4.71-1-0809181408.zip"
+    },
+    {
+      "code": "MISSING_ARCHIVE_LAYER",
+      "message": "diff edge 1.4.71 -> 1.4.72 is missing quality",
+      "category": "archive",
+      "relative_path": "asset-patch/active/pinball-1.4.71-1.4.72-1-merge7274into72.zip"
+    },
+    {
+      "code": "MISSING_ARCHIVE_LAYER",
+      "message": "diff edge 1.4.71 -> 1.4.72 is missing platform",
+      "category": "archive",
+      "relative_path": "asset-patch/active/pinball-1.4.71-1.4.72-1-merge7274into72.zip"
+    },
+    {
+      "code": "MISSING_ARCHIVE_LAYER",
+      "message": "diff edge 1.4.72 -> 1.4.73 is missing quality",
+      "category": "archive",
+      "relative_path": "asset-patch/active/pinball-1.4.72-1.4.73-1-0811190633.zip"
+    },
+    {
+      "code": "MISSING_ARCHIVE_LAYER",
+      "message": "diff edge 1.4.72 -> 1.4.73 is missing platform",
+      "category": "archive",
+      "relative_path": "asset-patch/active/pinball-1.4.72-1.4.73-1-0811190633.zip"
+    },
+    {
+      "code": "MISSING_ARCHIVE_LAYER",
+      "message": "diff edge 1.4.73 -> 1.4.74 is missing quality",
+      "category": "archive",
+      "relative_path": "asset-patch/active/pinball-1.4.73-1.4.74-1-0811222236.zip"
+    },
+    {
+      "code": "MISSING_ARCHIVE_LAYER",
+      "message": "diff edge 1.4.73 -> 1.4.74 is missing platform",
+      "category": "archive",
+      "relative_path": "asset-patch/active/pinball-1.4.73-1.4.74-1-0811222236.zip"
+    },
+    {
+      "code": "MISSING_ARCHIVE_LAYER",
+      "message": "diff edge 1.4.74 -> 1.4.75 is missing quality",
+      "category": "archive",
+      "relative_path": "asset-patch/active/pinball-1.4.74-1.4.75-1-0812tower2.zip"
+    },
+    {
+      "code": "MISSING_ARCHIVE_LAYER",
+      "message": "diff edge 1.4.74 -> 1.4.75 is missing platform",
+      "category": "archive",
+      "relative_path": "asset-patch/active/pinball-1.4.74-1.4.75-1-0812tower2.zip"
+    },
+    {
+      "code": "MISSING_ARCHIVE_LAYER",
+      "message": "diff edge 1.4.75 -> 1.4.76 is missing quality",
+      "category": "archive",
+      "relative_path": "asset-patch/active/pinball-1.4.75-1.4.76-1-0812-abyss-reroll-lilith-fix.zip"
+    },
+    {
+      "code": "MISSING_ARCHIVE_LAYER",
+      "message": "diff edge 1.4.75 -> 1.4.76 is missing platform",
+      "category": "archive",
+      "relative_path": "asset-patch/active/pinball-1.4.75-1.4.76-1-0812-abyss-reroll-lilith-fix.zip"
+    },
+    {
+      "code": "MISSING_ARCHIVE_LAYER",
+      "message": "diff edge 1.4.76 -> 1.4.77 is missing quality",
+      "category": "archive",
+      "relative_path": "asset-patch/active/pinball-1.4.76-1.4.77-1-08131347.zip"
+    },
+    {
+      "code": "MISSING_ARCHIVE_LAYER",
+      "message": "diff edge 1.4.76 -> 1.4.77 is missing platform",
+      "category": "archive",
+      "relative_path": "asset-patch/active/pinball-1.4.76-1.4.77-1-08131347.zip"
+    }
+  ]
+}

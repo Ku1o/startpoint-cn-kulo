@@ -1,19 +1,147 @@
 import { Database } from "better-sqlite3";
-import { ensureQuestHostFinishedStorageSync } from "../../lib/quest/host-finish-persistence";
-import { ensureActiveQuestEntryItemCountStorageSync } from "../../lib/quest/active-quest-persistence";
 import { ensureSchemaColumn } from "../schema";
 
-function getInitialDropMultiplier(): number {
-    const configured = process.env.DROP_MULTIPLIER
-    if (configured === undefined) return 1
-    if (!/^\d+$/.test(configured)) {
-        throw new Error("DROP_MULTIPLIER must be an integer between 1 and 10")
+interface TableColumnInfo {
+    name: string
+    pk: number
+}
+
+interface CategoryMissionRepairRow {
+    category: number
+    id: number
+    progress: number
+    player_id: number
+}
+
+interface CategoryMissionStageRepairRow {
+    category: number
+    id: number
+    status: number
+    player_id: number
+    mission_id: number
+}
+
+function getTableColumns(database: Database, tableName: string): TableColumnInfo[] {
+    return database.prepare(`PRAGMA table_info("${tableName}")`).all() as TableColumnInfo[]
+}
+
+function hasPrimaryKey(columns: TableColumnInfo[], expected: readonly string[]): boolean {
+    const actual = columns
+        .filter(column => column.pk > 0)
+        .sort((left, right) => left.pk - right.pk)
+        .map(column => column.name)
+    return actual.length === expected.length
+        && actual.every((name, index) => name === expected[index])
+}
+
+/**
+ * A short-lived upstream schema accidentally reused players_category_missions
+ * as the detailed mission-counter table.  CREATE TABLE IF NOT EXISTS cannot
+ * repair that shape, and its child table then fails every write with
+ * "foreign key mismatch".  Preserve the four authoritative mission columns
+ * and rebuild both tables before normal initialization continues.
+ */
+function repairCategoryMissionTables(database: Database): void {
+    const missionColumns = getTableColumns(database, "players_category_missions")
+    if (missionColumns.length === 0) return
+
+    const stageColumns = getTableColumns(database, "players_category_mission_stages")
+    const missionShapeValid = ["category", "id", "progress", "player_id"]
+        .every(name => missionColumns.some(column => column.name === name))
+        && hasPrimaryKey(missionColumns, ["category", "id", "player_id"])
+    const stageShapeValid = stageColumns.length === 0 || (
+        ["category", "id", "status", "player_id", "mission_id"]
+            .every(name => stageColumns.some(column => column.name === name))
+        && hasPrimaryKey(stageColumns, ["category", "id", "mission_id", "player_id"])
+    )
+    if (missionShapeValid && stageShapeValid) return
+
+    const missionRows = ["category", "id", "progress", "player_id"]
+        .every(name => missionColumns.some(column => column.name === name))
+        ? database.prepare(`
+            SELECT category, id, progress, player_id
+            FROM players_category_missions
+        `).all() as CategoryMissionRepairRow[]
+        : []
+    const stageRows = stageColumns.length > 0
+        && ["category", "id", "status", "player_id", "mission_id"]
+            .every(name => stageColumns.some(column => column.name === name))
+        ? database.prepare(`
+            SELECT category, id, status, player_id, mission_id
+            FROM players_category_mission_stages
+        `).all() as CategoryMissionStageRepairRow[]
+        : []
+
+    const foreignKeysEnabled = Number(database.pragma("foreign_keys", { simple: true })) !== 0
+    if (foreignKeysEnabled) database.pragma("foreign_keys = OFF")
+    try {
+        database.transaction(() => {
+            database.prepare(`DROP TABLE IF EXISTS players_category_mission_stages`).run()
+            database.prepare(`DROP TABLE IF EXISTS players_category_missions`).run()
+            database.prepare(`CREATE TABLE players_category_missions (
+                category INTEGER NOT NULL,
+                id INTEGER NOT NULL,
+                progress INTEGER NOT NULL,
+                player_id INTEGER NOT NULL,
+                PRIMARY KEY (category, id, player_id),
+                FOREIGN KEY (player_id) REFERENCES players (id) ON DELETE CASCADE
+            )`).run()
+            database.prepare(`CREATE TABLE players_category_mission_stages (
+                category INTEGER NOT NULL,
+                id INTEGER NOT NULL,
+                status INTEGER NOT NULL,
+                player_id INTEGER NOT NULL,
+                mission_id INTEGER NOT NULL,
+                PRIMARY KEY (category, id, mission_id, player_id),
+                FOREIGN KEY (category, mission_id, player_id)
+                    REFERENCES players_category_missions (category, id, player_id) ON DELETE CASCADE,
+                FOREIGN KEY (player_id) REFERENCES players (id) ON DELETE CASCADE
+            )`).run()
+
+            const insertMission = database.prepare(`
+                INSERT OR IGNORE INTO players_category_missions
+                    (category, id, progress, player_id)
+                VALUES (?, ?, ?, ?)
+            `)
+            const normalizedMissionRows = new Map<string, CategoryMissionRepairRow>()
+            for (const row of missionRows) {
+                const key = `${row.category}:${row.id}:${row.player_id}`
+                const previous = normalizedMissionRows.get(key)
+                if (previous === undefined || row.progress > previous.progress) {
+                    normalizedMissionRows.set(key, row)
+                }
+            }
+            const restoredMissionKeys = new Set<string>()
+            for (const [key, row] of normalizedMissionRows) {
+                insertMission.run(row.category, row.id, row.progress, row.player_id)
+                restoredMissionKeys.add(key)
+            }
+
+            const insertStage = database.prepare(`
+                INSERT OR IGNORE INTO players_category_mission_stages
+                    (category, id, status, player_id, mission_id)
+                VALUES (?, ?, ?, ?, ?)
+            `)
+            const normalizedStageRows = new Map<string, CategoryMissionStageRepairRow>()
+            for (const row of stageRows) {
+                const key = `${row.category}:${row.id}:${row.mission_id}:${row.player_id}`
+                const previous = normalizedStageRows.get(key)
+                if (previous === undefined || row.status > previous.status) {
+                    normalizedStageRows.set(key, row)
+                }
+            }
+            for (const row of normalizedStageRows.values()) {
+                if (!restoredMissionKeys.has(`${row.category}:${row.mission_id}:${row.player_id}`)) continue
+                insertStage.run(row.category, row.id, row.status, row.player_id, row.mission_id)
+            }
+        })()
+    } finally {
+        if (foreignKeysEnabled) database.pragma("foreign_keys = ON")
     }
-    const multiplier = Number(configured)
-    if (!Number.isSafeInteger(multiplier) || multiplier < 1 || multiplier > 10) {
-        throw new Error("DROP_MULTIPLIER must be an integer between 1 and 10")
-    }
-    return multiplier
+
+    console.log(
+        `[DB] repaired category mission schema: missions=${missionRows.length} stages=${stageRows.length}`,
+    )
 }
 
 
@@ -22,21 +150,6 @@ export default function init(
     exists: Boolean
 ) {
     // initialize the database
-
-    database.prepare(`CREATE TABLE IF NOT EXISTS server_gameplay_settings (
-        id INTEGER PRIMARY KEY CHECK (id = 1),
-        drop_multiplier INTEGER NOT NULL CHECK (drop_multiplier BETWEEN 1 AND 10),
-        updated_at TEXT NOT NULL
-    )`).run()
-    const gameplaySettingsExist = database.prepare(
-        "SELECT 1 FROM server_gameplay_settings WHERE id = 1",
-    ).get() !== undefined
-    if (!gameplaySettingsExist) {
-        database.prepare(`
-            INSERT INTO server_gameplay_settings (id, drop_multiplier, updated_at)
-            VALUES (1, ?, ?)
-        `).run(getInitialDropMultiplier(), new Date().toISOString())
-    }
 
     // create players table
     database.prepare(`CREATE TABLE IF NOT EXISTS accounts (
@@ -102,30 +215,78 @@ export default function init(
         FOREIGN KEY (account_id) REFERENCES accounts (id) ON DELETE CASCADE
     )`).run();
 
+    // Persistent title ownership. Older saves only stored the equipped title
+    // in players.degree_id, so preserve both that title and the default title.
+    database.prepare(`CREATE TABLE IF NOT EXISTS players_degrees (
+        player_id INTEGER NOT NULL,
+        degree_id INTEGER NOT NULL,
+        acquired_at INTEGER NOT NULL,
+        PRIMARY KEY (player_id, degree_id),
+        FOREIGN KEY (player_id) REFERENCES players (id) ON DELETE CASCADE
+    )`).run();
+    database.prepare(`CREATE INDEX IF NOT EXISTS idx_players_degrees_player
+        ON players_degrees (player_id, acquired_at, degree_id)`).run();
+    database.prepare(`
+        INSERT OR IGNORE INTO players_degrees (player_id, degree_id, acquired_at)
+        SELECT id, 1, 0 FROM players
+    `).run();
+    database.prepare(`
+        INSERT OR IGNORE INTO players_degrees (player_id, degree_id, acquired_at)
+        SELECT id, degree_id, 0 FROM players WHERE degree_id > 0
+    `).run();
+    database.prepare(`CREATE TRIGGER IF NOT EXISTS trg_players_default_degrees
+        AFTER INSERT ON players
+        BEGIN
+            INSERT OR IGNORE INTO players_degrees (player_id, degree_id, acquired_at)
+            VALUES (NEW.id, 1, 0);
+            INSERT OR IGNORE INTO players_degrees (player_id, degree_id, acquired_at)
+            SELECT NEW.id, NEW.degree_id, 0 WHERE NEW.degree_id > 0;
+        END
+    `).run();
+
+    // Persistent one-way follow edges. Mutual follows are represented by two
+    // rows in opposite directions so deleting either side remains unambiguous.
+    database.prepare(`CREATE TABLE IF NOT EXISTS players_follows (
+        follower_player_id INTEGER NOT NULL,
+        followed_player_id INTEGER NOT NULL,
+        created_at INTEGER NOT NULL,
+        PRIMARY KEY (follower_player_id, followed_player_id),
+        CHECK (follower_player_id <> followed_player_id),
+        FOREIGN KEY (follower_player_id) REFERENCES players (id) ON DELETE CASCADE,
+        FOREIGN KEY (followed_player_id) REFERENCES players (id) ON DELETE CASCADE
+    )`).run();
+    database.prepare(`CREATE INDEX IF NOT EXISTS idx_players_follows_followed
+        ON players_follows (followed_player_id)`).run();
+
+    // Shareable party snapshots. Codes are intentionally stored server-side
+    // so the existing client can publish and import a short (<= 20 char) code.
+    database.prepare(`CREATE TABLE IF NOT EXISTS published_parties (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        code TEXT NOT NULL UNIQUE,
+        owner_player_id INTEGER NOT NULL,
+        party_name TEXT NOT NULL,
+        battle_party_json TEXT NOT NULL,
+        schema_version INTEGER NOT NULL DEFAULT 1,
+        created_at INTEGER NOT NULL,
+        FOREIGN KEY (owner_player_id) REFERENCES players (id) ON DELETE CASCADE
+    )`).run();
+    database.prepare(`CREATE INDEX IF NOT EXISTS idx_published_parties_owner
+        ON published_parties (owner_player_id, id DESC)`).run();
+
     // migration: add tutorial_gacha_character_id to existing tables
-    ensureSchemaColumn(database, "players.tutorial_gacha_character_id")
+    try { database.prepare(`ALTER TABLE players ADD COLUMN tutorial_gacha_character_id INTEGER DEFAULT NULL`).run(); } catch { /* column already exists */ }
 
     // migration: add total_stamina_used for mission progress tracking
-    ensureSchemaColumn(database, "players.total_stamina_used")
+    try { database.prepare(`ALTER TABLE players ADD COLUMN total_stamina_used INTEGER NOT NULL DEFAULT 0`).run(); } catch { /* column already exists */ }
 
     // migration: add powerflip/dash counters for mission progress
-    ensureSchemaColumn(database, "players.total_powerflips")
-    ensureSchemaColumn(database, "players.total_dashes")
+    try { database.prepare(`ALTER TABLE players ADD COLUMN total_powerflips INTEGER NOT NULL DEFAULT 0`).run(); } catch { /* column already exists */ }
+    try { database.prepare(`ALTER TABLE players ADD COLUMN total_dashes INTEGER NOT NULL DEFAULT 0`).run(); } catch { /* column already exists */ }
 
     // migration: add total_mana_obtained for mission progress tracking
-    ensureSchemaColumn(database, "players.total_mana_obtained")
+    try { database.prepare(`ALTER TABLE players ADD COLUMN total_mana_obtained INTEGER NOT NULL DEFAULT 0`).run(); } catch { /* column already exists */ }
     // migration: max_combo_achieved was added to CREATE TABLE only — existing DBs need this ALTER
-    ensureSchemaColumn(database, "players.max_combo_achieved")
-
-    // Historical saves may contain a negative experience pool from an invalid
-    // reward or import. The client renders it as zero, so repair it before any
-    // player data is served and keep future writes guarded in the player domain.
-    const repairedExpPools = database.prepare(
-        "UPDATE players SET exp_pool = 0 WHERE exp_pool < 0",
-    ).run()
-    if (repairedExpPools.changes > 0) {
-        console.warn(`[DB] repaired ${repairedExpPools.changes} negative exp_pool value(s)`)
-    }
+    try { database.prepare(`ALTER TABLE players ADD COLUMN max_combo_achieved INTEGER NOT NULL DEFAULT 0`).run(); } catch { /* column already exists */ }
 
     database.prepare(`CREATE TABLE IF NOT EXISTS players_character_quest_clears (
         player_id INTEGER NOT NULL,
@@ -140,16 +301,28 @@ export default function init(
     )`).run();
 
     // migration: add leader_clear_count for leader-specific awakening missions
-    ensureSchemaColumn(database, "players_character_quest_clears.leader_clear_count")
+    try { database.prepare(`ALTER TABLE players_character_quest_clears ADD COLUMN leader_clear_count INTEGER NOT NULL DEFAULT 0`).run(); } catch { /* column already exists */ }
 
     // migration: add leader_multi_count for co-op leader tracking
-    ensureSchemaColumn(database, "players_character_quest_clears.leader_multi_count")
+    try { database.prepare(`ALTER TABLE players_character_quest_clears ADD COLUMN leader_multi_count INTEGER NOT NULL DEFAULT 0`).run(); } catch { /* column already exists */ }
+
+    // migration: add leader_character_id to quest_progress for quest-clear leader validation
+    try { database.prepare(`ALTER TABLE players_quest_progress ADD COLUMN leader_character_id INTEGER`).run(); } catch { /* column already exists */ }
+
+    // migration: add multi_clear_count for event mission multi-battle tracking
+    try { database.prepare(`ALTER TABLE players_quest_progress ADD COLUMN multi_clear_count INTEGER NOT NULL DEFAULT 0`).run(); } catch { /* column already exists */ }
+    // migration: unlocked was added to CREATE TABLE only — existing DBs need this ALTER (else /load SELECT fails)
+    try { database.prepare(`ALTER TABLE players_quest_progress ADD COLUMN unlocked INTEGER NOT NULL DEFAULT 0`).run(); } catch { /* column already exists */ }
+
+    // Persist co-op host clears. Advent-event unlock conditions distinguish a
+    // normal clear from a clear completed while owning the room.
+    try { database.prepare(`ALTER TABLE players_quest_progress ADD COLUMN host_finished INTEGER NOT NULL DEFAULT 0`).run(); } catch { /* column already exists */ }
 
     // migration: add leader_power_flip_count for per-character powerflip missions
-    ensureSchemaColumn(database, "players_character_quest_clears.leader_power_flip_count")
+    try { database.prepare(`ALTER TABLE players_character_quest_clears ADD COLUMN leader_power_flip_count INTEGER NOT NULL DEFAULT 0`).run(); } catch { /* column already exists */ }
 
     // migration: add total_login_days for weekly mission tracking
-    ensureSchemaColumn(database, "players.total_login_days")
+    try { database.prepare(`ALTER TABLE players ADD COLUMN total_login_days INTEGER NOT NULL DEFAULT 0`).run(); } catch { /* column already exists */ }
 
     database.prepare(`CREATE TABLE IF NOT EXISTS players_party_member_co_clears (
         player_id INTEGER NOT NULL,
@@ -214,41 +387,10 @@ export default function init(
         rank_s_count INTEGER NOT NULL DEFAULT 0,
         rank_a_count INTEGER NOT NULL DEFAULT 0,
         rank_b_count INTEGER NOT NULL DEFAULT 0,
-        challenge_dungeon_clear_count INTEGER NOT NULL DEFAULT 0,
-        single_score_max INTEGER NOT NULL DEFAULT 0,
-        single_clear_time_min INTEGER NOT NULL DEFAULT 0,
-        boss_battle_clear_count INTEGER NOT NULL DEFAULT 0,
-        skill_use_count INTEGER NOT NULL DEFAULT 0,
         FOREIGN KEY (player_id) REFERENCES players (id) ON DELETE CASCADE
     )`).run();
 
     ensureSchemaColumn(database, "players_mission_battle_counters.single_rank_ss_count")
-    ensureSchemaColumn(database, "players_mission_battle_counters.challenge_dungeon_clear_count")
-    ensureSchemaColumn(database, "players_mission_battle_counters.single_score_max")
-    ensureSchemaColumn(database, "players_mission_battle_counters.single_clear_time_min")
-    ensureSchemaColumn(database, "players_mission_battle_counters.boss_battle_clear_count")
-    ensureSchemaColumn(database, "players_mission_battle_counters.skill_use_count")
-
-    database.prepare(`CREATE TABLE IF NOT EXISTS players_degree_battle_stats (
-        player_id INTEGER PRIMARY KEY,
-        fever_count INTEGER NOT NULL DEFAULT 0,
-        fever_ms INTEGER NOT NULL DEFAULT 0,
-        debuff_enemy_count INTEGER NOT NULL DEFAULT 0,
-        clear_enemy_buff_count INTEGER NOT NULL DEFAULT 0,
-        clear_self_debuff_count INTEGER NOT NULL DEFAULT 0,
-        buff_party_count INTEGER NOT NULL DEFAULT 0,
-        heal_party_count REAL NOT NULL DEFAULT 0,
-        emotion_count INTEGER NOT NULL DEFAULT 0,
-        enemy_kill_count INTEGER NOT NULL DEFAULT 0,
-        weak_point_attack_count INTEGER NOT NULL DEFAULT 0,
-        power_flip_lv3_count INTEGER NOT NULL DEFAULT 0,
-        coffin_reduced_count INTEGER NOT NULL DEFAULT 0,
-        damage_deal_max REAL NOT NULL DEFAULT 0,
-        revival_coffin_max INTEGER NOT NULL DEFAULT 0,
-        party_power_max INTEGER NOT NULL DEFAULT 0,
-        skill_chain_max INTEGER NOT NULL DEFAULT 0,
-        FOREIGN KEY (player_id) REFERENCES players (id) ON DELETE CASCADE
-    )`).run();
 
     database.prepare(`CREATE TABLE IF NOT EXISTS device_bindings (
         device_id INTEGER PRIMARY KEY,
@@ -258,7 +400,14 @@ export default function init(
     )`).run();
 
     // migration: device_bindings.name for admin panel identification
-    ensureSchemaColumn(database, "device_bindings.name")
+    try { database.prepare(`ALTER TABLE device_bindings ADD COLUMN name TEXT DEFAULT NULL`).run(); } catch { /* column already exists */ }
+
+    // migration: add awake_level for character awakening system
+    try { database.prepare(`ALTER TABLE players_characters_mana_nodes ADD COLUMN awake_level INTEGER NOT NULL DEFAULT 0`).run(); } catch { /* column already exists */ }
+    // migration: ex_boost / illustration columns were added to CREATE TABLE only — existing DBs need these ALTERs
+    try { database.prepare(`ALTER TABLE players_characters ADD COLUMN ex_boost_status_id INTEGER`).run(); } catch { /* column already exists */ }
+    try { database.prepare(`ALTER TABLE players_characters ADD COLUMN ex_boost_ability_id_list TEXT`).run(); } catch { /* column already exists */ }
+    try { database.prepare(`ALTER TABLE players_characters ADD COLUMN illustration_settings TEXT`).run(); } catch { /* column already exists */ }
 
     database.prepare(`CREATE TABLE IF NOT EXISTS players_options (
         key TEXT NOT NULL,
@@ -272,14 +421,6 @@ export default function init(
         id INTEGER NOT NULL,
         player_id INTEGER NOT NULL,
         PRIMARY KEY (id, player_id),
-        FOREIGN KEY (player_id) REFERENCES players (id) ON DELETE CASCADE
-    )`).run();
-
-    database.prepare(`CREATE TABLE IF NOT EXISTS players_tutorial_step_receipts (
-        player_id INTEGER PRIMARY KEY,
-        completed_step INTEGER NOT NULL,
-        skip INTEGER NOT NULL,
-        response_data TEXT NOT NULL,
         FOREIGN KEY (player_id) REFERENCES players (id) ON DELETE CASCADE
     )`).run();
 
@@ -371,20 +512,6 @@ export default function init(
         FOREIGN KEY (player_id) REFERENCES players (id) ON DELETE CASCADE
     )`).run();
 
-    // migration: ex_boost / illustration columns were added to CREATE TABLE only
-    ensureSchemaColumn(database, "players_characters.ex_boost_status_id")
-    ensureSchemaColumn(database, "players_characters.ex_boost_ability_id_list")
-    ensureSchemaColumn(database, "players_characters.illustration_settings")
-
-    database.prepare(`CREATE TABLE IF NOT EXISTS players_ex_boost_pending_draws (
-        player_id INTEGER PRIMARY KEY,
-        character_id INTEGER NOT NULL,
-        status_id INTEGER NOT NULL,
-        ability_id_list TEXT NOT NULL,
-        FOREIGN KEY (character_id, player_id) REFERENCES players_characters (id, player_id) ON DELETE CASCADE,
-        FOREIGN KEY (player_id) REFERENCES players (id) ON DELETE CASCADE
-    )`).run()
-
     database.prepare(`CREATE TABLE IF NOT EXISTS players_characters_bond_tokens (
         mana_board_index INTEGER NOT NULL,
         status INTEGER NOT NULL,
@@ -401,19 +528,6 @@ export default function init(
         character_id INTEGER NOT NULL,
         player_id INTEGER NOT NULL,
         PRIMARY KEY (value, character_id, player_id),
-        FOREIGN KEY (character_id, player_id) REFERENCES players_characters (id, player_id) ON DELETE CASCADE,
-        FOREIGN KEY (player_id) REFERENCES players (id) ON DELETE CASCADE
-    )`).run();
-
-    // migration: add awake_level for character awakening system
-    ensureSchemaColumn(database, "players_characters_mana_nodes.awake_level")
-
-    database.prepare(`CREATE TABLE IF NOT EXISTS players_character_awake_unlocks (
-        player_id INTEGER NOT NULL,
-        character_id INTEGER NOT NULL,
-        board_index INTEGER NOT NULL,
-        awake_level INTEGER NOT NULL,
-        PRIMARY KEY (player_id, character_id, board_index),
         FOREIGN KEY (character_id, player_id) REFERENCES players_characters (id, player_id) ON DELETE CASCADE,
         FOREIGN KEY (player_id) REFERENCES players (id) ON DELETE CASCADE
     )`).run();
@@ -454,8 +568,30 @@ export default function init(
     )`).run();
 
     // migration: add current_battle_power and before_battle_power to existing tables
-    ensureSchemaColumn(database, "players_parties.current_battle_power")
-    ensureSchemaColumn(database, "players_parties.before_battle_power")
+    try { database.prepare(`ALTER TABLE players_parties ADD COLUMN current_battle_power INTEGER NOT NULL DEFAULT 0`).run(); } catch { /* column already exists */ }
+    try { database.prepare(`ALTER TABLE players_parties ADD COLUMN before_battle_power INTEGER NOT NULL DEFAULT 0`).run(); } catch { /* column already exists */ }
+
+    // Historical successful-clear parties used by multiplayer COM/AI mates.
+    // The payload is a complete battle-party snapshot captured at clear time,
+    // so later edits to the player's live party do not mutate old AI records.
+    database.prepare(`CREATE TABLE IF NOT EXISTS quest_npc_party_pool (
+        quest_category INTEGER NOT NULL,
+        quest_id INTEGER NOT NULL,
+        source_player_id INTEGER NOT NULL,
+        party_slot INTEGER NOT NULL,
+        battle_power INTEGER NOT NULL,
+        party_element INTEGER,
+        party_payload TEXT NOT NULL,
+        cleared_at INTEGER NOT NULL,
+        PRIMARY KEY (quest_category, quest_id, source_player_id),
+        FOREIGN KEY (source_player_id) REFERENCES players (id) ON DELETE CASCADE
+    )`).run()
+    database.prepare(`CREATE INDEX IF NOT EXISTS idx_quest_npc_party_pool_power
+        ON quest_npc_party_pool (quest_category, quest_id, battle_power DESC, cleared_at DESC)
+    `).run()
+    database.prepare(`CREATE INDEX IF NOT EXISTS idx_quest_npc_party_pool_recent
+        ON quest_npc_party_pool (quest_category, quest_id, cleared_at DESC)
+    `).run()
 
     // database.prepare(`CREATE TABLE IF NOT EXISTS players_party_options (
     //     allow_other_players_to_heal_me INTEGER NOT NULL,
@@ -483,13 +619,14 @@ export default function init(
         section INTEGER NOT NULL,
         quest_id INTEGER NOT NULL,
         finished INTEGER NOT NULL,
+        host_finished INTEGER NOT NULL DEFAULT 0,
         unlocked INTEGER NOT NULL DEFAULT 0,
         high_score INTEGER,
         clear_rank INTEGER,
         best_elapsed_time_ms INTEGER,
         leader_character_id INTEGER,
         multi_clear_count INTEGER NOT NULL DEFAULT 0,
-        host_finished INTEGER,
+        s_plus_reward_received INTEGER NOT NULL DEFAULT 0,
         player_id INTEGER NOT NULL,
         PRIMARY KEY (section, quest_id, player_id),
         FOREIGN KEY (player_id) REFERENCES players (id) ON DELETE CASCADE
@@ -499,103 +636,12 @@ export default function init(
         ON players_quest_progress (player_id, section, finished)
     `).run()
 
-    database.prepare(`CREATE TABLE IF NOT EXISTS players_score_attack_battle_history (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        player_id INTEGER NOT NULL,
-        event_id INTEGER NOT NULL,
-        play_id TEXT NOT NULL,
-        ability_soul_id_1 INTEGER,
-        ability_soul_id_2 INTEGER,
-        ability_soul_id_3 INTEGER,
-        category_id INTEGER NOT NULL,
-        character_1_total_damage REAL,
-        character_2_total_damage REAL,
-        character_3_total_damage REAL,
-        character_id_1 INTEGER,
-        character_id_2 INTEGER,
-        character_id_3 INTEGER,
-        clear_rank INTEGER,
-        create_time TEXT NOT NULL,
-        elapsed_time_ms REAL NOT NULL,
-        enhancement_level_1 INTEGER,
-        enhancement_level_2 INTEGER,
-        enhancement_level_3 INTEGER,
-        equipment1_id INTEGER,
-        equipment2_id INTEGER,
-        equipment3_id INTEGER,
-        equipment_level_1 INTEGER,
-        equipment_level_2 INTEGER,
-        equipment_level_3 INTEGER,
-        finish_kind INTEGER NOT NULL,
-        quest_id INTEGER NOT NULL,
-        score REAL,
-        total_damage REAL NOT NULL,
-        unison_character_id_1 INTEGER,
-        unison_character_id_2 INTEGER,
-        unison_character_id_3 INTEGER,
-        UNIQUE (player_id, play_id),
-        FOREIGN KEY (player_id) REFERENCES players (id) ON DELETE CASCADE
-    )`).run()
-    database.prepare(`CREATE INDEX IF NOT EXISTS idx_score_attack_history_player_event_id
-        ON players_score_attack_battle_history (player_id, event_id, id DESC)
-    `).run()
-
-    database.prepare(`CREATE TABLE IF NOT EXISTS players_practice_battle_history (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        player_id INTEGER NOT NULL,
-        play_id TEXT NOT NULL,
-        ability_soul_id_1 INTEGER,
-        ability_soul_id_2 INTEGER,
-        ability_soul_id_3 INTEGER,
-        category_id INTEGER NOT NULL,
-        character_1_total_damage REAL,
-        character_2_total_damage REAL,
-        character_3_total_damage REAL,
-        character_id_1 INTEGER,
-        character_id_2 INTEGER,
-        character_id_3 INTEGER,
-        clear_rank INTEGER,
-        create_time TEXT NOT NULL,
-        elapsed_time_ms REAL NOT NULL,
-        enhancement_level_1 INTEGER,
-        enhancement_level_2 INTEGER,
-        enhancement_level_3 INTEGER,
-        equipment1_id INTEGER,
-        equipment2_id INTEGER,
-        equipment3_id INTEGER,
-        equipment_level_1 INTEGER,
-        equipment_level_2 INTEGER,
-        equipment_level_3 INTEGER,
-        finish_kind INTEGER NOT NULL,
-        quest_id INTEGER NOT NULL,
-        score REAL,
-        total_damage REAL NOT NULL,
-        unison_character_id_1 INTEGER,
-        unison_character_id_2 INTEGER,
-        unison_character_id_3 INTEGER,
-        UNIQUE (player_id, play_id),
-        FOREIGN KEY (player_id) REFERENCES players (id) ON DELETE CASCADE
-    )`).run()
-    database.prepare(`CREATE INDEX IF NOT EXISTS idx_practice_history_player_id
-        ON players_practice_battle_history (player_id, id DESC)
-    `).run()
-
-    database.prepare(`CREATE TABLE IF NOT EXISTS players_shop_campaign_lineups (
-        player_id INTEGER NOT NULL,
-        shop_type INTEGER NOT NULL,
-        campaign_id INTEGER NOT NULL,
-        lineup_id INTEGER NOT NULL,
-        selected_at TEXT NOT NULL,
-        PRIMARY KEY (player_id, shop_type, campaign_id),
-        FOREIGN KEY (player_id) REFERENCES players (id) ON DELETE CASCADE
-    )`).run()
-
     // migrations for quest progress columns added after the original schema
     ensureSchemaColumn(database, "players_quest_progress.leader_character_id")
     ensureSchemaColumn(database, "players_quest_progress.multi_clear_count")
     ensureSchemaColumn(database, "players_quest_progress.unlocked")
+    ensureSchemaColumn(database, "players_quest_progress.s_plus_reward_received")
 
-    ensureQuestHostFinishedStorageSync(database)
 
     database.prepare(`CREATE TABLE IF NOT EXISTS players_gacha_info (
         gacha_id INTEGER NOT NULL,
@@ -681,6 +727,19 @@ export default function init(
         FOREIGN KEY (player_id) REFERENCES players (id) ON DELETE CASCADE
     )`).run()
 
+    database.prepare(`CREATE TABLE IF NOT EXISTS players_character_awake_unlocks (
+        player_id INTEGER NOT NULL,
+        character_id INTEGER NOT NULL,
+        board_index INTEGER NOT NULL,
+        awake_level INTEGER NOT NULL,
+        PRIMARY KEY (player_id, character_id, board_index),
+        FOREIGN KEY (character_id, player_id)
+            REFERENCES players_characters (id, player_id) ON DELETE CASCADE,
+        FOREIGN KEY (player_id) REFERENCES players (id) ON DELETE CASCADE
+    )`).run()
+
+    repairCategoryMissionTables(database)
+
     database.prepare(`CREATE TABLE IF NOT EXISTS players_category_missions (
         category INTEGER NOT NULL,
         id INTEGER NOT NULL,
@@ -702,20 +761,39 @@ export default function init(
         FOREIGN KEY (player_id) REFERENCES players (id) ON DELETE CASCADE
     )`).run()
 
-    database.prepare(`CREATE TABLE IF NOT EXISTS players_event_mission_login_days (
+    // Compatibility repair for the Steam Robot decisive challenge tracker.
+    // Older patched builds wrote mission_event entries 900809-900814 into the
+    // unrelated active-mission table.  Preserve every legitimately recorded
+    // clear by moving its monotonic progress into category 3 at startup.
+    database.prepare(`
+        INSERT INTO players_category_missions (category, id, progress, player_id)
+        SELECT 3, id, progress, player_id
+        FROM players_active_missions
+        WHERE id BETWEEN 900809 AND 900814
+        ON CONFLICT(category, id, player_id) DO UPDATE SET
+            progress = MAX(progress, excluded.progress)
+    `).run()
+
+    database.prepare(`CREATE TABLE IF NOT EXISTS players_mission_counters (
         player_id INTEGER NOT NULL,
-        mission_id INTEGER NOT NULL,
-        last_counted_day INTEGER NOT NULL,
-        PRIMARY KEY (player_id, mission_id),
+        counter_key TEXT NOT NULL,
+        dimension TEXT NOT NULL,
+        scope_type TEXT NOT NULL,
+        scope_key TEXT NOT NULL,
+        qualifier_json TEXT NOT NULL,
+        value INTEGER NOT NULL DEFAULT 0,
+        updated_at TEXT NOT NULL,
+        PRIMARY KEY (player_id, counter_key),
         FOREIGN KEY (player_id) REFERENCES players (id) ON DELETE CASCADE
     )`).run()
 
-    database.prepare(`CREATE TABLE IF NOT EXISTS players_character_election_votes (
+    database.prepare(`CREATE TABLE IF NOT EXISTS players_mission_counter_snapshots (
         player_id INTEGER NOT NULL,
-        election_id INTEGER NOT NULL,
-        keyword_id INTEGER NOT NULL,
-        voted_at INTEGER NOT NULL,
-        PRIMARY KEY (player_id, election_id),
+        period_type TEXT NOT NULL,
+        counter_key TEXT NOT NULL,
+        value INTEGER NOT NULL DEFAULT 0,
+        updated_at TEXT NOT NULL,
+        PRIMARY KEY (player_id, period_type, counter_key),
         FOREIGN KEY (player_id) REFERENCES players (id) ON DELETE CASCADE
     )`).run()
 
@@ -834,42 +912,39 @@ export default function init(
         FOREIGN KEY (player_id) REFERENCES players (id) ON DELETE CASCADE
     )`).run()
 
-    database.prepare(`CREATE TABLE IF NOT EXISTS players_raid_events (
-        player_id INTEGER NOT NULL,
-        event_id INTEGER NOT NULL,
+    database.prepare(`CREATE TABLE IF NOT EXISTS raid_event_global_state (
+        event_id INTEGER PRIMARY KEY,
         total_kill_count INTEGER NOT NULL DEFAULT 0,
-        received_up_to INTEGER NOT NULL DEFAULT 0,
-        PRIMARY KEY (player_id, event_id),
+        weighted_kill_count INTEGER NOT NULL DEFAULT 0,
+        calculation_version INTEGER NOT NULL DEFAULT 3,
+        updated_at INTEGER NOT NULL
+    )`).run()
+    // Version 1 counted every clear as a full communal boss kill. Version 2
+    // used the official 76000 threshold. Version 3 keeps official per-quest
+    // weights but uses the private-server threshold 760. Existing ledgers are
+    // replayed lazily whenever their calculation version is older.
+    try { database.prepare(`ALTER TABLE raid_event_global_state ADD COLUMN weighted_kill_count INTEGER NOT NULL DEFAULT 0`).run(); } catch { /* column already exists */ }
+    try { database.prepare(`ALTER TABLE raid_event_global_state ADD COLUMN calculation_version INTEGER NOT NULL DEFAULT 1`).run(); } catch { /* column already exists */ }
+
+    database.prepare(`CREATE TABLE IF NOT EXISTS raid_event_global_kill_ledger (
+        event_id INTEGER NOT NULL,
+        play_id TEXT NOT NULL,
+        player_id INTEGER NOT NULL,
+        quest_id INTEGER NOT NULL,
+        created_at INTEGER NOT NULL,
+        PRIMARY KEY (event_id, play_id),
         FOREIGN KEY (player_id) REFERENCES players (id) ON DELETE CASCADE
     )`).run()
 
-    const hadRaidEventBossStates = database.prepare(`
-        SELECT 1
-        FROM sqlite_master
-        WHERE type = 'table' AND name = 'raid_event_boss_states'
-    `).get() !== undefined
+    database.prepare(`CREATE INDEX IF NOT EXISTS idx_raid_event_global_kill_ledger_event_quest
+        ON raid_event_global_kill_ledger (event_id, quest_id)`).run()
 
-    database.prepare(`CREATE TABLE IF NOT EXISTS raid_event_boss_states (
-        event_id INTEGER PRIMARY KEY,
-        weighted_kill_count INTEGER NOT NULL DEFAULT 0,
-        total_kill_count INTEGER NOT NULL DEFAULT 0
-    )`).run()
-
-    if (!hadRaidEventBossStates) {
-        // Old builds stored cumulative quest weight in these fields. It cannot
-        // be converted into a shared Boss total without fabricating progress.
-        database.prepare(`
-            UPDATE players_raid_events
-            SET total_kill_count = 0, received_up_to = 0
-        `).run()
-    }
-
-    database.prepare(`CREATE TABLE IF NOT EXISTS players_raid_event_quests (
+    database.prepare(`CREATE TABLE IF NOT EXISTS players_raid_event_overall_rewards (
         player_id INTEGER NOT NULL,
         event_id INTEGER NOT NULL,
-        quest_id INTEGER NOT NULL,
-        kill_count INTEGER NOT NULL DEFAULT 0,
-        PRIMARY KEY (player_id, event_id, quest_id),
+        received_up_to INTEGER NOT NULL DEFAULT 0,
+        updated_at INTEGER NOT NULL,
+        PRIMARY KEY (player_id, event_id),
         FOREIGN KEY (player_id) REFERENCES players (id) ON DELETE CASCADE
     )`).run()
 
@@ -893,13 +968,6 @@ export default function init(
         FOREIGN KEY (player_id) REFERENCES players (id) ON DELETE CASCADE
     )`).run()
 
-    database.prepare(`CREATE TABLE IF NOT EXISTS players_degrees (
-        player_id INTEGER NOT NULL,
-        degree_id INTEGER NOT NULL,
-        PRIMARY KEY (player_id, degree_id),
-        FOREIGN KEY (player_id) REFERENCES players (id) ON DELETE CASCADE
-    )`).run()
-
     database.prepare(`CREATE TABLE IF NOT EXISTS players_shop_purchases (
         player_id INTEGER NOT NULL,
         shop_item_id INTEGER NOT NULL,
@@ -907,24 +975,6 @@ export default function init(
         PRIMARY KEY (player_id, shop_item_id),
         FOREIGN KEY (player_id) REFERENCES players (id) ON DELETE CASCADE
     )`).run()
-
-    database.prepare(`CREATE TABLE IF NOT EXISTS players_shop_purchase_counters (
-        player_id INTEGER NOT NULL,
-        shop_type INTEGER NOT NULL,
-        shop_item_id INTEGER NOT NULL,
-        period_type TEXT NOT NULL,
-        period_key TEXT NOT NULL,
-        count INTEGER NOT NULL DEFAULT 0,
-        PRIMARY KEY (player_id, shop_type, shop_item_id, period_type, period_key),
-        FOREIGN KEY (player_id) REFERENCES players (id) ON DELETE CASCADE
-    )`).run()
-    database.prepare(`
-        INSERT OR IGNORE INTO players_shop_purchase_counters (
-            player_id, shop_type, shop_item_id, period_type, period_key, count
-        )
-        SELECT player_id, -1, shop_item_id, 'total', '', count
-        FROM players_shop_purchases
-    `).run()
 
     database.prepare(`CREATE TABLE IF NOT EXISTS players_active_quests (
         player_id INTEGER PRIMARY KEY,
@@ -935,12 +985,12 @@ export default function init(
         use_boost_point INTEGER NOT NULL DEFAULT 0,
         is_auto_start_mode INTEGER NOT NULL DEFAULT 0,
         is_multi INTEGER NOT NULL DEFAULT 0,
+        is_multi_host INTEGER NOT NULL DEFAULT 0,
         room_number TEXT,
         entry_item_id INTEGER,
-        entry_item_count INTEGER,
         event_id INTEGER,
         continue_count INTEGER NOT NULL DEFAULT 0,
         FOREIGN KEY (player_id) REFERENCES players (id) ON DELETE CASCADE
     )`).run()
-    ensureActiveQuestEntryItemCountStorageSync(database)
+    ensureSchemaColumn(database, "players_active_quests.is_multi_host")
 }

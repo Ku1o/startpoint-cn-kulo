@@ -1,7 +1,8 @@
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
-import { validatePlayerField, VALID_CHARACTER_IDS, isValidItemId, MAX_INT } from "./validation";
+import { getMergedPlayerDataSync, reviveMergedPlayerDates } from "../../data/utils";
+import { validatePlayerField, VALID_CHARACTER_IDS, VALID_ITEM_IDS, MAX_INT } from "./validation";
 import { wantsJson } from "./http";
-import { getAllPlayersSync, getDefaultPlayerPartyGroupsSync, getPlayerDailyChallengePointListSync, getPlayerSync, insertPlayerDailyChallengePointListSync, updatePlayerDailyChallengePointSync, updatePlayerSync } from "../../data/domains/player"
+import { dailyResetPlayerDataSync, getAllPlayersSync, getDefaultPlayerPartyGroupsSync, getPlayerDailyChallengePointListSync, getPlayerSync, insertPlayerDailyChallengePointListSync, replacePlayerDataSync, updatePlayerDailyChallengePointSync, updatePlayerSync } from "../../data/domains/player"
 import { deleteAllPlayerMailSync } from "../../data/domains/mail"
 import { getDb } from "../../data/db"
 import { getPlayerCharactersSync, insertDefaultPlayerCharacterSync, insertPlayerCharacterSync } from "../../data/domains/character"
@@ -10,17 +11,14 @@ import { getPlayerItemsSync, setPlayerItemSync, updatePlayerItemSync } from "../
 import { getPlayerQuestProgressSync, getPlayerDrawnQuestsSync } from "../../data/domains/quest"
 import { insertPlayerPartyGroupListSync } from "../../data/domains/party"
 import { PartyCategory } from "../../data/types";
-import bundledDailyChallengePointLookup from "../../../assets/daily_challenge_point_lookup.json";
-import { getRuntimeContentTableSync } from "../../content/runtime/table-access";
+import { buildPeriodicSnapshotData, takeSnapshot } from "../../lib/mission/snapshot";
+import { deletePlayerCategoryMissionsSync } from "../../data/domains/mission";
+import { getServerDate } from "../../utils";
+import dailyChallengePointLookup from "../../../assets/daily_challenge_point_lookup.json";
 import {
-    exportPlayerSaveV2Sync,
-    restorePlayerSaveSnapshotSync,
-    validatePlayerSaveSnapshotSync,
-} from "../../data/player-save";
-import {
-    PlayerSaveDownloadTooLargeError,
-    serializePlayerSaveDownload,
-} from "./player-save-download";
+    getUnisonUnlockRepairStatusSync,
+    repairUnisonUnlockProgressSync,
+} from "../../lib/validate/unison-unlock";
 
 interface SaveQuery {
     id: string | undefined
@@ -120,6 +118,7 @@ const routes = async (fastify: FastifyInstance) => {
                 lastLoginTime: player.lastLoginTime.toISOString(),
                 staminaHealTime: player.staminaHealTime.toISOString(),
                 expPooledTime: player.expPooledTime.toISOString(),
+                timeOffset: player.timeOffset ?? null,
             },
             characters: charList,
             items: itemList,
@@ -137,23 +136,19 @@ const routes = async (fastify: FastifyInstance) => {
         const { id } = request.query as SaveQuery
         const playerId = Number(id)
         if (isNaN(playerId)) return reply.redirect("/player");
-        const json = wantsJson(request)
-        if (getPlayerSync(playerId) === null) {
-            return json ? reply.status(404).send({ error: "Player not found" }) : reply.redirect("/player")
-        }
 
-        let serialized
-        try {
-            serialized = serializePlayerSaveDownload(exportPlayerSaveV2Sync(playerId))
-        } catch (error: any) {
-            const message = `存档导出失败：${error?.message ?? error}`
-            const status = error instanceof PlayerSaveDownloadTooLargeError ? 413 : 500
-            return json
-                ? reply.status(status).send({ error: message })
-                : reply.redirect(`/player/${playerId}?error=${encodeURIComponent(message)}`)
+        const data = getMergedPlayerDataSync(playerId)
+        if (data === null) return reply.redirect("/player");
+
+        const snapshot = {
+            schema: "starpoint-cn-save",
+            version: 1,
+            exportedAt: new Date().toISOString(),
+            playerId,
+            data
         }
         reply.header("content-disposition", `attachment; filename="save_${playerId}.json"`)
-        reply.type('application/json').send(serialized)
+        reply.type('application/json').send(JSON.stringify(snapshot))
     })
 
     fastify.post("/save", async (request: FastifyRequest, reply: FastifyReply) => {
@@ -178,17 +173,24 @@ const routes = async (fastify: FastifyInstance) => {
                 return fail("文件不是有效的 JSON")
             }
 
-            try {
-                validatePlayerSaveSnapshotSync(parsed)
-            } catch (error: any) {
-                return fail(`存档校验失败：${error?.message ?? error}`)
+            if (parsed === null || typeof parsed !== 'object' || parsed.schema !== 'starpoint-cn-save') {
+                return fail("不是有效的存档快照（schema 不符，请使用本面板导出的存档）")
+            }
+            if (parsed.version !== 1) {
+                return fail(`不支持的存档版本：${parsed.version}`)
+            }
+            const data = parsed.data
+            if (!data || typeof data !== 'object' || !data.player) {
+                return fail("存档数据缺失 player 字段")
             }
 
-            const result = restorePlayerSaveSnapshotSync(parsed, playerId)
-            if (json) return reply.status(200).send({ ok: true, ...result })
+            reviveMergedPlayerDates(data)
+            data.player.id = playerId
+            replacePlayerDataSync(data)
         } catch (error: any) {
             return fail(`恢复失败：${error?.message ?? error}`, 500)
         }
+        if (json) return reply.status(200).send({ ok: true, playerId })
         return reply.redirect(`/player/${id}`);
     })
 
@@ -233,17 +235,10 @@ const routes = async (fastify: FastifyInstance) => {
     // Clear all EX boost data for all characters
     fastify.post("/:id/clear_ex_boost", async (request: FastifyRequest, reply: FastifyReply) => {
         const playerId = Number((request.params as any).id)
-        if (!Number.isSafeInteger(playerId) || playerId <= 0) {
-            return reply.status(400).send({ error: "Invalid player ID" })
-        }
-        if (!getPlayerSync(playerId)) return reply.status(404).send({ error: "Player not found" })
-        const result = getDb().prepare(`
-            UPDATE players_characters
-            SET ex_boost_status_id = NULL, ex_boost_ability_id_list = NULL
-            WHERE player_id = ?
-              AND (ex_boost_status_id IS NOT NULL OR ex_boost_ability_id_list IS NOT NULL)
-        `).run(playerId)
-        return reply.status(200).send({ ok: true, clearedCharacters: result.changes })
+        if (isNaN(playerId)) return reply.status(400).send({ error: "Invalid player ID" })
+        getDb().prepare(`UPDATE players_characters SET ex_boost_status_id = NULL, ex_boost_ability_id_list = NULL WHERE player_id = ?`).run(playerId)
+        if (wantsJson(request)) return reply.status(200).send({ ok: true })
+        return reply.redirect(`/player/${playerId}#actions`)
     })
 
     // Reset parties to defaults
@@ -257,6 +252,14 @@ const routes = async (fastify: FastifyInstance) => {
         return reply.redirect(`/player/${playerId}#actions`)
     })
 
+    // Clear all mails
+    fastify.post("/:id/clear_mail", async (request: FastifyRequest, reply: FastifyReply) => {
+        const playerId = Number((request.params as any).id)
+        if (isNaN(playerId)) return reply.status(400).send({ error: "Invalid player ID" })
+        deleteAllPlayerMailSync(playerId)
+        return reply.redirect(`/player/${playerId}#actions`)
+    })
+
     // Clear receive history
     fastify.post("/:id/clear_receive_history", async (request: FastifyRequest, reply: FastifyReply) => {
         const playerId = Number((request.params as any).id)
@@ -264,6 +267,44 @@ const routes = async (fastify: FastifyInstance) => {
         getDb().prepare(`DELETE FROM players_receive_history WHERE player_id = ?`).run(playerId)
         if (wantsJson(request)) return reply.status(200).send({ ok: true })
         return reply.redirect(`/player/${playerId}#actions`)
+    })
+
+    // Repair legacy saves that cleared 1-6-1 but did not persist every unison
+    // unlock flag.
+    fastify.post("/:id/repair_unison_unlock", async (request: FastifyRequest, reply: FastifyReply) => {
+        const playerId = Number((request.params as any).id)
+        if (isNaN(playerId)) return reply.status(400).send({ error: "无效的玩家 ID" })
+        if (!getPlayerSync(playerId)) return reply.status(404).send({ error: "未找到该玩家存档" })
+
+        try {
+            const status = getUnisonUnlockRepairStatusSync(playerId)
+            if (status === "not_eligible") {
+                return reply.status(409).send({
+                    error: "该存档没有通关第一章 6-1 或后续主线的记录，未执行修复",
+                    status,
+                })
+            }
+            if (status === "already_unlocked") {
+                return reply.status(200).send({
+                    ok: true,
+                    repaired: false,
+                    status,
+                    message: "合击解锁记录已经完整，无需修复",
+                })
+            }
+
+            const changes = repairUnisonUnlockProgressSync(playerId)
+            if (changes < 1) throw new Error("修复条件已满足，但没有写入任何变更")
+            return reply.status(200).send({
+                ok: true,
+                repaired: true,
+                status: "repaired",
+                changes,
+                message: "已补齐第一章 6-1 与合击教程解锁记录",
+            })
+        } catch (e: any) {
+            return reply.status(500).send({ error: `合击解锁修复失败：${e?.message ?? e}` })
+        }
     })
 
     // Add character
@@ -319,7 +360,7 @@ const routes = async (fastify: FastifyInstance) => {
         const itemId = Number(body.id || body.itemId)
         const count = Number(body.count || 1)
         if (isNaN(itemId) || isNaN(count)) return reply.status(400).send({ error: "Missing id or count" })
-        if (!isValidItemId(itemId)) return reply.status(400).send({ error: `道具 ID ${itemId} 不存在于资源表中` })
+        if (!VALID_ITEM_IDS.has(itemId)) return reply.status(400).send({ error: `道具 ID ${itemId} 不存在于资源表中` })
         if (count < 0 || count > MAX_INT) return reply.status(400).send({ error: `count 超出范围（需 0 ~ ${MAX_INT}）` })
 
         try {
@@ -400,10 +441,7 @@ const routes = async (fastify: FastifyInstance) => {
         if (isNaN(playerId)) return reply.status(400).send({ error: "Invalid params" })
         try {
             const entries = getPlayerDailyChallengePointListSync(playerId)
-            const lookup = getRuntimeContentTableSync(
-                "daily_challenge_point_lookup.json",
-                bundledDailyChallengePointLookup as Record<string, { maxPoint: number }>,
-            )
+            const lookup = dailyChallengePointLookup as Record<string, { maxPoint: number }>
             if (entries.length === 0) {
                 // No entries yet — create all 282 from CDN
                 const defaults = Object.entries(lookup).map(([idStr, data]) => ({
@@ -435,6 +473,57 @@ const routes = async (fastify: FastifyInstance) => {
         }
     })
 
+    // Admin: force daily mission reset (snapshot + wipe cache)
+    fastify.post("/:id/daily_reset", async (request: FastifyRequest, reply: FastifyReply) => {
+        const playerId = Number((request.params as any).id)
+        if (isNaN(playerId)) return reply.status(400).send({ error: "Invalid player ID" })
+        const player = getPlayerSync(playerId)
+        if (!player) return reply.status(404).send({ error: "Player not found" })
+        try {
+            const questProgress = getPlayerQuestProgressSync(playerId)
+            let totalClears = 0, ss = 0, s = 0, a = 0, b = 0
+            for (const [, quests] of Object.entries(questProgress)) {
+                for (const qp of quests) {
+                    if (qp.finished) {
+                        totalClears++
+                        if (qp.clearRank === 5) ss++
+                        else if (qp.clearRank === 4) s++
+                        else if (qp.clearRank === 3) a++
+                        else if (qp.clearRank === 2) b++
+                    }
+                }
+            }
+            takeSnapshot(playerId, 'daily', buildPeriodicSnapshotData(playerId, player, totalClears))
+            deletePlayerCategoryMissionsSync(playerId, 2)
+            return reply.status(200).send({ ok: true })
+        } catch (e: any) { return reply.status(500).send({ error: e.message }) }
+    })
+
+    // Admin: force weekly mission reset (snapshot + wipe cache)
+    fastify.post("/:id/weekly_reset", async (request: FastifyRequest, reply: FastifyReply) => {
+        const playerId = Number((request.params as any).id)
+        if (isNaN(playerId)) return reply.status(400).send({ error: "Invalid player ID" })
+        const player = getPlayerSync(playerId)
+        if (!player) return reply.status(404).send({ error: "Player not found" })
+        try {
+            const questProgress = getPlayerQuestProgressSync(playerId)
+            let totalClears = 0, ss = 0, s = 0, a = 0, b = 0
+            for (const [, quests] of Object.entries(questProgress)) {
+                for (const qp of quests) {
+                    if (qp.finished) {
+                        totalClears++
+                        if (qp.clearRank === 5) ss++
+                        else if (qp.clearRank === 4) s++
+                        else if (qp.clearRank === 3) a++
+                        else if (qp.clearRank === 2) b++
+                    }
+                }
+            }
+            takeSnapshot(playerId, 'weekly', buildPeriodicSnapshotData(playerId, player, totalClears))
+            deletePlayerCategoryMissionsSync(playerId, 10)
+            return reply.status(200).send({ ok: true })
+        } catch (e: any) { return reply.status(500).send({ error: e.message }) }
+    })
 }
 
 export default routes;

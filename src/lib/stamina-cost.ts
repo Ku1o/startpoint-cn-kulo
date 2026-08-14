@@ -1,16 +1,11 @@
-import bundledQuestEntryCosts from "../../assets/quest_entry_costs.json";
-import { getRuntimeContentTableSync } from "../content/runtime/table-access";
+import questEntryCosts from "../../assets/quest_entry_costs.json";
 import { getActiveCampaignRate } from "./stamina-campaign";
 import { QuestCategory } from "./types";
 import { getServerDate } from "../utils";
 
-type EntryCostMap = Record<string, { itemId: number; itemCount: number; stamina: number }>
+const entryCostMap = questEntryCosts as Record<string, { itemId: number; itemCount: number; stamina: number }>;
 
 export function getStaminaCost(questKey: string): { baseCost: number; cost: number; rate: number } {
-    const entryCostMap = getRuntimeContentTableSync<EntryCostMap>(
-        "quest_entry_costs.json",
-        bundledQuestEntryCosts as EntryCostMap,
-    )
     const entry = entryCostMap[questKey];
     if (!entry || !entry.stamina) return { baseCost: 0, cost: 0, rate: 1 };
 

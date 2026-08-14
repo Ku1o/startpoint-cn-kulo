@@ -1,84 +1,12 @@
-# 任务-关卡映射与严格规则
+# 任务-关卡映射表 (Mission → Quest Map)
 
-> 历史审计生成器: `scripts/gen_mission_event_quest_map.js`
-> 历史审计资产: `assets/mission_event_quest_map.json`
-> 严格规则生成器: `scripts/gen_mission_event_battle_rules.js`
-> 运行时资产: `assets/mission_event_battle_rules.json`
-> 覆盖范围: cat3 活动任务 2512 条；QuestRange 协力规则 1753 条、type 23 精确通关规则 257 条、445 条关卡/物品/竞速/阶段/当前状态/单人累计规则、18 条 Event 入口/SET/投票事实、2 条歼灭者 type 86 及 10 条 type 87，共 2485 条
-
-`mission_event_quest_map.json` 是按 pattern 展开的旧映射，只供 `computer-event.ts` 历史审计。它没有完整表达
-QuestRange selector、QuestRank、Host/Guest 和 Attention 来源，不能驱动自动事实。旧 939 条自动规则已从
-`event-battle-facts.ts` 移除，但审计资产本身保留。
-
-## 严格 QuestRange 规则
-
-CN 1.8.1 的权威语义如下：
-
-| `row[2]` | 事实 | 严格 role |
-|:---:|------|------|
-| 16 | 任意协力成功 | `any`，仍要求 `isMulti=true` |
-| 17 | 房主协力成功 | `host`，只接受 `isMultiHost=true` |
-| 18 | 成员协力成功 | `guest`，只接受 `isMultiHost=false` |
-| 20 | Attention/救援 | 禁用，`FinishContext` 没有权威来源 |
-
-`isMultiHost=undefined` 对 Host 和 Guest 都关闭匹配。普通 Guest 不得推断为 Attention。
-
-| QuestRange | quest category | 结构化 quest ID 来源 |
-|------|:---:|------|
-| BossBattle | 2 | `boss_battle_quest.json` |
-| Advent | 7 | `advent_event_quest.json`，绝不扩展到 category 8 |
-| WorldStoryEventBossBattle | 19 | `world_story_event_boss_battle_quest.json` |
-| `(None)` | `all` | 全 category、全 quest |
-
-`row[10]=""` 在 CN 1.8.1 客户端仍解码为 `Within([])`；`row[10]="(None)"` 才解码为 `All`。但 948 条
-历史 type 16 在 CN 与可交叉检查的 GL 主数据中持续使用空 selector，文案和外层 event/group 又明确表达“该范围内的
-协力战”。项目因此只对白名单结构生成 `type16-empty-selector-wildcard` 服务端兼容规则：579 条全 BossBattle、
-9 条指定 Boss group、342 条指定 WorldStory event、18 条指定 Advent event。该标记是高可信兼容约定，不宣称来自
-官方后端源码，也不改变其他 pattern 的空 selector 语义。`row[11]` 是 QuestRank，不是 `clearRank`；当前规则的
-`rank` 均为 `null`。生成器用数值复合 ID 分量匹配 event/group/difficulty，不切割 quest ID 字符串。
-
-资产按数值 mission ID 排序，覆盖 type 16 的 1740 条（1061 条明确 `questIds`、579 条 category 2 全 BossBattle、100 条全 QuestRange）、type 17 Host
-的 12 条和 type 18 Guest 的 1 条，共 1753 条。其中 805 条保持 `compatibility=null`，948 条必须携带上述唯一兼容标记。
-运行时会重新对照原始 mission 行、selector 形状和当前关卡表；未知标记、字段漂移、虚构或缺失 quest ID 均 fail closed。
-
-## Type 87 客户端战斗检查
-
-10 条 type 87 只接受 category 26 对应 HardMulti 关卡的成功多人 SS 结算。规则逐 ID 校验 pattern type 87、
-`battle_kind=2`、QuestRange kind 19、event ID、空 suffix、`row[11]=(None)`、唯一奖励 target 1 和关卡表中的
-`eventId * 1000 + 1`。`statistics.client_checks` 必须是非空、无重复、无空白项的字符串数组，并包含该任务 `row[6]`；
-允许同时携带其他合法检查 ID。所有规则要求正安全整数耗时；600002 与 900812 另要求 `clearTime <= 180000`。
-
-服务端不重演攻击力下降、麻痹、属性耐性下降或棺柩过程；这些条件由官方 finish 协议的 client check ID 表达。
-当前自动测试证明字段校验、任务写入、幂等、开放期和错误上下文边界，但仍需真实 CN HardMulti 结算确认客户端会提交
-非空 `client_checks`。
-
-category 3 的 type 37 不依赖 QuestRange 资产。运行时从 `row[12]` 读取物品 ID，以
-`players_collected_items` 的累计获得量结算 40 条交易商人任务；该白名单由 `computer-event-safe.ts` 承载。
-同一白名单还承载土俑嘉年华的 54 条单关卡和 18 条聚合任务，以及崩坏域庆贺的 37 条单关卡和 7 条聚合任务。
-这些规则只使用 `carnival_event_quest.json`、`challenge_dungeon_event_quest.json` 的精确关卡 ID 和玩家已持久化的
-`players_quest_progress.finished`，不重新启用旧映射对所有活动任务的宽泛展开。
-此外，188 条 category 11 竞速任务必须同时满足 type 15、QuestRange kind 8、`event_id * 1000 + suffix`
-精确关卡、唯一旧映射和官方奖励秒数，并使用历史最佳毫秒值判断。狂热激战 category 24 的 42 条限时任务不使用
-会把单关扩展为整期 8 个关卡的旧映射，而是由 QuestRange kind 17、精确 suffix 和 `rush_event_quest` 唯一闭合。
-Ranking Phase 的 type 49～52 分别对应 Phase 1～4。服务端只接受 category 11 的成功单人结算，以
-`eventId * 1000 + suffix` 精确定位 `ranking_event_single_quest.json` 中的关卡，并要求 `clear_phase` 为 1～4 的整数；
-完成 Phase N 会推进同关卡不高于 N 的阶段任务。该字段来自官方 finish 请求，服务端不重算战斗阶段。
-type 14 的 8 条单人累计任务只白名单摇曳迷宫 QuestRange kind 12（category 6/13/14/20）、EX kind 1
-（category 4）以及崩坏域 kind 7（category 13 的精确 event/suffix）。每次成功单人 finish 增加 1；多人、错误
-category、错误关卡和非开放期均不推进。目标为 1 的六条规则还可由相同范围内的历史 `finished` 回填，重复目标
-`1222/1300` 不根据唯一关卡完成行猜测次数。
-其他活动任务继续返回数据库持久化进度，`computer-event.ts` 和旧 quest map 仍只用于离线审计。
-
-## Type 23 精确通关规则
-
-257 条 type 23 任务由运行时直接验证主数据和官方关卡表，不读取旧 quest map：Advent 63 条、StoryEventSingle 7 条、
-ChallengeDungeon 60 条、Raid 80 条、Rush 47 条。规则要求 `row[11]=(None)`，并按 `event_id * 1000 + suffix`
-验证每个目标关卡真实存在；battle kind 1 只接受单人成功结算，battle kind 3 接受单人或多人成功结算。
-错误 category、错误 suffix、失败和任务开放期外结算均不增长。
+> 生成脚本: `scripts/gen_mission_event_quest_map.js`
+> 输出文件: `assets/mission_event_quest_map.json`
+> 覆盖范围: cat3 活动任务 2512 条，9 种 col[7] 类型
 
 ---
 
-## 一、历史审计映射规则
+## 一、映射规则
 
 ### 通用原理
 
@@ -105,7 +33,7 @@ CDN quest 文件的 row[0] = quest_id → 收集所有 difficulty 的 quest_id
 | col[7] | CDN 文件 | 映射键 | quest_category |
 |:---:|------|:---:|:---:|
 | 2 | `boss_battle_quest.json` | col[9]=stage_group | [2] |
-| 5 | `advent_event_quest.json` | col[8]=stage_group | [7, 8]（旧审计近似；严格规则仅 7） |
+| 5 | `advent_event_quest.json` | col[8]=stage_group | [7, 8] |
 | 7 | `challenge_dungeon_event_quest.json` | 全部 quest | [13] |
 | 8 | `ranking_event_single_quest.json` | col[8]=key | [11] |
 | 10 | `world_story_event_boss_battle_quest.json` | col[8]=event_id | [19] |
@@ -155,7 +83,7 @@ CDN quest 文件的 row[0] = quest_id → 收集所有 difficulty 的 quest_id
 
 荒龙系列 col[8] 对照：6(灼炎复刻), 7(凶暗), 10(雷废龙), 12(水废龙), 13(歼风), 18(凶暗复刻), 3000(灼炎再复刻), 3001(光废龙复刻)。
 
-旧审计 map 使用 quest_category = [7, 8]。这不是 CN 1.8.1 QuestRange 的精确语义；严格自动事实仅使用 category 7。
+quest_category = [7, 8]（单人+多人都查）。
 
 ### C — CHALLENGE_DUNGEON (col[7]=7, ~106 条)
 
@@ -260,6 +188,5 @@ DB 源表:
 计算层:
   lib/mission/computer-*.ts        — 8 个 MissionComputer
   lib/mission/registry.ts          — registry dispatch
-  assets/mission_event_quest_map.json — cat3 历史审计映射
-  assets/mission_event_battle_rules.json — 1753 条按 mission ID 的严格或已标记兼容事实
+  assets/mission_event_quest_map.json — cat3 预生成映射
 ```

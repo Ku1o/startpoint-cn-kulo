@@ -17,8 +17,6 @@ const zlib = require("zlib");
 const path = require("path");
 const fs = require("fs");
 
-const CONTENT_RESOURCE_PATH_SALT = "K6R9T9Hz22OpeIGEWB0ui6c6PYFQnJGy";
-
 function uint32LE(value) {
     const buf = Buffer.allocUnsafe(4);
     buf.writeUInt32LE(value, 0);
@@ -28,22 +26,47 @@ function uint32LE(value) {
 /**
  * Serialize entries array to orderedmap binary buffer.
  * @param {Array<{key: string, row: string}>} entries
+ * @param {{ sort?: "numeric" | "lexicographic" }} [options]
  * @returns {Buffer}
  */
-function serializeMap(entries, compressRows) {
-    // Sort entries by key (numeric for gacha IDs)
-    entries.sort((a, b) => {
-        const na = parseInt(a.key, 10);
-        const nb = parseInt(b.key, 10);
-        if (!isNaN(na) && !isNaN(nb)) return na - nb;
-        return a.key.localeCompare(b.key);
-    });
+function serializeOrderedMap(entries, options = {}) {
+    // MasterBinaryMap searches general master-table keys lexicographically.
+    // Keep numeric sorting as the default for existing gacha patch builders,
+    // whose keys have uniform widths and historically used numeric ordering.
+    if (options.sort === "lexicographic") {
+        entries.sort((a, b) => a.key.localeCompare(b.key));
+    } else {
+        entries.sort((a, b) => {
+            const na = parseInt(a.key, 10);
+            const nb = parseInt(b.key, 10);
+            if (!isNaN(na) && !isNaN(nb)) return na - nb;
+            return a.key.localeCompare(b.key);
+        });
+    }
+
+    const rowBlocks = entries.map(e => zlib.deflateSync(Buffer.from(e.row, "utf8")));
+    return serializeOrderedMapBlocks(
+        entries.map((entry, index) => ({ key: entry.key, rowBlock: rowBlocks[index] })),
+        { sort: "preserve" },
+    );
+}
+
+/**
+ * Serialize entries whose row blocks are already encoded. This is required for
+ * nested master tables, where each outer row is itself an orderedmap binary.
+ * @param {Array<{key: string, rowBlock: Buffer}>} entries
+ * @param {{ sort?: "numeric" | "lexicographic" | "preserve" }} [options]
+ * @returns {Buffer}
+ */
+function serializeOrderedMapBlocks(entries, options = {}) {
+    if (options.sort === "lexicographic") {
+        entries.sort((a, b) => a.key.localeCompare(b.key));
+    } else if (options.sort === "numeric") {
+        entries.sort((a, b) => Number(a.key) - Number(b.key));
+    }
 
     const keyBuffers = entries.map(e => Buffer.from(e.key, "utf8"));
-    const rowTextBuffers = entries.map(e => Buffer.from(e.row));
-    const rowBlocks = compressRows
-        ? rowTextBuffers.map(row => zlib.deflateSync(row))
-        : rowTextBuffers;
+    const rowBlocks = entries.map(e => e.rowBlock);
 
     // Build index payload
     let keyPos = 0;
@@ -75,15 +98,6 @@ function serializeMap(entries, compressRows) {
     ]);
 }
 
-function serializeOrderedMap(entries) {
-    return serializeMap(entries, true);
-}
-
-/** Official nested orderedmaps store each complete inner map directly in the outer body. */
-function serializeNestedOrderedMap(entries) {
-    return serializeMap(entries, false);
-}
-
 /**
  * Write entries as orderedmap file.
  * @param {string} outPath - output file path
@@ -102,18 +116,18 @@ function writeOrderedMap(outPath, entries) {
  * @param {string} resourcePath - e.g. "orderedmap/gacha/gacha_feature_content.json"
  * @returns {{ logicalPath: string, relativePath: string }}
  */
-function hashResourcePath(resourcePath, salt = CONTENT_RESOURCE_PATH_SALT) {
-    const logicalPath = resourcePath.replace(/[\/\\]+/g, "/").replace(/^\//, "");
-    const digest = crypto.createHash("sha1").update(logicalPath + salt).digest("hex");
+function hashResourcePath(resourcePath, salt = "K6R9T9Hz22OpeIGEWB0ui6c6PYFQnJGy") {
+    const normalized = resourcePath.replace(/[\/\\]+/g, "/").replace(/^\//, "");
+    const digest = crypto.createHash("sha1").update(normalized + salt).digest("hex");
     return {
-        logicalPath,
+        logicalPath: normalized,
         relativePath: `${digest.slice(0, 2)}/${digest.slice(2)}`,
     };
 }
 
 module.exports = {
-    serializeNestedOrderedMap,
     serializeOrderedMap,
+    serializeOrderedMapBlocks,
     writeOrderedMap,
     hashResourcePath,
     uint32LE,

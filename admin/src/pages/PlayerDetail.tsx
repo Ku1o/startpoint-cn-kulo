@@ -1,8 +1,9 @@
 import { useState } from "react"
-import { Card, Descriptions, Table, Button, Space, InputNumber, Popconfirm, message, Tag, Tabs, Spin, Typography, Switch, Input, Upload } from "antd"
+import { Card, Descriptions, Table, Button, Space, InputNumber, Popconfirm, message, Tag, Tabs, Spin, Typography, Switch, DatePicker, Input, Upload, Modal } from "antd"
 import { SaveOutlined, DeleteOutlined, PlusOutlined, DownloadOutlined, UploadOutlined, UndoOutlined, SearchOutlined } from "@ant-design/icons"
 import { useParams, useNavigate } from "react-router-dom"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
+import dayjs from "dayjs"
 import { apiGet, apiPost, apiPatch, apiDelete, apiUpload } from "../api/client"
 import { AdminPage, StateCard } from "../components/AdminPage"
 
@@ -15,6 +16,7 @@ interface PlayerInfo {
     rankPoint: number; starCrumb: number; bondToken: number
     expPool: number; degreeId: number; leaderCharacterId: number
     birth: number; enableAuto3x: boolean; tutorialStep: number | null
+    lastLoginTime: string; staminaHealTime: string; expPooledTime: string; timeOffset: number | null
 }
 
 interface CharRow { code: number; joinTime: string; entryCount: number; evolutionLevel: number; overLimitStep: number; exp: number; stack: number; manaBoardIndex: number }
@@ -22,6 +24,13 @@ interface ItemRow { id: number; count: number }
 interface EquipRow { id: number; level: number; enhancementLevel: number }
 interface QuestRow { section: number; questId: number; finished: boolean; highScore: number | null; clearRank: number | null; bestElapsedTimeMs: number | null }
 interface DrawnQuestRow { categoryId: number; questId: number; oddsId: number }
+interface UnisonRepairResult {
+    ok: boolean
+    repaired: boolean
+    status: string
+    changes?: number
+    message: string
+}
 
 interface DetailData {
     player: PlayerInfo
@@ -61,6 +70,7 @@ export default function PlayerDetail() {
     const navigate = useNavigate()
     const qc = useQueryClient()
     const [editValues, setEditValues] = useState<Record<string, any>>({})
+    const [addCharCode, setAddCharCode] = useState<number | undefined>()
     const [addItemId, setAddItemId] = useState<number | undefined>()
     const [addItemCount, setAddItemCount] = useState<number>(1)
     const [searchChars, setSearchChars] = useState("")
@@ -90,7 +100,6 @@ export default function PlayerDetail() {
     })
 
     const refresh = () => qc.invalidateQueries({ queryKey: ["playerDetail", pid] })
-    const showMutationError = (error: Error) => message.error(error.message)
 
     const editField = useMutation({
         mutationFn: ({ field, value }: { field: string; value: any }) =>
@@ -103,10 +112,15 @@ export default function PlayerDetail() {
         onError: (e: Error) => message.error(e.message),
     })
 
+    const addChar = useMutation({
+        mutationFn: (code: number) => apiPost(`/api/player/${pid}/character`, { code }),
+        onSuccess: () => { message.success("角色已直接写入存档"); setAddCharCode(undefined); refresh() },
+        onError: (e: Error) => message.error(e.message),
+    })
+
     const delChar = useMutation({
         mutationFn: (code: number) => apiDelete(`/api/player/${pid}/character/${code}`),
         onSuccess: () => { message.success("角色已删除"); refresh() },
-        onError: showMutationError,
     })
 
     const addItem = useMutation({
@@ -119,42 +133,33 @@ export default function PlayerDetail() {
     const delItem = useMutation({
         mutationFn: (itemId: number) => apiDelete(`/api/player/${pid}/item/${itemId}`),
         onSuccess: () => { message.success("道具已删除"); refresh() },
-        onError: showMutationError,
     })
 
     const delQuestProgress = useMutation({
         mutationFn: ({ section, questId }: { section: number; questId: number }) =>
             apiDelete(`/api/player/${pid}/quest_progress/${section}/${questId}`),
         onSuccess: () => { message.success("关卡记录已删除"); refresh() },
-        onError: showMutationError,
     })
 
     const clearAllQuestProgress = useMutation({
         mutationFn: () => apiDelete(`/api/player/${pid}/quest_progress`),
         onSuccess: () => { message.success("全部关卡记录已清除"); refresh() },
-        onError: showMutationError,
     })
 
     const delDrawnQuest = useMutation({
         mutationFn: ({ category, questId }: { category: number; questId: number }) =>
             apiDelete(`/api/player/${pid}/drawn_quest/${category}/${questId}`),
         onSuccess: () => { message.success("抽选记录已删除"); refresh() },
-        onError: showMutationError,
     })
 
     const clearAllDrawnQuests = useMutation({
         mutationFn: () => apiDelete(`/api/player/${pid}/drawn_quest`),
         onSuccess: () => { message.success("全部抽选记录已清除"); refresh() },
-        onError: showMutationError,
     })
 
     const clearExBoost = useMutation({
-        mutationFn: () => apiPost<{ ok: boolean; clearedCharacters: number }>(`/api/player/${pid}/clear_ex_boost`),
-        onSuccess: ({ clearedCharacters }) => {
-            message.success(`已清除 ${clearedCharacters} 个角色的 EX 能力`)
-            refresh()
-        },
-        onError: showMutationError,
+        mutationFn: () => apiPost(`/api/player/${pid}/clear_ex_boost`),
+        onSuccess: () => { message.success("EX Boost 已清除"); refresh() },
     })
 
     const clearReceiveHistory = useMutation({
@@ -163,22 +168,29 @@ export default function PlayerDetail() {
         onError: (e: Error) => message.error(e.message),
     })
 
+    const repairUnisonUnlock = useMutation({
+        mutationFn: () => apiPost<UnisonRepairResult>(`/api/player/${pid}/repair_unison_unlock`),
+        onSuccess: result => {
+            if (result.repaired) message.success(result.message)
+            else message.info(result.message)
+            refresh()
+        },
+        onError: (e: Error) => message.error(e.message),
+    })
+
     const resetParties = useMutation({
         mutationFn: () => apiPost(`/api/player/${pid}/reset_parties`),
         onSuccess: () => { message.success("编队已重置"); refresh() },
-        onError: showMutationError,
     })
 
     const clearMail = useMutation({
         mutationFn: () => apiDelete(`/api/player/${pid}/mail`),
         onSuccess: () => { message.success("邮箱已清空"); refresh() },
-        onError: showMutationError,
     })
 
     const resetChallenge = useMutation({
         mutationFn: () => apiPost(`/api/player/${pid}/reset_challenge`),
         onSuccess: () => { message.success("每日挑战已重置"); refresh() },
-        onError: showMutationError,
     })
 
     const importSave = useMutation({
@@ -186,6 +198,24 @@ export default function PlayerDetail() {
         onSuccess: () => { message.success("存档已导入"); refresh() },
         onError: (e: Error) => message.error(e.message),
     })
+
+    const confirmImportSave = (file: File) => {
+        Modal.confirm({
+            title: `确认覆盖存档 #${pid}？`,
+            content: `将使用“${file.name}”完整覆盖当前存档。建议先导出备份，此操作无法在面板内撤销。`,
+            okText: "确认覆盖",
+            cancelText: "取消",
+            okButtonProps: { danger: true },
+            onOk: async () => {
+                try {
+                    await importSave.mutateAsync(file)
+                } catch {
+                    // 错误信息由 mutation 统一展示。
+                }
+            },
+        })
+        return Upload.LIST_IGNORE
+    }
 
     if (isNaN(pid)) return <Card><Text type="danger">无效的玩家 ID</Text></Card>
     if (isLoading) return <StateCard><Spin size="large" /></StateCard>
@@ -217,6 +247,23 @@ export default function PlayerDetail() {
                         />
                     )}
                 </Space.Compact>
+            </div>
+        )
+    }
+
+    const dateField = (key: string, label: string) => {
+        const iso = (player as any)[key] as string | null
+        return (
+            <div key={key}>
+                <Text type="secondary" style={{ fontSize: 12 }}>{label}</Text>
+                <DatePicker
+                    showTime
+                    allowClear={false}
+                    size="small"
+                    style={{ width: "100%" }}
+                    value={iso ? dayjs(iso) : null}
+                    onChange={date => date && editField.mutate({ field: key, value: date.toISOString() })}
+                />
             </div>
         )
     }
@@ -257,6 +304,24 @@ export default function PlayerDetail() {
             children: (
                 <Space direction="vertical" style={{ width: "100%" }}>
                     <div className="admin-toolbar">
+                        <InputNumber
+                            placeholder="角色 Code"
+                            value={addCharCode}
+                            onChange={value => setAddCharCode(value ?? undefined)}
+                            style={{ width: 140 }}
+                        />
+                        <Popconfirm
+                            title="直接写入角色？"
+                            description="该操作会绕过抽卡、邮件领取和相关统计，只应用于测试或坏档修复。"
+                            onConfirm={() => addCharCode && addChar.mutate(addCharCode)}
+                            okText="确认写入"
+                            cancelText="取消"
+                            disabled={!addCharCode}
+                        >
+                            <Button icon={<PlusOutlined />} disabled={!addCharCode} loading={addChar.isPending}>
+                                高级：直接添加
+                            </Button>
+                        </Popconfirm>
                         {searchBox(searchChars, setSearchChars)}
                     </div>
                     <Table rowKey="code" dataSource={fChars} size="small" pagination={{ pageSize: 50 }}
@@ -436,10 +501,19 @@ export default function PlayerDetail() {
                         </div>
                     </Card>
 
+                    <Card title="存档时间（高级兼容设置）" size="small">
+                        <div style={gridStyle}>
+                            {dateField("staminaHealTime", "体力恢复时间")}
+                            {dateField("lastLoginTime", "最后登录时间")}
+                            {dateField("expPooledTime", "经验池结算时间")}
+                            {numField("timeOffset", "存档时间偏移(ms，空=null)", { allowNull: true })}
+                        </div>
+                    </Card>
+
                     <Card title="工具操作" size="small">
                         <Space wrap>
                             <Popconfirm title="清除全部 EX Boost？" onConfirm={() => clearExBoost.mutate()} okText="确认" cancelText="取消">
-                                <Button size="small" loading={clearExBoost.isPending}>清除 EX Boost</Button>
+                                <Button size="small">清除 EX Boost</Button>
                             </Popconfirm>
                             <Popconfirm title="重置编队到默认？" onConfirm={() => resetParties.mutate()} okText="确认" cancelText="取消">
                                 <Button size="small" icon={<UndoOutlined />}>重置编队</Button>
@@ -453,9 +527,20 @@ export default function PlayerDetail() {
                             <Popconfirm title="清除接收历史（一次性道具的领取记录）？" onConfirm={() => clearReceiveHistory.mutate()} okText="确认" cancelText="取消">
                                 <Button size="small" loading={clearReceiveHistory.isPending}>清除接收历史</Button>
                             </Popconfirm>
+                            <Popconfirm
+                                title="修复合击解锁记录？"
+                                description="仅当存档已有第一章 6-1 或后续主线通关记录时才会补齐。"
+                                onConfirm={() => repairUnisonUnlock.mutate()}
+                                okText="检查并修复"
+                                cancelText="取消"
+                            >
+                                <Button size="small" icon={<UndoOutlined />} loading={repairUnisonUnlock.isPending}>
+                                    修复合击解锁
+                                </Button>
+                            </Popconfirm>
                             <Button size="small" icon={<DownloadOutlined />} href={`/api/player/save?id=${pid}`} target="_blank">导出存档</Button>
                             <Upload accept=".json,application/json" showUploadList={false} maxCount={1}
-                                beforeUpload={file => { importSave.mutate(file); return false }}>
+                                beforeUpload={confirmImportSave}>
                                 <Button size="small" icon={<UploadOutlined />} danger loading={importSave.isPending}>导入存档(覆盖)</Button>
                             </Upload>
                         </Space>

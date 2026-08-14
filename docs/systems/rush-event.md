@@ -1,98 +1,49 @@
-# 狂热激战（Rush Event）
-> 状态：关卡流程已实现；常驻批次启用推测性兼容回退，待客户端验收
+# 狂热激战(Rush Event)
+> 状态: 已实现   关键文件: src/data/domains/rushEvent.ts   相关端点: /event/rush/*
 
-本文记录狂热激战的关卡、商店和奖励边界。国服 CDN `v1.4.54` 包含原始活动和常驻活动两组数据；常驻活动缺少独立兑换数据，服务端暂时增加可替换的兼容层。
+本文档描述狂热激战(Rush Event)活动系统的实现:14 个事件、API 端点、关卡流程、converter 修复、复刻事件回退逻辑及关键 bug 修复。
 
-命名边界：`700011-700017` 均属于狂热激战（Rush Event）；无限演武是独立的 `score_attack_event` 系统，活动 ID 为 `1`。项目中不使用“无限激战”这一容易混淆的非正式名称。
+14 events — 7 primary (700001-700007) + 7 reruns (700011-700017). Reruns share primary's quests/quest folders/shop data.
 
-## 活动批次
+## API endpoints (`/event/rush/*`)
 
-| 批次 | 活动 ID | CDN 静态数据 | 当前服务端行为 |
-|---|---|---|---|
-| 原始活动批次 | `700001-700007` | 代币 `2370001-2370007`、文件夹奖励、共 209 件商品 | 精确使用自身数据 |
-| 常驻活动批次 | `700011-700017` | 代币为 `(None)`、文件夹奖励为空、商品为 0 件 | 暂时映射到 `eventId - 10` 的完整文件夹通关奖励和商品 |
+| Endpoint | Purpose | Client response key quirks |
+|----------|---------|---------------------------|
+| `/summary` | Event state + played parties + my ranking | `endless_battle_max_round`, `endless_battle_played_max_round` |
+| `/select_folder` | Lock into a difficulty | Rejects if `activeRushBattleFolderId !== null` |
+| `/party` | Get EVENT (category=4) party groups | Same flow as RaidEvent |
+| `/battle/start` | Start a quest, inserts active quest | Uses regular `/single_battle_quest/finish` for completion |
+| `/finish` (via single_battle_quest) | Clear reward + endless record + folder clear | `rush_event` field in response |
+| `/endless_battle` | Get endless mode state | Reads `PlayerRushEvent` from DB |
+| `/ranking` | Leaderboard | Returns `ranking_data` (NOT `ranking_list`) |
+| `/ranking/played_party` | View other player's party | Returns `rush_ranking_party` |
+| `/reset` | Reset folder or endless progress | `quest_type`: 1=FOLDER, 2=ENDLESS |
+| `/reward` | Claim ranking rewards after aggregation | Matches CDN rank tiers |
 
-`eventId - 10` 没有官方服务端抓包证明，属于为保证常驻活动可玩性而保留的**推测性兼容实现**，不能描述为 CDN 原始行为。读取时始终优先使用常驻活动自身的非空数据；空商品对象和空文件夹奖励数组表示该部分仍未补全，继续回退。未来应通过 CDN 补丁层补齐常驻活动商品和奖励，或根据官方响应替换本兼容层。
+## Quest flow
+1. `/summary` → get state
+2. `/select_folder {folderId}` → lock folder
+3. `/battle/start {questId}` → inserts active quest
+4. Client battles → `/single_battle_quest/finish` → handle reward/record
+5. Folder clears when `rushEventRound >= rushEventFolderMaxRounds[folderId]`
+6. Folder clear reward from `getRushEventFolderClearRewards()`
 
-## 关卡接口
+## Key converter fixes
+- `convert_rush_event_quest_folder`: added `folder = folder[0]` to extract inner array from CDN's 3-layer nested structure
+- `convert_rush_event_ranking_reward`: new converter for ranking rewards (14 events × 3 tiers)
+- `convert_event_item_shop`: added `item = item[0]` for shop items
 
-| 接口 | 用途 | 关键语义 |
-|---|---|---|
-| `/event/rush/summary` | 活动状态、出战队伍、排名 | 返回 `endless_battle_max_round` 等 Rush 字段 |
-| `/event/rush/select_folder` | 选择难度 | 已锁定难度时拒绝重复选择 |
-| `/event/rush/party` | 读取活动配队 | 使用 `party_category=4` 和全局唯一 `party_id` |
-| `/event/rush/battle/start` | 开始关卡 | 写入 active quest |
-| `/single_battle_quest/finish` | 关卡结算 | 返回 `rush_event` 专用字段 |
-| `/event/rush/endless_battle` | 无限轮次状态 | 从玩家 Rush 状态读取 |
-| `/event/rush/reset` | 重置普通或无限进度 | `quest_type=1` 为普通，`2` 为无限 |
-| `/event/rush/reward` | 排名奖励 | 按主数据档位处理 |
+## Rerun event fallback
+Events 700011-700017 have no standalone rewards/shop data in CDN. Server maps to primary (ID - 10):
+- `getEventShopItemsSync()`: type 11 → try exact, fallback ID-10
+- `getRushEventFolderClearRewards()`: try exact, if empty array/null → fallback ID-10
 
-普通难度流程为：`summary -> select_folder -> battle/start -> single_battle_quest/finish`。文件夹通关奖励优先读取当前活动 ID 的非空奖励；`700011-700017` 的精确奖励为空时，兼容读取对应 `700001-700007` 的奖励。
+## Critical bug fixes
+- **folder clear crash**: `rushEventRound=0` (endless) tricked `>= (maxRounds[4] ?? 0)` → added FOLDER type guard
+- **folder clear residue**: delete all parties then unconditionally re-insert last round → restructured to only insert non-final rounds
+- **shop empty**: date filter re-enabled via `getServerDate()` for GENERAL shop; event_item_shop.json regenerated
+- **shop purchase broken**: `general_shop.json` had ALL 290 reward types as `1`(EXP) instead of correct `0`(ITEM)/`2`(MANA)/`4`(EQUIPMENT) — items never given to players; regenerated from `wf-assets-cn/orderedmap/shop/general_shop.json` with correct types
+- **shop buy response**: cleaned up `user_info` to only changed fields; removed `joined_character_id_list` (client `earlySuccessHandler` doesn't parse it); fixed `free_vmoney` missing reward vmone
 
-重置接口严格对应 CN 1.8.1 的两种请求：普通模式的 `reset_target_id` 是当前文件夹内的关卡 ID，省略目标表示放弃整个文件夹；
-无限模式的目标是正整数轮次，并必须携带 `is_reset_after_target_round` 布尔值。未知 `quest_type`、跨活动或无限关卡 ID、
-非当前文件夹目标、未出战轮次和错误字段类型都会被拒绝且不修改存档。普通部分重置按主数据中的文件夹与轮次删除，
-不会因关卡 ID 较大而误删其他文件夹的残留记录；整组放弃时，清空文件夹选择和删除已用队伍共享同一 SQLite 事务。
-
-文件夹奖励按 `player_id + event_id + folder_id` 只结算一次。最终回合会在同一 SQLite 事务内首次写入通关记录、清理当前文件夹状态并发放完整奖励；重复通关只清理流程状态，不再次发奖。任一写入或发奖失败时整组操作回滚。
-
-## 商店协议
-
-客户端使用通用 `/shop/get_sales_list`：
-
-```json
-{
-  "shop_types": [4],
-  "event_list": [{
-    "event_type": 11,
-    "event_ids": [700001]
-  }]
-}
-```
-
-- `shop_type=4` 表示活动道具兑换所。
-- 服务端协议中的 Rush `event_type` 是 `11`；客户端内部枚举下标 `6` 不能替代它。
-- 商品先按请求中的 `event_type + event_id` 读取非空精确数据；仅 `event_type=11` 且活动为 `700011-700017`、精确商品为空时允许兼容回退。
-- `700001-700007` 的商品数依次为 `33/31/29/29/29/29/29`。
-- `700011-700017` 兼容后依次返回相同数量，但共享原始商品 ID 和玩家累计购买记录。
-- 这些商品都没有每日库存，只持久化 `players_shop_purchases` 中的累计购买数。
-
-`/shop/buy` 协议只发送全局 `shop_item_id`，没有 `event_id`。因此常驻列表返回原始商品 ID 后，购买端会按该商品 ID 的原始开放期和常驻兼容开放期共同授权；在常驻期直接购买同一 ID 与从 `700011` 列表点击购买语义相同。未来常驻活动出现非空精确商品集合时，旧商品 ID 的常驻兼容期会自动关闭。
-
-## 开放期
-
-客户端沿用上游 JST 类型名，但国服初始化偏移为 UTC+8。商品时间按北京时间解析，开放起点和结束点都包含在有效区间内，判断统一使用全局服务器时间。
-
-| 活动 ID | 开放时间（UTC+8） | 结束时间（UTC+8） |
-|---:|---|---|
-| `700001` | 2023-11-23 12:00:00 | 2023-12-18 11:59:59 |
-| `700002` | 2024-02-15 12:00:00 | 2024-03-11 11:59:59 |
-| `700003` | 2024-04-25 12:00:00 | 2024-05-21 11:59:59 |
-| `700004` | 2024-07-04 12:00:00 | 2024-07-30 11:59:59 |
-| `700005` | 2024-08-29 12:00:00 | 2024-09-24 11:59:59 |
-| `700006` | 2025-02-27 12:00:00 | 2025-03-25 11:59:59 |
-| `700007` | 2025-05-29 12:00:00 | 2025-06-21 11:59:59 |
-
-列表接口会过滤未开始和已结束商品。直接构造商品 ID 调用 `/shop/buy` 也会重复校验开放期；不在开放期时以 HTTP 200、MsgPack 响应和 `result_code=2053`（`ItemShopPeriodError`）拒绝，且不会改动数据库。
-
-兼容商品保留原始开放期，并额外增加常驻活动 CDN 给出的开放期 `2025-06-26 12:00:00` 至 `2025-08-14 23:59:59`（UTC+8）。列表和购买使用同一个多时间段判断；两个时间段之间不会保持开放。附加开放期采用追加并去重，不覆盖商品已有时段；解析时会拒绝不存在的日历日期和越界时间。
-
-## 购买一致性
-
-- `number` 必须是正整数；`0`、负数、小数、`NaN` 等非法值拒绝处理。
-- 普通商店购买会在同一个 SQLite 事务中重新读取玩家货币、道具余额和累计购买数。
-- 扣除成本、发放全部奖励、增加累计购买数任一步失败时，事务整体回滚。
-- 库存上限和余额不足都在事务内校验，避免并发请求使用过期状态。
-- 成功响应的 `item_list` 是购买完成后的绝对库存，不是增减量。
-- 追忆装备强化继续使用原有阶段升级事务，不接入普通商品购买服务。
-
-专项测试位于：
-
-- `tools/rush_event_shop.test.cjs`：主数据数量、兼容映射、空/非空精确数据覆盖、文件夹通关奖励（代币及配套素材）、UTC+8 边界与非法日期、数量校验、库存/余额和事务回滚。
-- `tools/rush_event_shop_route.test.cjs`：真实 Fastify 路由、常驻开放期列表和购买、全局时间过滤、`2053` 协议及 SQLite 回滚。
-- `tools/rush_event_reset_route.test.cjs`：普通/无限重置字段、跨活动目标、文件夹隔离和整组放弃回滚。
-- `tools/special_quest_flow.test.cjs`：文件夹首次通关发奖、重复通关不发奖，以及事务调用边界。
-
-## 关卡掉落
-
-Rush 关卡主数据没有普通 `scoreRewardGroupId`，日志出现 `scoreReward groupId=undefined` 属于预期行为。原始活动代币来自文件夹奖励和其他活动奖励渠道；常驻批次的 CDN 静态数据没有代币掉落，当前兼容复用原始批次的完整文件夹通关奖励，其中包括对应代币及配套素材。
+## No per-quest drops
+Rush event quests have NO `scoreRewardGroupId` in CDN. Drops come ONLY from folder clear rewards and ranking rewards. `[BATTLE] scoreReward groupId=undefined` is expected.

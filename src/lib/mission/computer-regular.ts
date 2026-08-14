@@ -1,44 +1,20 @@
 import { getMissionBattleCountersSync } from "../../data/domains/mission_battle_facts"
-import { getPlayerQuestProgressSync } from "../../data/domains/quest"
+import { countFinishedPlayerQuestsSync } from "../../data/domains/quest"
 import { getPlayerSync } from "../../data/domains/player"
 import { getRankDegree } from "../stamina"
+import { getMissionCounterValueSync } from "./counters"
 import { getMissionPattern } from "./patterns"
 import { getSnapshot } from "./snapshot"
 import type { MissionComputer, CategoryContext } from "./types"
 
 function buildStats(playerId: number, category: number): CategoryContext {
     const player = getPlayerSync(playerId)!
-    const questProgressRaw = getPlayerQuestProgressSync(playerId)
-
-    let totalQuestClears = 0
-    let totalStories = 0
-    let ssClears = 0
-    let sClears = 0
-    let aClears = 0
-    let bClears = 0
-    const questProgress: CategoryContext["questProgress"] = {}
-
-    for (const [section, quests] of Object.entries(questProgressRaw)) {
-        const list: CategoryContext["questProgress"][string] = []
-        for (const qp of quests) {
-            list.push({
-                questId: qp.questId,
-                finished: qp.finished,
-                clearRank: qp.clearRank,
-                bestElapsedTimeMs: qp.bestElapsedTimeMs,
-                leaderCharacterId: qp.leaderCharacterId,
-                multiClearCount: qp.multiClearCount,
-            })
-            if (!qp.finished) continue
-            totalQuestClears++
-            if (section === "3") totalStories++
-            if (qp.clearRank === 5) ssClears++
-            else if (qp.clearRank === 4) sClears++
-            else if (qp.clearRank === 3) aClears++
-            else if (qp.clearRank === 2) bClears++
-        }
-        questProgress[section] = list
-    }
+    // Regular/daily/weekly/pass computers only consume player totals, battle
+    // counters and periodic snapshots. Loading every quest row here made one
+    // battle finish deserialize the same quest history up to five times.
+    const totalQuestClears = category === 7
+        ? countFinishedPlayerQuestsSync(playerId)
+        : 0
 
     const snapshot = category === 2 || category === 6
         ? getSnapshot(playerId, "daily")
@@ -50,10 +26,10 @@ function buildStats(playerId: number, category: number): CategoryContext {
         category,
         playerId,
         player,
-        questProgress,
+        questProgress: {},
         totalQuestClears,
-        totalStories,
-        rankCounts: { rank_ss: ssClears, rank_s: sClears, rank_a: aClears, rank_b: bClears },
+        totalStories: 0,
+        rankCounts: {},
         battleCounters: getMissionBattleCountersSync(playerId),
         snapshot,
     }
@@ -75,6 +51,18 @@ function computeLifetime(pattern: string, ctx: CategoryContext, dbProgress: numb
     if (pattern === "multi_battle_play") return Math.max(dbProgress, counters.multiClearCount)
     if (pattern === "multi_play_host") return Math.max(dbProgress, counters.multiHostClearCount)
     if (pattern === "multi_play_guest") return Math.max(dbProgress, counters.multiGuestClearCount)
+    const rescueRankMatch = pattern.match(/^boss_battle_attention_rank([1-5])$/)
+    if (rescueRankMatch) {
+        return Math.max(
+            dbProgress,
+            getMissionCounterValueSync(ctx.playerId, {
+                dimension: "battle.multi_rescue_clear",
+                scopeType: "lifetime",
+                scopeKey: "all",
+                qualifier: { questRank: Number(rescueRankMatch[1]) },
+            }),
+        )
+    }
     return dbProgress
 }
 

@@ -1,49 +1,129 @@
-# 路由族覆盖矩阵
+# API Endpoints
+> 状态: 端点实现状态总表   关键文件: src/routes/   相关端点: 见表
+> [!WARNING]
+> This list may be incomplete and/or outdated. Check for any open pull requests or branches to make any final calls.
 
-本文按业务路由族概括当前服务端覆盖情况，帮助开发者找到注册源码、测试和 current 系统文档。它不是逐端点完备表，也不替代客户端验收。固定值、空对象和空列表的逐端点分类见[兼容空响应与未实现路由审计](./stub-route-audit.md)。
+> [!WARNING]
+> This is not a definitive list of every API endpoint that the game client interacts with.
 
-单端点的最终状态必须以 `src/cn-server.ts`、对应 Fastify 插件的实际注册代码和自动测试为准。路由文件存在不代表其全部分支、事务、通知或客户端流程已经完成。
+Symbol | Meaning
+:------- | :-------
+:white_check_mark: | Complete
+:warning: | Partial
+:construction: | In Progress
+:no_entry: | Incomplete & Not Being Worked On
 
-## 状态定义
+### ``na.wdfp.kakaogames.com/latest/api/index.php``
+Endpoint | Status
+:------- | :-------
+[/active_mission/receive](../routes/active_mission_receive.md) | :white_check_mark:
+[/asset/get_path](../routes/asset_get_path.md) | :warning:
+[/asset/version_info](../routes/asset_version_info.md) | :warning:
+[/attention/check](../routes/attention_check.md) | :white_check_mark:
+[/bonus/shown](../routes/bonus_shown.md) | :no_entry:
+``/box_gacha/close`` | :white_check_mark:
+[/box_gacha/exec](../routes/box_gacha_exec.md) | :warning:
+[/box_gacha/get_box_list](../routes/box_gacha_get_box_list.md) | :white_check_mark:
+[/character/add_character_from_town](../routes/character_add_character_from_town.md) | :no_entry:
+[/character/learn_mana_node](../routes/character_learn_mana_node.md) | :white_check_mark:
+[/character/open_mana_board](../routes/character_open_mana_board.md) | :white_check_mark:
+[/character/over_limit](../routes/character_over_limit.md) | :white_check_mark:
+[/character/receive_bond_token](../routes/character_receive_bond_token.md) | :white_check_mark:
+[/character/set_illustration_settings](../routes/character_set_illustration_settings.md) | :white_check_mark:
+[/encyclopedia/index](../routes/encyclopedia_index.md) | :white_check_mark:
+[/encyclopedia/read_keyword](../routes/encyclopedia_read_keyword.md) | :white_check_mark:
+[/equipment/set_protection](../routes/equipment_set_protection.md) | :white_check_mark:
+[/equipment/sell_equipment](../routes/equipment_sell_equipment.md) | :white_check_mark:
+[/equipment/sell_stack](../routes/equipment_sell_stack.md) | :white_check_mark:
+[/equipment/bulk_sell_stack](../routes/equipment_bulk_sell_stack.md) | :white_check_mark:
+[/equipment/bulk_upgrade](../routes/equipment_bulk_upgrade.md) | :white_check_mark:
+[/equipment/upgrade](../routes/equipment_upgrade.md) | :white_check_mark:
+``/event/rush/summary`` | :white_check_mark:
+``/event/rush/select_folder`` | :white_check_mark:
+``/event/rush/ranking`` | :white_check_mark:
+``/event/rush/ranking/played_party`` | :white_check_mark:
+``/event/rush/aggregated_time`` | :white_check_mark:
+``/event/rush/party`` | :white_check_mark:
+``/event/rush/battle/start`` | :white_check_mark:
+``/event/rush/reset`` | :white_check_mark:
+[/ex_boost/draw](../routes/ex_boost_draw.md) | :white_check_mark:
+[/ex_boost/first_draw](../routes/ex_boost_first_draw.md) | :white_check_mark:
+[/ex_boost/select](../routes/ex_boost_select.md) | :white_check_mark:
+[/expod/inject_exp](../routes/expod_inject_exp.md) | :white_check_mark:
+[/expod/stack_to_exp](../routes/expod_stack_to_exp.md) | :white_check_mark:
+[/expod/bulk_stack_to_exp](../routes/expod_bulk_stack_to_exp.md) | :white_check_mark:
+[/follow/lists](../routes/follow_lists.md) | :no_entry:
+[/gacha/exchange_character](../routes/gacha_exchange_character.md) | :white_check_mark:
+``/gacha/exchange_equipment`` | :white_check_mark:
+[/gacha/exec](../routes/gacha_exec.md) | :warning:
+[/history/receive](../routes/history_receive.md) | :no_entry:
+[/how_to_get/get_list](../routes/how_to_get_get_list.md) | :no_entry:
+[/load](../routes/load.md) | :white_check_mark:
+[/lounge/get_list](../routes/lounge_get_list.md) | :no_entry:
+[/mail/index](../routes/mail_index.md) | :warning:
+[/mail/receive](../routes/mail_receive.md) | :no_entry:
+[/mail/receive_all](../routes/mail_receive_all.md) | :no_entry:
+[/mission/get_mission_progress](../routes/mission_get_mission_progress.md) | :white_check_mark:
+[/mission/update_mission_progress](../routes/mission_update_mission_progress.md) | :warning:
+[/active_mission/receive](../routes/active_mission_receive.md) | :white_check_mark:
+<!-- mission: server-side compute for 5 cat + auto-reward (active & awake); awake reward format resolved (base=9, 1 slot) -->
+[/multi_battle_quest/abort](../routes/multi_battle_quest_abort.md) | :no_entry:
+[/multi_battle_quest/create_room](../routes/multi_battle_quest_create_room.md) | :no_entry:
+[/multi_battle_quest/disband_room](../routes/multi_battle_quest_disband_room.md) | :no_entry:
+[/multi_battle_quest/finish](../routes/multi_battle_quest_finish.md) | :no_entry:
+[/multi_battle_quest/get_rooms](../routes/multi_battle_quest_get_rooms.md) | :no_entry:
+[/multi_battle_quest/prepare](../routes/multi_battle_quest_prepare.md) | :no_entry:
+[/multi_battle_quest/select_room](../routes/multi_battle_quest_select_room.md) | :no_entry:
+[/multi_battle_quest/share_room](../routes/multi_battle_quest_share_room.md) | :no_entry:
+[/multi_battle_quest/start](../routes/multi_battle_quest_start.md) | :no_entry:
+[/multi_battle_quest/summon](../routes/multi_battle_quest_summon.md) | :no_entry:
+[/multi_special_exchange/exchange_character](../routes/multi_special_exchange_exchange_character.md) | :no_entry:
+[/multi_special_exchange/single_draw_ticket](../routes/multi_special_exchange_single_draw_ticket.md) | :no_entry:
+[/option/update](../routes/option_update.md) | :white_check_mark:
+[/option/update_in_battle](../routes/option_update_in_battle.md) | :white_check_mark:
+[/party/edit](../routes/party_edit.md) | :white_check_mark:
+[/party_group/edit](../routes/party_group_edit.md) | :white_check_mark:
+[/payment/item_list](../routes/payment_item_list.md) | :white_check_mark:
+[/profile/get_my_profile](../routes/profile_get_my_profile.md) | :no_entry:
+[/profile/get_degree_list](../routes/profile_get_degree_list.md) | :white_check_mark:
+[/profile/update_degree](../routes/profile_update_degree.md) | :white_check_mark:
+``/ranking_event/get_summary`` | :white_check_mark:
+``/ranking_event/receive_reward`` | :white_check_mark:
+[/reproduce/post](../routes/reproduce_post.md) | :white_check_mark:
+[/shop/buy](../routes/shop_buy.md) | :white_check_mark:
+[/shop/get_sales_list](../routes/shop_get_sales_list.md) | :warning:
+``/shop/recover_stamina`` | :white_check_mark:
+[/single_battle_quest/abort](../routes/single_battle_quest_abort.md) | :white_check_mark:
+[/single_battle_quest/finish](../routes/single_battle_quest_finish.md) | :white_check_mark:
+[/single_battle_quest/play_continue](../routes/single_battle_quest_play_continue.md) | :white_check_mark:
+[/single_battle_quest/start](../routes/single_battle_quest_start.md) | :white_check_mark:
+[/sns/get](../routes/sns_get.md) | :no_entry:
+[/story_quest/finish](../routes/story_quest_finish.md) | :white_check_mark:
+[/tool/get_header_response](../routes/tool_get_header_response.md) | :white_check_mark:
+[/tool/signup](../routes/tool_signup.md) | :white_check_mark:
+[/tutorial/finish_trigger](../routes/tutorial_finish_trigger.md) | :white_check_mark:
+[/tutorial/update_step](../routes/tutorial_update_step.md) | :white_check_mark:
 
-| 状态 | 含义 |
-|---|---|
-| **Complete** | 当前支持边界内的核心路由、持久状态和主要错误路径已经实现；仍需结合客户端验收矩阵判断体验 |
-| **Partial** | 已有可用主流程，但存在缺失分支、事务、通知、数据覆盖或待验收路径 |
-| **Stub** | 只返回维持客户端流程所需的兼容响应，不提供对应官方业务能力 |
-| **Missing** | 客户端可能存在入口，但服务端没有形成可用业务实现 |
+### ``openapi-zinny3.game.kakao.com/service``
+Endpoint | Status
+:------- | :-------
+[/v2/appGroup](../routes/v2_appGroup.md) | :white_check_mark:
+[/v2/app](../routes/v2_app.md) | :warning:
 
-## 游戏服务路由族
-
-| 路由族 | 状态 | 当前边界 | 注册或源码入口 | Current 文档 |
-|---|---|---|---|---|
-| 账号与认证 | **Partial** | 设备绑定、账号、会话和存档选择已实现；雷霆登录、防沉迷及部分平台响应属于兼容实现，不是真实 OAuth 或官方账号服务 | `src/routes/cn/leitingAuth.ts`、`src/routes/openapi.ts`、`src/data/domains/account.ts`、`src/data/domains/session.ts` | [存档与输入校验](../systems/save-validation.md) |
-| `load` | **Partial** | 可以校验会话并序列化玩家主要领域；新增领域仍需同步 load、导入导出和恢复契约 | `src/routes/cn/load.ts`、`src/data/utils.ts` | [当前架构](../architecture.md)、[存档与输入校验](../systems/save-validation.md) |
-| Asset 与 CDN | **Partial** | `local`、`remote`、`client-owned` 三种资源模式及版本、路径、Range 下载已接线；完整客户端断点续传和部署组合仍需专项验收 | `src/routes/cn/asset-provider.ts`、`src/routes/cn/asset.ts`、`src/routes/cn/cdnFiles.ts` | [CDN 与内容](../cdn/README.md) |
-| 角色与装备养成 | **Partial** | 玛纳节点、觉醒、信赖证、开板、突破、EX 抽取、装备强化/保护/分解及体力道具关键多步写入已有事务回滚；EX 待选结果可跨重启和存档恢复，draw/first_draw 重试不再重复扣料，插画设置校验六项结构与角色所有权；其他养成路由仍按审计清单逐批覆盖 | `src/routes/api/character.ts`、`src/routes/api/character/`、`src/routes/api/equipment.ts`、`src/routes/api/sell.ts`、`src/routes/api/exBoost.ts` | [角色养成事务](../systems/character-growth-transactions.md)、[EX 能力](../systems/ex-boost.md)、[小型状态写入](../systems/small-write-boundaries.md)、[背包与装备事务](../systems/inventory-write-transactions.md)、[角色分解审计](../systems/character-stack-audit.md)、[装备强化审计](../systems/equipment-upgrade-audit.md) |
-| 选项与编队 | **Complete** | 当前客户端使用的选项、Profile 三项可见性设置、普通编队和编队组编辑均接入持久状态；编队组批量编辑同一事务提交并拒绝未知组 | `src/routes/api/option.ts`、`src/routes/api/profile.ts`、`src/routes/api/party.ts`、`src/routes/api/partyGroup.ts` | [小型状态写入](../systems/small-write-boundaries.md) |
-| 抽卡 | **Partial** | 核心角色与装备抽取、票券、兑换和权重已实现；单次抽取的费用、奖励、历史、积分和任务事实共享事务，网络响应丢失后的请求幂等及部分特殊卡池、保底和动画仍不完整 | `src/routes/api/gacha.ts`、`src/lib/gacha*.ts` | [抽卡写入事务](../systems/gacha-transactions.md)、[扭蛋赔率修复](../systems/gacha-odds-fix.md)、[卡池生成](../protocol/gacha-pool-generation.md) |
-| 普通关卡 | **Partial** | 剧情 finish 已完成首通事务、剧情/城镇角色入队和幂等响应；单人战斗所有通用分类及土俑、战阵、狂热激战、练习战、无限演武专用分支共享总事务，协力 start 已按房主/成员身份事务化体力、门票与 active quest，协力奖励与进度也共享总事务；状态仍为 Partial，原因是多人入场和客户端分类尚未完成客户端验收，而非数据库部分提交 | `src/routes/api/singleBattleQuest.ts`、`src/routes/api/storyQuest.ts`、`src/multi/http/battle.ts`、`src/lib/quest/` | [战斗关卡结算事务](../systems/quest-finish-transactions.md)、[普通剧情结算](../systems/story-quest-settlement.md)、[关卡入场道具](../systems/quest-entry-items.md)、[体力](../systems/stamina.md) |
-| 任务 | **Partial** | 普通/每日/每周、收集、1275 条权威称号、活动任务 2485 条事实、Pass 三分类与等级奖励、Active Mission 动态定义/可用性/安全领奖核心及 Contents Guide 首任务生产链、角色觉醒核心时序已有实现；13 条称号已按权威事实阻塞延期，category 3 救援、Pass 救援/购买和部分 Active Mission 生产者尚未实现 | `src/routes/api/mission.ts`、`src/routes/api/passCard.ts`、`src/routes/api/activeMission.ts`、`src/routes/api/contentsGuide.ts`、`src/lib/mission/` | [任务完成度审计](../systems/mission-completion-audit.md)、[任务路线图](../systems/mission-roadmap.md)、[Active Mission](../systems/active-mission.md)、[修行之道](../systems/pass-card.md) |
-| 邮件 | **Partial** | 列表、后台定向发送、单领与全领已经实现；领取覆盖发奖、历史和邮件标记的总事务，重复角色遵循统一 stack 规则，不支持类型 fail closed；主要成功写响应动态返回 `mail_arrived`，但 12 种附件尚未全部客户端验收 | `src/routes/api/mail.ts`、`src/routes/web_api/mail.ts`、`src/data/domains/mail.ts` | [邮件](../systems/mail.md) |
-| 商店与兑换 | **Partial** | 普通商店、星之粒、活动兑换及部分特殊兑换已有实现；通用购买和星之粒角色/装备兑换的扣款、奖励与累计事实已有事务回滚，数据来源、组合奖励和活动期覆盖仍按各系统边界处理 | `src/routes/api/shop.ts`、`src/routes/api/exchange.ts`、`src/data/domains/shopPurchase.ts` | [商店](../systems/shop.md) |
-| 活动 | **Partial** | 土俑、狂热激战、无限演武、战阵、歼灭者和活动扭蛋箱完成度不同；不得用单一活动代表整个路由族 | `src/routes/api/carnivalEvent.ts`、`src/routes/api/rushEvent.ts`、`src/routes/api/raidEvent.ts`、`src/routes/api/rankingEvent.ts`、`src/routes/api/boxGacha.ts` | [特殊关卡架构](../systems/special-quest-architecture.md)、[支持矩阵](../status/support-matrix.md) |
-| 角色总选举 | **Complete** | 状态查询、开放期 `11003`、CDN 候选白名单、首次投票持久化及 type 68 任务事实已闭合；重复请求幂等保留首次选择，尚缺官方重复投票错误样本 | `src/routes/api/characterElection.ts`、`src/data/domains/character_election.ts`、`src/content/converters/character-election.ts` | [任务待审阅实现](../systems/mission-implementation-assumptions.md) |
-| 多人联机 | **Partial** | NPC 房主基础流程、房间级 token/成员权限和超级猫头鹰双场景状态机可用；真人随机匹配、双客户端完整验收和进程重启恢复缺失 | `src/multi/http/`、`src/multi/tcp/`、`src/multi/room/`、`src/multi/state/` | [多人联机协议](../protocol/multi-battle.md) |
-| 教程、工具与外围兼容 | **Partial** | 首次教程已实现事务推进、重复请求和中断恢复；普通教程触发 ID 会校验、去重并批量事务写入；工具及其他外围路由仍可能只是维持 CN 客户端流程的空响应，必须逐注册源码确认 | `src/routes/api/tutorial.ts`、`src/routes/api/tool.ts`、`src/cn-server.ts` | [首次教程](../systems/start-tutorial.md)、[小型状态写入](../systems/small-write-boundaries.md)、[已知问题](../status/known-issues.md) |
-| 礼包码兑换 | **Missing** | 服务端主动关闭客户端入口；没有真实礼包码校验、次数限制、奖励配置与持久化 | `src/cn-server.ts` | [兼容空响应与未实现路由审计](./stub-route-audit.md) |
-
-## 管理端路由族
-
-| 路由族 | 状态 | 当前边界 | 注册或源码入口 | Current 文档 |
-|---|---|---|---|---|
-| 管理 Web API | **Partial** | 玩家、存档、设备备注、邮件、查询、服务状态和抽卡种子接口已接入；EX 能力清除有持久化契约测试，每日/每周任务强制重置明确不支持；破坏性操作和完整浏览器矩阵尚未验收 | `src/routes/web_api/` | [管理后台](../admin/README.md) |
-| React 管理后台 | **Partial** | 服务端唯一管理界面；`build:server`、运行时和 Bundle 均强制要求 `/admin/` 产物，入口引用资源会在启动时校验，旧路径只做 SPA 兼容重定向；手机、平板和真实破坏性操作仍处于人工验收阶段 | `admin/`、`web/dist/`、`src/runtime/admin.ts` | [管理后台](../admin/README.md) |
-
-## 使用规则
-
-1. 先从本矩阵确定业务路由族和 current 文档。
-2. 再检查 `src/cn-server.ts` 及对应插件是否实际注册目标路径。
-3. 读取处理函数、领域模块和相关测试，确认请求字段、持久状态、事务与错误路径。
-4. 协议字段优先核对 CN 1.8.1 反编译代码；需要网络证据时仅使用本地自备且已脱敏的抓包。
-5. 客户端是否通过，以[全项目测试进度](../status/test-progress.md)为准，不由本矩阵代替。
+### ``gc-infodesk-zinny3.kakaogames.com``
+Endpoint | Status
+:------- | :-------
+[/service/v3/agreement/getForLogin](../routes/service_v3_agreement_getForLogin.md) | :white_check_mark:
+[/service/v3/agreement/set](../routes/service_v3_agreement_set.md) | :no_entry:
+[/service/v3/auth/loginGoogle](../routes/service_v3_auth_loginGoogle.md) | :no_entry:
+[/service/v3/log/writeRoundLog](../routes/service_v3_log_writeRoundLog.md) | :no_entry:
+[/service/v3/log/writeSdkBasicLog](../routes/service_v3_log_writeSdkBasicLog.md) | :no_entry:
+[/service/v3/player/heartbeat](../routes/service_v3_player_heartbeat.md) | :warning:
+[/service/v3/promotion/checkUrlPromotion](../routes/service_v3_promotion_checkUrlPromotion.md) | :no_entry:
+[/service/v3/promotion/getStartingPopups](../routes/service_v3_promotion_getStartingPopups.md) | :no_entry:
+[/service/v3/promotion/popup/getList](../routes/service_v3_promotion_popup_getList.md) | :no_entry:
+[/service/v3/push/token/register](../routes/service_v3_push_token_register.md) | :white_check_mark:
+[/service/v3/util/country/get](../routes/service_v3_util_country_get.md) | :white_check_mark:
+[/service/v3/zat/login](../routes/service_v3_zat_login.md) | :white_check_mark:
+[/service/v4/auth/loginDevice](../routes/service_v4_auth_loginDevice.md) | :white_check_mark:
+[/service/v4/device/accessToken/create](../routes/service_v4_device_accessToken_create.md) | :warning:

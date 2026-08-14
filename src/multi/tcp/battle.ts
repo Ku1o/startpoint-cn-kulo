@@ -1,84 +1,65 @@
 import * as net from "net"
-import { getQuestFromCategorySync } from "../../lib/assets"
-import { QuestCategory } from "../../lib/types"
-import { getRoom } from "../room/manager"
-import { sessionManager, SessionClient } from "../state/SessionManager"
+import { sessionManager } from "../state/SessionManager"
+import type { SessionClient } from "../state/SessionManager"
 import { relayToBattleRoom } from "./relay"
-
-const BATTLE_MEASUREMENT_WARNING_THRESHOLD_MS = 2000
+import { recordBattleNotify } from "./chain-diagnostic"
 
 function findBattleClientBySocket(socket: net.Socket): SessionClient | undefined {
-    const map = (sessionManager as any).cidToBattleClient as Map<string, SessionClient> | undefined
-    if (!map) return undefined
-    for (const client of map.values()) {
-        if (client.socket === socket) return client
-    }
-    return undefined
+    const client = sessionManager.findClientBySocket(socket)
+    return client?.isBattle ? client : undefined
 }
 
-function getRoomQuest(client: SessionClient) {
-    const room = getRoom(client.roomNumber)
-    if (!room) return undefined
-    try {
-        const quest = getQuestFromCategorySync(room.category, room.quest_id)
-        return quest ? { quest, room } : undefined
-    } catch {
-        return undefined
-    }
+function sendToBattleClient(client: SessionClient, data: unknown, channel: string): void {
+    sessionManager.sendJson(client.socket, data, {
+        roomNumber: client.roomNumber,
+        connectionId: client.connectionId,
+        viewerId: client.viewerId,
+        roomGeneration: client.roomGeneration,
+        channel,
+    })
 }
 
 function handleBattleNotify(socket: net.Socket, data: unknown): void {
     if (!Array.isArray(data)) return
     const tag = data[0] as number
     const client = findBattleClientBySocket(socket)
+    if (client) recordBattleNotify(client, tag, data)
 
     switch (tag) {
         case 0: { // SceneReady
             if (!client) break
             const allReady = sessionManager.markSceneReady(client.connectionId, client.roomNumber)
             if (allReady) {
-                sessionManager.broadcastBattleStart(client.roomNumber)
-            } else {
-                sessionManager.replayBattleStartIfNeeded(client.connectionId, client.roomNumber)
+                const recipients = sessionManager.snapshotBattleRelayRecipients(client, true)
+                for (const recipient of recipients) {
+                    sendToBattleClient(recipient, [1, [1]], "battle_scene_start")
+                }
             }
             break
         }
-        case 1: { // LevelNext
-            if (!client) break
-            const context = getRoomQuest(client)
-            if (context?.room.category === QuestCategory.BOSS_BATTLE
-                && context.quest.isBothBoss === true) {
-                sessionManager.beginNextBattleScene(client.connectionId, client.roomNumber)
+        case 1: { // LevelNext (CN dual-boss battle)
+            if (client) {
+                sessionManager.beginBattleLevelNext(client.connectionId, client.roomNumber)
             }
             break
         }
         case 2: { // Finalize
-            if (!client) break
-            const context = getRoomQuest(client)
-            if (context && sessionManager.canFinalizeBattle(
-                client.roomNumber,
-                context.room.category === QuestCategory.BOSS_BATTLE
-                    && context.quest.isBothBoss === true,
-            ) && sessionManager.markBattleFinalized(client.connectionId, client.roomNumber)) {
-                sessionManager.sendJson(client.socket, [1, [2]])
-            }
+            if (client) sendToBattleClient(client, [1, [2]], "battle_finalize_ack")
             break
         }
         case 3: { // Measurement
             if (client) {
-                const frame = data[1] ?? 0
-                const clientTime = data[2] ?? 0
-                sessionManager.sendJson(client.socket, [1, [3, frame, clientTime, BATTLE_MEASUREMENT_WARNING_THRESHOLD_MS]])
+                const params = data[1]
+                const frame = params?.[0] ?? 0
+                const clientTime = params?.[1] ?? 0
+                sendToBattleClient(client, [1, [3, frame, clientTime, Date.now()]], "battle_measurement_ack")
             }
             break
         }
-        case 4: { // LineSpeedWarning
-            if (client) {
-                sessionManager.broadcastToBattleRoom(client.roomNumber, [1, [4, client.connectionId, data[1] ?? 0]])
-            }
+        case 4: // LineSpeedWarning
             break
-        }
-        case 5: // Heartbeat is a keepalive notification and has no response frame.
+        case 5: // Heartbeat
+            if (client) sendToBattleClient(client, [1, [3, 0, 0, Date.now()]], "battle_heartbeat_ack")
             break
         default:
             break
@@ -88,6 +69,8 @@ function handleBattleNotify(socket: net.Socket, data: unknown): void {
 export function handleBattleMessage(socket: net.Socket, data: unknown): void {
     if (!Array.isArray(data)) return
     const tag = data[0] as number
+    const activityClient = findBattleClientBySocket(socket)
+    if (activityClient) sessionManager.noteBattleActivity(activityClient.connectionId)
 
     switch (tag) {
         case 0: // Notify
@@ -97,8 +80,8 @@ export function handleBattleMessage(socket: net.Socket, data: unknown): void {
             const client = findBattleClientBySocket(socket)
             if (client) {
                 const bcData = data[1]
-                relayToBattleRoom(String(client.roomNumber), String(client.connectionId), [2, client.connectionId, bcData])
-                sessionManager.sendJson(socket, [1, [3, 0, 0, Date.now()]])
+                relayToBattleRoom(client, [2, client.connectionId, bcData], "broadcast", tag)
+                sendToBattleClient(client, [1, [3, 0, 0, Date.now()]], "battle_broadcast_ack")
             }
             break
         }
@@ -106,10 +89,10 @@ export function handleBattleMessage(socket: net.Socket, data: unknown): void {
             const client = findBattleClientBySocket(socket)
             if (client) {
                 const sendMsg = data[2]
-                if (sendMsg) {
-                    relayToBattleRoom(String(client.roomNumber), String(client.connectionId), [3, client.connectionId, sendMsg])
+                if (sendMsg !== undefined && sendMsg !== null) {
+                    relayToBattleRoom(client, [3, client.connectionId, sendMsg], "direct", tag)
                 }
-                sessionManager.sendJson(socket, [1, [3, 0, 0, Date.now()]])
+                sendToBattleClient(client, [1, [3, 0, 0, Date.now()]], "battle_direct_ack")
             }
             break
         }

@@ -8,16 +8,13 @@ import { isNewDay, isNewWeek } from "../../lib/time-utils";
 import { buildPeriodicSnapshotData, getPassWeekSnapshotType, getSnapshot, initializePeriodicMissionSnapshots, takeSnapshot } from "../../lib/mission/snapshot";
 import { getMissionMasterDefinitions, isMissionDefinitionEnabledAt } from "../../lib/mission/master-data";
 import { ensurePlayerPassCardLoginProgressSync } from "./pass-card";
-import bundledDailyChallengePointLookup from "../../../assets/daily_challenge_point_lookup.json";
-import { getRuntimeContentTableSync } from "../../content/runtime/table-access";
+import dailyChallengePointLookup from "../../../assets/daily_challenge_point_lookup.json";
+import { gameVerboseLog } from "../../lib/game-logging";
 
 type DailyChallengePointLookup = Record<string, { maxPoint: number, isRecovery: boolean, name: string }>
 
 function getDailyChallengePointDefaults(): DailyChallengePointListEntry[] {
-    const lookup = getRuntimeContentTableSync(
-        "daily_challenge_point_lookup.json",
-        bundledDailyChallengePointLookup as DailyChallengePointLookup,
-    )
+    const lookup = dailyChallengePointLookup as DailyChallengePointLookup
     const entries: DailyChallengePointListEntry[] = []
     for (const [idStr, data] of Object.entries(lookup)) {
         entries.push({
@@ -68,28 +65,19 @@ function recordCurrentPassLogin(
     }
 }
 
+const expPoolMax = 100000;
 import { insertPlayerTriggeredTutorialsSync } from "./tutorial";
 import { insertPlayerOptionsSync } from "./option";
 import { insertPlayerItemsSync } from "./item";
 import { insertPlayerEquipmentListSync } from "./equipment";
 import { insertPlayerPartyGroupListSync } from "./party";
-import { insertPlayerCharactersSync, insertPlayerCharactersManaNodesSync, updatePlayerCharactersManaNodeAwakeLevelsSync } from "./character";
-import { insertPlayerCharacterAwakeUnlocksSync } from "./character_awake";
+import { getPlayerCharactersManaNodeAwakeLevelsSync, insertPlayerCharactersSync, insertPlayerCharactersManaNodesSync, updatePlayerCharacterManaNodeAwakeLevelSync } from "./character";
 import { insertPlayerDrawnQuestsSync, insertPlayerQuestProgressListSync } from "./quest";
 import { insertPlayerGachaInfoListSync, insertPlayerGachaCampaignListSync , getPlayerGachaInfoListSync, updatePlayerGachaInfoSync, getPlayerGachaCampaignListSync, updatePlayerGachaCampaignSync } from "./gacha";
 import { insertPlayerBoxGachasSync } from "./boxGacha";
 import { insertPlayerRushEventListSync, insertPlayerRushEventClearedFolderListSync, insertPlayerRushEventPlayedPartyListSync } from "./rushEvent";
 import { deletePlayerCategoryMissionsSync, insertPlayerCategoryMissionListSync, insertPlayerClearedRegularMissionListSync, insertPlayerActiveMissionsSync } from "./mission";
 import { insertPlayerPeriodicRewardPointsListSync, insertPlayerStartDashExchangeCampaignsSync, insertPlayerMultiSpecialExchangeCampaignsSync } from "./campaign";
-import { insertCarnivalSaveStateSync } from "../../lib/carnival-save-state";
-
-const expPoolMax = 100000;
-
-function assertValidExpPool(expPool: number, context: string): void {
-    if (!Number.isSafeInteger(expPool) || expPool < 0) {
-        throw new Error(`[PLAYER] invalid exp_pool=${String(expPool)} during ${context}`)
-    }
-}
 
 /**
  * Gets a player's daily challenge point list based on their id.
@@ -437,7 +425,6 @@ export function insertPlayerSync(
 ): number {
     const playerId = player.id
     const playerIdGiven = playerId !== undefined
-    assertValidExpPool(player.expPool, "insert")
 
     const params: Record<string, any> = {
         stamina: player.stamina,
@@ -523,11 +510,18 @@ export function insertMergedPlayerDataSync(
     insertPlayerClearedRegularMissionListSync(playerId, toInsert.clearedRegularMissionList)
     insertPlayerCharactersSync(playerId, toInsert.characterList)
     insertPlayerCharactersManaNodesSync(playerId, toInsert.characterManaNodeList)
-    if (toInsert.characterManaNodeAwakeLevels !== undefined) {
-        updatePlayerCharactersManaNodeAwakeLevelsSync(playerId, toInsert.characterManaNodeAwakeLevels)
-    }
-    if (toInsert.characterAwakeUnlocks !== undefined) {
-        insertPlayerCharacterAwakeUnlocksSync(playerId, toInsert.characterAwakeUnlocks)
+    for (const [characterId, levels] of Object.entries(toInsert.characterManaNodeAwakeLevels ?? {})) {
+        for (const [nodeId, level] of Object.entries(levels)) {
+            if (!Number.isSafeInteger(level) || level < 0) {
+                throw new Error(`Invalid mana node awake level for character ${characterId}, node ${nodeId}.`)
+            }
+            updatePlayerCharacterManaNodeAwakeLevelSync(
+                playerId,
+                Number(characterId),
+                Number(nodeId),
+                level,
+            )
+        }
     }
     insertPlayerPartyGroupListSync(playerId, toInsert.partyGroupList)
     insertPlayerItemsSync(playerId, toInsert.itemList)
@@ -538,14 +532,10 @@ export function insertMergedPlayerDataSync(
     insertPlayerDrawnQuestsSync(playerId, toInsert.drawnQuestList)
     insertPlayerPeriodicRewardPointsListSync(playerId, toInsert.periodicRewardPointList)
     insertPlayerActiveMissionsSync(playerId, toInsert.allActiveMissionList)
-    if (toInsert.categoryMissionList) {
-        insertPlayerCategoryMissionListSync(playerId, toInsert.categoryMissionList)
-    }
     insertPlayerBoxGachasSync(playerId, toInsert.boxGachaList)
     insertPlayerStartDashExchangeCampaignsSync(playerId, toInsert.startDashExchangeCampaignList)
     insertPlayerMultiSpecialExchangeCampaignsSync(playerId, toInsert.multiSpecialExchangeCampaignList)
     insertPlayerOptionsSync(playerId, toInsert.userOption)
-    insertCarnivalSaveStateSync(getDb(), playerId, toInsert)
 
     // insert data that could be undefined.
     const rushEventList = toInsert.rushEventList
@@ -1111,10 +1101,6 @@ export function updatePlayerSync(
 ) {
     const id = player.id
 
-    if (player.expPool !== undefined) {
-        assertValidExpPool(player.expPool, "update")
-    }
-
     const fieldMap: Record<string, string> = {
         'stamina': 'stamina',
         'staminaHealTime': 'stamina_heal_time',
@@ -1161,6 +1147,11 @@ export function updatePlayerSync(
                 values.push(value.toISOString())
             } else if (typeof (value) === 'boolean') {
                 values.push(serializeBoolean(value))
+            } else if (key === 'expPool') {
+                if (typeof value !== 'number' || !Number.isSafeInteger(value)) {
+                    throw new Error(`Invalid exp pool value for player ${id}: ${String(value)}`)
+                }
+                values.push(Math.max(0, value))
             } else {
                 values.push(value)
             }
@@ -1175,6 +1166,50 @@ export function updatePlayerSync(
 }
 
 /**
+ * Atomically changes a player's pooled experience.
+ *
+ * Returns the new balance, or null when the player does not exist or the
+ * requested deduction would make the balance negative.
+ */
+export function adjustPlayerExpPoolSync(
+    playerId: number,
+    delta: number,
+    reason: string = 'unspecified'
+): number | null {
+    if (!Number.isSafeInteger(delta)) {
+        throw new Error(`Invalid exp pool delta for player ${playerId}: ${String(delta)}`)
+    }
+
+    const before = getDb().prepare(`
+        SELECT exp_pool
+        FROM players
+        WHERE id = ?
+    `).get(playerId) as { exp_pool: number } | undefined
+
+    if (before === undefined) return null
+
+    const updated = getDb().prepare(`
+        UPDATE players
+        SET exp_pool = exp_pool + ?
+        WHERE id = ?
+          AND exp_pool + ? >= 0
+        RETURNING exp_pool
+    `).get(delta, playerId, delta) as { exp_pool: number } | undefined
+
+    if (updated === undefined) {
+        console.warn(
+            `[EXP_POOL] rejected player=${playerId} reason=${reason} before=${before.exp_pool} delta=${delta}`
+        )
+        return null
+    }
+
+    gameVerboseLog(
+        () => `[EXP_POOL] player=${playerId} reason=${reason} before=${before.exp_pool} delta=${delta} after=${updated.exp_pool}`
+    )
+    return updated.exp_pool
+}
+
+/**
  * Replaces a player's data with the provided MergedPlayerData object.
  * 
  * @param replaceWith The MergedPlayerData to replace.
@@ -1182,15 +1217,44 @@ export function updatePlayerSync(
 export function replacePlayerDataSync(
     replaceWith: MergedPlayerData
 ) {
-    try {
-        getDb().transaction(() => {
-            const playerId = replaceWith.player.id
-            const account = getAccountFromPlayerIdSync(playerId)
-            if (account === null) throw new Error("No account tied to player id.")
+    const playerId = replaceWith?.player?.id
+    if (typeof playerId !== "number" || !Number.isSafeInteger(playerId) || playerId < 1) {
+        throw new Error("data.player.id: must be a safe integer >= 1");
+    }
 
-            deletePlayerSync(playerId)
-            insertMergedPlayerDataSync(account.id, replaceWith)
-        })()
+    const account = getAccountFromPlayerIdSync(playerId)
+    if (account === null) throw new Error("No account tied to player id.");
+
+    // Older exports did not contain per-node awake levels. Preserve the current
+    // values for every imported learned node instead of silently resetting them.
+    if (replaceWith.characterManaNodeAwakeLevels === undefined) {
+        const currentLevels = getPlayerCharactersManaNodeAwakeLevelsSync(playerId)
+        const restoredLevels: Record<string, Record<number, number>> = {}
+        for (const [characterId, nodes] of Object.entries(replaceWith.characterManaNodeList ?? {})) {
+            if (!Array.isArray(nodes) || nodes.length === 0) continue
+            const nodeLevels: Record<number, number> = {}
+            for (const nodeId of nodes) {
+                nodeLevels[nodeId] = currentLevels[characterId]?.[nodeId] ?? 0
+            }
+            restoredLevels[characterId] = nodeLevels
+        }
+        replaceWith.characterManaNodeAwakeLevels = restoredLevels
+    }
+
+    const replace = getDb().transaction(() => {
+        deletePlayerSync(playerId)
+        insertMergedPlayerDataSync(account.id, replaceWith)
+
+        const readbackPlayer = getPlayerSync(playerId)
+        if (readbackPlayer === null) throw new Error("Replacement readback is missing the player.");
+        const readbackAccount = getAccountFromPlayerIdSync(playerId)
+        if (readbackAccount?.id !== account.id) {
+            throw new Error(`Replacement readback account mismatch: expected ${account.id}.`)
+        }
+    })
+
+    try {
+        replace()
     } catch (error: Error | any) {
         console.error(error)
         throw error
@@ -1280,10 +1344,7 @@ export function dailyResetPlayerDataSync(
             } else {
                 // Reset existing entries to CDN max
                 for (const entry of dcEntries) {
-                    const cdn = getRuntimeContentTableSync(
-                        "daily_challenge_point_lookup.json",
-                        bundledDailyChallengePointLookup as DailyChallengePointLookup,
-                    )[String(entry.id)]
+                    const cdn = (dailyChallengePointLookup as DailyChallengePointLookup)[String(entry.id)]
                     const maxPoint = cdn?.maxPoint ?? entry.point
                     updatePlayerDailyChallengePointSync(playerId, entry.id, maxPoint + entry.campaignList.reduce((s, c) => s + c.additionalPoint, 0))
                 }

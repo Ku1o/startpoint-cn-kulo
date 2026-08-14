@@ -49,8 +49,7 @@ export interface CurrencyReward extends Reward {
 
 
 export interface RareScoreReward extends Reward {
-    rarity: number,
-    position?: number
+    rarity: number
 }
 
 
@@ -79,7 +78,8 @@ export interface CurrencyScoreReward extends CommonScoreReward {
 export interface ItemScoreReward extends CommonScoreReward {
     id: number,
     count: number,
-    field5: number
+    field5: number,
+    ignore_drop_multiplier?: boolean
 }
 
 

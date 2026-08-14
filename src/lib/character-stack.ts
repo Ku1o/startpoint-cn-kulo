@@ -1,7 +1,7 @@
 export function validateCharacterStackConversion(
     currentStack: number,
     convertCount: number,
-    protectedCharacter: boolean
+    protectedCharacter: boolean,
 ): string | null {
     if (!Number.isInteger(convertCount) || convertCount <= 0) {
         return "Invalid conversion count."

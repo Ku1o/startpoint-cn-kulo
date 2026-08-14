@@ -1,8 +1,8 @@
 import { clientSerializeDate } from "./date"
-import { resolveSerializedAssetVersion } from "./serialized-asset-version"
 import { serializeBondTokenStatuses, serializePartyGroupList, serializeGachaCampaign, serializeRushEvent } from "./serialize-entities"
 import { getDateFromServerTime, getServerTime, getServerDate, realToVirtual } from "../../utils"
 import { ClientPlayerData, DailyChallengePointListEntry, MergedPlayerData, PartyCategory, Player, PlayerBoxGacha, PlayerCharacter, PlayerCharacterBondToken, PlayerDrawnQuest, PlayerEquipment, PlayerGachaCampaign, PlayerGachaInfo, PlayerMultiSpecialExchangeCampaign, PlayerParty, PlayerPartyGroup, PlayerQuestProgress, PlayerRushEvent, PlayerRushEventPlayedParty, PlayerStartDashExchangeCampaign, RushEventBattleType, UserBoxGacha, UserCharacter, UserCharacterBondTokenStatus, UserEquipment, UserGachaCampaign, UserPartyGroup, UserPartyGroupTeam, UserQuestProgress, UserRushEvent, UserRushEventPlayedParty, UserRushEventPlayedPartyList, UserTutorial } from "../types"
+import { availableAssetVersion } from "../../routes/api/asset"
 import { deserializePlayerRushEventPlayedParty, deserializeRushEvent, getPlayerRushEventListClearedFoldersSync, getPlayerRushEventListPlayedPartiesSync, getPlayerRushEventListSync, serializePlayerRushEventPlayedParty } from "../domains/rushEvent"
 import { getPlayerActiveMissionsSync, getPlayerClearedCollectItemEventMissionListSync, getPlayerClearedRegularMissionListSync } from "../domains/mission"
 import { getPlayerBoxGachasSync } from "../domains/boxGacha"
@@ -18,29 +18,25 @@ import { getPlayerOptionsSync } from "../domains/option"
 import { getPlayerPartyGroupListSync } from "../domains/party"
 import { getPlayerTriggeredTutorialsSync } from "../domains/tutorial"
 import { kIdToBusinessCode, businessCodeToKId } from "../codeMap"
-import { getCharacterVisibleManaBoardIndex } from "../../lib/mana-board-availability"
 import { computeRealTimeStamina } from "../../lib/stamina"
-import { isStartTutorialActive } from "../../lib/start-tutorial-state"
+import {
+    shouldUnlockMode15MultiplayerPlayedParty,
+    shouldUnlockMode15PlayedParties,
+} from "../../lib/mode15-optional"
 
 export interface SerializePlayerDataOptions {
     viewerId?: number
     serializeRushEventData?: boolean // should rush event data be serialized?
     activeMissionList?: { mission_id: number; progress_value: number; stages: { stage: number; received: boolean }[] }[]
-    availableAssetVersion?: string
 }
 
-export function serializePlayerQuestProgress(progress: PlayerQuestProgress): UserQuestProgress {
-    return {
-        "best_elapsed_time_ms": progress.bestElapsedTimeMs,
-        "clear_rank": progress.clearRank,
-        "finished": progress.finished,
-        "high_score": progress.highScore ?? 0,
-        "quest_id": progress.questId,
-        "unlocked": progress.unlocked,
-        ...(progress.hostFinished !== undefined
-            ? { "host_finished": progress.hostFinished }
-            : {}),
-    }
+function clearSerializedPlayedPartyMembers(
+    party: UserRushEventPlayedParty,
+): void {
+    party.character_id_1 = party.character_id_2 = party.character_id_3 = null
+    party.unison_character_id_1 = party.unison_character_id_2 = party.unison_character_id_3 = null
+    party.evolution_img_level_1 = party.evolution_img_level_2 = party.evolution_img_level_3 = null
+    party.unison_evolution_img_level_1 = party.unison_evolution_img_level_2 = party.unison_evolution_img_level_3 = null
 }
 
 
@@ -73,7 +69,7 @@ export function serializePlayerData(
             "exp": character.exp,
             "stack": character.stack,
             "bond_token_list": bondTokenList,
-            "mana_board_index": getCharacterVisibleManaBoardIndex(character.manaBoardIndex, kId)
+            "mana_board_index": character.manaBoardIndex
         }
 
         const exBoost = character.exBoost
@@ -116,7 +112,15 @@ export function serializePlayerData(
     for (const [section, progresses] of Object.entries(toSerialize.questProgress)) {
         const list: UserQuestProgress[] = []
         for (const progress of progresses) {
-            list.push(serializePlayerQuestProgress(progress))
+            list.push({
+                "best_elapsed_time_ms": progress.bestElapsedTimeMs,
+                "clear_rank": progress.clearRank,
+                "finished": progress.finished,
+                "host_finished": progress.hostFinished ?? false,
+                "high_score": progress.highScore ?? 0,
+                "quest_id": progress.questId,
+                "unlocked": progress.unlocked
+            })
         }
         userQuestProgress[section] = list
     }
@@ -138,15 +142,14 @@ export function serializePlayerData(
     let userTutorial: UserTutorial | null = null
     const playerData = toSerialize.player
     const tutorialStep = playerData.tutorialStep
-    if (isStartTutorialActive(tutorialStep, playerData.tutorialSkipFlag)) {
-        const activeTutorialStep = tutorialStep as number
+    if (tutorialStep !== null && toSerialize.triggeredTutorial.find((value: number) => value === 12) === undefined) {
         userTutorial = {
             "viewer_id": options?.viewerId ?? 0,
-            "tutorial_step": activeTutorialStep,
+            "tutorial_step": tutorialStep,
             "skip_flag": playerData.tutorialSkipFlag
         }
 
-        if (activeTutorialStep >= 1) {
+        if (tutorialStep >= 1) {
             userTutorial["powerflip_failure"] = 0
         }
     }
@@ -177,7 +180,7 @@ export function serializePlayerData(
             "exp_pooled_time": getServerTime(playerData.expPooledTime),
             "leader_character_id": playerData.leaderCharacterId != null ? kIdToBusinessCode(playerData.leaderCharacterId) : 0,
             "party_slot": playerData.partySlot,
-            "degree_id": playerData.degreeId,
+            "degree_id": playerData.degreeId ?? 1,
             "birth": playerData.birth,
             "free_mana": playerData.freeMana,
             "paid_mana": playerData.paidMana,
@@ -235,7 +238,7 @@ export function serializePlayerData(
                 "gacha_exchange_point": gachaInfo.gachaExchangePoint
             }
         }),
-        "available_asset_version": resolveSerializedAssetVersion(options?.availableAssetVersion),
+        "available_asset_version": availableAssetVersion,
         "should_prompt_takeover_registration": false,
         "has_unread_news_item": false,
         "user_option": toSerialize.userOption,
@@ -329,9 +332,13 @@ export function serializePlayerData(
             const userRushEventPlayedPartyList: UserRushEventPlayedPartyList = {}
 
             for (const [eventId, parties] of Object.entries(toSerialize.rushEventPlayedPartyList)) {
+                const numericEventId = Number(eventId)
                 const battleTypeBuckets: Record<RushEventBattleType, Record<string, UserRushEventPlayedParty> | undefined> = {
-                    [RushEventBattleType.FOLDER]: undefined,
-                    [RushEventBattleType.ENDLESS]: undefined
+                    // Keep both buckets as empty maps. Leaving an unused
+                    // bucket undefined emits MessagePack fixext1 (0xD4),
+                    // which the legacy Android client rejects during /load.
+                    [RushEventBattleType.FOLDER]: {},
+                    [RushEventBattleType.ENDLESS]: {}
                 }
                 for (const party of parties) {
                     let bucket = battleTypeBuckets[party.battleType]
@@ -339,7 +346,14 @@ export function serializePlayerData(
                         bucket = {}
                         battleTypeBuckets[party.battleType] = bucket
                     }
-                    bucket[party.round] = serializePlayerRushEventPlayedParty(party)
+                    const serializedParty = serializePlayerRushEventPlayedParty(party)
+                    if (
+                        shouldUnlockMode15PlayedParties(numericEventId)
+                        || shouldUnlockMode15MultiplayerPlayedParty(numericEventId, party.round)
+                    ) {
+                        clearSerializedPlayedPartyMembers(serializedParty)
+                    }
+                    bucket[party.round] = serializedParty
                 }
                 userRushEventPlayedPartyList[eventId] = battleTypeBuckets as Record<RushEventBattleType, Record<string, UserRushEventPlayedParty>>
             }

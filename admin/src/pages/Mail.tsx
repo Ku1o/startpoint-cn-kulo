@@ -8,15 +8,20 @@ import { getMailAttachmentRule } from "../lib/mailRules"
 const { TextArea } = Input
 const { Text } = Typography
 
-// 新后台只暴露常用且客户端领取校验稳定的附件类型。
+// 私服管理保留全部已实现的附件类型；高风险类型仍会经过预览确认。
 const MAIL_TYPES = [
     { value: 1, label: "道具", needsId: true },
+    { value: 3, label: "付费星导石" },
     { value: 4, label: "免费星导石" },
     { value: 5, label: "角色", needsId: true, singleOnly: true },
     { value: 6, label: "装备", needsId: true, singleOnly: true },
+    { value: 7, label: "星之碎片" },
+    { value: 8, label: "玛纳" },
+    { value: 9, label: "经验池" },
     { value: 10, label: "羁绊之证" },
     { value: 11, label: "Boss Boost 点" },
     { value: 12, label: "Boost 点" },
+    { value: 13, label: "称号", needsId: true },
     { value: 15, label: "Rank 点" },
 ]
 
@@ -25,8 +30,17 @@ const TYPE_LABEL: Record<number, string> = Object.fromEntries(MAIL_TYPES.map(t =
 type TargetMode = "all" | "account" | "player"
 
 interface SendResult { ok: boolean; sent: number }
-interface AccountRow { id: number; saveCount: number; defaultPlayerId: number | null; defaultPlayerName: string | null; playerIds: number[] }
-interface PlayerBrief { id: number; name: string; lastLoginTime: string; degreeId: number }
+interface AccountRow {
+    id: number
+    viewerId: string | null
+    bindings: Array<{ deviceId: number; note: string | null }>
+    saveCount: number
+    defaultPlayerId: number | null
+    defaultPlayerName: string | null
+    players: PlayerBrief[]
+    playerIds: number[]
+}
+interface PlayerBrief { id: number; accountId: number; name: string; comment: string; degreeId: number }
 interface MailRecord { time: string; type: number; typeId: number | null; number: number; subject: string | null; target: string; sent: number }
 interface CharacterLookupRow { name: string; title: string; rarity: string; element: string }
 interface EquipmentLookupRow { name: string; rarity: string; category: string }
@@ -143,7 +157,32 @@ export default function Mail() {
     const [confirm, setConfirm] = useState<null | { values: any; count: number; targetText: string; attachmentText: string }>(null)
 
     const { data: accounts = [] } = useQuery({ queryKey: ["accounts"], queryFn: () => apiGet<AccountRow[]>("/api/server/accounts") })
-    const { data: players = [] } = useQuery({ queryKey: ["players"], queryFn: () => apiGet<PlayerBrief[]>("/api/player") })
+    const players = useMemo(
+        () => accounts.flatMap(account => account.players).sort((a, b) => a.id - b.id),
+        [accounts],
+    )
+    const playerOptions = useMemo(
+        () => accounts.flatMap(account => {
+            const accountLabel = account.viewerId ?? `内部 #${account.id}`
+            const note = account.bindings.map(binding => binding.note).filter(Boolean).join(" / ")
+            return account.players.map(player => ({
+                value: player.id,
+                label: `${player.name}（存档 #${player.id}） · 账号 ${accountLabel}${note ? ` · ${note}` : ""}`,
+            }))
+        }).sort((a, b) => a.value - b.value),
+        [accounts],
+    )
+    const accountOptions = useMemo(
+        () => accounts.map(account => {
+            const accountLabel = account.viewerId ?? "未生成 viewer_id"
+            const note = account.bindings.map(binding => binding.note).filter(Boolean).join(" / ")
+            return {
+                value: account.id,
+                label: `账号 ${accountLabel}（内部 #${account.id}，${account.saveCount} 个存档${account.defaultPlayerName ? `，生效：${account.defaultPlayerName}` : ""}）${note ? ` · ${note}` : ""}`,
+            }
+        }),
+        [accounts],
+    )
     const { data: history = [] } = useQuery({ queryKey: ["mailHistory"], queryFn: () => apiGet<MailRecord[]>("/api/mail/history") })
     const { data: attachmentLookup, isLoading: attachmentLoading, isError: attachmentError } = useQuery({
         queryKey: ["mailAttachmentLookup", type],
@@ -189,7 +228,9 @@ export default function Mail() {
         } else if (v.targetMode === "account") {
             const a = accounts.find(aa => aa.id === v.accountId)
             count = a?.saveCount ?? 0
-            targetText = `账号 #${v.accountId}${a ? `（${a.saveCount} 个存档）` : ""}`
+            targetText = a
+                ? `账号 ${a.viewerId ?? `内部 #${a.id}`}（${a.saveCount} 个存档）`
+                : `内部账号 #${v.accountId}`
         } else {
             count = totalSaves
             targetText = `全体（${accounts.length} 个账号 / ${totalSaves} 个存档）`
@@ -228,12 +269,9 @@ export default function Mail() {
                         <Form.Item name="accountId" label="选择账号" rules={[{ required: true, message: "请选择账号" }]}>
                             <Select
                                 showSearch
-                                placeholder="选择账号"
+                                placeholder="按原始账号 ID、内部 ID 或备注搜索"
                                 optionFilterProp="label"
-                                options={accounts.map(a => ({
-                                    value: a.id,
-                                    label: `账号 #${a.id}（${a.saveCount} 个存档${a.defaultPlayerName ? `，生效：${a.defaultPlayerName}` : ""}）`,
-                                }))}
+                                options={accountOptions}
                                 notFoundContent="暂无账号"
                             />
                         </Form.Item>
@@ -243,9 +281,9 @@ export default function Mail() {
                         <Form.Item name="playerId" label="选择存档" rules={[{ required: true, message: "请选择存档" }]}>
                             <Select
                                 showSearch
-                                placeholder="选择存档"
+                                placeholder="按存档、账号 ID 或备注搜索"
                                 optionFilterProp="label"
-                                options={players.map(p => ({ value: p.id, label: `${p.name}（#${p.id}）` }))}
+                                options={playerOptions}
                                 notFoundContent="暂无存档"
                             />
                         </Form.Item>
@@ -260,7 +298,7 @@ export default function Mail() {
                                 const nextRule = getMailAttachmentRule(event.target.value, null)
                                 form.setFieldsValue({
                                     type_id: undefined,
-                                    number: nextRule.max === 1 ? 1 : 1,
+                                    number: nextRule.max === 0 ? 0 : 1,
                                 })
                                 form.validateFields(["type_id", "number"]).catch(() => {})
                             }}
@@ -285,25 +323,31 @@ export default function Mail() {
                                     },
                                 },
                             ]}
-                            extra="输入完整 ID 或中文名称搜索；数字查询按完整 ID 精确匹配，避免误选相近编号。"
+                            extra={attachmentEndpoint
+                                ? "输入完整 ID 或中文名称搜索；数字查询按完整 ID 精确匹配，避免误选相近编号。"
+                                : "输入国服称号 ID；服务端会在称号数据中校验。"}
                         >
-                            <Select
-                                showSearch
-                                allowClear
-                                placeholder="输入 ID 或名称搜索附件"
-                                loading={attachmentLoading}
-                                disabled={attachmentError}
-                                options={attachmentOptions}
-                                filterOption={filterAttachmentOption}
-                                optionLabelProp="titleText"
-                                notFoundContent={attachmentLoading ? "正在加载附件索引" : "没有匹配附件"}
-                                onChange={(nextTypeId) => {
-                                    const nextRule = getMailAttachmentRule(type, nextTypeId)
-                                    const currentNumber = form.getFieldValue("number") ?? 1
-                                    form.setFieldValue("number", Math.min(currentNumber, nextRule.max))
-                                    form.validateFields(["number"]).catch(() => {})
-                                }}
-                            />
+                            {attachmentEndpoint ? (
+                                <Select
+                                    showSearch
+                                    allowClear
+                                    placeholder="输入 ID 或名称搜索附件"
+                                    loading={attachmentLoading}
+                                    disabled={attachmentError}
+                                    options={attachmentOptions}
+                                    filterOption={filterAttachmentOption}
+                                    optionLabelProp="titleText"
+                                    notFoundContent={attachmentLoading ? "正在加载附件索引" : "没有匹配附件"}
+                                    onChange={(nextTypeId) => {
+                                        const nextRule = getMailAttachmentRule(type, nextTypeId)
+                                        const currentNumber = form.getFieldValue("number") ?? 1
+                                        form.setFieldValue("number", Math.min(currentNumber, nextRule.max))
+                                        form.validateFields(["number"]).catch(() => {})
+                                    }}
+                                />
+                            ) : (
+                                <InputNumber min={1} precision={0} style={{ width: "100%" }} placeholder="称号 ID" />
+                            )}
                         </Form.Item>
                     )}
 
@@ -327,7 +371,7 @@ export default function Mail() {
                             style={{ width: "100%" }}
                             min={quantityRule.min}
                             max={quantityRule.max}
-                            disabled={quantityRule.max === 1}
+                            disabled={quantityRule.max <= 1}
                         />
                     </Form.Item>
 

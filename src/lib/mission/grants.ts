@@ -22,7 +22,6 @@ export class MissionRewardGranter {
     private freeMana: number
     private expPool: number
     private totalManaGained = 0
-    private latestDegreeId: number | undefined
 
     constructor(private readonly playerId: number, private readonly player: Player) {
         this.freeVmoney = player.freeVmoney
@@ -70,7 +69,6 @@ export class MissionRewardGranter {
                         && !this.degreeList.includes(reward.degreeId)
                         && givePlayerDegreeSync(this.playerId, reward.degreeId)) {
                         this.degreeList.push(reward.degreeId)
-                        this.latestDegreeId = reward.degreeId
                     }
                     break
                 case 7:
@@ -92,6 +90,19 @@ export class MissionRewardGranter {
         }
     }
 
+    /**
+     * Repairs ownership for an old mission stage that was already marked as
+     * received before degree ownership was persisted. This intentionally does
+     * not change the player's currently equipped title.
+     */
+    grantDegreeOwnershipOnly(degreeId: number): void {
+        if (!Number.isInteger(degreeId) || degreeId <= 0) return
+        if (this.degreeList.includes(degreeId)) return
+        if (givePlayerDegreeSync(this.playerId, degreeId)) {
+            this.degreeList.push(degreeId)
+        }
+    }
+
     persistPlayer(): void {
         if (!this.hasPlayerChanges()) return
         updatePlayerSync({
@@ -99,7 +110,6 @@ export class MissionRewardGranter {
             freeVmoney: this.freeVmoney,
             freeMana: this.freeMana,
             expPool: this.expPool,
-            ...(this.latestDegreeId !== undefined ? { degreeId: this.latestDegreeId } : {}),
             totalManaObtained: (this.player.totalManaObtained ?? 0) + this.totalManaGained,
         })
     }
@@ -108,7 +118,6 @@ export class MissionRewardGranter {
         return this.freeVmoney !== this.player.freeVmoney
             || this.freeMana !== this.player.freeMana
             || this.expPool !== this.player.expPool
-            || this.latestDegreeId !== undefined
     }
 
     getUserInfo(): Record<string, number> {
@@ -116,7 +125,6 @@ export class MissionRewardGranter {
             free_vmoney: this.freeVmoney,
             free_mana: this.freeMana,
             exp_pool: this.expPool,
-            ...(this.latestDegreeId !== undefined ? { degree_id: this.latestDegreeId } : {}),
         }
     }
 

@@ -1,37 +1,26 @@
 import Fastify, { FastifyRequest } from "fastify";
 import { ContentTypeParserDoneFunction } from "fastify/types/content-type-parser";
-import { unpack } from "msgpackr";
+import { pack, unpack } from "msgpackr";
+import fastifyStatic from "@fastify/static";
 import path from "path";
-import { getServerTime } from "./utils";
-import getDatabase, {
-    checkpointDatabase,
-    closeDatabase,
-    Database,
-    getDatabaseStatus,
-    initializeDatabase,
-} from "./data";
+import { existsSync, readFileSync } from "fs";
+import { getServerTime, getServerTimeForPlayer } from "./utils";
 import { restoreTimeOffset } from "./data/activeAccount";
-import { getContentSnapshot, initializeContentSnapshot } from "./content/runtime/content-snapshot";
-import { createContentLifecycleDependencies } from "./modes/cn-lifecycle";
-import { configureSerializedAssetVersionProvider } from "./data/utils/serialized-asset-version";
-import { parseCnRuntimeConfig } from "./runtime/config";
-import {
-    createRuntimeCoordinator,
-    RuntimeCoordinator,
-} from "./runtime/lifecycle";
-import { registerRuntimeHealthRoute } from "./runtime/health";
-import { loadBundleMetadata } from "./runtime/bundle-metadata";
-import { registerAdminUi } from "./runtime/admin";
+import { migrateUnsafeViewerIdsSync } from "./data/domains/session";
+import { installManagementAuth } from "./lib/management-auth";
+import { installRoutePerformanceMonitor } from "./lib/route-performance";
+import { markPlayerOnline } from "./lib/online-presence";
 
 import versionCheckPlugin from "./routes/cn/versionCheck";
 import leitingAuthPlugin from "./routes/cn/leitingAuth";
 import cnToolPlugin from "./routes/cn/tool";
 import cnLoadPlugin from "./routes/cn/load";
-import { registerCnAssetProviderRoutes } from "./routes/cn/asset-provider";
-import { registerCnMsgpackOnSend } from "./routes/cn/msgpack";
+import cnAssetPlugin from "./routes/cn/asset";
+import indexWebPlugin from "./routes/web";
 import indexWebApiPlugin from "./routes/web_api";
 import seedsWebApiPlugin from "./routes/web_api/seeds";
-import { getDefaultGachaSeedQuarantine } from "./lib/gacha-seed-quarantine";
+import modAdminApiPlugin from "./routes/api/modAdmin";
+import seedValidator from "./lib/seed-validator";
 import reproduceApiPlugin from "./routes/api/reproduce";
 import tutorialApiPlugin from "./routes/api/tutorial";
 import gachaApiPlugin from "./routes/api/gacha";
@@ -40,6 +29,7 @@ import expodApiPlugin from "./routes/api/expod";
 import storyQuestApiPlugin from "./routes/api/storyQuest";
 import optionApiPlugin from "./routes/api/option";
 import singleBattleQuestApiPlugin from "./routes/api/singleBattleQuest";
+import questApiPlugin from "./routes/api/quest";
 import { multiBattleRoutes } from "./multi";
 import attentionApiPlugin from "./routes/api/attention";
 import characterApiPlugin from "./routes/api/character";
@@ -63,28 +53,47 @@ import newsApiPlugin from "./routes/api/news";
 import raidEventApiPlugin from "./routes/api/raidEvent";
 import rushEventApiPlugin from "./routes/api/rushEvent";
 import carnivalEventApiPlugin from "./routes/api/carnivalEvent";
+import howToGetApiPlugin from "./routes/api/howToGet";
 import contentsGuideApiPlugin from "./routes/api/contentsGuide";
 import profileApiPlugin from "./routes/api/profile";
+import followApiPlugin from "./routes/api/follow";
+import snsApiPlugin from "./routes/api/sns";
 import historyApiPlugin from "./routes/api/history";
+import playerHistoryApiPlugin from "./routes/api/playerHistory";
 import comicApiPlugin from "./routes/api/comic";
 import questUnlockApiPlugin from "./routes/api/questUnlock";
 import itemApiPlugin from "./routes/api/item";
-import characterElectionApiPlugin from "./routes/api/characterElection";
+import { startSessionServer } from "./multi";
 import {
-    isSessionServerListening,
-    startSessionServer,
-    stopSessionServer,
-} from "./multi";
+    startQuestNpcPartyPoolWorker,
+    stopQuestNpcPartyPoolWorker,
+} from "./multi/npc/player-party-pool";
 
 const fastify = Fastify({
     logger: {
-        level: "info"
+        // Default remains compatible with the existing development behavior.
+        // Startup BAT files may set LOG_LEVEL=warn to suppress per-request
+        // Fastify access logs during normal low-overhead operation.
+        level: process.env.LOG_LEVEL || "info"
     },
     bodyLimit: 262144  // 256KB — covers /single_battle_quest/finish large battle stats
 });
-const projectRoot = path.resolve(__dirname, "..");
-let runtimeCoordinator: RuntimeCoordinator;
-const gachaSeedQuarantine = getDefaultGachaSeedQuarantine();
+
+installRoutePerformanceMonitor(fastify);
+
+// Viewer IDs >= 900,000,000 are interpreted as COM/AI members by the
+// multiplayer protocol. Repair legacy human sessions before rooms can open.
+const migratedUnsafeViewerIds = migrateUnsafeViewerIdsSync();
+if (migratedUnsafeViewerIds > 0) {
+    console.log(`[MULTI] migrated ${migratedUnsafeViewerIds} legacy viewer ID(s) out of the COM range`);
+}
+
+// Restore saved time offset from active player on startup
+restoreTimeOffset();
+
+// Game endpoints remain public; only the legacy management pages and their
+// management APIs are protected by the password session below.
+installManagementAuth(fastify);
 
 // Simple in-memory rate limiter for /crash endpoint only.
 // /debug is excluded — game client sends heavy beacon traffic during normal startup.
@@ -105,8 +114,202 @@ fastify.addHook("onRequest", async (request, reply) => {
     }
 });
 
-registerCnMsgpackOnSend(fastify);
-registerRuntimeHealthRoute(fastify, () => runtimeCoordinator.getHealthSnapshot());
+// Lightweight online counter: reuse normal game traffic and keep only a
+// viewerId -> lastSeen timestamp in memory. No database writes or extra client
+// requests are introduced. The management page treats five-minute activity as
+// online presence.
+fastify.addHook("onResponse", async request => {
+    if (!request.url.startsWith("/api/index.php/")) return
+    const body = request.body
+    if (!body || typeof body !== "object" || Array.isArray(body)) return
+    markPlayerOnline((body as Record<string, unknown>).viewer_id)
+});
+
+/**
+ * Walk a MsgPack buffer in a single pass. Replaces uint32 tags (0xCE) with
+ * int32 (0xD2) for values < 2^31, and with float64 (0xCB) for values ≥ 2^31.
+ * All other bytes are copied verbatim.  Handles nested arrays/maps recursively.
+ * Returns a new Buffer (may be larger than input when float64 replaces int32).
+ */
+function fixUint32Tags(buf: Buffer): Buffer {
+    const out = Buffer.allocUnsafe(buf.length * 2); // worst-case: all 0xCE → 0xCB (+80%)
+    let w = 0; // write position
+
+    const put = (b: number) => { out[w++] = b; };
+
+    const copy = (off: number, len: number) => {
+        for (let i = 0; i < len; i++) out[w++] = buf[off + i]!;
+    };
+
+    function walk(off: number): number {
+        const tag = buf[off]!;
+        let pos = off + 1;
+
+        // positive fixint  0x00..0x7f
+        if (tag <= 0x7f) { put(tag); return pos; }
+        // negative fixint  0xe0..0xff
+        if (tag >= 0xe0) { put(tag); return pos; }
+
+        switch (tag) {
+            case 0xc0: case 0xc2: case 0xc3: // nil / false / true
+                put(tag);
+                return pos;
+            case 0xcc: case 0xd0: // uint8 / int8
+                copy(off, 2);
+                return pos + 1;
+            case 0xcd: case 0xd1: // uint16 / int16
+                copy(off, 3);
+                return pos + 2;
+            case 0xce: {            // uint32 → int32 (< 2^31) or float64 (≥ 2^31)
+                const u32 = buf.readUint32BE(pos);
+                if (u32 < 0x80000000) {
+                    put(0xd2);     // int32 tag
+                    copy(pos, 4);  // data bytes unchanged
+                } else {
+                    put(0xcb);     // float64 tag
+                    const f64 = Buffer.allocUnsafe(8);
+                    f64.writeDoubleBE(u32);
+                    for (let j = 0; j < 8; j++) put(f64[j]!);
+                }
+                return pos + 4;
+            }
+            case 0xd2: // int32
+                copy(off, 5);
+                return pos + 4;
+            case 0xcf: case 0xd3: // uint64 / int64
+                copy(off, 9);
+                return pos + 8;
+            case 0xca: // float32
+                copy(off, 5);
+                return pos + 4;
+            case 0xcb: // float64
+                copy(off, 9);
+                return pos + 8;
+            case 0xd9: { // str8
+                const len = buf[pos]!;
+                copy(off, 2 + len);
+                return pos + 1 + len;
+            }
+            case 0xda: { // str16
+                const len = buf.readUint16BE(pos);
+                copy(off, 3 + len);
+                return pos + 2 + len;
+            }
+            case 0xdb: { // str32
+                const len = buf.readUint32BE(pos);
+                copy(off, 5 + len);
+                return pos + 4 + len;
+            }
+            case 0xc4: { // bin8
+                const len = buf[pos]!;
+                copy(off, 2 + len);
+                return pos + 1 + len;
+            }
+            case 0xc5: { // bin16
+                const len = buf.readUint16BE(pos);
+                copy(off, 3 + len);
+                return pos + 2 + len;
+            }
+            case 0xc6: { // bin32
+                const len = buf.readUint32BE(pos);
+                copy(off, 5 + len);
+                return pos + 4 + len;
+            }
+            case 0xdc: { // array16
+                const count = buf.readUint16BE(pos);
+                put(tag);
+                put(buf[off + 1]!); put(buf[off + 2]!); // count bytes
+                pos += 2;
+                for (let i = 0; i < count; i++) pos = walk(pos);
+                return pos;
+            }
+            case 0xdd: { // array32
+                const count = buf.readUint32BE(pos);
+                put(tag);
+                copy(off + 1, 4); // count bytes
+                pos += 4;
+                for (let i = 0; i < count; i++) pos = walk(pos);
+                return pos;
+            }
+            case 0xde: { // map16
+                const count = buf.readUint16BE(pos);
+                put(tag);
+                put(buf[off + 1]!); put(buf[off + 2]!); // count bytes
+                pos += 2;
+                for (let i = 0; i < count; i++) { pos = walk(pos); pos = walk(pos); }
+                return pos;
+            }
+            case 0xdf: { // map32
+                const count = buf.readUint32BE(pos);
+                put(tag);
+                copy(off + 1, 4); // count bytes
+                pos += 4;
+                for (let i = 0; i < count; i++) { pos = walk(pos); pos = walk(pos); }
+                return pos;
+            }
+            // ext family (copy verbatim)
+            case 0xc7: { // ext8
+                const len = buf[pos]!;
+                copy(off, 2 + len + 1);
+                return pos + 1 + len + 1;
+            }
+            case 0xc8: { // ext16
+                const len = buf.readUint16BE(pos);
+                copy(off, 3 + len + 1);
+                return pos + 2 + len + 1;
+            }
+            case 0xc9: { // ext32
+                const len = buf.readUint32BE(pos);
+                copy(off, 5 + len + 1);
+                return pos + 4 + len + 1;
+            }
+            case 0xd4: copy(off, 2);  return pos + 1;   // fixext1
+            case 0xd5: copy(off, 3);  return pos + 2;   // fixext2
+            case 0xd6: copy(off, 5);  return pos + 4;   // fixext4
+            case 0xd7: copy(off, 9);  return pos + 8;   // fixext8
+            case 0xd8: copy(off, 17); return pos + 16;  // fixext16
+            default: {
+                // fixstr   0xa0..0xbf
+                if (tag >= 0xa0 && tag <= 0xbf) {
+                    const len = tag & 0x1f;
+                    copy(off, 1 + len);
+                    return pos + len;
+                }
+                // fixarray 0x90..0x9f
+                if (tag >= 0x90 && tag <= 0x9f) {
+                    put(tag);
+                    const count = tag & 0x0f;
+                    for (let i = 0; i < count; i++) pos = walk(pos);
+                    return pos;
+                }
+                // fixmap   0x80..0x8f
+                if (tag >= 0x80 && tag <= 0x8f) {
+                    put(tag);
+                    const count = tag & 0x0f;
+                    for (let i = 0; i < count; i++) { pos = walk(pos); pos = walk(pos); }
+                    return pos;
+                }
+                put(tag); // unknown, copy defensively
+                return pos;
+            }
+        }
+    }
+
+    let i = 0;
+    while (i < buf.length) i = walk(i);
+    return out.subarray(0, w);
+}
+
+fastify.addHook("onSend", (_, reply, payload, done) => {
+    try {
+        if (reply.getHeader("content-type") === "application/x-msgpack") {
+            const packed = fixUint32Tags(pack(payload));
+            done(null, packed.toString("base64"));
+            return;
+        }
+    } catch {}
+    done(null, payload);
+});
 
 function jsonParser(_: FastifyRequest, body: string, done: ContentTypeParserDoneFunction) {
     try {
@@ -135,9 +338,11 @@ fastify.register(versionCheckPlugin);
 fastify.register(leitingAuthPlugin, { prefix: "/api/index.php" });
 
 const apiPrefix = "/api/index.php";
+fastify.register(cnLoadPlugin, { prefix: apiPrefix });
+fastify.register(cnAssetPlugin, { prefix: `${apiPrefix}/asset` });
 
-function stubMsgpackReply(reply: any, data: any) {
-    const servertime = getServerTime()
+function stubMsgpackReply(reply: any, data: any, playerId?: number) {
+    const servertime = playerId ? getServerTimeForPlayer(playerId) : getServerTime()
     reply.header("content-type", "application/x-msgpack");
     reply.status(200).send({
         data_headers: { force_update: false, asset_update: false, short_udid: 0, viewer_id: 0, servertime, result_code: 1 },
@@ -145,13 +350,24 @@ function stubMsgpackReply(reply: any, data: any) {
     });
 }
 
+fastify.post(`${apiPrefix}/assetintitle/version_info_in_title`, async (request, reply) => {
+    const { getAssetDownloadSize, getVersionInfo } = require("./routes/cn/asset");
+    const resVer = request.headers['res_ver'] as string | undefined;
+    const device = request.headers.device as string | undefined;
+    stubMsgpackReply(reply, getVersionInfo(
+        CDN_BASE_URL,
+        getAssetDownloadSize(resVer, device),
+        device,
+    ));
+});
+
 fastify.post(`${apiPrefix}/tool/check_social_link_enable`, async (_request, reply) => {
     stubMsgpackReply(reply, { enable: false });
 });
 
-// Gift code exchange is not implemented, so do not advertise the client entry.
+// Gift code exchange (礼包码兑换): enable button in menu, exchange not implemented
 fastify.post(`${apiPrefix}/tool/check_enable_gift`, async (_request, reply) => {
-    stubMsgpackReply(reply, { enable_gift: false });
+    stubMsgpackReply(reply, { enable_gift: true });
 });
 
 fastify.post(`${apiPrefix}/tool/contact_active`, async (_request, reply) => {
@@ -180,26 +396,70 @@ fastify.post(`${apiPrefix}/episode_trial_reading/finish`, async (_request, reply
 });
 
 fastify.get("/debug", async (request, reply) => {
+    const ts = new Date().toISOString();
     const loc = (request.query as any)?.loc || "unknown";
-    parseC3032Beacon(loc, "debug-get");
+    // Parse C3032 from beacon query string (04e patch sends via CrashUtil.debugBeacon)
+    try { parseC3032Beacon(loc); } catch (_) {}
+    try { parsePlayBeacon(loc); } catch (_) {}
     reply.status(200).send("OK");
 });
 
-function parseC3032Beacon(loc: string, source: string): void {
+// Parse C3032 from beacon loc string — ★ garbled to â, extract digits via garbled pattern
+function parseC3032Beacon(loc: string): void {
     if (!loc.includes("C3032")) return;
     const seedMatch = loc.match(/seed=(\d+)/);
-    const movieMatch = loc.match(/movie_id=(\w+)/);
-    if (!seedMatch || !movieMatch) return;
+    if (!seedMatch) return;
     const badSeed = parseInt(seedMatch[1], 10);
-    const movieId = movieMatch[1];
-    try {
-        const quarantined = gachaSeedQuarantine.quarantineIfRecentlySent(movieId, badSeed);
-        console.log(
-            `[GACHA-SEED] C3032 source=${source} movie=${movieId} seed=${badSeed} `
-            + (quarantined ? "quarantined" : "ignored-not-recent"),
-        );
-    } catch (error) {
-        console.error(`[GACHA-SEED] C3032 quarantine failed: ${error instanceof Error ? error.message : String(error)}`);
+    const movieMatch = loc.match(/movie_id=(\w+)/);
+    const movieId = movieMatch ? movieMatch[1] : "normal";
+    console.log(`[DBG-BCN] C3032 seed=${badSeed} movieId=${movieId}`);
+    const starDigits = [...loc.matchAll(/â(\d)/g)];
+    // first match = ball rarity (結果レア度), second = char rarity (キャラクターレア度)
+    const ballRarity = starDigits.length > 0 ? parseInt(starDigits[0][1], 10) : 3;
+    // Extract play= field (0=no animation, 1=played) — APK 04e patch v2
+    const playMatch = loc.match(/play=(\d)/);
+    const didPlay = playMatch ? playMatch[1] === '1' : null;
+    const r = ballRarity - 3; // 0=★3, 1=★4, 2=★5
+    if (didPlay !== null) seedValidator.recordPlay(movieId, badSeed, didPlay);  // record for flushAll
+    // C3032 = client-verified rarity → verifiedPool (superset of playPool/confirmPool)
+    console.log(`[DBG-BCN] C3032 → moveToVerified [${movieId}] seed=${badSeed} ★${ballRarity}`);
+    seedValidator.moveToVerified(movieId, badSeed, r);
+    if (didPlay === false) {
+        console.log(`[DBG-BCN] C3032 → confirm [${movieId}] seed=${badSeed} ★${ballRarity}`);
+        seedValidator.confirm(movieId, badSeed, r);  // play=0 → confirmPool
+    }
+    const playStr = didPlay === true ? ' play=1' : didPlay === false ? ' play=0' : '';
+    console.log(`[BEACON] C3032 → ${didPlay === true ? 'play' : 'confirm'} seed ${badSeed} ★${ballRarity}${playStr} [${movieId}]`);
+    if (didPlay === null) { seedValidator.addPending(movieId, badSeed, r); }
+}
+
+// PLAY beacon — every draw reports play=1|0 (APK 04e Patch 5)
+// Format: PLAY|play=1|seed=10000001, movie_id=fes
+function parsePlayBeacon(loc: string): void {
+    if (loc.startsWith("PLAY|")) {
+        const seedMatch = loc.match(/seed=(\d+)/);
+        if (!seedMatch) { console.log(`[PLAY] no seed in: ${loc.substring(0,80)}`); return; }
+        const seed = parseInt(seedMatch[1], 10);
+        const movieMatch = loc.match(/movie_id=(\w+)/);
+        const movieId = movieMatch ? movieMatch[1] : "normal";
+        const playMatch = loc.match(/play=(\d)/);
+        const didPlay = playMatch ? playMatch[1] === '1' : false;
+        console.log(`[DBG-BCN] PLAY seed=${seed} play=${didPlay?'1':'0'} movieId=${movieId}`);
+        seedValidator.recordPlay(movieId, seed, didPlay);  // record for flushAll
+        if (didPlay) {
+            const r = seedValidator.getSentR(movieId, seed);
+            if (r !== undefined && r !== null) {
+                seedValidator.addPlay(movieId, seed, r, true);
+                seedValidator.moveToVerified(movieId, seed, r);
+                console.log(`[PLAY] playPool seed=${seed} movie=${movieId}`);
+            } else {
+                console.log(`[PLAY] play=1 skipped seed=${seed} getSentR=${r === null ? 'null' : 'undefined'} (already cleaned up by prior beacon)`);
+            }
+        } else {
+            const r = seedValidator.getSentR(movieId, seed);
+            console.log(`[DBG-BCN] PLAY play=0 → confirm [${movieId}] seed=${seed} r=${r !== undefined && r !== null ? '★'+(r+3) : r === null ? 'null' : 'undefined'}`);
+            if (r !== undefined) seedValidator.confirm(movieId, seed, r);
+        }
     }
 }
 
@@ -208,7 +468,8 @@ fastify.post("/debug", async (request, reply) => {
     const loc = (request.body as any)?.loc || "unknown";
     console.log(`[BEACON ${ts}] ${loc}`);
 
-    parseC3032Beacon(loc, "debug-post");
+    // Parse C3032 beacons for auto-purification (04e patch skips throw but keeps beacon)
+    try { parseC3032Beacon(loc); } catch (_) {}
 
     reply.status(200).send("OK");
 });
@@ -218,7 +479,21 @@ fastify.post("/crash", async (request, reply) => {
     const bodyStr = JSON.stringify(request.body);
     console.log(`[CRASH] ${bodyStr.substring(0, 2000)}`);
 
-    parseC3032Beacon(bodyStr, "crash");
+    // Parse C3032 gacha seed mismatches and auto-block bad seeds
+    try {
+        const seedMatch = bodyStr.match(/seed=(\d+)/);
+        if (seedMatch && bodyStr.includes("C3032")) {
+            const badSeed = parseInt(seedMatch[1], 10);
+            const ballMatch = bodyStr.match(/結果レア度=★(\d)/);
+            const ballRarity = ballMatch ? parseInt(ballMatch[1], 10) : 0;
+            const r = ballRarity - 3;
+            const movieMatch = bodyStr.match(/movie_id=(\w+)/);
+            const movieId = movieMatch ? movieMatch[1] : "normal";
+            // Crash path: no play= info → pendingPlay (rarity known, play unknown)
+            if (r >= 0 && r <= 2) seedValidator.addPending(movieId, badSeed, r);
+            console.log(`[CRASH] seed ${badSeed} device★${ballRarity} movie=${movieId}`);
+        }
+    } catch (e) {}
 
     reply.status(200).send("OK");
 });
@@ -233,6 +508,7 @@ fastify.register(expodApiPlugin, { prefix: `${apiPrefix}/expod` });
 fastify.register(storyQuestApiPlugin, { prefix: `${apiPrefix}/story_quest` });
 fastify.register(optionApiPlugin, { prefix: `${apiPrefix}/option` });
 fastify.register(singleBattleQuestApiPlugin, { prefix: `${apiPrefix}/single_battle_quest` });
+fastify.register(questApiPlugin, { prefix: `${apiPrefix}/quest` });
 fastify.register(multiBattleRoutes, { prefix: `${apiPrefix}/multi_battle_quest` });
 fastify.register(attentionApiPlugin, { prefix: `${apiPrefix}/attention` });
 fastify.register(characterApiPlugin, { prefix: `${apiPrefix}/character` });
@@ -258,105 +534,106 @@ fastify.register(rushEventApiPlugin, { prefix: `${apiPrefix}/event/rush` });
 fastify.register(carnivalEventApiPlugin, { prefix: `${apiPrefix}/carnival_event` });
 fastify.register(contentsGuideApiPlugin, { prefix: `${apiPrefix}/contents_guide` });
 fastify.register(profileApiPlugin, { prefix: `${apiPrefix}/profile` });
+fastify.register(followApiPlugin, { prefix: `${apiPrefix}/follow` });
+fastify.register(snsApiPlugin, { prefix: `${apiPrefix}/sns` });
 fastify.register(historyApiPlugin, { prefix: `${apiPrefix}/history` });
+fastify.register(playerHistoryApiPlugin, { prefix: `${apiPrefix}/player_history` });
+fastify.register(comicApiPlugin, { prefix: `${apiPrefix}/comic` });
 fastify.register(questUnlockApiPlugin, { prefix: `${apiPrefix}/quest` });
 fastify.register(itemApiPlugin, { prefix: `${apiPrefix}/item` });
-fastify.register(characterElectionApiPlugin, { prefix: `${apiPrefix}/character_election` });
+fastify.register(howToGetApiPlugin, { prefix: `${apiPrefix}/how_to_get` });
 
+// Web management panel
+fastify.register(indexWebPlugin);
 fastify.register(indexWebApiPlugin, { prefix: "/api" });
 fastify.register(seedsWebApiPlugin, { prefix: "/api/seeds" });
+fastify.register(modAdminApiPlugin, { prefix: "/api/mod-admin" });
 
-registerAdminUi(fastify, { projectRoot });
+const cdnHost = process.env.CN_LISTEN_HOST || "localhost";
+const cdnPort = process.env.CN_LISTEN_PORT || "8001";
+const cdnDisplayHost = cdnHost === "0.0.0.0" ? "localhost" : cdnHost;
+const CDN_BASE_URL = process.env.CDN_BASE_URL || `http://${cdnDisplayHost}:${cdnPort}/patch/cn`;
+const cdnDir = process.env.CDN_DIR || ".cdn";
 
-let runtimeHttpConfigured = false;
-function configureRuntimeHttp(config: ReturnType<typeof parseCnRuntimeConfig>): void {
-    if (runtimeHttpConfigured) return;
-    configureSerializedAssetVersionProvider(() => getContentSnapshot().cdn.targetVersion);
-    fastify.register(cnLoadPlugin, {
-        prefix: apiPrefix,
-        assetProvider: config.assetProvider,
-    });
-    fastify.register(comicApiPlugin, {
-        prefix: `${apiPrefix}/comic`,
-        comicDir: config.comicDir,
-    });
-    registerCnAssetProviderRoutes(fastify, { config: config.assetProvider });
-    runtimeHttpConfigured = true;
-}
-
-function getRuntimeDatabaseHealth(): { ready: boolean; schema: number | null } {
-    const status = getDatabaseStatus();
-    if (!status.open || !status.ready || status.schema === null) {
-        return { ready: false, schema: null };
+// Serve patched orderedmap files for missing CDN resources
+// Registered BEFORE fastifyStatic to intercept matching requests
+fastify.get("/patch/cn/dummy/download/production/upload/:prefix/:hash", async (request, reply) => {
+    const { prefix, hash } = request.params as { prefix: string; hash: string };
+    const relPath = `${prefix}/${hash}`;
+    const patchFile = path.join(__dirname, "..", "assets", "asset-patch", "production", "upload", prefix, hash);
+    if (existsSync(patchFile)) {
+        console.log("[PATCH-SERVE]", relPath);
+        return reply.type("application/octet-stream").send(readFileSync(patchFile));
     }
-    try {
-        const row = getDatabase(Database.WDFP_DATA)
-            .prepare("SELECT 1 AS value")
-            .get() as { value?: number } | undefined;
-        return { ready: row?.value === 1, schema: status.schema };
-    } catch {
-        return { ready: false, schema: status.schema };
-    }
-}
-
-let bundleMetadataError = false;
-let bundleMetadata = { version: "unknown", bundleId: null as string | null };
-try {
-    bundleMetadata = loadBundleMetadata({
-        bundleRoot: projectRoot,
-        requireManifest: process.env.EMBEDDED_RUNTIME === "1",
-    });
-} catch {
-    bundleMetadataError = true;
-}
-runtimeCoordinator = createRuntimeCoordinator({
-    loadConfig: () => {
-        if (bundleMetadataError) throw new Error("invalid embedded bundle metadata");
-        return parseCnRuntimeConfig({ projectRoot });
-    },
-    configureHttp: configureRuntimeHttp,
-    initializeDatabase,
-    restoreTimeOffset,
-    // Content snapshot, then operator-installed gameplay modules (modes.d/).
-    // Composed by the seam so the lifecycle test drives this exact entry
-    // point instead of re-creating the ordering.
-    ...createContentLifecycleDependencies<ReturnType<typeof parseCnRuntimeConfig>>({
-        projectRoot,
-        initializeContentSnapshot: config => initializeContentSnapshot({
-            assetMode: config.assetProvider.mode,
-            localCdn: config.assetProvider.mode === "local",
-        }),
-    }),
-    readyHttp: async () => { await fastify.ready(); },
-    listenHttp: config => fastify.listen({ ...config.http }),
-    closeHttp: () => fastify.close(),
-    forceCloseHttp: () => {
-        fastify.server.closeIdleConnections?.();
-        fastify.server.closeAllConnections?.();
-    },
-    startTcp: (config, onFatalError) => startSessionServer({
-        ...config.tcp,
-        onFatalError,
-    }),
-    stopTcp: stopSessionServer,
-    checkpointDatabase,
-    closeDatabase,
-    getDatabaseHealth: getRuntimeDatabaseHealth,
-    isHttpListening: () => fastify.server.listening,
-    isTcpListening: isSessionServerListening,
-    processTarget: process,
-    setExitCode: code => { process.exitCode = code; },
-    bundleVersion: bundleMetadata.version,
-    bundleId: bundleMetadata.bundleId,
-    nodeVersion: process.version,
-    adminAvailable: true,
-    reportStartupFailure: stage => console.error(`[runtime] ${stage} startup failed`),
-    reportShutdownFailures: failures => console.error(
-        `[runtime] shutdown failed steps=${failures.map(failure => (
-            `${failure.step}:${failure.code ?? "UNKNOWN"}`
-        )).join(",")}`,
-    ),
-    reportShutdownComplete: () => console.log("[runtime] shutdown complete"),
+    console.log("[PATCH-MISS]", relPath);
+    return reply.status(404).send("Not Found");
 });
 
-void runtimeCoordinator.start();
+// Serve patch archive files for asset update
+fastify.get("/patch/cn/asset-patch/active/:file", async (request, reply) => {
+    const { file } = request.params as { file: string };
+    const patchFile = path.join(__dirname, "..", "assets", "asset-patch", "active", file);
+    if (existsSync(patchFile)) {
+        return reply.type("application/zip").send(readFileSync(patchFile));
+    }
+    return reply.status(404).send("Not Found");
+});
+
+fastify.register(fastifyStatic, {
+    root: path.isAbsolute(cdnDir) ? cdnDir : path.join(__dirname, "..", cdnDir),
+    prefix: "/patch",
+    decorateReply: false
+});
+
+// Web static assets
+fastify.register(fastifyStatic, {
+    root: path.join(__dirname, "..", "web", "public"),
+    prefix: "/public",
+    decorateReply: false
+});
+
+// New admin SPA (React, built from admin/ into web/dist) — served at /admin.
+// Old pages at / stay untouched until the SPA fully replaces them (see docs/admin-refactor-plan.md).
+const adminDistDir = path.join(__dirname, "..", "web", "dist");
+const adminSpaAvailable = existsSync(path.join(adminDistDir, "index.html"));
+if (adminSpaAvailable) {
+    fastify.register(fastifyStatic, {
+        root: adminDistDir,
+        prefix: "/admin/",
+        decorateReply: false
+    });
+    fastify.get("/admin", (_request, reply) => reply.redirect("/admin/"));
+} else {
+    console.log("[admin] web/dist not found — admin SPA disabled (run: npm run build:admin)");
+}
+
+// Catch-all to log unknown endpoints
+fastify.setNotFoundHandler((request, reply) => {
+    // SPA fallback: client-side routes like /admin/accounts resolve to index.html
+    if (adminSpaAvailable && request.method === "GET" && request.url.startsWith("/admin/")) {
+        reply.header("content-type", "text/html; charset=utf-8");
+        reply.send(readFileSync(path.join(adminDistDir, "index.html")));
+        return;
+    }
+    console.log(`[UNKNOWN] ${request.method} ${request.url}`);
+    reply.status(404).send({ error: "Not Found" });
+});
+
+const host = process.env.CN_LISTEN_HOST ?? "127.0.0.1";
+const port = parseInt(process.env.CN_LISTEN_PORT ?? "8001");
+
+fastify.addHook("onClose", async () => {
+    await stopQuestNpcPartyPoolWorker();
+});
+startQuestNpcPartyPoolWorker();
+
+fastify.listen({ port, host }, (err, address) => {
+    if (err) {
+        console.error(err);
+        process.exit(1);
+    }
+    console.log(`CN StarPoint listening on http://${host}:${port}`);
+
+    // Start multi battle TCP session server
+    startSessionServer();
+});

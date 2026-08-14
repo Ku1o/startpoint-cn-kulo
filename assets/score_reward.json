@@ -1906,6 +1906,15 @@
       "type": 1,
       "id": 2287,
       "rarity": 0.5
+    },
+    {
+      "position": 17,
+      "name": "",
+      "type": 0,
+      "reward_type": 0,
+      "count": 10,
+      "field5": 0,
+      "id": 10003
     }
   ],
   "2243": [
@@ -2190,6 +2199,15 @@
       "type": 1,
       "id": 2299,
       "rarity": 0.5
+    },
+    {
+      "position": 17,
+      "name": "",
+      "type": 0,
+      "reward_type": 0,
+      "count": 10,
+      "field5": 0,
+      "id": 10003
     }
   ],
   "2246": [
@@ -2474,6 +2492,15 @@
       "type": 1,
       "id": 2311,
       "rarity": 0.5
+    },
+    {
+      "position": 17,
+      "name": "",
+      "type": 0,
+      "reward_type": 0,
+      "count": 10,
+      "field5": 0,
+      "id": 10003
     }
   ],
   "2249": [
@@ -2758,6 +2785,15 @@
       "type": 1,
       "id": 2323,
       "rarity": 0.5
+    },
+    {
+      "position": 17,
+      "name": "",
+      "type": 0,
+      "reward_type": 0,
+      "count": 10,
+      "field5": 0,
+      "id": 10003
     }
   ],
   "2252": [
@@ -3042,6 +3078,15 @@
       "type": 1,
       "id": 2335,
       "rarity": 0.5
+    },
+    {
+      "position": 17,
+      "name": "",
+      "type": 0,
+      "reward_type": 0,
+      "count": 10,
+      "field5": 0,
+      "id": 10003
     }
   ],
   "2255": [
@@ -3326,6 +3371,15 @@
       "type": 1,
       "id": 2347,
       "rarity": 0.5
+    },
+    {
+      "position": 17,
+      "name": "",
+      "type": 0,
+      "reward_type": 0,
+      "count": 10,
+      "field5": 0,
+      "id": 10003
     }
   ],
   "2258": [
@@ -3515,6 +3569,15 @@
       "type": 1,
       "id": 2350,
       "rarity": 1
+    },
+    {
+      "position": 14,
+      "name": "",
+      "type": 0,
+      "reward_type": 0,
+      "count": 10,
+      "field5": 0,
+      "id": 10003
     }
   ],
   "2717": [
@@ -4033,7 +4096,7 @@
       "reward_type": 0,
       "count": 4,
       "field5": 500,
-      "id": 999800
+      "id": 40236
     },
     {
       "position": 2,
@@ -4042,7 +4105,7 @@
       "reward_type": 0,
       "count": 3,
       "field5": 500,
-      "id": 999800
+      "id": 40236
     },
     {
       "position": 3,
@@ -4067,7 +4130,7 @@
       "reward_type": 0,
       "count": 6,
       "field5": 500,
-      "id": 999800
+      "id": 40236
     },
     {
       "position": 2,
@@ -4076,7 +4139,7 @@
       "reward_type": 0,
       "count": 4,
       "field5": 250,
-      "id": 999800
+      "id": 40236
     },
     {
       "position": 3,
@@ -4085,7 +4148,7 @@
       "reward_type": 0,
       "count": 1,
       "field5": 250,
-      "id": 999801
+      "id": 40237
     },
     {
       "position": 4,
@@ -4117,7 +4180,7 @@
       "reward_type": 0,
       "count": 18,
       "field5": 230,
-      "id": 999800
+      "id": 40236
     },
     {
       "position": 2,
@@ -4126,7 +4189,7 @@
       "reward_type": 0,
       "count": 15,
       "field5": 115,
-      "id": 999800
+      "id": 40236
     },
     {
       "position": 3,
@@ -4135,7 +4198,7 @@
       "reward_type": 0,
       "count": 3,
       "field5": 170,
-      "id": 999801
+      "id": 40237
     },
     {
       "position": 4,
@@ -4144,7 +4207,7 @@
       "reward_type": 0,
       "count": 2,
       "field5": 115,
-      "id": 999801
+      "id": 40237
     },
     {
       "position": 5,
@@ -4153,7 +4216,7 @@
       "reward_type": 0,
       "count": 1,
       "field5": 370,
-      "id": 999802
+      "id": 40238
     },
     {
       "position": 6,
@@ -4192,7 +4255,7 @@
       "reward_type": 0,
       "count": 24,
       "field5": 60,
-      "id": 999800
+      "id": 40236
     },
     {
       "position": 2,
@@ -4201,7 +4264,7 @@
       "reward_type": 0,
       "count": 22,
       "field5": 75,
-      "id": 999800
+      "id": 40236
     },
     {
       "position": 3,
@@ -4210,7 +4273,7 @@
       "reward_type": 0,
       "count": 20,
       "field5": 135,
-      "id": 999800
+      "id": 40236
     },
     {
       "position": 4,
@@ -4219,7 +4282,7 @@
       "reward_type": 0,
       "count": 18,
       "field5": 70,
-      "id": 999800
+      "id": 40236
     },
     {
       "position": 5,
@@ -4228,7 +4291,7 @@
       "reward_type": 0,
       "count": 5,
       "field5": 140,
-      "id": 999801
+      "id": 40237
     },
     {
       "position": 6,
@@ -4237,7 +4300,7 @@
       "reward_type": 0,
       "count": 4,
       "field5": 110,
-      "id": 999801
+      "id": 40237
     },
     {
       "position": 7,
@@ -4246,7 +4309,7 @@
       "reward_type": 0,
       "count": 3,
       "field5": 115,
-      "id": 999801
+      "id": 40237
     },
     {
       "position": 8,
@@ -4255,7 +4318,7 @@
       "reward_type": 0,
       "count": 1,
       "field5": 295,
-      "id": 999802
+      "id": 40238
     },
     {
       "position": 9,
@@ -4294,7 +4357,7 @@
       "reward_type": 0,
       "count": 4,
       "field5": 500,
-      "id": 999805
+      "id": 40239
     },
     {
       "position": 2,
@@ -4303,7 +4366,7 @@
       "reward_type": 0,
       "count": 3,
       "field5": 500,
-      "id": 999805
+      "id": 40239
     },
     {
       "position": 3,
@@ -4328,7 +4391,7 @@
       "reward_type": 0,
       "count": 6,
       "field5": 500,
-      "id": 999805
+      "id": 40239
     },
     {
       "position": 2,
@@ -4337,7 +4400,7 @@
       "reward_type": 0,
       "count": 4,
       "field5": 250,
-      "id": 999805
+      "id": 40239
     },
     {
       "position": 3,
@@ -4346,7 +4409,7 @@
       "reward_type": 0,
       "count": 1,
       "field5": 250,
-      "id": 999806
+      "id": 40240
     },
     {
       "position": 4,
@@ -4378,7 +4441,7 @@
       "reward_type": 0,
       "count": 18,
       "field5": 230,
-      "id": 999805
+      "id": 40239
     },
     {
       "position": 2,
@@ -4387,7 +4450,7 @@
       "reward_type": 0,
       "count": 15,
       "field5": 115,
-      "id": 999805
+      "id": 40239
     },
     {
       "position": 3,
@@ -4396,7 +4459,7 @@
       "reward_type": 0,
       "count": 3,
       "field5": 170,
-      "id": 999806
+      "id": 40240
     },
     {
       "position": 4,
@@ -4405,7 +4468,7 @@
       "reward_type": 0,
       "count": 2,
       "field5": 115,
-      "id": 999806
+      "id": 40240
     },
     {
       "position": 5,
@@ -4414,7 +4477,7 @@
       "reward_type": 0,
       "count": 1,
       "field5": 370,
-      "id": 999807
+      "id": 40241
     },
     {
       "position": 6,
@@ -4453,7 +4516,7 @@
       "reward_type": 0,
       "count": 24,
       "field5": 60,
-      "id": 999805
+      "id": 40239
     },
     {
       "position": 2,
@@ -4462,7 +4525,7 @@
       "reward_type": 0,
       "count": 22,
       "field5": 75,
-      "id": 999805
+      "id": 40239
     },
     {
       "position": 3,
@@ -4471,7 +4534,7 @@
       "reward_type": 0,
       "count": 20,
       "field5": 135,
-      "id": 999805
+      "id": 40239
     },
     {
       "position": 4,
@@ -4480,7 +4543,7 @@
       "reward_type": 0,
       "count": 18,
       "field5": 70,
-      "id": 999805
+      "id": 40239
     },
     {
       "position": 5,
@@ -4489,7 +4552,7 @@
       "reward_type": 0,
       "count": 5,
       "field5": 140,
-      "id": 999806
+      "id": 40240
     },
     {
       "position": 6,
@@ -4498,7 +4561,7 @@
       "reward_type": 0,
       "count": 4,
       "field5": 110,
-      "id": 999806
+      "id": 40240
     },
     {
       "position": 7,
@@ -4507,7 +4570,7 @@
       "reward_type": 0,
       "count": 3,
       "field5": 115,
-      "id": 999806
+      "id": 40240
     },
     {
       "position": 8,
@@ -4516,7 +4579,7 @@
       "reward_type": 0,
       "count": 1,
       "field5": 295,
-      "id": 999807
+      "id": 40241
     },
     {
       "position": 9,
@@ -8571,7 +8634,7 @@
       "reward_type": 0,
       "count": 4,
       "field5": 500,
-      "id": 999803
+      "id": 40230
     },
     {
       "position": 2,
@@ -8580,7 +8643,7 @@
       "reward_type": 0,
       "count": 3,
       "field5": 500,
-      "id": 999803
+      "id": 40230
     },
     {
       "position": 3,
@@ -8605,7 +8668,7 @@
       "reward_type": 0,
       "count": 6,
       "field5": 500,
-      "id": 999803
+      "id": 40230
     },
     {
       "position": 2,
@@ -8614,7 +8677,7 @@
       "reward_type": 0,
       "count": 4,
       "field5": 250,
-      "id": 999803
+      "id": 40230
     },
     {
       "position": 3,
@@ -8623,7 +8686,7 @@
       "reward_type": 0,
       "count": 1,
       "field5": 250,
-      "id": 999804
+      "id": 40231
     },
     {
       "position": 4,
@@ -8655,7 +8718,7 @@
       "reward_type": 0,
       "count": 14,
       "field5": 350,
-      "id": 999803
+      "id": 40230
     },
     {
       "position": 2,
@@ -8664,7 +8727,7 @@
       "reward_type": 0,
       "count": 10,
       "field5": 100,
-      "id": 999803
+      "id": 40230
     },
     {
       "position": 3,
@@ -8673,7 +8736,7 @@
       "reward_type": 0,
       "count": 2,
       "field5": 200,
-      "id": 999804
+      "id": 40231
     },
     {
       "position": 4,
@@ -8682,7 +8745,7 @@
       "reward_type": 0,
       "count": 1,
       "field5": 350,
-      "id": 999804
+      "id": 40231
     },
     {
       "position": 5,
@@ -8714,7 +8777,7 @@
       "reward_type": 0,
       "count": 5,
       "field5": 500,
-      "id": 999803
+      "id": 40230
     },
     {
       "position": 2,
@@ -8723,7 +8786,7 @@
       "reward_type": 0,
       "count": 4,
       "field5": 500,
-      "id": 999804
+      "id": 40231
     },
     {
       "position": 3,
@@ -47400,30 +47463,12 @@
       "name": "",
       "type": 0,
       "reward_type": 0,
-      "count": 4,
-      "field5": 50,
-      "id": 2370005
+      "count": 1,
+      "field5": 0,
+      "id": 40402
     },
     {
       "position": 2,
-      "name": "",
-      "type": 0,
-      "reward_type": 0,
-      "count": 5,
-      "field5": 150,
-      "id": 2370005
-    },
-    {
-      "position": 3,
-      "name": "",
-      "type": 0,
-      "reward_type": 0,
-      "count": 6,
-      "field5": 50,
-      "id": 2370005
-    },
-    {
-      "position": 4,
       "name": "",
       "type": 1,
       "id": 700010,
@@ -47436,39 +47481,12 @@
       "name": "",
       "type": 0,
       "reward_type": 0,
-      "count": 9,
-      "field5": 150,
-      "id": 2370005
+      "count": 1,
+      "field5": 0,
+      "id": 40403
     },
     {
       "position": 2,
-      "name": "",
-      "type": 0,
-      "reward_type": 0,
-      "count": 10,
-      "field5": 150,
-      "id": 2370005
-    },
-    {
-      "position": 3,
-      "name": "",
-      "type": 0,
-      "reward_type": 0,
-      "count": 11,
-      "field5": 50,
-      "id": 2370005
-    },
-    {
-      "position": 4,
-      "name": "",
-      "type": 0,
-      "reward_type": 0,
-      "count": 12,
-      "field5": 50,
-      "id": 2370005
-    },
-    {
-      "position": 5,
       "name": "",
       "type": 1,
       "id": 700011,
@@ -47481,30 +47499,12 @@
       "name": "",
       "type": 0,
       "reward_type": 0,
-      "count": 15,
-      "field5": 75,
-      "id": 2370005
+      "count": 1,
+      "field5": 0,
+      "id": 40404
     },
     {
       "position": 2,
-      "name": "",
-      "type": 0,
-      "reward_type": 0,
-      "count": 20,
-      "field5": 260,
-      "id": 2370005
-    },
-    {
-      "position": 3,
-      "name": "",
-      "type": 0,
-      "reward_type": 0,
-      "count": 25,
-      "field5": 75,
-      "id": 2370005
-    },
-    {
-      "position": 4,
       "name": "",
       "type": 1,
       "id": 700012,
@@ -47517,30 +47517,12 @@
       "name": "",
       "type": 0,
       "reward_type": 0,
-      "count": 4,
-      "field5": 50,
-      "id": 2370006
+      "count": 1,
+      "field5": 0,
+      "id": 40401
     },
     {
       "position": 2,
-      "name": "",
-      "type": 0,
-      "reward_type": 0,
-      "count": 5,
-      "field5": 150,
-      "id": 2370006
-    },
-    {
-      "position": 3,
-      "name": "",
-      "type": 0,
-      "reward_type": 0,
-      "count": 6,
-      "field5": 50,
-      "id": 2370006
-    },
-    {
-      "position": 4,
       "name": "",
       "type": 1,
       "id": 700013,
@@ -47553,39 +47535,12 @@
       "name": "",
       "type": 0,
       "reward_type": 0,
-      "count": 9,
-      "field5": 150,
-      "id": 2370006
+      "count": 1,
+      "field5": 0,
+      "id": 40406
     },
     {
       "position": 2,
-      "name": "",
-      "type": 0,
-      "reward_type": 0,
-      "count": 10,
-      "field5": 150,
-      "id": 2370006
-    },
-    {
-      "position": 3,
-      "name": "",
-      "type": 0,
-      "reward_type": 0,
-      "count": 11,
-      "field5": 50,
-      "id": 2370006
-    },
-    {
-      "position": 4,
-      "name": "",
-      "type": 0,
-      "reward_type": 0,
-      "count": 12,
-      "field5": 50,
-      "id": 2370006
-    },
-    {
-      "position": 5,
       "name": "",
       "type": 1,
       "id": 700014,
@@ -47598,30 +47553,12 @@
       "name": "",
       "type": 0,
       "reward_type": 0,
-      "count": 15,
-      "field5": 75,
-      "id": 2370006
+      "count": 1,
+      "field5": 0,
+      "id": 40405
     },
     {
       "position": 2,
-      "name": "",
-      "type": 0,
-      "reward_type": 0,
-      "count": 20,
-      "field5": 260,
-      "id": 2370006
-    },
-    {
-      "position": 3,
-      "name": "",
-      "type": 0,
-      "reward_type": 0,
-      "count": 25,
-      "field5": 75,
-      "id": 2370006
-    },
-    {
-      "position": 4,
       "name": "",
       "type": 1,
       "id": 700015,
@@ -79098,6 +79035,23 @@
       "type": 1,
       "id": 11001130,
       "rarity": 0.08
+    },
+    {
+      "position": 11,
+      "name": "phenomena_hell_omni_gear",
+      "type": 0,
+      "reward_type": 0,
+      "count": 1,
+      "field5": 0,
+      "id": 10000095,
+      "ignore_drop_multiplier": true
+    },
+    {
+      "position": 12,
+      "name": "phenomena_hell_fusion_core",
+      "type": 1,
+      "id": 3002,
+      "rarity": 0.1
     }
   ],
   "12000941": [

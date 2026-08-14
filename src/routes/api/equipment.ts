@@ -3,22 +3,21 @@
 
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import {
-    getPlayerEquipmentSync, playerOwnsEquipmentSync, updatePlayerEquipmentSync,
+    getPlayerEquipmentListSync, getPlayerEquipmentSync, playerOwnsEquipmentSync, updatePlayerEquipmentSync,
 } from "../../data/domains/equipment";
 import {
     getPlayerItemSync, givePlayerItemSync, updatePlayerItemSync,
 } from "../../data/domains/item";
 import { getPlayerSync } from "../../data/domains/player";
 import { getSession } from "../../data/domains/session";
-import { generateDataHeaders } from "../../utils";
+import { generateDataHeaders, getServerTime } from "../../utils";
 import { clientSerializeEquipment, buildFullEquipmentList } from "../../lib/equipment";
 import { getEquipmentDissolveSync, getConfigSync, getEquipmentCraftSync } from "../../lib/assets";
 import { AccountId, PlayerId } from "../../lib/types";
 import { resolvePlayerIdSync } from "../../data/activeAccount";
-import { getDb } from "../../data/db";
-import { canUseEquipmentAwakeningCrystal } from "../../lib/equipment-upgrade";
-import { getMailArrivedSync } from "../../lib/mail-notification";
-import { recordDegreeOperationFactsSync } from "../../lib/mission/degree-operation-facts";
+import { addMissionCounterSync, setMissionCounterMaxSync } from "../../lib/mission/counters";
+import { getDegreeMissionIdsForConditionTypes, mergeMissionSettlementResponse, settleMissionCategories } from "../../lib/mission";
+import { gameVerboseLog } from "../../lib/game-logging";
 
 interface SetProtectionBody {
     protection: boolean
@@ -47,6 +46,39 @@ const wrightpieceItemId = () => getConfigSync().craft_point_item_id || 100000
 // wrightpiece cost for each rank of weapon (awakening) — from CDN
 const getUpgradeCost = (rarity: number): number => getEquipmentCraftSync(rarity)?.awakening_craft ?? 25
 
+function recordEquipmentAwakeningProgress(playerId: number, upgradeCount: number): void {
+    addMissionCounterSync(playerId, {
+        dimension: "equipment.awakening",
+        scopeType: "lifetime",
+        scopeKey: "all",
+        qualifier: {},
+    }, upgradeCount)
+    const levelFiveCount = Object.values(getPlayerEquipmentListSync(playerId))
+        .filter(equipment => equipment.level >= 5)
+        .length
+    setMissionCounterMaxSync(playerId, {
+        dimension: "equipment.lv5_count",
+        scopeType: "lifetime",
+        scopeKey: "all",
+        qualifier: {},
+    }, levelFiveCount)
+}
+
+function mergeEquipmentDegreeSettlement(
+    responseData: Record<string, unknown>,
+    playerId: number,
+    viewerId: number,
+): void {
+    mergeMissionSettlementResponse(
+        responseData,
+        settleMissionCategories(playerId, [{
+            category: 5,
+            missionIds: getDegreeMissionIdsForConditionTypes([34, 36]),
+        }], new Date(getServerTime() * 1000)),
+        viewerId,
+    )
+}
+
 const routes = async (fastify: FastifyInstance) => {
 
     // ── upgrade (single equipment awakening) ───────────────────────────
@@ -54,12 +86,11 @@ const routes = async (fastify: FastifyInstance) => {
         const body = request.body as UpgradeBody
 
         const viewerId = body.viewer_id
-        const upgradeCount = body.upgrade_count
+        const upgradeCount = Math.max(1, body.upgrade_count ?? 1)
         const useStack = body.use_stack
         const itemId = body.item_id
         const equipmentId = body.equipment_id
-        if (isNaN(viewerId) || isNaN(equipmentId) || typeof useStack !== "boolean"
-            || !Number.isInteger(upgradeCount) || upgradeCount <= 0) {
+        if (isNaN(viewerId) || isNaN(equipmentId) || useStack === undefined) {
             return reply.status(400).send({ "error": "Bad Request", "message": "Invalid request body." })
         }
 
@@ -82,9 +113,6 @@ const routes = async (fastify: FastifyInstance) => {
         if (newStack < 0) return reply.status(400).send({ "error": "Bad Request", "message": "Not enough stack." })
 
         const equipmentRarity = Math.floor(equipmentId / 1000000)  // 1-indexed
-        if (!useStack && (itemId === undefined || !canUseEquipmentAwakeningCrystal(itemId, equipmentRarity))) {
-            return reply.status(400).send({ "error": "Bad Request", "message": "Invalid awakening material for equipment rarity." })
-        }
         const wrightPieces = getPlayerItemSync(playerId, wrightpieceItemId()) ?? 0
         const upgradeCost = getUpgradeCost(equipmentRarity)
         const newWrightPieces = wrightPieces - (upgradeCost * upgradeCount)
@@ -96,38 +124,39 @@ const routes = async (fastify: FastifyInstance) => {
 
         const returnItemList: Record<string, number> = {}
 
-        const dissolveInfo = getEquipmentDissolveSync(equipmentId)
-        getDb().transaction(() => {
-            if (!useStack && itemId !== undefined) {
-                returnItemList[itemId] = newItemCount
-                updatePlayerItemSync(playerId, itemId, newItemCount)
-            }
+        if (!useStack && itemId !== undefined) {
+            returnItemList[itemId] = newItemCount
+            updatePlayerItemSync(playerId, itemId, newItemCount)
+        }
 
-            returnItemList[wrightpieceItemId()] = newWrightPieces
-            updatePlayerItemSync(playerId, wrightpieceItemId(), newWrightPieces)
-            updatePlayerEquipmentSync(playerId, equipmentId, { stack: newStack, level: newLevel })
-            recordDegreeOperationFactsSync(playerId, "equipment_upgrade", upgradeCount)
-
-            if (dissolveInfo && dissolveInfo.generate_ability_soul) {
-                returnItemList[dissolveInfo.ability_soul_id] = givePlayerItemSync(playerId, dissolveInfo.ability_soul_id, upgradeCount)
-            }
-        })()
+        returnItemList[wrightpieceItemId()] = newWrightPieces
+        updatePlayerItemSync(playerId, wrightpieceItemId(), newWrightPieces)
 
         equipment.level = newLevel
         equipment.stack = newStack
+        updatePlayerEquipmentSync(playerId, equipmentId, { stack: newStack, level: newLevel })
+        recordEquipmentAwakeningProgress(playerId, upgradeCount)
+
+        // give ability cores (CDN check: only if generate_ability_soul)
+        const dissolveInfo = getEquipmentDissolveSync(equipmentId)
+        if (dissolveInfo && dissolveInfo.generate_ability_soul) {
+            returnItemList[dissolveInfo.ability_soul_id] = givePlayerItemSync(playerId, dissolveInfo.ability_soul_id, upgradeCount)
+        }
 
         const returnEquipmentList = buildFullEquipmentList(playerId)
 
-        console.log(`[UPGRADE] account=${accountId} player=${playerId}: eid=${equipmentId} rarity=${equipmentRarity} level ${equipment.level-upgradeCount}->${equipment.level} stack ${equipment.stack+upgradeCount}->${equipment.stack} craft -${upgradeCost*upgradeCount}`)
+        gameVerboseLog(() => `[UPGRADE] account=${accountId} player=${playerId}: eid=${equipmentId} rarity=${equipmentRarity} level ${equipment.level-upgradeCount}->${equipment.level} stack ${equipment.stack+upgradeCount}->${equipment.stack} craft -${upgradeCost*upgradeCount}`)
 
         reply.header("content-type", "application/x-msgpack")
+        const responseData: Record<string, unknown> = {
+            "equipment_list": returnEquipmentList,
+            "item_list": returnItemList,
+            "mail_arrived": false
+        }
+        mergeEquipmentDegreeSettlement(responseData, playerId, viewerId)
         return reply.status(200).send({
             "data_headers": generateDataHeaders({ viewer_id: viewerId }),
-            "data": {
-                "equipment_list": returnEquipmentList,
-                "item_list": returnItemList,
-                "mail_arrived": getMailArrivedSync(playerId)
-            }
+            "data": responseData
         })
     })
 
@@ -174,7 +203,7 @@ const routes = async (fastify: FastifyInstance) => {
             reply.header("content-type", "application/x-msgpack")
             return reply.status(200).send({
                 "data_headers": generateDataHeaders({ viewer_id: viewerId }),
-                "data": { "equipment_list": [], "item_list": {}, "mail_arrived": getMailArrivedSync(playerId) }
+                "data": { "equipment_list": [], "item_list": {}, "mail_arrived": false }
             })
         }
 
@@ -185,35 +214,39 @@ const routes = async (fastify: FastifyInstance) => {
 
         const returnItemList: Record<number, number> = {}
 
-        const newCraftPoints = currentCraftPoints - totalCraftPointCost
-        getDb().transaction(() => {
-            for (const { equipmentId, upgradeCount } of upgrades) {
-                const equipment = getPlayerEquipmentSync(playerId, equipmentId)!
-                equipment.level += upgradeCount
-                equipment.stack -= upgradeCount
-                updatePlayerEquipmentSync(playerId, equipmentId, { level: equipment.level, stack: equipment.stack })
-                const dissolveInfo = getEquipmentDissolveSync(equipmentId)
-                if (dissolveInfo && dissolveInfo.generate_ability_soul) {
-                    returnItemList[dissolveInfo.ability_soul_id] = givePlayerItemSync(playerId, dissolveInfo.ability_soul_id, upgradeCount)
-                }
+        for (const { equipmentId, upgradeCount } of upgrades) {
+            const equipment = getPlayerEquipmentSync(playerId, equipmentId)!
+            equipment.level += upgradeCount
+            equipment.stack -= upgradeCount
+            updatePlayerEquipmentSync(playerId, equipmentId, { level: equipment.level, stack: equipment.stack })
+            const dissolveInfo = getEquipmentDissolveSync(equipmentId)
+            if (dissolveInfo && dissolveInfo.generate_ability_soul) {
+                returnItemList[dissolveInfo.ability_soul_id] = givePlayerItemSync(playerId, dissolveInfo.ability_soul_id, upgradeCount)
             }
-            updatePlayerItemSync(playerId, wrightpieceItemId(), newCraftPoints)
-            recordDegreeOperationFactsSync(
-                playerId,
-                "equipment_upgrade",
-                upgrades.reduce((total, entry) => total + entry.upgradeCount, 0),
-            )
-        })()
+        }
+        recordEquipmentAwakeningProgress(
+            playerId,
+            upgrades.reduce((total, upgrade) => total + upgrade.upgradeCount, 0),
+        )
+
+        const newCraftPoints = currentCraftPoints - totalCraftPointCost
+        updatePlayerItemSync(playerId, wrightpieceItemId(), newCraftPoints)
         returnItemList[wrightpieceItemId()] = newCraftPoints
 
-        console.log(`[BULK_UPGRADE] account=${accountId} player=${playerId}: ${upgrades.length} equipment upgraded, craft points ${currentCraftPoints} -> ${newCraftPoints}`)
+        gameVerboseLog(() => `[BULK_UPGRADE] account=${accountId} player=${playerId}: ${upgrades.length} equipment upgraded, craft points ${currentCraftPoints} -> ${newCraftPoints}`)
 
         const returnEquipmentList = buildFullEquipmentList(playerId)
 
         reply.header("content-type", "application/x-msgpack")
+        const responseData: Record<string, unknown> = {
+            "equipment_list": returnEquipmentList,
+            "item_list": returnItemList,
+            "mail_arrived": false,
+        }
+        mergeEquipmentDegreeSettlement(responseData, playerId, viewerId)
         return reply.status(200).send({
             "data_headers": generateDataHeaders({ viewer_id: viewerId }),
-            "data": { "equipment_list": returnEquipmentList, "item_list": returnItemList, "mail_arrived": getMailArrivedSync(playerId) }
+            "data": responseData
         })
     })
 
@@ -234,18 +267,16 @@ const routes = async (fastify: FastifyInstance) => {
         if (!player) return reply.status(500).send({ "error": "Internal Server Error", "message": "No players bound to account." })
 
         const newProtection = body.protection
-        getDb().transaction(() => {
-            for (const equipmentId of body.equipment_ids) {
-                if (playerOwnsEquipmentSync(playerId, equipmentId)) {
-                    updatePlayerEquipmentSync(playerId, equipmentId, { protection: newProtection })
-                }
+        for (const equipmentId of body.equipment_ids) {
+            if (playerOwnsEquipmentSync(playerId, equipmentId)) {
+                updatePlayerEquipmentSync(playerId, equipmentId, { protection: newProtection })
             }
-        })()
+        }
 
         reply.header("content-type", "application/x-msgpack")
         return reply.status(200).send({
             "data_headers": generateDataHeaders({ viewer_id: viewerId }),
-            "data": { "mail_arrived": getMailArrivedSync(playerId) }
+            "data": {}
         })
     })
 }

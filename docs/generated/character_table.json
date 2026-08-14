@@ -711,6 +711,15 @@
     "race": "Human"
   },
   {
+    "id": 129999,
+    "name": "赛瑞斯",
+    "title": "苍海龙王的敕令",
+    "rarity": "5★",
+    "element": "水",
+    "gender": "女性",
+    "race": "Dragon"
+  },
+  {
     "id": 131001,
     "name": "稻穗",
     "title": "九尾天雷妖兽姬",
@@ -1042,6 +1051,15 @@
     "element": "雷",
     "gender": "不明",
     "race": "Human,Element"
+  },
+  {
+    "id": 139999,
+    "name": "史黛拉（夏日）",
+    "title": "布的面积",
+    "rarity": "5★",
+    "element": "光",
+    "gender": "不明",
+    "race": "Human,Dragon"
   },
   {
     "id": 141001,
@@ -1393,6 +1411,24 @@
     "element": "风",
     "gender": "不明",
     "race": "Human"
+  },
+  {
+    "id": 149998,
+    "name": "风巨蜥",
+    "title": "荒岚霸主＋",
+    "rarity": "5★",
+    "element": "风",
+    "gender": "不明",
+    "race": "Dragon"
+  },
+  {
+    "id": 149999,
+    "name": "杰拉德",
+    "title": "月耀守护",
+    "rarity": "5★",
+    "element": "光",
+    "gender": "不明",
+    "race": "Human,Beast"
   },
   {
     "id": 151001,
@@ -2122,6 +2158,33 @@
     "element": "暗",
     "gender": "不明",
     "race": "Human"
+  },
+  {
+    "id": 169998,
+    "name": "拉芙",
+    "title": "绯樱·夜宴序曲",
+    "rarity": "5★",
+    "element": "暗",
+    "gender": "女性",
+    "race": "Human,Machine"
+  },
+  {
+    "id": 169999,
+    "name": "基诺维",
+    "title": "破契的黑翼",
+    "rarity": "5★",
+    "element": "暗",
+    "gender": "男性",
+    "race": "Human,Beast"
+  },
+  {
+    "id": 179999,
+    "name": "罗尔夫",
+    "title": "不灭炉心",
+    "rarity": "5★",
+    "element": "火",
+    "gender": "不明",
+    "race": "Human,Beast"
   },
   {
     "id": 211001,

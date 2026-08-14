@@ -5,9 +5,28 @@ import awakeRewards from "../../../assets/mission_char_awake_reward.json";
 
 function parseDecimalSafeInteger(value: unknown): number | null {
     if (typeof value !== "string" || !/^[0-9]+$/.test(value)) return null
-
     const parsed = Number(value)
     return Number.isSafeInteger(parsed) ? parsed : null
+}
+
+const CORRUPTED_TREASURE_SHOP_ITEM_ID_MIN = 200070
+const CORRUPTED_TREASURE_SHOP_ITEM_ID_MAX = 200108
+
+export function resetCorruptedTreasureShopPurchases(database: Database): number {
+    const tableExists = database.prepare(`
+        SELECT 1
+        FROM sqlite_master
+        WHERE type = 'table' AND name = 'players_shop_purchases'
+    `).get()
+    if (!tableExists) return 0
+
+    return database.prepare(`
+        DELETE FROM players_shop_purchases
+        WHERE shop_item_id BETWEEN ? AND ?
+    `).run(
+        CORRUPTED_TREASURE_SHOP_ITEM_ID_MIN,
+        CORRUPTED_TREASURE_SHOP_ITEM_ID_MAX
+    ).changes
 }
 
 /**
@@ -61,17 +80,47 @@ export function updateAfterInit(
             "SELECT name FROM sqlite_master WHERE type='table' AND name='players_party_groups_old'"
         ).get();
         if (oldTableExists) {
-            database.prepare(`
-            INSERT INTO players_party_groups
-            SELECT *, 1 FROM players_party_groups_old
-            `).run()
+            const oldGroupColumns = database.prepare(
+                `PRAGMA table_info(players_party_groups_old)`
+            ).all() as Array<{ name: string }>
+            const oldPartyColumns = database.prepare(
+                `PRAGMA table_info(players_parties_old)`
+            ).all() as Array<{ name: string }>
+            const groupHasCategory = oldGroupColumns.some(column => column.name === "category")
+            const partyHasCategory = oldPartyColumns.some(column => column.name === "category")
 
-            database.prepare(`
-            INSERT INTO players_parties
-            SELECT *, 1 FROM players_parties_old
-            `).run()
-            database.prepare(`DELETE FROM players_parties_old`).run()
-            database.prepare(`DELETE FROM players_party_groups_old`).run()
+            database.transaction(() => {
+                database.prepare(groupHasCategory ? `
+                    INSERT INTO players_party_groups (id, color_id, player_id, category)
+                    SELECT id, color_id, player_id, category
+                    FROM players_party_groups_old
+                ` : `
+                    INSERT INTO players_party_groups (id, color_id, player_id, category)
+                    SELECT id, color_id, player_id, 1
+                    FROM players_party_groups_old
+                `).run()
+
+                const partyColumns = `
+                    slot, name,
+                    character_id_1, character_id_2, character_id_3,
+                    unison_character_1, unison_character_2, unison_character_3,
+                    equipment_1, equipment_2, equipment_3,
+                    ability_soul_1, ability_soul_2, ability_soul_3,
+                    edited, current_battle_power, before_battle_power,
+                    player_id, group_id
+                `
+                database.prepare(partyHasCategory ? `
+                    INSERT INTO players_parties (${partyColumns}, category)
+                    SELECT ${partyColumns}, category
+                    FROM players_parties_old
+                ` : `
+                    INSERT INTO players_parties (${partyColumns}, category)
+                    SELECT ${partyColumns}, 1
+                    FROM players_parties_old
+                `).run()
+                database.prepare(`DROP TABLE players_parties_old`).run()
+                database.prepare(`DROP TABLE players_party_groups_old`).run()
+            })()
         }
     }
 
@@ -246,5 +295,18 @@ export function updateAfterInit(
                     WHERE player_id = players_periodic_snapshots.player_id
                 ), 0)
         `).run()
+    }
+
+    if (7 >= currentVersion) {
+        // update to version 8
+        // These currently active treasure-shop rows were previously imported
+        // with placeholder rewards/prices. Their successful-looking purchases
+        // granted the wrong contents while still consuming lifetime stock.
+        const resetCount = database.transaction(() =>
+            resetCorruptedTreasureShopPurchases(database)
+        )()
+        console.log(
+            `[DB] reset ${resetCount} corrupted treasure-shop purchase records`
+        )
     }
 }

@@ -1,47 +1,28 @@
 import { RushEventBattleType } from "../../../data/types"
 import { QuestCategory } from "../../types"
-
-export interface RaidBossState {
-    readonly weightedKillCount: number
-    readonly totalKillCount: number
-}
+import {
+    getRaidEventGlobalBossSync,
+    getRaidEventQuestKillCountSync,
+    recordRaidEventClearSync,
+} from "../../raidEventGlobal"
 
 export interface RaidEventFinishData {
     auto_start_point: number
     is_out_of_period: boolean
-    quest_boss: { kill_count: number }
-    raid_boss: { hp_percentage: number, total_kill_count: number }
-}
-
-export function advanceRaidBossState(
-    state: RaidBossState,
-    killCountWeight: number,
-    requiredKillCount: number,
-): RaidBossState {
-    if (!Number.isSafeInteger(state.weightedKillCount) || state.weightedKillCount < 0
-        || !Number.isSafeInteger(state.totalKillCount) || state.totalKillCount < 0
-        || !Number.isSafeInteger(killCountWeight) || killCountWeight <= 0
-        || !Number.isSafeInteger(requiredKillCount) || requiredKillCount <= 0) {
-        throw new Error("invalid raid boss progress")
+    quest_boss: {
+        kill_count: number
     }
-    const weightedKillCount = state.weightedKillCount + killCountWeight
-    return weightedKillCount >= requiredKillCount
-        ? { weightedKillCount: 0, totalKillCount: state.totalKillCount + 1 }
-        : { weightedKillCount, totalKillCount: state.totalKillCount }
-}
-
-export function getRaidBossHpPercentage(state: RaidBossState, requiredKillCount: number): number {
-    if (!Number.isSafeInteger(requiredKillCount) || requiredKillCount <= 0) {
-        throw new Error("invalid raid boss required kill count")
+    raid_boss: {
+        hp_percentage: number
+        total_kill_count: number
     }
-    return Math.ceil((1 - state.weightedKillCount / requiredKillCount) * 1000) / 10
 }
 
 export function handleRaidEventFinish(params: {
     questCategory: number
     questAccomplished: boolean
     activeEventId: number | undefined
-    killCountWeight?: number
+    playId: string
     party: { characters: ({ id: number | null } | null)[], unison_characters: ({ id: number | null } | null)[], equipments: ({ id: number | null } | null)[], ability_soul_ids: (number | null)[] }
     playerId: number
     questId: number
@@ -56,18 +37,20 @@ export function handleRaidEventFinish(params: {
         battleType: RushEventBattleType
         round: number
     }) => void
-    getRequiredKillCountFn: (eventId: number) => number | undefined
-    getRaidBossStateFn: (eventId: number) => RaidBossState | null
-    updateRaidBossStateFn: (eventId: number, state: RaidBossState) => void
-    incrementQuestKillCountFn: (playerId: number, eventId: number, questId: number) => number
 }): RaidEventFinishData | null {
     const {
-        questCategory, questAccomplished, activeEventId, killCountWeight, party, playerId, questId,
-        getEvoLevelsFn, insertPartyFn, getRequiredKillCountFn, getRaidBossStateFn,
-        updateRaidBossStateFn, incrementQuestKillCountFn,
+        questCategory,
+        questAccomplished,
+        activeEventId,
+        playId,
+        party,
+        playerId,
+        questId,
+        getEvoLevelsFn,
+        insertPartyFn,
     } = params
 
-    if (questCategory !== QuestCategory.RAID_EVENT || !questAccomplished || activeEventId === undefined) return null
+    if (questCategory !== QuestCategory.RAID_EVENT || !activeEventId) return null
 
     const characterIds = party.characters.map(val => val?.id ?? null)
     const unisonCharacterIds = party.unison_characters.map(val => val?.id ?? null)
@@ -84,28 +67,34 @@ export function handleRaidEventFinish(params: {
         round: questId
     })
 
-    const requiredKillCount = getRequiredKillCountFn(activeEventId)
-    if (requiredKillCount === undefined) throw new Error(`raid event ${activeEventId} has no required kill count`)
-    if (typeof killCountWeight !== "number"
-        || !Number.isSafeInteger(killCountWeight)
-        || killCountWeight <= 0) {
-        throw new Error(`invalid raid quest kill count weight: ${String(killCountWeight)}`)
+    let boss = getRaidEventGlobalBossSync(activeEventId)
+    let questKillCount = getRaidEventQuestKillCountSync(activeEventId, questId)
+    if (questAccomplished) {
+        const result = recordRaidEventClearSync({
+            eventId: activeEventId,
+            playId,
+            playerId,
+            questId,
+        })
+        boss = result.boss
+        questKillCount = result.questKillCount
+        console.log(
+            `[RAID] clear: eventId=${activeEventId} questId=${questId} ` +
+            `playId=${playId} counted=${result.counted} weight=${result.questWeight} ` +
+            `weighted=${boss.weightedKillCount}/${boss.requiredKillCount} ` +
+            `hp=${boss.hpPercentage} total=${boss.totalKillCount}`,
+        )
     }
-    const nextState = advanceRaidBossState(
-        getRaidBossStateFn(activeEventId) ?? { weightedKillCount: 0, totalKillCount: 0 },
-        killCountWeight,
-        requiredKillCount,
-    )
-    updateRaidBossStateFn(activeEventId, nextState)
-    const questKillCount = incrementQuestKillCountFn(playerId, activeEventId, questId)
 
     return {
         auto_start_point: 0,
         is_out_of_period: false,
-        quest_boss: { kill_count: questKillCount },
+        quest_boss: {
+            kill_count: questKillCount,
+        },
         raid_boss: {
-            hp_percentage: getRaidBossHpPercentage(nextState, requiredKillCount),
-            total_kill_count: nextState.totalKillCount,
+            hp_percentage: boss.hpPercentage,
+            total_kill_count: boss.totalKillCount,
         },
     }
 }

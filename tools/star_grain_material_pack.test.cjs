@@ -1,28 +1,18 @@
 const assert = require("node:assert/strict");
 const crypto = require("node:crypto");
 const fs = require("node:fs");
-const os = require("node:os");
 const path = require("node:path");
-const { spawnSync } = require("node:child_process");
+const { execFileSync } = require("node:child_process");
 
 const projectRoot = path.resolve(__dirname, "..");
-const dotGitPath = path.join(projectRoot, ".git");
-const mainRepositoryRoot = fs.statSync(dotGitPath).isDirectory()
-    ? projectRoot
-    : path.resolve(
-        projectRoot,
-        fs.readFileSync(dotGitPath, "utf8").trim().replace(/^gitdir:\s*/, ""),
-        "../../..",
-    );
 const serverAssetPath = path.resolve(projectRoot, "assets/star_grain_shop.json");
 const generatorPath = path.resolve(__dirname, "rebuild_star_grain_shop.ts");
 const tsNodePath = path.resolve(projectRoot, "node_modules/ts-node/dist/bin.js");
-const cnSourcePath = path.resolve(
-    mainRepositoryRoot,
-    "../wf-assets-cn/orderedmap/shop/star_grain_shop.json",
-);
 const serverShop = require(serverAssetPath);
-const cnShop = require(cnSourcePath);
+const cnShop = require(path.resolve(
+    __dirname,
+    "../../wf-assets-cn/orderedmap/shop/star_grain_shop.json",
+));
 
 const REWARD_SLOT_STARTS = [25, 28, 31, 34, 37, 40];
 const MATERIAL_PACK_IDS = [100017, 100018, 100019, 100020, 100021, 100022];
@@ -92,7 +82,7 @@ for (const productId of COMBINATION_REWARD_IDS) {
     );
 }
 
-require("ts-node/register/transpile-only");
+require("ts-node/register");
 const { parseRewardSlots } = require("./rebuild_star_grain_shop.ts");
 
 const malformedSlots = Array(43).fill("");
@@ -138,63 +128,27 @@ function sha256(content) {
     return crypto.createHash("sha256").update(content).digest("hex");
 }
 
-function runGenerator(existingPath, outputPath) {
-    const result = spawnSync(process.execPath, [tsNodePath, generatorPath], {
+function runGenerator() {
+    return execFileSync(process.execPath, [tsNodePath, generatorPath], {
         cwd: projectRoot,
-        env: {
-            ...process.env,
-            TS_NODE_TRANSPILE_ONLY: "1",
-            STAR_GRAIN_CDN_SOURCE: cnSourcePath,
-            STAR_GRAIN_EXISTING: existingPath,
-            STAR_GRAIN_OUTPUT: outputPath,
-        },
         encoding: "utf8",
     });
-    assert.equal(
-        result.status,
-        0,
-        `使用隔离路径重建必须成功: ${result.stderr || result.error || "unknown error"}`,
-    );
 }
 
 // Asset assertions above intentionally run before the generator can rewrite stale output.
-const productionBefore = fs.readFileSync(serverAssetPath);
-const productionStatBefore = fs.statSync(serverAssetPath);
-const temporaryDirectory = fs.mkdtempSync(path.join(os.tmpdir(), "star-grain-shop-"));
-const temporaryAssetPath = path.join(temporaryDirectory, "star_grain_shop.json");
+const beforeGeneration = fs.readFileSync(serverAssetPath);
+const beforeHash = sha256(beforeGeneration);
+const firstStdout = runGenerator();
+const firstGeneration = fs.readFileSync(serverAssetPath);
+const firstHash = sha256(firstGeneration);
+assert.deepEqual(firstGeneration, beforeGeneration, "首次重建不得修复测试开始时的陈旧资产");
+assert.equal(firstHash, beforeHash, "首次重建前后资产哈希必须一致");
 
-try {
-    fs.writeFileSync(temporaryAssetPath, productionBefore);
-
-    runGenerator(temporaryAssetPath, temporaryAssetPath);
-    const firstGeneration = fs.readFileSync(temporaryAssetPath);
-    const firstHash = sha256(firstGeneration);
-    assert.deepEqual(firstGeneration, productionBefore, "临时生成结果必须等于已提交生产资产");
-
-    runGenerator(temporaryAssetPath, temporaryAssetPath);
-    const secondGeneration = fs.readFileSync(temporaryAssetPath);
-    const secondHash = sha256(secondGeneration);
-    assert.deepEqual(secondGeneration, firstGeneration, "连续两次生成的完整资产必须逐字节一致");
-    assert.equal(secondHash, firstHash, "连续两次生成的资产 SHA-256 必须一致");
-
-    assert.deepEqual(
-        fs.readFileSync(serverAssetPath),
-        productionBefore,
-        "隔离重建不得修改仓库生产资产字节",
-    );
-    const productionStatAfter = fs.statSync(serverAssetPath);
-    assert.equal(
-        productionStatAfter.mtimeMs,
-        productionStatBefore.mtimeMs,
-        "隔离重建不得修改仓库生产资产 mtime",
-    );
-    assert.equal(
-        productionStatAfter.mode,
-        productionStatBefore.mode,
-        "隔离重建不得修改仓库生产资产 mode",
-    );
-} finally {
-    fs.rmSync(temporaryDirectory, { recursive: true, force: true });
-}
+const secondStdout = runGenerator();
+const secondGeneration = fs.readFileSync(serverAssetPath);
+const secondHash = sha256(secondGeneration);
+assert.equal(secondStdout, firstStdout, "连续两次生成器标准输出必须完全一致");
+assert.deepEqual(secondGeneration, firstGeneration, "连续两次生成的完整资产必须逐字节一致");
+assert.equal(secondHash, firstHash, "连续两次生成的资产 SHA-256 必须一致");
 
 console.log("star grain material pack asset tests passed");

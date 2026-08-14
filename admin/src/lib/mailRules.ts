@@ -21,6 +21,13 @@ const SINGLE_RULE: MailAttachmentRule = {
     reason: "角色 / 装备每封邮件只能发送 1 个",
 }
 
+const TITLE_RULE: MailAttachmentRule = {
+    min: 0,
+    max: 0,
+    label: "称号",
+    reason: "称号 ID 存放在附件 ID 中，数量固定为 0",
+}
+
 const ITEM_RULES: Array<{ test: (itemId: number) => boolean; rule: MailAttachmentRule }> = [
     {
         test: itemId => itemId >= 100 && itemId < 1000,
@@ -28,7 +35,7 @@ const ITEM_RULES: Array<{ test: (itemId: number) => boolean; rule: MailAttachmen
     },
     {
         test: itemId => itemId > 0 && itemId < 100000,
-        rule: { min: 1, max: 999, label: "素材", reason: "元素、结晶和升级素材按 999 封顶" },
+        rule: { min: 1, max: 9999, label: "素材", reason: "元素、结晶和升级素材按 9999 封顶" },
     },
     {
         test: itemId => itemId >= 100000 && itemId < 1000000,
@@ -41,6 +48,7 @@ const ITEM_RULES: Array<{ test: (itemId: number) => boolean; rule: MailAttachmen
 ]
 
 export function getMailAttachmentRule(mailType: number | undefined, typeId: number | null | undefined): MailAttachmentRule {
+    if (mailType === 13) return TITLE_RULE
     if (mailType === 5 || mailType === 6) return SINGLE_RULE
     if (mailType !== 1 || typeId == null) return DEFAULT_RULE
     return ITEM_RULES.find(({ test }) => test(typeId))?.rule ?? DEFAULT_RULE

@@ -1,9 +1,4 @@
 import { QuestCategory } from "../../types"
-import {
-    CarnivalRewardDefinition,
-    CarnivalRewardGrantResult,
-    getEligibleCarnivalRewards,
-} from "../../carnival-rewards"
 
 interface CarnivalEventData {
     is_record_valid: boolean
@@ -14,94 +9,70 @@ interface CarnivalEventData {
     score: { difficulty_bonus: number, time_bonus: number }
 }
 
-export interface CarnivalEventFinishResult {
-    carnivalEventData: CarnivalEventData
-    rewardResult: CarnivalRewardGrantResult
+interface CarnivalEventRecord {
+    folderId: number
+    bestScore: number | null
 }
-
-const emptyRewardResult = (): CarnivalRewardGrantResult => ({
-    user_info: { free_vmoney: 0, free_mana: 0, exp_pool: 0 },
-    item_list: {},
-    equipment_list: [],
-    new_degree_ids: [],
-})
 
 export function handleCarnivalEventFinish(params: {
     questCategory: number
     questAccomplished: boolean
     questId: number
-    questData: { eventId?: number, folderId?: number, difficultyScore?: number, timeLimitMs?: number }
+    battleScore: number
     clearTime: number
     party: { characters: ({ id: number | null } | null)[], unison_characters: ({ id: number | null } | null)[], leader?: { id: number | null } | null }
     playerId: number
-    getRecordsFn: (playerId: number, eventId: number) => { folderId: number, bestScore: number | null }[]
+    carnivalLookup: Record<string, { difficulty_score: number, time_limit_ms: number, folder_id: number, event_id: number }>
+    getRecordsFn: (playerId: number, eventId: number) => CarnivalEventRecord[]
     upsertFn: (playerId: number, eventId: number, folderId: number, score: number, chars: (number | null)[], unisons: (number | null)[]) => void
-    getRewardDefinitionsFn?: (eventId: number) => CarnivalRewardDefinition[]
-    getClaimedRewardIdsFn?: (playerId: number, eventId: number) => Set<number>
-    grantRewardsFn?: (playerId: number, definitions: CarnivalRewardDefinition[]) => CarnivalRewardGrantResult
-    claimRewardIdsFn?: (playerId: number, eventId: number, rewardIds: number[]) => void
-    transactionFn?: <T>(operation: () => T) => T
-}): CarnivalEventFinishResult | null {
-    const { questCategory, questAccomplished, questData, clearTime, party, playerId, getRecordsFn, upsertFn } = params
+}): CarnivalEventData | null {
+    const { questCategory, questAccomplished, questId, battleScore, clearTime, party, playerId, carnivalLookup, getRecordsFn, upsertFn } = params
 
     if (questCategory !== QuestCategory.CARNIVAL_EVENT || !questAccomplished) return null
 
-    const { eventId, folderId, difficultyScore, timeLimitMs } = questData
-    if (eventId === undefined || folderId === undefined || difficultyScore === undefined || timeLimitMs === undefined) return null
+    const carnivalInfo = carnivalLookup[String(questId)]
+    if (!carnivalInfo) return null
 
-    const transactionFn = params.transactionFn ?? (operation => operation())
-    return transactionFn(() => {
-        const characterIds = party.characters.map(v => v?.id ?? null)
-        const unisonCharacterIds = party.unison_characters.map(v => v?.id ?? null)
-        const leaderCharId = party.leader?.id ?? party.characters[0]?.id ?? 0
-        const records = getRecordsFn(playerId, eventId)
-        const previousTotalBestScore = records.reduce(
-            (sum, record) => sum + (record.bestScore ?? 0),
-            0,
-        )
-        const previousFolderBestScore = records.find(record => record.folderId === folderId)?.bestScore ?? 0
-        const difficultyBonus = difficultyScore
-        const timeBonus = Math.max(0, timeLimitMs - Math.round(clearTime))
-        const totalScore = difficultyBonus + timeBonus
-        const totalBestScore = previousTotalBestScore
-            - previousFolderBestScore
-            + Math.max(previousFolderBestScore, totalScore)
+    const characterIds = party.characters.map(v => v?.id ?? null)
+    const unisonCharacterIds = party.unison_characters.map(v => v?.id ?? null)
+    // Some clients omit party.leader from the finish payload. The result
+    // dialog still requires a valid character id, so fall back to the first
+    // main character instead of returning the invalid master-data key 0.
+    const leaderCharId = party.leader?.id ?? characterIds.find(id => id !== null) ?? 0
 
-        upsertFn(playerId, eventId, folderId, totalScore, characterIds, unisonCharacterIds)
+    const difficultyBonus = carnivalInfo.difficulty_score * 100
+    const timeBonus = Math.max(0, carnivalInfo.time_limit_ms - clearTime)
+    // body.score is the main battle score shown by the result screen.  The
+    // server previously stored only the two bonuses, which is why a result
+    // such as 3,537,913 appeared as 49,913 on the event graph.
+    const totalScore = Math.max(0, battleScore) + difficultyBonus + timeBonus
 
-        const rewardDefinitions = params.getRewardDefinitionsFn?.(eventId) ?? []
-        const claimedRewardIds = params.getClaimedRewardIdsFn?.(playerId, eventId) ?? new Set<number>()
-        const eligibleRewards = getEligibleCarnivalRewards(
-            rewardDefinitions,
-            eventId,
-            totalBestScore,
-            claimedRewardIds,
-        )
-        const rewardResult = eligibleRewards.length > 0 && params.grantRewardsFn !== undefined
-            ? params.grantRewardsFn(playerId, eligibleRewards)
-            : emptyRewardResult()
-        const rewardIds = eligibleRewards.map(reward => reward.id)
-        const backfilledThresholds = eligibleRewards
-            .filter(reward => reward.score <= previousTotalBestScore)
-            .map(reward => reward.score)
-        // The client derives the reward popup rows from previous/current score, not reward_ids.
-        const popupPreviousTotalBestScore = backfilledThresholds.length > 0
-            ? Math.min(previousTotalBestScore, Math.min(...backfilledThresholds) - 1)
-            : previousTotalBestScore
-        if (rewardIds.length > 0) {
-            params.claimRewardIdsFn?.(playerId, eventId, rewardIds)
-        }
+    // Every Haniwa Carnival folder has three difficulty quests.  Older
+    // extracted lookups exposed quest slots 1..9 as folder ids, while the
+    // client graph expects those slots grouped into folders 1..3.  Derive the
+    // stable folder id from the quest suffix so all six elemental events use
+    // the same mapping, regardless of which lookup revision is installed.
+    const questSlot = Math.abs(questId) % 1000
+    const folderId = questSlot >= 1 && questSlot <= 9
+        ? Math.floor((questSlot - 1) / 3) + 1
+        : carnivalInfo.folder_id
 
-        return {
-            carnivalEventData: {
-                is_record_valid: true,
-                leader_character_id: leaderCharId,
-                new_degree_ids: rewardResult.new_degree_ids,
-                previous_total_best_score: popupPreviousTotalBestScore,
-                reward_ids: rewardIds,
-                score: { difficulty_bonus: difficultyBonus, time_bonus: timeBonus },
-            },
-            rewardResult,
-        }
-    })
+    const existingRecords = getRecordsFn(playerId, carnivalInfo.event_id)
+    const previousTotalBestScore = existingRecords.reduce((sum, record) => sum + (record.bestScore ?? 0), 0)
+    const existingFolderRecord = existingRecords.find(record => record.folderId === folderId)
+    const isNewBestScore = totalScore > (existingFolderRecord?.bestScore ?? 0)
+
+    upsertFn(playerId, carnivalInfo.event_id, folderId, totalScore, characterIds, unisonCharacterIds)
+
+    return {
+        is_record_valid: true,
+        leader_character_id: leaderCharId,
+        new_degree_ids: [],
+        previous_total_best_score: previousTotalBestScore,
+        // The client uses a non-empty list as the signal to refresh the
+        // carnival total-score presentation. The concrete ids are opaque to
+        // that flow; the improved folder id is stable and unique per event.
+        reward_ids: isNewBestScore && leaderCharId > 0 ? [folderId] : [],
+        score: { difficulty_bonus: difficultyBonus, time_bonus: timeBonus }
+    }
 }

@@ -1,14 +1,17 @@
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { MailType, RawPlayerMail, getPlayerMailCountSync, getPlayerMailsSync, insertReceiveHistorySync, receiveAllMailsSync, receiveMailSync } from "../../data/domains/mail"
+import { getPlayerCharacterSync, insertDefaultPlayerCharacterSync, updatePlayerCharacterSync } from "../../data/domains/character"
 import { getPlayerItemSync, givePlayerItemSync } from "../../data/domains/item"
-import { getPlayerSync, updatePlayerSync } from "../../data/domains/player"
+import { adjustPlayerExpPoolSync, getPlayerSync, updatePlayerSync } from "../../data/domains/player"
 import { getSession } from "../../data/domains/session"
+import { insertPlayerEquipmentSync } from "../../data/domains/equipment"
 import { resolvePlayerIdSync } from "../../data/activeAccount";
-import { generateDataHeaders } from "../../utils";
+import { generateDataHeaders, getServerTime } from "../../utils";
+import { clientSerializeDate } from "../../data/utils";
 import { givePlayerEquipmentSync } from "../../lib/equipment";
+import { serializeRealTimeForVirtualClient } from "../../lib/client-display-time";
+import { grantPlayerDegreeSync } from "../../data/domains/degree";
 import { reconcileAwakeUnlockCharacterList } from "../../lib/mission";
-import { givePlayerCharacterSync } from "../../lib/character";
-import { getDb } from "../../data/db";
 
 interface IndexBody {
     api_count: number
@@ -28,54 +31,6 @@ interface ReceiveAllBody {
     mail_ids: number[]
 }
 
-const SUPPORTED_MAIL_TYPES = new Set<number>([
-    MailType.ITEM,
-    MailType.PAID_VMONEY,
-    MailType.FREE_VMONEY,
-    MailType.CHARACTER,
-    MailType.EQUIPMENT,
-    MailType.STAR_CRUMB,
-    MailType.FREE_MANA,
-    MailType.EXP_POOL,
-    MailType.BOND_TOKEN,
-    MailType.BOSS_BOOST_POINT,
-    MailType.BOOST_POINT,
-    MailType.RANK_POINT,
-])
-
-class UnsupportedMailAttachmentError extends Error {
-    constructor(message: string) {
-        super(message)
-        this.name = "UnsupportedMailAttachmentError"
-    }
-}
-
-function requireMailTypeId(mail: RawPlayerMail): number {
-    if (!Number.isSafeInteger(mail.type_id) || (mail.type_id as number) <= 0) {
-        throw new UnsupportedMailAttachmentError(`Mail ${mail.id} has an invalid attachment ID.`)
-    }
-    return mail.type_id as number
-}
-
-function validateMailReward(mail: RawPlayerMail): void {
-    if (!SUPPORTED_MAIL_TYPES.has(mail.type)) {
-        throw new UnsupportedMailAttachmentError(`Mail ${mail.id} has unsupported attachment type ${mail.type}.`)
-    }
-    if (!Number.isSafeInteger(mail.number) || mail.number <= 0) {
-        throw new UnsupportedMailAttachmentError(`Mail ${mail.id} has an invalid attachment amount.`)
-    }
-    if (mail.type === MailType.ITEM
-        || mail.type === MailType.CHARACTER
-        || mail.type === MailType.EQUIPMENT) {
-        requireMailTypeId(mail)
-    }
-}
-
-function unsupportedMailReply(reply: FastifyReply, error: unknown): FastifyReply | null {
-    if (!(error instanceof UnsupportedMailAttachmentError)) return null
-    return reply.status(400).send({ error: "Unsupported mail attachment", message: error.message })
-}
-
 function formatMailResponse(mail: RawPlayerMail) {
     return {
         id: mail.id,
@@ -85,10 +40,10 @@ function formatMailResponse(mail: RawPlayerMail) {
         type: mail.type,
         type_id: mail.type_id != null && mail.type_id > 2147483647 ? 0 : mail.type_id,
         number: mail.number,
-        receive_time: mail.receive_time,
-        create_time: mail.create_time,
+        receive_time: serializeRealTimeForVirtualClient(mail.receive_time),
+        create_time: serializeRealTimeForVirtualClient(mail.create_time),
         reward_period_limited: mail.reward_period_limited === 1,
-        reward_limit_time: mail.reward_limit_time,
+        reward_limit_time: serializeRealTimeForVirtualClient(mail.reward_limit_time),
     }
 }
 
@@ -97,22 +52,22 @@ function applyMailReward(playerId: number, mail: RawPlayerMail): {
     equipmentList: any[]
     itemList: Record<string, number>
     userInfo: Record<string, any>
+    degreeIds: number[]
 } {
     const player = getPlayerSync(playerId)
     const characterList: any[] = []
     const equipmentList: any[] = []
     const itemList: Record<string, number> = {}
     const userInfo: Record<string, any> = {}
+    const degreeIds: number[] = []
 
-    if (!player) return { characterList, equipmentList, itemList, userInfo }
-
-    validateMailReward(mail)
+    if (!player) return { characterList, equipmentList, itemList, userInfo, degreeIds }
 
     switch (mail.type) {
         case MailType.ITEM: {
-            const itemId = requireMailTypeId(mail)
-            const newAmount = givePlayerItemSync(playerId, itemId, mail.number)
-            itemList[String(itemId)] = newAmount
+            if (mail.type_id === null) break
+            const newAmount = givePlayerItemSync(playerId, mail.type_id, mail.number)
+            itemList[String(mail.type_id)] = newAmount
             break
         }
         case MailType.PAID_VMONEY: {
@@ -128,22 +83,36 @@ function applyMailReward(playerId: number, mail: RawPlayerMail): {
             break
         }
         case MailType.CHARACTER: {
-            const characterId = requireMailTypeId(mail)
-            for (let count = 0; count < mail.number; count++) {
-                const result = givePlayerCharacterSync(playerId, characterId)
-                if (result === null) {
-                    throw new UnsupportedMailAttachmentError(`Mail ${mail.id} references unknown character ${characterId}.`)
-                }
-                characterList.splice(0, characterList.length, result.character)
-                if (result.item !== undefined) {
-                    itemList[String(result.item.id)] = getPlayerItemSync(playerId, result.item.id) ?? 0
-                }
+            if (mail.type_id === null) break
+            const existing = getPlayerCharacterSync(playerId, mail.type_id)
+            if (existing) {
+                updatePlayerCharacterSync(playerId, mail.type_id, {
+                    entryCount: existing.entryCount + 1
+                })
+            } else {
+                insertDefaultPlayerCharacterSync(playerId, mail.type_id)
             }
+            const charData = getPlayerCharacterSync(playerId, mail.type_id)!
+            characterList.push({
+                character_id: mail.type_id,
+                entry_count: charData.entryCount,
+                evolution_level: charData.evolutionLevel,
+                over_limit_step: charData.overLimitStep,
+                protection: charData.protection,
+                exp: charData.exp,
+                stack: charData.stack,
+                bond_token_list: charData.bondTokenList?.map(bt => ({
+                    mana_board_index: bt.manaBoardIndex,
+                    status: bt.status
+                })) ?? [],
+                join_time: clientSerializeDate(charData.joinTime),
+                update_time: clientSerializeDate(charData.updateTime)
+            })
             break
         }
         case MailType.EQUIPMENT: {
-            const equipmentId = requireMailTypeId(mail)
-            const result = givePlayerEquipmentSync(playerId, equipmentId, mail.number)
+            if (mail.type_id === null) break
+            const result = givePlayerEquipmentSync(playerId, mail.type_id, mail.number)
             equipmentList.push(result)
             break
         }
@@ -160,8 +129,8 @@ function applyMailReward(playerId: number, mail: RawPlayerMail): {
             break
         }
         case MailType.EXP_POOL: {
-            const newExp = player.expPool + mail.number
-            updatePlayerSync({ id: playerId, expPool: newExp })
+            const newExp = adjustPlayerExpPoolSync(playerId, mail.number, 'mail_reward')
+            if (newExp === null) throw new Error(`Failed to grant EXP mail ${mail.id} to player ${playerId}`)
             userInfo['exp_pool'] = newExp
             break
         }
@@ -183,19 +152,24 @@ function applyMailReward(playerId: number, mail: RawPlayerMail): {
             userInfo['boost_point'] = newBoost
             break
         }
+        case MailType.DEGREE: {
+            if (mail.type_id === null) break
+            if (grantPlayerDegreeSync(playerId, mail.type_id)) {
+                degreeIds.push(mail.type_id)
+            }
+            break
+        }
         case MailType.RANK_POINT: {
             const newRank = player.rankPoint + mail.number
             updatePlayerSync({ id: playerId, rankPoint: newRank })
             userInfo['rank_point'] = newRank
             break
         }
-        default:
-            throw new UnsupportedMailAttachmentError(`Mail ${mail.id} has unsupported attachment type ${mail.type}.`)
     }
 
     insertReceiveHistorySync(playerId, { type: mail.type, type_id: mail.type_id, number: mail.number })
 
-    return { characterList, equipmentList, itemList, userInfo }
+    return { characterList, equipmentList, itemList, userInfo, degreeIds }
 }
 
 const routes = async (fastify: FastifyInstance) => {
@@ -262,24 +236,12 @@ const routes = async (fastify: FastifyInstance) => {
             message: "Mail not found or already received"
         })
 
-        let settlement: ReturnType<typeof applyMailReward> & { reconciledCharacterList: Record<string, unknown>[] }
-        try {
-            settlement = getDb().transaction(() => {
-                const reward = applyMailReward(playerId, mail)
-                if (receiveMailSync(playerId, mailId) === null) {
-                    throw new Error(`Mail ${mailId} changed while it was being received.`)
-                }
-                return {
-                    ...reward,
-                    reconciledCharacterList: reconcileAwakeUnlockCharacterList(playerId, reward.characterList),
-                }
-            })()
-        } catch (error) {
-            const unsupported = unsupportedMailReply(reply, error)
-            if (unsupported !== null) return unsupported
-            throw error
-        }
-        const { equipmentList, itemList, userInfo, reconciledCharacterList } = settlement
+        // Apply reward first
+        const { characterList, equipmentList, itemList, userInfo, degreeIds } = applyMailReward(playerId, mail)
+
+        // Then mark as received
+        receiveMailSync(playerId, mailId)
+        const reconciledCharacterList = reconcileAwakeUnlockCharacterList(playerId, characterList)
 
         const totalCount = getPlayerMailCountSync(playerId)
 
@@ -294,6 +256,12 @@ const routes = async (fastify: FastifyInstance) => {
         if (equipmentList.length > 0) responseData.equipment_list = equipmentList
         if (Object.keys(itemList).length > 0) responseData.item_list = itemList
         if (Object.keys(userInfo).length > 0) responseData.user_info = userInfo
+        if (degreeIds.length > 0) {
+            responseData.degree_list = degreeIds.map(degreeId => ({
+                viewer_id: viewerId,
+                degree_id: degreeId,
+            }))
+        }
 
         reply.header("content-type", "application/x-msgpack")
         return reply.status(200).send({
@@ -323,60 +291,38 @@ const routes = async (fastify: FastifyInstance) => {
             message: "No player bound to account"
         })
 
-        const uniqueMailIds = [...new Set(mailIds)]
-        let settlement: {
-            alreadyCount: number
-            claimed: number[]
-            reconciledCharacterList: Record<string, unknown>[]
-            equipmentList: any[]
-            itemList: Record<string, number>
-            userInfo: Record<string, any>
-        }
-        try {
-            settlement = getDb().transaction(() => {
-                const unreceivedMails = getPlayerMailsSync(playerId, 1, 1000, true)
-                const mailMap = new Map(unreceivedMails.map(mail => [mail.id, mail]))
-                const validMailIds = uniqueMailIds.filter(mailId => mailMap.has(mailId))
-                const characterList: any[] = []
-                const equipmentList: any[] = []
-                const itemList: Record<string, number> = {}
-                const userInfo: Record<string, any> = {}
+        // Get all unreceived mails
+        const unreceivedMails = getPlayerMailsSync(playerId, 1, 1000, true)
+        const mailMap = new Map(unreceivedMails.map(m => [m.id, m]))
 
-                for (const mailId of validMailIds) {
-                    const mail = mailMap.get(mailId)!
-                    const reward = applyMailReward(playerId, mail)
-                    characterList.push(...reward.characterList)
-                    equipmentList.push(...reward.equipmentList)
-                    Object.assign(itemList, reward.itemList)
-                    Object.assign(userInfo, reward.userInfo)
-                }
+        const alreadyCount = mailIds.filter(id => !mailMap.has(id)).length
+        const characterList: any[] = []
+        const equipmentList: any[] = []
+        const itemList: Record<string, number> = {}
+        const userInfo: Record<string, any> = {}
+        const degreeIds = new Set<number>()
 
-                const claimed = receiveAllMailsSync(playerId, validMailIds)
-                if (claimed.length !== validMailIds.length) {
-                    throw new Error("Mail state changed while mails were being received.")
-                }
-                return {
-                    alreadyCount: uniqueMailIds.length - validMailIds.length,
-                    claimed,
-                    reconciledCharacterList: reconcileAwakeUnlockCharacterList(playerId, characterList),
-                    equipmentList,
-                    itemList,
-                    userInfo,
-                }
-            })()
-        } catch (error) {
-            const unsupported = unsupportedMailReply(reply, error)
-            if (unsupported !== null) return unsupported
-            throw error
+        for (const mailId of mailIds) {
+            const mail = mailMap.get(mailId)
+            if (!mail) continue
+
+            const {
+                characterList: cl,
+                equipmentList: el,
+                itemList: il,
+                userInfo: ui,
+                degreeIds: dl,
+            } = applyMailReward(playerId, mail)
+            characterList.push(...cl)
+            equipmentList.push(...el)
+            Object.assign(itemList, il)
+            Object.assign(userInfo, ui)
+            for (const degreeId of dl) degreeIds.add(degreeId)
         }
-        const {
-            alreadyCount,
-            claimed,
-            reconciledCharacterList,
-            equipmentList,
-            itemList,
-            userInfo,
-        } = settlement
+
+        // Mark all as received
+        const claimed = receiveAllMailsSync(playerId, mailIds.filter(id => mailMap.has(id)))
+        const reconciledCharacterList = reconcileAwakeUnlockCharacterList(playerId, characterList)
 
         const responseData: Record<string, any> = {
             already_mail_count: alreadyCount,
@@ -395,6 +341,12 @@ const routes = async (fastify: FastifyInstance) => {
         if (equipmentList.length > 0) responseData.equipment_list = equipmentList
         if (Object.keys(itemList).length > 0) responseData.item_list = itemList
         if (Object.keys(userInfo).length > 0) responseData.user_info = userInfo
+        if (degreeIds.size > 0) {
+            responseData.degree_list = [...degreeIds].map(degreeId => ({
+                viewer_id: viewerId,
+                degree_id: degreeId,
+            }))
+        }
 
         reply.header("content-type", "application/x-msgpack")
         return reply.status(200).send({

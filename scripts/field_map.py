@@ -27,12 +27,7 @@ STANDARD = {
     'story_check':   84,
 }
 
-BOSS = {
-    **STANDARD,
-    'clear_reward': 4,
-    'fixed_party': NOT_USED,
-    'is_both_boss': 122,
-}
+BOSS = {**STANDARD, 'clear_reward': 4, 'fixed_party': NOT_USED}
 
 # ─── Group 2: World Story Event ─────────────────────────────────────────
 WORLD_STORY = {
@@ -164,15 +159,15 @@ CARNIVAL = {
     'quest_id':      0,
     'clear_reward':  6,
     'score_group':   NOT_USED,
-    'element':       69,
+    'element':       73,
     'rank_b':        ZERO,
     'rank_a':        ZERO,
     'rank_s':        ZERO,
     'rank_sp':       ZERO,
-    'rank_point':    82,
-    'char_exp':      83,
-    'mana':          84,
-    'pool_exp':      85,
+    'rank_point':    94,
+    'char_exp':      95,
+    'mana':          96,
+    'pool_exp':      97,
     'fixed_party':   NOT_USED,
     'story_check':   NOT_USED,
 }
@@ -231,37 +226,19 @@ EXPERT_SINGLE = {
 
 SCORE_ATTACK = {
     'quest_id':      0,
-    'clear_reward':  6,
-    'score_group':   72,
-    'element':       73,
-    # ScoreAttack uses score thresholds here, not elapsed-time thresholds.
-    'rank_b':        52,
-    'rank_a':        53,
-    'rank_s':        54,
-    'rank_sp':       55,
-    'rank_point':    86,
-    'char_exp':      87,
-    'mana':          88,
-    'pool_exp':      89,
-    'fixed_party':   NOT_USED,
-    'story_check':   NOT_USED,
-}
-
-HARD_MULTI = {
-    'quest_id':      0,
-    # HardMultiEventQuestValues.as: row[4] = first_time_clear_reward_id.
-    'clear_reward':  4,
-    # HardMultiEventQuestValues.as: row[72] = s_plus_clear_reward_id.
-    's_plus_reward': 72,
+    'clear_reward':  FROM_KEY,   # hardcoded to 1
+    'score_group':   70,
+    'element':       NOT_USED,
     'rank_b':        85,
     'rank_a':        86,
     'rank_s':        87,
     'rank_sp':       88,
-    'rank_point':    94,
-    'char_exp':      95,
-    'mana':          96,
-    'pool_exp':      97,
-    'name':          2,
+    'rank_point':    92,
+    'char_exp':      93,
+    'mana':          94,
+    'pool_exp':      95,
+    'fixed_party':   NOT_USED,
+    'story_check':   85,         # "" or "(None)" = story
 }
 
 # ─── Group 7: Special ────────────────────────────────────────────────────
@@ -303,15 +280,15 @@ RAID = {
     'quest_id':      0,
     'clear_reward':  6,
     'score_group':   69,
-    'element':       70,
-    'rank_b':        ZERO,
-    'rank_a':        ZERO,
-    'rank_s':        ZERO,
-    'rank_sp':       ZERO,
-    'rank_point':    83,
-    'char_exp':      84,
-    'mana':          85,
-    'pool_exp':      86,
+    'element':       NOT_USED,
+    'rank_b':        82,
+    'rank_a':        83,
+    'rank_s':        84,
+    'rank_sp':       85,
+    'rank_point':    96,
+    'char_exp':      97,
+    'mana':          98,
+    'pool_exp':      ZERO,
     'fixed_party':   NOT_USED,
     'story_check':   NOT_USED,
 }
@@ -353,6 +330,5 @@ TYPE_MAP = {
     'rush_event_quest':                  {'layout': RUSH,               'cat': 24},
     'raid_event_quest':                  {'layout': RAID,               'cat': 23},
     'score_attack_event_quest':          {'layout': SCORE_ATTACK,       'cat': 27},
-    'hard_multi_event_quest':            {'layout': HARD_MULTI,          'cat': 26},
     'character_quest':                   {'layout': CHARACTER,          'cat': 3},
 }

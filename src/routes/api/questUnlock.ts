@@ -6,10 +6,7 @@ import { getSession } from "../../data/domains/session"
 import { resolvePlayerIdSync } from "../../data/activeAccount";
 import { getQuestFromCategorySync } from "../../lib/assets";
 import { generateDataHeaders } from "../../utils";
-import bundledQuestUnlockCosts from "../../../assets/quest_unlock_costs.json";
-import { getRuntimeContentTableSync } from "../../content/runtime/table-access";
-import { getMailArrivedSync } from "../../lib/mail-notification";
-import { getDb } from "../../data/db";
+import questUnlockCosts from "../../../assets/quest_unlock_costs.json";
 
 interface UnlockBody {
     category: number
@@ -17,10 +14,6 @@ interface UnlockBody {
     viewer_id: number
     api_count: number
 }
-
-type UnlockTransactionResult =
-    | { ok: true, itemList: Record<string, number> }
-    | { ok: false, message: string }
 
 const routes = async (fastify: FastifyInstance) => {
     fastify.post("/unlock", async (request: FastifyRequest, reply: FastifyReply) => {
@@ -70,63 +63,41 @@ const routes = async (fastify: FastifyInstance) => {
             })
         }
 
-        const unlockCost = getRuntimeContentTableSync(
-            "quest_unlock_costs.json",
-            bundledQuestUnlockCosts as Record<string, { itemIds: number[], itemCounts: number[] }>,
-        )[String(questId)]
-        if (!unlockCost || unlockCost.itemIds.length === 0) {
+        // Check if already unlocked
+        const progress = getPlayerQuestProgressSync(playerId)
+        const sectionProg = progress[String(category)] ?? []
+        const existing = sectionProg.find(p => p.questId === questId)
+        if (existing?.unlocked) {
             return reply.status(400).send({
                 "error": "Bad Request",
-                "message": "Quest does not use Once unlock items."
+                "message": "Quest already unlocked."
             })
         }
 
-        const result = getDb().transaction((): UnlockTransactionResult => {
-            const progress = getPlayerQuestProgressSync(playerId)
-            const sectionProg = progress[String(category)] ?? []
-            const existing = sectionProg.find(entry => entry.questId === questId)
-            if (existing?.unlocked) {
-                return { ok: false, message: "Quest already unlocked." }
-            }
-
-            const itemCosts = new Map<number, number>()
+        // Deduct unlock items
+        const unlockCost = (questUnlockCosts as Record<string, {itemIds: number[], itemCounts: number[]}>)[String(questId)]
+        const itemList: Record<string, number> = {}
+        if (unlockCost) {
             for (let i = 0; i < unlockCost.itemIds.length; i++) {
                 const itemId = unlockCost.itemIds[i]
                 const cost = unlockCost.itemCounts[i] ?? 1
-                itemCosts.set(itemId, (itemCosts.get(itemId) ?? 0) + cost)
-            }
-
-            const currentItemCounts = new Map<number, number>()
-            for (const [itemId, cost] of itemCosts) {
                 const current = getPlayerItemSync(playerId, itemId) ?? 0
                 if (current < cost) {
-                    return {
-                        ok: false,
-                        message: `Not enough of item ${itemId} to unlock quest.`,
-                    }
+                    return reply.status(400).send({
+                        "error": "Bad Request",
+                        "message": `Not enough of item ${itemId} to unlock quest.`
+                    })
                 }
-                currentItemCounts.set(itemId, current)
+                updatePlayerItemSync(playerId, itemId, current - cost)
+                itemList[String(itemId)] = current - cost
             }
+        }
 
-            const updatedItems: Record<string, number> = {}
-            for (const [itemId, cost] of itemCosts) {
-                const afterCount = (currentItemCounts.get(itemId) ?? 0) - cost
-                updatePlayerItemSync(playerId, itemId, afterCount)
-                updatedItems[String(itemId)] = afterCount
-            }
-
-            if (existing) {
-                updatePlayerQuestProgressSync(playerId, category, { questId, unlocked: true })
-            } else {
-                insertPlayerQuestProgressSync(playerId, category, { questId, finished: false, unlocked: true })
-            }
-            return { ok: true, itemList: updatedItems }
-        })()
-        if (!result.ok) {
-            return reply.status(400).send({
-                "error": "Bad Request",
-                "message": result.message,
-            })
+        // Save unlock state
+        if (existing) {
+            updatePlayerQuestProgressSync(playerId, category, { questId, unlocked: true })
+        } else {
+            insertPlayerQuestProgressSync(playerId, category, { questId, finished: false, unlocked: true })
         }
 
         reply.header("content-type", "application/x-msgpack")
@@ -135,8 +106,8 @@ const routes = async (fastify: FastifyInstance) => {
                 viewer_id: viewerId
             }),
             "data": {
-                "item_list": result.itemList,
-                "mail_arrived": getMailArrivedSync(playerId)
+                "item_list": itemList,
+                "mail_arrived": false
             }
         })
     })

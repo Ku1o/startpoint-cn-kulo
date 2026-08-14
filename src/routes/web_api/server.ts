@@ -1,42 +1,436 @@
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
+import { copyFileSync, existsSync, lstatSync, mkdirSync, readdirSync, rmSync, statSync, writeFileSync } from "fs";
+import path from "path";
+import { randomUUID } from "crypto";
+import { Worker } from "worker_threads";
 import { getServerTime, getServerDate, setServerTime, getTimeOffset } from "../../utils";
 import { deleteAccountSync, getAccountPlayersSync, getAllAccountsSync } from "../../data/domains/account"
-import { deletePlayerSync, getPlayerSync, insertDefaultPlayerSync, updatePlayerSync } from "../../data/domains/player"
-import { getAllDeviceBindingsSync, updateDeviceBindingNameSync } from "../../data/domains/session"
+import { deletePlayerSync, getPlayerSync, insertDefaultPlayerSync, replacePlayerDataSync, updatePlayerSync } from "../../data/domains/player"
+import { getAllDeviceBindingsSync, getSessionByAccountIdSync, updateDeviceBindingNameSync } from "../../data/domains/session"
 import { getPlayerCharactersSync } from "../../data/domains/character"
-import { getActivePlayerId, setActivePlayerId, saveTimeOffset, saveAccountDefaultPlayer, getAccountDefaultPlayer } from "../../data/activeAccount";
+import { getClientSerializedData, deserializePlayerData, reviveMergedPlayerDates } from "../../data/utils";
+import { getActivePlayerId, setActivePlayerId, getSelectedAccountId, setSelectedAccountId, saveTimeOffset, saveAccountDefaultPlayer, getAccountDefaultPlayer, removeDeletedAccountFromState, removeDeletedAccountsFromState } from "../../data/activeAccount";
 import { saveDefaultSaveTemplate, loadDefaultSaveTemplate, clearDefaultSaveTemplate, getDefaultSaveMeta } from "../../data/defaultSave";
-import { getEffectiveVersion } from "../../lib/version";
+import { detectCDNVersion, FULL_BASE, getEffectiveVersion, getPatchManifest } from "../../lib/version";
 import { buildShortUpCharacterGachaTimeline } from "../../lib/admin-clairvoyance";
-import { buildAdminContentStatus } from "../../lib/admin-content-status";
-import { parseAssetProviderConfig } from "../../content/cdn/asset-mode";
-import { getContentSnapshot } from "../../content/runtime/content-snapshot";
 import { wantsJson } from "./http";
-import {
-    applyPlayerSaveTemplateSync,
-    clonePlayerSaveV2Sync,
-    exportPlayerSaveV2Sync,
-    validatePlayerSaveTemplateSync,
-} from "../../data/player-save";
+import { SessionType } from "../../data/types";
+import { getDb } from "../../data/db";
+import { ensureCascadeDeleteIndexes, selectUnnotedAccountIds } from "../../lib/admin-account-cleanup";
+import { removePlayerQuestNpcPartySnapshots } from "../../multi/npc/player-party-pool";
+import { runImmediateTransactionWithRetry } from "../../lib/sqlite-write-coordinator";
+import { getOnlinePlayerCount } from "../../lib/online-presence";
 
 interface TimeQuery {
     time: string | undefined
 }
 
+const MANUAL_DATABASE_BACKUP_KEEP_COUNT = 5
+const ACCOUNT_CLEANUP_BATCH_SIZE = 5
+const ACCOUNT_CLEANUP_BATCH_PAUSE_MS = 100
+
+type AccountCleanupStatus = "running" | "completed" | "failed"
+type AccountCleanupPhase = "preparing" | "planning" | "backing_up" | "indexing" | "deleting" | "finalizing"
+
+interface PlannedCleanupEntry {
+    accountId: number
+    playerIds: number[]
+}
+
+interface AccountCleanupJob {
+    ok: boolean
+    jobId: string
+    status: AccountCleanupStatus
+    phase: AccountCleanupPhase
+    startedAt: string
+    finishedAt: string | null
+    totalAccounts: number
+    processedAccounts: number
+    deletedAccounts: number
+    deletedSaves: number
+    skippedActiveAccount: number | null
+    backup: string | null
+    removedBackups: number
+    backupCleanupError: string | null
+    createdIndexes: number
+    batchSize: number
+    pauseMs: number
+    workerThreadId: number | null
+    error: string | null
+}
+
+let accountCleanupJob: AccountCleanupJob | null = null
+let accountCleanupWorker: Worker | null = null
+
+function delay(milliseconds: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, milliseconds))
+}
+
+function deleteAccountDataSync(accountId: number): number[] {
+    const playerIds = getAccountPlayersSync(accountId)
+    for (const playerId of playerIds) deletePlayerSync(playerId)
+    getDb().prepare(`DELETE FROM device_bindings WHERE account_id = ?`).run(accountId)
+    deleteAccountSync(accountId)
+    return playerIds
+}
+
+async function cleanupDeletedPlayerAiSnapshots(playerIds: number[], context: string): Promise<void> {
+    if (playerIds.length === 0) return
+    try {
+        const result = await removePlayerQuestNpcPartySnapshots(playerIds)
+        if (result.removedRows > 0) {
+            console.log(
+                `[ADMIN] removed ${result.removedRows} historical AI parties from ${result.affectedQuestCount} quest pools after ${context}`,
+            )
+        }
+    } catch (error) {
+        console.warn(
+            `[ADMIN] player data was deleted, but historical AI party cleanup failed after ${context}:`,
+            error,
+        )
+    }
+}
+
+function getDatabaseDirectory(): string {
+    return process.env.DATA_DIR
+        ? path.resolve(process.env.DATA_DIR)
+        : path.resolve(__dirname, "../../../.database")
+}
+
+function createBackupStamp(): string {
+    const now = new Date()
+    const pad = (value: number, width = 2) => String(value).padStart(width, "0")
+    return [
+        `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}`,
+        `${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`,
+        pad(now.getMilliseconds(), 3),
+    ].join("-")
+}
+
+async function createFullDatabaseBackup(prefix: string): Promise<{ directory: string; name: string }> {
+    const databaseDir = getDatabaseDirectory()
+    const name = `${prefix}-${createBackupStamp()}`
+    const directory = path.join(databaseDir, "admin-backups", name)
+    mkdirSync(directory, { recursive: true })
+    const versionPath = path.join(databaseDir, "wdfp_data.db.version")
+    if (!existsSync(versionPath)) {
+        throw new Error("Database version file is missing: wdfp_data.db.version")
+    }
+    await getDb().backup(path.join(directory, "wdfp_data.db"))
+    copyFileSync(versionPath, path.join(directory, "wdfp_data.db.version"))
+    const statePath = path.join(databaseDir, "active_account.json")
+    if (existsSync(statePath)) copyFileSync(statePath, path.join(directory, "active_account.json"))
+    writeFileSync(
+        path.join(directory, "backup-info.json"),
+        JSON.stringify({
+            createdAt: new Date().toISOString(),
+            type: prefix,
+            database: "wdfp_data.db",
+            databaseVersion: "wdfp_data.db.version",
+            includesActiveAccountState: existsSync(statePath),
+        }, null, 2),
+        "utf8",
+    )
+    return { directory, name }
+}
+
+function removeExpiredManualDatabaseBackups(backupRoot: string): string[] {
+    if (!existsSync(backupRoot)) return []
+    const resolvedRoot = path.resolve(backupRoot)
+    const backups = readdirSync(resolvedRoot)
+        .filter(name => /^manual-full-\d{8}-\d{6}-\d{3}$/.test(name))
+        .sort((left, right) => right.localeCompare(left))
+    const removed: string[] = []
+    for (const name of backups.slice(MANUAL_DATABASE_BACKUP_KEEP_COUNT)) {
+        const candidate = path.resolve(resolvedRoot, name)
+        if (path.dirname(candidate) !== resolvedRoot) continue
+        const stats = lstatSync(candidate)
+        if (!stats.isDirectory() || stats.isSymbolicLink()) continue
+        rmSync(candidate, { recursive: true, force: true })
+        removed.push(name)
+    }
+    return removed
+}
+
+function removeOlderCleanupBackups(currentBackupDirectory: string): string[] {
+    const backupRoot = path.resolve(path.dirname(currentBackupDirectory))
+    const currentDirectory = path.resolve(currentBackupDirectory)
+    const removed: string[] = []
+    if (!existsSync(backupRoot)) return removed
+    for (const name of readdirSync(backupRoot)) {
+        if (!/^unnoted-accounts-\d{8}-\d{6}(?:-\d{3})?$/.test(name)) continue
+        const candidate = path.resolve(backupRoot, name)
+        if (candidate === currentDirectory || path.dirname(candidate) !== backupRoot) continue
+        const stats = lstatSync(candidate)
+        if (!stats.isDirectory() || stats.isSymbolicLink()) continue
+        rmSync(candidate, { recursive: true, force: true })
+        removed.push(name)
+    }
+    return removed
+}
+
+async function executeAccountCleanupPlan(
+    jobId: string,
+    plannedEntries: PlannedCleanupEntry[],
+): Promise<void> {
+    const job = accountCleanupJob
+    if (!job || job.jobId !== jobId || job.status !== "running") return
+
+    try {
+        job.phase = "backing_up"
+        const backup = await createFullDatabaseBackup("unnoted-accounts")
+        job.backup = `.database/admin-backups/${backup.name}`
+
+        job.phase = "indexing"
+        job.createdIndexes = await runImmediateTransactionWithRetry(
+            () => ensureCascadeDeleteIndexes(getDb()),
+        )
+
+        job.phase = "deleting"
+        let processedAccounts = 0
+        let deletedAccounts = 0
+        let deletedSaves = 0
+        const deletedAccountIds: number[] = []
+        const deletedPlayerIds: number[] = []
+        const plannedAccountIds = plannedEntries.map(entry => entry.accountId)
+
+        for (let offset = 0; offset < plannedAccountIds.length; offset += ACCOUNT_CLEANUP_BATCH_SIZE) {
+            const requestedIds = plannedAccountIds.slice(offset, offset + ACCOUNT_CLEANUP_BATCH_SIZE)
+            if (requestedIds.length === 0) continue
+            const placeholders = requestedIds.map(() => "?").join(", ")
+            const batch = await runImmediateTransactionWithRetry(() => {
+                const existingAccounts = getDb().prepare(
+                    `SELECT id FROM accounts WHERE id IN (${placeholders})`,
+                ).all(...requestedIds) as { id: number }[]
+                const players = getDb().prepare(
+                    `SELECT id, account_id FROM players WHERE account_id IN (${placeholders})`,
+                ).all(...requestedIds) as { id: number; account_id: number }[]
+                getDb().prepare(`DELETE FROM accounts WHERE id IN (${placeholders})`).run(...requestedIds)
+                return existingAccounts.map(account => ({
+                    accountId: account.id,
+                    playerIds: players
+                        .filter(player => player.account_id === account.id)
+                        .map(player => player.id),
+                }))
+            })
+
+            const batchPlayerIds = batch.flatMap(entry => entry.playerIds)
+            processedAccounts += requestedIds.length
+            deletedAccounts += batch.length
+            deletedSaves += batchPlayerIds.length
+            deletedAccountIds.push(...batch.map(entry => entry.accountId))
+            deletedPlayerIds.push(...batchPlayerIds)
+            removeDeletedAccountsFromState(batch)
+            job.processedAccounts = processedAccounts
+            job.deletedAccounts = deletedAccounts
+            job.deletedSaves = deletedSaves
+            if (processedAccounts < plannedAccountIds.length) {
+                await delay(ACCOUNT_CLEANUP_BATCH_PAUSE_MS)
+            }
+        }
+
+        job.phase = "finalizing"
+        await cleanupDeletedPlayerAiSnapshots(deletedPlayerIds, `unnoted-account cleanup ${jobId}`)
+        writeFileSync(
+            path.join(backup.directory, "cleanup-result.json"),
+            JSON.stringify({
+                createdAt: new Date().toISOString(),
+                jobId,
+                deletedAccountIds,
+                deletedPlayerIds,
+                deletedSaves,
+                skippedActiveAccount: job.skippedActiveAccount,
+                createdIndexes: job.createdIndexes,
+            }, null, 2),
+            "utf8",
+        )
+
+        try {
+            job.removedBackups = removeOlderCleanupBackups(backup.directory).length
+        } catch (error) {
+            job.backupCleanupError = error instanceof Error ? error.message : String(error)
+        }
+        job.status = "completed"
+        job.finishedAt = new Date().toISOString()
+    } catch (error) {
+        job.status = "failed"
+        job.finishedAt = new Date().toISOString()
+        job.error = error instanceof Error ? error.message : String(error)
+    }
+}
+
+function countZipFiles(dir: string): { exists: boolean; count: number; latestMtime: string | null; totalBytes: number } {
+    if (!existsSync(dir)) return { exists: false, count: 0, latestMtime: null, totalBytes: 0 }
+    let count = 0
+    let totalBytes = 0
+    let latest = 0
+    const stack = [dir]
+    while (stack.length) {
+        const current = stack.pop()!
+        for (const name of readdirSync(current)) {
+            const fp = path.join(current, name)
+            const st = statSync(fp)
+            if (st.isDirectory()) {
+                stack.push(fp)
+                continue
+            }
+            if (!name.endsWith(".zip")) continue
+            count += 1
+            totalBytes += st.size
+            latest = Math.max(latest, st.mtimeMs)
+        }
+    }
+    return {
+        exists: true,
+        count,
+        latestMtime: latest ? new Date(latest).toISOString() : null,
+        totalBytes,
+    }
+}
+
+function getCdnBaseUrl(): string {
+    const cdnHost = process.env.CN_LISTEN_HOST || "localhost"
+    const cdnPort = process.env.CN_LISTEN_PORT || "8001"
+    const cdnDisplayHost = cdnHost === "0.0.0.0" ? "localhost" : cdnHost
+    return process.env.CDN_BASE_URL || `http://${cdnDisplayHost}:${cdnPort}/patch/cn`
+}
+
+function getCleanupWorkerLocation(): { filename: string; execArgv?: string[] } {
+    const compiledWorker = path.resolve(__dirname, "../../workers/admin-account-cleanup-worker.js")
+    if (existsSync(compiledWorker)) return { filename: compiledWorker }
+    const sourceWorker = path.resolve(__dirname, "../../workers/admin-account-cleanup-worker.ts")
+    return {
+        filename: sourceWorker,
+        execArgv: ["-r", require.resolve("ts-node/register/transpile-only")],
+    }
+}
+
+function startAccountCleanupWorker(
+    accountIds: number[],
+    skippedActiveAccount: number | null,
+): AccountCleanupJob {
+    const jobId = randomUUID()
+    const databaseDirectory = getDatabaseDirectory()
+    const workerLocation = getCleanupWorkerLocation()
+    const job: AccountCleanupJob = {
+        ok: true,
+        jobId,
+        status: "running",
+        phase: "preparing",
+        startedAt: new Date().toISOString(),
+        finishedAt: null,
+        totalAccounts: accountIds.length,
+        processedAccounts: 0,
+        deletedAccounts: 0,
+        deletedSaves: 0,
+        skippedActiveAccount,
+        backup: null,
+        removedBackups: 0,
+        backupCleanupError: null,
+        createdIndexes: 0,
+        batchSize: ACCOUNT_CLEANUP_BATCH_SIZE,
+        pauseMs: ACCOUNT_CLEANUP_BATCH_PAUSE_MS,
+        workerThreadId: null,
+        error: null,
+    }
+    accountCleanupJob = job
+
+    const worker = new Worker(workerLocation.filename, {
+        execArgv: workerLocation.execArgv,
+        workerData: {
+            jobId,
+            databasePath: path.join(databaseDirectory, "wdfp_data.db"),
+            accountIds,
+            batchSize: ACCOUNT_CLEANUP_BATCH_SIZE,
+        },
+    })
+    accountCleanupWorker = worker
+    job.workerThreadId = worker.threadId
+    let planReceived = false
+
+    worker.on("message", (message: any) => {
+        if (!accountCleanupJob || accountCleanupJob.jobId !== jobId || message?.jobId !== jobId) return
+        if (message.type === "phase") {
+            accountCleanupJob.phase = message.phase
+            return
+        }
+        if (message.type === "plan") {
+            planReceived = true
+            accountCleanupJob.workerThreadId = null
+            const plannedEntries = Array.isArray(message.plannedEntries)
+                ? message.plannedEntries as PlannedCleanupEntry[]
+                : []
+            void executeAccountCleanupPlan(jobId, plannedEntries)
+            return
+        }
+        if (message.type === "failed") {
+            accountCleanupJob.status = "failed"
+            accountCleanupJob.finishedAt = new Date().toISOString()
+            accountCleanupJob.error = message.error
+            accountCleanupJob.workerThreadId = null
+        }
+    })
+    worker.on("error", error => {
+        if (!accountCleanupJob || accountCleanupJob.jobId !== jobId || accountCleanupJob.status !== "running") return
+        accountCleanupJob.status = "failed"
+        accountCleanupJob.finishedAt = new Date().toISOString()
+        accountCleanupJob.error = error.message
+        accountCleanupJob.workerThreadId = null
+    })
+    worker.on("exit", code => {
+        if (accountCleanupWorker === worker) accountCleanupWorker = null
+        if (planReceived && code === 0) return
+        if (!accountCleanupJob || accountCleanupJob.jobId !== jobId || accountCleanupJob.status !== "running") return
+        accountCleanupJob.status = "failed"
+        accountCleanupJob.finishedAt = new Date().toISOString()
+        accountCleanupJob.error = `Cleanup worker exited before completion (code ${code})`
+        accountCleanupJob.workerThreadId = null
+    })
+    return job
+}
+
 const routes = async (fastify: FastifyInstance) => {
+
+    fastify.addHook("onClose", async () => {
+        if (accountCleanupWorker) {
+            await accountCleanupWorker.terminate()
+            accountCleanupWorker = null
+        }
+    })
+
+    fastify.post("/databaseBackup", async (_request: FastifyRequest, reply: FastifyReply) => {
+        const backup = await createFullDatabaseBackup("manual-full")
+        let removedBackups: string[] = []
+        let backupCleanupError: string | null = null
+        try {
+            removedBackups = removeExpiredManualDatabaseBackups(path.dirname(backup.directory))
+        } catch (error) {
+            backupCleanupError = error instanceof Error ? error.message : String(error)
+        }
+        return reply.send({
+            ok: true,
+            backup: `.database/admin-backups/${backup.name}`,
+            retainedBackups: MANUAL_DATABASE_BACKUP_KEEP_COUNT,
+            removedBackups: removedBackups.length,
+            backupCleanupError,
+        })
+    })
 
     fastify.get("/status", async (_request: FastifyRequest, reply: FastifyReply) => {
         const root = process.cwd()
         const cdnDir = process.env.CDN_DIR || ".cdn"
-        const cdnStatus = buildAdminContentStatus({
-            snapshot: getContentSnapshot(),
-            assetProvider: parseAssetProviderConfig({ projectRoot: root, env: process.env }),
-            configuredCdnDir: cdnDir,
-        })
+        const cdnRoot = path.isAbsolute(cdnDir) ? path.join(cdnDir, "cn") : path.join(root, cdnDir, "cn")
+        const archiveSummary = countZipFiles(cdnRoot)
+        const activePatchSummary = countZipFiles(path.join(root, "assets", "asset-patch", "active"))
+        const patchManifest = getPatchManifest()
+        const enabledPatches = patchManifest.patches.filter(p => p.enabled)
+        const detectedVersion = detectCDNVersion()
+        const effectiveVersion = getEffectiveVersion()
 
         reply.status(200).send({
             server: {
                 uptimeSeconds: Math.floor(process.uptime()),
+                onlinePlayers: getOnlinePlayerCount(),
                 nodeVersion: process.version,
                 platform: `${process.platform}/${process.arch}`,
                 pid: process.pid,
@@ -44,7 +438,49 @@ const routes = async (fastify: FastifyInstance) => {
                 listenHost: process.env.CN_LISTEN_HOST || "localhost",
                 listenPort: process.env.CN_LISTEN_PORT || "8001",
             },
-            cdn: cdnStatus,
+            cdn: {
+                baseUrl: getCdnBaseUrl(),
+                baseline: {
+                    mode: "fixed-cn-final",
+                    source: "国服最终 CDN",
+                    fullVersion: FULL_BASE,
+                    cnFinalVersion: patchManifest.cdn_version,
+                    detectedArchiveVersion: detectedVersion,
+                    manifestVersion: patchManifest.cdn_version,
+                    pinned: true,
+                    dataScope: ["items", "characters", "events", "quests", "shops"],
+                },
+                extension: {
+                    mode: "reserved-patch-version-layer",
+                    status: enabledPatches.length > 0 ? "manifest-enabled" : "reserved",
+                    runtimeEnabled: enabledPatches.length > 0,
+                    effectiveVersionPreview: effectiveVersion,
+                    enabledPatchCount: enabledPatches.length,
+                    totalPatchCount: patchManifest.patches.length,
+                    activePatchArchiveCount: activePatchSummary.count,
+                    note: "Reserved for future custom characters and event patch imports.",
+                },
+                storage: {
+                    configuredDir: cdnDir,
+                    directoryPresent: archiveSummary.exists,
+                    archiveCount: archiveSummary.count,
+                    archiveBytes: archiveSummary.totalBytes,
+                    latestArchiveMtime: archiveSummary.latestMtime,
+                },
+                // Backward-compatible flat fields for temporary admin scripts and older SPA builds.
+                configuredDir: cdnDir,
+                directoryPresent: archiveSummary.exists,
+                archiveCount: archiveSummary.count,
+                archiveBytes: archiveSummary.totalBytes,
+                latestArchiveMtime: archiveSummary.latestMtime,
+                fullVersion: FULL_BASE,
+                detectedVersion,
+                effectiveVersion,
+                manifestVersion: patchManifest.cdn_version,
+                enabledPatchCount: enabledPatches.length,
+                totalPatchCount: patchManifest.patches.length,
+                activePatchArchiveCount: activePatchSummary.count,
+            },
         })
     })
 
@@ -105,8 +541,9 @@ const routes = async (fastify: FastifyInstance) => {
     })
 
     fastify.get("/clairvoyance/gacha", async (_request: FastifyRequest, reply: FastifyReply) => {
+        const patchManifest = getPatchManifest()
         return reply.status(200).send({
-            cdnVersion: getEffectiveVersion(),
+            cdnVersion: patchManifest.cdn_version,
             baseline: "fixed-cn-final",
             ...buildShortUpCharacterGachaTimeline(getServerDate()),
         })
@@ -116,15 +553,11 @@ const routes = async (fastify: FastifyInstance) => {
 
     fastify.get("/accounts", async (_request: FastifyRequest, reply: FastifyReply) => {
         const accounts = getAllAccountsSync()
+        const deviceBindings = getAllDeviceBindingsSync()
         const activePlayerId = getActivePlayerId()
-        const devicesByAccount = new Map<number, Array<{ deviceId: number; name: string | null }>>()
-        for (const binding of getAllDeviceBindingsSync()) {
-            const devices = devicesByAccount.get(binding.account_id) ?? []
-            devices.push({ deviceId: binding.device_id, name: binding.name })
-            devicesByAccount.set(binding.account_id, devices)
-        }
         const result = accounts.map(acc => {
             const playerIds = getAccountPlayersSync(acc.id)
+            const viewerSession = getSessionByAccountIdSync(acc.id, SessionType.VIEWER)
             const savedDefaultPid = getAccountDefaultPlayer(acc.id)
             const defaultPid = savedDefaultPid && playerIds.includes(savedDefaultPid)
                 ? savedDefaultPid
@@ -132,17 +565,24 @@ const routes = async (fastify: FastifyInstance) => {
             const defaultPlayer = defaultPid ? getPlayerSync(defaultPid) : null
             return {
                 id: acc.id,
+                viewerId: viewerSession ? String(viewerSession.token) : null,
+                bindings: deviceBindings
+                    .filter(binding => binding.account_id === acc.id)
+                    .map(binding => ({
+                        deviceId: binding.device_id,
+                        note: binding.name,
+                    })),
                 saveCount: playerIds.length,
                 defaultPlayerId: defaultPid,
                 defaultPlayerName: defaultPlayer?.name ?? null,
                 activePlayerId,
-                devices: devicesByAccount.get(acc.id) ?? [],
                 players: playerIds.map(pid => {
                     const player = getPlayerSync(pid)
                     return {
                         id: pid,
                         accountId: acc.id,
                         name: player?.name ?? `存档 #${pid}`,
+                        comment: player?.comment ?? "",
                         degreeId: player?.degreeId ?? 0,
                         isDefault: defaultPid === pid,
                         isActive: activePlayerId === pid,
@@ -169,11 +609,12 @@ const routes = async (fastify: FastifyInstance) => {
             const text = (await file.toBuffer()).toString("utf-8")
             let parsed: any
             try { parsed = JSON.parse(text) } catch { return reply.status(400).send({ error: "文件不是有效的 JSON" }) }
-            try {
-                validatePlayerSaveTemplateSync(parsed)
-            } catch (error: any) {
-                return reply.status(400).send({ error: `存档校验失败：${error?.message ?? error}` })
-            }
+            if (!parsed || typeof parsed !== "object" || parsed.schema !== "starpoint-cn-save")
+                return reply.status(400).send({ error: "不是有效的存档快照（请使用本面板导出的存档）" })
+            if (parsed.version !== 1)
+                return reply.status(400).send({ error: `不支持的存档版本：${parsed.version}` })
+            if (!parsed.data || typeof parsed.data !== "object" || !parsed.data.player)
+                return reply.status(400).send({ error: "存档数据缺失 player 字段" })
             saveDefaultSaveTemplate(parsed)
             return reply.send({ ok: true, ...getDefaultSaveMeta() })
         } catch (e: any) {
@@ -188,6 +629,19 @@ const routes = async (fastify: FastifyInstance) => {
     })
 
     // === Account & Save management (device-binding based) ===
+
+    // Select account to view saves
+    fastify.post("/selectAccount", async (request: FastifyRequest, reply: FastifyReply) => {
+        const { accountId } = (request.query || {}) as any
+        const aid = parseInt(accountId)
+        if (isNaN(aid)) {
+            if (wantsJson(request)) return reply.status(400).send({ error: "Invalid accountId" })
+            return reply.redirect('/player')
+        }
+        setSelectedAccountId(aid)
+        if (wantsJson(request)) return reply.send({ ok: true, accountId: aid })
+        return reply.redirect('/player')
+    })
 
     // Switch active save
     fastify.post("/activateSave", async (request: FastifyRequest, reply: FastifyReply) => {
@@ -222,8 +676,10 @@ const routes = async (fastify: FastifyInstance) => {
         let appliedTemplate = false
         try {
             const template = loadDefaultSaveTemplate()
-            if (template) {
-                applyPlayerSaveTemplateSync(template, player.id)
+            if (template?.data?.player) {
+                const data = reviveMergedPlayerDates(template.data)
+                data.player.id = player.id
+                replacePlayerDataSync(data)
                 appliedTemplate = true
             }
         } catch (_) { /* 模板损坏则退回空存档 */ }
@@ -247,20 +703,12 @@ const routes = async (fastify: FastifyInstance) => {
             if (getAccountPlayersSync(a.id).includes(pid)) { accountId = a.id; break }
         }
         if (accountId && getAccountPlayersSync(accountId).length <= 1) {
-            deletePlayerSync(pid)
-            deleteAccountSync(accountId)
-            try {
-                const db = require("../../data/db").getDb()
-                db.prepare(`DELETE FROM device_bindings WHERE account_id = ?`).run(accountId)
-            } catch (_) {}
-            try {
-                const { readState, writeState } = require("../../data/activeAccount")
-                const state = readState()
-                delete state.defaultPlayers[accountId]
-                writeState(state)
-            } catch (_) {}
+            const deletedPlayerIds = deleteAccountDataSync(accountId)
+            removeDeletedAccountFromState(accountId, deletedPlayerIds)
+            await cleanupDeletedPlayerAiSnapshots(deletedPlayerIds, `save ${pid} and account ${accountId} deletion`)
         } else {
             deletePlayerSync(pid)
+            await cleanupDeletedPlayerAiSnapshots([pid], `save ${pid} deletion`)
             const remainingPlayerIds = getAccountPlayersSync(accountId)
             if (getAccountDefaultPlayer(accountId) === pid && remainingPlayerIds.length > 0) {
                 saveAccountDefaultPlayer(accountId, remainingPlayerIds[0])
@@ -277,22 +725,78 @@ const routes = async (fastify: FastifyInstance) => {
         const { id } = (request.query || {}) as any
         const accountId = parseInt(id)
         if (isNaN(accountId)) return reply.status(400).send({ error: "Missing or invalid 'id'" })
-        const playerIds = getAccountPlayersSync(accountId)
-        for (const pid of playerIds) {
-            deletePlayerSync(pid)
-        }
-        // Remove device bindings pointing to this account
-        const db = require("../../data/db").getDb()
-        db.prepare(`DELETE FROM device_bindings WHERE account_id = ?`).run(accountId)
-        deleteAccountSync(accountId)
-        try {
-            const { readState, writeState } = require("../../data/activeAccount")
-            const state = readState()
-            delete state.defaultPlayers[accountId]
-            writeState(state)
-        } catch (_) {}
+        const playerIds = deleteAccountDataSync(accountId)
+        removeDeletedAccountFromState(accountId, playerIds)
+        await cleanupDeletedPlayerAiSnapshots(playerIds, `account ${accountId} deletion`)
         if (wantsJson(request)) return reply.send({ ok: true, accountId, deletedSaves: playerIds.length })
         return reply.redirect('/player')
+    })
+
+    fastify.get("/deleteUnnotedAccounts/status", async (_request: FastifyRequest, reply: FastifyReply) => {
+        return reply.send(accountCleanupJob ?? {
+            ok: true,
+            status: "idle",
+        })
+    })
+
+    // Start a background cleanup for all accounts whose device-binding notes
+    // are blank. The current active account is always preserved.
+    fastify.post("/deleteUnnotedAccounts", async (request: FastifyRequest, reply: FastifyReply) => {
+        const body = (request.body || {}) as { confirm?: unknown }
+        if (body.confirm !== "DELETE_UNNOTED_ACCOUNTS") {
+            return reply.status(400).send({ error: "Confirmation token is required" })
+        }
+        if (accountCleanupJob?.status === "running") {
+            return reply.status(409).send({
+                error: "An account cleanup job is already running",
+                job: accountCleanupJob,
+            })
+        }
+
+        const accounts = getAllAccountsSync()
+        const bindings = getAllDeviceBindingsSync()
+        const activePlayerId = getActivePlayerId()
+        const accountPlayers = new Map(accounts.map(account => [account.id, getAccountPlayersSync(account.id)]))
+        const activeAccountId = activePlayerId === null
+            ? null
+            : accounts.find(account => accountPlayers.get(account.id)?.includes(activePlayerId))?.id ?? null
+        const accountIds = selectUnnotedAccountIds(accounts.map(account => account.id), bindings, activeAccountId)
+
+        if (accountIds.length === 0) {
+            const now = new Date().toISOString()
+            accountCleanupJob = {
+                ok: true,
+                jobId: randomUUID(),
+                status: "completed",
+                phase: "finalizing",
+                startedAt: now,
+                finishedAt: now,
+                totalAccounts: 0,
+                processedAccounts: 0,
+                deletedAccounts: 0,
+                deletedSaves: 0,
+                backup: null,
+                removedBackups: 0,
+                backupCleanupError: null,
+                createdIndexes: 0,
+                batchSize: ACCOUNT_CLEANUP_BATCH_SIZE,
+                pauseMs: ACCOUNT_CLEANUP_BATCH_PAUSE_MS,
+                workerThreadId: null,
+                skippedActiveAccount: activeAccountId,
+                error: null,
+            }
+            return reply.send(accountCleanupJob)
+        }
+
+        try {
+            const job = startAccountCleanupWorker(accountIds, activeAccountId)
+            return reply.status(202).send(job)
+        } catch (error) {
+            accountCleanupJob = null
+            return reply.status(500).send({
+                error: error instanceof Error ? error.message : String(error),
+            })
+        }
     })
 
     // Rename a save
@@ -316,48 +820,31 @@ const routes = async (fastify: FastifyInstance) => {
             return reply.redirect('/player')
         }
 
-        if (getPlayerSync(playerId) === null) {
+        const serialized = getClientSerializedData(playerId, { viewerId: 0 })
+        if (!serialized) {
             if (wantsJson(request)) return reply.status(404).send({ error: "Source player not found" })
             return reply.redirect('/player')
         }
 
-        let snapshot
-        try {
-            snapshot = exportPlayerSaveV2Sync(playerId)
-        } catch (error: any) {
-            const message = `存档导出失败：${error?.message ?? error}`
-            if (wantsJson(request)) return reply.status(500).send({ error: message })
-            return reply.redirect(`/player/${playerId}?error=${encodeURIComponent(message)}`)
-        }
+        const newPlayer = insertDefaultPlayerSync(accountId)
+        setActivePlayerId(newPlayer.id)
 
-        const cloned = clonePlayerSaveV2Sync(snapshot, accountId)
-        setActivePlayerId(cloned.playerId)
+        const mergedData = deserializePlayerData(newPlayer.id, serialized)
+        replacePlayerDataSync(mergedData)
 
-        saveAccountDefaultPlayer(accountId, cloned.playerId)
-        if (wantsJson(request)) return reply.send({ ok: true, newPlayerId: cloned.playerId })
+        saveAccountDefaultPlayer(accountId, newPlayer.id)
+        if (wantsJson(request)) return reply.send({ ok: true, newPlayerId: newPlayer.id })
         return reply.redirect('/player')
     })
 
     // Device binding rename
     fastify.post("/device/rename", async (request: FastifyRequest, reply: FastifyReply) => {
-        const body = request.body as { deviceId?: unknown; name?: unknown }
-        const deviceId = body.deviceId
-        if (!Number.isSafeInteger(deviceId) || (deviceId as number) <= 0) {
-            return reply.status(400).send({ error: "Invalid deviceId" })
-        }
-        if (body.name !== undefined && typeof body.name !== "string") {
-            return reply.status(400).send({ error: "Invalid device name" })
-        }
-        const name = typeof body.name === "string" && body.name.trim() !== ""
-            ? body.name.trim()
-            : null
-        if (name !== null && name.length > 64) {
-            return reply.status(400).send({ error: "Device name must not exceed 64 characters" })
-        }
-        if (!updateDeviceBindingNameSync(deviceId as number, name)) {
-            return reply.status(404).send({ error: "Device binding not found" })
-        }
-        return reply.status(200).send({ ok: true, deviceId, name })
+        const body = request.body as { device_id: number; name: string }
+        const deviceId = body.device_id
+        if (!deviceId) return reply.status(400).send({ error: "Missing device_id" })
+
+        updateDeviceBindingNameSync(deviceId, body.name || null)
+        return reply.status(200).send({ ok: true })
     })
 }
 

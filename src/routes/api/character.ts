@@ -10,10 +10,8 @@ import { getCharacterDataSync } from "../../lib/assets";
 import { characterExpCaps, givePlayerCharacterSync } from "../../lib/character";
 import { clientSerializeDate } from "../../data/utils";
 import { resolvePlayerIdSync } from "../../data/activeAccount";
-import { getDb } from "../../data/db";
-import { reconcileAwakeUnlockCharacterList } from "../../lib/mission";
-import { getMailArrivedSync } from "../../lib/mail-notification";
-import { canClaimTownStoryCharacter } from "../../lib/story-join-character";
+import { reconcileAwakeUnlockCharacterList, settleDegreeMissionResponse } from "../../lib/mission";
+import { gameVerboseLog } from "../../lib/game-logging";
 
 interface OverLimitBody {
     viewer_id: number
@@ -46,13 +44,7 @@ const routes = async (fastify: FastifyInstance) => {
         const viewerId = body.viewer_id
         const characterId = body.character_id
         const illustration_settings = body.illustration_settings
-        if (!Number.isSafeInteger(viewerId)
-            || viewerId <= 0
-            || !Number.isSafeInteger(characterId)
-            || characterId <= 0
-            || !Array.isArray(illustration_settings)
-            || illustration_settings.length !== 6
-            || illustration_settings.some(value => !Number.isSafeInteger(value) || value < 0)) return reply.status(400).send({
+        if (isNaN(viewerId) || isNaN(characterId) || !illustration_settings) return reply.status(400).send({
             "error": "Bad Request",
             "message": "Invalid request body."
         })
@@ -65,19 +57,14 @@ const routes = async (fastify: FastifyInstance) => {
 
         // get player id
         const playerId = resolvePlayerIdSync(viewerIdSession.accountId)!
-        if (playerId === null) return reply.status(500).send({
+        if (playerId === undefined) return reply.status(500).send({
             "error": "Internal Server Error",
             "message": "No players bound to account."
         })
 
-        if (getPlayerCharacterSync(playerId, characterId) === null) return reply.status(400).send({
-            "error": "Bad Request",
-            "message": "Character not owned."
-        })
-
         // update character
         updatePlayerCharacterSync(playerId, characterId, {
-            illustrationSettings: illustration_settings
+            illustrationSettings: illustration_settings.slice(0, 6)
         })
 
         reply.header("content-type", "application/x-msgpack")
@@ -130,10 +117,6 @@ const routes = async (fastify: FastifyInstance) => {
 
         // calculate new over limit
         const overLimitCount = body.over_limit_count
-        if (!Number.isInteger(overLimitCount) || overLimitCount <= 0) return reply.status(400).send({
-            "error": "Bad Request",
-            "message": "Over limit count must be a positive integer."
-        })
         const newOverLimit = playerCharacterData.overLimitStep + overLimitCount
         const characterRarity = characterAssetData.rarity
         if (newOverLimit > characterMaxOverLimits[characterRarity]) return reply.status(400).send({
@@ -186,34 +169,38 @@ const routes = async (fastify: FastifyInstance) => {
                 "message": "Not enough of item to uncap."
             })
 
-            getDb().transaction(() => {
-                updatePlayerItemSync(playerId, itemId, newAmount)
-                updatePlayerCharacterSync(playerId, characterId, {
-                    overLimitStep: newOverLimit
-                })
-            })()
-            item_list[itemId] = newAmount
+            // update the item count
+            updatePlayerItemSync(playerId, itemId, newAmount)
+            item_list[itemId] = newAmount // add to items table
+
+            // update the character
+            updatePlayerCharacterSync(playerId, characterId, {
+                overLimitStep: newOverLimit
+            })
         }
+
+        const responseData: Record<string, any> = {
+            "character_list": [
+                {
+                    "over_limit_step": newOverLimit,
+                    "character_id": characterId,
+                    "stack": stack,
+                    "create_time": clientSerializeDate(playerCharacterData.joinTime),
+                    "update_time": clientSerializeDate(new Date()),
+                    "join_time": clientSerializeDate(playerCharacterData.joinTime)
+                }
+            ],
+            "item_list": item_list,
+            "mail_arrived": false
+        }
+        settleDegreeMissionResponse(playerId, viewerId, responseData, undefined, [9])
 
         reply.header("content-type", "application/x-msgpack")
         return reply.status(200).send({
             "data_headers": generateDataHeaders({
                 viewer_id: viewerId
             }),
-            "data": {
-                "character_list": [
-                    {
-                        "over_limit_step": newOverLimit,
-                        "character_id": characterId,
-                        "stack": stack,
-                        "create_time": clientSerializeDate(playerCharacterData.joinTime),
-                        "update_time": clientSerializeDate(new Date()),
-                        "join_time": clientSerializeDate(playerCharacterData.joinTime)
-                    }
-                ],
-                "item_list": item_list,
-                "mail_arrived": getMailArrivedSync(playerId)
-            }
+            "data": responseData
         })
     })
 
@@ -237,10 +224,9 @@ const routes = async (fastify: FastifyInstance) => {
         })
 
         const characters = getPlayerCharactersSync(playerId)
-        console.log(`[bulk_over_limit] player=${playerId} totalChars=${Object.keys(characters).length}`)
+        gameVerboseLog(() => `[bulk_over_limit] player=${playerId} totalChars=${Object.keys(characters).length}`)
 
         const characterList: any[] = []
-        const updates: Array<{ characterId: number, overLimitStep: number, stack: number }> = []
 
         for (const [charId, charData] of Object.entries(characters)) {
             if (charData.stack <= 0) continue
@@ -258,8 +244,7 @@ const routes = async (fastify: FastifyInstance) => {
             const newOverLimit = charData.overLimitStep + count
             const newStack = charData.stack - count
 
-            updates.push({
-                characterId: Number(charId),
+            updatePlayerCharacterSync(playerId, Number(charId), {
                 overLimitStep: newOverLimit,
                 stack: newStack,
             })
@@ -274,24 +259,18 @@ const routes = async (fastify: FastifyInstance) => {
             })
         }
 
-        getDb().transaction(() => {
-            for (const update of updates) {
-                updatePlayerCharacterSync(playerId, update.characterId, {
-                    overLimitStep: update.overLimitStep,
-                    stack: update.stack,
-                })
-            }
-        })()
+        gameVerboseLog(() => `[bulk_over_limit] done: ${characterList.length} characters modified`)
 
-        console.log(`[bulk_over_limit] done: ${characterList.length} characters modified`)
+        const responseData: Record<string, any> = {
+            character_list: characterList,
+            mail_arrived: false,
+        }
+        settleDegreeMissionResponse(playerId, viewerId, responseData, undefined, [9])
 
         reply.header("content-type", "application/x-msgpack")
         return reply.status(200).send({
             data_headers: generateDataHeaders({ viewer_id: viewerId }),
-            data: {
-                character_list: characterList,
-                mail_arrived: getMailArrivedSync(playerId),
-            },
+            data: responseData,
         })
     })
 
@@ -313,13 +292,7 @@ const routes = async (fastify: FastifyInstance) => {
             "error": "Internal Server Error", "message": "No player bound to account."
         })
 
-        const giveResult = getDb().transaction(() => {
-            if (!canClaimTownStoryCharacter(playerId, characterId)) return null
-            return givePlayerCharacterSync(playerId, characterId)
-        })()
-        if (!giveResult?.character) return reply.status(400).send({
-            "error": "Bad Request", "message": "Character is not available from town."
-        })
+        const giveResult = givePlayerCharacterSync(playerId, characterId)
         const existingCharacterList: Record<string, unknown>[] = giveResult?.character
             ? [giveResult.character as Record<string, unknown>]
             : []
@@ -330,14 +303,17 @@ const routes = async (fastify: FastifyInstance) => {
             ? reconcileAwakeUnlockCharacterList(playerId, existingCharacterList)
             : existingCharacterList
 
+        const responseData: Record<string, any> = {
+            "character_list": characterList,
+            "item_list": itemList,
+            "mail_arrived": false
+        }
+        settleDegreeMissionResponse(playerId, viewerId, responseData, undefined, [4])
+
         reply.header("content-type", "application/x-msgpack")
         return reply.status(200).send({
             "data_headers": generateDataHeaders({ viewer_id: viewerId }),
-            "data": {
-                "character_list": characterList,
-                "item_list": itemList,
-                "mail_arrived": getMailArrivedSync(playerId)
-            }
+            "data": responseData
         })
     })
 }

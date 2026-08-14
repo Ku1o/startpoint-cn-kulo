@@ -1,19 +1,45 @@
-import { Player, PlayerRushEvent, RushEventBattleType, UserRushEventEndlessBattleMyRankingPartyMemberListItem, UserRushEventEndlessBattleRanking, UserRushEventPlayedPartyList } from "../data/types";
+import { PartyCategory, Player, PlayerRushEvent, PlayerRushEventPlayedParty, RushEventBattleType, UserRushEventEndlessBattleMyRankingPartyMemberListItem, UserRushEventEndlessBattleRanking, UserRushEventPlayedParty } from "../data/types";
 import { getPlayerIdFromRushEventEndlessRankSync, getPlayerRushEventPlayedPartiesSync, getPlayerRushEventSync, serializePlayerRushEventPlayedParty } from "../data/domains/rushEvent"
+import { getPlayerPartyGroupListSync } from "../data/domains/party";
 import { getPlayerSync } from "../data/domains/player"
+import { getCharactersEvolutionImgLevels } from "./character";
 import { SerializedPlayerRushEventPlayedPartyList, SerializedPlayerRushEventPlayedParties } from "./types";
-import { dispatchModeRushParties } from "../modes/registry";
-import { createModeHost } from "../modes/loader";
-import type { ModeHost } from "../modes/registry";
+import {
+    MODE15_RUSH_EVENT_ID,
+    shouldUnlockMode15PlayedParties,
+    shouldUnlockMode15MultiplayerPlayedParty,
+} from "./mode15-optional";
+import { getRogueEventConfig } from "./assets";
 
-// Built on first use, not at module load: the mode host pulls in asset and
-// domain helpers, and constructing it during module initialization would
-// close an import cycle through this file.
-let rushModeHost: ModeHost | null = null;
+function clearSerializedPlayedPartyMembers(
+    party: UserRushEventPlayedParty,
+): void {
+    party.character_id_1 = party.character_id_2 = party.character_id_3 = null
+    party.unison_character_id_1 = party.unison_character_id_2 = party.unison_character_id_3 = null
+    party.evolution_img_level_1 = party.evolution_img_level_2 = party.evolution_img_level_3 = null
+    party.unison_evolution_img_level_1 = party.unison_evolution_img_level_2 = party.unison_evolution_img_level_3 = null
+}
 
-function modeHost(): ModeHost {
-    if (rushModeHost === null) rushModeHost = createModeHost(message => console.log(message));
-    return rushModeHost;
+function getMode15LegacyPartyFallbackSync(
+    playerId: number,
+): Omit<PlayerRushEventPlayedParty, "round" | "battleType"> | null {
+    for (const category of [PartyCategory.RUSH, PartyCategory.NORMAL]) {
+        const groups = getPlayerPartyGroupListSync(playerId, category);
+        for (const group of Object.values(groups)) {
+            for (const party of Object.values(group.list)) {
+                if (!party.characterIds.some(id => id !== null)) continue;
+                return {
+                    characterIds: [...party.characterIds],
+                    unisonCharacterIds: [...party.unisonCharacterIds],
+                    equipmentIds: [...party.equipmentIds],
+                    abilitySoulIds: [...party.abilitySoulIds],
+                    evolutionImgLevels: getCharactersEvolutionImgLevels(playerId, party.characterIds),
+                    unisonEvolutionImgLevels: getCharactersEvolutionImgLevels(playerId, party.unisonCharacterIds),
+                };
+            }
+        }
+    }
+    return null;
 }
 
 /**
@@ -34,20 +60,42 @@ export function getSerializedPlayerRushEventPlayedPartiesSync(
     const rushBattlePlayedPartyList: SerializedPlayerRushEventPlayedPartyList = {}
     const endlessBattlePlayedPartyList: SerializedPlayerRushEventPlayedPartyList = {}
 
-    for (const party of playedParties) {
+    let mode15LegacyFallback: ReturnType<typeof getMode15LegacyPartyFallbackSync> | undefined;
+    for (const storedParty of playedParties) {
+        let party = storedParty;
+        if (
+            eventId === MODE15_RUSH_EVENT_ID
+            && !party.characterIds.some(id => id !== null)
+        ) {
+            mode15LegacyFallback ??= getMode15LegacyPartyFallbackSync(playerId);
+            if (mode15LegacyFallback === null) {
+                // Omitting an invalid legacy marker lets the user replay the
+                // boundary floor. Sending character id 0 crashes the client.
+                continue;
+            }
+            party = { ...party, ...mode15LegacyFallback };
+        }
         const record = party.battleType === RushEventBattleType.FOLDER ? rushBattlePlayedPartyList : endlessBattlePlayedPartyList;
-        record[party.round] = serializePlayerRushEventPlayedParty(party)
+        const serializedParty = serializePlayerRushEventPlayedParty(party)
+        if (
+            shouldUnlockMode15PlayedParties(eventId)
+            || shouldUnlockMode15MultiplayerPlayedParty(eventId, party.round)
+        ) {
+            clearSerializedPlayedPartyMembers(serializedParty)
+        }
+        record[party.round] = serializedParty
     }
 
-    // Mode seam: installed mode modules may rewrite the played-party records
-    // (client character locking is derived purely from these lists). No
-    // modules → no-op.
-    dispatchModeRushParties({
-        playerId,
-        eventId,
-        folderParties: rushBattlePlayedPartyList as unknown as Record<number, Record<string, unknown>>,
-        endlessParties: endlessBattlePlayedPartyList as unknown as Record<number, Record<string, unknown>>,
-    }, modeHost())
+    // Deep Abyss keeps the round markers (so the next floor advances) but
+    // deliberately clears member ids.  This mirrors the upstream roguelike
+    // behavior and lets the same party participate in later rounds.
+    if (getRogueEventConfig(eventId)?.unlock_played_parties === true) {
+        for (const record of [rushBattlePlayedPartyList, endlessBattlePlayedPartyList]) {
+            for (const party of Object.values(record)) {
+                clearSerializedPlayedPartyMembers(party)
+            }
+        }
+    }
 
     // return parties
     return {

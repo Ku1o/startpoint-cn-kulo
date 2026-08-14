@@ -16,8 +16,7 @@ import {
 import { getPlayerSync } from "../../data/domains/player"
 import { getPlayerQuestProgressSync } from "../../data/domains/quest"
 import { getMissionBattleCountersSync } from "../../data/domains/mission_battle_facts"
-import { getPlayerCharacterClearSync } from "../../data/domains/character_clear"
-import { ShopType } from "../types"
+import { getPlayerCharacterClearsSync } from "../../data/domains/character_clear"
 import { getActiveMissionConditionalBattleFactsSync } from "../../data/domains/active_mission_battle_condition_facts"
 import { getActiveMissionBattleFactsSync } from "../../data/domains/active_mission_battle_facts"
 import {
@@ -73,8 +72,6 @@ const PATTERN_BATTLE_CLEAR_WITH_MANA_BOARD_2ND = 71
 const PATTERN_BATTLE_CLEAR_WITH_LEVEL_80_CHARACTER = 72
 const PATTERN_BATTLE_CLEAR_WITH_LEVEL_100_CHARACTER = 73
 const PATTERN_BATTLE_CLEAR_WITH_SPECIFIC_CHARACTER = 89
-const PATTERN_BATTLE_CLEAR_WITH_SPECIFIC_SKILL = 90
-const PATTERN_BATTLE_CLEAR_WITH_FULL_SKILL_START = 91
 const COME_BACK_EVENT_STRING_ID = "come_back_mission"
 
 const QUEST_CATEGORY_BY_RANGE_KIND: Readonly<Record<number, number | readonly number[]>> = Object.freeze({
@@ -113,6 +110,8 @@ export interface ReconcileActiveMissionFactsInput {
     readonly repository: ReadonlyContentRepository
     readonly now: number | Date
     readonly isEventEligible?: (context: ActiveMissionEventEligibilityContext) => boolean
+    /** Restrict reconciliation to mission patterns affected by the mutation. */
+    readonly patterns?: readonly number[]
 }
 
 export interface ActiveMissionFactCharacter {
@@ -453,8 +452,6 @@ export function computeActiveMissionFactProgress(
             return state.conditionalBattleFacts[`${pattern}:${characterId}`] ?? 0
         }
         case PATTERN_BATTLE_CLEAR_WITH_SPECIFIC_CHARACTER:
-        case PATTERN_BATTLE_CLEAR_WITH_SPECIFIC_SKILL:
-        case PATTERN_BATTLE_CLEAR_WITH_FULL_SKILL_START:
             return missionId === undefined ? null : state.loadoutBattleFacts[String(missionId)] ?? 0
         case PATTERN_EPISODE_CLEAR_COUNT: {
             const storyQuestIds = new Set(
@@ -518,26 +515,103 @@ export function computeActiveMissionFactProgress(
     }
 }
 
+interface ActiveMissionFactRequirements {
+    readonly patterns: ReadonlySet<number>
+    readonly characters: boolean
+    readonly characterStories: boolean
+    readonly equipment: boolean
+    readonly manaNodes: boolean
+    readonly purchases: boolean
+    readonly party: boolean
+    readonly counters: boolean
+    readonly battleCounters: boolean
+    readonly chapterQuests: boolean
+    readonly practiceCounter: boolean
+    readonly leaderClears: boolean
+    readonly conditionalBattleFacts: boolean
+    readonly loadoutBattleFacts: boolean
+}
+
+function buildActiveMissionFactRequirements(
+    definitions: readonly ReturnType<typeof getActiveMissionMasterDefinitions>[number][],
+): ActiveMissionFactRequirements {
+    const patterns = new Set(definitions.map(definition => Number(definition.row[29])))
+    return {
+        patterns,
+        characters: [
+            PATTERN_CHARACTERS_COUNT,
+            PATTERN_CHARACTER_LEVEL_ACHIEVEMENT,
+            PATTERN_TOTAL_OBTAINED_BOND_TOKEN_COUNT,
+            PATTERN_OVER_LIMIT_TOTAL_COUNT,
+            PATTERN_EPISODE_CLEAR_COUNT,
+            PATTERN_EVOLVED_CHARACTER_COUNT,
+        ].some(pattern => patterns.has(pattern)),
+        characterStories: patterns.has(PATTERN_EPISODE_CLEAR_COUNT),
+        equipment: patterns.has(PATTERN_LEVEL_MAX_EQUIPMENT_COUNT)
+            || patterns.has(PATTERN_UPGRADE_EQUIPMENT_COUNT),
+        manaNodes: patterns.has(PATTERN_TOTAL_RELEASED_MANA_NODE_COUNT)
+            || patterns.has(PATTERN_TOTAL_RELEASED_ABILITY_NODE_COUNT)
+            || patterns.has(PATTERN_MANA_BOARD_2ND_COMPLETE_COUNT),
+        purchases: patterns.has(PATTERN_TREASURE_SHOP_BOUGHT_ITEM_COUNT)
+            || patterns.has(PATTERN_TRADED_COUNT_TO_EQUIPMENT_BY_BOSS_COIN)
+            || patterns.has(PATTERN_BOSS_COIN_EXCHANGE),
+        party: patterns.has(PATTERN_SET_SOUL_SPHERE_COUNT),
+        counters: patterns.has(PATTERN_TOTAL_USED_MANA_COUNT)
+            || patterns.has(PATTERN_TOTAL_GACHA_CHARACTER_COUNT)
+            || patterns.has(PATTERN_EQUIPPED_FIRST_TIME)
+            || patterns.has(PATTERN_SET_UNISON_FIRST_TIME)
+            || patterns.has(PATTERN_SET_PARTY_CHARACTER)
+            || patterns.has(PATTERN_INJECTED_EXP_FIRST_TIME)
+            || patterns.has(PATTERN_GACHA_CAMPAIGN),
+        battleCounters: patterns.has(14)
+            || patterns.has(16)
+            || patterns.has(17)
+            || patterns.has(PATTERN_SS_RANK_COUNT),
+        chapterQuests: patterns.has(PATTERN_CHAPTER_COMPLETE),
+        practiceCounter: patterns.has(PATTERN_QUEST_CHALLENGE),
+        leaderClears: patterns.has(PATTERN_BATTLE_CLEAR_WITH_SPECIFIC_PARTY),
+        conditionalBattleFacts: patterns.has(PATTERN_BATTLE_CLEAR_WITH_MANA_BOARD_2ND)
+            || patterns.has(PATTERN_BATTLE_CLEAR_WITH_LEVEL_80_CHARACTER)
+            || patterns.has(PATTERN_BATTLE_CLEAR_WITH_LEVEL_100_CHARACTER),
+        loadoutBattleFacts: patterns.has(PATTERN_BATTLE_CLEAR_WITH_SPECIFIC_CHARACTER),
+    }
+}
+
+const EMPTY_BATTLE_COUNTERS = Object.freeze({
+    singlePlayCount: 0,
+    singleClearCount: 0,
+    multiPlayCount: 0,
+    multiClearCount: 0,
+    multiHostClearCount: 0,
+    multiGuestClearCount: 0,
+    singleRankSsCount: 0,
+    rankSsCount: 0,
+    rankSCount: 0,
+    rankACount: 0,
+    rankBCount: 0,
+})
+
+const EMPTY_ACTIVE_COUNTERS = Object.freeze({
+    totalUsedManaCount: 0,
+    totalGachaCharacterCount: 0,
+    totalEquipmentEquipCount: 0,
+    totalUnisonSetCount: 0,
+    totalPartyCharacterSetCount: 0,
+    totalInjectedExpCount: 0,
+    totalGachaCampaignCount: 0,
+})
+
 function buildActiveMissionFactState(
     playerId: number,
     player: NonNullable<ReturnType<typeof getPlayerSync>>,
     finishedQuestIds: ReadonlySet<number>,
     questProgress: readonly ActiveMissionFactQuestProgress[],
     repository: ReadonlyContentRepository,
+    requirements: ActiveMissionFactRequirements,
 ): ActiveMissionFactState {
-    const characterList = getPlayerCharactersSync(playerId)
-    const mainQuestTable = readRepositoryTable<Record<string, unknown>>(repository, "main_quest.json")
-    const exQuestTable = readRepositoryTable<Record<string, unknown>>(repository, "ex_quest.json")
-    const battleQuestIds = (table: Readonly<Record<string, unknown>>, offset: number): number[] => (
-        Object.entries(table).flatMap(([questId, quest]) => {
-            const parsedQuestId = Number(questId)
-            if (!Number.isSafeInteger(parsedQuestId)
-                || quest === null
-                || typeof quest !== "object"
-                || !("rankPointReward" in quest)) return []
-            return [parsedQuestId + offset]
-        })
-    )
+    const characterList = requirements.characters || requirements.manaNodes
+        ? getPlayerCharactersSync(playerId)
+        : {}
     const characterTable = readRepositoryTable<Record<string, { readonly rarity?: number }>>(
         repository,
         "character.json",
@@ -549,10 +623,12 @@ function buildActiveMissionFactState(
             rarity: characterTable[characterId]?.rarity,
         },
     ]))
-    const manaNodes = getPlayerCharactersManaNodesSync(playerId)
+    const manaNodes = requirements.manaNodes
+        ? getPlayerCharactersManaNodesSync(playerId)
+        : {}
     const manaBoardNodes: Record<string, Record<string, number[]>> = {}
     const manaNodeSlots: Record<string, Record<string, number>> = {}
-    for (const characterId of Object.keys(characters)) {
+    for (const characterId of requirements.manaNodes ? Object.keys(characters) : []) {
         const boards: Record<string, number[]> = {}
         const slots: Record<string, number> = {}
         for (let level = 1; level <= 2; level++) {
@@ -567,32 +643,33 @@ function buildActiveMissionFactState(
         manaBoardNodes[characterId] = boards
         manaNodeSlots[characterId] = slots
     }
-    const equipment = Object.entries(getPlayerEquipmentListSync(playerId)).map(([equipmentId, item]) => ({
+    const equipmentMaxLevels = requirements.equipment
+        ? readRepositoryTable<Record<string, { readonly max_level?: number }>>(
+            repository,
+            "equipment_dissolve.json",
+        )
+        : {}
+    const equipment = Object.entries(requirements.equipment ? getPlayerEquipmentListSync(playerId) : {}).map(([equipmentId, item]) => ({
         level: item.level,
         enhancementLevel: item.enhancementLevel,
-        maxLevel: (() => {
-            const row = readRepositoryTable<Record<string, { readonly max_level?: number }>>(
-                repository,
-                "equipment_dissolve.json",
-            )[equipmentId]
-            return row?.max_level ?? 5
-        })(),
+        maxLevel: equipmentMaxLevels[equipmentId]?.max_level ?? 5,
     }))
-    const treasurePurchases = getPlayerShopPurchasesMapSync(playerId, ShopType.TREASURE)
-    const bossCoinPurchases = getPlayerShopPurchasesMapSync(playerId, ShopType.BOSS_COIN)
-    const counters = getActiveMissionCountersSync(playerId)
-    const battleCounters = getMissionBattleCountersSync(playerId)
-    const treasureShopItemIds = new Set(Object.keys(readRepositoryTable<Record<string, unknown>>(
+    const purchases = requirements.purchases ? getPlayerShopPurchasesMapSync(playerId) : {}
+    const counters = requirements.counters ? getActiveMissionCountersSync(playerId) : EMPTY_ACTIVE_COUNTERS
+    const battleCounters = requirements.battleCounters
+        ? getMissionBattleCountersSync(playerId)
+        : EMPTY_BATTLE_COUNTERS
+    const treasureShopItemIds = new Set(Object.keys(requirements.purchases ? readRepositoryTable<Record<string, unknown>>(
         repository,
         "treasure_shop.json",
-    )))
-    const bossCoinShopItemIds = new Set(Object.keys(readRepositoryTable<Record<string, unknown>>(
+    ) : {}))
+    const bossCoinShopItemIds = new Set(Object.keys(requirements.purchases ? readRepositoryTable<Record<string, unknown>>(
         repository,
         "boss_coin_shop_item_category_map.json",
-    )))
-    const bossCoinShopItems = readRepositoryTable<Record<string, Record<string, {
+    ) : {}))
+    const bossCoinShopItems = requirements.purchases ? readRepositoryTable<Record<string, Record<string, {
         readonly rewards?: readonly { readonly type?: number }[]
-    }>>>(repository, "boss_coin_shop.json")
+    }>>>(repository, "boss_coin_shop.json") : {}
     const bossCoinEquipmentShopItemIds = new Set<string>()
     for (const category of Object.values(bossCoinShopItems)) {
         for (const [itemId, item] of Object.entries(category ?? {})) {
@@ -601,7 +678,7 @@ function buildActiveMissionFactState(
             }
         }
     }
-    const partyAbilitySoulCount = Object.values(getPlayerPartyGroupListSync(playerId)).reduce((total, group) => (
+    const partyAbilitySoulCount = Object.values(requirements.party ? getPlayerPartyGroupListSync(playerId) : {}).reduce((total, group) => (
         total + Object.values(group.list ?? {}).reduce((partyTotal, party) => (
             partyTotal + (party.abilitySoulIds ?? []).filter(id => id !== null && id !== undefined).length
         ), 0)
@@ -611,21 +688,23 @@ function buildActiveMissionFactState(
         battleCounters,
         finishedQuestIds,
         questProgress,
-        chapterQuestIds: {
-            "1": battleQuestIds(mainQuestTable, 0),
-            "4": battleQuestIds(exQuestTable, 10_000_000),
-        },
-        practiceQuestChallengeCount: getActiveMissionPracticeQuestChallengeCountSync(playerId),
-        leaderClearCounts: Object.fromEntries(Object.keys(characters).map(characterId => {
-            const clears = getPlayerCharacterClearSync(playerId, Number(characterId))
-            return [characterId, {
+        chapterQuestIds: requirements.chapterQuests ? getChapterQuestIds(repository) : {},
+        practiceQuestChallengeCount: requirements.practiceCounter
+            ? getActiveMissionPracticeQuestChallengeCountSync(playerId)
+            : 0,
+        leaderClearCounts: Object.fromEntries(Object.entries(requirements.leaderClears ? getPlayerCharacterClearsSync(playerId) : {}).map(([characterId, clears]) => (
+            [characterId, {
                 all: Math.max(0, clears.leader_clear_count),
                 multi: Math.max(0, clears.leader_multi_count),
             }]
-        })),
-        conditionalBattleFacts: getActiveMissionConditionalBattleFactsSync(playerId),
-        loadoutBattleFacts: getActiveMissionBattleFactsSync(playerId),
-        characterStoryQuestIds: Object.fromEntries(Object.keys(characters).map(characterId => [
+        ))),
+        conditionalBattleFacts: requirements.conditionalBattleFacts
+            ? getActiveMissionConditionalBattleFactsSync(playerId)
+            : {},
+        loadoutBattleFacts: requirements.loadoutBattleFacts
+            ? getActiveMissionBattleFactsSync(playerId)
+            : {},
+        characterStoryQuestIds: Object.fromEntries((requirements.characterStories ? Object.keys(characters) : []).map(characterId => [
             characterId,
             getCharacterStoryQuestIds(characterId),
         ])),
@@ -635,13 +714,13 @@ function buildActiveMissionFactState(
         manaBoardNodes,
         manaNodeSlots,
         partyAbilitySoulCount,
-        treasureShopPurchaseCount: Object.entries(treasurePurchases).reduce((total, [itemId, count]) => (
+        treasureShopPurchaseCount: Object.entries(purchases).reduce((total, [itemId, count]) => (
             treasureShopItemIds.has(itemId) ? total + Math.max(0, count) : total
         ), 0),
-        bossCoinShopPurchaseCount: Object.entries(bossCoinPurchases).reduce((total, [itemId, count]) => (
+        bossCoinShopPurchaseCount: Object.entries(purchases).reduce((total, [itemId, count]) => (
             bossCoinShopItemIds.has(itemId) ? total + Math.max(0, count) : total
         ), 0),
-        bossCoinEquipmentShopPurchaseCount: Object.entries(bossCoinPurchases).reduce((total, [itemId, count]) => (
+        bossCoinEquipmentShopPurchaseCount: Object.entries(purchases).reduce((total, [itemId, count]) => (
             bossCoinEquipmentShopItemIds.has(itemId) ? total + Math.max(0, count) : total
         ), 0),
         totalUsedManaCount: counters.totalUsedManaCount,
@@ -652,6 +731,37 @@ function buildActiveMissionFactState(
         totalInjectedExpCount: counters.totalInjectedExpCount,
         totalGachaCampaignCount: counters.totalGachaCampaignCount,
     }
+}
+
+const chapterQuestIdsCache = new WeakMap<ReadonlyContentRepository, Readonly<Record<string, readonly number[]>>>()
+
+function getChapterQuestIds(
+    repository: ReadonlyContentRepository,
+): Readonly<Record<string, readonly number[]>> {
+    const cached = chapterQuestIdsCache.get(repository)
+    if (cached) return cached
+    const battleQuestIds = (table: Readonly<Record<string, unknown>>, offset: number): number[] => (
+        Object.entries(table).flatMap(([questId, quest]) => {
+            const parsedQuestId = Number(questId)
+            if (!Number.isSafeInteger(parsedQuestId)
+                || quest === null
+                || typeof quest !== "object"
+                || !("rankPointReward" in quest)) return []
+            return [parsedQuestId + offset]
+        })
+    )
+    const result = Object.freeze({
+        "1": Object.freeze(battleQuestIds(
+            readRepositoryTable<Record<string, unknown>>(repository, "main_quest.json"),
+            0,
+        )),
+        "4": Object.freeze(battleQuestIds(
+            readRepositoryTable<Record<string, unknown>>(repository, "ex_quest.json"),
+            10_000_000,
+        )),
+    })
+    chapterQuestIdsCache.set(repository, result)
+    return result
 }
 
 function readRepositoryTable<T>(
@@ -683,11 +793,11 @@ function computeAuthoritativeProgress(
     if (pattern === PATTERN_TARGET_MISSION_CLEAR) {
         const missionIds = parseIntegerList(row[55], "target mission ids")
         if (missionIds.length === 0) return 0
-        return missionIds.every(missionId => isMissionComplete(
+        return missionIds.filter(missionId => isMissionComplete(
             missionId,
             activeMissions,
             repository,
-        )) ? 1 : 0
+        )).length
     }
     return null
 }
@@ -739,19 +849,28 @@ export function reconcileActiveMissionFacts(
             leaderCharacterId: progress.leaderCharacterId,
             multiClearCount: Math.max(0, progress.multiClearCount ?? 0),
         })))
-        const finishedQuestIds = new Set(Object.values(questProgress).flatMap(progressList => (
-            progressList.filter(progress => progress.finished).map(progress => progress.questId)
+        const finishedQuestIds = new Set(Object.entries(questProgress).flatMap(([category, progressList]) => (
+            progressList
+                .filter(progress => progress.finished)
+                .map(progress => normalizeActiveMissionQuestId(Number(category), progress.questId))
         )))
         const activeMissions = normalizeActiveMissions(getPlayerActiveMissionsSync(input.playerId))
+        const requestedPatterns = input.patterns === undefined
+            ? undefined
+            : new Set(input.patterns.filter(pattern => Number.isSafeInteger(pattern) && pattern >= 0))
+        const definitions = [...getActiveMissionMasterDefinitions(input.repository)]
+            .filter(definition => requestedPatterns === undefined
+                || requestedPatterns.has(Number(definition.row[29])))
+            .sort((left, right) => left.missionId - right.missionId)
+        const requirements = buildActiveMissionFactRequirements(definitions)
         const factState = buildActiveMissionFactState(
             input.playerId,
             player,
             finishedQuestIds,
             questProgressFacts,
             input.repository,
+            requirements,
         )
-        const definitions = [...getActiveMissionMasterDefinitions(input.repository)]
-            .sort((left, right) => left.missionId - right.missionId)
         const deltas = new Map<number, { progress: number, stages: Set<number> }>()
 
         // 事实只会单调增加；固定点确保同一次 /load 内 phase 与目标任务依赖可继续推进。

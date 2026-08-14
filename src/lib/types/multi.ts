@@ -36,12 +36,6 @@ export interface MultiMate {
 }
 
 
-export interface RoomNpcAssignment {
-    com_id: 1 | 2
-    name: string
-}
-
-
 export interface MultiRoom {
     room_number: string
     access_token: string
@@ -56,12 +50,14 @@ export interface MultiRoom {
     raising_state: number
     room_sequence: number
     host_entry_time: number
-    member_viewer_ids: number[]
     mates: Array<{ viewer_id: number | null, com_id: number, player_id?: number }>
     share_room_options: number
     is_npc_mode: boolean
     npc_count: number  // fixed NPC count per battle: 0=unrecruited, 1/2=fixed count
-    npc_roster: RoomNpcAssignment[]
+    expected_real_viewer_ids: number[]
+    lobby_generation: number
+    rematch_wait_started_at: number | null
+    settlement_return_pending: boolean
 }
 
 

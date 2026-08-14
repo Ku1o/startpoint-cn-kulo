@@ -3,48 +3,20 @@
   "version": "1.0.1",
   "description": "世界弹射物语(World Flipper)CN(雷霆)版本服务端模拟器",
   "main": "server.ts",
-  "workspaces": [
-    "admin"
-  ],
   "scripts": {
-    "build": "npm run build:server",
-    "typecheck": "node --max-old-space-size=4096 node_modules/typescript/bin/tsc --noEmit",
-    "build:server": "node tools/test-workflow/build-cn.cjs",
-    "build:bundle": "npm run build:server && node tools/server-bundle/build.cjs",
-    "build:legacy": "node --max-old-space-size=4096 node_modules/typescript/bin/tsc -p tsconfig.json",
-    "dev": "npm run build:server && node --env-file=.env out/server.js",
-    "cdn": "npm run build:legacy && node --env-file=.env out/validate_cdn.js",
-    "unzip": "npm run build:legacy && node --env-file=.env out/unzip_cdn.js",
-    "debug": "npm run debug:ts-only",
+    "build": "npx tsc && npm run css",
+    "typecheck": "tsc --noEmit",
+    "css": "npx tailwindcss -i ./src/input.css -o ./web/public/tailwind.css",
+    "css:watch": "npx tailwindcss -i ./src/input.css -o ./web/public/tailwind.css --watch --poll",
+    "dev": "npm run build && node --env-file=.env out/server.js",
+    "cdn": "npx tsc & node --env-file=.env out/validate_cdn.js",
+    "unzip": "npx tsc & node --env-file=.env out/unzip_cdn.js",
+    "debug": "npm run css && npm run css:watch & npm run debug:ts-only",
     "debug:ts-only": "tsnd --inspect -- src/server.ts",
-    "start:cn": "node tools/start_cn.cjs",
-    "dev:cn": "npm run build:server && node tools/start_cn.cjs",
+    "dev:cn": "npm run build && node --env-file=.env out/cn-server.js",
     "debug:cn": "tsnd --env-file=.env -- src/cn-server.ts",
-    "cdn:manifest": "node tools/generate_cdn_runtime_manifest.cjs",
-    "cdn:patch:check": "node tools/cdn_patch_check.cjs",
-    "content:sync": "node tools/content_sync.cjs",
-    "content:audit": "node tools/content_asset_audit.cjs",
-    "content:smoke": "node tools/content_sync_smoke.cjs",
-    "content:mission-event-rules": "node scripts/gen_mission_event_battle_rules.js",
-    "content:pass": "node scripts/gen_pass_mission_data.js",
-    "content:active-mission": "node scripts/gen_active_mission_data.js",
-    "gacha:seeds:extract-config": "node tools/gacha-faithful/amf3_decode.cjs",
-    "gacha:seeds:build": "node tools/gacha-faithful/build_catalog.cjs",
-    "gacha:seeds:verify": "node tools/gacha-faithful/verify_catalog.cjs",
-    "gacha:seeds:audit": "node tools/gacha-faithful/audit_catalog.cjs",
-    "verify:bundle": "node tools/server-bundle/verify.cjs",
-    "pack:bundle": "npm run build:bundle && npm run verify:bundle && node tools/server-bundle/pack.cjs",
-    "verify:runtime-pack": "node tools/runtime-pack/verify.cjs",
-    "build:admin": "npm run build --workspace=starpoint-admin",
-    "dev:admin": "npm run dev --workspace=starpoint-admin",
-    "test:quick": "node tools/test-workflow/run.cjs --group quick",
-    "test:changed": "node tools/test-workflow/run.cjs --changed",
-    "test:integration": "node tools/test-workflow/run.cjs --group integration",
-    "test:full": "node tools/test-workflow/run.cjs --group full",
-    "benchmark:workflow": "node tools/test-workflow/benchmark.cjs",
-    "docs:check": "node tools/docs_check.cjs",
-    "hygiene": "bash scripts/check-hygiene.sh --all",
-    "verify:full": "npm run typecheck && npm run docs:check && npm run test:full && npm run hygiene && npm run build:server"
+    "build:admin": "cd admin && npm install && npm run build",
+    "dev:admin": "cd admin && npm run dev"
   },
   "author": "",
   "license": "GPL-3.0-or-later",
@@ -55,9 +27,8 @@
     "@types/node": "^20.14.2",
     "@types/readline-sync": "^1.4.8",
     "@types/unzipper": "^0.10.9",
-    "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0",
-    "typescript": "5.4.5"
+    "typescript": "^5.4.5"
   },
   "dependencies": {
     "@fastify/multipart": "^9.0.0",
@@ -68,9 +39,10 @@
     "fastify": "^5.0.0",
     "msgpackr": "^1.11.0",
     "readline-sync": "^1.4.10",
+    "tailwindcss": "^3.2.0",
     "unzipper": "^0.12.3"
   },
   "engines": {
-    "node": ">=20.12.0"
+    "node": ">=20.0.0"
   }
 }

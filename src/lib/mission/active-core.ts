@@ -259,9 +259,12 @@ function isQuestFinished(
     questId: number | undefined,
 ): boolean {
     if (questId === undefined) return true
-    return Object.values(questProgress).some(progressList => progressList.some(
-        progress => progress.questId === questId && progress.finished === true,
-    ))
+    return Object.entries(questProgress).some(([category, progressList]) => progressList.some(progress => {
+        const normalizedQuestId = Number(category) === 4 && progress.questId < 10_000_000
+            ? progress.questId + 10_000_000
+            : progress.questId
+        return normalizedQuestId === questId && progress.finished === true
+    }))
 }
 
 function isActiveMissionUsable(

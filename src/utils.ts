@@ -62,6 +62,21 @@ export function getTimeOffset(): number | null {
 }
 
 /**
+ * Returns server time for a specific player.
+ * Uses player.time_offset if set, otherwise falls back to global server offset.
+ */
+export function getServerTimeForPlayer(playerId?: number): number {
+    if (playerId) {
+        try {
+            const { getPlayerTimeOffsetSync } = require("./data/activeAccount");
+            const offset = getPlayerTimeOffsetSync(playerId);
+            if (offset !== null) return Math.floor((Date.now() + offset) / 1000);
+        } catch {}
+    }
+    return getServerTime();
+}
+
+/**
  * Converts a server time value (unix epoch in seconds) into a Date.
  * 
  * @param serverTime The unix epoch value.
@@ -90,10 +105,14 @@ export function generateIdpAlias(
 /**
  * Generates a random viewer ID using the crypto library.
  * 
- * @returns A number between 100,000,000 and 999,999,999
+ * @returns A number between 100,000,000 and 899,999,999.
+ *
+ * Values from 900,000,000 onward are reserved by the multiplayer protocol
+ * for COM/AI participants. Assigning a real account one of those values makes
+ * older clients treat that player as an AI and omit them from co-op results.
  */
 export function generateViewerId(): number {
-    return randomInt(100000000, 999999999)
+    return randomInt(100000000, 900000000)
 }
 
 export interface DataHeaders {

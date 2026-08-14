@@ -101,10 +101,6 @@ function rewardRow(targetProgress = 1) {
 }
 
 const tables = {
-    "daily_challenge_point_lookup.json": require("../assets/daily_challenge_point_lookup.json"),
-    "character.json": require("../assets/character.json"),
-    "mana_node.json": {},
-    "mana_board2_open_condition.json": {},
     "mission_active.json": {
         90001: [missionRow({ eventId: 901, pattern: 57, questKind: 0, questA: 1, questB: 8, questC: 4 })],
         90002: [missionRow({ eventId: 901, pattern: 57, questKind: 1, questA: 1, questB: 8, questC: 1 })],
@@ -118,7 +114,7 @@ const tables = {
             pattern: 13,
             missionIds: "90001,90002,90003,90004,90005,90006",
         })],
-        90008: [missionRow({ eventId: 902, pattern: 13, missionIds: "90001,99999" })],
+        90008: [missionRow({ eventId: 902, pattern: 13, missionIds: "99998,99999" })],
         90009: [missionRow({ eventId: 903, pattern: 57, questKind: 0, questA: 1, questB: 8, questC: 5 })],
         90010: [missionRow({
             eventId: 904,
@@ -148,9 +144,9 @@ const tables = {
         90003: { 1: [rewardRow()] },
         90004: { 1: [rewardRow(3)] },
         90005: { 1: [rewardRow(20)] },
-        90006: { 1: [rewardRow()] },
-        90007: { 1: [rewardRow()] },
-        90008: { 1: [rewardRow()] },
+        90006: { 1: [rewardRow(3)] },
+        90007: { 1: [rewardRow(6)] },
+        90008: { 1: [rewardRow(2)] },
         90009: { 1: [rewardRow()] },
         90010: { 1: [rewardRow()] },
         90011: { 1: [rewardRow()] },
@@ -261,7 +257,10 @@ async function main() {
     for (const missionId of [90001, 90002, 90003, 90004, 90005, 90006, 90007, 90013]) {
         const expectedProgress = missionId === 90004 || missionId === 90013
             ? 3
-            : missionId === 90005 ? 20 : 1
+            : missionId === 90005 ? 20
+                : missionId === 90006 ? 3
+                    : missionId === 90007 ? 6
+                        : 1
         assert.equal(firstById[missionId]?.progress_value, expectedProgress)
         assert.deepEqual(firstById[missionId]?.stages, [{ stage: 1, received: false }])
     }
@@ -277,7 +276,7 @@ async function main() {
     assert.equal(firstById[90013]?.progress_value, 3, "普通 kind 1 Normal 事件不得被误判为 Comeback")
     assert.equal(
         getPlayerActiveMissionsSync(playerId)[90007].progress,
-        1,
+        6,
         "同一次 reconcile 必须通过固定点完成前置任务并开放 phase 2",
     )
     assert.equal(

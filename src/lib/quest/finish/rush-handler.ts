@@ -34,16 +34,15 @@ interface RushHandlerParams {
     playerId: number
     questId: number
     getEvoLevels: (playerId: number, charIds: (number | null)[]) => (number | null)[]
-    folderMaxRounds: Record<number, number | undefined>
+    getFolderMaxRounds: (eventId: number, folderId: number) => number
     getRushEvent: (playerId: number, eventId: number) => any | null
     updateRushEvent: (playerId: number, data: any) => void
     insertParty: (playerId: number, eventId: number, data: any) => void
-    insertClearedFolder: (playerId: number, eventId: number, folderId: number) => boolean
+    insertClearedFolder: (playerId: number, eventId: number, folderId: number) => void
     deletePartyList: (playerId: number, eventId: number, battleType: number) => void
     getSerializedParties: (playerId: number, eventId: number) => any
     getFolderRewards: (eventId: number, folderId: number) => any[] | null
     giveRewards: (playerId: number, rewards: any[]) => any | null
-    transaction: <T>(operation: () => T) => T
 }
 
 export function handleRushEventFinish(params: RushHandlerParams): {
@@ -51,15 +50,21 @@ export function handleRushEventFinish(params: RushHandlerParams): {
     rushEventRewardsResult: PlayerRewardResult | null
 } {
     const { questCategory, questAccomplished, questData, clearTime, party, playerId, questId,
-        getEvoLevels, folderMaxRounds, getRushEvent, updateRushEvent,
+        getEvoLevels, getFolderMaxRounds, getRushEvent, updateRushEvent,
         insertParty, insertClearedFolder, deletePartyList,
-        getSerializedParties, getFolderRewards, giveRewards, transaction } = params
+        getSerializedParties, getFolderRewards, giveRewards } = params
 
     let rushEventData: ReturnRushEvent | null = null
     let rushEventRewardsResult: PlayerRewardResult | null = null
-    let rushBattleRewards: EquipmentItemReward[] = []
 
-    if (questCategory !== QuestCategory.RUSH_EVENT || !questAccomplished) {
+    if (questCategory !== QuestCategory.RUSH_EVENT) {
+        return { rushEventData, rushEventRewardsResult }
+    }
+
+    // A failed Rush battle must never advance the played-party round or grant
+    // a folder reward.  Custom mode reset handling runs in the route after the
+    // ordinary settlement has finished.
+    if (!questAccomplished) {
         return { rushEventData, rushEventRewardsResult }
     }
 
@@ -88,7 +93,7 @@ export function handleRushEventFinish(params: RushHandlerParams): {
     if (rushEventBattleType === RushEventBattleType.ENDLESS) {
         const playerRushEventData = getRushEvent(playerId, rushEventId)
         const playerNextRound = playerRushEventData?.endlessBattleNextRound ?? 1
-        const playerMaxRound = playerRushEventData?.endlessBattleMaxRound ?? 0
+        const playerMaxRound = playerRushEventData?.endlessBattleMaxRound ?? 1
         const playerBestClearTime = playerRushEventData?.endlessBattleMaxRoundTime ?? Number.MAX_SAFE_INTEGER
         round = playerNextRound
 
@@ -120,17 +125,11 @@ export function handleRushEventFinish(params: RushHandlerParams): {
             battleType: rushEventBattleType, round
         })
     } else if (rushEventBattleType === RushEventBattleType.FOLDER) {
-        const isFolderFinal = rushEventRound >= (folderMaxRounds[rushEventFolderId] ?? 0)
+        const isFolderFinal = rushEventRound >= getFolderMaxRounds(rushEventId, rushEventFolderId)
         if (isFolderFinal) {
-            transaction(() => {
-                const isFirstClear = insertClearedFolder(playerId, rushEventId, rushEventFolderId)
-                updateRushEvent(playerId, { eventId: rushEventId, activeRushBattleFolderId: null })
-                deletePartyList(playerId, rushEventId, rushEventBattleType)
-                if (!isFirstClear) return
-
-                rushBattleRewards = getFolderRewards(rushEventId, rushEventFolderId) ?? []
-                rushEventRewardsResult = giveRewards(playerId, rushBattleRewards)
-            })
+            insertClearedFolder(playerId, rushEventId, rushEventFolderId)
+            updateRushEvent(playerId, { eventId: rushEventId, activeRushBattleFolderId: null })
+            deletePartyList(playerId, rushEventId, rushEventBattleType)
         } else {
             insertParty(playerId, rushEventId, {
                 characterIds, unisonCharacterIds,
@@ -145,11 +144,7 @@ export function handleRushEventFinish(params: RushHandlerParams): {
     const serializedPlayedParties = getSerializedParties(playerId, rushEventId)
     const isEndless = rushEventBattleType === RushEventBattleType.ENDLESS
     rushEventData = {
-        "rush_battle_reward_list": rushBattleRewards.map(reward => ({
-            "kind": 1,
-            "kind_id": reward.id,
-            "number": reward.count,
-        })),
+        "rush_battle_reward_list": [],
         "rush_battle_played_party_list": serializedPlayedParties.folderParties,
         "endless_battle_played_party_list": serializedPlayedParties.endlessParties,
         "is_out_of_period": false,
@@ -159,6 +154,19 @@ export function handleRushEventFinish(params: RushHandlerParams): {
         "best_elapsed_time_ms": isEndless ? newBestElapsedTimeMs : null,
         "old_endless_battle_max_round": isEndless ? oldEndlessMaxRound : null,
         "old_best_elapsed_time_ms": isEndless ? oldBestElapsedTimeMs : null
+    }
+
+    if (rushEventBattleType === RushEventBattleType.FOLDER && rushEventRound >= getFolderMaxRounds(rushEventId, rushEventFolderId)) {
+        const rewards = getFolderRewards(rushEventId, rushEventFolderId) ?? []
+        rushEventRewardsResult = giveRewards(playerId, rewards)
+        // Currency rewards (beads/mana/exp) do not carry an item id. They are
+        // already granted through user_info, and serializing an undefined
+        // kind_id crashes the legacy result panel.
+        rushEventData.rush_battle_reward_list = rewards.flatMap(reward => {
+            const itemReward = reward as EquipmentItemReward
+            if (itemReward.id === undefined || itemReward.id === null) return []
+            return [{ "kind": 1, "kind_id": itemReward.id, "number": itemReward.count }]
+        })
     }
 
     return { rushEventData, rushEventRewardsResult }
