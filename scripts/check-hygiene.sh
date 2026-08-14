@@ -34,6 +34,8 @@ while IFS= read -r f; do
     sz=$(wc -c < "$f" 2>/dev/null || echo 0)
     if [ "$sz" -gt 1048576 ]; then
         case "$f" in
+            assets/asset-patch/active/*.zip) ;;   # 部署必需的客户端增量包
+            tools/fantasy-gauntlet-mod-tools/WF_PATHLIST_recovered.txt) ;; # MOD 工具路径索引
             *.json|*.csv|*.md) ;;                 # 允许大数据/文档
             *) note "大文件 >1MB(二进制不应入库,改用生成脚本): $f" ;;
         esac
