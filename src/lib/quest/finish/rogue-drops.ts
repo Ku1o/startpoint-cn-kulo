@@ -4,6 +4,7 @@ import { givePlayerCharactersExpSync } from "../../character"
 import { givePlayerRewardsSync } from "../../quest"
 import type { AddExpList, ClientReturnBondTokenStatusList, ClientReturnCharacter, PlayerRewardResult, Reward, RushEventFolder } from "../../types"
 import { QuestCategory, RewardType } from "../../types"
+import { resolveRogueRoundDrops } from "./rogue-drop-schedule"
 
 // Client-side kind values accepted by RushEventLogic.rewardListToGeneralRewardKinds
 // (anything else throws ClientError 3446): 1=Item, 5=Character, 6=Equipment.
@@ -82,8 +83,9 @@ export function handleRoguePerRoundDrops(params: RogueDropParams): RogueDropOutc
     const config = getRogueEventConfig(rushEventId)
     if (config === null) return null
 
-    // fixed drops (per_round_drops) + weighted random pool (drop_pool × pool_draws)
-    const dropsConfig: any[] = Array.isArray(config.per_round_drops) ? [...config.per_round_drops] : []
+    // fixed drops (per_round_drops, optionally constrained by inclusive
+    // `rounds: [min,max]`) + weighted random pool (drop_pool × pool_draws)
+    const dropsConfig: any[] = resolveRogueRoundDrops(config, rushEventRound)
     const pool: any[] = Array.isArray(config.drop_pool) ? config.drop_pool : []
     const draws = Math.max(0, Math.floor(Number(config.pool_draws) || 0))
     if (pool.length > 0 && draws > 0) {

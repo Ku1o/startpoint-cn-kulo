@@ -9,6 +9,9 @@
 ## 游戏系统
 - [狂热激战](./systems/rush-event.md) · [体力](./systems/stamina.md) · [商店](./systems/shop.md) · [漫画](./systems/comic.md) · [邮件](./systems/mail.md) · [存档与校验](./systems/save-validation.md)
 
+## 新人指南
+- [新手入门与私服特色](./新手入门与私服特色.md)
+
 ## CDN
 - [机制总览](./cdn/overview.md) · [客户端流程](./cdn/client-flow.md) · [排查手册](./cdn/debugging.md)
 

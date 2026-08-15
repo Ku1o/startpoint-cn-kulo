@@ -13,11 +13,16 @@ import { SessionType } from "../../data/types";
 import { getActivePlayerId, getSelectedAccountId, getAccountDefaultPlayer } from "../../data/activeAccount";
 import characterTable from "../../../docs/generated/character_table.json";
 import itemLookup from "../../../assets/item_lookup.json";
+import cnmodItemLookup from "../../../assets/item_lookup_cnmod.json";
 import equipmentLookup from "../../../assets/equipment_lookup.json";
 import questLookup from "../../../assets/quest_lookup.json";
 
 interface CharInfo { name: string; title: string; rarity: string; element: string }
 const charLookup: Record<number, CharInfo> = {}
+const mergedItemLookup = {
+    ...(itemLookup as Record<string, string>),
+    ...(cnmodItemLookup as Record<string, string>),
+}
 for (const c of (characterTable as { id: number; name: string; title: string; rarity: string; element: string }[])) {
     charLookup[c.id] = { name: c.name, title: c.title, rarity: c.rarity, element: c.element }
 }
@@ -230,7 +235,7 @@ const routes = async (fastify: FastifyInstance) => {
         const items = getPlayerItemsSync(parsedPlayerId);
         let itemsHtml = '';
         for (const [itemId, count] of Object.entries(items)) {
-            const itemName = (itemLookup as Record<string, string>)[itemId] || '-';
+            const itemName = mergedItemLookup[itemId] || '-';
             itemsHtml += `<tr>
                 <td class="p-1">${htmlEscape(itemName)}</td>
                 <td class="p-1 text-xs text-on-surface-variant">${itemId}</td>

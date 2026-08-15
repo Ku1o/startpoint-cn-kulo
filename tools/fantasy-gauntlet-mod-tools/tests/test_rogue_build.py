@@ -49,6 +49,22 @@ class TestRushEventMetadata(unittest.TestCase):
         self.assertEqual([expected], [rogue_build.cells(actual)])
         self.assertIs(str, type(actual))
 
+    def test_folder_preview_matches_server_fixed_rewards(self):
+        template = [f"template-{index}" for index in range(37)]
+
+        actual = rogue_build.cells(
+            rogue_build.build_deep_abyss_folder_leaf(
+                rogue_build.join(template, False),
+            )
+        )
+
+        self.assertEqual(["1", "1", rogue_build.EVENT_NAME], actual[:3])
+        self.assertEqual(["0", "99", "1500"], actual[7:10])
+        self.assertEqual(["0", rogue_build.TOKEN_ID, "50"], actual[10:13])
+        self.assertEqual(["0", "11003", "2"], actual[13:16])
+        for base in range(16, 37, 3):
+            self.assertEqual(["(None)", "", "(None)"], actual[base:base + 3])
+
 
 class TestBossKindSynchronization(unittest.TestCase):
     def setUp(self):

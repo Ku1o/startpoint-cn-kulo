@@ -1053,6 +1053,15 @@
     "race": "Human,Element"
   },
   {
+    "id": 139998,
+    "name": "拉姆斯",
+    "title": "鸣彻碧海的雷龙",
+    "rarity": "5★",
+    "element": "雷",
+    "gender": "女性",
+    "race": "Dragon"
+  },
+  {
     "id": 139999,
     "name": "史黛拉（夏日）",
     "title": "布的面积",

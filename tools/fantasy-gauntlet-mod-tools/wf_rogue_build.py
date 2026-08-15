@@ -2346,6 +2346,24 @@ def join(row: list[str], as_bytes: bool):
     return s.encode("utf-8") if as_bytes else s
 
 
+def build_deep_abyss_folder_leaf(template_leaf: bytes | str) -> bytes | str:
+    """Build the client-visible fixed clear rewards for event 700099."""
+    row = list(cells(template_leaf))
+    if len(row) != 37:
+        raise ValueError(f"rush folder template has {len(row)} columns, expected 37")
+    row[0] = "1"              # display_order
+    row[1] = "1"              # quest_kind = rush folder
+    row[2] = EVENT_NAME
+    # Chance/random extras stay server-driven and are intentionally omitted
+    # from this static preview.
+    for base in range(7, 37, 3):
+        row[base:base + 3] = ["(None)", "", "(None)"]
+    row[7:10] = ["0", "99", "1500"]
+    row[10:13] = ["0", TOKEN_ID, "50"]
+    row[13:16] = ["0", "11003", "2"]
+    return join(row, isinstance(template_leaf, bytes))
+
+
 def fmt(v: float) -> str:
     s = f"{v:.4f}".rstrip("0").rstrip(".")
     return s or "0"
@@ -2821,12 +2839,8 @@ def main() -> int:
 
     # ---- ② folder 行(连战=700007 超级 folder 3 模板;无尽=folder 4 模板)----
     fo = q.load_table(Q_FOLDER)
-    tmpl_fo = cells(fo[TEMPLATE_EVENT]["3"])
+    folder_leaf = build_deep_abyss_folder_leaf(fo[TEMPLATE_EVENT]["3"])
     fo_bytes = isinstance(fo[TEMPLATE_EVENT]["3"], bytes)
-    fo_row = list(tmpl_fo)
-    fo_row[0] = "1"           # display_order
-    fo_row[1] = "1"           # quest_kind = rush folder
-    fo_row[2] = EVENT_NAME
     fo_endless = list(cells(fo[TEMPLATE_EVENT]["4"]))
     fo_endless[0] = "100"
     fo_endless[1] = "2"       # quest_kind = endless(缺它 = 点∞按钮 C3442)
@@ -3405,7 +3419,7 @@ def main() -> int:
 
     ev[EVENT_ID] = join(ev_row, ev_bytes)
     save(Q_EVENT, ev)
-    fo[EVENT_ID] = {"1": join(fo_row, fo_bytes), "2": join(fo_endless, fo_bytes)}
+    fo[EVENT_ID] = {"1": folder_leaf, "2": join(fo_endless, fo_bytes)}
     save(Q_FOLDER, fo)
     qt[EVENT_ID] = {k: join(v, qt_bytes) for k, v in quest_rows.items()}
     save(Q_QUEST, qt)

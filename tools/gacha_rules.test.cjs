@@ -27,17 +27,24 @@ const characterGacha = {
   },
 };
 
-assert.deepStrictEqual(getGachaTicketCost(GACHA_EXEC_TYPES.SINGLE_TICKET, 1, characterGacha), {
+assert.deepStrictEqual(getGachaTicketCost(GACHA_EXEC_TYPES.CONFIGURED_SINGLE_TICKET, 1, characterGacha), {
   itemId: 20001,
   useTicketCount: 1,
   pullCount: 1,
 });
-assert.deepStrictEqual(getGachaTicketCost(GACHA_EXEC_TYPES.MULTI_TICKET, 2, characterGacha), {
+assert.deepStrictEqual(getGachaTicketCost(GACHA_EXEC_TYPES.CONFIGURED_MULTI_TICKET, 2, characterGacha), {
   itemId: 20002,
   useTicketCount: 2,
   pullCount: 20,
 });
-assert.strictEqual(getGachaTicketCost(GACHA_EXEC_TYPES.SINGLE_WEAPON_TICKET, 1, characterGacha), null);
+assert.strictEqual(
+  getGachaTicketCost(GACHA_EXEC_TYPES.WILDCARD_EQUIPMENT_SINGLE_TICKET, 1, characterGacha),
+  null,
+);
+assert.strictEqual(
+  getGachaTicketCost(GACHA_EXEC_TYPES.WILDCARD_CHARACTER_SINGLE_TICKET, 1, characterGacha),
+  null,
+);
 
 const wildcardCharacterGacha = {
   type: 0,
@@ -46,7 +53,7 @@ const wildcardCharacterGacha = {
   pool: {},
 };
 assert.strictEqual(
-  getGachaTicketCost(GACHA_EXEC_TYPES.SINGLE_TICKET, 1, wildcardCharacterGacha).itemId,
+  getGachaTicketCost(GACHA_EXEC_TYPES.WILDCARD_CHARACTER_SINGLE_TICKET, 1, wildcardCharacterGacha).itemId,
   999003,
 );
 
@@ -56,7 +63,14 @@ const noTicketGacha = {
   wildcardTicketAvailable: false,
   pool: {},
 };
-assert.strictEqual(getGachaTicketCost(GACHA_EXEC_TYPES.SINGLE_TICKET, 1, noTicketGacha), null);
+assert.strictEqual(
+  getGachaTicketCost(GACHA_EXEC_TYPES.WILDCARD_CHARACTER_SINGLE_TICKET, 1, noTicketGacha),
+  null,
+);
+assert.strictEqual(
+  getGachaTicketCost(GACHA_EXEC_TYPES.CONFIGURED_SINGLE_TICKET, 1, noTicketGacha),
+  null,
+);
 
 const equipmentGacha = {
   type: 1,
@@ -70,12 +84,15 @@ const equipmentGacha = {
     ],
   },
 };
-assert.deepStrictEqual(getGachaTicketCost(GACHA_EXEC_TYPES.SINGLE_WEAPON_TICKET, 1, equipmentGacha), {
+assert.deepStrictEqual(getGachaTicketCost(GACHA_EXEC_TYPES.CONFIGURED_SINGLE_TICKET, 1, equipmentGacha), {
   itemId: 20005,
   useTicketCount: 1,
   pullCount: 1,
 });
-assert.strictEqual(getGachaTicketCost(GACHA_EXEC_TYPES.SINGLE_TICKET, 1, equipmentGacha), null);
+assert.strictEqual(
+  getGachaTicketCost(GACHA_EXEC_TYPES.WILDCARD_CHARACTER_SINGLE_TICKET, 1, equipmentGacha),
+  null,
+);
 
 assert.strictEqual(getExchangeableGachaItem(characterGacha, 111001).id, 111001);
 assert.strictEqual(getExchangeableGachaItem(characterGacha, 111002), null);
@@ -86,11 +103,11 @@ const oneTimeTicketOnly = {
   pageKind: GACHA_PAGE_KINDS.ONE_TIME_TICKET_ONLY,
 };
 assert.strictEqual(
-  isGachaExecAllowed(oneTimeTicketOnly, GACHA_PAYMENT_TYPES.TICKET, GACHA_EXEC_TYPES.SINGLE_TICKET),
+  isGachaExecAllowed(oneTimeTicketOnly, GACHA_PAYMENT_TYPES.TICKET, GACHA_EXEC_TYPES.CONFIGURED_SINGLE_TICKET),
   true,
 );
 assert.strictEqual(
-  isGachaExecAllowed(oneTimeTicketOnly, GACHA_PAYMENT_TYPES.TICKET, GACHA_EXEC_TYPES.MULTI_TICKET),
+  isGachaExecAllowed(oneTimeTicketOnly, GACHA_PAYMENT_TYPES.TICKET, GACHA_EXEC_TYPES.CONFIGURED_MULTI_TICKET),
   false,
 );
 assert.strictEqual(
@@ -103,11 +120,11 @@ const tenTicketOnly = {
   pageKind: GACHA_PAGE_KINDS.TEN_TIMES_TICKET_ONLY,
 };
 assert.strictEqual(
-  isGachaExecAllowed(tenTicketOnly, GACHA_PAYMENT_TYPES.TICKET, GACHA_EXEC_TYPES.MULTI_TICKET),
+  isGachaExecAllowed(tenTicketOnly, GACHA_PAYMENT_TYPES.TICKET, GACHA_EXEC_TYPES.CONFIGURED_MULTI_TICKET),
   true,
 );
 assert.strictEqual(
-  isGachaExecAllowed(tenTicketOnly, GACHA_PAYMENT_TYPES.TICKET, GACHA_EXEC_TYPES.SINGLE_TICKET),
+  isGachaExecAllowed(tenTicketOnly, GACHA_PAYMENT_TYPES.TICKET, GACHA_EXEC_TYPES.CONFIGURED_SINGLE_TICKET),
   false,
 );
 

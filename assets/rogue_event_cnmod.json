@@ -1,0 +1,14 @@
+{
+  "events": {
+    "700099": {
+      "folder_clear_chance": [
+        {
+          "type": 0,
+          "id": 999014,
+          "count": 1,
+          "chance": 0.05
+        }
+      ]
+    }
+  }
+}
