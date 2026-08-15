@@ -333,8 +333,8 @@ const routes = async (fastify: FastifyInstance) => {
             "error": "Bad Request",
             "message": "No pull currency."
         })
-        const newPullCurrency = playerPullCurrency - (Math.abs(pullCount) * boxGachaData.redeemItemCount)
-        if (0 > newPullCurrency) return reply.status(400).send({
+        const maximumPullCost = Math.abs(pullCount) * boxGachaData.redeemItemCount
+        if (playerPullCurrency < maximumPullCost) return reply.status(400).send({
             "error": "Bad Request",
             "message": "Not enough pull currency."
         })
@@ -363,6 +363,11 @@ const routes = async (fastify: FastifyInstance) => {
         // perform the draws
         const drawResult = drawBoxGachaSync(boxRewards, playerDrawnRewards, pullCount, stopOnFeaturedRewards)
         const drawnRewards = drawResult.rewards
+        const actualPullCost = drawResult.drawCount * boxGachaData.redeemItemCount
+        const newPullCurrency = playerPullCurrency - actualPullCost
+        console.log(
+            `[BOX] exec result: boxGachaId=${boxGachaId} boxId=${boxId} requested=${pullCount} actual=${drawResult.drawCount} cost=${actualPullCost} stopOnFeatured=${stopOnFeaturedRewards}`
+        )
 
         // reward the player
         const rewardResult = rewardPlayerBoxGachaResultSync(playerId, drawResult)

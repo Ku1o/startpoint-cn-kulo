@@ -401,6 +401,7 @@ export function drawBoxGachaSync(
     })
 
     return {
+        drawCount: totalDraws,
         mana: drawnMana,
         exp: drawnExp,
         characters: drawnCharacters,
