@@ -13,7 +13,7 @@ function tokenCount(round) {
     .reduce((sum, drop) => sum + Number(drop.count), 0);
 }
 
-assert.equal(tokenCount(0), 5, "endless mode keeps its existing per-battle reward");
+assert.equal(tokenCount(0), 0, "endless mode must not grant Deep Abyss tokens");
 assert.equal(tokenCount(1), 1);
 assert.equal(tokenCount(2), 5);
 assert.equal(tokenCount(20), 5);
