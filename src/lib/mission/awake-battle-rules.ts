@@ -53,6 +53,11 @@ interface ExactQuestRule {
     singleOnly: boolean
 }
 
+// CharacterAwakeMissionValues parses mission 1310052's quest_kind=Practice
+// from row[12]. The CN master row contains "25" there; 96 was an earlier
+// mistaken interpretation and does not match the quest ID sent at settlement.
+export const BARAK_AWAKE_PRACTICE_QUEST_ID = 25
+
 const QUEST_PARTY_RULES: readonly QuestPartyRule[] = Object.freeze([
     {
         // Current CN client route for 寄居蟹船长 地狱级.
@@ -138,7 +143,7 @@ const EXACT_QUEST_RULES: readonly ExactQuestRule[] = Object.freeze([
         // can otherwise erase an earlier valid clear.
         missionId: 1310052,
         category: 15,
-        questIds: [96],
+        questIds: [BARAK_AWAKE_PRACTICE_QUEST_ID],
         leaderCharacterId: 131005,
         singleOnly: true,
     },

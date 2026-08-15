@@ -128,6 +128,8 @@ const tables = {
         })],
         90012: [missionRow({ eventId: 906, pattern: 0 })],
         90013: [missionRow({ eventId: 907, pattern: 0 })],
+        90014: [missionRow({ eventId: 901, pattern: 90 })],
+        90015: [missionRow({ eventId: 901, pattern: 91 })],
     },
     "mission_active_event.json": {
         901: [eventRow({ maxPhase: 2 })],
@@ -152,6 +154,8 @@ const tables = {
         90011: { 1: [rewardRow()] },
         90012: { 1: [rewardRow()] },
         90013: { 1: [rewardRow()] },
+        90014: { 1: [rewardRow()] },
+        90015: { 1: [rewardRow()] },
     },
 }
 
@@ -251,15 +255,25 @@ async function main() {
     addQuest(500005001, true)
     addQuest(1008005, false)
     updatePlayerSync({ id: playerId, totalLoginDays: 3, totalStaminaUsed: 20 })
+    db.prepare(`
+        INSERT INTO players_active_mission_battle_facts (player_id, mission_id, progress)
+        VALUES (?, ?, ?)
+    `).run(playerId, 90014, 5)
+    db.prepare(`
+        INSERT INTO players_active_mission_battle_facts (player_id, mission_id, progress)
+        VALUES (?, ?, ?)
+    `).run(playerId, 90015, 2)
 
     const first = reconcileActiveMissionFacts({ playerId, repository, now: serverNow })
     const firstById = Object.fromEntries(first.map(delta => [delta.mission_id, delta]))
-    for (const missionId of [90001, 90002, 90003, 90004, 90005, 90006, 90007, 90013]) {
+    for (const missionId of [90001, 90002, 90003, 90004, 90005, 90006, 90007, 90013, 90014, 90015]) {
         const expectedProgress = missionId === 90004 || missionId === 90013
             ? 3
             : missionId === 90005 ? 20
                 : missionId === 90006 ? 3
                     : missionId === 90007 ? 6
+                        : missionId === 90014 ? 5
+                            : missionId === 90015 ? 2
                         : 1
         assert.equal(firstById[missionId]?.progress_value, expectedProgress)
         assert.deepEqual(firstById[missionId]?.stages, [{ stage: 1, received: false }])
