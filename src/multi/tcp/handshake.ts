@@ -30,6 +30,7 @@ import { sessionManager } from "../state/SessionManager"
 import type { SessionClient } from "../state/SessionManager"
 import { gameVerboseLog } from "../../lib/game-logging"
 import { ClientState } from "../types"
+import { roomAdmissionRegistry } from "../room/admission"
 
 export function buildRealParty(playerId: number, targetParty?: PlayerParty): any {
     const emptyChar = [1]
@@ -247,10 +248,19 @@ export async function handleHandshake(socket: net.Socket, data: any): Promise<vo
             || currentRoom.mates.some(mate => mate.viewer_id === Number(viewerId))
         const waitingForExpectedMember = currentRoom.lobby_generation > 0
             && currentRoom.expected_real_viewer_ids.some(expectedViewerId => !liveViewerIds.has(expectedViewerId))
+        const admissionReserved = roomAdmissionRegistry.has(
+            roomId,
+            currentRoom.lobby_generation,
+            Number(viewerId),
+        )
+        const missingAdmission = !viewerAlreadyConnected
+            && !isReturningMember
+            && !admissionReserved
         const roomUnavailable = (!viewerAlreadyConnected && liveClients.length >= 3)
             || (!isReturningMember && currentRoom.raising_state === 4)
             || (!isReturningMember && waitingForExpectedMember)
             || sessionManager.isRoomRestoreBlocked(roomId, Number(viewerId))
+            || missingAdmission
 
         if (roomUnavailable) {
             const reasons = [
@@ -258,12 +268,14 @@ export async function handleHandshake(socket: net.Socket, data: any): Promise<vo
                 !isReturningMember && currentRoom.raising_state === 4 ? "battle_started" : "",
                 !isReturningMember && waitingForExpectedMember ? "waiting_for_returning_member" : "",
                 sessionManager.isRoomRestoreBlocked(roomId, Number(viewerId)) ? "restore_blocked" : "",
+                missingAdmission ? "not_reserved" : "",
             ].filter(Boolean).join(",")
             console.warn(
                 `[TCP] room handshake unavailable: viewer=${viewerId} room=${roomId}`
                 + ` live=${liveClients.length} state=${currentRoom.raising_state}`
                 + ` reason=${reasons || "unknown"}`,
             )
+            roomAdmissionRegistry.release(roomId, Number(viewerId))
             // Normal stale/full cases are filtered before the TCP handshake.
             // Keep a protocol-level race fallback without looking up a missing
             // CN UiString key (room_full/room_not_found both cause C8601).
@@ -272,6 +284,13 @@ export async function handleHandshake(socket: net.Socket, data: any): Promise<vo
             return
         }
 
+        if (admissionReserved) {
+            roomAdmissionRegistry.consume(
+                roomId,
+                currentRoom.lobby_generation,
+                Number(viewerId),
+            )
+        }
         const playerId = playerIds[0]
         const connectionId = data.connection_id || data.connectionId || `${socket.remoteAddress}:${socket.remotePort}`
         const client = sessionManager.createClient(socket, Number(viewerId), roomId, String(connectionId), playerId)

@@ -12,6 +12,7 @@ import { sessionManager } from "../../multi/state/SessionManager"
 import { takeRandomRecruitments } from "../../multi/recruitment"
 import { gameVerboseLog } from "../../lib/game-logging"
 import { isNewbiePlayerSync } from "../../lib/newbie"
+import { roomAdmissionRegistry } from "../../multi/room/admission"
 
 interface CheckBody {
     viewer_id: number
@@ -67,7 +68,19 @@ const routes = async (fastify: FastifyInstance) => {
             if (room.is_npc_mode || room.raising_state === 4) return false
             if (!sessionManager.isHostOnline(room.host_viewer_id, room.room_number, room.lobby_generation)) return false
             if (isRoomWaitingForExpectedMember(room)) return false
-            return sessionManager.getRoomClientCount(room.room_number, room.lobby_generation) < 3
+            const occupiedViewerIds = new Set<number>([room.host_viewer_id])
+            for (const client of sessionManager.getClientsInRoom(room.room_number, room.lobby_generation)) {
+                if (client.isBattle
+                    || client.socket.destroyed
+                    || !client.socket.readable
+                    || !client.socket.writable) continue
+                occupiedViewerIds.add(client.viewerId)
+            }
+            return roomAdmissionRegistry.getOccupancy(
+                room.room_number,
+                room.lobby_generation,
+                occupiedViewerIds,
+            ) < 3
         })
 
         const multi = recruitments.flatMap(recruitment => {

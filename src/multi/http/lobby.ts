@@ -20,6 +20,9 @@ import { gameVerboseLog } from "../../lib/game-logging"
 import { isNewbiePlayerSync } from "../../lib/newbie"
 import { canJoinMode15RescueSync, canStartMode15QuestSync, isMode15Quest } from "../../lib/mode15-optional"
 import { isMode15RoomClosed } from "../mode15-room-gate"
+import { roomAdmissionRegistry } from "../room/admission"
+
+const ROOM_CAPACITY = 3
 
 async function getViewerIdAndPlayer(viewerId: number): Promise<{ playerId: number; player: any } | null> {
     const sid = await getSession(viewerId.toString())
@@ -37,8 +40,24 @@ function isReturningMember(room: MultiRoom, viewerId: number): boolean {
         || room.mates.some(mate => mate.viewer_id === viewerId)
 }
 
-function getCurrentLobbyClientCount(room: MultiRoom): number {
-    return sessionManager.getRoomClientCount(room.room_number, room.lobby_generation)
+function getCurrentLobbyViewerIds(room: MultiRoom): Set<number> {
+    const viewerIds = new Set<number>([room.host_viewer_id])
+    for (const client of sessionManager.getClientsInRoom(room.room_number, room.lobby_generation)) {
+        if (client.isBattle
+            || client.socket.destroyed
+            || !client.socket.readable
+            || !client.socket.writable) continue
+        viewerIds.add(client.viewerId)
+    }
+    return viewerIds
+}
+
+function getCurrentLobbyOccupancy(room: MultiRoom): number {
+    return roomAdmissionRegistry.getOccupancy(
+        room.room_number,
+        room.lobby_generation,
+        getCurrentLobbyViewerIds(room),
+    )
 }
 
 function canEnterMode15Room(playerId: number, room: Pick<MultiRoom, "category" | "quest_id">): boolean {
@@ -95,7 +114,7 @@ export function registerLobbyRoutes(fastify: FastifyInstance): void {
             .filter(r => !r.is_npc_mode && r.raising_state !== 4)
             .filter(r => !isMode15RoomClosed(r))
             .filter(r => sessionManager.isHostOnline(r.host_viewer_id, r.room_number, r.lobby_generation))
-            .filter(r => getCurrentLobbyClientCount(r) < 3)
+            .filter(r => getCurrentLobbyOccupancy(r) < ROOM_CAPACITY)
             // Every non-host entrant to a Mode15 boss room is a helper.  Room
             // code, follow sharing and random recruitment must therefore use
             // the same repeatable rescue gate instead of the helper's own run
@@ -238,21 +257,40 @@ export function registerLobbyRoutes(fastify: FastifyInstance): void {
             && !returningMember
             && wasStoppedRandomRecruitmentDeliveredTo(room.room_number, viewerId)
             && (room.is_npc_mode || !isRandomRecruiting(room.room_number))
-        const isUnavailable = !!room && (
+        const isUnavailableWithoutCapacity = !!room && (
             mode15RoomClosed
-            || (!isReturningMember(room, viewerId) && (
+            || (!returningMember && (
                 room.raising_state === 4
-                || getCurrentLobbyClientCount(room) >= 3
                 || isRoomWaitingForExpectedMember(room)
                 || staleRescueNotice
                 || mode15Blocked
             ))
         )
         const restoreBlocked = !!room && sessionManager.isRoomRestoreBlocked(room.room_number, viewerId)
-        if (!room || isUnavailable || restoreBlocked) {
+        const capacityDenied = !!room
+            && !returningMember
+            && !isUnavailableWithoutCapacity
+            && !restoreBlocked
+            && !roomAdmissionRegistry.reserve(
+                room.room_number,
+                room.lobby_generation,
+                viewerId,
+                getCurrentLobbyViewerIds(room),
+                ROOM_CAPACITY,
+            )
+        if (!room || isUnavailableWithoutCapacity || restoreBlocked || capacityDenied) {
+            if (room && !returningMember) {
+                roomAdmissionRegistry.release(room.room_number, viewerId)
+            }
             if (mode15RoomClosed) {
                 console.log(
                     `[MODE15] select_room denied: completed host room=${room?.room_number} viewer=${viewerId}`,
+                )
+            }
+            if (capacityDenied) {
+                console.log(
+                    `[MULTI] select_room denied before TCP: viewer=${viewerId}`
+                    + ` room=${room?.room_number} reason=capacity_reserved`,
                 )
             }
             reply.header("content-type", "application/x-msgpack")
