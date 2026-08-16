@@ -13,8 +13,12 @@ export function relayToBattleRoom(
     // and must not cause one member of this packet fan-out to be skipped.
     const recipients = sessionManager.snapshotBattleRelayRecipients(source)
     recordBattleRelay(source, recipients, relayKind, transportTag, data)
+    if (recipients.length === 0) return
+    // Every recipient receives the same immutable protocol payload. Serialize
+    // once per logical fan-out instead of once per teammate.
+    const frame = JSON.stringify(data) + "\0"
     for (const client of recipients) {
-        sessionManager.sendJson(client.socket, data, {
+        sessionManager.sendFrame(client.socket, frame, {
             roomNumber: source.roomNumber,
             connectionId: client.connectionId,
             viewerId: client.viewerId,

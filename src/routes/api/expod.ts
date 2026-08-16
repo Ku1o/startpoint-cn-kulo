@@ -4,11 +4,11 @@ import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { getAccountPlayers } from "../../data/domains/account"
 import { getPlayerCharacterSync, getPlayerCharactersSync, updatePlayerCharacterSync } from "../../data/domains/character"
 import { getPlayerItemsSync, givePlayerItemSync } from "../../data/domains/item"
-import { adjustPlayerExpPoolSync, getPlayerSync, updatePlayerSync } from "../../data/domains/player"
+import { adjustPlayerExpPoolSync, collectPlayerDataPooledExpSync, getPlayerSync } from "../../data/domains/player"
 import { getSession } from "../../data/domains/session"
 import { characterMaxOverLimits } from "./character";
 import { givePlayerCharactersExpSync } from "../../lib/character";
-import { generateDataHeaders, getServerTime } from "../../utils";
+import { generateDataHeaders, getServerDate, getServerTime } from "../../utils";
 import { getCharacterDataSync } from "../../lib/assets";
 import { clientSerializeDate } from "../../data/utils";
 import { resolvePlayerIdSync } from "../../data/activeAccount";
@@ -303,24 +303,48 @@ const routes = async (fastify: FastifyInstance) => {
             "message": "Player does not own character."
         })
 
-        // make sure that the player has enough exp
-        const addExp = Math.abs(body.exp)
-        const playerExpPool = player.expPool
-        if (addExp > playerExpPool) return reply.status(400).send({
-            "error": "Internal Server Error",
-            "message": "Not enough exp."
+        // Some CN clients send the spend as a negative delta. Accept either
+        // sign, but reject zero, fractional and unsafe values before touching
+        // the player's balance.
+        const rawRequestedExp = body.exp
+        if (typeof rawRequestedExp !== "number"
+            || !Number.isSafeInteger(rawRequestedExp)
+            || rawRequestedExp === 0) return reply.status(400).send({
+            "error": "Bad Request",
+            "message": "Invalid exp amount."
         })
-        
-        const playerAfterExpPool = player.expPool - addExp
+        const requestedExp = Math.abs(rawRequestedExp)
+        const requestTime = getServerDate()
+        let expPooledTime = player.expPooledTime
 
         const rewardResult = getDb().transaction(() => {
-            // 经验池扣除、角色经验写入和首次注入动作计数必须原子提交。
-            updatePlayerSync({
-                id: playerId,
-                expPool: playerAfterExpPool,
-            })
-            const result = givePlayerCharactersExpSync(playerId, [characterId], addExp, false)
-            incrementActiveMissionInjectedExpCountSync(playerId)
+            // Refresh passive pooled EXP before comparing with the amount the
+            // client displayed, then read and deduct the authoritative balance
+            // in the same transaction. A stale client may request slightly
+            // more than remains; spend the remainder instead of returning an
+            // HTTP 400, which the legacy client treats as a fatal H400 logout.
+            const beforeSpend = getPlayerSync(playerId)
+            if (beforeSpend === null) throw new Error(`Player ${playerId} disappeared during EXP injection`)
+            collectPlayerDataPooledExpSync(beforeSpend, requestTime)
+            const refreshedPlayer = getPlayerSync(playerId)
+            if (refreshedPlayer === null) throw new Error(`Player ${playerId} disappeared during EXP refresh`)
+
+            const spendExp = Math.min(requestedExp, refreshedPlayer.expPool)
+            if (spendExp < requestedExp) {
+                console.warn(
+                    `[EXP_POOL] clamped inject player=${playerId} requested=${requestedExp} available=${refreshedPlayer.expPool}`
+                )
+            }
+            if (spendExp > 0) {
+                const afterDeduction = adjustPlayerExpPoolSync(playerId, -spendExp, "inject_exp")
+                if (afterDeduction === null) {
+                    throw new Error(`Failed to deduct EXP pool for player ${playerId}`)
+                }
+            }
+
+            const result = givePlayerCharactersExpSync(playerId, [characterId], spendExp, false)
+            if (spendExp > 0) incrementActiveMissionInjectedExpCountSync(playerId)
+            expPooledTime = getPlayerSync(playerId)?.expPooledTime ?? refreshedPlayer.expPooledTime
             return result
         })()
 
@@ -329,7 +353,7 @@ const routes = async (fastify: FastifyInstance) => {
             "character_list": rewardResult.character_list,
             "user_info": {
                 "exp_pool": rewardResult.exp_pool,
-                "exp_pooled_time": getServerTime(player.expPooledTime)
+                "exp_pooled_time": getServerTime(expPooledTime)
             },
         }
         settleDegreeMissionResponse(playerId, viewerId, responseData, undefined, [5, 44], [characterId])

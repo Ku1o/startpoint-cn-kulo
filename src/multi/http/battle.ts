@@ -236,6 +236,7 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
 
     // ---- finish ----
     fastify.post("/finish", async (request: FastifyRequest, reply: FastifyReply) => {
+        const finishHandlerStartedAt = process.hrtime.bigint();
         const body = request.body as MultiFinishBody;
         const viewerId = body.viewer_id;
         gameVerboseLog(() => `[MULTI] finish: viewer=${viewerId} quest=${body.quest_id} category=${body.category} room=${body.room_number}`);
@@ -275,7 +276,13 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
         }
 
         const settlementSnapshot = getMultiSettlementSnapshot(playerId, body.play_id);
-        const activeQuestData = activeQuests[playerId] ?? settlementSnapshot?.activeQuest;
+        const currentActiveQuest = activeQuests[playerId];
+        // A delayed finish from the previous generation must use its frozen
+        // snapshot. Taking the current active quest first can settle or clear a
+        // rematch that merely happens to belong to the same player.
+        const activeQuestData = currentActiveQuest?.playId === body.play_id
+            ? currentActiveQuest
+            : settlementSnapshot?.activeQuest;
         if (activeQuestData === undefined) {
             return reply.status(400).send({
                 "error": "Bad Request", "message": "No active quest to finish."
@@ -313,12 +320,14 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
             });
         }
 
+        recordSettlementPhase(
+            "multi",
+            "preflight",
+            Number(process.hrtime.bigint() - finishHandlerStartedAt) / 1_000_000,
+        );
         const coreStartedAt = process.hrtime.bigint();
-        transitionMultiSettlementSnapshot(playerId, body.play_id, "SETTLING");
-
-        if (activeQuestData.roomNumber) {
-            sessionManager.clearBattleExpectedCount(activeQuestData.roomNumber);
-        }
+        const settlementWasAlreadyInLobby = settlementSnapshot?.lifecycle === "LOBBY";
+        const settlingSnapshot = transitionMultiSettlementSnapshot(playerId, body.play_id, "SETTLING");
 
         const finishedAsHost = settlementSnapshot?.isHost ?? (activeQuestData.roomNumber
             ? getRoom(activeQuestData.roomNumber)?.host_player_id === playerId
@@ -326,12 +335,20 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
 
         if (activeQuestData.roomNumber) {
             const room = getRoom(activeQuestData.roomNumber);
-            if (room) {
+            const matchesBattleGeneration = room?.lobby_generation === settlementGeneration;
+            const lifecycleAllowsRoomMutation = settlementSnapshot === undefined
+                || (!settlementWasAlreadyInLobby && settlingSnapshot?.lifecycle !== "LOBBY");
+            if (room && matchesBattleGeneration && lifecycleAllowsRoomMutation) {
+                sessionManager.clearBattleExpectedCount(activeQuestData.roomNumber);
                 updateRoomState(room.room_number, 1);
                 room.settlement_return_pending = true;
                 sessionManager.beginSettlementReturnGrace(room.room_number);
                 transitionMultiSettlementSnapshot(playerId, body.play_id, "RETURN_PENDING");
                 gameVerboseLog(() => `[MULTI] finish: room ${activeQuestData.roomNumber} reset to raising_state=1 by viewer=${viewerId}`);
+            } else if (room) {
+                console.warn(`[MULTI-SETTLEMENT] skipped stale finish room mutation: room=${room.room_number}`
+                    + ` viewer=${viewerId} finishGeneration=${settlementGeneration}`
+                    + ` currentGeneration=${room.lobby_generation} lifecycle=${settlementSnapshot?.lifecycle ?? "missing"}`);
             }
         }
 
@@ -544,6 +561,7 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
             // soon as every real participant has submitted.
             waitMs: parseInt(process.env.MULTI_SETTLEMENT_BARRIER_MS || "1200", 10),
         }));
+        const postBarrierStartedAt = process.hrtime.bigint();
         const matePlayerResult = settlementResult.mateResults;
         const ownContributionScore = Number((body as any).contribution_score) || 0
         const highestContributionScore = Math.max(
@@ -730,6 +748,24 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
             delete activeQuests[playerId];
             deletePlayerActiveQuestSync(playerId);
         }
+        recordSettlementPhase(
+            "multi",
+            "post_barrier",
+            Number(process.hrtime.bigint() - postBarrierStartedAt) / 1_000_000,
+        );
+        const responseStartedAt = process.hrtime.bigint();
+        let responseFlushRecorded = false;
+        const recordResponseFlush = () => {
+            if (responseFlushRecorded) return;
+            responseFlushRecorded = true;
+            recordSettlementPhase(
+                "multi",
+                "response_flush",
+                Number(process.hrtime.bigint() - responseStartedAt) / 1_000_000,
+            );
+        };
+        reply.raw.once("finish", recordResponseFlush);
+        reply.raw.once("close", recordResponseFlush);
         return reply.status(200).send(finishResponse);
     });
 

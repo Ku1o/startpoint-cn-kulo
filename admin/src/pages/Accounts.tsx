@@ -9,6 +9,9 @@ import { AdminPage } from "../components/AdminPage"
 interface AccountRow {
     id: number
     viewerId: string | null
+    note: string | null
+    takeoverConfigured: boolean
+    latestTransfer: TransferBrief | null
     bindings: DeviceBinding[]
     saveCount: number
     defaultPlayerId: number | null
@@ -20,7 +23,15 @@ interface AccountRow {
 
 interface DeviceBinding {
     deviceId: number
-    note: string | null
+}
+
+interface TransferBrief {
+    abolishedViewerId: string | null
+    oldDeviceId: number | null
+    newDeviceId: number
+    discardedSaveCount: number
+    transferredAt: string
+    source: "title" | "in_game"
 }
 
 interface PlayerBrief {
@@ -78,7 +89,7 @@ export default function Accounts() {
     const [renameId, setRenameId] = useState<number | null>(null)
     const [renameName, setRenameName] = useState("")
     const [accountQuery, setAccountQuery] = useState("")
-    const [editNoteDeviceId, setEditNoteDeviceId] = useState<number | null>(null)
+    const [editNoteAccountId, setEditNoteAccountId] = useState<number | null>(null)
     const [editNote, setEditNote] = useState("")
     const reportedCleanupJob = useRef<string | null>(readReportedCleanupJob())
 
@@ -100,18 +111,19 @@ export default function Accounts() {
         ? accounts.filter(account => [
             account.id,
             account.viewerId,
-            ...account.bindings.flatMap(binding => [binding.deviceId, binding.note]),
+            account.note,
+            ...account.bindings.map(binding => binding.deviceId),
             ...account.players.flatMap(player => [player.id, player.name, player.comment]),
         ].filter(value => value != null).join(" ").toLowerCase().includes(normalizedQuery))
         : accounts
     const unnotedAccounts = accounts.filter(account =>
-        !account.bindings.some(binding => typeof binding.note === "string" && binding.note.trim().length > 0)
+        !(typeof account.note === "string" && account.note.trim().length > 0)
         && !account.players.some(player => player.isActive),
     )
     const unnotedSaveCount = unnotedAccounts.reduce((count, account) => count + account.saveCount, 0)
     const activeUnnotedAccount = accounts.find(account =>
         account.players.some(player => player.isActive)
-        && !account.bindings.some(binding => typeof binding.note === "string" && binding.note.trim().length > 0),
+        && !(typeof account.note === "string" && account.note.trim().length > 0),
     )
 
     const refresh = () => {
@@ -154,12 +166,32 @@ export default function Accounts() {
         onSuccess: () => { message.success("存档已复制"); refresh() },
     })
 
-    const renameDevice = useMutation({
-        mutationFn: ({ deviceId, note }: { deviceId: number; note: string }) =>
-            apiPost("/api/server/device/rename", { device_id: deviceId, name: note.trim() }),
+    const renameAccount = useMutation({
+        mutationFn: ({ accountId, note }: { accountId: number; note: string }) =>
+            apiPost("/api/server/account/rename", { account_id: accountId, name: note.trim() }),
         onSuccess: () => {
             message.success("备注已保存")
-            setEditNoteDeviceId(null)
+            setEditNoteAccountId(null)
+            refresh()
+        },
+        onError: (error: Error) => message.error(error.message),
+    })
+
+    const resetTakeoverPassword = useMutation({
+        mutationFn: (accountId: number) => apiPost<{ replacementPassword: string }>("/api/server/account/takeover-password/reset", {
+            account_id: accountId,
+            confirm: "RESET_TAKEOVER_PASSWORD",
+        }),
+        onSuccess: result => {
+            Modal.success({
+                title: "继承密码已重置",
+                content: (
+                    <Space direction="vertical">
+                        <Typography.Text>请把下面的新密码单独发给玩家；关闭后管理端不会再次显示。</Typography.Text>
+                        <Typography.Text code copyable>{result.replacementPassword}</Typography.Text>
+                    </Space>
+                ),
+            })
             refresh()
         },
         onError: (error: Error) => message.error(error.message),
@@ -276,91 +308,178 @@ export default function Accounts() {
     const accountColumns = [
         {
             title: "账号 ID（viewer_id）",
-            dataIndex: "viewerId",
-            width: 170,
-            render: (viewerId: string | null) => viewerId
-                ? <Typography.Text copyable={{ text: viewerId }}>{viewerId}</Typography.Text>
-                : <Typography.Text type="secondary">未生成</Typography.Text>,
+            width: 190,
+            render: (_: unknown, row: AccountRow) => (
+                <div className="account-identity-cell">
+                    {row.viewerId
+                        ? <Typography.Text strong copyable={{ text: row.viewerId }}>{row.viewerId}</Typography.Text>
+                        : <Typography.Text type="secondary">未生成</Typography.Text>}
+                    <Typography.Text type="secondary" className="account-cell-meta">
+                        内部 ID · #{row.id}
+                    </Typography.Text>
+                </div>
+            ),
         },
         {
             title: "设备 ID",
-            width: 120,
+            width: 150,
             responsive: ["sm"] as any,
-            render: (_: unknown, row: AccountRow) => row.bindings.length
-                ? row.bindings.map(binding => <div key={binding.deviceId}>{binding.deviceId}</div>)
-                : <Typography.Text type="secondary">未绑定</Typography.Text>,
+            render: (_: unknown, row: AccountRow) => (
+                <div className="account-device-cell">
+                    {row.bindings.length
+                        ? row.bindings.map(binding => (
+                            <Typography.Text
+                                key={binding.deviceId}
+                                className="account-device-id"
+                            >
+                                {binding.deviceId}
+                            </Typography.Text>
+                        ))
+                        : <Typography.Text type="secondary">未绑定</Typography.Text>}
+                </div>
+            ),
+        },
+        {
+            title: "数据继承",
+            width: 250,
+            responsive: ["md"] as any,
+            render: (_: unknown, row: AccountRow) => (
+                <div className="account-takeover-cell">
+                    <div className="account-takeover-head">
+                        <Tag color={row.takeoverConfigured ? "green" : "default"}>
+                            {row.takeoverConfigured ? "已设置密码" : "未设置密码"}
+                        </Tag>
+                        {row.takeoverConfigured && (
+                            <Popconfirm
+                                title="重置该账号的继承密码？"
+                                description="将生成一个新密码并仅显示一次，旧密码立即失效。"
+                                okText="确认重置"
+                                cancelText="取消"
+                                okButtonProps={{ danger: true }}
+                                onConfirm={() => resetTakeoverPassword.mutate(row.id)}
+                            >
+                                <Button
+                                    type="link"
+                                    danger
+                                    size="small"
+                                    loading={resetTakeoverPassword.isPending && resetTakeoverPassword.variables === row.id}
+                                >
+                                    重置密码
+                                </Button>
+                            </Popconfirm>
+                        )}
+                    </div>
+                    {row.latestTransfer && (
+                        <div className="account-transfer-detail">
+                            <Typography.Text type="secondary" className="account-cell-meta">
+                                最近继承 · {new Date(row.latestTransfer.transferredAt).toLocaleString()}
+                            </Typography.Text>
+                            <Typography.Text type="secondary" className="account-cell-meta">
+                                {row.latestTransfer.abolishedViewerId
+                                    ? `已废弃临时账号 ${row.latestTransfer.abolishedViewerId}`
+                                    : "标题页直接恢复"}
+                            </Typography.Text>
+                        </div>
+                    )}
+                    {!row.latestTransfer && (
+                        <Typography.Text type="secondary" className="account-cell-meta">暂无继承记录</Typography.Text>
+                    )}
+                </div>
+            ),
         },
         {
             title: "备注",
-            width: 250,
-            render: (_: unknown, row: AccountRow) => row.bindings.length
-                ? row.bindings.map(binding => (
-                    <div key={binding.deviceId}>
-                        {editNoteDeviceId === binding.deviceId ? (
-                            <Space.Compact>
-                                <Input
-                                    size="small"
-                                    value={editNote}
-                                    maxLength={100}
-                                    placeholder="输入账号备注"
-                                    onChange={event => setEditNote(event.target.value)}
-                                    onPressEnter={() => renameDevice.mutate({ deviceId: binding.deviceId, note: editNote })}
-                                    style={{ width: 150 }}
-                                />
-                                <Button
-                                    size="small"
-                                    type="primary"
-                                    loading={renameDevice.isPending}
-                                    onClick={() => renameDevice.mutate({ deviceId: binding.deviceId, note: editNote })}
-                                >
-                                    保存
-                                </Button>
-                                <Button size="small" onClick={() => setEditNoteDeviceId(null)}>取消</Button>
-                            </Space.Compact>
-                        ) : (
-                            <Space size={4}>
-                                {binding.note
-                                    ? <span>{binding.note}</span>
-                                    : <Typography.Text type="secondary">未填写</Typography.Text>}
-                                <Button
-                                    type="text"
-                                    size="small"
-                                    aria-label={`编辑设备 ${binding.deviceId} 的备注`}
-                                    icon={<EditOutlined />}
-                                    onClick={() => {
-                                        setEditNoteDeviceId(binding.deviceId)
-                                        setEditNote(binding.note ?? "")
-                                    }}
-                                />
-                            </Space>
-                        )}
+            width: 220,
+            render: (_: unknown, row: AccountRow) => editNoteAccountId === row.id ? (
+                <div className="account-note-edit">
+                    <Input
+                        size="small"
+                        value={editNote}
+                        maxLength={100}
+                        placeholder="输入账号备注"
+                        onChange={event => setEditNote(event.target.value)}
+                        onPressEnter={() => renameAccount.mutate({ accountId: row.id, note: editNote })}
+                    />
+                    <div className="account-note-edit-actions">
+                        <Button
+                            size="small"
+                            type="primary"
+                            loading={renameAccount.isPending}
+                            onClick={() => renameAccount.mutate({ accountId: row.id, note: editNote })}
+                        >
+                            保存
+                        </Button>
+                        <Button size="small" onClick={() => setEditNoteAccountId(null)}>取消</Button>
                     </div>
-                ))
-                : <Typography.Text type="secondary">无设备绑定</Typography.Text>,
+                </div>
+            ) : (
+                <div className="account-note-cell">
+                    <Typography.Text
+                        type={row.note ? undefined : "secondary"}
+                        ellipsis={{ tooltip: row.note || undefined }}
+                    >
+                        {row.note || "未填写"}
+                    </Typography.Text>
+                    <Button
+                        type="text"
+                        size="small"
+                        aria-label={`编辑账号 ${row.id} 的备注`}
+                        icon={<EditOutlined />}
+                        onClick={() => {
+                            setEditNoteAccountId(row.id)
+                            setEditNote(row.note ?? "")
+                        }}
+                    />
+                </div>
+            ),
         },
-        { title: "内部 ID", dataIndex: "id", width: 80, responsive: ["lg"] as any },
-        { title: "存档数", dataIndex: "saveCount", width: 80, responsive: ["sm"] as any },
         {
-            title: "默认存档", width: 180, responsive: ["md"] as any,
+            title: "存档概况", width: 210, responsive: ["md"] as any,
             render: (_: unknown, row: AccountRow) => {
-                if (!row.defaultPlayerId) return <Tag>无</Tag>
+                if (!row.defaultPlayerId) return (
+                    <div className="account-save-cell">
+                        <Typography.Text type="secondary">无默认存档</Typography.Text>
+                        <Typography.Text type="secondary" className="account-cell-meta">共 {row.saveCount} 个存档</Typography.Text>
+                    </div>
+                )
                 const isActive = row.activePlayerId === row.defaultPlayerId
                 return (
-                    <Space size={6} wrap>
-                        <span>{row.defaultPlayerName ?? `#${row.defaultPlayerId}`}</span>
-                        <Tag color={isActive ? "green" : "blue"}>{isActive ? "当前活动" : "账号默认"}</Tag>
-                    </Space>
+                    <div className="account-save-cell">
+                        <div className="account-save-head">
+                            <Typography.Text strong ellipsis={{ tooltip: row.defaultPlayerName ?? undefined }}>
+                                {row.defaultPlayerName ?? `#${row.defaultPlayerId}`}
+                            </Typography.Text>
+                            <Tag color={isActive ? "green" : "blue"}>{isActive ? "当前活动" : "账号默认"}</Tag>
+                        </div>
+                        <Typography.Text type="secondary" className="account-cell-meta">
+                            共 {row.saveCount} 个存档
+                        </Typography.Text>
+                    </div>
                 )
             },
         },
         {
-            title: "操作", width: 250,
+            title: "操作", width: 280,
             render: (_: unknown, row: AccountRow) => (
-                <div className="admin-action-row">
+                <div className="account-action-row">
                     <Button size="small" type="primary" onClick={() => setSelectedAccountId(row.id)}>管理存档</Button>
-                    <Button size="small" icon={<PlusOutlined />} onClick={() => newSave.mutate(row.id)}>新建存档</Button>
+                    <Button
+                        size="small"
+                        icon={<PlusOutlined />}
+                        loading={newSave.isPending && newSave.variables === row.id}
+                        onClick={() => newSave.mutate(row.id)}
+                    >
+                        新建存档
+                    </Button>
                     <Popconfirm title={`删除账号 ${row.id} 及所有存档？`} onConfirm={() => deleteAccount.mutate(row.id)} okText="确认" cancelText="取消" okButtonProps={{ danger: true }}>
-                        <Button size="small" danger icon={<DeleteOutlined />}>删除</Button>
+                        <Button
+                            size="small"
+                            danger
+                            icon={<DeleteOutlined />}
+                            loading={deleteAccount.isPending && deleteAccount.variables === row.id}
+                        >
+                            删除
+                        </Button>
                     </Popconfirm>
                 </div>
             ),
@@ -441,7 +560,7 @@ export default function Accounts() {
                 type="info"
                 showIcon
                 message="选档状态说明"
-                description="新建和复制存档会设为该账号默认并切换为当前活动；删除默认存档后，服务端会在该账号剩余存档中回退到第一个可用存档。删除最后一个存档会同时删除账号。"
+                description="备注现在是账号级备注，数据继承和设备更换后仍会保留。新建和复制存档会设为该账号默认并切换为当前活动；删除默认存档后，服务端会在该账号剩余存档中回退到第一个可用存档。删除最后一个存档会同时删除账号。"
             />
             <Card
                 title="账号管理"
@@ -495,6 +614,7 @@ export default function Accounts() {
                     />
                 )}
                 <Table
+                    className="accounts-overview-table"
                     rowKey="id"
                     columns={accountColumns}
                     dataSource={filteredAccounts}
@@ -506,7 +626,7 @@ export default function Accounts() {
                         showTotal: total => `共 ${total} 个账号`,
                     }}
                     size="small"
-                    scroll={{ x: "max-content" }}
+                    scroll={{ x: 1300 }}
                 />
             </Card>
 

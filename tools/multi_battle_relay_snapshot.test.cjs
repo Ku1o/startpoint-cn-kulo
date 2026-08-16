@@ -41,13 +41,22 @@ sessionManager.cidToBattleClient.set(oldGeneration.connectionId, oldGeneration)
 // connection map points somewhere else, so it must not receive this fan-out.
 sessionManager.cidToBattleClient.set(detachedReplacement.connectionId, makeClient("c4", 8))
 
-relayToBattleRoom(source, [2, source.connectionId, [99]], "broadcast", 1)
+let serializationCalls = 0
+const payload = [2, source.connectionId, [{
+    toJSON() {
+        serializationCalls += 1
+        return 99
+    },
+}]]
+
+relayToBattleRoom(source, payload, "broadcast", 1)
 
 assert.equal(source.socket.frames.length, 0)
 assert.equal(current.socket.frames.length, 1)
 assert.equal(oldGeneration.socket.frames.length, 0)
 assert.equal(detachedReplacement.socket.frames.length, 0)
 assert.deepEqual(JSON.parse(current.socket.frames[0].slice(0, -1)), [2, source.connectionId, [99]])
+assert.equal(serializationCalls, 1, "one logical relay should serialize its payload once")
 
 for (const client of [source, current, oldGeneration, detachedReplacement]) {
     clearReliableSendState(client.socket)

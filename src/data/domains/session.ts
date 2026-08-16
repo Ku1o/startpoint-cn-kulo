@@ -77,8 +77,9 @@ export function getSession(
 export function getViewerIdSync(accountId: number): number {
     const row = getDb().prepare(`
         SELECT token FROM sessions WHERE account_id = ? AND type = 2 LIMIT 1
-    `).get(accountId) as { token: number } | undefined
-    return row?.token ?? 0
+    `).get(accountId) as { token: string | number } | undefined
+    const viewerId = Number(row?.token ?? 0)
+    return Number.isSafeInteger(viewerId) && viewerId > 0 ? viewerId : 0
 }
 
 /**

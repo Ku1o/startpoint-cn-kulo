@@ -12,6 +12,10 @@
 ## 新人指南
 - [新手入门与私服特色](./新手入门与私服特色.md)
 
+## 客户端补丁
+- [V51 客户端恢复游戏内“数据继承”入口](./client-takeover-entry.md)
+- [数据继承服务端说明](./account-takeover-server.md)
+
 ## CDN
 - [机制总览](./cdn/overview.md) · [客户端流程](./cdn/client-flow.md) · [排查手册](./cdn/debugging.md)
 

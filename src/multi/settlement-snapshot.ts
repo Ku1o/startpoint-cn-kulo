@@ -26,6 +26,12 @@ export interface MultiSettlementSnapshot {
 }
 
 const snapshots = new Map<string, MultiSettlementSnapshot>()
+const LIFECYCLE_RANK: Record<MultiBattleLifecycle, number> = {
+    BATTLE: 0,
+    SETTLING: 1,
+    RETURN_PENDING: 2,
+    LOBBY: 3,
+}
 const START_TTL_MS = Math.max(120_000, Number.parseInt(process.env.MULTI_BATTLE_SNAPSHOT_TTL_MS ?? "900000", 10) || 900_000)
 const COMPLETED_TTL_MS = Math.max(120_000, Number.parseInt(process.env.MULTI_SETTLEMENT_SNAPSHOT_TTL_MS ?? "120000", 10) || 120_000)
 
@@ -84,6 +90,11 @@ export function transitionMultiSettlementSnapshot(
 ): MultiSettlementSnapshot | undefined {
     const snapshot = getMultiSettlementSnapshot(playerId, playId)
     if (!snapshot) return undefined
+    if (LIFECYCLE_RANK[lifecycle] < LIFECYCLE_RANK[snapshot.lifecycle]) {
+        console.warn(`[MULTI-SETTLEMENT] ignored lifecycle regression instance=${snapshot.battleInstanceId}`
+            + ` player=${playerId} current=${snapshot.lifecycle} requested=${lifecycle}`)
+        return snapshot
+    }
     if (snapshot.lifecycle !== lifecycle) {
         snapshot.lifecycle = lifecycle
         console.log(`[MULTI-SETTLEMENT] instance=${snapshot.battleInstanceId} player=${playerId} state=${lifecycle}`)
@@ -97,19 +108,26 @@ export function transitionMultiSettlementSnapshot(
 export function transitionRoomSettlementSnapshots(
     roomNumber: string,
     lifecycle: MultiBattleLifecycle,
+    roomGeneration?: number,
 ): number {
     cleanup()
     let transitioned = 0
     for (const snapshot of snapshots.values()) {
         if (snapshot.roomNumber !== roomNumber) continue
+        if (roomGeneration !== undefined && snapshot.roomGeneration !== roomGeneration) continue
+        if (LIFECYCLE_RANK[lifecycle] < LIFECYCLE_RANK[snapshot.lifecycle]) {
+            console.warn(`[MULTI-SETTLEMENT] ignored lifecycle regression instance=${snapshot.battleInstanceId}`
+                + ` player=${snapshot.playerId} current=${snapshot.lifecycle} requested=${lifecycle}`)
+            continue
+        }
         if (snapshot.lifecycle !== lifecycle) {
             snapshot.lifecycle = lifecycle
             console.log(`[MULTI-SETTLEMENT] instance=${snapshot.battleInstanceId} player=${snapshot.playerId} state=${lifecycle}`)
+            transitioned += 1
         }
         if (lifecycle === "RETURN_PENDING" || lifecycle === "LOBBY") {
             snapshot.expiresAt = Date.now() + COMPLETED_TTL_MS
         }
-        transitioned += 1
     }
     return transitioned
 }

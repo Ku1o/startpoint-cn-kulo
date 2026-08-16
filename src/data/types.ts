@@ -11,6 +11,9 @@ export interface RawAccount {
     status: string
     username: string | null
     password_hash: string | null
+    admin_note: string | null
+    takeover_password: string | null
+    takeover_udid: string | null
 }
 
 export interface Account {
@@ -25,6 +28,9 @@ export interface Account {
     status: string
     username?: string | null
     passwordHash?: string | null
+    adminNote?: string | null
+    takeoverPassword?: string | null
+    takeoverUdid?: string | null
 }
 
 // zat session

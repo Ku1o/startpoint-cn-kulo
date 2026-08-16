@@ -10,12 +10,14 @@ import { migrateUnsafeViewerIdsSync } from "./data/domains/session";
 import { installManagementAuth } from "./lib/management-auth";
 import { installRoutePerformanceMonitor } from "./lib/route-performance";
 import { markPlayerOnline } from "./lib/online-presence";
+import { installTakeoverUdidGuard } from "./lib/takeover-access";
 
 import versionCheckPlugin from "./routes/cn/versionCheck";
 import leitingAuthPlugin from "./routes/cn/leitingAuth";
 import cnToolPlugin from "./routes/cn/tool";
 import cnLoadPlugin from "./routes/cn/load";
 import cnAssetPlugin from "./routes/cn/asset";
+import cnTakeOverPlugin from "./routes/cn/takeOver";
 import indexWebPlugin from "./routes/web";
 import indexWebApiPlugin from "./routes/web_api";
 import seedsWebApiPlugin from "./routes/web_api/seeds";
@@ -334,12 +336,15 @@ fastify.addContentTypeParser("application/x-www-form-urlencoded", { parseAs: "st
 );
 fastify.addContentTypeParser("application/json", { parseAs: "string" }, jsonParser);
 
+installTakeoverUdidGuard(fastify);
+
 fastify.register(versionCheckPlugin);
 fastify.register(leitingAuthPlugin, { prefix: "/api/index.php" });
 
 const apiPrefix = "/api/index.php";
 fastify.register(cnLoadPlugin, { prefix: apiPrefix });
 fastify.register(cnAssetPlugin, { prefix: `${apiPrefix}/asset` });
+fastify.register(cnTakeOverPlugin, { prefix: apiPrefix });
 
 function stubMsgpackReply(reply: any, data: any, playerId?: number) {
     const servertime = playerId ? getServerTimeForPlayer(playerId) : getServerTime()

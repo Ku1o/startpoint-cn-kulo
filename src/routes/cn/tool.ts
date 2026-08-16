@@ -79,7 +79,14 @@ const routes = async (fastify: FastifyInstance) => {
             if (accountExists) {
                 accountId = binding.account_id
                 newAccount = false
-                updateAccountSync({ id: accountId, lastLoginTime: new Date() })
+                updateAccountSync({
+                    id: accountId,
+                    lastLoginTime: new Date(),
+                    // A still-bound device is authoritative after reinstall;
+                    // refresh its local UDID so the takeover old-device guard
+                    // does not reject the newly initialized local store.
+                    ...(accountExists.takeoverUdid ? { takeoverUdid: udid } : {}),
+                })
                 // Clean all old sessions for this account, reuse first token
                 const sessions = getAccountSessionsOfTypeSync(accountId, SessionType.VIEWER)
                 if (sessions.length > 0) {

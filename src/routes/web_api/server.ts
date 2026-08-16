@@ -1,12 +1,12 @@
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { copyFileSync, existsSync, lstatSync, mkdirSync, readdirSync, rmSync, statSync, writeFileSync } from "fs";
 import path from "path";
-import { randomUUID } from "crypto";
+import { randomBytes, randomUUID } from "crypto";
 import { Worker } from "worker_threads";
 import { getServerTime, getServerDate, setServerTime, getTimeOffset } from "../../utils";
-import { deleteAccountSync, getAccountPlayersSync, getAllAccountsSync } from "../../data/domains/account"
+import { deleteAccountSync, getAccountPlayersSync, getAllAccountsSync, updateAccountSync } from "../../data/domains/account"
 import { deletePlayerSync, getPlayerSync, insertDefaultPlayerSync, replacePlayerDataSync, updatePlayerSync } from "../../data/domains/player"
-import { getAllDeviceBindingsSync, getSessionByAccountIdSync, updateDeviceBindingNameSync } from "../../data/domains/session"
+import { getAllDeviceBindingsSync, getDeviceBindingSync, getSessionByAccountIdSync } from "../../data/domains/session"
 import { getPlayerCharactersSync } from "../../data/domains/character"
 import { getClientSerializedData, deserializePlayerData, reviveMergedPlayerDates } from "../../data/utils";
 import { getActivePlayerId, setActivePlayerId, getSelectedAccountId, setSelectedAccountId, saveTimeOffset, saveAccountDefaultPlayer, getAccountDefaultPlayer, removeDeletedAccountFromState, removeDeletedAccountsFromState } from "../../data/activeAccount";
@@ -20,6 +20,7 @@ import { ensureCascadeDeleteIndexes, selectUnnotedAccountIds } from "../../lib/a
 import { removePlayerQuestNpcPartySnapshots } from "../../multi/npc/player-party-pool";
 import { runImmediateTransactionWithRetry } from "../../lib/sqlite-write-coordinator";
 import { getOnlinePlayerCount } from "../../lib/online-presence";
+import { clearRecoveryFailuresForViewer } from "../cn/takeOver";
 
 interface TimeQuery {
     time: string | undefined
@@ -199,13 +200,29 @@ async function executeAccountCleanupPlan(
             if (requestedIds.length === 0) continue
             const placeholders = requestedIds.map(() => "?").join(", ")
             const batch = await runImmediateTransactionWithRetry(() => {
-                const existingAccounts = getDb().prepare(
-                    `SELECT id FROM accounts WHERE id IN (${placeholders})`,
-                ).all(...requestedIds) as { id: number }[]
+                const activePlayerId = getActivePlayerId()
+                const existingAccounts = getDb().prepare(`
+                    SELECT a.id
+                    FROM accounts AS a
+                    WHERE a.id IN (${placeholders})
+                      AND (a.admin_note IS NULL OR trim(a.admin_note) = '')
+                      AND NOT EXISTS (
+                          SELECT 1 FROM players AS active_player
+                          WHERE active_player.account_id = a.id AND active_player.id = ?
+                      )
+                      AND NOT EXISTS (
+                          SELECT 1 FROM account_transfer_audit AS transfer
+                          WHERE transfer.target_account_id = a.id
+                            AND transfer.transferred_at >= ?
+                      )
+                `).all(...requestedIds, activePlayerId ?? -1, job.startedAt) as { id: number }[]
+                if (existingAccounts.length === 0) return []
+                const eligibleIds = existingAccounts.map(account => account.id)
+                const eligiblePlaceholders = eligibleIds.map(() => "?").join(", ")
                 const players = getDb().prepare(
-                    `SELECT id, account_id FROM players WHERE account_id IN (${placeholders})`,
-                ).all(...requestedIds) as { id: number; account_id: number }[]
-                getDb().prepare(`DELETE FROM accounts WHERE id IN (${placeholders})`).run(...requestedIds)
+                    `SELECT id, account_id FROM players WHERE account_id IN (${eligiblePlaceholders})`,
+                ).all(...eligibleIds) as { id: number; account_id: number }[]
+                getDb().prepare(`DELETE FROM accounts WHERE id IN (${eligiblePlaceholders})`).run(...eligibleIds)
                 return existingAccounts.map(account => ({
                     accountId: account.id,
                     playerIds: players
@@ -555,6 +572,28 @@ const routes = async (fastify: FastifyInstance) => {
         const accounts = getAllAccountsSync()
         const deviceBindings = getAllDeviceBindingsSync()
         const activePlayerId = getActivePlayerId()
+        const latestTransfers = getDb().prepare(`
+            SELECT transfer.target_account_id, transfer.source_viewer_id,
+                   transfer.old_device_id, transfer.new_device_id,
+                   transfer.source_player_count, transfer.transferred_at, transfer.source
+            FROM account_transfer_audit AS transfer
+            JOIN (
+                SELECT target_account_id, MAX(id) AS latest_id
+                FROM account_transfer_audit
+                GROUP BY target_account_id
+            ) AS latest ON latest.latest_id = transfer.id
+        `).all() as Array<{
+            target_account_id: number
+            source_viewer_id: string | null
+            old_device_id: number | null
+            new_device_id: number
+            source_player_count: number
+            transferred_at: string
+            source: string
+        }>
+        const latestTransferByAccount = new Map(
+            latestTransfers.map(transfer => [transfer.target_account_id, transfer]),
+        )
         const result = accounts.map(acc => {
             const playerIds = getAccountPlayersSync(acc.id)
             const viewerSession = getSessionByAccountIdSync(acc.id, SessionType.VIEWER)
@@ -563,14 +602,24 @@ const routes = async (fastify: FastifyInstance) => {
                 ? savedDefaultPid
                 : (playerIds[0] ?? null)
             const defaultPlayer = defaultPid ? getPlayerSync(defaultPid) : null
+            const latestTransfer = latestTransferByAccount.get(acc.id)
             return {
                 id: acc.id,
                 viewerId: viewerSession ? String(viewerSession.token) : null,
+                note: acc.adminNote ?? null,
+                takeoverConfigured: Boolean(acc.takeoverPassword),
+                latestTransfer: latestTransfer ? {
+                    abolishedViewerId: latestTransfer.source_viewer_id,
+                    oldDeviceId: latestTransfer.old_device_id,
+                    newDeviceId: latestTransfer.new_device_id,
+                    discardedSaveCount: latestTransfer.source_player_count,
+                    transferredAt: latestTransfer.transferred_at,
+                    source: latestTransfer.source,
+                } : null,
                 bindings: deviceBindings
                     .filter(binding => binding.account_id === acc.id)
                     .map(binding => ({
                         deviceId: binding.device_id,
-                        note: binding.name,
                     })),
                 saveCount: playerIds.length,
                 defaultPlayerId: defaultPid,
@@ -754,13 +803,12 @@ const routes = async (fastify: FastifyInstance) => {
         }
 
         const accounts = getAllAccountsSync()
-        const bindings = getAllDeviceBindingsSync()
         const activePlayerId = getActivePlayerId()
         const accountPlayers = new Map(accounts.map(account => [account.id, getAccountPlayersSync(account.id)]))
         const activeAccountId = activePlayerId === null
             ? null
             : accounts.find(account => accountPlayers.get(account.id)?.includes(activePlayerId))?.id ?? null
-        const accountIds = selectUnnotedAccountIds(accounts.map(account => account.id), bindings, activeAccountId)
+        const accountIds = selectUnnotedAccountIds(accounts, activeAccountId)
 
         if (accountIds.length === 0) {
             const now = new Date().toISOString()
@@ -837,13 +885,50 @@ const routes = async (fastify: FastifyInstance) => {
         return reply.redirect('/player')
     })
 
-    // Device binding rename
+    // Account-scoped note: it survives device replacement and account recovery.
+    fastify.post("/account/rename", async (request: FastifyRequest, reply: FastifyReply) => {
+        const body = request.body as { account_id?: unknown; name?: unknown }
+        const accountId = Number(body?.account_id)
+        if (!Number.isSafeInteger(accountId) || accountId <= 0) {
+            return reply.status(400).send({ error: "Missing account_id" })
+        }
+        const account = getAllAccountsSync().find(candidate => candidate.id === accountId)
+        if (!account) return reply.status(404).send({ error: "Account not found" })
+        const note = typeof body.name === "string" ? body.name.trim().slice(0, 100) : ""
+        updateAccountSync({ id: accountId, adminNote: note || null })
+        return reply.status(200).send({ ok: true, accountId, note: note || null })
+    })
+
+    fastify.post("/account/takeover-password/reset", async (request: FastifyRequest, reply: FastifyReply) => {
+        const body = request.body as { account_id?: unknown; confirm?: unknown }
+        const accountId = Number(body?.account_id)
+        if (!Number.isSafeInteger(accountId) || accountId <= 0) {
+            return reply.status(400).send({ error: "Missing account_id" })
+        }
+        if (body.confirm !== "RESET_TAKEOVER_PASSWORD") {
+            return reply.status(400).send({ error: "Confirmation token is required" })
+        }
+        const account = getAllAccountsSync().find(candidate => candidate.id === accountId)
+        if (!account) return reply.status(404).send({ error: "Account not found" })
+        const replacementPassword = `R${randomBytes(6).toString("hex")}a1`
+        updateAccountSync({ id: accountId, takeoverPassword: replacementPassword })
+        const viewerSession = getSessionByAccountIdSync(accountId, SessionType.VIEWER)
+        if (viewerSession) clearRecoveryFailuresForViewer(viewerSession.token)
+        // Return the replacement once; account listing never exposes stored passwords.
+        return reply.status(200).send({ ok: true, accountId, replacementPassword })
+    })
+
+    // Backward-compatible endpoint for old admin pages. Resolve the device,
+    // but write the authoritative account-scoped note.
     fastify.post("/device/rename", async (request: FastifyRequest, reply: FastifyReply) => {
         const body = request.body as { device_id: number; name: string }
         const deviceId = body.device_id
         if (!deviceId) return reply.status(400).send({ error: "Missing device_id" })
 
-        updateDeviceBindingNameSync(deviceId, body.name || null)
+        const binding = getDeviceBindingSync(deviceId)
+        if (!binding) return reply.status(404).send({ error: "Device binding not found" })
+        const note = typeof body.name === "string" ? body.name.trim().slice(0, 100) : ""
+        updateAccountSync({ id: binding.account_id, adminNote: note || null })
         return reply.status(200).send({ ok: true })
     })
 }

@@ -21,7 +21,12 @@ function buildAccount(
         idpId: rawAccount.idp_id,
         regTime: new Date(rawAccount.reg_time),
         lastLoginTime: new Date(rawAccount.last_login_time),
-        status: rawAccount.status
+        status: rawAccount.status,
+        username: rawAccount.username,
+        passwordHash: rawAccount.password_hash,
+        adminNote: rawAccount.admin_note,
+        takeoverPassword: rawAccount.takeover_password,
+        takeoverUdid: rawAccount.takeover_udid,
     }
 }
 
@@ -36,7 +41,8 @@ export function getAccountSync(
 ): Account | null {
     const db = getDb();
     const raw = db.prepare(`
-    SELECT id, app_id, first_login_time, idp_alias, idp_code, idp_id, reg_time, last_login_time, status
+    SELECT id, app_id, first_login_time, idp_alias, idp_code, idp_id, reg_time, last_login_time, status,
+           username, password_hash, admin_note, takeover_password, takeover_udid
     FROM accounts
     WHERE id = ?
     `).get(accountId) as RawAccount | undefined
@@ -57,7 +63,8 @@ export function getAccountFromIdpIdSync(
 ): Account | null {
     const db = getDb();
     const raw = db.prepare(`
-    SELECT id, app_id, first_login_time, idp_alias, idp_code, idp_id, reg_time, last_login_time, status
+    SELECT id, app_id, first_login_time, idp_alias, idp_code, idp_id, reg_time, last_login_time, status,
+           username, password_hash, admin_note, takeover_password, takeover_udid
     FROM accounts
     WHERE idp_id = ?
     `).get(idpId) as RawAccount | undefined
@@ -91,7 +98,8 @@ export function getAccount(
 export function getAllAccountsSync(): Account[] {
     const db = getDb();
     const raw = db.prepare(`
-    SELECT id, app_id, first_login_time, idp_alias, idp_code, idp_id, reg_time, last_login_time, status
+    SELECT id, app_id, first_login_time, idp_alias, idp_code, idp_id, reg_time, last_login_time, status,
+           username, password_hash, admin_note, takeover_password, takeover_udid
     FROM accounts
     ORDER BY id DESC
     `).all() as RawAccount[]
@@ -220,7 +228,12 @@ export function updateAccountSync(
         'idpId': 'idp_id',
         'regTime': 'reg_time',
         'lastLoginTime': 'last_login_time',
-        'status': 'status'
+        'status': 'status',
+        'username': 'username',
+        'passwordHash': 'password_hash',
+        'adminNote': 'admin_note',
+        'takeoverPassword': 'takeover_password',
+        'takeoverUdid': 'takeover_udid'
     }
 
     const sets: string[] = []
