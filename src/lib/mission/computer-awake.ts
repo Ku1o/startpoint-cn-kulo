@@ -17,6 +17,7 @@ import type { PlayerCharacter, PlayerQuestProgress } from "../../data/types"
 import charAwakeDefs from "../../../assets/mission_char_awake.json"
 import {
     AWAKE_DIRECT_BATTLE_MISSION_IDS,
+    BARAK_AWAKE_PRACTICE_QUEST_ID,
     getCharacterPairKey,
     isBondTokenMissionComplete,
     mergePartyCoClearRows,
@@ -58,7 +59,7 @@ interface QuestClearTarget {
 
 const QUEST_CLEAR_MAP: Map<number, QuestClearTarget> = new Map([
     [1110013, { category: 2, questIds: [1028004], leaderCharId: 111001 }],
-    [1310052, { category: 15, questIds: [96], leaderCharId: 131005 }],
+    [1310052, { category: 15, questIds: [BARAK_AWAKE_PRACTICE_QUEST_ID], leaderCharId: 131005 }],
     [1410032, { category: 2, questIds: [1020003] }],
     [2110013, { category: 2, questIds: [1028004], leaderCharId: 211001 }],
     [2310013, {

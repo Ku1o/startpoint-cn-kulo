@@ -31,7 +31,7 @@ const BATTLE_DEGREE_CONDITION_TYPES = Object.freeze([
 const BATTLE_ACTIVE_MISSION_PATTERNS = Object.freeze([
     // Battle counters, stamina, quest completion, party/loadout facts and
     // reward-driven character level/bond changes.
-    4, 5, 8, 13, 14, 16, 17, 23, 26, 39, 57, 70, 71, 72, 73, 89,
+    4, 5, 8, 13, 14, 16, 17, 23, 26, 39, 57, 70, 71, 72, 73, 89, 90, 91,
 ])
 
 export interface MissionBattleFactResult {

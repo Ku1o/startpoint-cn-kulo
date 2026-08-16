@@ -72,6 +72,8 @@ const PATTERN_BATTLE_CLEAR_WITH_MANA_BOARD_2ND = 71
 const PATTERN_BATTLE_CLEAR_WITH_LEVEL_80_CHARACTER = 72
 const PATTERN_BATTLE_CLEAR_WITH_LEVEL_100_CHARACTER = 73
 const PATTERN_BATTLE_CLEAR_WITH_SPECIFIC_CHARACTER = 89
+const PATTERN_BATTLE_CLEAR_WITH_CHARACTER_CAPABILITY = 90
+const PATTERN_BATTLE_CLEAR_WITH_FULL_SKILL_START = 91
 const COME_BACK_EVENT_STRING_ID = "come_back_mission"
 
 const QUEST_CATEGORY_BY_RANGE_KIND: Readonly<Record<number, number | readonly number[]>> = Object.freeze({
@@ -452,6 +454,8 @@ export function computeActiveMissionFactProgress(
             return state.conditionalBattleFacts[`${pattern}:${characterId}`] ?? 0
         }
         case PATTERN_BATTLE_CLEAR_WITH_SPECIFIC_CHARACTER:
+        case PATTERN_BATTLE_CLEAR_WITH_CHARACTER_CAPABILITY:
+        case PATTERN_BATTLE_CLEAR_WITH_FULL_SKILL_START:
             return missionId === undefined ? null : state.loadoutBattleFacts[String(missionId)] ?? 0
         case PATTERN_EPISODE_CLEAR_COUNT: {
             const storyQuestIds = new Set(
@@ -573,7 +577,9 @@ function buildActiveMissionFactRequirements(
         conditionalBattleFacts: patterns.has(PATTERN_BATTLE_CLEAR_WITH_MANA_BOARD_2ND)
             || patterns.has(PATTERN_BATTLE_CLEAR_WITH_LEVEL_80_CHARACTER)
             || patterns.has(PATTERN_BATTLE_CLEAR_WITH_LEVEL_100_CHARACTER),
-        loadoutBattleFacts: patterns.has(PATTERN_BATTLE_CLEAR_WITH_SPECIFIC_CHARACTER),
+        loadoutBattleFacts: patterns.has(PATTERN_BATTLE_CLEAR_WITH_SPECIFIC_CHARACTER)
+            || patterns.has(PATTERN_BATTLE_CLEAR_WITH_CHARACTER_CAPABILITY)
+            || patterns.has(PATTERN_BATTLE_CLEAR_WITH_FULL_SKILL_START),
     }
 }
 

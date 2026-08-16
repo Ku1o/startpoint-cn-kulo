@@ -25,11 +25,14 @@ import exBoost from "../../assets/ex_boost.json";
 import exQuests from "../../assets/ex_quest.json";
 import exStatus from "../../assets/ex_status.json";
 import gachas from "../../assets/gacha.json";
+import cnmodGachas from "../../assets/gacha_cnmod.json";
 import mainQuests from "../../assets/main_quest.json";
 import practiceQuests from "../../assets/practice_quest.json";
 import manaNodes from "../../assets/mana_node.json";
+import cnmodManaNodes from "../../assets/mana_node_cnmod.json";
 import manaNodeAwake from "../../assets/mana_node_awake.json";
 import manaBoard from "../../assets/mana_board.json";
+import cnmodManaBoard from "../../assets/mana_board_cnmod.json";
 import rareScoreRewards from "../../assets/rare_score_reward.json";
 import scoreRewards from "../../assets/score_reward.json";
 import gachaCampaigns from "../../assets/gacha_campaign.json";
@@ -53,13 +56,56 @@ import { join as joinPath } from "path"
 import { AssetCharacter, BattleQuest, BossCoinShopItems, BoxGacha, ClearRewards, ConfigValues, EquipmentCraftEntry, EquipmentDissolveEntry, EquipmentItemReward, EventItemShopIdMapItem, EventShopItems, ExAbilities, ExBoostItem, ExBoostItems, ExStatus, Gacha, Gachas, ItemSaleEntry, ManaNode, ManaNodes, QuestCategory, RareScoreReward, RareScoreRewardGroups, RawAssetCharacters, RawBoxGachas, RawBoxRewards, RawQuests, Reward, RushEventFolders, ScoreReward, ScoreRewardGroups, ShopItem, ShopItems, ShopType, StoryQuest } from "./types";
 
 const MOD_ASSETS_DIR = joinPath(__dirname, "..", "..", "assets")
+const allGachas = { ...(gachas as Gachas), ...(cnmodGachas as Gachas) } as Gachas
+const allManaNodes = { ...(manaNodes as ManaNodes), ...(cnmodManaNodes as ManaNodes) } as ManaNodes
+const allManaBoards = {
+    ...(manaBoard as Record<string, any>),
+    ...(cnmodManaBoard as Record<string, any>),
+} as Record<string, any>
 let rogueEventData: any = null
 
+function mergeRogueEventExtension(base: any, extension: any): any {
+    for (const [eventId, extraConfig] of Object.entries(extension?.events ?? {})) {
+        const targetConfig = base?.events?.[eventId]
+        if (!targetConfig) {
+            throw new Error(`rogue event extension references missing event ${eventId}`)
+        }
+        const extraEntries = Array.isArray((extraConfig as any)?.folder_clear_chance)
+            ? (extraConfig as any).folder_clear_chance
+            : []
+        if (!Array.isArray(targetConfig.folder_clear_chance)) {
+            targetConfig.folder_clear_chance = []
+        }
+        for (const entry of extraEntries) {
+            const current = targetConfig.folder_clear_chance.find((candidate: any) =>
+                Number(candidate?.type ?? 0) === Number(entry?.type ?? 0)
+                && Number(candidate?.id) === Number(entry?.id)
+            )
+            if (current !== undefined) {
+                const sameCount = Number(current?.count ?? 1) === Number(entry?.count ?? 1)
+                const sameChance = Number(current?.chance) === Number(entry?.chance)
+                if (!sameCount || !sameChance) {
+                    throw new Error(
+                        `rogue event extension conflicts at ${eventId}:${entry?.type ?? 0}:${entry?.id}`,
+                    )
+                }
+                continue
+            }
+            targetConfig.folder_clear_chance.push({ ...entry })
+        }
+    }
+    return base
+}
+
 export function reloadRogueEventConfig(): string[] {
-    rogueEventData = JSON.parse(
+    const base = JSON.parse(
         readFileSync(joinPath(MOD_ASSETS_DIR, "rogue_event.json"), "utf-8"),
     )
-    return ["rogue_event.json"]
+    const extension = JSON.parse(
+        readFileSync(joinPath(MOD_ASSETS_DIR, "rogue_event_cnmod.json"), "utf-8"),
+    )
+    rogueEventData = mergeRogueEventExtension(base, extension)
+    return ["rogue_event.json", "rogue_event_cnmod.json"]
 }
 
 reloadRogueEventConfig()
@@ -355,7 +401,7 @@ export function getCharacterManaNodesSync(
     characterId: string | number,
     level: string | number,
 ): Record<string, ManaNode> | null{
-    const characterManaNodes = (manaNodes as ManaNodes)[String(characterId)]
+    const characterManaNodes = allManaNodes[String(characterId)]
     if (!characterManaNodes) return null;
 
     return characterManaNodes[String(level)] || null
@@ -367,7 +413,7 @@ export function getCharacterManaNodesSync(
 export function getCharacterManaBoardCountSync(
     characterId: string | number
 ): number {
-    const characterManaNodes = (manaNodes as ManaNodes)[String(characterId)]
+    const characterManaNodes = allManaNodes[String(characterId)]
     if (!characterManaNodes) return 0
     return Object.keys(characterManaNodes).length
 }
@@ -400,7 +446,7 @@ function getManaNodeSlot(
     characterId: string | number,
     manaNodeId: string | number
 ): number {
-    const charData = (manaNodes as ManaNodes)[String(characterId)]
+    const charData = allManaNodes[String(characterId)]
     if (!charData) return 0
     for (const level of Object.keys(charData)) {
         const node = charData[level]?.[String(manaNodeId)]
@@ -423,7 +469,7 @@ function getManaNodePedestalSize(
     characterId: string | number,
     manaNodeId: string | number
 ): number {
-    const charBoard = (manaBoard as Record<string, any>)[String(characterId)]
+    const charBoard = allManaBoards[String(characterId)]
     if (!charBoard) return -1
     for (const level of Object.keys(charBoard)) {
         const nodes = charBoard[level]
@@ -559,7 +605,7 @@ export function getBoxGachaSync(
 export function getGachaSync(
     id: string | number
 ): Gacha | null {
-    const data = (gachas as Gachas)[String(id)];
+    const data = allGachas[String(id)];
     
     return data ?? null
 }

@@ -10,13 +10,15 @@ export const GACHA_PAYMENT_TYPES = {
 export const GACHA_EXEC_TYPES = {
     VMONEY_SINGLE: 1,
     VMONEY_MULTI: 2,
+    CONFIGURED_SINGLE_TICKET: 3,
+    CONFIGURED_MULTI_TICKET: 4,
     DAILY_SINGLE: 5,
     CAMPAIGN_SINGLE: 7,
     CAMPAIGN_MULTI: 8,
-    MULTI_TICKET: 9,
-    SINGLE_TICKET: 10,
-    SINGLE_WEAPON_TICKET: 12,
-    MULTI_WEAPON_TICKET: 13,
+    WILDCARD_CHARACTER_MULTI_TICKET: 9,
+    WILDCARD_CHARACTER_SINGLE_TICKET: 10,
+    WILDCARD_EQUIPMENT_SINGLE_TICKET: 12,
+    WILDCARD_EQUIPMENT_MULTI_TICKET: 13,
 } as const;
 
 export const GACHA_PAGE_KINDS = {
@@ -35,11 +37,13 @@ export type TicketDrawKind = "single" | "multi";
 
 export function getTicketDrawKind(type: number): TicketDrawKind | null {
     switch (type) {
-        case GACHA_EXEC_TYPES.SINGLE_TICKET:
-        case GACHA_EXEC_TYPES.SINGLE_WEAPON_TICKET:
+        case GACHA_EXEC_TYPES.CONFIGURED_SINGLE_TICKET:
+        case GACHA_EXEC_TYPES.WILDCARD_CHARACTER_SINGLE_TICKET:
+        case GACHA_EXEC_TYPES.WILDCARD_EQUIPMENT_SINGLE_TICKET:
             return "single";
-        case GACHA_EXEC_TYPES.MULTI_TICKET:
-        case GACHA_EXEC_TYPES.MULTI_WEAPON_TICKET:
+        case GACHA_EXEC_TYPES.CONFIGURED_MULTI_TICKET:
+        case GACHA_EXEC_TYPES.WILDCARD_CHARACTER_MULTI_TICKET:
+        case GACHA_EXEC_TYPES.WILDCARD_EQUIPMENT_MULTI_TICKET:
             return "multi";
         default:
             return null;
@@ -47,12 +51,18 @@ export function getTicketDrawKind(type: number): TicketDrawKind | null {
 }
 
 export function ticketExecMatchesGachaType(type: number, gacha: Pick<Gacha, "type">): boolean {
-    if (gacha.type === GachaType.WEAPON) {
-        return type === GACHA_EXEC_TYPES.SINGLE_WEAPON_TICKET ||
-            type === GACHA_EXEC_TYPES.MULTI_WEAPON_TICKET;
+    if (
+        type === GACHA_EXEC_TYPES.CONFIGURED_SINGLE_TICKET ||
+        type === GACHA_EXEC_TYPES.CONFIGURED_MULTI_TICKET
+    ) {
+        return true;
     }
-    return type === GACHA_EXEC_TYPES.SINGLE_TICKET ||
-        type === GACHA_EXEC_TYPES.MULTI_TICKET;
+    if (gacha.type === GachaType.WEAPON) {
+        return type === GACHA_EXEC_TYPES.WILDCARD_EQUIPMENT_SINGLE_TICKET ||
+            type === GACHA_EXEC_TYPES.WILDCARD_EQUIPMENT_MULTI_TICKET;
+    }
+    return type === GACHA_EXEC_TYPES.WILDCARD_CHARACTER_SINGLE_TICKET ||
+        type === GACHA_EXEC_TYPES.WILDCARD_CHARACTER_MULTI_TICKET;
 }
 
 function ticketAllowedByPageKind(pageKind: number | undefined, drawKind: TicketDrawKind): boolean {

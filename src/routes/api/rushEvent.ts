@@ -1,7 +1,7 @@
 // Handles mail.
 
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
-import { PartyCategory, RushEventBattleType, UserRushEventPlayedParty } from "../../data/types";
+import { PartyCategory, PlayerRushEvent, RushEventBattleType, UserRushEventPlayedParty } from "../../data/types";
 import { deletePlayerRushEventPlayedPartiesUntilSync, deletePlayerRushEventPlayedPartyListSync, deletePlayerRushEventPlayedPartySync, getDefaultPlayerRushEventSync, getPlayerRushEventClearedFoldersSync, getPlayerRushEventNextEndlessBattleRoundSync, getPlayerRushEventPlayedPartiesSync, getPlayerRushEventSync, getRushEventEndlessRankingListSync, insertPlayerRushEventClearedFolderSync, insertPlayerRushEventPlayedPartySync, insertPlayerRushEventSync, serializePlayerRushEventPlayedParty, updatePlayerRushEventSync } from "../../data/domains/rushEvent"
 import { getAccountPlayers } from "../../data/domains/account"
 import { getDefaultPlayerPartyGroupsSync } from "../../data/domains/player"
@@ -17,6 +17,10 @@ import { clientSerializeDate } from "../../data/utils";
 import { resolvePlayerIdSync } from "../../data/activeAccount";
 import rushEventRankingRewards from "../../../assets/rush_event_ranking_reward.json";
 import { ensureSpecialEventPartyGroupsSync, getGlobalPartyId } from "../../lib/special-event-parties";
+import {
+    classifyDeepAbyssFolderSelection,
+    isStaleDeepAbyssEndlessFolderLock,
+} from "../../lib/rush-event-folder-lock";
 import {
     canStartMode15QuestSync,
     getMode15ExclusiveGlobalPartyItemsSync,
@@ -109,6 +113,30 @@ interface RushPartyGroup {
 }
 
 const MODE15_VISIBLE_PARTY_SET_COUNT = 3
+
+function repairDeepAbyssEndlessFolderLockSync(
+    playerId: number,
+    rushEventData: PlayerRushEvent,
+): PlayerRushEvent {
+    if (!isStaleDeepAbyssEndlessFolderLock(
+        rushEventData.eventId,
+        rushEventData.activeRushBattleFolderId,
+    )) return rushEventData;
+
+    updatePlayerRushEventSync(playerId, {
+        eventId: rushEventData.eventId,
+        activeRushBattleFolderId: null,
+    });
+    console.warn(
+        `[RUSH] repaired stale Deep Abyss endless folder lock: `
+        + `player=${playerId} eventId=${rushEventData.eventId} folderId=2`,
+    );
+    return {
+        ...rushEventData,
+        activeRushBattleFolderId: null,
+    };
+}
+
 export const rushEventFolderMaxRounds: { [key in RushEventFolder]?: number } = {
     [RushEventFolder.INTERMEDIATE]: 2,
     [RushEventFolder.ADVANCED]: 2,
@@ -171,6 +199,12 @@ const routes = async (fastify: FastifyInstance) => {
             rushEventData = getDefaultPlayerRushEventSync(eventId)
             insertPlayerRushEventSync(playerId, rushEventData)
         }
+
+        // Older or modified clients could persist the endless folder (2) as
+        // the regular Deep Abyss difficulty lock. The client then refuses to
+        // open folder 1 with "challenging another difficulty". Repair only
+        // this known invalid state; every other Rush event remains untouched.
+        rushEventData = repairDeepAbyssEndlessFolderLockSync(playerId, rushEventData)
 
         // Older reset builds left the active folder null, while the Fantasy
         // client now returns straight to folder 1 without calling
@@ -245,11 +279,37 @@ const routes = async (fastify: FastifyInstance) => {
         })
 
         // get existing rush event data 
-        const rushEventData = getPlayerRushEventSync(playerId, eventId)
+        let rushEventData = getPlayerRushEventSync(playerId, eventId)
         if (rushEventData === null) return reply.status(400).send({
             "error": "Bad Request",
             "message": `No rush event data for rush event with id '${eventId}'`
         });
+        rushEventData = repairDeepAbyssEndlessFolderLockSync(playerId, rushEventData)
+
+        const deepAbyssSelection = classifyDeepAbyssFolderSelection(eventId, folderId)
+        if (deepAbyssSelection === "invalid") return reply.status(400).send({
+            "error": "Bad Request",
+            "message": "Invalid Deep Abyss rush battle folder."
+        });
+
+        if (deepAbyssSelection === "endless_compat") {
+            // The current client enters endless battle directly and never
+            // calls /select_folder. Treat calls from older clients as a
+            // successful no-op: endless remains playable, while folder 2 is
+            // not persisted as a regular difficulty lock.
+            console.warn(
+                `[RUSH] ignored Deep Abyss endless folder selection lock: `
+                + `player=${playerId} eventId=${eventId} folderId=${folderId}`,
+            );
+            reply.header("content-type", "application/x-msgpack")
+            return reply.status(200).send({
+                "data_headers": generateDataHeaders({ viewer_id: viewerId }),
+                "data": {
+                    "folder_id": folderId,
+                    "event_id": eventId
+                }
+            })
+        }
 
         // Error if a folder has already been selected
         if (rushEventData.activeRushBattleFolderId !== null) return reply.status(400).send({
@@ -599,6 +659,11 @@ const routes = async (fastify: FastifyInstance) => {
             "error": "Internal Server Error",
             "message": "No player bound to account."
         })
+
+        const rushEventData = getPlayerRushEventSync(playerId, eventId)
+        if (rushEventData !== null) {
+            repairDeepAbyssEndlessFolderLockSync(playerId, rushEventData)
+        }
 
         if (isMode15RuntimeLoaded() && eventId === MODE15_RUSH_EVENT_ID) {
             resetMode15RunSync(playerId);

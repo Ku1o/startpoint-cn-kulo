@@ -3,6 +3,7 @@ import { MultiRoom, QuestCategory, RoomState } from "../types";
 import { getServerTime } from "../../utils";
 import { sessionManager } from "../state/SessionManager";
 import { gameVerboseLog } from "../../lib/game-logging";
+import { roomAdmissionRegistry } from "./admission";
 
 const rooms = new Map<string, MultiRoom>();
 
@@ -37,6 +38,7 @@ function cleanExpiredRooms() {
 
         if (idleAge > timeout) {
             rooms.delete(roomNumber);
+            roomAdmissionRegistry.clearRoom(roomNumber);
             sessionManager.removeRoomState(roomNumber);
             notifiedRooms.delete(roomNumber);
             cleaned++;
@@ -146,6 +148,7 @@ export function disbandRoom(roomNumber: string): boolean {
     const deleted = rooms.delete(roomNumber);
     if (deleted) {
         gameVerboseLog(() => `[MULTI] room deleted: ${roomNumber}`);
+        roomAdmissionRegistry.clearRoom(roomNumber);
         try {
             const { stopRandomRecruitment } = require("../recruitment")
             stopRandomRecruitment(roomNumber)

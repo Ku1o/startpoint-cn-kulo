@@ -185,12 +185,12 @@ assert.deepEqual(
 )
 
 assert.deepEqual(
-    getMatchedAwakeDirectBattleMissionIds(directBattleContext(15, 96, [131005]), ""),
+    getMatchedAwakeDirectBattleMissionIds(directBattleContext(15, 25, [131005]), ""),
     [1310052],
 )
 assert.deepEqual(
     getMatchedAwakeDirectBattleMissionIds({
-        ...directBattleContext(15, 96, [999]),
+        ...directBattleContext(15, 25, [999]),
         party: {
             characters: [{ id: 999 }],
             unison_characters: [],
@@ -200,11 +200,15 @@ assert.deepEqual(
     [1310052],
 )
 assert.deepEqual(
-    getMatchedAwakeDirectBattleMissionIds(directBattleContext(15, 96, [999]), ""),
+    getMatchedAwakeDirectBattleMissionIds(directBattleContext(15, 25, [999]), ""),
     [],
 )
 assert.deepEqual(
-    getMatchedAwakeDirectBattleMissionIds(directBattleContext(15, 96, [131005], { isMulti: true }), ""),
+    getMatchedAwakeDirectBattleMissionIds(directBattleContext(15, 25, [131005], { isMulti: true }), ""),
+    [],
+)
+assert.deepEqual(
+    getMatchedAwakeDirectBattleMissionIds(directBattleContext(15, 92, [131005]), ""),
     [],
 )
 
@@ -283,6 +287,8 @@ const existingExplicitMissionIds = new Set([
 ])
 const directAwakeMissionIds = new Set([3210132, 3210133, 3410012, 3410013, 1610022, 2610072, 1310052])
 const awakeDefs = require("../assets/mission_char_awake.json")
+assert.equal(awakeDefs[1310052][0][9], "11", "Barak mission must target Practice quests")
+assert.equal(awakeDefs[1310052][0][12], "25", "Barak mission must target Practice quest 25")
 const awakeFallbackMissionIds = Object.keys(require("../assets/mission_char_awake.json"))
     .map(Number)
     .filter(missionId => !storyMissionIds.has(missionId))
@@ -304,6 +310,21 @@ for (const missionId of awakeFallbackMissionIds) {
 }
 
 const awakeComputer = getComputer(9)
+assert.equal(awakeComputer.compute(1310052, {
+    questProgress: {
+        "15": [{ questId: 25, finished: true, leaderCharacterId: 131005 }],
+    },
+}, 0), 1)
+assert.equal(awakeComputer.compute(1310052, {
+    questProgress: {
+        "15": [{ questId: 25, finished: true, leaderCharacterId: 999 }],
+    },
+}, 0), 0)
+assert.equal(awakeComputer.compute(1310052, {
+    questProgress: {
+        "15": [{ questId: 92, finished: true, leaderCharacterId: 131005 }],
+    },
+}, 0), 0)
 assert.equal(awakeComputer.compute(2110012, {
     coClears: new Map([["211001_231001", 5]]),
 }, 0), 5)

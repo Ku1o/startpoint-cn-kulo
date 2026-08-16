@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build the formal Fantasy Rush weapon shop in both event entry points.
+"""Build the formal Fantasy Rush shop in both event entry points.
 
 The client needs separate rows for the Rush (solo) and Advent (multiplayer)
 shop screens.  The server keeps the rows separate too, while ``shop.ts`` maps
@@ -18,9 +18,14 @@ from pathlib import Path
 
 
 MODULE_DIR = Path(__file__).resolve().parent
-PROJECT_ROOT = MODULE_DIR.parent if MODULE_DIR.name == "mod-tools" else MODULE_DIR
-TOOLS_DIR = PROJECT_ROOT / "mod-tools"
-SERVER_ASSETS = PROJECT_ROOT / "server" / "assets"
+if MODULE_DIR.parent.name == "tools" and (MODULE_DIR.parents[1] / "assets").is_dir():
+    PROJECT_ROOT = MODULE_DIR.parents[1]
+    TOOLS_DIR = MODULE_DIR
+    SERVER_ASSETS = PROJECT_ROOT / "assets"
+else:
+    PROJECT_ROOT = MODULE_DIR.parent if MODULE_DIR.name == "mod-tools" else MODULE_DIR
+    TOOLS_DIR = PROJECT_ROOT / "mod-tools"
+    SERVER_ASSETS = PROJECT_ROOT / "server" / "assets"
 sys.path.insert(0, str(PROJECT_ROOT))
 sys.path.insert(0, str(TOOLS_DIR))
 
@@ -46,8 +51,19 @@ RUSH_SERVER_TYPE = "11"
 PLACEHOLDER_IDS = ("9700098", "9700099")
 MULTI_SHOP_IDS = tuple(str(9_700_201 + i) for i in range(len(WEAPONS)))
 RUSH_SHOP_IDS = tuple(str(9_700_301 + i) for i in range(len(WEAPONS)))
-ALL_SHOP_IDS = MULTI_SHOP_IDS + RUSH_SHOP_IDS
+MULTI_TICKET_SHOP_ID = "9700212"
+RUSH_TICKET_SHOP_ID = "9700312"
+TICKET_SHOP_IDS = (MULTI_TICKET_SHOP_ID, RUSH_TICKET_SHOP_ID)
+ALL_SHOP_IDS = MULTI_SHOP_IDS + RUSH_SHOP_IDS + TICKET_SHOP_IDS
 DESCRIPTION = "幻想连战专属武器。单人和多人商店共用库存，每件限购1次。"
+TICKET_NAME = "深渊十连券×3"
+TICKET_DESCRIPTION = "一次兑换可获得3张深渊限定扭蛋的角色10连抽取专用券。单人和多人商店共用库存。"
+TICKET_IMAGE_PATH = "item/spends/tickets/abyss_ten_times_gacha_character_ticket"
+TICKET_ITEM_ID = 999014
+TICKET_REWARD_COUNT = 3
+TICKET_COST_ITEM_ID = 2370097
+TICKET_PRICE = 1
+TICKET_STOCK = 9999
 
 
 def _leaf_text(leaf: bytes | str) -> str:
@@ -119,11 +135,48 @@ def _client_leaf(template: bytes | str, shop_id: str, spec: dict,
     return _join_like(row, template_leaf)
 
 
+def _ticket_client_leaf(template: bytes | str, shop_id: str, slot: int,
+                        client_kind: str, event_id: int) -> bytes | str:
+    row, template_leaf = _single_row(template)
+    row = core.normalize_row_length(row, 51)
+    if len(row) != 51:
+        raise ValueError("event_item_shop template is not 51 columns")
+    fixed = {
+        0: client_kind,
+        1: str(event_id),
+        2: "0",
+        7: TICKET_NAME,
+        8: shop_id,
+        9: "1",
+        10: str(slot),
+        11: TICKET_DESCRIPTION,
+        13: TICKET_IMAGE_PATH,
+        14: "5",
+        18: str(TICKET_COST_ITEM_ID),
+        19: str(TICKET_PRICE),
+        26: AVAILABLE_FROM,
+        27: AVAILABLE_UNTIL,
+        28: "0",
+        29: str(TICKET_STOCK),
+        30: str(TICKET_STOCK),
+        31: "(None)",
+        32: "0",
+        33: str(TICKET_ITEM_ID),
+        34: str(TICKET_REWARD_COUNT),
+        50: "false",
+    }
+    for index, value in fixed.items():
+        row[index] = value
+    return _join_like(row, template_leaf)
+
+
 def build_client_shop(table: dict) -> dict:
     if SHOP_TEMPLATE not in table:
         raise KeyError(f"missing shop template {SHOP_TEMPLATE}")
     result = copy.deepcopy(table)
-    for key in PLACEHOLDER_IDS + ALL_SHOP_IDS:
+    # Keep existing formal rows in place so rerunning the builder on a
+    # consolidated release cannot reorder unrelated appended content.
+    for key in PLACEHOLDER_IDS:
         result.pop(key, None)
     template = table[SHOP_TEMPLATE]
     for slot, (multi_id, rush_id, spec) in enumerate(shop_pairs(), start=1):
@@ -133,6 +186,15 @@ def build_client_shop(table: dict) -> dict:
         result[rush_id] = _client_leaf(
             template, rush_id, spec, slot, RUSH_CLIENT_KIND, RUSH_EVENT_ID
         )
+    ticket_slot = len(WEAPONS) + 1
+    result[MULTI_TICKET_SHOP_ID] = _ticket_client_leaf(
+        template, MULTI_TICKET_SHOP_ID, ticket_slot,
+        MULTI_CLIENT_KIND, MULTI_EVENT_ID,
+    )
+    result[RUSH_TICKET_SHOP_ID] = _ticket_client_leaf(
+        template, RUSH_TICKET_SHOP_ID, ticket_slot,
+        RUSH_CLIENT_KIND, RUSH_EVENT_ID,
+    )
     return result
 
 
@@ -143,6 +205,16 @@ def _product(spec: dict) -> dict:
         "availableFrom": AVAILABLE_FROM,
         "availableUntil": AVAILABLE_UNTIL,
         "stock": STOCK,
+    }
+
+
+def _ticket_product() -> dict:
+    return {
+        "costs": [{"id": TICKET_COST_ITEM_ID, "amount": TICKET_PRICE}],
+        "rewards": [{"type": 0, "id": TICKET_ITEM_ID, "count": TICKET_REWARD_COUNT}],
+        "availableFrom": AVAILABLE_FROM,
+        "availableUntil": AVAILABLE_UNTIL,
+        "stock": TICKET_STOCK,
     }
 
 
@@ -168,6 +240,10 @@ def build_server_shop(shop: dict, id_map: dict) -> tuple[dict, dict]:
                         and event_id == str(MULTI_EVENT_ID))
                     or (key in RUSH_SHOP_IDS and event_type == RUSH_SERVER_TYPE
                         and event_id == str(RUSH_EVENT_ID))
+                    or (key == MULTI_TICKET_SHOP_ID and event_type == MULTI_SERVER_TYPE
+                        and event_id == str(MULTI_EVENT_ID))
+                    or (key == RUSH_TICKET_SHOP_ID and event_type == RUSH_SERVER_TYPE
+                        and event_id == str(RUSH_EVENT_ID))
                 )
                 if not permitted:
                     raise ValueError(f"reserved shop id collision: {key} at {event_type}/{event_id}")
@@ -191,6 +267,15 @@ def build_server_shop(shop: dict, id_map: dict) -> tuple[dict, dict]:
         result_map[rush_id] = {
             "eventType": int(RUSH_SERVER_TYPE), "eventId": RUSH_EVENT_ID
         }
+    ticket_product = _ticket_product()
+    multi_products[MULTI_TICKET_SHOP_ID] = copy.deepcopy(ticket_product)
+    rush_products[RUSH_TICKET_SHOP_ID] = copy.deepcopy(ticket_product)
+    result_map[MULTI_TICKET_SHOP_ID] = {
+        "eventType": int(MULTI_SERVER_TYPE), "eventId": MULTI_EVENT_ID
+    }
+    result_map[RUSH_TICKET_SHOP_ID] = {
+        "eventType": int(RUSH_SERVER_TYPE), "eventId": RUSH_EVENT_ID
+    }
     return _sort_numeric(result_shop), _sort_numeric(result_map)
 
 
@@ -225,6 +310,28 @@ def validate(client: dict, shop: dict, id_map: dict) -> None:
             for index, expected_value in checks.items():
                 if row[index] != expected_value:
                     raise ValueError(f"client {shop_id} c{index} mismatch")
+    expected_ticket = _ticket_product()
+    if multi.get(MULTI_TICKET_SHOP_ID) != expected_ticket:
+        raise ValueError("multiplayer ticket product mismatch")
+    if rush.get(RUSH_TICKET_SHOP_ID) != expected_ticket:
+        raise ValueError("solo ticket product mismatch")
+    for shop_id, event_type, event_id, kind in (
+        (MULTI_TICKET_SHOP_ID, 0, MULTI_EVENT_ID, MULTI_CLIENT_KIND),
+        (RUSH_TICKET_SHOP_ID, 11, RUSH_EVENT_ID, RUSH_CLIENT_KIND),
+    ):
+        if id_map.get(shop_id) != {"eventType": event_type, "eventId": event_id}:
+            raise ValueError(f"bad id map: {shop_id}")
+        row, _ = _single_row(client[shop_id])
+        checks = {
+            0: kind, 1: str(event_id), 7: TICKET_NAME, 8: shop_id,
+            10: str(len(WEAPONS) + 1), 18: str(TICKET_COST_ITEM_ID),
+            19: str(TICKET_PRICE), 29: str(TICKET_STOCK),
+            30: str(TICKET_STOCK), 32: "0", 33: str(TICKET_ITEM_ID),
+            34: str(TICKET_REWARD_COUNT),
+        }
+        for index, expected_value in checks.items():
+            if row[index] != expected_value:
+                raise ValueError(f"client {shop_id} c{index} mismatch")
 
 
 def _load_json(path: Path):
@@ -265,7 +372,11 @@ def main() -> int:
     shop_after, map_after = build_server_shop(shop_before, map_before)
     validate(client_after, shop_after, map_after)
     print(f"[PLAN] 11 weapons; ids 100013..100023; price={PRICE}; stock={STOCK}")
-    print("[PLAN] 22 client rows; paired inventory counters are implemented in server shop.ts")
+    print(
+        f"[PLAN] {TICKET_NAME} x{TICKET_REWARD_COUNT}; "
+        f"price={TICKET_PRICE} ultimate totem; stock={TICKET_STOCK}"
+    )
+    print("[PLAN] 24 client rows; paired inventory counters are implemented in server shop.ts")
     if not args.write:
         print("[DRY-RUN] no files written")
         return 0

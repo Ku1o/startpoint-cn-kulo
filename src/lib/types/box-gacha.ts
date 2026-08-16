@@ -58,6 +58,7 @@ export interface BoxGacha {
 
 
 export interface BoxGachaDrawResult {
+    drawCount: number
     rewards: PlayerBoxGachaDrawnReward[]
     mana: number
     exp: number
@@ -65,4 +66,3 @@ export interface BoxGachaDrawResult {
     equipment: Map<number, number>
     items: Map<number, number>
 }
-

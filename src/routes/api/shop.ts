@@ -74,13 +74,13 @@ const GENERAL_EQUIPMENT_SCOPED_PURCHASE_KEYS: ReadonlyMap<number, number> = new 
     [110006, -8_110_006], // 埃癸斯·幽冥
 ])
 
-// Fantasy Rush exposes the same eleven products through its Rush (solo) and
+// Fantasy Rush exposes the same twelve products through its Rush (solo) and
 // Advent (multiplayer) screens.  The client requires different shop_item_id
 // rows for those two event families, but the inventory is one-time and shared.
 // Store each pair under one private key so either screen immediately reflects
 // a purchase made in the other screen.
 const MODE15_SHARED_EVENT_PURCHASE_KEYS: ReadonlyMap<number, number> = new Map(
-    Array.from({ length: 11 }, (_, index) => {
+    Array.from({ length: 12 }, (_, index) => {
         const sharedKey = -9_702_001 - index
         return [
             [9_700_201 + index, sharedKey],

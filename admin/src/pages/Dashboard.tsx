@@ -87,9 +87,9 @@ function formatDuration(seconds: number): string {
     const days = Math.floor(seconds / 86400)
     const hours = Math.floor((seconds % 86400) / 3600)
     const minutes = Math.floor((seconds % 3600) / 60)
-    if (days > 0) return `${days} 天 ${hours} 小时`
-    if (hours > 0) return `${hours} 小时 ${minutes} 分钟`
-    return `${Math.max(1, minutes)} 分钟`
+    if (days > 0) return `${days}天${hours}小时`
+    if (hours > 0) return `${hours}小时${minutes}分钟`
+    return `${Math.max(1, minutes)}分钟`
 }
 
 function formatBytes(bytes: number): string {
@@ -202,16 +202,20 @@ export default function Dashboard() {
                         ) : (
                             <>
                                 <Row gutter={[16, 16]}>
-                                    <Col xs={12} sm={6}>
+                                    <Col xs={12} sm={5}>
                                         <Statistic title="当前在线" value={status.server.onlinePlayers} suffix="人" />
                                     </Col>
-                                    <Col xs={12} sm={6}>
-                                        <Statistic title="运行时间" value={formatDuration(status.server.uptimeSeconds)} />
+                                    <Col xs={12} sm={8}>
+                                        <Statistic
+                                            title="运行时间"
+                                            value={formatDuration(status.server.uptimeSeconds)}
+                                            valueStyle={{ whiteSpace: "nowrap" }}
+                                        />
                                     </Col>
                                     <Col xs={12} sm={6}>
                                         <Statistic title="RSS 内存" value={formatBytes(status.server.memory.rss)} />
                                     </Col>
-                                    <Col xs={12} sm={6}>
+                                    <Col xs={12} sm={5}>
                                         <Statistic title="PID" value={status.server.pid} />
                                     </Col>
                                 </Row>
