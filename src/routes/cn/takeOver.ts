@@ -318,6 +318,10 @@ const routes = async (fastify: FastifyInstance) => {
             getDb().prepare(`UPDATE accounts SET takeover_password = ?, takeover_udid = ? WHERE id = ?`)
                 .run(password, udid, account.account_id)
         })
+        // A player who still controls the currently bound device may replace
+        // a forgotten password in-game. Do not leave that new password hidden
+        // behind an earlier IP/viewer recovery lock from the same connection.
+        failures.delete(failureKey(request, viewerId))
         return send(reply, { registered_viewer_id: Number(viewerId) }, Number(viewerId))
     })
 

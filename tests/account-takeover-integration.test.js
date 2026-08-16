@@ -131,6 +131,35 @@ async function main() {
     }, "temporary-udid")
     assert.strictEqual(data(response).data_headers.result_code, 1)
 
+    // Replacing an already configured password in-game overwrites the old
+    // password and clears the current IP/viewer lock. The native client uses
+    // this path for its reset-password presentation.
+    for (let attempt = 0; attempt < 5; attempt += 1) {
+        response = await request("take_over/get_user_data_by_take_over_data", {
+            viewer_id: 223456789,
+            input_viewer_id: "123456789",
+            input_password: `ResetLock${attempt}A1`,
+        }, "temporary-udid")
+        assert.strictEqual(data(response).data_headers.result_code, 3204)
+    }
+    response = await request("take_over_register/register_take_over_data", {
+        viewer_id: 123456789,
+        input_password: "ResetPwd2",
+    }, "old-target-udid")
+    assert.strictEqual(data(response).data_headers.result_code, 1)
+    response = await request("take_over/get_user_data_by_take_over_data", {
+        viewer_id: 223456789,
+        input_viewer_id: "123456789",
+        input_password: "Abcdefg1",
+    }, "temporary-udid")
+    assert.strictEqual(data(response).data_headers.result_code, 3204)
+    response = await request("take_over/get_user_data_by_take_over_data", {
+        viewer_id: 223456789,
+        input_viewer_id: "123456789",
+        input_password: "ResetPwd2",
+    }, "temporary-udid")
+    assert.strictEqual(data(response).data_headers.result_code, 1)
+
     response = await request("take_over/take_over_by_take_over_data", {
         viewer_id: 223456789,
         input_viewer_id: "123456789",
@@ -144,7 +173,7 @@ async function main() {
     response = await request("take_over/take_over_by_take_over_data", {
         viewer_id: 223456789,
         input_viewer_id: "123456789",
-        input_password: "Abcdefg1",
+        input_password: "ResetPwd2",
         device_id: 222,
     }, "new-target-udid")
     const transferred = data(response)
@@ -157,7 +186,7 @@ async function main() {
     `).get(target.account.id)
     assert.deepEqual(targetRow, {
         admin_note: "老玩家-保留备注",
-        takeover_password: "Abcdefg1",
+        takeover_password: "ResetPwd2",
         takeover_udid: "new-target-udid",
     })
     assert.strictEqual(getDb().prepare(`SELECT 1 FROM accounts WHERE id = ?`).get(temporary.account.id), undefined)
@@ -192,7 +221,7 @@ async function main() {
     // account. It moves the same account and reports abolished_viewer_id = 0.
     response = await request("take_over/take_over_by_take_over_data", {
         input_viewer_id: "123456789",
-        input_password: "Abcdefg1",
+        input_password: "ResetPwd2",
         device_id: 444,
     }, "title-recovery-udid")
     assert.strictEqual(data(response).data_headers.result_code, 1)
