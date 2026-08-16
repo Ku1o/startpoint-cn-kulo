@@ -41,6 +41,7 @@ export class SessionManager {
     private roomClients = new Map<string, Set<string>>()
     private battleClients = new Map<string, Set<string>>()
     private cidToBattleClient = new Map<string, SessionClient>()
+    private socketClients = new WeakMap<net.Socket, SessionClient>()
     private sceneReadyClients = new Map<string, Set<string>>()
     private battleLevelNextClients = new Map<string, Set<string>>()
     private battleExpectedCount = new Map<string, number>()
@@ -96,14 +97,12 @@ export class SessionManager {
         this.battleHeartbeatTimers.set(connectionId, timer)
     }
 
-    private armActiveBattleHeartbeatLease(connectionId: string): void {
+    private scheduleActiveBattleHeartbeatLease(connectionId: string, delayMs: number): void {
         const client = this.cidToBattleClient.get(connectionId)
         if (!client || client.socket.destroyed) return
         const leaseMs = this.parsePositiveDuration("BATTLE_HEARTBEAT_LEASE_MS", 25_000, 5_000)
         const previous = this.battleHeartbeatTimers.get(connectionId)
         if (previous) clearTimeout(previous)
-        this.battleConnectionPhase.set(connectionId, "active")
-        this.battleLastActivityAt.set(connectionId, Date.now())
         const timer = setTimeout(() => {
             this.battleHeartbeatTimers.delete(connectionId)
             const current = this.cidToBattleClient.get(connectionId)
@@ -113,7 +112,7 @@ export class SessionManager {
             }
             const inactiveMs = Date.now() - (this.battleLastActivityAt.get(connectionId) ?? 0)
             if (inactiveMs < leaseMs) {
-                this.armActiveBattleHeartbeatLease(connectionId)
+                this.scheduleActiveBattleHeartbeatLease(connectionId, Math.max(1, leaseMs - inactiveMs))
                 return
             }
             console.warn(`[MULTI] real battle connection heartbeat expired: room=${current.roomNumber}`
@@ -122,9 +121,18 @@ export class SessionManager {
             // Its normal close handler performs the native Leave path using the
             // connection id already known by every remaining client.
             current.socket.destroy()
-        }, leaseMs)
+        }, delayMs)
         timer.unref()
         this.battleHeartbeatTimers.set(connectionId, timer)
+    }
+
+    private armActiveBattleHeartbeatLease(connectionId: string): void {
+        const client = this.cidToBattleClient.get(connectionId)
+        if (!client || client.socket.destroyed) return
+        const leaseMs = this.parsePositiveDuration("BATTLE_HEARTBEAT_LEASE_MS", 25_000, 5_000)
+        this.battleConnectionPhase.set(connectionId, "active")
+        this.battleLastActivityAt.set(connectionId, Date.now())
+        this.scheduleActiveBattleHeartbeatLease(connectionId, leaseMs)
     }
 
     noteBattleActivity(connectionId: string): void {
@@ -133,7 +141,20 @@ export class SessionManager {
         // the active-battle heartbeat.  SceneReady switches the connection to
         // the renewable 25-second activity lease.
         if (this.battleConnectionPhase.get(connectionId) === "active") {
-            this.armActiveBattleHeartbeatLease(connectionId)
+            // One timer per active connection is enough. Per-packet traffic
+            // only advances the deadline timestamp; the timer reschedules for
+            // the exact remaining lease when it wakes up.
+            this.battleLastActivityAt.set(connectionId, Date.now())
+        }
+    }
+
+    private indexClientSocket(client: SessionClient): void {
+        this.socketClients.set(client.socket, client)
+    }
+
+    private unindexClientSocket(client: SessionClient): void {
+        if (this.socketClients.get(client.socket) === client) {
+            this.socketClients.delete(client.socket)
         }
     }
 
@@ -403,6 +424,7 @@ export class SessionManager {
             const addr = this.addr(client.viewerId, roomNumber)
             if (this.clients.get(addr) === client) this.clients.delete(addr)
             if (client.isBattle) this.cidToBattleClient.delete(client.connectionId)
+            this.unindexClientSocket(client)
             try { client.socket.end() } catch (e) {}
             setTimeout(() => {
                 try { client.socket.destroy() } catch (e) {}
@@ -498,6 +520,7 @@ export class SessionManager {
                 this.battleExpectedCount.delete(roomNumber)
                 for (const client of waitingClients) {
                     this.clients.delete(this.addr(client.viewerId, roomNumber))
+                    this.unindexClientSocket(client)
                     try { client.socket.end() } catch (e) {}
                 }
                 console.warn(`[MULTI] room disbanded: host did not return after settlement room=${roomNumber}`)
@@ -512,17 +535,23 @@ export class SessionManager {
         const pendingTimer = this.emptyRoomDisbandTimers.get(roomNumber)
         if (pendingTimer) clearTimeout(pendingTimer)
         this.emptyRoomDisbandTimers.delete(roomNumber)
+        let roomGeneration: number | undefined
         try {
             const { getRoom } = require("../room/manager")
             const room = getRoom(roomNumber)
-            if (room) room.settlement_return_pending = false
+            if (room) {
+                room.settlement_return_pending = false
+                roomGeneration = room.lobby_generation
+            }
         } catch (e) {}
         try {
             // Keep room lifetime and settlement eligibility independent.  A
             // successful host return advances retained finish snapshots to
             // LOBBY, but they remain replayable for their short TTL.
             const { transitionRoomSettlementSnapshots } = require("../settlement-snapshot")
-            transitionRoomSettlementSnapshots(roomNumber, "LOBBY")
+            if (roomGeneration !== undefined) {
+                transitionRoomSettlementSnapshots(roomNumber, "LOBBY", roomGeneration)
+            }
         } catch (e) {}
         gameVerboseLog(() => `[MULTI] settlement host returned: room=${roomNumber}`)
     }
@@ -575,9 +604,11 @@ export class SessionManager {
         const previous = this.clients.get(addr)
         this.clients.set(addr, client)
         if (previous && previous !== client && previous.socket !== client.socket) {
+            this.unindexClientSocket(previous)
             gameVerboseLog(() => `[MULTI] replacing stale room connection: viewer=${client.viewerId} room=${client.roomNumber}`)
             try { previous.socket.destroy() } catch (e) {}
         }
+        this.indexClientSocket(client)
         let set = this.roomClients.get(client.roomNumber)
         if (!set) {
             set = new Set()
@@ -596,6 +627,7 @@ export class SessionManager {
     }
 
     removeClient(client: SessionClient): Result<void> {
+        this.unindexClientSocket(client)
         const addr = this.addr(client.viewerId, client.roomNumber)
         const isCurrentConnection = this.clients.get(addr) === client
         if (isCurrentConnection) this.clients.delete(addr)
@@ -748,11 +780,13 @@ export class SessionManager {
             this.battleLevelNextClients.get(client.roomNumber)?.delete(existingConnectionId)
             this.cidToBattleClient.delete(existingConnectionId)
             this.supersededBattleClients.add(existing)
+            this.unindexClientSocket(existing)
             if (!existing.socket.destroyed) existing.socket.destroy()
             this.logBattleBarrierState(client.roomNumber, "connection_replaced")
         }
         set.add(connectionId)
         this.cidToBattleClient.set(connectionId, client)
+        this.indexClientSocket(client)
         this.armBattleLoadingLease(connectionId)
         this.logBattleBarrierState(client.roomNumber, "connected")
     }
@@ -761,6 +795,7 @@ export class SessionManager {
         this.clearBattleHeartbeatLease(connectionId)
         const client = this.cidToBattleClient.get(connectionId)
         if (client) {
+            this.unindexClientSocket(client)
             this.battleClients.get(client.roomNumber)?.delete(connectionId)
             this.sceneReadyClients.get(client.roomNumber)?.delete(connectionId)
             this.battleLevelNextClients.get(client.roomNumber)?.delete(connectionId)
@@ -776,16 +811,7 @@ export class SessionManager {
     }
 
     findClientBySocket(socket: net.Socket): SessionClient | undefined {
-        // Battle packets are the hot path. Search the battle map first so this
-        // helper keeps the same per-packet cost as the previous battle-only
-        // lookup instead of scanning every lobby client first.
-        for (const client of this.cidToBattleClient.values()) {
-            if (client.socket === socket) return client
-        }
-        for (const client of this.clients.values()) {
-            if (client.socket === socket) return client
-        }
-        return undefined
+        return this.socketClients.get(socket)
     }
 
     isCurrentBattleClient(client: SessionClient): boolean {
@@ -894,7 +920,15 @@ export class SessionManager {
         data: any,
         context?: ReliableSendContext,
     ): ReliableSendResult {
-        return sendFrameReliably(socket, JSON.stringify(data) + "\0", context)
+        return this.sendFrame(socket, JSON.stringify(data) + "\0", context)
+    }
+
+    sendFrame(
+        socket: net.Socket,
+        frame: string,
+        context?: ReliableSendContext,
+    ): ReliableSendResult {
+        return sendFrameReliably(socket, frame, context)
     }
 
     broadcastToRoom(roomNumber: string, data: any, excludeAddr?: string): void {
