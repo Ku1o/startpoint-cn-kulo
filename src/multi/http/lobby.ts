@@ -21,6 +21,7 @@ import { isNewbiePlayerSync } from "../../lib/newbie"
 import { canJoinMode15RescueSync, canStartMode15QuestSync, isMode15Quest } from "../../lib/mode15-optional"
 import { isMode15RoomClosed } from "../mode15-room-gate"
 import { roomAdmissionRegistry } from "../room/admission"
+import { getSelectRoomDenialRaisingState } from "../room/select-denial"
 
 const ROOM_CAPACITY = 3
 
@@ -257,11 +258,17 @@ export function registerLobbyRoutes(fastify: FastifyInstance): void {
             && !returningMember
             && wasStoppedRandomRecruitmentDeliveredTo(room.room_number, viewerId)
             && (room.is_npc_mode || !isRandomRecruiting(room.room_number))
+        const battleStarted = !!room
+            && !returningMember
+            && room.raising_state === 4
+        const waitingForExpectedMember = !!room
+            && !returningMember
+            && isRoomWaitingForExpectedMember(room)
         const isUnavailableWithoutCapacity = !!room && (
             mode15RoomClosed
             || (!returningMember && (
-                room.raising_state === 4
-                || isRoomWaitingForExpectedMember(room)
+                battleStarted
+                || waitingForExpectedMember
                 || staleRescueNotice
                 || mode15Blocked
             ))
@@ -293,6 +300,12 @@ export function registerLobbyRoutes(fastify: FastifyInstance): void {
                     + ` room=${room?.room_number} reason=capacity_reserved`,
                 )
             }
+            const denialRaisingState = getSelectRoomDenialRaisingState({
+                battleStarted,
+                // A disconnected expected member still owns that seat, so the
+                // room is full from a new entrant's point of view.
+                roomFull: capacityDenied || waitingForExpectedMember,
+            })
             reply.header("content-type", "application/x-msgpack")
             return reply.status(200).send({
                 "data_headers": generateDataHeaders({ viewer_id: viewerId }),
@@ -303,7 +316,7 @@ export function registerLobbyRoutes(fastify: FastifyInstance): void {
                     ip_address: "",
                     port: 0,
                     quest_id: 0,
-                    raising_state: 9,
+                    raising_state: denialRaisingState,
                     room_number: room?.room_number || body.room_number || "",
                     room_sequence: 0,
                     share_room_options: 0,
