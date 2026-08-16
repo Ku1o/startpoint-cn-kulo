@@ -29,3 +29,5 @@
 ## 说明
 
 完整的自动化流水线(FFDec 导出 / 导入 / 打包 / 签名)是作者基于 [starview](https://github.com/duosii/starview)(GPL-3.0)的本地扩展,未随本仓库分发。本目录仅提供"最小改动 + 应用脚本",方便手动复现;`apply.sh` 为原创实现,不含 starview 代码。
+
+如需恢复 V51 客户端中已经存在但未加入菜单列表的“数据继承”入口，参见 [V51 客户端恢复游戏内“数据继承”入口](../docs/client-takeover-entry.md)。该修改与本页的免登录、API 重定向相互独立。
