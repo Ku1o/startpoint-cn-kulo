@@ -1,8 +1,8 @@
 import type { Database } from "better-sqlite3"
 
-export interface AdminAccountBinding {
-    account_id: number
-    name: string | null
+export interface AdminAccountNote {
+    id: number
+    adminNote?: string | null
 }
 
 interface ForeignKeyRow {
@@ -23,19 +23,17 @@ interface IndexInfoRow {
     name: string
 }
 
-export function accountHasNote(bindings: AdminAccountBinding[]): boolean {
-    return bindings.some(binding => typeof binding.name === "string" && binding.name.trim().length > 0)
+export function accountHasNote(account: AdminAccountNote): boolean {
+    return typeof account.adminNote === "string" && account.adminNote.trim().length > 0
 }
 
 export function selectUnnotedAccountIds(
-    accountIds: number[],
-    bindings: AdminAccountBinding[],
+    accounts: AdminAccountNote[],
     activeAccountId: number | null,
 ): number[] {
-    return accountIds.filter(accountId =>
-        accountId !== activeAccountId
-        && !accountHasNote(bindings.filter(binding => binding.account_id === accountId)),
-    )
+    return accounts.filter(account =>
+        account.id !== activeAccountId && !accountHasNote(account),
+    ).map(account => account.id)
 }
 
 function quoteIdentifier(identifier: string): string {

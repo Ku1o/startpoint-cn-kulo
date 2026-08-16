@@ -163,8 +163,17 @@ export default function init(
         last_login_time DATE NOT NULL,
         status TEXT NOT NULL,
         username TEXT UNIQUE,
-        password_hash TEXT
+        password_hash TEXT,
+        admin_note TEXT DEFAULT NULL,
+        takeover_password TEXT DEFAULT NULL,
+        takeover_udid TEXT DEFAULT NULL
     )`).run()
+
+    // Account recovery metadata is account-scoped: neither a device rebind nor
+    // deletion of an obsolete device row may discard the administrator note.
+    try { database.prepare(`ALTER TABLE accounts ADD COLUMN admin_note TEXT DEFAULT NULL`).run(); } catch { /* column already exists */ }
+    try { database.prepare(`ALTER TABLE accounts ADD COLUMN takeover_password TEXT DEFAULT NULL`).run(); } catch { /* column already exists */ }
+    try { database.prepare(`ALTER TABLE accounts ADD COLUMN takeover_udid TEXT DEFAULT NULL`).run(); } catch { /* column already exists */ }
 
     // create zat session table
     database.prepare(`CREATE TABLE IF NOT EXISTS sessions (
@@ -401,6 +410,63 @@ export default function init(
 
     // migration: device_bindings.name for admin panel identification
     try { database.prepare(`ALTER TABLE device_bindings ADD COLUMN name TEXT DEFAULT NULL`).run(); } catch { /* column already exists */ }
+
+    // Older builds stored the administrator note on a replaceable device row.
+    // Keep the newest non-empty value, then enforce one live device per account.
+    database.prepare(`
+        UPDATE accounts
+        SET admin_note = (
+            SELECT db.name
+            FROM device_bindings AS db
+            WHERE db.account_id = accounts.id
+              AND db.name IS NOT NULL
+              AND trim(db.name) <> ''
+            ORDER BY datetime(db.last_seen) DESC, db.rowid DESC
+            LIMIT 1
+        )
+        WHERE (admin_note IS NULL OR trim(admin_note) = '')
+          AND EXISTS (
+            SELECT 1 FROM device_bindings AS db
+            WHERE db.account_id = accounts.id
+              AND db.name IS NOT NULL
+              AND trim(db.name) <> ''
+          )
+    `).run()
+    // The legacy column is no longer authoritative. Clearing it also ensures
+    // that an intentionally cleared account note is not resurrected next boot.
+    database.prepare(`UPDATE device_bindings SET name = NULL WHERE name IS NOT NULL`).run()
+    database.prepare(`
+        DELETE FROM device_bindings
+        WHERE rowid NOT IN (
+            SELECT (
+                SELECT newest.rowid
+                FROM device_bindings AS newest
+                WHERE newest.account_id = grouped.account_id
+                ORDER BY datetime(newest.last_seen) DESC, newest.rowid DESC
+                LIMIT 1
+            )
+            FROM device_bindings AS grouped
+            GROUP BY grouped.account_id
+        )
+    `).run()
+    database.prepare(`CREATE UNIQUE INDEX IF NOT EXISTS idx_device_bindings_one_per_account
+        ON device_bindings (account_id)`).run()
+
+    database.prepare(`CREATE TABLE IF NOT EXISTS account_transfer_audit (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        source_account_id INTEGER,
+        source_viewer_id TEXT,
+        target_account_id INTEGER NOT NULL,
+        target_viewer_id TEXT NOT NULL,
+        old_device_id INTEGER,
+        new_device_id INTEGER NOT NULL,
+        source_player_count INTEGER NOT NULL DEFAULT 0,
+        target_note TEXT,
+        transferred_at TEXT NOT NULL,
+        source TEXT NOT NULL
+    )`).run()
+    database.prepare(`CREATE INDEX IF NOT EXISTS idx_account_transfer_audit_target
+        ON account_transfer_audit (target_account_id, id DESC)`).run()
 
     // migration: add awake_level for character awakening system
     try { database.prepare(`ALTER TABLE players_characters_mana_nodes ADD COLUMN awake_level INTEGER NOT NULL DEFAULT 0`).run(); } catch { /* column already exists */ }

@@ -440,6 +440,130 @@ html[data-admin-theme="dark"] body {
   flex: 0 0 auto;
 }
 
+.accounts-overview-table .ant-table-cell {
+  vertical-align: middle;
+}
+
+.accounts-overview-table .ant-table-tbody > tr > td {
+  padding-block: 13px !important;
+}
+
+.account-identity-cell,
+.account-device-cell,
+.account-takeover-cell,
+.account-transfer-detail,
+.account-save-cell {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.account-identity-cell,
+.account-device-cell,
+.account-save-cell {
+  gap: 4px;
+}
+
+.account-takeover-cell,
+.account-transfer-detail {
+  gap: 3px;
+}
+
+.account-identity-cell > .ant-typography,
+.account-device-cell > .ant-typography,
+.account-save-head > .ant-typography {
+  max-width: 100%;
+  margin-bottom: 0;
+}
+
+.account-cell-meta {
+  display: block;
+  margin-bottom: 0 !important;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.account-device-id {
+  font-family: AdminMono, ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.account-takeover-head,
+.account-save-head {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 6px;
+}
+
+.account-takeover-head .ant-tag,
+.account-save-head .ant-tag {
+  margin-inline-end: 0;
+}
+
+.account-takeover-head .ant-btn-link {
+  height: 22px;
+  padding: 0 2px;
+}
+
+.account-transfer-detail {
+  padding-inline-start: 1px;
+}
+
+.account-note-cell {
+  display: inline-flex;
+  min-width: 0;
+  max-width: 100%;
+  gap: 6px;
+  align-items: center;
+}
+
+.account-note-cell > .ant-typography {
+  min-width: 0;
+  max-width: calc(100% - 32px);
+  flex: 0 1 auto;
+  margin-bottom: 0;
+}
+
+.account-note-cell .ant-btn {
+  width: 26px;
+  min-width: 26px;
+  height: 26px;
+  padding: 0;
+}
+
+.account-note-edit {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.account-note-edit-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.account-save-head {
+  width: 100%;
+}
+
+.account-save-head > .ant-typography {
+  min-width: 0;
+  flex: 0 1 auto;
+}
+
+.account-action-row {
+  display: grid;
+  grid-template-columns: repeat(3, max-content);
+  gap: 6px;
+  align-items: center;
+}
+
+.account-action-row .ant-btn {
+  white-space: nowrap;
+}
+
 .admin-edit-compact {
   display: grid;
   grid-template-columns: minmax(120px, 1fr) auto auto;
