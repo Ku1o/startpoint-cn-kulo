@@ -3,7 +3,7 @@ import { getDb } from "../db";
 
 const PARTY_CODE_ALPHABET = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ";
 const PARTY_CODE_LENGTH = 10;
-export const MAX_PUBLISHED_PARTIES_PER_PLAYER = 20;
+export const MAX_PUBLISHED_PARTIES_PER_PLAYER = 50;
 
 export interface PublishedPartyRecord {
     code: string;
@@ -58,7 +58,7 @@ export function publishPartySync(
             ) VALUES (?, ?, ?, ?, 1, ?)
         `).run(code, ownerPlayerId, partyName, battlePartyJson, createdAt);
 
-        // Keep the newest 20 codes. Once the limit is exceeded, the oldest
+        // Keep the newest 50 codes. Once the limit is exceeded, the oldest
         // code immediately becomes invalid and /party/refer returns 3404.
         db.prepare(`
             DELETE FROM published_parties
