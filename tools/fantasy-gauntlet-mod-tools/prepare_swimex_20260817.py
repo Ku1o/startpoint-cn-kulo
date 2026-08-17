@@ -48,6 +48,7 @@ CHAR_CODE = "resistance_princess_ex"
 sys.path.insert(0, str(TOOL_DIR))
 import wf_character_workspace as character_workspace  # noqa: E402
 import wf_mod_tool as core  # noqa: E402
+import wf_quest_lib as quest_lib  # noqa: E402
 import wf_store_materialize as materialize  # noqa: E402
 
 
@@ -151,6 +152,58 @@ def csv_rows(text: str) -> list[list[str]]:
     if not text:
         return []
     return [row for row in csv.reader(io.StringIO(text)) if row]
+
+
+def server_mana_nodes_from_client(
+    raw: bytes,
+    logical: str,
+    character_id: str,
+) -> dict[str, dict[str, dict[str, object]]]:
+    """Convert one character's final client mana-board row for server use."""
+    tree = quest_lib.parse_node(raw)
+    character = tree.get(character_id) if isinstance(tree, dict) else None
+    if not isinstance(character, dict):
+        raise ImportError(f"client mana table lacks character row: {character_id}")
+
+    converted: dict[str, dict[str, dict[str, object]]] = {}
+    for board_id, chunks in character.items():
+        if not isinstance(chunks, dict):
+            raise ImportError(
+                f"client mana board is not a map: {character_id}:{board_id}"
+            )
+        nodes: dict[str, dict[str, object]] = {}
+        for chunk in chunks.values():
+            if not isinstance(chunk, str):
+                raise ImportError(
+                    f"client mana chunk is not text: {character_id}:{board_id}"
+                )
+            for node in csv_rows(chunk):
+                if len(node) < 7:
+                    raise ImportError(
+                        f"client mana node is incomplete: {character_id}:{board_id}"
+                    )
+                item_ids = [item.strip() for item in node[2].split(",")]
+                item_costs = [cost.strip() for cost in node[3].split(",")]
+                if len(item_ids) != len(item_costs):
+                    raise ImportError(
+                        f"client mana item columns differ: {character_id}:{node[0]}"
+                    )
+                if node[0] in nodes:
+                    raise ImportError(
+                        f"duplicate client mana node: {character_id}:{node[0]}"
+                    )
+                nodes[node[0]] = {
+                    "items": {
+                        item_id: int(item_cost)
+                        for item_id, item_cost in zip(item_ids, item_costs)
+                    },
+                    "manaCost": int(node[4]),
+                    "field1": node[1],
+                    "field5": node[5],
+                    "field6": node[6],
+                }
+        converted[str(board_id)] = nodes
+    return converted
 
 
 def write_store(
@@ -856,7 +909,15 @@ def prepare_character_package() -> dict[str, object]:
     server_values["cdndata/character.json"][CHAR_ID] = [character_rows[0]]
     server_values["cdndata/character_text.json"][CHAR_ID] = [text_rows[0]]
     server_values["character.json"][CHAR_ID] = server_rows["character.json"][CHAR_ID]
-    server_values["mana_node.json"][CHAR_ID] = server_rows["mana_node.json"][CHAR_ID]
+    mana_logical = "master/mana_board/mana_node.orderedmap"
+    client_mana_nodes = server_mana_nodes_from_client(
+        pkg_path("common", mana_logical).read_bytes(),
+        mana_logical,
+        CHAR_ID,
+    )
+    if sum(len(nodes) for nodes in client_mana_nodes.values()) != 41:
+        raise ImportError("EX client mana table does not contain exactly 41 nodes")
+    server_values["mana_node.json"][CHAR_ID] = client_mana_nodes
     for logical, value in server_values.items():
         target = CHAR_PACKAGE / "roots/server" / Path(*logical.split("/"))
         target.parent.mkdir(parents=True, exist_ok=True)
