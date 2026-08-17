@@ -33,7 +33,8 @@ interface SendResult { ok: boolean; sent: number }
 interface AccountRow {
     id: number
     viewerId: string | null
-    bindings: Array<{ deviceId: number; note: string | null }>
+    note: string | null
+    bindings: Array<{ deviceId: number }>
     saveCount: number
     defaultPlayerId: number | null
     defaultPlayerName: string | null
@@ -53,6 +54,12 @@ interface AttachmentOption {
     label: ReactNode
     searchText: string
     titleText: string
+}
+
+interface TargetOption {
+    value: number
+    label: string
+    searchText: string
 }
 
 function norm(value: unknown): string {
@@ -142,12 +149,18 @@ function filterAttachmentOption(input: string, option?: AttachmentOption): boole
     return option.searchText.includes(query)
 }
 
+function filterTargetOption(input: string, option?: TargetOption): boolean {
+    if (!option) return false
+    const query = norm(input)
+    return !query || option.searchText.includes(query)
+}
+
 export default function Mail() {
     const qc = useQueryClient()
     const [form] = Form.useForm()
+    const [targetMode, setTargetMode] = useState<TargetMode>("all")
     const type = Form.useWatch("type", form)
     const typeId = Form.useWatch("type_id", form)
-    const targetMode: TargetMode = Form.useWatch("targetMode", form) ?? "all"
     const meta = MAIL_TYPES.find(t => t.value === type)
     const needsId = !!meta?.needsId
     const attachmentEndpoint = lookupEndpoint(type)
@@ -164,10 +177,12 @@ export default function Mail() {
     const playerOptions = useMemo(
         () => accounts.flatMap(account => {
             const accountLabel = account.viewerId ?? `内部 #${account.id}`
-            const note = account.bindings.map(binding => binding.note).filter(Boolean).join(" / ")
+            const note = account.note?.trim() ?? ""
+            const deviceIds = account.bindings.map(binding => binding.deviceId).join(" ")
             return account.players.map(player => ({
                 value: player.id,
-                label: `${player.name}（存档 #${player.id}） · 账号 ${accountLabel}${note ? ` · ${note}` : ""}`,
+                label: `${player.name}（存档 #${player.id}） · 账号 ${accountLabel}${note ? ` · 备注：${note}` : ""}`,
+                searchText: norm(`${player.id} ${player.name} ${player.comment} ${account.id} ${account.viewerId} ${deviceIds} ${note}`),
             }))
         }).sort((a, b) => a.value - b.value),
         [accounts],
@@ -175,10 +190,12 @@ export default function Mail() {
     const accountOptions = useMemo(
         () => accounts.map(account => {
             const accountLabel = account.viewerId ?? "未生成 viewer_id"
-            const note = account.bindings.map(binding => binding.note).filter(Boolean).join(" / ")
+            const note = account.note?.trim() ?? ""
+            const deviceIds = account.bindings.map(binding => binding.deviceId).join(" ")
             return {
                 value: account.id,
-                label: `账号 ${accountLabel}（内部 #${account.id}，${account.saveCount} 个存档${account.defaultPlayerName ? `，生效：${account.defaultPlayerName}` : ""}）${note ? ` · ${note}` : ""}`,
+                label: `账号 ${accountLabel}（内部 #${account.id}，${account.saveCount} 个存档${account.defaultPlayerName ? `，生效：${account.defaultPlayerName}` : ""}）${note ? ` · 备注：${note}` : ""}`,
+                searchText: norm(`${account.id} ${account.viewerId} ${deviceIds} ${account.defaultPlayerName} ${note}`),
             }
         }),
         [accounts],
@@ -258,7 +275,14 @@ export default function Mail() {
                     } />
                 <Form form={form} layout="vertical" onFinish={openConfirm} initialValues={{ number: 1, targetMode: "all" }}>
                     <Form.Item name="targetMode" label="发送对象">
-                        <Radio.Group optionType="button" buttonStyle="solid">
+                        <Radio.Group
+                            optionType="button"
+                            buttonStyle="solid"
+                            onChange={(event) => {
+                                setTargetMode(event.target.value as TargetMode)
+                                form.setFieldsValue({ accountId: undefined, playerId: undefined })
+                            }}
+                        >
                             <Radio.Button value="all">全体存档</Radio.Button>
                             <Radio.Button value="account">指定账号</Radio.Button>
                             <Radio.Button value="player">指定存档</Radio.Button>
@@ -267,11 +291,12 @@ export default function Mail() {
 
                     {targetMode === "account" && (
                         <Form.Item name="accountId" label="选择账号" rules={[{ required: true, message: "请选择账号" }]}>
-                            <Select
+                            <Select<number, TargetOption>
                                 showSearch
+                                allowClear
                                 placeholder="按原始账号 ID、内部 ID 或备注搜索"
-                                optionFilterProp="label"
                                 options={accountOptions}
+                                filterOption={filterTargetOption}
                                 notFoundContent="暂无账号"
                             />
                         </Form.Item>
@@ -279,11 +304,12 @@ export default function Mail() {
 
                     {targetMode === "player" && (
                         <Form.Item name="playerId" label="选择存档" rules={[{ required: true, message: "请选择存档" }]}>
-                            <Select
+                            <Select<number, TargetOption>
                                 showSearch
+                                allowClear
                                 placeholder="按存档、账号 ID 或备注搜索"
-                                optionFilterProp="label"
                                 options={playerOptions}
+                                filterOption={filterTargetOption}
                                 notFoundContent="暂无存档"
                             />
                         </Form.Item>

@@ -537,6 +537,9 @@ html[data-admin-theme="dark"] body {
   min-width: 0;
   flex-direction: column;
   gap: 6px;
+  /* Keep the input aligned with the read-only note. The action row extends
+     downward instead of pulling the input half a row above the old baseline. */
+  transform: translateY(15px);
 }
 
 .account-note-edit-actions {
