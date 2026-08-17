@@ -276,7 +276,7 @@ def load_mode15_abyss_plan(path: Path = MODE15_ABYSS_PLAN_PATH) -> dict:
             raise ValueError(
                 f"stage {stage} ATK does not match {atk_model}"
             )
-        expected_mana = stage * 100000
+        expected_mana = 100000 + (stage - 1) * 10000
         if int(config.get("mana_reward", -1)) != expected_mana:
             raise ValueError(f"stage {stage} mana reward must be {expected_mana}")
         expected_time = 108000 if stage <= 5 else 54000 if stage <= 10 else 43200
