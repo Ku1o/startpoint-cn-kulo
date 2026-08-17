@@ -3,7 +3,7 @@
 
 This supersedes the temporary 1.4.80 -> 1.4.81 icon-only edge.  The two
 payloads are published as a parallel 1.4.79 -> 1.4.80 common patch while the
-existing swim-EX character release and trimmed_image table remain untouched.
+existing swim-EX active archive and trimmed_image table remain untouched.
 """
 from __future__ import annotations
 
@@ -33,6 +33,8 @@ OLD_PATCH_ID = "fantasy-two-icon-refresh-1.4.81"
 OLD_ARCHIVE_NAME = "pinball-1.4.80-1.4.81-1-0817-fantasy-two-icon-refresh.zip"
 PATCH_ID = "fantasy-two-icon-refresh-1.4.80"
 ARCHIVE_NAME = "pinball-1.4.79-1.4.80-2-0817-fantasy-two-icon-refresh.zip"
+SWIMEX_ARCHIVE_NAME = "pinball-1.4.79-1.4.80-1-swimex139997-author-g.zip"
+SWIMEX_ARCHIVE_SHA256 = "787ec40d277972770a56290e1a129cc31d9c0de2406c0f096c1c02af76bc5186"
 IMAGE_PREFIX = "item/equipment/mod/fantasy"
 TRIMMED_LOGICAL = "master/generated/trimmed_image.orderedmap"
 TRIMMED_KEY_ROW = b"0,0,20,20"
@@ -110,21 +112,9 @@ def validate_png(icon: dict) -> bytes:
 
 
 def active_trim_payload(root: Path) -> tuple[bytes, bytes]:
-    active_path = root / ".cdn/cn/character-releases/active.json"
-    active_raw = active_path.read_bytes()
-    active = json.loads(active_raw.decode("utf-8-sig"))
-    releases = active.get("releases")
-    if active.get("base_version") != BASE_VERSION or not isinstance(releases, list) or len(releases) != 1:
-        raise PublishError(f"unexpected active character release: {active_path}")
-    release = releases[0]
-    if release.get("from_version") != BASE_VERSION or release.get("version") != PATCH_VERSION:
-        raise PublishError(f"active release is not the expected 1.4.80 edge: {active_path}")
-    common = [item for item in release.get("archives", []) if item.get("root") == "common"]
-    if len(common) != 1:
-        raise PublishError(f"active release has no unique common archive: {active_path}")
-    archive = root / ".cdn/cn" / str(common[0]["relative_path"])
-    if archive.stat().st_size != common[0].get("size") or sha256_file(archive) != common[0].get("sha256"):
-        raise PublishError(f"active common archive receipt drifted: {archive}")
+    archive = root / "assets/asset-patch/active" / SWIMEX_ARCHIVE_NAME
+    if not archive.is_file() or sha256_file(archive) != SWIMEX_ARCHIVE_SHA256:
+        raise PublishError(f"active swim-EX archive receipt drifted: {archive}")
     digest = core.sha1_path(TRIMMED_LOGICAL)
     member = f"production/upload/{digest[:2]}/{digest[2:]}"
     with zipfile.ZipFile(archive) as bundle:
@@ -135,7 +125,7 @@ def active_trim_payload(root: Path) -> tuple[bytes, bytes]:
         key = f"{IMAGE_PREFIX}/{icon['slug']}"
         if key not in rows or zlib.decompress(rows[key]) != TRIMMED_KEY_ROW:
             raise PublishError(f"trimmed_image row is missing or wrong: {key}")
-    return active_raw, trim_payload
+    return archive.read_bytes(), trim_payload
 
 
 def validate_current_state(root: Path, inputs: dict[str, bytes]) -> tuple[dict, bytes, bytes]:

@@ -45,7 +45,8 @@ CHARACTER_TEXT_LOGICAL = "master/character/character_text.orderedmap"
 ITEM_LOGICAL = "master/item/item.orderedmap"
 TRIM_LOGICAL = "master/generated/trimmed_image.orderedmap"
 
-ACTIVE_COMMON_SHA256 = "552ea55716662a701afbeee06e9520823a9ab46b5fb60c0b9bd782ee43778ba0"
+ACTIVE_SWIMEX_ARCHIVE = "pinball-1.4.79-1.4.80-1-swimex139997-author-g.zip"
+ACTIVE_SWIMEX_SHA256 = "787ec40d277972770a56290e1a129cc31d9c0de2406c0f096c1c02af76bc5186"
 ITEM_BASE_ARCHIVE = "pinball-1.4.77-1.4.78-2-0816-thunder-abyss-fantasy.zip"
 ITEM_BASE_SHA256 = "4252a66b39ede2140e88be5cc005c386eb56863b27135ac15b95d16e4b19f7c6"
 
@@ -91,28 +92,12 @@ def live_path(root: Path, logical: str) -> Path:
 
 
 def active_common_archive(root: Path) -> Path:
-    active_path = root / ".cdn/cn/character-releases/active.json"
-    active = json.loads(active_path.read_text(encoding="utf-8-sig"))
-    if active.get("base_version") != "1.4.79":
-        raise PublishError(f"unexpected active character-release base: {active_path}")
-    releases = active.get("releases")
-    if not isinstance(releases, list) or len(releases) != 1:
-        raise PublishError(f"unexpected active character-release count: {active_path}")
-    release = releases[0]
-    if release.get("from_version") != "1.4.79" or release.get("version") != BASE_VERSION:
-        raise PublishError(f"active character release is not the 1.4.80 edge: {active_path}")
-    common = [entry for entry in release.get("archives", []) if entry.get("root") == "common"]
-    if len(common) != 1:
-        raise PublishError(f"active release has no unique common archive: {active_path}")
-    receipt = common[0]
-    archive = root / ".cdn/cn" / str(receipt["relative_path"])
+    archive = root / "assets/asset-patch/active" / ACTIVE_SWIMEX_ARCHIVE
     if not archive.is_file():
-        raise PublishError(f"active common archive is missing: {archive}")
-    if archive.stat().st_size != receipt.get("size"):
-        raise PublishError(f"active common archive size drifted: {archive}")
+        raise PublishError(f"active swim-EX archive is missing: {archive}")
     digest = sha256_file(archive)
-    if digest != receipt.get("sha256") or digest != ACTIVE_COMMON_SHA256:
-        raise PublishError(f"active common archive hash drifted: {archive}")
+    if digest != ACTIVE_SWIMEX_SHA256:
+        raise PublishError(f"active swim-EX archive hash drifted: {archive}")
     return archive
 
 
