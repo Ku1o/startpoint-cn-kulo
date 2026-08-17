@@ -33,7 +33,7 @@ assert.deepStrictEqual(characters[String(THUNDER_DRAGON_ID)], {
   name: "拉姆斯",
   rarity: 5,
   element: 2,
-  skill_count: 4,
+  skill_count: 6,
 });
 assert.strictEqual(characterRows[String(THUNDER_DRAGON_ID)][0][0], "cnmod_thunder_dragon_ascendant");
 assert.strictEqual(characterRows[String(THUNDER_DRAGON_ID)][0][18], "碧海雷鸣的共振");
@@ -50,6 +50,17 @@ assert.deepStrictEqual(adminCharacter, {
   element: "雷",
   gender: "女性",
   race: "Dragon",
+});
+
+const swimExAdminCharacter = characterTable.find((entry) => entry.id === 139997);
+assert.deepStrictEqual(swimExAdminCharacter, {
+  id: 139997,
+  name: "莉莉丝",
+  title: "雷雨的夏日公主",
+  rarity: "5★",
+  element: "雷",
+  gender: "女性",
+  race: "Human,Element",
 });
 assert.ok(itemIds.includes(SINGLE_TICKET_ID));
 assert.ok(itemIds.includes(MULTI_TICKET_ID));
@@ -74,19 +85,20 @@ assert.strictEqual(gacha.onceTicketItemId, SINGLE_TICKET_ID);
 assert.strictEqual(gacha.tenTicketItemId, MULTI_TICKET_ID);
 assert.strictEqual(gacha.wildcardTicketAvailable, false);
 assert.deepStrictEqual(gacha.rankRates, {
-  normal: [50, 250, 700],
-  multiGuarantee: [50, 950],
+  normal: [150, 350, 500],
+  multiGuarantee: [150, 850],
 });
 assert.deepStrictEqual(
   Object.fromEntries(Object.entries(gacha.pool).map(([rank, entries]) => [rank, entries.length])),
-  { "1": 109, "2": 117, "3": 76 },
+  { "1": 245, "2": 144, "3": 78 },
 );
 const fiveStars = gacha.pool["1"];
 const rateUps = fiveStars.filter((entry) => entry.isRateUp).map((entry) => entry.id);
 assert.deepStrictEqual(
   rateUps,
-  [129999, 139998, 139999, 149998, 149999, 169998, 169999, 179999],
+  [129999, 139997, 139998, 139999, 149998, 149999, 169998, 169999, 179999],
 );
+assert.strictEqual(fiveStars.find((entry) => entry.id === 139997)?.isExchangeable, false);
 for (const id of [141129, 161141, 123001, 131182]) {
   assert.strictEqual(fiveStars.find((entry) => entry.id === id)?.isExchangeable, true);
 }
