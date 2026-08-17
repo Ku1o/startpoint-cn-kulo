@@ -5814,7 +5814,7 @@
     "sPlusRankTime": 240000,
     "rankPointReward": 1,
     "characterExpReward": 100,
-    "manaReward": 500000,
+    "manaReward": 140000,
     "poolExpReward": 100,
     "element": 2869
   },
@@ -5826,7 +5826,7 @@
     "sPlusRankTime": 270000,
     "rankPointReward": 1,
     "characterExpReward": 100,
-    "manaReward": 1000000,
+    "manaReward": 190000,
     "poolExpReward": 100,
     "element": 2870
   },
@@ -5838,7 +5838,7 @@
     "sPlusRankTime": 300000,
     "rankPointReward": 1,
     "characterExpReward": 100,
-    "manaReward": 1500000,
+    "manaReward": 240000,
     "poolExpReward": 100,
     "element": 2871
   }

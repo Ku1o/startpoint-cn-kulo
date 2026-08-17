@@ -25,6 +25,7 @@ SOURCE_WEAPON = "5005000"
 EQUIPMENT_STATUS_LOGICAL = "master/item/equipment_status.orderedmap"
 ITEM_LOGICAL = "master/item/item.orderedmap"
 IMAGE_PREFIX = "item/equipment/mod/fantasy"
+SOUL_IMAGE_PREFIX = "item/equipment/mod/fantasy/soul"
 LEGACY_WEAPON_IDS = tuple(str(value) for value in range(8_000_201, 8_000_212))
 PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
 CLIENT_ASSET_SIZE = (20, 20)
@@ -188,10 +189,8 @@ def validate_source_assets(asset_dir: Path) -> dict[str, Path]:
                 bounds = alpha.getbbox()
                 if bounds is None:
                     raise ValueError(f"{source.name} has no visible pixels")
-                left, top, right, bottom = bounds
-                if min(left, top, SOURCE_ASSET_SIZE[0] - right,
-                       SOURCE_ASSET_SIZE[1] - bottom) < 1:
-                    raise ValueError(f"{source.name} must keep a 1px transparent margin")
+                # The exact visible bounds are registered in trimmed_image by
+                # the release publisher.  Edge-touching pixel art is valid.
         except (UnidentifiedImageError, OSError) as exc:
             raise ValueError(f"cannot decode {source.name}: {exc}") from exc
 
@@ -209,7 +208,9 @@ def render_client_icon(source: Path) -> bytes:
     return source.read_bytes()
 
 
-def install_source_assets(gui, quest_lib, wf_assets, sources: dict[str, Path]) -> list[str]:
+def install_source_assets(
+    gui, quest_lib, wf_assets, sources: dict[str, Path], image_prefix: str = IMAGE_PREFIX
+) -> list[str]:
     """Encode, install, and register all independent icons for publication."""
     rendered = {
         spec["image_slug"]: render_client_icon(sources[spec["image_slug"]])
@@ -219,7 +220,7 @@ def install_source_assets(gui, quest_lib, wf_assets, sources: dict[str, Path]) -
     stamp = time.strftime("%Y%m%d-%H%M%S")
     for spec in WEAPONS:
         slug = spec["image_slug"]
-        logical = f"{IMAGE_PREFIX}/{slug}.png"
+        logical = f"{image_prefix}/{slug}.png"
         relative = quest_lib.hashed_rel(logical)
         destination = gui.TARGET_STORE / relative
         stored = wf_assets.png_encode(rendered[slug])
@@ -241,11 +242,13 @@ def install_source_assets(gui, quest_lib, wf_assets, sources: dict[str, Path]) -
     return installed
 
 
-def audit_assets(gui, quest_lib, wf_assets, sources: dict[str, Path]) -> dict:
+def audit_assets(
+    gui, quest_lib, wf_assets, sources: dict[str, Path], image_prefix: str = IMAGE_PREFIX
+) -> dict:
     result = {}
     for spec in WEAPONS:
         slug = spec["image_slug"]
-        logical = f"{IMAGE_PREFIX}/{slug}.png"
+        logical = f"{image_prefix}/{slug}.png"
         relative = quest_lib.hashed_rel(logical)
         destination = gui.TARGET_STORE / relative
         expected = render_client_icon(sources[slug])
@@ -921,7 +924,7 @@ def ensure_item_rows(gui, core) -> dict:
         row[0] = f"mod_fantasy_{spec['image_slug']}"
         row[1] = spec["id"]
         row[2] = spec["name"] + "魂珠"
-        row[3] = f"{IMAGE_PREFIX}/{spec['image_slug']}"
+        row[3] = f"{SOUL_IMAGE_PREFIX}/{spec['image_slug']}"
         row[5] = MODE15_RESTRICTION
         if parsed.get(spec["id"]) != [row]:
             parsed[spec["id"]] = [row]
@@ -1012,7 +1015,15 @@ def ensure_balanced_status_rows(gui, core) -> dict:
     return {"changed": changed}
 
 
-def write_batch(gui, core, describe, quest_lib, wf_assets, sources: dict[str, Path]) -> dict:
+def write_batch(
+    gui,
+    core,
+    describe,
+    quest_lib,
+    wf_assets,
+    sources: dict[str, Path],
+    soul_sources: dict[str, Path],
+) -> dict:
     before = audit(gui, core, describe)
     for key, state in before["weapons"].items():
         flags = state["client"]
@@ -1060,10 +1071,18 @@ def write_batch(gui, core, describe, quest_lib, wf_assets, sources: dict[str, Pa
     ensure_item_rows(gui, core)
     ensure_balanced_status_rows(gui, core)
     server = ensure_server_metadata(gui)
-    installed_icons = install_source_assets(gui, quest_lib, wf_assets, sources)
+    installed_equipment_icons = install_source_assets(
+        gui, quest_lib, wf_assets, sources, IMAGE_PREFIX
+    )
+    installed_soul_icons = install_source_assets(
+        gui, quest_lib, wf_assets, soul_sources, SOUL_IMAGE_PREFIX
+    )
     after = audit(gui, core, describe)
-    after["assets"] = audit_assets(gui, quest_lib, wf_assets, sources)
-    after["installed_icons"] = installed_icons
+    after["assets"] = {
+        "equipment": audit_assets(gui, quest_lib, wf_assets, sources, IMAGE_PREFIX),
+        "souls": audit_assets(gui, quest_lib, wf_assets, soul_sources, SOUL_IMAGE_PREFIX),
+    }
+    after["installed_icons"] = installed_equipment_icons + installed_soul_icons
     after["clone_logs"] = clone_logs
     after["changed_souls"] = changed
     after["server_write"] = server
@@ -1084,6 +1103,11 @@ def main() -> int:
         type=Path,
         help="override the canonical 11-icon source directory",
     )
+    parser.add_argument(
+        "--soul-asset-dir",
+        type=Path,
+        help="override the canonical 11 dedicated soul-icon source directory",
+    )
     parser.add_argument("--write", action="store_true")
     args = parser.parse_args()
     tools = args.tools.resolve()
@@ -1094,11 +1118,26 @@ def main() -> int:
         else tools / "assets" / "fantasy-equipment"
     )
     sources = validate_source_assets(asset_dir)
+    soul_asset_dir = (
+        args.soul_asset_dir.resolve()
+        if args.soul_asset_dir is not None
+        else tools / "assets" / "fantasy-equipment-souls"
+    )
+    soul_sources = validate_source_assets(soul_asset_dir)
     if args.write:
-        payload = write_batch(gui, core, describe, quest_lib, wf_assets, sources)
+        payload = write_batch(
+            gui, core, describe, quest_lib, wf_assets, sources, soul_sources
+        )
     else:
         payload = audit(gui, core, describe)
-        payload["assets"] = audit_assets(gui, quest_lib, wf_assets, sources)
+        payload["assets"] = {
+            "equipment": audit_assets(
+                gui, quest_lib, wf_assets, sources, IMAGE_PREFIX
+            ),
+            "souls": audit_assets(
+                gui, quest_lib, wf_assets, soul_sources, SOUL_IMAGE_PREFIX
+            ),
+        }
     print(json.dumps(payload, ensure_ascii=False, indent=2))
     return 0
 

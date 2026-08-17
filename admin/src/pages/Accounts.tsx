@@ -177,14 +177,14 @@ export default function Accounts() {
         onError: (error: Error) => message.error(error.message),
     })
 
-    const resetTakeoverPassword = useMutation({
-        mutationFn: (accountId: number) => apiPost<{ replacementPassword: string }>("/api/server/account/takeover-password/reset", {
+    const issueTakeoverPassword = useMutation({
+        mutationFn: ({ accountId }: { accountId: number; reset: boolean }) => apiPost<{ replacementPassword: string }>("/api/server/account/takeover-password/reset", {
             account_id: accountId,
             confirm: "RESET_TAKEOVER_PASSWORD",
         }),
-        onSuccess: result => {
+        onSuccess: (result, { reset }) => {
             Modal.success({
-                title: "继承密码已重置",
+                title: reset ? "继承密码已重置" : "继承密码已生成",
                 content: (
                     <Space direction="vertical">
                         <Typography.Text>请把下面的新密码单独发给玩家；关闭后管理端不会再次显示。</Typography.Text>
@@ -349,25 +349,31 @@ export default function Accounts() {
                         <Tag color={row.takeoverConfigured ? "green" : "default"}>
                             {row.takeoverConfigured ? "已设置密码" : "未设置密码"}
                         </Tag>
-                        {row.takeoverConfigured && (
-                            <Popconfirm
-                                title="重置该账号的继承密码？"
-                                description="将生成一个新密码并仅显示一次，旧密码立即失效。"
-                                okText="确认重置"
-                                cancelText="取消"
-                                okButtonProps={{ danger: true }}
-                                onConfirm={() => resetTakeoverPassword.mutate(row.id)}
+                        <Popconfirm
+                            title={row.takeoverConfigured
+                                ? "重置该账号的继承密码？"
+                                : "为该账号生成继承密码？"}
+                            description={row.takeoverConfigured
+                                ? "将生成一个新密码并仅显示一次，旧密码立即失效。"
+                                : "将生成一个仅显示一次的继承密码，请单独交给玩家。"}
+                            okText={row.takeoverConfigured ? "确认重置" : "确认生成"}
+                            cancelText="取消"
+                            okButtonProps={{ danger: row.takeoverConfigured }}
+                            onConfirm={() => issueTakeoverPassword.mutate({
+                                accountId: row.id,
+                                reset: row.takeoverConfigured,
+                            })}
+                        >
+                            <Button
+                                type="link"
+                                danger={row.takeoverConfigured}
+                                size="small"
+                                loading={issueTakeoverPassword.isPending
+                                    && issueTakeoverPassword.variables?.accountId === row.id}
                             >
-                                <Button
-                                    type="link"
-                                    danger
-                                    size="small"
-                                    loading={resetTakeoverPassword.isPending && resetTakeoverPassword.variables === row.id}
-                                >
-                                    重置密码
-                                </Button>
-                            </Popconfirm>
-                        )}
+                                {row.takeoverConfigured ? "重置密码" : "生成继承密码"}
+                            </Button>
+                        </Popconfirm>
                     </div>
                     {row.latestTransfer && (
                         <div className="account-transfer-detail">

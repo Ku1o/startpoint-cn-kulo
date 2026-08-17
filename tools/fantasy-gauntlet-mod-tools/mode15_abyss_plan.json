@@ -48,7 +48,7 @@
       "title": "终端试炼·统领AI", "level": 100,
       "hp": 31.03706896554, "audited_base_hp": 141.765963947,
       "target_effective_hp": 4400, "atk": 0.7,
-      "mana_reward": 200000, "time_limit_frames": 108000,
+      "mana_reward": 110000, "time_limit_frames": 108000,
       "curse_tier": "off", "conditions": []
     },
     {
@@ -57,7 +57,7 @@
       "title": "雷鸣试炼·白虎", "level": 80,
       "hp": 213.9054236765, "audited_base_hp": 27.4997839703,
       "target_effective_hp": 5882.352941176, "atk": 0.8,
-      "mana_reward": 300000, "time_limit_frames": 108000,
+      "mana_reward": 120000, "time_limit_frames": 108000,
       "curse_tier": "off", "conditions": []
     },
     {
@@ -66,7 +66,7 @@
       "title": "暗羽试炼·暗凤", "level": 100,
       "hp": 13.74108417406, "audited_base_hp": 464.771396579,
       "target_effective_hp": 6386.462882096, "atk": 0.7,
-      "mana_reward": 400000, "time_limit_frames": 108000,
+      "mana_reward": 130000, "time_limit_frames": 108000,
       "curse_tier": "standard", "conditions": []
     },
     {
@@ -75,7 +75,7 @@
       "title": "协力首领·火精灵兽奥尔塔尼亚", "level": 100,
       "hp": 69.76744186035, "audited_base_hp": 138.635145,
       "target_effective_hp": 9672.21941859, "atk": 0.4,
-      "mana_reward": 500000, "time_limit_frames": 108000,
+      "mana_reward": 140000, "time_limit_frames": 108000,
       "multiplayer_hp_scale": 1.75, "curse_tier": "standard",
       "conditions": []
     },
@@ -85,7 +85,7 @@
       "title": "圣光试炼·光之魔像", "level": 100,
       "hp": 311.2398899548, "audited_base_hp": 44.1860321879,
       "target_effective_hp": 13752.4557957, "atk": 0.75,
-      "mana_reward": 600000, "time_limit_frames": 54000,
+      "mana_reward": 150000, "time_limit_frames": 54000,
       "curse_tier": "standard", "conditions": []
     },
     {
@@ -94,7 +94,7 @@
       "title": "不死试炼·瑞西塔尔", "level": 80,
       "hp": 295.8344051534, "audited_base_hp": 55.131247921,
       "target_effective_hp": 16309.71993407, "atk": 0.6,
-      "mana_reward": 700000, "time_limit_frames": 54000,
+      "mana_reward": 160000, "time_limit_frames": 54000,
       "curse_tier": "standard", "conditions": []
     },
     {
@@ -103,7 +103,7 @@
       "title": "荒龙试炼·伊劳德雷斯", "level": 100,
       "hp": 55.56282222225, "audited_base_hp": 323.957626342,
       "target_effective_hp": 18000, "atk": 0.5,
-      "mana_reward": 800000, "time_limit_frames": 54000,
+      "mana_reward": 170000, "time_limit_frames": 54000,
       "curse_tier": "advanced", "conditions": []
     },
     {
@@ -112,7 +112,7 @@
       "title": "鬼神试炼·前鬼后鬼", "level": 100,
       "hp": 342.63408474576272, "audited_base_hp": 126.636059984,
       "target_effective_hp": 16000, "atk": 0.4,
-      "mana_reward": 900000, "time_limit_frames": 54000,
+      "mana_reward": 180000, "time_limit_frames": 54000,
       "curse_tier": "advanced", "conditions": []
     },
     {
@@ -121,7 +121,7 @@
       "title": "协力首领·噬星兽", "level": 79,
       "hp": 851.43407245125, "audited_base_hp": 58.7244528,
       "target_effective_hp": 50000, "atk": 1.4,
-      "mana_reward": 1000000, "time_limit_frames": 54000,
+      "mana_reward": 190000, "time_limit_frames": 54000,
       "multiplayer_hp_scale": 2.0, "curse_tier": "advanced",
       "conditions": []
     },
@@ -131,7 +131,7 @@
       "title": "幻夜试炼·杰克", "level": 100,
       "hp": 6.920726405096, "audited_base_hp": 5528.44706259,
       "target_effective_hp": 38260.86956524, "atk": 0.2,
-      "mana_reward": 1100000, "time_limit_frames": 43200,
+      "mana_reward": 200000, "time_limit_frames": 43200,
       "curse_tier": "advanced", "conditions": []
     },
     {
@@ -140,7 +140,7 @@
       "title": "寄生试炼·德拉古寄生兽", "level": 80,
       "hp": 352.112676056338, "audited_base_hp": 71000.0,
       "target_effective_hp": 25000000.0, "atk": 2.0,
-      "mana_reward": 1200000, "time_limit_frames": 43200,
+      "mana_reward": 210000, "time_limit_frames": 43200,
       "curse_tier": "final", "conditions": []
     },
     {
@@ -149,7 +149,7 @@
       "title": "溢光试炼·光元素球", "level": 80,
       "hp": 375.0, "audited_base_hp": 80000.0,
       "target_effective_hp": 30000000.0, "atk": 2.5,
-      "mana_reward": 1300000, "time_limit_frames": 43200,
+      "mana_reward": 220000, "time_limit_frames": 43200,
       "curse_tier": "final", "conditions": []
     },
     {
@@ -158,7 +158,7 @@
       "title": "决战试炼·遗忘迷城", "level": 100,
       "hp": 871.655631672399, "audited_base_hp": 40153.472,
       "target_effective_hp": 35000000.0, "atk": 0.9,
-      "mana_reward": 1400000, "time_limit_frames": 43200,
+      "mana_reward": 230000, "time_limit_frames": 43200,
       "curse_tier": "final", "conditions": []
     },
     {
@@ -167,7 +167,7 @@
       "title": "最终协力·始龙之眼", "level": 80,
       "hp": 230.7692307692, "audited_base_hp": 1222.38117058,
       "target_effective_hp": 282087.9624415, "atk": 0.6,
-      "mana_reward": 1500000, "time_limit_frames": 43200,
+      "mana_reward": 240000, "time_limit_frames": 43200,
       "multiplayer_hp_scale": 2.25, "curse_tier": "final", "conditions": []
     }
   ]

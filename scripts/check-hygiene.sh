@@ -31,6 +31,13 @@ while IFS= read -r f; do
 
     if [ "$f" = ".env" ]; then note ".env 不得提交(仅提交 .env.example)"; continue; fi
 
+    case "$f" in
+        .cdn/cn/archive-*-diff/*.zip)
+            note "自定义增量包不得提交到 .cdn；请发布到 assets/asset-patch/active: $f"
+            continue
+            ;;
+    esac
+
     sz=$(wc -c < "$f" 2>/dev/null || echo 0)
     if [ "$sz" -gt 1048576 ]; then
         case "$f" in
