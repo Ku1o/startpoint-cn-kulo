@@ -22,6 +22,7 @@ import { canJoinMode15RescueSync, canStartMode15QuestSync, isMode15Quest } from 
 import { isMode15RoomClosed } from "../mode15-room-gate"
 import { roomAdmissionRegistry } from "../room/admission"
 import { getSelectRoomDenialRaisingState } from "../room/select-denial"
+import { embeddedMultiCoordinator } from "../coordinator/embedded"
 
 const ROOM_CAPACITY = 3
 
@@ -112,7 +113,8 @@ export function registerLobbyRoutes(fastify: FastifyInstance): void {
                 viewerPlayerId,
                 isRandomRecruiting(r.room_number),
             ))
-            .filter(r => !r.is_npc_mode && r.raising_state !== 4)
+            .filter(r => !r.is_npc_mode
+                && !["STARTING", "BATTLE"].includes(embeddedMultiCoordinator.ensureLifecycle(r).phase))
             .filter(r => !isMode15RoomClosed(r))
             .filter(r => sessionManager.isHostOnline(r.host_viewer_id, r.room_number, r.lobby_generation))
             .filter(r => getCurrentLobbyOccupancy(r) < ROOM_CAPACITY)
@@ -260,7 +262,7 @@ export function registerLobbyRoutes(fastify: FastifyInstance): void {
             && (room.is_npc_mode || !isRandomRecruiting(room.room_number))
         const battleStarted = !!room
             && !returningMember
-            && room.raising_state === 4
+            && ["STARTING", "BATTLE"].includes(embeddedMultiCoordinator.ensureLifecycle(room).phase)
         const waitingForExpectedMember = !!room
             && !returningMember
             && isRoomWaitingForExpectedMember(room)

@@ -4,12 +4,12 @@
 
 import * as net from "net"
 import { Result, ClientState, BattleState } from "../types"
-import { RoomStateMachine } from "./RoomStateMachine"
 import { ClientStateMachine } from "./ClientStateMachine"
 import { gameVerboseLog } from "../../lib/game-logging"
-import { sendFrameReliably } from "../tcp/reliable-send"
+import { clearReliableSendState, sendFrameReliably } from "../tcp/reliable-send"
 import type { ReliableSendContext, ReliableSendResult } from "../tcp/reliable-send"
 import { clearChainDiagnosticRoom } from "../tcp/chain-diagnostic"
+import { embeddedMultiCoordinator } from "../coordinator/embedded"
 
 export interface SessionClient {
     socket: net.Socket
@@ -24,6 +24,8 @@ export interface SessionClient {
     enterData: any
     yourself?: any
     roomGeneration: number
+    connectionGeneration: number
+    superseded: boolean
     connectedAt: number
     clientState: ClientStateMachine
     battleState: BattleState
@@ -50,14 +52,15 @@ export class SessionManager {
     private battleConnectionPhase = new Map<string, "loading" | "active">()
     private battleBarrierLogState = new Map<string, string>()
     private supersededBattleClients = new WeakSet<SessionClient>()
-    private roomStates = new Map<string, RoomStateMachine>()
-    private emptyRoomDisbandTimers = new Map<string, NodeJS.Timeout>()
+    private abandonedBattleTimers = new Map<string, NodeJS.Timeout>()
+    private settlementReturnTimers = new Map<string, NodeJS.Timeout>()
     private rescueGuests = new Map<string, Set<number>>()
     private newbieRescueGuests = new Map<string, Set<number>>()
     private rescueGuestWaits = new Map<string, RescueGuestWaitState>()
     private rescueGuestReconnectTimers = new Map<string, NodeJS.Timeout>()
     private blockedRoomRestores = new Map<string, Set<number>>()
     private hostReconnectTimers = new Map<string, NodeJS.Timeout>()
+    private roomConnectionGenerations = new Map<string, number>()
 
     private addr(viewerId: number, roomNumber: string): string {
         return `${viewerId}@${roomNumber}`
@@ -66,6 +69,29 @@ export class SessionManager {
     private parsePositiveDuration(name: string, fallback: number, minimum = 1_000): number {
         const parsed = parseInt(process.env[name] || "", 10)
         return Number.isFinite(parsed) ? Math.max(minimum, parsed) : fallback
+    }
+
+    private deferSupersededSocketClose(
+        socket: net.Socket,
+        replacementIsLive: () => boolean,
+    ): number {
+        const checkMs = this.parsePositiveDuration("MULTI_SUPERSEDED_SOCKET_CLOSE_MS", 60_000)
+        const closeWhenSafe = () => {
+            if (socket.destroyed) return
+            // Closing the old socket while its replacement owns the room can
+            // make the client show a false communication-loss dialog. Keep it
+            // quarantined until the replacement/room is gone; it is no longer
+            // indexed and cannot issue commands or receive broadcasts.
+            if (replacementIsLive()) {
+                const retry = setTimeout(closeWhenSafe, checkMs)
+                retry.unref()
+                return
+            }
+            socket.destroy()
+        }
+        const timer = setTimeout(closeWhenSafe, checkMs)
+        timer.unref()
+        return checkMs
     }
 
     private clearBattleHeartbeatLease(connectionId: string): void {
@@ -299,13 +325,18 @@ export class SessionManager {
         warningTimer.unref()
 
         const ejectTimer = setTimeout(() => {
-            const current = this.getClient(client.viewerId, client.roomNumber)
-            if (current && !current.isBattle && current.isReady !== ready) {
-                this.clearRescueGuestWait(client.roomNumber, client.viewerId)
-                this.beginRescueGuestWait(current)
-                return
-            }
-            this.ejectRescueGuest(client.roomNumber, client.viewerId, "rescue_wait_timeout")
+            void embeddedMultiCoordinator.enqueueRoomCommand(client.roomNumber, () => {
+                const current = this.getClient(client.viewerId, client.roomNumber)
+                if (current && !current.isBattle && current.isReady !== ready) {
+                    this.clearRescueGuestWait(client.roomNumber, client.viewerId)
+                    this.beginRescueGuestWait(current)
+                    return
+                }
+                this.ejectRescueGuest(client.roomNumber, client.viewerId, "rescue_wait_timeout")
+            }).catch(error => console.error(
+                `[MULTI] rescue wait timeout failed: room=${client.roomNumber} viewer=${client.viewerId}`,
+                error,
+            ))
         }, waitMs)
         ejectTimer.unref()
 
@@ -324,10 +355,16 @@ export class SessionManager {
         if (this.rescueGuestReconnectTimers.has(key)) return
         const reconnectMs = this.parsePositiveDuration("RESCUE_GUEST_RECONNECT_GRACE_MS", 25_000)
         const timer = setTimeout(() => {
-            this.rescueGuestReconnectTimers.delete(key)
-            const current = this.getClient(client.viewerId, client.roomNumber)
-            if (current && !current.isBattle) return
-            this.ejectRescueGuest(client.roomNumber, client.viewerId, "rescue_reconnect_timeout")
+            void embeddedMultiCoordinator.enqueueRoomCommand(client.roomNumber, () => {
+                if (this.rescueGuestReconnectTimers.get(key) !== timer) return
+                this.rescueGuestReconnectTimers.delete(key)
+                const current = this.getClient(client.viewerId, client.roomNumber)
+                if (current && !current.isBattle) return
+                this.ejectRescueGuest(client.roomNumber, client.viewerId, "rescue_reconnect_timeout")
+            }).catch(error => console.error(
+                `[MULTI] rescue reconnect timeout failed: room=${client.roomNumber} viewer=${client.viewerId}`,
+                error,
+            ))
         }, reconnectMs)
         timer.unref()
         this.rescueGuestReconnectTimers.set(key, timer)
@@ -353,7 +390,6 @@ export class SessionManager {
 
         const current = this.getClient(viewerId, roomNumber)
         if (current && !current.isBattle) {
-            this.sendJson(current.socket, [1, [6, "multibattle_room_dismissed"]])
             this.removeClient(current)
             try { current.socket.end() } catch (e) {}
             setTimeout(() => {
@@ -370,16 +406,32 @@ export class SessionManager {
 
     beginHostReconnectGrace(roomNumber: string): void {
         if (this.hostReconnectTimers.has(roomNumber)) return
+        let roomInstanceId: string
+        let roomGeneration: number
+        try {
+            const { getRoom } = require("../room/manager")
+            const room = getRoom(roomNumber)
+            if (!room) return
+            roomInstanceId = embeddedMultiCoordinator.ensureLifecycle(room).instanceId
+            roomGeneration = room.lobby_generation
+        } catch (e) {
+            return
+        }
         const reconnectMs = this.parsePositiveDuration("MULTI_HOST_RECONNECT_GRACE_MS", 25_000)
         const timer = setTimeout(() => {
-            this.hostReconnectTimers.delete(roomNumber)
-            try {
-                const { getRoom } = require("../room/manager")
-                const room = getRoom(roomNumber)
-                if (!room || room.raising_state === 4) return
-                if (this.isHostOnline(room.host_viewer_id, roomNumber, room.lobby_generation)) return
-                this.dismissAndDisbandRoom(roomNumber, "host_reconnect_timeout")
-            } catch (e) {}
+            void embeddedMultiCoordinator.enqueueRoomCommand(roomNumber, () => {
+                if (this.hostReconnectTimers.get(roomNumber) !== timer) return
+                this.hostReconnectTimers.delete(roomNumber)
+                try {
+                    const { getRoom } = require("../room/manager")
+                    const room = getRoom(roomNumber)
+                    if (!embeddedMultiCoordinator.isCurrentInstance(room, roomInstanceId)
+                        || room.lobby_generation !== roomGeneration
+                        || room.lifecycle.phase === "BATTLE") return
+                    if (this.isHostOnline(room.host_viewer_id, roomNumber, roomGeneration)) return
+                    this.commitRoomDisband(roomNumber, "host_reconnect_timeout")
+                } catch (e) {}
+            }).catch(error => console.error(`[MULTI] host reconnect timeout failed: room=${roomNumber}`, error))
         }, reconnectMs)
         timer.unref()
         this.hostReconnectTimers.set(roomNumber, timer)
@@ -406,19 +458,30 @@ export class SessionManager {
         this.blockedRoomRestores.delete(roomNumber)
     }
 
-    private dismissAndDisbandRoom(roomNumber: string, reason: string): void {
+    commitRoomDisband(roomNumber: string, reason: string): boolean {
         const waitingClients = this.getClientsInRoom(roomNumber)
         const battleClients = this.getConnectedBattleClients(roomNumber)
         const allClients = [...new Set([...waitingClients, ...battleClients])]
         this.clearBattleHeartbeatLeasesForRoom(roomNumber)
-        for (const client of allClients) {
-            this.sendJson(client.socket, [1, [6, "multibattle_room_dismissed"]])
-        }
+        let deleted = false
         try {
             const { disbandRoom } = require("../room/manager")
-            disbandRoom(roomNumber)
+            // Commit the room as non-joinable before telling clients that it
+            // was dismissed.  This makes the protocol message truthful even
+            // when a client immediately tries restore_room/select_room.
+            deleted = disbandRoom(roomNumber, reason)
         } catch (e) {
             this.removeRoomState(roomNumber)
+        }
+        if (!deleted) return false
+        for (const client of allClients) {
+            this.sendJson(client.socket, [1, [6, "multibattle_room_dismissed"]], {
+                roomNumber,
+                connectionId: client.connectionId,
+                viewerId: client.viewerId,
+                roomGeneration: client.roomGeneration,
+                channel: "room_disband",
+            })
         }
         for (const client of allClients) {
             const addr = this.addr(client.viewerId, roomNumber)
@@ -436,6 +499,7 @@ export class SessionManager {
         this.battleLevelNextClients.delete(roomNumber)
         this.battleExpectedCount.delete(roomNumber)
         gameVerboseLog(() => `[MULTI] room disbanded: room=${roomNumber} reason=${reason}`)
+        return true
     }
 
     private disbandRoomIfNoRealConnections(roomNumber: string, battleRoomTimeoutExpired = false): void {
@@ -445,7 +509,7 @@ export class SessionManager {
         if (this.hostReconnectTimers.has(roomNumber)) return
 
         try {
-            const { getRoom, disbandRoom } = require("../room/manager")
+            const { getRoom } = require("../room/manager")
             const room = getRoom(roomNumber)
             if (!room) return
 
@@ -455,15 +519,25 @@ export class SessionManager {
             // start here or the room can disappear before /finish is sent.
             // Keep only a long abandoned-battle watchdog for clients that never
             // send either /finish or /abort.
-            if (room.raising_state === 4 && !battleRoomTimeoutExpired) {
-                if (!this.emptyRoomDisbandTimers.has(roomNumber)) {
+            if (room.lifecycle.phase === "BATTLE" && !battleRoomTimeoutExpired) {
+                if (!this.abandonedBattleTimers.has(roomNumber)) {
                     const battleRoomTimeoutMs = parseInt(process.env.BATTLE_ROOM_TIMEOUT_MS || "900000")
+                    const lifecycle = embeddedMultiCoordinator.ensureLifecycle(room)
+                    const roomInstanceId = lifecycle.instanceId
+                    const battleSessionId = lifecycle.battleSessionId
                     const timer = setTimeout(() => {
-                        this.emptyRoomDisbandTimers.delete(roomNumber)
-                        this.disbandRoomIfNoRealConnections(roomNumber, true)
+                        void embeddedMultiCoordinator.enqueueRoomCommand(roomNumber, () => {
+                            if (this.abandonedBattleTimers.get(roomNumber) !== timer) return
+                            this.abandonedBattleTimers.delete(roomNumber)
+                            const currentRoom = getRoom(roomNumber)
+                            if (!embeddedMultiCoordinator.isCurrentInstance(currentRoom, roomInstanceId)
+                                || currentRoom.lifecycle.battleSessionId !== battleSessionId
+                                || currentRoom.lifecycle.phase !== "BATTLE") return
+                            this.disbandRoomIfNoRealConnections(roomNumber, true)
+                        }).catch(error => console.error(`[MULTI] abandoned battle timeout failed: room=${roomNumber}`, error))
                     }, battleRoomTimeoutMs)
                     timer.unref()
-                    this.emptyRoomDisbandTimers.set(roomNumber, timer)
+                    this.abandonedBattleTimers.set(roomNumber, timer)
                     gameVerboseLog(() => `[MULTI] waiting for battle finish: room=${roomNumber} timeoutMs=${battleRoomTimeoutMs}`)
                 }
                 return
@@ -474,9 +548,9 @@ export class SessionManager {
             // return lobby exists and is used to wait for missing real players.
             if (room.settlement_return_pending) return
 
-            const pendingTimer = this.emptyRoomDisbandTimers.get(roomNumber)
+            const pendingTimer = this.abandonedBattleTimers.get(roomNumber)
             if (pendingTimer) clearTimeout(pendingTimer)
-            this.emptyRoomDisbandTimers.delete(roomNumber)
+            this.abandonedBattleTimers.delete(roomNumber)
             this.roomClients.delete(roomNumber)
             this.battleClients.delete(roomNumber)
             this.sceneReadyClients.delete(roomNumber)
@@ -486,61 +560,68 @@ export class SessionManager {
                 const { stopRandomRecruitment } = require("../recruitment")
                 stopRandomRecruitment(roomNumber)
             } catch (e) {}
-            disbandRoom(roomNumber)
+            this.commitRoomDisband(roomNumber, "all_real_connections_closed")
             gameVerboseLog(() => `[MULTI] room disbanded: all real connections closed room=${roomNumber}`)
         } catch (e) {}
     }
 
     beginSettlementReturnGrace(roomNumber: string): void {
-        const existingTimer = this.emptyRoomDisbandTimers.get(roomNumber)
+        const existingTimer = this.settlementReturnTimers.get(roomNumber)
         if (existingTimer) clearTimeout(existingTimer)
-        this.emptyRoomDisbandTimers.delete(roomNumber)
+        this.settlementReturnTimers.delete(roomNumber)
+        const abandonedTimer = this.abandonedBattleTimers.get(roomNumber)
+        if (abandonedTimer) clearTimeout(abandonedTimer)
+        this.abandonedBattleTimers.delete(roomNumber)
+
+        let roomInstanceId: string
+        let lifecycleVersion: number
+        try {
+            const { getRoom } = require("../room/manager")
+            const room = getRoom(roomNumber)
+            if (!room || room.lifecycle.phase !== "RETURNING") return
+            const lifecycle = embeddedMultiCoordinator.ensureLifecycle(room)
+            roomInstanceId = lifecycle.instanceId
+            lifecycleVersion = lifecycle.version
+        } catch (e) {
+            return
+        }
 
         const settlementReturnGraceMs = parseInt(process.env.SETTLEMENT_RETURN_GRACE_MS || "60000")
         const timer = setTimeout(() => {
-            this.emptyRoomDisbandTimers.delete(roomNumber)
-            try {
-                const { getRoom, disbandRoom } = require("../room/manager")
-                const room = getRoom(roomNumber)
-                if (!room || !room.settlement_return_pending) return
+            void embeddedMultiCoordinator.enqueueRoomCommand(roomNumber, () => {
+                if (this.settlementReturnTimers.get(roomNumber) !== timer) return
+                this.settlementReturnTimers.delete(roomNumber)
+                try {
+                    const { getRoom } = require("../room/manager")
+                    const room = getRoom(roomNumber)
+                    if (!embeddedMultiCoordinator.isCurrentInstance(room, roomInstanceId)
+                        || room.lifecycle.version !== lifecycleVersion
+                        || room.lifecycle.phase !== "RETURNING"
+                        || !room.settlement_return_pending) return
 
-                // Only the host completing the lobby Enter flow counts as a
-                // successful room return. Guests may wait during the grace
-                // period, but they must not keep a hostless room alive.
-                room.settlement_return_pending = false
-                const waitingClients = this.getClientsInRoom(roomNumber)
-                for (const client of waitingClients) {
-                    this.sendJson(client.socket, [1, [6, "multibattle_room_dismissed"]])
-                }
-                disbandRoom(roomNumber)
-                this.roomClients.delete(roomNumber)
-                this.battleClients.delete(roomNumber)
-                this.sceneReadyClients.delete(roomNumber)
-                this.battleLevelNextClients.delete(roomNumber)
-                this.battleExpectedCount.delete(roomNumber)
-                for (const client of waitingClients) {
-                    this.clients.delete(this.addr(client.viewerId, roomNumber))
-                    this.unindexClientSocket(client)
-                    try { client.socket.end() } catch (e) {}
-                }
-                console.warn(`[MULTI] room disbanded: host did not return after settlement room=${roomNumber}`)
-            } catch (e) {}
+                    // Only the host completing the lobby Enter flow counts as a
+                    // successful room return. Guests may wait during the grace
+                    // period, but they must not keep a hostless room alive.
+                    this.commitRoomDisband(roomNumber, "settlement_host_return_timeout")
+                    console.warn(`[MULTI] room disbanded: host did not return after settlement room=${roomNumber}`)
+                } catch (e) {}
+            }).catch(error => console.error(`[MULTI] settlement return timeout failed: room=${roomNumber}`, error))
         }, settlementReturnGraceMs)
         timer.unref()
-        this.emptyRoomDisbandTimers.set(roomNumber, timer)
+        this.settlementReturnTimers.set(roomNumber, timer)
         gameVerboseLog(() => `[MULTI] waiting for settlement lobby return: room=${roomNumber} graceMs=${settlementReturnGraceMs}`)
     }
 
     completeSettlementReturn(roomNumber: string): void {
-        const pendingTimer = this.emptyRoomDisbandTimers.get(roomNumber)
+        const pendingTimer = this.settlementReturnTimers.get(roomNumber)
         if (pendingTimer) clearTimeout(pendingTimer)
-        this.emptyRoomDisbandTimers.delete(roomNumber)
+        this.settlementReturnTimers.delete(roomNumber)
         let roomGeneration: number | undefined
         try {
             const { getRoom } = require("../room/manager")
             const room = getRoom(roomNumber)
             if (room) {
-                room.settlement_return_pending = false
+                embeddedMultiCoordinator.completeSettlementReturn(room)
                 roomGeneration = room.lobby_generation
             }
         } catch (e) {}
@@ -569,6 +650,8 @@ export class SessionManager {
             mates: [],
             enterData: null,
             roomGeneration: 0,
+            connectionGeneration: 0,
+            superseded: false,
             connectedAt: Date.now(),
             clientState: new ClientStateMachine(ClientState.Connecting),
             battleState: BattleState.Initializing,
@@ -588,25 +671,23 @@ export class SessionManager {
 
     addClientToRoom(client: SessionClient): Result<void> {
         const addr = this.addr(client.viewerId, client.roomNumber)
-        let settlementReturnPending = false
-        try {
-            const { getRoom } = require("../room/manager")
-            settlementReturnPending = !!getRoom(client.roomNumber)?.settlement_return_pending
-        } catch (e) {}
-        // During settlement, a guest connection must not cancel the host's
-        // return deadline. The timer is cleared only after the host completes
-        // the lobby Enter flow.
-        if (!settlementReturnPending) {
-            const pendingTimer = this.emptyRoomDisbandTimers.get(client.roomNumber)
-            if (pendingTimer) clearTimeout(pendingTimer)
-            this.emptyRoomDisbandTimers.delete(client.roomNumber)
-        }
         const previous = this.clients.get(addr)
+        const nextConnectionGeneration = (this.roomConnectionGenerations.get(addr) ?? 0) + 1
+        this.roomConnectionGenerations.set(addr, nextConnectionGeneration)
+        client.connectionGeneration = nextConnectionGeneration
+        client.superseded = false
         this.clients.set(addr, client)
         if (previous && previous !== client && previous.socket !== client.socket) {
+            previous.superseded = true
             this.unindexClientSocket(previous)
-            gameVerboseLog(() => `[MULTI] replacing stale room connection: viewer=${client.viewerId} room=${client.roomNumber}`)
-            try { previous.socket.destroy() } catch (e) {}
+            clearReliableSendState(previous.socket)
+            const closeCheckMs = this.deferSupersededSocketClose(previous.socket, () => {
+                const current = this.clients.get(addr)
+                return !!current && current !== previous && !current.socket.destroyed
+            })
+            gameVerboseLog(() => `[MULTI] room connection superseded: viewer=${client.viewerId}`
+                + ` room=${client.roomNumber} oldGeneration=${previous.connectionGeneration}`
+                + ` newGeneration=${client.connectionGeneration} closeCheckMs=${closeCheckMs}`)
         }
         this.indexClientSocket(client)
         let set = this.roomClients.get(client.roomNumber)
@@ -615,11 +696,6 @@ export class SessionManager {
             this.roomClients.set(client.roomNumber, set)
         }
         set.add(addr)
-        try {
-            const { getRoom } = require("../room/manager")
-            const room = getRoom(client.roomNumber)
-            if (room?.host_viewer_id === client.viewerId) this.cancelHostReconnectGrace(client.roomNumber)
-        } catch (e) {}
         if (this.isRescueGuest(client.roomNumber, client.viewerId)) {
             this.clearRescueGuestReconnect(client.roomNumber, client.viewerId)
         }
@@ -630,6 +706,9 @@ export class SessionManager {
         this.unindexClientSocket(client)
         const addr = this.addr(client.viewerId, client.roomNumber)
         const isCurrentConnection = this.clients.get(addr) === client
+        if (!client.isBattle && (!isCurrentConnection || client.superseded)) {
+            return { ok: true, value: undefined }
+        }
         if (isCurrentConnection) this.clients.delete(addr)
 
         if (client.isBattle) {
@@ -678,7 +757,9 @@ export class SessionManager {
                 try {
                     const { getRoom } = require("../room/manager")
                     const room = getRoom(client.roomNumber)
-                    if (room && room.raising_state !== 4 && client.roomGeneration === room.lobby_generation) {
+                    if (room
+                        && room.lifecycle.phase === "LOBBY"
+                        && client.roomGeneration === room.lobby_generation) {
                         const remaining = this.getClientsInRoom(client.roomNumber, room.lobby_generation)
                         for (const other of remaining) {
                             other.mates = other.mates.filter(mate => mate.viewerId !== client.viewerId)
@@ -712,7 +793,7 @@ export class SessionManager {
             try {
                 const { getRoom } = require("../room/manager")
                 const room = getRoom(client.roomNumber)
-                if (room && room.raising_state !== 4) {
+                if (room && room.lifecycle.phase === "LOBBY") {
                     if (room.host_viewer_id === client.viewerId) {
                         this.beginHostReconnectGrace(client.roomNumber)
                     } else {
@@ -748,6 +829,9 @@ export class SessionManager {
             const c = this.clients.get(addr)
             if (c
                 && !c.isBattle
+                && !c.superseded
+                && c.enterData !== null
+                && !c.socket.destroyed
                 && c.viewerId === hostViewerId
                 && (roomGeneration === undefined || c.roomGeneration === roomGeneration)) return true
         }
@@ -755,9 +839,9 @@ export class SessionManager {
     }
 
     addBattleClient(connectionId: string, client: SessionClient): void {
-        const pendingTimer = this.emptyRoomDisbandTimers.get(client.roomNumber)
+        const pendingTimer = this.abandonedBattleTimers.get(client.roomNumber)
         if (pendingTimer) clearTimeout(pendingTimer)
-        this.emptyRoomDisbandTimers.delete(client.roomNumber)
+        this.abandonedBattleTimers.delete(client.roomNumber)
         let set = this.battleClients.get(client.roomNumber)
         if (!set) {
             set = new Set()
@@ -780,8 +864,18 @@ export class SessionManager {
             this.battleLevelNextClients.get(client.roomNumber)?.delete(existingConnectionId)
             this.cidToBattleClient.delete(existingConnectionId)
             this.supersededBattleClients.add(existing)
+            existing.superseded = true
             this.unindexClientSocket(existing)
-            if (!existing.socket.destroyed) existing.socket.destroy()
+            clearReliableSendState(existing.socket)
+            this.deferSupersededSocketClose(existing.socket, () => {
+                const current = this.cidToBattleClient.get(connectionId)
+                if (current === client && !current.socket.destroyed) return true
+                if (client.viewerId <= 0) return false
+                return [...this.cidToBattleClient.values()].some(candidate => candidate !== existing
+                    && candidate.roomNumber === client.roomNumber
+                    && candidate.viewerId === client.viewerId
+                    && !candidate.socket.destroyed)
+            })
             this.logBattleBarrierState(client.roomNumber, "connection_replaced")
         }
         set.add(connectionId)
@@ -894,25 +988,21 @@ export class SessionManager {
         this.battleBarrierLogState.delete(roomNumber)
     }
 
-    getRoomState(roomNumber: string): RoomStateMachine {
-        let sm = this.roomStates.get(roomNumber)
-        if (!sm) {
-            sm = new RoomStateMachine()
-            this.roomStates.set(roomNumber, sm)
-        }
-        return sm
-    }
-
     removeRoomState(roomNumber: string): void {
         clearChainDiagnosticRoom(roomNumber)
-        this.roomStates.delete(roomNumber)
-        const emptyTimer = this.emptyRoomDisbandTimers.get(roomNumber)
-        if (emptyTimer) clearTimeout(emptyTimer)
-        this.emptyRoomDisbandTimers.delete(roomNumber)
+        const abandonedTimer = this.abandonedBattleTimers.get(roomNumber)
+        if (abandonedTimer) clearTimeout(abandonedTimer)
+        this.abandonedBattleTimers.delete(roomNumber)
+        const settlementTimer = this.settlementReturnTimers.get(roomNumber)
+        if (settlementTimer) clearTimeout(settlementTimer)
+        this.settlementReturnTimers.delete(roomNumber)
         this.cancelHostReconnectGrace(roomNumber)
         this.clearRescueGuestStateForRoom(roomNumber)
         this.clearBattleHeartbeatLeasesForRoom(roomNumber)
         this.battleBarrierLogState.delete(roomNumber)
+        for (const key of this.roomConnectionGenerations.keys()) {
+            if (key.endsWith(`@${roomNumber}`)) this.roomConnectionGenerations.delete(key)
+        }
     }
 
     sendJson(
@@ -931,9 +1021,21 @@ export class SessionManager {
         return sendFrameReliably(socket, frame, context)
     }
 
-    broadcastToRoom(roomNumber: string, data: any, excludeAddr?: string): void {
+    broadcastToRoom(
+        roomNumber: string,
+        data: any,
+        excludeAddr?: string,
+        roomGeneration?: number,
+    ): void {
         const set = this.roomClients.get(roomNumber)
         if (!set) return
+        let expectedGeneration = roomGeneration
+        if (expectedGeneration === undefined) {
+            try {
+                const { getRoom } = require("../room/manager")
+                expectedGeneration = getRoom(roomNumber)?.lobby_generation
+            } catch (e) {}
+        }
         for (const addr of set) {
             if (excludeAddr !== undefined && addr === excludeAddr) continue
             const c = this.clients.get(addr)
@@ -942,7 +1044,18 @@ export class SessionManager {
             // has been answered with Welcome.  Sending Mates/State/Start during
             // that gap can make the CN client raise C15202 because it cannot
             // find itself in the meeting roster.
-            if (c && c.enterData !== null) this.sendJson(c.socket, data)
+            if (c
+                && !c.superseded
+                && c.enterData !== null
+                && (expectedGeneration === undefined || c.roomGeneration === expectedGeneration)) {
+                this.sendJson(c.socket, data, {
+                    roomNumber,
+                    connectionId: c.connectionId,
+                    viewerId: c.viewerId,
+                    roomGeneration: c.roomGeneration,
+                    channel: "lobby",
+                })
+            }
         }
     }
 

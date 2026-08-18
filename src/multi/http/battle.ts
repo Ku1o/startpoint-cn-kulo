@@ -1,7 +1,7 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import { MultiStartBody, MultiFinishBody, MultiAbortBody, PlayContinueBody } from "../types";
 import { generateDataHeaders, getServerTime, realToVirtual } from "../../utils";
-import { getRoom, setRoomBattle, disbandRoom, updateRoomState } from "../room/manager";
+import { getRoom, setRoomBattle } from "../room/manager";
 import { sessionManager } from "../state/SessionManager";
 import { insertActiveQuest, activeQuests } from "../../routes/api/singleBattleQuest";
 import {
@@ -65,6 +65,7 @@ import {
     registerMultiSettlementSnapshot,
     transitionMultiSettlementSnapshot,
 } from "../settlement-snapshot";
+import { embeddedMultiCoordinator } from "../coordinator/embedded";
 
 interface PlayerContext { playerId: number; player: Player }
 
@@ -150,19 +151,31 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
             }
         }
 
-        const room = getRoom(room_number);
-        if (!room) {
+        const roomStart = await embeddedMultiCoordinator.enqueueRoomCommand(room_number, () => {
+            const currentRoom = getRoom(room_number);
+            if (!currentRoom) return { status: "missing" as const };
+            if (isMode15RoomClosed(currentRoom)) {
+                return { status: "mode15_closed" as const, room: currentRoom };
+            }
+            if (!setRoomBattle(room_number)) {
+                return { status: "unavailable" as const };
+            }
+            return { status: "ready" as const, room: currentRoom };
+        });
+        if (roomStart.status === "missing" || roomStart.status === "unavailable") {
             return reply.status(400).send({
-                "error": "Bad Request", "message": "Room doesn't exist."
+                "error": "Bad Request", "message": roomStart.status === "missing"
+                    ? "Room doesn't exist."
+                    : "Room is not available for battle."
             });
         }
 
         // The host's first successful settlement advances Mode15 immediately.
         // A legacy client may keep the old room and request another battle, so
         // validate the room owner again at the final HTTP start boundary.
-        if (isMode15RoomClosed(room)) {
+        if (roomStart.status === "mode15_closed") {
             console.log(
-                `[MODE15] multi start denied: completed host room=${room_number} host=${room.host_player_id}`,
+                `[MODE15] multi start denied: completed host room=${room_number} host=${roomStart.room.host_player_id}`,
             );
             reply.header("content-type", "application/x-msgpack");
             return reply.status(200).send({
@@ -171,7 +184,7 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
             });
         }
 
-        setRoomBattle(room_number);
+        const room = roomStart.room;
 
         const mateComIds = room.mates.map(m => m.com_id);
         const activeQuest = {
@@ -334,22 +347,30 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
             : false);
 
         if (activeQuestData.roomNumber) {
-            const room = getRoom(activeQuestData.roomNumber);
-            const matchesBattleGeneration = room?.lobby_generation === settlementGeneration;
-            const lifecycleAllowsRoomMutation = settlementSnapshot === undefined
-                || (!settlementWasAlreadyInLobby && settlingSnapshot?.lifecycle !== "LOBBY");
-            if (room && matchesBattleGeneration && lifecycleAllowsRoomMutation) {
-                sessionManager.clearBattleExpectedCount(activeQuestData.roomNumber);
-                updateRoomState(room.room_number, 1);
-                room.settlement_return_pending = true;
-                sessionManager.beginSettlementReturnGrace(room.room_number);
-                transitionMultiSettlementSnapshot(playerId, body.play_id, "RETURN_PENDING");
-                gameVerboseLog(() => `[MULTI] finish: room ${activeQuestData.roomNumber} reset to raising_state=1 by viewer=${viewerId}`);
-            } else if (room) {
-                console.warn(`[MULTI-SETTLEMENT] skipped stale finish room mutation: room=${room.room_number}`
-                    + ` viewer=${viewerId} finishGeneration=${settlementGeneration}`
-                    + ` currentGeneration=${room.lobby_generation} lifecycle=${settlementSnapshot?.lifecycle ?? "missing"}`);
-            }
+            await embeddedMultiCoordinator.enqueueRoomCommand(activeQuestData.roomNumber, () => {
+                const room = getRoom(activeQuestData.roomNumber!);
+                const matchesBattleGeneration = room?.lobby_generation === settlementGeneration;
+                const lifecycleAllowsRoomMutation = settlementSnapshot === undefined
+                    || (!settlementWasAlreadyInLobby && settlingSnapshot?.lifecycle !== "LOBBY");
+                if (room && matchesBattleGeneration && lifecycleAllowsRoomMutation) {
+                    const wasPending = room.settlement_return_pending;
+                    const transition = embeddedMultiCoordinator.beginSettlementReturn(room, settlementGeneration);
+                    if (!transition.ok) {
+                        console.warn(`[MULTI-SETTLEMENT] lifecycle rejected finish room=${room.room_number}`
+                            + ` viewer=${viewerId} reason=${transition.reason}`);
+                        return;
+                    }
+                    sessionManager.clearBattleExpectedCount(activeQuestData.roomNumber!);
+                    if (!wasPending) sessionManager.beginSettlementReturnGrace(room.room_number);
+                    transitionMultiSettlementSnapshot(playerId, body.play_id, "RETURN_PENDING");
+                    gameVerboseLog(() => `[MULTI] finish: room ${activeQuestData.roomNumber}`
+                        + ` entered RETURNING by viewer=${viewerId}`);
+                } else if (room) {
+                    console.warn(`[MULTI-SETTLEMENT] skipped stale finish room mutation: room=${room.room_number}`
+                        + ` viewer=${viewerId} finishGeneration=${settlementGeneration}`
+                        + ` currentGeneration=${room.lobby_generation} lifecycle=${settlementSnapshot?.lifecycle ?? "missing"}`);
+                }
+            });
         }
 
         // calculate clear rank
@@ -805,7 +826,10 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
                         activeQuestData.questId,
                         false,
                     );
-                    disbandRoom(activeQuestData.roomNumber);
+                    await embeddedMultiCoordinator.enqueueRoomCommand(
+                        activeQuestData.roomNumber,
+                        () => sessionManager.commitRoomDisband(activeQuestData.roomNumber!, "host_aborted_battle"),
+                    );
                     gameVerboseLog(() => `[MULTI] abort: room ${activeQuestData.roomNumber} disbanded (host abandoned)`);
                 }
             }

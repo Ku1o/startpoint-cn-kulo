@@ -9,6 +9,7 @@ import { handleBattleMessage } from "./battle"
 import { sessionManager } from "../state/SessionManager"
 import { gameVerboseLog } from "../../lib/game-logging"
 import { clearReliableSendState } from "./reliable-send"
+import { embeddedMultiCoordinator } from "../coordinator/embedded"
 
 export const SESSION_PORT = parseInt(process.env.SESSION_PORT || "8003")
 export const SESSION_HOST = process.env.SESSION_HOST || "0.0.0.0"
@@ -65,7 +66,14 @@ export function startSessionServer(): Promise<void> {
                 socketRemoved = true
                 try {
                     const client = sessionManager.findClientBySocket(socket)
-                    if (client) sessionManager.removeClient(client)
+                    if (client) {
+                        void embeddedMultiCoordinator.enqueueRoomCommand(
+                            client.roomNumber,
+                            () => sessionManager.removeClient(client),
+                        ).catch(error => {
+                            console.error(`[TCP] queued socket cleanup failed: room=${client.roomNumber}`, error)
+                        })
+                    }
                 } catch {
                     // Socket shutdown is best-effort. The room lease cleanup is
                     // still able to remove an already detached connection.

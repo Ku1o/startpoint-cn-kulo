@@ -36,6 +36,23 @@ export interface MultiMate {
 }
 
 
+export type MultiRoomPhase =
+    | "LOBBY"
+    | "STARTING"
+    | "BATTLE"
+    | "SETTLING"
+    | "RETURNING"
+    | "DISBANDED"
+
+
+export interface MultiRoomLifecycle {
+    instanceId: string
+    phase: MultiRoomPhase
+    version: number
+    battleSessionId: string | null
+}
+
+
 export interface MultiRoom {
     room_number: string
     access_token: string
@@ -58,6 +75,7 @@ export interface MultiRoom {
     lobby_generation: number
     rematch_wait_started_at: number | null
     settlement_return_pending: boolean
+    lifecycle: MultiRoomLifecycle
 }
 
 
