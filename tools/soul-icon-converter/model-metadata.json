@@ -1,0 +1,12 @@
+{
+  "modelVersion": 1,
+  "inputSize": {
+    "width": 20,
+    "height": 20
+  },
+  "officialTrainingPairs": 365,
+  "officialTrainingVisiblePixels": 78908,
+  "officialAlphaMaskMismatches": 0,
+  "fittedMeanAbsoluteRgbError": 0.14194167046856254,
+  "fallbackCoordinates": 0
+}
