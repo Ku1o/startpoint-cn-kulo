@@ -38,6 +38,11 @@ interface RescueGuestWaitState {
     ejectTimer: NodeJS.Timeout
 }
 
+interface SupersededSocketBucket {
+    roomNumber: string
+    sockets: Set<net.Socket>
+}
+
 export class SessionManager {
     private clients = new Map<string, SessionClient>()
     private roomClients = new Map<string, Set<string>>()
@@ -52,6 +57,8 @@ export class SessionManager {
     private battleConnectionPhase = new Map<string, "loading" | "active">()
     private battleBarrierLogState = new Map<string, string>()
     private supersededBattleClients = new WeakSet<SessionClient>()
+    private supersededSockets = new WeakSet<net.Socket>()
+    private supersededSocketBuckets = new Map<string, SupersededSocketBucket>()
     private abandonedBattleTimers = new Map<string, NodeJS.Timeout>()
     private settlementReturnTimers = new Map<string, NodeJS.Timeout>()
     private rescueGuests = new Map<string, Set<number>>()
@@ -69,6 +76,11 @@ export class SessionManager {
     private parsePositiveDuration(name: string, fallback: number, minimum = 1_000): number {
         const parsed = parseInt(process.env[name] || "", 10)
         return Number.isFinite(parsed) ? Math.max(minimum, parsed) : fallback
+    }
+
+    private maxSupersededSocketsPerViewer(): number {
+        const parsed = parseInt(process.env.MULTI_MAX_SUPERSEDED_CONNECTIONS_PER_VIEWER || "", 10)
+        return Number.isFinite(parsed) ? Math.max(1, Math.min(32, parsed)) : 2
     }
 
     private deferSupersededSocketClose(
@@ -92,6 +104,45 @@ export class SessionManager {
         const timer = setTimeout(closeWhenSafe, checkMs)
         timer.unref()
         return checkMs
+    }
+
+    private quarantineSupersededSocket(
+        ownerKey: string,
+        roomNumber: string,
+        socket: net.Socket,
+        replacementIsLive: () => boolean,
+    ): number {
+        this.supersededSockets.add(socket)
+        let bucket = this.supersededSocketBuckets.get(ownerKey)
+        if (!bucket) {
+            bucket = { roomNumber, sockets: new Set() }
+            this.supersededSocketBuckets.set(ownerKey, bucket)
+        }
+        bucket.sockets.add(socket)
+        socket.once("close", () => {
+            const current = this.supersededSocketBuckets.get(ownerKey)
+            current?.sockets.delete(socket)
+            if (current?.sockets.size === 0) this.supersededSocketBuckets.delete(ownerKey)
+        })
+
+        const maximum = this.maxSupersededSocketsPerViewer()
+        while (bucket.sockets.size > maximum) {
+            const oldest = bucket.sockets.values().next().value as net.Socket | undefined
+            if (!oldest) break
+            bucket.sockets.delete(oldest)
+            if (!oldest.destroyed) oldest.destroy()
+        }
+        return this.deferSupersededSocketClose(socket, replacementIsLive)
+    }
+
+    private closeSupersededSocketsForRoom(roomNumber: string): void {
+        for (const [ownerKey, bucket] of this.supersededSocketBuckets) {
+            if (bucket.roomNumber !== roomNumber) continue
+            this.supersededSocketBuckets.delete(ownerKey)
+            for (const socket of bucket.sockets) {
+                if (!socket.destroyed) socket.destroy()
+            }
+        }
     }
 
     private clearBattleHeartbeatLease(connectionId: string): void {
@@ -493,6 +544,7 @@ export class SessionManager {
                 try { client.socket.destroy() } catch (e) {}
             }, 250).unref()
         }
+        this.closeSupersededSocketsForRoom(roomNumber)
         this.roomClients.delete(roomNumber)
         this.battleClients.delete(roomNumber)
         this.sceneReadyClients.delete(roomNumber)
@@ -681,10 +733,15 @@ export class SessionManager {
             previous.superseded = true
             this.unindexClientSocket(previous)
             clearReliableSendState(previous.socket)
-            const closeCheckMs = this.deferSupersededSocketClose(previous.socket, () => {
-                const current = this.clients.get(addr)
-                return !!current && current !== previous && !current.socket.destroyed
-            })
+            const closeCheckMs = this.quarantineSupersededSocket(
+                `lobby:${addr}`,
+                client.roomNumber,
+                previous.socket,
+                () => {
+                    const current = this.clients.get(addr)
+                    return !!current && current !== previous && !current.socket.destroyed
+                },
+            )
             gameVerboseLog(() => `[MULTI] room connection superseded: viewer=${client.viewerId}`
                 + ` room=${client.roomNumber} oldGeneration=${previous.connectionGeneration}`
                 + ` newGeneration=${client.connectionGeneration} closeCheckMs=${closeCheckMs}`)
@@ -867,15 +924,21 @@ export class SessionManager {
             existing.superseded = true
             this.unindexClientSocket(existing)
             clearReliableSendState(existing.socket)
-            this.deferSupersededSocketClose(existing.socket, () => {
-                const current = this.cidToBattleClient.get(connectionId)
-                if (current === client && !current.socket.destroyed) return true
-                if (client.viewerId <= 0) return false
-                return [...this.cidToBattleClient.values()].some(candidate => candidate !== existing
-                    && candidate.roomNumber === client.roomNumber
-                    && candidate.viewerId === client.viewerId
-                    && !candidate.socket.destroyed)
-            })
+            const ownerIdentity = client.viewerId > 0 ? `viewer:${client.viewerId}` : `connection:${connectionId}`
+            this.quarantineSupersededSocket(
+                `battle:${ownerIdentity}@${client.roomNumber}`,
+                client.roomNumber,
+                existing.socket,
+                () => {
+                    const current = this.cidToBattleClient.get(connectionId)
+                    if (current === client && !current.socket.destroyed) return true
+                    if (client.viewerId <= 0) return false
+                    return [...this.cidToBattleClient.values()].some(candidate => candidate !== existing
+                        && candidate.roomNumber === client.roomNumber
+                        && candidate.viewerId === client.viewerId
+                        && !candidate.socket.destroyed)
+                },
+            )
             this.logBattleBarrierState(client.roomNumber, "connection_replaced")
         }
         set.add(connectionId)
@@ -906,6 +969,10 @@ export class SessionManager {
 
     findClientBySocket(socket: net.Socket): SessionClient | undefined {
         return this.socketClients.get(socket)
+    }
+
+    isSupersededSocket(socket: net.Socket): boolean {
+        return this.supersededSockets.has(socket)
     }
 
     isCurrentBattleClient(client: SessionClient): boolean {

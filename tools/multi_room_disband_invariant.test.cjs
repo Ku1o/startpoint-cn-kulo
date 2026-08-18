@@ -29,11 +29,26 @@ const client = manager.createClient(socket, 101, room.room_number, "host", 201)
 client.enterData = {}
 client.roomGeneration = room.lobby_generation
 manager.addClientToRoom(client)
+const replacementSocket = new FakeSocket()
+const replacementClient = manager.createClient(
+    replacementSocket,
+    101,
+    room.room_number,
+    "host-replacement",
+    201,
+)
+replacementClient.enterData = {}
+replacementClient.roomGeneration = room.lobby_generation
+manager.addClientToRoom(replacementClient)
+assert.equal(socket.destroyed, false,
+    "the superseded socket should remain quarantined while the room is active")
 
 assert.equal(manager.commitRoomDisband(room.room_number, "test_disband"), true)
 assert.equal(getRoom(room.room_number), undefined,
     "room must be non-joinable before the dismissal frame is emitted")
-assert.equal(socket.frames.some(frame => frame.includes("multibattle_room_dismissed")), true)
+assert.equal(replacementSocket.frames.some(frame => frame.includes("multibattle_room_dismissed")), true)
+assert.equal(socket.destroyed, true,
+    "committed disband must close quarantined sockets immediately")
 
 const productionFiles = [
     "src/multi/http/room.ts",

@@ -21,6 +21,9 @@ const notifiedRooms = new Set<string>();
 function cleanExpiredRooms() {
     for (const [roomNumber, room] of rooms) {
         const lifecycle = embeddedMultiCoordinator.ensureLifecycle(room);
+        // Battle and settlement rooms are governed by their own watchdogs.
+        // Skip them before allocating a Promise chain every cleanup tick.
+        if (lifecycle.phase !== "LOBBY") continue;
         const instanceId = lifecycle.instanceId;
         const lifecycleVersion = lifecycle.version;
         void embeddedMultiCoordinator.enqueueRoomCommand(roomNumber, () => {
