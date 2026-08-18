@@ -63,6 +63,7 @@ import scoreAttackBorderRewards from "../../../assets/score_attack_border_reward
 import eventChallengePointMap from "../../../assets/event_challenge_point_map.json";
 import { gameVerboseLog } from "../../lib/game-logging";
 import { measureSettlementPhase } from "../../lib/settlement-performance";
+import { repairGauntletCompletionClassificationSync } from "../../lib/gauntlet-completion-classification";
 import {
     buildFinishResponseCacheKey,
     cacheFinishResponse,
@@ -557,6 +558,20 @@ const routes = async (fastify: FastifyInstance) => {
             getFolderRewards: (eid, fid) => getRushEventFolderClearRewards(eid, fid),
             giveRewards: (pid, r) => givePlayerRewardsSync(pid, r),
         })
+        if (
+            questAccomplished
+            && questCategory === QuestCategory.RUSH_EVENT
+            && questData.rushEventId !== undefined
+            && repairGauntletCompletionClassificationSync(
+                playerId,
+                questData.rushEventId,
+            )
+        ) {
+            console.log(
+                `[RUSH] completed classification repaired: `
+                + `player=${playerId} event=${questData.rushEventId}`,
+            )
+        }
 
         if (rushEventData !== null && rushPartiesBeforeBoundaryAdvance !== null) {
             rushEventData.rush_battle_played_party_list = rushPartiesBeforeBoundaryAdvance.folderParties

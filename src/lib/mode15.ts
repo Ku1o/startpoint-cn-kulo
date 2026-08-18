@@ -3,6 +3,7 @@ import type { PlayerRushEventPlayedParty } from "../data/types";
 import { RushEventBattleType } from "../data/types";
 import { givePlayerRewardsSync } from "./quest";
 import { PlayerRewardResult, QuestCategory, RewardType } from "./types";
+import { repairGauntletCompletionClassificationSync } from "./gauntlet-completion-classification";
 
 
 export const MODE15_RUSH_EVENT_ID = 700098;
@@ -171,33 +172,30 @@ export function getMode15ExclusiveGlobalPartyItemsSync(
 }
 
 export function getExpectedMode15StageSync(playerId: number): number {
-    const statement = getDb().prepare(`
-        SELECT finished, host_finished
-        FROM players_quest_progress
-        WHERE player_id = ? AND section = ? AND quest_id = ?
-    `);
-    for (const ref of MODE15_QUESTS) {
-        const categories = ref.category === MODE15_MULTI_CATEGORY
-            ? MODE15_MULTI_CATEGORY_ALIASES
-            : [ref.category];
-        const cleared = categories.some(category => {
-            const progress = statement.get(
-                playerId,
-                Number(category),
-                ref.questId,
-            ) as { finished?: number; host_finished?: number } | undefined;
-            // A rescue clear is an ordinary multiplayer completion but must
-            // not advance the helper's own Mode15 run.  Multiplayer stages
-            // therefore count only when this player was the room host.
-            return ref.category === MODE15_MULTI_CATEGORY
-                ? Number(progress?.host_finished ?? 0) === 1
-                : Number(progress?.finished ?? 0) === 1;
-        });
-        if (!cleared) return ref.stage;
-    }
-    // A completed run is normally reset during stage-15 settlement.  Returning
-    // stage 1 here also makes a recovered pre-migration save safe by default.
-    return 1;
+    // Native Rush keeps permanent quest-clear history separate from the
+    // current run.  The client advances the finite folder from the number of
+    // played-party markers, so the server gate must use the same source.  This
+    // lets EventFolderLogic continue to see a completed event after a reset
+    // without making the next run stick on stage 1.
+    const progress = getDb().prepare(`
+        SELECT COUNT(*) AS cleared_stage_count
+        FROM players_rush_events_played_parties
+        WHERE player_id = ?
+          AND event_id = ?
+          AND battle_type = ?
+          AND round BETWEEN ? AND ?
+    `).get(
+        playerId,
+        MODE15_RUSH_EVENT_ID,
+        RushEventBattleType.FOLDER,
+        MODE15_RUSH_EVENT_ID * 1000 + 1,
+        MODE15_RUSH_EVENT_ID * 1000 + 15,
+    ) as { cleared_stage_count?: number } | undefined;
+    const clearedStageCount = Math.max(
+        0,
+        Math.min(15, Number(progress?.cleared_stage_count ?? 0)),
+    );
+    return clearedStageCount >= 15 ? 1 : clearedStageCount + 1;
 }
 
 export function canStartMode15QuestSync(
@@ -252,17 +250,18 @@ export function cleanupLegacyMode15RescueProgressSync(playerId: number): number 
 /** Reset only run progress; token balances and shop purchase history persist. */
 export function resetMode15RunSync(playerId: number): void {
     getDb().transaction(() => {
+        // Keep the Rush quest rows as permanent clear history.  The native
+        // EventFolder classifier reads those rows for its completed tab, while
+        // current-run ordering is tracked by played-party markers above.
+        // Advent boss progress remains run-scoped because its visibility chain
+        // is used to reveal the current run's stage-10 and stage-15 rooms.
         getDb().prepare(`
             DELETE FROM players_quest_progress
-            WHERE player_id = ? AND (
-                (section = ? AND quest_id BETWEEN ? AND ?)
-                OR (section IN (?, ?) AND quest_id BETWEEN ? AND ?)
-            )
+            WHERE player_id = ?
+              AND section IN (?, ?)
+              AND quest_id BETWEEN ? AND ?
         `).run(
             playerId,
-            Number(QuestCategory.RUSH_EVENT),
-            MODE15_RUSH_EVENT_ID * 1000 + 1,
-            MODE15_RUSH_EVENT_ID * 1000 + 15,
             Number(QuestCategory.ADVENT_EVENT_SINGLE),
             Number(QuestCategory.ADVENT_EVENT_MULTI),
             MODE15_MULTI_EVENT_ID * 1000 + 1,
@@ -466,6 +465,10 @@ export function settleMode15BattleSync(
     }
 
     if (fullClear) {
+        repairGauntletCompletionClassificationSync(
+            playerId,
+            MODE15_RUSH_EVENT_ID,
+        );
         resetMode15RunSync(playerId);
         console.log(`[MODE15] completed: player=${playerId}; token=${tokenAmount}; reset to stage 1`);
     } else {

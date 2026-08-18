@@ -3082,5 +3082,11 @@
     "name": "",
     "rarity": 5,
     "skill_count": 3
+  },
+  "129997": {
+    "name": "克劳德",
+    "rarity": 5,
+    "element": 1,
+    "skill_count": 6
   }
 }

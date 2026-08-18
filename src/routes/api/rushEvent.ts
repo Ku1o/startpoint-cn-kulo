@@ -4,7 +4,7 @@ import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { PartyCategory, PlayerRushEvent, RushEventBattleType, UserRushEventPlayedParty } from "../../data/types";
 import { deletePlayerRushEventPlayedPartiesUntilSync, deletePlayerRushEventPlayedPartyListSync, deletePlayerRushEventPlayedPartySync, getDefaultPlayerRushEventSync, getPlayerRushEventClearedFoldersSync, getPlayerRushEventNextEndlessBattleRoundSync, getPlayerRushEventPlayedPartiesSync, getPlayerRushEventSync, getRushEventEndlessRankingListSync, insertPlayerRushEventClearedFolderSync, insertPlayerRushEventPlayedPartySync, insertPlayerRushEventSync, serializePlayerRushEventPlayedParty, updatePlayerRushEventSync } from "../../data/domains/rushEvent"
 import { getAccountPlayers } from "../../data/domains/account"
-import { getDefaultPlayerPartyGroupsSync } from "../../data/domains/player"
+import { getDefaultPlayerPartyGroupsSync, getPlayerSync } from "../../data/domains/player"
 import { getPlayerCharacterSync } from "../../data/domains/character"
 import { ensurePlayerPartyGroupListSync, getPlayerPartyGroupListSync } from "../../data/domains/party"
 import { getSession } from "../../data/domains/session"
@@ -29,6 +29,11 @@ import {
     MODE15_RUSH_EVENT_ID,
     resetMode15RunSync,
 } from "../../lib/mode15-optional";
+import { getRankDegree } from "../../lib/stamina";
+import {
+    canStartRankGatedGauntletRush,
+    GAUNTLET_MIN_PLAYER_RANK,
+} from "../../lib/gauntlet-entry-rank";
 
 interface SummaryBody {
     event_id: number,
@@ -563,6 +568,25 @@ const routes = async (fastify: FastifyInstance) => {
             "error": "Bad Request",
             "message": "Quest doesn't exist."
         })
+
+        // This endpoint starts Rush single-player battles only.  Keep the
+        // rank gate here as a deep-link/API fallback, while Advent multiplayer
+        // room creation, rescue discovery and rescue participation remain
+        // untouched so lower-rank players can join an eligible host.
+        const player = getPlayerSync(playerId)
+        const playerRank = player === null ? 0 : getRankDegree(player.rankPoint)
+        if (!canStartRankGatedGauntletRush(questData.rushEventId, playerRank)) {
+            console.log(
+                `[RUSH] rank-gated Gauntlet start rejected: player=${playerId} `
+                + `rank=${playerRank} required=${GAUNTLET_MIN_PLAYER_RANK} `
+                + `event=${questData.rushEventId} quest=${questId}`,
+            )
+            reply.header("content-type", "application/x-msgpack")
+            return reply.status(200).send({
+                data_headers: generateDataHeaders({ viewer_id: viewerId, result_code: 4050 }),
+                data: {},
+            })
+        }
 
         if (
             isMode15RuntimeLoaded()

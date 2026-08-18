@@ -711,6 +711,15 @@
     "race": "Human"
   },
   {
+    "id": 129997,
+    "name": "克劳德",
+    "title": "碧牙的狩夜者",
+    "rarity": "5★",
+    "element": "水",
+    "gender": "男性",
+    "race": "Human,Beast"
+  },
+  {
     "id": 129999,
     "name": "赛瑞斯",
     "title": "苍海龙王的敕令",
