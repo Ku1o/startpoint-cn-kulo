@@ -15,6 +15,7 @@ import {
 } from "../../lib/mode15-optional"
 import { getPlayerSync } from "../../data/domains/player"
 import { embeddedMultiCoordinator } from "../coordinator/embedded"
+import { handleAutoplayModeChange } from "./autoplay-mode"
 
 const NPC_JOIN_DELAY_MS = parseInt(process.env.NPC_JOIN_DELAY_MS || "2000")
 const NPC_READY_DELAY_MS = parseInt(process.env.NPC_READY_DELAY_MS || "500")
@@ -1021,8 +1022,23 @@ async function handleNotify(socket: net.Socket, client: SessionClient, data: any
         case 2: handleChangeParty(socket, client, notifyData); break
         case 3: handleReady(socket, client, notifyData); break
         case 4: handleHeartbeat(socket, client, notifyData); break
-        case 5: case 7: case 8: case 9: break  // Suspend/ChangeAutoplay/ChangeAutoStart/Log — silently ignored
+        case 5: case 8: case 9: break  // Suspend/ChangeAutoStart/Log — silently ignored
         case 6: handleStartBattle(socket, client, notifyData); break
+        case 7: {
+            const change = handleAutoplayModeChange(
+                client,
+                notifyData,
+                (roomNumber, message) => sessionManager.broadcastToRoom(roomNumber, message),
+            )
+            if (change) {
+                gameVerboseLog(() =>
+                    `[LOBBY] autoplay changed: room=${client.roomNumber}`
+                    + ` viewer=${client.viewerId} auto=${change.autoplayMode}`
+                    + ` manual=${change.manualMode}`
+                )
+            }
+            break
+        }
         case 10: {
             const room = getRoom(client.roomNumber)
             if (room?.is_npc_mode) {
