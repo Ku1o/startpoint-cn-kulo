@@ -33,7 +33,6 @@ import newsApiPlugin from "./routes/api/news"
 import raidEventApiPlugin from "./routes/api/raidEvent"
 import rushEventApiPlugin from "./routes/api/rushEvent"
 import howToGetApiPlugin from "./routes/api/howToGet"
-import loungeApiPlugin from "./routes/api/lounge"
 // web routes
 import indexWebPlugin from "./routes/web"
 // web api routes
@@ -126,7 +125,6 @@ fastify.register(newsApiPlugin, { prefix: `${apiPrefix}/news` })
 fastify.register(raidEventApiPlugin, { prefix: `${apiPrefix}/event/raid` })
 fastify.register(rushEventApiPlugin, { prefix: `${apiPrefix}/event/rush` })
 fastify.register(howToGetApiPlugin, { prefix: `${apiPrefix}/how_to_get` })
-fastify.register(loungeApiPlugin, { prefix: `${apiPrefix}/lounge` })
 
 // openapi
 fastify.register(openapiPlugin, { prefix: "/openapi/service" })
