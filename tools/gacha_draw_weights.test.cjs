@@ -60,18 +60,20 @@ const normalCharacterGacha = {
   guaranteeMovieName: "normal_guarantee",
   pool: {},
 };
-const rarity3Characters = Array(10).fill(311001);
+const rarity3Characters = Array(1000).fill(311001);
 const playedMovies = planCharacterGachaMovies(
   normalCharacterGacha,
   rarity3Characters,
   { skipNoRarityUpMovie: false },
 );
-assert.ok(playedMovies.every((movie) => movie.moviePlayable && !movie.rarityUp));
-assert.strictEqual(new Set(playedMovies.map((movie) => movie.seed)).size, 10);
+assert.ok(playedMovies.some((movie) => movie.moviePlayable));
+assert.ok(playedMovies.some((movie) => !movie.moviePlayable));
+assert.ok(playedMovies.every((movie) => !movie.rarityUp));
+assert.strictEqual(new Set(playedMovies.map((movie) => movie.seed)).size, 1000);
 
 const skippedMovies = planCharacterGachaMovies(
   normalCharacterGacha,
-  rarity3Characters,
+  rarity3Characters.slice(0, 10),
   { skipNoRarityUpMovie: true },
 );
 assert.ok(skippedMovies.every((movie) => !movie.moviePlayable && !movie.rarityUp));

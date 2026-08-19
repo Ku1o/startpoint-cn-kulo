@@ -36,7 +36,7 @@ function catalogWithRolls(values, onLoad = () => {}) {
   });
 }
 
-// A non-upgrade outcome plays when the option is off and skips when it is on.
+// Natural non-upgrade play/skip outcomes remain distinct when the option is off.
 assert.deepStrictEqual(
   catalogWithRolls([2, 0]).select({
     movieId: "normal",
@@ -46,6 +46,16 @@ assert.deepStrictEqual(
   { seed: 20, moviePlayable: true, rarityUp: false },
 );
 assert.deepStrictEqual(
+  catalogWithRolls([4, 0]).select({
+    movieId: "normal",
+    rarity: 4,
+    skipNoRarityUpMovie: false,
+  }),
+  { seed: 10, moviePlayable: false, rarityUp: false },
+);
+
+// Enabling the option converts a naturally playable non-upgrade outcome to skip.
+assert.deepStrictEqual(
   catalogWithRolls([2, 0]).select({
     movieId: "normal",
     rarity: 4,
@@ -54,7 +64,7 @@ assert.deepStrictEqual(
   { seed: 10, moviePlayable: false, rarityUp: false },
 );
 
-// The same outcome roll upgrades regardless of the presentation option.
+// The same upgrade outcome remains unchanged regardless of the option.
 for (const skipNoRarityUpMovie of [false, true]) {
   assert.deepStrictEqual(
     catalogWithRolls([0, 1]).select({

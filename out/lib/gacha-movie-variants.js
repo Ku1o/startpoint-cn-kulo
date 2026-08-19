@@ -96,22 +96,33 @@ class GachaMovieVariantCatalog {
         if (!buckets)
             return null;
         const upgradeCount = buckets.play_rarity_up.length;
-        const noUpgradeCount = buckets.skip.length + buckets.play_no_rarity_up.length;
+        const playNoUpgradeCount = buckets.play_no_rarity_up.length;
+        const noUpgradeCount = buckets.skip.length + playNoUpgradeCount;
         const total = upgradeCount + noUpgradeCount;
         if (total === 0)
             return null;
-        // The rarity-up decision is independent from the client option. The
-        // option only changes how a non-upgrade outcome is presented.
-        const useRarityUp = this.roll(total) < upgradeCount;
-        const preferredKind = useRarityUp
-            ? "play_rarity_up"
-            : options.skipNoRarityUpMovie ? "skip" : "play_no_rarity_up";
-        const fallbackKind = options.skipNoRarityUpMovie
-            ? "play_no_rarity_up"
-            : "skip";
-        const kinds = useRarityUp
-            ? [preferredKind, fallbackKind, options.skipNoRarityUpMovie ? "skip" : "play_no_rarity_up"]
-            : [preferredKind, fallbackKind];
+        // Preserve the catalog's natural upgrade/play/skip ratio. Enabling the
+        // option only turns naturally selected non-upgrade movies into skips;
+        // disabling it must not force every non-upgrade result to play.
+        const outcomeRoll = this.roll(total);
+        let preferredKind;
+        if (outcomeRoll < upgradeCount) {
+            preferredKind = "play_rarity_up";
+        }
+        else if (options.skipNoRarityUpMovie) {
+            preferredKind = "skip";
+        }
+        else if (outcomeRoll < upgradeCount + playNoUpgradeCount) {
+            preferredKind = "play_no_rarity_up";
+        }
+        else {
+            preferredKind = "skip";
+        }
+        const kinds = preferredKind === "play_rarity_up"
+            ? [preferredKind, options.skipNoRarityUpMovie ? "skip" : "play_no_rarity_up"]
+            : preferredKind === "play_no_rarity_up"
+                ? [preferredKind, "skip"]
+                : [preferredKind, "play_no_rarity_up"];
         const usedSeeds = (_a = options.usedSeeds) !== null && _a !== void 0 ? _a : new Set();
         const isRejected = (_b = options.isRejected) !== null && _b !== void 0 ? _b : (() => false);
         for (const kind of kinds) {
