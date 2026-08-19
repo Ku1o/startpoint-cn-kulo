@@ -1,7 +1,7 @@
 import * as net from "net"
 import { sessionManager, SessionClient } from "../state/SessionManager"
 import { getRoom } from "../room/manager"
-import { NpcMateProvider } from "../npc/controller"
+import { NpcMateProvider, selectStableNpcSlots } from "../npc/controller"
 import { stopRandomRecruitment } from "../recruitment"
 import { gameVerboseLog } from "../../lib/game-logging"
 import {
@@ -483,16 +483,18 @@ async function handleEnterComs(client: SessionClient, coms: { name: string }[]):
     }
 
     const npcMates: any[] = []
+    const recruitedMates = selectStableNpcSlots(recruitResult.recruitedMates, needNPCs)
+    const firstFallbackComId = 3 - needNPCs
     for (let i = 0; i < needNPCs; i++) {
-        const recruited = recruitResult.recruitedMates[i] ?? null
-        const comId = recruited?.com_id ?? (i + 1)
-        const viewerId = recruited?.viewer_id ?? (900000000 + i + 1)
+        const recruited = recruitedMates[i] ?? null
+        const comId = recruited?.com_id ?? (firstFallbackComId + i)
+        const viewerId = recruited?.viewer_id ?? (900000000 + comId)
         const party = npcParties[i] ?? npcParties[0] ?? hostMate.party
 
         npcMates.push({
             viewerId: viewerId,
             comId: comId,
-            name: coms[i]?.name ?? `NPC${comId}`,
+            name: coms[comId - 1]?.name ?? coms[i]?.name ?? `NPC${comId}`,
             rank: hostMate.rank,
             degreeId: hostMate.degreeId,
             playerRoleKind: 99,

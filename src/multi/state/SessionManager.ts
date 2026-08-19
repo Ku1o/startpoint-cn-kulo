@@ -8,7 +8,7 @@ import { ClientStateMachine } from "./ClientStateMachine"
 import { gameVerboseLog } from "../../lib/game-logging"
 import { clearReliableSendState, sendFrameReliably } from "../tcp/reliable-send"
 import type { ReliableSendContext, ReliableSendResult } from "../tcp/reliable-send"
-import { clearChainDiagnosticRoom } from "../tcp/chain-diagnostic"
+import { clearChainDiagnosticRoom, recordBattleConnection } from "../tcp/chain-diagnostic"
 import { embeddedMultiCoordinator } from "../coordinator/embedded"
 
 export interface SessionClient {
@@ -774,6 +774,14 @@ export class SessionManager {
             const phase = isCurrentBattleConnection
                 ? this.battleConnectionPhase.get(client.connectionId)
                 : undefined
+            if (isCurrentBattleConnection) {
+                recordBattleConnection(
+                    client,
+                    "disconnected",
+                    this.snapshotBattleRelayRecipients(client, true),
+                    phase,
+                )
+            }
             if (isCurrentBattleConnection) this.clearBattleHeartbeatLease(client.connectionId)
             const bSet = this.battleClients.get(client.roomNumber)
             // Scene loading sockets can be replaced or reconnect briefly.  A
@@ -915,6 +923,12 @@ export class SessionManager {
                 && existing.viewerId > 0
                 && existing.viewerId === client.viewerId
             if (!sameSocketIdentity && !sameKnownViewer) continue
+            recordBattleConnection(
+                existing,
+                "replaced",
+                this.snapshotBattleRelayRecipients(existing, true),
+                this.battleConnectionPhase.get(existingConnectionId),
+            )
             this.clearBattleHeartbeatLease(existingConnectionId)
             set.delete(existingConnectionId)
             this.sceneReadyClients.get(client.roomNumber)?.delete(existingConnectionId)
@@ -946,17 +960,25 @@ export class SessionManager {
         this.indexClientSocket(client)
         this.armBattleLoadingLease(connectionId)
         this.logBattleBarrierState(client.roomNumber, "connected")
+        recordBattleConnection(client, "connected", this.snapshotBattleRelayRecipients(client, true), "loading")
     }
 
     removeBattleClient(connectionId: string): void {
-        this.clearBattleHeartbeatLease(connectionId)
         const client = this.cidToBattleClient.get(connectionId)
         if (client) {
+            recordBattleConnection(
+                client,
+                "disconnected",
+                this.snapshotBattleRelayRecipients(client, true),
+                this.battleConnectionPhase.get(connectionId),
+            )
+            this.clearBattleHeartbeatLease(connectionId)
             this.unindexClientSocket(client)
             this.battleClients.get(client.roomNumber)?.delete(connectionId)
             this.sceneReadyClients.get(client.roomNumber)?.delete(connectionId)
             this.battleLevelNextClients.get(client.roomNumber)?.delete(connectionId)
         }
+        if (!client) this.clearBattleHeartbeatLease(connectionId)
         this.cidToBattleClient.delete(connectionId)
         if (client && this.releaseSceneReadyBarrierIfSatisfied(client.roomNumber, "removed")) {
             this.broadcastBattleSceneStart(client.roomNumber)
