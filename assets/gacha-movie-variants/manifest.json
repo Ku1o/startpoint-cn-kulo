@@ -1,0 +1,98 @@
+{
+  "schemaVersion": 1,
+  "seedRange": {
+    "start": 10000000,
+    "end": 10019999
+  },
+  "predictorSha256": "aad097a7e77f988a311cad9cab1900884d144446aa660dd03abff5219b68ac38",
+  "movies": {
+    "normal": {
+      "file": "normal.json",
+      "sha256": "28b20a6dde19c5bcb35eb6543fa9a2831a7d6a6055d79ce1712ed65db07f4f2b",
+      "excludedKnownMismatch": 0,
+      "counts": {
+        "3": {
+          "skip": 13528,
+          "play_no_rarity_up": 363,
+          "play_rarity_up": 0
+        },
+        "4": {
+          "skip": 4530,
+          "play_no_rarity_up": 135,
+          "play_rarity_up": 486
+        },
+        "5": {
+          "skip": 0,
+          "play_no_rarity_up": 0,
+          "play_rarity_up": 958
+        }
+      }
+    },
+    "normal_guarantee": {
+      "file": "normal_guarantee.json",
+      "sha256": "e630d94509c4720947e8109460055d031c27807d886200acaae02ac0dd60a97d",
+      "excludedKnownMismatch": 0,
+      "counts": {
+        "3": {
+          "skip": 0,
+          "play_no_rarity_up": 0,
+          "play_rarity_up": 0
+        },
+        "4": {
+          "skip": 18646,
+          "play_no_rarity_up": 410,
+          "play_rarity_up": 0
+        },
+        "5": {
+          "skip": 0,
+          "play_no_rarity_up": 0,
+          "play_rarity_up": 944
+        }
+      }
+    },
+    "fes": {
+      "file": "fes.json",
+      "sha256": "075e8958dd3d96427a36340f57302d810cecfc20db03e9afc5b9a51228e3e232",
+      "excludedKnownMismatch": 0,
+      "counts": {
+        "3": {
+          "skip": 13163,
+          "play_no_rarity_up": 177,
+          "play_rarity_up": 0
+        },
+        "4": {
+          "skip": 4843,
+          "play_no_rarity_up": 83,
+          "play_rarity_up": 257
+        },
+        "5": {
+          "skip": 0,
+          "play_no_rarity_up": 0,
+          "play_rarity_up": 1477
+        }
+      }
+    },
+    "fes_guarantee": {
+      "file": "fes_guarantee.json",
+      "sha256": "60e1e976155c9fdbe75268b2c8b5db4a3b18e64d0f571b5994ea430beba5289a",
+      "excludedKnownMismatch": 1,
+      "counts": {
+        "3": {
+          "skip": 0,
+          "play_no_rarity_up": 0,
+          "play_rarity_up": 0
+        },
+        "4": {
+          "skip": 18005,
+          "play_no_rarity_up": 512,
+          "play_rarity_up": 0
+        },
+        "5": {
+          "skip": 0,
+          "play_no_rarity_up": 0,
+          "play_rarity_up": 1482
+        }
+      }
+    }
+  }
+}

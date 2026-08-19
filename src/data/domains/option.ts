@@ -64,6 +64,24 @@ export function getPlayerOptionsSync(
 }
 
 /**
+ * Gets one player option without materializing the full option record.
+ */
+export function getPlayerOptionSync(
+    playerId: number,
+    key: string,
+    defaultValue: boolean = false
+): boolean {
+    const db = getDb();
+    const rawOption = db.prepare(`
+    SELECT key, value
+    FROM players_options
+    WHERE player_id = ? AND key = ?
+    `).get(playerId, key) as RawPlayerOption | undefined
+
+    return rawOption === undefined ? defaultValue : deserializeBoolean(rawOption.value)
+}
+
+/**
  * Updates the value of a player option.
  * 
  * @param playerId The ID of the player to update the option of.
@@ -79,7 +97,7 @@ export function updatePlayerOptionSync(
     db.prepare(`
     UPDATE players_options
     SET value = ?
-    WHERE key = ? AND player_id = ?    
+    WHERE key = ? AND player_id = ?
     `).run(serializeBoolean(value), key, playerId)
 }
 
