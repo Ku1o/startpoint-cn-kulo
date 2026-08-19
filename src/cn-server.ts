@@ -65,6 +65,8 @@ import playerHistoryApiPlugin from "./routes/api/playerHistory";
 import comicApiPlugin from "./routes/api/comic";
 import questUnlockApiPlugin from "./routes/api/questUnlock";
 import itemApiPlugin from "./routes/api/item";
+import loungeApiPlugin from "./routes/api/lounge";
+import multiSpecialExchangeApiPlugin from "./routes/api/multiSpecialExchange";
 import { startSessionServer } from "./multi";
 import {
     startQuestNpcPartyPoolWorker,
@@ -546,6 +548,8 @@ fastify.register(playerHistoryApiPlugin, { prefix: `${apiPrefix}/player_history`
 fastify.register(comicApiPlugin, { prefix: `${apiPrefix}/comic` });
 fastify.register(questUnlockApiPlugin, { prefix: `${apiPrefix}/quest` });
 fastify.register(itemApiPlugin, { prefix: `${apiPrefix}/item` });
+fastify.register(loungeApiPlugin, { prefix: `${apiPrefix}/lounge` });
+fastify.register(multiSpecialExchangeApiPlugin, { prefix: `${apiPrefix}/multi_special_exchange` });
 fastify.register(howToGetApiPlugin, { prefix: `${apiPrefix}/how_to_get` });
 
 // Web management panel

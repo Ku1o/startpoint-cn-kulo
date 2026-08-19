@@ -352,11 +352,13 @@ export interface PlayerStartDashExchangeCampaign {
 export interface RawPlayerMultiSpecialExchangeCampaign {
     campaign_id: number
     status: number
+    ticket_item_id: number | null
 }
 
 export interface PlayerMultiSpecialExchangeCampaign {
     campaignId: number
     status: number
+    ticketItemId?: number | null
 }
 
 // rush event
@@ -693,6 +695,7 @@ export interface UserStartDashCampaignList {
 export interface UserMultiSpecialExchangeCampaignList {
     campaign_id: number
     status: number
+    ticket_item_id?: number
 }
 
 export type UserRushEventPlayedPartyList = Record<string, Record<RushEventBattleType, Record<string, UserRushEventPlayedParty>>>

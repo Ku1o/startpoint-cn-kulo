@@ -922,10 +922,12 @@ export default function init(
     database.prepare(`CREATE TABLE IF NOT EXISTS players_multi_special_exchange_campaigns (
         campaign_id INTEGER NOT NULL,
         status INTEGER NOT NULL,
+        ticket_item_id INTEGER,
         player_id INTEGER NOT NULL,
         PRIMARY KEY (campaign_id, player_id),
         FOREIGN KEY (player_id) REFERENCES players (id) ON DELETE CASCADE
     )`).run();
+    try { database.prepare(`ALTER TABLE players_multi_special_exchange_campaigns ADD COLUMN ticket_item_id INTEGER`).run(); } catch { /* column already exists */ }
 
     database.prepare(`CREATE TABLE IF NOT EXISTS players_rush_events (
         player_id INTEGER NOT NULL,
