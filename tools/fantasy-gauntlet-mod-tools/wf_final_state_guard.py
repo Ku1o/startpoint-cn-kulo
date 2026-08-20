@@ -27,7 +27,8 @@ APPROVAL_PATH = WORK / "final_state_approval.json"
 REPORT_PATH = WORK / "final_state_report.json"
 ARCHIVE_RE = re.compile(r"pinball-(\d+\.\d+\.\d+)-(\d+\.\d+\.\d+)-(\d+)-")
 PAYLOAD_RE = re.compile(
-    r"^production/(?:upload|medium_upload|android_upload)/[0-9a-f]{2}/[0-9a-f]{38}$"
+    r"^production/(?:upload|medium_upload|android_upload|ios_upload)/"
+    r"[0-9a-f]{2}/[0-9a-f]{38}$"
 )
 
 

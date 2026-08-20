@@ -27,11 +27,14 @@ import sys
 import tempfile
 import time
 import zipfile
+import zlib
 from dataclasses import dataclass
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import wf_mod_tool as core  # noqa: E402
+import wf_assets  # noqa: E402
+import wf_atf  # noqa: E402
 import wf_final_state_guard as final_state_guard  # noqa: E402
 import wf_publish_guard as publish_guard  # noqa: E402
 import wf_quest_lib as quest_tables  # noqa: E402
@@ -169,7 +172,7 @@ VER_RE = re.compile(r"pinball-(\d+\.\d+\.\d+)-(\d+\.\d+\.\d+)-\d+-")
 
 
 def current_max_version(default: str = "1.4.54") -> str:
-    # 三个 diff 目录都要扫:medium:/android: 分包发布也会推进版本号,
+    # 三个 legacy diff 目录都要扫:medium:/android: 分包发布也会推进版本号,
     # 只看 common 会把已存在的目标版本再发一遍(客户端已在该版本则不再拉取)。
     best = default
     for sub in ("archive-common-diff", "archive-medium-diff", "archive-android-diff"):
@@ -192,28 +195,22 @@ def current_max_version(default: str = "1.4.54") -> str:
 
 
 def _manifest_files(prepared: list[PreparedFile]) -> list[str]:
-    roots = {
-        "production/upload/": "",
-        "production/medium_upload/": "medium:",
-        "production/android_upload/": "android:",
-    }
+    roots = (
+        "production/upload/",
+        "production/medium_upload/",
+        "production/android_upload/",
+        "production/ios_upload/",
+    )
     files: list[str] = []
     for entry in prepared:
-        match = next(
-            (
-                (archive_root, label)
-                for archive_root, label in roots.items()
-                if entry.archive_name.startswith(archive_root)
-            ),
-            None,
-        )
-        if match is None:
+        if not entry.archive_name.startswith(roots):
             raise ValueError(
                 "asset-patch contains an unsupported archive root: "
                 f"got {entry.archive_name}"
             )
-        archive_root, label = match
-        files.append(label + entry.archive_name[len(archive_root):])
+        # manifest 沿用服务端既有格式，记录 ZIP 内完整成员路径。medium:/android:/ios:
+        # 仅是本地 pending 定位语法，不能泄漏到部署包的 manifest。
+        files.append(entry.archive_name)
     return sorted(set(files))
 
 
@@ -325,6 +322,167 @@ class PreparedFile:
     archive_name: str
     payload: bytes
     prefix: str
+
+
+_CUTIN_ATF_RE = re.compile(
+    r"^character/([^/]+)/ui/skill_cutin_([01])\.atf\.deflate$"
+)
+
+
+def _known_cutin_logicals() -> list[str]:
+    """收集可反查的 skill-cutin 逻辑路径。
+
+    官方路径清单覆盖已有角色；服务端 character.json 再覆盖本地新增角色。
+    发布器只根据逻辑路径正向计算哈希，不尝试逆向 SHA1。
+    """
+    logicals: set[str] = set()
+    pathlist = Path(__file__).resolve().parent / "WF_PATHLIST_recovered.txt"
+    try:
+        for line in pathlist.read_text(encoding="utf-8", errors="replace").splitlines():
+            logical = line.strip()
+            if logical.endswith(".png") and "/ui/skill_cutin_" in logical:
+                logicals.add(logical[:-4] + ".atf.deflate")
+            elif _CUTIN_ATF_RE.fullmatch(logical):
+                logicals.add(logical)
+    except OSError:
+        pass
+
+    codes: set[str] = set()
+    character_json = SERVER_ROOT / "assets" / "cdndata" / "character.json"
+    try:
+        document = json.loads(character_json.read_text(encoding="utf-8-sig"))
+        for groups in document.values():
+            if not isinstance(groups, list):
+                continue
+            for row in groups:
+                if (
+                    isinstance(row, list) and row
+                    and isinstance(row[0], str) and row[0]
+                ):
+                    codes.add(row[0])
+    except (OSError, ValueError, AttributeError):
+        pass
+    for code in codes:
+        for level in (0, 1):
+            logicals.add(
+                f"character/{code}/ui/skill_cutin_{level}.atf.deflate"
+            )
+    return sorted(logicals)
+
+
+def _cutin_logical_index() -> dict[str, str]:
+    return {
+        _relative_for_logical(logical): logical
+        for logical in _known_cutin_logicals()
+    }
+
+
+def _cutin_source_png(store: Path, atf_logical: str) -> bytes:
+    png_logical = atf_logical.removesuffix(".atf.deflate") + ".png"
+    for root_name in ("medium", "upload"):
+        source = wf_assets.path_in_root(store, root_name, png_logical)
+        if source.is_file():
+            png = wf_assets.png_decode(source.read_bytes())
+            if png[:8] != wf_assets.PNG_REAL:
+                raise ValueError(f"skill-cutin 源文件不是有效 PNG: {source}")
+            return png
+    raise ValueError(
+        f"找不到 {atf_logical} 对应的源 PNG {png_logical}；"
+        "拒绝复制 Android ATF 作为 iOS 兜底"
+    )
+
+
+def _plain_platform_atf(entry: PreparedFile) -> tuple[bytes, dict] | None:
+    try:
+        plain = wf_atf.inflate(entry.payload)
+        parsed = wf_atf.parse_atf(plain)
+    except (ValueError, zlib.error):
+        return None
+    return plain, parsed
+
+
+def _complete_ios_cutin_files(
+    prepared: list[PreparedFile],
+    store: Path,
+) -> tuple[list[PreparedFile], list[str]]:
+    """Android cut-in 进入待发集合时，从 PNG 自动派生并配入 iOS ETC2。
+
+    生成只发生在内存中的待发文件集，不复制 Android 字节；最终 active ZIP
+    同时携带 ``android_upload`` 与 ``ios_upload`` 的同哈希成员。
+    """
+    index = _cutin_logical_index()
+    by_archive_name = {entry.archive_name: entry for entry in prepared}
+    reports: list[str] = []
+    for entry in prepared:
+        if entry.prefix not in ("android:", "ios:"):
+            continue
+        decoded = _plain_platform_atf(entry)
+        if decoded is None:
+            continue
+        plain, parsed = decoded
+        expected_slot = 2 if entry.prefix == "android:" else 3
+        if parsed["slot"] != expected_slot:
+            raise ValueError(
+                f"{entry.archive_name}: 平台槽错误，"
+                f"{entry.prefix[:-1]} 应为 slot {expected_slot}，实际 {parsed['slot']}"
+            )
+        relative = entry.archive_name.rsplit("/", 2)[-2] + "/" + entry.archive_name.rsplit("/", 1)[-1]
+        logical = index.get(relative)
+        if logical is None:
+            if parsed["layout"] in ("etc1", "etc2-rgba"):
+                raise ValueError(
+                    f"无法反查平台 ATF 的逻辑路径: {entry.archive_name}；"
+                    "未找到源 PNG，已拒绝发布"
+                )
+            continue
+    for relative, logical in sorted(index.items()):
+        android_name = f"production/android_upload/{relative}"
+        ios_name = f"production/ios_upload/{relative}"
+        android_entry = by_archive_name.get(android_name)
+        ios_entry = by_archive_name.get(ios_name)
+        if android_entry is None:
+            if ios_entry is not None:
+                raise ValueError(
+                    f"iOS cut-in 缺少同包 Android 配对: {logical}"
+                )
+            continue
+        decoded = _plain_platform_atf(android_entry)
+        if decoded is None:
+            continue
+        android_plain, android_parsed = decoded
+        if android_parsed["slot"] != 2:
+            raise ValueError(f"Android cut-in 不是 ETC1 slot 2: {logical}")
+        png = _cutin_source_png(store, logical)
+        ios_plain = wf_atf.build_cutin_atf_ios(
+            png, android_plain,
+        )
+        wf_atf.validate_cutin_platform_pair(android_plain, ios_plain, png)
+        generated = PreparedFile(
+            archive_name=ios_name,
+            payload=wf_atf.deflate(ios_plain),
+            prefix="ios:",
+        )
+        by_archive_name[ios_name] = generated
+        reports.append(
+            f"{logical}: Android ETC1 + iOS ETC2(slot 3)"
+        )
+
+    completed = list(by_archive_name.values())
+    for relative, logical in sorted(index.items()):
+        android = by_archive_name.get(f"production/android_upload/{relative}")
+        ios = by_archive_name.get(f"production/ios_upload/{relative}")
+        if android is None and ios is None:
+            continue
+        if android is None or ios is None:
+            raise ValueError(f"Android/iOS cut-in 未成对进入 active ZIP: {logical}")
+        android_decoded = _plain_platform_atf(android)
+        ios_decoded = _plain_platform_atf(ios)
+        if android_decoded is None or ios_decoded is None:
+            raise ValueError(f"Android/iOS cut-in 存储态无法解压: {logical}")
+        wf_atf.validate_cutin_platform_pair(
+            android_decoded[0], ios_decoded[0],
+        )
+    return completed, reports
 
 
 def _explicit_logicals(tables: str) -> list[str]:
@@ -487,12 +645,16 @@ def _prepare_files(
         "": (store, "production/upload"),
         "medium:": (store.parent / "medium_upload", "production/medium_upload"),
         "android:": (store.parent / "android_upload", "production/android_upload"),
+        "ios:": (store.parent / "ios_upload", "production/ios_upload"),
     }
     prepared: list[PreparedFile] = []
     skipped: list[str] = []
     for rel in rels:
         prefix = next(
-            (value for value in ("medium:", "android:") if rel.startswith(value)),
+            (
+                value for value in ("medium:", "android:", "ios:")
+                if rel.startswith(value)
+            ),
             "",
         )
         relative = rel[len(prefix):]
@@ -546,7 +708,7 @@ def _build_archives(
     published: list[Path] = []
     try:
         for prefix, outdir in outdirs.items():
-            # active 是统一补丁容器；common/medium/android 三层写入同一个 ZIP，
+            # active 是统一补丁容器；common/medium/android/ios 四层写入同一个 ZIP，
             # 避免同版本同文件名在单目录内互相覆盖。
             files = list(prepared)
             if not files and not layer_placeholders:
@@ -567,6 +729,22 @@ def _build_archives(
                 # 仅显式启用时为 dev 三层契约补空层；Mode15 默认仍沿用旧发布行为。
                 with zipfile.ZipFile(temporary, "w", zipfile.ZIP_STORED) as archive:
                     archive.writestr(".empty", b"\n")
+            with zipfile.ZipFile(temporary) as readback:
+                infos = readback.infolist()
+                if any(info.is_dir() or info.filename.endswith("/") for info in infos):
+                    raise ValueError("active ZIP 不得包含目录项")
+                names = [info.filename for info in infos]
+                if len(names) != len(set(names)):
+                    raise ValueError("active ZIP 包含重复成员")
+                if files:
+                    expected = {entry.archive_name: entry.payload for entry in files}
+                    if set(names) != set(expected):
+                        raise ValueError("active ZIP 回读成员与待发集合不一致")
+                    for name, payload in expected.items():
+                        if readback.read(name) != payload:
+                            raise ValueError(f"active ZIP 回读内容不一致: {name}")
+                if readback.testzip() is not None:
+                    raise ValueError("active ZIP CRC 校验失败")
         for _temporary, final in staged:
             if not final.exists():
                 continue
@@ -721,6 +899,7 @@ def main(argv: list[str] | None = None) -> int:
             strict_explicit=logicals is not None,
             snapshot_records=snapshot_records,
         )
+        prepared, cutin_reports = _complete_ios_cutin_files(prepared, store)
         if not prepared:
             raise ValueError("没有可发布的文件")
 
@@ -773,6 +952,8 @@ def main(argv: list[str] | None = None) -> int:
             print(f"  [跳过] {relative} (本地不存在)")
         for entry in prepared:
             print(f"  {entry.archive_name}  ({len(entry.payload)} B)")
+        for report in cutin_reports:
+            print(f"  [平台配对] {report}")
         if args.list:
             return 0
 

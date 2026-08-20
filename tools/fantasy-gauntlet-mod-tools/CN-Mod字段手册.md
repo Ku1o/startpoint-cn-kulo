@@ -24,7 +24,8 @@
 ```
 
 例:`master/ability/ability.orderedmap` → `1e/664c1cc8d80f4f9a69aae2c49ae8c01d1c4001`。
-前缀目录(`upload` / `medium_upload` / `android_upload`)不参与哈希,只决定放哪个 store。
+前缀目录(`upload` / `medium_upload` / `android_upload` / `ios_upload`)不参与哈希,
+只决定放哪个 store。Android/iOS 的同一逻辑资源使用相同哈希路径，但平台纹理内容不同。
 
 ### 2.2 orderedmap 二进制布局(数据表通用格式)
 

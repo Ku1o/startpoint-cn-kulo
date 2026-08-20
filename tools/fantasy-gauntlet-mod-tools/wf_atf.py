@@ -1,21 +1,23 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""wf_atf — skill_cutin 的 ATF(ETC1)纹理重编码器(纯标准库)。
+"""wf_atf — skill_cutin 的 ATF(ETC1/ETC2)纹理重编码器(纯标准库)。
 
 背景(FileReader.as 逆向):`/ui/skill_cutin_` 是全客户端唯一的「平台相关」资产,
-真机(assetReadKind≠0/3)渲染只读 `skill_cutin_N.atf.deflate`(android 根),
+真机(assetReadKind≠0/3)渲染只读 `skill_cutin_N.atf.deflate`(Android/iOS 平台根),
 不读同名 PNG(medium 根,仅编辑器/特定模式用)。因此替换 cut-in 必须连 ATF
 一起重生成,否则游戏内无变化——立绘等其他资产没有 ATF 配对,换 PNG 即生效。
 
 原始 ATF 实测(alice, 1024x512):
   头 16B: 'ATF' 00 00 01 FF 03 | u32(总长-12) | format(0x05) log2w log2h mip数
   format 0x05 = RAW Compressed With Alpha,全 mip 链(11 级);
-  每级 4 个平台槽 [DXT5, PVRTC, ETC1, ETC2](u32 长度前缀),仅 ETC1 槽有数据,
+  每级 4 个平台槽 [DXT5, PVRTC, ETC1, ETC2](u32 长度前缀),Android 文件仅 ETC1 槽有数据,
   内容 = [颜色纹理][alpha 纹理] 两段 ETC1 直拼(8B/4x4 块,alpha 以灰度编码)。
 
-编码器:individual 模式(RGB444 基色)+ 8 张修正表全搜(亮度残差)+ flip 启发式
-+ 块级缓存(实测官方图 50-75% 块重复)。质量弱于官方 png2atf(无差分模式/穷举),
-但块内误差 ≤ 修正表步长,肉眼接近;alpha 掩码几乎无损。
+Android 编码器:individual 模式(RGB444 基色)+ 8 张修正表全搜(亮度残差)+
+flip 启发式。iOS 编码器:ETC2 RGBA 的 EAC alpha 块 + ETC1 兼容颜色块,
+按每个 4x4 块交错排列。两者都使用块级缓存(实测官方图 50-75% 块重复)。
+质量弱于官方 png2atf(无差分模式/穷举),但块内误差处于修正表步长量级;
+alpha 掩码几乎无损。
 
 用法:
   python wf_atf.py --selftest
@@ -36,6 +38,26 @@ ATF_HEAD8 = b"ATF\x00\x00\x01\xff\x03"  # 新版头 + ATF v3(与官方 cutin 文
 # ETC1 修正表(Khronos OES_compressed_ETC1_RGB8):每表 (小步长 a, 大步长 b),
 # 像素 2bit 索引 (msb,lsb): 00=+a 01=+b 10=-a 11=-b
 _MODS = ((2, 8), (5, 17), (9, 29), (13, 42), (18, 60), (24, 80), (33, 106), (47, 183))
+# ETC2 RGBA alpha 的 16 张修正表。与 Khronos/ANGLE 的 unsigned 8-bit
+# alpha 解码表一致；alpha 值 = clamp(base + modifier * multiplier, 0, 255)。
+_EAC_ALPHA_MODS = (
+    (-3, -6, -9, -15, 2, 5, 8, 14),
+    (-3, -7, -10, -13, 2, 6, 9, 12),
+    (-2, -5, -8, -13, 1, 4, 7, 12),
+    (-2, -4, -6, -13, 1, 3, 5, 12),
+    (-3, -6, -8, -12, 2, 5, 7, 11),
+    (-3, -7, -9, -11, 2, 6, 8, 10),
+    (-4, -7, -8, -11, 3, 6, 7, 10),
+    (-3, -5, -8, -11, 2, 4, 7, 10),
+    (-2, -6, -8, -10, 1, 5, 7, 9),
+    (-2, -5, -8, -10, 1, 4, 7, 9),
+    (-2, -4, -8, -10, 1, 3, 7, 9),
+    (-2, -5, -7, -10, 1, 4, 6, 9),
+    (-3, -4, -7, -10, 2, 3, 6, 9),
+    (-1, -2, -3, -10, 0, 1, 2, 9),
+    (-4, -6, -8, -9, 3, 5, 7, 8),
+    (-3, -5, -7, -9, 2, 4, 6, 8),
+)
 _SUB_FLIP0 = (tuple(range(8)), tuple(range(8, 16)))              # 两个 2x4 竖条(i = x*4+y)
 _SUB_FLIP1 = (tuple(i for i in range(16) if i % 4 < 2),          # 两个 4x2 横条
               tuple(i for i in range(16) if i % 4 >= 2))
@@ -287,6 +309,82 @@ def encode_etc1(rgba: bytearray, w: int, h: int, channel: str = "rgb") -> bytes:
     return bytes(out)
 
 
+def _encode_eac_alpha_block(values: tuple[int, ...]) -> bytes:
+    """编码一个 ETC2 RGBA alpha 4x4 块。
+
+    对每个(table, multiplier)用最小二乘意义下的基值估计，再在基值邻域
+    选择最佳 selector。这个编码器只负责生成标准、可被 ETC2 解码器读取的
+    alpha 块；质量目标是角色 cut-in 的透明边缘和大面积透明区稳定可用。
+    """
+    best_err = 1 << 60
+    best_base = 0
+    best_table = 0
+    best_multiplier = 0
+    best_indices: tuple[int, ...] = ()
+    for table_index, modifiers in enumerate(_EAC_ALPHA_MODS):
+        for multiplier in range(16):
+            # selector 的最佳分配取决于 base，先用块均值作为稳定的基值估计，
+            # 再在其邻域试探；alpha 修正表的 selector 集合整体接近对称。
+            estimate = (sum(values) + 8) // 16
+            candidates = {
+                max(0, min(255, estimate - 1)),
+                max(0, min(255, estimate)),
+                max(0, min(255, estimate + 1)),
+            }
+            for base in candidates:
+                error = 0
+                indices = []
+                for value in values:
+                    target = value - base
+                    index = min(
+                        range(8),
+                        key=lambda candidate: abs(target - modifiers[candidate] * multiplier),
+                    )
+                    decoded = max(0, min(255, base + modifiers[index] * multiplier))
+                    error += (value - decoded) ** 2
+                    indices.append(index)
+                if error < best_err:
+                    best_err = error
+                    best_base = base
+                    best_table = table_index
+                    best_multiplier = multiplier
+                    best_indices = tuple(indices)
+                    if error == 0:
+                        break
+            if best_err == 0:
+                break
+        if best_err == 0:
+            break
+
+    packed = 0
+    for index, selector in enumerate(best_indices):
+        packed |= selector << (45 - index * 3)
+    return bytes((best_base, (best_table << 4) | best_multiplier)) + packed.to_bytes(6, "big")
+
+
+def encode_eac_alpha(rgba: bytearray, w: int, h: int) -> bytes:
+    """整张 RGBA 纹理的 ETC2 8-bit alpha 块流。"""
+    nbx = max((w + 3) // 4, 1)
+    nby = max((h + 3) // 4, 1)
+    out = bytearray()
+    cache: dict[bytes, bytes] = {}
+    for by in range(nby):
+        for bx in range(nbx):
+            values = []
+            for x in range(4):
+                cx = min(bx * 4 + x, w - 1)
+                for y in range(4):
+                    cy = min(by * 4 + y, h - 1)
+                    values.append(rgba[(cy * w + cx) * 4 + 3])
+            key = bytes(values)
+            block = cache.get(key)
+            if block is None:
+                block = _encode_eac_alpha_block(tuple(values))
+                cache[key] = block
+            out += block
+    return bytes(out)
+
+
 # ---------------------------------------------------------------- ETC1 解码(验证用)
 
 def decode_etc1(data: bytes, w: int, h: int) -> bytearray:
@@ -332,10 +430,62 @@ def decode_etc1(data: bytes, w: int, h: int) -> bytearray:
     return out
 
 
+def decode_eac_alpha(data: bytes, w: int, h: int) -> bytearray:
+    """ETC2 alpha 块流 → 8-bit alpha 平面(验证用)。"""
+    nbx = max((w + 3) // 4, 1)
+    nby = max((h + 3) // 4, 1)
+    expected = nbx * nby * 8
+    if len(data) != expected:
+        raise ValueError(f"EAC alpha 长度 {len(data)} != 预期 {expected}")
+    out = bytearray(w * h)
+    for block_index in range(nbx * nby):
+        block = data[block_index * 8:(block_index + 1) * 8]
+        base = block[0]
+        table_index = block[1] >> 4
+        multiplier = block[1] & 0x0F
+        packed = int.from_bytes(block[2:8], "big")
+        bx = block_index % nbx
+        by = block_index // nbx
+        for index in range(16):
+            selector = (packed >> (45 - index * 3)) & 7
+            value = max(0, min(255, base + _EAC_ALPHA_MODS[table_index][selector] * multiplier))
+            x = bx * 4 + index // 4
+            y = by * 4 + index % 4
+            if x < w and y < h:
+                out[y * w + x] = value
+    return out
+
+
+def decode_etc2_rgba(data: bytes, w: int, h: int) -> bytearray:
+    """解码本工具生成的 ETC2 RGBA(每块 alpha+color 交错)用于回归测试。"""
+    nbx = max((w + 3) // 4, 1)
+    nby = max((h + 3) // 4, 1)
+    expected = nbx * nby * 16
+    if len(data) != expected:
+        raise ValueError(f"ETC2 RGBA 长度 {len(data)} != 预期 {expected}")
+    out = bytearray(w * h * 4)
+    for block_index in range(nbx * nby):
+        alpha = decode_eac_alpha(data[block_index * 16:block_index * 16 + 8], 4, 4)
+        color = decode_etc1(data[block_index * 16 + 8:block_index * 16 + 16], 4, 4)
+        bx = block_index % nbx
+        by = block_index // nbx
+        for index in range(16):
+            x = bx * 4 + index // 4
+            y = by * 4 + index % 4
+            if x < w and y < h:
+                dst = (y * w + x) * 4
+                block_x = index // 4
+                block_y = index % 4
+                src = (block_y * 4 + block_x) * 3
+                out[dst:dst + 3] = color[src:src + 3]
+                out[dst + 3] = alpha[block_y * 4 + block_x]
+    return out
+
+
 # ---------------------------------------------------------------- ATF 容器
 
 def parse_atf(data: bytes) -> dict:
-    """解析 cutin 型 ATF:{w, h, mips, pairs: [每级 ETC1 颜色+alpha 直拼字节]}。"""
+    """解析 cutin 型 ATF，支持 Android ETC1 槽和 iOS ETC2 槽。"""
     if data[:3] != b"ATF" or len(data) < 16 or data[6] != 0xFF:
         raise ValueError("不是新版头 ATF 文件")
     fmt = data[12]
@@ -344,16 +494,38 @@ def parse_atf(data: bytes) -> dict:
     w, h, mips = 1 << data[13], 1 << data[14], data[15]
     o = 16
     pairs = []
+    slot = None
+    layout = None
     for _ in range(mips):
         row = []
         for _s in range(4):
+            if o + 4 > len(data):
+                raise ValueError("ATF 槽长度字段被截断")
             ln = int.from_bytes(data[o:o + 4], "big")
+            if o + 4 + ln > len(data):
+                raise ValueError("ATF 槽数据被截断")
             row.append(data[o + 4:o + 4 + ln])
             o += 4 + ln
-        if row[0] or row[1] or row[3]:
-            raise ValueError("非 ETC1-only 布局(DXT/PVRTC/ETC2 槽有数据),不认识的变体")
-        pairs.append(row[2])
-    return {"w": w, "h": h, "mips": mips, "pairs": pairs}
+        populated = [index for index, value in enumerate(row) if value]
+        if populated == [2]:
+            current_slot, current_layout = 2, "etc1"
+        elif populated == [3]:
+            current_slot, current_layout = 3, "etc2-rgba"
+        elif not populated:
+            current_slot, current_layout = slot, layout
+        else:
+            raise ValueError("ATF 同时包含多个平台槽，无法识别 cut-in 布局")
+        if slot is None:
+            slot, layout = current_slot, current_layout
+        elif (current_slot, current_layout) != (slot, layout):
+            raise ValueError("ATF 各 mip 的平台槽不一致")
+        pairs.append(row[slot] if slot is not None else b"")
+    if slot is None:
+        raise ValueError("ATF 没有任何平台纹理数据")
+    if o != len(data):
+        raise ValueError(f"ATF 尾部有 {len(data) - o} 字节未解析数据")
+    return {"w": w, "h": h, "mips": mips, "pairs": pairs,
+            "slot": slot, "layout": layout}
 
 
 def build_cutin_atf(png_data: bytes, ref_atf: bytes | None = None,
@@ -385,10 +557,123 @@ def build_cutin_atf(png_data: bytes, ref_atf: bytes | None = None,
             + bytes((0x05, w.bit_length() - 1, h.bit_length() - 1, mips)) + bytes(body))
 
 
+def build_cutin_atf_ios(png_data: bytes, ref_atf: bytes | None = None,
+                        progress=None) -> bytes:
+    """标准 PNG → iOS cut-in ATF(ETC2 RGBA,slot 3)。
+
+    iOS 的 slot 3 每个 4x4 块是 ``EAC alpha(8B) + ETC2 color(8B)``；
+    颜色编码使用 ETC1 兼容子集，保证 ETC2 RGBA 解码器可读。
+    """
+    w, h, rgba = png_decode_rgba(png_data)
+    if w & (w - 1) or h & (h - 1):
+        raise ValueError(f"ATF 要求边长为 2 的幂,PNG 是 {w}x{h}")
+    mips = max(w.bit_length(), h.bit_length())
+    if ref_atf is not None:
+        ref = parse_atf(ref_atf)
+        if (ref["w"], ref["h"]) != (w, h):
+            raise ValueError(f"PNG 尺寸 {w}x{h} 与原 ATF {ref['w']}x{ref['h']} 不一致"
+                             f"(cut-in 必须同尺寸替换)")
+        mips = ref["mips"]
+    body = bytearray()
+    zero4 = (0).to_bytes(4, "big")
+    cw, ch, cur = w, h, rgba
+    for lv in range(mips):
+        if progress:
+            progress(f"ETC2 编码 mip{lv} {cw}x{ch}")
+        color = encode_etc1(cur, cw, ch, "rgb")
+        alpha = encode_eac_alpha(cur, cw, ch)
+        blocks = max((cw + 3) // 4, 1) * max((ch + 3) // 4, 1)
+        payload = b"".join(
+            alpha[index * 8:index * 8 + 8] + color[index * 8:index * 8 + 8]
+            for index in range(blocks)
+        )
+        body += zero4 + zero4 + zero4 + len(payload).to_bytes(4, "big") + payload
+        if lv < mips - 1:
+            cw, ch, cur = half_rgba(cur, cw, ch)
+    return (ATF_HEAD8 + (4 + len(body)).to_bytes(4, "big")
+            + bytes((0x05, w.bit_length() - 1, h.bit_length() - 1, mips)) + bytes(body))
+
+
+def validate_cutin_platform_pair(android_atf: bytes, ios_atf: bytes,
+                                 png_data: bytes | None = None) -> dict:
+    """校验同一逻辑 cut-in 的 Android ETC1 与 iOS ETC2 ATF 成对有效。
+
+    这里显式拒绝两端字节相同，防止把 Android 文件复制到 ``ios_upload``
+    作为兜底。传入源 PNG 时还会校验两端尺寸与 PNG 完全一致。
+    """
+    if android_atf == ios_atf:
+        raise ValueError("Android/iOS ATF 内容相同，疑似直接复制 Android 文件")
+    android = parse_atf(android_atf)
+    ios = parse_atf(ios_atf)
+    if (android["slot"], android["layout"]) != (2, "etc1"):
+        raise ValueError(
+            f"Android ATF 必须使用 ETC1 槽 2，实际为 slot={android['slot']} "
+            f"layout={android['layout']}"
+        )
+    if (ios["slot"], ios["layout"]) != (3, "etc2-rgba"):
+        raise ValueError(
+            f"iOS ATF 必须使用 ETC2 槽 3，实际为 slot={ios['slot']} "
+            f"layout={ios['layout']}"
+        )
+    shape = (android["w"], android["h"], android["mips"])
+    if (ios["w"], ios["h"], ios["mips"]) != shape:
+        raise ValueError(
+            "Android/iOS ATF 尺寸或 mip 数不一致: "
+            f"android={shape}, ios={(ios['w'], ios['h'], ios['mips'])}"
+        )
+    if png_data is not None:
+        png_w, png_h, _rgba = png_decode_rgba(png_data)
+        if (png_w, png_h) != shape[:2]:
+            raise ValueError(
+                f"源 PNG 尺寸 {(png_w, png_h)} 与平台 ATF 尺寸 {shape[:2]} 不一致"
+            )
+    for level, (android_payload, ios_payload) in enumerate(
+            zip(android["pairs"], ios["pairs"])):
+        mip_w = max(shape[0] >> level, 1)
+        mip_h = max(shape[1] >> level, 1)
+        blocks = max((mip_w + 3) // 4, 1) * max((mip_h + 3) // 4, 1)
+        expected = blocks * 16
+        if len(android_payload) != expected:
+            raise ValueError(
+                f"Android ATF mip{level} 长度 {len(android_payload)} != {expected}"
+            )
+        if len(ios_payload) != expected:
+            raise ValueError(
+                f"iOS ATF mip{level} 长度 {len(ios_payload)} != {expected}"
+            )
+    return {
+        "w": shape[0], "h": shape[1], "mips": shape[2],
+        "android_slot": android["slot"], "ios_slot": ios["slot"],
+    }
+
+
+def build_cutin_platform_pair(
+    png_data: bytes,
+    android_ref_atf: bytes | None = None,
+    ios_ref_atf: bytes | None = None,
+    progress=None,
+) -> tuple[bytes, bytes]:
+    """从唯一源 PNG 独立生成 Android ETC1 与 iOS ETC2 ATF。"""
+    android_progress = (
+        (lambda message: progress("Android " + message)) if progress else None
+    )
+    ios_progress = (
+        (lambda message: progress("iOS " + message)) if progress else None
+    )
+    android = build_cutin_atf(png_data, android_ref_atf, android_progress)
+    ios = build_cutin_atf_ios(
+        png_data,
+        ios_ref_atf if ios_ref_atf is not None else android_ref_atf,
+        ios_progress,
+    )
+    validate_cutin_platform_pair(android, ios, png_data)
+    return android, ios
+
+
 # ---------------------------------------------------------------- CLI
 
 def _regen(png_logical: str) -> None:
-    """从 store 现有 PNG 重生成配对 ATF(备份 + 进 pending + 改动日志)。"""
+    """从 store 现有 PNG 重生成 Android/iOS 配对 ATF。"""
     import time
     import shutil
     import wf_mod_tool as core
@@ -397,25 +682,47 @@ def _regen(png_logical: str) -> None:
 
     store = core.default_target_store()
     ploc = wf_assets.locate(store, png_logical)
-    aloc = wf_assets.locate(store, png_logical[:-4] + ".atf.deflate")
-    if not ploc or not aloc:
-        raise SystemExit(f"store 里找不到 {png_logical} 或其 .atf.deflate 配对")
+    if not ploc:
+        raise SystemExit(f"store 里找不到源 PNG: {png_logical}")
+    atf_logical = png_logical[:-4] + ".atf.deflate"
+    android_fp = wf_assets.path_in_root(store, "android", atf_logical)
+    ios_fp = wf_assets.path_in_root(store, "ios", atf_logical)
     png_raw = wf_assets.png_decode(ploc[1].read_bytes())
-    ref = inflate(aloc[1].read_bytes())
-    print(f"源 PNG [{ploc[0]}] {len(png_raw)}B;原 ATF [{aloc[0]}] {len(ref)}B")
-    atf = build_cutin_atf(png_raw, ref, progress=lambda s: print("  " + s))
-    enc = deflate(atf)
-    afp = aloc[1]
-    bak = afp.with_name(afp.name + ".bak-wfmod-asset-" + time.strftime("%Y%m%d-%H%M%S"))
-    if not bak.exists():
-        shutil.copy2(afp, bak)
-    afp.write_bytes(enc)
-    wf_gui.add_pending(afp)
-    summary = (f"{png_logical[:-4]}.atf.deflate: ETC1 重编码 {len(ref)}B→{len(atf)}B "
-               f"[{aloc[0]}](CLI 重生成,战斗实际读取的纹理)")
-    wf_gui.record_change(png_logical[:-4] + ".atf.deflate", summary, bak)
+    android_ref = inflate(android_fp.read_bytes()) if android_fp.is_file() else None
+    ios_ref = inflate(ios_fp.read_bytes()) if ios_fp.is_file() else None
+    print(
+        f"源 PNG [{ploc[0]}] {len(png_raw)}B;"
+        f"Android ref={len(android_ref) if android_ref else 0}B;"
+        f"iOS ref={len(ios_ref) if ios_ref else 0}B"
+    )
+    android_atf, ios_atf = build_cutin_platform_pair(
+        png_raw, android_ref, ios_ref, progress=lambda s: print("  " + s)
+    )
+    stamp = time.strftime("%Y%m%d-%H%M%S")
+    backups = []
+    for platform, target, plain in (
+        ("android", android_fp, android_atf),
+        ("ios", ios_fp, ios_atf),
+    ):
+        target.parent.mkdir(parents=True, exist_ok=True)
+        backup = None
+        if target.is_file():
+            backup = target.with_name(
+                target.name + ".bak-wfmod-asset-" + stamp
+            )
+            if not backup.exists():
+                shutil.copy2(target, backup)
+        target.write_bytes(deflate(plain))
+        wf_gui.add_pending(target)
+        backups.append(backup)
+        print(f"{platform}: slot={parse_atf(plain)['slot']} {len(plain)}B -> {target}")
+    summary = (
+        f"{atf_logical}: 从源 PNG 独立生成 Android ETC1(slot 2) 与 "
+        f"iOS ETC2(slot 3)，{len(android_atf)}B/{len(ios_atf)}B"
+    )
+    wf_gui.record_change(atf_logical, summary, backups[0])
     print(summary)
-    print("已写入 + 备份 + 加入 pending;发布后生效")
+    print("两端已写入 + 备份 + 加入 pending;发布后同包生效")
 
 
 def _selftest() -> None:
@@ -441,6 +748,9 @@ def _selftest() -> None:
     ea = sum(abs(alp[i * 3] - rgba[i * 4 + 3]) for i in range(w * h)) / (w * h)
     print(f"selftest: 颜色平均误差 {ec:.2f},alpha 平均误差 {ea:.2f}(阈值 12)")
     assert ec < 12 and ea < 12, "ETC1 编码质量异常"
+    ios = build_cutin_atf_ios(png, atf)
+    pair = validate_cutin_platform_pair(atf, ios, png)
+    assert pair["ios_slot"] == 3, "iOS ETC2 槽位异常"
     print("selftest OK")
 
 
@@ -449,7 +759,7 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--selftest", action="store_true")
     ap.add_argument("--regen", metavar="PNG_LOGICAL",
-                    help="如 character/alice/ui/skill_cutin_0.png:从 store PNG 重生成 ATF")
+                    help="如 character/alice/ui/skill_cutin_0.png:从 store PNG 重生成 Android/iOS ATF")
     args = ap.parse_args()
     if args.selftest:
         _selftest()
