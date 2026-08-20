@@ -1,8 +1,21 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updatePlayerOptionsSync = exports.updatePlayerOptionSync = exports.getPlayerOptionSync = exports.getPlayerOptionsSync = exports.insertPlayerOptionsSync = exports.insertPlayerOptionSync = void 0;
+exports.updatePlayerProfileSettingsSync = exports.getPlayerProfileSettingsSync = exports.updatePlayerOptionsSync = exports.updatePlayerOptionSync = exports.getPlayerOptionSync = exports.getPlayerOptionsSync = exports.insertPlayerOptionsSync = exports.insertPlayerOptionSync = void 0;
 const db_1 = require("../db");
 const utils_1 = require("../utils");
+const PROFILE_SETTING_KEYS = {
+    showOpenedManaBoardSecondCount: "profile.show_opened_mana_board_second_count",
+    showOwnedCharacterCount: "profile.show_owned_character_count",
+    showOwnedDegreeCount: "profile.show_owned_degree_count",
+};
+const DEFAULT_PROFILE_SETTINGS = {
+    showOpenedManaBoardSecondCount: false,
+    showOwnedCharacterCount: true,
+    showOwnedDegreeCount: true,
+};
+function isClientOptionKey(key) {
+    return !key.startsWith("profile.");
+}
 /**
  * Inserts a value for a player option.
  *
@@ -28,6 +41,8 @@ function insertPlayerOptionsSync(playerId, options) {
     const db = (0, db_1.getDb)();
     db.transaction(() => {
         for (const [key, value] of Object.entries(options)) {
+            if (!isClientOptionKey(key))
+                continue;
             insertPlayerOptionSync(playerId, key, value);
         }
     })();
@@ -42,9 +57,10 @@ exports.insertPlayerOptionsSync = insertPlayerOptionsSync;
 function getPlayerOptionsSync(playerId) {
     const db = (0, db_1.getDb)();
     const rawOptions = db.prepare(`
-    SELECT key, value
-    FROM players_options
-    WHERE player_id = ?
+        SELECT key, value
+        FROM players_options
+        WHERE player_id = ?
+          AND key NOT LIKE 'profile.%'
     `).all(playerId);
     const result = {};
     for (const rawOption of rawOptions) {
@@ -94,6 +110,8 @@ function updatePlayerOptionsSync(playerId, options) {
     const db = (0, db_1.getDb)();
     db.transaction(() => {
         for (const [key, newValue] of Object.entries(options)) {
+            if (!isClientOptionKey(key))
+                continue;
             const existingValue = allOptions[key];
             if (existingValue === undefined) {
                 insertPlayerOptionSync(playerId, key, newValue);
@@ -105,3 +123,33 @@ function updatePlayerOptionsSync(playerId, options) {
     })();
 }
 exports.updatePlayerOptionsSync = updatePlayerOptionsSync;
+function getPlayerProfileSettingsSync(playerId) {
+    var _a, _b, _c;
+    const keys = Object.values(PROFILE_SETTING_KEYS);
+    const rows = (0, db_1.getDb)().prepare(`
+        SELECT key, value
+        FROM players_options
+        WHERE player_id = ? AND key IN (?, ?, ?)
+    `).all(playerId, ...keys);
+    const stored = new Map(rows.map(row => [row.key, (0, utils_1.deserializeBoolean)(row.value)]));
+    return {
+        showOpenedManaBoardSecondCount: (_a = stored.get(PROFILE_SETTING_KEYS.showOpenedManaBoardSecondCount)) !== null && _a !== void 0 ? _a : DEFAULT_PROFILE_SETTINGS.showOpenedManaBoardSecondCount,
+        showOwnedCharacterCount: (_b = stored.get(PROFILE_SETTING_KEYS.showOwnedCharacterCount)) !== null && _b !== void 0 ? _b : DEFAULT_PROFILE_SETTINGS.showOwnedCharacterCount,
+        showOwnedDegreeCount: (_c = stored.get(PROFILE_SETTING_KEYS.showOwnedDegreeCount)) !== null && _c !== void 0 ? _c : DEFAULT_PROFILE_SETTINGS.showOwnedDegreeCount,
+    };
+}
+exports.getPlayerProfileSettingsSync = getPlayerProfileSettingsSync;
+function updatePlayerProfileSettingsSync(playerId, settings) {
+    (0, db_1.getDb)().transaction(() => {
+        const upsert = (0, db_1.getDb)().prepare(`
+            INSERT INTO players_options (key, value, player_id)
+            VALUES (?, ?, ?)
+            ON CONFLICT(key, player_id) DO UPDATE SET value = excluded.value
+        `);
+        for (const [property, value] of Object.entries(settings)) {
+            upsert.run(PROFILE_SETTING_KEYS[property], (0, utils_1.serializeBoolean)(value), playerId);
+        }
+    })();
+    return getPlayerProfileSettingsSync(playerId);
+}
+exports.updatePlayerProfileSettingsSync = updatePlayerProfileSettingsSync;
