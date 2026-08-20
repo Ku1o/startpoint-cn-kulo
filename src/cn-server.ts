@@ -13,6 +13,7 @@ import { markPlayerOnline } from "./lib/online-presence";
 import { installTakeoverUdidGuard } from "./lib/takeover-access";
 
 import versionCheckPlugin from "./routes/cn/versionCheck";
+import iosLeitingPlugin from "./routes/cn/ios-leiting";
 import leitingAuthPlugin from "./routes/cn/leitingAuth";
 import cnToolPlugin from "./routes/cn/tool";
 import cnLoadPlugin from "./routes/cn/load";
@@ -72,6 +73,7 @@ import {
     startQuestNpcPartyPoolWorker,
     stopQuestNpcPartyPoolWorker,
 } from "./multi/npc/player-party-pool";
+import { parseIosCompatConfig } from "./lib/ios-compat";
 
 const fastify = Fastify({
     logger: {
@@ -340,7 +342,13 @@ fastify.addContentTypeParser("application/json", { parseAs: "string" }, jsonPars
 
 installTakeoverUdidGuard(fastify);
 
-fastify.register(versionCheckPlugin);
+const iosCompat = parseIosCompatConfig();
+fastify.register(versionCheckPlugin, { ios: iosCompat });
+if (iosCompat.enabled) {
+    // Native Leiting SDK requests use bare paths rather than /api/index.php.
+    fastify.register(iosLeitingPlugin, { ios: iosCompat });
+    console.log(`[iOS] compatibility enabled: ${iosCompat.apiScheme}://${iosCompat.apiHost}`);
+}
 fastify.register(leitingAuthPlugin, { prefix: "/api/index.php" });
 
 const apiPrefix = "/api/index.php";

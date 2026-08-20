@@ -1,15 +1,13 @@
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
+import { IosCompatConfig } from "../../lib/ios-compat";
 
 const CN_API_HOST = "shijtswygamegf.leiting.com";
 
-const IOS_SDK_LOG_PATHS = [
-    "/api/mg_log!addMgActivateLog.action",
-    "/api/mg_log!addMgCreateRoleLog.action",
-    "/api/mg_log!addMgLoginLog.action",
-    "/api/mg_log!addMgRegisterLog.action",
-] as const;
+export interface VersionCheckPluginOptions {
+    readonly ios?: IosCompatConfig;
+}
 
-const versionData = [
+const versionDataAndroid = [
     "// 用于官服正式用",
     JSON.stringify({
         "default": {
@@ -18,40 +16,29 @@ const versionData = [
     })
 ].join("\r\n");
 
-const routes = async (fastify: FastifyInstance) => {
+const routes = async (fastify: FastifyInstance, options: VersionCheckPluginOptions = {}) => {
+    const versionDataIos = options.ios?.enabled === true
+        ? [
+            "// 用于官服正式用",
+            JSON.stringify({
+                "default": {
+                    "apiPath": options.ios.apiHost,
+                    "apiScheme": options.ios.apiScheme,
+                },
+            }),
+        ].join("\r\n")
+        : versionDataAndroid;
+
     fastify.get("/shijtswy/version/client_release_android.dis",
         async (_request: FastifyRequest, reply: FastifyReply) => {
         reply.header("content-type", "text/plain; charset=utf-8");
-        reply.status(200).send(versionData);
+        reply.status(200).send(versionDataAndroid);
     });
 
     fastify.get("/shijtswy/version/client_release_ios.dis",
         async (_request: FastifyRequest, reply: FastifyReply) => {
         reply.header("content-type", "text/plain; charset=utf-8");
-        reply.status(200).send(versionData);
-    });
-
-    // The iOS Leiting SDK treats a 404 from these telemetry endpoints as a
-    // fatal H404 and returns the game to the title screen. The private server
-    // does not consume this telemetry, so acknowledge it without persisting
-    // or parsing the payload.
-    for (const route of IOS_SDK_LOG_PATHS) {
-        fastify.post(route, async (_request: FastifyRequest, reply: FastifyReply) => {
-            reply.type("application/json; charset=utf-8");
-            reply.status(200).send({ code: 0, message: "success" });
-        });
-    }
-
-    // Older iOS builds query this legacy bootstrap document before entering
-    // the normal game API flow. Keep it aligned with the .dis response.
-    fastify.get("/wf/210009_config_20200415.json",
-        async (_request: FastifyRequest, reply: FastifyReply) => {
-        reply.type("application/json; charset=utf-8");
-        reply.status(200).send({
-            default: {
-                apiPath: CN_API_HOST,
-            },
-        });
+        reply.status(200).send(versionDataIos);
     });
 };
 
