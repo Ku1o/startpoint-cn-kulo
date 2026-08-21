@@ -8,6 +8,7 @@ import {
     createLounge,
     getLounge,
     getLoungeByNumber,
+    getLoungeOccupancy,
     listLounges,
     matchesLoungeAccess,
     prepareLounge,
@@ -16,6 +17,7 @@ import {
 } from "../../lounge/state"
 import { getDisplayHost } from "../../multi/room/serializer"
 import { generateDataHeaders } from "../../utils"
+import { buildLoungeDisbandedConnectionData } from "../../lounge/protocol"
 
 interface LoungeRequestBody {
     viewer_id?: number
@@ -80,7 +82,7 @@ function loungeListEntry(room: LoungeRoom) {
         establisher_name: room.hostProfile.name,
         establisher_viewer_id: room.hostViewerId,
         lounge_id: room.id,
-        mates: Math.max(1, room.members.size),
+        mates: Math.max(1, getLoungeOccupancy(room)),
         raising_state: room.raisingState,
         use_case: room.useCase,
     }
@@ -91,6 +93,17 @@ function sendLoungeNotFound(reply: FastifyReply, viewerId: number) {
     return reply.status(200).send({
         data_headers: generateDataHeaders({ viewer_id: viewerId, result_code: 4511 }),
         data: {},
+    })
+}
+
+function sendLoungeDisbanded(reply: FastifyReply, viewerId: number, loungeId: number, operation: string) {
+    // This is a recoverable client state, not an account/login failure. The
+    // client recognizes raising_state=99 and removes lounge_restore_data.
+    console.warn(`[LOUNGE] stale ${operation}: viewer=${viewerId} lounge=${loungeId}; returning disbanded state`)
+    reply.header("content-type", "application/x-msgpack")
+    return reply.status(200).send({
+        data_headers: generateDataHeaders({ viewer_id: viewerId }),
+        data: buildLoungeDisbandedConnectionData(),
     })
 }
 
@@ -150,7 +163,7 @@ const routes = async (fastify: FastifyInstance) => {
         })
         const room = getLounge(loungeId)
         if (!hasAccess(room, body) || context.viewerId !== room.hostViewerId) {
-            return sendLoungeNotFound(reply, context.viewerId)
+            return sendLoungeDisbanded(reply, context.viewerId, loungeId, "prepare")
         }
         prepareLounge(room)
         reply.header("content-type", "application/x-msgpack")
@@ -169,7 +182,7 @@ const routes = async (fastify: FastifyInstance) => {
             message: "Invalid request body or viewer id.",
         })
         const room = getLounge(loungeId)
-        if (!hasAccess(room, body)) return sendLoungeNotFound(reply, context.viewerId)
+        if (!hasAccess(room, body)) return sendLoungeDisbanded(reply, context.viewerId, loungeId, "select")
         reply.header("content-type", "application/x-msgpack")
         return reply.status(200).send({
             data_headers: generateDataHeaders({ viewer_id: context.viewerId }),
@@ -210,7 +223,7 @@ const routes = async (fastify: FastifyInstance) => {
             message: "Invalid request body or viewer id.",
         })
         const room = getLounge(loungeId)
-        if (!hasAccess(room, body)) return sendLoungeNotFound(reply, context.viewerId)
+        if (!hasAccess(room, body)) return sendLoungeDisbanded(reply, context.viewerId, loungeId, "restore")
         const data = connectionData(room)
         reply.header("content-type", "application/x-msgpack")
         return reply.status(200).send({

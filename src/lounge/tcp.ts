@@ -13,14 +13,16 @@ import {
     sendLoungeFrame,
     serializeLoungeMates,
     setLoungeMemberReady,
+    touchLoungeActivity,
 } from "./state"
+import { LOUNGE_DISMISSED_MESSAGE } from "./protocol"
 
 function positiveSafeInteger(value: unknown): number | null {
     const parsed = Number(value)
     return Number.isSafeInteger(parsed) && parsed > 0 ? parsed : null
 }
 
-function deny(socket: net.Socket, message = "HANDSHAKE_DENIED"): void {
+function deny(socket: net.Socket, message = LOUNGE_DISMISSED_MESSAGE): void {
     sendLoungeFrame(socket, [1, message])
     socket.end()
 }
@@ -65,6 +67,7 @@ export function handleLoungeMessage(socket: net.Socket, value: unknown): void {
     if (!context || !context.member) return
     switch (kind) {
         case 1:
+            touchLoungeActivity(context.room)
             sendLoungeFrame(socket, [1, [7, context.viewerId]])
             break
         case 2:
