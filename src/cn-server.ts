@@ -13,6 +13,7 @@ import { markPlayerOnline } from "./lib/online-presence";
 import { installTakeoverUdidGuard } from "./lib/takeover-access";
 
 import versionCheckPlugin from "./routes/cn/versionCheck";
+import iosLeitingPlugin from "./routes/cn/ios-leiting";
 import leitingAuthPlugin from "./routes/cn/leitingAuth";
 import cnToolPlugin from "./routes/cn/tool";
 import cnLoadPlugin from "./routes/cn/load";
@@ -65,11 +66,14 @@ import playerHistoryApiPlugin from "./routes/api/playerHistory";
 import comicApiPlugin from "./routes/api/comic";
 import questUnlockApiPlugin from "./routes/api/questUnlock";
 import itemApiPlugin from "./routes/api/item";
+import loungeApiPlugin from "./routes/api/lounge";
+import multiSpecialExchangeApiPlugin from "./routes/api/multiSpecialExchange";
 import { startSessionServer } from "./multi";
 import {
     startQuestNpcPartyPoolWorker,
     stopQuestNpcPartyPoolWorker,
 } from "./multi/npc/player-party-pool";
+import { parseIosCompatConfig } from "./lib/ios-compat";
 
 const fastify = Fastify({
     logger: {
@@ -338,7 +342,13 @@ fastify.addContentTypeParser("application/json", { parseAs: "string" }, jsonPars
 
 installTakeoverUdidGuard(fastify);
 
-fastify.register(versionCheckPlugin);
+const iosCompat = parseIosCompatConfig();
+fastify.register(versionCheckPlugin, { ios: iosCompat });
+if (iosCompat.enabled) {
+    // Native Leiting SDK requests use bare paths rather than /api/index.php.
+    fastify.register(iosLeitingPlugin, { ios: iosCompat });
+    console.log(`[iOS] compatibility enabled: ${iosCompat.apiScheme}://${iosCompat.apiHost}`);
+}
 fastify.register(leitingAuthPlugin, { prefix: "/api/index.php" });
 
 const apiPrefix = "/api/index.php";
@@ -546,6 +556,8 @@ fastify.register(playerHistoryApiPlugin, { prefix: `${apiPrefix}/player_history`
 fastify.register(comicApiPlugin, { prefix: `${apiPrefix}/comic` });
 fastify.register(questUnlockApiPlugin, { prefix: `${apiPrefix}/quest` });
 fastify.register(itemApiPlugin, { prefix: `${apiPrefix}/item` });
+fastify.register(loungeApiPlugin, { prefix: `${apiPrefix}/lounge` });
+fastify.register(multiSpecialExchangeApiPlugin, { prefix: `${apiPrefix}/multi_special_exchange` });
 fastify.register(howToGetApiPlugin, { prefix: `${apiPrefix}/how_to_get` });
 
 // Web management panel

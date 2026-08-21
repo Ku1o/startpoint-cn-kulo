@@ -1,9 +1,10 @@
 import { randomInt } from "crypto";
-import { MultiRoom, QuestCategory, RoomState } from "../types";
+import { MultiRoom, QuestCategory } from "../types";
 import { getServerTime } from "../../utils";
 import { sessionManager } from "../state/SessionManager";
 import { gameVerboseLog } from "../../lib/game-logging";
 import { roomAdmissionRegistry } from "./admission";
+import { embeddedMultiCoordinator } from "../coordinator/embedded";
 
 const rooms = new Map<string, MultiRoom>();
 
@@ -18,33 +19,38 @@ const REMAINING_NOTIFY_MS = 30000; // send RemainingTime float 30s before disban
 const notifiedRooms = new Set<string>();
 
 function cleanExpiredRooms() {
-    const now = Date.now();
-    const timeOffset = now - getServerTime() * 1000;
-    let cleaned = 0;
     for (const [roomNumber, room] of rooms) {
-        // Battle rooms — rely on removeClient auto-disband, no timer
-        if (room.raising_state === 4) continue;
+        const lifecycle = embeddedMultiCoordinator.ensureLifecycle(room);
+        // Battle and settlement rooms are governed by their own watchdogs.
+        // Skip them before allocating a Promise chain every cleanup tick.
+        if (lifecycle.phase !== "LOBBY") continue;
+        const instanceId = lifecycle.instanceId;
+        const lifecycleVersion = lifecycle.version;
+        void embeddedMultiCoordinator.enqueueRoomCommand(roomNumber, () => {
+            const current = rooms.get(roomNumber);
+            if (!embeddedMultiCoordinator.isCurrentInstance(current, instanceId)
+                || current.lifecycle.version !== lifecycleVersion) return;
+            // Only an ordinary lobby uses idle expiry. Battle and settlement
+            // phases have their own watchdogs and grace periods.
+            if (current.lifecycle.phase !== "LOBBY") return;
 
-        const idleAge = now - (room.host_entry_time * 1000 + timeOffset);
-        const timeout = room.mates.length < 3 ? INCOMPLETE_EXPIRY_MS : FULL_ROOM_EXPIRY_MS;
-        const remaining = timeout - idleAge;
+            const now = Date.now();
+            const timeOffset = now - getServerTime() * 1000;
+            const idleAge = now - (current.host_entry_time * 1000 + timeOffset);
+            const timeout = current.mates.length < 3 ? INCOMPLETE_EXPIRY_MS : FULL_ROOM_EXPIRY_MS;
+            const remaining = timeout - idleAge;
 
-        // Send RemainingTime float 30s before expiry
-        if (remaining > 0 && remaining <= REMAINING_NOTIFY_MS && !notifiedRooms.has(roomNumber)) {
-            sessionManager.broadcastToRoom(roomNumber, [1, [7, Math.ceil(remaining / 1000)]])
-            notifiedRooms.add(roomNumber)
-            gameVerboseLog(() => `[MULTI] RemainingTime sent: room=${roomNumber} seconds=${Math.ceil(remaining / 1000)}`)
-        }
+            if (remaining > 0 && remaining <= REMAINING_NOTIFY_MS && !notifiedRooms.has(roomNumber)) {
+                sessionManager.broadcastToRoom(roomNumber, [1, [7, Math.ceil(remaining / 1000)]])
+                notifiedRooms.add(roomNumber)
+                gameVerboseLog(() => `[MULTI] RemainingTime sent: room=${roomNumber} seconds=${Math.ceil(remaining / 1000)}`)
+            }
 
-        if (idleAge > timeout) {
-            rooms.delete(roomNumber);
-            roomAdmissionRegistry.clearRoom(roomNumber);
-            sessionManager.removeRoomState(roomNumber);
-            notifiedRooms.delete(roomNumber);
-            cleaned++;
-        }
+            if (idleAge > timeout && sessionManager.commitRoomDisband(roomNumber, "room_expired")) {
+                notifiedRooms.delete(roomNumber);
+            }
+        }).catch(error => console.error(`[MULTI] room cleanup failed: room=${roomNumber}`, error));
     }
-    if (cleaned > 0) gameVerboseLog(() => `[MULTI] expired rooms cleaned: ${cleaned}`);
 }
 setInterval(cleanExpiredRooms, CLEAN_INTERVAL_MS);
 
@@ -103,6 +109,7 @@ export function createRoom(
         lobby_generation: 0,
         rematch_wait_started_at: null,
         settlement_return_pending: false,
+        lifecycle: embeddedMultiCoordinator.createLifecycle(),
     };
     rooms.set(roomNumber, room);
     gameVerboseLog(() => `[MULTI] room created: ${roomNumber} host=${hostViewerId} category=${category} quest=${questId}`);
@@ -132,19 +139,17 @@ export function getRooms(categoryId: number, eventId?: number): MultiRoom[] {
     return result;
 }
 
-export function updateRoomState(roomNumber: string, state: number): boolean {
+export function setRoomBattle(roomNumber: string): boolean {
     const room = rooms.get(roomNumber);
     if (!room) return false;
-    gameVerboseLog(() => `[MULTI] room state: ${roomNumber} → ${state}`);
-    room.raising_state = state;
-    return true;
+    const lifecycle = embeddedMultiCoordinator.ensureLifecycle(room);
+    if (lifecycle.phase === "BATTLE") return true;
+    return embeddedMultiCoordinator.commitBattleStart(room).ok;
 }
 
-export function setRoomBattle(roomNumber: string): boolean {
-    return updateRoomState(roomNumber, 4);
-}
-
-export function disbandRoom(roomNumber: string): boolean {
+export function disbandRoom(roomNumber: string, reason = "room_manager_delete"): boolean {
+    const room = rooms.get(roomNumber);
+    if (room) embeddedMultiCoordinator.commitDisband(room, reason);
     const deleted = rooms.delete(roomNumber);
     if (deleted) {
         gameVerboseLog(() => `[MULTI] room deleted: ${roomNumber}`);
@@ -154,6 +159,7 @@ export function disbandRoom(roomNumber: string): boolean {
             stopRandomRecruitment(roomNumber)
         } catch (e) {}
         sessionManager.removeRoomState(roomNumber);
+        notifiedRooms.delete(roomNumber);
     }
     return deleted;
 }

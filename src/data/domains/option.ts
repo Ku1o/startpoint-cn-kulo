@@ -2,6 +2,30 @@ import { getDb } from "../db";
 import { RawPlayerOption } from "../types";
 import { serializeBoolean, deserializeBoolean } from "../utils";
 
+export interface PlayerProfileSettings {
+    showOpenedManaBoardSecondCount: boolean
+    showOwnedCharacterCount: boolean
+    showOwnedDegreeCount: boolean
+}
+
+export type PlayerProfileSettingsUpdate = Partial<PlayerProfileSettings>
+
+const PROFILE_SETTING_KEYS: Record<keyof PlayerProfileSettings, string> = {
+    showOpenedManaBoardSecondCount: "profile.show_opened_mana_board_second_count",
+    showOwnedCharacterCount: "profile.show_owned_character_count",
+    showOwnedDegreeCount: "profile.show_owned_degree_count",
+}
+
+const DEFAULT_PROFILE_SETTINGS: PlayerProfileSettings = {
+    showOpenedManaBoardSecondCount: false,
+    showOwnedCharacterCount: true,
+    showOwnedDegreeCount: true,
+}
+
+function isClientOptionKey(key: string): boolean {
+    return !key.startsWith("profile.")
+}
+
 /**
  * Inserts a value for a player option.
  * 
@@ -34,6 +58,7 @@ export function insertPlayerOptionsSync(
     const db = getDb();
     db.transaction(() => {
         for (const [key, value] of Object.entries(options)) {
+            if (!isClientOptionKey(key)) continue
             insertPlayerOptionSync(playerId, key, value)
         }
     })()
@@ -50,9 +75,10 @@ export function getPlayerOptionsSync(
 ): Record<string, boolean> {
     const db = getDb();
     const rawOptions = db.prepare(`
-    SELECT key, value
-    FROM players_options
-    WHERE player_id = ?
+        SELECT key, value
+        FROM players_options
+        WHERE player_id = ?
+          AND key NOT LIKE 'profile.%'
     `).all(playerId) as RawPlayerOption[]
 
     const result: Record<string, boolean> = {}
@@ -61,6 +87,24 @@ export function getPlayerOptionsSync(
     }
 
     return result
+}
+
+/**
+ * Gets one player option without materializing the full option record.
+ */
+export function getPlayerOptionSync(
+    playerId: number,
+    key: string,
+    defaultValue: boolean = false
+): boolean {
+    const db = getDb();
+    const rawOption = db.prepare(`
+    SELECT key, value
+    FROM players_options
+    WHERE player_id = ? AND key = ?
+    `).get(playerId, key) as RawPlayerOption | undefined
+
+    return rawOption === undefined ? defaultValue : deserializeBoolean(rawOption.value)
 }
 
 /**
@@ -79,7 +123,7 @@ export function updatePlayerOptionSync(
     db.prepare(`
     UPDATE players_options
     SET value = ?
-    WHERE key = ? AND player_id = ?    
+    WHERE key = ? AND player_id = ?
     `).run(serializeBoolean(value), key, playerId)
 }
 
@@ -99,6 +143,7 @@ export function updatePlayerOptionsSync(
     const db = getDb();
     db.transaction(() => {
         for (const [key, newValue] of Object.entries(options)) {
+            if (!isClientOptionKey(key)) continue
             const existingValue = allOptions[key]
             if (existingValue === undefined) {
                 insertPlayerOptionSync(playerId, key, newValue)
@@ -107,4 +152,44 @@ export function updatePlayerOptionsSync(
             }
         }
     })()
+}
+
+export function getPlayerProfileSettingsSync(playerId: number): PlayerProfileSettings {
+    const keys = Object.values(PROFILE_SETTING_KEYS)
+    const rows = getDb().prepare(`
+        SELECT key, value
+        FROM players_options
+        WHERE player_id = ? AND key IN (?, ?, ?)
+    `).all(playerId, ...keys) as RawPlayerOption[]
+    const stored = new Map(rows.map(row => [row.key, deserializeBoolean(row.value)]))
+    return {
+        showOpenedManaBoardSecondCount:
+            stored.get(PROFILE_SETTING_KEYS.showOpenedManaBoardSecondCount)
+            ?? DEFAULT_PROFILE_SETTINGS.showOpenedManaBoardSecondCount,
+        showOwnedCharacterCount:
+            stored.get(PROFILE_SETTING_KEYS.showOwnedCharacterCount)
+            ?? DEFAULT_PROFILE_SETTINGS.showOwnedCharacterCount,
+        showOwnedDegreeCount:
+            stored.get(PROFILE_SETTING_KEYS.showOwnedDegreeCount)
+            ?? DEFAULT_PROFILE_SETTINGS.showOwnedDegreeCount,
+    }
+}
+
+export function updatePlayerProfileSettingsSync(
+    playerId: number,
+    settings: PlayerProfileSettingsUpdate,
+): PlayerProfileSettings {
+    getDb().transaction(() => {
+        const upsert = getDb().prepare(`
+            INSERT INTO players_options (key, value, player_id)
+            VALUES (?, ?, ?)
+            ON CONFLICT(key, player_id) DO UPDATE SET value = excluded.value
+        `)
+        for (const [property, value] of Object.entries(settings) as Array<
+            [keyof PlayerProfileSettings, boolean]
+        >) {
+            upsert.run(PROFILE_SETTING_KEYS[property], serializeBoolean(value), playerId)
+        }
+    })()
+    return getPlayerProfileSettingsSync(playerId)
 }

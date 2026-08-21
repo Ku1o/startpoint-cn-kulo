@@ -1,7 +1,7 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import { PrepareBody, SummonBody, RestoreRoomBody, ShareRoomBody } from "../types";
 import { generateDataHeaders } from "../../utils";
-import { getRoom, getRoomByToken, updateHostEntryTime, disbandRoom } from "../room/manager";
+import { getRoom, getRoomByToken, updateHostEntryTime } from "../room/manager";
 import { serializeRoomConnection } from "../room/serializer";
 import { sessionManager } from "../state/SessionManager";
 import { buildNpcMates } from "../npc/builder";
@@ -15,6 +15,7 @@ import {
 } from "../room/sharing";
 import { gameVerboseLog } from "../../lib/game-logging";
 import { isMode15RoomClosed } from "../mode15-room-gate";
+import { embeddedMultiCoordinator } from "../coordinator/embedded";
 
 export function registerRoomRoutes(fastify: FastifyInstance): void {
 
@@ -233,8 +234,10 @@ export function registerRoomRoutes(fastify: FastifyInstance): void {
         }
 
         if (body.room_number) {
-            sessionManager.broadcastToRoom(body.room_number, [1, [6, "multibattle_room_dismissed"]]);
-            disbandRoom(body.room_number);
+            await embeddedMultiCoordinator.enqueueRoomCommand(
+                body.room_number,
+                () => sessionManager.commitRoomDisband(body.room_number, `viewer_${viewerId}_requested`),
+            );
             gameVerboseLog(() => `[MULTI] room ${body.room_number} disbanded by viewer ${viewerId}`);
         }
 

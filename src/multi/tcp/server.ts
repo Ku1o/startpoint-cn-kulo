@@ -9,6 +9,12 @@ import { handleBattleMessage } from "./battle"
 import { sessionManager } from "../state/SessionManager"
 import { gameVerboseLog } from "../../lib/game-logging"
 import { clearReliableSendState } from "./reliable-send"
+import { embeddedMultiCoordinator } from "../coordinator/embedded"
+import {
+    detachLoungeSocket,
+    handleLoungeHandshake,
+    handleLoungeMessage,
+} from "../../lounge/tcp"
 
 export const SESSION_PORT = parseInt(process.env.SESSION_PORT || "8003")
 export const SESSION_HOST = process.env.SESSION_HOST || "0.0.0.0"
@@ -41,6 +47,7 @@ export function startSessionServer(): Promise<void> {
             let buffer = ""
             let handshakeDone = false
             let isBattleSocket = false
+            let isLoungeSocket = false
             let socketRemoved = false
             let protocolClosed = false
 
@@ -61,11 +68,19 @@ export function startSessionServer(): Promise<void> {
 
             const removeSocketClient = () => {
                 clearReliableSendState(socket)
+                detachLoungeSocket(socket)
                 if (socketRemoved) return
                 socketRemoved = true
                 try {
                     const client = sessionManager.findClientBySocket(socket)
-                    if (client) sessionManager.removeClient(client)
+                    if (client) {
+                        void embeddedMultiCoordinator.enqueueRoomCommand(
+                            client.roomNumber,
+                            () => sessionManager.removeClient(client),
+                        ).catch(error => {
+                            console.error(`[TCP] queued socket cleanup failed: room=${client.roomNumber}`, error)
+                        })
+                    }
                 } catch {
                     // Socket shutdown is best-effort. The room lease cleanup is
                     // still able to remove an already detached connection.
@@ -106,12 +121,18 @@ export function startSessionServer(): Promise<void> {
                             handshakeDone = true
                             clearHandshakeTimer()
                             isBattleSocket = data.socklet === "cooperation_battle"
-                            handleHandshake(socket, data).catch((err) => {
+                            isLoungeSocket = data.socklet === "multi_special_exchange_socklet"
+                            const handshake = isLoungeSocket
+                                ? handleLoungeHandshake(socket, data)
+                                : handleHandshake(socket, data)
+                            handshake.catch((err) => {
                                 console.error(`[TCP] handshake failed:`, err)
                                 socket.destroy()
                             })
                         } else if (isBattleSocket) {
                             handleBattleMessage(socket, data)
+                        } else if (isLoungeSocket) {
+                            handleLoungeMessage(socket, data)
                         } else {
                             const lobby = require("./lobby")
                             lobby.handleMessage(socket, data)

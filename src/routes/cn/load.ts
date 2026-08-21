@@ -26,6 +26,7 @@ import {
     getPlayerRushEventSync,
     insertPlayerRushEventSync,
 } from "../../data/domains/rushEvent";
+import { repairAllGauntletCompletionClassificationsSync } from "../../lib/gauntlet-completion-classification";
 
 interface CnLoadBody {
     device_id: number;
@@ -165,6 +166,14 @@ const routes = async (fastify: FastifyInstance) => {
                 getDefaultPlayerRushEventSync(MODE15_RUSH_EVENT_ID),
             )
             console.log(`[MODE15] initialized Rush state during load: player=${playerId}`)
+        }
+        const repairedGauntletCompletions =
+            repairAllGauntletCompletionClassificationsSync(playerId)
+        if (repairedGauntletCompletions.length > 0) {
+            console.log(
+                `[RUSH] repaired completed classification during load: `
+                + `player=${playerId} events=${repairedGauntletCompletions.join(",")}`,
+            )
         }
         // Include Rush state in the initial payload so the legacy client can
         // evaluate cross-event clear conditions on a cold visit. Optional

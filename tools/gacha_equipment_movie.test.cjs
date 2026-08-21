@@ -58,7 +58,7 @@ assert.deepStrictEqual(
   {
     isErupt: false,
     draws: [
-      { equipmentId: 4030003, treasureUpType: 1 },
+      { equipmentId: 4030003, treasureUpType: 3 },
       { equipmentId: 3050002, treasureUpType: 0 },
     ],
   },
@@ -88,12 +88,61 @@ assert.deepStrictEqual(
       { id: 4030003, rank: 4, isGuarantee: true },
     ],
     normalProbability,
-    rolls([0.5, 0.3]),
+    rolls([0.5]),
   ),
   {
     isErupt: false,
     draws: [
-      { equipmentId: 4030003, treasureUpType: 2 },
+      { equipmentId: 4030003, treasureUpType: 0 },
+    ],
+  },
+);
+
+assert.deepStrictEqual(
+  computeEquipmentGachaMovieEffects(
+    [
+      { id: 5020008, rank: 5, isGuarantee: false },
+    ],
+    normalProbability,
+    rolls([0.9, 0.19]),
+  ),
+  {
+    isErupt: false,
+    draws: [
+      { equipmentId: 5020008, treasureUpType: 1 },
+    ],
+  },
+);
+
+assert.deepStrictEqual(
+  computeEquipmentGachaMovieEffects(
+    [
+      { id: 5020008, rank: 5, isGuarantee: false },
+    ],
+    normalProbability,
+    rolls([0.9, 0.5, 0.34]),
+  ),
+  {
+    isErupt: false,
+    draws: [
+      { equipmentId: 5020008, treasureUpType: 2 },
+    ],
+  },
+);
+
+// Zero-probability guarantee effects must remain impossible even with roll=0.
+assert.deepStrictEqual(
+  computeEquipmentGachaMovieEffects(
+    [
+      { id: 4030003, rank: 4, isGuarantee: true },
+    ],
+    normalProbability,
+    rolls([0]),
+  ),
+  {
+    isErupt: false,
+    draws: [
+      { equipmentId: 4030003, treasureUpType: 0 },
     ],
   },
 );

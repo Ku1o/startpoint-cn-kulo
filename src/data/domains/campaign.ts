@@ -119,14 +119,15 @@ export function getPlayerMultiSpecialExchangeCampaignsSync(
 ): PlayerMultiSpecialExchangeCampaign[] {
     const db = getDb();
     const rawCampaigns = db.prepare(`
-    SELECT campaign_id, status
+    SELECT campaign_id, status, ticket_item_id
     FROM players_multi_special_exchange_campaigns
     WHERE player_id = ?
     `).all(playerId) as RawPlayerMultiSpecialExchangeCampaign[]
 
     return rawCampaigns.map(raw => ({
         campaignId: raw.campaign_id,
-        status: raw.status
+        status: raw.status,
+        ticketItemId: raw.ticket_item_id,
     }))
 }
 
@@ -136,9 +137,23 @@ function insertPlayerMultiSpecialExchangeCampaignSync(
 ) {
     const db = getDb();
     db.prepare(`
-    INSERT INTO players_multi_special_exchange_campaigns (campaign_id, status, player_id)
-    VALUES (?, ?, ?)
-    `).run(campaign.campaignId, campaign.status, playerId)
+    INSERT INTO players_multi_special_exchange_campaigns (campaign_id, status, ticket_item_id, player_id)
+    VALUES (?, ?, ?, ?)
+    `).run(campaign.campaignId, campaign.status, campaign.ticketItemId ?? null, playerId)
+}
+
+export function updatePlayerMultiSpecialExchangeCampaignSync(
+    playerId: number,
+    campaign: PlayerMultiSpecialExchangeCampaign,
+): void {
+    getDb().prepare(`
+        INSERT INTO players_multi_special_exchange_campaigns
+            (campaign_id, status, ticket_item_id, player_id)
+        VALUES (?, ?, ?, ?)
+        ON CONFLICT(campaign_id, player_id) DO UPDATE SET
+            status = excluded.status,
+            ticket_item_id = excluded.ticket_item_id
+    `).run(campaign.campaignId, campaign.status, campaign.ticketItemId ?? null, playerId)
 }
 
 export function insertPlayerMultiSpecialExchangeCampaignsSync(

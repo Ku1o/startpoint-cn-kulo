@@ -3,8 +3,6 @@
  * Returns player profile info, settings, and party groups.
  */
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
-import { getPlayerCharactersSync } from "../../data/domains/character"
-import { getPlayerPartyGroupListSync } from "../../data/domains/party"
 import { getPlayerSync, updatePlayerSync } from "../../data/domains/player"
 import { getSession } from "../../data/domains/session"
 import { resolvePlayerIdSync } from "../../data/activeAccount";
@@ -21,6 +19,28 @@ import {
 } from "../../data/domains/degree";
 import { ensurePlayerClaimedCarnivalDegreesSync } from "../../lib/quest/finish/carnival-reward-handler";
 import { gameVerboseLog } from "../../lib/game-logging";
+import {
+    getPlayerProfileSettingsSync,
+    updatePlayerProfileSettingsSync,
+} from "../../data/domains/option";
+import { getPlayerProfileStatsSync } from "../../lib/profile-stats";
+import { getConfigSync } from "../../lib/assets";
+
+const PROFILE_SETTING_FIELDS = [
+    "show_opened_mana_board_second_count",
+    "show_owned_character_count",
+    "show_owned_degree_count",
+] as const
+
+function serializeProfileSettings(
+    settings: ReturnType<typeof getPlayerProfileSettingsSync>,
+) {
+    return {
+        show_opened_mana_board_second_count: settings.showOpenedManaBoardSecondCount,
+        show_owned_character_count: settings.showOwnedCharacterCount,
+        show_owned_degree_count: settings.showOwnedDegreeCount,
+    }
+}
 
 const routes = async (fastify: FastifyInstance) => {
     fastify.post("/get_my_profile", async (request: FastifyRequest, reply: FastifyReply) => {
@@ -46,8 +66,11 @@ const routes = async (fastify: FastifyInstance) => {
         const player = getPlayerSync(playerId)
         if (!player) return reply.status(400).send({ error: "Bad Request", message: "Player not found." })
 
-        const characters = getPlayerCharactersSync(playerId)
-        const charCount = Object.keys(characters).length
+        ensurePlayerLegacyDegreesSync(playerId, player.degreeId || 1)
+        ensurePlayerSoloTimeAttackDegreesSync(playerId)
+        ensurePlayerClaimedCarnivalDegreesSync(playerId)
+        const stats = getPlayerProfileStatsSync(playerId)
+        const profileSettings = getPlayerProfileSettingsSync(playerId)
 
         const partyGroupList = getFavoritePartyGroupListSync(
             playerId,
@@ -59,18 +82,14 @@ const routes = async (fastify: FastifyInstance) => {
             data_headers: generateDataHeaders({ viewer_id: viewerId }),
             data: {
                 profile_info: {
-                    max_opened_mana_board_second_count: 0,
-                    max_owned_character_count: charCount,
-                    max_owned_degree_count: 1,
-                    opened_mana_board_second_count: 0,
-                    owned_character_count: charCount,
-                    owned_degree_count: 1,
+                    max_opened_mana_board_second_count: stats.maxOpenedManaBoardSecondCount,
+                    max_owned_character_count: stats.maxOwnedCharacterCount,
+                    max_owned_degree_count: stats.maxOwnedDegreeCount,
+                    opened_mana_board_second_count: stats.openedManaBoardSecondCount,
+                    owned_character_count: stats.ownedCharacterCount,
+                    owned_degree_count: stats.ownedDegreeCount,
                 },
-                profile_settings: {
-                    show_opened_mana_board_second_count: false,
-                    show_owned_character_count: true,
-                    show_owned_degree_count: true,
-                },
+                profile_settings: serializeProfileSettings(profileSettings),
                 user_party_group_list: partyGroupList,
             }
         })
@@ -89,7 +108,7 @@ const routes = async (fastify: FastifyInstance) => {
         if (!session) return reply.status(400).send({ error: "Bad Request", message: "Invalid viewer id." })
         const playerId = resolvePlayerIdSync(session.accountId)
         const targetPlayerId = getPlayerIdByViewerIdSync(targetViewerId)
-        if (!playerId || targetPlayerId === null) {
+        if (playerId === null || targetPlayerId === null) {
             reply.header("content-type", "application/x-msgpack")
             return reply.status(200).send({
                 data_headers: generateDataHeaders({ viewer_id: viewerId, result_code: 1457 }),
@@ -204,6 +223,7 @@ const routes = async (fastify: FastifyInstance) => {
         })
 
         ensurePlayerLegacyDegreesSync(playerId, player.degreeId || 1)
+        ensurePlayerSoloTimeAttackDegreesSync(playerId)
         ensurePlayerClaimedCarnivalDegreesSync(playerId)
         if (!hasPlayerDegreeSync(playerId, Number(degreeId))) {
             return reply.status(400).send({
@@ -225,7 +245,7 @@ const routes = async (fastify: FastifyInstance) => {
         })
     })
 
-    // Update profile visibility settings (echo back, don't persist)
+    // Update profile visibility settings.
     fastify.post("/update_profile_settings", async (request: FastifyRequest, reply: FastifyReply) => {
         const body = request.body as any
         const viewerId = body.viewer_id
@@ -240,16 +260,38 @@ const routes = async (fastify: FastifyInstance) => {
             message: "Invalid viewer id."
         })
 
-        const settings = body.profile_settings || {}
+        const settings = body.profile_settings
+        if (settings === null || typeof settings !== "object" || Array.isArray(settings)
+            || !PROFILE_SETTING_FIELDS.some(field => Object.prototype.hasOwnProperty.call(settings, field))
+            || PROFILE_SETTING_FIELDS.some(field => (
+                Object.prototype.hasOwnProperty.call(settings, field)
+                && typeof settings[field] !== "boolean"
+            ))) return reply.status(400).send({
+            error: "Bad Request",
+            message: "Invalid profile settings.",
+        })
+
+        const playerId = resolvePlayerIdSync(session.accountId)
+        if (playerId === null || !getPlayerSync(playerId)) return reply.status(400).send({
+            error: "Bad Request",
+            message: "No player bound to account.",
+        })
+        const updated = updatePlayerProfileSettingsSync(playerId, {
+            ...(typeof settings.show_opened_mana_board_second_count === "boolean"
+                ? { showOpenedManaBoardSecondCount: settings.show_opened_mana_board_second_count }
+                : {}),
+            ...(typeof settings.show_owned_character_count === "boolean"
+                ? { showOwnedCharacterCount: settings.show_owned_character_count }
+                : {}),
+            ...(typeof settings.show_owned_degree_count === "boolean"
+                ? { showOwnedDegreeCount: settings.show_owned_degree_count }
+                : {}),
+        })
         reply.header("content-type", "application/x-msgpack")
         return reply.status(200).send({
             data_headers: generateDataHeaders({ viewer_id: viewerId }),
             data: {
-                profile_settings: {
-                    show_opened_mana_board_second_count: settings.show_opened_mana_board_second_count ?? false,
-                    show_owned_character_count: settings.show_owned_character_count ?? false,
-                    show_owned_degree_count: settings.show_owned_degree_count ?? false,
-                }
+                profile_settings: serializeProfileSettings(updated),
             }
         })
     })
@@ -275,7 +317,11 @@ const routes = async (fastify: FastifyInstance) => {
             message: "No player bound to account."
         })
 
-        const comment = (body.comment || "").substring(0, 100)
+        if (typeof body.comment !== "string") return reply.status(400).send({
+            error: "Bad Request",
+            message: "Invalid comment.",
+        })
+        const comment = body.comment.substring(0, getConfigSync().max_player_comment_length)
         updatePlayerSync({ id: playerId, comment })
 
         reply.header("content-type", "application/x-msgpack")
@@ -306,7 +352,11 @@ const routes = async (fastify: FastifyInstance) => {
             message: "No player bound to account."
         })
 
-        const name = (body.name || "").substring(0, 20)
+        if (typeof body.name !== "string") return reply.status(400).send({
+            error: "Bad Request",
+            message: "Invalid name.",
+        })
+        const name = body.name.substring(0, getConfigSync().max_player_name_length)
         updatePlayerSync({ id: playerId, name })
 
         reply.header("content-type", "application/x-msgpack")

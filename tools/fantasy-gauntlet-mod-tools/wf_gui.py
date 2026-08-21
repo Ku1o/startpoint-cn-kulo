@@ -52,7 +52,7 @@ import wf_describe  # noqa: E402  行级中文描述器(逆向布局+枚举直�
 import wf_assets  # noqa: E402    角色资产(立绘/图标/语音)编解码与清单
 import wf_character_requirements as char_requirements  # noqa: E402  统一 37 项资源契约
 import wf_dsl  # noqa: E402       技能 ActionDsl 数值编辑
-import wf_atf  # noqa: E402       skill_cutin ATF(ETC1)纹理重编码(战斗真机只读 ATF 不读 PNG)
+import wf_atf  # noqa: E402       skill_cutin Android ETC1 / iOS ETC2 ATF 重编码
 import wf_boss  # noqa: E402      Boss 数值 + 副本列表(Boss·副本页)
 import wf_server_auth  # noqa: E402  服务端管理 API 地址与 Bearer 认证
 
@@ -173,11 +173,12 @@ def read_pending() -> list[str]:
 
 
 def add_pending(target: Path) -> None:
-    """支持三根:upload=裸 rel;medium_upload/android_upload 加前缀(发布器按前缀分包)。"""
+    """支持四根；平台纹理按 android:/ios: 前缀进入统一 active 包。"""
     rel = None
     for prefix, root in (("", TARGET_STORE),
                          ("medium:", TARGET_STORE.parent / "medium_upload"),
-                         ("android:", TARGET_STORE.parent / "android_upload")):
+                         ("android:", TARGET_STORE.parent / "android_upload"),
+                         ("ios:", TARGET_STORE.parent / "ios_upload")):
         try:
             rel = prefix + target.relative_to(root).as_posix()
             break
@@ -2914,7 +2915,7 @@ def replace_asset(logical: str, data: bytes, force: bool, dry_run: bool) -> dict
     root_name, fp = loc
     old = fp.read_bytes()
     log = []
-    atf_job = None
+    atf_jobs = []
     trim_job = None       # (表, 键, 新行) —— trimmed_image frame 同步
     trim_nested_job = None  # (cid, level, 新内层文本) —— full_shot 的 character_image 同步
     if logical.endswith(".png"):
@@ -2953,15 +2954,35 @@ def replace_asset(logical: str, data: bytes, force: bool, dry_run: bool) -> dict
             elif logical.split("/")[-1].startswith(("full_shot_", "skill_cutin_")) \
                     or "/ui/story/" in logical:
                 log.append(f"⚠ trimmed_image 表中无 {logical[:-4]} 键,不同步(该图可能无 frame)")
-        # skill_cutin:战斗真机只读配对的 .atf.deflate(android 根),必须连 ATF 一起重编码
+        # skill_cutin:Android/iOS 真机分别读取 ETC1/ETC2 ATF。源 PNG 是唯一源文件，
+        # 两端必须独立编码，禁止把 Android ATF 复制到 ios_upload 兜底。
         if "/ui/skill_cutin_" in logical:
-            aloc = wf_assets.locate(TARGET_STORE, logical[:-4] + ".atf.deflate")
-            if aloc:
-                ref = wf_atf.inflate(aloc[1].read_bytes())
-                atf_enc = wf_atf.deflate(wf_atf.build_cutin_atf(data, ref))
-                atf_job = (aloc[1], atf_enc)
-                log.append(f"{logical[:-4]}.atf.deflate: ETC1 纹理重编码 {len(ref)}B→ATF, "
-                           f"{len(atf_enc)}B [{aloc[0]}](战斗内实际读取的是 ATF 而非 PNG)")
+            atf_logical = logical[:-4] + ".atf.deflate"
+            android_fp = wf_assets.path_in_root(
+                TARGET_STORE, "android", atf_logical)
+            ios_fp = wf_assets.path_in_root(TARGET_STORE, "ios", atf_logical)
+            android_ref = (
+                wf_atf.inflate(android_fp.read_bytes())
+                if android_fp.is_file() else None
+            )
+            ios_ref = (
+                wf_atf.inflate(ios_fp.read_bytes())
+                if ios_fp.is_file() else None
+            )
+            android_atf, ios_atf = wf_atf.build_cutin_platform_pair(
+                data,
+                android_ref if android_ref is not None else ios_ref,
+                ios_ref,
+            )
+            atf_jobs = [
+                ("android", android_fp, wf_atf.deflate(android_atf)),
+                ("ios", ios_fp, wf_atf.deflate(ios_atf)),
+            ]
+            log.append(
+                f"{atf_logical}: 从同一 PNG 独立生成 Android ETC1(slot 2) / "
+                f"iOS ETC2(slot 3)，存储态 {len(atf_jobs[0][2])}B/"
+                f"{len(atf_jobs[1][2])}B"
+            )
     elif logical.endswith(".mp3"):
         enc = wf_assets.mp3_encode(data)
         log.append(f"{logical}: MP3 {len(old)}B→{len(enc)}B [{root_name}]")
@@ -2975,11 +2996,14 @@ def replace_asset(logical: str, data: bytes, force: bool, dry_run: bool) -> dict
             shutil.copy2(fp, bak)
         fp.write_bytes(enc)
         add_pending(fp)
-        if atf_job:
-            afp, aenc = atf_job
-            abak = afp.with_name(afp.name + ".bak-wfmod-asset-" + time.strftime("%Y%m%d-%H%M%S"))
-            if not abak.exists():
-                shutil.copy2(afp, abak)
+        for _platform, afp, aenc in atf_jobs:
+            afp.parent.mkdir(parents=True, exist_ok=True)
+            if afp.is_file():
+                abak = afp.with_name(
+                    afp.name + ".bak-wfmod-asset-" + time.strftime("%Y%m%d-%H%M%S")
+                )
+                if not abak.exists():
+                    shutil.copy2(afp, abak)
             afp.write_bytes(aenc)
             add_pending(afp)
         if trim_job:
@@ -5165,6 +5189,7 @@ def sync_to_emulator(restart: bool = True) -> dict:
         return {"ok": False, "log": "\n".join(log)}
 
     pending = read_pending()
+    synced = 0
     if not pending:
         log.append("没有待同步的修改文件")
     for rel in pending:
@@ -5175,6 +5200,11 @@ def sync_to_emulator(restart: bool = True) -> dict:
         elif rel.startswith("android:"):
             root, r = TARGET_STORE.parent / "android_upload", rel[8:]
             rbase = REMOTE_UPLOAD.replace("/upload", "/android_upload")
+        elif rel.startswith("ios:"):
+            # 此入口连接的是 Android 模拟器，不能把 iOS ETC2 写入 Android 根。
+            # 保留完整 pending，随后发布时仍能把 Android/iOS 成对写入 active ZIP。
+            log.append(f"跳过 iOS(仅随增量包发布): {rel}")
+            continue
         local = root / r
         if not local.exists():
             log.append(f"跳过(本地缺失): {rel}")
@@ -5184,6 +5214,7 @@ def sync_to_emulator(restart: bool = True) -> dict:
         log.append(f"push {rel}: {out}")
         if code != 0:
             return {"ok": False, "log": "\n".join(log)}
+        synced += 1
 
     if restart:
         adb_run(adb, "-s", DEVICE, "shell", "am", "force-stop", PKG, timeout=20)
@@ -5198,8 +5229,14 @@ def sync_to_emulator(restart: bool = True) -> dict:
             log.append(f"start: {out}")
 
     if pending:
-        clear_pending()
-        log.append(f"已同步 {len(pending)} 个文件,清空待同步列表")
+        if any(rel.startswith("ios:") for rel in pending):
+            log.append(
+                f"已同步 {synced} 个 Android 设备文件；"
+                "检测到 iOS 配对资源，已保留完整待发布清单"
+            )
+        else:
+            clear_pending()
+            log.append(f"已同步 {synced} 个文件,清空待同步列表")
     return {"ok": True, "log": "\n".join(log)}
 
 

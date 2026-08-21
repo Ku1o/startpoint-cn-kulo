@@ -5,6 +5,8 @@ export type {
     MultiMateParty,
     MultiMate,
     MultiRoom,
+    MultiRoomLifecycle,
+    MultiRoomPhase,
     NpcMateTemplate,
     QuestCategory,
 } from "../lib/types"

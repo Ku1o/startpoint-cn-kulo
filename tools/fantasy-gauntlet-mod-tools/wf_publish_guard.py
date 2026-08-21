@@ -332,7 +332,7 @@ def _pending_relatives() -> list[str]:
     if not pending.is_file():
         return []
     return [str(x) for x in json.loads(pending.read_text(encoding="utf-8"))
-            if not str(x).startswith(("medium:", "android:"))]
+            if not str(x).startswith(("medium:", "android:", "ios:"))]
 
 
 def main(argv: list[str] | None = None) -> int:

@@ -86,6 +86,12 @@ python wf_publish.py --tables ability,character_status
 # 重启服务端 + 重启游戏 → 改动生效
 ```
 
+替换 `character/<code>/ui/skill_cutin_{0,1}.png` 时，工具以这张 PNG 为唯一源，
+分别生成 Android ETC1 ATF（slot 2）和 iOS ETC2 RGBA ATF（slot 3）。发布器把
+`production/android_upload/<hash>` 与 `production/ios_upload/<hash>` 写入同一个 active ZIP，
+并在 `manifest.files` 记录完整成员路径；找不到源 PNG 时会拒绝发布，不会复制 Android
+文件冒充 iOS 资源。
+
 ## 客户端整合包(Release 下载)
 
 只想直接游玩(连**本服**)、不需要自己改数据的玩家,从本仓

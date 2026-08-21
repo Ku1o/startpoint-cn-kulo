@@ -416,13 +416,17 @@ export function deserializePlayerData(
             multiSpecialExchangeCampaignList = userMultiSpecialExchangeCampaignList.map(campaign => {
                 const campaignId = campaign['campaign_id']
                 const status = campaign['status']
+                const ticketItemId = campaign['ticket_item_id']
     
                 if (isNaN(campaignId) || isNaN(status))
                     throw new Error("Invalid or missing fields for 'multi_special_exchange_campaign_list' field.");
     
                 return {
                     campaignId: campaignId,
-                    status: status
+                    status: status,
+                    ticketItemId: ticketItemId === undefined || ticketItemId === null
+                        ? null
+                        : Number(ticketItemId)
                 }
             })
         }

@@ -7,8 +7,9 @@
   * PNG:仅魔数混淆。存储态 `89 70 6E 67`("png"小写) ↔ 标准 `89 50 4E 47`("PNG")。
   * MP3:逐帧把帧头首字节 0xFF(sync 2047>>>3) ↔ 0x7F(1023>>>3),其余字节不动;
     ID3v2 头按 unsynchsafe 跳过,ID3v1 'TAG' 跳 128 字节。CBR Layer3 only。
-  * 存储根:upload(通用) / medium_upload(大图:立绘/cut-in) / android_upload(平台)。
-    文件名 = sha1(逻辑路径+盐),三根同规则。发布通道:common/medium/android 三套 diff 目录。
+  * 存储根:upload(通用) / medium_upload(大图:立绘/cut-in) /
+    android_upload(ETC1) / ios_upload(ETC2)。文件名 = sha1(逻辑路径+盐),
+    四根同规则；Android/iOS 平台纹理使用相同哈希、不同存储根。
   * 立绘 = character/<code>/ui/full_shot_1440_1920_{0,1}.png(0=基础,1=进化/觉醒),
     逻辑设计尺寸 1440x1920,实际 PNG 尺寸可不同(配 CharacterImage 表的 pivot/scale)。
 """
@@ -195,13 +196,14 @@ def mp3_encode(data: bytes) -> bytes:
     return out
 
 
-# ---------------------------------------------------------------- 资产定位(三根)
+# ---------------------------------------------------------------- 资产定位(四根)
 
 def roots(target_store: Path) -> dict[str, Path]:
     base = target_store.parent
     return {"upload": target_store,
             "medium": base / "medium_upload",
-            "android": base / "android_upload"}
+            "android": base / "android_upload",
+            "ios": base / "ios_upload"}
 
 
 def locate(target_store: Path, logical: str) -> tuple[str, Path] | None:

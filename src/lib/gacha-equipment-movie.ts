@@ -85,9 +85,9 @@ export function drawEquipmentTreasureUpType(
 ): number {
     for (const treasureUpType of [1, 2, 3]) {
         const targetRank = treasureUpTargetRank(treasureUpType)
-        if (targetRank === rank) continue
+        if (targetRank !== rank) continue
 
-        if (roll() <= treasureUpProbability(treasureUpType, probability, isGuarantee)) {
+        if (roll() < treasureUpProbability(treasureUpType, probability, isGuarantee)) {
             return treasureUpType
         }
     }
@@ -101,7 +101,7 @@ export function computeEquipmentGachaMovieEffects(
     roll: Roll = Math.random
 ): EquipmentGachaMovieEffects {
     const hasRankFive = drawInputs.some((draw) => draw.rank === 5)
-    const isErupt = hasRankFive ? roll() <= probability.probabilityEruption : false
+    const isErupt = hasRankFive ? roll() < probability.probabilityEruption : false
 
     return {
         isErupt,

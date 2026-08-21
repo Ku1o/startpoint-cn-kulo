@@ -24,6 +24,7 @@ const { getGachaTicketCost } = require("../src/lib/gacha-ticket.ts");
 const { GACHA_EXEC_TYPES } = require("../src/lib/gacha-rules.ts");
 
 const THUNDER_DRAGON_ID = 139998;
+const CLAUDE_ID = 129997;
 const ABYSS_GACHA_ID = 990001;
 const SINGLE_TICKET_ID = 999013;
 const MULTI_TICKET_ID = 999014;
@@ -40,6 +41,18 @@ assert.strictEqual(characterRows[String(THUNDER_DRAGON_ID)][0][18], "碧海雷�
 assert.strictEqual(characterTextRows[String(THUNDER_DRAGON_ID)][0][0], "拉姆斯");
 assert.strictEqual(characterTextRows[String(THUNDER_DRAGON_ID)][0][3], "鸣彻碧海的雷龙");
 assert.strictEqual(characterTextRows[String(THUNDER_DRAGON_ID)][0][4], "碧海雷潮");
+
+assert.deepStrictEqual(characters[String(CLAUDE_ID)], {
+  name: "克劳德",
+  rarity: 5,
+  element: 1,
+  skill_count: 6,
+});
+assert.strictEqual(characterRows[String(CLAUDE_ID)][0][0], "claude_wolf_assassin_ex");
+assert.strictEqual(characterRows[String(CLAUDE_ID)][0][18], "蚀水狩阵");
+assert.strictEqual(characterTextRows[String(CLAUDE_ID)][0][0], "克劳德");
+assert.strictEqual(characterTextRows[String(CLAUDE_ID)][0][3], "碧牙的狩夜者");
+assert.strictEqual(characterTextRows[String(CLAUDE_ID)][0][4], "蚀刃终决");
 
 const adminCharacter = characterTable.find((entry) => entry.id === THUNDER_DRAGON_ID);
 assert.deepStrictEqual(adminCharacter, {
@@ -61,6 +74,16 @@ assert.deepStrictEqual(swimExAdminCharacter, {
   element: "雷",
   gender: "女性",
   race: "Human,Element",
+});
+const claudeAdminCharacter = characterTable.find((entry) => entry.id === CLAUDE_ID);
+assert.deepStrictEqual(claudeAdminCharacter, {
+  id: CLAUDE_ID,
+  name: "克劳德",
+  title: "碧牙的狩夜者",
+  rarity: "5★",
+  element: "水",
+  gender: "男性",
+  race: "Human,Beast",
 });
 assert.ok(itemIds.includes(SINGLE_TICKET_ID));
 assert.ok(itemIds.includes(MULTI_TICKET_ID));
@@ -90,18 +113,19 @@ assert.deepStrictEqual(gacha.rankRates, {
 });
 assert.deepStrictEqual(
   Object.fromEntries(Object.entries(gacha.pool).map(([rank, entries]) => [rank, entries.length])),
-  { "1": 245, "2": 144, "3": 78 },
+  { "1": 246, "2": 144, "3": 78 },
 );
 const fiveStars = gacha.pool["1"];
 const rateUps = fiveStars.filter((entry) => entry.isRateUp).map((entry) => entry.id);
 assert.deepStrictEqual(
   rateUps,
-  [129999, 139997, 139998, 139999, 149998, 149999, 169998, 169999, 179999],
+  [139997, 129999, 139998, 139999, 149998, 149999, 169998, 169999, 179999, CLAUDE_ID],
 );
-assert.strictEqual(fiveStars.find((entry) => entry.id === 139997)?.isExchangeable, false);
-for (const id of [141129, 161141, 123001, 131182]) {
-  assert.strictEqual(fiveStars.find((entry) => entry.id === id)?.isExchangeable, true);
-}
+assert.strictEqual(fiveStars.filter((entry) => entry.isExchangeable).length, 245);
+assert.strictEqual(fiveStars.find((entry) => entry.id === CLAUDE_ID)?.isExchangeable, false);
+assert.strictEqual(fiveStars.find((entry) => entry.id === CLAUDE_ID)?.odds, 40356);
+assert.strictEqual(fiveStars.find((entry) => entry.id === 139997)?.isExchangeable, true);
+assert.strictEqual(fiveStars.every((entry) => entry.id === CLAUDE_ID || entry.isExchangeable), true);
 assert.deepStrictEqual(
   getGachaTicketCost(GACHA_EXEC_TYPES.CONFIGURED_SINGLE_TICKET, 1, gacha),
   { itemId: SINGLE_TICKET_ID, useTicketCount: 1, pullCount: 1 },
@@ -149,6 +173,13 @@ assert.ok([...Object.keys(boardOne), ...Object.keys(boardTwo)].every((id) => id.
 assert.deepStrictEqual(Object.keys(manaBoard[String(THUNDER_DRAGON_ID)]), ["1", "2"]);
 assert.ok(getManaNodeAwakeCost(THUNDER_DRAGON_ID, Object.keys(boardOne)[0], 5));
 
+const claudeBoardOne = getCharacterManaNodesSync(CLAUDE_ID, 1);
+const claudeBoardTwo = getCharacterManaNodesSync(CLAUDE_ID, 2);
+assert.strictEqual(Object.keys(claudeBoardOne).length, 23);
+assert.strictEqual(Object.keys(claudeBoardTwo).length, 18);
+assert.ok([...Object.keys(claudeBoardOne), ...Object.keys(claudeBoardTwo)].every((id) => id.startsWith("259994")));
+assert.strictEqual(claudeBoardTwo["259994418"].manaCost, 22400);
+
 const originalRandom = Math.random;
 try {
   Math.random = () => 0.01;
@@ -175,8 +206,14 @@ try {
   const charactersResponse = await app.inject({ method: "GET", url: "/api/lookup/characters" });
   assert.strictEqual(charactersResponse.statusCode, 200);
   assert.strictEqual(charactersResponse.json()[String(THUNDER_DRAGON_ID)].name, "拉姆斯");
+  assert.deepStrictEqual(charactersResponse.json()[String(CLAUDE_ID)], {
+    name: "克劳德",
+    title: "碧牙的狩夜者",
+    rarity: "5★",
+    element: "水",
+  });
   await app.close();
-  console.log("thunder dragon / abyss content tests passed");
+  console.log("thunder dragon / Claude / abyss content tests passed");
 })().catch((error) => {
   console.error(error);
   process.exitCode = 1;

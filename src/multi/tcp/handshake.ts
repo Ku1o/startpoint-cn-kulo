@@ -30,6 +30,7 @@ import { sessionManager } from "../state/SessionManager"
 import type { SessionClient } from "../state/SessionManager"
 import { gameVerboseLog } from "../../lib/game-logging"
 import { ClientState } from "../types"
+import { embeddedMultiCoordinator } from "../coordinator/embedded"
 import { roomAdmissionRegistry } from "../room/admission"
 
 export function buildRealParty(playerId: number, targetParty?: PlayerParty): any {
@@ -256,8 +257,9 @@ export async function handleHandshake(socket: net.Socket, data: any): Promise<vo
         const missingAdmission = !viewerAlreadyConnected
             && !isReturningMember
             && !admissionReserved
+        const roomPhase = embeddedMultiCoordinator.ensureLifecycle(currentRoom).phase
         const roomUnavailable = (!viewerAlreadyConnected && liveClients.length >= 3)
-            || (!isReturningMember && currentRoom.raising_state === 4)
+            || (!isReturningMember && (roomPhase === "STARTING" || roomPhase === "BATTLE"))
             || (!isReturningMember && waitingForExpectedMember)
             || sessionManager.isRoomRestoreBlocked(roomId, Number(viewerId))
             || missingAdmission
@@ -265,7 +267,7 @@ export async function handleHandshake(socket: net.Socket, data: any): Promise<vo
         if (roomUnavailable) {
             const reasons = [
                 !viewerAlreadyConnected && liveClients.length >= 3 ? "full" : "",
-                !isReturningMember && currentRoom.raising_state === 4 ? "battle_started" : "",
+                !isReturningMember && (roomPhase === "STARTING" || roomPhase === "BATTLE") ? "battle_started" : "",
                 !isReturningMember && waitingForExpectedMember ? "waiting_for_returning_member" : "",
                 sessionManager.isRoomRestoreBlocked(roomId, Number(viewerId)) ? "restore_blocked" : "",
                 missingAdmission ? "not_reserved" : "",
@@ -294,6 +296,7 @@ export async function handleHandshake(socket: net.Socket, data: any): Promise<vo
         const playerId = playerIds[0]
         const connectionId = data.connection_id || data.connectionId || `${socket.remoteAddress}:${socket.remotePort}`
         const client = sessionManager.createClient(socket, Number(viewerId), roomId, String(connectionId), playerId)
+        client.roomGeneration = currentRoom.lobby_generation
         client.clientState.tryTransition(ClientState.Handshaking)
 
         const party = buildRealParty(playerId)

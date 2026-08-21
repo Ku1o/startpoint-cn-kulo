@@ -64,6 +64,23 @@ class TestEtc1(unittest.TestCase):
         self.assertLessEqual(err, 2)
 
 
+class TestEacAlpha(unittest.TestCase):
+    def test_encode_decode_quality(self):
+        w, h = 64, 32
+        rgba = _gradient_rgba(w, h)
+        data = wf_atf.encode_eac_alpha(rgba, w, h)
+        self.assertEqual(len(data), (w // 4) * (h // 4) * 8)
+        decoded = wf_atf.decode_eac_alpha(data, w, h)
+        err = sum(abs(decoded[i] - rgba[i * 4 + 3]) for i in range(w * h)) / (w * h)
+        self.assertLess(err, 6, f"EAC alpha 编码质量异常: {err:.2f}")
+
+    def test_flat_alpha_is_exact(self):
+        w, h = 8, 8
+        rgba = bytearray(bytes((20, 40, 80, 137)) * (w * h))
+        decoded = wf_atf.decode_eac_alpha(wf_atf.encode_eac_alpha(rgba, w, h), w, h)
+        self.assertLessEqual(max(abs(value - 137) for value in decoded), 1)
+
+
 class TestAtfContainer(unittest.TestCase):
     def test_build_parse_roundtrip(self):
         w, h = 64, 32
@@ -91,6 +108,45 @@ class TestAtfContainer(unittest.TestCase):
         png = wf_atf.png_encode_rgba(48, 32, bytes(_gradient_rgba(48, 32)))
         with self.assertRaises(ValueError):
             wf_atf.build_cutin_atf(png)
+
+    def test_build_ios_etc2_interleaves_alpha_and_color(self):
+        w, h = 64, 32
+        png = wf_atf.png_encode_rgba(w, h, bytes(_gradient_rgba(w, h)))
+        atf = wf_atf.build_cutin_atf_ios(png)
+        parsed = wf_atf.parse_atf(atf)
+        self.assertEqual(parsed["slot"], 3)
+        self.assertEqual(parsed["layout"], "etc2-rgba")
+        self.assertEqual(parsed["mips"], 7)
+        for level, payload in enumerate(parsed["pairs"]):
+            mw, mh = max(w >> level, 1), max(h >> level, 1)
+            blocks = max((mw + 3) // 4, 1) * max((mh + 3) // 4, 1)
+            self.assertEqual(len(payload), blocks * 16)
+        source = _gradient_rgba(w, h)
+        decoded = wf_atf.decode_etc2_rgba(parsed["pairs"][0], w, h)
+        alpha_err = sum(
+            abs(decoded[i * 4 + 3] - source[i * 4 + 3])
+            for i in range(w * h)
+        ) / (w * h)
+        self.assertLess(alpha_err, 6)
+
+    def test_platform_pair_validation_rejects_android_copy(self):
+        w, h = 16, 8
+        png = wf_atf.png_encode_rgba(w, h, bytes(_gradient_rgba(w, h)))
+        android = wf_atf.build_cutin_atf(png)
+        ios = wf_atf.build_cutin_atf_ios(png, android)
+        report = wf_atf.validate_cutin_platform_pair(android, ios, png)
+        self.assertEqual(report["android_slot"], 2)
+        self.assertEqual(report["ios_slot"], 3)
+        with self.assertRaisesRegex(ValueError, "直接复制"):
+            wf_atf.validate_cutin_platform_pair(android, android, png)
+
+    def test_platform_pair_builder_uses_one_png_and_distinct_slots(self):
+        w, h = 16, 8
+        png = wf_atf.png_encode_rgba(w, h, bytes(_gradient_rgba(w, h)))
+        android, ios = wf_atf.build_cutin_platform_pair(png)
+        self.assertNotEqual(android, ios)
+        self.assertEqual(wf_atf.parse_atf(android)["slot"], 2)
+        self.assertEqual(wf_atf.parse_atf(ios)["slot"], 3)
 
 
 if __name__ == "__main__":

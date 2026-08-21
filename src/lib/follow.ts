@@ -4,6 +4,8 @@ import { getAccountFromPlayerIdSync, getPlayerSync } from "../data/domains/playe
 import { getRankDegree } from "./stamina";
 import { getServerTime, realToVirtual } from "../utils";
 import { getFavoritePartySelectionSync } from "./profileFavorite";
+import { getPlayerProfileSettingsSync } from "../data/domains/option";
+import { getPlayerProfileStatsSync } from "./profile-stats";
 
 export function buildFollowUserInfoSync(requesterPlayerId: number, targetPlayerId: number): any | null {
     const player = getPlayerSync(targetPlayerId);
@@ -50,7 +52,8 @@ export function buildTargetProfileSync(requesterPlayerId: number, targetPlayerId
     if (!publicInfo) return null;
 
     const characters = getPlayerCharactersSync(targetPlayerId);
-    const charCount = Object.keys(characters).length;
+    const stats = getPlayerProfileStatsSync(targetPlayerId, characters);
+    const profileSettings = getPlayerProfileSettingsSync(targetPlayerId);
     const favorite = getFavoritePartySelectionSync(
         targetPlayerId,
         player.leaderCharacterId,
@@ -83,13 +86,27 @@ export function buildTargetProfileSync(requesterPlayerId: number, targetPlayerId
             last_login_region: "CN",
             leader_character_full_shot_evolution_level:
                 favoriteLeader?.evolutionLevel ?? 0,
-            max_opened_mana_board_second_count: 0,
-            max_owned_character_count: charCount,
-            max_owned_degree_count: 1,
+            max_opened_mana_board_second_count:
+                profileSettings.showOpenedManaBoardSecondCount
+                    ? stats.maxOpenedManaBoardSecondCount
+                    : null,
+            max_owned_character_count: profileSettings.showOwnedCharacterCount
+                ? stats.maxOwnedCharacterCount
+                : null,
+            max_owned_degree_count: profileSettings.showOwnedDegreeCount
+                ? stats.maxOwnedDegreeCount
+                : null,
             name: publicInfo.name,
-            opened_mana_board_second_count: 0,
-            owned_character_count: charCount,
-            owned_degree_count: 1,
+            opened_mana_board_second_count:
+                profileSettings.showOpenedManaBoardSecondCount
+                    ? stats.openedManaBoardSecondCount
+                    : null,
+            owned_character_count: profileSettings.showOwnedCharacterCount
+                ? stats.ownedCharacterCount
+                : null,
+            owned_degree_count: profileSettings.showOwnedDegreeCount
+                ? stats.ownedDegreeCount
+                : null,
             rank: publicInfo.rank,
             role: publicInfo.role,
             viewer_id: publicInfo.viewer_id,

@@ -429,6 +429,14 @@ export class SeedValidator {
         const r = rarity - 3; if (this.testSeeds[r] === null) return false; this.testSeeds[r] = null; this.saveTestSeeds(); return true;
     }
     getMode(): PoolMode { return this.mode; } getSelectedMovieId(): string { return this.selectedMovieId; }
+    getTestSeed(rarity: number): number | null {
+        const rarityIndex = rarity - 3;
+        return this.testSeeds[rarityIndex] ?? null;
+    }
+    isKnownRarityMismatch(movieId: string, seed: number, expectedRarity: number): boolean {
+        const verifiedRarity = this.pool(movieId).verifiedPool.get(seed);
+        return verifiedRarity !== undefined && verifiedRarity !== expectedRarity - 3;
+    }
     setMode(m: PoolMode): void { this.mode = m; } setSelectedMovieId(id: string): void { this.selectedMovieId = id; this.saveConfig(); }
     getMovieIds(): string[] { return Array.from(this.pools.keys()); }
 

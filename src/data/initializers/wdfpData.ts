@@ -483,6 +483,25 @@ export default function init(
         FOREIGN KEY (player_id) REFERENCES players (id) ON DELETE CASCADE
     )`).run();
 
+    database.prepare(`CREATE TABLE IF NOT EXISTS players_encyclopedia_keywords (
+        encyclopedia_id INTEGER NOT NULL,
+        read INTEGER NOT NULL DEFAULT 0,
+        player_id INTEGER NOT NULL,
+        PRIMARY KEY (encyclopedia_id, player_id),
+        FOREIGN KEY (player_id) REFERENCES players (id) ON DELETE CASCADE
+    )`).run();
+
+    database.prepare(`CREATE TABLE IF NOT EXISTS players_player_history_settings (
+        player_id INTEGER PRIMARY KEY,
+        player_history_id INTEGER NOT NULL DEFAULT 1,
+        background_card_id INTEGER NOT NULL DEFAULT 1001,
+        degree_id INTEGER NOT NULL DEFAULT 1,
+        character_ids TEXT NOT NULL DEFAULT '[null,null,null]',
+        unison_character_ids TEXT NOT NULL DEFAULT '[null,null,null]',
+        topic_visibility TEXT NOT NULL DEFAULT '{}',
+        FOREIGN KEY (player_id) REFERENCES players (id) ON DELETE CASCADE
+    )`).run();
+
     database.prepare(`CREATE TABLE IF NOT EXISTS players_triggered_tutorials (
         id INTEGER NOT NULL,
         player_id INTEGER NOT NULL,
@@ -922,10 +941,12 @@ export default function init(
     database.prepare(`CREATE TABLE IF NOT EXISTS players_multi_special_exchange_campaigns (
         campaign_id INTEGER NOT NULL,
         status INTEGER NOT NULL,
+        ticket_item_id INTEGER,
         player_id INTEGER NOT NULL,
         PRIMARY KEY (campaign_id, player_id),
         FOREIGN KEY (player_id) REFERENCES players (id) ON DELETE CASCADE
     )`).run();
+    try { database.prepare(`ALTER TABLE players_multi_special_exchange_campaigns ADD COLUMN ticket_item_id INTEGER`).run(); } catch { /* column already exists */ }
 
     database.prepare(`CREATE TABLE IF NOT EXISTS players_rush_events (
         player_id INTEGER NOT NULL,

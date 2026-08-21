@@ -224,6 +224,7 @@ def require_cn_profile(runtime=None) -> dict:
         "upload": profile_store,
         "medium": expected_parent / "medium_upload",
         "android": expected_parent / "android_upload",
+        "ios": expected_parent / "ios_upload",
     }
     for name, expected in expected_roots.items():
         if roots[name] != expected.resolve():
@@ -233,6 +234,7 @@ def require_cn_profile(runtime=None) -> dict:
         "upload": str(roots["upload"]),
         "medium": str(roots["medium"]),
         "android": str(roots["android"]),
+        "ios": str(roots["ios"]),
         "cdndata": str(Path(actual_cdndata).resolve()),
     }
 
@@ -241,7 +243,7 @@ def profile_binding(runtime=None) -> dict:
     profile = require_cn_profile(runtime)
     payload = {
         key: profile[key]
-        for key in ("profile_id", "upload", "medium", "android", "cdndata")
+        for key in ("profile_id", "upload", "medium", "android", "ios", "cdndata")
     }
     payload["root_fingerprint"] = hashlib.sha256(
         json.dumps(payload, sort_keys=True, separators=(",", ":")).encode()
@@ -956,14 +958,12 @@ def _prevalidate_apply(gui, pack: Path, preview: list[dict]) -> list[Path]:
         raise ValueError("pack/store write plan does not cover every staged file")
 
     mutation_paths = []
-    planned_logicals = set()
     for item in preview:
         source = files[item["relative"]]
         _store_bytes(source)
         destination = wf_assets.path_in_root(
             gui.TARGET_STORE, item["root"], item["logical"])
         mutation_paths.append(destination)
-        planned_logicals.add(item["logical"])
 
     for png in sorted(pack.rglob("*.png")):
         relative = png.relative_to(pack).as_posix()
@@ -971,12 +971,12 @@ def _prevalidate_apply(gui, pack: Path, preview: list[dict]) -> list[Path]:
             continue
         atf_logical = (
             f"character/{NEW_CODE}/{relative[:-4]}.atf.deflate")
-        if atf_logical in planned_logicals:
-            continue
-        located = wf_assets.locate(gui.TARGET_STORE, atf_logical)
-        if located:
-            located[1].read_bytes()
-            mutation_paths.append(located[1])
+        for platform in ("android", "ios"):
+            destination = wf_assets.path_in_root(
+                gui.TARGET_STORE, platform, atf_logical)
+            if destination.is_file():
+                destination.read_bytes()
+            mutation_paths.append(destination)
 
     core_obj = getattr(gui, "core", None)
     table_path = getattr(core_obj, "table_path", None)

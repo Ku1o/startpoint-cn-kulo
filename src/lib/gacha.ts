@@ -10,9 +10,10 @@ import { givePlayerCharacterSync } from "./character";
 import { givePlayerEquipmentSync } from "./equipment";
 import { givePlayerRewardsSync } from "./quest";
 import { getCharacterDataSync } from "./assets";
-import { BoxGachaBox, BoxGachaDrawResult, BoxGachaIdReward, BoxGachaRewardTier, BoxGachaRewardType, CharacterGacha, CharacterReward, CurrencyReward, EquipmentItemReward, Gacha, GachaCharacterDraw, GachaDrawResult, GachaDraws, GachaMovieSeeds, GachaMovieType, GachaType, PlayerRewardResult, Reward, RewardPlayerGachaDrawResult, RewardType } from "./types";
+import { BoxGachaBox, BoxGachaDrawResult, BoxGachaIdReward, BoxGachaRewardTier, BoxGachaRewardType, CharacterGacha, CharacterReward, CurrencyReward, EquipmentItemReward, Gacha, GachaCharacterDraw, GachaDrawResult, GachaDraws, GachaMovieType, GachaType, PlayerRewardResult, Reward, RewardPlayerGachaDrawResult, RewardType } from "./types";
 import { computeEquipmentGachaMovieEffectsForGacha, EquipmentMovieDrawInput } from "./gacha-equipment-movie";
 import { loadMovieSeeds } from "./gacha-movie-seeds";
+import gachaMovieVariantCatalog from "./gacha-movie-variants";
 
 const GACHA_VERBOSE_LOGS = /^(1|true|yes)$/i.test(process.env.GACHA_VERBOSE_LOGS ?? "");
 
@@ -169,14 +170,154 @@ export function drawGachaSync(
     return drawGachaWithMetadataSync(gacha, drawAmount).map((draw) => draw.id)
 }
 
+export interface PlannedCharacterGachaMovie {
+    characterId: number;
+    rarity: number;
+    movieId: string;
+    seed: number;
+    moviePlayable: boolean;
+    rarityUp: boolean;
+    requiresVerification: boolean;
+}
+
+export interface PlanCharacterGachaMoviesOptions {
+    skipNoRarityUpMovie: boolean;
+}
+
+function selectLegacyMovieSeed(
+    movieId: string,
+    movieType: GachaMovieType,
+    rarity: number,
+    characterId: number,
+    drawIndex: number,
+    usedSeeds: ReadonlySet<number>
+): number {
+    const seedKey = String(6 - rarity)
+    const movieSeeds = loadMovieSeeds(movieId)
+    const seedPool: number[] = movieSeeds[seedKey]?.[String(movieType)] || []
+    const fallbackPool: number[] = movieSeeds[seedKey]?.["0"] || []
+    const pool = seedPool.length > 0 ? seedPool : fallbackPool
+    if (pool.length === 0) return characterId * 1000
+
+    const selected = seedValidator.getSeed(movieId, rarity, pool, characterId, drawIndex)
+    if (!usedSeeds.has(selected) || seedValidator.getTestSeed(rarity) === selected) return selected
+
+    // Debug modes may select from their small curated pools. Preserve those
+    // modes while avoiding accidental repeats when another seed is available.
+    const replacement = pool.find((seed) =>
+        !usedSeeds.has(seed) && !seedValidator.isKnownRarityMismatch(movieId, seed, rarity)
+    )
+    return replacement ?? selected
+}
+
+/**
+ * Plans character movie seeds before the reward transaction. Natural mode only
+ * performs cached catalog lookup and array indexing; physics stays offline.
+ */
+export function planCharacterGachaMovies(
+    gacha: CharacterGacha,
+    characterIds: number[],
+    options: PlanCharacterGachaMoviesOptions
+): PlannedCharacterGachaMovie[] {
+    seedValidator.flushAll()
+
+    const usedSeeds = new Set<number>()
+    return characterIds.map((characterId, drawIndex) => {
+        const rarity = getCharacterDataSync(characterId)?.rarity || 3
+        const rarityIndex = 5 - rarity
+        const movieType = randomPoolItem(1, 101, rankMovieRates[rarityIndex])
+            ?? GachaMovieType.NORMAL
+        const movieId = movieType === GachaMovieType.GUARANTEE
+            ? (gacha.guaranteeMovieName || gacha.movieName || "normal")
+            : (gacha.movieName || "normal")
+        const movieConfig = MOVIE_CONFIGS[movieId]
+
+        if (movieConfig?.threshold?.isRarity5) {
+            return {
+                characterId,
+                rarity,
+                movieId,
+                seed: characterId * 1000,
+                moviePlayable: false,
+                rarityUp: false,
+                requiresVerification: false,
+            }
+        }
+
+        const testSeed = seedValidator.getTestSeed(rarity)
+        if (testSeed !== null) {
+            return {
+                characterId,
+                rarity,
+                movieId,
+                seed: testSeed,
+                moviePlayable: true,
+                rarityUp: false,
+                requiresVerification: true,
+            }
+        }
+
+        if (seedValidator.getMode() === "natural") {
+            const selected = gachaMovieVariantCatalog.select({
+                movieId,
+                rarity,
+                skipNoRarityUpMovie: options.skipNoRarityUpMovie,
+                usedSeeds,
+                isRejected: (seed) => seedValidator.isKnownRarityMismatch(movieId, seed, rarity),
+            })
+            if (selected !== null) {
+                usedSeeds.add(selected.seed)
+                return {
+                    characterId,
+                    rarity,
+                    movieId,
+                    seed: selected.seed,
+                    moviePlayable: selected.moviePlayable,
+                    rarityUp: selected.rarityUp,
+                    requiresVerification: true,
+                }
+            }
+        }
+
+        const seed = selectLegacyMovieSeed(
+            movieId,
+            movieType,
+            rarity,
+            characterId,
+            drawIndex,
+            usedSeeds
+        )
+        usedSeeds.add(seed)
+        return {
+            characterId,
+            rarity,
+            movieId,
+            seed,
+            moviePlayable: true,
+            rarityUp: false,
+            requiresVerification: true,
+        }
+    })
+}
+
 export function rewardPlayerGachaDrawResultSync(
     playerId: number,
     gacha: Gacha,
     gachaDrawResult: number[],
-    gachaDrawMetadata?: GachaDrawMetadata[]
+    gachaDrawMetadata?: GachaDrawMetadata[],
+    plannedCharacterMovies?: PlannedCharacterGachaMovie[]
 ): RewardPlayerGachaDrawResult {
 
-    seedValidator.flushAll();  // Clean up stale sentSeeds from previous draws
+    const characterMoviePlan = gacha.type === GachaType.CHARACTER
+        ? plannedCharacterMovies ?? planCharacterGachaMovies(
+            gacha as CharacterGacha,
+            gachaDrawResult,
+            { skipNoRarityUpMovie: false }
+        )
+        : []
+    if (gacha.type !== GachaType.CHARACTER) {
+        seedValidator.flushAll()
+    }
 
     const draws: GachaDraws = []
     const characters: Map<number, Object> = new Map()
@@ -184,68 +325,46 @@ export function rewardPlayerGachaDrawResultSync(
     const items: Map<number, number> = new Map()
 
     if (gacha.type == GachaType.CHARACTER) {
-        const characterGacha = gacha as CharacterGacha
-        var drawIndex = 0
         // reward characters (flat array, no grouping)
-        for (const characterId of gachaDrawResult) {
+        for (let drawIndex = 0; drawIndex < gachaDrawResult.length; drawIndex += 1) {
+            const characterId = gachaDrawResult[drawIndex]
+            const plannedMovie = characterMoviePlan[drawIndex]
+            if (!plannedMovie || plannedMovie.characterId !== characterId) {
+                throw new Error(`character gacha movie plan mismatch at draw ${drawIndex}`)
+            }
             const giveResult = givePlayerCharacterSync(playerId, characterId)
             
             if (giveResult !== null) {
-                // Build draw with CN-validated seeds from pre-computed pool
-                // Generated by gacha-physics.ts: MersenneTwister + FixedFallingField simulation
-                const rarity = getCharacterDataSync(characterId)?.rarity || 3
-
-                // rarityIndex for rankMovieRates: 0=★5, 1=★4, 2=★3
-                const rarityIndex = 5 - rarity
-
-                // Select movie type: NORMAL (80%) or GUARANTEE (20%) for ★4/★5, NORMAL only for ★3
-                const movieType = randomPoolItem(1, 101, rankMovieRates[rarityIndex])
-                    ?? GachaMovieType.NORMAL
-
-                // movieName determines which physics config the CLIENT uses
-                const movieId = movieType === GachaMovieType.GUARANTEE
-                    ? (characterGacha.guaranteeMovieName || characterGacha.movieName || "normal")
-                    : (characterGacha.movieName || "normal")
-
-                // rarity_5_guarantee: isRarity5=true → ball.rarity forced to 2, moviePlayable=false
-                // Client skips ALL physics. Seed is irrelevant — use characterId*1000.
-                const movieConfig = MOVIE_CONFIGS[movieId];
-                if (movieConfig?.threshold?.isRarity5) {
-                    const draw: GachaCharacterDraw = {
+                if (!plannedMovie.requiresVerification) {
+                    draws.push({
                         "character_id": characterId,
-                        "movie_id": movieId,
-                        "seed": characterId * 1000,
+                        "movie_id": plannedMovie.movieId,
+                        "seed": plannedMovie.seed,
                         "entry_count": 1
-                    }
-                    draws.push(draw)
+                    })
                     characters.set(characterId, giveResult.character)
-                    logGachaDetail(`[GACHA-DETAIL] rarity=${rarity}★ seed=${characterId * 1000} movie=${movieId} charId=${characterId} [SKIP]`)
+                    logGachaDetail(
+                        `[GACHA-DETAIL] rarity=${plannedMovie.rarity}★ seed=${plannedMovie.seed}`
+                        + ` movie=${plannedMovie.movieId} charId=${characterId} [SKIP]`
+                    )
                     continue
                 }
 
-                // Load movie-specific seed pool (e.g., gacha_movie_seeds_fes.json)
-                // seed pool key: "1"=★5, "2"=★4, "3"=★3
-                const seedKey = String(6 - rarity)
-                const movieSeeds = loadMovieSeeds(movieId)
-                const seedPool: number[] = (movieSeeds as any)[seedKey]?.[String(movieType)] || []
-                const fallbackPool: number[] = (movieSeeds as any)[seedKey]?.["0"] || []
-                const pool = seedPool.length > 0 ? seedPool : fallbackPool
-                // Use seed validator with pool mode support
-                const seed = pool.length > 0
-                    ? seedValidator.getSeed(movieId, rarity, pool, characterId, drawIndex)
-                    : characterId * 1000
+                seedValidator.markSent(plannedMovie.movieId, plannedMovie.seed, plannedMovie.rarity)
 
-                drawIndex += 1
-
-                // Mark seed as TESTING (pending verification)
-                seedValidator.markSent(movieId, seed, rarity)
-
-                logGachaDetail(`[GACHA-DETAIL] rarity=${rarity}★ seed=${seed} movie=${movieId} charId=${characterId}`)
+                const movieFlags = [
+                    plannedMovie.moviePlayable ? "PLAY" : "SKIP",
+                    plannedMovie.rarityUp ? "RARITY-UP" : "NO-RARITY-UP",
+                ].join(",")
+                logGachaDetail(
+                    `[GACHA-DETAIL] rarity=${plannedMovie.rarity}★ seed=${plannedMovie.seed}`
+                    + ` movie=${plannedMovie.movieId} charId=${characterId} [${movieFlags}]`
+                )
 
                 const draw: GachaCharacterDraw = {
                     "character_id": characterId,
-                    "movie_id": movieId,
-                    "seed": seed,
+                    "movie_id": plannedMovie.movieId,
+                    "seed": plannedMovie.seed,
                     "entry_count": 1
                 }
                     

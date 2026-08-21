@@ -4,6 +4,7 @@ const assert = require("assert");
 
 const {
   drawGachaWithMetadataSync,
+  planCharacterGachaMovies,
   selectWeightedIndexByRoll,
 } = require("../src/lib/gacha.ts");
 
@@ -52,5 +53,30 @@ assert.deepStrictEqual(
     false, false, false, false, false, false, false, false, false, true,
   ],
 );
+
+const normalCharacterGacha = {
+  type: 0,
+  movieName: "normal",
+  guaranteeMovieName: "normal_guarantee",
+  pool: {},
+};
+const rarity3Characters = Array(1000).fill(311001);
+const playedMovies = planCharacterGachaMovies(
+  normalCharacterGacha,
+  rarity3Characters,
+  { skipNoRarityUpMovie: false },
+);
+assert.ok(playedMovies.some((movie) => movie.moviePlayable));
+assert.ok(playedMovies.some((movie) => !movie.moviePlayable));
+assert.ok(playedMovies.every((movie) => !movie.rarityUp));
+assert.strictEqual(new Set(playedMovies.map((movie) => movie.seed)).size, 1000);
+
+const skippedMovies = planCharacterGachaMovies(
+  normalCharacterGacha,
+  rarity3Characters.slice(0, 10),
+  { skipNoRarityUpMovie: true },
+);
+assert.ok(skippedMovies.every((movie) => !movie.moviePlayable && !movie.rarityUp));
+assert.strictEqual(new Set(skippedMovies.map((movie) => movie.seed)).size, 10);
 
 console.log("gacha_draw_weights tests passed");
