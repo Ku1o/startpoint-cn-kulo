@@ -3084,9 +3084,15 @@
     "skill_count": 3
   },
   "129997": {
-    "name": "克劳德",
+    "name": "克劳斯",
     "rarity": 5,
     "element": 1,
+    "skill_count": 6
+  },
+  "149997": {
+    "name": "墨斯伊克",
+    "rarity": 5,
+    "element": 3,
     "skill_count": 6
   }
 }

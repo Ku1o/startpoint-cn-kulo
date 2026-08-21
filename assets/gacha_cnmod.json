@@ -34,95 +34,105 @@
         {
           "id": 139997,
           "rank": 5,
-          "odds": 11800,
+          "odds": 10620,
           "isRateUp": true,
           "isLimited": true,
           "isExchangeable": true,
-          "rarity": 7.407407407407407,
+          "rarity": 6.666666666666667,
           "trialReadingForced": false
         },
         {
           "id": 129999,
           "rank": 5,
-          "odds": 11800,
+          "odds": 10620,
           "isRateUp": true,
           "isLimited": true,
           "isExchangeable": true,
-          "rarity": 7.407407407407407,
+          "rarity": 6.666666666666667,
           "trialReadingForced": false
         },
         {
           "id": 139998,
           "rank": 5,
-          "odds": 11800,
+          "odds": 10620,
           "isRateUp": true,
           "isLimited": true,
           "isExchangeable": true,
-          "rarity": 7.407407407407407,
+          "rarity": 6.666666666666667,
           "trialReadingForced": false
         },
         {
           "id": 139999,
           "rank": 5,
-          "odds": 11800,
+          "odds": 10620,
           "isRateUp": true,
           "isLimited": true,
           "isExchangeable": true,
-          "rarity": 7.407407407407407,
+          "rarity": 6.666666666666667,
           "trialReadingForced": false
         },
         {
           "id": 149998,
           "rank": 5,
-          "odds": 11800,
+          "odds": 10620,
           "isRateUp": true,
           "isLimited": true,
           "isExchangeable": true,
-          "rarity": 7.407407407407407,
+          "rarity": 6.666666666666667,
           "trialReadingForced": false
         },
         {
           "id": 149999,
           "rank": 5,
-          "odds": 11800,
+          "odds": 10620,
           "isRateUp": true,
           "isLimited": true,
           "isExchangeable": true,
-          "rarity": 7.407407407407407,
+          "rarity": 6.666666666666667,
           "trialReadingForced": false
         },
         {
           "id": 169998,
           "rank": 5,
-          "odds": 11800,
+          "odds": 10620,
           "isRateUp": true,
           "isLimited": true,
           "isExchangeable": true,
-          "rarity": 7.407407407407407,
+          "rarity": 6.666666666666667,
           "trialReadingForced": false
         },
         {
           "id": 169999,
           "rank": 5,
-          "odds": 11800,
+          "odds": 10620,
           "isRateUp": true,
           "isLimited": true,
           "isExchangeable": true,
-          "rarity": 7.407407407407407,
+          "rarity": 6.666666666666667,
           "trialReadingForced": false
         },
         {
           "id": 179999,
           "rank": 5,
-          "odds": 11800,
+          "odds": 10620,
           "isRateUp": true,
           "isLimited": true,
           "isExchangeable": true,
-          "rarity": 7.407407407407407,
+          "rarity": 6.666666666666667,
           "trialReadingForced": false
         },
         {
           "id": 129997,
+          "rank": 5,
+          "odds": 10620,
+          "isRateUp": true,
+          "isLimited": true,
+          "isExchangeable": true,
+          "rarity": 6.666666666666667,
+          "trialReadingForced": false
+        },
+        {
+          "id": 149997,
           "rank": 5,
           "odds": 40356,
           "isRateUp": true,
@@ -137,7 +147,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -147,7 +157,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -157,7 +167,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -167,7 +177,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -177,7 +187,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -187,7 +197,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -197,7 +207,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -207,7 +217,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -217,7 +227,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -227,7 +237,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -237,7 +247,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -247,7 +257,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -257,7 +267,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -267,7 +277,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -277,7 +287,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -287,7 +297,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -297,7 +307,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -307,7 +317,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -317,7 +327,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -327,7 +337,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -337,7 +347,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -347,7 +357,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -357,7 +367,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -367,7 +377,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -377,7 +387,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -387,7 +397,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -397,7 +407,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -407,7 +417,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -417,7 +427,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -427,7 +437,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -437,7 +447,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -447,7 +457,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -457,7 +467,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -467,7 +477,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -477,7 +487,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -487,7 +497,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -497,7 +507,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -507,7 +517,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -517,7 +527,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -527,7 +537,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -537,7 +547,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -547,7 +557,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -557,7 +567,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -567,7 +577,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -577,7 +587,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -587,7 +597,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -597,7 +607,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -607,7 +617,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -617,7 +627,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -627,7 +637,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -637,7 +647,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -647,7 +657,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -657,7 +667,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -667,7 +677,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -677,7 +687,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -687,7 +697,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -697,7 +707,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -707,7 +717,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -717,7 +727,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -727,7 +737,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -737,7 +747,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -747,7 +757,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -757,7 +767,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -767,7 +777,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -777,7 +787,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -787,7 +797,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -797,7 +807,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -807,7 +817,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -817,7 +827,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -827,7 +837,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -837,7 +847,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -847,7 +857,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -857,7 +867,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -867,7 +877,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -877,7 +887,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -887,7 +897,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -897,7 +907,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -907,7 +917,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -917,7 +927,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -927,7 +937,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -937,7 +947,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -947,7 +957,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -957,7 +967,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -967,7 +977,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -977,7 +987,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -987,7 +997,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -997,7 +1007,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -1007,7 +1017,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -1017,7 +1027,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -1027,7 +1037,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -1037,7 +1047,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -1047,7 +1057,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -1057,7 +1067,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -1067,7 +1077,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -1077,7 +1087,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -1087,7 +1097,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -1097,7 +1107,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -1297,7 +1307,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -1307,7 +1317,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -1317,7 +1327,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -1327,7 +1337,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -1337,7 +1347,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -1347,7 +1357,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -1357,7 +1367,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -1367,7 +1377,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -1377,7 +1387,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -1387,7 +1397,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -1397,7 +1407,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -1407,7 +1417,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -1417,7 +1427,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -1427,7 +1437,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -1437,7 +1447,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -1447,7 +1457,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -1457,7 +1467,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -1467,7 +1477,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -1477,7 +1487,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -1487,7 +1497,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -1497,7 +1507,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -1507,7 +1517,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -1517,7 +1527,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -1527,7 +1537,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -1537,7 +1547,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -1547,7 +1557,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -1557,7 +1567,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -1567,7 +1577,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -1577,7 +1587,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -1587,7 +1597,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -1597,7 +1607,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -1607,7 +1617,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -1617,7 +1627,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -1627,7 +1637,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -1637,7 +1647,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -1647,7 +1657,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -1657,7 +1667,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -1667,7 +1677,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -1677,7 +1687,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -1687,7 +1697,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -1697,7 +1707,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -1707,7 +1717,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -1717,7 +1727,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -1727,7 +1737,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -1737,7 +1747,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -1747,7 +1757,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -1757,7 +1767,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -1767,7 +1777,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -1777,7 +1787,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -1787,7 +1797,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -1797,7 +1807,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -1807,7 +1817,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -1817,7 +1827,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -1827,7 +1837,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -1837,7 +1847,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -1847,7 +1857,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -1857,7 +1867,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -1867,7 +1877,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -1877,7 +1887,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -1887,7 +1897,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -1897,7 +1907,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -1907,7 +1917,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -1917,7 +1927,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -1927,7 +1937,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -1937,7 +1947,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -1947,7 +1957,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -1957,7 +1967,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -1967,7 +1977,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -1977,7 +1987,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -1987,7 +1997,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -1997,7 +2007,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -2007,7 +2017,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -2017,7 +2027,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -2027,7 +2037,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -2037,7 +2047,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -2047,7 +2057,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -2057,7 +2067,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -2067,7 +2077,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -2077,7 +2087,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -2087,7 +2097,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -2097,7 +2107,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -2107,7 +2117,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -2117,7 +2127,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -2127,7 +2137,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -2137,7 +2147,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -2147,7 +2157,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -2157,7 +2167,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -2167,7 +2177,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -2177,7 +2187,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -2187,7 +2197,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -2197,7 +2207,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -2207,7 +2217,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -2217,7 +2227,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -2227,7 +2237,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -2237,7 +2247,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -2247,7 +2257,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -2257,7 +2267,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -2267,7 +2277,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -2277,7 +2287,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -2287,7 +2297,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -2297,7 +2307,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -2307,7 +2317,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -2317,7 +2327,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -2327,7 +2337,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -2337,7 +2347,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -2347,7 +2357,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -2357,7 +2367,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -2367,7 +2377,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -2377,7 +2387,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -2387,7 +2397,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -2397,7 +2407,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -2407,7 +2417,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -2417,7 +2427,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -2427,7 +2437,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -2437,7 +2447,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -2447,7 +2457,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -2457,7 +2467,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -2467,7 +2477,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -2477,7 +2487,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         },
@@ -2487,7 +2497,7 @@
           "odds": 6129,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": true,
+          "isExchangeable": false,
           "rarity": 3.847457627118644,
           "trialReadingForced": false
         }
