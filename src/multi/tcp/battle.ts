@@ -2,11 +2,7 @@ import * as net from "net"
 import { sessionManager } from "../state/SessionManager"
 import type { SessionClient } from "../state/SessionManager"
 import { relayToBattleRoom } from "./relay"
-import {
-    recordBattleNotify,
-    recordBattleReceive,
-    recordBattleServerSend,
-} from "./chain-diagnostic"
+import { recordBattleNotify } from "./chain-diagnostic"
 
 function findBattleClientBySocket(socket: net.Socket): SessionClient | undefined {
     const client = sessionManager.findClientBySocket(socket)
@@ -14,14 +10,13 @@ function findBattleClientBySocket(socket: net.Socket): SessionClient | undefined
 }
 
 function sendToBattleClient(client: SessionClient, data: unknown, channel: string): void {
-    const result = sessionManager.sendJson(client.socket, data, {
+    sessionManager.sendJson(client.socket, data, {
         roomNumber: client.roomNumber,
         connectionId: client.connectionId,
         viewerId: client.viewerId,
         roomGeneration: client.roomGeneration,
         channel,
     })
-    recordBattleServerSend(client, channel, result, data)
 }
 
 function handleBattleNotify(socket: net.Socket, data: unknown): void {
@@ -75,10 +70,7 @@ export function handleBattleMessage(socket: net.Socket, data: unknown): void {
     if (!Array.isArray(data)) return
     const tag = data[0] as number
     const activityClient = findBattleClientBySocket(socket)
-    if (activityClient) {
-        sessionManager.noteBattleActivity(activityClient.connectionId)
-        recordBattleReceive(activityClient, data)
-    }
+    if (activityClient) sessionManager.noteBattleActivity(activityClient.connectionId)
 
     switch (tag) {
         case 0: // Notify
