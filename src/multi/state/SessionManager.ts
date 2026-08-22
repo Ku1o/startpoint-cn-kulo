@@ -510,9 +510,10 @@ export class SessionManager {
     }
 
     commitRoomDisband(roomNumber: string, reason: string): boolean {
-        const waitingClients = this.getClientsInRoom(roomNumber)
+        const roomClients = this.getClientsInRoom(roomNumber)
+        const lobbyClients = roomClients.filter(client => !client.isBattle)
         const battleClients = this.getConnectedBattleClients(roomNumber)
-        const allClients = [...new Set([...waitingClients, ...battleClients])]
+        const allClients = [...new Set([...roomClients, ...battleClients])]
         this.clearBattleHeartbeatLeasesForRoom(roomNumber)
         let deleted = false
         try {
@@ -525,7 +526,10 @@ export class SessionManager {
             this.removeRoomState(roomNumber)
         }
         if (!deleted) return false
-        for (const client of allClients) {
+        // MeetingServerMessage.Disbanded is valid only on cooperation_room.
+        // Sending its enum index (6) to cooperation_battle makes the battle
+        // unserializer dereference a missing enum entry and crash with C5602.
+        for (const client of lobbyClients) {
             this.sendJson(client.socket, [1, [6, "multibattle_room_dismissed"]], {
                 roomNumber,
                 connectionId: client.connectionId,
