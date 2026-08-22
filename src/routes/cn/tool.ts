@@ -5,6 +5,7 @@ import { getAccountSync, insertAccountSync, updateAccountSync } from "../../data
 import { getPlayerSync, insertDefaultPlayerSync } from "../../data/domains/player"
 import { SessionType } from "../../data/types";
 import { saveAccountDefaultPlayer } from "../../data/activeAccount";
+import { getDb } from "../../data/db";
 
 interface CnSignupBody {
     device_id: number;
@@ -30,6 +31,22 @@ function generateLoginToken(): string {
 }
 
 const viewerIdToAccountId = new Map<number, number>();
+
+function createAccountForDevice(deviceId: number): number {
+    const created = getDb().transaction(() => {
+        const account = insertAccountSync({
+            appId: "wf_cn", idpAlias: "", idpCode: "leiting", idpId: "", status: "normal"
+        })
+        const player = insertDefaultPlayerSync(account.id)
+        insertDeviceBindingSync(deviceId, account.id)
+        return { accountId: account.id, playerId: player.id }
+    })()
+
+    // Persist the management-panel preference only after the database commit.
+    // A failed player materialization must not leave an account with no save.
+    saveAccountDefaultPlayer(created.accountId, created.playerId)
+    return created.accountId
+}
 
 interface GetHeaderResponseBody {
     viewer_id: number
@@ -96,23 +113,11 @@ const routes = async (fastify: FastifyInstance) => {
             } else {
                 // Account was deleted — clean up stale binding and create new account
                 deleteDeviceBindingSync(deviceId)
-                const account = insertAccountSync({
-                    appId: "wf_cn", idpAlias: "", idpCode: "leiting", idpId: "", status: "normal"
-                })
-                accountId = account.id
-                const player = insertDefaultPlayerSync(accountId)
-                saveAccountDefaultPlayer(accountId, player.id)
-                insertDeviceBindingSync(deviceId, accountId)
+                accountId = createAccountForDevice(deviceId)
             }
         } else {
             // New device → create account
-            const account = insertAccountSync({
-                appId: "wf_cn", idpAlias: "", idpCode: "leiting", idpId: "", status: "normal"
-            })
-            accountId = account.id
-            const player = insertDefaultPlayerSync(accountId)
-            saveAccountDefaultPlayer(accountId, player.id)
-            insertDeviceBindingSync(deviceId, accountId)
+            accountId = createAccountForDevice(deviceId)
         }
 
         if (!viewerId) {

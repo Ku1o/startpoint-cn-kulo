@@ -73,6 +73,12 @@ export default function getDatabase(
     const db = new sqlite3(absoluteDatabasePath)
 
     // set pragma
+    // Large settlement and initial-account transactions can spill SQLite's
+    // statement journal into the process temp directory.  Windows RDP/service
+    // temp paths are not stable for a long-running server, so keep SQLite's
+    // temporary data in memory while the durable database remains in WAL mode.
+    db.pragma('temp_store = MEMORY')
+    console.log(`[DB] temp_store=${db.pragma('temp_store', { simple: true })} (2=MEMORY)`)
     db.pragma('journal_mode = WAL')
     db.pragma('busy_timeout = 1000')
     db.pragma('foreign_keys = OFF')
