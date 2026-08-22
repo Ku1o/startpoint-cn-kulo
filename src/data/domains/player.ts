@@ -1211,6 +1211,33 @@ export function adjustPlayerExpPoolSync(
     return updated.exp_pool
 }
 
+const LEGACY_REPLACE_PRESERVED_RELATIONS = [
+    {
+        table: "players_follows",
+        where: "follower_player_id = ? OR followed_player_id = ?",
+        parameters: (playerId: number) => [playerId, playerId],
+    },
+    {
+        table: "published_parties",
+        where: "owner_player_id = ?",
+        parameters: (playerId: number) => [playerId],
+    },
+    {
+        table: "quest_npc_party_pool",
+        where: "source_player_id = ?",
+        parameters: (playerId: number) => [playerId],
+    },
+    {
+        table: "raid_event_global_kill_ledger",
+        where: "player_id = ?",
+        parameters: (playerId: number) => [playerId],
+    },
+] as const
+
+function quotePlayerDataIdentifier(value: string): string {
+    return `"${value.replace(/"/g, '""')}"`
+}
+
 /**
  * Replaces a player's data with the provided MergedPlayerData object.
  * 
@@ -1251,8 +1278,27 @@ export function replacePlayerDataSync(
     }
 
     const replace = getDb().transaction(() => {
+        const preservedRelations = LEGACY_REPLACE_PRESERVED_RELATIONS.map(specification => ({
+            table: specification.table,
+            rows: getDb().prepare(`
+                SELECT * FROM ${quotePlayerDataIdentifier(specification.table)}
+                WHERE ${specification.where}
+            `).all(...specification.parameters(playerId)) as Array<Record<string, unknown>>,
+        }))
+
         deletePlayerSync(playerId)
         insertMergedPlayerDataSync(account.id, replaceWith)
+
+        for (const relation of preservedRelations) {
+            if (relation.rows.length === 0) continue
+            const columns = Object.keys(relation.rows[0])
+            const insert = getDb().prepare(`
+                INSERT INTO ${quotePlayerDataIdentifier(relation.table)}
+                    (${columns.map(quotePlayerDataIdentifier).join(", ")})
+                VALUES (${columns.map(() => "?").join(", ")})
+            `)
+            for (const row of relation.rows) insert.run(...columns.map(column => row[column]))
+        }
 
         const readbackPlayer = getPlayerSync(playerId)
         if (readbackPlayer === null) throw new Error("Replacement readback is missing the player.");

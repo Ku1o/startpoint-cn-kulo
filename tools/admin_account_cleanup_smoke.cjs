@@ -17,6 +17,7 @@ async function main() {
     const { insertDefaultPlayerSync } = require(`${serverModuleRoot}/data/domains/player`)
     const { insertDeviceBindingSync } = require(`${serverModuleRoot}/data/domains/session`)
     const { setActivePlayerId } = require(`${serverModuleRoot}/data/activeAccount`)
+    const { stopQuestNpcPartyPoolWorker } = require(`${serverModuleRoot}/multi/npc/player-party-pool`)
     const serverRoutes = require(`${serverModuleRoot}/routes/web_api/server`).default
 
     const createAccount = (suffix, note) => {
@@ -146,6 +147,7 @@ async function main() {
     }))
 
     await app.close()
+    await stopQuestNpcPartyPoolWorker()
     getDb().close()
 }
 
@@ -159,4 +161,8 @@ main().then(
     if (path.dirname(dataDirectory) === os.tmpdir() && path.basename(dataDirectory).startsWith("sp-admin-cleanup-")) {
         fs.rmSync(dataDirectory, { recursive: true, force: true })
     }
+}).then(() => {
+    // The admin route tree imports long-lived multiplayer maintenance timers.
+    // All assertions, workers, database handles, and temp files are closed.
+    process.exit(process.exitCode ?? 0)
 })

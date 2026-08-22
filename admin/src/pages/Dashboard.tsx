@@ -18,6 +18,10 @@ interface DefaultSaveMeta {
     playerName?: string | null
     exportedAt?: string | null
     sourcePlayerId?: number | null
+    version?: number | null
+    scope?: string | null
+    includedTableCount?: number | null
+    rowCount?: number | null
 }
 
 interface DatabaseBackupResult {
@@ -322,12 +326,20 @@ export default function Dashboard() {
                     <Card title="默认存档">
                         <Space direction="vertical" className="admin-stack">
                             <Typography.Text type="secondary">
-                                上传玩家详情页「导出存档」得到的 JSON。之后任意账户「新建存档」时，将用它替换空存档。
+                                上传玩家详情页「导出完整存档」得到的 JSON。之后任意账户「新建存档」时，将复制其中的持久化玩家数据；邮箱、领取历史、设备会话和跨玩家关系不会复制。
                             </Typography.Text>
                             {defSave?.exists ? (
                                 <Space wrap>
                                     <Tag color="green">已设置</Tag>
+                                    <Tag color={defSave.version === 2 ? "blue" : "orange"}>
+                                        {defSave.version === 2 ? "完整存档 V2" : `旧版 V${defSave.version ?? "?"}（部分数据）`}
+                                    </Tag>
                                     <Typography.Text>模板玩家：{defSave.playerName || "-"}</Typography.Text>
+                                    {defSave.version === 2 && defSave.rowCount != null && (
+                                        <Typography.Text type="secondary">
+                                            {defSave.includedTableCount ?? "-"} 张表 / {defSave.rowCount} 行
+                                        </Typography.Text>
+                                    )}
                                     {defSave.exportedAt && (
                                         <Typography.Text type="secondary">
                                             导出于 {new Date(defSave.exportedAt).toLocaleString("zh-CN")}

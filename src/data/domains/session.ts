@@ -150,6 +150,17 @@ export function getAllDeviceBindingsSync(): { device_id: number, account_id: num
     return getDb().prepare(`SELECT device_id, account_id, name FROM device_bindings`).all() as any[]
 }
 
+/** Loads every viewer token needed by the account overview in one query. */
+export function getAllViewerSessionsSync(): Array<{ accountId: number; token: string }> {
+    const rows = getDb().prepare(`
+        SELECT account_id, token
+        FROM sessions
+        WHERE type = ?
+        ORDER BY rowid
+    `).all(SessionType.VIEWER) as Array<{ account_id: number; token: string }>
+    return rows.map(row => ({ accountId: row.account_id, token: row.token }))
+}
+
 export function updateDeviceBindingNameSync(deviceId: number, name: string | null): void {
     getDb().prepare(`UPDATE device_bindings SET name = ? WHERE device_id = ?`).run(name, deviceId)
 }
