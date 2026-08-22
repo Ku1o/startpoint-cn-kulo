@@ -6,6 +6,7 @@ param(
 $ErrorActionPreference = "Stop"
 
 $projectRoot = Split-Path -Parent $PSScriptRoot
+$tempDirectory = & (Join-Path $PSScriptRoot "set-cn-temp.ps1") -ProjectRoot $projectRoot
 $logDirectory = Join-Path $projectRoot ".logs"
 $nodeExecutable = (Get-Command node -ErrorAction Stop).Source
 $timestamp = Get-Date -Format "yyyyMMdd-HHmmss"
@@ -18,6 +19,7 @@ Get-ChildItem -LiteralPath $logDirectory -File -Filter "cn-server-debug-*.log" |
     Remove-Item -Force
 
 Write-Host "CN StarPoint debug mode"
+Write-Host "Temp directory: $tempDirectory"
 Write-Host "Log file: $logPath"
 Write-Host "Closing this window stops the server."
 Write-Host ""

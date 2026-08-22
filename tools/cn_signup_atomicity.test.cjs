@@ -18,8 +18,8 @@ async function main() {
     const database = getDb()
     assert.equal(
         database.pragma("temp_store", { simple: true }),
-        2,
-        "SQLite temporary data must stay in memory for large settlement transactions",
+        1,
+        "SQLite temporary data must use the stable disk-backed temp directory",
     )
 
     const app = Fastify()
@@ -52,7 +52,7 @@ async function main() {
 
     await app.close()
     database.close()
-    console.log("CN signup atomicity and SQLite temp-store test passed")
+    console.log("CN signup atomicity and disk-backed SQLite temp-store test passed")
 }
 
 main()
