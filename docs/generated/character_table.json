@@ -351,6 +351,15 @@
     "race": "Human,Element"
   },
   {
+    "id": 119997,
+    "name": "夏可缇",
+    "title": "焚身之誓",
+    "rarity": "5★",
+    "element": "火",
+    "gender": "女性",
+    "race": "Human"
+  },
+  {
     "id": 121001,
     "name": "索妮雅",
     "title": "幽幻舞蹈",
@@ -1437,6 +1446,15 @@
     "rarity": "5★",
     "element": "风",
     "gender": "不明",
+    "race": "Human"
+  },
+  {
+    "id": 149996,
+    "name": "希尔媞（泳装）",
+    "title": "苍蓝疾光",
+    "rarity": "5★",
+    "element": "风",
+    "gender": "女性",
     "race": "Human"
   },
   {
