@@ -284,6 +284,9 @@ export default function init(
 
     // migration: add tutorial_gacha_character_id to existing tables
     try { database.prepare(`ALTER TABLE players ADD COLUMN tutorial_gacha_character_id INTEGER DEFAULT NULL`).run(); } catch { /* column already exists */ }
+    // Timestamp basis used to keep real-time regeneration stable while the
+    // server's virtual clock moves. Older databases may predate the column.
+    try { database.prepare(`ALTER TABLE players ADD COLUMN time_offset INTEGER DEFAULT NULL`).run(); } catch { /* column already exists */ }
 
     // migration: add total_stamina_used for mission progress tracking
     try { database.prepare(`ALTER TABLE players ADD COLUMN total_stamina_used INTEGER NOT NULL DEFAULT 0`).run(); } catch { /* column already exists */ }

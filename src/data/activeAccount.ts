@@ -63,22 +63,17 @@ export function setSelectedAccountId(id: number | null): void {
 }
 
 /**
- * Save time offset from Web panel, also updates active player's time_offset.
+ * Saves the global virtual-time offset from the Web panel.
+ *
+ * Player rows deliberately keep their previous offset until their next load.
+ * That old value is needed to rebase timestamped save data without turning a
+ * virtual-clock jump into elapsed EXP-pool time.
  */
 export function saveTimeOffset(offset: number | null): void {
     const state = readState();
     state.timeOffset = offset;
     state.lastSetTime = offset !== null ? new Date(Date.now() + offset).toISOString() : null;
     writeState(state);
-
-    // Also persist to current active player
-    const pid = state.activePlayerId;
-    if (pid) {
-        try {
-            const { getDb } = require("./db");
-            getDb().prepare(`UPDATE players SET time_offset = ? WHERE id = ?`).run(offset, pid);
-        } catch {}
-    }
 }
 
 /**

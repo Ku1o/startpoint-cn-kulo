@@ -1,6 +1,6 @@
 import { getDb } from "../db";
 import { Player, RawPlayer, MergedPlayerData, PartyCategory, PlayerPartyGroup, Account, PlayerParty, DailyChallengePointListEntry, DailyChallengePointListCampaign, RawDailyChallengePointListEntry, RawDailyChallengePointListCampaign, PlayerRushEventPlayedParty, RawPlayerRushEventPlayedParty, UserRushEventPlayedParty } from "../types";
-import { getServerTime, getServerDate } from "../../utils";
+import { getServerDate, getTimeOffset } from "../../utils";
 import { getDefaultPlayerData, deserializeBoolean, serializeBoolean } from "../utils";
 import { getAccountSync } from "./account";
 import { getPlayerQuestProgressSync } from "./quest";
@@ -373,6 +373,7 @@ function buildPlayer(
         tutorialStep: raw.tutorial_step,
         tutorialSkipFlag: raw.tutorial_skip_flag === null ? null : deserializeBoolean(raw.tutorial_skip_flag),
         tutorialGachaCharacterId: raw.tutorial_gacha_character_id,
+        timeOffset: raw.time_offset,
     }
 }
 
@@ -384,7 +385,7 @@ export function getPlayerSync(
         transition_state, role, name, last_login_time, comment,
         vmoney, free_vmoney, rank_point, star_crumb,
         bond_token, exp_pool, exp_pooled_time, leader_character_id, party_slot,
-        degree_id, birth, free_mana, paid_mana, enable_auto_3x, total_stamina_used, total_powerflips, total_dashes, total_mana_obtained, max_combo_achieved, total_login_days, tutorial_step, tutorial_skip_flag, tutorial_gacha_character_id
+        degree_id, birth, free_mana, paid_mana, enable_auto_3x, total_stamina_used, total_powerflips, total_dashes, total_mana_obtained, max_combo_achieved, total_login_days, tutorial_step, tutorial_skip_flag, tutorial_gacha_character_id, time_offset
     FROM players
     WHERE id = ?    
     `).get(playerId) as RawPlayer | undefined
@@ -403,7 +404,7 @@ export function getAllPlayersSync(
         transition_state, role, name, last_login_time, comment,
         vmoney, free_vmoney, rank_point, star_crumb,
         bond_token, exp_pool, exp_pooled_time, leader_character_id, party_slot,
-        degree_id, birth, free_mana, paid_mana, enable_auto_3x, total_stamina_used, total_powerflips, total_dashes, total_mana_obtained, max_combo_achieved, total_login_days, tutorial_step, tutorial_skip_flag, tutorial_gacha_character_id
+        degree_id, birth, free_mana, paid_mana, enable_auto_3x, total_stamina_used, total_powerflips, total_dashes, total_mana_obtained, max_combo_achieved, total_login_days, tutorial_step, tutorial_skip_flag, tutorial_gacha_character_id, time_offset
     FROM players
     LIMIT ?
     OFFSET ?
@@ -1133,7 +1134,8 @@ export function updatePlayerSync(
         'totalLoginDays': 'total_login_days',
         'tutorialStep': 'tutorial_step',
         'tutorialSkipFlag': 'tutorial_skip_flag',
-        'tutorialGachaCharacterId': 'tutorial_gacha_character_id'
+        'tutorialGachaCharacterId': 'tutorial_gacha_character_id',
+        'timeOffset': 'time_offset'
     }
 
     const sets: string[] = []
@@ -1225,6 +1227,13 @@ export function replacePlayerDataSync(
     const account = getAccountFromPlayerIdSync(playerId)
     if (account === null) throw new Error("No account tied to player id.");
 
+    // Import, clone and default-template restoration all pass through this
+    // function. Preserve the explicit EXP balance but start regeneration from
+    // the current virtual clock so a checkpoint from another date cannot be
+    // sent to the client as a future timestamp.
+    replaceWith.player.expPooledTime = getServerDate()
+    replaceWith.player.timeOffset = getTimeOffset() ?? 0
+
     // Older exports did not contain per-node awake levels. Preserve the current
     // values for every imported learned node instead of silently resetting them.
     if (replaceWith.characterManaNodeAwakeLevels === undefined) {
@@ -1274,18 +1283,52 @@ export function deletePlayerSync(
 
 export function collectPlayerDataPooledExpSync(
     player: Player,
-    dateNow: Date = new Date()
+    dateNow: Date = getServerDate()
 ) {
-    const serverTimeNow = getServerTime(dateNow)
-    const poolTime = getServerTime(player.expPooledTime)
-    const diff = Math.max(0, serverTimeNow - poolTime)
+    const currentOffset = getTimeOffset() ?? 0
+    const savedOffset = player.timeOffset
+    const hasSavedOffset = typeof savedOffset === 'number' && Number.isFinite(savedOffset)
 
-    if (60 > diff) return;
+    // expPooledTime is stored in virtual-clock coordinates. Moving it by the
+    // offset delta keeps it anchored to the same real instant after a server
+    // time switch, so only real elapsed time produces pooled EXP.
+    let normalizedPoolTime = hasSavedOffset
+        ? new Date(player.expPooledTime.getTime() + currentOffset - savedOffset)
+        : player.expPooledTime
+    let checkpointChanged = !hasSavedOffset || savedOffset !== currentOffset
 
+    // Legacy saves can lack an offset, and older time-setting code could leave
+    // a checkpoint in the future. Its exact real instant is unknowable; retain
+    // the saved balance and restart accumulation from now.
+    if (
+        !Number.isFinite(normalizedPoolTime.getTime())
+        || normalizedPoolTime.getTime() > dateNow.getTime()
+    ) {
+        normalizedPoolTime = dateNow
+        checkpointChanged = true
+    }
+
+    const diff = Math.max(0, Math.floor((dateNow.getTime() - normalizedPoolTime.getTime()) / 1000))
+    if (diff < 60) {
+        if (checkpointChanged) {
+            updatePlayerSync({
+                id: player.id,
+                expPooledTime: normalizedPoolTime,
+                timeOffset: currentOffset,
+            })
+        }
+        return
+    }
+
+    const earnedExp = Math.floor(diff / 60)
+    const nextExpPool = player.expPool >= expPoolMax
+        ? player.expPool
+        : Math.min(expPoolMax, player.expPool + earnedExp)
     updatePlayerSync({
         id: player.id,
         expPooledTime: dateNow,
-        expPool: player.expPool + Math.min(expPoolMax, Math.floor(diff / 60))
+        expPool: nextExpPool,
+        timeOffset: currentOffset,
     })
 }
 

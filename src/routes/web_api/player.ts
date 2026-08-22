@@ -13,7 +13,7 @@ import { insertPlayerPartyGroupListSync } from "../../data/domains/party"
 import { PartyCategory } from "../../data/types";
 import { buildPeriodicSnapshotData, takeSnapshot } from "../../lib/mission/snapshot";
 import { deletePlayerCategoryMissionsSync } from "../../data/domains/mission";
-import { getServerDate } from "../../utils";
+import { getServerDate, getTimeOffset } from "../../utils";
 import dailyChallengePointLookup from "../../../assets/daily_challenge_point_lookup.json";
 import {
     getUnisonUnlockRepairStatusSync,
@@ -220,7 +220,11 @@ const routes = async (fastify: FastifyInstance) => {
             extra.staminaHealTime = new Date()
         }
         if (field === 'expPool') {
-            extra.expPooledTime = new Date()
+            // A manually assigned balance is an exact snapshot. Start its
+            // regeneration from the current virtual time instead of retaining
+            // a checkpoint copied from another clock position.
+            extra.expPooledTime = getServerDate()
+            extra.timeOffset = getTimeOffset() ?? 0
         }
 
         try {
