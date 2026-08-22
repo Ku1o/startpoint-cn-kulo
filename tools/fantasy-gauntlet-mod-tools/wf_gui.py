@@ -331,55 +331,65 @@ CATEGORY_CN = {
 }
 
 
-def _pct(v: str) -> str:
-    try:
-        return f"{int(v) / 1000:g}%"
-    except Exception:
-        return v
-
-
-def describe_ability(lines: list[dict], idx: dict[str, int]) -> str:
-    """规则化中文备注:类别 + 触发条件 + 数值端点。启发式,以面板为准。
-    持续威力列按 schema 列名派生(CN=112/114,global=109/111),不写死下标以免跨版本错位
-    (见 docs/版本切换设计.md)。"""
+def describe_ability(lines: list[dict], _idx: dict[str, int], kind: str = "ability",
+                     unique_conditions: dict[str, dict] | None = None) -> str:
+    """快捷摘要复用完整行级描述器,汇总全部数据行及其固有状态层数。"""
     if not lines:
         return ""
-    v1 = lines[0]["values"]
-    parts = []
-    cat = v1.get("2", "")
-    if cat:
-        parts.append(CATEGORY_CN.get(cat, cat))
-    thr = v1.get("29", "")
-    if thr.isdigit() and int(thr) >= 100000:
-        parts.append(f"阈值{int(thr) // 100000}次")
-    lim = v1.get("33", "")
-    if lim.isdigit() and int(lim) > 0:
-        parts.append(f"CT{int(lim) / 60:g}秒")
+    width = int(wf_describe.layout(kind)["ncols"])
+    rows = []
+    for line in lines:
+        row = [""] * width
+        for raw_index, value in line.get("values", {}).items():
+            try:
+                index = int(raw_index)
+            except (TypeError, ValueError):
+                continue
+            if 0 <= index < width:
+                row[index] = str(value)
+        rows.append(row)
+    descs = [desc for desc in wf_describe.describe_rows(rows, kind) if desc]
+    prefix = []
+    if kind == "ability":
+        category = lines[0].get("values", {}).get("2", "")
+        if category:
+            prefix.append(CATEGORY_CN.get(category, category))
+    if descs:
+        prefix.append(" / ".join(descs))
+    if unique_conditions:
+        layout = wf_describe.layout(kind)
+        block_fields = wf_describe.enum_map()["block_fields"]
+        limits = []
+        seen = set()
+        for row in rows:
+            for block_name, base in layout["blocks"].items():
+                field_group = "precondition" if block_name.startswith("precondition") else block_name
+                for offset, field_name, _note in block_fields.get(field_group, []):
+                    if field_name != "unique_condition_id":
+                        continue
+                    column = int(base) + int(offset)
+                    uid = row[column].strip() if column < len(row) else ""
+                    condition = unique_conditions.get(uid)
+                    if not condition:
+                        continue
+                    max_count = str(condition.get("max_count", "")).strip()
+                    if not max_count.isdigit() or int(max_count) <= 1:
+                        continue
+                    name = str(condition.get("name", "")).strip() or f"固有状态{uid}"
+                    limit = f"{name}最多{int(max_count)}层"
+                    if limit not in seen:
+                        seen.add(limit)
+                        limits.append(limit)
+        if limits:
+            prefix.append("、".join(limits))
+    return " · ".join(prefix)
 
-    def col(name: str) -> str:
-        return str(idx.get(name, -1))
 
-    if len(lines) == 2:
-        v2 = lines[1]["values"]
-        a, b = v1.get("50", ""), v2.get("50", "")
-        if a.lstrip("-").isdigit() and b.lstrip("-").isdigit():
-            lo, hi = sorted((int(a), int(b)))
-            parts.append(f"威力 {_pct(str(lo))}→{_pct(str(hi))}(1级→满级)")
-        dcol = col("trigger.values.during_content.values.strength.power1")
-        da, db = v1.get(dcol, ""), v2.get(dcol, "")
-        if da.lstrip("-").isdigit() and db.lstrip("-").isdigit():
-            lo, hi = sorted((int(da), int(db)))
-            parts.append(f"持续威力 {_pct(str(lo))}→{_pct(str(hi))}")
-        ecol = col("trigger.values.during_content.values.strength2.power1")
-        ea, eb = v1.get(ecol, ""), v2.get(ecol, "")
-        if ea.lstrip("-").isdigit() and eb.lstrip("-").isdigit():
-            lo, hi = sorted((int(ea), int(eb)))
-            parts.append(f"持续威力2 {_pct(str(lo))}→{_pct(str(hi))}")
-    else:
-        lo, hi = v1.get("49", ""), v1.get("50", "")
-        if lo.lstrip("-").isdigit() and hi.lstrip("-").isdigit():
-            parts.append(f"威力 {_pct(lo)}→{_pct(hi)}(1级→满级)")
-    return " · ".join(parts)
+def _unique_condition_summary_map() -> dict[str, dict]:
+    try:
+        return {item["id"]: item for item in list_unique_conditions()["conditions"]}
+    except Exception:
+        return {}
 
 
 def leader_title_for(character: str) -> str:
@@ -399,6 +409,7 @@ def get_rows_for_character(character: str) -> dict:
     ids = core.ability_ids_for_character(character, char_table)
     text_rows = table.text_rows()
     rows = []
+    unique_conditions = _unique_condition_summary_map()
 
     def make_lines(text: str) -> list[dict]:
         lines = []
@@ -415,7 +426,7 @@ def get_rows_for_character(character: str) -> dict:
             continue
         lines = make_lines(text)
         rows.append({"ability": aid, "missing": False, "lines": lines,
-                     "desc": describe_ability(lines, idx_by),
+                     "desc": describe_ability(lines, idx_by, "ability", unique_conditions),
                      "line_descs": wf_describe.describe_rows(core.read_csv_lines(text), "ability")})
 
     # 队长技(leader_ability 表,键=character_id 列;白等老行 键≠该列),伪槽 "L:<id>"
@@ -426,7 +437,8 @@ def get_rows_for_character(character: str) -> dict:
         if lt is not None:
             lines = make_lines(lt)
             rows.append({"ability": f"L:{lid}", "missing": False, "leader": True,
-                         "lines": lines, "desc": describe_ability(lines, idx_by),
+                         "lines": lines,
+                         "desc": describe_ability(lines, idx_by, "leader_ability", unique_conditions),
                          "line_descs": wf_describe.describe_rows(core.read_csv_lines(lt), "leader_ability")})
         else:
             rows.append({"ability": f"L:{lid}", "missing": True, "leader": True,
@@ -1230,7 +1242,7 @@ def get_soul_rows(soul_id: str) -> dict:
         row = core.normalize_row_length(row, len(names))
         lines.append({"line": li, "values": {str(i): v for i, v in enumerate(row) if v != ""}})
     return {"soul": str(soul_id), "columns": names, "lines": lines,
-            "desc": describe_ability(lines, idx_by),
+            "desc": describe_ability(lines, idx_by, "ability_soul", _unique_condition_summary_map()),
             "line_descs": wf_describe.describe_rows(core.read_csv_lines(text), "ability_soul"),
             "info": equipment_info().get(str(soul_id), {})}
 
@@ -2027,7 +2039,8 @@ def get_weapon_rows(wid: str) -> dict:
     except Exception:
         pass
     return {"weapon": str(wid), "columns": names, "lines": lines,
-            "desc": describe_ability(lines, idx_by),
+            "desc": describe_ability(lines, idx_by, "equipment_enhancement_ability",
+                                     _unique_condition_summary_map()),
             "line_descs": wf_describe.describe_rows(core.read_csv_lines(text), "equipment_enhancement_ability"),
             "info": equipment_info().get(str(wid), {}), "soul": soul}
 
