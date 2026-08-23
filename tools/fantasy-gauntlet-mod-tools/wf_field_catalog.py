@@ -266,7 +266,7 @@ def forge(program: str, clean: bool = False, scale: float | None = None) -> str:
     """
     import hashlib
     logical = program + ".action.dsl.amf3.deflate"
-    tree = parse_dsl(q.store_path(logical).read_bytes())
+    tree = parse_dsl(q.read_raw(logical))
     if clean:
         tree = clean_tree(tree)
     if scale is not None and abs(scale - 1.0) > 1e-9:
@@ -419,7 +419,7 @@ def main() -> int:
         if ".action.dsl" not in lp:
             continue
         try:
-            raw = q.store_path(lp).read_bytes()
+            raw = q.read_raw(lp)
         except Exception:
             continue
         data = zlib.decompress(raw, -15)

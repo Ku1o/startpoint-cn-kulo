@@ -31,7 +31,24 @@ from wf_character_requirements import (
 HERE = Path(__file__).resolve().parent
 # 全角色语音 datamine(537 角色,ally/battle/home 三分类 + voiceLines.json 台词文本)。
 # 实测游戏路径 = character/<code>/voice/<分类>/<名>.mp3,与 dump 一一对应(fire_dragon 18/18)。
-VOICE_DUMP = Path(os.environ.get("WF_VOICE_DUMP", r"D:\WF\角色语音"))
+VOICE_DUMP = HERE / "voice-dump"
+
+
+def resolve_voice_dump() -> Path:
+    """Resolve the current voice dump root without freezing process config at import."""
+    raw = os.environ.get("WF_VOICE_DUMP")
+    if raw is None:
+        return VOICE_DUMP.resolve()
+    configured = raw.strip().strip('"').strip()
+    if not configured:
+        raise ValueError("WF_VOICE_DUMP must be a non-empty path")
+    candidate = Path(configured).expanduser()
+    if not candidate.is_absolute():
+        raise ValueError(f"WF_VOICE_DUMP must be an absolute path: {configured}")
+    candidate = candidate.resolve()
+    if not candidate.is_dir():
+        raise ValueError(f"WF_VOICE_DUMP is not an existing directory: {candidate}")
+    return candidate
 
 PNG_REAL = bytes([137, 80, 78, 71, 13, 10, 26, 10])
 PNG_FAKE = bytes([137, 112, 110, 103, 13, 10, 26, 10])
@@ -215,6 +232,44 @@ def locate(target_store: Path, logical: str) -> tuple[str, Path] | None:
     return None
 
 
+def read_current(target_store: Path, logical: str) -> tuple[str, bytes, str] | None:
+    """Read an asset from the live CDN terminal state, not a stale overlay.
+
+    Returns ``(root_name, bytes, source)``.  A standalone installation without
+    a related live server retains the historical four-root store lookup.
+    """
+    import wf_live_cdn
+
+    if wf_live_cdn.enabled_for_store(target_store):
+        digest = core.sha1_path(logical)
+        try:
+            current = wf_live_cdn.read_relative(
+                f"{digest[:2]}/{digest[2:]}",
+                roots=("common", "medium", "android", "ios"),
+            )
+            root_name = {
+                "common": "upload", "medium": "medium", "android": "android",
+                "ios": "ios",
+            }.get(current.root, current.root)
+            return (
+                root_name,
+                current.data,
+                f"{current.archive}!{current.member}",
+            )
+        except wf_live_cdn.LiveCdnEntryMissing:
+            # The live terminal is authoritative.  An overlay-only asset is
+            # unpublished output and must not be exposed as server-current.
+            return None
+    local = locate(target_store, logical)
+    if local is None:
+        return None
+    return local[0], local[1].read_bytes(), str(local[1])
+
+
+def exists_current(target_store: Path, logical: str) -> bool:
+    return read_current(target_store, logical) is not None
+
+
 def path_in_root(target_store: Path, root_name: str, logical: str) -> Path:
     d = core.sha1_path(logical)
     return roots(target_store)[root_name] / d[:2] / d[2:]
@@ -233,13 +288,19 @@ _VOICE_FIXED = (
     "battle/skill_2.mp3", "battle/skill_3.mp3", "battle/skill_ready.mp3",
     "battle/win_0.mp3", "battle/win_1.mp3",
     "login/login_0.mp3", "login/login_1.mp3", "login/login_2.mp3",
+    # home 语音靠 character_speech 表注册,官方一律用罗马音专属名,所以四路发现
+    # (dump/词表/采集/路径清单)都收录不到自制角色的 home_N 命名。缺了它们,
+    # char_asset_manifest 会同时"丢掉活文件 + 带上已不被表引用的旧孤儿",
+    # 表现为经 GUI 导出/克隆/推设备一次,home 语音就没声了。
+    # 这里按序号补齐(不存在的会被 locate 过滤掉);自制先例:杰拉德 0-5、基诺维 0-4。
+    *(f"home/home_{i}.mp3" for i in range(10)),
 )
 _VOICE_CATS = ("ally", "battle", "home", "login")
 
 
 def dump_voices(code_name: str) -> list[tuple[str, str, str]]:
     """语音 dump 目录 → [(分类, 文件名, 台词文本)]。目录不存在返回空。"""
-    d = VOICE_DUMP / code_name
+    d = resolve_voice_dump() / code_name
     if not d.exists():
         return []
     lines: dict = {}
@@ -282,7 +343,7 @@ def _pathlist_char_index() -> dict[str, list[str]]:
     return idx
 
 
-_voice_vocab_cache: list[str] | None = None
+_voice_vocab_cache: tuple[Path, list[str]] | None = None
 
 
 def _voice_vocab() -> list[str]:
@@ -290,11 +351,12 @@ def _voice_vocab() -> list[str]:
     某角色不在 dump 里(新角色/未解包)时,用词表对 store 逐条探测兜底——
     home 语音多为角色专属罗马音名,命中率低但探测便宜(sha1+stat),不漏才是重点。"""
     global _voice_vocab_cache
-    if _voice_vocab_cache is not None:
-        return _voice_vocab_cache
+    voice_dump = resolve_voice_dump()
+    if _voice_vocab_cache is not None and _voice_vocab_cache[0] == voice_dump:
+        return _voice_vocab_cache[1]
     vocab: set[str] = set(_VOICE_FIXED)
     try:
-        for char_dir in VOICE_DUMP.iterdir():
+        for char_dir in voice_dump.iterdir():
             for cat in _VOICE_CATS:
                 cd = char_dir / cat
                 if cd.is_dir():
@@ -303,8 +365,9 @@ def _voice_vocab() -> list[str]:
                             vocab.add(f"{cat}/{f}")
     except Exception:
         pass
-    _voice_vocab_cache = sorted(vocab)
-    return _voice_vocab_cache
+    result = sorted(vocab)
+    _voice_vocab_cache = (voice_dump, result)
+    return result
 
 
 _harvest_voice_cache: dict[str, list[str]] | None = None
@@ -339,16 +402,16 @@ def char_asset_manifest(target_store: Path, code_name: str) -> list[dict]:
         if logical in seen:
             return
         seen.add(logical)
-        loc = locate(target_store, logical)
+        loc = read_current(target_store, logical)
         item = {"logical": logical, "kind": requirement.kind,
                 "req": requirement.requirement,
                 "category": requirement.category,
                 "expected_dims": requirement.expected_dims,
                 "text": requirement.text if text is None else text,
                 "exists": bool(loc), "root": loc[0] if loc else "",
-                "size": loc[1].stat().st_size if loc else 0, "dims": None}
+                "size": len(loc[1]) if loc else 0, "dims": None}
         if loc and logical.endswith(".png"):
-            item["dims"] = png_dims(loc[1].read_bytes()[:64])
+            item["dims"] = png_dims(loc[1][:64])
         out.append(item)
 
     static_requirements = char_asset_requirements(code_name)

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import copy
+import ctypes
 import dataclasses
 import hashlib
 import importlib
@@ -147,6 +148,28 @@ class TestManifestContract(unittest.TestCase):
             "character/seris/Expression/asset.bin",
             "character/seris/expressions/asset.bin",
             "character/seris/EXPRESSIONS/asset.bin",
+            "character/seris/icon.png.",
+            "character/seris/icon.png ",
+            "character/seris/icon.png:metadata",
+            "character/seris/invalid?.png",
+            "character/seris/CON",
+            "character/seris/con.png",
+            "character/seris/COM1.dat",
+            "character/seris/lpt9",
+            "character/seris/COM¹",
+            "character/seris/COM¹.dat",
+            "character/seris/com²",
+            "character/seris/com².dat",
+            "character/seris/CoM³",
+            "character/seris/CoM³.dat",
+            "character/seris/LPT¹",
+            "character/seris/LPT¹.dat",
+            "character/seris/lpt²",
+            "character/seris/lpt².dat",
+            "character/seris/LpT³",
+            "character/seris/LpT³.dat",
+            "character/seris/CONIN$",
+            "character/seris/conout$.json",
         )
         with tempfile.TemporaryDirectory() as td:
             package_dir = Path(td)
@@ -174,6 +197,12 @@ class TestManifestContract(unittest.TestCase):
                 "metadata/wordsmith/asset.bin",
                 "metadata/login_bonus/asset.bin",
                 "metadata/expressionist/asset.bin",
+                "metadata/console/asset.bin",
+                "metadata/com10.bin",
+                "metadata/com⁴.bin",
+                "metadata/nulled.bin",
+                "metadata/CONİN$.txt",
+                "metadata/conın$.txt",
             )
             for logical_path in allowed_paths:
                 self.assertIsNotNone(
@@ -183,6 +212,26 @@ class TestManifestContract(unittest.TestCase):
                 add_file(package_dir, allowed, "common", logical_path,
                          logical_path.encode("utf-8"))
             self.assertEqual(pack.validate_manifest(allowed, package_dir), [])
+
+    def test_windows_logical_path_key_folds_only_ascii_and_separators(self):
+        pack = self._module()
+
+        self.assertEqual(
+            pack.windows_logical_path_key(r"Extension\GACHA.JSON"),
+            pack.windows_logical_path_key("extension/gacha.json"),
+        )
+        self.assertNotEqual(
+            pack.windows_logical_path_key("metadata/K.bin"),
+            pack.windows_logical_path_key("metadata/K.bin"),
+        )
+        self.assertNotEqual(
+            pack.windows_logical_path_key("metadata/ω.bin"),
+            pack.windows_logical_path_key("metadata/Ω.bin"),
+        )
+        self.assertNotEqual(
+            pack.windows_logical_path_key("metadata/å.bin"),
+            pack.windows_logical_path_key("metadata/Å.bin"),
+        )
 
     def test_valid_manifest_loads_validates_and_hashes_canonically(self):
         pack = self._module()
@@ -455,6 +504,59 @@ class TestManifestContract(unittest.TestCase):
 
             duplicate_errors = [error for error in errors if "duplicate logical_path" in error]
             self.assertGreaterEqual(len(duplicate_errors), 2, errors)
+
+    def test_rejects_windows_equivalent_paths_in_every_root(self):
+        pack = self._module()
+        with tempfile.TemporaryDirectory() as td:
+            package_dir = Path(td)
+            for root in ROOTS:
+                with self.subTest(root=root):
+                    manifest = base_manifest()
+                    add_file(
+                        package_dir,
+                        manifest,
+                        root,
+                        "extension/gacha.json",
+                        b"same",
+                    )
+                    add_file(
+                        package_dir,
+                        manifest,
+                        root,
+                        "extension/GACHA.json",
+                        b"same",
+                    )
+
+                    errors = pack.validate_manifest(manifest, package_dir)
+
+                    self.assertTrue(
+                        any("duplicate logical_path" in error for error in errors),
+                        errors,
+                    )
+
+    def test_preserves_windows_distinct_unicode_paths(self):
+        pack = self._module()
+        with tempfile.TemporaryDirectory() as td:
+            package_dir = Path(td)
+            manifest = base_manifest()
+            distinct_paths = (
+                "metadata/K.bin",
+                "metadata/K.bin",
+                "metadata/ω.bin",
+                "metadata/Ω.bin",
+                "metadata/å.bin",
+                "metadata/Å.bin",
+            )
+            for logical_path in distinct_paths:
+                add_file(
+                    package_dir,
+                    manifest,
+                    "common",
+                    logical_path,
+                    logical_path.encode("utf-8"),
+                )
+
+            self.assertEqual(pack.validate_manifest(manifest, package_dir), [])
 
     def test_rejects_root_level_and_nested_links_outside_package_before_hashing(self):
         pack = self._module()
@@ -964,6 +1066,48 @@ class _TransactionFixtureMixin:
 
 
 class TestPackPreflight(_TransactionFixtureMixin, unittest.TestCase):
+    def test_canonical_character_claim_requires_matching_speech_claim(self):
+        self._finish_setup()
+        logical_path = "master/character/character.orderedmap"
+        live_payload = {
+            "outer": {"official": {"value": logical_path}},
+            "inner": {},
+            "semantics": {},
+        }
+        candidate_payload = copy.deepcopy(live_payload)
+        candidate_payload["outer"]["129999"] = {
+            "owner": "seris",
+            "key": "129999",
+        }
+        live_bytes = json.dumps(
+            live_payload, ensure_ascii=False, separators=(",", ":")
+        ).encode("utf-8")
+        candidate_bytes = json.dumps(
+            candidate_payload, ensure_ascii=False, separators=(",", ":")
+        ).encode("utf-8")
+        self._write_live("common", logical_path, live_bytes)
+        add_file(
+            self.package_dir,
+            self.manifest,
+            "common",
+            logical_path,
+            candidate_bytes,
+        )
+        self.manifest["tables"].append({
+            "root": "common",
+            "logical_path": logical_path,
+            "codec_id": "fixture_json",
+            "outer_keys": ["129999"],
+            "inner_keys": [],
+            "semantic_claims": [],
+        })
+
+        with self.assertRaisesRegex(
+            self.pack.PackPreflightError,
+            "character_speech",
+        ):
+            self._tx().preflight()
+
     def test_production_preflight_rejects_rehashed_standard_png(self):
         self._finish_setup()
         manifest = copy.deepcopy(self.manifest)
@@ -1062,6 +1206,250 @@ class TestPackPreflight(_TransactionFixtureMixin, unittest.TestCase):
                     ("asset_path", f"{root}:{entry['logical_path']}"), conflicts
                 )
 
+    def test_exact_live_before_contract_accepts_only_the_declared_asset_replacement(self):
+        self._finish_setup()
+        import wf_mod_tool as core
+
+        table_paths = {item["logical_path"] for item in self.manifest["tables"]}
+        entry = next(
+            item for item in self.manifest["roots"]["common"]
+            if item["logical_path"] not in table_paths
+        )
+        live_raw = b"locked-base347-shared-asset"
+        live = core.table_path(self.common, entry["logical_path"])
+        live.parent.mkdir(parents=True, exist_ok=True)
+        live.write_bytes(live_raw)
+        manifest = copy.deepcopy(self.manifest)
+        manifest["snapshot"]["accepted_asset_replacements"] = [{
+            "root": "common",
+            "logical_path": entry["logical_path"],
+            "before_sha256": hashlib.sha256(live_raw).hexdigest(),
+            "before_size": len(live_raw),
+        }]
+
+        report = self._tx(manifest=manifest).preflight()
+
+        self.assertTrue(report.can_prepare, report.conflicts)
+        self.assertFalse(any(
+            item["kind"] == "asset_path" for item in report.conflicts
+        ))
+        self.assertEqual(1, len(report.accepted_asset_replacements))
+        accepted = report.accepted_asset_replacements[0]
+        self.assertEqual("common", accepted["root"])
+        self.assertEqual(entry["logical_path"], accepted["logical_path"])
+        self.assertEqual(hashlib.sha256(live_raw).hexdigest(), accepted["before_sha256"])
+        self.assertEqual(len(live_raw), accepted["before_size"])
+
+        claimed_paths = {
+            (item["root"], item["logical_path"])
+            for item in self.manifest["tables"]
+        }
+        undeclared_root, undeclared_entry = next(
+            (root, item)
+            for root in ("common", "medium", "android")
+            for item in self.manifest["roots"][root]
+            if (root, item["logical_path"]) not in claimed_paths
+            and (root, item["logical_path"])
+            != ("common", entry["logical_path"])
+        )
+        undeclared_live = core.table_path(
+            {"common": self.common, "medium": self.medium,
+             "android": self.android}[undeclared_root],
+            undeclared_entry["logical_path"],
+        )
+        undeclared_live.parent.mkdir(parents=True, exist_ok=True)
+        undeclared_live.write_bytes(b"occupied-but-not-accepted")
+        undeclared = self._tx(manifest=manifest).preflight()
+        conflict = next(
+            item for item in undeclared.conflicts
+            if item["kind"] == "asset_path"
+            and item["claim"]
+            == f"{undeclared_root}:{undeclared_entry['logical_path']}"
+        )
+        self.assertEqual(
+            "occupied_without_hash_bound_prior_path_ownership",
+            conflict["reason"],
+        )
+        undeclared_live.unlink()
+
+        live.unlink()
+        missing = self._tx(manifest=manifest).preflight()
+        missing_conflict = next(
+            item for item in missing.conflicts
+            if item["kind"] == "asset_path"
+            and item["claim"] == f"common:{entry['logical_path']}"
+        )
+        self.assertEqual(
+            "accepted_live_before_mismatch", missing_conflict["reason"]
+        )
+        self.assertFalse(missing_conflict["actual"]["exists"])
+
+        live.write_bytes(live_raw + b"-drift")
+        drifted = self._tx(manifest=manifest).preflight()
+        conflict = next(
+            item for item in drifted.conflicts
+            if item["kind"] == "asset_path"
+            and item["claim"] == f"common:{entry['logical_path']}"
+        )
+        self.assertEqual("accepted_live_before_mismatch", conflict["reason"])
+        self.assertFalse(drifted.can_prepare)
+
+    def test_asset_replacement_contract_rejects_server_table_alias_and_bad_hash_shapes(self):
+        self._finish_setup()
+        table_path = self.manifest["tables"][0]["logical_path"]
+        asset_path = next(
+            item["logical_path"] for item in self.manifest["roots"]["common"]
+            if item["logical_path"] not in {
+                claim["logical_path"] for claim in self.manifest["tables"]
+            }
+        )
+        valid = {
+            "root": "common", "logical_path": asset_path,
+            "before_sha256": "a" * 64, "before_size": 1,
+        }
+        cases = {
+            "server": [{**valid, "root": "server", "logical_path": "character.json"}],
+            "table": [{**valid, "logical_path": table_path}],
+            "missing_hash": [{
+                key: value for key, value in valid.items()
+                if key != "before_sha256"
+            }],
+            "missing_candidate_path": [{
+                **valid, "logical_path": "item/not-in-candidate.bin"
+            }],
+            "wildcard": [{**valid, "logical_path": "character/*/asset.bin"}],
+            "windows_alias": [valid, {**valid, "logical_path": asset_path.upper()}],
+            "bad_size": [{**valid, "before_size": True}],
+        }
+        for label, replacements in cases.items():
+            with self.subTest(label=label):
+                manifest = copy.deepcopy(self.manifest)
+                manifest["snapshot"]["accepted_asset_replacements"] = replacements
+                with self.assertRaisesRegex(
+                    self.pack.PackPreflightError, "accepted_asset_replacements"
+                ):
+                    self._tx(manifest=manifest).preflight()
+
+    def test_asset_replacement_rejects_orderedmap_even_when_candidate_omits_claim(self):
+        self._finish_setup()
+        logical = next(
+            item["logical_path"] for item in self.manifest["tables"]
+            if item["logical_path"].endswith("ability.orderedmap")
+        )
+        manifest = copy.deepcopy(self.manifest)
+        manifest["tables"] = [
+            item for item in manifest["tables"]
+            if item["logical_path"] != logical
+        ]
+        manifest["snapshot"]["accepted_asset_replacements"] = [{
+            "root": "common",
+            "logical_path": logical,
+            "before_sha256": "a" * 64,
+            "before_size": 1,
+        }]
+
+        with self.assertRaisesRegex(
+            self.pack.PackPreflightError,
+            "accepted_asset_replacements.*table",
+        ):
+            self._tx(manifest=manifest).preflight()
+
+    def test_upgrade_rejects_candidate_installed_asset_replacement_contract_drift(self):
+        import wf_mod_tool as core
+
+        table_paths = {item["logical_path"] for item in self.manifest["tables"]}
+        entry = next(
+            item for item in self.manifest["roots"]["common"]
+            if item["logical_path"] not in table_paths
+        )
+        live_raw = b"locked-before"
+        live = core.table_path(self.common, entry["logical_path"])
+        live.parent.mkdir(parents=True, exist_ok=True)
+        live.write_bytes(live_raw)
+        self.manifest["snapshot"]["accepted_asset_replacements"] = [{
+            "root": "common",
+            "logical_path": entry["logical_path"],
+            "before_sha256": hashlib.sha256(live_raw).hexdigest(),
+            "before_size": len(live_raw),
+        }]
+        installed, installed_dir = self._installed_copy()
+        installed_hash = hashlib.sha256(
+            self.pack.canonical_manifest_bytes(installed)
+        ).hexdigest()
+        self._finish_setup(active_manifest_hash=installed_hash)
+        candidate = copy.deepcopy(self.manifest)
+        candidate["package_version"] = "1.1.0"
+        candidate["snapshot"]["accepted_asset_replacements"][0][
+            "before_sha256"
+        ] = "f" * 64
+
+        with self.assertRaisesRegex(
+            self.pack.PackPreflightError,
+            "candidate/installed accepted_asset_replacements mismatch",
+        ):
+            self._tx(
+                manifest=candidate,
+                installed_manifest=installed,
+                installed_package_dir=installed_dir,
+            ).preflight()
+
+    def test_upgrade_still_checks_declared_asset_replacement_live_before(self):
+        import wf_mod_tool as core
+
+        table_paths = {item["logical_path"] for item in self.manifest["tables"]}
+        entry = next(
+            item for item in self.manifest["roots"]["common"]
+            if item["logical_path"] not in table_paths
+        )
+        live_raw = b"locked-upgrade-before"
+        live = core.table_path(self.common, entry["logical_path"])
+        live.parent.mkdir(parents=True, exist_ok=True)
+        live.write_bytes(live_raw)
+        self.manifest["snapshot"]["accepted_asset_replacements"] = [{
+            "root": "common",
+            "logical_path": entry["logical_path"],
+            "before_sha256": hashlib.sha256(live_raw).hexdigest(),
+            "before_size": len(live_raw),
+        }]
+        installed, installed_dir = self._installed_copy()
+        installed_hash = hashlib.sha256(
+            self.pack.canonical_manifest_bytes(installed)
+        ).hexdigest()
+        self._finish_setup(active_manifest_hash=installed_hash)
+        candidate = copy.deepcopy(self.manifest)
+        candidate["package_version"] = "1.1.0"
+
+        exact = self._tx(
+            manifest=candidate,
+            installed_manifest=installed,
+            installed_package_dir=installed_dir,
+        ).preflight()
+        self.assertEqual(1, len(exact.accepted_asset_replacements))
+
+        for label, replacement in (
+            ("drift", live_raw + b"-drift"),
+            ("missing", None),
+        ):
+            with self.subTest(label=label):
+                if replacement is None:
+                    live.unlink(missing_ok=True)
+                else:
+                    live.write_bytes(replacement)
+                report = self._tx(
+                    manifest=candidate,
+                    installed_manifest=installed,
+                    installed_package_dir=installed_dir,
+                ).preflight()
+                conflict = next(
+                    item for item in report.conflicts
+                    if item["kind"] == "asset_path"
+                    and item["claim"] == f"common:{entry['logical_path']}"
+                )
+                self.assertEqual(
+                    "accepted_live_before_mismatch", conflict["reason"]
+                )
+                self.assertFalse(report.can_prepare)
+
     def test_first_install_rejects_every_occupied_declared_claim(self):
         self._finish_setup()
         self._occupy_claims()
@@ -1112,6 +1500,33 @@ class TestPackPreflight(_TransactionFixtureMixin, unittest.TestCase):
             self._tx(provider=_FakeReleaseBaseProvider(other_state),
                      installed_manifest=other,
                      installed_package_dir=other_dir).preflight()
+
+    def test_installed_manifest_rejects_windows_equivalent_paths(self):
+        self._finish_setup()
+        installed, installed_dir = self._installed_copy()
+        add_file(
+            installed_dir,
+            installed,
+            "medium",
+            "extension/gacha.json",
+            b"same",
+        )
+        add_file(
+            installed_dir,
+            installed,
+            "medium",
+            "extension/GACHA.json",
+            b"same",
+        )
+
+        with self.assertRaisesRegex(
+            self.pack.PackPreflightError,
+            "installed manifest invalid: .*duplicate logical_path",
+        ):
+            self._tx(
+                installed_manifest=installed,
+                installed_package_dir=installed_dir,
+            ).preflight()
 
     def _multi_owner_state(self, owners, *, tail_hash=None):
         if self.release_state is None:
@@ -1222,6 +1637,36 @@ class TestPackPreflight(_TransactionFixtureMixin, unittest.TestCase):
         )
         with self.assertRaises(self.pack.PackPreflightError):
             self._tx(provider=_FakeReleaseBaseProvider(empty_active)).preflight()
+
+    def test_zero_release_owner_anchor_is_a_valid_present_base(self):
+        self._finish_setup()
+        active_raw = json.dumps(
+            {
+                "schema_version": 1,
+                "base_version": "1.4.54",
+                "base_package_owners": [["other_pkg", "a" * 64]],
+                "releases": [],
+            },
+            ensure_ascii=False,
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode("utf-8")
+        state = self.pack.ReleaseBaseState(
+            active_raw=active_raw,
+            active_sha256=hashlib.sha256(active_raw).hexdigest(),
+            current_release_id=None,
+            validated_chain_tail="1.4.54",
+            expected_from_version="1.4.54",
+            active_package_manifest_sha256=None,
+            package_owners=(("other_pkg", "a" * 64),),
+        )
+
+        report = self._tx(
+            provider=_FakeReleaseBaseProvider(state)
+        ).preflight()
+
+        self.assertTrue(report.can_prepare)
+        self.assertEqual((), report.conflicts)
 
     def test_provider_invariants_fail_closed(self):
         self._finish_setup()
@@ -1546,7 +1991,7 @@ class TestPackPreflight(_TransactionFixtureMixin, unittest.TestCase):
         with self.assertRaises(self.pack.PackPreflightError):
             self._tx(manifest=extra).preflight()
 
-    def test_server_json_tables_require_explicit_claims_and_exact_four_files(self):
+    def test_server_json_tables_require_base_files_and_explicit_extension_claims(self):
         self._finish_setup()
         missing_claim = copy.deepcopy(self.manifest)
         missing_claim["tables"] = [
@@ -1555,7 +2000,7 @@ class TestPackPreflight(_TransactionFixtureMixin, unittest.TestCase):
                     and item["logical_path"] == self.SERVER_PATHS[0])
         ]
         with self.assertRaisesRegex(
-            self.pack.PackPreflightError, "server tables must claim exactly"
+            self.pack.PackPreflightError, "server tables must claim every server root"
         ):
             self._tx(manifest=missing_claim).preflight()
 
@@ -1565,9 +2010,184 @@ class TestPackPreflight(_TransactionFixtureMixin, unittest.TestCase):
             if item["logical_path"] != self.SERVER_PATHS[0]
         ]
         with self.assertRaisesRegex(
-            self.pack.PackPreflightError, "server root must contain exactly"
+            self.pack.PackPreflightError, "server root is missing required character tables"
         ):
             self._tx(manifest=missing_file).preflight()
+
+        extended = copy.deepcopy(self.manifest)
+        extension_path = "gacha.json"
+        extension_raw = (
+            b'{"outer":{"990001":{"id":990001}},'
+            b'"inner":{},"semantics":{}}'
+        )
+        add_file(
+            self.package_dir, extended, "server", extension_path, extension_raw
+        )
+        server_codec = next(
+            item["codec_id"] for item in extended["tables"]
+            if item["root"] == "server"
+        )
+        extended["tables"].append({
+            "root": "server",
+            "logical_path": extension_path,
+            "codec_id": server_codec,
+            "outer_keys": ["990001"],
+            "inner_keys": [],
+            "semantic_claims": [],
+        })
+        report = self._tx(manifest=extended).preflight()
+        self.assertFalse(report.conflicts)
+
+        unclaimed = copy.deepcopy(extended)
+        unclaimed["tables"] = [
+            item for item in unclaimed["tables"]
+            if not (
+                item["root"] == "server"
+                and item["logical_path"] == extension_path
+            )
+        ]
+        with self.assertRaisesRegex(
+            self.pack.PackPreflightError, "server tables must claim every server root"
+        ):
+            self._tx(manifest=unclaimed).preflight()
+
+        wrong_codec = copy.deepcopy(extended)
+        next(
+            item for item in wrong_codec["tables"]
+            if item["root"] == "server"
+            and item["logical_path"] == extension_path
+        )["codec_id"] = "flat"
+        with self.assertRaisesRegex(
+            self.pack.PackPreflightError, "server extension codec must be one of"
+        ):
+            self._tx(manifest=wrong_codec).preflight()
+
+    def test_server_extensions_reject_windows_equivalent_paths_before_preflight(self):
+        self._finish_setup()
+        manifest = copy.deepcopy(self.manifest)
+        extension_raw = (
+            b'{"outer":{"990001":{"id":990001}},'
+            b'"inner":{},"semantics":{}}'
+        )
+        server_codec = next(
+            item["codec_id"] for item in manifest["tables"]
+            if item["root"] == "server"
+        )
+        for logical_path in ("gacha.json", "GACHA.json"):
+            add_file(
+                self.package_dir,
+                manifest,
+                "server",
+                logical_path,
+                extension_raw,
+            )
+            manifest["tables"].append({
+                "root": "server",
+                "logical_path": logical_path,
+                "codec_id": server_codec,
+                "outer_keys": ["990001"],
+                "inner_keys": [],
+                "semantic_claims": [],
+            })
+
+        with self.assertRaisesRegex(
+            self.pack.PackPreflightError, "duplicate logical_path"
+        ):
+            self._tx(manifest=manifest).preflight()
+
+    def test_server_extensions_preserve_windows_distinct_unicode_paths(self):
+        self._finish_setup()
+        manifest = copy.deepcopy(self.manifest)
+        server_codec = next(
+            item["codec_id"] for item in manifest["tables"]
+            if item["root"] == "server"
+        )
+        extensions = (
+            ("K.json", "990001"),
+            ("K.json", "990002"),
+            ("CONİN$.json", "990003"),
+        )
+        for logical_path, outer_key in extensions:
+            extension_raw = json.dumps({
+                "outer": {outer_key: {"id": int(outer_key)}},
+                "inner": {},
+                "semantics": {},
+            }, separators=(",", ":")).encode("utf-8")
+            add_file(
+                self.package_dir,
+                manifest,
+                "server",
+                logical_path,
+                extension_raw,
+            )
+            manifest["tables"].append({
+                "root": "server",
+                "logical_path": logical_path,
+                "codec_id": server_codec,
+                "outer_keys": [outer_key],
+                "inner_keys": [],
+                "semantic_claims": [],
+            })
+
+        report = self._tx(manifest=manifest).preflight()
+
+        self.assertFalse(report.conflicts)
+
+    def test_server_extension_accepts_the_validated_json_integer_set_codec(self):
+        self._finish_setup()
+        extended = copy.deepcopy(self.manifest)
+        logical_path = "item_ids.json"
+        add_file(
+            self.package_dir,
+            extended,
+            "server",
+            logical_path,
+            b"[10001,999013]",
+        )
+        (self.server / logical_path).write_bytes(b"[10001]")
+        extended["tables"].append({
+            "root": "server",
+            "logical_path": logical_path,
+            "codec_id": "json_integer_set",
+            "outer_keys": ["999013"],
+            "inner_keys": [],
+            "semantic_claims": [],
+        })
+        registry = {
+            "fixture_json": _JsonFixtureCodec(self.pack),
+        }
+
+        try:
+            report = self._tx(
+                manifest=extended, codec_registry=registry
+            ).preflight()
+        except self.pack.PackPreflightError as exc:
+            self.fail(f"validated server extension codec 尚未接通: {exc}")
+
+        self.assertFalse(report.conflicts)
+
+    def test_nested_server_extension_occupied_product_requires_prior_ownership(self):
+        self._finish_setup()
+        extended = copy.deepcopy(self.manifest)
+        logical_path = "event_item_shop.json"
+        candidate = b'{"11":{"700099":{"9700116":{"ticket":"single"}}}}'
+        add_file(self.package_dir, extended, "server", logical_path, candidate)
+        (self.server / logical_path).write_bytes(candidate)
+        extended["tables"].append({
+            "root": "server",
+            "logical_path": logical_path,
+            "codec_id": "json_event_shop_products",
+            "outer_keys": ["9700116"],
+            "inner_keys": [],
+            "semantic_claims": [],
+        })
+
+        report = self._tx(manifest=extended).preflight()
+
+        self.assertIn(
+            ("outer_key", f"{logical_path}:9700116"),
+            {(item["kind"], item["claim"]) for item in report.conflicts},
+        )
 
     def test_server_json_codec_rejects_malformed_and_duplicate_object_keys(self):
         self._finish_setup()
@@ -1704,6 +2324,46 @@ class TestPackPreflight(_TransactionFixtureMixin, unittest.TestCase):
                 )
                 image = self.pack.DEFAULT_CODECS[codec_id].inspect(raw, claim, ())
                 self.assertEqual(image.inner_rows, (("skill", "1", row),))
+
+    def test_builtin_json_integer_set_codec_is_available_to_release_transactions(self):
+        self._finish_setup()
+        codec = self.pack.DEFAULT_CODECS.get("json_integer_set")
+        self.assertIsNotNone(codec, "json_integer_set 必须是受控内建 codec")
+        assert codec is not None
+        claim = self.pack.TableClaim(
+            "server", "item_ids.json", "json_integer_set", ("999013",)
+        )
+
+        image = codec.inspect(b"[10001,999013]", claim, ())
+
+        self.assertEqual(
+            (("10001", b"10001"), ("999013", b"999013")),
+            image.outer_rows,
+        )
+
+    def test_nested_server_codecs_are_controlled_builtins(self):
+        self._finish_setup()
+        self.assertTrue({
+            "json_event_shop_products",
+            "json_rogue_events",
+        }.issubset(self.pack.DEFAULT_CODECS))
+
+    def test_codec_registry_cannot_override_a_validated_builtin_codec(self):
+        self._finish_setup()
+
+        for codec_id in (
+            "json_integer_set",
+            "json_event_shop_products",
+            "json_rogue_events",
+        ):
+            with self.subTest(codec_id=codec_id):
+                with self.assertRaisesRegex(
+                    self.pack.PackPreflightError, "cannot override built-in codec"
+                ):
+                    self._tx(codec_registry={
+                        "fixture_json": _JsonFixtureCodec(self.pack),
+                        codec_id: _JsonFixtureCodec(self.pack),
+                    })
 
     def test_same_package_id_does_not_own_a_newly_claimed_occupied_key(self):
         installed, installed_dir = self._installed_copy()
@@ -1894,6 +2554,46 @@ class TestOwnedFilesystemPlatformContract(unittest.TestCase):
         self.assertFalse(
             self.pack._OwnedFilesystem.POSIX_EXACT_NAMED_STAGING_SUPPORTED
         )
+
+    @unittest.skipUnless(os.name == "nt", "Windows owned-handle access contract")
+    def test_owned_root_never_requests_delete_child(self):
+        # Modify grants DELETE on a child but not FILE_DELETE_CHILD on its
+        # parent; that bit comes with Full Control.  Requesting it made
+        # open_root fail with ERROR_ACCESS_DENIED on any ordinary repository
+        # directory, which took the whole publication transaction down --
+        # including its own rollback -- while every test passed because the
+        # temp directory the tests use does grant Full Control.
+        api = self.pack._WIN_OWNED_API
+        self.assertIsNotNone(api)
+        access = api.root_access()
+        self.assertFalse(access & api.FILE_DELETE_CHILD)
+        for required in (
+            api.FILE_LIST_DIRECTORY,
+            api.FILE_ADD_FILE,
+            api.FILE_ADD_SUBDIRECTORY,
+            api.FILE_READ_ATTRIBUTES,
+            api.FILE_WRITE_ATTRIBUTES,
+            api.FILE_TRAVERSE,
+            api.SYNCHRONIZE,
+        ):
+            self.assertTrue(access & required)
+
+    @unittest.skipUnless(os.name == "nt", "Windows owned-handle access contract")
+    def test_owned_root_open_passes_exactly_the_declared_access(self):
+        api = self.pack._WIN_OWNED_API
+        self.assertIsNotNone(api)
+        recorded: list[int] = []
+
+        def record(path, access, share, security, disposition, flags, template):
+            recorded.append(access)
+            return ctypes.c_void_p(-1).value
+
+        with tempfile.TemporaryDirectory() as td:
+            with mock.patch.object(api, "CreateFileW", side_effect=record):
+                with self.assertRaises(OSError):
+                    api.open_root(Path(td))
+
+        self.assertEqual([api.root_access()], recorded)
 
     def test_posix_cleanup_closes_authority_and_never_deletes_a_name(self):
         owned = mock.Mock()

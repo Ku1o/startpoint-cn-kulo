@@ -280,7 +280,7 @@ def load_store_terrain(terrain_logical: str) -> dict:
     logical = str(terrain_logical)
     if not logical.endswith(".amf3.deflate"):
         logical += ".amf3.deflate"
-    packed = q.store_path(logical).read_bytes()
+    packed = q.read_raw(logical)
     try:
         raw = zlib.decompress(packed, -15)
         parsed = wf_dsl.parse_dsl(raw)
@@ -501,7 +501,7 @@ def load_store_esdl(logical: str) -> Any:
 
 
 def _decoded_store_tree(logical: str) -> Any:
-    packed = q.store_path(logical).read_bytes()
+    packed = q.read_raw(logical)
     try:
         raw = zlib.decompress(packed, -15)
         parsed = wf_dsl.parse_dsl(raw)
@@ -1595,7 +1595,8 @@ def build_native_bundle_catalog(
             gate = GateResult(False, "C8016", detail="element recolor preload is unsafe")
         if any(ref.kind == 4 or ref.code == "orochi_ex" for ref in actual_refs):
             gate = GateResult(False, "SPECIAL_PHASE_HP_UNSCALABLE",
-                              detail="phase HP is outside the tower scaling channel")
+                              detail=("phase HP is readable, but the tower clone path "
+                                      "does not rewrite its kind-4 zone/head graph"))
 
         if gate is None and callable(reference_gate):
             reference_result = _gate_value(

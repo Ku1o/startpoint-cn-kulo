@@ -80,9 +80,33 @@ def clear_progress(db: sqlite3.Connection, event: str, player: int | None) -> No
             print(f"  {table}: 删 {n} 行", flush=True)
 
 
+def build_command(args, seed: int) -> list[str]:
+    """构造 wf_rogue_build 命令；默认不传 --ramp，即全程决战级。"""
+    # 服务端虽用 `python -X utf8 wf_rogue_reroll.py`，该 flag 不会自动传给
+    # 子 Python；显式补上，避免 boss 日文标签在 Windows GBK 下打印即崩。
+    cmd = [sys.executable, "-X", "utf8", "-u", BUILD,
+           "--rounds", str(args.rounds), "--seed", str(seed),
+           "--enemy-level", str(args.enemy_level)]
+    if args.curse:
+        cmd += ["--curse", args.curse]
+    if args.mix:
+        cmd += ["--mix"]
+    if args.difficulty:
+        cmd += ["--difficulty", args.difficulty]
+    if args.ramp:
+        cmd += ["--ramp"]
+    if args.apply:
+        cmd += ["--write", "--publish"]
+    return cmd
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description="深渊连战一键重开(重摇+清进度+发布+重启游戏)")
-    ap.add_argument("--rounds", type=int, default=30, help="爬塔轮数(与线上不同须重启服务端)")
+    ap.add_argument("--rounds", type=int, default=30,
+                    help="爬塔轮数(与线上不同须重启服务端)。默认 30 = 线上部署轮数,"
+                         "与 rushEvent.ts 重摇钩子的 `cfg.rounds ?? 30` 对齐;"
+                         "2026-08-07 前是 15,GUI 两个入口都不显式传值,"
+                         "于是每次一键重开都把 30 层塔换成 15 层")
     ap.add_argument("--seed", type=int, help="留空=每次随机;填数字可复现同一座塔")
     ap.add_argument("--enemy-level", default="ramp",
                     help="敌等级:ramp=按深度爬坡(**默认**,前1/3 lv80→中段 lv90→"
@@ -104,6 +128,9 @@ def main() -> int:
     ap.add_argument("--difficulty", choices=("easy", "normal", "hell", "gradient"),
                     help="全塔难度预设:easy 全简单/hell 全炼狱/gradient 从简单到难"
                          "(透传 wf_rogue_build,层数自适应)")
+    ap.add_argument("--ramp", action="store_true",
+                    help="显式恢复旧 DPS 几何爬坡(60万→2500万)；默认关闭，"
+                         "即第1战热身外全程决战级。与 --enemy-level ramp 无关")
     ap.add_argument("--apply", action="store_true", help="真执行(默认 dry-run 预览)")
     args = ap.parse_args()
 
@@ -129,17 +156,7 @@ def main() -> int:
                              for t, n in counts.items()), flush=True)
 
         # 1. 重摇 + 发布(dry-run 时不带 --write,只打印新阵容)
-        cmd = [sys.executable, "-u", BUILD,
-               "--rounds", str(args.rounds), "--seed", str(seed),
-               "--enemy-level", str(args.enemy_level)]
-        if args.curse:
-            cmd += ["--curse", args.curse]
-        if args.mix:
-            cmd += ["--mix"]
-        if args.difficulty:
-            cmd += ["--difficulty", args.difficulty]
-        if args.apply:
-            cmd += ["--write", "--publish"]
+        cmd = build_command(args, seed)
         rc = subprocess.run(cmd, cwd=SERVER_ROOT).returncode
         if rc != 0:
             print(f"[ERR] wf_rogue_build 退出码 {rc},中止(进度未动)", flush=True)
@@ -168,4 +185,8 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    # 手工从 Windows PowerShell 启动时同样不能依赖活动 code page。
+    for _stream in (sys.stdout, sys.stderr):
+        if hasattr(_stream, "reconfigure"):
+            _stream.reconfigure(encoding="utf-8", errors="replace")
     sys.exit(main())

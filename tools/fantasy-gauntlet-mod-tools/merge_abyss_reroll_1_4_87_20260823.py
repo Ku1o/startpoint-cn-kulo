@@ -145,11 +145,6 @@ SPECIAL_BOSS_PAYLOAD_SHA256 = {
     "master/battle/boss/holy_sphere.orderedmap":
         "904f6bb0d70c5924a7c5f0d1ac8d1bda9773830352c890618a3df136a343dd52",
 }
-RUNTIME_UPSTREAM_BUILDER_PREPATCH_SHA256 = (
-    "3981f9b5c055fe030cf3e0f7fc62fae05f6e05fd9cc4b9c24f02c70a6029b347"
-)
-
-
 class MergeError(RuntimeError):
     pass
 
@@ -647,60 +642,6 @@ def verify_runtime_catalog(out_dir: Path, expected_size: int) -> dict[str, Any]:
     return {"catalog": str(catalog_path), "archives": len(archives)}
 
 
-def patched_runtime_upstream_builder() -> bytes:
-    """Add only the table-wide rank repair to the locally advanced upstream tool."""
-    path = RUNTIME_ROOT / "mod-tools-upstream/wf_rogue_build.py"
-    raw = path.read_bytes()
-    text = raw.decode("utf-8")
-    if "def enforce_gauntlet_quest_table_player_rank(" in text:
-        if "save(Q_QUEST, enforce_gauntlet_quest_table_player_rank(qt))" not in text:
-            raise MergeError("runtime upstream rank helper exists but is not used at save")
-        return raw
-    if sha256_bytes(raw) != RUNTIME_UPSTREAM_BUILDER_PREPATCH_SHA256:
-        raise MergeError("runtime upstream builder changed since audit; refusing to overwrite it")
-    join_block = '''def join(row: list[str], as_bytes: bool):
-    buf = io.StringIO()
-    csv.writer(buf, lineterminator="").writerow(row)
-    s = buf.getvalue()
-    return s.encode("utf-8") if as_bytes else s
-
-
-'''
-    helper = '''def enforce_gauntlet_quest_table_player_rank(quest_table: dict) -> dict:
-    """Repair both gauntlet hubs, including rows inherited from an older roll."""
-    for event_id in GAUNTLET_HUB_EVENT_IDS:
-        event = quest_table.get(event_id)
-        if event is None:
-            continue
-        if not isinstance(event, dict):
-            raise ValueError(f"rush_event_quest[{event_id}] is not a nested map")
-        for quest_key, leaf in event.items():
-            if isinstance(leaf, dict):
-                raise ValueError(
-                    f"rush_event_quest[{event_id}][{quest_key}] is not a CSV leaf"
-                )
-            row = cells(leaf)
-            if len(row) <= 48:
-                raise ValueError(
-                    f"rush_event_quest[{event_id}][{quest_key}] has only {len(row)} columns"
-                )
-            enforce_gauntlet_player_rank(row)
-            event[quest_key] = join(row, isinstance(leaf, bytes))
-    return quest_table
-
-
-'''
-    if text.count(join_block) != 1 or text.count("    save(Q_QUEST, qt)\n") != 1:
-        raise MergeError("runtime upstream builder patch anchors drifted")
-    text = text.replace(join_block, join_block + helper, 1)
-    text = text.replace(
-        "    save(Q_QUEST, qt)\n",
-        "    save(Q_QUEST, enforce_gauntlet_quest_table_player_rank(qt))\n",
-        1,
-    )
-    return text.encode("utf-8")
-
-
 def sync_runtime() -> dict[str, Any]:
     verification = verify_release()
     source_manifest, source_entry = load_manifest(SOURCE_ROOT)
@@ -724,7 +665,6 @@ def sync_runtime() -> dict[str, Any]:
         "tools/fantasy-gauntlet-mod-tools/wf_rogue_build.py": (
             SOURCE_ROOT / "tools/fantasy-gauntlet-mod-tools/wf_rogue_build.py"
         ).read_bytes(),
-        "mod-tools-upstream/wf_rogue_build.py": patched_runtime_upstream_builder(),
     }
     for member in NEW_MEMBERS:
         targets[f"assets/asset-patch/{member}"] = (

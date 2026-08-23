@@ -6,8 +6,8 @@ import unittest
 from pathlib import Path
 
 
-WORK_DIR = Path(__file__).resolve().parent
-TOOLS_DIR = Path(r"F:\startpoint-cn-mode15\mod-tools")
+WORK_DIR = Path(__file__).resolve().parent.parent
+TOOLS_DIR = WORK_DIR
 if str(TOOLS_DIR) not in sys.path:
     sys.path.insert(0, str(TOOLS_DIR))
 # Validate the staged module, while resolving its shared dependencies from the

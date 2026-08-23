@@ -87,6 +87,36 @@ class TestRushEventMetadata(unittest.TestCase):
         self.assertEqual([expected], [rogue_build.cells(actual)])
         self.assertIs(str, type(actual))
 
+    def test_unscaled_hp_keeps_absolute_evidence_and_actual_value(self):
+        native = {
+            "verified": True,
+            "absolute_verified": True,
+            "native_hp": 1000.0,
+            "components": [{
+                "code": "standard_boss", "kind": "standard",
+                "evidence_kind": "absolute", "native_hp": 1000.0,
+            }],
+        }
+
+        audit = rogue_build.unscaled_floor_hp_record(
+            7, native, base_duration_s=100.0, duration_s=100.0,
+            curse_hp=1.0, raw_c86=2.0, target=50.0,
+            scaling_error="standard c86 outside policy window",
+        )
+
+        self.assertTrue(audit["verified"])
+        self.assertTrue(audit["absolute_verified"])
+        self.assertTrue(audit["target_exempt"])
+        self.assertEqual(2000.0, audit["true_hp"])
+        self.assertEqual(20.0, audit["realized_dps"])
+        records = [{"r": 1, "baseline_dps": 1.0, "warmup": True}]
+        records.extend({"r": r, "baseline_dps": 50.0} for r in range(2, 7))
+        records.append(audit)
+        self.assertEqual([], rogue_build.hp_curve_errors(
+            records, 7, last_band=(40.0, 60.0)))
+        self.assertEqual([], rogue_build.hp_curve_errors(
+            records, 7, last_band=(40.0, 60.0), ramp=True))
+
     def test_folder_preview_matches_server_fixed_rewards(self):
         template = [f"template-{index}" for index in range(37)]
 

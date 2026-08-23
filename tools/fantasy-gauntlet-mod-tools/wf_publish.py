@@ -31,7 +31,8 @@ import zlib
 from dataclasses import dataclass
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
+TOOL_DIR = Path(__file__).resolve().parent
+sys.path.insert(0, str(TOOL_DIR))
 import wf_mod_tool as core  # noqa: E402
 import wf_assets  # noqa: E402
 import wf_atf  # noqa: E402
@@ -39,23 +40,18 @@ import wf_final_state_guard as final_state_guard  # noqa: E402
 import wf_publish_guard as publish_guard  # noqa: E402
 import wf_quest_lib as quest_tables  # noqa: E402
 
-ROOT = Path(__file__).resolve().parent.parent
-# Mode15 的工具和服务端是两个独立目录。优先使用新版四级解析链，
-# profiles.json 已显式固定到 isolated-server，避免回落到共享项目。
 SERVER_ROOT = core.resolve_server_dir()
-CDN_ROOT = (
-    Path(os.environ["WF_CDN_DIR"])
-    if os.environ.get("WF_CDN_DIR")
-    else core.resolve_cdn_root_lax()
-)
+ROOT = SERVER_ROOT
+# CDN 发布根统一走 core 四级解析链；显式坏配置不得被 publisher 绕过。
+CDN_ROOT = core.resolve_cdn_root_lax()
 CDN_DIFF = CDN_ROOT / "archive-common-diff"
 ACTIVE_PATCH = SERVER_ROOT / "assets" / "asset-patch" / "active"
 PATCH_MANIFEST = SERVER_ROOT / "assets" / "asset-patch" / "manifest.json"
-WORK = Path(__file__).resolve().parent / "work"
+WORK = TOOL_DIR / "work"
 PENDING = WORK / "sync_pending.json"
 CHANGELOG = WORK / "changelog.jsonl"
 CHANGELOG_MD = WORK / "changelog.md"
-REQUIRED_KEYS_CONTRACT = Path(__file__).resolve().parent / "publish_required_keys.json"
+REQUIRED_KEYS_CONTRACT = TOOL_DIR / "publish_required_keys.json"
 
 
 def stamp_changelog(version: str) -> int:
@@ -842,15 +838,15 @@ def main(argv: list[str] | None = None) -> int:
         "--dev-catalog",
         dest="dev_catalog",
         action="store_true",
-        help="发布成功后生成 dev Catalog/EntityLists",
+        help="发布成功后生成 dev Catalog/EntityLists（默认开启）",
     )
     catalog_group.add_argument(
         "--no-dev-catalog",
         dest="dev_catalog",
         action="store_false",
-        help="不生成 dev Catalog（Mode15 默认）",
+        help="不生成 dev Catalog",
     )
-    ap.set_defaults(layer_placeholders=False, dev_catalog=False)
+    ap.set_defaults(layer_placeholders=False, dev_catalog=True)
     args = ap.parse_args(argv)
 
     if args.cdn_root is not None:
@@ -1027,15 +1023,15 @@ def main(argv: list[str] | None = None) -> int:
             "已更新 work/changelog.md；版本展示已写入 asset-patch/manifest.json。"
         )
 
-    # 当前 Mode15 服务端尚未消费 dev Catalog，因此默认关闭；明确传入
-    # --dev-catalog 时才生成，失败只告警且不回滚已经提交的发布。
+    # 跟随上游默认生成 dev Catalog；明确传入 --no-dev-catalog 可关闭。
+    # 失败只告警且不回滚已经提交的发布。
     if args.dev_catalog:
         try:
             import wf_dev_catalog as devcat
 
             manifest_path, dev_issues, _dev_summary = devcat.emit_dev_catalog(
                 CDN_ROOT,
-                SERVER_ROOT / "assets" / "asset-patch" / "active",
+                devcat.asset_patch_for(CDN_ROOT),
                 digest_mode="cache",
                 allow_issues=True,
             )

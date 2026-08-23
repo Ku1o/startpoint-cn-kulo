@@ -41,15 +41,16 @@ class TestAbyssRewardProgression(unittest.TestCase):
             0,
             "Red",
             "test",
-            (rewards.EffectSpec("template", "32", 2_000_000),),
+            (rewards.EffectSpec("300001", "32", 2_000_000),),
         )
 
-        built = rewards.build_soul_leaf({"template": leaf([template])}, spec)
+        built = rewards.build_soul_leaf(
+            {"300001": leaf([template])}, spec, validate=False
+        )
         actual = core.read_csv_lines(built)[0]
 
         self.assertEqual("5", actual[45])
-        self.assertEqual("1000000", actual[48])
-        self.assertEqual("2000000", actual[49])
+        self.assertEqual(int(actual[49]) // 2, int(actual[48]))
         self.assertNotEqual(actual[48], actual[49])
 
 

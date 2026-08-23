@@ -31,6 +31,7 @@ sys.path.insert(0, str(TOOLS_DIR))
 
 import wf_quest_lib as q  # noqa: E402
 import wf_gui as gui  # noqa: E402
+import wf_mod_tool as core  # noqa: E402
 import wf_rogue_build as abyss  # noqa: E402
 import wf_fantasy_shop as fantasy_shop  # noqa: E402
 import wf_field_catalog as field_catalog  # noqa: E402
@@ -39,6 +40,8 @@ import wf_field_catalog as field_catalog  # noqa: E402
 # used (also matters when validating a staged upgrade before installation).
 sys.path.insert(0, str(MOD_DIR))
 import wf_boss_trial as boss_trial  # noqa: E402
+
+DEFAULT_SERVER_ROOT = core.resolve_server_dir()
 
 
 RUSH_EVENT_ID = 700098
@@ -228,10 +231,10 @@ def load_mode15_abyss_plan(path: Path = MODE15_ABYSS_PLAN_PATH) -> dict:
     if preset != "normalized-fantasy":
         raise ValueError("fantasy rush must use the normalized-fantasy preset")
     # ATK may follow the historical curve or a fixed multiplier by carrier
-    # mode. HP cannot use a raw multiplier curve:
-    # official Boss templates have radically different base HP. Each stage
-    # records its audited base HP and target effective HP, and the stored
-    # multiplier is verified as target/base.
+    # mode. HP cannot use a raw multiplier curve: official Boss templates have
+    # radically different base HP. ``target_effective_hp`` is authoritative;
+    # ``audited_base_hp`` and ``hp`` are only a reviewable snapshot.  A real
+    # build re-reads current Boss data and recomputes target/current-native.
     atk_model = difficulty.get("atk_model", "curve")
     try:
         if atk_model == "fixed-by-mode":
@@ -257,21 +260,13 @@ def load_mode15_abyss_plan(path: Path = MODE15_ABYSS_PLAN_PATH) -> dict:
         try:
             base_hp = float(config["audited_base_hp"])
             target_hp = float(config["target_effective_hp"])
+            snapshot_hp = float(config["hp"])
         except (KeyError, TypeError, ValueError) as exc:
             raise ValueError(
                 f"stage {stage} normalized HP metadata is invalid"
             ) from exc
-        if base_hp <= 0 or target_hp <= 0:
+        if base_hp <= 0 or target_hp <= 0 or snapshot_hp <= 0:
             raise ValueError(f"stage {stage} normalized HP must be positive")
-        expected_hp = target_hp / base_hp
-        hp_exempt = int(config["stage"]) in set(
-            plan.get("rules", {}).get("hp_progression_exempt_stages", [])
-        )
-        if (
-            not hp_exempt
-            and not math.isclose(float(config["hp"]), expected_hp, rel_tol=5e-5)
-        ):
-            raise ValueError(f"stage {stage} HP multiplier is not target/base")
         if not math.isclose(float(config["atk"]), expected_atk, rel_tol=5e-4):
             raise ValueError(
                 f"stage {stage} ATK does not match {atk_model}"
@@ -358,6 +353,17 @@ def load_mode15_abyss_plan(path: Path = MODE15_ABYSS_PLAN_PATH) -> dict:
 MODE15_ABYSS_PLAN = load_mode15_abyss_plan()
 STAGE_CONFIGS = tuple(MODE15_ABYSS_PLAN["stages"])
 STAGE_BY_NUMBER = {config["stage"]: config for config in STAGE_CONFIGS}
+_ACTIVE_STAGE_HP = {
+    int(config["stage"]): float(config["hp"])
+    for config in STAGE_CONFIGS
+}
+
+
+def stage_hp(config: dict) -> float:
+    """Return the current-store multiplier derived from the fixed HP target."""
+    return float(_ACTIVE_STAGE_HP.get(int(config["stage"]), config["hp"]))
+
+
 BATTLE_TIME_LIMIT_FRAMES = int(
     MODE15_ABYSS_PLAN["rules"]["battle_time_limit_frames"]
 )
@@ -400,6 +406,7 @@ Q_GENERAL_BOSS = "master/battle/boss/general_boss.orderedmap"
 Q_GENERAL_BOSS_STATE = "master/battle/boss/general_boss_state.orderedmap"
 Q_GENERAL_BOSS_VARIABLE = "master/battle/boss/general_boss_variable.orderedmap"
 Q_BOSS_LEVEL = "master/battle/boss/boss_level.orderedmap"
+Q_STANDARD_BOSS = "master/battle/boss/standard_boss.orderedmap"
 Q_WIND_SPHERE = "master/battle/boss/wind_sphere.orderedmap"
 Q_ACTION_SKILL = "master/skill/action_skill.orderedmap"
 Q_ASSIST_YAKUMONO = "master/battle/assist/assist_yakumono.orderedmap"
@@ -715,6 +722,80 @@ def get_quest_source_profile(advent_table: dict, config: dict) -> dict:
     return profile
 
 
+def mode15_stage_hp_evidence(tables: dict[str, dict], config: dict) -> dict:
+    """Read one configured source field and return its absolute native Boss HP."""
+    profile = get_quest_source_profile(tables[Q_ADVENT_QUEST], config)
+    field_leaf = tables[Q_FIELD_DATA].get(profile["field"])
+    if not isinstance(field_leaf, (bytes, str)):
+        raise ValueError(
+            f"stage {config['stage']} field_data[{profile['field']}] is missing"
+        )
+    field_row = cells(field_leaf)
+    if len(field_row) <= 2 or field_row[2] not in tables[Q_ZONE]:
+        raise ValueError(
+            f"stage {config['stage']} field {profile['field']} has no valid zone"
+        )
+    slots = abyss._legacy_active_boss_slots(tables[Q_ZONE][field_row[2]])
+    multiplayer = config["mode"] == "multiplayer"
+    references = [slot.multi if multiplayer else slot.single for slot in slots]
+    bosses = [reference.code for reference in references if reference is not None]
+    if not bosses:
+        raise ValueError(f"stage {config['stage']} source field has no active Boss slot")
+    evidence = abyss.floor_native_hp(
+        bosses,
+        int(config["level"]),
+        tables[Q_STANDARD_BOSS],
+        tables[Q_BOSS_LEVEL],
+    )
+    return dict(evidence, field=profile["field"], bosses=tuple(bosses))
+
+
+def refresh_mode15_stage_hp(tables: dict[str, dict]) -> tuple[dict, ...]:
+    """Rebase all quest multipliers onto current official native Boss HP.
+
+    ``target_effective_hp`` is the gameplay contract.  The stored ``hp`` and
+    ``audited_base_hp`` remain a reviewable snapshot, while every real build
+    re-reads the selected fields and computes ``target/current_native``.  A
+    missing or proxy-only HP source fails closed instead of silently reviving
+    the old trial-and-error multiplier.
+    """
+    active: dict[int, float] = {}
+    audits: list[dict] = []
+    for config in STAGE_CONFIGS:
+        stage = int(config["stage"])
+        evidence = mode15_stage_hp_evidence(tables, config)
+        if not evidence.get("verified") or evidence.get("native_hp") is None:
+            raise ValueError(
+                f"stage {stage} native Boss HP is unreadable: "
+                f"{evidence.get('reason') or 'unknown'}"
+            )
+        if not evidence.get("absolute_verified"):
+            raise ValueError(
+                f"stage {stage} native Boss HP has proxy-only evidence; "
+                "configure WF_APK so client-bundled curves can be read"
+            )
+        native_hp = float(evidence["native_hp"])
+        target_hp = float(config["target_effective_hp"])
+        if not all(math.isfinite(value) and value > 0
+                   for value in (native_hp, target_hp)):
+            raise ValueError(
+                f"stage {stage} HP rebase inputs are invalid: "
+                f"native={native_hp}, target={target_hp}"
+            )
+        multiplier = target_hp / native_hp
+        active[stage] = multiplier
+        audits.append(dict(
+            evidence,
+            stage=stage,
+            target_effective_hp=target_hp,
+            hp_multiplier=multiplier,
+            snapshot_native_hp=float(config["audited_base_hp"]),
+        ))
+    _ACTIVE_STAGE_HP.clear()
+    _ACTIVE_STAGE_HP.update(active)
+    return tuple(audits)
+
+
 def set_enemy_conditions(
     row: list[str],
     *,
@@ -753,10 +834,11 @@ def apply_rush_battle_config(
     row[81] = "1"
     # Preserve the mode's small ordinary clear rewards.
     row[82:86] = ["1", "100", str(config["mana_reward"]), "100"]
-    hp = number_text(config["hp"])
+    hp_value = stage_hp(config)
+    hp = number_text(hp_value)
     atk = number_text(config["atk"])
     minion_hp = number_text(
-        float(config["hp"])
+        hp_value
         * float(config.get(
             "minion_hp_scale",
             MODE15_ABYSS_PLAN["rules"]["minion_hp_scale"],
@@ -793,10 +875,11 @@ def apply_advent_battle_config(
         conditions=config["conditions"],
     )
     row[99:103] = ["1", "100", str(config["mana_reward"]), "100"]
-    hp = number_text(config["hp"])
+    hp_value = stage_hp(config)
+    hp = number_text(hp_value)
     atk = number_text(config["atk"])
     minion_hp = number_text(
-        float(config["hp"])
+        hp_value
         * float(config.get(
             "minion_hp_scale",
             MODE15_ABYSS_PLAN["rules"]["minion_hp_scale"],
@@ -1550,7 +1633,7 @@ def build_stage15_shield_actions() -> dict[str, bytes]:
     ):
         source_logical = source + ".action.dsl.amf3.deflate"
         destination_logical = destination + ".action.dsl.amf3.deflate"
-        tree = field_catalog.parse_dsl(q.store_path(source_logical).read_bytes())
+        tree = field_catalog.parse_dsl(q.read_raw(source_logical))
         barriers: list[list] = []
 
         def collect(node) -> None:
@@ -1625,7 +1708,7 @@ def build_stage10_field_actions() -> dict[str, bytes]:
         ]
 
     for index, logical in enumerate(STAGE10_ACTION_LOGICALS):
-        tree = field_catalog.parse_dsl(q.store_path(logical).read_bytes())
+        tree = field_catalog.parse_dsl(q.read_raw(logical))
         root_commands = _action_root_commands(tree)
         field = (attack_down_ability, combo, attack_down_power_flip, None)[index]
         if index == 3:
@@ -2162,9 +2245,18 @@ def load_and_build_client_tables() -> dict[str, dict]:
         Q_OLD_CARNIVAL_EVENT, Q_OLD_CARNIVAL_FOLDER, Q_OLD_CARNIVAL_QUEST,
         Q_FIELD_DATA, Q_ZONE, Q_GENERAL_BOSS, Q_GENERAL_BOSS_STATE,
         Q_GENERAL_BOSS_VARIABLE,
-        Q_BOSS_LEVEL, Q_WIND_SPHERE, Q_ACTION_SKILL, Q_ASSIST_YAKUMONO,
+        Q_BOSS_LEVEL, Q_STANDARD_BOSS, Q_WIND_SPHERE,
+        Q_ACTION_SKILL, Q_ASSIST_YAKUMONO,
     )
     tables = {logical: q.load_table(logical) for logical in logicals}
+    hp_audits = refresh_mode15_stage_hp(tables)
+    print(
+        "[HP] 幻想连战已按当前官方 Boss 数据重算 15 关倍率: "
+        + ", ".join(
+            f"{audit['stage']}={audit['target_effective_hp'] / 1e8:.2f}亿"
+            for audit in hp_audits
+        )
+    )
 
     # Remove every table row created by the invalid .88 carrier conversion.
     # The action assets are unreferenced after these rows disappear and may
@@ -2471,9 +2563,10 @@ def validate(
             raise ValueError(f"stage {stage} Rush ordinary mana reward is wrong")
         if row[100] != str(config["time_limit_frames"]):
             raise ValueError(f"stage {stage} Rush time limit is wrong")
-        expected_hp = number_text(config["hp"])
+        hp_value = stage_hp(config)
+        expected_hp = number_text(hp_value)
         expected_minion_hp = number_text(
-            float(config["hp"])
+            hp_value
             * float(config.get(
                 "minion_hp_scale",
                 MODE15_ABYSS_PLAN["rules"]["minion_hp_scale"],
@@ -2535,9 +2628,10 @@ def validate(
                 raise ValueError(
                     f"stage {stage} Advent enemy condition would cause C7050"
                 )
-        expected_hp = number_text(config["hp"])
+        hp_value = stage_hp(config)
+        expected_hp = number_text(hp_value)
         expected_minion_hp = number_text(
-            float(config["hp"])
+            hp_value
             * float(config.get(
                 "minion_hp_scale",
                 MODE15_ABYSS_PLAN["rules"]["minion_hp_scale"],
@@ -3491,7 +3585,8 @@ def main() -> int:
         mode = "MULTI" if config["stage"] in MULTI_STAGES else "SOLO"
         print(
             f"[STAGE {config['stage']:02d}] {mode} {config['boss']} "
-            f"Lv{config['level']} HPx{number_text(config['hp'])} "
+            f"Lv{config['level']} HPx{number_text(stage_hp(config))} "
+            f"目标{float(config['target_effective_hp']) / 1e8:.2f}亿 "
             f"ATKx{number_text(config['atk'])}"
         )
     if not args.write:
