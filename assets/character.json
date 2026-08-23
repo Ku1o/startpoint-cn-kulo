@@ -3106,5 +3106,11 @@
     "rarity": 5,
     "element": 3,
     "skill_count": 6
+  },
+  "119996": {
+    "name": "玛格诺斯",
+    "rarity": 5,
+    "element": 0,
+    "skill_count": 6
   }
 }

@@ -351,6 +351,15 @@
     "race": "Human,Element"
   },
   {
+    "id": 119996,
+    "name": "玛格诺斯",
+    "title": "灼原的狮王",
+    "rarity": "5★",
+    "element": "火",
+    "gender": "男性",
+    "race": "Human,Beast"
+  },
+  {
     "id": 119997,
     "name": "夏可缇",
     "title": "焚身之誓",
