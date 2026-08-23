@@ -1055,8 +1055,9 @@ function handleMessage(socket, data) {
     const tag = data[0];
     const client = findClientBySocket(socket);
     if (!client) {
-        if (SessionManager_1.sessionManager.isSupersededSocket(socket)) {
-            (0, game_logging_1.gameVerboseLog)(() => `[LOBBY] dropped late message from superseded socket tag=${tag}`);
+        if (SessionManager_1.sessionManager.isSupersededSocket(socket)
+            || SessionManager_1.sessionManager.isRetiredLobbySocket(socket)) {
+            (0, game_logging_1.gameVerboseLog)(() => `[LOBBY] dropped late message from quarantined socket tag=${tag}`);
         }
         else {
             console.warn(`[LOBBY] no client found for socket, dropping message tag=${tag}`);

@@ -1075,8 +1075,9 @@ export function handleMessage(socket: net.Socket, data: unknown): void {
     const tag = data[0] as number
     const client = findClientBySocket(socket)
     if (!client) {
-        if (sessionManager.isSupersededSocket(socket)) {
-            gameVerboseLog(() => `[LOBBY] dropped late message from superseded socket tag=${tag}`)
+        if (sessionManager.isSupersededSocket(socket)
+            || sessionManager.isRetiredLobbySocket(socket)) {
+            gameVerboseLog(() => `[LOBBY] dropped late message from quarantined socket tag=${tag}`)
         } else {
             console.warn(`[LOBBY] no client found for socket, dropping message tag=${tag}`)
         }
