@@ -272,15 +272,14 @@ def build_source_inventory(runtime=None) -> dict:
     entries = []
     for relative, expected in canonical_contract().items():
         source = expected["source"]
-        located = wf_assets.locate(gui.TARGET_STORE, source)
-        if not located:
+        current = wf_assets.read_current(gui.TARGET_STORE, source)
+        if not current:
             raise FileNotFoundError(source)
-        source_root, source_path = located
+        source_root, data, _resolved_source = current
         if source_root != expected["source_root"]:
             raise ValueError(
                 f"canonical source root mismatch for {source}: "
                 f"{source_root} != {expected['source_root']}")
-        data = source_path.read_bytes()
         entries.append({
             "relative": relative,
             "source": source,
@@ -328,11 +327,11 @@ def prepare(runtime=None, work: Path = WORK) -> dict:
         inventory = build_source_inventory(gui)
         for entry in inventory["entries"]:
             source = entry["source"]
-            located = wf_assets.locate(gui.TARGET_STORE, source)
-            if not located:
+            current = wf_assets.read_current(gui.TARGET_STORE, source)
+            if not current:
                 raise FileNotFoundError(
                     f"inventory source disappeared during prepare: {source}")
-            data = located[1].read_bytes()
+            data = current[1]
             digest = hashlib.sha256(data).hexdigest()
             if digest != entry["source_sha256"]:
                 raise ValueError(f"inventory source changed during prepare: {source}")

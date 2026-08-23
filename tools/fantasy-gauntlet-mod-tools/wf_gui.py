@@ -2988,9 +2988,29 @@ def char_assets(character: str) -> dict:
     if not c:
         raise ValueError(f"角色不存在: {character}")
     code = c["code_name"]
+    assets = wf_assets.char_asset_manifest(TARGET_STORE, code)
+    voice_count = sum(
+        1 for item in assets
+        if item["exists"] and "/voice/" in item["logical"])
+    voice_dump_available = wf_assets.resolve_voice_dump().is_dir()
+    pathlist_available = (wf_assets.HERE / "WF_PATHLIST_recovered.txt").is_file()
+    current_source = (".cdn + active 服务端终态"
+                      if wf_live_cdn.enabled_for_store(TARGET_STORE)
+                      else "独立安装的本地四根 store")
+    voice_detail = (
+        "voice-dump 已配置，可附带台词文本"
+        if voice_dump_available else
+        "voice-dump 未配置；音频仍按固定名和路径清单读取，台词文本及少数专属变名可能不全"
+    )
     return {"character": str(character), "code_name": code,
-            "assets": wf_assets.char_asset_manifest(TARGET_STORE, code),
-            "note": "PNG/MP3 存储态有混淆,预览与替换自动转换;替换自动备份+进待发布"
+            "assets": assets,
+            "voice_status": {
+                "found": voice_count,
+                "voice_dump": voice_dump_available,
+                "pathlist": pathlist_available,
+            },
+            "note": f"读取来源={current_source};已发现语音 {voice_count} 项;{voice_detail};"
+                    "PNG/MP3 预览与替换自动转换;替换自动备份+进待发布"
                     "(medium 根资产发布时自动走 medium diff 包)"}
 
 
@@ -3059,22 +3079,23 @@ def replace_asset(logical: str, data: bytes, force: bool, dry_run: bool) -> dict
             android_fp = wf_assets.path_in_root(
                 TARGET_STORE, "android", atf_logical)
             ios_fp = wf_assets.path_in_root(TARGET_STORE, "ios", atf_logical)
-            android_ref = (
-                wf_atf.inflate(android_fp.read_bytes())
-                if android_fp.is_file() else None
-            )
-            ios_ref = (
-                wf_atf.inflate(ios_fp.read_bytes())
-                if ios_fp.is_file() else None
-            )
+            android_current = wf_assets.read_current_root(
+                TARGET_STORE, atf_logical, "android")
+            ios_current = wf_assets.read_current_root(
+                TARGET_STORE, atf_logical, "ios")
+            android_ref = (wf_atf.inflate(android_current[1])
+                           if android_current else None)
+            ios_ref = (wf_atf.inflate(ios_current[1])
+                       if ios_current else None)
             android_atf, ios_atf = wf_atf.build_cutin_platform_pair(
                 data,
                 android_ref if android_ref is not None else ios_ref,
                 ios_ref,
             )
             atf_jobs = [
-                ("android", android_fp, wf_atf.deflate(android_atf)),
-                ("ios", ios_fp, wf_atf.deflate(ios_atf)),
+                ("android", android_fp, wf_atf.deflate(android_atf),
+                 android_current),
+                ("ios", ios_fp, wf_atf.deflate(ios_atf), ios_current),
             ]
             log.append(
                 f"{atf_logical}: 从同一 PNG 独立生成 Android ETC1(slot 2) / "
@@ -3098,14 +3119,16 @@ def replace_asset(logical: str, data: bytes, force: bool, dry_run: bool) -> dict
                 bak.write_bytes(old)
         fp.write_bytes(enc)
         add_pending(fp)
-        for _platform, afp, aenc in atf_jobs:
+        for _platform, afp, aenc, previous in atf_jobs:
             afp.parent.mkdir(parents=True, exist_ok=True)
-            if afp.is_file():
-                abak = afp.with_name(
-                    afp.name + ".bak-wfmod-asset-" + time.strftime("%Y%m%d-%H%M%S")
-                )
+            if previous:
+                abak = afp.with_name(afp.name + ".bak-wfmod-asset-" +
+                                     time.strftime("%Y%m%d-%H%M%S"))
                 if not abak.exists():
-                    shutil.copy2(afp, abak)
+                    if afp.is_file():
+                        shutil.copy2(afp, abak)
+                    else:
+                        abak.write_bytes(previous[1])
             afp.write_bytes(aenc)
             add_pending(afp)
         if trim_job:

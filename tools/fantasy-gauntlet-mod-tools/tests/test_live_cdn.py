@@ -9,6 +9,7 @@ from pathlib import Path
 from unittest import mock
 
 import wf_live_cdn as live
+import wf_assets
 import wf_mod_tool as core
 import wf_quest_lib as q
 
@@ -99,6 +100,22 @@ class LiveCdnReadCase(unittest.TestCase):
         self.assertEqual("ios", current.root)
         self.assertEqual(b"ios-active", current.data)
         self.assertEqual("1.4.1", live.describe()["platform_tails"]["ios"])
+
+    def test_asset_reader_uses_live_terminal_and_ignores_overlay_only(self) -> None:
+        current = wf_assets.read_current(self.overlay, LOGICAL)
+        self.assertIsNotNone(current)
+        self.assertEqual("upload", current[0])
+        self.assertEqual("active", q.parse_node(current[1])["key"])
+        self.assertIn("active.zip", current[2])
+        self.assertIsNone(wf_assets.read_current(self.overlay, OVERLAY_ONLY))
+
+    def test_asset_root_reader_keeps_platform_roots_separate(self) -> None:
+        current = wf_assets.read_current_root(
+            self.overlay, IOS_LOGICAL, "ios")
+        self.assertIsNotNone(current)
+        self.assertEqual(("ios", b"ios-active"), current[:2])
+        self.assertIsNone(wf_assets.read_current_root(
+            self.overlay, IOS_LOGICAL, "android"))
 
     def test_new_active_edge_invalidates_long_running_cache(self) -> None:
         self.assertEqual("active", q.load_table(LOGICAL)["key"])

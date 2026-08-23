@@ -224,6 +224,12 @@ def roots(target_store: Path) -> dict[str, Path]:
 
 
 def locate(target_store: Path, logical: str) -> tuple[str, Path] | None:
+    """Locate a payload in the writable four-root overlay only.
+
+    Readers that need the server's effective value must use ``read_current``;
+    this helper intentionally remains local so writers can choose a target
+    path without mistaking unpublished output for live state.
+    """
     d = core.sha1_path(logical)
     for name, root in roots(target_store).items():
         p = root / d[:2] / d[2:]
@@ -266,6 +272,38 @@ def read_current(target_store: Path, logical: str) -> tuple[str, bytes, str] | N
     return local[0], local[1].read_bytes(), str(local[1])
 
 
+def read_current_root(target_store: Path, logical: str,
+                      root_name: str) -> tuple[str, bytes, str] | None:
+    """Read the effective server value from one explicit asset root."""
+    root_paths = roots(target_store)
+    if root_name not in root_paths:
+        raise ValueError(f"unknown asset root: {root_name}")
+
+    import wf_live_cdn
+
+    if wf_live_cdn.enabled_for_store(target_store):
+        digest = core.sha1_path(logical)
+        live_root = {
+            "upload": "common", "medium": "medium",
+            "android": "android", "ios": "ios",
+        }[root_name]
+        try:
+            current = wf_live_cdn.read_relative(
+                f"{digest[:2]}/{digest[2:]}", roots=(live_root,))
+            return (
+                root_name,
+                current.data,
+                f"{current.archive}!{current.member}",
+            )
+        except wf_live_cdn.LiveCdnEntryMissing:
+            return None
+
+    local = path_in_root(target_store, root_name, logical)
+    if not local.is_file():
+        return None
+    return root_name, local.read_bytes(), str(local)
+
+
 def exists_current(target_store: Path, logical: str) -> bool:
     return read_current(target_store, logical) is not None
 
@@ -292,7 +330,7 @@ _VOICE_FIXED = (
     # (dump/词表/采集/路径清单)都收录不到自制角色的 home_N 命名。缺了它们,
     # char_asset_manifest 会同时"丢掉活文件 + 带上已不被表引用的旧孤儿",
     # 表现为经 GUI 导出/克隆/推设备一次,home 语音就没声了。
-    # 这里按序号补齐(不存在的会被 locate 过滤掉);自制先例:杰拉德 0-5、基诺维 0-4。
+    # 这里按序号补齐(不存在的会被服务端终态过滤掉);自制先例:杰拉德 0-5、基诺维 0-4。
     *(f"home/home_{i}.mp3" for i in range(10)),
 )
 _VOICE_CATS = ("ally", "battle", "home", "login")
@@ -317,7 +355,17 @@ def dump_voices(code_name: str) -> list[tuple[str, str, str]]:
                     out.append((cat, f, str(lines.get(f"{cat}/{f[:-4]}", "")).strip()))
     return out
 
-_pathlist_cache: dict[str, list[str]] | None = None
+def _file_signature(path: Path) -> tuple[int, int, int] | None:
+    try:
+        stat = path.stat()
+        return stat.st_mtime_ns, stat.st_ctime_ns, stat.st_size
+    except OSError:
+        return None
+
+
+_pathlist_cache: tuple[
+    tuple[int, int, int] | None, dict[str, list[str]]
+] | None = None
 
 
 def _pathlist_char_index() -> dict[str, list[str]]:
@@ -325,11 +373,13 @@ def _pathlist_char_index() -> dict[str, list[str]]:
     按 code_name 归组。用于枚举名字因角色而异的资产(ui/story 表情差分、voice/words 剧情语音)。
     清单是部分复原:缺的路径不代表 store 里没有,固定名资产仍以模板探测为准。"""
     global _pathlist_cache
-    if _pathlist_cache is not None:
-        return _pathlist_cache
+    path = HERE / "WF_PATHLIST_recovered.txt"
+    signature = _file_signature(path)
+    if _pathlist_cache is not None and _pathlist_cache[0] == signature:
+        return _pathlist_cache[1]
     idx: dict[str, list[str]] = {}
     try:
-        with (HERE / "WF_PATHLIST_recovered.txt").open(encoding="utf-8", errors="replace") as f:
+        with path.open(encoding="utf-8", errors="replace") as f:
             for line in f:
                 line = line.strip()
                 if not line.startswith("character/"):
@@ -339,11 +389,31 @@ def _pathlist_char_index() -> dict[str, list[str]]:
                     idx.setdefault(parts[1], []).append(line)
     except Exception:
         pass
-    _pathlist_cache = idx
+    _pathlist_cache = (signature, idx)
     return idx
 
 
-_voice_vocab_cache: tuple[Path, list[str]] | None = None
+def _voice_dump_name_signature(voice_dump: Path) -> tuple:
+    """Track directory-name changes that affect the discovered voice vocabulary."""
+    if not voice_dump.is_dir():
+        return voice_dump, None
+    entries = []
+    try:
+        for char_dir in sorted(voice_dump.iterdir(), key=lambda path: path.name):
+            if not char_dir.is_dir():
+                continue
+            entries.append((char_dir.name, _file_signature(char_dir)))
+            for cat in _VOICE_CATS:
+                category = char_dir / cat
+                if category.is_dir():
+                    entries.append((f"{char_dir.name}/{cat}",
+                                    _file_signature(category)))
+    except OSError:
+        pass
+    return voice_dump, tuple(entries)
+
+
+_voice_vocab_cache: tuple[tuple, list[str]] | None = None
 
 
 def _voice_vocab() -> list[str]:
@@ -352,7 +422,8 @@ def _voice_vocab() -> list[str]:
     home 语音多为角色专属罗马音名,命中率低但探测便宜(sha1+stat),不漏才是重点。"""
     global _voice_vocab_cache
     voice_dump = resolve_voice_dump()
-    if _voice_vocab_cache is not None and _voice_vocab_cache[0] == voice_dump:
+    signature = _voice_dump_name_signature(voice_dump)
+    if _voice_vocab_cache is not None and _voice_vocab_cache[0] == signature:
         return _voice_vocab_cache[1]
     vocab: set[str] = set(_VOICE_FIXED)
     try:
@@ -366,21 +437,26 @@ def _voice_vocab() -> list[str]:
     except Exception:
         pass
     result = sorted(vocab)
-    _voice_vocab_cache = (voice_dump, result)
+    _voice_vocab_cache = (signature, result)
     return result
 
 
-_harvest_voice_cache: dict[str, list[str]] | None = None
+_harvest_voice_cache: tuple[
+    tuple[int, int, int] | None, dict[str, list[str]]
+] | None = None
 
 
 def _harvest_voice_index() -> dict[str, list[str]]:
     """HarvestedPaths.csv 里捕获过的 character/*/voice/* 路径,按 code_name 归组。"""
     global _harvest_voice_cache
-    if _harvest_voice_cache is not None:
-        return _harvest_voice_cache
+    path = HERE / "HarvestedPaths.csv"
+    signature = _file_signature(path)
+    if (_harvest_voice_cache is not None
+            and _harvest_voice_cache[0] == signature):
+        return _harvest_voice_cache[1]
     idx: dict[str, list[str]] = {}
     try:
-        with (HERE / "HarvestedPaths.csv").open(encoding="utf-8", errors="replace") as f:
+        with path.open(encoding="utf-8", errors="replace") as f:
             for row in csv.reader(f):
                 if not row or "/voice/" not in row[0] or not row[0].startswith("character/"):
                     continue
@@ -388,31 +464,42 @@ def _harvest_voice_index() -> dict[str, list[str]]:
                 idx.setdefault(parts[1], []).append(row[0])
     except Exception:
         pass
-    _harvest_voice_cache = idx
+    _harvest_voice_cache = (signature, idx)
     return idx
 
 
 def char_asset_manifest(target_store: Path, code_name: str) -> list[dict]:
-    """角色的可预览/可替换资产清单(探测三根,含尺寸/格式要求/台词文本)。"""
+    """角色的可预览/可替换资产清单(读取服务端终态,含尺寸/格式要求/台词文本)。"""
     out = []
     seen = set()
+    unresolved = object()
 
-    def add(requirement: AssetRequirement, text: str | None = None):
+    def add(requirement: AssetRequirement, text: str | None = None,
+            current=unresolved):
         logical = requirement.logical_path
         if logical in seen:
             return
         seen.add(logical)
-        loc = read_current(target_store, logical)
+        loc = (read_current(target_store, logical)
+               if current is unresolved else current)
         item = {"logical": logical, "kind": requirement.kind,
                 "req": requirement.requirement,
                 "category": requirement.category,
                 "expected_dims": requirement.expected_dims,
                 "text": requirement.text if text is None else text,
                 "exists": bool(loc), "root": loc[0] if loc else "",
+                "source": loc[2] if loc else "",
                 "size": len(loc[1]) if loc else 0, "dims": None}
         if loc and logical.endswith(".png"):
             item["dims"] = png_dims(loc[1][:64])
         out.append(item)
+
+    def add_existing(requirement: AssetRequirement,
+                     text: str | None = None):
+        """Add a discovered path only when it exists in the live terminal."""
+        current = read_current(target_store, requirement.logical_path)
+        if current:
+            add(requirement, text, current=current)
 
     static_requirements = char_asset_requirements(code_name)
     for requirement in static_requirements:
@@ -426,31 +513,29 @@ def char_asset_manifest(target_store: Path, code_name: str) -> list[dict]:
     voice_req = "MP3(CBR,Layer3;VBR 不支持),建议与原文件同码率"
     for cat, f, textline in dumped:
         lg = f"character/{code_name}/voice/{cat}/{f}"
-        if locate(target_store, lg):
-            add(AssetRequirement(lg, f"语音·{cat}",
-                                 classify_asset_category(lg, f"语音·{cat}"),
-                                 voice_req, text=textline))
+        add_existing(AssetRequirement(
+            lg, f"语音·{cat}", classify_asset_category(lg, f"语音·{cat}"),
+            voice_req, text=textline))
     for sub in _voice_vocab():
         lg = f"character/{code_name}/voice/{sub}"
-        if locate(target_store, lg):
-            kind = "语音·" + sub.split("/", 1)[0]
-            add(AssetRequirement(lg, kind, classify_asset_category(lg, kind), voice_req))
+        kind = "语音·" + sub.split("/", 1)[0]
+        add_existing(AssetRequirement(
+            lg, kind, classify_asset_category(lg, kind), voice_req))
     for lg in _harvest_voice_index().get(code_name, []):
-        add(AssetRequirement(lg, "语音", classify_asset_category(lg, "语音"), voice_req))
+        add_existing(AssetRequirement(
+            lg, "语音", classify_asset_category(lg, "语音"), voice_req))
     # 变名资产(剧情表情/剧情语音):路径清单枚举 + store 探测(只列真实存在的)
     for lg in _pathlist_char_index().get(code_name, []):
         if "/ui/story/" in lg and lg.endswith(".png"):
-            if locate(target_store, lg):
-                add(AssetRequirement(lg, "剧情表情", "excluded",
-                                     "剧情对话表情差分。PNG,与原图同尺寸"))
+            add_existing(AssetRequirement(
+                lg, "剧情表情", "excluded", "剧情对话表情差分。PNG,与原图同尺寸"))
         elif "/voice/" in lg and lg.endswith(".mp3"):
             cat = lg.split("/voice/", 1)[1].split("/", 1)[0]
-            if locate(target_store, lg):
-                kind = "语音·" + cat
-                add(AssetRequirement(
-                    lg, kind, classify_asset_category(lg, kind),
-                    voice_req + ("(剧情台词语音)" if cat.startswith("words") else ""),
-                ))
+            kind = "语音·" + cat
+            add_existing(AssetRequirement(
+                lg, kind, classify_asset_category(lg, kind),
+                voice_req + ("(剧情台词语音)" if cat.startswith("words") else ""),
+            ))
     # 保持历史清单顺序：配套二进制始终排在动态语音/剧情资产之后。
     for requirement in static_requirements:
         if requirement.kind == "配套数据":
