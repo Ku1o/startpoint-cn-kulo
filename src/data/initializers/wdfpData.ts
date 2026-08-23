@@ -1006,13 +1006,13 @@ export default function init(
         event_id INTEGER PRIMARY KEY,
         total_kill_count INTEGER NOT NULL DEFAULT 0,
         weighted_kill_count INTEGER NOT NULL DEFAULT 0,
-        calculation_version INTEGER NOT NULL DEFAULT 3,
+        calculation_version INTEGER NOT NULL DEFAULT 4,
         updated_at INTEGER NOT NULL
     )`).run()
     // Version 1 counted every clear as a full communal boss kill. Version 2
-    // used the official 76000 threshold. Version 3 keeps official per-quest
-    // weights but uses the private-server threshold 760. Existing ledgers are
-    // replayed lazily whenever their calculation version is older.
+    // used the official 76000 threshold. Version 3 temporarily used the
+    // private-server threshold 760. Version 4 restores official threshold and
+    // weights. Existing ledgers are replayed lazily when the version is older.
     try { database.prepare(`ALTER TABLE raid_event_global_state ADD COLUMN weighted_kill_count INTEGER NOT NULL DEFAULT 0`).run(); } catch { /* column already exists */ }
     try { database.prepare(`ALTER TABLE raid_event_global_state ADD COLUMN calculation_version INTEGER NOT NULL DEFAULT 1`).run(); } catch { /* column already exists */ }
 
@@ -1022,8 +1022,7 @@ export default function init(
         player_id INTEGER NOT NULL,
         quest_id INTEGER NOT NULL,
         created_at INTEGER NOT NULL,
-        PRIMARY KEY (event_id, play_id),
-        FOREIGN KEY (player_id) REFERENCES players (id) ON DELETE CASCADE
+        PRIMARY KEY (event_id, play_id)
     )`).run()
 
     database.prepare(`CREATE INDEX IF NOT EXISTS idx_raid_event_global_kill_ledger_event_quest

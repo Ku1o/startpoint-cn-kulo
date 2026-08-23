@@ -309,4 +309,44 @@ export function updateAfterInit(
             `[DB] reset ${resetCount} corrupted treasure-shop purchase records`
         )
     }
+
+    if (8 >= currentVersion) {
+        // Raid clear receipts are global idempotency records. They must survive
+        // player deletion/import; otherwise the same play_id can contribute a
+        // second time and the communal state can no longer be rebuilt exactly.
+        const hasLedger = database.prepare(`
+            SELECT 1 FROM sqlite_master
+            WHERE type = 'table' AND name = 'raid_event_global_kill_ledger'
+        `).get()
+        if (hasLedger) {
+            database.transaction(() => {
+                database.prepare(`DROP TABLE IF EXISTS raid_event_global_kill_ledger_v9`).run()
+                database.prepare(`
+                    CREATE TABLE raid_event_global_kill_ledger_v9 (
+                        event_id INTEGER NOT NULL,
+                        play_id TEXT NOT NULL,
+                        player_id INTEGER NOT NULL,
+                        quest_id INTEGER NOT NULL,
+                        created_at INTEGER NOT NULL,
+                        PRIMARY KEY (event_id, play_id)
+                    )
+                `).run()
+                database.prepare(`
+                    INSERT OR IGNORE INTO raid_event_global_kill_ledger_v9
+                        (event_id, play_id, player_id, quest_id, created_at)
+                    SELECT event_id, play_id, player_id, quest_id, created_at
+                    FROM raid_event_global_kill_ledger
+                `).run()
+                database.prepare(`DROP TABLE raid_event_global_kill_ledger`).run()
+                database.prepare(`
+                    ALTER TABLE raid_event_global_kill_ledger_v9
+                    RENAME TO raid_event_global_kill_ledger
+                `).run()
+                database.prepare(`
+                    CREATE INDEX idx_raid_event_global_kill_ledger_event_quest
+                    ON raid_event_global_kill_ledger (event_id, quest_id)
+                `).run()
+            })()
+        }
+    }
 }
