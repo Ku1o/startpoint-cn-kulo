@@ -10,7 +10,7 @@
                                   c9-13 view_condition 链住上一轮(§9.3 硬约束),
                                   c67 体力=0,c95 敌等级 80(塔场地×rush 已真机验证),
                                   c86-94 修正 = 缓坡(hp 0.5×1.185^r / atk 0.35×1.13^r)
-  event_list[700099]              kind 11 入口
+  event_list                     不保留 700098/700099 直达入口；统一走共享 EventFolder
 
 服务端(静态 import,改后须重启服务端):
   assets/rush_event_quest.json        += 700099001..N
@@ -61,6 +61,8 @@ import wf_rogue_bundle as rbb     # noqa: E402
 ROOT = str(core.resolve_server_dir())
 
 EVENT_ID = "700099"
+GAUNTLET_HUB_EVENT_IDS = ("700098", EVENT_ID)
+GAUNTLET_MIN_PLAYER_RANK = "130"
 TOKEN_ID = "2370099"
 EVENT_STRING_ID = "mod_rogue_gauntlet"
 EVENT_NAME = "深渊连战"
@@ -71,6 +73,20 @@ Q_LIST = "master/quest/event/event_list.orderedmap"
 Q_CORR = "master/quest/event/rush_event_battle_quest_correction.orderedmap"
 TEMPLATE_EVENT = "700007"
 ENDLESS_KEY = "99"          # 无尽 quest 内层键/id 尾号(避开 round 键位)
+
+
+def enforce_gauntlet_player_rank(row: list) -> list:
+    """Keep every generated single-player gauntlet quest at rank 130."""
+    row[48] = GAUNTLET_MIN_PLAYER_RANK
+    return row
+
+
+def enforce_gauntlet_hub_event_list(event_list: dict) -> dict:
+    """The shared EventFolder is authoritative; direct event entries must stay absent."""
+    for hub_event_id in GAUNTLET_HUB_EVENT_IDS:
+        event_list.pop(hub_event_id, None)
+    return event_list
+
 
 # ---- C8016 素材池黑名单(2026-07-19 真机崩溃实证)----
 # 大恶魔(arch_evil)家族:召唤 kit(诅咒之眼/使魔)在运行时出现预载集合之外的
@@ -2346,6 +2362,29 @@ def join(row: list[str], as_bytes: bool):
     return s.encode("utf-8") if as_bytes else s
 
 
+def enforce_gauntlet_quest_table_player_rank(quest_table: dict) -> dict:
+    """Repair both gauntlet hubs, including rows inherited from an older roll."""
+    for event_id in GAUNTLET_HUB_EVENT_IDS:
+        event = quest_table.get(event_id)
+        if event is None:
+            continue
+        if not isinstance(event, dict):
+            raise ValueError(f"rush_event_quest[{event_id}] is not a nested map")
+        for quest_key, leaf in event.items():
+            if isinstance(leaf, dict):
+                raise ValueError(
+                    f"rush_event_quest[{event_id}][{quest_key}] is not a CSV leaf"
+                )
+            row = cells(leaf)
+            if len(row) <= 48:
+                raise ValueError(
+                    f"rush_event_quest[{event_id}][{quest_key}] has only {len(row)} columns"
+                )
+            enforce_gauntlet_player_rank(row)
+            event[quest_key] = join(row, isinstance(leaf, bytes))
+    return quest_table
+
+
 def build_deep_abyss_folder_leaf(template_leaf: bytes | str) -> bytes | str:
     """Build the client-visible fixed clear rewards for event 700099."""
     row = list(cells(template_leaf))
@@ -3238,6 +3277,7 @@ def main() -> int:
         row[0] = str(700099000 + r)
         row[1] = "1"
         row[2] = str(r)
+        enforce_gauntlet_player_rank(row)
         if r > 1:
             row[9] = "16"
             row[10] = EVENT_ID
@@ -3379,6 +3419,7 @@ def main() -> int:
     endless_row[0] = str(700099000 + int(ENDLESS_KEY))
     endless_row[1] = "2"
     endless_row[2] = "0"
+    enforce_gauntlet_player_rank(endless_row)
     rec = patch_common(endless_row, f"{EVENT_NAME} 无尽", endless_pick)
     quest_rows[ENDLESS_KEY] = endless_row
     plan_lines.append(f"  无尽 [{endless_pick['label']}] field={endless_pick['field']}{rec}(曲线抄 700007 现值)")
@@ -3422,17 +3463,15 @@ def main() -> int:
     fo[EVENT_ID] = {"1": folder_leaf, "2": join(fo_endless, fo_bytes)}
     save(Q_FOLDER, fo)
     qt[EVENT_ID] = {k: join(v, qt_bytes) for k, v in quest_rows.items()}
-    save(Q_QUEST, qt)
+    save(Q_QUEST, enforce_gauntlet_quest_table_player_rank(qt))
     el = q.load_table(Q_LIST)
-    el_bytes = isinstance(el[TEMPLATE_EVENT], bytes)
-    el[EVENT_ID] = join(["11", EVENT_ID, EVENT_ID], el_bytes)
-    save(Q_LIST, el)
+    save(Q_LIST, enforce_gauntlet_hub_event_list(el))
     # 无尽修正曲线:抄 700007 无尽当前值(已是缓坡)→ [700099][2][99]
     corr = q.load_table(Q_CORR)
     src_curve = corr[TEMPLATE_EVENT]["4"]["8"]
     corr[EVENT_ID] = {"2": {ENDLESS_KEY: dict(src_curve)}}
     save(Q_CORR, corr)
-    print("[OK] ②层五表已写入(rush_event / folder / quest / event_list / correction)")
+    print("[OK] ②层五表已写入(rush_event / folder / quest / event_list入口清理 / correction)")
     if gim_dirty:
         save(FIELD_DATA_T, fd_t)
         save(ZONE_T, zone_t)

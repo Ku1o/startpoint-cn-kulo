@@ -9,6 +9,44 @@ import wf_rogue_build as rogue_build  # noqa: E402
 
 
 class TestRushEventMetadata(unittest.TestCase):
+    def test_shared_event_folder_remains_the_only_gauntlet_entry(self):
+        event_list = {
+            "700007": ["template"],
+            "700098": ["old fantasy direct entry"],
+            "700099": ["old abyss direct entry"],
+        }
+
+        actual = rogue_build.enforce_gauntlet_hub_event_list(event_list)
+
+        self.assertIs(event_list, actual)
+        self.assertEqual({"700007": ["template"]}, actual)
+
+    def test_generated_single_player_quest_requires_rank_130(self):
+        row = [f"column-{index}" for index in range(110)]
+        before = list(row)
+
+        actual = rogue_build.enforce_gauntlet_player_rank(row)
+
+        self.assertIs(row, actual)
+        self.assertEqual("130", actual[48])
+        self.assertEqual(before[:48] + before[49:], actual[:48] + actual[49:])
+
+    def test_existing_rows_in_both_gauntlet_hubs_are_repaired_to_rank_130(self):
+        rows = {}
+        for event_id in rogue_build.GAUNTLET_HUB_EVENT_IDS:
+            row = [f"{event_id}-column-{index}" for index in range(110)]
+            row[48] = "(None)"
+            rows[event_id] = {"1": rogue_build.join(row, False)}
+        unrelated = [f"unrelated-column-{index}" for index in range(110)]
+        rows["700007"] = {"1": rogue_build.join(unrelated, False)}
+
+        actual = rogue_build.enforce_gauntlet_quest_table_player_rank(rows)
+
+        self.assertIs(rows, actual)
+        for event_id in rogue_build.GAUNTLET_HUB_EVENT_IDS:
+            self.assertEqual("130", rogue_build.cells(actual[event_id]["1"])[48])
+        self.assertEqual(unrelated, rogue_build.cells(actual["700007"]["1"]))
+
     def test_abyss_event_always_uses_abyss_token(self):
         row = [f"column-{index}" for index in range(18)]
         row[10] = "2370007"

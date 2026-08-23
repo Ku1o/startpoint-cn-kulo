@@ -14,7 +14,8 @@
         "9100008",
         "9100009",
         "9100010",
-        "9100011"
+        "9100011",
+        "9100012"
       ]
     },
     "master/shop/event_item_shop.orderedmap": {
@@ -52,17 +53,30 @@
         "9700312"
       ]
     },
-    "master/quest/event/event_list.orderedmap": {
-      "required_keys": ["700099"]
+    "master/quest/event/event_folder.orderedmap": {
+      "required_keys": [
+        "2"
+      ]
+    },
+    "master/quest/event/event_folder_events.orderedmap": {
+      "required_keys": [
+        "2"
+      ]
     },
     "master/quest/event/rush_event.orderedmap": {
-      "required_keys": ["700099"]
+      "required_keys": [
+        "700099"
+      ]
     },
     "master/quest/event/rush_event_quest.orderedmap": {
-      "required_keys": ["700099"]
+      "required_keys": [
+        "700099"
+      ]
     },
     "master/quest/event/rush_event_quest_folder.orderedmap": {
-      "required_keys": ["700099"]
+      "required_keys": [
+        "700099"
+      ]
     }
   }
 }
