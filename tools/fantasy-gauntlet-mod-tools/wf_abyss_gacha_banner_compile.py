@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""SHA-locked WF-storage compiler for the two abyss-gacha banners."""
+"""Read-only binding and validation for the current abyss-gacha banners."""
 
 from __future__ import annotations
 
@@ -8,21 +8,18 @@ import hashlib
 import io
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Mapping, Sequence
+from typing import Mapping
 
 from PIL import Image, UnidentifiedImageError
 
 import wf_abyss_gacha_contract as contract
 import wf_assets
-
-
-SOURCE_ASSET_DIR = Path(__file__).resolve().parent / "assets" / "abyss-gacha-banners"
+import wf_live_cdn
 
 
 @dataclass(frozen=True)
 class BannerSpec:
-    source_name: str
-    source_sha256: str
+    root_name: str
     logical_path: str
     size: tuple[int, int]
 
@@ -33,16 +30,14 @@ class BannerCompilation:
     report: Mapping[str, object]
 
 
-LOCKED_BANNERS = (
+CURRENT_BANNERS = (
     BannerSpec(
-        "abyss_limited_gacha_list_banner.png",
-        "c27900816e3e0b896407f2ff6158c8b3f390c3a6c3bb49264956571e56d4d7db",
+        "upload",
         contract.LIST_BANNER_PAYLOAD_LOGICAL,
         (510, 180),
     ),
     BannerSpec(
-        "abyss_limited_gacha_top_banner_portrait.png",
-        "07dd71a8579c64c216bbfeb4679505dd2590049dda43c528f13e3f5c9ba9b596",
+        "medium",
         contract.TOP_BANNER_PAYLOAD_LOGICAL,
         (1440, 1789),
     ),
@@ -64,53 +59,71 @@ def _load_rgba(raw: bytes, label: str) -> Image.Image:
         raise ValueError(f"{label} is not a valid PNG") from exc
 
 
-def compile_banners(
-    source_dir: Path, specs: Sequence[BannerSpec]
-) -> BannerCompilation:
-    """Encode explicit SHA-locked PNG sources and prove decoded pixel identity."""
+def load_current_banner_payloads(target_store: Path) -> dict[str, bytes]:
+    """Read the two banners from the server-visible CDN/active terminal state."""
 
-    source_dir = Path(source_dir)
-    names = [spec.source_name for spec in specs]
-    logicals = [spec.logical_path for spec in specs]
-    if (
-        not specs
-        or len(names) != len(set(names))
-        or len(logicals) != len(set(logicals))
-    ):
-        raise ValueError("banner specs must have unique source names and logical paths")
+    # A package build must start from a freshly replayed server view, not a
+    # sub-second cache left by an earlier GUI read.
+    wf_live_cdn.clear_cache()
+    payloads: dict[str, bytes] = {}
+    for spec in CURRENT_BANNERS:
+        try:
+            current = wf_assets.read_current(Path(target_store), spec.logical_path)
+        except wf_live_cdn.LiveCdnError as exc:
+            raise ValueError(
+                f"cannot replay current CDN/active terminal: {exc}"
+            ) from exc
+        if current is None:
+            raise ValueError(
+                "current CDN/active banner is missing: "
+                f"{spec.root_name}:{spec.logical_path}"
+            )
+        root_name, raw, _source = current
+        if root_name != spec.root_name:
+            raise ValueError(
+                "current CDN/active banner root drift: "
+                f"{spec.logical_path}; expected={spec.root_name}, actual={root_name}"
+            )
+        payloads[spec.logical_path] = raw
+    return payloads
+
+
+def compile_current_banners(
+    payloads: Mapping[str, bytes],
+) -> BannerCompilation:
+    """Validate already-published WF PNG bytes and return them unchanged."""
+
+    expected = {spec.logical_path for spec in CURRENT_BANNERS}
+    if set(payloads) != expected:
+        raise ValueError(
+            "current banner payload set is not exact: "
+            f"missing={sorted(expected-set(payloads))}, "
+            f"extra={sorted(set(payloads)-expected)}"
+        )
 
     files: dict[str, bytes] = {}
-    source_hashes: dict[str, str] = {}
-    output_hashes: dict[str, str] = {}
+    input_hashes: dict[str, str] = {}
     readback: dict[str, dict[str, object]] = {}
-    for spec in specs:
-        source = source_dir / spec.source_name
-        if not source.is_file():
-            raise ValueError(f"banner source is missing: {spec.source_name}")
-        raw = source.read_bytes()
-        actual_sha = _sha(raw)
-        if actual_sha != spec.source_sha256:
+    for spec in CURRENT_BANNERS:
+        stored = payloads[spec.logical_path]
+        if not isinstance(stored, bytes):
             raise ValueError(
-                f"banner source SHA-256 drift: {spec.source_name}; "
-                f"expected={spec.source_sha256}, actual={actual_sha}"
+                f"current banner payload must be bytes: {spec.logical_path}"
             )
-        source_image = _load_rgba(raw, spec.source_name)
-        if source_image.size != spec.size:
-            raise ValueError(
-                f"banner source dimensions drift: {spec.source_name}; "
-                f"expected={spec.size}, actual={source_image.size}"
-            )
-        source_pixels = source_image.tobytes()
-        stored = wf_assets.png_encode(raw)
         if not stored.startswith(wf_assets.PNG_FAKE):
-            raise ValueError(f"banner WF storage signature is absent: {spec.source_name}")
+            raise ValueError(
+                "current banner WF storage signature is absent: "
+                f"{spec.logical_path}"
+            )
         decoded_raw = wf_assets.png_decode(stored)
-        decoded = _load_rgba(decoded_raw, f"decoded {spec.source_name}")
-        if decoded.size != spec.size or decoded.tobytes() != source_pixels:
-            raise ValueError(f"banner decoded pixel readback drift: {spec.source_name}")
+        decoded = _load_rgba(decoded_raw, f"decoded {spec.logical_path}")
+        if decoded.size != spec.size:
+            raise ValueError(
+                "current banner dimensions drift: "
+                f"{spec.logical_path}; expected={spec.size}, actual={decoded.size}"
+            )
         files[spec.logical_path] = stored
-        source_hashes[spec.source_name] = actual_sha
-        output_hashes[spec.logical_path] = _sha(stored)
+        input_hashes[f"{spec.root_name}:{spec.logical_path}"] = _sha(stored)
         readback[spec.logical_path] = {
             "width": decoded.width,
             "height": decoded.height,
@@ -120,11 +133,14 @@ def compile_banners(
         }
 
     return BannerCompilation(files, {
-        "schema_version": 1,
-        "status": "compiled_wf_storage_banners",
+        "schema_version": 2,
+        "status": "bound_current_cdn_active_banners",
         "payload_count": len(files),
-        "source_sha256": source_hashes,
-        "output_sha256": output_hashes,
+        "source": "server-current-cdn+active-terminal",
+        "input_sha256": input_hashes,
+        "output_sha256": {
+            logical: _sha(raw) for logical, raw in sorted(files.items())
+        },
         "decoded_readback": readback,
         "logical_paths": sorted(files),
         "package_manifest_eligible": True,
@@ -133,11 +149,7 @@ def compile_banners(
     })
 
 
-def compile_locked_banners() -> BannerCompilation:
-    return compile_banners(SOURCE_ASSET_DIR, LOCKED_BANNERS)
-
-
 __all__ = [
-    "SOURCE_ASSET_DIR", "BannerSpec", "BannerCompilation", "LOCKED_BANNERS",
-    "compile_banners", "compile_locked_banners",
+    "BannerSpec", "BannerCompilation", "CURRENT_BANNERS",
+    "load_current_banner_payloads", "compile_current_banners",
 ]

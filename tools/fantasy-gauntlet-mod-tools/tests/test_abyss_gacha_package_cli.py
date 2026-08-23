@@ -38,7 +38,11 @@ class PackageCliTests(unittest.TestCase):
             source = source_package()
             sources = compile_sources()
             additions = package_compile.compile_additions(source, sources)
+            current_store = root / "current" / "production" / "upload"
             with (
+                mock.patch.object(
+                    module.core, "require_active_store", return_value=current_store
+                ),
                 mock.patch.object(
                     module.source_io, "load_sealed_source_workspace",
                     side_effect=(source, source),
@@ -62,7 +66,10 @@ class PackageCliTests(unittest.TestCase):
             server = root.parent / "startpoint-cn" / "assets"
             self.assertEqual([mock.call(old), mock.call(old)], load_source.call_args_list)
             self.assertEqual(
-                [mock.call(store, server), mock.call(store, server)],
+                [
+                    mock.call(store, server, current_store_root=current_store),
+                    mock.call(store, server, current_store_root=current_store),
+                ],
                 load_inputs.call_args_list,
             )
             self.assertEqual(
@@ -76,6 +83,9 @@ class PackageCliTests(unittest.TestCase):
                 input_sha256={**additions.input_sha256, "drift": "d" * 64},
             )
             with (
+                mock.patch.object(
+                    module.core, "require_active_store", return_value=current_store
+                ),
                 mock.patch.object(
                     module.source_io, "load_sealed_source_workspace",
                     side_effect=(source, source),

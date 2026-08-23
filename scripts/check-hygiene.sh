@@ -9,6 +9,43 @@ MODE="${1:-staged}"
 fail=0
 note() { echo "  [x] $*"; fail=1; }
 
+allowed_nested_tool_line() {
+    local kind="$1" path="$2" line="$3" normalized
+    normalized=$(printf '%s' "$line" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+    case "$kind|$path|$normalized" in
+        'ip|tools/fantasy-gauntlet-mod-tools/wf_release_v1/_loopback_http.py|ipaddress.ip_network("192.168.0.0/16"),') return 0 ;;
+        'ip|tools/fantasy-gauntlet-mod-tools/wf_release_v1/platform.py|ipaddress.ip_network("192.168.0.0/16"),') return 0 ;;
+        'ip|tools/fantasy-gauntlet-mod-tools/wf_release_v1/target.py|ipaddress.ip_network("192.168.0.0/16"),') return 0 ;;
+        'home|tools/fantasy-gauntlet-mod-tools/tests/test_release_v1_canonical.py|r"C:\Users\Alice\secret.json",') return 0 ;;
+        'home|tools/fantasy-gauntlet-mod-tools/tests/test_release_v1_canonical.py|"C:/Users/Alice/secret.json",') return 0 ;;
+        'home|tools/fantasy-gauntlet-mod-tools/tests/test_release_v1_canonical.py|"/Users/Alice/secret.json",') return 0 ;;
+    esac
+    return 1
+}
+
+scan_sensitive_lines() {
+    local kind="$1" label="$2" regex="$3" path="$4"
+    local hit line found=0 shown=0
+    while IFS= read -r hit; do
+        [ -z "$hit" ] && continue
+        line="${hit#*:}"
+        if [ "$kind" = "ip" ] && printf '%s\n' "$line" | grep -qE "$IP_ALLOW"; then
+            continue
+        fi
+        if allowed_nested_tool_line "$kind" "$path" "$line"; then
+            continue
+        fi
+        if [ "$found" -eq 0 ]; then
+            note "$label: $path"
+            found=1
+        fi
+        if [ "$shown" -lt 3 ]; then
+            echo "      $hit"
+            shown=$((shown + 1))
+        fi
+    done < <(grep -nE "$regex" "$path" 2>/dev/null)
+}
+
 if [ "$MODE" = "--all" ]; then
     files=$(git ls-files)
 else
@@ -27,6 +64,8 @@ while IFS= read -r f; do
     [ -f "$f" ] || continue
     case "$f" in
         scripts/check-hygiene.sh|scripts/hooks/*|.github/workflows/hygiene.yml) continue ;;
+        tools/fantasy-gauntlet-mod-tools/scripts/check-hygiene.sh) continue ;;
+        tools/fantasy-gauntlet-mod-tools/scripts/tests/test-hygiene.sh) continue ;;
     esac
 
     if [ "$f" = ".env" ]; then note ".env 不得提交(仅提交 .env.example)"; continue; fi
@@ -50,12 +89,8 @@ while IFS= read -r f; do
 
     # 仅扫描文本文件
     if grep -Iq . "$f" 2>/dev/null; then
-        if grep -nE "$IP_RE" "$f" 2>/dev/null | grep -vE "$IP_ALLOW" | grep -q .; then
-            note "个人 IP: $f"; grep -nE "$IP_RE" "$f" | grep -vE "$IP_ALLOW" | head -3 | sed 's/^/      /'
-        fi
-        if grep -nqE "$HOME_RE" "$f" 2>/dev/null; then
-            note "家目录路径: $f"; grep -nE "$HOME_RE" "$f" | head -3 | sed 's/^/      /'
-        fi
+        scan_sensitive_lines "ip" "个人 IP" "$IP_RE" "$f"
+        scan_sensitive_lines "home" "家目录路径" "$HOME_RE" "$f"
         if grep -niqE "$EMAIL_RE" "$f" 2>/dev/null; then
             note "个人邮箱: $f"; grep -niE "$EMAIL_RE" "$f" | head -3 | sed 's/^/      /'
         fi

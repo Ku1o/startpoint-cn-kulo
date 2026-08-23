@@ -16,6 +16,7 @@ import wf_abyss_gacha_package_compile as package_compile
 import wf_abyss_gacha_package_contract as contract
 import wf_abyss_gacha_package_sources as source_io
 import wf_abyss_gacha_package_workspace as workspace_io
+import wf_mod_tool as core
 
 
 TOOL_ROOT = Path(__file__).resolve().parent
@@ -77,13 +78,23 @@ def _fixed_paths(tool_root: Path) -> tuple[Path, Path, Path, Path]:
 
 def _compile_fixed_plan(tool_root: Path) -> AssemblyPlan:
     source_path, store, server, _output = _fixed_paths(Path(tool_root))
+    try:
+        current_store = core.require_active_store(Path(tool_root))
+    except (FileNotFoundError, OSError, ValueError) as exc:
+        raise contract.PackageAssemblyError(
+            f"cannot resolve current CDN/active store context: {exc}"
+        ) from exc
     first_source = source_io.load_sealed_source_workspace(source_path)
-    first_inputs = source_io.load_addition_sources(store, server)
+    first_inputs = source_io.load_addition_sources(
+        store, server, current_store_root=current_store
+    )
     first_additions = package_compile.compile_additions(
         first_source, first_inputs
     )
     second_source = source_io.load_sealed_source_workspace(source_path)
-    second_inputs = source_io.load_addition_sources(store, server)
+    second_inputs = source_io.load_addition_sources(
+        store, server, current_store_root=current_store
+    )
     second_additions = package_compile.compile_additions(
         second_source, second_inputs
     )

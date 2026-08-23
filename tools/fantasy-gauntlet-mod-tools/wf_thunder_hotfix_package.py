@@ -257,6 +257,7 @@ def _validate_donor(donor: LockedDonorTemplate) -> None:
 def compile_hotfix_package(
     source: SealedHotfixSource,
     donor: LockedDonorTemplate,
+    banner_payloads: Mapping[str, bytes],
     *,
     generator_git_head: str,
 ) -> PackageImage:
@@ -311,7 +312,7 @@ def compile_hotfix_package(
         repaired_gacha, gacha_report = repair_gacha_contract(
             all_source, expected_start_date=SOURCE_START_DATE
         )
-        banner_result = banner_compile.compile_locked_banners()
+        banner_result = banner_compile.compile_current_banners(banner_payloads)
     except (KeyError, TypeError, ValueError) as exc:
         raise PackageAssemblyError(f"hotfix payload compilation failed: {exc}") from exc
 
@@ -389,15 +390,13 @@ def compile_hotfix_package(
             "source_start_date": SOURCE_START_DATE,
             "standard_pool_donor_id": gacha_contract.STANDARD_POOL_DONOR_ID,
             "exchange_required_points": {"limited": 250, "standard": 250},
-            "portrait_banner_source_sha256": next(
-                spec.source_sha256 for spec in banner_compile.LOCKED_BANNERS
-                if spec.logical_path == gacha_contract.TOP_BANNER_PAYLOAD_LOGICAL
-            ),
+            "portrait_banner_source_sha256": banner_result.report[
+                "input_sha256"
+            ][f"medium:{gacha_contract.TOP_BANNER_PAYLOAD_LOGICAL}"],
             "portrait_banner_dimensions": [1440, 1789],
-            "list_banner_source_sha256": next(
-                spec.source_sha256 for spec in banner_compile.LOCKED_BANNERS
-                if spec.logical_path == gacha_contract.LIST_BANNER_PAYLOAD_LOGICAL
-            ),
+            "list_banner_source_sha256": banner_result.report[
+                "input_sha256"
+            ][f"upload:{gacha_contract.LIST_BANNER_PAYLOAD_LOGICAL}"],
             "list_banner_dimensions": [510, 180],
             "shared_asset_baseline": [
                 dict(item) for item in CURRENT_SHARED_ASSET_BASELINE

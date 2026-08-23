@@ -29,6 +29,7 @@ from wf_character_pack import windows_logical_path_key
 class AdditionSources:
     gacha_common: Mapping[str, bytes]
     gacha_server: Mapping[str, bytes]
+    banner_payloads: Mapping[str, bytes]
     existing_common_paths: Collection[str]
     item_raw: bytes
     ticket_type_raw: bytes
@@ -168,8 +169,13 @@ def _gacha_component(
     )
 
 
-def _banner_component() -> ComponentResult:
-    result = banner_compile.compile_locked_banners()
+def _banner_component(sources: AdditionSources) -> ComponentResult:
+    try:
+        result = banner_compile.compile_current_banners(sources.banner_payloads)
+    except (TypeError, ValueError) as exc:
+        raise contract.PackageAssemblyError(
+            f"current CDN/active banner validation failed: {exc}"
+        ) from exc
     if (
         set(result.files) != {
             gacha_contract.LIST_BANNER_PAYLOAD_LOGICAL,
@@ -187,13 +193,13 @@ def _banner_component() -> ComponentResult:
     roots["medium"][gacha_contract.TOP_BANNER_PAYLOAD_LOGICAL] = result.files[
         gacha_contract.TOP_BANNER_PAYLOAD_LOGICAL
     ]
-    source_hashes = result.report.get("source_sha256")
-    if not isinstance(source_hashes, Mapping):
-        raise contract.PackageAssemblyError("banner source hashes are absent")
+    input_hashes = result.report.get("input_sha256")
+    if not isinstance(input_hashes, Mapping):
+        raise contract.PackageAssemblyError("banner input hashes are absent")
     return ComponentResult(
         roots,
         (),
-        {str(name): str(value) for name, value in source_hashes.items()},
+        {str(name): str(value) for name, value in input_hashes.items()},
         dict(result.report),
     )
 
@@ -317,7 +323,7 @@ def compile_additions(
             id_map_raw=sources.shop_id_map_raw,
         ),
         "drop": drop,
-        "banners": _banner_component(),
+        "banners": _banner_component(sources),
     }
     return _merge_components(components)
 

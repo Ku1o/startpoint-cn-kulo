@@ -22,6 +22,7 @@ from tests.test_abyss_gacha_compile import (
     _flat,
     _sources as gacha_sources,
 )
+from tests.test_abyss_gacha_banner_compile import banner_payloads
 from tests.test_abyss_gacha_package_components import flat_bytes
 from tests.test_abyss_ticket_compile import (
     _base_item_assets,
@@ -91,6 +92,7 @@ def compile_sources() -> module.AdditionSources:
     return module.AdditionSources(
         gacha_common=common,
         gacha_server=server,
+        banner_payloads=banner_payloads(),
         existing_common_paths=tuple(common),
         item_raw=flat_bytes(_item_fixture(), tickets.ITEM_T),
         ticket_type_raw=flat_bytes(

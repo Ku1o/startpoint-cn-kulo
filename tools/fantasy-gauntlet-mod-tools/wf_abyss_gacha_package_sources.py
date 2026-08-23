@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Any
 
 import wf_abyss_gacha_package_contract as contract
+import wf_abyss_gacha_banner_compile as banner_compile
 import wf_abyss_gacha_compile as gacha_compile
 import wf_abyss_gacha_contract as gacha_contract
 import wf_abyss_ticket_compile as tickets
@@ -147,13 +148,22 @@ def _probe_optional_store_file(store: Path, logical: str) -> bool:
     return True
 
 
-def load_addition_sources(store_root: Path, server_assets_root: Path):
-    """Read the explicit base347/store and server inputs without mutation."""
+def load_addition_sources(
+    store_root: Path,
+    server_assets_root: Path,
+    *,
+    current_store_root: Path | None = None,
+):
+    """Read fixed table inputs plus current server-visible banner payloads."""
 
     from wf_abyss_gacha_package_compile import AdditionSources
 
     store = _safe_read_root(store_root, "base347 store root")
     server = _safe_read_root(server_assets_root, "server assets root")
+    current_store = _safe_read_root(
+        current_store_root if current_store_root is not None else store_root,
+        "current store root",
+    )
 
     def store_read(logical: str) -> bytes:
         return read_regular_stable(
@@ -178,9 +188,16 @@ def load_addition_sources(store_root: Path, server_assets_root: Path):
         logical for logical in gacha_contract.NEW_COMMON_PATHS
         if _probe_optional_store_file(store, logical)
     )
+    try:
+        banner_payloads = banner_compile.load_current_banner_payloads(current_store)
+    except (OSError, ValueError) as exc:
+        raise PackageAssemblyError(
+            f"cannot read current CDN/active banners: {exc}"
+        ) from exc
     return AdditionSources(
         gacha_common=common,
         gacha_server=server_gacha,
+        banner_payloads=banner_payloads,
         existing_common_paths=tuple(existing),
         item_raw=store_read(tickets.ITEM_T),
         ticket_type_raw=store_read(tickets.GACHA_TICKET_TYPE_T),

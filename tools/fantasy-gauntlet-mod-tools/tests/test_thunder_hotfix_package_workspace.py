@@ -133,8 +133,18 @@ class ThunderHotfixWorkspaceTests(unittest.TestCase):
             root = Path(temporary_name)
             (root / "work" / "character_packs").mkdir(parents=True)
             (root / "work" / "builds").mkdir(parents=True)
+            current_store = root / "current" / "production" / "upload"
+            banners = {"banner": b"current"}
             with (
                 mock.patch.object(cli, "TOOL_ROOT", root),
+                mock.patch.object(
+                    cli.core, "require_active_store", return_value=current_store
+                ),
+                mock.patch.object(
+                    cli.banner_compile,
+                    "load_current_banner_payloads",
+                    side_effect=[banners, banners],
+                ) as load_banners,
                 mock.patch.object(
                     cli.source_io, "load_sealed_source_workspace",
                     side_effect=[source, source],
@@ -157,6 +167,7 @@ class ThunderHotfixWorkspaceTests(unittest.TestCase):
         self.assertEqual({"apply": False, "writes_live": False}, report)
         self.assertEqual(2, load_source.call_count)
         self.assertEqual(2, load_donor.call_count)
+        self.assertEqual(2, load_banners.call_count)
         self.assertEqual(2, compile_image.call_count)
         self.assertFalse(execute.call_args.kwargs["apply"])
 

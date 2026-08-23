@@ -20,6 +20,7 @@ import wf_abyss_gacha_contract as gacha_contract
 import wf_abyss_gacha_pool as pool_contract
 import wf_mod_tool as core
 from wf_summer_thunder_ability_compile import build_summer_thunder_ability_rows
+from tests.test_abyss_gacha_banner_compile import banner_payloads
 
 try:
     import wf_thunder_hotfix_package as package
@@ -53,7 +54,7 @@ class ThunderHotfixPackageTests(unittest.TestCase):
         source = sources.load_sealed_source_workspace(SOURCE_WORKSPACE)
         donor = sources.load_locked_donor_template(BUILD_ROOT)
         return source, package.compile_hotfix_package(
-            source, donor, generator_git_head="a" * 40
+            source, donor, banner_payloads(), generator_git_head="a" * 40
         )
 
     def test_builds_full_116_replacement_with_banners_and_nine_pickups(self):
@@ -256,7 +257,7 @@ class ThunderHotfixPackageTests(unittest.TestCase):
         )
         with self.assertRaisesRegex(package.PackageAssemblyError, "source payload"):
             package.compile_hotfix_package(
-                drifted, donor, generator_git_head="a" * 40
+                drifted, donor, banner_payloads(), generator_git_head="a" * 40
             )
 
         donor_files = dict(donor.files)
@@ -270,7 +271,7 @@ class ThunderHotfixPackageTests(unittest.TestCase):
         )
         with self.assertRaisesRegex(package.PackageAssemblyError, "donor"):
             package.compile_hotfix_package(
-                source, bad_donor, generator_git_head="a" * 40
+                source, bad_donor, banner_payloads(), generator_git_head="a" * 40
             )
 
     def test_audit_rejects_relabelled_extra_change(self):

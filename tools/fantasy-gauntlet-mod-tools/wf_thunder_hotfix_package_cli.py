@@ -14,6 +14,8 @@ from typing import Sequence
 import wf_thunder_hotfix_package as package
 import wf_thunder_hotfix_package_sources as source_io
 import wf_thunder_hotfix_package_workspace as workspace
+import wf_abyss_gacha_banner_compile as banner_compile
+import wf_mod_tool as core
 
 
 TOOL_ROOT = Path(__file__).resolve().parent
@@ -72,19 +74,38 @@ def _fixed_paths(tool_root: Path) -> tuple[Path, Path, Path]:
 def _compile_fixed(tool_root: Path) -> package.PackageImage:
     source_path, build_root, _output = _fixed_paths(tool_root)
     head = _git_head(tool_root)
+    try:
+        current_store = core.require_active_store(tool_root)
+    except (FileNotFoundError, OSError, ValueError) as exc:
+        raise package.PackageAssemblyError(
+            f"cannot resolve current CDN/active store context: {exc}"
+        ) from exc
     first_source = source_io.load_sealed_source_workspace(source_path)
     first_donor = source_io.load_locked_donor_template(build_root)
+    try:
+        first_banners = banner_compile.load_current_banner_payloads(current_store)
+    except (OSError, ValueError) as exc:
+        raise package.PackageAssemblyError(
+            f"cannot read current CDN/active banners: {exc}"
+        ) from exc
     first = package.compile_hotfix_package(
-        first_source, first_donor, generator_git_head=head
+        first_source, first_donor, first_banners, generator_git_head=head
     )
     second_source = source_io.load_sealed_source_workspace(source_path)
     second_donor = source_io.load_locked_donor_template(build_root)
+    try:
+        second_banners = banner_compile.load_current_banner_payloads(current_store)
+    except (OSError, ValueError) as exc:
+        raise package.PackageAssemblyError(
+            f"cannot re-read current CDN/active banners: {exc}"
+        ) from exc
     second = package.compile_hotfix_package(
-        second_source, second_donor, generator_git_head=head
+        second_source, second_donor, second_banners, generator_git_head=head
     )
     if (
         first_source != second_source
         or first_donor != second_donor
+        or first_banners != second_banners
         or first != second
     ):
         raise package.PackageAssemblyError(

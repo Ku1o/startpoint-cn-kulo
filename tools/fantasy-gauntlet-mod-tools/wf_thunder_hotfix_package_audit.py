@@ -8,7 +8,6 @@ from collections.abc import Mapping
 from typing import Any
 
 import wf_abyss_gacha_package_contract as abyss_contract
-import wf_abyss_gacha_banner_compile as banner_compile
 import wf_abyss_gacha_contract as gacha_contract
 from wf_pixelart_compile import SUMMER_THUNDER_TEMPLATE_SHA256
 import wf_summer_thunder_package_contract as thunder
@@ -22,6 +21,15 @@ import wf_thunder_hotfix_package as contract
 
 
 def _repair_evidence(locks: Mapping[str, Any]) -> None:
+    reports = locks.get("repair_reports")
+    if not isinstance(reports, Mapping) or set(reports) != {
+        "pixel", "effect", "character", "gacha", "banner"
+    }:
+        raise contract.PackageAssemblyError("hotfix repair reports are missing")
+    banner = reports["banner"]
+    banner_inputs = banner.get("input_sha256") if isinstance(banner, Mapping) else None
+    if not isinstance(banner_inputs, Mapping):
+        raise contract.PackageAssemblyError("hotfix banner input evidence is missing")
     expected_inputs = {
         "donor_report_sha256": LOCKED_NORMAL_V3.report_sha256,
         "donor_template_sha256": dict(sorted(SUMMER_THUNDER_TEMPLATE_SHA256.items())),
@@ -31,14 +39,12 @@ def _repair_evidence(locks: Mapping[str, Any]) -> None:
         "source_start_date": contract.SOURCE_START_DATE,
         "standard_pool_donor_id": "700004",
         "exchange_required_points": {"limited": 250, "standard": 250},
-        "portrait_banner_source_sha256": next(
-            spec.source_sha256 for spec in banner_compile.LOCKED_BANNERS
-            if spec.logical_path == gacha_contract.TOP_BANNER_PAYLOAD_LOGICAL
+        "portrait_banner_source_sha256": banner_inputs.get(
+            f"medium:{gacha_contract.TOP_BANNER_PAYLOAD_LOGICAL}"
         ),
         "portrait_banner_dimensions": [1440, 1789],
-        "list_banner_source_sha256": next(
-            spec.source_sha256 for spec in banner_compile.LOCKED_BANNERS
-            if spec.logical_path == gacha_contract.LIST_BANNER_PAYLOAD_LOGICAL
+        "list_banner_source_sha256": banner_inputs.get(
+            f"upload:{gacha_contract.LIST_BANNER_PAYLOAD_LOGICAL}"
         ),
         "list_banner_dimensions": [510, 180],
         "shared_asset_baseline": [
@@ -47,16 +53,10 @@ def _repair_evidence(locks: Mapping[str, Any]) -> None:
     }
     if locks.get("repair_inputs") != expected_inputs:
         raise contract.PackageAssemblyError("hotfix repair input identity drift")
-    reports = locks.get("repair_reports")
-    if not isinstance(reports, Mapping) or set(reports) != {
-        "pixel", "effect", "character", "gacha", "banner"
-    }:
-        raise contract.PackageAssemblyError("hotfix repair reports are missing")
     pixel = reports["pixel"]
     effect = reports["effect"]
     character = reports["character"]
     gacha = reports["gacha"]
-    banner = reports["banner"]
     if (
         not isinstance(pixel, Mapping)
         or pixel.get("status") != "repaired_official_dragon_pivots"
@@ -100,7 +100,7 @@ def _repair_evidence(locks: Mapping[str, Any]) -> None:
         or gacha.get("ticket_exec_types") != {"single": 3, "ten": 4}
         or gacha.get("changed_payload_count") != 8
         or not isinstance(banner, Mapping)
-        or banner.get("status") != "compiled_wf_storage_banners"
+        or banner.get("status") != "bound_current_cdn_active_banners"
         or banner.get("package_manifest_eligible") is not True
         or banner.get("writes_live") is not False
         or banner.get("payload_count") != 2
@@ -200,6 +200,21 @@ def audit_hotfix_package(image: contract.PackageImage) -> dict[str, Any]:
         added_by_path[key] = record
     if tuple(added_by_path) != contract.ADDED_PAYLOADS:
         raise contract.PackageAssemblyError("hotfix added payload evidence is not exact")
+    banner_report = locks["repair_reports"]["banner"]
+    banner_inputs = banner_report["input_sha256"]
+    banner_outputs = banner_report.get("output_sha256")
+    if not isinstance(banner_outputs, Mapping):
+        raise contract.PackageAssemblyError("hotfix banner output evidence is missing")
+    for root, logical in contract.ADDED_PAYLOADS:
+        source_root = "upload" if root == "common" else root
+        digest = banner_inputs.get(f"{source_root}:{logical}")
+        if (
+            added_by_path[(root, logical)].get("after_sha256") != digest
+            or banner_outputs.get(logical) != digest
+        ):
+            raise contract.PackageAssemblyError(
+                f"hotfix current banner evidence drift: {root}:{logical}"
+            )
     for root in contract.ROOT_NAMES:
         root_hashes, root_sizes = hashes.get(root), sizes.get(root)
         expected_target_paths = set(root_hashes or ()) | {

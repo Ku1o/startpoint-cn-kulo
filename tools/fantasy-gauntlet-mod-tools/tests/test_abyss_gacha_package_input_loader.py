@@ -10,10 +10,12 @@ import unittest
 from pathlib import Path
 
 import wf_abyss_gacha_contract as gacha_contract
+import wf_abyss_gacha_banner_compile as banner_compile
 import wf_abyss_gacha_package_compile as package_compile
 import wf_abyss_gacha_package_sources as module
 import wf_abyss_ticket_compile as tickets
 import wf_mod_tool as core
+import wf_assets
 import wf_rogue_shop as shop
 from tests.test_abyss_gacha_package_compile import compile_sources, source_package
 
@@ -45,6 +47,14 @@ class AdditionSourceLoaderTests(unittest.TestCase):
             path = core.table_path(store, logical)
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_bytes(raw)
+        banner_roots = {
+            spec.logical_path: spec.root_name
+            for spec in banner_compile.CURRENT_BANNERS
+        }
+        for logical, raw in sources.banner_payloads.items():
+            path = wf_assets.path_in_root(store, banner_roots[logical], logical)
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_bytes(raw)
         for logical, raw in server_payloads.items():
             path = server.joinpath(*logical.split("/"))
             path.parent.mkdir(parents=True, exist_ok=True)
@@ -66,6 +76,7 @@ class AdditionSourceLoaderTests(unittest.TestCase):
 
             self.assertEqual(expected.gacha_common, actual.gacha_common)
             self.assertEqual(expected.gacha_server, actual.gacha_server)
+            self.assertEqual(expected.banner_payloads, actual.banner_payloads)
             self.assertEqual(expected.item_raw, actual.item_raw)
             self.assertEqual(expected.item_ids_raw, actual.item_ids_raw)
             self.assertEqual(expected.rush_event_quest_raw, actual.rush_event_quest_raw)
