@@ -21,6 +21,7 @@ from pathlib import Path
 MOD_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(MOD_DIR))
 import wf_quest_lib as qlib  # noqa: E402
+import wf_live_cdn  # noqa: E402
 
 BOSS_LEVEL = "master/battle/boss/boss_level.orderedmap"
 GENERAL_BOSS = "master/battle/boss/general_boss.orderedmap"
@@ -57,17 +58,21 @@ QUEST_CATS = [
 _CJK = re.compile(r"[㐀-鿿]")
 
 # ---- 表缓存(按 mtime 失效;GUI 反复刷新不重复解析) ----
-_cache: dict[str, tuple[float, dict]] = {}
+_cache: dict[str, tuple[str, dict]] = {}
 
 
 def _load(logical: str) -> dict:
-    p = qlib.store_path(logical)
-    mt = p.stat().st_mtime
+    store = qlib._store_base()
+    if wf_live_cdn.enabled_for_store(store):
+        stamp = wf_live_cdn.revision(store)
+    else:
+        p = qlib.store_path(logical)
+        stamp = str(p.stat().st_mtime_ns)
     hit = _cache.get(logical)
-    if hit and hit[0] == mt:
+    if hit and hit[0] == stamp:
         return hit[1]
     tree = qlib.load_table(logical)
-    _cache[logical] = (mt, tree)
+    _cache[logical] = (stamp, tree)
     return tree
 
 
@@ -224,7 +229,7 @@ def _zone_bosses(zone_id: str, boss_keys: set[str]) -> list[str]:
 def quest_cats(with_counts: bool = True) -> list[dict]:
     out = []
     for alias, cn, logical, group, icon in QUEST_CATS:
-        exists = qlib.store_path(logical).exists()
+        exists = qlib.exists_current(logical)
         ent = {"alias": alias, "cn": cn, "exists": exists, "group": group, "icon": icon}
         if exists and with_counts:
             try:
@@ -248,7 +253,7 @@ def boss_usage(force: bool = False) -> dict[str, list[str]]:
     boss_keys = set(boss_names().keys())
     usage: dict[str, list[str]] = {}
     for alias, _cn, logical, _group, _icon in QUEST_CATS:
-        if not qlib.store_path(logical).exists():
+        if not qlib.exists_current(logical):
             continue
         try:
             tree = _load(logical)

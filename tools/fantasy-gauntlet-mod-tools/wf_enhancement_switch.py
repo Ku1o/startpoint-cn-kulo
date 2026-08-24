@@ -119,6 +119,10 @@ MAINLINE_ORBS = frozenset({
     "100011", "100012", "200001", "200002", "200003",
     "200004", "200005", "200006", "5090054",
 })
+# 「延续的黄金」100012 是用户的**开发版武器**(store 里 20 行整把重做,链上只有官方 8 行 ×4,
+# 从未发布过)。它必须能独立于其余 8 个宝珠保留 —— 用户 2026-07-30 拍板:只保这一把,其余回调。
+# 故从 weapon.orb 里单拆一个桶,归属仍是「每地址恰好一个 owner」,E1/E2 自检不受影响。
+GOLDEN_ORB_KEYS = frozenset({"100012"})
 WHITE_TIGER_ABILITY_KEYS = frozenset({"81", "85", "86"})
 WHITE_TIGER_LEADER_KEY = "3"
 WHITE_TIGER_CHARACTER_KEY = "10"
@@ -304,8 +308,17 @@ TOGGLES: tuple[ToggleSpec, ...] = (
                warn="关掉要同时改服务端 assets/character.json 与 cdndata 并钳存档,"
                     "只在 CLI 加 --allow-white-tiger 时可切",
                note="客户端 4★ 配服务端 5★ 会撞 characterExpCaps 越界"),
-    ToggleSpec("weapon.orb", "武器 · 主线宝珠/证章 ×4", "weapon", (SOUL,), 90, True,
+    ToggleSpec("weapon.orb", "武器 · 主线宝珠/证章 ×4(8 键,不含延续的黄金)", "weapon",
+               (SOUL,), 90, True,
                note="live 少行(负面副作用行被删),只能整键二选一"),
+    ToggleSpec("weapon.orb_golden", "武器 · 延续的黄金 100012(作者自用,已上线)", "weapon",
+               (SOUL,), 90, True,
+               warn="注意:这是作者**有意**的自用武器,不是事故,别再「修」回官方值。"
+                    "store 里 20 行整把重做,自 1.4.307 起已在链上;"
+                    "2026-08-07 作者明确要求保持现状(理由:角色/武器已按现状验过,"
+                    "回退等于改掉已验证的东西)。不进任何一键预设",
+               note="与 other.equip_debug(equipment_status 99999/99999)成对,同属这把武器;"
+                    "两项要一起开一起关,只动一半会让卡面数值与词条对不上"),
     ToggleSpec("char.leader_pf", "角色 · 队长专属强化弹射", "character", (LEADER,), 80, True,
                off_equals_official=False,
                note="队长位=队伍 0 号位,不是主位三格;仅影响官方角色白虎"),
@@ -316,7 +329,8 @@ TOGGLES: tuple[ToggleSpec, ...] = (
                (ABILITY, LEADER), 60, True),
     ToggleSpec("weapon.soul_rows", "武器 · 魂珠追加词条行", "weapon", (SOUL,), 60, True),
     ToggleSpec("char.growth", "角色 · 三四星成长曲线拉平", "character", (CHAR_STATUS,), 50, True),
-    ToggleSpec("enemy.boss_hp", "敌人 · Boss 血量上调", "enemy", (BOSS_LEVEL,), 50, True),
+    ToggleSpec("enemy.boss_hp", "敌人 · Boss 血量上调", "enemy", (BOSS_LEVEL,), 50, False,
+               note="默认保持官方 Boss HP(×1)；幻想/深渊连战使用各自关卡内的目标血量通道"),
     ToggleSpec("enemy.dummy_hp", "敌人 · 练习木桩血量上调", "enemy", (BOSS_LEVEL,), 50, True),
     ToggleSpec("weapon.wab", "武器 · 官方强化槽词条上修(29 把)", "weapon", (WAB,), 50, False,
                warn="store 是增强态、CDN 链上已是官方值(1.4.106 还原过);"
@@ -335,9 +349,13 @@ TOGGLES: tuple[ToggleSpec, ...] = (
                     "否则商品可见但购买必失败;只在 CLI 加 --allow-shop 时可切",
                note="默认保持现状(缺失)。建议择机关掉本项把官方商品补回来——"
                     "这不是有意的增强,是 wf_rogue_shop 的 EVENT_ID 与官方键撞号的副产物"),
-    ToggleSpec("other.equip_debug", "装备 · 官方装备 100012 调试数值", "other",
-               (EQUIP_STATUS,), 50, False,
-               note="99999/99999,像调试残留,从未发布过"),
+    ToggleSpec("other.equip_debug", "装备 · 延续的黄金 100012 数值 99999/99999", "other",
+               (EQUIP_STATUS,), 50, True,
+               warn="注意:作者**有意**要的数值,不是调试残留。2026-08-07 作者明确要求"
+                    "「这个武器的数值加到 99999」,当天发布为 1.4.317(链上 205,39 → "
+                    "99999,99999)。default 从此为 True:留 False 的话谁跑一次套件"
+                    "没显式指定就会把它写回 205,39,下次发布静默回退。不进任何一键预设",
+               note="与 weapon.orb_golden 成对,同属延续的黄金这把武器"),
     ToggleSpec("weapon.soul", "武器 · 官方魂珠词条增强", "weapon", (SOUL,), 10, True),
     ToggleSpec("char.tuning", "角色 · 统一增强(数值/手感/门槛)", "character",
                (ABILITY, LEADER), 10, True, subs=("power", "feel", "gate")),
@@ -345,7 +363,11 @@ TOGGLES: tuple[ToggleSpec, ...] = (
 TOGGLE_BY_ID = {spec.id: spec for spec in TOGGLES}
 SCOPES = ("character", "weapon", "enemy", "other")
 # 谨慎项:永不进任何一键预设,必须单独勾
-PRESET_EXCLUDED = frozenset({"other.treasure_2001"})
+# orb_golden 与 equip_debug 是同一把武器(延续的黄金)的词条面与数值面,**必须成对**:
+# 只把 equip_debug 放进预设的话,一次 `preset official` 就会把卡面 99999 打回 205,39,
+# 而词条还是 20 行的开发版,两边对不上。两项都排除掉,要动就显式动。
+PRESET_EXCLUDED = frozenset({"other.treasure_2001", "weapon.orb_golden",
+                             "other.equip_debug"})
 # 需要服务端/存档联动的项:预设不碰,显式切换还要额外的 CLI 开关
 GUARDED_TOGGLES = {
     "char.white_tiger": "--allow-white-tiger",
@@ -414,13 +436,17 @@ def resolve_context(*, store: str | Path | None = None, cdn: str | Path | None =
         profile_id = "explicit"
     else:
         profile = core.resolve_profile()
-        if profile is None or not getattr(profile, "store", None):
+        try:
+            store_root = core.require_active_store(repo_root, profile=profile)
+        except (OSError, ValueError) as exc:
             raise SwitchError(
-                "没找到可用的 store(mod-tools/profiles.json 缺失或 active 档不完整)")
-        store_root = Path(profile.store)
-        if not store_root.is_absolute():
-            store_root = repo_root / store_root
-        profile_id = getattr(profile, "id", None) or getattr(profile, "key", "cn")
+                f"没找到可用的 store: {exc}"
+            ) from exc
+        profile_id = (
+            "environment"
+            if "WF_TARGET_STORE" in os.environ
+            else getattr(profile, "id", None) or getattr(profile, "key", "cn")
+        )
     if not store_root.is_dir():
         raise SwitchError(f"store 不存在: {store_root}")
     cdn_root = Path(cdn).resolve() if cdn else pol._resolve_cdn(None)
@@ -589,7 +615,7 @@ class Address:
 def _leaf_owner(logical: str, key: str) -> str | None:
     """key 级归属(优先级最高的几个桶)。"""
     if logical == SOUL and key in MAINLINE_ORBS:
-        return "weapon.orb"
+        return "weapon.orb_golden" if key in GOLDEN_ORB_KEYS else "weapon.orb"
     if logical == ABILITY and key in WHITE_TIGER_ABILITY_KEYS:
         return "char.white_tiger"
     if logical == CHARACTER and key == WHITE_TIGER_CHARACTER_KEY:

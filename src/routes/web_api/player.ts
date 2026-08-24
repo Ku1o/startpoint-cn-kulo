@@ -1,5 +1,5 @@
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
-import { getMergedPlayerDataSync, reviveMergedPlayerDates } from "../../data/utils";
+import { reviveMergedPlayerDates } from "../../data/utils";
 import { validatePlayerField, VALID_CHARACTER_IDS, VALID_ITEM_IDS, MAX_INT } from "./validation";
 import { wantsJson } from "./http";
 import { dailyResetPlayerDataSync, getAllPlayersSync, getDefaultPlayerPartyGroupsSync, getPlayerDailyChallengePointListSync, getPlayerSync, insertPlayerDailyChallengePointListSync, replacePlayerDataSync, updatePlayerDailyChallengePointSync, updatePlayerSync } from "../../data/domains/player"
@@ -13,12 +13,19 @@ import { insertPlayerPartyGroupListSync } from "../../data/domains/party"
 import { PartyCategory } from "../../data/types";
 import { buildPeriodicSnapshotData, takeSnapshot } from "../../lib/mission/snapshot";
 import { deletePlayerCategoryMissionsSync } from "../../data/domains/mission";
-import { getServerDate } from "../../utils";
+import { getServerDate, getTimeOffset } from "../../utils";
 import dailyChallengePointLookup from "../../../assets/daily_challenge_point_lookup.json";
 import {
     getUnisonUnlockRepairStatusSync,
     repairUnisonUnlockProgressSync,
 } from "../../lib/validate/unison-unlock";
+import {
+    createPlayerSaveSnapshotV2Sync,
+    isPlayerSaveSnapshotV2,
+    restorePlayerSaveSnapshotV2Sync,
+    validatePlayerSaveSnapshotV2Sync,
+} from "../../data/snapshots/player-snapshot";
+import { cleanupPlayerImportBackups, createPlayerImportSnapshotBackup } from "../../lib/admin-database-backup";
 
 interface SaveQuery {
     id: string | undefined
@@ -30,6 +37,19 @@ interface GetPlayersQuery {
 }
 
 const defaultPerPage = 25
+const maxSaveUploadBytes = 64 * 1024 * 1024
+
+function applyPlayerImportBackupRetention(directory: string) {
+    try {
+        return cleanupPlayerImportBackups(directory, 5)
+    } catch (error) {
+        return {
+            retainedBackups: null,
+            removedBackups: 0,
+            backupCleanupError: error instanceof Error ? error.message : String(error),
+        }
+    }
+}
 
 const routes = async (fastify: FastifyInstance) => {
     fastify.get("/", async (request: FastifyRequest, reply: FastifyReply) => {
@@ -137,18 +157,18 @@ const routes = async (fastify: FastifyInstance) => {
         const playerId = Number(id)
         if (isNaN(playerId)) return reply.redirect("/player");
 
-        const data = getMergedPlayerDataSync(playerId)
-        if (data === null) return reply.redirect("/player");
-
-        const snapshot = {
-            schema: "starpoint-cn-save",
-            version: 1,
-            exportedAt: new Date().toISOString(),
-            playerId,
-            data
+        let snapshot
+        try {
+            snapshot = createPlayerSaveSnapshotV2Sync(playerId)
+        } catch (error: any) {
+            return reply.status(500).send({ error: `导出失败：${error?.message ?? error}` })
+        }
+        const payload = JSON.stringify(snapshot)
+        if (Buffer.byteLength(payload, "utf8") > maxSaveUploadBytes) {
+            return reply.status(413).send({ error: `导出失败：存档超过 ${maxSaveUploadBytes / 1024 / 1024} MB 安全上限` })
         }
         reply.header("content-disposition", `attachment; filename="save_${playerId}.json"`)
-        reply.type('application/json').send(JSON.stringify(snapshot))
+        reply.type('application/json').send(payload)
     })
 
     fastify.post("/save", async (request: FastifyRequest, reply: FastifyReply) => {
@@ -161,11 +181,19 @@ const routes = async (fastify: FastifyInstance) => {
             : reply.redirect(`/player/${id}?error=${encodeURIComponent(msg)}`)
         if (isNaN(playerId)) return json ? reply.status(400).send({ error: "无效的玩家 ID" }) : reply.redirect("/player");
 
+        let safetyBackup: { name: string; directory: string } | null = null
+        let backupCleanup = {
+            retainedBackups: null as number | null,
+            removedBackups: 0,
+            backupCleanupError: null as string | null,
+        }
         try {
             const file = await (request as any).file()
             if (file === undefined) return fail("未选择文件")
 
-            const text = (await file.toBuffer()).toString('utf-8')
+            const buffer = await file.toBuffer()
+            if (buffer.length > maxSaveUploadBytes) return fail(`存档超过 ${maxSaveUploadBytes / 1024 / 1024} MB 安全上限`)
+            const text = buffer.toString('utf-8')
             let parsed: any
             try {
                 parsed = JSON.parse(text)
@@ -176,21 +204,61 @@ const routes = async (fastify: FastifyInstance) => {
             if (parsed === null || typeof parsed !== 'object' || parsed.schema !== 'starpoint-cn-save') {
                 return fail("不是有效的存档快照（schema 不符，请使用本面板导出的存档）")
             }
-            if (parsed.version !== 1) {
-                return fail(`不支持的存档版本：${parsed.version}`)
+            if (isPlayerSaveSnapshotV2(parsed)) {
+                const snapshot = validatePlayerSaveSnapshotV2Sync(parsed)
+                const rollbackSnapshot = createPlayerSaveSnapshotV2Sync(playerId)
+                safetyBackup = createPlayerImportSnapshotBackup(playerId, rollbackSnapshot, {
+                    sourceSnapshotVersion: 2,
+                    sourcePlayerId: snapshot.playerId,
+                })
+                backupCleanup = applyPlayerImportBackupRetention(safetyBackup.directory)
+                const restored = restorePlayerSaveSnapshotV2Sync(snapshot, playerId, {
+                    includeArchiveHistory: true,
+                })
+                if (json) return reply.status(200).send({
+                    ok: true,
+                    playerId,
+                    snapshotVersion: 2,
+                    backup: `.database/admin-backups/${safetyBackup.name}`,
+                    ...backupCleanup,
+                    restored,
+                })
+                return reply.redirect(`/player/${id}`)
             }
-            const data = parsed.data
-            if (!data || typeof data !== 'object' || !data.player) {
-                return fail("存档数据缺失 player 字段")
-            }
+            if (parsed.version !== 1) return fail(`不支持的存档版本：${parsed.version}`)
 
+            const data = parsed.data
+            if (!data || typeof data !== 'object' || !data.player) return fail("存档数据缺失 player 字段")
+            const rollbackSnapshot = createPlayerSaveSnapshotV2Sync(playerId)
+            safetyBackup = createPlayerImportSnapshotBackup(playerId, rollbackSnapshot, {
+                sourceSnapshotVersion: 1,
+                sourcePlayerId: parsed.playerId ?? null,
+                legacyPartialSnapshot: true,
+            })
+            backupCleanup = applyPlayerImportBackupRetention(safetyBackup.directory)
             reviveMergedPlayerDates(data)
             data.player.id = playerId
             replacePlayerDataSync(data)
         } catch (error: any) {
-            return fail(`恢复失败：${error?.message ?? error}`, 500)
+            if (error?.code === "FST_REQ_FILE_TOO_LARGE") {
+                return fail(`存档超过 ${maxSaveUploadBytes / 1024 / 1024} MB 安全上限`, 413)
+            }
+            const backupHint = safetyBackup
+                ? `；安全备份：.database/admin-backups/${safetyBackup.name}`
+                : ""
+            const cleanupHint = backupCleanup.backupCleanupError
+                ? `；旧回滚备份清理失败：${backupCleanup.backupCleanupError}`
+                : ""
+            return fail(`恢复失败：${error?.message ?? error}${backupHint}${cleanupHint}`, 500)
         }
-        if (json) return reply.status(200).send({ ok: true, playerId })
+        if (json) return reply.status(200).send({
+            ok: true,
+            playerId,
+            snapshotVersion: 1,
+            legacyPartialSnapshot: true,
+            backup: safetyBackup ? `.database/admin-backups/${safetyBackup.name}` : null,
+            ...backupCleanup,
+        })
         return reply.redirect(`/player/${id}`);
     })
 
@@ -220,7 +288,11 @@ const routes = async (fastify: FastifyInstance) => {
             extra.staminaHealTime = new Date()
         }
         if (field === 'expPool') {
-            extra.expPooledTime = new Date()
+            // A manually assigned balance is an exact snapshot. Start its
+            // regeneration from the current virtual time instead of retaining
+            // a checkpoint copied from another clock position.
+            extra.expPooledTime = getServerDate()
+            extra.timeOffset = getTimeOffset() ?? 0
         }
 
         try {

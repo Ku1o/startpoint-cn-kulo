@@ -295,6 +295,28 @@ def table_path(store: Path, logical_path: str) -> Path:
     return store / digest[:2] / digest[2:]
 
 
+def _read_live_logical(logical_path: str, target_store: Path | None = None):
+    """Return live CDN bytes metadata, or None only for standalone mode.
+
+    Once a target store is bound to a live server, a missing live entry must not
+    fall through to the writable overlay.  That would make an unpublished local
+    file appear to be part of the server's current state.
+    """
+    import wf_live_cdn
+
+    if target_store is not None and not wf_live_cdn.enabled_for_store(target_store):
+        return None
+    return wf_live_cdn.read_logical(logical_path)
+
+
+def _read_live_relative(relative_path: str, target_store: Path | None = None):
+    import wf_live_cdn
+
+    if target_store is not None and not wf_live_cdn.enabled_for_store(target_store):
+        return None
+    return wf_live_cdn.read_relative(relative_path, roots=("common",))
+
+
 def find_world_upload(root: Path) -> Path | None:
     for child in root.iterdir():
         candidate = child / "WorldFlipper" / "dummy" / "download" / "production" / "upload"
@@ -338,8 +360,9 @@ class VersionProfile:
 
 
 def project_root() -> Path:
-    """mod-tools/ 的上一级 = startpoint-cn 仓库根;profiles.json 里的相对路径以此为基准。"""
-    return Path(__file__).resolve().parent.parent
+    """Return the checkout root for embedded and flat tool layouts."""
+    tool_dir = Path(__file__).resolve().parent
+    return tool_dir.parent if tool_dir.name.casefold() == "mod-tools" else tool_dir
 
 
 def profiles_file() -> Path:
@@ -349,6 +372,18 @@ def profiles_file() -> Path:
 def _resolve_profile_path(value: str) -> Path:
     p = Path(value)
     return p if p.is_absolute() else (project_root() / p).resolve()
+
+
+def _optional_profile_path(
+    entry: dict[str, Any], profile_id: str, key: str
+) -> Path | None:
+    """Resolve an optional path, rejecting an explicitly present empty value."""
+    if key not in entry:
+        return None
+    value = entry[key]
+    if not isinstance(value, str) or not value.strip():
+        raise ValueError(f"profile {key} must be a non-empty path: {profile_id}")
+    return _resolve_profile_path(value)
 
 
 def load_profiles() -> dict[str, Any]:
@@ -366,15 +401,18 @@ def resolve_profile(profile_id: str | None = None) -> VersionProfile | None:
     if not pid or pid not in profiles:
         return None
     entry = profiles[pid]
+    raw_store = entry.get("store")
+    if not isinstance(raw_store, str) or not raw_store.strip():
+        raise ValueError(f"profile store must be a non-empty path: {pid}")
     return VersionProfile(
         id=pid,
         label=entry.get("label", pid),
-        store=_resolve_profile_path(entry["store"]),
+        store=_resolve_profile_path(raw_store),
         cdndata=_resolve_profile_path(entry["cdndata"]) if entry.get("cdndata") else None,
         res_version=entry.get("res_version", ""),
         fallback=_resolve_profile_path(entry["fallback"]) if entry.get("fallback") else None,
-        cdn_dir=_resolve_profile_path(entry["cdn_dir"]) if entry.get("cdn_dir") else None,
-        server_dir=_resolve_profile_path(entry["server_dir"]) if entry.get("server_dir") else None,
+        cdn_dir=_optional_profile_path(entry, pid, "cdn_dir"),
+        server_dir=_optional_profile_path(entry, pid, "server_dir"),
     )
 
 
@@ -405,15 +443,31 @@ TARGET_STORE_HINT = (
 _UNSET_PROFILE = object()
 
 
+def _require_existing_directory(
+    value: str | os.PathLike[str], *, label: str
+) -> Path:
+    raw = os.fspath(value)
+    if not raw.strip():
+        raise ValueError(f"{label} must be a non-empty path")
+    directory = Path(raw).expanduser()
+    if not directory.is_absolute():
+        raise ValueError(f"{label} must be an absolute path: {raw}")
+    directory = directory.resolve()
+    if not directory.is_dir():
+        raise ValueError(f"{label} is not an existing directory: {directory}")
+    return directory
+
+
 def env_target_store() -> Path | None:
-    """WF_TARGET_STORE 的解析:未设返回 None;设了但目录不存在 → ValueError(配置错误不兜底)。"""
-    env = os.environ.get("WF_TARGET_STORE")
-    if not env:
+    """Return a validated explicit store, or None only when the key is absent."""
+    if "WF_TARGET_STORE" not in os.environ:
         return None
-    store = Path(env)
-    if store.exists():
-        return store
-    raise ValueError(f"WF_TARGET_STORE 不存在: {env}\n{TARGET_STORE_HINT}")
+    try:
+        return _require_existing_directory(
+            os.environ["WF_TARGET_STORE"], label="WF_TARGET_STORE"
+        )
+    except ValueError as error:
+        raise ValueError(f"{error}\n{TARGET_STORE_HINT}") from None
 
 
 def resolve_active_store(
@@ -436,7 +490,7 @@ def resolve_active_store(
     if profile is _UNSET_PROFILE:
         profile = resolve_profile(profile_id or os.environ.get("WF_PROFILE"))
     if profile is not None and getattr(profile, "store", None):
-        return Path(profile.store)
+        return _require_existing_directory(profile.store, label="profile store")
     seen: list[Path] = []
     for base in (root, project_root(), Path.cwd()):
         if base is None:
@@ -452,6 +506,21 @@ def resolve_active_store(
         if found:
             return found
     return None
+
+
+def require_active_store(
+    root: Path | None = None,
+    *,
+    profile: Any = _UNSET_PROFILE,
+    profile_id: str | None = None,
+) -> Path:
+    """Resolve the authoritative store or fail with the shared setup hint."""
+    store = resolve_active_store(
+        root, profile=profile, profile_id=profile_id
+    )
+    if store is None:
+        raise FileNotFoundError(TARGET_STORE_HINT)
+    return store
 
 
 # ---------------------------------------------------------------------------
@@ -472,6 +541,10 @@ def looks_like_cdn_root(path: Path) -> bool:
         (path / "archive-common-diff").is_dir()
         or (path / "archive-common-full").is_dir()
     )
+
+
+class _CdnRootNotFoundError(ValueError):
+    """No CDN seam was configured and no legacy CDN root was discoverable."""
 
 
 def _read_server_cdn_dir(server_dir: Path) -> Path | None:
@@ -497,32 +570,43 @@ def _read_server_cdn_dir(server_dir: Path) -> Path | None:
     return None
 
 
-def resolve_cdn_root(profile_id: str | None = None) -> Path:
+def resolve_cdn_root(
+    profile_id: str | None = None,
+    *,
+    legacy_root: Path | None = None,
+) -> Path:
     """按四级解析链返回 CDN 根;全部落空抛 ValueError(含尝试清单)。"""
     tried: list[str] = []
 
-    env_value = os.environ.get("WF_CDN_DIR")
-    if env_value:
-        path = Path(env_value)
+    if "WF_CDN_DIR" in os.environ:
+        path = _require_existing_directory(
+            os.environ["WF_CDN_DIR"], label="WF_CDN_DIR"
+        )
         if looks_like_cdn_root(path):
             return path
         raise ValueError(f"WF_CDN_DIR 指向的目录不是 CDN 根(缺 archive-common-*): {path}")
 
-    try:
-        profile = resolve_profile(profile_id)
-    except (OSError, ValueError):
-        profile = None
+    profile = resolve_profile(profile_id)
     if profile and profile.cdn_dir:
-        if looks_like_cdn_root(profile.cdn_dir):
-            return profile.cdn_dir
+        profile_cdn = _require_existing_directory(
+            profile.cdn_dir, label="profile cdn_dir"
+        )
+        if looks_like_cdn_root(profile_cdn):
+            return profile_cdn
         raise ValueError(
-            f"profile[{profile.id}].cdn_dir 不是 CDN 根: {profile.cdn_dir}"
+            f"profile[{profile.id}].cdn_dir 不是 CDN 根: {profile_cdn}"
         )
 
-    server_env = os.environ.get("WF_SERVER_DIR")
-    server_dir = Path(server_env) if server_env else (
-        profile.server_dir if profile else None
-    )
+    if "WF_SERVER_DIR" in os.environ:
+        server_dir = _require_existing_directory(
+            os.environ["WF_SERVER_DIR"], label="WF_SERVER_DIR"
+        )
+    elif profile and profile.server_dir:
+        server_dir = _require_existing_directory(
+            profile.server_dir, label="profile server_dir"
+        )
+    else:
+        server_dir = None
     if server_dir is not None:
         declared = _read_server_cdn_dir(server_dir)
         for candidate in (
@@ -532,41 +616,61 @@ def resolve_cdn_root(profile_id: str | None = None) -> Path:
             if looks_like_cdn_root(candidate):
                 return candidate
             tried.append(f"服务端识别: {candidate}")
+        configured_by = (
+            "WF_SERVER_DIR"
+            if "WF_SERVER_DIR" in os.environ
+            else f"profile[{profile.id}].server_dir"
+        )
+        raise ValueError(
+            f"{configured_by} 无法导出有效 CDN 根: " + "; ".join(tried)
+        )
 
-    legacy = project_root() / ".cdn" / "cn"
+    legacy = (
+        Path(legacy_root).resolve()
+        if legacy_root is not None
+        else project_root() / ".cdn" / "cn"
+    )
     if looks_like_cdn_root(legacy):
         return legacy
     tried.append(f"嵌套遗留: {legacy}")
 
-    raise ValueError(
+    raise _CdnRootNotFoundError(
         "无法定位 CDN 根;请设 WF_CDN_DIR / profile.cdn_dir / WF_SERVER_DIR。已尝试: "
         + "; ".join(tried)
     )
 
 
-def resolve_cdn_root_lax(profile_id: str | None = None) -> Path:
-    """解析失败时退回嵌套遗留默认路径(供模块级常量等不可抛错场景)。"""
+def resolve_cdn_root_lax(
+    profile_id: str | None = None,
+    *,
+    legacy_root: Path | None = None,
+) -> Path:
+    """无配置且无法识别时返回遗留路径;显式坏配置仍失败关闭。"""
     try:
-        return resolve_cdn_root(profile_id)
-    except ValueError:
-        return project_root() / ".cdn" / "cn"
+        return resolve_cdn_root(profile_id, legacy_root=legacy_root)
+    except _CdnRootNotFoundError:
+        return (
+            Path(legacy_root).resolve()
+            if legacy_root is not None
+            else project_root() / ".cdn" / "cn"
+        )
 
 
 def resolve_server_dir(profile_id: str | None = None) -> Path:
     """服务端仓根:WF_SERVER_DIR > profile.server_dir > 嵌套遗留(project_root)。
 
     用于 asset-patch manifest、client-patch 等"贴着服务端仓"的路径推导;
-    lax 语义,始终有返回值(独立仓布局下未配置时按嵌套遗留猜,调用方自然报错)。
+    完全未配置时保留嵌套遗留;显式坏配置失败关闭。
     """
-    env = os.environ.get("WF_SERVER_DIR")
-    if env:
-        return Path(env)
-    try:
-        profile = resolve_profile(profile_id)
-    except (OSError, ValueError):
-        profile = None
+    if "WF_SERVER_DIR" in os.environ:
+        return _require_existing_directory(
+            os.environ["WF_SERVER_DIR"], label="WF_SERVER_DIR"
+        )
+    profile = resolve_profile(profile_id)
     if profile and profile.server_dir:
-        return profile.server_dir
+        return _require_existing_directory(
+            profile.server_dir, label="profile server_dir"
+        )
     return project_root()
 
 
@@ -608,6 +712,17 @@ def read_orderedmap_file(path: Path, logical_path: str) -> OrderedMap:
         prev = row_end
         rows.append(zlib.decompress(chunk) if chunk else b"")
     return OrderedMap(logical_path, keys, rows, path)
+
+
+def read_orderedmap_bytes(raw: bytes, logical_path: str,
+                          source_path: Path | None = None) -> OrderedMap:
+    """Decode an ordinary orderedmap directly from a live archive member."""
+    keys, rows = _strict_orderedmap_rows(
+        raw, label=logical_path, compressed_rows=True
+    )
+    return OrderedMap(
+        logical_path, keys, rows, source_path or Path("<live-cdn>")
+    )
 
 
 def read_orderedmap_file_from_bytes(raw: bytes) -> dict[str, str]:
@@ -721,15 +836,26 @@ def encode_status_row(entries: list[tuple[str, int, int]]) -> bytes:
 
 
 def load_status_table(target_store: Path, source_store: Path | None = None) -> OrderedMap:
-    """读 character_status(外层 raw-rows)。与 load_table 同风格,但不做可读性启发。"""
-    target = table_path(target_store, STATUS_LOGICAL)
+    """读 live character_status(外层 raw-rows);store 仅作无 CDN 兼容。"""
+    return load_raw_table(STATUS_LOGICAL, target_store, source_store)
+
+
+def load_raw_table(logical_path: str, target_store: Path,
+                   source_store: Path | None = None) -> OrderedMap:
+    """Load an orderedmap whose outer rows are uncompressed nested bytes."""
+    live = _read_live_logical(logical_path, target_store)
+    if live is not None:
+        result = read_orderedmap_raw_rows_from_bytes(live.data, logical_path)
+        result.source_path = live.archive
+        return result
+    target = table_path(target_store, logical_path)
     if target.exists():
-        return read_orderedmap_file_raw_rows(target, STATUS_LOGICAL)
+        return read_orderedmap_file_raw_rows(target, logical_path)
     if source_store:
-        source = table_path(source_store, STATUS_LOGICAL)
+        source = table_path(source_store, logical_path)
         if source.exists():
-            return read_orderedmap_file_raw_rows(source, STATUS_LOGICAL)
-    raise FileNotFoundError(f"cannot read {STATUS_LOGICAL} from target/source stores")
+            return read_orderedmap_file_raw_rows(source, logical_path)
+    raise FileNotFoundError(f"cannot read {logical_path} from live/target/source stores")
 
 
 def write_status_table(ordered: OrderedMap, target_store: Path, backup_suffix: str) -> Path:
@@ -893,8 +1019,13 @@ def load_nested_table_bytes(raw: bytes, logical_path: str) -> NestedOrderedMap:
 
 def load_nested_table(logical_path: str, target_store: Path,
                       source_store: Path | None = None) -> NestedOrderedMap:
-    """Load a supported nested table, preferring target over explicit fallback."""
+    """Load a supported nested table from live CDN, with standalone fallback."""
     _require_nested_layout(logical_path)
+    live = _read_live_logical(logical_path, target_store)
+    if live is not None:
+        result = load_nested_table_bytes(live.data, logical_path)
+        result.source_path = live.archive
+        return result
     candidates = [table_path(target_store, logical_path)]
     if source_store is not None:
         candidates.append(table_path(source_store, logical_path))
@@ -980,15 +1111,8 @@ def encode_action_skill_row(entries: list[tuple[str, list[str]]]) -> bytes:
 
 
 def load_action_skill_table(target_store: Path, source_store: Path | None = None) -> OrderedMap:
-    """读 action_skill(外层 raw-rows)。与 load_status_table 同风格。"""
-    target = table_path(target_store, ACTION_SKILL_LOGICAL)
-    if target.exists():
-        return read_orderedmap_file_raw_rows(target, ACTION_SKILL_LOGICAL)
-    if source_store:
-        source = table_path(source_store, ACTION_SKILL_LOGICAL)
-        if source.exists():
-            return read_orderedmap_file_raw_rows(source, ACTION_SKILL_LOGICAL)
-    raise FileNotFoundError(f"cannot read {ACTION_SKILL_LOGICAL} from target/source stores")
+    """读 live action_skill(外层 raw-rows);store 仅作无 CDN 兼容。"""
+    return load_raw_table(ACTION_SKILL_LOGICAL, target_store, source_store)
 
 
 def write_action_skill_table(ordered: OrderedMap, target_store: Path, backup_suffix: str) -> Path:
@@ -1012,6 +1136,9 @@ def readable_orderedmap(path: Path, logical_path: str, min_keys: int = 2) -> boo
 
 
 def load_table(logical_path: str, target_store: Path, source_store: Path | None = None) -> OrderedMap:
+    live = _read_live_logical(logical_path, target_store)
+    if live is not None:
+        return read_orderedmap_bytes(live.data, logical_path, live.archive)
     target = table_path(target_store, logical_path)
     if target.exists() and readable_orderedmap(target, logical_path):
         return read_orderedmap_file(target, logical_path)
@@ -1064,15 +1191,19 @@ def normalize_row_length(row: list[str], length: int) -> list[str]:
 
 
 def load_ability_schema(target_store: Path, source_store: Path | None = None) -> list[dict[str, Any]]:
-    candidates = [target_store / ABILITY_SCHEMA_REL]
+    candidates: list[tuple[Path, bytes | None]] = []
+    live = _read_live_relative(ABILITY_SCHEMA_REL.as_posix(), target_store)
+    if live is not None:
+        candidates.append((live.archive, live.data))
+    candidates.append((target_store / ABILITY_SCHEMA_REL, None))
     if source_store:
-        candidates.append(source_store / ABILITY_SCHEMA_REL)
+        candidates.append((source_store / ABILITY_SCHEMA_REL, None))
 
-    for path in candidates:
-        if not path.exists():
+    for path, live_raw in candidates:
+        if live_raw is None and not path.exists():
             continue
         try:
-            raw = zlib.decompress(path.read_bytes(), -15)
+            raw = zlib.decompress(live_raw if live_raw is not None else path.read_bytes(), -15)
             schema = AMF3Reader(raw).read_value()
             value_schema = schema["valueSchema"]
             value_schema.sort(key=lambda item: int(item["index"]))

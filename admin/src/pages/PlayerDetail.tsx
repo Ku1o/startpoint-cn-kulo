@@ -32,6 +32,22 @@ interface UnisonRepairResult {
     message: string
 }
 
+interface ImportSaveResult {
+    ok: boolean
+    snapshotVersion: number
+    backup?: string | null
+    retainedBackups?: number | null
+    removedBackups?: number
+    backupCleanupError?: string | null
+    legacyPartialSnapshot?: boolean
+    restored?: {
+        restoredTables: number
+        restoredRows: number
+        skippedTables: string[]
+        resetTables: string[]
+    }
+}
+
 interface DetailData {
     player: PlayerInfo
     characters: CharRow[]
@@ -194,15 +210,36 @@ export default function PlayerDetail() {
     })
 
     const importSave = useMutation({
-        mutationFn: (file: File) => apiUpload<{ ok: boolean }>(`/api/player/save?id=${pid}`, file),
-        onSuccess: () => { message.success("存档已导入"); refresh() },
+        mutationFn: (file: File) => apiUpload<ImportSaveResult>(`/api/player/save?id=${pid}`, file),
+        onSuccess: result => {
+            const backup = result.backup ? `；原存档回滚备份：${result.backup}` : ""
+            if (result.legacyPartialSnapshot) {
+                message.warning(`旧版 V1 存档已导入，来源文件不包含全部新版进度${backup}`, 10)
+            } else {
+                message.success(`完整存档 V${result.snapshotVersion} 已导入${backup}`, 10)
+            }
+            if (result.backupCleanupError) {
+                message.warning(`存档已成功导入，但旧个人回滚备份清理失败：${result.backupCleanupError}`, 10)
+            }
+            refresh()
+        },
         onError: (e: Error) => message.error(e.message),
     })
 
-    const confirmImportSave = (file: File) => {
+    const openImportSaveConfirmation = (file: File, snapshotVersion?: number) => {
+        const legacyV1 = snapshotVersion === 1
         Modal.confirm({
-            title: `确认覆盖存档 #${pid}？`,
-            content: `将使用“${file.name}”完整覆盖当前存档。建议先导出备份，此操作无法在面板内撤销。`,
+            title: legacyV1 ? `确认导入旧版 V1 到存档 #${pid}？` : `确认覆盖存档 #${pid}？`,
+            content: (
+                <Space direction="vertical">
+                    <Text>将使用“{file.name}”覆盖当前玩家的持久化数据。</Text>
+                    <Text type="secondary">导入前会把目标玩家当前存档导出为完整 V2 个人回滚备份，不会备份整个数据库。</Text>
+                    {legacyV1 && (
+                        <Text type="danger">旧版 V1 来源文件不完整，导入结果可能缺少后来新增的任务、活动或统计进度。</Text>
+                    )}
+                    <Text type="secondary">账号绑定、设备会话和跨玩家关系保留；未完成的战斗恢复数据会清除。</Text>
+                </Space>
+            ),
             okText: "确认覆盖",
             cancelText: "取消",
             okButtonProps: { danger: true },
@@ -214,6 +251,20 @@ export default function PlayerDetail() {
                 }
             },
         })
+    }
+
+    const confirmImportSave = (file: File) => {
+        void file.text()
+            .then(text => {
+                try {
+                    const parsed = JSON.parse(text) as { version?: unknown }
+                    return typeof parsed.version === "number" ? parsed.version : undefined
+                } catch {
+                    return undefined
+                }
+            })
+            .catch(() => undefined)
+            .then(version => openImportSaveConfirmation(file, version))
         return Upload.LIST_IGNORE
     }
 
@@ -505,8 +556,8 @@ export default function PlayerDetail() {
                         <div style={gridStyle}>
                             {dateField("staminaHealTime", "体力恢复时间")}
                             {dateField("lastLoginTime", "最后登录时间")}
-                            {dateField("expPooledTime", "经验池结算时间")}
-                            {numField("timeOffset", "存档时间偏移(ms，空=null)", { allowNull: true })}
+                            {dateField("expPooledTime", "经验池结算锚点（非实时）")}
+                            {numField("timeOffset", "结算时间基准偏移(ms，旧存档可空)", { allowNull: true })}
                         </div>
                     </Card>
 
@@ -538,7 +589,7 @@ export default function PlayerDetail() {
                                     修复合击解锁
                                 </Button>
                             </Popconfirm>
-                            <Button size="small" icon={<DownloadOutlined />} href={`/api/player/save?id=${pid}`} target="_blank">导出存档</Button>
+                            <Button size="small" icon={<DownloadOutlined />} href={`/api/player/save?id=${pid}`} target="_blank">导出完整存档</Button>
                             <Upload accept=".json,application/json" showUploadList={false} maxCount={1}
                                 beforeUpload={confirmImportSave}>
                                 <Button size="small" icon={<UploadOutlined />} danger loading={importSave.isPending}>导入存档(覆盖)</Button>

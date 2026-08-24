@@ -52,9 +52,9 @@
 
 | 逻辑路径 | 键 | 行格式 | 用途 |
 |---|---|---|---|
-| `master/ability/ability.orderedmap` | ability ID(2972 键) | CSV 125 列,1-2 行/键 | 角色词条数值(本手册第四章) |
-| `master/ability/leader_ability.orderedmap` | 角色 ID | 同 ability schema | 队长技 |
-| `master/ability/ability_soul.orderedmap` | 能力魂 ID(436 键) | 同 ability schema | 能力魂 |
+| `master/ability/ability.orderedmap` | ability ID(2972 键) | CSV 126 列,1-多行/键 | 角色词条数值(本手册第四章) |
+| `master/ability/leader_ability.orderedmap` | 角色 ID | CSV 124 列,1-多行/键 | 队长技 |
+| `master/ability/ability_soul.orderedmap` | 能力魂 ID(436 键) | CSV 123 列,1-多行/键 | 能力魂 |
 | `master/character/character.orderedmap` | 角色 ID(505 键) | CSV 37 列(第八章) | 角色身份主表(与 ① 层 character.json 同构) |
 | `master/character/character_status.orderedmap` | 角色 ID(505 键) | **嵌套 orderedmap**(第十章) | 基础 HP/ATK 成长曲线 |
 | `master/character/character_awake_status.orderedmap` | 角色 ID(36 键) | CSV 2 列(第十一章) | 觉醒魔晶板加成 |
@@ -62,7 +62,7 @@
 
 ---
 
-## 四、ability 词条表 · 125 列全表(CN schema)
+## 四、ability 词条表 · 126 列全表(CN schema)
 
 > 列名是**结构模板**:`trigger.values.<触发块>.values.<字段>` 层级展开。同一列在不同词条类型下具体含义随 col2 类别与各触发块枚举变化,以数值对面板为准。
 > 「数值」= schema 标记 isDecimal;「枚举(N)」= 该列取值对应 N 种构造器(见第六章);其余为文本/数值混合。
@@ -72,128 +72,129 @@
 | 0 | `string_id` | 文本标识(词条描述引用键) | 文本 |
 | 1 | `unisonable` | 可协力入队(`false`=仅主位生效,见 12.8) | 布尔 |
 | 2 | `rarity` | **词条类别码**(列名叫 rarity,实际存 `attack_common` 等类别串,→ 6.1) | 类别码(20 种) |
-| 3 | `battle_power` | 战力值 | 数值 |
-| 4 | `trigger` | 触发器 | 枚举(3) |
-| 5 | `trigger.values.precondition` | 前置条件 | 枚举(209) |
-| 6 | `trigger.values.precondition.values.trigger_puller` | 前置条件·触发来源 | 枚举(11) |
-| 7 | `trigger.values.precondition.values.trigger_puller.values.character_groups` | 前置条件·触发来源·角色组 | 文本/数值 |
-| 8 | `trigger.values.precondition.values.threshold.power1` | 前置条件·阈值·SLv1值 | 数值 |
-| 9 | `trigger.values.precondition.values.threshold.first_max` | 前置条件·阈值·SLv满级值 | 数值 |
-| 10 | `trigger.values.precondition.values.character_groups` | 前置条件·角色组 | 文本/数值 |
-| 11 | `trigger.values.precondition.values.unique_condition_id` | 前置条件·唯一条件ID | 文本/数值 |
-| 12 | `trigger.values.precondition2` | 前置条件2 | 枚举(209) |
-| 13 | `trigger.values.precondition2.values.trigger_puller` | 前置条件2·触发来源 | 枚举(11) |
-| 14 | `trigger.values.precondition2.values.trigger_puller.values.character_groups` | 前置条件2·触发来源·角色组 | 文本/数值 |
-| 15 | `trigger.values.precondition2.values.threshold.power1` | 前置条件2·阈值·SLv1值 | 数值 |
-| 16 | `trigger.values.precondition2.values.threshold.first_max` | 前置条件2·阈值·SLv满级值 | 数值 |
-| 17 | `trigger.values.precondition2.values.character_groups` | 前置条件2·角色组 | 文本/数值 |
-| 18 | `trigger.values.precondition2.values.unique_condition_id` | 前置条件2·唯一条件ID | 文本/数值 |
-| 19 | `trigger.values.precondition3` | 前置条件3 | 枚举(209) |
-| 20 | `trigger.values.precondition3.values.trigger_puller` | 前置条件3·触发来源 | 枚举(11) |
-| 21 | `trigger.values.precondition3.values.trigger_puller.values.character_groups` | 前置条件3·触发来源·角色组 | 文本/数值 |
-| 22 | `trigger.values.precondition3.values.threshold.power1` | 前置条件3·阈值·SLv1值 | 数值 |
-| 23 | `trigger.values.precondition3.values.threshold.first_max` | 前置条件3·阈值·SLv满级值 | 数值 |
-| 24 | `trigger.values.precondition3.values.character_groups` | 前置条件3·角色组 | 文本/数值 |
-| 25 | `trigger.values.precondition3.values.unique_condition_id` | 前置条件3·唯一条件ID | 文本/数值 |
-| 26 | `trigger.values.instant_trigger` | 瞬发触发 | 枚举(262) |
-| 27 | `trigger.values.instant_trigger.values.trigger_puller` | 瞬发触发·触发来源 | 枚举(10) |
-| 28 | `trigger.values.instant_trigger.values.trigger_puller.values.character_groups` | 瞬发触发·触发来源·角色组 | 文本/数值 |
-| 29 | `trigger.values.instant_trigger.values.threshold.power1` | 瞬发触发·阈值·SLv1值 | 数值 |
-| 30 | `trigger.values.instant_trigger.values.threshold.first_max` | 瞬发触发·阈值·SLv满级值 | 数值 |
-| 31 | `trigger.values.instant_trigger.values.threshold2.power1` | 瞬发触发·阈值2·SLv1值 | 数值 |
-| 32 | `trigger.values.instant_trigger.values.threshold2.first_max` | 瞬发触发·阈值2·SLv满级值 | 数值 |
-| 33 | `trigger.values.instant_trigger.values.trigger_limit` | 瞬发触发·触发次数上限 | 文本/数值 |
-| 34 | `trigger.values.instant_trigger.values.cooltime` | 瞬发触发·冷却(帧) | 文本/数值 |
-| 35 | `trigger.values.instant_trigger.values.character_groups` | 瞬发触发·角色组 | 文本/数值 |
-| 36 | `trigger.values.instant_trigger.values.unique_condition_id` | 瞬发触发·唯一条件ID | 文本/数值 |
-| 37 | `trigger.values.instant_trigger.values.multiball_group_id` | 瞬发触发·多球组 | 文本/数值 |
-| 38 | `trigger.values.instant_precontent` | 瞬发前置效果 | 枚举(4) |
-| 39 | `trigger.values.instant_precontent.values.target` | 瞬发前置效果·目标 | 枚举(5) |
-| 40 | `trigger.values.instant_precontent.values.target.values.character_groups` | 瞬发前置效果·目标·角色组 | 文本/数值 |
-| 41 | `trigger.values.instant_precontent.values.threshold.power1` | 瞬发前置效果·阈值·SLv1值 | 数值 |
-| 42 | `trigger.values.instant_precontent.values.threshold.first_max` | 瞬发前置效果·阈值·SLv满级值 | 数值 |
-| 43 | `trigger.values.instant_precontent.values.limit` | 瞬发前置效果·上限 | 文本/数值 |
-| 44 | `trigger.values.instant_precontent.values.unique_condition_id` | 瞬发前置效果·唯一条件ID | 文本/数值 |
-| 45 | `trigger.values.instant_delay` | 瞬发延迟(帧) | 文本/数值 |
-| 46 | `trigger.values.instant_content` | 瞬发效果 | 枚举(724) |
-| 47 | `trigger.values.instant_content.values.target` | 瞬发效果·目标 | 枚举(15) |
-| 48 | `trigger.values.instant_content.values.target.values.character_groups` | 瞬发效果·目标·角色组 | 文本/数值 |
-| 49 | `trigger.values.instant_content.values.target.values.multiball_group_id` | 瞬发效果·目标·多球组 | 文本/数值 |
-| 50 | `trigger.values.instant_content.values.strength.power1` | 瞬发效果·强度·SLv1值 | 数值 |
-| 51 | `trigger.values.instant_content.values.strength.first_max` | 瞬发效果·强度·SLv满级值 | 数值 |
-| 52 | `trigger.values.instant_content.values.strength2.power1` | 瞬发效果·强度2·SLv1值 | 数值 |
-| 53 | `trigger.values.instant_content.values.strength2.first_max` | 瞬发效果·强度2·SLv满级值 | 数值 |
-| 54 | `trigger.values.instant_content.values.strength3.power1` | 瞬发效果·强度3·SLv1值 | 数值 |
-| 55 | `trigger.values.instant_content.values.strength3.first_max` | 瞬发效果·强度3·SLv满级值 | 数值 |
-| 56 | `trigger.values.instant_content.values.frame.power1` | 瞬发效果·帧数·SLv1值 | 数值 |
-| 57 | `trigger.values.instant_content.values.frame.first_max` | 瞬发效果·帧数·SLv满级值 | 数值 |
-| 58 | `trigger.values.instant_content.values.number.power1` | 瞬发效果·次数·SLv1值 | 数值 |
-| 59 | `trigger.values.instant_content.values.number.first_max` | 瞬发效果·次数·SLv满级值 | 数值 |
-| 60 | `trigger.values.instant_content.values.max_accumulation` | 瞬发效果·最大累积数 | 文本/数值 |
-| 61 | `trigger.values.instant_content.values.flip_limit` | 瞬发效果·弹射次数上限 | 文本/数值 |
-| 62 | `trigger.values.instant_content.values.power_flip_limit` | 瞬发效果·强化弹射次数上限 | 文本/数值 |
-| 63 | `trigger.values.instant_content.values.end_power_flip_limit` | 瞬发效果·结束时强化弹射上限 | 文本/数值 |
-| 64 | `trigger.values.instant_content.values.end_power_flip_accepted_levels` | 瞬发效果·结束时强化弹射等级 | 枚举(5) |
-| 65 | `trigger.values.instant_content.values.character_groups` | 瞬发效果·角色组 | 文本/数值 |
-| 66 | `trigger.values.instant_content.values.cancelable` | 瞬发效果·可取消 | 枚举(2) |
-| 67 | `trigger.values.instant_content.values.unique_condition_id` | 瞬发效果·唯一条件ID | 文本/数值 |
-| 68 | `trigger.values.instant_content.values.time` | 瞬发效果·时间 | 文本/数值 |
-| 69 | `trigger.values.instant_content.values.string_id` | 瞬发效果·文本标识 | 文本/数值 |
-| 70 | `trigger.values.instant_content.values.action_path` | 瞬发效果·动作路径 | 文本/数值 |
-| 71 | `trigger.values.instant_content.values.by_each_trigger_puller` | 瞬发效果·按触发者分别计数 | 文本/数值 |
-| 72 | `trigger.values.instant_content.values.element` | 瞬发效果·属性 | 枚举(7) |
-| 73 | `trigger.values.instant_content.values.initial_multiply` | 瞬发效果·初始倍增 | 文本/数值 |
-| 74 | `trigger.values.instant_content.values.multiply_trigger` | 瞬发效果·倍增触发 | 枚举(4) |
-| 75 | `trigger.values.instant_content.values.multiply_trigger.values.additional_multiply` | 瞬发效果·倍增触发·追加倍增 | 文本/数值 |
-| 76 | `trigger.values.instant_content.values.multiply_trigger.values.trigger_puller` | 瞬发效果·倍增触发·触发来源 | 枚举(10) |
-| 77 | `trigger.values.instant_content.values.multiply_trigger.values.trigger_puller.values.character_groups` | 瞬发效果·倍增触发·触发来源·角色组 | 文本/数值 |
-| 78 | `trigger.values.instant_content.values.multiply_trigger.values.threshold.power1` | 瞬发效果·倍增触发·阈值·SLv1值 | 数值 |
-| 79 | `trigger.values.instant_content.values.multiply_trigger.values.threshold.first_max` | 瞬发效果·倍增触发·阈值·SLv满级值 | 数值 |
-| 80 | `trigger.values.instant_content.values.multiply_trigger.values.trigger_limit` | 瞬发效果·倍增触发·触发次数上限 | 文本/数值 |
-| 81 | `trigger.values.instant_content.values.powerflip_override.id` | 瞬发效果·强化弹射覆盖·ID | 文本/数值 |
-| 82 | `trigger.values.instant_content.values.powerflip_override.levels` | 瞬发效果·强化弹射覆盖·等级组 | 文本/数值 |
-| 83 | `trigger.values.instant_content.values.powerflip_override.description_id` | 瞬发效果·强化弹射覆盖·描述ID | 文本/数值 |
-| 84 | `trigger.values.during_accumulation_trigger` | 持续累积触发 | 枚举(262) |
-| 85 | `trigger.values.during_accumulation_trigger.values.trigger_puller` | 持续累积触发·触发来源 | 枚举(10) |
-| 86 | `trigger.values.during_accumulation_trigger.values.trigger_puller.values.character_groups` | 持续累积触发·触发来源·角色组 | 文本/数值 |
-| 87 | `trigger.values.during_accumulation_trigger.values.threshold.power1` | 持续累积触发·阈值·SLv1值 | 数值 |
-| 88 | `trigger.values.during_accumulation_trigger.values.threshold.first_max` | 持续累积触发·阈值·SLv满级值 | 数值 |
-| 89 | `trigger.values.during_accumulation_trigger.values.threshold2.power1` | 持续累积触发·阈值2·SLv1值 | 数值 |
-| 90 | `trigger.values.during_accumulation_trigger.values.threshold2.first_max` | 持续累积触发·阈值2·SLv满级值 | 数值 |
-| 91 | `trigger.values.during_accumulation_trigger.values.trigger_limit` | 持续累积触发·触发次数上限 | 文本/数值 |
-| 92 | `trigger.values.during_accumulation_trigger.values.cooltime` | 持续累积触发·冷却(帧) | 文本/数值 |
-| 93 | `trigger.values.during_accumulation_trigger.values.character_groups` | 持续累积触发·角色组 | 文本/数值 |
-| 94 | `trigger.values.during_accumulation_trigger.values.unique_condition_id` | 持续累积触发·唯一条件ID | 文本/数值 |
-| 95 | `trigger.values.during_accumulation_trigger.values.multiball_group_id` | 持续累积触发·多球组 | 文本/数值 |
-| 96 | `trigger.values.during_trigger` | 持续触发 | 枚举(230) |
-| 97 | `trigger.values.during_trigger.values.trigger_puller` | 持续触发·触发来源 | 枚举(11) |
-| 98 | `trigger.values.during_trigger.values.trigger_puller.values.character_groups` | 持续触发·触发来源·角色组 | 文本/数值 |
-| 99 | `trigger.values.during_trigger.values.threshold.power1` | 持续触发·阈值·SLv1值 | 数值 |
-| 100 | `trigger.values.during_trigger.values.threshold.first_max` | 持续触发·阈值·SLv满级值 | 数值 |
-| 101 | `trigger.values.during_trigger.values.trigger_limit` | 持续触发·触发次数上限 | 文本/数值 |
-| 102 | `trigger.values.during_trigger.values.character_groups` | 持续触发·角色组 | 文本/数值 |
-| 103 | `trigger.values.during_trigger.values.unique_condition_id` | 持续触发·唯一条件ID | 文本/数值 |
-| 104 | `trigger.values.during_trigger.values.start_threshold.power1` | 持续触发·起始阈值·SLv1值 | 数值 |
-| 105 | `trigger.values.during_trigger.values.start_threshold.first_max` | 持续触发·起始阈值·SLv满级值 | 数值 |
-| 106 | `trigger.values.during_trigger.values.multiball_group_id` | 持续触发·多球组 | 文本/数值 |
-| 107 | `trigger.values.even_if_owner_dead` | 死亡后仍生效 | 文本/数值 |
-| 108 | `trigger.values.during_content` | 持续效果 | 枚举(422) |
-| 109 | `trigger.values.during_content.values.target` | 持续效果·目标 | 枚举(15) |
-| 110 | `trigger.values.during_content.values.target.values.character_groups` | 持续效果·目标·角色组 | 文本/数值 |
-| 111 | `trigger.values.during_content.values.target.values.multiball_group_id` | 持续效果·目标·多球组 | 文本/数值 |
-| 112 | `trigger.values.during_content.values.strength.power1` | 持续效果·强度·SLv1值 | 数值 |
-| 113 | `trigger.values.during_content.values.strength.first_max` | 持续效果·强度·SLv满级值 | 数值 |
-| 114 | `trigger.values.during_content.values.strength2.power1` | 持续效果·强度2·SLv1值 | 数值 |
-| 115 | `trigger.values.during_content.values.strength2.first_max` | 持续效果·强度2·SLv满级值 | 数值 |
-| 116 | `trigger.values.during_content.values.character_groups` | 持续效果·角色组 | 文本/数值 |
-| 117 | `trigger.values.during_content.values.unique_condition_id` | 持续效果·唯一条件ID | 文本/数值 |
-| 118 | `trigger.values.during_content.values.element` | 持续效果·属性 | 枚举(7) |
-| 119 | `trigger.values.during_content.values.powerflip_override.id` | 持续效果·强化弹射覆盖·ID | 文本/数值 |
-| 120 | `trigger.values.during_content.values.powerflip_override.levels` | 持续效果·强化弹射覆盖·等级组 | 文本/数值 |
-| 121 | `trigger.values.during_content.values.powerflip_override.description_id` | 持续效果·强化弹射覆盖·描述ID | 文本/数值 |
-| 122 | `trigger.values.opening` | 开幕效果 | 枚举(3) |
-| 123 | `trigger.values.opening.values.strength.power1` | 开幕效果·强度·SLv1值 | 文本/数值 |
-| 124 | `trigger.values.opening.values.strength.first_max` | 开幕效果·强度·SLv满级值 | 文本/数值 |
+| 3 | `awake_kind` | 觉醒行类型(`0`=无、`1`=替换、`2`=追加) | 枚举(3) |
+| 4 | `awake_level` | 觉醒等级门槛 | 文本/数值 |
+| 5 | `trigger` | 触发器 | 枚举(3) |
+| 6 | `trigger.values.precondition` | 前置条件 | 枚举(209) |
+| 7 | `trigger.values.precondition.values.trigger_puller` | 前置条件·触发来源 | 枚举(11) |
+| 8 | `trigger.values.precondition.values.trigger_puller.values.character_groups` | 前置条件·触发来源·角色组 | 文本/数值 |
+| 9 | `trigger.values.precondition.values.threshold.power1` | 前置条件·阈值·SLv1值 | 数值 |
+| 10 | `trigger.values.precondition.values.threshold.first_max` | 前置条件·阈值·SLv满级值 | 数值 |
+| 11 | `trigger.values.precondition.values.character_groups` | 前置条件·角色组 | 文本/数值 |
+| 12 | `trigger.values.precondition.values.unique_condition_id` | 前置条件·唯一条件ID | 文本/数值 |
+| 13 | `trigger.values.precondition2` | 前置条件2 | 枚举(209) |
+| 14 | `trigger.values.precondition2.values.trigger_puller` | 前置条件2·触发来源 | 枚举(11) |
+| 15 | `trigger.values.precondition2.values.trigger_puller.values.character_groups` | 前置条件2·触发来源·角色组 | 文本/数值 |
+| 16 | `trigger.values.precondition2.values.threshold.power1` | 前置条件2·阈值·SLv1值 | 数值 |
+| 17 | `trigger.values.precondition2.values.threshold.first_max` | 前置条件2·阈值·SLv满级值 | 数值 |
+| 18 | `trigger.values.precondition2.values.character_groups` | 前置条件2·角色组 | 文本/数值 |
+| 19 | `trigger.values.precondition2.values.unique_condition_id` | 前置条件2·唯一条件ID | 文本/数值 |
+| 20 | `trigger.values.precondition3` | 前置条件3 | 枚举(209) |
+| 21 | `trigger.values.precondition3.values.trigger_puller` | 前置条件3·触发来源 | 枚举(11) |
+| 22 | `trigger.values.precondition3.values.trigger_puller.values.character_groups` | 前置条件3·触发来源·角色组 | 文本/数值 |
+| 23 | `trigger.values.precondition3.values.threshold.power1` | 前置条件3·阈值·SLv1值 | 数值 |
+| 24 | `trigger.values.precondition3.values.threshold.first_max` | 前置条件3·阈值·SLv满级值 | 数值 |
+| 25 | `trigger.values.precondition3.values.character_groups` | 前置条件3·角色组 | 文本/数值 |
+| 26 | `trigger.values.precondition3.values.unique_condition_id` | 前置条件3·唯一条件ID | 文本/数值 |
+| 27 | `trigger.values.instant_trigger` | 瞬发触发 | 枚举(262) |
+| 28 | `trigger.values.instant_trigger.values.trigger_puller` | 瞬发触发·触发来源 | 枚举(10) |
+| 29 | `trigger.values.instant_trigger.values.trigger_puller.values.character_groups` | 瞬发触发·触发来源·角色组 | 文本/数值 |
+| 30 | `trigger.values.instant_trigger.values.threshold.power1` | 瞬发触发·阈值·SLv1值 | 数值 |
+| 31 | `trigger.values.instant_trigger.values.threshold.first_max` | 瞬发触发·阈值·SLv满级值 | 数值 |
+| 32 | `trigger.values.instant_trigger.values.threshold2.power1` | 瞬发触发·阈值2·SLv1值 | 数值 |
+| 33 | `trigger.values.instant_trigger.values.threshold2.first_max` | 瞬发触发·阈值2·SLv满级值 | 数值 |
+| 34 | `trigger.values.instant_trigger.values.trigger_limit` | 瞬发触发·触发次数上限 | 文本/数值 |
+| 35 | `trigger.values.instant_trigger.values.cooltime` | 瞬发触发·冷却(帧) | 文本/数值 |
+| 36 | `trigger.values.instant_trigger.values.character_groups` | 瞬发触发·角色组 | 文本/数值 |
+| 37 | `trigger.values.instant_trigger.values.unique_condition_id` | 瞬发触发·唯一条件ID | 文本/数值 |
+| 38 | `trigger.values.instant_trigger.values.multiball_group_id` | 瞬发触发·多球组 | 文本/数值 |
+| 39 | `trigger.values.instant_precontent` | 瞬发前置效果 | 枚举(4) |
+| 40 | `trigger.values.instant_precontent.values.target` | 瞬发前置效果·目标 | 枚举(5) |
+| 41 | `trigger.values.instant_precontent.values.target.values.character_groups` | 瞬发前置效果·目标·角色组 | 文本/数值 |
+| 42 | `trigger.values.instant_precontent.values.threshold.power1` | 瞬发前置效果·阈值·SLv1值 | 数值 |
+| 43 | `trigger.values.instant_precontent.values.threshold.first_max` | 瞬发前置效果·阈值·SLv满级值 | 数值 |
+| 44 | `trigger.values.instant_precontent.values.limit` | 瞬发前置效果·上限 | 文本/数值 |
+| 45 | `trigger.values.instant_precontent.values.unique_condition_id` | 瞬发前置效果·唯一条件ID | 文本/数值 |
+| 46 | `trigger.values.instant_delay` | 瞬发延迟(帧) | 文本/数值 |
+| 47 | `trigger.values.instant_content` | 瞬发效果 | 枚举(724) |
+| 48 | `trigger.values.instant_content.values.target` | 瞬发效果·目标 | 枚举(15) |
+| 49 | `trigger.values.instant_content.values.target.values.character_groups` | 瞬发效果·目标·角色组 | 文本/数值 |
+| 50 | `trigger.values.instant_content.values.target.values.multiball_group_id` | 瞬发效果·目标·多球组 | 文本/数值 |
+| 51 | `trigger.values.instant_content.values.strength.power1` | 瞬发效果·强度·SLv1值 | 数值 |
+| 52 | `trigger.values.instant_content.values.strength.first_max` | 瞬发效果·强度·SLv满级值 | 数值 |
+| 53 | `trigger.values.instant_content.values.strength2.power1` | 瞬发效果·强度2·SLv1值 | 数值 |
+| 54 | `trigger.values.instant_content.values.strength2.first_max` | 瞬发效果·强度2·SLv满级值 | 数值 |
+| 55 | `trigger.values.instant_content.values.strength3.power1` | 瞬发效果·强度3·SLv1值 | 数值 |
+| 56 | `trigger.values.instant_content.values.strength3.first_max` | 瞬发效果·强度3·SLv满级值 | 数值 |
+| 57 | `trigger.values.instant_content.values.frame.power1` | 瞬发效果·帧数·SLv1值 | 数值 |
+| 58 | `trigger.values.instant_content.values.frame.first_max` | 瞬发效果·帧数·SLv满级值 | 数值 |
+| 59 | `trigger.values.instant_content.values.number.power1` | 瞬发效果·次数·SLv1值 | 数值 |
+| 60 | `trigger.values.instant_content.values.number.first_max` | 瞬发效果·次数·SLv满级值 | 数值 |
+| 61 | `trigger.values.instant_content.values.max_accumulation` | 瞬发效果·最大累积数 | 文本/数值 |
+| 62 | `trigger.values.instant_content.values.flip_limit` | 瞬发效果·弹射次数上限 | 文本/数值 |
+| 63 | `trigger.values.instant_content.values.power_flip_limit` | 瞬发效果·强化弹射次数上限 | 文本/数值 |
+| 64 | `trigger.values.instant_content.values.end_power_flip_limit` | 瞬发效果·结束时强化弹射上限 | 文本/数值 |
+| 65 | `trigger.values.instant_content.values.end_power_flip_accepted_levels` | 瞬发效果·结束时强化弹射等级 | 枚举(5) |
+| 66 | `trigger.values.instant_content.values.character_groups` | 瞬发效果·角色组 | 文本/数值 |
+| 67 | `trigger.values.instant_content.values.cancelable` | 瞬发效果·可取消 | 枚举(2) |
+| 68 | `trigger.values.instant_content.values.unique_condition_id` | 瞬发效果·唯一条件ID | 文本/数值 |
+| 69 | `trigger.values.instant_content.values.time` | 瞬发效果·时间 | 文本/数值 |
+| 70 | `trigger.values.instant_content.values.string_id` | 瞬发效果·文本标识 | 文本/数值 |
+| 71 | `trigger.values.instant_content.values.action_path` | 瞬发效果·动作路径 | 文本/数值 |
+| 72 | `trigger.values.instant_content.values.by_each_trigger_puller` | 瞬发效果·按触发者分别计数 | 文本/数值 |
+| 73 | `trigger.values.instant_content.values.element` | 瞬发效果·属性 | 枚举(7) |
+| 74 | `trigger.values.instant_content.values.initial_multiply` | 瞬发效果·初始倍增 | 文本/数值 |
+| 75 | `trigger.values.instant_content.values.multiply_trigger` | 瞬发效果·倍增触发 | 枚举(4) |
+| 76 | `trigger.values.instant_content.values.multiply_trigger.values.additional_multiply` | 瞬发效果·倍增触发·追加倍增 | 文本/数值 |
+| 77 | `trigger.values.instant_content.values.multiply_trigger.values.trigger_puller` | 瞬发效果·倍增触发·触发来源 | 枚举(10) |
+| 78 | `trigger.values.instant_content.values.multiply_trigger.values.trigger_puller.values.character_groups` | 瞬发效果·倍增触发·触发来源·角色组 | 文本/数值 |
+| 79 | `trigger.values.instant_content.values.multiply_trigger.values.threshold.power1` | 瞬发效果·倍增触发·阈值·SLv1值 | 数值 |
+| 80 | `trigger.values.instant_content.values.multiply_trigger.values.threshold.first_max` | 瞬发效果·倍增触发·阈值·SLv满级值 | 数值 |
+| 81 | `trigger.values.instant_content.values.multiply_trigger.values.trigger_limit` | 瞬发效果·倍增触发·触发次数上限 | 文本/数值 |
+| 82 | `trigger.values.instant_content.values.powerflip_override.id` | 瞬发效果·强化弹射覆盖·ID | 文本/数值 |
+| 83 | `trigger.values.instant_content.values.powerflip_override.levels` | 瞬发效果·强化弹射覆盖·等级组 | 文本/数值 |
+| 84 | `trigger.values.instant_content.values.powerflip_override.description_id` | 瞬发效果·强化弹射覆盖·描述ID | 文本/数值 |
+| 85 | `trigger.values.during_accumulation_trigger` | 持续累积触发 | 枚举(262) |
+| 86 | `trigger.values.during_accumulation_trigger.values.trigger_puller` | 持续累积触发·触发来源 | 枚举(10) |
+| 87 | `trigger.values.during_accumulation_trigger.values.trigger_puller.values.character_groups` | 持续累积触发·触发来源·角色组 | 文本/数值 |
+| 88 | `trigger.values.during_accumulation_trigger.values.threshold.power1` | 持续累积触发·阈值·SLv1值 | 数值 |
+| 89 | `trigger.values.during_accumulation_trigger.values.threshold.first_max` | 持续累积触发·阈值·SLv满级值 | 数值 |
+| 90 | `trigger.values.during_accumulation_trigger.values.threshold2.power1` | 持续累积触发·阈值2·SLv1值 | 数值 |
+| 91 | `trigger.values.during_accumulation_trigger.values.threshold2.first_max` | 持续累积触发·阈值2·SLv满级值 | 数值 |
+| 92 | `trigger.values.during_accumulation_trigger.values.trigger_limit` | 持续累积触发·触发次数上限 | 文本/数值 |
+| 93 | `trigger.values.during_accumulation_trigger.values.cooltime` | 持续累积触发·冷却(帧) | 文本/数值 |
+| 94 | `trigger.values.during_accumulation_trigger.values.character_groups` | 持续累积触发·角色组 | 文本/数值 |
+| 95 | `trigger.values.during_accumulation_trigger.values.unique_condition_id` | 持续累积触发·唯一条件ID | 文本/数值 |
+| 96 | `trigger.values.during_accumulation_trigger.values.multiball_group_id` | 持续累积触发·多球组 | 文本/数值 |
+| 97 | `trigger.values.during_trigger` | 持续触发 | 枚举(230) |
+| 98 | `trigger.values.during_trigger.values.trigger_puller` | 持续触发·触发来源 | 枚举(11) |
+| 99 | `trigger.values.during_trigger.values.trigger_puller.values.character_groups` | 持续触发·触发来源·角色组 | 文本/数值 |
+| 100 | `trigger.values.during_trigger.values.threshold.power1` | 持续触发·阈值·SLv1值 | 数值 |
+| 101 | `trigger.values.during_trigger.values.threshold.first_max` | 持续触发·阈值·SLv满级值 | 数值 |
+| 102 | `trigger.values.during_trigger.values.trigger_limit` | 持续触发·触发次数上限 | 文本/数值 |
+| 103 | `trigger.values.during_trigger.values.character_groups` | 持续触发·角色组 | 文本/数值 |
+| 104 | `trigger.values.during_trigger.values.unique_condition_id` | 持续触发·唯一条件ID | 文本/数值 |
+| 105 | `trigger.values.during_trigger.values.start_threshold.power1` | 持续触发·起始阈值·SLv1值 | 数值 |
+| 106 | `trigger.values.during_trigger.values.start_threshold.first_max` | 持续触发·起始阈值·SLv满级值 | 数值 |
+| 107 | `trigger.values.during_trigger.values.multiball_group_id` | 持续触发·多球组 | 文本/数值 |
+| 108 | `trigger.values.even_if_owner_dead` | 死亡后仍生效 | 文本/数值 |
+| 109 | `trigger.values.during_content` | 持续效果 | 枚举(422) |
+| 110 | `trigger.values.during_content.values.target` | 持续效果·目标 | 枚举(15) |
+| 111 | `trigger.values.during_content.values.target.values.character_groups` | 持续效果·目标·角色组 | 文本/数值 |
+| 112 | `trigger.values.during_content.values.target.values.multiball_group_id` | 持续效果·目标·多球组 | 文本/数值 |
+| 113 | `trigger.values.during_content.values.strength.power1` | 持续效果·强度·SLv1值 | 数值 |
+| 114 | `trigger.values.during_content.values.strength.first_max` | 持续效果·强度·SLv满级值 | 数值 |
+| 115 | `trigger.values.during_content.values.strength2.power1` | 持续效果·强度2·SLv1值 | 数值 |
+| 116 | `trigger.values.during_content.values.strength2.first_max` | 持续效果·强度2·SLv满级值 | 数值 |
+| 117 | `trigger.values.during_content.values.character_groups` | 持续效果·角色组 | 文本/数值 |
+| 118 | `trigger.values.during_content.values.unique_condition_id` | 持续效果·唯一条件ID | 文本/数值 |
+| 119 | `trigger.values.during_content.values.element` | 持续效果·属性 | 枚举(7) |
+| 120 | `trigger.values.during_content.values.powerflip_override.id` | 持续效果·强化弹射覆盖·ID | 文本/数值 |
+| 121 | `trigger.values.during_content.values.powerflip_override.levels` | 持续效果·强化弹射覆盖·等级组 | 文本/数值 |
+| 122 | `trigger.values.during_content.values.powerflip_override.description_id` | 持续效果·强化弹射覆盖·描述ID | 文本/数值 |
+| 123 | `trigger.values.opening` | 开幕效果 | 枚举(3) |
+| 124 | `trigger.values.opening.values.strength.power1` | 开幕效果·强度·SLv1值 | 文本/数值 |
+| 125 | `trigger.values.opening.values.strength.first_max` | 开幕效果·强度·SLv满级值 | 文本/数值 |
 
 ---
 
@@ -378,12 +379,12 @@ ATK = 基础ATK(等级插值) + 突破加成 + round(0.25 × 协力者ATK) + 觉
 
 | 项 | CN(雷霆 1.4.54) | global |
 |---|---|---|
-| ability schema 列数 | **125** | 119 |
-| 差异点 | col81–83 多出 `powerflip_override.*`,其后整体位移 | — |
-| 例:持续效果·强度·SLv1值 | **col112** | col109 |
+| ability schema 列数 | **126** | 119 |
+| 差异点 | col82–84 多出 `powerflip_override.*`,其后整体位移 | — |
+| 例:持续效果·强度·SLv1值 | **col113** | col109 |
 | 角色数 | 505 | 475(缺 30 个 CN 角色) |
 
-**任何按列号写死的工具/教程跨版本必错**;按列名解析(schema)才版本安全。本手册列号均为 **CN 125 列版**。
+**任何按列号写死的工具/教程跨版本必错**;按列名解析(schema)才版本安全。本手册列号均为 **CN 126 列版**。
 
 ---
 

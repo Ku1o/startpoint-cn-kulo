@@ -58,6 +58,7 @@ export class SessionManager {
     private battleBarrierLogState = new Map<string, string>()
     private supersededBattleClients = new WeakSet<SessionClient>()
     private supersededSockets = new WeakSet<net.Socket>()
+    private retiredLobbySockets = new WeakSet<net.Socket>()
     private supersededSocketBuckets = new Map<string, SupersededSocketBucket>()
     private abandonedBattleTimers = new Map<string, NodeJS.Timeout>()
     private settlementReturnTimers = new Map<string, NodeJS.Timeout>()
@@ -143,6 +144,29 @@ export class SessionManager {
                 if (!socket.destroyed) socket.destroy()
             }
         }
+    }
+
+    private retireDisbandedLobbySocket(socket: net.Socket, roomNumber: string): void {
+        this.retiredLobbySockets.add(socket)
+        if (socket.destroyed) return
+
+        // The CN client handles Disbanded by sending Bye and closing this
+        // socket itself.  A server FIN queued immediately after Disbanded can
+        // be processed as SocketError after the client has already cleared its
+        // cooperationRoomStatus, which makes the client throw C5805.  Keep the
+        // socket quarantined long enough for both the final frame and the
+        // client's intentional close, then reclaim an unresponsive peer.
+        const sendQueueMaxAgeMs = this.parsePositiveDuration("MULTI_SEND_QUEUE_MAX_AGE_MS", 15_000)
+        const fallbackGraceMs = sendQueueMaxAgeMs + 5_000
+        const graceMs = this.parsePositiveDuration("MULTI_DISBAND_SOCKET_GRACE_MS", fallbackGraceMs)
+        const timer = setTimeout(() => {
+            if (socket.destroyed) return
+            gameVerboseLog(() => `[MULTI] forcing retired lobby socket closed: room=${roomNumber}`
+                + ` graceMs=${graceMs}`)
+            socket.destroy()
+        }, graceMs)
+        timer.unref()
+        socket.once("close", () => clearTimeout(timer))
     }
 
     private clearBattleHeartbeatLease(connectionId: string): void {
@@ -510,9 +534,10 @@ export class SessionManager {
     }
 
     commitRoomDisband(roomNumber: string, reason: string): boolean {
-        const waitingClients = this.getClientsInRoom(roomNumber)
+        const roomClients = this.getClientsInRoom(roomNumber)
+        const lobbyClients = roomClients.filter(client => !client.isBattle)
         const battleClients = this.getConnectedBattleClients(roomNumber)
-        const allClients = [...new Set([...waitingClients, ...battleClients])]
+        const allClients = [...new Set([...roomClients, ...battleClients])]
         this.clearBattleHeartbeatLeasesForRoom(roomNumber)
         let deleted = false
         try {
@@ -525,24 +550,33 @@ export class SessionManager {
             this.removeRoomState(roomNumber)
         }
         if (!deleted) return false
-        for (const client of allClients) {
-            this.sendJson(client.socket, [1, [6, "multibattle_room_dismissed"]], {
+        // MeetingServerMessage.Disbanded is valid only on cooperation_room.
+        // Sending its enum index (6) to cooperation_battle makes the battle
+        // unserializer dereference a missing enum entry and crash with C5602.
+        const notifiedLobbySockets = new Set<net.Socket>()
+        for (const client of lobbyClients) {
+            const sendResult = this.sendJson(client.socket, [1, [6, "multibattle_room_dismissed"]], {
                 roomNumber,
                 connectionId: client.connectionId,
                 viewerId: client.viewerId,
                 roomGeneration: client.roomGeneration,
                 channel: "room_disband",
             })
+            if (sendResult !== "closed") notifiedLobbySockets.add(client.socket)
         }
         for (const client of allClients) {
             const addr = this.addr(client.viewerId, roomNumber)
             if (this.clients.get(addr) === client) this.clients.delete(addr)
             if (client.isBattle) this.cidToBattleClient.delete(client.connectionId)
             this.unindexClientSocket(client)
-            try { client.socket.end() } catch (e) {}
-            setTimeout(() => {
-                try { client.socket.destroy() } catch (e) {}
-            }, 250).unref()
+            if (!client.isBattle && notifiedLobbySockets.has(client.socket)) {
+                this.retireDisbandedLobbySocket(client.socket, roomNumber)
+            } else {
+                try { client.socket.end() } catch (e) {}
+                setTimeout(() => {
+                    try { client.socket.destroy() } catch (e) {}
+                }, 250).unref()
+            }
         }
         this.closeSupersededSocketsForRoom(roomNumber)
         this.roomClients.delete(roomNumber)
@@ -973,6 +1007,10 @@ export class SessionManager {
 
     isSupersededSocket(socket: net.Socket): boolean {
         return this.supersededSockets.has(socket)
+    }
+
+    isRetiredLobbySocket(socket: net.Socket): boolean {
+        return this.retiredLobbySockets.has(socket)
     }
 
     isCurrentBattleClient(client: SessionClient): boolean {

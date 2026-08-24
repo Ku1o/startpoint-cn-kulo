@@ -1,15 +1,16 @@
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
-import { copyFileSync, existsSync, lstatSync, mkdirSync, readdirSync, rmSync, statSync, writeFileSync } from "fs";
+import { existsSync, lstatSync, readdirSync, rmSync, statSync, writeFileSync } from "fs";
 import path from "path";
 import { randomBytes, randomUUID } from "crypto";
 import { Worker } from "worker_threads";
 import { getServerTime, getServerDate, setServerTime, getTimeOffset } from "../../utils";
 import { deleteAccountSync, getAccountPlayersSync, getAllAccountsSync, updateAccountSync } from "../../data/domains/account"
 import { deletePlayerSync, getPlayerSync, insertDefaultPlayerSync, replacePlayerDataSync, updatePlayerSync } from "../../data/domains/player"
-import { getAllDeviceBindingsSync, getDeviceBindingSync, getSessionByAccountIdSync } from "../../data/domains/session"
+import { getAllDeviceBindingsSync, getAllViewerSessionsSync, getDeviceBindingSync, getSessionByAccountIdSync } from "../../data/domains/session"
 import { getPlayerCharactersSync } from "../../data/domains/character"
-import { getClientSerializedData, deserializePlayerData, reviveMergedPlayerDates } from "../../data/utils";
-import { getActivePlayerId, setActivePlayerId, getSelectedAccountId, setSelectedAccountId, saveTimeOffset, saveAccountDefaultPlayer, getAccountDefaultPlayer, removeDeletedAccountFromState, removeDeletedAccountsFromState } from "../../data/activeAccount";
+import { getAllAdminPlayerSummariesSync, type AdminPlayerSummary } from "../../data/domains/admin-player"
+import { reviveMergedPlayerDates } from "../../data/utils";
+import { getActivePlayerId, getAdminPlayerSelectionState, setActivePlayerId, getSelectedAccountId, setSelectedAccountId, saveTimeOffset, saveAccountDefaultPlayer, getAccountDefaultPlayer, removeDeletedAccountFromState, removeDeletedAccountsFromState } from "../../data/activeAccount";
 import { saveDefaultSaveTemplate, loadDefaultSaveTemplate, clearDefaultSaveTemplate, getDefaultSaveMeta } from "../../data/defaultSave";
 import { detectCDNVersion, FULL_BASE, getEffectiveVersion, getPatchManifest } from "../../lib/version";
 import { buildShortUpCharacterGachaTimeline } from "../../lib/admin-clairvoyance";
@@ -19,8 +20,15 @@ import { getDb } from "../../data/db";
 import { ensureCascadeDeleteIndexes, selectUnnotedAccountIds } from "../../lib/admin-account-cleanup";
 import { removePlayerQuestNpcPartySnapshots } from "../../multi/npc/player-party-pool";
 import { runImmediateTransactionWithRetry } from "../../lib/sqlite-write-coordinator";
+import { createFullDatabaseBackup, getDatabaseDirectory } from "../../lib/admin-database-backup";
 import { getOnlinePlayerCount } from "../../lib/online-presence";
 import { clearRecoveryFailuresForViewer } from "../cn/takeOver";
+import {
+    createPlayerSaveSnapshotV2Sync,
+    isPlayerSaveSnapshotV2,
+    restorePlayerSaveSnapshotV2Sync,
+    validatePlayerSaveSnapshotV2Sync,
+} from "../../data/snapshots/player-snapshot";
 
 interface TimeQuery {
     time: string | undefined
@@ -29,6 +37,7 @@ interface TimeQuery {
 const MANUAL_DATABASE_BACKUP_KEEP_COUNT = 5
 const ACCOUNT_CLEANUP_BATCH_SIZE = 5
 const ACCOUNT_CLEANUP_BATCH_PAUSE_MS = 100
+const MAX_SAVE_TEMPLATE_UPLOAD_BYTES = 64 * 1024 * 1024
 
 type AccountCleanupStatus = "running" | "completed" | "failed"
 type AccountCleanupPhase = "preparing" | "planning" | "backing_up" | "indexing" | "deleting" | "finalizing"
@@ -90,49 +99,6 @@ async function cleanupDeletedPlayerAiSnapshots(playerIds: number[], context: str
             error,
         )
     }
-}
-
-function getDatabaseDirectory(): string {
-    return process.env.DATA_DIR
-        ? path.resolve(process.env.DATA_DIR)
-        : path.resolve(__dirname, "../../../.database")
-}
-
-function createBackupStamp(): string {
-    const now = new Date()
-    const pad = (value: number, width = 2) => String(value).padStart(width, "0")
-    return [
-        `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}`,
-        `${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`,
-        pad(now.getMilliseconds(), 3),
-    ].join("-")
-}
-
-async function createFullDatabaseBackup(prefix: string): Promise<{ directory: string; name: string }> {
-    const databaseDir = getDatabaseDirectory()
-    const name = `${prefix}-${createBackupStamp()}`
-    const directory = path.join(databaseDir, "admin-backups", name)
-    mkdirSync(directory, { recursive: true })
-    const versionPath = path.join(databaseDir, "wdfp_data.db.version")
-    if (!existsSync(versionPath)) {
-        throw new Error("Database version file is missing: wdfp_data.db.version")
-    }
-    await getDb().backup(path.join(directory, "wdfp_data.db"))
-    copyFileSync(versionPath, path.join(directory, "wdfp_data.db.version"))
-    const statePath = path.join(databaseDir, "active_account.json")
-    if (existsSync(statePath)) copyFileSync(statePath, path.join(directory, "active_account.json"))
-    writeFileSync(
-        path.join(directory, "backup-info.json"),
-        JSON.stringify({
-            createdAt: new Date().toISOString(),
-            type: prefix,
-            database: "wdfp_data.db",
-            databaseVersion: "wdfp_data.db.version",
-            includesActiveAccountState: existsSync(statePath),
-        }, null, 2),
-        "utf8",
-    )
-    return { directory, name }
 }
 
 function removeExpiredManualDatabaseBackups(backupRoot: string): string[] {
@@ -570,8 +536,26 @@ const routes = async (fastify: FastifyInstance) => {
 
     fastify.get("/accounts", async (_request: FastifyRequest, reply: FastifyReply) => {
         const accounts = getAllAccountsSync()
-        const deviceBindings = getAllDeviceBindingsSync()
-        const activePlayerId = getActivePlayerId()
+        const selection = getAdminPlayerSelectionState()
+        const activePlayerId = selection.activePlayerId
+        const playersByAccount = new Map<number, AdminPlayerSummary[]>()
+        for (const player of getAllAdminPlayerSummariesSync()) {
+            const players = playersByAccount.get(player.accountId) ?? []
+            players.push(player)
+            playersByAccount.set(player.accountId, players)
+        }
+        const bindingsByAccount = new Map<number, Array<{ deviceId: number }>>()
+        for (const binding of getAllDeviceBindingsSync()) {
+            const bindings = bindingsByAccount.get(binding.account_id) ?? []
+            bindings.push({ deviceId: binding.device_id })
+            bindingsByAccount.set(binding.account_id, bindings)
+        }
+        const viewerIdByAccount = new Map<number, string>()
+        for (const session of getAllViewerSessionsSync()) {
+            if (!viewerIdByAccount.has(session.accountId)) {
+                viewerIdByAccount.set(session.accountId, session.token)
+            }
+        }
         const latestTransfers = getDb().prepare(`
             SELECT transfer.target_account_id, transfer.source_viewer_id,
                    transfer.old_device_id, transfer.new_device_id,
@@ -595,17 +579,17 @@ const routes = async (fastify: FastifyInstance) => {
             latestTransfers.map(transfer => [transfer.target_account_id, transfer]),
         )
         const result = accounts.map(acc => {
-            const playerIds = getAccountPlayersSync(acc.id)
-            const viewerSession = getSessionByAccountIdSync(acc.id, SessionType.VIEWER)
-            const savedDefaultPid = getAccountDefaultPlayer(acc.id)
+            const players = playersByAccount.get(acc.id) ?? []
+            const playerIds = players.map(player => player.id)
+            const savedDefaultPid = selection.defaultPlayers[acc.id]
             const defaultPid = savedDefaultPid && playerIds.includes(savedDefaultPid)
                 ? savedDefaultPid
                 : (playerIds[0] ?? null)
-            const defaultPlayer = defaultPid ? getPlayerSync(defaultPid) : null
+            const defaultPlayer = players.find(player => player.id === defaultPid)
             const latestTransfer = latestTransferByAccount.get(acc.id)
             return {
                 id: acc.id,
-                viewerId: viewerSession ? String(viewerSession.token) : null,
+                viewerId: viewerIdByAccount.get(acc.id) ?? null,
                 note: acc.adminNote ?? null,
                 takeoverConfigured: Boolean(acc.takeoverPassword),
                 latestTransfer: latestTransfer ? {
@@ -616,25 +600,20 @@ const routes = async (fastify: FastifyInstance) => {
                     transferredAt: latestTransfer.transferred_at,
                     source: latestTransfer.source,
                 } : null,
-                bindings: deviceBindings
-                    .filter(binding => binding.account_id === acc.id)
-                    .map(binding => ({
-                        deviceId: binding.device_id,
-                    })),
+                bindings: bindingsByAccount.get(acc.id) ?? [],
                 saveCount: playerIds.length,
                 defaultPlayerId: defaultPid,
                 defaultPlayerName: defaultPlayer?.name ?? null,
                 activePlayerId,
-                players: playerIds.map(pid => {
-                    const player = getPlayerSync(pid)
+                players: players.map(player => {
                     return {
-                        id: pid,
+                        id: player.id,
                         accountId: acc.id,
-                        name: player?.name ?? `存档 #${pid}`,
-                        comment: player?.comment ?? "",
-                        degreeId: player?.degreeId ?? 0,
-                        isDefault: defaultPid === pid,
-                        isActive: activePlayerId === pid,
+                        name: player.name,
+                        comment: player.comment,
+                        degreeId: player.degreeId,
+                        isDefault: defaultPid === player.id,
+                        isActive: activePlayerId === player.id,
                     }
                 }),
                 playerIds
@@ -655,18 +634,29 @@ const routes = async (fastify: FastifyInstance) => {
         try {
             const file = await (request as any).file()
             if (!file) return reply.status(400).send({ error: "未选择文件" })
-            const text = (await file.toBuffer()).toString("utf-8")
+            const buffer = await file.toBuffer()
+            if (buffer.length > MAX_SAVE_TEMPLATE_UPLOAD_BYTES) {
+                return reply.status(400).send({ error: `存档超过 ${MAX_SAVE_TEMPLATE_UPLOAD_BYTES / 1024 / 1024} MB 安全上限` })
+            }
+            const text = buffer.toString("utf-8")
             let parsed: any
             try { parsed = JSON.parse(text) } catch { return reply.status(400).send({ error: "文件不是有效的 JSON" }) }
             if (!parsed || typeof parsed !== "object" || parsed.schema !== "starpoint-cn-save")
                 return reply.status(400).send({ error: "不是有效的存档快照（请使用本面板导出的存档）" })
-            if (parsed.version !== 1)
-                return reply.status(400).send({ error: `不支持的存档版本：${parsed.version}` })
-            if (!parsed.data || typeof parsed.data !== "object" || !parsed.data.player)
-                return reply.status(400).send({ error: "存档数据缺失 player 字段" })
+            if (isPlayerSaveSnapshotV2(parsed)) {
+                validatePlayerSaveSnapshotV2Sync(parsed)
+            } else {
+                if (parsed.version !== 1)
+                    return reply.status(400).send({ error: `不支持的存档版本：${parsed.version}` })
+                if (!parsed.data || typeof parsed.data !== "object" || !parsed.data.player)
+                    return reply.status(400).send({ error: "存档数据缺失 player 字段" })
+            }
             saveDefaultSaveTemplate(parsed)
             return reply.send({ ok: true, ...getDefaultSaveMeta() })
         } catch (e: any) {
+            if (e?.code === "FST_REQ_FILE_TOO_LARGE") {
+                return reply.status(413).send({ error: `存档超过 ${MAX_SAVE_TEMPLATE_UPLOAD_BYTES / 1024 / 1024} MB 安全上限` })
+            }
             return reply.status(500).send({ error: e?.message ?? "上传失败" })
         }
     })
@@ -725,13 +715,24 @@ const routes = async (fastify: FastifyInstance) => {
         let appliedTemplate = false
         try {
             const template = loadDefaultSaveTemplate()
-            if (template?.data?.player) {
+            if (isPlayerSaveSnapshotV2(template)) {
+                const snapshot = validatePlayerSaveSnapshotV2Sync(template)
+                restorePlayerSaveSnapshotV2Sync(snapshot, player.id, {
+                    includeArchiveHistory: false,
+                })
+                appliedTemplate = true
+            } else if (template?.data?.player) {
                 const data = reviveMergedPlayerDates(template.data)
                 data.player.id = player.id
                 replacePlayerDataSync(data)
                 appliedTemplate = true
             }
-        } catch (_) { /* 模板损坏则退回空存档 */ }
+        } catch (error: any) {
+            try { deletePlayerSync(player.id) } catch { /* preserve template error */ }
+            const message = `默认存档应用失败，未创建新存档：${error?.message ?? error}`
+            if (wantsJson(request)) return reply.status(409).send({ error: message })
+            return reply.redirect(`/player?error=${encodeURIComponent(message)}`)
+        }
         setActivePlayerId(player.id)
         saveAccountDefaultPlayer(accId, player.id)
         if (wantsJson(request)) return reply.send({ ok: true, playerId: player.id, appliedTemplate })
@@ -868,20 +869,33 @@ const routes = async (fastify: FastifyInstance) => {
             return reply.redirect('/player')
         }
 
-        const serialized = getClientSerializedData(playerId, { viewerId: 0 })
-        if (!serialized) {
+        if (!getPlayerSync(playerId)) {
             if (wantsJson(request)) return reply.status(404).send({ error: "Source player not found" })
+            return reply.redirect('/player')
+        }
+        let snapshot
+        try {
+            snapshot = createPlayerSaveSnapshotV2Sync(playerId)
+        } catch (error: any) {
+            if (wantsJson(request)) return reply.status(500).send({ error: `克隆前导出失败：${error?.message ?? error}` })
             return reply.redirect('/player')
         }
 
         const newPlayer = insertDefaultPlayerSync(accountId)
+        let restored
+        try {
+            restored = restorePlayerSaveSnapshotV2Sync(snapshot, newPlayer.id, {
+                includeArchiveHistory: false,
+            })
+        } catch (error: any) {
+            try { deletePlayerSync(newPlayer.id) } catch { /* preserve original clone error */ }
+            if (wantsJson(request)) return reply.status(500).send({ error: `克隆恢复失败：${error?.message ?? error}` })
+            return reply.redirect('/player')
+        }
+
         setActivePlayerId(newPlayer.id)
-
-        const mergedData = deserializePlayerData(newPlayer.id, serialized)
-        replacePlayerDataSync(mergedData)
-
         saveAccountDefaultPlayer(accountId, newPlayer.id)
-        if (wantsJson(request)) return reply.send({ ok: true, newPlayerId: newPlayer.id })
+        if (wantsJson(request)) return reply.send({ ok: true, newPlayerId: newPlayer.id, snapshotVersion: 2, restored })
         return reply.redirect('/player')
     })
 

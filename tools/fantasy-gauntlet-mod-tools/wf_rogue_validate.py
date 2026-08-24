@@ -26,7 +26,7 @@ import wf_rogue_shop as shop
 
 
 TOOL_DIR = Path(__file__).resolve().parent
-ROOT = core.resolve_server_dir()
+ROOT = TOOL_DIR.parent
 ASSETS_DIR = ROOT / "assets"
 
 
@@ -46,20 +46,35 @@ def _strict_json_load(text: str) -> Any:
     return json.loads(text, parse_constant=reject_constant, object_pairs_hook=reject_duplicates)
 
 
+def _resolve_client_patch_dir() -> Path:
+    if "WF_CLIENT_PATCH_DIR" in os.environ:
+        raw = os.environ["WF_CLIENT_PATCH_DIR"]
+        if not raw.strip():
+            raise ValueError("WF_CLIENT_PATCH_DIR must be a non-empty path")
+        client_patch = Path(raw).expanduser()
+        if not client_patch.is_absolute():
+            raise ValueError(
+                f"WF_CLIENT_PATCH_DIR must be an absolute path: {raw}"
+            )
+    else:
+        client_patch = core.resolve_server_dir() / "client-patch"
+
+    client_patch = client_patch.resolve()
+    if not client_patch.is_dir():
+        raise ValueError(
+            "WF_CLIENT_PATCH_DIR/client-patch is not an existing directory: "
+            f"{client_patch}"
+        )
+    return client_patch
+
+
 def _load_task7_builder():
     module_name = "abyss_task8_release_builder"
     existing = sys.modules.get(module_name)
     if existing is not None:
         return existing
-    # client-patch 属服务端仓工作区;独立布局用 WF_CLIENT_PATCH_DIR/WF_SERVER_DIR 定位
-    client_patch = (
-        Path(os.environ["WF_CLIENT_PATCH_DIR"])
-        if os.environ.get("WF_CLIENT_PATCH_DIR")
-        else (
-            Path(os.environ["WF_SERVER_DIR"]) if os.environ.get("WF_SERVER_DIR")
-            else ROOT
-        ) / "client-patch"
-    )
+    # client-patch 属服务端仓工作区;独立布局只经显式目录/共享服务端解析器定位。
+    client_patch = _resolve_client_patch_dir()
     path = client_patch / "abyss-mode-equipment" / "build_apk.py"
     spec = importlib.util.spec_from_file_location(module_name, path)
     if spec is None or spec.loader is None:
@@ -68,9 +83,6 @@ def _load_task7_builder():
     sys.modules[module_name] = module
     spec.loader.exec_module(module)
     return module
-
-
-apk_builder = _load_task7_builder()
 
 
 @dataclass(frozen=True)
@@ -476,6 +488,7 @@ def _print_result(result: ValidationResult) -> None:
 
 
 def main() -> int:
+    global ROOT, ASSETS_DIR
     parser = argparse.ArgumentParser(
         description="Validate the complete abyss equipment release gate"
     )
@@ -483,6 +496,8 @@ def main() -> int:
     parser.add_argument("--ffdec", required=True, type=Path)
     parser.add_argument("--java", required=True, type=Path)
     args = parser.parse_args()
+    ROOT = core.resolve_server_dir()
+    ASSETS_DIR = ROOT / "assets"
     try:
         profile = rewards.require_cn_profile()
     except (OSError, KeyError, TypeError, ValueError, RuntimeError) as exc:
@@ -1116,6 +1131,11 @@ def _validate_client_verification(
     if not isinstance(data, dict):
         errors.append("client_verification.report.invalid: root is not an object")
         return
+
+    # APK builder code belongs to the separately configured client-patch tree.
+    # Keep ordinary module import and data-only validation independent from that
+    # optional tree; only the APK verification lane is allowed to resolve it.
+    apk_builder = _load_task7_builder()
 
     if type(data.get("schema_version")) is not int:
         errors.append(

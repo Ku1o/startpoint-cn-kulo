@@ -30,6 +30,7 @@ export interface LoungeRoom {
     createdAt: number
     lastActivityAt: number
     members: Map<number, LoungeMember>
+    pendingSockets: Map<number, net.Socket>
     shareTypes: Set<number>
 }
 
@@ -63,14 +64,29 @@ function removeRoom(room: LoungeRoom): void {
     }
 }
 
+function clearDisconnectedPendingSockets(room: LoungeRoom): void {
+    for (const [viewerId, socket] of room.pendingSockets) {
+        if (socket.destroyed || !socket.writable) room.pendingSockets.delete(viewerId)
+    }
+}
+
+export function getLoungeOccupancy(room: LoungeRoom): number {
+    clearDisconnectedPendingSockets(room)
+    let occupancy = room.members.size
+    for (const viewerId of room.pendingSockets.keys()) {
+        if (!room.members.has(viewerId)) occupancy += 1
+    }
+    return occupancy
+}
+
 export function cleanupExpiredLounges(now = Date.now()): void {
     for (const room of rooms.values()) {
-        if (now - room.lastActivityAt >= LOUNGE_TTL_MS) removeRoom(room)
+        if (now - room.lastActivityAt >= LOUNGE_TTL_MS) disbandLounge(room)
     }
     if (rooms.size <= MAX_LOUNGES) return
     const oldest = [...rooms.values()].sort((a, b) => a.lastActivityAt - b.lastActivityAt)
     for (let index = 0; rooms.size > MAX_LOUNGES && index < oldest.length; index++) {
-        removeRoom(oldest[index])
+        disbandLounge(oldest[index])
     }
 }
 
@@ -105,6 +121,7 @@ export function createLounge(input: {
         createdAt: now,
         lastActivityAt: now,
         members: new Map(),
+        pendingSockets: new Map(),
         shareTypes: new Set(),
     }
     rooms.set(room.id, room)
@@ -126,7 +143,7 @@ export function getLoungeByNumber(number: string): LoungeRoom | undefined {
 export function listLounges(useCase: number): LoungeRoom[] {
     cleanupExpiredLounges()
     return [...rooms.values()]
-        .filter(room => room.useCase === useCase && room.raisingState === 2 && room.members.size < LOUNGE_CAPACITY)
+        .filter(room => room.useCase === useCase && room.raisingState === 2 && getLoungeOccupancy(room) < LOUNGE_CAPACITY)
         .sort((a, b) => b.createdAt - a.createdAt)
 }
 
@@ -152,13 +169,18 @@ export function setLoungeShareTypes(room: LoungeRoom, values: number[]): void {
 
 export function canAttachLoungeViewer(room: LoungeRoom, viewerId: number): boolean {
     return room.raisingState === 2
-        && (room.members.has(viewerId) || room.members.size < LOUNGE_CAPACITY)
+        && (room.members.has(viewerId)
+            || room.pendingSockets.has(viewerId)
+            || getLoungeOccupancy(room) < LOUNGE_CAPACITY)
 }
 
 export function attachLoungeSocket(room: LoungeRoom, viewerId: number, socket: net.Socket): void {
     const existing = room.members.get(viewerId)
+    const pending = room.pendingSockets.get(viewerId)
     socketContexts.set(socket, { roomId: room.id, viewerId })
     room.lastActivityAt = Date.now()
+    room.pendingSockets.set(viewerId, socket)
+    if (pending && pending !== socket && !pending.destroyed) pending.destroy()
     if (existing && existing.socket !== socket && !existing.socket.destroyed) {
         existing.socket.destroy()
     }
@@ -171,7 +193,9 @@ export function enterLounge(socket: net.Socket, profile: Record<string, unknown>
     const context = socketContexts.get(socket)
     if (!context) return null
     const room = rooms.get(context.roomId)
-    if (!room || !canAttachLoungeViewer(room, context.viewerId)) return null
+    if (!room || room.pendingSockets.get(context.viewerId) !== socket
+        || !canAttachLoungeViewer(room, context.viewerId)) return null
+    room.pendingSockets.delete(context.viewerId)
     const member: LoungeMember = {
         viewerId: context.viewerId,
         profile: {
@@ -217,6 +241,10 @@ export function setLoungeMemberReady(room: LoungeRoom, viewerId: number, readySt
     return true
 }
 
+export function touchLoungeActivity(room: LoungeRoom): void {
+    if (rooms.get(room.id) === room) room.lastActivityAt = Date.now()
+}
+
 export function loungeCanStart(room: LoungeRoom): boolean {
     return room.members.size === LOUNGE_CAPACITY
         && [...room.members.values()].every(member => Number(member.readyState[0]) === 1)
@@ -238,7 +266,15 @@ export function broadcastLoungeFrame(room: LoungeRoom, value: unknown): void {
 }
 
 export function disbandLounge(room: LoungeRoom, message = "multibattle_room_dismissed"): void {
-    broadcastLoungeFrame(room, [1, [1, message]])
+    const frame = [1, [1, message]]
+    const sentSockets = new Set<net.Socket>()
+    for (const member of room.members.values()) {
+        sentSockets.add(member.socket)
+        sendLoungeFrame(member.socket, frame)
+    }
+    for (const socket of room.pendingSockets.values()) {
+        if (!sentSockets.has(socket)) sendLoungeFrame(socket, frame)
+    }
     room.raisingState = 99
     removeRoom(room)
 }
@@ -249,7 +285,12 @@ export function detachLoungeSocket(socket: net.Socket, explicitBye = false): voi
     socketContexts.delete(socket)
     const room = rooms.get(context.roomId)
     if (!room) return
+    const pending = room.pendingSockets.get(context.viewerId)
+    if (pending === socket) room.pendingSockets.delete(context.viewerId)
     const member = room.members.get(context.viewerId)
+    // A reconnecting viewer keeps the existing member slot while the new
+    // socket completes its Enter message. The old socket must not remove it.
+    if (pending && pending !== socket) return
     if (member?.socket !== socket) return
     room.members.delete(context.viewerId)
     room.lastActivityAt = Date.now()

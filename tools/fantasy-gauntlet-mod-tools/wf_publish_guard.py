@@ -64,7 +64,7 @@ CDN_COMMON_DIFF = CDN_ROOT / "archive-common-diff"
 CDN_COMMON_FULL = CDN_ROOT / "archive-common-full"
 ACTIVE_PATCH = SERVER_ROOT / "assets" / "asset-patch" / "active"
 PATCH_MANIFEST = SERVER_ROOT / "assets" / "asset-patch" / "manifest.json"
-PACKS = TOOL_DIR / "work" / "character_packs"
+PACKS = core.project_root() / "work" / "character_packs"
 
 _EDGE = re.compile(r"^pinball-(\d+\.\d+\.\d+)-(\d+\.\d+\.\d+)-(\d+)-")
 

@@ -17,6 +17,7 @@ WF 单机版 · 本地网页修改器 (GUI)
   WF_TARGET_STORE  目标 upload 目录(默认按 profiles.json / 项目根目录查找)
   WF_CDNDATA       服务端 assets/cdndata 目录(①层;独立部署必配,默认取仓库根布局)
   WF_CDN_DIR       服务端 .cdn/cn 目录(发布目标;独立部署必配,默认取仓库根布局)
+  WF_APK           内置 base 资产来源 APK 或 bundle.zip 的绝对路径
   WF_ADB           adb.exe 完整路径
   WF_ADB_PORT      模拟器 adb 端口(默认 16384 = MuMu 12)
   WF_PKG           游戏包名(默认 com.leiting.wf,雷霆国服)
@@ -35,6 +36,7 @@ import shutil
 import sqlite3
 import subprocess
 import sys
+import threading
 import time
 import tempfile
 import urllib.error
@@ -46,25 +48,46 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
+TOOL_DIR = Path(__file__).resolve().parent
+sys.path.insert(0, str(TOOL_DIR))
 import wf_mod_tool as core  # noqa: E402
 import wf_describe  # noqa: E402  行级中文描述器(逆向布局+枚举直译)
+import wf_client_legality  # noqa: E402  客户端 parseAt* 硬规则(纯函数,不碰 store)
 import wf_assets  # noqa: E402    角色资产(立绘/图标/语音)编解码与清单
 import wf_character_requirements as char_requirements  # noqa: E402  统一 37 项资源契约
 import wf_dsl  # noqa: E402       技能 ActionDsl 数值编辑
 import wf_atf  # noqa: E402       skill_cutin Android ETC1 / iOS ETC2 ATF 重编码
 import wf_boss  # noqa: E402      Boss 数值 + 副本列表(Boss·副本页)
 import wf_server_auth  # noqa: E402  服务端管理 API 地址与 Bearer 认证
+import wf_database_paths  # noqa: E402  独立部署时的存档数据库路径
+import wf_apk_paths  # noqa: E402  独立部署时的 APK/bundle 资产来源
+import wf_live_cdn  # noqa: E402  服务端当前 .cdn + active 终态只读视图
+import wf_device_paths  # noqa: E402  可选 adb 的独立路径解析
 
-ROOT = Path(__file__).resolve().parent.parent
-_PROFILE = core.resolve_profile(os.environ.get("WF_PROFILE"))
-SERVER_ROOT = core.resolve_server_dir(os.environ.get("WF_PROFILE"))
+try:
+    _PROFILE = core.resolve_profile(os.environ.get("WF_PROFILE"))
+except ValueError as error:
+    raise SystemExit(str(error)) from None
+
+
+def _resolve_gui_server_root() -> Path:
+    try:
+        return core.resolve_server_dir(os.environ.get("WF_PROFILE"))
+    except ValueError:
+        # 存档工具允许只配置独立数据库目录，不应强迫同机存在服务端 checkout。
+        if "WF_DATABASE_DIR" in os.environ:
+            return TOOL_DIR.parent
+        raise
+
+
+SERVER_ROOT = _resolve_gui_server_root()
+ROOT = SERVER_ROOT
 # ①层 cdndata:独立部署时用 WF_CDNDATA 指向服务端 assets/cdndata
 _ENV_CDNDATA = os.environ.get("WF_CDNDATA")
 CDNDATA = (Path(_ENV_CDNDATA) if _ENV_CDNDATA
            else _PROFILE.cdndata if _PROFILE and _PROFILE.cdndata
            else SERVER_ROOT / "assets" / "cdndata")
-WORK_DIR = Path(__file__).resolve().parent / "work"
+WORK_DIR = TOOL_DIR / "work"
 PENDING_FILE = WORK_DIR / "sync_pending.json"
 
 GUI_PORT = int(os.environ.get("WF_GUI_PORT", "8765"))
@@ -83,15 +106,10 @@ ELEMENTS_DISPLAY = {**ELEMENTS, "6": "通用"}
 
 
 def resolve_store() -> Path:
-    env = os.environ.get("WF_TARGET_STORE")
-    if env:
-        p = Path(env)
-        if p.exists():
-            return p
-        raise SystemExit(f"WF_TARGET_STORE 不存在: {env}")
-    if _PROFILE:
-        return _PROFILE.store
-    store = core.find_world_upload(ROOT)
+    try:
+        store = core.resolve_active_store(ROOT, profile=_PROFILE)
+    except ValueError as error:
+        raise SystemExit(str(error)) from None
     if store:
         return store
     raise SystemExit("未找到 WorldFlipper/dummy/.../upload,请设置 WF_TARGET_STORE 或配置 mod-tools/profiles.json")
@@ -99,6 +117,22 @@ def resolve_store() -> Path:
 
 TARGET_STORE = resolve_store()
 SOURCE_STORE = _PROFILE.fallback if _PROFILE else core.default_source_store()
+
+
+def _live_revision() -> str:
+    try:
+        return wf_live_cdn.revision(TARGET_STORE)
+    except Exception as exc:
+        return f"unavailable:{type(exc).__name__}:{exc}"
+
+
+def _live_status() -> dict:
+    if not wf_live_cdn.enabled_for_store(TARGET_STORE):
+        return {"enabled": False, "source": "standalone-store"}
+    try:
+        return {"enabled": True, **wf_live_cdn.describe()}
+    except Exception as exc:
+        return {"enabled": True, "error": str(exc), "source": "live-cdn+active"}
 
 
 def load_schema():
@@ -116,11 +150,13 @@ def load_char_table():
 # ---------------------------------------------------------------- characters
 
 _char_cache: list[dict] | None = None
+_char_cache_revision: str | None = None
 
 
 def load_characters() -> list[dict]:
-    global _char_cache
-    if _char_cache is not None:
+    global _char_cache, _char_cache_revision
+    revision = _live_revision()
+    if _char_cache is not None and _char_cache_revision == revision:
         return _char_cache
     chars = json.loads((CDNDATA / "character.json").read_text(encoding="utf-8"))
     try:
@@ -159,17 +195,110 @@ def load_characters() -> list[dict]:
         })
     out.sort(key=lambda c: (not c["in_store"], c["id"]))
     _char_cache = out
+    _char_cache_revision = revision
     return out
 
 
 # ---------------------------------------------------------------- pending sync list
 
 
+_PENDING_LOCK = threading.RLock()
+
+
 def read_pending() -> list[str]:
     try:
-        return json.loads(PENDING_FILE.read_text(encoding="utf-8"))
+        raw = json.loads(PENDING_FILE.read_text(encoding="utf-8"))
     except Exception:
         return []
+    if not isinstance(raw, list):
+        return []
+    return list(dict.fromkeys(item for item in raw if isinstance(item, str) and item))
+
+
+def _write_pending(items: list[str]) -> None:
+    """Atomically persist the de-duplicated pending list."""
+    clean = list(dict.fromkeys(item for item in items if isinstance(item, str) and item))
+    PENDING_FILE.parent.mkdir(parents=True, exist_ok=True)
+    temporary = PENDING_FILE.with_name(
+        f"{PENDING_FILE.name}.tmp-{os.getpid()}-{threading.get_ident()}"
+    )
+    temporary.write_text(json.dumps(clean, indent=2), encoding="utf-8")
+    os.replace(temporary, PENDING_FILE)
+
+
+def _pending_location(item: str) -> tuple[str, Path, str]:
+    """Resolve one pending token to its live root, writable root and hash path."""
+    for prefix, live_root, writable_root in (
+        ("medium:", "medium", TARGET_STORE.parent / "medium_upload"),
+        ("android:", "android", TARGET_STORE.parent / "android_upload"),
+        ("ios:", "ios", TARGET_STORE.parent / "ios_upload"),
+    ):
+        if item.startswith(prefix):
+            return live_root, writable_root, item[len(prefix):]
+    return "common", TARGET_STORE, item
+
+
+def pending_status(*, reconcile: bool = False) -> dict:
+    """Compare pending output with the current server terminal state.
+
+    A pending token is acknowledged once its writable bytes are already identical
+    to the live ``.cdn + active`` view.  When ``reconcile`` is true those
+    acknowledged tokens are removed atomically so they cannot reappear after a
+    later server update.  New/different files and any item that cannot be checked
+    remain pending (fail closed).
+    """
+    with _PENDING_LOCK:
+        items = read_pending()
+        result = {
+            "pending": list(items),
+            "reconciled": [],
+            "errors": [],
+            "live_checked": False,
+            "raw_count": len(items),
+        }
+        if not items or not wf_live_cdn.enabled_for_store(TARGET_STORE):
+            return result
+
+        result["live_checked"] = True
+        active: list[str] = []
+        acknowledged: list[str] = []
+        errors: list[dict[str, str]] = []
+        for item in items:
+            live_root, writable_root, relative = _pending_location(item)
+            local = writable_root / Path(relative)
+            if not local.is_file():
+                active.append(item)
+                errors.append({"item": item, "error": "本地待发布文件不存在"})
+                continue
+            try:
+                current = wf_live_cdn.read_relative(relative, roots=(live_root,))
+            except wf_live_cdn.LiveCdnEntryMissing:
+                # A genuinely new file has no current server counterpart.
+                active.append(item)
+                continue
+            except Exception as exc:
+                active.append(item)
+                errors.append({"item": item, "error": str(exc)})
+                continue
+            try:
+                same = local.read_bytes() == current.data
+            except OSError as exc:
+                active.append(item)
+                errors.append({"item": item, "error": str(exc)})
+                continue
+            if same:
+                acknowledged.append(item)
+            else:
+                active.append(item)
+
+        if reconcile and acknowledged:
+            _write_pending(active)
+        result.update({
+            "pending": active,
+            "reconciled": acknowledged,
+            "errors": errors,
+        })
+        return result
 
 
 def add_pending(target: Path) -> None:
@@ -186,16 +315,17 @@ def add_pending(target: Path) -> None:
             continue
     if rel is None:
         raise ValueError(f"文件不在任何数据根下: {target}")
-    items = read_pending()
-    if rel not in items:
-        items.append(rel)
-    WORK_DIR.mkdir(parents=True, exist_ok=True)
-    PENDING_FILE.write_text(json.dumps(items, indent=2), encoding="utf-8")
+    with _PENDING_LOCK:
+        items = read_pending()
+        if rel not in items:
+            items.append(rel)
+        _write_pending(items)
 
 
 def clear_pending() -> None:
-    if PENDING_FILE.exists():
-        PENDING_FILE.write_text("[]", encoding="utf-8")
+    with _PENDING_LOCK:
+        if PENDING_FILE.exists():
+            _write_pending([])
 
 
 # ---------------------------------------------------------------- 改动日志 + 回溯
@@ -331,55 +461,65 @@ CATEGORY_CN = {
 }
 
 
-def _pct(v: str) -> str:
-    try:
-        return f"{int(v) / 1000:g}%"
-    except Exception:
-        return v
-
-
-def describe_ability(lines: list[dict], idx: dict[str, int]) -> str:
-    """规则化中文备注:类别 + 触发条件 + 数值端点。启发式,以面板为准。
-    持续威力列按 schema 列名派生(CN=112/114,global=109/111),不写死下标以免跨版本错位
-    (见 docs/版本切换设计.md)。"""
+def describe_ability(lines: list[dict], _idx: dict[str, int], kind: str = "ability",
+                     unique_conditions: dict[str, dict] | None = None) -> str:
+    """快捷摘要复用完整行级描述器,汇总全部数据行及其固有状态层数。"""
     if not lines:
         return ""
-    v1 = lines[0]["values"]
-    parts = []
-    cat = v1.get("2", "")
-    if cat:
-        parts.append(CATEGORY_CN.get(cat, cat))
-    thr = v1.get("29", "")
-    if thr.isdigit() and int(thr) >= 100000:
-        parts.append(f"阈值{int(thr) // 100000}次")
-    lim = v1.get("33", "")
-    if lim.isdigit() and int(lim) > 0:
-        parts.append(f"CT{int(lim) / 60:g}秒")
+    width = int(wf_describe.layout(kind)["ncols"])
+    rows = []
+    for line in lines:
+        row = [""] * width
+        for raw_index, value in line.get("values", {}).items():
+            try:
+                index = int(raw_index)
+            except (TypeError, ValueError):
+                continue
+            if 0 <= index < width:
+                row[index] = str(value)
+        rows.append(row)
+    descs = [desc for desc in wf_describe.describe_rows(rows, kind) if desc]
+    prefix = []
+    if kind == "ability":
+        category = lines[0].get("values", {}).get("2", "")
+        if category:
+            prefix.append(CATEGORY_CN.get(category, category))
+    if descs:
+        prefix.append(" / ".join(descs))
+    if unique_conditions:
+        layout = wf_describe.layout(kind)
+        block_fields = wf_describe.enum_map()["block_fields"]
+        limits = []
+        seen = set()
+        for row in rows:
+            for block_name, base in layout["blocks"].items():
+                field_group = "precondition" if block_name.startswith("precondition") else block_name
+                for offset, field_name, _note in block_fields.get(field_group, []):
+                    if field_name != "unique_condition_id":
+                        continue
+                    column = int(base) + int(offset)
+                    uid = row[column].strip() if column < len(row) else ""
+                    condition = unique_conditions.get(uid)
+                    if not condition:
+                        continue
+                    max_count = str(condition.get("max_count", "")).strip()
+                    if not max_count.isdigit() or int(max_count) <= 1:
+                        continue
+                    name = str(condition.get("name", "")).strip() or f"固有状态{uid}"
+                    limit = f"{name}最多{int(max_count)}层"
+                    if limit not in seen:
+                        seen.add(limit)
+                        limits.append(limit)
+        if limits:
+            prefix.append("、".join(limits))
+    return " · ".join(prefix)
 
-    def col(name: str) -> str:
-        return str(idx.get(name, -1))
 
-    if len(lines) == 2:
-        v2 = lines[1]["values"]
-        a, b = v1.get("50", ""), v2.get("50", "")
-        if a.lstrip("-").isdigit() and b.lstrip("-").isdigit():
-            lo, hi = sorted((int(a), int(b)))
-            parts.append(f"威力 {_pct(str(lo))}→{_pct(str(hi))}(1级→满级)")
-        dcol = col("trigger.values.during_content.values.strength.power1")
-        da, db = v1.get(dcol, ""), v2.get(dcol, "")
-        if da.lstrip("-").isdigit() and db.lstrip("-").isdigit():
-            lo, hi = sorted((int(da), int(db)))
-            parts.append(f"持续威力 {_pct(str(lo))}→{_pct(str(hi))}")
-        ecol = col("trigger.values.during_content.values.strength2.power1")
-        ea, eb = v1.get(ecol, ""), v2.get(ecol, "")
-        if ea.lstrip("-").isdigit() and eb.lstrip("-").isdigit():
-            lo, hi = sorted((int(ea), int(eb)))
-            parts.append(f"持续威力2 {_pct(str(lo))}→{_pct(str(hi))}")
-    else:
-        lo, hi = v1.get("49", ""), v1.get("50", "")
-        if lo.lstrip("-").isdigit() and hi.lstrip("-").isdigit():
-            parts.append(f"威力 {_pct(lo)}→{_pct(hi)}(1级→满级)")
-    return " · ".join(parts)
+def _unique_condition_summary_map() -> dict[str, dict]:
+    try:
+        return {item["id"]: item for item in list_unique_conditions()["conditions"]}
+    except Exception:
+        return {}
 
 
 def leader_title_for(character: str) -> str:
@@ -399,6 +539,7 @@ def get_rows_for_character(character: str) -> dict:
     ids = core.ability_ids_for_character(character, char_table)
     text_rows = table.text_rows()
     rows = []
+    unique_conditions = _unique_condition_summary_map()
 
     def make_lines(text: str) -> list[dict]:
         lines = []
@@ -415,7 +556,7 @@ def get_rows_for_character(character: str) -> dict:
             continue
         lines = make_lines(text)
         rows.append({"ability": aid, "missing": False, "lines": lines,
-                     "desc": describe_ability(lines, idx_by),
+                     "desc": describe_ability(lines, idx_by, "ability", unique_conditions),
                      "line_descs": wf_describe.describe_rows(core.read_csv_lines(text), "ability")})
 
     # 队长技(leader_ability 表,键=character_id 列;白等老行 键≠该列),伪槽 "L:<id>"
@@ -426,7 +567,8 @@ def get_rows_for_character(character: str) -> dict:
         if lt is not None:
             lines = make_lines(lt)
             rows.append({"ability": f"L:{lid}", "missing": False, "leader": True,
-                         "lines": lines, "desc": describe_ability(lines, idx_by),
+                         "lines": lines,
+                         "desc": describe_ability(lines, idx_by, "leader_ability", unique_conditions),
                          "line_descs": wf_describe.describe_rows(core.read_csv_lines(lt), "leader_ability")})
         else:
             rows.append({"ability": f"L:{lid}", "missing": True, "leader": True,
@@ -1115,13 +1257,7 @@ _KIND_BODY_COL = {"ability": 5, "leader_ability": 3, "ability_soul": 2,
 
 
 def _search_stamp() -> str:
-    parts = []
-    for logical in (core.ABILITY_LOGICAL, LEADER_LOGICAL, WEAPON_LOGICAL, SOUL_LOGICAL):
-        try:
-            parts.append(str(core.table_path(TARGET_STORE, logical).stat().st_mtime_ns))
-        except Exception:
-            parts.append("0")
-    return "|".join(parts)
+    return _live_revision()
 
 
 def _build_search_index() -> tuple[list[dict], dict]:
@@ -1230,7 +1366,7 @@ def get_soul_rows(soul_id: str) -> dict:
         row = core.normalize_row_length(row, len(names))
         lines.append({"line": li, "values": {str(i): v for i, v in enumerate(row) if v != ""}})
     return {"soul": str(soul_id), "columns": names, "lines": lines,
-            "desc": describe_ability(lines, idx_by),
+            "desc": describe_ability(lines, idx_by, "ability_soul", _unique_condition_summary_map()),
             "line_descs": wf_describe.describe_rows(core.read_csv_lines(text), "ability_soul"),
             "info": equipment_info().get(str(soul_id), {})}
 
@@ -1499,54 +1635,8 @@ def composer_describe(kind: str, row: list) -> dict:
 
 
 def _client_legality_problems(kind: str, row: list[str]) -> list[str]:
-    """客户端 AbilityValues.parseAt* 硬规则(违者 C7050/7101 打开角色页即崩,2026-07-13 实锤):
-    枚举列无空串分支,前置1-3/触发/内容 kind 必须数字;instant_precontent 哨兵 '(None)';
-    during_accumulation_trigger 哨兵 '(None)';even_if_owner_dead 必须 true/false。"""
-    lay = wf_describe.layout(kind)
-    B = {k: int(v) for k, v in lay["blocks"].items()}
-    tcol = B["precondition1"] - 1
-
-    def cell(i):
-        return (row[i] if i < len(row) else "").strip()
-
-    def is_num(v):
-        return bool(v) and v.lstrip("-").isdigit()
-
-    probs = []
-    tmode = cell(tcol)
-    if tmode not in ("0", "1", "2"):
-        return [f"c{tcol} 触发模式={tmode!r},须为 0(瞬发)/1(持续)/2(开幕)"]
-    for p in ("precondition1", "precondition2", "precondition3"):
-        v = cell(B[p])
-        if not is_num(v):
-            probs.append(f"c{B[p]} {p}.kind={v!r} 须为数字(无条件填 0;空串=客户端C7050)")
-    if tmode == "0":
-        for name, label in (("instant_trigger", "瞬发触发kind"),
-                            ("instant_delay", "延迟"), ("instant_content", "瞬发效果kind")):
-            v = cell(B[name])
-            if not is_num(v):
-                probs.append(f"c{B[name]} {label}={v!r} 须为数字(空串=客户端C7050)")
-        v = cell(B["instant_precontent"])
-        if v != "(None)" and not is_num(v):
-            probs.append(f"c{B['instant_precontent']} instant_precontent={v!r} 须为 '(None)' 或数字")
-    elif tmode == "1":
-        v = cell(B["during_accumulation_trigger"])
-        if v != "(None)" and not is_num(v):
-            probs.append(f"c{B['during_accumulation_trigger']} 累积触发={v!r} 须为 '(None)' 或数字")
-        v = cell(B["during_trigger"])
-        if not is_num(v):
-            probs.append(f"c{B['during_trigger']} 持续触发kind={v!r} 须为数字")
-        v = cell(B["even_if_owner_dead"])
-        if v.lower() not in ("true", "false"):
-            probs.append(f"c{B['even_if_owner_dead']} even_if_owner_dead={v!r} 须为 true/false(否则C7101)")
-        v = cell(B["during_content"])
-        if not is_num(v):
-            probs.append(f"c{B['during_content']} 持续效果kind={v!r} 须为数字")
-    else:
-        v = cell(B["opening"])
-        if not is_num(v):
-            probs.append(f"c{B['opening']} 开幕kind={v!r} 须为数字")
-    return probs
+    """客户端 parseAt* 硬规则校验;实现已搬到 wf_client_legality(不依赖数据包)。"""
+    return wf_client_legality.client_legality_problems(kind, row)
 
 
 def composer_apply(dst_key: str, mode, row: list, adapt_sid: bool, dry_run: bool,
@@ -1919,10 +2009,7 @@ _EQUIP_CACHE: dict = {"stamp": None, "info": None}
 
 def equipment_info() -> dict[str, dict]:
     """装备表快照:id -> {string_id, name, enh_name?, kind, rarity, desc, soul_id}。"""
-    try:
-        stamp = str(core.table_path(TARGET_STORE, EQUIP_LOGICAL).stat().st_mtime_ns)
-    except Exception:
-        stamp = "0"
+    stamp = _live_revision()
     if _EQUIP_CACHE["stamp"] == stamp:
         return _EQUIP_CACHE["info"]
     info: dict[str, dict] = {}
@@ -2027,7 +2114,8 @@ def get_weapon_rows(wid: str) -> dict:
     except Exception:
         pass
     return {"weapon": str(wid), "columns": names, "lines": lines,
-            "desc": describe_ability(lines, idx_by),
+            "desc": describe_ability(lines, idx_by, "equipment_enhancement_ability",
+                                     _unique_condition_summary_map()),
             "line_descs": wf_describe.describe_rows(core.read_csv_lines(text), "equipment_enhancement_ability"),
             "info": equipment_info().get(str(wid), {}), "soul": soul}
 
@@ -2184,8 +2272,7 @@ def get_skill_energy(character: str) -> dict:
             dsl_state = "官方数据无效果文件引用(短行)" if len(raw_fields) <= C["program_path"] \
                 else "该级别未引用效果文件"
         else:
-            d = core.sha1_path(wf_dsl.dsl_logical(pp))
-            if not (TARGET_STORE / d[:2] / d[2:]).exists():
+            if not wf_assets.exists_current(TARGET_STORE, wf_dsl.dsl_logical(pp)):
                 dsl_state = "效果文件不在本地数据包(官方未下发)"
         skills.append({
             "level": lv,
@@ -2369,7 +2456,18 @@ def _char_json_paths() -> tuple[Path, Path]:
 # 已拥有角色的 突破段/exp 超出新星级上限 → 客户端查看角色即 C2275 崩溃
 # (CharacterLevelLogic.as:94 校验)。上限镜像自 src/routes/api/character.ts
 # (characterMaxOverLimits) + src/lib/character.ts(characterExpCaps,index=突破段)。
-SAVE_DB = SERVER_ROOT / ".database" / "wdfp_data.db"
+
+
+def _resolve_save_database() -> Path:
+    if "WF_DATABASE_DIR" in os.environ:
+        return wf_database_paths.resolve_database_path(os.environ, server_root=ROOT)
+    return wf_database_paths.resolve_database_path(
+        os.environ,
+        server_root=core.resolve_server_dir(),
+    )
+
+
+SAVE_DB = _resolve_save_database()
 MAX_OVER_LIMITS = {1: 12, 2: 10, 3: 8, 4: 6, 5: 4}
 CHARACTER_EXP_CAPS = {
     1: [11416, 15820, 21477, 28538, 37241, 49481, 66600, 91180, 125223, 170928, 216633, 262338, 308043],
@@ -2410,7 +2508,7 @@ def _clamp_save_for_rarity(cid: str, rarity: int, apply: bool) -> str:
         finally:
             con.close()
     except Exception as exc:
-        return f"⚠ 存档校正失败(可手动查 .database/wdfp_data.db): {exc}"
+        return f"⚠ 存档校正失败(可手动查 {SAVE_DB}): {exc}"
 
 
 def get_char_fields(cid: str) -> dict:
@@ -2890,17 +2988,37 @@ def char_assets(character: str) -> dict:
     if not c:
         raise ValueError(f"角色不存在: {character}")
     code = c["code_name"]
+    assets = wf_assets.char_asset_manifest(TARGET_STORE, code)
+    voice_count = sum(
+        1 for item in assets
+        if item["exists"] and "/voice/" in item["logical"])
+    voice_dump_available = wf_assets.resolve_voice_dump().is_dir()
+    pathlist_available = (wf_assets.HERE / "WF_PATHLIST_recovered.txt").is_file()
+    current_source = (".cdn + active 服务端终态"
+                      if wf_live_cdn.enabled_for_store(TARGET_STORE)
+                      else "独立安装的本地四根 store")
+    voice_detail = (
+        "voice-dump 已配置，可附带台词文本"
+        if voice_dump_available else
+        "voice-dump 未配置；音频仍按固定名和路径清单读取，台词文本及少数专属变名可能不全"
+    )
     return {"character": str(character), "code_name": code,
-            "assets": wf_assets.char_asset_manifest(TARGET_STORE, code),
-            "note": "PNG/MP3 存储态有混淆,预览与替换自动转换;替换自动备份+进待发布"
+            "assets": assets,
+            "voice_status": {
+                "found": voice_count,
+                "voice_dump": voice_dump_available,
+                "pathlist": pathlist_available,
+            },
+            "note": f"读取来源={current_source};已发现语音 {voice_count} 项;{voice_detail};"
+                    "PNG/MP3 预览与替换自动转换;替换自动备份+进待发布"
                     "(medium 根资产发布时自动走 medium diff 包)"}
 
 
 def get_asset_bytes(logical: str) -> tuple[bytes, str]:
-    loc = wf_assets.locate(TARGET_STORE, logical)
+    loc = wf_assets.read_current(TARGET_STORE, logical)
     if not loc:
         raise ValueError(f"资产不存在: {logical}")
-    data = loc[1].read_bytes()
+    data = loc[1]
     if logical.endswith(".png"):
         return wf_assets.png_decode(data), "image/png"
     if logical.endswith(".mp3"):
@@ -2909,11 +3027,11 @@ def get_asset_bytes(logical: str) -> tuple[bytes, str]:
 
 
 def replace_asset(logical: str, data: bytes, force: bool, dry_run: bool) -> dict:
-    loc = wf_assets.locate(TARGET_STORE, logical)
+    loc = wf_assets.read_current(TARGET_STORE, logical)
     if not loc:
         raise ValueError(f"资产不存在(暂不支持新增全新路径,先替换现有): {logical}")
-    root_name, fp = loc
-    old = fp.read_bytes()
+    root_name, old, _source = loc
+    fp = wf_assets.path_in_root(TARGET_STORE, root_name, logical)
     log = []
     atf_jobs = []
     trim_job = None       # (表, 键, 新行) —— trimmed_image frame 同步
@@ -2961,22 +3079,23 @@ def replace_asset(logical: str, data: bytes, force: bool, dry_run: bool) -> dict
             android_fp = wf_assets.path_in_root(
                 TARGET_STORE, "android", atf_logical)
             ios_fp = wf_assets.path_in_root(TARGET_STORE, "ios", atf_logical)
-            android_ref = (
-                wf_atf.inflate(android_fp.read_bytes())
-                if android_fp.is_file() else None
-            )
-            ios_ref = (
-                wf_atf.inflate(ios_fp.read_bytes())
-                if ios_fp.is_file() else None
-            )
+            android_current = wf_assets.read_current_root(
+                TARGET_STORE, atf_logical, "android")
+            ios_current = wf_assets.read_current_root(
+                TARGET_STORE, atf_logical, "ios")
+            android_ref = (wf_atf.inflate(android_current[1])
+                           if android_current else None)
+            ios_ref = (wf_atf.inflate(ios_current[1])
+                       if ios_current else None)
             android_atf, ios_atf = wf_atf.build_cutin_platform_pair(
                 data,
                 android_ref if android_ref is not None else ios_ref,
                 ios_ref,
             )
             atf_jobs = [
-                ("android", android_fp, wf_atf.deflate(android_atf)),
-                ("ios", ios_fp, wf_atf.deflate(ios_atf)),
+                ("android", android_fp, wf_atf.deflate(android_atf),
+                 android_current),
+                ("ios", ios_fp, wf_atf.deflate(ios_atf), ios_current),
             ]
             log.append(
                 f"{atf_logical}: 从同一 PNG 独立生成 Android ETC1(slot 2) / "
@@ -2992,18 +3111,24 @@ def replace_asset(logical: str, data: bytes, force: bool, dry_run: bool) -> dict
     written = None
     if not dry_run:
         bak = fp.with_name(fp.name + ".bak-wfmod-asset-" + time.strftime("%Y%m%d-%H%M%S"))
+        fp.parent.mkdir(parents=True, exist_ok=True)
         if not bak.exists():
-            shutil.copy2(fp, bak)
+            if fp.exists():
+                shutil.copy2(fp, bak)
+            else:
+                bak.write_bytes(old)
         fp.write_bytes(enc)
         add_pending(fp)
-        for _platform, afp, aenc in atf_jobs:
+        for _platform, afp, aenc, previous in atf_jobs:
             afp.parent.mkdir(parents=True, exist_ok=True)
-            if afp.is_file():
-                abak = afp.with_name(
-                    afp.name + ".bak-wfmod-asset-" + time.strftime("%Y%m%d-%H%M%S")
-                )
+            if previous:
+                abak = afp.with_name(afp.name + ".bak-wfmod-asset-" +
+                                     time.strftime("%Y%m%d-%H%M%S"))
                 if not abak.exists():
-                    shutil.copy2(afp, abak)
+                    if afp.is_file():
+                        shutil.copy2(afp, abak)
+                    else:
+                        abak.write_bytes(previous[1])
             afp.write_bytes(aenc)
             add_pending(afp)
         if trim_job:
@@ -3083,10 +3208,10 @@ def import_asset_pack(character: str, src_dir: str, force: bool, dry_run: bool) 
                     artifacts.append(rel)
                     continue
                 logical = f"character/{code}/{rel}"
-                if not wf_assets.locate(TARGET_STORE, logical):
+                if not wf_assets.exists_current(TARGET_STORE, logical):
                     # 全局逻辑路径兜底:一键导出包里 character/<code>/**、battle/**(技能
                     # DSL/特效)是完整逻辑树,不能再套 character/<code>/ 前缀
-                    if wf_assets.locate(TARGET_STORE, rel):
+                    if wf_assets.exists_current(TARGET_STORE, rel):
                         logical = rel
                     else:
                         missing.append(rel)
@@ -3138,10 +3263,10 @@ def _pixelart_logical(character: str, name: str) -> tuple[str, str]:
 
 
 def _amf3_container_load(logical: str) -> tuple[bytes, str]:
-    """读 .amf3.deflate:store 优先,APK bundle 兜底;返回 (AMF3 明文, 来源根)。"""
-    loc = wf_assets.locate(TARGET_STORE, logical)
+    """读 .amf3.deflate:live CDN 优先,APK bundle 兜底。"""
+    loc = wf_assets.read_current(TARGET_STORE, logical)
     if loc:
-        raw, src = loc[1].read_bytes(), loc[0]
+        raw, src = loc[1], loc[0]
     else:
         raw = _apk_read_asset(logical)
         if raw is None:
@@ -3230,18 +3355,18 @@ def save_pixelart_data(character: str, name: str, json_text: str, data_b64: str,
            + (" [原文件在 APK bundle,写 store 后下载优先接管]" if src == "apk_bundle" else "")]
     written = None
     if not dry_run:
-        loc = wf_assets.locate(TARGET_STORE, logical)
-        if loc:
-            fp = loc[1]
-        else:
-            d = core.sha1_path(logical)
-            fp = TARGET_STORE / d[:2] / d[2:]
-            fp.parent.mkdir(parents=True, exist_ok=True)
+        current = wf_assets.read_current(TARGET_STORE, logical)
+        root_name = current[0] if current and current[0] in wf_assets.roots(TARGET_STORE) else "upload"
+        fp = wf_assets.path_in_root(TARGET_STORE, root_name, logical)
+        fp.parent.mkdir(parents=True, exist_ok=True)
         bak = None
-        if fp.exists():
+        if current is not None:
             bak = fp.with_name(fp.name + ".bak-wfmod-pixdata-" + time.strftime("%Y%m%d-%H%M%S"))
             if not bak.exists():
-                shutil.copy2(fp, bak)
+                if fp.exists():
+                    shutil.copy2(fp, bak)
+                else:
+                    bak.write_bytes(current[1])
         fp.write_bytes(enc)
         add_pending(fp)
         record_change(logical, "\n".join(log), bak)
@@ -3291,7 +3416,7 @@ def save_skill_dsl(character: str, level: str, edits: list[dict], dry_run: bool)
     written = None
     if not dry_run and patched != data:
         suffix = ".bak-wfmod-dsl-" + time.strftime("%Y%m%d-%H%M%S")
-        wf_dsl.save_dsl_file(fp, patched, suffix)
+        wf_dsl.save_dsl_file(fp, patched, suffix, original_data=data)
         add_pending(fp)
         record_change(wf_dsl.dsl_logical(pp), "\n".join(log), fp.with_name(fp.name + suffix))
         written = str(fp)
@@ -3349,7 +3474,7 @@ def save_skill_dsl_json(character: str, level: str, json_text: str, dry_run: boo
     written = None
     if not dry_run:
         suffix = ".bak-wfmod-dsljson-" + time.strftime("%Y%m%d-%H%M%S")
-        wf_dsl.save_dsl_file(fp, new, suffix)
+        wf_dsl.save_dsl_file(fp, new, suffix, original_data=data)
         add_pending(fp)
         record_change(wf_dsl.dsl_logical(pp), "\n".join(log), fp.with_name(fp.name + suffix))
         written = str(fp)
@@ -3412,10 +3537,11 @@ def upload_skill_dsl(character: str, level: str, kind: str, json_text: str,
     d = core.sha1_path(lg)
     fp = TARGET_STORE / d[:2] / d[2:]
     old = None
-    if fp.exists():
+    current = wf_assets.read_current(TARGET_STORE, lg)
+    if current is not None:
         import zlib as _z
         try:
-            old = _z.decompress(fp.read_bytes(), -15)
+            old = _z.decompress(current[1], -15)
         except Exception:
             old = None
     if old == new:
@@ -3431,7 +3557,7 @@ def upload_skill_dsl(character: str, level: str, kind: str, json_text: str,
     if not dry_run:
         fp.parent.mkdir(parents=True, exist_ok=True)
         suffix = ".bak-wfmod-dslup-" + time.strftime("%Y%m%d-%H%M%S")
-        wf_dsl.save_dsl_file(fp, new, suffix)
+        wf_dsl.save_dsl_file(fp, new, suffix, original_data=old)
         add_pending(fp)
         record_change(lg, "\n".join(log),
                       fp.with_name(fp.name + suffix) if old is not None else None)
@@ -3493,12 +3619,9 @@ def _all_program_paths() -> dict[str, list[str]]:
 
 
 def _build_cmd_library() -> tuple[list[dict], list[dict]]:
-    """全库命令实例收割(按 名称+JSON 去重)。缓存按 action_skill 表 mtime 失效。"""
+    """全库命令实例收割(按 名称+JSON 去重),随 live CDN 修订失效。"""
     import wf_dsl_sig as S
-    try:
-        stamp = str(core.table_path(TARGET_STORE, core.ACTION_SKILL_LOGICAL).stat().st_mtime_ns)
-    except Exception:
-        stamp = "0"
+    stamp = _live_revision()
     if _CMDLIB_CACHE["stamp"] == stamp:
         return _CMDLIB_CACHE["items"], _CMDLIB_CACHE["names"]
     owners_of = _all_program_paths()
@@ -3530,12 +3653,11 @@ def _build_cmd_library() -> tuple[list[dict], list[dict]]:
 
     for pp in owners_of:
         lg = wf_dsl.dsl_logical(pp)
-        d = core.sha1_path(lg)
-        fp = TARGET_STORE / d[:2] / d[2:]
-        if not fp.exists():
+        current = wf_assets.read_current(TARGET_STORE, lg)
+        if current is None:
             continue
         try:
-            tree = wf_dsl.parse_dsl(zlib.decompress(fp.read_bytes(), -15))["tree"]
+            tree = wf_dsl.parse_dsl(zlib.decompress(current[1], -15))["tree"]
         except Exception:
             continue
         walk(tree, pp)
@@ -3606,11 +3728,16 @@ def _dsl_store_path(pp: str) -> Path:
     return TARGET_STORE / d[:2] / d[2:]
 
 
+def _dsl_current_raw(pp: str) -> bytes | None:
+    current = wf_assets.read_current(TARGET_STORE, wf_dsl.dsl_logical(pp))
+    return None if current is None else current[1]
+
+
 def _find_apk() -> Path | None:
     """内置 base 资产来源 APK:WF_APK 环境变量 > 仓库 弹国服/*.apk 取最新。"""
-    envp = os.environ.get("WF_APK")
-    if envp and Path(envp).exists():
-        return Path(envp)
+    configured = wf_apk_paths.resolve_explicit_apk(os.environ)
+    if configured is not None:
+        return configured
     cands = sorted((ROOT / "弹国服").glob("*.apk"),
                    key=lambda p: p.stat().st_mtime, reverse=True)
     return cands[0] if cands else None
@@ -3659,7 +3786,7 @@ def powerflip_overview(character: str = "") -> dict:
     std_ids = {k for k, _ in PF_STD}
 
     def level_info(pp: str) -> dict:
-        in_store = _dsl_store_path(pp).exists()
+        in_store = _dsl_current_raw(pp) is not None
         in_apk = False
         if not in_store and apk:
             in_apk = _apk_read_asset(pp) is not None
@@ -3729,8 +3856,8 @@ def powerflip_extract(kind: str, dry_run: bool) -> dict:
     log, wrote = [], []
     for pp in paths:
         fp = _dsl_store_path(pp)
-        if fp.exists():
-            log.append(f"{pp}: 已在 store,跳过")
+        if _dsl_current_raw(pp) is not None:
+            log.append(f"{pp}: 服务端当前已下发,跳过")
             continue
         raw = _apk_read_asset(pp)
         if raw is None:
@@ -3769,10 +3896,9 @@ def powerflip_clone(src_kind: str, new_id: str, dry_run: bool) -> dict:
     log = [f"新建 PF 种类 {new_id}(克隆自 {src_kind})"]
     blobs = []
     for sp, dp in zip(src_paths, dst_paths):
-        fp = _dsl_store_path(sp)
-        if fp.exists():
-            raw = fp.read_bytes()
-            src_from = "store"
+        raw = _dsl_current_raw(sp)
+        if raw is not None:
+            src_from = "服务端当前数据"
         else:
             raw = _apk_read_asset(sp)
             src_from = "APK"
@@ -3823,8 +3949,9 @@ def _pf_kind_paths(kind: str, parsed: dict) -> "list[str] | None":
 
 
 def _pf_load_tree(pp: str):
-    fp = _dsl_store_path(pp)
-    raw = fp.read_bytes() if fp.exists() else _apk_read_asset(pp)
+    raw = _dsl_current_raw(pp)
+    if raw is None:
+        raw = _apk_read_asset(pp)
     if raw is None:
         raise ValueError(f"PF 动作文件不可得(store 与 APK 都没有): {pp}")
     return wf_dsl.parse_dsl(zlib.decompress(raw, -15))["tree"]
@@ -4226,12 +4353,12 @@ def omni_convert(character: str, dry_run: bool) -> dict:
 #   (GraphicsSource 补间语义 1000+ 行),预览 = 贴图帧墙 + 时间线/音效元数据。
 
 def _amf3_tree(logical: str):
-    """store 里的 .amf3.deflate → 解压 + AMF3 解码,返回数据树;不存在返回 None。"""
-    loc = wf_assets.locate(TARGET_STORE, logical)
+    """live CDN 的 .amf3.deflate → 解压 + AMF3 解码。"""
+    loc = wf_assets.read_current(TARGET_STORE, logical)
     if not loc:
         return None
     try:
-        return wf_dsl.parse_dsl(zlib.decompress(loc[1].read_bytes(), -15))["tree"]
+        return wf_dsl.parse_dsl(zlib.decompress(loc[1], -15))["tree"]
     except Exception:
         return None
 
@@ -4264,7 +4391,7 @@ def effect_previews(character: str) -> dict:
     for d, effects in sorted(dirs.items()):
         dname = d.rsplit("/", 1)[-1]
         sheet_lg = f"{d}/{dname}.png"
-        has_sheet = bool(wf_assets.locate(TARGET_STORE, sheet_lg))
+        has_sheet = wf_assets.exists_current(TARGET_STORE, sheet_lg)
         atlas = _amf3_tree(f"{d}/{dname}.atlas.amf3.deflate") or []
         by_fx: dict[str, list] = {}
         for e in atlas:
@@ -4434,11 +4561,11 @@ def export_char_assets(character: str) -> tuple[Path, dict]:
                 _walk_fx(v)
 
     for pp in dsl_pps:
-        fp = _dsl_store_path(pp)
-        if not fp.exists():
+        raw = _dsl_current_raw(pp)
+        if raw is None:
             continue
         try:
-            _walk_fx(wf_dsl.parse_dsl(zlib.decompress(fp.read_bytes(), -15))["tree"])
+            _walk_fx(wf_dsl.parse_dsl(zlib.decompress(raw, -15))["tree"])
         except Exception:
             continue
     for e in fx_paths:
@@ -4453,11 +4580,11 @@ def export_char_assets(character: str) -> tuple[Path, dict]:
     by_root: dict[str, int] = {}
     with zipfile.ZipFile(zpath, "w", zipfile.ZIP_DEFLATED) as z:
         for lg in sorted(logicals):
-            loc = wf_assets.locate(TARGET_STORE, lg)
+            loc = wf_assets.read_current(TARGET_STORE, lg)
             if not loc:
                 missing += 1
                 continue
-            data = loc[1].read_bytes()
+            data = loc[1]
             try:
                 if lg.endswith(".png"):
                     data = wf_assets.png_decode(data)
@@ -4593,13 +4720,14 @@ def char_snapshot(cid: str, note: str = "") -> dict:
         logicals = [a["logical"] for a in wf_assets.char_asset_manifest(TARGET_STORE, code)
                     if a["exists"]] + dsl_logicals
         for lg in logicals:
-            loc = wf_assets.locate(TARGET_STORE, lg)
+            loc = wf_assets.read_current(TARGET_STORE, lg)
             if not loc:
                 continue
-            root_name, fp = loc
-            z.writestr(f"assets/{root_name}/{fp.parent.name}/{fp.name}", fp.read_bytes())
+            root_name, data, _source = loc
+            digest = core.sha1_path(lg)
+            z.writestr(f"assets/{root_name}/{digest[:2]}/{digest[2:]}", data)
             meta["assets"].append({"logical": lg, "root": root_name,
-                                   "rel": f"{fp.parent.name}/{fp.name}"})
+                                   "rel": f"{digest[:2]}/{digest[2:]}"})
         z.writestr("meta.json", json.dumps(meta, ensure_ascii=False, indent=1))
     return {"file": zpath.name, "size": zpath.stat().st_size,
             "tables": {k: len(v["keys"]) for k, v in meta["tables"].items()},
@@ -4873,14 +5001,14 @@ def clone_character(src_id: str, new_id: str, new_name: str, dry_run: bool,
             # 资产全套复制到新 code 路径(同根,新哈希文件,进待发布)
             n_copied = 0
             for lg in asset_logicals:
-                loc = wf_assets.locate(TARGET_STORE, lg)
+                loc = wf_assets.read_current(TARGET_STORE, lg)
                 if not loc:
                     continue
-                root_name, fp = loc
+                root_name, data, _source = loc
                 new_lg = lg.replace(f"character/{src_code}/", f"character/{new_code}/", 1)
                 nfp = wf_assets.path_in_root(TARGET_STORE, root_name, new_lg)
                 nfp.parent.mkdir(parents=True, exist_ok=True)
-                nfp.write_bytes(fp.read_bytes())
+                nfp.write_bytes(data)
                 add_pending(nfp)
                 n_copied += 1
             record_change("char_assets", f"克隆资产 {src_code}->{new_code} 共 {n_copied} 个", None)
@@ -5117,6 +5245,22 @@ def _remove_pending_tables(tables: str) -> None:
 def run_publish(tables: str | None = None, list_only: bool = False) -> dict:
     """子进程调 wf_publish.py:打增量包发到 CDN(② 层生效的唯一正道)。
     tables=None 时发布 pending 列表;list_only=True 走 --list 只预览不打包。"""
+    if not tables:
+        state = pending_status(reconcile=True)
+        if state["live_checked"] and state["errors"]:
+            return {
+                "ok": False,
+                "log": (
+                    f"有 {len(state['errors'])} 个待发布项无法与服务端实时终态核对，"
+                    "已安全阻止发布；请先查看状态提示"
+                ),
+                "list_only": list_only,
+            }
+        if not state["pending"]:
+            note = "当前没有与服务端实时终态不同的待发布文件"
+            if state["reconciled"]:
+                note += f"；已清理 {len(state['reconciled'])} 条已生效的旧记录"
+            return {"ok": False, "log": note, "list_only": list_only}
     cmd = [sys.executable, str(Path(__file__).resolve().parent / "wf_publish.py")]
     if tables:
         cmd += ["--tables", tables]
@@ -5145,27 +5289,8 @@ def rollback_and_publish(name: str) -> dict:
 
 # ---------------------------------------------------------------- adb sync
 
-ADB_CANDIDATES = [
-    r"D:\WF\MuMuPlayer\nx_main\adb.exe",
-    r"C:\Program Files\Netease\MuMuPlayer-12.0\shell\adb.exe",
-    r"C:\Program Files\Netease\MuMu Player 12\shell\adb.exe",
-    r"C:\Program Files (x86)\Netease\MuMuPlayer-12.0\shell\adb.exe",
-    r"D:\Program Files\Netease\MuMuPlayer-12.0\shell\adb.exe",
-    r"C:\Program Files\Netease\MuMuPlayerGlobal-12.0\shell\adb.exe",
-]
-
-
 def find_adb() -> str | None:
-    env = os.environ.get("WF_ADB")
-    if env and Path(env).exists():
-        return env
-    which = shutil.which("adb")
-    if which:
-        return which
-    for cand in ADB_CANDIDATES:
-        if Path(cand).exists():
-            return cand
-    return None
+    return wf_device_paths.find_adb()
 
 
 def adb_run(adb: str, *args: str, timeout: int = 600) -> tuple[int, str]:
@@ -5516,21 +5641,16 @@ def _write_trim_row(tt: core.OrderedMap, tkey: str, row: list[str],
 
 
 def _load_nested_opt(logical: str) -> core.OrderedMap:
-    p = core.table_path(TARGET_STORE, logical)
-    if p.exists():
-        return core.read_orderedmap_file_raw_rows(p, logical)
-    if SOURCE_STORE:
-        sp = core.table_path(SOURCE_STORE, logical)
-        if sp.exists():
-            return core.read_orderedmap_file_raw_rows(sp, logical)
-    raise FileNotFoundError(f"cannot read {logical}")
+    return core.load_raw_table(logical, TARGET_STORE, SOURCE_STORE)
 
 
 def _full_shot_png_dims(code_name: str, level: str) -> tuple[int, int] | None:
-    loc = wf_assets.locate(TARGET_STORE, f"character/{code_name}/ui/full_shot_1440_1920_{level}.png")
+    loc = wf_assets.read_current(
+        TARGET_STORE, f"character/{code_name}/ui/full_shot_1440_1920_{level}.png"
+    )
     if not loc:
         return None
-    return wf_assets.png_dims(wf_assets.png_decode(loc[1].read_bytes()))
+    return wf_assets.png_dims(wf_assets.png_decode(loc[1]))
 
 
 def get_char_image_pos(cid: str) -> dict:
@@ -5771,7 +5891,7 @@ def list_unique_conditions() -> dict:
         out.append({"id": k, "string_id": row[0], "name": row[1], "icon": icon,
                     "duration": row[3], "max_count": row[4],
                     "flags": row[9:14], "extra": row[14],
-                    "icon_exists": bool(icon and wf_assets.locate(TARGET_STORE, icon + ".png"))})
+                    "icon_exists": bool(icon and wf_assets.exists_current(TARGET_STORE, icon + ".png"))})
     out.sort(key=lambda c: int(c["id"]) if c["id"].isdigit() else 0)
     return {"conditions": out,
             "note": "词条里引用:unique_condition_id 列填本表 ID;赋予=效果枚举 461,消耗=525,"
@@ -5787,9 +5907,10 @@ def _write_png_asset(logical: str, png: bytes, expect: tuple[int, int] | None,
     if expect and dims != expect and not force:
         raise ValueError(f"图标必须是 {expect[0]}x{expect[1]}(上传的是 {dims[0]}x{dims[1]});"
                          "确要用请勾「强制」(游戏内会被缩放/裁切)")
-    loc = wf_assets.locate(TARGET_STORE, logical)
-    root, fp = loc if loc else ("upload", wf_assets.path_in_root(TARGET_STORE, "upload", logical))
-    new = not fp.exists()
+    current = wf_assets.read_current(TARGET_STORE, logical)
+    root = current[0] if current else "upload"
+    fp = wf_assets.path_in_root(TARGET_STORE, root, logical)
+    new = current is None
     line = f"{logical}: {'新增' if new else '替换'} PNG {dims[0]}x{dims[1]} {len(png)}B [{root}]"
     if dry_run:
         return line, None
@@ -5797,7 +5918,10 @@ def _write_png_asset(logical: str, png: bytes, expect: tuple[int, int] | None,
     if not new:
         bak = fp.with_name(fp.name + ".bak-wfmod-asset-" + time.strftime("%Y%m%d-%H%M%S"))
         if not bak.exists():
-            shutil.copy2(fp, bak)
+            if fp.exists():
+                shutil.copy2(fp, bak)
+            else:
+                bak.write_bytes(current[1])
     fp.write_bytes(wf_assets.png_encode(png))
     add_pending(fp)
     return line, fp
@@ -5915,7 +6039,7 @@ def shop_categories() -> dict:
         rows = _read_ml(t)
         code = rows[0][0] if rows and rows[0] else ""
         banner = rows[0][9] if rows and len(rows[0]) > 9 else ""
-        if banner and not wf_assets.locate(TARGET_STORE, banner + ".png"):
+        if banner and not wf_assets.exists_current(TARGET_STORE, banner + ".png"):
             banner = ""
         out.append({"id": k, "code": code, "banner": banner,
                     "client_items": client_count.get(k, 0),
@@ -5938,10 +6062,10 @@ ITEM_ATLAS_LOGICAL = "item/sprite_sheet.atlas.amf3.deflate"
 
 def _decode_amf3_asset(logical: str):
     """store 里的 .amf3.deflate → Python 对象(容错 4 字节长度前缀 / raw deflate)。"""
-    loc = wf_assets.locate(TARGET_STORE, logical)
+    loc = wf_assets.read_current(TARGET_STORE, logical)
     if not loc:
         return None
-    raw = loc[1].read_bytes()
+    raw = loc[1]
     for blob in (raw, raw[4:]):
         for wbits in (15, -15):
             try:
@@ -5953,7 +6077,9 @@ def _decode_amf3_asset(logical: str):
 
 def shop_lookups() -> dict:
     global _shop_lookups_cache
-    if _shop_lookups_cache is not None:
+    revision = _live_revision()
+    if (_shop_lookups_cache is not None
+            and _shop_lookups_cache.get("_revision") == revision):
         return _shop_lookups_cache
     items: dict[str, dict] = {}
     it = core.load_table(ITEM_LOGICAL, TARGET_STORE, SOURCE_STORE)
@@ -5979,12 +6105,13 @@ def shop_lookups() -> dict:
                                       1 if e.get("r") else 0]
             except Exception:
                 continue
-        loc = wf_assets.locate(TARGET_STORE, ITEM_SHEET_LOGICAL)
+        loc = wf_assets.read_current(TARGET_STORE, ITEM_SHEET_LOGICAL)
         if loc:
-            dims = wf_assets.png_dims(wf_assets.png_decode(loc[1].read_bytes()[:64]))
+            dims = wf_assets.png_dims(wf_assets.png_decode(loc[1][:64]))
             if dims:
                 sheet["w"], sheet["h"] = int(dims[0]), int(dims[1])
     _shop_lookups_cache = {
+        "_revision": revision,
         "items": items, "characters": chars, "equipment": equip,
         "atlas": atlas, "sheet": sheet,
         "note": "atlas 条目 = [x,y,w,h,rot](rot=1 时图集里存的是顺时针转 90° 的区域)"}
@@ -7396,6 +7523,9 @@ def rogue_drops_save(body: dict, dry_run: bool) -> dict:
     shutil.copy(path, path + time.strftime(".bak-wfmod-rogue-%Y%m%d-%H%M%S"))
     events[ROGUE_EVENT_ID] = cfg
     data["enabled"] = new_enabled
+    # newline="\n":Windows 文本模式默认写 CRLF,git 的 text=auto 会把差异归一化
+    # 掉(status 干净、diff 空),但发布回执的 _server_evidence 哈希原始字节 ⇒
+    # 写过一次之后 verify:local-release 报 "server terminal evidence mismatch"。
     with open(path, "w", encoding="utf-8", newline="\n") as fh:
         json.dump(data, fh, ensure_ascii=False, indent=1)
     try:
@@ -7493,7 +7623,9 @@ def rogue_pool(force: bool = False) -> dict:
     专家单人/积分战/计时战/排名战/剧情boss/临境域/小怪房。field 去重,元素=固定元素 boss 查表。
     结果按进程缓存(master 数据不常变);带 thumb=来源 quest 缩略图(布局写入时同步)。"""
     global _ROGUE_POOL_CACHE
-    if _ROGUE_POOL_CACHE is not None and not force:
+    revision = _live_revision()
+    if (_ROGUE_POOL_CACHE is not None and not force
+            and _ROGUE_POOL_CACHE.get("_revision") == revision):
         return _ROGUE_POOL_CACHE
     import wf_rogue_build as rb
     import wf_chain_build as cb
@@ -7552,7 +7684,7 @@ def rogue_pool(force: bool = False) -> dict:
         print(f"[rogue_pool] 门禁剔除 {len(dropped)} 个引用悬空楼层:", flush=True)
         for d in dropped:
             print(f"  {d}", flush=True)
-    _ROGUE_POOL_CACHE = {"pool": out, "dropped": dropped,
+    _ROGUE_POOL_CACHE = {"_revision": revision, "pool": out, "dropped": dropped,
                          "cats": sorted({x["cat"] for x in out}, key=lambda c: cat_order.get(c, 99))}
     return _ROGUE_POOL_CACHE
 
@@ -7667,10 +7799,14 @@ ROGUE_TABLES_LOGICAL = ",".join([
     "master/quest/event/event_list.orderedmap",
     "master/quest/event/rush_event_battle_quest_correction.orderedmap",
 ])
-# 构建会往这七张 battle 表写 mod_rogue_* 克隆(法阵载体/克隆场)。历史事故
+# 构建会往这八张 battle 表写 mod_rogue_* 克隆(法阵载体/克隆场)。历史事故
 # (C8601 key=mod_rogue_f9):GUI 随机走 build --write 不发布,发布按钮又只发
 # ②五表,克隆永远上不了链 → quest 引用在客户端侧断裂。发布按钮必须把
 # store 与链不一致的 battle 表一并带上。
+# ⚠ 这份清单是 GUI 独有的硬编码,与 wf_rogue_build 里 written→pub_items 那条
+# **是两条路**:GUI 默认流程(随机生成只 --write 不发布 → 再点「📤 发布」)只走这里。
+# 所以 build 那边新加任何一张会被写的表,**必须同步加到这里**,否则就是
+# 「store 有、链上没有」的静默漂移 —— 2026-08-03 补 general_enemy_watch 时踩到。
 ROGUE_BATTLE_LOGICALS = [
     "master/battle/field_data.orderedmap",
     "master/battle/zone.orderedmap",
@@ -7679,6 +7815,11 @@ ROGUE_BATTLE_LOGICALS = [
     "master/battle/boss/general_boss.orderedmap",
     "master/battle/boss/boss_level.orderedmap",
     "master/battle/boss/general_boss_variable.orderedmap",
+    # 法阵载体克隆要连自身观察表的 self 条目一起复制(见 wf_rogue_build.make_caster_boss),
+    # 漏发这张 = 客户端 getSelfData 查不到 → 自身观察联动静默失效。
+    "master/battle/boss/general_enemy_watch.orderedmap",
+    # 八岐父体与八头按 round 整包克隆；parent 本身仍由 BossKind=3 从专表读取。
+    "master/battle/boss/orochi.orderedmap",
 ]
 
 
@@ -7710,7 +7851,8 @@ def rogue_publish() -> dict:
             r["log"] += "\n[ERR] 发布自检未通过(链上仍缺/旧字节):\n" \
                         + "\n".join(f"  {l}: {w}" for l, w in left)
         else:
-            r["log"] += ("\n[OK] 发布自检:②五表 + battle 七表 + 锻造 DSL "
+            r["log"] += (f"\n[OK] 发布自检:②五表 + battle {len(ROGUE_BATTLE_LOGICALS)}表"
+                         " + 锻造 DSL "
                          f"{len(forged)} 个,全部在 CDN 链上且字节一致")
     return r
 
@@ -7799,7 +7941,13 @@ def _rogue_auto_state() -> dict:
 
 
 def _rogue_auto_run(body: dict | None = None) -> dict:
-    """整局重开一次，并保留手动按钮传入的轮数、难度、混合随机和种子。"""
+    """整局重开一次(wf_rogue_reroll):重摇+发布,按配置清进度/重启游戏。
+
+    body = 前端「🔄 一键重开」按钮实际发来的参数。以前这个 handler 是
+    `Thread(target=_rogue_auto_run)` **完全不接请求体**,前端算好的
+    rounds/difficulty/mix/seed 五个字段全被吞掉,一律退回 rogue_auto.json
+    的默认值(rounds=15)——前端确认框写着「重摇 30 层」,实际发的是 15 层。
+    """
     body = body or {}
     with _ROGUE_AUTO_LOCK:
         if _ROGUE_AUTO_RT["running"]:
@@ -7807,15 +7955,15 @@ def _rogue_auto_run(body: dict | None = None) -> dict:
         _ROGUE_AUTO_RT["running"] = True
     try:
         def _pick(key: str, default):
-            value = body.get(key)
-            return default if value in (None, "") else value
-
-        args = [
-            "--apply",
-            "--rounds", str(int(float(_pick("rounds", _ROGUE_AUTO.get("rounds", 30))))),
-            "--enemy-level", str(_pick("enemy_level", _ROGUE_AUTO.get("enemy_level", 80))),
-            "--curse", str(_pick("curse", _ROGUE_AUTO.get("curse", "abyss"))),
-        ]
+            v = body.get(key)
+            return default if v in (None, "") else v
+        args = ["--apply",
+                "--rounds", str(int(float(_pick(
+                    "rounds", _ROGUE_AUTO.get("rounds", 30))))),
+                "--enemy-level", str(_pick(
+                    "enemy_level", _ROGUE_AUTO.get("enemy_level", 80))),
+                "--curse", str(_pick(
+                    "curse", _ROGUE_AUTO.get("curse", "abyss")))]
         if str(body.get("difficulty", "")).strip() in (
                 "easy", "normal", "hell", "gradient"):
             args += ["--difficulty", str(body["difficulty"]).strip()]
@@ -8136,14 +8284,17 @@ class Handler(BaseHTTPRequestHandler):
                 self._json({"error": "not found"}, 404)
                 return
             if path == "/status":
+                pending_info = pending_status(reconcile=True)
                 self._json({
                     "target_store": str(TARGET_STORE),
                     "profile": _PROFILE.label if _PROFILE else None,
                     "profile_id": _PROFILE.id if _PROFILE else None,
                     "res_version": _PROFILE.res_version if _PROFILE else "",
-                    "pending": read_pending(),
+                    "pending": pending_info["pending"],
+                    "pending_info": pending_info,
                     "device": DEVICE,
                     "package": PKG,
+                    "live_cdn": _live_status(),
                     **adb_status(),
                 })
                 return
@@ -8697,9 +8848,10 @@ class Handler(BaseHTTPRequestHandler):
                 self._json(_rogue_auto_state())
                 return
             if path == "/rogue/auto/run":
-                threading.Thread(
-                    target=_rogue_auto_run, args=(body,), daemon=True
-                ).start()
+                # 必须把 body 传下去:前端「🔄 一键重开」算好的
+                # rounds/difficulty/mix/seed 以前全被这里吞掉。
+                threading.Thread(target=_rogue_auto_run, args=(body,),
+                                 daemon=True).start()
                 self._json({"ok": True,
                             "log": "已在后台执行整局重开(重摇+发布,约半分钟),稍后点「刷新」看新阵容/状态"})
                 return

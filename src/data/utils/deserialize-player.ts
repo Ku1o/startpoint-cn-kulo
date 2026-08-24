@@ -67,7 +67,10 @@ export function deserializePlayerData(
             totalLoginDays: 1,
             tutorialStep: userTutorial?.tutorial_step === undefined ? null : userTutorial.tutorial_step,
             tutorialSkipFlag: userTutorial?.skip_flag === undefined ? null : userTutorial.skip_flag,
-            tutorialGachaCharacterId: toDeserialize['tutorial_gacha']?.character_id ?? null
+            tutorialGachaCharacterId: toDeserialize['tutorial_gacha']?.character_id ?? null,
+            // Client saves do not carry the server-side timestamp basis.
+            // replacePlayerDataSync normalizes it to the current virtual clock.
+            timeOffset: null
         }
 
         // deserialize user daily challenge point list

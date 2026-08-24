@@ -306,10 +306,13 @@ def load_dsl_file(target_store: Path, program_path: str) -> tuple[Path, bytes]:
     lg = dsl_logical(program_path)
     d = core.sha1_path(lg)
     fp = target_store / d[:2] / d[2:]
-    if not fp.exists():
+    import wf_assets
+
+    current = wf_assets.read_current(target_store, lg)
+    if current is None:
         raise ValueError(f"效果文件不在本地数据包(部分初期角色官方未下发,无法编辑效果参数,"
                          f"可用「整技能替换」): {lg}")
-    return fp, zlib.decompress(fp.read_bytes(), -15)
+    return fp, zlib.decompress(current[1], -15)
 
 
 def cn_ctx(ctx: str) -> str:
@@ -338,12 +341,25 @@ def patch_numbers(data: bytes, edits: list[dict]) -> tuple[bytes, list[str]]:
     return bytes(buf), log
 
 
-def save_dsl_file(fp: Path, data: bytes, backup_suffix: str) -> None:
+def save_dsl_file(
+    fp: Path,
+    data: bytes,
+    backup_suffix: str,
+    *,
+    original_data: bytes | None = None,
+) -> None:
+    bak = fp.with_name(fp.name + backup_suffix)
     if fp.exists():
-        bak = fp.with_name(fp.name + backup_suffix)
         if not bak.exists():
             import shutil
             shutil.copy2(fp, bak)
+    elif original_data is not None and not bak.exists():
+        # The current source may live only inside .cdn/active.  Preserve the
+        # exact logical base before creating the writable overlay file.
+        bak.parent.mkdir(parents=True, exist_ok=True)
+        original = zlib.compressobj(9, zlib.DEFLATED, -15)
+        bak.write_bytes(original.compress(original_data) + original.flush())
+    fp.parent.mkdir(parents=True, exist_ok=True)
     co = zlib.compressobj(9, zlib.DEFLATED, -15)
     fp.write_bytes(co.compress(data) + co.flush())
 
@@ -352,8 +368,8 @@ if __name__ == "__main__":
     import io, sys
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
     sys.path.insert(0, str(Path(__file__).resolve().parent))
-    prof = core.resolve_profile()
-    fp, data = load_dsl_file(prof.store, "battle/action/skill/action/rare5/fire_dragon$fire_dragon_1")
+    store = core.require_active_store()
+    fp, data = load_dsl_file(store, "battle/action/skill/action/rare5/fire_dragon$fire_dragon_1")
     r = parse_dsl(data)
     print("数值叶子:", len(r["numbers"]))
     for n in r["numbers"][:20]:

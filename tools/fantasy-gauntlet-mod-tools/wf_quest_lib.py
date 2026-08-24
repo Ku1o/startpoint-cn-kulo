@@ -38,7 +38,8 @@ from pathlib import Path
 MOD_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(MOD_DIR))
 import wf_mod_tool as _m  # noqa: E402
-ROOT = _m.resolve_server_dir()
+_DEFAULT_ROOT = MOD_DIR.parent
+ROOT = _DEFAULT_ROOT
 
 SALT = "K6R9T9Hz22OpeIGEWB0ui6c6PYFQnJGy"
 
@@ -50,10 +51,15 @@ LEGACY_STORE_REL = "弹国服/WorldFlipper/dummy/download/production/upload"
 
 def _store_base() -> Path:
     """Resolve the isolated writable store through the upstream standard chain."""
-    store = _m.resolve_active_store(ROOT)
+    # Keep ROOT patchable for tests and legacy callers, while making the
+    # standalone tool use the configured StarPoint runtime by default.
+    server_root = Path(ROOT)
+    if server_root == _DEFAULT_ROOT:
+        server_root = _m.resolve_server_dir()
+    store = _m.resolve_active_store(server_root)
     if store is not None:
         return store
-    legacy = ROOT / LEGACY_STORE_REL
+    legacy = server_root / LEGACY_STORE_REL
     if legacy.exists():
         return legacy
     raise FileNotFoundError(
@@ -92,6 +98,50 @@ def store_path(logical: str) -> Path:
 def fallback_path(logical: str) -> Path | None:
     base = _fallback_base()
     return None if base is None else base / hashed_rel(logical)
+
+
+def read_raw(logical: str, path: Path | None = None) -> bytes:
+    """Read current client-visible bytes; the writable overlay is output only.
+
+    An explicit ``path`` remains an exact-file read for backups and tests.  The
+    normal path first replays the running server's ``.cdn`` plus ``active``
+    chain.  Standalone installations without a server CDN retain the historical
+    target/fallback-store behaviour.
+    """
+    if path is not None:
+        return Path(path).read_bytes()
+
+    target_base = _store_base()
+    import wf_live_cdn
+
+    if wf_live_cdn.enabled_for_store(target_base):
+        # In live mode the server terminal view is authoritative.  In
+        # particular, do not resurrect an overlay-only file when the server
+        # does not contain it.
+        return wf_live_cdn.read_logical(logical).data
+
+    target = target_base / hashed_rel(logical)
+    _require_store_root(target)
+    fallback = fallback_path(logical)
+    candidates = [target]
+    if fallback is not None and fallback != target:
+        candidates.append(fallback)
+    selected = next((candidate for candidate in candidates if candidate.is_file()), None)
+    if selected is not None:
+        return selected.read_bytes()
+    raise FileNotFoundError(
+        f"{logical} not found in target/fallback stores: "
+        + ", ".join(str(candidate) for candidate in candidates)
+    )
+
+
+def exists_current(logical: str) -> bool:
+    """Whether the logical file exists in the authoritative current view."""
+    try:
+        read_raw(logical)
+        return True
+    except FileNotFoundError:
+        return False
 
 
 # ---------------------------------------------------------------- 解析
@@ -173,22 +223,7 @@ def build_node(node) -> bytes:
 # ---------------------------------------------------------------- 文件级 API
 
 def load_table(logical: str, path: Path | None = None) -> dict:
-    if path is not None:
-        candidates = [path]
-    else:
-        target = store_path(logical)
-        _require_store_root(target)
-        fallback = fallback_path(logical)
-        candidates = [target]
-        if fallback is not None and fallback != target:
-            candidates.append(fallback)
-    p = next((candidate for candidate in candidates if candidate.is_file()), None)
-    if p is None:
-        raise FileNotFoundError(
-            f"{logical} not found in target/fallback stores: "
-            + ", ".join(str(candidate) for candidate in candidates)
-        )
-    tree = parse_node(p.read_bytes())
+    tree = parse_node(read_raw(logical, path=path))
     if not isinstance(tree, dict):
         raise ValueError(f"{logical} 顶层不是 map")
     return tree

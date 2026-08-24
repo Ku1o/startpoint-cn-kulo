@@ -47,6 +47,12 @@ assert.equal(manager.commitRoomDisband(room.room_number, "test_disband"), true)
 assert.equal(getRoom(room.room_number), undefined,
     "room must be non-joinable before the dismissal frame is emitted")
 assert.equal(replacementSocket.frames.some(frame => frame.includes("multibattle_room_dismissed")), true)
+assert.equal(replacementSocket.writable, true,
+    "the notified lobby socket must remain open for the client to close intentionally")
+assert.equal(replacementSocket.destroyed, false,
+    "the notified lobby socket must not be destroyed immediately")
+assert.equal(manager.findClientBySocket(replacementSocket), undefined,
+    "the retired lobby socket must be unindexed before it can send another command")
 assert.equal(socket.destroyed, true,
     "committed disband must close quarantined sockets immediately")
 

@@ -18,8 +18,13 @@ import {
 import { ensureSpecialEventPartyGroupsSync, resolvePartyGroupColorId } from "../../lib/special-event-parties";
 import { gameVerboseLog } from "../../lib/game-logging";
 import { getMode15ExclusivePartyItemsSync } from "../../lib/mode15-optional";
-
-const raidEventIds: Record<number, number> = {}
+import {
+    getRaidEventIdForQuest,
+    isRaidEventQuestId,
+    isSupportedRaidEventId,
+} from "../../lib/raid-event-config";
+import { getQuestFromCategorySync } from "../../lib/assets";
+import { QuestCategory } from "../../lib/types";
 
 interface EventIdBody {
     event_id: number,
@@ -64,7 +69,11 @@ const routes = async (fastify: FastifyInstance) => {
         const body = request.body as EventIdBody;
         const viewerId = body.viewer_id;
         const eventId = body.event_id
-        if (!viewerId || isNaN(viewerId)) return reply.status(400).send({
+        if (
+            !Number.isSafeInteger(viewerId)
+            || viewerId <= 0
+            || !isSupportedRaidEventId(eventId)
+        ) return reply.status(400).send({
             "error": "Bad Request", "message": "Invalid request body."
         });
 
@@ -90,7 +99,6 @@ const routes = async (fastify: FastifyInstance) => {
         const totalKillCount = raidBoss.totalKillCount
         const rewardClaim = claimRaidEventOverallRewardsSync(playerId, eventId, totalKillCount)
         const questKillCounts = getRaidEventQuestKillCountsSync(eventId)
-        raidEventIds[playerId] = eventId
         gameVerboseLog(() => `[RAID] summary: folderParties=${Object.keys(serializedPlayedParties.folderParties ?? {}).length} endlessParties=${Object.keys(serializedPlayedParties.endlessParties ?? {}).length}`)
 
         reply.header("content-type", "application/x-msgpack");
@@ -124,9 +132,23 @@ const routes = async (fastify: FastifyInstance) => {
         const body = request.body as EventIdBody;
         const viewerId = body.viewer_id;
         const eventId = body.event_id;
-        if (!viewerId || isNaN(viewerId)) return reply.status(400).send({
+        if (
+            !Number.isSafeInteger(viewerId)
+            || viewerId <= 0
+            || !isSupportedRaidEventId(eventId)
+        ) return reply.status(400).send({
             "error": "Bad Request", "message": "Invalid request body."
         });
+
+        const viewerIdSession = await getSession(viewerId.toString())
+        if (!viewerIdSession) return reply.status(400).send({
+            "error": "Bad Request", "message": "Invalid viewer id."
+        })
+
+        const playerId = resolvePlayerIdSync(viewerIdSession.accountId)!
+        if (playerId === null) return reply.status(500).send({
+            "error": "Internal Server Error", "message": "No player bound to account."
+        })
 
         const raidBoss = getRaidEventGlobalBossSync(eventId)
         reply.header("content-type", "application/x-msgpack");
@@ -302,7 +324,16 @@ const routes = async (fastify: FastifyInstance) => {
         };
         const viewerId = body.viewer_id;
         gameVerboseLog(() => `[RAID] battle/start body: questId=${body.quest_id} eventId=${body.event_id} partyGroup=${body.party_group_id}`)
-        if (!viewerId || isNaN(viewerId)) return reply.status(400).send({
+        if (
+            !Number.isSafeInteger(viewerId)
+            || viewerId <= 0
+            || !Number.isSafeInteger(body.quest_id)
+            || !Number.isSafeInteger(body.party_group_id)
+            || body.party_group_id <= 0
+            || typeof body.play_id !== "string"
+            || body.play_id.trim().length === 0
+            || typeof body.is_auto_start_mode !== "boolean"
+        ) return reply.status(400).send({
             "error": "Bad Request", "message": "Invalid request body."
         });
 
@@ -314,6 +345,16 @@ const routes = async (fastify: FastifyInstance) => {
         const playerId = resolvePlayerIdSync(viewerIdSession.accountId)!
         if (playerId === null) return reply.status(500).send({
             "error": "Internal Server Error", "message": "No player bound to account."
+        })
+
+        const questEventId = getRaidEventIdForQuest(body.quest_id)
+        if (
+            questEventId === null
+            || !isRaidEventQuestId(questEventId, body.quest_id)
+            || (body.event_id !== undefined && body.event_id !== questEventId)
+            || getQuestFromCategorySync(QuestCategory.RAID_EVENT, body.quest_id) === null
+        ) return reply.status(400).send({
+            "error": "Bad Request", "message": "Quest doesn't exist."
         })
 
         const restricted = getMode15ExclusivePartyItemsSync(
@@ -329,15 +370,14 @@ const routes = async (fastify: FastifyInstance) => {
         }
 
         // Register active quest for /single_battle_quest/finish
-        const raidEventId = raidEventIds[playerId] ?? Math.floor(body.quest_id / 1000)
         insertActiveQuest(playerId, {
             questId: body.quest_id,
-            category: 23,  // RAID_EVENT
+            category: QuestCategory.RAID_EVENT,
             useBossBoostPoint: false,
             useBoostPoint: false,
             isAutoStartMode: body.is_auto_start_mode,
             isMulti: false,
-            eventId: raidEventId,
+            eventId: questEventId,
             playId: body.play_id,
             continueCount: 0
         })
@@ -353,7 +393,11 @@ const routes = async (fastify: FastifyInstance) => {
     fastify.post("/select_folder", async (request: FastifyRequest, reply: FastifyReply) => {
         const body = request.body as { folder_id: number, event_id: number, viewer_id: number };
         const viewerId = body.viewer_id;
-        if (!viewerId || isNaN(viewerId)) return reply.status(400).send({
+        if (
+            !Number.isSafeInteger(viewerId)
+            || viewerId <= 0
+            || !isSupportedRaidEventId(body.event_id)
+        ) return reply.status(400).send({
             "error": "Bad Request", "message": "Invalid request body."
         });
         const viewerIdSession = await getSession(viewerId.toString())
@@ -365,7 +409,6 @@ const routes = async (fastify: FastifyInstance) => {
             "error": "Internal Server Error", "message": "No player bound to account."
         })
         updatePlayerRushEventSync(playerId, { eventId: body.event_id, activeRushBattleFolderId: body.folder_id })
-        raidEventIds[playerId] = body.event_id
         reply.header("content-type", "application/x-msgpack");
         return reply.status(200).send({ "data_headers": generateDataHeaders({ viewer_id: viewerId }), "data": {} });
     });
@@ -379,7 +422,11 @@ const routes = async (fastify: FastifyInstance) => {
         const resetTargetId = body.reset_target_id;
         const isResetAfterTargetRound = body.is_reset_after_target_round;
         gameVerboseLog(() => `[RAID] reset: eventId=${eventId} questType=${questType}`)
-        if (!viewerId || isNaN(viewerId)) return reply.status(400).send({
+        if (
+            !Number.isSafeInteger(viewerId)
+            || viewerId <= 0
+            || !isSupportedRaidEventId(eventId)
+        ) return reply.status(400).send({
             "error": "Bad Request", "message": "Invalid request body."
         });
         const viewerIdSession = await getSession(viewerId.toString())

@@ -6,6 +6,7 @@ param(
 $ErrorActionPreference = "Stop"
 
 $projectRoot = Split-Path -Parent $PSScriptRoot
+$tempDirectory = & (Join-Path $PSScriptRoot "set-cn-temp.ps1") -ProjectRoot $projectRoot
 $logDirectory = Join-Path $projectRoot ".logs"
 $nodeExecutable = (Get-Command node -ErrorAction Stop).Source
 $timestamp = Get-Date -Format "yyyyMMdd-HHmmss"
@@ -39,11 +40,13 @@ $currentLogInfo = [ordered]@{
     startedAt = (Get-Date).ToString("o")
     stdout = $stdoutPath
     stderr = $stderrPath
+    temp = $tempDirectory
 }
 $currentLogInfo |
     ConvertTo-Json |
     Set-Content -LiteralPath (Join-Path $logDirectory "cn-server-current.json") -Encoding utf8
 
 Write-Output "CN StarPoint started. PID=$($process.Id)"
+Write-Output "temp: $tempDirectory"
 Write-Output "stdout: $stdoutPath"
 Write-Output "stderr: $stderrPath"

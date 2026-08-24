@@ -543,7 +543,7 @@ export interface Player {
     tutorialStep: number | null
     tutorialSkipFlag: boolean | null
     tutorialGachaCharacterId: number | null
-    timeOffset?: number | null
+    timeOffset: number | null
 }
 
 // client types

@@ -1469,10 +1469,18 @@ class TestKyleCanonicalInventory(unittest.TestCase):
                     relative = "voice/" + logical.split("/voice/", 1)[1]
                 else:
                     relative = logical.split("character/black_wolf_knight/", 1)[1]
-                sources[logical] = (kyle.canonical_source_root(relative), path)
+                sources[logical] = (
+                    kyle.canonical_source_root(relative),
+                    path.read_bytes(),
+                    f"active.zip!{index}",
+                )
 
-            with patch.object(wf_assets, "locate",
-                              side_effect=lambda _store, logical: sources.get(logical)):
+            with patch.object(
+                    wf_assets, "read_current",
+                    side_effect=lambda _store, logical: sources.get(logical)), \
+                    patch.object(
+                        wf_assets, "locate",
+                        side_effect=AssertionError("must read live terminal")):
                 inventory = kyle.build_source_inventory(runtime)
 
             self.assertEqual(
@@ -1491,8 +1499,12 @@ class TestKyleCanonicalInventory(unittest.TestCase):
 
             missing = logicals[-1]
             del sources[missing]
-            with patch.object(wf_assets, "locate",
-                              side_effect=lambda _store, logical: sources.get(logical)):
+            with patch.object(
+                    wf_assets, "read_current",
+                    side_effect=lambda _store, logical: sources.get(logical)), \
+                    patch.object(
+                        wf_assets, "locate",
+                        side_effect=AssertionError("must read live terminal")):
                 with self.assertRaisesRegex(FileNotFoundError, missing):
                     kyle.build_source_inventory(runtime)
 

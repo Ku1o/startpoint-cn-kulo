@@ -284,6 +284,9 @@ export default function init(
 
     // migration: add tutorial_gacha_character_id to existing tables
     try { database.prepare(`ALTER TABLE players ADD COLUMN tutorial_gacha_character_id INTEGER DEFAULT NULL`).run(); } catch { /* column already exists */ }
+    // Timestamp basis used to keep real-time regeneration stable while the
+    // server's virtual clock moves. Older databases may predate the column.
+    try { database.prepare(`ALTER TABLE players ADD COLUMN time_offset INTEGER DEFAULT NULL`).run(); } catch { /* column already exists */ }
 
     // migration: add total_stamina_used for mission progress tracking
     try { database.prepare(`ALTER TABLE players ADD COLUMN total_stamina_used INTEGER NOT NULL DEFAULT 0`).run(); } catch { /* column already exists */ }
@@ -1003,13 +1006,13 @@ export default function init(
         event_id INTEGER PRIMARY KEY,
         total_kill_count INTEGER NOT NULL DEFAULT 0,
         weighted_kill_count INTEGER NOT NULL DEFAULT 0,
-        calculation_version INTEGER NOT NULL DEFAULT 3,
+        calculation_version INTEGER NOT NULL DEFAULT 4,
         updated_at INTEGER NOT NULL
     )`).run()
     // Version 1 counted every clear as a full communal boss kill. Version 2
-    // used the official 76000 threshold. Version 3 keeps official per-quest
-    // weights but uses the private-server threshold 760. Existing ledgers are
-    // replayed lazily whenever their calculation version is older.
+    // used the official 76000 threshold. Version 3 temporarily used the
+    // private-server threshold 760. Version 4 restores official threshold and
+    // weights. Existing ledgers are replayed lazily when the version is older.
     try { database.prepare(`ALTER TABLE raid_event_global_state ADD COLUMN weighted_kill_count INTEGER NOT NULL DEFAULT 0`).run(); } catch { /* column already exists */ }
     try { database.prepare(`ALTER TABLE raid_event_global_state ADD COLUMN calculation_version INTEGER NOT NULL DEFAULT 1`).run(); } catch { /* column already exists */ }
 
@@ -1019,8 +1022,7 @@ export default function init(
         player_id INTEGER NOT NULL,
         quest_id INTEGER NOT NULL,
         created_at INTEGER NOT NULL,
-        PRIMARY KEY (event_id, play_id),
-        FOREIGN KEY (player_id) REFERENCES players (id) ON DELETE CASCADE
+        PRIMARY KEY (event_id, play_id)
     )`).run()
 
     database.prepare(`CREATE INDEX IF NOT EXISTS idx_raid_event_global_kill_ledger_event_quest
@@ -1051,6 +1053,15 @@ export default function init(
         player_id INTEGER NOT NULL,
         event_id INTEGER NOT NULL,
         reward_id INTEGER NOT NULL,
+        PRIMARY KEY (player_id, event_id, reward_id),
+        FOREIGN KEY (player_id) REFERENCES players (id) ON DELETE CASCADE
+    )`).run()
+
+    database.prepare(`CREATE TABLE IF NOT EXISTS players_carnival_event_reward_claims (
+        player_id INTEGER NOT NULL,
+        event_id INTEGER NOT NULL,
+        reward_id INTEGER NOT NULL,
+        claimed_at INTEGER NOT NULL,
         PRIMARY KEY (player_id, event_id, reward_id),
         FOREIGN KEY (player_id) REFERENCES players (id) ON DELETE CASCADE
     )`).run()

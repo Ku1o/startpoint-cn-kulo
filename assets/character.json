@@ -3094,5 +3094,23 @@
     "rarity": 5,
     "element": 3,
     "skill_count": 6
+  },
+  "119997": {
+    "name": "夏可缇",
+    "rarity": 5,
+    "element": 0,
+    "skill_count": 6
+  },
+  "149996": {
+    "name": "希尔媞",
+    "rarity": 5,
+    "element": 3,
+    "skill_count": 6
+  },
+  "119996": {
+    "name": "玛格诺斯",
+    "rarity": 5,
+    "element": 0,
+    "skill_count": 6
   }
 }

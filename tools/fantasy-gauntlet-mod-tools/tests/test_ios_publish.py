@@ -219,6 +219,37 @@ class TestIosCutinCompletion(IosPublishCase):
         )
         self.assertIn("iOS ETC2", result["log"])
 
+    def test_gui_replacement_backs_up_live_atfs_without_local_overlay(self):
+        android = self.store.parent / "android_upload" / self.relative
+        ios = self.store.parent / "ios_upload" / self.relative
+        ios_stored = wf_atf.deflate(wf_atf.build_cutin_atf_ios(self.png))
+
+        def current_root(_store, logical, root_name):
+            self.assertEqual(self.atf_logical, logical)
+            stored = self.android_stored if root_name == "android" else ios_stored
+            return root_name, stored, f"active.zip!{root_name}"
+
+        with (
+            mock.patch.object(wf_gui, "TARGET_STORE", self.store),
+            mock.patch.object(wf_gui, "PENDING_FILE", self.root / "pending.json"),
+            mock.patch.object(wf_gui, "WORK_DIR", self.root),
+            mock.patch.object(wf_gui, "record_change"),
+            mock.patch.object(
+                wf_assets, "read_current_root", side_effect=current_root
+            ),
+        ):
+            wf_gui.replace_asset(
+                self.png_logical, _gradient_png(), force=False, dry_run=False
+            )
+
+        android_backups = list(android.parent.glob(
+            android.name + ".bak-wfmod-asset-*"))
+        ios_backups = list(ios.parent.glob(ios.name + ".bak-wfmod-asset-*"))
+        self.assertEqual([self.android_stored],
+                         [path.read_bytes() for path in android_backups])
+        self.assertEqual([ios_stored],
+                         [path.read_bytes() for path in ios_backups])
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

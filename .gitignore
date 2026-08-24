@@ -15,6 +15,8 @@ scripts/in
 .cdn
 .misc
 scripts/__pycache__
+__pycache__/
+*.py[cod]
 dist
 build
 .coredns/coredns.exe
@@ -57,6 +59,7 @@ wdfp_data*
 *.keystore
 *.apk
 *.aab
+*.ipa
 
 # Generated patch workspaces and historical backups
 assets/asset-patch/production/

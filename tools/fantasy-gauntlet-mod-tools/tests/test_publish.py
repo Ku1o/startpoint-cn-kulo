@@ -26,6 +26,16 @@ class PublisherCase(unittest.TestCase):
         self.store = self.root / "store"
         self.store.mkdir()
         self.cdn = self.root / "cdn"
+        self.server_root = self.root / "server"
+        self.active = self.server_root / "assets" / "asset-patch" / "active"
+        self.active.mkdir(parents=True)
+        self.manifest = (
+            self.server_root / "assets" / "asset-patch" / "manifest.json"
+        )
+        self.manifest.write_text(
+            json.dumps({"cdn_version": "1.4.54", "patches": []}) + "\n",
+            encoding="utf-8",
+        )
         self.work = self.root / "work"
         self.work.mkdir()
         self.pending = self.work / "sync_pending.json"
@@ -37,6 +47,9 @@ class PublisherCase(unittest.TestCase):
             mock.patch.object(
                 wf_publish, "CDN_DIFF", self.cdn / "archive-common-diff"
             ),
+            mock.patch.object(wf_publish, "SERVER_ROOT", self.server_root),
+            mock.patch.object(wf_publish, "ACTIVE_PATCH", self.active),
+            mock.patch.object(wf_publish, "PATCH_MANIFEST", self.manifest),
             mock.patch.object(wf_publish, "WORK", self.work),
             mock.patch.object(wf_publish, "PENDING", self.pending),
             mock.patch.object(wf_publish, "CHANGELOG", self.work / "changelog.jsonl"),
@@ -44,6 +57,22 @@ class PublisherCase(unittest.TestCase):
             mock.patch.object(wf_publish, "current_max_version", return_value="1.4.54"),
             mock.patch.object(wf_publish, "stamp_changelog", return_value=0),
             mock.patch.object(wf_publish.time, "strftime", return_value="modfixture"),
+            # These tests exercise atomic publication behavior with deliberately
+            # tiny stores.  The production final-table contract has its own
+            # focused tests below and must not pre-empt the scenario under test.
+            mock.patch.object(wf_publish, "verify_required_keys", return_value=[]),
+            mock.patch.object(wf_publish.publish_guard, "check", return_value=[]),
+            mock.patch.object(
+                wf_publish.final_state_guard,
+                "load_baseline",
+                return_value={"base_version": "1.4.54", "current_version": "1.4.54"},
+            ),
+            mock.patch.object(
+                wf_publish.final_state_guard,
+                "preflight",
+                return_value={"changes": {}},
+            ),
+            mock.patch.object(wf_publish.final_state_guard, "commit", return_value=None),
         )
         for patcher in self.patchers:
             patcher.start()
@@ -116,19 +145,27 @@ class PublisherCase(unittest.TestCase):
         return result, stdout.getvalue(), stderr.getvalue()
 
     def archives(self) -> list[Path]:
-        return sorted(self.cdn.rglob("*.zip")) if self.cdn.exists() else []
+        return sorted(self.active.glob("*.zip")) if self.active.exists() else []
 
-    def common_archives(self) -> list[Path]:
-        directory = self.cdn / "archive-common-diff"
-        return sorted(directory.glob("*.zip")) if directory.exists() else []
 
-    def assert_layer_placeholders(self) -> None:
-        """medium/android 占位包:单个 .empty 条目(dev 三层契约,官方同构)。"""
-        for sub in ("archive-medium-diff", "archive-android-diff"):
-            zips = sorted((self.cdn / sub).glob("*.zip"))
-            self.assertEqual(1, len(zips), sub)
-            with zipfile.ZipFile(zips[0]) as archive:
-                self.assertEqual([".empty"], archive.namelist())
+class TestRequiredKeysContract(unittest.TestCase):
+    def test_gauntlet_hub_contract_tracks_folder_instead_of_removed_direct_entry(self):
+        document = json.loads(
+            wf_publish.REQUIRED_KEYS_CONTRACT.read_text(encoding="utf-8-sig")
+        )
+        tables = document["tables"]
+
+        self.assertNotIn("master/quest/event/event_list.orderedmap", tables)
+        self.assertEqual(
+            ["2"],
+            tables["master/quest/event/event_folder.orderedmap"]["required_keys"],
+        )
+        self.assertEqual(
+            ["2"],
+            tables[
+                "master/quest/event/event_folder_events.orderedmap"
+            ]["required_keys"],
+        )
 
 
 class TestStrictSnapshotPublisher(PublisherCase):
@@ -148,11 +185,8 @@ class TestStrictSnapshotPublisher(PublisherCase):
 
         self.assertEqual(0, result)
         self.assertIn("[OK]", stdout)
-        # 实包(common)+ medium/android 占位包 = 3(dev 三层契约)
-        self.assertEqual(3, len(self.archives()))
-        self.assertEqual(1, len(self.common_archives()))
-        self.assert_layer_placeholders()
-        with zipfile.ZipFile(self.common_archives()[0]) as archive:
+        self.assertEqual(1, len(self.archives()))
+        with zipfile.ZipFile(self.archives()[0]) as archive:
             self.assertEqual(set(expected), set(archive.namelist()))
             for name, payload in expected.items():
                 self.assertEqual(payload, archive.read(name))
@@ -282,7 +316,7 @@ class TestStrictSnapshotPublisher(PublisherCase):
         self.assertIn("[WARN]", stderr)
         self.assertIn("committed", stderr.lower())
         self.assertIn("stat", stderr.lower())
-        self.assertEqual(3, len(self.archives()))
+        self.assertEqual(1, len(self.archives()))
 
     def test_committed_archive_changelog_failure_is_warning_only(self):
         logical = "master/test/one.orderedmap"
@@ -304,7 +338,7 @@ class TestStrictSnapshotPublisher(PublisherCase):
         self.assertIn("[WARN]", stderr)
         self.assertIn("committed", stderr.lower())
         self.assertIn("changelog", stderr.lower())
-        self.assertEqual(3, len(self.archives()))
+        self.assertEqual(1, len(self.archives()))
 
 
 class TestPendingCompatibility(PublisherCase):
@@ -319,15 +353,14 @@ class TestPendingCompatibility(PublisherCase):
 
         self.assertEqual(0, result)
         self.assertIn("[OK]", stdout)
-        self.assertEqual(3, len(self.archives()))
-        self.assert_layer_placeholders()
-        with zipfile.ZipFile(self.common_archives()[0]) as archive:
+        self.assertEqual(1, len(self.archives()))
+        with zipfile.ZipFile(self.archives()[0]) as archive:
             self.assertEqual(
                 b"pending-bytes",
                 archive.read(f"production/upload/{relative}"),
             )
 
-    def test_multi_group_rename_failure_rolls_back_already_published_archive(self):
+    def test_active_archive_rename_failure_restores_previous_archive(self):
         logical = "master/test/pending.orderedmap"
         relative = self.write_logical(logical, b"common-bytes")
         medium_relative = "12/medium-fixture"
@@ -337,6 +370,9 @@ class TestPendingCompatibility(PublisherCase):
         self.pending.write_text(
             json.dumps([relative, f"medium:{medium_relative}"]), encoding="utf-8"
         )
+        archive_name = "pinball-1.4.54-1.4.55-1-modfixture.zip"
+        final = self.active / archive_name
+        final.write_bytes(b"previous-archive")
         real_replace = wf_publish.os.replace
         calls = 0
 
@@ -356,8 +392,9 @@ class TestPendingCompatibility(PublisherCase):
 
         self.assertNotEqual(0, result)
         self.assertNotIn("[OK]", stdout)
-        self.assertEqual([], self.archives())
-        leftovers = list(self.cdn.rglob("*.tmp")) if self.cdn.exists() else []
+        self.assertEqual([final], self.archives())
+        self.assertEqual(b"previous-archive", final.read_bytes())
+        leftovers = list(self.active.glob("*.tmp"))
         self.assertEqual([], leftovers)
 
     def test_backup_cleanup_failure_cannot_roll_back_committed_archives(self):
@@ -372,46 +409,36 @@ class TestPendingCompatibility(PublisherCase):
         )
 
         archive_name = "pinball-1.4.54-1.4.55-1-modfixture.zip"
-        common_final = self.cdn / "archive-common-diff" / archive_name
-        medium_final = self.cdn / "archive-medium-diff" / archive_name
-        for path, payload in (
-            (common_final, b"old-common"),
-            (medium_final, b"old-medium"),
-        ):
-            path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_bytes(payload)
+        final = self.active / archive_name
+        final.write_bytes(b"old-archive")
 
         real_unlink = Path.unlink
-        cleanup_calls = 0
 
-        def fail_second_populated_rollback(path, *args, **kwargs):
-            nonlocal cleanup_calls
+        def fail_populated_rollback_cleanup(path, *args, **kwargs):
             candidate = Path(path)
             if (
                 candidate.suffix == ".rollback"
                 and candidate.exists()
                 and candidate.stat().st_size > 0
             ):
-                cleanup_calls += 1
-                if cleanup_calls == 2:
-                    raise OSError("fixture backup cleanup failure")
+                raise OSError("fixture backup cleanup failure")
             return real_unlink(candidate, *args, **kwargs)
 
-        with mock.patch.object(Path, "unlink", new=fail_second_populated_rollback):
+        with mock.patch.object(Path, "unlink", new=fail_populated_rollback_cleanup):
             result, stdout, _stderr = self.run_publish([])
 
         self.assertEqual(0, result)
         self.assertIn("[OK]", stdout)
-        with zipfile.ZipFile(common_final) as archive:
+        with zipfile.ZipFile(final) as archive:
             self.assertEqual(
                 b"new-common",
                 archive.read(f"production/upload/{relative}"),
             )
-        with zipfile.ZipFile(medium_final) as archive:
             self.assertEqual(
                 b"new-medium",
                 archive.read(f"production/medium_upload/{medium_relative}"),
             )
+        self.assertEqual(1, len(list(self.active.glob("*.rollback"))))
 
     def test_pending_list_is_cleared_after_a_successful_publish(self):
         logical = "master/test/pending.orderedmap"
@@ -461,8 +488,8 @@ class TestPendingCompatibility(PublisherCase):
         )
 
 
-class TestDevDualOutput(PublisherCase):
-    """双路径产出:hex 命名、三层占位、发布后 dev catalog 发射。"""
+class TestActivePatchOutput(PublisherCase):
+    """Current Mode15 workflow: one active ZIP and opt-in dev catalog."""
 
     def _publish_pending(self, extra: list[str] | None = None):
         logical = "master/test/dual.orderedmap"
@@ -479,20 +506,19 @@ class TestDevDualOutput(PublisherCase):
             result, stdout, _stderr = self._publish_pending()
         self.assertEqual(0, result)
         names = [path.name for path in self.archives()]
-        self.assertEqual(3, len(names))
+        self.assertEqual(1, len(names))
         for name in names:
             self.assertRegex(name, devcat.DIFF_NAME_RE)
 
-    def test_no_layer_placeholders_flag(self):
-        result, _stdout, _stderr = self._publish_pending(
-            ["--no-layer-placeholders", "--no-dev-catalog"]
-        )
-        self.assertEqual(0, result)
-        self.assertEqual(1, len(self.archives()))
-        self.assertEqual(1, len(self.common_archives()))
+    def test_layer_placeholders_flag_is_rejected(self):
+        result, stdout, stderr = self._publish_pending(["--layer-placeholders"])
+        self.assertNotEqual(0, result)
+        self.assertNotIn("[OK]", stdout)
+        self.assertIn("incompatible", stderr)
+        self.assertEqual([], self.archives())
 
     def test_dev_catalog_emitted_after_publish(self):
-        result, stdout, _stderr = self._publish_pending()
+        result, stdout, _stderr = self._publish_pending(["--dev-catalog"])
         self.assertEqual(0, result)
         self.assertIn("dev catalog:", stdout)
         out_dir = self.cdn / "dev-catalog"

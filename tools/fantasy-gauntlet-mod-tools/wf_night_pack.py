@@ -59,11 +59,11 @@ def cmd_amf3() -> list[str]:
     out = []
     for rel in AMF3_RELATIVES:
         src_logical = f"character/{TEMPLATE_CODE}/{rel}"
-        loc = wf_assets.locate(store, src_logical)
-        if not loc:
+        current = wf_assets.read_current(store, src_logical)
+        if not current:
             out.append(f"MISSING {src_logical}")
             continue
-        raw = loc[1].read_bytes()
+        raw = current[1]
         remapped = skin.remap_amf3_deflate(
             raw, f"character/{TEMPLATE_CODE}/", f"character/{NEW_CODE}/")
         out.append(_write("common", f"character/{NEW_CODE}/{rel}", remapped))

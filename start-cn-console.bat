@@ -33,8 +33,19 @@ if not exist "out\cn-server.js" (
     goto :finish
 )
 
+set "serverTemp=%CD%\tmp\cn-server"
+if not exist "%serverTemp%" mkdir "%serverTemp%"
+if errorlevel 1 (
+    echo [ERROR] Failed to create the stable temp directory: %serverTemp%
+    set "exitCode=1"
+    goto :finish
+)
+set "TEMP=%serverTemp%"
+set "TMP=%serverTemp%"
+
 echo Starting CN StarPoint...
 echo HTTP: 8001    TCP: 8003
+echo Temp: %serverTemp%
 echo.
 
 set "LOG_LEVEL=info"

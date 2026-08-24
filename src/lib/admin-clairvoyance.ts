@@ -1,6 +1,7 @@
 import gachasJson from "../../assets/gacha.json"
 import characterJson from "../../assets/character.json"
 import characterTextJson from "../../assets/cdndata/character_text.json"
+import { deepFreeze } from "../content/deep-freeze"
 
 const SHORT_TERM_MAX_DAYS = 60
 const CHARACTER_GACHA_TYPE = 0
@@ -70,6 +71,11 @@ export interface ClairvoyanceTimeline {
     current: ClairvoyanceGacha[]
     timeline: ClairvoyanceGacha[]
     searchIndex: ClairvoyanceSearchRow[]
+}
+
+interface StaticClairvoyanceTimeline {
+    readonly timeline: ClairvoyanceGacha[]
+    readonly searchIndex: ClairvoyanceSearchRow[]
 }
 
 const gachas = gachasJson as Record<string, RawGacha>
@@ -163,20 +169,32 @@ function buildSearchIndex(timeline: ClairvoyanceGacha[]): ClairvoyanceSearchRow[
     return [...byCharacter.values()].sort((a, b) => a.characterId - b.characterId)
 }
 
-export function buildShortUpCharacterGachaTimeline(now: Date = new Date()): ClairvoyanceTimeline {
+let staticTimelineCache: StaticClairvoyanceTimeline | null = null
+
+function getStaticTimeline(): StaticClairvoyanceTimeline {
+    if (staticTimelineCache !== null) return staticTimelineCache
     const timeline = Object.entries(gachas)
         .map(([id, rawGacha]) => toGacha(id, rawGacha))
         .filter((gacha): gacha is ClairvoyanceGacha => gacha !== null)
         .sort((a, b) => a.startTime.localeCompare(b.startTime) || a.id - b.id)
+    staticTimelineCache = deepFreeze({
+        timeline,
+        searchIndex: buildSearchIndex(timeline),
+    })
+    return staticTimelineCache
+}
+
+export function buildShortUpCharacterGachaTimeline(now: Date = new Date()): ClairvoyanceTimeline {
+    const staticTimeline = getStaticTimeline()
     const nowMs = now.getTime()
     return {
         scope: "short-up-character-gacha",
         currentTime: now.toISOString(),
-        current: timeline.filter((gacha) =>
-            parseCdnDate(gacha.startDate).getTime() <= nowMs
-            && parseCdnDate(gacha.endDate).getTime() >= nowMs
+        current: staticTimeline.timeline.filter((gacha) =>
+            Date.parse(gacha.startTime) <= nowMs
+            && Date.parse(gacha.endTime) >= nowMs
         ),
-        timeline,
-        searchIndex: buildSearchIndex(timeline),
+        timeline: staticTimeline.timeline,
+        searchIndex: staticTimeline.searchIndex,
     }
 }

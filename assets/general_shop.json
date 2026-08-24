@@ -6086,5 +6086,22 @@
     "availableFrom": "2015-12-31 23:59:59",
     "availableUntil": null,
     "stock": 9999
+  },
+  "9100012": {
+    "costs": [],
+    "rewards": [
+      {
+        "type": 0,
+        "id": 12001,
+        "count": 1
+      }
+    ],
+    "availableFrom": "2015-12-31 23:59:59",
+    "availableUntil": null,
+    "stock": 999,
+    "userCost": {
+      "type": 1,
+      "amount": 10000000
+    }
   }
 }

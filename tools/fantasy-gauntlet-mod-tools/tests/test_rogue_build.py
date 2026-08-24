@@ -9,6 +9,44 @@ import wf_rogue_build as rogue_build  # noqa: E402
 
 
 class TestRushEventMetadata(unittest.TestCase):
+    def test_shared_event_folder_remains_the_only_gauntlet_entry(self):
+        event_list = {
+            "700007": ["template"],
+            "700098": ["old fantasy direct entry"],
+            "700099": ["old abyss direct entry"],
+        }
+
+        actual = rogue_build.enforce_gauntlet_hub_event_list(event_list)
+
+        self.assertIs(event_list, actual)
+        self.assertEqual({"700007": ["template"]}, actual)
+
+    def test_generated_single_player_quest_requires_rank_130(self):
+        row = [f"column-{index}" for index in range(110)]
+        before = list(row)
+
+        actual = rogue_build.enforce_gauntlet_player_rank(row)
+
+        self.assertIs(row, actual)
+        self.assertEqual("130", actual[48])
+        self.assertEqual(before[:48] + before[49:], actual[:48] + actual[49:])
+
+    def test_existing_rows_in_both_gauntlet_hubs_are_repaired_to_rank_130(self):
+        rows = {}
+        for event_id in rogue_build.GAUNTLET_HUB_EVENT_IDS:
+            row = [f"{event_id}-column-{index}" for index in range(110)]
+            row[48] = "(None)"
+            rows[event_id] = {"1": rogue_build.join(row, False)}
+        unrelated = [f"unrelated-column-{index}" for index in range(110)]
+        rows["700007"] = {"1": rogue_build.join(unrelated, False)}
+
+        actual = rogue_build.enforce_gauntlet_quest_table_player_rank(rows)
+
+        self.assertIs(rows, actual)
+        for event_id in rogue_build.GAUNTLET_HUB_EVENT_IDS:
+            self.assertEqual("130", rogue_build.cells(actual[event_id]["1"])[48])
+        self.assertEqual(unrelated, rogue_build.cells(actual["700007"]["1"]))
+
     def test_abyss_event_always_uses_abyss_token(self):
         row = [f"column-{index}" for index in range(18)]
         row[10] = "2370007"
@@ -48,6 +86,36 @@ class TestRushEventMetadata(unittest.TestCase):
         expected[17] = rogue_build.EXCHANGE_END
         self.assertEqual([expected], [rogue_build.cells(actual)])
         self.assertIs(str, type(actual))
+
+    def test_unscaled_hp_keeps_absolute_evidence_and_actual_value(self):
+        native = {
+            "verified": True,
+            "absolute_verified": True,
+            "native_hp": 1000.0,
+            "components": [{
+                "code": "standard_boss", "kind": "standard",
+                "evidence_kind": "absolute", "native_hp": 1000.0,
+            }],
+        }
+
+        audit = rogue_build.unscaled_floor_hp_record(
+            7, native, base_duration_s=100.0, duration_s=100.0,
+            curse_hp=1.0, raw_c86=2.0, target=50.0,
+            scaling_error="standard c86 outside policy window",
+        )
+
+        self.assertTrue(audit["verified"])
+        self.assertTrue(audit["absolute_verified"])
+        self.assertTrue(audit["target_exempt"])
+        self.assertEqual(2000.0, audit["true_hp"])
+        self.assertEqual(20.0, audit["realized_dps"])
+        records = [{"r": 1, "baseline_dps": 1.0, "warmup": True}]
+        records.extend({"r": r, "baseline_dps": 50.0} for r in range(2, 7))
+        records.append(audit)
+        self.assertEqual([], rogue_build.hp_curve_errors(
+            records, 7, last_band=(40.0, 60.0)))
+        self.assertEqual([], rogue_build.hp_curve_errors(
+            records, 7, last_band=(40.0, 60.0), ramp=True))
 
     def test_folder_preview_matches_server_fixed_rewards(self):
         template = [f"template-{index}" for index in range(37)]

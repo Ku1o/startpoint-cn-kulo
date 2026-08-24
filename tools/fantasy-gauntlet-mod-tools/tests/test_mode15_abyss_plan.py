@@ -4,6 +4,7 @@ import math
 import sys
 import unittest
 from pathlib import Path
+from unittest import mock
 
 
 MOD_DIR = Path(__file__).resolve().parents[1]
@@ -39,35 +40,85 @@ class TestMode15AbyssPlan(unittest.TestCase):
             mode15.MODE15_ABYSS_PLAN["rules"]["visible_party_sets"],
         )
 
-    def test_gradient_endpoints_match_upstream_experience(self) -> None:
+    def test_normalized_targets_define_hp_and_bound_attack(self) -> None:
         difficulty = mode15.MODE15_ABYSS_PLAN["difficulty"]
-        self.assertEqual("gradient", difficulty["preset"])
-        self.assertTrue(math.isclose(0.5, mode15.STAGE_BY_NUMBER[1]["hp"]))
-        self.assertTrue(
-            math.isclose(
-                2.6,
-                mode15.STAGE_BY_NUMBER[15]["curve_hp"],
-            )
+        self.assertEqual("normalized-fantasy", difficulty["preset"])
+        exempt = set(
+            mode15.MODE15_ABYSS_PLAN["rules"]["hp_progression_exempt_stages"]
         )
-        self.assertTrue(math.isclose(0.6, mode15.STAGE_BY_NUMBER[1]["atk"]))
-        self.assertTrue(math.isclose(2.0, mode15.STAGE_BY_NUMBER[15]["atk"]))
+        for config in mode15.STAGE_CONFIGS:
+            if config["stage"] not in exempt:
+                self.assertTrue(
+                    math.isclose(
+                        config["hp"],
+                        config["target_effective_hp"] / config["audited_base_hp"],
+                        rel_tol=5e-5,
+                    )
+                )
+            self.assertGreater(config["atk"], 0)
+            self.assertLessEqual(config["atk"], difficulty["atk_hard_ceiling"])
         self.assertLessEqual(difficulty["atk_hard_ceiling"], 8.0)
 
-    def test_multiplayer_hp_scaling_only_hits_milestones(self) -> None:
+    def test_multiplayer_scale_metadata_only_marks_milestones(self) -> None:
+        scales = mode15.MODE15_ABYSS_PLAN["multiplayer_hp_scale"]
         for stage, scale in ((5, 1.75), (10, 2.0), (15, 2.25)):
             config = mode15.STAGE_BY_NUMBER[stage]
-            self.assertAlmostEqual(
-                config["curve_hp"] * scale,
-                config["hp"],
-                places=3,
-            )
-        self.assertNotIn("curve_hp", mode15.STAGE_BY_NUMBER[14])
+            self.assertEqual(scale, scales[str(stage)])
+            self.assertEqual(scale, config["multiplayer_hp_scale"])
+        for stage in mode15.SOLO_STAGES:
+            self.assertNotIn("multiplayer_hp_scale", mode15.STAGE_BY_NUMBER[stage])
 
     def test_curse_density_never_exceeds_native_five_slots(self) -> None:
         for config in mode15.STAGE_CONFIGS:
             self.assertLessEqual(len(config["conditions"]), 5)
         self.assertEqual("off", mode15.STAGE_BY_NUMBER[1]["curse_tier"])
-        self.assertEqual("hell", mode15.STAGE_BY_NUMBER[15]["curse_tier"])
+        self.assertEqual("final", mode15.STAGE_BY_NUMBER[15]["curse_tier"])
+
+    def test_live_absolute_hp_rebases_multiplier_without_changing_target(self) -> None:
+        old = dict(mode15._ACTIVE_STAGE_HP)
+
+        def evidence(_tables, config):
+            return {
+                "verified": True,
+                "absolute_verified": True,
+                "native_hp": float(config["stage"]) * 100_000_000.0,
+                "components": (),
+                "reason": None,
+                "field": f"field_{config['stage']}",
+                "bosses": (f"boss_{config['stage']}",),
+            }
+
+        try:
+            with mock.patch.object(
+                mode15, "mode15_stage_hp_evidence", side_effect=evidence
+            ):
+                audits = mode15.refresh_mode15_stage_hp({})
+            self.assertEqual(15, len(audits))
+            for config in mode15.STAGE_CONFIGS:
+                expected = (
+                    float(config["target_effective_hp"])
+                    / (float(config["stage"]) * 100_000_000.0)
+                )
+                self.assertTrue(math.isclose(mode15.stage_hp(config), expected))
+        finally:
+            mode15._ACTIVE_STAGE_HP.clear()
+            mode15._ACTIVE_STAGE_HP.update(old)
+
+    def test_proxy_hp_cannot_drive_fantasy_multiplier(self) -> None:
+        proxy = {
+            "verified": True,
+            "absolute_verified": False,
+            "native_hp": 100.0,
+            "components": (),
+            "reason": None,
+        }
+        with (
+            mock.patch.object(
+                mode15, "mode15_stage_hp_evidence", return_value=proxy
+            ),
+            self.assertRaisesRegex(ValueError, "proxy-only"),
+        ):
+            mode15.refresh_mode15_stage_hp({})
 
 
 if __name__ == "__main__":

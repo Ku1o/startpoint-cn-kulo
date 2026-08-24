@@ -166,20 +166,25 @@ def synth(
 
 
 def find_ffmpeg() -> Path | None:
-    """Resolve ffmpeg using WF_FFMPEG > PATH > D:\\WF\\voice-tools."""
-    configured = (os.environ.get("WF_FFMPEG") or "").strip().strip('"')
-    if configured:
+    """Resolve ffmpeg using WF_FFMPEG > PATH.
+
+    An explicitly configured path is authoritative. Invalid explicit values
+    fail closed instead of silently selecting another ffmpeg installation.
+    """
+    if "WF_FFMPEG" in os.environ:
+        configured = os.environ["WF_FFMPEG"].strip().strip('"').strip()
+        if not configured:
+            raise ValueError("WF_FFMPEG must be a non-empty path")
         candidate = Path(configured).expanduser()
-        if candidate.is_file():
-            return candidate.resolve()
+        if not candidate.is_absolute():
+            raise ValueError(f"WF_FFMPEG must be an absolute path: {configured}")
+        candidate = candidate.resolve()
+        if not candidate.is_file():
+            raise ValueError(f"WF_FFMPEG is not an existing file: {candidate}")
+        return candidate
     on_path = shutil.which("ffmpeg")
     if on_path:
         return Path(on_path).resolve()
-    fallback = Path(r"D:\WF\voice-tools")
-    if fallback.is_dir():
-        matches = sorted(fallback.rglob("ffmpeg.exe"))
-        if matches:
-            return matches[0].resolve()
     return None
 
 
@@ -196,7 +201,7 @@ def transcode_wav_to_mp3(
     executable = Path(ffmpeg) if ffmpeg is not None else find_ffmpeg()
     if executable is None:
         raise VoiceEncodingError(
-            "ffmpeg not found (checked WF_FFMPEG, PATH, and D:\\WF\\voice-tools)"
+            "ffmpeg not found (checked WF_FFMPEG and PATH)"
         )
     output = Path(output_path)
     output.parent.mkdir(parents=True, exist_ok=True)

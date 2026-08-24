@@ -1,5 +1,6 @@
 import sqlite3, { Database as BetterSqlite3Database } from 'better-sqlite3';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
+import { tmpdir } from 'os';
 import path from "path";
 import { updateBeforeInit as updateWdfpDataBefore, updateAfterInit as updateWdfpDataAfter} from "./updaters/wdfpData";
 import initWdfpData from "./initializers/wdfpData";
@@ -37,7 +38,7 @@ const databasesMetadata: {[key in Database]: DatabaseMetadata} = {
         init: initWdfpData,
         updateBefore: updateWdfpDataBefore,
         updateAfter: updateWdfpDataAfter,
-        latestVersion: 8
+        latestVersion: 9
     }
 }
 
@@ -73,6 +74,12 @@ export default function getDatabase(
     const db = new sqlite3(absoluteDatabasePath)
 
     // set pragma
+    // Keep temporary SQLite structures on disk. Windows launchers point the
+    // process at a stable project-local directory instead of an RDP session
+    // temp folder that can disappear while the server is still running.
+    console.log(`[DB] temp_dir=${tmpdir()}`)
+    db.pragma('temp_store = FILE')
+    console.log(`[DB] temp_store=${db.pragma('temp_store', { simple: true })} (1=FILE)`)
     db.pragma('journal_mode = WAL')
     db.pragma('busy_timeout = 1000')
     db.pragma('foreign_keys = OFF')

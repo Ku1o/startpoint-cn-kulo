@@ -1,5 +1,5 @@
 import { serializePlayerData, SerializePlayerDataOptions } from "./serialize-player"
-import { getDateFromServerTime, getServerTime, getServerDate, realToVirtual } from "../../utils"
+import { getDateFromServerTime, getServerTime, getServerDate, getTimeOffset, realToVirtual } from "../../utils"
 import { ClientPlayerData, DailyChallengePointListEntry, MergedPlayerData, PartyCategory, Player, PlayerBoxGacha, PlayerCharacter, PlayerCharacterBondToken, PlayerDrawnQuest, PlayerEquipment, PlayerGachaCampaign, PlayerGachaInfo, PlayerMultiSpecialExchangeCampaign, PlayerParty, PlayerPartyGroup, PlayerQuestProgress, PlayerRushEvent, PlayerRushEventPlayedParty, PlayerStartDashExchangeCampaign, RushEventBattleType, UserBoxGacha, UserCharacter, UserCharacterBondTokenStatus, UserEquipment, UserGachaCampaign, UserPartyGroup, UserPartyGroupTeam, UserQuestProgress, UserRushEvent, UserRushEventPlayedParty, UserRushEventPlayedPartyList, UserTutorial } from "../types"
 import { deserializePlayerRushEventPlayedParty, deserializeRushEvent, getPlayerRushEventListClearedFoldersSync, getPlayerRushEventListPlayedPartiesSync, getPlayerRushEventListSync, serializePlayerRushEventPlayedParty } from "../domains/rushEvent"
 import { getPlayerActiveMissionsSync, getPlayerCategoryMissionListSync, getPlayerClearedRegularMissionListSync } from "../domains/mission"
@@ -67,7 +67,10 @@ export function getDefaultPlayerData(): Omit<Player, 'id'> {
         tutorialStep: 0,
         tutorialSkipFlag: null,
         tutorialGachaCharacterId: null,
-        timeOffset: null
+        // Records the virtual-time offset under which timestamped save fields
+        // were written. EXP-pool settlement uses it to preserve real elapsed
+        // time when the global virtual clock is moved.
+        timeOffset: getTimeOffset() ?? 0
     }
 }
 

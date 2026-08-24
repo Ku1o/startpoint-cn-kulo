@@ -25,6 +25,11 @@ from pathlib import Path, PurePosixPath
 from typing import Callable, Iterator, Literal, Mapping
 
 import wf_character_pack as character_pack
+from wf_release_paths import (
+    ReleasePathError,
+    ReleasePaths as _RepoPaths,
+    resolve_release_paths,
+)
 
 
 RootName = Literal["common", "medium", "android", "server"]
@@ -154,6 +159,22 @@ class JsonObjectCodec:
         ))
 
 
+class JsonIntegerSetCodec:
+    """Release-facing adapter for the validated built-in integer-set codec."""
+
+    def inspect(
+        self,
+        raw: bytes,
+        claim: character_pack.TableClaim,
+        semantic_claims: tuple[character_pack.SemanticClaim, ...],
+    ) -> character_pack.TableImage:
+        codec = character_pack.DEFAULT_CODECS["json_integer_set"]
+        try:
+            return codec.inspect(raw, claim, semantic_claims)
+        except character_pack.PackPreflightError as exc:
+            raise ReleaseError(f"server JSON integer set: {exc}") from exc
+
+
 def _merge_claimed_rows(
     live_keys: list[str],
     live_rows: list[bytes],
@@ -176,6 +197,9 @@ def _merge_claimed_rows(
             keys.append(key)
             rows.append(row)
     return keys, rows
+
+
+merge_claimed_rows = _merge_claimed_rows
 
 
 def _merge_claimed_table_bytes(
@@ -280,12 +304,79 @@ def _merge_claimed_table_bytes(
                 if key not in candidate:
                     raise ReleaseError(f"candidate lacks claimed JSON row: {logical}:{key}")
                 live[key] = candidate[key]
-            return _canonical(live)
+            return _ordered_json(live)
+
+        if claim.codec_id == "json_integer_set":
+            candidate = _strict_positive_integer_array(
+                candidate_raw, f"candidate:{logical}"
+            )
+            live = _strict_positive_integer_array(live_raw, f"live:{logical}")
+            candidate_values = set(candidate)
+            live_values = set(live)
+            for key in claim.outer_keys:
+                try:
+                    value = int(key)
+                except ValueError as exc:
+                    raise ReleaseError(
+                        f"invalid claimed JSON integer: {logical}:{key}"
+                    ) from exc
+                if value <= 0 or str(value) != key or value not in candidate_values:
+                    raise ReleaseError(
+                        f"candidate lacks claimed JSON integer: {logical}:{key}"
+                    )
+                if value not in live_values:
+                    live.append(value)
+                    live_values.add(value)
+            return _ordered_json(live)
+
+        if claim.codec_id == "json_event_shop_products":
+            candidate, candidate_rows = _validated_nested_json(
+                claim, candidate_raw, "candidate"
+            )
+            live, _live_rows = _validated_nested_json(
+                claim, live_raw, "live"
+            )
+            for key in claim.outer_keys:
+                record_raw = candidate_rows.get(key)
+                if record_raw is None:
+                    raise ReleaseError(
+                        f"candidate lacks claimed event-shop product: {logical}:{key}"
+                    )
+                record = json.loads(record_raw)
+                for events in live.values():
+                    for products in events.values():
+                        products.pop(key, None)
+                event_type = record["event_type"]
+                event_id = record["event_id"]
+                events = live.setdefault(event_type, {})
+                products = events.setdefault(event_id, {})
+                products[key] = record["product"]
+            return _ordered_json(live)
+
+        if claim.codec_id == "json_rogue_events":
+            candidate, candidate_rows = _validated_nested_json(
+                claim, candidate_raw, "candidate"
+            )
+            live, _live_rows = _validated_nested_json(
+                claim, live_raw, "live"
+            )
+            candidate_events = candidate["events"]
+            live_events = live["events"]
+            for key in claim.outer_keys:
+                if key not in candidate_rows:
+                    raise ReleaseError(
+                        f"candidate lacks claimed rogue event: {logical}:{key}"
+                    )
+                live_events[key] = candidate_events[key]
+            return _ordered_json(live)
     except ReleaseError:
         raise
     except Exception as exc:
         raise ReleaseError(f"cannot rebase claimed table {logical}: {exc}") from exc
     raise ReleaseError(f"unsupported runtime rebase codec: {claim.codec_id}")
+
+
+merge_claimed_table_bytes = _merge_claimed_table_bytes
 
 
 def release_payload_from_records(
@@ -451,6 +542,14 @@ def close_prepared_runtime_release(
 def _canonical(value: object) -> bytes:
     return json.dumps(
         value, ensure_ascii=False, sort_keys=True, separators=(",", ":"),
+        allow_nan=False,
+    ).encode("utf-8")
+
+
+def _ordered_json(value: object) -> bytes:
+    """Canonical whitespace without reordering an existing object's keys."""
+    return json.dumps(
+        value, ensure_ascii=False, sort_keys=False, separators=(",", ":"),
         allow_nan=False,
     ).encode("utf-8")
 
@@ -635,6 +734,40 @@ def _strict_object(raw: bytes, label: str) -> dict:
     if not isinstance(value, dict):
         raise ReleaseError(f"{label}: object required")
     return value
+
+
+def _strict_positive_integer_array(raw: bytes, label: str) -> list[int]:
+    def reject_constant(value: str):
+        raise ValueError(f"non-JSON constant {value}")
+
+    try:
+        value = json.loads(raw.decode("utf-8"), parse_constant=reject_constant)
+    except (UnicodeDecodeError, json.JSONDecodeError, ValueError) as exc:
+        raise ReleaseError(f"{label}: invalid JSON: {exc}") from exc
+    if not isinstance(value, list):
+        raise ReleaseError(f"{label}: array required")
+    seen: set[int] = set()
+    for index, item in enumerate(value):
+        if type(item) is not int or item <= 0:
+            raise ReleaseError(
+                f"{label}[{index}]: positive integer required"
+            )
+        if item in seen:
+            raise ReleaseError(f"{label}[{index}]: duplicate integer {item}")
+        seen.add(item)
+    return value
+
+
+def _validated_nested_json(
+    claim: character_pack.TableClaim, raw: bytes, label: str
+) -> tuple[dict, dict[str, bytes]]:
+    codec = character_pack.DEFAULT_CODECS[claim.codec_id]
+    try:
+        image = codec.inspect(raw, claim, claim.semantic_claims)
+    except character_pack.PackPreflightError as exc:
+        raise ReleaseError(f"{label}:{claim.logical_path}: {exc}") from exc
+    value = _strict_object(raw, f"{label}:{claim.logical_path}")
+    return value, dict(image.outer_rows)
 
 
 def rebase_runtime_package(
@@ -1292,37 +1425,17 @@ class AtomicReleasePublisher:
                 raise ReleaseError(detail) from exc
 
 
-def _repo_paths(profile_id: str) -> tuple[Path, character_pack.LiveRoots, Path]:
-    if profile_id != "cn":
-        raise ReleaseError("character release is CN-only")
-    import wf_mod_tool as core
+def _resolve_repo_paths(profile_id: str) -> _RepoPaths:
+    try:
+        return resolve_release_paths(profile_id, module_file=Path(__file__))
+    except ReleasePathError as exc:
+        raise ReleaseError(str(exc)) from exc
 
-    profile = core.resolve_profile("cn")
-    if profile is None or profile.id != "cn":
-        raise ReleaseError("active CN profile/store is unavailable")
-    # The character-release tool can live below ``tools/`` rather than directly
-    # under the server repository.  Resolve both authorities through the active
-    # profile instead of deriving them from this module's nesting depth.
-    repo_root = core.resolve_server_dir("cn").resolve()
-    try:
-        active_store = core.resolve_active_store(profile=profile)
-    except ValueError as exc:
-        raise ReleaseError(str(exc)) from exc
-    if active_store is None or not Path(active_store).is_dir():
-        raise ReleaseError("active CN profile/store is unavailable")
-    store = Path(active_store).resolve()
-    try:
-        cdn_root = core.resolve_cdn_root("cn").resolve()
-    except ValueError as exc:
-        raise ReleaseError(str(exc)) from exc
-    live_roots = character_pack.LiveRoots(
-        common=store,
-        medium=store.parent / "medium_upload",
-        android=store.parent / "android_upload",
-        server=repo_root / "assets",
-        protected=(cdn_root,),
-    )
-    return repo_root, live_roots, cdn_root
+
+def _repo_paths(profile_id: str) -> tuple[Path, character_pack.LiveRoots, Path]:
+    """Legacy tuple view retained for callers outside this module."""
+    paths = _resolve_repo_paths(profile_id)
+    return paths.tool_root, paths.live_roots, paths.cdn_root
 
 
 def _current_git_head(repo_root: Path) -> str:
@@ -1348,12 +1461,12 @@ def rebase_package(
     generator_git_head: str | None = None,
 ) -> RuntimeRebaseResult:
     """Rebase declared runtime-table rows without touching live roots."""
-    repo_root, live_roots, _cdn_root = _repo_paths(profile_id)
-    git_head = generator_git_head or _current_git_head(repo_root)
+    paths = _resolve_repo_paths(profile_id)
+    git_head = generator_git_head or _current_git_head(paths.tool_root)
     return rebase_runtime_package(
         Path(package_dir),
         Path(output_dir),
-        live_roots=live_roots,
+        live_roots=paths.live_roots,
         generator_git_head=git_head,
     )
 
@@ -1478,9 +1591,11 @@ def _reachable_client_base(
     _raw, active = active_store.read_manifest()
     target = canonical_base
     if active is not None:
-        for release in active["releases"]:
+        releases = active["releases"]
+        for release in releases:
             add_edge(release["from_version"], release["version"])
-        target = active["releases"][-1]["version"]
+        if releases:
+            target = releases[-1]["version"]
 
     pending = [required_base]
     visited: set[str] = set()
@@ -1611,35 +1726,37 @@ def preflight_package(
     package_dir = Path(package_dir)
     manifest = character_pack.load_manifest(package_dir / "manifest.json")
     mode = _validate_qa_contract(manifest)
-    repo_root, live_roots, cdn_root = _repo_paths(profile_id)
-    canonical_base = detect_canonical_base_version(cdn_root, repo_root)
+    paths = _resolve_repo_paths(profile_id)
+    canonical_base = detect_canonical_base_version(paths.cdn_root, paths.server_root)
     import wf_release_guard
 
-    charpkg_strand = wf_release_guard.charpkg_strand_report(cdn_root, repo_root)
+    charpkg_strand = wf_release_guard.charpkg_strand_report(
+        paths.cdn_root, paths.server_root
+    )
     if mode == "production":
         status = _production_workspace_status(package_dir)
         tail = _reachable_client_base(
             manifest["requires_client_base"],
-            repo_root=repo_root,
-            cdn_root=cdn_root,
+            repo_root=paths.server_root,
+            cdn_root=paths.cdn_root,
             canonical_base=canonical_base,
         )
         _manifest, transaction = _new_production_transaction(
             package_dir,
-            live_roots,
-            cdn_root,
+            paths.live_roots,
+            paths.cdn_root,
             canonical_base,
             installed_package_dir=installed_package_dir,
         )
     else:
         status = None
         tail = ActiveReleaseStore(
-            cdn_root, canonical_base_version=canonical_base
+            paths.cdn_root, canonical_base_version=canonical_base
         ).read_validated_base().validated_chain_tail
         _manifest, transaction = _new_transaction(
             package_dir,
-            live_roots,
-            cdn_root,
+            paths.live_roots,
+            paths.cdn_root,
             canonical_base,
             installed_package_dir=installed_package_dir,
         )
@@ -1666,29 +1783,29 @@ def publish_package(
     package_dir = Path(package_dir)
     manifest = character_pack.load_manifest(package_dir / "manifest.json")
     mode = _validate_qa_contract(manifest, confirmation=confirmation)
-    repo_root, live_roots, cdn_root = _repo_paths(profile_id)
-    if _server_running(repo_root):
+    paths = _resolve_repo_paths(profile_id)
+    if _server_running(paths.server_root):
         raise ReleaseError("CN server must be stopped before character publication")
-    canonical_base = detect_canonical_base_version(cdn_root, repo_root)
+    canonical_base = detect_canonical_base_version(paths.cdn_root, paths.server_root)
     # 重锚防孤儿门禁:被 active.json 丢弃的 charpkg 历史必须仍可达 tail,
     # 缺口自动补 charbridge 副本,补不齐则拒绝发布(2026-07-18 链重锚事故)
     import wf_release_guard
 
-    staging_root = repo_root / "work" / "character_releases" / "staging"
-    snapshot_root = repo_root / "work" / "character_releases" / "snapshots"
+    staging_root = paths.tool_root / "work" / "character_releases" / "staging"
+    snapshot_root = paths.tool_root / "work" / "character_releases" / "snapshots"
     if mode == "production":
         _production_workspace_status(package_dir)
         _reachable_client_base(
             manifest["requires_client_base"],
-            repo_root=repo_root,
-            cdn_root=cdn_root,
+            repo_root=paths.server_root,
+            cdn_root=paths.cdn_root,
             canonical_base=canonical_base,
         )
         prepared = _prepare_production_release(
             package_dir,
             installed_package_dir=installed_package_dir,
-            live_roots=live_roots,
-            cdn_root=cdn_root,
+            live_roots=paths.live_roots,
+            cdn_root=paths.cdn_root,
             canonical_base_version=canonical_base,
             staging_root=staging_root,
             snapshot_root=snapshot_root,
@@ -1697,8 +1814,8 @@ def publish_package(
         prepared = prepare_runtime_release(
             package_dir,
             installed_package_dir=installed_package_dir,
-            live_roots=live_roots,
-            cdn_root=cdn_root,
+            live_roots=paths.live_roots,
+            cdn_root=paths.cdn_root,
             canonical_base_version=canonical_base,
             staging_root=staging_root,
             snapshot_root=snapshot_root,
@@ -1706,21 +1823,21 @@ def publish_package(
 
     def prepare_live_guard() -> Callable[[], None] | None:
         report = wf_release_guard.ensure_charpkg_history_bridged(
-            cdn_root, repo_root, assume_lock_held=True
+            paths.cdn_root, paths.server_root, assume_lock_held=True
         )
         receipts = tuple(report["bridge_receipts"])
         if not receipts:
             return None
         return lambda: wf_release_guard.rollback_charpkg_bridges(
-            receipts, cdn_root, assume_lock_held=True
+            receipts, paths.cdn_root, assume_lock_held=True
         )
 
     try:
         result = AtomicReleasePublisher(
-            cdn_root, canonical_base_version=canonical_base
+            paths.cdn_root, canonical_base_version=canonical_base
         ).publish(
             prepared.payload,
-            server_running=lambda: _server_running(repo_root),
+            server_running=lambda: _server_running(paths.server_root),
             prepare_live_guard=prepare_live_guard,
         )
     except Exception as exc:
@@ -1742,6 +1859,130 @@ def publish_package(
             ) from cleanup_exc
         raise
     return replace(result, snapshot_dir=prepared.snapshot.snapshot_dir)
+
+
+def _reanchor_locked(
+    cdn_root: Path,
+    repo_root: Path,
+    *,
+    target_base: str | None = None,
+    dry_run: bool = True,
+) -> dict:
+    import wf_release_guard
+
+    canonical_base = detect_canonical_base_version(cdn_root, repo_root)
+    store = ActiveReleaseStore(cdn_root, canonical_base_version=canonical_base)
+    raw, manifest = store.read_manifest()
+    if raw is None or manifest is None:
+        raise ReleaseError("no active.json ledger to re-anchor")
+    current = store.read_validated_base()
+    owners = derive_package_owners(
+        manifest["releases"],
+        base_package_owners=_validate_base_package_owners(manifest),
+    )
+
+    before = wf_release_guard.charpkg_strand_report(cdn_root, repo_root)
+    graph_tail = before["tail"]
+    target = target_base if target_base is not None else graph_tail
+    if VERSION_RE.fullmatch(target) is None:
+        raise ReleaseError(f"invalid re-anchor target: {target}")
+    if target != graph_tail:
+        raise ReleaseError(
+            f"re-anchor target {target} is not the visible graph tail {graph_tail}"
+        )
+    if _compare_version(target, current.validated_chain_tail) <= 0:
+        raise ReleaseError(
+            f"re-anchor target {target} does not advance the ledger tail "
+            f"{current.validated_chain_tail}"
+        )
+    if before["stranded_archives"]:
+        raise ReleaseError(
+            "refusing to re-anchor while charpkg history is already stranded: "
+            + ", ".join(before["stranded_edges"])
+        )
+
+    candidate = {
+        "base_package_owners": [list(pair) for pair in owners],
+        "base_version": target,
+        "releases": [],
+        "schema_version": 1,
+    }
+    candidate_raw = _canonical(candidate)
+    # 折叠前后的所有者集合必须逐字节相同,否则本次重锚会丢包历史。
+    replay = derive_package_owners(
+        [], base_package_owners=_validate_base_package_owners(candidate)
+    )
+    if replay != owners:
+        raise ReleaseError("re-anchor would change package ownership")
+
+    plan = {
+        "from_base_version": manifest["base_version"],
+        "from_ledger_tail": current.validated_chain_tail,
+        "to_base_version": target,
+        "graph_tail": graph_tail,
+        "dropped_releases": len(manifest["releases"]),
+        "package_owners": [list(pair) for pair in owners],
+        "active_sha256_before": _sha256(raw),
+        "active_sha256_after": _sha256(candidate_raw),
+    }
+    # 换账本后谁会变孤儿——用候选链边预演,不碰盘上的 active.json。
+    preview = wf_release_guard.charpkg_strand_report(
+        cdn_root, repo_root, chain_edges=set()
+    )
+    plan["would_strand"] = [
+        Path(item).name for item in preview["stranded_archives"]
+    ]
+    if dry_run:
+        plan["dry_run"] = True
+        plan["bridged_archives"] = []
+        return plan
+
+    bridged = wf_release_guard.ensure_charpkg_history_bridged(
+        cdn_root, repo_root, assume_lock_held=True, chain_edges=set(),
+    )
+    _atomic_write(store.active_path, candidate_raw)
+    after = wf_release_guard.charpkg_strand_report(cdn_root, repo_root)
+    if after["stranded_archives"]:
+        raise CommittedReleaseError(
+            "ledger re-anchored but charpkg history is stranded: "
+            + ", ".join(after["stranded_edges"])
+        )
+    plan["dry_run"] = False
+    plan["bridged_archives"] = [
+        Path(item).name for item in bridged["bridged_archives"]
+    ]
+    plan["stranded_after"] = after["stranded_archives"]
+    return plan
+
+
+def reanchor_active_ledger(
+    profile_id: str,
+    *,
+    target_base: str | None = None,
+    dry_run: bool = True,
+) -> dict:
+    """把角色发布账本重锚到当前可见链尾,不丢任何包的所有权。
+
+    `wf_publish` 走的是 legacy 发布线,它推进全局链尾却不写 active.json。链尾一旦
+    跑到账本前面(本次:账本 1.4.275 / 链尾 1.4.277),角色包算出的下一条边会和已
+    存在的 legacy 边重合——服务端 `addArchive` 按 (from,to) 归并且不去重,两个
+    互不相干的发布会被塞进同一个版本步里一起下发。
+
+    重锚 = 把当前推导出的 package owner 全部折进 `base_package_owners`,`base_version`
+    抬到链尾,`releases` 清空。`derive_package_owners` 对折叠前后返回同一个所有者
+    集合,所以历史包的升级资格分毫不动(2026-07-18 事故丢的正是这份历史)。
+
+    被账本丢下的 charpkg 边会变成孤儿,故**先补 charbridge 副本再换账本**:桥是
+    纯增量的可见边,提前建好不会留下任何搁浅窗口。
+    """
+    paths = _resolve_repo_paths(profile_id)
+    with _release_lock(paths.cdn_root / ".character-release.lock"):
+        return _reanchor_locked(
+            paths.cdn_root,
+            paths.server_root,
+            target_base=target_base,
+            dry_run=dry_run,
+        )
 
 
 def main(argv: list[str] | None = None) -> int:

@@ -681,17 +681,20 @@ def _regen(png_logical: str) -> None:
     import wf_gui  # add_pending / record_change(读 profiles 决定 store)
 
     store = core.default_target_store()
-    ploc = wf_assets.locate(store, png_logical)
-    if not ploc:
+    png_current = wf_assets.read_current(store, png_logical)
+    if not png_current:
         raise SystemExit(f"store 里找不到源 PNG: {png_logical}")
     atf_logical = png_logical[:-4] + ".atf.deflate"
     android_fp = wf_assets.path_in_root(store, "android", atf_logical)
     ios_fp = wf_assets.path_in_root(store, "ios", atf_logical)
-    png_raw = wf_assets.png_decode(ploc[1].read_bytes())
-    android_ref = inflate(android_fp.read_bytes()) if android_fp.is_file() else None
-    ios_ref = inflate(ios_fp.read_bytes()) if ios_fp.is_file() else None
+    png_raw = wf_assets.png_decode(png_current[1])
+    android_current = wf_assets.read_current_root(
+        store, atf_logical, "android")
+    ios_current = wf_assets.read_current_root(store, atf_logical, "ios")
+    android_ref = inflate(android_current[1]) if android_current else None
+    ios_ref = inflate(ios_current[1]) if ios_current else None
     print(
-        f"源 PNG [{ploc[0]}] {len(png_raw)}B;"
+        f"源 PNG [{png_current[0]}] {len(png_raw)}B;"
         f"Android ref={len(android_ref) if android_ref else 0}B;"
         f"iOS ref={len(ios_ref) if ios_ref else 0}B"
     )
