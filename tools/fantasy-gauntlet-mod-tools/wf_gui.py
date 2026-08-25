@@ -5450,6 +5450,7 @@ import re as _re
 import threading
 
 MOD_DIR = Path(__file__).resolve().parent
+ROGUE_AUDIT_DIR = MOD_DIR / "work" / "rogue_hp_audit"
 
 TOOLBOX_TOOLS = {
     "selftest": {
@@ -7452,7 +7453,7 @@ def rogue_field_tuning_save(body: dict) -> dict:
 
 
 def rogue_build_apply(body: dict, dry_run: bool) -> dict:
-    """难度曲线 + 重摇:封装 wf_rogue_build。dry_run=预览,否则 --write --publish。"""
+    """难度曲线 + 重摇；GUI 默认严格 HP，并留下可读验收报告。"""
     def _num(key, default):
         v = body.get(key)
         return str(default if v in (None, "") else v)
@@ -7479,11 +7480,30 @@ def rogue_build_apply(body: dict, dry_run: bool) -> dict:
         args += ["--difficulty", str(body["difficulty"]).strip()]
     if body.get("seed") not in (None, ""):
         args += ["--seed", str(int(float(body["seed"])))]
+    audit_json = audit_report = None
+    if body.get("strict_target_hp", True) is not False:
+        args += ["--strict-target-hp"]
+        ROGUE_AUDIT_DIR.mkdir(parents=True, exist_ok=True)
+        seed_token = (str(int(float(body["seed"])))
+                      if body.get("seed") not in (None, "") else "auto")
+        stem = (f"rogue-hp-gui-seed-{seed_token}-"
+                f"{time.strftime('%Y%m%d-%H%M%S')}-{time.time_ns() % 1_000_000_000:09d}")
+        audit_json = ROGUE_AUDIT_DIR / f"{stem}.json"
+        audit_report = ROGUE_AUDIT_DIR / f"{stem}.md"
+        args += ["--audit-json", str(audit_json),
+                 "--audit-report", str(audit_report)]
     if not dry_run:
         args += ["--write"]
         if body.get("publish"):
             args += ["--publish"]
-    return _rogue_run("wf_rogue_build.py", args)
+    result = _rogue_run("wf_rogue_build.py", args)
+    if audit_json is not None:
+        result["audit_json"] = str(audit_json)
+        result["audit_report"] = str(audit_report)
+        # GUI 只承接构建期静态门禁；真机状态不得因日志全绿而被推断为通过。
+        result["verification_scope"] = "static_dry_run"
+        result["gameplay_verified"] = False
+    return result
 
 
 def rogue_nerf_apply(body: dict, dry_run: bool) -> dict:
@@ -7820,6 +7840,25 @@ ROGUE_BATTLE_LOGICALS = [
     "master/battle/boss/general_enemy_watch.orderedmap",
     # 八岐父体与八头按 round 整包克隆；parent 本身仍由 BossKind=3 从专表读取。
     "master/battle/boss/orochi.orderedmap",
+    # 八岐 EX 的 kind=4 父体按 round 克隆，且父体会按代号生成六个独立子体；
+    # 漏发 head 或 parent 任一张都会让客户端在阶段切换时查不到新代号。
+    "master/battle/boss/orochi_ex_head.orderedmap",
+    "master/battle/boss/orochi_ex.orderedmap",
+    # Kraken、指挥者与东亚奇廉 CEO 各只有一个胜利血条；按 round 克隆
+    # 专用父体，并由同名 boss_level 克隆承载目标 HP。专表必须同批发布。
+    "master/battle/boss/kraken.orderedmap",
+    "master/battle/boss/conductor.orderedmap",
+    "master/battle/boss/touyakiren_ceo.orderedmap",
+    # 五类 Sphere 只新增 round-local 父体；共享水晶/微核子表保持官方代号不写。
+    # 父体依赖同名 boss_level 克隆，因此五张专表必须随构建结果同批发布。
+    "master/battle/boss/water_sphere.orderedmap",
+    "master/battle/boss/holy_sphere.orderedmap",
+    "master/battle/boss/wind_sphere.orderedmap",
+    "master/battle/boss/thunder_sphere.orderedmap",
+    "master/battle/boss/fire_sphere.orderedmap",
+    # Standard Boss HP 克隆通过新代号指向重写的 Enemy DSL；漏发这张表会让
+    # zone 中的 mod_rogue_standard* 代号在客户端解析时悬空。
+    "master/battle/boss/standard_boss.orderedmap",
 ]
 
 

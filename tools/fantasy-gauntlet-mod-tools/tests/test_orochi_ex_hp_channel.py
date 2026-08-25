@@ -11,6 +11,7 @@ sys.path.insert(0, str(MOD_DIR))
 import wf_mod_tool as core  # noqa: E402
 import wf_orochi_ex as channel  # noqa: E402
 import wf_rogue_build as rogue  # noqa: E402
+import wf_rogue_bundle as rbb  # noqa: E402
 
 
 def leaf(row: list[str]) -> str:
@@ -71,6 +72,13 @@ class TestOrochiExHpChannel(unittest.TestCase):
         self.assertEqual(self.dedicated, before_dedicated)
         self.assertEqual(self.levels, before_levels)
 
+    def test_builder_keeps_fractional_middle_coefficient_for_strict_readback(self) -> None:
+        _node, level, _report = channel.build_scaled_hp_rows(
+            self.dedicated, self.levels, "orochi_ex", "orochi_ex_fractional",
+            fixed_phase_scale=1.0, middle_scale=1.234567,
+        )
+        self.assertEqual(core.read_csv_lines(level)[0][2], "308.64175")
+
     def test_replace_validates_both_tables_before_installing_either(self) -> None:
         before = copy.deepcopy(self.dedicated)
         with self.assertRaises(channel.OrochiExHpError):
@@ -102,6 +110,107 @@ class TestOrochiExHpChannel(unittest.TestCase):
         )
         self.assertEqual(got["native_hp"], 273_236_250.0)
         self.assertEqual(rogue._true_hp_at_c86(got, 2.0), 273_472_500.0)
+
+    def test_full_parent_six_head_clone_is_atomic_and_hits_three_phase_target(self) -> None:
+        parent = parent_row()
+        for index, code in zip(
+                rogue.OROCHI_EX_CHILD_COLUMNS,
+                rogue.OROCHI_EX_CANONICAL_HEADS):
+            parent[index] = code
+        dedicated = {"orochi_ex": {"100": leaf(parent)}}
+        heads = {
+            code: {"100": leaf([""] * 179)}
+            for code in rogue.OROCHI_EX_CANONICAL_HEADS
+        }
+        levels = {"orochi_ex": leaf(level_row())}
+        levels.update({
+            code: leaf(level_row(100 + ordinal))
+            for ordinal, code in enumerate(
+                rogue.OROCHI_EX_CANONICAL_HEADS, start=1)
+        })
+        bundle = rbb.NativeBossBundle(
+            family_id="orochi-ex", family_name="八岐大蛇 EX",
+            variant_id="orochi-ex-v", variant_name="official_three_phase",
+            source_field="multi_normal_1_20_4",
+            source_zone="multi_normal_1_20_4",
+            terrain_logical="battle/field/orochi_ex.terrain.amf3.deflate",
+            active_layers=("0",),
+            slots=(rbb.ActiveBossSlot(
+                "0", 1, 0, rbb.BossRef(4, "orochi_ex"),
+                rbb.BossRef(4, "orochi_ex")),),
+            bgm=None, thumbnail="", source_category="test",
+            selected_levels=(("0", 1, 100),),
+        )
+        tables = {
+            "orochi_ex": dedicated,
+            "orochi_ex_head": heads,
+            "boss_level": levels,
+        }
+        before = copy.deepcopy(tables)
+
+        def true_stat(code, _kind, _level, boss_level):
+            return float(core.read_csv_lines(boss_level[code])[0][2]) * 10.0, "*"
+
+        def stats(boss_level):
+            return {
+                code: {"hpc": "hit_hp_boss", "hp_mode": "hit"}
+                for code in boss_level
+            }
+
+        with (
+            mock.patch.object(rogue, "true_stat", side_effect=true_stat),
+            mock.patch.object(rogue, "boss_base_stats", side_effect=stats),
+            mock.patch.object(rogue, "curve_value", return_value=1.0),
+        ):
+            native = rogue.orochi_ex_native_hp_evidence(bundle, 100, tables)
+            self.assertTrue(native["verified"], native)
+            baseline_target = float(native["native_hp"]) * 2.0
+            final_target = baseline_target * 1.25
+            plan = rogue.orochi_ex_hp_scale_plan(
+                native, dedicated, levels,
+                target_hp=baseline_target, curse_hp=1.25)
+            result = rogue.clone_orochi_ex_parent_bundle(
+                bundle, 12, plan["final_scale"], tables)
+            self.assertTrue(result.ok, result)
+            self.assertEqual(result.parent_code, "mod_rogue_orochi_ex12")
+            self.assertEqual(result.head_codes, tuple(
+                f"mod_rogue_orochi_ex12_head{i}" for i in range(1, 7)))
+            cloned_parent = core.read_csv_lines(
+                dedicated[result.parent_code]["100"])[0]
+            self.assertEqual(
+                tuple(cloned_parent[index]
+                      for index in rogue.OROCHI_EX_CHILD_COLUMNS),
+                result.head_codes)
+            for source_code, target_code in zip(
+                    rogue.OROCHI_EX_CANONICAL_HEADS, result.head_codes):
+                self.assertEqual(heads[target_code], heads[source_code])
+                self.assertEqual(levels[target_code], levels[source_code])
+            readback = rogue.orochi_ex_native_hp_evidence(
+                result.bundle, 100, tables)
+            receipt = rogue.build_hp_adaptation_audit(
+                12, native, family="orochi_ex", channel="special_bundle",
+                destination=plan["destinations"],
+                baseline_target_hp=baseline_target,
+                final_target_hp=final_target,
+                baseline_c86=1.0, final_c86=1.0,
+                readback_native=readback,
+                baseline_component_hp=plan["baseline_component_hp"],
+            )
+            self.assertTrue(receipt.within_tolerance, receipt)
+            self.assertLess(abs(receipt.final_error_hp), 1.0)
+
+        for table_name, original in before.items():
+            for code, value in original.items():
+                self.assertEqual(tables[table_name][code], value)
+
+        malformed = copy.deepcopy(before)
+        malformed["orochi_ex_head"][
+            rogue.OROCHI_EX_CANONICAL_HEADS[-1]]["100"] = "short"
+        malformed_before = copy.deepcopy(malformed)
+        rejected = rogue.clone_orochi_ex_parent_bundle(
+            bundle, 13, 2.0, malformed)
+        self.assertFalse(rejected.ok)
+        self.assertEqual(malformed, malformed_before)
 
 
 if __name__ == "__main__":

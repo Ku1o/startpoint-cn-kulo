@@ -871,7 +871,7 @@ td.ldesc{color:var(--okfg);font-size:11px;white-space:normal;max-width:250px;lin
           </div>
           <div class="tbcard" data-tool="rogue_reroll">
             <div class="tbt">深渊连战·一键重开 <span class="tbava"></span></div>
-            <div class="hint">狂热激战式爬塔(700099)整局重开:<b>随机重摇全部楼层</b>(小怪房/领主战/机兵/降临讨伐/女帝/无幻之宴/塔层/终始之龙)+ <b>boss 属性</b> + <b>场地效果</b>(敌抗/敌弱/免疫)→ <b>清爬塔进度</b>(只清 700099 的 rush 进度与无尽纪录,武器/角色/道具/官方激战不动)→ 发布 CDN → 自动重启游戏。种子留空 = 每次随机;日志里会打出种子,填回可复现同一座塔。改「轮数」后须重启服务端。</div>
+            <div class="hint">狂热激战式爬塔(700099)整局重开:<b>随机重摇全部楼层</b>(小怪房/领主战/机兵/降临讨伐/女帝/无幻之宴/塔层/终始之龙)+ <b>boss 属性</b> + <b>场地效果</b>(敌抗/敌弱/免疫)→ <b>严格 HP 验收</b>(自动保存机器回执+中文报告)→ <b>清爬塔进度</b>(只清 700099 的 rush 进度与无尽纪录,武器/角色/道具/官方激战不动)→ 发布 CDN → 自动重启游戏。种子留空 = 每次随机;日志里会打出种子,填回可复现同一座塔。改「轮数」后须重启服务端。</div>
             <div class="row">
               <label>轮数</label><input data-a="rounds" type="number" value="30" style="width:64px" title="爬塔总轮数;与线上不同时服务端 json 变化,须重启 start-cn.bat">
               <label>敌等级</label><input data-a="enemy-level" type="number" placeholder="80" style="width:64px">
@@ -1046,6 +1046,7 @@ td.ldesc{color:var(--okfg);font-size:11px;white-space:normal;max-width:250px;lin
             </div>
             <div class="hint">生成规则:第1层热身、末层终始之龙、比例锚落位领主战/机兵/降临/女帝/无幻之宴;
               过 1/3 后只出真 boss;同模型族全塔不重复;近 3 塔出过的 boss 降权;所有楼层过四重防崩门禁。
+              GUI 默认启用<b>严格 Boss HP</b>:代理、未归一或无法安全改血的候选会重抽；每次预览/生成都会输出机器回执和中文验收报告路径。
               <b>改层数后需重启服务端</b>(一键重开会提示)。</div>
           </div>
           <pre id="ngOut" class="rgLog"></pre>
@@ -4068,7 +4069,8 @@ async function twLoad(){
   const bad=d.floors.filter(f=>!f.ok).length;
   const st=$('#rgStatus');
   if(st)st.innerHTML='当前 <b>'+d.count+'</b> 层 · '+
-    (bad?'<span class="bad">'+bad+' 层异常</span>':'<span class="good">全部通过门禁</span>');
+    (bad?'<span class="bad">'+bad+' 层异常</span>':
+      '<span class="good">静态解析链通过 · 未真机验证</span>');
 }
 // 当前设计参数(后端实时从代码读,不写死在前端,免得改了代码文档两头对不上)
 function twDesign(g){
@@ -4151,7 +4153,8 @@ function twRender(){
   $('#twBody').innerHTML=rows||'<tr><td colspan="12" class="empty">无</td></tr>';
   const nMix=all.filter(f=>f.composed).length, nBad=all.filter(f=>!f.ok).length;
   $('#twSummary').innerHTML='共 <b>'+all.length+'</b> 关 · 拼接 <b>'+nMix+'</b> · '+
-    (nBad?'<span class="bad">异常 '+nBad+'</span>':'<span class="good">全绿</span>');
+    (nBad?'<span class="bad">异常 '+nBad+'</span>':
+      '<span class="good">静态解析链全绿 · 未真机验证</span>');
 }
 
 // ---- 生成 ----
@@ -4170,7 +4173,9 @@ async function ngRun(mode){
   if(mode!=='preview')b.publish=(mode==='publish');
   $('#ngOut').textContent='执行中…';
   let r; try{r=await api('/rogue/build',{...b,dry_run:mode==='preview'});}catch(e){$('#ngOut').textContent='失败';return;}
-  $('#ngOut').textContent=r.log||'(无输出)';
+  const proof=(r.ok&&r.verification_scope==='static_dry_run'&&r.gameplay_verified===false)
+    ?'【静态门禁通过 · 未真机验证】\n':'';
+  $('#ngOut').textContent=proof+(r.log||'(无输出)');
   if(mode!=='preview'){TW_DATA=null;twLoad();log('塔已生成');}
 }
 

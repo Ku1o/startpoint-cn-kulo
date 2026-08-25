@@ -170,6 +170,23 @@ def _scaled_text(value: str, factor: float, *, label: str) -> str:
     return str(rounded)
 
 
+def _scaled_number_text(value: str, factor: float, *, label: str) -> str:
+    """Scale a numeric coefficient without quantizing it to an integer.
+
+    Dedicated phase HP columns are integer health points, but ``boss_level.c2``
+    is a floating-point coefficient (the general Boss adapter already writes
+    it as such).  Rounding c2 to an integer can miss a strict final HP target by
+    almost one full client curve step.
+    """
+    scaled = _positive(value, label=label) * factor
+    if not math.isfinite(scaled) or scaled <= 0:
+        raise OrochiExHpError(f"{label} scaled to an invalid value: {scaled!r}")
+    rendered = format(scaled, ".12g")
+    if _positive(rendered, label=label) <= 0:
+        raise OrochiExHpError(f"{label} formatted to a non-positive value")
+    return rendered
+
+
 def build_scaled_hp_rows(
     dedicated: dict[str, Any], boss_level: dict[str, Any],
     source_code: str, target_code: str, *,
@@ -225,7 +242,7 @@ def build_scaled_hp_rows(
         )
 
     old_middle = _positive(level_row[2], label=f"boss_level[{source}].c2")
-    level_row[2] = _scaled_text(
+    level_row[2] = _scaled_number_text(
         level_row[2], middle_factor, label=f"boss_level[{source}].c2"
     )
     report = {

@@ -1,8 +1,12 @@
 # -*- coding: utf-8 -*-
 """深渊连战活动元数据生成回归测试。"""
+import copy
+import subprocess
 import sys
+import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import wf_rogue_build as rogue_build  # noqa: E402
@@ -109,8 +113,10 @@ class TestRushEventMetadata(unittest.TestCase):
         self.assertTrue(audit["target_exempt"])
         self.assertEqual(2000.0, audit["true_hp"])
         self.assertEqual(20.0, audit["realized_dps"])
-        records = [{"r": 1, "baseline_dps": 1.0, "warmup": True}]
-        records.extend({"r": r, "baseline_dps": 50.0} for r in range(2, 7))
+        records = [{"r": 1, "baseline_dps": 1.0,
+                    "target_dps": 1.0, "warmup": True}]
+        records.extend({"r": r, "baseline_dps": 50.0, "target_dps": 50.0}
+                       for r in range(2, 7))
         records.append(audit)
         self.assertEqual([], rogue_build.hp_curve_errors(
             records, 7, last_band=(40.0, 60.0)))
@@ -161,6 +167,280 @@ class TestBossKindSynchronization(unittest.TestCase):
         self.assertIsNone(kind_of("general_enemy", 1))
         self.assertIsNone(kind_of("standard_enemy", 0))
         self.assertIsNone(kind_of("special_enemy", 6))
+
+
+class TestHpAdapterAudit(unittest.TestCase):
+    @staticmethod
+    def general_native(values, *, evidence="absolute"):
+        return {
+            "verified": True,
+            "absolute_verified": evidence == "absolute",
+            "native_hp": float(sum(values)),
+            "components": [
+                {
+                    "code": "duplicate_boss",
+                    "boss_occurrence": index,
+                    "kind": "general",
+                    "hp_curve_kind": "hit",
+                    "evidence_kind": evidence,
+                    "native_hp": float(value),
+                }
+                for index, value in enumerate(values, start=1)
+            ],
+        }
+
+    def test_standard_parser_retains_each_health_form_index(self):
+        got = rogue_build.standard_enemy_hp_base({
+            "au": [
+                {"d": ["T1", 100.0]},
+                {"d": ["T2"]},
+                {"d": ["T1", 250.0]},
+            ],
+        })
+
+        self.assertEqual((100.0, 250.0), got["health_terms"])
+        self.assertEqual(
+            ({"form_index": 0, "base_hp": 100.0},
+             {"form_index": 2, "base_hp": 250.0}),
+            got["health_forms"],
+        )
+
+    def test_standard_readback_floors_once_per_boss_occurrence(self):
+        same_boss = {
+            "components": [
+                {"code": "standard", "boss_occurrence": 1,
+                 "kind": "standard", "native_hp": 1.65},
+                {"code": "standard", "boss_occurrence": 1,
+                 "kind": "standard", "native_hp": 1.65},
+            ],
+        }
+        repeated_boss = {
+            "components": [
+                {"code": "standard", "boss_occurrence": 1,
+                 "kind": "standard", "native_hp": 1.65},
+                {"code": "standard", "boss_occurrence": 2,
+                 "kind": "standard", "native_hp": 1.65},
+            ],
+        }
+
+        self.assertEqual(3.0, rogue_build._true_hp_at_c86(same_boss, 1.0))
+        self.assertEqual(2.0, rogue_build._true_hp_at_c86(repeated_boss, 1.0))
+
+    def test_floor_native_hp_expands_standard_forms_and_repeated_bosses(self):
+        evidence = {
+            "code": "standard", "selected_level": 80,
+            "logical": "battle/boss/example.esdl.amf3.deflate",
+            "form_count": 3,
+            "health_terms": (100.0, 250.0),
+            "health_forms": (
+                {"form_index": 0, "base_hp": 100.0},
+                {"form_index": 2, "base_hp": 250.0},
+            ),
+            "base_hp": 350.0,
+        }
+        with mock.patch.object(
+                rogue_build, "standard_boss_hp_evidence",
+                return_value=evidence):
+            got = rogue_build.floor_native_hp(
+                ["standard", "standard"], 80,
+                standard_boss={"standard": {}}, boss_level={}, orochi_ex={},
+            )
+
+        self.assertTrue(got["verified"])
+        self.assertTrue(got["absolute_verified"])
+        self.assertEqual(385.0, got["native_hp"])
+        self.assertEqual([1, 1, 2, 2], [part["boss_occurrence"]
+                                       for part in got["components"]])
+        self.assertEqual(
+            ["form[0]", "form[2]", "form[0]", "form[2]"],
+            [part["phase"] for part in got["components"]],
+        )
+
+    def test_adapter_keeps_duplicate_occurrences_and_reads_final_clone(self):
+        native = self.general_native([100.0, 100.0])
+        final_native = self.general_native([200.0, 200.0])
+
+        receipt = rogue_build.build_hp_adaptation_audit(
+            8, native, family="general", channel="boss_level",
+            destination="boss_level.c2",
+            baseline_target_hp=200.0, final_target_hp=400.0,
+            baseline_c86=1.0, final_c86=1.0,
+            readback_native=final_native,
+            baseline_component_hp=(100.0, 100.0),
+        )
+
+        self.assertEqual(2, len(receipt.components))
+        self.assertEqual([1, 2], [part.boss_occurrence
+                                  for part in receipt.components])
+        self.assertEqual(0.0, receipt.baseline_error_hp)
+        self.assertEqual(0.0, receipt.final_error_hp)
+        self.assertTrue(receipt.within_tolerance)
+
+    def test_adapter_records_each_boss_destination_instead_of_floor_union(self):
+        native = self.general_native([100.0, 300.0])
+        final_native = self.general_native([200.0, 600.0])
+        native["components"][0]["code"] = "hit"
+        native["components"][1]["code"] = "fix"
+        final_native["components"][0]["code"] = "clone_hit"
+        final_native["components"][1]["code"] = "clone_fix"
+        receipt = rogue_build.build_hp_adaptation_audit(
+            8, native, family="general", channel="boss_level",
+            destination={"hit": "boss_level.c2", "fix": "boss_level.c5"},
+            baseline_target_hp=400.0, final_target_hp=800.0,
+            baseline_c86=1.0, final_c86=1.0,
+            readback_native=final_native,
+            baseline_component_hp=(100.0, 300.0),
+        )
+        self.assertEqual(
+            ["boss_level.c2", "boss_level.c5"],
+            [part.destination for part in receipt.components])
+
+    def test_strict_gate_rejects_proxy_exemption_and_readback_error(self):
+        native = self.general_native([100.0])
+        receipt = rogue_build.build_hp_adaptation_audit(
+            9, native, family="general", channel="boss_level",
+            destination="boss_level.c2",
+            baseline_target_hp=90.0, final_target_hp=90.0,
+            baseline_c86=1.0, final_c86=1.0,
+        )
+        audit = {
+            "r": 9, "verified": True, "absolute_verified": False,
+            "target_exempt": True, "adapter_audit": receipt,
+        }
+
+        errors = rogue_build.strict_target_hp_errors([audit])
+
+        self.assertTrue(any("target_exempt" in error for error in errors))
+        self.assertTrue(any("代理 HP" in error for error in errors))
+        self.assertTrue(any("回读超差" in error for error in errors))
+
+    def test_strict_candidate_requires_absolute_evidence(self):
+        metrics = {
+            "native": self.general_native([100.0], evidence="proxy"),
+            "hp_channel": "boss_level",
+        }
+        self.assertEqual(
+            "strict-proxy-evidence",
+            rogue_build.strict_hp_candidate_error(metrics),
+        )
+        metrics["native"] = self.general_native([100.0])
+        self.assertIsNone(rogue_build.strict_hp_candidate_error(metrics))
+
+    def test_verified_audit_renders_deterministic_non_developer_report(self):
+        native = self.general_native([100.0])
+        receipt = rogue_build.build_hp_adaptation_audit(
+            2, native, family="general", channel="boss_level",
+            destination="boss_level.c2",
+            baseline_target_hp=100.0, final_target_hp=100.0,
+            baseline_c86=1.0, final_c86=1.0,
+        )
+        document = rogue_build.build_hp_audit_document(
+            seed=20260825, rounds=2, difficulty="hell",
+            enemy_level="ramp",
+            hp_audits=[{
+                "r": 2, "adapter_audit": receipt,
+                "verified": True, "absolute_verified": True,
+                "target_exempt": False,
+            }],
+            floor_records=[{
+                "r": 2,
+                "pick": {
+                    "field": "source_field", "play_field": "mod_rogue_f2",
+                    "level": 100, "bosses": ["duplicate_boss"],
+                    "runtime_bosses": ["mod_rogue_boss2"],
+                },
+                "curse": {
+                    "picks": [{"name": "术式扰流"}],
+                    "combo": None,
+                    "desc": "「术式扰流」技能耐性40%",
+                },
+            }],
+            chain_reports=[
+                {"round": "1", "ok": True},
+                {"round": "2", "ok": True},
+                {"round": "99", "ok": True},
+            ],
+        )
+        expected_hash = document["tool"]["sha256"]
+        self.assertEqual("wf-rogue-hp-audit/v2", document["schema"])
+        self.assertEqual("static_dry_run", document["verification_scope"])
+        self.assertIs(document["gameplay_verified"], False)
+        first = rogue_build.render_hp_audit_report(
+            document, expected_tool_sha256=expected_hash)
+        second = rogue_build.render_hp_audit_report(
+            copy.deepcopy(document), expected_tool_sha256=expected_hash)
+        self.assertEqual(first, second)
+        self.assertIn("静态严格验收通过", first)
+        self.assertIn("Boss 关绝对证据：`1/1`", first)
+        self.assertIn("`static_dry_run`", first)
+        self.assertIn("gameplay_verified=false", first)
+        self.assertIn("- [ ] 真机进入关卡", first)
+        self.assertIn("不证明已经发布或落库", first)
+        self.assertEqual(["术式扰流"], document["floors"][0]["curse_names"])
+        self.assertIn("## 逐关逐阶段明细", first)
+        self.assertIn("「术式扰流」技能耐性40%", first)
+        self.assertEqual(0, document["summary"]["source_proxy_components"])
+
+        # source_proxy_components was added to schema v2 as an audit detail.
+        # A receipt produced by an older v2 tool did not distinguish source
+        # and final evidence, so it must remain verifiable/renderable using
+        # final proxy_components as the conservative fallback.
+        legacy = copy.deepcopy(document)
+        legacy["summary"].pop("source_proxy_components")
+        legacy["document_sha256"] = rogue_build.hp_audit_document_digest(legacy)
+        self.assertEqual([], rogue_build.verify_hp_audit_document(
+            legacy, expected_tool_sha256=expected_hash))
+        self.assertIn("源代理组件：`0`", rogue_build.render_hp_audit_report(
+            legacy, expected_tool_sha256=expected_hash))
+
+        tampered = copy.deepcopy(document)
+        tampered["summary"]["proxy_components"] = 1
+        with self.assertRaisesRegex(ValueError, "拒绝生成绿色报告"):
+            rogue_build.render_hp_audit_report(tampered)
+
+        # 即使攻击者重算摘要，静态回执也不能自称真机通过；缺 scope 同样拒绝。
+        for key, value, needle in (
+                ("gameplay_verified", True, "gameplay_verified"),
+                ("verification_scope", None, "verification_scope")):
+            forged = copy.deepcopy(document)
+            if value is None:
+                forged.pop(key)
+            else:
+                forged[key] = value
+            forged["document_sha256"] = rogue_build.hp_audit_document_digest(forged)
+            verification_errors = rogue_build.verify_hp_audit_document(
+                forged, expected_tool_sha256=expected_hash)
+            self.assertTrue(any(needle in error for error in verification_errors))
+            with self.assertRaisesRegex(ValueError, "拒绝生成绿色报告"):
+                rogue_build.render_hp_audit_report(
+                    forged, expected_tool_sha256=expected_hash)
+
+        with tempfile.TemporaryDirectory() as tmp:
+            audit_path = Path(tmp) / "audit.json"
+            report_path = Path(tmp) / "report.md"
+            rogue_build.write_hp_audit_document(str(audit_path), document)
+            result = subprocess.run(
+                [sys.executable, str(Path(rogue_build.__file__).resolve()),
+                 "--verify-audit-json", str(audit_path),
+                 "--audit-report", str(report_path)],
+                capture_output=True, text=True, encoding="utf-8",
+                errors="replace", timeout=30,
+            )
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertIn("中文验收报告已生成", result.stdout)
+            self.assertEqual(report_path.read_text(encoding="utf-8"), first)
+
+            original_json = audit_path.read_bytes()
+            overwrite = subprocess.run(
+                [sys.executable, str(Path(rogue_build.__file__).resolve()),
+                 "--verify-audit-json", str(audit_path),
+                 "--audit-report", str(audit_path)],
+                capture_output=True, text=True, encoding="utf-8",
+                errors="replace", timeout=30,
+            )
+            self.assertNotEqual(overwrite.returncode, 0)
+            self.assertIn("不得覆盖", overwrite.stdout)
+            self.assertEqual(audit_path.read_bytes(), original_json)
 
 
 if __name__ == "__main__":
