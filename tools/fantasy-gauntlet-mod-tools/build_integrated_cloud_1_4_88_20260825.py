@@ -1201,6 +1201,30 @@ def prepare_server_files() -> dict[str, Any]:
         "target_sha256": sha256_bytes(gacha_raw),
         "mode": "replace-only-top-level-990001-value",
     })
+    gacha_cnmod_source = SOURCE_ROOT / "assets/gacha_cnmod.json"
+    gacha_cnmod_raw, gacha_cnmod_report = mutate_server_gacha(
+        gacha_cnmod_source.read_bytes()
+    )
+    if json.loads(gacha_raw)["990001"] != json.loads(gacha_cnmod_raw)["990001"]:
+        raise BuildError(
+            "effective abyss pool differs between gacha.json and gacha_cnmod.json"
+        )
+    gacha_cnmod_target = output_root / "assets/gacha_cnmod.json"
+    gacha_cnmod_target.write_bytes(gacha_cnmod_raw)
+    gacha_report["runtime_sources"] = {
+        "assets/gacha.json": {
+            "sha256": sha256_bytes(gacha_raw),
+        },
+        "assets/gacha_cnmod.json": {
+            "base_sha256": sha256_file(gacha_cnmod_source),
+            "sha256": sha256_bytes(gacha_cnmod_raw),
+            "idempotent_target_source": gacha_cnmod_report.get(
+                "idempotent_target_source", False
+            ),
+            "runtime_precedence": "winning_override",
+        },
+    }
+    gacha_report["effective_runtime_sources_identical"] = True
 
     tower_server = TOWER_ROOT / "server-root/server/assets"
     tower_rows: dict[str, Any] = {}
