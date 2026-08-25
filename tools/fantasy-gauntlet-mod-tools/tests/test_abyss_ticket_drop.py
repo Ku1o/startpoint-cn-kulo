@@ -14,7 +14,7 @@ import wf_abyss_ticket_drop as drop  # noqa: E402
 
 
 LEGACY = {"type": 0, "id": 999001, "count": 1, "chance": 0.3}
-TARGET = {"type": 0, "id": 999014, "count": 1, "chance": 0.05}
+TARGET = {"type": 0, "id": 999014, "count": 1, "chance": 0.10}
 OTHER_REWARD = {"type": 0, "id": 11003, "count": 1, "chance": 0.5}
 
 

@@ -1,0 +1,72 @@
+{
+  "schema": "wf-character-asset-case/v1",
+  "character_id": "149996",
+  "asset_kind": "active_skill_effect",
+  "status": "offline_verified_device_pending",
+  "supersedes": {
+    "candidate": "../../../work/149996-active-skill-effect-final-20260825",
+    "reason": "双 Flatomo 分支在真机触发 F1125 / RangeError #1125"
+  },
+  "promotion_gate": {
+    "required_status": "device_accepted_reusable_baseline",
+    "checks": [
+      "skill_level_1_runtime",
+      "skill_level_2_runtime",
+      "skill_level_3_runtime",
+      "effect_position_and_angle",
+      "single_central_effect",
+      "single_sound_playback",
+      "hit_timing_and_damage_unchanged",
+      "solo_and_multiplayer_stability"
+    ]
+  },
+  "source": {
+    "effect_reference": "battle/effect/skill_unique/wind_spgirl/wind_spgirl",
+    "replacement_archive_sha256": "8d37a0bea066b1662a9da27f1552a9973bfe0db2e2fc475d555374e1e46b2f4c",
+    "replacement_cells": [
+      "f",
+      "i",
+      "r",
+      "s",
+      "t",
+      "u",
+      "v",
+      "w"
+    ]
+  },
+  "target": {
+    "effect_reference": "battle/effect/skill_unique/wind_spgirl_swim/wind_spgirl_swim",
+    "layout": {
+      "kind": "baked-raster-x",
+      "scope": "atlas-cells",
+      "visual_branches": 2,
+      "runtime_branches": 1,
+      "half_angle_degrees": 15.0,
+      "included_angle_degrees": 30.0,
+      "baked_cells": [
+        "w"
+      ],
+      "groups_added": 0,
+      "segments_added": 0,
+      "matrices_added": 0,
+      "central_effect_instances": 1,
+      "sound_instances": 1,
+      "gameplay_geometry_changed": false
+    }
+  },
+  "source_rule": "../wf_spgirl_effect.py",
+  "tests": [
+    "../tests/test_effect_cell_reskin.py",
+    "../tests/test_spgirl_effect.py"
+  ],
+  "offline_candidate": "../../../work/149996-active-skill-effect-safe-20260825",
+  "release_policy": {
+    "publish_from_work_directory": false,
+    "publish_only_by_explicit_integration_step": true,
+    "require_source_archive_hash": true,
+    "require_compiled_resource_hashes": true,
+    "require_exactly_one_dsl_reference_rewrite_per_skill_level": true,
+    "require_parts_topology_equal_to_original": true,
+    "forbid_runtime_branch_duplication": true
+  }
+}

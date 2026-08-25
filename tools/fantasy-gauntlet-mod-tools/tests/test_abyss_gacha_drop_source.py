@@ -14,7 +14,7 @@ import wf_mod_tool as core
 class DropSourceTests(unittest.TestCase):
     def _server(self):
         return {"events": {"700099": {"folder_clear_chance": [
-            {"type": 0, "id": 999014, "count": 1, "chance": 0.05},
+            {"type": 0, "id": 999014, "count": 1, "chance": 0.10},
             {"type": 0, "id": 11003, "count": 1, "chance": 0.5},
         ]}}}
 
@@ -24,12 +24,12 @@ class DropSourceTests(unittest.TestCase):
         self.assertEqual({
             "event_id": 700099,
             "rewards": [
-                {"folder_id": 1, "type": 0, "id": 999014, "count": 1, "chance": 0.05},
+                {"folder_id": 1, "type": 0, "id": 999014, "count": 1, "chance": 0.10},
                 {"folder_id": 1, "type": 0, "id": 11003, "count": 1, "chance": 0.5},
             ],
         }, module.parse_drop_source(payload))
         self.assertEqual(
-            {"700099": "1,0,999014,1,0.05\n1,0,11003,1,0.5"},
+            {"700099": "1,0,999014,1,0.1\n1,0,11003,1,0.5"},
             core.read_orderedmap_file_from_bytes(payload),
         )
 

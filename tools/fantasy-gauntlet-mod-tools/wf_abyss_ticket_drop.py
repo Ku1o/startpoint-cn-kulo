@@ -18,7 +18,7 @@ LEGACY_REWARD: Mapping[str, int | float] = MappingProxyType(
     {"type": 0, "id": LEGACY_TICKET_ID, "count": 1, "chance": 0.3}
 )
 TARGET_REWARD: Mapping[str, int | float] = MappingProxyType(
-    {"type": 0, "id": TARGET_TICKET_ID, "count": 1, "chance": 0.05}
+    {"type": 0, "id": TARGET_TICKET_ID, "count": 1, "chance": 0.10}
 )
 
 
@@ -106,7 +106,7 @@ def validate_final_normal_boundary(rush_event_quests: dict[str, object]) -> None
 def build_final_ticket_drop(
     source: dict[str, object], rush_event_quests: dict[str, object]
 ) -> dict[str, object]:
-    """把 30% 通用十连券原位替换为 5% 深渊十连券。"""
+    """把 30% 通用十连券原位替换为 10% 深渊十连券。"""
     validate_final_normal_boundary(rush_event_quests)
     event = _event_config(source)
     entries = event["folder_clear_chance"]

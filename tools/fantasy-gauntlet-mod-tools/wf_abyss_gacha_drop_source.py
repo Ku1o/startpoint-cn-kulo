@@ -13,11 +13,11 @@ import wf_mod_tool as core
 LOGICAL_PATH = "master/quest/event/cnmod_rogue_event.orderedmap"
 EVENT_KEY = "700099"
 EXPECTED_REWARDS = (
-    {"type": 0, "id": 999014, "count": 1, "chance": 0.05},
+    {"type": 0, "id": 999014, "count": 1, "chance": 0.10},
     {"type": 0, "id": 11003, "count": 1, "chance": 0.5},
 )
 EXPECTED_ROWS = (
-    ("1", "0", "999014", "1", "0.05"),
+    ("1", "0", "999014", "1", "0.1"),
     ("1", "0", "11003", "1", "0.5"),
 )
 

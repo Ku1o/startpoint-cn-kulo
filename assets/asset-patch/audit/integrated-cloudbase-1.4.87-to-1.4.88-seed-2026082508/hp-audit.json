@@ -1,0 +1,3015 @@
+{
+  "chain_reports": [
+    {
+      "bosses": [],
+      "errors": [],
+      "field": "main_9_7_2",
+      "ok": true,
+      "quest_id": "700099001",
+      "round": "1",
+      "zakos": [
+        "abyss_beast1"
+      ],
+      "zone": "main_9_7_2"
+    },
+    {
+      "bosses": [
+        "mod_rogue_boss2"
+      ],
+      "errors": [],
+      "field": "mod_rogue_f2",
+      "ok": true,
+      "quest_id": "700099002",
+      "round": "2",
+      "zakos": [
+        "cobra",
+        "cyclops",
+        "land_dragon",
+        "paralysis_hedgehog"
+      ],
+      "zone": "mod_rogue_z2"
+    },
+    {
+      "bosses": [
+        "mod_rogue_thunder_sphere3"
+      ],
+      "errors": [],
+      "field": "mod_rogue_f3",
+      "ok": true,
+      "quest_id": "700099003",
+      "round": "3",
+      "zakos": [],
+      "zone": "mod_rogue_z3"
+    },
+    {
+      "bosses": [
+        "mod_rogue_wind_sphere4"
+      ],
+      "errors": [],
+      "field": "mod_rogue_f4",
+      "ok": true,
+      "quest_id": "700099004",
+      "round": "4",
+      "zakos": [],
+      "zone": "mod_rogue_z4"
+    },
+    {
+      "bosses": [
+        "mod_rogue_boss5"
+      ],
+      "errors": [],
+      "field": "mod_rogue_f5",
+      "ok": true,
+      "quest_id": "700099005",
+      "round": "5",
+      "zakos": [],
+      "zone": "mod_rogue_z5"
+    },
+    {
+      "bosses": [
+        "arc_guardian_pcollab_02_multi",
+        "mod_rogue_standard6"
+      ],
+      "errors": [],
+      "field": "mod_rogue_f6",
+      "ok": true,
+      "quest_id": "700099006",
+      "round": "6",
+      "zakos": [],
+      "zone": "mod_rogue_z6"
+    },
+    {
+      "bosses": [
+        "mod_rogue_water_sphere7"
+      ],
+      "errors": [],
+      "field": "mod_rogue_f7",
+      "ok": true,
+      "quest_id": "700099007",
+      "round": "7",
+      "zakos": [],
+      "zone": "mod_rogue_z7"
+    },
+    {
+      "bosses": [
+        "mod_rogue_boss8"
+      ],
+      "errors": [],
+      "field": "mod_rogue_f8",
+      "ok": true,
+      "quest_id": "700099008",
+      "round": "8",
+      "zakos": [],
+      "zone": "mod_rogue_z8"
+    },
+    {
+      "bosses": [
+        "mod_rogue_boss9"
+      ],
+      "errors": [],
+      "field": "mod_rogue_f9",
+      "ok": true,
+      "quest_id": "700099009",
+      "round": "9",
+      "zakos": [],
+      "zone": "mod_rogue_z9"
+    },
+    {
+      "bosses": [
+        "mod_rogue_boss10"
+      ],
+      "errors": [],
+      "field": "mod_rogue_f10",
+      "ok": true,
+      "quest_id": "700099010",
+      "round": "10",
+      "zakos": [],
+      "zone": "mod_rogue_z10"
+    },
+    {
+      "bosses": [
+        "mod_rogue_touyakiren_ceo11"
+      ],
+      "errors": [],
+      "field": "mod_rogue_f11",
+      "ok": true,
+      "quest_id": "700099011",
+      "round": "11",
+      "zakos": [],
+      "zone": "mod_rogue_z11"
+    },
+    {
+      "bosses": [
+        "mod_rogue_boss12"
+      ],
+      "errors": [],
+      "field": "mod_rogue_f12",
+      "ok": true,
+      "quest_id": "700099012",
+      "round": "12",
+      "zakos": [],
+      "zone": "mod_rogue_z12"
+    },
+    {
+      "bosses": [
+        "mod_rogue_standard13"
+      ],
+      "errors": [],
+      "field": "mod_rogue_f13",
+      "ok": true,
+      "quest_id": "700099013",
+      "round": "13",
+      "zakos": [],
+      "zone": "mod_rogue_z13"
+    },
+    {
+      "bosses": [
+        "mod_rogue_boss14"
+      ],
+      "errors": [],
+      "field": "mod_rogue_f14",
+      "ok": true,
+      "quest_id": "700099014",
+      "round": "14",
+      "zakos": [],
+      "zone": "mod_rogue_z14"
+    },
+    {
+      "bosses": [
+        "mod_rogue_standard15",
+        "mod_rogue_standard15_2"
+      ],
+      "errors": [],
+      "field": "mod_rogue_f15",
+      "ok": true,
+      "quest_id": "700099015",
+      "round": "15",
+      "zakos": [],
+      "zone": "mod_rogue_z15"
+    },
+    {
+      "bosses": [
+        "mod_rogue_standard16"
+      ],
+      "errors": [],
+      "field": "mod_rogue_f16",
+      "ok": true,
+      "quest_id": "700099016",
+      "round": "16",
+      "zakos": [],
+      "zone": "mod_rogue_z16"
+    },
+    {
+      "bosses": [
+        "mod_rogue_standard17"
+      ],
+      "errors": [],
+      "field": "mod_rogue_f17",
+      "ok": true,
+      "quest_id": "700099017",
+      "round": "17",
+      "zakos": [],
+      "zone": "mod_rogue_z17"
+    },
+    {
+      "bosses": [
+        "mod_rogue_standard18"
+      ],
+      "errors": [],
+      "field": "mod_rogue_f18",
+      "ok": true,
+      "quest_id": "700099018",
+      "round": "18",
+      "zakos": [],
+      "zone": "mod_rogue_z18"
+    },
+    {
+      "bosses": [
+        "mod_rogue_boss19"
+      ],
+      "errors": [],
+      "field": "mod_rogue_f19",
+      "ok": true,
+      "quest_id": "700099019",
+      "round": "19",
+      "zakos": [],
+      "zone": "mod_rogue_z19"
+    },
+    {
+      "bosses": [
+        "mod_rogue_boss20"
+      ],
+      "errors": [],
+      "field": "mod_rogue_f20",
+      "ok": true,
+      "quest_id": "700099020",
+      "round": "20",
+      "zakos": [],
+      "zone": "mod_rogue_z20"
+    },
+    {
+      "bosses": [
+        "mod_rogue_standard21"
+      ],
+      "errors": [],
+      "field": "mod_rogue_f21",
+      "ok": true,
+      "quest_id": "700099021",
+      "round": "21",
+      "zakos": [],
+      "zone": "mod_rogue_z21"
+    },
+    {
+      "bosses": [
+        "mod_rogue_boss22"
+      ],
+      "errors": [],
+      "field": "mod_rogue_f22",
+      "ok": true,
+      "quest_id": "700099022",
+      "round": "22",
+      "zakos": [],
+      "zone": "mod_rogue_z22"
+    },
+    {
+      "bosses": [
+        "mod_rogue_boss23"
+      ],
+      "errors": [],
+      "field": "mod_rogue_f23",
+      "ok": true,
+      "quest_id": "700099023",
+      "round": "23",
+      "zakos": [],
+      "zone": "mod_rogue_z23"
+    },
+    {
+      "bosses": [
+        "mod_rogue_orochi_ex24"
+      ],
+      "errors": [],
+      "field": "mod_rogue_f24",
+      "ok": true,
+      "quest_id": "700099024",
+      "round": "24",
+      "zakos": [],
+      "zone": "mod_rogue_z24"
+    },
+    {
+      "bosses": [
+        "mod_rogue_orochi25"
+      ],
+      "errors": [],
+      "field": "mod_rogue_f25",
+      "ok": true,
+      "quest_id": "700099025",
+      "round": "25",
+      "zakos": [],
+      "zone": "mod_rogue_z25"
+    },
+    {
+      "bosses": [
+        "mod_rogue_boss26"
+      ],
+      "errors": [],
+      "field": "mod_rogue_f26",
+      "ok": true,
+      "quest_id": "700099026",
+      "round": "26",
+      "zakos": [],
+      "zone": "mod_rogue_z26"
+    },
+    {
+      "bosses": [
+        "mod_rogue_boss27"
+      ],
+      "errors": [],
+      "field": "mod_rogue_f27",
+      "ok": true,
+      "quest_id": "700099027",
+      "round": "27",
+      "zakos": [
+        "evil_weak"
+      ],
+      "zone": "mod_rogue_z27"
+    },
+    {
+      "bosses": [
+        "mod_rogue_conductor28"
+      ],
+      "errors": [],
+      "field": "mod_rogue_f28",
+      "ok": true,
+      "quest_id": "700099028",
+      "round": "28",
+      "zakos": [],
+      "zone": "mod_rogue_z28"
+    },
+    {
+      "bosses": [
+        "mod_rogue_standard29",
+        "mod_rogue_standard29_2"
+      ],
+      "errors": [],
+      "field": "mod_rogue_f29",
+      "ok": true,
+      "quest_id": "700099029",
+      "round": "29",
+      "zakos": [],
+      "zone": "mod_rogue_z29"
+    },
+    {
+      "bosses": [
+        "mod_rogue_standard30"
+      ],
+      "errors": [],
+      "field": "mod_rogue_f30",
+      "ok": true,
+      "quest_id": "700099030",
+      "round": "30",
+      "zakos": [],
+      "zone": "mod_rogue_z30"
+    },
+    {
+      "bosses": [
+        "ghost_girl"
+      ],
+      "errors": [],
+      "field": "tower_dungeon_area_9_5_2",
+      "ok": true,
+      "quest_id": "700099099",
+      "round": "99",
+      "zakos": [],
+      "zone": "tower_dungeon_area_9_5_2"
+    }
+  ],
+  "document_sha256": "bedd02d31e7033a67ca4110b6cf9232eb59c3b82088ec3788abe48b91dc5f4a6",
+  "event_id": "700099",
+  "floors": [
+    {
+      "absolute_verified": true,
+      "adapter": {
+        "abs_tolerance_hp": 1.0,
+        "absolute_verified": true,
+        "baseline_c86": 1.0,
+        "baseline_error_hp": 0.05937004089355469,
+        "baseline_readback_hp": 3000000000.05937,
+        "baseline_target_hp": 3000000000.0,
+        "channel": "boss_level",
+        "components": [
+          {
+            "baseline_error_hp": 0.05937004089355469,
+            "baseline_readback_hp": 3000000000.05937,
+            "baseline_target_hp": 3000000000.0,
+            "boss_occurrence": 1,
+            "channel": "boss_level",
+            "code": "land_dragon",
+            "destination": "boss_level.c2+c4",
+            "evidence_kind": "absolute",
+            "final_error_hp": 0.05937004089355469,
+            "final_readback_hp": 3000000000.05937,
+            "final_target_hp": 3000000000.0,
+            "kind": "general",
+            "native_hp": 9076706.1,
+            "occurrence": 1,
+            "phase": "main",
+            "readback_code": "mod_rogue_boss2",
+            "selected_level": null,
+            "source": "master/battle/boss/boss_level.orderedmap:land_dragon",
+            "source_evidence_kind": "proxy"
+          }
+        ],
+        "destination": "boss_level.c2+c4",
+        "family": "general",
+        "final_c86": 1.0,
+        "final_error_hp": 0.05937004089355469,
+        "final_readback_hp": 3000000000.05937,
+        "final_target_hp": 3000000000.0,
+        "rel_tolerance": 0.0001,
+        "round_no": 2,
+        "within_tolerance": true
+      },
+      "curse_combo": null,
+      "curse_description": "「混相禁域」雷伤害减半",
+      "curse_hp_multiplier": 1.0,
+      "curse_names": [
+        "混相禁域"
+      ],
+      "enemy_level": 80,
+      "field": "main_4_10_1",
+      "play_field": "mod_rogue_f2",
+      "round": 2,
+      "runtime_bosses": [
+        "mod_rogue_boss2"
+      ],
+      "source_bosses": [
+        "land_dragon"
+      ],
+      "target_exempt": false,
+      "verified": true
+    },
+    {
+      "absolute_verified": true,
+      "adapter": {
+        "abs_tolerance_hp": 1.0,
+        "absolute_verified": true,
+        "baseline_c86": 1.0,
+        "baseline_error_hp": -2.8133392333984375e-05,
+        "baseline_readback_hp": 3428571428.5714,
+        "baseline_target_hp": 3428571428.5714283,
+        "channel": "special_bundle",
+        "components": [
+          {
+            "baseline_error_hp": -2.8133392333984375e-05,
+            "baseline_readback_hp": 3428571428.5714,
+            "baseline_target_hp": 3428571428.5714283,
+            "boss_occurrence": 1,
+            "channel": "special_bundle",
+            "code": "thunder_sphere",
+            "destination": "master/battle/boss/thunder_sphere.orderedmap key + master/battle/boss/boss_level.orderedmap.c5",
+            "evidence_kind": "absolute",
+            "final_error_hp": -0.5714282989501953,
+            "final_readback_hp": 3428571428.0,
+            "final_target_hp": 3428571428.5714283,
+            "kind": "special",
+            "native_hp": 125000000.0,
+            "occurrence": 1,
+            "phase": "main",
+            "readback_code": "mod_rogue_thunder_sphere3",
+            "selected_level": 100,
+            "source": "master/battle/boss/boss_level.orderedmap",
+            "source_evidence_kind": "absolute"
+          }
+        ],
+        "destination": "master/battle/boss/thunder_sphere.orderedmap key + master/battle/boss/boss_level.orderedmap.c5/master/battle/boss/thunder_sphere_micronucleus.orderedmap child reference + master/battle/boss/boss_level.orderedmap scaled with parent/master/battle/boss/thunder_sphere_phase4_crystal.orderedmap child reference + master/battle/boss/boss_level.orderedmap scaled with parent",
+        "family": "thunder_sphere",
+        "final_c86": 1.0,
+        "final_error_hp": -0.5714282989501953,
+        "final_readback_hp": 3428571428.0,
+        "final_target_hp": 3428571428.5714283,
+        "phase_behavior": {
+          "final_readback": [
+            {
+              "available_damage_hp": 411428571.4287,
+              "budget_model": "capped_child_hp",
+              "completion_count": 3,
+              "coverage_ratio": 1.0000000000003209,
+              "entity_ids": [
+                "2020030101",
+                "2020030102",
+                "2020030103"
+              ],
+              "entity_occurrence_count": 3,
+              "entry_ratio": 0.96,
+              "exit_ratio": 0.84,
+              "expected_completion_count": 3,
+              "level_codes": [
+                "mod_rogue_thunder_sphere3_g1c1",
+                "mod_rogue_thunder_sphere3_g1c2",
+                "mod_rogue_thunder_sphere3_g1c3"
+              ],
+              "occurrences_per_entity": 1,
+              "overdamage": false,
+              "parent_hp": 3428571428.5714,
+              "phase": "phase[2].micronucleus",
+              "required_damage_hp": 411428571.428568,
+              "verified": true
+            },
+            {
+              "available_damage_hp": 3085714285.7142,
+              "budget_model": "capped_child_hp",
+              "completion_count": 2,
+              "coverage_ratio": 1.499999999999971,
+              "entity_ids": [
+                "2020030301",
+                "2020030302",
+                "2020030303"
+              ],
+              "entity_occurrence_count": 3,
+              "entry_ratio": 0.6,
+              "exit_ratio": 0.0,
+              "expected_completion_count": 2,
+              "level_codes": [
+                "mod_rogue_thunder_sphere3_g3c1",
+                "mod_rogue_thunder_sphere3_g3c2",
+                "mod_rogue_thunder_sphere3_g3c3"
+              ],
+              "occurrences_per_entity": 1,
+              "overdamage": false,
+              "parent_hp": 3428571428.5714,
+              "phase": "phase[4].crystal",
+              "required_damage_hp": 2057142857.14284,
+              "verified": true
+            }
+          ],
+          "source": [
+            {
+              "available_damage_hp": 15000000.0,
+              "budget_model": "capped_child_hp",
+              "completion_count": 3,
+              "coverage_ratio": 1.0,
+              "entity_ids": [
+                "1",
+                "2",
+                "3"
+              ],
+              "entity_occurrence_count": 3,
+              "entry_ratio": 0.96,
+              "exit_ratio": 0.84,
+              "expected_completion_count": 3,
+              "level_codes": [
+                "thunder_sphere_phase2_1",
+                "thunder_sphere_phase2_2",
+                "thunder_sphere_phase2_3"
+              ],
+              "occurrences_per_entity": 1,
+              "overdamage": false,
+              "parent_hp": 125000000.0,
+              "phase": "phase[2].micronucleus",
+              "required_damage_hp": 15000000.0,
+              "verified": true
+            },
+            {
+              "available_damage_hp": 112500000.0,
+              "budget_model": "capped_child_hp",
+              "completion_count": 2,
+              "coverage_ratio": 1.5,
+              "entity_ids": [
+                "1",
+                "2",
+                "3"
+              ],
+              "entity_occurrence_count": 3,
+              "entry_ratio": 0.6,
+              "exit_ratio": 0.0,
+              "expected_completion_count": 2,
+              "level_codes": [
+                "thunder_sphere_micronucleus_1",
+                "thunder_sphere_micronucleus_2",
+                "thunder_sphere_micronucleus_3"
+              ],
+              "occurrences_per_entity": 1,
+              "overdamage": false,
+              "parent_hp": 125000000.0,
+              "phase": "phase[4].crystal",
+              "required_damage_hp": 75000000.0,
+              "verified": true
+            }
+          ],
+          "verified": true
+        },
+        "rel_tolerance": 0.0001,
+        "round_no": 3,
+        "within_tolerance": true
+      },
+      "curse_combo": null,
+      "curse_description": "「深渊重甲」韧性×9·弹耐40%",
+      "curse_hp_multiplier": 1.0,
+      "curse_names": [
+        "深渊重甲"
+      ],
+      "enemy_level": 100,
+      "field": "thunder_sphere",
+      "play_field": "mod_rogue_f3",
+      "round": 3,
+      "runtime_bosses": [
+        "mod_rogue_thunder_sphere3"
+      ],
+      "source_bosses": [
+        "thunder_sphere"
+      ],
+      "target_exempt": false,
+      "verified": true
+    },
+    {
+      "absolute_verified": true,
+      "adapter": {
+        "abs_tolerance_hp": 1.0,
+        "absolute_verified": true,
+        "baseline_c86": 1.0,
+        "baseline_error_hp": 3.3930797576904297,
+        "baseline_readback_hp": 3857142860.535937,
+        "baseline_target_hp": 3857142857.142857,
+        "channel": "special_bundle",
+        "components": [
+          {
+            "baseline_error_hp": 3.3930797576904297,
+            "baseline_readback_hp": 3857142860.535937,
+            "baseline_target_hp": 3857142857.142857,
+            "boss_occurrence": 1,
+            "channel": "special_bundle",
+            "code": "wind_sphere",
+            "destination": "master/battle/boss/wind_sphere.orderedmap key + master/battle/boss/boss_level.orderedmap.c2",
+            "evidence_kind": "absolute",
+            "final_error_hp": 3.3930797576904297,
+            "final_readback_hp": 3857142860.535937,
+            "final_target_hp": 3857142857.142857,
+            "kind": "special",
+            "native_hp": 116233734.375,
+            "occurrence": 1,
+            "phase": "main",
+            "readback_code": "mod_rogue_wind_sphere4",
+            "selected_level": 100,
+            "source": "master/battle/boss/boss_level.orderedmap",
+            "source_evidence_kind": "absolute"
+          }
+        ],
+        "destination": "master/battle/boss/wind_sphere.orderedmap child reference + master/battle/boss/boss_level.orderedmap scaled with parent/master/battle/boss/wind_sphere.orderedmap key + master/battle/boss/boss_level.orderedmap.c2/master/battle/boss/wind_sphere_micronucleus.orderedmap child reference + master/battle/boss/boss_level.orderedmap scaled with parent",
+        "family": "wind_sphere",
+        "final_c86": 1.0,
+        "final_error_hp": 3.3930797576904297,
+        "final_readback_hp": 3857142860.535937,
+        "final_target_hp": 3857142857.142857,
+        "phase_behavior": {
+          "final_readback": [
+            {
+              "available_damage_hp": 1350000001.187579,
+              "budget_model": "capped_child_hp",
+              "completion_count": 3,
+              "coverage_ratio": 1.1666666666666676,
+              "entity_ids": [
+                "embedded:phase[3].crystal:1",
+                "2010040101",
+                "2010040102",
+                "2010040103"
+              ],
+              "entity_occurrence_count": 4,
+              "entry_ratio": 0.6,
+              "exit_ratio": 0.3,
+              "expected_completion_count": 3,
+              "level_codes": [
+                "mod_rogue_wind_sphere4_g52c1",
+                "mod_rogue_wind_sphere4_g1c1",
+                "mod_rogue_wind_sphere4_g1c2",
+                "mod_rogue_wind_sphere4_g1c3"
+              ],
+              "occurrences_per_entity": 1,
+              "overdamage": true,
+              "parent_hp": 3857142860.535937,
+              "phase": "phase[3].damage_conduits",
+              "required_damage_hp": 1157142858.160781,
+              "verified": true
+            }
+          ],
+          "source": [
+            {
+              "available_damage_hp": 40681807.03125,
+              "budget_model": "capped_child_hp",
+              "completion_count": 3,
+              "coverage_ratio": 1.1666666666666667,
+              "entity_ids": [
+                "embedded:phase[3].crystal:1",
+                "21",
+                "22",
+                "23"
+              ],
+              "entity_occurrence_count": 4,
+              "entry_ratio": 0.6,
+              "exit_ratio": 0.3,
+              "expected_completion_count": 3,
+              "level_codes": [
+                "wind_sphere_crystal_phase3",
+                "wind_sphere_micronucleus",
+                "wind_sphere_micronucleus",
+                "wind_sphere_micronucleus"
+              ],
+              "occurrences_per_entity": 1,
+              "overdamage": true,
+              "parent_hp": 116233734.375,
+              "phase": "phase[3].damage_conduits",
+              "required_damage_hp": 34870120.3125,
+              "verified": true
+            }
+          ],
+          "verified": true
+        },
+        "rel_tolerance": 0.0001,
+        "round_no": 4,
+        "within_tolerance": true
+      },
+      "curse_combo": null,
+      "curse_description": "「深渊重甲」韧性×9·弹耐40%",
+      "curse_hp_multiplier": 1.0,
+      "curse_names": [
+        "深渊重甲"
+      ],
+      "enemy_level": 100,
+      "field": "wind_sphere",
+      "play_field": "mod_rogue_f4",
+      "round": 4,
+      "runtime_bosses": [
+        "mod_rogue_wind_sphere4"
+      ],
+      "source_bosses": [
+        "wind_sphere"
+      ],
+      "target_exempt": false,
+      "verified": true
+    },
+    {
+      "absolute_verified": true,
+      "adapter": {
+        "abs_tolerance_hp": 1.0,
+        "absolute_verified": true,
+        "baseline_c86": 1.0,
+        "baseline_error_hp": 13.556734085083008,
+        "baseline_readback_hp": 4285714299.27102,
+        "baseline_target_hp": 4285714285.714286,
+        "channel": "boss_level",
+        "components": [
+          {
+            "baseline_error_hp": 13.556734085083008,
+            "baseline_readback_hp": 4285714299.27102,
+            "baseline_target_hp": 4285714285.714286,
+            "boss_occurrence": 1,
+            "channel": "boss_level",
+            "code": "discarded_dragon_dark",
+            "destination": "boss_level.c2",
+            "evidence_kind": "absolute",
+            "final_error_hp": 13.556734085083008,
+            "final_readback_hp": 4285714299.27102,
+            "final_target_hp": 4285714285.714286,
+            "kind": "general",
+            "native_hp": 89116750.8,
+            "occurrence": 1,
+            "phase": "main",
+            "readback_code": "mod_rogue_boss5",
+            "selected_level": null,
+            "source": "master/battle/boss/boss_level.orderedmap:discarded_dragon_dark",
+            "source_evidence_kind": "absolute"
+          }
+        ],
+        "destination": "boss_level.c2",
+        "family": "general",
+        "final_c86": 1.0,
+        "final_error_hp": 13.556734085083008,
+        "final_readback_hp": 4285714299.27102,
+        "final_target_hp": 4285714285.714286,
+        "rel_tolerance": 0.0001,
+        "round_no": 5,
+        "within_tolerance": true
+      },
+      "curse_combo": null,
+      "curse_description": "「绝对壁垒」强化弹射完全免疫 「深渊法阵」深渊之水·全场淹水",
+      "curse_hp_multiplier": 1.0,
+      "curse_names": [
+        "绝对壁垒",
+        "深渊法阵"
+      ],
+      "enemy_level": 80,
+      "field": "advent_event_discarded_dragon_dark_4",
+      "play_field": "mod_rogue_f5",
+      "round": 5,
+      "runtime_bosses": [
+        "mod_rogue_boss5"
+      ],
+      "source_bosses": [
+        "discarded_dragon_dark"
+      ],
+      "target_exempt": false,
+      "verified": true
+    },
+    {
+      "absolute_verified": true,
+      "adapter": {
+        "abs_tolerance_hp": 1.0,
+        "absolute_verified": true,
+        "baseline_c86": 1.0,
+        "baseline_error_hp": -0.28571414947509766,
+        "baseline_readback_hp": 4714285714.0,
+        "baseline_target_hp": 4714285714.285714,
+        "channel": "standard_dsl",
+        "components": [
+          {
+            "baseline_error_hp": -0.28571414947509766,
+            "baseline_readback_hp": 4714285714.0,
+            "baseline_target_hp": 4714285714.285714,
+            "boss_occurrence": 1,
+            "channel": "standard_dsl",
+            "code": "arc_guardian_pcollab_02_single",
+            "destination": "battle/enemy/boss/mod_rogue/standard_r6_1.esdl.amf3.deflate#forms.Health(T1)",
+            "evidence_kind": "absolute",
+            "final_error_hp": -0.28571414947509766,
+            "final_readback_hp": 4714285714.0,
+            "final_target_hp": 4714285714.285714,
+            "kind": "standard",
+            "native_hp": 27500000.0,
+            "occurrence": 1,
+            "phase": "form[0]",
+            "readback_code": "mod_rogue_standard6",
+            "selected_level": 80,
+            "source": "battle/enemy/boss/arc_guardian_pcollab_02_single4.esdl.amf3.deflate",
+            "source_evidence_kind": "absolute"
+          }
+        ],
+        "destination": "battle/enemy/boss/mod_rogue/standard_r6_1.esdl.amf3.deflate#forms.Health(T1)",
+        "family": "standard",
+        "final_c86": 1.0,
+        "final_error_hp": -0.28571414947509766,
+        "final_readback_hp": 4714285714.0,
+        "final_target_hp": 4714285714.285714,
+        "rel_tolerance": 0.0001,
+        "round_no": 6,
+        "within_tolerance": true
+      },
+      "curse_combo": null,
+      "curse_description": "「直击偏转」直击耐性40%",
+      "curse_hp_multiplier": 1.0,
+      "curse_names": [
+        "直击偏转"
+      ],
+      "enemy_level": 80,
+      "field": "pcollab_02_1",
+      "play_field": "mod_rogue_f6",
+      "round": 6,
+      "runtime_bosses": [
+        "mod_rogue_standard6"
+      ],
+      "source_bosses": [
+        "arc_guardian_pcollab_02_single"
+      ],
+      "target_exempt": false,
+      "verified": true
+    },
+    {
+      "absolute_verified": true,
+      "adapter": {
+        "abs_tolerance_hp": 1.0,
+        "absolute_verified": true,
+        "baseline_c86": 1.0,
+        "baseline_error_hp": -1.9333229064941406,
+        "baseline_readback_hp": 5142857140.9238205,
+        "baseline_target_hp": 5142857142.857143,
+        "channel": "special_bundle",
+        "components": [
+          {
+            "baseline_error_hp": 0.0,
+            "baseline_readback_hp": 2905843.359375,
+            "baseline_target_hp": 2905843.359375,
+            "boss_occurrence": 1,
+            "channel": "special_bundle",
+            "code": "water_sphere_crystal",
+            "destination": "native-fixed mandatory gate",
+            "evidence_kind": "absolute",
+            "final_error_hp": 0.0,
+            "final_readback_hp": 2905843.359375,
+            "final_target_hp": 2905843.359375,
+            "kind": "special",
+            "native_hp": 2905843.359375,
+            "occurrence": 1,
+            "phase": "phase[1].crystal[1]",
+            "readback_code": "water_sphere_crystal",
+            "selected_level": 100,
+            "source": "master/battle/boss/boss_level.orderedmap",
+            "source_evidence_kind": "absolute"
+          },
+          {
+            "baseline_error_hp": 0.0,
+            "baseline_readback_hp": 2905843.359375,
+            "baseline_target_hp": 2905843.359375,
+            "boss_occurrence": 1,
+            "channel": "special_bundle",
+            "code": "water_sphere_crystal",
+            "destination": "native-fixed mandatory gate",
+            "evidence_kind": "absolute",
+            "final_error_hp": 0.0,
+            "final_readback_hp": 2905843.359375,
+            "final_target_hp": 2905843.359375,
+            "kind": "special",
+            "native_hp": 2905843.359375,
+            "occurrence": 2,
+            "phase": "phase[1].crystal[2]",
+            "readback_code": "water_sphere_crystal",
+            "selected_level": 100,
+            "source": "master/battle/boss/boss_level.orderedmap",
+            "source_evidence_kind": "absolute"
+          },
+          {
+            "baseline_error_hp": -1.9333229064941406,
+            "baseline_readback_hp": 5137045454.2050705,
+            "baseline_target_hp": 5137045456.138393,
+            "boss_occurrence": 1,
+            "channel": "special_bundle",
+            "code": "water_sphere_single",
+            "destination": "master/battle/boss/water_sphere.orderedmap key + master/battle/boss/boss_level.orderedmap.c2",
+            "evidence_kind": "absolute",
+            "final_error_hp": -1.933323860168457,
+            "final_readback_hp": 5137045454.20507,
+            "final_target_hp": 5137045456.138393,
+            "kind": "special",
+            "native_hp": 116233734.375,
+            "occurrence": 3,
+            "phase": "main",
+            "readback_code": "mod_rogue_water_sphere7",
+            "selected_level": 100,
+            "source": "master/battle/boss/boss_level.orderedmap",
+            "source_evidence_kind": "absolute"
+          }
+        ],
+        "destination": "master/battle/boss/water_sphere.orderedmap key + master/battle/boss/boss_level.orderedmap.c2/master/battle/boss/water_sphere_micronucleus.orderedmap child reference + master/battle/boss/boss_level.orderedmap scaled with parent/native-fixed mandatory gate",
+        "family": "water_sphere",
+        "final_c86": 1.0,
+        "final_error_hp": -1.933323860168457,
+        "final_readback_hp": 5142857140.92382,
+        "final_target_hp": 5142857142.857143,
+        "phase_behavior": {
+          "final_readback": [
+            {
+              "available_damage_hp": 2054818158.43528,
+              "budget_model": "capped_child_hp",
+              "completion_count": 4,
+              "coverage_ratio": 0.999999988686713,
+              "entity_ids": [
+                "1",
+                "2",
+                "3",
+                "4"
+              ],
+              "entity_occurrence_count": 4,
+              "entry_ratio": 0.9,
+              "exit_ratio": 0.5,
+              "expected_completion_count": 4,
+              "level_codes": [
+                "mod_rogue_water_sphere7_g1c1",
+                "mod_rogue_water_sphere7_g1c1",
+                "mod_rogue_water_sphere7_g1c1",
+                "mod_rogue_water_sphere7_g1c1"
+              ],
+              "occurrences_per_entity": 1,
+              "overdamage": true,
+              "parent_hp": 5137045454.20507,
+              "phase": "phase[3].micronucleus",
+              "required_damage_hp": 2054818181.6820278,
+              "verified": true
+            }
+          ],
+          "source": [
+            {
+              "available_damage_hp": 46493493.75,
+              "budget_model": "capped_child_hp",
+              "completion_count": 4,
+              "coverage_ratio": 1.0,
+              "entity_ids": [
+                "1",
+                "2",
+                "3",
+                "4"
+              ],
+              "entity_occurrence_count": 4,
+              "entry_ratio": 0.9,
+              "exit_ratio": 0.5,
+              "expected_completion_count": 4,
+              "level_codes": [
+                "water_sphere_micronucleus",
+                "water_sphere_micronucleus",
+                "water_sphere_micronucleus",
+                "water_sphere_micronucleus"
+              ],
+              "occurrences_per_entity": 1,
+              "overdamage": true,
+              "parent_hp": 116233734.375,
+              "phase": "phase[3].micronucleus",
+              "required_damage_hp": 46493493.75,
+              "verified": true
+            }
+          ],
+          "verified": true
+        },
+        "rel_tolerance": 0.0001,
+        "round_no": 7,
+        "within_tolerance": true
+      },
+      "curse_combo": null,
+      "curse_description": "「深渊重甲」韧性×9·弹耐40% 「魔力枯竭」FEVER需求×3",
+      "curse_hp_multiplier": 1.0,
+      "curse_names": [
+        "深渊重甲",
+        "魔力枯竭"
+      ],
+      "enemy_level": 100,
+      "field": "water_sphere",
+      "play_field": "mod_rogue_f7",
+      "round": 7,
+      "runtime_bosses": [
+        "mod_rogue_water_sphere7"
+      ],
+      "source_bosses": [
+        "water_sphere_single"
+      ],
+      "target_exempt": false,
+      "verified": true
+    },
+    {
+      "absolute_verified": true,
+      "adapter": {
+        "abs_tolerance_hp": 1.0,
+        "absolute_verified": true,
+        "baseline_c86": 1.0,
+        "baseline_error_hp": 3.478238105773926,
+        "baseline_readback_hp": 5571428574.90681,
+        "baseline_target_hp": 5571428571.428572,
+        "channel": "boss_level",
+        "components": [
+          {
+            "baseline_error_hp": 3.478238105773926,
+            "baseline_readback_hp": 5571428574.90681,
+            "baseline_target_hp": 5571428571.428572,
+            "boss_occurrence": 1,
+            "channel": "boss_level",
+            "code": "guardian_golem_fire_single_tower",
+            "destination": "boss_level.c2",
+            "evidence_kind": "absolute",
+            "final_error_hp": 3.478238105773926,
+            "final_readback_hp": 5571428574.90681,
+            "final_target_hp": 5571428571.428572,
+            "kind": "general",
+            "native_hp": 21218274.0,
+            "occurrence": 1,
+            "phase": "main",
+            "readback_code": "mod_rogue_boss8",
+            "selected_level": null,
+            "source": "master/battle/boss/boss_level.orderedmap:guardian_golem_fire_single_tower",
+            "source_evidence_kind": "absolute"
+          }
+        ],
+        "destination": "boss_level.c2",
+        "family": "general",
+        "final_c86": 1.0,
+        "final_error_hp": 3.478238105773926,
+        "final_readback_hp": 5571428574.90681,
+        "final_target_hp": 5571428571.428572,
+        "rel_tolerance": 0.0001,
+        "round_no": 8,
+        "within_tolerance": true
+      },
+      "curse_combo": null,
+      "curse_description": "「元素滞钝」火属性伤害减半 「层叠龙鳞」能力抗性×50层（减50%）",
+      "curse_hp_multiplier": 1.0,
+      "curse_names": [
+        "元素滞钝",
+        "层叠龙鳞"
+      ],
+      "enemy_level": 80,
+      "field": "tower_dungeon_area_10_4_3",
+      "play_field": "mod_rogue_f8",
+      "round": 8,
+      "runtime_bosses": [
+        "mod_rogue_boss8"
+      ],
+      "source_bosses": [
+        "guardian_golem_fire_single_tower"
+      ],
+      "target_exempt": false,
+      "verified": true
+    },
+    {
+      "absolute_verified": true,
+      "adapter": {
+        "abs_tolerance_hp": 1.0,
+        "absolute_verified": true,
+        "baseline_c86": 1.0,
+        "baseline_error_hp": 0.11874008178710938,
+        "baseline_readback_hp": 6000000000.11874,
+        "baseline_target_hp": 6000000000.0,
+        "channel": "boss_level",
+        "components": [
+          {
+            "baseline_error_hp": 0.11874008178710938,
+            "baseline_readback_hp": 6000000000.11874,
+            "baseline_target_hp": 6000000000.0,
+            "boss_occurrence": 1,
+            "channel": "boss_level",
+            "code": "yokai_emaki_big_boss_single",
+            "destination": "boss_level.c2",
+            "evidence_kind": "absolute",
+            "final_error_hp": 0.11874008178710938,
+            "final_readback_hp": 6000000000.11874,
+            "final_target_hp": 6000000000.0,
+            "kind": "general",
+            "native_hp": 25344049.5,
+            "occurrence": 1,
+            "phase": "main",
+            "readback_code": "mod_rogue_boss9",
+            "selected_level": null,
+            "source": "master/battle/boss/boss_level.orderedmap:yokai_emaki_big_boss_single",
+            "source_evidence_kind": "absolute"
+          }
+        ],
+        "destination": "boss_level.c2",
+        "family": "general",
+        "final_c86": 1.0,
+        "final_error_hp": 0.11874008178710938,
+        "final_readback_hp": 6000000000.11874,
+        "final_target_hp": 6000000000.0,
+        "rel_tolerance": 0.0001,
+        "round_no": 9,
+        "within_tolerance": true
+      },
+      "curse_combo": null,
+      "curse_description": "「直击偏转」直击耐性40% 「层叠龙鳞」直击抗性×50层（减50%）",
+      "curse_hp_multiplier": 1.0,
+      "curse_names": [
+        "直击偏转",
+        "层叠龙鳞"
+      ],
+      "enemy_level": 80,
+      "field": "yokai_emaki_01_16",
+      "play_field": "mod_rogue_f9",
+      "round": 9,
+      "runtime_bosses": [
+        "mod_rogue_boss9"
+      ],
+      "source_bosses": [
+        "yokai_emaki_big_boss_single"
+      ],
+      "target_exempt": false,
+      "verified": true
+    },
+    {
+      "absolute_verified": true,
+      "adapter": {
+        "abs_tolerance_hp": 1.0,
+        "absolute_verified": true,
+        "baseline_c86": 1.0,
+        "baseline_error_hp": -0.5714282989501953,
+        "baseline_readback_hp": 6428571428.0,
+        "baseline_target_hp": 6428571428.571428,
+        "channel": "boss_level",
+        "components": [
+          {
+            "baseline_error_hp": -0.5714282989501953,
+            "baseline_readback_hp": 6428571428.0,
+            "baseline_target_hp": 6428571428.571428,
+            "boss_occurrence": 1,
+            "channel": "boss_level",
+            "code": "middle_boss_dragon_smr20_raid3",
+            "destination": "boss_level.c5",
+            "evidence_kind": "absolute",
+            "final_error_hp": -0.5714282989501953,
+            "final_readback_hp": 6428571428.0,
+            "final_target_hp": 6428571428.571428,
+            "kind": "general",
+            "native_hp": 48000000.0,
+            "occurrence": 1,
+            "phase": "main",
+            "readback_code": "mod_rogue_boss10",
+            "selected_level": null,
+            "source": "master/battle/boss/boss_level.orderedmap:middle_boss_dragon_smr20_raid3",
+            "source_evidence_kind": "absolute"
+          }
+        ],
+        "destination": "boss_level.c5",
+        "family": "general",
+        "final_c86": 1.0,
+        "final_error_hp": -0.5714282989501953,
+        "final_readback_hp": 6428571428.0,
+        "final_target_hp": 6428571428.571428,
+        "rel_tolerance": 0.0001,
+        "round_no": 10,
+        "within_tolerance": true
+      },
+      "curse_combo": null,
+      "curse_description": "「深渊法阵」重力领域·引力2·10秒·左侧/上方·复合 「层叠龙鳞」技能抗性×50层（减50%）",
+      "curse_hp_multiplier": 1.0,
+      "curse_names": [
+        "深渊法阵",
+        "层叠龙鳞"
+      ],
+      "enemy_level": 89,
+      "field": "middle_boss_dragon_smr20_raid3",
+      "play_field": "mod_rogue_f10",
+      "round": 10,
+      "runtime_bosses": [
+        "mod_rogue_boss10"
+      ],
+      "source_bosses": [
+        "middle_boss_dragon_smr20_raid3"
+      ],
+      "target_exempt": false,
+      "verified": true
+    },
+    {
+      "absolute_verified": true,
+      "adapter": {
+        "abs_tolerance_hp": 1.0,
+        "absolute_verified": true,
+        "baseline_c86": 1.0,
+        "baseline_error_hp": -9.03519344329834,
+        "baseline_readback_hp": 6857142848.107664,
+        "baseline_target_hp": 6857142857.142858,
+        "channel": "special_bundle",
+        "components": [
+          {
+            "baseline_error_hp": -9.03519344329834,
+            "baseline_readback_hp": 6857142848.107664,
+            "baseline_target_hp": 6857142857.142858,
+            "boss_occurrence": 1,
+            "channel": "special_bundle",
+            "code": "touyakiren_ceo_single",
+            "destination": "master/battle/boss/touyakiren_ceo.orderedmap key + master/battle/boss/boss_level.orderedmap.c2",
+            "evidence_kind": "absolute",
+            "final_error_hp": 5.1685471534729,
+            "final_readback_hp": 3428571433.739976,
+            "final_target_hp": 3428571428.571429,
+            "kind": "special",
+            "native_hp": 100735903.125,
+            "occurrence": 1,
+            "phase": "main",
+            "readback_code": "mod_rogue_touyakiren_ceo11",
+            "selected_level": 100,
+            "source": "master/battle/boss/boss_level.orderedmap",
+            "source_evidence_kind": "absolute"
+          }
+        ],
+        "destination": "master/battle/boss/touyakiren_ceo.orderedmap key + master/battle/boss/boss_level.orderedmap.c2",
+        "family": "touyakiren_ceo",
+        "final_c86": 1.0,
+        "final_error_hp": 5.1685471534729,
+        "final_readback_hp": 3428571433.739976,
+        "final_target_hp": 3428571428.571429,
+        "rel_tolerance": 0.0001,
+        "round_no": 11,
+        "within_tolerance": true
+      },
+      "curse_combo": "速攻",
+      "curse_description": "【速攻】「玻璃深渊」敌攻×1.4·血-50% 「时之枷锁」限时3分",
+      "curse_hp_multiplier": 0.5,
+      "curse_names": [
+        "玻璃深渊",
+        "时之枷锁"
+      ],
+      "enemy_level": 100,
+      "field": "cyberpunk01_21",
+      "play_field": "mod_rogue_f11",
+      "round": 11,
+      "runtime_bosses": [
+        "mod_rogue_touyakiren_ceo11"
+      ],
+      "source_bosses": [
+        "touyakiren_ceo_single"
+      ],
+      "target_exempt": false,
+      "verified": true
+    },
+    {
+      "absolute_verified": true,
+      "adapter": {
+        "abs_tolerance_hp": 1.0,
+        "absolute_verified": true,
+        "baseline_c86": 1.0,
+        "baseline_error_hp": -5.949091911315918,
+        "baseline_readback_hp": 7285714279.765194,
+        "baseline_target_hp": 7285714285.714286,
+        "channel": "boss_level",
+        "components": [
+          {
+            "baseline_error_hp": -5.949090957641602,
+            "baseline_readback_hp": 7285714279.765194,
+            "baseline_target_hp": 7285714285.714285,
+            "boss_occurrence": 1,
+            "channel": "boss_level",
+            "code": "hungry_dragon",
+            "destination": "boss_level.c2",
+            "evidence_kind": "absolute",
+            "final_error_hp": -5.949094772338867,
+            "final_readback_hp": 7285714279.76519,
+            "final_target_hp": 7285714285.714285,
+            "kind": "general",
+            "native_hp": 405941497.969219,
+            "occurrence": 1,
+            "phase": "main",
+            "readback_code": "mod_rogue_boss12",
+            "selected_level": null,
+            "source": "master/battle/boss/boss_level.orderedmap:hungry_dragon",
+            "source_evidence_kind": "absolute"
+          }
+        ],
+        "destination": "boss_level.c2",
+        "family": "general",
+        "final_c86": 1.0,
+        "final_error_hp": -5.949095726013184,
+        "final_readback_hp": 7285714279.76519,
+        "final_target_hp": 7285714285.714286,
+        "rel_tolerance": 0.0001,
+        "round_no": 12,
+        "within_tolerance": true
+      },
+      "curse_combo": null,
+      "curse_description": "「绝对壁垒」强化弹射完全免疫 「深渊重甲」韧性×9·弹耐40%",
+      "curse_hp_multiplier": 1.0,
+      "curse_names": [
+        "绝对壁垒",
+        "深渊重甲"
+      ],
+      "enemy_level": 90,
+      "field": "advent_s_collabo1",
+      "play_field": "mod_rogue_f12",
+      "round": 12,
+      "runtime_bosses": [
+        "mod_rogue_boss12"
+      ],
+      "source_bosses": [
+        "hungry_dragon"
+      ],
+      "target_exempt": false,
+      "verified": true
+    },
+    {
+      "absolute_verified": true,
+      "adapter": {
+        "abs_tolerance_hp": 1.0,
+        "absolute_verified": true,
+        "baseline_c86": 1.0,
+        "baseline_error_hp": -0.28571414947509766,
+        "baseline_readback_hp": 7714285714.0,
+        "baseline_target_hp": 7714285714.285714,
+        "channel": "standard_dsl",
+        "components": [
+          {
+            "baseline_error_hp": -0.28571319580078125,
+            "baseline_readback_hp": 7714285714.0,
+            "baseline_target_hp": 7714285714.285713,
+            "boss_occurrence": 1,
+            "channel": "standard_dsl",
+            "code": "halfanv3_boss_hell",
+            "destination": "battle/enemy/boss/mod_rogue/standard_r13_1.esdl.amf3.deflate#forms.Health(T1)",
+            "evidence_kind": "absolute",
+            "final_error_hp": -0.28571319580078125,
+            "final_readback_hp": 7714285714.0,
+            "final_target_hp": 7714285714.285713,
+            "kind": "standard",
+            "native_hp": 2437160000.0,
+            "occurrence": 1,
+            "phase": "form[0]",
+            "readback_code": "mod_rogue_standard13",
+            "selected_level": 100,
+            "source": "battle/enemy/boss/halfanv3_boss_hell.esdl.amf3.deflate",
+            "source_evidence_kind": "absolute"
+          }
+        ],
+        "destination": "battle/enemy/boss/mod_rogue/standard_r13_1.esdl.amf3.deflate#forms.Health(T1)",
+        "family": "standard",
+        "final_c86": 1.0,
+        "final_error_hp": -0.28571414947509766,
+        "final_readback_hp": 7714285714.0,
+        "final_target_hp": 7714285714.285714,
+        "rel_tolerance": 0.0001,
+        "round_no": 13,
+        "within_tolerance": true
+      },
+      "curse_combo": null,
+      "curse_description": "「深渊重甲」韧性×9·弹耐40% 「亡者不屈」减益免疫·能耐50%",
+      "curse_hp_multiplier": 1.0,
+      "curse_names": [
+        "深渊重甲",
+        "亡者不屈"
+      ],
+      "enemy_level": 90,
+      "field": "halfanv3_hell",
+      "play_field": "mod_rogue_f13",
+      "round": 13,
+      "runtime_bosses": [
+        "mod_rogue_standard13"
+      ],
+      "source_bosses": [
+        "halfanv3_boss_hell"
+      ],
+      "target_exempt": false,
+      "verified": true
+    },
+    {
+      "absolute_verified": true,
+      "adapter": {
+        "abs_tolerance_hp": 1.0,
+        "absolute_verified": true,
+        "baseline_c86": 1.0,
+        "baseline_error_hp": -8.436653137207031,
+        "baseline_readback_hp": 8142857134.420489,
+        "baseline_target_hp": 8142857142.857142,
+        "channel": "boss_level",
+        "components": [
+          {
+            "baseline_error_hp": -8.436653137207031,
+            "baseline_readback_hp": 8142857134.420489,
+            "baseline_target_hp": 8142857142.857142,
+            "boss_occurrence": 1,
+            "channel": "boss_level",
+            "code": "guardian_golem_fire_expert_80",
+            "destination": "boss_level.c2",
+            "evidence_kind": "absolute",
+            "final_error_hp": -8.436614990234375,
+            "final_readback_hp": 8142857134.420527,
+            "final_target_hp": 8142857142.857142,
+            "kind": "general",
+            "native_hp": 54701336.605781,
+            "occurrence": 1,
+            "phase": "main",
+            "readback_code": "mod_rogue_boss14",
+            "selected_level": null,
+            "source": "master/battle/boss/boss_level.orderedmap:guardian_golem_fire_expert_80",
+            "source_evidence_kind": "absolute"
+          }
+        ],
+        "destination": "boss_level.c2",
+        "family": "general",
+        "final_c86": 1.0,
+        "final_error_hp": -8.436614990234375,
+        "final_readback_hp": 8142857134.420527,
+        "final_target_hp": 8142857142.857142,
+        "rel_tolerance": 0.0001,
+        "round_no": 14,
+        "within_tolerance": true
+      },
+      "curse_combo": null,
+      "curse_description": "「深渊法阵」狂风领域·轻风0.15·20秒·方向2",
+      "curse_hp_multiplier": 1.0,
+      "curse_names": [
+        "深渊法阵"
+      ],
+      "enemy_level": 90,
+      "field": "expert_golem_80",
+      "play_field": "mod_rogue_f14",
+      "round": 14,
+      "runtime_bosses": [
+        "mod_rogue_boss14"
+      ],
+      "source_bosses": [
+        "guardian_golem_fire_expert_80"
+      ],
+      "target_exempt": false,
+      "verified": true
+    },
+    {
+      "absolute_verified": true,
+      "adapter": {
+        "abs_tolerance_hp": 1.0,
+        "absolute_verified": true,
+        "baseline_c86": 1.0,
+        "baseline_error_hp": -0.4285717010498047,
+        "baseline_readback_hp": 8571428571.0,
+        "baseline_target_hp": 8571428571.428572,
+        "channel": "standard_dsl",
+        "components": [
+          {
+            "baseline_error_hp": -0.02857184410095215,
+            "baseline_readback_hp": 1371428571.3999996,
+            "baseline_target_hp": 1371428571.4285715,
+            "boss_occurrence": 1,
+            "channel": "standard_dsl",
+            "code": "steampunk_another_multi",
+            "destination": "battle/enemy/boss/mod_rogue/standard_r15_1.esdl.amf3.deflate#forms.Health(T1)",
+            "evidence_kind": "absolute",
+            "final_error_hp": -0.17142868041992188,
+            "final_readback_hp": 3428571428.4,
+            "final_target_hp": 3428571428.571429,
+            "kind": "standard",
+            "native_hp": 220000000.0,
+            "occurrence": 1,
+            "phase": "form[0]",
+            "readback_code": "mod_rogue_standard15",
+            "selected_level": 100,
+            "source": "battle/enemy/boss/steampunk_another_multi5.esdl.amf3.deflate",
+            "source_evidence_kind": "absolute"
+          },
+          {
+            "baseline_error_hp": -0.05714273452758789,
+            "baseline_readback_hp": 2742857142.8,
+            "baseline_target_hp": 2742857142.857143,
+            "boss_occurrence": 1,
+            "channel": "standard_dsl",
+            "code": "steampunk_another_multi",
+            "destination": "battle/enemy/boss/mod_rogue/standard_r15_1.esdl.amf3.deflate#forms.Health(T1)",
+            "evidence_kind": "absolute",
+            "final_error_hp": -0.34285736083984375,
+            "final_readback_hp": 6857142856.8,
+            "final_target_hp": 6857142857.142858,
+            "kind": "standard",
+            "native_hp": 440000000.0,
+            "occurrence": 2,
+            "phase": "form[1]",
+            "readback_code": "mod_rogue_standard15",
+            "selected_level": 100,
+            "source": "battle/enemy/boss/steampunk_another_multi5.esdl.amf3.deflate",
+            "source_evidence_kind": "absolute"
+          },
+          {
+            "baseline_error_hp": -0.04285717010498047,
+            "baseline_readback_hp": 2057142857.1000001,
+            "baseline_target_hp": 2057142857.1428573,
+            "boss_occurrence": 1,
+            "channel": "standard_dsl",
+            "code": "steampunk_another_multi",
+            "destination": "battle/enemy/boss/mod_rogue/standard_r15_1.esdl.amf3.deflate#forms.Health(T1)",
+            "evidence_kind": "absolute",
+            "final_error_hp": -0.2571430206298828,
+            "final_readback_hp": 5142857142.6,
+            "final_target_hp": 5142857142.857143,
+            "kind": "standard",
+            "native_hp": 330000000.0,
+            "occurrence": 3,
+            "phase": "form[2]",
+            "readback_code": "mod_rogue_standard15",
+            "selected_level": 100,
+            "source": "battle/enemy/boss/steampunk_another_multi5.esdl.amf3.deflate",
+            "source_evidence_kind": "absolute"
+          },
+          {
+            "baseline_error_hp": -0.014285922050476074,
+            "baseline_readback_hp": 685714285.6999998,
+            "baseline_target_hp": 685714285.7142857,
+            "boss_occurrence": 1,
+            "channel": "standard_dsl",
+            "code": "steampunk_another_multi",
+            "destination": "battle/enemy/boss/mod_rogue/standard_r15_1.esdl.amf3.deflate#forms.Health(T1)",
+            "evidence_kind": "absolute",
+            "final_error_hp": -0.08571553230285645,
+            "final_readback_hp": 1714285714.1999989,
+            "final_target_hp": 1714285714.2857144,
+            "kind": "standard",
+            "native_hp": 110000000.0,
+            "occurrence": 4,
+            "phase": "form[3]",
+            "readback_code": "mod_rogue_standard15",
+            "selected_level": 100,
+            "source": "battle/enemy/boss/steampunk_another_multi5.esdl.amf3.deflate",
+            "source_evidence_kind": "absolute"
+          },
+          {
+            "baseline_error_hp": -0.28571438789367676,
+            "baseline_readback_hp": 1714285714.0,
+            "baseline_target_hp": 1714285714.2857144,
+            "boss_occurrence": 2,
+            "channel": "standard_dsl",
+            "code": "steampunk_another_foom2_multi",
+            "destination": "battle/enemy/boss/mod_rogue/standard_r15_2.esdl.amf3.deflate#forms.Health(T1)",
+            "evidence_kind": "absolute",
+            "final_error_hp": -0.7142858505249023,
+            "final_readback_hp": 4285714285.0,
+            "final_target_hp": 4285714285.714286,
+            "kind": "standard",
+            "native_hp": 275000000.0,
+            "occurrence": 5,
+            "phase": "form[0]",
+            "readback_code": "mod_rogue_standard15_2",
+            "selected_level": 100,
+            "source": "battle/enemy/boss/steampunk_another_foom2_multi5.esdl.amf3.deflate",
+            "source_evidence_kind": "absolute"
+          }
+        ],
+        "destination": "battle/enemy/boss/mod_rogue/standard_r15_1.esdl.amf3.deflate#forms.Health(T1)/battle/enemy/boss/mod_rogue/standard_r15_2.esdl.amf3.deflate#forms.Health(T1)",
+        "family": "standard",
+        "final_c86": 1.0,
+        "final_error_hp": -1.5714302062988281,
+        "final_readback_hp": 21428571427.0,
+        "final_target_hp": 21428571428.57143,
+        "rel_tolerance": 0.0001,
+        "round_no": 15,
+        "within_tolerance": true
+      },
+      "curse_combo": null,
+      "curse_description": "「直击偏转」直击耐性40% 「血肉高墙」敌血×2.5",
+      "curse_hp_multiplier": 2.5,
+      "curse_names": [
+        "直击偏转",
+        "血肉高墙"
+      ],
+      "enemy_level": 90,
+      "field": "steampunk_another",
+      "play_field": "mod_rogue_f15",
+      "round": 15,
+      "runtime_bosses": [
+        "mod_rogue_standard15",
+        "mod_rogue_standard15_2"
+      ],
+      "source_bosses": [
+        "steampunk_another_multi",
+        "steampunk_another_foom2_multi"
+      ],
+      "target_exempt": false,
+      "verified": true
+    },
+    {
+      "absolute_verified": true,
+      "adapter": {
+        "abs_tolerance_hp": 1.0,
+        "absolute_verified": true,
+        "baseline_c86": 1.0,
+        "baseline_error_hp": 0.0,
+        "baseline_readback_hp": 9000000000.0,
+        "baseline_target_hp": 9000000000.0,
+        "channel": "standard_dsl",
+        "components": [
+          {
+            "baseline_error_hp": 0.0,
+            "baseline_readback_hp": 9000000000.0,
+            "baseline_target_hp": 9000000000.0,
+            "boss_occurrence": 1,
+            "channel": "standard_dsl",
+            "code": "spirit_beast_wind",
+            "destination": "battle/enemy/boss/mod_rogue/standard_r16_1.esdl.amf3.deflate#forms.Health(T1)",
+            "evidence_kind": "absolute",
+            "final_error_hp": 0.0,
+            "final_readback_hp": 9000000000.0,
+            "final_target_hp": 9000000000.0,
+            "kind": "standard",
+            "native_hp": 440000000.0,
+            "occurrence": 1,
+            "phase": "form[0]",
+            "readback_code": "mod_rogue_standard16",
+            "selected_level": 100,
+            "source": "battle/enemy/boss/spirit_beast_wind_5.esdl.amf3.deflate",
+            "source_evidence_kind": "absolute"
+          }
+        ],
+        "destination": "battle/enemy/boss/mod_rogue/standard_r16_1.esdl.amf3.deflate#forms.Health(T1)",
+        "family": "standard",
+        "final_c86": 1.0,
+        "final_error_hp": 0.0,
+        "final_readback_hp": 9000000000.0,
+        "final_target_hp": 9000000000.0,
+        "rel_tolerance": 0.0001,
+        "round_no": 16,
+        "within_tolerance": true
+      },
+      "curse_combo": "迟滞战线",
+      "curse_description": "【迟滞战线】「直击偏转」直击耐性40% 「魔力枯竭」FEVER需求×3 「亡者不屈」减益免疫·能耐50%",
+      "curse_hp_multiplier": 1.0,
+      "curse_names": [
+        "直击偏转",
+        "魔力枯竭",
+        "亡者不屈"
+      ],
+      "enemy_level": 90,
+      "field": "advent_spirit_beast_wind_1",
+      "play_field": "mod_rogue_f16",
+      "round": 16,
+      "runtime_bosses": [
+        "mod_rogue_standard16"
+      ],
+      "source_bosses": [
+        "spirit_beast_wind"
+      ],
+      "target_exempt": false,
+      "verified": true
+    },
+    {
+      "absolute_verified": true,
+      "adapter": {
+        "abs_tolerance_hp": 1.0,
+        "absolute_verified": true,
+        "baseline_c86": 1.0,
+        "baseline_error_hp": -0.5714282989501953,
+        "baseline_readback_hp": 9428571428.0,
+        "baseline_target_hp": 9428571428.571428,
+        "channel": "standard_dsl",
+        "components": [
+          {
+            "baseline_error_hp": -0.1758251190185547,
+            "baseline_readback_hp": 2901098900.923076,
+            "baseline_target_hp": 2901098901.0989013,
+            "boss_occurrence": 1,
+            "channel": "standard_dsl",
+            "code": "epuration_boss_dragon_main",
+            "destination": "battle/enemy/boss/mod_rogue/standard_r17_1.esdl.amf3.deflate#forms.Health(T1)",
+            "evidence_kind": "absolute",
+            "final_error_hp": -0.1758251190185547,
+            "final_readback_hp": 2901098900.923076,
+            "final_target_hp": 2901098901.0989013,
+            "kind": "standard",
+            "native_hp": 11000000.0,
+            "occurrence": 1,
+            "phase": "form[0]",
+            "readback_code": "mod_rogue_standard17",
+            "selected_level": 80,
+            "source": "battle/enemy/boss/epuration_boss_dragon_main.esdl.amf3.deflate",
+            "source_evidence_kind": "absolute"
+          },
+          {
+            "baseline_error_hp": -0.39560413360595703,
+            "baseline_readback_hp": 6527472527.076923,
+            "baseline_target_hp": 6527472527.4725275,
+            "boss_occurrence": 1,
+            "channel": "standard_dsl",
+            "code": "epuration_boss_dragon_main",
+            "destination": "battle/enemy/boss/mod_rogue/standard_r17_1.esdl.amf3.deflate#forms.Health(T1)",
+            "evidence_kind": "absolute",
+            "final_error_hp": -0.39560413360595703,
+            "final_readback_hp": 6527472527.076923,
+            "final_target_hp": 6527472527.4725275,
+            "kind": "standard",
+            "native_hp": 24750000.0,
+            "occurrence": 2,
+            "phase": "form[1]",
+            "readback_code": "mod_rogue_standard17",
+            "selected_level": 80,
+            "source": "battle/enemy/boss/epuration_boss_dragon_main.esdl.amf3.deflate",
+            "source_evidence_kind": "absolute"
+          }
+        ],
+        "destination": "battle/enemy/boss/mod_rogue/standard_r17_1.esdl.amf3.deflate#forms.Health(T1)",
+        "family": "standard",
+        "final_c86": 1.0,
+        "final_error_hp": -0.5714282989501953,
+        "final_readback_hp": 9428571428.0,
+        "final_target_hp": 9428571428.571428,
+        "rel_tolerance": 0.0001,
+        "round_no": 17,
+        "within_tolerance": true
+      },
+      "curse_combo": "偏转阵列",
+      "curse_description": "【偏转阵列】「直击偏转」直击耐性40% 「术式扰流」技能耐性40% 「深渊重甲」韧性×9·弹耐40%",
+      "curse_hp_multiplier": 1.0,
+      "curse_names": [
+        "直击偏转",
+        "术式扰流",
+        "深渊重甲"
+      ],
+      "enemy_level": 80,
+      "field": "main_11_6_2",
+      "play_field": "mod_rogue_f17",
+      "round": 17,
+      "runtime_bosses": [
+        "mod_rogue_standard17"
+      ],
+      "source_bosses": [
+        "epuration_boss_dragon_main"
+      ],
+      "target_exempt": false,
+      "verified": true
+    },
+    {
+      "absolute_verified": true,
+      "adapter": {
+        "abs_tolerance_hp": 1.0,
+        "absolute_verified": true,
+        "baseline_c86": 1.0,
+        "baseline_error_hp": -0.14285659790039062,
+        "baseline_readback_hp": 9857142857.0,
+        "baseline_target_hp": 9857142857.142857,
+        "channel": "standard_dsl",
+        "components": [
+          {
+            "baseline_error_hp": -0.14285659790039062,
+            "baseline_readback_hp": 9857142857.0,
+            "baseline_target_hp": 9857142857.142857,
+            "boss_occurrence": 1,
+            "channel": "standard_dsl",
+            "code": "hermit_crab_another_light_ex",
+            "destination": "battle/enemy/boss/mod_rogue/standard_r18_1.esdl.amf3.deflate#forms.Health(T1)",
+            "evidence_kind": "absolute",
+            "final_error_hp": -0.14285659790039062,
+            "final_readback_hp": 9857142857.0,
+            "final_target_hp": 9857142857.142857,
+            "kind": "standard",
+            "native_hp": 231000000.0,
+            "occurrence": 1,
+            "phase": "form[0]",
+            "readback_code": "mod_rogue_standard18",
+            "selected_level": 100,
+            "source": "battle/enemy/boss/hermit_crab_another_light_ex_single4.esdl.amf3.deflate",
+            "source_evidence_kind": "absolute"
+          }
+        ],
+        "destination": "battle/enemy/boss/mod_rogue/standard_r18_1.esdl.amf3.deflate#forms.Health(T1)",
+        "family": "standard",
+        "final_c86": 1.0,
+        "final_error_hp": -0.14285659790039062,
+        "final_readback_hp": 9857142857.0,
+        "final_target_hp": 9857142857.142857,
+        "rel_tolerance": 0.0001,
+        "round_no": 18,
+        "within_tolerance": true
+      },
+      "curse_combo": "迟滞战线",
+      "curse_description": "【迟滞战线】「直击偏转」直击耐性40% 「魔力枯竭」FEVER需求×3 「亡者不屈」减益免疫·能耐50%",
+      "curse_hp_multiplier": 1.0,
+      "curse_names": [
+        "直击偏转",
+        "魔力枯竭",
+        "亡者不屈"
+      ],
+      "enemy_level": 90,
+      "field": "solo_time_attack_white1",
+      "play_field": "mod_rogue_f18",
+      "round": 18,
+      "runtime_bosses": [
+        "mod_rogue_standard18"
+      ],
+      "source_bosses": [
+        "hermit_crab_another_light_ex"
+      ],
+      "target_exempt": false,
+      "verified": true
+    },
+    {
+      "absolute_verified": true,
+      "adapter": {
+        "abs_tolerance_hp": 1.0,
+        "absolute_verified": true,
+        "baseline_c86": 1.0,
+        "baseline_error_hp": -5.8584136962890625,
+        "baseline_readback_hp": 10285714279.855871,
+        "baseline_target_hp": 10285714285.714285,
+        "channel": "boss_level",
+        "components": [
+          {
+            "baseline_error_hp": -5.8584136962890625,
+            "baseline_readback_hp": 10285714279.855871,
+            "baseline_target_hp": 10285714285.714285,
+            "boss_occurrence": 1,
+            "channel": "boss_level",
+            "code": "double_owl_lich_ability",
+            "destination": "boss_level.c2+c4",
+            "evidence_kind": "absolute",
+            "final_error_hp": -7.138914108276367,
+            "final_readback_hp": 8742857135.718227,
+            "final_target_hp": 8742857142.857141,
+            "kind": "general",
+            "native_hp": 345482125.93125,
+            "occurrence": 1,
+            "phase": "main",
+            "readback_code": "mod_rogue_boss19",
+            "selected_level": null,
+            "source": "master/battle/boss/boss_level.orderedmap:double_owl_lich_ability",
+            "source_evidence_kind": "proxy"
+          }
+        ],
+        "destination": "boss_level.c2+c4",
+        "family": "general",
+        "final_c86": 1.0,
+        "final_error_hp": -7.138914108276367,
+        "final_readback_hp": 8742857135.718227,
+        "final_target_hp": 8742857142.857141,
+        "rel_tolerance": 0.0001,
+        "round_no": 19,
+        "within_tolerance": true
+      },
+      "curse_combo": null,
+      "curse_description": "「嗜血狂潮·残响」敌血-15%（攻击增幅已摘） 「能力抑制」能力耐性40% 「深渊重甲」韧性×9·弹耐40%",
+      "curse_hp_multiplier": 0.85,
+      "curse_names": [
+        "嗜血狂潮·残响",
+        "能力抑制",
+        "深渊重甲"
+      ],
+      "enemy_level": 90,
+      "field": "double_owl_lich_ability",
+      "play_field": "mod_rogue_f19",
+      "round": 19,
+      "runtime_bosses": [
+        "mod_rogue_boss19"
+      ],
+      "source_bosses": [
+        "double_owl_lich_ability"
+      ],
+      "target_exempt": false,
+      "verified": true
+    },
+    {
+      "absolute_verified": true,
+      "adapter": {
+        "abs_tolerance_hp": 1.0,
+        "absolute_verified": true,
+        "baseline_c86": 1.0,
+        "baseline_error_hp": 4.893579483032227,
+        "baseline_readback_hp": 10714285719.179295,
+        "baseline_target_hp": 10714285714.285715,
+        "channel": "boss_level",
+        "components": [
+          {
+            "baseline_error_hp": 4.893579483032227,
+            "baseline_readback_hp": 10714285719.179295,
+            "baseline_target_hp": 10714285714.285715,
+            "boss_occurrence": 1,
+            "channel": "boss_level",
+            "code": "hermit_crab_another_light_single_tower",
+            "destination": "boss_level.c2",
+            "evidence_kind": "absolute",
+            "final_error_hp": 4.893732070922852,
+            "final_readback_hp": 10714285719.179447,
+            "final_target_hp": 10714285714.285715,
+            "kind": "general",
+            "native_hp": 26390995.730859,
+            "occurrence": 1,
+            "phase": "main",
+            "readback_code": "mod_rogue_boss20",
+            "selected_level": null,
+            "source": "master/battle/boss/boss_level.orderedmap:hermit_crab_another_light_single_tower",
+            "source_evidence_kind": "absolute"
+          }
+        ],
+        "destination": "boss_level.c2",
+        "family": "general",
+        "final_c86": 1.0,
+        "final_error_hp": 4.893732070922852,
+        "final_readback_hp": 10714285719.179447,
+        "final_target_hp": 10714285714.285715,
+        "rel_tolerance": 0.0001,
+        "round_no": 20,
+        "within_tolerance": true
+      },
+      "curse_combo": null,
+      "curse_description": "「三相封界」水·雷·光属性伤害降至1/10(只留火·风·暗) 「深渊法阵」重力领域·引力1.5·10秒·左侧/上方 「亡者不屈」减益免疫·能耐50%",
+      "curse_hp_multiplier": 1.0,
+      "curse_names": [
+        "三相封界",
+        "深渊法阵",
+        "亡者不屈"
+      ],
+      "enemy_level": 90,
+      "field": "tower_dungeon_area_10_5_2",
+      "play_field": "mod_rogue_f20",
+      "round": 20,
+      "runtime_bosses": [
+        "mod_rogue_boss20"
+      ],
+      "source_bosses": [
+        "hermit_crab_another_light_single_tower"
+      ],
+      "target_exempt": false,
+      "verified": true
+    },
+    {
+      "absolute_verified": true,
+      "adapter": {
+        "abs_tolerance_hp": 1.0,
+        "absolute_verified": true,
+        "baseline_c86": 1.0,
+        "baseline_error_hp": -0.8571434020996094,
+        "baseline_readback_hp": 11142857142.0,
+        "baseline_target_hp": 11142857142.857143,
+        "channel": "standard_dsl",
+        "components": [
+          {
+            "baseline_error_hp": -0.4285717010498047,
+            "baseline_readback_hp": 5571428571.0,
+            "baseline_target_hp": 5571428571.428572,
+            "boss_occurrence": 1,
+            "channel": "standard_dsl",
+            "code": "epuration_boss_highest_single",
+            "destination": "battle/enemy/boss/mod_rogue/standard_r21_1.esdl.amf3.deflate#forms.Health(T1)",
+            "evidence_kind": "absolute",
+            "final_error_hp": -0.4285717010498047,
+            "final_readback_hp": 5571428571.0,
+            "final_target_hp": 5571428571.428572,
+            "kind": "standard",
+            "native_hp": 4950000000.0,
+            "occurrence": 1,
+            "phase": "form[0]",
+            "readback_code": "mod_rogue_standard21",
+            "selected_level": 100,
+            "source": "battle/enemy/boss/epuration_boss_highest_3anv_single.esdl.amf3.deflate",
+            "source_evidence_kind": "absolute"
+          },
+          {
+            "baseline_error_hp": -0.4285717010498047,
+            "baseline_readback_hp": 5571428571.0,
+            "baseline_target_hp": 5571428571.428572,
+            "boss_occurrence": 1,
+            "channel": "standard_dsl",
+            "code": "epuration_boss_highest_single",
+            "destination": "battle/enemy/boss/mod_rogue/standard_r21_1.esdl.amf3.deflate#forms.Health(T1)",
+            "evidence_kind": "absolute",
+            "final_error_hp": -0.4285717010498047,
+            "final_readback_hp": 5571428571.0,
+            "final_target_hp": 5571428571.428572,
+            "kind": "standard",
+            "native_hp": 4950000000.0,
+            "occurrence": 2,
+            "phase": "form[1]",
+            "readback_code": "mod_rogue_standard21",
+            "selected_level": 100,
+            "source": "battle/enemy/boss/epuration_boss_highest_3anv_single.esdl.amf3.deflate",
+            "source_evidence_kind": "absolute"
+          }
+        ],
+        "destination": "battle/enemy/boss/mod_rogue/standard_r21_1.esdl.amf3.deflate#forms.Health(T1)",
+        "family": "standard",
+        "final_c86": 1.0,
+        "final_error_hp": -0.8571434020996094,
+        "final_readback_hp": 11142857142.0,
+        "final_target_hp": 11142857142.857143,
+        "rel_tolerance": 0.0001,
+        "round_no": 21,
+        "within_tolerance": true
+      },
+      "curse_combo": "偏转阵列",
+      "curse_description": "【偏转阵列】「直击偏转」直击耐性40% 「术式扰流」技能耐性40% 「深渊重甲」韧性×9·弹耐40%",
+      "curse_hp_multiplier": 1.0,
+      "curse_names": [
+        "直击偏转",
+        "术式扰流",
+        "深渊重甲"
+      ],
+      "enemy_level": 100,
+      "field": "epuration_boss_highest",
+      "play_field": "mod_rogue_f21",
+      "round": 21,
+      "runtime_bosses": [
+        "mod_rogue_standard21"
+      ],
+      "source_bosses": [
+        "epuration_boss_highest_single"
+      ],
+      "target_exempt": false,
+      "verified": true
+    },
+    {
+      "absolute_verified": true,
+      "adapter": {
+        "abs_tolerance_hp": 1.0,
+        "absolute_verified": true,
+        "baseline_c86": 1.0,
+        "baseline_error_hp": -9.193046569824219,
+        "baseline_readback_hp": 11571428562.235525,
+        "baseline_target_hp": 11571428571.428572,
+        "channel": "boss_level",
+        "components": [
+          {
+            "baseline_error_hp": -9.193046569824219,
+            "baseline_readback_hp": 11571428562.235525,
+            "baseline_target_hp": 11571428571.428572,
+            "boss_occurrence": 1,
+            "channel": "boss_level",
+            "code": "lich_wind_single_tower",
+            "destination": "boss_level.c2",
+            "evidence_kind": "absolute",
+            "final_error_hp": -9.193048477172852,
+            "final_readback_hp": 11571428562.235523,
+            "final_target_hp": 11571428571.428572,
+            "kind": "general",
+            "native_hp": 30027048.046875,
+            "occurrence": 1,
+            "phase": "main",
+            "readback_code": "mod_rogue_boss22",
+            "selected_level": null,
+            "source": "master/battle/boss/boss_level.orderedmap:lich_wind_single_tower",
+            "source_evidence_kind": "absolute"
+          }
+        ],
+        "destination": "boss_level.c2",
+        "family": "general",
+        "final_c86": 1.0,
+        "final_error_hp": -9.193048477172852,
+        "final_readback_hp": 11571428562.235523,
+        "final_target_hp": 11571428571.428572,
+        "rel_tolerance": 0.0001,
+        "round_no": 22,
+        "within_tolerance": true
+      },
+      "curse_combo": "风暴",
+      "curse_description": "【风暴】「三相封界」雷·风·暗属性伤害降至1/10(只留火·水·光) 「深渊法阵」重力领域·引力1.1·10秒·左侧/上方 「深渊逆鳞」敌攻×1.2·直击易伤40% 「亡者不屈」减益免疫·能耐50%",
+      "curse_hp_multiplier": 1.0,
+      "curse_names": [
+        "三相封界",
+        "深渊法阵",
+        "深渊逆鳞",
+        "亡者不屈"
+      ],
+      "enemy_level": 100,
+      "field": "tower_dungeon_area_10_12_2",
+      "play_field": "mod_rogue_f22",
+      "round": 22,
+      "runtime_bosses": [
+        "mod_rogue_boss22"
+      ],
+      "source_bosses": [
+        "lich_wind_single_tower"
+      ],
+      "target_exempt": false,
+      "verified": true
+    },
+    {
+      "absolute_verified": true,
+      "adapter": {
+        "abs_tolerance_hp": 1.0,
+        "absolute_verified": true,
+        "baseline_c86": 1.0,
+        "baseline_error_hp": 8.40377426147461,
+        "baseline_readback_hp": 12000000008.403774,
+        "baseline_target_hp": 12000000000.0,
+        "channel": "boss_level",
+        "components": [
+          {
+            "baseline_error_hp": 8.403772354125977,
+            "baseline_readback_hp": 12000000008.403774,
+            "baseline_target_hp": 12000000000.000002,
+            "boss_occurrence": 1,
+            "channel": "boss_level",
+            "code": "hermit_crab_water_single_tower",
+            "destination": "boss_level.c2",
+            "evidence_kind": "absolute",
+            "final_error_hp": 8.403770446777344,
+            "final_readback_hp": 12000000008.403772,
+            "final_target_hp": 12000000000.000002,
+            "kind": "general",
+            "native_hp": 31964276.953125,
+            "occurrence": 1,
+            "phase": "main",
+            "readback_code": "mod_rogue_boss23",
+            "selected_level": null,
+            "source": "master/battle/boss/boss_level.orderedmap:hermit_crab_water_single_tower",
+            "source_evidence_kind": "absolute"
+          }
+        ],
+        "destination": "boss_level.c2",
+        "family": "general",
+        "final_c86": 1.0,
+        "final_error_hp": 8.403772354125977,
+        "final_readback_hp": 12000000008.403772,
+        "final_target_hp": 12000000000.0,
+        "rel_tolerance": 0.0001,
+        "round_no": 23,
+        "within_tolerance": true
+      },
+      "curse_combo": "风暴",
+      "curse_description": "【风暴】「混相禁域」光伤害降至1/10 「深渊法阵」狂风领域·轻风0.2·10秒·方向2 「深渊逆鳞」敌攻×1.1·直击易伤30% 「深渊重甲」韧性×9·弹耐40%",
+      "curse_hp_multiplier": 1.0,
+      "curse_names": [
+        "混相禁域",
+        "深渊法阵",
+        "深渊逆鳞",
+        "深渊重甲"
+      ],
+      "enemy_level": 100,
+      "field": "tower_dungeon_area_10_10_2",
+      "play_field": "mod_rogue_f23",
+      "round": 23,
+      "runtime_bosses": [
+        "mod_rogue_boss23"
+      ],
+      "source_bosses": [
+        "hermit_crab_water_single_tower"
+      ],
+      "target_exempt": false,
+      "verified": true
+    },
+    {
+      "absolute_verified": true,
+      "adapter": {
+        "abs_tolerance_hp": 1.0,
+        "absolute_verified": true,
+        "baseline_c86": 1.0,
+        "baseline_error_hp": -0.20948219299316406,
+        "baseline_readback_hp": 12428571428.361946,
+        "baseline_target_hp": 12428571428.571428,
+        "channel": "special_bundle",
+        "components": [
+          {
+            "baseline_error_hp": 0.22968435287475586,
+            "baseline_readback_hp": 3829191513.0,
+            "baseline_target_hp": 3829191512.7703156,
+            "boss_occurrence": 1,
+            "channel": "special_bundle",
+            "code": "orochi_ex",
+            "destination": "master/battle/boss/orochi_ex.orderedmap.c24/c25 + master/battle/boss/boss_level.orderedmap.c2",
+            "evidence_kind": "absolute",
+            "final_error_hp": -0.38515782356262207,
+            "final_readback_hp": 1914595756.0,
+            "final_target_hp": 1914595756.3851578,
+            "kind": "orochi_ex_phase1",
+            "native_hp": 75000000.0,
+            "occurrence": 1,
+            "phase": "phase[1]",
+            "readback_code": "mod_rogue_orochi_ex24",
+            "selected_level": 100,
+            "source": "master/battle/boss/orochi_ex.orderedmap.c24",
+            "source_evidence_kind": "absolute"
+          },
+          {
+            "baseline_error_hp": -0.006660938262939453,
+            "baseline_readback_hp": 2472673495.361946,
+            "baseline_target_hp": 2472673495.368607,
+            "boss_occurrence": 1,
+            "channel": "special_bundle",
+            "code": "orochi_ex",
+            "destination": "master/battle/boss/orochi_ex.orderedmap.c24/c25 + master/battle/boss/boss_level.orderedmap.c2",
+            "evidence_kind": "absolute",
+            "final_error_hp": 0.0005435943603515625,
+            "final_readback_hp": 1236336747.684847,
+            "final_target_hp": 1236336747.6843035,
+            "kind": "orochi_ex_middle",
+            "native_hp": 48430722.65625,
+            "occurrence": 2,
+            "phase": "phase[2]",
+            "readback_code": "mod_rogue_orochi_ex24",
+            "selected_level": 100,
+            "source": "master/battle/boss/boss_level.orderedmap",
+            "source_evidence_kind": "absolute"
+          },
+          {
+            "baseline_error_hp": -0.43250560760498047,
+            "baseline_readback_hp": 6126706420.0,
+            "baseline_target_hp": 6126706420.432506,
+            "boss_occurrence": 1,
+            "channel": "special_bundle",
+            "code": "orochi_ex",
+            "destination": "master/battle/boss/orochi_ex.orderedmap.c24/c25 + master/battle/boss/boss_level.orderedmap.c2",
+            "evidence_kind": "absolute",
+            "final_error_hp": -0.21625280380249023,
+            "final_readback_hp": 3063353210.0,
+            "final_target_hp": 3063353210.216253,
+            "kind": "orochi_ex_phase3",
+            "native_hp": 120000000.0,
+            "occurrence": 3,
+            "phase": "phase[3]",
+            "readback_code": "mod_rogue_orochi_ex24",
+            "selected_level": 100,
+            "source": "master/battle/boss/orochi_ex.orderedmap.c25",
+            "source_evidence_kind": "absolute"
+          }
+        ],
+        "destination": "master/battle/boss/orochi_ex.orderedmap.c24/c25 + master/battle/boss/boss_level.orderedmap.c2",
+        "family": "orochi_ex",
+        "final_c86": 1.0,
+        "final_error_hp": -0.6008672714233398,
+        "final_readback_hp": 6214285713.684847,
+        "final_target_hp": 6214285714.285714,
+        "rel_tolerance": 0.0001,
+        "round_no": 24,
+        "within_tolerance": true
+      },
+      "curse_combo": null,
+      "curse_description": "「深渊重甲」韧性×9·弹耐40% 「直击偏转」直击耐性40% 「玻璃深渊」敌攻×1.4·血-50%",
+      "curse_hp_multiplier": 0.5,
+      "curse_names": [
+        "深渊重甲",
+        "直击偏转",
+        "玻璃深渊"
+      ],
+      "enemy_level": 100,
+      "field": "multi_normal_1_20_4",
+      "play_field": "mod_rogue_f24",
+      "round": 24,
+      "runtime_bosses": [
+        "mod_rogue_orochi_ex24"
+      ],
+      "source_bosses": [
+        "orochi_ex"
+      ],
+      "target_exempt": false,
+      "verified": true
+    },
+    {
+      "absolute_verified": true,
+      "adapter": {
+        "abs_tolerance_hp": 1.0,
+        "absolute_verified": true,
+        "baseline_c86": 1.0,
+        "baseline_error_hp": 26.704652786254883,
+        "baseline_readback_hp": 12857142883.84751,
+        "baseline_target_hp": 12857142857.142857,
+        "channel": "special_bundle",
+        "components": [
+          {
+            "baseline_error_hp": -7.802212715148926,
+            "baseline_readback_hp": 6428571420.769279,
+            "baseline_target_hp": 6428571428.571491,
+            "boss_occurrence": 1,
+            "channel": "special_bundle",
+            "code": "orochi_all_head_multi",
+            "destination": "master/battle/boss/orochi.orderedmap.c24 + master/battle/boss/boss_level.orderedmap.c2",
+            "evidence_kind": "absolute",
+            "final_error_hp": 6.676163196563721,
+            "final_readback_hp": 3214285720.961909,
+            "final_target_hp": 3214285714.2857456,
+            "kind": "special",
+            "native_hp": 50770895.175,
+            "occurrence": 1,
+            "phase": "parent",
+            "readback_code": "mod_rogue_orochi25",
+            "selected_level": 100,
+            "source": "master/battle/boss/orochi.orderedmap.c24 -> master/battle/boss/boss_level.orderedmap",
+            "source_evidence_kind": "absolute"
+          },
+          {
+            "baseline_error_hp": 6.957675814628601,
+            "baseline_readback_hp": 803571435.5291122,
+            "baseline_target_hp": 803571428.5714364,
+            "boss_occurrence": 2,
+            "channel": "special_bundle",
+            "code": "orochi_fire_head_multi",
+            "destination": "master/battle/boss/boss_level.orderedmap.c2",
+            "evidence_kind": "absolute",
+            "final_error_hp": 3.478837788105011,
+            "final_readback_hp": 401785717.764556,
+            "final_target_hp": 401785714.2857182,
+            "kind": "special",
+            "native_hp": 6346361.896875,
+            "occurrence": 2,
+            "phase": "head[1]",
+            "readback_code": "mod_rogue_orochi25_head1",
+            "selected_level": 100,
+            "source": "master/battle/boss/boss_level.orderedmap",
+            "source_evidence_kind": "absolute"
+          },
+          {
+            "baseline_error_hp": -2.4130626916885376,
+            "baseline_readback_hp": 535714283.30122834,
+            "baseline_target_hp": 535714285.71429104,
+            "boss_occurrence": 3,
+            "channel": "special_bundle",
+            "code": "orochi_recovery_head_multi",
+            "destination": "master/battle/boss/boss_level.orderedmap.c2",
+            "evidence_kind": "absolute",
+            "final_error_hp": 9.370738476514816,
+            "final_readback_hp": 267857152.227884,
+            "final_target_hp": 267857142.85714552,
+            "kind": "special",
+            "native_hp": 4230907.93125,
+            "occurrence": 3,
+            "phase": "head[2]",
+            "readback_code": "mod_rogue_orochi25_head2",
+            "selected_level": 100,
+            "source": "master/battle/boss/boss_level.orderedmap",
+            "source_evidence_kind": "absolute"
+          },
+          {
+            "baseline_error_hp": 1.0657750368118286,
+            "baseline_readback_hp": 937500001.065721,
+            "baseline_target_hp": 937499999.999946,
+            "boss_occurrence": 4,
+            "channel": "special_bundle",
+            "code": "orochi_funnel_head_multi",
+            "destination": "master/battle/boss/boss_level.orderedmap.c2",
+            "evidence_kind": "absolute",
+            "final_error_hp": -10.044350981712341,
+            "final_readback_hp": 468749989.955622,
+            "final_target_hp": 468749999.999973,
+            "kind": "special",
+            "native_hp": 7404088.879687,
+            "occurrence": 4,
+            "phase": "head[3]",
+            "readback_code": "mod_rogue_orochi25_head3",
+            "selected_level": 100,
+            "source": "master/battle/boss/boss_level.orderedmap",
+            "source_evidence_kind": "absolute"
+          },
+          {
+            "baseline_error_hp": 6.957675814628601,
+            "baseline_readback_hp": 803571435.5291122,
+            "baseline_target_hp": 803571428.5714364,
+            "boss_occurrence": 5,
+            "channel": "special_bundle",
+            "code": "orochi_thunder_head_multi",
+            "destination": "master/battle/boss/boss_level.orderedmap.c2",
+            "evidence_kind": "absolute",
+            "final_error_hp": 3.478837788105011,
+            "final_readback_hp": 401785717.764556,
+            "final_target_hp": 401785714.2857182,
+            "kind": "special",
+            "native_hp": 6346361.896875,
+            "occurrence": 5,
+            "phase": "head[4]",
+            "readback_code": "mod_rogue_orochi25_head4",
+            "selected_level": 100,
+            "source": "master/battle/boss/boss_level.orderedmap",
+            "source_evidence_kind": "absolute"
+          },
+          {
+            "baseline_error_hp": 1.0657750368118286,
+            "baseline_readback_hp": 937500001.065721,
+            "baseline_target_hp": 937499999.999946,
+            "boss_occurrence": 6,
+            "channel": "special_bundle",
+            "code": "orochi_gravity_head_multi",
+            "destination": "master/battle/boss/boss_level.orderedmap.c2",
+            "evidence_kind": "absolute",
+            "final_error_hp": -10.044350981712341,
+            "final_readback_hp": 468749989.955622,
+            "final_target_hp": 468749999.999973,
+            "kind": "special",
+            "native_hp": 7404088.879687,
+            "occurrence": 6,
+            "phase": "head[5]",
+            "readback_code": "mod_rogue_orochi25_head5",
+            "selected_level": 100,
+            "source": "master/battle/boss/boss_level.orderedmap",
+            "source_evidence_kind": "absolute"
+          },
+          {
+            "baseline_error_hp": 6.957675814628601,
+            "baseline_readback_hp": 803571435.5291122,
+            "baseline_target_hp": 803571428.5714364,
+            "boss_occurrence": 7,
+            "channel": "special_bundle",
+            "code": "orochi_ice_head_multi",
+            "destination": "master/battle/boss/boss_level.orderedmap.c2",
+            "evidence_kind": "absolute",
+            "final_error_hp": 3.478837788105011,
+            "final_readback_hp": 401785717.764556,
+            "final_target_hp": 401785714.2857182,
+            "kind": "special",
+            "native_hp": 6346361.896875,
+            "occurrence": 7,
+            "phase": "head[6]",
+            "readback_code": "mod_rogue_orochi25_head6",
+            "selected_level": 100,
+            "source": "master/battle/boss/boss_level.orderedmap",
+            "source_evidence_kind": "absolute"
+          },
+          {
+            "baseline_error_hp": 6.957675814628601,
+            "baseline_readback_hp": 803571435.5291122,
+            "baseline_target_hp": 803571428.5714364,
+            "boss_occurrence": 8,
+            "channel": "special_bundle",
+            "code": "orochi_wind_head_multi",
+            "destination": "master/battle/boss/boss_level.orderedmap.c2",
+            "evidence_kind": "absolute",
+            "final_error_hp": 3.478837788105011,
+            "final_readback_hp": 401785717.764556,
+            "final_target_hp": 401785714.2857182,
+            "kind": "special",
+            "native_hp": 6346361.896875,
+            "occurrence": 8,
+            "phase": "head[7]",
+            "readback_code": "mod_rogue_orochi25_head7",
+            "selected_level": 100,
+            "source": "master/battle/boss/boss_level.orderedmap",
+            "source_evidence_kind": "absolute"
+          },
+          {
+            "baseline_error_hp": 6.957675814628601,
+            "baseline_readback_hp": 803571435.5291122,
+            "baseline_target_hp": 803571428.5714364,
+            "boss_occurrence": 9,
+            "channel": "special_bundle",
+            "code": "orochi_beam_head_multi",
+            "destination": "master/battle/boss/boss_level.orderedmap.c2",
+            "evidence_kind": "absolute",
+            "final_error_hp": 3.478837788105011,
+            "final_readback_hp": 401785717.764556,
+            "final_target_hp": 401785714.2857182,
+            "kind": "special",
+            "native_hp": 6346361.896875,
+            "occurrence": 9,
+            "phase": "head[8]",
+            "readback_code": "mod_rogue_orochi25_head8",
+            "selected_level": 100,
+            "source": "master/battle/boss/boss_level.orderedmap",
+            "source_evidence_kind": "absolute"
+          }
+        ],
+        "destination": "master/battle/boss/boss_level.orderedmap.c2/master/battle/boss/orochi.orderedmap.c24 + master/battle/boss/boss_level.orderedmap.c2",
+        "family": "orochi",
+        "final_c86": 1.0,
+        "final_error_hp": 13.352388381958008,
+        "final_readback_hp": 6428571441.923817,
+        "final_target_hp": 6428571428.571428,
+        "rel_tolerance": 0.0001,
+        "round_no": 25,
+        "within_tolerance": true
+      },
+      "curse_combo": null,
+      "curse_description": "「直击偏转」直击耐性40% 「术式扰流」技能耐性40% 「深渊重甲」韧性×9·弹耐40% 「玻璃深渊·残响」敌血-50%（攻击增幅已摘）",
+      "curse_hp_multiplier": 0.5,
+      "curse_names": [
+        "直击偏转",
+        "术式扰流",
+        "深渊重甲",
+        "玻璃深渊·残响"
+      ],
+      "enemy_level": 100,
+      "field": "multi_normal_1_20_2",
+      "play_field": "mod_rogue_f25",
+      "round": 25,
+      "runtime_bosses": [
+        "mod_rogue_orochi25"
+      ],
+      "source_bosses": [
+        "orochi_all_head_multi"
+      ],
+      "target_exempt": false,
+      "verified": true
+    },
+    {
+      "absolute_verified": true,
+      "adapter": {
+        "abs_tolerance_hp": 1.0,
+        "absolute_verified": true,
+        "baseline_c86": 1.0,
+        "baseline_error_hp": 3.077371597290039,
+        "baseline_readback_hp": 13285714288.791656,
+        "baseline_target_hp": 13285714285.714285,
+        "channel": "boss_level",
+        "components": [
+          {
+            "baseline_error_hp": 3.077371597290039,
+            "baseline_readback_hp": 13285714288.791656,
+            "baseline_target_hp": 13285714285.714285,
+            "boss_occurrence": 1,
+            "channel": "boss_level",
+            "code": "security_armour_single_tower",
+            "destination": "boss_level.c2",
+            "evidence_kind": "absolute",
+            "final_error_hp": 3.0773696899414062,
+            "final_readback_hp": 13285714288.791655,
+            "final_target_hp": 13285714285.714285,
+            "kind": "general",
+            "native_hp": 25183975.78125,
+            "occurrence": 1,
+            "phase": "main",
+            "readback_code": "mod_rogue_boss26",
+            "selected_level": null,
+            "source": "master/battle/boss/boss_level.orderedmap:security_armour_single_tower",
+            "source_evidence_kind": "absolute"
+          }
+        ],
+        "destination": "boss_level.c2",
+        "family": "general",
+        "final_c86": 1.0,
+        "final_error_hp": 3.0773696899414062,
+        "final_readback_hp": 13285714288.791655,
+        "final_target_hp": 13285714285.714285,
+        "rel_tolerance": 0.0001,
+        "round_no": 26,
+        "within_tolerance": true
+      },
+      "curse_combo": null,
+      "curse_description": "「元素禁壁」光属性伤害降至1% 「深渊法阵」狂风领域·微风0.05·5秒·方向2 「深渊法阵」元素结界·元素耐性结界 「深渊壁垒」全系耐性30% 「绝对壁垒」能力完全免疫 「三重壁垒」能力·强化弹射·技能三重免疫(只剩直击能打)",
+      "curse_hp_multiplier": 1.0,
+      "curse_names": [
+        "元素禁壁",
+        "深渊法阵",
+        "深渊法阵",
+        "深渊壁垒",
+        "绝对壁垒",
+        "三重壁垒"
+      ],
+      "enemy_level": 100,
+      "field": "tower_dungeon_area_9_11_3",
+      "play_field": "mod_rogue_f26",
+      "round": 26,
+      "runtime_bosses": [
+        "mod_rogue_boss26"
+      ],
+      "source_bosses": [
+        "security_armour_single_tower"
+      ],
+      "target_exempt": false,
+      "verified": true
+    },
+    {
+      "absolute_verified": true,
+      "adapter": {
+        "abs_tolerance_hp": 1.0,
+        "absolute_verified": true,
+        "baseline_c86": 1.0,
+        "baseline_error_hp": 1.301900863647461,
+        "baseline_readback_hp": 13714285715.587616,
+        "baseline_target_hp": 13714285714.285715,
+        "channel": "boss_level",
+        "components": [
+          {
+            "baseline_error_hp": 1.301900863647461,
+            "baseline_readback_hp": 13714285715.587616,
+            "baseline_target_hp": 13714285714.285715,
+            "boss_occurrence": 1,
+            "channel": "boss_level",
+            "code": "treant_single_tower",
+            "destination": "boss_level.c2",
+            "evidence_kind": "absolute",
+            "final_error_hp": 5.949689865112305,
+            "final_readback_hp": 11657142863.092546,
+            "final_target_hp": 11657142857.142857,
+            "kind": "general",
+            "native_hp": 26152590.234375,
+            "occurrence": 1,
+            "phase": "main",
+            "readback_code": "mod_rogue_boss27",
+            "selected_level": null,
+            "source": "master/battle/boss/boss_level.orderedmap:treant_single_tower",
+            "source_evidence_kind": "absolute"
+          }
+        ],
+        "destination": "boss_level.c2",
+        "family": "general",
+        "final_c86": 1.0,
+        "final_error_hp": 5.949689865112305,
+        "final_readback_hp": 11657142863.092546,
+        "final_target_hp": 11657142857.142857,
+        "rel_tolerance": 0.0001,
+        "round_no": 27,
+        "within_tolerance": true
+      },
+      "curse_combo": null,
+      "curse_description": "「混相禁域」雷伤害降至1/10 「深渊法阵」连击限制领域·连击限制+35 「深渊法阵」攻击领域·攻击+100%/直击+50%/光耐性+100%·复合 「绝对壁垒」能力完全免疫 「深渊重甲」韧性×9·弹耐40% 「嗜血狂潮」敌攻×1.15·血-15%",
+      "curse_hp_multiplier": 0.85,
+      "curse_names": [
+        "混相禁域",
+        "深渊法阵",
+        "深渊法阵",
+        "绝对壁垒",
+        "深渊重甲",
+        "嗜血狂潮"
+      ],
+      "enemy_level": 100,
+      "field": "tower_dungeon_area_10_11_1",
+      "play_field": "mod_rogue_f27",
+      "round": 27,
+      "runtime_bosses": [
+        "mod_rogue_boss27"
+      ],
+      "source_bosses": [
+        "treant_single_tower"
+      ],
+      "target_exempt": false,
+      "verified": true
+    },
+    {
+      "absolute_verified": true,
+      "adapter": {
+        "abs_tolerance_hp": 1.0,
+        "absolute_verified": true,
+        "baseline_c86": 1.0,
+        "baseline_error_hp": 22.773181915283203,
+        "baseline_readback_hp": 14142857165.630325,
+        "baseline_target_hp": 14142857142.857143,
+        "channel": "special_bundle",
+        "components": [
+          {
+            "baseline_error_hp": 22.773181915283203,
+            "baseline_readback_hp": 14142857165.630325,
+            "baseline_target_hp": 14142857142.857143,
+            "boss_occurrence": 1,
+            "channel": "special_bundle",
+            "code": "boss_conductor_multi",
+            "destination": "master/battle/boss/conductor.orderedmap key + master/battle/boss/boss_level.orderedmap.c2",
+            "evidence_kind": "absolute",
+            "final_error_hp": -12.025903701782227,
+            "final_readback_hp": 12021428559.402668,
+            "final_target_hp": 12021428571.428572,
+            "kind": "special",
+            "native_hp": 156915541.40625,
+            "occurrence": 1,
+            "phase": "main",
+            "readback_code": "mod_rogue_conductor28",
+            "selected_level": 100,
+            "source": "master/battle/boss/boss_level.orderedmap",
+            "source_evidence_kind": "absolute"
+          }
+        ],
+        "destination": "master/battle/boss/conductor.orderedmap key + master/battle/boss/boss_level.orderedmap.c2",
+        "family": "conductor",
+        "final_c86": 1.0,
+        "final_error_hp": -12.025903701782227,
+        "final_readback_hp": 12021428559.402668,
+        "final_target_hp": 12021428571.428572,
+        "rel_tolerance": 0.0001,
+        "round_no": 28,
+        "within_tolerance": true
+      },
+      "curse_combo": null,
+      "curse_description": "「嗜血狂潮」敌攻×1.15·血-15% 「深渊重甲」韧性×9·弹耐40% 「魔力枯竭」FEVER需求×3 「术式扰流」技能耐性40%",
+      "curse_hp_multiplier": 0.85,
+      "curse_names": [
+        "嗜血狂潮",
+        "深渊重甲",
+        "魔力枯竭",
+        "术式扰流"
+      ],
+      "enemy_level": 100,
+      "field": "conductor_multi",
+      "play_field": "mod_rogue_f28",
+      "round": 28,
+      "runtime_bosses": [
+        "mod_rogue_conductor28"
+      ],
+      "source_bosses": [
+        "boss_conductor_multi"
+      ],
+      "target_exempt": false,
+      "verified": true
+    },
+    {
+      "absolute_verified": true,
+      "adapter": {
+        "abs_tolerance_hp": 1.0,
+        "absolute_verified": true,
+        "baseline_c86": 1.0,
+        "baseline_error_hp": -1.4285717010498047,
+        "baseline_readback_hp": 14571428570.0,
+        "baseline_target_hp": 14571428571.428572,
+        "channel": "standard_dsl",
+        "components": [
+          {
+            "baseline_error_hp": -0.21428585052490234,
+            "baseline_readback_hp": 2185714285.5,
+            "baseline_target_hp": 2185714285.714286,
+            "boss_occurrence": 1,
+            "channel": "standard_dsl",
+            "code": "abyss_cloud",
+            "destination": "battle/enemy/boss/mod_rogue/standard_r29_1.esdl.amf3.deflate#forms.Health(T1)",
+            "evidence_kind": "absolute",
+            "final_error_hp": -0.21428585052490234,
+            "final_readback_hp": 2185714285.5,
+            "final_target_hp": 2185714285.714286,
+            "kind": "standard",
+            "native_hp": 742500000.0,
+            "occurrence": 1,
+            "phase": "form[0]",
+            "readback_code": "mod_rogue_standard29",
+            "selected_level": 100,
+            "source": "battle/enemy/boss/abyss_cloud_single5.esdl.amf3.deflate",
+            "source_evidence_kind": "absolute"
+          },
+          {
+            "baseline_error_hp": -0.5,
+            "baseline_readback_hp": 5099999999.5,
+            "baseline_target_hp": 5100000000.0,
+            "boss_occurrence": 1,
+            "channel": "standard_dsl",
+            "code": "abyss_cloud",
+            "destination": "battle/enemy/boss/mod_rogue/standard_r29_1.esdl.amf3.deflate#forms.Health(T1)",
+            "evidence_kind": "absolute",
+            "final_error_hp": -0.5,
+            "final_readback_hp": 5099999999.5,
+            "final_target_hp": 5100000000.0,
+            "kind": "standard",
+            "native_hp": 1732500000.0,
+            "occurrence": 2,
+            "phase": "form[1]",
+            "readback_code": "mod_rogue_standard29",
+            "selected_level": 100,
+            "source": "battle/enemy/boss/abyss_cloud_single5.esdl.amf3.deflate",
+            "source_evidence_kind": "absolute"
+          },
+          {
+            "baseline_error_hp": -0.7142858505249023,
+            "baseline_readback_hp": 7285714285.0,
+            "baseline_target_hp": 7285714285.714286,
+            "boss_occurrence": 2,
+            "channel": "standard_dsl",
+            "code": "abyss_cloud_p3",
+            "destination": "battle/enemy/boss/mod_rogue/standard_r29_2.esdl.amf3.deflate#forms.Health(T1)",
+            "evidence_kind": "absolute",
+            "final_error_hp": -0.7142858505249023,
+            "final_readback_hp": 7285714285.0,
+            "final_target_hp": 7285714285.714286,
+            "kind": "standard",
+            "native_hp": 2475000000.0,
+            "occurrence": 3,
+            "phase": "form[0]",
+            "readback_code": "mod_rogue_standard29_2",
+            "selected_level": 100,
+            "source": "battle/enemy/boss/abyss_cloud_p3_single5.esdl.amf3.deflate",
+            "source_evidence_kind": "absolute"
+          }
+        ],
+        "destination": "battle/enemy/boss/mod_rogue/standard_r29_1.esdl.amf3.deflate#forms.Health(T1)/battle/enemy/boss/mod_rogue/standard_r29_2.esdl.amf3.deflate#forms.Health(T1)",
+        "family": "standard",
+        "final_c86": 1.0,
+        "final_error_hp": -1.4285717010498047,
+        "final_readback_hp": 14571428570.0,
+        "final_target_hp": 14571428571.428572,
+        "rel_tolerance": 0.0001,
+        "round_no": 29,
+        "within_tolerance": true
+      },
+      "curse_combo": "偏转阵列",
+      "curse_description": "【偏转阵列】「直击偏转」直击耐性40% 「术式扰流」技能耐性40% 「深渊重甲」韧性×9·弹耐40% 「亡者不屈」减益免疫·能耐50%",
+      "curse_hp_multiplier": 1.0,
+      "curse_names": [
+        "直击偏转",
+        "术式扰流",
+        "深渊重甲",
+        "亡者不屈"
+      ],
+      "enemy_level": 100,
+      "field": "abyss_cloud",
+      "play_field": "mod_rogue_f29",
+      "round": 29,
+      "runtime_bosses": [
+        "mod_rogue_standard29",
+        "mod_rogue_standard29_2"
+      ],
+      "source_bosses": [
+        "abyss_cloud",
+        "abyss_cloud_p3"
+      ],
+      "target_exempt": false,
+      "verified": true
+    },
+    {
+      "absolute_verified": true,
+      "adapter": {
+        "abs_tolerance_hp": 1.0,
+        "absolute_verified": true,
+        "baseline_c86": 1.0,
+        "baseline_error_hp": 0.0,
+        "baseline_readback_hp": 15000000000.0,
+        "baseline_target_hp": 15000000000.0,
+        "channel": "standard_dsl",
+        "components": [
+          {
+            "baseline_error_hp": 0.0,
+            "baseline_readback_hp": 15000000000.0,
+            "baseline_target_hp": 15000000000.0,
+            "boss_occurrence": 1,
+            "channel": "standard_dsl",
+            "code": "chapter12_boss_story",
+            "destination": "battle/enemy/boss/mod_rogue/standard_r30_1.esdl.amf3.deflate#forms.Health(T1)",
+            "evidence_kind": "absolute",
+            "final_error_hp": 0.0,
+            "final_readback_hp": 15000000000.0,
+            "final_target_hp": 15000000000.0,
+            "kind": "standard",
+            "native_hp": 385000000.0,
+            "occurrence": 1,
+            "phase": "form[0]",
+            "readback_code": "mod_rogue_standard30",
+            "selected_level": 80,
+            "source": "battle/enemy/boss/chapter12_boss_main.esdl.amf3.deflate",
+            "source_evidence_kind": "absolute"
+          }
+        ],
+        "destination": "battle/enemy/boss/mod_rogue/standard_r30_1.esdl.amf3.deflate#forms.Health(T1)",
+        "family": "standard",
+        "final_c86": 1.0,
+        "final_error_hp": 0.0,
+        "final_readback_hp": 15000000000.0,
+        "final_target_hp": 15000000000.0,
+        "rel_tolerance": 0.0001,
+        "round_no": 30,
+        "within_tolerance": true
+      },
+      "curse_combo": "偏转阵列",
+      "curse_description": "【偏转阵列】「直击偏转」直击耐性40% 「术式扰流」技能耐性40% 「深渊重甲」韧性×9·弹耐40% 「魔力枯竭」FEVER需求×3",
+      "curse_hp_multiplier": 1.0,
+      "curse_names": [
+        "直击偏转",
+        "术式扰流",
+        "深渊重甲",
+        "魔力枯竭"
+      ],
+      "enemy_level": 80,
+      "field": "main_12_10_01",
+      "play_field": "mod_rogue_f30",
+      "round": 30,
+      "runtime_bosses": [
+        "mod_rogue_standard30"
+      ],
+      "source_bosses": [
+        "chapter12_boss_story"
+      ],
+      "target_exempt": false,
+      "verified": true
+    }
+  ],
+  "gameplay_verified": false,
+  "inputs": {
+    "baseline_includes_curse": false,
+    "difficulty": "hell",
+    "enemy_level": "ramp",
+    "hp_profile": "linear_boss_hp_30e8_150e8",
+    "rounds": 30,
+    "seed": 2026082508,
+    "strict_target_hp": true
+  },
+  "schema": "wf-rogue-hp-audit/v2",
+  "selection_policy": {
+    "boss_exclusions": [
+      {
+        "action": "reroll",
+        "match": "prefix",
+        "reason": "HP_PROXY_ONLY",
+        "value": "practice_waraboss_tough"
+      }
+    ],
+    "native_special_only": [
+      {
+        "channel": "special_bundle",
+        "closure": "one_victory_bar+two_tentacle_funnels+action_identity",
+        "family": "kraken",
+        "field_policy": "native_only",
+        "match": "constructor",
+        "value": "kraken"
+      },
+      {
+        "channel": "special_bundle",
+        "closure": "parent+six_children+three_hp_phases",
+        "family": "orochi_ex",
+        "field_policy": "native_only",
+        "match": "exact",
+        "value": "orochi_ex"
+      },
+      {
+        "channel": "special_bundle",
+        "closure": "one_victory_bar+derived_weapon_durability+action_identity",
+        "family": "conductor",
+        "field_policy": "native_only",
+        "match": "constructor",
+        "value": "conductor"
+      },
+      {
+        "channel": "special_bundle",
+        "closure": "one_victory_bar+derived_weapon_durability+action_identity",
+        "family": "touyakiren_ceo",
+        "field_policy": "native_only",
+        "match": "constructor",
+        "value": "touyakiren_ceo"
+      },
+      {
+        "channel": "special_bundle",
+        "closure": "four_phase_parent+two_mandatory_phase1_crystals+four_scaled_phase3_conduits+phase_budget",
+        "family": "water_sphere",
+        "field_policy": "native_only",
+        "match": "constructor",
+        "value": "water_sphere"
+      },
+      {
+        "channel": "special_bundle",
+        "closure": "four_phase_parent+two_mandatory_phase1_crystals+five_scaled_phase3_conduits+phase_budget",
+        "family": "holy_sphere",
+        "field_policy": "native_only",
+        "match": "constructor",
+        "value": "holy_sphere"
+      },
+      {
+        "channel": "special_bundle",
+        "closure": "four_phase_parent+three_phase2_mechanic_crystals+one_scaled_phase3_crystal+three_scaled_phase3_micronuclei+phase_budget",
+        "family": "wind_sphere",
+        "field_policy": "native_only",
+        "match": "constructor",
+        "value": "wind_sphere"
+      },
+      {
+        "channel": "special_bundle",
+        "closure": "four_phase_parent+three_scaled_phase2_micronuclei+two_phase3_auxiliaries+three_scaled_phase4_crystals+phase_budgets",
+        "family": "thunder_sphere",
+        "field_policy": "native_only",
+        "match": "constructor",
+        "value": "thunder_sphere"
+      },
+      {
+        "channel": "special_bundle",
+        "closure": "four_phase_parent+three_mandatory_phase1_crystals+four_scaled_phase4_conduits+one_full_revival+eight_occurrences+raw_hit_overdamage",
+        "family": "fire_sphere",
+        "field_policy": "native_only",
+        "match": "constructor",
+        "value": "fire_sphere"
+      }
+    ]
+  },
+  "summary": {
+    "absolute_boss_rounds": 29,
+    "audited_boss_rounds": 29,
+    "baseline_first_boss_hp": 3000000000.0,
+    "baseline_last_boss_hp": 15000000000.0,
+    "baseline_strictly_increasing": true,
+    "chain_failures": 0,
+    "chain_reports": 31,
+    "expected_boss_rounds": 29,
+    "max_absolute_error_hp": 26.704652786254883,
+    "proxy_components": 0,
+    "source_proxy_components": 2,
+    "special_bundle_rounds": 7,
+    "target_exempt_rounds": 0
+  },
+  "tool": {
+    "name": "wf_rogue_build.py",
+    "sha256": "88171ceb884845ab2952e008fdc2fcb3e80ff44d660b726f273222043c991283"
+  },
+  "verification_scope": "static_dry_run"
+}

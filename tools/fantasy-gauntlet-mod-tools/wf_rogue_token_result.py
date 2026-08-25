@@ -20,13 +20,12 @@ from pathlib import Path
 
 import wf_quest_lib as q
 import wf_mod_tool as core
+import wf_rogue_reward_schedule as schedule
 
 
 ADDITIONAL_REWARD_T = "master/reward/event/additional_reward.orderedmap"
 ABYSS_TOKEN_ITEM_ID = 2370099
 ABYSS_TOKEN_GROUP_ID = 237009900
-ABYSS_TOKEN_INDEX = "1"
-ABYSS_TOKEN_ROW = "abyss_token_result,0,2370099,5,1"
 
 ROOT = Path(__file__).resolve().parent.parent
 SERVER_ROOT = core.resolve_server_dir()
@@ -70,21 +69,19 @@ def load_effective_table() -> dict:
 def build_table(source: dict) -> dict:
     table = copy.deepcopy(source)
     key = str(ABYSS_TOKEN_GROUP_ID)
-    expected = {ABYSS_TOKEN_INDEX: ABYSS_TOKEN_ROW}
+    expected = schedule.additional_reward_rows()
     existing = table.get(key)
-    if existing is not None and existing != expected:
+    legacy = {"1": "abyss_token_result,0,2370099,5,1"}
+    if existing is not None and existing not in (legacy, expected):
         raise ValueError(f"additional reward group {key} is already occupied: {existing!r}")
     table[key] = expected
     return table
 
 
 def validate_table(table: dict) -> None:
-    row = table.get(str(ABYSS_TOKEN_GROUP_ID), {}).get(ABYSS_TOKEN_INDEX)
-    if row != ABYSS_TOKEN_ROW:
-        raise ValueError("Abyss token additional-reward row is missing or malformed")
-    columns = row.split(",")
-    if columns[1] != "0" or int(columns[2]) != ABYSS_TOKEN_ITEM_ID:
-        raise ValueError("Abyss token row does not describe the expected item reward")
+    rows = table.get(str(ABYSS_TOKEN_GROUP_ID))
+    if rows != schedule.additional_reward_rows():
+        raise ValueError("Abyss independent reward-slot rows are missing or malformed")
 
 
 def main() -> int:
@@ -99,7 +96,7 @@ def main() -> int:
     validate_table(built)
     print(
         f"{ADDITIONAL_REWARD_T}: {len(source)} -> {len(built)} groups; "
-        f"group={ABYSS_TOKEN_GROUP_ID}, item={ABYSS_TOKEN_ITEM_ID}",
+        f"group={ABYSS_TOKEN_GROUP_ID}, slots={len(schedule.additional_reward_rows())}",
     )
     if args.write:
         path = q.save_table(ADDITIONAL_REWARD_T, built)

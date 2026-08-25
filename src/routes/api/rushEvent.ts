@@ -18,7 +18,9 @@ import { resolvePlayerIdSync } from "../../data/activeAccount";
 import rushEventRankingRewards from "../../../assets/rush_event_ranking_reward.json";
 import { ensureSpecialEventPartyGroupsSync, getGlobalPartyId } from "../../lib/special-event-parties";
 import {
+    classifyDeepAbyssFolderReset,
     classifyDeepAbyssFolderSelection,
+    DEEP_ABYSS_RUSH_FOLDER_ID,
     isStaleDeepAbyssEndlessFolderLock,
 } from "../../lib/rush-event-folder-lock";
 import {
@@ -283,7 +285,7 @@ const routes = async (fastify: FastifyInstance) => {
             "message": "No player bound to account."
         })
 
-        // get existing rush event data 
+        // get existing rush event data
         let rushEventData = getPlayerRushEventSync(playerId, eventId)
         if (rushEventData === null) return reply.status(400).send({
             "error": "Bad Request",
@@ -699,9 +701,26 @@ const routes = async (fastify: FastifyInstance) => {
         }
 
         if (questType === ResetQuestType.FOLDER) {
-
-            // if reset target was provided, we're not resetting the entire folder
-            if (resetTargetId !== undefined) {
+            if (classifyDeepAbyssFolderReset(eventId) === "restart_from_first") {
+                // Deep Abyss always abandons the entire finite run.  Keep
+                // folder 1 selected so the client returns directly to round
+                // 700099001, regardless of reset_target_id.
+                updatePlayerRushEventSync(playerId, {
+                    eventId: eventId,
+                    activeRushBattleFolderId: DEEP_ABYSS_RUSH_FOLDER_ID
+                })
+                deletePlayerRushEventPlayedPartyListSync(
+                    playerId,
+                    eventId,
+                    RushEventBattleType.FOLDER
+                )
+                console.log(
+                    `[RUSH] Deep Abyss folder reset from first round: `
+                    + `player=${playerId} ignoredResetTargetId=${resetTargetId}`
+                )
+            } else if (resetTargetId !== undefined) {
+                // A reset target keeps the native partial-reset behaviour for
+                // every Rush event except Deep Abyss.
                 deletePlayerRushEventPlayedPartiesUntilSync(playerId, eventId, RushEventBattleType.FOLDER, resetTargetId)
             } else {
                 // reset entire folder
