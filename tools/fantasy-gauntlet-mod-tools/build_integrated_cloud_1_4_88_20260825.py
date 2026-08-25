@@ -1235,6 +1235,11 @@ def prepare_server_files() -> dict[str, Any]:
     rogue_rewards.validate_rogue_event(rogue_document)
     rogue_target = output_root / "assets/rogue_event.json"
     shutil.copy2(rogue_source, rogue_target)
+    rogue_extension_source = SOURCE_ROOT / "assets/rogue_event_cnmod.json"
+    rogue_extension_document = json.loads(rogue_extension_source.read_bytes())
+    rogue_rewards.validate_rogue_event_extension(rogue_extension_document)
+    rogue_extension_target = output_root / "assets/rogue_event_cnmod.json"
+    shutil.copy2(rogue_extension_source, rogue_extension_target)
 
     coordinated = (
         "src/routes/api/rushEvent.ts",
@@ -1270,6 +1275,10 @@ def prepare_server_files() -> dict[str, Any]:
             "config": {
                 "path": "assets/rogue_event.json",
                 "sha256": sha256_file(rogue_target),
+            },
+            "extension": {
+                "path": "assets/rogue_event_cnmod.json",
+                "sha256": sha256_file(rogue_extension_target),
             },
             "probability": rogue_rewards.probability_report(),
             "final_fixed": list(rogue_rewards.FINAL_FIXED_REWARDS),

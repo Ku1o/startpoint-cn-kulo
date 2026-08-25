@@ -62,6 +62,21 @@ class TestRewardCurve(unittest.TestCase):
         self.assertEqual(folder["700007"], folder_built["700007"])
         rewards.validate_server_folder(folder_built)
 
+    def test_cn_extension_matches_the_final_ten_ticket_chance(self):
+        extension = {
+            "events": {
+                "700099": {
+                    "folder_clear_chance": [
+                        {"type": 0, "id": 999014, "count": 1, "chance": 0.10},
+                    ],
+                },
+            },
+        }
+        rewards.validate_rogue_event_extension(extension)
+        extension["events"]["700099"]["folder_clear_chance"][0]["chance"] = 0.05
+        with self.assertRaisesRegex(ValueError, "10%"):
+            rewards.validate_rogue_event_extension(extension)
+
 
 class TestClientTables(unittest.TestCase):
     @staticmethod

@@ -130,6 +130,14 @@ def validate_rogue_event(source: dict[str, Any]) -> None:
         raise ValueError("第29关代币概率必须为64%")
 
 
+def validate_rogue_event_extension(source: dict[str, Any]) -> None:
+    event = source.get("events", {}).get(EVENT_KEY)
+    if not isinstance(event, dict):
+        raise ValueError(f"rogue_event_cnmod 缺少 events.{EVENT_KEY}")
+    if event.get("folder_clear_chance") != [FINAL_CHANCE_REWARDS[0]]:
+        raise ValueError("rogue_event_cnmod 第30关深渊十连券概率必须与主配置同为10%")
+
+
 def build_server_folder(source: dict[str, Any]) -> dict[str, Any]:
     result = copy.deepcopy(source)
     event = result.get(EVENT_KEY)

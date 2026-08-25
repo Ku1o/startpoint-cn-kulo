@@ -3,6 +3,7 @@ const assert = require("node:assert/strict");
 
 const { resolveRogueRoundDrops } = require("../out/lib/quest/finish/rogue-drop-schedule");
 const config = require("../assets/rogue_event.json").events["700099"];
+const extension = require("../assets/rogue_event_cnmod.json").events["700099"];
 
 function sequence(values) {
     let position = 0;
@@ -52,4 +53,11 @@ test("replaces the single ticket with the floor-specific ten-ticket roll every 5
 
 test("does not attach per-round drops to the final floor", () => {
     assert.deepEqual(resolveRogueRoundDrops(config, 30, () => 0), []);
+});
+
+test("keeps the final ten-ticket chance identical across base and CN extension configs", () => {
+    const base = config.folder_clear_chance.find(reward => reward.id === 999014);
+    const extra = extension.folder_clear_chance.find(reward => reward.id === 999014);
+    assert.deepEqual(extra, base);
+    assert.equal(base.chance, 0.10);
 });
