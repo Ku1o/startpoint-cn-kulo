@@ -7,7 +7,7 @@ import { getSession } from "../../data/domains/session"
 import { getDb } from "../../data/db"
 import { getPlayerMailCountSync } from "../../data/domains/mail"
 import { generateDataHeaders, getServerTime } from "../../utils";
-import { getComputer, getMissionIdsByCategory, getCurrentStage, getCharacterIdFromMission, getMissionFinalTargetProgress, isMissionEnabledAt, mergeMissionSettlementResponse, reconcileAwakeUnlockCharacterList, settleAwakeMissionRewards, settleMissionCategories } from "../../lib/mission/index";
+import { getComputer, getMissionIdsByCategory, getCurrentStage, getCharacterIdFromMission, getMissionFinalTargetProgress, getMissionStageIds, isMissionEnabledAt, mergeMissionSettlementResponse, reconcileAwakeUnlockCharacterList, reconcileAwakeUnlocksFromProgress, refreshAwakeUnlockCharacterList, settleAwakeMissionRewards, settleMissionCategories } from "../../lib/mission/index";
 import { resolveClientProgressTargets } from "../../lib/mission/client-progress";
 import type { AwakeMissionComputedProgress, AwakeMissionInfo } from "../../lib/mission/index";
 import { resolvePlayerIdSync } from "../../data/activeAccount";
@@ -141,7 +141,7 @@ const routes = async (fastify: FastifyInstance) => {
 
         const missionInfo: AwakeMissionInfo[] = []
         const itemList: Record<string, number> = {}
-        const characterList: Record<string, unknown>[] = []
+        let characterList: Record<string, unknown>[] = []
         const equipmentList: Object[] = []
         const degreeIds: number[] = []
         let userInfo: Record<string, number> | undefined
@@ -158,6 +158,46 @@ const routes = async (fastify: FastifyInstance) => {
             if (settlement.userInfo) userInfo = settlement.userInfo
         }
 
+        const requestedAwakeProgress = [...awakeProgressByCharacter.values()].flat()
+        let awakeActiveMissionList: {
+            mission_id: number
+            progress_value: number
+            stages: { stage: number, received: boolean }[]
+        }[] = []
+        if (requestedAwakeProgress.length > 0) {
+            // The client caches Awake availability separately from the mission
+            // page.  Reconcile from the progress already computed above, then
+            // always re-publish the scoped character state so a lost earlier
+            // response never forces a relogin.
+            const unlocks = reconcileAwakeUnlocksFromProgress(
+                playerId,
+                requestedAwakeProgress,
+            ).all
+            characterList = refreshAwakeUnlockCharacterList(
+                playerId,
+                characterList,
+                unlocks,
+                [...awakeProgressByCharacter.keys()].map(Number),
+            )
+
+            // Category 9 must use the common-response active_mission_list
+            // channel.  all_active_mission_list is reserved for the ordinary
+            // active-mission repository and rejects Awake IDs on CN 1.8.1.
+            const settledAwakeMissions = getPlayerCategoryMissionsSync(playerId, 9)
+            awakeActiveMissionList = requestedAwakeProgress.map(entry => {
+                const persistedStages = settledAwakeMissions[String(entry.missionId)]?.stages
+                return {
+                    mission_id: entry.missionId,
+                    progress_value: entry.progress,
+                    stages: getMissionStageIds(9, entry.missionId).map(stage => ({
+                        stage,
+                        received: !Array.isArray(persistedStages)
+                            && persistedStages?.[String(stage)] === true,
+                    })),
+                }
+            })
+        }
+
         const responseData: Record<string, unknown> = {
             mission_progress_list: missionProgressList,
             mission_info: missionInfo,
@@ -165,6 +205,9 @@ const routes = async (fastify: FastifyInstance) => {
             character_list: characterList,
             equipment_list: equipmentList,
             degree_list: degreeIds.map(degreeId => ({ viewer_id: viewerId, degree_id: degreeId })),
+        }
+        if (awakeActiveMissionList.length > 0) {
+            responseData.active_mission_list = awakeActiveMissionList
         }
         if (userInfo) responseData.user_info = userInfo
         if (automaticSettlement) {

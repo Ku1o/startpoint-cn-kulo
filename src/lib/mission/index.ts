@@ -55,7 +55,7 @@ export type { AwakeMissionComputedProgress, AwakeMissionInfo, AwakeMissionSettle
 export { getAwakeBattleMissionIds, settleAwakeMissionCandidates, settleAwakeMissionRewards } from "./awake-settlement"
 export type { AwakeUnlockProgress, AwakeUnlockReconciliationResult } from "./awake-unlock"
 export { reconcileAwakeUnlocks, reconcileAwakeUnlocksFromProgress } from "./awake-unlock"
-export { reconcileAwakeUnlockCharacterList } from "./awake-unlock-response"
+export { reconcileAwakeUnlockCharacterList, refreshAwakeUnlockCharacterList } from "./awake-unlock-response"
 export { collectPartyCharacterIds, summarizeBattleStatistics } from "./events"
 export { recordBattleMissionDimensionsSafe } from "./battle-dimensions"
 
