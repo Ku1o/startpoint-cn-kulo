@@ -120,6 +120,80 @@ class TestOrochiExHpChannel(unittest.TestCase):
             )
         self.assertEqual(self.dedicated, before)
 
+    def test_phase_damage_capacity_rejects_retired_heads_before_gate(self) -> None:
+        with self.assertRaisesRegex(channel.OrochiExHpError, "below phase gate"):
+            channel.validate_phase_damage_capacity(
+                1_342_177_279,
+                {
+                    "left": 28_089_819.140625,
+                    "center": 73_614_698.4375,
+                    "right": 28_089_819.140625,
+                },
+                label="floor24.phase1",
+                primary_carrier="center",
+                required_coverage_ratio=1.01,
+            )
+        with self.assertRaisesRegex(channel.OrochiExHpError, "below phase gate"):
+            channel.validate_phase_damage_capacity(
+                1_000,
+                {"center": 1_010 - 1e-5},
+                label="floor24.phase1.boundary",
+                primary_carrier="center",
+                required_coverage_ratio=1.01,
+            )
+
+    def test_floor24_incident_head_rows_are_planned_to_cover_both_gates(self) -> None:
+        codes = tuple(f"head{i}" for i in range(1, 7))
+        levels = {
+            code: leaf(level_row(c2))
+            for code, c2 in zip(codes, (145, 380, 145, 280, 700, 280))
+        }
+        before = copy.deepcopy(levels)
+        hp_per_c2 = 193_722.890625
+
+        def true_stat(code, _kind, _level, boss_level):
+            c2 = float(core.read_csv_lines(boss_level[code])[0][2])
+            return c2 * hp_per_c2 / rogue.GENERAL_HP_LEVEL_SCALE[100], "*"
+
+        def stats(boss_level):
+            return {
+                code: {"hpc": "hit_hp_boss", "hp_mode": "hit"}
+                for code in boss_level
+            }
+
+        with (
+            mock.patch.object(rogue, "true_stat", side_effect=true_stat),
+            mock.patch.object(rogue, "boss_base_stats", side_effect=stats),
+            mock.patch.object(rogue, "curve_value", return_value=1.0),
+        ):
+            with self.assertRaisesRegex(
+                    channel.OrochiExHpError, "below phase gate"):
+                rogue.orochi_ex_phase_damage_capacity_contract(
+                    codes, 100, levels,
+                    phase1_required_hp=1_342_177_279,
+                    phase3_required_hp=2_147_483_647,
+                )
+            planned, contract = rogue.plan_orochi_ex_phase_damage_capacity(
+                codes, 100, levels,
+                phase1_required_hp=1_342_177_279,
+                phase3_required_hp=2_147_483_647,
+                minimum_scale=2_147_483_647 / 120_000_000,
+            )
+
+        self.assertEqual(levels, before)
+        self.assertEqual(set(planned), set(codes))
+        self.assertTrue(contract["absolute_verified"])
+        self.assertTrue(contract["static_verified"])
+        self.assertFalse(contract["runtime_simulated"])
+        self.assertFalse(contract["gameplay_verified"])
+        for phase in contract["phases"]:
+            self.assertGreaterEqual(
+                phase["total_coverage_ratio"],
+                rogue.OROCHI_EX_PHASE_CARRIER_COVERAGE_RATIO)
+            self.assertGreaterEqual(
+                phase["primary_coverage_ratio"],
+                rogue.OROCHI_EX_PHASE_CARRIER_COVERAGE_RATIO)
+
     def test_general_hp_evidence_keeps_fixed_phases_outside_quest_multiplier(self) -> None:
         high = {"orochi_ex_high": {"100": leaf(parent_row(105_000_000, 168_000_000))}}
         levels = {"orochi_ex_high": leaf(level_row(300))}
@@ -217,7 +291,11 @@ class TestOrochiExHpChannel(unittest.TestCase):
             for source_code, target_code in zip(
                     rogue.OROCHI_EX_CANONICAL_HEADS, result.head_codes):
                 self.assertEqual(heads[target_code], heads[source_code])
-                self.assertEqual(levels[target_code], levels[source_code])
+                source_level = core.read_csv_lines(levels[source_code])[0]
+                target_level = core.read_csv_lines(levels[target_code])[0]
+                self.assertEqual(source_level[:2], target_level[:2])
+                self.assertEqual(source_level[3:], target_level[3:])
+                self.assertGreater(float(target_level[2]), float(source_level[2]))
             readback = rogue.orochi_ex_native_hp_evidence(
                 result.bundle, 100, tables)
             receipt = rogue.build_hp_adaptation_audit(
@@ -233,6 +311,21 @@ class TestOrochiExHpChannel(unittest.TestCase):
             self.assertLess(abs(receipt.final_error_hp), 1.0)
             self.assertTrue(
                 result.evidence["clone_semantics"]["static_verified"])
+            self.assertTrue(result.evidence["clone_semantics"]
+                            ["phase1_and_phase3_carriers_cover_gate"])
+            capacity = result.evidence["clone_semantics"][
+                "phase_damage_capacity"]
+            self.assertTrue(capacity["absolute_verified"])
+            self.assertTrue(capacity["static_verified"])
+            self.assertNotEqual(
+                plan["baseline_phase_damage_capacity"]["phases"][0][
+                    "required_hp"],
+                plan["final_phase_damage_capacity"]["phases"][0][
+                    "required_hp"])
+            for phase_index, component_index in ((0, 0), (1, 2)):
+                self.assertEqual(
+                    capacity["phases"][phase_index]["required_hp"],
+                    plan["final_component_hp"][component_index])
             self.assertFalse(
                 result.evidence["clone_semantics"]["gameplay_verified"])
 
@@ -343,6 +436,24 @@ class TestOrochiExHpChannel(unittest.TestCase):
         self.assertLess(abs(plan["baseline_true_hp"] - baseline_target), 1.0)
         self.assertLess(abs(plan["true_hp"] - final_target), 1.0)
         self.assertLess(abs(float(readback["native_hp"]) - final_target), 1.0)
+        baseline_capacity = plan["baseline_phase_damage_capacity"]
+        final_capacity = plan["final_phase_damage_capacity"]
+        clone_capacity = result.evidence["clone_semantics"][
+            "phase_damage_capacity"]
+        for phase_index, component_index in ((0, 0), (1, 2)):
+            self.assertEqual(
+                baseline_capacity["phases"][phase_index]["required_hp"],
+                plan["baseline_component_hp"][component_index])
+            self.assertEqual(
+                final_capacity["phases"][phase_index]["required_hp"],
+                plan["final_component_hp"][component_index])
+            self.assertEqual(
+                clone_capacity["phases"][phase_index]["required_hp"],
+                plan["final_component_hp"][component_index])
+            self.assertGreaterEqual(
+                clone_capacity["phases"][phase_index][
+                    "primary_coverage_ratio"],
+                rogue.OROCHI_EX_PHASE_CARRIER_COVERAGE_RATIO)
         contract = readback["phase_threshold_contract"]
         self.assertTrue(contract["static_verified"])
         self.assertTrue(all(0 <= value <= 99
@@ -361,6 +472,12 @@ class TestOrochiExHpChannel(unittest.TestCase):
                 plan["baseline_fixed_phase_int32_capped"]),
             "final_fixed_phase_int32_capped": (
                 plan["final_fixed_phase_int32_capped"]),
+            "phase_damage_capacity": {
+                "baseline": plan["baseline_phase_damage_capacity"],
+                "final": plan["final_phase_damage_capacity"],
+                "clone_readback": result.evidence["clone_semantics"][
+                    "phase_damage_capacity"],
+            },
             "clone_semantics": result.evidence["clone_semantics"],
             "static_verified": True,
             "runtime_simulated": False,
@@ -388,6 +505,26 @@ class TestOrochiExHpChannel(unittest.TestCase):
             "signed int32" in error or "三阶段回读不一致" in error
             for error in rogue._verify_orochi_ex_phase_safety_receipt(
                 "第24战", tampered_adapter)))
+        tampered_capacity = copy.deepcopy(adapter)
+        tampered_capacity["phase_safety"]["phase_damage_capacity"][
+            "clone_readback"]["phases"][0]["primary_carrier_hp"] = 1
+        self.assertTrue(any(
+            "承伤容量" in error or "中心蛇头容量" in error
+            for error in rogue._verify_orochi_ex_phase_safety_receipt(
+                "第24战", tampered_capacity)))
+        tampered_mapping = copy.deepcopy(adapter)
+        phase1 = tampered_mapping["phase_safety"]["phase_damage_capacity"][
+            "clone_readback"]["phases"][0]
+        source_codes = phase1["source_head_codes"]
+        phase1["source_to_target"][source_codes[0]], \
+            phase1["source_to_target"][source_codes[1]] = (
+                phase1["source_to_target"][source_codes[1]],
+                phase1["source_to_target"][source_codes[0]],
+            )
+        self.assertTrue(any(
+            "代号映射" in error or "克隆蛇头容量" in error
+            for error in rogue._verify_orochi_ex_phase_safety_receipt(
+                "第24战", tampered_mapping)))
 
 
 if __name__ == "__main__":

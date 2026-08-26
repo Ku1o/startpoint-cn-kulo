@@ -12,6 +12,30 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import wf_rogue_build as rogue_build  # noqa: E402
 
 
+def thumbnail_pick_fields(field: str) -> dict:
+    thumbnail = "quest/thumbnail/test/boss"
+    return {
+        "thumb": thumbnail,
+        "thumbnail_field": field,
+        "thumbnail_evidence": {
+            "schema": rogue_build.THUMBNAIL_EVIDENCE_SCHEMA,
+            "field": field,
+            "thumbnail": thumbnail,
+            "asset_logical": thumbnail + ".png",
+            "asset_exists": True,
+            "source_match": "exact_field",
+            "source_category": "test",
+            "source_logical": "master/quest/test.orderedmap",
+            "source_path": ["test"],
+            "source_level": 100,
+            "floor_key": None,
+            "static_verified": True,
+            "runtime_simulated": False,
+            "gameplay_verified": False,
+        },
+    }
+
+
 class TestRushEventMetadata(unittest.TestCase):
     def test_shared_event_folder_remains_the_only_gauntlet_entry(self):
         event_list = {
@@ -326,6 +350,33 @@ class TestHpAdapterAudit(unittest.TestCase):
         metrics["native"] = self.general_native([100.0])
         self.assertIsNone(rogue_build.strict_hp_candidate_error(metrics))
 
+    def test_quest_hp_plan_separates_enemy_device_and_boss_columns(self):
+        boss_plan = rogue_build.quest_hp_multiplier_plan(
+            baseline=2.0, final=3.0, has_boss=True)
+        self.assertEqual(
+            {"enemy": 1.0, "device_or_summon": 1.0, "boss": 2.0},
+            boss_plan["baseline"])
+        self.assertEqual(
+            {"enemy": 1.0, "device_or_summon": 1.0, "boss": 3.0},
+            boss_plan["final"])
+
+        warmup_plan = rogue_build.quest_hp_multiplier_plan(
+            baseline=2.0, final=3.0, has_boss=False)
+        self.assertEqual(
+            {"enemy": 3.0, "device_or_summon": 1.0, "boss": 1.0},
+            warmup_plan["final"])
+
+        record = {
+            "r": 2, "family": "general", "baseline_c86": 2.0, "c86": 3.0,
+            "quest_hp_multipliers": boss_plan,
+        }
+        self.assertEqual([], rogue_build.quest_hp_multiplier_errors([record]))
+        coupled = copy.deepcopy(record)
+        coupled["quest_hp_multipliers"]["final"]["enemy"] = 3.0
+        self.assertTrue(any(
+            "错误捆绑三类实体" in error
+            for error in rogue_build.quest_hp_multiplier_errors([coupled])))
+
     def test_verified_audit_renders_deterministic_non_developer_report(self):
         native = self.general_native([100.0])
         receipt = rogue_build.build_hp_adaptation_audit(
@@ -334,6 +385,8 @@ class TestHpAdapterAudit(unittest.TestCase):
             baseline_target_hp=100.0, final_target_hp=100.0,
             baseline_c86=1.0, final_c86=1.0,
         )
+        quest_row = ["(None)"] * 110
+        quest_row[86] = quest_row[87] = quest_row[88] = "1"
         document = rogue_build.build_hp_audit_document(
             seed=20260825, rounds=2, difficulty="hell",
             enemy_level="ramp",
@@ -341,13 +394,25 @@ class TestHpAdapterAudit(unittest.TestCase):
                 "r": 2, "adapter_audit": receipt,
                 "verified": True, "absolute_verified": True,
                 "target_exempt": False,
+                "damage_checks": {
+                    "duplicate_boss": (
+                        rogue_build.general_damage_check_contract(
+                            {}, {}, {}, source_max_hp=100.0,
+                            baseline_max_hp=100.0, final_max_hp=100.0,
+                            source_routine_id="(None)",
+                            final_routine_id="(None)", materialized=True)),
+                },
+                "quest_hp_multipliers": rogue_build.quest_hp_multiplier_plan(
+                    baseline=1.0, final=1.0, has_boss=True),
             }],
             floor_records=[{
                 "r": 2,
+                "row": quest_row,
                 "pick": {
                     "field": "source_field", "play_field": "mod_rogue_f2",
                     "level": 100, "bosses": ["duplicate_boss"],
                     "runtime_bosses": ["mod_rogue_boss2"],
+                    **thumbnail_pick_fields("source_field"),
                 },
                 "curse": {
                     "picks": [{"name": "术式扰流"}],
@@ -362,7 +427,7 @@ class TestHpAdapterAudit(unittest.TestCase):
             ],
         )
         expected_hash = document["tool"]["sha256"]
-        self.assertEqual("wf-rogue-hp-audit/v2", document["schema"])
+        self.assertEqual("wf-rogue-hp-audit/v4", document["schema"])
         self.assertEqual("static_dry_run", document["verification_scope"])
         self.assertIs(document["gameplay_verified"], False)
         first = rogue_build.render_hp_audit_report(
@@ -377,12 +442,50 @@ class TestHpAdapterAudit(unittest.TestCase):
         self.assertIn("- [ ] 真机进入关卡", first)
         self.assertIn("不证明已经发布或落库", first)
         self.assertEqual(["术式扰流"], document["floors"][0]["curse_names"])
+        self.assertEqual(
+            "source_field", document["floors"][0]["thumbnail_source_field"])
+        self.assertIn("Boss 封面静态审计", first)
         self.assertIn("## 逐关逐阶段明细", first)
         self.assertIn("「术式扰流」技能耐性40%", first)
         self.assertEqual(0, document["summary"]["source_proxy_components"])
+        self.assertEqual(
+            rogue_build.curse_capability_matrix_receipt(),
+            document["selection_policy"]["curse_capability_matrix"])
+        self.assertEqual(
+            rogue_build.client_bundled_curve_baseline_receipt(),
+            document["selection_policy"]["client_bundled_curve_baseline"])
+        capability = document["floors"][0]["curse_capability_profile"]
+        self.assertEqual("boss_level", capability["channel"])
+        self.assertEqual("general", capability["family"])
+        self.assertEqual(
+            rogue_build.CURSE_CAPABILITY_MATRIX[("boss_level", "general")],
+            capability["declared"])
+        quest_receipt = document["floors"][0]["quest_hp_multipliers"]
+        self.assertEqual(
+            {"enemy": 1.0, "device_or_summon": 1.0, "boss": 1.0},
+            quest_receipt["table_readback"])
+        hp_columns_forged = copy.deepcopy(document)
+        hp_columns_forged["floors"][0]["quest_hp_multipliers"][
+            "table_readback"]["enemy"] = 2.0
+        hp_columns_forged["document_sha256"] = (
+            rogue_build.hp_audit_document_digest(hp_columns_forged))
+        self.assertTrue(any(
+            "c86/c87/c88 回读与最终计划不一致" in error
+            for error in rogue_build.verify_hp_audit_document(
+                hp_columns_forged, expected_tool_sha256=expected_hash)))
 
-        # source_proxy_components was added to schema v2 as an audit detail.
-        # A receipt produced by an older v2 tool did not distinguish source
+        thumbnail_forged = copy.deepcopy(document)
+        thumbnail_forged["floors"][0]["thumbnail_evidence"][
+            "thumbnail"] = "quest/thumbnail/test/other"
+        thumbnail_forged["document_sha256"] = (
+            rogue_build.hp_audit_document_digest(thumbnail_forged))
+        self.assertTrue(any(
+            "Boss 封面字段/资源来源不闭合" in error
+            for error in rogue_build.verify_hp_audit_document(
+                thumbnail_forged, expected_tool_sha256=expected_hash)))
+
+        # source_proxy_components is an optional audit detail.  An older
+        # receipt did not distinguish source
         # and final evidence, so it must remain verifiable/renderable using
         # final proxy_components as the conservative fallback.
         legacy = copy.deepcopy(document)
@@ -414,6 +517,57 @@ class TestHpAdapterAudit(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "拒绝生成绿色报告"):
                 rogue_build.render_hp_audit_report(
                     forged, expected_tool_sha256=expected_hash)
+
+        matrix_forged = copy.deepcopy(document)
+        matrix_forged["selection_policy"]["curse_capability_matrix"][0][
+            "capabilities"]["hp_multiplier"] = False
+        matrix_forged["document_sha256"] = rogue_build.hp_audit_document_digest(
+            matrix_forged)
+        self.assertTrue(any(
+            "诅咒能力矩阵不一致" in error
+            for error in rogue_build.verify_hp_audit_document(matrix_forged)))
+
+        profile_forged = copy.deepcopy(document)
+        profile_forged["floors"][0]["curse_capability_profile"][
+            "declared"]["field_action"] = False
+        profile_forged["document_sha256"] = rogue_build.hp_audit_document_digest(
+            profile_forged)
+        self.assertTrue(any(
+            "诅咒能力声明与矩阵不一致" in error
+            for error in rogue_build.verify_hp_audit_document(profile_forged)))
+
+        curve_forged = copy.deepcopy(document)
+        curve_forged["selection_policy"]["client_bundled_curve_baseline"][
+            "member_sha256"] = "0" * 64
+        curve_forged["document_sha256"] = rogue_build.hp_audit_document_digest(
+            curve_forged)
+        self.assertTrue(any(
+            "客户端内置曲线基线不一致" in error
+            for error in rogue_build.verify_hp_audit_document(curve_forged)))
+
+        identity_closed = copy.deepcopy(document)
+        identity_closed["floors"][0]["identity_reference_closures"] = [{
+            "kind": "general_enemy_watch.partner_alias",
+            "source_code": "duplicate_boss",
+            "clone_code": "mod_rogue_boss2",
+            "source_reference_count": 2,
+            "clone_reference_count": 2,
+            "verified": True,
+        }]
+        identity_closed["summary"]["identity_reference_closure_rounds"] = 1
+        identity_closed["summary"]["identity_reference_closures"] = 1
+        identity_closed["document_sha256"] = rogue_build.hp_audit_document_digest(
+            identity_closed)
+        self.assertEqual([], rogue_build.verify_hp_audit_document(
+            identity_closed, expected_tool_sha256=expected_hash))
+        identity_forged = copy.deepcopy(identity_closed)
+        identity_forged["floors"][0]["identity_reference_closures"][0][
+            "clone_reference_count"] = 1
+        identity_forged["document_sha256"] = rogue_build.hp_audit_document_digest(
+            identity_forged)
+        self.assertTrue(any(
+            "partner 别名未等价回读" in error
+            for error in rogue_build.verify_hp_audit_document(identity_forged)))
 
         with tempfile.TemporaryDirectory() as tmp:
             audit_path = Path(tmp) / "audit.json"

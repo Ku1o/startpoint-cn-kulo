@@ -34,6 +34,77 @@ class OrochiExHpError(ValueError):
     """The dedicated Orochi EX HP channel cannot prove a safe operation."""
 
 
+def validate_phase_damage_capacity(
+    required_hp: float,
+    carrier_hp: dict[str, float],
+    *,
+    label: str,
+    primary_carrier: str | None = None,
+    required_coverage_ratio: float = 1.0,
+) -> dict[str, Any]:
+    """Prove that mortal phase actors can supply a phase's required damage.
+
+    Orochi EX advances its fixed phases from damage accumulated on the three
+    heads, while every head has an independent ``boss_level`` HP pool.  Raising
+    only parent c24/c25 can therefore retire all damage carriers before the
+    parent reaches the phase gate.  ``required_coverage_ratio`` lets builders
+    reserve a small formatting/runtime margin without changing the gate itself.
+    """
+
+    required = _positive(str(required_hp), label=f"{label}.required_hp")
+    try:
+        coverage = float(required_coverage_ratio)
+    except (TypeError, ValueError) as exc:
+        raise OrochiExHpError(
+            f"{label}.required_coverage_ratio is not numeric"
+        ) from exc
+    if not math.isfinite(coverage) or coverage < 1.0:
+        raise OrochiExHpError(
+            f"{label}.required_coverage_ratio must be finite and >= 1"
+        )
+    if not carrier_hp:
+        raise OrochiExHpError(f"{label} has no damage carriers")
+    parsed = {
+        str(name): _positive(str(value), label=f"{label}.{name}")
+        for name, value in carrier_hp.items()
+    }
+    required_capacity = required * coverage
+    total = math.fsum(parsed.values())
+    if total + 1e-6 < required_capacity:
+        raise OrochiExHpError(
+            f"{label} damage carriers total {total:g} HP, below phase gate "
+            f"coverage {required_capacity:g}"
+        )
+    primary_ratio = None
+    if primary_carrier is not None:
+        primary = str(primary_carrier)
+        if primary not in parsed:
+            raise OrochiExHpError(
+                f"{label} primary damage carrier is missing: {primary}"
+            )
+        if parsed[primary] + 1e-6 < required_capacity:
+            raise OrochiExHpError(
+                f"{label} primary carrier {primary} has {parsed[primary]:g} HP, "
+                f"below phase gate coverage {required_capacity:g}"
+            )
+        primary_ratio = parsed[primary] / required
+    return {
+        "label": label,
+        "required_hp": required,
+        "required_coverage_ratio": coverage,
+        "required_capacity_hp": required_capacity,
+        "carrier_hp": parsed,
+        "total_carrier_hp": total,
+        "total_coverage_ratio": total / required,
+        "primary_carrier": primary_carrier,
+        "primary_carrier_hp": (
+            parsed[str(primary_carrier)]
+            if primary_carrier is not None else None
+        ),
+        "primary_coverage_ratio": primary_ratio,
+    }
+
+
 @dataclass(frozen=True, slots=True)
 class FixedPhaseHp:
     code: str

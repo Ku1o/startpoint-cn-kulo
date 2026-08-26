@@ -52,6 +52,7 @@ import subprocess
 import sys
 import zipfile
 import zlib
+from collections import Counter
 from dataclasses import asdict, dataclass, replace
 from datetime import date
 from pathlib import Path
@@ -271,6 +272,9 @@ OROCHI_EX_CANONICAL_HEADS = (
     "orochi_ex_phase3_center",
     "orochi_ex_phase3_right",
 )
+OROCHI_EX_PHASE_CAPACITY_SCHEMA = "wf-orochi-ex-phase-damage-capacity/v1"
+OROCHI_EX_PHASE_CARRIER_COVERAGE_RATIO = 1.01
+OROCHI_EX_PHASE_CARRIER_FORMAT_MARGIN = 1e-6
 STANDARD_FUNNEL = "master/battle/boss/funnel/standard_funnel.orderedmap"
 
 # Client constructor audit (2026-08-25): these families instantiate one
@@ -1209,9 +1213,12 @@ def true_stat(code: str, kind: str, level: int = 100,
 # CommonLogicAssetContainer.getEnemyDsl(path) 会追加 `.esdl`，打包逻辑名再追加
 # `.amf3.deflate`。TypePackerResource2 的稳定短键为：EnemyDsl.forms=`au`、
 # Form.terminationCondition=`d`、TerminationCondition.Health=`T1`。
-# StandardEnemySource.as:523-538 只累加 Health.params[0]，最终一次性乘单人折扣 0.55
-# 和 quest c86 后 floor。这里严格照消费点读，不做“全树搜数字”式猜测。
+# StandardEnemySource.as:523-538 只累加 Health.params[0]，最终一次性乘运行任务
+# 类型提供的 battle HP scale 和 quest c86 后 floor。真正的单人 Boss 战是 0.55；
+# Rush Event 不属于该 battle kind，运行倍率是 1.0。调用方必须显式带入对应语义，
+# 不能把单人 Boss 战折扣硬编码成所有 Standard Enemy 的共同规则。
 STANDARD_BOSS_BATTLE_HP_SCALE = 0.55
+RUSH_EVENT_STANDARD_HP_SCALE = 1.0
 _STANDARD_HP_CACHE: dict[str, dict] = {}
 
 
@@ -1250,6 +1257,369 @@ def standard_enemy_hp_base(tree: dict) -> dict:
             "base_hp": math.fsum(terms)}
 
 
+STANDARD_DAMAGE_CHECK_SCHEMA = "wf-standard-damage-check/v1"
+# Standard Enemy state kind 13 is DamageCheck.  The ``m`` field is a union
+# reused by many other state kinds (for example expression/variable checks),
+# so treating every packed T2 as a red damage trial corrupts unrelated boss
+# logic and rejects otherwise safe HP clones.
+STANDARD_DAMAGE_CHECK_STATE_KIND = 13
+
+
+def _dsl_scalar(value):
+    """Unwrap nested one-value union payloads used by state timers."""
+
+    current = value
+    for _ in range(8):
+        if (isinstance(current, list) and len(current) == 2
+                and isinstance(current[0], str)
+                and current[0].startswith("T")):
+            current = current[1]
+            continue
+        break
+    return current
+
+
+def standard_damage_check_records(tree: dict) -> tuple[dict, ...]:
+    """Read every Standard DSL DamageCheck occurrence without code dedupe."""
+
+    forms = tree.get("au") if isinstance(tree, dict) else None
+    if not isinstance(forms, list):
+        raise ValueError("standard enemy DSL 缺 forms，无法审计 DamageCheck")
+    health_by_form = {
+        int(item["form_index"]): float(item["base_hp"])
+        for item in standard_enemy_hp_base(tree)["health_forms"]
+    }
+    records: list[dict] = []
+
+    def walk(value, path: tuple, form_index: int | None) -> None:
+        if isinstance(value, dict):
+            union = value.get("m")
+            if (value.get("e") == STANDARD_DAMAGE_CHECK_STATE_KIND
+                    and isinstance(union, list) and len(union) == 2
+                    and union[0] == "T2"):
+                payload = union[1]
+                if not isinstance(payload, dict) or "a" not in payload:
+                    raise ValueError(f"DamageCheck payload 非法:path={path}")
+                if form_index is None or form_index not in health_by_form:
+                    raise ValueError(
+                        f"DamageCheck 不在带 Health(T1) 的 form 内:path={path}")
+                try:
+                    percentage = float(payload["a"])
+                    duration_frames = float(_dsl_scalar(value.get("d")))
+                    state_id = int(value.get("a"))
+                except (TypeError, ValueError) as exc:
+                    raise ValueError(
+                        f"DamageCheck 百分比/窗口/state id 非法:path={path}") from exc
+                if (not math.isfinite(percentage) or percentage <= 0
+                        or not math.isfinite(duration_frames)
+                        or duration_frames <= 0):
+                    raise ValueError(
+                        f"DamageCheck 百分比/窗口必须为有限正数:path={path}")
+                records.append({
+                    "path": tuple(path),
+                    "form_index": int(form_index),
+                    "state_id": state_id,
+                    "percentage": percentage,
+                    "form_base_hp": health_by_form[int(form_index)],
+                    "duration_frames": duration_frames,
+                    "success_branch": copy.deepcopy(value.get("b")),
+                    "timeout_branch": copy.deepcopy(value.get("c")),
+                    "state_without_percentage": copy.deepcopy(value),
+                })
+                records[-1]["state_without_percentage"]["m"][1].pop("a")
+            for key, child in value.items():
+                walk(child, path + (key,), form_index)
+        elif isinstance(value, list):
+            for index, child in enumerate(value):
+                next_form = (index if path == ("au",) else form_index)
+                walk(child, path + (index,), next_form)
+
+    walk(tree, (), None)
+    return tuple(records)
+
+
+def _set_tree_path(root, path: tuple, value) -> None:
+    node = root
+    for key in path[:-1]:
+        node = node[key]
+    node[path[-1]] = value
+
+
+def scale_standard_damage_checks(tree: dict, hp_scale: float) -> dict:
+    """Reverse-scale percentages so official absolute red-bar damage stays fixed."""
+
+    try:
+        factor = float(hp_scale)
+    except (TypeError, ValueError) as exc:
+        raise ValueError("DamageCheck HP 倍率不是数值") from exc
+    if not math.isfinite(factor) or factor <= 0:
+        raise ValueError(f"DamageCheck HP 倍率必须为有限正数:{hp_scale!r}")
+    cloned = copy.deepcopy(tree)
+    for record in standard_damage_check_records(tree):
+        percentage = float(record["percentage"]) / factor
+        if (not math.isfinite(percentage) or percentage <= 0
+                or percentage > 100.0 + 1e-9):
+            raise ValueError(
+                "DamageCheck 保持官方绝对门槛后百分比越界:"
+                f"state={record['state_id']},percentage={percentage:g}%")
+        _set_tree_path(
+            cloned, tuple(record["path"]) + ("m", 1, "a"), percentage)
+    return cloned
+
+
+def standard_damage_check_contract(
+        source_tree: dict, final_tree: dict, *,
+        runtime_hp_scale: float) -> dict:
+    """Prove state topology and absolute DamageCheck thresholds after HP scaling."""
+
+    try:
+        runtime_scale = float(runtime_hp_scale)
+    except (TypeError, ValueError) as exc:
+        raise ValueError("DamageCheck 运行 HP 倍率不是数值") from exc
+    if not math.isfinite(runtime_scale) or runtime_scale <= 0:
+        raise ValueError("DamageCheck 运行 HP 倍率必须为有限正数")
+    source = standard_damage_check_records(source_tree)
+    final = standard_damage_check_records(final_tree)
+    if len(source) != len(final):
+        raise ValueError("DamageCheck 出现次数在 HP 伸缩后漂移")
+    receipts: list[dict] = []
+    for occurrence, (before, after) in enumerate(zip(source, final), start=1):
+        identity_keys = ("path", "form_index", "state_id", "duration_frames",
+                         "success_branch", "timeout_branch",
+                         "state_without_percentage")
+        if any(before[key] != after[key] for key in identity_keys):
+            raise ValueError(
+                f"DamageCheck[{occurrence}] 状态/窗口/成功失败分支漂移")
+        source_max_hp = float(before["form_base_hp"]) * runtime_scale
+        final_max_hp = float(after["form_base_hp"]) * runtime_scale
+        source_threshold = source_max_hp * float(before["percentage"]) / 100.0
+        final_threshold = final_max_hp * float(after["percentage"]) / 100.0
+        error_hp = final_threshold - source_threshold
+        tolerance = max(1e-4, abs(source_threshold) * 1e-12)
+        if abs(error_hp) > tolerance:
+            raise ValueError(
+                f"DamageCheck[{occurrence}] 绝对伤害门槛漂移:{error_hp:g} HP")
+        receipts.append({
+            "occurrence": occurrence,
+            "path": list(before["path"]),
+            "form_index": int(before["form_index"]),
+            "state_id": int(before["state_id"]),
+            "source_percentage": float(before["percentage"]),
+            "final_percentage": float(after["percentage"]),
+            "source_max_hp": source_max_hp,
+            "final_max_hp": final_max_hp,
+            "source_absolute_threshold_hp": source_threshold,
+            "final_absolute_threshold_hp": final_threshold,
+            "absolute_error_hp": error_hp,
+            "duration_frames": float(before["duration_frames"]),
+            "success_branch": copy.deepcopy(before["success_branch"]),
+            "timeout_branch": copy.deepcopy(before["timeout_branch"]),
+        })
+    return {
+        "schema": STANDARD_DAMAGE_CHECK_SCHEMA,
+        "occurrence_count": len(receipts),
+        "runtime_hp_scale": runtime_scale,
+        "checks": receipts,
+        "topology_preserved": True,
+        "absolute_thresholds_preserved": True,
+        "static_verified": True,
+        "runtime_simulated": False,
+        "gameplay_verified": False,
+    }
+
+
+GENERAL_DAMAGE_CHECK_SCHEMA = "wf-general-boss-damage-check/v1"
+GENERAL_DAMAGE_CHECK_PERCENT_COLUMN = 16
+GENERAL_DAMAGE_CHECK_ROW_WIDTH = 53
+
+
+def general_damage_check_records(routine_tree: dict) -> tuple[dict, ...]:
+    """Read every General Boss red DamageCheck state occurrence.
+
+    ``general_boss_state.c16`` is an optional percentage.  It is unrelated to
+    ``next_state`` test kind 9 (c29/c31/c32), which is another DamageCheck
+    condition and must never be rewritten as the visible red trial bar.
+    Occurrences are deliberately path based: duplicate state ids remain
+    duplicate runtime states and are not collapsed by code or name.
+    """
+
+    if not isinstance(routine_tree, dict):
+        raise ValueError("general_boss_state routine 不是映射")
+    records: list[dict] = []
+
+    def walk(node, path: tuple[str, ...]) -> None:
+        if isinstance(node, dict):
+            for key, child in node.items():
+                walk(child, path + (str(key),))
+            return
+        if not isinstance(node, (str, bytes, bytearray)):
+            raise ValueError(
+                f"general_boss_state 叶类型非法:path={path},"
+                f"type={type(node).__name__}")
+        row = cells(node)
+        if len(row) != GENERAL_DAMAGE_CHECK_ROW_WIDTH:
+            raise ValueError(
+                f"general_boss_state 行列数={len(row)}"
+                f"(!={GENERAL_DAMAGE_CHECK_ROW_WIDTH}):path={path}")
+        raw_percentage = row[GENERAL_DAMAGE_CHECK_PERCENT_COLUMN]
+        if raw_percentage == "(None)":
+            return
+        try:
+            percentage = float(raw_percentage)
+        except (TypeError, ValueError) as exc:
+            raise ValueError(
+                f"General DamageCheck c16 百分比非法:path={path}:"
+                f"{raw_percentage!r}") from exc
+        if (not math.isfinite(percentage) or percentage <= 0
+                or percentage > 100.0 + 1e-9):
+            raise ValueError(
+                f"General DamageCheck c16 百分比越界:path={path}:"
+                f"{percentage:g}%")
+        identity_row = list(row)
+        identity_row[GENERAL_DAMAGE_CHECK_PERCENT_COLUMN] = None
+        records.append({
+            "path": tuple(path),
+            "state_id": str(row[0]),
+            "percentage": percentage,
+            "options_c17_c21": tuple(row[17:22]),
+            # Protect all other 52 columns, including state transitions and
+            # the optional failure-state switch.  c16 is the only legal diff.
+            "row_without_percentage": tuple(identity_row),
+        })
+
+    walk(routine_tree, ())
+    return tuple(records)
+
+
+def _format_damage_check_percentage(value: float) -> str:
+    """Preserve sub-HP precision when a multi-billion HP bar is rescaled."""
+
+    rendered = format(float(value), ".15g")
+    if rendered in {"", "-0", "0"}:
+        raise ValueError(f"DamageCheck 百分比格式化为零:{value!r}")
+    return rendered
+
+
+def scale_general_damage_checks(
+        routine_tree: dict, *, source_max_hp: float,
+        target_max_hp: float) -> dict:
+    """Reverse-scale only c16 so the official absolute trial damage is kept."""
+
+    try:
+        source_hp = float(source_max_hp)
+        target_hp = float(target_max_hp)
+    except (TypeError, ValueError) as exc:
+        raise ValueError("General DamageCheck HP 不是数值") from exc
+    if not all(math.isfinite(value) and value > 0
+               for value in (source_hp, target_hp)):
+        raise ValueError(
+            "General DamageCheck HP 必须为有限正数:"
+            f"source={source_max_hp!r},target={target_max_hp!r}")
+    hp_scale = target_hp / source_hp
+    cloned = copy.deepcopy(routine_tree)
+    for record in general_damage_check_records(routine_tree):
+        percentage = float(record["percentage"]) / hp_scale
+        if (not math.isfinite(percentage) or percentage <= 0
+                or percentage > 100.0 + 1e-9):
+            raise ValueError(
+                "General DamageCheck 保持官方绝对门槛后百分比越界:"
+                f"state={record['state_id']},percentage={percentage:g}%")
+        path = tuple(record["path"])
+        leaf = cloned
+        for key in path:
+            leaf = leaf[key]
+        row = cells(leaf)
+        row[GENERAL_DAMAGE_CHECK_PERCENT_COLUMN] = (
+            _format_damage_check_percentage(percentage))
+        _set_tree_path(
+            cloned, path,
+            join(row, isinstance(leaf, (bytes, bytearray))))
+    return cloned
+
+
+def general_damage_check_contract(
+        source_tree: dict, baseline_tree: dict, final_tree: dict, *,
+        source_max_hp: float, baseline_max_hp: float, final_max_hp: float,
+        source_routine_id: str, final_routine_id: str | None,
+        materialized: bool = False) -> dict:
+    """Prove base/final trial thresholds and the 52-column state closure."""
+
+    try:
+        source_hp = float(source_max_hp)
+        baseline_hp = float(baseline_max_hp)
+        final_hp = float(final_max_hp)
+    except (TypeError, ValueError) as exc:
+        raise ValueError("General DamageCheck 回执 HP 不是数值") from exc
+    if not all(math.isfinite(value) and value > 0
+               for value in (source_hp, baseline_hp, final_hp)):
+        raise ValueError("General DamageCheck 回执 HP 必须为有限正数")
+    source = general_damage_check_records(source_tree)
+    baseline = general_damage_check_records(baseline_tree)
+    final = general_damage_check_records(final_tree)
+    if len(source) != len(baseline) or len(source) != len(final):
+        raise ValueError("General DamageCheck 出现次数在 HP 伸缩后漂移")
+    checks: list[dict] = []
+    identity_keys = (
+        "path", "state_id", "options_c17_c21", "row_without_percentage")
+    for occurrence, (before, base, after) in enumerate(
+            zip(source, baseline, final), start=1):
+        if (any(before[key] != base[key] for key in identity_keys)
+                or any(before[key] != after[key] for key in identity_keys)):
+            raise ValueError(
+                f"General DamageCheck[{occurrence}] 非 c16 状态字段/拓扑漂移")
+        source_threshold = source_hp * float(before["percentage"]) / 100.0
+        baseline_threshold = baseline_hp * float(base["percentage"]) / 100.0
+        final_threshold = final_hp * float(after["percentage"]) / 100.0
+        baseline_error = baseline_threshold - source_threshold
+        final_error = final_threshold - source_threshold
+        tolerance = max(1e-4, abs(source_threshold) * 1e-12)
+        if abs(baseline_error) > tolerance or abs(final_error) > tolerance:
+            raise ValueError(
+                f"General DamageCheck[{occurrence}] 绝对伤害门槛漂移:"
+                f"baseline={baseline_error:g},final={final_error:g} HP")
+        checks.append({
+            "occurrence": occurrence,
+            "path": list(before["path"]),
+            "state_id": str(before["state_id"]),
+            "source_percentage": float(before["percentage"]),
+            "baseline_percentage": float(base["percentage"]),
+            "final_percentage": float(after["percentage"]),
+            "source_max_hp": source_hp,
+            "baseline_max_hp": baseline_hp,
+            "final_max_hp": final_hp,
+            "source_absolute_threshold_hp": source_threshold,
+            "baseline_absolute_threshold_hp": baseline_threshold,
+            "final_absolute_threshold_hp": final_threshold,
+            "baseline_absolute_error_hp": baseline_error,
+            "final_absolute_error_hp": final_error,
+            "options_c17_c21": list(before["options_c17_c21"]),
+        })
+    return {
+        "schema": GENERAL_DAMAGE_CHECK_SCHEMA,
+        "source_routine_id": str(source_routine_id),
+        "final_routine_id": (
+            None if final_routine_id is None else str(final_routine_id)),
+        "occurrence_count": len(checks),
+        "source_max_hp": source_hp,
+        "baseline_max_hp": baseline_hp,
+        "final_max_hp": final_hp,
+        "baseline_hp_scale": baseline_hp / source_hp,
+        "final_hp_scale": final_hp / source_hp,
+        "hp_curse_multiplier": final_hp / baseline_hp,
+        "checks": checks,
+        "routine_cloned": bool(checks),
+        "materialized": bool(materialized),
+        "enemy_watch_lookup_preserved": not bool(checks),
+        "enemy_watch_routine_alias_count": 0,
+        "topology_preserved": True,
+        "non_percentage_columns_preserved": True,
+        "absolute_thresholds_preserved": True,
+        "static_verified": True,
+        "runtime_simulated": False,
+        "gameplay_verified": False,
+    }
+
+
 def scale_standard_enemy_hp_tree(tree: dict, scale: float) -> dict:
     """克隆 Standard Enemy DSL，并只缩放各 form 的 Health(T1) 参数。"""
     try:
@@ -1268,6 +1638,7 @@ def scale_standard_enemy_hp_tree(tree: dict, scale: float) -> dict:
         if not math.isfinite(value) or value <= 0:
             raise ValueError(f"standard enemy form[{index}] HP 伸缩结果非法:{value}")
         term[1] = value
+    cloned = scale_standard_damage_checks(cloned, factor)
     readback = standard_enemy_hp_base(cloned)
     if (readback["form_count"] != source["form_count"]
             or tuple(item["form_index"] for item in readback["health_forms"])
@@ -1366,7 +1737,9 @@ def orochi_ex_hp_table() -> dict:
 def floor_native_hp(bosses, level: int, standard_boss: dict | None = None,
                     boss_level: dict | None = None,
                     orochi_ex: dict | None = None,
-                    standard_resources: dict[str, bytes] | None = None) -> dict:
+                    standard_resources: dict[str, bytes] | None = None,
+                    *, standard_runtime_hp_scale: float =
+                    STANDARD_BOSS_BATTLE_HP_SCALE) -> dict:
     """返回该层所有实际 boss 实例在 c86 前的 HP 及证据。
 
     调用方必须传单人战实际槽(c24/28/32)；镜像消歧在 `_zone_pick` 完成。
@@ -1377,6 +1750,13 @@ def floor_native_hp(bosses, level: int, standard_boss: dict | None = None,
     quest HP 修正，中段仍走 boss_level/成长曲线。这样报告和回代不会再把
     普通倍率错误地乘到整只 Boss 上。
     """
+    try:
+        standard_scale = float(standard_runtime_hp_scale)
+    except (TypeError, ValueError) as exc:
+        raise ValueError("Standard Enemy 运行 HP 倍率不是数值") from exc
+    if not math.isfinite(standard_scale) or standard_scale <= 0:
+        raise ValueError(
+            f"Standard Enemy 运行 HP 倍率必须为有限正数:{standard_scale!r}")
     table = standard_boss if standard_boss is not None else q.load_table(STANDARD_BOSS)
     orochi_table = orochi_ex_hp_table() if orochi_ex is None else orochi_ex
     components: list[dict] = []
@@ -1398,10 +1778,13 @@ def floor_native_hp(bosses, level: int, standard_boss: dict | None = None,
                         "phase_ordinal": phase_ordinal,
                         "boss_occurrence": boss_occurrence,
                         "evidence_kind": "absolute",
+                        "standard_runtime_hp_scale": standard_scale,
                         "native_hp": round(
                             float(form["base_hp"])
-                            * STANDARD_BOSS_BATTLE_HP_SCALE, 6),
-                        "evidence": evidence,
+                            * standard_scale, 6),
+                        "evidence": dict(
+                            evidence,
+                            standard_runtime_hp_scale=standard_scale),
                     })
             except (FileNotFoundError, KeyError, TypeError, ValueError, zlib.error) as exc:
                 components.append({"code": str(code), "kind": "standard",
@@ -1487,8 +1870,9 @@ def floor_native_hp(bosses, level: int, standard_boss: dict | None = None,
 def _hp_component_readback_values(native: dict, c86: float) -> tuple[float, ...]:
     """按客户端取整边界回读每个 HP 组件，且保持逐出现次数可加总。
 
-    StandardEnemySource 会先把同一实体所有 Health forms 相加，再统一乘 0.55、
-    quest c86 并 floor；拆成逐 form 证据后不能误改成逐 form floor。这里把一次
+    StandardEnemySource 会先把同一实体所有 Health forms 相加，再统一乘该任务
+    类型的运行 HP 倍率、quest c86 并 floor；拆成逐 form 证据后不能误改成逐
+    form floor。这里把一次
     实体级 floor 的结果按未取整贡献比例分配回各 form，既保留精确总量，也让
     逐阶段审计仍可相加。Fix general 则仍按每只实体自己的 HP 组件 floor。
     """
@@ -3008,7 +3392,8 @@ def build_native_bundle_catalog(
         for ref in refs:
             if ref.kind == 0:
                 evidence = floor_native_hp(
-                    [ref.code], _level, standard_boss=sb, boss_level={})
+                    [ref.code], _level, standard_boss=sb, boss_level={},
+                    standard_runtime_hp_scale=RUSH_EVENT_STANDARD_HP_SCALE)
             else:  # kinds 1/8 are both verified GeneralBoss source paths
                 evidence = floor_native_hp(
                     [ref.code], _level, standard_boss={}, boss_level=bl)
@@ -3182,15 +3567,15 @@ def build_native_bundle_catalog(
         field_levels: dict[str, int] = {}
         field_ids = set(fd)
 
-        # Official floor rows are the strongest field-local BGM source:
-        # ``field,bgm,floor_thumbnail``.  They also cover tower/challenge
-        # quests whose quest row references a floor key instead of each field.
+        # Official floor rows are the strongest field-local BGM source.  Their
+        # third cell is only a 31×31 in-battle floor icon and must never flow
+        # into rush quest c5; ``field_thumbnail_map`` resolves the independent
+        # 240×188 quest cover chain.
         try:
             floor_table = q.load_table("master/battle/floor.orderedmap")
         except (FileNotFoundError, KeyError, TypeError, ValueError, zlib.error):
             floor_table = {}
         floor_bgm: dict[str, set[str]] = {}
-        floor_thumb: dict[str, set[str]] = {}
         for node in floor_table.values():
             if isinstance(node, dict):
                 continue
@@ -3202,14 +3587,11 @@ def build_native_bundle_catalog(
                     continue
                 field_id = values[0]
                 bgm = values[1] if len(values) > 1 else ""
-                thumbnail = values[2] if len(values) > 2 else ""
                 if bgm not in ("", "(None)"):
                     floor_bgm.setdefault(field_id, set()).add(bgm)
-                if thumbnail not in ("", "(None)"):
-                    floor_thumb.setdefault(field_id, set()).add(thumbnail)
                 metadata_index.setdefault(field_id, set()).add(
                     ("floor", "" if bgm == "(None)" else bgm,
-                     "" if thumbnail == "(None)" else thumbnail))
+                     thumbnails.get(field_id, "")))
 
         # Verified CN schemas where the BGM token is immediately after the
         # field cell.  challenge_dungeon uses field+1 as a frame limit and
@@ -3233,8 +3615,6 @@ def build_native_bundle_catalog(
                               if value in field_ids]
                 if not referenced:
                     continue
-                quest_thumbnail = next(
-                    (value for value in values if "/thumbnail/" in value), "")
                 for index, field_id in referenced:
                     source_level = quest_level_of(values, index)
                     if source_level:
@@ -3245,9 +3625,7 @@ def build_native_bundle_catalog(
                                   and index + 1 < len(values) else "")
                     if direct_bgm in ("", "(None)"):
                         direct_bgm = next(iter(sorted(floor_bgm.get(field_id, ()))), "")
-                    thumbnail = (quest_thumbnail
-                                 or thumbnails.get(field_id, "")
-                                 or next(iter(sorted(floor_thumb.get(field_id, ()))), ""))
+                    thumbnail = thumbnails.get(field_id, "")
                     metadata_index.setdefault(field_id, set()).add(
                         (category, direct_bgm, thumbnail))
 
@@ -3320,7 +3698,8 @@ def patch_quest_boss_fields(
         play_field: str | None = None,
         field_elements: dict[str, int] | None = None,
         boss_elements: dict[str, int | None] | None = None,
-        require_bgm: bool = False) -> tuple[int, str]:
+        require_bgm: bool = False, require_thumbnail: bool = False,
+        thumbnail_asset_exists=None) -> tuple[int, str]:
     """同步正式塔路径的 c5/c69/c95/c98/c99 boss 场地字段。"""
     if len(row) <= 99:
         raise ValueError(f"rush quest 行过短:{len(row)} < 100")
@@ -3333,6 +3712,10 @@ def patch_quest_boss_fields(
         raise ValueError(f"无尽层敌等级非法:{enemy_level!r}")
     if require_bgm and bgm in (None, "", "(None)"):
         raise ValueError(f"无尽层 bundle 缺 BGM:{source_field}")
+    if require_thumbnail and thumbnail in (None, "", "(None)"):
+        raise ValueError(
+            f"Boss 层缺已证明的 quest 大图:{source_field}; "
+            "拒绝沿用模板旧封面")
 
     fields = field_official_elem_map() if field_elements is None else field_elements
     boss_map = boss_element_map() if boss_elements is None else boss_elements
@@ -3349,7 +3732,13 @@ def patch_quest_boss_fields(
         raise ValueError(f"无尽层推荐元素非法:{element}")
 
     if thumbnail not in (None, "", "(None)"):
-        row[5] = str(thumbnail)
+        thumbnail = str(thumbnail)
+        asset_logical = quest_thumbnail_asset_logical(thumbnail)
+        if (thumbnail_asset_exists is not None
+                and not thumbnail_asset_exists(asset_logical)):
+            raise ValueError(
+                f"Boss 层封面资源不存在:{asset_logical} ({source_field})")
+        row[5] = thumbnail
     row[69] = str(element)
     row[95] = str(level)
     row[98] = target_field
@@ -4208,7 +4597,7 @@ def hp_short_time_errors(records: list[dict]) -> list[str]:
 
 
 def hp_correction_errors(records: list[dict], n: int) -> list[str]:
-    """最终 c86 按 HP 主通道验收；只报错，不做静默 clamp。"""
+    """最终活动实体类 HP 修正按主通道验收；只报错，不做静默 clamp。"""
     errors: list[str] = []
     for rec in records:
         try:
@@ -4240,6 +4629,82 @@ def hp_correction_errors(records: list[dict], n: int) -> list[str]:
             # 这些层已经在 [WARN] 里逐条列名,并计入 [真HP门禁] 的「无boss估算」。
             continue
         errors.append(f"第{r}战 HP 族/通道不可审计:{family or '(missing)'}")
+    return errors
+
+
+def quest_hp_multiplier_plan(*, baseline: float, final: float,
+                              has_boss: bool) -> dict:
+    """Build independent c86/c87/c88 HP multipliers for one floor."""
+
+    try:
+        baseline_value = float(baseline)
+        final_value = float(final)
+    except (TypeError, ValueError) as exc:
+        raise ValueError("任务级 HP 三分类计划含非数字") from exc
+    if not all(math.isfinite(value) and value > 0
+               for value in (baseline_value, final_value)):
+        raise ValueError(
+            f"任务级 HP 三分类计划必须为有限正数:{baseline},{final}")
+    boss_floor = bool(has_boss)
+    return {
+        "columns": {"enemy": "c86", "device_or_summon": "c87", "boss": "c88"},
+        "has_boss": boss_floor,
+        "baseline": {
+            "enemy": 1.0 if boss_floor else baseline_value,
+            "device_or_summon": 1.0,
+            "boss": baseline_value if boss_floor else 1.0,
+        },
+        "final": {
+            "enemy": 1.0 if boss_floor else final_value,
+            "device_or_summon": 1.0,
+            "boss": final_value if boss_floor else 1.0,
+        },
+        "active_target_class": "boss" if boss_floor else "enemy",
+        "independent_verified": True,
+        "mechanism_budget_separate": True,
+    }
+
+
+def quest_hp_multiplier_errors(records: list[dict]) -> list[str]:
+    """Reject coupled or mislabeled quest-level c86/c87/c88 plans."""
+
+    errors: list[str] = []
+    for rec in records:
+        label = f"第{rec.get('r', '?')}战"
+        plan = rec.get("quest_hp_multipliers")
+        if not isinstance(plan, dict):
+            errors.append(f"{label} 缺 c86/c87/c88 独立 HP 计划")
+            continue
+        try:
+            has_boss = bool(plan["has_boss"])
+            active = "boss" if has_boss else "enemy"
+            inactive = "enemy" if has_boss else "boss"
+            baseline = {key: float(value)
+                        for key, value in plan["baseline"].items()}
+            final = {key: float(value)
+                     for key, value in plan["final"].items()}
+            expected_baseline = float(rec["baseline_c86"])
+            expected_final = float(rec["c86"])
+        except (KeyError, TypeError, ValueError):
+            errors.append(f"{label} c86/c87/c88 独立 HP 计划字段非法")
+            continue
+        if set(baseline) != {"enemy", "device_or_summon", "boss"} \
+                or set(final) != {"enemy", "device_or_summon", "boss"}:
+            errors.append(f"{label} c86/c87/c88 独立 HP 计划分类不完整")
+            continue
+        if (not math.isclose(baseline[active], expected_baseline,
+                             rel_tol=0.0, abs_tol=1e-12)
+                or not math.isclose(final[active], expected_final,
+                                    rel_tol=0.0, abs_tol=1e-12)):
+            errors.append(f"{label} 活动实体类 HP 倍率未命中审计值")
+        for stage, values in (("baseline", baseline), ("final", final)):
+            if (not math.isclose(values[inactive], 1.0, rel_tol=0.0, abs_tol=1e-12)
+                    or not math.isclose(values["device_or_summon"], 1.0,
+                                        rel_tol=0.0, abs_tol=1e-12)):
+                errors.append(f"{label} {stage} HP 倍率错误捆绑三类实体")
+        if (plan.get("independent_verified") is not True
+                or plan.get("mechanism_budget_separate") is not True):
+            errors.append(f"{label} c86/c87/c88 独立/机制预算证据未通过")
     return errors
 
 
@@ -4339,10 +4804,75 @@ def collapse_grades(entries: list[dict], name_of) -> list[dict]:
     return [best[k][1] for k in order]
 
 
+def boss_family_cooldown_group(bosses) -> str | None:
+    """Collapse high-risk related families for adjacent-floor cooldown."""
+
+    codes = tuple(str(code).lower() for code in bosses or ())
+    if any("sphere" in code for code in codes):
+        return "sphere"
+    if any("orochi" in code for code in codes):
+        return "orochi"
+    return None
+
+
+def select_special_showcase_families(
+        available_families, rng, *, limit: int = 5) -> tuple[str, ...]:
+    """Choose diverse dedicated families without forcing every variant."""
+
+    available = set(map(str, available_families or ()))
+    grouped = {
+        "orochi": [name for name in ("orochi", "orochi_ex")
+                    if name in available],
+        "sphere": [name for name in SPHERE_SPECS if name in available],
+        "conductor": ["conductor"] if "conductor" in available else [],
+        "touyakiren_ceo": (["touyakiren_ceo"]
+                            if "touyakiren_ceo" in available else []),
+        "kraken": ["kraken"] if "kraken" in available else [],
+    }
+    chosen = [members[rng.randrange(len(members))]
+              for members in grouped.values() if members]
+    rng.shuffle(chosen)
+    return tuple(chosen[:max(0, int(limit))])
+
+
+FULL_SPECIAL_SHOWCASE_SLOTS = (
+    ("orochi", 0.82),
+    ("orochi_ex", 0.74),
+    ("conductor", 0.66),
+    ("touyakiren_ceo", 0.58),
+    ("kraken", 0.50),
+    ("water_sphere", 0.46),
+    ("holy_sphere", 0.42),
+    ("wind_sphere", 0.38),
+    ("thunder_sphere", 0.34),
+    ("fire_sphere", 0.30),
+)
+DIVERSE_SPECIAL_SHOWCASE_FRACTIONS = (0.30, 0.43, 0.57, 0.70, 0.83)
+
+
+def special_showcase_slots(
+        available_families, rng, *, rounds: int) -> tuple[tuple[str, float], ...]:
+    """Plan native-special showcase slots without crowding a 30-floor roll.
+
+    Normal 30-floor towers choose one Orochi variant and one Sphere variant,
+    plus the three independent single-bar families.  A 60-floor static canary
+    has room for every currently supported family and deliberately restores
+    full adapter coverage instead of inheriting the gameplay roster limit.
+    """
+
+    available = set(map(str, available_families or ()))
+    if int(rounds) >= 60:
+        return tuple((family, fraction)
+                     for family, fraction in FULL_SPECIAL_SHOWCASE_SLOTS
+                     if family in available)
+    selected = select_special_showcase_families(available, rng, limit=5)
+    return tuple(zip(selected, DIVERSE_SPECIAL_SHOWCASE_FRACTIONS))
+
+
 def build_schedule(n: int, rng) -> dict[int, str]:
     """楼层计划 v8(任意层数自适应,2~98 层):
     第 1 战恒=小怪房热身(n≥3;n=2 时首战直接进塔层,给奖励测试用);
-    第 2 战 20% 概率再来一间小怪房;末战恒=终始之龙;
+    第 2 战 20% 概率再来一间小怪房;末战=安全高难终局候选池;
     末战-1=无幻之宴守门(n≥5);比例锚 领主战20%/机兵40%/降临讨伐55%/女帝歼灭者70%
     (撞位向后找空、再向前,塞不下放弃);其余全部=塔池(--mix 时为拼接层)。
 
@@ -4350,6 +4880,8 @@ def build_schedule(n: int, rng) -> dict[int, str]:
     八岐大蛇各档都在里面),却只给 1 个位 → 单座塔抽中某个特定 boss ≈5.6%,
     用户「打了这么久没见过」。改成大塔多开位:<15 层 1 个、15-24 层 2 个、
     ≥25 层 3 个(全塔配额去重保证不会重样)。"""
+    # Keep the legacy schedule label for layout-plan compatibility; its picker
+    # now resolves the safe high-difficulty finale pool instead of pinning dragon.
     sched = {n: "终始之龙"}
     if n >= 3:
         sched[1] = "小怪房"
@@ -4361,9 +4893,9 @@ def build_schedule(n: int, rng) -> dict[int, str]:
         sched[n - 1] = "无幻之宴"
     if n >= 7:
         # 机工神兵菲诺梅那(steampunk_another 地狱级,双 boss 本体+foom2)
-        # 与终始之龙同等待遇=常驻固定位,不参与随机。
+        # 常驻塔腰固定位，不参与随机。
         # 位置=**塔腰**(2026-07-29 用户指定:15层→7、30层→15、50层→25),
-        # 不放末尾——末尾已经是 无幻之宴+终始之龙 的双守门。
+        # 不放末尾——末尾已经是 无幻之宴+终局候选 的双守门。
         sched[max(3, n // 2)] = "机工神兵"
     anchors = [("领主战", 0.2), ("世界剧情", 0.3), ("机兵", 0.4),
                ("剧情活动", 0.48), ("降临讨伐", 0.55), ("女帝歼灭者", 0.7)]
@@ -4974,6 +5506,11 @@ def curse_conflict(picks: list[dict]) -> str | None:
     #    「完全免疫 1.0 + 易伤」,漏掉了 0.3/0.4/0.5 三档抗性配易伤;全库两两普查:
     #      深渊壁垒+深渊逆鳞 **16/16 恒冲突**(壁垒盖全四系,逆鳞必然踩上)
     #      亡者不屈+深渊逆鳞 4/16、深渊逆鳞+绝对壁垒 4/16、深渊重甲+深渊逆鳞 4/16
+    field_programs = [str(pick["caster"][1]) for pick in picks
+                      if pick.get("caster")]
+    if len(field_programs) > 1:
+        return ("领域同时执行闭包未证明，同层当前最多落一个程序:"
+                + "+".join(field_programs))
     try:
         _stacked_resistance_totals(picks)
     except (TypeError, ValueError) as exc:
@@ -5560,15 +6097,103 @@ def hell_curse_slots(r: int, n: int) -> int:
 
 
 def required_field_slots(r: int, n: int) -> int:
-    """领域保底：过半程 1 个，最后 20% 2 个。无载体时由调用方显式记欠配。"""
-    if is_deep_round(r, n):
-        return 2
+    """领域保底：过半程 1 个；未证明调度闭包前同一时刻只挂一个。"""
     return 1 if r / n > 0.5 else 0
 
 
 BLOOD_WALL_NAME = "血肉高墙"
 BLOOD_WALL_DEEP_WINDOW = 6
 BLOOD_WALL_DEEP_MAX = 2
+CURSE_DIVERSITY_SCHEMA = "wf-rogue-curse-diversity/v1"
+CURSE_RANDOM_FREQUENCY_CAP = 0.35
+DEEP_ARMOR_RANDOM_FREQUENCY_CAP = 0.15
+FIELD_RANDOM_FREQUENCY_CAP = 0.35
+
+
+def new_curse_diversity_state() -> dict:
+    """Mutable per-build counters; callers serialize only the receipt copy."""
+
+    return {
+        "schema": CURSE_DIVERSITY_SCHEMA,
+        "eligible": {}, "selected": {}, "last_names": [],
+        "field_eligible": {}, "field_selected": {}, "last_fields": [],
+        "rounds": [],
+    }
+
+
+def curse_diversity_receipt(state: dict) -> dict:
+    """Return deterministic legal-opportunity/appearance counters."""
+
+    if not isinstance(state, dict) or state.get("schema") != CURSE_DIVERSITY_SCHEMA:
+        raise ValueError("诅咒多样性状态 schema 非法")
+    return {
+        "schema": CURSE_DIVERSITY_SCHEMA,
+        "eligible": dict(sorted((state.get("eligible") or {}).items())),
+        "selected": dict(sorted((state.get("selected") or {}).items())),
+        "selection_gate_selected": dict(sorted(
+            (state.get("selection_gate_selected")
+             or state.get("selected") or {}).items())),
+        "field_eligible": dict(sorted(
+            (state.get("field_eligible") or {}).items())),
+        "field_selected": dict(sorted(
+            (state.get("field_selected") or {}).items())),
+        "rounds": copy.deepcopy(state.get("rounds") or []),
+        "frequency_caps": {
+            "default": CURSE_RANDOM_FREQUENCY_CAP,
+            "深渊重甲": DEEP_ARMOR_RANDOM_FREQUENCY_CAP,
+            "field_program": FIELD_RANDOM_FREQUENCY_CAP,
+        },
+        "adjacent_cooldown": "strict_for_deep_armor_and_fields",
+        "combo_uses_same_gate": True,
+        "static_verified": True,
+        "runtime_simulated": False,
+        "gameplay_verified": False,
+    }
+
+
+def reconcile_curse_diversity_state(state: dict, floor_records) -> None:
+    """Rebase diversity counters onto final post-band-gate curse picks.
+
+    ``enforce_atk_band`` may lower or remove attack cards after every floor has
+    already been selected.  The legal-opportunity counters stay valid, but the
+    selected names/combo labels must come from those final picks or the audit
+    can describe a pre-downgrade curse that is no longer present in the quest.
+    """
+
+    if not isinstance(state, dict) or state.get("schema") != CURSE_DIVERSITY_SCHEMA:
+        raise ValueError("诅咒多样性状态 schema 非法")
+    records = {int(record["r"]): record for record in floor_records or ()}
+    state["selection_gate_selected"] = dict(state.get("selected") or {})
+    selected: Counter = Counter()
+    field_selected: Counter = Counter()
+    rows = state.get("rounds")
+    if not isinstance(rows, list):
+        raise ValueError("诅咒多样性状态 rounds 非法")
+    for row in rows:
+        if not isinstance(row, dict):
+            raise ValueError("诅咒多样性状态含非对象 round")
+        round_no = int(row.get("round") or 0)
+        record = records.get(round_no)
+        if record is None:
+            raise ValueError(f"诅咒多样性状态缺最终楼层:{round_no}")
+        curse = record.get("curse") or {}
+        picks = list(curse.get("picks") or ())
+        names = sorted({str(card["name"]) for card in picks
+                        if card.get("name") and not card.get("caster")})
+        fields = sorted({str(card["caster"][1]) for card in picks
+                         if card.get("caster")})
+        if len(fields) > 1:
+            raise ValueError(f"第{round_no}战最终仍有多个领域程序")
+        row["selected_names"] = names
+        row["selected_field_programs"] = fields
+        row["combo"] = curse.get("combo")
+        selected.update(names)
+        field_selected.update(fields)
+    state["selected"] = dict(selected)
+    state["field_selected"] = dict(field_selected)
+    final_row = rows[-1] if rows else {}
+    state["last_names"] = list(final_row.get("selected_names") or ())
+    state["last_fields"] = list(final_row.get("selected_field_programs") or ())
 
 
 def curse_pacing_blocks(r: int, n: int, history,
@@ -5681,7 +6306,8 @@ def abyss_curses(r: int, n: int, rng, tier: str, caps: dict | None = None,
                   high_threat: bool = False,
                   forbid_hp_curses: bool = False,
                   capability_profile: dict | None = None,
-                  random_forbidden: dict[str, str] | None = None) -> dict:
+                  random_forbidden: dict[str, str] | None = None,
+                  diversity_state: dict | None = None) -> dict:
     """轮次诅咒包:{conds,hp,atk,tp,fever,time,gimmick,caster,desc,picks,combo}。
 
     caps = 地形能力 {"spawn": 有SPAWNn锚点, "panel": 官方板子配对地形}——
@@ -5796,6 +6422,61 @@ def abyss_curses(r: int, n: int, rng, tier: str, caps: dict | None = None,
         if any(c.get("name") == name for c in pool):
             log(f"[curse] round={r} pace-block=「{name}」 reason={reason}; redraw")
     pool = [c for c in pool if c.get("name") not in random_forbidden]
+    diversity_enabled = diversity_state is not None and not has_forced
+    if diversity_state is not None and (
+            not isinstance(diversity_state, dict)
+            or diversity_state.get("schema") != CURSE_DIVERSITY_SCHEMA):
+        raise ValueError("诅咒多样性状态 schema 非法")
+
+    field_menu_candidates = list({str(item[1]): tuple(item)
+                                  for item in field_menu_all()
+                                  if (item[3] if len(item) > 3 else "领域")
+                                  in FIELD_RANDOM_CATS}.values())
+    diversity_blocks: dict[str, str] = {}
+    if diversity_enabled:
+        eligible = diversity_state.setdefault("eligible", {})
+        selected = diversity_state.setdefault("selected", {})
+        last_names = set(map(str, diversity_state.get("last_names") or ()))
+        eligible_names = sorted({str(card["name"]) for card in pool
+                                 if not card.get("caster")})
+        for name in eligible_names:
+            eligible[name] = int(eligible.get(name, 0)) + 1
+            cap = (DEEP_ARMOR_RANDOM_FREQUENCY_CAP
+                   if name == "深渊重甲" else CURSE_RANDOM_FREQUENCY_CAP)
+            allowed = max(1, math.ceil(float(eligible[name]) * cap - 1e-12))
+            if name == "深渊重甲" and name in last_names:
+                diversity_blocks[name] = "上一层已有深渊重甲，进入严格相邻冷却"
+            elif int(selected.get(name, 0)) >= allowed:
+                diversity_blocks[name] = (
+                    f"合法机会{eligible[name]}次/已出现{selected.get(name, 0)}次，"
+                    f"达到频率上限{cap:g}")
+        for name, reason in diversity_blocks.items():
+            if any(str(card.get("name")) == name for card in pool):
+                log(f"[curse] round={r} diversity-block=「{name}」 "
+                    f"reason={reason}; redraw")
+        pool = [card for card in pool
+                if str(card.get("name")) not in diversity_blocks]
+
+        field_eligible = diversity_state.setdefault("field_eligible", {})
+        field_selected = diversity_state.setdefault("field_selected", {})
+        last_fields = set(map(str, diversity_state.get("last_fields") or ()))
+        allowed_fields = []
+        for item in field_menu_candidates:
+            program = str(item[1])
+            field_eligible[program] = int(field_eligible.get(program, 0)) + 1
+            allowed = max(1, math.ceil(
+                float(field_eligible[program]) * FIELD_RANDOM_FREQUENCY_CAP
+                - 1e-12))
+            if program in last_fields or int(field_selected.get(program, 0)) >= allowed:
+                continue
+            allowed_fields.append(item)
+        if allowed_fields:
+            field_menu_candidates = allowed_fields
+        pool = [card for card in pool if not card.get("caster")]
+        pool.extend({
+            "name": "深渊法阵", "caster": item,
+            "text": f"{item[0]}·{item[2]}",
+        } for item in field_menu_candidates)
     runtime_args = (baseline_c86, c86_limits, baseline_dps, base_duration_s)
     if any(v is not None for v in runtime_args) and not all(v is not None for v in runtime_args):
         raise ValueError(f"第{r}战诅咒数值门禁参数必须成套提供")
@@ -5807,7 +6488,8 @@ def abyss_curses(r: int, n: int, rng, tier: str, caps: dict | None = None,
         if not why:
             why = dragon_heart_companion_block(
                 picks, bool(effective["stacked_resistance"]
-                            and effective["field_action"]), field_menu_all())
+                            and effective["field_action"]),
+                field_menu_candidates)
         if why or baseline_c86 is None:
             return why
         return curse_runtime_conflict(
@@ -5820,15 +6502,22 @@ def abyss_curses(r: int, n: int, rng, tier: str, caps: dict | None = None,
         return ("field", str(caster[1])) if caster else ("curse", c.get("name"))
 
     def new_field_entries(current: list[dict], needed: int) -> list[dict]:
-        """从完整安全菜单抽互异程序；领域是重复类别，但同一 program 不可重复。"""
+        """从多样性门禁后的安全菜单抽程序；当前静态闭包最多允许一个。"""
         used = {str(c["caster"][1]) for c in current if c.get("caster")}
-        menu = [m for m in field_menu_all()
-                if (m[3] if len(m) > 3 else "领域") in FIELD_RANDOM_CATS
-                and str(m[1]) not in used]
+        menu = [m for m in field_menu_candidates if str(m[1]) not in used]
         unique = {}
         for item in menu:
             unique.setdefault(str(item[1]), item)
-        order = rng.sample(list(unique.values()), len(unique)) if unique else []
+        order = list(unique.values())
+        if diversity_enabled:
+            field_eligible = diversity_state.get("field_eligible") or {}
+            field_selected = diversity_state.get("field_selected") or {}
+            order.sort(key=lambda item: (
+                float(field_selected.get(str(item[1]), 0))
+                / max(1, int(field_eligible.get(str(item[1]), 0))),
+                rng.random()))
+        elif order:
+            order = rng.sample(order, len(order))
         return [{"name": "深渊法阵", "caster": fm, "text": f"{fm[0]}·{fm[2]}"}
                 for fm in order[:needed]]
 
@@ -5847,7 +6536,24 @@ def abyss_curses(r: int, n: int, rng, tier: str, caps: dict | None = None,
             if present < min(field_requested, target_count):
                 raise RuntimeError(
                     f"第{r}战领域候选耗尽:{present}/{min(field_requested, target_count)}")
-        order = rng.sample(pool, len(pool))
+        if diversity_enabled:
+            eligible = diversity_state.get("eligible") or {}
+            selected = diversity_state.get("selected") or {}
+            field_eligible = diversity_state.get("field_eligible") or {}
+            field_selected = diversity_state.get("field_selected") or {}
+            order = sorted(pool, key=lambda card: (
+                (str(card["name"]) in set(map(
+                    str, diversity_state.get("last_names") or ())))
+                if not card.get("caster") else False,
+                (float(field_selected.get(str(card["caster"][1]), 0))
+                 / max(1, int(field_eligible.get(str(card["caster"][1]), 0))))
+                if card.get("caster") else
+                (float(selected.get(str(card["name"]), 0))
+                 / max(1, int(eligible.get(str(card["name"]), 0)))),
+                rng.random(),
+            ))
+        else:
+            order = rng.sample(pool, len(pool))
         # 深渊法阵(场程序)出场加权(2026-07-29 用户「场地效果可以再多一点」):
         # 平权时 1/12≈8%,这里 45% 概率把它提到队首 → 实际约四成楼层带场地效果。
         if (prefer_caster and effective["field_action"]
@@ -5897,7 +6603,8 @@ def abyss_curses(r: int, n: int, rng, tier: str, caps: dict | None = None,
     def finalize(picks: list[dict], combo_name: str | None = None) -> dict:
         picks = ensure_dragon_heart_companion(
             picks, rng, bool(effective["stacked_resistance"]
-                             and effective["field_action"]), field_menu_all())
+                             and effective["field_action"]),
+            field_menu_candidates)
         why = conflict(picks)
         if why:
             raise RuntimeError(f"第{r}战诅咒最终组合未过门禁:{why}")
@@ -5919,6 +6626,32 @@ def abyss_curses(r: int, n: int, rng, tier: str, caps: dict | None = None,
             why = high_threat_curse_conflict(picks)
             if why:
                 raise AssertionError(f"第{r}战高威胁最终组合越闸:{why}")
+        if diversity_state is not None:
+            selected_counts = diversity_state.setdefault("selected", {})
+            field_selected = diversity_state.setdefault("field_selected", {})
+            chosen_names = sorted({str(card["name"]) for card in picks
+                                   if not card.get("caster")})
+            chosen_fields = sorted({str(card["caster"][1]) for card in picks
+                                    if card.get("caster")})
+            for name in chosen_names:
+                selected_counts[name] = int(selected_counts.get(name, 0)) + 1
+            for program in chosen_fields:
+                field_selected[program] = int(field_selected.get(program, 0)) + 1
+            diversity_state["last_names"] = chosen_names
+            diversity_state["last_fields"] = chosen_fields
+            round_receipt = {
+                "round": int(r),
+                "eligible_names": sorted({
+                    str(card["name"]) for card in pool if not card.get("caster")}),
+                "selected_names": chosen_names,
+                "eligible_field_programs": sorted(
+                    str(item[1]) for item in field_menu_candidates),
+                "selected_field_programs": chosen_fields,
+                "combo": combo_name,
+                "forced": bool(has_forced),
+            }
+            diversity_state.setdefault("rounds", []).append(round_receipt)
+            result["diversity_receipt"] = copy.deepcopy(round_receipt)
         return result
 
     # 显式指定(工坊拖拽):有效钉选优先；被门禁拒绝的名额随机补齐到原指定数量。
@@ -6037,10 +6770,9 @@ def abyss_curses(r: int, n: int, rng, tier: str, caps: dict | None = None,
             got = []
             for nm in cb_["curses"]:
                 if nm == "深渊法阵":
-                    sub = [m for m in field_menu_all()
+                    sub = [m for m in field_menu_candidates
                            if (m[3] if len(m) > 3 else "领域") == cb_.get("field_cat")]
-                    sub = sub or [m for m in field_menu_all()
-                                  if (m[3] if len(m) > 3 else "领域") in FIELD_RANDOM_CATS]
+                    sub = sub or list(field_menu_candidates)
                     fm2 = sub[rng.randrange(len(sub))]
                     got.append({"name": "深渊法阵", "caster": fm2,
                                 "text": f"{fm2[0]}·{fm2[2]}"})
@@ -6198,41 +6930,195 @@ def boss_series_of(code: str, model: str = "") -> str | None:
     return None
 
 
-def field_thumbnail_map() -> dict[str, str]:
-    """field_data id → 宿主 quest 的战斗缩略图(240×188 正规 quest/thumbnail)。
+THUMBNAIL_EVIDENCE_SCHEMA = "wf-rogue-thumbnail-evidence/v1"
 
-    floor 行第 3 列是塔层 31×31 小图标,放 quest 预览位显示空白(1.4.120 实锤)。
-    正确素材 = 引用该 floor 的幽玄域/深层域宿主 quest 的 thumbnail(c3);
-    floor 键→quest 缩略图,再经 floor 行摊开到每个 field。
+
+def quest_thumbnail_asset_logical(thumbnail: str) -> str:
+    """Return the client logical PNG path for a rush quest c5 value."""
+    value = str(thumbnail or "").strip()
+    return value if value.endswith(".png") else value + ".png"
+
+
+def field_thumbnail_evidence_map(
+        *, field_data: dict | None = None, floor: dict | None = None,
+        quest_tables: dict[str, dict] | None = None,
+        asset_exists=None) -> dict[str, dict]:
+    """Build a fail-closed field → official quest-cover evidence map.
+
+    There are two materially different thumbnail columns in the client data:
+    ``floor.c2`` is a 31×31 in-battle floor icon, while quest rows carry the
+    240×188 ``quest/thumbnail`` cover consumed by the rush floor list.  The old
+    mapper only expanded tower/challenge host quests.  Dedicated bosses whose
+    source field lives in boss-battle, practice, ranking, world-story, etc. then
+    had no entry and silently kept the copied Combat Diver template cover.
+
+    Exact field references in every known quest table are strongest.  A
+    tower/challenge host cover is retained only as fallback for fields that are
+    reachable solely through a floor key.  Every accepted image must exist in
+    the effective client-visible asset chain.  Static provenance is recorded;
+    it deliberately does not claim that the UI has been verified on-device.
     """
-    floor = q.load_table("master/battle/floor.orderedmap")
+    fd = (_tbl("master/battle/field_data.orderedmap")
+          if field_data is None else field_data)
+    floor_table = (q.load_table("master/battle/floor.orderedmap")
+                   if floor is None else floor)
+    official_fields = {
+        str(field_id) for field_id in fd
+        if str(field_id) not in ("", "(None)")
+        and not str(field_id).startswith("mod_rogue_")
+    }
+    exists = asset_exists or q.exists_current
+    exists_cache: dict[str, bool] = {}
+
+    def asset_is_present(thumbnail: str) -> tuple[str, bool]:
+        logical = quest_thumbnail_asset_logical(thumbnail)
+        if logical not in exists_cache:
+            exists_cache[logical] = bool(logical and exists(logical))
+        return logical, exists_cache[logical]
+
+    candidates: dict[str, list[dict]] = {}
+
+    def add_candidate(field_id: str, thumbnail: str, *, match: str,
+                      category: str, logical: str, path=(), level: int = 0,
+                      floor_key: str | None = None) -> None:
+        if (field_id not in official_fields
+                or thumbnail in (None, "", "(None)")):
+            return
+        asset_logical, present = asset_is_present(str(thumbnail))
+        if not present:
+            return
+        candidates.setdefault(field_id, []).append({
+            "schema": THUMBNAIL_EVIDENCE_SCHEMA,
+            "field": field_id,
+            "thumbnail": str(thumbnail),
+            "asset_logical": asset_logical,
+            "asset_exists": True,
+            "source_match": match,
+            "source_category": category,
+            "source_logical": logical,
+            "source_path": list(map(str, path)),
+            "source_level": int(level),
+            "floor_key": floor_key,
+            "static_verified": True,
+            "runtime_simulated": False,
+            "gameplay_verified": False,
+        })
+
+    table_cache: dict[str, dict] = {}
+    category_order: dict[str, int] = {}
+    for order, (category, _label, logical, _group, _icon) in enumerate(
+            wb.QUEST_CATS):
+        category_order[category] = order
+        if quest_tables is not None:
+            if logical not in quest_tables:
+                continue
+            table = quest_tables[logical]
+        else:
+            try:
+                table = wb._load(logical)
+            except (FileNotFoundError, KeyError, TypeError, ValueError,
+                    zlib.error):
+                continue
+        table_cache[logical] = table
+        for path, leaf in wb._leaves(table):
+            # Never learn official cover metadata from this tool's previous
+            # output.  Otherwise a stale 700099 c5 can become its own proof.
+            if (category == "rush" and path
+                    and str(path[0]) in GAUNTLET_HUB_EVENT_IDS):
+                continue
+            values = cells(leaf)
+            thumbnail = next(
+                (value for value in values if "/thumbnail/" in value), "")
+            if not thumbnail:
+                continue
+            for index, field_id in enumerate(values):
+                if field_id not in official_fields:
+                    continue
+                level_text = quest_level_of(values, index)
+                add_candidate(
+                    field_id, thumbnail, match="exact_field",
+                    category=category, logical=logical, path=path,
+                    level=int(level_text) if level_text else 0)
+
     fkey_fields: dict[str, list[str]] = {}
-    for k, v in floor.items():
-        if isinstance(v, dict):
+    for floor_key, leaf in floor_table.items():
+        if isinstance(leaf, dict):
             continue
-        s = v.decode("utf-8") if isinstance(v, bytes) else v
-        fkey_fields[k] = [cb._cols(ln)[0] for ln in s.split("\n")
-                          if cb._cols(ln) and cb._cols(ln)[0] not in ("", "(None)")]
-    out: dict[str, str] = {}
-    for logical, floor_col in [
-        ("master/quest/event/tower_dungeon_event_quest.orderedmap", 99),
-        ("master/quest/event/challenge_dungeon_event_quest.orderedmap", 110),
-    ]:
-        try:
-            table = q.load_table(logical)
-        except Exception:
-            continue
-        for ln in _leaf_rows(table):
-            row = cb._cols(ln)
-            if len(row) <= floor_col:
+        text = leaf.decode("utf-8") if isinstance(leaf, bytes) else str(leaf)
+        fields: list[str] = []
+        for line in text.splitlines():
+            values = cb._cols(line)
+            if values and values[0] in official_fields:
+                fields.append(values[0])
+        fkey_fields[str(floor_key)] = fields
+
+    for category, logical, floor_col in (
+            ("tower", "master/quest/event/tower_dungeon_event_quest.orderedmap", 99),
+            ("challenge_dungeon",
+             "master/quest/event/challenge_dungeon_event_quest.orderedmap", 110),
+    ):
+        table = table_cache.get(logical)
+        if table is None:
+            if quest_tables is not None:
                 continue
-            fkey = row[floor_col]
-            thumb = row[3]
-            if not fkey or fkey in ("(None)",) or not thumb or thumb == "(None)":
+            try:
+                table = q.load_table(logical)
+            except (FileNotFoundError, KeyError, TypeError, ValueError,
+                    zlib.error):
                 continue
-            for field in fkey_fields.get(fkey, []):
-                out.setdefault(field, thumb)
+        for path, leaf in wb._leaves(table):
+            values = cells(leaf)
+            if len(values) <= floor_col:
+                continue
+            floor_key = values[floor_col]
+            thumbnail = values[3] if len(values) > 3 else ""
+            level_text = quest_level_of(values, floor_col)
+            for field_id in fkey_fields.get(floor_key, ()):
+                add_candidate(
+                    field_id, thumbnail, match="floor_host_quest",
+                    category=category, logical=logical, path=path,
+                    level=int(level_text) if level_text else 0,
+                    floor_key=floor_key)
+
+    out: dict[str, dict] = {}
+    for field_id, options in candidates.items():
+        # Exact field proof outranks a floor-host fallback.  Within the same
+        # proof class choose the highest official enemy level, then stable quest
+        # category/path ordering so identical data always yields identical c5.
+        options.sort(key=lambda item: (
+            0 if item["source_match"] == "exact_field" else 1,
+            -int(item["source_level"]),
+            category_order.get(str(item["source_category"]), 999),
+            str(item["source_logical"]),
+            tuple(item["source_path"]),
+            str(item["thumbnail"]),
+        ))
+        out[field_id] = options[0]
     return out
+
+
+def field_thumbnail_map() -> dict[str, str]:
+    """field_data id → verified 240×188 quest cover (never floor.c2)."""
+    return {
+        field_id: evidence["thumbnail"]
+        for field_id, evidence in field_thumbnail_evidence_map().items()
+    }
+
+
+def resolve_quest_thumbnail(
+        source_field: str, explicit_thumbnail: str | None,
+        evidence_map: dict[str, dict], *, require: bool) -> tuple[str, dict | None]:
+    """Resolve c5 from the actual boss donor field, never the terrain donor."""
+    source_field = str(source_field)
+    evidence = evidence_map.get(source_field)
+    if evidence is not None:
+        return str(evidence["thumbnail"]), copy.deepcopy(evidence)
+    explicit = str(explicit_thumbnail or "")
+    if require:
+        raise ValueError(
+            f"Boss 来源场地 {source_field} 没有可复核 quest 大图; "
+            "拒绝沿用模板/地形封面")
+    return explicit, None
 
 START = "2000-01-01 12:00:00"
 END = "2099-12-29 23:59:59"
@@ -6739,7 +7625,7 @@ def hp_component_audit_lines(receipt: HpAdaptationAudit) -> list[str]:
     return lines
 
 
-HP_AUDIT_SCHEMA = "wf-rogue-hp-audit/v2"
+HP_AUDIT_SCHEMA = "wf-rogue-hp-audit/v4"
 HP_AUDIT_VERIFICATION_SCOPE = "static_dry_run"
 
 
@@ -6757,7 +7643,8 @@ def build_hp_audit_document(*, seed: int, rounds: int,
                             difficulty: str, enemy_level: str,
                             hp_audits: list[dict], floor_records: list[dict],
                             chain_reports: list[dict],
-                            hp_profile: str = "unspecified") -> dict:
+                            hp_profile: str = "unspecified",
+                            curse_diversity: dict | None = None) -> dict:
     """Serialize the strict in-memory result into a self-contained receipt.
 
     This is deliberately built only from the final adapter receipts and the
@@ -6785,6 +7672,12 @@ def build_hp_audit_document(*, seed: int, rounds: int,
         if isinstance(audit.get("orochi_ex_phase_safety"), dict):
             serialized["phase_safety"] = copy.deepcopy(
                 audit["orochi_ex_phase_safety"])
+        if isinstance(audit.get("mechanism_budget"), dict):
+            serialized["mechanism_budget"] = copy.deepcopy(
+                audit["mechanism_budget"])
+        if isinstance(audit.get("damage_checks"), dict):
+            serialized["damage_checks"] = copy.deepcopy(
+                audit["damage_checks"])
         curse = record.get("curse") or {}
         curse_capability = curse.get("capability_profile")
         if not isinstance(curse_capability, dict):
@@ -6801,10 +7694,38 @@ def build_hp_audit_document(*, seed: int, rounds: int,
         curse_hp_multiplier = float(
             audit["curse_hp"] if audit.get("curse_hp") is not None else
             receipt.final_target_hp / receipt.baseline_target_hp)
+        quest_hp_multipliers = copy.deepcopy(
+            audit.get("quest_hp_multipliers"))
+        if not isinstance(quest_hp_multipliers, dict):
+            raise ValueError(
+                f"第{round_no}战缺 c86/c87/c88 独立 HP 计划，不能生成验收回执")
+        quest_row = record.get("row")
+        if not isinstance(quest_row, list) or len(quest_row) <= 88:
+            raise ValueError(
+                f"第{round_no}战缺任务行 c86/c87/c88 最终回读，不能生成验收回执")
+        try:
+            table_readback = {
+                "enemy": float(quest_row[86]),
+                "device_or_summon": float(quest_row[87]),
+                "boss": float(quest_row[88]),
+            }
+        except (TypeError, ValueError) as exc:
+            raise ValueError(
+                f"第{round_no}战任务行 c86/c87/c88 最终回读非法") from exc
+        if not all(math.isfinite(value) and value > 0
+                   for value in table_readback.values()):
+            raise ValueError(
+                f"第{round_no}战任务行 c86/c87/c88 必须为有限正数")
+        quest_hp_multipliers["table_readback"] = table_readback
+        thumbnail_evidence = copy.deepcopy(pick.get("thumbnail_evidence"))
         floors.append({
             "round": round_no,
             "field": str(pick.get("field") or ""),
             "play_field": str(pick.get("play_field") or pick.get("field") or ""),
+            "thumbnail": str(pick.get("thumb") or ""),
+            "thumbnail_source_field": str(
+                pick.get("thumbnail_field") or pick.get("field") or ""),
+            "thumbnail_evidence": thumbnail_evidence,
             "enemy_level": int(pick.get("level") or 0),
             "source_bosses": list(map(str, pick.get("bosses") or ())),
             "runtime_bosses": list(map(
@@ -6824,6 +7745,9 @@ def build_hp_audit_document(*, seed: int, rounds: int,
             "curse_capability_profile": copy.deepcopy(curse_capability),
             "curse_used_capabilities": list(map(
                 str, curse.get("used_capabilities") or ())),
+            "field_program_receipts": copy.deepcopy(
+                curse.get("field_program_receipts") or []),
+            "quest_hp_multipliers": quest_hp_multipliers,
             "identity_reference_closures": list(copy.deepcopy(
                 record.get("identity_reference_closures") or ())),
             "adapter": serialized,
@@ -6858,6 +7782,10 @@ def build_hp_audit_document(*, seed: int, rounds: int,
             "curse_capability_matrix": curse_capability_matrix_receipt(),
             "client_bundled_curve_baseline": (
                 client_bundled_curve_baseline_receipt()),
+            "curse_diversity": (copy.deepcopy(curse_diversity)
+                                 if curse_diversity is not None
+                                 else curse_diversity_receipt(
+                                     new_curse_diversity_state())),
         },
         "floors": floors,
         "chain_reports": chain,
@@ -6900,6 +7828,10 @@ def build_hp_audit_document(*, seed: int, rounds: int,
             "max_absolute_error_hp": max_error,
             "chain_reports": len(chain),
             "chain_failures": sum(1 for report in chain if not report.get("ok")),
+            "thumbnail_static_verified_floors": sum(
+                1 for floor in floors
+                if isinstance(floor.get("thumbnail_evidence"), dict)
+                and floor["thumbnail_evidence"].get("static_verified") is True),
         },
     }
     document["document_sha256"] = hp_audit_document_digest(document)
@@ -7085,6 +8017,175 @@ def _verify_sphere_lifecycle_receipt(
     return errors
 
 
+def _verify_orochi_ex_phase_damage_capacity_contract(
+        label: str, contract: object, *,
+        expected_phase1_hp: float,
+        expected_phase3_hp: float) -> list[str]:
+    """Independently replay the two head-capacity phase gates."""
+
+    errors: list[str] = []
+    if not isinstance(contract, dict):
+        return [f"{label} 缺蛇头阶段承伤容量回执"]
+    if contract.get("schema") != OROCHI_EX_PHASE_CAPACITY_SCHEMA:
+        errors.append(f"{label} 蛇头阶段承伤容量 schema 非法")
+    if (contract.get("absolute_verified") is not True
+            or contract.get("static_verified") is not True
+            or contract.get("runtime_simulated") is not False
+            or contract.get("gameplay_verified") is not False):
+        errors.append(f"{label} 蛇头阶段承伤容量证据等级非法")
+    try:
+        selected_level = int(contract["selected_level"])
+        coverage = float(contract["required_coverage_ratio"])
+        format_margin = float(contract["format_margin"])
+        minimum_scale = float(contract["minimum_scale"])
+    except (KeyError, TypeError, ValueError):
+        selected_level = 0
+        coverage = float("nan")
+        format_margin = float("nan")
+        minimum_scale = float("nan")
+    if selected_level <= 0:
+        errors.append(f"{label} 蛇头阶段档位非法")
+    if (not math.isfinite(coverage)
+            or not math.isclose(
+                coverage, OROCHI_EX_PHASE_CARRIER_COVERAGE_RATIO,
+                rel_tol=1e-12, abs_tol=1e-12)):
+        errors.append(f"{label} 蛇头阶段安全余量漂移")
+    if (not math.isfinite(format_margin)
+            or not math.isclose(
+                format_margin, OROCHI_EX_PHASE_CARRIER_FORMAT_MARGIN,
+                rel_tol=1e-12, abs_tol=1e-15)
+            or not math.isfinite(minimum_scale) or minimum_scale <= 0):
+        errors.append(f"{label} 蛇头阶段计划倍率/格式余量非法")
+    phases = contract.get("phases")
+    if not isinstance(phases, list) or len(phases) != 2:
+        return errors + [f"{label} 蛇头阶段承伤容量必须覆盖 phase1/phase3"]
+    expected = ((1, float(expected_phase1_hp)),
+                (3, float(expected_phase3_hp)))
+    for record, (phase, expected_required) in zip(phases, expected):
+        prefix = f"{label} phase{phase}"
+        if not isinstance(record, dict):
+            errors.append(f"{prefix} 蛇头承伤记录不是对象")
+            continue
+        try:
+            actual_phase = int(record["phase"])
+            required_hp = float(record["required_hp"])
+            required_ratio = float(record["required_coverage_ratio"])
+            required_capacity = float(record["required_capacity_hp"])
+            claimed_total = float(record["total_carrier_hp"])
+            claimed_total_ratio = float(record["total_coverage_ratio"])
+            claimed_primary_hp = float(record["primary_carrier_hp"])
+            claimed_primary_ratio = float(record["primary_coverage_ratio"])
+            planned_scale = float(record["planned_scale"])
+            phase_minimum_scale = float(record["minimum_scale"])
+        except (KeyError, TypeError, ValueError):
+            errors.append(f"{prefix} 蛇头承伤数字不可解析")
+            continue
+        head_codes = tuple(map(str, record.get("head_codes") or ()))
+        carrier_hp = record.get("carrier_hp")
+        carrier_c2 = record.get("boss_level_c2")
+        primary = str(record.get("primary_carrier") or "")
+        source_head_codes = tuple(map(
+            str, record.get("source_head_codes") or ()))
+        source_to_target = record.get("source_to_target")
+        source_hp = record.get("source_carrier_hp")
+        source_c2 = record.get("source_boss_level_c2")
+        planned_c2 = record.get("planned_boss_level_c2")
+        if (actual_phase != phase or len(head_codes) != 3
+                or len(set(head_codes)) != 3 or primary != head_codes[1]):
+            errors.append(f"{prefix} 三蛇头顺序/中心载体漂移")
+            continue
+        if (not isinstance(carrier_hp, dict)
+                or set(map(str, carrier_hp)) != set(head_codes)
+                or not isinstance(carrier_c2, dict)
+                or set(map(str, carrier_c2)) != set(head_codes)):
+            errors.append(f"{prefix} 三蛇头 HP/c2 键不闭合")
+            continue
+        if (len(source_head_codes) != 3
+                or len(set(source_head_codes)) != 3
+                or not isinstance(source_to_target, dict)
+                or set(map(str, source_to_target)) != set(source_head_codes)
+                or not isinstance(source_hp, dict)
+                or set(map(str, source_hp)) != set(source_head_codes)
+                or not isinstance(source_c2, dict)
+                or set(map(str, source_c2)) != set(source_head_codes)
+                or not isinstance(planned_c2, dict)
+                or set(map(str, planned_c2)) != set(source_head_codes)):
+            errors.append(f"{prefix} 源蛇头 HP/c2/代号映射键不闭合")
+            continue
+        try:
+            hp_values = tuple(float(carrier_hp[code]) for code in head_codes)
+            c2_values = tuple(float(carrier_c2[code]) for code in head_codes)
+            mapped_targets = tuple(
+                str(source_to_target[code]) for code in source_head_codes)
+            source_hp_values = tuple(
+                float(source_hp[code]) for code in source_head_codes)
+            source_c2_values = tuple(
+                float(source_c2[code]) for code in source_head_codes)
+            planned_c2_values = tuple(
+                float(planned_c2[code]) for code in source_head_codes)
+        except (KeyError, TypeError, ValueError):
+            errors.append(f"{prefix} 三蛇头 HP/c2 值不可解析")
+            continue
+        if (mapped_targets != head_codes
+                or str(source_to_target.get(source_head_codes[1])) != primary):
+            errors.append(f"{prefix} 源蛇头到克隆蛇头代号映射漂移")
+            continue
+        if (len(source_hp_values) != 3 or len(source_c2_values) != 3
+                or len(planned_c2_values) != 3
+                or not all(math.isfinite(value) and value > 0 for value in (
+                    *hp_values, *c2_values, *source_hp_values,
+                    *source_c2_values, *planned_c2_values,
+                    planned_scale, phase_minimum_scale))):
+            errors.append(f"{prefix} 三蛇头 HP/c2/倍率不是有限正数")
+            continue
+        total = math.fsum(hp_values)
+        primary_hp = hp_values[1]
+        expected_capacity = required_hp * required_ratio
+        if (not math.isclose(required_hp, expected_required,
+                             rel_tol=1e-12, abs_tol=1e-5)
+                or not math.isclose(required_ratio, coverage,
+                                    rel_tol=1e-12, abs_tol=1e-12)
+                or not math.isclose(required_capacity, expected_capacity,
+                                    rel_tol=1e-12, abs_tol=1e-5)
+                or not math.isclose(claimed_total, total,
+                                    rel_tol=1e-12, abs_tol=1e-5)
+                or not math.isclose(claimed_primary_hp, primary_hp,
+                                    rel_tol=1e-12, abs_tol=1e-5)
+                or not math.isclose(claimed_total_ratio, total / required_hp,
+                                    rel_tol=1e-12, abs_tol=1e-12)
+                or not math.isclose(
+                    claimed_primary_ratio, primary_hp / required_hp,
+                    rel_tol=1e-12, abs_tol=1e-12)):
+            errors.append(f"{prefix} 蛇头承伤容量不能独立回代")
+        if total + 1e-6 < expected_capacity:
+            errors.append(f"{prefix} 三蛇头总容量不足阶段门槛")
+        if primary_hp + 1e-6 < expected_capacity:
+            errors.append(f"{prefix} 中心蛇头容量不足阶段门槛")
+        for index, source_code in enumerate(source_head_codes):
+            target_code = mapped_targets[index]
+            realized_scale = planned_c2_values[index] / source_c2_values[index]
+            expected_carrier_hp = source_hp_values[index] * realized_scale
+            if (not math.isclose(
+                    c2_values[index], planned_c2_values[index],
+                    rel_tol=1e-12, abs_tol=1e-12)
+                    or not math.isclose(
+                        realized_scale, planned_scale,
+                        rel_tol=HP_TARGET_REL_TOLERANCE,
+                        abs_tol=1e-12)
+                    or not math.isclose(
+                        hp_values[index], expected_carrier_hp,
+                        rel_tol=HP_TARGET_REL_TOLERANCE,
+                        abs_tol=1e-5)):
+                errors.append(
+                    f"{prefix} {source_code}->{target_code} c2/HP 不能回代")
+        if planned_scale + 1e-12 < phase_minimum_scale:
+            errors.append(f"{prefix} 蛇头计划倍率低于父体最终倍率")
+        if (record.get("absolute_verified") is not True
+                or record.get("static_verified") is not True):
+            errors.append(f"{prefix} 蛇头承伤容量未静态绝对验证")
+    return errors
+
+
 def _verify_orochi_ex_phase_safety_receipt(
         label: str, adapter: dict) -> list[str]:
     """Independently replay signed-int32 and PhaseThresholdIcon invariants."""
@@ -7183,12 +8284,51 @@ def _verify_orochi_ex_phase_safety_receipt(
                            for pair in icon_frames for frame in pair)):
             errors.append(f"{prefix} PhaseThresholdIcon 帧号越界/不能回代")
 
+    phase_damage_capacity = receipt.get("phase_damage_capacity")
+    if not isinstance(phase_damage_capacity, dict):
+        errors.append(f"{label} Orochi EX 缺阶段蛇头承伤容量回执")
+    else:
+        capacity_expected: dict[str, tuple[float, float]] = {}
+        for name, component_key in (
+                ("baseline", "baseline_readback_hp"),
+                ("final", "final_readback_hp")):
+            try:
+                capacity_expected[name] = (
+                    float(components[0][component_key]),
+                    float(components[2][component_key]),
+                )
+            except (KeyError, TypeError, ValueError):
+                errors.append(f"{label} Orochi EX {name} 蛇头门槛不可解析")
+        for name in ("baseline", "final"):
+            expected_values = capacity_expected.get(name)
+            if expected_values is None:
+                continue
+            errors.extend(
+                _verify_orochi_ex_phase_damage_capacity_contract(
+                    f"{label} Orochi EX {name}",
+                    phase_damage_capacity.get(name),
+                    expected_phase1_hp=expected_values[0],
+                    expected_phase3_hp=expected_values[1],
+                )
+            )
+        final_expected = capacity_expected.get("final")
+        if final_expected is not None:
+            errors.extend(
+                _verify_orochi_ex_phase_damage_capacity_contract(
+                    f"{label} Orochi EX clone readback",
+                    phase_damage_capacity.get("clone_readback"),
+                    expected_phase1_hp=final_expected[0],
+                    expected_phase3_hp=final_expected[1],
+                )
+            )
+
     semantics = receipt.get("clone_semantics")
     required_semantics = (
         "parent_only_hp_and_child_columns_changed",
         "parent_boss_level_only_c2_changed",
         "six_head_nodes_equal_source",
-        "six_head_boss_level_equal_source",
+        "six_head_boss_level_only_c2_planned",
+        "phase1_and_phase3_carriers_cover_gate",
         "six_child_attack_target_references_closed",
         "phase_spawn_topology_preserved",
         "static_verified",
@@ -7199,6 +8339,10 @@ def _verify_orochi_ex_phase_safety_receipt(
             or semantics.get("runtime_simulated") is not False
             or semantics.get("gameplay_verified") is not False):
         errors.append(f"{label} Orochi EX 克隆/生成/攻击目标闭包不完整")
+    elif (not isinstance(phase_damage_capacity, dict)
+            or semantics.get("phase_damage_capacity")
+            != phase_damage_capacity.get("clone_readback")):
+        errors.append(f"{label} Orochi EX 克隆蛇头容量与阶段回执不一致")
     for key in (
             "baseline_fixed_phase_scale", "baseline_middle_scale",
             "final_fixed_phase_scale", "final_middle_scale",
@@ -7278,6 +8422,16 @@ def verify_hp_audit_document(document: dict, *,
                 "验收回执客户端内置曲线基线不一致:"
                 f"receipt={policy.get('client_bundled_curve_baseline')!r},"
                 f"expected={expected_bundled_curve!r}")
+        diversity = policy.get("curse_diversity")
+        if (not isinstance(diversity, dict)
+                or diversity.get("schema") != CURSE_DIVERSITY_SCHEMA
+                or diversity.get("adjacent_cooldown")
+                != "strict_for_deep_armor_and_fields"
+                or diversity.get("combo_uses_same_gate") is not True
+                or diversity.get("static_verified") is not True
+                or diversity.get("runtime_simulated") is not False
+                or diversity.get("gameplay_verified") is not False):
+            errors.append("验收回执诅咒/领域多样性政策非法")
     inputs = document.get("inputs")
     if not isinstance(inputs, dict):
         return errors + ["验收回执缺 inputs"]
@@ -7330,11 +8484,34 @@ def verify_hp_audit_document(document: dict, *,
             errors.append(f"{label} 缺 source/play field")
         if not floor.get("source_bosses") or not floor.get("runtime_bosses"):
             errors.append(f"{label} 缺 source/runtime bosses")
+        thumbnail = str(floor.get("thumbnail") or "")
+        thumbnail_field = str(floor.get("thumbnail_source_field") or "")
+        thumbnail_evidence = floor.get("thumbnail_evidence")
+        if (not thumbnail or not thumbnail_field
+                or not isinstance(thumbnail_evidence, dict)):
+            errors.append(f"{label} 缺 Boss 封面来源证据")
+        else:
+            expected_asset = quest_thumbnail_asset_logical(thumbnail)
+            if thumbnail_evidence.get("schema") != THUMBNAIL_EVIDENCE_SCHEMA:
+                errors.append(f"{label} Boss 封面证据 schema 非法")
+            if (str(thumbnail_evidence.get("field") or "") != thumbnail_field
+                    or str(thumbnail_evidence.get("thumbnail") or "") != thumbnail
+                    or str(thumbnail_evidence.get("asset_logical") or "")
+                    != expected_asset):
+                errors.append(f"{label} Boss 封面字段/资源来源不闭合")
+            if thumbnail_evidence.get("source_match") not in {
+                    "exact_field", "floor_host_quest"}:
+                errors.append(f"{label} Boss 封面匹配类型非法")
+            if (thumbnail_evidence.get("asset_exists") is not True
+                    or thumbnail_evidence.get("static_verified") is not True
+                    or thumbnail_evidence.get("runtime_simulated") is not False
+                    or thumbnail_evidence.get("gameplay_verified") is not False):
+                errors.append(f"{label} Boss 封面静态证据等级非法")
         closures = floor.get("identity_reference_closures", [])
         if not isinstance(closures, list):
             errors.append(f"{label} identity reference closures 不是数组")
             closures = []
-        seen_closure_pairs: set[tuple[str, str]] = set()
+        seen_closure_keys: set[tuple[str, str, str]] = set()
         source_bosses = set(map(str, floor.get("source_bosses") or ()))
         runtime_bosses = set(map(str, floor.get("runtime_bosses") or ()))
         for closure_index, closure in enumerate(closures, start=1):
@@ -7344,30 +8521,118 @@ def verify_hp_audit_document(document: dict, *,
                 continue
             source_code = str(closure.get("source_code") or "")
             clone_code = str(closure.get("clone_code") or "")
-            pair = (source_code, clone_code)
-            try:
-                source_count = int(closure["source_reference_count"])
-                clone_count = int(closure["clone_reference_count"])
-            except (KeyError, TypeError, ValueError):
-                source_count = clone_count = 0
-                errors.append(f"{closure_label} 引用计数非法")
-            if (closure.get("kind")
-                    != "general_enemy_watch.partner_alias"):
+            closure_kind = str(closure.get("kind") or "")
+            closure_key = (closure_kind, source_code, clone_code)
+            if closure_kind not in {
+                    "general_enemy_watch.partner_alias",
+                    "general_enemy_watch.routine_alias"}:
                 errors.append(f"{closure_label} 闭包类型非法")
             if (not source_code or not clone_code or source_code == clone_code
                     or source_code not in source_bosses
                     or clone_code not in runtime_bosses):
                 errors.append(f"{closure_label} source/runtime 代号不闭合")
-            if pair in seen_closure_pairs:
+            if closure_key in seen_closure_keys:
                 errors.append(f"{closure_label} 重复")
-            seen_closure_pairs.add(pair)
-            if (source_count <= 0 or clone_count != source_count
-                    or closure.get("verified") is not True):
-                errors.append(f"{closure_label} 别名引用未等价回读")
+            seen_closure_keys.add(closure_key)
+            if closure_kind == "general_enemy_watch.partner_alias":
+                try:
+                    source_count = int(closure["source_reference_count"])
+                    clone_count = int(closure["clone_reference_count"])
+                except (KeyError, TypeError, ValueError):
+                    source_count = clone_count = 0
+                    errors.append(f"{closure_label} 引用计数非法")
+                if (source_count <= 0 or clone_count != source_count
+                        or closure.get("verified") is not True):
+                    errors.append(f"{closure_label} partner 别名未等价回读")
+            elif closure_kind == "general_enemy_watch.routine_alias":
+                source_routine = str(
+                    closure.get("source_routine_id") or "")
+                clone_routine = str(
+                    closure.get("clone_routine_id") or "")
+                if (not source_routine or not clone_routine
+                        or source_routine == clone_routine
+                        or not clone_routine.startswith(clone_code)
+                        or closure.get("verified") is not True):
+                    errors.append(f"{closure_label} routine 别名未等价回读")
+        field_receipts = floor.get("field_program_receipts")
+        if not isinstance(field_receipts, list) or len(field_receipts) > 1:
+            errors.append(f"{label} 领域程序回执数量非法（同一时刻最多一个）")
+        else:
+            curse_description = str(floor.get("curse_description") or "")
+            for field_receipt in field_receipts:
+                if not isinstance(field_receipt, dict):
+                    errors.append(f"{label} 领域程序回执不是对象")
+                    continue
+                name = str(field_receipt.get("name") or "")
+                description = str(field_receipt.get("description") or "")
+                declared_program = str(
+                    field_receipt.get("declared_program") or "")
+                applied_program = str(field_receipt.get("applied_program") or "")
+                if (not name or not description or not declared_program
+                        or not applied_program
+                        or field_receipt.get("readback_match") is not True
+                        or name not in curse_description
+                        or description not in curse_description):
+                    errors.append(f"{label} 领域文案→程序→克隆行回读不一致")
         adapter = floor.get("adapter")
         if not isinstance(adapter, dict):
             errors.append(f"{label} 缺 adapter")
             continue
+        quest_plan = floor.get("quest_hp_multipliers")
+        if not isinstance(quest_plan, dict):
+            errors.append(f"{label} 缺 c86/c87/c88 独立 HP 回执")
+        else:
+            expected_columns = {
+                "enemy": "c86", "device_or_summon": "c87", "boss": "c88"}
+            if (quest_plan.get("columns") != expected_columns
+                    or quest_plan.get("has_boss") is not True
+                    or quest_plan.get("active_target_class") != "boss"
+                    or quest_plan.get("independent_verified") is not True
+                    or quest_plan.get("mechanism_budget_separate") is not True):
+                errors.append(f"{label} c86/c87/c88 分类/独立性声明非法")
+            multiplier_maps: dict[str, dict[str, float]] = {}
+            for stage in ("baseline", "final", "table_readback"):
+                raw_values = quest_plan.get(stage)
+                if (not isinstance(raw_values, dict)
+                        or set(raw_values) != set(expected_columns)):
+                    errors.append(f"{label} {stage} c86/c87/c88 分类不完整")
+                    continue
+                try:
+                    values = {key: float(value)
+                              for key, value in raw_values.items()}
+                except (TypeError, ValueError):
+                    errors.append(f"{label} {stage} c86/c87/c88 含非数字")
+                    continue
+                if not all(math.isfinite(value) and value > 0
+                           for value in values.values()):
+                    errors.append(f"{label} {stage} c86/c87/c88 含非正/非有限值")
+                    continue
+                multiplier_maps[stage] = values
+            if set(multiplier_maps) == {"baseline", "final", "table_readback"}:
+                baseline_values = multiplier_maps["baseline"]
+                final_values = multiplier_maps["final"]
+                table_values = multiplier_maps["table_readback"]
+                try:
+                    adapter_baseline = float(adapter["baseline_c86"])
+                    adapter_final = float(adapter["final_c86"])
+                except (KeyError, TypeError, ValueError):
+                    adapter_baseline = adapter_final = float("nan")
+                if (not math.isclose(baseline_values["boss"], adapter_baseline,
+                                     rel_tol=0.0, abs_tol=1e-12)
+                        or not math.isclose(final_values["boss"], adapter_final,
+                                            rel_tol=0.0, abs_tol=1e-12)):
+                    errors.append(f"{label} Boss c88 未命中 adapter 倍率")
+                for stage, values in (("baseline", baseline_values),
+                                      ("final", final_values)):
+                    if (not math.isclose(values["enemy"], 1.0,
+                                         rel_tol=0.0, abs_tol=1e-12)
+                            or not math.isclose(values["device_or_summon"], 1.0,
+                                                rel_tol=0.0, abs_tol=1e-12)):
+                        errors.append(f"{label} {stage} 错误捆绑小怪或机制单位 HP")
+                if any(not math.isclose(table_values[key], final_values[key],
+                                        rel_tol=0.0, abs_tol=1e-12)
+                       for key in expected_columns):
+                    errors.append(f"{label} 任务行 c86/c87/c88 回读与最终计划不一致")
         try:
             adapter_round = int(adapter.get("round_no"))
         except (TypeError, ValueError):
@@ -7527,6 +8792,124 @@ def verify_hp_audit_document(document: dict, *,
                             errors.append(f"{budget_label} coverage 不能回代")
                 errors.extend(_verify_sphere_lifecycle_receipt(
                     label, phase_behavior))
+        if channel in {"boss_level", "standard_dsl", "mixed_hp"}:
+            damage_contracts = adapter.get("damage_checks")
+            if not isinstance(damage_contracts, dict):
+                errors.append(f"{label} 缺 DamageCheck 回执")
+            else:
+                seen_damage_schemas: set[str] = set()
+                for code, contract in damage_contracts.items():
+                    check_label = f"{label} DamageCheck[{code}]"
+                    if not isinstance(contract, dict):
+                        errors.append(f"{check_label} 静态契约非法")
+                        continue
+                    schema = str(contract.get("schema") or "")
+                    seen_damage_schemas.add(schema)
+                    common_invalid = (
+                            contract.get("topology_preserved") is not True
+                            or contract.get("absolute_thresholds_preserved") is not True
+                            or contract.get("static_verified") is not True
+                            or contract.get("runtime_simulated") is not False
+                            or contract.get("gameplay_verified") is not False)
+                    if schema == STANDARD_DAMAGE_CHECK_SCHEMA:
+                        if common_invalid:
+                            errors.append(f"{check_label} 静态契约非法")
+                            continue
+                        checks = contract.get("checks")
+                        if (not isinstance(checks, list)
+                                or int(contract.get("occurrence_count") or 0)
+                                != len(checks)):
+                            errors.append(f"{check_label} 出现次数回读不一致")
+                            continue
+                        for occurrence, check in enumerate(checks, start=1):
+                            try:
+                                expected = float(
+                                    check["source_absolute_threshold_hp"])
+                                actual = float(
+                                    check["final_absolute_threshold_hp"])
+                                error = float(check["absolute_error_hp"])
+                                window = float(check["duration_frames"])
+                            except (KeyError, TypeError, ValueError):
+                                errors.append(
+                                    f"{check_label}#{occurrence} 字段非法")
+                                continue
+                            if (not math.isclose(
+                                    error, actual - expected,
+                                    rel_tol=1e-12, abs_tol=1e-5)
+                                    or abs(error) > max(
+                                        1e-4, abs(expected) * 1e-12)
+                                    or window <= 0
+                                    or check.get("success_branch") is None
+                                    or check.get("timeout_branch") is None):
+                                errors.append(
+                                    f"{check_label}#{occurrence} "
+                                    "绝对门槛/窗口/分支漂移")
+                        continue
+                    if schema != GENERAL_DAMAGE_CHECK_SCHEMA:
+                        errors.append(f"{check_label} DamageCheck schema 未知")
+                        continue
+                    if (common_invalid
+                            or contract.get(
+                                "non_percentage_columns_preserved") is not True
+                            or contract.get("materialized") is not True
+                            or contract.get(
+                                "enemy_watch_lookup_preserved") is not True):
+                        errors.append(f"{check_label} 静态契约非法")
+                        continue
+                    checks = contract.get("checks")
+                    if (not isinstance(checks, list)
+                            or int(contract.get("occurrence_count") or 0)
+                            != len(checks)
+                            or bool(contract.get("routine_cloned")) != bool(checks)):
+                        errors.append(f"{check_label} 出现次数/routine 回读不一致")
+                        continue
+                    if checks and not str(
+                            contract.get("final_routine_id") or "").startswith(
+                                "mod_rogue_boss"):
+                        errors.append(f"{check_label} 未落私有 c42 routine")
+                    for occurrence, check in enumerate(checks, start=1):
+                        try:
+                            expected = float(
+                                check["source_absolute_threshold_hp"])
+                            baseline = float(
+                                check["baseline_absolute_threshold_hp"])
+                            actual = float(
+                                check["final_absolute_threshold_hp"])
+                            baseline_error = float(
+                                check["baseline_absolute_error_hp"])
+                            final_error = float(
+                                check["final_absolute_error_hp"])
+                            options = check["options_c17_c21"]
+                        except (KeyError, TypeError, ValueError):
+                            errors.append(
+                                f"{check_label}#{occurrence} 字段非法")
+                            continue
+                        tolerance = max(1e-4, abs(expected) * 1e-12)
+                        if (not math.isclose(
+                                baseline_error, baseline - expected,
+                                rel_tol=1e-12, abs_tol=1e-5)
+                                or not math.isclose(
+                                    final_error, actual - expected,
+                                    rel_tol=1e-12, abs_tol=1e-5)
+                                or abs(baseline_error) > tolerance
+                                or abs(final_error) > tolerance
+                                or not isinstance(options, list)
+                                or len(options) != 5):
+                            errors.append(
+                                f"{check_label}#{occurrence} "
+                                "基础/诅咒后绝对门槛或状态选项漂移")
+                expected_schemas = (
+                    {GENERAL_DAMAGE_CHECK_SCHEMA}
+                    if channel == "boss_level" else
+                    {STANDARD_DAMAGE_CHECK_SCHEMA}
+                    if channel == "standard_dsl" else
+                    {GENERAL_DAMAGE_CHECK_SCHEMA,
+                     STANDARD_DAMAGE_CHECK_SCHEMA})
+                if seen_damage_schemas != expected_schemas:
+                    errors.append(
+                        f"{label} DamageCheck 通道覆盖漂移:"
+                        f"expected={sorted(expected_schemas)},"
+                        f"actual={sorted(seen_damage_schemas)}")
         baseline_target = number(adapter, "baseline_target_hp", label)
         final_target = number(adapter, "final_target_hp", label)
         baseline_readback = number(adapter, "baseline_readback_hp", label)
@@ -7640,10 +9023,18 @@ def verify_hp_audit_document(document: dict, *,
         if channel == "special_bundle":
             special_count += 1
             if adapter.get("family") == "orochi":
-                if (len(components) != 9 or phases != ["parent"] + [
-                        f"head[{i}]" for i in range(1, 9)]):
+                mechanism = adapter.get("mechanism_budget")
+                if len(components) != 1 or phases != ["parent"]:
                     errors.append(
-                        f"{label} Orochi 必须是 parent+head[1..8] 九组件")
+                        f"{label} Orochi 严格目标必须只有中央 parent 胜利血条")
+                if (not isinstance(mechanism, dict)
+                        or mechanism.get("kind") != "orochi_heads"
+                        or mechanism.get("counts_toward_boss_target") is not False
+                        or int(mechanism.get("occurrences") or 0) != 8
+                        or mechanism.get("static_verified") is not True
+                        or mechanism.get("runtime_simulated") is not False
+                        or mechanism.get("gameplay_verified") is not False):
+                    errors.append(f"{label} Orochi 八蛇头机制预算证据非法")
             elif adapter.get("family") == "orochi_ex":
                 if (len(components) != 3
                         or phases != [f"phase[{i}]" for i in range(1, 4)]):
@@ -7731,6 +9122,10 @@ def verify_hp_audit_document(document: dict, *,
             if isinstance(previous, dict) and isinstance(current, dict)),
         "chain_reports": len(chain),
         "chain_failures": len(chain_failures),
+        "thumbnail_static_verified_floors": sum(
+            1 for floor in floors if isinstance(floor, dict)
+            and isinstance(floor.get("thumbnail_evidence"), dict)
+            and floor["thumbnail_evidence"].get("static_verified") is True),
     }
     # source_proxy_components was added without changing the receipt schema.
     # Older schema-v2 receipts remain independently verifiable: when the field
@@ -7860,6 +9255,9 @@ def render_hp_audit_report(
         f"- identity 引用闭包："
         f"`{int(summary.get('identity_reference_closures', 0))}` 个，"
         f"覆盖 `{int(summary.get('identity_reference_closure_rounds', 0))}` 关",
+        f"- Boss 封面静态来源闭包："
+        f"`{int(summary['thumbnail_static_verified_floors'])}/"
+        f"{int(summary['expected_boss_rounds'])}`",
         f"- 客户端内置 HP 曲线基线："
         f"`{curve_baseline['member_sha256']}`（"
         f"{int(curve_baseline['cross_checked_client_baselines'])} 份客户端交叉核对）",
@@ -7920,6 +9318,27 @@ def render_hp_audit_report(
             f"{float(adapter['final_target_hp']):g} | "
             f"{_hp_audit_markdown_cell(curse_description)} "
             f"(×{float(floor['curse_hp_multiplier']):g}) |")
+    lines.extend([
+        "",
+        "## Boss 封面静态审计",
+        "",
+        "封面按实际 Boss 来源场地解析官方 240×188 quest 大图；混搭层不使用地形 "
+        "donor 的图片。资源存在性已在构建期回读，但这仍不等于真机 UI 验证。",
+        "",
+        "| 层 | Boss 来源场地 | quest c5 封面 | 证据 |",
+        "|---:|---|---|---|",
+    ])
+    for floor in floors:
+        evidence = floor["thumbnail_evidence"]
+        source = (
+            f"{evidence['source_category']}:"
+            f"{evidence['source_match']}"
+        )
+        lines.append(
+            f"| {int(floor['round'])} | "
+            f"`{_hp_audit_markdown_cell(floor['thumbnail_source_field'])}` | "
+            f"`{_hp_audit_markdown_cell(floor['thumbnail'])}` | "
+            f"{_hp_audit_markdown_cell(source)} |")
     lines.extend([
         "",
         "## 最大误差楼层（最多 10 层）",
@@ -9154,6 +10573,188 @@ def inspect_orochi_ex_bundle(bundle: rbb.NativeBossBundle, enemy_level: int,
         child_codes=child_codes)
 
 
+def _orochi_ex_head_native_hp(
+        code: str, selected_level: int, boss_level: dict) -> float:
+    """Read one Orochi EX head's absolute c86=1 HP from its Hit channel."""
+
+    evidence = floor_native_hp(
+        [str(code)], int(selected_level), standard_boss={},
+        boss_level=boss_level, orochi_ex={})
+    components = list(evidence.get("components") or ())
+    if (not evidence.get("verified") or not evidence.get("absolute_verified")
+            or len(components) != 1
+            or components[0].get("evidence_kind") != "absolute"):
+        raise wf_orochi_ex.OrochiExHpError(
+            "Orochi EX head HP is not absolute:"
+            f"{code}:{evidence.get('reason') or 'unknown'}")
+    try:
+        value = float(evidence["native_hp"])
+    except (KeyError, TypeError, ValueError) as exc:
+        raise wf_orochi_ex.OrochiExHpError(
+            f"Orochi EX head HP is not numeric:{code}") from exc
+    if not math.isfinite(value) or value <= 0:
+        raise wf_orochi_ex.OrochiExHpError(
+            f"Orochi EX head HP is not finite positive:{code}:{value}")
+    return value
+
+
+def orochi_ex_phase_damage_capacity_contract(
+        child_codes: tuple[str, ...], selected_level: int, boss_level: dict,
+        *, phase1_required_hp: float, phase3_required_hp: float,
+        required_coverage_ratio: float =
+        OROCHI_EX_PHASE_CARRIER_COVERAGE_RATIO) -> dict:
+    """Prove both fixed-phase gates against the six current head HP rows."""
+
+    codes = tuple(map(str, child_codes))
+    if len(codes) != 6 or len(set(codes)) != 6:
+        raise wf_orochi_ex.OrochiExHpError(
+            f"Orochi EX phase capacity needs six unique heads:{codes}")
+    if not isinstance(boss_level, dict):
+        raise wf_orochi_ex.OrochiExHpError(
+            "Orochi EX phase capacity is missing boss_level")
+    phases: list[dict] = []
+    for phase, phase_codes, primary, required_hp in (
+            (1, codes[:3], codes[1], phase1_required_hp),
+            (3, codes[3:], codes[4], phase3_required_hp)):
+        carrier_hp: dict[str, float] = {}
+        carrier_c2: dict[str, float] = {}
+        for code in phase_codes:
+            try:
+                row = cells(boss_level[code])
+            except (KeyError, TypeError, ValueError, UnicodeError) as exc:
+                raise wf_orochi_ex.OrochiExHpError(
+                    f"Orochi EX phase{phase} head row malformed:{code}:{exc}"
+                ) from exc
+            if len(row) != wf_orochi_ex.BOSS_LEVEL_COLUMNS or row[0] != "0":
+                raise wf_orochi_ex.OrochiExHpError(
+                    f"Orochi EX phase{phase} head is not a Hit row:{code}")
+            try:
+                c2 = float(row[2])
+            except (TypeError, ValueError) as exc:
+                raise wf_orochi_ex.OrochiExHpError(
+                    f"Orochi EX phase{phase} head c2 is not numeric:{code}"
+                ) from exc
+            if not math.isfinite(c2) or c2 <= 0:
+                raise wf_orochi_ex.OrochiExHpError(
+                    f"Orochi EX phase{phase} head c2 is invalid:{code}:{c2}")
+            carrier_c2[code] = c2
+            carrier_hp[code] = _orochi_ex_head_native_hp(
+                code, int(selected_level), boss_level)
+        phase_contract = wf_orochi_ex.validate_phase_damage_capacity(
+            required_hp, carrier_hp,
+            label=f"orochi_ex.phase{phase}",
+            primary_carrier=primary,
+            required_coverage_ratio=required_coverage_ratio)
+        phase_contract.update({
+            "phase": phase,
+            "head_codes": phase_codes,
+            "boss_level_c2": carrier_c2,
+            "selected_level": int(selected_level),
+            "absolute_verified": True,
+            "static_verified": True,
+        })
+        phases.append(phase_contract)
+    return {
+        "schema": OROCHI_EX_PHASE_CAPACITY_SCHEMA,
+        "selected_level": int(selected_level),
+        "required_coverage_ratio": float(required_coverage_ratio),
+        "phases": phases,
+        "absolute_verified": True,
+        "static_verified": True,
+        "runtime_simulated": False,
+        "gameplay_verified": False,
+    }
+
+
+def plan_orochi_ex_phase_damage_capacity(
+        child_codes: tuple[str, ...], selected_level: int, boss_level: dict,
+        *, phase1_required_hp: float, phase3_required_hp: float,
+        minimum_scale: float,
+        required_coverage_ratio: float =
+        OROCHI_EX_PHASE_CARRIER_COVERAGE_RATIO,
+        ) -> tuple[dict[str, str | bytes], dict]:
+    """Plan c2-only head rows, then independently read back both phase gates."""
+
+    codes = tuple(map(str, child_codes))
+    if len(codes) != 6 or len(set(codes)) != 6:
+        raise wf_orochi_ex.OrochiExHpError(
+            f"Orochi EX phase capacity needs six unique heads:{codes}")
+    try:
+        floor_scale = float(minimum_scale)
+        coverage = float(required_coverage_ratio)
+    except (TypeError, ValueError) as exc:
+        raise wf_orochi_ex.OrochiExHpError(
+            "Orochi EX phase capacity scale/coverage is not numeric") from exc
+    if (not math.isfinite(floor_scale) or floor_scale <= 0
+            or not math.isfinite(coverage) or coverage < 1.0):
+        raise wf_orochi_ex.OrochiExHpError(
+            "Orochi EX phase capacity scale/coverage is invalid:"
+            f"{minimum_scale},{required_coverage_ratio}")
+
+    staged_level = dict(boss_level)
+    planned_leaves: dict[str, str | bytes] = {}
+    planning: list[dict] = []
+    for phase, phase_codes, primary, required_hp in (
+            (1, codes[:3], codes[1], phase1_required_hp),
+            (3, codes[3:], codes[4], phase3_required_hp)):
+        source_hp = {
+            code: _orochi_ex_head_native_hp(
+                code, int(selected_level), boss_level)
+            for code in phase_codes
+        }
+        required_capacity = (
+            float(required_hp) * coverage
+            * (1.0 + OROCHI_EX_PHASE_CARRIER_FORMAT_MARGIN)
+        )
+        total_hp = math.fsum(source_hp.values())
+        primary_hp = float(source_hp[primary])
+        phase_scale = max(
+            floor_scale,
+            required_capacity / total_hp,
+            required_capacity / primary_hp,
+        )
+        if not math.isfinite(phase_scale) or phase_scale <= 0:
+            raise wf_orochi_ex.OrochiExHpError(
+                f"Orochi EX phase{phase} carrier scale is invalid:{phase_scale}")
+        source_c2: dict[str, float] = {}
+        planned_c2: dict[str, float] = {}
+        for code in phase_codes:
+            source_row = cells(boss_level[code])
+            source_c2[code] = float(source_row[2])
+            planned = clone_hit_boss_level_c2(boss_level[code], phase_scale)
+            planned_leaves[code] = planned
+            staged_level[code] = planned
+            planned_c2[code] = float(cells(planned)[2])
+        planning.append({
+            "phase": phase,
+            "head_codes": phase_codes,
+            "primary_carrier": primary,
+            "source_head_codes": phase_codes,
+            "source_to_target": {code: code for code in phase_codes},
+            "minimum_scale": floor_scale,
+            "planned_scale": phase_scale,
+            "source_carrier_hp": source_hp,
+            "source_total_carrier_hp": total_hp,
+            "source_primary_carrier_hp": primary_hp,
+            "source_boss_level_c2": source_c2,
+            "planned_boss_level_c2": planned_c2,
+        })
+
+    contract = orochi_ex_phase_damage_capacity_contract(
+        codes, int(selected_level), staged_level,
+        phase1_required_hp=phase1_required_hp,
+        phase3_required_hp=phase3_required_hp,
+        required_coverage_ratio=coverage)
+    for phase_contract, phase_plan in zip(contract["phases"], planning):
+        if phase_contract["phase"] != phase_plan["phase"]:
+            raise wf_orochi_ex.OrochiExHpError(
+                "Orochi EX phase capacity plan/readback order drift")
+        phase_contract.update(phase_plan)
+    contract["minimum_scale"] = floor_scale
+    contract["format_margin"] = OROCHI_EX_PHASE_CARRIER_FORMAT_MARGIN
+    return planned_leaves, contract
+
+
 def orochi_ex_native_hp_evidence(bundle: rbb.NativeBossBundle,
                                  enemy_level: int, tables: dict) -> dict:
     """Return the three victory HP bars after proving the six-child graph."""
@@ -9314,12 +10915,17 @@ def expand_bundle_hp_members(bundle: rbb.NativeBossBundle, enemy_level: int,
 
 def orochi_native_hp_evidence(bundle: rbb.NativeBossBundle, enemy_level: int,
                               tables: dict) -> dict:
-    """Convert the proved parent/head expansion into unified absolute HP.
+    """Split Orochi's victory HP bar from its eight mechanism heads.
 
     ``expand_bundle_hp_members`` intentionally reports the BossLevel ``true_stat``
     before the event battle-level K.  The ordinary floor adapter reports HP at
     quest c86=1, so this bridge applies the one confirmed K exactly once and
-    preserves all nine occurrences in parent/c24 order.
+    preserves every actual occurrence in parent/c24 order.
+
+    Only the central parent is the victory-condition HP bar shown to the player.
+    The eight heads are mortal mechanism actors and remain an independently
+    scaled/audited ``mechanism_budget``; counting them toward the strict floor
+    target cuts the visible parent bar roughly in half and is therefore forbidden.
     """
     expanded = expand_bundle_hp_members(bundle, int(enemy_level), tables)
     selected = expanded.selected_parent_level
@@ -9335,10 +10941,11 @@ def orochi_native_hp_evidence(bundle: rbb.NativeBossBundle, enemy_level: int,
             "expanded": expanded,
         }
     components: list[dict] = []
+    mechanism_components: list[dict] = []
     for occurrence, member in enumerate(expanded.members, start=1):
         phase = ("parent" if member.role == "parent"
                  else f"head[{member.ordinal}]")
-        components.append({
+        component = {
             "code": member.code,
             "kind": "special",
             "special_family": "orochi",
@@ -9351,6 +10958,9 @@ def orochi_native_hp_evidence(bundle: rbb.NativeBossBundle, enemy_level: int,
             "k": float(scale),
             "hp_curve_kind": "hit",
             "selected_level": int(member.selected_level),
+            "counts_toward_boss_target": member.role == "parent",
+            "budget_kind": ("victory_hp" if member.role == "parent"
+                            else "mechanism_budget"),
             "evidence": {
                 "logical": (f"{OROCHI}.c24 -> {BOSS_LEVEL}"
                             if member.role == "parent" else BOSS_LEVEL),
@@ -9358,11 +10968,35 @@ def orochi_native_hp_evidence(bundle: rbb.NativeBossBundle, enemy_level: int,
                 "role": member.role,
                 "ordinal": int(member.ordinal),
             },
-        })
+        }
+        if member.role == "parent":
+            components.append(component)
+        else:
+            mechanism_components.append(component)
+    if len(components) != 1 or len(mechanism_components) != 8:
+        return {
+            "native_hp": None, "components": components,
+            "mechanism_components": mechanism_components,
+            "verified": False, "absolute_verified": False,
+            "reason": ("Orochi 胜利/机制组件数量非法:"
+                       f"parent={len(components)},heads={len(mechanism_components)}"),
+            "expanded": expanded,
+        }
+    mechanism_hp = math.fsum(
+        float(item["native_hp"]) for item in mechanism_components)
     return {
         "native_hp": math.fsum(float(item["native_hp"])
                                for item in components),
         "components": components,
+        "mechanism_hp": mechanism_hp,
+        "mechanism_components": mechanism_components,
+        "mechanism_budget": {
+            "kind": "orochi_heads",
+            "counts_toward_boss_target": False,
+            "victory_condition": "central_parent_only",
+            "native_hp": mechanism_hp,
+            "occurrences": len(mechanism_components),
+        },
         "verified": True,
         "absolute_verified": True,
         "reason": None,
@@ -9372,25 +11006,27 @@ def orochi_native_hp_evidence(bundle: rbb.NativeBossBundle, enemy_level: int,
 
 def orochi_hp_scale_plan(native: dict, boss_level: dict, *, target_hp: float,
                          curse_hp: float) -> dict:
-    """Plan parent-plus-eight-head c2 scaling with formatted-leaf readback.
+    """Plan central victory HP and a separate eight-head mechanism budget.
 
-    Every component keeps its source occurrence.  Repeated head codes therefore
-    remain repeated target components even though one cloned dependency row can
-    serve each repeated occurrence.  Baseline and curse-final targets are kept
-    separate so the curse multiplier cannot be applied twice.
+    The parent alone must hit the strict floor target.  Heads follow the same
+    safe relative scale so the official encounter topology remains usable, but
+    their HP is never added to ``baseline_true_hp``/``true_hp``.  Baseline and
+    curse-final targets stay separate so HP curses cannot be applied twice.
     """
     components = list(native.get("components") or [])
+    mechanism_components = list(native.get("mechanism_components") or [])
     if (not native.get("verified") or not native.get("absolute_verified")
-            or len(components) != 9
+            or len(components) != 1 or len(mechanism_components) != 8
+            or components[0].get("phase") != "parent"
             or any(component.get("special_family") != "orochi"
-                   for component in components)):
+                   for component in components + mechanism_components)):
         raise ValueError(
-            f"Orochi HP 伸缩缺九组件绝对证据:{native.get('reason') or 'unknown'}")
+            "Orochi HP 伸缩缺中央胜利血条/八蛇头机制预算绝对证据:"
+            f"{native.get('reason') or 'unknown'}")
     try:
         wanted = float(target_hp)
         hp_mult = float(curse_hp)
-        native_total = math.fsum(float(component["native_hp"])
-                                 for component in components)
+        native_total = float(components[0]["native_hp"])
     except (KeyError, TypeError, ValueError) as exc:
         raise ValueError("Orochi HP 伸缩输入含非数字") from exc
     if not all(math.isfinite(value) and value > 0
@@ -9425,10 +11061,20 @@ def orochi_hp_scale_plan(native: dict, boss_level: dict, *, target_hp: float,
         float(component["native_hp"]) * realized_factor(
             str(component["code"]), final_scale)
         for component in components)
+    baseline_mechanism_hp = tuple(
+        float(component["native_hp"]) * realized_factor(
+            str(component["code"]), baseline_scale)
+        for component in mechanism_components)
+    final_mechanism_hp = tuple(
+        float(component["native_hp"]) * realized_factor(
+            str(component["code"]), final_scale)
+        for component in mechanism_components)
     ordered_codes = list(dict.fromkeys(
-        str(component["code"]) for component in components))
+        str(component["code"])
+        for component in components + mechanism_components))
     selected_levels = {
-        code: int(next(component["selected_level"] for component in components
+        code: int(next(component["selected_level"]
+                       for component in components + mechanism_components
                        if str(component["code"]) == code))
         for code in ordered_codes
     }
@@ -9445,6 +11091,25 @@ def orochi_hp_scale_plan(native: dict, boss_level: dict, *, target_hp: float,
         "final_component_hp": final_component_hp,
         "baseline_true_hp": math.fsum(baseline_component_hp),
         "true_hp": math.fsum(final_component_hp),
+        "mechanism_budget": {
+            "kind": "orochi_heads",
+            "counts_toward_boss_target": False,
+            "victory_condition": "central_parent_only",
+            "source_components": tuple(
+                float(component["native_hp"])
+                for component in mechanism_components),
+            "baseline_components": baseline_mechanism_hp,
+            "final_components": final_mechanism_hp,
+            "source_hp": math.fsum(
+                float(component["native_hp"])
+                for component in mechanism_components),
+            "baseline_hp": math.fsum(baseline_mechanism_hp),
+            "final_hp": math.fsum(final_mechanism_hp),
+            "occurrences": len(mechanism_components),
+            "static_verified": True,
+            "runtime_simulated": False,
+            "gameplay_verified": False,
+        },
         "selected_levels": selected_levels,
         "destinations": destinations,
     }
@@ -9555,6 +11220,19 @@ def orochi_ex_hp_scale_plan(native: dict, dedicated: dict, boss_level: dict, *,
         if (not threshold_contract.get("static_verified")
                 or threshold_contract.get("gameplay_verified")):
             raise ValueError("Orochi EX PhaseThresholdIcon 静态契约缺失")
+        try:
+            _carrier_leaves, phase_damage_capacity = (
+                plan_orochi_ex_phase_damage_capacity(
+                    graph.child_codes, graph.selected_level, boss_level,
+                    phase1_required_hp=readback_components[0],
+                    phase3_required_hp=readback_components[2],
+                    minimum_scale=fixed_scale,
+                )
+            )
+        except (KeyError, TypeError, ValueError,
+                wf_orochi_ex.OrochiExHpError) as exc:
+            raise ValueError(
+                f"Orochi EX 阶段蛇头承伤容量计划失败:{exc}") from exc
         capped = fixed_scale < uniform_scale and not math.isclose(
             fixed_scale, uniform_scale, rel_tol=1e-15, abs_tol=0.0)
         component_targets = (
@@ -9566,6 +11244,7 @@ def orochi_ex_hp_scale_plan(native: dict, dedicated: dict, boss_level: dict, *,
             "fixed_phase_int32_capped": capped,
             "component_targets": component_targets,
             "phase_threshold_contract": threshold_contract,
+            "phase_damage_capacity": phase_damage_capacity,
             "runtime_simulated": False,
             "gameplay_verified": False,
         })
@@ -9613,6 +11292,10 @@ def orochi_ex_hp_scale_plan(native: dict, dedicated: dict, boss_level: dict, *,
         "final_report": final_report,
         "baseline_phase_threshold_contract": baseline_threshold_contract,
         "final_phase_threshold_contract": final_threshold_contract,
+        "baseline_phase_damage_capacity": copy.deepcopy(
+            baseline_report["phase_damage_capacity"]),
+        "final_phase_damage_capacity": copy.deepcopy(
+            final_report["phase_damage_capacity"]),
         "runtime_simulated": False,
         "gameplay_verified": False,
     }
@@ -10276,12 +11959,25 @@ def clone_orochi_ex_parent_bundle(
                 row, isinstance(leaf, (bytes, bytearray)))
         overlay["orochi_ex"][target_parent] = rewritten_parent
         overlay["boss_level"][target_parent] = parent_level
+        selected_parent_row = cells(
+            rewritten_parent[str(source_graph.selected_level)])
+        planned_head_levels, planned_capacity = (
+            plan_orochi_ex_phase_damage_capacity(
+                source_graph.child_codes, source_graph.selected_level,
+                boss_level,
+                phase1_required_hp=float(
+                    selected_parent_row[wf_orochi_ex.PHASE1_HP_COLUMN]),
+                phase3_required_hp=float(
+                    selected_parent_row[wf_orochi_ex.PHASE3_HP_COLUMN]),
+                minimum_scale=factor,
+            )
+        )
         for source_code, target_code in zip(
                 source_graph.child_codes, target_heads):
             overlay["orochi_ex_head"][target_code] = copy.deepcopy(
                 heads[source_code])
             overlay["boss_level"][target_code] = copy.deepcopy(
-                boss_level[source_code])
+                planned_head_levels[source_code])
 
         source_node = dedicated[source_graph.parent_ref.code]
         if set(source_node) != set(rewritten_parent):
@@ -10324,11 +12020,23 @@ def clone_orochi_ex_parent_bundle(
                 f"columns={level_drift}")
         for source_code, target_code in zip(
                 source_graph.child_codes, target_heads):
+            source_head_level = cells(boss_level[source_code])
+            target_head_level = cells(
+                overlay["boss_level"][target_code])
+            head_level_drift = tuple(
+                index for index, (before, after) in enumerate(
+                    zip(source_head_level, target_head_level))
+                if before != after and index != 2)
             if (overlay["orochi_ex_head"][target_code] != heads[source_code]
+                    or len(source_head_level) != wf_orochi_ex.BOSS_LEVEL_COLUMNS
+                    or len(target_head_level) != wf_orochi_ex.BOSS_LEVEL_COLUMNS
+                    or target_head_level[0] != "0"
+                    or head_level_drift
                     or overlay["boss_level"][target_code]
-                    != boss_level[source_code]):
+                    != planned_head_levels[source_code]):
                 raise ValueError(
-                    f"Orochi EX child clone drift:{source_code}->{target_code}")
+                    "Orochi EX child clone/c2 capacity drift:"
+                    f"{source_code}->{target_code}:columns={head_level_drift}")
     except (KeyError, TypeError, ValueError,
             wf_orochi_ex.OrochiExHpError) as exc:
         return _orochi_ex_clone_failure(f"dependency staging failed:{exc}")
@@ -10371,6 +12079,61 @@ def clone_orochi_ex_parent_bundle(
             "overlay HP/graph readback failed:"
             f"{readback_graph.detail or readback.get('reason') or readback.get('native_hp')} "
             f"expected={expected_total}")
+    try:
+        readback_components = list(readback.get("components") or ())
+        if len(readback_components) != 3:
+            raise ValueError("Orochi EX readback does not have three phases")
+        phase_damage_capacity = orochi_ex_phase_damage_capacity_contract(
+            target_heads, source_graph.selected_level,
+            overlay["boss_level"],
+            phase1_required_hp=float(readback_components[0]["native_hp"]),
+            phase3_required_hp=float(readback_components[2]["native_hp"]),
+        )
+        for planned_phase, actual_phase in zip(
+                planned_capacity["phases"],
+                phase_damage_capacity["phases"]):
+            planned_values = tuple(
+                float(planned_phase["carrier_hp"][code])
+                for code in planned_phase["head_codes"])
+            actual_values = tuple(
+                float(actual_phase["carrier_hp"][code])
+                for code in actual_phase["head_codes"])
+            if (int(planned_phase["phase"]) != int(actual_phase["phase"])
+                    or not math.isclose(
+                        float(planned_phase["required_hp"]),
+                        float(actual_phase["required_hp"]),
+                        rel_tol=1e-12, abs_tol=1e-5)
+                    or any(not math.isclose(
+                        expected, actual, rel_tol=1e-12, abs_tol=1e-5)
+                           for expected, actual in zip(
+                               planned_values, actual_values))):
+                raise ValueError(
+                    "Orochi EX planned/target phase carrier readback drift")
+            actual_phase["minimum_scale"] = planned_phase["minimum_scale"]
+            actual_phase["planned_scale"] = planned_phase["planned_scale"]
+            actual_phase["source_head_codes"] = tuple(
+                planned_phase["source_head_codes"])
+            actual_phase["source_to_target"] = dict(zip(
+                actual_phase["source_head_codes"],
+                actual_phase["head_codes"]))
+            actual_phase["source_carrier_hp"] = copy.deepcopy(
+                planned_phase["source_carrier_hp"])
+            actual_phase["source_total_carrier_hp"] = float(
+                planned_phase["source_total_carrier_hp"])
+            actual_phase["source_primary_carrier_hp"] = float(
+                planned_phase["source_primary_carrier_hp"])
+            actual_phase["source_boss_level_c2"] = copy.deepcopy(
+                planned_phase["source_boss_level_c2"])
+            actual_phase["planned_boss_level_c2"] = copy.deepcopy(
+                planned_phase["planned_boss_level_c2"])
+        phase_damage_capacity["minimum_scale"] = float(
+            planned_capacity["minimum_scale"])
+        phase_damage_capacity["format_margin"] = float(
+            planned_capacity["format_margin"])
+    except (KeyError, TypeError, ValueError,
+            wf_orochi_ex.OrochiExHpError) as exc:
+        return _orochi_ex_clone_failure(
+            f"phase damage-carrier capacity readback failed:{exc}")
     threshold_contract = readback.get("phase_threshold_contract")
     if (not isinstance(threshold_contract, dict)
             or not threshold_contract.get("signed_int32_verified")
@@ -10384,10 +12147,12 @@ def clone_orochi_ex_parent_bundle(
         "parent_only_hp_and_child_columns_changed": True,
         "parent_boss_level_only_c2_changed": True,
         "six_head_nodes_equal_source": True,
-        "six_head_boss_level_equal_source": True,
+        "six_head_boss_level_only_c2_planned": True,
+        "phase1_and_phase3_carriers_cover_gate": True,
         "six_child_attack_target_references_closed": True,
         "phase_spawn_topology_preserved": True,
         "phase_threshold_contract": copy.deepcopy(threshold_contract),
+        "phase_damage_capacity": copy.deepcopy(phase_damage_capacity),
         "static_verified": True,
         "runtime_simulated": False,
         "gameplay_verified": False,
@@ -10807,6 +12572,7 @@ def purge_sphere_clones(tables: dict) -> tuple[str, ...]:
 def rogue_battle_write_plan(*, gimmick_dirty: bool, caster_dirty: bool,
                             orochi_dirty: bool,
                             enemy_watch_available: bool,
+                            general_state_dirty: bool = False,
                             standard_dirty: bool = False,
                             orochi_ex_dirty: bool = False,
                             single_bar_special_dirty: tuple[str, ...] = (),
@@ -10816,6 +12582,10 @@ def rogue_battle_write_plan(*, gimmick_dirty: bool, caster_dirty: bool,
     out: list[str] = []
     if caster_dirty:
         out.extend((GENERAL_ZAKO, ZAKO_LEVEL))
+    if general_state_dirty:
+        # general_boss.c42 dereferences this routine id.  Persist the cloned
+        # state routine before the general_boss row that makes it reachable.
+        out.append(GENERAL_BOSS_STATE)
     if caster_dirty or orochi_dirty:
         out.extend((GENERAL_BOSS, BOSS_LEVEL, GENERAL_BOSS_VARIABLE))
         if enemy_watch_available:
@@ -10855,11 +12625,198 @@ def rogue_battle_write_plan(*, gimmick_dirty: bool, caster_dirty: bool,
     return tuple(dict.fromkeys(out))
 
 
+def _general_damage_check_hp_by_code(
+        components: list[dict], baseline_component_hp,
+        final_component_hp) -> dict[str, tuple[float, float, float]]:
+    """Collapse occurrence-based HP triples only when same-code bars agree."""
+
+    baseline_values = tuple(map(float, baseline_component_hp))
+    final_values = tuple(map(float, final_component_hp))
+    if (len(components) != len(baseline_values)
+            or len(components) != len(final_values)):
+        raise ValueError("General DamageCheck HP 组件数量漂移")
+    grouped: dict[str, list[tuple[float, float, float]]] = {}
+    for component, baseline_hp, final_hp in zip(
+            components, baseline_values, final_values):
+        try:
+            source_hp = float(component["native_hp"])
+        except (KeyError, TypeError, ValueError) as exc:
+            raise ValueError("General DamageCheck 源组件 HP 非法") from exc
+        values = (source_hp, baseline_hp, final_hp)
+        if not all(math.isfinite(value) and value > 0 for value in values):
+            raise ValueError(
+                f"General DamageCheck 组件 HP 必须为有限正数:{values}")
+        grouped.setdefault(str(component.get("code") or ""), []).append(values)
+    result: dict[str, tuple[float, float, float]] = {}
+    for code, occurrences in grouped.items():
+        if not code:
+            raise ValueError("General DamageCheck 组件缺 boss code")
+        first = occurrences[0]
+        if any(any(not math.isclose(
+                current[index], first[index], rel_tol=1e-12, abs_tol=1e-4)
+                for index in range(3)) for current in occurrences[1:]):
+            raise ValueError(
+                f"General DamageCheck 同 code 实际出现的 HP 不一致:{code}")
+        result[code] = first
+    return result
+
+
+def attach_general_damage_check_plans(
+        plan: dict, *, components: list[dict], general_boss: dict,
+        general_boss_state: dict | None, enemy_level: int,
+        source_absolute_verified: bool) -> dict:
+    """Attach per-code c42/c16 clone plans to one General HP plan.
+
+    Proxy-origin Hit adapters replace an unknown official correction curve.
+    Their final/source max-HP ratio is therefore unknowable.  If such a boss
+    has a red DamageCheck, preserving its official absolute threshold cannot
+    be proved and the candidate is rejected before any table mutation.
+    """
+
+    hp_by_code = _general_damage_check_hp_by_code(
+        components, plan["baseline_component_hp"],
+        plan["final_component_hp"])
+    damage_plans: dict[str, dict] = {}
+    contracts: dict[str, dict] = {}
+    for code in plan["final_leaves"]:
+        selected = int(plan["selected_levels"][code])
+        node = general_boss.get(code)
+        source_leaf = (node.get(str(selected))
+                       if isinstance(node, dict) else None)
+        if not isinstance(source_leaf, (str, bytes, bytearray)):
+            raise ValueError(
+                f"general_boss[{code}] 缺实际选中档 lv{selected}")
+        row = cells(source_leaf)
+        # Legacy unit fixtures use a one-cell marker.  Production passes the
+        # real state table and must expose a complete c42-bearing row.
+        if len(row) <= 42:
+            if isinstance(general_boss_state, dict):
+                raise ValueError(
+                    f"general_boss[{code}]@{selected} 行过短，无法审计 c42")
+            source_routine_id = "(None)"
+        else:
+            source_routine_id = str(row[42])
+        source_hp, baseline_hp, final_hp = hp_by_code[code]
+        if source_routine_id in {"", "(None)"}:
+            source_tree: dict = {}
+        else:
+            if not isinstance(general_boss_state, dict):
+                raise ValueError(
+                    f"general_boss[{code}] 的 c42={source_routine_id} "
+                    "缺 general_boss_state 静态门禁")
+            source_tree = general_boss_state.get(source_routine_id)
+            if not isinstance(source_tree, dict):
+                raise ValueError(
+                    f"general_boss_state[{source_routine_id}] 缺失或不是映射")
+        source_records = general_damage_check_records(source_tree)
+        if source_records and not source_absolute_verified:
+            raise ValueError(
+                "General DamageCheck 源 HP 曲线仍是代理，无法证明官方绝对红条门槛:"
+                f"boss={code},routine={source_routine_id},"
+                f"occurrences={len(source_records)}")
+        baseline_tree = scale_general_damage_checks(
+            source_tree, source_max_hp=source_hp,
+            target_max_hp=baseline_hp)
+        final_tree = scale_general_damage_checks(
+            source_tree, source_max_hp=source_hp,
+            target_max_hp=final_hp)
+        contract = general_damage_check_contract(
+            source_tree, baseline_tree, final_tree,
+            source_max_hp=source_hp, baseline_max_hp=baseline_hp,
+            final_max_hp=final_hp,
+            source_routine_id=source_routine_id,
+            final_routine_id=None, materialized=False)
+        damage_plans[code] = {
+            "selected_level": selected,
+            "source_routine_id": source_routine_id,
+            "source_routine_tree": source_tree,
+            "baseline_routine_tree": baseline_tree,
+            "final_routine_tree": final_tree,
+            "source_max_hp": source_hp,
+            "baseline_max_hp": baseline_hp,
+            "final_max_hp": final_hp,
+            "contract": contract,
+        }
+        contracts[code] = contract
+        if source_records:
+            plan["destinations"][code] += (
+                ";general_boss.c42;general_boss_state.c16")
+    plan["damage_check_plans"] = damage_plans
+    plan["damage_check_contracts"] = contracts
+    return plan
+
+
+def materialize_general_damage_check_clone(
+        cloned_general_node: dict, state_table: dict, damage_plan: dict, *,
+        clone_code: str) -> tuple[dict, dict]:
+    """Install one private routine and repoint only the selected clone row."""
+
+    if not isinstance(cloned_general_node, dict):
+        raise ValueError("General DamageCheck clone 的 general_boss 节点不是映射")
+    if not isinstance(state_table, dict):
+        raise ValueError("General DamageCheck clone 缺 general_boss_state 表")
+    selected = int(damage_plan["selected_level"])
+    source_routine_id = str(damage_plan["source_routine_id"])
+    source_tree = damage_plan["source_routine_tree"]
+    baseline_tree = damage_plan["baseline_routine_tree"]
+    final_tree = damage_plan["final_routine_tree"]
+    occurrence_count = len(general_damage_check_records(source_tree))
+    rewritten = copy.deepcopy(cloned_general_node)
+    final_routine_id = source_routine_id
+    if occurrence_count:
+        final_routine_id = f"{clone_code}_state"
+        if final_routine_id in state_table:
+            raise ValueError(
+                f"General DamageCheck clone routine 已存在:{final_routine_id}")
+        leaf = rewritten.get(str(selected))
+        if not isinstance(leaf, (str, bytes, bytearray)):
+            raise ValueError(
+                f"General DamageCheck clone 缺选中档 lv{selected}")
+        row = cells(leaf)
+        if len(row) <= 42 or row[42] != source_routine_id:
+            raise ValueError(
+                "General DamageCheck clone 的 c42 源 routine 漂移:"
+                f"expected={source_routine_id},actual="
+                f"{row[42] if len(row) > 42 else '(short row)'}")
+        row[42] = final_routine_id
+        rewritten[str(selected)] = join(
+            row, isinstance(leaf, (bytes, bytearray)))
+        state_table[final_routine_id] = copy.deepcopy(final_tree)
+    readback_tree = (state_table[final_routine_id]
+                     if occurrence_count else final_tree)
+    contract = general_damage_check_contract(
+        source_tree, baseline_tree, readback_tree,
+        source_max_hp=float(damage_plan["source_max_hp"]),
+        baseline_max_hp=float(damage_plan["baseline_max_hp"]),
+        final_max_hp=float(damage_plan["final_max_hp"]),
+        source_routine_id=source_routine_id,
+        final_routine_id=final_routine_id, materialized=True)
+    return rewritten, contract
+
+
+def clone_enemy_watch_routine_alias(
+        self_node: dict, source_routine_id: str,
+        final_routine_id: str) -> int:
+    """Keep GeneralEnemyWatch lookup equivalent after c42 is privatized."""
+
+    if not isinstance(self_node, dict):
+        raise ValueError("general_enemy_watch self 节点不是映射")
+    source = str(source_routine_id)
+    target = str(final_routine_id)
+    if source == target or source not in self_node:
+        return 0
+    if target in self_node:
+        raise ValueError(f"general_enemy_watch routine alias 已存在:{target}")
+    self_node[target] = copy.deepcopy(self_node[source])
+    return 1
+
+
 def general_hp_scale_plan(bosses: list[str], native: dict,
                           general_boss: dict, boss_level: dict,
                           enemy_level: int, *, target_hp: float,
                           curse_hp: float,
-                          code_references: dict | None = None) -> dict:
+                          code_references: dict | None = None,
+                          general_boss_state: dict | None = None) -> dict:
     """为纯 general 层生成逐 code 的 baseline/final HP 叶与可复核证据。
 
     当前 ``boss_level`` 数据形态是 ``code -> CSV leaf``，没有等级内层；等级
@@ -10961,7 +12918,7 @@ def general_hp_scale_plan(bosses: list[str], native: dict,
         final_component_hp = tuple(
             final_readbacks[str(component["code"])]
             for component in components)
-        return {
+        plan = {
             "channel": "boss_level", "family": "general",
             "adapter_mode": "target_authoritative_hit",
             "authoritative_curve": AUTHORITATIVE_HIT_HP_CURVE,
@@ -10983,6 +12940,11 @@ def general_hp_scale_plan(bosses: list[str], native: dict,
             "baseline_true_hp": math.fsum(baseline_component_hp),
             "true_hp": math.fsum(final_component_hp),
         }
+        return attach_general_damage_check_plans(
+            plan, components=components, general_boss=general_boss,
+            general_boss_state=general_boss_state,
+            enemy_level=int(enemy_level),
+            source_absolute_verified=False)
     for code in ordered_codes:
         selected = select_surjective_level(general_boss.get(code), int(enemy_level))
         if selected is None:
@@ -11033,7 +12995,7 @@ def general_hp_scale_plan(bosses: list[str], native: dict,
         for component, value in zip(components, final_component_hp))
     baseline_true_hp = math.fsum(baseline_component_hp)
     true_hp = math.fsum(final_component_hp)
-    return {
+    plan = {
         "channel": "boss_level", "family": "general",
         "adapter_mode": "relative_absolute_source",
         "absolute_after_adaptation": True,
@@ -11048,6 +13010,11 @@ def general_hp_scale_plan(bosses: list[str], native: dict,
         "hp_columns": hp_columns, "destinations": destinations,
         "baseline_true_hp": baseline_true_hp, "true_hp": true_hp,
     }
+    return attach_general_damage_check_plans(
+        plan, components=components, general_boss=general_boss,
+        general_boss_state=general_boss_state,
+        enemy_level=int(enemy_level),
+        source_absolute_verified=bool(native.get("absolute_verified", True)))
 
 
 def _standard_native_from_evidence(
@@ -11078,13 +13045,27 @@ def _standard_native_from_evidence(
             raise ValueError(
                 f"standard HP 回读 {source_code} 缺 form[{form_index}]")
         target_code = remap.get(source_code, source_code)
+        try:
+            # Older/unit-constructed evidence predates task-kind tagging and
+            # retains the historical single-boss 0.55 semantics. Production
+            # Rush evidence is always explicit 1.0 and never takes this fallback.
+            runtime_scale = float(source.get(
+                "standard_runtime_hp_scale", STANDARD_BOSS_BATTLE_HP_SCALE))
+        except (TypeError, ValueError) as exc:
+            raise ValueError(
+                f"standard HP 组件缺运行任务倍率:{source_code}") from exc
+        if not math.isfinite(runtime_scale) or runtime_scale <= 0:
+            raise ValueError(
+                f"standard HP 运行任务倍率非法:{source_code}:{runtime_scale}")
         component = dict(source)
         component.update({
             "code": target_code,
             "native_hp": round(
-                forms[form_index] * STANDARD_BOSS_BATTLE_HP_SCALE, 6),
+                forms[form_index] * runtime_scale, 6),
             "evidence_kind": "absolute",
-            "evidence": dict(evidence, code=target_code),
+            "evidence": dict(
+                evidence, code=target_code,
+                standard_runtime_hp_scale=runtime_scale),
         })
         components.append(component)
     verified = bool(components) and bool(native.get("verified"))
@@ -11162,6 +13143,12 @@ def standard_hp_scale_plan(
     baseline_evidence: dict[str, dict] = {}
     final_evidence: dict[str, dict] = {}
     final_blobs: dict[str, bytes] = {}
+    damage_check_contracts: dict[str, dict] = {}
+    runtime_scales_by_code = {
+        str(component["code"]): float(component.get(
+            "standard_runtime_hp_scale", STANDARD_BOSS_BATTLE_HP_SCALE))
+        for component in components
+    }
     for code in ordered_codes:
         source = standard_boss_hp_evidence(
             code, int(enemy_level), standard_boss, resources)
@@ -11181,6 +13168,9 @@ def standard_hp_scale_plan(
         final_evidence[code] = dict(
             standard_enemy_hp_base(final_tree), code=code,
             selected_level=selected, logical=logical)
+        damage_check_contracts[code] = standard_damage_check_contract(
+            tree, final_tree,
+            runtime_hp_scale=runtime_scales_by_code[code])
         selected_levels[code] = selected
         source_logicals[code] = logical
         final_blobs[code] = final_blob
@@ -11198,6 +13188,7 @@ def standard_hp_scale_plan(
         "baseline_true_hp": math.fsum(baseline_component_hp),
         "true_hp": math.fsum(final_component_hp),
         "final_blobs": final_blobs,
+        "damage_check_contracts": damage_check_contracts,
         "destinations": {
             code: "standard_boss.resource/forms.Health(T1)" for code in ordered_codes},
     }
@@ -11207,7 +13198,8 @@ def mixed_hp_scale_plan(
         bosses: list[str], native: dict, general_boss: dict, boss_level: dict,
         standard_boss: dict, enemy_level: int, *, target_hp: float,
         curse_hp: float, code_references: dict | None = None,
-        resources: dict[str, bytes] | None = None) -> dict:
+        resources: dict[str, bytes] | None = None,
+        general_boss_state: dict | None = None) -> dict:
     """组合 General Hit/Fix 与 Standard DSL，保持整关组件原生占比。"""
     components = list(native.get("components") or [])
     if not native.get("verified") or not components:
@@ -11252,7 +13244,8 @@ def mixed_hp_scale_plan(
     general_plan = general_hp_scale_plan(
         general_codes, general_native, general_boss, boss_level,
         int(enemy_level), target_hp=general_target, curse_hp=hp_mult,
-        code_references=code_references)
+        code_references=code_references,
+        general_boss_state=general_boss_state)
     standard_plan = standard_hp_scale_plan(
         standard_codes, standard_native, standard_boss, int(enemy_level),
         target_hp=standard_target, curse_hp=hp_mult,
@@ -11297,7 +13290,8 @@ def floor_hp_scaling_strategy(bosses: list[str], native: dict,
                               enemy_level: int, *, required_c86: float,
                               deep: bool,
                               code_references: dict | None = None,
-                              standard_boss: dict | None = None) -> dict:
+                              standard_boss: dict | None = None,
+                              general_boss_state: dict | None = None) -> dict:
     """选择该层 HP 主通道；不可实现的族组合直接抛错供调用方重抽。"""
     components = list(native.get("components") or [])
     if not native.get("verified") or not components:
@@ -11327,7 +13321,8 @@ def floor_hp_scaling_strategy(bosses: list[str], native: dict,
         plan = general_hp_scale_plan(
             list(map(str, bosses)), native, general_boss, boss_level,
             int(enemy_level), target_hp=native_hp * needed, curse_hp=1.0,
-            code_references=code_references)
+            code_references=code_references,
+            general_boss_state=general_boss_state)
         return {
             "channel": "boss_level", "family": "general",
             "baseline_c86": 1.0,
@@ -11390,6 +13385,27 @@ def floor_hp_scaling_strategy(bosses: list[str], native: dict,
                     f"mixed HP {component_family.get(code) or 'unknown'}[{code}] "
                     f"无 >=lv{enemy_level} 的运行档")
             selected_levels[code] = selected
+        general_components = [
+            component for component in components
+            if str(component.get("kind")) == "general"]
+        general_codes = [
+            code for code in map(str, bosses)
+            if component_family.get(code) == "general"]
+        general_native_hp = math.fsum(
+            float(component["native_hp"])
+            for component in general_components)
+        general_hp_scale_plan(
+            general_codes, {
+                "native_hp": general_native_hp,
+                "components": general_components,
+                "verified": True,
+                "absolute_verified": all(
+                    component.get("evidence_kind") == "absolute"
+                    for component in general_components),
+            }, general_boss, boss_level, int(enemy_level),
+            target_hp=general_native_hp * needed, curse_hp=1.0,
+            code_references=code_references,
+            general_boss_state=general_boss_state)
         return {"channel": "mixed_hp", "family": "mixed",
                 "baseline_c86": 1.0, "baseline_scale": needed,
                 "selected_levels": selected_levels}
@@ -11686,6 +13702,7 @@ def main() -> int:
     gb_t = q.load_table(GENERAL_BOSS)
     bl_t = q.load_table(BOSS_LEVEL)
     gv_t = q.load_table(GENERAL_BOSS_VARIABLE)
+    gbs_t = q.load_table(GENERAL_BOSS_STATE)
     oro_t = q.load_table(OROCHI)
     oro_ex_t = q.load_table(OROCHI_EX)
     oro_ex_head_t = q.load_table(OROCHI_EX_HEAD)
@@ -11743,6 +13760,9 @@ def main() -> int:
                + ([k for k in (ew_t or {}).get("1", {})
                    if str(k).startswith("mod_rogue_boss")] if ew_t else []))
     stale_s = [k for k in sb_t if str(k).startswith("mod_rogue_standard")]
+    stale_states = [
+        key for key in gbs_t
+        if str(key).startswith("mod_rogue_boss")]
     stale_watch_aliases = purge_enemy_watch_partner_aliases(ew_t)
     for k in stale:
         fd_t.pop(k, None)
@@ -11757,6 +13777,8 @@ def main() -> int:
             ew_t.get("1", {}).pop(k, None)
     for k in stale_s:
         sb_t.pop(k, None)
+    for key in stale_states:
+        gbs_t.pop(key, None)
     orochi_purged_tables = purge_orochi_clones({
         "orochi": oro_t,
         "general_boss": gb_t,
@@ -11793,6 +13815,7 @@ def main() -> int:
         **sphere_tables, **sphere_aux_tables, "boss_level": bl_t})
     gim_dirty = bool(stale)
     caster_dirty = bool(stale_c or stale_watch_aliases)
+    general_state_dirty = bool(stale_states)
     standard_dirty = bool(stale_s)
     standard_resource_blobs: dict[str, bytes] = {}
     # Task 5 will also set this after a successful per-round clone.  Purge-only
@@ -12117,6 +14140,31 @@ def main() -> int:
         return {"field": DRAGON_FIELD, "bosses": bosses, "thumb": DRAGON_THUMB,
                 "bgm": None, "label": "终始之龙·主线终章正版"}
 
+    def finale_pick() -> dict:
+        """Pick the last floor from proved high-value fields, dragon included."""
+
+        candidates = [dragon_pick()]
+        for field in dict.fromkeys(
+                DEEP_HP_ANCHOR_FIELDS_30 + MID_HP_ANCHOR_FIELDS_30):
+            bosses, _ = _zone_pick(field)
+            if (not bosses or not _pool_safe(bosses)
+                    or not field_gate(field)["ok"]):
+                continue
+            candidates.append({
+                "field": field,
+                "bosses": bosses,
+                "thumb": thumb_map.get(field, ""),
+                "bgm": None,
+                "label": "终局Boss·" + "、".join(dict.fromkeys(
+                    str(_boss_names.get(code, code)).split("/")[0]
+                    for code in bosses)),
+            })
+        candidates = unused_only(candidates, lambda item: item["bosses"])
+        candidates = prefer_fresh(candidates, lambda item: item["bosses"])
+        if not candidates:
+            raise RuntimeError("安全高难终局 Boss 候选池为空")
+        return candidates[rng.randrange(len(candidates))]
+
     def zako_pick() -> dict:
         e = zako_lst.pop(rng.randrange(len(zako_lst)))
         return {"field": e["field"], "bosses": [], "thumb": e["thumb"],
@@ -12209,7 +14257,11 @@ def main() -> int:
     qt_bytes = isinstance(qt[TEMPLATE_EVENT]["1"], bytes)
     ELEM_CN = QUEST_ELEM_CN      # c69 是 quest 枚举(0风1火2水3雷4暗5光),别用 boss 那套
 
-    thumb_map = field_thumbnail_map()
+    thumbnail_evidence_map = field_thumbnail_evidence_map()
+    thumb_map = {
+        field_id: evidence["thumbnail"]
+        for field_id, evidence in thumbnail_evidence_map.items()
+    }
     belem_map = boss_element_map()
     elem_map = field_official_elem_map()
 
@@ -12310,6 +14362,7 @@ def main() -> int:
             _native_catalog = build_native_bundle_catalog(
                 100, fd=fd_t, zone=zone_t, sb=sb_t, gb=gb_t, gv=gv_t,
                 bl=bl_t, gz=gz_t, special_tables=special_catalog_tables,
+                general_boss_state=gbs_t,
                 general_enemy_watch=ew_t, code_references=code_refs,
                 general_funnel=_runtime_general_funnel,
                 standard_funnel=_runtime_standard_funnel,
@@ -12452,13 +14505,16 @@ def main() -> int:
                          enemy_level: int | None = None,
                          clone_code: str | None = None,
                          boss_level_leaf=None,
-                         expected_selected_level: int | None = None):
+                         expected_selected_level: int | None = None,
+                         damage_check_plan: dict | None = None):
         """克隆 general boss 当 HP/硬效果载体。
 
         法阵追加到第一条现役 action(c111-160)；耐性条件追加到 c109
         pre_action 且 c110=true。两者可共用同一克隆,定位天然有效。
         附表(boss_level/general_boss_variable/general_enemy_watch 的 self 侧)按 code
-        同步克隆;routine 经 routine_id 引用原状态组,零克隆。
+        同步克隆。若 HP 改写会放大带 c16 红色伤害试炼条的 Boss，则为实际
+        选中档克隆一份私有 routine，按最终 HP（含 HP 诅咒）反向缩放 c16；
+        其余 52 列和 general_enemy_watch routine lookup 保持闭包。
 
         ⚠ general_enemy_watch 的 self 条目和 partner 别名**必须**跟着克隆
         (2026-08-03):客户端按
@@ -12466,7 +14522,7 @@ def main() -> int:
         GeneralEnemyWatchTableTools.getSelfData),查不到静默返回 null。routine_id 随行
         克隆时没变,所以整棵子树原样挂到新代号下即可。partner 侧(别人 watch 我)
         在每个原 watcher 下追加 clone id 的等价分支；官方 source id 分支不改。"""
-        nonlocal caster_dirty
+        nonlocal caster_dirty, general_state_dirty
         if boss_code not in gb_t:
             return None
         identity_block = identity_clone_locked_boss_reason(
@@ -12487,6 +14543,25 @@ def main() -> int:
             # 纯 HP clone 不追加 action，但仍必须拥有独立 general_boss 子树；
             # 未来若再改 clone 行，不能反向污染官方源代号。
             gb_t[code] = copy.deepcopy(gb_t[boss_code])
+        damage_contract = None
+        if damage_check_plan is not None:
+            try:
+                gb_t[code], damage_contract = (
+                    materialize_general_damage_check_clone(
+                        gb_t[code], gbs_t, damage_check_plan,
+                        clone_code=code))
+            except (KeyError, TypeError, ValueError) as exc:
+                raise RuntimeError(
+                    f"第{r}战 General DamageCheck clone 失败:"
+                    f"{boss_code}->{code}:{exc}") from exc
+            contract_slot = damage_check_plan.get("contract")
+            if not isinstance(contract_slot, dict):
+                raise RuntimeError(
+                    f"第{r}战 General DamageCheck 计划缺共享回执槽:{boss_code}")
+            contract_slot.clear()
+            contract_slot.update(copy.deepcopy(damage_contract))
+            if int(damage_contract.get("occurrence_count") or 0) > 0:
+                general_state_dirty = True
         if boss_level_leaf is not None:
             # boss_level 在当前表形态是 code→CSV leaf（没有等级内层）。只接受
             # general_hp_scale_plan 已重建的 Hit/Fix 行；短行/未知 kind 再次 fail closed。
@@ -12516,9 +14591,47 @@ def main() -> int:
                     f"{code}@{clone_selected}, expected={expected}")
             if code not in bl_t:
                 raise RuntimeError(f"第{r}战 boss clone {code} 缺 boss_level 叶")
+        watch_routine_alias_count = 0
         if ew_t is not None and boss_code in ew_t.get("1", {}):
-            ew_t.setdefault("1", {})[code] = copy.deepcopy(
-                ew_t["1"][boss_code])
+            cloned_watch_self = copy.deepcopy(ew_t["1"][boss_code])
+            if damage_contract is not None:
+                try:
+                    watch_routine_alias_count = clone_enemy_watch_routine_alias(
+                        cloned_watch_self,
+                        str(damage_contract["source_routine_id"]),
+                        str(damage_contract["final_routine_id"]))
+                except (KeyError, TypeError, ValueError) as exc:
+                    raise RuntimeError(
+                        f"第{r}战 general_enemy_watch routine 闭包失败:"
+                        f"{boss_code}->{code}:{exc}") from exc
+                source_watch_has_routine = (
+                    str(damage_contract["source_routine_id"])
+                    in ew_t["1"][boss_code])
+                if (source_watch_has_routine
+                        and str(damage_contract["source_routine_id"])
+                        != str(damage_contract["final_routine_id"])
+                        and watch_routine_alias_count != 1):
+                    raise RuntimeError(
+                        f"第{r}战 general_enemy_watch routine alias 缺失:"
+                        f"{damage_contract['source_routine_id']}->"
+                        f"{damage_contract['final_routine_id']}")
+            ew_t.setdefault("1", {})[code] = cloned_watch_self
+        if damage_contract is not None:
+            contract_slot = damage_check_plan["contract"]
+            contract_slot["enemy_watch_routine_alias_count"] = int(
+                watch_routine_alias_count)
+            contract_slot["enemy_watch_lookup_preserved"] = True
+            if watch_routine_alias_count:
+                identity_reference_closures.setdefault(int(r), []).append({
+                    "kind": "general_enemy_watch.routine_alias",
+                    "source_code": str(boss_code),
+                    "clone_code": str(code),
+                    "source_routine_id": str(
+                        damage_contract["source_routine_id"]),
+                    "clone_routine_id": str(
+                        damage_contract["final_routine_id"]),
+                    "verified": True,
+                })
         watch_alias_count = 0
         if ew_t is not None:
             try:
@@ -12844,7 +14957,10 @@ def main() -> int:
         if elem is None:
             elem = next((belem_map[b] for b in sbosses if belem_map.get(b) is not None), None)
         return {"field": fkey, "bosses": realized_bosses,
-                "thumb": thumb_map.get(tf, ""),
+                # The quest list is advertising the encountered boss, not the
+                # transplanted arena.  The old tf lookup is why a mixed floor
+                # could show a perfectly valid but completely different boss.
+                "thumb": thumb_map.get(sf, ""), "thumbnail_field": sf,
                 "bgm": (cb._cols(tline)[1] if tline else None),
                 "elem_override": elem, "boost_field": tf,
                 "label": f"拼·{','.join(sbosses)} @ {tf}",
@@ -12861,30 +14977,28 @@ def main() -> int:
         return 1
     schedule = build_schedule(args.rounds, rng)
     if args.strict_target_hp and args.rounds >= 30 and native_special_bundles:
-        _special_slots = (
-            ("orochi", "八岐大蛇", 0.82),
-            ("orochi_ex", "八岐大蛇EX", 0.74),
-            ("conductor", "指挥者", 0.66),
-            ("touyakiren_ceo", "东亚奇廉CEO", 0.58),
-            ("kraken", "克拉肯", 0.50),
-            ("water_sphere", "水之球体", 0.46),
-            ("holy_sphere", "圣之球体", 0.42),
-            ("wind_sphere", "风之球体", 0.38),
-            ("thunder_sphere", "雷之球体", 0.34),
-            ("fire_sphere", "火之球体", 0.30),
-        )
-        for _family_name, _label, _fraction in _special_slots:
-            if not any(special_bundle_family(bundle) == _family_name
-                       for bundle in native_special_bundles):
-                print(f"[WARN] 严格塔 {_label} 无通过闭包的原生 bundle，明确排除")
-                continue
+        _special_labels = {
+            "orochi": "八岐大蛇", "orochi_ex": "八岐大蛇EX",
+            "conductor": "指挥者", "touyakiren_ceo": "东亚奇廉CEO",
+            "kraken": "克拉肯", "water_sphere": "水之球体",
+            "holy_sphere": "圣之球体", "wind_sphere": "风之球体",
+            "thunder_sphere": "雷之球体", "fire_sphere": "火之球体",
+        }
+        _available_specials = {
+            str(special_bundle_family(bundle))
+            for bundle in native_special_bundles
+            if special_bundle_family(bundle)
+        }
+        for _family_name, _fraction in special_showcase_slots(
+                _available_specials, rng, rounds=args.rounds):
+            _label = _special_labels[_family_name]
             _special_round = reserve_schedule_slot(
                 schedule, args.rounds, _label, fraction=_fraction)
             if _special_round is None:
                 print(f"[WARN] 严格塔没有空闲深层槽，{_label} 本轮明确排除")
             else:
                 print(f"[专用HP] 第{_special_round}战预留{_label}原生专场")
-    PICKERS = {"小怪房": zako_pick, "终始之龙": dragon_pick,
+    PICKERS = {"小怪房": zako_pick, "终始之龙": finale_pick,
                "杂鱼boss": minion_pick, "机工神兵": phenomena_pick,
                "八岐大蛇": orochi_pick,
                "八岐大蛇EX": orochi_ex_pick,
@@ -12951,17 +15065,27 @@ def main() -> int:
         source_elements = dict(elem_map)
         if pick.get("elem_override") is not None:
             source_elements[pick["field"]] = int(pick["elem_override"])
+        thumbnail_field = str(
+            pick.get("thumbnail_field") or pick.get("field") or "")
+        thumbnail, thumbnail_evidence = resolve_quest_thumbnail(
+            thumbnail_field, pick.get("thumb"), thumbnail_evidence_map,
+            require=bool(pick["bosses"]))
+        pick["thumb"] = thumbnail
+        pick["thumbnail_field"] = thumbnail_field
+        pick["thumbnail_evidence"] = thumbnail_evidence
         elem, tag = patch_quest_boss_fields(
             row,
             field=pick["field"],
             play_field=pick.get("play_field"),
             bosses=pick["bosses"],
-            thumbnail=pick.get("thumb"),
+            thumbnail=thumbnail,
             bgm=pick.get("bgm"),
             enemy_level=int(level),
             rng=rng,
             field_elements=source_elements,
             boss_elements=belem_map,
+            require_thumbnail=bool(pick["bosses"]),
+            thumbnail_asset_exists=q.exists_current,
         )
         return f" 属性:{ELEM_CN[elem] if elem < 6 else '无'}{tag}"
 
@@ -13038,7 +15162,9 @@ def main() -> int:
             return None
         level = int(resolve_level(bosses, want_level(r), sb_t, gv_t, gb_t,
                                   prefer_max=want_max) or want_level(r))
-        native = floor_native_hp(bosses, level, sb_t)
+        native = floor_native_hp(
+            bosses, level, sb_t,
+            standard_runtime_hp_scale=RUSH_EVENT_STANDARD_HP_SCALE)
         if not native.get("verified") or native.get("native_hp") is None:
             _hp_fit_cache[key] = None
             return None
@@ -13050,7 +15176,8 @@ def main() -> int:
                 bosses, native, gb_t, bl_t, level,
                 required_c86=required_c86,
                 deep=is_deep_round(r, args.rounds),
-                code_references=code_refs, standard_boss=sb_t)
+                code_references=code_refs, standard_boss=sb_t,
+                general_boss_state=gbs_t)
         except ValueError as exc:
             _hp_fit_rejects[key] = str(exc)
             _hp_fit_cache[key] = None
@@ -13075,7 +15202,8 @@ def main() -> int:
                           element_required: bool = False,
                           carrier_required: bool = False,
                           pinned_boss: str | None = None,
-                          pinned_terrain: bool = False) -> dict:
+                          pinned_terrain: bool = False,
+                          forbidden_cooldown_group: str | None = None) -> dict:
         """数值/领域不合规时重排，并优先保住可挂属性免疫的实际载体。"""
         current_metrics = hp_pick_metrics(current, r, target)
         current_key = (str(current["field"]), r, round(float(target), 6))
@@ -13116,6 +15244,10 @@ def main() -> int:
 
             区分原因是为了让「只有血量带不达标」这一类不再触发换 boss,
             见下方 HP_BAND_ONLY 处的说明。"""
+            if (forbidden_cooldown_group
+                    and boss_family_cooldown_group(pick.get("bosses") or ())
+                    == forbidden_cooldown_group):
+                return f"family-cooldown:{forbidden_cooldown_group}"
             if metrics is None:
                 # 必须把「血量按不动」与「这层压根解析不了」分开。
                 # hp_pick_metrics 里 `resolve_level(...) or want_level(r)` 会把
@@ -13469,7 +15601,7 @@ def main() -> int:
     # 第 6 战领主战锚位可以把它抽走,和第 15 战固定位撞成同一个 boss 出两次
     # (1.4.238 实际发生过;seed 20260812+4 可复现)。
     # 修法:固定位的 boss 在循环**开始前**就登记配额,让随机锚位天然避开。
-    for _fixed_field, _lab in ((PHENO_FIELD, "机工神兵"), (DRAGON_FIELD, "终始之龙")):
+    for _fixed_field, _lab in ((PHENO_FIELD, "机工神兵"),):
         _live_fixed = [rr for rr, lab in schedule.items()
                        if lab == _lab]
         if _live_fixed:
@@ -13490,7 +15622,9 @@ def main() -> int:
     tower_bosses: list[str] = []
     floor_recs: list[dict] = []
     curse_name_history: list[set[str]] = []
+    curse_diversity_state = new_curse_diversity_state()
     mix_applied_rounds: list[int] = []
+    previous_boss_cooldown_group: str | None = None
     for r in range(1, args.rounds + 1):
         label = schedule.get(r)
         forced = (((plan.get("floors") or {}).get(str(r))) or {}) if not args.ignore_plan else {}
@@ -13547,7 +15681,9 @@ def main() -> int:
                     element_required=_element_required,
                     carrier_required=_carrier_required,
                     pinned_boss=(str(pin_b) if pin_b else None),
-                    pinned_terrain=bool(pin_t))
+                    pinned_terrain=bool(pin_t),
+                    forbidden_cooldown_group=(
+                        None if pin_b else previous_boss_cooldown_group))
             except RuntimeError as exc:
                 print(f"[ERR] {exc}")
                 return 1
@@ -13559,6 +15695,8 @@ def main() -> int:
         _high_threat = is_high_threat_bosses(
             pick.get("bosses") or [], high_threat_prefixes, high_threat_exact)
         pick["high_threat"] = _high_threat
+        previous_boss_cooldown_group = boss_family_cooldown_group(
+            pick.get("bosses") or ())
         if _high_threat:
             log(f"[高威胁] round={r} bosses={','.join(pick.get('bosses') or [])} "
                 "禁时限/禁高档属性墙/诅咒HP≤1.5")
@@ -13617,7 +15755,10 @@ def main() -> int:
         # HP 按族分治：general Hit/Fix 分别落 clone boss_level.c2/c5；standard
         # 落克隆 Enemy DSL 的 T1 Health；混合层由两个适配器共享同一整关倍率。
         _native_hp = (_bundle_source_hp if _bundle_source_hp is not None else
-                      floor_native_hp(pick["bosses"], _lv, sb_t))
+                      floor_native_hp(
+                          pick["bosses"], _lv, sb_t,
+                          standard_runtime_hp_scale=
+                          RUSH_EVENT_STANDARD_HP_SCALE))
         try:
             _base_duration_s = float(row[100]) / 60.0
         except (TypeError, ValueError):
@@ -13667,7 +15808,8 @@ def main() -> int:
                     pick["bosses"], _native_hp, gb_t, bl_t, _lv,
                     required_c86=_required_c86,
                     deep=is_deep_round(r, args.rounds),
-                    code_references=code_refs, standard_boss=sb_t)
+                    code_references=code_refs, standard_boss=sb_t,
+                    general_boss_state=gbs_t)
             except ValueError as exc:
                 # 非破坏性血量带的第二半:hp_curve_fit_pick 已经决定「缩放不了
                 # 就保留这一层」,这里就不能再因为算不出缩放而整座塔拒绝产出。
@@ -13734,6 +15876,7 @@ def main() -> int:
                 high_threat=_high_threat,
                 capability_profile=_curse_capabilities,
                 random_forbidden=_pacing_blocks,
+                diversity_state=curse_diversity_state,
                 **_runtime_kwargs)
         except (RuntimeError, ValueError) as exc:
             print(f"[ERR] 第{r}战诅咒组合无法满足硬闸:{exc}")
@@ -13797,7 +15940,8 @@ def main() -> int:
                     pick["bosses"], _native_hp, gb_t, bl_t, _lv,
                     target_hp=_target_dps * _base_duration_s,
                     curse_hp=float(curse["hp"]),
-                    code_references=code_refs)
+                    code_references=code_refs,
+                    general_boss_state=gbs_t)
             except ValueError as exc:
                 print(f"[ERR] 第{r}战 boss_level HP 伸缩计划失败:{exc}")
                 return 1
@@ -13819,7 +15963,8 @@ def main() -> int:
                     target_hp=_target_dps * _base_duration_s,
                     curse_hp=float(curse["hp"]),
                     code_references=code_refs,
-                    resources=standard_resource_blobs)
+                    resources=standard_resource_blobs,
+                    general_boss_state=gbs_t)
             except (RuntimeError, ValueError) as exc:
                 print(f"[ERR] 第{r}战 Mixed HP 伸缩计划失败:{exc}")
                 return 1
@@ -13855,9 +16000,11 @@ def main() -> int:
         if curse["gimmick"] or curse["casters"] or hard_program or _hp_plan:
             swaps: list[tuple[str, str]] = []
             action_programs: list[str] = []
+            field_program_receipts: list[dict] = []
             fields_tuned = False
             for fm_ in list(curse.get("casters") or []):
-                action_program = str(fm_[1])
+                source_action_program = str(fm_[1])
+                action_program = source_action_program
                 fcat = fm_[3] if len(fm_) > 3 else "领域"
                 tun = field_tuning()
                 factor = float(tun.get("per", {}).get(action_program)
@@ -13876,6 +16023,19 @@ def main() -> int:
                     forged_pubs.add(action_program + ".action.dsl.amf3.deflate")
                 if action_program not in action_programs:
                     action_programs.append(action_program)
+                field_program_receipts.append({
+                    "name": str(fm_[0]),
+                    "description": str(fm_[2]),
+                    "category": str(fcat),
+                    "declared_program": source_action_program,
+                    "applied_program": action_program,
+                    "readback_match": True,
+                })
+            if len(action_programs) > 1:
+                print(f"[ERR] 第{r}战领域同时执行闭包未证明，拒绝落多个程序:"
+                      + ",".join(action_programs))
+                return 1
+            curse["field_program_receipts"] = field_program_receipts
             if fields_tuned:
                 apply_picks(curse, curse.get("picks") or [], curse.get("combo"))
             target = caps.get("element_target") if (action_programs or hard_program) else None
@@ -13896,7 +16056,9 @@ def main() -> int:
                         requires_element_resistance=(bool(hard_elements) and is_carrier),
                         enemy_level=_lv, clone_code=clone_code,
                         boss_level_leaf=_hp_plan["final_leaves"][source_code],
-                        expected_selected_level=_hp_plan["selected_levels"][source_code])
+                        expected_selected_level=_hp_plan["selected_levels"][source_code],
+                        damage_check_plan=(
+                            _hp_plan["damage_check_plans"][source_code]))
                     if not clone:
                         print(f"[ERR] 第{r}战 general HP clone 失败:{source_code}")
                         return 1
@@ -13933,7 +16095,9 @@ def main() -> int:
                         enemy_level=_lv, clone_code=clone_code,
                         boss_level_leaf=general_plan["final_leaves"][source_code],
                         expected_selected_level=general_plan[
-                            "selected_levels"][source_code])
+                            "selected_levels"][source_code],
+                        damage_check_plan=(
+                            general_plan["damage_check_plans"][source_code]))
                     if not clone:
                         print(f"[ERR] 第{r}战 mixed general HP clone 失败:{source_code}")
                         return 1
@@ -14073,7 +16237,9 @@ def main() -> int:
                 if _hp_plan["channel"] != "special_bundle":
                     _final_native_hp = floor_native_hp(
                         runtime_bosses, _lv, sb_t, bl_t,
-                        standard_resources=standard_resource_blobs)
+                        standard_resources=standard_resource_blobs,
+                        standard_runtime_hp_scale=
+                        RUSH_EVENT_STANDARD_HP_SCALE)
                 if not _final_native_hp.get("verified"):
                     print(f"[ERR] 第{r}战最终 clone HP 不可审计:"
                           f"{_final_native_hp.get('reason') or 'unknown'}")
@@ -14115,6 +16281,11 @@ def main() -> int:
     # ---- 分位硬闸 + 数值列落表(2026-07-30)----
     curve_scale, band_log = enforce_atk_band(floor_recs, atk_base, atk_growth,
                                              args.rounds)
+    try:
+        reconcile_curse_diversity_state(curse_diversity_state, floor_recs)
+    except (KeyError, TypeError, ValueError) as exc:
+        print(f"[ERR] 诅咒/领域多样性终态回执重建失败:{exc}")
+        return 1
 
     # 非破坏性血量带:有 boss 却读不出绝对 HP 证据的层不再拒绝产出——那等于
     # 强制把这些 boss 从塔里赶走。命中这条的恰恰是策展锚位本身
@@ -14166,6 +16337,8 @@ def main() -> int:
                         "adapter_mode": plan.get("adapter_mode"),
                         "source_curve": cells(bl_t[code])[4],
                         "final_curve": cells(plan["final_leaves"][code])[4],
+                        "damage_check": copy.deepcopy(
+                            plan["damage_check_contracts"][code]),
                     }
             elif plan["channel"] == "standard_dsl":
                 for code in plan["final_blobs"]:
@@ -14176,6 +16349,8 @@ def main() -> int:
                         "health_forms": sum(
                             1 for component in frec["native_hp"]["components"]
                             if str(component.get("code")) == code),
+                        "damage_check": copy.deepcopy(
+                            plan["damage_check_contracts"][code]),
                     }
             elif plan["channel"] == "mixed_hp":
                 component_kinds = {
@@ -14197,6 +16372,9 @@ def main() -> int:
                     "selected_levels": dict(plan["selected_levels"]),
                     "touched_tables": list(plan.get("touched_tables") or ()),
                 }
+                if plan["family"] == "orochi":
+                    hp_evidence["mechanism_budget"] = copy.deepcopy(
+                        plan["mechanism_budget"])
             audit = {
                 "r": frec["r"], "family": str(plan["family"]), "verified": True,
                 "absolute_verified": bool(
@@ -14238,12 +16416,43 @@ def main() -> int:
                         plan["baseline_fixed_phase_int32_capped"]),
                     "final_fixed_phase_int32_capped": bool(
                         plan["final_fixed_phase_int32_capped"]),
+                    "phase_damage_capacity": {
+                        "baseline": copy.deepcopy(
+                            plan["baseline_phase_damage_capacity"]),
+                        "final": copy.deepcopy(
+                            plan["final_phase_damage_capacity"]),
+                        "clone_readback": copy.deepcopy(
+                            (plan.get("phase_clone_semantics") or {}).get(
+                                "phase_damage_capacity")),
+                    },
                     "clone_semantics": copy.deepcopy(
                         plan.get("phase_clone_semantics")),
                     "static_verified": True,
                     "runtime_simulated": False,
                     "gameplay_verified": False,
                 }
+            elif (plan["channel"] == "special_bundle"
+                  and plan["family"] == "orochi"):
+                audit["mechanism_budget"] = copy.deepcopy(
+                    plan["mechanism_budget"])
+            if plan["channel"] == "boss_level":
+                audit["damage_checks"] = copy.deepcopy(
+                    plan["damage_check_contracts"])
+            elif plan["channel"] == "standard_dsl":
+                audit["damage_checks"] = copy.deepcopy(
+                    plan["damage_check_contracts"])
+            elif plan["channel"] == "mixed_hp":
+                general_checks = plan["general_plan"][
+                    "damage_check_contracts"]
+                standard_checks = plan["standard_plan"][
+                    "damage_check_contracts"]
+                overlap = set(general_checks) & set(standard_checks)
+                if overlap:
+                    print("[ERR] Mixed DamageCheck 回执 code 冲突:"
+                          + ",".join(sorted(overlap)))
+                    return 1
+                audit["damage_checks"] = copy.deepcopy({
+                    **general_checks, **standard_checks})
             frec["hp_audit"] = audit
             hp_audits.append(audit)
         elif frec["native_hp"].get("verified") and frec.get("hp_scaling_error"):
@@ -14320,7 +16529,9 @@ def main() -> int:
         else:
             baseline_parts = None
             channel = "c86"
-            destination = "rush_event_quest.c86"
+            destination = ("rush_event_quest.c88"
+                           if frec["pick"].get("bosses")
+                           else "rush_event_quest.c86")
             readback_native = frec["native_hp"]
             baseline_c86 = float(audit["baseline_c86"])
             final_c86 = float(audit["c86"])
@@ -14360,6 +16571,17 @@ def main() -> int:
             print(f"[ERR] 第{frec['r']}战统一 HP adapter 回读失败:{exc}")
             return 1
 
+    for frec in floor_recs:
+        audit = frec["hp_audit"]
+        try:
+            audit["quest_hp_multipliers"] = quest_hp_multiplier_plan(
+                baseline=float(audit["baseline_c86"]),
+                final=float(audit["c86"]),
+                has_boss=bool(frec["pick"].get("bosses")))
+        except (KeyError, TypeError, ValueError) as exc:
+            print(f"[ERR] 第{frec['r']}战 c86/c87/c88 独立 HP 计划失败:{exc}")
+            return 1
+
     # 作者末层带是 hell 默认的验收锚；显式改 --hp-* /
     # 其它难度时按同比缩放该带，不让“参数已生效”反被 hell 闸拒绝。
     _canonical_hp = (args.difficulty == "hell"
@@ -14376,6 +16598,7 @@ def main() -> int:
         hp_audits, args.rounds, _hp_last_band, ramp=args.ramp)
     hp_errors += hp_short_time_errors(hp_audits)
     hp_errors += hp_correction_errors(hp_audits, args.rounds)
+    hp_errors += quest_hp_multiplier_errors(hp_audits)
     if args.strict_target_hp:
         hp_errors += strict_target_hp_errors(hp_audits)
     if hp_errors:
@@ -14386,9 +16609,15 @@ def main() -> int:
     for frec in floor_recs:
         r, row, curse = frec["r"], frec["row"], frec["curse"]
         audit = frec["hp_audit"]
-        hp = fmt(audit["c86"])
         atk = fmt(frec["atk"])
-        row[86], row[87], row[88] = hp, hp, hp           # hp 小怪/炮台/boss(小怪房也吃曲线)
+        # 三类 HP 修正独立落表：Boss 层的任务级兜底只允许进入 c88；严格资源
+        # clone 层三列自然均为 1。第1战纯小怪房只写 c86，炮台/召唤物 c87
+        # 保持 1，绝不再让一个非 1 倍率同时放大三类实体。
+        hp_plan = audit["quest_hp_multipliers"]["final"]
+        enemy_hp = fmt(hp_plan["enemy"])
+        device_hp = fmt(hp_plan["device_or_summon"])
+        boss_hp = fmt(hp_plan["boss"])
+        row[86], row[87], row[88] = enemy_hp, device_hp, boss_hp
         row[89], row[91] = atk, atk                      # atk 小怪/boss
         # 带 funnel 的层:炮台弹幕同吃 boss 倍率,观感全算在"boss 伤害"头上 → 单独降档
         row[90] = fmt(frec["atk"] * FUNNEL_ATK_SCALE) if frec["funnel"] else atk
@@ -14427,7 +16656,8 @@ def main() -> int:
             hp_mark = ("绝对" if audit.get("absolute_verified") else
                        ("代理" if audit["verified"] else "估算/无boss"))
         plan_lines.append(f"  第{r}战 [{pick['label']}] lv{pick.get('level')} "
-                          f"field={fdisp} hp×{hp} atk×{atk}{fun}{boost}"
+                          f"field={fdisp} hp(c86/c87/c88)="
+                          f"{enemy_hp}/{device_hp}/{boss_hp} atk×{atk}{fun}{boost}"
                           f" 基线(c86={audit['baseline_c86']:g},"
                           f"HP={audit['baseline_true_hp'] / 1e8:.2f}亿,"
                           f"DPS={audit['baseline_dps']:,.0f}/s)"
@@ -14768,7 +16998,9 @@ def main() -> int:
                 difficulty=args.difficulty or "legacy",
                 enemy_level=_lvarg,
                 hp_audits=hp_audits, floor_records=floor_recs,
-                chain_reports=reports, hp_profile=_audit_hp_profile)
+                chain_reports=reports, hp_profile=_audit_hp_profile,
+                curse_diversity=curse_diversity_receipt(
+                    curse_diversity_state))
             audit_errors = verify_hp_audit_document(
                 audit_document,
                 expected_tool_sha256=hashlib.sha256(
@@ -14837,6 +17069,7 @@ def main() -> int:
         GENERAL_ZAKO: gz_t,
         ZAKO_LEVEL: zl_t,
         GENERAL_BOSS: gb_t,
+        GENERAL_BOSS_STATE: gbs_t,
         BOSS_LEVEL: bl_t,
         GENERAL_BOSS_VARIABLE: gv_t,
         ENEMY_WATCH: ew_t,
@@ -14863,6 +17096,7 @@ def main() -> int:
         gimmick_dirty=gim_dirty, caster_dirty=caster_dirty,
         orochi_dirty=orochi_dirty,
         enemy_watch_available=ew_t is not None,
+        general_state_dirty=general_state_dirty,
         standard_dirty=standard_dirty,
         orochi_ex_dirty=orochi_ex_dirty,
         single_bar_special_dirty=tuple(sorted(single_bar_special_dirty)),
@@ -14874,6 +17108,8 @@ def main() -> int:
         save(logical, tree)
     if caster_dirty:
         print("[OK] 法阵载体依赖已写入(zako + general boss 附表)")
+    if general_state_dirty:
+        print("[OK] General Boss 红条私有状态已写入(c16 绝对门槛闭包)")
     if orochi_dirty:
         print("[OK] 八岐父体整包已写入(head 依赖 → orochi parent)")
     if orochi_ex_dirty:

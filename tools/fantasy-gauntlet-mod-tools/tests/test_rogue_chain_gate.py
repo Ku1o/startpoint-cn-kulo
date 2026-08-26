@@ -50,6 +50,13 @@ def _store_available() -> bool:
 requires_store = unittest.skipUnless(_store_available(), "store 不可用")
 
 
+def quest_hp_row(enemy: float = 1.0, device: float = 1.0,
+                 boss: float = 1.0) -> list[str]:
+    row = ["(None)"] * 110
+    row[86], row[87], row[88] = map(rb.fmt, (enemy, device, boss))
+    return row
+
+
 def wave(zakos: tuple = (), bosses: tuple = ()) -> str:
     """41 列 zone wave 行:zako 填 c2/4/…偶数列,boss 填 (c23,c24)/(c27,c28)/(c31,c32)。"""
     row = [""] * 41
@@ -88,6 +95,30 @@ def quest_row(field: str) -> list[str]:
     row = ["700099001"] + [""] * 98
     row[98] = field
     return row
+
+
+def thumbnail_pick_fields(field: str) -> dict:
+    thumbnail = "quest/thumbnail/test/boss"
+    return {
+        "thumb": thumbnail,
+        "thumbnail_field": field,
+        "thumbnail_evidence": {
+            "schema": rb.THUMBNAIL_EVIDENCE_SCHEMA,
+            "field": field,
+            "thumbnail": thumbnail,
+            "asset_logical": thumbnail + ".png",
+            "asset_exists": True,
+            "source_match": "exact_field",
+            "source_category": "test",
+            "source_logical": "master/quest/test.orderedmap",
+            "source_path": ["test"],
+            "source_level": 100,
+            "floor_key": None,
+            "static_verified": True,
+            "runtime_simulated": False,
+            "gameplay_verified": False,
+        },
+    }
 
 
 def native_bundle(field: str, boss: str, *, family: str = "family",
@@ -857,6 +888,110 @@ class QuestLevelColumnCase(unittest.TestCase):
         cs[106] = "(None)"
         self.assertEqual(rb.quest_level_of(cs, 109), "")
         self.assertEqual(rb.quest_level_of(["a", "b"], 1), "")   # fidx-3 < 0
+
+
+class QuestThumbnailEvidenceCase(unittest.TestCase):
+    BOSS_QUEST = "master/quest/boss_battle_quest.orderedmap"
+    TOWER_QUEST = "master/quest/event/tower_dungeon_event_quest.orderedmap"
+
+    @staticmethod
+    def direct_row(field, thumbnail, level):
+        row = [""] * 12
+        row[3] = thumbnail
+        row[7] = str(level)
+        row[10] = field
+        return ",".join(row)
+
+    @staticmethod
+    def tower_row(floor_key, thumbnail, level):
+        row = [""] * 100
+        row[3] = thumbnail
+        row[96] = str(level)
+        row[99] = floor_key
+        return ",".join(row)
+
+    def evidence(self):
+        field_data = {
+            "boss_field": "boss_field,terrain,zone",
+            "floor_only_field": "floor_only_field,terrain,zone",
+            "mod_rogue_f24": "mod_rogue_f24,terrain,zone",
+        }
+        floor = {
+            "official_floor": (
+                "floor_only_field,bgm,floor/icon_31x31\n"
+                "boss_field,bgm,floor/wrong_icon"),
+        }
+        quest_tables = {
+            self.BOSS_QUEST: {
+                "low": self.direct_row(
+                    "boss_field", "quest/thumbnail/boss_low", 50),
+                "high": self.direct_row(
+                    "boss_field", "quest/thumbnail/boss_high", 100),
+                "generated": self.direct_row(
+                    "mod_rogue_f24", "quest/thumbnail/stale", 100),
+            },
+            self.TOWER_QUEST: {
+                "host": self.tower_row(
+                    "official_floor", "quest/thumbnail/tower_host", 90),
+            },
+        }
+        return rb.field_thumbnail_evidence_map(
+            field_data=field_data,
+            floor=floor,
+            quest_tables=quest_tables,
+            asset_exists=lambda logical: logical.endswith(".png"),
+        )
+
+    def test_exact_highest_level_quest_cover_beats_floor_icon_and_host(self):
+        evidence = self.evidence()["boss_field"]
+        self.assertEqual("quest/thumbnail/boss_high", evidence["thumbnail"])
+        self.assertEqual("exact_field", evidence["source_match"])
+        self.assertEqual(100, evidence["source_level"])
+        self.assertEqual(
+            "quest/thumbnail/boss_high.png", evidence["asset_logical"])
+        self.assertTrue(evidence["static_verified"])
+        self.assertIs(evidence["runtime_simulated"], False)
+        self.assertIs(evidence["gameplay_verified"], False)
+
+    def test_floor_host_is_only_fallback_and_never_uses_floor_icon(self):
+        evidence = self.evidence()["floor_only_field"]
+        self.assertEqual("quest/thumbnail/tower_host", evidence["thumbnail"])
+        self.assertEqual("floor_host_quest", evidence["source_match"])
+        self.assertEqual("official_floor", evidence["floor_key"])
+
+    def test_generated_field_cannot_launder_its_stale_cover_into_evidence(self):
+        self.assertNotIn("mod_rogue_f24", self.evidence())
+
+    def test_actual_boss_donor_cover_overrides_terrain_thumbnail(self):
+        thumbnail, evidence = rb.resolve_quest_thumbnail(
+            "boss_field", "quest/thumbnail/terrain_boss",
+            self.evidence(), require=True)
+        self.assertEqual("quest/thumbnail/boss_high", thumbnail)
+        self.assertEqual("boss_field", evidence["field"])
+
+    def test_boss_floor_without_evidence_cannot_keep_template_cover(self):
+        with self.assertRaisesRegex(ValueError, "拒绝沿用模板/地形封面"):
+            rb.resolve_quest_thumbnail(
+                "unknown", "quest/thumbnail/template", {}, require=True)
+
+        row = [""] * 100
+        row[5] = "quest/thumbnail/template"
+        with self.assertRaisesRegex(ValueError, "拒绝沿用模板旧封面"):
+            rb.patch_quest_boss_fields(
+                row, field="unknown", bosses=["boss"], thumbnail="",
+                bgm=None, enemy_level=100, rng=random.Random(1),
+                field_elements={}, boss_elements={}, require_thumbnail=True)
+
+    def test_missing_png_is_rejected_before_c5_write(self):
+        row = [""] * 100
+        with self.assertRaisesRegex(ValueError, "封面资源不存在"):
+            rb.patch_quest_boss_fields(
+                row, field="boss_field", bosses=["boss"],
+                thumbnail="quest/thumbnail/missing", bgm=None,
+                enemy_level=100, rng=random.Random(1),
+                field_elements={"boss_field": 0}, boss_elements={},
+                require_thumbnail=True,
+                thumbnail_asset_exists=lambda _logical: False)
 
 
 class ScheduleV8Case(unittest.TestCase):
@@ -1813,6 +1948,7 @@ class EndlessRerollSafetyCase(unittest.TestCase):
                 return mock.Mock(returncode=0)
 
             with mock.patch.object(q, "store_path", return_value=quest_path), \
+                 mock.patch.object(q, "exists_current", return_value=True), \
                  mock.patch.object(rb, "choose_endless_native_bundle",
                                    return_value=bundle) as selector, \
                  mock.patch.object(rb, "field_official_elem_map",
@@ -1880,6 +2016,7 @@ class EndlessRerollSafetyCase(unittest.TestCase):
                 return mock.Mock(returncode=7)
 
             with mock.patch.object(q, "store_path", return_value=quest_path), \
+                 mock.patch.object(q, "exists_current", return_value=True), \
                  mock.patch.object(rb, "choose_endless_native_bundle",
                                    return_value=bundle), \
                  mock.patch.object(rb, "field_official_elem_map",
@@ -1920,6 +2057,7 @@ class EndlessRerollSafetyCase(unittest.TestCase):
                 return mock.Mock(returncode=0 if "--list" in command else 9)
 
             with mock.patch.object(q, "store_path", return_value=quest_path), \
+                 mock.patch.object(q, "exists_current", return_value=True), \
                  mock.patch.object(rb, "choose_endless_native_bundle",
                                    return_value=bundle), \
                  mock.patch.object(rb, "field_official_elem_map",
@@ -1990,6 +2128,95 @@ class StandardBossHpCase(unittest.TestCase):
                      {"au": [{"d": ["T1", float("nan")]}]}):
             with self.assertRaises(ValueError, msg=tree):
                 rb.standard_enemy_hp_base(tree)
+
+    @staticmethod
+    def _damage_check_tree() -> dict:
+        return {"au": [{
+            "d": ["T1", 65_000_000.0],
+            "g": [
+                {
+                    "a": 170,
+                    "b": ["T2", ["T1", ["T1", [171]]]],
+                    "c": ["T2", ["T1", ["T1", [170]]]],
+                    "d": ["T1", ["T1", 600]],
+                    "e": rb.STANDARD_DAMAGE_CHECK_STATE_KIND,
+                    "m": ["T2", {"a": 1.5, "d": True, "g": [335]}],
+                },
+                {
+                    # State kind 17 also uses packed T2, but it is a variable
+                    # check rather than the percentage-based red damage trial.
+                    "a": 28,
+                    "b": ["T2", ["T1", ["T1", [29]]]],
+                    "c": ["T2", ["T1", ["T1", [28]]]],
+                    "d": ["T1", ["T1", 845]],
+                    "e": 17,
+                    "m": ["T2", {
+                        "h": ["T6", [["T2", "damage_check_a"]]],
+                        "d": True,
+                        "g": [93],
+                    }],
+                },
+            ],
+        }]}
+
+    def test_damage_check_scales_percentage_but_not_other_t2_states(self):
+        source = self._damage_check_tree()
+        scaled = rb.scale_standard_enemy_hp_tree(source, 10.0)
+
+        records = rb.standard_damage_check_records(scaled)
+        self.assertEqual(len(records), 1)
+        self.assertEqual(records[0]["state_id"], 170)
+        self.assertEqual(records[0]["duration_frames"], 600.0)
+        self.assertAlmostEqual(records[0]["percentage"], 0.15)
+        self.assertEqual(scaled["au"][0]["g"][1], source["au"][0]["g"][1])
+
+        contract = rb.standard_damage_check_contract(
+            source, scaled, runtime_hp_scale=1.0)
+        self.assertEqual(contract["occurrence_count"], 1)
+        receipt = contract["checks"][0]
+        self.assertEqual(receipt["source_absolute_threshold_hp"], 975_000.0)
+        self.assertEqual(receipt["final_absolute_threshold_hp"], 975_000.0)
+        self.assertEqual(receipt["duration_frames"], 600.0)
+        self.assertFalse(contract["runtime_simulated"])
+        self.assertFalse(contract["gameplay_verified"])
+
+    def test_malformed_real_damage_check_fails_closed(self):
+        tree = self._damage_check_tree()
+        del tree["au"][0]["g"][0]["m"][1]["a"]
+        with self.assertRaisesRegex(ValueError, "DamageCheck payload 非法"):
+            rb.standard_damage_check_records(tree)
+
+    def test_live_epuration_red_trials_keep_absolute_damage_thresholds(self):
+        try:
+            sb = q.load_table(rb.STANDARD_BOSS)
+            evidence = rb.standard_boss_hp_evidence(
+                "epuration_boss_dragon_main", 80, sb)
+            source = rb._read_standard_enemy_dsl(evidence["logical"])
+        except FileNotFoundError:
+            self.skipTest("store 不可用")
+
+        scaled = rb.scale_standard_enemy_hp_tree(source, 10.0)
+        source_checks = rb.standard_damage_check_records(source)
+        final_checks = rb.standard_damage_check_records(scaled)
+        self.assertEqual(
+            [check["percentage"] for check in source_checks], [1.5, 60.0])
+        self.assertEqual(
+            [check["percentage"] for check in final_checks], [0.15, 6.0])
+        self.assertEqual(
+            [check["duration_frames"] for check in final_checks], [600.0, 600.0])
+
+        contract = rb.standard_damage_check_contract(
+            source, scaled, runtime_hp_scale=1.0)
+        self.assertEqual(contract["occurrence_count"], 2)
+        self.assertEqual(
+            [check["source_absolute_threshold_hp"]
+             for check in contract["checks"]], [675_000.0, 27_000_000.0])
+        self.assertEqual(
+            [check["final_absolute_threshold_hp"]
+             for check in contract["checks"]], [675_000.0, 27_000_000.0])
+        self.assertTrue(contract["topology_preserved"])
+        self.assertFalse(contract["runtime_simulated"])
+        self.assertFalse(contract["gameplay_verified"])
 
     def test_live_chapter12_resource_decodes_to_700m(self):
         try:
@@ -2175,6 +2402,29 @@ class BossLevelHpScalingCase(unittest.TestCase):
     @staticmethod
     def _general_node(*levels: int) -> dict:
         return {str(level): f"general@{level}" for level in levels}
+
+    @staticmethod
+    def _general_state_node(routine: str, percentage: str = "20") -> tuple[dict, dict]:
+        general = [""] * 161
+        general[42] = routine
+        trial = [""] * 53
+        trial[0] = "trial_state"
+        trial[16] = percentage
+        trial[17:22] = ["true", "false", "true", "false", "failed_state"]
+        trial[29:33] = ["0", "", "success_state", ""]
+        ordinary = list(trial)
+        ordinary[0] = "ordinary_state"
+        ordinary[16] = "(None)"
+        # next_state test kind 9 is a different DamageCheck condition.  It is
+        # intentionally present on the non-red state to pin that distinction.
+        ordinary[29:33] = ["9", "", "17", "target_state"]
+        return (
+            {"100": rb.join(general, False)},
+            {routine: {"1": {
+                "trial": rb.join(trial, False),
+                "ordinary": rb.join(ordinary, False),
+            }}},
+        )
 
     def test_surjectivity_selects_the_first_level_not_below_the_enemy(self):
         node = self._general_node(79, 100)
@@ -2622,6 +2872,9 @@ class BossLevelHpScalingCase(unittest.TestCase):
                 "r": 2, "adapter_audit": fire_receipt,
                 "verified": True, "absolute_verified": True,
                 "target_exempt": False,
+                "quest_hp_multipliers": rb.quest_hp_multiplier_plan(
+                    baseline=fire_receipt.baseline_c86,
+                    final=fire_receipt.final_c86, has_boss=True),
                 "phase_behavior": {
                     "verified": True,
                     "static_verified": True,
@@ -2638,11 +2891,13 @@ class BossLevelHpScalingCase(unittest.TestCase):
             }],
             floor_records=[{
                 "r": 2,
+                "row": quest_hp_row(boss=fire_receipt.final_c86),
                 "pick": {
                     "field": bundles["fire_sphere"].source_field,
                     "play_field": "mod_rogue_f2", "level": 100,
                     "bosses": [fire_native["graph"].parent_ref.code],
                     "runtime_bosses": [fire_result.parent_code],
+                    **thumbnail_pick_fields(bundles["fire_sphere"].source_field),
                 },
             }],
             chain_reports=[
@@ -2809,14 +3064,19 @@ class BossLevelHpScalingCase(unittest.TestCase):
                 "r": 2, "adapter_audit": receipt,
                 "verified": True, "absolute_verified": True,
                 "target_exempt": False, "phase_behavior": phase_behavior,
+                "quest_hp_multipliers": rb.quest_hp_multiplier_plan(
+                    baseline=receipt.baseline_c86,
+                    final=receipt.final_c86, has_boss=True),
             }],
             floor_records=[{
                 "r": 2,
+                "row": quest_hp_row(boss=receipt.final_c86),
                 "pick": {
                     "field": bundle.source_field,
                     "play_field": "mod_rogue_f2", "level": 100,
                     "bosses": [source_code],
                     "runtime_bosses": [result.parent_code],
+                    **thumbnail_pick_fields(bundle.source_field),
                 },
             }],
             chain_reports=[
@@ -3058,10 +3318,13 @@ class BossLevelHpScalingCase(unittest.TestCase):
             native = rb.orochi_native_hp_evidence(bundle, 100, planned_tables)
             self.assertTrue(native["verified"], native)
             self.assertTrue(native["absolute_verified"])
-            self.assertEqual(len(native["components"]), 9)
+            self.assertEqual(len(native["components"]), 1)
             self.assertEqual(
                 [component["phase"] for component in native["components"]],
-                ["parent"] + [f"head[{index}]" for index in range(1, 9)])
+                ["parent"])
+            self.assertEqual(len(native["mechanism_components"]), 8)
+            self.assertFalse(
+                native["mechanism_budget"]["counts_toward_boss_target"])
             baseline_target = float(native["native_hp"]) * 2.0
             final_target = baseline_target * 1.5
             plan = rb.orochi_hp_scale_plan(
@@ -3071,7 +3334,8 @@ class BossLevelHpScalingCase(unittest.TestCase):
             self.assertEqual(plan["family"], "orochi")
             self.assertAlmostEqual(plan["baseline_scale"], 2.0)
             self.assertAlmostEqual(plan["final_scale"], 3.0)
-            self.assertEqual(len(plan["baseline_component_hp"]), 9)
+            self.assertEqual(len(plan["baseline_component_hp"]), 1)
+            self.assertEqual(plan["mechanism_budget"]["occurrences"], 8)
 
             result = rb.clone_orochi_parent_bundle(
                 bundle, 9, plan["final_scale"], planned_tables)
@@ -3087,7 +3351,7 @@ class BossLevelHpScalingCase(unittest.TestCase):
                 readback_native=final_native,
                 baseline_component_hp=plan["baseline_component_hp"],
             )
-            self.assertEqual(len(receipt.components), 9)
+            self.assertEqual(len(receipt.components), 1)
             self.assertTrue(receipt.absolute_verified)
             self.assertTrue(receipt.within_tolerance, receipt)
             self.assertAlmostEqual(receipt.baseline_readback_hp,
@@ -3102,15 +3366,21 @@ class BossLevelHpScalingCase(unittest.TestCase):
                     "r": 2, "adapter_audit": receipt,
                     "verified": True, "absolute_verified": True,
                     "target_exempt": False,
+                    "quest_hp_multipliers": rb.quest_hp_multiplier_plan(
+                        baseline=receipt.baseline_c86,
+                        final=receipt.final_c86, has_boss=True),
+                    "mechanism_budget": plan["mechanism_budget"],
                 }],
                 floor_records=[{
                     "r": 2,
+                    "row": quest_hp_row(boss=receipt.final_c86),
                     "pick": {
                         "field": bundle.source_field,
                         "play_field": "mod_rogue_f2",
                         "level": 100,
                         "bosses": ["orochi_all_head_single"],
                         "runtime_bosses": [result.parent_code],
+                        **thumbnail_pick_fields(bundle.source_field),
                     },
                 }],
                 chain_reports=[
@@ -3388,6 +3658,141 @@ class BossLevelHpScalingCase(unittest.TestCase):
                 code_references=partner_only)
             self.assertEqual(closed["channel"], "boss_level")
             self.assertEqual(closed["true_hp"], 3_000.0)
+
+    def test_general_red_trial_scales_c16_from_final_hp_including_curse(self):
+        general_node, state_table = self._general_state_node("trial_routine")
+        source_state = copy.deepcopy(state_table)
+        native = {
+            "verified": True, "absolute_verified": True,
+            "native_hp": 100.0,
+            "components": [{
+                "code": "trial_boss", "kind": "general",
+                "native_hp": 100.0, "evidence_kind": "absolute",
+            }],
+        }
+        plan = rb.general_hp_scale_plan(
+            ["trial_boss"], native, {"trial_boss": general_node},
+            {"trial_boss": self._boss_level(10)}, 100,
+            target_hp=1_000.0, curse_hp=0.5,
+            code_references=self.SAFE_REFS,
+            general_boss_state=state_table)
+
+        damage_plan = plan["damage_check_plans"]["trial_boss"]
+        self.assertEqual(
+            rb.general_damage_check_records(
+                damage_plan["baseline_routine_tree"])[0]["percentage"], 2.0)
+        self.assertEqual(
+            rb.general_damage_check_records(
+                damage_plan["final_routine_tree"])[0]["percentage"], 4.0)
+        self.assertEqual(state_table, source_state, "规划阶段不得污染官方 routine")
+
+        cloned_states = copy.deepcopy(state_table)
+        cloned_general, contract = rb.materialize_general_damage_check_clone(
+            copy.deepcopy(general_node), cloned_states, damage_plan,
+            clone_code="mod_rogue_boss24")
+        selected = rb.cells(cloned_general["100"])
+        self.assertEqual(selected[42], "mod_rogue_boss24_state")
+        self.assertEqual(
+            rb.general_damage_check_records(
+                cloned_states["mod_rogue_boss24_state"])[0]["percentage"], 4.0)
+        self.assertEqual(contract["occurrence_count"], 1)
+        self.assertEqual(contract["hp_curse_multiplier"], 0.5)
+        self.assertEqual(
+            contract["checks"][0]["source_absolute_threshold_hp"], 20.0)
+        self.assertEqual(
+            contract["checks"][0]["baseline_absolute_threshold_hp"], 20.0)
+        self.assertEqual(
+            contract["checks"][0]["final_absolute_threshold_hp"], 20.0)
+        self.assertTrue(contract["non_percentage_columns_preserved"])
+        self.assertFalse(contract["runtime_simulated"])
+        self.assertFalse(contract["gameplay_verified"])
+
+        watch = {"trial_routine": {"keep": "watch"}}
+        self.assertEqual(rb.clone_enemy_watch_routine_alias(
+            watch, "trial_routine", "mod_rogue_boss24_state"), 1)
+        self.assertEqual(
+            watch["trial_routine"], watch["mod_rogue_boss24_state"])
+
+    def test_general_red_trial_rejects_proxy_origin_hp_curve(self):
+        general_node, state_table = self._general_state_node("trial_routine")
+        native = {
+            "verified": True, "absolute_verified": False,
+            "native_hp": 100.0,
+            "components": [{
+                "code": "trial_boss", "kind": "general",
+                "hp_curve_kind": "hit", "native_hp": 100.0,
+                "evidence_kind": "proxy",
+            }],
+        }
+        with self.assertRaisesRegex(ValueError, "源 HP 曲线仍是代理"):
+            rb.general_hp_scale_plan(
+                ["trial_boss"], native, {"trial_boss": general_node},
+                {"trial_boss": self._boss_level(10)}, 100,
+                target_hp=1_000.0, curse_hp=1.0,
+                code_references=self.SAFE_REFS,
+                general_boss_state=state_table)
+
+    def test_general_state_write_precedes_general_boss_reference(self):
+        write_plan = rb.rogue_battle_write_plan(
+            gimmick_dirty=True, caster_dirty=True, orochi_dirty=False,
+            enemy_watch_available=True, general_state_dirty=True)
+        self.assertLess(write_plan.index(rb.GENERAL_BOSS_STATE),
+                        write_plan.index(rb.GENERAL_BOSS))
+        self.assertLess(write_plan.index(rb.GENERAL_BOSS),
+                        write_plan.index(rb.ZONE_T))
+
+    def test_real_general_damage_check_table_round_trips(self):
+        try:
+            general_boss = q.load_table(rb.GENERAL_BOSS)
+            general_state = q.load_table(rb.GENERAL_BOSS_STATE)
+            boss_level = q.load_table(rb.BOSS_LEVEL)
+            standard_boss = q.load_table(rb.STANDARD_BOSS)
+        except FileNotFoundError:
+            self.skipTest("store 不可用")
+        refs = rb.code_referenced_bosses(general_boss)
+        chosen = None
+        for code, node in general_boss.items():
+            selected = rb.select_surjective_level(node, 100)
+            if selected is None:
+                continue
+            row = rb.cells(node[str(selected)])
+            if len(row) <= 42 or row[42] not in general_state:
+                continue
+            if not rb.general_damage_check_records(general_state[row[42]]):
+                continue
+            if rb.identity_clone_locked_boss_reason(
+                    [code], code_references=refs):
+                continue
+            native = rb.floor_native_hp(
+                [code], 100, standard_boss, boss_level)
+            if (native.get("absolute_verified")
+                    and {component.get("kind")
+                         for component in native.get("components") or ()}
+                    == {"general"}):
+                chosen = (str(code), native)
+                break
+        if chosen is None:
+            self.skipTest("当前真实表没有可克隆且绝对 HP 的 General 红条 Boss")
+        code, native = chosen
+        plan = rb.general_hp_scale_plan(
+            [code], native, general_boss, boss_level, 100,
+            target_hp=float(native["native_hp"]) * 10.0,
+            curse_hp=0.5, code_references=refs,
+            general_boss_state=general_state)
+        cloned_states = copy.deepcopy(general_state)
+        _node, contract = rb.materialize_general_damage_check_clone(
+            copy.deepcopy(general_boss[code]), cloned_states,
+            plan["damage_check_plans"][code],
+            clone_code="mod_rogue_boss98")
+        self.assertGreater(contract["occurrence_count"], 0)
+        self.assertTrue(contract["absolute_thresholds_preserved"])
+        for check in contract["checks"]:
+            self.assertAlmostEqual(
+                check["source_absolute_threshold_hp"],
+                check["baseline_absolute_threshold_hp"], delta=1e-4)
+            self.assertAlmostEqual(
+                check["source_absolute_threshold_hp"],
+                check["final_absolute_threshold_hp"], delta=1e-4)
 
     def test_proxy_hit_plan_rewrites_curve_and_proves_absolute_readback(self):
         def proxy_leaf(c2, c3=1):
@@ -3806,6 +4211,7 @@ class TowerHpTargetCase(unittest.TestCase):
         try:
             sb = q.load_table(rb.STANDARD_BOSS)
             gb = q.load_table(rb.GENERAL_BOSS)
+            gbs = q.load_table(rb.GENERAL_BOSS_STATE)
             bl = q.load_table("master/battle/boss/boss_level.orderedmap")
         except FileNotFoundError:
             self.skipTest("store 不可用")
@@ -3824,7 +4230,7 @@ class TowerHpTargetCase(unittest.TestCase):
             plan = rb.general_hp_scale_plan(
                 bosses, got, gb, bl, 100,
                 target_hp=rb.target_dps(r, 30) * 900.0, curse_hp=1.0,
-                code_references=refs)
+                code_references=refs, general_boss_state=gbs)
             self.assertEqual(plan["c86"], 1.0)
             self.assertEqual(set(plan["final_leaves"]), set(bosses))
 
@@ -3864,6 +4270,7 @@ class TowerHpTargetCase(unittest.TestCase):
         try:
             boss_level = q.load_table(rb.BOSS_LEVEL)
             general_boss = q.load_table(rb.GENERAL_BOSS)
+            general_boss_state = q.load_table(rb.GENERAL_BOSS_STATE)
             standard_boss = q.load_table(rb.STANDARD_BOSS)
             got = rb.floor_native_hp(
                 ["middle_boss_dragon_smr20_raid3"], 89,
@@ -3880,7 +4287,8 @@ class TowerHpTargetCase(unittest.TestCase):
             ["middle_boss_dragon_smr20_raid3"], got,
             general_boss, boss_level, 89,
             target_hp=22_500_000_000.0, curse_hp=2.5,
-            code_references=BossLevelHpScalingCase.SAFE_REFS)
+            code_references=BossLevelHpScalingCase.SAFE_REFS,
+            general_boss_state=general_boss_state)
         self.assertEqual(plan["hp_columns"], {
             "middle_boss_dragon_smr20_raid3": 5})
         clone_code = "mod_test_fix_hp"
@@ -4122,11 +4530,15 @@ class TaskCDryRunCase(unittest.TestCase):
         # 一旦「血量按不动就换 boss」复活,这一组断言会立刻红。
         labels = re.findall(r"第\s*(\d+)战 \[([^\]]*)\]", out)
         by_round = {int(r): label for r, label in labels}
-        for round_no, expected in ((15, "机工神兵"), (29, "无幻之宴"),
-                                   (30, "终始之龙")):
+        for round_no, expected in ((15, "机工神兵"), (29, "无幻之宴")):
             self.assertTrue(
                 by_round.get(round_no, "").startswith(expected),
                 f"第{round_no}战守门固定位被换掉了:{by_round.get(round_no)!r}")
+        # 第30战保留旧 schedule 键只为兼容布局计划；实际 picker 已是安全高难
+        # 终局池，终始之龙只是候选之一，不得再把它写成固定成品 Boss。
+        self.assertTrue(
+            by_round.get(30, "").startswith(("终局Boss", "终始之龙")),
+            f"第30战未落入终局候选池:{by_round.get(30)!r}")
         for source in ("机兵", "女帝歼灭者", "土俑嘉年华", "元素试炼"):
             self.assertTrue(
                 any(label.startswith(source) for label in by_round.values()),
@@ -5080,13 +5492,13 @@ class GeneralBossElementResistanceCase(unittest.TestCase):
                 forced={"curses": ["五相绝域", "元素禁壁", "血肉高墙"]})
         names = [c["name"] for c in out["picks"]]
         # 任务 C：第 29 战属于最后 20%，即使工坊只钉 3 项也须回补到第 4 格；
-        # 领域采用独立配额，最终应是 4 个普通诅咒 + 2 个领域，而不是总共 4 条。
+        # 领域采用独立配额；静态闭包未证明顺序调度前只落 1 个领域。
         # 同时深层禁时限，所以 mock 池里的时之枷锁不能拿来凑数。
         ordinary = [c for c in out["picks"] if not c.get("caster")]
         fields = [c for c in out["picks"] if c.get("caster")]
         self.assertEqual(len(ordinary), 4)
-        self.assertEqual(len(fields), 2)
-        self.assertEqual(len(names), 6)
+        self.assertEqual(len(fields), 1)
+        self.assertEqual(len(names), 5)
         self.assertIn("五相绝域", names)
         self.assertIn("血肉高墙", names)
         self.assertNotIn("元素禁壁", names)
@@ -5190,10 +5602,10 @@ class HellEverywhereCase(unittest.TestCase):
     def test_deep_round_boundaries_and_field_slots(self):
         self.assertFalse(rb.is_deep_round(24, 30))
         self.assertTrue(rb.is_deep_round(25, 30))
-        for r, want in ((15, 0), (16, 1), (24, 1), (25, 2), (30, 2)):
+        for r, want in ((15, 0), (16, 1), (24, 1), (25, 1), (30, 1)):
             self.assertEqual(rb.required_field_slots(r, 30), want, r)
 
-    def test_deep_random_roll_has_two_distinct_fields_and_no_time_limit(self):
+    def test_deep_random_roll_has_one_field_and_no_time_limit(self):
         import random as _r
         menu = [
             ("领域甲", "battle/action/a", "效果甲", "领域"),
@@ -5204,11 +5616,11 @@ class HellEverywhereCase(unittest.TestCase):
             out = rb.abyss_curses(
                 25, 30, _r.Random(20260805), "hell",
                 caps={"boss": True, "element": True, "panel": True})
-        # “第4个诅咒”与“双领域”是两条独立机制：4 个非领域 + 2 个领域。
-        self.assertEqual(len(out["picks"]), 6)
+        # “第4个诅咒”与领域是两条独立机制：4 个非领域 + 1 个领域。
+        self.assertEqual(len(out["picks"]), 5)
         self.assertEqual(sum(not c.get("caster") for c in out["picks"]), 4)
-        self.assertEqual(len(out["casters"]), 2)
-        self.assertEqual(len({m[1] for m in out["casters"]}), 2)
+        self.assertEqual(len(out["casters"]), 1)
+        self.assertEqual(len({m[1] for m in out["casters"]}), 1)
         self.assertFalse(any("time" in c for c in out["picks"]), out["picks"])
         self.assertEqual(out["field_deficit"], 0)
 
@@ -5222,8 +5634,8 @@ class HellEverywhereCase(unittest.TestCase):
                 forced={"curses": ["时之枷锁"]})
         self.assertEqual(len(out["picks"]), 4)
         self.assertFalse(any("time" in c for c in out["picks"]), out["picks"])
-        self.assertEqual(out["field_requested"], 2)
-        self.assertEqual(out["field_deficit"], 2)
+        self.assertEqual(out["field_requested"], 1)
+        self.assertEqual(out["field_deficit"], 1)
         self.assertTrue(any("深层禁时限" in str(call) and "redraw" in str(call)
                             for call in logger.call_args_list), logger.call_args_list)
 
@@ -5243,7 +5655,7 @@ class HellEverywhereCase(unittest.TestCase):
                 forced={"curses": forced})
         ordinary = [c for c in out["picks"] if not c.get("caster")]
         self.assertEqual(len(ordinary), 4)
-        self.assertEqual(len(out["casters"]), 2)
+        self.assertEqual(len(out["casters"]), 1)
         self.assertNotIn("元素禁壁", {c["name"] for c in ordinary})
         self.assertTrue(any("深层普通诅咒固定 4 个" in str(call)
                             for call in logger.call_args_list), logger.call_args_list)
