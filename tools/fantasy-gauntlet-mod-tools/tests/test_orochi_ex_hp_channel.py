@@ -57,6 +57,38 @@ class TestOrochiExHpChannel(unittest.TestCase):
         with self.assertRaisesRegex(channel.OrochiExHpError, "no dedicated row"):
             channel.read_fixed_phase_hp(self.dedicated, "orochi_ex", 101)
 
+    def test_incident_phase3_overflow_reproduces_negative_icon_threshold(self) -> None:
+        incident = {
+            "mod_rogue_orochi_ex24": {
+                "100": leaf(parent_row(1_914_595_756, 3_063_353_210)),
+            },
+        }
+        with self.assertRaisesRegex(
+                channel.OrochiExHpError, "signed int32 HP range"):
+            channel.read_fixed_phase_hp(
+                incident, "mod_rogue_orochi_ex24", 100)
+
+        wrapped_phase3 = 3_063_353_210 - 2 ** 32
+        middle = 1_236_336_747.684847
+        wrapped_total = 1_914_595_756 + middle + wrapped_phase3
+        wrapped_phase2_threshold = wrapped_phase3 / wrapped_total
+        self.assertEqual(wrapped_phase3, -1_231_614_086)
+        self.assertLess(wrapped_phase2_threshold, 0)
+        self.assertLess(int(wrapped_phase2_threshold * 100), 0)
+
+    def test_builder_rejects_int32_overflow_without_mutating_either_table(self) -> None:
+        before_dedicated = copy.deepcopy(self.dedicated)
+        before_levels = copy.deepcopy(self.levels)
+        with self.assertRaisesRegex(
+                channel.OrochiExHpError, "signed int32 HP range"):
+            channel.build_scaled_hp_rows(
+                self.dedicated, self.levels,
+                "orochi_ex", "orochi_ex_overflow",
+                fixed_phase_scale=30.0, middle_scale=1.0,
+            )
+        self.assertEqual(self.dedicated, before_dedicated)
+        self.assertEqual(self.levels, before_levels)
+
     def test_builder_scales_fixed_and_middle_channels_without_mutating_source(self) -> None:
         before_dedicated = copy.deepcopy(self.dedicated)
         before_levels = copy.deepcopy(self.levels)
@@ -170,7 +202,8 @@ class TestOrochiExHpChannel(unittest.TestCase):
                 native, dedicated, levels,
                 target_hp=baseline_target, curse_hp=1.25)
             result = rogue.clone_orochi_ex_parent_bundle(
-                bundle, 12, plan["final_scale"], tables)
+                bundle, 12, plan["final_fixed_phase_scale"], tables,
+                middle_scale=plan["final_middle_scale"])
             self.assertTrue(result.ok, result)
             self.assertEqual(result.parent_code, "mod_rogue_orochi_ex12")
             self.assertEqual(result.head_codes, tuple(
@@ -198,6 +231,10 @@ class TestOrochiExHpChannel(unittest.TestCase):
             )
             self.assertTrue(receipt.within_tolerance, receipt)
             self.assertLess(abs(receipt.final_error_hp), 1.0)
+            self.assertTrue(
+                result.evidence["clone_semantics"]["static_verified"])
+            self.assertFalse(
+                result.evidence["clone_semantics"]["gameplay_verified"])
 
         for table_name, original in before.items():
             for code, value in original.items():
@@ -211,6 +248,146 @@ class TestOrochiExHpChannel(unittest.TestCase):
             bundle, 13, 2.0, malformed)
         self.assertFalse(rejected.ok)
         self.assertEqual(malformed, malformed_before)
+
+        tampered = copy.deepcopy(before)
+        tampered_before = copy.deepcopy(tampered)
+        original_builder = channel.build_scaled_hp_rows
+
+        def tamper_non_hp_column(*args, **kwargs):
+            node, level, report = original_builder(*args, **kwargs)
+            row = core.read_csv_lines(node["100"])[0]
+            row[0] = "unexpected_phase_or_wait_drift"
+            node["100"] = leaf(row)
+            return node, level, report
+
+        with mock.patch.object(
+                channel, "build_scaled_hp_rows",
+                side_effect=tamper_non_hp_column):
+            rejected = rogue.clone_orochi_ex_parent_bundle(
+                bundle, 14, 2.0, tampered)
+        self.assertFalse(rejected.ok)
+        self.assertIn("non-HP/child topology drift", rejected.detail)
+        self.assertEqual(tampered, tampered_before)
+
+    def test_high_target_uses_int32_capped_fixed_bars_and_middle_remainder(self) -> None:
+        parent = parent_row()
+        for index, code in zip(
+                rogue.OROCHI_EX_CHILD_COLUMNS,
+                rogue.OROCHI_EX_CANONICAL_HEADS):
+            parent[index] = code
+        dedicated = {"orochi_ex": {"100": leaf(parent)}}
+        heads = {
+            code: {"100": leaf([""] * 179)}
+            for code in rogue.OROCHI_EX_CANONICAL_HEADS
+        }
+        levels = {"orochi_ex": leaf(level_row())}
+        levels.update({
+            code: leaf(level_row(100 + ordinal))
+            for ordinal, code in enumerate(
+                rogue.OROCHI_EX_CANONICAL_HEADS, start=1)
+        })
+        bundle = rbb.NativeBossBundle(
+            family_id="orochi-ex", family_name="八岐大蛇 EX",
+            variant_id="orochi-ex-v", variant_name="official_three_phase",
+            source_field="multi_normal_1_20_4",
+            source_zone="multi_normal_1_20_4",
+            terrain_logical="battle/field/orochi_ex.terrain.amf3.deflate",
+            active_layers=("0",),
+            slots=(rbb.ActiveBossSlot(
+                "0", 1, 0, rbb.BossRef(4, "orochi_ex"),
+                rbb.BossRef(4, "orochi_ex")),),
+            bgm=None, thumbnail="", source_category="test",
+            selected_levels=(("0", 1, 100),),
+        )
+        tables = {
+            "orochi_ex": dedicated,
+            "orochi_ex_head": heads,
+            "boss_level": levels,
+        }
+
+        def true_stat(code, _kind, _level, boss_level):
+            return float(core.read_csv_lines(boss_level[code])[0][2]) * 10.0, "*"
+
+        def stats(boss_level):
+            return {
+                code: {"hpc": "hit_hp_boss", "hp_mode": "hit"}
+                for code in boss_level
+            }
+
+        baseline_target = 12_428_571_428.571428
+        final_target = baseline_target * 0.5
+        with (
+            mock.patch.object(rogue, "true_stat", side_effect=true_stat),
+            mock.patch.object(rogue, "boss_base_stats", side_effect=stats),
+            mock.patch.object(rogue, "curve_value", return_value=1.0),
+        ):
+            native = rogue.orochi_ex_native_hp_evidence(bundle, 100, tables)
+            plan = rogue.orochi_ex_hp_scale_plan(
+                native, dedicated, levels,
+                target_hp=baseline_target, curse_hp=0.5)
+            result = rogue.clone_orochi_ex_parent_bundle(
+                bundle, 24, plan["final_fixed_phase_scale"], tables,
+                middle_scale=plan["final_middle_scale"])
+            self.assertTrue(result.ok, result)
+            readback = rogue.orochi_ex_native_hp_evidence(
+                result.bundle, 100, tables)
+
+        self.assertTrue(plan["baseline_fixed_phase_int32_capped"])
+        self.assertTrue(plan["final_fixed_phase_int32_capped"])
+        self.assertNotEqual(
+            plan["final_fixed_phase_scale"], plan["final_middle_scale"])
+        self.assertLessEqual(
+            max(plan["final_component_hp"][0],
+                plan["final_component_hp"][2]),
+            channel.CLIENT_SIGNED_INT_MAX)
+        self.assertLess(abs(plan["baseline_true_hp"] - baseline_target), 1.0)
+        self.assertLess(abs(plan["true_hp"] - final_target), 1.0)
+        self.assertLess(abs(float(readback["native_hp"]) - final_target), 1.0)
+        contract = readback["phase_threshold_contract"]
+        self.assertTrue(contract["static_verified"])
+        self.assertTrue(all(0 <= value <= 99
+                            for value in contract["icon_numbers"]))
+        self.assertFalse(contract["gameplay_verified"])
+
+        phase_safety = {
+            "baseline": plan["baseline_phase_threshold_contract"],
+            "final": plan["final_phase_threshold_contract"],
+            "baseline_fixed_phase_scale": plan["baseline_fixed_phase_scale"],
+            "baseline_middle_scale": plan["baseline_middle_scale"],
+            "final_fixed_phase_scale": plan["final_fixed_phase_scale"],
+            "final_middle_scale": plan["final_middle_scale"],
+            "max_safe_fixed_phase_scale": plan["max_safe_fixed_phase_scale"],
+            "baseline_fixed_phase_int32_capped": (
+                plan["baseline_fixed_phase_int32_capped"]),
+            "final_fixed_phase_int32_capped": (
+                plan["final_fixed_phase_int32_capped"]),
+            "clone_semantics": result.evidence["clone_semantics"],
+            "static_verified": True,
+            "runtime_simulated": False,
+            "gameplay_verified": False,
+        }
+        adapter = {
+            "components": [
+                {
+                    "baseline_readback_hp": baseline,
+                    "final_readback_hp": final,
+                }
+                for baseline, final in zip(
+                    plan["baseline_component_hp"],
+                    plan["final_component_hp"])
+            ],
+            "phase_safety": phase_safety,
+        }
+        self.assertEqual(
+            [], rogue._verify_orochi_ex_phase_safety_receipt(
+                "第24战", adapter))
+        tampered_adapter = copy.deepcopy(adapter)
+        tampered_adapter["phase_safety"]["final"]["phase3_hp"] = (
+            channel.CLIENT_SIGNED_INT_MAX + 1)
+        self.assertTrue(any(
+            "signed int32" in error or "三阶段回读不一致" in error
+            for error in rogue._verify_orochi_ex_phase_safety_receipt(
+                "第24战", tampered_adapter)))
 
 
 if __name__ == "__main__":

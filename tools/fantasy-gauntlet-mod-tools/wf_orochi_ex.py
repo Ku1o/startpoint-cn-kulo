@@ -27,6 +27,7 @@ PHASE1_HP_COLUMN = 24
 PHASE3_HP_COLUMN = 25
 PARENT_COLUMNS = 128
 BOSS_LEVEL_COLUMNS = 13
+CLIENT_SIGNED_INT_MAX = 2_147_483_647
 
 
 class OrochiExHpError(ValueError):
@@ -79,6 +80,27 @@ def _positive(value: str, *, label: str) -> float:
     return parsed
 
 
+def _positive_client_int(value: str | int | float, *, label: str) -> int:
+    """Parse one ActionScript ``int`` HP field without allowing wraparound."""
+    try:
+        if isinstance(value, float):
+            if not math.isfinite(value) or not value.is_integer():
+                raise ValueError(value)
+            parsed = int(value)
+        else:
+            parsed = int(str(value).strip(), 10)
+    except (TypeError, ValueError) as exc:
+        raise OrochiExHpError(
+            f"{label} is not an integer client HP value: {value!r}"
+        ) from exc
+    if parsed <= 0 or parsed > CLIENT_SIGNED_INT_MAX:
+        raise OrochiExHpError(
+            f"{label} exceeds signed int32 HP range: {parsed} "
+            f"(allowed 1..{CLIENT_SIGNED_INT_MAX})"
+        )
+    return parsed
+
+
 def _factor(value: float, *, label: str) -> float:
     parsed = float(value)
     if not math.isfinite(parsed) or parsed <= 0:
@@ -116,13 +138,69 @@ def read_fixed_phase_hp(
         code=str(code),
         requested_level=int(level),
         selected_level=selected,
-        phase1_hp=_positive(
+        phase1_hp=_positive_client_int(
             row[PHASE1_HP_COLUMN], label=f"{code}.phase1_health_point"
         ),
-        phase3_hp=_positive(
+        phase3_hp=_positive_client_int(
             row[PHASE3_HP_COLUMN], label=f"{code}.phase3_health_point"
         ),
     )
+
+
+def phase_threshold_icon_contract(
+    phase1_hp: float, middle_hp: float, phase3_hp: float,
+) -> dict[str, Any]:
+    """Prove the client phase thresholds and their two-digit icon frames.
+
+    ``OrochiExValues`` parses phase 1/3 through ``Std.parseInt``.  The battle
+    then derives two fractional thresholds and passes ``int(ratio * 100)`` to
+    ``PhaseThresholdIcon``.  A wrapped negative fixed phase therefore becomes
+    an invalid MovieClip frame.  This receipt keeps that client contract in the
+    build gate while deliberately retaining the lack of real-device coverage.
+    """
+    phase1 = _positive_client_int(phase1_hp, label="phase1_health_point")
+    phase3 = _positive_client_int(phase3_hp, label="phase3_health_point")
+    middle = _positive(str(middle_hp), label="middle_health_point")
+    total = math.fsum((float(phase1), middle, float(phase3)))
+    if not math.isfinite(total) or total <= 0:
+        raise OrochiExHpError(f"Orochi EX total HP is invalid: {total!r}")
+    thresholds = (
+        math.fsum((middle, float(phase3))) / total,
+        float(phase3) / total,
+    )
+    if not all(math.isfinite(value) and 0 < value < 1
+               for value in thresholds):
+        raise OrochiExHpError(
+            f"Orochi EX phase threshold is outside (0,1): {thresholds!r}"
+        )
+    icon_numbers = tuple(int(value * 100) for value in thresholds)
+    icon_frames = tuple((number // 10 % 10, number % 10)
+                        for number in icon_numbers)
+    if (not all(0 <= number <= 99 for number in icon_numbers)
+            or not all(0 <= frame <= 9
+                       for pair in icon_frames for frame in pair)):
+        raise OrochiExHpError(
+            "Orochi EX PhaseThresholdIcon frame is outside 0..9:"
+            f"numbers={icon_numbers},frames={icon_frames}"
+        )
+    return {
+        "client_contract": (
+            "client-1.8.1:OrochiExValues.Std.parseInt(c24,c25)+"
+            "OrochiEx.init.thresholds+PhaseThresholdIcon.setNumber"
+        ),
+        "phase1_hp": phase1,
+        "middle_hp": middle,
+        "phase3_hp": phase3,
+        "total_hp": total,
+        "phase1_hp_threshold": thresholds[0],
+        "phase2_hp_threshold": thresholds[1],
+        "icon_numbers": icon_numbers,
+        "icon_frames_tens_ones": icon_frames,
+        "signed_int32_verified": True,
+        "static_verified": True,
+        "runtime_simulated": False,
+        "gameplay_verified": False,
+    }
 
 
 def hp_components(profile: FixedPhaseHp, middle_hp: float, *,
@@ -161,12 +239,17 @@ def hp_components(profile: FixedPhaseHp, middle_hp: float, *,
 
 
 def _scaled_text(value: str, factor: float, *, label: str) -> str:
-    scaled = _positive(value, label=label) * factor
+    scaled = _positive_client_int(value, label=label) * factor
     if not math.isfinite(scaled) or scaled <= 0:
         raise OrochiExHpError(f"{label} scaled to an invalid value: {scaled!r}")
     rounded = int(round(scaled))
     if rounded <= 0:
         raise OrochiExHpError(f"{label} rounded to a non-positive value: {rounded}")
+    if rounded > CLIENT_SIGNED_INT_MAX:
+        raise OrochiExHpError(
+            f"{label} scaled beyond signed int32 HP range: {rounded} "
+            f"(max {CLIENT_SIGNED_INT_MAX})"
+        )
     return str(rounded)
 
 
@@ -226,8 +309,10 @@ def build_scaled_hp_rows(
             leaf, label=f"orochi_ex[{source}][{level_key}]", size=PARENT_COLUMNS
         )
         before = (
-            int(_positive(row[PHASE1_HP_COLUMN], label=f"{source}.phase1")),
-            int(_positive(row[PHASE3_HP_COLUMN], label=f"{source}.phase3")),
+            _positive_client_int(
+                row[PHASE1_HP_COLUMN], label=f"{source}.phase1"),
+            _positive_client_int(
+                row[PHASE3_HP_COLUMN], label=f"{source}.phase3"),
         )
         row[PHASE1_HP_COLUMN] = _scaled_text(
             row[PHASE1_HP_COLUMN], fixed_factor, label=f"{source}.phase1"

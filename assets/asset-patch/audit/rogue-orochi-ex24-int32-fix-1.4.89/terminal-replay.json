@@ -1,0 +1,53 @@
+{
+  "schema": "wf-rogue-floor24-terminal-replay/v1",
+  "base_version": "1.4.88",
+  "target_version": "1.4.89",
+  "archive": {
+    "name": "pinball-1.4.88-1.4.89-1-0826-rogue-orochi-ex24-int32-fix.zip",
+    "size": 15341,
+    "sha256": "9793c6e66c4f7cf0baf3ab47b612bca0dc7ce7ddb5fe5c7bbeb4c3b1426d925c",
+    "members": 2,
+    "member_paths": [
+      "production/upload/7c/0159ffd7078028b1c2eec135beb1884f7224fb",
+      "production/upload/19/a4aa442b3249499356e7a3f6370e530bfe355e"
+    ]
+  },
+  "terminal": {
+    "cdn_root": "F:\\startpoint-cn-main\\.cdn\\cn",
+    "server_root": "C:\\Users\\ASUS\\AppData\\Local\\Temp\\wf-orochi-ex24-terminal-u0hxqho6\\server",
+    "active_dir": "C:\\Users\\ASUS\\AppData\\Local\\Temp\\wf-orochi-ex24-terminal-u0hxqho6\\server\\assets\\asset-patch\\active",
+    "tail": "1.4.89",
+    "platform_tails": {
+      "android": "1.4.89",
+      "ios": "1.4.89"
+    },
+    "files": 141080,
+    "files_by_root": {
+      "common": 115178,
+      "medium": 23826,
+      "android": 1038,
+      "ios": 1038
+    },
+    "revision": "d3e274e2b63057e8fc7dd31d2267fbacd2bc8979fca40450ebeddef014eb95d3",
+    "source": "live-cdn+active"
+  },
+  "android_reachable": true,
+  "ios_reachable": true,
+  "resolved_tables": {
+    "master/battle/boss/orochi_ex.orderedmap": {
+      "sha256": "bd674c65e36dbe056fb2b6eb9d32161cb9a7a4eda3eecda4051a14a12000d555",
+      "bytes": 1037,
+      "root": "common",
+      "archive": "pinball-1.4.88-1.4.89-1-0826-rogue-orochi-ex24-int32-fix.zip",
+      "member": "production/upload/7c/0159ffd7078028b1c2eec135beb1884f7224fb"
+    },
+    "master/battle/boss/boss_level.orderedmap": {
+      "sha256": "12796f079d20269415769239664f65ea739a901a59d66799e1a236afb142da6a",
+      "bytes": 45549,
+      "root": "common",
+      "archive": "pinball-1.4.88-1.4.89-1-0826-rogue-orochi-ex24-int32-fix.zip",
+      "member": "production/upload/19/a4aa442b3249499356e7a3f6370e530bfe355e"
+    }
+  },
+  "gameplay_verified": false
+}

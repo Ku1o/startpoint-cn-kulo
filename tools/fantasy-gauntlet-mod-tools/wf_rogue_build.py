@@ -23,7 +23,9 @@
      general_zako 三表并集),悬空即剔除;构建产物写入前再复核一遍,断链拒绝产出。
   2. 等级覆盖:standard boss 的等级数据是 standard_boss 内层键,客户端取
      "≥敌等级 c95 的最小键",不存在即 U_50fc52「値 N に対応するキー…」;
-     门禁要求 max(内层键) ≥ enemy_level(general 路径实证宽容,不设限)。
+     Standard 要求 max(内层键) ≥ enemy_level；General 则先在
+     general_boss_variable 取 ≤enemy_level 的档 k，再要求 general_boss
+     存在 ≥k 的变体档，两步不得混成直接拿 enemy_level 查后表。
   3. 发布完整性:发布清单从本次实际落盘清单派生;--publish 后核对每个文件
      在 CDN diff 链最新版的字节与 store 一致,缺失/旧字节即报错退出。
 
@@ -154,7 +156,10 @@ STRICT_HP_NATIVE_SPECIAL_POLICY = (
         "family": "orochi_ex",
         "channel": "special_bundle",
         "field_policy": "native_only",
-        "closure": "parent+six_children+three_hp_phases",
+        "closure": (
+            "parent+six_children+three_hp_phases+"
+            "signed_int32_threshold_icon"
+        ),
     },
     {
         "match": "constructor",
@@ -335,6 +340,19 @@ SPHERE_SPECS = {
              "exit_column": 30, "expected_entities": 4,
              "expected_completion_count": 4, "overdamage": True},
         ),
+        "lifecycle_contracts": (
+            {"source_phase": 1, "target_phase": 2,
+             "trigger": "mandatory_gate_clear",
+             "member_phases": ("phase[1].crystal",),
+             "expected_entities": 2, "expected_completion_count": 2},
+            {"source_phase": 2, "target_phase": 3,
+             "trigger": "parent_hp_threshold", "threshold_column": 29},
+            {"source_phase": 3, "target_phase": 4,
+             "trigger": "child_damage_threshold",
+             "budget_phase": "phase[3].micronucleus"},
+            {"source_phase": 4, "target_phase": None,
+             "trigger": "parent_hp_depleted"},
+        ),
     },
     "holy_sphere": {
         "kind": 10, "canonical": "holy_sphere_single",
@@ -357,6 +375,19 @@ SPHERE_SPECS = {
             {"phase": "phase[3].micronucleus", "entry_column": 29,
              "exit_column": 30, "expected_entities": 5,
              "expected_completion_count": 5, "overdamage": True},
+        ),
+        "lifecycle_contracts": (
+            {"source_phase": 1, "target_phase": 2,
+             "trigger": "mandatory_gate_clear",
+             "member_phases": ("phase[1].crystal",),
+             "expected_entities": 2, "expected_completion_count": 2},
+            {"source_phase": 2, "target_phase": 3,
+             "trigger": "parent_hp_threshold", "threshold_column": 29},
+            {"source_phase": 3, "target_phase": 4,
+             "trigger": "child_damage_threshold",
+             "budget_phase": "phase[3].micronucleus"},
+            {"source_phase": 4, "target_phase": None,
+             "trigger": "parent_hp_depleted"},
         ),
     },
     "wind_sphere": {
@@ -388,6 +419,17 @@ SPHERE_SPECS = {
              "entry_column": 30, "exit_column": 31,
              "expected_entities": 4, "expected_completion_count": 3,
              "overdamage": True},
+        ),
+        "lifecycle_contracts": (
+            {"source_phase": 1, "target_phase": 2,
+             "trigger": "parent_hp_threshold", "threshold_column": 29},
+            {"source_phase": 2, "target_phase": 3,
+             "trigger": "parent_hp_threshold", "threshold_column": 30},
+            {"source_phase": 3, "target_phase": 4,
+             "trigger": "child_damage_threshold",
+             "budget_phase": "phase[3].damage_conduits"},
+            {"source_phase": 4, "target_phase": None,
+             "trigger": "parent_hp_depleted"},
         ),
     },
     "thunder_sphere": {
@@ -421,6 +463,18 @@ SPHERE_SPECS = {
              "exit_ratio": 0.0, "expected_entities": 3,
              "expected_completion_count": 2, "overdamage": False},
         ),
+        "lifecycle_contracts": (
+            {"source_phase": 1, "target_phase": 2,
+             "trigger": "parent_hp_threshold", "threshold_column": 30},
+            {"source_phase": 2, "target_phase": 3,
+             "trigger": "child_damage_threshold",
+             "budget_phase": "phase[2].micronucleus"},
+            {"source_phase": 3, "target_phase": 4,
+             "trigger": "parent_hp_threshold", "threshold_column": 32},
+            {"source_phase": 4, "target_phase": None,
+             "trigger": "child_damage_threshold",
+             "budget_phase": "phase[4].crystal"},
+        ),
     },
     "fire_sphere": {
         "kind": 13, "canonical": "fire_sphere",
@@ -446,6 +500,19 @@ SPHERE_SPECS = {
              "occurrences_per_entity": 2,
              "expected_completion_count": None, "overdamage": True,
              "budget_model": "raw_hit_overdamage"},
+        ),
+        "lifecycle_contracts": (
+            {"source_phase": 1, "target_phase": 2,
+             "trigger": "mandatory_gate_clear",
+             "member_phases": ("phase[1].crystal",),
+             "expected_entities": 3, "expected_completion_count": 3},
+            {"source_phase": 2, "target_phase": 3,
+             "trigger": "parent_hp_threshold", "threshold_column": 29},
+            {"source_phase": 3, "target_phase": 4,
+             "trigger": "parent_hp_threshold", "threshold_column": 30},
+            {"source_phase": 4, "target_phase": None,
+             "trigger": "child_damage_threshold",
+             "budget_phase": "phase[4].micronucleus"},
         ),
     },
 }
@@ -805,8 +872,9 @@ def boss_level_ok(code: str, level: int,
 #   子区间基准 = 本节点块的结束位置;第 i 项 = [base+前一项累积, base+本项累积)
 # 实证(hit_hp_correction_curve,856B):顶层 3 条曲线 → 每条 11 个等级档 → 叶子是数值字符串。
 #   hit_hp_boss lv100 = 78.271875 / non_element = 31.656625 / funnel = 12.808125(差 6 倍)
-# ⚠ `hit_hp_correction_normal`(240 boss)、`_practice`(14)、`atk_correction_normal`(254)
-#   **不在任何曲线表里** —— 是客户端内置默认,读不到;这些只能组内相对归一。
+# `hit_hp_correction_normal` / `_practice` 不在下载表，但它们并非
+# “客户端不可见的魔法常量”：安卓与 iOS 都从 APK bundle 中的
+# `*_iosbundled` 基表加载。内置快照与冲突门禁见下方。
 CURVE_TABLES = {
     "hp": "master/battle/enemy/hp/hit_hp_correction_curve.orderedmap",
     "hp_fix": "master/battle/enemy/hp/fix_hp_basic_curve.orderedmap",
@@ -820,8 +888,51 @@ CURVE_TABLES = {
 BUNDLED_CURVE_TABLES = {
     "hp": "master/battle/enemy/hp/hit_hp_correction_curve_iosbundled.orderedmap",
 }
+# 2026-08-26 从 22 份相互独立的 Android/iOS 兼容客户端基线交叉回读：
+# 逻辑成员字节均为 786 bytes，SHA-256 完全一致。这份小型快照让
+# 无本地 APK 的 CI/dry-run 也能按客户端公式审计 Kraken 和 normal Hit 族。
+# 如果显式/自动找到的客户端含有该成员但哈希不同，不会静默
+# 相信旧快照，而是 fail-closed，要求先重新提取和审计。
+CLIENT_BUNDLED_CURVE_SCHEMA = "wf-client-bundled-curve-baseline/v1"
+CLIENT_BUNDLED_HP_CURVE_MEMBER_SHA256 = (
+    "713007008fc91f55555eefe72e913380a29664e23b8e0ac2cfdca95e450f5370")
+CLIENT_BUNDLED_CURVE_BASELINE = {
+    "hp": {
+        "hit_hp_correction_funnel": {
+            "9": 1.0, "19": 1.155, "29": 1.221, "39": 1.344,
+            "49": 1.7556, "59": 4.175797725, "69": 4.982664225,
+            "79": 6.47213952, "89": 7.9464, "100": 9.62676,
+        },
+        "hit_hp_correction_normal": {
+            "9": 1.1, "19": 1.3552, "29": 1.5318, "39": 1.8816,
+            "49": 2.962575, "59": 8.243889885, "69": 9.669571065,
+            "79": 17.24699977, "89": 23.8392, "100": 31.26519,
+        },
+        "hit_hp_correction_practice": {
+            "9": 1.1, "19": 1.3552, "29": 1.5318, "39": 1.8816,
+            "49": 2.962575, "59": 8.243889885, "69": 9.669571065,
+            "79": 11.45626482, "89": 13.491646245, "100": 17.406576,
+        },
+    },
+}
 _CURVES: dict | None = None
 _BUNDLED_CURVES: dict | None = None
+
+
+def client_bundled_curve_baseline_receipt() -> dict:
+    """Stable provenance embedded in strict HP audit documents."""
+    curves = CLIENT_BUNDLED_CURVE_BASELINE["hp"]
+    return {
+        "schema": CLIENT_BUNDLED_CURVE_SCHEMA,
+        "logical": BUNDLED_CURVE_TABLES["hp"],
+        "member_sha256": CLIENT_BUNDLED_HP_CURVE_MEMBER_SHA256,
+        "member_size": 786,
+        "cross_checked_client_baselines": 22,
+        "curves": {
+            name: sorted(int(level) for level in levels)
+            for name, levels in sorted(curves.items())
+        },
+    }
 
 
 def _curve_tree_floats(tree) -> dict:
@@ -890,21 +1001,37 @@ def _bundle_member_bytes(source: Path, logical: str) -> bytes | None:
 
 
 def bundled_growth_curves() -> dict:
-    """Return client-bundled curve tables; missing APK is a safe empty base."""
+    """Return the audited client base; reject a conflicting local client.
+
+    The downloadable master tables overlay this base in ``growth_curves``.
+    Missing APK is safe because the exact member is pinned above; an APK that
+    actually carries a different member is not safe and stops the build.
+    """
     global _BUNDLED_CURVES
     if _BUNDLED_CURVES is not None:
         return _BUNDLED_CURVES
     source = _bundled_curve_source()
-    out: dict = {}
+    out = copy.deepcopy(CLIENT_BUNDLED_CURVE_BASELINE)
     if source is not None:
         for kind, logical in BUNDLED_CURVE_TABLES.items():
             raw = _bundle_member_bytes(source, logical)
             if raw is None:
                 continue
+            digest = hashlib.sha256(raw).hexdigest()
+            if digest != CLIENT_BUNDLED_HP_CURVE_MEMBER_SHA256:
+                raise ValueError(
+                    "CLIENT_BUNDLED_CURVE_CONFLICT "
+                    f"{source}:{logical}:sha256={digest},"
+                    f"expected={CLIENT_BUNDLED_HP_CURVE_MEMBER_SHA256}")
             try:
-                out[kind] = _curve_tree_floats(q.parse_node(raw))
-            except (TypeError, ValueError, zlib.error):
-                continue
+                parsed = _curve_tree_floats(q.parse_node(raw))
+            except (TypeError, ValueError, zlib.error) as exc:
+                raise ValueError(
+                    f"CLIENT_BUNDLED_CURVE_PARSE_FAILED {source}:{logical}") from exc
+            if parsed != CLIENT_BUNDLED_CURVE_BASELINE.get(kind):
+                raise ValueError(
+                    "CLIENT_BUNDLED_CURVE_CONTENT_CONFLICT "
+                    f"{source}:{logical}")
     _BUNDLED_CURVES = out
     return _BUNDLED_CURVES
 
@@ -1045,8 +1172,7 @@ def true_stat(code: str, kind: str, level: int = 100,
 
     曲线**已知**(hit_hp_boss / _non_element / _funnel、atk_single/multi/...)时
     返回 `基数 × 曲线[level]`,分组键统一为 "*" —— 这批可以**跨曲线组直接比**。
-    曲线未知(`hit_hp_correction_normal` 240 个、`_practice` 14 个、
-    `atk_correction_normal` 254 个;客户端内置默认,读不到)时返回裸基数,
+    曲线未知（目前主要是 `atk_correction_normal`）时返回裸基数,
     分组键取曲线名 —— 只能组内相对归一。
     """
     s = boss_base_stats(boss_level).get(code)
@@ -2627,7 +2753,19 @@ def boss_ref_validation_tables(*, standard_boss: dict | None = None,
                     funnel_ok_fn=effective_funnel_ok,
                     special_levels={}):
                 return None
-            return select_surjective_level(gb.get(ref.code), enemy_level)
+            # GeneralEnemy selects the greatest variable tier <= c95 first,
+            # then GeneralBossValues.getSurjectivity selects the first row
+            # >= that variable tier.  Querying general_boss directly with c95
+            # rejects proven gv[80]/gb[80] content at lv90/100 and made the
+            # legacy gate disagree with the final exact-kind gate.
+            variable = gv.get(ref.code)
+            variable_levels = (sorted(
+                int(key) for key in variable if str(key).isdigit())
+                if isinstance(variable, dict) else [])
+            usable = [tier for tier in variable_levels
+                      if tier <= int(enemy_level)]
+            lookup_level = max(usable) if usable else int(enemy_level)
+            return select_surjective_level(gb.get(ref.code), lookup_level)
         return None
 
     tables["__level_validator__"] = selected_level
@@ -5015,6 +5153,152 @@ ELEMENT_CURSE_PREFERENCE_RATE = 0.85
 
 SOFT_CHANNEL_CURSE_NAMES = ("能力抑制", "直击偏转", "术式扰流")
 
+# Boss HP 适配与诅咒落表是两条不同的能力轴。过去这里靠
+# ``forbid_hp_curses``、``caps.boss``、``caps.element`` 三处临时判断拼接，
+# 新专用族如果漏接一处就会被默认放行。矩阵把每一种已知
+# (HP channel, family) 的静态能力列全；未声明组合直接失败，不继承“通用安全”。
+CURSE_CAPABILITY_SCHEMA = "wf-rogue-curse-capability/v1"
+CURSE_CAPABILITY_AXES = (
+    "hp_multiplier", "attack_multiplier", "time_limit",
+    "soft_quest_condition", "hard_damage_resistance",
+    "hard_element_resistance", "stacked_resistance",
+    "field_action", "panel_gimmick",
+)
+
+
+def _curse_capability_row(*, hp_multiplier: bool = True,
+                          hard_carrier: bool = False,
+                          panel_gimmick: bool = True) -> dict[str, bool]:
+    return {
+        "hp_multiplier": bool(hp_multiplier),
+        "attack_multiplier": True,
+        "time_limit": True,
+        "soft_quest_condition": True,
+        "hard_damage_resistance": bool(hard_carrier),
+        "hard_element_resistance": bool(hard_carrier),
+        "stacked_resistance": bool(hard_carrier),
+        "field_action": bool(hard_carrier),
+        "panel_gimmick": bool(panel_gimmick),
+    }
+
+
+CURSE_CAPABILITY_MATRIX: dict[tuple[str, str], dict[str, bool]] = {
+    ("boss_level", "general"): _curse_capability_row(hard_carrier=True),
+    ("standard_dsl", "standard"): _curse_capability_row(),
+    ("mixed_hp", "mixed"): _curse_capability_row(hard_carrier=True),
+    ("c86", "identity-locked"): _curse_capability_row(hard_carrier=True),
+    ("c86", "identity-locked-standard"): _curse_capability_row(),
+    ("c86", "identity-locked-mixed"): _curse_capability_row(
+        hard_carrier=True),
+    ("c86", "no-boss"): _curse_capability_row(panel_gimmick=False),
+    # 非严格旧路径仍会显式落到 unknown；它不是新 Boss 家族的默认项。
+    ("unscaled", "unknown"): _curse_capability_row(hard_carrier=True),
+    ("special_bundle", "orochi"): _curse_capability_row(),
+    ("special_bundle", "orochi_ex"): _curse_capability_row(),
+    ("special_bundle", "kraken"): _curse_capability_row(),
+    ("special_bundle", "conductor"): _curse_capability_row(),
+    ("special_bundle", "touyakiren_ceo"): _curse_capability_row(),
+    **{
+        ("special_bundle", family): _curse_capability_row(
+            hp_multiplier=False)
+        for family in SPHERE_SPECS
+    },
+}
+
+
+def curse_capability_matrix_receipt() -> list[dict]:
+    """Return a stable, JSON-safe copy of every declared static matrix row."""
+
+    return [
+        {"channel": channel, "family": family,
+         "capabilities": dict(CURSE_CAPABILITY_MATRIX[(channel, family)])}
+        for channel, family in sorted(CURSE_CAPABILITY_MATRIX)
+    ]
+
+
+def resolve_curse_capabilities(
+        channel: str, family: str, caps: dict | None = None, *,
+        no_base: bool = False) -> dict:
+    """Resolve one declared matrix row against this floor's proven carriers."""
+
+    key = (str(channel), str(family))
+    declared = CURSE_CAPABILITY_MATRIX.get(key)
+    if declared is None:
+        raise ValueError(
+            "UNDECLARED_CURSE_CAPABILITY:"
+            f"channel={key[0]},family={key[1]};"
+            "新增 Boss/适配通道必须先声明诅咒能力矩阵")
+    caps = dict(caps or {})
+    effective = dict(declared)
+    restrictions: list[str] = []
+    carrier_axes = (
+        "hard_damage_resistance", "stacked_resistance", "field_action")
+    if not caps.get("boss"):
+        for axis in carrier_axes:
+            if effective[axis]:
+                effective[axis] = False
+        restrictions.append(str(
+            caps.get("carrier_reason") or "no_proved_general_boss_carrier"))
+    if not caps.get("element"):
+        if effective["hard_element_resistance"]:
+            effective["hard_element_resistance"] = False
+        restrictions.append(str(
+            caps.get("element_reason") or "no_proved_element_carrier"))
+    if not caps.get("panel"):
+        effective["panel_gimmick"] = False
+        restrictions.append("field_has_no_proved_panel_pair")
+    if no_base:
+        effective["attack_multiplier"] = False
+        effective["time_limit"] = False
+        restrictions.append("no_auditable_hp_base")
+    if key[1] in SPHERE_HP_CURSE_FORBIDDEN_FAMILIES:
+        restrictions.append("sphere_phase_budget_forbids_hp_multiplier")
+    return {
+        "schema": CURSE_CAPABILITY_SCHEMA,
+        "channel": key[0], "family": key[1],
+        "declared": dict(declared), "effective": effective,
+        "restrictions": list(dict.fromkeys(restrictions)),
+    }
+
+
+def curse_card_capability_requirements(card: dict) -> set[str]:
+    """Classify one realized card by the actual columns/resources it needs."""
+
+    requirements: set[str] = set()
+    if not math.isclose(float(card.get("hp", 1.0)), 1.0,
+                        rel_tol=0.0, abs_tol=1e-12):
+        requirements.add("hp_multiplier")
+    if not math.isclose(float(card.get("atk", 1.0)), 1.0,
+                        rel_tol=0.0, abs_tol=1e-12):
+        requirements.add("attack_multiplier")
+    if card.get("time") is not None:
+        requirements.add("time_limit")
+    if card.get("cond"):
+        requirements.add("soft_quest_condition")
+    if card.get("damage_resistance"):
+        requirements.add("hard_damage_resistance")
+    if card.get("element_resistance"):
+        requirements.add("hard_element_resistance")
+    if card.get("stacked_resistance"):
+        requirements.add("stacked_resistance")
+    if card.get("caster"):
+        requirements.add("field_action")
+    if card.get("gimmick"):
+        requirements.add("panel_gimmick")
+    return requirements
+
+
+def curse_capability_block(card: dict, profile: dict) -> str | None:
+    """Return the first unavailable capability required by ``card``."""
+
+    effective = profile.get("effective") if isinstance(profile, dict) else None
+    if not isinstance(effective, dict):
+        return "missing_capability_profile"
+    missing = sorted(
+        axis for axis in curse_card_capability_requirements(card)
+        if effective.get(axis) is not True)
+    return ",".join(missing) if missing else None
+
 # ---- 攻击类诅咒分档表(2026-07-30 降档)----
 # 旧值 (1.4,1.7,2.0)/(1.5,1.8,2.2)/(2.2,2.6,3.0),烈狱档顶格叠在塔尾自身已达
 # 2.4-3.3 的基础曲线上 → col>4 的层全是这三个。新烈狱端点 1.7/1.8/2.6
@@ -5151,6 +5435,18 @@ def _curse_pool(t: int, rng, *, stack_layers: int = 50,
 def apply_picks(out: dict, picks: list[dict], combo: str | None = None) -> dict:
     """把一组诅咒条目合成效果包。**降档闸改了 picks 之后重算走同一条路**,
     保证 hp/atk/conds/desc 永远与 picks 一致(不会出现"文案写×2.6、落表 1.4")。"""
+    profile = out.get("capability_profile")
+    if isinstance(profile, dict):
+        blocked = [
+            (str(card.get("name") or "(unnamed)"), curse_capability_block(
+                card, profile))
+            for card in picks
+            if curse_capability_block(card, profile) is not None
+        ]
+        if blocked:
+            raise ValueError(
+                "诅咒条目越过能力矩阵:"
+                + ";".join(f"{name}->{reason}" for name, reason in blocked))
     out.update({"conds": [], "damage_resistance": [], "element_resistance": [],
                 "stacked_resistance": [],
                 "hp": 1.0, "atk": 1.0, "tp": None, "fever": None,
@@ -5179,6 +5475,9 @@ def apply_picks(out: dict, picks: list[dict], combo: str | None = None) -> dict:
     out["damage_resistance"] = _merged_resistance(picks, "damage_resistance")
     out["element_resistance"] = _merged_resistance(picks, "element_resistance")
     out["stacked_resistance"] = _merged_stacked_resistance(picks)
+    out["used_capabilities"] = sorted(set().union(*(
+        curse_card_capability_requirements(card) for card in picks
+    ))) if picks else []
     out["caster"] = out["casters"][0] if out["casters"] else None  # 旧调用方兼容视图
     out["desc"] = (f"【{combo}】" if combo else "") + " ".join(names)
     return out
@@ -5381,6 +5680,7 @@ def abyss_curses(r: int, n: int, rng, tier: str, caps: dict | None = None,
                   hp_channel: str = "c86",
                   high_threat: bool = False,
                   forbid_hp_curses: bool = False,
+                  capability_profile: dict | None = None,
                   random_forbidden: dict[str, str] | None = None) -> dict:
     """轮次诅咒包:{conds,hp,atk,tp,fever,time,gimmick,caster,desc,picks,combo}。
 
@@ -5397,6 +5697,34 @@ def abyss_curses(r: int, n: int, rng, tier: str, caps: dict | None = None,
            "field_requested": 0, "field_applied": 0, "field_deficit": 0,
            "field_deficit_reason": None,
            "picks": [], "combo": None}
+    caps = dict(caps or {})
+    if capability_profile is None:
+        # Public/test callers historically passed only caps. Keep that API,
+        # but route it through the same declared general row as production.
+        capability_profile = resolve_curse_capabilities(
+            "boss_level", "general", caps, no_base=no_base)
+    else:
+        capability_profile = copy.deepcopy(capability_profile)
+    if capability_profile.get("schema") != CURSE_CAPABILITY_SCHEMA:
+        raise ValueError("诅咒能力矩阵 profile schema 非法")
+    declared = capability_profile.get("declared")
+    effective = capability_profile.get("effective")
+    if (not isinstance(declared, dict) or not isinstance(effective, dict)
+            or any(declared.get(axis) not in {True, False}
+                   or effective.get(axis) not in {True, False}
+                   for axis in CURSE_CAPABILITY_AXES)
+            or any(effective[axis] and not declared[axis]
+                   for axis in CURSE_CAPABILITY_AXES)):
+        raise ValueError("诅咒能力矩阵 profile 能力轴非法")
+    if forbid_hp_curses:
+        # Compatibility only. Production resolves Sphere from the explicit
+        # family row and never sets this legacy switch.
+        effective["hp_multiplier"] = False
+        restrictions = list(capability_profile.get("restrictions") or ())
+        restrictions.append("legacy_forbid_hp_curses")
+        capability_profile["restrictions"] = list(dict.fromkeys(restrictions))
+    out["capability_profile"] = capability_profile
+    out["used_capabilities"] = []
     has_forced = bool(forced and (forced.get("curses") or forced.get("field")))
     forced_names = list((forced or {}).get("curses") or [])
     has_element_mix = bool(forced is not None and "element_mix" in forced
@@ -5416,7 +5744,6 @@ def abyss_curses(r: int, n: int, rng, tier: str, caps: dict | None = None,
         if d <= 0.15 and not has_forced:
             return out
         count = 1 if d <= 0.45 else 2
-    caps = caps or {}
     field_requested = required_field_slots(r, n) if tier == "hell" else 0
     raw_pool = _curse_pool(
         t, rng, stack_layers=stacked_resistance_layers_for_depth(r, n),
@@ -5428,37 +5755,24 @@ def abyss_curses(r: int, n: int, rng, tier: str, caps: dict | None = None,
         # 深层血量锚已到多人决战量级；180/240 秒会把需求 DPS 再抬 3.75~5×。
         # 随机、组合、工坊强制三条路共用同一份过滤，后面 finalize 还有最终断言。
         safe_pool = [c for c in safe_pool if "time" not in c]
-    if no_base:
-        # 无基数层:归一化返回 1.0,裸曲线值 + 顶格攻击诅咒 = 第26战 6.58 的成因
-        safe_pool = [c for c in safe_pool if c["name"] not in ATK_CURSE_TIERS]
-        # 同理禁时限诅咒:血量既然按不下来(菲诺梅那这类多人 raid 原生就是 259 亿),
-        # 再套「时之枷锁 限时3分」需求 DPS 直接冲到 1.4 亿/s = 不可通关。
-        # 与上面深层的过滤同一条理由,只是触发条件从「深层」扩到「按不动血量」。
-        safe_pool = [c for c in safe_pool if "time" not in c]
-    if forbid_hp_curses:
-        # 五元素球都有阶段子体/伤害转移/必杀门槛。雷球真机已证实：父体与
-        # 子体同比缩放后，HP倍率可让“可传递伤害=阶段需求”的边界因浮点舍入
-        # 翻到阈值下方，清空子体后 Boss 不再入场。其余球体尚无覆盖全部倍率的
-        # 真机证据，因此统一 fail closed；forced 也只从过滤后的 safe_pool 取。
-        removed_hp = [c["name"] for c in safe_pool
-                      if not math.isclose(float(c.get("hp", 1.0)), 1.0,
-                                          rel_tol=0.0, abs_tol=1e-12)]
-        if removed_hp:
-            log(f"[curse] round={r} reject=HP倍率族 reason=元素球阶段预算禁改HP:"
-                f"{','.join(removed_hp)}; redraw")
-        safe_pool = [c for c in safe_pool
-                     if math.isclose(float(c.get("hp", 1.0)), 1.0,
-                                     rel_tol=0.0, abs_tol=1e-12)]
-    if not caps.get("element"):
-        if "c36" in str(caps.get("element_reason") or ""):
-            log(f"[curse] round={r} reject=属性免疫族 reason={caps['element_reason']}; redraw")
-        safe_pool = [c for c in safe_pool if c["name"] not in ELEMENT_CURSE_NAMES]
-    else:
+    blocked_cards = [
+        (card, curse_capability_block(card, capability_profile))
+        for card in safe_pool
+    ]
+    blocked_by_axis: dict[str, list[str]] = {}
+    for card, block in blocked_cards:
+        for axis in str(block or "").split(","):
+            if axis:
+                blocked_by_axis.setdefault(axis, []).append(str(card["name"]))
+    for axis, names in blocked_by_axis.items():
+        log(f"[curse] round={r} capability-block={axis} "
+            f"family={capability_profile['family']} cards="
+            f"{','.join(names)}; redraw")
+    safe_pool = [card for card, block in blocked_cards if block is None]
+    if effective["hard_element_resistance"]:
         # 软通道词条是专为没有属性硬通道的专场补池；普通 general Boss 继续使用
         # 更丰富的属性/动作硬通道，避免把补池反过来稀释其特色。
         safe_pool = [c for c in safe_pool if not c.get("soft_channel_fallback")]
-    if not caps.get("boss"):
-        safe_pool = [c for c in safe_pool if c["name"] not in PRE_ACTION_CURSE_NAMES]
     if high_threat:
         # 时限/高档属性墙是单条即可判定的硬禁项；HP 上限必须等组合后按净乘数判，
         # 不能在这里错杀 2.5×0.5=1.25 这类合法搭配。
@@ -5492,7 +5806,8 @@ def abyss_curses(r: int, n: int, rng, tier: str, caps: dict | None = None,
             why = high_threat_curse_conflict(picks)
         if not why:
             why = dragon_heart_companion_block(
-                picks, bool(caps.get("boss")), field_menu_all())
+                picks, bool(effective["stacked_resistance"]
+                            and effective["field_action"]), field_menu_all())
         if why or baseline_c86 is None:
             return why
         return curse_runtime_conflict(
@@ -5522,7 +5837,7 @@ def abyss_curses(r: int, n: int, rng, tier: str, caps: dict | None = None,
         """用完整冲突闸补满名额；耗尽时硬失败，绝不把 redraw 退化成少发。"""
         current = list(current)
         atk_used = any(c.get("atk", 1.0) > 1.0 for c in current)
-        if caps.get("boss") and field_requested:
+        if effective["field_action"] and field_requested:
             present = len({str(c["caster"][1]) for c in current if c.get("caster")})
             add = min(max(0, target_count - len(current)), max(0, field_requested - present))
             for c in new_field_entries(current, add):
@@ -5535,7 +5850,8 @@ def abyss_curses(r: int, n: int, rng, tier: str, caps: dict | None = None,
         order = rng.sample(pool, len(pool))
         # 深渊法阵(场程序)出场加权(2026-07-29 用户「场地效果可以再多一点」):
         # 平权时 1/12≈8%,这里 45% 概率把它提到队首 → 实际约四成楼层带场地效果。
-        if prefer_caster and caps.get("boss") and rng.random() < 0.45:
+        if (prefer_caster and effective["field_action"]
+                and rng.random() < 0.45):
             caster = next((c for c in order if c.get("caster")), None)
             if caster is not None:
                 order.remove(caster)
@@ -5543,9 +5859,9 @@ def abyss_curses(r: int, n: int, rng, tier: str, caps: dict | None = None,
         for c in order:
             if len(current) >= target_count:
                 break
-            if c.get("gimmick") and not caps.get("panel"):
+            if c.get("gimmick") and not effective["panel_gimmick"]:
                 continue
-            if c.get("caster") and not caps.get("boss"):
+            if c.get("caster") and not effective["field_action"]:
                 continue
             # 中后段保底已经填到目标数后，不再随机塞第 3 个领域；前段仍保留旧的
             # 45% 随机法阵手感。去重按 program ID，不按统一显示名“深渊法阵”。
@@ -5580,7 +5896,8 @@ def abyss_curses(r: int, n: int, rng, tier: str, caps: dict | None = None,
 
     def finalize(picks: list[dict], combo_name: str | None = None) -> dict:
         picks = ensure_dragon_heart_companion(
-            picks, rng, bool(caps.get("boss")), field_menu_all())
+            picks, rng, bool(effective["stacked_resistance"]
+                             and effective["field_action"]), field_menu_all())
         why = conflict(picks)
         if why:
             raise RuntimeError(f"第{r}战诅咒最终组合未过门禁:{why}")
@@ -5617,8 +5934,9 @@ def abyss_curses(r: int, n: int, rng, tier: str, caps: dict | None = None,
                 log(f"[curse] round={r} reject=工坊额外「{nm}」 "
                     f"reason=深层普通诅咒固定 {curse_target} 个; redraw")
             forced_curses = forced_curses[:curse_target]
-        field_target = (field_requested if caps.get("boss") else 0)
-        if not field_target and forced.get("field") and caps.get("boss"):
+        field_target = (field_requested if effective["field_action"] else 0)
+        if (not field_target and forced.get("field")
+                and effective["field_action"]):
             field_target = 1
         # 领域不占“第4个诅咒”的名额；深层是 4 个普通诅咒 + 2 个领域。
         target_count = curse_target + field_target
@@ -5630,15 +5948,20 @@ def abyss_curses(r: int, n: int, rng, tier: str, caps: dict | None = None,
             if no_base and nm in ATK_CURSE_TIERS:
                 print(f"[WARN] 工坊钉选第{r}战:剔除「{nm}」(该层 boss 无基数,"
                       "归一化不生效,攻击类诅咒会失控)")
-            if nm in ELEMENT_CURSE_NAMES and not caps.get("element"):
-                why = caps.get("element_reason") or "本层没有可用的 general_boss 硬通道载体"
+            if (nm in ELEMENT_CURSE_NAMES
+                    and not effective["hard_element_resistance"]):
+                why = (caps.get("element_reason")
+                       or ",".join(capability_profile.get("restrictions") or ())
+                       or "能力矩阵没有属性硬通道")
                 log(f"[curse] round={r} reject=「{nm}」 reason={why}; redraw")
-            if nm in DAMAGE_HARD_CURSE_NAMES and not caps.get("boss"):
-                log(f"[curse] round={r} reject=「{nm}」 reason=本层没有可用的"
-                    " general_boss 硬通道载体; redraw")
-            if nm in STACKED_CURSE_NAMES and not caps.get("boss"):
-                log(f"[curse] round={r} reject=「{nm}」 reason=本层没有可用的"
-                    " general_boss c109 叠层载体; redraw")
+            if (nm in DAMAGE_HARD_CURSE_NAMES
+                    and not effective["hard_damage_resistance"]):
+                log(f"[curse] round={r} reject=「{nm}」 "
+                    "reason=能力矩阵没有伤害硬通道; redraw")
+            if (nm in STACKED_CURSE_NAMES
+                    and not effective["stacked_resistance"]):
+                log(f"[curse] round={r} reject=「{nm}」 "
+                    "reason=能力矩阵没有叠层硬通道; redraw")
             if high_threat:
                 original = next((c for c in raw_pool if c["name"] == nm), None)
                 if original:
@@ -5650,7 +5973,7 @@ def abyss_curses(r: int, n: int, rng, tier: str, caps: dict | None = None,
                         log(f"[curse] round={r} reject=「{nm}」 reason={why}; redraw")
         if forced.get("field"):
             fm_forced = next((m for m in field_menu_all() if m[1] == forced["field"]), None)
-            if fm_forced and caps.get("boss"):
+            if fm_forced and effective["field_action"]:
                 picks.append({"name": "深渊法阵", "caster": fm_forced,
                               "text": f"{fm_forced[0]}·{fm_forced[2]}"})
             else:
@@ -5670,7 +5993,7 @@ def abyss_curses(r: int, n: int, rng, tier: str, caps: dict | None = None,
                 log(f"[curse] round={r} reject=「{c['name']}」 reason={why}; redraw")
                 continue
             kept.append(c)
-        if caps.get("boss") and field_requested:
+        if effective["field_action"] and field_requested:
             max_non_fields = curse_target
             non_fields = [c for c in kept if not c.get("caster")]
             if len(non_fields) > max_non_fields:
@@ -5688,7 +6011,7 @@ def abyss_curses(r: int, n: int, rng, tier: str, caps: dict | None = None,
     # 用户口径“能出属性免疫的尽量出”：只有实际 general_boss 载体已通过
     # c109/c36/引用闭包门禁才进入这里。先从本层深度允许的属性卡里随机种一张，
     # 后续组合与补位仍走同一份冲突/可解性闸；高威胁过滤和六属性出口规则不放宽。
-    if (caps.get("element") and count > 0
+    if (effective["hard_element_resistance"] and count > 0
             and rng.random() < ELEMENT_CURSE_PREFERENCE_RATE):
         element_order = rng.sample(
             [c for c in pool if c["name"] in ELEMENT_CURSE_NAMES],
@@ -5702,12 +6025,12 @@ def abyss_curses(r: int, n: int, rng, tier: str, caps: dict | None = None,
     if count - len(picks) >= 2 and rng.random() < COMBO_RATE:
         cands = [cb_ for cb_ in CURSE_COMBOS
                  if len(cb_["curses"]) <= count - len(picks)]
-        if caps.get("element"):
+        if effective["hard_element_resistance"]:
             cands = [cb_ for cb_ in cands if not cb_.get("soft_fallback")]
         if is_deep_round(r, n):
             cands = [cb_ for cb_ in cands if "时之枷锁" not in cb_["curses"]]
         # 需要 boss 载体的组合(带深渊法阵)在 standard/专用表 boss 层落不上,先剔掉
-        if not caps.get("boss"):
+        if not effective["field_action"]:
             cands = [cb_ for cb_ in cands if "深渊法阵" not in cb_["curses"]]
         while cands:
             cb_ = cands.pop(rng.randrange(len(cands)))
@@ -5734,7 +6057,7 @@ def abyss_curses(r: int, n: int, rng, tier: str, caps: dict | None = None,
             if why:
                 log(f"[curse] round={r} reject=【{cb_['name']}】"
                     f"({','.join(c['name'] for c in got)}) reason={why}; redraw")
-    total_count = count + (field_requested if caps.get("boss") else 0)
+    total_count = count + (field_requested if effective["field_action"] else 0)
     return finalize(refill_picks(picks, total_count, prefer_caster=True), combo_name)
 
 
@@ -6375,6 +6698,11 @@ def strict_target_hp_errors(audits: list[dict]) -> list[str]:
             continue
         if receipt.channel in {"none", "unscaled"}:
             errors.append(f"第{round_no}战没有实际 HP 落表通道:{receipt.channel}")
+        if (receipt.family == "orochi_ex"
+                and not isinstance(
+                    audit.get("orochi_ex_phase_safety"), dict)):
+            errors.append(
+                f"第{round_no}战 Orochi EX 缺 signed-int32/阶段图标门禁")
         proxy_parts = [part.occurrence for part in receipt.components
                        if part.evidence_kind != "absolute"]
         if proxy_parts:
@@ -6454,7 +6782,18 @@ def build_hp_audit_document(*, seed: int, rounds: int,
         if isinstance(audit.get("phase_behavior"), dict):
             serialized["phase_behavior"] = copy.deepcopy(
                 audit["phase_behavior"])
+        if isinstance(audit.get("orochi_ex_phase_safety"), dict):
+            serialized["phase_safety"] = copy.deepcopy(
+                audit["orochi_ex_phase_safety"])
         curse = record.get("curse") or {}
+        curse_capability = curse.get("capability_profile")
+        if not isinstance(curse_capability, dict):
+            # Unit-level receipt builders may omit the random curse object;
+            # synthesize the conservative carrier-less realization, never a
+            # more permissive one.
+            curse_capability = resolve_curse_capabilities(
+                str(serialized.get("channel") or ""),
+                str(serialized.get("family") or ""), {})
         curse_picks = list(curse.get("picks") or ())
         curse_names = [str(item.get("name") or "") for item in curse_picks]
         if any(not name for name in curse_names):
@@ -6482,6 +6821,11 @@ def build_hp_audit_document(*, seed: int, rounds: int,
                             if curse.get("combo") else None),
             "curse_description": str(curse.get("desc") or ""),
             "curse_hp_multiplier": curse_hp_multiplier,
+            "curse_capability_profile": copy.deepcopy(curse_capability),
+            "curse_used_capabilities": list(map(
+                str, curse.get("used_capabilities") or ())),
+            "identity_reference_closures": list(copy.deepcopy(
+                record.get("identity_reference_closures") or ())),
             "adapter": serialized,
         })
     max_error = max((
@@ -6511,6 +6855,9 @@ def build_hp_audit_document(*, seed: int, rounds: int,
             "boss_exclusions": [dict(item) for item in STRICT_HP_EXCLUSION_POLICY],
             "native_special_only": [
                 dict(item) for item in STRICT_HP_NATIVE_SPECIAL_POLICY],
+            "curse_capability_matrix": curse_capability_matrix_receipt(),
+            "client_bundled_curve_baseline": (
+                client_bundled_curve_baseline_receipt()),
         },
         "floors": floors,
         "chain_reports": chain,
@@ -6534,6 +6881,12 @@ def build_hp_audit_document(*, seed: int, rounds: int,
             "special_bundle_rounds": sum(
                 1 for floor in floors
                 if floor["adapter"].get("channel") == "special_bundle"),
+            "identity_reference_closure_rounds": sum(
+                1 for floor in floors
+                if floor.get("identity_reference_closures")),
+            "identity_reference_closures": sum(
+                len(floor.get("identity_reference_closures") or ())
+                for floor in floors),
             "baseline_first_boss_hp": (
                 float(floors[0]["adapter"]["baseline_target_hp"])
                 if floors else 0.0),
@@ -6551,6 +6904,317 @@ def build_hp_audit_document(*, seed: int, rounds: int,
     }
     document["document_sha256"] = hp_audit_document_digest(document)
     return document
+
+
+def _verify_sphere_lifecycle_receipt(
+        label: str, phase_behavior: dict) -> list[str]:
+    """Independently verify serialized static Sphere liveness evidence."""
+
+    errors: list[str] = []
+    if phase_behavior.get("static_verified") is not True:
+        errors.append(f"{label} Sphere 静态阶段存活闭包未验证")
+    if phase_behavior.get("runtime_simulated") is not False:
+        errors.append(f"{label} Sphere 不得把静态闭包标成运行时模拟")
+    if phase_behavior.get("gameplay_verified") is not False:
+        errors.append(f"{label} Sphere 不得把离线审计标成真机通过")
+    source = phase_behavior.get("source_lifecycle")
+    final = phase_behavior.get("final_lifecycle")
+    if not isinstance(source, dict) or not isinstance(final, dict):
+        return errors + [f"{label} Sphere 缺源/回读阶段存活契约"]
+    for name, proof in (("源", source), ("回读", final)):
+        if proof.get("static_verified") is not True:
+            errors.append(f"{label} Sphere {name}存活契约未静态验证")
+        if proof.get("runtime_simulated") is not False:
+            errors.append(f"{label} Sphere {name}存活契约误标运行时模拟")
+        if proof.get("gameplay_verified") is not False:
+            errors.append(f"{label} Sphere {name}存活契约误标真机通过")
+    if (not source.get("client_contract")
+            or source.get("client_contract") != final.get("client_contract")):
+        errors.append(f"{label} Sphere 客户端阶段契约来源漂移")
+    if (not source.get("family")
+            or source.get("family") != final.get("family")):
+        errors.append(f"{label} Sphere 存活契约家族漂移")
+    try:
+        source_victory = int(source["victory_component_count"])
+        final_victory = int(final["victory_component_count"])
+    except (KeyError, TypeError, ValueError):
+        source_victory = final_victory = 0
+        errors.append(f"{label} Sphere 存活契约缺胜利组件数")
+    if source_victory <= 0 or source_victory != final_victory:
+        errors.append(f"{label} Sphere 胜利组件数量漂移")
+    source_steps = source.get("steps")
+    final_steps = final.get("steps")
+    if (not isinstance(source_steps, (list, tuple))
+            or not isinstance(final_steps, (list, tuple))
+            or len(source_steps) != 4 or len(final_steps) != 4):
+        return errors + [f"{label} Sphere 阶段存活边数量不是4"]
+
+    source_budgets = {
+        str(item.get("phase")): item
+        for item in (phase_behavior.get("source") or ())
+        if isinstance(item, dict)
+    }
+    final_budgets = {
+        str(item.get("phase")): item
+        for item in (phase_behavior.get("final_readback") or ())
+        if isinstance(item, dict)
+    }
+    expected_targets = (2, 3, 4, None)
+    allowed_triggers = {
+        "mandatory_gate_clear", "parent_hp_threshold",
+        "child_damage_threshold", "parent_hp_depleted",
+    }
+    mandatory_entities = 0
+    used_budget_phases: set[str] = set()
+    for sequence, (source_step, final_step, expected_target) in enumerate(
+            zip(source_steps, final_steps, expected_targets), start=1):
+        edge_label = f"{label}阶段存活边{sequence}"
+        if not isinstance(source_step, dict) or not isinstance(final_step, dict):
+            errors.append(f"{edge_label} 不是对象")
+            continue
+        try:
+            source_phase = int(source_step["source_phase"])
+            final_phase = int(final_step["source_phase"])
+            source_sequence = int(source_step["sequence"])
+            final_sequence = int(final_step["sequence"])
+            source_target_raw = source_step.get("target_phase")
+            final_target_raw = final_step.get("target_phase")
+            source_target = (None if source_target_raw is None
+                             else int(source_target_raw))
+            final_target = (None if final_target_raw is None
+                            else int(final_target_raw))
+            source_entities = int(source_step.get("expected_entities", 0))
+            final_entities = int(final_step.get("expected_entities", 0))
+        except (KeyError, TypeError, ValueError):
+            errors.append(f"{edge_label} 缺阶段拓扑数字")
+            continue
+        source_trigger = str(source_step.get("trigger") or "")
+        final_trigger = str(final_step.get("trigger") or "")
+        source_members = tuple(map(
+            str, source_step.get("member_phases") or ()))
+        final_members = tuple(map(
+            str, final_step.get("member_phases") or ()))
+        source_ids = tuple(map(str, source_step.get("entity_ids") or ()))
+        final_ids = tuple(map(str, final_step.get("entity_ids") or ()))
+        source_completion = source_step.get("expected_completion_count")
+        final_completion = final_step.get("expected_completion_count")
+        source_budget_phase = source_step.get("budget_phase")
+        final_budget_phase = final_step.get("budget_phase")
+        source_entry = str(source_step.get("next_state_entry") or "")
+        final_entry = str(final_step.get("next_state_entry") or "")
+        expected_entry = (
+            f"getInitialStateByNextPhase({expected_target})"
+            if expected_target is not None else "Sphere.enterDeadState")
+        if (source_sequence != sequence or final_sequence != sequence
+                or source_phase != sequence or final_phase != sequence
+                or source_target != expected_target
+                or final_target != expected_target):
+            errors.append(f"{edge_label} 1→2→3→4→胜利拓扑漂移")
+        if (source_trigger not in allowed_triggers
+                or source_trigger != final_trigger):
+            errors.append(f"{edge_label} 触发方式漂移")
+        if (source_members != final_members
+                or source_entities != final_entities
+                or source_completion != final_completion
+                or source_budget_phase != final_budget_phase
+                or source_entry != expected_entry or final_entry != expected_entry
+                or source_step.get("verified") is not True
+                or final_step.get("verified") is not True):
+            errors.append(f"{edge_label} 静态推进契约漂移")
+        if (len(source_ids) != source_entities
+                or len(final_ids) != final_entities
+                or len(set(source_ids)) != len(source_ids)
+                or len(set(final_ids)) != len(final_ids)):
+            errors.append(f"{edge_label} 子体数量/唯一性漂移")
+        source_ratio = source_step.get("threshold_ratio")
+        final_ratio = final_step.get("threshold_ratio")
+        if source_ratio is None or final_ratio is None:
+            if source_ratio is not None or final_ratio is not None:
+                errors.append(f"{edge_label} 阈值有无漂移")
+        else:
+            try:
+                source_ratio_value = float(source_ratio)
+                final_ratio_value = float(final_ratio)
+                if (not math.isfinite(source_ratio_value)
+                        or not math.isfinite(final_ratio_value)
+                        or not math.isclose(
+                            source_ratio_value, final_ratio_value,
+                            rel_tol=1e-12, abs_tol=1e-12)):
+                    errors.append(f"{edge_label} 阈值漂移")
+            except (TypeError, ValueError):
+                errors.append(f"{edge_label} 阈值非法")
+
+        if source_trigger == "mandatory_gate_clear":
+            mandatory_entities += source_entities
+            if (sequence != 1 or not source_members
+                    or source_entities <= 0
+                    or source_completion != source_entities):
+                errors.append(f"{edge_label} 必杀门槛计数不闭合")
+        elif source_trigger == "parent_hp_threshold":
+            if source_entities != 0 or source_ids or source_ratio is None:
+                errors.append(f"{edge_label} 父体阈值边混入子体门槛")
+        elif source_trigger == "child_damage_threshold":
+            phase = str(source_budget_phase or "")
+            source_budget = source_budgets.get(phase)
+            final_budget = final_budgets.get(phase)
+            used_budget_phases.add(phase)
+            if not isinstance(source_budget, dict) or not isinstance(
+                    final_budget, dict):
+                errors.append(f"{edge_label} 缺对应子体伤害预算")
+            else:
+                source_budget_ids = tuple(map(
+                    str, source_budget.get("entity_ids") or ()))
+                final_budget_ids = tuple(map(
+                    str, final_budget.get("entity_ids") or ()))
+                if (len(source_budget_ids) != source_entities
+                        or len(final_budget_ids) != final_entities
+                        or source_budget.get("expected_completion_count")
+                        != source_completion
+                        or final_budget.get("expected_completion_count")
+                        != final_completion):
+                    errors.append(f"{edge_label} 子体预算计数不闭合")
+        elif source_trigger == "parent_hp_depleted":
+            if sequence != 4 or expected_target is not None:
+                errors.append(f"{edge_label} 父体死亡边位置非法")
+    if source_victory != 1 + mandatory_entities:
+        errors.append(f"{label} Sphere 胜利组件数不能由必杀门槛回代")
+    if used_budget_phases != set(source_budgets):
+        errors.append(f"{label} Sphere 存活契约未覆盖全部源阶段预算")
+    if used_budget_phases != set(final_budgets):
+        errors.append(f"{label} Sphere 存活契约未覆盖全部回读阶段预算")
+    return errors
+
+
+def _verify_orochi_ex_phase_safety_receipt(
+        label: str, adapter: dict) -> list[str]:
+    """Independently replay signed-int32 and PhaseThresholdIcon invariants."""
+
+    errors: list[str] = []
+    receipt = adapter.get("phase_safety")
+    if not isinstance(receipt, dict):
+        return [f"{label} Orochi EX 缺 signed-int32/阶段图标安全回执"]
+    if receipt.get("static_verified") is not True:
+        errors.append(f"{label} Orochi EX 阶段安全未静态验证")
+    if receipt.get("runtime_simulated") is not False:
+        errors.append(f"{label} Orochi EX 不得冒充运行时模拟")
+    if receipt.get("gameplay_verified") is not False:
+        errors.append(f"{label} Orochi EX 不得冒充真机通过")
+    components = adapter.get("components")
+    if not isinstance(components, list) or len(components) != 3:
+        return errors + [f"{label} Orochi EX 阶段安全缺三组件"]
+
+    contracts: list[tuple[str, dict, tuple[float, ...]]] = []
+    for name, component_key in (
+            ("baseline", "baseline_readback_hp"),
+            ("final", "final_readback_hp")):
+        contract = receipt.get(name)
+        if not isinstance(contract, dict):
+            errors.append(f"{label} Orochi EX 缺 {name} 阈值契约")
+            continue
+        try:
+            values = tuple(float(component[component_key])
+                           for component in components)
+        except (KeyError, TypeError, ValueError):
+            errors.append(f"{label} Orochi EX {name} 组件回读非法")
+            continue
+        contracts.append((name, contract, values))
+
+    client_contract: str | None = None
+    for name, contract, values in contracts:
+        phase1, middle, phase3 = values
+        prefix = f"{label} Orochi EX {name}"
+        claimed_contract = str(contract.get("client_contract") or "")
+        if not claimed_contract:
+            errors.append(f"{prefix} 缺客户端字段/图标契约")
+        elif client_contract is None:
+            client_contract = claimed_contract
+        elif claimed_contract != client_contract:
+            errors.append(f"{prefix} 客户端契约漂移")
+        if (contract.get("signed_int32_verified") is not True
+                or contract.get("static_verified") is not True
+                or contract.get("runtime_simulated") is not False
+                or contract.get("gameplay_verified") is not False):
+            errors.append(f"{prefix} 静态验证标签非法")
+        try:
+            claimed_phase1 = int(contract["phase1_hp"])
+            claimed_phase3 = int(contract["phase3_hp"])
+            claimed_middle = float(contract["middle_hp"])
+            claimed_total = float(contract["total_hp"])
+            threshold1 = float(contract["phase1_hp_threshold"])
+            threshold2 = float(contract["phase2_hp_threshold"])
+            icon_numbers = tuple(map(int, contract["icon_numbers"]))
+            icon_frames = tuple(tuple(map(int, pair))
+                                for pair in contract["icon_frames_tens_ones"])
+        except (KeyError, TypeError, ValueError):
+            errors.append(f"{prefix} 阈值数字不可解析")
+            continue
+        if (claimed_phase1 != phase1 or claimed_middle != middle
+                or claimed_phase3 != phase3):
+            errors.append(f"{prefix} 阈值输入与三阶段回读不一致")
+        if (not 1 <= claimed_phase1 <= wf_orochi_ex.CLIENT_SIGNED_INT_MAX
+                or not 1 <= claimed_phase3
+                <= wf_orochi_ex.CLIENT_SIGNED_INT_MAX):
+            errors.append(f"{prefix} c24/c25 超 signed int32")
+        total = math.fsum((float(claimed_phase1), claimed_middle,
+                           float(claimed_phase3)))
+        expected_thresholds = (
+            math.fsum((claimed_middle, float(claimed_phase3))) / total,
+            float(claimed_phase3) / total,
+        ) if total > 0 else (float("nan"), float("nan"))
+        expected_icons = tuple(int(value * 100)
+                               for value in expected_thresholds)
+        expected_frames = tuple((number // 10 % 10, number % 10)
+                                for number in expected_icons)
+        if (not math.isfinite(claimed_middle) or claimed_middle <= 0
+                or not math.isclose(
+                    claimed_total, total, rel_tol=1e-12, abs_tol=1e-5)
+                or not all(math.isfinite(value) and 0 < value < 1
+                           for value in expected_thresholds)
+                or not math.isclose(
+                    threshold1, expected_thresholds[0],
+                    rel_tol=1e-12, abs_tol=1e-12)
+                or not math.isclose(
+                    threshold2, expected_thresholds[1],
+                    rel_tol=1e-12, abs_tol=1e-12)):
+            errors.append(f"{prefix} 阶段阈值不能按客户端公式回代")
+        if (icon_numbers != expected_icons or icon_frames != expected_frames
+                or not all(0 <= number <= 99 for number in icon_numbers)
+                or not all(0 <= frame <= 9
+                           for pair in icon_frames for frame in pair)):
+            errors.append(f"{prefix} PhaseThresholdIcon 帧号越界/不能回代")
+
+    semantics = receipt.get("clone_semantics")
+    required_semantics = (
+        "parent_only_hp_and_child_columns_changed",
+        "parent_boss_level_only_c2_changed",
+        "six_head_nodes_equal_source",
+        "six_head_boss_level_equal_source",
+        "six_child_attack_target_references_closed",
+        "phase_spawn_topology_preserved",
+        "static_verified",
+    )
+    if (not isinstance(semantics, dict)
+            or any(semantics.get(key) is not True
+                   for key in required_semantics)
+            or semantics.get("runtime_simulated") is not False
+            or semantics.get("gameplay_verified") is not False):
+        errors.append(f"{label} Orochi EX 克隆/生成/攻击目标闭包不完整")
+    for key in (
+            "baseline_fixed_phase_scale", "baseline_middle_scale",
+            "final_fixed_phase_scale", "final_middle_scale",
+            "max_safe_fixed_phase_scale"):
+        try:
+            value = float(receipt[key])
+        except (KeyError, TypeError, ValueError):
+            value = float("nan")
+        if not math.isfinite(value) or value <= 0:
+            errors.append(f"{label} Orochi EX {key} 非有限正数")
+    for key in (
+            "baseline_fixed_phase_int32_capped",
+            "final_fixed_phase_int32_capped"):
+        if receipt.get(key) not in {True, False}:
+            errors.append(f"{label} Orochi EX {key} 不是布尔值")
+    return errors
 
 
 def verify_hp_audit_document(document: dict, *,
@@ -6589,6 +7253,8 @@ def verify_hp_audit_document(document: dict, *,
     expected_exclusions = [dict(item) for item in STRICT_HP_EXCLUSION_POLICY]
     expected_native_special = [
         dict(item) for item in STRICT_HP_NATIVE_SPECIAL_POLICY]
+    expected_curse_matrix = curse_capability_matrix_receipt()
+    expected_bundled_curve = client_bundled_curve_baseline_receipt()
     if not isinstance(policy, dict):
         errors.append("验收回执缺 selection_policy")
     else:
@@ -6602,6 +7268,16 @@ def verify_hp_audit_document(document: dict, *,
                 "验收回执 native special 政策不一致:"
                 f"receipt={policy.get('native_special_only')!r},"
                 f"expected={expected_native_special!r}")
+        if policy.get("curse_capability_matrix") != expected_curse_matrix:
+            errors.append(
+                "验收回执诅咒能力矩阵不一致:"
+                f"receipt={policy.get('curse_capability_matrix')!r},"
+                f"expected={expected_curse_matrix!r}")
+        if policy.get("client_bundled_curve_baseline") != expected_bundled_curve:
+            errors.append(
+                "验收回执客户端内置曲线基线不一致:"
+                f"receipt={policy.get('client_bundled_curve_baseline')!r},"
+                f"expected={expected_bundled_curve!r}")
     inputs = document.get("inputs")
     if not isinstance(inputs, dict):
         return errors + ["验收回执缺 inputs"]
@@ -6654,6 +7330,40 @@ def verify_hp_audit_document(document: dict, *,
             errors.append(f"{label} 缺 source/play field")
         if not floor.get("source_bosses") or not floor.get("runtime_bosses"):
             errors.append(f"{label} 缺 source/runtime bosses")
+        closures = floor.get("identity_reference_closures", [])
+        if not isinstance(closures, list):
+            errors.append(f"{label} identity reference closures 不是数组")
+            closures = []
+        seen_closure_pairs: set[tuple[str, str]] = set()
+        source_bosses = set(map(str, floor.get("source_bosses") or ()))
+        runtime_bosses = set(map(str, floor.get("runtime_bosses") or ()))
+        for closure_index, closure in enumerate(closures, start=1):
+            closure_label = f"{label} identity closure {closure_index}"
+            if not isinstance(closure, dict):
+                errors.append(f"{closure_label} 不是对象")
+                continue
+            source_code = str(closure.get("source_code") or "")
+            clone_code = str(closure.get("clone_code") or "")
+            pair = (source_code, clone_code)
+            try:
+                source_count = int(closure["source_reference_count"])
+                clone_count = int(closure["clone_reference_count"])
+            except (KeyError, TypeError, ValueError):
+                source_count = clone_count = 0
+                errors.append(f"{closure_label} 引用计数非法")
+            if (closure.get("kind")
+                    != "general_enemy_watch.partner_alias"):
+                errors.append(f"{closure_label} 闭包类型非法")
+            if (not source_code or not clone_code or source_code == clone_code
+                    or source_code not in source_bosses
+                    or clone_code not in runtime_bosses):
+                errors.append(f"{closure_label} source/runtime 代号不闭合")
+            if pair in seen_closure_pairs:
+                errors.append(f"{closure_label} 重复")
+            seen_closure_pairs.add(pair)
+            if (source_count <= 0 or clone_count != source_count
+                    or closure.get("verified") is not True):
+                errors.append(f"{closure_label} 别名引用未等价回读")
         adapter = floor.get("adapter")
         if not isinstance(adapter, dict):
             errors.append(f"{label} 缺 adapter")
@@ -6671,6 +7381,37 @@ def verify_hp_audit_document(document: dict, *,
         if not adapter.get("absolute_verified"):
             errors.append(f"{label} adapter 未标绝对证据")
         family = str(adapter.get("family") or "")
+        capability = floor.get("curse_capability_profile")
+        used_capabilities = floor.get("curse_used_capabilities")
+        matrix_row = CURSE_CAPABILITY_MATRIX.get((channel, family))
+        if matrix_row is None:
+            errors.append(f"{label} 未声明诅咒能力矩阵:{channel}/{family}")
+        if not isinstance(capability, dict):
+            errors.append(f"{label} 缺诅咒能力 profile")
+        else:
+            declared = capability.get("declared")
+            effective = capability.get("effective")
+            if (capability.get("schema") != CURSE_CAPABILITY_SCHEMA
+                    or capability.get("channel") != channel
+                    or capability.get("family") != family):
+                errors.append(f"{label} 诅咒能力 profile 身份漂移")
+            if matrix_row is not None and declared != matrix_row:
+                errors.append(f"{label} 诅咒能力声明与矩阵不一致")
+            if (not isinstance(effective, dict)
+                    or any(effective.get(axis) not in {True, False}
+                           for axis in CURSE_CAPABILITY_AXES)
+                    or (isinstance(declared, dict)
+                        and any(effective.get(axis) and not declared.get(axis)
+                                for axis in CURSE_CAPABILITY_AXES))):
+                errors.append(f"{label} 诅咒有效能力轴非法")
+            if (not isinstance(used_capabilities, list)
+                    or len(set(map(str, used_capabilities)))
+                    != len(used_capabilities)
+                    or any(str(axis) not in CURSE_CAPABILITY_AXES
+                           or not isinstance(effective, dict)
+                           or effective.get(str(axis)) is not True
+                           for axis in (used_capabilities or ()))):
+                errors.append(f"{label} 诅咒实际使用能力越过矩阵")
         if family in SPHERE_SPECS:
             phase_behavior = adapter.get("phase_behavior")
             if (not isinstance(phase_behavior, dict)
@@ -6784,6 +7525,8 @@ def verify_hp_audit_document(document: dict, *,
                                 coverage, final_available / final_required,
                                 rel_tol=1e-12, abs_tol=1e-12):
                             errors.append(f"{budget_label} coverage 不能回代")
+                errors.extend(_verify_sphere_lifecycle_receipt(
+                    label, phase_behavior))
         baseline_target = number(adapter, "baseline_target_hp", label)
         final_target = number(adapter, "final_target_hp", label)
         baseline_readback = number(adapter, "baseline_readback_hp", label)
@@ -6812,6 +7555,10 @@ def verify_hp_audit_document(document: dict, *,
                 errors.append(
                     f"{label} final target 未等于基础HP×诅咒倍率:"
                     f"{final_target:g}!={baseline_target:g}×{curse_hp:g}")
+            if (family in SPHERE_SPECS
+                    and not math.isclose(
+                        curse_hp, 1.0, rel_tol=0.0, abs_tol=1e-12)):
+                errors.append(f"{label} Sphere 违反能力矩阵使用了 HP 诅咒")
         if min(baseline_target, final_target, baseline_readback,
                final_readback, abs_tolerance) <= 0 or rel_tolerance < 0:
             errors.append(f"{label} adapter 含非正目标/回读/容差")
@@ -6902,6 +7649,8 @@ def verify_hp_audit_document(document: dict, *,
                         or phases != [f"phase[{i}]" for i in range(1, 4)]):
                     errors.append(
                         f"{label} Orochi EX 必须是 phase[1..3] 三组件")
+                errors.extend(_verify_orochi_ex_phase_safety_receipt(
+                    label, adapter))
             elif adapter.get("family") in SINGLE_BAR_SPECIAL_SPECS:
                 if len(components) != 1 or phases != ["main"]:
                     errors.append(
@@ -6963,6 +7712,12 @@ def verify_hp_audit_document(document: dict, *,
             1 for floor in floors
             if isinstance(floor, dict) and floor.get("target_exempt")),
         "special_bundle_rounds": special_count,
+        "identity_reference_closure_rounds": sum(
+            1 for floor in floors if isinstance(floor, dict)
+            and floor.get("identity_reference_closures")),
+        "identity_reference_closures": sum(
+            len(floor.get("identity_reference_closures") or ())
+            for floor in floors if isinstance(floor, dict)),
         "baseline_first_boss_hp": (
             float(floors[0]["adapter"]["baseline_target_hp"])
             if floors and isinstance(floors[0], dict) else 0.0),
@@ -7049,6 +7804,8 @@ def render_hp_audit_report(
         raise ValueError("验收回执未通过，拒绝生成绿色报告:" + "；".join(errors))
     inputs = document["inputs"]
     summary = document["summary"]
+    curve_baseline = document["selection_policy"][
+        "client_bundled_curve_baseline"]
     source_proxy_components = int(summary.get(
         "source_proxy_components", summary["proxy_components"]))
     floors = list(document["floors"])
@@ -7100,6 +7857,12 @@ def render_hp_audit_report(
         f"未归一豁免：`{int(summary['target_exempt_rounds'])}`；"
         f"解析链失败：`{int(summary['chain_failures'])}`",
         f"- 最大绝对回读误差：`{float(summary['max_absolute_error_hp']):g} HP`",
+        f"- identity 引用闭包："
+        f"`{int(summary.get('identity_reference_closures', 0))}` 个，"
+        f"覆盖 `{int(summary.get('identity_reference_closure_rounds', 0))}` 关",
+        f"- 客户端内置 HP 曲线基线："
+        f"`{curve_baseline['member_sha256']}`（"
+        f"{int(curve_baseline['cross_checked_client_baselines'])} 份客户端交叉核对）",
         f"- 验证范围：`{document['verification_scope']}`；"
         "真机实战验证：`否（gameplay_verified=false）`",
         f"- 回执 SHA-256：`{document['document_sha256']}`",
@@ -7313,6 +8076,37 @@ class SpherePhaseBudget:
 
 
 @dataclass(frozen=True)
+class SphereLifecycleStep:
+    """One statically proved progress edge in the four-phase Sphere client."""
+
+    sequence: int
+    source_phase: int
+    target_phase: int | None
+    trigger: str
+    threshold_ratio: float | None
+    member_phases: tuple[str, ...]
+    expected_entities: int
+    expected_completion_count: int | None
+    entity_ids: tuple[str, ...]
+    budget_phase: str | None
+    next_state_entry: str
+    verified: bool
+
+
+@dataclass(frozen=True)
+class SphereLifecycleProof:
+    """Static liveness contract; deliberately not a gameplay simulation."""
+
+    family: str
+    steps: tuple[SphereLifecycleStep, ...]
+    victory_component_count: int
+    client_contract: str
+    static_verified: bool
+    runtime_simulated: bool = False
+    gameplay_verified: bool = False
+
+
+@dataclass(frozen=True)
 class SphereGraph:
     """One Sphere parent plus every constructor-created child occurrence."""
 
@@ -7323,6 +8117,7 @@ class SphereGraph:
     parent_hp_kind: str | None = None
     auxiliaries: tuple[SphereAuxiliaryRef, ...] = ()
     phase_budgets: tuple[SpherePhaseBudget, ...] = ()
+    lifecycle: SphereLifecycleProof | None = None
     behavior_verified: bool = False
     action_roots: tuple[str, ...] = ()
     action_closure: tuple[str, ...] = ()
@@ -7444,6 +8239,151 @@ def _sphere_phase_budgets(
                 f"completion={completion},expected={expected_completion},"
                 f"model={budget_model}")
     return tuple(budgets), None
+
+
+def _sphere_lifecycle_proof(
+        family: str, parent_row: list[str],
+        auxiliaries: tuple[SphereAuxiliaryRef, ...],
+        phase_budgets: tuple[SpherePhaseBudget, ...]) \
+        -> tuple[SphereLifecycleProof | None, str | None]:
+    """Close every static phase edge without claiming runtime simulation.
+
+    The four-edge topology comes from the client 1.8.1 Sphere state machine:
+    ``Sphere.changePhase`` enters ``getInitialStateByNextPhase`` for phases
+    2..4, while a depleted phase-4 parent enters ``Sphere.enterDeadState``.
+    Family contracts bind those edges to the exact constructor children and
+    the independently recomputed damage budgets above.
+    """
+
+    contracts = tuple(SPHERE_SPECS[family].get("lifecycle_contracts") or ())
+    expected_targets = (2, 3, 4, None)
+    if len(contracts) != 4:
+        return None, f"lifecycle edge count drift:{len(contracts)}/4"
+    budgets_by_phase = {budget.phase: budget for budget in phase_budgets}
+    budget_members = {
+        str(contract["phase"]): tuple(map(
+            str, contract.get("member_phases") or (contract["phase"],)))
+        for contract in (SPHERE_SPECS[family].get("phase_contracts") or ())
+    }
+    if len(budgets_by_phase) != len(phase_budgets):
+        return None, "phase damage budgets contain duplicate phase keys"
+    used_budgets: set[str] = set()
+    used_gate_ids: set[str] = set()
+    steps: list[SphereLifecycleStep] = []
+    allowed_triggers = {
+        "mandatory_gate_clear", "parent_hp_threshold",
+        "child_damage_threshold", "parent_hp_depleted",
+    }
+    for sequence, (contract, target_expected) in enumerate(
+            zip(contracts, expected_targets), start=1):
+        try:
+            source_phase = int(contract["source_phase"])
+            target_raw = contract.get("target_phase")
+            target_phase = None if target_raw is None else int(target_raw)
+            trigger = str(contract["trigger"])
+        except (KeyError, TypeError, ValueError) as exc:
+            return None, f"lifecycle edge {sequence} malformed:{exc}"
+        if (source_phase != sequence or target_phase != target_expected
+                or trigger not in allowed_triggers):
+            return None, (
+                f"lifecycle edge {sequence} topology drift:"
+                f"phase={source_phase}->{target_phase},trigger={trigger}")
+
+        threshold_ratio: float | None = None
+        member_phases: tuple[str, ...] = ()
+        expected_entities = 0
+        expected_completion: int | None = None
+        entity_ids: tuple[str, ...] = ()
+        budget_phase: str | None = None
+        verified = False
+        if trigger == "mandatory_gate_clear":
+            member_phases = tuple(map(
+                str, contract.get("member_phases") or ()))
+            matching = tuple(
+                item for item in auxiliaries
+                if item.phase in member_phases and item.victory_component)
+            try:
+                expected_entities = int(contract["expected_entities"])
+                expected_completion = int(
+                    contract["expected_completion_count"])
+            except (KeyError, TypeError, ValueError) as exc:
+                return None, f"lifecycle gate {sequence} malformed:{exc}"
+            entity_ids = tuple(item.entity_id for item in matching)
+            verified = (
+                source_phase == 1 and bool(member_phases)
+                and len(matching) == expected_entities
+                and expected_completion == expected_entities
+                and len(set(entity_ids)) == len(entity_ids))
+            used_gate_ids.update(entity_ids)
+        elif trigger == "parent_hp_threshold":
+            try:
+                threshold_ratio = float(
+                    parent_row[int(contract["threshold_column"])])
+            except (IndexError, KeyError, TypeError, ValueError) as exc:
+                return None, f"lifecycle threshold {sequence} malformed:{exc}"
+            verified = (
+                target_phase is not None and math.isfinite(threshold_ratio)
+                and 0 < threshold_ratio < 1)
+        elif trigger == "child_damage_threshold":
+            budget_phase = str(contract.get("budget_phase") or "")
+            budget = budgets_by_phase.get(budget_phase)
+            if budget is None:
+                return None, (
+                    f"lifecycle edge {sequence} lacks phase budget:"
+                    f"{budget_phase or '(missing)'}")
+            used_budgets.add(budget_phase)
+            threshold_ratio = budget.exit_ratio
+            member_phases = budget_members.get(budget_phase, ())
+            expected_entities = len(budget.entity_ids)
+            expected_completion = budget.expected_completion_count
+            entity_ids = budget.entity_ids
+            verified = (
+                budget.verified and expected_entities > 0
+                and len(set(entity_ids)) == expected_entities
+                and math.isfinite(threshold_ratio)
+                and 0 <= threshold_ratio < 1)
+        else:
+            threshold_ratio = 0.0
+            verified = source_phase == 4 and target_phase is None
+
+        next_state_entry = (
+            f"getInitialStateByNextPhase({target_phase})"
+            if target_phase is not None else "Sphere.enterDeadState")
+        step = SphereLifecycleStep(
+            sequence=sequence, source_phase=source_phase,
+            target_phase=target_phase, trigger=trigger,
+            threshold_ratio=threshold_ratio, member_phases=member_phases,
+            expected_entities=expected_entities,
+            expected_completion_count=expected_completion,
+            entity_ids=entity_ids, budget_phase=budget_phase,
+            next_state_entry=next_state_entry, verified=verified)
+        steps.append(step)
+        if not verified:
+            return None, (
+                f"lifecycle edge {sequence} is not closed:"
+                f"{source_phase}->{target_phase}/{trigger},"
+                f"entities={len(entity_ids)}/{expected_entities},"
+                f"completion={expected_completion}")
+
+    required_gate_ids = {
+        item.entity_id for item in auxiliaries if item.victory_component}
+    if used_gate_ids != required_gate_ids:
+        return None, (
+            "lifecycle mandatory victory gates drift:"
+            f"used={sorted(used_gate_ids)},required={sorted(required_gate_ids)}")
+    if used_budgets != set(budgets_by_phase):
+        return None, (
+            "lifecycle phase budget coverage drift:"
+            f"used={sorted(used_budgets)},"
+            f"required={sorted(budgets_by_phase)}")
+    proof = SphereLifecycleProof(
+        family=family, steps=tuple(steps),
+        victory_component_count=1 + len(required_gate_ids),
+        client_contract=(
+            "client-1.8.1:Sphere.changePhase/getInitialStateByNextPhase/"
+            "enterDeadState"),
+        static_verified=True)
+    return proof, None
 
 
 def _special_hp_failure(detail: str,
@@ -7943,7 +8883,6 @@ def inspect_sphere_bundle(
     parent_hp = float(parent_components[0]["native_hp"])
     phase_budgets, behavior_error = _sphere_phase_budgets(
         family, parent_row, parent_hp, tuple(auxiliaries))
-    behavior_verified = bool(phase_budgets) and behavior_error is None
     if behavior_error is not None:
         return SphereGraph(
             False, family=family, parent_ref=ref, selected_level=selected,
@@ -7951,12 +8890,25 @@ def inspect_sphere_bundle(
             auxiliaries=tuple(auxiliaries), phase_budgets=phase_budgets,
             behavior_verified=False,
             reason="SPECIAL_PHASE_BEHAVIOR_UNSAFE", detail=behavior_error)
+    lifecycle, lifecycle_error = _sphere_lifecycle_proof(
+        family, parent_row, tuple(auxiliaries), phase_budgets)
+    behavior_verified = (
+        bool(phase_budgets) and lifecycle is not None
+        and lifecycle.static_verified and lifecycle_error is None)
+    if lifecycle_error is not None or lifecycle is None:
+        return SphereGraph(
+            False, family=family, parent_ref=ref, selected_level=selected,
+            parent_hp_kind=("hit" if level_row[0] == "0" else "fix"),
+            auxiliaries=tuple(auxiliaries), phase_budgets=phase_budgets,
+            lifecycle=lifecycle, behavior_verified=False,
+            reason="SPECIAL_PHASE_BEHAVIOR_UNSAFE",
+            detail=lifecycle_error or "Sphere lifecycle proof missing")
     if any(value == ref.code for row in rows_for_identity for value in row):
         return SphereGraph(
             False, family=family, parent_ref=ref, selected_level=selected,
             parent_hp_kind=("hit" if level_row[0] == "0" else "fix"),
             auxiliaries=tuple(auxiliaries), phase_budgets=phase_budgets,
-            behavior_verified=behavior_verified,
+            lifecycle=lifecycle, behavior_verified=behavior_verified,
             reason="SPECIAL_HP_CHANNEL_UNSUPPORTED",
             detail="Sphere parent/child row embeds its parent master id")
 
@@ -7970,7 +8922,7 @@ def inspect_sphere_bundle(
             False, family=family, parent_ref=ref, selected_level=selected,
             parent_hp_kind=("hit" if level_row[0] == "0" else "fix"),
             auxiliaries=tuple(auxiliaries), phase_budgets=phase_budgets,
-            behavior_verified=behavior_verified,
+            lifecycle=lifecycle, behavior_verified=behavior_verified,
             reason="SPECIAL_HP_CHANNEL_UNSUPPORTED",
             detail="Sphere external boss-code reference scan unavailable/degraded")
     ref_hits = [key for key in required_ref_sets
@@ -7980,7 +8932,7 @@ def inspect_sphere_bundle(
             False, family=family, parent_ref=ref, selected_level=selected,
             parent_hp_kind=("hit" if level_row[0] == "0" else "fix"),
             auxiliaries=tuple(auxiliaries), phase_budgets=phase_budgets,
-            behavior_verified=behavior_verified,
+            lifecycle=lifecycle, behavior_verified=behavior_verified,
             reason="SPECIAL_HP_CHANNEL_UNSUPPORTED",
             detail="Sphere parent id has external references:" + ",".join(ref_hits))
 
@@ -7995,13 +8947,15 @@ def inspect_sphere_bundle(
             False, family=family, parent_ref=ref, selected_level=selected,
             parent_hp_kind=("hit" if level_row[0] == "0" else "fix"),
             auxiliaries=tuple(auxiliaries), phase_budgets=phase_budgets,
-            behavior_verified=behavior_verified, action_roots=roots,
+            lifecycle=lifecycle, behavior_verified=behavior_verified,
+            action_roots=roots,
             reason="SPECIAL_HP_CHANNEL_UNSUPPORTED", detail=identity.detail)
     return SphereGraph(
         True, family=family, parent_ref=ref, selected_level=selected,
         parent_hp_kind=("hit" if level_row[0] == "0" else "fix"),
         auxiliaries=tuple(auxiliaries), phase_budgets=phase_budgets,
-        behavior_verified=behavior_verified, action_roots=roots)
+        lifecycle=lifecycle, behavior_verified=behavior_verified,
+        action_roots=roots)
 
 
 def sphere_native_hp_evidence(
@@ -8052,10 +9006,13 @@ def sphere_native_hp_evidence(
         "evidence": {
             "logical": BOSS_LEVEL, "selected_level": graph.selected_level,
             "role": "final_parent_victory_bar",
-            "auxiliary_entities": [asdict(item) for item in graph.auxiliaries],
-            "behavior_verified": graph.behavior_verified,
-            "phase_budgets": [asdict(item) for item in graph.phase_budgets],
-            "auxiliary_role": (
+                "auxiliary_entities": [asdict(item) for item in graph.auxiliaries],
+                "behavior_verified": graph.behavior_verified,
+                "phase_budgets": [asdict(item) for item in graph.phase_budgets],
+                "phase_lifecycle": (
+                    asdict(graph.lifecycle) if graph.lifecycle is not None
+                    else None),
+                "auxiliary_role": (
                 "mandatory_gate entries add to victory HP; damage_conduit "
                 "entries transfer their damage to the parent and are not added twice"),
         },
@@ -8071,6 +9028,8 @@ def sphere_native_hp_evidence(
         "reason": None if verified else "Sphere victory HP evidence drift",
         "graph": graph, "behavior_verified": graph.behavior_verified,
         "phase_budgets": [asdict(item) for item in graph.phase_budgets],
+        "phase_lifecycle": (
+            asdict(graph.lifecycle) if graph.lifecycle is not None else None),
     }
 
 
@@ -8234,8 +9193,23 @@ def orochi_ex_native_hp_evidence(bundle: rbb.NativeBossBundle,
             "apply_quest_hp_correction": bool(
                 component.get("apply_quest_hp_correction", True)),
         }
+    try:
+        threshold_contract = wf_orochi_ex.phase_threshold_icon_contract(
+            float(components[0]["native_hp"]),
+            float(components[1]["native_hp"]),
+            float(components[2]["native_hp"]),
+        )
+    except (KeyError, TypeError, ValueError,
+            wf_orochi_ex.OrochiExHpError) as exc:
+        return dict(
+            evidence, components=components, verified=False,
+            absolute_verified=False,
+            reason="Orochi EX phase threshold/icon contract failed",
+            detail=str(exc), graph=graph,
+            phase_threshold_contract=None)
     evidence["components"] = components
     evidence["graph"] = graph
+    evidence["phase_threshold_contract"] = threshold_contract
     return evidence
 
 
@@ -8478,7 +9452,13 @@ def orochi_hp_scale_plan(native: dict, boss_level: dict, *, target_hp: float,
 
 def orochi_ex_hp_scale_plan(native: dict, dedicated: dict, boss_level: dict, *,
                             target_hp: float, curse_hp: float) -> dict:
-    """Plan all three Orochi EX victory bars through their two real channels."""
+    """Plan all three Orochi EX bars without overflowing client ``int`` HP.
+
+    The first and third bars are ActionScript ``int`` fields while the middle
+    bar is a floating ``boss_level.c2`` channel.  Uniform scaling is retained
+    while both fixed bars fit signed int32; above that boundary, the fixed
+    scale is capped and the middle bar absorbs the remaining target HP.
+    """
     components = list(native.get("components") or [])
     graph = native.get("graph")
     if (not native.get("verified") or not native.get("absolute_verified")
@@ -8495,8 +9475,9 @@ def orochi_ex_hp_scale_plan(native: dict, dedicated: dict, boss_level: dict, *,
     try:
         wanted = float(target_hp)
         hp_mult = float(curse_hp)
-        native_total = math.fsum(float(component["native_hp"])
-                                 for component in components)
+        native_values = tuple(float(component["native_hp"])
+                              for component in components)
+        native_total = math.fsum(native_values)
     except (KeyError, TypeError, ValueError) as exc:
         raise ValueError("Orochi EX HP 伸缩输入含非数字") from exc
     if not all(math.isfinite(value) and value > 0
@@ -8507,14 +9488,40 @@ def orochi_ex_hp_scale_plan(native: dict, dedicated: dict, boss_level: dict, *,
     baseline_scale = wanted / native_total
     final_scale = baseline_scale * hp_mult
     source_code = graph.parent_ref.code
+    phase1_native, middle_native, phase3_native = native_values
+    max_safe_fixed_scale = math.nextafter(min(
+        wf_orochi_ex.CLIENT_SIGNED_INT_MAX / phase1_native,
+        wf_orochi_ex.CLIENT_SIGNED_INT_MAX / phase3_native,
+    ), 0.0)
+    if not math.isfinite(max_safe_fixed_scale) or max_safe_fixed_scale <= 0:
+        raise ValueError(
+            f"Orochi EX signed int32 固定阶段上限非法:{max_safe_fixed_scale}")
 
-    def staged(scale: float, suffix: str) -> tuple[dict, dict]:
+    def staged(target_total: float, uniform_scale: float, suffix: str) -> tuple:
+        fixed_scale = min(uniform_scale, max_safe_fixed_scale)
+        phase1_target = int(round(phase1_native * fixed_scale))
+        phase3_target = int(round(phase3_native * fixed_scale))
+        if (phase1_target <= 0 or phase3_target <= 0
+                or phase1_target > wf_orochi_ex.CLIENT_SIGNED_INT_MAX
+                or phase3_target > wf_orochi_ex.CLIENT_SIGNED_INT_MAX):
+            raise ValueError(
+                "Orochi EX 固定阶段 int32 分配失败:"
+                f"phase1={phase1_target},phase3={phase3_target},"
+                f"scale={fixed_scale}")
+        middle_target = math.fsum((
+            float(target_total), -float(phase1_target), -float(phase3_target)))
+        middle_scale = middle_target / middle_native
+        if not math.isfinite(middle_scale) or middle_scale <= 0:
+            raise ValueError(
+                "Orochi EX 中段剩余 HP 无法安全分配:"
+                f"target={target_total},fixed={phase1_target + phase3_target},"
+                f"middle_scale={middle_scale}")
         target_code = f"__wf_rogue_orochi_ex_{suffix}__"
         if target_code in dedicated or target_code in boss_level:
             raise ValueError(f"Orochi EX 计划临时代号冲突:{target_code}")
         node, level_leaf, report = wf_orochi_ex.build_scaled_hp_rows(
             dedicated, boss_level, source_code, target_code,
-            fixed_phase_scale=scale, middle_scale=scale)
+            fixed_phase_scale=fixed_scale, middle_scale=middle_scale)
         dedicated_overlay = dict(dedicated)
         level_overlay = dict(boss_level)
         dedicated_overlay[target_code] = node
@@ -8528,11 +9535,51 @@ def orochi_ex_hp_scale_plan(native: dict, dedicated: dict, boss_level: dict, *,
             raise ValueError(
                 "Orochi EX 三阶段计划回读失败:"
                 f"{readback.get('reason') or 'unknown'}")
-        return readback, report
+        readback_components = tuple(
+            float(component["native_hp"])
+            for component in readback["components"])
+        if not math.isclose(
+                math.fsum(readback_components), float(target_total),
+                rel_tol=HP_TARGET_REL_TOLERANCE,
+                abs_tol=HP_TARGET_ABS_TOLERANCE):
+            raise ValueError(
+                "Orochi EX 约束分配未命中总 HP:"
+                f"readback={math.fsum(readback_components)},"
+                f"target={target_total}")
+        try:
+            threshold_contract = wf_orochi_ex.phase_threshold_icon_contract(
+                *readback_components)
+        except wf_orochi_ex.OrochiExHpError as exc:
+            raise ValueError(
+                f"Orochi EX PhaseThresholdIcon 静态契约失败:{exc}") from exc
+        if (not threshold_contract.get("static_verified")
+                or threshold_contract.get("gameplay_verified")):
+            raise ValueError("Orochi EX PhaseThresholdIcon 静态契约缺失")
+        capped = fixed_scale < uniform_scale and not math.isclose(
+            fixed_scale, uniform_scale, rel_tol=1e-15, abs_tol=0.0)
+        component_targets = (
+            float(phase1_target), middle_target, float(phase3_target))
+        report.update({
+            "target_total_hp": float(target_total),
+            "uniform_scale": float(uniform_scale),
+            "max_safe_fixed_phase_scale": max_safe_fixed_scale,
+            "fixed_phase_int32_capped": capped,
+            "component_targets": component_targets,
+            "phase_threshold_contract": threshold_contract,
+            "runtime_simulated": False,
+            "gameplay_verified": False,
+        })
+        return (readback, report, fixed_scale, middle_scale,
+                component_targets, threshold_contract)
 
-    baseline_readback, baseline_report = staged(
-        baseline_scale, "baseline")
-    final_readback, final_report = staged(final_scale, "final")
+    (baseline_readback, baseline_report, baseline_fixed_scale,
+     baseline_middle_scale, baseline_targets,
+     baseline_threshold_contract) = staged(
+        wanted, baseline_scale, "baseline")
+    final_target = wanted * hp_mult
+    (final_readback, final_report, final_fixed_scale,
+     final_middle_scale, final_targets, final_threshold_contract) = staged(
+        final_target, final_scale, "final")
     baseline_components = tuple(
         float(component["native_hp"])
         for component in baseline_readback["components"])
@@ -8543,8 +9590,19 @@ def orochi_ex_hp_scale_plan(native: dict, dedicated: dict, boss_level: dict, *,
         "channel": "special_bundle", "family": "orochi_ex",
         "c86": 1.0, "curse_hp": hp_mult,
         "baseline_scale": baseline_scale, "final_scale": final_scale,
+        "baseline_fixed_phase_scale": baseline_fixed_scale,
+        "baseline_middle_scale": baseline_middle_scale,
+        "final_fixed_phase_scale": final_fixed_scale,
+        "final_middle_scale": final_middle_scale,
+        "max_safe_fixed_phase_scale": max_safe_fixed_scale,
+        "baseline_fixed_phase_int32_capped": bool(
+            baseline_report["fixed_phase_int32_capped"]),
+        "final_fixed_phase_int32_capped": bool(
+            final_report["fixed_phase_int32_capped"]),
         "baseline_component_hp": baseline_components,
         "final_component_hp": final_components,
+        "baseline_component_target_hp": baseline_targets,
+        "final_component_target_hp": final_targets,
         "baseline_true_hp": math.fsum(baseline_components),
         "true_hp": math.fsum(final_components),
         "selected_levels": {source_code: graph.selected_level},
@@ -8553,6 +9611,10 @@ def orochi_ex_hp_scale_plan(native: dict, dedicated: dict, boss_level: dict, *,
         },
         "baseline_report": baseline_report,
         "final_report": final_report,
+        "baseline_phase_threshold_contract": baseline_threshold_contract,
+        "final_phase_threshold_contract": final_threshold_contract,
+        "runtime_simulated": False,
+        "gameplay_verified": False,
     }
 
 
@@ -8632,7 +9694,9 @@ def sphere_hp_scale_plan(
             or components[-1].get("phase") != "main"):
         raise ValueError(
             f"Sphere 伸缩缺完整绝对证据:{native.get('reason') or 'unknown'}")
-    if not graph.behavior_verified or not graph.phase_budgets:
+    if (not graph.behavior_verified or not graph.phase_budgets
+            or graph.lifecycle is None
+            or not graph.lifecycle.static_verified):
         raise ValueError(
             f"Sphere 阶段行为闭包未验证，严格模式必须重抽:{graph.family}")
     try:
@@ -8712,6 +9776,8 @@ def sphere_hp_scale_plan(
         "fixed_gate_hp": fixed_gate,
         "behavior_verified": True,
         "phase_budgets": [asdict(item) for item in graph.phase_budgets],
+        "phase_lifecycle": (
+            asdict(graph.lifecycle) if graph.lifecycle is not None else None),
     }
 
 
@@ -8869,7 +9935,9 @@ def clone_sphere_bundle(
             or graph.selected_level is None):
         return _sphere_clone_failure(
             graph.detail or graph.reason or "source graph failed", family)
-    if not graph.behavior_verified or not graph.phase_budgets:
+    if (not graph.behavior_verified or not graph.phase_budgets
+            or graph.lifecycle is None
+            or not graph.lifecycle.static_verified):
         return _sphere_clone_failure(
             f"Sphere phase behavior closure is not proved:{family}", family)
     spec = SPHERE_SPECS[family]
@@ -9029,9 +10097,57 @@ def clone_sphere_bundle(
     readback_graph = readback.get("graph")
     if (not isinstance(readback_graph, SphereGraph)
             or not readback_graph.behavior_verified
+            or readback_graph.lifecycle is None
+            or not readback_graph.lifecycle.static_verified
             or len(readback_graph.phase_budgets) != len(graph.phase_budgets)):
         return _sphere_clone_failure(
             "Sphere overlay phase behavior readback failed", family)
+    source_lifecycle = graph.lifecycle
+    target_lifecycle = readback_graph.lifecycle
+    if (source_lifecycle.runtime_simulated
+            or source_lifecycle.gameplay_verified
+            or target_lifecycle.runtime_simulated
+            or target_lifecycle.gameplay_verified
+            or source_lifecycle.client_contract
+            != target_lifecycle.client_contract
+            or source_lifecycle.victory_component_count
+            != target_lifecycle.victory_component_count
+            or len(source_lifecycle.steps) != len(target_lifecycle.steps)):
+        return _sphere_clone_failure(
+            "Sphere overlay lifecycle proof metadata drift", family)
+    for source_step, target_step in zip(
+            source_lifecycle.steps, target_lifecycle.steps):
+        source_shape = (
+            source_step.sequence, source_step.source_phase,
+            source_step.target_phase, source_step.trigger,
+            source_step.member_phases, source_step.expected_entities,
+            source_step.expected_completion_count, source_step.budget_phase,
+            source_step.next_state_entry, source_step.verified)
+        target_shape = (
+            target_step.sequence, target_step.source_phase,
+            target_step.target_phase, target_step.trigger,
+            target_step.member_phases, target_step.expected_entities,
+            target_step.expected_completion_count, target_step.budget_phase,
+            target_step.next_state_entry, target_step.verified)
+        ratios_match = (
+            source_step.threshold_ratio is None
+            and target_step.threshold_ratio is None)
+        if (source_step.threshold_ratio is not None
+                and target_step.threshold_ratio is not None):
+            ratios_match = math.isclose(
+                source_step.threshold_ratio, target_step.threshold_ratio,
+                rel_tol=1e-12, abs_tol=1e-12)
+        if (source_shape != target_shape or not ratios_match
+                or len(source_step.entity_ids)
+                != len(target_step.entity_ids)
+                or len(set(target_step.entity_ids))
+                != len(target_step.entity_ids)):
+            return _sphere_clone_failure(
+                "Sphere overlay lifecycle topology drift:"
+                f"phase[{source_step.source_phase}] source={source_shape}/"
+                f"ratio={source_step.threshold_ratio}/ids={len(source_step.entity_ids)} "
+                f"target={target_shape}/ratio={target_step.threshold_ratio}/"
+                f"ids={len(target_step.entity_ids)}", family)
     scalable_phases = {
         str(group["phase"])
         for _ordinal, group in (
@@ -9097,16 +10213,19 @@ def clone_sphere_bundle(
 
 def clone_orochi_ex_parent_bundle(
         bundle: rbb.NativeBossBundle, round_no: int, scale: float,
-        tables: dict) -> OrochiExCloneResult:
+        tables: dict, *, middle_scale: float | None = None) -> OrochiExCloneResult:
     """Atomically clone kind-4 parent, six heads and all three HP channels."""
     try:
         round_value = int(round_no)
         factor = float(scale)
+        middle_factor = factor if middle_scale is None else float(middle_scale)
     except (TypeError, ValueError) as exc:
         return _orochi_ex_clone_failure(f"round/scale is not numeric:{exc}")
-    if round_value <= 0 or not math.isfinite(factor) or factor <= 0:
+    if (round_value <= 0 or not math.isfinite(factor) or factor <= 0
+            or not math.isfinite(middle_factor) or middle_factor <= 0):
         return _orochi_ex_clone_failure(
-            f"round and scale must be finite positive:{round_no},{scale}")
+            "round and scales must be finite positive:"
+            f"{round_no},{scale},{middle_scale}")
     source_graph = inspect_orochi_ex_bundle(bundle, 100, tables)
     if (not source_graph.ok or source_graph.parent_ref is None
             or source_graph.selected_level is None):
@@ -9136,9 +10255,9 @@ def clone_orochi_ex_parent_bundle(
         "boss_level": dict(boss_level),
     }
     try:
-        parent_node, parent_level, _report = wf_orochi_ex.build_scaled_hp_rows(
+        parent_node, parent_level, hp_report = wf_orochi_ex.build_scaled_hp_rows(
             dedicated, boss_level, source_graph.parent_ref.code, target_parent,
-            fixed_phase_scale=factor, middle_scale=factor)
+            fixed_phase_scale=factor, middle_scale=middle_factor)
         rewritten_parent: dict[str, object] = {}
         for tier, leaf in parent_node.items():
             row = cells(leaf)
@@ -9163,6 +10282,53 @@ def clone_orochi_ex_parent_bundle(
                 heads[source_code])
             overlay["boss_level"][target_code] = copy.deepcopy(
                 boss_level[source_code])
+
+        source_node = dedicated[source_graph.parent_ref.code]
+        if set(source_node) != set(rewritten_parent):
+            raise ValueError(
+                "scaled parent tier set drift:"
+                f"source={sorted(source_node)},target={sorted(rewritten_parent)}")
+        allowed_parent_columns = {
+            wf_orochi_ex.PHASE1_HP_COLUMN,
+            wf_orochi_ex.PHASE3_HP_COLUMN,
+            *OROCHI_EX_CHILD_COLUMNS,
+        }
+        for tier in source_node:
+            source_row = cells(source_node[tier])
+            target_row = cells(rewritten_parent[str(tier)])
+            drift = tuple(
+                index for index, (before, after) in enumerate(
+                    zip(source_row, target_row))
+                if before != after and index not in allowed_parent_columns)
+            if (len(source_row) != wf_orochi_ex.PARENT_COLUMNS
+                    or len(target_row) != wf_orochi_ex.PARENT_COLUMNS
+                    or drift):
+                raise ValueError(
+                    "Orochi EX parent non-HP/child topology drift:"
+                    f"tier={tier},columns={drift}")
+            if tuple(target_row[index]
+                     for index in OROCHI_EX_CHILD_COLUMNS) != target_heads:
+                raise ValueError(
+                    f"Orochi EX target child closure drift:tier={tier}")
+        source_parent_level = cells(boss_level[source_graph.parent_ref.code])
+        target_parent_level = cells(parent_level)
+        level_drift = tuple(
+            index for index, (before, after) in enumerate(
+                zip(source_parent_level, target_parent_level))
+            if before != after and index != 2)
+        if (len(source_parent_level) != wf_orochi_ex.BOSS_LEVEL_COLUMNS
+                or len(target_parent_level) != wf_orochi_ex.BOSS_LEVEL_COLUMNS
+                or level_drift):
+            raise ValueError(
+                "Orochi EX parent boss_level changed outside c2:"
+                f"columns={level_drift}")
+        for source_code, target_code in zip(
+                source_graph.child_codes, target_heads):
+            if (overlay["orochi_ex_head"][target_code] != heads[source_code]
+                    or overlay["boss_level"][target_code]
+                    != boss_level[source_code]):
+                raise ValueError(
+                    f"Orochi EX child clone drift:{source_code}->{target_code}")
     except (KeyError, TypeError, ValueError,
             wf_orochi_ex.OrochiExHpError) as exc:
         return _orochi_ex_clone_failure(f"dependency staging failed:{exc}")
@@ -9181,8 +10347,21 @@ def clone_orochi_ex_parent_bundle(
         cloned_bundle, source_graph.selected_level, overlay)
     source = orochi_ex_native_hp_evidence(
         bundle, source_graph.selected_level, tables)
-    expected_total = (float(source["native_hp"]) * factor
-                      if source.get("verified") else None)
+    expected_total = None
+    if source.get("verified") and len(source.get("components") or ()) == 3:
+        source_components = list(source["components"])
+        phase_after = hp_report.get("phase_hp_after", {}).get(
+            str(source_graph.selected_level))
+        if isinstance(phase_after, tuple) and len(phase_after) == 2:
+            realized_middle_factor = (
+                float(hp_report["middle_c2_after"])
+                / float(hp_report["middle_c2_before"]))
+            expected_total = math.fsum((
+                float(phase_after[0]),
+                float(source_components[1]["native_hp"])
+                * realized_middle_factor,
+                float(phase_after[1]),
+            ))
     if (not readback_graph.ok or not readback.get("verified")
             or readback.get("native_hp") is None or expected_total is None
             or not math.isclose(float(readback["native_hp"]), expected_total,
@@ -9192,6 +10371,27 @@ def clone_orochi_ex_parent_bundle(
             "overlay HP/graph readback failed:"
             f"{readback_graph.detail or readback.get('reason') or readback.get('native_hp')} "
             f"expected={expected_total}")
+    threshold_contract = readback.get("phase_threshold_contract")
+    if (not isinstance(threshold_contract, dict)
+            or not threshold_contract.get("signed_int32_verified")
+            or not threshold_contract.get("static_verified")
+            or threshold_contract.get("runtime_simulated")
+            or threshold_contract.get("gameplay_verified")):
+        return _orochi_ex_clone_failure(
+            "overlay PhaseThresholdIcon/signed-int32 contract failed")
+    readback = dict(readback)
+    readback["clone_semantics"] = {
+        "parent_only_hp_and_child_columns_changed": True,
+        "parent_boss_level_only_c2_changed": True,
+        "six_head_nodes_equal_source": True,
+        "six_head_boss_level_equal_source": True,
+        "six_child_attack_target_references_closed": True,
+        "phase_spawn_topology_preserved": True,
+        "phase_threshold_contract": copy.deepcopy(threshold_contract),
+        "static_verified": True,
+        "runtime_simulated": False,
+        "gameplay_verified": False,
+    }
 
     # Commit additions only after the complete parent/head/HP overlay passes.
     dedicated[target_parent] = overlay["orochi_ex"][target_parent]
@@ -11035,6 +12235,7 @@ def main() -> int:
     caster_blocked: dict[str, str] = {}
     clone_sources: dict[str, str] = {}
     clone_watch_alias_counts: dict[str, int] = {}
+    identity_reference_closures: dict[int, list[dict]] = {}
     native_special_bundles: list[rbb.NativeBossBundle] = []
     _runtime_validation = boss_ref_validation_tables(
         standard_boss=sb_t, general_boss=gb_t,
@@ -11334,6 +12535,26 @@ def main() -> int:
             raise RuntimeError(
                 f"第{r}战 enemy_watch partner 闭包缺失:"
                 f"{boss_code}->{code}")
+        if expected_watch_alias:
+            source_reference_count = enemy_watch_partner_reference_count(
+                ew_t, boss_code)
+            clone_reference_count = enemy_watch_partner_reference_count(
+                ew_t, code)
+            if (source_reference_count <= 0
+                    or clone_reference_count != source_reference_count
+                    or watch_alias_count != source_reference_count):
+                raise RuntimeError(
+                    f"第{r}战 enemy_watch partner 回读数量漂移:"
+                    f"{boss_code}={source_reference_count},"
+                    f"{code}={clone_reference_count},added={watch_alias_count}")
+            identity_reference_closures.setdefault(int(r), []).append({
+                "kind": "general_enemy_watch.partner_alias",
+                "source_code": str(boss_code),
+                "clone_code": str(code),
+                "source_reference_count": int(source_reference_count),
+                "clone_reference_count": int(clone_reference_count),
+                "verified": True,
+            })
         clone_sources[code] = boss_code
         clone_watch_alias_counts[code] = watch_alias_count
         caster_dirty = True
@@ -12496,9 +13717,14 @@ def main() -> int:
                 "selected_levels": {},
             }
         _hp_family = (_hp_strategy["family"] if _hp_strategy else "unknown")
+        _hp_channel = (_hp_strategy["channel"]
+                       if _hp_strategy else "unscaled")
         _pacing_blocks = curse_pacing_blocks(
             r, args.rounds, curse_name_history, tier=st_tier)
         try:
+            _curse_capabilities = resolve_curse_capabilities(
+                _hp_channel, _hp_family, caps,
+                no_base=(_anchor is None or _hp_strategy is None))
             curse = abyss_curses(
                 r, args.rounds, rng, st_tier, caps, forced,
                 # _hp_strategy is None = 这层的血量按不动(读不出通道,或
@@ -12506,8 +13732,7 @@ def main() -> int:
                 # 攻击诅咒与时限诅咒都必须禁掉,否则真实伤害/需求 DPS 无上界。
                 no_base=(_anchor is None or _hp_strategy is None),
                 high_threat=_high_threat,
-                forbid_hp_curses=(
-                    _hp_family in SPHERE_HP_CURSE_FORBIDDEN_FAMILIES),
+                capability_profile=_curse_capabilities,
                 random_forbidden=_pacing_blocks,
                 **_runtime_kwargs)
         except (RuntimeError, ValueError) as exc:
@@ -12746,8 +13971,10 @@ def main() -> int:
                     _special_clone = _orochi_clone
                 elif _hp_plan["family"] == "orochi_ex":
                     _orochi_ex_clone = clone_orochi_ex_parent_bundle(
-                        _native_bundle, r, float(_hp_plan["final_scale"]),
-                        orochi_tables)
+                        _native_bundle, r,
+                        float(_hp_plan["final_fixed_phase_scale"]),
+                        orochi_tables,
+                        middle_scale=float(_hp_plan["final_middle_scale"]))
                     if (not _orochi_ex_clone.ok
                             or _orochi_ex_clone.bundle is None
                             or _orochi_ex_clone.parent_code is None):
@@ -12805,6 +14032,10 @@ def main() -> int:
                     (source.code, target_ref.code)
                     for source, target_ref in _special_clone.clone_map)
                 _hp_plan["touched_tables"] = _special_clone.touched_tables
+                if (_hp_plan["family"] == "orochi_ex"
+                        and isinstance(_special_clone.evidence, dict)):
+                    _hp_plan["phase_clone_semantics"] = copy.deepcopy(
+                        _special_clone.evidence.get("clone_semantics"))
             elif action_programs or hard_program:
                 carrier_clone = (make_caster_boss(
                     r, target, action_programs=action_programs,
@@ -12986,6 +14217,33 @@ def main() -> int:
                   "mixed_hp": "mixed_hp",
                   "special_bundle": "special_bundle_hp"}[plan["channel"]]): hp_evidence,
             }
+            if (plan["channel"] == "special_bundle"
+                    and plan["family"] == "orochi_ex"):
+                audit["orochi_ex_phase_safety"] = {
+                    "baseline": copy.deepcopy(
+                        plan["baseline_phase_threshold_contract"]),
+                    "final": copy.deepcopy(
+                        plan["final_phase_threshold_contract"]),
+                    "baseline_fixed_phase_scale": float(
+                        plan["baseline_fixed_phase_scale"]),
+                    "baseline_middle_scale": float(
+                        plan["baseline_middle_scale"]),
+                    "final_fixed_phase_scale": float(
+                        plan["final_fixed_phase_scale"]),
+                    "final_middle_scale": float(
+                        plan["final_middle_scale"]),
+                    "max_safe_fixed_phase_scale": float(
+                        plan["max_safe_fixed_phase_scale"]),
+                    "baseline_fixed_phase_int32_capped": bool(
+                        plan["baseline_fixed_phase_int32_capped"]),
+                    "final_fixed_phase_int32_capped": bool(
+                        plan["final_fixed_phase_int32_capped"]),
+                    "clone_semantics": copy.deepcopy(
+                        plan.get("phase_clone_semantics")),
+                    "static_verified": True,
+                    "runtime_simulated": False,
+                    "gameplay_verified": False,
+                }
             frec["hp_audit"] = audit
             hp_audits.append(audit)
         elif frec["native_hp"].get("verified") and frec.get("hp_scaling_error"):
@@ -13084,10 +14342,19 @@ def main() -> int:
                     and "behavior_verified" in readback_native):
                 audit["phase_behavior"] = {
                     "verified": bool(readback_native.get("behavior_verified")),
+                    "static_verified": bool(
+                        (readback_native.get("phase_lifecycle") or {}).get(
+                            "static_verified")),
+                    "runtime_simulated": False,
+                    "gameplay_verified": False,
                     "source": copy.deepcopy(
                         frec["native_hp"].get("phase_budgets") or []),
                     "final_readback": copy.deepcopy(
                         readback_native.get("phase_budgets") or []),
+                    "source_lifecycle": copy.deepcopy(
+                        frec["native_hp"].get("phase_lifecycle")),
+                    "final_lifecycle": copy.deepcopy(
+                        readback_native.get("phase_lifecycle")),
                 }
         except ValueError as exc:
             print(f"[ERR] 第{frec['r']}战统一 HP adapter 回读失败:{exc}")
@@ -13470,6 +14737,10 @@ def main() -> int:
               f"({len(caster_blocked)} 个场地):")
         for _f, _why in sorted(caster_blocked.items()):
             print(f"        {_f} — {_why}")
+
+    for floor_record in floor_recs:
+        floor_record["identity_reference_closures"] = copy.deepcopy(
+            identity_reference_closures.get(int(floor_record["r"]), ()))
 
     if args.audit_json or args.audit_report:
         try:

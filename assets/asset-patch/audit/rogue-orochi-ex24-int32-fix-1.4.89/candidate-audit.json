@@ -1,0 +1,186 @@
+{
+  "schema": "wf-rogue-floor-only-candidate/v1",
+  "mode": "isolated_hp_only_no_publish",
+  "round": 24,
+  "quest_id": "700099024",
+  "live_terminal": {
+    "cdn_root": "F:\\startpoint-cn-main\\.cdn\\cn",
+    "server_root": "F:\\startpoint-cn-main",
+    "active_dir": "F:\\startpoint-cn-main\\assets\\asset-patch\\active",
+    "tail": "1.4.88",
+    "platform_tails": {
+      "android": "1.4.88",
+      "ios": "1.4.88"
+    },
+    "files": 141080,
+    "files_by_root": {
+      "common": 115178,
+      "medium": 23826,
+      "android": 1038,
+      "ios": 1038
+    },
+    "revision": "bb79a55898e141e2aa3c9a47970ca563d1c6b7b1ddb413132328cef49b95a112",
+    "source": "live-cdn+active"
+  },
+  "source_audit": {
+    "path": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\audit\\integrated-cloudbase-1.4.87-to-1.4.88-seed-2026082508\\hp-audit.json",
+    "sha256": "c50697a76d55f8cbc5ddd5019042dd9762b9b34a6a663a0c4a1aa03c286be846"
+  },
+  "identity": {
+    "boss": "mod_rogue_orochi_ex24",
+    "family": "orochi_ex",
+    "field": "mod_rogue_f24",
+    "zone": "mod_rogue_z24",
+    "six_children": [
+      "mod_rogue_orochi_ex24_head1",
+      "mod_rogue_orochi_ex24_head2",
+      "mod_rogue_orochi_ex24_head3",
+      "mod_rogue_orochi_ex24_head4",
+      "mod_rogue_orochi_ex24_head5",
+      "mod_rogue_orochi_ex24_head6"
+    ],
+    "quest_unchanged": true,
+    "field_unchanged": true,
+    "zone_unchanged": true,
+    "orochi_ex_head_table_unchanged": true,
+    "other_29_floors_unchanged_by_exact_key_scope": true
+  },
+  "targets": {
+    "baseline_before_curse_hp": 12428571428.571428,
+    "curse_hp_multiplier": 0.5,
+    "final_after_curse_hp": 6214285714.285714,
+    "final_c86": 1.0
+  },
+  "current_bad_profile": {
+    "phase1_hp_text": "1914595756",
+    "phase3_hp_text": "3063353210",
+    "phase3_exceeds_signed_int32": true,
+    "phase3_signed_int32_runtime_value": -1231614086
+  },
+  "candidate": {
+    "phase_hp": {
+      "phase1": 1342177279.0,
+      "phase2": 2724624788.276342,
+      "phase3": 2147483647.0
+    },
+    "final_readback_hp": 6214285714.276342,
+    "final_error_hp": -0.009371757507324219,
+    "plan": {
+      "uniform_scale": 25.527943418468773,
+      "fixed_phase_scale": 17.89569705833333,
+      "middle_scale": 56.25818981939351,
+      "fixed_phase_int32_capped": true
+    },
+    "phase_safety": {
+      "client_contract": "client-1.8.1:OrochiExValues.Std.parseInt(c24,c25)+OrochiEx.init.thresholds+PhaseThresholdIcon.setNumber",
+      "phase1_hp": 1342177279,
+      "middle_hp": 2724624788.276342,
+      "phase3_hp": 2147483647,
+      "total_hp": 6214285714.276342,
+      "phase1_hp_threshold": 0.7840174493559962,
+      "phase2_hp_threshold": 0.3455720811269579,
+      "icon_numbers": [
+        78,
+        34
+      ],
+      "icon_frames_tens_ones": [
+        [
+          7,
+          8
+        ],
+        [
+          3,
+          4
+        ]
+      ],
+      "signed_int32_verified": true,
+      "static_verified": true,
+      "runtime_simulated": false,
+      "gameplay_verified": false
+    },
+    "changed_cells": {
+      "master/battle/boss/orochi_ex.orderedmap": {
+        "key": "mod_rogue_orochi_ex24",
+        "tier": "100",
+        "columns": {
+          "c24": {
+            "before": "1914595756",
+            "after": "1342177279"
+          },
+          "c25": {
+            "before": "3063353210",
+            "after": "2147483647"
+          }
+        }
+      },
+      "master/battle/boss/boss_level.orderedmap": {
+        "key": "mod_rogue_orochi_ex24",
+        "columns": {
+          "c2": {
+            "before": "6381.98585462",
+            "after": "14064.5474548"
+          }
+        }
+      }
+    },
+    "complete_orderedmaps": {
+      "master/battle/boss/orochi_ex.orderedmap": {
+        "named_path": "F:\\codex\\startpoint-cn-private-clean\\work\\orochi-ex-floor24-only-1.4.88-20260826a\\candidate\\tables\\master\\battle\\boss\\orochi_ex.orderedmap",
+        "hashed_path": "F:\\codex\\startpoint-cn-private-clean\\work\\orochi-ex-floor24-only-1.4.88-20260826a\\candidate\\production\\upload\\7c\\0159ffd7078028b1c2eec135beb1884f7224fb",
+        "sha256": "bd674c65e36dbe056fb2b6eb9d32161cb9a7a4eda3eecda4051a14a12000d555",
+        "bytes": 1037
+      },
+      "master/battle/boss/boss_level.orderedmap": {
+        "named_path": "F:\\codex\\startpoint-cn-private-clean\\work\\orochi-ex-floor24-only-1.4.88-20260826a\\candidate\\tables\\master\\battle\\boss\\boss_level.orderedmap",
+        "hashed_path": "F:\\codex\\startpoint-cn-private-clean\\work\\orochi-ex-floor24-only-1.4.88-20260826a\\candidate\\production\\upload\\19\\a4aa442b3249499356e7a3f6370e530bfe355e",
+        "sha256": "12796f079d20269415769239664f65ea739a901a59d66799e1a236afb142da6a",
+        "bytes": 45549
+      }
+    },
+    "staged_source_report": {
+      "source_code": "orochi_ex",
+      "target_code": "__wf_floor24_hp_candidate__",
+      "fixed_phase_scale": 17.89569705833333,
+      "middle_scale": 56.25818981939351,
+      "phase_hp_before": {
+        "100": [
+          75000000,
+          120000000
+        ]
+      },
+      "phase_hp_after": {
+        "100": [
+          1342177279,
+          2147483647
+        ]
+      },
+      "middle_c2_before": 250.0,
+      "middle_c2_after": 14064.5474548
+    }
+  },
+  "unchanged_live_table_sha256": {
+    "master/quest/event/rush_event_quest.orderedmap": "76c94ef94139b995b8c0329104362ec448bbda30108ac5b89aba480c3f041f35",
+    "master/battle/field_data.orderedmap": "ab748f41fce65d2d3dcd8bf74c7349a5afb5dea2a90fd2fb1dddbe9dbab2dd16",
+    "master/battle/zone.orderedmap": "66ebf946b659bb2f45982f262dab61e46f591202b242510f779ee1f42fdd6c8b",
+    "master/battle/boss/orochi_ex_head.orderedmap": "5a612ba99fd81650ac3673c19756036372476fbd96120bfc851ef5947244e186"
+  },
+  "tool_sha256": {
+    "wf_rogue_build.py": "5ea1cf4cb18e3f183512b0be60079ef79c415fa9bc821488ae01f3e87f547d9a",
+    "wf_orochi_ex.py": "bae2e08bd4242c6723b501f220f9c831007c29f97375fd5c660daa1df9b66271"
+  },
+  "validation": {
+    "absolute_verified": true,
+    "signed_int32_verified": true,
+    "phase_threshold_icon_static_verified": true,
+    "only_target_three_hp_cells_changed": true,
+    "runtime_simulated": false,
+    "gameplay_verified": false
+  },
+  "release": {
+    "zip_created": false,
+    "manifest_changed": false,
+    "runtime_changed": false,
+    "server_json_changed": false,
+    "database_changed": false
+  }
+}

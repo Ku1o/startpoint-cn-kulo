@@ -1,0 +1,185 @@
+{
+  "schema": "wf-rogue-floor24-patch-audit/v1",
+  "patch_id": "rogue-orochi-ex24-int32-phase-fix-1.4.89",
+  "version_edge": {
+    "from": "1.4.88",
+    "to": "1.4.89"
+  },
+  "archive": {
+    "name": "pinball-1.4.88-1.4.89-1-0826-rogue-orochi-ex24-int32-fix.zip",
+    "size": 15341,
+    "sha256": "9793c6e66c4f7cf0baf3ab47b612bca0dc7ce7ddb5fe5c7bbeb4c3b1426d925c",
+    "members": 2,
+    "member_paths": [
+      "production/upload/7c/0159ffd7078028b1c2eec135beb1884f7224fb",
+      "production/upload/19/a4aa442b3249499356e7a3f6370e530bfe355e"
+    ]
+  },
+  "logical_members": {
+    "master/battle/boss/orochi_ex.orderedmap": {
+      "archive_path": "production/upload/7c/0159ffd7078028b1c2eec135beb1884f7224fb",
+      "sha256": "bd674c65e36dbe056fb2b6eb9d32161cb9a7a4eda3eecda4051a14a12000d555",
+      "bytes": 1037
+    },
+    "master/battle/boss/boss_level.orderedmap": {
+      "archive_path": "production/upload/19/a4aa442b3249499356e7a3f6370e530bfe355e",
+      "sha256": "12796f079d20269415769239664f65ea739a901a59d66799e1a236afb142da6a",
+      "bytes": 45549
+    }
+  },
+  "identity": {
+    "round": 24,
+    "quest_id": "700099024",
+    "boss": "mod_rogue_orochi_ex24",
+    "field": "mod_rogue_f24",
+    "zone": "mod_rogue_z24",
+    "six_children": [
+      "mod_rogue_orochi_ex24_head1",
+      "mod_rogue_orochi_ex24_head2",
+      "mod_rogue_orochi_ex24_head3",
+      "mod_rogue_orochi_ex24_head4",
+      "mod_rogue_orochi_ex24_head5",
+      "mod_rogue_orochi_ex24_head6"
+    ],
+    "affected_rounds": [
+      24
+    ],
+    "other_29_rounds_unchanged": true
+  },
+  "semantic_diff": {
+    "master/battle/boss/orochi_ex.orderedmap": {
+      "key": "mod_rogue_orochi_ex24",
+      "tier": "100",
+      "columns": {
+        "c24": {
+          "before": "1914595756",
+          "after": "1342177279"
+        },
+        "c25": {
+          "before": "3063353210",
+          "after": "2147483647"
+        }
+      }
+    },
+    "master/battle/boss/boss_level.orderedmap": {
+      "key": "mod_rogue_orochi_ex24",
+      "columns": {
+        "c2": {
+          "before": "6381.98585462",
+          "after": "14064.5474548"
+        }
+      }
+    }
+  },
+  "hp_readback": {
+    "baseline_before_curse_hp": 12428571428.571428,
+    "curse_multiplier": 0.5,
+    "final_target_hp": 6214285714.285714,
+    "phase_hp": [
+      1342177279.0,
+      2724624788.276342,
+      2147483647.0
+    ],
+    "final_readback_hp": 6214285714.276342,
+    "final_error_hp": -0.009371757507324219,
+    "phase_contract": {
+      "client_contract": "client-1.8.1:OrochiExValues.Std.parseInt(c24,c25)+OrochiEx.init.thresholds+PhaseThresholdIcon.setNumber",
+      "phase1_hp": 1342177279,
+      "middle_hp": 2724624788.276342,
+      "phase3_hp": 2147483647,
+      "total_hp": 6214285714.276342,
+      "phase1_hp_threshold": 0.7840174493559962,
+      "phase2_hp_threshold": 0.3455720811269579,
+      "icon_numbers": [
+        78,
+        34
+      ],
+      "icon_frames_tens_ones": [
+        [
+          7,
+          8
+        ],
+        [
+          3,
+          4
+        ]
+      ],
+      "signed_int32_verified": true,
+      "static_verified": true,
+      "runtime_simulated": false,
+      "gameplay_verified": false
+    }
+  },
+  "candidate_evidence": {
+    "audit_sha256": "222c3ffd306bc5b68c5360f17e75489583b8e56c87e3691e9eac4c81f4444900",
+    "report_sha256": "d02b97478af313effd039ceca2338dc0913c7ea61b64b389d18c9fe4381863cb",
+    "source_tower_audit_sha256": "c50697a76d55f8cbc5ddd5019042dd9762b9b34a6a663a0c4a1aa03c286be846"
+  },
+  "tool_sha256": {
+    "wf_rogue_build.py": "5ea1cf4cb18e3f183512b0be60079ef79c415fa9bc821488ae01f3e87f547d9a",
+    "wf_orochi_ex.py": "bae2e08bd4242c6723b501f220f9c831007c29f97375fd5c660daa1df9b66271"
+  },
+  "terminal_replay": {
+    "schema": "wf-rogue-floor24-terminal-replay/v1",
+    "base_version": "1.4.88",
+    "target_version": "1.4.89",
+    "archive": {
+      "name": "pinball-1.4.88-1.4.89-1-0826-rogue-orochi-ex24-int32-fix.zip",
+      "size": 15341,
+      "sha256": "9793c6e66c4f7cf0baf3ab47b612bca0dc7ce7ddb5fe5c7bbeb4c3b1426d925c",
+      "members": 2,
+      "member_paths": [
+        "production/upload/7c/0159ffd7078028b1c2eec135beb1884f7224fb",
+        "production/upload/19/a4aa442b3249499356e7a3f6370e530bfe355e"
+      ]
+    },
+    "terminal": {
+      "cdn_root": "F:\\startpoint-cn-main\\.cdn\\cn",
+      "server_root": "C:\\Users\\ASUS\\AppData\\Local\\Temp\\wf-orochi-ex24-terminal-u0hxqho6\\server",
+      "active_dir": "C:\\Users\\ASUS\\AppData\\Local\\Temp\\wf-orochi-ex24-terminal-u0hxqho6\\server\\assets\\asset-patch\\active",
+      "tail": "1.4.89",
+      "platform_tails": {
+        "android": "1.4.89",
+        "ios": "1.4.89"
+      },
+      "files": 141080,
+      "files_by_root": {
+        "common": 115178,
+        "medium": 23826,
+        "android": 1038,
+        "ios": 1038
+      },
+      "revision": "d3e274e2b63057e8fc7dd31d2267fbacd2bc8979fca40450ebeddef014eb95d3",
+      "source": "live-cdn+active"
+    },
+    "android_reachable": true,
+    "ios_reachable": true,
+    "resolved_tables": {
+      "master/battle/boss/orochi_ex.orderedmap": {
+        "sha256": "bd674c65e36dbe056fb2b6eb9d32161cb9a7a4eda3eecda4051a14a12000d555",
+        "bytes": 1037,
+        "root": "common",
+        "archive": "pinball-1.4.88-1.4.89-1-0826-rogue-orochi-ex24-int32-fix.zip",
+        "member": "production/upload/7c/0159ffd7078028b1c2eec135beb1884f7224fb"
+      },
+      "master/battle/boss/boss_level.orderedmap": {
+        "sha256": "12796f079d20269415769239664f65ea739a901a59d66799e1a236afb142da6a",
+        "bytes": 45549,
+        "root": "common",
+        "archive": "pinball-1.4.88-1.4.89-1-0826-rogue-orochi-ex24-int32-fix.zip",
+        "member": "production/upload/19/a4aa442b3249499356e7a3f6370e530bfe355e"
+      }
+    },
+    "gameplay_verified": false
+  },
+  "validation": {
+    "only_three_hp_cells_changed": true,
+    "signed_int32_verified": true,
+    "phase_threshold_icon_static_verified": true,
+    "absolute_hp_verified": true,
+    "android_reachable": true,
+    "ios_reachable": true,
+    "chain_failures": 0,
+    "gameplay_verified": false
+  }
+}

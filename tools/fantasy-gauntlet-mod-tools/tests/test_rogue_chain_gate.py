@@ -211,6 +211,17 @@ class LevelCoverageCase(unittest.TestCase):
         self.assertTrue(self.check_gen(90, floor={"boss_g": {"49": "x", "100": "x"}},
                                        gb={"boss_g": {"100": "x"}})["ok"])
 
+    def test_exact_kind_gate_uses_selected_gv_tier_for_general_boss(self):
+        tables = rb.boss_ref_validation_tables(
+            standard_boss={},
+            general_boss={"boss_g": {"80": "x"}},
+            general_boss_variable={"boss_g": {"80": "x"}},
+            special_tables={}, funnel_ok=lambda _code, _level: True)
+        gate = rbb.validate_boss_ref(
+            rbb.BossRef(1, "boss_g"), 100, tables)
+        self.assertTrue(gate.ok, gate)
+        self.assertEqual(80, gate.selected_level)
+
     def test_gv_single_100_tier_always_rejected(self):
         """gv 只有 100 单档 = 客户端缺低档基准,任何等级都崩(2026-07-29 火/风废龙实锤);
         对照:gv[80] 单档(水/雷龙)与 gv[20..100] 多档(暗/光龙)均可用。"""
@@ -309,7 +320,11 @@ class SpecialBossTableCase(unittest.TestCase):
                         rbb.BossRef(8, "general")):
                 result = rbb.validate_boss_ref(ref, 90, tables)
                 self.assertTrue(result.ok, (ref, result))
-                self.assertEqual(result.selected_level, 100)
+                # Standard directly upper-selects against c95 (90 -> 100).
+                # General first lower-selects gv (90 -> 80), then upper-selects
+                # GeneralBossValues against that selected variable tier.
+                self.assertEqual(
+                    result.selected_level, 100 if ref.kind == 0 else 80)
 
             blocked_funnel = rb.boss_ref_validation_tables(
                 standard_boss={"standard": {"100": "row"}},
@@ -1568,17 +1583,37 @@ class StatNormalizeCase(unittest.TestCase):
         self.assertIsNone(rb.curve_value("hp", "hit_hp_boss", 101))
         self.assertIsNone(rb.curve_value("hp", "不存在的曲线", 100))
 
-    def test_unknown_curve_falls_back_to_proxy(self):
-        """`hit_hp_correction_normal`(240 boss)不在任何曲线表里 —— 客户端内置默认。
-        不代理的话它和已知曲线组用的不是同一个单位,残差 379× 纯属构造出来的。"""
+    def test_client_bundled_normal_curve_is_absolute(self):
+        """normal Hit 基表由审计快照提供，不再冒充未知代理。"""
         self.assertEqual(rb.PROXY_CURVE, {"hp": "hit_hp_boss", "atk": "atk_single"})
+        self.assertEqual(
+            rb.client_bundled_curve_baseline_receipt()["member_sha256"],
+            "713007008fc91f55555eefe72e913380a29664e23b8e0ac2cfdca95e450f5370")
+        self.assertAlmostEqual(
+            rb.curve_value("hp", "hit_hp_correction_normal", 100),
+            31.26519, places=6)
         st = rb.boss_base_stats()
         if not st:
             self.skipTest("store 不可用")
-        unknown = [c for c, s in st.items() if s["hpc"] == "hit_hp_correction_normal"]
-        self.assertTrue(unknown, "没有未知曲线的 boss 了?")
-        t = rb.true_stat(unknown[0], "hp", 100)
-        self.assertEqual(t[1], "*", "未知曲线应被代理进统一组")
+        normal = [c for c, s in st.items()
+                  if s["hpc"] == "hit_hp_correction_normal"]
+        self.assertTrue(normal, "没有 normal 曲线 boss 了?")
+        t = rb.true_stat(normal[0], "hp", 100)
+        self.assertEqual(t[1], "*", "已知客户端曲线应进统一绝对组")
+
+    def test_client_bundled_curve_conflict_fails_closed(self):
+        old_curves, old_bundled = rb._CURVES, rb._BUNDLED_CURVES
+        self.addCleanup(setattr, rb, "_CURVES", old_curves)
+        self.addCleanup(setattr, rb, "_BUNDLED_CURVES", old_bundled)
+        rb._CURVES = None
+        rb._BUNDLED_CURVES = None
+        with mock.patch.object(
+                rb, "_bundled_curve_source", return_value=Path("client.apk")), \
+                mock.patch.object(
+                    rb, "_bundle_member_bytes", return_value=b"conflict"):
+            with self.assertRaisesRegex(
+                    ValueError, "CLIENT_BUNDLED_CURVE_CONFLICT"):
+                rb.bundled_growth_curves()
 
     def test_standard_boss_really_has_no_stats(self):
         """钉住那条结论:standard_boss 的行只有名字+资产,没有数值列。"""
@@ -2160,32 +2195,11 @@ class BossLevelHpScalingCase(unittest.TestCase):
         self.assertFalse(rejected_identity.ok)
         self.assertIn("parent master id", rejected_identity.detail)
 
-        # Kraken's official boss_level uses a client-bundled correction curve.
-        # Supply a minimal APK-shaped base table so this integration test is
-        # deterministic on CI machines that do not keep a local client APK.
-        curve_payload = q.build_node({
-            "hit_hp_correction_normal": {"100": "31.26519"},
-        })
-        curve_relative = q.hashed_rel(
-            rb.BUNDLED_CURVE_TABLES["hp"]).replace("\\", "/")
-        inner_bytes = io.BytesIO()
-        with zipfile.ZipFile(inner_bytes, "w") as inner:
-            inner.writestr(
-                f"production/android_bundle/{curve_relative}", curve_payload)
-        apk_dir = tempfile.TemporaryDirectory()
-        self.addCleanup(apk_dir.cleanup)
-        apk = Path(apk_dir.name) / "client.apk"
-        with zipfile.ZipFile(apk, "w") as outer:
-            outer.writestr("assets/bundle.zip", inner_bytes.getvalue())
-        old_curves, old_bundled = rb._CURVES, rb._BUNDLED_CURVES
-        self.addCleanup(setattr, rb, "_CURVES", old_curves)
-        self.addCleanup(setattr, rb, "_BUNDLED_CURVES", old_bundled)
-        rb._CURVES = None
-        rb._BUNDLED_CURVES = None
-        apk_environment = mock.patch.dict(
-            os.environ, {"WF_APK": str(apk)}, clear=False)
-        apk_environment.start()
-        self.addCleanup(apk_environment.stop)
+        # Kraken 使用客户端 bundled normal Hit 曲线；这条已由
+        # 22 份客户端基线哈希交叉核对后固定，CI 无需携带 APK。
+        self.assertAlmostEqual(
+            rb.curve_value("hp", "hit_hp_correction_normal", 100),
+            31.26519, places=6)
 
         try:
             catalog = rb.build_native_bundle_catalog(enemy_level=100)
@@ -2400,6 +2414,18 @@ class BossLevelHpScalingCase(unittest.TestCase):
                 self.assertTrue(all(
                     item.native_hp is not None for item in graph.auxiliaries))
                 self.assertTrue(graph.behavior_verified)
+                self.assertIsNotNone(graph.lifecycle)
+                self.assertTrue(graph.lifecycle.static_verified)
+                self.assertFalse(graph.lifecycle.runtime_simulated)
+                self.assertFalse(graph.lifecycle.gameplay_verified)
+                self.assertEqual(
+                    [step.source_phase for step in graph.lifecycle.steps],
+                    [1, 2, 3, 4])
+                self.assertEqual(
+                    [step.target_phase for step in graph.lifecycle.steps],
+                    [2, 3, 4, None])
+                self.assertTrue(all(
+                    step.verified for step in graph.lifecycle.steps))
                 phases, models, completions, occurrences = (
                     expected_phase_contracts[family])
                 self.assertEqual(
@@ -2414,6 +2440,24 @@ class BossLevelHpScalingCase(unittest.TestCase):
                     [budget.entity_occurrence_count
                      for budget in graph.phase_budgets], occurrences)
                 if family == "thunder_sphere":
+                    self.assertEqual(
+                        [step.trigger for step in graph.lifecycle.steps],
+                        ["parent_hp_threshold", "child_damage_threshold",
+                         "parent_hp_threshold", "child_damage_threshold"])
+                    self.assertEqual(
+                        graph.lifecycle.steps[1].expected_entities, 3)
+                    self.assertEqual(
+                        graph.lifecycle.steps[1].expected_completion_count, 3)
+                    self.assertEqual(
+                        graph.lifecycle.steps[1].next_state_entry,
+                        "getInitialStateByNextPhase(3)")
+                    self.assertEqual(
+                        graph.lifecycle.steps[3].expected_entities, 3)
+                    self.assertEqual(
+                        graph.lifecycle.steps[3].expected_completion_count, 2)
+                    self.assertEqual(
+                        graph.lifecycle.steps[3].next_state_entry,
+                        "Sphere.enterDeadState")
                     self.assertAlmostEqual(
                         graph.phase_budgets[0].required_damage_hp, 15_000_000)
                     self.assertAlmostEqual(
@@ -2427,6 +2471,21 @@ class BossLevelHpScalingCase(unittest.TestCase):
                     self.assertTrue(budget.overdamage)
                     self.assertEqual(budget.occurrences_per_entity, 2)
                     self.assertLess(budget.coverage_ratio, 1.0)
+
+        thunder_contracts = rb.SPHERE_SPECS["thunder_sphere"][
+            "lifecycle_contracts"]
+        try:
+            rb.SPHERE_SPECS["thunder_sphere"]["lifecycle_contracts"] = (
+                thunder_contracts[:-1])
+            lifecycle_broken = rb.inspect_sphere_bundle(
+                bundles["thunder_sphere"], 100, sphere_tables)
+        finally:
+            rb.SPHERE_SPECS["thunder_sphere"]["lifecycle_contracts"] = (
+                thunder_contracts)
+        self.assertFalse(lifecycle_broken.ok)
+        self.assertEqual(
+            lifecycle_broken.reason, "SPECIAL_PHASE_BEHAVIOR_UNSAFE")
+        self.assertIn("lifecycle edge count drift", lifecycle_broken.detail)
 
         family_rounds = {
             "water_sphere": 44, "holy_sphere": 45,
@@ -2543,16 +2602,19 @@ class BossLevelHpScalingCase(unittest.TestCase):
         fire_native = native_by_family["fire_sphere"]
         fire_baseline_target = float(fire_native["native_hp"]) * 2.0
         fire_final_target = fire_baseline_target * 1.25
+        # The clone loop above deliberately exercises arbitrary adapter scale.
+        # A strict tower receipt must still model Sphere as curse_hp=1, so the
+        # already-scaled readback is the curse-free base/final target here.
         fire_receipt = rb.build_hp_adaptation_audit(
             2, fire_native, family="fire_sphere", channel="special_bundle",
             destination=fire_plan["destinations"],
-            baseline_target_hp=fire_baseline_target,
+            baseline_target_hp=fire_final_target,
             final_target_hp=fire_final_target,
             baseline_c86=1.0, final_c86=1.0,
             readback_native=fire_readback,
-            baseline_component_hp=fire_plan["baseline_component_hp"],
+            baseline_component_hp=fire_plan["final_component_hp"],
             baseline_component_target_hp=(
-                fire_plan["baseline_component_target_hp"]),
+                fire_plan["final_component_target_hp"]),
             final_component_target_hp=fire_plan["final_component_target_hp"])
         fire_document = rb.build_hp_audit_document(
             seed=20260825, rounds=2, difficulty="hell", enemy_level="ramp",
@@ -2562,9 +2624,16 @@ class BossLevelHpScalingCase(unittest.TestCase):
                 "target_exempt": False,
                 "phase_behavior": {
                     "verified": True,
+                    "static_verified": True,
+                    "runtime_simulated": False,
+                    "gameplay_verified": False,
                     "source": copy.deepcopy(fire_native["phase_budgets"]),
                     "final_readback": copy.deepcopy(
                         fire_readback["phase_budgets"]),
+                    "source_lifecycle": copy.deepcopy(
+                        fire_native["phase_lifecycle"]),
+                    "final_lifecycle": copy.deepcopy(
+                        fire_readback["phase_lifecycle"]),
                 },
             }],
             floor_records=[{
@@ -2712,20 +2781,27 @@ class BossLevelHpScalingCase(unittest.TestCase):
         receipt = rb.build_hp_adaptation_audit(
             2, native, family="thunder_sphere", channel="special_bundle",
             destination=plan["destinations"],
-            baseline_target_hp=baseline_target,
+            # Adapter arithmetic above may scale by any factor, but Sphere is
+            # forbidden from receiving an HP curse in a strict tower receipt.
+            baseline_target_hp=final_target,
             final_target_hp=final_target,
             baseline_c86=1.0, final_c86=1.0,
             readback_native=readback,
-            baseline_component_hp=plan["baseline_component_hp"],
-            baseline_component_target_hp=plan["baseline_component_target_hp"],
+            baseline_component_hp=plan["final_component_hp"],
+            baseline_component_target_hp=plan["final_component_target_hp"],
             final_component_target_hp=plan["final_component_target_hp"])
         self.assertTrue(receipt.absolute_verified)
         self.assertTrue(receipt.within_tolerance, receipt)
 
         phase_behavior = {
             "verified": True,
+            "static_verified": True,
+            "runtime_simulated": False,
+            "gameplay_verified": False,
             "source": copy.deepcopy(native["phase_budgets"]),
             "final_readback": copy.deepcopy(readback["phase_budgets"]),
+            "source_lifecycle": copy.deepcopy(native["phase_lifecycle"]),
+            "final_lifecycle": copy.deepcopy(readback["phase_lifecycle"]),
         }
         audit_document = rb.build_hp_audit_document(
             seed=20260825, rounds=2, difficulty="hell", enemy_level="ramp",
@@ -2765,6 +2841,25 @@ class BossLevelHpScalingCase(unittest.TestCase):
             "子体未与父体同比伸缩" in error
             or "最终可传递伤害不足" in error
             for error in tamper_errors), tamper_errors)
+        lifecycle_tampered = copy.deepcopy(audit_document)
+        lifecycle_tampered["floors"][0]["adapter"]["phase_behavior"][
+            "final_lifecycle"]["steps"][1]["expected_completion_count"] = 2
+        lifecycle_tampered["document_sha256"] = (
+            rb.hp_audit_document_digest(lifecycle_tampered))
+        lifecycle_errors = rb.verify_hp_audit_document(lifecycle_tampered)
+        self.assertTrue(any(
+            "静态推进契约漂移" in error
+            or "子体预算计数不闭合" in error
+            for error in lifecycle_errors), lifecycle_errors)
+
+        gameplay_tampered = copy.deepcopy(audit_document)
+        gameplay_tampered["floors"][0]["adapter"]["phase_behavior"][
+            "gameplay_verified"] = True
+        gameplay_tampered["document_sha256"] = (
+            rb.hp_audit_document_digest(gameplay_tampered))
+        self.assertTrue(any(
+            "不得把离线审计标成真机通过" in error
+            for error in rb.verify_hp_audit_document(gameplay_tampered)))
 
         interrupted = copy.deepcopy(sphere_tables)
         interrupted["thunder_sphere"].pop(result.parent_code)
@@ -3029,7 +3124,9 @@ class BossLevelHpScalingCase(unittest.TestCase):
                 "match": "exact", "value": "orochi_ex",
                 "family": "orochi_ex", "channel": "special_bundle",
                 "field_policy": "native_only",
-                "closure": "parent+six_children+three_hp_phases",
+                "closure": (
+                    "parent+six_children+three_hp_phases+"
+                    "signed_int32_threshold_icon"),
             }, audit_document["selection_policy"]["native_special_only"])
 
             digest_tamper = copy.deepcopy(audit_document)
@@ -5286,15 +5383,26 @@ class CursePacingAndFallbackCase(unittest.TestCase):
             rb.SPHERE_HP_CURSE_FORBIDDEN_FAMILIES,
             frozenset({"fire_sphere", "water_sphere", "holy_sphere",
                        "wind_sphere", "thunder_sphere"}))
-        for seed in range(320):
-            out = rb.abyss_curses(
-                29, 30, _r.Random(seed), "hell",
-                caps={"boss": False, "element": False},
-                forbid_hp_curses=True)
-            self.assertAlmostEqual(out["hp"], 1.0, places=12)
-            self.assertTrue(all(math.isclose(
-                float(c.get("hp", 1.0)), 1.0, rel_tol=0.0, abs_tol=1e-12)
-                for c in out["picks"]), (seed, out["picks"]))
+        for family in rb.SPHERE_SPECS:
+            profile = rb.resolve_curse_capabilities(
+                "special_bundle", family,
+                {"boss": False, "element": False, "panel": False})
+            self.assertFalse(profile["declared"]["hp_multiplier"])
+            self.assertFalse(profile["effective"]["hp_multiplier"])
+            self.assertIn(
+                "sphere_phase_budget_forbids_hp_multiplier",
+                profile["restrictions"])
+            for seed in range(64):
+                out = rb.abyss_curses(
+                    29, 30, _r.Random(seed), "hell",
+                    caps={"boss": False, "element": False},
+                    capability_profile=profile)
+                self.assertAlmostEqual(out["hp"], 1.0, places=12)
+                self.assertNotIn("hp_multiplier", out["used_capabilities"])
+                self.assertTrue(all(math.isclose(
+                    float(c.get("hp", 1.0)), 1.0,
+                    rel_tol=0.0, abs_tol=1e-12)
+                    for c in out["picks"]), (family, seed, out["picks"]))
 
     def test_forced_sphere_hp_curses_are_rejected_and_refilled(self):
         import random as _r
@@ -5302,10 +5410,56 @@ class CursePacingAndFallbackCase(unittest.TestCase):
             29, 30, _r.Random(19), "hell",
             caps={"boss": False, "element": False},
             forced={"curses": ["血肉高墙", "玻璃深渊", "嗜血狂潮"]},
-            forbid_hp_curses=True)
+            capability_profile=rb.resolve_curse_capabilities(
+                "special_bundle", "thunder_sphere",
+                {"boss": False, "element": False, "panel": False}))
         self.assertAlmostEqual(out["hp"], 1.0, places=12)
         self.assertFalse({"血肉高墙", "玻璃深渊", "嗜血狂潮"}
                          & {c["name"] for c in out["picks"]})
+
+    def test_curse_capability_matrix_is_explicit_and_fail_closed(self):
+        expected = {
+            ("boss_level", "general"),
+            ("standard_dsl", "standard"),
+            ("mixed_hp", "mixed"),
+            ("special_bundle", "orochi"),
+            ("special_bundle", "orochi_ex"),
+            *(("special_bundle", family)
+              for family in rb.SINGLE_BAR_SPECIAL_SPECS),
+            *(("special_bundle", family) for family in rb.SPHERE_SPECS),
+        }
+        self.assertTrue(expected <= set(rb.CURSE_CAPABILITY_MATRIX))
+        with self.assertRaisesRegex(
+                ValueError, "UNDECLARED_CURSE_CAPABILITY"):
+            rb.resolve_curse_capabilities(
+                "special_bundle", "future_unreviewed_boss", {})
+
+        general = rb.resolve_curse_capabilities(
+            "boss_level", "general",
+            {"boss": True, "element": True, "panel": True})
+        self.assertTrue(all(general["effective"][axis] for axis in (
+            "hp_multiplier", "hard_damage_resistance",
+            "hard_element_resistance", "stacked_resistance",
+            "field_action", "panel_gimmick")))
+        carrierless = rb.resolve_curse_capabilities(
+            "boss_level", "general",
+            {"boss": False, "element": False, "panel": False})
+        self.assertTrue(carrierless["effective"]["hp_multiplier"])
+        self.assertTrue(carrierless["effective"]["soft_quest_condition"])
+        self.assertFalse(carrierless["effective"]["field_action"])
+        self.assertFalse(
+            carrierless["effective"]["hard_element_resistance"])
+
+    def test_capability_profile_cannot_enable_an_undeclared_axis(self):
+        import random as _r
+        profile = rb.resolve_curse_capabilities(
+            "special_bundle", "thunder_sphere", {})
+        profile["effective"]["hp_multiplier"] = True
+        with self.assertRaisesRegex(ValueError, "能力轴非法"):
+            rb.abyss_curses(
+                29, 30, _r.Random(1), "hell",
+                caps={"boss": False, "element": False},
+                capability_profile=profile)
 
 
 class TripleWallCurseCase(unittest.TestCase):
