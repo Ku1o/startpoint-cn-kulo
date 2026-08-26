@@ -1,5 +1,5 @@
 {
-  "cdn_version": "1.4.89",
+  "cdn_version": "1.4.90",
   "patches": [
     {
       "id": "base-1.4.54-to-1.4.55-mod07141843",
@@ -4496,6 +4496,50 @@
           "name": "pinball-1.4.88-1.4.89-1-0826-rogue-orochi-ex24-int32-fix.zip",
           "size": 15341,
           "sha256": "9793c6e66c4f7cf0baf3ab47b612bca0dc7ce7ddb5fe5c7bbeb4c3b1426d925c",
+          "members": 2
+        }
+      ]
+    },
+    {
+      "id": "rogue-orochi-ex24-phase-capacity-1.4.90",
+      "type": "patch",
+      "name": "深渊连战第24关八岐大蛇 EX 阶段容量整合修复",
+      "description": "以两张完整终态表累计保留1.4.89的有符号int32阶段修复，并补足第一与第三阶段六蛇头HP承载容量。",
+      "version": "1.4.90",
+      "depends_on": "1.4.89",
+      "enabled": true,
+      "archive": "pinball-1.4.89-1.4.90-1-0826-rogue-orochi-ex24-phase-capacity.zip",
+      "archive_size": 15412,
+      "files": [
+        "production/upload/7c/0159ffd7078028b1c2eec135beb1884f7224fb",
+        "production/upload/19/a4aa442b3249499356e7a3f6370e530bfe355e"
+      ],
+      "changes": [
+        "累计保留第24关父体三阶段有符号int32修复与阶段图标78/34。",
+        "补足第一与第三阶段六个蛇头的HP容量，避免阶段清怪后流程停滞。",
+        "quest、field、zone、蛇头动作表、SWF与其他29关保持不变。",
+        "用户已确认本地真机测试正常。"
+      ],
+      "created_at": "2026-08-26",
+      "audit": {
+        "directory": "assets/asset-patch/audit/rogue-orochi-ex24-phase-capacity-1.4.90",
+        "relative_to_1.4.89_changed_cells": 6,
+        "cumulative_relative_to_1.4.88_changed_cells": 9,
+        "phase_icon_numbers": [
+          78,
+          34
+        ],
+        "phase1_primary_coverage_ratio": 1.010001014718274,
+        "phase3_primary_coverage_ratio": 1.1300501916289554,
+        "verification_scope": "static_terminal_replay_and_user_device",
+        "runtime_simulated": false,
+        "gameplay_verified": true
+      },
+      "archive_integrity": [
+        {
+          "name": "pinball-1.4.89-1.4.90-1-0826-rogue-orochi-ex24-phase-capacity.zip",
+          "size": 15412,
+          "sha256": "148ecfbfa10571d3aca29ecf66720b0560dffdcff9ce5697cd4d08b3d4e30d4c",
           "members": 2
         }
       ]
