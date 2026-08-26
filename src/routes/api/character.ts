@@ -32,9 +32,9 @@ interface SetIllustrationSettingsBody {
 export const characterMaxOverLimits: Record<number, number> = {
     [1]: 12, // 1* max over limit count
     [2]: 10, // 2* max over limit count
-    [3]: 8,  // 3* max over limit count 
+    [3]: 8,  // 3* max over limit count
     [4]: 6,  // 4* max over limit count
-    [5]: 4,  // 5* max over limit count 
+    [5]: 4,  // 5* max over limit count
 }
 
 const routes = async (fastify: FastifyInstance) => {
