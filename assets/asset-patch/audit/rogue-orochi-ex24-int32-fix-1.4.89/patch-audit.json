@@ -1,5 +1,6 @@
 {
-  "schema": "wf-rogue-floor24-patch-audit/v1",
+  "schema": "wf-rogue-floor24-patch-audit/v2",
+  "mode": "official_one_edge_consolidated_release",
   "patch_id": "rogue-orochi-ex24-int32-phase-fix-1.4.89",
   "version_edge": {
     "from": "1.4.88",
@@ -7,33 +8,27 @@
   },
   "archive": {
     "name": "pinball-1.4.88-1.4.89-1-0826-rogue-orochi-ex24-int32-fix.zip",
-    "size": 15341,
-    "sha256": "9793c6e66c4f7cf0baf3ab47b612bca0dc7ce7ddb5fe5c7bbeb4c3b1426d925c",
-    "members": 2,
-    "member_paths": [
-      "production/upload/7c/0159ffd7078028b1c2eec135beb1884f7224fb",
-      "production/upload/19/a4aa442b3249499356e7a3f6370e530bfe355e"
-    ]
+    "size": 15412,
+    "sha256": "148ecfbfa10571d3aca29ecf66720b0560dffdcff9ce5697cd4d08b3d4e30d4c",
+    "members": 2
   },
-  "logical_members": {
+  "members": {
     "master/battle/boss/orochi_ex.orderedmap": {
-      "archive_path": "production/upload/7c/0159ffd7078028b1c2eec135beb1884f7224fb",
+      "path": "production/upload/7c/0159ffd7078028b1c2eec135beb1884f7224fb",
       "sha256": "bd674c65e36dbe056fb2b6eb9d32161cb9a7a4eda3eecda4051a14a12000d555",
       "bytes": 1037
     },
     "master/battle/boss/boss_level.orderedmap": {
-      "archive_path": "production/upload/19/a4aa442b3249499356e7a3f6370e530bfe355e",
-      "sha256": "12796f079d20269415769239664f65ea739a901a59d66799e1a236afb142da6a",
-      "bytes": 45549
+      "path": "production/upload/19/a4aa442b3249499356e7a3f6370e530bfe355e",
+      "sha256": "735b75125f2bf18f555504be3afb0e3e2b71c85c674c980c878f9208637283b9",
+      "bytes": 45592
     }
   },
   "identity": {
     "round": 24,
     "quest_id": "700099024",
     "boss": "mod_rogue_orochi_ex24",
-    "field": "mod_rogue_f24",
-    "zone": "mod_rogue_z24",
-    "six_children": [
+    "heads": [
       "mod_rogue_orochi_ex24_head1",
       "mod_rogue_orochi_ex24_head2",
       "mod_rogue_orochi_ex24_head3",
@@ -41,14 +36,12 @@
       "mod_rogue_orochi_ex24_head5",
       "mod_rogue_orochi_ex24_head6"
     ],
-    "affected_rounds": [
-      24
-    ],
-    "other_29_rounds_unchanged": true
+    "other_29_rounds_unchanged": true,
+    "swf_changed": false
   },
-  "semantic_diff": {
-    "master/battle/boss/orochi_ex.orderedmap": {
-      "key": "mod_rogue_orochi_ex24",
+  "semantic_diff_from_1.4.88": {
+    "orochi_ex": {
+      "code": "mod_rogue_orochi_ex24",
       "tier": "100",
       "columns": {
         "c24": {
@@ -61,125 +54,168 @@
         }
       }
     },
-    "master/battle/boss/boss_level.orderedmap": {
-      "key": "mod_rogue_orochi_ex24",
-      "columns": {
-        "c2": {
-          "before": "6381.98585462",
-          "after": "14064.5474548"
-        }
+    "boss_level": {
+      "mod_rogue_orochi_ex24": {
+        "column": "c2",
+        "before": "6381.98585462",
+        "after": "14064.5474548"
+      },
+      "mod_rogue_orochi_ex24_head1": {
+        "column": "c2",
+        "before": "145",
+        "after": "2670.1469"
+      },
+      "mod_rogue_orochi_ex24_head2": {
+        "column": "c2",
+        "before": "380",
+        "after": "6997.6264"
+      },
+      "mod_rogue_orochi_ex24_head3": {
+        "column": "c2",
+        "before": "145",
+        "after": "2670.1469"
+      },
+      "mod_rogue_orochi_ex24_head4": {
+        "column": "c2",
+        "before": "280",
+        "after": "5010.7952"
+      },
+      "mod_rogue_orochi_ex24_head5": {
+        "column": "c2",
+        "before": "700",
+        "after": "12526.9879"
+      },
+      "mod_rogue_orochi_ex24_head6": {
+        "column": "c2",
+        "before": "280",
+        "after": "5010.7952"
       }
     }
   },
-  "hp_readback": {
+  "changed_cell_count": 9,
+  "hp": {
     "baseline_before_curse_hp": 12428571428.571428,
-    "curse_multiplier": 0.5,
-    "final_target_hp": 6214285714.285714,
-    "phase_hp": [
+    "hp_curse_multiplier": 0.5,
+    "final_after_curse_hp": 6214285714.285714,
+    "final_components": [
       1342177279.0,
       2724624788.276342,
       2147483647.0
     ],
     "final_readback_hp": 6214285714.276342,
-    "final_error_hp": -0.009371757507324219,
-    "phase_contract": {
-      "client_contract": "client-1.8.1:OrochiExValues.Std.parseInt(c24,c25)+OrochiEx.init.thresholds+PhaseThresholdIcon.setNumber",
-      "phase1_hp": 1342177279,
-      "middle_hp": 2724624788.276342,
-      "phase3_hp": 2147483647,
-      "total_hp": 6214285714.276342,
-      "phase1_hp_threshold": 0.7840174493559962,
-      "phase2_hp_threshold": 0.3455720811269579,
-      "icon_numbers": [
-        78,
-        34
-      ],
-      "icon_frames_tens_ones": [
-        [
-          7,
-          8
-        ],
-        [
-          3,
-          4
-        ]
-      ],
-      "signed_int32_verified": true,
-      "static_verified": true,
-      "runtime_simulated": false,
-      "gameplay_verified": false
-    }
+    "final_error_hp": -0.009371757507324219
+  },
+  "phase_safety": {
+    "phase1_primary_coverage_ratio": 1.010001014718274,
+    "phase3_primary_coverage_ratio": 1.1300501916289554,
+    "phase_icon_numbers": [
+      78,
+      34
+    ],
+    "signed_int32_verified": true
   },
   "candidate_evidence": {
-    "audit_sha256": "222c3ffd306bc5b68c5360f17e75489583b8e56c87e3691e9eac4c81f4444900",
-    "report_sha256": "d02b97478af313effd039ceca2338dc0913c7ea61b64b389d18c9fe4381863cb",
-    "source_tower_audit_sha256": "c50697a76d55f8cbc5ddd5019042dd9762b9b34a6a663a0c4a1aa03c286be846"
-  },
-  "tool_sha256": {
-    "wf_rogue_build.py": "5ea1cf4cb18e3f183512b0be60079ef79c415fa9bc821488ae01f3e87f547d9a",
-    "wf_orochi_ex.py": "bae2e08bd4242c6723b501f220f9c831007c29f97375fd5c660daa1df9b66271"
+    "audit_sha256": "2c2e8be1fe9d1c1435381ec69c930822f7dccde3f505b8e6569730b787407e3b",
+    "report_sha256": "92ef783c7dc2336926464b05adde5ecb0a09f923eef1b9c340447230d4c3474a",
+    "base_archive_sha256": "0ee61e86757833ff65d8ed6c34da1284fbe84b70c587a9c37da55a64a7ab96ce"
   },
   "terminal_replay": {
-    "schema": "wf-rogue-floor24-terminal-replay/v1",
-    "base_version": "1.4.88",
-    "target_version": "1.4.89",
-    "archive": {
-      "name": "pinball-1.4.88-1.4.89-1-0826-rogue-orochi-ex24-int32-fix.zip",
-      "size": 15341,
-      "sha256": "9793c6e66c4f7cf0baf3ab47b612bca0dc7ce7ddb5fe5c7bbeb4c3b1426d925c",
-      "members": 2,
-      "member_paths": [
-        "production/upload/7c/0159ffd7078028b1c2eec135beb1884f7224fb",
-        "production/upload/19/a4aa442b3249499356e7a3f6370e530bfe355e"
-      ]
+    "schema": "wf-rogue-floor24-terminal-replay/v2",
+    "version_edge": {
+      "from": "1.4.88",
+      "to": "1.4.89"
     },
-    "terminal": {
-      "cdn_root": "F:\\startpoint-cn-main\\.cdn\\cn",
-      "server_root": "C:\\Users\\ASUS\\AppData\\Local\\Temp\\wf-orochi-ex24-terminal-u0hxqho6\\server",
-      "active_dir": "C:\\Users\\ASUS\\AppData\\Local\\Temp\\wf-orochi-ex24-terminal-u0hxqho6\\server\\assets\\asset-patch\\active",
-      "tail": "1.4.89",
-      "platform_tails": {
-        "android": "1.4.89",
-        "ios": "1.4.89"
-      },
-      "files": 141080,
-      "files_by_root": {
-        "common": 115178,
-        "medium": 23826,
-        "android": 1038,
-        "ios": 1038
-      },
-      "revision": "d3e274e2b63057e8fc7dd31d2267fbacd2bc8979fca40450ebeddef014eb95d3",
-      "source": "live-cdn+active"
+    "tail": "1.4.89",
+    "platform_tails": {
+      "android": "1.4.89",
+      "ios": "1.4.89"
     },
-    "android_reachable": true,
-    "ios_reachable": true,
+    "declared_base_archives": [
+      "pinball-1.4.54-1.4.55-1-mod07141843.zip",
+      "pinball-1.4.55-1.4.56-1-mod-ability-damage-party-balanced-v5.zip",
+      "pinball-1.4.56-1.4.57-1-consolidated-ability-v7-and-custom-drops.zip",
+      "pinball-1.4.57-1.4.58-1-shop-stock-999-consolidated.zip",
+      "pinball-1.4.58-1.4.59-1-independent-warmup-v10-cd-balance-nephteim-voice-rescue-fragment-display.zip",
+      "pinball-1.4.59-1.4.60-1-stella139999.zip",
+      "pinball-1.4.59-1.4.60-2-stella139999.zip",
+      "pinball-1.4.59-1.4.60-3-stella139999.zip",
+      "pinball-1.4.59-1.4.60-4-stella139999.zip",
+      "pinball-1.4.59-1.4.60-5-stella139999.zip",
+      "pinball-1.4.59-1.4.60-6-fragment-exchange.zip",
+      "pinball-1.4.60-1.4.61-1-post60-terminal-overlay-sixpack-v2.zip",
+      "pinball-1.4.60-1.4.61-2-post60-terminal-overlay-sixpack-v2.zip",
+      "pinball-1.4.60-1.4.61-3-post60-terminal-overlay-sixpack-v2.zip",
+      "pinball-1.4.60-1.4.61-4-post60-terminal-overlay-sixpack-v2.zip",
+      "pinball-1.4.60-1.4.61-5-post60-terminal-overlay-sixpack-v2.zip",
+      "pinball-1.4.60-1.4.61-6-post60-terminal-overlay-sixpack-v2.zip",
+      "pinball-1.4.61-1.4.62-1-0806194711-hide-deep-abyss-entry-cache-v2.zip",
+      "pinball-1.4.62-1.4.63-1-ginovi-wind-dragon-balance-cache-v2.zip",
+      "pinball-1.4.63-1.4.64-1-0807185447.zip",
+      "pinball-1.4.64-1.4.65-1-0807201059.zip",
+      "pinball-1.4.65-1.4.66-1-0807203058.zip",
+      "pinball-1.4.66-1.4.67-1-0807204308.zip",
+      "pinball-1.4.67-1.4.68-1-battle-atlas-crop-fix.zip",
+      "pinball-1.4.68-1.4.69-1-0807230819-light-dark-dragon-redesign.zip",
+      "pinball-1.4.69-1.4.70-1-mode15final70.zip",
+      "pinball-1.4.69-1.4.70-2-mode15final70.zip",
+      "pinball-1.4.70-1.4.71-1-0809181408.zip",
+      "pinball-1.4.71-1.4.72-1-merge7274into72.zip",
+      "pinball-1.4.72-1.4.73-1-0811190633.zip",
+      "pinball-1.4.73-1.4.74-1-0811222236.zip",
+      "pinball-1.4.74-1.4.75-1-0812tower2.zip",
+      "pinball-1.4.75-1.4.76-1-0812-abyss-reroll-lilith-fix.zip",
+      "pinball-1.4.76-1.4.77-1-0813-abyss-reroll-rolf.zip",
+      "pinball-1.4.76-1.4.77-2-0813-abyss-reroll-rolf.zip",
+      "pinball-1.4.76-1.4.77-3-0813-abyss-reroll-rolf.zip",
+      "pinball-1.4.76-1.4.77-4-0813-abyss-reroll-rolf.zip",
+      "pinball-1.4.76-1.4.77-5-0813-abyss-reroll-rolf.zip",
+      "pinball-1.4.76-1.4.77-6-0813-abyss-reroll-rolf.zip",
+      "pinball-1.4.77-1.4.78-1-0816-thunder-abyss-fantasy.zip",
+      "pinball-1.4.77-1.4.78-2-0816-thunder-abyss-fantasy.zip",
+      "pinball-1.4.77-1.4.78-3-0816-thunder-abyss-fantasy.zip",
+      "pinball-1.4.77-1.4.78-4-0816-thunder-abyss-fantasy.zip",
+      "pinball-1.4.77-1.4.78-5-0816-thunder-abyss-fantasy.zip",
+      "pinball-1.4.77-1.4.78-6-0816-thunder-abyss-fantasy.zip",
+      "pinball-1.4.78-1.4.79-1-0817130424.zip",
+      "pinball-1.4.79-1.4.80-1-swimex139997-author-g.zip",
+      "pinball-1.4.79-1.4.80-2-0817-fantasy-two-icon-refresh.zip",
+      "pinball-1.4.80-1.4.81-1-0817-thunder-dragon-fantasy-v4.zip",
+      "pinball-1.4.81-1.4.82-1-0818-claude-abyss-gerald-flipper.zip",
+      "pinball-1.4.82-1.4.83-1-0818-gauntlet-hub-rank140.zip",
+      "pinball-1.4.83-1.4.84-1-0818-gauntlet-final-art.zip",
+      "pinball-1.4.84-1.4.85-1-0821-mosiyike-balance-ios.zip",
+      "pinball-1.4.85-1.4.86-1-0822-twochar-stella-abyss-ios.zip",
+      "pinball-1.4.86-1.4.87-1-0823-lion-balance-raid-abyss-ios.zip",
+      "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip"
+    ],
     "resolved_tables": {
       "master/battle/boss/orochi_ex.orderedmap": {
-        "sha256": "bd674c65e36dbe056fb2b6eb9d32161cb9a7a4eda3eecda4051a14a12000d555",
-        "bytes": 1037,
-        "root": "common",
         "archive": "pinball-1.4.88-1.4.89-1-0826-rogue-orochi-ex24-int32-fix.zip",
-        "member": "production/upload/7c/0159ffd7078028b1c2eec135beb1884f7224fb"
+        "member": "production/upload/7c/0159ffd7078028b1c2eec135beb1884f7224fb",
+        "sha256": "bd674c65e36dbe056fb2b6eb9d32161cb9a7a4eda3eecda4051a14a12000d555",
+        "bytes": 1037
       },
       "master/battle/boss/boss_level.orderedmap": {
-        "sha256": "12796f079d20269415769239664f65ea739a901a59d66799e1a236afb142da6a",
-        "bytes": 45549,
-        "root": "common",
         "archive": "pinball-1.4.88-1.4.89-1-0826-rogue-orochi-ex24-int32-fix.zip",
-        "member": "production/upload/19/a4aa442b3249499356e7a3f6370e530bfe355e"
+        "member": "production/upload/19/a4aa442b3249499356e7a3f6370e530bfe355e",
+        "sha256": "735b75125f2bf18f555504be3afb0e3e2b71c85c674c980c878f9208637283b9",
+        "bytes": 45592
       }
     },
-    "gameplay_verified": false
+    "static_verified": true,
+    "runtime_simulated": false,
+    "gameplay_verified": true,
+    "gameplay_evidence": "用户于2026-08-26确认本地真机测试正常"
   },
   "validation": {
-    "only_three_hp_cells_changed": true,
-    "signed_int32_verified": true,
-    "phase_threshold_icon_static_verified": true,
-    "absolute_hp_verified": true,
+    "single_version_edge": true,
+    "only_two_full_tables_packaged": true,
+    "only_nine_hp_cells_changed": true,
     "android_reachable": true,
     "ios_reachable": true,
-    "chain_failures": 0,
-    "gameplay_verified": false
+    "static_verified": true,
+    "runtime_simulated": false,
+    "gameplay_verified": true,
+    "gameplay_evidence": "用户于2026-08-26确认本地真机测试正常"
   }
 }
