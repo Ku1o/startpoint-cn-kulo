@@ -20,6 +20,7 @@ const gacha_1 = require("../../lib/gacha");
 const character_1 = require("../../lib/character");
 const crypto_1 = require("crypto");
 const mission_1 = require("../../lib/mission");
+const start_tutorial_state_1 = require("../../lib/start-tutorial-state");
 const freeTutorialCharacterId = 243001;
 const tutorialGachaCharacterIds = [251001, 251002, 251003, 251004, 251005, 251006, 251007, 251008];
 const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
@@ -84,9 +85,9 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 "error": "Internal Server Error",
                 "message": "No player bound to account."
             });
-        // check if tutorial is already completed
-        const completedTutorial = (0, tutorial_1.getPlayerTriggeredTutorialsSync)(playerId);
-        if (completedTutorial.find((value) => value === 12))
+        // Tutorial prompt IDs are independent hints. Completion is determined
+        // only by the persisted full/shortened tutorial step.
+        if (!(0, start_tutorial_state_1.isStartTutorialActive)(player.tutorialStep, player.tutorialSkipFlag))
             return reply.status(400).send({
                 "error": "Bad Request",
                 "message": "Tutorial already completed"

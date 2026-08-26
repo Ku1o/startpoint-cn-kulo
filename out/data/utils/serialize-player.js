@@ -1,133 +1,101 @@
-import { clientSerializeDate } from "./date"
-import { serializeBondTokenStatuses, serializePartyGroupList, serializeGachaCampaign, serializeRushEvent } from "./serialize-entities"
-import { getDateFromServerTime, getServerTime, getServerDate, realToVirtual } from "../../utils"
-import { ClientPlayerData, DailyChallengePointListEntry, MergedPlayerData, PartyCategory, Player, PlayerBoxGacha, PlayerCharacter, PlayerCharacterBondToken, PlayerDrawnQuest, PlayerEquipment, PlayerGachaCampaign, PlayerGachaInfo, PlayerMultiSpecialExchangeCampaign, PlayerParty, PlayerPartyGroup, PlayerQuestProgress, PlayerRushEvent, PlayerRushEventPlayedParty, PlayerStartDashExchangeCampaign, RushEventBattleType, UserBoxGacha, UserCharacter, UserCharacterBondTokenStatus, UserEquipment, UserGachaCampaign, UserMultiSpecialExchangeCampaignList, UserPartyGroup, UserPartyGroupTeam, UserQuestProgress, UserRushEvent, UserRushEventPlayedParty, UserRushEventPlayedPartyList, UserTutorial } from "../types"
-import { availableAssetVersion } from "../../routes/api/asset"
-import { deserializePlayerRushEventPlayedParty, deserializeRushEvent, getPlayerRushEventListClearedFoldersSync, getPlayerRushEventListPlayedPartiesSync, getPlayerRushEventListSync, serializePlayerRushEventPlayedParty } from "../domains/rushEvent"
-import { getPlayerActiveMissionsSync, getPlayerClearedCollectItemEventMissionListSync, getPlayerClearedRegularMissionListSync } from "../domains/mission"
-import { getPlayerBoxGachasSync } from "../domains/boxGacha"
-import { getPlayerCharactersManaNodesSync, getPlayerCharactersSync } from "../domains/character"
-import { getPlayerDailyChallengePointListSync, getPlayerSync, updatePlayerSync } from "../domains/player"
-import { getPlayerDrawnQuestsSync, getPlayerQuestProgressSync } from "../domains/quest"
-import { getPlayerEquipmentListSync } from "../domains/equipment"
-import { getPlayerGachaCampaignListSync, getPlayerGachaInfoListSync } from "../domains/gacha"
-import { getPlayerItemsSync } from "../domains/item"
-import { getPlayerMailCountSync } from "../domains/mail"
-import { getPlayerMultiSpecialExchangeCampaignsSync, getPlayerPeriodicRewardPointsSync, getPlayerStartDashExchangeCampaignsSync } from "../domains/campaign"
-import { getPlayerOptionsSync } from "../domains/option"
-import { getPlayerPartyGroupListSync } from "../domains/party"
-import { getPlayerTriggeredTutorialsSync } from "../domains/tutorial"
-import { kIdToBusinessCode, businessCodeToKId } from "../codeMap"
-import { computeRealTimeStamina } from "../../lib/stamina"
-import {
-    shouldUnlockMode15MultiplayerPlayedParty,
-    shouldUnlockMode15PlayedParties,
-} from "../../lib/mode15-optional"
-import { isStartTutorialActive } from "../../lib/start-tutorial-state"
-
-export interface SerializePlayerDataOptions {
-    viewerId?: number
-    serializeRushEventData?: boolean // should rush event data be serialized?
-    activeMissionList?: { mission_id: number; progress_value: number; stages: { stage: number; received: boolean }[] }[]
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.serializePlayerData = void 0;
+const date_1 = require("./date");
+const serialize_entities_1 = require("./serialize-entities");
+const utils_1 = require("../../utils");
+const types_1 = require("../types");
+const asset_1 = require("../../routes/api/asset");
+const rushEvent_1 = require("../domains/rushEvent");
+const mission_1 = require("../domains/mission");
+const player_1 = require("../domains/player");
+const mail_1 = require("../domains/mail");
+const codeMap_1 = require("../codeMap");
+const stamina_1 = require("../../lib/stamina");
+const mode15_optional_1 = require("../../lib/mode15-optional");
+const start_tutorial_state_1 = require("../../lib/start-tutorial-state");
+function clearSerializedPlayedPartyMembers(party) {
+    party.character_id_1 = party.character_id_2 = party.character_id_3 = null;
+    party.unison_character_id_1 = party.unison_character_id_2 = party.unison_character_id_3 = null;
+    party.evolution_img_level_1 = party.evolution_img_level_2 = party.evolution_img_level_3 = null;
+    party.unison_evolution_img_level_1 = party.unison_evolution_img_level_2 = party.unison_evolution_img_level_3 = null;
 }
-
-function clearSerializedPlayedPartyMembers(
-    party: UserRushEventPlayedParty,
-): void {
-    party.character_id_1 = party.character_id_2 = party.character_id_3 = null
-    party.unison_character_id_1 = party.unison_character_id_2 = party.unison_character_id_3 = null
-    party.evolution_img_level_1 = party.evolution_img_level_2 = party.evolution_img_level_3 = null
-    party.unison_evolution_img_level_1 = party.unison_evolution_img_level_2 = party.unison_evolution_img_level_3 = null
-}
-
-
 /**
  * Serializes a player data object in the way that the world flipper client expects it.
- * 
+ *
  * @param player The player data object to serialize.
  * @returns A serialized player data object.
  */
-export function serializePlayerData(
-    toSerialize: MergedPlayerData,
-    options?: SerializePlayerDataOptions
-): ClientPlayerData {
-
+function serializePlayerData(toSerialize, options) {
+    var _a, _b, _c, _d, _e, _f;
     // convert userCharacterList (k_id → business code)
-    const userCharacterList: Record<string, UserCharacter> = {}
+    const userCharacterList = {};
     for (const [characterId, character] of Object.entries(toSerialize.characterList)) {
         const kId = parseInt(characterId);
-        const code = kIdToBusinessCode(kId);
+        const code = (0, codeMap_1.kIdToBusinessCode)(kId);
         const codeKey = String(code);
         // convert bond tokens
-        const bondTokenList = serializeBondTokenStatuses(character.bondTokenList);
-        const converted_character: UserCharacter = {
+        const bondTokenList = (0, serialize_entities_1.serializeBondTokenStatuses)(character.bondTokenList);
+        const converted_character = {
             "entry_count": character.entryCount,
             "evolution_level": character.evolutionLevel,
             "over_limit_step": character.overLimitStep,
             "protection": character.protection,
-            "join_time": getServerTime(character.joinTime),
-            "update_time": getServerTime(character.updateTime),
+            "join_time": (0, utils_1.getServerTime)(character.joinTime),
+            "update_time": (0, utils_1.getServerTime)(character.updateTime),
             "exp": character.exp,
             "stack": character.stack,
             "bond_token_list": bondTokenList,
             "mana_board_index": character.manaBoardIndex
-        }
-
-        const exBoost = character.exBoost
+        };
+        const exBoost = character.exBoost;
         if (exBoost !== undefined) {
             converted_character['ex_boost'] = {
                 "status_id": exBoost.statusId,
                 "ability_id_list": exBoost.abilityIdList
-            }
+            };
         }
-
         if (character.illustrationSettings !== undefined) {
-            converted_character['illustration_settings'] = character.illustrationSettings
+            converted_character['illustration_settings'] = character.illustrationSettings;
         }
-
         // Set mana_board_awake from actual node awake levels (post-awakening data, not mission-based)
-        const manaBoard = toSerialize.manaBoardAwakeMap?.get(characterId)
+        const manaBoard = (_a = toSerialize.manaBoardAwakeMap) === null || _a === void 0 ? void 0 : _a.get(characterId);
         if (manaBoard) {
-            converted_character.mana_board_awake = manaBoard
+            converted_character.mana_board_awake = manaBoard;
         }
-
-        userCharacterList[codeKey] = converted_character
+        userCharacterList[codeKey] = converted_character;
     }
-
     // convert parties
-    const userPartyGroupList: Record<string, UserPartyGroup> = serializePartyGroupList(toSerialize.partyGroupList)
-
+    const userPartyGroupList = (0, serialize_entities_1.serializePartyGroupList)(toSerialize.partyGroupList);
     // convert equipment list
-    const userEquipmentList: Record<string, UserEquipment> = {}
+    const userEquipmentList = {};
     for (const [equipmentId, equipment] of Object.entries(toSerialize.equipmentList)) {
         userEquipmentList[equipmentId] = {
             "enhancement_level": equipment.enhancementLevel,
             "level": equipment.level,
             "protection": equipment.protection,
             "stack": equipment.stack
-        }
+        };
     }
-
     // convert player Quest Progress
-    const userQuestProgress: Record<string, UserQuestProgress[]> = {}
+    const userQuestProgress = {};
     for (const [section, progresses] of Object.entries(toSerialize.questProgress)) {
-        const list: UserQuestProgress[] = []
+        const list = [];
         for (const progress of progresses) {
             list.push({
                 "best_elapsed_time_ms": progress.bestElapsedTimeMs,
                 "clear_rank": progress.clearRank,
                 "finished": progress.finished,
-                "host_finished": progress.hostFinished ?? false,
-                "high_score": progress.highScore ?? 0,
+                "host_finished": (_b = progress.hostFinished) !== null && _b !== void 0 ? _b : false,
+                "high_score": (_c = progress.highScore) !== null && _c !== void 0 ? _c : 0,
                 "quest_id": progress.questId,
                 "unlocked": progress.unlocked
-            })
+            });
         }
-        userQuestProgress[section] = list
+        userQuestProgress[section] = list;
     }
-
     // convert box gacha list
-    const userBoxGachaList: Record<string, UserBoxGacha[]> = {}
+    const userBoxGachaList = {};
     for (const [section, list] of Object.entries(toSerialize.boxGachaList)) {
         userBoxGachaList[section] = list.map(boxGacha => {
             return {
@@ -135,45 +103,39 @@ export function serializePlayerData(
                 "reset_times": boxGacha.resetTimes,
                 "remaining_number": boxGacha.remainingNumber,
                 "is_closed": boxGacha.isClosed
-            }
-        })
+            };
+        });
     }
-
     // handle tutorial
-    let userTutorial: UserTutorial | null = null
-    const playerData = toSerialize.player
-    const tutorialStep = playerData.tutorialStep
-    if (
-        tutorialStep !== null
-        && isStartTutorialActive(tutorialStep, playerData.tutorialSkipFlag)
-    ) {
+    let userTutorial = null;
+    const playerData = toSerialize.player;
+    const tutorialStep = playerData.tutorialStep;
+    if (tutorialStep !== null
+        && (0, start_tutorial_state_1.isStartTutorialActive)(tutorialStep, playerData.tutorialSkipFlag)) {
         userTutorial = {
-            "viewer_id": options?.viewerId ?? 0,
+            "viewer_id": (_d = options === null || options === void 0 ? void 0 : options.viewerId) !== null && _d !== void 0 ? _d : 0,
             "tutorial_step": tutorialStep,
             "skip_flag": playerData.tutorialSkipFlag
-        }
-
+        };
         if (tutorialStep >= 1) {
-            userTutorial["powerflip_failure"] = 0
+            userTutorial["powerflip_failure"] = 0;
         }
     }
-
-    const realTimeStamina = computeRealTimeStamina(playerData)
+    const realTimeStamina = (0, stamina_1.computeRealTimeStamina)(playerData);
     if (realTimeStamina !== playerData.stamina) {
-        updatePlayerSync({ id: playerData.id, stamina: realTimeStamina, staminaHealTime: new Date() })
-        playerData.stamina = realTimeStamina
+        (0, player_1.updatePlayerSync)({ id: playerData.id, stamina: realTimeStamina, staminaHealTime: new Date() });
+        playerData.stamina = realTimeStamina;
     }
-
-    const clientData: ClientPlayerData = {
+    const clientData = {
         "user_info": {
             "stamina": playerData.stamina,
-            "stamina_heal_time": realToVirtual(playerData.staminaHealTime),
+            "stamina_heal_time": (0, utils_1.realToVirtual)(playerData.staminaHealTime),
             "boost_point": playerData.boostPoint,
             "boss_boost_point": playerData.bossBoostPoint,
             "transition_state": playerData.transitionState,
             "role": playerData.role,
             "name": playerData.name,
-            "last_login_time": clientSerializeDate(playerData.lastLoginTime),
+            "last_login_time": (0, date_1.clientSerializeDate)(playerData.lastLoginTime),
             "comment": playerData.comment,
             "vmoney": playerData.vmoney,
             "free_vmoney": playerData.freeVmoney,
@@ -181,10 +143,10 @@ export function serializePlayerData(
             "star_crumb": playerData.starCrumb,
             "bond_token": playerData.bondToken,
             "exp_pool": playerData.expPool,
-            "exp_pooled_time": getServerTime(playerData.expPooledTime),
-            "leader_character_id": playerData.leaderCharacterId != null ? kIdToBusinessCode(playerData.leaderCharacterId) : 0,
+            "exp_pooled_time": (0, utils_1.getServerTime)(playerData.expPooledTime),
+            "leader_character_id": playerData.leaderCharacterId != null ? (0, codeMap_1.kIdToBusinessCode)(playerData.leaderCharacterId) : 0,
             "party_slot": playerData.partySlot,
-            "degree_id": playerData.degreeId ?? 1,
+            "degree_id": (_e = playerData.degreeId) !== null && _e !== void 0 ? _e : 1,
             "birth": playerData.birth,
             "free_mana": playerData.freeMana,
             "paid_mana": playerData.paidMana,
@@ -200,9 +162,9 @@ export function serializePlayerData(
                     return {
                         "campaign_id": campaign.campaignId,
                         "additional_point": campaign.additionalPoint
-                    }
+                    };
                 })
-            }
+            };
         }),
         "bonus_index_list": null,
         "login_bonus_received_at": null,
@@ -215,19 +177,23 @@ export function serializePlayerData(
         "cleared_regular_mission_list": toSerialize.clearedRegularMissionList,
         "user_character_list": userCharacterList,
         "user_character_mana_node_list": (() => {
-                const awakeLevels = toSerialize.characterManaNodeAwakeLevels ?? {}
-                const list: Record<string, { multiplied_id: number, awake_level: number }[]> = {}
-                for (const [charId, nodeIds] of Object.entries(toSerialize.characterManaNodeList)) {
-                    if (nodeIds.length > 0) {
-                        const charLevels = awakeLevels[charId] ?? {}
-                        list[charId] = nodeIds.map(id => ({
+            var _a, _b;
+            const awakeLevels = (_a = toSerialize.characterManaNodeAwakeLevels) !== null && _a !== void 0 ? _a : {};
+            const list = {};
+            for (const [charId, nodeIds] of Object.entries(toSerialize.characterManaNodeList)) {
+                if (nodeIds.length > 0) {
+                    const charLevels = (_b = awakeLevels[charId]) !== null && _b !== void 0 ? _b : {};
+                    list[charId] = nodeIds.map(id => {
+                        var _a;
+                        return ({
                             multiplied_id: id,
-                            awake_level: charLevels[id] ?? 0
-                        }))
-                    }
+                            awake_level: (_a = charLevels[id]) !== null && _a !== void 0 ? _a : 0
+                        });
+                    });
                 }
-                return list
-            })(),
+            }
+            return list;
+        })(),
         "user_party_group_list": userPartyGroupList,
         "item_list": toSerialize.itemList,
         "user_equipment_list": userEquipmentList,
@@ -240,9 +206,9 @@ export function serializePlayerData(
                 "is_daily_first": gachaInfo.isDailyFirst,
                 "is_account_first": gachaInfo.isAccountFirst,
                 "gacha_exchange_point": gachaInfo.gachaExchangePoint
-            }
+            };
         }),
-        "available_asset_version": availableAssetVersion,
+        "available_asset_version": asset_1.availableAssetVersion,
         "should_prompt_takeover_registration": false,
         "has_unread_news_item": false,
         "user_option": toSerialize.userOption,
@@ -251,14 +217,14 @@ export function serializePlayerData(
                 "category_id": drawnQuest.categoryId,
                 "quest_id": drawnQuest.questId,
                 "odds_id": drawnQuest.oddsId
-            }
+            };
         }),
-        "mail_arrived": getPlayerMailCountSync(toSerialize.player.id, true) > 0,
+        "mail_arrived": (0, mail_1.getPlayerMailCountSync)(toSerialize.player.id, true) > 0,
         "user_periodic_reward_point_list": toSerialize.periodicRewardPointList,
         "all_active_mission_list": toSerialize.allActiveMissionList,
-        "cleared_collect_item_event_mission_list": getPlayerClearedCollectItemEventMissionListSync(toSerialize.player.id),
+        "cleared_collect_item_event_mission_list": (0, mission_1.getPlayerClearedCollectItemEventMissionListSync)(toSerialize.player.id),
         "box_gacha_list": userBoxGachaList,
-        "gacha_campaign_list": toSerialize.gachaCampaignList.map(campaign => serializeGachaCampaign(campaign)),
+        "gacha_campaign_list": toSerialize.gachaCampaignList.map(campaign => (0, serialize_entities_1.serializeGachaCampaign)(campaign)),
         "purchased_times_list": {
             "gs.kg.worldflipper.pakage_monthly": 0,
             "gs.kg.worldflipper.pakage_rank": 0,
@@ -275,21 +241,21 @@ export function serializePlayerData(
             return {
                 "campaign_id": campaign.campaignId,
                 "gacha_id": campaign.gachaId,
-                "period_start_time": getServerTime(campaign.periodStartTime),
-                "period_end_time": getServerTime(campaign.periodEndTime),
+                "period_start_time": (0, utils_1.getServerTime)(campaign.periodStartTime),
+                "period_end_time": (0, utils_1.getServerTime)(campaign.periodEndTime),
                 "status": campaign.status,
                 "term_index": campaign.termIndex
-            }
+            };
         }),
         "multi_special_exchange_campaign_list": toSerialize.multiSpecialExchangeCampaignList.map(campaign => {
-            const serialized: UserMultiSpecialExchangeCampaignList = {
+            const serialized = {
                 "campaign_id": campaign.campaignId,
                 "status": campaign.status
-            }
+            };
             if (campaign.ticketItemId !== null && campaign.ticketItemId !== undefined) {
-                serialized.ticket_item_id = campaign.ticketItemId
+                serialized.ticket_item_id = campaign.ticketItemId;
             }
-            return serialized
+            return serialized;
         }),
         "associate_token": "associate_token",
         "config": {
@@ -317,61 +283,53 @@ export function serializePlayerData(
             "polling_delay_battle_seconds_range_max": 15,
             "return_attention_max_num": 3
         }
-    }
-
+    };
     // add optional values
-
     // serialize rush event data
-    if (options?.serializeRushEventData ?? false) {
+    if ((_f = options === null || options === void 0 ? void 0 : options.serializeRushEventData) !== null && _f !== void 0 ? _f : false) {
         // rush event list
         if (toSerialize.rushEventList !== undefined) {
-            const userRushEventList: Record<string, UserRushEvent> = {}
+            const userRushEventList = {};
             for (const rushEvent of toSerialize.rushEventList) {
-                userRushEventList[rushEvent.eventId] = serializeRushEvent(rushEvent)
+                userRushEventList[rushEvent.eventId] = (0, serialize_entities_1.serializeRushEvent)(rushEvent);
             }
-            clientData.user_rush_event_list = userRushEventList
+            clientData.user_rush_event_list = userRushEventList;
         }
-
         // cleared folder list
-        clientData.user_rush_event_cleared_folder_list = toSerialize.rushEventClearedFolderList
-
+        clientData.user_rush_event_cleared_folder_list = toSerialize.rushEventClearedFolderList;
         // rush event played party list
         if (toSerialize.rushEventPlayedPartyList !== undefined) {
-            const userRushEventPlayedPartyList: UserRushEventPlayedPartyList = {}
-
+            const userRushEventPlayedPartyList = {};
             for (const [eventId, parties] of Object.entries(toSerialize.rushEventPlayedPartyList)) {
-                const numericEventId = Number(eventId)
-                const battleTypeBuckets: Record<RushEventBattleType, Record<string, UserRushEventPlayedParty> | undefined> = {
+                const numericEventId = Number(eventId);
+                const battleTypeBuckets = {
                     // Keep both buckets as empty maps. Leaving an unused
                     // bucket undefined emits MessagePack fixext1 (0xD4),
                     // which the legacy Android client rejects during /load.
-                    [RushEventBattleType.FOLDER]: {},
-                    [RushEventBattleType.ENDLESS]: {}
-                }
+                    [types_1.RushEventBattleType.FOLDER]: {},
+                    [types_1.RushEventBattleType.ENDLESS]: {}
+                };
                 for (const party of parties) {
-                    let bucket = battleTypeBuckets[party.battleType]
+                    let bucket = battleTypeBuckets[party.battleType];
                     if (bucket === undefined) {
-                        bucket = {}
-                        battleTypeBuckets[party.battleType] = bucket
+                        bucket = {};
+                        battleTypeBuckets[party.battleType] = bucket;
                     }
-                    const serializedParty = serializePlayerRushEventPlayedParty(party)
-                    if (
-                        shouldUnlockMode15PlayedParties(numericEventId)
-                        || shouldUnlockMode15MultiplayerPlayedParty(numericEventId, party.round)
-                    ) {
-                        clearSerializedPlayedPartyMembers(serializedParty)
+                    const serializedParty = (0, rushEvent_1.serializePlayerRushEventPlayedParty)(party);
+                    if ((0, mode15_optional_1.shouldUnlockMode15PlayedParties)(numericEventId)
+                        || (0, mode15_optional_1.shouldUnlockMode15MultiplayerPlayedParty)(numericEventId, party.round)) {
+                        clearSerializedPlayedPartyMembers(serializedParty);
                     }
-                    bucket[party.round] = serializedParty
+                    bucket[party.round] = serializedParty;
                 }
-                userRushEventPlayedPartyList[eventId] = battleTypeBuckets as Record<RushEventBattleType, Record<string, UserRushEventPlayedParty>>
+                userRushEventPlayedPartyList[eventId] = battleTypeBuckets;
             }
-            clientData.user_rush_event_played_party_list = userRushEventPlayedPartyList
+            clientData.user_rush_event_played_party_list = userRushEventPlayedPartyList;
         }
     }
-
-    if (options?.activeMissionList) {
-        (clientData as any).active_mission_list = options.activeMissionList
+    if (options === null || options === void 0 ? void 0 : options.activeMissionList) {
+        clientData.active_mission_list = options.activeMissionList;
     }
-
-    return clientData
+    return clientData;
 }
+exports.serializePlayerData = serializePlayerData;

@@ -11,6 +11,7 @@ import { givePlayerCharacterSync } from "../../lib/character";
 import { randomInt } from "crypto";
 import { GachaCharacterDraw } from "../../lib/types";
 import { reconcileAwakeUnlockCharacterList } from "../../lib/mission";
+import { isStartTutorialActive } from "../../lib/start-tutorial-state";
 
 interface UpdateStepBody {
     viewer_id: number
@@ -99,9 +100,9 @@ const routes = async (fastify: FastifyInstance) => {
             "message": "No player bound to account."
         })
 
-        // check if tutorial is already completed
-        const completedTutorial = getPlayerTriggeredTutorialsSync(playerId)
-        if (completedTutorial.find((value: number) => value === 12)) return reply.status(400).send({
+        // Tutorial prompt IDs are independent hints. Completion is determined
+        // only by the persisted full/shortened tutorial step.
+        if (!isStartTutorialActive(player.tutorialStep, player.tutorialSkipFlag)) return reply.status(400).send({
             "error": "Bad Request",
             "message": "Tutorial already completed"
         })
