@@ -76,6 +76,11 @@ const schemaColumns = {
         column: "is_multi_host",
         definition: "INTEGER NOT NULL DEFAULT 0",
     },
+    "players_active_quests.started_at_ms": {
+        table: "players_active_quests",
+        column: "started_at_ms",
+        definition: "INTEGER DEFAULT NULL",
+    },
     "device_bindings.name": {
         table: "device_bindings",
         column: "name",

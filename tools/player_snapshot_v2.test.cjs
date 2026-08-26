@@ -66,6 +66,14 @@ function seedRepresentativeState(playerId, otherPlayerId) {
         (id, player_id, type, type_id, number, reason_id, create_time)
         VALUES (?, ?, ?, ?, ?, ?, ?)`)
         .run(710001, playerId, 2, 456, 7, 98, "2026-08-22T00:01:00.000Z")
+    db.prepare(`INSERT INTO players_practice_battle_history
+        (id, player_id, play_id, category_id, character_1_total_damage, character_id_1,
+         clear_rank, create_time, elapsed_time_ms, finish_kind, quest_id, score, total_damage)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+        .run(
+            720001, playerId, "snapshot-practice-battle", 15, 7654, 101001,
+            4, "2026-08-22 00:01:30", 45678, 0, 92015, 123456, 8765,
+        )
     db.prepare(`INSERT INTO players_cleared_regular_missions (id, value, player_id) VALUES (?, ?, ?)`)
         .run(99001, 12, playerId)
     db.prepare(`INSERT INTO players_items (id, amount, player_id) VALUES (?, ?, ?)`)
@@ -143,6 +151,18 @@ function assertHistoryWasRemapped(sourcePlayerId, targetPlayerId) {
     const targetHistory = db.prepare(`SELECT id, reason_id FROM players_receive_history WHERE player_id = ?`).get(targetPlayerId)
     assert.equal(targetHistory.reason_id, sourceHistory.reason_id)
     assert.notEqual(targetHistory.id, sourceHistory.id, "receive-history id must be remapped")
+    const sourcePractice = db.prepare(`
+        SELECT id, play_id, quest_id, total_damage
+        FROM players_practice_battle_history WHERE player_id = ?
+    `).get(sourcePlayerId)
+    const targetPractice = db.prepare(`
+        SELECT id, play_id, quest_id, total_damage
+        FROM players_practice_battle_history WHERE player_id = ?
+    `).get(targetPlayerId)
+    assert.equal(targetPractice.play_id, sourcePractice.play_id)
+    assert.equal(targetPractice.quest_id, sourcePractice.quest_id)
+    assert.equal(targetPractice.total_damage, sourcePractice.total_damage)
+    assert.notEqual(targetPractice.id, sourcePractice.id, "practice-battle history id must be remapped")
 }
 
 function runFreshDatabaseTests(api) {
@@ -166,6 +186,7 @@ function runFreshDatabaseTests(api) {
     assert.equal(snapshot.version, 2)
     assert.equal(snapshot.summary.includedTableCount, api.PLAYER_SNAPSHOT_V2_TABLES.length)
     assert.ok(snapshot.data.tables.players_carnival_event_reward_claims.rows.length > 0)
+    assert.equal(snapshot.data.tables.players_practice_battle_history.rows.length, 1)
 
     const targetAccountId = db.prepare(`SELECT account_id FROM players WHERE id = ?`).get(target.id).account_id
     const result = api.restorePlayerSaveSnapshotV2Sync(snapshot, target.id, { includeArchiveHistory: true })
@@ -186,12 +207,24 @@ function runFreshDatabaseTests(api) {
         (player_id, subject, description, type, number, create_time)
         VALUES (?, ?, ?, ?, ?, ?)`)
         .run(noHistoryTarget.id, "保留目标历史", "keep", 1, 1, "2026-08-21T00:00:00.000Z")
+    db.prepare(`INSERT INTO players_practice_battle_history
+        (id, player_id, play_id, category_id, create_time, elapsed_time_ms, finish_kind, quest_id, total_damage)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+        .run(730001, noHistoryTarget.id, "keep-target-practice-battle", 15, "2026-08-21 00:01:00", 1000, 1, 92016, 50)
     const noHistoryResult = api.restorePlayerSaveSnapshotV2Sync(snapshot, noHistoryTarget.id, {
         includeArchiveHistory: false,
     })
-    assert.deepEqual(noHistoryResult.skippedTables.sort(), ["players_mails", "players_receive_history"].sort())
+    assert.deepEqual(noHistoryResult.skippedTables.sort(), [
+        "players_mails",
+        "players_practice_battle_history",
+        "players_receive_history",
+    ].sort())
     const keptMails = db.prepare(`SELECT subject FROM players_mails WHERE player_id = ?`).all(noHistoryTarget.id)
     assert.deepEqual(keptMails, [{ subject: "保留目标历史" }])
+    const keptPracticeHistory = db.prepare(`
+        SELECT play_id FROM players_practice_battle_history WHERE player_id = ?
+    `).all(noHistoryTarget.id)
+    assert.deepEqual(keptPracticeHistory, [{ play_id: "keep-target-practice-battle" }])
 
     const beforeRollback = api.createPlayerSaveSnapshotV2Sync(noHistoryTarget.id)
     const invalid = JSON.parse(JSON.stringify(snapshot))

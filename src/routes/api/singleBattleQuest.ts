@@ -8,7 +8,8 @@ import { repairUnisonUnlockProgressSync } from "../../lib/validate/unison-unlock
 import { getSession } from "../../data/domains/session"
 import { getDb } from "../../data/db"
 import { incrementPlayerCharacterClearSync } from "../../data/domains/character_clear"
-import { updatePlayerEquipmentSync } from "../../data/domains/equipment"
+import { getPlayerEquipmentListSync, updatePlayerEquipmentSync } from "../../data/domains/equipment"
+import { insertPlayerPracticeBattleHistorySync } from "../../data/domains/practice-battle-history"
 import { getPlayerCarnivalEventRecordsSync, migrateCarnivalEventFolderRecordsSync, upsertPlayerCarnivalEventRecordSync } from "../../data/domains/carnivalEvent"
 import { getQuestFromCategorySync, getRushEventFolderClearRewards } from "../../lib/assets";
 import { getCharactersEvolutionImgLevels, givePlayerCharactersExpSync } from "../../lib/character";
@@ -69,6 +70,7 @@ import {
     cacheFinishResponse,
     getCachedFinishResponse,
 } from "../../lib/finish-response-cache";
+import { buildPracticeBattleHistoryRecord } from "../../lib/quest/practice-battle-history";
 
 // Load carnival quest score data
 let carnivalScoreLookup: Record<string, { difficulty_score: number, time_limit_ms: number, folder_id: number, event_id: number }> = {}
@@ -112,6 +114,11 @@ interface QuestStatistics {
         use_power_flip_count?: number
         use_dash_count?: number
         use_skill_count?: number
+        damage_deal_total?: number
+        members?: ({
+            origin_damage?: number
+            [key: string]: any
+        } | null)[]
         [key: string]: any
     }[]
 }
@@ -185,7 +192,8 @@ export interface ActiveQuest {
     // Captured by multiplayer starts for the quest-specific NPC snapshot.
     partySlot?: number,
     playId: string,
-    continueCount: number
+    continueCount: number,
+    startedAtMs?: number
 }
 
 const continueVmoneyCost = 50;
@@ -193,7 +201,8 @@ const continueVmoneyCost = 50;
 export const activeQuests: Record<number, ActiveQuest> = {}
 
 export function insertActiveQuest(playerId: number, quest: ActiveQuest) {
-    activeQuests[playerId] = quest
+    const startedAtMs = quest.startedAtMs ?? getServerTime() * 1000
+    activeQuests[playerId] = { ...quest, startedAtMs }
     // Persist to DB for battle recovery across server restarts
     insertPlayerActiveQuestSync(playerId, {
         playerId,
@@ -208,7 +217,8 @@ export function insertActiveQuest(playerId: number, quest: ActiveQuest) {
         roomNumber: quest.roomNumber ?? null,
         entryItemId: quest.entryItemId ?? null,
         eventId: quest.eventId ?? null,
-        continueCount: quest.continueCount
+        continueCount: quest.continueCount,
+        startedAtMs,
     })
 }
 
@@ -457,6 +467,23 @@ const routes = async (fastify: FastifyInstance) => {
         // reward character exp
         const bodyPartyStatistics = body.statistics.party
         const partyCharacterIds = [...bodyPartyStatistics.characters, ...bodyPartyStatistics.unison_characters]
+
+        if (questCategory === QuestCategory.PRACTICE) {
+            insertPlayerPracticeBattleHistorySync(buildPracticeBattleHistoryRecord({
+                playerId,
+                playId: activeQuestData.playId,
+                categoryId: questCategory,
+                questId,
+                finishKind: questAccomplished ? 0 : 1,
+                createdAt: missionEvaluationTime,
+                elapsedTimeMs: clearTime,
+                score: body.score,
+                clearRank: questAccomplished ? clearRank : null,
+                party: bodyPartyStatistics,
+                statistics: body.statistics,
+                equipmentList: getPlayerEquipmentListSync(playerId),
+            }))
+        }
 
         // Build finish context for mission trackers
         const finishCtx: FinishContext = {
@@ -836,21 +863,76 @@ const routes = async (fastify: FastifyInstance) => {
             allowRebuild: false,
         })
         const abortQuest = resolvedAbortQuest?.quest
+        let practiceHistoryRecord: ReturnType<typeof buildPracticeBattleHistoryRecord> | null = null
+        if (abortQuest?.category === QuestCategory.PRACTICE) {
+            if (
+                body.category !== abortQuest.category
+                || body.quest_id !== abortQuest.questId
+                || body.play_id !== abortQuest.playId
+            ) {
+                return reply.status(400).send({
+                    "error": "Bad Request",
+                    "message": "Active practice quest does not match abort request.",
+                })
+            }
+            if (abortQuest.startedAtMs === undefined) {
+                console.warn(
+                    `[PRACTICE-HISTORY] abort history skipped because start time is unavailable: `
+                    + `player=${playerId} quest=${abortQuest.questId} play=${abortQuest.playId}`,
+                )
+            } else {
+                const abortedAtMs = getServerTime() * 1000
+                try {
+                    practiceHistoryRecord = buildPracticeBattleHistoryRecord({
+                        playerId,
+                        playId: abortQuest.playId,
+                        categoryId: abortQuest.category,
+                        questId: abortQuest.questId,
+                        finishKind: body.finish_kind,
+                        createdAt: new Date(abortedAtMs),
+                        elapsedTimeMs: Math.max(0, abortedAtMs - abortQuest.startedAtMs),
+                        score: null,
+                        clearRank: null,
+                        party: body.statistics.party,
+                        statistics: body.statistics,
+                        equipmentList: getPlayerEquipmentListSync(playerId),
+                    })
+                } catch (error) {
+                    console.warn(
+                        `[PRACTICE-HISTORY] invalid abort history payload: player=${playerId} `
+                        + `quest=${abortQuest.questId} error=${(error as Error).message}`,
+                    )
+                    return reply.status(400).send({
+                        "error": "Bad Request",
+                        "message": "Invalid practice battle abort data.",
+                    })
+                }
+            }
+        }
+
+        // Keep the failure transition, history row, and active-quest deletion
+        // atomic so a partial settlement cannot erase the recoverable battle.
+        getDb().transaction(() => {
+            if (abortQuest && isMode15Quest(abortQuest.category, abortQuest.questId)) {
+                settleMode15BattleSync(
+                    playerId,
+                    abortQuest.category,
+                    abortQuest.questId,
+                    false,
+                )
+            }
+            if (practiceHistoryRecord !== null) {
+                insertPlayerPracticeBattleHistorySync(practiceHistoryRecord)
+            }
+            deletePlayerActiveQuestSync(playerId)
+        })()
+
+        delete activeQuests[playerId]
         if (abortQuest && isMode15Quest(abortQuest.category, abortQuest.questId)) {
-            settleMode15BattleSync(
-                playerId,
-                abortQuest.category,
-                abortQuest.questId,
-                false,
-            )
             console.log(
                 `[MODE15] single battle aborted; run reset: player=${playerId} category=${abortQuest.category} quest=${abortQuest.questId}`,
             )
         }
-
-        // delete existing active quest
-        delete activeQuests[playerId]
-        deletePlayerActiveQuestSync(playerId)
 
         return reply.status(200).send({
             "data_headers": headers,
@@ -975,7 +1057,8 @@ const routes = async (fastify: FastifyInstance) => {
             isMulti: false,
             entryItemId: entryCost?.itemId,
             playId: body.play_id,
-            continueCount: 0
+            continueCount: 0,
+            startedAtMs: getServerTime() * 1000,
         }
 
         let missionSettlement: MissionSettlementResult | undefined
@@ -1001,6 +1084,7 @@ const routes = async (fastify: FastifyInstance) => {
                 entryItemId: null,
                 eventId: activeQuest.eventId ?? null,
                 continueCount: activeQuest.continueCount,
+                startedAtMs: activeQuest.startedAtMs ?? null,
             })
             recordActiveMissionQuestChallengeFactSync(playerId, category)
             missionSettlement = settleMissionCategories(
