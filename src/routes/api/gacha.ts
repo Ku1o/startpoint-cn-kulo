@@ -226,7 +226,7 @@ const routes = async (fastify: FastifyInstance) => {
         const responseData: Record<string, any> = {
             "character_list": characterList,
             "item_list": giveResult.item !== undefined ? {
-                [giveResult.item.id]: giveResult.item.count
+                [giveResult.item.id]: giveResult.item.inventoryCount
             } : [],
             "gacha_info_list": [
                 {

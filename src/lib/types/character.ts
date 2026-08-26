@@ -59,7 +59,10 @@ export interface GivePlayerCharacterResult {
     character: Object,
     item?: {
         id: number,
-        count: number
+        /** Amount granted by this character reward. Used by per-draw reward UI. */
+        count: number,
+        /** Absolute inventory amount after the grant. Used by response item_list. */
+        inventoryCount: number
     }
 }
 

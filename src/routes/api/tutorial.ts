@@ -207,7 +207,7 @@ const routes = async (fastify: FastifyInstance) => {
                 ? [giveResult.character as Record<string, unknown>]
                 : []
             const itemList = giveResult?.item
-                ? { [giveResult.item.id]: giveResult.item.count }
+                ? { [giveResult.item.id]: giveResult.item.inventoryCount }
                 : {}
             insertReceiveHistorySync(playerId, { type: MailType.CHARACTER, type_id: freeTutorialCharacterId, number: 1 })
 

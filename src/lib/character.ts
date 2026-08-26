@@ -167,10 +167,11 @@ export function givePlayerCharacterSync(
         let returnItem = undefined
         if (dupeRewards) {
             const itemId = dupeRewards[assetData.element]
-            givePlayerItemSync(playerId, itemId, 1)
+            const inventoryCount = givePlayerItemSync(playerId, itemId, 1)
             returnItem = {
                 id: itemId,
-                count: 1
+                count: 1,
+                inventoryCount
             }
         }
 

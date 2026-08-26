@@ -335,31 +335,23 @@ export function rewardPlayerGachaDrawResultSync(
             const giveResult = givePlayerCharacterSync(playerId, characterId)
             
             if (giveResult !== null) {
-                if (!plannedMovie.requiresVerification) {
-                    draws.push({
-                        "character_id": characterId,
-                        "movie_id": plannedMovie.movieId,
-                        "seed": plannedMovie.seed,
-                        "entry_count": 1
-                    })
-                    characters.set(characterId, giveResult.character)
+                if (plannedMovie.requiresVerification) {
+                    seedValidator.markSent(plannedMovie.movieId, plannedMovie.seed, plannedMovie.rarity)
+
+                    const movieFlags = [
+                        plannedMovie.moviePlayable ? "PLAY" : "SKIP",
+                        plannedMovie.rarityUp ? "RARITY-UP" : "NO-RARITY-UP",
+                    ].join(",")
+                    logGachaDetail(
+                        `[GACHA-DETAIL] rarity=${plannedMovie.rarity}★ seed=${plannedMovie.seed}`
+                        + ` movie=${plannedMovie.movieId} charId=${characterId} [${movieFlags}]`
+                    )
+                } else {
                     logGachaDetail(
                         `[GACHA-DETAIL] rarity=${plannedMovie.rarity}★ seed=${plannedMovie.seed}`
                         + ` movie=${plannedMovie.movieId} charId=${characterId} [SKIP]`
                     )
-                    continue
                 }
-
-                seedValidator.markSent(plannedMovie.movieId, plannedMovie.seed, plannedMovie.rarity)
-
-                const movieFlags = [
-                    plannedMovie.moviePlayable ? "PLAY" : "SKIP",
-                    plannedMovie.rarityUp ? "RARITY-UP" : "NO-RARITY-UP",
-                ].join(",")
-                logGachaDetail(
-                    `[GACHA-DETAIL] rarity=${plannedMovie.rarity}★ seed=${plannedMovie.seed}`
-                    + ` movie=${plannedMovie.movieId} charId=${characterId} [${movieFlags}]`
-                )
 
                 const draw: GachaCharacterDraw = {
                     "character_id": characterId,
@@ -368,20 +360,21 @@ export function rewardPlayerGachaDrawResultSync(
                     "entry_count": 1
                 }
                     
-                    // set values in items map, characters map, and draws array.
-                    const giveItem = giveResult.item
-                    if (giveItem !== undefined) {
-                        draw['ex_boost_item'] = giveItem // add ex_boost_item to draw
-                        items.set(giveItem.id, (items.get(giveItem.id) ?? 0) + giveItem.count)
-                    }
+                // Per-draw rewards use the granted delta, while item_list must
+                // publish the absolute post-grant inventory amount.
+                const giveItem = giveResult.item
+                if (giveItem !== undefined) {
+                    draw['ex_boost_item'] = { id: giveItem.id, count: giveItem.count }
+                    items.set(giveItem.id, giveItem.inventoryCount)
+                }
 
-                    const existingCharacter = characters.get(characterId)
-                    if (existingCharacter) {
-                        characters.set(characterId, {...existingCharacter, ...giveResult.character})
-                    } else {    
-                        characters.set(characterId, giveResult.character)
-                    }
-                    draws.push(draw)
+                const existingCharacter = characters.get(characterId)
+                if (existingCharacter) {
+                    characters.set(characterId, {...existingCharacter, ...giveResult.character})
+                } else {
+                    characters.set(characterId, giveResult.character)
+                }
+                draws.push(draw)
             }
         }
     } else {

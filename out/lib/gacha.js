@@ -226,7 +226,7 @@ function planCharacterGachaMovies(gacha, characterIds, options) {
 }
 exports.planCharacterGachaMovies = planCharacterGachaMovies;
 function rewardPlayerGachaDrawResultSync(playerId, gacha, gachaDrawResult, gachaDrawMetadata, plannedCharacterMovies) {
-    var _a, _b, _c;
+    var _a, _b;
     const characterMoviePlan = gacha.type === types_1.GachaType.CHARACTER
         ? plannedCharacterMovies !== null && plannedCharacterMovies !== void 0 ? plannedCharacterMovies : planCharacterGachaMovies(gacha, gachaDrawResult, { skipNoRarityUpMovie: false })
         : [];
@@ -247,36 +247,31 @@ function rewardPlayerGachaDrawResultSync(playerId, gacha, gachaDrawResult, gacha
             }
             const giveResult = (0, character_1.givePlayerCharacterSync)(playerId, characterId);
             if (giveResult !== null) {
-                if (!plannedMovie.requiresVerification) {
-                    draws.push({
-                        "character_id": characterId,
-                        "movie_id": plannedMovie.movieId,
-                        "seed": plannedMovie.seed,
-                        "entry_count": 1
-                    });
-                    characters.set(characterId, giveResult.character);
+                if (plannedMovie.requiresVerification) {
+                    seed_validator_1.default.markSent(plannedMovie.movieId, plannedMovie.seed, plannedMovie.rarity);
+                    const movieFlags = [
+                        plannedMovie.moviePlayable ? "PLAY" : "SKIP",
+                        plannedMovie.rarityUp ? "RARITY-UP" : "NO-RARITY-UP",
+                    ].join(",");
+                    logGachaDetail(`[GACHA-DETAIL] rarity=${plannedMovie.rarity}★ seed=${plannedMovie.seed}`
+                        + ` movie=${plannedMovie.movieId} charId=${characterId} [${movieFlags}]`);
+                }
+                else {
                     logGachaDetail(`[GACHA-DETAIL] rarity=${plannedMovie.rarity}★ seed=${plannedMovie.seed}`
                         + ` movie=${plannedMovie.movieId} charId=${characterId} [SKIP]`);
-                    continue;
                 }
-                seed_validator_1.default.markSent(plannedMovie.movieId, plannedMovie.seed, plannedMovie.rarity);
-                const movieFlags = [
-                    plannedMovie.moviePlayable ? "PLAY" : "SKIP",
-                    plannedMovie.rarityUp ? "RARITY-UP" : "NO-RARITY-UP",
-                ].join(",");
-                logGachaDetail(`[GACHA-DETAIL] rarity=${plannedMovie.rarity}★ seed=${plannedMovie.seed}`
-                    + ` movie=${plannedMovie.movieId} charId=${characterId} [${movieFlags}]`);
                 const draw = {
                     "character_id": characterId,
                     "movie_id": plannedMovie.movieId,
                     "seed": plannedMovie.seed,
                     "entry_count": 1
                 };
-                // set values in items map, characters map, and draws array.
+                // Per-draw rewards use the granted delta, while item_list must
+                // publish the absolute post-grant inventory amount.
                 const giveItem = giveResult.item;
                 if (giveItem !== undefined) {
-                    draw['ex_boost_item'] = giveItem; // add ex_boost_item to draw
-                    items.set(giveItem.id, ((_a = items.get(giveItem.id)) !== null && _a !== void 0 ? _a : 0) + giveItem.count);
+                    draw['ex_boost_item'] = { id: giveItem.id, count: giveItem.count };
+                    items.set(giveItem.id, giveItem.inventoryCount);
                 }
                 const existingCharacter = characters.get(characterId);
                 if (existingCharacter) {
@@ -306,7 +301,7 @@ function rewardPlayerGachaDrawResultSync(playerId, gacha, gachaDrawResult, gacha
             equipment.set(equipmentId, giveResult);
             draws.push({
                 "equipment_id": equipmentId,
-                "treasure_up_type": (_c = (_b = equipmentMovieEffects.draws[index]) === null || _b === void 0 ? void 0 : _b.treasureUpType) !== null && _c !== void 0 ? _c : 0
+                "treasure_up_type": (_b = (_a = equipmentMovieEffects.draws[index]) === null || _a === void 0 ? void 0 : _a.treasureUpType) !== null && _b !== void 0 ? _b : 0
             });
         }
         return {

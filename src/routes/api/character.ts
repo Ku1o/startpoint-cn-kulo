@@ -297,7 +297,7 @@ const routes = async (fastify: FastifyInstance) => {
             ? [giveResult.character as Record<string, unknown>]
             : []
         const itemList = giveResult?.item
-            ? { [giveResult.item.id]: giveResult.item.count }
+            ? { [giveResult.item.id]: giveResult.item.inventoryCount }
             : {}
         const characterList = existingCharacterList.length > 0
             ? reconcileAwakeUnlockCharacterList(playerId, existingCharacterList)

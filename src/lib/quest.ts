@@ -227,7 +227,7 @@ export function givePlayerRewardsSync(
                 const convertedReward = (reward as EquipmentItemReward)
                 const itemId = convertedReward.id
                 const result = givePlayerItemSync(playerId, itemId, convertedReward.count);
-                items.set(itemId, (items.get(itemId) ?? 0) + result)
+                items.set(itemId, result)
                 break;
             }
             case RewardType.EQUIPMENT: {
@@ -244,7 +244,7 @@ export function givePlayerRewardsSync(
                 const giveItem = giveResult?.item
                 if (giveItem !== undefined) {
                     const itemId = giveItem.id
-                    items.set(itemId, (items.get(itemId) ?? 0) + giveItem.count)
+                    items.set(itemId, giveItem.inventoryCount)
                 }
     
                 const giveCharacter = giveResult?.character
@@ -270,7 +270,7 @@ export function givePlayerRewardsSync(
                 const convertedReward = (reward as EquipmentItemReward)
                 const itemId = convertedReward.id
                 const result = givePlayerItemSync(playerId, itemId, convertedReward.count);
-                items.set(itemId, (items.get(itemId) ?? 0) + result)
+                items.set(itemId, result)
                 break;
             }
         }
