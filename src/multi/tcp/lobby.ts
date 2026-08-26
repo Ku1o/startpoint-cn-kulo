@@ -16,6 +16,10 @@ import {
 import { getPlayerSync } from "../../data/domains/player"
 import { embeddedMultiCoordinator } from "../coordinator/embedded"
 import { handleAutoplayModeChange } from "./autoplay-mode"
+import {
+    recordRoomAdmissionDenial,
+    roomAdmissionRegistry,
+} from "../room/admission"
 
 const NPC_JOIN_DELAY_MS = parseInt(process.env.NPC_JOIN_DELAY_MS || "2000")
 const NPC_READY_DELAY_MS = parseInt(process.env.NPC_READY_DELAY_MS || "500")
@@ -701,6 +705,42 @@ export function scheduleRematchDisconnectCleanup(roomNumber: string): void {
     scheduleRematchRosterCleanup(roomNumber)
 }
 
+function rejectClaimedAdmission(
+    socket: net.Socket,
+    client: SessionClient,
+    reason: string,
+): void {
+    recordRoomAdmissionDenial(reason)
+    roomAdmissionRegistry.releaseClaim(
+        client.roomNumber,
+        client.admissionGeneration ?? client.roomGeneration,
+        client.viewerId,
+        client.connectionId,
+    )
+    client.admissionClaimed = false
+    sessionManager.sendJson(socket, [1, [6, "multibattle_room_dismissed"]])
+    sessionManager.removeClient(client)
+    socket.end()
+    console.warn(
+        `[LOBBY] claimed admission rejected: viewer=${client.viewerId}`
+        + ` room=${client.roomNumber} reason=${reason}`,
+    )
+}
+
+function commitClaimedAdmission(socket: net.Socket, client: SessionClient): boolean {
+    if (!client.admissionClaimed) return true
+    const committed = roomAdmissionRegistry.commit(
+        client.roomNumber,
+        client.admissionGeneration ?? client.roomGeneration,
+        client.viewerId,
+        client.connectionId,
+    )
+    client.admissionClaimed = false
+    if (committed) return true
+    rejectClaimedAdmission(socket, client, "claim_lost_before_enter")
+    return false
+}
+
 function handleEnter(socket: net.Socket, client: SessionClient, data: any[]): void {
     const ed = data[1] ?? {}
     if (!client.yourself) return
@@ -727,6 +767,20 @@ function handleEnter(socket: net.Socket, client: SessionClient, data: any[]): vo
         socket.end()
         return
     }
+    if (client.admissionClaimed) {
+        const admissionGeneration = client.admissionGeneration ?? client.roomGeneration
+        const roomPhase = embeddedMultiCoordinator.ensureLifecycle(room).phase
+        if (admissionGeneration !== room.lobby_generation || roomPhase !== "LOBBY") {
+            rejectClaimedAdmission(
+                socket,
+                client,
+                admissionGeneration !== room.lobby_generation
+                    ? "generation_changed_before_enter"
+                    : "phase_changed_before_enter",
+            )
+            return
+        }
+    }
     if (room) client.roomGeneration = room.lobby_generation
     const isHost = room && client.viewerId === room.host_viewer_id
 
@@ -740,6 +794,7 @@ function handleEnter(socket: net.Socket, client: SessionClient, data: any[]): vo
     // Guest entered before host (or host connected but hasn't entered) → wait with Welcome
     if (!isHost && (!hostClient || !hostClient.mates[0])) {
         client.mates = [client.yourself!]
+        if (!commitClaimedAdmission(socket, client)) return
         sessionManager.sendJson(client.socket, [1, [0, client.yourself, [client.yourself]]])
         sessionManager.beginRescueGuestWait(client)
         gameVerboseLog(() => `[LOBBY] guest ${client.viewerId} entered alone, waiting for host in room ${client.roomNumber}`)
@@ -794,6 +849,8 @@ function handleEnter(socket: net.Socket, client: SessionClient, data: any[]): vo
             room.expected_real_viewer_ids.push(client.viewerId)
         }
     }
+
+    if (!commitClaimedAdmission(socket, client)) return
 
     const yourself = client.yourself
     if (yourself) {

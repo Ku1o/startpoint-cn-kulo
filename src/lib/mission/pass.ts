@@ -7,6 +7,7 @@ import { RegularComputer } from "./computer-regular"
 import type { CategoryContext, MissionComputer } from "./types"
 import { ensurePlayerPassCardLoginProgressSync } from "../../data/domains/pass-card"
 import { buildPeriodicSnapshotData, getPassWeekSnapshotType, getSnapshot, takeSnapshot } from "./snapshot"
+import type { MissionEvaluationReadContext } from "./evaluation-context"
 
 function periodValue(current: number, baseline: number | undefined): number {
     return Math.max(0, current - (baseline ?? 0))
@@ -38,8 +39,20 @@ function computePeriodicPassProgress(
 export const PassComputer: MissionComputer = {
     name: "Pass",
 
-    buildContext(playerId: number, category: number, evaluationTime: Date): CategoryContext {
-        const context = RegularComputer.buildContext(playerId, category, evaluationTime)
+    buildContext(
+        playerId: number,
+        category: number,
+        evaluationTime: Date,
+        missionIds?: readonly number[],
+        readContext?: MissionEvaluationReadContext,
+    ): CategoryContext {
+        const context = RegularComputer.buildContext(
+            playerId,
+            category,
+            evaluationTime,
+            missionIds,
+            readContext,
+        )
         if (category === 7) {
             const eventId = getMissionMasterDefinitions(7).find(definition =>
                 definition.eventId !== undefined
@@ -47,7 +60,9 @@ export const PassComputer: MissionComputer = {
             )?.eventId
             if (eventId === undefined) return context
             const snapshotType = getPassWeekSnapshotType(eventId)
-            let snapshot = getSnapshot(playerId, snapshotType)
+            let snapshot = readContext
+                ? readContext.snapshot(snapshotType)
+                : getSnapshot(playerId, snapshotType)
             if (!snapshot) {
                 snapshot = buildPeriodicSnapshotData(
                     playerId,
@@ -55,6 +70,7 @@ export const PassComputer: MissionComputer = {
                     context.totalQuestClears,
                 )
                 takeSnapshot(playerId, snapshotType, snapshot)
+                readContext?.setSnapshot(snapshotType, snapshot)
             }
             context.snapshot = snapshot
             return context
@@ -62,9 +78,11 @@ export const PassComputer: MissionComputer = {
         if (category !== 8) return context
 
         const loginProgress: Record<number, number> = {}
+        const requestedMissionIds = missionIds === undefined ? undefined : new Set(missionIds)
         for (const definition of getMissionMasterDefinitions(8)) {
             if (definition.patternType !== 0
                 || definition.eventId === undefined
+                || (requestedMissionIds !== undefined && !requestedMissionIds.has(definition.missionId))
                 || !isMissionDefinitionEnabledAt(definition, evaluationTime)) continue
             loginProgress[definition.missionId] = ensurePlayerPassCardLoginProgressSync(
                 playerId,

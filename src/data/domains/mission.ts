@@ -278,6 +278,50 @@ export function getPlayerCategoryMissionsSync(
     return result
 }
 
+/** Retrieves several category buckets with two SQLite reads total. */
+export function getPlayerCategoryMissionsForCategoriesSync(
+    playerId: number,
+    categories: readonly number[],
+): Record<string, Record<string, PlayerActiveMission>> {
+    const uniqueCategories = [...new Set(categories.filter(Number.isSafeInteger))]
+    if (uniqueCategories.length === 0) return {}
+    const placeholders = uniqueCategories.map(() => "?").join(", ")
+    const missions = getDb().prepare(`
+    SELECT category, id, progress
+    FROM players_category_missions
+    WHERE player_id = ? AND category IN (${placeholders})
+    `).all(playerId, ...uniqueCategories) as { category: number, id: number, progress: number }[]
+    const stages = getDb().prepare(`
+    SELECT category, id, status, mission_id
+    FROM players_category_mission_stages
+    WHERE player_id = ? AND category IN (${placeholders})
+    `).all(playerId, ...uniqueCategories) as {
+        category: number
+        id: number
+        status: number
+        mission_id: number
+    }[]
+
+    const stageBuckets = new Map<string, Record<string, boolean>>()
+    for (const stage of stages) {
+        const missionKey = `${stage.category}:${stage.mission_id}`
+        const bucket = stageBuckets.get(missionKey) ?? {}
+        bucket[String(stage.id)] = deserializeBoolean(stage.status)
+        stageBuckets.set(missionKey, bucket)
+    }
+
+    const result: Record<string, Record<string, PlayerActiveMission>> = Object.fromEntries(
+        uniqueCategories.map(category => [String(category), {}]),
+    )
+    for (const mission of missions) {
+        result[String(mission.category)][String(mission.id)] = {
+            progress: mission.progress,
+            stages: stageBuckets.get(`${mission.category}:${mission.id}`) ?? [],
+        }
+    }
+    return result
+}
+
 export function getPlayerCategoryMissionListSync(
     playerId: number
 ): Record<string, Record<string, PlayerActiveMission>> {
@@ -287,11 +331,10 @@ export function getPlayerCategoryMissionListSync(
     WHERE player_id = ?
     ORDER BY category
     `).all(playerId) as { category: number }[]
-    const result: Record<string, Record<string, PlayerActiveMission>> = {}
-    for (const { category } of categories) {
-        result[String(category)] = getPlayerCategoryMissionsSync(playerId, category)
-    }
-    return result
+    return getPlayerCategoryMissionsForCategoriesSync(
+        playerId,
+        categories.map(({ category }) => category),
+    )
 }
 
 export function getPlayerClearedCollectItemEventMissionListSync(
@@ -339,6 +382,27 @@ export function updatePlayerCategoryMissionSync(
     `).run(category, Number(missionId), progress, playerId)
 }
 
+export interface PlayerCategoryMissionProgressUpdate {
+    readonly category: number
+    readonly missionId: number
+    readonly progress: number
+}
+
+export function updatePlayerCategoryMissionBatchSync(
+    playerId: number,
+    updates: readonly PlayerCategoryMissionProgressUpdate[],
+): void {
+    if (updates.length === 0) return
+    const statement = getDb().prepare(`
+    INSERT INTO players_category_missions (category, id, progress, player_id)
+    VALUES (?, ?, ?, ?)
+    ON CONFLICT(category, id, player_id) DO UPDATE SET progress = excluded.progress
+    `)
+    for (const update of updates) {
+        statement.run(update.category, update.missionId, update.progress, playerId)
+    }
+}
+
 export function incrementPlayerCategoryMissionSync(
     playerId: number,
     category: number,
@@ -364,6 +428,34 @@ export function updatePlayerCategoryMissionStageSync(
     VALUES (?, ?, ?, ?, ?)
     ON CONFLICT(category, id, mission_id, player_id) DO UPDATE SET status = excluded.status
     `).run(category, Number(stageId), serializeBoolean(status), playerId, Number(missionId))
+}
+
+export interface PlayerCategoryMissionStageUpdate {
+    readonly category: number
+    readonly missionId: number
+    readonly stageId: number
+    readonly status: boolean
+}
+
+export function updatePlayerCategoryMissionStageBatchSync(
+    playerId: number,
+    updates: readonly PlayerCategoryMissionStageUpdate[],
+): void {
+    if (updates.length === 0) return
+    const statement = getDb().prepare(`
+    INSERT INTO players_category_mission_stages (category, id, status, player_id, mission_id)
+    VALUES (?, ?, ?, ?, ?)
+    ON CONFLICT(category, id, mission_id, player_id) DO UPDATE SET status = excluded.status
+    `)
+    for (const update of updates) {
+        statement.run(
+            update.category,
+            update.stageId,
+            serializeBoolean(update.status),
+            playerId,
+            update.missionId,
+        )
+    }
 }
 
 export function deletePlayerCategoryMissionsSync(playerId: number, category: number) {

@@ -1,15 +1,12 @@
 // Degree mission computer (category 5)
 
 import { getDb } from "../../data/db"
-import { getPlayerSync } from "../../data/domains/player"
 import { getPlayerCharactersManaNodesSync, getPlayerCharactersSync } from "../../data/domains/character"
 import { getPlayerEquipmentListSync } from "../../data/domains/equipment"
 import { getPlayerItemsSync } from "../../data/domains/item"
-import { getMissionBattleCountersSync } from "../../data/domains/mission_battle_facts"
 import { getPlayerShopPurchasesMapSync } from "../../data/domains/shopPurchase"
 import {
     countFinishedPlayerQuestsByCategorySync,
-    getPlayerQuestProgressSync,
 } from "../../data/domains/quest"
 import type { PlayerCharacter, PlayerEquipment } from "../../data/types"
 import { getCharacterDataSync, getCharacterManaNodesSync } from "../assets"
@@ -18,6 +15,7 @@ import { getRankDegree } from "../stamina"
 import { getMissionMasterDefinition, getMissionMasterDefinitions } from "./master-data"
 import { getMissionPattern } from "./patterns"
 import type { MissionComputer, CategoryContext, PlayerQuestProgressEntry } from "./types"
+import { MissionEvaluationReadContext } from "./evaluation-context"
 
 type DegreeRow = readonly unknown[]
 
@@ -199,6 +197,7 @@ function buildStats(
     playerId: number,
     category: number,
     missionIds?: readonly number[],
+    shared: MissionEvaluationReadContext = new MissionEvaluationReadContext(playerId),
 ): DegreeContext {
     const selectedDefinitions = missionIds === undefined
         ? [...degreeDefinitions.values()]
@@ -216,11 +215,11 @@ function buildStats(
     const needsBattleCounters = conditionTypes.has(16)
         || conditionTypes.has(17)
         || conditionTypes.has(26)
-    const player = getPlayerSync(playerId)!
+    const player = shared.player
     const characters = needsCharacters ? getPlayerCharactersSync(playerId) : {}
     const manaNodes = needsManaNodes ? getPlayerCharactersManaNodesSync(playerId) : {}
     const battleCounters = needsBattleCounters
-        ? getMissionBattleCountersSync(playerId)
+        ? shared.battleCounters
         : {
             singlePlayCount: 0,
             singleClearCount: 0,
@@ -234,7 +233,7 @@ function buildStats(
             rankACount: 0,
             rankBCount: 0,
         }
-    const rawQuestProgress = needsQuestProgress ? getPlayerQuestProgressSync(playerId) : {}
+    const rawQuestProgress = needsQuestProgress ? shared.questProgress : {}
     const questProgress: Record<string, PlayerQuestProgressEntry[]> = {}
     const flatQuestProgress: DegreeQuestProgressEntry[] = []
     for (const [sectionText, entries] of Object.entries(rawQuestProgress)) {
@@ -766,8 +765,9 @@ export const DegreeComputer: MissionComputer = {
         category: number,
         _evaluationTime: Date,
         missionIds?: readonly number[],
+        readContext?: MissionEvaluationReadContext,
     ): CategoryContext {
-        return buildStats(playerId, category, missionIds)
+        return buildStats(playerId, category, missionIds, readContext)
     },
 
     compute(missionId: number, ctx: CategoryContext, dbProgress: number): number {

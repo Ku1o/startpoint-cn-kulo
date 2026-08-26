@@ -183,17 +183,113 @@ export function parseActiveMissionEventDefinition(
     }
 }
 
+type ParsedCacheEntry<T> =
+    | { readonly ok: true, readonly value: T }
+    | { readonly ok: false, readonly error: unknown }
+
+const bundledMissionParseCache = new Map<number, ParsedCacheEntry<ParsedActiveMissionDefinition>>()
+const bundledEventParseCache = new Map<number, ParsedCacheEntry<ParsedActiveMissionEventDefinition>>()
+const repositoryMissionParseCaches = new WeakMap<
+    ReadonlyContentRepository,
+    Map<number, ParsedCacheEntry<ParsedActiveMissionDefinition>>
+>()
+const repositoryEventParseCaches = new WeakMap<
+    ReadonlyContentRepository,
+    Map<number, ParsedCacheEntry<ParsedActiveMissionEventDefinition>>
+>()
+
+function repositoryCache<T>(
+    repository: ReadonlyContentRepository | undefined,
+    bundled: Map<number, ParsedCacheEntry<T>>,
+    caches: WeakMap<ReadonlyContentRepository, Map<number, ParsedCacheEntry<T>>>,
+): Map<number, ParsedCacheEntry<T>> {
+    if (!repository) return bundled
+    const cached = caches.get(repository)
+    if (cached) return cached
+    const created = new Map<number, ParsedCacheEntry<T>>()
+    caches.set(repository, created)
+    return created
+}
+
+function readParsedCacheEntry<T>(entry: ParsedCacheEntry<T>): T {
+    if (entry.ok) return entry.value
+    throw entry.error
+}
+
+export function getParsedActiveMissionDefinition(
+    missionId: number,
+    repository?: ReadonlyContentRepository,
+): ParsedActiveMissionDefinition | undefined {
+    const master = getActiveMissionMasterDefinition(missionId, repository)
+    if (!master) return undefined
+    const cache = repositoryCache(
+        repository,
+        bundledMissionParseCache,
+        repositoryMissionParseCaches,
+    )
+    const cached = cache.get(missionId)
+    if (cached) return readParsedCacheEntry(cached)
+    let entry: ParsedCacheEntry<ParsedActiveMissionDefinition>
+    try {
+        entry = { ok: true, value: parseActiveMissionDefinition(missionId, master.row) }
+    } catch (error) {
+        entry = { ok: false, error }
+    }
+    cache.set(missionId, entry)
+    return readParsedCacheEntry(entry)
+}
+
+export function getParsedActiveMissionEventDefinition(
+    eventId: number,
+    repository?: ReadonlyContentRepository,
+): ParsedActiveMissionEventDefinition | undefined {
+    const master = getActiveMissionEventMasterDefinition(eventId, repository)
+    if (!master) return undefined
+    const cache = repositoryCache(
+        repository,
+        bundledEventParseCache,
+        repositoryEventParseCaches,
+    )
+    const cached = cache.get(eventId)
+    if (cached) return readParsedCacheEntry(cached)
+    let entry: ParsedCacheEntry<ParsedActiveMissionEventDefinition>
+    try {
+        entry = { ok: true, value: parseActiveMissionEventDefinition(eventId, master.row) }
+    } catch (error) {
+        entry = { ok: false, error }
+    }
+    cache.set(eventId, entry)
+    return readParsedCacheEntry(entry)
+}
+
+const rewardStageIdsByRepository = new WeakMap<
+    ReadonlyContentRepository,
+    Map<number, readonly number[]>
+>()
+
 export function getActiveMissionRewardStageIds(
     missionId: number,
     repository: ReadonlyContentRepository,
-): number[] {
+): readonly number[] {
+    let cache = rewardStageIdsByRepository.get(repository)
+    if (!cache) {
+        cache = new Map()
+        rewardStageIdsByRepository.set(repository, cache)
+    }
+    const cached = cache.get(missionId)
+    if (cached) return cached
     const table = repository.table<Record<string, Record<string, unknown>>>("mission_active_reward.json")
     const stageTable = table[String(missionId)]
-    if (!stageTable) return []
-    return Object.keys(stageTable)
+    if (!stageTable) {
+        cache.set(missionId, [])
+        return []
+    }
+    const stageIds = Object.keys(stageTable)
         .map(Number)
         .filter(stage => Number.isSafeInteger(stage) && stage > 0)
         .sort((left, right) => left - right)
+    cache.set(missionId, stageIds)
+    return stageIds
 }
 
 function isMissionCurrentStageComplete(
@@ -216,13 +312,13 @@ export function getActiveMissionEventReleasePhase(
     activeMissions: Readonly<Record<string, ActiveMissionProgressState>>,
     repository: ReadonlyContentRepository,
 ): number {
-    const eventMaster = getActiveMissionEventMasterDefinition(eventId, repository)
-    if (!eventMaster) return 0
-    const maxPhase = parseActiveMissionEventDefinition(eventId, eventMaster.row).maxPhase
+    const event = getParsedActiveMissionEventDefinition(eventId, repository)
+    if (!event) return 0
+    const maxPhase = event.maxPhase
     if (maxPhase === undefined || maxPhase <= 0) return 0
 
     const missions = getActiveMissionMasterDefinitions(repository)
-        .map(definition => parseActiveMissionDefinition(definition.missionId, definition.row))
+        .map(definition => getParsedActiveMissionDefinition(definition.missionId, repository)!)
         .filter(definition => definition.eventId === eventId)
     let releasedPhase = 1
     for (let phase = 1; phase < maxPhase; phase++) {
@@ -273,12 +369,10 @@ function isActiveMissionUsable(
     period: "enable" | "show",
 ): boolean {
     try {
-        const missionMaster = getActiveMissionMasterDefinition(missionId, context.repository)
-        if (!missionMaster) return false
-        const mission = parseActiveMissionDefinition(missionId, missionMaster.row)
-        const eventMaster = getActiveMissionEventMasterDefinition(mission.eventId, context.repository)
-        if (!eventMaster) return false
-        const event = parseActiveMissionEventDefinition(mission.eventId, eventMaster.row)
+        const mission = getParsedActiveMissionDefinition(missionId, context.repository)
+        if (!mission) return false
+        const event = getParsedActiveMissionEventDefinition(mission.eventId, context.repository)
+        if (!event) return false
         const now = context.now instanceof Date ? context.now.getTime() : context.now
         const missionStartTime = period === "enable"
             ? mission.enableStartTime

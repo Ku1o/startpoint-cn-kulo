@@ -86,6 +86,23 @@ export function getMissionCounterValueSync(playerId: number, query: MissionCount
     return row?.value ?? 0
 }
 
+/** Loads several exact counter keys with one SQLite statement. */
+export function getMissionCounterValuesSync(
+    playerId: number,
+    queries: readonly MissionCounterQuery[],
+): Map<string, number> {
+    const counterKeys = [...new Set(queries.map(makeMissionCounterKey))]
+    if (counterKeys.length === 0) return new Map()
+    const placeholders = counterKeys.map(() => "?").join(", ")
+    const rows = getDb().prepare(`
+    SELECT counter_key, value FROM players_mission_counters
+    WHERE player_id = ? AND counter_key IN (${placeholders})
+    `).all(playerId, ...counterKeys) as { counter_key: string, value: number }[]
+    const values = new Map(counterKeys.map(key => [key, 0]))
+    for (const row of rows) values.set(row.counter_key, Number(row.value) || 0)
+    return values
+}
+
 export function getMissionCounterSnapshotValueSync(playerId: number, periodType: MissionCounterPeriod, query: MissionCounterQuery): number {
     const counterKey = makeMissionCounterKey(query)
     const row = getDb().prepare(`

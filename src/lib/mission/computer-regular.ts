@@ -1,26 +1,46 @@
-import { getMissionBattleCountersSync } from "../../data/domains/mission_battle_facts"
-import { countFinishedPlayerQuestsSync } from "../../data/domains/quest"
-import { getPlayerSync } from "../../data/domains/player"
 import { getRankDegree } from "../stamina"
-import { getMissionCounterValueSync } from "./counters"
+import { makeMissionCounterKey, type MissionCounterQuery } from "./counters"
+import { MissionEvaluationReadContext } from "./evaluation-context"
 import { getMissionPattern } from "./patterns"
-import { getSnapshot } from "./snapshot"
 import type { MissionComputer, CategoryContext } from "./types"
 
-function buildStats(playerId: number, category: number): CategoryContext {
-    const player = getPlayerSync(playerId)!
+function rescueRankQuery(rank: number): MissionCounterQuery {
+    return {
+        dimension: "battle.multi_rescue_clear",
+        scopeType: "lifetime",
+        scopeKey: "all",
+        qualifier: { questRank: rank },
+    }
+}
+
+function buildStats(
+    playerId: number,
+    category: number,
+    missionIds?: readonly number[],
+    shared: MissionEvaluationReadContext = new MissionEvaluationReadContext(playerId),
+): CategoryContext {
+    const player = shared.player
     // Regular/daily/weekly/pass computers only consume player totals, battle
     // counters and periodic snapshots. Loading every quest row here made one
     // battle finish deserialize the same quest history up to five times.
     const totalQuestClears = category === 7
-        ? countFinishedPlayerQuestsSync(playerId)
+        ? shared.totalQuestClears
         : 0
 
     const snapshot = category === 2 || category === 6
-        ? getSnapshot(playerId, "daily")
+        ? shared.snapshot("daily")
         : category === 7 || category === 10
-            ? getSnapshot(playerId, "weekly")
+            ? shared.snapshot("weekly")
             : null
+    const rescueRanks = category !== 1
+        ? []
+        : missionIds === undefined
+            ? [1, 2, 3, 4, 5]
+            : [...new Set(missionIds.flatMap(missionId => {
+                const match = getMissionPattern(category, missionId).match(/^boss_battle_attention_rank([1-5])$/)
+                return match ? [Number(match[1])] : []
+            }))]
+    const rescueQueries = rescueRanks.map(rescueRankQuery)
 
     return {
         category,
@@ -30,7 +50,8 @@ function buildStats(playerId: number, category: number): CategoryContext {
         totalQuestClears,
         totalStories: 0,
         rankCounts: {},
-        battleCounters: getMissionBattleCountersSync(playerId),
+        battleCounters: shared.battleCounters,
+        missionCounterValues: shared.missionCounters(rescueQueries),
         snapshot,
     }
 }
@@ -53,15 +74,8 @@ function computeLifetime(pattern: string, ctx: CategoryContext, dbProgress: numb
     if (pattern === "multi_play_guest") return Math.max(dbProgress, counters.multiGuestClearCount)
     const rescueRankMatch = pattern.match(/^boss_battle_attention_rank([1-5])$/)
     if (rescueRankMatch) {
-        return Math.max(
-            dbProgress,
-            getMissionCounterValueSync(ctx.playerId, {
-                dimension: "battle.multi_rescue_clear",
-                scopeType: "lifetime",
-                scopeKey: "all",
-                qualifier: { questRank: Number(rescueRankMatch[1]) },
-            }),
-        )
+        const query = rescueRankQuery(Number(rescueRankMatch[1]))
+        return Math.max(dbProgress, ctx.missionCounterValues?.get(makeMissionCounterKey(query)) ?? 0)
     }
     return dbProgress
 }
@@ -99,8 +113,14 @@ function computeWeekly(pattern: string, ctx: CategoryContext, dbProgress: number
 export const RegularComputer: MissionComputer = {
     name: "Regular",
 
-    buildContext(playerId: number, category: number): CategoryContext {
-        return buildStats(playerId, category)
+    buildContext(
+        playerId: number,
+        category: number,
+        _evaluationTime: Date,
+        missionIds?: readonly number[],
+        readContext?: MissionEvaluationReadContext,
+    ): CategoryContext {
+        return buildStats(playerId, category, missionIds, readContext)
     },
 
     compute(missionId: number, ctx: CategoryContext, dbProgress: number): number {

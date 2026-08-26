@@ -1,6 +1,5 @@
-import { getPlayerCollectedItemTotalsSync } from "../../data/domains/item"
-import { getPlayerSync } from "../../data/domains/player"
 import { getMissionMasterDefinition } from "./master-data"
+import { MissionEvaluationReadContext } from "./evaluation-context"
 import type { CategoryContext, MissionComputer } from "./types"
 
 export function getCollectMissionItemId(missionId: number): number | undefined {
@@ -12,9 +11,14 @@ export function getCollectMissionItemId(missionId: number): number | undefined {
 export const CollectComputer: MissionComputer = {
     name: "CollectItemEvent",
 
-    buildContext(playerId: number, category: number): CategoryContext {
-        const player = getPlayerSync(playerId)
-        if (!player) throw new Error(`Player ${playerId} not found during collect mission evaluation.`)
+    buildContext(
+        playerId: number,
+        category: number,
+        _evaluationTime: Date,
+        _missionIds?: readonly number[],
+        shared: MissionEvaluationReadContext = new MissionEvaluationReadContext(playerId),
+    ): CategoryContext {
+        const player = shared.player
         return {
             category,
             playerId,
@@ -23,7 +27,7 @@ export const CollectComputer: MissionComputer = {
             totalQuestClears: 0,
             totalStories: 0,
             rankCounts: {},
-            collectedItemTotals: getPlayerCollectedItemTotalsSync(playerId),
+            collectedItemTotals: shared.collectedItemTotals,
         }
     },
 

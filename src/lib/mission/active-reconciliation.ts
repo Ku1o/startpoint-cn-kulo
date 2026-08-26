@@ -26,10 +26,10 @@ import {
 import {
     ActiveMissionProgressDelta,
     ActiveMissionProgressState,
+    getParsedActiveMissionDefinition,
+    getParsedActiveMissionEventDefinition,
     getActiveMissionRewardStageIds,
     isActiveMissionAvailable,
-    parseActiveMissionDefinition,
-    parseActiveMissionEventDefinition,
     settleActiveMissionProgress,
 } from "./active-core"
 import { getMissionRewardStageDefinition } from "./rewards"
@@ -815,7 +815,8 @@ function isEligibleEvent(
     const master = getActiveMissionEventMasterDefinition(eventId, input.repository)
     if (!master) return false
     const eventStringId = master.row[0]
-    const event = parseActiveMissionEventDefinition(eventId, master.row)
+    const event = getParsedActiveMissionEventDefinition(eventId, input.repository)
+    if (!event) return false
     if (typeof eventStringId !== "string") return false
     if (!eventStringId.includes(COME_BACK_EVENT_STRING_ID)) return true
     return input.isEventEligible?.({
@@ -885,7 +886,11 @@ export function reconcileActiveMissionFacts(
             for (const definition of definitions) {
                 let authoritativeProgress: number | null
                 try {
-                    const mission = parseActiveMissionDefinition(definition.missionId, definition.row)
+                    const mission = getParsedActiveMissionDefinition(
+                        definition.missionId,
+                        input.repository,
+                    )
+                    if (!mission) continue
                     if (!isEligibleEvent(input, mission.eventId)) continue
                     if (!isActiveMissionAvailable(definition.missionId, {
                         repository: input.repository,

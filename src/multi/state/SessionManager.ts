@@ -10,6 +10,7 @@ import { clearReliableSendState, sendFrameReliably } from "../tcp/reliable-send"
 import type { ReliableSendContext, ReliableSendResult } from "../tcp/reliable-send"
 import { clearChainDiagnosticRoom } from "../tcp/chain-diagnostic"
 import { embeddedMultiCoordinator } from "../coordinator/embedded"
+import { roomAdmissionRegistry } from "../room/admission"
 
 export interface SessionClient {
     socket: net.Socket
@@ -27,6 +28,8 @@ export interface SessionClient {
     connectionGeneration: number
     superseded: boolean
     connectedAt: number
+    admissionClaimed: boolean
+    admissionGeneration?: number
     clientState: ClientStateMachine
     battleState: BattleState
 }
@@ -739,6 +742,7 @@ export class SessionManager {
             connectionGeneration: 0,
             superseded: false,
             connectedAt: Date.now(),
+            admissionClaimed: false,
             clientState: new ClientStateMachine(ClientState.Connecting),
             battleState: BattleState.Initializing,
         }
@@ -795,6 +799,15 @@ export class SessionManager {
 
     removeClient(client: SessionClient): Result<void> {
         this.unindexClientSocket(client)
+        if (!client.isBattle && client.admissionClaimed) {
+            roomAdmissionRegistry.releaseClaim(
+                client.roomNumber,
+                client.admissionGeneration ?? client.roomGeneration,
+                client.viewerId,
+                client.connectionId,
+            )
+            client.admissionClaimed = false
+        }
         const addr = this.addr(client.viewerId, client.roomNumber)
         const isCurrentConnection = this.clients.get(addr) === client
         if (!client.isBattle && (!isCurrentConnection || client.superseded)) {

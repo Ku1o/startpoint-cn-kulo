@@ -1,9 +1,59 @@
 interface PendingRoomAdmission {
     generation: number
+    selectedAt: number
     expiresAt: number
+    state: "reserved" | "claimed"
+    connectionId?: string
 }
 
+export type RoomAdmissionClaimResult =
+    | { readonly ok: true, readonly kind: "claimed" | "reclaimed" | "idempotent" }
+    | { readonly ok: false, readonly reason: "missing" | "expired" | "generation_mismatch" }
+
 const DEFAULT_ADMISSION_TTL_MS = 15_000
+
+interface AdmissionTiming {
+    count: number
+    totalMs: number
+    maxMs: number
+}
+
+const admissionCounters = new Map<string, number>()
+let admissionLatency: AdmissionTiming = { count: 0, totalMs: 0, maxMs: 0 }
+
+function recordAdmissionEvent(name: string): void {
+    admissionCounters.set(name, (admissionCounters.get(name) ?? 0) + 1)
+}
+
+function recordAdmissionLatency(elapsedMs: number): void {
+    if (!Number.isFinite(elapsedMs) || elapsedMs < 0) return
+    admissionLatency.count += 1
+    admissionLatency.totalMs += elapsedMs
+    admissionLatency.maxMs = Math.max(admissionLatency.maxMs, elapsedMs)
+}
+
+export function recordRoomAdmissionDenial(reason: string): void {
+    recordAdmissionEvent(`deny_${reason}`)
+}
+
+export function recordRoomAdmissionBypass(reason: string): void {
+    recordAdmissionEvent(`bypass_${reason}`)
+}
+
+export function drainRoomAdmissionPerformanceSummary(): string {
+    if (admissionCounters.size === 0 && admissionLatency.count === 0) return "none"
+    const counters = [...admissionCounters.entries()]
+        .sort(([left], [right]) => left.localeCompare(right))
+        .map(([name, count]) => `${name}=${count}`)
+        .join(",")
+    admissionCounters.clear()
+    const latency = admissionLatency
+    admissionLatency = { count: 0, totalMs: 0, maxMs: 0 }
+    const timing = latency.count === 0
+        ? ""
+        : `${counters ? "," : ""}select_to_tcp{n=${latency.count},avg=${(latency.totalMs / latency.count).toFixed(1)}ms,max=${latency.maxMs.toFixed(1)}ms}`
+    return `${counters}${timing}` || "none"
+}
 
 function resolveAdmissionTtlMs(): number {
     const configured = Number.parseInt(
@@ -30,7 +80,8 @@ export class RoomAdmissionRegistry {
         if (!roomAdmissions) return null
 
         for (const [viewerId, admission] of roomAdmissions) {
-            if (admission.generation !== generation || admission.expiresAt <= now) {
+            if (admission.generation !== generation
+                || (admission.state === "reserved" && admission.expiresAt <= now)) {
                 roomAdmissions.delete(viewerId)
             }
         }
@@ -47,7 +98,8 @@ export class RoomAdmissionRegistry {
         viewerId: number,
         now: number = Date.now(),
     ): boolean {
-        return this.prune(roomNumber, generation, now)?.has(viewerId) ?? false
+        const admission = this.prune(roomNumber, generation, now)?.get(viewerId)
+        return admission !== undefined
     }
 
     getOccupancy(
@@ -71,18 +123,23 @@ export class RoomAdmissionRegistry {
         capacity: number,
         now: number = Date.now(),
     ): boolean {
-        const occupied = new Set(occupiedViewerIds)
-        if (occupied.has(viewerId)) return true
-
         let roomAdmissions = this.prune(roomNumber, generation, now)
         const existing = roomAdmissions?.get(viewerId)
         if (existing) {
             existing.expiresAt = now + this.ttlMs
+            if (existing.state === "reserved") existing.selectedAt = now
+            recordAdmissionEvent("refresh")
             return true
         }
 
+        const occupied = new Set(occupiedViewerIds)
+        if (occupied.has(viewerId)) return true
+
         const occupancy = this.getOccupancy(roomNumber, generation, occupied, now)
-        if (occupancy >= capacity) return false
+        if (occupancy >= capacity) {
+            recordRoomAdmissionDenial("capacity")
+            return false
+        }
 
         if (!roomAdmissions) {
             roomAdmissions = new Map()
@@ -90,15 +147,96 @@ export class RoomAdmissionRegistry {
         }
         roomAdmissions.set(viewerId, {
             generation,
+            selectedAt: now,
             expiresAt: now + this.ttlMs,
+            state: "reserved",
         })
+        recordAdmissionEvent("reserve")
         return true
     }
 
-    consume(roomNumber: string, generation: number, viewerId: number, now: number = Date.now()): boolean {
-        const roomAdmissions = this.prune(roomNumber, generation, now)
-        if (!roomAdmissions?.delete(viewerId)) return false
-        if (roomAdmissions.size === 0) this.admissions.delete(roomNumber)
+    claim(
+        roomNumber: string,
+        generation: number,
+        viewerId: number,
+        connectionId: string,
+        now: number = Date.now(),
+    ): RoomAdmissionClaimResult {
+        const roomAdmissions = this.admissions.get(roomNumber)
+        const admission = roomAdmissions?.get(viewerId)
+        if (!admission) {
+            recordRoomAdmissionDenial("missing")
+            return { ok: false, reason: "missing" }
+        }
+        if (admission.generation !== generation) {
+            roomAdmissions!.delete(viewerId)
+            if (roomAdmissions!.size === 0) this.admissions.delete(roomNumber)
+            recordRoomAdmissionDenial("generation_mismatch")
+            return { ok: false, reason: "generation_mismatch" }
+        }
+        if (admission.state === "reserved" && admission.expiresAt <= now) {
+            roomAdmissions!.delete(viewerId)
+            if (roomAdmissions!.size === 0) this.admissions.delete(roomNumber)
+            recordRoomAdmissionDenial("expired")
+            return { ok: false, reason: "expired" }
+        }
+
+        recordAdmissionLatency(Math.max(0, now - admission.selectedAt))
+        if (admission.state === "claimed") {
+            if (admission.connectionId === connectionId) {
+                recordAdmissionEvent("claim_idempotent")
+                return { ok: true, kind: "idempotent" }
+            }
+            admission.connectionId = connectionId
+            recordAdmissionEvent("reclaim")
+            return { ok: true, kind: "reclaimed" }
+        }
+        admission.state = "claimed"
+        admission.connectionId = connectionId
+        recordAdmissionEvent("claim")
+        return { ok: true, kind: "claimed" }
+    }
+
+    commit(
+        roomNumber: string,
+        generation: number,
+        viewerId: number,
+        connectionId: string,
+    ): boolean {
+        const roomAdmissions = this.admissions.get(roomNumber)
+        const admission = roomAdmissions?.get(viewerId)
+        if (!admission
+            || admission.generation !== generation
+            || admission.state !== "claimed"
+            || admission.connectionId !== connectionId) return false
+        roomAdmissions!.delete(viewerId)
+        if (roomAdmissions!.size === 0) this.admissions.delete(roomNumber)
+        recordAdmissionEvent("commit")
+        return true
+    }
+
+    releaseClaim(
+        roomNumber: string,
+        generation: number,
+        viewerId: number,
+        connectionId: string,
+        now: number = Date.now(),
+    ): boolean {
+        const roomAdmissions = this.admissions.get(roomNumber)
+        const admission = roomAdmissions?.get(viewerId)
+        if (!admission
+            || admission.generation !== generation
+            || admission.state !== "claimed"
+            || admission.connectionId !== connectionId) return false
+        if (admission.expiresAt > now) {
+            admission.state = "reserved"
+            delete admission.connectionId
+            recordAdmissionEvent("release_to_reserved")
+        } else {
+            roomAdmissions!.delete(viewerId)
+            if (roomAdmissions!.size === 0) this.admissions.delete(roomNumber)
+            recordAdmissionEvent("release_expired")
+        }
         return true
     }
 
