@@ -74,6 +74,8 @@ import {
     stopQuestNpcPartyPoolWorker,
 } from "./multi/npc/player-party-pool";
 import { parseIosCompatConfig } from "./lib/ios-compat";
+import { getDb } from "./data/db";
+import { createReceiveHistoryRetentionService } from "./lib/receive-history-retention";
 
 const fastify = Fastify({
     logger: {
@@ -638,8 +640,10 @@ fastify.setNotFoundHandler((request, reply) => {
 
 const host = process.env.CN_LISTEN_HOST ?? "127.0.0.1";
 const port = parseInt(process.env.CN_LISTEN_PORT ?? "8001");
+const receiveHistoryRetention = createReceiveHistoryRetentionService(getDb());
 
 fastify.addHook("onClose", async () => {
+    await receiveHistoryRetention.stop();
     await stopQuestNpcPartyPoolWorker();
 });
 startQuestNpcPartyPoolWorker();
@@ -650,6 +654,7 @@ fastify.listen({ port, host }, (err, address) => {
         process.exit(1);
     }
     console.log(`CN StarPoint listening on http://${host}:${port}`);
+    receiveHistoryRetention.start();
 
     // Start multi battle TCP session server
     startSessionServer();

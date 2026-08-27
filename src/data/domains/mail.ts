@@ -194,7 +194,7 @@ export function getReceiveHistorySync(
     return getDb().prepare(`
         SELECT * FROM players_receive_history
         WHERE player_id = ? AND create_time >= ?
-        ORDER BY create_time DESC
+        ORDER BY create_time DESC, id DESC
         LIMIT ?
     `).all(playerId, since, limit) as RawReceiveHistory[]
 }
