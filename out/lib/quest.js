@@ -13,6 +13,7 @@ const equipment_1 = require("./equipment");
 const types_1 = require("./types");
 const reward_element_map_json_1 = __importDefault(require("../../assets/reward_element_map.json"));
 const game_logging_1 = require("./game-logging");
+const mana_1 = require("./mana");
 const ELEMENT_TO_ENEMY_MAP = {
     0: 3, 1: 0, 2: 1, 3: 2, 4: 5, 5: 4,
 };
@@ -37,7 +38,7 @@ function resolveAetherItemId(rarity, questElement) {
  * @returns A result detailing what was added/changed.
  */
 function givePlayerScoreRewardsSync(playerId, groupId, scoreRewards, boostPointUsed = false, questElement) {
-    var _a;
+    var _a, _b, _c;
     const dropScoreRewardIds = [];
     const dropRareRewardIds = [];
     let mana = 0;
@@ -72,10 +73,14 @@ function givePlayerScoreRewardsSync(playerId, groupId, scoreRewards, boostPointU
                             const player = (0, player_1.getPlayerSync)(playerId);
                             const currencyReward = reward;
                             rewardAmount = currencyReward.count * dropMultiplier * (boostPointUsed ? 2 : 1);
-                            mana += rewardAmount;
+                            const manaGrant = (0, mana_1.calculateFreeManaGrant)({
+                                freeMana: (_b = player === null || player === void 0 ? void 0 : player.freeMana) !== null && _b !== void 0 ? _b : 0,
+                                paidMana: (_c = player === null || player === void 0 ? void 0 : player.paidMana) !== null && _c !== void 0 ? _c : 0,
+                            }, rewardAmount);
+                            mana += manaGrant.creditedMana;
                             (0, player_1.updatePlayerSync)({
                                 id: playerId,
-                                freeMana: ((player === null || player === void 0 ? void 0 : player.freeMana) || 0) + rewardAmount,
+                                freeMana: manaGrant.freeMana,
                                 totalManaObtained: ((player === null || player === void 0 ? void 0 : player.totalManaObtained) || 0) + rewardAmount
                             });
                             break;
@@ -258,11 +263,14 @@ function givePlayerRewardsSync(playerId, rewards) {
         const player = (0, player_1.getPlayerSync)(playerId);
         if (player === null)
             return null;
+        const requestedMana = mana;
+        const manaGrant = (0, mana_1.calculateFreeManaGrant)(player, requestedMana);
+        mana = manaGrant.creditedMana;
         (0, player_1.updatePlayerSync)({
             id: playerId,
             freeVmoney: player.freeVmoney + vmoney,
-            freeMana: player.freeMana + mana,
-            totalManaObtained: (player.totalManaObtained || 0) + mana
+            freeMana: manaGrant.freeMana,
+            totalManaObtained: (player.totalManaObtained || 0) + requestedMana
         });
         if (expPool > 0)
             (0, player_1.adjustPlayerExpPoolSync)(playerId, expPool, 'player_reward');

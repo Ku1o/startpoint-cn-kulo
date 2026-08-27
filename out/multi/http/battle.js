@@ -44,6 +44,7 @@ const player_party_pool_1 = require("../npc/player-party-pool");
 const sqlite_write_coordinator_1 = require("../../lib/sqlite-write-coordinator");
 const settlement_snapshot_1 = require("../settlement-snapshot");
 const embedded_1 = require("../coordinator/embedded");
+const mana_1 = require("../../lib/mana");
 function resolvePlayer(viewerId) {
     return __awaiter(this, void 0, void 0, function* () {
         const session = yield (0, session_1.getSession)(viewerId.toString());
@@ -327,8 +328,8 @@ function registerBattleRoutes(fastify) {
         const beforeRankPoint = player.rankPoint;
         const displayMode15ManaAsFieldDrop = (0, mode15_optional_1.isMode15Quest)(questCategory, questId);
         const newRankPoint = beforeRankPoint + questData.rankPointReward;
-        const newMana = player.freeMana + questData.manaReward + (body.add_mana || 0);
         const manaObtained = questData.manaReward + (body.add_mana || 0);
+        const newMana = (0, mana_1.calculateFreeManaGrant)(player, manaObtained).freeMana;
         let newBoostPoint = player.boostPoint - (activeQuestData.useBoostPoint ? 1 : 0);
         let newBossBoostPoint = player.bossBoostPoint - (activeQuestData.useBossBoostPoint ? 1 : 0);
         const useBoostPoint = (activeQuestData.useBoostPoint && (newBoostPoint >= 0)) || (activeQuestData.useBossBoostPoint && (newBossBoostPoint >= 0));

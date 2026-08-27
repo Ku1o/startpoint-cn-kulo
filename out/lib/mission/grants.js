@@ -8,6 +8,7 @@ const equipment_1 = require("../equipment");
 const degree_1 = require("../../data/domains/degree");
 const pass_card_1 = require("../../data/domains/pass-card");
 const pass_card_2 = require("../pass-card");
+const mana_1 = require("../mana");
 class MissionRewardGranter {
     constructor(playerId, player) {
         this.playerId = playerId;
@@ -40,7 +41,10 @@ class MissionRewardGranter {
                     }
                     break;
                 case 3:
-                    this.freeMana += reward.amount;
+                    this.freeMana = (0, mana_1.calculateFreeManaGrant)({
+                        freeMana: this.freeMana,
+                        paidMana: this.player.paidMana,
+                    }, reward.amount).freeMana;
                     this.totalManaGained += reward.amount;
                     break;
                 case 4:

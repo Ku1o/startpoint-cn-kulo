@@ -71,6 +71,7 @@ import {
     getCachedFinishResponse,
 } from "../../lib/finish-response-cache";
 import { buildPracticeBattleHistoryRecord } from "../../lib/quest/practice-battle-history";
+import { calculateFreeManaGrant } from "../../lib/mana";
 
 // Load carnival quest score data
 let carnivalScoreLookup: Record<string, { difficulty_score: number, time_limit_ms: number, folder_id: number, event_id: number }> = {}
@@ -304,8 +305,8 @@ const routes = async (fastify: FastifyInstance) => {
         const beforeRankPoint = playerData.rankPoint
         const displayMode15ManaAsFieldDrop = isMode15Quest(questCategory, questId)
         const newRankPoint = beforeRankPoint + questData.rankPointReward
-        let newMana = playerData.freeMana + questData.manaReward + body.add_mana
         const manaObtained = questData.manaReward + body.add_mana
+        let newMana = calculateFreeManaGrant(playerData, manaObtained).freeMana
 
         // calculate boost point
         let newBoostPoint = playerData.boostPoint - (activeQuestData.useBoostPoint ? 1 : 0)

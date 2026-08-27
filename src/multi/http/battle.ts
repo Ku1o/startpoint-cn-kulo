@@ -66,6 +66,7 @@ import {
     transitionMultiSettlementSnapshot,
 } from "../settlement-snapshot";
 import { embeddedMultiCoordinator } from "../coordinator/embedded";
+import { calculateFreeManaGrant } from "../../lib/mana";
 
 interface PlayerContext { playerId: number; player: Player }
 
@@ -387,8 +388,8 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
         const beforeRankPoint = player.rankPoint;
         const displayMode15ManaAsFieldDrop = isMode15Quest(questCategory, questId);
         const newRankPoint = beforeRankPoint + questData.rankPointReward;
-        const newMana = player.freeMana + questData.manaReward + ((body as any).add_mana || 0);
         const manaObtained = questData.manaReward + ((body as any).add_mana || 0);
+        const newMana = calculateFreeManaGrant(player, manaObtained).freeMana;
         let newBoostPoint = player.boostPoint - (activeQuestData.useBoostPoint ? 1 : 0);
         let newBossBoostPoint = player.bossBoostPoint - (activeQuestData.useBossBoostPoint ? 1 : 0);
         const useBoostPoint = (activeQuestData.useBoostPoint && (newBoostPoint >= 0)) || (activeQuestData.useBossBoostPoint && (newBossBoostPoint >= 0));

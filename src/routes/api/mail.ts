@@ -12,6 +12,7 @@ import { givePlayerEquipmentSync } from "../../lib/equipment";
 import { serializeRealTimeForVirtualClient } from "../../lib/client-display-time";
 import { grantPlayerDegreeSync } from "../../data/domains/degree";
 import { reconcileAwakeUnlockCharacterList } from "../../lib/mission";
+import { calculateFreeManaGrant } from "../../lib/mana";
 
 interface IndexBody {
     api_count: number
@@ -123,9 +124,9 @@ function applyMailReward(playerId: number, mail: RawPlayerMail): {
             break
         }
         case MailType.FREE_MANA: {
-            const newMana = player.freeMana + mail.number
-            updatePlayerSync({ id: playerId, freeMana: newMana, totalManaObtained: (player.totalManaObtained ?? 0) + mail.number })
-            userInfo['free_mana'] = newMana
+            const manaGrant = calculateFreeManaGrant(player, mail.number)
+            updatePlayerSync({ id: playerId, freeMana: manaGrant.freeMana, totalManaObtained: (player.totalManaObtained ?? 0) + mail.number })
+            userInfo['free_mana'] = manaGrant.freeMana
             break
         }
         case MailType.EXP_POOL: {

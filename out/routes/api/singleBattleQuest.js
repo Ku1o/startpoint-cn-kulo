@@ -61,6 +61,7 @@ const settlement_performance_1 = require("../../lib/settlement-performance");
 const gauntlet_completion_classification_1 = require("../../lib/gauntlet-completion-classification");
 const finish_response_cache_1 = require("../../lib/finish-response-cache");
 const practice_battle_history_2 = require("../../lib/quest/practice-battle-history");
+const mana_1 = require("../../lib/mana");
 // Load carnival quest score data
 let carnivalScoreLookup = {};
 try {
@@ -170,8 +171,8 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         const beforeRankPoint = playerData.rankPoint;
         const displayMode15ManaAsFieldDrop = (0, mode15_optional_1.isMode15Quest)(questCategory, questId);
         const newRankPoint = beforeRankPoint + questData.rankPointReward;
-        let newMana = playerData.freeMana + questData.manaReward + body.add_mana;
         const manaObtained = questData.manaReward + body.add_mana;
+        let newMana = (0, mana_1.calculateFreeManaGrant)(playerData, manaObtained).freeMana;
         // calculate boost point
         let newBoostPoint = playerData.boostPoint - (activeQuestData.useBoostPoint ? 1 : 0);
         let newBossBoostPoint = playerData.bossBoostPoint - (activeQuestData.useBossBoostPoint ? 1 : 0);

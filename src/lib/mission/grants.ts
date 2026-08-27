@@ -7,6 +7,7 @@ import type { ActiveMissionReward } from "./rewards"
 import { givePlayerDegreeSync } from "../../data/domains/degree"
 import { addPlayerPassCardPointSync } from "../../data/domains/pass-card"
 import { getPassCardEventDefinition } from "../pass-card"
+import { calculateFreeManaGrant } from "../mana"
 
 interface MissionRewardGrantContext {
     passCardEventId?: number
@@ -47,7 +48,10 @@ export class MissionRewardGranter {
                     }
                     break
                 case 3:
-                    this.freeMana += reward.amount
+                    this.freeMana = calculateFreeManaGrant({
+                        freeMana: this.freeMana,
+                        paidMana: this.player.paidMana,
+                    }, reward.amount).freeMana
                     this.totalManaGained += reward.amount
                     break
                 case 4:
