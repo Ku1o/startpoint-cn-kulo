@@ -4866,7 +4866,7 @@ class CurseConflictCase(unittest.TestCase):
         self.assertIn("完全不受影响", rb.curse_conflict([low]) or "")
 
     def test_overlapping_element_resistance_matches_client_addition(self):
-        # 同 cancelable 组内累加；两组必须分开落树，但可解性仍跨组求和。
+        # 元素抗性跨卡累加，显式 cancelable=True 也统一钉死为不可驱散。
         picks = [
             {"name": "甲", "element_resistance": [(1, 1.0), (2, 99.0)]},
             {"name": "乙", "element_resistance": [(1, 9.0, False),
@@ -4875,7 +4875,7 @@ class CurseConflictCase(unittest.TestCase):
         ]
         self.assertEqual(rb._merged_resistance(picks, "element_resistance"),
                          [(1, 10.0, False), (2, 1098.0, False),
-                          (3, 1.0, True)])
+                          (3, 1.0, False)])
 
     def test_live_sampling_has_no_softlock(self):
         """真抽 4000 次,双轴都至少留一个出口,且条件槽不溢出。"""
@@ -5241,12 +5241,13 @@ class ElementImmunityDslCase(unittest.TestCase):
         self.assertNotIn("可驱散", mixed["text"])
         soft_cards = [rb.mixed_element_entry(_r.Random(seed), strengths=(1,))
                       for seed in range(400)]
-        dispellable = sum(any(atom[2] for atom in card["element_resistance"])
-                          for card in soft_cards)
-        self.assertTrue(75 <= dispellable <= 125, dispellable)
+        self.assertTrue(all(
+            atom[2] is False
+            for card in soft_cards for atom in card["element_resistance"]
+        ))
         hard = rb.mixed_element_entry(_r.Random(3), strengths=(99, 999))
         self.assertTrue(all(atom[2] is False for atom in hard["element_resistance"]))
-        soft_names = ("深渊壁垒", "绝对壁垒", "三重壁垒", "元素滞钝", "三相封界")
+        soft_names = ("深渊壁垒", "绝对壁垒", "三重壁垒")
         counts = dict.fromkeys(soft_names, 0)
         for seed in range(400):
             sampled = {c["name"]: c for c in rb._curse_pool(0, _r.Random(seed))}
@@ -5256,6 +5257,13 @@ class ElementImmunityDslCase(unittest.TestCase):
                 counts[soft_name] += any(atom[2] for atom in sampled[soft_name][key])
         for soft_name, got in counts.items():
             self.assertTrue(70 <= got <= 130, (soft_name, got))
+        for seed in range(400):
+            sampled = {c["name"]: c for c in rb._curse_pool(0, _r.Random(seed))}
+            for element_name in ("元素滞钝", "三相封界"):
+                self.assertTrue(all(
+                    atom[2] is False
+                    for atom in sampled[element_name]["element_resistance"]
+                ))
         hard_pool = {c["name"]: c for c in rb._curse_pool(2, _r.Random(88))}
         for hard_name in ("绝对壁垒", "三重壁垒", "元素禁壁", "五相绝域"):
             key = "element_resistance" if "元素" in hard_name or "五相" in hard_name else "damage_resistance"
@@ -5337,13 +5345,20 @@ class ElementImmunityDslCase(unittest.TestCase):
         self.assertIs(params[4], True)                   # 软原子共享可驱散组
         self.assertEqual(params[9], 3)                   # 目标种类必填 3
         names = [ac[0] for ac in params[1]]
-        self.assertEqual(names, ["ACSkillDamageResistance", "ACToleranceOfElement"])
+        self.assertEqual(names, ["ACSkillDamageResistance"])
         hard_params = hard_command[1:]
-        self.assertIs(hard_params[4], False)              # r>=1/r>=99 强制不可驱散
+        self.assertIs(hard_params[4], False)              # 伤害硬墙/全部元素抗性不可驱散
         self.assertEqual([ac[0] for ac in hard_params[1]],
-                         ["ACAbilityDamageResistance", "ACToleranceOfElement"])
-        self.assertEqual(hard_params[1][1][2], 6)         # 数据层 1-based
-        self.assertEqual(hard_params[1][1][3][0]["min"], 999.0)
+                         ["ACAbilityDamageResistance", "ACToleranceOfElement",
+                          "ACToleranceOfElement"])
+        self.assertEqual(hard_params[1][2][2], 6)         # 数据层 1-based
+        self.assertEqual(hard_params[1][2][3][0]["min"], 999.0)
+
+    def test_explicit_element_cancelable_request_is_forced_off(self):
+        self.assertEqual(
+            rb._normalize_resistance_atom((1, 1.0, True), "element_resistance"),
+            (1, 1.0, False),
+        )
 
     def test_blob_round_trip_preserves_constructor_names(self):
         tree = rb.build_immunity_dsl_tree(
@@ -5353,7 +5368,7 @@ class ElementImmunityDslCase(unittest.TestCase):
         self.assertEqual(parsed, tree)
         false_id = rb.immunity_program([], [(2, 9.0, False)])[0]
         true_id = rb.immunity_program([], [(2, 9.0, True)])[0]
-        self.assertNotEqual(false_id, true_id)
+        self.assertEqual(false_id, true_id)
         self.assertEqual(
             rb.immunity_program([], [(5, 99.0, True)])[0],
             rb.immunity_program([], [(5, 99.0, False)])[0],

@@ -5142,8 +5142,9 @@ def _normalize_resistance_atom(atom, key: str) -> tuple[int, float, bool]:
     """把旧二元耐性与新三元耐性统一为(target,value,cancelable)。
 
     `CreateCondition.params[4]` 是整条命令共用的可驱散标记。属性
-    r>=99 与伤害类型 r>=1 是硬墙，即使调用者请求 true 也强制改为
-    false；旧二元调用始终按 false 兼容。
+    耐性属于深渊诅咒的常驻规则，所有强度都强制不可驱散；伤害类型
+    r>=1 是硬墙，即使调用者请求 true 也强制改为 false。旧二元调用
+    始终按 false 兼容。
     """
     if key not in {"damage_resistance", "element_resistance"}:
         raise ValueError(f"未知耐性通道:{key}")
@@ -5164,6 +5165,8 @@ def _normalize_resistance_atom(atom, key: str) -> tuple[int, float, bool]:
         cancelable = atom[2]
         if not isinstance(cancelable, bool):
             raise ValueError(f"{key} cancelable 必须是 bool:{cancelable!r}")
+    if key == "element_resistance":
+        cancelable = False
     threshold = (ELEMENT_LOCK_THRESHOLD if key == "element_resistance" else 1.0)
     if value >= threshold - 1e-12:
         cancelable = False
@@ -5285,12 +5288,17 @@ def element_strengths_for_depth(r: int, n: int) -> tuple[float, ...]:
 
 
 def _card_resistance_atoms(rng, key: str, pairs) -> list[tuple[int, float, bool]]:
-    """一张逻辑软卡只抽一次可驱散性，硬原子始终回落 false。"""
+    """一张逻辑软卡只抽一次可驱散性；元素通道始终落为不可驱散。
+
+    元素软卡仍消费原抽签，避免同 seed 后续诅咒/Boss 随机序列漂移。
+    """
     base = [_normalize_resistance_atom((target, value, False), key)
             for target, value in pairs]
     threshold = ELEMENT_LOCK_THRESHOLD if key == "element_resistance" else 1.0
     has_soft = any(value < threshold - 1e-12 for _target, value, _ in base)
     soft_cancelable = bool(has_soft and rng.randrange(4) == 0)
+    if key == "element_resistance":
+        soft_cancelable = False
     return [(target, value,
              soft_cancelable if value < threshold - 1e-12 else False)
             for target, value, _old in base]

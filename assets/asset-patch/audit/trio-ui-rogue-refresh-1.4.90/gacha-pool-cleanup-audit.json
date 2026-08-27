@@ -1,0 +1,181 @@
+{
+  "schema": "wf-abyss-gacha-pool-cleanup/v1",
+  "patch_id": "trio-ui-rogue-refresh-1.4.90",
+  "version_edge": {
+    "from": "1.4.89",
+    "to": "1.4.90"
+  },
+  "pool_id": 990001,
+  "release_scope": {
+    "coordinated_with_client_archive": "pinball-1.4.89-1.4.90-1-0827-trio-ui-refresh.zip",
+    "client_archive_unchanged": true,
+    "server_files_are_not_client_archive_members": true,
+    "reason": "assets/gacha.json and assets/gacha_cnmod.json are server runtime sources, not hashed client-store payloads"
+  },
+  "server_files": {
+    "assets/gacha.json": {
+      "bytes": 27204151,
+      "base_sha256": "7840ebfbf422f13fe19039ef89b4b5e22ee395d0c21cdcea3a85476c3d7ace60",
+      "sha256": "16d7d6df5e3e0dd2fce5c57b25961244b3ae9ad3137731a8a0cbc893e8f9d475",
+      "pool_base_sha256": "a369fd98fe9615b26837446e1f7f6561b4bf69d1bc5483ce53ce91807e74bba0",
+      "pool_target_sha256": "37c7726e26406b807ac1bb9b26c136ec38cb1c884d087c8ccd45c96d3220e08b"
+    },
+    "assets/gacha_cnmod.json": {
+      "bytes": 117535,
+      "base_sha256": "8626734483a23cd2393f02e07820d3f1fece765fa049252c2616e2e0a3de8b67",
+      "sha256": "359428459561a1ed6851c579d13460974084ea759762c8192ddc0772a4f313cd",
+      "pool_base_sha256": "a369fd98fe9615b26837446e1f7f6561b4bf69d1bc5483ce53ce91807e74bba0",
+      "pool_target_sha256": "37c7726e26406b807ac1bb9b26c136ec38cb1c884d087c8ccd45c96d3220e08b",
+      "runtime_precedence": "loaded after assets/gacha.json"
+    }
+  },
+  "pool_constraints": {
+    "audited_non_gacha_count": 32,
+    "removed_count": 26,
+    "removed_ids_by_rarity": {
+      "5": [
+        10,
+        113001,
+        141003,
+        153001,
+        163001
+      ],
+      "4": [
+        213001,
+        213013,
+        223001,
+        223007,
+        223013,
+        223019,
+        233001,
+        233007,
+        233013,
+        243001,
+        243007,
+        243013,
+        243019,
+        253001,
+        253007,
+        253013,
+        253019,
+        263001,
+        263002
+      ],
+      "3": [
+        323001,
+        333001
+      ]
+    },
+    "retained_exception_ids": [
+      123001,
+      131182,
+      213007,
+      263003,
+      263009,
+      263015
+    ],
+    "counts_before": {
+      "5": 253,
+      "4": 144,
+      "3": 78
+    },
+    "counts_after": {
+      "5": 248,
+      "4": 125,
+      "3": 76
+    },
+    "total_weights_before": {
+      "5": 1593000,
+      "4": 2184,
+      "3": 1113
+    },
+    "total_weights_after": {
+      "5": 1593000,
+      "4": 2184,
+      "3": 1113
+    },
+    "redistribution": "removed weight redistributed only within the same rarity to retained non-UP characters"
+  },
+  "rate_constraints": {
+    "rank_rates": {
+      "normal": [
+        150,
+        350,
+        500
+      ],
+      "multi_guarantee": [
+        150,
+        850
+      ]
+    },
+    "rate_up_count": 17,
+    "high_rate_up": {
+      "ids": [
+        149995,
+        169996,
+        169997
+      ],
+      "weight_each": 40356,
+      "effective_probability_each": 0.0038,
+      "display_probability_each_percent": 0.38
+    },
+    "standard_rate_up": {
+      "ids": [
+        119996,
+        119997,
+        149996,
+        139997,
+        129999,
+        139998,
+        139999,
+        149998,
+        149999,
+        169998,
+        169999,
+        179999,
+        129997,
+        149997
+      ],
+      "weight_each": 10620,
+      "effective_probability_each": 0.001,
+      "display_probability_each_percent": 0.1
+    },
+    "rate_up_rows_preserved_at_object_level": true
+  },
+  "source_and_regression_files": {
+    "tests/abyss-gacha-effective-pool.test.js": {
+      "bytes": 3747,
+      "sha256": "8213d4b593323d760746035b1f390d9621df490a6ba13b0bc3e690742d1dff60"
+    },
+    "tools/cleanup_abyss_gacha_pool.cjs": {
+      "bytes": 7744,
+      "sha256": "fe14ca931f3c82a370355e8790ea0bffe403896c819ea57d8e25d88d9a3c1e2c"
+    },
+    "tools/fantasy-gauntlet-mod-tools/wf_abyss_gacha_contract.py": {
+      "bytes": 9119,
+      "sha256": "3315c7c7cc9b56633a97d6222ae43ccbf9b75ba4cca81870105037a52bfcd60d"
+    },
+    "tools/fantasy-gauntlet-mod-tools/wf_abyss_gacha_pool.py": {
+      "bytes": 11411,
+      "sha256": "1cf4043544ce51b86cd033b081a8df3b748a7c4a7bdd309b422ad2d4d1445b8d"
+    },
+    "tools/fantasy-gauntlet-mod-tools/tests/test_abyss_gacha_pool.py": {
+      "bytes": 7310,
+      "sha256": "11d5206f899c0e9ecef40e8dfaea34e3e191d52aa90758f9d6100cf112259803"
+    }
+  },
+  "validation": {
+    "base_and_cnmod_pool_equal": true,
+    "winning_runtime_override_verified": true,
+    "non_990001_data_preserved": true,
+    "non_pool_contract_preserved": true,
+    "removed_ids_absent": true,
+    "retained_exception_ids_present_once": true,
+    "rank_rates_preserved": true,
+    "rate_up_rows_weights_and_effective_probabilities_preserved": true,
+    "rarity_total_weights_preserved": true,
+    "compiler_reintroduction_guarded": true,
+    "runtime_mirror_modified": false,
+    "gameplay_verified": false
+  }
+}

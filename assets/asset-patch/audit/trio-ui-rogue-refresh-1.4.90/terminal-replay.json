@@ -1,0 +1,125 @@
+{
+  "ok": true,
+  "schema": "wf-trio-ui-rogue-refresh-terminal-replay/v1",
+  "source_chain": {
+    "enabled_edges": 36,
+    "base_version": "1.4.54",
+    "tail_version": "1.4.90",
+    "integrity_archives_checked": 41,
+    "integrity_bytes_checked": 374951278
+  },
+  "tail_patch": {
+    "archive": "assets/asset-patch/active/pinball-1.4.89-1.4.90-1-0827-trio-ui-refresh.zip",
+    "bytes": 41384007,
+    "sha256": "827d8550fe14400df26c5ff4fc2f3309b8a9cea15d6203d35b153dfb64529cba",
+    "members": 126,
+    "root_counts": {
+      "android_upload": 8,
+      "ios_upload": 8,
+      "medium_upload": 100,
+      "upload": 10
+    },
+    "rogue_members_replayed": 7,
+    "changelog_absent": true,
+    "android_tail": "1.4.90",
+    "ios_tail": "1.4.90",
+    "original_trio_ui_members_preserved": 90,
+    "character_139997_unique_members_added": 29,
+    "shared_ui_position_tables_replayed": 3,
+    "ui_members": 119,
+    "character_139997_illustration_member_corrected": "production/medium_upload/59/2de072c56498d3950e6bce6896c22a803c828a",
+    "other_member_payloads_unchanged_after_correction": 125
+  },
+  "semantics": {
+    "thumbnail": {
+      "boss_rounds": 29,
+      "changed_rounds": [
+        3,
+        4,
+        7,
+        9,
+        11,
+        20,
+        24,
+        25,
+        28
+      ],
+      "quest_columns_changed": [
+        5
+      ],
+      "all_assets_exist": true
+    },
+    "element_resistance": {
+      "referenced_programs": 10,
+      "element_atoms": 11,
+      "dispellable_element_atoms": 0,
+      "all_non_dispellable": true
+    },
+    "damage_check": {
+      "preferred_name_cn": "伤害检定（伤害挑战机制）",
+      "standard": {
+        "occurrences": 2,
+        "max_absolute_error_hp": 0.0
+      },
+      "general": {
+        "occurrences": 14,
+        "max_absolute_error_hp": 3.725290298461914e-09,
+        "private_routines": [
+          "mod_rogue_boss10_state",
+          "mod_rogue_boss12_state"
+        ],
+        "enemy_watch_aliases": 1
+      },
+      "total_occurrences": 16
+    },
+    "orochi_floor25": {
+      "runtime_code": "mod_rogue_orochi25",
+      "victory_condition": "central_parent_only",
+      "parent_hp": 6428571420.769279,
+      "mechanism_head_occurrences": 8,
+      "mechanism_hp": 6428571463.078356
+    },
+    "orochi_ex_floor24": {
+      "phase1_hp": 1342177279,
+      "middle_hp": 2724624788.276342,
+      "phase3_hp": 2147483647,
+      "icon_numbers": [
+        78,
+        34
+      ],
+      "signed_int32_verified": true,
+      "capacity_verified": true
+    },
+    "reference_closure": {
+      "reports": 31,
+      "passed": 31,
+      "failed": 0
+    },
+    "character_139997_illustration_setting": {
+      "atlas_records": 2,
+      "atlas_unchanged": true,
+      "sheet_size": [
+        364,
+        788
+      ],
+      "form_0_initial_cell": [
+        0,
+        406,
+        364,
+        382
+      ],
+      "form_1_awakened_cell": [
+        0,
+        0,
+        363,
+        405
+      ],
+      "form_order_matches_atlas": true,
+      "visual_reviewed": true
+    }
+  },
+  "verification_scope": "source_active_chain_plus_isolated_static_terminal_replay_plus_sparse_139997_ui_and_illustration_atlas_readback",
+  "runtime_mirror_modified": false,
+  "runtime_simulated": false,
+  "gameplay_verified_for_new_rogue_refresh": false
+}

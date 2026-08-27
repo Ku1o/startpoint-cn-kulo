@@ -1,0 +1,1245 @@
+{
+  "schema": "wf-current-rogue-refresh/v1",
+  "version_edge": {
+    "from": "1.4.89",
+    "to": "1.4.90"
+  },
+  "mode": "targeted_existing_tower_repair_no_reroll",
+  "seed": 2026082508,
+  "rounds": 30,
+  "displayed_to_internal_round": {
+    "Orochi_EX": 24,
+    "normal_Orochi": 25
+  },
+  "thumbnail": {
+    "audited_boss_rounds": 29,
+    "changed_rounds": [
+      3,
+      4,
+      7,
+      9,
+      11,
+      20,
+      24,
+      25,
+      28
+    ],
+    "quest_columns_changed": [
+      5
+    ],
+    "all_assets_exist": true,
+    "mappings": [
+      {
+        "round": 2,
+        "source_field": "main_4_10_1",
+        "play_field": "mod_rogue_f2",
+        "before": "quest/thumbnail/world_beast/battle_4_10_1",
+        "after": "quest/thumbnail/world_beast/battle_4_10_1",
+        "changed": false,
+        "asset_exists": true,
+        "asset_logical": "quest/thumbnail/world_beast/battle_4_10_1.png",
+        "source_match": "exact_field",
+        "source_category": "ex",
+        "source_logical": "master/quest/ex_quest.orderedmap"
+      },
+      {
+        "round": 3,
+        "source_field": "thunder_sphere",
+        "play_field": "mod_rogue_f3",
+        "before": "quest/thumbnail/rush_event/combat_diver_07/combat_diver_07_4",
+        "after": "quest/thumbnail/time_attack_event/yellow_01",
+        "changed": true,
+        "asset_exists": true,
+        "asset_logical": "quest/thumbnail/time_attack_event/yellow_01.png",
+        "source_match": "exact_field",
+        "source_category": "practice",
+        "source_logical": "master/quest/practice/practice_quest.orderedmap"
+      },
+      {
+        "round": 4,
+        "source_field": "wind_sphere",
+        "play_field": "mod_rogue_f4",
+        "before": "quest/thumbnail/rush_event/combat_diver_07/combat_diver_07_4",
+        "after": "quest/thumbnail/time_attack_event/green_01",
+        "changed": true,
+        "asset_exists": true,
+        "asset_logical": "quest/thumbnail/time_attack_event/green_01.png",
+        "source_match": "exact_field",
+        "source_category": "practice",
+        "source_logical": "master/quest/practice/practice_quest.orderedmap"
+      },
+      {
+        "round": 5,
+        "source_field": "advent_event_discarded_dragon_dark_4",
+        "play_field": "mod_rogue_f5",
+        "before": "quest/thumbnail/advent_event/dragon_dark/4",
+        "after": "quest/thumbnail/advent_event/dragon_dark/4",
+        "changed": false,
+        "asset_exists": true,
+        "asset_logical": "quest/thumbnail/advent_event/dragon_dark/4.png",
+        "source_match": "exact_field",
+        "source_category": "boss_battle",
+        "source_logical": "master/quest/boss_battle_quest.orderedmap"
+      },
+      {
+        "round": 6,
+        "source_field": "pcollab_02_1",
+        "play_field": "mod_rogue_f6",
+        "before": "quest/thumbnail/multi_battle/multi_pick_32_4",
+        "after": "quest/thumbnail/multi_battle/multi_pick_32_4",
+        "changed": false,
+        "asset_exists": true,
+        "asset_logical": "quest/thumbnail/multi_battle/multi_pick_32_4.png",
+        "source_match": "exact_field",
+        "source_category": "boss_battle",
+        "source_logical": "master/quest/boss_battle_quest.orderedmap"
+      },
+      {
+        "round": 7,
+        "source_field": "water_sphere",
+        "play_field": "mod_rogue_f7",
+        "before": "quest/thumbnail/rush_event/combat_diver_07/combat_diver_07_4",
+        "after": "quest/thumbnail/time_attack_event/time_attack_event_01",
+        "changed": true,
+        "asset_exists": true,
+        "asset_logical": "quest/thumbnail/time_attack_event/time_attack_event_01.png",
+        "source_match": "exact_field",
+        "source_category": "practice",
+        "source_logical": "master/quest/practice/practice_quest.orderedmap"
+      },
+      {
+        "round": 8,
+        "source_field": "tower_dungeon_area_10_4_3",
+        "play_field": "mod_rogue_f8",
+        "before": "quest/thumbnail/tower_dungeon/202010/area_10",
+        "after": "quest/thumbnail/tower_dungeon/202010/area_10",
+        "changed": false,
+        "asset_exists": true,
+        "asset_logical": "quest/thumbnail/tower_dungeon/202010/area_10.png",
+        "source_match": "floor_host_quest",
+        "source_category": "tower",
+        "source_logical": "master/quest/event/tower_dungeon_event_quest.orderedmap"
+      },
+      {
+        "round": 9,
+        "source_field": "yokai_emaki_01_16",
+        "play_field": "mod_rogue_f9",
+        "before": "quest/thumbnail/world_story_event/challenge_single_battle/yokai_emaki_01/challenge_big_boss_2",
+        "after": "quest/thumbnail/world_story_event/multi_battle/yokai_emaki_01/multi_big_boss_2",
+        "changed": true,
+        "asset_exists": true,
+        "asset_logical": "quest/thumbnail/world_story_event/multi_battle/yokai_emaki_01/multi_big_boss_2.png",
+        "source_match": "exact_field",
+        "source_category": "story_event",
+        "source_logical": "master/quest/event/story_event_single_quest.orderedmap"
+      },
+      {
+        "round": 10,
+        "source_field": "middle_boss_dragon_smr20_raid3",
+        "play_field": "mod_rogue_f10",
+        "before": "quest/thumbnail/raid_event/raid_event_quest_thumbnail_02_003",
+        "after": "quest/thumbnail/raid_event/raid_event_quest_thumbnail_02_003",
+        "changed": false,
+        "asset_exists": true,
+        "asset_logical": "quest/thumbnail/raid_event/raid_event_quest_thumbnail_02_003.png",
+        "source_match": "exact_field",
+        "source_category": "raid",
+        "source_logical": "master/quest/event/raid_event_quest.orderedmap"
+      },
+      {
+        "round": 11,
+        "source_field": "cyberpunk01_21",
+        "play_field": "mod_rogue_f11",
+        "before": "quest/thumbnail/rush_event/combat_diver_07/combat_diver_07_4",
+        "after": "quest/thumbnail/world_story_event/single_battle/cyberpunk01/single_31",
+        "changed": true,
+        "asset_exists": true,
+        "asset_logical": "quest/thumbnail/world_story_event/single_battle/cyberpunk01/single_31.png",
+        "source_match": "exact_field",
+        "source_category": "world_story",
+        "source_logical": "master/quest/event/world_story_event_quest.orderedmap"
+      },
+      {
+        "round": 12,
+        "source_field": "advent_s_collabo1",
+        "play_field": "mod_rogue_f12",
+        "before": "quest/thumbnail/advent_event/scollab/4",
+        "after": "quest/thumbnail/advent_event/scollab/4",
+        "changed": false,
+        "asset_exists": true,
+        "asset_logical": "quest/thumbnail/advent_event/scollab/4.png",
+        "source_match": "exact_field",
+        "source_category": "advent",
+        "source_logical": "master/quest/event/advent_event_quest.orderedmap"
+      },
+      {
+        "round": 13,
+        "source_field": "halfanv3_hell",
+        "play_field": "mod_rogue_f13",
+        "before": "quest/thumbnail/world_story_event/single_battle/anv3half/anv3half_single_battle_expert",
+        "after": "quest/thumbnail/world_story_event/single_battle/anv3half/anv3half_single_battle_expert",
+        "changed": false,
+        "asset_exists": true,
+        "asset_logical": "quest/thumbnail/world_story_event/single_battle/anv3half/anv3half_single_battle_expert.png",
+        "source_match": "exact_field",
+        "source_category": "practice",
+        "source_logical": "master/quest/practice/practice_quest.orderedmap"
+      },
+      {
+        "round": 14,
+        "source_field": "expert_golem_80",
+        "play_field": "mod_rogue_f14",
+        "before": "quest/thumbnail/multi_battle/multi1_6_4",
+        "after": "quest/thumbnail/multi_battle/multi1_6_4",
+        "changed": false,
+        "asset_exists": true,
+        "asset_logical": "quest/thumbnail/multi_battle/multi1_6_4.png",
+        "source_match": "exact_field",
+        "source_category": "practice",
+        "source_logical": "master/quest/practice/practice_quest.orderedmap"
+      },
+      {
+        "round": 15,
+        "source_field": "steampunk_another",
+        "play_field": "mod_rogue_f15",
+        "before": "quest/thumbnail/advent_event/steam_robot_another/5",
+        "after": "quest/thumbnail/advent_event/steam_robot_another/5",
+        "changed": false,
+        "asset_exists": true,
+        "asset_logical": "quest/thumbnail/advent_event/steam_robot_another/5.png",
+        "source_match": "exact_field",
+        "source_category": "boss_battle",
+        "source_logical": "master/quest/boss_battle_quest.orderedmap"
+      },
+      {
+        "round": 16,
+        "source_field": "advent_spirit_beast_wind_1",
+        "play_field": "mod_rogue_f16",
+        "before": "quest/thumbnail/advent_event/spirit_beast_storm/5",
+        "after": "quest/thumbnail/advent_event/spirit_beast_storm/5",
+        "changed": false,
+        "asset_exists": true,
+        "asset_logical": "quest/thumbnail/advent_event/spirit_beast_storm/5.png",
+        "source_match": "exact_field",
+        "source_category": "boss_battle",
+        "source_logical": "master/quest/boss_battle_quest.orderedmap"
+      },
+      {
+        "round": 17,
+        "source_field": "main_11_6_2",
+        "play_field": "mod_rogue_f17",
+        "before": "quest/thumbnail/world_11/battle_11_6_2",
+        "after": "quest/thumbnail/world_11/battle_11_6_2",
+        "changed": false,
+        "asset_exists": true,
+        "asset_logical": "quest/thumbnail/world_11/battle_11_6_2.png",
+        "source_match": "exact_field",
+        "source_category": "ex",
+        "source_logical": "master/quest/ex_quest.orderedmap"
+      },
+      {
+        "round": 18,
+        "source_field": "solo_time_attack_white1",
+        "play_field": "mod_rogue_f18",
+        "before": "quest/thumbnail/solo_time_attack/crab_white",
+        "after": "quest/thumbnail/solo_time_attack/crab_white",
+        "changed": false,
+        "asset_exists": true,
+        "asset_logical": "quest/thumbnail/solo_time_attack/crab_white.png",
+        "source_match": "exact_field",
+        "source_category": "solo_time_attack",
+        "source_logical": "master/quest/event/solo_time_attack_event_quest.orderedmap"
+      },
+      {
+        "round": 19,
+        "source_field": "double_owl_lich_ability",
+        "play_field": "mod_rogue_f19",
+        "before": "quest/thumbnail/multi_battle/multi1_1_1",
+        "after": "quest/thumbnail/multi_battle/multi1_1_1",
+        "changed": false,
+        "asset_exists": true,
+        "asset_logical": "quest/thumbnail/multi_battle/multi1_1_1.png",
+        "source_match": "exact_field",
+        "source_category": "boss_battle",
+        "source_logical": "master/quest/boss_battle_quest.orderedmap"
+      },
+      {
+        "round": 20,
+        "source_field": "tower_dungeon_area_10_5_2",
+        "play_field": "mod_rogue_f20",
+        "before": "quest/thumbnail/tower_dungeon/202012/area_10",
+        "after": "quest/thumbnail/tower_dungeon/202103/area_9",
+        "changed": true,
+        "asset_exists": true,
+        "asset_logical": "quest/thumbnail/tower_dungeon/202103/area_9.png",
+        "source_match": "exact_field",
+        "source_category": "score_attack",
+        "source_logical": "master/quest/event/score_attack_event_quest.orderedmap"
+      },
+      {
+        "round": 21,
+        "source_field": "epuration_boss_highest",
+        "play_field": "mod_rogue_f21",
+        "before": "quest/thumbnail/advent_event/boss_epuration_event/4",
+        "after": "quest/thumbnail/advent_event/boss_epuration_event/4",
+        "changed": false,
+        "asset_exists": true,
+        "asset_logical": "quest/thumbnail/advent_event/boss_epuration_event/4.png",
+        "source_match": "exact_field",
+        "source_category": "advent",
+        "source_logical": "master/quest/event/advent_event_quest.orderedmap"
+      },
+      {
+        "round": 22,
+        "source_field": "tower_dungeon_area_10_12_2",
+        "play_field": "mod_rogue_f22",
+        "before": "quest/thumbnail/tower_dungeon/202107/area_10",
+        "after": "quest/thumbnail/tower_dungeon/202107/area_10",
+        "changed": false,
+        "asset_exists": true,
+        "asset_logical": "quest/thumbnail/tower_dungeon/202107/area_10.png",
+        "source_match": "floor_host_quest",
+        "source_category": "tower",
+        "source_logical": "master/quest/event/tower_dungeon_event_quest.orderedmap"
+      },
+      {
+        "round": 23,
+        "source_field": "tower_dungeon_area_10_10_2",
+        "play_field": "mod_rogue_f23",
+        "before": "quest/thumbnail/tower_dungeon/202105/area_10",
+        "after": "quest/thumbnail/tower_dungeon/202105/area_10",
+        "changed": false,
+        "asset_exists": true,
+        "asset_logical": "quest/thumbnail/tower_dungeon/202105/area_10.png",
+        "source_match": "floor_host_quest",
+        "source_category": "tower",
+        "source_logical": "master/quest/event/tower_dungeon_event_quest.orderedmap"
+      },
+      {
+        "round": 24,
+        "source_field": "multi_normal_1_20_4",
+        "play_field": "mod_rogue_f24",
+        "before": "quest/thumbnail/rush_event/combat_diver_07/combat_diver_07_4",
+        "after": "quest/thumbnail/multi_battle/multi1_20_3",
+        "changed": true,
+        "asset_exists": true,
+        "asset_logical": "quest/thumbnail/multi_battle/multi1_20_3.png",
+        "source_match": "exact_field",
+        "source_category": "boss_battle",
+        "source_logical": "master/quest/boss_battle_quest.orderedmap"
+      },
+      {
+        "round": 25,
+        "source_field": "multi_normal_1_20_2",
+        "play_field": "mod_rogue_f25",
+        "before": "quest/thumbnail/rush_event/combat_diver_07/combat_diver_07_4",
+        "after": "quest/thumbnail/multi_battle/multi1_20_1",
+        "changed": true,
+        "asset_exists": true,
+        "asset_logical": "quest/thumbnail/multi_battle/multi1_20_1.png",
+        "source_match": "exact_field",
+        "source_category": "boss_battle",
+        "source_logical": "master/quest/boss_battle_quest.orderedmap"
+      },
+      {
+        "round": 26,
+        "source_field": "tower_dungeon_area_9_11_3",
+        "play_field": "mod_rogue_f26",
+        "before": "quest/thumbnail/tower_dungeon/202106/area_9",
+        "after": "quest/thumbnail/tower_dungeon/202106/area_9",
+        "changed": false,
+        "asset_exists": true,
+        "asset_logical": "quest/thumbnail/tower_dungeon/202106/area_9.png",
+        "source_match": "floor_host_quest",
+        "source_category": "tower",
+        "source_logical": "master/quest/event/tower_dungeon_event_quest.orderedmap"
+      },
+      {
+        "round": 27,
+        "source_field": "tower_dungeon_area_10_11_1",
+        "play_field": "mod_rogue_f27",
+        "before": "quest/thumbnail/tower_dungeon/202106/area_10",
+        "after": "quest/thumbnail/tower_dungeon/202106/area_10",
+        "changed": false,
+        "asset_exists": true,
+        "asset_logical": "quest/thumbnail/tower_dungeon/202106/area_10.png",
+        "source_match": "floor_host_quest",
+        "source_category": "tower",
+        "source_logical": "master/quest/event/tower_dungeon_event_quest.orderedmap"
+      },
+      {
+        "round": 28,
+        "source_field": "conductor_multi",
+        "play_field": "mod_rogue_f28",
+        "before": "quest/thumbnail/rush_event/combat_diver_07/combat_diver_07_4",
+        "after": "quest/thumbnail/world_story_event/multi_battle/cyberpunk01/multi_conductor_strong",
+        "changed": true,
+        "asset_exists": true,
+        "asset_logical": "quest/thumbnail/world_story_event/multi_battle/cyberpunk01/multi_conductor_strong.png",
+        "source_match": "exact_field",
+        "source_category": "world_story_boss",
+        "source_logical": "master/quest/event/world_story_event_boss_battle_quest.orderedmap"
+      },
+      {
+        "round": 29,
+        "source_field": "abyss_cloud",
+        "play_field": "mod_rogue_f29",
+        "before": "quest/thumbnail/raid_event/raid_event_quest_thumbnail_07_001",
+        "after": "quest/thumbnail/raid_event/raid_event_quest_thumbnail_07_001",
+        "changed": false,
+        "asset_exists": true,
+        "asset_logical": "quest/thumbnail/raid_event/raid_event_quest_thumbnail_07_001.png",
+        "source_match": "exact_field",
+        "source_category": "raid",
+        "source_logical": "master/quest/event/raid_event_quest.orderedmap"
+      },
+      {
+        "round": 30,
+        "source_field": "main_12_10_01",
+        "play_field": "mod_rogue_f30",
+        "before": "quest/thumbnail/world_12/battle_12_5",
+        "after": "quest/thumbnail/world_12/battle_12_5",
+        "changed": false,
+        "asset_exists": true,
+        "asset_logical": "quest/thumbnail/world_12/battle_12_5.png",
+        "source_match": "exact_field",
+        "source_category": "main",
+        "source_logical": "master/quest/main_quest.orderedmap"
+      }
+    ]
+  },
+  "element_resistance": {
+    "referenced_programs": 10,
+    "changed_programs": 1,
+    "all_element_resistance_non_dispellable": true,
+    "programs": [
+      {
+        "logical": "battle/action/enemy/action/mod_rogue/immunity_4c49413e12fc.action.dsl.amf3.deflate",
+        "dispellable_element_atoms_before": 0,
+        "dispellable_element_atoms_after": 0,
+        "changed": false
+      },
+      {
+        "logical": "battle/action/enemy/action/mod_rogue/immunity_7510d6fef510.action.dsl.amf3.deflate",
+        "dispellable_element_atoms_before": 0,
+        "dispellable_element_atoms_after": 0,
+        "changed": false
+      },
+      {
+        "logical": "battle/action/enemy/action/mod_rogue/immunity_871feefd4043.action.dsl.amf3.deflate",
+        "dispellable_element_atoms_before": 0,
+        "dispellable_element_atoms_after": 0,
+        "changed": false
+      },
+      {
+        "logical": "battle/action/enemy/action/mod_rogue/immunity_96146ce4959b.action.dsl.amf3.deflate",
+        "dispellable_element_atoms_before": 0,
+        "dispellable_element_atoms_after": 0,
+        "changed": false
+      },
+      {
+        "logical": "battle/action/enemy/action/mod_rogue/immunity_a71b9cf43096.action.dsl.amf3.deflate",
+        "dispellable_element_atoms_before": 0,
+        "dispellable_element_atoms_after": 0,
+        "changed": false
+      },
+      {
+        "logical": "battle/action/enemy/action/mod_rogue/immunity_c2ec9e72f774.action.dsl.amf3.deflate",
+        "dispellable_element_atoms_before": 0,
+        "dispellable_element_atoms_after": 0,
+        "changed": false
+      },
+      {
+        "logical": "battle/action/enemy/action/mod_rogue/immunity_def8a86b6604.action.dsl.amf3.deflate",
+        "dispellable_element_atoms_before": 0,
+        "dispellable_element_atoms_after": 0,
+        "changed": false
+      },
+      {
+        "logical": "battle/action/enemy/action/mod_rogue/immunity_e81c57b10704.action.dsl.amf3.deflate",
+        "dispellable_element_atoms_before": 1,
+        "dispellable_element_atoms_after": 0,
+        "changed": true
+      },
+      {
+        "logical": "battle/action/enemy/action/mod_rogue/immunity_ea94f75201e7.action.dsl.amf3.deflate",
+        "dispellable_element_atoms_before": 0,
+        "dispellable_element_atoms_after": 0,
+        "changed": false
+      },
+      {
+        "logical": "battle/action/enemy/action/mod_rogue/immunity_fc08649ac482.action.dsl.amf3.deflate",
+        "dispellable_element_atoms_before": 0,
+        "dispellable_element_atoms_after": 0,
+        "changed": false
+      }
+    ]
+  },
+  "damage_check": {
+    "preferred_name_cn": "伤害检定（伤害挑战机制）",
+    "standard_dsl_contracts": [
+      {
+        "round": 17,
+        "source_logical": "battle/enemy/boss/epuration_boss_dragon_main.esdl.amf3.deflate",
+        "target_logical": "battle/enemy/boss/mod_rogue/standard_r17_1.esdl.amf3.deflate",
+        "hp_scale": 263.7362637362637,
+        "contract": {
+          "schema": "wf-standard-damage-check/v1",
+          "occurrence_count": 2,
+          "runtime_hp_scale": 1.0,
+          "checks": [
+            {
+              "occurrence": 1,
+              "path": [
+                "au",
+                1,
+                "g",
+                170
+              ],
+              "form_index": 1,
+              "state_id": 348,
+              "source_percentage": 1.5,
+              "final_percentage": 0.005687500000000001,
+              "source_max_hp": 45000000.0,
+              "final_max_hp": 11868131868.131866,
+              "source_absolute_threshold_hp": 675000.0,
+              "final_absolute_threshold_hp": 675000.0,
+              "absolute_error_hp": 0.0,
+              "duration_frames": 600.0,
+              "success_branch": [
+                "T2",
+                [
+                  "T1",
+                  [
+                    "T1",
+                    [
+                      349
+                    ]
+                  ]
+                ]
+              ],
+              "timeout_branch": [
+                "T2",
+                [
+                  "T1",
+                  [
+                    "T1",
+                    [
+                      348
+                    ]
+                  ]
+                ]
+              ]
+            },
+            {
+              "occurrence": 2,
+              "path": [
+                "au",
+                1,
+                "g",
+                177
+              ],
+              "form_index": 1,
+              "state_id": 355,
+              "source_percentage": 60.0,
+              "final_percentage": 0.22750000000000004,
+              "source_max_hp": 45000000.0,
+              "final_max_hp": 11868131868.131866,
+              "source_absolute_threshold_hp": 27000000.0,
+              "final_absolute_threshold_hp": 27000000.0,
+              "absolute_error_hp": 0.0,
+              "duration_frames": 600.0,
+              "success_branch": [
+                "T2",
+                [
+                  "T1",
+                  [
+                    "T1",
+                    [
+                      356
+                    ]
+                  ]
+                ]
+              ],
+              "timeout_branch": [
+                "T2",
+                [
+                  "T1",
+                  [
+                    "T1",
+                    [
+                      355
+                    ]
+                  ]
+                ]
+              ]
+            }
+          ],
+          "topology_preserved": true,
+          "absolute_thresholds_preserved": true,
+          "static_verified": true,
+          "runtime_simulated": false,
+          "gameplay_verified": false
+        }
+      }
+    ],
+    "general_boss_contracts": [
+      {
+        "round": 10,
+        "source_code": "middle_boss_dragon_smr20_raid3",
+        "clone_code": "mod_rogue_boss10",
+        "selected_level": 89,
+        "contract": {
+          "schema": "wf-general-boss-damage-check/v1",
+          "source_routine_id": "middle_boss_dragon_smr20_raid",
+          "final_routine_id": "mod_rogue_boss10_state",
+          "occurrence_count": 1,
+          "source_max_hp": 48000000.0,
+          "baseline_max_hp": 6428571428.0,
+          "final_max_hp": 6428571428.0,
+          "baseline_hp_scale": 133.92857141666667,
+          "final_hp_scale": 133.92857141666667,
+          "hp_curse_multiplier": 1.0,
+          "checks": [
+            {
+              "occurrence": 1,
+              "path": [
+                "1",
+                "skill2_shot_charge1"
+              ],
+              "state_id": "skill2_shot_charge1",
+              "source_percentage": 5.0,
+              "baseline_percentage": 0.0373333333366518,
+              "final_percentage": 0.0373333333366518,
+              "source_max_hp": 48000000.0,
+              "baseline_max_hp": 6428571428.0,
+              "final_max_hp": 6428571428.0,
+              "source_absolute_threshold_hp": 2400000.0,
+              "baseline_absolute_threshold_hp": 2399999.9999999967,
+              "final_absolute_threshold_hp": 2399999.9999999967,
+              "baseline_absolute_error_hp": -3.259629011154175e-09,
+              "final_absolute_error_hp": -3.259629011154175e-09,
+              "options_c17_c21": [
+                "true",
+                "true",
+                "true",
+                "true",
+                "(None)"
+              ]
+            }
+          ],
+          "routine_cloned": true,
+          "materialized": true,
+          "enemy_watch_lookup_preserved": false,
+          "enemy_watch_routine_alias_count": 0,
+          "topology_preserved": true,
+          "non_percentage_columns_preserved": true,
+          "absolute_thresholds_preserved": true,
+          "static_verified": true,
+          "runtime_simulated": false,
+          "gameplay_verified": false
+        }
+      },
+      {
+        "round": 12,
+        "source_code": "hungry_dragon",
+        "clone_code": "mod_rogue_boss12",
+        "selected_level": 100,
+        "contract": {
+          "schema": "wf-general-boss-damage-check/v1",
+          "source_routine_id": "hungry_dragon",
+          "final_routine_id": "mod_rogue_boss12_state",
+          "occurrence_count": 13,
+          "source_max_hp": 405941497.969219,
+          "baseline_max_hp": 7285714279.765194,
+          "final_max_hp": 7285714279.76519,
+          "baseline_hp_scale": 17.947695212765957,
+          "final_hp_scale": 17.947695212765947,
+          "hp_curse_multiplier": 0.9999999999999994,
+          "checks": [
+            {
+              "occurrence": 1,
+              "path": [
+                "1",
+                "phase1_meat_a_meat_bite_shot3_charge10_a"
+              ],
+              "state_id": "phase1_meat_a_meat_bite_shot3_charge10_a",
+              "source_percentage": 1.7,
+              "baseline_percentage": 0.094719682936827,
+              "final_percentage": 0.0947196829368271,
+              "source_max_hp": 405941497.969219,
+              "baseline_max_hp": 7285714279.765194,
+              "final_max_hp": 7285714279.76519,
+              "source_absolute_threshold_hp": 6901005.465476722,
+              "baseline_absolute_threshold_hp": 6901005.465476721,
+              "final_absolute_threshold_hp": 6901005.465476724,
+              "baseline_absolute_error_hp": -1.862645149230957e-09,
+              "final_absolute_error_hp": 1.862645149230957e-09,
+              "options_c17_c21": [
+                "true",
+                "true",
+                "true",
+                "true",
+                "(None)"
+              ]
+            },
+            {
+              "occurrence": 2,
+              "path": [
+                "1",
+                "phase1_meat_b_meat_bite_shot3_charge10_b"
+              ],
+              "state_id": "phase1_meat_b_meat_bite_shot3_charge10_b",
+              "source_percentage": 1.7,
+              "baseline_percentage": 0.094719682936827,
+              "final_percentage": 0.0947196829368271,
+              "source_max_hp": 405941497.969219,
+              "baseline_max_hp": 7285714279.765194,
+              "final_max_hp": 7285714279.76519,
+              "source_absolute_threshold_hp": 6901005.465476722,
+              "baseline_absolute_threshold_hp": 6901005.465476721,
+              "final_absolute_threshold_hp": 6901005.465476724,
+              "baseline_absolute_error_hp": -1.862645149230957e-09,
+              "final_absolute_error_hp": 1.862645149230957e-09,
+              "options_c17_c21": [
+                "true",
+                "true",
+                "true",
+                "true",
+                "(None)"
+              ]
+            },
+            {
+              "occurrence": 3,
+              "path": [
+                "2",
+                "phase2_dps_start10"
+              ],
+              "state_id": "phase2_skill5_dps",
+              "source_percentage": 0.6,
+              "baseline_percentage": 0.0334304763306448,
+              "final_percentage": 0.0334304763306449,
+              "source_max_hp": 405941497.969219,
+              "baseline_max_hp": 7285714279.765194,
+              "final_max_hp": 7285714279.76519,
+              "source_absolute_threshold_hp": 2435648.987815314,
+              "baseline_absolute_threshold_hp": 2435648.987815311,
+              "final_absolute_threshold_hp": 2435648.9878153177,
+              "baseline_absolute_error_hp": -2.7939677238464355e-09,
+              "final_absolute_error_hp": 3.725290298461914e-09,
+              "options_c17_c21": [
+                "true",
+                "true",
+                "true",
+                "true",
+                "(None)"
+              ]
+            },
+            {
+              "occurrence": 4,
+              "path": [
+                "2",
+                "phase2_move_dash_left10"
+              ],
+              "state_id": "phase2_skill5_dps",
+              "source_percentage": 0.6,
+              "baseline_percentage": 0.0334304763306448,
+              "final_percentage": 0.0334304763306449,
+              "source_max_hp": 405941497.969219,
+              "baseline_max_hp": 7285714279.765194,
+              "final_max_hp": 7285714279.76519,
+              "source_absolute_threshold_hp": 2435648.987815314,
+              "baseline_absolute_threshold_hp": 2435648.987815311,
+              "final_absolute_threshold_hp": 2435648.9878153177,
+              "baseline_absolute_error_hp": -2.7939677238464355e-09,
+              "final_absolute_error_hp": 3.725290298461914e-09,
+              "options_c17_c21": [
+                "true",
+                "true",
+                "true",
+                "true",
+                "(None)"
+              ]
+            },
+            {
+              "occurrence": 5,
+              "path": [
+                "2",
+                "phase2_move_dash_right10"
+              ],
+              "state_id": "phase2_skill5_dps",
+              "source_percentage": 0.6,
+              "baseline_percentage": 0.0334304763306448,
+              "final_percentage": 0.0334304763306449,
+              "source_max_hp": 405941497.969219,
+              "baseline_max_hp": 7285714279.765194,
+              "final_max_hp": 7285714279.76519,
+              "source_absolute_threshold_hp": 2435648.987815314,
+              "baseline_absolute_threshold_hp": 2435648.987815311,
+              "final_absolute_threshold_hp": 2435648.9878153177,
+              "baseline_absolute_error_hp": -2.7939677238464355e-09,
+              "final_absolute_error_hp": 3.725290298461914e-09,
+              "options_c17_c21": [
+                "true",
+                "true",
+                "true",
+                "true",
+                "(None)"
+              ]
+            },
+            {
+              "occurrence": 6,
+              "path": [
+                "2",
+                "phase2_move_dash_left20"
+              ],
+              "state_id": "phase2_skill5_dps",
+              "source_percentage": 0.6,
+              "baseline_percentage": 0.0334304763306448,
+              "final_percentage": 0.0334304763306449,
+              "source_max_hp": 405941497.969219,
+              "baseline_max_hp": 7285714279.765194,
+              "final_max_hp": 7285714279.76519,
+              "source_absolute_threshold_hp": 2435648.987815314,
+              "baseline_absolute_threshold_hp": 2435648.987815311,
+              "final_absolute_threshold_hp": 2435648.9878153177,
+              "baseline_absolute_error_hp": -2.7939677238464355e-09,
+              "final_absolute_error_hp": 3.725290298461914e-09,
+              "options_c17_c21": [
+                "true",
+                "true",
+                "true",
+                "true",
+                "(None)"
+              ]
+            },
+            {
+              "occurrence": 7,
+              "path": [
+                "2",
+                "phase2_move_dash_center20"
+              ],
+              "state_id": "phase2_skill5_dps",
+              "source_percentage": 0.6,
+              "baseline_percentage": 0.0334304763306448,
+              "final_percentage": 0.0334304763306449,
+              "source_max_hp": 405941497.969219,
+              "baseline_max_hp": 7285714279.765194,
+              "final_max_hp": 7285714279.76519,
+              "source_absolute_threshold_hp": 2435648.987815314,
+              "baseline_absolute_threshold_hp": 2435648.987815311,
+              "final_absolute_threshold_hp": 2435648.9878153177,
+              "baseline_absolute_error_hp": -2.7939677238464355e-09,
+              "final_absolute_error_hp": 3.725290298461914e-09,
+              "options_c17_c21": [
+                "true",
+                "true",
+                "true",
+                "true",
+                "(None)"
+              ]
+            },
+            {
+              "occurrence": 8,
+              "path": [
+                "2",
+                "phase2_skill5_start10"
+              ],
+              "state_id": "phase2_skill5_dps",
+              "source_percentage": 0.6,
+              "baseline_percentage": 0.0334304763306448,
+              "final_percentage": 0.0334304763306449,
+              "source_max_hp": 405941497.969219,
+              "baseline_max_hp": 7285714279.765194,
+              "final_max_hp": 7285714279.76519,
+              "source_absolute_threshold_hp": 2435648.987815314,
+              "baseline_absolute_threshold_hp": 2435648.987815311,
+              "final_absolute_threshold_hp": 2435648.9878153177,
+              "baseline_absolute_error_hp": -2.7939677238464355e-09,
+              "final_absolute_error_hp": 3.725290298461914e-09,
+              "options_c17_c21": [
+                "true",
+                "true",
+                "true",
+                "true",
+                "(None)"
+              ]
+            },
+            {
+              "occurrence": 9,
+              "path": [
+                "2",
+                "phase2_skill5_charge10"
+              ],
+              "state_id": "phase2_skill5_dps",
+              "source_percentage": 0.6,
+              "baseline_percentage": 0.0334304763306448,
+              "final_percentage": 0.0334304763306449,
+              "source_max_hp": 405941497.969219,
+              "baseline_max_hp": 7285714279.765194,
+              "final_max_hp": 7285714279.76519,
+              "source_absolute_threshold_hp": 2435648.987815314,
+              "baseline_absolute_threshold_hp": 2435648.987815311,
+              "final_absolute_threshold_hp": 2435648.9878153177,
+              "baseline_absolute_error_hp": -2.7939677238464355e-09,
+              "final_absolute_error_hp": 3.725290298461914e-09,
+              "options_c17_c21": [
+                "true",
+                "true",
+                "true",
+                "true",
+                "(None)"
+              ]
+            },
+            {
+              "occurrence": 10,
+              "path": [
+                "2",
+                "phase2_skill2_charge10"
+              ],
+              "state_id": "phase2_skill2_charge10",
+              "source_percentage": 0.6,
+              "baseline_percentage": 0.0334304763306448,
+              "final_percentage": 0.0334304763306449,
+              "source_max_hp": 405941497.969219,
+              "baseline_max_hp": 7285714279.765194,
+              "final_max_hp": 7285714279.76519,
+              "source_absolute_threshold_hp": 2435648.987815314,
+              "baseline_absolute_threshold_hp": 2435648.987815311,
+              "final_absolute_threshold_hp": 2435648.9878153177,
+              "baseline_absolute_error_hp": -2.7939677238464355e-09,
+              "final_absolute_error_hp": 3.725290298461914e-09,
+              "options_c17_c21": [
+                "true",
+                "true",
+                "true",
+                "true",
+                "(None)"
+              ]
+            },
+            {
+              "occurrence": 11,
+              "path": [
+                "2",
+                "phase2_skill2_fire_start10"
+              ],
+              "state_id": "phase2_skill2_charge10",
+              "source_percentage": 0.6,
+              "baseline_percentage": 0.0334304763306448,
+              "final_percentage": 0.0334304763306449,
+              "source_max_hp": 405941497.969219,
+              "baseline_max_hp": 7285714279.765194,
+              "final_max_hp": 7285714279.76519,
+              "source_absolute_threshold_hp": 2435648.987815314,
+              "baseline_absolute_threshold_hp": 2435648.987815311,
+              "final_absolute_threshold_hp": 2435648.9878153177,
+              "baseline_absolute_error_hp": -2.7939677238464355e-09,
+              "final_absolute_error_hp": 3.725290298461914e-09,
+              "options_c17_c21": [
+                "true",
+                "true",
+                "true",
+                "true",
+                "(None)"
+              ]
+            },
+            {
+              "occurrence": 12,
+              "path": [
+                "2",
+                "phase2_skill2_fire_loop10"
+              ],
+              "state_id": "phase2_skill2_charge10",
+              "source_percentage": 0.6,
+              "baseline_percentage": 0.0334304763306448,
+              "final_percentage": 0.0334304763306449,
+              "source_max_hp": 405941497.969219,
+              "baseline_max_hp": 7285714279.765194,
+              "final_max_hp": 7285714279.76519,
+              "source_absolute_threshold_hp": 2435648.987815314,
+              "baseline_absolute_threshold_hp": 2435648.987815311,
+              "final_absolute_threshold_hp": 2435648.9878153177,
+              "baseline_absolute_error_hp": -2.7939677238464355e-09,
+              "final_absolute_error_hp": 3.725290298461914e-09,
+              "options_c17_c21": [
+                "true",
+                "true",
+                "true",
+                "true",
+                "(None)"
+              ]
+            },
+            {
+              "occurrence": 13,
+              "path": [
+                "2",
+                "phase2_skill2_charge10_2"
+              ],
+              "state_id": "phase2_skill2_charge10",
+              "source_percentage": 0.6,
+              "baseline_percentage": 0.0334304763306448,
+              "final_percentage": 0.0334304763306449,
+              "source_max_hp": 405941497.969219,
+              "baseline_max_hp": 7285714279.765194,
+              "final_max_hp": 7285714279.76519,
+              "source_absolute_threshold_hp": 2435648.987815314,
+              "baseline_absolute_threshold_hp": 2435648.987815311,
+              "final_absolute_threshold_hp": 2435648.9878153177,
+              "baseline_absolute_error_hp": -2.7939677238464355e-09,
+              "final_absolute_error_hp": 3.725290298461914e-09,
+              "options_c17_c21": [
+                "true",
+                "true",
+                "true",
+                "true",
+                "(None)"
+              ]
+            }
+          ],
+          "routine_cloned": true,
+          "materialized": true,
+          "enemy_watch_lookup_preserved": false,
+          "enemy_watch_routine_alias_count": 0,
+          "topology_preserved": true,
+          "non_percentage_columns_preserved": true,
+          "absolute_thresholds_preserved": true,
+          "static_verified": true,
+          "runtime_simulated": false,
+          "gameplay_verified": false
+        }
+      }
+    ],
+    "general_enemy_watch_aliases": 1,
+    "absolute_thresholds_preserved": true
+  },
+  "orochi_floor25": {
+    "round": 25,
+    "displayed_floor": 25,
+    "source_code": "orochi_all_head_multi",
+    "runtime_code": "mod_rogue_orochi25",
+    "old_model": "parent_plus_eight_heads_counted_toward_floor_target",
+    "new_model": "central_parent_is_victory_hp;heads_are_mechanism_budget",
+    "baseline_parent_target_hp": 12857142857.142857,
+    "curse_hp_multiplier": 0.5,
+    "final_parent_target_hp": 6428571428.571428,
+    "old_final_parent_hp": 3214285720.961909,
+    "new_final_parent_hp": 6428571420.769279,
+    "mechanism_budget": {
+      "kind": "orochi_heads",
+      "counts_toward_boss_target": false,
+      "victory_condition": "central_parent_only",
+      "native_hp": 6428571463.078356,
+      "occurrences": 8
+    },
+    "plan": {
+      "baseline_scale": 253.23845114068067,
+      "final_scale": 126.61922557034033,
+      "baseline_true_hp": 12857142862.693096,
+      "true_hp": 6428571420.769279,
+      "mechanism_budget": {
+        "kind": "orochi_heads",
+        "counts_toward_boss_target": false,
+        "victory_condition": "central_parent_only",
+        "source_components": [
+          6346361.896875,
+          4230907.93125,
+          7404088.879687,
+          6346361.896875,
+          7404088.879687,
+          6346361.896875,
+          6346361.896875,
+          6346361.896875
+        ],
+        "baseline_components": [
+          1607142849.9036849,
+          1071428566.6024567,
+          1875000002.131442,
+          1607142849.9036849,
+          1875000002.131442,
+          1607142849.9036849,
+          1607142849.9036849,
+          1607142849.9036849
+        ],
+        "final_components": [
+          803571435.5291122,
+          535714283.30122834,
+          937500001.065721,
+          803571435.5291122,
+          937500001.065721,
+          803571435.5291122,
+          803571435.5291122,
+          803571435.5291122
+        ],
+        "source_hp": 50770895.174999,
+        "baseline_hp": 12857142820.383764,
+        "final_hp": 6428571463.078232,
+        "occurrences": 8,
+        "static_verified": true,
+        "runtime_simulated": false,
+        "gameplay_verified": false
+      }
+    },
+    "static_verified": true,
+    "runtime_simulated": false,
+    "gameplay_verified": false
+  },
+  "orochi_ex_floor24_regression": {
+    "round": 24,
+    "runtime_code": "mod_rogue_orochi_ex24",
+    "phase1_hp": 1342177279,
+    "middle_hp": 2724624788.276342,
+    "phase3_hp": 2147483647,
+    "total_hp": 6214285714.276342,
+    "icon_numbers": [
+      78,
+      34
+    ],
+    "signed_int32_verified": true,
+    "capacity_contract": {
+      "schema": "wf-orochi-ex-phase-damage-capacity/v1",
+      "selected_level": 100,
+      "required_coverage_ratio": 1.01,
+      "phases": [
+        {
+          "label": "orochi_ex.phase1",
+          "required_hp": 1342177279.0,
+          "required_coverage_ratio": 1.01,
+          "required_capacity_hp": 1355599051.79,
+          "carrier_hp": {
+            "mod_rogue_orochi_ex24_head1": 517268575.861383,
+            "mod_rogue_orochi_ex24_head2": 1355600413.721812,
+            "mod_rogue_orochi_ex24_head3": 517268575.861383
+          },
+          "total_carrier_hp": 2390137565.444578,
+          "total_coverage_ratio": 1.780791258234806,
+          "primary_carrier": "mod_rogue_orochi_ex24_head2",
+          "primary_carrier_hp": 1355600413.721812,
+          "primary_coverage_ratio": 1.010001014718274,
+          "phase": 1,
+          "head_codes": [
+            "mod_rogue_orochi_ex24_head1",
+            "mod_rogue_orochi_ex24_head2",
+            "mod_rogue_orochi_ex24_head3"
+          ],
+          "boss_level_c2": {
+            "mod_rogue_orochi_ex24_head1": 2670.1469,
+            "mod_rogue_orochi_ex24_head2": 6997.6264,
+            "mod_rogue_orochi_ex24_head3": 2670.1469
+          },
+          "selected_level": 100,
+          "absolute_verified": true,
+          "static_verified": true
+        },
+        {
+          "label": "orochi_ex.phase3",
+          "required_hp": 2147483647.0,
+          "required_coverage_ratio": 1.01,
+          "required_capacity_hp": 2168958483.47,
+          "carrier_hp": {
+            "mod_rogue_orochi_ex24_head4": 970705730.473875,
+            "mod_rogue_orochi_ex24_head5": 2426764306.812398,
+            "mod_rogue_orochi_ex24_head6": 970705730.473875
+          },
+          "total_carrier_hp": 4368175767.760148,
+          "total_coverage_ratio": 2.03409035214886,
+          "primary_carrier": "mod_rogue_orochi_ex24_head5",
+          "primary_carrier_hp": 2426764306.812398,
+          "primary_coverage_ratio": 1.1300501916289554,
+          "phase": 3,
+          "head_codes": [
+            "mod_rogue_orochi_ex24_head4",
+            "mod_rogue_orochi_ex24_head5",
+            "mod_rogue_orochi_ex24_head6"
+          ],
+          "boss_level_c2": {
+            "mod_rogue_orochi_ex24_head4": 5010.7952,
+            "mod_rogue_orochi_ex24_head5": 12526.9879,
+            "mod_rogue_orochi_ex24_head6": 5010.7952
+          },
+          "selected_level": 100,
+          "absolute_verified": true,
+          "static_verified": true
+        }
+      ],
+      "absolute_verified": true,
+      "static_verified": true,
+      "runtime_simulated": false,
+      "gameplay_verified": false
+    },
+    "terminal_final_target_hp_from_locked_audit": 6214285714.285714,
+    "static_verified": true,
+    "runtime_simulated": false,
+    "gameplay_verified": true,
+    "gameplay_evidence": "1.4.89 fix was confirmed by the user on 2026-08-26"
+  },
+  "reference_closure": {
+    "reports": 31,
+    "passed": 31,
+    "failed": 0
+  },
+  "outputs": [
+    {
+      "logical": "battle/action/enemy/action/mod_rogue/immunity_e81c57b10704.action.dsl.amf3.deflate",
+      "member": "production/upload/58/78c67f57af23b099f98980b0adda815faf0cdc",
+      "before_sha256": "d615075d58b0416d1117927f2ca37502235cbf4538d4690d59ba94cbd625fa14",
+      "after_sha256": "8ca36be895be8ef6a39a6fae047ac12890b81e20f5799f37730a8e7467c8fb9b",
+      "before_bytes": 229,
+      "after_bytes": 229
+    },
+    {
+      "logical": "battle/enemy/boss/mod_rogue/standard_r17_1.esdl.amf3.deflate",
+      "member": "production/upload/06/2f557c197927e3a1b1eb7c2ce43e053a7ea2f5",
+      "before_sha256": "68349243f37387c0164d8a37b54b5a6ee5833952a72d4b2ae42a3183fc94a345",
+      "after_sha256": "62b84959ca44860bc090b704e07977e3111a3b0677d099b68a4e5372e880edb0",
+      "before_bytes": 4325,
+      "after_bytes": 4347
+    },
+    {
+      "logical": "master/battle/boss/boss_level.orderedmap",
+      "member": "production/upload/19/a4aa442b3249499356e7a3f6370e530bfe355e",
+      "before_sha256": "735b75125f2bf18f555504be3afb0e3e2b71c85c674c980c878f9208637283b9",
+      "after_sha256": "1ac02ddffb37fea899601866690d890e05c2bfd5a24337bc1cbb78040ac4a031",
+      "before_bytes": 45592,
+      "after_bytes": 45598
+    },
+    {
+      "logical": "master/battle/boss/general_boss.orderedmap",
+      "member": "production/upload/ec/d8f66b60947ca05643c4080a6cc925c750b9d6",
+      "before_sha256": "0551dbd24396ffffcf5b44b20ae59a105e461d398d8e7f849c1a5ff991a0b6ee",
+      "after_sha256": "de60df0b3a00f12f85753dbba8384a954cde52196aa9ad53d61761a4e6ce2ed3",
+      "before_bytes": 362211,
+      "after_bytes": 362224
+    },
+    {
+      "logical": "master/battle/boss/general_boss_state.orderedmap",
+      "member": "production/upload/0b/97162ce6d40c473cbac39fa21427688922a48a",
+      "before_sha256": "2dc8581ef73f55cbb127b50d3435a4aaf208efdd38d209b38d2e7585acfed827",
+      "after_sha256": "0884c6a9c8228f3566205c84c9563b53695dbcfca76d45b7762471e34d44dffd",
+      "before_bytes": 5070287,
+      "after_bytes": 5134743
+    },
+    {
+      "logical": "master/battle/boss/general_enemy_watch.orderedmap",
+      "member": "production/upload/84/fd6ee6a23114c8f888fadc838bbe8bdf668677",
+      "before_sha256": "3905c09489a0819755315d080163c34e46c16104ae86669c85d29947e57b6f7c",
+      "after_sha256": "043a563f888481f8e1a625fb08b7c2b419d8827fa38ef41b08c06571bb4b70e8",
+      "before_bytes": 66131,
+      "after_bytes": 67172
+    },
+    {
+      "logical": "master/quest/event/rush_event_quest.orderedmap",
+      "member": "production/upload/b6/595dedd9cfa79b7e6eccab25dd9a2a81b066a2",
+      "before_sha256": "76c94ef94139b995b8c0329104362ec448bbda30108ac5b89aba480c3f041f35",
+      "after_sha256": "693e734f642984db68d6f8235a51699ee91def36be2a4aea3e44a611fe6d83c0",
+      "before_bytes": 42882,
+      "after_bytes": 42924
+    }
+  ],
+  "tool": {
+    "path": "tools/fantasy-gauntlet-mod-tools/wf_rogue_build.py",
+    "sha256": "796fa6f820b93ea0fa439ecb19e2284a206f932666dc9f6a92cdfbeb588b6623"
+  },
+  "verification_scope": "static_terminal_replay",
+  "runtime_simulated": false,
+  "gameplay_verified": false
+}

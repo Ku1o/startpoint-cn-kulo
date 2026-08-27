@@ -1,0 +1,3901 @@
+{
+  "schema_version": 1,
+  "task": "trio-ui-refresh-20260827",
+  "from_version": "1.4.89",
+  "to_version": "1.4.90",
+  "archive": "pinball-1.4.89-1.4.90-1-0827-trio-ui-refresh.zip",
+  "writes_live": false,
+  "characters": [
+    {
+      "label": "西蒙",
+      "character_id": 169996,
+      "code": "simoun_dark",
+      "source": "F:\\西蒙ui.zip",
+      "source_size": 10109587,
+      "source_sha256": "f5b2b751be9fa2459bd746b13c942ca10125a933d034809c91150a864a0c434c",
+      "selected_count": 25,
+      "excluded_count": 5,
+      "excluded": [
+        {
+          "entry": "小羊ui/[原图]初始.PNG",
+          "basename": "[原图]初始.PNG",
+          "size": 632570,
+          "sha256": "0df0b9067f659a6cb6fcd53c6241b00854daa50efc545fe3af7398dbbfbbdc9a",
+          "reason": "source_or_reference_art"
+        },
+        {
+          "entry": "小羊ui/[原图]觉醒.png",
+          "basename": "[原图]觉醒.png",
+          "size": 1480511,
+          "sha256": "efb3bf2f433c7111875bb10466ae6dcb70bea5759ef44e5fd8974e8df97e7ecf",
+          "reason": "source_or_reference_art"
+        },
+        {
+          "entry": "小羊ui/episode_banner_0.png",
+          "basename": "episode_banner_0.png",
+          "size": 79344,
+          "sha256": "52925484983edb5324e3f36ac92869292877d35a08d71eb3f0c009d18fbd4698",
+          "reason": "story_asset_not_registered"
+        },
+        {
+          "entry": "小羊ui/full_shot_1440_1920_0_resized.png",
+          "basename": "full_shot_1440_1920_0_resized.png",
+          "size": 207178,
+          "sha256": "b83d12835f902f17f158a2e15c2f5e76487f1916e016f91d2e301c081d7ec3be",
+          "reason": "resized_preview"
+        },
+        {
+          "entry": "小羊ui/full_shot_1440_1920_1_resized.png",
+          "basename": "full_shot_1440_1920_1_resized.png",
+          "size": 396386,
+          "sha256": "70562e1a5072f36e445e408a3fa339fe09896fae089ab3a0b27e338e91bb6003",
+          "reason": "resized_preview"
+        }
+      ],
+      "pngs": [
+        {
+          "basename": "battle_control_board_0.png",
+          "logical": "character/simoun_dark/ui/battle_control_board_0.png",
+          "root": "medium",
+          "member": "production/medium_upload/72/635ade112137f4e9e5c345f00991bf553447f3",
+          "dimensions": [
+            104,
+            268
+          ],
+          "current_dimensions": [
+            104,
+            268
+          ],
+          "dimensions_changed": false,
+          "incoming_mode": "RGBA",
+          "incoming_alpha_bbox": [
+            0,
+            0,
+            104,
+            268
+          ],
+          "incoming_opaque": false,
+          "incoming_sha256": "34142127205a62da5e29a3544684fd2cc6080ddf6453a67400c1be066d19323a",
+          "stored_sha256": "1e8a3157a565f3e3eebf52f4b590a00b862c020ef3dbe61cd8a10c4d0a643f2a",
+          "current_mode": "RGBA",
+          "current_alpha_bbox": [
+            0,
+            6,
+            93,
+            268
+          ],
+          "current_opaque": false,
+          "current_standard_sha256": "c8072b602367b82fcee7db192205e2ff696ffce38200b5f6dab7633c1d0dd59a",
+          "changed": true,
+          "winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/medium_upload/72/635ade112137f4e9e5c345f00991bf553447f3",
+            "size": 53260,
+            "sha256": "6c25637d72e8db79ff1a6764aa2589bbc477644de7d729eb196c3ae7357f6992"
+          }
+        },
+        {
+          "basename": "battle_control_board_1.png",
+          "logical": "character/simoun_dark/ui/battle_control_board_1.png",
+          "root": "medium",
+          "member": "production/medium_upload/f7/bf8f904c539fce4f55eb299dc9e90c008d8d08",
+          "dimensions": [
+            104,
+            268
+          ],
+          "current_dimensions": [
+            104,
+            268
+          ],
+          "dimensions_changed": false,
+          "incoming_mode": "RGBA",
+          "incoming_alpha_bbox": [
+            0,
+            0,
+            104,
+            268
+          ],
+          "incoming_opaque": false,
+          "incoming_sha256": "c5396a47c74385cb98caa94fb8bce4669ed671dbdcacb4c675549bd9554f6a70",
+          "stored_sha256": "3d6023237444f3658cf503dd94c7c7ecad81cdd7e69886189afafa598cff7dfa",
+          "current_mode": "RGBA",
+          "current_alpha_bbox": [
+            0,
+            0,
+            104,
+            268
+          ],
+          "current_opaque": false,
+          "current_standard_sha256": "39413fd64d69604072af8935856eef4a859a366254ddcd1775eeaac11b7af3bf",
+          "changed": true,
+          "winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/medium_upload/f7/bf8f904c539fce4f55eb299dc9e90c008d8d08",
+            "size": 65003,
+            "sha256": "f0eb49dac012b4c66bce6e304e0bd8762fe4f325a33b717b878e8661330c3400"
+          }
+        },
+        {
+          "basename": "battle_member_status_0.png",
+          "logical": "character/simoun_dark/ui/battle_member_status_0.png",
+          "root": "medium",
+          "member": "production/medium_upload/4b/7911f1fc9bfab9b3fed3cc717ffcd1bad6cdf4",
+          "dimensions": [
+            58,
+            58
+          ],
+          "current_dimensions": [
+            58,
+            58
+          ],
+          "dimensions_changed": false,
+          "incoming_mode": "RGBA",
+          "incoming_alpha_bbox": [
+            0,
+            0,
+            58,
+            58
+          ],
+          "incoming_opaque": false,
+          "incoming_sha256": "93e51faef323489865592b2b6a835fcc614afdd819ae695e67d4b03087fcf317",
+          "stored_sha256": "c290b10b0960b715c34536f1db219e3bec4911f4b501c4abd89e0794b4435536",
+          "current_mode": "RGBA",
+          "current_alpha_bbox": [
+            1,
+            2,
+            58,
+            58
+          ],
+          "current_opaque": false,
+          "current_standard_sha256": "c1abc6fb935853998e0bce80fbabe0cbb45d506f77914e7f3ca8e6b1a181b02b",
+          "changed": true,
+          "winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/medium_upload/4b/7911f1fc9bfab9b3fed3cc717ffcd1bad6cdf4",
+            "size": 7150,
+            "sha256": "ef097bf192aaf6234f0c7956d4b25055eeb9b9fadd838357f34464624405ccec"
+          }
+        },
+        {
+          "basename": "battle_member_status_1.png",
+          "logical": "character/simoun_dark/ui/battle_member_status_1.png",
+          "root": "medium",
+          "member": "production/medium_upload/67/d3d9de78df3a89a9370a644bf55e69206740b8",
+          "dimensions": [
+            58,
+            58
+          ],
+          "current_dimensions": [
+            58,
+            58
+          ],
+          "dimensions_changed": false,
+          "incoming_mode": "RGBA",
+          "incoming_alpha_bbox": [
+            0,
+            0,
+            58,
+            58
+          ],
+          "incoming_opaque": false,
+          "incoming_sha256": "13bc75abce629dccd736d0c420ef25165c7c69ee816ce20109dc5fd918ac2ce2",
+          "stored_sha256": "bd75f1298267b8a2e3a7be532b5e797744d877c838dedc786f82889cfb5e1e79",
+          "current_mode": "RGBA",
+          "current_alpha_bbox": [
+            0,
+            0,
+            58,
+            58
+          ],
+          "current_opaque": false,
+          "current_standard_sha256": "cb7d935aab10ed1b62520b23e36fae8e5829087a43fee6eed223d0b07a13a0bc",
+          "changed": true,
+          "winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/medium_upload/67/d3d9de78df3a89a9370a644bf55e69206740b8",
+            "size": 9621,
+            "sha256": "1ce17797cdfa7eed6c76bda22b3834fd34a9eb05a989b4e12b8cffcff5b189f2"
+          }
+        },
+        {
+          "basename": "cutin_skill_chain_0.png",
+          "logical": "character/simoun_dark/ui/cutin_skill_chain_0.png",
+          "root": "medium",
+          "member": "production/medium_upload/6d/0703d7a6bb18fb9fd592c8bd5e0f6ad79f9e27",
+          "dimensions": [
+            276,
+            319
+          ],
+          "current_dimensions": [
+            276,
+            319
+          ],
+          "dimensions_changed": false,
+          "incoming_mode": "RGBA",
+          "incoming_alpha_bbox": [
+            0,
+            0,
+            276,
+            319
+          ],
+          "incoming_opaque": false,
+          "incoming_sha256": "386d23da82ec6a69325a4a3516100a2da2b80fbe174bfa1c099880e904e77e6a",
+          "stored_sha256": "ff03bb4d33c7a2035cd9414422d6b66ad6f7184e21dcf05e9ac18d81dbf22a09",
+          "current_mode": "RGBA",
+          "current_alpha_bbox": [
+            10,
+            34,
+            276,
+            319
+          ],
+          "current_opaque": false,
+          "current_standard_sha256": "0fd7df2acab3c467ea2443fc21e676eeebb99e9e89d751fcfd527faac6432d3d",
+          "changed": true,
+          "winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/medium_upload/6d/0703d7a6bb18fb9fd592c8bd5e0f6ad79f9e27",
+            "size": 122369,
+            "sha256": "a41eb43721baa4c3359796f9fa772b0abef63518158958c55c39139c627d43af"
+          }
+        },
+        {
+          "basename": "cutin_skill_chain_1.png",
+          "logical": "character/simoun_dark/ui/cutin_skill_chain_1.png",
+          "root": "medium",
+          "member": "production/medium_upload/4c/8ffdab96b97c235d43819c890c83e6a420b3c1",
+          "dimensions": [
+            276,
+            319
+          ],
+          "current_dimensions": [
+            276,
+            319
+          ],
+          "dimensions_changed": false,
+          "incoming_mode": "RGBA",
+          "incoming_alpha_bbox": [
+            0,
+            0,
+            276,
+            319
+          ],
+          "incoming_opaque": false,
+          "incoming_sha256": "0f0740b8f4738fc121633022d936dde268fbabaac8bddc56f0d231b310b610b8",
+          "stored_sha256": "5c31b46776f9197c0be226cf2d1e13332510ecc486348b2086de129e713f905c",
+          "current_mode": "RGBA",
+          "current_alpha_bbox": [
+            0,
+            0,
+            276,
+            319
+          ],
+          "current_opaque": false,
+          "current_standard_sha256": "01a703bbc7c3a8c0f7949b13eccb4cde94a7066cd4fdeea73a745a14930c994b",
+          "changed": true,
+          "winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/medium_upload/4c/8ffdab96b97c235d43819c890c83e6a420b3c1",
+            "size": 188726,
+            "sha256": "2b8f69f9bd19c15ed0e6613312761c6a292d77313363c87b201d76249e117906"
+          }
+        },
+        {
+          "basename": "full_shot_1440_1920_0.png",
+          "logical": "character/simoun_dark/ui/full_shot_1440_1920_0.png",
+          "root": "medium",
+          "member": "production/medium_upload/89/8470a6bb14f8bba86ce08aaf2c686947f51395",
+          "dimensions": [
+            1659,
+            1901
+          ],
+          "current_dimensions": [
+            1013,
+            1803
+          ],
+          "dimensions_changed": true,
+          "incoming_mode": "RGBA",
+          "incoming_alpha_bbox": [
+            305,
+            60,
+            1395,
+            1858
+          ],
+          "incoming_opaque": false,
+          "incoming_sha256": "eeb0bc7dbbd3fa0b2dbaa580d16e2f1f8c2b7ea12d23b366c15db5071920a1be",
+          "stored_sha256": "2650ec5aa87a56a26cf3231d432df374b81b00368a187f2b711f7e2389b3ffe7",
+          "current_mode": "RGBA",
+          "current_alpha_bbox": [
+            0,
+            0,
+            1013,
+            1803
+          ],
+          "current_opaque": false,
+          "current_standard_sha256": "beb6caffa79dc889119efda8ca6cf0a46718ddf8debabd424260496f2e7053a4",
+          "changed": true,
+          "winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/medium_upload/89/8470a6bb14f8bba86ce08aaf2c686947f51395",
+            "size": 1601816,
+            "sha256": "6b8df7b2dc28f956736fec87e21e1d92dc8f16ee135c9db3d7e712b44278bc51"
+          }
+        },
+        {
+          "basename": "full_shot_1440_1920_1.png",
+          "logical": "character/simoun_dark/ui/full_shot_1440_1920_1.png",
+          "root": "medium",
+          "member": "production/medium_upload/bc/7d198b580fdd0d2c29e816da03debde3e78423",
+          "dimensions": [
+            1632,
+            1681
+          ],
+          "current_dimensions": [
+            1778,
+            1656
+          ],
+          "dimensions_changed": true,
+          "incoming_mode": "RGBA",
+          "incoming_alpha_bbox": [
+            14,
+            60,
+            1618,
+            1664
+          ],
+          "incoming_opaque": false,
+          "incoming_sha256": "3f6be767ad4a6e7d3ab9523636821856c5c94bbf8268e6b478599fe97efc8856",
+          "stored_sha256": "6ff70b5a12fa2503d603f6c1275190ef0ecbfde1448c82b090dbf23d4603f93d",
+          "current_mode": "RGBA",
+          "current_alpha_bbox": [
+            0,
+            0,
+            1778,
+            1656
+          ],
+          "current_opaque": false,
+          "current_standard_sha256": "21fc0aa20a55f3f652ba3d73d7a754fd57212c70b69ee88cb19500d5f9c68a30",
+          "changed": true,
+          "winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/medium_upload/bc/7d198b580fdd0d2c29e816da03debde3e78423",
+            "size": 3459349,
+            "sha256": "7db20d8d2d53b568b70c2fc4979a2d0af04200bb3865b09f201fb06cc28aa8b2"
+          }
+        },
+        {
+          "basename": "illustration_setting_sprite_sheet.png",
+          "logical": "character/simoun_dark/ui/illustration_setting_sprite_sheet.png",
+          "root": "medium",
+          "member": "production/medium_upload/8e/a4e5c18ddda6bb9914f96354d660866892a38e",
+          "dimensions": [
+            361,
+            789
+          ],
+          "current_dimensions": [
+            363,
+            790
+          ],
+          "dimensions_changed": true,
+          "incoming_mode": "RGBA",
+          "incoming_alpha_bbox": [
+            4,
+            47,
+            356,
+            778
+          ],
+          "incoming_opaque": false,
+          "incoming_sha256": "ef10e7f3eb031ac5bc88bc9e6b973d42214819cd6b7e17d2ffda12c1f4aebb27",
+          "stored_sha256": "3a36d4c9db5528545e115de7301ebed68980eb3abbacbc4d65c69eeac6d046d8",
+          "current_mode": "RGBA",
+          "current_alpha_bbox": [
+            0,
+            0,
+            363,
+            790
+          ],
+          "current_opaque": false,
+          "current_standard_sha256": "174cfa14246c52099d10791ec5f801d539df4f29347c090caafe0bd0148ea46b",
+          "changed": true,
+          "winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/medium_upload/8e/a4e5c18ddda6bb9914f96354d660866892a38e",
+            "size": 369692,
+            "sha256": "daf0a564d58d591e35a2ff849fb1e01eaf0b7feed69e77c0f303228ef4b185bb"
+          }
+        },
+        {
+          "basename": "skill_cutin_0.png",
+          "logical": "character/simoun_dark/ui/skill_cutin_0.png",
+          "root": "medium",
+          "member": "production/medium_upload/5a/7aefa1aee5cdff5fa66f9bfb67e0a0ad6693fb",
+          "dimensions": [
+            1024,
+            512
+          ],
+          "current_dimensions": [
+            1024,
+            512
+          ],
+          "dimensions_changed": false,
+          "incoming_mode": "RGBA",
+          "incoming_alpha_bbox": [
+            339,
+            44,
+            1000,
+            512
+          ],
+          "incoming_opaque": false,
+          "incoming_sha256": "0daf1a2a30544421936de60d17366609ba948ab972f202e98b9aaff24804ec81",
+          "stored_sha256": "27e582e2cbb5a041a2140671d1b395a405480323179945b1fd55e2165ff19c08",
+          "current_mode": "RGBA",
+          "current_alpha_bbox": [
+            273,
+            64,
+            932,
+            512
+          ],
+          "current_opaque": false,
+          "current_standard_sha256": "4ea9fa68089178c3125d08b3480497f971d31852041c08624d4e66acb2e6a3f5",
+          "changed": true,
+          "winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/medium_upload/5a/7aefa1aee5cdff5fa66f9bfb67e0a0ad6693fb",
+            "size": 355821,
+            "sha256": "946fe907ed5b6245db8e8f1ba81c57ba3b67f45f8ed3400d08fa82136b94961e"
+          }
+        },
+        {
+          "basename": "skill_cutin_1.png",
+          "logical": "character/simoun_dark/ui/skill_cutin_1.png",
+          "root": "medium",
+          "member": "production/medium_upload/e5/ab0ad8ce2fffb439796599a023698161e3465c",
+          "dimensions": [
+            1024,
+            512
+          ],
+          "current_dimensions": [
+            1024,
+            512
+          ],
+          "dimensions_changed": false,
+          "incoming_mode": "RGBA",
+          "incoming_alpha_bbox": [
+            0,
+            0,
+            780,
+            512
+          ],
+          "incoming_opaque": false,
+          "incoming_sha256": "1b2b5486f08f6235609417033ffa866786cdee08658e84df2c69cd2767370ba3",
+          "stored_sha256": "e2dbd463d8e62e1ec3fe4f6ba2f5618c6ca5326d3eee8ec6f9a0b96f0a12d0ce",
+          "current_mode": "RGBA",
+          "current_alpha_bbox": [
+            130,
+            5,
+            1019,
+            512
+          ],
+          "current_opaque": false,
+          "current_standard_sha256": "a0c2b629cfa89a3ba5e314cd463a2880b0ec6118e352718327300aa6dfd56ab5",
+          "changed": true,
+          "winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/medium_upload/e5/ab0ad8ce2fffb439796599a023698161e3465c",
+            "size": 812081,
+            "sha256": "1d214c4f417a0791615bd6253f28f70e598457eec9ad5553879db412c0df0a95"
+          }
+        },
+        {
+          "basename": "square_0.png",
+          "logical": "character/simoun_dark/ui/square_0.png",
+          "root": "medium",
+          "member": "production/medium_upload/d0/d9ff14e615a8fa9412bf26015b36f47f399192",
+          "dimensions": [
+            212,
+            212
+          ],
+          "current_dimensions": [
+            212,
+            212
+          ],
+          "dimensions_changed": false,
+          "incoming_mode": "RGBA",
+          "incoming_alpha_bbox": [
+            1,
+            0,
+            212,
+            212
+          ],
+          "incoming_opaque": false,
+          "incoming_sha256": "be145bb3c379cdb03579032cd4da8dc834f24bd07013df222fd2c6106890d51d",
+          "stored_sha256": "8616070f06ada74e0109a5857366691705f58ab2edb8c4e2347933ef38e95239",
+          "current_mode": "RGBA",
+          "current_alpha_bbox": [
+            0,
+            0,
+            212,
+            212
+          ],
+          "current_opaque": false,
+          "current_standard_sha256": "0e16beeee60f0f60898608e8d9692c1650218691f3da355166327127c71c8133",
+          "changed": true,
+          "winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/medium_upload/d0/d9ff14e615a8fa9412bf26015b36f47f399192",
+            "size": 64163,
+            "sha256": "6b9e633a2908937855f8a7c87d8663385054263321add417a274505d89a2f6a2"
+          }
+        },
+        {
+          "basename": "square_1.png",
+          "logical": "character/simoun_dark/ui/square_1.png",
+          "root": "medium",
+          "member": "production/medium_upload/67/6960c6295c396cb8e5da31ba3deb02ab1d2b81",
+          "dimensions": [
+            212,
+            212
+          ],
+          "current_dimensions": [
+            212,
+            212
+          ],
+          "dimensions_changed": false,
+          "incoming_mode": "RGB",
+          "incoming_alpha_bbox": [
+            0,
+            0,
+            212,
+            212
+          ],
+          "incoming_opaque": true,
+          "incoming_sha256": "77978609edb08f155aac3b48dc46709202674570875859da74291691a3917685",
+          "stored_sha256": "2c8dbc9dd9c6a162f45bad35b74e2a56ae0e9f552855e43d365d56c742be9fd8",
+          "current_mode": "RGBA",
+          "current_alpha_bbox": [
+            0,
+            0,
+            212,
+            212
+          ],
+          "current_opaque": false,
+          "current_standard_sha256": "3bf96b8c177fd05e972ae50aff2234a47550eba23725c28df5d43fcf491aac82",
+          "changed": true,
+          "winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/medium_upload/67/6960c6295c396cb8e5da31ba3deb02ab1d2b81",
+            "size": 97518,
+            "sha256": "fbb70239677920e13b8a65f413b5ee775e8fe47a6b9620d632e64309dc417255"
+          }
+        },
+        {
+          "basename": "square_132_132_0.png",
+          "logical": "character/simoun_dark/ui/square_132_132_0.png",
+          "root": "medium",
+          "member": "production/medium_upload/14/03a29bb165be9c2cfdb99cfd7f6543a2cf1acb",
+          "dimensions": [
+            132,
+            132
+          ],
+          "current_dimensions": [
+            132,
+            132
+          ],
+          "dimensions_changed": false,
+          "incoming_mode": "RGBA",
+          "incoming_alpha_bbox": [
+            1,
+            0,
+            132,
+            132
+          ],
+          "incoming_opaque": false,
+          "incoming_sha256": "ef92da63ee1f2c7b5d4abdc6e21a132a6870fb3b7095d538456ae68edf471431",
+          "stored_sha256": "50d0a80c62ef7391034fc70b8e52472980e7ba20c8bf5ef15af7851cba4383b7",
+          "current_mode": "RGBA",
+          "current_alpha_bbox": [
+            0,
+            0,
+            132,
+            132
+          ],
+          "current_opaque": false,
+          "current_standard_sha256": "5855b593beb87c6b96adfc2b7873666aeb888b1618716ac9c614b68343697aef",
+          "changed": true,
+          "winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/medium_upload/14/03a29bb165be9c2cfdb99cfd7f6543a2cf1acb",
+            "size": 27931,
+            "sha256": "4b2de7822516869fa265a2464fdfb49d45efd0e3b30450d986c12ec11cf70c30"
+          }
+        },
+        {
+          "basename": "square_132_132_1.png",
+          "logical": "character/simoun_dark/ui/square_132_132_1.png",
+          "root": "medium",
+          "member": "production/medium_upload/44/ca8d5813bf1a0b219b816f3f920aa08c82d507",
+          "dimensions": [
+            132,
+            132
+          ],
+          "current_dimensions": [
+            132,
+            132
+          ],
+          "dimensions_changed": false,
+          "incoming_mode": "RGBA",
+          "incoming_alpha_bbox": [
+            0,
+            0,
+            132,
+            132
+          ],
+          "incoming_opaque": false,
+          "incoming_sha256": "ea9c55e0e2f4e33d415e0f224b6ecbda36c8c870a0776dddbc75bae105b00c2e",
+          "stored_sha256": "3b78afa4c80963f737fc258b8008c6b68688bac7eed1c9e6570916e013ad8b62",
+          "current_mode": "RGBA",
+          "current_alpha_bbox": [
+            0,
+            0,
+            132,
+            132
+          ],
+          "current_opaque": false,
+          "current_standard_sha256": "e1276a1c4533759f9272389e32762ce92fdcb1283bf4e69c64b732da1bba64ae",
+          "changed": true,
+          "winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/medium_upload/44/ca8d5813bf1a0b219b816f3f920aa08c82d507",
+            "size": 40719,
+            "sha256": "b8e48c3a22ab32268fdda3584f24fc6b72275b541627746597e2afb5a05c6c71"
+          }
+        },
+        {
+          "basename": "square_round_136_136_0.png",
+          "logical": "character/simoun_dark/ui/square_round_136_136_0.png",
+          "root": "medium",
+          "member": "production/medium_upload/c9/c7dfc62ca8b3856913d4f24e7b545334f69489",
+          "dimensions": [
+            136,
+            136
+          ],
+          "current_dimensions": [
+            136,
+            136
+          ],
+          "dimensions_changed": false,
+          "incoming_mode": "RGBA",
+          "incoming_alpha_bbox": [
+            1,
+            0,
+            136,
+            136
+          ],
+          "incoming_opaque": false,
+          "incoming_sha256": "5493dcee8c4ec085ff6b8d49f720e144d36c6c4634b8afbcd6add891e9d05cf1",
+          "stored_sha256": "5c64ff2dd9d0ccf3dcdedd9468d7da8383fd3287e54fff7c93fe46f77d1835d6",
+          "current_mode": "RGBA",
+          "current_alpha_bbox": [
+            0,
+            0,
+            136,
+            136
+          ],
+          "current_opaque": false,
+          "current_standard_sha256": "d40335a862cf71a9cab5633f01c5e4769e84cd25db35ba5f3b3d4bad326dfa11",
+          "changed": true,
+          "winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/medium_upload/c9/c7dfc62ca8b3856913d4f24e7b545334f69489",
+            "size": 30034,
+            "sha256": "4aaf81072a9ab0cb924a4865037b18c38b39dd050832773d0c8ca08c5345b5d2"
+          }
+        },
+        {
+          "basename": "square_round_136_136_1.png",
+          "logical": "character/simoun_dark/ui/square_round_136_136_1.png",
+          "root": "medium",
+          "member": "production/medium_upload/5d/98e282d8bfc2dedb723f3c1489c3e911f273ec",
+          "dimensions": [
+            136,
+            136
+          ],
+          "current_dimensions": [
+            136,
+            136
+          ],
+          "dimensions_changed": false,
+          "incoming_mode": "RGBA",
+          "incoming_alpha_bbox": [
+            0,
+            0,
+            136,
+            136
+          ],
+          "incoming_opaque": false,
+          "incoming_sha256": "c0adc65b0bf1417919dd979ffde3911774ffc06d1b45239d98f74db2ccb1ab44",
+          "stored_sha256": "a6ccd1f91b1995ce4bd7ac73b80eee2a8836ab5dea3667b33faa21503f454f0b",
+          "current_mode": "RGBA",
+          "current_alpha_bbox": [
+            0,
+            0,
+            136,
+            136
+          ],
+          "current_opaque": false,
+          "current_standard_sha256": "2274c8a626e0043b70c90be9593cc50a00bfa0a0e90b78b1983335bf2de38a57",
+          "changed": true,
+          "winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/medium_upload/5d/98e282d8bfc2dedb723f3c1489c3e911f273ec",
+            "size": 43877,
+            "sha256": "c920e912049edc081cddfcdf6909a772d262694079139fcf4e2c97ccf986d8de"
+          }
+        },
+        {
+          "basename": "square_round_95_95_0.png",
+          "logical": "character/simoun_dark/ui/square_round_95_95_0.png",
+          "root": "medium",
+          "member": "production/medium_upload/1c/0e55860bfe4c3f7279fd3daed50ea9ffa66406",
+          "dimensions": [
+            95,
+            95
+          ],
+          "current_dimensions": [
+            95,
+            95
+          ],
+          "dimensions_changed": false,
+          "incoming_mode": "RGBA",
+          "incoming_alpha_bbox": [
+            0,
+            0,
+            95,
+            95
+          ],
+          "incoming_opaque": false,
+          "incoming_sha256": "c140572f8471a8b5372a6e2910b06c2b76027584ad72e276a84e74b96b8e1c1d",
+          "stored_sha256": "af1ac7e41f9ba434519f7a59b0f5ba1ce37fa5b58119d461cb767cc9809ac1b6",
+          "current_mode": "RGBA",
+          "current_alpha_bbox": [
+            0,
+            0,
+            95,
+            95
+          ],
+          "current_opaque": false,
+          "current_standard_sha256": "e7b7d1c819e39fdc14e79c1b7e707f6b7337f053bbc24f29831cd837c834adb8",
+          "changed": true,
+          "winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/medium_upload/1c/0e55860bfe4c3f7279fd3daed50ea9ffa66406",
+            "size": 16329,
+            "sha256": "cc1a1992c84f8f108157867250d1ddea284cb5d117fe5156f6dc28fcd83ef906"
+          }
+        },
+        {
+          "basename": "square_round_95_95_1.png",
+          "logical": "character/simoun_dark/ui/square_round_95_95_1.png",
+          "root": "medium",
+          "member": "production/medium_upload/39/8f72eaed1a15dd50b2cb7d238396d018eb2b61",
+          "dimensions": [
+            95,
+            95
+          ],
+          "current_dimensions": [
+            95,
+            95
+          ],
+          "dimensions_changed": false,
+          "incoming_mode": "RGBA",
+          "incoming_alpha_bbox": [
+            0,
+            0,
+            95,
+            95
+          ],
+          "incoming_opaque": false,
+          "incoming_sha256": "8e4a6da155c4a6ad873d0d4012bed6fc966ec5286b31f46cd90168a0349ed900",
+          "stored_sha256": "d32b23a06b46037b76a1ec82bfded571e4ece62338cb00e30f00a2ac6da0b2a6",
+          "current_mode": "RGBA",
+          "current_alpha_bbox": [
+            0,
+            0,
+            95,
+            95
+          ],
+          "current_opaque": false,
+          "current_standard_sha256": "90e06dfdef5f1fd8a831f6bc4cf0eaa7c04f5480c7036345256d5f2bc60b2769",
+          "changed": true,
+          "winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/medium_upload/39/8f72eaed1a15dd50b2cb7d238396d018eb2b61",
+            "size": 23408,
+            "sha256": "bd1a21f678d72cf535e294125437aec705cbd02151d7fb1be756f1b4993d65eb"
+          }
+        },
+        {
+          "basename": "thumb_level_up_0.png",
+          "logical": "character/simoun_dark/ui/thumb_level_up_0.png",
+          "root": "medium",
+          "member": "production/medium_upload/8c/7266adcbbd203b0456bfb11268d264cdc76c9c",
+          "dimensions": [
+            252,
+            329
+          ],
+          "current_dimensions": [
+            252,
+            329
+          ],
+          "dimensions_changed": false,
+          "incoming_mode": "RGBA",
+          "incoming_alpha_bbox": [
+            0,
+            0,
+            252,
+            329
+          ],
+          "incoming_opaque": false,
+          "incoming_sha256": "430a5b5bcc41be466360ed1489533834afd7aad481525f25eddc2614a0db6bc8",
+          "stored_sha256": "49199ff669479db763a2afed339a7a84d3ec9e17734b07fce62386f27b207044",
+          "current_mode": "RGBA",
+          "current_alpha_bbox": [
+            0,
+            10,
+            252,
+            329
+          ],
+          "current_opaque": false,
+          "current_standard_sha256": "783f88c27ed7abf97c93c9728d355dc4f832031b1aa2b857b3981789e7769954",
+          "changed": true,
+          "winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/medium_upload/8c/7266adcbbd203b0456bfb11268d264cdc76c9c",
+            "size": 118093,
+            "sha256": "80074833afb440f22e71c6654a94b43984c8c041ce9ca365536f147c36aa6a39"
+          }
+        },
+        {
+          "basename": "thumb_level_up_1.png",
+          "logical": "character/simoun_dark/ui/thumb_level_up_1.png",
+          "root": "medium",
+          "member": "production/medium_upload/57/a494823cd00198f533ce34e98987567e8d9c75",
+          "dimensions": [
+            252,
+            329
+          ],
+          "current_dimensions": [
+            252,
+            329
+          ],
+          "dimensions_changed": false,
+          "incoming_mode": "RGB",
+          "incoming_alpha_bbox": [
+            0,
+            0,
+            252,
+            329
+          ],
+          "incoming_opaque": true,
+          "incoming_sha256": "1c115dd664c4968641462dd44654f1f07a5a345a9a8aee7ff09327d596d21ef5",
+          "stored_sha256": "0b6f99d4006b2ddbd93262fb7defe8a1b5fcc9a93e144b3f27046306a8631c15",
+          "current_mode": "RGBA",
+          "current_alpha_bbox": [
+            0,
+            0,
+            252,
+            329
+          ],
+          "current_opaque": false,
+          "current_standard_sha256": "584ebc4389b171d79a4e9d7dbd29388444b507b928c95be36ae6c221fbfd643e",
+          "changed": true,
+          "winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/medium_upload/57/a494823cd00198f533ce34e98987567e8d9c75",
+            "size": 177702,
+            "sha256": "63e1bd848409ed1602761cbaca574244db8f7418714342671a6efe82637028bf"
+          }
+        },
+        {
+          "basename": "thumb_party_main_0.png",
+          "logical": "character/simoun_dark/ui/thumb_party_main_0.png",
+          "root": "medium",
+          "member": "production/medium_upload/be/baa2457de92ad25ba05230dbf6a6a36e92471d",
+          "dimensions": [
+            186,
+            392
+          ],
+          "current_dimensions": [
+            186,
+            392
+          ],
+          "dimensions_changed": false,
+          "incoming_mode": "RGBA",
+          "incoming_alpha_bbox": [
+            0,
+            0,
+            186,
+            392
+          ],
+          "incoming_opaque": false,
+          "incoming_sha256": "70d9c7f345d364e34947694da8199c7f37b96cdb1bcc955e0cc760ea7f667593",
+          "stored_sha256": "844fccde951ef2f9fecb008de185fd9c5a965893eab4fa85b805ce658fc0f8a8",
+          "current_mode": "RGBA",
+          "current_alpha_bbox": [
+            0,
+            2,
+            186,
+            392
+          ],
+          "current_opaque": false,
+          "current_standard_sha256": "fd54bc8ab8703d40f2c127b4847f8b29103d30b5a2be768a510348b585010e43",
+          "changed": true,
+          "winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/medium_upload/be/baa2457de92ad25ba05230dbf6a6a36e92471d",
+            "size": 120655,
+            "sha256": "1c83f85a64b5cfcb0d387798b308b2b7923436d7e6310990bba64d419f528d35"
+          }
+        },
+        {
+          "basename": "thumb_party_main_1.png",
+          "logical": "character/simoun_dark/ui/thumb_party_main_1.png",
+          "root": "medium",
+          "member": "production/medium_upload/4b/c8379a03f065e3e384b91754a861ede90abf16",
+          "dimensions": [
+            186,
+            392
+          ],
+          "current_dimensions": [
+            186,
+            392
+          ],
+          "dimensions_changed": false,
+          "incoming_mode": "RGB",
+          "incoming_alpha_bbox": [
+            0,
+            0,
+            186,
+            392
+          ],
+          "incoming_opaque": true,
+          "incoming_sha256": "effe3b1c67668cf7eef403c11565d32d22f77ea6f69969b0ff346cd235666de9",
+          "stored_sha256": "7db13c8f0e4ae7492c2ceab5233bce90ef54813d5b659694b0ac0cb5db650f43",
+          "current_mode": "RGBA",
+          "current_alpha_bbox": [
+            0,
+            0,
+            186,
+            392
+          ],
+          "current_opaque": false,
+          "current_standard_sha256": "6b6f4d119b311228bc1dd94591b2004b9ab67ca74424453abad5f806dbe0b576",
+          "changed": true,
+          "winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/medium_upload/4b/c8379a03f065e3e384b91754a861ede90abf16",
+            "size": 160278,
+            "sha256": "663e961232fa147485ca524a3ce5c1b4dc2c21a91c8d808017fe6af92ad71076"
+          }
+        },
+        {
+          "basename": "thumb_party_unison_0.png",
+          "logical": "character/simoun_dark/ui/thumb_party_unison_0.png",
+          "root": "medium",
+          "member": "production/medium_upload/36/b6a5bfc955086f940085cfbae35a7d46a6ac2e",
+          "dimensions": [
+            144,
+            188
+          ],
+          "current_dimensions": [
+            144,
+            188
+          ],
+          "dimensions_changed": false,
+          "incoming_mode": "RGBA",
+          "incoming_alpha_bbox": [
+            0,
+            0,
+            144,
+            188
+          ],
+          "incoming_opaque": false,
+          "incoming_sha256": "8082459e3591ba6667387a450f565f556c078ace8d0f1591b8c1e03a5d3b5607",
+          "stored_sha256": "26a3f09c7baa33142755b921b9058e139e63ebd446f155bd51543498aa5d2596",
+          "current_mode": "RGBA",
+          "current_alpha_bbox": [
+            0,
+            0,
+            144,
+            188
+          ],
+          "current_opaque": false,
+          "current_standard_sha256": "f4e0c5a7c2ae75f3d77cdab1ac79330a53db5c30d7ef4c374491a35b0061394a",
+          "changed": true,
+          "winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/medium_upload/36/b6a5bfc955086f940085cfbae35a7d46a6ac2e",
+            "size": 44460,
+            "sha256": "7a2801b167597373689a9c445e87612910bfba573b4d9a1f9beb204835d7ee2c"
+          }
+        },
+        {
+          "basename": "thumb_party_unison_1.png",
+          "logical": "character/simoun_dark/ui/thumb_party_unison_1.png",
+          "root": "medium",
+          "member": "production/medium_upload/fd/e92dbeabc1096a10b50bc5c15f5fbf26fd99d9",
+          "dimensions": [
+            144,
+            188
+          ],
+          "current_dimensions": [
+            144,
+            188
+          ],
+          "dimensions_changed": false,
+          "incoming_mode": "RGB",
+          "incoming_alpha_bbox": [
+            0,
+            0,
+            144,
+            188
+          ],
+          "incoming_opaque": true,
+          "incoming_sha256": "76cd2d7966b2b453f150366c3a93fbafaa55002c3a36bef835e40bee741ee005",
+          "stored_sha256": "0d68b9cd948c23b7bc2d75ed566917aca81ef58d99d1d07ed653dce88823bb1e",
+          "current_mode": "RGBA",
+          "current_alpha_bbox": [
+            0,
+            0,
+            144,
+            188
+          ],
+          "current_opaque": false,
+          "current_standard_sha256": "d64427d367f6f9fac5076df79b10f8fa20857f0fc386a225a6509949f479cbe9",
+          "changed": true,
+          "winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/medium_upload/fd/e92dbeabc1096a10b50bc5c15f5fbf26fd99d9",
+            "size": 60348,
+            "sha256": "16070f11097f994c6b0f2a133720f72290c61cf40c715c906cbdf68a4edb161d"
+          }
+        }
+      ],
+      "atfs": [
+        {
+          "form": 0,
+          "logical": "character/simoun_dark/ui/skill_cutin_0.atf.deflate",
+          "pair": {
+            "w": 1024,
+            "h": 512,
+            "mips": 11,
+            "android_slot": 2,
+            "ios_slot": 3
+          },
+          "android_member": "production/android_upload/b2/5b1b76edafd925e647e0cc220be8ed98e78a10",
+          "android_stored_sha256": "bf8bfaa0b69f7d70debe671e3917919d2d62f9caa94ff8f49ff9c461a70cb46e",
+          "android_winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/android_upload/b2/5b1b76edafd925e647e0cc220be8ed98e78a10",
+            "size": 100540,
+            "sha256": "6d3f54bae2249fe376ee13fd819ea1bc9f9e3bc1bb7a868b1719bf634c2f29d3"
+          },
+          "ios_member": "production/ios_upload/b2/5b1b76edafd925e647e0cc220be8ed98e78a10",
+          "ios_stored_sha256": "a1dc6550b5cc41947750ef115e48717620b0148325a61f944f3c6beb944e15c2",
+          "ios_winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/ios_upload/b2/5b1b76edafd925e647e0cc220be8ed98e78a10",
+            "size": 114198,
+            "sha256": "be9494873fa7eb93a39c8d1b7d8d64a8793d80b27e238c249921b11d4713a62d"
+          }
+        },
+        {
+          "form": 1,
+          "logical": "character/simoun_dark/ui/skill_cutin_1.atf.deflate",
+          "pair": {
+            "w": 1024,
+            "h": 512,
+            "mips": 11,
+            "android_slot": 2,
+            "ios_slot": 3
+          },
+          "android_member": "production/android_upload/95/270dbd800cb4b15ca5d6951a4bba9170512542",
+          "android_stored_sha256": "d9dbf67b68f95c8a88a9b24f6fbca8ac10d434f3bd228e21ca29fa942d21e490",
+          "android_winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/android_upload/95/270dbd800cb4b15ca5d6951a4bba9170512542",
+            "size": 195695,
+            "sha256": "b91ce3a0a7a6052c10b38ef5dc585787e9b67c075831965dd374b540a7307b0f"
+          },
+          "ios_member": "production/ios_upload/95/270dbd800cb4b15ca5d6951a4bba9170512542",
+          "ios_stored_sha256": "2f4ff6713932d973789f166a8cabea3cc73953c13fe65ef45ee5285f9ad87156",
+          "ios_winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/ios_upload/95/270dbd800cb4b15ca5d6951a4bba9170512542",
+            "size": 219113,
+            "sha256": "6bbcf37722271b7777852ca3b5cde875076f0a79f529c08d7817781b8dd97ed5"
+          }
+        }
+      ],
+      "qa_contact_sheet": "candidate/qa-simoun_dark-current-vs-incoming.png"
+    },
+    {
+      "label": "巴萨拉卡",
+      "character_id": 169997,
+      "code": "vaseraga_dark",
+      "source": "F:\\巴萨拉卡ui.zip",
+      "source_size": 17316811,
+      "source_sha256": "b184640aef57927259adfb552361a028615896558210225ab9a8e22ac130cb70",
+      "selected_count": 25,
+      "excluded_count": 6,
+      "excluded": [
+        {
+          "entry": "巴萨拉卡ui/episode_banner_0.png",
+          "basename": "episode_banner_0.png",
+          "size": 130574,
+          "sha256": "35609aef9a854c4091918844f2c5070ddc7afa6a9992cb342aafc0a002b9a197",
+          "reason": "story_asset_not_registered"
+        },
+        {
+          "entry": "巴萨拉卡ui/full_shot_1440_1920_0_resized.png",
+          "basename": "full_shot_1440_1920_0_resized.png",
+          "size": 354766,
+          "sha256": "13645fdbce2c9ac4f42e8b81de6599c2d7a3dac9184b651d3e17017d50871c65",
+          "reason": "resized_preview"
+        },
+        {
+          "entry": "巴萨拉卡ui/full_shot_1440_1920_1_resized.png",
+          "basename": "full_shot_1440_1920_1_resized.png",
+          "size": 422623,
+          "sha256": "091e9b6859d623d3b9e51e7988f246fa3702908addc5cb46deffd82ddddfb987",
+          "reason": "resized_preview"
+        },
+        {
+          "entry": "巴萨拉卡ui/巴萨拉卡初始立绘.png",
+          "basename": "巴萨拉卡初始立绘.png",
+          "size": 798559,
+          "sha256": "8853e6965af6f5b7a2a47d33e774e055cd93b2ade502b689f21a6990c0afad23",
+          "reason": "source_or_reference_art"
+        },
+        {
+          "entry": "巴萨拉卡ui/最终解放巴萨拉卡.png",
+          "basename": "最终解放巴萨拉卡.png",
+          "size": 4023804,
+          "sha256": "d57030aff77cabd9e7dff9b2073e47acf5f2dc05224dbbd4d3a397fbf860875e",
+          "reason": "source_or_reference_art"
+        },
+        {
+          "entry": "巴萨拉卡ui/觉醒巴萨拉卡.png",
+          "basename": "觉醒巴萨拉卡.png",
+          "size": 2764187,
+          "sha256": "5084f8de4b7436d8875c0eb6e422ef02e8540b24b842833fcb4ee8a819d6bdc7",
+          "reason": "source_or_reference_art"
+        }
+      ],
+      "pngs": [
+        {
+          "basename": "battle_control_board_0.png",
+          "logical": "character/vaseraga_dark/ui/battle_control_board_0.png",
+          "root": "medium",
+          "member": "production/medium_upload/10/6cdb6c132430452a91f7d79a3aecd8c5f8875e",
+          "dimensions": [
+            104,
+            268
+          ],
+          "current_dimensions": [
+            104,
+            268
+          ],
+          "dimensions_changed": false,
+          "incoming_mode": "RGBA",
+          "incoming_alpha_bbox": [
+            0,
+            0,
+            104,
+            268
+          ],
+          "incoming_opaque": false,
+          "incoming_sha256": "8b4de69334873ae6558f86d721679a4c7a3d4bfea036b82dc552c9801891a4f6",
+          "stored_sha256": "347706db0d51907ec36c8f9102e5f967b457dae1da1d9657a691708488e7d6f9",
+          "current_mode": "RGBA",
+          "current_alpha_bbox": [
+            0,
+            0,
+            104,
+            265
+          ],
+          "current_opaque": false,
+          "current_standard_sha256": "8a6d328671225ace8baf594abab1b6f6581fc770c8d77bc1cf5ca5140cfec015",
+          "changed": true,
+          "winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/medium_upload/10/6cdb6c132430452a91f7d79a3aecd8c5f8875e",
+            "size": 64616,
+            "sha256": "46c9bdf1454153d168e2a73e3cfa8320358bcc653a63e0f62791910b35244fe2"
+          }
+        },
+        {
+          "basename": "battle_control_board_1.png",
+          "logical": "character/vaseraga_dark/ui/battle_control_board_1.png",
+          "root": "medium",
+          "member": "production/medium_upload/db/5f4e43e11376c3646f61e0d145bf9a84e36f02",
+          "dimensions": [
+            104,
+            268
+          ],
+          "current_dimensions": [
+            104,
+            268
+          ],
+          "dimensions_changed": false,
+          "incoming_mode": "RGBA",
+          "incoming_alpha_bbox": [
+            0,
+            0,
+            104,
+            268
+          ],
+          "incoming_opaque": false,
+          "incoming_sha256": "47e7342c5595037c39f00f867655a09a3d0e3533c435c6be71fff6ad2baa3dcf",
+          "stored_sha256": "1061c920778b34d42f3354eb0fb38e4c70ce8a011a88d7d390c3ec72d9d19c81",
+          "current_mode": "RGBA",
+          "current_alpha_bbox": [
+            2,
+            0,
+            104,
+            268
+          ],
+          "current_opaque": false,
+          "current_standard_sha256": "98b5a1196cfc8c5fbccffeac01dc98da23b893686af983c669c7de3d4d384416",
+          "changed": true,
+          "winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/medium_upload/db/5f4e43e11376c3646f61e0d145bf9a84e36f02",
+            "size": 68704,
+            "sha256": "66e70e4ea585c1530984af4d2365e27cd04ecffe2ab6b8232c62df3cf1f207e2"
+          }
+        },
+        {
+          "basename": "battle_member_status_0.png",
+          "logical": "character/vaseraga_dark/ui/battle_member_status_0.png",
+          "root": "medium",
+          "member": "production/medium_upload/b8/e6568fc662566a0da17f100a2459acc54a11c7",
+          "dimensions": [
+            58,
+            58
+          ],
+          "current_dimensions": [
+            58,
+            58
+          ],
+          "dimensions_changed": false,
+          "incoming_mode": "RGBA",
+          "incoming_alpha_bbox": [
+            0,
+            0,
+            58,
+            58
+          ],
+          "incoming_opaque": false,
+          "incoming_sha256": "4967af8733247a2fd12dc8648a173bc339a7a1394d96504966959c1d57a01b20",
+          "stored_sha256": "5c74fd1b2198edca9fb0306bbecad42cffd33162473066a709489ae77bd3cfe7",
+          "current_mode": "RGBA",
+          "current_alpha_bbox": [
+            0,
+            0,
+            58,
+            58
+          ],
+          "current_opaque": false,
+          "current_standard_sha256": "d38d1fa3b5ba33f4431bec13bfac3ad145b8a4d3338733de5bc9d9e8f2346093",
+          "changed": true,
+          "winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/medium_upload/b8/e6568fc662566a0da17f100a2459acc54a11c7",
+            "size": 9503,
+            "sha256": "fd061f27f9f4de173ac6f0315277a4568fcc1dc43b81bd44ba8907eb7dc9c466"
+          }
+        },
+        {
+          "basename": "battle_member_status_1.png",
+          "logical": "character/vaseraga_dark/ui/battle_member_status_1.png",
+          "root": "medium",
+          "member": "production/medium_upload/84/9e42707e01754831db77b0e7cb7551347d058f",
+          "dimensions": [
+            58,
+            58
+          ],
+          "current_dimensions": [
+            58,
+            58
+          ],
+          "dimensions_changed": false,
+          "incoming_mode": "RGBA",
+          "incoming_alpha_bbox": [
+            0,
+            0,
+            58,
+            58
+          ],
+          "incoming_opaque": false,
+          "incoming_sha256": "fbe747c82b3b7af0bc886841388921cab97060a382b8804b5e14e024b16e2acf",
+          "stored_sha256": "33dc8b21ec88fb919b4e1b622cad3c4437146609b1d8b04d2a2bddcdd66a83ae",
+          "current_mode": "RGBA",
+          "current_alpha_bbox": [
+            0,
+            0,
+            58,
+            58
+          ],
+          "current_opaque": false,
+          "current_standard_sha256": "396fa8163b772304296df1dec152195444826bcbb8ca3b0a137abbe2f978f29c",
+          "changed": true,
+          "winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/medium_upload/84/9e42707e01754831db77b0e7cb7551347d058f",
+            "size": 9689,
+            "sha256": "0ac2c9e332f19fc133ada72ca85fa02770e6e164ca4ee60112ec77259ae7f329"
+          }
+        },
+        {
+          "basename": "cutin_skill_chain_0.png",
+          "logical": "character/vaseraga_dark/ui/cutin_skill_chain_0.png",
+          "root": "medium",
+          "member": "production/medium_upload/1f/99cd5a4e0cf7fafccd20d8d367adadd050e098",
+          "dimensions": [
+            276,
+            319
+          ],
+          "current_dimensions": [
+            276,
+            319
+          ],
+          "dimensions_changed": false,
+          "incoming_mode": "RGBA",
+          "incoming_alpha_bbox": [
+            0,
+            0,
+            276,
+            319
+          ],
+          "incoming_opaque": false,
+          "incoming_sha256": "2471171a8dc34dae0d7b3f522df2195fd0888ce9f7cb76d3a2564601fb62c1fc",
+          "stored_sha256": "739fd26e5026cfe031305042ab91be1df2e480ee334931f1bc361b692069d08e",
+          "current_mode": "RGBA",
+          "current_alpha_bbox": [
+            0,
+            7,
+            276,
+            319
+          ],
+          "current_opaque": false,
+          "current_standard_sha256": "5d3003871f7444c2b0deeccbb538d5e3f3314596acb59c25be75e716199cb109",
+          "changed": true,
+          "winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/medium_upload/1f/99cd5a4e0cf7fafccd20d8d367adadd050e098",
+            "size": 168308,
+            "sha256": "ee4df16b0cf638e92074a45ee3c58d50e2a999c0c952d96b19be30e10df35d2f"
+          }
+        },
+        {
+          "basename": "cutin_skill_chain_1.png",
+          "logical": "character/vaseraga_dark/ui/cutin_skill_chain_1.png",
+          "root": "medium",
+          "member": "production/medium_upload/df/02cbfb14b3a6d38a799d346e266a5a44e42b6c",
+          "dimensions": [
+            276,
+            319
+          ],
+          "current_dimensions": [
+            276,
+            319
+          ],
+          "dimensions_changed": false,
+          "incoming_mode": "RGBA",
+          "incoming_alpha_bbox": [
+            0,
+            0,
+            276,
+            319
+          ],
+          "incoming_opaque": false,
+          "incoming_sha256": "581e8df470972d6d7a219da9fa153f37d8bd7836c33fb8026b5efbbc60b6fb43",
+          "stored_sha256": "8bfb504e7ce0bacadb2d9a7cec1b195e7205cb3d585ba34436950b35a6b10eb3",
+          "current_mode": "RGBA",
+          "current_alpha_bbox": [
+            0,
+            0,
+            276,
+            319
+          ],
+          "current_opaque": false,
+          "current_standard_sha256": "5a2225af18a85e2a6a518d31d95901f6d927f4aabf36ecb626a59ad706901baf",
+          "changed": true,
+          "winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/medium_upload/df/02cbfb14b3a6d38a799d346e266a5a44e42b6c",
+            "size": 180398,
+            "sha256": "5d470bd7ae92205a58582bc58df4801c6924896f67a0275df7f4049475b00f8b"
+          }
+        },
+        {
+          "basename": "full_shot_1440_1920_0.png",
+          "logical": "character/vaseraga_dark/ui/full_shot_1440_1920_0.png",
+          "root": "medium",
+          "member": "production/medium_upload/8e/af146949ae3ee2ee1a9b1d07ae2b7da9241107",
+          "dimensions": [
+            1659,
+            1535
+          ],
+          "current_dimensions": [
+            1896,
+            1740
+          ],
+          "dimensions_changed": true,
+          "incoming_mode": "RGBA",
+          "incoming_alpha_bbox": [
+            0,
+            0,
+            1659,
+            1535
+          ],
+          "incoming_opaque": false,
+          "incoming_sha256": "7b2aed2c8bf116de17b2bc3a59e3a545b3e471fd74fa7c107869d523117fcfd5",
+          "stored_sha256": "0c9bcf0300a1ee0520a7e3a236174616a6367a85751f54068a47535c72ee7914",
+          "current_mode": "RGBA",
+          "current_alpha_bbox": [
+            0,
+            0,
+            1896,
+            1740
+          ],
+          "current_opaque": false,
+          "current_standard_sha256": "11e0ba7ca2b22f09308063f46a3f1b632c3a3a46cc81d9bb77570fb3973ea7d2",
+          "changed": true,
+          "winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/medium_upload/8e/af146949ae3ee2ee1a9b1d07ae2b7da9241107",
+            "size": 2715840,
+            "sha256": "7ee949476163bb3c8307f85900e8609d396a60b5437faebb5fe007746e1a844e"
+          }
+        },
+        {
+          "basename": "full_shot_1440_1920_1.png",
+          "logical": "character/vaseraga_dark/ui/full_shot_1440_1920_1.png",
+          "root": "medium",
+          "member": "production/medium_upload/cd/e6b72f01a46f95671b890d5dfe9f3ba489b480",
+          "dimensions": [
+            1632,
+            1681
+          ],
+          "current_dimensions": [
+            1800,
+            1920
+          ],
+          "dimensions_changed": true,
+          "incoming_mode": "RGBA",
+          "incoming_alpha_bbox": [
+            0,
+            118,
+            1632,
+            1563
+          ],
+          "incoming_opaque": false,
+          "incoming_sha256": "fe1acc728395c4a13c630e8381043e26288b3430a09850fec79b3114d2407f08",
+          "stored_sha256": "7e4bb37e8bf9a4f73aa99c0e6c4d35f4fac36226811edbccd2fccaa6a6166e9b",
+          "current_mode": "RGBA",
+          "current_alpha_bbox": [
+            1,
+            1,
+            1799,
+            1920
+          ],
+          "current_opaque": false,
+          "current_standard_sha256": "e9fa0c69768742eff3abccad4f6eb43b2e37ffc5d90485460aa3827618a0e7c6",
+          "changed": true,
+          "winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/medium_upload/cd/e6b72f01a46f95671b890d5dfe9f3ba489b480",
+            "size": 5343784,
+            "sha256": "a1c85537ffe451e0dbd0beede6c406b74c425d4fd4263d21195655629c0c4f5b"
+          }
+        },
+        {
+          "basename": "illustration_setting_sprite_sheet.png",
+          "logical": "character/vaseraga_dark/ui/illustration_setting_sprite_sheet.png",
+          "root": "medium",
+          "member": "production/medium_upload/e4/7e910cab2e474dc674e053a1941f8995f5e421",
+          "dimensions": [
+            361,
+            789
+          ],
+          "current_dimensions": [
+            363,
+            754
+          ],
+          "dimensions_changed": true,
+          "incoming_mode": "RGBA",
+          "incoming_alpha_bbox": [
+            0,
+            28,
+            361,
+            763
+          ],
+          "incoming_opaque": false,
+          "incoming_sha256": "1750353295c8f3051a4e150969714ad1178389e074e6cf28153a770fff69e000",
+          "stored_sha256": "860411105b40f8d4858173da99ed3d7245d1c0822c20a8fb3b22c7b27900b58e",
+          "current_mode": "RGBA",
+          "current_alpha_bbox": [
+            0,
+            59,
+            363,
+            754
+          ],
+          "current_opaque": false,
+          "current_standard_sha256": "0887c9e985a70f245954aff6280435ac97d59736f036dd4e1af1d3c38b3cc38c",
+          "changed": true,
+          "winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/medium_upload/e4/7e910cab2e474dc674e053a1941f8995f5e421",
+            "size": 372608,
+            "sha256": "1df20bad1dcdd7d09a837f5bca2fda0fa4ddca96b7dc2623789e0aa991449824"
+          }
+        },
+        {
+          "basename": "skill_cutin_0.png",
+          "logical": "character/vaseraga_dark/ui/skill_cutin_0.png",
+          "root": "medium",
+          "member": "production/medium_upload/36/1ed8dd352e957a1aec8a72695ee1d2af0bc149",
+          "dimensions": [
+            1024,
+            512
+          ],
+          "current_dimensions": [
+            1024,
+            512
+          ],
+          "dimensions_changed": false,
+          "incoming_mode": "RGBA",
+          "incoming_alpha_bbox": [
+            0,
+            4,
+            1024,
+            512
+          ],
+          "incoming_opaque": false,
+          "incoming_sha256": "a14d6685e36b985f39227f82daf6dab8e7764871d8a8714c212f18e43f5a5065",
+          "stored_sha256": "fb251c3cc54e9832833ca81be681d2a4e5307f55d4d1dfea4d2a40d42a6c7c55",
+          "current_mode": "RGBA",
+          "current_alpha_bbox": [
+            233,
+            0,
+            791,
+            512
+          ],
+          "current_opaque": false,
+          "current_standard_sha256": "d31468c1c803b66d7424dbd091c406c3fc6fb1d8059054bfc093b95f259abd5c",
+          "changed": true,
+          "winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/medium_upload/36/1ed8dd352e957a1aec8a72695ee1d2af0bc149",
+            "size": 368099,
+            "sha256": "575387936ecab1b0ffe4e9f0e93aa98e41352181c2712fa31d711dd39cb3563a"
+          }
+        },
+        {
+          "basename": "skill_cutin_1.png",
+          "logical": "character/vaseraga_dark/ui/skill_cutin_1.png",
+          "root": "medium",
+          "member": "production/medium_upload/d7/3f97f3e298933035f2a61b33a51509d0c53ac1",
+          "dimensions": [
+            1024,
+            512
+          ],
+          "current_dimensions": [
+            1024,
+            512
+          ],
+          "dimensions_changed": false,
+          "incoming_mode": "RGBA",
+          "incoming_alpha_bbox": [
+            0,
+            0,
+            779,
+            512
+          ],
+          "incoming_opaque": false,
+          "incoming_sha256": "52bb41d4c758b8550d2732f90e5d0cd1db090dc9e174ae765e9fb4990f1b2d84",
+          "stored_sha256": "b79c5097559021b476b0eb76a5654b7f16d2b4635c7796f54d172fab517717f6",
+          "current_mode": "RGBA",
+          "current_alpha_bbox": [
+            5,
+            5,
+            1019,
+            511
+          ],
+          "current_opaque": false,
+          "current_standard_sha256": "04f88686b7dc73c09b6bb0e6d079b9101433feb9cb77a03b9a2ade29d3139de0",
+          "changed": true,
+          "winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/medium_upload/d7/3f97f3e298933035f2a61b33a51509d0c53ac1",
+            "size": 968641,
+            "sha256": "ccbf17b6323cef1a20c2c5a52bcf6b7cc418745458eacc5a7632ec4f28f6abc3"
+          }
+        },
+        {
+          "basename": "square_0.png",
+          "logical": "character/vaseraga_dark/ui/square_0.png",
+          "root": "medium",
+          "member": "production/medium_upload/3b/eb8c6b78688129cf4aa598eb455b0e84f006a0",
+          "dimensions": [
+            212,
+            212
+          ],
+          "current_dimensions": [
+            212,
+            212
+          ],
+          "dimensions_changed": false,
+          "incoming_mode": "RGBA",
+          "incoming_alpha_bbox": [
+            0,
+            0,
+            212,
+            212
+          ],
+          "incoming_opaque": false,
+          "incoming_sha256": "1eaa2eee70f275ffbebaf45dd25077e7e1bd677d6ce0dfa45c40b38c0f969856",
+          "stored_sha256": "a786da1c85f1268f6edbbf4e56fb86ea7c15bcef11ca6a11706abd3fb2c8d269",
+          "current_mode": "RGBA",
+          "current_alpha_bbox": [
+            0,
+            0,
+            212,
+            212
+          ],
+          "current_opaque": false,
+          "current_standard_sha256": "7e0e4c33a9e828584cee2b5ea5eaecff8dcfd4f6383837c506c298365789cd0f",
+          "changed": true,
+          "winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/medium_upload/3b/eb8c6b78688129cf4aa598eb455b0e84f006a0",
+            "size": 98330,
+            "sha256": "a3e61f5213578ec880bec6fd99a11713674e57ff58e0d9ad6f46416c5499eebf"
+          }
+        },
+        {
+          "basename": "square_1.png",
+          "logical": "character/vaseraga_dark/ui/square_1.png",
+          "root": "medium",
+          "member": "production/medium_upload/65/ab22546e61ae661aab63b295d95ac133984bcd",
+          "dimensions": [
+            212,
+            212
+          ],
+          "current_dimensions": [
+            212,
+            212
+          ],
+          "dimensions_changed": false,
+          "incoming_mode": "RGBA",
+          "incoming_alpha_bbox": [
+            0,
+            0,
+            212,
+            212
+          ],
+          "incoming_opaque": false,
+          "incoming_sha256": "4fe80d20c4742286c519f752d5084fed56121e33b21af28f65bf13670bca8f6c",
+          "stored_sha256": "02091c4e8ab72657d1f50cf40ddce3fd588643a8f1a3cd8058481f34c4e1030e",
+          "current_mode": "RGBA",
+          "current_alpha_bbox": [
+            0,
+            0,
+            212,
+            212
+          ],
+          "current_opaque": false,
+          "current_standard_sha256": "e8ecd4cbbadd1140d2b0debb0be2b22779370b9b22176afa44e40843e8c6cb3f",
+          "changed": true,
+          "winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/medium_upload/65/ab22546e61ae661aab63b295d95ac133984bcd",
+            "size": 97926,
+            "sha256": "9ea3d1ac57ce0f2b2bebcc3e43ed85e19c51e6aaff7316c3a758795de529915e"
+          }
+        },
+        {
+          "basename": "square_132_132_0.png",
+          "logical": "character/vaseraga_dark/ui/square_132_132_0.png",
+          "root": "medium",
+          "member": "production/medium_upload/47/d09ba5bb06cb3cf10b077dbab1e26cba901093",
+          "dimensions": [
+            132,
+            132
+          ],
+          "current_dimensions": [
+            132,
+            132
+          ],
+          "dimensions_changed": false,
+          "incoming_mode": "RGBA",
+          "incoming_alpha_bbox": [
+            0,
+            0,
+            132,
+            132
+          ],
+          "incoming_opaque": false,
+          "incoming_sha256": "9b63ae916b89d31ae87ee8a4d80b46d9d31d80408e0e03d7c0dfc504d70c4263",
+          "stored_sha256": "2fae8145f446fff31391f74461d6c2559e3fa6f06d4fa2316adf2b87888486be",
+          "current_mode": "RGBA",
+          "current_alpha_bbox": [
+            0,
+            0,
+            132,
+            132
+          ],
+          "current_opaque": false,
+          "current_standard_sha256": "ce31fa875d985fdc61cf75ab89f2709e505f68de61d13541354cbd5459349277",
+          "changed": true,
+          "winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/medium_upload/47/d09ba5bb06cb3cf10b077dbab1e26cba901093",
+            "size": 42388,
+            "sha256": "ed135e8eceda0f6efec270f8fffd968a549118527648e9cce306509a1064191d"
+          }
+        },
+        {
+          "basename": "square_132_132_1.png",
+          "logical": "character/vaseraga_dark/ui/square_132_132_1.png",
+          "root": "medium",
+          "member": "production/medium_upload/59/9460373c152cd5d43cb6668cc0ae838883396b",
+          "dimensions": [
+            132,
+            132
+          ],
+          "current_dimensions": [
+            132,
+            132
+          ],
+          "dimensions_changed": false,
+          "incoming_mode": "RGBA",
+          "incoming_alpha_bbox": [
+            0,
+            0,
+            132,
+            132
+          ],
+          "incoming_opaque": false,
+          "incoming_sha256": "508dcddac2314394a896be42478a760e6dead77b8602cc2629a42b0e0f29dd1d",
+          "stored_sha256": "2c6fdc6e45621b7d7acfcb2c3abf1e14f03703b5a41787193ddad6196b48f25c",
+          "current_mode": "RGBA",
+          "current_alpha_bbox": [
+            0,
+            0,
+            132,
+            132
+          ],
+          "current_opaque": false,
+          "current_standard_sha256": "04d9d67dc813b6a55ad81388b21678f166ff40be9005f580221b1568979f75e2",
+          "changed": true,
+          "winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/medium_upload/59/9460373c152cd5d43cb6668cc0ae838883396b",
+            "size": 41746,
+            "sha256": "07932a3749444624e2979582d2c3605ad5b38dd2bc56dc500a7604fe4afae5ff"
+          }
+        },
+        {
+          "basename": "square_round_136_136_0.png",
+          "logical": "character/vaseraga_dark/ui/square_round_136_136_0.png",
+          "root": "medium",
+          "member": "production/medium_upload/5a/a59b8d1cff7228a733b7d784c01a13a344eb52",
+          "dimensions": [
+            136,
+            136
+          ],
+          "current_dimensions": [
+            136,
+            136
+          ],
+          "dimensions_changed": false,
+          "incoming_mode": "RGBA",
+          "incoming_alpha_bbox": [
+            0,
+            0,
+            136,
+            136
+          ],
+          "incoming_opaque": false,
+          "incoming_sha256": "fe4139752d9217bbb8baa7bffb18f08449410105610bb352f99a068cd380a373",
+          "stored_sha256": "4e72c4b48504db70717764498f5f15d62fb26f676d95f9f9b5c654883f37ada4",
+          "current_mode": "RGBA",
+          "current_alpha_bbox": [
+            0,
+            0,
+            136,
+            136
+          ],
+          "current_opaque": false,
+          "current_standard_sha256": "12b0f1c77c8a7c25abb47f02a21c93654144d01ba66484f611fd7ada48b41109",
+          "changed": true,
+          "winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/medium_upload/5a/a59b8d1cff7228a733b7d784c01a13a344eb52",
+            "size": 43902,
+            "sha256": "61a98cbd9ca6f08e50543d5d3072533b225bb5fc5c26d3454b38d3ea78fe136f"
+          }
+        },
+        {
+          "basename": "square_round_136_136_1.png",
+          "logical": "character/vaseraga_dark/ui/square_round_136_136_1.png",
+          "root": "medium",
+          "member": "production/medium_upload/b6/f11e5bf7fd728187c191a7422b8b7ef09970d2",
+          "dimensions": [
+            136,
+            136
+          ],
+          "current_dimensions": [
+            136,
+            136
+          ],
+          "dimensions_changed": false,
+          "incoming_mode": "RGBA",
+          "incoming_alpha_bbox": [
+            0,
+            0,
+            136,
+            136
+          ],
+          "incoming_opaque": false,
+          "incoming_sha256": "0af3875426c9b54621dad8691a269455841e85b736b027dc158e909e81ba865a",
+          "stored_sha256": "c3084cc687a9778461668c4b56d91d1419f21e4e3c2ea6491d0f22f32a034b78",
+          "current_mode": "RGBA",
+          "current_alpha_bbox": [
+            0,
+            0,
+            136,
+            136
+          ],
+          "current_opaque": false,
+          "current_standard_sha256": "0ab72f0183af86a531dc95caa6acacfc51969f6530ef5a78fe56f6733997e331",
+          "changed": true,
+          "winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/medium_upload/b6/f11e5bf7fd728187c191a7422b8b7ef09970d2",
+            "size": 43945,
+            "sha256": "1a6d74aa50d43ee5b6047a88729776dc012001bed8ed6b9335cc030f52a3cb04"
+          }
+        },
+        {
+          "basename": "square_round_95_95_0.png",
+          "logical": "character/vaseraga_dark/ui/square_round_95_95_0.png",
+          "root": "medium",
+          "member": "production/medium_upload/1f/a496aeb299d30e5638e9a46cae35bba3107ddb",
+          "dimensions": [
+            95,
+            95
+          ],
+          "current_dimensions": [
+            95,
+            95
+          ],
+          "dimensions_changed": false,
+          "incoming_mode": "RGBA",
+          "incoming_alpha_bbox": [
+            0,
+            0,
+            95,
+            95
+          ],
+          "incoming_opaque": false,
+          "incoming_sha256": "61029ad2ae79fbec7dc1bed805bc71b499ce5142e45af4039db9dc9fd5f81071",
+          "stored_sha256": "56fbfe7f7d6ed28914dd7604cd25ac5c0c6b7211c66e13f61619f0ed1aa17d4d",
+          "current_mode": "RGBA",
+          "current_alpha_bbox": [
+            0,
+            0,
+            95,
+            95
+          ],
+          "current_opaque": false,
+          "current_standard_sha256": "9a34055ae6bdf0f199ee9efe5fd11081be5915f29f053d0add3dd684bf630aa7",
+          "changed": true,
+          "winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/medium_upload/1f/a496aeb299d30e5638e9a46cae35bba3107ddb",
+            "size": 23110,
+            "sha256": "a7831821e4a1a854ccded218590c40dc133ccb24feea4e65a1a56978e460b37a"
+          }
+        },
+        {
+          "basename": "square_round_95_95_1.png",
+          "logical": "character/vaseraga_dark/ui/square_round_95_95_1.png",
+          "root": "medium",
+          "member": "production/medium_upload/be/512f8f83611856526c31c5d6d4be8607d3213a",
+          "dimensions": [
+            95,
+            95
+          ],
+          "current_dimensions": [
+            95,
+            95
+          ],
+          "dimensions_changed": false,
+          "incoming_mode": "RGBA",
+          "incoming_alpha_bbox": [
+            0,
+            0,
+            95,
+            95
+          ],
+          "incoming_opaque": false,
+          "incoming_sha256": "2b7af6f462e34dbbbd6d6c54c5db0f53e64e71c25a69ca1b1aca3839abbbcc87",
+          "stored_sha256": "9ee6f3bd5a4571b34983af94693103e25e9a369f9ac81fb65018bfc772897d53",
+          "current_mode": "RGBA",
+          "current_alpha_bbox": [
+            0,
+            0,
+            95,
+            95
+          ],
+          "current_opaque": false,
+          "current_standard_sha256": "d6b3a73d7538fece84c4f157a50a4e9b81ed98eaa37377a4064cefbeed71797a",
+          "changed": true,
+          "winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/medium_upload/be/512f8f83611856526c31c5d6d4be8607d3213a",
+            "size": 23414,
+            "sha256": "509b43efd623fe0b3d0cdced54107156aef5b0850f122f6cb5acde1adefb3b39"
+          }
+        },
+        {
+          "basename": "thumb_level_up_0.png",
+          "logical": "character/vaseraga_dark/ui/thumb_level_up_0.png",
+          "root": "medium",
+          "member": "production/medium_upload/c8/fd4b84be33034a845930ce1cefba6c1feedd56",
+          "dimensions": [
+            252,
+            329
+          ],
+          "current_dimensions": [
+            252,
+            329
+          ],
+          "dimensions_changed": false,
+          "incoming_mode": "RGBA",
+          "incoming_alpha_bbox": [
+            0,
+            0,
+            252,
+            329
+          ],
+          "incoming_opaque": false,
+          "incoming_sha256": "c91d4bb85be768660f947352fdd2860105ac43e33fdf94aed27c30c39996d57e",
+          "stored_sha256": "382ee3f55814d4f1152b545858f0b06ac57ce42cc8650b9471907a42451f9a5b",
+          "current_mode": "RGBA",
+          "current_alpha_bbox": [
+            0,
+            15,
+            252,
+            329
+          ],
+          "current_opaque": false,
+          "current_standard_sha256": "731b267f872c30b6ca9509fc28c3337714be562f18cda94b5fa28815f5beff12",
+          "changed": true,
+          "winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/medium_upload/c8/fd4b84be33034a845930ce1cefba6c1feedd56",
+            "size": 160887,
+            "sha256": "5421df8b7a11965cc4d1656608670002e2b9959b3008c257d56d08e403631419"
+          }
+        },
+        {
+          "basename": "thumb_level_up_1.png",
+          "logical": "character/vaseraga_dark/ui/thumb_level_up_1.png",
+          "root": "medium",
+          "member": "production/medium_upload/fe/9e5932743e52ca3f58d9ea53855b188d593897",
+          "dimensions": [
+            252,
+            329
+          ],
+          "current_dimensions": [
+            252,
+            329
+          ],
+          "dimensions_changed": false,
+          "incoming_mode": "RGBA",
+          "incoming_alpha_bbox": [
+            0,
+            0,
+            252,
+            329
+          ],
+          "incoming_opaque": false,
+          "incoming_sha256": "334a3980489202f5f5f51febfe2f593a979184700bcd8c810c16b0894770d226",
+          "stored_sha256": "24b7b5ef47bf4fc0c23cbbd9dc75bc584b310bad0ba4f851f38390c9d70fe8c4",
+          "current_mode": "RGBA",
+          "current_alpha_bbox": [
+            0,
+            0,
+            252,
+            329
+          ],
+          "current_opaque": false,
+          "current_standard_sha256": "f8c0d1b8d78e22934bf0e2003b046c54e080e06d4b7cdd769111d4cc934fbf99",
+          "changed": true,
+          "winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/medium_upload/fe/9e5932743e52ca3f58d9ea53855b188d593897",
+            "size": 171450,
+            "sha256": "88e3c72fa068cbccb20d4ff5dd133846156fa02df061c4cf05ebb1471329cd84"
+          }
+        },
+        {
+          "basename": "thumb_party_main_0.png",
+          "logical": "character/vaseraga_dark/ui/thumb_party_main_0.png",
+          "root": "medium",
+          "member": "production/medium_upload/c2/d28e29e85381d6e87b4b4ed7fcb3d97d1b62c9",
+          "dimensions": [
+            186,
+            392
+          ],
+          "current_dimensions": [
+            186,
+            392
+          ],
+          "dimensions_changed": false,
+          "incoming_mode": "RGBA",
+          "incoming_alpha_bbox": [
+            0,
+            0,
+            186,
+            392
+          ],
+          "incoming_opaque": false,
+          "incoming_sha256": "399f2479e15f7b36eec0c9e9f517fe467142a0c013facdd0026a8f766ae0ed45",
+          "stored_sha256": "76cdf3b8db9d100ecd3c55261dfe711f3cb8a548d3d0af4f27110e7a9f6eb8ec",
+          "current_mode": "RGBA",
+          "current_alpha_bbox": [
+            0,
+            0,
+            186,
+            392
+          ],
+          "current_opaque": false,
+          "current_standard_sha256": "995214b6123debfd33b9acf0c241c55baddf148aa217c3cd86dd7d205f1c878b",
+          "changed": true,
+          "winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/medium_upload/c2/d28e29e85381d6e87b4b4ed7fcb3d97d1b62c9",
+            "size": 156939,
+            "sha256": "78c9edd5ba1f07e4a2c2460dd0abcae7228878109219ebb88351d241a09cefe9"
+          }
+        },
+        {
+          "basename": "thumb_party_main_1.png",
+          "logical": "character/vaseraga_dark/ui/thumb_party_main_1.png",
+          "root": "medium",
+          "member": "production/medium_upload/12/5f197ef79ca91ee9d1a432d6a4503ab55484a5",
+          "dimensions": [
+            186,
+            392
+          ],
+          "current_dimensions": [
+            186,
+            392
+          ],
+          "dimensions_changed": false,
+          "incoming_mode": "RGBA",
+          "incoming_alpha_bbox": [
+            0,
+            0,
+            186,
+            392
+          ],
+          "incoming_opaque": false,
+          "incoming_sha256": "85cb5bc7d91499ef514116c58237af216ef35110c4a6873693a66ec1c3155e82",
+          "stored_sha256": "df72ac700587e903ac0b2b65c229deb4f60a20266742ce90ad1ba4be992a6bf6",
+          "current_mode": "RGBA",
+          "current_alpha_bbox": [
+            0,
+            0,
+            186,
+            392
+          ],
+          "current_opaque": false,
+          "current_standard_sha256": "ff5b9aa2f9c88d8db3d419ec6e31e072a566aebc806cb1572b396aa21c49efbd",
+          "changed": true,
+          "winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/medium_upload/12/5f197ef79ca91ee9d1a432d6a4503ab55484a5",
+            "size": 164460,
+            "sha256": "45651ef8e40aea28d034e43cd53c522e876cfdd6b2d2e1ad1099db857ef78dae"
+          }
+        },
+        {
+          "basename": "thumb_party_unison_0.png",
+          "logical": "character/vaseraga_dark/ui/thumb_party_unison_0.png",
+          "root": "medium",
+          "member": "production/medium_upload/6b/232d293afc979beeb633b0efeccae9e11fb749",
+          "dimensions": [
+            144,
+            188
+          ],
+          "current_dimensions": [
+            144,
+            188
+          ],
+          "dimensions_changed": false,
+          "incoming_mode": "RGBA",
+          "incoming_alpha_bbox": [
+            0,
+            0,
+            144,
+            188
+          ],
+          "incoming_opaque": false,
+          "incoming_sha256": "dd7a9cd316efdec784af49f47c1400dbb7fc05322c9cbed5b35da502e345f96c",
+          "stored_sha256": "0b2f2140fa7491581ca35e3516450113ab7c006d125fed2ea7fd2d5fb7498b07",
+          "current_mode": "RGBA",
+          "current_alpha_bbox": [
+            0,
+            0,
+            144,
+            188
+          ],
+          "current_opaque": false,
+          "current_standard_sha256": "f959d86c201853d13ef08e4a211416e60350768dc3d97bbcc3d0823cfc8de470",
+          "changed": true,
+          "winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/medium_upload/6b/232d293afc979beeb633b0efeccae9e11fb749",
+            "size": 63147,
+            "sha256": "527507c78e404bb94080acff172f0d631799627b89313eca98939ffdded74e55"
+          }
+        },
+        {
+          "basename": "thumb_party_unison_1.png",
+          "logical": "character/vaseraga_dark/ui/thumb_party_unison_1.png",
+          "root": "medium",
+          "member": "production/medium_upload/e7/d529e2b4426c385597ece280395e0ec999da78",
+          "dimensions": [
+            144,
+            188
+          ],
+          "current_dimensions": [
+            144,
+            188
+          ],
+          "dimensions_changed": false,
+          "incoming_mode": "RGBA",
+          "incoming_alpha_bbox": [
+            0,
+            0,
+            144,
+            188
+          ],
+          "incoming_opaque": false,
+          "incoming_sha256": "7b7c47872fa1b010c74171fc99be6832157a8aea70190eed80faac8271f5e028",
+          "stored_sha256": "29ddb45301d499369af7dc7af3f0b7a9cab458559f8dd3f0a853900e6a80b0a5",
+          "current_mode": "RGBA",
+          "current_alpha_bbox": [
+            0,
+            0,
+            144,
+            188
+          ],
+          "current_opaque": false,
+          "current_standard_sha256": "0198181eba13e1b5bca7641d7f50c17461dea34589f4a496ca4fff7a4ea676df",
+          "changed": true,
+          "winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/medium_upload/e7/d529e2b4426c385597ece280395e0ec999da78",
+            "size": 62271,
+            "sha256": "00f50c05d4cb9cad52aeb1dc95bc78b801ed7dc875a5c1a3ebe6d55582e9a01a"
+          }
+        }
+      ],
+      "atfs": [
+        {
+          "form": 0,
+          "logical": "character/vaseraga_dark/ui/skill_cutin_0.atf.deflate",
+          "pair": {
+            "w": 1024,
+            "h": 512,
+            "mips": 11,
+            "android_slot": 2,
+            "ios_slot": 3
+          },
+          "android_member": "production/android_upload/ef/554b9081d35434602f40ed18239991184981b2",
+          "android_stored_sha256": "319cad791de9247e3368aa9c21a3548c88687a8bda2dd05825c975451eddd59a",
+          "android_winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/android_upload/ef/554b9081d35434602f40ed18239991184981b2",
+            "size": 110159,
+            "sha256": "013c25c86825fda751007d882d46ea7ad25a624dd00ff5762a74cd52d156af4e"
+          },
+          "ios_member": "production/ios_upload/ef/554b9081d35434602f40ed18239991184981b2",
+          "ios_stored_sha256": "d5f78c0452267fbd7130b8c55ed3416b87d25bc6a8f3467a33a9bc083a6ac62b",
+          "ios_winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/ios_upload/ef/554b9081d35434602f40ed18239991184981b2",
+            "size": 124722,
+            "sha256": "6132bd12f144f0ebd60411249a83194d9e582eff19aa5bb7c6fae9e0e106ad70"
+          }
+        },
+        {
+          "form": 1,
+          "logical": "character/vaseraga_dark/ui/skill_cutin_1.atf.deflate",
+          "pair": {
+            "w": 1024,
+            "h": 512,
+            "mips": 11,
+            "android_slot": 2,
+            "ios_slot": 3
+          },
+          "android_member": "production/android_upload/ca/67152941010095220253439925d70019cbb9f5",
+          "android_stored_sha256": "0ca244bce81c426b2afa5dcd328f82843f4925d7f5253104fc3aab37cb2d304f",
+          "android_winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/android_upload/ca/67152941010095220253439925d70019cbb9f5",
+            "size": 292909,
+            "sha256": "3bc3a04f1966fc08eed34f4c60ee4a3848802a3ca971258a9c7c71dad7bc31a5"
+          },
+          "ios_member": "production/ios_upload/ca/67152941010095220253439925d70019cbb9f5",
+          "ios_stored_sha256": "a957615e7005eddf45a743268ab4534d649de3301c11c840cdd4efaf7b04c389",
+          "ios_winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/ios_upload/ca/67152941010095220253439925d70019cbb9f5",
+            "size": 336609,
+            "sha256": "97a5ad0385b1a2f7ea60facc3a38229f32b67f49cd6b708dac9a69a1faeab4fa"
+          }
+        }
+      ],
+      "qa_contact_sheet": "candidate/qa-vaseraga_dark-current-vs-incoming.png"
+    },
+    {
+      "label": "希耶提",
+      "character_id": 149995,
+      "code": "seofon_wind",
+      "source": "F:\\希耶提ui.zip",
+      "source_size": 65780150,
+      "source_sha256": "bfc579b543cf3624984f96125d9bf75a46a579a19ca47e451e55192f8fa9a34b",
+      "selected_count": 25,
+      "excluded_count": 6,
+      "excluded": [
+        {
+          "entry": "老7ui/episode_banner_0.png",
+          "basename": "episode_banner_0.png",
+          "size": 129195,
+          "sha256": "965cbfa9d03e5a8141445dd0cd36baea52d4e54858f3ee4e6e01a2cfe1786ad9",
+          "reason": "story_asset_not_registered"
+        },
+        {
+          "entry": "老7ui/full_shot_1440_1920_0_resized.png",
+          "basename": "full_shot_1440_1920_0_resized.png",
+          "size": 239643,
+          "sha256": "600530e82df9d9bcfd0d8737112fe641fced53dea6f43ba8dd861688c9e9c79c",
+          "reason": "resized_preview"
+        },
+        {
+          "entry": "老7ui/full_shot_1440_1920_1_resized.png",
+          "basename": "full_shot_1440_1920_1_resized.png",
+          "size": 587380,
+          "sha256": "2e1c72659b6752eeaf9cb39f81b5c8d1c7744e84a7f62be5991eac25a1dff4f4",
+          "reason": "resized_preview"
+        },
+        {
+          "entry": "老7ui/老7.png",
+          "basename": "老7.png",
+          "size": 1127074,
+          "sha256": "26e3518142da5240486ca1742a56b595110923334e8c3a28098ee53bbd5cc7c5",
+          "reason": "source_or_reference_art"
+        },
+        {
+          "entry": "老7ui/觉醒希耶提.png",
+          "basename": "觉醒希耶提.png",
+          "size": 6518853,
+          "sha256": "86bd365b85b417509c4f4850766df5d7c349691f5396493d2d5a162137fdc52e",
+          "reason": "source_or_reference_art"
+        },
+        {
+          "entry": "老7ui/觉醒希耶提.psd",
+          "basename": "觉醒希耶提.psd",
+          "size": 59417927,
+          "sha256": "03025ec01c8c4a0364e995f5ba4cea7a1f0617d3e68349c669d79c7ca23fb4fc",
+          "reason": "layered_source"
+        }
+      ],
+      "pngs": [
+        {
+          "basename": "battle_control_board_0.png",
+          "logical": "character/seofon_wind/ui/battle_control_board_0.png",
+          "root": "medium",
+          "member": "production/medium_upload/35/39416307eae2b336829a889f434b3ac553a7b0",
+          "dimensions": [
+            104,
+            268
+          ],
+          "current_dimensions": [
+            104,
+            268
+          ],
+          "dimensions_changed": false,
+          "incoming_mode": "RGBA",
+          "incoming_alpha_bbox": [
+            0,
+            0,
+            104,
+            268
+          ],
+          "incoming_opaque": false,
+          "incoming_sha256": "d4b0f21e79b18d94817ea798d13f5a2962037f32dd12bc27d30047fb5151804f",
+          "stored_sha256": "09f87c3b0443270bcd741badd4ecd9ed7c161750a6891ea8b2e82b6f24b0bbed",
+          "current_mode": "RGBA",
+          "current_alpha_bbox": [
+            0,
+            0,
+            104,
+            268
+          ],
+          "current_opaque": false,
+          "current_standard_sha256": "32409d1d646a7596f0baf8e292349127f25f714c33ef19030b07c36be8e7419d",
+          "changed": true,
+          "winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/medium_upload/35/39416307eae2b336829a889f434b3ac553a7b0",
+            "size": 70545,
+            "sha256": "f95d2d442b789dc0f3b14ecf8a7110d82805857910e74f618cdc6bb5531edffc"
+          }
+        },
+        {
+          "basename": "battle_control_board_1.png",
+          "logical": "character/seofon_wind/ui/battle_control_board_1.png",
+          "root": "medium",
+          "member": "production/medium_upload/b0/01a6f82056ee21c9c57d70621a27ed248c1d7c",
+          "dimensions": [
+            104,
+            268
+          ],
+          "current_dimensions": [
+            104,
+            268
+          ],
+          "dimensions_changed": false,
+          "incoming_mode": "RGBA",
+          "incoming_alpha_bbox": [
+            0,
+            0,
+            104,
+            268
+          ],
+          "incoming_opaque": false,
+          "incoming_sha256": "7bf2fe85bd5d26251556a4c3b8e528b7b1d62ac43ecd2f7e8aa9046ba5555fe8",
+          "stored_sha256": "29c30a1f3926c667f95041a18f6a5c67d665bd2eff2b84125ffef02f234f84c5",
+          "current_mode": "RGBA",
+          "current_alpha_bbox": [
+            0,
+            0,
+            104,
+            268
+          ],
+          "current_opaque": false,
+          "current_standard_sha256": "420ee9241fe8a8c09332643d9051ef475cd1dd786350e60aff89730f47b0f984",
+          "changed": true,
+          "winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/medium_upload/b0/01a6f82056ee21c9c57d70621a27ed248c1d7c",
+            "size": 73483,
+            "sha256": "4ba054f320012bb7bce4d1d66327c936e305dc34ed9e9edf0d78747e24fb1d45"
+          }
+        },
+        {
+          "basename": "battle_member_status_0.png",
+          "logical": "character/seofon_wind/ui/battle_member_status_0.png",
+          "root": "medium",
+          "member": "production/medium_upload/fb/411b02417803df1fb9d9eda6b84b3df459f5e0",
+          "dimensions": [
+            58,
+            58
+          ],
+          "current_dimensions": [
+            58,
+            58
+          ],
+          "dimensions_changed": false,
+          "incoming_mode": "RGBA",
+          "incoming_alpha_bbox": [
+            0,
+            0,
+            58,
+            58
+          ],
+          "incoming_opaque": false,
+          "incoming_sha256": "37710590fd97c317fb8d7bd00b3503464c4b6d47d1e317ce17d8b484f716793a",
+          "stored_sha256": "c7071bf3aa2f89301a8c178c195dfa26c9bfdd62f2ee8960aa011ac3f78fddf0",
+          "current_mode": "RGBA",
+          "current_alpha_bbox": [
+            0,
+            0,
+            58,
+            58
+          ],
+          "current_opaque": false,
+          "current_standard_sha256": "81fcbab4ed61360b614677c7e8bf29187c94252050e829eb0b108845d9e6ca53",
+          "changed": true,
+          "winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/medium_upload/fb/411b02417803df1fb9d9eda6b84b3df459f5e0",
+            "size": 9730,
+            "sha256": "0a84613f829784fa245257c065dd2c6d2059b3bca86bfcd9e14a5817dcfdc00d"
+          }
+        },
+        {
+          "basename": "battle_member_status_1.png",
+          "logical": "character/seofon_wind/ui/battle_member_status_1.png",
+          "root": "medium",
+          "member": "production/medium_upload/15/a3e4fa936f3510a0b07c49826ed8a48be3a62f",
+          "dimensions": [
+            58,
+            58
+          ],
+          "current_dimensions": [
+            58,
+            58
+          ],
+          "dimensions_changed": false,
+          "incoming_mode": "RGBA",
+          "incoming_alpha_bbox": [
+            0,
+            0,
+            58,
+            58
+          ],
+          "incoming_opaque": false,
+          "incoming_sha256": "bffc93a62e33164acd3c4b1b6f80eae0755bd92e2c18d28bb61f72c80fae38c6",
+          "stored_sha256": "ba4b910ac6b1884483c9f5111f11430e728b350c1f3615d30cf9b36ff65c2abe",
+          "current_mode": "RGBA",
+          "current_alpha_bbox": [
+            0,
+            0,
+            58,
+            58
+          ],
+          "current_opaque": false,
+          "current_standard_sha256": "eb54d02e5d7579e88ef75c0e0118059096ce2c7b54bd3fb25bf412782a3595da",
+          "changed": true,
+          "winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/medium_upload/15/a3e4fa936f3510a0b07c49826ed8a48be3a62f",
+            "size": 10068,
+            "sha256": "6547dd7f7f0d4192a4370fd7954adeacc2a1a1eb1c689a928b0779151db91027"
+          }
+        },
+        {
+          "basename": "cutin_skill_chain_0.png",
+          "logical": "character/seofon_wind/ui/cutin_skill_chain_0.png",
+          "root": "medium",
+          "member": "production/medium_upload/fe/8852e93862f16652277ddf19760dd935888458",
+          "dimensions": [
+            276,
+            319
+          ],
+          "current_dimensions": [
+            276,
+            319
+          ],
+          "dimensions_changed": false,
+          "incoming_mode": "RGBA",
+          "incoming_alpha_bbox": [
+            0,
+            0,
+            276,
+            319
+          ],
+          "incoming_opaque": false,
+          "incoming_sha256": "dffa1198111fee60f30fe3c78462d7227c1c919704c3694f5b79bb3b6654ef4d",
+          "stored_sha256": "261103dd084b2f03350ec6d00af9a0e461b2def0797add06158115be92d8b176",
+          "current_mode": "RGBA",
+          "current_alpha_bbox": [
+            0,
+            10,
+            275,
+            319
+          ],
+          "current_opaque": false,
+          "current_standard_sha256": "a0807c6d424c0a1021e65438154a23e0fd910a023f7b8757a86dec8373b7e2cd",
+          "changed": true,
+          "winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/medium_upload/fe/8852e93862f16652277ddf19760dd935888458",
+            "size": 175738,
+            "sha256": "0c4752bf876b28723a8e553a3eea8fcbfc019bef3454d65e77c67b58455b541e"
+          }
+        },
+        {
+          "basename": "cutin_skill_chain_1.png",
+          "logical": "character/seofon_wind/ui/cutin_skill_chain_1.png",
+          "root": "medium",
+          "member": "production/medium_upload/9c/4839f9b2aeed59fc90e6a2e4009cf566689fda",
+          "dimensions": [
+            276,
+            319
+          ],
+          "current_dimensions": [
+            276,
+            319
+          ],
+          "dimensions_changed": false,
+          "incoming_mode": "RGBA",
+          "incoming_alpha_bbox": [
+            0,
+            0,
+            276,
+            319
+          ],
+          "incoming_opaque": false,
+          "incoming_sha256": "b4ffa029a54a70c44823361835a4e6f114654a187a776bcb5ca869df1a13f0e8",
+          "stored_sha256": "2222ea82a99a7b8f7593424f94792ad08dcc547b067c3e33617225ddc7e580be",
+          "current_mode": "RGBA",
+          "current_alpha_bbox": [
+            0,
+            0,
+            276,
+            319
+          ],
+          "current_opaque": false,
+          "current_standard_sha256": "860ddbb5f0b0184ecb038a99e69005660859b819dd2e72d5ea39b45cd6727d55",
+          "changed": true,
+          "winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/medium_upload/9c/4839f9b2aeed59fc90e6a2e4009cf566689fda",
+            "size": 199716,
+            "sha256": "3e2b8bc1fe44e4fdab08da08f6dea781ee4999dd30a4c1d067cb8b60a326b2ad"
+          }
+        },
+        {
+          "basename": "full_shot_1440_1920_0.png",
+          "logical": "character/seofon_wind/ui/full_shot_1440_1920_0.png",
+          "root": "medium",
+          "member": "production/medium_upload/58/37896ccbf02c4d0f03013325c373798f300039",
+          "dimensions": [
+            1659,
+            1535
+          ],
+          "current_dimensions": [
+            1774,
+            1769
+          ],
+          "dimensions_changed": true,
+          "incoming_mode": "RGBA",
+          "incoming_alpha_bbox": [
+            60,
+            13,
+            1596,
+            1531
+          ],
+          "incoming_opaque": false,
+          "incoming_sha256": "c9bea2ee6da820a7f424f0f297182a5334cee87b03af9e48ea29a7259d7ac469",
+          "stored_sha256": "7ef9d54f2afbef0a67bc2edd8726265239057f0c9acad1b8e64ad5d59020af20",
+          "current_mode": "RGBA",
+          "current_alpha_bbox": [
+            0,
+            0,
+            1774,
+            1769
+          ],
+          "current_opaque": false,
+          "current_standard_sha256": "f8dc12bb14c052ce7d4bc125a93913f70e9b30d4d7f6f8810ea1131ca28c3337",
+          "changed": true,
+          "winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/medium_upload/58/37896ccbf02c4d0f03013325c373798f300039",
+            "size": 2072965,
+            "sha256": "cfc96455075ca9498155519c7aea32213ddd1c9621d398c7226a74259364b0d4"
+          }
+        },
+        {
+          "basename": "full_shot_1440_1920_1.png",
+          "logical": "character/seofon_wind/ui/full_shot_1440_1920_1.png",
+          "root": "medium",
+          "member": "production/medium_upload/9b/e5ada29ae297cb7b2adc63df7596f4226c07d9",
+          "dimensions": [
+            1632,
+            1681
+          ],
+          "current_dimensions": [
+            1741,
+            1772
+          ],
+          "dimensions_changed": true,
+          "incoming_mode": "RGBA",
+          "incoming_alpha_bbox": [
+            4,
+            35,
+            1628,
+            1646
+          ],
+          "incoming_opaque": false,
+          "incoming_sha256": "df409a2216d341f7e8d7ba7b69e88dc44a7a15fe1ea13f7796f220c20bef691a",
+          "stored_sha256": "a38807324c7134b08e7b1147167202d472a55f11da91882051c72fe7b2918419",
+          "current_mode": "RGBA",
+          "current_alpha_bbox": [
+            1,
+            1,
+            1740,
+            1771
+          ],
+          "current_opaque": false,
+          "current_standard_sha256": "d9cf81dc8377e5ecc60899c9ccb6f2188c220c1223c5a8376d4af3b6461c3c11",
+          "changed": true,
+          "winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/medium_upload/9b/e5ada29ae297cb7b2adc63df7596f4226c07d9",
+            "size": 5671156,
+            "sha256": "9b483832fc3c4be7daa3ccafa4769f10abe8528236a7963ea0f20caa75e4863d"
+          }
+        },
+        {
+          "basename": "illustration_setting_sprite_sheet.png",
+          "logical": "character/seofon_wind/ui/illustration_setting_sprite_sheet.png",
+          "root": "medium",
+          "member": "production/medium_upload/82/afc8200078e9a47824288bad614d08edaadd7b",
+          "dimensions": [
+            361,
+            789
+          ],
+          "current_dimensions": [
+            363,
+            781
+          ],
+          "dimensions_changed": true,
+          "incoming_mode": "RGBA",
+          "incoming_alpha_bbox": [
+            1,
+            31,
+            360,
+            781
+          ],
+          "incoming_opaque": false,
+          "incoming_sha256": "13fd37cc36f33949c23474ec47bf86b0edcaf531ae42ac2d098e0129e8e230ca",
+          "stored_sha256": "b09b5c6614cbc3ea353ae1e66ed278a4e465bc496d09ce7fa637360cbd494c61",
+          "current_mode": "RGBA",
+          "current_alpha_bbox": [
+            0,
+            0,
+            363,
+            781
+          ],
+          "current_opaque": false,
+          "current_standard_sha256": "340904ad43c95a992e34b53bba45527f63a9bb7ca536e294cef81a4277ef7c62",
+          "changed": true,
+          "winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/medium_upload/82/afc8200078e9a47824288bad614d08edaadd7b",
+            "size": 504557,
+            "sha256": "baf61f72f793ed49bd24b86dee96427fba9a8d71159a62429b544842435e683b"
+          }
+        },
+        {
+          "basename": "skill_cutin_0.png",
+          "logical": "character/seofon_wind/ui/skill_cutin_0.png",
+          "root": "medium",
+          "member": "production/medium_upload/40/8fee3e1a1857eb4a9ee6ff1d4b36bda8741136",
+          "dimensions": [
+            1024,
+            512
+          ],
+          "current_dimensions": [
+            1024,
+            512
+          ],
+          "dimensions_changed": false,
+          "incoming_mode": "RGBA",
+          "incoming_alpha_bbox": [
+            85,
+            0,
+            911,
+            512
+          ],
+          "incoming_opaque": false,
+          "incoming_sha256": "847c814189842891f94f727deffd1a4bc41500b1e74f45a878b6bcd09b76f928",
+          "stored_sha256": "5dcff3fa0bd1c2fde29c96037b4e6d6281d99edb9fdc0bb27c4783fa3ca99281",
+          "current_mode": "RGBA",
+          "current_alpha_bbox": [
+            175,
+            64,
+            644,
+            512
+          ],
+          "current_opaque": false,
+          "current_standard_sha256": "03295afb92d9ff33f36d9370a7e9823403568ff339b786a497514a50309aae29",
+          "changed": true,
+          "winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/medium_upload/40/8fee3e1a1857eb4a9ee6ff1d4b36bda8741136",
+            "size": 316429,
+            "sha256": "3f68948271c197072649a81f91538370c45c6af8e481bed66491a9cb4d4601bd"
+          }
+        },
+        {
+          "basename": "skill_cutin_1.png",
+          "logical": "character/seofon_wind/ui/skill_cutin_1.png",
+          "root": "medium",
+          "member": "production/medium_upload/07/031f0ce7c605eb129226613727708b998d10b8",
+          "dimensions": [
+            1024,
+            512
+          ],
+          "current_dimensions": [
+            1024,
+            512
+          ],
+          "dimensions_changed": false,
+          "incoming_mode": "RGBA",
+          "incoming_alpha_bbox": [
+            0,
+            0,
+            780,
+            512
+          ],
+          "incoming_opaque": false,
+          "incoming_sha256": "f78e2b253ff1fc884efe3bb97708ad7e2d845f250f79a52fb4d4759dc25b09d2",
+          "stored_sha256": "00a4773b99864f464a0fb0ec02a538739fce8028dd64434369a3a41422ecce0e",
+          "current_mode": "RGBA",
+          "current_alpha_bbox": [
+            94,
+            62,
+            835,
+            512
+          ],
+          "current_opaque": false,
+          "current_standard_sha256": "933123eb6d7794a4d9a2e1b34e3738d116d8ef94f029639bbcdf7b413d26a26a",
+          "changed": true,
+          "winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/medium_upload/07/031f0ce7c605eb129226613727708b998d10b8",
+            "size": 409316,
+            "sha256": "8ce9aea622ebbad185249fa18c852f6af7f339bf195ad67e41facf7226746832"
+          }
+        },
+        {
+          "basename": "square_0.png",
+          "logical": "character/seofon_wind/ui/square_0.png",
+          "root": "medium",
+          "member": "production/medium_upload/4e/ee888c94e6ed5b8e652877a1bbc8e853025a4d",
+          "dimensions": [
+            212,
+            212
+          ],
+          "current_dimensions": [
+            212,
+            212
+          ],
+          "dimensions_changed": false,
+          "incoming_mode": "RGBA",
+          "incoming_alpha_bbox": [
+            0,
+            0,
+            212,
+            212
+          ],
+          "incoming_opaque": false,
+          "incoming_sha256": "e08b44ebf04bb5e88d0972b0539352cf1e3c8a4ee11c8f845f1f2ae6fe60953d",
+          "stored_sha256": "e85595ac3c660f91dded01d5c2b5cff4360d6d11fcd8a63ba3a42f05dc169e48",
+          "current_mode": "RGBA",
+          "current_alpha_bbox": [
+            0,
+            0,
+            212,
+            212
+          ],
+          "current_opaque": false,
+          "current_standard_sha256": "3e9714a9317e95e66f911d03e3980cf00066d61c6281b13201abfe87e9683c44",
+          "changed": true,
+          "winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/medium_upload/4e/ee888c94e6ed5b8e652877a1bbc8e853025a4d",
+            "size": 98909,
+            "sha256": "2d14337890034c5b2e5a1f8a1d3db45b7b709abc8c4d3dfa83074830e4ac1290"
+          }
+        },
+        {
+          "basename": "square_1.png",
+          "logical": "character/seofon_wind/ui/square_1.png",
+          "root": "medium",
+          "member": "production/medium_upload/0a/6f1fc6aaefa45709eddd87cc35c42aee210914",
+          "dimensions": [
+            212,
+            212
+          ],
+          "current_dimensions": [
+            212,
+            212
+          ],
+          "dimensions_changed": false,
+          "incoming_mode": "RGB",
+          "incoming_alpha_bbox": [
+            0,
+            0,
+            212,
+            212
+          ],
+          "incoming_opaque": true,
+          "incoming_sha256": "1ac0ce9f555ba7f1dc62c380d8df440ee2d69ae3b677432be38aa5599cc8409a",
+          "stored_sha256": "4b6a5dc397c5c710620c4876f13f2a1f8ba7e9accb37c021d3d476abeacf0b01",
+          "current_mode": "RGBA",
+          "current_alpha_bbox": [
+            0,
+            0,
+            212,
+            212
+          ],
+          "current_opaque": false,
+          "current_standard_sha256": "4661055b6bcd14787e9641c98be688cf3b544257ed4ad306f90436d3dacfcba4",
+          "changed": true,
+          "winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/medium_upload/0a/6f1fc6aaefa45709eddd87cc35c42aee210914",
+            "size": 104318,
+            "sha256": "d563f4adaba870a0781b719c788b3eac495992238b9dac8bd7d1d499c2d28b70"
+          }
+        },
+        {
+          "basename": "square_132_132_0.png",
+          "logical": "character/seofon_wind/ui/square_132_132_0.png",
+          "root": "medium",
+          "member": "production/medium_upload/6e/158911105e5b38e11ff14970538f21263606af",
+          "dimensions": [
+            132,
+            132
+          ],
+          "current_dimensions": [
+            132,
+            132
+          ],
+          "dimensions_changed": false,
+          "incoming_mode": "RGBA",
+          "incoming_alpha_bbox": [
+            0,
+            0,
+            132,
+            132
+          ],
+          "incoming_opaque": false,
+          "incoming_sha256": "ddaecbb0b156d353b944186a0c6d324e27ba4115406a5c7cd48879c15c23aec5",
+          "stored_sha256": "671aeb204867a2f99b8be0b1b98edadc143e0bc71c9af897d8497dbfdb89fc0a",
+          "current_mode": "RGBA",
+          "current_alpha_bbox": [
+            0,
+            0,
+            132,
+            132
+          ],
+          "current_opaque": false,
+          "current_standard_sha256": "4bdb14ef725a6372f1d9466b674ccb3b1c8880da9d68ea9312897f7b2f292a36",
+          "changed": true,
+          "winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/medium_upload/6e/158911105e5b38e11ff14970538f21263606af",
+            "size": 42034,
+            "sha256": "d420b1f09c187bf9c0d1f3d81ae8460e6b5ff229387e3eb693e561f307779674"
+          }
+        },
+        {
+          "basename": "square_132_132_1.png",
+          "logical": "character/seofon_wind/ui/square_132_132_1.png",
+          "root": "medium",
+          "member": "production/medium_upload/b0/0620f60cfcddad31d3ac47884d2a52e4b223b1",
+          "dimensions": [
+            132,
+            132
+          ],
+          "current_dimensions": [
+            132,
+            132
+          ],
+          "dimensions_changed": false,
+          "incoming_mode": "RGBA",
+          "incoming_alpha_bbox": [
+            0,
+            0,
+            132,
+            132
+          ],
+          "incoming_opaque": false,
+          "incoming_sha256": "535cacc42aa5e639a7cb580f04f7452f64246b59df564a1c98df858b2663bf89",
+          "stored_sha256": "f032914dfa40e7adb246aa79cccd783d3ea426e5e5aeda878ab0f78e741f6fdd",
+          "current_mode": "RGBA",
+          "current_alpha_bbox": [
+            0,
+            0,
+            132,
+            132
+          ],
+          "current_opaque": false,
+          "current_standard_sha256": "7d7270dfde04ea225ce9167357c549d16fa37056375e45a854016c85ef2eb175",
+          "changed": true,
+          "winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/medium_upload/b0/0620f60cfcddad31d3ac47884d2a52e4b223b1",
+            "size": 44942,
+            "sha256": "53a2b9747db75470b4dc00092a2ba90e0b9913ec245e1f5a91ae90f7fa39733b"
+          }
+        },
+        {
+          "basename": "square_round_136_136_0.png",
+          "logical": "character/seofon_wind/ui/square_round_136_136_0.png",
+          "root": "medium",
+          "member": "production/medium_upload/da/341fec8cbe569d76ad35e586ee2a63d369e6f7",
+          "dimensions": [
+            136,
+            136
+          ],
+          "current_dimensions": [
+            136,
+            136
+          ],
+          "dimensions_changed": false,
+          "incoming_mode": "RGBA",
+          "incoming_alpha_bbox": [
+            0,
+            0,
+            136,
+            136
+          ],
+          "incoming_opaque": false,
+          "incoming_sha256": "554a170d05125ed26c63c3a7d7ea1c442dabd034f3009e59e1dc5aeff6ef7ec8",
+          "stored_sha256": "a7ac467f8192f00d1984e21335a06f21329f860e6585c20702c9ef497e1e6c44",
+          "current_mode": "RGBA",
+          "current_alpha_bbox": [
+            0,
+            0,
+            136,
+            136
+          ],
+          "current_opaque": false,
+          "current_standard_sha256": "a7d78fba03f397ba49c25b6a5767808e86722c5ec71e7b9d46bbe7a3194a2278",
+          "changed": true,
+          "winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/medium_upload/da/341fec8cbe569d76ad35e586ee2a63d369e6f7",
+            "size": 43216,
+            "sha256": "eb006ddad7add61760827133ee23648610700e02625513f196f0571b42940ba9"
+          }
+        },
+        {
+          "basename": "square_round_136_136_1.png",
+          "logical": "character/seofon_wind/ui/square_round_136_136_1.png",
+          "root": "medium",
+          "member": "production/medium_upload/46/dcf4b634d2129329bc1627783008e5763e2c16",
+          "dimensions": [
+            136,
+            136
+          ],
+          "current_dimensions": [
+            136,
+            136
+          ],
+          "dimensions_changed": false,
+          "incoming_mode": "RGBA",
+          "incoming_alpha_bbox": [
+            0,
+            0,
+            136,
+            136
+          ],
+          "incoming_opaque": false,
+          "incoming_sha256": "22592d7c864999fd8b495b0fbde74fae853314f0a5c47c319dab1ff51dcdc219",
+          "stored_sha256": "da958a7a99f552ed3ebb993d744b71173c89f87aee720cfbf6ba788b06249ac4",
+          "current_mode": "RGBA",
+          "current_alpha_bbox": [
+            0,
+            0,
+            136,
+            136
+          ],
+          "current_opaque": false,
+          "current_standard_sha256": "68b588b02054ed7a5751358e64f66a2cdd53dbe2e26cf8d00c00494cc1a1d67c",
+          "changed": true,
+          "winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/medium_upload/46/dcf4b634d2129329bc1627783008e5763e2c16",
+            "size": 47958,
+            "sha256": "6fe3a7dff025d885043d72fba7668db618f5e9288c550cdcc08627576a1a404a"
+          }
+        },
+        {
+          "basename": "square_round_95_95_0.png",
+          "logical": "character/seofon_wind/ui/square_round_95_95_0.png",
+          "root": "medium",
+          "member": "production/medium_upload/63/78f12dc0da0d713df499623e30b3ee35ad0a9c",
+          "dimensions": [
+            95,
+            95
+          ],
+          "current_dimensions": [
+            95,
+            95
+          ],
+          "dimensions_changed": false,
+          "incoming_mode": "RGBA",
+          "incoming_alpha_bbox": [
+            0,
+            0,
+            95,
+            95
+          ],
+          "incoming_opaque": false,
+          "incoming_sha256": "299e0f4d1cfe0788c599440f4230c63f191791ca7e13141e884f076636f5c978",
+          "stored_sha256": "d1b8deb4e6c31c345626a4c134fd8c323c3cda8959920b1344ea8e4f7eed8977",
+          "current_mode": "RGBA",
+          "current_alpha_bbox": [
+            0,
+            0,
+            95,
+            95
+          ],
+          "current_opaque": false,
+          "current_standard_sha256": "f291ca6d4f129762df3cae770dea11fa992354a949f3d5eb0b2944184ef2418d",
+          "changed": true,
+          "winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/medium_upload/63/78f12dc0da0d713df499623e30b3ee35ad0a9c",
+            "size": 22923,
+            "sha256": "ab3829335ab966aa8febf36cd49693e826e3e553e827e431c0aad32ba20c28bd"
+          }
+        },
+        {
+          "basename": "square_round_95_95_1.png",
+          "logical": "character/seofon_wind/ui/square_round_95_95_1.png",
+          "root": "medium",
+          "member": "production/medium_upload/7d/439bef73b176602a591c21e87a9796a3351828",
+          "dimensions": [
+            95,
+            95
+          ],
+          "current_dimensions": [
+            95,
+            95
+          ],
+          "dimensions_changed": false,
+          "incoming_mode": "RGBA",
+          "incoming_alpha_bbox": [
+            0,
+            0,
+            95,
+            95
+          ],
+          "incoming_opaque": false,
+          "incoming_sha256": "112e752a204b57cabe461e31d0c0cc53809a1c3de3b08441af1af771c99fd650",
+          "stored_sha256": "d585a97ac66f716367bfb364b2f5c7c75e6d6d3542b179bfa633765e0d210028",
+          "current_mode": "RGBA",
+          "current_alpha_bbox": [
+            0,
+            0,
+            95,
+            95
+          ],
+          "current_opaque": false,
+          "current_standard_sha256": "52d27af44e2a23f60c767bf590453b28043568c6995c43d2dcf0a590e3d2b5e3",
+          "changed": true,
+          "winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/medium_upload/7d/439bef73b176602a591c21e87a9796a3351828",
+            "size": 24846,
+            "sha256": "a1fb27555cd9607199cfc3d19b3ed11a25de0396a9a6df593e32b0c329e449cc"
+          }
+        },
+        {
+          "basename": "thumb_level_up_0.png",
+          "logical": "character/seofon_wind/ui/thumb_level_up_0.png",
+          "root": "medium",
+          "member": "production/medium_upload/b8/2049d0730a8a1438bb42c2b47026cfaaec383c",
+          "dimensions": [
+            252,
+            329
+          ],
+          "current_dimensions": [
+            252,
+            329
+          ],
+          "dimensions_changed": false,
+          "incoming_mode": "RGBA",
+          "incoming_alpha_bbox": [
+            0,
+            0,
+            252,
+            329
+          ],
+          "incoming_opaque": false,
+          "incoming_sha256": "94afad302925116bd3ef2c314cdc6aa5ff7cca99bb9496939ca50d22f7162957",
+          "stored_sha256": "ca5928aaf674d62b7e5656f444d795d6e507396183bcbee3661272e87aa6ffb8",
+          "current_mode": "RGBA",
+          "current_alpha_bbox": [
+            0,
+            0,
+            252,
+            329
+          ],
+          "current_opaque": false,
+          "current_standard_sha256": "54712e689d40d2f2bf63faa22bf13dfe42a979edb2669236e587b79f285fec37",
+          "changed": true,
+          "winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/medium_upload/b8/2049d0730a8a1438bb42c2b47026cfaaec383c",
+            "size": 170466,
+            "sha256": "fcbdf9a0832d68fe93bb89336b7b7a00f8e629ca9cae9f6e42a5ed776c6de172"
+          }
+        },
+        {
+          "basename": "thumb_level_up_1.png",
+          "logical": "character/seofon_wind/ui/thumb_level_up_1.png",
+          "root": "medium",
+          "member": "production/medium_upload/a5/baee2a4f2e5180ae52b1846de8942101802722",
+          "dimensions": [
+            252,
+            329
+          ],
+          "current_dimensions": [
+            252,
+            329
+          ],
+          "dimensions_changed": false,
+          "incoming_mode": "RGB",
+          "incoming_alpha_bbox": [
+            0,
+            0,
+            252,
+            329
+          ],
+          "incoming_opaque": true,
+          "incoming_sha256": "ea9e980bbd4466223ad67b8f2553472e3c3e4bb61693d6e7ac8288f4d6b94d4a",
+          "stored_sha256": "e7deab4427b4a9ab779d2d295715f1ac83d9b4b156db51bb75a02706713d5989",
+          "current_mode": "RGBA",
+          "current_alpha_bbox": [
+            0,
+            0,
+            252,
+            329
+          ],
+          "current_opaque": false,
+          "current_standard_sha256": "785ff651f31863060c1dbc20d4962e9098f07bd356cef0682c17ff3e47ca08dd",
+          "changed": true,
+          "winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/medium_upload/a5/baee2a4f2e5180ae52b1846de8942101802722",
+            "size": 187612,
+            "sha256": "365de15c1e278b609a03b243073796b20eb2d18ab8d7f8cc8333e51f778eda6b"
+          }
+        },
+        {
+          "basename": "thumb_party_main_0.png",
+          "logical": "character/seofon_wind/ui/thumb_party_main_0.png",
+          "root": "medium",
+          "member": "production/medium_upload/5e/507f5c41142573efa535bb38190d1d5c371621",
+          "dimensions": [
+            186,
+            392
+          ],
+          "current_dimensions": [
+            186,
+            392
+          ],
+          "dimensions_changed": false,
+          "incoming_mode": "RGBA",
+          "incoming_alpha_bbox": [
+            0,
+            0,
+            186,
+            392
+          ],
+          "incoming_opaque": false,
+          "incoming_sha256": "bcf4e31d8d54f7123a2107f6c2947ac5719837fcbff662027565caf5ad45b2d6",
+          "stored_sha256": "b5db05787347e106059250252b78498920f990435894a2efd3f4bbeb98c24687",
+          "current_mode": "RGBA",
+          "current_alpha_bbox": [
+            0,
+            0,
+            186,
+            392
+          ],
+          "current_opaque": false,
+          "current_standard_sha256": "15d4a092fef8f637f832469feef3d7b8fff669daa3ad8edac1f97bcf9f3966af",
+          "changed": true,
+          "winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/medium_upload/5e/507f5c41142573efa535bb38190d1d5c371621",
+            "size": 169345,
+            "sha256": "5b265c0e7e129971a44981e46d157781be1878c0348fccc1410f3258b54c8da5"
+          }
+        },
+        {
+          "basename": "thumb_party_main_1.png",
+          "logical": "character/seofon_wind/ui/thumb_party_main_1.png",
+          "root": "medium",
+          "member": "production/medium_upload/24/95833545f5dd9b0d7e387fc7db44f9193751e5",
+          "dimensions": [
+            186,
+            392
+          ],
+          "current_dimensions": [
+            186,
+            392
+          ],
+          "dimensions_changed": false,
+          "incoming_mode": "RGB",
+          "incoming_alpha_bbox": [
+            0,
+            0,
+            186,
+            392
+          ],
+          "incoming_opaque": true,
+          "incoming_sha256": "3b6563e4b6b4690681fdfb2fe1135f511b242f438d3576dc44dc8dc038db28db",
+          "stored_sha256": "aab07393f31b49a9c70b5fa15cf07e24cd6e2cc9d3a2f7aac899ef7115dd266a",
+          "current_mode": "RGBA",
+          "current_alpha_bbox": [
+            0,
+            0,
+            186,
+            392
+          ],
+          "current_opaque": false,
+          "current_standard_sha256": "a1c4b4227615291a9412cfa6813970352c4f7b028490a8a003bda4c1bcec35c8",
+          "changed": true,
+          "winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/medium_upload/24/95833545f5dd9b0d7e387fc7db44f9193751e5",
+            "size": 174480,
+            "sha256": "3d7bdaa20dd3cff9170dfa59bf10fc952bf5218f66719aa39c9536f0eb4e96d4"
+          }
+        },
+        {
+          "basename": "thumb_party_unison_0.png",
+          "logical": "character/seofon_wind/ui/thumb_party_unison_0.png",
+          "root": "medium",
+          "member": "production/medium_upload/f4/02ee5ec61361cc7042957b4b7cbb2e42af2925",
+          "dimensions": [
+            144,
+            188
+          ],
+          "current_dimensions": [
+            144,
+            188
+          ],
+          "dimensions_changed": false,
+          "incoming_mode": "RGBA",
+          "incoming_alpha_bbox": [
+            0,
+            0,
+            144,
+            188
+          ],
+          "incoming_opaque": false,
+          "incoming_sha256": "0501896761933a7da3ac518412e0ee484f8385ca402158cd8f1be5ffe7a78e61",
+          "stored_sha256": "afbf0bd5cbe6c4254b8c2f6b20571fbe805d33507dcf888384c6b392fb097f47",
+          "current_mode": "RGBA",
+          "current_alpha_bbox": [
+            0,
+            0,
+            144,
+            188
+          ],
+          "current_opaque": false,
+          "current_standard_sha256": "55db588b39e32ef155b10820d07703ac7512e0c3cdd953f89270c311a2d17398",
+          "changed": true,
+          "winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/medium_upload/f4/02ee5ec61361cc7042957b4b7cbb2e42af2925",
+            "size": 64407,
+            "sha256": "f8ead055d2c3ec5e21faebe1c37c0037566c83bd44348489488c06c191bddc0e"
+          }
+        },
+        {
+          "basename": "thumb_party_unison_1.png",
+          "logical": "character/seofon_wind/ui/thumb_party_unison_1.png",
+          "root": "medium",
+          "member": "production/medium_upload/90/7357bae524a6db26c69996ab99200477c8dcba",
+          "dimensions": [
+            144,
+            188
+          ],
+          "current_dimensions": [
+            144,
+            188
+          ],
+          "dimensions_changed": false,
+          "incoming_mode": "RGB",
+          "incoming_alpha_bbox": [
+            0,
+            0,
+            144,
+            188
+          ],
+          "incoming_opaque": true,
+          "incoming_sha256": "f348d354f4bbc17b2ccc414b3062b106de40673d8927174f1d47ab771ddb1ac4",
+          "stored_sha256": "4ff801b5e5edd03fd932002387be4875f0676a8b1acc8b40ec5517de4743a71e",
+          "current_mode": "RGBA",
+          "current_alpha_bbox": [
+            0,
+            0,
+            144,
+            188
+          ],
+          "current_opaque": false,
+          "current_standard_sha256": "a580c606d0d66c61f58c656f99c4ce54141d39b09ab084b3375cef5868071bf3",
+          "changed": true,
+          "winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/medium_upload/90/7357bae524a6db26c69996ab99200477c8dcba",
+            "size": 67106,
+            "sha256": "2d88cb411d581e55ea36b9b6f793339f0017ea33a25872d0bbc214be6cde6fb2"
+          }
+        }
+      ],
+      "atfs": [
+        {
+          "form": 0,
+          "logical": "character/seofon_wind/ui/skill_cutin_0.atf.deflate",
+          "pair": {
+            "w": 1024,
+            "h": 512,
+            "mips": 11,
+            "android_slot": 2,
+            "ios_slot": 3
+          },
+          "android_member": "production/android_upload/6c/7673801cc6b8c76ebf7f6688415cb37775c7e2",
+          "android_stored_sha256": "81089f684690a513ee8d696d6fd07b22c28e00a322022c4e47a6dbf5c342a658",
+          "android_winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/android_upload/6c/7673801cc6b8c76ebf7f6688415cb37775c7e2",
+            "size": 82138,
+            "sha256": "2d2825906e8966dd36408cf02416ceaf41eb0bfdd2b372ce4ed9c6c466321b45"
+          },
+          "ios_member": "production/ios_upload/6c/7673801cc6b8c76ebf7f6688415cb37775c7e2",
+          "ios_stored_sha256": "2d46ac303b9342a744db10c9ee0fde2a68fc55de70dde5a6a9dac3cfc5735d37",
+          "ios_winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/ios_upload/6c/7673801cc6b8c76ebf7f6688415cb37775c7e2",
+            "size": 91849,
+            "sha256": "a606ca0b8cba635d30cc2a0ebd6d3737ebd1cf0ecaeafc5efa925078d5b4ec57"
+          }
+        },
+        {
+          "form": 1,
+          "logical": "character/seofon_wind/ui/skill_cutin_1.atf.deflate",
+          "pair": {
+            "w": 1024,
+            "h": 512,
+            "mips": 11,
+            "android_slot": 2,
+            "ios_slot": 3
+          },
+          "android_member": "production/android_upload/27/9a6414cae68c729c11d055dcac5fca68713aee",
+          "android_stored_sha256": "27b6855dc22f68b95f273d2e1ef7f87217a5cd2b78ba0bcfb6f160710f2c6abd",
+          "android_winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/android_upload/27/9a6414cae68c729c11d055dcac5fca68713aee",
+            "size": 127265,
+            "sha256": "6c7b06d7df1f79d246eeb52a41c91cc4afa050ea0910e985e1aef3ce021417d4"
+          },
+          "ios_member": "production/ios_upload/27/9a6414cae68c729c11d055dcac5fca68713aee",
+          "ios_stored_sha256": "636b74c8fc3ffaa32b92eea796502cc46ee5a32cbddacc922385385c5e9af703",
+          "ios_winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/ios_upload/27/9a6414cae68c729c11d055dcac5fca68713aee",
+            "size": 150023,
+            "sha256": "2cdeb386a8c1802560ccb5fc3a756691c8e96ca1d4bb597d37b6e5423f6887b7"
+          }
+        }
+      ],
+      "qa_contact_sheet": "candidate/qa-seofon_wind-current-vs-incoming.png"
+    }
+  ],
+  "summary": {
+    "source_zips": 3,
+    "selected_pngs": 75,
+    "excluded_residual_files": 17,
+    "android_atfs": 6,
+    "ios_atfs": 6,
+    "position_tables": 3,
+    "position_rows_per_table": 6,
+    "archive_members": 90,
+    "archive_size": 28150816,
+    "archive_sha256": "29f32e2dae8f5145fc01b0964289ca992db7ee0eb15af0830b6cbb1508891d57",
+    "root_counts": {
+      "android_upload": 6,
+      "ios_upload": 6,
+      "medium_upload": 75,
+      "upload": 3
+    },
+    "dimension_changed_pngs": 9,
+    "all_fixed_slot_png_dimensions_match_contract": true,
+    "full_shot_dimension_changes_synchronized": true,
+    "all_selected_pngs_changed": true,
+    "runtime_mirror_modified": false
+  },
+  "position_tables": [
+    {
+      "character_id": 169996,
+      "code": "simoun_dark",
+      "form": 0,
+      "dimensions": [
+        1659,
+        1901
+      ],
+      "character_image": {
+        "old": "494,153,1013,1803",
+        "new": "171,104,1659,1901"
+      },
+      "trimmed_image": {
+        "old": "494,153,2000,2000",
+        "new": "171,104,2000,2000"
+      },
+      "full_shot_image_attribute": {
+        "old": "1000,1000,1,987,461",
+        "new": "1000,1000,1,911,414"
+      },
+      "table_sources": {
+        "master/generated/character_image.orderedmap": {
+          "logical": "master/generated/character_image.orderedmap",
+          "member": "production/upload/3e/b411841802398d5b21d422579f2eaa65d30c0e",
+          "current_sha256": "51697b9805e65389194654973eabc1df211d05ce8354ccb513fb0bea8290bfa9",
+          "new_sha256": "d0c51dbb1865cdf757ddb70a5a188b77a253d4421a0d32cb80fb14885c785b4e",
+          "winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/upload/3e/b411841802398d5b21d422579f2eaa65d30c0e",
+            "size": 42199,
+            "sha256": "51697b9805e65389194654973eabc1df211d05ce8354ccb513fb0bea8290bfa9"
+          }
+        },
+        "master/character/full_shot_image_attribute.orderedmap": {
+          "logical": "master/character/full_shot_image_attribute.orderedmap",
+          "member": "production/upload/b9/132d27178d27f9d91df89fc47e106bbaf2d5b5",
+          "current_sha256": "fc3504338a3b016daf015be9d31208e6b6dcc64d19ded1effe8df6efd2a10cff",
+          "new_sha256": "fb54e920babc7b21485101b059606d29c564aa80d7586b12bf33ad1f58f5f7b3",
+          "winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/upload/b9/132d27178d27f9d91df89fc47e106bbaf2d5b5",
+            "size": 41687,
+            "sha256": "fc3504338a3b016daf015be9d31208e6b6dcc64d19ded1effe8df6efd2a10cff"
+          }
+        },
+        "master/generated/trimmed_image.orderedmap": {
+          "logical": "master/generated/trimmed_image.orderedmap",
+          "member": "production/upload/fb/ab4344a7456dca88f3ce06f01208922f37e395",
+          "current_sha256": "e858ab661823e6bcd7893701d240e650e8dd9c86da5a9cbff6c2da3c0f39f69f",
+          "new_sha256": "bb8ca4b0cdbc78f5de33b4092239e64da51c882171094cdc3ba2172a8238eb3f",
+          "winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/upload/fb/ab4344a7456dca88f3ce06f01208922f37e395",
+            "size": 351613,
+            "sha256": "e858ab661823e6bcd7893701d240e650e8dd9c86da5a9cbff6c2da3c0f39f69f"
+          }
+        }
+      }
+    },
+    {
+      "character_id": 169996,
+      "code": "simoun_dark",
+      "form": 1,
+      "dimensions": [
+        1632,
+        1681
+      ],
+      "character_image": {
+        "old": "205,44,1778,1656",
+        "new": "278,31,1632,1681"
+      },
+      "trimmed_image": {
+        "old": "205,44,2000,2000",
+        "new": "278,31,2000,2000"
+      },
+      "full_shot_image_attribute": {
+        "old": "1000,1000,1,900,695",
+        "new": "1000,1000,1,903,751"
+      },
+      "table_sources": {
+        "master/generated/character_image.orderedmap": {
+          "logical": "master/generated/character_image.orderedmap",
+          "member": "production/upload/3e/b411841802398d5b21d422579f2eaa65d30c0e",
+          "current_sha256": "51697b9805e65389194654973eabc1df211d05ce8354ccb513fb0bea8290bfa9",
+          "new_sha256": "d0c51dbb1865cdf757ddb70a5a188b77a253d4421a0d32cb80fb14885c785b4e",
+          "winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/upload/3e/b411841802398d5b21d422579f2eaa65d30c0e",
+            "size": 42199,
+            "sha256": "51697b9805e65389194654973eabc1df211d05ce8354ccb513fb0bea8290bfa9"
+          }
+        },
+        "master/character/full_shot_image_attribute.orderedmap": {
+          "logical": "master/character/full_shot_image_attribute.orderedmap",
+          "member": "production/upload/b9/132d27178d27f9d91df89fc47e106bbaf2d5b5",
+          "current_sha256": "fc3504338a3b016daf015be9d31208e6b6dcc64d19ded1effe8df6efd2a10cff",
+          "new_sha256": "fb54e920babc7b21485101b059606d29c564aa80d7586b12bf33ad1f58f5f7b3",
+          "winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/upload/b9/132d27178d27f9d91df89fc47e106bbaf2d5b5",
+            "size": 41687,
+            "sha256": "fc3504338a3b016daf015be9d31208e6b6dcc64d19ded1effe8df6efd2a10cff"
+          }
+        },
+        "master/generated/trimmed_image.orderedmap": {
+          "logical": "master/generated/trimmed_image.orderedmap",
+          "member": "production/upload/fb/ab4344a7456dca88f3ce06f01208922f37e395",
+          "current_sha256": "e858ab661823e6bcd7893701d240e650e8dd9c86da5a9cbff6c2da3c0f39f69f",
+          "new_sha256": "bb8ca4b0cdbc78f5de33b4092239e64da51c882171094cdc3ba2172a8238eb3f",
+          "winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/upload/fb/ab4344a7456dca88f3ce06f01208922f37e395",
+            "size": 351613,
+            "sha256": "e858ab661823e6bcd7893701d240e650e8dd9c86da5a9cbff6c2da3c0f39f69f"
+          }
+        }
+      }
+    },
+    {
+      "character_id": 169997,
+      "code": "vaseraga_dark",
+      "form": 0,
+      "dimensions": [
+        1659,
+        1535
+      ],
+      "character_image": {
+        "old": "59,243,1896,1740",
+        "new": "177,345,1659,1535"
+      },
+      "trimmed_image": {
+        "old": "59,243,2000,2000",
+        "new": "177,345,2000,2000"
+      },
+      "full_shot_image_attribute": {
+        "old": "1000,1000,1,964,392",
+        "new": "1000,1000,1,937,660"
+      },
+      "table_sources": {
+        "master/generated/character_image.orderedmap": {
+          "logical": "master/generated/character_image.orderedmap",
+          "member": "production/upload/3e/b411841802398d5b21d422579f2eaa65d30c0e",
+          "current_sha256": "51697b9805e65389194654973eabc1df211d05ce8354ccb513fb0bea8290bfa9",
+          "new_sha256": "d0c51dbb1865cdf757ddb70a5a188b77a253d4421a0d32cb80fb14885c785b4e",
+          "winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/upload/3e/b411841802398d5b21d422579f2eaa65d30c0e",
+            "size": 42199,
+            "sha256": "51697b9805e65389194654973eabc1df211d05ce8354ccb513fb0bea8290bfa9"
+          }
+        },
+        "master/character/full_shot_image_attribute.orderedmap": {
+          "logical": "master/character/full_shot_image_attribute.orderedmap",
+          "member": "production/upload/b9/132d27178d27f9d91df89fc47e106bbaf2d5b5",
+          "current_sha256": "fc3504338a3b016daf015be9d31208e6b6dcc64d19ded1effe8df6efd2a10cff",
+          "new_sha256": "fb54e920babc7b21485101b059606d29c564aa80d7586b12bf33ad1f58f5f7b3",
+          "winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/upload/b9/132d27178d27f9d91df89fc47e106bbaf2d5b5",
+            "size": 41687,
+            "sha256": "fc3504338a3b016daf015be9d31208e6b6dcc64d19ded1effe8df6efd2a10cff"
+          }
+        },
+        "master/generated/trimmed_image.orderedmap": {
+          "logical": "master/generated/trimmed_image.orderedmap",
+          "member": "production/upload/fb/ab4344a7456dca88f3ce06f01208922f37e395",
+          "current_sha256": "e858ab661823e6bcd7893701d240e650e8dd9c86da5a9cbff6c2da3c0f39f69f",
+          "new_sha256": "bb8ca4b0cdbc78f5de33b4092239e64da51c882171094cdc3ba2172a8238eb3f",
+          "winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/upload/fb/ab4344a7456dca88f3ce06f01208922f37e395",
+            "size": 351613,
+            "sha256": "e858ab661823e6bcd7893701d240e650e8dd9c86da5a9cbff6c2da3c0f39f69f"
+          }
+        }
+      }
+    },
+    {
+      "character_id": 169997,
+      "code": "vaseraga_dark",
+      "form": 1,
+      "dimensions": [
+        1632,
+        1681
+      ],
+      "character_image": {
+        "old": "100,63,1800,1920",
+        "new": "184,182,1632,1681"
+      },
+      "trimmed_image": {
+        "old": "100,63,2000,2000",
+        "new": "184,182,2000,2000"
+      },
+      "full_shot_image_attribute": {
+        "old": "1000,1000,1,1014,494",
+        "new": "1000,1000,1,1009,887"
+      },
+      "table_sources": {
+        "master/generated/character_image.orderedmap": {
+          "logical": "master/generated/character_image.orderedmap",
+          "member": "production/upload/3e/b411841802398d5b21d422579f2eaa65d30c0e",
+          "current_sha256": "51697b9805e65389194654973eabc1df211d05ce8354ccb513fb0bea8290bfa9",
+          "new_sha256": "d0c51dbb1865cdf757ddb70a5a188b77a253d4421a0d32cb80fb14885c785b4e",
+          "winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/upload/3e/b411841802398d5b21d422579f2eaa65d30c0e",
+            "size": 42199,
+            "sha256": "51697b9805e65389194654973eabc1df211d05ce8354ccb513fb0bea8290bfa9"
+          }
+        },
+        "master/character/full_shot_image_attribute.orderedmap": {
+          "logical": "master/character/full_shot_image_attribute.orderedmap",
+          "member": "production/upload/b9/132d27178d27f9d91df89fc47e106bbaf2d5b5",
+          "current_sha256": "fc3504338a3b016daf015be9d31208e6b6dcc64d19ded1effe8df6efd2a10cff",
+          "new_sha256": "fb54e920babc7b21485101b059606d29c564aa80d7586b12bf33ad1f58f5f7b3",
+          "winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/upload/b9/132d27178d27f9d91df89fc47e106bbaf2d5b5",
+            "size": 41687,
+            "sha256": "fc3504338a3b016daf015be9d31208e6b6dcc64d19ded1effe8df6efd2a10cff"
+          }
+        },
+        "master/generated/trimmed_image.orderedmap": {
+          "logical": "master/generated/trimmed_image.orderedmap",
+          "member": "production/upload/fb/ab4344a7456dca88f3ce06f01208922f37e395",
+          "current_sha256": "e858ab661823e6bcd7893701d240e650e8dd9c86da5a9cbff6c2da3c0f39f69f",
+          "new_sha256": "bb8ca4b0cdbc78f5de33b4092239e64da51c882171094cdc3ba2172a8238eb3f",
+          "winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/upload/fb/ab4344a7456dca88f3ce06f01208922f37e395",
+            "size": 351613,
+            "sha256": "e858ab661823e6bcd7893701d240e650e8dd9c86da5a9cbff6c2da3c0f39f69f"
+          }
+        }
+      }
+    },
+    {
+      "character_id": 149995,
+      "code": "seofon_wind",
+      "form": 0,
+      "dimensions": [
+        1659,
+        1535
+      ],
+      "character_image": {
+        "old": "226,153,1774,1769",
+        "new": "283,270,1659,1535"
+      },
+      "trimmed_image": {
+        "old": "226,153,2000,2000",
+        "new": "283,270,2000,2000"
+      },
+      "full_shot_image_attribute": {
+        "old": "1000,1000,1,973,505",
+        "new": "1000,1000,1,1003,545"
+      },
+      "table_sources": {
+        "master/generated/character_image.orderedmap": {
+          "logical": "master/generated/character_image.orderedmap",
+          "member": "production/upload/3e/b411841802398d5b21d422579f2eaa65d30c0e",
+          "current_sha256": "51697b9805e65389194654973eabc1df211d05ce8354ccb513fb0bea8290bfa9",
+          "new_sha256": "d0c51dbb1865cdf757ddb70a5a188b77a253d4421a0d32cb80fb14885c785b4e",
+          "winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/upload/3e/b411841802398d5b21d422579f2eaa65d30c0e",
+            "size": 42199,
+            "sha256": "51697b9805e65389194654973eabc1df211d05ce8354ccb513fb0bea8290bfa9"
+          }
+        },
+        "master/character/full_shot_image_attribute.orderedmap": {
+          "logical": "master/character/full_shot_image_attribute.orderedmap",
+          "member": "production/upload/b9/132d27178d27f9d91df89fc47e106bbaf2d5b5",
+          "current_sha256": "fc3504338a3b016daf015be9d31208e6b6dcc64d19ded1effe8df6efd2a10cff",
+          "new_sha256": "fb54e920babc7b21485101b059606d29c564aa80d7586b12bf33ad1f58f5f7b3",
+          "winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/upload/b9/132d27178d27f9d91df89fc47e106bbaf2d5b5",
+            "size": 41687,
+            "sha256": "fc3504338a3b016daf015be9d31208e6b6dcc64d19ded1effe8df6efd2a10cff"
+          }
+        },
+        "master/generated/trimmed_image.orderedmap": {
+          "logical": "master/generated/trimmed_image.orderedmap",
+          "member": "production/upload/fb/ab4344a7456dca88f3ce06f01208922f37e395",
+          "current_sha256": "e858ab661823e6bcd7893701d240e650e8dd9c86da5a9cbff6c2da3c0f39f69f",
+          "new_sha256": "bb8ca4b0cdbc78f5de33b4092239e64da51c882171094cdc3ba2172a8238eb3f",
+          "winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/upload/fb/ab4344a7456dca88f3ce06f01208922f37e395",
+            "size": 351613,
+            "sha256": "e858ab661823e6bcd7893701d240e650e8dd9c86da5a9cbff6c2da3c0f39f69f"
+          }
+        }
+      }
+    },
+    {
+      "character_id": 149995,
+      "code": "seofon_wind",
+      "form": 1,
+      "dimensions": [
+        1632,
+        1681
+      ],
+      "character_image": {
+        "old": "129,169,1741,1772",
+        "new": "183,214,1632,1681"
+      },
+      "trimmed_image": {
+        "old": "129,169,2000,2000",
+        "new": "183,214,2000,2000"
+      },
+      "full_shot_image_attribute": {
+        "old": "1000,1000,1,1000,505",
+        "new": "1000,1000,1,1003,874"
+      },
+      "table_sources": {
+        "master/generated/character_image.orderedmap": {
+          "logical": "master/generated/character_image.orderedmap",
+          "member": "production/upload/3e/b411841802398d5b21d422579f2eaa65d30c0e",
+          "current_sha256": "51697b9805e65389194654973eabc1df211d05ce8354ccb513fb0bea8290bfa9",
+          "new_sha256": "d0c51dbb1865cdf757ddb70a5a188b77a253d4421a0d32cb80fb14885c785b4e",
+          "winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/upload/3e/b411841802398d5b21d422579f2eaa65d30c0e",
+            "size": 42199,
+            "sha256": "51697b9805e65389194654973eabc1df211d05ce8354ccb513fb0bea8290bfa9"
+          }
+        },
+        "master/character/full_shot_image_attribute.orderedmap": {
+          "logical": "master/character/full_shot_image_attribute.orderedmap",
+          "member": "production/upload/b9/132d27178d27f9d91df89fc47e106bbaf2d5b5",
+          "current_sha256": "fc3504338a3b016daf015be9d31208e6b6dcc64d19ded1effe8df6efd2a10cff",
+          "new_sha256": "fb54e920babc7b21485101b059606d29c564aa80d7586b12bf33ad1f58f5f7b3",
+          "winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/upload/b9/132d27178d27f9d91df89fc47e106bbaf2d5b5",
+            "size": 41687,
+            "sha256": "fc3504338a3b016daf015be9d31208e6b6dcc64d19ded1effe8df6efd2a10cff"
+          }
+        },
+        "master/generated/trimmed_image.orderedmap": {
+          "logical": "master/generated/trimmed_image.orderedmap",
+          "member": "production/upload/fb/ab4344a7456dca88f3ce06f01208922f37e395",
+          "current_sha256": "e858ab661823e6bcd7893701d240e650e8dd9c86da5a9cbff6c2da3c0f39f69f",
+          "new_sha256": "bb8ca4b0cdbc78f5de33b4092239e64da51c882171094cdc3ba2172a8238eb3f",
+          "winning_source": {
+            "patch_id": "integrated-ginovi-spgirl-trio-rogue-seed-2026082508-1.4.88",
+            "archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+            "member": "production/upload/fb/ab4344a7456dca88f3ce06f01208922f37e395",
+            "size": 351613,
+            "sha256": "e858ab661823e6bcd7893701d240e650e8dd9c86da5a9cbff6c2da3c0f39f69f"
+          }
+        }
+      }
+    }
+  ]
+}

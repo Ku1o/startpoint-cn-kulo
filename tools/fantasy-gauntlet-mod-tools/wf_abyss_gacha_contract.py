@@ -23,6 +23,16 @@ CHARACTER_IDS = (
 # Pickups that draw normally but are never offered in the 250-point exchange.
 NON_EXCHANGEABLE_CHARACTER_IDS = (SWIM_PRINCESS_EX_CHARACTER_ID,)
 STANDARD_EXCHANGE_CHARACTER_IDS = (141129, 161141, 123001, 131182)
+# Characters audited as never obtainable from any non-990001 gacha.  Keep the
+# compiler from reintroducing reward, shop, tutorial, trial, or giveaway units
+# when an expanded donor pool is used.
+NON_GACHA_CHARACTER_IDS = (
+    10, 113001, 141003, 153001, 163001,
+    213001, 213013, 223001, 223007, 223013, 223019,
+    233001, 233007, 233013, 243001, 243007, 243013, 243019,
+    253001, 253007, 253013, 253019, 263001, 263002,
+    323001, 333001,
+)
 EXCHANGEABLE_CHARACTER_IDS = tuple(
     value for value in CHARACTER_IDS
     if value not in NON_EXCHANGEABLE_CHARACTER_IDS
@@ -153,6 +163,7 @@ def build_runtime_pool(donor_runtime: object) -> dict[str, list[dict[str, object
         CHARACTER_IDS,
         STANDARD_EXCHANGE_CHARACTER_IDS,
         NON_EXCHANGEABLE_CHARACTER_IDS,
+        NON_GACHA_CHARACTER_IDS,
     )
 
 

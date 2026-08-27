@@ -1,0 +1,1024 @@
+{
+  "schema": "wf-trio-ui-rogue-refresh-patch/v3",
+  "patch_id": "trio-ui-rogue-refresh-1.4.90",
+  "version_edge": {
+    "from": "1.4.89",
+    "to": "1.4.90"
+  },
+  "archive": {
+    "name": "pinball-1.4.89-1.4.90-1-0827-trio-ui-refresh.zip",
+    "bytes": 41384007,
+    "sha256": "827d8550fe14400df26c5ff4fc2f3309b8a9cea15d6203d35b153dfb64529cba",
+    "members": 126,
+    "root_counts": {
+      "android_upload": 8,
+      "ios_upload": 8,
+      "medium_upload": 100,
+      "upload": 10
+    }
+  },
+  "components": {
+    "trio_ui": {
+      "members": 90,
+      "selected_pngs": 75,
+      "android_atfs": 6,
+      "ios_atfs": 6,
+      "position_tables": 3,
+      "source_audit_sha256": "b235baf95b947da23f8014b3dc2d31867e3d4ac1024dfe777c0b04261d67fbf4"
+    },
+    "rogue_refresh": {
+      "members": 7,
+      "thumbnail_changed_rounds": [
+        3,
+        4,
+        7,
+        9,
+        11,
+        20,
+        24,
+        25,
+        28
+      ],
+      "element_programs_changed": 1,
+      "standard_damage_check_occurrences": 2,
+      "general_damage_check_occurrences": 14,
+      "floor25_parent_hp": 6428571420.769279,
+      "reference_closure": {
+        "reports": 31,
+        "passed": 31,
+        "failed": 0
+      },
+      "source_audit_sha256": "fd42ab34c5c5bed39922133238befddaa58f3646a06c3e0eb8b74c1cd9d7a6de"
+    },
+    "abyss_gacha_pool_cleanup": {
+      "pool_id": 990001,
+      "server_files": [
+        "assets/gacha.json",
+        "assets/gacha_cnmod.json"
+      ],
+      "removed_character_count": 26,
+      "retained_exception_count": 6,
+      "counts_after": {
+        "5": 248,
+        "4": 125,
+        "3": 76
+      },
+      "total_weights": {
+        "5": 1593000,
+        "4": 2184,
+        "3": 1113
+      },
+      "rate_up_count": 17,
+      "source_audit": "gacha-pool-cleanup-audit.json",
+      "source_audit_sha256": "8f4800afc2da018217c9bd9d0d316c2a8bf57d0190ea43cf0c68d2d4540a3933"
+    },
+    "character_139997_ui": {
+      "character_id": 139997,
+      "code": "resistance_princess_ex",
+      "selected_pngs": 25,
+      "android_atfs": 2,
+      "ios_atfs": 2,
+      "new_unique_members": 29,
+      "shared_position_tables_overridden": 3,
+      "position_rows": 6,
+      "excluded_residual_files": 5,
+      "source_audit": "character-139997-ui-audit.json",
+      "source_audit_sha256": "d5912f87a65210f4fd752ba899c10dacceceed21ea3307d58c157c597d266991",
+      "illustration_setting_form_order_corrected": true,
+      "illustration_setting_atlas_dimensions": [
+        364,
+        788
+      ],
+      "illustration_setting_atlas_unchanged": true
+    }
+  },
+  "coordinated_server_files": {
+    "embedding": "same 1.4.89-to-1.4.90 release file set; not embedded in the client-store archive",
+    "assets/gacha.json": {
+      "bytes": 27204151,
+      "sha256": "16d7d6df5e3e0dd2fce5c57b25961244b3ae9ad3137731a8a0cbc893e8f9d475"
+    },
+    "assets/gacha_cnmod.json": {
+      "bytes": 117535,
+      "sha256": "359428459561a1ed6851c579d13460974084ea759762c8192ddc0772a4f313cd",
+      "runtime_precedence": "winning post-load override"
+    }
+  },
+  "members": [
+    {
+      "member": "production/android_upload/27/9a6414cae68c729c11d055dcac5fca68713aee",
+      "logical": null,
+      "source": "trio_ui_refresh",
+      "bytes": 210062,
+      "sha256": "27b6855dc22f68b95f273d2e1ef7f87217a5cd2b78ba0bcfb6f160710f2c6abd"
+    },
+    {
+      "member": "production/android_upload/4b/2df74eaf0c9819ed298bc0fba8a684d282ce4f",
+      "logical": "character/resistance_princess_ex/ui/skill_cutin_0.atf.deflate",
+      "source": "character_139997_ui_refresh",
+      "bytes": 201222,
+      "sha256": "956fd99fb314ec8563957b9f590a02932a5686afeb0c59a5857e13ef975ca34f"
+    },
+    {
+      "member": "production/android_upload/6c/7673801cc6b8c76ebf7f6688415cb37775c7e2",
+      "logical": null,
+      "source": "trio_ui_refresh",
+      "bytes": 154233,
+      "sha256": "81089f684690a513ee8d696d6fd07b22c28e00a322022c4e47a6dbf5c342a658"
+    },
+    {
+      "member": "production/android_upload/95/270dbd800cb4b15ca5d6951a4bba9170512542",
+      "logical": null,
+      "source": "trio_ui_refresh",
+      "bytes": 185008,
+      "sha256": "d9dbf67b68f95c8a88a9b24f6fbca8ac10d434f3bd228e21ca29fa942d21e490"
+    },
+    {
+      "member": "production/android_upload/b2/5b1b76edafd925e647e0cc220be8ed98e78a10",
+      "logical": null,
+      "source": "trio_ui_refresh",
+      "bytes": 101490,
+      "sha256": "bf8bfaa0b69f7d70debe671e3917919d2d62f9caa94ff8f49ff9c461a70cb46e"
+    },
+    {
+      "member": "production/android_upload/c6/bf729bf5b3a1072a08971712317d7c3b15a277",
+      "logical": "character/resistance_princess_ex/ui/skill_cutin_1.atf.deflate",
+      "source": "character_139997_ui_refresh",
+      "bytes": 166645,
+      "sha256": "1528cec956da4a6fb6039b39ba5eb4401ed316820cd3875e6a291d437d3f88b2"
+    },
+    {
+      "member": "production/android_upload/ca/67152941010095220253439925d70019cbb9f5",
+      "logical": null,
+      "source": "trio_ui_refresh",
+      "bytes": 227705,
+      "sha256": "0ca244bce81c426b2afa5dcd328f82843f4925d7f5253104fc3aab37cb2d304f"
+    },
+    {
+      "member": "production/android_upload/ef/554b9081d35434602f40ed18239991184981b2",
+      "logical": null,
+      "source": "trio_ui_refresh",
+      "bytes": 171643,
+      "sha256": "319cad791de9247e3368aa9c21a3548c88687a8bda2dd05825c975451eddd59a"
+    },
+    {
+      "member": "production/ios_upload/27/9a6414cae68c729c11d055dcac5fca68713aee",
+      "logical": null,
+      "source": "trio_ui_refresh",
+      "bytes": 264010,
+      "sha256": "636b74c8fc3ffaa32b92eea796502cc46ee5a32cbddacc922385385c5e9af703"
+    },
+    {
+      "member": "production/ios_upload/4b/2df74eaf0c9819ed298bc0fba8a684d282ce4f",
+      "logical": "character/resistance_princess_ex/ui/skill_cutin_0.atf.deflate",
+      "source": "character_139997_ui_refresh",
+      "bytes": 256039,
+      "sha256": "ae545586ca8abb01f92c67eda5587463d25ef252858fb7661de29ea4e0f7b2ea"
+    },
+    {
+      "member": "production/ios_upload/6c/7673801cc6b8c76ebf7f6688415cb37775c7e2",
+      "logical": null,
+      "source": "trio_ui_refresh",
+      "bytes": 173379,
+      "sha256": "2d46ac303b9342a744db10c9ee0fde2a68fc55de70dde5a6a9dac3cfc5735d37"
+    },
+    {
+      "member": "production/ios_upload/95/270dbd800cb4b15ca5d6951a4bba9170512542",
+      "logical": null,
+      "source": "trio_ui_refresh",
+      "bytes": 237463,
+      "sha256": "2f4ff6713932d973789f166a8cabea3cc73953c13fe65ef45ee5285f9ad87156"
+    },
+    {
+      "member": "production/ios_upload/b2/5b1b76edafd925e647e0cc220be8ed98e78a10",
+      "logical": null,
+      "source": "trio_ui_refresh",
+      "bytes": 117381,
+      "sha256": "a1dc6550b5cc41947750ef115e48717620b0148325a61f944f3c6beb944e15c2"
+    },
+    {
+      "member": "production/ios_upload/c6/bf729bf5b3a1072a08971712317d7c3b15a277",
+      "logical": "character/resistance_princess_ex/ui/skill_cutin_1.atf.deflate",
+      "source": "character_139997_ui_refresh",
+      "bytes": 211825,
+      "sha256": "ef0db432596c06e6cad6e93400df27854038d2d4858d775843722391efed627f"
+    },
+    {
+      "member": "production/ios_upload/ca/67152941010095220253439925d70019cbb9f5",
+      "logical": null,
+      "source": "trio_ui_refresh",
+      "bytes": 267186,
+      "sha256": "a957615e7005eddf45a743268ab4534d649de3301c11c840cdd4efaf7b04c389"
+    },
+    {
+      "member": "production/ios_upload/ef/554b9081d35434602f40ed18239991184981b2",
+      "logical": null,
+      "source": "trio_ui_refresh",
+      "bytes": 198695,
+      "sha256": "d5f78c0452267fbd7130b8c55ed3416b87d25bc6a8f3467a33a9bc083a6ac62b"
+    },
+    {
+      "member": "production/medium_upload/02/9a1472111f3a570e7e8292a4c0796c6db87a79",
+      "logical": "character/resistance_princess_ex/ui/thumb_party_unison_0.png",
+      "source": "character_139997_ui_refresh",
+      "bytes": 68813,
+      "sha256": "4e9be3651cd858c9184e1951dbd9b55ece1772d9b37e3e29befe1b069182a026"
+    },
+    {
+      "member": "production/medium_upload/02/c7d297392ff0e04f3fece757afbfa41f974573",
+      "logical": "character/resistance_princess_ex/ui/square_132_132_0.png",
+      "source": "character_139997_ui_refresh",
+      "bytes": 46407,
+      "sha256": "7535f62aa00f44b83db6da6b7fa6eb475d4196d24d8764fd264b1078f27f9b7f"
+    },
+    {
+      "member": "production/medium_upload/07/031f0ce7c605eb129226613727708b998d10b8",
+      "logical": null,
+      "source": "trio_ui_refresh",
+      "bytes": 766458,
+      "sha256": "00a4773b99864f464a0fb0ec02a538739fce8028dd64434369a3a41422ecce0e"
+    },
+    {
+      "member": "production/medium_upload/0a/6f1fc6aaefa45709eddd87cc35c42aee210914",
+      "logical": null,
+      "source": "trio_ui_refresh",
+      "bytes": 80153,
+      "sha256": "4b6a5dc397c5c710620c4876f13f2a1f8ba7e9accb37c021d3d476abeacf0b01"
+    },
+    {
+      "member": "production/medium_upload/10/6cdb6c132430452a91f7d79a3aecd8c5f8875e",
+      "logical": null,
+      "source": "trio_ui_refresh",
+      "bytes": 52491,
+      "sha256": "347706db0d51907ec36c8f9102e5f967b457dae1da1d9657a691708488e7d6f9"
+    },
+    {
+      "member": "production/medium_upload/12/5f197ef79ca91ee9d1a432d6a4503ab55484a5",
+      "logical": null,
+      "source": "trio_ui_refresh",
+      "bytes": 181425,
+      "sha256": "df72ac700587e903ac0b2b65c229deb4f60a20266742ce90ad1ba4be992a6bf6"
+    },
+    {
+      "member": "production/medium_upload/14/03a29bb165be9c2cfdb99cfd7f6543a2cf1acb",
+      "logical": null,
+      "source": "trio_ui_refresh",
+      "bytes": 42147,
+      "sha256": "50d0a80c62ef7391034fc70b8e52472980e7ba20c8bf5ef15af7851cba4383b7"
+    },
+    {
+      "member": "production/medium_upload/15/a3e4fa936f3510a0b07c49826ed8a48be3a62f",
+      "logical": null,
+      "source": "trio_ui_refresh",
+      "bytes": 13299,
+      "sha256": "ba4b910ac6b1884483c9f5111f11430e728b350c1f3615d30cf9b36ff65c2abe"
+    },
+    {
+      "member": "production/medium_upload/1b/8ddbc7ee4294f32d02bef19f05315c24e651f2",
+      "logical": "character/resistance_princess_ex/ui/thumb_level_up_0.png",
+      "source": "character_139997_ui_refresh",
+      "bytes": 179787,
+      "sha256": "85bf421f9596891f29b6206915dbe073d25df09db6f7190a832d96046c4c75a8"
+    },
+    {
+      "member": "production/medium_upload/1c/0e55860bfe4c3f7279fd3daed50ea9ffa66406",
+      "logical": null,
+      "source": "trio_ui_refresh",
+      "bytes": 24618,
+      "sha256": "af1ac7e41f9ba434519f7a59b0f5ba1ce37fa5b58119d461cb767cc9809ac1b6"
+    },
+    {
+      "member": "production/medium_upload/1f/99cd5a4e0cf7fafccd20d8d367adadd050e098",
+      "logical": null,
+      "source": "trio_ui_refresh",
+      "bytes": 153511,
+      "sha256": "739fd26e5026cfe031305042ab91be1df2e480ee334931f1bc361b692069d08e"
+    },
+    {
+      "member": "production/medium_upload/1f/a496aeb299d30e5638e9a46cae35bba3107ddb",
+      "logical": null,
+      "source": "trio_ui_refresh",
+      "bytes": 27024,
+      "sha256": "56fbfe7f7d6ed28914dd7604cd25ac5c0c6b7211c66e13f61619f0ed1aa17d4d"
+    },
+    {
+      "member": "production/medium_upload/20/7ad87ac81fbc3be20506d53156a132bc207bea",
+      "logical": "character/resistance_princess_ex/ui/thumb_party_main_0.png",
+      "source": "character_139997_ui_refresh",
+      "bytes": 165805,
+      "sha256": "458e5cb0dc85c69d045c1cd85b5a759c6b7458b4a49ba16f401bbc2a5a48919f"
+    },
+    {
+      "member": "production/medium_upload/24/95833545f5dd9b0d7e387fc7db44f9193751e5",
+      "logical": null,
+      "source": "trio_ui_refresh",
+      "bytes": 144580,
+      "sha256": "aab07393f31b49a9c70b5fa15cf07e24cd6e2cc9d3a2f7aac899ef7115dd266a"
+    },
+    {
+      "member": "production/medium_upload/35/39416307eae2b336829a889f434b3ac553a7b0",
+      "logical": null,
+      "source": "trio_ui_refresh",
+      "bytes": 53841,
+      "sha256": "09f87c3b0443270bcd741badd4ecd9ed7c161750a6891ea8b2e82b6f24b0bbed"
+    },
+    {
+      "member": "production/medium_upload/36/1ed8dd352e957a1aec8a72695ee1d2af0bc149",
+      "logical": null,
+      "source": "trio_ui_refresh",
+      "bytes": 520156,
+      "sha256": "fb251c3cc54e9832833ca81be681d2a4e5307f55d4d1dfea4d2a40d42a6c7c55"
+    },
+    {
+      "member": "production/medium_upload/36/b6a5bfc955086f940085cfbae35a7d46a6ac2e",
+      "logical": null,
+      "source": "trio_ui_refresh",
+      "bytes": 62356,
+      "sha256": "26a3f09c7baa33142755b921b9058e139e63ebd446f155bd51543498aa5d2596"
+    },
+    {
+      "member": "production/medium_upload/39/8f72eaed1a15dd50b2cb7d238396d018eb2b61",
+      "logical": null,
+      "source": "trio_ui_refresh",
+      "bytes": 23509,
+      "sha256": "d32b23a06b46037b76a1ec82bfded571e4ece62338cb00e30f00a2ac6da0b2a6"
+    },
+    {
+      "member": "production/medium_upload/3b/eb8c6b78688129cf4aa598eb455b0e84f006a0",
+      "logical": null,
+      "source": "trio_ui_refresh",
+      "bytes": 103545,
+      "sha256": "a786da1c85f1268f6edbbf4e56fb86ea7c15bcef11ca6a11706abd3fb2c8d269"
+    },
+    {
+      "member": "production/medium_upload/3f/2edf0da9a805db7aa0bee527caacd1521bb758",
+      "logical": "character/resistance_princess_ex/ui/thumb_party_main_1.png",
+      "source": "character_139997_ui_refresh",
+      "bytes": 154073,
+      "sha256": "0c302a9389b3af7352dd7b119cd1e86a9cb38c0d12285e456bf7ec372cca9780"
+    },
+    {
+      "member": "production/medium_upload/40/8fee3e1a1857eb4a9ee6ff1d4b36bda8741136",
+      "logical": null,
+      "source": "trio_ui_refresh",
+      "bytes": 506982,
+      "sha256": "5dcff3fa0bd1c2fde29c96037b4e6d6281d99edb9fdc0bb27c4783fa3ca99281"
+    },
+    {
+      "member": "production/medium_upload/40/e2481b14468f966e370a3be8c4d946e6e1dcba",
+      "logical": "character/resistance_princess_ex/ui/battle_member_status_0.png",
+      "source": "character_139997_ui_refresh",
+      "bytes": 12799,
+      "sha256": "c5676242730484d39a6f5c8b8b4370d99a9839c28baa637efd1cfdad4c74acf0"
+    },
+    {
+      "member": "production/medium_upload/41/c2a12c4a360fbb0012e73cda389ffbdc423f6f",
+      "logical": "character/resistance_princess_ex/ui/cutin_skill_chain_0.png",
+      "source": "character_139997_ui_refresh",
+      "bytes": 168802,
+      "sha256": "da695b6030481e3b0ce9670f957f56e11f8cbd95d46c6699bb2639121c92e9c3"
+    },
+    {
+      "member": "production/medium_upload/44/ca8d5813bf1a0b219b816f3f920aa08c82d507",
+      "logical": null,
+      "source": "trio_ui_refresh",
+      "bytes": 41060,
+      "sha256": "3b78afa4c80963f737fc258b8008c6b68688bac7eed1c9e6570916e013ad8b62"
+    },
+    {
+      "member": "production/medium_upload/46/dcf4b634d2129329bc1627783008e5763e2c16",
+      "logical": null,
+      "source": "trio_ui_refresh",
+      "bytes": 45810,
+      "sha256": "da958a7a99f552ed3ebb993d744b71173c89f87aee720cfbf6ba788b06249ac4"
+    },
+    {
+      "member": "production/medium_upload/47/d09ba5bb06cb3cf10b077dbab1e26cba901093",
+      "logical": null,
+      "source": "trio_ui_refresh",
+      "bytes": 47281,
+      "sha256": "2fae8145f446fff31391f74461d6c2559e3fa6f06d4fa2316adf2b87888486be"
+    },
+    {
+      "member": "production/medium_upload/4b/7911f1fc9bfab9b3fed3cc717ffcd1bad6cdf4",
+      "logical": null,
+      "source": "trio_ui_refresh",
+      "bytes": 9466,
+      "sha256": "c290b10b0960b715c34536f1db219e3bec4911f4b501c4abd89e0794b4435536"
+    },
+    {
+      "member": "production/medium_upload/4b/c8379a03f065e3e384b91754a861ede90abf16",
+      "logical": null,
+      "source": "trio_ui_refresh",
+      "bytes": 132825,
+      "sha256": "7db13c8f0e4ae7492c2ceab5233bce90ef54813d5b659694b0ac0cb5db650f43"
+    },
+    {
+      "member": "production/medium_upload/4c/8ffdab96b97c235d43819c890c83e6a420b3c1",
+      "logical": null,
+      "source": "trio_ui_refresh",
+      "bytes": 149861,
+      "sha256": "5c31b46776f9197c0be226cf2d1e13332510ecc486348b2086de129e713f905c"
+    },
+    {
+      "member": "production/medium_upload/4e/ee888c94e6ed5b8e652877a1bbc8e853025a4d",
+      "logical": null,
+      "source": "trio_ui_refresh",
+      "bytes": 104424,
+      "sha256": "e85595ac3c660f91dded01d5c2b5cff4360d6d11fcd8a63ba3a42f05dc169e48"
+    },
+    {
+      "member": "production/medium_upload/50/edecefc67ea2766756d4d9bdde07bc2a65bfa6",
+      "logical": "character/resistance_princess_ex/ui/square_round_136_136_1.png",
+      "source": "character_139997_ui_refresh",
+      "bytes": 48227,
+      "sha256": "106ccbe177f9333762070c1e899fdc73677577a15fb382a3cdb43ecf662924f5"
+    },
+    {
+      "member": "production/medium_upload/57/a494823cd00198f533ce34e98987567e8d9c75",
+      "logical": null,
+      "source": "trio_ui_refresh",
+      "bytes": 128027,
+      "sha256": "0b6f99d4006b2ddbd93262fb7defe8a1b5fcc9a93e144b3f27046306a8631c15"
+    },
+    {
+      "member": "production/medium_upload/58/37896ccbf02c4d0f03013325c373798f300039",
+      "logical": null,
+      "source": "trio_ui_refresh",
+      "bytes": 1600418,
+      "sha256": "7ef9d54f2afbef0a67bc2edd8726265239057f0c9acad1b8e64ad5d59020af20"
+    },
+    {
+      "member": "production/medium_upload/59/2de072c56498d3950e6bce6896c22a803c828a",
+      "logical": "character/resistance_princess_ex/ui/illustration_setting_sprite_sheet.png",
+      "source": "character_139997_ui_refresh",
+      "bytes": 488351,
+      "sha256": "b42aa6f52114d69a25af69eb28d897d688daaa104e0ec0fb59ff6d1f10e9273d",
+      "standard_png_sha256": "e814008929e2084e05f04da647381a2decf81c57bf1ef043b6399784f561008e",
+      "dimensions": [
+        364,
+        788
+      ],
+      "atlas_form_order_match": true
+    },
+    {
+      "member": "production/medium_upload/59/9460373c152cd5d43cb6668cc0ae838883396b",
+      "logical": null,
+      "source": "trio_ui_refresh",
+      "bytes": 50388,
+      "sha256": "2c6fdc6e45621b7d7acfcb2c3abf1e14f03703b5a41787193ddad6196b48f25c"
+    },
+    {
+      "member": "production/medium_upload/5a/7aefa1aee5cdff5fa66f9bfb67e0a0ad6693fb",
+      "logical": null,
+      "source": "trio_ui_refresh",
+      "bytes": 354778,
+      "sha256": "27e582e2cbb5a041a2140671d1b395a405480323179945b1fd55e2165ff19c08"
+    },
+    {
+      "member": "production/medium_upload/5a/a59b8d1cff7228a733b7d784c01a13a344eb52",
+      "logical": null,
+      "source": "trio_ui_refresh",
+      "bytes": 49932,
+      "sha256": "4e72c4b48504db70717764498f5f15d62fb26f676d95f9f9b5c654883f37ada4"
+    },
+    {
+      "member": "production/medium_upload/5c/542bb4cdf0b7a4b8dacc74a9134662ae8efe8c",
+      "logical": "character/resistance_princess_ex/ui/thumb_party_unison_1.png",
+      "source": "character_139997_ui_refresh",
+      "bytes": 61548,
+      "sha256": "c86da380f52db3335d51d87e169e4347c296c5077ad572188ce598615c379ddb"
+    },
+    {
+      "member": "production/medium_upload/5d/98e282d8bfc2dedb723f3c1489c3e911f273ec",
+      "logical": null,
+      "source": "trio_ui_refresh",
+      "bytes": 43282,
+      "sha256": "a6ccd1f91b1995ce4bd7ac73b80eee2a8836ab5dea3667b33faa21503f454f0b"
+    },
+    {
+      "member": "production/medium_upload/5e/507f5c41142573efa535bb38190d1d5c371621",
+      "logical": null,
+      "source": "trio_ui_refresh",
+      "bytes": 161318,
+      "sha256": "b5db05787347e106059250252b78498920f990435894a2efd3f4bbeb98c24687"
+    },
+    {
+      "member": "production/medium_upload/63/78f12dc0da0d713df499623e30b3ee35ad0a9c",
+      "logical": null,
+      "source": "trio_ui_refresh",
+      "bytes": 27710,
+      "sha256": "d1b8deb4e6c31c345626a4c134fd8c323c3cda8959920b1344ea8e4f7eed8977"
+    },
+    {
+      "member": "production/medium_upload/65/ab22546e61ae661aab63b295d95ac133984bcd",
+      "logical": null,
+      "source": "trio_ui_refresh",
+      "bytes": 113798,
+      "sha256": "02091c4e8ab72657d1f50cf40ddce3fd588643a8f1a3cd8058481f34c4e1030e"
+    },
+    {
+      "member": "production/medium_upload/67/6960c6295c396cb8e5da31ba3deb02ab1d2b81",
+      "logical": null,
+      "source": "trio_ui_refresh",
+      "bytes": 76265,
+      "sha256": "2c8dbc9dd9c6a162f45bad35b74e2a56ae0e9f552855e43d365d56c742be9fd8"
+    },
+    {
+      "member": "production/medium_upload/67/d3d9de78df3a89a9370a644bf55e69206740b8",
+      "logical": null,
+      "source": "trio_ui_refresh",
+      "bytes": 10865,
+      "sha256": "bd75f1298267b8a2e3a7be532b5e797744d877c838dedc786f82889cfb5e1e79"
+    },
+    {
+      "member": "production/medium_upload/6b/232d293afc979beeb633b0efeccae9e11fb749",
+      "logical": null,
+      "source": "trio_ui_refresh",
+      "bytes": 66240,
+      "sha256": "0b2f2140fa7491581ca35e3516450113ab7c006d125fed2ea7fd2d5fb7498b07"
+    },
+    {
+      "member": "production/medium_upload/6d/0703d7a6bb18fb9fd592c8bd5e0f6ad79f9e27",
+      "logical": null,
+      "source": "trio_ui_refresh",
+      "bytes": 146098,
+      "sha256": "ff03bb4d33c7a2035cd9414422d6b66ad6f7184e21dcf05e9ac18d81dbf22a09"
+    },
+    {
+      "member": "production/medium_upload/6d/7cf069df0183c22bbd985be12db423157b2025",
+      "logical": "character/resistance_princess_ex/ui/square_round_136_136_0.png",
+      "source": "character_139997_ui_refresh",
+      "bytes": 48925,
+      "sha256": "40fffde1e7f50799b7e48179de0f1a516aaf8d679684fc52550cf17b6de9bf11"
+    },
+    {
+      "member": "production/medium_upload/6e/158911105e5b38e11ff14970538f21263606af",
+      "logical": null,
+      "source": "trio_ui_refresh",
+      "bytes": 48979,
+      "sha256": "671aeb204867a2f99b8be0b1b98edadc143e0bc71c9af897d8497dbfdb89fc0a"
+    },
+    {
+      "member": "production/medium_upload/72/635ade112137f4e9e5c345f00991bf553447f3",
+      "logical": null,
+      "source": "trio_ui_refresh",
+      "bytes": 48040,
+      "sha256": "1e8a3157a565f3e3eebf52f4b590a00b862c020ef3dbe61cd8a10c4d0a643f2a"
+    },
+    {
+      "member": "production/medium_upload/7d/3fb4020946f21cc8c60202af450c8e1a9f44b0",
+      "logical": "character/resistance_princess_ex/ui/battle_member_status_1.png",
+      "source": "character_139997_ui_refresh",
+      "bytes": 13090,
+      "sha256": "dd3780bbff151fec5a206429efd17be4e835d66557b2c6c1718c7ed3a8f4c304"
+    },
+    {
+      "member": "production/medium_upload/7d/439bef73b176602a591c21e87a9796a3351828",
+      "logical": null,
+      "source": "trio_ui_refresh",
+      "bytes": 25716,
+      "sha256": "d585a97ac66f716367bfb364b2f5c7c75e6d6d3542b179bfa633765e0d210028"
+    },
+    {
+      "member": "production/medium_upload/7e/9d5bd2e7cada7eac794990ed78730771d6a8a3",
+      "logical": "character/resistance_princess_ex/ui/cutin_skill_chain_1.png",
+      "source": "character_139997_ui_refresh",
+      "bytes": 181668,
+      "sha256": "5a18f0ef02ad0e54242119228bed7ef1630db45b9242df6e23ab4d3034917f48"
+    },
+    {
+      "member": "production/medium_upload/82/afc8200078e9a47824288bad614d08edaadd7b",
+      "logical": null,
+      "source": "trio_ui_refresh",
+      "bytes": 454981,
+      "sha256": "b09b5c6614cbc3ea353ae1e66ed278a4e465bc496d09ce7fa637360cbd494c61"
+    },
+    {
+      "member": "production/medium_upload/84/9e42707e01754831db77b0e7cb7551347d058f",
+      "logical": null,
+      "source": "trio_ui_refresh",
+      "bytes": 13064,
+      "sha256": "33dc8b21ec88fb919b4e1b622cad3c4437146609b1d8b04d2a2bddcdd66a83ae"
+    },
+    {
+      "member": "production/medium_upload/89/8470a6bb14f8bba86ce08aaf2c686947f51395",
+      "logical": null,
+      "source": "trio_ui_refresh",
+      "bytes": 1654771,
+      "sha256": "2650ec5aa87a56a26cf3231d432df374b81b00368a187f2b711f7e2389b3ffe7"
+    },
+    {
+      "member": "production/medium_upload/8c/7266adcbbd203b0456bfb11268d264cdc76c9c",
+      "logical": null,
+      "source": "trio_ui_refresh",
+      "bytes": 150397,
+      "sha256": "49199ff669479db763a2afed339a7a84d3ec9e17734b07fce62386f27b207044"
+    },
+    {
+      "member": "production/medium_upload/8e/a4e5c18ddda6bb9914f96354d660866892a38e",
+      "logical": null,
+      "source": "trio_ui_refresh",
+      "bytes": 316319,
+      "sha256": "3a36d4c9db5528545e115de7301ebed68980eb3abbacbc4d65c69eeac6d046d8"
+    },
+    {
+      "member": "production/medium_upload/8e/af146949ae3ee2ee1a9b1d07ae2b7da9241107",
+      "logical": null,
+      "source": "trio_ui_refresh",
+      "bytes": 2227662,
+      "sha256": "0c9bcf0300a1ee0520a7e3a236174616a6367a85751f54068a47535c72ee7914"
+    },
+    {
+      "member": "production/medium_upload/90/7357bae524a6db26c69996ab99200477c8dcba",
+      "logical": null,
+      "source": "trio_ui_refresh",
+      "bytes": 57322,
+      "sha256": "4ff801b5e5edd03fd932002387be4875f0676a8b1acc8b40ec5517de4743a71e"
+    },
+    {
+      "member": "production/medium_upload/95/31724ba0f8ad5002bd9d929a1fa282d78ac47c",
+      "logical": "character/resistance_princess_ex/ui/thumb_level_up_1.png",
+      "source": "character_139997_ui_refresh",
+      "bytes": 156344,
+      "sha256": "51e3f4f7ed2811f741e677a2d77505aaa406836f26cb1dd2098b583e527b6250"
+    },
+    {
+      "member": "production/medium_upload/99/9f8397c84355c69ed53c3fd2d672fb33759542",
+      "logical": "character/resistance_princess_ex/ui/full_shot_1440_1920_1.png",
+      "source": "character_139997_ui_refresh",
+      "bytes": 3023498,
+      "sha256": "dda8195a5b67aa0d22d116197a195260daa7a730eb9009ea62132f605df988fc"
+    },
+    {
+      "member": "production/medium_upload/9b/e5ada29ae297cb7b2adc63df7596f4226c07d9",
+      "logical": null,
+      "source": "trio_ui_refresh",
+      "bytes": 4594328,
+      "sha256": "a38807324c7134b08e7b1147167202d472a55f11da91882051c72fe7b2918419"
+    },
+    {
+      "member": "production/medium_upload/9c/4839f9b2aeed59fc90e6a2e4009cf566689fda",
+      "logical": null,
+      "source": "trio_ui_refresh",
+      "bytes": 167665,
+      "sha256": "2222ea82a99a7b8f7593424f94792ad08dcc547b067c3e33617225ddc7e580be"
+    },
+    {
+      "member": "production/medium_upload/9d/e94b7affeac8dad9aea5f347bc32b7707540f9",
+      "logical": "character/resistance_princess_ex/ui/battle_control_board_0.png",
+      "source": "character_139997_ui_refresh",
+      "bytes": 50047,
+      "sha256": "378398c738c5292b2359e6caf38fe20bc9e7f95982fdd2142ccf301b585066e7"
+    },
+    {
+      "member": "production/medium_upload/a5/baee2a4f2e5180ae52b1846de8942101802722",
+      "logical": null,
+      "source": "trio_ui_refresh",
+      "bytes": 133716,
+      "sha256": "e7deab4427b4a9ab779d2d295715f1ac83d9b4b156db51bb75a02706713d5989"
+    },
+    {
+      "member": "production/medium_upload/aa/3ff8cee0a1e6e57c9753202ab7ed575dda1910",
+      "logical": "character/resistance_princess_ex/ui/skill_cutin_1.png",
+      "source": "character_139997_ui_refresh",
+      "bytes": 652485,
+      "sha256": "e21728d483ae252156d51c32cdaf3f2c08226c894d712fd3e746e55ed69a2c6a"
+    },
+    {
+      "member": "production/medium_upload/ae/56fd539064f9168ebb12bb18598aa86415a205",
+      "logical": "character/resistance_princess_ex/ui/square_0.png",
+      "source": "character_139997_ui_refresh",
+      "bytes": 102166,
+      "sha256": "f0d793c2a295ae93c01ee7eed15de439c226ade70b0a62b1bf59d3c8c9545a3c"
+    },
+    {
+      "member": "production/medium_upload/b0/01a6f82056ee21c9c57d70621a27ed248c1d7c",
+      "logical": null,
+      "source": "trio_ui_refresh",
+      "bytes": 53630,
+      "sha256": "29c30a1f3926c667f95041a18f6a5c67d665bd2eff2b84125ffef02f234f84c5"
+    },
+    {
+      "member": "production/medium_upload/b0/0620f60cfcddad31d3ac47884d2a52e4b223b1",
+      "logical": null,
+      "source": "trio_ui_refresh",
+      "bytes": 43641,
+      "sha256": "f032914dfa40e7adb246aa79cccd783d3ea426e5e5aeda878ab0f78e741f6fdd"
+    },
+    {
+      "member": "production/medium_upload/b0/9c844588d1f6d8a34c175f05fe2431e6d112a7",
+      "logical": "character/resistance_princess_ex/ui/square_1.png",
+      "source": "character_139997_ui_refresh",
+      "bytes": 89366,
+      "sha256": "a2382c315a6b245744ea30496792ce20838dca92a956333f9895f0ecfadc573d"
+    },
+    {
+      "member": "production/medium_upload/b6/f11e5bf7fd728187c191a7422b8b7ef09970d2",
+      "logical": null,
+      "source": "trio_ui_refresh",
+      "bytes": 53225,
+      "sha256": "c3084cc687a9778461668c4b56d91d1419f21e4e3c2ea6491d0f22f32a034b78"
+    },
+    {
+      "member": "production/medium_upload/b7/78bfb0d317d1f9b2bf563c1c60548bc050c4fe",
+      "logical": "character/resistance_princess_ex/ui/square_round_95_95_1.png",
+      "source": "character_139997_ui_refresh",
+      "bytes": 25872,
+      "sha256": "ffd717c03f75ad7222fa7dd3c0a2e71c72e2892b367861ef50cfb46336f7652a"
+    },
+    {
+      "member": "production/medium_upload/b8/2049d0730a8a1438bb42c2b47026cfaaec383c",
+      "logical": null,
+      "source": "trio_ui_refresh",
+      "bytes": 166401,
+      "sha256": "ca5928aaf674d62b7e5656f444d795d6e507396183bcbee3661272e87aa6ffb8"
+    },
+    {
+      "member": "production/medium_upload/b8/e6568fc662566a0da17f100a2459acc54a11c7",
+      "logical": null,
+      "source": "trio_ui_refresh",
+      "bytes": 12530,
+      "sha256": "5c74fd1b2198edca9fb0306bbecad42cffd33162473066a709489ae77bd3cfe7"
+    },
+    {
+      "member": "production/medium_upload/bc/7d198b580fdd0d2c29e816da03debde3e78423",
+      "logical": null,
+      "source": "trio_ui_refresh",
+      "bytes": 2818724,
+      "sha256": "6ff70b5a12fa2503d603f6c1275190ef0ecbfde1448c82b090dbf23d4603f93d"
+    },
+    {
+      "member": "production/medium_upload/be/512f8f83611856526c31c5d6d4be8607d3213a",
+      "logical": null,
+      "source": "trio_ui_refresh",
+      "bytes": 28385,
+      "sha256": "9ee6f3bd5a4571b34983af94693103e25e9a369f9ac81fb65018bfc772897d53"
+    },
+    {
+      "member": "production/medium_upload/be/baa2457de92ad25ba05230dbf6a6a36e92471d",
+      "logical": null,
+      "source": "trio_ui_refresh",
+      "bytes": 142715,
+      "sha256": "844fccde951ef2f9fecb008de185fd9c5a965893eab4fa85b805ce658fc0f8a8"
+    },
+    {
+      "member": "production/medium_upload/c2/d28e29e85381d6e87b4b4ed7fcb3d97d1b62c9",
+      "logical": null,
+      "source": "trio_ui_refresh",
+      "bytes": 143470,
+      "sha256": "76cdf3b8db9d100ecd3c55261dfe711f3cb8a548d3d0af4f27110e7a9f6eb8ec"
+    },
+    {
+      "member": "production/medium_upload/c8/fd4b84be33034a845930ce1cefba6c1feedd56",
+      "logical": null,
+      "source": "trio_ui_refresh",
+      "bytes": 158680,
+      "sha256": "382ee3f55814d4f1152b545858f0b06ac57ce42cc8650b9471907a42451f9a5b"
+    },
+    {
+      "member": "production/medium_upload/c9/c7dfc62ca8b3856913d4f24e7b545334f69489",
+      "logical": null,
+      "source": "trio_ui_refresh",
+      "bytes": 44222,
+      "sha256": "5c64ff2dd9d0ccf3dcdedd9468d7da8383fd3287e54fff7c93fe46f77d1835d6"
+    },
+    {
+      "member": "production/medium_upload/cc/4308dffc0f287825f9b80c7482a4794c07adcf",
+      "logical": "character/resistance_princess_ex/ui/square_132_132_1.png",
+      "source": "character_139997_ui_refresh",
+      "bytes": 45843,
+      "sha256": "51df6d7dadd085e8a7e17dac992833a096243eae3ec740488eae663d6fc66f09"
+    },
+    {
+      "member": "production/medium_upload/cd/e6b72f01a46f95671b890d5dfe9f3ba489b480",
+      "logical": null,
+      "source": "trio_ui_refresh",
+      "bytes": 3188710,
+      "sha256": "7e4bb37e8bf9a4f73aa99c0e6c4d35f4fac36226811edbccd2fccaa6a6166e9b"
+    },
+    {
+      "member": "production/medium_upload/d0/d9ff14e615a8fa9412bf26015b36f47f399192",
+      "logical": null,
+      "source": "trio_ui_refresh",
+      "bytes": 86992,
+      "sha256": "8616070f06ada74e0109a5857366691705f58ab2edb8c4e2347933ef38e95239"
+    },
+    {
+      "member": "production/medium_upload/d7/3f97f3e298933035f2a61b33a51509d0c53ac1",
+      "logical": null,
+      "source": "trio_ui_refresh",
+      "bytes": 743340,
+      "sha256": "b79c5097559021b476b0eb76a5654b7f16d2b4635c7796f54d172fab517717f6"
+    },
+    {
+      "member": "production/medium_upload/da/341fec8cbe569d76ad35e586ee2a63d369e6f7",
+      "logical": null,
+      "source": "trio_ui_refresh",
+      "bytes": 51663,
+      "sha256": "a7ac467f8192f00d1984e21335a06f21329f860e6585c20702c9ef497e1e6c44"
+    },
+    {
+      "member": "production/medium_upload/db/5f4e43e11376c3646f61e0d145bf9a84e36f02",
+      "logical": null,
+      "source": "trio_ui_refresh",
+      "bytes": 52590,
+      "sha256": "1061c920778b34d42f3354eb0fb38e4c70ce8a011a88d7d390c3ec72d9d19c81"
+    },
+    {
+      "member": "production/medium_upload/df/02cbfb14b3a6d38a799d346e266a5a44e42b6c",
+      "logical": null,
+      "source": "trio_ui_refresh",
+      "bytes": 193166,
+      "sha256": "8bfb504e7ce0bacadb2d9a7cec1b195e7205cb3d585ba34436950b35a6b10eb3"
+    },
+    {
+      "member": "production/medium_upload/df/e45c6870b10edbe742c6c3de12cd9a64b08004",
+      "logical": "character/resistance_princess_ex/ui/square_round_95_95_0.png",
+      "source": "character_139997_ui_refresh",
+      "bytes": 26312,
+      "sha256": "8726f9b11cd80c2b2ced2553983ef656fe5f0685994f3fec9e776561f729de75"
+    },
+    {
+      "member": "production/medium_upload/e4/7e910cab2e474dc674e053a1941f8995f5e421",
+      "logical": null,
+      "source": "trio_ui_refresh",
+      "bytes": 413787,
+      "sha256": "860411105b40f8d4858173da99ed3d7245d1c0822c20a8fb3b22c7b27900b58e"
+    },
+    {
+      "member": "production/medium_upload/e5/ab0ad8ce2fffb439796599a023698161e3465c",
+      "logical": null,
+      "source": "trio_ui_refresh",
+      "bytes": 739569,
+      "sha256": "e2dbd463d8e62e1ec3fe4f6ba2f5618c6ca5326d3eee8ec6f9a0b96f0a12d0ce"
+    },
+    {
+      "member": "production/medium_upload/e7/d529e2b4426c385597ece280395e0ec999da78",
+      "logical": null,
+      "source": "trio_ui_refresh",
+      "bytes": 73483,
+      "sha256": "29ddb45301d499369af7dc7af3f0b7a9cab458559f8dd3f0a853900e6a80b0a5"
+    },
+    {
+      "member": "production/medium_upload/ed/fed1d3daa95e9a6e9446dc71dd5fa8810b6970",
+      "logical": "character/resistance_princess_ex/ui/battle_control_board_1.png",
+      "source": "character_139997_ui_refresh",
+      "bytes": 52093,
+      "sha256": "16d0fc1512e317dcc4ac264b30690b228cea499eddbb5340abbc9e5c6b11fcf6"
+    },
+    {
+      "member": "production/medium_upload/f4/02ee5ec61361cc7042957b4b7cbb2e42af2925",
+      "logical": null,
+      "source": "trio_ui_refresh",
+      "bytes": 69733,
+      "sha256": "afbf0bd5cbe6c4254b8c2f6b20571fbe805d33507dcf888384c6b392fb097f47"
+    },
+    {
+      "member": "production/medium_upload/f5/617cc61d06c5031c1f16d8a4024a66b1d64b5b",
+      "logical": "character/resistance_princess_ex/ui/full_shot_1440_1920_0.png",
+      "source": "character_139997_ui_refresh",
+      "bytes": 2837184,
+      "sha256": "413870deec4d6d6cdce7564302b280a393a7a764ac597c4e78a053c0f8941451"
+    },
+    {
+      "member": "production/medium_upload/f7/bf8f904c539fce4f55eb299dc9e90c008d8d08",
+      "logical": null,
+      "source": "trio_ui_refresh",
+      "bytes": 47674,
+      "sha256": "3d6023237444f3658cf503dd94c7c7ecad81cdd7e69886189afafa598cff7dfa"
+    },
+    {
+      "member": "production/medium_upload/fb/411b02417803df1fb9d9eda6b84b3df459f5e0",
+      "logical": null,
+      "source": "trio_ui_refresh",
+      "bytes": 13155,
+      "sha256": "c7071bf3aa2f89301a8c178c195dfa26c9bfdd62f2ee8960aa011ac3f78fddf0"
+    },
+    {
+      "member": "production/medium_upload/fc/37d876186b5a85f73620afeecaff289a7e7c43",
+      "logical": "character/resistance_princess_ex/ui/skill_cutin_0.png",
+      "source": "character_139997_ui_refresh",
+      "bytes": 663672,
+      "sha256": "d60a87b07abab17d6fec04406199b2f3f598a0f91cf962f74cf2bea3fd144663"
+    },
+    {
+      "member": "production/medium_upload/fd/e92dbeabc1096a10b50bc5c15f5fbf26fd99d9",
+      "logical": null,
+      "source": "trio_ui_refresh",
+      "bytes": 52263,
+      "sha256": "0d68b9cd948c23b7bc2d75ed566917aca81ef58d99d1d07ed653dce88823bb1e"
+    },
+    {
+      "member": "production/medium_upload/fe/8852e93862f16652277ddf19760dd935888458",
+      "logical": null,
+      "source": "trio_ui_refresh",
+      "bytes": 173272,
+      "sha256": "261103dd084b2f03350ec6d00af9a0e461b2def0797add06158115be92d8b176"
+    },
+    {
+      "member": "production/medium_upload/fe/9e5932743e52ca3f58d9ea53855b188d593897",
+      "logical": null,
+      "source": "trio_ui_refresh",
+      "bytes": 184545,
+      "sha256": "24b7b5ef47bf4fc0c23cbbd9dc75bc584b310bad0ba4f851f38390c9d70fe8c4"
+    },
+    {
+      "member": "production/upload/06/2f557c197927e3a1b1eb7c2ce43e053a7ea2f5",
+      "logical": "battle/enemy/boss/mod_rogue/standard_r17_1.esdl.amf3.deflate",
+      "source": "rogue_refresh",
+      "bytes": 4347,
+      "sha256": "62b84959ca44860bc090b704e07977e3111a3b0677d099b68a4e5372e880edb0"
+    },
+    {
+      "member": "production/upload/0b/97162ce6d40c473cbac39fa21427688922a48a",
+      "logical": "master/battle/boss/general_boss_state.orderedmap",
+      "source": "rogue_refresh",
+      "bytes": 5134743,
+      "sha256": "0884c6a9c8228f3566205c84c9563b53695dbcfca76d45b7762471e34d44dffd"
+    },
+    {
+      "member": "production/upload/19/a4aa442b3249499356e7a3f6370e530bfe355e",
+      "logical": "master/battle/boss/boss_level.orderedmap",
+      "source": "rogue_refresh",
+      "bytes": 45598,
+      "sha256": "1ac02ddffb37fea899601866690d890e05c2bfd5a24337bc1cbb78040ac4a031"
+    },
+    {
+      "member": "production/upload/3e/b411841802398d5b21d422579f2eaa65d30c0e",
+      "logical": "master/generated/character_image.orderedmap",
+      "source": "ui_shared_position_tables_four_characters",
+      "bytes": 42174,
+      "sha256": "b71b2d513e21edb64cbb8e263801250cd2d8b149a0e16cc5923d32c0f3ebf085"
+    },
+    {
+      "member": "production/upload/58/78c67f57af23b099f98980b0adda815faf0cdc",
+      "logical": "battle/action/enemy/action/mod_rogue/immunity_e81c57b10704.action.dsl.amf3.deflate",
+      "source": "rogue_refresh",
+      "bytes": 229,
+      "sha256": "8ca36be895be8ef6a39a6fae047ac12890b81e20f5799f37730a8e7467c8fb9b"
+    },
+    {
+      "member": "production/upload/84/fd6ee6a23114c8f888fadc838bbe8bdf668677",
+      "logical": "master/battle/boss/general_enemy_watch.orderedmap",
+      "source": "rogue_refresh",
+      "bytes": 67172,
+      "sha256": "043a563f888481f8e1a625fb08b7c2b419d8827fa38ef41b08c06571bb4b70e8"
+    },
+    {
+      "member": "production/upload/b6/595dedd9cfa79b7e6eccab25dd9a2a81b066a2",
+      "logical": "master/quest/event/rush_event_quest.orderedmap",
+      "source": "rogue_refresh",
+      "bytes": 42924,
+      "sha256": "693e734f642984db68d6f8235a51699ee91def36be2a4aea3e44a611fe6d83c0"
+    },
+    {
+      "member": "production/upload/b9/132d27178d27f9d91df89fc47e106bbaf2d5b5",
+      "logical": "master/character/full_shot_image_attribute.orderedmap",
+      "source": "ui_shared_position_tables_four_characters",
+      "bytes": 41668,
+      "sha256": "4c26a920c92c916be0d1ffaa9251b0feead76b1035ff65f5a4abb75988b41063"
+    },
+    {
+      "member": "production/upload/ec/d8f66b60947ca05643c4080a6cc925c750b9d6",
+      "logical": "master/battle/boss/general_boss.orderedmap",
+      "source": "rogue_refresh",
+      "bytes": 362224,
+      "sha256": "de60df0b3a00f12f85753dbba8384a954cde52196aa9ad53d61761a4e6ce2ed3"
+    },
+    {
+      "member": "production/upload/fb/ab4344a7456dca88f3ce06f01208922f37e395",
+      "logical": "master/generated/trimmed_image.orderedmap",
+      "source": "ui_shared_position_tables_four_characters",
+      "bytes": 351614,
+      "sha256": "4785adbf3754c7762329019e2cdaffeee85a5b2a146d9c3345fb93642b95321d"
+    }
+  ],
+  "validation": {
+    "single_version_edge": true,
+    "no_member_collision": true,
+    "archive_readback_exact": true,
+    "trio_ui_visual_reviewed": true,
+    "rogue_static_terminal_replay": true,
+    "gacha_base_and_cnmod_pool_equal": true,
+    "gacha_winning_runtime_override_verified": true,
+    "gacha_removed_ids_absent": true,
+    "gacha_retained_exception_ids_present_once": true,
+    "gacha_rank_rates_preserved": true,
+    "gacha_rate_up_rows_weights_and_probabilities_preserved": true,
+    "gacha_rarity_total_weights_preserved": true,
+    "gacha_compiler_reintroduction_guarded": true,
+    "runtime_mirror_modified": false,
+    "runtime_simulated": false,
+    "gameplay_verified": false,
+    "character_139997_visual_reviewed": true,
+    "character_139997_source_contract_valid": true,
+    "character_139997_android_ios_atfs_rebuilt": true,
+    "character_139997_position_rows_synchronized": true,
+    "character_139997_illustration_atlas_dimensions_match": true,
+    "character_139997_illustration_form_order_matches_atlas": true,
+    "character_139997_illustration_only_target_member_changed": true,
+    "character_139997_illustration_other_member_payloads_unchanged": 125,
+    "base_97_members_preserved_except_three_shared_position_tables": true
+  }
+}
