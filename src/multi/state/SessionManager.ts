@@ -69,6 +69,7 @@ export class SessionManager {
     private settlementReturnTimers = new Map<string, NodeJS.Timeout>()
     private rescueGuests = new Map<string, Set<number>>()
     private newbieRescueGuests = new Map<string, Set<number>>()
+    private rescueFragmentEligibleGuests = new Map<string, Set<number>>()
     private rescueGuestWaits = new Map<string, RescueGuestWaitState>()
     private rescueGuestReconnectTimers = new Map<string, NodeJS.Timeout>()
     private blockedRoomRestores = new Map<string, Set<number>>()
@@ -373,7 +374,12 @@ export class SessionManager {
         this.rescueGuestReconnectTimers.delete(key)
     }
 
-    markRescueGuest(roomNumber: string, viewerId: number, isNewbieRescue = false): void {
+    markRescueGuest(
+        roomNumber: string,
+        viewerId: number,
+        isNewbieRescue = false,
+        isFragmentRewardEligible = false,
+    ): void {
         let viewers = this.rescueGuests.get(roomNumber)
         if (!viewers) {
             viewers = new Set()
@@ -390,6 +396,16 @@ export class SessionManager {
         } else {
             this.newbieRescueGuests.get(roomNumber)?.delete(viewerId)
         }
+        if (isFragmentRewardEligible) {
+            let eligibleViewers = this.rescueFragmentEligibleGuests.get(roomNumber)
+            if (!eligibleViewers) {
+                eligibleViewers = new Set()
+                this.rescueFragmentEligibleGuests.set(roomNumber, eligibleViewers)
+            }
+            eligibleViewers.add(viewerId)
+        } else {
+            this.rescueFragmentEligibleGuests.get(roomNumber)?.delete(viewerId)
+        }
         this.blockedRoomRestores.get(roomNumber)?.delete(viewerId)
         this.clearRescueGuestReconnect(roomNumber, viewerId)
     }
@@ -400,6 +416,10 @@ export class SessionManager {
 
     isNewbieRescueGuest(roomNumber: string, viewerId: number): boolean {
         return this.newbieRescueGuests.get(roomNumber)?.has(viewerId) ?? false
+    }
+
+    isRescueFragmentEligibleGuest(roomNumber: string, viewerId: number): boolean {
+        return this.rescueFragmentEligibleGuests.get(roomNumber)?.has(viewerId) ?? false
     }
 
     isRoomRestoreBlocked(roomNumber: string, viewerId: number): boolean {
@@ -499,6 +519,7 @@ export class SessionManager {
         this.clearRescueGuestReconnect(roomNumber, viewerId)
         this.rescueGuests.get(roomNumber)?.delete(viewerId)
         this.newbieRescueGuests.get(roomNumber)?.delete(viewerId)
+        this.rescueFragmentEligibleGuests.get(roomNumber)?.delete(viewerId)
 
         let blocked = this.blockedRoomRestores.get(roomNumber)
         if (!blocked) {
@@ -582,6 +603,7 @@ export class SessionManager {
         }
         this.rescueGuests.delete(roomNumber)
         this.newbieRescueGuests.delete(roomNumber)
+        this.rescueFragmentEligibleGuests.delete(roomNumber)
         this.blockedRoomRestores.delete(roomNumber)
     }
 

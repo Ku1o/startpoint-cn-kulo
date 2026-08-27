@@ -19,6 +19,7 @@ export interface MultiSettlementSnapshot {
     expectedRealViewerIds: number[]
     isHost: boolean
     isRescueGuest: boolean
+    isRescueFragmentEligible: boolean
     isNewbieRescueGuest: boolean
     lifecycle: MultiBattleLifecycle
     createdAt: number

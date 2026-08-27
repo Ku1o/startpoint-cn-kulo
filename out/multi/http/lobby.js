@@ -291,12 +291,12 @@ function registerLobbyRoutes(fastify) {
                 }
             });
         }
-        // A Mode15 room-code/follow entrant is also a helper. Mark it exactly
-        // like a random rescue guest so its settlement cannot advance or reset
-        // the helper's own 15-stage run.
+        // A Fantasy room-code/follow entrant is also a helper for lifecycle
+        // and progression purposes, but only a delivered rescue selection is
+        // eligible for the repeatable fragment reward.
         if (randomRescue || (!returningMember && (0, mode15_optional_1.isMode15Quest)(room.category, room.quest_id))) {
             const host = (0, player_1.getPlayerSync)(room.host_player_id);
-            SessionManager_1.sessionManager.markRescueGuest(room.room_number, viewerId, (0, newbie_1.isNewbiePlayerSync)(room.host_player_id, host));
+            SessionManager_1.sessionManager.markRescueGuest(room.room_number, viewerId, (0, newbie_1.isNewbiePlayerSync)(room.host_player_id, host), randomRescue);
         }
         if (randomRescue)
             (0, recruitment_1.acceptRandomRecruitmentForViewer)(room.room_number, viewerId);

@@ -35,6 +35,7 @@ class SessionManager {
         this.settlementReturnTimers = new Map();
         this.rescueGuests = new Map();
         this.newbieRescueGuests = new Map();
+        this.rescueFragmentEligibleGuests = new Map();
         this.rescueGuestWaits = new Map();
         this.rescueGuestReconnectTimers = new Map();
         this.blockedRoomRestores = new Map();
@@ -337,8 +338,8 @@ class SessionManager {
             clearTimeout(timer);
         this.rescueGuestReconnectTimers.delete(key);
     }
-    markRescueGuest(roomNumber, viewerId, isNewbieRescue = false) {
-        var _a, _b;
+    markRescueGuest(roomNumber, viewerId, isNewbieRescue = false, isFragmentRewardEligible = false) {
+        var _a, _b, _c;
         let viewers = this.rescueGuests.get(roomNumber);
         if (!viewers) {
             viewers = new Set();
@@ -356,7 +357,18 @@ class SessionManager {
         else {
             (_a = this.newbieRescueGuests.get(roomNumber)) === null || _a === void 0 ? void 0 : _a.delete(viewerId);
         }
-        (_b = this.blockedRoomRestores.get(roomNumber)) === null || _b === void 0 ? void 0 : _b.delete(viewerId);
+        if (isFragmentRewardEligible) {
+            let eligibleViewers = this.rescueFragmentEligibleGuests.get(roomNumber);
+            if (!eligibleViewers) {
+                eligibleViewers = new Set();
+                this.rescueFragmentEligibleGuests.set(roomNumber, eligibleViewers);
+            }
+            eligibleViewers.add(viewerId);
+        }
+        else {
+            (_b = this.rescueFragmentEligibleGuests.get(roomNumber)) === null || _b === void 0 ? void 0 : _b.delete(viewerId);
+        }
+        (_c = this.blockedRoomRestores.get(roomNumber)) === null || _c === void 0 ? void 0 : _c.delete(viewerId);
         this.clearRescueGuestReconnect(roomNumber, viewerId);
     }
     isRescueGuest(roomNumber, viewerId) {
@@ -366,6 +378,10 @@ class SessionManager {
     isNewbieRescueGuest(roomNumber, viewerId) {
         var _a, _b;
         return (_b = (_a = this.newbieRescueGuests.get(roomNumber)) === null || _a === void 0 ? void 0 : _a.has(viewerId)) !== null && _b !== void 0 ? _b : false;
+    }
+    isRescueFragmentEligibleGuest(roomNumber, viewerId) {
+        var _a, _b;
+        return (_b = (_a = this.rescueFragmentEligibleGuests.get(roomNumber)) === null || _a === void 0 ? void 0 : _a.has(viewerId)) !== null && _b !== void 0 ? _b : false;
     }
     isRoomRestoreBlocked(roomNumber, viewerId) {
         var _a, _b;
@@ -451,11 +467,12 @@ class SessionManager {
         (0, game_logging_1.gameVerboseLog)(() => `[MULTI] rescue guest reconnect grace started: viewer=${client.viewerId} room=${client.roomNumber} graceMs=${reconnectMs}`);
     }
     ejectRescueGuest(roomNumber, viewerId, reason) {
-        var _a, _b, _c, _d;
+        var _a, _b, _c, _d, _e;
         this.clearRescueGuestWait(roomNumber, viewerId);
         this.clearRescueGuestReconnect(roomNumber, viewerId);
         (_a = this.rescueGuests.get(roomNumber)) === null || _a === void 0 ? void 0 : _a.delete(viewerId);
         (_b = this.newbieRescueGuests.get(roomNumber)) === null || _b === void 0 ? void 0 : _b.delete(viewerId);
+        (_c = this.rescueFragmentEligibleGuests.get(roomNumber)) === null || _c === void 0 ? void 0 : _c.delete(viewerId);
         let blocked = this.blockedRoomRestores.get(roomNumber);
         if (!blocked) {
             blocked = new Set();
@@ -488,8 +505,8 @@ class SessionManager {
         }
         try {
             const lobby = require("../tcp/lobby");
-            (_c = lobby.scheduleRematchDisconnectCleanup) === null || _c === void 0 ? void 0 : _c.call(lobby, roomNumber);
-            (_d = lobby.scheduleNpcReconcile) === null || _d === void 0 ? void 0 : _d.call(lobby, roomNumber);
+            (_d = lobby.scheduleRematchDisconnectCleanup) === null || _d === void 0 ? void 0 : _d.call(lobby, roomNumber);
+            (_e = lobby.scheduleNpcReconcile) === null || _e === void 0 ? void 0 : _e.call(lobby, roomNumber);
         }
         catch (e) { }
         (0, game_logging_1.gameVerboseLog)(() => `[MULTI] rescue guest released: viewer=${viewerId} room=${roomNumber} reason=${reason}`);
@@ -552,6 +569,7 @@ class SessionManager {
         }
         this.rescueGuests.delete(roomNumber);
         this.newbieRescueGuests.delete(roomNumber);
+        this.rescueFragmentEligibleGuests.delete(roomNumber);
         this.blockedRoomRestores.delete(roomNumber);
     }
     commitRoomDisband(roomNumber, reason) {

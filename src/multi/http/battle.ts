@@ -49,7 +49,7 @@ import {
 } from "../../lib/finish-response-cache";
 import {
     getRescueFragmentAdditionalReward,
-    getRescueFragmentReward,
+    getEligibleRescueFragmentReward,
 } from "../rescue-fragment-reward";
 import { isMode15RoomClosed } from "../mode15-room-gate";
 import { getMode15ExclusiveGlobalPartyItemsSync, isMode15Quest, settleMode15BattleSync } from "../../lib/mode15-optional";
@@ -245,6 +245,7 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
             expectedRealViewerIds: frozenExpectedRealViewerIds,
             isHost: room.host_viewer_id === viewer_id,
             isRescueGuest: sessionManager.isRescueGuest(room_number, viewer_id),
+            isRescueFragmentEligible: sessionManager.isRescueFragmentEligibleGuest(room_number, viewer_id),
             isNewbieRescueGuest: sessionManager.isNewbieRescueGuest(room_number, viewer_id),
         });
 
@@ -336,6 +337,9 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
         const finishedAsRescueGuest = settlementSnapshot?.isRescueGuest ?? (activeQuestData.roomNumber
             ? sessionManager.isRescueGuest(activeQuestData.roomNumber, viewerId)
             : false);
+        const finishedAsRescueFragmentEligible = settlementSnapshot?.isRescueFragmentEligible ?? (activeQuestData.roomNumber
+            ? sessionManager.isRescueFragmentEligibleGuest(activeQuestData.roomNumber, viewerId)
+            : false);
         const finishedAsNewbieRescueGuest = settlementSnapshot?.isNewbieRescueGuest ?? (activeQuestData.roomNumber
             ? sessionManager.isNewbieRescueGuest(activeQuestData.roomNumber, viewerId)
             : false);
@@ -414,6 +418,12 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
         const questPreviouslyCompleted = questProgress !== null;
         const questAccomplished = (body as any).is_accomplished;
         const leaderId = ((body as any).statistics?.party || (body as any).quest_statistics?.party)?.characters?.[0]?.id
+        const eligibleRescueFragmentReward = getEligibleRescueFragmentReward(
+            questCategory,
+            questId,
+            questAccomplished,
+            finishedAsRescueFragmentEligible,
+        );
 
         let clearReward: PlayerRewardResult | null = null;
         let sPlusClearReward: PlayerRewardResult | null = null;
@@ -485,24 +495,19 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
         }
 
         scoreRewardsResult = givePlayerScoreRewardsSync(playerId, (questData as any).scoreRewardGroupId || 0, (questData as any).scoreRewardGroup, useBoostPoint, (questData as any).element);
-        if (questAccomplished && finishedAsRescueGuest) {
-            const rescueReward = getRescueFragmentReward(questCategory, questId)
-            if (rescueReward !== null) {
-                rescueFragmentReward = givePlayerRewardSync(playerId, rescueReward)
-                gameVerboseLog(() =>
-                    `[MULTI] rescue fragment granted: player=${playerId} quest=${questId} `
-                    + `item=${(rescueReward as any).id} count=${(rescueReward as any).count}`
-                )
-            }
+        if (eligibleRescueFragmentReward !== null) {
+            rescueFragmentReward = givePlayerRewardSync(playerId, eligibleRescueFragmentReward)
+            gameVerboseLog(() =>
+                `[MULTI] rescue fragment granted: player=${playerId} quest=${questId} `
+                + `item=${(eligibleRescueFragmentReward as any).id} count=${(eligibleRescueFragmentReward as any).count}`
+            )
         }
         })));
         const settledClearReward = clearReward as PlayerRewardResult | null;
         const settledSPlusClearReward = sPlusClearReward as PlayerRewardResult | null;
         const settledRescueFragmentReward = rescueFragmentReward as PlayerRewardResult | null;
         const rescueFragmentAdditionalReward = getRescueFragmentAdditionalReward(
-            questAccomplished && finishedAsRescueGuest
-                ? getRescueFragmentReward(questCategory, questId)
-                : null,
+            eligibleRescueFragmentReward,
         );
 
         const bodyPartyStatistics = (body as any).statistics?.party || body.quest_statistics?.party || { characters: [], unison_characters: [] };

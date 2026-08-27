@@ -328,15 +328,16 @@ export function registerLobbyRoutes(fastify: FastifyInstance): void {
             })
         }
 
-        // A Mode15 room-code/follow entrant is also a helper. Mark it exactly
-        // like a random rescue guest so its settlement cannot advance or reset
-        // the helper's own 15-stage run.
+        // A Fantasy room-code/follow entrant is also a helper for lifecycle
+        // and progression purposes, but only a delivered rescue selection is
+        // eligible for the repeatable fragment reward.
         if (randomRescue || (!returningMember && isMode15Quest(room.category, room.quest_id))) {
             const host = getPlayerSync(room.host_player_id)
             sessionManager.markRescueGuest(
                 room.room_number,
                 viewerId,
                 isNewbiePlayerSync(room.host_player_id, host),
+                randomRescue,
             )
         }
         if (randomRescue) acceptRandomRecruitmentForViewer(room.room_number, viewerId)
