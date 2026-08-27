@@ -16,6 +16,7 @@ import { generateDataHeaders, getServerDate, getServerTime, realToVirtual } from
 import { givePlayerRewardsSync } from "../../lib/quest";
 import { computeRealTimeStamina } from "../../lib/stamina";
 import { clientSerializeEquipment } from "../../lib/equipment";
+import { findCurrentEquipmentEnhancementStage, planEquipmentEnhancementPurchase } from "../../lib/equipment-enhancement";
 import CDN_GENERAL_SHOP_WHITELIST from "../../../assets/cdn_general_shop_whitelist.json";
 import { gameVerboseLog } from "../../lib/game-logging";
 import { reconcileAwakeUnlockCharacterList } from "../../lib/mission";
@@ -24,6 +25,18 @@ import { addMissionCounterSync } from "../../lib/mission/counters";
 import { computeFreeFirstDeduction } from "../../lib/free-first-deduction";
 
 const GENERAL_SHOP_CDN_KEYS: Set<number> = new Set(CDN_GENERAL_SHOP_WHITELIST);
+
+function isShopItemAvailable(item: ShopItem, now: Date): boolean {
+    if (item.availableFrom) {
+        const availableFrom = new Date(item.availableFrom.replace(' ', 'T') + 'Z')
+        if (availableFrom > now) return false
+    }
+    if (item.availableUntil) {
+        const availableUntil = new Date(item.availableUntil.replace(' ', 'T') + 'Z')
+        if (availableUntil < now) return false
+    }
+    return true
+}
 
 function recordTreasureShopProgress(
     playerId: number,
@@ -421,8 +434,98 @@ const routes = async (fastify: FastifyInstance) => {
             }
         }
 
+        let enhancementPurchase: {
+            equipmentId: number
+            newLevel: number
+            chargedPurchaseAmount: number
+            grantedLevelCount: number
+        } | null = null
+        if (shopType === ShopType.TREASURE_EQUIPMENT) {
+            const now = getServerDate()
+            if (!isShopItemAvailable(shopItemData, now)) return reply.status(400).send({
+                "error": "Bad Request",
+                "message": "Enhancement item is not currently available."
+            })
+
+            const equipmentId = shopItemData.equipmentId
+            const stageMaxLevel = shopItemData.enhancementMaxLevel
+            const requiredAwakeningLevel = shopItemData.requireAwakeningLevel
+            const shopCategoryId = shopItemData.shopCategoryId
+            const groupId = shopItemData.groupId
+            if (
+                equipmentId === undefined
+                || stageMaxLevel === undefined
+                || requiredAwakeningLevel === undefined
+                || shopCategoryId === undefined
+                || groupId === undefined
+            ) return reply.status(400).send({
+                "error": "Bad Request",
+                "message": "Enhancement item is missing progression data."
+            })
+
+            const currentEquipment = getPlayerEquipmentSync(playerId, equipmentId)
+            if (currentEquipment === null) return reply.status(400).send({
+                "error": "Bad Request",
+                "message": "Player does not own the target equipment."
+            })
+
+            const stages = Object.entries(getGenericShopItemsSync(ShopType.TREASURE_EQUIPMENT) ?? {})
+                .filter(([, item]) => isShopItemAvailable(item, now))
+                .flatMap(([id, item]) => {
+                    if (
+                        item.shopCategoryId === undefined
+                        || item.groupId === undefined
+                        || item.equipmentId === undefined
+                        || item.stage === undefined
+                        || item.enhancementMaxLevel === undefined
+                    ) return []
+                    return [{
+                        shopItemId: Number(id),
+                        shopCategoryId: item.shopCategoryId,
+                        groupId: item.groupId,
+                        equipmentId: item.equipmentId,
+                        stage: item.stage,
+                        maxLevel: item.enhancementMaxLevel,
+                    }]
+                })
+            const currentStage = findCurrentEquipmentEnhancementStage(stages, {
+                shopCategoryId,
+                groupId,
+                equipmentId,
+                currentLevel: currentEquipment.enhancementLevel,
+            })
+            if (currentStage === null || currentStage.shopItemId !== shopItemId) {
+                return reply.status(400).send({
+                    "error": "Bad Request",
+                    "message": "Enhancement item is not the current stage."
+                })
+            }
+
+            const plan = planEquipmentEnhancementPurchase(
+                currentEquipment.enhancementLevel,
+                rawPurchaseAmount,
+                stageMaxLevel,
+                currentEquipment.level,
+                requiredAwakeningLevel,
+            )
+            if (!plan.ok) return reply.status(400).send({
+                "error": "Bad Request",
+                "message": plan.message
+            })
+
+            enhancementPurchase = {
+                equipmentId,
+                newLevel: plan.newLevel,
+                chargedPurchaseAmount: plan.chargedPurchaseAmount,
+                grantedLevelCount: plan.grantedLevelCount,
+            }
+        }
+
+        const chargedPurchaseAmount = enhancementPurchase?.chargedPurchaseAmount ?? purchaseAmount
+
         gameVerboseLog(() =>
-            `[shop:buy] player=${playerId} shopType=${shopType} item=${shopItemId} x${purchaseAmount} ` +
+            `[shop:buy] player=${playerId} shopType=${shopType} item=${shopItemId} ` +
+            `requested=${purchaseAmount} charged=${chargedPurchaseAmount} ` +
             `before freeMana=${player.freeMana} paidMana=${player.paidMana} ` +
             `freeVmoney=${player.freeVmoney} vmoney=${player.vmoney}`
         )
@@ -438,7 +541,7 @@ const routes = async (fastify: FastifyInstance) => {
         // verify user costs
         const userCost = shopItemData.userCost
         if (userCost !== undefined) {
-            const totalCost = userCost.amount * purchaseAmount
+            const totalCost = userCost.amount * chargedPurchaseAmount
             switch (userCost.type) {
                 case ShopItemUserCostType.MANA: {
                     const deduction = computeFreeFirstDeduction(freeMana, paidMana, totalCost)
@@ -475,7 +578,7 @@ const routes = async (fastify: FastifyInstance) => {
             for (const cost of shopItemData.costs) {
                 const itemId = cost.id
                 const itemAmount = getPlayerItemSync(playerId, itemId) ?? 0
-                const newItemAmount = itemAmount - (cost.amount * purchaseAmount)
+                const newItemAmount = itemAmount - (cost.amount * chargedPurchaseAmount)
                 if (0 > newItemAmount) return reply.status(400).send({
                     "error": "Bad Request",
                     "message": `Not enough of item with id ${itemId} to purchase shop item.`
@@ -484,51 +587,46 @@ const routes = async (fastify: FastifyInstance) => {
                 itemList[itemId] = newItemAmount
             }
 
-            // deduct cost item
-            for (const [itemId, newAmount] of Object.entries(itemList)) {
-                updatePlayerItemSync(playerId, itemId, newAmount)
-            }
         }
 
-        // update player
-        updatePlayerSync({
-            id: playerId,
-            freeMana: freeMana,
-            paidMana: paidMana,
-            freeVmoney: freeVmoney,
-            vmoney: vmoney,
-            bondToken: bondTokens
-        })
         const manaSpent = Math.max(
             0,
             (player.freeMana + player.paidMana) - (freeMana + paidMana),
         )
-        if (manaSpent > 0) incrementActiveMissionUsedManaCountSync(playerId, manaSpent)
+        const applyPurchaseCosts = () => {
+            for (const [itemId, newAmount] of Object.entries(itemList)) {
+                updatePlayerItemSync(playerId, itemId, newAmount)
+            }
+            updatePlayerSync({
+                id: playerId,
+                freeMana: freeMana,
+                paidMana: paidMana,
+                freeVmoney: freeVmoney,
+                vmoney: vmoney,
+                bondToken: bondTokens
+            })
+            if (manaSpent > 0) incrementActiveMissionUsedManaCountSync(playerId, manaSpent)
+        }
 
         // Equipment enhancement shop: update equipment enhancement level
-        if (shopType === ShopType.TREASURE_EQUIPMENT) {
-            const equipmentId = shopItemData.equipmentId
-            const targetLevel = shopItemData.enhancementMaxLevel
-            if (equipmentId === undefined || targetLevel === undefined) return reply.status(400).send({
-                "error": "Bad Request",
-                "message": "Enhancement item missing equipment_id or target level."
-            })
+        if (enhancementPurchase !== null) {
+            const { equipmentId, newLevel, grantedLevelCount } = enhancementPurchase
+            getDb().transaction(() => {
+                applyPurchaseCosts()
+                updatePlayerEquipmentSync(playerId, equipmentId, { enhancementLevel: newLevel })
+                addEffectiveShopPurchaseCountSync(
+                    playerId,
+                    shopType,
+                    shopItemId,
+                    chargedPurchaseAmount,
+                )
+            })()
 
-            const currentEquipment = getPlayerEquipmentSync(playerId, equipmentId)
-            if (currentEquipment === null) return reply.status(400).send({
-                "error": "Bad Request",
-                "message": "Player does not own the target equipment."
-            })
-
-            // Update to target enhancement level
-            const newLevel = Math.max(currentEquipment.enhancementLevel, targetLevel)
-            updatePlayerEquipmentSync(playerId, equipmentId, { enhancementLevel: newLevel })
-            currentEquipment.enhancementLevel = newLevel
-
-            // Record purchase
-            for (let i = 0; i < purchaseAmount; i++) {
-                addEffectiveShopPurchaseCountSync(playerId, shopType, shopItemId, 1)
-            }
+            const currentEquipment = getPlayerEquipmentSync(playerId, equipmentId)!
+            gameVerboseLog(() =>
+                `[shop:enhancement-benefit] player=${playerId} equipment=${equipmentId} ` +
+                `item=${shopItemId} grantedLevels=${grantedLevelCount} newLevel=${newLevel}`
+            )
 
             reply.header("content-type", "application/x-msgpack")
             return reply.status(200).send({
@@ -550,6 +648,8 @@ const routes = async (fastify: FastifyInstance) => {
                 }
             })
         }
+
+        applyPurchaseCosts()
 
         // build rewards array
         const rewards: Reward[] = []
@@ -738,17 +838,7 @@ const routes = async (fastify: FastifyInstance) => {
                 }
 
                 // Date filtering: only show items active at current server time
-                {
-                    const now = getServerDate()
-                    if (item.availableFrom) {
-                        const fromStr = item.availableFrom.replace(' ', 'T') + 'Z'
-                        if (new Date(fromStr) > now) continue
-                    }
-                    if (item.availableUntil) {
-                        const untilStr = item.availableUntil.replace(' ', 'T') + 'Z'
-                        if (new Date(untilStr) < now) continue
-                    }
-                }
+                if (!isShopItemAvailable(item, getServerDate())) continue
 
                 if (shopTypeNum === ShopType.TREASURE_EQUIPMENT) {
                     // Collect for group-level processing later
