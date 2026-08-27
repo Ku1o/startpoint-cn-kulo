@@ -14,6 +14,7 @@ import {
     parseAdminMailInteger,
     validateMailAttachment,
 } from "../../lib/admin-mail-rules"
+import { buildAdminMailTimestamps } from "../../lib/admin-mail-time"
 
 // Pre-built CDN validation sets
 const CDN_CHAR_IDS: Set<number> = new Set(Object.keys(characterData).map(Number))
@@ -174,7 +175,7 @@ const routes = async (fastify: FastifyInstance) => {
             targetLabel = "全体"
         }
 
-        const now = new Date().toISOString().replace("T", " ").substring(0, 19)
+        const timestamps = buildAdminMailTimestamps()
         let sentCount = 0
 
         for (const playerId of targetPlayerIds) {
@@ -187,7 +188,7 @@ const routes = async (fastify: FastifyInstance) => {
                     type_id: typeId,
                     number: count,
                     receive_time: "0000-00-00 00:00:00",
-                    create_time: now,
+                    create_time: timestamps.databaseTime,
                     reward_period_limited: 0,
                     reward_limit_time: null,
                 })
@@ -199,7 +200,7 @@ const routes = async (fastify: FastifyInstance) => {
 
         // 记录群发历史（最近 MAX_HISTORY 条）
         sendHistory.unshift({
-            time: now,
+            time: timestamps.chinaDisplayTime,
             type: mailType,
             typeId,
             number: count,
