@@ -5,6 +5,8 @@ import type { Player, PlayerCharacter } from "../data/types"
 import { getPlayerSync } from "../data/domains/player"
 import {
     getPlayerCharacterSync,
+    getPlayerCharactersByIdsSync,
+    getPlayerCharactersManaNodesByIdsSync,
     getPlayerCharactersManaNodesSync,
     getPlayerCharactersSync,
     insertPlayerCharacterBondTokenSync,
@@ -193,6 +195,23 @@ export function buildManaBoardAwakeCharacterList(
     }
 
     return result
+}
+
+/** Builds Awake common-response entries without scanning the full roster. */
+export function buildScopedManaBoardAwakeCharacterList(
+    playerId: number,
+    manaBoardAwakeMap: Map<string, Record<number, number>>,
+): Record<string, unknown>[] {
+    const characterIds = [...manaBoardAwakeMap.keys()].map(Number).filter(
+        characterId => Number.isSafeInteger(characterId) && characterId > 0,
+    )
+    if (characterIds.length === 0) return []
+
+    return buildManaBoardAwakeCharacterList(
+        getPlayerCharactersByIdsSync(playerId, characterIds),
+        manaBoardAwakeMap,
+        getPlayerCharactersManaNodesByIdsSync(playerId, characterIds),
+    )
 }
 
 export function isManaBoardComplete(

@@ -1,11 +1,9 @@
 import {
-    getPlayerCharacterManaNodesSync,
-    getPlayerCharacterSync,
     getPlayerCharactersManaNodesSync,
     getPlayerCharactersSync,
 } from "../../data/domains/character"
 import type { CharacterAwakeUnlockMap } from "../../data/domains/character_awake"
-import { buildManaBoardAwakeCharacterList } from "../character-helpers"
+import { buildManaBoardAwakeCharacterList, buildScopedManaBoardAwakeCharacterList } from "../character-helpers"
 import { reconcileAwakeUnlocks } from "./awake-unlock"
 
 function mergeManaBoardAwake(...values: unknown[]): Record<number, number> {
@@ -64,31 +62,20 @@ export function refreshAwakeUnlockCharacterList(
     candidateCharacterIds: readonly number[],
 ): Record<string, unknown>[] {
     const selectedUnlocks: CharacterAwakeUnlockMap = new Map()
-    const characters: ReturnType<typeof getPlayerCharactersSync> = {}
-    const learnedManaNodes: Record<string, number[]> = {}
 
     for (const characterId of new Set(candidateCharacterIds)) {
         if (!Number.isSafeInteger(characterId) || characterId <= 0) continue
         const key = String(characterId)
         const awakeLevels = unlocks.get(key)
         if (!awakeLevels) continue
-        const character = getPlayerCharacterSync(playerId, characterId)
-        if (!character) continue
-
         selectedUnlocks.set(key, awakeLevels)
-        characters[key] = character
-        learnedManaNodes[key] = getPlayerCharacterManaNodesSync(playerId, characterId)
     }
 
     if (selectedUnlocks.size === 0) {
         return existing as Record<string, unknown>[]
     }
 
-    const updates = buildManaBoardAwakeCharacterList(
-        characters,
-        selectedUnlocks,
-        learnedManaNodes,
-    )
+    const updates = buildScopedManaBoardAwakeCharacterList(playerId, selectedUnlocks)
     return mergeAwakeCharacterUpdates(existing, updates)
 }
 

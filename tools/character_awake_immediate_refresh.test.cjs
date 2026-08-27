@@ -35,7 +35,11 @@ const { getPlayerCharacterAwakeUnlocksSync } = require("../src/data/domains/char
 const { insertDefaultPlayerSync } = require("../src/data/domains/player")
 const { getCharacterDataSync, getCharacterManaNodesSync } = require("../src/lib/assets")
 const { characterExpCaps } = require("../src/lib/character")
-const { reconcileAwakeUnlocksFromProgress } = require("../src/lib/mission")
+const {
+    getAwakeBattleMissionIds,
+    mergeMissionSettlementResponse,
+    settleAwakeMissionCandidates,
+} = require("../src/lib/mission")
 const missionRoutes = require("../src/routes/api/mission").default
 const { getTimeOffset, setServerTimeOffset } = require("../src/utils")
 
@@ -59,7 +63,9 @@ async function main() {
     })
     const playerId = insertDefaultPlayerSync(account.id).id
     const characterId = 341005
+    const incompleteCharacterId = 211002
     insertDefaultPlayerCharacterSync(playerId, characterId)
+    insertDefaultPlayerCharacterSync(playerId, incompleteCharacterId)
     const rarity = getCharacterDataSync(characterId).rarity
     updatePlayerCharacterSync(playerId, characterId, { exp: characterExpCaps[rarity][0] })
     insertPlayerCharacterManaNodesSync(
@@ -80,15 +86,59 @@ async function main() {
         VALUES (?, ?, ?, 2)
     `).run(String(viewerId), account.id, new Date("2099-01-01T00:00:00.000Z").toISOString())
 
-    // Model a completed unlock whose original common response was lost.  The
-    // first subsequent Awake-page request must recover without a new /load.
-    reconcileAwakeUnlocksFromProgress(playerId, [
-        { missionId: 3410051, progress: 1 },
-        { missionId: 3410052, progress: 3 },
-        { missionId: 3410053, progress: 5 },
-        { missionId: 3410054, progress: 3 },
+    const evaluationTime = new Date("2025-01-01T12:00:00.000Z")
+    const battleMissionIds = getAwakeBattleMissionIds([
+        characterId,
+        incompleteCharacterId,
     ])
+    const firstBattleSettlement = settleAwakeMissionCandidates(
+        playerId,
+        battleMissionIds,
+        evaluationTime,
+    )
+    assert.ok(firstBattleSettlement.missionInfo.length > 0)
     assert.deepEqual(getPlayerCharacterAwakeUnlocksSync(playerId).get(String(characterId)), { 1: 1 })
+
+    const battleResponse = {
+        character_list: [{ character_id: characterId, preserved_field: "keep" }],
+        item_list: {},
+        equipment_list: [],
+    }
+    mergeMissionSettlementResponse(battleResponse, firstBattleSettlement, viewerId)
+    assert.equal(battleResponse.character_list.length, 1)
+    assert.equal(battleResponse.character_list[0].preserved_field, "keep")
+    assert.deepEqual(
+        battleResponse.character_list.find(entry => entry.character_id === characterId)?.mana_board_awake,
+        { 1: 1 },
+    )
+    assert.equal(
+        getPlayerCharacterAwakeUnlocksSync(playerId).get(String(incompleteCharacterId)),
+        undefined,
+    )
+
+    const itemAmountsAfterFirstBattle = Object.fromEntries(
+        [13, 14, 15, 16].map(itemId => [itemId, db.prepare(`
+            SELECT amount FROM players_items WHERE player_id = ? AND id = ?
+        `).get(playerId, itemId)?.amount ?? 0]),
+    )
+    const repeatedBattleSettlement = settleAwakeMissionCandidates(
+        playerId,
+        battleMissionIds,
+        evaluationTime,
+    )
+    assert.deepEqual(repeatedBattleSettlement.missionInfo, [])
+    assert.deepEqual(
+        repeatedBattleSettlement.characterList.find(
+            entry => entry.character_id === characterId,
+        )?.mana_board_awake,
+        { 1: 1 },
+    )
+    assert.deepEqual(
+        Object.fromEntries([13, 14, 15, 16].map(itemId => [itemId, db.prepare(`
+            SELECT amount FROM players_items WHERE player_id = ? AND id = ?
+        `).get(playerId, itemId)?.amount ?? 0])),
+        itemAmountsAfterFirstBattle,
+    )
 
     const app = Fastify()
     app.addHook("onSend", (_request, reply, payload, done) => {
@@ -121,15 +171,11 @@ async function main() {
         firstData.character_list.find(entry => entry.character_id === characterId)?.mana_board_awake,
         { 1: 1 },
     )
-    assert.deepEqual(firstData.active_mission_list.map(entry => entry.mission_id), [
-        3410051, 3410052, 3410053, 3410054,
-    ])
-    assert.equal(
-        firstData.active_mission_list.every(entry =>
-            entry.stages.length === 1 && entry.stages[0].received === true
-        ),
-        true,
-    )
+    // CN 1.8.1 filters common-response active_mission_list through the
+    // ordinary ActiveMissionRepository. Category 9 IDs are rejected there,
+    // so the recovery response updates the saved character state. A scene
+    // that was already prepared must be left and entered again to read it.
+    assert.equal(firstData.active_mission_list, undefined)
 
     const itemAmountsAfterFirst = Object.fromEntries(
         [13, 14, 15, 16].map(itemId => [itemId, db.prepare(`
@@ -144,7 +190,7 @@ async function main() {
         repeatedData.character_list.find(entry => entry.character_id === characterId)?.mana_board_awake,
         { 1: 1 },
     )
-    assert.equal(repeatedData.active_mission_list.length, 4)
+    assert.equal(repeatedData.active_mission_list, undefined)
     assert.deepEqual(
         Object.fromEntries([13, 14, 15, 16].map(itemId => [itemId, db.prepare(`
             SELECT amount FROM players_items WHERE player_id = ? AND id = ?

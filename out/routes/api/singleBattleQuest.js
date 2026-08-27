@@ -45,7 +45,6 @@ const score_attack_handler_1 = require("../../lib/quest/finish/score-attack-hand
 const mission_1 = require("../../lib/mission");
 const steam_robot_challenge_1 = require("../../lib/mission/steam-robot-challenge");
 const mission_2 = require("../../lib/mission");
-const mission_3 = require("../../lib/mission");
 const battle_facts_1 = require("../../lib/mission/battle-facts");
 const active_entry_facts_1 = require("../../lib/mission/active-entry-facts");
 const active_reconciliation_1 = require("../../lib/mission/active-reconciliation");
@@ -196,7 +195,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             questAccomplished = body.score >= scoreAttackBorderTiers[0].score;
         }
         const finishResponse = (0, settlement_performance_1.measureSettlementPhase)("single", "transaction", () => (0, db_1.getDb)().transaction(() => {
-            var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v;
+            var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u;
             (0, quest_active_1.deletePlayerActiveQuestSync)(playerId);
             const missionEvaluationTime = new Date((0, utils_1.getServerTime)() * 1000);
             let clearReward = null;
@@ -491,9 +490,9 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 ...((carnivalRewardsResult === null || carnivalRewardsResult === void 0 ? void 0 : carnivalRewardsResult.character_list) || []),
                 ...((mode15RewardsResult === null || mode15RewardsResult === void 0 ? void 0 : mode15RewardsResult.character_list) || []),
             ];
-            const missionSettlement = (0, settlement_performance_1.measureSettlementPhase)("single", "mission", () => ((0, mission_3.settleMissionCategories)(playerId, (0, battle_facts_1.buildBattleMissionSettlementScopes)(missionBattleFacts, Object.keys(itemList).map(Number), steamRobotMissionId === null ? [] : [steamRobotMissionId], partyCharacterIdsArray), missionEvaluationTime)));
-            const awakeMissionSettlement = (0, settlement_performance_1.measureSettlementPhase)("single", "awake_mission", () => ((0, mission_3.settleAwakeMissionCandidates)(playerId, questAccomplished
-                ? (0, mission_3.getAwakeBattleMissionIds)(partyCharacterIdsArray, missionBattleFacts.awakeMissionIds)
+            const missionSettlement = (0, settlement_performance_1.measureSettlementPhase)("single", "mission", () => ((0, mission_2.settleMissionCategories)(playerId, (0, battle_facts_1.buildBattleMissionSettlementScopes)(missionBattleFacts, Object.keys(itemList).map(Number), steamRobotMissionId === null ? [] : [steamRobotMissionId], partyCharacterIdsArray), missionEvaluationTime)));
+            const awakeMissionSettlement = (0, settlement_performance_1.measureSettlementPhase)("single", "awake_mission", () => ((0, mission_2.settleAwakeMissionCandidates)(playerId, questAccomplished
+                ? (0, mission_2.getAwakeBattleMissionIds)(partyCharacterIdsArray, missionBattleFacts.awakeMissionIds)
                 : [], missionEvaluationTime)));
             const activeMissionSettlement = (0, settlement_performance_1.measureSettlementPhase)("single", "active_mission", () => ((0, active_reconciliation_1.reconcileActiveMissionFacts)({
                 playerId,
@@ -578,13 +577,10 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                     degree_id: degreeId,
                 }));
             }
-            (0, mission_3.mergeMissionSettlementResponse)(responseData, missionSettlement, viewerId);
-            (0, mission_3.mergeMissionSettlementResponse)(responseData, awakeMissionSettlement, viewerId);
-            // Reconcile only once, after both ordinary and awakening mission
-            // rewards have been committed.  Doing this before settlement left the
-            // response one request behind and forced the client to relog before
-            // ability awakening became available.
-            responseData.character_list = (0, mission_2.reconcileAwakeUnlockCharacterList)(playerId, (_v = responseData.character_list) !== null && _v !== void 0 ? _v : []);
+            (0, mission_2.mergeMissionSettlementResponse)(responseData, missionSettlement, viewerId);
+            // Awake settlement re-publishes completed special unlocks itself,
+            // including already-persisted rows whose earlier response was lost.
+            (0, mission_2.mergeMissionSettlementResponse)(responseData, awakeMissionSettlement, viewerId);
             if (activeMissionSettlement.length > 0) {
                 responseData.active_mission_list = activeMissionSettlement;
             }
@@ -829,7 +825,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 startedAtMs: (_e = activeQuest.startedAtMs) !== null && _e !== void 0 ? _e : null,
             });
             (0, active_entry_facts_1.recordActiveMissionQuestChallengeFactSync)(playerId, category);
-            missionSettlement = (0, mission_3.settleMissionCategories)(playerId, [1, 2, 10], new Date((0, utils_1.getServerTime)() * 1000));
+            missionSettlement = (0, mission_2.settleMissionCategories)(playerId, [1, 2, 10], new Date((0, utils_1.getServerTime)() * 1000));
         })();
         const dataHeaders = (0, utils_1.generateDataHeaders)({
             viewer_id: viewerId
@@ -849,7 +845,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             "client_checks": (0, steam_robot_challenge_1.getSteamRobotMissionClientChecks)(category, questId)
         };
         if (missionSettlement) {
-            (0, mission_3.mergeMissionSettlementResponse)(responseData, missionSettlement, viewerId);
+            (0, mission_2.mergeMissionSettlementResponse)(responseData, missionSettlement, viewerId);
         }
         responseData.mail_arrived = (0, mail_1.getPlayerMailCountSync)(playerId, true) > 0;
         return reply.status(200).send({

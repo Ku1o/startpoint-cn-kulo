@@ -218,5 +218,5 @@ ALTER TABLE players_characters_mana_nodes ADD COLUMN awake_level INTEGER NOT NUL
 | H400 `receive_bond_token` | status=2 已领取 | 兜底返回 200，不发重复奖励 |
 | `/load` 中 `awake_level` 恒为 0 | serialize-player.ts 未读 DB | 已修复：通过 `MergedPlayerData.characterManaNodeAwakeLevels` |
 | 觉醒后重进玛纳板仍显示「未觉醒」 | 同上 | 同上 |
-| C8601 `active_mission_list` | ActiveMissionRepository 不认识 cat9 mission ID | 不把 cat9 放入 `all_active_mission_list`；用 `data.active_mission_list` 通道 |
+| C8601 / cat9 被丢弃 | ActiveMissionRepository 不认识 cat9 mission ID | `all_active_mission_list` 与通用 `active_mission_list` 都不发送 cat9；战斗结算在进入觉醒页前幂等补发角色解锁状态。已经打开的觉醒页只需退回后重进，不需重登 |
 ```

@@ -27,7 +27,6 @@ const types_1 = require("../../lib/types");
 const mission_1 = require("../../lib/mission");
 const steam_robot_challenge_1 = require("../../lib/mission/steam-robot-challenge");
 const mission_2 = require("../../lib/mission");
-const mission_3 = require("../../lib/mission");
 const battle_facts_1 = require("../../lib/mission/battle-facts");
 const active_reconciliation_1 = require("../../lib/mission/active-reconciliation");
 const content_snapshot_1 = require("../../content/runtime/content-snapshot");
@@ -208,7 +207,7 @@ function registerBattleRoutes(fastify) {
     }));
     // ---- finish ----
     fastify.post("/finish", (request, reply) => __awaiter(this, void 0, void 0, function* () {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _0, _1, _2, _3, _4, _5, _6;
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _0, _1, _2, _3, _4, _5;
         const finishHandlerStartedAt = process.hrtime.bigint();
         const body = request.body;
         const viewerId = body.viewer_id;
@@ -505,10 +504,10 @@ function registerBattleRoutes(fastify) {
         ];
         const missionSettlement = yield (0, settlement_performance_1.measureSettlementPhaseAsync)("multi", "mission", () => {
             var _a, _b, _c;
-            return ((0, mission_3.settleMissionCategoriesAsync)(playerId, (0, battle_facts_1.buildBattleMissionSettlementScopes)(missionBattleFacts, Object.keys(Object.assign(Object.assign(Object.assign(Object.assign({}, ((_a = settledClearReward === null || settledClearReward === void 0 ? void 0 : settledClearReward.items) !== null && _a !== void 0 ? _a : {})), ((_b = settledSPlusClearReward === null || settledSPlusClearReward === void 0 ? void 0 : settledSPlusClearReward.items) !== null && _b !== void 0 ? _b : {})), scoreRewardsResult.items), ((_c = settledRescueFragmentReward === null || settledRescueFragmentReward === void 0 ? void 0 : settledRescueFragmentReward.items) !== null && _c !== void 0 ? _c : {}))).map(Number), steamRobotMissionId === null ? [] : [steamRobotMissionId], partyCharacterIdsArray), missionEvaluationTime));
+            return ((0, mission_2.settleMissionCategoriesAsync)(playerId, (0, battle_facts_1.buildBattleMissionSettlementScopes)(missionBattleFacts, Object.keys(Object.assign(Object.assign(Object.assign(Object.assign({}, ((_a = settledClearReward === null || settledClearReward === void 0 ? void 0 : settledClearReward.items) !== null && _a !== void 0 ? _a : {})), ((_b = settledSPlusClearReward === null || settledSPlusClearReward === void 0 ? void 0 : settledSPlusClearReward.items) !== null && _b !== void 0 ? _b : {})), scoreRewardsResult.items), ((_c = settledRescueFragmentReward === null || settledRescueFragmentReward === void 0 ? void 0 : settledRescueFragmentReward.items) !== null && _c !== void 0 ? _c : {}))).map(Number), steamRobotMissionId === null ? [] : [steamRobotMissionId], partyCharacterIdsArray), missionEvaluationTime));
         });
-        const awakeMissionSettlement = (0, settlement_performance_1.measureSettlementPhase)("multi", "awake_mission", () => ((0, mission_3.settleAwakeMissionCandidates)(playerId, questAccomplished
-            ? (0, mission_3.getAwakeBattleMissionIds)(partyCharacterIdsArray, missionBattleFacts.awakeMissionIds)
+        const awakeMissionSettlement = (0, settlement_performance_1.measureSettlementPhase)("multi", "awake_mission", () => ((0, mission_2.settleAwakeMissionCandidates)(playerId, questAccomplished
+            ? (0, mission_2.getAwakeBattleMissionIds)(partyCharacterIdsArray, missionBattleFacts.awakeMissionIds)
             : [], missionEvaluationTime)));
         const activeMissionSettlement = (0, settlement_performance_1.measureSettlementPhase)("multi", "active_mission", () => ((0, active_reconciliation_1.reconcileActiveMissionFacts)({
             playerId,
@@ -586,12 +585,10 @@ function registerBattleRoutes(fastify) {
             "host_finished": finishedAsHost,
             "aborted_play_id": null,
         };
-        (0, mission_3.mergeMissionSettlementResponse)(responseData, missionSettlement, viewerId);
-        (0, mission_3.mergeMissionSettlementResponse)(responseData, awakeMissionSettlement, viewerId);
-        // Reconcile once after awakening mission rewards are committed so the
-        // finish response exposes a newly unlocked ability awakening without
-        // requiring the player to relog.
-        responseData.character_list = (0, mission_2.reconcileAwakeUnlockCharacterList)(playerId, (_4 = responseData.character_list) !== null && _4 !== void 0 ? _4 : []);
+        (0, mission_2.mergeMissionSettlementResponse)(responseData, missionSettlement, viewerId);
+        // Awake settlement re-publishes completed special unlocks itself,
+        // including already-persisted rows whose earlier response was lost.
+        (0, mission_2.mergeMissionSettlementResponse)(responseData, awakeMissionSettlement, viewerId);
         if (activeMissionSettlement.length > 0) {
             responseData.active_mission_list = activeMissionSettlement;
         }
@@ -601,13 +598,13 @@ function registerBattleRoutes(fastify) {
             "data": responseData,
         };
         if (questAccomplished) {
-            (0, player_party_pool_1.recordSuccessfulQuestNpcParty)(playerId, questCategory, questId, (_5 = activeQuestData.partySlot) !== null && _5 !== void 0 ? _5 : player.partySlot);
+            (0, player_party_pool_1.recordSuccessfulQuestNpcParty)(playerId, questCategory, questId, (_4 = activeQuestData.partySlot) !== null && _4 !== void 0 ? _4 : player.partySlot);
         }
         (0, finish_response_cache_1.cacheFinishResponse)(finishCacheKey, finishResponse);
         (0, settlement_snapshot_1.transitionMultiSettlementSnapshot)(playerId, body.play_id, "RETURN_PENDING");
         // Clear only the quest that produced this response.  A late retry from
         // the previous battle must never delete a newer rematch's active quest.
-        if (((_6 = singleBattleQuest_1.activeQuests[playerId]) === null || _6 === void 0 ? void 0 : _6.playId) === activeQuestData.playId) {
+        if (((_5 = singleBattleQuest_1.activeQuests[playerId]) === null || _5 === void 0 ? void 0 : _5.playId) === activeQuestData.playId) {
             delete singleBattleQuest_1.activeQuests[playerId];
             (0, quest_active_1.deletePlayerActiveQuestSync)(playerId);
         }

@@ -39,7 +39,6 @@ import {
 } from "../../lib/quest/finish/score-attack-handler";
 import { collectPartyCharacterIds, recordBattleMissionDimensionsSafe, summarizeBattleStatistics } from "../../lib/mission"
 import { getSteamRobotMissionClientChecks, trackSteamRobotChallengeMission } from "../../lib/mission/steam-robot-challenge"
-import { reconcileAwakeUnlockCharacterList } from "../../lib/mission"
 import {
     getAwakeBattleMissionIds,
     mergeMissionSettlementResponse,
@@ -820,15 +819,9 @@ const routes = async (fastify: FastifyInstance) => {
             }))
         }
         mergeMissionSettlementResponse(responseData, missionSettlement, viewerId)
+        // Awake settlement re-publishes completed special unlocks itself,
+        // including already-persisted rows whose earlier response was lost.
         mergeMissionSettlementResponse(responseData, awakeMissionSettlement, viewerId)
-        // Reconcile only once, after both ordinary and awakening mission
-        // rewards have been committed.  Doing this before settlement left the
-        // response one request behind and forced the client to relog before
-        // ability awakening became available.
-        responseData.character_list = reconcileAwakeUnlockCharacterList(
-            playerId,
-            responseData.character_list ?? [],
-        )
         if (activeMissionSettlement.length > 0) {
             responseData.active_mission_list = activeMissionSettlement
         }

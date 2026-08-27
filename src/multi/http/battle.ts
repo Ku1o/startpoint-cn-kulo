@@ -30,7 +30,6 @@ import { getDb } from "../../data/db";
 import type { Player } from "../../data/types";
 import { collectPartyCharacterIds, recordBattleMissionDimensionsSafe, summarizeBattleStatistics } from "../../lib/mission";
 import { getSteamRobotMissionClientChecks, trackSteamRobotChallengeMission } from "../../lib/mission/steam-robot-challenge";
-import { reconcileAwakeUnlockCharacterList } from "../../lib/mission";
 import { getAwakeBattleMissionIds, mergeMissionSettlementResponse, settleAwakeMissionCandidates, settleMissionCategoriesAsync } from "../../lib/mission";
 import { buildBattleMissionSettlementScopes, getBattleActiveMissionPatterns, recordMissionBattleFacts } from "../../lib/mission/battle-facts";
 import { reconcileActiveMissionFacts } from "../../lib/mission/active-reconciliation";
@@ -735,14 +734,9 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
                 "aborted_play_id": null,
         }
         mergeMissionSettlementResponse(responseData, missionSettlement, viewerId)
+        // Awake settlement re-publishes completed special unlocks itself,
+        // including already-persisted rows whose earlier response was lost.
         mergeMissionSettlementResponse(responseData, awakeMissionSettlement, viewerId)
-        // Reconcile once after awakening mission rewards are committed so the
-        // finish response exposes a newly unlocked ability awakening without
-        // requiring the player to relog.
-        responseData.character_list = reconcileAwakeUnlockCharacterList(
-            playerId,
-            responseData.character_list ?? [],
-        )
         if (activeMissionSettlement.length > 0) {
             responseData.active_mission_list = activeMissionSettlement
         }
