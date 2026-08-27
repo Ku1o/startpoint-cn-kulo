@@ -4765,28 +4765,53 @@
     {
       "id": "four-character-ui-centering-1.4.91",
       "type": "patch",
-      "name": "四角色技能插入图定位与巴萨拉卡图集顺序修复",
-      "description": "在已部署的1.4.90基础上，校正139997、希耶提、西蒙与巴萨拉卡基础形态技能插入图的固定画布定位，并按既有atlas修正巴萨拉卡插画设置图集的初始与觉醒顺序。",
+      "name": "四角色 UI、杰拉德/赛瑞斯图集及强化商店同步",
+      "description": "在已部署的1.4.90基础上，保留四角色技能插入图定位与巴萨拉卡插画设置图集顺序修复，对杰拉德、赛瑞斯七张战斗图集进行完整矩形安全重排，将赛瑞斯最大变身特效重定向至战斗layer1，并同步解放者与终结者13阶强化商店客户端表；按要求继续合并在尚未正式分发的1.4.91中。",
       "version": "1.4.91",
       "depends_on": "1.4.90",
       "enabled": true,
       "archive": "pinball-1.4.90-1.4.91-1-0827-four-character-ui-centering.zip",
-      "archive_size": 524962,
+      "archive_size": 4537230,
       "files": [
         "production/medium_upload/e4/7e910cab2e474dc674e053a1941f8995f5e421",
+        "production/upload/05/154f1e26f658fafb63af306af2e5e6de7f6249",
+        "production/upload/07/f2f32d54668200dea95cd503f9a1328120d4d2",
+        "production/upload/1e/82c7126aa1b41cb3eaa0c7dbb703c3813ef52f",
+        "production/upload/2e/5e14a08f7eeb94d3bfb72d9117fde56aee4691",
+        "production/upload/34/af6a9cd9f426fb1bd3b81e166c9884a61a30b3",
+        "production/upload/4b/c5b3ac0fc4711af9b2213fc79e2b609de74fb5",
+        "production/upload/58/62aedae1bdd0bccaf5b7057a794e2a941a79bb",
+        "production/upload/5d/3f8974dbc211de057d487129bf99af4d0c3263",
+        "production/upload/69/99fbf8c65bd253d79b3f8ed4acffbcc8d60f11",
+        "production/upload/79/efc98b343e27ead45cdb3225cf28a2da528ae1",
+        "production/upload/7f/cb0db8d2e27c3361d79a32e531339043bbda79",
+        "production/upload/80/1b253dc5488949b261cab7d4bf524b53cddd8f",
+        "production/upload/82/ae4e4b5bcba1ad1ee22d02ecf79e0bcc583294",
+        "production/upload/86/b84dca5658e54795616bbe0446ee8191afb64b",
+        "production/upload/94/9da9e14e1cdc64730850e49fd68152d8f8d4d8",
+        "production/upload/aa/806a10466e9166995a2dbdf7698bf32953f3b9",
+        "production/upload/d4/18c979a14d61f3723bafb48a63ee9f26519b35",
+        "production/upload/e3/ef959b85852427577252f1651c3a93a8d2dc1e",
+        "production/upload/e4/3556110c14d4f92fc5085e6c2a307c3afb99a9",
+        "production/upload/f1/7fc9fcb1554b9b574c2153aae4d50f8045cef6",
+        "production/upload/f3/8eb6bd15b1e6a8784b860d3c09dc108955d7c3",
         "production/upload/fb/ab4344a7456dca88f3ce06f01208922f37e395"
       ],
       "changes": [
         "将139997、希耶提、西蒙与巴萨拉卡基础形态skill_cutin_0的固定画布纹理帧校正为0,0,1024,512，消除旧透明边界偏移造成的人物跑位。",
         "四张觉醒形态skill_cutin_1定位行与trimmed_image其余记录保持不变。",
-        "按未修改的既有atlas将巴萨拉卡illustration_setting_sprite_sheet修正为上方觉醒_1、下方初始_0。"
+        "按未修改的既有atlas将巴萨拉卡illustration_setting_sprite_sheet修正为上方觉醒_1、下方初始_0。",
+        "将杰拉德像素图、主动技特效、Power Flip特效及赛瑞斯普通/特殊像素图、主动技特效、潮环特效的完整atlas矩形安全重排；重排仅修改region的x/y坐标，逐帧RGBA、名称、顺序、尺寸及其他元数据保持一致。",
+        "将赛瑞斯1,341,702像素的变身特效复制到battle/uncommon/layer1，并在两份技能动作DSL中各精确替换一个效果引用；atlas与parts仅改路径前缀，timeline逐字节保持一致。",
+        "首轮失败包中杰拉德与赛瑞斯合计占layer0的26.87%；本次将两者最终layer0占用降至16.72%，其中赛瑞斯由17.66%降至7.52%，另有8.00%转入layer1。基诺维未修改。",
+        "同步equipment_enhancement_shop客户端表：解放者5010070与终结者5020043各拆为13阶，每阶消耗皮那水晶40313×1；目标26行更新，其他189行逐字节保持一致。"
       ],
       "created_at": "2026-08-27",
       "audit": {
         "directory": "assets/asset-patch/audit/four-character-ui-centering-1.4.91",
         "base_version": "1.4.90",
         "target_version": "1.4.91",
-        "members": 2,
+        "members": 23,
         "skill_cutin_form0_frame": "0,0,1024,512",
         "skill_cutin_form1_rows_unchanged": true,
         "trimmed_image_unrelated_rows_preserved": true,
@@ -4799,14 +4824,37 @@
         "vaseraga_illustration_form1_top": true,
         "vaseraga_illustration_form0_bottom": true,
         "vaseraga_illustration_atlas_unchanged": true,
+        "battle_atlas_safe_repack": true,
+        "battle_atlas_characters": [
+          "杰拉德",
+          "赛瑞斯"
+        ],
+        "battle_atlas_excluded": [
+          "基诺维"
+        ],
+        "battle_atlas_repack_only_xy_changed": true,
+        "battle_atlas_region_rgba_identical": true,
+        "battle_atlas_source_area": 5262088,
+        "battle_atlas_target_area": 4146599,
+        "battle_atlas_saved_area": 1115489,
+        "failed_first_attempt_layer0_area": 4507622,
+        "final_layer0_area": 2804897,
+        "final_layer1_retarget_area": 1341702,
+        "battle_layer_retarget": true,
+        "battle_layer_retarget_paths_only": true,
+        "seris_action_dsl_effect_reference_replacements": 2,
+        "equipment_enhancement_shop_included": true,
+        "equipment_enhancement_shop_rows": 215,
+        "equipment_enhancement_shop_unrelated_rows_byte_identical": 189,
+        "battle_atlas_audit": "battle-atlas-repack-audit.json",
         "gameplay_verified": false
       },
       "archive_integrity": [
         {
           "name": "pinball-1.4.90-1.4.91-1-0827-four-character-ui-centering.zip",
-          "size": 524962,
-          "sha256": "95e57dd663581d92247d22727efd4f17ce0590e18f56186df78a29bd0cd4d8d4",
-          "members": 2
+          "size": 4537230,
+          "sha256": "589d9a061d4d51067c338a4332025257f234fcac4fe87141a8fec66bbe14a401",
+          "members": 23
         }
       ]
     }
