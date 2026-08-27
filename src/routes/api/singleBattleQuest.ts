@@ -510,6 +510,7 @@ const routes = async (fastify: FastifyInstance) => {
             mode: "single",
             clearRank,
             clearTimeMs: clearTime,
+            score: Number(body.score) || 0,
             ...singleBattleParty,
             statistics: summarizeBattleStatistics(finishCtx.statistics),
         })
@@ -810,6 +811,12 @@ const routes = async (fastify: FastifyInstance) => {
                 "score_attack_event": scoreAttackEventData,
                 "user_daily_challenge_point_list": dailyChallengePointList ?? [],
                 "presigned_quest_category": []
+        }
+        if (raidEventData?.new_degree_ids.length) {
+            responseData.degree_list = raidEventData.new_degree_ids.map(degreeId => ({
+                viewer_id: viewerId,
+                degree_id: degreeId,
+            }))
         }
         mergeMissionSettlementResponse(responseData, missionSettlement, viewerId)
         mergeMissionSettlementResponse(responseData, awakeMissionSettlement, viewerId)

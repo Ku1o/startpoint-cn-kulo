@@ -65,7 +65,7 @@ export function getPlayerPartyGroupListSync(
 function insertPlayerPartySync(playerId: number, slot: number | string, groupId: number | string, party: PlayerParty) {
     const db = getDb();
     db.prepare(`
-    INSERT INTO players_parties (slot, name, character_id_1, character_id_2, character_id_3, 
+    INSERT INTO players_parties (slot, name, character_id_1, character_id_2, character_id_3,
         unison_character_1, unison_character_2, unison_character_3, equipment_1, equipment_2,
         equipment_3, ability_soul_1, ability_soul_2, ability_soul_3, edited, player_id, group_id, category,
         current_battle_power, before_battle_power)
@@ -169,4 +169,17 @@ export function countAbilitySoulUsedInPartiesSync(
     AND (ability_soul_1 = ? OR ability_soul_2 = ? OR ability_soul_3 = ?)
     `).get(playerId, abilitySoulId, abilitySoulId, abilitySoulId) as { cnt: number } | undefined
     return row?.cnt ?? 0
+}
+
+/** Counts occupied ability-soul slots, used as a conservative historical floor. */
+export function countEquippedAbilitySoulSlotsSync(playerId: number): number {
+    const row = getDb().prepare(`
+    SELECT
+        SUM(CASE WHEN ability_soul_1 IS NOT NULL THEN 1 ELSE 0 END)
+        + SUM(CASE WHEN ability_soul_2 IS NOT NULL THEN 1 ELSE 0 END)
+        + SUM(CASE WHEN ability_soul_3 IS NOT NULL THEN 1 ELSE 0 END) AS cnt
+    FROM players_parties
+    WHERE player_id = ?
+    `).get(playerId) as { cnt: number | null } | undefined
+    return Number(row?.cnt) || 0
 }

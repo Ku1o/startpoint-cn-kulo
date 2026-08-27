@@ -435,11 +435,6 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
             }
         }
 
-        // Increment multi clear count for event mission tracking
-        getDb().prepare(`
-        UPDATE players_quest_progress SET multi_clear_count = multi_clear_count + 1
-        WHERE player_id = ? AND section = ? AND quest_id = ?
-        `).run(playerId, Number(questCategory), Number(questId))
         updatePlayerSync({
             id: playerId,
             freeMana: newMana,
@@ -605,6 +600,7 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
             isMvp: questAccomplished && finishedAsMvp,
             clearRank,
             clearTimeMs: clearTime,
+            score: Number((body as any).score) || 0,
             ...multiBattleParty,
             statistics: summarizeBattleStatistics(finishCtx.statistics),
         })

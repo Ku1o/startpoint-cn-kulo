@@ -77,6 +77,21 @@ export function setMissionCounterMaxSync(playerId: number, query: MissionCounter
     return getMissionCounterValueSync(playerId, query)
 }
 
+export function setMissionCounterMinSync(playerId: number, query: MissionCounterQuery, value: number): number {
+    if (!Number.isFinite(value) || value <= 0) return getMissionCounterValueSync(playerId, query)
+    const counterKey = makeMissionCounterKey(query)
+    const qualifierJson = serializeMissionCounterQualifier(query.qualifier)
+    getDb().prepare(`
+    INSERT INTO players_mission_counters
+        (player_id, counter_key, dimension, scope_type, scope_key, qualifier_json, value, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    ON CONFLICT(player_id, counter_key) DO UPDATE SET
+        value = MIN(value, excluded.value),
+        updated_at = excluded.updated_at
+    `).run(playerId, counterKey, query.dimension, query.scopeType, query.scopeKey, qualifierJson, value, nowSql())
+    return getMissionCounterValueSync(playerId, query)
+}
+
 export function getMissionCounterValueSync(playerId: number, query: MissionCounterQuery): number {
     const counterKey = makeMissionCounterKey(query)
     const row = getDb().prepare(`

@@ -36,6 +36,10 @@ import {
     canStartRankGatedGauntletRush,
     GAUNTLET_MIN_PLAYER_RANK,
 } from "../../lib/gauntlet-entry-rank";
+import {
+    getEligibleRushDegreeIds,
+    grantEligibleRushEventDegreesSync,
+} from "../../lib/activity-degree-rewards";
 
 interface SummaryBody {
     event_id: number,
@@ -773,25 +777,30 @@ const routes = async (fastify: FastifyInstance) => {
             "error": "Internal Server Error", "message": "No player bound to account."
         })
 
-        // get player's rank
+        // Rank remains part of the response, but the reward master-data ranges
+        // describe cleared endless rounds (2-3, 4-5 and 6+), not leaderboard rank.
         const myRanking = getPlayerRushEventEndlessBattleRankingSync(playerId, eventId)
         const rankNumber = myRanking?.rank_number ?? null
+        const rushEvent = getPlayerRushEventSync(playerId, eventId)
+        const maxRound = rushEvent?.endlessBattleMaxRound ?? null
+        const eligibleDegreeIds = new Set(getEligibleRushDegreeIds(eventId, maxRound))
 
         // find matching reward tier
         const rewards = rankingRewards[String(eventId)] ?? {}
         let rewardList: RushEventRankingRewardEntry[] = []
-        if (rankNumber !== null && rankNumber > 0) {
+        if (maxRound !== null && maxRound > 0) {
             for (const entries of Object.values(rewards)) {
                 for (const entry of entries) {
-                    if (rankNumber >= entry.fromRank && rankNumber <= entry.toRank) {
+                    if (eligibleDegreeIds.has(entry.kindId)) {
                         rewardList.push(entry)
                         break
                     }
                 }
             }
         }
+        const degreeIds = grantEligibleRushEventDegreesSync(playerId, eventId, maxRound)
 
-        console.log(`[RUSH] reward: rank=${rankNumber} rewards=${rewardList.length}`)
+        console.log(`[RUSH] reward: rank=${rankNumber} maxRound=${maxRound} rewards=${rewardList.length}`)
 
         reply.header("content-type", "application/x-msgpack")
         return reply.status(200).send({
@@ -804,8 +813,12 @@ const routes = async (fastify: FastifyInstance) => {
                         "kind_id": r.kindId,
                         "number": r.number
                     })),
-                    "status": 0
-                }
+                    "status": 1
+                },
+                "degree_list": degreeIds.map(degreeId => ({
+                    viewer_id: viewerId,
+                    degree_id: degreeId,
+                }))
             }
         });
     })

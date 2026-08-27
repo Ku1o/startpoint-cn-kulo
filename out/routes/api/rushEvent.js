@@ -32,6 +32,7 @@ const rush_event_folder_lock_1 = require("../../lib/rush-event-folder-lock");
 const mode15_optional_1 = require("../../lib/mode15-optional");
 const stamina_1 = require("../../lib/stamina");
 const gauntlet_entry_rank_1 = require("../../lib/gauntlet-entry-rank");
+const activity_degree_rewards_1 = require("../../lib/activity-degree-rewards");
 var ResetQuestType;
 (function (ResetQuestType) {
     ResetQuestType[ResetQuestType["EMPTY"] = 0] = "EMPTY";
@@ -602,7 +603,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
     }));
     // ---- reward ----
     fastify.post("/reward", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
-        var _e, _f;
+        var _e, _f, _g;
         const body = request.body;
         const viewerId = body.viewer_id;
         const eventId = body.event_id;
@@ -621,23 +622,28 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             return reply.status(500).send({
                 "error": "Internal Server Error", "message": "No player bound to account."
             });
-        // get player's rank
+        // Rank remains part of the response, but the reward master-data ranges
+        // describe cleared endless rounds (2-3, 4-5 and 6+), not leaderboard rank.
         const myRanking = (0, rush_1.getPlayerRushEventEndlessBattleRankingSync)(playerId, eventId);
         const rankNumber = (_e = myRanking === null || myRanking === void 0 ? void 0 : myRanking.rank_number) !== null && _e !== void 0 ? _e : null;
+        const rushEvent = (0, rushEvent_1.getPlayerRushEventSync)(playerId, eventId);
+        const maxRound = (_f = rushEvent === null || rushEvent === void 0 ? void 0 : rushEvent.endlessBattleMaxRound) !== null && _f !== void 0 ? _f : null;
+        const eligibleDegreeIds = new Set((0, activity_degree_rewards_1.getEligibleRushDegreeIds)(eventId, maxRound));
         // find matching reward tier
-        const rewards = (_f = rankingRewards[String(eventId)]) !== null && _f !== void 0 ? _f : {};
+        const rewards = (_g = rankingRewards[String(eventId)]) !== null && _g !== void 0 ? _g : {};
         let rewardList = [];
-        if (rankNumber !== null && rankNumber > 0) {
+        if (maxRound !== null && maxRound > 0) {
             for (const entries of Object.values(rewards)) {
                 for (const entry of entries) {
-                    if (rankNumber >= entry.fromRank && rankNumber <= entry.toRank) {
+                    if (eligibleDegreeIds.has(entry.kindId)) {
                         rewardList.push(entry);
                         break;
                     }
                 }
             }
         }
-        console.log(`[RUSH] reward: rank=${rankNumber} rewards=${rewardList.length}`);
+        const degreeIds = (0, activity_degree_rewards_1.grantEligibleRushEventDegreesSync)(playerId, eventId, maxRound);
+        console.log(`[RUSH] reward: rank=${rankNumber} maxRound=${maxRound} rewards=${rewardList.length}`);
         reply.header("content-type", "application/x-msgpack");
         return reply.status(200).send({
             "data_headers": (0, utils_1.generateDataHeaders)({ viewer_id: viewerId }),
@@ -649,14 +655,18 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                         "kind_id": r.kindId,
                         "number": r.number
                     })),
-                    "status": 0
-                }
+                    "status": 1
+                },
+                "degree_list": degreeIds.map(degreeId => ({
+                    viewer_id: viewerId,
+                    degree_id: degreeId,
+                }))
             }
         });
     }));
     // ---- endless_battle ----
     fastify.post("/endless_battle", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
-        var _g, _h, _j;
+        var _h, _j, _k;
         const body = request.body;
         const viewerId = body.viewer_id;
         const eventId = body.event_id;
@@ -679,8 +689,8 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         const serializedPlayedParties = rushEventData !== null
             ? (0, rush_1.getSerializedPlayerRushEventPlayedPartiesSync)(playerId, eventId)
             : { endlessParties: null, folderParties: null };
-        const maxRound = (_g = rushEventData === null || rushEventData === void 0 ? void 0 : rushEventData.endlessBattleMaxRound) !== null && _g !== void 0 ? _g : null;
-        const nextRound = (_h = rushEventData === null || rushEventData === void 0 ? void 0 : rushEventData.endlessBattleNextRound) !== null && _h !== void 0 ? _h : 1;
+        const maxRound = (_h = rushEventData === null || rushEventData === void 0 ? void 0 : rushEventData.endlessBattleMaxRound) !== null && _h !== void 0 ? _h : null;
+        const nextRound = (_j = rushEventData === null || rushEventData === void 0 ? void 0 : rushEventData.endlessBattleNextRound) !== null && _j !== void 0 ? _j : 1;
         console.log(`[RUSH] endless_battle: maxRound=${maxRound} nextRound=${nextRound}`);
         reply.header("content-type", "application/x-msgpack");
         return reply.status(200).send({
@@ -688,7 +698,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             "data": {
                 "endless_battle_max_round": maxRound,
                 "endless_battle_next_round": nextRound,
-                "endless_battle_played_party_list": (_j = serializedPlayedParties.endlessParties) !== null && _j !== void 0 ? _j : null
+                "endless_battle_played_party_list": (_k = serializedPlayedParties.endlessParties) !== null && _k !== void 0 ? _k : null
             }
         });
     }));

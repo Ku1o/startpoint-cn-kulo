@@ -5,6 +5,7 @@ import {
     getRaidEventQuestKillCountSync,
     recordRaidEventClearSync,
 } from "../../raidEventGlobal"
+import { grantEligibleRaidEventDegreesSync } from "../../activity-degree-rewards"
 
 export interface RaidEventFinishData {
     auto_start_point: number
@@ -16,6 +17,7 @@ export interface RaidEventFinishData {
         hp_percentage: number
         total_kill_count: number
     }
+    new_degree_ids: number[]
 }
 
 export function handleRaidEventFinish(params: {
@@ -69,6 +71,7 @@ export function handleRaidEventFinish(params: {
 
     let boss = getRaidEventGlobalBossSync(activeEventId)
     let questKillCount = getRaidEventQuestKillCountSync(activeEventId, questId)
+    let newDegreeIds: number[] = []
     if (questAccomplished) {
         const result = recordRaidEventClearSync({
             eventId: activeEventId,
@@ -78,6 +81,7 @@ export function handleRaidEventFinish(params: {
         })
         boss = result.boss
         questKillCount = result.questKillCount
+        newDegreeIds = grantEligibleRaidEventDegreesSync(playerId, activeEventId)
         console.log(
             `[RAID] clear: eventId=${activeEventId} questId=${questId} ` +
             `playId=${playId} counted=${result.counted} weight=${result.questWeight} ` +
@@ -96,5 +100,6 @@ export function handleRaidEventFinish(params: {
             hp_percentage: boss.hpPercentage,
             total_kill_count: boss.totalKillCount,
         },
+        new_degree_ids: newDegreeIds,
     }
 }

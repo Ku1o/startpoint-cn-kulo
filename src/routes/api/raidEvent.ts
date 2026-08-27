@@ -25,6 +25,7 @@ import {
 } from "../../lib/raid-event-config";
 import { getQuestFromCategorySync } from "../../lib/assets";
 import { QuestCategory } from "../../lib/types";
+import { grantEligibleRaidEventDegreesSync } from "../../lib/activity-degree-rewards";
 
 interface EventIdBody {
     event_id: number,
@@ -167,16 +168,35 @@ const routes = async (fastify: FastifyInstance) => {
     fastify.post("/ranking_reward", async (request: FastifyRequest, reply: FastifyReply) => {
         const body = request.body as EventIdBody;
         const viewerId = body.viewer_id;
-        if (!viewerId || isNaN(viewerId)) return reply.status(400).send({
+        const eventId = Number(body.event_id)
+        if (!viewerId || isNaN(viewerId) || !Number.isInteger(eventId)) return reply.status(400).send({
             "error": "Bad Request", "message": "Invalid request body."
         });
+
+        const viewerIdSession = await getSession(viewerId.toString())
+        if (!viewerIdSession) return reply.status(400).send({
+            "error": "Bad Request", "message": "Invalid viewer id."
+        })
+        const playerId = resolvePlayerIdSync(viewerIdSession.accountId)
+        if (playerId === null) return reply.status(500).send({
+            "error": "Internal Server Error", "message": "No player bound to account."
+        })
+        const degreeIds = grantEligibleRaidEventDegreesSync(playerId, eventId)
 
         reply.header("content-type", "application/x-msgpack");
         return reply.status(200).send({
             "data_headers": generateDataHeaders({ viewer_id: viewerId }),
             "data": {
-                "reward_list": [],
-                "status": 0
+                "reward_list": degreeIds.map(degreeId => ({
+                    kind: 7,
+                    kind_id: degreeId,
+                    number: 1,
+                })),
+                "degree_list": degreeIds.map(degreeId => ({
+                    viewer_id: viewerId,
+                    degree_id: degreeId,
+                })),
+                "status": 1
             }
         });
     });

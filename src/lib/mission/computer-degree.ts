@@ -4,6 +4,7 @@ import { getDb } from "../../data/db"
 import { getPlayerCharactersManaNodesSync, getPlayerCharactersSync } from "../../data/domains/character"
 import { getPlayerEquipmentListSync } from "../../data/domains/equipment"
 import { getPlayerItemsSync } from "../../data/domains/item"
+import { countEquippedAbilitySoulSlotsSync } from "../../data/domains/party"
 import { getPlayerShopPurchasesMapSync } from "../../data/domains/shopPurchase"
 import {
     countFinishedPlayerQuestsByCategorySync,
@@ -44,11 +45,13 @@ interface DegreeContext extends CategoryContext {
     manaNodes: Record<string, number[]>
     equipment: Record<string, PlayerEquipment>
     items: Record<string, number>
+    collectedItemTotals: Record<string, number>
     flatQuestProgress: DegreeQuestProgressEntry[]
     completedSecondBoards: Set<number>
     questClearCounters: Map<string, number>
     counterValues: Map<string, number>
     treasureShopPurchaseCount: number
+    equippedAbilitySoulCount: number
 }
 
 // Degree mission target lookup
@@ -163,7 +166,10 @@ function estimateCharacterLevel(characterId: number, exp: number): number {
     const caps = characterExpCaps[rarity]
     if (!caps || caps.length === 0) return 0
     const baseLevel = 40 + (rarity - 1) * 10
-    let level = baseLevel - 1
+    // The cap table only proves five-level milestones; it is not a per-level
+    // curve. Starting at baseLevel - 1 made a zero-EXP 4*/5* character look
+    // like level 69/79 and granted level titles immediately.
+    let level = 0
     for (let index = 0; index < caps.length; index++) {
         if (exp < caps[index]) break
         level = baseLevel + index * 5
@@ -233,7 +239,7 @@ function buildStats(
     const needsCharacters = [4, 5, 8, 9, 44, 48]
         .some(conditionType => conditionTypes.has(conditionType))
     const needsManaNodes = conditionTypes.has(7) || conditionTypes.has(48)
-    const needsCounters = [3, 14, 16, 17, 19, 20, 23, 26, 27, 28, 30, 31, 34, 36, 45, 92]
+    const needsCounters = [3, 14, 15, 16, 17, 19, 20, 23, 25, 26, 27, 28, 29, 30, 31, 34, 35, 36, 45, 92]
         .some(conditionType => conditionTypes.has(conditionType))
     const needsBattleCounters = conditionTypes.has(16)
         || conditionTypes.has(17)
@@ -316,6 +322,7 @@ function buildStats(
             ? getPlayerEquipmentListSync(playerId)
             : {},
         items: conditionTypes.has(37) ? getPlayerItemsSync(playerId) : {},
+        collectedItemTotals: conditionTypes.has(37) ? shared.collectedItemTotals : {},
         flatQuestProgress,
         completedSecondBoards: completedSecondManaBoardCharacterIds,
         ...counters,
@@ -323,6 +330,9 @@ function buildStats(
             (total, shopItemId) => total + Math.max(0, shopPurchases[Number(shopItemId)] ?? 0),
             0,
         ),
+        equippedAbilitySoulCount: conditionTypes.has(35)
+            ? countEquippedAbilitySoulSlotsSync(playerId)
+            : 0,
         battleCounters,
         degreeStats: {
             companionCount: Object.keys(characters).length,
@@ -470,9 +480,7 @@ function countQuestClears(
     let storedProgressCount = 0
     for (const entry of ctx.flatQuestProgress) {
         if (!entry.finished || !matchesQuest(filter, entry.section, entry.questId)) continue
-        if (mode === "multi" || mode === "any") {
-            storedProgressCount += Math.max(1, entry.multiClearCount ?? 0)
-        } else {
+        if (mode === "any" || (mode === "single" && isHistoricallySingleOnly(entry.section))) {
             storedProgressCount += 1
         }
     }
@@ -486,6 +494,10 @@ function countQuestClears(
         if (matchesQuest(filter, section, questId)) counterCount += value
     }
     return Math.max(storedProgressCount, counterCount)
+}
+
+function isHistoricallySingleOnly(section: number): boolean {
+    return ![2, 8, 19, 26].includes(section)
 }
 
 function readCounter(
@@ -510,22 +522,59 @@ function completedChapter(ctx: DegreeContext, chapter: number): boolean {
 }
 
 function bestSingleClearTimeMs(ctx: DegreeContext): number | undefined {
+    const counter = readCounter(ctx, "battle.best_clear_time_ms", { mode: "single" })
     const times = ctx.flatQuestProgress
-        .filter(entry => entry.finished && entry.bestElapsedTimeMs !== undefined)
+        .filter(entry => entry.finished
+            && isHistoricallySingleOnly(entry.section)
+            && entry.bestElapsedTimeMs !== undefined)
         .map(entry => Number(entry.bestElapsedTimeMs))
         .filter(value => Number.isFinite(value) && value > 0)
+    if (counter > 0) times.push(counter)
     return times.length > 0 ? Math.min(...times) : undefined
 }
 
 function maxHighScore(ctx: DegreeContext): number {
-    return Math.max(0, ...ctx.flatQuestProgress.map(entry => Number(entry.highScore) || 0))
+    return Math.max(
+        readCounter(ctx, "battle.max_score", { mode: "single" }),
+        0,
+        ...ctx.flatQuestProgress
+            .filter(entry => isHistoricallySingleOnly(entry.section))
+            .map(entry => Number(entry.highScore) || 0),
+    )
 }
 
-function maxClearRankCount(ctx: DegreeContext, rank: number): number {
+function maxClearRankCount(ctx: DegreeContext, rank: number, mode: "single" | "any" = "any"): number {
     const historical = ctx.flatQuestProgress
-        .filter(entry => entry.finished && entry.clearRank === rank)
+        .filter(entry => entry.finished
+            && entry.clearRank === rank
+            && (mode === "any" || isHistoricallySingleOnly(entry.section)))
         .length
-    const counter = readCounter(ctx, "battle.rank_clear", { rank })
+    const counter = readCounter(ctx, "battle.rank_clear", { rank, mode })
+    return Math.max(historical, counter)
+}
+
+function countQuestRankClears(
+    ctx: DegreeContext,
+    filter: QuestFilter,
+    rank: number,
+    mode: "single" | "multi" | "any",
+): number {
+    let historical = 0
+    let counter = 0
+    for (const entry of ctx.flatQuestProgress) {
+        if (!matchesQuest(filter, entry.section, entry.questId)) continue
+        if (entry.finished
+            && entry.clearRank === rank
+            && (mode === "any" || (mode === "single" && isHistoricallySingleOnly(entry.section)))) {
+            historical++
+        }
+        counter += readCounter(ctx, "battle.quest_rank_clear", {
+            questCategory: entry.section,
+            questId: entry.questId,
+            rank,
+            mode,
+        })
+    }
     return Math.max(historical, counter)
 }
 
@@ -545,7 +594,7 @@ const SUPPORTED_FAMILIES = {
 
 const SERVER_COMPUTED_CONDITION_TYPES = new Set([
     0, 1, 3, 4, 5, 7, 8, 9, 14, 15, 16, 17, 19, 20, 21, 22, 23, 25, 26,
-    27, 28, 30, 31, 34, 36, 37, 39, 44, 45, 48, 92,
+    27, 28, 29, 30, 31, 34, 35, 36, 37, 39, 44, 45, 48, 92,
 ])
 
 const CLIENT_REPORTED_CONDITION_TYPES = new Set([40, 41, 42, 43])
@@ -654,12 +703,7 @@ function computeRecoverableProgress(
                 : 0
         }
         case 16: {
-            const persistedMulti = ctx.flatQuestProgress.reduce(
-                (sum, entry) => sum + Math.max(0, entry.multiClearCount ?? 0),
-                0,
-            )
             return Math.max(
-                persistedMulti,
                 stats?.multiClearCount ?? 0,
                 readCounter(ctx, "battle.clear", { mode: "multi" }),
             )
@@ -691,13 +735,9 @@ function computeRecoverableProgress(
             }
             const filter = resolveQuestFilter(row)
             if (filter.exactQuestIds && filter.exactQuestIds.size > 0) {
-                return ctx.flatQuestProgress.some(
-                    entry => entry.finished
-                        && entry.clearRank === 5
-                        && matchesQuest(filter, entry.section, entry.questId),
-                ) ? 1 : 0
+                return Number(countQuestRankClears(ctx, filter, 5, requestedBattleMode(row)) > 0)
             }
-            return maxClearRankCount(ctx, 5)
+            return maxClearRankCount(ctx, 5, "single")
         }
         case 27:
             return readCounter(ctx, "battle.max_party_power")
@@ -738,6 +778,12 @@ function computeRecoverableProgress(
             }
             return Math.max(currentCounter, legacyCounter)
         }
+        case 29: {
+            const statisticKind = optionalNumber(row[5])
+            if (statisticKind === 0) return readCounter(ctx, "battle.max_damage")
+            if (statisticKind === 1) return readCounter(ctx, "battle.max_revival_coffin")
+            return undefined
+        }
         case 30:
             return Math.max(ctx.player.maxComboAchieved, readCounter(ctx, "battle.max_combo"))
         case 31:
@@ -750,6 +796,11 @@ function computeRecoverableProgress(
                 ),
                 readCounter(ctx, "equipment.awakening"),
             )
+        case 35:
+            return Math.max(
+                ctx.equippedAbilitySoulCount,
+                readCounter(ctx, "party.ability_soul_equip"),
+            )
         case 36:
             return Math.max(
                 Object.values(ctx.equipment)
@@ -759,7 +810,11 @@ function computeRecoverableProgress(
             )
         case 37: {
             const itemId = optionalNumber(row[13])
-            return itemId === undefined ? undefined : (ctx.items[String(itemId)] ?? 0)
+            if (itemId === undefined) return undefined
+            return Math.max(
+                ctx.items[String(itemId)] ?? 0,
+                ctx.collectedItemTotals[String(itemId)] ?? 0,
+            )
         }
         case 39:
             return ctx.player.totalStaminaUsed

@@ -127,6 +127,8 @@ test("current decisive steam-robot quest ids grant the five matching titles", ()
                 enemyKillCount: 0,
                 weakPointDestroyCount: 0,
                 coffinReduceCount: 0,
+                damageDealMax: 0,
+                revivalCoffinMax: 0,
             },
         })
     }

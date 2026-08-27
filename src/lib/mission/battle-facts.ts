@@ -25,8 +25,8 @@ export const BATTLE_SETTLEMENT_CATEGORIES = Object.freeze([1, 2, 3, 5, 6, 7, 8, 
 const BATTLE_DEGREE_CONDITION_TYPES = Object.freeze([
     // Battle results may grant/level characters and equipment in addition to
     // updating battle counters, so include those reward-driven title types.
-    1, 4, 5, 8, 14, 15, 16, 17, 19, 20, 21, 22, 23, 25, 26, 27, 28, 30,
-    31, 37, 39, 44, 92,
+    1, 4, 5, 8, 14, 15, 16, 17, 19, 20, 21, 22, 23, 25, 26, 27, 28, 29,
+    30, 31, 37, 39, 44, 92,
 ])
 
 const BATTLE_ACTIVE_MISSION_PATTERNS = Object.freeze([
