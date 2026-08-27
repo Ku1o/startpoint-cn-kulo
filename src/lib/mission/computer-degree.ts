@@ -74,6 +74,7 @@ const degreeDefinitions = new Map<number, DegreeDefinition>()
 const mainQuestIdsByChapter = new Map<number, number[]>()
 const exQuestIdsByChapter = new Map<number, number[]>()
 const bossQuestIdsByBoss = new Map<number, number[]>()
+const hardMultiQuestIdsByChallenge = new Map<number, number[]>()
 const treasureShopItemIds = new Set(
     Object.keys(require("../../../assets/treasure_shop.json") as Record<string, unknown>),
 )
@@ -132,6 +133,28 @@ function addQuestIdByChapter(target: Map<number, number[]>, questIdText: string)
         bossQuestIdsByBoss.set(bossId, bucket)
     }
     for (const questIds of bossQuestIdsByBoss.values()) questIds.sort((a, b) => a - b)
+
+    const hardMultiQuests = require("../../../assets/hard_multi_event_quest.json") as Record<
+        string,
+        { name?: string }
+    >
+    const normalizeQuestName = (value: unknown): string => String(value ?? "")
+        .replace(/\s*::quest_rank::\s*/g, "")
+        .trim()
+    for (const definition of degreeDefinitions.values()) {
+        if (optionalNumber(definition.row[8]) !== 19) continue
+        const challengeId = optionalNumber(definition.row[9])
+        if (challengeId === undefined) continue
+        const questIds = Object.entries(hardMultiQuests)
+            .filter(([, quest]) => {
+                const questName = normalizeQuestName(quest.name)
+                return questName.length > 0 && definition.description.includes(questName)
+            })
+            .map(([questId]) => Number(questId))
+            .filter(Number.isSafeInteger)
+            .sort((left, right) => left - right)
+        if (questIds.length > 0) hardMultiQuestIdsByChallenge.set(challengeId, questIds)
+    }
 }
 
 function estimateCharacterLevel(characterId: number, exp: number): number {
@@ -210,7 +233,7 @@ function buildStats(
     const needsCharacters = [4, 5, 8, 9, 44, 48]
         .some(conditionType => conditionTypes.has(conditionType))
     const needsManaNodes = conditionTypes.has(7) || conditionTypes.has(48)
-    const needsCounters = [3, 14, 16, 17, 19, 20, 23, 26, 28, 30, 31, 34, 36, 45, 92]
+    const needsCounters = [3, 14, 16, 17, 19, 20, 23, 26, 27, 28, 30, 31, 34, 36, 45, 92]
         .some(conditionType => conditionTypes.has(conditionType))
     const needsBattleCounters = conditionTypes.has(16)
         || conditionTypes.has(17)
@@ -402,7 +425,9 @@ function resolveQuestFilter(row: DegreeRow): QuestFilter {
     }
 
     if (kind === 19 && eventOrChapter !== undefined) {
-        filter.exactQuestIds = new Set([eventOrChapter])
+        filter.exactQuestIds = new Set(
+            hardMultiQuestIdsByChallenge.get(eventOrChapter) ?? [eventOrChapter],
+        )
         return filter
     }
 
@@ -520,7 +545,7 @@ const SUPPORTED_FAMILIES = {
 
 const SERVER_COMPUTED_CONDITION_TYPES = new Set([
     0, 1, 3, 4, 5, 7, 8, 9, 14, 15, 16, 17, 19, 20, 21, 22, 23, 25, 26,
-    28, 30, 31, 34, 36, 37, 39, 44, 45, 48, 92,
+    27, 28, 30, 31, 34, 36, 37, 39, 44, 45, 48, 92,
 ])
 
 const CLIENT_REPORTED_CONDITION_TYPES = new Set([40, 41, 42, 43])
@@ -674,6 +699,8 @@ function computeRecoverableProgress(
             }
             return maxClearRankCount(ctx, 5)
         }
+        case 27:
+            return readCounter(ctx, "battle.max_party_power")
         case 28: {
             const statisticKind = optionalNumber(row[4])
             const mode = requestedBattleMode(row)

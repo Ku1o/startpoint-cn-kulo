@@ -13,6 +13,7 @@ import { recordActiveMissionLoadoutBattleFactsSync } from "./active-loadout-batt
 import { recordDailyMissionBattleFacts } from "./daily-battle-facts"
 import { getDegreeMissionIdsForConditionTypes } from "./computer-degree"
 import { getEventItemMissionIdsForItems } from "./computer-event-safe"
+import { recordDegreePartyPowerClearSync } from "./degree-party-power"
 import type { MissionSettlementScope } from "./settlement"
 import { QuestCategory } from "../types"
 
@@ -24,7 +25,7 @@ export const BATTLE_SETTLEMENT_CATEGORIES = Object.freeze([1, 2, 3, 5, 6, 7, 8, 
 const BATTLE_DEGREE_CONDITION_TYPES = Object.freeze([
     // Battle results may grant/level characters and equipment in addition to
     // updating battle counters, so include those reward-driven title types.
-    1, 4, 5, 8, 14, 15, 16, 17, 19, 20, 21, 22, 23, 25, 26, 28, 30,
+    1, 4, 5, 8, 14, 15, 16, 17, 19, 20, 21, 22, 23, 25, 26, 27, 28, 30,
     31, 37, 39, 44, 92,
 ])
 
@@ -95,6 +96,7 @@ export function recordMissionBattleFacts(
     if (!ctx.questAccomplished) {
         return { dailyMissionIds: [], eventMissionIds: [], passMissionIds: [], awakeMissionIds: [] }
     }
+    recordDegreePartyPowerClearSync(ctx)
     const dailyMissionIds = recordDailyMissionBattleFacts(ctx, evaluationTime)
     const eventMissionIds = recordEventMissionBattleFacts(ctx, evaluationTime)
     const passMissionIds = recordPassMissionBattleFacts(ctx, evaluationTime)

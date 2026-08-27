@@ -40,6 +40,7 @@ export interface FinishContext {
     player: Player
     questPreviouslyCompleted: boolean
     questProgress: { bestElapsedTimeMs?: number | null; highScore?: number; clearRank?: number } | null
+    partySlot?: number
     isMulti?: boolean
     isMultiHost?: boolean
 }

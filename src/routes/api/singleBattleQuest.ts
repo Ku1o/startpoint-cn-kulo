@@ -496,6 +496,7 @@ const routes = async (fastify: FastifyInstance) => {
             player: playerData,
             questPreviouslyCompleted,
             questProgress,
+            partySlot: playerData.partySlot,
         }
 
         // Mission progress is recorded once by recordMissionBattleFacts below.

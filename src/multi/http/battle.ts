@@ -510,6 +510,7 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
             player,
             questPreviouslyCompleted,
             questProgress,
+            partySlot: activeQuestData.partySlot ?? player.partySlot,
             isMulti: true,
             isMultiHost: finishedAsHost,
         }
