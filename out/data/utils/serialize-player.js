@@ -27,7 +27,7 @@ function clearSerializedPlayedPartyMembers(party) {
  * @returns A serialized player data object.
  */
 function serializePlayerData(toSerialize, options) {
-    var _a, _b, _c, _d, _e, _f;
+    var _a, _b, _c, _d, _e, _f, _g;
     // convert userCharacterList (k_id → business code)
     const userCharacterList = {};
     for (const [characterId, character] of Object.entries(toSerialize.characterList)) {
@@ -110,10 +110,12 @@ function serializePlayerData(toSerialize, options) {
     let userTutorial = null;
     const playerData = toSerialize.player;
     const tutorialStep = playerData.tutorialStep;
+    const hasFinishedMainQuest = ((_d = toSerialize.questProgress["1"]) !== null && _d !== void 0 ? _d : [])
+        .some(progress => progress.finished);
     if (tutorialStep !== null
-        && (0, start_tutorial_state_1.isStartTutorialActive)(tutorialStep, playerData.tutorialSkipFlag)) {
+        && (0, start_tutorial_state_1.isStartTutorialActive)(tutorialStep, playerData.tutorialSkipFlag, hasFinishedMainQuest)) {
         userTutorial = {
-            "viewer_id": (_d = options === null || options === void 0 ? void 0 : options.viewerId) !== null && _d !== void 0 ? _d : 0,
+            "viewer_id": (_e = options === null || options === void 0 ? void 0 : options.viewerId) !== null && _e !== void 0 ? _e : 0,
             "tutorial_step": tutorialStep,
             "skip_flag": playerData.tutorialSkipFlag
         };
@@ -146,7 +148,7 @@ function serializePlayerData(toSerialize, options) {
             "exp_pooled_time": (0, utils_1.getServerTime)(playerData.expPooledTime),
             "leader_character_id": playerData.leaderCharacterId != null ? (0, codeMap_1.kIdToBusinessCode)(playerData.leaderCharacterId) : 0,
             "party_slot": playerData.partySlot,
-            "degree_id": (_e = playerData.degreeId) !== null && _e !== void 0 ? _e : 1,
+            "degree_id": (_f = playerData.degreeId) !== null && _f !== void 0 ? _f : 1,
             "birth": playerData.birth,
             "free_mana": playerData.freeMana,
             "paid_mana": playerData.paidMana,
@@ -286,7 +288,7 @@ function serializePlayerData(toSerialize, options) {
     };
     // add optional values
     // serialize rush event data
-    if ((_f = options === null || options === void 0 ? void 0 : options.serializeRushEventData) !== null && _f !== void 0 ? _f : false) {
+    if ((_g = options === null || options === void 0 ? void 0 : options.serializeRushEventData) !== null && _g !== void 0 ? _g : false) {
         // rush event list
         if (toSerialize.rushEventList !== undefined) {
             const userRushEventList = {};

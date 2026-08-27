@@ -96,25 +96,20 @@ async function main() {
     assert.equal(isStartTutorialActive(16, false), true)
     assert.equal(isStartTutorialActive(17, false), false)
     assert.equal(isStartTutorialActive(null, false), false)
+    assert.equal(isStartTutorialActive(0, true, true), false)
 
     const tutorialPlayerId = createPlayer()
-    insertPlayerQuestProgressSync(tutorialPlayerId, 1, {
-        questId: 1001001,
-        finished: true,
-        clearRank: 5,
-    })
+    updatePlayerSync({ id: tutorialPlayerId, tutorialStep: 0, tutorialSkipFlag: true })
+    let serialized = getClientSerializedData(tutorialPlayerId, { viewerId: 800000001 })
+    assert.equal(serialized.user_tutorial.tutorial_step, 0)
 
     updatePlayerSync({
         id: tutorialPlayerId,
         tutorialStep: 6,
         tutorialSkipFlag: true,
     })
-    let serialized = getClientSerializedData(tutorialPlayerId, { viewerId: 800000001 })
+    serialized = getClientSerializedData(tutorialPlayerId, { viewerId: 800000001 })
     assert.equal(serialized.user_tutorial, null)
-    assert.equal(
-        serialized.quest_progress["1"].find(progress => progress.quest_id === 1001001).finished,
-        true,
-    )
 
     updatePlayerSync({ id: tutorialPlayerId, tutorialStep: 5, tutorialSkipFlag: true })
     serialized = getClientSerializedData(tutorialPlayerId, { viewerId: 800000001 })
@@ -131,6 +126,25 @@ async function main() {
     updatePlayerSync({ id: tutorialPlayerId, tutorialStep: 17, tutorialSkipFlag: false })
     serialized = getClientSerializedData(tutorialPlayerId, { viewerId: 800000001 })
     assert.equal(serialized.user_tutorial, null)
+
+    const legacyTutorialPlayerId = createPlayer()
+    insertPlayerQuestProgressSync(legacyTutorialPlayerId, 1, {
+        questId: 1001001,
+        finished: true,
+        clearRank: 5,
+    })
+    insertPlayerTriggeredTutorialSync(legacyTutorialPlayerId, 12)
+    updatePlayerSync({
+        id: legacyTutorialPlayerId,
+        tutorialStep: 0,
+        tutorialSkipFlag: true,
+    })
+    serialized = getClientSerializedData(legacyTutorialPlayerId, { viewerId: 800000003 })
+    assert.equal(serialized.user_tutorial, null)
+    assert.equal(
+        serialized.quest_progress["1"].find(progress => progress.quest_id === 1001001).finished,
+        true,
+    )
 
     const routeViewerId = 800000002
     const routePlayerId = createPlayer(routeViewerId)
@@ -179,6 +193,33 @@ async function main() {
         }).toString("base64"),
     })
     assert.equal(repeatFinishedTutorial.statusCode, 400)
+
+    const legacyRouteViewerId = 800000004
+    const legacyRoutePlayerId = createPlayer(legacyRouteViewerId)
+    insertPlayerQuestProgressSync(legacyRoutePlayerId, 1, {
+        questId: 1001001,
+        finished: true,
+    })
+    insertPlayerTriggeredTutorialSync(legacyRoutePlayerId, 12)
+    updatePlayerSync({
+        id: legacyRoutePlayerId,
+        tutorialStep: 0,
+        tutorialSkipFlag: true,
+    })
+    const rejectLegacyTutorialUpdate = await fastify.inject({
+        method: "POST",
+        url: "/api/index.php/tutorial/update_step",
+        headers: { "content-type": "application/x-www-form-urlencoded" },
+        payload: pack({
+            viewer_id: legacyRouteViewerId,
+            api_count: 1,
+            statistics: {},
+            step: 0,
+            skip: true,
+        }).toString("base64"),
+    })
+    assert.equal(rejectLegacyTutorialUpdate.statusCode, 400)
+    assert.equal(getPlayerSync(legacyRoutePlayerId).tutorialStep, 0)
     await fastify.close()
 
     const completedUnisonPlayerId = createPlayer()

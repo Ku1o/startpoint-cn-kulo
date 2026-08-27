@@ -12,6 +12,7 @@ import { randomInt } from "crypto";
 import { GachaCharacterDraw } from "../../lib/types";
 import { reconcileAwakeUnlockCharacterList } from "../../lib/mission";
 import { isStartTutorialActive } from "../../lib/start-tutorial-state";
+import { countFinishedPlayerQuestsByCategorySync } from "../../data/domains/quest";
 
 interface UpdateStepBody {
     viewer_id: number
@@ -100,9 +101,14 @@ const routes = async (fastify: FastifyInstance) => {
             "message": "No player bound to account."
         })
 
-        // Tutorial prompt IDs are independent hints. Completion is determined
-        // only by the persisted full/shortened tutorial step.
-        if (!isStartTutorialActive(player.tutorialStep, player.tutorialSkipFlag)) return reply.status(400).send({
+        // Finished main-quest progress is authoritative compatibility evidence
+        // for imported/legacy saves whose tutorial fields were reset.
+        const hasFinishedMainQuest = countFinishedPlayerQuestsByCategorySync(playerId, 1) > 0
+        if (!isStartTutorialActive(
+            player.tutorialStep,
+            player.tutorialSkipFlag,
+            hasFinishedMainQuest,
+        )) return reply.status(400).send({
             "error": "Bad Request",
             "message": "Tutorial already completed"
         })

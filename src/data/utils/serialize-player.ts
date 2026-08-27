@@ -143,9 +143,15 @@ export function serializePlayerData(
     let userTutorial: UserTutorial | null = null
     const playerData = toSerialize.player
     const tutorialStep = playerData.tutorialStep
+    const hasFinishedMainQuest = (toSerialize.questProgress["1"] ?? [])
+        .some(progress => progress.finished)
     if (
         tutorialStep !== null
-        && isStartTutorialActive(tutorialStep, playerData.tutorialSkipFlag)
+        && isStartTutorialActive(
+            tutorialStep,
+            playerData.tutorialSkipFlag,
+            hasFinishedMainQuest,
+        )
     ) {
         userTutorial = {
             "viewer_id": options?.viewerId ?? 0,

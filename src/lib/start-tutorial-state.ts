@@ -11,7 +11,9 @@ export function getTutorialEffectiveStep(
 export function isStartTutorialActive(
     step: number | null,
     skip: boolean | null,
+    hasFinishedMainQuest = false,
 ): boolean {
-    return step !== null
+    return !hasFinishedMainQuest
+        && step !== null
         && getTutorialEffectiveStep(step, skip) < TUTORIAL_END_EFFECTIVE_STEP
 }
