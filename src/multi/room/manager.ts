@@ -1,10 +1,12 @@
-import { randomInt } from "crypto";
-import { MultiRoom, QuestCategory } from "../types";
+import { randomBytes, randomInt } from "crypto";
+import { MultiRoom } from "../types";
+import { QuestCategory } from "../../lib/types";
 import { getServerTime } from "../../utils";
 import { sessionManager } from "../state/SessionManager";
 import { gameVerboseLog } from "../../lib/game-logging";
 import { roomAdmissionRegistry } from "./admission";
 import { embeddedMultiCoordinator } from "../coordinator/embedded";
+import { getQuestFromCategorySync } from "../../lib/assets";
 
 const rooms = new Map<string, MultiRoom>();
 
@@ -54,10 +56,20 @@ function cleanExpiredRooms() {
 }
 setInterval(cleanExpiredRooms, CLEAN_INTERVAL_MS);
 
-export const STATIC_ACCESS_TOKEN = "multi_battle_quest_access_token";
-
 export function generateRoomNumber(): string {
-    return String(randomInt(100000, 999999));
+    for (let attempt = 0; attempt < 100; attempt += 1) {
+        const roomNumber = String(randomInt(100000, 1000000));
+        if (!rooms.has(roomNumber)) return roomNumber;
+    }
+    throw new Error("Unable to allocate a unique multiplayer room number");
+}
+
+export function generateRoomAccessToken(): string {
+    for (let attempt = 0; attempt < 100; attempt += 1) {
+        const token = randomBytes(24).toString("base64url");
+        if (!getRoomByToken(token)) return token;
+    }
+    throw new Error("Unable to allocate a unique multiplayer room token");
 }
 
 export function isRoomWaitingForExpectedMember(room: MultiRoom): boolean {
@@ -89,7 +101,7 @@ export function createRoom(
     const roomNumber = generateRoomNumber();
     const room: MultiRoom = {
         room_number: roomNumber,
-        access_token: STATIC_ACCESS_TOKEN,
+        access_token: generateRoomAccessToken(),
         category,
         quest_id: questId,
         host_viewer_id: hostViewerId,
@@ -101,6 +113,8 @@ export function createRoom(
         raising_state: 2,
         room_sequence: roomSequence++,
         host_entry_time: getServerTime(),
+        member_viewer_ids: [hostViewerId],
+        member_player_ids: { [hostViewerId]: hostPlayerId },
         mates: [],
         share_room_options: 0,
         is_npc_mode: isNpcMode,
@@ -129,14 +143,70 @@ export function getRoomByToken(token: string): MultiRoom | undefined {
     return undefined;
 }
 
+function getRoomEventId(room: MultiRoom): number | undefined {
+    const quest = getQuestFromCategorySync(room.category, room.quest_id);
+    if (quest?.eventId !== undefined) return quest.eventId;
+    if ((room.category === QuestCategory.ADVENT_EVENT_SINGLE
+        || room.category === QuestCategory.ADVENT_EVENT_MULTI)
+        && Number.isSafeInteger(room.quest_id)
+        && room.quest_id >= 1_000) {
+        return Math.trunc(room.quest_id / 1_000);
+    }
+    return undefined;
+}
+
 export function getRooms(categoryId: number, eventId?: number): MultiRoom[] {
     const result: MultiRoom[] = [];
     for (const room of rooms.values()) {
-        if (room.category === categoryId) {
-            result.push(room);
+        if (room.category !== categoryId) continue;
+        if (eventId !== undefined) {
+            const roomEventId = getRoomEventId(room);
+            // Legacy advent tables encode the event in the quest's thousands
+            // group instead of storing eventId explicitly. Other old tables
+            // without either form remain visible for backward compatibility.
+            if (roomEventId !== undefined && roomEventId !== Number(eventId)) continue;
         }
+        result.push(room);
     }
     return result;
+}
+
+export function isRoomMember(room: MultiRoom, viewerId: number): boolean {
+    if (room.member_viewer_ids?.includes(viewerId)) return true
+    if (room.host_viewer_id === viewerId) return true
+    if (room.expected_real_viewer_ids.includes(viewerId)) return true
+    if (room.mates.some(mate => mate.viewer_id === viewerId)) return true
+    return sessionManager.getClientsInRoom(room.room_number, room.lobby_generation)
+        .some(client => !client.isBattle && client.viewerId === viewerId)
+}
+
+export function addRoomMember(roomNumber: string, viewerId: number, playerId: number): boolean {
+    const room = rooms.get(roomNumber)
+    if (!room) return false
+    if (!room.member_viewer_ids.includes(viewerId)) room.member_viewer_ids.push(viewerId)
+    room.member_player_ids[viewerId] = playerId
+    return true
+}
+
+export function removeRoomMember(roomNumber: string, viewerId: number): boolean {
+    const room = rooms.get(roomNumber)
+    if (!room || viewerId === room.host_viewer_id) return false
+    const index = room.member_viewer_ids.indexOf(viewerId)
+    if (index < 0) return false
+    room.member_viewer_ids.splice(index, 1)
+    delete room.member_player_ids[viewerId]
+    return true
+}
+
+export function getRoomMemberPlayerId(room: MultiRoom, viewerId: number): number | null {
+    const recordedMemberPlayerId = room.member_player_ids?.[viewerId]
+    if (recordedMemberPlayerId) return recordedMemberPlayerId
+    if (room.host_viewer_id === viewerId) return room.host_player_id
+    const recordedMate = room.mates.find(mate => mate.viewer_id === viewerId)
+    if (recordedMate?.player_id) return recordedMate.player_id
+    const liveClient = sessionManager.getClientsInRoom(room.room_number, room.lobby_generation)
+        .find(client => !client.isBattle && client.viewerId === viewerId)
+    return liveClient?.playerId ?? null
 }
 
 export function setRoomBattle(roomNumber: string): boolean {

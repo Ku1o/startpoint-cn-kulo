@@ -507,6 +507,10 @@ export class SessionManager {
         }
         blocked.add(viewerId)
         try {
+            const { removeRoomMember } = require("../room/manager")
+            removeRoomMember(roomNumber, viewerId)
+        } catch (e) {}
+        try {
             const { suppressRandomRecruitmentForViewer } = require("../recruitment")
             suppressRandomRecruitmentForViewer(roomNumber, viewerId)
         } catch (e) {}
@@ -907,7 +911,11 @@ export class SessionManager {
                         }
                         const host = remaining.find(other => other.viewerId === room.host_viewer_id)
                         room.mates = (host?.mates ?? remaining.map(other => other.yourself).filter(Boolean))
-                            .map((mate: any) => ({ viewer_id: mate.viewerId ?? null, com_id: mate.comId ?? 0 }))
+                            .map((mate: any) => ({
+                                viewer_id: mate.viewerId ?? null,
+                                com_id: mate.comId ?? 0,
+                                player_id: mate.playerId ?? undefined,
+                            }))
                         if (host) {
                             this.broadcastToRoom(client.roomNumber, [1, [1, host.mates]])
                             try {

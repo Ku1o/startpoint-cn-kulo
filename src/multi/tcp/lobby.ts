@@ -1,6 +1,6 @@
 import * as net from "net"
 import { sessionManager, SessionClient } from "../state/SessionManager"
-import { getRoom } from "../room/manager"
+import { addRoomMember, getRoom, removeRoomMember } from "../room/manager"
 import { NpcMateProvider, selectStableNpcSlots } from "../npc/controller"
 import { stopRandomRecruitment } from "../recruitment"
 import { gameVerboseLog } from "../../lib/game-logging"
@@ -222,6 +222,7 @@ function synchronizeRoomRoster(
         room.mates = roster.map(mate => ({
             viewer_id: mate.viewerId ?? null,
             com_id: mate.comId ?? 0,
+            player_id: mate.playerId ?? undefined,
         }))
     }
     if (broadcast) sessionManager.broadcastToRoom(roomNumber, [1, [1, roster]])
@@ -324,6 +325,7 @@ function preflightBattleRoster(room: any, members: any[], roomGeneration = room.
     room.mates = eligibleMembers.map(member => ({
         viewer_id: member.viewerId ?? null,
         com_id: member.comId ?? 0,
+        player_id: member.playerId ?? undefined,
     }))
     return { members: eligibleMembers, rejectedViewerIds }
 }
@@ -673,6 +675,7 @@ function scheduleRematchRosterCleanup(roomNumber: string): void {
                 .filter(viewerId => !liveViewerIds.has(viewerId))
 
             if (missingViewerIds.length > 0) {
+                for (const viewerId of missingViewerIds) removeRoomMember(roomNumber, viewerId)
                 currentRoom.expected_real_viewer_ids = currentRoom.expected_real_viewer_ids
                     .filter(viewerId => liveViewerIds.has(viewerId))
                 currentRoom.mates = currentRoom.mates
@@ -728,7 +731,10 @@ function rejectClaimedAdmission(
 }
 
 function commitClaimedAdmission(socket: net.Socket, client: SessionClient): boolean {
-    if (!client.admissionClaimed) return true
+    if (!client.admissionClaimed) {
+        return client.playerId !== null
+            && addRoomMember(client.roomNumber, client.viewerId, client.playerId)
+    }
     const committed = roomAdmissionRegistry.commit(
         client.roomNumber,
         client.admissionGeneration ?? client.roomGeneration,
@@ -736,7 +742,10 @@ function commitClaimedAdmission(socket: net.Socket, client: SessionClient): bool
         client.connectionId,
     )
     client.admissionClaimed = false
-    if (committed) return true
+    if (committed) {
+        return client.playerId !== null
+            && addRoomMember(client.roomNumber, client.viewerId, client.playerId)
+    }
     rejectClaimedAdmission(socket, client, "claim_lost_before_enter")
     return false
 }
@@ -892,6 +901,7 @@ function handleBye(_socket: net.Socket, client: SessionClient, _data: any[]): vo
     }
     const hostClient = findHostClient(client.roomNumber)
     const room = getRoom(client.roomNumber)
+    removeRoomMember(client.roomNumber, client.viewerId)
     if (room && room.lifecycle.phase === "LOBBY" && client.roomGeneration === room.lobby_generation) {
         room.expected_real_viewer_ids = room.expected_real_viewer_ids
             .filter(viewerId => viewerId !== client.viewerId)
@@ -903,7 +913,14 @@ function handleBye(_socket: net.Socket, client: SessionClient, _data: any[]): vo
     // remaining client's refreshMates dereference undefined character-display data and crash (F1010).
     const remainingRoom = getRoom(client.roomNumber)
     if (remainingRoom && hostClient && hostClient !== client) {
-        sessionManager.broadcastToRoom(client.roomNumber, [1, [1, hostClient.mates]])
+        const remainingMates = synchronizeRoomRoster(
+            client.roomNumber,
+            hostClient.mates,
+            false,
+            true,
+            remainingRoom.lobby_generation,
+        )
+        sessionManager.broadcastToRoom(client.roomNumber, [1, [1, remainingMates]])
         if (remainingRoom.is_npc_mode) scheduleNpcReconcile(client.roomNumber)
     }
     try { client.socket.destroy(); } catch (e) {}
@@ -1036,7 +1053,11 @@ function handleStartBattle(_socket: net.Socket, client: SessionClient, _data: an
     autoStartingRooms.delete(client.roomNumber)
     room.expected_real_viewer_ids = realViewerIds
     room.npc_count = members.filter(mate => !!mate.comId).length
-    room.mates = members.map(mate => ({ viewer_id: mate.viewerId ?? null, com_id: mate.comId ?? 0 }))
+    room.mates = members.map(mate => ({
+        viewer_id: mate.viewerId ?? null,
+        com_id: mate.comId ?? 0,
+        player_id: mate.playerId ?? undefined,
+    }))
     room.rematch_wait_started_at = null
     const cleanupTimer = rematchCleanupTimers.get(client.roomNumber)
     if (cleanupTimer) clearTimeout(cleanupTimer)

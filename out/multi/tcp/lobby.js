@@ -210,10 +210,11 @@ function synchronizeRoomRoster(roomNumber, mates, broadcast = false, preserveNpc
         if (!preserveNpcCount)
             room.npc_count = roster.filter(mate => !!mate.comId).length;
         room.mates = roster.map(mate => {
-            var _a, _b;
+            var _a, _b, _c;
             return ({
                 viewer_id: (_a = mate.viewerId) !== null && _a !== void 0 ? _a : null,
                 com_id: (_b = mate.comId) !== null && _b !== void 0 ? _b : 0,
+                player_id: (_c = mate.playerId) !== null && _c !== void 0 ? _c : undefined,
             });
         });
     }
@@ -307,10 +308,11 @@ function preflightBattleRoster(room, members, roomGeneration = room.lobby_genera
         SessionManager_1.sessionManager.sendJson(current.socket, [1, [1, eligibleMembers]]);
     }
     room.mates = eligibleMembers.map(member => {
-        var _a, _b;
+        var _a, _b, _c;
         return ({
             viewer_id: (_a = member.viewerId) !== null && _a !== void 0 ? _a : null,
             com_id: (_b = member.comId) !== null && _b !== void 0 ? _b : 0,
+            player_id: (_c = member.playerId) !== null && _c !== void 0 ? _c : undefined,
         });
     });
     return { members: eligibleMembers, rejectedViewerIds };
@@ -633,6 +635,8 @@ function scheduleRematchRosterCleanup(roomNumber) {
             const missingViewerIds = currentRoom.expected_real_viewer_ids
                 .filter(viewerId => !liveViewerIds.has(viewerId));
             if (missingViewerIds.length > 0) {
+                for (const viewerId of missingViewerIds)
+                    (0, manager_1.removeRoomMember)(roomNumber, viewerId);
                 currentRoom.expected_real_viewer_ids = currentRoom.expected_real_viewer_ids
                     .filter(viewerId => liveViewerIds.has(viewerId));
                 currentRoom.mates = currentRoom.mates
@@ -677,12 +681,16 @@ function rejectClaimedAdmission(socket, client, reason) {
 }
 function commitClaimedAdmission(socket, client) {
     var _a;
-    if (!client.admissionClaimed)
-        return true;
+    if (!client.admissionClaimed) {
+        return client.playerId !== null
+            && (0, manager_1.addRoomMember)(client.roomNumber, client.viewerId, client.playerId);
+    }
     const committed = admission_1.roomAdmissionRegistry.commit(client.roomNumber, (_a = client.admissionGeneration) !== null && _a !== void 0 ? _a : client.roomGeneration, client.viewerId, client.connectionId);
     client.admissionClaimed = false;
-    if (committed)
-        return true;
+    if (committed) {
+        return client.playerId !== null
+            && (0, manager_1.addRoomMember)(client.roomNumber, client.viewerId, client.playerId);
+    }
     rejectClaimedAdmission(socket, client, "claim_lost_before_enter");
     return false;
 }
@@ -839,6 +847,7 @@ function handleBye(_socket, client, _data) {
     }
     const hostClient = findHostClient(client.roomNumber);
     const room = (0, manager_1.getRoom)(client.roomNumber);
+    (0, manager_1.removeRoomMember)(client.roomNumber, client.viewerId);
     if (room && room.lifecycle.phase === "LOBBY" && client.roomGeneration === room.lobby_generation) {
         room.expected_real_viewer_ids = room.expected_real_viewer_ids
             .filter(viewerId => viewerId !== client.viewerId);
@@ -850,7 +859,8 @@ function handleBye(_socket, client, _data) {
     // remaining client's refreshMates dereference undefined character-display data and crash (F1010).
     const remainingRoom = (0, manager_1.getRoom)(client.roomNumber);
     if (remainingRoom && hostClient && hostClient !== client) {
-        SessionManager_1.sessionManager.broadcastToRoom(client.roomNumber, [1, [1, hostClient.mates]]);
+        const remainingMates = synchronizeRoomRoster(client.roomNumber, hostClient.mates, false, true, remainingRoom.lobby_generation);
+        SessionManager_1.sessionManager.broadcastToRoom(client.roomNumber, [1, [1, remainingMates]]);
         if (remainingRoom.is_npc_mode)
             scheduleNpcReconcile(client.roomNumber);
     }
@@ -986,7 +996,14 @@ function handleStartBattle(_socket, client, _data) {
     autoStartingRooms.delete(client.roomNumber);
     room.expected_real_viewer_ids = realViewerIds;
     room.npc_count = members.filter(mate => !!mate.comId).length;
-    room.mates = members.map(mate => { var _a, _b; return ({ viewer_id: (_a = mate.viewerId) !== null && _a !== void 0 ? _a : null, com_id: (_b = mate.comId) !== null && _b !== void 0 ? _b : 0 }); });
+    room.mates = members.map(mate => {
+        var _a, _b, _c;
+        return ({
+            viewer_id: (_a = mate.viewerId) !== null && _a !== void 0 ? _a : null,
+            com_id: (_b = mate.comId) !== null && _b !== void 0 ? _b : 0,
+            player_id: (_c = mate.playerId) !== null && _c !== void 0 ? _c : undefined,
+        });
+    });
     room.rematch_wait_started_at = null;
     const cleanupTimer = rematchCleanupTimers.get(client.roomNumber);
     if (cleanupTimer)

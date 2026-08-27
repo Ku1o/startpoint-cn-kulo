@@ -27,9 +27,10 @@ export function hasRoomShareType(room: MultiRoom, shareType: number): boolean {
 export function isRoomSharedWithPlayer(
     room: MultiRoom,
     viewerPlayerId: number,
-    randomRecruiting: boolean,
 ): boolean {
-    if (randomRecruiting) return true
     if (!hasRoomShareType(room, MUTUAL_FOLLOW_SHARE_TYPE)) return false
-    return getFollowRelationSync(viewerPlayerId, room.host_player_id).state === 1
+    // The client-side one-way-follow button is repurposed for AI recruitment,
+    // so the remaining follow share option covers everyone the viewer follows:
+    // both mutual follows and viewer-to-host one-way follows.
+    return getFollowRelationSync(viewerPlayerId, room.host_player_id).followTime !== null
 }

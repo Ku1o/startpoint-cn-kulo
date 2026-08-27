@@ -1,7 +1,7 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import { PrepareBody, SummonBody, RestoreRoomBody, ShareRoomBody } from "../types";
 import { generateDataHeaders } from "../../utils";
-import { getRoom, getRoomByToken, updateHostEntryTime } from "../room/manager";
+import { getRoom, getRoomByToken, isRoomMember, updateHostEntryTime } from "../room/manager";
 import { serializeRoomConnection } from "../room/serializer";
 import { sessionManager } from "../state/SessionManager";
 import { buildNpcMates } from "../npc/builder";
@@ -16,6 +16,19 @@ import {
 import { gameVerboseLog } from "../../lib/game-logging";
 import { isMode15RoomClosed } from "../mode15-room-gate";
 import { embeddedMultiCoordinator } from "../coordinator/embedded";
+import { resolveMultiPlayerContext } from "../player-context";
+import { getAttentionConfig } from "../attention-config";
+
+async function hasValidViewer(viewerId: number): Promise<boolean> {
+    return await resolveMultiPlayerContext(viewerId) !== null;
+}
+
+function forbidden(reply: FastifyReply): FastifyReply {
+    return reply.status(403).send({
+        "error": "Forbidden",
+        "message": "Room permission denied.",
+    });
+}
 
 export function registerRoomRoutes(fastify: FastifyInstance): void {
 
@@ -25,7 +38,7 @@ export function registerRoomRoutes(fastify: FastifyInstance): void {
         const viewerId = body.viewer_id;
         gameVerboseLog(() => `[MULTI] prepare: viewer=${viewerId} room=${body.room_number}`);
 
-        if (!viewerId || isNaN(viewerId)) {
+        if (!await hasValidViewer(viewerId)) {
             return reply.status(400).send({
                 "error": "Bad Request", "message": "Invalid request body."
             });
@@ -59,7 +72,13 @@ export function registerRoomRoutes(fastify: FastifyInstance): void {
             });
         }
 
-        updateHostEntryTime(room.room_number);
+        if (room.category !== Number(body.category) || room.quest_id !== Number(body.quest_id)) {
+            return reply.status(400).send({
+                "error": "Bad Request", "message": "Room quest mismatch."
+            });
+        }
+
+        if (viewerId === room.host_viewer_id) updateHostEntryTime(room.room_number);
         const data = serializeRoomConnection(room);
         if (viewerId === room.host_viewer_id) {
             data.raising_state = 1
@@ -81,7 +100,7 @@ export function registerRoomRoutes(fastify: FastifyInstance): void {
         const viewerId = body.viewer_id;
         gameVerboseLog(() => `[MULTI] summon: viewer=${viewerId} room=${body.room_number}`);
 
-        if (!viewerId || isNaN(viewerId)) {
+        if (!await hasValidViewer(viewerId)) {
             return reply.status(400).send({
                 "error": "Bad Request", "message": "Invalid request body."
             });
@@ -91,6 +110,13 @@ export function registerRoomRoutes(fastify: FastifyInstance): void {
         if (!room || isMode15RoomClosed(room) || sessionManager.isRoomRestoreBlocked(body.room_number, viewerId)) {
             return reply.status(400).send({
                 "error": "Bad Request", "message": "Room doesn't exist."
+            });
+        }
+
+        if (room.host_viewer_id !== viewerId) return forbidden(reply);
+        if (room.category !== Number(body.category_id) || room.quest_id !== Number(body.quest_id)) {
+            return reply.status(400).send({
+                "error": "Bad Request", "message": "Room quest mismatch."
             });
         }
 
@@ -117,7 +143,7 @@ export function registerRoomRoutes(fastify: FastifyInstance): void {
         const viewerId = body.viewer_id;
         gameVerboseLog(() => `[MULTI] restore_room: viewer=${viewerId} room=${body.room_number}`);
 
-        if (!viewerId || isNaN(viewerId)) {
+        if (!await hasValidViewer(viewerId)) {
             return reply.status(400).send({
                 "error": "Bad Request", "message": "Invalid request body."
             });
@@ -149,6 +175,27 @@ export function registerRoomRoutes(fastify: FastifyInstance): void {
             });
         }
 
+        if (!isRoomMember(room, viewerId)) {
+            reply.header("content-type", "application/x-msgpack");
+            return reply.status(200).send({
+                "data_headers": generateDataHeaders({ viewer_id: viewerId }),
+                "data": {
+                    application_update_url: "",
+                    category_id: room.category,
+                    host_entry_time: room.host_entry_time,
+                    ip_address: "",
+                    port: 0,
+                    quest_id: room.quest_id,
+                    raising_state: 13,
+                    room_number: room.room_number,
+                    room_sequence: room.room_sequence,
+                    share_room_options: room.share_room_options,
+                    is_pickup: null,
+                    is_same_room: true,
+                }
+            });
+        }
+
         const data = { ...serializeRoomConnection(room), is_same_room: true };
         if (viewerId === room.host_viewer_id) {
             data.raising_state = 1
@@ -170,16 +217,24 @@ export function registerRoomRoutes(fastify: FastifyInstance): void {
         const viewerId = body.viewer_id;
         gameVerboseLog(() => `[MULTI] share_room: viewer=${viewerId} room=${body.room_number}`);
 
-        if (!viewerId || isNaN(viewerId)) {
+        if (!await hasValidViewer(viewerId)) {
             return reply.status(400).send({
                 "error": "Bad Request", "message": "Invalid request body."
             });
         }
 
         const room = getRoom(body.room_number);
-        if (!room || room.host_viewer_id !== viewerId) {
+        if (!room) {
             return reply.status(400).send({
-                "error": "Bad Request", "message": "Room doesn't exist or viewer is not the host."
+                "error": "Bad Request", "message": "Room doesn't exist."
+            });
+        }
+        if (room.host_viewer_id !== viewerId) return forbidden(reply);
+
+        if ((body.category !== undefined && room.category !== Number(body.category))
+            || (body.quest_id !== undefined && room.quest_id !== Number(body.quest_id))) {
+            return reply.status(400).send({
+                "error": "Bad Request", "message": "Room quest mismatch."
             });
         }
 
@@ -189,7 +244,7 @@ export function registerRoomRoutes(fastify: FastifyInstance): void {
             reply.header("content-type", "application/x-msgpack");
             return reply.status(200).send({
                 "data_headers": generateDataHeaders({ viewer_id: viewerId }),
-                "data": {}
+                "data": { "config": getAttentionConfig() }
             });
         }
 
@@ -217,7 +272,7 @@ export function registerRoomRoutes(fastify: FastifyInstance): void {
         reply.header("content-type", "application/x-msgpack");
         return reply.status(200).send({
             "data_headers": generateDataHeaders({ viewer_id: viewerId }),
-            "data": {}
+            "data": { "config": getAttentionConfig() }
         });
     });
 
@@ -227,19 +282,23 @@ export function registerRoomRoutes(fastify: FastifyInstance): void {
         const viewerId = body.viewer_id;
         gameVerboseLog(() => `[MULTI] disband_room: viewer=${viewerId} room=${body.room_number}`);
 
-        if (!viewerId || isNaN(viewerId)) {
+        if (!await hasValidViewer(viewerId)) {
             return reply.status(400).send({
                 "error": "Bad Request", "message": "Invalid request body."
             });
         }
 
-        if (body.room_number) {
-            await embeddedMultiCoordinator.enqueueRoomCommand(
-                body.room_number,
-                () => sessionManager.commitRoomDisband(body.room_number, `viewer_${viewerId}_requested`),
-            );
-            gameVerboseLog(() => `[MULTI] room ${body.room_number} disbanded by viewer ${viewerId}`);
-        }
+        const room = getRoom(body.room_number);
+        if (!room) return reply.status(400).send({
+            "error": "Bad Request", "message": "Room doesn't exist."
+        });
+        if (room.host_viewer_id !== viewerId) return forbidden(reply);
+
+        await embeddedMultiCoordinator.enqueueRoomCommand(
+            body.room_number,
+            () => sessionManager.commitRoomDisband(body.room_number, `viewer_${viewerId}_requested`),
+        );
+        gameVerboseLog(() => `[MULTI] room ${body.room_number} disbanded by viewer ${viewerId}`);
 
         reply.header("content-type", "application/x-msgpack");
         return reply.status(200).send({

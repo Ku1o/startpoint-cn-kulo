@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.serializePlayerData = void 0;
 const date_1 = require("./date");
+const attention_config_1 = require("../../multi/attention-config");
 const serialize_entities_1 = require("./serialize-entities");
 const utils_1 = require("../../utils");
 const types_1 = require("../types");
@@ -260,31 +261,7 @@ function serializePlayerData(toSerialize, options) {
             return serialized;
         }),
         "associate_token": "associate_token",
-        "config": {
-            "summon_com_seconds": parseInt(process.env.SUMMON_COM_SECONDS || "5"),
-            "attention_recruitment_interval_seconds": 15,
-            "attention_recruitment_redeliver_limit": 20,
-            "attention_polling_interval_seconds_normal": 10,
-            "attention_polling_interval_seconds_battle": 15,
-            "multi_attention_lifetime_seconds": 30,
-            "contribution_score_rate_to_parasite": 0.25,
-            "attention_log_interval_seconds": 600,
-            "disable_finish_duration_seconds": 5,
-            "disable_decline_count_seconds": 60,
-            "disable_decline_count_limit": 14,
-            "disable_decline_duration_seconds": 30,
-            "disable_intent_disconnect_duration_seconds": 300,
-            "disable_unintent_disconnect_duration_seconds": 5,
-            "disable_remote_error_duration_seconds": 300,
-            "attention_animation_time_seconds": 6,
-            "disable_expire_count_limit": 4,
-            "disable_expire_duration_seconds": 180,
-            "polling_delay_normal_seconds_range_min": 1,
-            "polling_delay_normal_seconds_range_max": 10,
-            "polling_delay_battle_seconds_range_min": 1,
-            "polling_delay_battle_seconds_range_max": 15,
-            "return_attention_max_num": 3
-        }
+        "config": Object.assign({ "summon_com_seconds": parseInt(process.env.SUMMON_COM_SECONDS || "5") }, (0, attention_config_1.getAttentionConfig)())
     };
     // add optional values
     // serialize rush event data

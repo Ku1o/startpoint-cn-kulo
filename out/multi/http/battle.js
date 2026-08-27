@@ -17,12 +17,10 @@ const singleBattleQuest_1 = require("../../routes/api/singleBattleQuest");
 const quest_active_1 = require("../../data/domains/quest_active");
 const player_1 = require("../../data/domains/player");
 const quest_1 = require("../../data/domains/quest");
-const session_1 = require("../../data/domains/session");
 const assets_1 = require("../../lib/assets");
 const character_1 = require("../../lib/character");
 const quest_2 = require("../../lib/quest");
 const stamina_1 = require("../../lib/stamina");
-const activeAccount_1 = require("../../data/activeAccount");
 const types_1 = require("../../lib/types");
 const mission_1 = require("../../lib/mission");
 const steam_robot_challenge_1 = require("../../lib/mission/steam-robot-challenge");
@@ -44,23 +42,11 @@ const sqlite_write_coordinator_1 = require("../../lib/sqlite-write-coordinator")
 const settlement_snapshot_1 = require("../settlement-snapshot");
 const embedded_1 = require("../coordinator/embedded");
 const mana_1 = require("../../lib/mana");
-function resolvePlayer(viewerId) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const session = yield (0, session_1.getSession)(viewerId.toString());
-        if (!session)
-            return null;
-        const playerId = (0, activeAccount_1.resolvePlayerIdSync)(session.accountId);
-        if (!playerId)
-            return null;
-        const player = (0, player_1.getPlayerSync)(playerId);
-        if (!player)
-            return null;
-        return { playerId, player };
-    });
-}
+const player_context_1 = require("../player-context");
+const recruitment_1 = require("../recruitment");
 function buildFinishFollowInfo(viewerId_1, mateResults_1) {
     return __awaiter(this, arguments, void 0, function* (viewerId, mateResults, fallbackMateIds = []) {
-        const requesterCtx = yield resolvePlayer(viewerId);
+        const requesterCtx = yield (0, player_context_1.resolveMultiPlayerContext)(viewerId);
         if (!requesterCtx)
             return [];
         const ids = new Set();
@@ -77,7 +63,7 @@ function buildFinishFollowInfo(viewerId_1, mateResults_1) {
         for (const mateViewerId of ids) {
             if (mateViewerId === viewerId || mateViewerId >= 900000000)
                 continue;
-            const mateCtx = yield resolvePlayer(mateViewerId);
+            const mateCtx = yield (0, player_context_1.resolveMultiPlayerContext)(mateViewerId);
             if (!mateCtx)
                 continue;
             const info = (0, follow_1.buildFollowUserInfoSync)(requesterCtx.playerId, mateCtx.playerId);
@@ -98,10 +84,16 @@ function registerBattleRoutes(fastify) {
                 "error": "Bad Request", "message": "Invalid request body."
             });
         }
-        const ctx = yield resolvePlayer(viewer_id);
+        const ctx = yield (0, player_context_1.resolveMultiPlayerContext)(viewer_id);
         if (!ctx) {
             return reply.status(400).send({
                 "error": "Bad Request", "message": "Invalid viewer id or no player bound."
+            });
+        }
+        if (body.attention_key
+            && !(0, recruitment_1.validateRandomRecruitmentAttention)(room_number, viewer_id, body.attention_key)) {
+            return reply.status(400).send({
+                "error": "Bad Request", "message": "Invalid attention key."
             });
         }
         const questData = (0, assets_1.getQuestFromCategorySync)(category, quest_id);
@@ -125,6 +117,16 @@ function registerBattleRoutes(fastify) {
             const currentRoom = (0, manager_1.getRoom)(room_number);
             if (!currentRoom)
                 return { status: "missing" };
+            if (currentRoom.category !== category || currentRoom.quest_id !== quest_id) {
+                return { status: "quest_mismatch" };
+            }
+            if (!(0, manager_1.isRoomMember)(currentRoom, viewer_id)) {
+                return { status: "forbidden" };
+            }
+            const recordedPlayerId = (0, manager_1.getRoomMemberPlayerId)(currentRoom, viewer_id);
+            if (recordedPlayerId !== null && recordedPlayerId !== ctx.playerId) {
+                return { status: "player_mismatch" };
+            }
             if ((0, mode15_room_gate_1.isMode15RoomClosed)(currentRoom)) {
                 return { status: "mode15_closed", room: currentRoom };
             }
@@ -133,11 +135,23 @@ function registerBattleRoutes(fastify) {
             }
             return { status: "ready", room: currentRoom };
         });
-        if (roomStart.status === "missing" || roomStart.status === "unavailable") {
+        if (roomStart.status === "forbidden") {
+            return reply.status(403).send({
+                "error": "Forbidden", "message": "Room permission denied."
+            });
+        }
+        if (roomStart.status === "missing"
+            || roomStart.status === "unavailable"
+            || roomStart.status === "quest_mismatch"
+            || roomStart.status === "player_mismatch") {
             return reply.status(400).send({
                 "error": "Bad Request", "message": roomStart.status === "missing"
                     ? "Room doesn't exist."
-                    : "Room is not available for battle."
+                    : roomStart.status === "quest_mismatch"
+                        ? "Room quest mismatch."
+                        : roomStart.status === "player_mismatch"
+                            ? "Room player mismatch."
+                            : "Room is not available for battle."
             });
         }
         // The host's first successful settlement advances Mode15 immediately.
@@ -160,7 +174,7 @@ function registerBattleRoutes(fastify) {
             useBossBoostPoint: use_boss_boost_point,
             isAutoStartMode: is_auto_start_mode,
             isMulti: true,
-            isMultiHost: room.host_player_id === ctx.playerId,
+            isMultiHost: room.host_viewer_id === viewer_id,
             roomNumber: room_number,
             matePlayerIds: mate_player_ids,
             mateComIds,
@@ -188,7 +202,7 @@ function registerBattleRoutes(fastify) {
             activeQuest,
             participants: frozenParticipants,
             expectedRealViewerIds: frozenExpectedRealViewerIds,
-            isHost: room.host_player_id === ctx.playerId,
+            isHost: room.host_viewer_id === viewer_id,
             isRescueGuest: SessionManager_1.sessionManager.isRescueGuest(room_number, viewer_id),
             isNewbieRescueGuest: SessionManager_1.sessionManager.isNewbieRescueGuest(room_number, viewer_id),
         });
@@ -217,7 +231,7 @@ function registerBattleRoutes(fastify) {
                 "error": "Bad Request", "message": "Invalid request body."
             });
         }
-        const ctx = yield resolvePlayer(viewerId);
+        const ctx = yield (0, player_context_1.resolveMultiPlayerContext)(viewerId);
         if (!ctx || !ctx.player) {
             return reply.status(400).send({
                 "error": "Bad Request", "message": "Invalid viewer id."
@@ -631,7 +645,7 @@ function registerBattleRoutes(fastify) {
                 "error": "Bad Request", "message": "Invalid request body."
             });
         }
-        const ctx = yield resolvePlayer(viewerId);
+        const ctx = yield (0, player_context_1.resolveMultiPlayerContext)(viewerId);
         if (!ctx) {
             return reply.status(400).send({
                 "error": "Bad Request", "message": "Invalid viewer id or no player bound."
@@ -686,7 +700,7 @@ function registerBattleRoutes(fastify) {
                 "error": "Bad Request", "message": "Invalid request body."
             });
         }
-        const ctx = yield resolvePlayer(viewerId);
+        const ctx = yield (0, player_context_1.resolveMultiPlayerContext)(viewerId);
         if (!ctx || !ctx.player) {
             return reply.status(400).send({
                 "error": "Bad Request", "message": "Invalid viewer id or no player bound."

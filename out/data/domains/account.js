@@ -1,17 +1,15 @@
-import { getDb } from "../db";
-import { Account, RawAccount } from "../types";
-
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.updateAccount = exports.updateAccountSync = exports.insertAccount = exports.insertAccountSync = exports.getAccountPlayers = exports.getAccountPlayersSync = exports.deleteAccountSync = exports.getAllAccountsSync = exports.getAccount = exports.getAccountFromIdpIdSync = exports.getAccountSync = void 0;
+const db_1 = require("../db");
 // Account
-
 /**
  * Converts a RawAccount into a Account
- * 
+ *
  * @param rawAccount The RawAccount to convert.
  * @returns The converted Account
  */
-function buildAccount(
-    rawAccount: RawAccount
-): Account {
+function buildAccount(rawAccount) {
     return {
         id: rawAccount.id,
         appId: rawAccount.app_id,
@@ -27,201 +25,169 @@ function buildAccount(
         adminNote: rawAccount.admin_note,
         takeoverPassword: rawAccount.takeover_password,
         takeoverUdid: rawAccount.takeover_udid,
-    }
+    };
 }
-
 /**
  * Asynchronously gets an Account from their id.
- * 
+ *
  * @param accountId The ID of the Account to get.
  * @returns The Account that was found or null.
  */
-export function getAccountSync(
-    accountId: number
-): Account | null {
-    const db = getDb();
+function getAccountSync(accountId) {
+    const db = (0, db_1.getDb)();
     const raw = db.prepare(`
     SELECT id, app_id, first_login_time, idp_alias, idp_code, idp_id, reg_time, last_login_time, status,
            username, password_hash, admin_note, takeover_password, takeover_udid
     FROM accounts
     WHERE id = ?
-    `).get(accountId) as RawAccount | undefined
-
-    if (raw === undefined) return null
-
-    return buildAccount(raw)
+    `).get(accountId);
+    if (raw === undefined)
+        return null;
+    return buildAccount(raw);
 }
-
+exports.getAccountSync = getAccountSync;
 /**
  * Gets an account from their IdpId.
- * 
+ *
  * @param idpId The IdpId of the account.
  * @returns An account or null.
  */
-export function getAccountFromIdpIdSync(
-    idpId: string
-): Account | null {
-    const db = getDb();
+function getAccountFromIdpIdSync(idpId) {
+    const db = (0, db_1.getDb)();
     const raw = db.prepare(`
     SELECT id, app_id, first_login_time, idp_alias, idp_code, idp_id, reg_time, last_login_time, status,
            username, password_hash, admin_note, takeover_password, takeover_udid
     FROM accounts
     WHERE idp_id = ?
-    `).get(idpId) as RawAccount | undefined
-
-    if (raw === undefined) return null
-
-    return buildAccount(raw)
+    `).get(idpId);
+    if (raw === undefined)
+        return null;
+    return buildAccount(raw);
 }
-
+exports.getAccountFromIdpIdSync = getAccountFromIdpIdSync;
 /**
  * Gets an Account from their id.
- * 
+ *
  * @param accountId The ID of the Account to get.
  * @returns A promise that resolves with the Account that was found or null.
  */
-export function getAccount(
-    accountId: number
-): Promise<Account | null> {
-    return new Promise<Account | null>((resolve, reject) => {
+function getAccount(accountId) {
+    return new Promise((resolve, reject) => {
         try {
-            resolve(getAccountSync(accountId))
-        } catch (error) {
-            reject(error)
+            resolve(getAccountSync(accountId));
         }
-    })
+        catch (error) {
+            reject(error);
+        }
+    });
 }
-
+exports.getAccount = getAccount;
 /**
  * Gets all accounts from the database.
  */
-export function getAllAccountsSync(): Account[] {
-    const db = getDb();
+function getAllAccountsSync() {
+    const db = (0, db_1.getDb)();
     const raw = db.prepare(`
     SELECT id, app_id, first_login_time, idp_alias, idp_code, idp_id, reg_time, last_login_time, status,
            username, password_hash, admin_note, takeover_password, takeover_udid
     FROM accounts
     ORDER BY id DESC
-    `).all() as RawAccount[]
-
-    return raw.map(buildAccount)
+    `).all();
+    return raw.map(buildAccount);
 }
-
+exports.getAllAccountsSync = getAllAccountsSync;
 /**
  * Deletes an account by ID.
  */
-export function deleteAccountSync(accountId: number): void {
-    const db = getDb();
-    db.prepare(`DELETE FROM accounts WHERE id = ?`).run(accountId)
+function deleteAccountSync(accountId) {
+    const db = (0, db_1.getDb)();
+    db.prepare(`DELETE FROM accounts WHERE id = ?`).run(accountId);
 }
-
+exports.deleteAccountSync = deleteAccountSync;
 /**
  * Synchronously gets all of the players that are bound to an account.
- * 
+ *
  * @param accountId The account's id.
  * @returns A list of player ids.
  */
-export function getAccountPlayersSync(
-    accountId: number
-): number[] {
-    const db = getDb();
+function getAccountPlayersSync(accountId) {
+    const db = (0, db_1.getDb)();
     const raw = db.prepare(`
     SELECT id
     FROM players
     WHERE account_id = ?
     ORDER BY id
-    `).all(accountId) as { id: number }[]
-
-    return raw.map(player => player.id)
+    `).all(accountId);
+    return raw.map(player => player.id);
 }
-
+exports.getAccountPlayersSync = getAccountPlayersSync;
 /**
  * Gets all of the players that are bound to an account.
- * 
+ *
  * @param accountId The account's id.
  * @returns A promise that resolves with a list of player ids.
  */
-export function getAccountPlayers(
-    accountId: number
-): Promise<number[]> {
-    return new Promise<number[]>((resolve, reject) => {
+function getAccountPlayers(accountId) {
+    return new Promise((resolve, reject) => {
         try {
-            resolve(getAccountPlayersSync(accountId))
-        } catch (error) {
-            reject(error)
+            resolve(getAccountPlayersSync(accountId));
         }
-    })
+        catch (error) {
+            reject(error);
+        }
+    });
 }
-
+exports.getAccountPlayers = getAccountPlayers;
 /**
  * Synchronously inserts an Account into the database.
- * 
+ *
  * @param account An Account object that doesn't include its id, firstLoginTime, lastLoginTime, nor regTime.
  * @returns The Account that was inserted into the database.
  */
-export function insertAccountSync(
-    account: Omit<Account, "id" | "firstLoginTime" | "regTime" | "lastLoginTime">
-): Account {
-    const db = getDb();
-    const dateNow = new Date()
-    const dateNowISO = dateNow.toISOString()
-
+function insertAccountSync(account) {
+    const db = (0, db_1.getDb)();
+    const dateNow = new Date();
+    const dateNowISO = dateNow.toISOString();
     const result = db.prepare(`
     INSERT INTO accounts (app_id, first_login_time, idp_alias, idp_code, idp_id, reg_time, last_login_time, status)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(
-        account.appId,
-        dateNowISO,
-        account.idpAlias,
-        account.idpCode,
-        account.idpId,
-        dateNowISO,
-        dateNowISO,
-        account.status
-    )
-
-    const id = result.lastInsertRowid
-
+    `).run(account.appId, dateNowISO, account.idpAlias, account.idpCode, account.idpId, dateNowISO, dateNowISO, account.status);
+    const id = result.lastInsertRowid;
     // return the complete player
-    const finalAccount = account as Account
-    finalAccount.id = Number(id)
-    finalAccount.firstLoginTime = dateNow
-    finalAccount.regTime = dateNow
-
-    return finalAccount
+    const finalAccount = account;
+    finalAccount.id = Number(id);
+    finalAccount.firstLoginTime = dateNow;
+    finalAccount.regTime = dateNow;
+    return finalAccount;
 }
-
+exports.insertAccountSync = insertAccountSync;
 /**
  * Inserts an Account into the database.
- * 
+ *
  * @param account An Account object that doesn't include its id, firstLoginTime, nor regTime.
  * @returns A promise that resolves with the Account that was inserted into the database.
  */
-export function insertAccount(
-    account: Omit<Account, "id" | "firstLoginTime" | "regTime" | "lastLoginTime">
-): Promise<Account> {
-    return new Promise<Account>((resolve, reject) => {
+function insertAccount(account) {
+    return new Promise((resolve, reject) => {
         try {
-            resolve(insertAccountSync(account))
-        } catch (error) {
-            reject(error)
+            resolve(insertAccountSync(account));
         }
-    })
+        catch (error) {
+            reject(error);
+        }
+    });
 }
-
+exports.insertAccount = insertAccount;
 /**
  * Synchronously updates an Account within the database.
- * 
+ *
  * @param account The values of the Account to update.
  * @returns The updated Account.
  */
-export function updateAccountSync(
-    account: Partial<Account> & Pick<Account, "id">
-): Account {
-    const id = account.id
-    const db = getDb();
-
-    const fieldMap: Record<string, string> = {
+function updateAccountSync(account) {
+    const id = account.id;
+    const db = (0, db_1.getDb)();
+    const fieldMap = {
         'appId': 'app_id',
         'firstLoginTime': 'first_login_time',
         'idpAlias': 'idp_alias',
@@ -235,46 +201,45 @@ export function updateAccountSync(
         'adminNote': 'admin_note',
         'takeoverPassword': 'takeover_password',
         'takeoverUdid': 'takeover_udid'
-    }
-
-    const sets: string[] = []
-    const values: any[] = []
+    };
+    const sets = [];
+    const values = [];
     for (const key in account) {
-        const value = account[key as keyof typeof account]
-        const mapped = fieldMap[key]
+        const value = account[key];
+        const mapped = fieldMap[key];
         if (mapped && value !== undefined) {
-            sets.push(`${mapped} = ?`)
+            sets.push(`${mapped} = ?`);
             if (value instanceof Date) {
-                values.push(value.toISOString())
-            } else {
-                values.push(value)
+                values.push(value.toISOString());
+            }
+            else {
+                values.push(value);
             }
         }
     }
-
-    if (sets.length > 0) db.prepare(`
+    if (sets.length > 0)
+        db.prepare(`
         UPDATE accounts
         SET ${sets.join(', ')}
         WHERE id = ?
         `).run([...values, id]);
-
-    return getAccountSync(id) as Account
+    return getAccountSync(id);
 }
-
+exports.updateAccountSync = updateAccountSync;
 /**
  * Updates an Account within the database.
- * 
+ *
  * @param account The values of the Account to update.
  * @returns A promise that resolves with the updated Account.
  */
-export function updateAccount(
-    account: Partial<Account> & Pick<Account, "id">
-): Promise<Account> {
-    return new Promise<Account>((resolve, reject) => {
+function updateAccount(account) {
+    return new Promise((resolve, reject) => {
         try {
-            resolve(updateAccountSync(account))
-        } catch (error) {
-            reject(error)
+            resolve(updateAccountSync(account));
         }
-    })
+        catch (error) {
+            reject(error);
+        }
+    });
 }
+exports.updateAccount = updateAccount;

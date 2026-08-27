@@ -9,6 +9,7 @@ export interface RandomRecruitment {
         deliveryCount: number
     }>
     suppressedViewers: Set<number>
+    acceptedViewers: Set<number>
 }
 
 // The client's multi_attention_lifetime_seconds=30 describes one displayed
@@ -30,6 +31,8 @@ const STOPPED_NOTICE_GRACE_MS = Math.max(
 const recruitments = new Map<string, RandomRecruitment>()
 const stoppedNoticeViewers = new Map<string, {
     viewers: Set<number>
+    acceptedViewers: Set<number>
+    attentionKey: string
     expiresAt: number
 }>()
 
@@ -49,6 +52,7 @@ export function publishRandomRecruitment(roomNumber: string): RandomRecruitment 
         publishedAt: now,
         deliveredTo: new Map(),
         suppressedViewers: new Set(),
+        acceptedViewers: new Set(),
     }
     recruitments.set(roomNumber, recruitment)
     return recruitment
@@ -59,6 +63,8 @@ export function stopRandomRecruitment(roomNumber: string): void {
     if (recruitment && recruitment.deliveredTo.size > 0) {
         const stoppedNotice = {
             viewers: new Set(recruitment.deliveredTo.keys()),
+            acceptedViewers: new Set(recruitment.acceptedViewers),
+            attentionKey: recruitment.attentionKey,
             expiresAt: Date.now() + STOPPED_NOTICE_GRACE_MS,
         }
         stoppedNoticeViewers.set(roomNumber, stoppedNotice)
@@ -95,6 +101,47 @@ export function suppressRandomRecruitmentForViewer(roomNumber: string, viewerId:
     const recruitment = recruitments.get(roomNumber)
     if (!recruitment) return
     recruitment.suppressedViewers.add(viewerId)
+}
+
+export function acceptRandomRecruitmentForViewer(roomNumber: string, viewerId: number): boolean {
+    const recruitment = recruitments.get(roomNumber)
+    if (!recruitment || !recruitment.deliveredTo.has(viewerId)) return false
+    recruitment.acceptedViewers.add(viewerId)
+    recruitment.suppressedViewers.add(viewerId)
+    return true
+}
+
+export function validateRandomRecruitmentAttention(
+    roomNumber: string,
+    viewerId: number,
+    attentionKey: string,
+): boolean {
+    const recruitment = recruitments.get(roomNumber)
+    if (recruitment
+        && recruitment.attentionKey === attentionKey
+        && recruitment.deliveredTo.has(viewerId)) {
+        recruitment.acceptedViewers.add(viewerId)
+        recruitment.suppressedViewers.add(viewerId)
+        return true
+    }
+
+    const stoppedNotice = stoppedNoticeViewers.get(roomNumber)
+    if (!stoppedNotice) return false
+    if (stoppedNotice.expiresAt <= Date.now()) {
+        stoppedNoticeViewers.delete(roomNumber)
+        return false
+    }
+    if (stoppedNotice.attentionKey !== attentionKey || !stoppedNotice.viewers.has(viewerId)) {
+        return false
+    }
+    stoppedNotice.acceptedViewers.add(viewerId)
+    return true
+}
+
+export function wasRandomRecruitmentAcceptedBy(roomNumber: string, viewerId: number): boolean {
+    return recruitments.get(roomNumber)?.acceptedViewers.has(viewerId)
+        ?? stoppedNoticeViewers.get(roomNumber)?.acceptedViewers.has(viewerId)
+        ?? false
 }
 
 export function takeRandomRecruitments(
