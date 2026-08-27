@@ -99,9 +99,9 @@ assert.deepEqual(
     "The same overall rewards must not be granted twice",
 )
 
-assert.equal(getRaidEventGlobalBossSync(7).requiredKillCount, 76000)
+assert.equal(getRaidEventGlobalBossSync(7).requiredKillCount, 30000)
 assert.deepEqual(getRaidEventProgressRule(7), {
-    requiredKillCount: 76000,
+    requiredKillCount: 30000,
     questWeights: {
         7001: 51, 7002: 255,
         7003: 1, 7004: 3, 7005: 30, 7006: 180,
@@ -131,7 +131,7 @@ const firstClear = recordRaidEventClearSync({
 })
 assert.equal(firstClear.counted, true)
 assert.equal(firstClear.boss.weightedKillCount, 255)
-assert.equal(firstClear.boss.hpPercentage, 99.7)
+assert.equal(firstClear.boss.hpPercentage, 99.2)
 assert.equal(
     recordRaidEventClearSync({
         eventId: 7,
@@ -158,26 +158,47 @@ const insertReceipt = db.prepare(`INSERT INTO raid_event_global_kill_ledger
     (event_id, play_id, player_id, quest_id, created_at)
     VALUES (7, ?, ?, 7002, ?)`)
 db.transaction(() => {
-    for (let index = 2; index <= 298; index++) {
-        insertReceipt.run(`official-threshold-${index}`, playerId, index)
+    for (let index = 2; index <= 117; index++) {
+        insertReceipt.run(`private-threshold-${index}`, playerId, index)
     }
 })()
 db.prepare(`DELETE FROM raid_event_global_state WHERE event_id = 7`).run()
 assert.deepEqual(getRaidEventGlobalBossSync(7), {
-    hpPercentage: 0.1,
+    hpPercentage: 0.6,
     totalKillCount: 0,
-    weightedKillCount: 75990,
-    requiredKillCount: 76000,
+    weightedKillCount: 29835,
+    requiredKillCount: 30000,
 })
 
-insertReceipt.run("official-threshold-299", playerId, 299)
+insertReceipt.run("private-threshold-118", playerId, 118)
 db.prepare(`DELETE FROM raid_event_global_state WHERE event_id = 7`).run()
 assert.deepEqual(getRaidEventGlobalBossSync(7), {
     hpPercentage: 100,
     totalKillCount: 1,
     weightedKillCount: 0,
-    requiredKillCount: 76000,
+    requiredKillCount: 30000,
 })
+db.prepare(`UPDATE raid_event_global_state
+    SET total_kill_count = 999,
+        weighted_kill_count = 29999,
+        calculation_version = 4
+    WHERE event_id = 7`).run()
+assert.deepEqual(
+    getRaidEventGlobalBossSync(7),
+    {
+        hpPercentage: 100,
+        totalKillCount: 1,
+        weightedKillCount: 0,
+        requiredKillCount: 30000,
+    },
+    "Version 4 state must be rebuilt from the ledger with the version 5 threshold",
+)
+assert.equal(
+    db.prepare(`SELECT calculation_version
+        FROM raid_event_global_state
+        WHERE event_id = 7`).get().calculation_version,
+    5,
+)
 
 console.log("raid event reward claim tests passed")
 cleanup()
