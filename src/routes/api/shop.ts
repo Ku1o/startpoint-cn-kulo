@@ -21,6 +21,7 @@ import { gameVerboseLog } from "../../lib/game-logging";
 import { reconcileAwakeUnlockCharacterList } from "../../lib/mission";
 import { getDegreeMissionIdsForConditionTypes, mergeMissionSettlementResponse, settleMissionCategories } from "../../lib/mission";
 import { addMissionCounterSync } from "../../lib/mission/counters";
+import { computeFreeFirstDeduction } from "../../lib/free-first-deduction";
 
 const GENERAL_SHOP_CDN_KEYS: Set<number> = new Set(CDN_GENERAL_SHOP_WHITELIST);
 
@@ -420,36 +421,49 @@ const routes = async (fastify: FastifyInstance) => {
             }
         }
 
-        gameVerboseLog(() => `[shop:buy] player=${playerId} shopType=${shopType} item=${shopItemId} x${purchaseAmount} before freeMana=${player.freeMana} freeVmoney=${player.freeVmoney}`)
+        gameVerboseLog(() =>
+            `[shop:buy] player=${playerId} shopType=${shopType} item=${shopItemId} x${purchaseAmount} ` +
+            `before freeMana=${player.freeMana} paidMana=${player.paidMana} ` +
+            `freeVmoney=${player.freeVmoney} vmoney=${player.vmoney}`
+        )
 
         // keep track of various stats
         const itemList: Record<string, number> = {}
         let freeVmoney = player.freeVmoney
+        let vmoney = player.vmoney
         let freeMana = player.freeMana
+        let paidMana = player.paidMana
         let bondTokens = player.bondToken
 
         // verify user costs
         const userCost = shopItemData.userCost
         if (userCost !== undefined) {
+            const totalCost = userCost.amount * purchaseAmount
             switch (userCost.type) {
-                case ShopItemUserCostType.MANA:
-                    freeMana -= (userCost.amount * purchaseAmount)
-                    break;
-                case ShopItemUserCostType.BEADS:
-                    freeVmoney -= (userCost.amount * purchaseAmount)
-                    break;
+                case ShopItemUserCostType.MANA: {
+                    const deduction = computeFreeFirstDeduction(freeMana, paidMana, totalCost)
+                    if (deduction === null) return reply.status(400).send({
+                        "error": "Bad Request",
+                        "message": `Not enough mana to purchase shop item.`
+                    })
+                    freeMana = deduction.freeBalance
+                    paidMana = deduction.paidBalance
+                    break
+                }
+                case ShopItemUserCostType.BEADS: {
+                    const deduction = computeFreeFirstDeduction(freeVmoney, vmoney, totalCost)
+                    if (deduction === null) return reply.status(400).send({
+                        "error": "Bad Request",
+                        "message": `Not enough beads to purchase shop item.`
+                    })
+                    freeVmoney = deduction.freeBalance
+                    vmoney = deduction.paidBalance
+                    break
+                }
                 case ShopItemUserCostType.AMITY_SCROLL:
-                    bondTokens -= (userCost.amount * purchaseAmount)
+                    bondTokens -= totalCost
             }
 
-            if (0 > freeVmoney) return reply.status(400).send({
-                "error": "Bad Request",
-                "message": `Not enough beads to purchase shop item.`
-            })
-            if (0 > freeMana) return reply.status(400).send({
-                "error": "Bad Request",
-                "message": `Not enough mana to purchase shop item.`
-            })
             if (0 > bondTokens) return reply.status(400).send({
                 "error": "Bad Request",
                 "message": `Not enough amity scrolls to purchase shop item.`
@@ -480,10 +494,15 @@ const routes = async (fastify: FastifyInstance) => {
         updatePlayerSync({
             id: playerId,
             freeMana: freeMana,
+            paidMana: paidMana,
             freeVmoney: freeVmoney,
+            vmoney: vmoney,
             bondToken: bondTokens
         })
-        const manaSpent = Math.max(0, player.freeMana - freeMana)
+        const manaSpent = Math.max(
+            0,
+            (player.freeMana + player.paidMana) - (freeMana + paidMana),
+        )
         if (manaSpent > 0) incrementActiveMissionUsedManaCountSync(playerId, manaSpent)
 
         // Equipment enhancement shop: update equipment enhancement level
@@ -518,7 +537,9 @@ const routes = async (fastify: FastifyInstance) => {
                 }),
                 "data": {
                     "user_info": {
+                        "vmoney": vmoney,
                         "free_vmoney": freeVmoney,
+                        "paid_mana": paidMana,
                         "free_mana": freeMana,
                         "bond_token": bondTokens
                     },
@@ -599,15 +620,21 @@ const routes = async (fastify: FastifyInstance) => {
 
         // verify DB write
         const afterPlayer = getPlayerSync(playerId)!
-        gameVerboseLog(() => `[shop:buy] after DB freeMana=${afterPlayer.freeMana} freeVmoney=${afterPlayer.freeVmoney} rewardItems=${JSON.stringify(rewardResult?.items ?? {})}`)
+        gameVerboseLog(() =>
+            `[shop:buy] after DB freeMana=${afterPlayer.freeMana} paidMana=${afterPlayer.paidMana} ` +
+            `freeVmoney=${afterPlayer.freeVmoney} vmoney=${afterPlayer.vmoney} ` +
+            `rewardItems=${JSON.stringify(rewardResult?.items ?? {})}`
+        )
 
         reply.header("content-type", "application/x-msgpack")
         const responseData: Record<string, unknown> = {
             "user_info": {
-                "free_vmoney": freeVmoney + (rewardResult?.user_info.free_vmoney ?? 0),
-                "free_mana": freeMana + (rewardResult?.user_info.free_mana ?? 0),
-                "bond_token": bondTokens,
-                "exp_pool": player.expPool + (rewardResult?.user_info.exp_pool ?? 0),
+                "vmoney": afterPlayer.vmoney,
+                "free_vmoney": afterPlayer.freeVmoney,
+                "paid_mana": afterPlayer.paidMana,
+                "free_mana": afterPlayer.freeMana,
+                "bond_token": afterPlayer.bondToken,
+                "exp_pool": afterPlayer.expPool,
             },
             "character_list": characterList,
             "equipment_list": rewardResult?.equipment_list ?? [],
@@ -826,10 +853,16 @@ const routes = async (fastify: FastifyInstance) => {
             })
         }
 
-        // Insufficient vmoney
-        const freeVmoney = player.freeVmoney
-        if (freeVmoney < recoveryCost) {
-            console.warn(`[RECOVER-STAMINA] player ${playerId} insufficient vmoney: ${freeVmoney} < ${recoveryCost}`)
+        const vmoneyDeduction = computeFreeFirstDeduction(
+            player.freeVmoney,
+            player.vmoney,
+            recoveryCost,
+        )
+        if (vmoneyDeduction === null) {
+            console.warn(
+                `[RECOVER-STAMINA] player ${playerId} insufficient vmoney: ` +
+                `free=${player.freeVmoney} paid=${player.vmoney} cost=${recoveryCost}`
+            )
             reply.header("content-type", "application/x-msgpack")
             return reply.status(200).send({
                 "data_headers": generateDataHeaders({ viewer_id: viewerId, result_code: 0 }),
@@ -845,10 +878,15 @@ const routes = async (fastify: FastifyInstance) => {
             id: playerId,
             stamina: afterStamina,
             staminaHealTime: new Date(),
-            freeVmoney: freeVmoney - recoveryCost
+            freeVmoney: vmoneyDeduction.freeBalance,
+            vmoney: vmoneyDeduction.paidBalance,
         })
 
-        gameVerboseLog(() => `[RECOVER-STAMINA] player ${playerId}: stamina ${currentStamina}->${afterStamina} (+${actualRecovery}), freeVmoney ${freeVmoney}->${freeVmoney - recoveryCost}`)
+        gameVerboseLog(() =>
+            `[RECOVER-STAMINA] player ${playerId}: stamina ${currentStamina}->${afterStamina} (+${actualRecovery}), ` +
+            `freeVmoney ${player.freeVmoney}->${vmoneyDeduction.freeBalance}, ` +
+            `vmoney ${player.vmoney}->${vmoneyDeduction.paidBalance}`
+        )
 
         reply.header("content-type", "application/x-msgpack")
         return reply.status(200).send({
@@ -857,7 +895,8 @@ const routes = async (fastify: FastifyInstance) => {
                 "user_info": {
                     "stamina": afterStamina,
                     "stamina_heal_time": realToVirtual(new Date()),
-                    "free_vmoney": freeVmoney - recoveryCost
+                    "vmoney": vmoneyDeduction.paidBalance,
+                    "free_vmoney": vmoneyDeduction.freeBalance,
                 }
             }
         })
@@ -933,8 +972,10 @@ const routes = async (fastify: FastifyInstance) => {
         let manaCost = 0
         let vmoneyCost = 0
         let bondTokenCost = 0
-        let availableMana = player.freeMana
-        let availableVmoney = player.freeVmoney
+        let availableFreeMana = player.freeMana
+        let availablePaidMana = player.paidMana
+        let availableFreeVmoney = player.freeVmoney
+        let availablePaidVmoney = player.vmoney
         let availableBondToken = player.bondToken
         const availableItems = new Map<number, number>()
         let skippedEntries = Math.max(0, (buyItemList === null ? 0 : Object.keys(buyItemList).length) - rawEntries.length)
@@ -979,10 +1020,10 @@ const routes = async (fastify: FastifyInstance) => {
                 }
                 switch (userCost.type) {
                     case ShopItemUserCostType.MANA:
-                        userCostBudget = availableMana
+                        userCostBudget = availableFreeMana + availablePaidMana
                         break
                     case ShopItemUserCostType.BEADS:
-                        userCostBudget = availableVmoney
+                        userCostBudget = availableFreeVmoney + availablePaidVmoney
                         break
                     case ShopItemUserCostType.AMITY_SCROLL:
                         userCostBudget = availableBondToken
@@ -1037,14 +1078,36 @@ const routes = async (fastify: FastifyInstance) => {
                     continue
                 }
                 switch (userCost.type) {
-                    case ShopItemUserCostType.MANA:
+                    case ShopItemUserCostType.MANA: {
+                        const deduction = computeFreeFirstDeduction(
+                            availableFreeMana,
+                            availablePaidMana,
+                            total,
+                        )
+                        if (deduction === null) {
+                            skippedEntries++
+                            continue
+                        }
                         manaCost += total
-                        availableMana -= total
+                        availableFreeMana = deduction.freeBalance
+                        availablePaidMana = deduction.paidBalance
                         break
-                    case ShopItemUserCostType.BEADS:
+                    }
+                    case ShopItemUserCostType.BEADS: {
+                        const deduction = computeFreeFirstDeduction(
+                            availableFreeVmoney,
+                            availablePaidVmoney,
+                            total,
+                        )
+                        if (deduction === null) {
+                            skippedEntries++
+                            continue
+                        }
                         vmoneyCost += total
-                        availableVmoney -= total
+                        availableFreeVmoney = deduction.freeBalance
+                        availablePaidVmoney = deduction.paidBalance
                         break
+                    }
                     case ShopItemUserCostType.AMITY_SCROLL:
                         bondTokenCost += total
                         availableBondToken -= total
@@ -1119,8 +1182,10 @@ const routes = async (fastify: FastifyInstance) => {
 
                 updatePlayerSync({
                     id: playerId,
-                    freeMana: player.freeMana - manaCost,
-                    freeVmoney: player.freeVmoney - vmoneyCost,
+                    freeMana: availableFreeMana,
+                    paidMana: availablePaidMana,
+                    freeVmoney: availableFreeVmoney,
+                    vmoney: availablePaidVmoney,
                     bondToken: player.bondToken - bondTokenCost
                 })
                 if (manaCost > 0) incrementActiveMissionUsedManaCountSync(playerId, manaCost)
@@ -1167,14 +1232,17 @@ const routes = async (fastify: FastifyInstance) => {
 
         gameVerboseLog(() =>
             `[shop:bulk_buy] completed player=${playerId} ` +
-            `freeMana=${afterPlayer.freeMana} freeVmoney=${afterPlayer.freeVmoney} ` +
+            `freeMana=${afterPlayer.freeMana} paidMana=${afterPlayer.paidMana} ` +
+            `freeVmoney=${afterPlayer.freeVmoney} vmoney=${afterPlayer.vmoney} ` +
             `rewardItems=${JSON.stringify(rewardResult.items)}`
         )
 
         reply.header("content-type", "application/x-msgpack")
         const responseData: Record<string, unknown> = {
             "user_info": {
+                "vmoney": afterPlayer.vmoney,
                 "free_vmoney": afterPlayer.freeVmoney,
+                "paid_mana": afterPlayer.paidMana,
                 "free_mana": afterPlayer.freeMana,
                 "bond_token": afterPlayer.bondToken,
                 "exp_pool": afterPlayer.expPool

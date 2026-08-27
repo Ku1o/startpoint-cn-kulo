@@ -12,13 +12,16 @@ import {
     ShopItemRewardType,
     ShopItemUserCostType,
 } from "./types"
+import { computeFreeFirstDeduction } from "./free-first-deduction"
 
 export const ITEM_SHOP_PERIOD_ERROR_CODE = 2053
 
 export interface GenericShopPlayerState {
     id: number
     freeMana: number
+    paidMana: number
     freeVmoney: number
+    vmoney: number
     bondToken: number
     expPool: number
 }
@@ -207,14 +210,28 @@ export function executeGenericShopPurchaseSync(
         if (userCost !== undefined) {
             const cost = userCost.amount * purchaseAmount
             switch (userCost.type) {
-                case ShopItemUserCostType.MANA:
-                    nextPlayer.freeMana -= cost
-                    if (nextPlayer.freeMana < 0) throw new ShopBalanceError("Not enough mana.")
+                case ShopItemUserCostType.MANA: {
+                    const deduction = computeFreeFirstDeduction(
+                        nextPlayer.freeMana,
+                        nextPlayer.paidMana,
+                        cost,
+                    )
+                    if (deduction === null) throw new ShopBalanceError("Not enough mana.")
+                    nextPlayer.freeMana = deduction.freeBalance
+                    nextPlayer.paidMana = deduction.paidBalance
                     break
-                case ShopItemUserCostType.BEADS:
-                    nextPlayer.freeVmoney -= cost
-                    if (nextPlayer.freeVmoney < 0) throw new ShopBalanceError("Not enough beads.")
+                }
+                case ShopItemUserCostType.BEADS: {
+                    const deduction = computeFreeFirstDeduction(
+                        nextPlayer.freeVmoney,
+                        nextPlayer.vmoney,
+                        cost,
+                    )
+                    if (deduction === null) throw new ShopBalanceError("Not enough beads.")
+                    nextPlayer.freeVmoney = deduction.freeBalance
+                    nextPlayer.vmoney = deduction.paidBalance
                     break
+                }
                 case ShopItemUserCostType.AMITY_SCROLL:
                     nextPlayer.bondToken -= cost
                     if (nextPlayer.bondToken < 0) throw new ShopBalanceError("Not enough amity scrolls.")
