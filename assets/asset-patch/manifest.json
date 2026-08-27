@@ -4761,6 +4761,54 @@
           "members": 126
         }
       ]
+    },
+    {
+      "id": "four-character-ui-centering-1.4.91",
+      "type": "patch",
+      "name": "四角色技能插入图定位与巴萨拉卡图集顺序修复",
+      "description": "在已部署的1.4.90基础上，校正139997、希耶提、西蒙与巴萨拉卡基础形态技能插入图的固定画布定位，并按既有atlas修正巴萨拉卡插画设置图集的初始与觉醒顺序。",
+      "version": "1.4.91",
+      "depends_on": "1.4.90",
+      "enabled": true,
+      "archive": "pinball-1.4.90-1.4.91-1-0827-four-character-ui-centering.zip",
+      "archive_size": 524962,
+      "files": [
+        "production/medium_upload/e4/7e910cab2e474dc674e053a1941f8995f5e421",
+        "production/upload/fb/ab4344a7456dca88f3ce06f01208922f37e395"
+      ],
+      "changes": [
+        "将139997、希耶提、西蒙与巴萨拉卡基础形态skill_cutin_0的固定画布纹理帧校正为0,0,1024,512，消除旧透明边界偏移造成的人物跑位。",
+        "四张觉醒形态skill_cutin_1定位行与trimmed_image其余记录保持不变。",
+        "按未修改的既有atlas将巴萨拉卡illustration_setting_sprite_sheet修正为上方觉醒_1、下方初始_0。"
+      ],
+      "created_at": "2026-08-27",
+      "audit": {
+        "directory": "assets/asset-patch/audit/four-character-ui-centering-1.4.91",
+        "base_version": "1.4.90",
+        "target_version": "1.4.91",
+        "members": 2,
+        "skill_cutin_form0_frame": "0,0,1024,512",
+        "skill_cutin_form1_rows_unchanged": true,
+        "trimmed_image_unrelated_rows_preserved": true,
+        "characters": [
+          139997,
+          149995,
+          169996,
+          169997
+        ],
+        "vaseraga_illustration_form1_top": true,
+        "vaseraga_illustration_form0_bottom": true,
+        "vaseraga_illustration_atlas_unchanged": true,
+        "gameplay_verified": false
+      },
+      "archive_integrity": [
+        {
+          "name": "pinball-1.4.90-1.4.91-1-0827-four-character-ui-centering.zip",
+          "size": 524962,
+          "sha256": "95e57dd663581d92247d22727efd4f17ce0590e18f56186df78a29bd0cd4d8d4",
+          "members": 2
+        }
+      ]
     }
   ]
 }

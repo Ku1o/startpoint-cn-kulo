@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "task": "four-character-ui-centering-and-vaseraga-illustration-order",
+  "version_edge": {
+    "from": "1.4.90",
+    "to": "1.4.91"
+  },
+  "base_archive": {
+    "name": "pinball-1.4.89-1.4.90-1-0827-trio-ui-refresh.zip",
+    "size": 41384007,
+    "sha256": "827d8550fe14400df26c5ff4fc2f3309b8a9cea15d6203d35b153dfb64529cba",
+    "members": 126
+  },
+  "effective_corrected_snapshot": {
+    "size": 41359085,
+    "sha256": "2686e00119cd742fc339eaf5e63924a212fd272f49ba0b0e0d80907b3d4cf399",
+    "members": 126
+  },
+  "delta_archive": {
+    "name": "pinball-1.4.90-1.4.91-1-0827-four-character-ui-centering.zip",
+    "size": 524962,
+    "sha256": "95e57dd663581d92247d22727efd4f17ce0590e18f56186df78a29bd0cd4d8d4",
+    "members": 2
+  },
+  "members": [
+    {
+      "member": "production/medium_upload/e4/7e910cab2e474dc674e053a1941f8995f5e421",
+      "old_size": 413787,
+      "new_size": 380134,
+      "old_sha256": "860411105b40f8d4858173da99ed3d7245d1c0822c20a8fb3b22c7b27900b58e",
+      "new_sha256": "365d02600c028cd3c101bd9d9adfe1cac532acca9bd8c86dbb952ff9a67eed1a"
+    },
+    {
+      "member": "production/upload/fb/ab4344a7456dca88f3ce06f01208922f37e395",
+      "old_size": 351614,
+      "new_size": 351605,
+      "old_sha256": "4785adbf3754c7762329019e2cdaffeee85a5b2a146d9c3345fb93642b95321d",
+      "new_sha256": "5e4f842df25b6d4cae790bc2918ba8499b1dbdafea2558e928baea280487ceea"
+    }
+  ],
+  "trimmed_image": {
+    "logical": "master/generated/trimmed_image.orderedmap",
+    "member": "production/upload/fb/ab4344a7456dca88f3ce06f01208922f37e395",
+    "changes": [
+      {
+        "key": "character/resistance_princess_ex/ui/skill_cutin_0",
+        "old": "301,107,1024,512",
+        "new": "0,0,1024,512"
+      },
+      {
+        "key": "character/seofon_wind/ui/skill_cutin_0",
+        "old": "450,83,1024,512",
+        "new": "0,0,1024,512"
+      },
+      {
+        "key": "character/simoun_dark/ui/skill_cutin_0",
+        "old": "49,24,1024,512",
+        "new": "0,0,1024,512"
+      },
+      {
+        "key": "character/vaseraga_dark/ui/skill_cutin_0",
+        "old": "103,77,1024,512",
+        "new": "0,0,1024,512"
+      }
+    ],
+    "form1_rows_unchanged": true,
+    "unrelated_rows_preserved": true
+  },
+  "vaseraga_illustration": {
+    "logical": "character/vaseraga_dark/ui/illustration_setting_sprite_sheet.png",
+    "member": "production/medium_upload/e4/7e910cab2e474dc674e053a1941f8995f5e421",
+    "old_size": [361, 789],
+    "new_size": [363, 754],
+    "form_1_top": true,
+    "form_0_bottom": true,
+    "atlas_unchanged": true
+  },
+  "qa": [
+    "qa-skill-cutin-frame-before-after.png",
+    "qa-vaseraga-illustration-order-before-after.png"
+  ]
+}
