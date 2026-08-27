@@ -82,6 +82,25 @@ class Mp3DeobfuscationTests(unittest.TestCase):
     def test_bitrate_index_8_keeps_official_122000_frame_step(self) -> None:
         self.assert_all_decoders_restore(*two_frame_mp3(id3v2=False, bitrate_index=8))
 
+    def test_encoder_normalizes_zero_padding_after_id3v2(self) -> None:
+        clear, _ = two_frame_mp3()
+        padded = ID3V2 + (b"\x00" * 133) + clear[len(ID3V2):]
+
+        normalized = wf_assets.normalize_mp3_id3_padding(padded)
+        stored = wf_assets.mp3_encode(padded)
+
+        self.assertEqual(clear, normalized)
+        self.assertEqual(clear, wf_assets.mp3_decode(stored))
+        self.assertEqual(2, wf_assets.mp3_probe(stored, 1023)["frames"])
+
+    def test_encoder_does_not_hide_nonzero_junk_after_id3v2(self) -> None:
+        clear, _ = two_frame_mp3()
+        padded = ID3V2 + b"\x00\x01\x00" + clear[len(ID3V2):]
+
+        self.assertIs(padded, wf_assets.normalize_mp3_id3_padding(padded))
+        with self.assertRaisesRegex(ValueError, "有效音频帧"):
+            wf_assets.mp3_encode(padded)
+
     def test_clear_id3v2_mp3_returns_original_without_conversion(self) -> None:
         clear, _ = two_frame_mp3()
 

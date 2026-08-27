@@ -135,6 +135,43 @@ def mp3_decode(data: bytes) -> bytes:
     return _mp3_convert(data, 1023, 2047)
 
 
+def normalize_mp3_id3_padding(data: bytes, *, max_padding: int = 4096) -> bytes:
+    """移除 ID3v2 标签与首个 MPEG 帧之间的纯零外部填充。
+
+    部分 datamine 导出器会把 LAME/ID3 的对齐零字节留在标签声明长度之外。
+    播放器通常会跳过这些零字节，但游戏的逐帧混淆转换器会在这里停止，导致后续
+    帧保持标准 0xFF 帧头并生成标准态/存储态混合文件。这里只接受有限长度的纯零
+    间隙，并且仅在其后剩余内容能被完整识别为 CBR Layer3 帧流时移除；其他输入
+    原样交给严格门禁拒绝。
+    """
+    if data[:3] != b"ID3" or len(data) < 10:
+        return data
+    if any(value & 0x80 for value in data[6:10]):
+        return data
+    tag_size = (
+        (data[6] & 0x7F) << 21
+        | (data[7] & 0x7F) << 14
+        | (data[8] & 0x7F) << 7
+        | (data[9] & 0x7F)
+    )
+    tag_end = 10 + tag_size
+    if tag_end >= len(data):
+        return data
+    cursor = tag_end
+    limit = min(len(data), tag_end + max_padding + 1)
+    while cursor < limit and data[cursor] == 0:
+        cursor += 1
+    padding = cursor - tag_end
+    if padding == 0 or padding > max_padding or cursor + 4 > len(data):
+        return data
+    if data[cursor] != 0xFF or (data[cursor + 1] >> 5 & 7) != 7:
+        return data
+    probe = mp3_probe(data[cursor:], 2047)
+    if probe["frames"] == 0 or probe["tail"] > 512:
+        return data
+    return data[:tag_end] + data[cursor:]
+
+
 def mp3_probe(data: bytes, sig: int) -> dict:
     """逐帧探测(只读):{frames, bitrates, srates, end(帧流覆盖末位), tail(其后字节数)}。
     与 _mp3_convert 同一走帧逻辑,用于量化"转换到底覆盖了多少"。"""
@@ -189,6 +226,7 @@ def mp3_encode(data: bytes) -> bytes:
     半转换文件——客户端播到断点即崩溃或截断。这里转换后逐帧复核:
     覆盖必须到文件尾(允许 ≤512B 的 TAG/静默填充,且其中不得残留标准帧同步字);
     帧码率必须恒定(游戏不支持 VBR;官方语音 400 抽样实测全部 CBR)。"""
+    data = normalize_mp3_id3_padding(data)
     if not (data[:3] == b"ID3" or (len(data) > 1 and data[0] == 0xFF and (data[1] >> 5 & 7) == 7)):
         raise ValueError("不是标准 MP3 文件(需 CBR·MPEG Layer3;先用 ffmpeg 转码: "
                          "ffmpeg -i in.xxx -c:a libmp3lame -b:a 96k -write_xing 0 out.mp3)")
