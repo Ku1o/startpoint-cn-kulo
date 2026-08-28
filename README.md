@@ -1,140 +1,131 @@
 # StarPoint CN
 
-世界弹射物语(World Flipper)CN(雷霆 Leiting)版本的服务端模拟器。
+StarPoint CN 是《世界弹射物语》国服（雷霆）客户端的非官方服务端实现。本仓库在[上游项目](https://github.com/dontbealarmed/startpoint-cn)基础上继续维护云服务器部署、管理后台、联机、活动内容、任务成就、客户端兼容和运行性能。
 
-## 功能状态
+> `staging` 是日常开发、集成测试和云服覆盖包的交付分支；`main` 只接收经过观察验证的稳定更新。自动测试和服务端构建通过不代表所有客户端流程都已完成人工验收。
 
-已实现(部分端点沿用国际服设计,对 CN 的通用性尚未验证):
+## 支持边界
 
-- 账号:设备自动绑定(`device_id`)、Web 管理面板
-- 时间系统:全局 / 按存档时间偏移(默认 2024-08-14,规避 CDN 报错)
-- 关卡:主线 / 部分活动·Boss / 单人战斗结算
-- Gacha:角色·武器卡池、兑换、C3032 动画修复、抽卡种子验证
-- 多人联机(NPC 协战):Phase 2 — 建房 + NPC 招募 / 召唤 / 结算
-- 系统:狂热激战 · 体力 · 商店 · 漫画 · 邮件群发
-- 养成:升级 / 突破 / 魔晶板 / EX / 羁绊;武装:觉醒 / 熔解;编队 · 图鉴 · 教程
+当前开发与验收基线包括：
 
-⚠️ 已知失效 / 注意:
+- Android 官方 CN 1.8.1 客户端，仅修改登录跳过和服务器地址；
+- 可选的 iOS 1.8.4 私服客户端补丁；
+- 官方 CN 1.4.54 CDN 基础资源，以及仓库清单中明确启用的增量补丁；
+- Node.js 20 或更高版本；
+- SQLite 本地状态，默认存放在 `.database/`。
 
-- 存档导入 / 导出:已修复 —— 采用 MergedPlayerData 快照格式(仅管理面板备份/恢复,非游戏客户端 load）。
-- 漫画资源**不随项目分发**,需自行导入。
-- 多个端点沿用国际服(global)设计,不保证对 CN 客户端通用。
+项目不分发客户端 APK、官方 CDN、漫画资源、签名凭据或云服环境文件，也不保证兼容来源不明的客户端、损坏的 CDN 和未经验证的游戏逻辑修改。
 
-> 端点状态见 [docs](./docs/README.md) · [端点实现状态](./docs/reference/routes-status.md)
+本机与局域网可以直接运行。公网云服需要自行配置防火墙、nginx/反向代理、HTTPS 和 Cloudflare；HTTP 游戏服务与联机 TCP 服务默认监听 `8001`、`8003`。完整步骤见[云服务器部署说明](./docs/deployment.md)。
 
-## 环境需求
+## 当前状态
 
-- Node.js ≥ 20 · 打补丁后的 CN 客户端 APK(见"客户端改造")
-- 一份 CN CDN 资源,放入 `.cdn/cn/`
+服务端已经覆盖账号与存档、主要养成、主线与部分活动、单人和多人战斗、任务成就与称号、抽卡、商店、邮件、NPC 协力、管理后台及资源更新流程。部分旧端点、特殊活动和客户端边缘流程仍需要继续验证。
 
-### CDN 路径清单文件(PathFile)
+- [完整文档入口](./docs/README.md)：按系统、协议和操作目标查找文档
+- [端点实现状态](./docs/reference/routes-status.md)：查看路由族与端点覆盖情况
+- [测试进度](./docs/status/test-progress.md)：区分自动回归与客户端人工验收
+- [已知问题](./docs/status/known-issues.md)：当前限制与待处理问题
+- [变更记录](./docs/status/changelog.md)：历史功能与修复记录
+- [新手入门与私服特色](./docs/新手入门与私服特色.md)：面向玩家的功能介绍
 
-客户端经 EntityLists 的"路径清单文件"获取全部资源路径。**服务端对它使用了两套命名且不做归一处理**:
+## 最短启动
 
-- `src/routes/cn/asset.ts` 的 version_info → `EntityLists/PathFile`
-- `src/cn-server.ts` → `EntityLists/10939-android_medium.csv`
-
-不同来源的 CDN 该文件名 / 位置可能不同(内容一致)。请确保 `.cdn/cn/EntityLists/` 下**同时存在** `PathFile` 与 `10939-android_medium.csv`(复制一份改名即可),否则按命中端点不同可能出现资源 404。
-
-## 快速启动
-
-### 前置
+准备好官方 CN CDN 后：
 
 ```bash
-cd starpoint-cn
-npm install
+npm ci
 cp .env.example .env
-```
-
-### 本地局域网（开发/测试）
-
-`.env.example` 的局域网区块默认激活，`cp .env.example .env` 后可直接启动：
-
-```bash
-# 生产模式（build + 启动）
-bash scripts/start-cn.sh
-
-# 开发模式（热重载，无需 build）
-npm run debug:cn
-```
-
-如果客户端在**另一台设备**上，需编辑 `.env`：
-- `CN_LISTEN_HOST`=`你的 LAN IP`（如 `192.168.x.x`）
-- `CDN_BASE_URL`=`http://你的LAN_IP:8001/patch/cn`
-
-### 公网云服务器
-
-1. 按 [`docs/deployment.md`](./docs/deployment.md) 配置 nginx 反向代理 + 防火墙
-2. 编辑 `.env`，激活公网区块：
-
-```bash
-CN_LISTEN_HOST="127.0.0.1"                        # 仅监听本地
-CDN_BASE_URL="https://<你的域名>/patch/cn"        # 公网域名 + HTTPS
-SESSION_PUBLIC_HOST="<你的域名>"                  # 联机 TCP 公网地址
-```
-
-3. 启动：
-
-```bash
 bash scripts/start-cn.sh
 ```
 
-### 两种部署方式 `.env` 对比
+Windows 也可以使用仓库根目录的 `start-cn-production.bat`。首次运行前请按实际网络环境修改 `.env`：局域网真机需要填写服务器 LAN 地址，云服应填写 Cloudflare/CDN 公网地址和联机公网地址。
 
-| 配置项 | 局域网 | 公网 |
-|--------|--------|------|
-| `CN_LISTEN_HOST` | `0.0.0.0` / LAN IP | `127.0.0.1` |
-| `CDN_BASE_URL` | `http://<LAN_IP>:8001/patch/cn` | `https://<域名>/patch/cn` |
-| `SESSION_HOST` | `0.0.0.0` | `127.0.0.1` |
-| `SESSION_PUBLIC_HOST` | 不设 | 公网域名 |
-| 前置层 | 无 | nginx + SSL + 防火墙 |
+`.env.example` 列出全部运行参数及安全默认值。3 Mbps 上行云服建议保留以下 `/load` 压缩配置：
 
-### `.env` 加载说明
-
-- `npm run dev:cn` 与 `bash scripts/start-cn.sh` 经 `node --env-file=.env` **会**加载 `.env`。
-- `npm run debug:cn`(ts-node-dev)无 `--env-file`、代码也未引入 dotenv,因此**不会**自动读 `.env`;调试时需自行 export 环境变量,否则走代码默认值。
-
-## 关键配置(.env)
-
-- `CN_LISTEN_HOST` / `CN_LISTEN_PORT` — HTTP 绑定地址 + 联机 TCP 房间显示 IP;客户端在别的设备时设为你的 LAN IP(默认端口 8001)。
-- `CDN_BASE_URL` — `http://<你的LAN_IP>:<端口>/patch/cn`。
-- `CN_RES_VERSION` — 须与客户端 resourceVersion 一致(当前 1.4.54)。
-- `DROP_MULTIPLIER` / `NPC_*` — 测试与联机调参。
-
-## 客户端改造(最小功能)
-
-连接本服务需对官方 APK 打两处改动(免登录 + 重定向到本服),详见 [`client-patch/`](./client-patch/README.md):
-
-- **免登录** — `pinball/config/core/DevConfig.as`:`sdkDummy = false` → `true`
-- **重定向到本服** — `pinball/config/gbits/DevConfig_gf_android.as`:域名 → 你的服务器,`"https"` → `"http"`
-
-用 FFDec 导出 APK 的 AS3 后执行:
-
-```bash
-bash client-patch/apply.sh <AS3_导出目录> <你的LAN_IP>:8001
+```env
+CN_LOAD_HTTP_COMPRESSION="gzip"
+CN_LOAD_HTTP_GZIP_LEVEL=1
+CN_LOAD_HTTP_COMPRESSION_LOG=false
 ```
 
-再用 FFDec 回封、重打包签名。完整 APK / 反编译说明见本地环境文档 `docs/setup/`。
+压缩异常时将模式改为 `off` 并重启即可单独撤回，不影响其他服务端优化。
 
-## Web 管理面板(`http://<CN_LISTEN_HOST>:<端口>/`)
+## CDN 与增量补丁
 
-`/` 时间设置 · `/player` 账号·存档·玩家 · `/player/:id` 玩家详情 · `/mail` 群发邮件
+基础 CDN 放入 `CDN_DIR/cn/`，默认即 `.cdn/cn/`。客户端通过 `EntityLists` 路径清单获取资源；不同来源的 CDN 可能分别提供 `PathFile` 或 `10939-android_medium.csv`，部署前应确认客户端实际请求的清单文件存在。
 
-> 面板对写入端点做**结构安全校验**(拒绝未知字段 / 类型错误 / 超 2³¹ 的非法值并明确报错),但不限制游戏平衡数值;重要操作仍建议先用「下载 JSON」导出备份。
-> 若误发非法邮件导致客户端在邮件界面崩溃,可用玩家详情页的**清空邮件箱**恢复。
+资源目标版本不再读取 `CN_RES_VERSION`，而是根据 CDN 差分包与 `assets/asset-patch/manifest.json` 中启用的补丁自动计算。补丁文件不随普通源码覆盖包重复分发，发布前应检查当前云服的补丁链和清单是否一致。
 
-## 附带独立工具
+## 常用命令
 
-- [`tools/soul-icon-converter/`](./tools/soul-icon-converter/README.md) — Windows 魂珠图标一键转换工具：支持 `20×20 PNG` 批量转换、实时魂珠结果，以及客户端五星装备格/魂珠格预览。它与服务端运行链路解耦，不会自动启动或修改服务端数据。
+| 命令 | 用途 |
+|---|---|
+| `npm ci` | 按锁文件安装服务端依赖 |
+| `npm run typecheck` | 只执行 TypeScript 类型检查 |
+| `npm run build` | 编译服务端并生成旧管理页面所需 CSS |
+| `npm run dev:cn` | 构建后使用 `.env` 启动 CN 服务 |
+| `npm run debug:cn` | 使用 TypeScript 热重载启动 CN 服务 |
+| `bash scripts/start-cn.sh` | Linux/macOS 前台构建并启动 CN 服务 |
+| `npm run build:admin` | 安装并构建 React 管理后台到 `web/dist/` |
+| `npm run dev:admin` | 启动 React 管理后台开发服务器 |
 
-## FAQ
+`node out/cn-server.js` 只适合已经完成构建的直接启动场景。生产环境应继续使用现有进程管理方式，并在覆盖文件或修改 `.env` 后明确重启服务。
 
-- `H404` = 该功能 / 端点尚未实现。
+## 管理后台
 
-## 致谢 / 相关项目
+React 管理后台构建后位于 `/admin/`。旧管理页面仍保留 `/player`、`/player/:id`、`/mail` 和 `/seeds` 等入口，用于兼容现有运维流程。
 
-- [wdfp-extractor](https://github.com/ScripterSugar/wdfp-extractor) — 资源提取
-- [wfax](https://github.com/blead/wfax) — 资源转换 / 修改
-- 上游 [Duosion/starpoint](https://github.com/Duosion/starpoint) — 全球服模拟器基础
-- [starview](https://github.com/duosii/starview) — APK 打补丁工具(基础;本仓库最小补丁见 [`client-patch/`](./client-patch/README.md))
-- [wf-2.1.125-cn-decompiled](https://github.com/dennis96292/wf-2.1.125-cn-decompiled) — CN 客户端反编译参考
+```bash
+npm run build:admin
+```
+
+管理入口受 `ADMIN_PANEL_PASSWORD` 保护；未配置或留空时会拒绝登录。公网访问应通过 HTTPS，并按实际代理配置决定是否启用 `ADMIN_COOKIE_SECURE`。导入存档、批量邮件和账号清理等写操作前应先备份数据库。
+
+## 客户端补丁
+
+Android 客户端连接本服务至少需要完成两项修改：
+
+1. 在 `pinball/config/core/DevConfig.as` 启用 SDK Dummy，跳过官方登录；
+2. 在 `pinball/config/gbits/DevConfig_gf_android.as` 将 API 地址改为本服务地址。
+
+仓库提供补丁脚本和说明，但不提供已签名 APK：
+
+```bash
+bash client-patch/apply.sh <AS3_EXPORT_DIR> <SERVER_HOST>:8001
+```
+
+Android 与 iOS 的详细流程见[客户端补丁说明](./client-patch/README.md)。
+
+## 项目结构
+
+- `src/routes/`：CN、通用游戏 API 与管理后台 API
+- `src/multi/`：多人房间、NPC 队友、战斗结算与 TCP 会话
+- `src/data/`：SQLite 数据层、领域模块、初始化与存档快照
+- `src/lib/`：任务、校验、缓存、兼容和运行时公共逻辑
+- `admin/`：React 管理后台源码
+- `assets/`：服务端业务表、CDN 派生表与资源补丁清单
+- `client-patch/`：Android/iOS 客户端补丁工具和说明
+- `tools/`：回归测试、资源检查、发布及独立辅助工具
+- `docs/`：架构、协议、系统、运维、状态和路由文档
+
+## 开发与交付
+
+正常开发在 `staging` 进行；稳定发布由 `staging` 经过验证后合并到 `main`。服务端 TypeScript 改动需要同时验证并交付对应 `out/` 产物，云服覆盖包只包含运行必需文件，不包含 `.env`、数据库、日志、密钥或本地工作目录。
+
+具体分支、同步与整合包规则见[开发与交付流程](./docs/development/branch-workflow.md)。私有仓库边界见[私有仓库说明](./PRIVATE_REPOSITORY.md)。
+
+## 附带工具
+
+- [魂珠图标转换工具](./tools/soul-icon-converter/README.md)：Windows 下批量转换魂珠图标并预览装备格效果；与服务端运行链路分离。
+
+## 相关项目
+
+- [DontBeAlarmed/startpoint-cn](https://github.com/dontbealarmed/startpoint-cn)：本仓库的 CN 服务端上游
+- [Duosion/starpoint](https://github.com/Duosion/starpoint)：全球服服务端基础
+- [wdfp-extractor](https://github.com/ScripterSugar/wdfp-extractor)：资源提取
+- [wfax](https://github.com/blead/wfax)：资源转换与修改
+- [starview](https://github.com/duosii/starview)：APK 补丁工具
+- [wf-2.1.125-cn-decompiled](https://github.com/dennis96292/wf-2.1.125-cn-decompiled)：CN 客户端反编译参考
+
+本项目采用 [GPL-3.0](./LICENSE) 许可证。
