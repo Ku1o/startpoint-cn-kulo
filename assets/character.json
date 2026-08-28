@@ -3112,5 +3112,23 @@
     "rarity": 5,
     "element": 0,
     "skill_count": 6
+  },
+  "149995": {
+    "element": 3,
+    "name": "希耶提",
+    "rarity": 5,
+    "skill_count": 6
+  },
+  "169996": {
+    "element": 5,
+    "name": "西蒙",
+    "rarity": 5,
+    "skill_count": 6
+  },
+  "169997": {
+    "element": 5,
+    "name": "巴萨拉卡",
+    "rarity": 5,
+    "skill_count": 6
   }
 }

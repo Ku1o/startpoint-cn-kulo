@@ -25,7 +25,7 @@ const REWARD_TYPE: Record<string, RewardType> = {
 // rush_battle_reward_list must stay empty on non-final rounds because the
 // legacy client interprets it as a full-folder clear.
 export const ABYSS_TOKEN_ITEM_ID = 2370099
-export const ABYSS_TOKEN_ADDITIONAL_REWARD_GROUP_ID = 237009900
+export const ABYSS_ROUND_ADDITIONAL_REWARD_GROUP_ID = 237009900
 
 export interface RogueAdditionalReward {
     group_id: number
@@ -137,12 +137,33 @@ export function handleRoguePerRoundDrops(params: RogueDropParams): RogueDropOutc
         const id = Number(drop?.id)
         if (type === undefined || !Number.isInteger(id)) continue
         const count = Math.max(1, Number(drop?.count) || 1)
-        rewards.push({ type, id, count } as Reward)
+        const reward = { type, id, count } as Reward
+        // Multiple probability slots for the same item must be granted in one
+        // database operation. givePlayerRewardsSync returns absolute inventory
+        // values for items, so repeated same-ID operations would produce an
+        // invalid summed response even though the database grant itself stuck.
+        const existingItem = type === RewardType.ITEM
+            ? rewards.find(candidate => candidate.type === type && Number((candidate as any).id) === id)
+            : undefined
+        if (existingItem !== undefined) {
+            ;(existingItem as any).count += count
+        } else {
+            rewards.push(reward)
+        }
         rewardListEntries.push({ kind: REWARD_LIST_KIND[drop.type], kind_id: id, number: count })
-        if (type === RewardType.ITEM && id === ABYSS_TOKEN_ITEM_ID) {
+        const configuredGroup = Number(drop?.additional_reward_group_id)
+        const configuredIndex = Number(drop?.additional_reward_index)
+        const fallbackIndex = type === RewardType.ITEM && id === ABYSS_TOKEN_ITEM_ID ? 1 : 0
+        const groupId = Number.isInteger(configuredGroup) && configuredGroup > 0
+            ? configuredGroup
+            : (fallbackIndex > 0 ? ABYSS_ROUND_ADDITIONAL_REWARD_GROUP_ID : 0)
+        const index = Number.isInteger(configuredIndex) && configuredIndex > 0
+            ? configuredIndex
+            : fallbackIndex
+        if (groupId > 0 && index > 0) {
             additionalRewardEntries.push({
-                group_id: ABYSS_TOKEN_ADDITIONAL_REWARD_GROUP_ID,
-                index: 1,
+                group_id: groupId,
+                index,
                 number: count,
             })
         }

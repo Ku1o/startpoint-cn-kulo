@@ -169,6 +169,50 @@ export function getPlayerCharactersSync(
     return out
 }
 
+/** Retrieves only the requested owned characters with two bounded reads. */
+export function getPlayerCharactersByIdsSync(
+    playerId: number,
+    characterIds: readonly number[],
+): Record<string, PlayerCharacter> {
+    const ids = [...new Set(characterIds)].filter(
+        characterId => Number.isSafeInteger(characterId) && characterId > 0,
+    )
+    if (ids.length === 0) return {}
+
+    const placeholders = ids.map(() => "?").join(", ")
+    const rawCharacters = getDb().prepare(`
+    SELECT id, entry_count, evolution_level, over_limit_step, protection,
+        join_time, update_time, exp, stack, mana_board_index, ex_boost_status_id,
+        ex_boost_ability_id_list, illustration_settings
+    FROM players_characters
+    WHERE player_id = ? AND id IN (${placeholders})
+    `).all(playerId, ...ids) as RawPlayerCharacter[]
+    const rawBondTokens = getDb().prepare(`
+    SELECT mana_board_index, status, character_id
+    FROM players_characters_bond_tokens
+    WHERE player_id = ? AND character_id IN (${placeholders})
+    ORDER BY character_id, mana_board_index
+    `).all(playerId, ...ids) as RawPlayerCharacterBondToken[]
+
+    const bondBuckets: Record<string, PlayerCharacterBondToken[]> = {}
+    for (const rawBondToken of rawBondTokens) {
+        const characterId = String(rawBondToken.character_id)
+        const bucket = bondBuckets[characterId] ?? []
+        bucket.push(buildCharacterBondToken(rawBondToken))
+        bondBuckets[characterId] = bucket
+    }
+
+    const result: Record<string, PlayerCharacter> = {}
+    for (const rawCharacter of rawCharacters) {
+        const characterId = String(rawCharacter.id)
+        result[characterId] = buildPlayerCharacter(
+            rawCharacter,
+            bondBuckets[characterId] ?? [],
+        )
+    }
+    return result
+}
+
 /**
  * Inserts a single character's bond token into a player's data.
  * 
@@ -230,7 +274,7 @@ export function insertPlayerCharacterSync(
 ) {
     // insert into characters table
     getDb().prepare(`
-    INSERT INTO players_characters (id, entry_count, evolution_level, over_limit_step, 
+    INSERT INTO players_characters (id, entry_count, evolution_level, over_limit_step,
         protection, join_time, update_time, exp, stack, mana_board_index, player_id,
         ex_boost_status_id, ex_boost_ability_id_list, illustration_settings)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -413,6 +457,32 @@ export function getPlayerCharactersManaNodesSync(
         bucket.push(rawNode.value)
     }
 
+    return buckets
+}
+
+/** Retrieves mana nodes for only the requested characters with one bounded read. */
+export function getPlayerCharactersManaNodesByIdsSync(
+    playerId: number,
+    characterIds: readonly number[],
+): Record<string, number[]> {
+    const ids = [...new Set(characterIds)].filter(
+        characterId => Number.isSafeInteger(characterId) && characterId > 0,
+    )
+    if (ids.length === 0) return {}
+
+    const placeholders = ids.map(() => "?").join(", ")
+    const rawNodes = getDb().prepare(`
+    SELECT value, character_id
+    FROM players_characters_mana_nodes
+    WHERE player_id = ? AND character_id IN (${placeholders})
+    `).all(playerId, ...ids) as RawPlayerCharacterManaNode[]
+    const buckets: Record<string, number[]> = {}
+    for (const rawNode of rawNodes) {
+        const characterId = String(rawNode.character_id)
+        const bucket = buckets[characterId] ?? []
+        bucket.push(rawNode.value)
+        buckets[characterId] = bucket
+    }
     return buckets
 }
 

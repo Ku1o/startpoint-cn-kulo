@@ -53,9 +53,23 @@ import equipmentMaxLevels from "../../assets/equipment_max_level.json"
 import equipmentElements from "../../assets/equipment_element.json"
 import { readFileSync } from "fs"
 import { join as joinPath } from "path"
+import { isDeepStrictEqual } from "node:util"
 import { AssetCharacter, BattleQuest, BossCoinShopItems, BoxGacha, ClearRewards, ConfigValues, EquipmentCraftEntry, EquipmentDissolveEntry, EquipmentItemReward, EventItemShopIdMapItem, EventShopItems, ExAbilities, ExBoostItem, ExBoostItems, ExStatus, Gacha, Gachas, ItemSaleEntry, ManaNode, ManaNodes, QuestCategory, RareScoreReward, RareScoreRewardGroups, RawAssetCharacters, RawBoxGachas, RawBoxRewards, RawQuests, Reward, RushEventFolders, ScoreReward, ScoreRewardGroups, ShopItem, ShopItems, ShopType, StoryQuest } from "./types";
 
 const MOD_ASSETS_DIR = joinPath(__dirname, "..", "..", "assets")
+// Some CN-mod pools are intentionally mirrored in both files because the
+// client/admin metadata pipeline reads gacha.json while runtime draws prefer
+// gacha_cnmod.json.  Never allow a stale override to silently replace a newer
+// advertised pool again.
+for (const gachaId of ["990001"] as const) {
+    const base = (gachas as Gachas)[gachaId]
+    const override = (cnmodGachas as Gachas)[gachaId]
+    if (base && override && !isDeepStrictEqual(base, override)) {
+        throw new Error(
+            `[GACHA] mirrored pool ${gachaId} differs between gacha.json and gacha_cnmod.json`,
+        )
+    }
+}
 const allGachas = { ...(gachas as Gachas), ...(cnmodGachas as Gachas) } as Gachas
 const allManaNodes = { ...(manaNodes as ManaNodes), ...(cnmodManaNodes as ManaNodes) } as ManaNodes
 const allManaBoards = {
@@ -820,7 +834,7 @@ const FALLBACK_CONFIG: ConfigValues = {
     stamina_recovery_value: 100,
     max_stamina_overflow: 999,
     max_virtual_money: 999999,
-    max_mana: 99999999,
+    max_mana: 999999999,
     max_star_crumb: 9999,
     pool_exp_gain_value: 1,
     pool_exp_gain_seconds: 1,

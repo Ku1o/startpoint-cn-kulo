@@ -204,7 +204,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         const responseData = {
             "character_list": characterList,
             "item_list": giveResult.item !== undefined ? {
-                [giveResult.item.id]: giveResult.item.count
+                [giveResult.item.id]: giveResult.item.inventoryCount
             } : [],
             "gacha_info_list": [
                 {

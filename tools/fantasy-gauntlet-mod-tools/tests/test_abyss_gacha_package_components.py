@@ -198,14 +198,14 @@ class PackageComponentTests(unittest.TestCase):
         after = json.loads(result.roots["server"]["rogue_event.json"])
         self.assertEqual(rogue["events"]["700007"], after["events"]["700007"])
         self.assertEqual(999014, after["events"]["700099"]["folder_clear_chance"][0]["id"])
-        self.assertEqual(0.05, after["events"]["700099"]["folder_clear_chance"][0]["chance"])
+        self.assertEqual(0.10, after["events"]["700099"]["folder_clear_chance"][0]["chance"])
         client = core.read_orderedmap_file_from_bytes(
             result.roots["common"][
                 "master/quest/event/cnmod_rogue_event.orderedmap"
             ]
         )
         self.assertEqual({
-            "700099": "1,0,999014,1,0.05\n1,0,11003,1,0.5"
+            "700099": "1,0,999014,1,0.1\n1,0,11003,1,0.5"
         }, client)
         self.assertTrue(result.report["client_server_drop_mirror_exact"])
         self.assertTrue(result.report["drop_contract_closed"])

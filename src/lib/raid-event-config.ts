@@ -3,12 +3,13 @@ export interface RaidEventProgressRule {
     questWeights: Record<number, number>
 }
 
-export const RAID_EVENT_CALCULATION_VERSION = 4
+export const RAID_EVENT_CALCULATION_VERSION = 5
 
-// Official master data for raid event 7 (Battle Banquet).
+// Official quest weights for raid event 7 (Battle Banquet), with the
+// private-server communal cycle threshold.
 const RAID_EVENT_PROGRESS_RULES: Record<number, RaidEventProgressRule> = {
     7: {
-        requiredKillCount: 76000,
+        requiredKillCount: 30000,
         questWeights: {
             7001: 51,
             7002: 255,

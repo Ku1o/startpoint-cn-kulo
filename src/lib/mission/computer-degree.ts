@@ -1,15 +1,21 @@
 // Degree mission computer (category 5)
 
 import { getDb } from "../../data/db"
-import { getPlayerSync } from "../../data/domains/player"
-import { getPlayerCharactersManaNodesSync, getPlayerCharactersSync } from "../../data/domains/character"
+import {
+    getPlayerCharactersByIdsSync,
+    getPlayerCharactersManaNodesByIdsSync,
+    getPlayerCharactersManaNodesSync,
+    getPlayerCharactersSync,
+} from "../../data/domains/character"
 import { getPlayerEquipmentListSync } from "../../data/domains/equipment"
-import { getPlayerItemsSync } from "../../data/domains/item"
-import { getMissionBattleCountersSync } from "../../data/domains/mission_battle_facts"
+import {
+    getPlayerCollectedItemTotalsByIdsSync,
+    getPlayerItemsByIdsSync,
+} from "../../data/domains/item"
+import { countEquippedAbilitySoulSlotsSync } from "../../data/domains/party"
 import { getPlayerShopPurchasesMapSync } from "../../data/domains/shopPurchase"
 import {
     countFinishedPlayerQuestsByCategorySync,
-    getPlayerQuestProgressSync,
 } from "../../data/domains/quest"
 import type { PlayerCharacter, PlayerEquipment } from "../../data/types"
 import { getCharacterDataSync, getCharacterManaNodesSync } from "../assets"
@@ -18,6 +24,7 @@ import { getRankDegree } from "../stamina"
 import { getMissionMasterDefinition, getMissionMasterDefinitions } from "./master-data"
 import { getMissionPattern } from "./patterns"
 import type { MissionComputer, CategoryContext, PlayerQuestProgressEntry } from "./types"
+import { MissionEvaluationReadContext } from "./evaluation-context"
 
 type DegreeRow = readonly unknown[]
 
@@ -46,11 +53,17 @@ interface DegreeContext extends CategoryContext {
     manaNodes: Record<string, number[]>
     equipment: Record<string, PlayerEquipment>
     items: Record<string, number>
+    collectedItemTotals: Record<string, number>
     flatQuestProgress: DegreeQuestProgressEntry[]
+    questProgressBySection: ReadonlyMap<number, readonly DegreeQuestProgressEntry[]>
+    questProgressByQuestId: ReadonlyMap<number, readonly DegreeQuestProgressEntry[]>
+    finishedQuestKeys: ReadonlySet<string>
+    questMetricCache: Map<string, number | undefined>
     completedSecondBoards: Set<number>
     questClearCounters: Map<string, number>
     counterValues: Map<string, number>
     treasureShopPurchaseCount: number
+    equippedAbilitySoulCount: number
 }
 
 // Degree mission target lookup
@@ -73,9 +86,12 @@ export function getTargetDegree(missionId: number): number | undefined {
 }
 
 const degreeDefinitions = new Map<number, DegreeDefinition>()
+const degreeMissionIdsByConditionType = new Map<number, number[]>()
+const degreeMissionOrder = new Map<number, number>()
 const mainQuestIdsByChapter = new Map<number, number[]>()
 const exQuestIdsByChapter = new Map<number, number[]>()
 const bossQuestIdsByBoss = new Map<number, number[]>()
+const hardMultiQuestIdsByChallenge = new Map<number, number[]>()
 const treasureShopItemIds = new Set(
     Object.keys(require("../../../assets/treasure_shop.json") as Record<string, unknown>),
 )
@@ -118,6 +134,10 @@ function addQuestIdByChapter(target: Map<number, number[]>, questIdText: string)
             description: String(definition.row[2] ?? ""),
             pattern: definition.pattern,
         })
+        degreeMissionOrder.set(definition.missionId, degreeMissionOrder.size)
+        const missionIds = degreeMissionIdsByConditionType.get(conditionType) ?? []
+        missionIds.push(definition.missionId)
+        degreeMissionIdsByConditionType.set(conditionType, missionIds)
     }
 
     const mainQuests = require("../../../assets/main_quest.json") as Record<string, unknown>
@@ -134,6 +154,28 @@ function addQuestIdByChapter(target: Map<number, number[]>, questIdText: string)
         bossQuestIdsByBoss.set(bossId, bucket)
     }
     for (const questIds of bossQuestIdsByBoss.values()) questIds.sort((a, b) => a - b)
+
+    const hardMultiQuests = require("../../../assets/hard_multi_event_quest.json") as Record<
+        string,
+        { name?: string }
+    >
+    const normalizeQuestName = (value: unknown): string => String(value ?? "")
+        .replace(/\s*::quest_rank::\s*/g, "")
+        .trim()
+    for (const definition of degreeDefinitions.values()) {
+        if (optionalNumber(definition.row[8]) !== 19) continue
+        const challengeId = optionalNumber(definition.row[9])
+        if (challengeId === undefined) continue
+        const questIds = Object.entries(hardMultiQuests)
+            .filter(([, quest]) => {
+                const questName = normalizeQuestName(quest.name)
+                return questName.length > 0 && definition.description.includes(questName)
+            })
+            .map(([questId]) => Number(questId))
+            .filter(Number.isSafeInteger)
+            .sort((left, right) => left - right)
+        if (questIds.length > 0) hardMultiQuestIdsByChallenge.set(challengeId, questIds)
+    }
 }
 
 function estimateCharacterLevel(characterId: number, exp: number): number {
@@ -142,7 +184,10 @@ function estimateCharacterLevel(characterId: number, exp: number): number {
     const caps = characterExpCaps[rarity]
     if (!caps || caps.length === 0) return 0
     const baseLevel = 40 + (rarity - 1) * 10
-    let level = baseLevel - 1
+    // The cap table only proves five-level milestones; it is not a per-level
+    // curve. Starting at baseLevel - 1 made a zero-EXP 4*/5* character look
+    // like level 69/79 and granted level titles immediately.
+    let level = 0
     for (let index = 0; index < caps.length; index++) {
         if (exp < caps[index]) break
         level = baseLevel + index * 5
@@ -161,15 +206,47 @@ function counterKey(dimension: string, qualifier: Record<string, unknown> = {}):
     return `${dimension}|${JSON.stringify(normalized)}`
 }
 
-function loadCounterMaps(playerId: number): {
+const COUNTER_DIMENSIONS_BY_CONDITION_TYPE: Readonly<Record<number, readonly string[]>> = {
+    3: ["shop.treasure_mana_spent"],
+    14: ["battle.quest_clear"],
+    15: ["battle.best_clear_time_ms"],
+    16: ["battle.clear"],
+    17: ["battle.multi_role_clear"],
+    19: ["battle.multi_mvp"],
+    20: ["battle.multi_rescue_clear"],
+    23: ["battle.quest_clear"],
+    25: ["battle.max_score"],
+    26: ["battle.rank_clear", "battle.quest_rank_clear"],
+    27: ["battle.max_party_power"],
+    28: ["battle.stat"],
+    29: ["battle.max_damage", "battle.max_revival_coffin"],
+    30: ["battle.max_combo"],
+    31: ["battle.max_skill_chain"],
+    34: ["equipment.awakening"],
+    35: ["party.ability_soul_equip"],
+    36: ["equipment.lv5_count"],
+    45: ["shop.treasure_purchase"],
+    92: ["battle.multi_newbie_rescue_clear"],
+}
+
+function loadCounterMaps(playerId: number, conditionTypes: ReadonlySet<number>): {
     questClearCounters: Map<string, number>
     counterValues: Map<string, number>
 } {
+    const dimensions = [...new Set([...conditionTypes]
+        .flatMap(conditionType => COUNTER_DIMENSIONS_BY_CONDITION_TYPE[conditionType] ?? []))]
+    if (dimensions.length === 0) {
+        return { questClearCounters: new Map(), counterValues: new Map() }
+    }
+    const placeholders = dimensions.map(() => "?").join(", ")
     const rows = getDb().prepare(`
         SELECT dimension, qualifier_json, value
         FROM players_mission_counters
         WHERE player_id = ?
-    `).all(playerId) as { dimension: string; qualifier_json: string; value: number }[]
+          AND scope_type = 'lifetime'
+          AND scope_key = 'all'
+          AND dimension IN (${placeholders})
+    `).all(playerId, ...dimensions) as { dimension: string; qualifier_json: string; value: number }[]
 
     const questClearCounters = new Map<string, number>()
     const counterValues = new Map<string, number>()
@@ -199,6 +276,7 @@ function buildStats(
     playerId: number,
     category: number,
     missionIds?: readonly number[],
+    shared: MissionEvaluationReadContext = new MissionEvaluationReadContext(playerId),
 ): DegreeContext {
     const selectedDefinitions = missionIds === undefined
         ? [...degreeDefinitions.values()]
@@ -206,21 +284,44 @@ function buildStats(
             .map(missionId => degreeDefinitions.get(missionId))
             .filter((definition): definition is DegreeDefinition => definition !== undefined)
     const conditionTypes = new Set(selectedDefinitions.map(definition => definition.conditionType))
+    const specificCharacterIds = [...new Set(selectedDefinitions
+        .filter(definition => definition.conditionType === 44 || definition.conditionType === 48)
+        .map(definition => optionalNumber(definition.row[15]))
+        .filter((characterId): characterId is number => characterId !== undefined))]
+    const targetItemIds = [...new Set(selectedDefinitions
+        .filter(definition => definition.conditionType === 37)
+        .map(definition => optionalNumber(definition.row[13]))
+        .filter((itemId): itemId is number => itemId !== undefined))]
     const needsQuestProgress = [14, 15, 16, 22, 23, 25, 26]
         .some(conditionType => conditionTypes.has(conditionType))
-    const needsCharacters = [4, 5, 8, 9, 44, 48]
-        .some(conditionType => conditionTypes.has(conditionType))
-    const needsManaNodes = conditionTypes.has(7) || conditionTypes.has(48)
-    const needsCounters = [3, 14, 16, 17, 19, 20, 23, 26, 28, 30, 31, 34, 36, 45, 92]
+    const needsAllCharacters = [4, 5, 8, 9].some(conditionType => conditionTypes.has(conditionType))
+        || selectedDefinitions.some(definition => (
+            (definition.conditionType === 44 || definition.conditionType === 48)
+            && optionalNumber(definition.row[15]) === undefined
+        ))
+    const needsAllManaNodes = conditionTypes.has(7)
+        || selectedDefinitions.some(definition => (
+            definition.conditionType === 48
+            && optionalNumber(definition.row[15]) === undefined
+        ))
+    const needsCounters = [3, 14, 15, 16, 17, 19, 20, 23, 25, 26, 27, 28, 29, 30, 31, 34, 35, 36, 45, 92]
         .some(conditionType => conditionTypes.has(conditionType))
     const needsBattleCounters = conditionTypes.has(16)
         || conditionTypes.has(17)
         || conditionTypes.has(26)
-    const player = getPlayerSync(playerId)!
-    const characters = needsCharacters ? getPlayerCharactersSync(playerId) : {}
-    const manaNodes = needsManaNodes ? getPlayerCharactersManaNodesSync(playerId) : {}
+    const player = shared.player
+    const characters = needsAllCharacters
+        ? getPlayerCharactersSync(playerId)
+        : specificCharacterIds.length > 0
+            ? getPlayerCharactersByIdsSync(playerId, specificCharacterIds)
+            : {}
+    const manaNodes = needsAllManaNodes
+        ? getPlayerCharactersManaNodesSync(playerId)
+        : conditionTypes.has(48) && specificCharacterIds.length > 0
+            ? getPlayerCharactersManaNodesByIdsSync(playerId, specificCharacterIds)
+            : {}
     const battleCounters = needsBattleCounters
-        ? getMissionBattleCountersSync(playerId)
+        ? shared.battleCounters
         : {
             singlePlayCount: 0,
             singleClearCount: 0,
@@ -234,9 +335,12 @@ function buildStats(
             rankACount: 0,
             rankBCount: 0,
         }
-    const rawQuestProgress = needsQuestProgress ? getPlayerQuestProgressSync(playerId) : {}
+    const rawQuestProgress = needsQuestProgress ? shared.questProgress : {}
     const questProgress: Record<string, PlayerQuestProgressEntry[]> = {}
     const flatQuestProgress: DegreeQuestProgressEntry[] = []
+    const questProgressBySection = new Map<number, DegreeQuestProgressEntry[]>()
+    const questProgressByQuestId = new Map<number, DegreeQuestProgressEntry[]>()
+    const finishedQuestKeys = new Set<string>()
     for (const [sectionText, entries] of Object.entries(rawQuestProgress)) {
         const section = Number(sectionText)
         questProgress[sectionText] = entries.map(entry => ({
@@ -248,7 +352,7 @@ function buildStats(
             multiClearCount: entry.multiClearCount,
         }))
         for (const entry of entries) {
-            flatQuestProgress.push({
+            const flattened = {
                 section,
                 questId: entry.questId,
                 finished: entry.finished,
@@ -258,7 +362,15 @@ function buildStats(
                 bestElapsedTimeMs: entry.bestElapsedTimeMs,
                 leaderCharacterId: entry.leaderCharacterId,
                 multiClearCount: entry.multiClearCount,
-            })
+            }
+            flatQuestProgress.push(flattened)
+            const sectionEntries = questProgressBySection.get(section) ?? []
+            sectionEntries.push(flattened)
+            questProgressBySection.set(section, sectionEntries)
+            const questEntries = questProgressByQuestId.get(entry.questId) ?? []
+            questEntries.push(flattened)
+            questProgressByQuestId.set(entry.questId, questEntries)
+            if (entry.finished) finishedQuestKeys.add(`${section}:${entry.questId}`)
         }
     }
     const characterLevels = new Map<number, number>()
@@ -277,7 +389,7 @@ function buildStats(
         }
     }
     const counters = needsCounters
-        ? loadCounterMaps(playerId)
+        ? loadCounterMaps(playerId, conditionTypes)
         : { questClearCounters: new Map<string, number>(), counterValues: new Map<string, number>() }
     const shopPurchases = conditionTypes.has(45) ? getPlayerShopPurchasesMapSync(playerId) : {}
     return {
@@ -293,14 +405,24 @@ function buildStats(
         equipment: conditionTypes.has(34) || conditionTypes.has(36)
             ? getPlayerEquipmentListSync(playerId)
             : {},
-        items: conditionTypes.has(37) ? getPlayerItemsSync(playerId) : {},
+        items: conditionTypes.has(37) ? getPlayerItemsByIdsSync(playerId, targetItemIds) : {},
+        collectedItemTotals: conditionTypes.has(37)
+            ? getPlayerCollectedItemTotalsByIdsSync(playerId, targetItemIds)
+            : {},
         flatQuestProgress,
+        questProgressBySection,
+        questProgressByQuestId,
+        finishedQuestKeys,
+        questMetricCache: new Map(),
         completedSecondBoards: completedSecondManaBoardCharacterIds,
         ...counters,
         treasureShopPurchaseCount: [...treasureShopItemIds].reduce(
             (total, shopItemId) => total + Math.max(0, shopPurchases[Number(shopItemId)] ?? 0),
             0,
         ),
+        equippedAbilitySoulCount: conditionTypes.has(35)
+            ? countEquippedAbilitySoulSlotsSync(playerId)
+            : 0,
         battleCounters,
         degreeStats: {
             companionCount: Object.keys(characters).length,
@@ -403,7 +525,9 @@ function resolveQuestFilter(row: DegreeRow): QuestFilter {
     }
 
     if (kind === 19 && eventOrChapter !== undefined) {
-        filter.exactQuestIds = new Set([eventOrChapter])
+        filter.exactQuestIds = new Set(
+            hardMultiQuestIdsByChallenge.get(eventOrChapter) ?? [eventOrChapter],
+        )
         return filter
     }
 
@@ -438,17 +562,31 @@ function requestedBattleMode(row: DegreeRow): "single" | "multi" | "any" {
     return "any"
 }
 
+function matchingQuestProgress(
+    ctx: DegreeContext,
+    filter: QuestFilter,
+): readonly DegreeQuestProgressEntry[] {
+    let candidates: readonly DegreeQuestProgressEntry[]
+    if (filter.exactQuestIds && filter.exactQuestIds.size > 0) {
+        candidates = [...filter.exactQuestIds]
+            .flatMap(questId => ctx.questProgressByQuestId.get(questId) ?? [])
+    } else if (filter.categories.length > 0) {
+        candidates = filter.categories.flatMap(section => ctx.questProgressBySection.get(section) ?? [])
+    } else {
+        candidates = ctx.flatQuestProgress
+    }
+    return candidates.filter(entry => matchesQuest(filter, entry.section, entry.questId))
+}
+
 function countQuestClears(
     ctx: DegreeContext,
     filter: QuestFilter,
     mode: "single" | "multi" | "any",
 ): number {
     let storedProgressCount = 0
-    for (const entry of ctx.flatQuestProgress) {
-        if (!entry.finished || !matchesQuest(filter, entry.section, entry.questId)) continue
-        if (mode === "multi" || mode === "any") {
-            storedProgressCount += Math.max(1, entry.multiClearCount ?? 0)
-        } else {
+    for (const entry of matchingQuestProgress(ctx, filter)) {
+        if (!entry.finished) continue
+        if (mode === "any" || (mode === "single" && isHistoricallySingleOnly(entry.section))) {
             storedProgressCount += 1
         }
     }
@@ -464,6 +602,10 @@ function countQuestClears(
     return Math.max(storedProgressCount, counterCount)
 }
 
+function isHistoricallySingleOnly(section: number): boolean {
+    return ![2, 8, 19, 26].includes(section)
+}
+
 function readCounter(
     ctx: DegreeContext,
     dimension: string,
@@ -476,32 +618,77 @@ function completedChapter(ctx: DegreeContext, chapter: number): boolean {
     const requiredMain = mainQuestIdsByChapter.get(chapter) ?? []
     const requiredEx = exQuestIdsByChapter.get(chapter) ?? []
     if (requiredMain.length === 0 || requiredEx.length === 0) return false
-    const finished = new Set(
-        ctx.flatQuestProgress
-            .filter(entry => entry.finished && (entry.section === 1 || entry.section === 4))
-            .map(entry => `${entry.section}:${entry.questId}`),
-    )
-    return requiredMain.every(id => finished.has(`1:${id}`))
-        && requiredEx.every(id => finished.has(`4:${id}`))
+    return requiredMain.every(id => ctx.finishedQuestKeys.has(`1:${id}`))
+        && requiredEx.every(id => ctx.finishedQuestKeys.has(`4:${id}`))
 }
 
 function bestSingleClearTimeMs(ctx: DegreeContext): number | undefined {
+    if (ctx.questMetricCache.has("bestSingleClearTimeMs")) {
+        return ctx.questMetricCache.get("bestSingleClearTimeMs")
+    }
+    const counter = readCounter(ctx, "battle.best_clear_time_ms", { mode: "single" })
     const times = ctx.flatQuestProgress
-        .filter(entry => entry.finished && entry.bestElapsedTimeMs !== undefined)
+        .filter(entry => entry.finished
+            && isHistoricallySingleOnly(entry.section)
+            && entry.bestElapsedTimeMs !== undefined)
         .map(entry => Number(entry.bestElapsedTimeMs))
         .filter(value => Number.isFinite(value) && value > 0)
-    return times.length > 0 ? Math.min(...times) : undefined
+    if (counter > 0) times.push(counter)
+    const result = times.length > 0 ? Math.min(...times) : undefined
+    ctx.questMetricCache.set("bestSingleClearTimeMs", result)
+    return result
 }
 
 function maxHighScore(ctx: DegreeContext): number {
-    return Math.max(0, ...ctx.flatQuestProgress.map(entry => Number(entry.highScore) || 0))
+    const cached = ctx.questMetricCache.get("maxHighScore")
+    if (cached !== undefined) return cached
+    const result = Math.max(
+        readCounter(ctx, "battle.max_score", { mode: "single" }),
+        0,
+        ...ctx.flatQuestProgress
+            .filter(entry => isHistoricallySingleOnly(entry.section))
+            .map(entry => Number(entry.highScore) || 0),
+    )
+    ctx.questMetricCache.set("maxHighScore", result)
+    return result
 }
 
-function maxClearRankCount(ctx: DegreeContext, rank: number): number {
+function maxClearRankCount(ctx: DegreeContext, rank: number, mode: "single" | "any" = "any"): number {
+    const cacheKey = `maxClearRankCount:${rank}:${mode}`
+    const cached = ctx.questMetricCache.get(cacheKey)
+    if (cached !== undefined) return cached
     const historical = ctx.flatQuestProgress
-        .filter(entry => entry.finished && entry.clearRank === rank)
+        .filter(entry => entry.finished
+            && entry.clearRank === rank
+            && (mode === "any" || isHistoricallySingleOnly(entry.section)))
         .length
-    const counter = readCounter(ctx, "battle.rank_clear", { rank })
+    const counter = readCounter(ctx, "battle.rank_clear", { rank, mode })
+    const result = Math.max(historical, counter)
+    ctx.questMetricCache.set(cacheKey, result)
+    return result
+}
+
+function countQuestRankClears(
+    ctx: DegreeContext,
+    filter: QuestFilter,
+    rank: number,
+    mode: "single" | "multi" | "any",
+): number {
+    let historical = 0
+    let counter = 0
+    for (const entry of matchingQuestProgress(ctx, filter)) {
+        if (entry.finished
+            && entry.clearRank === rank
+            && (mode === "any" || (mode === "single" && isHistoricallySingleOnly(entry.section)))) {
+            historical++
+        }
+        counter += readCounter(ctx, "battle.quest_rank_clear", {
+            questCategory: entry.section,
+            questId: entry.questId,
+            rank,
+            mode,
+        })
+    }
     return Math.max(historical, counter)
 }
 
@@ -521,7 +708,7 @@ const SUPPORTED_FAMILIES = {
 
 const SERVER_COMPUTED_CONDITION_TYPES = new Set([
     0, 1, 3, 4, 5, 7, 8, 9, 14, 15, 16, 17, 19, 20, 21, 22, 23, 25, 26,
-    28, 30, 31, 34, 36, 37, 39, 44, 45, 48, 92,
+    27, 28, 29, 30, 31, 34, 35, 36, 37, 39, 44, 45, 48, 92,
 ])
 
 const CLIENT_REPORTED_CONDITION_TYPES = new Set([40, 41, 42, 43])
@@ -567,9 +754,11 @@ export function getDegreeMissionIdsForConditionTypes(
         ? undefined
         : new Set(itemIds.filter(itemId => Number.isFinite(itemId) && itemId > 0))
     if (requested.size === 0) return []
-    return [...degreeDefinitions.entries()]
-        .filter(([, definition]) => {
-            if (!requested.has(definition.conditionType)) return false
+    return [...new Set([...requested]
+        .flatMap(conditionType => degreeMissionIdsByConditionType.get(conditionType) ?? []))]
+        .filter(missionId => {
+            const definition = degreeDefinitions.get(missionId)
+            if (!definition) return false
             if (
                 requestedCharacters !== undefined
                 && (definition.conditionType === 44 || definition.conditionType === 48)
@@ -583,7 +772,87 @@ export function getDegreeMissionIdsForConditionTypes(
             }
             return true
         })
-        .map(([missionId]) => missionId)
+        .sort((left, right) => (
+            (degreeMissionOrder.get(left) ?? 0) - (degreeMissionOrder.get(right) ?? 0)
+        ))
+}
+
+export interface DegreeBattleTrigger {
+    readonly questCategory: number
+    readonly questId: number
+    readonly mode: "single" | "multi"
+    readonly isHost?: boolean
+    readonly accomplished: boolean
+    readonly clearRank?: number | null
+}
+
+const BATTLE_CLEAR_ONLY_DEGREE_CONDITION_TYPES = new Set([
+    14, 15, 16, 17, 19, 20, 21, 22, 23, 25, 26, 27, 28, 29, 30, 31, 92,
+])
+
+/**
+ * Narrows quest-specific title families to the quest fact that just changed.
+ * Generic cumulative title families remain candidates because the same battle
+ * can update their counters or grant character/item rewards.
+ */
+export function getDegreeMissionIdsForBattle(
+    conditionTypes: readonly number[],
+    trigger: DegreeBattleTrigger,
+    characterIds: readonly number[] = [],
+    itemIds: readonly number[] = [],
+): number[] {
+    return getDegreeMissionIdsForConditionTypes(conditionTypes, characterIds, itemIds)
+        .filter(missionId => {
+            const definition = degreeDefinitions.get(missionId)
+            if (!definition) return false
+            const { conditionType, row, pattern } = definition
+            if (!trigger.accomplished && BATTLE_CLEAR_ONLY_DEGREE_CONDITION_TYPES.has(conditionType)) {
+                return false
+            }
+            if (conditionType === 15 || conditionType === 25) return trigger.mode === "single"
+            if (conditionType === 16) return trigger.mode === "multi"
+            if (conditionType === 17) return trigger.mode === "multi" && trigger.isHost === true
+            if (conditionType === 19 || conditionType === 20 || conditionType === 92) {
+                return trigger.mode === "multi"
+            }
+            if (conditionType === 21) return trigger.questCategory === 3
+            if (conditionType === 14) {
+                return trigger.accomplished
+                    && trigger.mode === "single"
+                    && matchesQuest(resolveQuestFilter(row), trigger.questCategory, trigger.questId)
+            }
+            if (conditionType === 22) {
+                const chapter = optionalNumber(row[9])
+                return trigger.accomplished
+                    && (trigger.questCategory === 1 || trigger.questCategory === 4)
+                    && chapter !== undefined
+                    && Math.floor(trigger.questId / 1_000_000) === chapter
+            }
+            if (conditionType === 23) {
+                const requestedMode = requestedBattleMode(row)
+                return trigger.accomplished
+                    && (requestedMode === "any" || requestedMode === trigger.mode)
+                    && matchesQuest(resolveQuestFilter(row), trigger.questCategory, trigger.questId)
+            }
+            if (conditionType === 26) {
+                if (!trigger.accomplished || trigger.clearRank !== 5) return false
+                if (pattern.startsWith(SUPPORTED_FAMILIES.singleSsCount)) {
+                    return trigger.mode === "single"
+                }
+                const filter = resolveQuestFilter(row)
+                if (filter.exactQuestIds && filter.exactQuestIds.size > 0) {
+                    const requestedMode = requestedBattleMode(row)
+                    return (requestedMode === "any" || requestedMode === trigger.mode)
+                        && matchesQuest(filter, trigger.questCategory, trigger.questId)
+                }
+                return trigger.mode === "single"
+            }
+            if (conditionType === 28) {
+                const requestedMode = requestedBattleMode(row)
+                return requestedMode === "any" || requestedMode === trigger.mode
+            }
+            return true
+        })
 }
 
 export function getSpecificCharacterId(
@@ -630,12 +899,7 @@ function computeRecoverableProgress(
                 : 0
         }
         case 16: {
-            const persistedMulti = ctx.flatQuestProgress.reduce(
-                (sum, entry) => sum + Math.max(0, entry.multiClearCount ?? 0),
-                0,
-            )
             return Math.max(
-                persistedMulti,
                 stats?.multiClearCount ?? 0,
                 readCounter(ctx, "battle.clear", { mode: "multi" }),
             )
@@ -667,14 +931,12 @@ function computeRecoverableProgress(
             }
             const filter = resolveQuestFilter(row)
             if (filter.exactQuestIds && filter.exactQuestIds.size > 0) {
-                return ctx.flatQuestProgress.some(
-                    entry => entry.finished
-                        && entry.clearRank === 5
-                        && matchesQuest(filter, entry.section, entry.questId),
-                ) ? 1 : 0
+                return Number(countQuestRankClears(ctx, filter, 5, requestedBattleMode(row)) > 0)
             }
-            return maxClearRankCount(ctx, 5)
+            return maxClearRankCount(ctx, 5, "single")
         }
+        case 27:
+            return readCounter(ctx, "battle.max_party_power")
         case 28: {
             const statisticKind = optionalNumber(row[4])
             const mode = requestedBattleMode(row)
@@ -712,6 +974,12 @@ function computeRecoverableProgress(
             }
             return Math.max(currentCounter, legacyCounter)
         }
+        case 29: {
+            const statisticKind = optionalNumber(row[5])
+            if (statisticKind === 0) return readCounter(ctx, "battle.max_damage")
+            if (statisticKind === 1) return readCounter(ctx, "battle.max_revival_coffin")
+            return undefined
+        }
         case 30:
             return Math.max(ctx.player.maxComboAchieved, readCounter(ctx, "battle.max_combo"))
         case 31:
@@ -724,6 +992,11 @@ function computeRecoverableProgress(
                 ),
                 readCounter(ctx, "equipment.awakening"),
             )
+        case 35:
+            return Math.max(
+                ctx.equippedAbilitySoulCount,
+                readCounter(ctx, "party.ability_soul_equip"),
+            )
         case 36:
             return Math.max(
                 Object.values(ctx.equipment)
@@ -733,7 +1006,11 @@ function computeRecoverableProgress(
             )
         case 37: {
             const itemId = optionalNumber(row[13])
-            return itemId === undefined ? undefined : (ctx.items[String(itemId)] ?? 0)
+            if (itemId === undefined) return undefined
+            return Math.max(
+                ctx.items[String(itemId)] ?? 0,
+                ctx.collectedItemTotals[String(itemId)] ?? 0,
+            )
         }
         case 39:
             return ctx.player.totalStaminaUsed
@@ -766,8 +1043,9 @@ export const DegreeComputer: MissionComputer = {
         category: number,
         _evaluationTime: Date,
         missionIds?: readonly number[],
+        readContext?: MissionEvaluationReadContext,
     ): CategoryContext {
-        return buildStats(playerId, category, missionIds)
+        return buildStats(playerId, category, missionIds, readContext)
     },
 
     compute(missionId: number, ctx: CategoryContext, dbProgress: number): number {

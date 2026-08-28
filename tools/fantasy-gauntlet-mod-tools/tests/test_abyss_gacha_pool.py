@@ -40,6 +40,7 @@ def _donor_runtime() -> dict[str, object]:
                 _entry(STANDARD_FIVE_IDS[0], 5, 9),
                 _entry(STANDARD_FIVE_IDS[1], 5, 7),
                 _entry(LIMITED_DONOR_FIVE_ID, 5, 5, limited=True),
+                _entry(113001, 5, 4),
                 *(
                     _entry(character_id, 5, 3)
                     for character_id in (141129, 161141, 123001, 131182)
@@ -82,6 +83,11 @@ class AbyssPickupPoolOddsTests(unittest.TestCase):
         standard = [entry for entry in five if not entry["isLimited"]]
         self.assertEqual(9, len(pickups))
         self.assertEqual(6, len(standard))
+        self.assertTrue(
+            set(contract.NON_GACHA_CHARACTER_IDS).isdisjoint(
+                entry["id"] for entry in five
+            )
+        )
 
         pickup_odds = {entry["odds"] for entry in pickups}
         standard_odds = {entry["odds"] for entry in standard}

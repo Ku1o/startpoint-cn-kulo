@@ -199,6 +199,8 @@ def reroll_endless_field(event: str, quest_no: str, apply: bool) -> None:
         enemy_level=enemy_level,
         rng=random,
         require_bgm=True,
+        require_thumbnail=True,
+        thumbnail_asset_exists=q.exists_current,
     )
     print(f"随机战场: {before[98]} -> {row[98]}"
           f"(BGM {row[99]};boss: {','.join(bosses)};lv{row[95]})")

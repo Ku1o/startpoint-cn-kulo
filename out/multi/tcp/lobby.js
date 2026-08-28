@@ -21,6 +21,7 @@ const mode15_optional_1 = require("../../lib/mode15-optional");
 const player_1 = require("../../data/domains/player");
 const embedded_1 = require("../coordinator/embedded");
 const autoplay_mode_1 = require("./autoplay-mode");
+const admission_1 = require("../room/admission");
 const NPC_JOIN_DELAY_MS = parseInt(process.env.NPC_JOIN_DELAY_MS || "2000");
 const NPC_READY_DELAY_MS = parseInt(process.env.NPC_READY_DELAY_MS || "500");
 const REMATCH_RECONNECT_GRACE_MS = parseInt(process.env.REMATCH_RECONNECT_GRACE_MS || "25000");
@@ -209,10 +210,11 @@ function synchronizeRoomRoster(roomNumber, mates, broadcast = false, preserveNpc
         if (!preserveNpcCount)
             room.npc_count = roster.filter(mate => !!mate.comId).length;
         room.mates = roster.map(mate => {
-            var _a, _b;
+            var _a, _b, _c;
             return ({
                 viewer_id: (_a = mate.viewerId) !== null && _a !== void 0 ? _a : null,
                 com_id: (_b = mate.comId) !== null && _b !== void 0 ? _b : 0,
+                player_id: (_c = mate.playerId) !== null && _c !== void 0 ? _c : undefined,
             });
         });
     }
@@ -306,10 +308,11 @@ function preflightBattleRoster(room, members, roomGeneration = room.lobby_genera
         SessionManager_1.sessionManager.sendJson(current.socket, [1, [1, eligibleMembers]]);
     }
     room.mates = eligibleMembers.map(member => {
-        var _a, _b;
+        var _a, _b, _c;
         return ({
             viewer_id: (_a = member.viewerId) !== null && _a !== void 0 ? _a : null,
             com_id: (_b = member.comId) !== null && _b !== void 0 ? _b : 0,
+            player_id: (_c = member.playerId) !== null && _c !== void 0 ? _c : undefined,
         });
     });
     return { members: eligibleMembers, rejectedViewerIds };
@@ -632,6 +635,8 @@ function scheduleRematchRosterCleanup(roomNumber) {
             const missingViewerIds = currentRoom.expected_real_viewer_ids
                 .filter(viewerId => !liveViewerIds.has(viewerId));
             if (missingViewerIds.length > 0) {
+                for (const viewerId of missingViewerIds)
+                    (0, manager_1.removeRoomMember)(roomNumber, viewerId);
                 currentRoom.expected_real_viewer_ids = currentRoom.expected_real_viewer_ids
                     .filter(viewerId => liveViewerIds.has(viewerId));
                 currentRoom.mates = currentRoom.mates
@@ -663,8 +668,34 @@ function scheduleRematchDisconnectCleanup(roomNumber) {
     scheduleRematchRosterCleanup(roomNumber);
 }
 exports.scheduleRematchDisconnectCleanup = scheduleRematchDisconnectCleanup;
+function rejectClaimedAdmission(socket, client, reason) {
+    var _a;
+    (0, admission_1.recordRoomAdmissionDenial)(reason);
+    admission_1.roomAdmissionRegistry.releaseClaim(client.roomNumber, (_a = client.admissionGeneration) !== null && _a !== void 0 ? _a : client.roomGeneration, client.viewerId, client.connectionId);
+    client.admissionClaimed = false;
+    SessionManager_1.sessionManager.sendJson(socket, [1, [6, "multibattle_room_dismissed"]]);
+    SessionManager_1.sessionManager.removeClient(client);
+    socket.end();
+    console.warn(`[LOBBY] claimed admission rejected: viewer=${client.viewerId}`
+        + ` room=${client.roomNumber} reason=${reason}`);
+}
+function commitClaimedAdmission(socket, client) {
+    var _a;
+    if (!client.admissionClaimed) {
+        return client.playerId !== null
+            && (0, manager_1.addRoomMember)(client.roomNumber, client.viewerId, client.playerId);
+    }
+    const committed = admission_1.roomAdmissionRegistry.commit(client.roomNumber, (_a = client.admissionGeneration) !== null && _a !== void 0 ? _a : client.roomGeneration, client.viewerId, client.connectionId);
+    client.admissionClaimed = false;
+    if (committed) {
+        return client.playerId !== null
+            && (0, manager_1.addRoomMember)(client.roomNumber, client.viewerId, client.playerId);
+    }
+    rejectClaimedAdmission(socket, client, "claim_lost_before_enter");
+    return false;
+}
 function handleEnter(socket, client, data) {
-    var _a, _b;
+    var _a, _b, _c;
     const ed = (_a = data[1]) !== null && _a !== void 0 ? _a : {};
     if (!client.yourself)
         return;
@@ -697,6 +728,16 @@ function handleEnter(socket, client, data) {
         socket.end();
         return;
     }
+    if (client.admissionClaimed) {
+        const admissionGeneration = (_b = client.admissionGeneration) !== null && _b !== void 0 ? _b : client.roomGeneration;
+        const roomPhase = embedded_1.embeddedMultiCoordinator.ensureLifecycle(room).phase;
+        if (admissionGeneration !== room.lobby_generation || roomPhase !== "LOBBY") {
+            rejectClaimedAdmission(socket, client, admissionGeneration !== room.lobby_generation
+                ? "generation_changed_before_enter"
+                : "phase_changed_before_enter");
+            return;
+        }
+    }
     if (room)
         client.roomGeneration = room.lobby_generation;
     const isHost = room && client.viewerId === room.host_viewer_id;
@@ -708,6 +749,8 @@ function handleEnter(socket, client, data) {
     // Guest entered before host (or host connected but hasn't entered) → wait with Welcome
     if (!isHost && (!hostClient || !hostClient.mates[0])) {
         client.mates = [client.yourself];
+        if (!commitClaimedAdmission(socket, client))
+            return;
         SessionManager_1.sessionManager.sendJson(client.socket, [1, [0, client.yourself, [client.yourself]]]);
         SessionManager_1.sessionManager.beginRescueGuestWait(client);
         (0, game_logging_1.gameVerboseLog)(() => `[LOBBY] guest ${client.viewerId} entered alone, waiting for host in room ${client.roomNumber}`);
@@ -762,6 +805,8 @@ function handleEnter(socket, client, data) {
             room.expected_real_viewer_ids.push(client.viewerId);
         }
     }
+    if (!commitClaimedAdmission(socket, client))
+        return;
     const yourself = client.yourself;
     if (yourself) {
         SessionManager_1.sessionManager.sendJson(client.socket, [1, [0, yourself, [yourself]]]);
@@ -777,7 +822,7 @@ function handleEnter(socket, client, data) {
         checkHostAutoReady(client.roomNumber);
     }
     else {
-        const mates = (_b = hostClient === null || hostClient === void 0 ? void 0 : hostClient.mates) !== null && _b !== void 0 ? _b : client.mates;
+        const mates = (_c = hostClient === null || hostClient === void 0 ? void 0 : hostClient.mates) !== null && _c !== void 0 ? _c : client.mates;
         SessionManager_1.sessionManager.broadcastToRoom(client.roomNumber, [1, [1, mates]], undefined);
         checkHostAutoReady(client.roomNumber);
         SessionManager_1.sessionManager.beginRescueGuestWait(client);
@@ -802,6 +847,7 @@ function handleBye(_socket, client, _data) {
     }
     const hostClient = findHostClient(client.roomNumber);
     const room = (0, manager_1.getRoom)(client.roomNumber);
+    (0, manager_1.removeRoomMember)(client.roomNumber, client.viewerId);
     if (room && room.lifecycle.phase === "LOBBY" && client.roomGeneration === room.lobby_generation) {
         room.expected_real_viewer_ids = room.expected_real_viewer_ids
             .filter(viewerId => viewerId !== client.viewerId);
@@ -813,7 +859,8 @@ function handleBye(_socket, client, _data) {
     // remaining client's refreshMates dereference undefined character-display data and crash (F1010).
     const remainingRoom = (0, manager_1.getRoom)(client.roomNumber);
     if (remainingRoom && hostClient && hostClient !== client) {
-        SessionManager_1.sessionManager.broadcastToRoom(client.roomNumber, [1, [1, hostClient.mates]]);
+        const remainingMates = synchronizeRoomRoster(client.roomNumber, hostClient.mates, false, true, remainingRoom.lobby_generation);
+        SessionManager_1.sessionManager.broadcastToRoom(client.roomNumber, [1, [1, remainingMates]]);
         if (remainingRoom.is_npc_mode)
             scheduleNpcReconcile(client.roomNumber);
     }
@@ -949,7 +996,14 @@ function handleStartBattle(_socket, client, _data) {
     autoStartingRooms.delete(client.roomNumber);
     room.expected_real_viewer_ids = realViewerIds;
     room.npc_count = members.filter(mate => !!mate.comId).length;
-    room.mates = members.map(mate => { var _a, _b; return ({ viewer_id: (_a = mate.viewerId) !== null && _a !== void 0 ? _a : null, com_id: (_b = mate.comId) !== null && _b !== void 0 ? _b : 0 }); });
+    room.mates = members.map(mate => {
+        var _a, _b, _c;
+        return ({
+            viewer_id: (_a = mate.viewerId) !== null && _a !== void 0 ? _a : null,
+            com_id: (_b = mate.comId) !== null && _b !== void 0 ? _b : 0,
+            player_id: (_c = mate.playerId) !== null && _c !== void 0 ? _c : undefined,
+        });
+    });
     room.rematch_wait_started_at = null;
     const cleanupTimer = rematchCleanupTimers.get(client.roomNumber);
     if (cleanupTimer)

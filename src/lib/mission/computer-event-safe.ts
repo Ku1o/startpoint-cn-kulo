@@ -1,6 +1,5 @@
-import { getPlayerCollectedItemTotalsSync } from "../../data/domains/item"
-import { getPlayerSync } from "../../data/domains/player"
 import { getMissionMasterDefinition, getMissionMasterDefinitions } from "./master-data"
+import { MissionEvaluationReadContext } from "./evaluation-context"
 import type { CategoryContext, MissionComputer } from "./types"
 
 const GET_ITEM_COUNT_PATTERN_TYPE = 37
@@ -28,9 +27,14 @@ export function getEventItemMissionIdsForItems(itemIds: readonly number[]): numb
 export const EventSafeComputer: MissionComputer = {
     name: "EventSafe",
 
-    buildContext(playerId: number, category: number): CategoryContext {
-        const player = getPlayerSync(playerId)
-        if (!player) throw new Error(`Player ${playerId} not found during event mission evaluation.`)
+    buildContext(
+        playerId: number,
+        category: number,
+        _evaluationTime: Date,
+        _missionIds?: readonly number[],
+        shared: MissionEvaluationReadContext = new MissionEvaluationReadContext(playerId),
+    ): CategoryContext {
+        const player = shared.player
         return {
             category,
             playerId,
@@ -39,7 +43,7 @@ export const EventSafeComputer: MissionComputer = {
             totalQuestClears: 0,
             totalStories: 0,
             rankCounts: {},
-            collectedItemTotals: getPlayerCollectedItemTotalsSync(playerId),
+            collectedItemTotals: shared.collectedItemTotals,
         }
     },
 

@@ -11,8 +11,9 @@ import { recordPassMissionBattleFacts } from "./pass-battle-facts"
 import { recordActiveMissionConditionalBattleFactsSync } from "./active-conditional-battle-facts"
 import { recordActiveMissionLoadoutBattleFactsSync } from "./active-loadout-battle-facts"
 import { recordDailyMissionBattleFacts } from "./daily-battle-facts"
-import { getDegreeMissionIdsForConditionTypes } from "./computer-degree"
+import { getDegreeMissionIdsForBattle, getDegreeMissionIdsForConditionTypes } from "./computer-degree"
 import { getEventItemMissionIdsForItems } from "./computer-event-safe"
+import { recordDegreePartyPowerClearSync } from "./degree-party-power"
 import type { MissionSettlementScope } from "./settlement"
 import { QuestCategory } from "../types"
 
@@ -24,8 +25,8 @@ export const BATTLE_SETTLEMENT_CATEGORIES = Object.freeze([1, 2, 3, 5, 6, 7, 8, 
 const BATTLE_DEGREE_CONDITION_TYPES = Object.freeze([
     // Battle results may grant/level characters and equipment in addition to
     // updating battle counters, so include those reward-driven title types.
-    1, 4, 5, 8, 14, 15, 16, 17, 19, 20, 21, 22, 23, 25, 26, 28, 30,
-    31, 37, 39, 44, 92,
+    1, 4, 5, 8, 14, 15, 16, 17, 19, 20, 21, 22, 23, 25, 26, 27, 28, 29,
+    30, 31, 37, 39, 44, 92,
 ])
 
 const BATTLE_ACTIVE_MISSION_PATTERNS = Object.freeze([
@@ -39,6 +40,14 @@ export interface MissionBattleFactResult {
     readonly eventMissionIds: readonly number[]
     readonly passMissionIds: readonly number[]
     readonly awakeMissionIds: readonly number[]
+    readonly degreeTrigger?: {
+        readonly questCategory: number
+        readonly questId: number
+        readonly mode: "single" | "multi"
+        readonly isHost?: boolean
+        readonly accomplished: boolean
+        readonly clearRank?: number | null
+    }
 }
 
 export function buildBattleMissionSettlementScopes(
@@ -52,6 +61,18 @@ export function buildBattleMissionSettlementScopes(
         ...getEventItemMissionIdsForItems(grantedItemIds),
         ...extraEventMissionIds.filter(missionId => Number.isSafeInteger(missionId) && missionId > 0),
     ])]
+    const degreeMissionIds = facts.degreeTrigger
+        ? getDegreeMissionIdsForBattle(
+            BATTLE_DEGREE_CONDITION_TYPES,
+            facts.degreeTrigger,
+            affectedCharacterIds,
+            grantedItemIds,
+        )
+        : getDegreeMissionIdsForConditionTypes(
+            BATTLE_DEGREE_CONDITION_TYPES,
+            affectedCharacterIds,
+            grantedItemIds,
+        )
     return [
         1,
         // Daily all-clear depends on the complete set of enabled core missions,
@@ -60,11 +81,7 @@ export function buildBattleMissionSettlementScopes(
         { category: 3, missionIds: eventMissionIds },
         {
             category: 5,
-            missionIds: getDegreeMissionIdsForConditionTypes(
-                BATTLE_DEGREE_CONDITION_TYPES,
-                affectedCharacterIds,
-                grantedItemIds,
-            ),
+            missionIds: degreeMissionIds,
         },
         6,
         7,
@@ -86,6 +103,14 @@ export function recordMissionBattleFacts(
     ctx: FinishContext,
     evaluationTime: Date = new Date(getServerTime() * 1000),
 ): MissionBattleFactResult {
+    const degreeTrigger = {
+        questCategory: ctx.questCategory,
+        questId: ctx.questId,
+        mode: ctx.isMulti ? "multi" as const : "single" as const,
+        isHost: ctx.isMultiHost,
+        accomplished: ctx.questAccomplished,
+        clearRank: ctx.clearRank,
+    }
     recordMissionBattleResultSync(ctx.playerId, {
         isMulti: ctx.isMulti === true,
         isHost: ctx.isMultiHost,
@@ -93,8 +118,12 @@ export function recordMissionBattleFacts(
         clearRank: ctx.clearRank,
     })
     if (!ctx.questAccomplished) {
-        return { dailyMissionIds: [], eventMissionIds: [], passMissionIds: [], awakeMissionIds: [] }
+        return {
+            dailyMissionIds: [], eventMissionIds: [], passMissionIds: [], awakeMissionIds: [],
+            degreeTrigger,
+        }
     }
+    recordDegreePartyPowerClearSync(ctx)
     const dailyMissionIds = recordDailyMissionBattleFacts(ctx, evaluationTime)
     const eventMissionIds = recordEventMissionBattleFacts(ctx, evaluationTime)
     const passMissionIds = recordPassMissionBattleFacts(ctx, evaluationTime)
@@ -107,5 +136,5 @@ export function recordMissionBattleFacts(
     trackLeaderPowerflip(ctx)
     const awakeMissionIds = trackPartyCoClears(ctx)
     trackPowerflip(ctx)
-    return { dailyMissionIds, eventMissionIds, passMissionIds, awakeMissionIds }
+    return { dailyMissionIds, eventMissionIds, passMissionIds, awakeMissionIds, degreeTrigger }
 }

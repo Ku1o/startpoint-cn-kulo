@@ -7,13 +7,6 @@
 
 import * as net from "net"
 import {
-    getSession,
-} from "../../data/domains/session"
-import { getAccountPlayers } from "../../data/domains/account"
-import {
-    getPlayerSync,
-} from "../../data/domains/player"
-import {
     getPlayerPartyGroupListSync,
 } from "../../data/domains/party"
 import {
@@ -25,13 +18,18 @@ import {
 } from "../../data/domains/equipment"
 import { PartyCategory, PlayerParty } from "../../data/types"
 import { getRankDegree } from "../../lib/stamina"
-import { getRoom } from "../room/manager"
+import { getRoom, getRoomMemberPlayerId } from "../room/manager"
 import { sessionManager } from "../state/SessionManager"
 import type { SessionClient } from "../state/SessionManager"
 import { gameVerboseLog } from "../../lib/game-logging"
 import { ClientState } from "../types"
 import { embeddedMultiCoordinator } from "../coordinator/embedded"
-import { roomAdmissionRegistry } from "../room/admission"
+import {
+    recordRoomAdmissionBypass,
+    recordRoomAdmissionDenial,
+    roomAdmissionRegistry,
+} from "../room/admission"
+import { resolveMultiPlayerContext } from "../player-context"
 
 export function buildRealParty(playerId: number, targetParty?: PlayerParty): any {
     const emptyChar = [1]
@@ -195,22 +193,8 @@ export async function handleHandshake(socket: net.Socket, data: any): Promise<vo
             return
         }
 
-        const session = await getSession(String(viewerId))
-        if (!session) {
-            sessionManager.sendJson(socket, [3, "HANDSHAKE_DENIED"])
-            socket.end()
-            return
-        }
-
-        const playerIds = await getAccountPlayers(session.accountId)
-        if (!playerIds || playerIds.length === 0 || isNaN(playerIds[0])) {
-            sessionManager.sendJson(socket, [3, "HANDSHAKE_DENIED"])
-            socket.end()
-            return
-        }
-
-        const player = getPlayerSync(playerIds[0])
-        if (!player) {
+        const ctx = await resolveMultiPlayerContext(Number(viewerId))
+        if (!ctx) {
             sessionManager.sendJson(socket, [3, "HANDSHAKE_DENIED"])
             socket.end()
             return
@@ -244,38 +228,36 @@ export async function handleHandshake(socket: net.Socket, data: any): Promise<vo
                 && client.socket.writable)
         const liveViewerIds = new Set(liveClients.map(client => client.viewerId))
         const viewerAlreadyConnected = liveViewerIds.has(Number(viewerId))
+        const requestedCategory = data.questCategory ?? data.quest_category
+        const requestedQuestId = data.questId ?? data.quest_id
+        const categoryMismatch = requestedCategory !== undefined
+            && Number(requestedCategory) !== currentRoom.category
+        const questMismatch = requestedQuestId !== undefined
+            && Number(requestedQuestId) !== currentRoom.quest_id
         const isReturningMember = currentRoom.host_viewer_id === Number(viewerId)
             || currentRoom.expected_real_viewer_ids.includes(Number(viewerId))
             || currentRoom.mates.some(mate => mate.viewer_id === Number(viewerId))
         const waitingForExpectedMember = currentRoom.lobby_generation > 0
             && currentRoom.expected_real_viewer_ids.some(expectedViewerId => !liveViewerIds.has(expectedViewerId))
-        const admissionReserved = roomAdmissionRegistry.has(
-            roomId,
-            currentRoom.lobby_generation,
-            Number(viewerId),
-        )
-        const missingAdmission = !viewerAlreadyConnected
-            && !isReturningMember
-            && !admissionReserved
         const roomPhase = embeddedMultiCoordinator.ensureLifecycle(currentRoom).phase
-        const roomUnavailable = (!viewerAlreadyConnected && liveClients.length >= 3)
-            || (!isReturningMember && (roomPhase === "STARTING" || roomPhase === "BATTLE"))
-            || (!isReturningMember && waitingForExpectedMember)
-            || sessionManager.isRoomRestoreBlocked(roomId, Number(viewerId))
-            || missingAdmission
+        const restoreBlocked = sessionManager.isRoomRestoreBlocked(roomId, Number(viewerId))
+        const recordedPlayerId = getRoomMemberPlayerId(currentRoom, Number(viewerId))
+        const structuralReasons = [
+            categoryMismatch ? "category_mismatch" : "",
+            questMismatch ? "quest_mismatch" : "",
+            recordedPlayerId !== null && recordedPlayerId !== ctx.playerId ? "player_mismatch" : "",
+            !viewerAlreadyConnected && liveClients.length >= 3 ? "full" : "",
+            !isReturningMember && (roomPhase === "STARTING" || roomPhase === "BATTLE") ? "battle_started" : "",
+            !isReturningMember && waitingForExpectedMember ? "waiting_for_returning_member" : "",
+            restoreBlocked ? "restore_blocked" : "",
+        ].filter(Boolean)
 
-        if (roomUnavailable) {
-            const reasons = [
-                !viewerAlreadyConnected && liveClients.length >= 3 ? "full" : "",
-                !isReturningMember && (roomPhase === "STARTING" || roomPhase === "BATTLE") ? "battle_started" : "",
-                !isReturningMember && waitingForExpectedMember ? "waiting_for_returning_member" : "",
-                sessionManager.isRoomRestoreBlocked(roomId, Number(viewerId)) ? "restore_blocked" : "",
-                missingAdmission ? "not_reserved" : "",
-            ].filter(Boolean).join(",")
+        if (structuralReasons.length > 0) {
+            for (const reason of structuralReasons) recordRoomAdmissionDenial(reason)
             console.warn(
                 `[TCP] room handshake unavailable: viewer=${viewerId} room=${roomId}`
                 + ` live=${liveClients.length} state=${currentRoom.raising_state}`
-                + ` reason=${reasons || "unknown"}`,
+                + ` reason=${structuralReasons.join(",")}`,
             )
             roomAdmissionRegistry.release(roomId, Number(viewerId))
             // Normal stale/full cases are filtered before the TCP handshake.
@@ -286,20 +268,39 @@ export async function handleHandshake(socket: net.Socket, data: any): Promise<vo
             return
         }
 
-        if (admissionReserved) {
-            roomAdmissionRegistry.consume(
+        const { playerId, player } = ctx
+        const connectionId = String(
+            data.connection_id || data.connectionId || `${socket.remoteAddress}:${socket.remotePort}`,
+        )
+        const party = buildRealParty(playerId)
+        if (isReturningMember) recordRoomAdmissionBypass("returning_member")
+        const admissionClaim = isReturningMember
+            ? null
+            : roomAdmissionRegistry.claim(
                 roomId,
                 currentRoom.lobby_generation,
                 Number(viewerId),
+                connectionId,
             )
+        if (admissionClaim?.ok === false) {
+            console.warn(
+                `[TCP] room handshake unavailable: viewer=${viewerId} room=${roomId}`
+                + ` live=${liveClients.length} state=${currentRoom.raising_state}`
+                + ` reason=not_reserved_${admissionClaim.reason}`,
+            )
+            sessionManager.sendJson(socket, [3, "HANDSHAKE_DENIED"])
+            socket.end()
+            return
         }
-        const playerId = playerIds[0]
-        const connectionId = data.connection_id || data.connectionId || `${socket.remoteAddress}:${socket.remotePort}`
-        const client = sessionManager.createClient(socket, Number(viewerId), roomId, String(connectionId), playerId)
+
+        const client = sessionManager.createClient(socket, Number(viewerId), roomId, connectionId, playerId)
         client.roomGeneration = currentRoom.lobby_generation
+        client.admissionClaimed = admissionClaim?.ok === true
+        client.admissionGeneration = admissionClaim?.ok === true
+            ? currentRoom.lobby_generation
+            : undefined
         client.clientState.tryTransition(ClientState.Handshaking)
 
-        const party = buildRealParty(playerId)
         const yourSelf = {
             viewerId: Number(viewerId),
             playerId: playerId,
@@ -311,7 +312,7 @@ export async function handleHandshake(socket: net.Socket, data: any): Promise<vo
             connectionId,
             playerRoleKind: player.role || 1,
             isNewbie: !!player.tutorialStep,
-            isHost: true,
+            isHost: Number(viewerId) === currentRoom.host_viewer_id,
             entryTime: Date.now(),
             currentPartyId: player.partySlot || 1,
             autoplayMode: false,

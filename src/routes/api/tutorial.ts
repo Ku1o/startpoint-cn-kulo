@@ -11,6 +11,8 @@ import { givePlayerCharacterSync } from "../../lib/character";
 import { randomInt } from "crypto";
 import { GachaCharacterDraw } from "../../lib/types";
 import { reconcileAwakeUnlockCharacterList } from "../../lib/mission";
+import { isStartTutorialActive } from "../../lib/start-tutorial-state";
+import { countFinishedPlayerQuestsByCategorySync } from "../../data/domains/quest";
 
 interface UpdateStepBody {
     viewer_id: number
@@ -99,9 +101,14 @@ const routes = async (fastify: FastifyInstance) => {
             "message": "No player bound to account."
         })
 
-        // check if tutorial is already completed
-        const completedTutorial = getPlayerTriggeredTutorialsSync(playerId)
-        if (completedTutorial.find((value: number) => value === 12)) return reply.status(400).send({
+        // Finished main-quest progress is authoritative compatibility evidence
+        // for imported/legacy saves whose tutorial fields were reset.
+        const hasFinishedMainQuest = countFinishedPlayerQuestsByCategorySync(playerId, 1) > 0
+        if (!isStartTutorialActive(
+            player.tutorialStep,
+            player.tutorialSkipFlag,
+            hasFinishedMainQuest,
+        )) return reply.status(400).send({
             "error": "Bad Request",
             "message": "Tutorial already completed"
         })
@@ -207,7 +214,7 @@ const routes = async (fastify: FastifyInstance) => {
                 ? [giveResult.character as Record<string, unknown>]
                 : []
             const itemList = giveResult?.item
-                ? { [giveResult.item.id]: giveResult.item.count }
+                ? { [giveResult.item.id]: giveResult.item.inventoryCount }
                 : {}
             insertReceiveHistorySync(playerId, { type: MailType.CHARACTER, type_id: freeTutorialCharacterId, number: 1 })
 

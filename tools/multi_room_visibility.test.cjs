@@ -40,11 +40,13 @@ try {
     const hostPlayerId = createTestPlayer("multi-visibility-host", "自定义房主名")
     const mutualPlayerId = createTestPlayer("multi-visibility-mutual", "互关玩家")
     const oneWayPlayerId = createTestPlayer("multi-visibility-one-way", "单向关注")
+    const followerOnlyPlayerId = createTestPlayer("multi-visibility-follower-only", "仅被房主关注")
     const strangerPlayerId = createTestPlayer("multi-visibility-stranger", "陌生玩家")
 
     assert.equal(addFollowSync(hostPlayerId, mutualPlayerId), "added")
     assert.equal(addFollowSync(mutualPlayerId, hostPlayerId), "added")
     assert.equal(addFollowSync(oneWayPlayerId, hostPlayerId), "added")
+    assert.equal(addFollowSync(hostPlayerId, followerOnlyPlayerId), "added")
 
     const room = {
         room_number: "mutual-test-room",
@@ -77,13 +79,16 @@ try {
     room.share_room_options = encodeRoomShareOptions(shareTypes)
 
     assert.deepEqual(shareTypes, [MUTUAL_FOLLOW_SHARE_TYPE])
-    assert.equal(isRoomSharedWithPlayer(room, mutualPlayerId, false), true)
-    assert.equal(isRoomSharedWithPlayer(room, oneWayPlayerId, false), false)
-    assert.equal(isRoomSharedWithPlayer(room, strangerPlayerId, false), false)
-    assert.equal(isRoomSharedWithPlayer(room, strangerPlayerId, true), true)
+    assert.equal(isRoomSharedWithPlayer(room, mutualPlayerId), true)
+    assert.equal(isRoomSharedWithPlayer(room, oneWayPlayerId), true)
+    assert.equal(isRoomSharedWithPlayer(room, followerOnlyPlayerId), false)
+    assert.equal(isRoomSharedWithPlayer(room, strangerPlayerId), false)
+
+    const oneWaySerialized = serializeRoom(room, oneWayPlayerId)
+    assert.equal(oneWaySerialized.establisher_follow, 2)
 
     room.share_room_options = encodeRoomShareOptions([RANDOM_RECRUITMENT_SHARE_TYPE])
-    assert.equal(isRoomSharedWithPlayer(room, mutualPlayerId, false), false)
+    assert.equal(isRoomSharedWithPlayer(room, mutualPlayerId), false)
 
     const serialized = serializeRoom(room, mutualPlayerId)
     assert.equal(serialized.establisher_name, "自定义房主名")

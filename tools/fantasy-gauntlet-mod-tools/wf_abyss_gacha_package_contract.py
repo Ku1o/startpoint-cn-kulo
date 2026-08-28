@@ -90,7 +90,7 @@ DROP_RUNTIME_SOURCE_SYNC = {
     "interop_fixture_size": 68,
     "outer_event_id": "700099",
     "ordered_rows": [
-        ["1", "0", "999014", "1", "0.05"],
+        ["1", "0", "999014", "1", "0.1"],
         ["1", "0", "11003", "1", "0.5"],
     ],
     "verification_scope": "source_and_tests_only_no_build_or_live",

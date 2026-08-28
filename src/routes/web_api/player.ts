@@ -341,8 +341,7 @@ const routes = async (fastify: FastifyInstance) => {
         return reply.redirect(`/player/${playerId}#actions`)
     })
 
-    // Repair legacy saves that cleared 1-6-1 but did not persist every unison
-    // unlock flag.
+    // Repair legacy saves that progressed past 1-6-1 but lost its completion row.
     fastify.post("/:id/repair_unison_unlock", async (request: FastifyRequest, reply: FastifyReply) => {
         const playerId = Number((request.params as any).id)
         if (isNaN(playerId)) return reply.status(400).send({ error: "无效的玩家 ID" })
@@ -361,7 +360,7 @@ const routes = async (fastify: FastifyInstance) => {
                     ok: true,
                     repaired: false,
                     status,
-                    message: "合击解锁记录已经完整，无需修复",
+                    message: "第一章 6-1 通关记录已经完整，无需修复",
                 })
             }
 
@@ -372,7 +371,7 @@ const routes = async (fastify: FastifyInstance) => {
                 repaired: true,
                 status: "repaired",
                 changes,
-                message: "已补齐第一章 6-1 与合击教程解锁记录",
+                message: "已补齐第一章 6-1 通关记录",
             })
         } catch (e: any) {
             return reply.status(500).send({ error: `合击解锁修复失败：${e?.message ?? e}` })

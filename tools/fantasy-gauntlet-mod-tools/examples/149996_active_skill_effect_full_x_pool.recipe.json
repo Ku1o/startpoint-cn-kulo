@@ -1,0 +1,152 @@
+{
+  "schema": "wf-character-asset-case/v1",
+  "character_id": "149996",
+  "asset_kind": "active_skill_effect",
+  "status": "offline_verified_device_pending",
+  "current_result": {
+    "device_smoke_test": "user_confirmed_good",
+    "tested_patch_version": "1.4.90",
+    "tested_patch_id": "spgirl-full-x-pool-test-1.4.90",
+    "remaining_gate": "record skill levels, solo/multiplayer, repeated casts, edge positions and low-performance coverage before reusable-baseline promotion"
+  },
+  "incident": {
+    "failed_candidate": "../../../work/149996-active-skill-effect-final-20260825",
+    "client_error": "F1125 / RangeError #1125",
+    "stack_entry": "flatomo.animation.parts::PartsAnimationImageElement/fetchDisplayObject()",
+    "root_cause": "the dual trail doubled concurrent leaf-image demand while parts.a retained the original per-image object-pool capacities",
+    "not_root_cause": [
+      "the +/-15 degree matrices",
+      "the total visible instance peak by itself",
+      "the skill ActionDsl",
+      "the effect timeline or sound"
+    ]
+  },
+  "fallback": {
+    "recipe": "149996_active_skill_effect.recipe.json",
+    "kind": "baked-raster-x",
+    "runtime_branches": 1,
+    "patch_version": "1.4.89",
+    "purpose": "known crash-free rollback path"
+  },
+  "source": {
+    "effect_reference": "battle/effect/skill_unique/wind_spgirl/wind_spgirl",
+    "replacement_archive_sha256": "8d37a0bea066b1662a9da27f1552a9973bfe0db2e2fc475d555374e1e46b2f4c",
+    "replacement_cells": [
+      "f",
+      "i",
+      "r",
+      "s",
+      "t",
+      "u",
+      "v",
+      "w"
+    ],
+    "topology": {
+      "groups": 44,
+      "segments": 225,
+      "matrices": 703,
+      "image_records": 25,
+      "object_pool_capacity_total": 297,
+      "visible_instance_peak": 191
+    }
+  },
+  "target": {
+    "effect_reference": "battle/effect/skill_unique/wind_spgirl_swim/wind_spgirl_swim",
+    "layout": {
+      "kind": "pool-safe-narrow-x-trail",
+      "scope": "isolated-character-trail",
+      "visual_branches": 2,
+      "runtime_branches": 2,
+      "half_angle_degrees": 15.0,
+      "included_angle_degrees": 30.0,
+      "target_group": 21,
+      "parent_group": 2,
+      "matrix_indices": [
+        703,
+        704
+      ],
+      "groups": 44,
+      "segments": 226,
+      "matrices": 705,
+      "image_records": 25,
+      "central_effect_instances": 1,
+      "sound_instances": 1,
+      "gameplay_geometry_changed": false,
+      "full_trail_density_per_branch": true
+    },
+    "object_pool": {
+      "field": "parts.a",
+      "meaning": "per-image preallocated display-object capacity",
+      "guard": "capacity[i] >= maximum concurrent flattened instances of image i across every root frame",
+      "count_alpha_zero_instances": true,
+      "entries": 25,
+      "entries_changed": 12,
+      "capacity_total_before": 297,
+      "capacity_total_after": 367,
+      "visible_instance_peak_before": 191,
+      "visible_instance_peak_after": 238,
+      "changes": {
+        "f": [3, 6],
+        "g": [5, 10],
+        "h": [12, 24],
+        "i": [3, 6],
+        "p": [14, 28],
+        "q": [15, 30],
+        "r": [2, 4],
+        "s": [2, 4],
+        "t": [3, 6],
+        "u": [2, 4],
+        "v": [2, 4],
+        "w": [7, 14]
+      }
+    },
+    "compiled_sha256": {
+      "battle/effect/skill_unique/wind_spgirl_swim/wind_spgirl_swim.atlas.amf3.deflate": "a39c96195ddfc28abd68ab88d353b8460a946e6159fed2306c1cfa219ff47cf7",
+      "battle/effect/skill_unique/wind_spgirl_swim/wind_spgirl_swim.parts.amf3.deflate": "f0e8ffd851487fddba1900d0ce6cf0f133440f96f737260b4e957132a10661b4",
+      "battle/effect/skill_unique/wind_spgirl_swim/wind_spgirl_swim.png": "924c2061c7272bd28d990fc5231318ec3d93b174ec7962d6e1b62f3d3f2f7192",
+      "battle/effect/skill_unique/wind_spgirl_swim/wind_spgirl_swim.timeline.amf3.deflate": "101918b8cf6f1b3eba0e446393634c3fe664cbaf483a32c23878ddd994f09a2c"
+    }
+  },
+  "minimal_patch": {
+    "version": "1.4.90",
+    "depends_on": "1.4.89",
+    "archive": "pinball-1.4.89-1.4.90-1-0825-spgirl-full-x-pool-test.zip",
+    "sha256": "13b37110e9c99f5a94b8096bdfd4313b1209562adce79e5c25091aee60a853c5",
+    "members": 3,
+    "included": [
+      "effect atlas",
+      "effect PNG",
+      "effect parts"
+    ],
+    "excluded": [
+      "timeline",
+      "sound",
+      "ActionDsl",
+      "ability and ability_skill",
+      "gacha and abyss data",
+      "UI, voice and character art"
+    ]
+  },
+  "source_rules": [
+    "../wf_flatomo_preview_render.py#flatomo_instance_profile",
+    "../wf_effect_cell_reskin.py#apply_pool_safe_trail_x_layout",
+    "../wf_spgirl_effect.py#build_pool_safe_full_x_candidate",
+    "../publish_spgirl_full_x_pool_test_1_4_90_20260825.py"
+  ],
+  "tests": [
+    "../tests/test_effect_cell_reskin.py",
+    "../tests/test_spgirl_effect.py"
+  ],
+  "offline_candidate": "../../../work/149996-active-skill-effect-pool-safe-full-x-final-20260825",
+  "release_policy": {
+    "keep_baked_fallback": true,
+    "publish_from_work_directory": false,
+    "publish_only_by_locked_source_rule": true,
+    "require_compiled_resource_hashes": true,
+    "require_amf3_roundtrip": true,
+    "require_per_image_pool_capacity_guard": true,
+    "require_all_root_frames_profiled": true,
+    "require_minimal_changed_logical_set": true,
+    "promote_only_after_full_device_gate": true
+  }
+}

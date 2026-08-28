@@ -31,10 +31,21 @@ const { insertPlayerEquipmentSync } = require("../src/data/domains/equipment")
 const { insertDefaultPlayerSync } = require("../src/data/domains/player")
 const { recordBattleMissionDimensions } = require("../src/lib/mission/battle-dimensions")
 const { DegreeComputer } = require("../src/lib/mission/computer-degree")
+const { buildBattleMissionSettlementScopes } = require("../src/lib/mission/battle-facts")
 const { summarizeBattleStatistics } = require("../src/lib/mission/events")
+const { getMissionMasterDefinition } = require("../src/lib/mission/master-data")
 
 initializeDatabase()
 db = getDb()
+const counterPlan = db.prepare(`
+    EXPLAIN QUERY PLAN
+    SELECT dimension, qualifier_json, value
+    FROM players_mission_counters
+    WHERE player_id = ? AND scope_type = 'lifetime' AND scope_key = 'all'
+      AND dimension IN (?, ?)
+`).all(1, "battle.stat", "battle.quest_clear")
+assert.ok(counterPlan.some(row => String(row.detail).includes("idx_players_mission_counters_dimension")),
+    "称号计数维度查询必须使用复合索引")
 const account = insertAccountSync({
     appId: "wf_cn",
     idpAlias: "",
@@ -146,6 +157,38 @@ for (const [missionId, expected] of expectedProgress) {
         `degree mission ${missionId} should use the recorded server-side statistic`,
     )
 }
+
+const emptyFacts = {
+    dailyMissionIds: [], eventMissionIds: [], passMissionIds: [], awakeMissionIds: [],
+}
+const degreeScope = facts => buildBattleMissionSettlementScopes(facts, [], [], [])
+    .find(scope => typeof scope !== "number" && scope.category === 5)
+const broadDegreeIds = degreeScope(emptyFacts).missionIds
+const mainClearDegreeIds = degreeScope({
+    ...emptyFacts,
+    degreeTrigger: {
+        questCategory: 1, questId: 1001001, mode: "single", accomplished: true, clearRank: 5,
+    },
+}).missionIds
+assert.ok(mainClearDegreeIds.length < broadDegreeIds.length / 2,
+    `关卡事实应显著缩小称号候选: ${mainClearDegreeIds.length}/${broadDegreeIds.length}`)
+const mainQuestSpecific = mainClearDegreeIds
+    .map(missionId => getMissionMasterDefinition(5, missionId))
+    .filter(definition => [14, 22, 23, 26].includes(Number(definition.row[3])))
+for (const definition of mainQuestSpecific.filter(definition => Number(definition.row[3]) === 22)) {
+    assert.equal(Number(definition.row[9]), 1, "第一章战斗不得遍历其他章节称号")
+}
+
+const failedDegreeIds = degreeScope({
+    ...emptyFacts,
+    degreeTrigger: {
+        questCategory: 1, questId: 1001001, mode: "single", accomplished: false, clearRank: 0,
+    },
+}).missionIds
+const clearOnlyConditionTypes = new Set([14, 15, 16, 17, 19, 20, 21, 22, 23, 25, 26, 27, 28, 29, 30, 31, 92])
+assert.equal(failedDegreeIds.some(missionId => (
+    clearOnlyConditionTypes.has(Number(getMissionMasterDefinition(5, missionId).row[3]))
+)), false, "战斗失败不得触发任何通关统计类称号扫描")
 
 console.log("mission degree battle statistic tests passed")
 cleanup()

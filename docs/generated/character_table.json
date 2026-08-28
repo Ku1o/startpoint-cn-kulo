@@ -1458,6 +1458,15 @@
     "race": "Human"
   },
   {
+    "id": 149995,
+    "name": "希耶提",
+    "title": "十天众之首",
+    "rarity": "5★",
+    "element": "风",
+    "gender": "男性",
+    "race": "Human"
+  },
+  {
     "id": 149996,
     "name": "希尔媞（泳装）",
     "title": "苍蓝疾光",
@@ -2220,6 +2229,24 @@
     "rarity": "5★",
     "element": "暗",
     "gender": "不明",
+    "race": "Human"
+  },
+  {
+    "id": 169996,
+    "name": "西蒙",
+    "title": "愿望的牧羊人",
+    "rarity": "5★",
+    "element": "暗",
+    "gender": "男性",
+    "race": "Human"
+  },
+  {
+    "id": 169997,
+    "name": "巴萨拉卡",
+    "title": "不死大镰",
+    "rarity": "5★",
+    "element": "暗",
+    "gender": "男性",
     "race": "Human"
   },
   {

@@ -1,5 +1,5 @@
 import type { Player } from "../../data/types"
-import { getPlayerItemSync, givePlayerItemSync } from "../../data/domains/item"
+import { givePlayerItemSync } from "../../data/domains/item"
 import { updatePlayerSync } from "../../data/domains/player"
 import { givePlayerCharacterSync } from "../character"
 import { givePlayerEquipmentSync } from "../equipment"
@@ -7,6 +7,7 @@ import type { ActiveMissionReward } from "./rewards"
 import { givePlayerDegreeSync } from "../../data/domains/degree"
 import { addPlayerPassCardPointSync } from "../../data/domains/pass-card"
 import { getPassCardEventDefinition } from "../pass-card"
+import { calculateFreeManaGrant } from "../mana"
 
 interface MissionRewardGrantContext {
     passCardEventId?: number
@@ -47,7 +48,10 @@ export class MissionRewardGranter {
                     }
                     break
                 case 3:
-                    this.freeMana += reward.amount
+                    this.freeMana = calculateFreeManaGrant({
+                        freeMana: this.freeMana,
+                        paidMana: this.player.paidMana,
+                    }, reward.amount).freeMana
                     this.totalManaGained += reward.amount
                     break
                 case 4:
@@ -57,7 +61,7 @@ export class MissionRewardGranter {
                         if (!result) continue
                         this.characterMap.set(reward.characterId, result.character)
                         if (result.item) {
-                            this.itemList[String(result.item.id)] = getPlayerItemSync(this.playerId, result.item.id) ?? 0
+                            this.itemList[String(result.item.id)] = result.item.inventoryCount
                         }
                     }
                     break

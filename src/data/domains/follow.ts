@@ -1,4 +1,5 @@
 import { getDb } from "../db";
+import { resolvePlayerIdSync } from "../activeAccount";
 import { getServerTime } from "../../utils";
 
 export const MAX_FOLLOWING = 50;
@@ -26,13 +27,12 @@ export type AddFollowResult =
 
 export function getPlayerIdByViewerIdSync(viewerId: number): number | null {
     const row = getDb().prepare(`
-        SELECT p.id
-        FROM sessions s
-        INNER JOIN players p ON p.account_id = s.account_id
-        WHERE s.token = ? AND s.type = 2
+        SELECT account_id
+        FROM sessions
+        WHERE token = ? AND type = 2
         LIMIT 1
-    `).get(String(viewerId)) as { id: number } | undefined;
-    return row?.id ?? null;
+    `).get(String(viewerId)) as { account_id: number } | undefined;
+    return row ? resolvePlayerIdSync(row.account_id) : null;
 }
 
 export function getViewerIdByPlayerIdSync(playerId: number): number | null {

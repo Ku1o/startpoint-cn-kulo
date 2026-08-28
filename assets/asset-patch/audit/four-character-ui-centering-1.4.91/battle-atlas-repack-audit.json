@@ -1,0 +1,686 @@
+{
+  "schema": "startpoint-cn-battle-atlas-repack-and-layer-retarget-audit-v2",
+  "created_at": "2026-08-28T00:00:00+08:00",
+  "base_version": "1.4.90",
+  "target_version": "1.4.91",
+  "same_version_rebuild": true,
+  "same_version_rebuild_reason": "operator requested retaining 1.4.91 because the production client release has not been distributed; local clients that cached the earlier 1.4.91 must reset resources",
+  "scope": [
+    "杰拉德",
+    "赛瑞斯"
+  ],
+  "excluded": [
+    "基诺维"
+  ],
+  "observed_failure": {
+    "code": "U_1d93f4",
+    "message": "Failed to allocate packing rectangle: size exceeded.",
+    "quest_id": 7002,
+    "boss": "abyss_cloud",
+    "resource_version": "1.4.91",
+    "first_attempt_result": "failed with Seris in a high-load three-party composition",
+    "root_cause_update": "the first pass omitted Seris special_sprite_sheet and royal tide ring assets"
+  },
+  "archive": {
+    "name": "pinball-1.4.90-1.4.91-1-0827-four-character-ui-centering.zip",
+    "bytes": 4537230,
+    "sha256": "589d9a061d4d51067c338a4332025257f234fcac4fe87141a8fec66bbe14a401",
+    "members": 23,
+    "member_names": [
+      "production/medium_upload/e4/7e910cab2e474dc674e053a1941f8995f5e421",
+      "production/upload/05/154f1e26f658fafb63af306af2e5e6de7f6249",
+      "production/upload/07/f2f32d54668200dea95cd503f9a1328120d4d2",
+      "production/upload/1e/82c7126aa1b41cb3eaa0c7dbb703c3813ef52f",
+      "production/upload/2e/5e14a08f7eeb94d3bfb72d9117fde56aee4691",
+      "production/upload/34/af6a9cd9f426fb1bd3b81e166c9884a61a30b3",
+      "production/upload/4b/c5b3ac0fc4711af9b2213fc79e2b609de74fb5",
+      "production/upload/58/62aedae1bdd0bccaf5b7057a794e2a941a79bb",
+      "production/upload/5d/3f8974dbc211de057d487129bf99af4d0c3263",
+      "production/upload/69/99fbf8c65bd253d79b3f8ed4acffbcc8d60f11",
+      "production/upload/79/efc98b343e27ead45cdb3225cf28a2da528ae1",
+      "production/upload/7f/cb0db8d2e27c3361d79a32e531339043bbda79",
+      "production/upload/80/1b253dc5488949b261cab7d4bf524b53cddd8f",
+      "production/upload/82/ae4e4b5bcba1ad1ee22d02ecf79e0bcc583294",
+      "production/upload/86/b84dca5658e54795616bbe0446ee8191afb64b",
+      "production/upload/94/9da9e14e1cdc64730850e49fd68152d8f8d4d8",
+      "production/upload/aa/806a10466e9166995a2dbdf7698bf32953f3b9",
+      "production/upload/d4/18c979a14d61f3723bafb48a63ee9f26519b35",
+      "production/upload/e3/ef959b85852427577252f1651c3a93a8d2dc1e",
+      "production/upload/e4/3556110c14d4f92fc5085e6c2a307c3afb99a9",
+      "production/upload/f1/7fc9fcb1554b9b574c2153aae4d50f8045cef6",
+      "production/upload/f3/8eb6bd15b1e6a8784b860d3c09dc108955d7c3",
+      "production/upload/fb/ab4344a7456dca88f3ce06f01208922f37e395"
+    ]
+  },
+  "preserved_ui_payloads": [
+    {
+      "member": "production/medium_upload/e4/7e910cab2e474dc674e053a1941f8995f5e421",
+      "size": 380134,
+      "sha256": "365d02600c028cd3c101bd9d9adfe1cac532acca9bd8c86dbb952ff9a67eed1a"
+    },
+    {
+      "member": "production/upload/fb/ab4344a7456dca88f3ce06f01208922f37e395",
+      "size": 351605,
+      "sha256": "5e4f842df25b6d4cae790bc2918ba8499b1dbdafea2558e928baea280487ceea"
+    }
+  ],
+  "client_tables": [
+    {
+      "logical": "master/equipment_enhancement/equipment_enhancement_shop.orderedmap",
+      "member": "production/upload/e3/ef959b85852427577252f1651c3a93a8d2dc1e",
+      "bytes": 18260,
+      "sha256": "ebc306d0bd8c562faff0203f05e64d0eab40623d34505581ad6f940f7ed421b9",
+      "validation": {
+        "generated_from_committed_server_shop": true,
+        "source_rows": 191,
+        "output_rows": 215,
+        "unrelated_rows_byte_identical": 189,
+        "target_equipment_ids": [
+          5010070,
+          5020043
+        ],
+        "stages_per_equipment": 13
+      }
+    }
+  ],
+  "packing_contract": {
+    "moves_whole_regions_only": true,
+    "per_frame_trimming": false,
+    "resampling": false,
+    "rotation": false,
+    "gutter_pixels": 2,
+    "only_atlas_fields_changed": [
+      "x",
+      "y"
+    ],
+    "layer_retarget_changes_only_logical_prefixes": true,
+    "action_dsl_changes_only_effect_reference": true
+  },
+  "atlases": [
+    {
+      "key": "gerald_sprite",
+      "character": "杰拉德",
+      "png_logical": "character/white_wolf_gerald/pixelart/sprite_sheet.png",
+      "atlas_logical": "character/white_wolf_gerald/pixelart/sprite_sheet.atlas.amf3.deflate",
+      "source_size": [
+        504,
+        192
+      ],
+      "target_size": [
+        258,
+        357
+      ],
+      "sort_mode": "height",
+      "png_input_sha256": "f213b64bec371e2cc73661c26092c6873d88025548533d2aac7ce5271a671fe4",
+      "atlas_input_sha256": "3b226eb2ad3738a9499e971b15921efe6c049f16ce9cdf7b4886098a0a9c4235",
+      "content_signature": "dc8d74a0d0edadce65d4a03c1c2d250748331f8992b36201696fb91e1da2f48f",
+      "png_member": "production/upload/69/99fbf8c65bd253d79b3f8ed4acffbcc8d60f11",
+      "atlas_member": "production/upload/7f/cb0db8d2e27c3361d79a32e531339043bbda79",
+      "png_source_archive": "pinball-1.4.67-1.4.68-1-battle-atlas-crop-fix.zip",
+      "atlas_source_archive": "pinball-1.4.60-1.4.61-5-post60-terminal-overlay-sixpack-v2.zip",
+      "source_png": {
+        "sha256": "f213b64bec371e2cc73661c26092c6873d88025548533d2aac7ce5271a671fe4",
+        "bytes": 47083,
+        "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.67-1.4.68-1-battle-atlas-crop-fix.zip",
+        "member": "production/upload/69/99fbf8c65bd253d79b3f8ed4acffbcc8d60f11",
+        "source_kind": "pinned historical active archive"
+      },
+      "source_atlas": {
+        "sha256": "3b226eb2ad3738a9499e971b15921efe6c049f16ce9cdf7b4886098a0a9c4235",
+        "bytes": 1455,
+        "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.60-1.4.61-5-post60-terminal-overlay-sixpack-v2.zip",
+        "member": "production/upload/7f/cb0db8d2e27c3361d79a32e531339043bbda79",
+        "source_kind": "pinned historical active archive"
+      },
+      "output_png": {
+        "sha256": "210ac56c60d543e0fba2f5b1f211d9580c57d2978d4c05fa2fe85bfc66eb5e1b",
+        "bytes": 52820,
+        "member": "production/upload/69/99fbf8c65bd253d79b3f8ed4acffbcc8d60f11"
+      },
+      "output_atlas": {
+        "sha256": "f4df1c197a904e5da09515b2a894c1f3f0878b022c35bc9ef207764a82f0beb0",
+        "bytes": 1551,
+        "member": "production/upload/7f/cb0db8d2e27c3361d79a32e531339043bbda79"
+      },
+      "records": 145,
+      "unique_regions": 145,
+      "region_area": 73151,
+      "source_area": 96768,
+      "target_area": 92106,
+      "saved_area": 4662,
+      "saved_percent_of_layer0": 0.027788,
+      "validation": {
+        "ordered_region_rgba_identical": true,
+        "record_names_and_order_unchanged": true,
+        "metadata_except_xy_unchanged": true,
+        "rotation_unchanged": true,
+        "two_pixel_gutter": true,
+        "nontransparent_pixels_outside_regions": 0
+      }
+    },
+    {
+      "key": "gerald_skill",
+      "character": "杰拉德",
+      "png_logical": "battle/effect/skill_unique/white_wolf_gerald/white_wolf_gerald.png",
+      "atlas_logical": "battle/effect/skill_unique/white_wolf_gerald/white_wolf_gerald.atlas.amf3.deflate",
+      "source_size": [
+        1015,
+        1478
+      ],
+      "target_size": [
+        1002,
+        1237
+      ],
+      "sort_mode": "height",
+      "png_input_sha256": "ec2c8d1f997a06880a87184f0acf492501bfda7ce5bd7229f325f24c87568885",
+      "atlas_input_sha256": "4472c581e92593006e2a33b60d1ed3a23b62be68e252f4ded1d80ac83a0c2179",
+      "content_signature": "334671019a7aac585a61e814469505b37f0da9dbb894539cbbae912336cf94cc",
+      "png_member": "production/upload/5d/3f8974dbc211de057d487129bf99af4d0c3263",
+      "atlas_member": "production/upload/86/b84dca5658e54795616bbe0446ee8191afb64b",
+      "png_source_archive": "pinball-1.4.67-1.4.68-1-battle-atlas-crop-fix.zip",
+      "atlas_source_archive": "pinball-1.4.60-1.4.61-5-post60-terminal-overlay-sixpack-v2.zip",
+      "source_png": {
+        "sha256": "ec2c8d1f997a06880a87184f0acf492501bfda7ce5bd7229f325f24c87568885",
+        "bytes": 1638243,
+        "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.67-1.4.68-1-battle-atlas-crop-fix.zip",
+        "member": "production/upload/5d/3f8974dbc211de057d487129bf99af4d0c3263",
+        "source_kind": "pinned historical active archive"
+      },
+      "source_atlas": {
+        "sha256": "4472c581e92593006e2a33b60d1ed3a23b62be68e252f4ded1d80ac83a0c2179",
+        "bytes": 1242,
+        "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.60-1.4.61-5-post60-terminal-overlay-sixpack-v2.zip",
+        "member": "production/upload/86/b84dca5658e54795616bbe0446ee8191afb64b",
+        "source_kind": "pinned historical active archive"
+      },
+      "output_png": {
+        "sha256": "23691a4d8461fcce25790b09fbfb88a6d072a6192a7ee3cff057b7848da4cc25",
+        "bytes": 1663131,
+        "member": "production/upload/5d/3f8974dbc211de057d487129bf99af4d0c3263"
+      },
+      "output_atlas": {
+        "sha256": "3923729ad24678fe5e0a72296cbb0e643ca4e2d7104d11902ccab76dcff6eb8d",
+        "bytes": 1312,
+        "member": "production/upload/86/b84dca5658e54795616bbe0446ee8191afb64b"
+      },
+      "records": 109,
+      "unique_regions": 109,
+      "region_area": 1148164,
+      "source_area": 1500170,
+      "target_area": 1239474,
+      "saved_area": 260696,
+      "saved_percent_of_layer0": 1.553869,
+      "validation": {
+        "ordered_region_rgba_identical": true,
+        "record_names_and_order_unchanged": true,
+        "metadata_except_xy_unchanged": true,
+        "rotation_unchanged": true,
+        "two_pixel_gutter": true,
+        "nontransparent_pixels_outside_regions": 0
+      }
+    },
+    {
+      "key": "gerald_powerflip",
+      "character": "杰拉德",
+      "png_logical": "battle/effect/powerflip/white_wolf_gerald_powerflip/white_wolf_gerald_powerflip.png",
+      "atlas_logical": "battle/effect/powerflip/white_wolf_gerald_powerflip/white_wolf_gerald_powerflip.atlas.amf3.deflate",
+      "source_size": [
+        485,
+        470
+      ],
+      "target_size": [
+        360,
+        590
+      ],
+      "sort_mode": "area",
+      "png_input_sha256": "03c2ddfa7cae91748b10516aba90c8d7f93c67d09da71f7d74e014fc57ca64bb",
+      "atlas_input_sha256": "e403505d7ab8faab0eb209c698b65a42f3d91adef0c269c08a1401c3c8e74d27",
+      "content_signature": "6a17755201c1dcd8beba509721f3cef3e207a8332d76c437cc18eb197da2f171",
+      "png_member": "production/upload/94/9da9e14e1cdc64730850e49fd68152d8f8d4d8",
+      "atlas_member": "production/upload/4b/c5b3ac0fc4711af9b2213fc79e2b609de74fb5",
+      "png_source_archive": "pinball-1.4.67-1.4.68-1-battle-atlas-crop-fix.zip",
+      "atlas_source_archive": "pinball-1.4.60-1.4.61-5-post60-terminal-overlay-sixpack-v2.zip",
+      "source_png": {
+        "sha256": "03c2ddfa7cae91748b10516aba90c8d7f93c67d09da71f7d74e014fc57ca64bb",
+        "bytes": 19105,
+        "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.67-1.4.68-1-battle-atlas-crop-fix.zip",
+        "member": "production/upload/94/9da9e14e1cdc64730850e49fd68152d8f8d4d8",
+        "source_kind": "pinned historical active archive"
+      },
+      "source_atlas": {
+        "sha256": "e403505d7ab8faab0eb209c698b65a42f3d91adef0c269c08a1401c3c8e74d27",
+        "bytes": 302,
+        "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.60-1.4.61-5-post60-terminal-overlay-sixpack-v2.zip",
+        "member": "production/upload/4b/c5b3ac0fc4711af9b2213fc79e2b609de74fb5",
+        "source_kind": "pinned historical active archive"
+      },
+      "output_png": {
+        "sha256": "af83a8b8eeb1c5ce6df2a8fccdc864d11f5f88f10ddc064972fcfc4b30ba5a07",
+        "bytes": 21414,
+        "member": "production/upload/94/9da9e14e1cdc64730850e49fd68152d8f8d4d8"
+      },
+      "output_atlas": {
+        "sha256": "ae3a736b418072d71355ba7a656d2f3a69011fd9ec44470c2f1b08e0598bdc86",
+        "bytes": 313,
+        "member": "production/upload/4b/c5b3ac0fc4711af9b2213fc79e2b609de74fb5"
+      },
+      "records": 32,
+      "unique_regions": 32,
+      "region_area": 188416,
+      "source_area": 227950,
+      "target_area": 212400,
+      "saved_area": 15550,
+      "saved_percent_of_layer0": 0.092685,
+      "validation": {
+        "ordered_region_rgba_identical": true,
+        "record_names_and_order_unchanged": true,
+        "metadata_except_xy_unchanged": true,
+        "rotation_unchanged": true,
+        "two_pixel_gutter": true,
+        "nontransparent_pixels_outside_regions": 0
+      }
+    },
+    {
+      "key": "seris_sprite",
+      "character": "赛瑞斯",
+      "png_logical": "character/seris_dragon_king/pixelart/sprite_sheet.png",
+      "atlas_logical": "character/seris_dragon_king/pixelart/sprite_sheet.atlas.amf3.deflate",
+      "source_size": [
+        995,
+        388
+      ],
+      "target_size": [
+        468,
+        665
+      ],
+      "sort_mode": "height",
+      "png_input_sha256": "8d966343f13b18a0596dace70df775d7eb89fb4639424a9f9cc5608124d362ae",
+      "atlas_input_sha256": "1d20293a5d2ce624336d71c037fb2a71f559e9921a82a986c3de40d0daa1591b",
+      "content_signature": "6c1a14e2b405939ac238212c40f5f96bbd46d64dea9e6097ffd166168fddeaf5",
+      "png_member": "production/upload/f3/8eb6bd15b1e6a8784b860d3c09dc108955d7c3",
+      "atlas_member": "production/upload/79/efc98b343e27ead45cdb3225cf28a2da528ae1",
+      "png_source_archive": "pinball-1.4.67-1.4.68-1-battle-atlas-crop-fix.zip",
+      "atlas_source_archive": "pinball-1.4.60-1.4.61-5-post60-terminal-overlay-sixpack-v2.zip",
+      "source_png": {
+        "sha256": "8d966343f13b18a0596dace70df775d7eb89fb4639424a9f9cc5608124d362ae",
+        "bytes": 138490,
+        "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.67-1.4.68-1-battle-atlas-crop-fix.zip",
+        "member": "production/upload/f3/8eb6bd15b1e6a8784b860d3c09dc108955d7c3",
+        "source_kind": "pinned historical active archive"
+      },
+      "source_atlas": {
+        "sha256": "1d20293a5d2ce624336d71c037fb2a71f559e9921a82a986c3de40d0daa1591b",
+        "bytes": 804,
+        "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.60-1.4.61-5-post60-terminal-overlay-sixpack-v2.zip",
+        "member": "production/upload/79/efc98b343e27ead45cdb3225cf28a2da528ae1",
+        "source_kind": "pinned historical active archive"
+      },
+      "output_png": {
+        "sha256": "71df146d5b2fc39dc187097843ee175d84d7c3331382557ef5cf7bedd7fbf405",
+        "bytes": 248886,
+        "member": "production/upload/f3/8eb6bd15b1e6a8784b860d3c09dc108955d7c3"
+      },
+      "output_atlas": {
+        "sha256": "0ae42bf52284b8f0ac9120a64b7a4efb2df486ecedef739429a996c05f8982af",
+        "bytes": 884,
+        "member": "production/upload/79/efc98b343e27ead45cdb3225cf28a2da528ae1"
+      },
+      "records": 68,
+      "unique_regions": 68,
+      "region_area": 271027,
+      "source_area": 386060,
+      "target_area": 311220,
+      "saved_area": 74840,
+      "saved_percent_of_layer0": 0.446081,
+      "validation": {
+        "ordered_region_rgba_identical": true,
+        "record_names_and_order_unchanged": true,
+        "metadata_except_xy_unchanged": true,
+        "rotation_unchanged": true,
+        "two_pixel_gutter": true,
+        "nontransparent_pixels_outside_regions": 0
+      }
+    },
+    {
+      "key": "seris_effect",
+      "character": "赛瑞斯",
+      "png_logical": "battle/effect/skill_unique/seris_dragon_king/seris_dragon_king.png",
+      "atlas_logical": "battle/effect/skill_unique/seris_dragon_king/seris_dragon_king.atlas.amf3.deflate",
+      "source_size": [
+        1980,
+        879
+      ],
+      "target_size": [
+        1138,
+        1179
+      ],
+      "sort_mode": "area",
+      "png_input_sha256": "d2afd78f9df5abe91a0730ee101f60b3a417a4115140f3df5ba035289c344356",
+      "atlas_input_sha256": "4ed2bc9162bea9abc7df204e02c47ae77ed90ce78b14f565a7147e5624f90e43",
+      "content_signature": "3138c590723ad2cd0aa31b230b629ceaf3d6fe39cb96b578de92a7d8472a6788",
+      "png_member": "production/upload/07/f2f32d54668200dea95cd503f9a1328120d4d2",
+      "atlas_member": "production/upload/1e/82c7126aa1b41cb3eaa0c7dbb703c3813ef52f",
+      "png_source_archive": "pinball-1.4.67-1.4.68-1-battle-atlas-crop-fix.zip",
+      "atlas_source_archive": "pinball-1.4.60-1.4.61-4-post60-terminal-overlay-sixpack-v2.zip",
+      "source_png": {
+        "sha256": "d2afd78f9df5abe91a0730ee101f60b3a417a4115140f3df5ba035289c344356",
+        "bytes": 582340,
+        "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.67-1.4.68-1-battle-atlas-crop-fix.zip",
+        "member": "production/upload/07/f2f32d54668200dea95cd503f9a1328120d4d2",
+        "source_kind": "pinned historical active archive"
+      },
+      "source_atlas": {
+        "sha256": "4ed2bc9162bea9abc7df204e02c47ae77ed90ce78b14f565a7147e5624f90e43",
+        "bytes": 820,
+        "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.60-1.4.61-4-post60-terminal-overlay-sixpack-v2.zip",
+        "member": "production/upload/1e/82c7126aa1b41cb3eaa0c7dbb703c3813ef52f",
+        "source_kind": "pinned historical active archive"
+      },
+      "output_png": {
+        "sha256": "b2a42db0bb8829f62a0fa810b21ca9b5299dfe3886dcb551de6a44850771e0c4",
+        "bytes": 638089,
+        "member": "production/upload/07/f2f32d54668200dea95cd503f9a1328120d4d2"
+      },
+      "output_atlas": {
+        "sha256": "6d128b16bde96af2296b167194b8e2b2d6d0e4b0b1af5cb6c0eb4e9211776534",
+        "bytes": 890,
+        "member": "production/upload/1e/82c7126aa1b41cb3eaa0c7dbb703c3813ef52f"
+      },
+      "records": 49,
+      "unique_regions": 49,
+      "region_area": 1219549,
+      "source_area": 1740420,
+      "target_area": 1341702,
+      "saved_area": 398718,
+      "saved_percent_of_layer0": 2.376544,
+      "validation": {
+        "ordered_region_rgba_identical": true,
+        "record_names_and_order_unchanged": true,
+        "metadata_except_xy_unchanged": true,
+        "rotation_unchanged": true,
+        "two_pixel_gutter": true,
+        "nontransparent_pixels_outside_regions": 0
+      }
+    },
+    {
+      "key": "seris_special_sprite",
+      "character": "赛瑞斯",
+      "png_logical": "character/seris_dragon_king/pixelart/special_sprite_sheet.png",
+      "atlas_logical": "character/seris_dragon_king/pixelart/special_sprite_sheet.atlas.amf3.deflate",
+      "source_size": [
+        1024,
+        1024
+      ],
+      "target_size": [
+        575,
+        1351
+      ],
+      "sort_mode": "area",
+      "png_input_sha256": "dca2aa621d97eed85f80230d6457be6530818a1c00edfd047685bd42375f1a67",
+      "atlas_input_sha256": "8ee344cabb29caaf98e6d544d59ff68d3fc26297950e9a88ccb345f4b3a43260",
+      "content_signature": "ec2460c4ee1057714d7b46f7abbdd69c713200c7b26a08ff339275aea7607e85",
+      "png_member": "production/upload/05/154f1e26f658fafb63af306af2e5e6de7f6249",
+      "atlas_member": "production/upload/80/1b253dc5488949b261cab7d4bf524b53cddd8f",
+      "png_source_archive": "pinball-1.4.60-1.4.61-4-post60-terminal-overlay-sixpack-v2.zip",
+      "atlas_source_archive": "pinball-1.4.60-1.4.61-5-post60-terminal-overlay-sixpack-v2.zip",
+      "source_png": {
+        "sha256": "dca2aa621d97eed85f80230d6457be6530818a1c00edfd047685bd42375f1a67",
+        "bytes": 398101,
+        "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.60-1.4.61-4-post60-terminal-overlay-sixpack-v2.zip",
+        "member": "production/upload/05/154f1e26f658fafb63af306af2e5e6de7f6249",
+        "source_kind": "pinned historical active archive"
+      },
+      "source_atlas": {
+        "sha256": "8ee344cabb29caaf98e6d544d59ff68d3fc26297950e9a88ccb345f4b3a43260",
+        "bytes": 1097,
+        "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.60-1.4.61-5-post60-terminal-overlay-sixpack-v2.zip",
+        "member": "production/upload/80/1b253dc5488949b261cab7d4bf524b53cddd8f",
+        "source_kind": "pinned historical active archive"
+      },
+      "output_png": {
+        "sha256": "ff3206484b54fd9cfbe0fe34d3c76bbb8146002fcb57e4b10752c7ce3043f541",
+        "bytes": 733868,
+        "member": "production/upload/05/154f1e26f658fafb63af306af2e5e6de7f6249"
+      },
+      "output_atlas": {
+        "sha256": "4051f289aefd2e26db13bacfad4c236379d9382c743b14cea2da7fa59348dfb5",
+        "bytes": 1245,
+        "member": "production/upload/80/1b253dc5488949b261cab7d4bf524b53cddd8f"
+      },
+      "records": 92,
+      "unique_regions": 92,
+      "region_area": 691948,
+      "source_area": 1048576,
+      "target_area": 776825,
+      "saved_area": 271751,
+      "saved_percent_of_layer0": 1.619762,
+      "validation": {
+        "ordered_region_rgba_identical": true,
+        "record_names_and_order_unchanged": true,
+        "metadata_except_xy_unchanged": true,
+        "rotation_unchanged": true,
+        "two_pixel_gutter": true,
+        "nontransparent_pixels_outside_regions": 0
+      }
+    },
+    {
+      "key": "seris_tide_ring",
+      "character": "赛瑞斯",
+      "png_logical": "battle/effect/skill_unique/seris_human_royal_tide_ring/seris_human_royal_tide_ring.png",
+      "atlas_logical": "battle/effect/skill_unique/seris_human_royal_tide_ring/seris_human_royal_tide_ring.atlas.amf3.deflate",
+      "source_size": [
+        512,
+        512
+      ],
+      "target_size": [
+        294,
+        588
+      ],
+      "sort_mode": "area",
+      "png_input_sha256": "25165f308bdc5f670c9142f3cbd5cc56a5ed9bf1e25c97bbbc63e6845b82c669",
+      "atlas_input_sha256": "7d596c67d07254e362fae7dcf58d2ae48f94db73ef3d6e88f5ab45b17a4e6b59",
+      "content_signature": "8d9626128eb15fbd7665d56f1d4b6332ce416fde18a55916f4f85e3b99ba2470",
+      "png_member": "production/upload/34/af6a9cd9f426fb1bd3b81e166c9884a61a30b3",
+      "atlas_member": "production/upload/2e/5e14a08f7eeb94d3bfb72d9117fde56aee4691",
+      "png_source_archive": "pinball-1.4.60-1.4.61-4-post60-terminal-overlay-sixpack-v2.zip",
+      "atlas_source_archive": "pinball-1.4.60-1.4.61-4-post60-terminal-overlay-sixpack-v2.zip",
+      "source_png": {
+        "sha256": "25165f308bdc5f670c9142f3cbd5cc56a5ed9bf1e25c97bbbc63e6845b82c669",
+        "bytes": 10162,
+        "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.60-1.4.61-4-post60-terminal-overlay-sixpack-v2.zip",
+        "member": "production/upload/34/af6a9cd9f426fb1bd3b81e166c9884a61a30b3",
+        "source_kind": "pinned historical active archive"
+      },
+      "source_atlas": {
+        "sha256": "7d596c67d07254e362fae7dcf58d2ae48f94db73ef3d6e88f5ab45b17a4e6b59",
+        "bytes": 199,
+        "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.60-1.4.61-4-post60-terminal-overlay-sixpack-v2.zip",
+        "member": "production/upload/2e/5e14a08f7eeb94d3bfb72d9117fde56aee4691",
+        "source_kind": "pinned historical active archive"
+      },
+      "output_png": {
+        "sha256": "27538db0e70a0899e67a7dd085de82cba8f0d8e6ac86311080f50dd1e25dc565",
+        "bytes": 8965,
+        "member": "production/upload/34/af6a9cd9f426fb1bd3b81e166c9884a61a30b3"
+      },
+      "output_atlas": {
+        "sha256": "046ffe967f272e64d2543e7d504bd5c5cd375ccfd39e07c3462426bb26de6ace",
+        "bytes": 200,
+        "member": "production/upload/2e/5e14a08f7eeb94d3bfb72d9117fde56aee4691"
+      },
+      "records": 16,
+      "unique_regions": 16,
+      "region_area": 147456,
+      "source_area": 262144,
+      "target_area": 172872,
+      "saved_area": 89272,
+      "saved_percent_of_layer0": 0.532103,
+      "validation": {
+        "ordered_region_rgba_identical": true,
+        "record_names_and_order_unchanged": true,
+        "metadata_except_xy_unchanged": true,
+        "rotation_unchanged": true,
+        "two_pixel_gutter": true,
+        "nontransparent_pixels_outside_regions": 0
+      }
+    }
+  ],
+  "layer_retarget": {
+    "old_layer": "layer0",
+    "new_layer": "layer1",
+    "old_sheet_logical": "battle/effect/skill_unique/seris_dragon_king/seris_dragon_king.png",
+    "new_sheet_logical": "battle/uncommon/layer1/seris_dragon_king/seris_dragon_king.png",
+    "old_effect_reference": "battle/effect/skill_unique/seris_dragon_king/seris_dragon_king_transform",
+    "new_effect_reference": "battle/uncommon/layer1/seris_dragon_king/seris_dragon_king_transform",
+    "moved_sheet_size": [
+      1138,
+      1179
+    ],
+    "moved_sheet_area": 1341702,
+    "moved_percent_of_4096_sheet": 7.997167,
+    "atlas_records": 49,
+    "parts_images": 10,
+    "action_replacements": [
+      1,
+      1
+    ],
+    "old_cell_prefix": "battle/effect/skill_unique/seris_dragon_king/.gen/seris_dragon_king/",
+    "new_cell_prefix": "battle/uncommon/layer1/seris_dragon_king/.gen/seris_dragon_king/",
+    "sources": {
+      "parts": {
+        "logical": "battle/effect/skill_unique/seris_dragon_king/seris_dragon_king_transform.parts.amf3.deflate",
+        "member": "production/upload/55/8b474010212252b5eb28a76f0fde9e5351a034",
+        "sha256": "a1e97f3a1a9ad25135e71bbd366be0c7467a3196f854ae5f49398a0ad82b9e84",
+        "bytes": 245,
+        "archive": "pinball-1.4.60-1.4.61-5-post60-terminal-overlay-sixpack-v2.zip",
+        "archive_path": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.60-1.4.61-5-post60-terminal-overlay-sixpack-v2.zip"
+      },
+      "timeline": {
+        "logical": "battle/effect/skill_unique/seris_dragon_king/seris_dragon_king_transform.timeline.amf3.deflate",
+        "member": "production/upload/30/0343136476be3fd2974a1b9a764b78d1ccdd84",
+        "sha256": "7c563a0d90533aaa131b4de7584eafdcefb4ec3caf8d92e8069db10cfc2b2deb",
+        "bytes": 145,
+        "archive": "pinball-1.4.60-1.4.61-4-post60-terminal-overlay-sixpack-v2.zip",
+        "archive_path": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.60-1.4.61-4-post60-terminal-overlay-sixpack-v2.zip"
+      },
+      "actions": [
+        {
+          "logical": "battle/action/skill/seris_dragon_king/seris_dragon_king.action.dsl.amf3.deflate",
+          "member": "production/upload/82/ae4e4b5bcba1ad1ee22d02ecf79e0bcc583294",
+          "sha256": "8374f69d6604a87bc03d79b4f101684e1adef345c0c128356b57bbaf1e2d2388",
+          "bytes": 697,
+          "archive": "pinball-1.4.60-1.4.61-5-post60-terminal-overlay-sixpack-v2.zip",
+          "archive_path": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.60-1.4.61-5-post60-terminal-overlay-sixpack-v2.zip"
+        },
+        {
+          "logical": "battle/action/skill/seris_dragon_king/seris_dragon_king_2.action.dsl.amf3.deflate",
+          "member": "production/upload/58/62aedae1bdd0bccaf5b7057a794e2a941a79bb",
+          "sha256": "8374f69d6604a87bc03d79b4f101684e1adef345c0c128356b57bbaf1e2d2388",
+          "bytes": 697,
+          "archive": "pinball-1.4.60-1.4.61-5-post60-terminal-overlay-sixpack-v2.zip",
+          "archive_path": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.60-1.4.61-5-post60-terminal-overlay-sixpack-v2.zip"
+        }
+      ]
+    },
+    "outputs": [
+      {
+        "member": "production/upload/58/62aedae1bdd0bccaf5b7057a794e2a941a79bb",
+        "bytes": 709,
+        "sha256": "0a3fe79ee26729fbb17e3a76b94fac40ac2c5a7cb3778e740e68d528b65465b2"
+      },
+      {
+        "member": "production/upload/82/ae4e4b5bcba1ad1ee22d02ecf79e0bcc583294",
+        "bytes": 709,
+        "sha256": "0a3fe79ee26729fbb17e3a76b94fac40ac2c5a7cb3778e740e68d528b65465b2"
+      },
+      {
+        "member": "production/upload/aa/806a10466e9166995a2dbdf7698bf32953f3b9",
+        "bytes": 886,
+        "sha256": "ffd35e6a17d6845957b39c2400c51daaa58f840e301c49043e91e4d31cb48f13"
+      },
+      {
+        "member": "production/upload/d4/18c979a14d61f3723bafb48a63ee9f26519b35",
+        "bytes": 145,
+        "sha256": "7c563a0d90533aaa131b4de7584eafdcefb4ec3caf8d92e8069db10cfc2b2deb"
+      },
+      {
+        "member": "production/upload/e4/3556110c14d4f92fc5085e6c2a307c3afb99a9",
+        "bytes": 242,
+        "sha256": "68ea0ec397f6d3ea836a9b9ab0cbb047a98e5daa171df179d9d1eb0e21c6d2b2"
+      },
+      {
+        "member": "production/upload/f1/7fc9fcb1554b9b574c2153aae4d50f8045cef6",
+        "bytes": 638089,
+        "sha256": "b2a42db0bb8829f62a0fa810b21ca9b5299dfe3886dcb551de6a44850771e0c4"
+      }
+    ],
+    "validation": {
+      "png_identical_to_repacked_layer0_sheet": true,
+      "atlas_geometry_and_metadata_unchanged": true,
+      "atlas_cell_prefix_only": true,
+      "parts_cell_prefix_only": true,
+      "timeline_byte_identical": true,
+      "each_action_effect_reference_replaced_once": true,
+      "layer1_common_plus_effect_fit": {
+        "common_runtime_orientation": [
+          508,
+          3841
+        ],
+        "effect_runtime_orientation": [
+          1138,
+          1179
+        ],
+        "combined_bounding_box": [
+          1646,
+          3841
+        ],
+        "within_4096x4096": true
+      }
+    }
+  },
+  "characters": {
+    "杰拉德": {
+      "original_layer0_area": 1824888,
+      "failed_first_attempt_layer0_area": 1543980,
+      "final_layer0_area": 1543980,
+      "final_layer1_area": 0,
+      "final_total_area": 1543980,
+      "original_layer0_percent": 10.87718,
+      "failed_first_attempt_layer0_percent": 9.202838,
+      "final_layer0_percent": 9.202838,
+      "final_layer1_percent": 0.0,
+      "final_total_percent": 9.202838,
+      "saved_from_original_layer0_area": 280908,
+      "saved_from_failed_attempt_layer0_area": 0
+    },
+    "赛瑞斯": {
+      "original_layer0_area": 3437200,
+      "failed_first_attempt_layer0_area": 2963642,
+      "final_layer0_area": 1260917,
+      "final_layer1_area": 1341702,
+      "final_total_area": 2602619,
+      "original_layer0_percent": 20.487309,
+      "failed_first_attempt_layer0_percent": 17.664683,
+      "final_layer0_percent": 7.515651,
+      "final_layer1_percent": 7.997167,
+      "final_total_percent": 15.512818,
+      "saved_from_original_layer0_area": 2176283,
+      "saved_from_failed_attempt_layer0_area": 1702725
+    }
+  },
+  "total": {
+    "original_layer0_area": 5262088,
+    "failed_first_attempt_layer0_area": 4507622,
+    "final_layer0_area": 2804897,
+    "final_layer1_area": 1341702,
+    "original_layer0_percent": 31.364489,
+    "failed_first_attempt_layer0_percent": 26.867521,
+    "final_layer0_percent": 16.718489,
+    "final_layer1_percent": 7.997167,
+    "saved_from_original_layer0_area": 2457191,
+    "saved_from_original_layer0_percent": 14.646,
+    "saved_from_failed_attempt_layer0_area": 1702725,
+    "saved_from_failed_attempt_layer0_percent": 10.149032
+  },
+  "gameplay_verified": false
+}

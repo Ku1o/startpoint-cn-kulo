@@ -17,7 +17,8 @@ assert(activeDailyIds.includes(14));
 assert(!activeDailyIds.includes(3));
 assert(!activeDailyIds.includes(10016));
 
-const daily3Start = new Date("2019-11-28T03:00:00Z");
+// Mission master timestamps are CN server time (UTC+8).
+const daily3Start = new Date("2019-11-28T04:00:00Z");
 assert.strictEqual(isMissionEnabledAt(2, 3, new Date(daily3Start.getTime() - 1)), false);
 assert.strictEqual(isMissionEnabledAt(2, 3, daily3Start), true);
 

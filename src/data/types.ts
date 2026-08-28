@@ -812,6 +812,7 @@ export interface RawPlayerActiveQuest {
     entry_item_id: number | null
     event_id: number | null
     continue_count: number
+    started_at_ms: number | null
 }
 
 export interface PlayerActiveQuest {
@@ -828,4 +829,5 @@ export interface PlayerActiveQuest {
     entryItemId: number | null
     eventId: number | null
     continueCount: number
+    startedAtMs: number | null
 }

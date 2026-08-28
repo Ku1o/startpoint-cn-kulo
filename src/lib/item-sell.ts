@@ -2,7 +2,7 @@ import { getItemSaleSync } from "./assets";
 import { countAbilitySoulUsedInPartiesSync } from "../data/domains/party"
 import { getPlayerItemSync, updatePlayerItemSync } from "../data/domains/item"
 import { getPlayerSync, updatePlayerSync } from "../data/domains/player"
-import { getConfigSync } from "./assets";
+import { canReceiveMana, getMaxManaSync } from "./mana"
 
 export type ItemSellResult =
     | {
@@ -63,9 +63,8 @@ export function sellItemSync(
     if (!player) return { ok: false, error: "Player not found." }
 
     const manaGained = saleData.sale_price * sellNumber
-    const config = getConfigSync()
-    const maxMana = config.max_mana ?? 99999999
-    if (player.freeMana + manaGained > maxMana) {
+    const maxMana = getMaxManaSync()
+    if (!canReceiveMana(player, manaGained, maxMana)) {
         return { ok: false, errorCode: 2102, error: "Mana would exceed maximum." }
     }
 

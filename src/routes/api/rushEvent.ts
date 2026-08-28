@@ -18,7 +18,9 @@ import { resolvePlayerIdSync } from "../../data/activeAccount";
 import rushEventRankingRewards from "../../../assets/rush_event_ranking_reward.json";
 import { ensureSpecialEventPartyGroupsSync, getGlobalPartyId } from "../../lib/special-event-parties";
 import {
+    classifyDeepAbyssFolderReset,
     classifyDeepAbyssFolderSelection,
+    DEEP_ABYSS_RUSH_FOLDER_ID,
     isStaleDeepAbyssEndlessFolderLock,
 } from "../../lib/rush-event-folder-lock";
 import {
@@ -34,6 +36,10 @@ import {
     canStartRankGatedGauntletRush,
     GAUNTLET_MIN_PLAYER_RANK,
 } from "../../lib/gauntlet-entry-rank";
+import {
+    getEligibleRushDegreeIds,
+    grantEligibleRushEventDegreesSync,
+} from "../../lib/activity-degree-rewards";
 
 interface SummaryBody {
     event_id: number,
@@ -283,7 +289,7 @@ const routes = async (fastify: FastifyInstance) => {
             "message": "No player bound to account."
         })
 
-        // get existing rush event data 
+        // get existing rush event data
         let rushEventData = getPlayerRushEventSync(playerId, eventId)
         if (rushEventData === null) return reply.status(400).send({
             "error": "Bad Request",
@@ -699,9 +705,26 @@ const routes = async (fastify: FastifyInstance) => {
         }
 
         if (questType === ResetQuestType.FOLDER) {
-
-            // if reset target was provided, we're not resetting the entire folder
-            if (resetTargetId !== undefined) {
+            if (classifyDeepAbyssFolderReset(eventId) === "restart_from_first") {
+                // Deep Abyss always abandons the entire finite run.  Keep
+                // folder 1 selected so the client returns directly to round
+                // 700099001, regardless of reset_target_id.
+                updatePlayerRushEventSync(playerId, {
+                    eventId: eventId,
+                    activeRushBattleFolderId: DEEP_ABYSS_RUSH_FOLDER_ID
+                })
+                deletePlayerRushEventPlayedPartyListSync(
+                    playerId,
+                    eventId,
+                    RushEventBattleType.FOLDER
+                )
+                console.log(
+                    `[RUSH] Deep Abyss folder reset from first round: `
+                    + `player=${playerId} ignoredResetTargetId=${resetTargetId}`
+                )
+            } else if (resetTargetId !== undefined) {
+                // A reset target keeps the native partial-reset behaviour for
+                // every Rush event except Deep Abyss.
                 deletePlayerRushEventPlayedPartiesUntilSync(playerId, eventId, RushEventBattleType.FOLDER, resetTargetId)
             } else {
                 // reset entire folder
@@ -754,25 +777,30 @@ const routes = async (fastify: FastifyInstance) => {
             "error": "Internal Server Error", "message": "No player bound to account."
         })
 
-        // get player's rank
+        // Rank remains part of the response, but the reward master-data ranges
+        // describe cleared endless rounds (2-3, 4-5 and 6+), not leaderboard rank.
         const myRanking = getPlayerRushEventEndlessBattleRankingSync(playerId, eventId)
         const rankNumber = myRanking?.rank_number ?? null
+        const rushEvent = getPlayerRushEventSync(playerId, eventId)
+        const maxRound = rushEvent?.endlessBattleMaxRound ?? null
+        const eligibleDegreeIds = new Set(getEligibleRushDegreeIds(eventId, maxRound))
 
         // find matching reward tier
         const rewards = rankingRewards[String(eventId)] ?? {}
         let rewardList: RushEventRankingRewardEntry[] = []
-        if (rankNumber !== null && rankNumber > 0) {
+        if (maxRound !== null && maxRound > 0) {
             for (const entries of Object.values(rewards)) {
                 for (const entry of entries) {
-                    if (rankNumber >= entry.fromRank && rankNumber <= entry.toRank) {
+                    if (eligibleDegreeIds.has(entry.kindId)) {
                         rewardList.push(entry)
                         break
                     }
                 }
             }
         }
+        const degreeIds = grantEligibleRushEventDegreesSync(playerId, eventId, maxRound)
 
-        console.log(`[RUSH] reward: rank=${rankNumber} rewards=${rewardList.length}`)
+        console.log(`[RUSH] reward: rank=${rankNumber} maxRound=${maxRound} rewards=${rewardList.length}`)
 
         reply.header("content-type", "application/x-msgpack")
         return reply.status(200).send({
@@ -785,8 +813,12 @@ const routes = async (fastify: FastifyInstance) => {
                         "kind_id": r.kindId,
                         "number": r.number
                     })),
-                    "status": 0
-                }
+                    "status": 1
+                },
+                "degree_list": degreeIds.map(degreeId => ({
+                    viewer_id: viewerId,
+                    degree_id: degreeId,
+                }))
             }
         });
     })

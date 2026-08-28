@@ -1,5 +1,7 @@
-import { getPlayerCharactersManaNodesSync, getPlayerCharactersSync } from "../../data/domains/character"
-import { upsertPlayerCharacterAwakeUnlockSync } from "../../data/domains/character_awake"
+import {
+    getPlayerCharacterAwakeUnlocksByCharacterIdsSync,
+    upsertPlayerCharacterAwakeUnlockSync,
+} from "../../data/domains/character_awake"
 import {
     getPlayerCategoryMissionsSync,
     updatePlayerCategoryMissionStageSync,
@@ -7,7 +9,7 @@ import {
 } from "../../data/domains/mission"
 import { getPlayerSync } from "../../data/domains/player"
 import { getDb } from "../../data/db"
-import { buildManaBoardAwakeCharacterList } from "../character-helpers"
+import { buildScopedManaBoardAwakeCharacterList } from "../character-helpers"
 import { MissionRewardGranter } from "./grants"
 import { getAwakeMissionRewardStageDefinition } from "./rewards"
 import { getCompletedStageNumbers } from "./stages"
@@ -111,6 +113,10 @@ export function settleAwakeMissionRewards(
     const granter = new MissionRewardGranter(playerId, player)
     const missionInfo: AwakeMissionInfo[] = []
     const unlockMap = new Map<string, Record<number, number>>()
+    const unlockCandidateCharacterIds = aggregatedProgressList.map(
+        entry => Number(getCharacterIdFromMission(entry.missionId)),
+    )
+    let persistedUnlocks: ReturnType<typeof getPlayerCharacterAwakeUnlocksByCharacterIdsSync> | null = null
 
     getDb().transaction(() => {
         for (const entry of aggregatedProgressList) {
@@ -120,10 +126,40 @@ export function settleAwakeMissionRewards(
         for (const entry of aggregatedProgressList) {
             const persistedStages = persistedMissions[String(entry.missionId)]?.stages
             for (const stage of getCompletedStageNumbers(9, entry.missionId, entry.progress)) {
-                if (!Array.isArray(persistedStages) && persistedStages?.[String(stage)] === true) continue
-
                 const definition = getAwakeMissionRewardStageDefinition(entry.missionId, stage)
                 if (!definition) continue
+
+                // Special rewards are authoritative state, not consumable
+                // grants. Re-assert and publish them even when the mission
+                // stage was received earlier and its original response was
+                // lost. The monotonic upsert keeps this idempotent.
+                if (definition.specialReward) {
+                    const special = definition.specialReward
+                    persistedUnlocks ??= getPlayerCharacterAwakeUnlocksByCharacterIdsSync(
+                        playerId,
+                        unlockCandidateCharacterIds,
+                    )
+                    const characterKey = String(special.characterId)
+                    const persistedLevels = persistedUnlocks.get(characterKey) ?? {}
+                    if ((persistedLevels[special.boardIndex] ?? 0) < special.awakeLevel) {
+                        upsertPlayerCharacterAwakeUnlockSync(
+                            playerId,
+                            special.characterId,
+                            special.boardIndex,
+                            special.awakeLevel,
+                        )
+                        persistedLevels[special.boardIndex] = special.awakeLevel
+                        persistedUnlocks.set(characterKey, persistedLevels)
+                    }
+                    const levels = unlockMap.get(characterKey) ?? {}
+                    levels[special.boardIndex] = Math.max(
+                        levels[special.boardIndex] ?? 0,
+                        special.awakeLevel,
+                    )
+                    unlockMap.set(characterKey, levels)
+                }
+
+                if (!Array.isArray(persistedStages) && persistedStages?.[String(stage)] === true) continue
 
                 updatePlayerCategoryMissionStageSync(playerId, 9, stage, entry.missionId, true)
                 granter.grant(definition.rewards)
@@ -133,30 +169,15 @@ export function settleAwakeMissionRewards(
                     mission_reward_id: definition.missionRewardId,
                 })
 
-                if (definition.specialReward) {
-                    const special = definition.specialReward
-                    if (upsertPlayerCharacterAwakeUnlockSync(
-                        playerId,
-                        special.characterId,
-                        special.boardIndex,
-                        special.awakeLevel
-                    )) {
-                        const levels = unlockMap.get(String(special.characterId)) ?? {}
-                        levels[special.boardIndex] = Math.max(levels[special.boardIndex] ?? 0, special.awakeLevel)
-                        unlockMap.set(String(special.characterId), levels)
-                    }
-                }
             }
         }
 
         granter.persistPlayer()
     })()
 
-    const unlockCharacterList = unlockMap.size === 0 ? [] : buildManaBoardAwakeCharacterList(
-        getPlayerCharactersSync(playerId),
-        unlockMap,
-        getPlayerCharactersManaNodesSync(playerId),
-    )
+    const unlockCharacterList = unlockMap.size === 0
+        ? []
+        : buildScopedManaBoardAwakeCharacterList(playerId, unlockMap)
     const characterList = [
         ...(granter.characterList as Record<string, unknown>[]),
         ...unlockCharacterList,

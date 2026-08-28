@@ -28,6 +28,7 @@ import random
 import sqlite3
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 TOOL_DIR = Path(__file__).resolve().parent
@@ -80,8 +81,9 @@ def clear_progress(db: sqlite3.Connection, event: str, player: int | None) -> No
             print(f"  {table}: 删 {n} 行", flush=True)
 
 
-def build_command(args, seed: int) -> list[str]:
-    """构造 wf_rogue_build 命令；默认不传 --ramp，即全程决战级。"""
+def build_command(args, seed: int, *, audit_json: Path | None = None,
+                  audit_report: Path | None = None) -> list[str]:
+    """构造命令；默认严格 HP 与 30亿→150亿基础梯度，不启用旧 DPS ramp。"""
     # 服务端虽用 `python -X utf8 wf_rogue_reroll.py`，该 flag 不会自动传给
     # 子 Python；显式补上，避免 boss 日文标签在 Windows GBK 下打印即崩。
     cmd = [sys.executable, "-X", "utf8", "-u", BUILD,
@@ -95,6 +97,12 @@ def build_command(args, seed: int) -> list[str]:
         cmd += ["--difficulty", args.difficulty]
     if args.ramp:
         cmd += ["--ramp"]
+    if args.strict_target_hp:
+        cmd += ["--strict-target-hp"]
+        if audit_json is not None:
+            cmd += ["--audit-json", str(audit_json)]
+        if audit_report is not None:
+            cmd += ["--audit-report", str(audit_report)]
     if args.apply:
         cmd += ["--write", "--publish"]
     return cmd
@@ -130,7 +138,19 @@ def main() -> int:
                          "(透传 wf_rogue_build,层数自适应)")
     ap.add_argument("--ramp", action="store_true",
                     help="显式恢复旧 DPS 几何爬坡(60万→2500万)；默认关闭，"
-                         "即第1战热身外全程决战级。与 --enemy-level ramp 无关")
+                         "默认 Hell 为 Boss关诅咒前总HP线性30亿→150亿。"
+                         "与 --enemy-level ramp 无关")
+    hp_mode = ap.add_mutually_exclusive_group()
+    hp_mode.add_argument(
+        "--strict-target-hp", dest="strict_target_hp", action="store_true",
+        default=True,
+        help="每个 Boss 关只接受绝对 HP 证据与可回读落表通道（默认）")
+    hp_mode.add_argument(
+        "--allow-unscaled-hp", dest="strict_target_hp", action="store_false",
+        help="兼容旧重摇：允许代理或未归一 Boss 关；不建议用于正式重开")
+    ap.add_argument(
+        "--audit-dir", type=Path,
+        help="严格模式验收 JSON/中文报告目录；默认写入工具 work/rogue_hp_audit")
     ap.add_argument("--apply", action="store_true", help="真执行(默认 dry-run 预览)")
     args = ap.parse_args()
 
@@ -141,6 +161,18 @@ def main() -> int:
     if dep and dep != args.rounds:
         print(f"[WARN] 轮数 {dep} → {args.rounds}:服务端 json 内容会变,"
               "发布后须重启服务端(start-cn.bat)", flush=True)
+
+    audit_json = audit_report = None
+    if args.strict_target_hp:
+        audit_dir = (args.audit_dir or TOOL_DIR / "work" / "rogue_hp_audit") \
+            .expanduser().resolve()
+        audit_dir.mkdir(parents=True, exist_ok=True)
+        stem = (f"rogue-hp-{args.event}-seed-{seed}-"
+                f"{time.strftime('%Y%m%d-%H%M%S')}")
+        audit_json = audit_dir / f"{stem}.json"
+        audit_report = audit_dir / f"{stem}.md"
+        print(f"验收回执 = {audit_json}", flush=True)
+        print(f"中文报告 = {audit_report}", flush=True)
 
     db = sqlite3.connect(rsave.DB_PATH, timeout=15)
     db.execute("PRAGMA busy_timeout=15000")
@@ -156,7 +188,8 @@ def main() -> int:
                              for t, n in counts.items()), flush=True)
 
         # 1. 重摇 + 发布(dry-run 时不带 --write,只打印新阵容)
-        cmd = build_command(args, seed)
+        cmd = build_command(
+            args, seed, audit_json=audit_json, audit_report=audit_report)
         rc = subprocess.run(cmd, cwd=SERVER_ROOT).returncode
         if rc != 0:
             print(f"[ERR] wf_rogue_build 退出码 {rc},中止(进度未动)", flush=True)

@@ -1,6 +1,6 @@
 import { getDb } from "../../data/db"
 import { getCharacterRaces, getRaceKeyString } from "../quest/finish/race-utils"
-import { addMissionCounterSync, setMissionCounterMaxSync } from "./counters"
+import { addMissionCounterSync, setMissionCounterMaxSync, setMissionCounterMinSync } from "./counters"
 import type { BattleFinishMissionEvent } from "./events"
 import type { MissionCounterQuery } from "./counters"
 
@@ -79,6 +79,27 @@ function recordBattleMissionDimensionWrites(event: BattleFinishMissionEvent): vo
         scopeKey: "all",
         qualifier: { mode: "any" },
     })
+
+    if (event.clearTimeMs > 0) {
+        for (const mode of ["any", event.mode] as const) {
+            setMissionCounterMinSync(event.playerId, {
+                dimension: "battle.best_clear_time_ms",
+                scopeType: "lifetime",
+                scopeKey: "all",
+                qualifier: { mode },
+            }, event.clearTimeMs)
+        }
+    }
+    if ((event.score ?? 0) > 0) {
+        for (const mode of ["any", event.mode] as const) {
+            setMissionCounterMaxSync(event.playerId, {
+                dimension: "battle.max_score",
+                scopeType: "lifetime",
+                scopeKey: "all",
+                qualifier: { mode },
+            }, event.score!)
+        }
+    }
     add(event.playerId, {
         dimension: "battle.clear",
         scopeType: "lifetime",
@@ -99,12 +120,25 @@ function recordBattleMissionDimensionWrites(event: BattleFinishMissionEvent): vo
     })
 
     if (event.clearRank !== null && event.clearRank !== undefined) {
-        add(event.playerId, {
-            dimension: "battle.rank_clear",
-            scopeType: "lifetime",
-            scopeKey: "all",
-            qualifier: { rank: event.clearRank },
-        })
+        for (const mode of ["any", event.mode] as const) {
+            add(event.playerId, {
+                dimension: "battle.rank_clear",
+                scopeType: "lifetime",
+                scopeKey: "all",
+                qualifier: { rank: event.clearRank, mode },
+            })
+            add(event.playerId, {
+                dimension: "battle.quest_rank_clear",
+                scopeType: "lifetime",
+                scopeKey: "all",
+                qualifier: {
+                    questCategory: event.questCategory,
+                    questId: event.questId,
+                    rank: event.clearRank,
+                    mode,
+                },
+            })
+        }
     }
 
     if (event.statistics.clearPhase !== undefined) {
@@ -152,6 +186,22 @@ function recordBattleMissionDimensionWrites(event: BattleFinishMissionEvent): vo
             scopeKey: "all",
             qualifier: {},
         }, event.statistics.maxSkillChainCount)
+    }
+    if (event.statistics.damageDealMax > 0) {
+        setMissionCounterMaxSync(event.playerId, {
+            dimension: "battle.max_damage",
+            scopeType: "lifetime",
+            scopeKey: "all",
+            qualifier: {},
+        }, event.statistics.damageDealMax)
+    }
+    if (event.statistics.revivalCoffinMax > 0) {
+        setMissionCounterMaxSync(event.playerId, {
+            dimension: "battle.max_revival_coffin",
+            scopeType: "lifetime",
+            scopeKey: "all",
+            qualifier: {},
+        }, event.statistics.revivalCoffinMax)
     }
     if (event.mode === "multi" && event.role) {
         add(event.playerId, {

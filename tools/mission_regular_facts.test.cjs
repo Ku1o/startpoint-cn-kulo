@@ -45,6 +45,10 @@ const { getSnapshot, takeSnapshot } = require("../src/lib/mission/snapshot")
 const { getRankDegree } = require("../src/lib/stamina")
 const { getMergedPlayerDataSync } = require("../src/data/utils/player-data")
 const { replacePlayerDataSync } = require("../src/data/domains/player")
+const { getPlayerEquipmentListSync } = require("../src/data/domains/equipment")
+const { getMissionMasterDefinitions } = require("../src/lib/mission/master-data")
+const { isMissionEnabledAt } = require("../src/lib/mission/patterns")
+const { getQuestFromCategorySync } = require("../src/lib/assets")
 
 initializeDatabase()
 db = getDb()
@@ -340,6 +344,182 @@ assert.equal(getSnapshot(playerId, "daily").staminaUsed, replacedPlayer.totalSta
 assert.equal(getSnapshot(playerId, "daily").dashCount, replacedPlayer.totalDashes)
 assert.equal(getSnapshot(playerId, "weekly").loginDays, replacedPlayer.totalLoginDays)
 
-console.log("mission regular facts tests passed")
-cleanup()
-process.removeListener("exit", cleanup)
+async function verifyChapterMissions() {
+    const at = new Date("2026-08-28T04:00:00.000Z")
+    const chapterMissions = getMissionMasterDefinitions(1).filter(definition => (
+        Number(definition.row[2]) === 22 && isMissionEnabledAt(1, definition.missionId, at)
+    ))
+    const chapterAccount = insertAccountSync({
+        appId: "wf_cn", idpAlias: "", idpCode: "test",
+        idpId: `mission-chapters-${randomUUID()}`, status: "normal",
+    })
+    const chapterPlayerId = insertDefaultPlayerSync(chapterAccount.id).id
+    const tables = {
+        1: require("../assets/main_quest.json"),
+        4: require("../assets/ex_quest.json"),
+    }
+    const chapterQuestIds = (category, chapter) => Object.keys(tables[category])
+        .map(Number).filter(id => Math.floor(id / 1_000_000) === chapter)
+    const missing = new Map()
+    db.transaction(() => {
+        for (const [categoryText, table] of Object.entries(tables)) {
+            const category = Number(categoryText)
+            for (let chapter = 1; chapter <= 12; chapter++) {
+                const ids = chapterQuestIds(category, chapter)
+                assert.ok(ids.length > 0)
+                // Leave a story unfinished in MAIN where possible: the battle
+                // finale alone must not prove the entire chapter is complete.
+                const missingId = ids.find(id => table[id].sPlusRewardId === undefined) ?? ids[0]
+                missing.set(`${category}:${chapter}`, missingId)
+                for (const questId of ids) {
+                    assert.ok(getQuestFromCategorySync(category, questId))
+                    insertPlayerQuestProgressSync(chapterPlayerId, category, {
+                        questId, finished: questId !== missingId, clearRank: 5,
+                    })
+                }
+            }
+        }
+        // Neither a different category nor a made-up row may fill the gap.
+        insertPlayerQuestProgressSync(chapterPlayerId, 2, {
+            questId: missing.get("4:1"), finished: true, clearRank: 5,
+        })
+        insertPlayerQuestProgressSync(chapterPlayerId, 4, {
+            questId: 1999999, finished: true, clearRank: 5,
+        })
+    })()
+    const partialContext = regular.buildContext(chapterPlayerId, 1, at)
+    for (const definition of chapterMissions) {
+        assert.equal(regular.compute(definition.missionId, partialContext, 0), 0,
+            `未完成整章不得发奖: ${definition.pattern}`)
+    }
+
+    const { updatePlayerQuestProgressSync } = require("../src/data/domains/quest")
+    for (const [key, questId] of missing) {
+        if (!key.startsWith("1:")) continue
+        updatePlayerQuestProgressSync(chapterPlayerId, 1, { questId, finished: true })
+    }
+    const mainOnlyContext = regular.buildContext(chapterPlayerId, 1, at)
+    for (const definition of chapterMissions) {
+        assert.equal(regular.compute(definition.missionId, mainOnlyContext, 0),
+            Number(definition.row[7]) === 0 ? 1 : 0,
+            `普通和高难必须分别判定: ${definition.pattern}`)
+    }
+    for (const [key, questId] of missing) {
+        if (!key.startsWith("4:")) continue
+        updatePlayerQuestProgressSync(chapterPlayerId, 4, { questId, finished: true })
+    }
+    const completedContext = regular.buildContext(chapterPlayerId, 1, at)
+    for (const definition of chapterMissions) {
+        assert.equal(regular.compute(definition.missionId, completedContext, 0), 1,
+            `旧通关记录应恢复章节成就: ${definition.pattern}`)
+    }
+    assert.equal(regular.compute(71, partialContext, 1), 1, "不得回退已保存的成就进度")
+
+    const Fastify = require("fastify")
+    const { insertSessionWithToken } = require("../src/data/domains/session")
+    const { saveAccountDefaultPlayer } = require("../src/data/activeAccount")
+    saveAccountDefaultPlayer(chapterAccount.id, chapterPlayerId)
+    const viewerId = 886328028
+    await insertSessionWithToken({
+        token: String(viewerId), accountId: chapterAccount.id,
+        expires: new Date(Date.now() + 86400000), type: 2,
+    })
+    const app = Fastify({ logger: false })
+    app.addHook("onSend", (_request, reply, payload, done) => {
+        if (String(reply.getHeader("content-type") ?? "").startsWith("application/x-msgpack")
+            && typeof payload === "object") return done(null, JSON.stringify(payload))
+        done(null, payload)
+    })
+    await app.register(require("../src/routes/api/mission").default, { prefix: "/mission" })
+    try {
+        const openMissions = () => app.inject({
+            method: "POST", url: "/mission/get_mission_progress",
+            payload: { viewer_id: viewerId, api_count: 1, category_list: [{ category: 1 }] },
+        })
+        const first = await openMissions()
+        assert.equal(first.statusCode, 200, first.body)
+        const result = first.json().data
+        assert.equal(result.mission_info.length, 48, "应补发 12 章的 48 条现行章节成就")
+        for (const definition of chapterMissions) {
+            assert.equal(result.mission_progress_list.find(row => row.mission_id === definition.missionId)?.progress_value, 1)
+        }
+        const inventory = getPlayerEquipmentListSync(chapterPlayerId)
+        for (const id of [3080002, 3020003, 3060010]) {
+            assert.equal(inventory[id]?.stack, 0, `战士装备 ${id} 应获得一件`)
+        }
+        for (const id of [5030037, 5050033, 5010057, 5090028, 5100016, 5080029]) {
+            assert.equal(inventory[id]?.stack, 4, `星芥装备 ${id} 应获得五件`)
+        }
+        assert.equal(result.equipment_list.length, 9)
+        const second = await openMissions()
+        assert.equal(second.statusCode, 200)
+        assert.deepEqual(second.json().data.mission_info, [], "重复打开成就页不得重复发奖")
+        assert.deepEqual(getPlayerEquipmentListSync(chapterPlayerId), inventory)
+        assert.equal(regular.compute(71, regular.buildContext(playerId, 1, at), 0), 0,
+            "不同玩家不得复用章节完成状态")
+
+        const degree = getComputer(5)
+        const originalBuildContext = degree.buildContext
+        let degreeContextBuilds = 0
+        const degreeMissionScopes = []
+        degree.buildContext = (...args) => {
+            degreeContextBuilds++
+            degreeMissionScopes.push(args[3])
+            return originalBuildContext(...args)
+        }
+        try {
+            const clientDegree = await app.inject({
+                method: "POST", url: "/mission/update_mission_progress",
+                payload: {
+                    viewer_id: viewerId,
+                    api_count: 1,
+                    mission_param_list: [{
+                        progress_value: 1,
+                        mission_pattern: "character_detail_zoom_illust_for_1min_count",
+                    }],
+                },
+            })
+            assert.equal(clientDegree.statusCode, 200, clientDegree.body)
+            assert.deepEqual(degreeMissionScopes, [[47000]], "客户端称号事实只能结算匹配的称号")
+            assert.ok(clientDegree.json().data.degree_list.some(entry => entry.degree_id === 47000),
+                "客户端称号事实应在当前响应立即发放")
+
+            degreeContextBuilds = 0
+            degreeMissionScopes.length = 0
+            const openDegrees = () => app.inject({
+                method: "POST", url: "/mission/get_mission_progress",
+                payload: { viewer_id: viewerId, api_count: 1, category_list: [{ category: 5 }] },
+            })
+            const firstDegreePage = await openDegrees()
+            assert.equal(firstDegreePage.statusCode, 200, firstDegreePage.body)
+            assert.equal(degreeContextBuilds, 1, "称号页结算与返回必须复用同一次计算")
+
+            db.prepare("DELETE FROM players_degrees WHERE player_id = ? AND degree_id = ?")
+                .run(chapterPlayerId, 47000)
+            const repairedDegreePage = await openDegrees()
+            assert.equal(repairedDegreePage.statusCode, 200, repairedDegreePage.body)
+            assert.ok(repairedDegreePage.json().data.degree_list.some(entry => entry.degree_id === 47000),
+                "旧存档已领取但缺失的称号所有权必须自动修复")
+
+            const changesBeforeNoop = db.prepare("SELECT total_changes() AS value").get().value
+            const secondDegreePage = await openDegrees()
+            const changesAfterNoop = db.prepare("SELECT total_changes() AS value").get().value
+            assert.equal(secondDegreePage.statusCode, 200, secondDegreePage.body)
+            assert.equal(degreeContextBuilds, 3, "每次请求只允许构建一次称号上下文")
+            assert.equal(changesAfterNoop, changesBeforeNoop, "无进度或奖励变化时不得开启空写入")
+        } finally {
+            degree.buildContext = originalBuildContext
+        }
+    } finally {
+        await app.close()
+    }
+}
+
+verifyChapterMissions().then(() => {
+    console.log("mission regular facts tests passed (including 48 chapter missions and reward replay)")
+    cleanup()
+    process.removeListener("exit", cleanup)
+}).catch(error => {
+    console.error(error)
+    process.exitCode = 1
+})

@@ -31,8 +31,18 @@ type RawQuestTable = Record<string, RawBattleQuest>
 
 const rescueFragmentItemByCategoryAndQuest = new Map<string, number>()
 
+function canonicalRewardCategory(category: number): number {
+    const normalizedCategory = Math.trunc(category)
+    // The CN AdventEvent client posts category 7 for multiplayer battles,
+    // while older callers and the server enum use category 8. They share one
+    // quest master and therefore one rescue-fragment schedule.
+    return normalizedCategory === QuestCategory.ADVENT_EVENT_SINGLE
+        ? QuestCategory.ADVENT_EVENT_MULTI
+        : normalizedCategory
+}
+
 function rewardKey(category: number, questId: number): string {
-    return `${category}:${Math.abs(Math.trunc(questId))}`
+    return `${canonicalRewardCategory(category)}:${Math.abs(Math.trunc(questId))}`
 }
 
 function registerReward(category: number, questId: number, itemId: number): void {
@@ -185,6 +195,16 @@ export function getRescueFragmentReward(
         id: itemId,
         count: 10,
     } as Reward
+}
+
+export function getEligibleRescueFragmentReward(
+    category: number,
+    questId: number,
+    questAccomplished: boolean,
+    isFragmentRewardEligible: boolean,
+): Reward | null {
+    if (!questAccomplished || !isFragmentRewardEligible) return null
+    return getRescueFragmentReward(category, questId)
 }
 
 export function getRescueFragmentAdditionalReward(

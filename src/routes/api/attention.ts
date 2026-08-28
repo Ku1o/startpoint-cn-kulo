@@ -2,8 +2,6 @@ import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { getPlayerSync } from "../../data/domains/player"
 import { getPlayerCharacterSync } from "../../data/domains/character"
 import { getFollowRelationSync } from "../../data/domains/follow"
-import { getSession } from "../../data/domains/session"
-import { resolvePlayerIdSync } from "../../data/activeAccount";
 import { generateDataHeaders } from "../../utils";
 import { resolveAttentionEstablisherRank } from "../../lib/attention-rank"
 import { getFavoritePartySelectionSync } from "../../lib/profileFavorite"
@@ -13,6 +11,11 @@ import { takeRandomRecruitments } from "../../multi/recruitment"
 import { gameVerboseLog } from "../../lib/game-logging"
 import { isNewbiePlayerSync } from "../../lib/newbie"
 import { roomAdmissionRegistry } from "../../multi/room/admission"
+import { resolveMultiPlayerContext } from "../../multi/player-context"
+import { getAttentionConfig } from "../../multi/attention-config"
+import { isMode15RoomClosed } from "../../multi/mode15-room-gate"
+import { canJoinMode15RescueSync, isMode15Quest } from "../../lib/mode15-optional"
+import { embeddedMultiCoordinator } from "../../multi/coordinator/embedded"
 
 interface CheckBody {
     viewer_id: number
@@ -43,20 +46,12 @@ const routes = async (fastify: FastifyInstance) => {
             "message": "Invalid request body."
         })
 
-        const viewerIdSession = await getSession(viewerId.toString())
-        if (!viewerIdSession) return reply.status(400).send({
+        const ctx = await resolveMultiPlayerContext(viewerId)
+        if (!ctx) return reply.status(400).send({
             "error": "Bad Request",
-            "message": "Invalid viewer id."
+            "message": "Invalid viewer id or no player bound."
         })
-
-        // get player
-        const playerId = resolvePlayerIdSync(viewerIdSession.accountId)!
-        const player = playerId !== null ? getPlayerSync(playerId) : null
-
-        if (player === null) return reply.status(500).send({
-            "error": "Internal Server Error",
-            "message": "No players bound to account."
-        })
+        const { playerId } = ctx
 
         const requested = Number.isFinite(body.request_number) ? body.request_number : 3
         const holding = Number.isFinite(body.holding_number) ? body.holding_number : 0
@@ -65,10 +60,13 @@ const routes = async (fastify: FastifyInstance) => {
         const recruitments = takeRandomRecruitments(viewerId, availableSlots, recruitment => {
             const room = getRoom(recruitment.roomNumber)
             if (!room || room.host_viewer_id === viewerId) return false
-            if (room.is_npc_mode || room.raising_state === 4) return false
+            if (room.is_npc_mode || isMode15RoomClosed(room)) return false
+            if (["STARTING", "BATTLE"].includes(embeddedMultiCoordinator.ensureLifecycle(room).phase)) return false
+            if (isMode15Quest(room.category, room.quest_id)
+                && !canJoinMode15RescueSync(playerId, room.category, room.quest_id).allowed) return false
             if (!sessionManager.isHostOnline(room.host_viewer_id, room.room_number, room.lobby_generation)) return false
             if (isRoomWaitingForExpectedMember(room)) return false
-            const occupiedViewerIds = new Set<number>([room.host_viewer_id])
+            const occupiedViewerIds = new Set<number>(room.member_viewer_ids ?? [room.host_viewer_id])
             for (const client of sessionManager.getClientsInRoom(room.room_number, room.lobby_generation)) {
                 if (client.isBattle
                     || client.socket.destroyed
@@ -131,31 +129,8 @@ const routes = async (fastify: FastifyInstance) => {
                 viewer_id: viewerId
             }),
             "data": {
-                "config": {
-                    "attention_recruitment_interval_seconds": 15,
-                    "attention_recruitment_redeliver_limit": 20,
-                    "attention_polling_interval_seconds_normal": 10,
-                    "attention_polling_interval_seconds_battle": 15,
-                    "multi_attention_lifetime_seconds": 30,
-                    "contribution_score_rate_to_parasite": 0.25,
-                    "attention_log_interval_seconds": 600,
-                    "disable_finish_duration_seconds": 5,
-                    "disable_decline_count_seconds": 60,
-                    "disable_decline_count_limit": 14,
-                    "disable_decline_duration_seconds": 30,
-                    "disable_intent_disconnect_duration_seconds": 300,
-                    "disable_unintent_disconnect_duration_seconds": 5,
-                    "disable_remote_error_duration_seconds": 300,
-                    "attention_animation_time_seconds": 6,
-                    "disable_expire_count_limit": 4,
-                    "disable_expire_duration_seconds": 180,
-                    "polling_delay_normal_seconds_range_min": 1,
-                    "polling_delay_normal_seconds_range_max": 10,
-                    "polling_delay_battle_seconds_range_min": 1,
-                    "polling_delay_battle_seconds_range_max": 15,
-                    "return_attention_max_num": 3
-                },
-                "multi": multi,
+                "config": getAttentionConfig(),
+                "multi": multi.length > 0 ? multi : null,
             }
         })
     })
@@ -164,7 +139,7 @@ const routes = async (fastify: FastifyInstance) => {
     fastify.post("/action", async (request: FastifyRequest, reply: FastifyReply) => {
         const body = request.body as ActionBody
         const viewerId = body.viewer_id
-        if (!viewerId || isNaN(viewerId)) {
+        if (!await resolveMultiPlayerContext(viewerId)) {
             console.log(`[ATTENTION] action: 400 invalid viewer_id=${viewerId}`)
             return reply.status(400).send({
                 "error": "Bad Request", "message": "Invalid request body."
@@ -182,11 +157,11 @@ const routes = async (fastify: FastifyInstance) => {
         })
     })
 
-    // ---- logger (stub: NPC-only, discard logs) ----
+    // ---- logger ----
     fastify.post("/logger", async (request: FastifyRequest, reply: FastifyReply) => {
         const body = request.body as LoggerBody
         const viewerId = body.viewer_id
-        if (!viewerId || isNaN(viewerId)) {
+        if (!await resolveMultiPlayerContext(viewerId)) {
             console.log(`[ATTENTION] logger: 400 invalid viewer_id=${viewerId}`)
             return reply.status(400).send({
                 "error": "Bad Request", "message": "Invalid request body."

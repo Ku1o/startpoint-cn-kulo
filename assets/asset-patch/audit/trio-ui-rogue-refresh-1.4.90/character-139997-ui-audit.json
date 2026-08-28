@@ -1,0 +1,1528 @@
+{
+  "schema": "wf-character-ui-refresh/v1",
+  "version_edge": {
+    "from": "1.4.89",
+    "to": "1.4.90"
+  },
+  "character": {
+    "id": 139997,
+    "code": "resistance_princess_ex",
+    "label": "雷皇女 UI（现有内部角色：泳皇女 EX）"
+  },
+  "source": {
+    "path": "F:\\雷皇女ui.zip",
+    "bytes": 16825108,
+    "sha256": "a52ae1c45b3e22e9cea81df2192e253edf7e614aea7dc2828b8d8ea32d486169"
+  },
+  "selection": {
+    "selected_pngs": 25,
+    "excluded_files": [
+      {
+        "entry": "雷皇女ui/episode_banner_0.png",
+        "basename": "episode_banner_0.png",
+        "bytes": 159311,
+        "sha256": "fa9cb0a73c94bf4e26139fb66dc869759b8e45f25df1bbab2b4add3f26117104",
+        "reason": "story_asset_not_registered"
+      },
+      {
+        "entry": "雷皇女ui/full_shot_1440_1920_0_resized.png",
+        "basename": "full_shot_1440_1920_0_resized.png",
+        "bytes": 424651,
+        "sha256": "06aabf394e09a5f83f88a6dc7811aed3dc899231c34702fccb3737afe8473fcc",
+        "reason": "resized_preview"
+      },
+      {
+        "entry": "雷皇女ui/full_shot_1440_1920_1_resized.png",
+        "basename": "full_shot_1440_1920_1_resized.png",
+        "bytes": 393825,
+        "sha256": "3f5faa59de040bc2ce77b457641e0547fe3b7281067cf1cbc253eb5097d474ee",
+        "reason": "resized_preview"
+      },
+      {
+        "entry": "雷皇女ui/雷皇女常态.png",
+        "basename": "雷皇女常态.png",
+        "bytes": 3870444,
+        "sha256": "190001ce4f80fee98fd97f4f6344229bb661bf32a8b46587f8602b98985bad46",
+        "reason": "source_or_reference_art"
+      },
+      {
+        "entry": "雷皇女ui/雷皇女觉醒.png",
+        "basename": "雷皇女觉醒.png",
+        "bytes": 2598314,
+        "sha256": "cc2f5276a2e40d37f0416e11e6ba3eb79c9c2079b7683ab165f29813a97b6a46",
+        "reason": "source_or_reference_art"
+      }
+    ]
+  },
+  "pngs": [
+    {
+      "basename": "battle_control_board_0.png",
+      "logical": "character/resistance_princess_ex/ui/battle_control_board_0.png",
+      "root": "medium",
+      "member": "production/medium_upload/9d/e94b7affeac8dad9aea5f347bc32b7707540f9",
+      "incoming": {
+        "dimensions": [
+          104,
+          268
+        ],
+        "mode": "RGBA",
+        "alpha_bbox": [
+          0,
+          0,
+          104,
+          268
+        ],
+        "bytes": 50047,
+        "sha256": "cb5e508b6df792ca829beb49905580f1bbfc9d7ac8b3a8f800db8b519d670f11"
+      },
+      "stored": {
+        "bytes": 50047,
+        "sha256": "378398c738c5292b2359e6caf38fe20bc9e7f95982fdd2142ccf301b585066e7"
+      },
+      "current": {
+        "dimensions": [
+          104,
+          268
+        ],
+        "mode": "RGBA",
+        "alpha_bbox": [
+          0,
+          0,
+          104,
+          268
+        ],
+        "sha256": "c99ec74702bded27b8d3c4c0a800b50cd4c7b95b7dbb0bd61c926f7229775b4c",
+        "winning_source": {
+          "tail": "1.4.89",
+          "archive": "F:\\startpoint-cn-main\\assets\\asset-patch\\active\\pinball-1.4.79-1.4.80-1-swimex139997-author-g.zip",
+          "member": "production/medium_upload/9d/e94b7affeac8dad9aea5f347bc32b7707540f9",
+          "bytes": 67000,
+          "sha256": "c74217666c6020ff57dd8d4f0c88a01a1f17103738c010e0d82e63fe120f1b17"
+        }
+      },
+      "dimensions_changed": false
+    },
+    {
+      "basename": "battle_control_board_1.png",
+      "logical": "character/resistance_princess_ex/ui/battle_control_board_1.png",
+      "root": "medium",
+      "member": "production/medium_upload/ed/fed1d3daa95e9a6e9446dc71dd5fa8810b6970",
+      "incoming": {
+        "dimensions": [
+          104,
+          268
+        ],
+        "mode": "RGBA",
+        "alpha_bbox": [
+          0,
+          0,
+          104,
+          268
+        ],
+        "bytes": 52093,
+        "sha256": "6bfecd6bbfcd90baae9bdb9927b3d2c7711ecfa896bfe741e1dc7512ad2e5ad7"
+      },
+      "stored": {
+        "bytes": 52093,
+        "sha256": "16d0fc1512e317dcc4ac264b30690b228cea499eddbb5340abbc9e5c6b11fcf6"
+      },
+      "current": {
+        "dimensions": [
+          104,
+          268
+        ],
+        "mode": "RGBA",
+        "alpha_bbox": [
+          0,
+          0,
+          104,
+          268
+        ],
+        "sha256": "2b5a9c3e24d8fbb26838b9f5817cc21d9c39ec84ffd4f1cc96e12e18528ae534",
+        "winning_source": {
+          "tail": "1.4.89",
+          "archive": "F:\\startpoint-cn-main\\assets\\asset-patch\\active\\pinball-1.4.79-1.4.80-1-swimex139997-author-g.zip",
+          "member": "production/medium_upload/ed/fed1d3daa95e9a6e9446dc71dd5fa8810b6970",
+          "bytes": 69699,
+          "sha256": "2e091f86bda1669c74ad858255fc8f30285c48f4090b6961986b50b947a20946"
+        }
+      },
+      "dimensions_changed": false
+    },
+    {
+      "basename": "battle_member_status_0.png",
+      "logical": "character/resistance_princess_ex/ui/battle_member_status_0.png",
+      "root": "medium",
+      "member": "production/medium_upload/40/e2481b14468f966e370a3be8c4d946e6e1dcba",
+      "incoming": {
+        "dimensions": [
+          58,
+          58
+        ],
+        "mode": "RGBA",
+        "alpha_bbox": [
+          0,
+          0,
+          58,
+          58
+        ],
+        "bytes": 12799,
+        "sha256": "eda86c6136da141afdca5a3f13140323e289b3807c3dd1b75e4e40682931217f"
+      },
+      "stored": {
+        "bytes": 12799,
+        "sha256": "c5676242730484d39a6f5c8b8b4370d99a9839c28baa637efd1cfdad4c74acf0"
+      },
+      "current": {
+        "dimensions": [
+          58,
+          58
+        ],
+        "mode": "RGBA",
+        "alpha_bbox": [
+          0,
+          0,
+          58,
+          58
+        ],
+        "sha256": "c5ce181c35705ebd381d1ba3adba093f93dd49a62769953bf9c5a1c03f6e253a",
+        "winning_source": {
+          "tail": "1.4.89",
+          "archive": "F:\\startpoint-cn-main\\assets\\asset-patch\\active\\pinball-1.4.79-1.4.80-1-swimex139997-author-g.zip",
+          "member": "production/medium_upload/40/e2481b14468f966e370a3be8c4d946e6e1dcba",
+          "bytes": 9306,
+          "sha256": "17c747d9f61ca1e00cba6f3767f07ca17127fd65596cda773f5ae2f174e18133"
+        }
+      },
+      "dimensions_changed": false
+    },
+    {
+      "basename": "battle_member_status_1.png",
+      "logical": "character/resistance_princess_ex/ui/battle_member_status_1.png",
+      "root": "medium",
+      "member": "production/medium_upload/7d/3fb4020946f21cc8c60202af450c8e1a9f44b0",
+      "incoming": {
+        "dimensions": [
+          58,
+          58
+        ],
+        "mode": "RGBA",
+        "alpha_bbox": [
+          0,
+          0,
+          58,
+          58
+        ],
+        "bytes": 13090,
+        "sha256": "101ccd4bed93d145258f8a9408be6f57677e867ddaa517f822c1cfbd9a0465d8"
+      },
+      "stored": {
+        "bytes": 13090,
+        "sha256": "dd3780bbff151fec5a206429efd17be4e835d66557b2c6c1718c7ed3a8f4c304"
+      },
+      "current": {
+        "dimensions": [
+          58,
+          58
+        ],
+        "mode": "RGBA",
+        "alpha_bbox": [
+          0,
+          0,
+          58,
+          58
+        ],
+        "sha256": "0e481877d0427c7e5ec68762ab67beb5eb14fc8218aa9c46a35f1ffce7f41ff1",
+        "winning_source": {
+          "tail": "1.4.89",
+          "archive": "F:\\startpoint-cn-main\\assets\\asset-patch\\active\\pinball-1.4.79-1.4.80-1-swimex139997-author-g.zip",
+          "member": "production/medium_upload/7d/3fb4020946f21cc8c60202af450c8e1a9f44b0",
+          "bytes": 9401,
+          "sha256": "fab1f4649046e599e8891324262bc08defdefab290ea287978808064aac6883a"
+        }
+      },
+      "dimensions_changed": false
+    },
+    {
+      "basename": "cutin_skill_chain_0.png",
+      "logical": "character/resistance_princess_ex/ui/cutin_skill_chain_0.png",
+      "root": "medium",
+      "member": "production/medium_upload/41/c2a12c4a360fbb0012e73cda389ffbdc423f6f",
+      "incoming": {
+        "dimensions": [
+          276,
+          319
+        ],
+        "mode": "RGBA",
+        "alpha_bbox": [
+          0,
+          0,
+          276,
+          319
+        ],
+        "bytes": 168802,
+        "sha256": "6922b87764631496087f5912a934cf9fbf419f16391dc62f4fe2a0b113c0f75a"
+      },
+      "stored": {
+        "bytes": 168802,
+        "sha256": "da695b6030481e3b0ce9670f957f56e11f8cbd95d46c6699bb2639121c92e9c3"
+      },
+      "current": {
+        "dimensions": [
+          276,
+          319
+        ],
+        "mode": "RGBA",
+        "alpha_bbox": [
+          0,
+          0,
+          276,
+          319
+        ],
+        "sha256": "8c9aed24b73d8a594695366d55fe77ff786cc0f0c97d8be9bf7eeb89b1a6d173",
+        "winning_source": {
+          "tail": "1.4.89",
+          "archive": "F:\\startpoint-cn-main\\assets\\asset-patch\\active\\pinball-1.4.79-1.4.80-1-swimex139997-author-g.zip",
+          "member": "production/medium_upload/41/c2a12c4a360fbb0012e73cda389ffbdc423f6f",
+          "bytes": 178061,
+          "sha256": "02753f4b274103f67f4ac40dd8697e37f0a8f25eeeba4ec30325f7b3cd215247"
+        }
+      },
+      "dimensions_changed": false
+    },
+    {
+      "basename": "cutin_skill_chain_1.png",
+      "logical": "character/resistance_princess_ex/ui/cutin_skill_chain_1.png",
+      "root": "medium",
+      "member": "production/medium_upload/7e/9d5bd2e7cada7eac794990ed78730771d6a8a3",
+      "incoming": {
+        "dimensions": [
+          276,
+          319
+        ],
+        "mode": "RGBA",
+        "alpha_bbox": [
+          0,
+          0,
+          276,
+          319
+        ],
+        "bytes": 181668,
+        "sha256": "0a3442ff457e6c6e4dac7256f971fd912035aa0c428427eeac42557b4fb4a71a"
+      },
+      "stored": {
+        "bytes": 181668,
+        "sha256": "5a18f0ef02ad0e54242119228bed7ef1630db45b9242df6e23ab4d3034917f48"
+      },
+      "current": {
+        "dimensions": [
+          276,
+          319
+        ],
+        "mode": "RGBA",
+        "alpha_bbox": [
+          0,
+          0,
+          276,
+          319
+        ],
+        "sha256": "1ab77b26b5cc63c2d9b0e92d33bce73df6b610275662e8c280bd5faedb506bd5",
+        "winning_source": {
+          "tail": "1.4.89",
+          "archive": "F:\\startpoint-cn-main\\assets\\asset-patch\\active\\pinball-1.4.79-1.4.80-1-swimex139997-author-g.zip",
+          "member": "production/medium_upload/7e/9d5bd2e7cada7eac794990ed78730771d6a8a3",
+          "bytes": 190030,
+          "sha256": "5a1bb1b580c096ba0b6d6f9041f72d82d9d3f0735d380863790ec840d1d578cb"
+        }
+      },
+      "dimensions_changed": false
+    },
+    {
+      "basename": "full_shot_1440_1920_0.png",
+      "logical": "character/resistance_princess_ex/ui/full_shot_1440_1920_0.png",
+      "root": "medium",
+      "member": "production/medium_upload/f5/617cc61d06c5031c1f16d8a4024a66b1d64b5b",
+      "incoming": {
+        "dimensions": [
+          1659,
+          1535
+        ],
+        "mode": "RGBA",
+        "alpha_bbox": [
+          217,
+          0,
+          1439,
+          1535
+        ],
+        "bytes": 2837184,
+        "sha256": "2246fe4c63ab0b784ec2ac3d17d4c9b351cda3fcfc0b30142895b2cb88f692be"
+      },
+      "stored": {
+        "bytes": 2837184,
+        "sha256": "413870deec4d6d6cdce7564302b280a393a7a764ac597c4e78a053c0f8941451"
+      },
+      "current": {
+        "dimensions": [
+          1275,
+          1700
+        ],
+        "mode": "RGBA",
+        "alpha_bbox": [
+          0,
+          0,
+          1275,
+          1700
+        ],
+        "sha256": "1ff2afb21fc818d39352a994e07ac850a66b57c7aed3ed723d8f2a4182154312",
+        "winning_source": {
+          "tail": "1.4.89",
+          "archive": "F:\\startpoint-cn-main\\assets\\asset-patch\\active\\pinball-1.4.79-1.4.80-1-swimex139997-author-g.zip",
+          "member": "production/medium_upload/f5/617cc61d06c5031c1f16d8a4024a66b1d64b5b",
+          "bytes": 2539846,
+          "sha256": "d4bb12830a3516ec220375d9f665b8bf499a3fc255682df9c8f0566635f5a471"
+        }
+      },
+      "dimensions_changed": true
+    },
+    {
+      "basename": "full_shot_1440_1920_1.png",
+      "logical": "character/resistance_princess_ex/ui/full_shot_1440_1920_1.png",
+      "root": "medium",
+      "member": "production/medium_upload/99/9f8397c84355c69ed53c3fd2d672fb33759542",
+      "incoming": {
+        "dimensions": [
+          1632,
+          1681
+        ],
+        "mode": "RGBA",
+        "alpha_bbox": [
+          197,
+          19,
+          1433,
+          1659
+        ],
+        "bytes": 3023498,
+        "sha256": "ad58b27bba0b13601ba10a688d0287a6e1a2bde453a774df2063f0fbe37e557f"
+      },
+      "stored": {
+        "bytes": 3023498,
+        "sha256": "dda8195a5b67aa0d22d116197a195260daa7a730eb9009ea62132f605df988fc"
+      },
+      "current": {
+        "dimensions": [
+          1275,
+          1700
+        ],
+        "mode": "RGBA",
+        "alpha_bbox": [
+          0,
+          1,
+          1275,
+          1698
+        ],
+        "sha256": "0ffa7f58f6092754201dac296143a6bf8d968fe7fc7c45227e2b2250cbb8891d",
+        "winning_source": {
+          "tail": "1.4.89",
+          "archive": "F:\\startpoint-cn-main\\assets\\asset-patch\\active\\pinball-1.4.79-1.4.80-1-swimex139997-author-g.zip",
+          "member": "production/medium_upload/99/9f8397c84355c69ed53c3fd2d672fb33759542",
+          "bytes": 3298233,
+          "sha256": "5741ee3aede1e37cf172c224a3e5049571ceb31b2f5d0fa6d2aa3ebd4054472a"
+        }
+      },
+      "dimensions_changed": true
+    },
+    {
+      "basename": "illustration_setting_sprite_sheet.png",
+      "logical": "character/resistance_princess_ex/ui/illustration_setting_sprite_sheet.png",
+      "root": "medium",
+      "member": "production/medium_upload/59/2de072c56498d3950e6bce6896c22a803c828a",
+      "incoming": {
+        "dimensions": [
+          361,
+          789
+        ],
+        "mode": "RGBA",
+        "alpha_bbox": [
+          26,
+          0,
+          336,
+          785
+        ],
+        "bytes": 526009,
+        "sha256": "3e9a5e55be2ab8e15d9593b0d5f8cdba6a58e9468a37ba20da366a51aa7c5e6a"
+      },
+      "stored": {
+        "dimensions": [
+          364,
+          788
+        ],
+        "mode": "RGBA",
+        "alpha_bbox": [
+          26,
+          0,
+          339,
+          788
+        ],
+        "bytes": 488351,
+        "sha256": "b42aa6f52114d69a25af69eb28d897d688daaa104e0ec0fb59ff6d1f10e9273d",
+        "standard_png_sha256": "e814008929e2084e05f04da647381a2decf81c57bf1ef043b6399784f561008e",
+        "atlas_dimensions_match": true,
+        "atlas_form_order_match": true
+      },
+      "current": {
+        "dimensions": [
+          364,
+          788
+        ],
+        "mode": "RGBA",
+        "alpha_bbox": [
+          6,
+          0,
+          359,
+          788
+        ],
+        "sha256": "f17a595127b04c3d96091ef818738661fd12a94501dabe16e2bc48cf5979bee7",
+        "winning_source": {
+          "tail": "1.4.89",
+          "archive": "F:\\startpoint-cn-main\\assets\\asset-patch\\active\\pinball-1.4.79-1.4.80-1-swimex139997-author-g.zip",
+          "member": "production/medium_upload/59/2de072c56498d3950e6bce6896c22a803c828a",
+          "bytes": 557205,
+          "sha256": "707b8c50735abf21de0836316251b8a44005f119cac3fca84a4c1e9237438515"
+        }
+      },
+      "dimensions_changed": true
+    },
+    {
+      "basename": "skill_cutin_0.png",
+      "logical": "character/resistance_princess_ex/ui/skill_cutin_0.png",
+      "root": "medium",
+      "member": "production/medium_upload/fc/37d876186b5a85f73620afeecaff289a7e7c43",
+      "incoming": {
+        "dimensions": [
+          1024,
+          512
+        ],
+        "mode": "RGBA",
+        "alpha_bbox": [
+          0,
+          0,
+          1007,
+          512
+        ],
+        "bytes": 663672,
+        "sha256": "1cef3dc11877be41c319a80acc017f361c78010717f9a2bd57eee2917d690054"
+      },
+      "stored": {
+        "bytes": 663672,
+        "sha256": "d60a87b07abab17d6fec04406199b2f3f598a0f91cf962f74cf2bea3fd144663"
+      },
+      "current": {
+        "dimensions": [
+          1024,
+          512
+        ],
+        "mode": "RGBA",
+        "alpha_bbox": [
+          71,
+          96,
+          723,
+          405
+        ],
+        "sha256": "5f23e139f2e9eabf65e034b906fce3285a47656f4c155d6d430923760e545611",
+        "winning_source": {
+          "tail": "1.4.89",
+          "archive": "F:\\startpoint-cn-main\\assets\\asset-patch\\active\\pinball-1.4.79-1.4.80-1-swimex139997-author-g.zip",
+          "member": "production/medium_upload/fc/37d876186b5a85f73620afeecaff289a7e7c43",
+          "bytes": 471441,
+          "sha256": "206d6ce089786ba5d4d717627719433b7d7d07a2c3f8fb47e07a363225b192c3"
+        }
+      },
+      "dimensions_changed": false
+    },
+    {
+      "basename": "skill_cutin_1.png",
+      "logical": "character/resistance_princess_ex/ui/skill_cutin_1.png",
+      "root": "medium",
+      "member": "production/medium_upload/aa/3ff8cee0a1e6e57c9753202ab7ed575dda1910",
+      "incoming": {
+        "dimensions": [
+          1024,
+          512
+        ],
+        "mode": "RGBA",
+        "alpha_bbox": [
+          0,
+          0,
+          780,
+          512
+        ],
+        "bytes": 652485,
+        "sha256": "e167ed44b511e3d45fb8fd4c87928e853618a5e69a4c2b5baa540980e6c1575c"
+      },
+      "stored": {
+        "bytes": 652485,
+        "sha256": "e21728d483ae252156d51c32cdaf3f2c08226c894d712fd3e746e55ed69a2c6a"
+      },
+      "current": {
+        "dimensions": [
+          1024,
+          512
+        ],
+        "mode": "RGBA",
+        "alpha_bbox": [
+          0,
+          15,
+          728,
+          450
+        ],
+        "sha256": "fe6f8ce8e9fed52395e1207614744e5a633223b9743796f3effb7562403c60be",
+        "winning_source": {
+          "tail": "1.4.89",
+          "archive": "F:\\startpoint-cn-main\\assets\\asset-patch\\active\\pinball-1.4.79-1.4.80-1-swimex139997-author-g.zip",
+          "member": "production/medium_upload/aa/3ff8cee0a1e6e57c9753202ab7ed575dda1910",
+          "bytes": 758363,
+          "sha256": "fee9a54095ba80dc59c145a4b1ed4cf46a21eae4761728ea8565a0a94f015783"
+        }
+      },
+      "dimensions_changed": false
+    },
+    {
+      "basename": "square_0.png",
+      "logical": "character/resistance_princess_ex/ui/square_0.png",
+      "root": "medium",
+      "member": "production/medium_upload/ae/56fd539064f9168ebb12bb18598aa86415a205",
+      "incoming": {
+        "dimensions": [
+          212,
+          212
+        ],
+        "mode": "RGBA",
+        "alpha_bbox": [
+          0,
+          0,
+          212,
+          212
+        ],
+        "bytes": 102166,
+        "sha256": "f4382ff30fb96d4f75928802759242198848f44ed067575506dcd356031a4cfd"
+      },
+      "stored": {
+        "bytes": 102166,
+        "sha256": "f0d793c2a295ae93c01ee7eed15de439c226ade70b0a62b1bf59d3c8c9545a3c"
+      },
+      "current": {
+        "dimensions": [
+          212,
+          212
+        ],
+        "mode": "RGBA",
+        "alpha_bbox": [
+          0,
+          0,
+          212,
+          212
+        ],
+        "sha256": "85fe63a98d652bd2346e775e55c8511736e37c76214602dcd6d2b3dcbefe304c",
+        "winning_source": {
+          "tail": "1.4.89",
+          "archive": "F:\\startpoint-cn-main\\assets\\asset-patch\\active\\pinball-1.4.79-1.4.80-1-swimex139997-author-g.zip",
+          "member": "production/medium_upload/ae/56fd539064f9168ebb12bb18598aa86415a205",
+          "bytes": 101177,
+          "sha256": "98e9e7415a1a36d71f7e7f54d3b17693bda96fc5620bef48e2dca10ea84011bb"
+        }
+      },
+      "dimensions_changed": false
+    },
+    {
+      "basename": "square_1.png",
+      "logical": "character/resistance_princess_ex/ui/square_1.png",
+      "root": "medium",
+      "member": "production/medium_upload/b0/9c844588d1f6d8a34c175f05fe2431e6d112a7",
+      "incoming": {
+        "dimensions": [
+          212,
+          212
+        ],
+        "mode": "RGB",
+        "alpha_bbox": [
+          0,
+          0,
+          212,
+          212
+        ],
+        "bytes": 89366,
+        "sha256": "b17e025ed214cc6f1584ba8b7e9af4a788b5ee6ed5f0488d1750f48ca6ea6414"
+      },
+      "stored": {
+        "bytes": 89366,
+        "sha256": "a2382c315a6b245744ea30496792ce20838dca92a956333f9895f0ecfadc573d"
+      },
+      "current": {
+        "dimensions": [
+          212,
+          212
+        ],
+        "mode": "RGBA",
+        "alpha_bbox": [
+          0,
+          0,
+          212,
+          212
+        ],
+        "sha256": "f52dff45d9198cc6de67674d0d98bc7ba442c46981d0f99b806610d0d45c8337",
+        "winning_source": {
+          "tail": "1.4.89",
+          "archive": "F:\\startpoint-cn-main\\assets\\asset-patch\\active\\pinball-1.4.79-1.4.80-1-swimex139997-author-g.zip",
+          "member": "production/medium_upload/b0/9c844588d1f6d8a34c175f05fe2431e6d112a7",
+          "bytes": 103803,
+          "sha256": "1c33fab5cb80c5b78f7ebb724c00b836897dc83e89671bd358b1cb8b8197c5cc"
+        }
+      },
+      "dimensions_changed": false
+    },
+    {
+      "basename": "square_132_132_0.png",
+      "logical": "character/resistance_princess_ex/ui/square_132_132_0.png",
+      "root": "medium",
+      "member": "production/medium_upload/02/c7d297392ff0e04f3fece757afbfa41f974573",
+      "incoming": {
+        "dimensions": [
+          132,
+          132
+        ],
+        "mode": "RGBA",
+        "alpha_bbox": [
+          0,
+          0,
+          132,
+          132
+        ],
+        "bytes": 46407,
+        "sha256": "d8d4064c57459009b16b7b21f139dca8845a3caae130798b93fb6cd4f95e2bf1"
+      },
+      "stored": {
+        "bytes": 46407,
+        "sha256": "7535f62aa00f44b83db6da6b7fa6eb475d4196d24d8764fd264b1078f27f9b7f"
+      },
+      "current": {
+        "dimensions": [
+          132,
+          132
+        ],
+        "mode": "RGBA",
+        "alpha_bbox": [
+          0,
+          0,
+          132,
+          132
+        ],
+        "sha256": "7dcb304ede4291b0d23d3f6907f45c7ee4bcac857894d5a54c56344cb4c03924",
+        "winning_source": {
+          "tail": "1.4.89",
+          "archive": "F:\\startpoint-cn-main\\assets\\asset-patch\\active\\pinball-1.4.79-1.4.80-1-swimex139997-author-g.zip",
+          "member": "production/medium_upload/02/c7d297392ff0e04f3fece757afbfa41f974573",
+          "bytes": 43210,
+          "sha256": "b41e35e721bd8a92a6aa83ff70fc486e719ce8e19004a86d3238290d7e164eb0"
+        }
+      },
+      "dimensions_changed": false
+    },
+    {
+      "basename": "square_132_132_1.png",
+      "logical": "character/resistance_princess_ex/ui/square_132_132_1.png",
+      "root": "medium",
+      "member": "production/medium_upload/cc/4308dffc0f287825f9b80c7482a4794c07adcf",
+      "incoming": {
+        "dimensions": [
+          132,
+          132
+        ],
+        "mode": "RGBA",
+        "alpha_bbox": [
+          0,
+          0,
+          132,
+          132
+        ],
+        "bytes": 45843,
+        "sha256": "e89dcdb917da09ff63010567b22179719a2bcdb44e5233e138705a0769f66a31"
+      },
+      "stored": {
+        "bytes": 45843,
+        "sha256": "51df6d7dadd085e8a7e17dac992833a096243eae3ec740488eae663d6fc66f09"
+      },
+      "current": {
+        "dimensions": [
+          132,
+          132
+        ],
+        "mode": "RGBA",
+        "alpha_bbox": [
+          0,
+          0,
+          132,
+          132
+        ],
+        "sha256": "00a418bcb02d5f737c88d932bd4c6b0bc3ff6e2fd66879799f83d1439ac24b79",
+        "winning_source": {
+          "tail": "1.4.89",
+          "archive": "F:\\startpoint-cn-main\\assets\\asset-patch\\active\\pinball-1.4.79-1.4.80-1-swimex139997-author-g.zip",
+          "member": "production/medium_upload/cc/4308dffc0f287825f9b80c7482a4794c07adcf",
+          "bytes": 43192,
+          "sha256": "931be6b371fa5b58f90cfa5e3b9f57b1431d1d40de7bd80df0d2edbe9fa34d9f"
+        }
+      },
+      "dimensions_changed": false
+    },
+    {
+      "basename": "square_round_136_136_0.png",
+      "logical": "character/resistance_princess_ex/ui/square_round_136_136_0.png",
+      "root": "medium",
+      "member": "production/medium_upload/6d/7cf069df0183c22bbd985be12db423157b2025",
+      "incoming": {
+        "dimensions": [
+          136,
+          136
+        ],
+        "mode": "RGBA",
+        "alpha_bbox": [
+          0,
+          0,
+          136,
+          136
+        ],
+        "bytes": 48925,
+        "sha256": "4133e86105e1ba9d721a46e72fb426ae8c5b0c70f59ac6a83839945024506aa5"
+      },
+      "stored": {
+        "bytes": 48925,
+        "sha256": "40fffde1e7f50799b7e48179de0f1a516aaf8d679684fc52550cf17b6de9bf11"
+      },
+      "current": {
+        "dimensions": [
+          136,
+          136
+        ],
+        "mode": "RGBA",
+        "alpha_bbox": [
+          0,
+          0,
+          136,
+          136
+        ],
+        "sha256": "5c0a5246db105301d071702d4d218fb1d15276ef6b8a24ece4cc51386d218061",
+        "winning_source": {
+          "tail": "1.4.89",
+          "archive": "F:\\startpoint-cn-main\\assets\\asset-patch\\active\\pinball-1.4.79-1.4.80-1-swimex139997-author-g.zip",
+          "member": "production/medium_upload/6d/7cf069df0183c22bbd985be12db423157b2025",
+          "bytes": 44695,
+          "sha256": "10d41897e4dcac0b6cde528a94eac0bef29e25eda26ab018223e9196e2e0f78b"
+        }
+      },
+      "dimensions_changed": false
+    },
+    {
+      "basename": "square_round_136_136_1.png",
+      "logical": "character/resistance_princess_ex/ui/square_round_136_136_1.png",
+      "root": "medium",
+      "member": "production/medium_upload/50/edecefc67ea2766756d4d9bdde07bc2a65bfa6",
+      "incoming": {
+        "dimensions": [
+          136,
+          136
+        ],
+        "mode": "RGBA",
+        "alpha_bbox": [
+          0,
+          0,
+          136,
+          136
+        ],
+        "bytes": 48227,
+        "sha256": "56b8b561c2e70b543cbbc8b279c1e8377bbaeffcb35fc8990305c75234794452"
+      },
+      "stored": {
+        "bytes": 48227,
+        "sha256": "106ccbe177f9333762070c1e899fdc73677577a15fb382a3cdb43ecf662924f5"
+      },
+      "current": {
+        "dimensions": [
+          136,
+          136
+        ],
+        "mode": "RGBA",
+        "alpha_bbox": [
+          0,
+          0,
+          136,
+          136
+        ],
+        "sha256": "4c9a84a773271631abe6b7e4508d88d7ef93859b0a6e0bf4cdb55e76ca172a79",
+        "winning_source": {
+          "tail": "1.4.89",
+          "archive": "F:\\startpoint-cn-main\\assets\\asset-patch\\active\\pinball-1.4.79-1.4.80-1-swimex139997-author-g.zip",
+          "member": "production/medium_upload/50/edecefc67ea2766756d4d9bdde07bc2a65bfa6",
+          "bytes": 45112,
+          "sha256": "3daead75a90b9dbab36fe7567b4049c885916ec7dcbb6653ce7b42ee6dab85f9"
+        }
+      },
+      "dimensions_changed": false
+    },
+    {
+      "basename": "square_round_95_95_0.png",
+      "logical": "character/resistance_princess_ex/ui/square_round_95_95_0.png",
+      "root": "medium",
+      "member": "production/medium_upload/df/e45c6870b10edbe742c6c3de12cd9a64b08004",
+      "incoming": {
+        "dimensions": [
+          95,
+          95
+        ],
+        "mode": "RGBA",
+        "alpha_bbox": [
+          0,
+          0,
+          95,
+          95
+        ],
+        "bytes": 26312,
+        "sha256": "2177723ea9056532096f723c9c67db10f8c6464e108c304a8db77881bd4ae718"
+      },
+      "stored": {
+        "bytes": 26312,
+        "sha256": "8726f9b11cd80c2b2ced2553983ef656fe5f0685994f3fec9e776561f729de75"
+      },
+      "current": {
+        "dimensions": [
+          95,
+          95
+        ],
+        "mode": "RGBA",
+        "alpha_bbox": [
+          0,
+          0,
+          95,
+          95
+        ],
+        "sha256": "5542b617a33329f93ded021857c695d97532c4a856260b9e1d40f6e4fdf1d9cd",
+        "winning_source": {
+          "tail": "1.4.89",
+          "archive": "F:\\startpoint-cn-main\\assets\\asset-patch\\active\\pinball-1.4.79-1.4.80-1-swimex139997-author-g.zip",
+          "member": "production/medium_upload/df/e45c6870b10edbe742c6c3de12cd9a64b08004",
+          "bytes": 23274,
+          "sha256": "70813780e815723135f0263f319e73a965863c5775106d69596ddb21e9a31f49"
+        }
+      },
+      "dimensions_changed": false
+    },
+    {
+      "basename": "square_round_95_95_1.png",
+      "logical": "character/resistance_princess_ex/ui/square_round_95_95_1.png",
+      "root": "medium",
+      "member": "production/medium_upload/b7/78bfb0d317d1f9b2bf563c1c60548bc050c4fe",
+      "incoming": {
+        "dimensions": [
+          95,
+          95
+        ],
+        "mode": "RGBA",
+        "alpha_bbox": [
+          0,
+          0,
+          95,
+          95
+        ],
+        "bytes": 25872,
+        "sha256": "0190dbf34fdd16140b820bf98b5d545856ceb5c3ff4b50e666a3b5290b6dfae0"
+      },
+      "stored": {
+        "bytes": 25872,
+        "sha256": "ffd717c03f75ad7222fa7dd3c0a2e71c72e2892b367861ef50cfb46336f7652a"
+      },
+      "current": {
+        "dimensions": [
+          95,
+          95
+        ],
+        "mode": "RGBA",
+        "alpha_bbox": [
+          0,
+          0,
+          95,
+          95
+        ],
+        "sha256": "aad74085a9e4c2c97aa7a760477fbcae143991dfba23872d0eb8b065e5721137",
+        "winning_source": {
+          "tail": "1.4.89",
+          "archive": "F:\\startpoint-cn-main\\assets\\asset-patch\\active\\pinball-1.4.79-1.4.80-1-swimex139997-author-g.zip",
+          "member": "production/medium_upload/b7/78bfb0d317d1f9b2bf563c1c60548bc050c4fe",
+          "bytes": 23339,
+          "sha256": "251e5ec0510003c8c9479e7df06e8b4a9bcc06ccf3b49269211574f9069fe291"
+        }
+      },
+      "dimensions_changed": false
+    },
+    {
+      "basename": "thumb_level_up_0.png",
+      "logical": "character/resistance_princess_ex/ui/thumb_level_up_0.png",
+      "root": "medium",
+      "member": "production/medium_upload/1b/8ddbc7ee4294f32d02bef19f05315c24e651f2",
+      "incoming": {
+        "dimensions": [
+          252,
+          329
+        ],
+        "mode": "RGBA",
+        "alpha_bbox": [
+          0,
+          0,
+          252,
+          329
+        ],
+        "bytes": 179787,
+        "sha256": "020a958587e091272ef15e02b66b57d37d71ad2d2a91caee361b0581cd5a79fc"
+      },
+      "stored": {
+        "bytes": 179787,
+        "sha256": "85bf421f9596891f29b6206915dbe073d25df09db6f7190a832d96046c4c75a8"
+      },
+      "current": {
+        "dimensions": [
+          252,
+          329
+        ],
+        "mode": "RGBA",
+        "alpha_bbox": [
+          0,
+          0,
+          252,
+          329
+        ],
+        "sha256": "41d6751b8ba405d11c975d44d9a05418d7bb52a56d0eb01f80289806a1cc5b22",
+        "winning_source": {
+          "tail": "1.4.89",
+          "archive": "F:\\startpoint-cn-main\\assets\\asset-patch\\active\\pinball-1.4.79-1.4.80-1-swimex139997-author-g.zip",
+          "member": "production/medium_upload/1b/8ddbc7ee4294f32d02bef19f05315c24e651f2",
+          "bytes": 171880,
+          "sha256": "31b94ce623ed393d2cae4744ec47ceb1487362f230789e9c7277fc2d44313dcc"
+        }
+      },
+      "dimensions_changed": false
+    },
+    {
+      "basename": "thumb_level_up_1.png",
+      "logical": "character/resistance_princess_ex/ui/thumb_level_up_1.png",
+      "root": "medium",
+      "member": "production/medium_upload/95/31724ba0f8ad5002bd9d929a1fa282d78ac47c",
+      "incoming": {
+        "dimensions": [
+          252,
+          329
+        ],
+        "mode": "RGB",
+        "alpha_bbox": [
+          0,
+          0,
+          252,
+          329
+        ],
+        "bytes": 156344,
+        "sha256": "0e8143e28a3339e30823f407b774c72fef632dcc3d2e71d02ed0423ba81176ac"
+      },
+      "stored": {
+        "bytes": 156344,
+        "sha256": "51e3f4f7ed2811f741e677a2d77505aaa406836f26cb1dd2098b583e527b6250"
+      },
+      "current": {
+        "dimensions": [
+          252,
+          329
+        ],
+        "mode": "RGBA",
+        "alpha_bbox": [
+          0,
+          0,
+          252,
+          329
+        ],
+        "sha256": "a5bdaa1419227774a25ccc6d20b40a55ec7caeac71f6d00e00c559776bf47455",
+        "winning_source": {
+          "tail": "1.4.89",
+          "archive": "F:\\startpoint-cn-main\\assets\\asset-patch\\active\\pinball-1.4.79-1.4.80-1-swimex139997-author-g.zip",
+          "member": "production/medium_upload/95/31724ba0f8ad5002bd9d929a1fa282d78ac47c",
+          "bytes": 181299,
+          "sha256": "8cb6fcc5dee28615d26a002438503d71e2eccb7d2851aee27bdf775401ac7f84"
+        }
+      },
+      "dimensions_changed": false
+    },
+    {
+      "basename": "thumb_party_main_0.png",
+      "logical": "character/resistance_princess_ex/ui/thumb_party_main_0.png",
+      "root": "medium",
+      "member": "production/medium_upload/20/7ad87ac81fbc3be20506d53156a132bc207bea",
+      "incoming": {
+        "dimensions": [
+          186,
+          392
+        ],
+        "mode": "RGBA",
+        "alpha_bbox": [
+          0,
+          0,
+          186,
+          392
+        ],
+        "bytes": 165805,
+        "sha256": "ad3d82b106d4eb1762262e222870a8c501841998056e1445a406d7c447b172f4"
+      },
+      "stored": {
+        "bytes": 165805,
+        "sha256": "458e5cb0dc85c69d045c1cd85b5a759c6b7458b4a49ba16f401bbc2a5a48919f"
+      },
+      "current": {
+        "dimensions": [
+          186,
+          392
+        ],
+        "mode": "RGBA",
+        "alpha_bbox": [
+          0,
+          13,
+          186,
+          392
+        ],
+        "sha256": "fd9383b95493ac09869da554995466f880dd80603dea2d49561066568023aba8",
+        "winning_source": {
+          "tail": "1.4.89",
+          "archive": "F:\\startpoint-cn-main\\assets\\asset-patch\\active\\pinball-1.4.79-1.4.80-1-swimex139997-author-g.zip",
+          "member": "production/medium_upload/20/7ad87ac81fbc3be20506d53156a132bc207bea",
+          "bytes": 162848,
+          "sha256": "19610ef0bf05511ab8a42f16c40a4793898b8916fb043075acc856b4d1336358"
+        }
+      },
+      "dimensions_changed": false
+    },
+    {
+      "basename": "thumb_party_main_1.png",
+      "logical": "character/resistance_princess_ex/ui/thumb_party_main_1.png",
+      "root": "medium",
+      "member": "production/medium_upload/3f/2edf0da9a805db7aa0bee527caacd1521bb758",
+      "incoming": {
+        "dimensions": [
+          186,
+          392
+        ],
+        "mode": "RGB",
+        "alpha_bbox": [
+          0,
+          0,
+          186,
+          392
+        ],
+        "bytes": 154073,
+        "sha256": "957f6b7c98440470e58e9e3bc70e79b3122457058dd1af6f06b5e07b0caf4683"
+      },
+      "stored": {
+        "bytes": 154073,
+        "sha256": "0c302a9389b3af7352dd7b119cd1e86a9cb38c0d12285e456bf7ec372cca9780"
+      },
+      "current": {
+        "dimensions": [
+          186,
+          392
+        ],
+        "mode": "RGBA",
+        "alpha_bbox": [
+          0,
+          5,
+          186,
+          392
+        ],
+        "sha256": "2d190fd01bd4531ddd88b71af335ad8defde736faa3976a990c5a9f294aac350",
+        "winning_source": {
+          "tail": "1.4.89",
+          "archive": "F:\\startpoint-cn-main\\assets\\asset-patch\\active\\pinball-1.4.79-1.4.80-1-swimex139997-author-g.zip",
+          "member": "production/medium_upload/3f/2edf0da9a805db7aa0bee527caacd1521bb758",
+          "bytes": 169998,
+          "sha256": "113e0e60dff830ecf024f1f83c19c49dbbfdb845807db8c35c84e02948fa6183"
+        }
+      },
+      "dimensions_changed": false
+    },
+    {
+      "basename": "thumb_party_unison_0.png",
+      "logical": "character/resistance_princess_ex/ui/thumb_party_unison_0.png",
+      "root": "medium",
+      "member": "production/medium_upload/02/9a1472111f3a570e7e8292a4c0796c6db87a79",
+      "incoming": {
+        "dimensions": [
+          144,
+          188
+        ],
+        "mode": "RGBA",
+        "alpha_bbox": [
+          0,
+          0,
+          144,
+          188
+        ],
+        "bytes": 68813,
+        "sha256": "fcf6abc3964a23bfb30778d4e1df604b10f2a090fcded64b225cea0679e34c96"
+      },
+      "stored": {
+        "bytes": 68813,
+        "sha256": "4e9be3651cd858c9184e1951dbd9b55ece1772d9b37e3e29befe1b069182a026"
+      },
+      "current": {
+        "dimensions": [
+          144,
+          188
+        ],
+        "mode": "RGBA",
+        "alpha_bbox": [
+          0,
+          0,
+          144,
+          188
+        ],
+        "sha256": "b1635535110818b611c988b5356dab8801c09a0f26906d9f46b394e877bdf33b",
+        "winning_source": {
+          "tail": "1.4.89",
+          "archive": "F:\\startpoint-cn-main\\assets\\asset-patch\\active\\pinball-1.4.79-1.4.80-1-swimex139997-author-g.zip",
+          "member": "production/medium_upload/02/9a1472111f3a570e7e8292a4c0796c6db87a79",
+          "bytes": 66831,
+          "sha256": "26ee43dc3be0a1cd44106c9cee9d5d3433683c988c56b53ad596c485b6be855e"
+        }
+      },
+      "dimensions_changed": false
+    },
+    {
+      "basename": "thumb_party_unison_1.png",
+      "logical": "character/resistance_princess_ex/ui/thumb_party_unison_1.png",
+      "root": "medium",
+      "member": "production/medium_upload/5c/542bb4cdf0b7a4b8dacc74a9134662ae8efe8c",
+      "incoming": {
+        "dimensions": [
+          144,
+          188
+        ],
+        "mode": "RGB",
+        "alpha_bbox": [
+          0,
+          0,
+          144,
+          188
+        ],
+        "bytes": 61548,
+        "sha256": "3106517b41bda4127a7aba536b0d41f033948766ef6b7b6e9f97b77c7176f5eb"
+      },
+      "stored": {
+        "bytes": 61548,
+        "sha256": "c86da380f52db3335d51d87e169e4347c296c5077ad572188ce598615c379ddb"
+      },
+      "current": {
+        "dimensions": [
+          144,
+          188
+        ],
+        "mode": "RGBA",
+        "alpha_bbox": [
+          0,
+          0,
+          144,
+          188
+        ],
+        "sha256": "7b33d4302cb6dbff02245914fb333f4a7b79032eacd99ad15892e5cf84e923a1",
+        "winning_source": {
+          "tail": "1.4.89",
+          "archive": "F:\\startpoint-cn-main\\assets\\asset-patch\\active\\pinball-1.4.79-1.4.80-1-swimex139997-author-g.zip",
+          "member": "production/medium_upload/5c/542bb4cdf0b7a4b8dacc74a9134662ae8efe8c",
+          "bytes": 67045,
+          "sha256": "9912305d8384716b5e69f861c325eed41e87819ebaac66812a023abd4e0abf5f"
+        }
+      },
+      "dimensions_changed": false
+    }
+  ],
+  "atfs": [
+    {
+      "form": 0,
+      "logical": "character/resistance_princess_ex/ui/skill_cutin_0.atf.deflate",
+      "pair": {
+        "w": 1024,
+        "h": 512,
+        "mips": 11,
+        "android_slot": 2,
+        "ios_slot": 3
+      },
+      "references": {
+        "android": {
+          "tail": "1.4.89",
+          "archive": "F:\\startpoint-cn-main\\assets\\asset-patch\\active\\pinball-1.4.79-1.4.80-1-swimex139997-author-g.zip",
+          "member": "production/android_upload/4b/2df74eaf0c9819ed298bc0fba8a684d282ce4f",
+          "bytes": 134052,
+          "sha256": "77d94db0a5079f34ce223b127fef6395d96f94344a080075dd33b47e12051a23"
+        },
+        "ios": {
+          "tail": "1.4.89",
+          "archive": "F:\\startpoint-cn-main\\.cdn\\cn\\archive-ios-diff\\pinball-1.4.83-1.4.84-2-bbbc92be.zip",
+          "member": "production/ios_upload/4b/2df74eaf0c9819ed298bc0fba8a684d282ce4f",
+          "bytes": 150532,
+          "sha256": "30a60d1a71fd58cda0c2eed055357171681a7f9b188192d8306518952e300893"
+        }
+      },
+      "outputs": {
+        "android": {
+          "member": "production/android_upload/4b/2df74eaf0c9819ed298bc0fba8a684d282ce4f",
+          "bytes": 201222,
+          "sha256": "956fd99fb314ec8563957b9f590a02932a5686afeb0c59a5857e13ef975ca34f"
+        },
+        "ios": {
+          "member": "production/ios_upload/4b/2df74eaf0c9819ed298bc0fba8a684d282ce4f",
+          "bytes": 256039,
+          "sha256": "ae545586ca8abb01f92c67eda5587463d25ef252858fb7661de29ea4e0f7b2ea"
+        }
+      }
+    },
+    {
+      "form": 1,
+      "logical": "character/resistance_princess_ex/ui/skill_cutin_1.atf.deflate",
+      "pair": {
+        "w": 1024,
+        "h": 512,
+        "mips": 11,
+        "android_slot": 2,
+        "ios_slot": 3
+      },
+      "references": {
+        "android": {
+          "tail": "1.4.89",
+          "archive": "F:\\startpoint-cn-main\\assets\\asset-patch\\active\\pinball-1.4.79-1.4.80-1-swimex139997-author-g.zip",
+          "member": "production/android_upload/c6/bf729bf5b3a1072a08971712317d7c3b15a277",
+          "bytes": 228747,
+          "sha256": "c0e0135e777427b0229470c2e870518bd804bb5a80881b90083dd976ee8cf4a3"
+        },
+        "ios": {
+          "tail": "1.4.89",
+          "archive": "F:\\startpoint-cn-main\\.cdn\\cn\\archive-ios-diff\\pinball-1.4.83-1.4.84-2-bbbc92be.zip",
+          "member": "production/ios_upload/c6/bf729bf5b3a1072a08971712317d7c3b15a277",
+          "bytes": 249787,
+          "sha256": "fe526abc1ce8d66b722078a8336b2a92f403ed1cdbd5b558a049616bb5c9dfb3"
+        }
+      },
+      "outputs": {
+        "android": {
+          "member": "production/android_upload/c6/bf729bf5b3a1072a08971712317d7c3b15a277",
+          "bytes": 166645,
+          "sha256": "1528cec956da4a6fb6039b39ba5eb4401ed316820cd3875e6a291d437d3f88b2"
+        },
+        "ios": {
+          "member": "production/ios_upload/c6/bf729bf5b3a1072a08971712317d7c3b15a277",
+          "bytes": 211825,
+          "sha256": "ef0db432596c06e6cad6e93400df27854038d2d4858d775843722391efed627f"
+        }
+      }
+    }
+  ],
+  "position": {
+    "method": "content-box center preservation + old/new iris-centroid anchor transfer",
+    "forms": {
+      "0": {
+        "old_image": "364,206,1275,1700",
+        "new_image": "172,289,1659,1535",
+        "old_attribute": "1000,1000,1,1004,486",
+        "new_attribute": "1000,1000,1,1002,510",
+        "old_trim": "364,206,2000,2000",
+        "new_trim": "172,289,2000,2000",
+        "iris_transfer": {
+          "old_anchor_relative": [
+            640,
+            280
+          ],
+          "new_anchor_relative": [
+            830,
+            221
+          ],
+          "new_anchor_canvas": [
+            1002,
+            510
+          ]
+        }
+      },
+      "1": {
+        "old_image": "373,231,1275,1700",
+        "new_image": "195,241,1632,1681",
+        "old_attribute": "1000,1000,1,1021,486",
+        "new_attribute": "1000,1000,1,1021,504",
+        "old_trim": "373,231,2000,2000",
+        "new_trim": "195,241,2000,2000",
+        "iris_transfer": {
+          "old_anchor_relative": [
+            648,
+            255
+          ],
+          "new_anchor_relative": [
+            826,
+            263
+          ],
+          "new_anchor_canvas": [
+            1021,
+            504
+          ]
+        }
+      }
+    },
+    "tables": [
+      {
+        "table": "character_image",
+        "logical": "master/generated/character_image.orderedmap",
+        "member": "production/upload/3e/b411841802398d5b21d422579f2eaa65d30c0e",
+        "current_sha256": "d0c51dbb1865cdf757ddb70a5a188b77a253d4421a0d32cb80fb14885c785b4e",
+        "new_sha256": "b71b2d513e21edb64cbb8e263801250cd2d8b149a0e16cc5923d32c0f3ebf085",
+        "rows": {
+          "0": [
+            "364,206,1275,1700",
+            "172,289,1659,1535"
+          ],
+          "1": [
+            "373,231,1275,1700",
+            "195,241,1632,1681"
+          ]
+        }
+      },
+      {
+        "table": "full_shot_image_attribute",
+        "logical": "master/character/full_shot_image_attribute.orderedmap",
+        "member": "production/upload/b9/132d27178d27f9d91df89fc47e106bbaf2d5b5",
+        "current_sha256": "fb54e920babc7b21485101b059606d29c564aa80d7586b12bf33ad1f58f5f7b3",
+        "new_sha256": "4c26a920c92c916be0d1ffaa9251b0feead76b1035ff65f5a4abb75988b41063",
+        "rows": {
+          "0": [
+            "1000,1000,1,1004,486",
+            "1000,1000,1,1002,510"
+          ],
+          "1": [
+            "1000,1000,1,1021,486",
+            "1000,1000,1,1021,504"
+          ]
+        }
+      },
+      {
+        "table": "trimmed_image",
+        "logical": "master/generated/trimmed_image.orderedmap",
+        "member": "production/upload/fb/ab4344a7456dca88f3ce06f01208922f37e395",
+        "current_sha256": "bb8ca4b0cdbc78f5de33b4092239e64da51c882171094cdc3ba2172a8238eb3f",
+        "new_sha256": "4785adbf3754c7762329019e2cdaffeee85a5b2a146d9c3345fb93642b95321d",
+        "rows": {
+          "character/resistance_princess_ex/ui/full_shot_1440_1920_0": [
+            "364,206,2000,2000",
+            "172,289,2000,2000"
+          ],
+          "character/resistance_princess_ex/ui/full_shot_1440_1920_1": [
+            "373,231,2000,2000",
+            "195,241,2000,2000"
+          ]
+        }
+      }
+    ],
+    "unrelated_rows_preserved_byte_for_byte": true
+  },
+  "illustration_atlas_alignment": {
+    "sheet_logical": "character/resistance_princess_ex/ui/illustration_setting_sprite_sheet.png",
+    "atlas_logical": "character/resistance_princess_ex/ui/illustration_setting_sprite_sheet.atlas.amf3.deflate",
+    "atlas_member": "production/upload/df/6823cc5477d4fb3a0fc4bd4b108b04345d8a4e",
+    "atlas_sha256": "1669a97888318cfa3bb94e4f0b0e0b291949bf4358d35487433392d827706adf",
+    "atlas_unchanged": true,
+    "source_sheet_size": [
+      361,
+      789
+    ],
+    "source_form_boxes": {
+      "0": [
+        0,
+        0,
+        361,
+        386
+      ],
+      "1": [
+        0,
+        393,
+        361,
+        785
+      ]
+    },
+    "source_vertical_order": [
+      "form_0_initial",
+      "form_1_awakened"
+    ],
+    "atlas_vertical_order": [
+      "form_1_awakened",
+      "form_0_initial"
+    ],
+    "output_sheet_size": [
+      364,
+      788
+    ],
+    "atlas_records": [
+      {
+        "form": 0,
+        "name": "character/resistance_princess_ex/ui/full_shot_illustration_setting_0",
+        "role": "initial",
+        "x": 0,
+        "y": 406,
+        "w": 364,
+        "h": 382
+      },
+      {
+        "form": 1,
+        "name": "character/resistance_princess_ex/ui/full_shot_illustration_setting_1",
+        "role": "awakened",
+        "x": 0,
+        "y": 0,
+        "w": 363,
+        "h": 405
+      }
+    ],
+    "correction": "map each source form into its locked atlas cell and resample to the cell geometry",
+    "output_standard_png_sha256": "e814008929e2084e05f04da647381a2decf81c57bf1ef043b6399784f561008e",
+    "output_stored_sha256": "b42aa6f52114d69a25af69eb28d897d688daaa104e0ec0fb59ff6d1f10e9273d",
+    "only_archive_member_payload_changed": "production/medium_upload/59/2de072c56498d3950e6bce6896c22a803c828a",
+    "other_archive_member_payloads_unchanged": 125,
+    "visual_reviewed": true,
+    "qa_file": "qa-139997-illustration-order-fixed.png"
+  },
+  "archive": {
+    "name": "pinball-1.4.89-1.4.90-1-0827-trio-ui-refresh.zip",
+    "base_bytes": 31218229,
+    "base_sha256": "d18cf53223925097f336a856e29d26629e8ee8f3842f882fbd0cc1c0ec38ff38",
+    "base_members": 97,
+    "new_bytes": 41384007,
+    "new_sha256": "827d8550fe14400df26c5ff4fc2f3309b8a9cea15d6203d35b153dfb64529cba",
+    "new_members": 126,
+    "added_members": 29,
+    "overridden_existing_members": 3,
+    "root_counts": {
+      "android_upload": 8,
+      "ios_upload": 8,
+      "medium_upload": 100,
+      "upload": 10
+    },
+    "readback_exact": true
+  },
+  "summary": {
+    "selected_pngs": 25,
+    "excluded_residual_files": 5,
+    "dimension_changed_pngs": 3,
+    "android_atfs": 2,
+    "ios_atfs": 2,
+    "position_table_rows": 6,
+    "all_selected_pngs_changed": true,
+    "fixed_dimensions_match": true,
+    "illustration_setting_form_order_corrected": true,
+    "illustration_setting_atlas_dimensions_match": true,
+    "runtime_mirror_modified": false,
+    "qa_contact_sheet": "qa-139997-current-vs-incoming.png",
+    "illustration_order_qa": "qa-139997-illustration-order-fixed.png"
+  }
+}

@@ -77,6 +77,21 @@ export function setMissionCounterMaxSync(playerId: number, query: MissionCounter
     return getMissionCounterValueSync(playerId, query)
 }
 
+export function setMissionCounterMinSync(playerId: number, query: MissionCounterQuery, value: number): number {
+    if (!Number.isFinite(value) || value <= 0) return getMissionCounterValueSync(playerId, query)
+    const counterKey = makeMissionCounterKey(query)
+    const qualifierJson = serializeMissionCounterQualifier(query.qualifier)
+    getDb().prepare(`
+    INSERT INTO players_mission_counters
+        (player_id, counter_key, dimension, scope_type, scope_key, qualifier_json, value, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    ON CONFLICT(player_id, counter_key) DO UPDATE SET
+        value = MIN(value, excluded.value),
+        updated_at = excluded.updated_at
+    `).run(playerId, counterKey, query.dimension, query.scopeType, query.scopeKey, qualifierJson, value, nowSql())
+    return getMissionCounterValueSync(playerId, query)
+}
+
 export function getMissionCounterValueSync(playerId: number, query: MissionCounterQuery): number {
     const counterKey = makeMissionCounterKey(query)
     const row = getDb().prepare(`
@@ -84,6 +99,23 @@ export function getMissionCounterValueSync(playerId: number, query: MissionCount
     WHERE player_id = ? AND counter_key = ?
     `).get(playerId, counterKey) as { value: number } | undefined
     return row?.value ?? 0
+}
+
+/** Loads several exact counter keys with one SQLite statement. */
+export function getMissionCounterValuesSync(
+    playerId: number,
+    queries: readonly MissionCounterQuery[],
+): Map<string, number> {
+    const counterKeys = [...new Set(queries.map(makeMissionCounterKey))]
+    if (counterKeys.length === 0) return new Map()
+    const placeholders = counterKeys.map(() => "?").join(", ")
+    const rows = getDb().prepare(`
+    SELECT counter_key, value FROM players_mission_counters
+    WHERE player_id = ? AND counter_key IN (${placeholders})
+    `).all(playerId, ...counterKeys) as { counter_key: string, value: number }[]
+    const values = new Map(counterKeys.map(key => [key, 0]))
+    for (const row of rows) values.set(row.counter_key, Number(row.value) || 0)
+    return values
 }
 
 export function getMissionCounterSnapshotValueSync(playerId: number, periodType: MissionCounterPeriod, query: MissionCounterQuery): number {

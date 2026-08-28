@@ -1,6 +1,7 @@
 import type { FastifyInstance, FastifyRequest } from "fastify"
 import { monitorEventLoopDelay, performance } from "perf_hooks"
 import { drainSettlementPerformanceSummary } from "./settlement-performance"
+import { drainRoomAdmissionPerformanceSummary } from "../multi/room/admission"
 
 interface RouteTiming {
     count: number
@@ -71,11 +72,13 @@ export function installRoutePerformanceMonitor(fastify: FastifyInstance): void {
         const loopMaxMs = eventLoopDelay.max / 1_000_000
         eventLoopDelay.reset()
         const phases = drainSettlementPerformanceSummary()
-        if (requestCount === 0 && phases === "none") return
+        const admission = drainRoomAdmissionPerformanceSummary()
+        if (requestCount === 0 && phases === "none" && admission === "none") return
         console.warn(
             `[PERF] interval=${intervalMs}ms requests=${requestCount} cpu=${cpuMs.toFixed(0)}ms `
             + `elu=${(elu.utilization * 100).toFixed(1)}% loopP99=${loopP99Ms.toFixed(1)}ms `
-            + `loopMax=${loopMaxMs.toFixed(1)}ms top=${top || "none"} phases=${phases}`,
+            + `loopMax=${loopMaxMs.toFixed(1)}ms top=${top || "none"}`
+            + ` phases=${phases} admission=${admission}`,
         )
     }, intervalMs)
     timer.unref()

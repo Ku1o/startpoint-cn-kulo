@@ -24,9 +24,13 @@ assert.strictEqual(registry.reserve(room, generation, 300, host, 3, 100), true);
 assert.strictEqual(registry.getOccupancy(room, generation, host, 100), 3);
 assert.strictEqual(registry.reserve(room, generation, 400, host, 3, 100), false);
 
-// Consuming a reservation at TCP admission and adding that viewer to the live
-// roster keeps the room full without double-counting the same player.
-assert.strictEqual(registry.consume(room, generation, 200, 100), true);
+// Claiming and committing a reservation at TCP admission, then adding that
+// viewer to the live roster, keeps the room full without double-counting it.
+assert.deepStrictEqual(
+  registry.claim(room, generation, 200, "connection-200", 100),
+  { ok: true, kind: "claimed" },
+);
+assert.strictEqual(registry.commit(room, generation, 200, "connection-200"), true);
 assert.strictEqual(registry.getOccupancy(room, generation, [100, 200], 100), 3);
 assert.strictEqual(registry.reserve(room, generation, 400, [100, 200], 3, 100), false);
 

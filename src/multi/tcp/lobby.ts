@@ -1,6 +1,6 @@
 import * as net from "net"
 import { sessionManager, SessionClient } from "../state/SessionManager"
-import { getRoom } from "../room/manager"
+import { addRoomMember, getRoom, removeRoomMember } from "../room/manager"
 import { NpcMateProvider, selectStableNpcSlots } from "../npc/controller"
 import { stopRandomRecruitment } from "../recruitment"
 import { gameVerboseLog } from "../../lib/game-logging"
@@ -16,6 +16,10 @@ import {
 import { getPlayerSync } from "../../data/domains/player"
 import { embeddedMultiCoordinator } from "../coordinator/embedded"
 import { handleAutoplayModeChange } from "./autoplay-mode"
+import {
+    recordRoomAdmissionDenial,
+    roomAdmissionRegistry,
+} from "../room/admission"
 
 const NPC_JOIN_DELAY_MS = parseInt(process.env.NPC_JOIN_DELAY_MS || "2000")
 const NPC_READY_DELAY_MS = parseInt(process.env.NPC_READY_DELAY_MS || "500")
@@ -218,6 +222,7 @@ function synchronizeRoomRoster(
         room.mates = roster.map(mate => ({
             viewer_id: mate.viewerId ?? null,
             com_id: mate.comId ?? 0,
+            player_id: mate.playerId ?? undefined,
         }))
     }
     if (broadcast) sessionManager.broadcastToRoom(roomNumber, [1, [1, roster]])
@@ -320,6 +325,7 @@ function preflightBattleRoster(room: any, members: any[], roomGeneration = room.
     room.mates = eligibleMembers.map(member => ({
         viewer_id: member.viewerId ?? null,
         com_id: member.comId ?? 0,
+        player_id: member.playerId ?? undefined,
     }))
     return { members: eligibleMembers, rejectedViewerIds }
 }
@@ -669,6 +675,7 @@ function scheduleRematchRosterCleanup(roomNumber: string): void {
                 .filter(viewerId => !liveViewerIds.has(viewerId))
 
             if (missingViewerIds.length > 0) {
+                for (const viewerId of missingViewerIds) removeRoomMember(roomNumber, viewerId)
                 currentRoom.expected_real_viewer_ids = currentRoom.expected_real_viewer_ids
                     .filter(viewerId => liveViewerIds.has(viewerId))
                 currentRoom.mates = currentRoom.mates
@@ -701,6 +708,48 @@ export function scheduleRematchDisconnectCleanup(roomNumber: string): void {
     scheduleRematchRosterCleanup(roomNumber)
 }
 
+function rejectClaimedAdmission(
+    socket: net.Socket,
+    client: SessionClient,
+    reason: string,
+): void {
+    recordRoomAdmissionDenial(reason)
+    roomAdmissionRegistry.releaseClaim(
+        client.roomNumber,
+        client.admissionGeneration ?? client.roomGeneration,
+        client.viewerId,
+        client.connectionId,
+    )
+    client.admissionClaimed = false
+    sessionManager.sendJson(socket, [1, [6, "multibattle_room_dismissed"]])
+    sessionManager.removeClient(client)
+    socket.end()
+    console.warn(
+        `[LOBBY] claimed admission rejected: viewer=${client.viewerId}`
+        + ` room=${client.roomNumber} reason=${reason}`,
+    )
+}
+
+function commitClaimedAdmission(socket: net.Socket, client: SessionClient): boolean {
+    if (!client.admissionClaimed) {
+        return client.playerId !== null
+            && addRoomMember(client.roomNumber, client.viewerId, client.playerId)
+    }
+    const committed = roomAdmissionRegistry.commit(
+        client.roomNumber,
+        client.admissionGeneration ?? client.roomGeneration,
+        client.viewerId,
+        client.connectionId,
+    )
+    client.admissionClaimed = false
+    if (committed) {
+        return client.playerId !== null
+            && addRoomMember(client.roomNumber, client.viewerId, client.playerId)
+    }
+    rejectClaimedAdmission(socket, client, "claim_lost_before_enter")
+    return false
+}
+
 function handleEnter(socket: net.Socket, client: SessionClient, data: any[]): void {
     const ed = data[1] ?? {}
     if (!client.yourself) return
@@ -727,6 +776,20 @@ function handleEnter(socket: net.Socket, client: SessionClient, data: any[]): vo
         socket.end()
         return
     }
+    if (client.admissionClaimed) {
+        const admissionGeneration = client.admissionGeneration ?? client.roomGeneration
+        const roomPhase = embeddedMultiCoordinator.ensureLifecycle(room).phase
+        if (admissionGeneration !== room.lobby_generation || roomPhase !== "LOBBY") {
+            rejectClaimedAdmission(
+                socket,
+                client,
+                admissionGeneration !== room.lobby_generation
+                    ? "generation_changed_before_enter"
+                    : "phase_changed_before_enter",
+            )
+            return
+        }
+    }
     if (room) client.roomGeneration = room.lobby_generation
     const isHost = room && client.viewerId === room.host_viewer_id
 
@@ -740,6 +803,7 @@ function handleEnter(socket: net.Socket, client: SessionClient, data: any[]): vo
     // Guest entered before host (or host connected but hasn't entered) → wait with Welcome
     if (!isHost && (!hostClient || !hostClient.mates[0])) {
         client.mates = [client.yourself!]
+        if (!commitClaimedAdmission(socket, client)) return
         sessionManager.sendJson(client.socket, [1, [0, client.yourself, [client.yourself]]])
         sessionManager.beginRescueGuestWait(client)
         gameVerboseLog(() => `[LOBBY] guest ${client.viewerId} entered alone, waiting for host in room ${client.roomNumber}`)
@@ -795,6 +859,8 @@ function handleEnter(socket: net.Socket, client: SessionClient, data: any[]): vo
         }
     }
 
+    if (!commitClaimedAdmission(socket, client)) return
+
     const yourself = client.yourself
     if (yourself) {
         sessionManager.sendJson(client.socket, [1, [0, yourself, [yourself]]])
@@ -835,6 +901,7 @@ function handleBye(_socket: net.Socket, client: SessionClient, _data: any[]): vo
     }
     const hostClient = findHostClient(client.roomNumber)
     const room = getRoom(client.roomNumber)
+    removeRoomMember(client.roomNumber, client.viewerId)
     if (room && room.lifecycle.phase === "LOBBY" && client.roomGeneration === room.lobby_generation) {
         room.expected_real_viewer_ids = room.expected_real_viewer_ids
             .filter(viewerId => viewerId !== client.viewerId)
@@ -846,7 +913,14 @@ function handleBye(_socket: net.Socket, client: SessionClient, _data: any[]): vo
     // remaining client's refreshMates dereference undefined character-display data and crash (F1010).
     const remainingRoom = getRoom(client.roomNumber)
     if (remainingRoom && hostClient && hostClient !== client) {
-        sessionManager.broadcastToRoom(client.roomNumber, [1, [1, hostClient.mates]])
+        const remainingMates = synchronizeRoomRoster(
+            client.roomNumber,
+            hostClient.mates,
+            false,
+            true,
+            remainingRoom.lobby_generation,
+        )
+        sessionManager.broadcastToRoom(client.roomNumber, [1, [1, remainingMates]])
         if (remainingRoom.is_npc_mode) scheduleNpcReconcile(client.roomNumber)
     }
     try { client.socket.destroy(); } catch (e) {}
@@ -979,7 +1053,11 @@ function handleStartBattle(_socket: net.Socket, client: SessionClient, _data: an
     autoStartingRooms.delete(client.roomNumber)
     room.expected_real_viewer_ids = realViewerIds
     room.npc_count = members.filter(mate => !!mate.comId).length
-    room.mates = members.map(mate => ({ viewer_id: mate.viewerId ?? null, com_id: mate.comId ?? 0 }))
+    room.mates = members.map(mate => ({
+        viewer_id: mate.viewerId ?? null,
+        com_id: mate.comId ?? 0,
+        player_id: mate.playerId ?? undefined,
+    }))
     room.rematch_wait_started_at = null
     const cleanupTimer = rematchCleanupTimers.get(client.roomNumber)
     if (cleanupTimer) clearTimeout(cleanupTimer)

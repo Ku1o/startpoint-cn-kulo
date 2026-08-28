@@ -1,9 +1,7 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from "fastify"
 import { GetRoomsBody, CreateRoomBody, SearchRoomBody, SelectRoomBody, MultiRoom } from "../types"
-import { getAccountPlayers } from "../../data/domains/account"
 import { getPlayerSync } from "../../data/domains/player"
-import { getSession } from "../../data/domains/session"
-import { resolvePlayerIdSync } from "../../data/activeAccount"
+import { getFollowRelationSync } from "../../data/domains/follow"
 import { getQuestFromCategorySync } from "../../lib/assets"
 import { generateDataHeaders } from "../../utils"
 import { getFavoritePartySelectionSync } from "../../lib/profileFavorite"
@@ -12,6 +10,7 @@ import { serializeRoom, serializeRoomConnection } from "../room/serializer"
 import { isRoomSharedWithPlayer } from "../room/sharing"
 import { sessionManager } from "../state/SessionManager"
 import {
+    acceptRandomRecruitmentForViewer,
     isRandomRecruiting,
     wasRandomRecruitmentDeliveredTo,
     wasStoppedRandomRecruitmentDeliveredTo,
@@ -23,18 +22,9 @@ import { isMode15RoomClosed } from "../mode15-room-gate"
 import { roomAdmissionRegistry } from "../room/admission"
 import { getSelectRoomDenialRaisingState } from "../room/select-denial"
 import { embeddedMultiCoordinator } from "../coordinator/embedded"
+import { resolveMultiPlayerContext } from "../player-context"
 
 const ROOM_CAPACITY = 3
-
-async function getViewerIdAndPlayer(viewerId: number): Promise<{ playerId: number; player: any } | null> {
-    const sid = await getSession(viewerId.toString())
-    if (!sid) return null
-    const players = await getAccountPlayers(sid.accountId)
-    if (!players || players.length === 0) return null
-    const player = getPlayerSync(players[0])
-    if (!player) return null
-    return { playerId: players[0], player }
-}
 
 function isReturningMember(room: MultiRoom, viewerId: number): boolean {
     return room.host_viewer_id === viewerId
@@ -43,7 +33,7 @@ function isReturningMember(room: MultiRoom, viewerId: number): boolean {
 }
 
 function getCurrentLobbyViewerIds(room: MultiRoom): Set<number> {
-    const viewerIds = new Set<number>([room.host_viewer_id])
+    const viewerIds = new Set<number>(room.member_viewer_ids ?? [room.host_viewer_id])
     for (const client of sessionManager.getClientsInRoom(room.room_number, room.lobby_generation)) {
         if (client.isBattle
             || client.socket.destroyed
@@ -93,14 +83,11 @@ export function registerLobbyRoutes(fastify: FastifyInstance): void {
         if (!viewerId || isNaN(viewerId)) return reply.status(400).send({
             "error": "Bad Request", "message": "Invalid request body."
         })
-        const sid = await getSession(viewerId.toString())
-        if (!sid) return reply.status(400).send({
-            "error": "Bad Request", "message": "Invalid viewer id."
+        const ctx = await resolveMultiPlayerContext(viewerId)
+        if (!ctx) return reply.status(400).send({
+            "error": "Bad Request", "message": "Invalid viewer id or no player bound."
         })
-        const viewerPlayerId = resolvePlayerIdSync(sid.accountId)
-        if (viewerPlayerId === null) return reply.status(400).send({
-            "error": "Bad Request", "message": "No active player bound to account."
-        })
+        const viewerPlayerId = ctx.playerId
 
         const requestedCategories = body.category_id === 7 || body.category_id === 8
             ? [7, 8]
@@ -111,7 +98,6 @@ export function registerLobbyRoutes(fastify: FastifyInstance): void {
             .filter(r => isRoomSharedWithPlayer(
                 r,
                 viewerPlayerId,
-                isRandomRecruiting(r.room_number),
             ))
             .filter(r => !r.is_npc_mode
                 && !["STARTING", "BATTLE"].includes(embeddedMultiCoordinator.ensureLifecycle(r).phase))
@@ -138,7 +124,7 @@ export function registerLobbyRoutes(fastify: FastifyInstance): void {
         if (!viewer_id || isNaN(viewer_id)) return reply.status(400).send({
             "error": "Bad Request", "message": "Invalid request body."
         })
-        const ctx = await getViewerIdAndPlayer(viewer_id)
+        const ctx = await resolveMultiPlayerContext(viewer_id)
         if (!ctx) return reply.status(400).send({
             "error": "Bad Request", "message": "Invalid viewer id or no player bound."
         })
@@ -200,19 +186,26 @@ export function registerLobbyRoutes(fastify: FastifyInstance): void {
         if (!viewerId || isNaN(viewerId)) return reply.status(400).send({
             "error": "Bad Request", "message": "Invalid request body."
         })
-        const sid = await getSession(viewerId.toString())
-        if (!sid) return reply.status(400).send({
-            "error": "Bad Request", "message": "Invalid viewer id."
+        const ctx = await resolveMultiPlayerContext(viewerId)
+        if (!ctx) return reply.status(400).send({
+            "error": "Bad Request", "message": "Invalid viewer id or no player bound."
         })
-        const viewerPlayerId = resolvePlayerIdSync(sid.accountId)
-        if (viewerPlayerId === null) return reply.status(400).send({
-            "error": "Bad Request", "message": "No active player bound to account."
-        })
+        const viewerPlayerId = ctx.playerId
 
         const room = getRoom(body.room_number)
+        const returningMember = !!room && isReturningMember(room, viewerId)
         const roomVisible = !!room
             && !isMode15RoomClosed(room)
-            && canJoinRoomAsGuest(viewerPlayerId, room)
+            && !sessionManager.isRoomRestoreBlocked(room.room_number, viewerId)
+            && (returningMember || (
+                canJoinRoomAsGuest(viewerPlayerId, room)
+                && !["STARTING", "BATTLE"].includes(embeddedMultiCoordinator.ensureLifecycle(room).phase)
+                && !isRoomWaitingForExpectedMember(room)
+                && getCurrentLobbyOccupancy(room) < ROOM_CAPACITY
+            ))
+        const followState = roomVisible
+            ? getFollowRelationSync(viewerPlayerId, room.host_player_id).state
+            : 0
         gameVerboseLog(() =>
             `[MULTI] search_room: viewer=${viewerId} room=${body.room_number}`
             + ` found=${!!room} visible=${roomVisible}`
@@ -227,7 +220,7 @@ export function registerLobbyRoutes(fastify: FastifyInstance): void {
                 "quest_id": roomVisible ? room.quest_id : 0,
                 "room_number": room?.room_number ?? body.room_number,
                 "establisher_viewer_id": roomVisible ? room.host_viewer_id : 0,
-                "establisher_follow": 0
+                "establisher_follow": followState
             }
         })
     })
@@ -238,16 +231,23 @@ export function registerLobbyRoutes(fastify: FastifyInstance): void {
         if (!viewerId || isNaN(viewerId)) return reply.status(400).send({
             "error": "Bad Request", "message": "Invalid request body."
         })
-        const ctx = await getViewerIdAndPlayer(viewerId)
+        const ctx = await resolveMultiPlayerContext(viewerId)
         if (!ctx) return reply.status(400).send({
             "error": "Bad Request", "message": "Invalid viewer id or no player bound."
         })
 
         const room = body.room_number ? getRoom(body.room_number) : getRoomByToken(body.access_token || "")
+        if (room && (room.category !== Number(body.category) || room.quest_id !== Number(body.quest_id))) {
+            return reply.status(400).send({
+                "error": "Bad Request", "message": "Room quest mismatch."
+            })
+        }
         const returningMember = !!room && isReturningMember(room, viewerId)
+        const rescueSelection = Number(body.accepted_type) === 2
         const randomRescue = !!room
             && !returningMember
-            && (isRandomRecruiting(room.room_number) || wasRandomRecruitmentDeliveredTo(room.room_number, viewerId))
+            && rescueSelection
+            && wasRandomRecruitmentDeliveredTo(room.room_number, viewerId)
         const mode15Blocked = !!room
             && !returningMember
             && !canJoinRoomAsGuest(ctx.playerId, room)
@@ -258,6 +258,7 @@ export function registerLobbyRoutes(fastify: FastifyInstance): void {
         // unaffected and may still replace one COM slot normally.
         const staleRescueNotice = !!room
             && !returningMember
+            && rescueSelection
             && wasStoppedRandomRecruitmentDeliveredTo(room.room_number, viewerId)
             && (room.is_npc_mode || !isRandomRecruiting(room.room_number))
         const battleStarted = !!room
@@ -327,17 +328,19 @@ export function registerLobbyRoutes(fastify: FastifyInstance): void {
             })
         }
 
-        // A Mode15 room-code/follow entrant is also a helper.  Mark it exactly
-        // like a random rescue guest so its settlement cannot advance or reset
-        // the helper's own 15-stage run.
+        // A Fantasy room-code/follow entrant is also a helper for lifecycle
+        // and progression purposes, but only a delivered rescue selection is
+        // eligible for the repeatable fragment reward.
         if (randomRescue || (!returningMember && isMode15Quest(room.category, room.quest_id))) {
             const host = getPlayerSync(room.host_player_id)
             sessionManager.markRescueGuest(
                 room.room_number,
                 viewerId,
                 isNewbiePlayerSync(room.host_player_id, host),
+                randomRescue,
             )
         }
+        if (randomRescue) acceptRandomRecruitmentForViewer(room.room_number, viewerId)
 
         const selectData = serializeRoomConnection(room)
         if (viewerId === room.host_viewer_id) {

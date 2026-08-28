@@ -13,6 +13,9 @@ import { hasValidPartyCategory, parseGlobalPartyId } from "../../lib/special-eve
 import { getPublishedPartySync, publishPartySync } from "../../data/domains/publishedParty";
 import { gameVerboseLog } from "../../lib/game-logging";
 import { PROFILE_FAVORITE_PARTY_CATEGORY } from "../../lib/profileFavorite";
+import { addMissionCounterSync } from "../../lib/mission/counters";
+import { settleDegreeMissionResponse } from "../../lib/mission/degree-response";
+import { countNewAbilitySoulEquipments } from "../../lib/mission/ability-soul-facts";
 
 interface PartyInfoListItem {
     party_edited: boolean
@@ -682,6 +685,12 @@ const routes = async (fastify: FastifyInstance) => {
             const battleParties = mappedParties.filter(
                 ({ party }) => party.category !== PROFILE_FAVORITE_PARTY_CATEGORY,
             )
+            let abilitySoulEquipCount = 0
+            const getPreviousSouls = getDb().prepare(`
+                SELECT ability_soul_1, ability_soul_2, ability_soul_3
+                FROM players_parties
+                WHERE player_id = ? AND group_id = ? AND slot = ? AND category = ?
+            `)
             // store full global PartyId so /load returns the correct group+slot combo
             // Editing profile favorites is independent from the battle SET selected
             // by the player. Empty edits are still used by the client to switch SETs.
@@ -693,7 +702,34 @@ const routes = async (fastify: FastifyInstance) => {
                 })
             }
             for (const { parsed, party } of mappedParties) {
+                if (party.category !== PROFILE_FAVORITE_PARTY_CATEGORY) {
+                    const previous = getPreviousSouls.get(
+                        playerId,
+                        parsed.groupId,
+                        parsed.slot,
+                        party.category,
+                    ) as {
+                        ability_soul_1: number | null
+                        ability_soul_2: number | null
+                        ability_soul_3: number | null
+                    } | undefined
+                    const previousIds = previous
+                        ? [previous.ability_soul_1, previous.ability_soul_2, previous.ability_soul_3]
+                        : []
+                    abilitySoulEquipCount += countNewAbilitySoulEquipments(
+                        previousIds,
+                        party.abilitySoulIds,
+                    )
+                }
                 updatePlayerPartySync(playerId, parsed.slot, party, parsed.groupId)
+            }
+            if (abilitySoulEquipCount > 0) {
+                addMissionCounterSync(playerId, {
+                    dimension: "party.ability_soul_equip",
+                    scopeType: "lifetime",
+                    scopeKey: "all",
+                    qualifier: {},
+                }, abilitySoulEquipCount)
             }
             if (battleParties.length > 0) {
                 incrementActiveMissionPartyActionCountsSync(playerId, {
@@ -704,14 +740,14 @@ const routes = async (fastify: FastifyInstance) => {
             }
         })()
 
+        const responseData: Record<string, any> = { mail_arrived: false }
+        settleDegreeMissionResponse(playerId, viewerId, responseData, undefined, [35])
         reply.header("content-type", "application/x-msgpack")
         return reply.status(200).send({
             "data_headers": generateDataHeaders({
                 viewer_id: viewerId
             }),
-            "data": {
-                "mail_arrived": false
-            }
+            "data": responseData
         })
     })
 

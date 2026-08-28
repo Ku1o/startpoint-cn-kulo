@@ -1,26 +1,109 @@
-import { getMissionBattleCountersSync } from "../../data/domains/mission_battle_facts"
-import { countFinishedPlayerQuestsSync } from "../../data/domains/quest"
-import { getPlayerSync } from "../../data/domains/player"
+import mainQuests from "../../../assets/main_quest.json"
+import exQuests from "../../../assets/ex_quest.json"
+import { getDb } from "../../data/db"
 import { getRankDegree } from "../stamina"
-import { getMissionCounterValueSync } from "./counters"
+import { QuestCategory } from "../types"
+import { makeMissionCounterKey, type MissionCounterQuery } from "./counters"
+import { MissionEvaluationReadContext } from "./evaluation-context"
+import { getMissionMasterDefinitions } from "./master-data"
 import { getMissionPattern } from "./patterns"
-import { getSnapshot } from "./snapshot"
 import type { MissionComputer, CategoryContext } from "./types"
 
-function buildStats(playerId: number, category: number): CategoryContext {
-    const player = getPlayerSync(playerId)!
-    // Regular/daily/weekly/pass computers only consume player totals, battle
-    // counters and periodic snapshots. Loading every quest row here made one
-    // battle finish deserialize the same quest history up to five times.
+interface RegularContext extends CategoryContext {
+    completedChapters: ReadonlySet<string>
+}
+
+const chapterKeyByMissionId = new Map<number, string>()
+const questIdsByChapter = new Map<string, number[]>()
+for (const [category, quests] of [
+    [QuestCategory.MAIN, mainQuests],
+    [QuestCategory.EX, exQuests],
+] as const) {
+    for (const id of Object.keys(quests)) {
+        const questId = Number(id)
+        const chapter = Math.floor(questId / 1_000_000)
+        if (!Number.isSafeInteger(questId) || chapter <= 0) continue
+        const key = `${category}:${chapter}`
+        const ids = questIdsByChapter.get(key) ?? []
+        ids.push(questId)
+        questIdsByChapter.set(key, ids)
+    }
+}
+for (const definition of getMissionMasterDefinitions(1)) {
+    if (Number(definition.row[2]) !== 22) continue
+    // Mission master uses 0/1 for normal/EX, not the API section IDs 1/4.
+    const mode = String(definition.row[7])
+    const chapter = Number(definition.row[8])
+    if ((mode !== "0" && mode !== "1") || !Number.isSafeInteger(chapter) || chapter <= 0) continue
+    const category = mode === "0" ? QuestCategory.MAIN : QuestCategory.EX
+    chapterKeyByMissionId.set(definition.missionId, `${category}:${chapter}`)
+}
+
+function readCompletedChapters(playerId: number, missionIds?: readonly number[]): ReadonlySet<string> {
+    const requestedChapters = new Set(missionIds === undefined
+        ? chapterKeyByMissionId.values()
+        : missionIds.flatMap(missionId => {
+            const key = chapterKeyByMissionId.get(missionId)
+            return key === undefined ? [] : [key]
+        }))
+    const completed = new Set<string>()
+    if (requestedChapters.size === 0) return completed
+
+    // Recover old saves from authoritative clear records. Only read the two
+    // chapter sections and IDs, not every event quest's full progress payload.
+    const rows = getDb().prepare(`
+        SELECT section, quest_id FROM players_quest_progress
+        WHERE player_id = ? AND section IN (?, ?) AND finished = 1
+    `).all(playerId, QuestCategory.MAIN, QuestCategory.EX) as { section: number, quest_id: number }[]
+    const finished = new Set(rows.map(row => `${row.section}:${row.quest_id}`))
+    for (const key of requestedChapters) {
+        const required = questIdsByChapter.get(key) ?? []
+        const category = key.split(":")[0]
+        // MAIN includes story nodes as well as battles. An empty/missing
+        // chapter or a finished quest in another section cannot complete it.
+        if (required.length > 0 && required.every(id => finished.has(`${category}:${id}`))) {
+            completed.add(key)
+        }
+    }
+    return completed
+}
+
+function rescueRankQuery(rank: number): MissionCounterQuery {
+    return {
+        dimension: "battle.multi_rescue_clear",
+        scopeType: "lifetime",
+        scopeKey: "all",
+        qualifier: { questRank: rank },
+    }
+}
+
+function buildStats(
+    playerId: number,
+    category: number,
+    missionIds?: readonly number[],
+    shared: MissionEvaluationReadContext = new MissionEvaluationReadContext(playerId),
+): RegularContext {
+    const player = shared.player
+    // Keep full quest histories out of regular/daily/weekly/pass contexts;
+    // chapter missions use a separate, narrowly scoped finished-ID read.
     const totalQuestClears = category === 7
-        ? countFinishedPlayerQuestsSync(playerId)
+        ? shared.totalQuestClears
         : 0
 
     const snapshot = category === 2 || category === 6
-        ? getSnapshot(playerId, "daily")
+        ? shared.snapshot("daily")
         : category === 7 || category === 10
-            ? getSnapshot(playerId, "weekly")
+            ? shared.snapshot("weekly")
             : null
+    const rescueRanks = category !== 1
+        ? []
+        : missionIds === undefined
+            ? [1, 2, 3, 4, 5]
+            : [...new Set(missionIds.flatMap(missionId => {
+                const match = getMissionPattern(category, missionId).match(/^boss_battle_attention_rank([1-5])$/)
+                return match ? [Number(match[1])] : []
+            }))]
+    const rescueQueries = rescueRanks.map(rescueRankQuery)
 
     return {
         category,
@@ -30,8 +113,12 @@ function buildStats(playerId: number, category: number): CategoryContext {
         totalQuestClears,
         totalStories: 0,
         rankCounts: {},
-        battleCounters: getMissionBattleCountersSync(playerId),
+        battleCounters: shared.battleCounters,
+        missionCounterValues: shared.missionCounters(rescueQueries),
         snapshot,
+        completedChapters: category === 1
+            ? readCompletedChapters(playerId, missionIds)
+            : new Set<string>(),
     }
 }
 
@@ -53,15 +140,8 @@ function computeLifetime(pattern: string, ctx: CategoryContext, dbProgress: numb
     if (pattern === "multi_play_guest") return Math.max(dbProgress, counters.multiGuestClearCount)
     const rescueRankMatch = pattern.match(/^boss_battle_attention_rank([1-5])$/)
     if (rescueRankMatch) {
-        return Math.max(
-            dbProgress,
-            getMissionCounterValueSync(ctx.playerId, {
-                dimension: "battle.multi_rescue_clear",
-                scopeType: "lifetime",
-                scopeKey: "all",
-                qualifier: { questRank: Number(rescueRankMatch[1]) },
-            }),
-        )
+        const query = rescueRankQuery(Number(rescueRankMatch[1]))
+        return Math.max(dbProgress, ctx.missionCounterValues?.get(makeMissionCounterKey(query)) ?? 0)
     }
     return dbProgress
 }
@@ -99,13 +179,25 @@ function computeWeekly(pattern: string, ctx: CategoryContext, dbProgress: number
 export const RegularComputer: MissionComputer = {
     name: "Regular",
 
-    buildContext(playerId: number, category: number): CategoryContext {
-        return buildStats(playerId, category)
+    buildContext(
+        playerId: number,
+        category: number,
+        _evaluationTime: Date,
+        missionIds?: readonly number[],
+        readContext?: MissionEvaluationReadContext,
+    ): CategoryContext {
+        return buildStats(playerId, category, missionIds, readContext)
     },
 
     compute(missionId: number, ctx: CategoryContext, dbProgress: number): number {
         const pattern = getMissionPattern(ctx.category, missionId)
-        if (ctx.category === 1) return computeLifetime(pattern, ctx, dbProgress)
+        if (ctx.category === 1) {
+            const chapterKey = chapterKeyByMissionId.get(missionId)
+            if (chapterKey !== undefined) {
+                return Math.max(dbProgress, (ctx as RegularContext).completedChapters.has(chapterKey) ? 1 : 0)
+            }
+            return computeLifetime(pattern, ctx, dbProgress)
+        }
         if (ctx.category === 2) return computeDaily(pattern, ctx, dbProgress)
         if (ctx.category === 10) return computeWeekly(pattern, ctx, dbProgress)
         return dbProgress

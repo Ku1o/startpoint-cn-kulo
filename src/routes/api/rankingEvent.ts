@@ -1,13 +1,16 @@
 // Handles mail.
 
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
-import { getAccountPlayers } from "../../data/domains/account"
-import { getPlayerQuestProgressSync, getPlayerSingleQuestProgressSync } from "../../data/domains/quest"
+import { getPlayerSingleQuestProgressSync } from "../../data/domains/quest"
 import { getSession } from "../../data/domains/session"
 import { generateDataHeaders } from "../../utils";
 import { QuestCategory } from "../../lib/types";
-import { PlayerQuestProgress } from "../../data/types";
 import { resolvePlayerIdSync } from "../../data/activeAccount";
+import {
+    getRankingPlacementSync,
+    grantEligibleRankingEventDegreesSync,
+    rankingEventIdQuestMap,
+} from "../../lib/activity-degree-rewards";
 
 interface ReceiveRewardBody {
     api_count: number,
@@ -19,16 +22,6 @@ interface GetSummaryBody {
     viewer_id: number,
     ranking_event_id: number,
     quest_kind: number
-}
-
-const rankingEventIdQuestMap: Record<number, number> = {
-    [1]: 1001,
-    [2]: 2001,
-    [3]: 3001,
-    [4]: 4001,
-    [5]: 5001,
-    [1000]: 1000001,
-    [1001]: 1001001
 }
 
 const rankingEventTopTimesMs: Record<number, number> = {
@@ -59,6 +52,7 @@ function getRankingSummary(
     // get data for the ranking quest
     const playerQuestData = getPlayerSingleQuestProgressSync(playerId, QuestCategory.RANKING_EVENT_SINGLE, questId)
     const isAccomplished = playerQuestData !== null && playerQuestData.bestElapsedTimeMs !== undefined && playerQuestData.bestElapsedTimeMs !== null
+    const placement = getRankingPlacementSync(playerId, eventId)
 
     return {
         "best_record": {
@@ -73,7 +67,7 @@ function getRankingSummary(
             "is_accomplished": true,
             "score": 1110111
         },
-        "rank_percentage": isAccomplished ? 1 - (topTime / (playerQuestData.bestElapsedTimeMs ?? 1)) : 100
+        "rank_percentage": placement?.percentile ?? 1
     }
 }
 
@@ -149,6 +143,7 @@ const routes = async (fastify: FastifyInstance) => {
             "message": `Summary could not be generated for '${eventId}' and PlayerId '${playerId}'.`
         })
 
+        const degreeIds = grantEligibleRankingEventDegreesSync(playerId, eventId)
         reply.header("content-type", "application/x-msgpack")
         return reply.status(200).send({
             "data_headers": generateDataHeaders({
@@ -156,6 +151,10 @@ const routes = async (fastify: FastifyInstance) => {
             }),
             "data": {
                 "status": 1,
+                "degree_list": degreeIds.map(degreeId => ({
+                    viewer_id: viewerId,
+                    degree_id: degreeId,
+                })),
                 ...summary
             }
         })

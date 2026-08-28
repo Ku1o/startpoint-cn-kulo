@@ -539,6 +539,46 @@ export default function init(
         FOREIGN KEY (player_id) REFERENCES players (id) ON DELETE CASCADE
     )`).run();
 
+    database.prepare(`CREATE TABLE IF NOT EXISTS players_practice_battle_history (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        player_id INTEGER NOT NULL,
+        play_id TEXT NOT NULL,
+        ability_soul_id_1 INTEGER,
+        ability_soul_id_2 INTEGER,
+        ability_soul_id_3 INTEGER,
+        category_id INTEGER NOT NULL,
+        character_1_total_damage REAL,
+        character_2_total_damage REAL,
+        character_3_total_damage REAL,
+        character_id_1 INTEGER,
+        character_id_2 INTEGER,
+        character_id_3 INTEGER,
+        clear_rank INTEGER,
+        create_time TEXT NOT NULL,
+        elapsed_time_ms REAL NOT NULL,
+        enhancement_level_1 INTEGER,
+        enhancement_level_2 INTEGER,
+        enhancement_level_3 INTEGER,
+        equipment1_id INTEGER,
+        equipment2_id INTEGER,
+        equipment3_id INTEGER,
+        equipment_level_1 INTEGER,
+        equipment_level_2 INTEGER,
+        equipment_level_3 INTEGER,
+        finish_kind INTEGER NOT NULL,
+        quest_id INTEGER NOT NULL,
+        score REAL,
+        total_damage REAL NOT NULL,
+        unison_character_id_1 INTEGER,
+        unison_character_id_2 INTEGER,
+        unison_character_id_3 INTEGER,
+        UNIQUE (player_id, play_id),
+        FOREIGN KEY (player_id) REFERENCES players (id) ON DELETE CASCADE
+    )`).run();
+    database.prepare(`CREATE INDEX IF NOT EXISTS idx_practice_history_player_id
+        ON players_practice_battle_history (player_id, id DESC)
+    `).run();
+
     database.prepare(`CREATE TABLE IF NOT EXISTS players_cleared_regular_missions (
         id INTEGER NOT NULL,
         value INTEGER NOT NULL,
@@ -874,6 +914,10 @@ export default function init(
         PRIMARY KEY (player_id, counter_key),
         FOREIGN KEY (player_id) REFERENCES players (id) ON DELETE CASCADE
     )`).run()
+    database.prepare(`
+        CREATE INDEX IF NOT EXISTS idx_players_mission_counters_dimension
+        ON players_mission_counters (player_id, scope_type, scope_key, dimension)
+    `).run()
 
     database.prepare(`CREATE TABLE IF NOT EXISTS players_mission_counter_snapshots (
         player_id INTEGER NOT NULL,
@@ -1006,13 +1050,15 @@ export default function init(
         event_id INTEGER PRIMARY KEY,
         total_kill_count INTEGER NOT NULL DEFAULT 0,
         weighted_kill_count INTEGER NOT NULL DEFAULT 0,
-        calculation_version INTEGER NOT NULL DEFAULT 4,
+        calculation_version INTEGER NOT NULL DEFAULT 5,
         updated_at INTEGER NOT NULL
     )`).run()
     // Version 1 counted every clear as a full communal boss kill. Version 2
     // used the official 76000 threshold. Version 3 temporarily used the
-    // private-server threshold 760. Version 4 restores official threshold and
-    // weights. Existing ledgers are replayed lazily when the version is older.
+    // private-server threshold 760. Version 4 restored the official threshold
+    // and weights. Version 5 keeps those weights while lowering the communal
+    // cycle threshold to 30000. Existing ledgers are replayed lazily when the
+    // version is older.
     try { database.prepare(`ALTER TABLE raid_event_global_state ADD COLUMN weighted_kill_count INTEGER NOT NULL DEFAULT 0`).run(); } catch { /* column already exists */ }
     try { database.prepare(`ALTER TABLE raid_event_global_state ADD COLUMN calculation_version INTEGER NOT NULL DEFAULT 1`).run(); } catch { /* column already exists */ }
 
@@ -1088,7 +1134,9 @@ export default function init(
         entry_item_id INTEGER,
         event_id INTEGER,
         continue_count INTEGER NOT NULL DEFAULT 0,
+        started_at_ms INTEGER,
         FOREIGN KEY (player_id) REFERENCES players (id) ON DELETE CASCADE
     )`).run()
     ensureSchemaColumn(database, "players_active_quests.is_multi_host")
+    ensureSchemaColumn(database, "players_active_quests.started_at_ms")
 }

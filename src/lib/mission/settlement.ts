@@ -1,6 +1,11 @@
-import { getPlayerCategoryMissionsSync, updatePlayerCategoryMissionStageSync, updatePlayerCategoryMissionSync } from "../../data/domains/mission"
-import { getPlayerSync } from "../../data/domains/player"
+import {
+    getPlayerCategoryMissionsForCategoriesSync,
+    updatePlayerCategoryMissionBatchSync,
+    updatePlayerCategoryMissionStageBatchSync,
+} from "../../data/domains/mission"
+import type { Player } from "../../data/types"
 import { getDb } from "../../data/db"
+import { getPlayerDegreeIdsSync } from "../../data/domains/degree"
 import { getComputer } from "./registry"
 import { getCategoryMissionRewardStageDefinition } from "./rewards"
 import { getCompletedStageNumbers, getMissionFinalTargetProgress, getMissionIdsByCategory, isMissionProgressComplete } from "./stages"
@@ -8,6 +13,7 @@ import { getMissionPattern, isMissionEnabledAt } from "./patterns"
 import { MissionRewardGranter } from "./grants"
 import { getMissionMasterDefinition } from "./master-data"
 import { runImmediateTransactionWithRetry, withPlayerWriteQueue } from "../sqlite-write-coordinator"
+import { MissionEvaluationReadContext } from "./evaluation-context"
 
 export interface MissionSettlementInfo {
     mission_category_id: number
@@ -25,6 +31,17 @@ export interface MissionSettlementResult {
     userInfo?: Record<string, number>
 }
 
+export interface MissionSettlementProgress {
+    readonly category: number
+    readonly missionId: number
+    readonly progress: number
+}
+
+export interface MissionSettlementWithProgressResult {
+    readonly settlement: MissionSettlementResult
+    readonly evaluatedProgress: readonly MissionSettlementProgress[]
+}
+
 export interface MissionSettlementScope {
     category: number
     eventId?: number
@@ -38,6 +55,18 @@ interface EvaluatedMission {
     progress: number
     receivedStages: Record<string, boolean> | unknown[]
     dbProgress: number
+}
+
+interface PendingMissionReward {
+    readonly mission: EvaluatedMission
+    readonly stage: number
+    readonly definition: NonNullable<ReturnType<typeof getCategoryMissionRewardStageDefinition>>
+}
+
+interface PreparedMissionPersistence {
+    readonly progressUpdates: EvaluatedMission[]
+    readonly pendingRewards: PendingMissionReward[]
+    readonly missingLegacyDegreeIds: number[]
 }
 
 function isDailyCoreMission(pattern: string): boolean {
@@ -67,10 +96,7 @@ function evaluateMissionCategories(
     playerId: number,
     categories: readonly (number | MissionSettlementScope)[],
     evaluationTime: Date,
-): { player: NonNullable<ReturnType<typeof getPlayerSync>>, evaluatedMissions: EvaluatedMission[] } {
-    const player = getPlayerSync(playerId)
-    if (!player) throw new Error(`Player ${playerId} not found during mission settlement.`)
-
+): { player: Player, evaluatedMissions: EvaluatedMission[] } {
     const evaluatedMissions: EvaluatedMission[] = []
     const evaluatedMissionKeys = new Set<string>()
     const scopes = new Map<string, MissionSettlementScope>()
@@ -78,13 +104,28 @@ function evaluateMissionCategories(
         const scope = typeof entry === "number" ? { category: entry } : entry
         scopes.set(`${scope.category}:${scope.eventId ?? ""}`, scope)
     }
-    for (const scope of scopes.values()) {
+    const preparedScopes = [...scopes.values()].map(scope => ({
+        scope,
+        candidateMissionIds: scope.missionIds ?? getMissionIdsByCategory(scope.category),
+    })).filter(entry => entry.candidateMissionIds.length > 0)
+    const persistedByCategory = getPlayerCategoryMissionsForCategoriesSync(
+        playerId,
+        preparedScopes.map(entry => entry.scope.category),
+    )
+    const readContext = new MissionEvaluationReadContext(playerId)
+    const player = readContext.player
+
+    for (const { scope, candidateMissionIds } of preparedScopes) {
         const { category, eventId } = scope
-        const candidateMissionIds = scope.missionIds ?? getMissionIdsByCategory(category)
-        if (candidateMissionIds.length === 0) continue
         const computer = getComputer(category)
-        const context = computer.buildContext(playerId, category, evaluationTime, candidateMissionIds)
-        const persisted = getPlayerCategoryMissionsSync(playerId, category)
+        const context = computer.buildContext(
+            playerId,
+            category,
+            evaluationTime,
+            candidateMissionIds,
+            readContext,
+        )
+        const persisted = persistedByCategory[String(category)] ?? {}
         for (const missionId of candidateMissionIds) {
             if (!isMissionEnabledAt(category, missionId, evaluationTime, eventId)) continue
             const missionKey = `${category}:${missionId}`
@@ -112,18 +153,24 @@ function evaluateMissionCategories(
     return { player, evaluatedMissions }
 }
 
-function persistMissionEvaluation(
-    playerId: number,
-    player: NonNullable<ReturnType<typeof getPlayerSync>>,
-    evaluatedMissions: EvaluatedMission[],
-): MissionSettlementResult {
-    const granter = new MissionRewardGranter(playerId, player)
-    const missionInfo: MissionSettlementInfo[] = []
-    for (const mission of evaluatedMissions) {
-        if (mission.progress === mission.dbProgress) continue
-        updatePlayerCategoryMissionSync(playerId, mission.category, mission.missionId, mission.progress)
+function emptyMissionSettlementResult(): MissionSettlementResult {
+    return {
+        missionInfo: [],
+        itemList: {},
+        characterList: [],
+        equipmentList: [],
+        degreeIds: [],
+        passCardPoints: {},
     }
+}
 
+function prepareMissionPersistence(
+    playerId: number,
+    evaluatedMissions: EvaluatedMission[],
+): PreparedMissionPersistence {
+    const progressUpdates = evaluatedMissions.filter(mission => mission.progress !== mission.dbProgress)
+    const pendingRewards: PendingMissionReward[] = []
+    const legacyDegreeIds = new Set<number>()
     for (const mission of evaluatedMissions) {
         for (const stage of getCompletedStageNumbers(mission.category, mission.missionId, mission.progress)) {
             const definition = getCategoryMissionRewardStageDefinition(mission.category, mission.missionId, stage)
@@ -133,23 +180,63 @@ function persistMissionEvaluation(
                 if (mission.category === 5) {
                     for (const reward of definition.rewards) {
                         if (reward.kind === 6 && reward.degreeId !== undefined) {
-                            granter.grantDegreeOwnershipOnly(reward.degreeId)
+                            legacyDegreeIds.add(reward.degreeId)
                         }
                     }
                 }
                 continue
             }
-            updatePlayerCategoryMissionStageSync(playerId, mission.category, stage, mission.missionId, true)
-            const passCardEventId = mission.category >= 6 && mission.category <= 8
-                ? getMissionMasterDefinition(mission.category, mission.missionId)?.eventId
-                : undefined
-            granter.grant(definition.rewards, { passCardEventId })
-            missionInfo.push({
-                mission_category_id: mission.category,
-                mission_id: mission.missionId,
-                mission_reward_id: definition.missionRewardId,
-            })
+            pendingRewards.push({ mission, stage, definition })
         }
+    }
+    const ownedDegrees = legacyDegreeIds.size > 0
+        ? new Set(getPlayerDegreeIdsSync(playerId))
+        : new Set<number>()
+    return {
+        progressUpdates,
+        pendingRewards,
+        missingLegacyDegreeIds: [...legacyDegreeIds].filter(degreeId => !ownedDegrees.has(degreeId)),
+    }
+}
+
+function persistMissionEvaluation(
+    playerId: number,
+    player: Player,
+    prepared: PreparedMissionPersistence,
+): MissionSettlementResult {
+    const granter = new MissionRewardGranter(playerId, player)
+    const missionInfo: MissionSettlementInfo[] = []
+    updatePlayerCategoryMissionBatchSync(
+        playerId,
+        prepared.progressUpdates
+            .map(mission => ({
+                category: mission.category,
+                missionId: mission.missionId,
+                progress: mission.progress,
+            })),
+    )
+    for (const degreeId of prepared.missingLegacyDegreeIds) {
+        granter.grantDegreeOwnershipOnly(degreeId)
+    }
+    updatePlayerCategoryMissionStageBatchSync(
+        playerId,
+        prepared.pendingRewards.map(({ mission, stage }) => ({
+            category: mission.category,
+            missionId: mission.missionId,
+            stageId: stage,
+            status: true,
+        })),
+    )
+    for (const { mission, definition } of prepared.pendingRewards) {
+        const passCardEventId = mission.category >= 6 && mission.category <= 8
+            ? getMissionMasterDefinition(mission.category, mission.missionId)?.eventId
+            : undefined
+        granter.grant(definition.rewards, { passCardEventId })
+        missionInfo.push({
+            mission_category_id: mission.category,
+            mission_id: mission.missionId,
+            mission_reward_id: definition.missionRewardId,
+        })
     }
     granter.persistPlayer()
     return {
@@ -163,17 +250,42 @@ function persistMissionEvaluation(
     }
 }
 
+function evaluatedProgressOf(evaluatedMissions: readonly EvaluatedMission[]): MissionSettlementProgress[] {
+    return evaluatedMissions.map(mission => ({
+        category: mission.category,
+        missionId: mission.missionId,
+        progress: mission.progress,
+    }))
+}
+
+export function settleMissionCategoriesWithProgress(
+    playerId: number,
+    categories: readonly (number | MissionSettlementScope)[],
+    evaluationTime: Date,
+): MissionSettlementWithProgressResult {
+    const evaluation = evaluateMissionCategories(playerId, categories, evaluationTime)
+    const prepared = prepareMissionPersistence(playerId, evaluation.evaluatedMissions)
+    const settlement = prepared.progressUpdates.length === 0
+        && prepared.pendingRewards.length === 0
+        && prepared.missingLegacyDegreeIds.length === 0
+        ? emptyMissionSettlementResult()
+        : getDb().transaction(() => persistMissionEvaluation(
+            playerId,
+            evaluation.player,
+            prepared,
+        ))()
+    return {
+        settlement,
+        evaluatedProgress: evaluatedProgressOf(evaluation.evaluatedMissions),
+    }
+}
+
 export function settleMissionCategories(
     playerId: number,
     categories: readonly (number | MissionSettlementScope)[],
     evaluationTime: Date,
 ): MissionSettlementResult {
-    const evaluation = evaluateMissionCategories(playerId, categories, evaluationTime)
-    return getDb().transaction(() => persistMissionEvaluation(
-        playerId,
-        evaluation.player,
-        evaluation.evaluatedMissions,
-    ))()
+    return settleMissionCategoriesWithProgress(playerId, categories, evaluationTime).settlement
 }
 
 export async function settleMissionCategoriesAsync(
@@ -184,10 +296,16 @@ export async function settleMissionCategoriesAsync(
     return withPlayerWriteQueue(playerId, async () => {
         // The expensive context scan is deliberately outside the write lock.
         const evaluation = evaluateMissionCategories(playerId, categories, evaluationTime)
+        const prepared = prepareMissionPersistence(playerId, evaluation.evaluatedMissions)
+        if (prepared.progressUpdates.length === 0
+            && prepared.pendingRewards.length === 0
+            && prepared.missingLegacyDegreeIds.length === 0) {
+            return emptyMissionSettlementResult()
+        }
         return runImmediateTransactionWithRetry(() => persistMissionEvaluation(
             playerId,
             evaluation.player,
-            evaluation.evaluatedMissions,
+            prepared,
         ))
     })
 }

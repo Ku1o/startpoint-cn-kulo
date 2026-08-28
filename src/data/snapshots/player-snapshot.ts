@@ -55,6 +55,7 @@ interface TableInfoRow {
 const ARCHIVE_HISTORY_TABLES = new Set([
     "players_mails",
     "players_receive_history",
+    "players_practice_battle_history",
 ])
 
 // Dependency order. Every durable table directly owned by a player must be
@@ -69,6 +70,7 @@ export const PLAYER_SNAPSHOT_V2_TABLES = Object.freeze([
     "players_triggered_tutorials",
     "players_mails",
     "players_receive_history",
+    "players_practice_battle_history",
     "players_cleared_regular_missions",
     "players_items",
     "players_collected_items",
@@ -132,6 +134,7 @@ const EXCLUDED_PLAYER_STATE = Object.freeze([
 const REMAPPED_AUTOINCREMENT_IDS = new Map<string, ReadonlySet<string>>([
     ["players_mails", new Set(["id"])],
     ["players_receive_history", new Set(["id"])],
+    ["players_practice_battle_history", new Set(["id"])],
 ])
 
 const MAX_TOTAL_ROWS = 500_000

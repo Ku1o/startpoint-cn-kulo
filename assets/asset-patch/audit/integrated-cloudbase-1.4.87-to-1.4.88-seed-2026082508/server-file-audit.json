@@ -1,0 +1,486 @@
+{
+  "status": "prepared-not-synced",
+  "trio_rows": {
+    "assets/character.json": {
+      "base_sha256": "cb31fcb269b4159e5b530462e9c75695a9a114b2baf3d93d5b9bcadf9d8550eb",
+      "target_sha256": "591d796ac28221cd460324e083873c7fa660556c4b63e17e9e2b9756e3e720a0",
+      "added_ids": [
+        149995,
+        169996,
+        169997
+      ],
+      "pre_existing_bytes_preserved": true
+    },
+    "assets/cdndata/character.json": {
+      "base_sha256": "eebc06c13eebb968cc8ff63c1810072cc04365fa64fc2529623fd53c7a3f6b98",
+      "target_sha256": "24bba73a8b7d43fc6a8f154c7ccbf5387a4fefd61573ffde3da26c865568a945",
+      "added_ids": [
+        149995,
+        169996,
+        169997
+      ],
+      "pre_existing_bytes_preserved": true
+    },
+    "assets/cdndata/character_text.json": {
+      "base_sha256": "a48d695582aecd4432398e433ce97470b5d9b77f199035cad27c27cd6d92dad6",
+      "target_sha256": "88c2bd189becdf5d491507aa6325c9b4c1deb53bc8c418c7c5ab34f65c682a1b",
+      "added_ids": [
+        149995,
+        169996,
+        169997
+      ],
+      "pre_existing_bytes_preserved": true
+    },
+    "assets/mana_node.json": {
+      "base_sha256": "35d1aa148367ee22887440053081e42c1d3ffb51e724811783d1e0bf493d18b9",
+      "target_sha256": "800b2a21c32206cc9004c9f0f207feb878b40ae91d5f6d17e83d78c1704c9891",
+      "added_ids": [
+        149995,
+        169996,
+        169997
+      ],
+      "pre_existing_bytes_preserved": true
+    }
+  },
+  "historical_character_rows_preserved": {
+    "assets/character.json": {
+      "149996": "77655622a20c8fe21554ccdebf823eecf458cdfedaa5a9e9ebbef98547a5dec8",
+      "169999": "af352b6589c8046ab6213abb0f5e5de1109d30446b4db16563f790226127885b"
+    },
+    "assets/cdndata/character.json": {
+      "149996": "71a67487b5901a22a1228c1d076398ab713269059aa7c8e847396be7062e12e9",
+      "169999": "5876446c6d6564d1c51448fac90ef0443909ba30a0654ce928f62d5f0c67d9f5"
+    },
+    "assets/cdndata/character_text.json": {
+      "149996": "494ae90bd219c29463f67b536a37839d16d643559fc3f1e498ea9197b92fb99e",
+      "169999": "bffe26a3bd3b027a23d6566e77724ca73edbeb199aaf78b10230323cc29e3405"
+    },
+    "assets/mana_node.json": {
+      "149996": "163848bccb0322f6657f6827f7902bf44cb178373c043f0547f48d51948451a9",
+      "169999": "1cd94a4659df182ce066ef659f5d81b70de8d0d4d0b00aeaeae9092e674cac8d"
+    }
+  },
+  "gacha_990001": {
+    "entries": 253,
+    "group_total_weight": 1593000,
+    "five_star_total_rate_percent": 15.0,
+    "filler_changed": 236,
+    "old_exchange_states_preserved_except_lion": 249,
+    "lion_exchange_enabled": true,
+    "new_ids": [
+      149995,
+      169996,
+      169997
+    ],
+    "sorted_by_weight": true,
+    "base_sha256": "06aed4b129c185bc737259ccffa5562d092fdde5e41fe503e396dbfcf29c3647",
+    "target_sha256": "7840ebfbf422f13fe19039ef89b4b5e22ee395d0c21cdcea3a85476c3d7ace60",
+    "mode": "replace-only-top-level-990001-value"
+  },
+  "tower_server_json": {
+    "assets/rush_event_quest.json": {
+      "sha256": "20ce463eee86d67ea2aa02a245207f1506bcf85f792d3f07c797ab63286443c2",
+      "seed": 2026082508
+    },
+    "assets/rush_event_quest_folder.json": {
+      "sha256": "d84956c230279947badcd34e0b1966b85359e31599753b38bb865cfa79111f3d",
+      "seed": 2026082508
+    }
+  },
+  "rogue_rewards": {
+    "config": {
+      "path": "assets/rogue_event.json",
+      "sha256": "ef7cd0b8e574a6a938d6d5b3e968c55de499f7ea079c84fed61cf4acdca45890"
+    },
+    "probability": {
+      "floors": [
+        {
+          "round": 1,
+          "token_slots": 1,
+          "guaranteed_token_slots": 1,
+          "optional_token_slots": 0,
+          "optional_token_chance": 0.0,
+          "single_ticket_chance": 0.01,
+          "ten_ticket_chance": 0.0
+        },
+        {
+          "round": 2,
+          "token_slots": 5,
+          "guaranteed_token_slots": 3,
+          "optional_token_slots": 2,
+          "optional_token_chance": 0.12,
+          "single_ticket_chance": 0.015,
+          "ten_ticket_chance": 0.0
+        },
+        {
+          "round": 3,
+          "token_slots": 5,
+          "guaranteed_token_slots": 3,
+          "optional_token_slots": 2,
+          "optional_token_chance": 0.15,
+          "single_ticket_chance": 0.02,
+          "ten_ticket_chance": 0.0
+        },
+        {
+          "round": 4,
+          "token_slots": 5,
+          "guaranteed_token_slots": 3,
+          "optional_token_slots": 2,
+          "optional_token_chance": 0.18,
+          "single_ticket_chance": 0.025,
+          "ten_ticket_chance": 0.0
+        },
+        {
+          "round": 5,
+          "token_slots": 5,
+          "guaranteed_token_slots": 3,
+          "optional_token_slots": 2,
+          "optional_token_chance": 0.21,
+          "single_ticket_chance": 0.0,
+          "ten_ticket_chance": 0.01
+        },
+        {
+          "round": 6,
+          "token_slots": 5,
+          "guaranteed_token_slots": 3,
+          "optional_token_slots": 2,
+          "optional_token_chance": 0.24,
+          "single_ticket_chance": 0.035,
+          "ten_ticket_chance": 0.0
+        },
+        {
+          "round": 7,
+          "token_slots": 5,
+          "guaranteed_token_slots": 3,
+          "optional_token_slots": 2,
+          "optional_token_chance": 0.27,
+          "single_ticket_chance": 0.04,
+          "ten_ticket_chance": 0.0
+        },
+        {
+          "round": 8,
+          "token_slots": 5,
+          "guaranteed_token_slots": 3,
+          "optional_token_slots": 2,
+          "optional_token_chance": 0.3,
+          "single_ticket_chance": 0.045000000000000005,
+          "ten_ticket_chance": 0.0
+        },
+        {
+          "round": 9,
+          "token_slots": 5,
+          "guaranteed_token_slots": 3,
+          "optional_token_slots": 2,
+          "optional_token_chance": 0.32999999999999996,
+          "single_ticket_chance": 0.05,
+          "ten_ticket_chance": 0.0
+        },
+        {
+          "round": 10,
+          "token_slots": 5,
+          "guaranteed_token_slots": 3,
+          "optional_token_slots": 2,
+          "optional_token_chance": 0.36,
+          "single_ticket_chance": 0.0,
+          "ten_ticket_chance": 0.02
+        },
+        {
+          "round": 11,
+          "token_slots": 6,
+          "guaranteed_token_slots": 4,
+          "optional_token_slots": 2,
+          "optional_token_chance": 0.39,
+          "single_ticket_chance": 0.060000000000000005,
+          "ten_ticket_chance": 0.0
+        },
+        {
+          "round": 12,
+          "token_slots": 6,
+          "guaranteed_token_slots": 4,
+          "optional_token_slots": 2,
+          "optional_token_chance": 0.42,
+          "single_ticket_chance": 0.065,
+          "ten_ticket_chance": 0.0
+        },
+        {
+          "round": 13,
+          "token_slots": 6,
+          "guaranteed_token_slots": 4,
+          "optional_token_slots": 2,
+          "optional_token_chance": 0.44999999999999996,
+          "single_ticket_chance": 0.06999999999999999,
+          "ten_ticket_chance": 0.0
+        },
+        {
+          "round": 14,
+          "token_slots": 6,
+          "guaranteed_token_slots": 4,
+          "optional_token_slots": 2,
+          "optional_token_chance": 0.48,
+          "single_ticket_chance": 0.075,
+          "ten_ticket_chance": 0.0
+        },
+        {
+          "round": 15,
+          "token_slots": 6,
+          "guaranteed_token_slots": 4,
+          "optional_token_slots": 2,
+          "optional_token_chance": 0.5,
+          "single_ticket_chance": 0.0,
+          "ten_ticket_chance": 0.03
+        },
+        {
+          "round": 16,
+          "token_slots": 6,
+          "guaranteed_token_slots": 4,
+          "optional_token_slots": 2,
+          "optional_token_chance": 0.51,
+          "single_ticket_chance": 0.08499999999999999,
+          "ten_ticket_chance": 0.0
+        },
+        {
+          "round": 17,
+          "token_slots": 6,
+          "guaranteed_token_slots": 4,
+          "optional_token_slots": 2,
+          "optional_token_chance": 0.52,
+          "single_ticket_chance": 0.09,
+          "ten_ticket_chance": 0.0
+        },
+        {
+          "round": 18,
+          "token_slots": 6,
+          "guaranteed_token_slots": 4,
+          "optional_token_slots": 2,
+          "optional_token_chance": 0.53,
+          "single_ticket_chance": 0.095,
+          "ten_ticket_chance": 0.0
+        },
+        {
+          "round": 19,
+          "token_slots": 6,
+          "guaranteed_token_slots": 4,
+          "optional_token_slots": 2,
+          "optional_token_chance": 0.54,
+          "single_ticket_chance": 0.09999999999999999,
+          "ten_ticket_chance": 0.0
+        },
+        {
+          "round": 20,
+          "token_slots": 6,
+          "guaranteed_token_slots": 4,
+          "optional_token_slots": 2,
+          "optional_token_chance": 0.55,
+          "single_ticket_chance": 0.0,
+          "ten_ticket_chance": 0.04
+        },
+        {
+          "round": 21,
+          "token_slots": 8,
+          "guaranteed_token_slots": 5,
+          "optional_token_slots": 3,
+          "optional_token_chance": 0.56,
+          "single_ticket_chance": 0.11,
+          "ten_ticket_chance": 0.0
+        },
+        {
+          "round": 22,
+          "token_slots": 8,
+          "guaranteed_token_slots": 5,
+          "optional_token_slots": 3,
+          "optional_token_chance": 0.5700000000000001,
+          "single_ticket_chance": 0.11499999999999999,
+          "ten_ticket_chance": 0.0
+        },
+        {
+          "round": 23,
+          "token_slots": 8,
+          "guaranteed_token_slots": 5,
+          "optional_token_slots": 3,
+          "optional_token_chance": 0.5800000000000001,
+          "single_ticket_chance": 0.12,
+          "ten_ticket_chance": 0.0
+        },
+        {
+          "round": 24,
+          "token_slots": 8,
+          "guaranteed_token_slots": 5,
+          "optional_token_slots": 3,
+          "optional_token_chance": 0.59,
+          "single_ticket_chance": 0.125,
+          "ten_ticket_chance": 0.0
+        },
+        {
+          "round": 25,
+          "token_slots": 8,
+          "guaranteed_token_slots": 5,
+          "optional_token_slots": 3,
+          "optional_token_chance": 0.6,
+          "single_ticket_chance": 0.0,
+          "ten_ticket_chance": 0.05
+        },
+        {
+          "round": 26,
+          "token_slots": 8,
+          "guaranteed_token_slots": 5,
+          "optional_token_slots": 3,
+          "optional_token_chance": 0.61,
+          "single_ticket_chance": 0.135,
+          "ten_ticket_chance": 0.0
+        },
+        {
+          "round": 27,
+          "token_slots": 8,
+          "guaranteed_token_slots": 5,
+          "optional_token_slots": 3,
+          "optional_token_chance": 0.62,
+          "single_ticket_chance": 0.14,
+          "ten_ticket_chance": 0.0
+        },
+        {
+          "round": 28,
+          "token_slots": 8,
+          "guaranteed_token_slots": 5,
+          "optional_token_slots": 3,
+          "optional_token_chance": 0.63,
+          "single_ticket_chance": 0.14500000000000002,
+          "ten_ticket_chance": 0.0
+        },
+        {
+          "round": 29,
+          "token_slots": 8,
+          "guaranteed_token_slots": 5,
+          "optional_token_slots": 3,
+          "optional_token_chance": 0.64,
+          "single_ticket_chance": 0.15000000000000002,
+          "ten_ticket_chance": 0.0
+        },
+        {
+          "round": 30,
+          "token_slots": 0,
+          "guaranteed_token_slots": 0,
+          "optional_token_slots": 0,
+          "optional_token_chance": 0.0,
+          "single_ticket_chance": 0.0,
+          "ten_ticket_chance": 0.1
+        }
+      ],
+      "token_before_final_guaranteed": 113,
+      "token_before_final_optional_expected": 30.299999999999997,
+      "token_final_fixed": 100,
+      "token_full_run_minimum": 213,
+      "token_full_run_maximum": 278,
+      "token_full_run_expected": 243.3,
+      "single_ticket_expected": 1.9200000000000002,
+      "ten_ticket_expected": 0.25
+    },
+    "final_fixed": [
+      {
+        "type": 0,
+        "id": 99,
+        "count": 1000
+      },
+      {
+        "type": 0,
+        "id": 2370099,
+        "count": 100
+      },
+      {
+        "type": 0,
+        "id": 10002,
+        "count": 2
+      },
+      {
+        "type": 0,
+        "id": 12001,
+        "count": 2
+      }
+    ],
+    "final_chance": [
+      {
+        "type": 0,
+        "id": 999014,
+        "count": 1,
+        "chance": 0.1
+      },
+      {
+        "type": 0,
+        "id": 11003,
+        "count": 1,
+        "chance": 0.5
+      }
+    ]
+  },
+  "admin_character_lookup": {
+    "character_ids": [
+      149995,
+      169996,
+      169997
+    ],
+    "generated_table": "docs/generated/character_table.json",
+    "server_data_fallback": "assets/character.json",
+    "source": "src/routes/web_api/lookup.ts",
+    "build": "out/routes/web_api/lookup.js",
+    "included": true
+  },
+  "rush_reset": {
+    "event": 700099,
+    "folder_progress_cleared": "all 30 finite rounds",
+    "active_folder": 1,
+    "next_round": 700099001,
+    "reset_target_id": "ignored",
+    "other_rush_events": "native",
+    "drops_history_rewards_reclaimed": false,
+    "one_time_reward_patch_included": false,
+    "files": {
+      "src/routes/api/rushEvent.ts": {
+        "sha256": "b065b038e993a2e40ce744b3616380dc87adf04dbb88cfef1f52488c4ca771e2",
+        "size": 35218
+      },
+      "src/lib/rush-event-folder-lock.ts": {
+        "sha256": "2bc39acc78a7623ff9a3d7150aa293375ceb76552433058b89bc098b5d59a5ba",
+        "size": 1409
+      },
+      "tests/rush-endless-folder-lock.test.js": {
+        "sha256": "7717dfdd1cc54aae9527ce2d42b18d0c68236c1115a380549fc2ca62e80bec13",
+        "size": 1688
+      },
+      "out/routes/api/rushEvent.js": {
+        "sha256": "b44b401d6a97dc2b886aceb14e48ad43d5c9998108fd51d8d05a89036d572a04",
+        "size": 36113
+      },
+      "out/lib/rush-event-folder-lock.js": {
+        "sha256": "ac3f1f6a41fe2c75ca45a924a4c473abc6acdb2d133fc2297ac6b536ff574971",
+        "size": 1704
+      },
+      "src/lib/quest/finish/rogue-drop-schedule.ts": {
+        "sha256": "77e43dcff49aec530274640c571432cb58a6a7f24db7e6e5e780f4516c1bca8f",
+        "size": 3456
+      },
+      "src/lib/quest/finish/rogue-drops.ts": {
+        "sha256": "f8ea1755c96cee1e803352e91dd1ce49866fb6afb4a005f527aa9e643f9f2cb5",
+        "size": 11315
+      },
+      "out/lib/quest/finish/rogue-drop-schedule.js": {
+        "sha256": "17b093063698bdd240f001a16cff732b869dd9339432c2b4431b3a14a8328c12",
+        "size": 3961
+      },
+      "out/lib/quest/finish/rogue-drops.js": {
+        "sha256": "085512670c117b5d4a4c95d80b392592387cfa6e2c4043888d13b0a5f4dec07b",
+        "size": 10367
+      },
+      "src/routes/web_api/lookup.ts": {
+        "sha256": "6e78590b00e090b24f19f38a9335cfd996fbc74e2bbf28e31b7595a93faeb1fd",
+        "size": 3105
+      },
+      "out/routes/web_api/lookup.js": {
+        "sha256": "18a6450d7909facacb28ab4010241905c0a975a9c67b86f41d2bd3b68769f283",
+        "size": 3919
+      },
+      "docs/generated/character_table.json": {
+        "sha256": "57a035bd270fc89aa87f0b6922470b1f93bd84314c7aa640b566a0d778660d8a",
+        "size": 92663
+      }
+    }
+  }
+}

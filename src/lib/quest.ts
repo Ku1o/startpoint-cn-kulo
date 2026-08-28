@@ -9,6 +9,7 @@ import { CharacterReward, CommonScoreReward, CurrencyReward, CurrencyScoreReward
 import { Player } from "../data/types";
 import rewardElementMap from "../../assets/reward_element_map.json";
 import { gameVerboseLog } from "./game-logging";
+import { calculateFreeManaGrant } from "./mana";
 
 const ELEMENT_TO_ENEMY_MAP: Record<number, number> = {
     0: 3, 1: 0, 2: 1, 3: 2, 4: 5, 5: 4,
@@ -80,10 +81,14 @@ export function givePlayerScoreRewardsSync(
                             const player = getPlayerSync(playerId)
                             const currencyReward = reward as CurrencyScoreReward
                             rewardAmount = currencyReward.count * dropMultiplier * (boostPointUsed ? 2 : 1)
-                            mana += rewardAmount
+                            const manaGrant = calculateFreeManaGrant({
+                                freeMana: player?.freeMana ?? 0,
+                                paidMana: player?.paidMana ?? 0,
+                            }, rewardAmount)
+                            mana += manaGrant.creditedMana
                             updatePlayerSync({
                                 id: playerId,
-                                freeMana: (player?.freeMana || 0) + rewardAmount,
+                                freeMana: manaGrant.freeMana,
                                 totalManaObtained: (player?.totalManaObtained || 0) + rewardAmount
                             })
                             break;
@@ -227,7 +232,7 @@ export function givePlayerRewardsSync(
                 const convertedReward = (reward as EquipmentItemReward)
                 const itemId = convertedReward.id
                 const result = givePlayerItemSync(playerId, itemId, convertedReward.count);
-                items.set(itemId, (items.get(itemId) ?? 0) + result)
+                items.set(itemId, result)
                 break;
             }
             case RewardType.EQUIPMENT: {
@@ -244,7 +249,7 @@ export function givePlayerRewardsSync(
                 const giveItem = giveResult?.item
                 if (giveItem !== undefined) {
                     const itemId = giveItem.id
-                    items.set(itemId, (items.get(itemId) ?? 0) + giveItem.count)
+                    items.set(itemId, giveItem.inventoryCount)
                 }
     
                 const giveCharacter = giveResult?.character
@@ -270,7 +275,7 @@ export function givePlayerRewardsSync(
                 const convertedReward = (reward as EquipmentItemReward)
                 const itemId = convertedReward.id
                 const result = givePlayerItemSync(playerId, itemId, convertedReward.count);
-                items.set(itemId, (items.get(itemId) ?? 0) + result)
+                items.set(itemId, result)
                 break;
             }
         }
@@ -281,11 +286,15 @@ export function givePlayerRewardsSync(
         const player = getPlayerSync(playerId)
         if (player === null) return null;
 
+        const requestedMana = mana
+        const manaGrant = calculateFreeManaGrant(player, requestedMana)
+        mana = manaGrant.creditedMana
+
         updatePlayerSync({
             id: playerId,
             freeVmoney: player.freeVmoney + vmoney,
-            freeMana: player.freeMana + mana,
-            totalManaObtained: (player.totalManaObtained || 0) + mana
+            freeMana: manaGrant.freeMana,
+            totalManaObtained: (player.totalManaObtained || 0) + requestedMana
         })
         if (expPool > 0) adjustPlayerExpPoolSync(playerId, expPool, 'player_reward')
     }

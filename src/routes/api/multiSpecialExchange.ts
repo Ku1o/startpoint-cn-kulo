@@ -141,7 +141,7 @@ const routes = async (fastify: FastifyInstance) => {
         }
         if (exchangeResult.reward.item) {
             itemList[String(exchangeResult.reward.item.id)] =
-                getPlayerItemSync(context.playerId, exchangeResult.reward.item.id) ?? 0
+                exchangeResult.reward.item.inventoryCount
         }
         const player = getPlayerSync(context.playerId)
         reply.header("content-type", "application/x-msgpack")

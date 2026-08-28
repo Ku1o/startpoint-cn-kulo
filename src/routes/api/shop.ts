@@ -16,13 +16,27 @@ import { generateDataHeaders, getServerDate, getServerTime, realToVirtual } from
 import { givePlayerRewardsSync } from "../../lib/quest";
 import { computeRealTimeStamina } from "../../lib/stamina";
 import { clientSerializeEquipment } from "../../lib/equipment";
+import { findCurrentEquipmentEnhancementStage, planEquipmentEnhancementPurchase } from "../../lib/equipment-enhancement";
 import CDN_GENERAL_SHOP_WHITELIST from "../../../assets/cdn_general_shop_whitelist.json";
 import { gameVerboseLog } from "../../lib/game-logging";
 import { reconcileAwakeUnlockCharacterList } from "../../lib/mission";
 import { getDegreeMissionIdsForConditionTypes, mergeMissionSettlementResponse, settleMissionCategories } from "../../lib/mission";
 import { addMissionCounterSync } from "../../lib/mission/counters";
+import { computeFreeFirstDeduction } from "../../lib/free-first-deduction";
 
 const GENERAL_SHOP_CDN_KEYS: Set<number> = new Set(CDN_GENERAL_SHOP_WHITELIST);
+
+function isShopItemAvailable(item: ShopItem, now: Date): boolean {
+    if (item.availableFrom) {
+        const availableFrom = new Date(item.availableFrom.replace(' ', 'T') + 'Z')
+        if (availableFrom > now) return false
+    }
+    if (item.availableUntil) {
+        const availableUntil = new Date(item.availableUntil.replace(' ', 'T') + 'Z')
+        if (availableUntil < now) return false
+    }
+    return true
+}
 
 function recordTreasureShopProgress(
     playerId: number,
@@ -420,36 +434,139 @@ const routes = async (fastify: FastifyInstance) => {
             }
         }
 
-        gameVerboseLog(() => `[shop:buy] player=${playerId} shopType=${shopType} item=${shopItemId} x${purchaseAmount} before freeMana=${player.freeMana} freeVmoney=${player.freeVmoney}`)
+        let enhancementPurchase: {
+            equipmentId: number
+            newLevel: number
+            chargedPurchaseAmount: number
+            grantedLevelCount: number
+        } | null = null
+        if (shopType === ShopType.TREASURE_EQUIPMENT) {
+            const now = getServerDate()
+            if (!isShopItemAvailable(shopItemData, now)) return reply.status(400).send({
+                "error": "Bad Request",
+                "message": "Enhancement item is not currently available."
+            })
+
+            const equipmentId = shopItemData.equipmentId
+            const stageMaxLevel = shopItemData.enhancementMaxLevel
+            const requiredAwakeningLevel = shopItemData.requireAwakeningLevel
+            const shopCategoryId = shopItemData.shopCategoryId
+            const groupId = shopItemData.groupId
+            if (
+                equipmentId === undefined
+                || stageMaxLevel === undefined
+                || requiredAwakeningLevel === undefined
+                || shopCategoryId === undefined
+                || groupId === undefined
+            ) return reply.status(400).send({
+                "error": "Bad Request",
+                "message": "Enhancement item is missing progression data."
+            })
+
+            const currentEquipment = getPlayerEquipmentSync(playerId, equipmentId)
+            if (currentEquipment === null) return reply.status(400).send({
+                "error": "Bad Request",
+                "message": "Player does not own the target equipment."
+            })
+
+            const stages = Object.entries(getGenericShopItemsSync(ShopType.TREASURE_EQUIPMENT) ?? {})
+                .filter(([, item]) => isShopItemAvailable(item, now))
+                .flatMap(([id, item]) => {
+                    if (
+                        item.shopCategoryId === undefined
+                        || item.groupId === undefined
+                        || item.equipmentId === undefined
+                        || item.stage === undefined
+                        || item.enhancementMaxLevel === undefined
+                    ) return []
+                    return [{
+                        shopItemId: Number(id),
+                        shopCategoryId: item.shopCategoryId,
+                        groupId: item.groupId,
+                        equipmentId: item.equipmentId,
+                        stage: item.stage,
+                        maxLevel: item.enhancementMaxLevel,
+                    }]
+                })
+            const currentStage = findCurrentEquipmentEnhancementStage(stages, {
+                shopCategoryId,
+                groupId,
+                equipmentId,
+                currentLevel: currentEquipment.enhancementLevel,
+            })
+            if (currentStage === null || currentStage.shopItemId !== shopItemId) {
+                return reply.status(400).send({
+                    "error": "Bad Request",
+                    "message": "Enhancement item is not the current stage."
+                })
+            }
+
+            const plan = planEquipmentEnhancementPurchase(
+                currentEquipment.enhancementLevel,
+                rawPurchaseAmount,
+                stageMaxLevel,
+                currentEquipment.level,
+                requiredAwakeningLevel,
+            )
+            if (!plan.ok) return reply.status(400).send({
+                "error": "Bad Request",
+                "message": plan.message
+            })
+
+            enhancementPurchase = {
+                equipmentId,
+                newLevel: plan.newLevel,
+                chargedPurchaseAmount: plan.chargedPurchaseAmount,
+                grantedLevelCount: plan.grantedLevelCount,
+            }
+        }
+
+        const chargedPurchaseAmount = enhancementPurchase?.chargedPurchaseAmount ?? purchaseAmount
+
+        gameVerboseLog(() =>
+            `[shop:buy] player=${playerId} shopType=${shopType} item=${shopItemId} ` +
+            `requested=${purchaseAmount} charged=${chargedPurchaseAmount} ` +
+            `before freeMana=${player.freeMana} paidMana=${player.paidMana} ` +
+            `freeVmoney=${player.freeVmoney} vmoney=${player.vmoney}`
+        )
 
         // keep track of various stats
         const itemList: Record<string, number> = {}
         let freeVmoney = player.freeVmoney
+        let vmoney = player.vmoney
         let freeMana = player.freeMana
+        let paidMana = player.paidMana
         let bondTokens = player.bondToken
 
         // verify user costs
         const userCost = shopItemData.userCost
         if (userCost !== undefined) {
+            const totalCost = userCost.amount * chargedPurchaseAmount
             switch (userCost.type) {
-                case ShopItemUserCostType.MANA:
-                    freeMana -= (userCost.amount * purchaseAmount)
-                    break;
-                case ShopItemUserCostType.BEADS:
-                    freeVmoney -= (userCost.amount * purchaseAmount)
-                    break;
+                case ShopItemUserCostType.MANA: {
+                    const deduction = computeFreeFirstDeduction(freeMana, paidMana, totalCost)
+                    if (deduction === null) return reply.status(400).send({
+                        "error": "Bad Request",
+                        "message": `Not enough mana to purchase shop item.`
+                    })
+                    freeMana = deduction.freeBalance
+                    paidMana = deduction.paidBalance
+                    break
+                }
+                case ShopItemUserCostType.BEADS: {
+                    const deduction = computeFreeFirstDeduction(freeVmoney, vmoney, totalCost)
+                    if (deduction === null) return reply.status(400).send({
+                        "error": "Bad Request",
+                        "message": `Not enough beads to purchase shop item.`
+                    })
+                    freeVmoney = deduction.freeBalance
+                    vmoney = deduction.paidBalance
+                    break
+                }
                 case ShopItemUserCostType.AMITY_SCROLL:
-                    bondTokens -= (userCost.amount * purchaseAmount)
+                    bondTokens -= totalCost
             }
 
-            if (0 > freeVmoney) return reply.status(400).send({
-                "error": "Bad Request",
-                "message": `Not enough beads to purchase shop item.`
-            })
-            if (0 > freeMana) return reply.status(400).send({
-                "error": "Bad Request",
-                "message": `Not enough mana to purchase shop item.`
-            })
             if (0 > bondTokens) return reply.status(400).send({
                 "error": "Bad Request",
                 "message": `Not enough amity scrolls to purchase shop item.`
@@ -461,7 +578,7 @@ const routes = async (fastify: FastifyInstance) => {
             for (const cost of shopItemData.costs) {
                 const itemId = cost.id
                 const itemAmount = getPlayerItemSync(playerId, itemId) ?? 0
-                const newItemAmount = itemAmount - (cost.amount * purchaseAmount)
+                const newItemAmount = itemAmount - (cost.amount * chargedPurchaseAmount)
                 if (0 > newItemAmount) return reply.status(400).send({
                     "error": "Bad Request",
                     "message": `Not enough of item with id ${itemId} to purchase shop item.`
@@ -470,46 +587,46 @@ const routes = async (fastify: FastifyInstance) => {
                 itemList[itemId] = newItemAmount
             }
 
-            // deduct cost item
+        }
+
+        const manaSpent = Math.max(
+            0,
+            (player.freeMana + player.paidMana) - (freeMana + paidMana),
+        )
+        const applyPurchaseCosts = () => {
             for (const [itemId, newAmount] of Object.entries(itemList)) {
                 updatePlayerItemSync(playerId, itemId, newAmount)
             }
+            updatePlayerSync({
+                id: playerId,
+                freeMana: freeMana,
+                paidMana: paidMana,
+                freeVmoney: freeVmoney,
+                vmoney: vmoney,
+                bondToken: bondTokens
+            })
+            if (manaSpent > 0) incrementActiveMissionUsedManaCountSync(playerId, manaSpent)
         }
 
-        // update player
-        updatePlayerSync({
-            id: playerId,
-            freeMana: freeMana,
-            freeVmoney: freeVmoney,
-            bondToken: bondTokens
-        })
-        const manaSpent = Math.max(0, player.freeMana - freeMana)
-        if (manaSpent > 0) incrementActiveMissionUsedManaCountSync(playerId, manaSpent)
-
         // Equipment enhancement shop: update equipment enhancement level
-        if (shopType === ShopType.TREASURE_EQUIPMENT) {
-            const equipmentId = shopItemData.equipmentId
-            const targetLevel = shopItemData.enhancementMaxLevel
-            if (equipmentId === undefined || targetLevel === undefined) return reply.status(400).send({
-                "error": "Bad Request",
-                "message": "Enhancement item missing equipment_id or target level."
-            })
+        if (enhancementPurchase !== null) {
+            const { equipmentId, newLevel, grantedLevelCount } = enhancementPurchase
+            getDb().transaction(() => {
+                applyPurchaseCosts()
+                updatePlayerEquipmentSync(playerId, equipmentId, { enhancementLevel: newLevel })
+                addEffectiveShopPurchaseCountSync(
+                    playerId,
+                    shopType,
+                    shopItemId,
+                    chargedPurchaseAmount,
+                )
+            })()
 
-            const currentEquipment = getPlayerEquipmentSync(playerId, equipmentId)
-            if (currentEquipment === null) return reply.status(400).send({
-                "error": "Bad Request",
-                "message": "Player does not own the target equipment."
-            })
-
-            // Update to target enhancement level
-            const newLevel = Math.max(currentEquipment.enhancementLevel, targetLevel)
-            updatePlayerEquipmentSync(playerId, equipmentId, { enhancementLevel: newLevel })
-            currentEquipment.enhancementLevel = newLevel
-
-            // Record purchase
-            for (let i = 0; i < purchaseAmount; i++) {
-                addEffectiveShopPurchaseCountSync(playerId, shopType, shopItemId, 1)
-            }
+            const currentEquipment = getPlayerEquipmentSync(playerId, equipmentId)!
+            gameVerboseLog(() =>
+                `[shop:enhancement-benefit] player=${playerId} equipment=${equipmentId} ` +
+                `item=${shopItemId} grantedLevels=${grantedLevelCount} newLevel=${newLevel}`
+            )
 
             reply.header("content-type", "application/x-msgpack")
             return reply.status(200).send({
@@ -518,7 +635,9 @@ const routes = async (fastify: FastifyInstance) => {
                 }),
                 "data": {
                     "user_info": {
+                        "vmoney": vmoney,
                         "free_vmoney": freeVmoney,
+                        "paid_mana": paidMana,
                         "free_mana": freeMana,
                         "bond_token": bondTokens
                     },
@@ -529,6 +648,8 @@ const routes = async (fastify: FastifyInstance) => {
                 }
             })
         }
+
+        applyPurchaseCosts()
 
         // build rewards array
         const rewards: Reward[] = []
@@ -599,15 +720,21 @@ const routes = async (fastify: FastifyInstance) => {
 
         // verify DB write
         const afterPlayer = getPlayerSync(playerId)!
-        gameVerboseLog(() => `[shop:buy] after DB freeMana=${afterPlayer.freeMana} freeVmoney=${afterPlayer.freeVmoney} rewardItems=${JSON.stringify(rewardResult?.items ?? {})}`)
+        gameVerboseLog(() =>
+            `[shop:buy] after DB freeMana=${afterPlayer.freeMana} paidMana=${afterPlayer.paidMana} ` +
+            `freeVmoney=${afterPlayer.freeVmoney} vmoney=${afterPlayer.vmoney} ` +
+            `rewardItems=${JSON.stringify(rewardResult?.items ?? {})}`
+        )
 
         reply.header("content-type", "application/x-msgpack")
         const responseData: Record<string, unknown> = {
             "user_info": {
-                "free_vmoney": freeVmoney + (rewardResult?.user_info.free_vmoney ?? 0),
-                "free_mana": freeMana + (rewardResult?.user_info.free_mana ?? 0),
-                "bond_token": bondTokens,
-                "exp_pool": player.expPool + (rewardResult?.user_info.exp_pool ?? 0),
+                "vmoney": afterPlayer.vmoney,
+                "free_vmoney": afterPlayer.freeVmoney,
+                "paid_mana": afterPlayer.paidMana,
+                "free_mana": afterPlayer.freeMana,
+                "bond_token": afterPlayer.bondToken,
+                "exp_pool": afterPlayer.expPool,
             },
             "character_list": characterList,
             "equipment_list": rewardResult?.equipment_list ?? [],
@@ -711,17 +838,7 @@ const routes = async (fastify: FastifyInstance) => {
                 }
 
                 // Date filtering: only show items active at current server time
-                {
-                    const now = getServerDate()
-                    if (item.availableFrom) {
-                        const fromStr = item.availableFrom.replace(' ', 'T') + 'Z'
-                        if (new Date(fromStr) > now) continue
-                    }
-                    if (item.availableUntil) {
-                        const untilStr = item.availableUntil.replace(' ', 'T') + 'Z'
-                        if (new Date(untilStr) < now) continue
-                    }
-                }
+                if (!isShopItemAvailable(item, getServerDate())) continue
 
                 if (shopTypeNum === ShopType.TREASURE_EQUIPMENT) {
                     // Collect for group-level processing later
@@ -826,10 +943,16 @@ const routes = async (fastify: FastifyInstance) => {
             })
         }
 
-        // Insufficient vmoney
-        const freeVmoney = player.freeVmoney
-        if (freeVmoney < recoveryCost) {
-            console.warn(`[RECOVER-STAMINA] player ${playerId} insufficient vmoney: ${freeVmoney} < ${recoveryCost}`)
+        const vmoneyDeduction = computeFreeFirstDeduction(
+            player.freeVmoney,
+            player.vmoney,
+            recoveryCost,
+        )
+        if (vmoneyDeduction === null) {
+            console.warn(
+                `[RECOVER-STAMINA] player ${playerId} insufficient vmoney: ` +
+                `free=${player.freeVmoney} paid=${player.vmoney} cost=${recoveryCost}`
+            )
             reply.header("content-type", "application/x-msgpack")
             return reply.status(200).send({
                 "data_headers": generateDataHeaders({ viewer_id: viewerId, result_code: 0 }),
@@ -845,10 +968,15 @@ const routes = async (fastify: FastifyInstance) => {
             id: playerId,
             stamina: afterStamina,
             staminaHealTime: new Date(),
-            freeVmoney: freeVmoney - recoveryCost
+            freeVmoney: vmoneyDeduction.freeBalance,
+            vmoney: vmoneyDeduction.paidBalance,
         })
 
-        gameVerboseLog(() => `[RECOVER-STAMINA] player ${playerId}: stamina ${currentStamina}->${afterStamina} (+${actualRecovery}), freeVmoney ${freeVmoney}->${freeVmoney - recoveryCost}`)
+        gameVerboseLog(() =>
+            `[RECOVER-STAMINA] player ${playerId}: stamina ${currentStamina}->${afterStamina} (+${actualRecovery}), ` +
+            `freeVmoney ${player.freeVmoney}->${vmoneyDeduction.freeBalance}, ` +
+            `vmoney ${player.vmoney}->${vmoneyDeduction.paidBalance}`
+        )
 
         reply.header("content-type", "application/x-msgpack")
         return reply.status(200).send({
@@ -857,7 +985,8 @@ const routes = async (fastify: FastifyInstance) => {
                 "user_info": {
                     "stamina": afterStamina,
                     "stamina_heal_time": realToVirtual(new Date()),
-                    "free_vmoney": freeVmoney - recoveryCost
+                    "vmoney": vmoneyDeduction.paidBalance,
+                    "free_vmoney": vmoneyDeduction.freeBalance,
                 }
             }
         })
@@ -933,8 +1062,10 @@ const routes = async (fastify: FastifyInstance) => {
         let manaCost = 0
         let vmoneyCost = 0
         let bondTokenCost = 0
-        let availableMana = player.freeMana
-        let availableVmoney = player.freeVmoney
+        let availableFreeMana = player.freeMana
+        let availablePaidMana = player.paidMana
+        let availableFreeVmoney = player.freeVmoney
+        let availablePaidVmoney = player.vmoney
         let availableBondToken = player.bondToken
         const availableItems = new Map<number, number>()
         let skippedEntries = Math.max(0, (buyItemList === null ? 0 : Object.keys(buyItemList).length) - rawEntries.length)
@@ -979,10 +1110,10 @@ const routes = async (fastify: FastifyInstance) => {
                 }
                 switch (userCost.type) {
                     case ShopItemUserCostType.MANA:
-                        userCostBudget = availableMana
+                        userCostBudget = availableFreeMana + availablePaidMana
                         break
                     case ShopItemUserCostType.BEADS:
-                        userCostBudget = availableVmoney
+                        userCostBudget = availableFreeVmoney + availablePaidVmoney
                         break
                     case ShopItemUserCostType.AMITY_SCROLL:
                         userCostBudget = availableBondToken
@@ -1037,14 +1168,36 @@ const routes = async (fastify: FastifyInstance) => {
                     continue
                 }
                 switch (userCost.type) {
-                    case ShopItemUserCostType.MANA:
+                    case ShopItemUserCostType.MANA: {
+                        const deduction = computeFreeFirstDeduction(
+                            availableFreeMana,
+                            availablePaidMana,
+                            total,
+                        )
+                        if (deduction === null) {
+                            skippedEntries++
+                            continue
+                        }
                         manaCost += total
-                        availableMana -= total
+                        availableFreeMana = deduction.freeBalance
+                        availablePaidMana = deduction.paidBalance
                         break
-                    case ShopItemUserCostType.BEADS:
+                    }
+                    case ShopItemUserCostType.BEADS: {
+                        const deduction = computeFreeFirstDeduction(
+                            availableFreeVmoney,
+                            availablePaidVmoney,
+                            total,
+                        )
+                        if (deduction === null) {
+                            skippedEntries++
+                            continue
+                        }
                         vmoneyCost += total
-                        availableVmoney -= total
+                        availableFreeVmoney = deduction.freeBalance
+                        availablePaidVmoney = deduction.paidBalance
                         break
+                    }
                     case ShopItemUserCostType.AMITY_SCROLL:
                         bondTokenCost += total
                         availableBondToken -= total
@@ -1119,8 +1272,10 @@ const routes = async (fastify: FastifyInstance) => {
 
                 updatePlayerSync({
                     id: playerId,
-                    freeMana: player.freeMana - manaCost,
-                    freeVmoney: player.freeVmoney - vmoneyCost,
+                    freeMana: availableFreeMana,
+                    paidMana: availablePaidMana,
+                    freeVmoney: availableFreeVmoney,
+                    vmoney: availablePaidVmoney,
                     bondToken: player.bondToken - bondTokenCost
                 })
                 if (manaCost > 0) incrementActiveMissionUsedManaCountSync(playerId, manaCost)
@@ -1167,14 +1322,17 @@ const routes = async (fastify: FastifyInstance) => {
 
         gameVerboseLog(() =>
             `[shop:bulk_buy] completed player=${playerId} ` +
-            `freeMana=${afterPlayer.freeMana} freeVmoney=${afterPlayer.freeVmoney} ` +
+            `freeMana=${afterPlayer.freeMana} paidMana=${afterPlayer.paidMana} ` +
+            `freeVmoney=${afterPlayer.freeVmoney} vmoney=${afterPlayer.vmoney} ` +
             `rewardItems=${JSON.stringify(rewardResult.items)}`
         )
 
         reply.header("content-type", "application/x-msgpack")
         const responseData: Record<string, unknown> = {
             "user_info": {
+                "vmoney": afterPlayer.vmoney,
                 "free_vmoney": afterPlayer.freeVmoney,
+                "paid_mana": afterPlayer.paidMana,
                 "free_mana": afterPlayer.freeMana,
                 "bond_token": afterPlayer.bondToken,
                 "exp_pool": afterPlayer.expPool

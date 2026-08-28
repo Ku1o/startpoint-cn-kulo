@@ -10,6 +10,7 @@ import { clearReliableSendState, sendFrameReliably } from "../tcp/reliable-send"
 import type { ReliableSendContext, ReliableSendResult } from "../tcp/reliable-send"
 import { clearChainDiagnosticRoom } from "../tcp/chain-diagnostic"
 import { embeddedMultiCoordinator } from "../coordinator/embedded"
+import { roomAdmissionRegistry } from "../room/admission"
 
 export interface SessionClient {
     socket: net.Socket
@@ -27,6 +28,8 @@ export interface SessionClient {
     connectionGeneration: number
     superseded: boolean
     connectedAt: number
+    admissionClaimed: boolean
+    admissionGeneration?: number
     clientState: ClientStateMachine
     battleState: BattleState
 }
@@ -54,7 +57,9 @@ export class SessionManager {
     private battleExpectedCount = new Map<string, number>()
     private battleHeartbeatTimers = new Map<string, NodeJS.Timeout>()
     private battleLastActivityAt = new Map<string, number>()
-    private battleConnectionPhase = new Map<string, "loading" | "active">()
+    private battleConnectionPhase = new Map<string, "loading" | "ready" | "active">()
+    private battleSceneStartedRooms = new Set<string>()
+    private pendingBattleLeaves = new Map<string, Set<string>>()
     private battleBarrierLogState = new Map<string, string>()
     private supersededBattleClients = new WeakSet<SessionClient>()
     private supersededSockets = new WeakSet<net.Socket>()
@@ -64,6 +69,7 @@ export class SessionManager {
     private settlementReturnTimers = new Map<string, NodeJS.Timeout>()
     private rescueGuests = new Map<string, Set<number>>()
     private newbieRescueGuests = new Map<string, Set<number>>()
+    private rescueFragmentEligibleGuests = new Map<string, Set<number>>()
     private rescueGuestWaits = new Map<string, RescueGuestWaitState>()
     private rescueGuestReconnectTimers = new Map<string, NodeJS.Timeout>()
     private blockedRoomRestores = new Map<string, Set<number>>()
@@ -198,7 +204,7 @@ export class SessionManager {
         this.battleHeartbeatTimers.set(connectionId, timer)
     }
 
-    private scheduleActiveBattleHeartbeatLease(connectionId: string, delayMs: number): void {
+    private scheduleBattleActivityLease(connectionId: string, delayMs: number): void {
         const client = this.cidToBattleClient.get(connectionId)
         if (!client || client.socket.destroyed) return
         const leaseMs = this.parsePositiveDuration("BATTLE_HEARTBEAT_LEASE_MS", 25_000, 5_000)
@@ -213,7 +219,7 @@ export class SessionManager {
             }
             const inactiveMs = Date.now() - (this.battleLastActivityAt.get(connectionId) ?? 0)
             if (inactiveMs < leaseMs) {
-                this.scheduleActiveBattleHeartbeatLease(connectionId, Math.max(1, leaseMs - inactiveMs))
+                this.scheduleBattleActivityLease(connectionId, Math.max(1, leaseMs - inactiveMs))
                 return
             }
             console.warn(`[MULTI] real battle connection heartbeat expired: room=${current.roomNumber}`
@@ -233,16 +239,26 @@ export class SessionManager {
         const leaseMs = this.parsePositiveDuration("BATTLE_HEARTBEAT_LEASE_MS", 25_000, 5_000)
         this.battleConnectionPhase.set(connectionId, "active")
         this.battleLastActivityAt.set(connectionId, Date.now())
-        this.scheduleActiveBattleHeartbeatLease(connectionId, leaseMs)
+        this.scheduleBattleActivityLease(connectionId, leaseMs)
+    }
+
+    private armBattleReadyHeartbeatLease(connectionId: string): void {
+        const client = this.cidToBattleClient.get(connectionId)
+        if (!client || client.socket.destroyed) return
+        const leaseMs = this.parsePositiveDuration("BATTLE_HEARTBEAT_LEASE_MS", 25_000, 5_000)
+        this.battleConnectionPhase.set(connectionId, "ready")
+        this.battleLastActivityAt.set(connectionId, Date.now())
+        this.scheduleBattleActivityLease(connectionId, leaseMs)
     }
 
     noteBattleActivity(connectionId: string): void {
         if (!this.cidToBattleClient.has(connectionId)) return
         // Loading has a fixed upper bound and is deliberately not governed by
-        // the active-battle heartbeat.  SceneReady switches the connection to
-        // the renewable 25-second activity lease.
-        if (this.battleConnectionPhase.get(connectionId) === "active") {
-            // One timer per active connection is enough. Per-packet traffic
+        // the activity heartbeat. SceneReady switches the connection to the
+        // renewable ready lease; barrier release promotes it to active.
+        const phase = this.battleConnectionPhase.get(connectionId)
+        if (phase === "ready" || phase === "active") {
+            // One timer per ready/active connection is enough. Per-packet traffic
             // only advances the deadline timestamp; the timer reschedules for
             // the exact remaining lease when it wakes up.
             this.battleLastActivityAt.set(connectionId, Date.now())
@@ -287,10 +303,43 @@ export class SessionManager {
         return true
     }
 
-    private broadcastBattleSceneStart(roomNumber: string): void {
-        for (const connectionId of this.battleClients.get(roomNumber) ?? []) {
-            const client = this.cidToBattleClient.get(connectionId)
-            if (client && !client.socket.destroyed) this.sendJson(client.socket, [1, [1]])
+    private queueBattleLeave(roomNumber: string, connectionId: string): void {
+        let pending = this.pendingBattleLeaves.get(roomNumber)
+        if (!pending) {
+            pending = new Set()
+            this.pendingBattleLeaves.set(roomNumber, pending)
+        }
+        pending.add(connectionId)
+    }
+
+    private broadcastBattleLeave(roomNumber: string, connectionId: string): void {
+        for (const client of this.getConnectedBattleClients(roomNumber)) {
+            if (client.connectionId === connectionId) continue
+            this.sendJson(client.socket, [1, [0, connectionId]])
+        }
+    }
+
+    private activateBattleScene(roomNumber: string): void {
+        const clients = this.getConnectedBattleClients(roomNumber)
+        this.battleSceneStartedRooms.add(roomNumber)
+
+        // Promote the entire room together. SceneReady means only that one
+        // client finished loading; treating it as active before this point can
+        // publish Leave to peers that are still constructing their battle.
+        for (const client of clients) {
+            this.armActiveBattleHeartbeatLease(client.connectionId)
+        }
+        for (const client of clients) {
+            this.sendJson(client.socket, [1, [1]])
+        }
+
+        // Every survivor must observe BattleStart before AI takeover. Sending
+        // Leave earlier lets differently loaded clients build divergent local
+        // battle/chain state and can stall subsequent chain activations.
+        const pending = this.pendingBattleLeaves.get(roomNumber)
+        this.pendingBattleLeaves.delete(roomNumber)
+        for (const connectionId of pending ?? []) {
+            this.broadcastBattleLeave(roomNumber, connectionId)
         }
     }
 
@@ -325,7 +374,12 @@ export class SessionManager {
         this.rescueGuestReconnectTimers.delete(key)
     }
 
-    markRescueGuest(roomNumber: string, viewerId: number, isNewbieRescue = false): void {
+    markRescueGuest(
+        roomNumber: string,
+        viewerId: number,
+        isNewbieRescue = false,
+        isFragmentRewardEligible = false,
+    ): void {
         let viewers = this.rescueGuests.get(roomNumber)
         if (!viewers) {
             viewers = new Set()
@@ -342,6 +396,16 @@ export class SessionManager {
         } else {
             this.newbieRescueGuests.get(roomNumber)?.delete(viewerId)
         }
+        if (isFragmentRewardEligible) {
+            let eligibleViewers = this.rescueFragmentEligibleGuests.get(roomNumber)
+            if (!eligibleViewers) {
+                eligibleViewers = new Set()
+                this.rescueFragmentEligibleGuests.set(roomNumber, eligibleViewers)
+            }
+            eligibleViewers.add(viewerId)
+        } else {
+            this.rescueFragmentEligibleGuests.get(roomNumber)?.delete(viewerId)
+        }
         this.blockedRoomRestores.get(roomNumber)?.delete(viewerId)
         this.clearRescueGuestReconnect(roomNumber, viewerId)
     }
@@ -352,6 +416,10 @@ export class SessionManager {
 
     isNewbieRescueGuest(roomNumber: string, viewerId: number): boolean {
         return this.newbieRescueGuests.get(roomNumber)?.has(viewerId) ?? false
+    }
+
+    isRescueFragmentEligibleGuest(roomNumber: string, viewerId: number): boolean {
+        return this.rescueFragmentEligibleGuests.get(roomNumber)?.has(viewerId) ?? false
     }
 
     isRoomRestoreBlocked(roomNumber: string, viewerId: number): boolean {
@@ -451,6 +519,7 @@ export class SessionManager {
         this.clearRescueGuestReconnect(roomNumber, viewerId)
         this.rescueGuests.get(roomNumber)?.delete(viewerId)
         this.newbieRescueGuests.get(roomNumber)?.delete(viewerId)
+        this.rescueFragmentEligibleGuests.get(roomNumber)?.delete(viewerId)
 
         let blocked = this.blockedRoomRestores.get(roomNumber)
         if (!blocked) {
@@ -458,6 +527,10 @@ export class SessionManager {
             this.blockedRoomRestores.set(roomNumber, blocked)
         }
         blocked.add(viewerId)
+        try {
+            const { removeRoomMember } = require("../room/manager")
+            removeRoomMember(roomNumber, viewerId)
+        } catch (e) {}
         try {
             const { suppressRandomRecruitmentForViewer } = require("../recruitment")
             suppressRandomRecruitmentForViewer(roomNumber, viewerId)
@@ -530,6 +603,7 @@ export class SessionManager {
         }
         this.rescueGuests.delete(roomNumber)
         this.newbieRescueGuests.delete(roomNumber)
+        this.rescueFragmentEligibleGuests.delete(roomNumber)
         this.blockedRoomRestores.delete(roomNumber)
     }
 
@@ -739,6 +813,7 @@ export class SessionManager {
             connectionGeneration: 0,
             superseded: false,
             connectedAt: Date.now(),
+            admissionClaimed: false,
             clientState: new ClientStateMachine(ClientState.Connecting),
             battleState: BattleState.Initializing,
         }
@@ -795,6 +870,15 @@ export class SessionManager {
 
     removeClient(client: SessionClient): Result<void> {
         this.unindexClientSocket(client)
+        if (!client.isBattle && client.admissionClaimed) {
+            roomAdmissionRegistry.releaseClaim(
+                client.roomNumber,
+                client.admissionGeneration ?? client.roomGeneration,
+                client.viewerId,
+                client.connectionId,
+            )
+            client.admissionClaimed = false
+        }
         const addr = this.addr(client.viewerId, client.roomNumber)
         const isCurrentConnection = this.clients.get(addr) === client
         if (!client.isBattle && (!isCurrentConnection || client.superseded)) {
@@ -805,21 +889,13 @@ export class SessionManager {
         if (client.isBattle) {
             const superseded = this.supersededBattleClients.delete(client)
             const isCurrentBattleConnection = this.cidToBattleClient.get(client.connectionId) === client
-            const phase = isCurrentBattleConnection
-                ? this.battleConnectionPhase.get(client.connectionId)
-                : undefined
             if (isCurrentBattleConnection) this.clearBattleHeartbeatLease(client.connectionId)
             const bSet = this.battleClients.get(client.roomNumber)
-            // Scene loading sockets can be replaced or reconnect briefly.  A
-            // Leave packet at this point makes the remaining client discard a
-            // real teammate and start a different local scene.  Only publish a
-            // departure after the battle scene is already active.
-            if (bSet && !superseded && phase === "active") {
-                for (const cid of bSet) {
-                    if (cid !== client.connectionId) {
-                        const c = this.cidToBattleClient.get(cid)
-                        if (c) this.sendJson(c.socket, [1, [0, client.connectionId]]) // BattleServerMessage.Leave(connectionId)
-                    }
+            if (bSet && !superseded) {
+                if (this.battleSceneStartedRooms.has(client.roomNumber)) {
+                    this.broadcastBattleLeave(client.roomNumber, client.connectionId)
+                } else {
+                    this.queueBattleLeave(client.roomNumber, client.connectionId)
                 }
             }
             if (isCurrentBattleConnection) {
@@ -837,7 +913,7 @@ export class SessionManager {
             // player battle into two independent one-player battles.
             if (!superseded && exp && exp > 2) this.battleExpectedCount.set(client.roomNumber, exp - 1)
             if (!superseded && this.releaseSceneReadyBarrierIfSatisfied(client.roomNumber, "disconnect")) {
-                this.broadcastBattleSceneStart(client.roomNumber)
+                this.activateBattleScene(client.roomNumber)
             }
         }
 
@@ -857,7 +933,11 @@ export class SessionManager {
                         }
                         const host = remaining.find(other => other.viewerId === room.host_viewer_id)
                         room.mates = (host?.mates ?? remaining.map(other => other.yourself).filter(Boolean))
-                            .map((mate: any) => ({ viewer_id: mate.viewerId ?? null, com_id: mate.comId ?? 0 }))
+                            .map((mate: any) => ({
+                                viewer_id: mate.viewerId ?? null,
+                                com_id: mate.comId ?? 0,
+                                player_id: mate.playerId ?? undefined,
+                            }))
                         if (host) {
                             this.broadcastToRoom(client.roomNumber, [1, [1, host.mates]])
                             try {
@@ -975,6 +1055,9 @@ export class SessionManager {
             )
             this.logBattleBarrierState(client.roomNumber, "connection_replaced")
         }
+        const pendingLeaves = this.pendingBattleLeaves.get(client.roomNumber)
+        pendingLeaves?.delete(connectionId)
+        if (pendingLeaves?.size === 0) this.pendingBattleLeaves.delete(client.roomNumber)
         set.add(connectionId)
         this.cidToBattleClient.set(connectionId, client)
         this.indexClientSocket(client)
@@ -986,6 +1069,11 @@ export class SessionManager {
         this.clearBattleHeartbeatLease(connectionId)
         const client = this.cidToBattleClient.get(connectionId)
         if (client) {
+            if (this.battleSceneStartedRooms.has(client.roomNumber)) {
+                this.broadcastBattleLeave(client.roomNumber, connectionId)
+            } else {
+                this.queueBattleLeave(client.roomNumber, connectionId)
+            }
             this.unindexClientSocket(client)
             this.battleClients.get(client.roomNumber)?.delete(connectionId)
             this.sceneReadyClients.get(client.roomNumber)?.delete(connectionId)
@@ -993,7 +1081,7 @@ export class SessionManager {
         }
         this.cidToBattleClient.delete(connectionId)
         if (client && this.releaseSceneReadyBarrierIfSatisfied(client.roomNumber, "removed")) {
-            this.broadcastBattleSceneStart(client.roomNumber)
+            this.activateBattleScene(client.roomNumber)
         }
     }
 
@@ -1046,8 +1134,10 @@ export class SessionManager {
             this.sceneReadyClients.set(roomNumber, readySet)
         }
         readySet.add(connectionId)
-        this.armActiveBattleHeartbeatLease(connectionId)
-        return this.releaseSceneReadyBarrierIfSatisfied(roomNumber, "scene_ready")
+        this.armBattleReadyHeartbeatLease(connectionId)
+        const released = this.releaseSceneReadyBarrierIfSatisfied(roomNumber, "scene_ready")
+        if (released) this.activateBattleScene(roomNumber)
+        return released
     }
 
     beginBattleLevelNext(connectionId: string, roomNumber: string): void {
@@ -1063,6 +1153,7 @@ export class SessionManager {
             this.sceneReadyClients.set(roomNumber, new Set())
             const connected = this.battleClients.get(roomNumber)?.size ?? 0
             this.battleExpectedCount.set(roomNumber, connected)
+            this.battleSceneStartedRooms.delete(roomNumber)
             for (const battleConnectionId of this.battleClients.get(roomNumber) ?? []) {
                 this.armBattleLoadingLease(battleConnectionId)
             }
@@ -1074,15 +1165,19 @@ export class SessionManager {
     clearSceneReady(roomNumber: string): void {
         this.sceneReadyClients.delete(roomNumber)
         this.battleLevelNextClients.delete(roomNumber)
+        this.battleSceneStartedRooms.delete(roomNumber)
+        this.pendingBattleLeaves.delete(roomNumber)
     }
 
     setBattleExpectedCount(roomNumber: string, count: number): void {
         this.sceneReadyClients.set(roomNumber, new Set())
         this.battleLevelNextClients.delete(roomNumber)
         this.battleExpectedCount.set(roomNumber, count)
+        this.battleSceneStartedRooms.delete(roomNumber)
+        this.pendingBattleLeaves.delete(roomNumber)
         this.logBattleBarrierState(roomNumber, "expected_changed")
         if (this.releaseSceneReadyBarrierIfSatisfied(roomNumber, "expected_recheck")) {
-            this.broadcastBattleSceneStart(roomNumber)
+            this.activateBattleScene(roomNumber)
         }
     }
 
@@ -1091,6 +1186,8 @@ export class SessionManager {
         this.battleLevelNextClients.delete(roomNumber)
         this.battleExpectedCount.delete(roomNumber)
         this.battleBarrierLogState.delete(roomNumber)
+        this.battleSceneStartedRooms.delete(roomNumber)
+        this.pendingBattleLeaves.delete(roomNumber)
     }
 
     removeRoomState(roomNumber: string): void {
@@ -1105,6 +1202,8 @@ export class SessionManager {
         this.clearRescueGuestStateForRoom(roomNumber)
         this.clearBattleHeartbeatLeasesForRoom(roomNumber)
         this.battleBarrierLogState.delete(roomNumber)
+        this.battleSceneStartedRooms.delete(roomNumber)
+        this.pendingBattleLeaves.delete(roomNumber)
         for (const key of this.roomConnectionGenerations.keys()) {
             if (key.endsWith(`@${roomNumber}`)) this.roomConnectionGenerations.delete(key)
         }

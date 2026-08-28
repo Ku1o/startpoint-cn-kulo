@@ -125,6 +125,7 @@ def build_pickup_pool(
     limited_character_ids: Sequence[int],
     standard_exchange_character_ids: Sequence[int] = (),
     non_exchangeable_limited_character_ids: Sequence[int] = (),
+    excluded_character_ids: Sequence[int] = (),
 ) -> dict[str, list[dict[str, object]]]:
     """Return 5/4/3 pools with nine pickups sharing 1% and a 4% standard ★5 tail."""
     if (
@@ -165,9 +166,23 @@ def build_pickup_pool(
         raise ValueError(
             "standard exchange character IDs must be unique positive non-pickup integers"
         )
+    if (
+        isinstance(excluded_character_ids, (str, bytes))
+        or len(set(excluded_character_ids)) != len(excluded_character_ids)
+        or any(
+            isinstance(value, bool) or not isinstance(value, int) or value <= 0
+            for value in excluded_character_ids
+        )
+        or set(excluded_character_ids) & set(limited_character_ids)
+        or set(excluded_character_ids) & set(standard_exchange_character_ids)
+    ):
+        raise ValueError(
+            "excluded character IDs must be unique positive non-pickup, non-exchange integers"
+        )
 
     donor: dict[str, list[dict[str, object]]] = {}
     seen_ids: set[int] = set()
+    excluded_id_set = set(excluded_character_ids)
     for bucket in ("1", "2", "3"):
         entries = donor_runtime["pool"][bucket]
         if not isinstance(entries, list) or not entries:
@@ -188,6 +203,8 @@ def build_pickup_pool(
                     f"standard exchange character {character_id} is not five-star"
                 )
             seen_ids.add(character_id)
+            if character_id in excluded_id_set:
+                continue
             donor[bucket].append(entry)
 
     exchange_ids = tuple(standard_exchange_character_ids)

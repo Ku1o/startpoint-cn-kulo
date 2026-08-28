@@ -28,13 +28,7 @@ function handleBattleNotify(socket: net.Socket, data: unknown): void {
     switch (tag) {
         case 0: { // SceneReady
             if (!client) break
-            const allReady = sessionManager.markSceneReady(client.connectionId, client.roomNumber)
-            if (allReady) {
-                const recipients = sessionManager.snapshotBattleRelayRecipients(client, true)
-                for (const recipient of recipients) {
-                    sendToBattleClient(recipient, [1, [1]], "battle_scene_start")
-                }
-            }
+            sessionManager.markSceneReady(client.connectionId, client.roomNumber)
             break
         }
         case 1: { // LevelNext (CN dual-boss battle)

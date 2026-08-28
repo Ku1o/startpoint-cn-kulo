@@ -16,6 +16,8 @@ export interface BattleStatisticsSummary {
     enemyKillCount: number
     weakPointDestroyCount: number
     coffinReduceCount: number
+    damageDealMax: number
+    revivalCoffinMax: number
     clearPhase?: number
 }
 
@@ -32,6 +34,7 @@ export interface BattleFinishMissionEvent {
     isMvp?: boolean
     clearRank?: number | null
     clearTimeMs: number
+    score?: number
     partyCharacterIds: number[]
     leaderCharacterId?: number
     unisonCharacterIds: number[]
@@ -76,6 +79,12 @@ function rootOrZoneStat(raw: any, zones: readonly any[], names: readonly string[
     return firstPresentStat([raw], names) ?? sumZoneStat(zones, names)
 }
 
+function rootOrMaxZoneStat(raw: any, zones: readonly any[], names: readonly string[]): number {
+    const root = firstPresentStat([raw], names)
+    if (root !== undefined) return root
+    return Math.max(0, ...zones.map(zone => firstPresentStat([zone], names) ?? 0))
+}
+
 export function summarizeBattleStatistics(raw: any): BattleStatisticsSummary {
     const zones = Array.isArray(raw?.zones) ? raw.zones : []
     return {
@@ -96,6 +105,8 @@ export function summarizeBattleStatistics(raw: any): BattleStatisticsSummary {
         enemyKillCount: rootOrZoneStat(raw, zones, ["enemy_kill_count"]),
         weakPointDestroyCount: rootOrZoneStat(raw, zones, ["weak_point_attack_count"]),
         coffinReduceCount: rootOrZoneStat(raw, zones, ["coffin_count_reduced_count"]),
+        damageDealMax: rootOrMaxZoneStat(raw, zones, ["damage_deal_max"]),
+        revivalCoffinMax: rootOrMaxZoneStat(raw, zones, ["max_coffin_count_by_revival"]),
         clearPhase: parseOptionalNonNegativeStat(raw?.clear_phase),
     }
 }
