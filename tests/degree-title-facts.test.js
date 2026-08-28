@@ -10,7 +10,11 @@ process.env.DATA_DIR = temporaryDataDir
 const { insertAccountSync } = require("../out/data/domains/account")
 const { insertDefaultPlayerSync } = require("../out/data/domains/player")
 const { givePlayerItemSync, setPlayerItemSync } = require("../out/data/domains/item")
-const { getPlayerCategoryMissionsSync } = require("../out/data/domains/mission")
+const { hasPlayerDegreeSync } = require("../out/data/domains/degree")
+const {
+    getPlayerCategoryMissionsSync,
+    updatePlayerCategoryMissionSync,
+} = require("../out/data/domains/mission")
 const { addMissionCounterSync } = require("../out/lib/mission/counters")
 const { countNewAbilitySoulEquipments } = require("../out/lib/mission/ability-soul-facts")
 const { recordBattleMissionDimensions } = require("../out/lib/mission/battle-dimensions")
@@ -97,6 +101,48 @@ test("multi records cannot unlock single-only time and score titles", () => {
     progress = getPlayerCategoryMissionsSync(player.id, 5)
     assert.equal(progress["14000"].progress, 10_000_000)
     assert.equal(progress["15020"].progress, 1)
+})
+
+test("single fever time title progress keeps the master-data millisecond unit", () => {
+    const missionIds = [17000, 17010, 17020]
+    record("single", 1000, 0, statistics({ feverTimeMs: 63_000 }))
+
+    // Reproduce the progress persisted by the former seconds conversion.
+    for (const missionId of missionIds) {
+        updatePlayerCategoryMissionSync(player.id, 5, missionId, 63)
+    }
+
+    settleMissionCategories(player.id, [{ category: 5, missionIds }], new Date())
+    let progress = getPlayerCategoryMissionsSync(player.id, 5)
+    for (const missionId of missionIds) {
+        assert.equal(progress[String(missionId)].progress, 63_000)
+        assert.equal(hasPlayerDegreeSync(player.id, missionId), false)
+    }
+
+    record("single", 1000, 0, statistics({ feverTimeMs: 117_000 }))
+    settleMissionCategories(player.id, [{ category: 5, missionIds }], new Date())
+    progress = getPlayerCategoryMissionsSync(player.id, 5)
+    assert.equal(progress["17000"].progress, 180_000)
+    assert.equal(progress["17010"].progress, 180_000)
+    assert.equal(progress["17020"].progress, 180_000)
+    assert.equal(hasPlayerDegreeSync(player.id, 17000), true)
+    assert.equal(hasPlayerDegreeSync(player.id, 17010), false)
+    assert.equal(hasPlayerDegreeSync(player.id, 17020), false)
+
+    record("single", 1000, 0, statistics({ feverTimeMs: 420_000 }))
+    settleMissionCategories(player.id, [{ category: 5, missionIds }], new Date())
+    progress = getPlayerCategoryMissionsSync(player.id, 5)
+    assert.equal(progress["17000"].progress, 180_000)
+    assert.equal(progress["17010"].progress, 600_000)
+    assert.equal(progress["17020"].progress, 600_000)
+    assert.equal(hasPlayerDegreeSync(player.id, 17010), true)
+    assert.equal(hasPlayerDegreeSync(player.id, 17020), false)
+
+    record("single", 1000, 0, statistics({ feverTimeMs: 3_000_000 }))
+    settleMissionCategories(player.id, [{ category: 5, missionIds }], new Date())
+    progress = getPlayerCategoryMissionsSync(player.id, 5)
+    assert.equal(progress["17020"].progress, 3_600_000)
+    assert.equal(hasPlayerDegreeSync(player.id, 17020), true)
 })
 
 test("maximum damage and revival coffin facts unlock their title missions", () => {
