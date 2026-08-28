@@ -275,7 +275,7 @@ const routes = async (fastify: FastifyInstance) => {
         }
 
         reply.header("content-type", "application/x-msgpack");
-        reply.status(200).send({
+        return reply.status(200).send({
             data_headers: generateDataHeaders({
                 asset_update: true,
                 viewer_id: accountId,

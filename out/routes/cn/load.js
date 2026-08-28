@@ -233,7 +233,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 clientData.unfinished_multi_quest_list = [];
             }
             reply.header("content-type", "application/x-msgpack");
-            reply.status(200).send({
+            return reply.status(200).send({
                 data_headers: (0, utils_1.generateDataHeaders)({
                     asset_update: true,
                     viewer_id: accountId,

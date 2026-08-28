@@ -86,6 +86,7 @@ const player_party_pool_1 = require("./multi/npc/player-party-pool");
 const ios_compat_1 = require("./lib/ios-compat");
 const db_1 = require("./data/db");
 const receive_history_retention_1 = require("./lib/receive-history-retention");
+const cn_load_http_compression_1 = require("./lib/cn-load-http-compression");
 const fastify = (0, fastify_1.default)({
     logger: {
         // Default remains compatible with the existing development behavior.
@@ -95,6 +96,7 @@ const fastify = (0, fastify_1.default)({
     },
     bodyLimit: 262144 // 256KB — covers /single_battle_quest/finish large battle stats
 });
+const cnLoadCompressionConfig = (0, cn_load_http_compression_1.getCnLoadHttpCompressionConfig)();
 (0, route_performance_1.installRoutePerformanceMonitor)(fastify);
 // Viewer IDs >= 900,000,000 are interpreted as COM/AI members by the
 // multiplayer protocol. Repair legacy human sessions before rooms can open.
@@ -348,17 +350,57 @@ function fixUint32Tags(buf) {
         i = walk(i);
     return out.subarray(0, w);
 }
-fastify.addHook("onSend", (_, reply, payload, done) => {
+function appendVaryAcceptEncoding(reply) {
+    const current = reply.getHeader("vary");
+    const values = String(current !== null && current !== void 0 ? current : "").split(",").map(value => value.trim()).filter(Boolean);
+    if (!values.some(value => value.toLowerCase() === "accept-encoding")) {
+        reply.header("vary", [...values, "Accept-Encoding"].join(", "));
+    }
+}
+function safeCompressionLogValue(value) {
+    return String(value !== null && value !== void 0 ? value : "none").replace(/[\r\n\t]/g, " ").slice(0, 120);
+}
+fastify.addHook("onSend", (request, reply, payload) => __awaiter(void 0, void 0, void 0, function* () {
+    var _e;
     try {
         if (reply.getHeader("content-type") === "application/x-msgpack") {
             const packed = fixUint32Tags((0, msgpackr_1.pack)(payload));
-            done(null, packed.toString("base64"));
-            return;
+            const base64 = packed.toString("base64");
+            if (request.url.split("?", 1)[0].endsWith("/load")
+                && cnLoadCompressionConfig.mode !== "off") {
+                appendVaryAcceptEncoding(reply);
+                let result;
+                try {
+                    result = yield (0, cn_load_http_compression_1.compressCnLoadHttpBody)(Buffer.from(base64, "ascii"), request.headers["accept-encoding"], cnLoadCompressionConfig);
+                }
+                catch (error) {
+                    console.error("[CN-LOAD-COMPRESS] compression failed; sending identity response:", error);
+                    return base64;
+                }
+                if (result.encoding) {
+                    reply.header("content-encoding", result.encoding);
+                    reply.removeHeader("content-length");
+                }
+                if (cnLoadCompressionConfig.log) {
+                    const reduction = result.originalBytes > 0
+                        ? ((1 - result.wireBytes / result.originalBytes) * 100).toFixed(1)
+                        : "0.0";
+                    console.warn(`[CN-LOAD-COMPRESS] mode=${cnLoadCompressionConfig.mode} `
+                        + `encoding=${(_e = result.encoding) !== null && _e !== void 0 ? _e : "identity"} reason=${result.reason} `
+                        + `accept=${safeCompressionLogValue(request.headers["accept-encoding"])} `
+                        + `device=${safeCompressionLogValue(request.headers.device)} `
+                        + `before=${result.originalBytes} after=${result.wireBytes} saved=${reduction}%`);
+                }
+                return result.encoding ? result.body : base64;
+            }
+            return base64;
         }
     }
-    catch (_a) { }
-    done(null, payload);
-});
+    catch (error) {
+        console.error("[CN-LOAD-COMPRESS] response serialization failed; using normal serializer:", error);
+    }
+    return payload;
+}));
 function jsonParser(_, body, done) {
     try {
         done(null, JSON.parse(body));
@@ -435,9 +477,9 @@ fastify.post(`${apiPrefix}/episode_trial_reading/finish`, (_request, reply) => _
     stubMsgpackReply(reply, {});
 }));
 fastify.get("/debug", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
-    var _e;
+    var _f;
     const ts = new Date().toISOString();
-    const loc = ((_e = request.query) === null || _e === void 0 ? void 0 : _e.loc) || "unknown";
+    const loc = ((_f = request.query) === null || _f === void 0 ? void 0 : _f.loc) || "unknown";
     // Parse C3032 from beacon query string (04e patch sends via CrashUtil.debugBeacon)
     try {
         parseC3032Beacon(loc);
@@ -518,9 +560,9 @@ function parsePlayBeacon(loc) {
     }
 }
 fastify.post("/debug", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
-    var _f;
+    var _g;
     const ts = new Date().toISOString();
-    const loc = ((_f = request.body) === null || _f === void 0 ? void 0 : _f.loc) || "unknown";
+    const loc = ((_g = request.body) === null || _g === void 0 ? void 0 : _g.loc) || "unknown";
     console.log(`[BEACON ${ts}] ${loc}`);
     // Parse C3032 beacons for auto-purification (04e patch skips throw but keeps beacon)
     try {

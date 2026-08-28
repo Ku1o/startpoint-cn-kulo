@@ -1,4 +1,4 @@
-import Fastify, { FastifyRequest } from "fastify";
+import Fastify, { FastifyReply, FastifyRequest } from "fastify";
 import { ContentTypeParserDoneFunction } from "fastify/types/content-type-parser";
 import { pack, unpack } from "msgpackr";
 import fastifyStatic from "@fastify/static";
@@ -76,6 +76,10 @@ import {
 import { parseIosCompatConfig } from "./lib/ios-compat";
 import { getDb } from "./data/db";
 import { createReceiveHistoryRetentionService } from "./lib/receive-history-retention";
+import {
+    compressCnLoadHttpBody,
+    getCnLoadHttpCompressionConfig,
+} from "./lib/cn-load-http-compression";
 
 const fastify = Fastify({
     logger: {
@@ -86,6 +90,8 @@ const fastify = Fastify({
     },
     bodyLimit: 262144  // 256KB — covers /single_battle_quest/finish large battle stats
 });
+
+const cnLoadCompressionConfig = getCnLoadHttpCompressionConfig();
 
 installRoutePerformanceMonitor(fastify);
 
@@ -308,15 +314,61 @@ function fixUint32Tags(buf: Buffer): Buffer {
     return out.subarray(0, w);
 }
 
-fastify.addHook("onSend", (_, reply, payload, done) => {
+function appendVaryAcceptEncoding(reply: FastifyReply): void {
+    const current = reply.getHeader("vary")
+    const values = String(current ?? "").split(",").map(value => value.trim()).filter(Boolean)
+    if (!values.some(value => value.toLowerCase() === "accept-encoding")) {
+        reply.header("vary", [...values, "Accept-Encoding"].join(", "))
+    }
+}
+
+function safeCompressionLogValue(value: unknown): string {
+    return String(value ?? "none").replace(/[\r\n\t]/g, " ").slice(0, 120)
+}
+
+fastify.addHook("onSend", async (request, reply, payload) => {
     try {
         if (reply.getHeader("content-type") === "application/x-msgpack") {
             const packed = fixUint32Tags(pack(payload));
-            done(null, packed.toString("base64"));
-            return;
+            const base64 = packed.toString("base64");
+            if (request.url.split("?", 1)[0].endsWith("/load")
+                && cnLoadCompressionConfig.mode !== "off") {
+                appendVaryAcceptEncoding(reply);
+                let result: Awaited<ReturnType<typeof compressCnLoadHttpBody>>;
+                try {
+                    result = await compressCnLoadHttpBody(
+                        Buffer.from(base64, "ascii"),
+                        request.headers["accept-encoding"],
+                        cnLoadCompressionConfig,
+                    );
+                } catch (error) {
+                    console.error("[CN-LOAD-COMPRESS] compression failed; sending identity response:", error);
+                    return base64;
+                }
+                if (result.encoding) {
+                    reply.header("content-encoding", result.encoding);
+                    reply.removeHeader("content-length");
+                }
+                if (cnLoadCompressionConfig.log) {
+                    const reduction = result.originalBytes > 0
+                        ? ((1 - result.wireBytes / result.originalBytes) * 100).toFixed(1)
+                        : "0.0";
+                    console.warn(
+                        `[CN-LOAD-COMPRESS] mode=${cnLoadCompressionConfig.mode} `
+                        + `encoding=${result.encoding ?? "identity"} reason=${result.reason} `
+                        + `accept=${safeCompressionLogValue(request.headers["accept-encoding"])} `
+                        + `device=${safeCompressionLogValue(request.headers.device)} `
+                        + `before=${result.originalBytes} after=${result.wireBytes} saved=${reduction}%`,
+                    );
+                }
+                return result.encoding ? result.body : base64;
+            }
+            return base64;
         }
-    } catch {}
-    done(null, payload);
+    } catch (error) {
+        console.error("[CN-LOAD-COMPRESS] response serialization failed; using normal serializer:", error)
+    }
+    return payload;
 });
 
 function jsonParser(_: FastifyRequest, body: string, done: ContentTypeParserDoneFunction) {
