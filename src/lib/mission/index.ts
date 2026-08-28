@@ -13,10 +13,18 @@ export { getMissionIdsByCategory, getCurrentStage, getCompletedStageNumbers, get
 export type { ActiveMissionReward, AwakeMissionRewardStageDefinition, AwakeMissionSpecialReward, MissionRewardStageDefinition } from "./rewards"
 export { getActiveMissionRewards, getAwakeMissionRewards, getAwakeMissionRewardStageDefinition, getCollectMissionRewards, getDailyMissionRewards, getDegreeMissionRewards, getEventMissionRewards, getMissionRewardStageDefinition, getRegularMissionRewards, getWeeklyMissionRewards } from "./rewards"
 export type { MissionSettlementInfo, MissionSettlementResult, MissionSettlementScope } from "./settlement"
-export { settleMissionCategories, settleMissionCategoriesAsync } from "./settlement"
+export {
+    settleMissionCategories,
+    settleMissionCategoriesAsync,
+    settleMissionCategoriesWithProgress,
+} from "./settlement"
+export type {
+    MissionSettlementProgress,
+    MissionSettlementWithProgressResult,
+} from "./settlement"
 export { mergeMissionSettlementResponse } from "./response"
 export { settleDegreeMissionResponse } from "./degree-response"
-export { getDegreeMissionIdsForConditionTypes } from "./computer-degree"
+export { getDegreeMissionIdsForBattle, getDegreeMissionIdsForConditionTypes } from "./computer-degree"
 
 // Patterns (for update_mission_progress)
 export type { PatternMatch } from "./patterns"

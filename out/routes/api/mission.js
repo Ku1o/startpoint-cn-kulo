@@ -23,7 +23,7 @@ const progress_1 = require("../../lib/mission/progress");
 const game_logging_1 = require("../../lib/game-logging");
 const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
     fastify.post("/get_mission_progress", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
-        var _a, _b, _c;
+        var _a, _b, _c, _d, _e, _f;
         const body = request.body;
         const viewerId = body.viewer_id;
         if (!viewerId || isNaN(viewerId))
@@ -64,28 +64,45 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         const automaticScopes = requestList
             .filter(entry => [1, 2, 3, 4, 5, 6, 7, 8, 10].includes(entry.category))
             .map(entry => ({ category: entry.category, eventId: entry.event_id }));
-        const automaticSettlement = automaticScopes.length > 0
-            ? (0, index_1.settleMissionCategories)(playerId, automaticScopes, evaluationTime)
+        const automaticResult = automaticScopes.length > 0
+            ? (0, index_1.settleMissionCategoriesWithProgress)(playerId, automaticScopes, evaluationTime)
             : null;
+        const automaticSettlement = (_a = automaticResult === null || automaticResult === void 0 ? void 0 : automaticResult.settlement) !== null && _a !== void 0 ? _a : null;
+        const automaticProgress = new Map(((_b = automaticResult === null || automaticResult === void 0 ? void 0 : automaticResult.evaluatedProgress) !== null && _b !== void 0 ? _b : []).map(progress => [
+            `${progress.category}:${progress.missionId}`,
+            progress.progress,
+        ]));
         const missionProgressList = [];
         const categoryMissionCache = new Map();
         const awakeProgressByCharacter = new Map();
         for (const requestEntry of requestList) {
             const category = requestEntry.category;
             const computer = (0, index_1.getComputer)(category);
-            let categoryMissions = categoryMissionCache.get(category);
-            if (!categoryMissions) {
-                categoryMissions = (0, mission_1.getPlayerCategoryMissionsSync)(playerId, category);
-                categoryMissionCache.set(category, categoryMissions);
-            }
             const allIds = (0, index_1.getMissionIdsByCategory)(category).filter(missionId => (0, index_1.isMissionEnabledAt)(category, missionId, evaluationTime, requestEntry.event_id));
             const charId = requestEntry.character_id === undefined ? undefined : String(requestEntry.character_id);
             const requestedIds = charId && category === 9
                 ? allIds.filter(missionId => (0, index_1.getCharacterIdFromMission)(missionId) === charId)
                 : allIds;
-            const ctx = getCtx(category, requestedIds);
+            let ctx;
+            let categoryMissions = categoryMissionCache.get(category);
             for (const missionId of requestedIds) {
-                const dbProgress = (_b = (_a = categoryMissions[String(missionId)]) === null || _a === void 0 ? void 0 : _a.progress) !== null && _b !== void 0 ? _b : 0;
+                const settledKey = `${category}:${missionId}`;
+                if (automaticProgress.has(settledKey)) {
+                    const progress = (_c = automaticProgress.get(settledKey)) !== null && _c !== void 0 ? _c : 0;
+                    missionProgressList.push({
+                        mission_category: category,
+                        mission_id: missionId,
+                        progress_value: Number(progress),
+                        stage: (0, index_1.getCurrentStage)(category, missionId, progress),
+                    });
+                    continue;
+                }
+                if (!categoryMissions) {
+                    categoryMissions = (0, mission_1.getPlayerCategoryMissionsSync)(playerId, category);
+                    categoryMissionCache.set(category, categoryMissions);
+                }
+                ctx !== null && ctx !== void 0 ? ctx : (ctx = getCtx(category, requestedIds));
+                const dbProgress = (_e = (_d = categoryMissions[String(missionId)]) === null || _d === void 0 ? void 0 : _d.progress) !== null && _e !== void 0 ? _e : 0;
                 const computed = computer.compute(missionId, ctx, dbProgress);
                 const finalTarget = (0, index_1.getMissionFinalTargetProgress)(category, missionId);
                 const monotonicProgress = Math.max(0, dbProgress, Number.isFinite(computed) ? computed : 0);
@@ -100,7 +117,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                     stage: stage
                 });
                 if (category === 9 && charId !== undefined) {
-                    const awakeProgress = (_c = awakeProgressByCharacter.get(charId)) !== null && _c !== void 0 ? _c : [];
+                    const awakeProgress = (_f = awakeProgressByCharacter.get(charId)) !== null && _f !== void 0 ? _f : [];
                     awakeProgress.push({ missionId, progress: Number(progress) });
                     awakeProgressByCharacter.set(charId, awakeProgress);
                 }
@@ -178,9 +195,10 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         // Update mission progress counters in DB (fire-and-forget from client)
         const missionParams = body.mission_param_list || [];
         let updatedCount = 0;
+        const updatedMissionIdsByCategory = new Map();
         const evaluationTime = new Date((0, utils_1.getServerTime)() * 1000);
         (0, db_1.getDb)().transaction(() => {
-            var _a, _b;
+            var _a, _b, _c;
             const categoryMissionCache = new Map();
             for (const param of missionParams) {
                 const delta = (0, progress_1.addMissionProgressDelta)(0, param.progress_value);
@@ -205,6 +223,9 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                         progress: nextProgress,
                         stages: (_b = current === null || current === void 0 ? void 0 : current.stages) !== null && _b !== void 0 ? _b : [],
                     };
+                    const updatedMissionIds = (_c = updatedMissionIdsByCategory.get(match.category)) !== null && _c !== void 0 ? _c : new Set();
+                    updatedMissionIds.add(match.missionId);
+                    updatedMissionIdsByCategory.set(match.category, updatedMissionIds);
                     updatedCount++;
                 }
             }
@@ -216,11 +237,17 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             character_list: characterList,
             "mail_arrived": (0, mail_1.getPlayerMailCountSync)(playerId, true) > 0
         };
-        // Client-reported title facts (voice, illustration and town taps) used
-        // to remain pending until the title page was opened.  Settle them in
-        // this response so the client can display the acquisition immediately.
-        const degreeSettlement = (0, index_1.settleMissionCategories)(playerId, [5], evaluationTime);
-        (0, index_1.mergeMissionSettlementResponse)(responseData, degreeSettlement, viewerId);
+        // Settle only the missions whose validated client counters changed.
+        // Daily all-clear is the sole exception because it depends on the full
+        // active daily set rather than one reported pattern.
+        const changedScopes = [...updatedMissionIdsByCategory]
+            .filter(([category]) => [1, 2, 3, 4, 5, 6, 7, 8, 10].includes(category))
+            .map(([category, missionIds]) => category === 2
+            ? { category }
+            : { category, missionIds: [...missionIds] });
+        if (changedScopes.length > 0) {
+            (0, index_1.mergeMissionSettlementResponse)(responseData, (0, index_1.settleMissionCategories)(playerId, changedScopes, evaluationTime), viewerId);
+        }
         (0, game_logging_1.gameVerboseLog)(() => `[MISSION] update_progress viewer=${viewerId} params=${missionParams.length} db_updates=${updatedCount}`);
         reply.header("content-type", "application/x-msgpack");
         return reply.status(200).send({

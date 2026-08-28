@@ -38,6 +38,9 @@ function buildBattleMissionSettlementScopes(facts, grantedItemIds = [], extraEve
             ...(0, computer_event_safe_1.getEventItemMissionIdsForItems)(grantedItemIds),
             ...extraEventMissionIds.filter(missionId => Number.isSafeInteger(missionId) && missionId > 0),
         ])];
+    const degreeMissionIds = facts.degreeTrigger
+        ? (0, computer_degree_1.getDegreeMissionIdsForBattle)(BATTLE_DEGREE_CONDITION_TYPES, facts.degreeTrigger, affectedCharacterIds, grantedItemIds)
+        : (0, computer_degree_1.getDegreeMissionIdsForConditionTypes)(BATTLE_DEGREE_CONDITION_TYPES, affectedCharacterIds, grantedItemIds);
     return [
         1,
         // Daily all-clear depends on the complete set of enabled core missions,
@@ -46,7 +49,7 @@ function buildBattleMissionSettlementScopes(facts, grantedItemIds = [], extraEve
         { category: 3, missionIds: eventMissionIds },
         {
             category: 5,
-            missionIds: (0, computer_degree_1.getDegreeMissionIdsForConditionTypes)(BATTLE_DEGREE_CONDITION_TYPES, affectedCharacterIds, grantedItemIds),
+            missionIds: degreeMissionIds,
         },
         6,
         7,
@@ -65,6 +68,14 @@ function getBattleActiveMissionPatterns(questCategory) {
 }
 exports.getBattleActiveMissionPatterns = getBattleActiveMissionPatterns;
 function recordMissionBattleFacts(ctx, evaluationTime = new Date((0, utils_1.getServerTime)() * 1000)) {
+    const degreeTrigger = {
+        questCategory: ctx.questCategory,
+        questId: ctx.questId,
+        mode: ctx.isMulti ? "multi" : "single",
+        isHost: ctx.isMultiHost,
+        accomplished: ctx.questAccomplished,
+        clearRank: ctx.clearRank,
+    };
     (0, mission_battle_facts_1.recordMissionBattleResultSync)(ctx.playerId, {
         isMulti: ctx.isMulti === true,
         isHost: ctx.isMultiHost,
@@ -72,7 +83,10 @@ function recordMissionBattleFacts(ctx, evaluationTime = new Date((0, utils_1.get
         clearRank: ctx.clearRank,
     });
     if (!ctx.questAccomplished) {
-        return { dailyMissionIds: [], eventMissionIds: [], passMissionIds: [], awakeMissionIds: [] };
+        return {
+            dailyMissionIds: [], eventMissionIds: [], passMissionIds: [], awakeMissionIds: [],
+            degreeTrigger,
+        };
     }
     (0, degree_party_power_1.recordDegreePartyPowerClearSync)(ctx);
     const dailyMissionIds = (0, daily_battle_facts_1.recordDailyMissionBattleFacts)(ctx, evaluationTime);
@@ -87,6 +101,6 @@ function recordMissionBattleFacts(ctx, evaluationTime = new Date((0, utils_1.get
     (0, leader_powerflip_tracker_1.trackLeaderPowerflip)(ctx);
     const awakeMissionIds = (0, party_co_clear_tracker_1.trackPartyCoClears)(ctx);
     (0, powerflip_tracker_1.trackPowerflip)(ctx);
-    return { dailyMissionIds, eventMissionIds, passMissionIds, awakeMissionIds };
+    return { dailyMissionIds, eventMissionIds, passMissionIds, awakeMissionIds, degreeTrigger };
 }
 exports.recordMissionBattleFacts = recordMissionBattleFacts;

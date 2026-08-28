@@ -46,6 +46,22 @@ export function getPlayerItemsSync(
     return output
 }
 
+/** Retrieves only the requested inventory rows with one bounded read. */
+export function getPlayerItemsByIdsSync(
+    playerId: number,
+    itemIds: readonly number[],
+): Record<string, number> {
+    const ids = [...new Set(itemIds)].filter(itemId => Number.isSafeInteger(itemId) && itemId > 0)
+    if (ids.length === 0) return {}
+    const placeholders = ids.map(() => "?").join(", ")
+    const rows = getDb().prepare(`
+    SELECT id, amount
+    FROM players_items
+    WHERE player_id = ? AND id IN (${placeholders})
+    `).all(playerId, ...ids) as RawPlayerItem[]
+    return Object.fromEntries(rows.map(row => [String(row.id), row.amount]))
+}
+
 export function getPlayerCollectedItemTotalSync(
     playerId: number,
     itemId: number | string
@@ -66,6 +82,22 @@ export function getPlayerCollectedItemTotalsSync(
     FROM players_collected_items
     WHERE player_id = ?
     `).all(playerId) as { item_id: number; total_obtained: number }[]
+    return Object.fromEntries(rows.map(row => [String(row.item_id), row.total_obtained]))
+}
+
+/** Retrieves lifetime acquisition totals for only the requested item IDs. */
+export function getPlayerCollectedItemTotalsByIdsSync(
+    playerId: number,
+    itemIds: readonly number[],
+): Record<string, number> {
+    const ids = [...new Set(itemIds)].filter(itemId => Number.isSafeInteger(itemId) && itemId > 0)
+    if (ids.length === 0) return {}
+    const placeholders = ids.map(() => "?").join(", ")
+    const rows = getDb().prepare(`
+    SELECT item_id, total_obtained
+    FROM players_collected_items
+    WHERE player_id = ? AND item_id IN (${placeholders})
+    `).all(playerId, ...ids) as { item_id: number; total_obtained: number }[]
     return Object.fromEntries(rows.map(row => [String(row.item_id), row.total_obtained]))
 }
 

@@ -7,7 +7,7 @@ import { getSession } from "../../data/domains/session"
 import { getDb } from "../../data/db"
 import { getPlayerMailCountSync } from "../../data/domains/mail"
 import { generateDataHeaders, getServerTime } from "../../utils";
-import { getComputer, getMissionIdsByCategory, getCurrentStage, getCharacterIdFromMission, getMissionFinalTargetProgress, isMissionEnabledAt, mergeMissionSettlementResponse, reconcileAwakeUnlockCharacterList, reconcileAwakeUnlocksFromProgress, refreshAwakeUnlockCharacterList, settleAwakeMissionRewards, settleMissionCategories } from "../../lib/mission/index";
+import { getComputer, getMissionIdsByCategory, getCurrentStage, getCharacterIdFromMission, getMissionFinalTargetProgress, isMissionEnabledAt, mergeMissionSettlementResponse, reconcileAwakeUnlockCharacterList, reconcileAwakeUnlocksFromProgress, refreshAwakeUnlockCharacterList, settleAwakeMissionRewards, settleMissionCategories, settleMissionCategoriesWithProgress } from "../../lib/mission/index";
 import { resolveClientProgressTargets } from "../../lib/mission/client-progress";
 import type { AwakeMissionComputedProgress, AwakeMissionInfo } from "../../lib/mission/index";
 import { resolvePlayerIdSync } from "../../data/activeAccount";
@@ -84,9 +84,16 @@ const routes = async (fastify: FastifyInstance) => {
         const automaticScopes = requestList
             .filter(entry => [1, 2, 3, 4, 5, 6, 7, 8, 10].includes(entry.category))
             .map(entry => ({ category: entry.category, eventId: entry.event_id }))
-        const automaticSettlement = automaticScopes.length > 0
-            ? settleMissionCategories(playerId, automaticScopes, evaluationTime)
+        const automaticResult = automaticScopes.length > 0
+            ? settleMissionCategoriesWithProgress(playerId, automaticScopes, evaluationTime)
             : null
+        const automaticSettlement = automaticResult?.settlement ?? null
+        const automaticProgress = new Map(
+            (automaticResult?.evaluatedProgress ?? []).map(progress => [
+                `${progress.category}:${progress.missionId}`,
+                progress.progress,
+            ]),
+        )
         const missionProgressList: any[] = []
         const categoryMissionCache = new Map<number, ReturnType<typeof getPlayerCategoryMissionsSync>>()
         const awakeProgressByCharacter = new Map<string, AwakeMissionComputedProgress[]>()
@@ -94,11 +101,6 @@ const routes = async (fastify: FastifyInstance) => {
         for (const requestEntry of requestList) {
             const category = requestEntry.category
             const computer = getComputer(category)
-            let categoryMissions = categoryMissionCache.get(category)
-            if (!categoryMissions) {
-                categoryMissions = getPlayerCategoryMissionsSync(playerId, category)
-                categoryMissionCache.set(category, categoryMissions)
-            }
             const allIds = getMissionIdsByCategory(category).filter(missionId =>
                 isMissionEnabledAt(category, missionId, evaluationTime, requestEntry.event_id)
             )
@@ -106,9 +108,26 @@ const routes = async (fastify: FastifyInstance) => {
             const requestedIds = charId && category === 9
                 ? allIds.filter(missionId => getCharacterIdFromMission(missionId) === charId)
                 : allIds
-            const ctx = getCtx(category, requestedIds)
+            let ctx: CategoryContext | undefined
+            let categoryMissions = categoryMissionCache.get(category)
 
             for (const missionId of requestedIds) {
+                const settledKey = `${category}:${missionId}`
+                if (automaticProgress.has(settledKey)) {
+                    const progress = automaticProgress.get(settledKey) ?? 0
+                    missionProgressList.push({
+                        mission_category: category,
+                        mission_id: missionId,
+                        progress_value: Number(progress),
+                        stage: getCurrentStage(category, missionId, progress),
+                    })
+                    continue
+                }
+                if (!categoryMissions) {
+                    categoryMissions = getPlayerCategoryMissionsSync(playerId, category)
+                    categoryMissionCache.set(category, categoryMissions)
+                }
+                ctx ??= getCtx(category, requestedIds)
                 const dbProgress = categoryMissions[String(missionId)]?.progress ?? 0
                 const computed = computer.compute(missionId, ctx, dbProgress)
                 const finalTarget = getMissionFinalTargetProgress(category, missionId)
@@ -225,6 +244,7 @@ const routes = async (fastify: FastifyInstance) => {
         // Update mission progress counters in DB (fire-and-forget from client)
         const missionParams = body.mission_param_list || []
         let updatedCount = 0
+        const updatedMissionIdsByCategory = new Map<number, Set<number>>()
         const evaluationTime = new Date(getServerTime() * 1000)
 
         getDb().transaction(() => {
@@ -259,6 +279,9 @@ const routes = async (fastify: FastifyInstance) => {
                         progress: nextProgress,
                         stages: current?.stages ?? [],
                     }
+                    const updatedMissionIds = updatedMissionIdsByCategory.get(match.category) ?? new Set<number>()
+                    updatedMissionIds.add(match.missionId)
+                    updatedMissionIdsByCategory.set(match.category, updatedMissionIds)
                     updatedCount++
                 }
             }
@@ -271,11 +294,21 @@ const routes = async (fastify: FastifyInstance) => {
             character_list: characterList,
             "mail_arrived": getPlayerMailCountSync(playerId, true) > 0
         }
-        // Client-reported title facts (voice, illustration and town taps) used
-        // to remain pending until the title page was opened.  Settle them in
-        // this response so the client can display the acquisition immediately.
-        const degreeSettlement = settleMissionCategories(playerId, [5], evaluationTime)
-        mergeMissionSettlementResponse(responseData, degreeSettlement, viewerId)
+        // Settle only the missions whose validated client counters changed.
+        // Daily all-clear is the sole exception because it depends on the full
+        // active daily set rather than one reported pattern.
+        const changedScopes = [...updatedMissionIdsByCategory]
+            .filter(([category]) => [1, 2, 3, 4, 5, 6, 7, 8, 10].includes(category))
+            .map(([category, missionIds]) => category === 2
+                ? { category }
+                : { category, missionIds: [...missionIds] })
+        if (changedScopes.length > 0) {
+            mergeMissionSettlementResponse(
+                responseData,
+                settleMissionCategories(playerId, changedScopes, evaluationTime),
+                viewerId,
+            )
+        }
         gameVerboseLog(() => `[MISSION] update_progress viewer=${viewerId} params=${missionParams.length} db_updates=${updatedCount}`)
 
         reply.header("content-type", "application/x-msgpack")
