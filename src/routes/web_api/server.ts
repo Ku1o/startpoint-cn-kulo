@@ -399,7 +399,7 @@ const routes = async (fastify: FastifyInstance) => {
                     mode: "fixed-cn-final",
                     source: "国服最终 CDN",
                     fullVersion: FULL_BASE,
-                    cnFinalVersion: patchManifest.cdn_version,
+                    cnFinalVersion: effectiveVersion,
                     detectedArchiveVersion: detectedVersion,
                     manifestVersion: patchManifest.cdn_version,
                     pinned: true,

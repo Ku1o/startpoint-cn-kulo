@@ -354,7 +354,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                     mode: "fixed-cn-final",
                     source: "国服最终 CDN",
                     fullVersion: version_1.FULL_BASE,
-                    cnFinalVersion: patchManifest.cdn_version,
+                    cnFinalVersion: effectiveVersion,
                     detectedArchiveVersion: detectedVersion,
                     manifestVersion: patchManifest.cdn_version,
                     pinned: true,
