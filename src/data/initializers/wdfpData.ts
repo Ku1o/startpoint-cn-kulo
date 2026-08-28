@@ -1140,6 +1140,14 @@ export default function init(
     ensureSchemaColumn(database, "players_active_quests.is_multi_host")
     ensureSchemaColumn(database, "players_active_quests.started_at_ms")
 
+    database.prepare(`CREATE TABLE IF NOT EXISTS players_repair_versions (
+        player_id INTEGER NOT NULL,
+        repair_key TEXT NOT NULL,
+        repair_version INTEGER NOT NULL,
+        applied_at TEXT NOT NULL,
+        PRIMARY KEY (player_id, repair_key),
+        FOREIGN KEY (player_id) REFERENCES players (id) ON DELETE CASCADE
+    )`).run();
 
     // Build potentially large performance indexes after the full schema exists.
     // On an upgraded cloud database this keeps an index failure from skipping

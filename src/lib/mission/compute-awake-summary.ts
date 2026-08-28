@@ -9,6 +9,7 @@ import { getMissionIdsByCategory, getMissionStageIds } from "./stages"
 import { getCharacterIdFromMission } from "./character-queries"
 import type { CategoryContext } from "./types"
 import { getServerDate } from "../../utils"
+import type { PlayerCharacter } from "../../data/types"
 
 export interface AwakeMissionEntry {
     mission_id: number
@@ -21,9 +22,12 @@ export interface AwakeSummary {
     manaBoardAwakeMap: Map<string, Record<number, number>>
 }
 
-export function computeAwakeSummary(playerId: number): AwakeSummary {
+export function computeAwakeSummary(
+    playerId: number,
+    snapshot: { readonly characterList?: Record<string, PlayerCharacter> } = {},
+): AwakeSummary {
     const activeMissions = getPlayerCategoryMissionsSync(playerId, 9)
-    const playerChars = getPlayerCharactersSync(playerId)
+    const playerChars = snapshot.characterList ?? getPlayerCharactersSync(playerId)
     const awakeMissionIds = getMissionIdsByCategory(9)
 
     const charMissionMap = new Map<string, number[]>()

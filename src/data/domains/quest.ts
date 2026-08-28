@@ -56,6 +56,70 @@ export function getPlayerQuestProgressSync(
     return mapped
 }
 
+export interface PlayerQuestProgressScope {
+    /** Whole quest sections required by range-based mission conditions. */
+    readonly sections?: readonly number[]
+    /** Normalized or stored quest ids required by exact mission conditions. */
+    readonly questIds?: readonly number[]
+}
+
+/**
+ * Reads only the quest rows needed by an Active Mission reconciliation.
+ * Section 4 ids are accepted in either stored or 10,000,000-offset form.
+ */
+export function getPlayerQuestProgressSubsetSync(
+    playerId: number,
+    scope: PlayerQuestProgressScope,
+): Record<string, PlayerQuestProgress[]> {
+    const sections = [...new Set((scope.sections ?? [])
+        .map(Number)
+        .filter(value => Number.isSafeInteger(value) && value >= 0))]
+    const requestedQuestIds = [...new Set((scope.questIds ?? [])
+        .map(Number)
+        .filter(value => Number.isSafeInteger(value) && value >= 0))]
+    const storedQuestIds = [...new Set(requestedQuestIds.flatMap(questId => (
+        questId >= 10_000_000 ? [questId, questId - 10_000_000] : [questId]
+    )))]
+    if (sections.length === 0 && storedQuestIds.length === 0) return {}
+
+    const rows = new Map<string, RawPlayerQuestProgress>()
+    const remember = (raw: RawPlayerQuestProgress) => {
+        rows.set(`${raw.section}:${raw.quest_id}`, raw)
+    }
+    const columns = `section, quest_id, finished, host_finished, unlocked, high_score,
+        clear_rank, best_elapsed_time_ms, leader_character_id, multi_clear_count,
+        s_plus_reward_received`
+
+    if (sections.length > 0) {
+        const placeholders = sections.map(() => "?").join(", ")
+        const found = getDb().prepare(`
+            SELECT ${columns}
+            FROM players_quest_progress
+            WHERE player_id = ? AND section IN (${placeholders})
+        `).all(playerId, ...sections) as RawPlayerQuestProgress[]
+        for (const raw of found) remember(raw)
+    }
+
+    // Keep comfortably below SQLite builds with a 999-variable default.
+    for (let offset = 0; offset < storedQuestIds.length; offset += 400) {
+        const chunk = storedQuestIds.slice(offset, offset + 400)
+        const placeholders = chunk.map(() => "?").join(", ")
+        const found = getDb().prepare(`
+            SELECT ${columns}
+            FROM players_quest_progress
+            WHERE player_id = ? AND quest_id IN (${placeholders})
+        `).all(playerId, ...chunk) as RawPlayerQuestProgress[]
+        for (const raw of found) remember(raw)
+    }
+
+    const mapped: Record<string, PlayerQuestProgress[]> = {}
+    for (const raw of rows.values()) {
+        const section = String(raw.section)
+        ;(mapped[section] ??= []).push(buildPlayerQuestProgress(raw))
+    }
+    return mapped
+}
+
 export function countFinishedPlayerQuestsByCategorySync(
     playerId: number,
     category: number,
@@ -252,7 +316,7 @@ function insertPlayerDrawnQuestSync(
 ) {
     getDb().prepare(`
     INSERT INTO players_drawn_quests (category_id, quest_id, odds_id, player_id)
-    VALUES (?, ?, ?, ?)    
+    VALUES (?, ?, ?, ?)
     `).run(
         drawnQuest.categoryId,
         drawnQuest.questId,

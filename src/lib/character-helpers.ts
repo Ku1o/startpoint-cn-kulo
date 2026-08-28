@@ -361,6 +361,11 @@ export interface ManaBoardCompletionRepair {
     evolutionCharacterIds: number[]
 }
 
+export interface ManaBoardCompletionReadSnapshot {
+    readonly characters: Record<string, PlayerCharacter>
+    readonly learnedNodes: Record<string, number[]>
+}
+
 /**
  * Repairs old/imported saves that have complete mana boards but are missing
  * their receivable bond-token row or first-board evolution marker.
@@ -368,9 +373,10 @@ export interface ManaBoardCompletionRepair {
 export function reconcilePlayerManaBoardCompletionSync(
     playerId: number,
     candidateCharacterIds?: readonly number[],
+    snapshot?: ManaBoardCompletionReadSnapshot,
 ): ManaBoardCompletionRepair {
-    const characters = getPlayerCharactersSync(playerId)
-    const learnedNodes = getPlayerCharactersManaNodesSync(playerId)
+    const characters = snapshot?.characters ?? getPlayerCharactersSync(playerId)
+    const learnedNodes = snapshot?.learnedNodes ?? getPlayerCharactersManaNodesSync(playerId)
     const candidates = candidateCharacterIds ? new Set(candidateCharacterIds.map(String)) : null
     const repairedCharacterIds = new Set<number>()
     const evolutionCharacterIds = new Set<number>()

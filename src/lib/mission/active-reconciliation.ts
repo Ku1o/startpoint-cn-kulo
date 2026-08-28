@@ -1,4 +1,11 @@
 import type { ReadonlyContentRepository } from "../../content/runtime/content-snapshot"
+import type {
+    Player,
+    PlayerCharacter,
+    PlayerEquipment,
+    PlayerPartyGroup,
+    PlayerQuestProgress,
+} from "../../data/types"
 import { getDb } from "../../data/db"
 import {
     getPlayerActiveMissionsSync,
@@ -14,7 +21,10 @@ import {
     getActiveMissionPracticeQuestChallengeCountSync,
 } from "../../data/domains/active_mission_counters"
 import { getPlayerSync } from "../../data/domains/player"
-import { getPlayerQuestProgressSync } from "../../data/domains/quest"
+import {
+    getPlayerQuestProgressSubsetSync,
+    getPlayerQuestProgressSync,
+} from "../../data/domains/quest"
 import { getMissionBattleCountersSync } from "../../data/domains/mission_battle_facts"
 import { getPlayerCharacterClearsSync } from "../../data/domains/character_clear"
 import { getActiveMissionConditionalBattleFactsSync } from "../../data/domains/active_mission_battle_condition_facts"
@@ -22,6 +32,7 @@ import { getActiveMissionBattleFactsSync } from "../../data/domains/active_missi
 import {
     getActiveMissionEventMasterDefinition,
     getActiveMissionMasterDefinitions,
+    getActiveMissionMasterDefinitionsByPatterns,
 } from "./active-master-data"
 import {
     ActiveMissionProgressDelta,
@@ -109,6 +120,13 @@ export interface ActiveMissionEventEligibilityContext {
 
 export interface ReconcileActiveMissionFactsInput {
     readonly playerId: number
+    /** Fresh request-local snapshot; avoids re-reading the same player during /load. */
+    readonly player?: Player
+    readonly characterList?: Record<string, PlayerCharacter>
+    readonly characterManaNodeList?: Record<string, number[]>
+    readonly equipmentList?: Record<string, PlayerEquipment>
+    readonly partyGroupList?: Record<string, PlayerPartyGroup>
+    readonly questProgress?: Record<string, PlayerQuestProgress[]>
     readonly repository: ReadonlyContentRepository
     readonly now: number | Date
     readonly isEventEligible?: (context: ActiveMissionEventEligibilityContext) => boolean
@@ -614,9 +632,10 @@ function buildActiveMissionFactState(
     questProgress: readonly ActiveMissionFactQuestProgress[],
     repository: ReadonlyContentRepository,
     requirements: ActiveMissionFactRequirements,
+    snapshot: ReconcileActiveMissionFactsInput,
 ): ActiveMissionFactState {
     const characterList = requirements.characters || requirements.manaNodes
-        ? getPlayerCharactersSync(playerId)
+        ? snapshot.characterList ?? getPlayerCharactersSync(playerId)
         : {}
     const characterTable = readRepositoryTable<Record<string, { readonly rarity?: number }>>(
         repository,
@@ -630,7 +649,7 @@ function buildActiveMissionFactState(
         },
     ]))
     const manaNodes = requirements.manaNodes
-        ? getPlayerCharactersManaNodesSync(playerId)
+        ? snapshot.characterManaNodeList ?? getPlayerCharactersManaNodesSync(playerId)
         : {}
     const manaBoardNodes: Record<string, Record<string, number[]>> = {}
     const manaNodeSlots: Record<string, Record<string, number>> = {}
@@ -655,7 +674,10 @@ function buildActiveMissionFactState(
             "equipment_dissolve.json",
         )
         : {}
-    const equipment = Object.entries(requirements.equipment ? getPlayerEquipmentListSync(playerId) : {}).map(([equipmentId, item]) => ({
+    const equipmentList = requirements.equipment
+        ? snapshot.equipmentList ?? getPlayerEquipmentListSync(playerId)
+        : {}
+    const equipment = Object.entries(equipmentList).map(([equipmentId, item]) => ({
         level: item.level,
         enhancementLevel: item.enhancementLevel,
         maxLevel: equipmentMaxLevels[equipmentId]?.max_level ?? 5,
@@ -684,7 +706,10 @@ function buildActiveMissionFactState(
             }
         }
     }
-    const partyAbilitySoulCount = Object.values(requirements.party ? getPlayerPartyGroupListSync(playerId) : {}).reduce((total, group) => (
+    const partyGroups = requirements.party
+        ? snapshot.partyGroupList ?? getPlayerPartyGroupListSync(playerId)
+        : {}
+    const partyAbilitySoulCount = Object.values(partyGroups).reduce((total, group) => (
         total + Object.values(group.list ?? {}).reduce((partyTotal, party) => (
             partyTotal + (party.abilitySoulIds ?? []).filter(id => id !== null && id !== undefined).length
         ), 0)
@@ -737,6 +762,129 @@ function buildActiveMissionFactState(
         totalInjectedExpCount: counters.totalInjectedExpCount,
         totalGachaCampaignCount: counters.totalGachaCampaignCount,
     }
+}
+
+interface ActiveMissionQuestReadPlan {
+    readonly full: boolean
+    readonly sections: ReadonlySet<number>
+    readonly questIds: ReadonlySet<number>
+}
+
+function planActiveMissionQuestRead(
+    definitions: readonly ReturnType<typeof getActiveMissionMasterDefinitions>[number][],
+    repository: ReadonlyContentRepository,
+): ActiveMissionQuestReadPlan {
+    const sections = new Set<number>()
+    const questIds = new Set<number>()
+    let full = false
+
+    const addRangeSections = (row: readonly unknown[]): boolean => {
+        const rawKind = row[34]
+        if (rawKind === undefined || rawKind === null || rawKind === "(None)") return false
+        const categories = QUEST_CATEGORY_BY_RANGE_KIND[parseInteger(rawKind, "quest range kind")]
+        if (categories === undefined) return false
+        for (const category of Array.isArray(categories) ? categories : [categories]) {
+            sections.add(category)
+        }
+        return true
+    }
+
+    for (const definition of definitions) {
+        try {
+            const mission = getParsedActiveMissionDefinition(definition.missionId, repository)
+            if (mission) {
+                const event = getParsedActiveMissionEventDefinition(mission.eventId, repository)
+                if (event?.needQuestMultipliedId !== undefined) {
+                    questIds.add(event.needQuestMultipliedId)
+                }
+            }
+
+            const pattern = parseInteger(definition.row[29], "mission pattern")
+            if (pattern === PATTERN_EPISODE_CLEAR_COUNT) {
+                // Story ids depend on the player's owned characters. Preserve the
+                // old full-read behavior instead of risking an incomplete scope.
+                full = true
+            } else if (pattern === PATTERN_QUEST_CLEAR) {
+                for (const questId of resolveActiveMissionQuestIds(definition.row)) questIds.add(questId)
+            } else if (pattern === PATTERN_BATTLE_CLEAR_COUNT) {
+                if (!addRangeSections(definition.row)) full = true
+            } else if (pattern === PATTERN_CHAPTER_COMPLETE) {
+                const rangeKind = parseInteger(definition.row[34], "quest range kind")
+                if (rangeKind === 0) sections.add(1)
+                else if (rangeKind === 1) sections.add(4)
+            } else if (pattern === PATTERN_BATTLE_CLEAR_WITH_SPECIFIC_PARTY) {
+                const hasRange = definition.row[34] !== undefined
+                    && definition.row[34] !== null
+                    && definition.row[34] !== "(None)"
+                if (hasRange && !addRangeSections(definition.row)) full = true
+            }
+        } catch {
+            // The reconciliation already ignores malformed definitions. A full
+            // quest snapshot preserves that behavior without under-reading.
+            full = true
+        }
+    }
+    return { full, sections, questIds }
+}
+
+const activeMissionDependentsCache = new WeakMap<
+    ReadonlyContentRepository,
+    ReadonlyMap<number, ReadonlySet<number>>
+>()
+
+function getActiveMissionDependents(
+    repository: ReadonlyContentRepository,
+): ReadonlyMap<number, ReadonlySet<number>> {
+    const cached = activeMissionDependentsCache.get(repository)
+    if (cached) return cached
+    const definitions = getActiveMissionMasterDefinitions(repository)
+    const mutable = new Map<number, Set<number>>()
+    const add = (source: number, dependent: number) => {
+        const dependents = mutable.get(source) ?? new Set<number>()
+        dependents.add(dependent)
+        mutable.set(source, dependents)
+    }
+    const parsed = definitions.flatMap(definition => {
+        try {
+            const mission = getParsedActiveMissionDefinition(definition.missionId, repository)
+            return mission ? [{ definition, mission }] : []
+        } catch {
+            return []
+        }
+    })
+
+    for (const { definition } of parsed) {
+        if (Number(definition.row[29]) !== PATTERN_TARGET_MISSION_CLEAR) continue
+        try {
+            for (const sourceMissionId of parseIntegerList(definition.row[55], "target mission ids")) {
+                add(sourceMissionId, definition.missionId)
+            }
+        } catch {
+            // Malformed definitions are ignored by the settlement path too.
+        }
+    }
+
+    const byEvent = new Map<number, typeof parsed>()
+    for (const entry of parsed) {
+        const eventDefinitions = byEvent.get(entry.mission.eventId) ?? []
+        eventDefinitions.push(entry)
+        byEvent.set(entry.mission.eventId, eventDefinitions)
+    }
+    for (const eventDefinitions of byEvent.values()) {
+        for (const source of eventDefinitions) {
+            const sourcePhase = source.mission.phase
+            if (sourcePhase === undefined) continue
+            for (const dependent of eventDefinitions) {
+                const dependentPhase = dependent.mission.phase
+                if (dependentPhase !== undefined && dependentPhase > sourcePhase) {
+                    add(source.definition.missionId, dependent.definition.missionId)
+                }
+            }
+        }
+    }
+    const result = new Map([...mutable].map(([missionId, dependents]) => [missionId, dependents]))
+    activeMissionDependentsCache.set(repository, result)
+    return result
 }
 
 const chapterQuestIdsCache = new WeakMap<ReadonlyContentRepository, Readonly<Record<string, readonly number[]>>>()
@@ -843,11 +991,29 @@ function mergeDelta(
 export function reconcileActiveMissionFacts(
     input: ReconcileActiveMissionFactsInput,
 ): ActiveMissionProgressDelta[] {
-    return getDb().transaction(() => {
-        const player = getPlayerSync(input.playerId)
-        if (!player) throw new Error(`Player ${input.playerId} does not exist.`)
+    const definitions = [...(input.patterns === undefined
+        ? getActiveMissionMasterDefinitions(input.repository)
+        : getActiveMissionMasterDefinitionsByPatterns(input.patterns, input.repository))]
+        .sort((left, right) => left.missionId - right.missionId)
+    if (definitions.length === 0) return []
 
-        const questProgress = getPlayerQuestProgressSync(input.playerId)
+    return getDb().transaction(() => {
+        const player = input.player ?? getPlayerSync(input.playerId)
+        if (!player) throw new Error(`Player ${input.playerId} does not exist.`)
+        if (player.id !== input.playerId) {
+            throw new Error(`Player snapshot ${player.id} does not match ${input.playerId}.`)
+        }
+
+        const questReadPlan = input.questProgress === undefined
+            ? planActiveMissionQuestRead(definitions, input.repository)
+            : null
+        const questProgress = input.questProgress
+            ?? (questReadPlan?.full
+                ? getPlayerQuestProgressSync(input.playerId)
+                : getPlayerQuestProgressSubsetSync(input.playerId, {
+                    sections: [...(questReadPlan?.sections ?? [])],
+                    questIds: [...(questReadPlan?.questIds ?? [])],
+                }))
         const questProgressFacts = Object.entries(questProgress).flatMap(([category, progressList]) => progressList.map(progress => ({
             category: Number(category),
             questId: progress.questId,
@@ -862,13 +1028,6 @@ export function reconcileActiveMissionFacts(
                 .map(progress => normalizeActiveMissionQuestId(Number(category), progress.questId))
         )))
         const activeMissions = normalizeActiveMissions(getPlayerActiveMissionsSync(input.playerId))
-        const requestedPatterns = input.patterns === undefined
-            ? undefined
-            : new Set(input.patterns.filter(pattern => Number.isSafeInteger(pattern) && pattern >= 0))
-        const definitions = [...getActiveMissionMasterDefinitions(input.repository)]
-            .filter(definition => requestedPatterns === undefined
-                || requestedPatterns.has(Number(definition.row[29])))
-            .sort((left, right) => left.missionId - right.missionId)
         const requirements = buildActiveMissionFactRequirements(definitions)
         const factState = buildActiveMissionFactState(
             input.playerId,
@@ -877,71 +1036,83 @@ export function reconcileActiveMissionFacts(
             questProgressFacts,
             input.repository,
             requirements,
+            input,
         )
         const deltas = new Map<number, { progress: number, stages: Set<number> }>()
 
-        // 事实只会单调增加；固定点确保同一次 /load 内 phase 与目标任务依赖可继续推进。
-        for (let pass = 0; pass <= definitions.length; pass++) {
-            let changed = false
-            for (const definition of definitions) {
-                let authoritativeProgress: number | null
-                try {
-                    const mission = getParsedActiveMissionDefinition(
-                        definition.missionId,
-                        input.repository,
-                    )
-                    if (!mission) continue
-                    if (!isEligibleEvent(input, mission.eventId)) continue
-                    if (!isActiveMissionAvailable(definition.missionId, {
-                        repository: input.repository,
-                        now: input.now,
-                        activeMissions,
-                        questProgress,
-                    })) continue
-                    authoritativeProgress = computeAuthoritativeProgress(
-                        definition.missionId,
-                        definition.row,
-                        player,
-                        finishedQuestIds,
-                        activeMissions,
-                        input.repository,
-                        factState,
-                    )
-                } catch {
-                    continue
-                }
-                if (authoritativeProgress === null) continue
-                if (activeMissions[String(definition.missionId)] === undefined
-                    && authoritativeProgress <= 0) continue
-
-                const settlement = settleActiveMissionProgress(
-                    definition.missionId,
-                    activeMissions[String(definition.missionId)],
-                    authoritativeProgress,
-                    { repository: input.repository },
-                )
-                if (settlement.delta === null) continue
-
-                updatePlayerActiveMissionSync(
-                    input.playerId,
-                    definition.missionId,
-                    settlement.state.progress,
-                )
-                for (const stage of settlement.delta.stages) {
-                    updatePlayerActiveMissionStageSync(
-                        input.playerId,
-                        stage.stage,
-                        definition.missionId,
-                        false,
-                    )
-                }
-                activeMissions[String(definition.missionId)] = settlement.state
-                mergeDelta(deltas, settlement.delta)
-                changed = true
-            }
-            if (!changed) break
-            if (pass === definitions.length) {
+        // Every definition runs once. A changed mission only requeues definitions
+        // that can observe it through phase or target-mission dependencies.
+        const definitionById = new Map(definitions.map(definition => [definition.missionId, definition]))
+        const dependents = getActiveMissionDependents(input.repository)
+        const queue = definitions.map(definition => definition.missionId)
+        const queued = new Set(queue)
+        let processed = 0
+        const maximumProcessed = Math.max(definitions.length, definitions.length * definitions.length * 2)
+        while (queue.length > 0) {
+            if (++processed > maximumProcessed) {
                 throw new Error("Active Mission reconciliation did not converge.")
+            }
+            const missionId = queue.shift()!
+            queued.delete(missionId)
+            const definition = definitionById.get(missionId)
+            if (!definition) continue
+            let authoritativeProgress: number | null
+            try {
+                const mission = getParsedActiveMissionDefinition(
+                    definition.missionId,
+                    input.repository,
+                )
+                if (!mission) continue
+                if (!isEligibleEvent(input, mission.eventId)) continue
+                if (!isActiveMissionAvailable(definition.missionId, {
+                    repository: input.repository,
+                    now: input.now,
+                    activeMissions,
+                    questProgress,
+                })) continue
+                authoritativeProgress = computeAuthoritativeProgress(
+                    definition.missionId,
+                    definition.row,
+                    player,
+                    finishedQuestIds,
+                    activeMissions,
+                    input.repository,
+                    factState,
+                )
+            } catch {
+                continue
+            }
+            if (authoritativeProgress === null) continue
+            if (activeMissions[String(definition.missionId)] === undefined
+                && authoritativeProgress <= 0) continue
+
+            const settlement = settleActiveMissionProgress(
+                definition.missionId,
+                activeMissions[String(definition.missionId)],
+                authoritativeProgress,
+                { repository: input.repository },
+            )
+            if (settlement.delta === null) continue
+
+            updatePlayerActiveMissionSync(
+                input.playerId,
+                definition.missionId,
+                settlement.state.progress,
+            )
+            for (const stage of settlement.delta.stages) {
+                updatePlayerActiveMissionStageSync(
+                    input.playerId,
+                    stage.stage,
+                    definition.missionId,
+                    false,
+                )
+            }
+            activeMissions[String(definition.missionId)] = settlement.state
+            mergeDelta(deltas, settlement.delta)
+            for (const dependentMissionId of dependents.get(definition.missionId) ?? []) {
+                if (!definitionById.has(dependentMissionId) || queued.has(dependentMissionId)) continue
+                queue.push(dependentMissionId)
+                queued.add(dependentMissionId)
             }
         }
 

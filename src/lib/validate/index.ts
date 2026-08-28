@@ -1,10 +1,11 @@
 // Save validator system — runs permanent validators on /load.
 // Temporal filters are applied at serialization time (see load.ts).
 
-import { SaveValidator, TemporalFilter } from "./types"
+import { SaveValidationContext, SaveValidator, TemporalFilter } from "./types"
 import { MaxLevelValidator } from "./max-level"
 import { PartySlotValidator } from "./party-slot"
 import { UnisonUnlockValidator } from "./unison-unlock"
+import { getPlayerRepairVersionsSync, setPlayerRepairVersionSync } from "../../data/domains/player-repair"
 
 const PERMANENT_VALIDATORS: SaveValidator[] = [
     MaxLevelValidator,
@@ -17,11 +18,17 @@ const TEMPORAL_FILTERS: TemporalFilter[] = [
 ]
 
 /** Run all permanent validators. Returns total fixes applied. */
-export function runPermanentValidators(playerId: number): number {
+export function runPermanentValidators(
+    playerId: number,
+    context: SaveValidationContext = {},
+): number {
     let totalFixes = 0
+    const appliedVersions = getPlayerRepairVersionsSync(playerId)
     for (const v of PERMANENT_VALIDATORS) {
+        if ((appliedVersions.get(v.name) ?? 0) >= v.version) continue
         try {
-            totalFixes += v.validate(playerId)
+            totalFixes += v.validate(playerId, context)
+            setPlayerRepairVersionSync(playerId, v.name, v.version)
         } catch (e) {
             console.error(`[VALIDATE:${v.name}] error:`, e)
         }

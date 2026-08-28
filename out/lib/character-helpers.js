@@ -253,9 +253,10 @@ exports.computeBondTokenAndEvolution = computeBondTokenAndEvolution;
  * Repairs old/imported saves that have complete mana boards but are missing
  * their receivable bond-token row or first-board evolution marker.
  */
-function reconcilePlayerManaBoardCompletionSync(playerId, candidateCharacterIds) {
-    const characters = (0, character_1.getPlayerCharactersSync)(playerId);
-    const learnedNodes = (0, character_1.getPlayerCharactersManaNodesSync)(playerId);
+function reconcilePlayerManaBoardCompletionSync(playerId, candidateCharacterIds, snapshot) {
+    var _a, _b;
+    const characters = (_a = snapshot === null || snapshot === void 0 ? void 0 : snapshot.characters) !== null && _a !== void 0 ? _a : (0, character_1.getPlayerCharactersSync)(playerId);
+    const learnedNodes = (_b = snapshot === null || snapshot === void 0 ? void 0 : snapshot.learnedNodes) !== null && _b !== void 0 ? _b : (0, character_1.getPlayerCharactersManaNodesSync)(playerId);
     const candidates = candidateCharacterIds ? new Set(candidateCharacterIds.map(String)) : null;
     const repairedCharacterIds = new Set();
     const evolutionCharacterIds = new Set();

@@ -27,6 +27,10 @@ import {
     insertPlayerRushEventSync,
 } from "../../data/domains/rushEvent";
 import { repairAllGauntletCompletionClassificationsSync } from "../../lib/gauntlet-completion-classification";
+import { getPlayerEquipmentListSync } from "../../data/domains/equipment";
+import { getPlayerCharactersManaNodesSync, getPlayerCharactersSync } from "../../data/domains/character";
+import { getPlayerPartyGroupListSync } from "../../data/domains/party";
+import { getPlayerQuestProgressSync } from "../../data/domains/quest";
 
 interface CnLoadBody {
     device_id: number;
@@ -135,16 +139,37 @@ const routes = async (fastify: FastifyInstance) => {
         dailyResetPlayerDataSync(player, now);
         collectPlayerDataPooledExpSync(player, now);
 
-        // Run save validators (permanent fixes: max_level, etc.)
-        runPermanentValidators(playerId);
+        // Equipment is needed by both validation and serialization. Validators
+        // mutate this request-local object when they repair a row.
+        const equipmentList = getPlayerEquipmentListSync(playerId)
+        runPermanentValidators(playerId, { player, equipmentList });
 
         // 若自定义时间与 lastLogin 不同步，强制对齐（防止客户端弹"日期变了"）
         if (now.toDateString() !== player.lastLoginTime.toDateString()) {
             updatePlayerSync({ id: player.id, lastLoginTime: now });
         }
 
+        // Daily reset and pooled EXP collection may update the base row. Read
+        // it once after those mutations, then reuse the fresh snapshot through
+        // the remaining synchronous /load pipeline.
+        const currentPlayer = getPlayerSync(playerId)
+        if (currentPlayer === null) {
+            return reply.status(500).send({ error: "Internal Server Error", message: "No player data." });
+        }
+
+        const characterList = getPlayerCharactersSync(playerId)
+        const characterManaNodeList = getPlayerCharactersManaNodesSync(playerId)
+        const partyGroupList = getPlayerPartyGroupListSync(playerId)
+        const questProgress = getPlayerQuestProgressSync(playerId)
+
         reconcileActiveMissionFacts({
             playerId,
+            player: currentPlayer,
+            characterList,
+            characterManaNodeList,
+            equipmentList,
+            partyGroupList,
+            questProgress,
             repository: getContentSnapshot().repository,
             now: getServerTime() * 1000,
         })
@@ -175,6 +200,10 @@ const routes = async (fastify: FastifyInstance) => {
                 + `player=${playerId} events=${repairedGauntletCompletions.join(",")}`,
             )
         }
+        const serializedQuestProgress = removedMode15RescueRows > 0
+            || repairedGauntletCompletions.length > 0
+            ? getPlayerQuestProgressSync(playerId)
+            : questProgress
         // Include Rush state in the initial payload so the legacy client can
         // evaluate cross-event clear conditions on a cold visit. Optional
         // saved party slots are normalized to null before packing (rather than
@@ -182,6 +211,12 @@ const routes = async (fastify: FastifyInstance) => {
         const clientData = getClientSerializedData(playerId, {
             viewerId: accountId,
             serializeRushEventData: true,
+            preloadedPlayer: currentPlayer,
+            preloadedCharacterList: characterList,
+            preloadedCharacterManaNodeList: characterManaNodeList,
+            preloadedEquipmentList: equipmentList,
+            preloadedPartyGroupList: partyGroupList,
+            preloadedQuestProgress: serializedQuestProgress,
         }) as any;
         if (clientData === null) {
             return reply.status(500).send({ error: "Internal Server Error", message: "No player data." });
