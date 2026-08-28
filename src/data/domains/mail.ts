@@ -105,6 +105,32 @@ export function getPlayerMailCountSync(
     return row.count
 }
 
+const MAIL_ID_QUERY_CHUNK_SIZE = 500
+
+function normalizeMailIds(mailIds: readonly number[]): number[] {
+    return [...new Set(mailIds.filter(mailId => Number.isSafeInteger(mailId) && mailId > 0))]
+}
+
+/** Gets the exact unreceived mails requested by the client, without a mailbox-page scan. */
+export function getUnreceivedPlayerMailsByIdsSync(
+    playerId: number,
+    mailIds: readonly number[],
+): RawPlayerMail[] {
+    const normalized = normalizeMailIds(mailIds)
+    const mails: RawPlayerMail[] = []
+    for (let offset = 0; offset < normalized.length; offset += MAIL_ID_QUERY_CHUNK_SIZE) {
+        const chunk = normalized.slice(offset, offset + MAIL_ID_QUERY_CHUNK_SIZE)
+        const placeholders = chunk.map(() => "?").join(", ")
+        mails.push(...getDb().prepare(`
+            SELECT * FROM players_mails
+            WHERE player_id = ?
+              AND receive_time = '0000-00-00 00:00:00'
+              AND id IN (${placeholders})
+        `).all(playerId, ...chunk) as RawPlayerMail[])
+    }
+    return mails
+}
+
 /**
  * Marks a mail as received and returns its attachment data.
  * Does NOT apply the reward — caller must do that.
@@ -113,14 +139,15 @@ export function receiveMailSync(
     playerId: number,
     mailId: number
 ): MailAttachment | null {
+    const now = new Date().toISOString().replace('T', ' ').substring(0, 19)
     const mail = getDb().prepare(`
-        SELECT * FROM players_mails WHERE id = ? AND player_id = ? AND receive_time = '0000-00-00 00:00:00'
-    `).get(mailId, playerId) as RawPlayerMail | undefined
+        UPDATE players_mails
+        SET receive_time = ?
+        WHERE id = ? AND player_id = ? AND receive_time = '0000-00-00 00:00:00'
+        RETURNING id, type, type_id, number
+    `).get(now, mailId, playerId) as Pick<RawPlayerMail, 'id' | 'type' | 'type_id' | 'number'> | undefined
 
     if (!mail) return null
-
-    const now = new Date().toISOString().replace('T', ' ').substring(0, 19)
-    getDb().prepare(`UPDATE players_mails SET receive_time = ? WHERE id = ?`).run(now, mailId)
 
     return {
         mail_id: mail.id,
@@ -137,16 +164,27 @@ export function receiveAllMailsSync(
     playerId: number,
     mailIds: number[]
 ): number[] {
-    const claimed: number[] = []
-    getDb().transaction(() => {
-        for (const mailId of mailIds) {
-            const result = receiveMailSync(playerId, mailId)
-            if (result !== null) {
-                claimed.push(mailId)
-            }
+    const claim = () => {
+        const normalized = normalizeMailIds(mailIds)
+        const claimed = new Set<number>()
+        const now = new Date().toISOString().replace('T', ' ').substring(0, 19)
+        for (let offset = 0; offset < normalized.length; offset += MAIL_ID_QUERY_CHUNK_SIZE) {
+            const chunk = normalized.slice(offset, offset + MAIL_ID_QUERY_CHUNK_SIZE)
+            const placeholders = chunk.map(() => "?").join(", ")
+            const rows = getDb().prepare(`
+                UPDATE players_mails
+                SET receive_time = ?
+                WHERE player_id = ?
+                  AND receive_time = '0000-00-00 00:00:00'
+                  AND id IN (${placeholders})
+                RETURNING id
+            `).all(now, playerId, ...chunk) as { id: number }[]
+            for (const row of rows) claimed.add(row.id)
         }
-    })()
-    return claimed
+        return normalized.filter(mailId => claimed.has(mailId))
+    }
+    const db = getDb()
+    return db.inTransaction ? claim() : db.transaction(claim)()
 }
 
 /**

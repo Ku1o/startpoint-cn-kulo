@@ -1103,5 +1103,12 @@ function init(database, exists) {
     )`).run();
     (0, schema_1.ensureSchemaColumn)(database, "players_active_quests.is_multi_host");
     (0, schema_1.ensureSchemaColumn)(database, "players_active_quests.started_at_ms");
+    // Build potentially large performance indexes after the full schema exists.
+    // On an upgraded cloud database this keeps an index failure from skipping
+    // any later table initialization.
+    database.prepare(`CREATE INDEX IF NOT EXISTS idx_players_mails_player_receive_id
+        ON players_mails (player_id, receive_time, id DESC)`).run();
+    database.prepare(`CREATE INDEX IF NOT EXISTS idx_players_receive_history_player_created
+        ON players_receive_history (player_id, create_time DESC, id DESC)`).run();
 }
 exports.default = init;
