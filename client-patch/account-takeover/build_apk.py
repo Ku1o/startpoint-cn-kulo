@@ -84,7 +84,7 @@ PROFILES = {
         "preserved_methods": COMMON_PRESERVED_METHODS + (
             ("pinball.config.gbits.DevConfig_gf_android", "<constructor>", 92013),
         ),
-        "endpoint": "http://192.168.3.14:8001",
+        "endpoint": "approved LAN endpoint embedded in the exact base APK",
         "expected_swf_sha256": "b2c6cda47882ff4df6191b24c851c1eb05bcec16bc650a591853b4e715774c78",
     },
     "public": {
