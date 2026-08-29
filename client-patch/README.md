@@ -36,8 +36,10 @@
 
 已经通过真机回归的 iOS 五合一、数据继承、幻想连战及幻想魂珠纹理修复流程见
 [iOS 1.8.4 私服客户端补丁](./ios-five-in-one/README.md)。幻想魂珠补丁的独立设计与维护实现见
-[iOS 幻想魂珠异步贴图补丁](./ios-fantasy-soul/README.md)。仓库仅保存哈希锁定的差分构建器，
-不保存原始或修改后的 IPA，也不保存任何签名材料。
+[iOS 幻想魂珠异步贴图补丁](./ios-fantasy-soul/README.md)。已经完成用户确认真机验收的
+`MemberView.draw` v6 绘制保护、精确成品哈希、构建号、UUID 及失败版本演进记录见
+[iOS MemberView.draw 稳定保护](./ios-memberview-draw-safe/README.md)。仓库仅保存哈希锁定的
+差分构建器，不保存原始或修改后的 IPA，也不保存任何签名材料。
 
 ## Android 角色页性能
 
