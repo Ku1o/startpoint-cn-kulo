@@ -1227,12 +1227,11 @@ const LEGACY_REPLACE_PRESERVED_RELATIONS = [
         where: "source_player_id = ?",
         parameters: (playerId: number) => [playerId],
     },
-    {
-        table: "raid_event_global_kill_ledger",
-        where: "player_id = ?",
-        parameters: (playerId: number) => [playerId],
-    },
 ] as const
+
+// raid_event_global_kill_ledger is intentionally absent: it is global state
+// without a player foreign key, so deletePlayerSync already leaves it intact.
+// Replaying the same (event_id, play_id) rows would violate its primary key.
 
 function quotePlayerDataIdentifier(value: string): string {
     return `"${value.replace(/"/g, '""')}"`
