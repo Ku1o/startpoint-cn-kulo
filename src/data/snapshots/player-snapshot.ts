@@ -134,6 +134,11 @@ const EXCLUDED_PLAYER_STATE = Object.freeze([
         policy: "preserve-target" as const,
         reason: "跨玩家关系、公开副本和全局幂等账本不属于便携玩家存档，覆盖既有存档时保留目标侧数据。",
     },
+    {
+        tables: ["leaderboard_runs", "leaderboard_run_rounds", "leaderboard_settlement_results"],
+        policy: "preserve-target" as const,
+        reason: "排行榜对局、轮次明细和结算结果属于服务器公共竞赛记录，不随玩家存档迁移，覆盖时保留目标侧数据。",
+    },
 ])
 
 const REMAPPED_AUTOINCREMENT_IDS = new Map<string, ReadonlySet<string>>([

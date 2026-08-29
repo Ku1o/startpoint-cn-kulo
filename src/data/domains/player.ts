@@ -1227,11 +1227,23 @@ const LEGACY_REPLACE_PRESERVED_RELATIONS = [
         where: "source_player_id = ?",
         parameters: (playerId: number) => [playerId],
     },
+    {
+        table: "leaderboard_runs",
+        where: "player_id = ?",
+        parameters: (playerId: number) => [playerId],
+    },
+    {
+        table: "leaderboard_run_rounds",
+        where: "run_id IN (SELECT id FROM leaderboard_runs WHERE player_id = ?)",
+        parameters: (playerId: number) => [playerId],
+    },
 ] as const
 
 // raid_event_global_kill_ledger is intentionally absent: it is global state
 // without a player foreign key, so deletePlayerSync already leaves it intact.
 // Replaying the same (event_id, play_id) rows would violate its primary key.
+// leaderboard_settlement_results is preserved for the same reason. Its run_id
+// remains valid because the target player's run rows are restored with their IDs.
 
 function quotePlayerDataIdentifier(value: string): string {
     return `"${value.replace(/"/g, '""')}"`
