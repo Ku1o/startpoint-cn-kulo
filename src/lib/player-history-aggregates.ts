@@ -1,4 +1,4 @@
-import charactersAsset from "../../assets/character.json"
+import { serverCharacters as charactersAsset } from "./content-master"
 import encyclopediaAsset from "../../assets/encyclopedia.json"
 import mainQuestAsset from "../../assets/main_quest.json"
 import scoreAttackBorderRewardAsset from "../../assets/score_attack_border_reward.json"

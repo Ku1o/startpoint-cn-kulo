@@ -8,7 +8,6 @@ const advent_event_quest_json_1 = __importDefault(require("../../assets/advent_e
 const boss_battle_quest_json_1 = __importDefault(require("../../assets/boss_battle_quest.json"));
 const box_gacha_json_1 = __importDefault(require("../../assets/box_gacha.json"));
 const box_reward_json_1 = __importDefault(require("../../assets/box_reward.json"));
-const character_json_1 = __importDefault(require("../../assets/character.json"));
 const character_quest_json_1 = __importDefault(require("../../assets/character_quest.json"));
 const clear_reward_json_1 = __importDefault(require("../../assets/clear_reward.json"));
 const daily_exp_mana_event_quest_json_1 = __importDefault(require("../../assets/daily_exp_mana_event_quest.json"));
@@ -30,12 +29,8 @@ const ex_ability_json_1 = __importDefault(require("../../assets/ex_ability.json"
 const ex_boost_json_1 = __importDefault(require("../../assets/ex_boost.json"));
 const ex_quest_json_1 = __importDefault(require("../../assets/ex_quest.json"));
 const ex_status_json_1 = __importDefault(require("../../assets/ex_status.json"));
-const gacha_json_1 = __importDefault(require("../../assets/gacha.json"));
-const gacha_cnmod_json_1 = __importDefault(require("../../assets/gacha_cnmod.json"));
 const main_quest_json_1 = __importDefault(require("../../assets/main_quest.json"));
 const practice_quest_json_1 = __importDefault(require("../../assets/practice_quest.json"));
-const mana_node_json_1 = __importDefault(require("../../assets/mana_node.json"));
-const mana_node_cnmod_json_1 = __importDefault(require("../../assets/mana_node_cnmod.json"));
 const mana_node_awake_json_1 = __importDefault(require("../../assets/mana_node_awake.json"));
 const mana_board_json_1 = __importDefault(require("../../assets/mana_board.json"));
 const mana_board_cnmod_json_1 = __importDefault(require("../../assets/mana_board_cnmod.json"));
@@ -44,8 +39,6 @@ const score_reward_json_1 = __importDefault(require("../../assets/score_reward.j
 const gacha_campaign_json_1 = __importDefault(require("../../assets/gacha_campaign.json"));
 const boss_coin_shop_json_1 = __importDefault(require("../../assets/boss_coin_shop.json"));
 const boss_coin_shop_item_category_map_json_1 = __importDefault(require("../../assets/boss_coin_shop_item_category_map.json"));
-const event_item_shop_json_1 = __importDefault(require("../../assets/event_item_shop.json"));
-const event_item_shop_id_map_json_1 = __importDefault(require("../../assets/event_item_shop_id_map.json"));
 const general_shop_json_1 = __importDefault(require("../../assets/general_shop.json"));
 const star_grain_shop_json_1 = __importDefault(require("../../assets/star_grain_shop.json"));
 const treasure_shop_json_1 = __importDefault(require("../../assets/treasure_shop.json"));
@@ -59,22 +52,18 @@ const equipment_max_level_json_1 = __importDefault(require("../../assets/equipme
 const equipment_element_json_1 = __importDefault(require("../../assets/equipment_element.json"));
 const fs_1 = require("fs");
 const path_1 = require("path");
-const node_util_1 = require("node:util");
 const types_1 = require("./types");
+const content_master_1 = require("./content-master");
 const MOD_ASSETS_DIR = (0, path_1.join)(__dirname, "..", "..", "assets");
 // Some CN-mod pools are intentionally mirrored in both files because the
 // client/admin metadata pipeline reads gacha.json while runtime draws prefer
 // gacha_cnmod.json.  Never allow a stale override to silently replace a newer
 // advertised pool again.
-for (const gachaId of ["990001"]) {
-    const base = gacha_json_1.default[gachaId];
-    const override = gacha_cnmod_json_1.default[gachaId];
-    if (base && override && !(0, node_util_1.isDeepStrictEqual)(base, override)) {
-        throw new Error(`[GACHA] mirrored pool ${gachaId} differs between gacha.json and gacha_cnmod.json`);
-    }
+const allGachas = content_master_1.serverGachas;
+const allManaNodes = content_master_1.serverManaNodes;
+if (allGachas["990001"] === undefined) {
+    throw new Error("[GACHA] mirrored pool 990001 is missing");
 }
-const allGachas = Object.assign(Object.assign({}, gacha_json_1.default), gacha_cnmod_json_1.default);
-const allManaNodes = Object.assign(Object.assign({}, mana_node_json_1.default), mana_node_cnmod_json_1.default);
 const allManaBoards = Object.assign(Object.assign({}, mana_board_json_1.default), mana_board_cnmod_json_1.default);
 let rogueEventData = null;
 function mergeRogueEventExtension(base, extension) {
@@ -357,7 +346,7 @@ exports.getQuestFromCategorySync = getQuestFromCategorySync;
  * @returns The character's asset data, or null if it wasn't found.
  */
 function getCharacterDataSync(characterId) {
-    const character = character_json_1.default[String(characterId)];
+    const character = content_master_1.serverCharacters[String(characterId)];
     if (!character)
         return null;
     return character;
@@ -592,7 +581,7 @@ exports.getGenericShopItemsSync = getGenericShopItemsSync;
  */
 function getEventShopItemsSync(eventType, eventId) {
     var _a, _b;
-    const typeSection = event_item_shop_json_1.default[String(eventType)];
+    const typeSection = content_master_1.serverEventShops[String(eventType)];
     if (typeSection === undefined)
         return null;
     // Try exact event ID first
@@ -642,10 +631,10 @@ function getShopItemSync(shopType, itemId) {
                 return null;
             return (_e = boss_coin_shop_json_1.default[category][itemId]) !== null && _e !== void 0 ? _e : null;
         case types_1.ShopType.EVENT_ITEM:
-            const mapInfo = event_item_shop_id_map_json_1.default[itemId];
+            const mapInfo = content_master_1.serverEventShopIdMap[itemId];
             if (mapInfo === undefined)
                 return null;
-            return (_f = event_item_shop_json_1.default[mapInfo.eventType][mapInfo.eventId][itemId]) !== null && _f !== void 0 ? _f : null;
+            return (_f = content_master_1.serverEventShops[mapInfo.eventType][mapInfo.eventId][itemId]) !== null && _f !== void 0 ? _f : null;
         default:
             return null;
     }

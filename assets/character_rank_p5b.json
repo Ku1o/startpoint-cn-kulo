@@ -1,0 +1,26 @@
+{
+  "169980": {
+    "element": 5,
+    "name": "深渊之兽",
+    "rarity": 5,
+    "skill_count": 6
+  },
+  "169994": {
+    "element": 2,
+    "name": "白虎",
+    "rarity": 5,
+    "skill_count": 6
+  },
+  "169995": {
+    "element": 4,
+    "name": "魔王",
+    "rarity": 5,
+    "skill_count": 6
+  },
+  "179981": {
+    "element": 5,
+    "name": "歼灭者",
+    "rarity": 5,
+    "skill_count": 6
+  }
+}

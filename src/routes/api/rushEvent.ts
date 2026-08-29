@@ -40,6 +40,17 @@ import {
     getEligibleRushDegreeIds,
     grantEligibleRushEventDegreesSync,
 } from "../../lib/activity-degree-rewards";
+import {
+    resetLeaderboardCompetitionSync,
+    startLeaderboardQuestSync,
+} from "../../lib/leaderboard/service";
+import { getLeaderboardCompetitionForEvent } from "../../lib/leaderboard/competition";
+import {
+    buildNativeLeaderboardPayload,
+    buildUnavailableNativeLeaderboardPayload,
+    getLeaderboardPlayedPartiesSync,
+    getOfficialLeaderboardPageSync,
+} from "../../lib/leaderboard/presentation";
 
 interface SummaryBody {
     event_id: number,
@@ -371,6 +382,30 @@ const routes = async (fastify: FastifyInstance) => {
             "message": "No player bound to account."
         })
 
+        const competition = getLeaderboardCompetitionForEvent(
+            QuestCategory.RUSH_EVENT,
+            eventId,
+        )
+        if (competition !== null) {
+            const ranking = getOfficialLeaderboardPageSync({
+                competition,
+                playerId,
+                page,
+            })
+            reply.header("content-type", "application/x-msgpack")
+            return reply.status(200).send({
+                "data_headers": generateDataHeaders({ viewer_id: viewerId }),
+                "data": {
+                    "aggregated_time": clientSerializeDate(getServerDate()),
+                    "current_page": ranking.currentPage,
+                    "page_max": ranking.pageMax,
+                    "my_data": ranking.myData,
+                    "ranking_data": ranking.rows,
+                    "total": ranking.total,
+                },
+            })
+        }
+
         // get player endless rank
         const endlessRanking = getPlayerRushEventEndlessBattleRankingSync(playerId, eventId)
 
@@ -415,6 +450,22 @@ const routes = async (fastify: FastifyInstance) => {
             "error": "Internal Server Error",
             "message": "No player bound to account."
         })
+
+        const competition = getLeaderboardCompetitionForEvent(
+            QuestCategory.RUSH_EVENT,
+            eventId,
+        )
+        if (competition !== null) {
+            const partyList = getLeaderboardPlayedPartiesSync({
+                competition,
+                rankNumber,
+            })
+            reply.header("content-type", "application/x-msgpack")
+            return reply.status(200).send({
+                "data_headers": generateDataHeaders({ viewer_id: viewerId }),
+                "data": { "rush_ranking_party": partyList },
+            })
+        }
 
         // get party list
         const partyList = getRushEventEndlessBattleRankPlayedPartyListSync(rankNumber, eventId) ?? []
@@ -542,6 +593,50 @@ const routes = async (fastify: FastifyInstance) => {
         })
     })
 
+    // The patched client opens this endpoint through the native Rush reward
+    // remote with a private negative-event marker. The remote turns the marker
+    // back into a positive event_id before sending it, so ordinary reward,
+    // party-editing and global legal/terms flows retain their native payloads.
+    fastify.post("/leaderboard", async (request: FastifyRequest, reply: FastifyReply) => {
+        const body = request.body as PartyBody & { event_id?: number }
+        const viewerId = Number(body?.viewer_id)
+        const eventId = Number(body?.event_id)
+        if (
+            !Number.isSafeInteger(viewerId)
+            || viewerId <= 0
+            || !Number.isSafeInteger(eventId)
+            || eventId <= 0
+        ) return reply.status(400).send({
+            "error": "Bad Request",
+            "message": "Invalid request body."
+        })
+
+        const viewerIdSession = await getSession(String(viewerId))
+        if (!viewerIdSession) return reply.status(400).send({
+            "error": "Bad Request",
+            "message": "Invalid viewer id."
+        })
+        const playerId = resolvePlayerIdSync(viewerIdSession.accountId)
+        if (playerId === null) return reply.status(500).send({
+            "error": "Internal Server Error",
+            "message": "No player bound to account."
+        })
+
+        const competition = getLeaderboardCompetitionForEvent(
+            QuestCategory.RUSH_EVENT,
+            eventId,
+        )
+        const payload = competition === null
+            ? buildUnavailableNativeLeaderboardPayload()
+            : buildNativeLeaderboardPayload(competition, playerId)
+
+        reply.header("content-type", "application/x-msgpack")
+        return reply.status(200).send({
+            "data_headers": generateDataHeaders({ viewer_id: viewerId }),
+            "data": payload,
+        })
+    })
+
     fastify.post("/battle/start", async (request: FastifyRequest, reply: FastifyReply) => {
         const body = request.body as BattleStartBody
 
@@ -633,6 +728,20 @@ const routes = async (fastify: FastifyInstance) => {
             }
         }
 
+        startLeaderboardQuestSync(playerId, {
+            category: QuestCategory.RUSH_EVENT,
+            eventId: questData.rushEventId,
+            folderId: questData.rushEventFolderId,
+            round: questData.rushEventRound,
+            questId,
+            totalRounds: questData.rushEventFolderId === undefined
+                ? 0
+                : getRushEventFolderMaxRounds(
+                    questData.rushEventId,
+                    questData.rushEventFolderId,
+                ),
+        })
+
         // insert active quest for '/single_battle_quest/finish' endpoint
         insertActiveQuest(playerId, {
             questId: questId,
@@ -706,6 +815,11 @@ const routes = async (fastify: FastifyInstance) => {
 
         if (questType === ResetQuestType.FOLDER) {
             if (classifyDeepAbyssFolderReset(eventId) === "restart_from_first") {
+                resetLeaderboardCompetitionSync(playerId, {
+                    category: QuestCategory.RUSH_EVENT,
+                    eventId,
+                    folderId: DEEP_ABYSS_RUSH_FOLDER_ID,
+                })
                 // Deep Abyss always abandons the entire finite run.  Keep
                 // folder 1 selected so the client returns directly to round
                 // 700099001, regardless of reset_target_id.

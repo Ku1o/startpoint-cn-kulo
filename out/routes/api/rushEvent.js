@@ -33,6 +33,9 @@ const mode15_optional_1 = require("../../lib/mode15-optional");
 const stamina_1 = require("../../lib/stamina");
 const gauntlet_entry_rank_1 = require("../../lib/gauntlet-entry-rank");
 const activity_degree_rewards_1 = require("../../lib/activity-degree-rewards");
+const service_1 = require("../../lib/leaderboard/service");
+const competition_1 = require("../../lib/leaderboard/competition");
+const presentation_1 = require("../../lib/leaderboard/presentation");
 var ResetQuestType;
 (function (ResetQuestType) {
     ResetQuestType[ResetQuestType["EMPTY"] = 0] = "EMPTY";
@@ -256,6 +259,26 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 "error": "Internal Server Error",
                 "message": "No player bound to account."
             });
+        const competition = (0, competition_1.getLeaderboardCompetitionForEvent)(types_2.QuestCategory.RUSH_EVENT, eventId);
+        if (competition !== null) {
+            const ranking = (0, presentation_1.getOfficialLeaderboardPageSync)({
+                competition,
+                playerId,
+                page,
+            });
+            reply.header("content-type", "application/x-msgpack");
+            return reply.status(200).send({
+                "data_headers": (0, utils_1.generateDataHeaders)({ viewer_id: viewerId }),
+                "data": {
+                    "aggregated_time": (0, utils_2.clientSerializeDate)((0, utils_1.getServerDate)()),
+                    "current_page": ranking.currentPage,
+                    "page_max": ranking.pageMax,
+                    "my_data": ranking.myData,
+                    "ranking_data": ranking.rows,
+                    "total": ranking.total,
+                },
+            });
+        }
         // get player endless rank
         const endlessRanking = (0, rush_1.getPlayerRushEventEndlessBattleRankingSync)(playerId, eventId);
         // get all rankings for page
@@ -298,6 +321,18 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 "error": "Internal Server Error",
                 "message": "No player bound to account."
             });
+        const competition = (0, competition_1.getLeaderboardCompetitionForEvent)(types_2.QuestCategory.RUSH_EVENT, eventId);
+        if (competition !== null) {
+            const partyList = (0, presentation_1.getLeaderboardPlayedPartiesSync)({
+                competition,
+                rankNumber,
+            });
+            reply.header("content-type", "application/x-msgpack");
+            return reply.status(200).send({
+                "data_headers": (0, utils_1.generateDataHeaders)({ viewer_id: viewerId }),
+                "data": { "rush_ranking_party": partyList },
+            });
+        }
         // get party list
         const partyList = (_d = (0, rush_1.getRushEventEndlessBattleRankPlayedPartyListSync)(rankNumber, eventId)) !== null && _d !== void 0 ? _d : [];
         reply.header("content-type", "application/x-msgpack");
@@ -407,6 +442,44 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             }
         });
     }));
+    // The patched client opens this endpoint through the native Rush reward
+    // remote with a private negative-event marker. The remote turns the marker
+    // back into a positive event_id before sending it, so ordinary reward,
+    // party-editing and global legal/terms flows retain their native payloads.
+    fastify.post("/leaderboard", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
+        const body = request.body;
+        const viewerId = Number(body === null || body === void 0 ? void 0 : body.viewer_id);
+        const eventId = Number(body === null || body === void 0 ? void 0 : body.event_id);
+        if (!Number.isSafeInteger(viewerId)
+            || viewerId <= 0
+            || !Number.isSafeInteger(eventId)
+            || eventId <= 0)
+            return reply.status(400).send({
+                "error": "Bad Request",
+                "message": "Invalid request body."
+            });
+        const viewerIdSession = yield (0, session_1.getSession)(String(viewerId));
+        if (!viewerIdSession)
+            return reply.status(400).send({
+                "error": "Bad Request",
+                "message": "Invalid viewer id."
+            });
+        const playerId = (0, activeAccount_1.resolvePlayerIdSync)(viewerIdSession.accountId);
+        if (playerId === null)
+            return reply.status(500).send({
+                "error": "Internal Server Error",
+                "message": "No player bound to account."
+            });
+        const competition = (0, competition_1.getLeaderboardCompetitionForEvent)(types_2.QuestCategory.RUSH_EVENT, eventId);
+        const payload = competition === null
+            ? (0, presentation_1.buildUnavailableNativeLeaderboardPayload)()
+            : (0, presentation_1.buildNativeLeaderboardPayload)(competition, playerId);
+        reply.header("content-type", "application/x-msgpack");
+        return reply.status(200).send({
+            "data_headers": (0, utils_1.generateDataHeaders)({ viewer_id: viewerId }),
+            "data": payload,
+        });
+    }));
     fastify.post("/battle/start", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
         const body = request.body;
         const viewerId = body.viewer_id;
@@ -488,6 +561,16 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 });
             }
         }
+        (0, service_1.startLeaderboardQuestSync)(playerId, {
+            category: types_2.QuestCategory.RUSH_EVENT,
+            eventId: questData.rushEventId,
+            folderId: questData.rushEventFolderId,
+            round: questData.rushEventRound,
+            questId,
+            totalRounds: questData.rushEventFolderId === undefined
+                ? 0
+                : getRushEventFolderMaxRounds(questData.rushEventId, questData.rushEventFolderId),
+        });
         // insert active quest for '/single_battle_quest/finish' endpoint
         (0, singleBattleQuest_1.insertActiveQuest)(playerId, {
             questId: questId,
@@ -555,6 +638,11 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         }
         if (questType === ResetQuestType.FOLDER) {
             if ((0, rush_event_folder_lock_1.classifyDeepAbyssFolderReset)(eventId) === "restart_from_first") {
+                (0, service_1.resetLeaderboardCompetitionSync)(playerId, {
+                    category: types_2.QuestCategory.RUSH_EVENT,
+                    eventId,
+                    folderId: rush_event_folder_lock_1.DEEP_ABYSS_RUSH_FOLDER_ID,
+                });
                 // Deep Abyss always abandons the entire finite run.  Keep
                 // folder 1 selected so the client returns directly to round
                 // 700099001, regardless of reset_target_id.

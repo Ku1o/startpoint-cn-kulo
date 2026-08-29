@@ -7,11 +7,12 @@ import { getAccountPlayers } from "../../data/domains/account"
 import { getPlayerEquipmentSync, playerOwnsEquipmentSync, updatePlayerEquipmentSync } from "../../data/domains/equipment"
 import { getPlayerItemSync, updatePlayerItemSync } from "../../data/domains/item"
 import { getPlayerSync, updatePlayerSync } from "../../data/domains/player"
+import { getPlayerDegreeIdsSync, grantPlayerDegreeSync, hasPlayerDegreeSync } from "../../data/domains/degree"
 import { getSession } from "../../data/domains/session"
 import { resolvePlayerIdSync } from "../../data/activeAccount";
 import { getDb } from "../../data/db";
 import { getBossCoinShopItemsSync, getConfigSync, getEventShopItemsSync, getGenericShopItemsSync, getShopItemSync } from "../../lib/assets";
-import { CharacterReward, CharacterShopItemReward, CurrencyReward, CurrencyShopItemReward, EquipmentItemReward, EquipmentItemShopItemReward, Reward, RewardType, ShopItem, ShopItemRewardType, ShopItems, ShopItemUserCostType, ShopType } from "../../lib/types";
+import { CharacterReward, CharacterShopItemReward, CurrencyReward, CurrencyShopItemReward, DegreeShopItemReward, EquipmentItemReward, EquipmentItemShopItemReward, Reward, RewardType, ShopItem, ShopItemRewardType, ShopItems, ShopItemUserCostType, ShopType } from "../../lib/types";
 import { generateDataHeaders, getServerDate, getServerTime, realToVirtual } from "../../utils";
 import { givePlayerRewardsSync } from "../../lib/quest";
 import { computeRealTimeStamina } from "../../lib/stamina";
@@ -287,6 +288,22 @@ interface BulkPurchaseEntry {
     shopItem: ShopItem
 }
 
+function getShopDegreeRewards(shopItem: ShopItem, purchaseAmount: number): number[] {
+    const degreeIds: number[] = []
+    for (const reward of shopItem.rewards) {
+        if (reward.type !== ShopItemRewardType.DEGREE) continue
+        const degree = reward as DegreeShopItemReward
+        if (
+            purchaseAmount !== 1
+            || degree.count !== 1
+            || !Number.isSafeInteger(degree.id)
+            || degree.id <= 0
+        ) throw new Error("Degree shop rewards must grant one title in one purchase.")
+        degreeIds.push(degree.id)
+    }
+    return degreeIds
+}
+
 function appendShopItemRewards(
     rewards: Reward[],
     shopItem: ShopItem,
@@ -422,6 +439,22 @@ const routes = async (fastify: FastifyInstance) => {
             "error": "Bad Request",
             "message": "Shop item with specified id does not exist."
         })
+
+        let degreeIds: number[]
+        try {
+            degreeIds = getShopDegreeRewards(shopItemData, purchaseAmount)
+        } catch (error) {
+            return reply.status(400).send({
+                "error": "Bad Request",
+                "message": error instanceof Error ? error.message : "Invalid degree reward."
+            })
+        }
+        if (degreeIds.some(degreeId => hasPlayerDegreeSync(playerId, degreeId))) {
+            return reply.status(400).send({
+                "error": "Bad Request",
+                "message": "Player already owns this degree."
+            })
+        }
 
         // validate stock limit
         if (shopItemData.stock !== undefined && shopItemData.stock > 0) {
@@ -649,8 +682,6 @@ const routes = async (fastify: FastifyInstance) => {
             })
         }
 
-        applyPurchaseCosts()
-
         // build rewards array
         const rewards: Reward[] = []
         for (const reward of shopItemData.rewards) {
@@ -707,11 +738,22 @@ const routes = async (fastify: FastifyInstance) => {
 
             }
         }
-        // give rewards
-        const rewardResult = givePlayerRewardsSync(playerId, rewards)
+        // Costs, ordinary rewards, title ownership and stock history must commit
+        // together. A title product must never charge the player and then fail
+        // between the reward and ownership writes.
+        const rewardResult = getDb().transaction(() => {
+            applyPurchaseCosts()
+            const result = givePlayerRewardsSync(playerId, rewards)
+            if (result === null) throw new Error("Failed to grant shop rewards.")
+            for (const degreeId of degreeIds) {
+                if (!grantPlayerDegreeSync(playerId, degreeId)) {
+                    throw new Error(`Degree ${degreeId} is already owned.`)
+                }
+            }
+            addEffectiveShopPurchaseCountSync(playerId, shopType, shopItemId, purchaseAmount)
+            return result
+        })()
 
-        // record purchase for stock tracking
-        addEffectiveShopPurchaseCountSync(playerId, shopType, shopItemId, purchaseAmount)
         recordTreasureShopProgress(playerId, shopType, purchaseAmount, manaSpent)
         const characterList = reconcileAwakeUnlockCharacterList(
             playerId,
@@ -742,6 +784,10 @@ const routes = async (fastify: FastifyInstance) => {
                 ...itemList,
                 ...(rewardResult?.items ?? {})
             },
+            "degree_list": degreeIds.map(degreeId => ({
+                viewer_id: viewerId,
+                degree_id: degreeId,
+            })),
             "mail_arrived": false
         }
         mergeShopDegreeSettlement(responseData, playerId, viewerId)
@@ -813,6 +859,7 @@ const routes = async (fastify: FastifyInstance) => {
 
         // Load purchase history for stock tracking
         const purchasedMap = getPlayerShopPurchasesMapSync(playerId)
+        const ownedDegrees = new Set(getPlayerDegreeIdsSync(playerId))
         const totalPurchased = Object.values(purchasedMap).reduce((a, b) => a + b, 0)
         gameVerboseLog(() => `[shop:get_sales] player=${playerId} purchasedKeys=${Object.keys(purchasedMap).length} totalPurchased=${totalPurchased}`)
 
@@ -852,7 +899,13 @@ const routes = async (fastify: FastifyInstance) => {
                     Number(itemId)
                 )
                 const stock = item.stock
-                const stockQuantity = stock !== undefined ? Math.max(0, stock - purchased) : -1
+                const degreeOwned = item.rewards.some(reward =>
+                    reward.type === ShopItemRewardType.DEGREE
+                    && ownedDegrees.has((reward as DegreeShopItemReward).id)
+                )
+                const stockQuantity = degreeOwned
+                    ? 0
+                    : (stock !== undefined ? Math.max(0, stock - purchased) : -1)
                 const clientTotalPurchaseNum = getClientTotalPurchaseNum(
                     shopTypeNum,
                     Number(itemId),
@@ -1058,6 +1111,9 @@ const routes = async (fastify: FastifyInstance) => {
 
         const purchases: BulkPurchaseEntry[] = []
         const rewards: Reward[] = []
+        const degreeIds: number[] = []
+        const ownedDegreeIds = new Set(getPlayerDegreeIdsSync(playerId))
+        const plannedDegreeIds = new Set<number>()
         const itemCostTotals = new Map<number, number>()
         let manaCost = 0
         let vmoneyCost = 0
@@ -1099,6 +1155,20 @@ const routes = async (fastify: FastifyInstance) => {
                     skippedEntries++
                     continue
                 }
+            }
+
+            let shopDegreeIds: number[]
+            try {
+                shopDegreeIds = getShopDegreeRewards(shopItem, purchaseAmount)
+            } catch {
+                skippedEntries++
+                continue
+            }
+            if (shopDegreeIds.some(degreeId =>
+                ownedDegreeIds.has(degreeId) || plannedDegreeIds.has(degreeId)
+            )) {
+                skippedEntries++
+                continue
             }
 
             const userCost = shopItem.userCost
@@ -1223,6 +1293,10 @@ const routes = async (fastify: FastifyInstance) => {
                 continue
             }
 
+            for (const degreeId of shopDegreeIds) {
+                plannedDegreeIds.add(degreeId)
+                degreeIds.push(degreeId)
+            }
             appendShopItemRewards(rewards, shopItem, purchaseAmount)
             purchases.push({ shopItemId, purchaseAmount, shopItem })
         }
@@ -1285,6 +1359,12 @@ const routes = async (fastify: FastifyInstance) => {
                     throw new Error(`Failed to grant bulk shop rewards for player ${playerId}`)
                 }
 
+                for (const degreeId of degreeIds) {
+                    if (!grantPlayerDegreeSync(playerId, degreeId)) {
+                        throw new Error(`Degree ${degreeId} is already owned.`)
+                    }
+                }
+
                 for (const purchase of purchases) {
                     addEffectiveShopPurchaseCountSync(
                         playerId,
@@ -1343,6 +1423,10 @@ const routes = async (fastify: FastifyInstance) => {
                 ...costItemList,
                 ...rewardResult.items
             },
+            "degree_list": degreeIds.map(degreeId => ({
+                viewer_id: viewerId,
+                degree_id: degreeId,
+            })),
             "mail_arrived": false
         }
         mergeShopDegreeSettlement(responseData, playerId, viewerId)

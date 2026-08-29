@@ -1,6 +1,8 @@
-import characters from "../../assets/character.json"
-import degrees from "../../assets/degree.json"
-import manaNodes from "../../assets/mana_node.json"
+import {
+    degreeDefinitions as degrees,
+    serverCharacters as characters,
+    serverManaNodes as manaNodes,
+} from "./content-master"
 import { getPlayerCharactersSync } from "../data/domains/character"
 import { getPlayerDegreeIdsSync } from "../data/domains/degree"
 import { PlayerCharacter } from "../data/types"

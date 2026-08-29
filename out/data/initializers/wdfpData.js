@@ -1103,6 +1103,119 @@ function init(database, exists) {
     )`).run();
     (0, schema_1.ensureSchemaColumn)(database, "players_active_quests.is_multi_host");
     (0, schema_1.ensureSchemaColumn)(database, "players_active_quests.started_at_ms");
+    database.prepare(`CREATE TABLE IF NOT EXISTS leaderboard_seasons (
+        competition_key TEXT PRIMARY KEY,
+        season INTEGER NOT NULL DEFAULT 1,
+        started_at_ms INTEGER NOT NULL,
+        source TEXT NOT NULL DEFAULT 'initial',
+        content_revision TEXT
+    )`).run();
+    (0, schema_1.ensureSchemaColumn)(database, "leaderboard_seasons.content_revision");
+    database.prepare(`CREATE TABLE IF NOT EXISTS leaderboard_runs (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        competition_key TEXT NOT NULL,
+        player_id INTEGER NOT NULL,
+        player_name TEXT,
+        season INTEGER NOT NULL,
+        status TEXT NOT NULL CHECK (status IN ('active', 'completed', 'abandoned')),
+        started_at_ms INTEGER NOT NULL,
+        finished_at_ms INTEGER,
+        server_duration_ms INTEGER,
+        client_battle_ms INTEGER NOT NULL DEFAULT 0,
+        rounds_cleared INTEGER NOT NULL DEFAULT 0,
+        total_rounds INTEGER NOT NULL,
+        tracked_from_round INTEGER NOT NULL,
+        pending_round INTEGER,
+        pending_quest_id INTEGER,
+        pending_started_at_ms INTEGER,
+        character_id_1 INTEGER,
+        character_id_2 INTEGER,
+        character_id_3 INTEGER,
+        unison_character_id_1 INTEGER,
+        unison_character_id_2 INTEGER,
+        unison_character_id_3 INTEGER,
+        evolution_img_level_1 INTEGER,
+        evolution_img_level_2 INTEGER,
+        evolution_img_level_3 INTEGER,
+        FOREIGN KEY (player_id) REFERENCES players (id) ON DELETE CASCADE
+    )`).run();
+    database.prepare(`CREATE UNIQUE INDEX IF NOT EXISTS idx_leaderboard_runs_one_active
+        ON leaderboard_runs (competition_key, player_id)
+        WHERE status = 'active'`).run();
+    database.prepare(`CREATE INDEX IF NOT EXISTS idx_leaderboard_runs_rank
+        ON leaderboard_runs (
+            competition_key, season, status, tracked_from_round,
+            rounds_cleared, total_rounds, client_battle_ms, finished_at_ms, id
+        )`).run();
+    database.prepare(`CREATE TABLE IF NOT EXISTS leaderboard_run_rounds (
+        run_id INTEGER NOT NULL,
+        round_number INTEGER NOT NULL,
+        quest_id INTEGER NOT NULL,
+        client_battle_ms INTEGER NOT NULL,
+        server_elapsed_ms INTEGER NOT NULL,
+        started_at_ms INTEGER NOT NULL,
+        finished_at_ms INTEGER NOT NULL,
+        character_id_1 INTEGER,
+        character_id_2 INTEGER,
+        character_id_3 INTEGER,
+        unison_character_id_1 INTEGER,
+        unison_character_id_2 INTEGER,
+        unison_character_id_3 INTEGER,
+        equipment_id_1 INTEGER,
+        equipment_id_2 INTEGER,
+        equipment_id_3 INTEGER,
+        ability_soul_id_1 INTEGER,
+        ability_soul_id_2 INTEGER,
+        ability_soul_id_3 INTEGER,
+        evolution_img_level_1 INTEGER,
+        evolution_img_level_2 INTEGER,
+        evolution_img_level_3 INTEGER,
+        unison_evolution_img_level_1 INTEGER,
+        unison_evolution_img_level_2 INTEGER,
+        unison_evolution_img_level_3 INTEGER,
+        PRIMARY KEY (run_id, round_number),
+        FOREIGN KEY (run_id) REFERENCES leaderboard_runs (id) ON DELETE CASCADE
+    )`).run();
+    database.prepare(`CREATE TABLE IF NOT EXISTS leaderboard_settlement_configs (
+        competition_key TEXT PRIMARY KEY,
+        auto_enabled INTEGER NOT NULL DEFAULT 0,
+        settle_at_ms INTEGER,
+        repeat_interval_ms INTEGER,
+        reward_tiers_json TEXT NOT NULL,
+        mail_subject TEXT NOT NULL,
+        mail_body TEXT NOT NULL,
+        exclude_bots INTEGER NOT NULL DEFAULT 1,
+        updated_at_ms INTEGER NOT NULL
+    )`).run();
+    database.prepare(`CREATE TABLE IF NOT EXISTS leaderboard_settlements (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        competition_key TEXT NOT NULL,
+        season INTEGER NOT NULL,
+        source TEXT NOT NULL,
+        settled_at_ms INTEGER NOT NULL,
+        ranked_players INTEGER NOT NULL,
+        rewarded_players INTEGER NOT NULL DEFAULT 0,
+        status TEXT NOT NULL,
+        summary_json TEXT NOT NULL DEFAULT '{}',
+        UNIQUE (competition_key, season)
+    )`).run();
+    database.prepare(`CREATE TABLE IF NOT EXISTS leaderboard_settlement_results (
+        settlement_id INTEGER NOT NULL,
+        rank_number INTEGER NOT NULL,
+        run_id INTEGER NOT NULL,
+        player_id INTEGER NOT NULL,
+        player_name TEXT,
+        client_battle_ms INTEGER NOT NULL,
+        item_id INTEGER,
+        item_count INTEGER NOT NULL DEFAULT 0,
+        degree_id INTEGER,
+        skip_reason TEXT,
+        mail_ids_json TEXT NOT NULL DEFAULT '[]',
+        PRIMARY KEY (settlement_id, rank_number),
+        FOREIGN KEY (settlement_id) REFERENCES leaderboard_settlements (id) ON DELETE CASCADE
+    )`).run();
+    database.prepare(`CREATE INDEX IF NOT EXISTS idx_leaderboard_settlements_key_season
+        ON leaderboard_settlements (competition_key, season DESC)`).run();
     database.prepare(`CREATE TABLE IF NOT EXISTS players_repair_versions (
         player_id INTEGER NOT NULL,
         repair_key TEXT NOT NULL,

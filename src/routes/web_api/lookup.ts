@@ -1,6 +1,6 @@
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import characterTable from "../../../docs/generated/character_table.json";
-import serverCharacterData from "../../../assets/character.json";
+import { serverCharacters as serverCharacterData } from "../../lib/content-master";
 import itemLookup from "../../../assets/item_lookup.json";
 import cnmodItemLookup from "../../../assets/item_lookup_cnmod.json";
 import equipmentLookup from "../../../assets/equipment_lookup.json";

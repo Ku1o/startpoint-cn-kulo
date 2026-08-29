@@ -21,7 +21,8 @@ export enum ShopItemRewardType {
     EXP,
     MANA,
     CHARACTER,
-    EQUIPMENT
+    EQUIPMENT,
+    DEGREE
 }
 
 
@@ -114,6 +115,11 @@ export interface CharacterShopItemReward extends ShopItemReward {
 
 export interface CurrencyShopItemReward extends ShopItemReward {
     count: number
+}
+
+export interface DegreeShopItemReward extends ShopItemReward {
+    id: number
+    count: 1
 }
 
 

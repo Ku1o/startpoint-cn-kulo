@@ -6,7 +6,7 @@ import { PartyCategory, PlayerParty, RawPlayerParty } from "../../data/types"
 import { gameVerboseLog } from "../../lib/game-logging"
 import { QuestCategory } from "../../lib/types/quest"
 import { parseGlobalPartyId } from "../../lib/special-event-parties"
-import characterTable from "../../../assets/character.json"
+import { serverCharacters as characterTable } from "../../lib/content-master"
 import { buildRealParty } from "../tcp/handshake"
 import {
     getQuestNpcPartyPoolKey,

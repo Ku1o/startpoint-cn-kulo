@@ -3,12 +3,14 @@ import { getAllAccountsSync, getAccountPlayersSync, getAccountSync } from "../..
 import { insertMailSync } from "../../data/domains/mail"
 import { getPlayerSync } from "../../data/domains/player"
 import { wantsJson } from "./http"
-import characterData from "../../../assets/character.json"
-import itemIds from "../../../assets/item_ids.json"
+import {
+    degreeDefinitions as degreeData,
+    serverCharacters as characterData,
+    serverItemIds as itemIds,
+} from "../../lib/content-master"
 import equipmentIds from "../../../assets/equipment_ids.json"
 import degreeRewards from "../../../assets/mission_degree_reward.json"
 import carnivalRewards from "../../../assets/carnival_event_total_score_rewards.json"
-import degreeData from "../../../assets/degree.json"
 import {
     ADMIN_MAIL_MAX_INT,
     parseAdminMailInteger,
