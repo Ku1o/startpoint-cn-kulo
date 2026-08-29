@@ -1,0 +1,166 @@
+trait method QName(PackageNamespace(""),"setupContents")
+   dispid 0
+   method
+      name "pinball.dialog.titleMenu:TitleMenuDialogContentView/setupContents"
+      returns QName(PackageNamespace(""),"void")
+
+      body
+         maxstack 11
+         localcount 7
+         initscopedepth 6
+         maxscopedepth 7
+
+         code
+            getlocal0
+            pushscope
+            debug 1, "_loc1_", 0, 57
+            debug 1, "_loc2_", 1, 71
+            debug 1, "_loc3_", 2, 72
+            debug 1, "_loc4_", 3, 54
+            debug 1, "_loc5_", 4, 55
+            debug 1, "_loc6_", 5, 56
+            pushbyte 0
+            convert_i
+            setlocal 4
+            pushbyte 0
+            convert_i
+            setlocal 5
+            pushnull
+            getlex QName(PackageNamespace("pinball.ui.display"),"UiDisplayObjectContainer")
+            astypelate
+            coerce_a
+            setlocal 6
+            newarray 0
+            coerce QName(PackageNamespace(""),"Array")
+            setlocal1
+            getlex QName(PackageNamespace("pinball.config.core"),"DevConfig")
+            getproperty QName(PackageNamespace(""),"isTestPayChannel_main")
+            iffalse ofs005a
+            getlocal1
+            pushbyte 10
+            newarray 1
+            callproperty QName(Namespace("http://adobe.com/AS3/2006/builtin"),"concat"), 1
+            coerce QName(PackageNamespace(""),"Array")
+            setlocal1
+   ofs005a:
+            getlocal1
+            pushbyte 11
+            pushbyte 12
+            pushbyte 4
+            pushbyte 0
+            newarray 4
+            callproperty QName(Namespace("http://adobe.com/AS3/2006/builtin"),"concat"), 1
+            coerce QName(PackageNamespace(""),"Array")
+            setlocal1
+            getlex QName(PackageNamespace("pinball.config.core"),"DevConfig")
+            callproperty QName(PackageNamespace(""),"isLeitingChannel"), 0
+            dup
+            convert_b
+            iffalse ofs0087
+            pop
+            getlex QName(PackageNamespace(""),"PinballClientMain")
+            getproperty QName(PackageNamespace(""),"top")
+            getproperty QName(PackageNamespace(""),"devConfig")
+            getproperty QName(PackageNamespace(""),"isIosTf")
+            not
+   ofs0087:
+            iffalse ofs0097
+            getlocal1
+            pushbyte 1
+            newarray 1
+            callproperty QName(Namespace("http://adobe.com/AS3/2006/builtin"),"concat"), 1
+            coerce QName(PackageNamespace(""),"Array")
+            setlocal1
+   ofs0097:
+            getlex QName(PackageNamespace("pinball.config.core"),"DevConfig")
+            callproperty QName(PackageNamespace(""),"isLeitingChannel"), 0
+            iffalse ofs00ae
+            getlocal1
+            pushbyte 13
+            newarray 1
+            callproperty QName(Namespace("http://adobe.com/AS3/2006/builtin"),"concat"), 1
+            coerce QName(PackageNamespace(""),"Array")
+            setlocal1
+   ofs00ae:
+            pushbyte 0
+            convert_i
+            setlocal2
+            getlocal1
+            getproperty QName(PackageNamespace(""),"length")
+            convert_i
+            convert_i
+            setlocal3
+            jump ofs00f3
+   ofs00bc:
+            label
+            getlocal2
+            dup
+            increment_i
+            convert_i
+            setlocal2
+            convert_i
+            setlocal 4
+            getlocal1
+            getlocal 4
+            getproperty MultinameL([PackageNamespace(""),Namespace("http://adobe.com/AS3/2006/builtin"),PackageNamespace("pinball.dialog.titleMenu"),PackageInternalNs("pinball.dialog.titleMenu"),StaticProtectedNs("pinball.ui.dialog.content:DialogContentViewBase"),StaticProtectedNs("jp.sipo.gipo.core:GearHolderImpl"),PrivateNamespace("pinball.dialog.titleMenu:TitleMenuDialogContentView"),ProtectedNamespace("pinball.dialog.titleMenu:TitleMenuDialogContentView"),StaticProtectedNs("pinball.dialog.titleMenu:TitleMenuDialogContentView"),PrivateNamespace("TitleMenuDialogContentView.as$3168")])
+            convert_i
+            convert_i
+            setlocal 5
+            getlex QName(PackageNamespace(""),"layout")
+            pushstring "menu_button"
+            callproperty QName(PackageNamespace(""),"getContainers"), 1
+            getlocal 4
+            getproperty MultinameL([PackageNamespace(""),Namespace("http://adobe.com/AS3/2006/builtin"),PackageNamespace("pinball.dialog.titleMenu"),PackageInternalNs("pinball.dialog.titleMenu"),StaticProtectedNs("pinball.ui.dialog.content:DialogContentViewBase"),StaticProtectedNs("jp.sipo.gipo.core:GearHolderImpl"),PrivateNamespace("pinball.dialog.titleMenu:TitleMenuDialogContentView"),ProtectedNamespace("pinball.dialog.titleMenu:TitleMenuDialogContentView"),StaticProtectedNs("pinball.dialog.titleMenu:TitleMenuDialogContentView"),PrivateNamespace("TitleMenuDialogContentView.as$3168")])
+            coerce_a
+            setlocal 6
+            findpropstrict QName(PackageNamespace(""),"setupButton")
+            getlocal 5
+            getlocal 6
+            callpropvoid QName(PackageNamespace(""),"setupButton"), 2
+   ofs00f3:
+            getlocal2
+            getlocal3
+            iflt ofs00bc
+            pushbyte 4
+            getlocal1
+            getproperty QName(PackageNamespace(""),"length")
+            convert_i
+            ifnlt ofs015e
+            getlex QName(PackageNamespace(""),"layout")
+            pushstring "menu_button"
+            callproperty QName(PackageNamespace(""),"getContainers"), 1
+            pushbyte 0
+            getproperty MultinameL([PackageNamespace(""),Namespace("http://adobe.com/AS3/2006/builtin"),PackageNamespace("pinball.dialog.titleMenu"),PackageInternalNs("pinball.dialog.titleMenu"),StaticProtectedNs("pinball.ui.dialog.content:DialogContentViewBase"),StaticProtectedNs("jp.sipo.gipo.core:GearHolderImpl"),PrivateNamespace("pinball.dialog.titleMenu:TitleMenuDialogContentView"),ProtectedNamespace("pinball.dialog.titleMenu:TitleMenuDialogContentView"),StaticProtectedNs("pinball.dialog.titleMenu:TitleMenuDialogContentView"),PrivateNamespace("TitleMenuDialogContentView.as$3168")])
+            coerce_a
+            setlocal 6
+            findproperty QName(PackageNamespace(""),"extendHeight")
+            getlocal 6
+            pushstring "area"
+            pushstring "fileName"
+            pushstring "flatomo/generated/scene/title_bundled/TitleMenuDialogLayoutIds.hx"
+            pushstring "lineNumber"
+            pushbyte 94
+            pushstring "className"
+            pushstring "flatomo.generated.scene.title_bundled._TitleMenuDialogLayoutIds.TitleMenuDialogContainer_menuButton_Impl_"
+            pushstring "methodName"
+            pushstring "get_area"
+            newobject 4
+            callproperty Multiname("getGuideRectangle",[PackageNamespace(""),Namespace("http://adobe.com/AS3/2006/builtin"),PackageNamespace("pinball.dialog.titleMenu"),PackageInternalNs("pinball.dialog.titleMenu"),StaticProtectedNs("pinball.ui.dialog.content:DialogContentViewBase"),StaticProtectedNs("jp.sipo.gipo.core:GearHolderImpl"),PrivateNamespace("pinball.dialog.titleMenu:TitleMenuDialogContentView"),ProtectedNamespace("pinball.dialog.titleMenu:TitleMenuDialogContentView"),StaticProtectedNs("pinball.dialog.titleMenu:TitleMenuDialogContentView"),PrivateNamespace("TitleMenuDialogContentView.as$3168")]), 2
+            getproperty Multiname("height",[PackageNamespace(""),Namespace("http://adobe.com/AS3/2006/builtin"),PackageNamespace("pinball.dialog.titleMenu"),PackageInternalNs("pinball.dialog.titleMenu"),StaticProtectedNs("pinball.ui.dialog.content:DialogContentViewBase"),StaticProtectedNs("jp.sipo.gipo.core:GearHolderImpl"),PrivateNamespace("pinball.dialog.titleMenu:TitleMenuDialogContentView"),ProtectedNamespace("pinball.dialog.titleMenu:TitleMenuDialogContentView"),StaticProtectedNs("pinball.dialog.titleMenu:TitleMenuDialogContentView"),PrivateNamespace("TitleMenuDialogContentView.as$3168")])
+            getlex QName(PackageNamespace(""),"Math")
+            getlocal1
+            getproperty QName(PackageNamespace(""),"length")
+            convert_i
+            pushbyte 4
+            subtract
+            pushbyte 2
+            divide
+            callproperty QName(PackageNamespace(""),"ceil"), 1
+            convert_i
+            multiply
+            setproperty QName(PackageNamespace(""),"extendHeight")
+   ofs015e:
+            returnvoid
+         end ; code
+      end ; body
+   end ; method

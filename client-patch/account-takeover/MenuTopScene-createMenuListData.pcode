@@ -1,0 +1,257 @@
+trait method QName(PackageNamespace(""),"createMenuListData")
+   dispid 0
+   method
+      name "pinball.scene.menuTop:MenuTopScene/createMenuListData"
+      returns QName(PackageNamespace(""),"Array")
+
+      body
+         maxstack 17
+         localcount 2
+         initscopedepth 7
+         maxscopedepth 8
+
+         code
+            getlocal0
+            pushscope
+            debug 1, "_loc1_", 0, 493
+            newarray 0
+            coerce QName(PackageNamespace(""),"Array")
+            setlocal1
+            getlex QName(PackageNamespace(""),"globalLogic")
+            callproperty QName(PackageNamespace(""),"get_player"), 0
+            callproperty Multiname("canUnLockGrowthFund",[PackageNamespace(""),Namespace("http://adobe.com/AS3/2006/builtin"),PackageNamespace("pinball.scene.menuTop"),PackageInternalNs("pinball.scene.menuTop"),StaticProtectedNs("pinball.scene.ui:UiScene"),StaticProtectedNs("pinball.context.scene:LogicScene"),StaticProtectedNs("jp.sipo.gipo.core:GearHolderImpl"),PrivateNamespace("pinball.scene.menuTop:MenuTopScene"),ProtectedNamespace("pinball.scene.menuTop:MenuTopScene"),StaticProtectedNs("pinball.scene.menuTop:MenuTopScene"),PrivateNamespace("MenuTopScene.as$8016")]), 0
+            iffalse ofs0045
+            getlocal1
+            pushstring "kind"
+            getlex QName(PackageNamespace("pinball.scene.menuTop"),"MenuTopListItemKind")
+            getproperty QName(PackageNamespace(""),"GrowthFund")
+            pushstring "content"
+            getlex QName(PackageNamespace("pinball.ui.component.list.menu.data"),"MenuListContentKind")
+            pushstring "scene/general/sprite_sheet/special_button-assets/menu_grouthfund"
+            pushfalse
+            callproperty QName(PackageNamespace(""),"Image"), 2
+            newobject 2
+            newarray 1
+            callproperty QName(Namespace("http://adobe.com/AS3/2006/builtin"),"concat"), 1
+            coerce QName(PackageNamespace(""),"Array")
+            setlocal1
+   ofs0045:
+            getlocal1
+            pushstring "kind"
+            getlex QName(PackageNamespace("pinball.scene.menuTop"),"MenuTopListItemKind")
+            getproperty QName(PackageNamespace(""),"Practice")
+            pushstring "content"
+            getlex QName(PackageNamespace("pinball.ui.component.list.menu.data"),"MenuListContentKind")
+            pushstring "dynamic/practice_background/practice_battle_list"
+            pushfalse
+            callproperty QName(PackageNamespace(""),"Image"), 2
+            newobject 2
+            pushstring "kind"
+            getlex QName(PackageNamespace("pinball.scene.menuTop"),"MenuTopListItemKind")
+            getproperty QName(PackageNamespace(""),"Encyclopedia")
+            pushstring "content"
+            getlex QName(PackageNamespace("pinball.ui.component.list.menu.data"),"MenuListContentKind")
+            pushstring "scene/general/sprite_sheet/vector_icon-assets/encyclopedia"
+            pushstring "menu_encyclopedia"
+            callproperty QName(PackageNamespace(""),"IconAndText"), 2
+            newobject 2
+            pushstring "kind"
+            getlex QName(PackageNamespace("pinball.scene.menuTop"),"MenuTopListItemKind")
+            getproperty QName(PackageNamespace(""),"RecieveHistory")
+            pushstring "content"
+            getlex QName(PackageNamespace("pinball.ui.component.list.menu.data"),"MenuListContentKind")
+            pushstring "scene/general/sprite_sheet/vector_icon-assets/history"
+            pushstring "menu_receive_history"
+            callproperty QName(PackageNamespace(""),"IconAndText"), 2
+            newobject 2
+            pushstring "kind"
+            getlex QName(PackageNamespace("pinball.scene.menuTop"),"MenuTopListItemKind")
+            getproperty QName(PackageNamespace(""),"Item")
+            pushstring "content"
+            getlex QName(PackageNamespace("pinball.ui.component.list.menu.data"),"MenuListContentKind")
+            pushstring "scene/general/sprite_sheet/vector_icon-assets/item"
+            pushstring "menu_item"
+            callproperty QName(PackageNamespace(""),"IconAndText"), 2
+            newobject 2
+            pushstring "kind"
+            getlex QName(PackageNamespace("pinball.scene.menuTop"),"MenuTopListItemKind")
+            getproperty QName(PackageNamespace(""),"Equipment")
+            pushstring "content"
+            getlex QName(PackageNamespace("pinball.ui.component.list.menu.data"),"MenuListContentKind")
+            pushstring "scene/general/sprite_sheet/vector_icon-assets/equipment_sword_shield"
+            pushstring "menu_equipment"
+            callproperty QName(PackageNamespace(""),"IconAndText"), 2
+            newobject 2
+            pushstring "kind"
+            getlex QName(PackageNamespace("pinball.scene.menuTop"),"MenuTopListItemKind")
+            getproperty QName(PackageNamespace(""),"StoneManaConfirm")
+            pushstring "content"
+            getlex QName(PackageNamespace("pinball.ui.component.list.menu.data"),"MenuListContentKind")
+            pushstring "scene/general/sprite_sheet/vector_icon-assets/stone_large"
+            pushstring "menu_stone_mana_confirm"
+            callproperty QName(PackageNamespace(""),"IconAndText"), 2
+            newobject 2
+            pushstring "kind"
+            getlex QName(PackageNamespace("pinball.scene.menuTop"),"MenuTopListItemKind")
+            getproperty QName(PackageNamespace(""),"Profile")
+            pushstring "content"
+            getlex QName(PackageNamespace("pinball.ui.component.list.menu.data"),"MenuListContentKind")
+            pushstring "scene/general/sprite_sheet/vector_icon-assets/profile"
+            pushstring "menu_profile"
+            callproperty QName(PackageNamespace(""),"IconAndText"), 2
+            newobject 2
+            pushstring "kind"
+            getlex QName(PackageNamespace("pinball.scene.menuTop"),"MenuTopListItemKind")
+            getproperty QName(PackageNamespace(""),"FollowFollower")
+            pushstring "content"
+            getlex QName(PackageNamespace("pinball.ui.component.list.menu.data"),"MenuListContentKind")
+            pushstring "scene/general/sprite_sheet/vector_icon-assets/follow"
+            pushstring "menu_follow_and_follower"
+            callproperty QName(PackageNamespace(""),"IconAndText"), 2
+            newobject 2
+            pushstring "kind"
+            getlex QName(PackageNamespace("pinball.scene.menuTop"),"MenuTopListItemKind")
+            getproperty QName(PackageNamespace(""),"TakeOver")
+            pushstring "content"
+            getlex QName(PackageNamespace("pinball.ui.component.list.menu.data"),"MenuListContentKind")
+            pushstring "scene/general/sprite_sheet/vector_icon-assets/take_over"
+            pushstring "title_menu_take_over"
+            callproperty QName(PackageNamespace(""),"IconAndText"), 2
+            newobject 2
+            pushstring "kind"
+            getlex QName(PackageNamespace("pinball.scene.menuTop"),"MenuTopListItemKind")
+            getproperty QName(PackageNamespace(""),"ApplicationOption")
+            pushstring "content"
+            getlex QName(PackageNamespace("pinball.ui.component.list.menu.data"),"MenuListContentKind")
+            pushstring "scene/general/sprite_sheet/vector_icon-assets/option"
+            pushstring "menu_option"
+            callproperty QName(PackageNamespace(""),"IconAndText"), 2
+            newobject 2
+            pushstring "kind"
+            getlex QName(PackageNamespace("pinball.scene.menuTop"),"MenuTopListItemKind")
+            getproperty QName(PackageNamespace(""),"Other")
+            pushstring "content"
+            getlex QName(PackageNamespace("pinball.ui.component.list.menu.data"),"MenuListContentKind")
+            pushstring "scene/general/sprite_sheet/vector_icon-assets/etc"
+            pushstring "menu_other"
+            callproperty QName(PackageNamespace(""),"IconAndText"), 2
+            newobject 2
+            newarray 11
+            callproperty QName(Namespace("http://adobe.com/AS3/2006/builtin"),"concat"), 1
+            coerce QName(PackageNamespace(""),"Array")
+            setlocal1
+            getlex QName(PackageNamespace(""),"PinballClientMain")
+            getproperty QName(PackageNamespace(""),"top")
+            getproperty QName(PackageNamespace(""),"devConfig")
+            getproperty QName(PackageNamespace(""),"giftActive")
+            iffalse ofs01e9
+            getlocal1
+            pushstring "kind"
+            getlex QName(PackageNamespace("pinball.scene.menuTop"),"MenuTopListItemKind")
+            getproperty QName(PackageNamespace(""),"Gift")
+            pushstring "content"
+            getlex QName(PackageNamespace("pinball.ui.component.list.menu.data"),"MenuListContentKind")
+            pushstring "scene/general/sprite_sheet/vector_icon-assets/gift_key"
+            pushstring "menu_gift"
+            callproperty QName(PackageNamespace(""),"IconAndText"), 2
+            newobject 2
+            newarray 1
+            callproperty QName(Namespace("http://adobe.com/AS3/2006/builtin"),"concat"), 1
+            coerce QName(PackageNamespace(""),"Array")
+            setlocal1
+   ofs01e9:
+            getlex QName(PackageNamespace(""),"PinballClientMain")
+            getproperty QName(PackageNamespace(""),"top")
+            getproperty QName(PackageNamespace(""),"devConfig")
+            getproperty QName(PackageNamespace(""),"qqGroupPath")
+            getproperty QName(PackageNamespace(""),"length")
+            pushbyte 0
+            ifngt ofs0228
+            getlocal1
+            pushstring "kind"
+            getlex QName(PackageNamespace("pinball.scene.menuTop"),"MenuTopListItemKind")
+            getproperty QName(PackageNamespace(""),"QQGroup")
+            pushstring "content"
+            getlex QName(PackageNamespace("pinball.ui.component.list.menu.data"),"MenuListContentKind")
+            pushstring "scene/general/sprite_sheet/vector_icon-assets/qq_group"
+            pushstring "menu_qq_group"
+            callproperty QName(PackageNamespace(""),"IconAndText"), 2
+            newobject 2
+            newarray 1
+            callproperty QName(Namespace("http://adobe.com/AS3/2006/builtin"),"concat"), 1
+            coerce QName(PackageNamespace(""),"Array")
+            setlocal1
+   ofs0228:
+            getlex QName(PackageNamespace("pinball.config.core"),"DevConfig")
+            callproperty QName(PackageNamespace(""),"isLeitingChannel"), 0
+            dup
+            convert_b
+            iffalse ofs0243
+            pop
+            getlex QName(PackageNamespace(""),"PinballClientMain")
+            getproperty QName(PackageNamespace(""),"top")
+            getproperty QName(PackageNamespace(""),"devConfig")
+            getproperty QName(PackageNamespace(""),"isIosTf")
+            not
+   ofs0243:
+            iffalse ofs02a9
+            getlex QName(PackageNamespace(""),"hasNewMessage")
+            iffalse ofs027e
+            getlocal1
+            pushstring "kind"
+            getlex QName(PackageNamespace("pinball.scene.menuTop"),"MenuTopListItemKind")
+            getproperty QName(PackageNamespace(""),"MicroCommunity")
+            pushstring "content"
+            getlex QName(PackageNamespace("pinball.ui.component.list.menu.data"),"MenuListContentKind")
+            pushstring "scene/general/sprite_sheet/vector_icon-assets/VillageIcon_White_News"
+            pushstring "menu_micro_community"
+            callproperty QName(PackageNamespace(""),"IconAndText"), 2
+            newobject 2
+            newarray 1
+            callproperty QName(Namespace("http://adobe.com/AS3/2006/builtin"),"concat"), 1
+            coerce QName(PackageNamespace(""),"Array")
+            setlocal1
+            jump ofs02a9
+   ofs027e:
+            getlocal1
+            pushstring "kind"
+            getlex QName(PackageNamespace("pinball.scene.menuTop"),"MenuTopListItemKind")
+            getproperty QName(PackageNamespace(""),"MicroCommunity")
+            pushstring "content"
+            getlex QName(PackageNamespace("pinball.ui.component.list.menu.data"),"MenuListContentKind")
+            pushstring "scene/general/sprite_sheet/vector_icon-assets/VillageIcon_White"
+            pushstring "menu_micro_community"
+            callproperty QName(PackageNamespace(""),"IconAndText"), 2
+            newobject 2
+            newarray 1
+            callproperty QName(Namespace("http://adobe.com/AS3/2006/builtin"),"concat"), 1
+            coerce QName(PackageNamespace(""),"Array")
+            setlocal1
+   ofs02a9:
+            getlex QName(PackageNamespace(""),"PinballClientMain")
+            getproperty QName(PackageNamespace(""),"top")
+            getproperty QName(PackageNamespace(""),"devConfig")
+            getproperty QName(PackageNamespace(""),"bugReportPath")
+            getproperty QName(PackageNamespace(""),"length")
+            pushbyte 0
+            ifngt ofs02e8
+            getlocal1
+            pushstring "kind"
+            getlex QName(PackageNamespace("pinball.scene.menuTop"),"MenuTopListItemKind")
+            getproperty QName(PackageNamespace(""),"BugReport")
+            pushstring "content"
+            getlex QName(PackageNamespace("pinball.ui.component.list.menu.data"),"MenuListContentKind")
+            pushstring "scene/general/sprite_sheet/vector_icon-assets/BugReport"
+            pushstring "menu_bug_group"
+            callproperty QName(PackageNamespace(""),"IconAndText"), 2
+            newobject 2
+            newarray 1
+            callproperty QName(Namespace("http://adobe.com/AS3/2006/builtin"),"concat"), 1
+            coerce QName(PackageNamespace(""),"Array")
+            setlocal1
+   ofs02e8:
+            getlocal1
+            returnvalue
+         end ; code
+      end ; body
+   end ; method

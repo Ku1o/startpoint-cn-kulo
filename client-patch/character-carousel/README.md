@@ -29,6 +29,12 @@
 功能应从 `../rush-leaderboard/README.md` 锁定的通用 Rush 成品继续，避免重复移植或丢失排行榜。
 无论哪条路径，都不要再从旧 LAN APK、分享包或 AB00–AB07/AB09 诊断包开始。
 
+截至 2026-08-30，最新权威后继已经推进到
+[`../account-takeover/README.md`](../account-takeover/README.md) 登记的公网继承版：APK SHA-256
+`0C7BBA3D8E2EF07B8AC9E98B11AAF257008A0B373950FD98332047C727064857`。后续新增 Android SWF
+功能应直接从该公网成品开始；本节的轮播 APK 和中间 Rush APK只用于血统复现，不能再作为新修改的
+直接基线。
+
 ## 从原始 LAN 基线复现补丁
 
 已验证的原始 LAN 基线：

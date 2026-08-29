@@ -1,0 +1,56 @@
+method
+   name "pinball.config.gbits:DevConfig_gf_android/DevConfig_gf_android"
+   returns null
+
+   body
+      maxstack 4
+      localcount 1
+      initscopedepth 5
+      maxscopedepth 6
+
+      code
+         getlocal0
+         pushscope
+         getlex QName(PackageNamespace("flash"),"Boot")
+         getproperty QName(PackageNamespace(""),"skip_constructor")
+         iffalse ofs000b
+         returnvoid
+ofs000b:
+         getlocal0
+         constructsuper 0
+         findproperty QName(PackageNamespace(""),"apiServer")
+         getlex QName(PackageNamespace("pinball.config.kind"),"ApiServerKind")
+         pushstring "http"
+         pushstring "175.178.160.158:8001"
+         callproperty QName(PackageNamespace(""),"Custom"), 2
+         setproperty QName(PackageNamespace(""),"apiServer")
+         findproperty QName(PackageNamespace(""),"assetDirectories")
+         pushstring "production"
+         newarray 1
+         setproperty QName(PackageNamespace(""),"assetDirectories")
+         findproperty QName(PackageNamespace(""),"showBuildDate")
+         pushtrue
+         setproperty QName(PackageNamespace(""),"showBuildDate")
+         findproperty QName(PackageNamespace(""),"socket")
+         pushbyte 1
+         setproperty QName(PackageNamespace(""),"socket")
+         findproperty QName(PackageNamespace(""),"remote")
+         getlex QName(PackageNamespace("pinball.config.kind"),"RemoteKind")
+         getproperty QName(PackageNamespace(""),"RealRemote")
+         setproperty QName(PackageNamespace(""),"remote")
+         findproperty QName(PackageNamespace(""),"apiBranch")
+         getlex QName(PackageNamespace("haxe.ds"),"Option")
+         getproperty QName(PackageNamespace(""),"None")
+         setproperty QName(PackageNamespace(""),"apiBranch")
+         findproperty QName(PackageNamespace(""),"publishTarget")
+         getlex QName(PackageNamespace("pinball.gbits.config"),"PublishTargetKind")
+         getproperty QName(PackageNamespace(""),"Release")
+         setproperty QName(PackageNamespace(""),"publishTarget")
+         findproperty QName(PackageNamespace(""),"publishPlatform")
+         getlex QName(PackageNamespace("pinball.gbits.config"),"PublishPlatformKind")
+         getproperty QName(PackageNamespace(""),"Android")
+         setproperty QName(PackageNamespace(""),"publishPlatform")
+         returnvoid
+      end ; code
+   end ; body
+end ; method
