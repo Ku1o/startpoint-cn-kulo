@@ -38,3 +38,10 @@
 [iOS 1.8.4 私服客户端补丁](./ios-five-in-one/README.md)。幻想魂珠补丁的独立设计与维护实现见
 [iOS 幻想魂珠异步贴图补丁](./ios-fantasy-soul/README.md)。仓库仅保存哈希锁定的差分构建器，
 不保存原始或修改后的 IPA，也不保存任何签名材料。
+
+## Android 角色页性能
+
+经过实机验证的当前编队轮播更新裁剪、单方法体 P-code 移植、AIR
+`uniqueappversionid` 缓存失效和 APK 回封要求，见
+[Android 角色编队轮播优化](./character-carousel/README.md)。后续 Android SWF 改动必须以已验证成品
+APK 为基线，并为每个不同 SWF 生成新的 `uniqueappversionid`。
