@@ -4857,6 +4857,45 @@
           "members": 23
         }
       ]
+    },
+    {
+      "id": "feature-banner-10010-home-load-hotfix-1.4.92",
+      "type": "patch",
+      "name": "主页“外传故事”横幅加载热修",
+      "description": "在已部署的1.4.91基础上，仅从feature_banner客户端表删除ID 10010的通用“外传故事”主页横幅，避免主页可见性判断同步扫描外传活动与兑换商店状态；外传活动数据及活动页入口保持不变。",
+      "version": "1.4.92",
+      "depends_on": "1.4.91",
+      "enabled": true,
+      "archive": "pinball-1.4.91-1.4.92-1-0829-feature-banner-10010-home-load-hotfix.zip",
+      "archive_size": 51243,
+      "files": [
+        "production/upload/8c/82c8e05db4ce4f8a06bcd25f90bbda2967808b"
+      ],
+      "changes": [
+        "feature_banner表由603行调整为602行，仅删除ID 10010（link=SideStory）的主页轮播横幅。",
+        "其余602条feature_banner记录保持逐条原始字节一致，不修改公告、活动、任务、兑换商店或外传剧情数据。",
+        "本补丁仅移除主页快捷横幅；外传内容仍可从活动页进入，用户真机复测确认登录设备加载46.5%停顿消失。"
+      ],
+      "created_at": "2026-08-29",
+      "audit": {
+        "table": "feature_banner",
+        "removed_id": 10010,
+        "removed_link": "SideStory",
+        "rows_before": 603,
+        "rows_after": 602,
+        "other_rows_byte_identical": 602,
+        "announcements_unchanged": true,
+        "side_story_content_unchanged": true,
+        "gameplay_verified": true
+      },
+      "archive_integrity": [
+        {
+          "name": "pinball-1.4.91-1.4.92-1-0829-feature-banner-10010-home-load-hotfix.zip",
+          "size": 51243,
+          "sha256": "124438ad2f302486d716acbc226f4ea38912bb697fa7a91a3b49328ebe1bfa36",
+          "members": 1
+        }
+      ]
     }
   ]
 }
