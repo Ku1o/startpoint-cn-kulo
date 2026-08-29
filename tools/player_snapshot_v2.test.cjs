@@ -138,6 +138,9 @@ function seedRepresentativeState(playerId, otherPlayerId) {
         (player_id, play_id, quest_id, category, use_boss_boost_point, use_boost_point, is_auto_start_mode, is_multi, room_number, entry_item_id, event_id, continue_count, is_multi_host)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
         .run(playerId, "source-active-battle", 92001, 1, 0, 0, 0, 0, null, null, null, 0, 0)
+    db.prepare(`INSERT INTO players_repair_versions
+        (player_id, repair_key, repair_version, applied_at) VALUES (?, ?, ?, ?)`)
+        .run(playerId, "snapshot-source-repair", 1, "2026-08-22T00:04:00.000Z")
     db.prepare(`INSERT INTO players_follows (follower_player_id, followed_player_id, created_at) VALUES (?, ?, ?)`)
         .run(playerId, otherPlayerId, Date.now())
 }
@@ -181,10 +184,16 @@ function runFreshDatabaseTests(api) {
         .run(target.id, "target-active-battle", 1, 1)
     db.prepare(`INSERT INTO players_follows (follower_player_id, followed_player_id, created_at) VALUES (?, ?, ?)`)
         .run(target.id, other.id, Date.now())
+    db.prepare(`INSERT INTO players_repair_versions
+        (player_id, repair_key, repair_version, applied_at) VALUES (?, ?, ?, ?)`)
+        .run(target.id, "snapshot-target-repair", 1, "2026-08-22T00:05:00.000Z")
 
     const snapshot = api.createPlayerSaveSnapshotV2Sync(source.id)
     assert.equal(snapshot.version, 2)
     assert.equal(snapshot.summary.includedTableCount, api.PLAYER_SNAPSHOT_V2_TABLES.length)
+    assert.equal(Object.hasOwn(snapshot.data.tables, "players_repair_versions"), false)
+    assert.ok(snapshot.summary.excludedState.some(entry =>
+        entry.policy === "reset" && entry.tables.includes("players_repair_versions")))
     assert.ok(snapshot.data.tables.players_carnival_event_reward_claims.rows.length > 0)
     assert.equal(snapshot.data.tables.players_practice_battle_history.rows.length, 1)
 
@@ -198,6 +207,7 @@ function runFreshDatabaseTests(api) {
     assert.equal(restoredPlayer.exp_pool, 4321)
     assert.equal(restoredPlayer.free_vmoney, 8765)
     assert.equal(db.prepare(`SELECT COUNT(*) count FROM players_active_quests WHERE player_id = ?`).get(target.id).count, 0)
+    assert.equal(db.prepare(`SELECT COUNT(*) count FROM players_repair_versions WHERE player_id = ?`).get(target.id).count, 0)
     assert.equal(db.prepare(`SELECT COUNT(*) count FROM players_follows WHERE follower_player_id = ? AND followed_player_id = ?`).get(target.id, other.id).count, 1)
     assert.equal(db.prepare(`SELECT claimed_at FROM players_carnival_event_reward_claims WHERE player_id = ?`).get(target.id).claimed_at, 1888888)
     assertHistoryWasRemapped(source.id, target.id)
