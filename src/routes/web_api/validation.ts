@@ -1,6 +1,5 @@
 // 写入端点结构安全校验（防坏档）：只挡会真正坏档/崩溃的输入，不卡游戏平衡。
-import characterData from "../../../assets/character.json"
-import itemIds from "../../../assets/item_ids.json"
+import { serverCharacters as characterData, serverItemIds as itemIds } from "../../lib/content-master"
 
 export const MAX_INT = 2147483647 // 2^31 - 1，客户端 int 上限（≥2^31 解码成 null = 坏档）
 export const MAX_TIME_OFFSET_MS = 31_536_000_000_000 // 约 ±1000 年（内部 ms，不受 2^31 约束）

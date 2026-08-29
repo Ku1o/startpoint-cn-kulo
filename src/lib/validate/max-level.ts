@@ -9,10 +9,11 @@ import { SaveValidator } from "./types"
  */
 export const MaxLevelValidator: SaveValidator = {
     name: "max-level",
+    version: 1,
 
-    validate(playerId: number): number {
+    validate(playerId: number, context): number {
         let fixes = 0
-        const allEquipment = getPlayerEquipmentListSync(playerId)
+        const allEquipment = context?.equipmentList ?? getPlayerEquipmentListSync(playerId)
 
         for (const [equipId, equip] of Object.entries(allEquipment)) {
             const cdn = getEquipmentDissolveSync(parseInt(equipId))
@@ -22,6 +23,7 @@ export const MaxLevelValidator: SaveValidator = {
             if (equip.level > maxLevel) {
                 updatePlayerEquipmentSync(playerId, equipId, { level: maxLevel })
                 console.log(`[VALIDATE:max-level] account=${playerId} eid=${equipId} level ${equip.level}→${maxLevel} (max=${maxLevel})`)
+                equip.level = maxLevel
                 fixes++
             }
         }

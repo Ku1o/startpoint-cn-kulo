@@ -196,7 +196,7 @@ def _trig(kind, *, puller=None, groups=None, th="100000", limit="(None)", cool="
 #   · 叠装上限 3 把(每角色一把,最多 3 把武器),所有数值按 ×3 折算;
 #   · 数值普遍取官方 ability_soul 同 kind 上限的 ×1~×3;
 #   · 35 充能速度游戏内上限 50%;211 技能槽满槽即截顶(开幕式多源会互相浪费);
-#     245 = 「自身的技能槽最大值」(不是"2号位技能槽",wf_describe 误报);
+#     245 = 「自身的技能槽最大值」(内部名SecondSkillGauge，不是2号位);
 #   · 55/28 强化弹射伤害架构上**只作用于自身**,文案不能写"全队";
 #   · 70 = 「免疫疲惫效果」(不是"冻结无效",wf_describe 误报);
 #   · 禁用:723(进 soul 必崩)、43(定值 20 等于 0)、212/701-711(零先例)。
@@ -336,7 +336,7 @@ WEAPONS: tuple[WeaponSpec, ...] = (
                    target_groups=None, overrides=_trig(25, th="80000", limit="2")),
         # v3.3:211 开幕式与 102@100% 撞截顶(合计 150%,溢出 50%)→ 换 245。
         # ★ 245 的游戏内文案是「自身的技能槽最大值」(用户截图印证;wf_describe 渲染成
-        #   「2号位技能槽」是误报,见 memory wf-ability-damage-families #15)。官方 target 恒 0。
+        #   内部名SecondSkillGauge表示技能槽最大值，官方 target 恒 0。
         EffectSpec("5040019", "245", 50000, donor_line=2, target="0",
                    target_groups=None, overrides=_INIT),
         EffectSpec("300001", "32", 200000, donor_line=0, target="5",

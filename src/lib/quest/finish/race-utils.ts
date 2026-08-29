@@ -1,7 +1,7 @@
 // Character race lookup — loaded from the server-bundled CDN master at startup.
 // CDN character.json: row[4] = comma-separated race names (e.g., "Human,Beast")
 
-import characterMaster from "../../../../assets/cdndata/character.json"
+import { cdnCharacters as characterMaster } from "../../content-master"
 
 const charRaceMap: Record<string, string[]> = {}
 

@@ -1,0 +1,110 @@
+{
+  "schema": "wf-mod-character-balance-fold/v1",
+  "patch_id": "home-load-rank-p5b-1.4.92",
+  "base_version": "1.4.91",
+  "target_version": "1.4.92",
+  "characters": [
+    119996,
+    149995,
+    149999,
+    169996,
+    169997
+  ],
+  "archive": {
+    "name": "pinball-1.4.91-1.4.92-4-0829-mod-balance-fold.zip",
+    "size": 647524,
+    "sha256": "4d2add7d191da41bb45d9a60005b830c675b92c356712be2f4b02bd733b9577c",
+    "members": 11
+  },
+  "tables": [
+    {
+      "logical": "master/ability/ability.orderedmap",
+      "target_keys": [
+        "1199963",
+        "1199966",
+        "1499992",
+        "1499993",
+        "1499994",
+        "1499995",
+        "1699961",
+        "1699962",
+        "1699963"
+      ],
+      "base_sha256": "5de94b400f852eb21a2a085e9298fc4e86907b2ce8a9a3458b6261f5326f9ceb",
+      "source_sha256": "eb3bc8470933d732d83cc4570344103324da5e05871bed81b1960995dd1e5b6d",
+      "output_sha256": "eb3bc8470933d732d83cc4570344103324da5e05871bed81b1960995dd1e5b6d",
+      "non_target_rows_preserved": 3101
+    },
+    {
+      "logical": "master/ability/leader_ability.orderedmap",
+      "target_keys": [
+        "169996",
+        "169997"
+      ],
+      "base_sha256": "11f2e289acba577538df63dfd701a643fcc60244aa7e6ca02a2b92901c10dd47",
+      "source_sha256": "6d0030afb32dd9da945563b5f539ea2463ce711cd1a145b1b569879c259800ae",
+      "output_sha256": "e6533eabc8a4f1e79a01555d8c139680db843c18d15f6b88f3a9f6bbee062d75",
+      "non_target_rows_preserved": 517
+    },
+    {
+      "logical": "master/character/character_text.orderedmap",
+      "target_keys": [
+        "149995",
+        "169996",
+        "169997"
+      ],
+      "base_sha256": "1092371b4da81ff2949e3379b54b4e075d587c5fd22bd76c757e6d9d2f2381a1",
+      "source_sha256": "cc16624d8b620c030165edab7bbee09520b22e6fe301b9d2adca387a177b76ab",
+      "output_sha256": "67011668c33fa6f8fb0bf718ee1e1b8fb771d13104aa10a3b5eec0efbd8772ca",
+      "non_target_rows_preserved": 525
+    },
+    {
+      "logical": "master/skill/action_skill.orderedmap",
+      "target_keys": [
+        "seofon_wind",
+        "simoun_dark"
+      ],
+      "base_sha256": "d1f97662da340d6e8dbce906ff464e6c30d6acb7cbd1ddc8912dc4d96eb8640e",
+      "source_sha256": "181c509bc0a4966ee3b359d4891753a3d554246cf2d320f323c078a0c27c6f73",
+      "output_sha256": "a4f57544b6d6d9f8624b6491c9d8a50daee8a593e2b116fad79303c7f04c5a0b",
+      "non_target_rows_preserved": 590
+    }
+  ],
+  "skill_dsl": [
+    {
+      "logical": "battle/action/skill/action/rare5/seofon_wind$seofon_wind_1.action.dsl.amf3.deflate",
+      "sha256": "a7832f9a64ec6fe3274f0ee1c0af9f0baea0b0c7b58151743b710918b2161404",
+      "size": 4082
+    },
+    {
+      "logical": "battle/action/skill/action/rare5/seofon_wind$seofon_wind_2.action.dsl.amf3.deflate",
+      "sha256": "a7832f9a64ec6fe3274f0ee1c0af9f0baea0b0c7b58151743b710918b2161404",
+      "size": 4082
+    },
+    {
+      "logical": "battle/action/skill/action/rare5/simoun_dark$simoun_dark_1.action.dsl.amf3.deflate",
+      "sha256": "7b294bb605e78d78170f6ea4c7cb2abbaef7d59133c90b058a7ea7aba2faebb4",
+      "size": 1000
+    },
+    {
+      "logical": "battle/action/skill/action/rare5/simoun_dark$simoun_dark_2.action.dsl.amf3.deflate",
+      "sha256": "7b294bb605e78d78170f6ea4c7cb2abbaef7d59133c90b058a7ea7aba2faebb4",
+      "size": 1000
+    },
+    {
+      "logical": "battle/action/skill/action/rare5/simoun_dark$simoun_dark_3.action.dsl.amf3.deflate",
+      "sha256": "7b294bb605e78d78170f6ea4c7cb2abbaef7d59133c90b058a7ea7aba2faebb4",
+      "size": 1000
+    },
+    {
+      "logical": "battle/action/skill/action/rare5/white_wolf_gerald$white_wolf_gerald_1.action.dsl.amf3.deflate",
+      "sha256": "7415954781f0d1113aaa2d48505e679bfbadd5bbcfcfcd31a862f3f0abac67d8",
+      "size": 1228
+    },
+    {
+      "logical": "battle/action/skill/action/rare5/white_wolf_gerald$white_wolf_gerald_2.action.dsl.amf3.deflate",
+      "sha256": "838d097c1311961d35ce14362f51db387a0ecc24e765e9f9742c99340fac82a1",
+      "size": 1239
+    }
+  ]
+}

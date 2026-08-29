@@ -1,10 +1,50 @@
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { generateDataHeaders } from "../../utils";
-import { readdirSync, statSync, existsSync } from "fs";
+import { existsSync } from "fs";
 import path from "path";
+import { getZipArchiveMetadata, invalidateZipCache } from "../../lib/zip-summary-cache";
 
 const CN_PORT = process.env.CN_LISTEN_PORT || "8001";
-const CDN_BASE = process.env.CDN_BASE_URL;
+
+/** Validates the configured origin and removes trailing slashes before path joins. */
+export function normalizeCdnBaseUrl(value: string): string {
+    const trimmed = value.trim();
+    let parsed: URL;
+    try {
+        parsed = new URL(trimmed);
+    } catch {
+        throw new Error("CDN_BASE_URL must be an absolute HTTP(S) URL.");
+    }
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+        throw new Error("CDN_BASE_URL must use HTTP or HTTPS.");
+    }
+    if (parsed.username || parsed.password || parsed.search || parsed.hash) {
+        throw new Error("CDN_BASE_URL must not contain credentials, a query, or a fragment.");
+    }
+    return parsed.toString().replace(/\/+$/, "");
+}
+
+export function joinCdnPath(baseUrl: string, ...segments: string[]): string {
+    const normalizedBase = baseUrl.replace(/\/+$/, "");
+    const suffix = segments
+        .map(segment => segment.replace(/^\/+|\/+$/g, ""))
+        .filter(Boolean)
+        .join("/");
+    return suffix ? `${normalizedBase}/${suffix}` : normalizedBase;
+}
+
+const CDN_BASE = process.env.CDN_BASE_URL
+    ? normalizeCdnBaseUrl(process.env.CDN_BASE_URL)
+    : undefined;
+/** Clears short-lived ZIP metadata after an in-process asset publication. */
+export function invalidateAssetArchiveCatalog(directory?: string): void {
+    invalidateZipCache(directory);
+}
+
+/** Reads ZIP names and sizes with a short TTL; response URLs are never cached. */
+export function getAssetArchiveMetadata(directory: string) {
+    return getZipArchiveMetadata(directory);
+}
 
 export const FULL_ARCHIVE_SUBDIRS = [
     "archive-common-full",
@@ -24,7 +64,7 @@ export const DIFF_ARCHIVE_SUBDIRS = [
 function getCdnBase(request: FastifyRequest): string {
     if (CDN_BASE) return CDN_BASE;
     const host = request.headers.host || `localhost:${CN_PORT}`;
-    return `http://${host}/patch/cn`;
+    return normalizeCdnBaseUrl(`http://${host}/patch/cn`);
 }
 
 function headerValue(request: FastifyRequest, name: string): string | undefined {
@@ -81,10 +121,10 @@ function entityListsDirName(): string {
 
 export function getVersionInfo(baseUrl: string, totalSize: number, device?: string) {
     const el = entityListsDirName();
-    const entityBase = el === "entities" ? `${baseUrl}/${el}/files/` : `${baseUrl}/${el}/`;
+    const entityBase = `${joinCdnPath(baseUrl, el, ...(el === "entities" ? ["files"] : []))}/`;
     return {
         base_url: entityBase,
-        files_list: `${baseUrl}/${el}/${getEntityListName(device)}`,
+        files_list: joinCdnPath(baseUrl, el, getEntityListName(device)),
         total_size: totalSize,
         delayed_assets_size: 0
     };
@@ -93,16 +133,11 @@ export function getVersionInfo(baseUrl: string, totalSize: number, device?: stri
 function buildArchiveList(baseUrl: string, cdnDir: string, subdir: string): { location: string; size: number; sha256: string }[] {
     const dir = path.join(cdnDir, subdir);
     try {
-        return readdirSync(dir)
-            .filter(f => f.endsWith(".zip"))
-            .map(f => {
-                const stats = statSync(path.join(dir, f));
-                return {
-                    location: `${baseUrl}/${subdir}/${f}`,
-                    size: stats.size,
-                    sha256: ""
-                };
-            });
+        return getAssetArchiveMetadata(dir).map(archive => ({
+            location: joinCdnPath(baseUrl, subdir, archive.filename),
+            size: archive.size,
+            sha256: ""
+        }));
     } catch (e) {
         console.error(`[CDN] buildArchiveList failed for ${subdir}:`, (e as Error).message);
         return [];
@@ -134,14 +169,14 @@ function buildDiffList(
     for (const subdir of getDiffArchiveSubdirs(device)) {
         const dir = path.join(cdnDir, subdir);
         try {
-            for (const f of readdirSync(dir).filter(f => f.endsWith(".zip"))) {
+            for (const archive of getAssetArchiveMetadata(dir)) {
+                const f = archive.filename;
                 const match = f.match(/pinball-(\d+\.\d+\.\d+)-(\d+\.\d+\.\d+)-\d+-/);
                 if (match) {
                     const from = match[1];
                     const to = match[2];
-                    const stats = statSync(path.join(dir, f));
                     if (!groups.has(to)) groups.set(to, { original_version: from, archive: [] });
-                    groups.get(to)!.archive.push({ location: `${baseUrl}/${subdir}/${f}`, size: stats.size, sha256: "" });
+                    groups.get(to)!.archive.push({ location: joinCdnPath(baseUrl, subdir, f), size: archive.size, sha256: "" });
                 }
             }
         } catch (e) {
@@ -152,14 +187,14 @@ function buildDiffList(
     // Asset patch archives (active patches only)
     const patchDir = path.join(__dirname, "..", "..", "..", "assets", "asset-patch", "active");
     try {
-        for (const f of readdirSync(patchDir).filter(f => f.endsWith(".zip"))) {
+        for (const archive of getAssetArchiveMetadata(patchDir)) {
+            const f = archive.filename;
             const match = f.match(/pinball-(\d+\.\d+\.\d+)-(\d+\.\d+\.\d+)-\d+-/);
             if (match) {
                 const from = match[1];
                 const to = match[2];
-                const stats = statSync(path.join(patchDir, f));
                 if (!groups.has(to)) groups.set(to, { original_version: from, archive: [] });
-                groups.get(to)!.archive.push({ location: `${baseUrl}/asset-patch/active/${f}`, size: stats.size, sha256: "" });
+                groups.get(to)!.archive.push({ location: joinCdnPath(baseUrl, "asset-patch", "active", f), size: archive.size, sha256: "" });
             }
         }
     } catch (e) {
@@ -204,8 +239,9 @@ const TOTAL_SIZE = (() => {
     let total = 0;
     for (const subdir of [...FULL_ARCHIVE_SUBDIRS, ...DIFF_ARCHIVE_SUBDIRS]) {
         try {
-            for (const f of readdirSync(path.join(cdnDir, subdir)).filter(f => f.endsWith(".zip")))
-                total += statSync(path.join(cdnDir, subdir, f)).size;
+            for (const archive of getAssetArchiveMetadata(path.join(cdnDir, subdir))) {
+                total += archive.size;
+            }
         } catch (e) {
             console.error(`[CDN] TOTAL_SIZE failed for ${subdir}:`, (e as Error).message);
         }

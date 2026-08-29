@@ -2,7 +2,6 @@ import adventEventQuests from "../../assets/advent_event_quest.json";
 import bossBattleQuests from "../../assets/boss_battle_quest.json";
 import boxGacha from "../../assets/box_gacha.json";
 import boxReward from "../../assets/box_reward.json";
-import characters from "../../assets/character.json";
 import characterQuests from "../../assets/character_quest.json";
 import clearRewards from "../../assets/clear_reward.json";
 import dailyExpManaEventQuests from "../../assets/daily_exp_mana_event_quest.json";
@@ -24,12 +23,8 @@ import exAbility from "../../assets/ex_ability.json";
 import exBoost from "../../assets/ex_boost.json";
 import exQuests from "../../assets/ex_quest.json";
 import exStatus from "../../assets/ex_status.json";
-import gachas from "../../assets/gacha.json";
-import cnmodGachas from "../../assets/gacha_cnmod.json";
 import mainQuests from "../../assets/main_quest.json";
 import practiceQuests from "../../assets/practice_quest.json";
-import manaNodes from "../../assets/mana_node.json";
-import cnmodManaNodes from "../../assets/mana_node_cnmod.json";
 import manaNodeAwake from "../../assets/mana_node_awake.json";
 import manaBoard from "../../assets/mana_board.json";
 import cnmodManaBoard from "../../assets/mana_board_cnmod.json";
@@ -38,8 +33,6 @@ import scoreRewards from "../../assets/score_reward.json";
 import gachaCampaigns from "../../assets/gacha_campaign.json";
 import bossCoinShopItems from "../../assets/boss_coin_shop.json";
 import bossCoinShopItemCategoryMap from "../../assets/boss_coin_shop_item_category_map.json";
-import eventItemShopItems from "../../assets/event_item_shop.json";
-import eventItemShopIdMap from "../../assets/event_item_shop_id_map.json";
 import generalShopItems from "../../assets/general_shop.json";
 import starGrainShopItems from "../../assets/star_grain_shop.json";
 import treasureShopItems from "../../assets/treasure_shop.json";
@@ -53,25 +46,25 @@ import equipmentMaxLevels from "../../assets/equipment_max_level.json"
 import equipmentElements from "../../assets/equipment_element.json"
 import { readFileSync } from "fs"
 import { join as joinPath } from "path"
-import { isDeepStrictEqual } from "node:util"
 import { AssetCharacter, BattleQuest, BossCoinShopItems, BoxGacha, ClearRewards, ConfigValues, EquipmentCraftEntry, EquipmentDissolveEntry, EquipmentItemReward, EventItemShopIdMapItem, EventShopItems, ExAbilities, ExBoostItem, ExBoostItems, ExStatus, Gacha, Gachas, ItemSaleEntry, ManaNode, ManaNodes, QuestCategory, RareScoreReward, RareScoreRewardGroups, RawAssetCharacters, RawBoxGachas, RawBoxRewards, RawQuests, Reward, RushEventFolders, ScoreReward, ScoreRewardGroups, ShopItem, ShopItems, ShopType, StoryQuest } from "./types";
+import {
+    serverCharacters as characters,
+    serverEventShopIdMap as eventItemShopIdMap,
+    serverEventShops as eventItemShopItems,
+    serverGachas,
+    serverManaNodes,
+} from "./content-master"
 
 const MOD_ASSETS_DIR = joinPath(__dirname, "..", "..", "assets")
 // Some CN-mod pools are intentionally mirrored in both files because the
 // client/admin metadata pipeline reads gacha.json while runtime draws prefer
 // gacha_cnmod.json.  Never allow a stale override to silently replace a newer
 // advertised pool again.
-for (const gachaId of ["990001"] as const) {
-    const base = (gachas as Gachas)[gachaId]
-    const override = (cnmodGachas as Gachas)[gachaId]
-    if (base && override && !isDeepStrictEqual(base, override)) {
-        throw new Error(
-            `[GACHA] mirrored pool ${gachaId} differs between gacha.json and gacha_cnmod.json`,
-        )
-    }
+const allGachas = serverGachas as Gachas
+const allManaNodes = serverManaNodes as ManaNodes
+if (allGachas["990001"] === undefined) {
+    throw new Error("[GACHA] mirrored pool 990001 is missing")
 }
-const allGachas = { ...(gachas as Gachas), ...(cnmodGachas as Gachas) } as Gachas
-const allManaNodes = { ...(manaNodes as ManaNodes), ...(cnmodManaNodes as ManaNodes) } as ManaNodes
 const allManaBoards = {
     ...(manaBoard as Record<string, any>),
     ...(cnmodManaBoard as Record<string, any>),

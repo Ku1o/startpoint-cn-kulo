@@ -105,7 +105,7 @@ def run_shared_terminal_rogue_tests() -> tuple[bytes, dict]:
         "failure_classification": "known_shared_terminal_fixture_conflict",
         "failure": (
             "conductor fixture target key mod_rogue_conductor28 already exists in the "
-            "shared local 1.4.94 terminal"
+            "withdrawn shared local terminal"
         ),
         "candidate_gameplay_impact_inferred": False,
         "supplementary_cloud_baseline_run": {
@@ -235,11 +235,11 @@ def update_candidate_manifest(patch_audit_sha: str, rogue: dict, floor28: dict) 
 def update_chinese_report(server: dict) -> str:
     text = CHINESE_REPORT.read_text(encoding="utf-8")
     old = (
-        "- 深渊工具回归：315/315 通过；为避免本地 1.4.94 已存在的 conductor 测试键污染结果，"
+        "- 深渊工具回归：315/315 通过；为避免已撤回的本地旧终态中 conductor 测试键污染结果，"
         "本轮在封存的 1.4.87 基线上执行。"
     )
     new = (
-        "- 深渊工具主回归（共享本地 1.4.94 终态）：314/315；唯一失败为 conductor 测试夹具目标键 "
+        "- 深渊工具主回归（已撤回的共享本地旧终态）：314/315；唯一失败为 conductor 测试夹具目标键 "
         "`mod_rogue_conductor28` 已存在。该项记录为非全绿，不能写成完整回归通过。\n"
         "- 补充隔离回归（封存 1.4.87 基线）：315/315 通过。候选第28关 conductor 另由最终塔审计证明："
         "absolute、c86=1、误差在容差内，且整塔引用链31/31；这仍不等于真机玩法通过。"

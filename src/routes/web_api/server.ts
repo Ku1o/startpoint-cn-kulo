@@ -23,6 +23,7 @@ import { runImmediateTransactionWithRetry } from "../../lib/sqlite-write-coordin
 import { createFullDatabaseBackup, getDatabaseDirectory } from "../../lib/admin-database-backup";
 import { getOnlinePlayerCount } from "../../lib/online-presence";
 import { clearRecoveryFailuresForViewer } from "../cn/takeOver";
+import { getZipFileSummary } from "../../lib/zip-summary-cache";
 import {
     createPlayerSaveSnapshotV2Sync,
     isPlayerSaveSnapshotV2,
@@ -242,35 +243,6 @@ async function executeAccountCleanupPlan(
     }
 }
 
-function countZipFiles(dir: string): { exists: boolean; count: number; latestMtime: string | null; totalBytes: number } {
-    if (!existsSync(dir)) return { exists: false, count: 0, latestMtime: null, totalBytes: 0 }
-    let count = 0
-    let totalBytes = 0
-    let latest = 0
-    const stack = [dir]
-    while (stack.length) {
-        const current = stack.pop()!
-        for (const name of readdirSync(current)) {
-            const fp = path.join(current, name)
-            const st = statSync(fp)
-            if (st.isDirectory()) {
-                stack.push(fp)
-                continue
-            }
-            if (!name.endsWith(".zip")) continue
-            count += 1
-            totalBytes += st.size
-            latest = Math.max(latest, st.mtimeMs)
-        }
-    }
-    return {
-        exists: true,
-        count,
-        latestMtime: latest ? new Date(latest).toISOString() : null,
-        totalBytes,
-    }
-}
-
 function getCdnBaseUrl(): string {
     const cdnHost = process.env.CN_LISTEN_HOST || "localhost"
     const cdnPort = process.env.CN_LISTEN_PORT || "8001"
@@ -403,8 +375,8 @@ const routes = async (fastify: FastifyInstance) => {
         const root = process.cwd()
         const cdnDir = process.env.CDN_DIR || ".cdn"
         const cdnRoot = path.isAbsolute(cdnDir) ? path.join(cdnDir, "cn") : path.join(root, cdnDir, "cn")
-        const archiveSummary = countZipFiles(cdnRoot)
-        const activePatchSummary = countZipFiles(path.join(root, "assets", "asset-patch", "active"))
+        const archiveSummary = getZipFileSummary(cdnRoot)
+        const activePatchSummary = getZipFileSummary(path.join(root, "assets", "asset-patch", "active"))
         const patchManifest = getPatchManifest()
         const enabledPatches = patchManifest.patches.filter(p => p.enabled)
         const detectedVersion = detectCDNVersion()
@@ -427,7 +399,7 @@ const routes = async (fastify: FastifyInstance) => {
                     mode: "fixed-cn-final",
                     source: "国服最终 CDN",
                     fullVersion: FULL_BASE,
-                    cnFinalVersion: patchManifest.cdn_version,
+                    cnFinalVersion: effectiveVersion,
                     detectedArchiveVersion: detectedVersion,
                     manifestVersion: patchManifest.cdn_version,
                     pinned: true,

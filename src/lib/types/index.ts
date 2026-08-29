@@ -15,6 +15,6 @@ export {
     NpcMateTemplate,
 } from "./multi"
 export { BattleQuest, Element, QuestCategory, RawQuest, RawQuests, StoryQuest } from "./quest"
-export { CharacterReward, CharacterShopItemReward, ClearRewards, CommonScoreReward, CurrencyReward, CurrencyScoreReward, CurrencyShopItemReward, DropScoreRewardId, EquipmentItemReward, EquipmentItemShopItemReward, GivePlayerScoreRewardsResult, ItemScoreReward, PlayerRewardResult, RareScoreReward, RareScoreRewardGroup, RareScoreRewardGroups, Reward, RewardType, ScoreReward, ScoreRewardGroups, ScoreRewardType, ShopItemReward, ShopItemRewardType } from "./rewards"
+export { CharacterReward, CharacterShopItemReward, ClearRewards, CommonScoreReward, CurrencyReward, CurrencyScoreReward, CurrencyShopItemReward, DegreeShopItemReward, DropScoreRewardId, EquipmentItemReward, EquipmentItemShopItemReward, GivePlayerScoreRewardsResult, ItemScoreReward, PlayerRewardResult, RareScoreReward, RareScoreRewardGroup, RareScoreRewardGroups, Reward, RewardType, ScoreReward, ScoreRewardGroups, ScoreRewardType, ShopItemReward, ShopItemRewardType } from "./rewards"
 export { RushEventFolder, RushEventFolders, SerializedPlayerRushEventPlayedParties, SerializedPlayerRushEventPlayedPartyList } from "./rush"
 export { BossCoinShopItems, EventItemShopIdMapItem, EventShopItems, ShopItem, ShopItemCost, ShopItemUserCost, ShopItemUserCostType, ShopItems, ShopType } from "./shop"

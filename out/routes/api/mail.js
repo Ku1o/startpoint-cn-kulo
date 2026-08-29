@@ -9,6 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.claimPlayerMailRewards = void 0;
 const mail_1 = require("../../data/domains/mail");
 const character_1 = require("../../data/domains/character");
 const item_1 = require("../../data/domains/item");
@@ -22,6 +23,8 @@ const client_display_time_1 = require("../../lib/client-display-time");
 const degree_1 = require("../../data/domains/degree");
 const mission_1 = require("../../lib/mission");
 const mana_1 = require("../../lib/mana");
+const sqlite_write_coordinator_1 = require("../../lib/sqlite-write-coordinator");
+const MAX_MAIL_CLAIM_IDS = 1000;
 function formatMailResponse(mail) {
     return {
         id: mail.id,
@@ -37,16 +40,13 @@ function formatMailResponse(mail) {
         reward_limit_time: (0, client_display_time_1.serializeRealTimeForVirtualClient)(mail.reward_limit_time),
     };
 }
-function applyMailReward(playerId, mail) {
+function applyMailReward(playerId, player, mail) {
     var _a, _b, _c;
-    const player = (0, player_1.getPlayerSync)(playerId);
     const characterList = [];
     const equipmentList = [];
     const itemList = {};
     const userInfo = {};
     const degreeIds = [];
-    if (!player)
-        return { characterList, equipmentList, itemList, userInfo, degreeIds };
     switch (mail.type) {
         case mail_1.MailType.ITEM: {
             if (mail.type_id === null)
@@ -58,12 +58,14 @@ function applyMailReward(playerId, mail) {
         case mail_1.MailType.PAID_VMONEY: {
             const newVmoney = player.vmoney + mail.number;
             (0, player_1.updatePlayerSync)({ id: playerId, vmoney: newVmoney });
+            player.vmoney = newVmoney;
             userInfo['vmoney'] = newVmoney;
             break;
         }
         case mail_1.MailType.FREE_VMONEY: {
             const newFreeVmoney = player.freeVmoney + mail.number;
             (0, player_1.updatePlayerSync)({ id: playerId, freeVmoney: newFreeVmoney });
+            player.freeVmoney = newFreeVmoney;
             userInfo['free_vmoney'] = newFreeVmoney;
             break;
         }
@@ -107,12 +109,16 @@ function applyMailReward(playerId, mail) {
         case mail_1.MailType.STAR_CRUMB: {
             const newCrumb = player.starCrumb + mail.number;
             (0, player_1.updatePlayerSync)({ id: playerId, starCrumb: newCrumb });
+            player.starCrumb = newCrumb;
             userInfo['star_crumb'] = newCrumb;
             break;
         }
         case mail_1.MailType.FREE_MANA: {
             const manaGrant = (0, mana_1.calculateFreeManaGrant)(player, mail.number);
-            (0, player_1.updatePlayerSync)({ id: playerId, freeMana: manaGrant.freeMana, totalManaObtained: ((_c = player.totalManaObtained) !== null && _c !== void 0 ? _c : 0) + mail.number });
+            const totalManaObtained = ((_c = player.totalManaObtained) !== null && _c !== void 0 ? _c : 0) + mail.number;
+            (0, player_1.updatePlayerSync)({ id: playerId, freeMana: manaGrant.freeMana, totalManaObtained });
+            player.freeMana = manaGrant.freeMana;
+            player.totalManaObtained = totalManaObtained;
             userInfo['free_mana'] = manaGrant.freeMana;
             break;
         }
@@ -120,24 +126,28 @@ function applyMailReward(playerId, mail) {
             const newExp = (0, player_1.adjustPlayerExpPoolSync)(playerId, mail.number, 'mail_reward');
             if (newExp === null)
                 throw new Error(`Failed to grant EXP mail ${mail.id} to player ${playerId}`);
+            player.expPool = newExp;
             userInfo['exp_pool'] = newExp;
             break;
         }
         case mail_1.MailType.BOND_TOKEN: {
             const newBond = player.bondToken + mail.number;
             (0, player_1.updatePlayerSync)({ id: playerId, bondToken: newBond });
+            player.bondToken = newBond;
             userInfo['bond_token'] = newBond;
             break;
         }
         case mail_1.MailType.BOSS_BOOST_POINT: {
             const newBoss = player.bossBoostPoint + mail.number;
             (0, player_1.updatePlayerSync)({ id: playerId, bossBoostPoint: newBoss });
+            player.bossBoostPoint = newBoss;
             userInfo['boss_boost_point'] = newBoss;
             break;
         }
         case mail_1.MailType.BOOST_POINT: {
             const newBoost = player.boostPoint + mail.number;
             (0, player_1.updatePlayerSync)({ id: playerId, boostPoint: newBoost });
+            player.boostPoint = newBoost;
             userInfo['boost_point'] = newBoost;
             break;
         }
@@ -152,6 +162,7 @@ function applyMailReward(playerId, mail) {
         case mail_1.MailType.RANK_POINT: {
             const newRank = player.rankPoint + mail.number;
             (0, player_1.updatePlayerSync)({ id: playerId, rankPoint: newRank });
+            player.rankPoint = newRank;
             userInfo['rank_point'] = newRank;
             break;
         }
@@ -159,6 +170,57 @@ function applyMailReward(playerId, mail) {
     (0, mail_1.insertReceiveHistorySync)(playerId, { type: mail.type, type_id: mail.type_id, number: mail.number });
     return { characterList, equipmentList, itemList, userInfo, degreeIds };
 }
+/**
+ * Claims the exact requested mails and applies all rewards in one short write transaction.
+ * The per-player queue prevents duplicate grants between concurrent requests in this process;
+ * BEGIN IMMEDIATE also protects the read/mark/reward sequence from other writers.
+ */
+function claimPlayerMailRewards(playerId, requestedMailIds) {
+    return __awaiter(this, void 0, void 0, function* () {
+        if (requestedMailIds.length > MAX_MAIL_CLAIM_IDS) {
+            throw new RangeError(`A mail claim may contain at most ${MAX_MAIL_CLAIM_IDS} IDs.`);
+        }
+        return (0, sqlite_write_coordinator_1.withPlayerWriteQueue)(playerId, () => __awaiter(this, void 0, void 0, function* () {
+            return (0, sqlite_write_coordinator_1.runImmediateTransactionWithRetry)(() => {
+                const uniqueMailIds = [...new Set(requestedMailIds.filter(mailId => Number.isSafeInteger(mailId) && mailId > 0))];
+                const mails = (0, mail_1.getUnreceivedPlayerMailsByIdsSync)(playerId, uniqueMailIds);
+                const mailById = new Map(mails.map(mail => [mail.id, mail]));
+                const player = (0, player_1.getPlayerSync)(playerId);
+                if (!player)
+                    throw new Error(`Player ${playerId} does not exist.`);
+                // Mark first inside the transaction. Any reward failure rolls this update back.
+                const claimedMailIds = (0, mail_1.receiveAllMailsSync)(playerId, uniqueMailIds.filter(mailId => mailById.has(mailId)));
+                const characterList = [];
+                const equipmentList = [];
+                const itemList = {};
+                const userInfo = {};
+                const degreeIds = new Set();
+                for (const mailId of claimedMailIds) {
+                    const mail = mailById.get(mailId);
+                    if (!mail)
+                        continue;
+                    const reward = applyMailReward(playerId, player, mail);
+                    characterList.push(...reward.characterList);
+                    equipmentList.push(...reward.equipmentList);
+                    Object.assign(itemList, reward.itemList);
+                    Object.assign(userInfo, reward.userInfo);
+                    for (const degreeId of reward.degreeIds)
+                        degreeIds.add(degreeId);
+                }
+                return {
+                    claimedMailIds,
+                    alreadyCount: requestedMailIds.length - claimedMailIds.length,
+                    characterList,
+                    equipmentList,
+                    itemList,
+                    userInfo,
+                    degreeIds: [...degreeIds],
+                };
+            });
+        }));
+    });
+}
+exports.claimPlayerMailRewards = claimPlayerMailRewards;
 const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
     fastify.post("/index", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
         const body = request.body;
@@ -213,18 +275,13 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 error: "Bad Request",
                 message: "No player bound to account"
             });
-        // Read mail before claiming to get attachment info
-        const mails = (0, mail_1.getPlayerMailsSync)(playerId, 1, 1000, true);
-        const mail = mails.find(m => m.id === mailId);
-        if (!mail)
+        const claim = yield claimPlayerMailRewards(playerId, [mailId]);
+        if (claim.claimedMailIds.length === 0)
             return reply.status(400).send({
                 error: "Bad Request",
                 message: "Mail not found or already received"
             });
-        // Apply reward first
-        const { characterList, equipmentList, itemList, userInfo, degreeIds } = applyMailReward(playerId, mail);
-        // Then mark as received
-        (0, mail_1.receiveMailSync)(playerId, mailId);
+        const { characterList, equipmentList, itemList, userInfo, degreeIds } = claim;
         const reconciledCharacterList = (0, mission_1.reconcileAwakeUnlockCharacterList)(playerId, characterList);
         const totalCount = (0, mail_1.getPlayerMailCountSync)(playerId);
         const responseData = {
@@ -257,7 +314,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         const body = request.body;
         const viewerId = body.viewer_id;
         const mailIds = body.mail_ids;
-        if (!viewerId || isNaN(viewerId) || !mailIds || !Array.isArray(mailIds))
+        if (!viewerId || isNaN(viewerId) || !mailIds || !Array.isArray(mailIds) || mailIds.length > MAX_MAIL_CLAIM_IDS)
             return reply.status(400).send({
                 error: "Bad Request",
                 message: "Invalid request body"
@@ -274,29 +331,8 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 error: "Bad Request",
                 message: "No player bound to account"
             });
-        // Get all unreceived mails
-        const unreceivedMails = (0, mail_1.getPlayerMailsSync)(playerId, 1, 1000, true);
-        const mailMap = new Map(unreceivedMails.map(m => [m.id, m]));
-        const alreadyCount = mailIds.filter(id => !mailMap.has(id)).length;
-        const characterList = [];
-        const equipmentList = [];
-        const itemList = {};
-        const userInfo = {};
-        const degreeIds = new Set();
-        for (const mailId of mailIds) {
-            const mail = mailMap.get(mailId);
-            if (!mail)
-                continue;
-            const { characterList: cl, equipmentList: el, itemList: il, userInfo: ui, degreeIds: dl, } = applyMailReward(playerId, mail);
-            characterList.push(...cl);
-            equipmentList.push(...el);
-            Object.assign(itemList, il);
-            Object.assign(userInfo, ui);
-            for (const degreeId of dl)
-                degreeIds.add(degreeId);
-        }
-        // Mark all as received
-        const claimed = (0, mail_1.receiveAllMailsSync)(playerId, mailIds.filter(id => mailMap.has(id)));
+        const claim = yield claimPlayerMailRewards(playerId, mailIds);
+        const { alreadyCount, characterList, equipmentList, itemList, userInfo, degreeIds, claimedMailIds: claimed, } = claim;
         const reconciledCharacterList = (0, mission_1.reconcileAwakeUnlockCharacterList)(playerId, characterList);
         const responseData = {
             already_mail_count: alreadyCount,
@@ -318,8 +354,8 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             responseData.item_list = itemList;
         if (Object.keys(userInfo).length > 0)
             responseData.user_info = userInfo;
-        if (degreeIds.size > 0) {
-            responseData.degree_list = [...degreeIds].map(degreeId => ({
+        if (degreeIds.length > 0) {
+            responseData.degree_list = degreeIds.map(degreeId => ({
                 viewer_id: viewerId,
                 degree_id: degreeId,
             }));

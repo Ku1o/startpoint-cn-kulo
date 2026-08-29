@@ -14,7 +14,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.buildCharacterLookup = void 0;
 const character_table_json_1 = __importDefault(require("../../../docs/generated/character_table.json"));
-const character_json_1 = __importDefault(require("../../../assets/character.json"));
+const content_master_1 = require("../../lib/content-master");
 const item_lookup_json_1 = __importDefault(require("../../../assets/item_lookup.json"));
 const item_lookup_cnmod_json_1 = __importDefault(require("../../../assets/item_lookup_cnmod.json"));
 const equipment_lookup_json_1 = __importDefault(require("../../../assets/equipment_lookup.json"));
@@ -58,7 +58,7 @@ function buildCharacterLookup(generatedRows, serverRows) {
     return result;
 }
 exports.buildCharacterLookup = buildCharacterLookup;
-const charMap = buildCharacterLookup(character_table_json_1.default, character_json_1.default);
+const charMap = buildCharacterLookup(character_table_json_1.default, content_master_1.serverCharacters);
 const mergedItemLookup = Object.assign(Object.assign({}, item_lookup_json_1.default), item_lookup_cnmod_json_1.default);
 const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
     fastify.get("/characters", (_request, reply) => __awaiter(void 0, void 0, void 0, function* () {

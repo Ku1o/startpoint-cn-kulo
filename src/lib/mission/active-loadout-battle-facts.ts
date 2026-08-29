@@ -1,8 +1,10 @@
 import type { ReadonlyContentRepository } from "../../content/runtime/content-snapshot"
 import { getContentSnapshot } from "../../content/runtime/content-snapshot"
 import { incrementActiveMissionBattleFactSync } from "../../data/domains/active_mission_battle_facts"
-import characterJson from "../../../assets/cdndata/character.json"
-import characterTextJson from "../../../assets/cdndata/character_text.json"
+import {
+    cdnCharacters as characterJson,
+    cdnCharacterTexts as characterTextJson,
+} from "../content-master"
 import { getEquipmentElement } from "../assets"
 import type { FinishContext } from "../quest/finish/types"
 import { getActiveMissionMasterDefinitions, type ActiveMissionMasterDefinition } from "./active-master-data"

@@ -1,0 +1,229 @@
+trait method QName(PackageNamespace(""),"update")
+   dispid 0
+   method
+      name "pinball.scene.character.partyCarousel:PartyCarousel/update"
+      returns QName(PackageNamespace(""),"void")
+
+      body
+         maxstack 5
+         localcount 10
+         initscopedepth 6
+         maxscopedepth 7
+
+         code
+            getlocal0
+            pushscope
+            debug 1, "_loc1_", 0, 256
+            debug 1, "_loc2_", 1, 243
+            debug 1, "_loc3_", 2, 244
+            debug 1, "_loc4_", 3, 245
+            debug 1, "_loc5_", 4, 269
+            debug 1, "_loc6_", 5, 246
+            debug 1, "_loc7_", 6, 292
+            debug 1, "_loc8_", 7, 294
+            pushbyte 0
+            convert_i
+            setlocal2
+            pushbyte 0
+            convert_i
+            setlocal3
+            pushnull
+            getlex QName(PackageNamespace("pinball.scene.character.partyCarousel.characterContainer"),"PartyCharacterCellContainer")
+            astypelate
+            coerce_a
+            setlocal 4
+            pushnull
+            getlex QName(PackageNamespace(""),"Function")
+            astypelate
+            coerce_a
+            setlocal 6
+            getlex QName(PackageNamespace(""),"currentIndex")
+            pushbyte 0
+            greaterequals
+            dup
+            iffalse ofs0074
+            pop
+            getlex QName(PackageNamespace(""),"currentIndex")
+            getlex QName(PackageNamespace(""),"thumbnailPlayheadManager")
+            getproperty QName(PackageNamespace(""),"playheads")
+            getproperty QName(PackageNamespace(""),"length")
+            convert_i
+            lessthan
+   ofs0074:
+            iffalse ofs008b
+            getlex QName(PackageNamespace(""),"thumbnailPlayheadManager")
+            getproperty QName(PackageNamespace(""),"playheads")
+            getlex QName(PackageNamespace(""),"currentIndex")
+            getproperty MultinameL([PackageNamespace(""),Namespace("http://adobe.com/AS3/2006/builtin"),PackageNamespace("pinball.scene.character.partyCarousel"),PackageInternalNs("pinball.scene.character.partyCarousel"),StaticProtectedNs("pinball.ui.component.carousel:CarouselLogic"),StaticProtectedNs("jp.sipo.gipo.core:GearHolderImpl"),PrivateNamespace("pinball.scene.character.partyCarousel:PartyCarousel"),ProtectedNamespace("pinball.scene.character.partyCarousel:PartyCarousel"),StaticProtectedNs("pinball.scene.character.partyCarousel:PartyCarousel"),PrivateNamespace("PartyCarousel.as$6725")])
+            callpropvoid Multiname("advanceFrame",[PackageNamespace(""),Namespace("http://adobe.com/AS3/2006/builtin"),PackageNamespace("pinball.scene.character.partyCarousel"),PackageInternalNs("pinball.scene.character.partyCarousel"),StaticProtectedNs("pinball.ui.component.carousel:CarouselLogic"),StaticProtectedNs("jp.sipo.gipo.core:GearHolderImpl"),PrivateNamespace("pinball.scene.character.partyCarousel:PartyCarousel"),ProtectedNamespace("pinball.scene.character.partyCarousel:PartyCarousel"),StaticProtectedNs("pinball.scene.character.partyCarousel:PartyCarousel"),PrivateNamespace("PartyCarousel.as$6725")]), 0
+   ofs008b:
+            getlex QName(PackageNamespace(""),"partyNameLabelPlayhead")
+            callpropvoid QName(PackageNamespace(""),"advanceFrame"), 0
+            getlex QName(PackageNamespace(""),"isTouchBegan")
+            not
+            iffalse ofs00c4
+            getlex QName(PackageNamespace(""),"floater")
+            getlex QName(PackageNamespace(""),"tracker")
+            getproperty QName(PackageNamespace(""),"current")
+            getlex QName(PackageNamespace(""),"region")
+            getproperty QName(PackageNamespace(""),"width")
+            multiply
+            getlex QName(PackageNamespace(""),"tracker")
+            getproperty QName(PackageNamespace(""),"destination")
+            getlex QName(PackageNamespace(""),"region")
+            getproperty QName(PackageNamespace(""),"width")
+            multiply
+            callpropvoid QName(PackageNamespace(""),"updateScroll"), 2
+   ofs00c4:
+            getlex QName(PackageNamespace(""),"characterContainers")
+            getproperty QName(PackageNamespace(""),"length")
+            convert_i
+            convert_i
+            setlocal1
+            pushbyte 0
+            convert_i
+            setlocal2
+            jump ofs0112
+   ofs00d5:
+            label
+            getlocal2
+            dup
+            increment_i
+            convert_i
+            setlocal2
+            convert_i
+            setlocal3
+            getlocal3
+            getlex QName(PackageNamespace(""),"currentIndex")
+            ifne ofs0112
+            getlex QName(PackageNamespace(""),"characterContainers")
+            getlocal3
+            getproperty MultinameL([PackageNamespace(""),Namespace("http://adobe.com/AS3/2006/builtin"),PackageNamespace("pinball.scene.character.partyCarousel"),PackageInternalNs("pinball.scene.character.partyCarousel"),StaticProtectedNs("pinball.ui.component.carousel:CarouselLogic"),StaticProtectedNs("jp.sipo.gipo.core:GearHolderImpl"),PrivateNamespace("pinball.scene.character.partyCarousel:PartyCarousel"),ProtectedNamespace("pinball.scene.character.partyCarousel:PartyCarousel"),StaticProtectedNs("pinball.scene.character.partyCarousel:PartyCarousel"),PrivateNamespace("PartyCarousel.as$6725")])
+            coerce_a
+            setlocal 4
+            findpropstrict QName(PackageNamespace(""),"initialzeAt")
+            getlocal3
+            callpropvoid QName(PackageNamespace(""),"initialzeAt"), 1
+            getlocal 4
+            callpropvoid Multiname("update",[PackageNamespace(""),Namespace("http://adobe.com/AS3/2006/builtin"),PackageNamespace("pinball.scene.character.partyCarousel"),PackageInternalNs("pinball.scene.character.partyCarousel"),StaticProtectedNs("pinball.ui.component.carousel:CarouselLogic"),StaticProtectedNs("jp.sipo.gipo.core:GearHolderImpl"),PrivateNamespace("pinball.scene.character.partyCarousel:PartyCarousel"),ProtectedNamespace("pinball.scene.character.partyCarousel:PartyCarousel"),StaticProtectedNs("pinball.scene.character.partyCarousel:PartyCarousel"),PrivateNamespace("PartyCarousel.as$6725")]), 0
+            getlocal 4
+            findpropstrict QName(PackageNamespace(""),"getFloatingAmount")
+            callproperty QName(PackageNamespace(""),"getFloatingAmount"), 0
+            callpropvoid Multiname("setFloating",[PackageNamespace(""),Namespace("http://adobe.com/AS3/2006/builtin"),PackageNamespace("pinball.scene.character.partyCarousel"),PackageInternalNs("pinball.scene.character.partyCarousel"),StaticProtectedNs("pinball.ui.component.carousel:CarouselLogic"),StaticProtectedNs("jp.sipo.gipo.core:GearHolderImpl"),PrivateNamespace("pinball.scene.character.partyCarousel:PartyCarousel"),ProtectedNamespace("pinball.scene.character.partyCarousel:PartyCarousel"),StaticProtectedNs("pinball.scene.character.partyCarousel:PartyCarousel"),PrivateNamespace("PartyCarousel.as$6725")]), 1
+   ofs0112:
+            getlocal2
+            getlocal1
+            iflt ofs00d5
+            getlex QName(PackageNamespace(""),"joinAndRemoveAnimationWaitState")
+            coerce QName(PackageNamespace("pinball.scene.character.partyCarousel._PartyCarousel"),"JoinAndRemoveAnimationWaitState")
+            setlocal 5
+            jump ofs0190
+   ofs0126:
+            label
+            jump ofs01c1
+   ofs012b:
+            label
+            getlocal 5
+            getproperty QName(PackageNamespace(""),"params")
+            pushbyte 1
+            getproperty MultinameL([PackageNamespace(""),Namespace("http://adobe.com/AS3/2006/builtin"),PackageNamespace("pinball.scene.character.partyCarousel"),PackageInternalNs("pinball.scene.character.partyCarousel"),StaticProtectedNs("pinball.ui.component.carousel:CarouselLogic"),StaticProtectedNs("jp.sipo.gipo.core:GearHolderImpl"),PrivateNamespace("pinball.scene.character.partyCarousel:PartyCarousel"),ProtectedNamespace("pinball.scene.character.partyCarousel:PartyCarousel"),StaticProtectedNs("pinball.scene.character.partyCarousel:PartyCarousel"),PrivateNamespace("PartyCarousel.as$6725")])
+            convert_i
+            convert_i
+            setlocal2
+            getlocal 5
+            getproperty QName(PackageNamespace(""),"params")
+            pushbyte 0
+            getproperty MultinameL([PackageNamespace(""),Namespace("http://adobe.com/AS3/2006/builtin"),PackageNamespace("pinball.scene.character.partyCarousel"),PackageInternalNs("pinball.scene.character.partyCarousel"),StaticProtectedNs("pinball.ui.component.carousel:CarouselLogic"),StaticProtectedNs("jp.sipo.gipo.core:GearHolderImpl"),PrivateNamespace("pinball.scene.character.partyCarousel:PartyCarousel"),ProtectedNamespace("pinball.scene.character.partyCarousel:PartyCarousel"),StaticProtectedNs("pinball.scene.character.partyCarousel:PartyCarousel"),PrivateNamespace("PartyCarousel.as$6725")])
+            coerce_a
+            setlocal 6
+            findpropstrict QName(PackageNamespace(""),"haveAllCellsJoinOrRemoveAnimationFinished")
+            callproperty QName(PackageNamespace(""),"haveAllCellsJoinOrRemoveAnimationFinished"), 0
+            iffalse ofs018b
+            getlocal2
+            pushbyte 0
+            ifngt ofs0175
+            findproperty QName(PackageNamespace(""),"joinAndRemoveAnimationWaitState")
+            getlex QName(PackageNamespace("pinball.scene.character.partyCarousel._PartyCarousel"),"JoinAndRemoveAnimationWaitState")
+            getlocal 6
+            getlocal2
+            pushbyte 1
+            subtract
+            callproperty QName(PackageNamespace(""),"Waiting"), 2
+            setproperty QName(PackageNamespace(""),"joinAndRemoveAnimationWaitState")
+            jump ofs01c1
+   ofs0175:
+            findproperty QName(PackageNamespace(""),"joinAndRemoveAnimationWaitState")
+            getlex QName(PackageNamespace("pinball.scene.character.partyCarousel._PartyCarousel"),"JoinAndRemoveAnimationWaitState")
+            getproperty QName(PackageNamespace(""),"Nothing")
+            setproperty QName(PackageNamespace(""),"joinAndRemoveAnimationWaitState")
+            getlocal 6
+            getglobalscope
+            call 0
+            pop
+   ofs018b:
+            label
+            jump ofs01c1
+   ofs0190:
+            getlocal 5
+            getproperty QName(PackageNamespace(""),"index")
+            setlocal 9
+            pushbyte 0
+            getlocal 9
+            ifstrictne ofs01a4
+            pushbyte 0
+            jump ofs01b4
+   ofs01a4:
+            pushbyte 1
+            getlocal 9
+            ifstrictne ofs01b2
+            pushbyte 1
+            jump ofs01b4
+   ofs01b2:
+            pushbyte -1
+   ofs01b4:
+            kill 9
+            lookupswitch ofs018b, [ofs0126, ofs012b]
+   ofs01c1:
+            getlex QName(PackageNamespace(""),"smallThumbnailFadeAnimation")
+            callpropvoid QName(PackageNamespace(""),"update"), 0
+            getlex QName(PackageNamespace(""),"characterListLayerFadeAnimation")
+            callpropvoid QName(PackageNamespace(""),"update"), 0
+            getlex QName(PackageNamespace(""),"largeThumbnailFadeAnimation")
+            callpropvoid QName(PackageNamespace(""),"update"), 0
+            getlex QName(PackageNamespace(""),"partyNameFadeAnimation")
+            callpropvoid QName(PackageNamespace(""),"update"), 0
+            getlex QName(PackageNamespace(""),"smallThumbnailFadeAnimation")
+            getproperty QName(PackageNamespace(""),"current")
+            getlex QName(PackageNamespace(""),"characterListLayerFadeAnimation")
+            getproperty QName(PackageNamespace(""),"current")
+            multiply
+            convert_d
+            setlocal 7
+            pushbyte 0
+            convert_i
+            setlocal2
+            getlex QName(PackageNamespace(""),"characterContainers")
+            coerce QName(PackageNamespace(""),"Array")
+            setlocal 8
+            jump ofs0219
+   ofs0203:
+            label
+            getlocal 8
+            getlocal2
+            getproperty MultinameL([PackageNamespace(""),Namespace("http://adobe.com/AS3/2006/builtin"),PackageNamespace("pinball.scene.character.partyCarousel"),PackageInternalNs("pinball.scene.character.partyCarousel"),StaticProtectedNs("pinball.ui.component.carousel:CarouselLogic"),StaticProtectedNs("jp.sipo.gipo.core:GearHolderImpl"),PrivateNamespace("pinball.scene.character.partyCarousel:PartyCarousel"),ProtectedNamespace("pinball.scene.character.partyCarousel:PartyCarousel"),StaticProtectedNs("pinball.scene.character.partyCarousel:PartyCarousel"),PrivateNamespace("PartyCarousel.as$6725")])
+            coerce_a
+            setlocal 4
+            inclocal_i 2
+            getlocal 4
+            getlocal 7
+            callpropvoid Multiname("set_allThumbnailsAlpha",[PackageNamespace(""),Namespace("http://adobe.com/AS3/2006/builtin"),PackageNamespace("pinball.scene.character.partyCarousel"),PackageInternalNs("pinball.scene.character.partyCarousel"),StaticProtectedNs("pinball.ui.component.carousel:CarouselLogic"),StaticProtectedNs("jp.sipo.gipo.core:GearHolderImpl"),PrivateNamespace("pinball.scene.character.partyCarousel:PartyCarousel"),ProtectedNamespace("pinball.scene.character.partyCarousel:PartyCarousel"),StaticProtectedNs("pinball.scene.character.partyCarousel:PartyCarousel"),PrivateNamespace("PartyCarousel.as$6725")]), 1
+   ofs0219:
+            getlocal2
+            getlocal 8
+            getproperty QName(PackageNamespace(""),"length")
+            convert_i
+            iflt ofs0203
+            returnvoid
+         end ; code
+      end ; body
+   end ; method

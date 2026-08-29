@@ -34,29 +34,31 @@ function addMissionCounterSync(playerId, query, amount = 1) {
         return getMissionCounterValueSync(playerId, query);
     const counterKey = makeMissionCounterKey(query);
     const qualifierJson = serializeMissionCounterQualifier(query.qualifier);
-    (0, db_1.getDb)().prepare(`
+    const row = (0, db_1.getDb)().prepare(`
     INSERT INTO players_mission_counters
         (player_id, counter_key, dimension, scope_type, scope_key, qualifier_json, value, updated_at)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     ON CONFLICT(player_id, counter_key) DO UPDATE SET
         value = value + excluded.value,
         updated_at = excluded.updated_at
-    `).run(playerId, counterKey, query.dimension, query.scopeType, query.scopeKey, qualifierJson, amount, nowSql());
-    return getMissionCounterValueSync(playerId, query);
+    RETURNING value
+    `).get(playerId, counterKey, query.dimension, query.scopeType, query.scopeKey, qualifierJson, amount, nowSql());
+    return row.value;
 }
 exports.addMissionCounterSync = addMissionCounterSync;
 function setMissionCounterMaxSync(playerId, query, value) {
     const counterKey = makeMissionCounterKey(query);
     const qualifierJson = serializeMissionCounterQualifier(query.qualifier);
-    (0, db_1.getDb)().prepare(`
+    const row = (0, db_1.getDb)().prepare(`
     INSERT INTO players_mission_counters
         (player_id, counter_key, dimension, scope_type, scope_key, qualifier_json, value, updated_at)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     ON CONFLICT(player_id, counter_key) DO UPDATE SET
         value = MAX(value, excluded.value),
         updated_at = excluded.updated_at
-    `).run(playerId, counterKey, query.dimension, query.scopeType, query.scopeKey, qualifierJson, value, nowSql());
-    return getMissionCounterValueSync(playerId, query);
+    RETURNING value
+    `).get(playerId, counterKey, query.dimension, query.scopeType, query.scopeKey, qualifierJson, value, nowSql());
+    return row.value;
 }
 exports.setMissionCounterMaxSync = setMissionCounterMaxSync;
 function setMissionCounterMinSync(playerId, query, value) {
@@ -64,15 +66,16 @@ function setMissionCounterMinSync(playerId, query, value) {
         return getMissionCounterValueSync(playerId, query);
     const counterKey = makeMissionCounterKey(query);
     const qualifierJson = serializeMissionCounterQualifier(query.qualifier);
-    (0, db_1.getDb)().prepare(`
+    const row = (0, db_1.getDb)().prepare(`
     INSERT INTO players_mission_counters
         (player_id, counter_key, dimension, scope_type, scope_key, qualifier_json, value, updated_at)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     ON CONFLICT(player_id, counter_key) DO UPDATE SET
         value = MIN(value, excluded.value),
         updated_at = excluded.updated_at
-    `).run(playerId, counterKey, query.dimension, query.scopeType, query.scopeKey, qualifierJson, value, nowSql());
-    return getMissionCounterValueSync(playerId, query);
+    RETURNING value
+    `).get(playerId, counterKey, query.dimension, query.scopeType, query.scopeKey, qualifierJson, value, nowSql());
+    return row.value;
 }
 exports.setMissionCounterMinSync = setMissionCounterMinSync;
 function getMissionCounterValueSync(playerId, query) {

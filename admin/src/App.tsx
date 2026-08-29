@@ -8,6 +8,7 @@ import {
     Mail as MailIcon,
     Menu as MenuIcon,
     Moon,
+    Trophy,
     Sparkles,
     Sun,
     Users,
@@ -19,6 +20,7 @@ import PlayerDetail from "./pages/PlayerDetail"
 import Mail from "./pages/Mail"
 import Seeds from "./pages/Seeds"
 import TimeControl from "./pages/TimeControl"
+import Leaderboards from "./pages/Leaderboards"
 import logoUrl from "./assets/logo.png"
 
 const { Sider, Content, Header } = Layout
@@ -30,6 +32,7 @@ const menuItems = [
     { key: "/accounts", icon: <Users size={18} />, label: "账号 / 存档" },
     { key: "/mail", icon: <MailIcon size={18} />, label: "邮件" },
     { key: "/seeds", icon: <Database size={18} />, label: "种子管理" },
+    { key: "/leaderboards", icon: <Trophy size={18} />, label: "排行榜" },
 ]
 
 const pageTitles: Record<string, string> = {
@@ -38,6 +41,7 @@ const pageTitles: Record<string, string> = {
     "/accounts": "账号 / 存档",
     "/mail": "邮件",
     "/seeds": "种子管理",
+    "/leaderboards": "排行榜",
 }
 
 interface AppProps {
@@ -131,6 +135,7 @@ export default function App({ dark, onToggleDark }: AppProps) {
                         <Route path="/players/:playerId" element={<PlayerDetail />} />
                         <Route path="/mail" element={<Mail />} />
                         <Route path="/seeds" element={<Seeds />} />
+                        <Route path="/leaderboards" element={<Leaderboards />} />
                         <Route path="*" element={<Navigate to="/" replace />} />
                     </Routes>
                 </Content>

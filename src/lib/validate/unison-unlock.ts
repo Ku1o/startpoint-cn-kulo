@@ -100,5 +100,6 @@ export function repairUnisonUnlockProgressSync(playerId: number): number {
 
 export const UnisonUnlockValidator: SaveValidator = {
     name: "unison-unlock",
+    version: 1,
     validate: repairUnisonUnlockProgressSync
 }

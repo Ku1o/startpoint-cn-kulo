@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getReceiveHistorySync = exports.insertReceiveHistorySync = exports.deleteAllPlayerMailSync = exports.receiveAllMailsSync = exports.receiveMailSync = exports.getPlayerMailCountSync = exports.getPlayerMailsSync = exports.insertMailSync = exports.MailType = void 0;
+exports.getReceiveHistorySync = exports.insertReceiveHistorySync = exports.deleteAllPlayerMailSync = exports.receiveAllMailsSync = exports.receiveMailSync = exports.getUnreceivedPlayerMailsByIdsSync = exports.getPlayerMailCountSync = exports.getPlayerMailsSync = exports.insertMailSync = exports.MailType = void 0;
 const db_1 = require("../db");
 /**
  * Mail attachment types matching the client's MailKind enum.
@@ -61,18 +61,41 @@ function getPlayerMailCountSync(playerId, unreceivedOnly = false) {
     return row.count;
 }
 exports.getPlayerMailCountSync = getPlayerMailCountSync;
+const MAIL_ID_QUERY_CHUNK_SIZE = 500;
+function normalizeMailIds(mailIds) {
+    return [...new Set(mailIds.filter(mailId => Number.isSafeInteger(mailId) && mailId > 0))];
+}
+/** Gets the exact unreceived mails requested by the client, without a mailbox-page scan. */
+function getUnreceivedPlayerMailsByIdsSync(playerId, mailIds) {
+    const normalized = normalizeMailIds(mailIds);
+    const mails = [];
+    for (let offset = 0; offset < normalized.length; offset += MAIL_ID_QUERY_CHUNK_SIZE) {
+        const chunk = normalized.slice(offset, offset + MAIL_ID_QUERY_CHUNK_SIZE);
+        const placeholders = chunk.map(() => "?").join(", ");
+        mails.push(...(0, db_1.getDb)().prepare(`
+            SELECT * FROM players_mails
+            WHERE player_id = ?
+              AND receive_time = '0000-00-00 00:00:00'
+              AND id IN (${placeholders})
+        `).all(playerId, ...chunk));
+    }
+    return mails;
+}
+exports.getUnreceivedPlayerMailsByIdsSync = getUnreceivedPlayerMailsByIdsSync;
 /**
  * Marks a mail as received and returns its attachment data.
  * Does NOT apply the reward — caller must do that.
  */
 function receiveMailSync(playerId, mailId) {
+    const now = new Date().toISOString().replace('T', ' ').substring(0, 19);
     const mail = (0, db_1.getDb)().prepare(`
-        SELECT * FROM players_mails WHERE id = ? AND player_id = ? AND receive_time = '0000-00-00 00:00:00'
-    `).get(mailId, playerId);
+        UPDATE players_mails
+        SET receive_time = ?
+        WHERE id = ? AND player_id = ? AND receive_time = '0000-00-00 00:00:00'
+        RETURNING id, type, type_id, number
+    `).get(now, mailId, playerId);
     if (!mail)
         return null;
-    const now = new Date().toISOString().replace('T', ' ').substring(0, 19);
-    (0, db_1.getDb)().prepare(`UPDATE players_mails SET receive_time = ? WHERE id = ?`).run(now, mailId);
     return {
         mail_id: mail.id,
         type: mail.type,
@@ -85,16 +108,28 @@ exports.receiveMailSync = receiveMailSync;
  * Batch receive mails. Returns list of successfully claimed mail IDs.
  */
 function receiveAllMailsSync(playerId, mailIds) {
-    const claimed = [];
-    (0, db_1.getDb)().transaction(() => {
-        for (const mailId of mailIds) {
-            const result = receiveMailSync(playerId, mailId);
-            if (result !== null) {
-                claimed.push(mailId);
-            }
+    const claim = () => {
+        const normalized = normalizeMailIds(mailIds);
+        const claimed = new Set();
+        const now = new Date().toISOString().replace('T', ' ').substring(0, 19);
+        for (let offset = 0; offset < normalized.length; offset += MAIL_ID_QUERY_CHUNK_SIZE) {
+            const chunk = normalized.slice(offset, offset + MAIL_ID_QUERY_CHUNK_SIZE);
+            const placeholders = chunk.map(() => "?").join(", ");
+            const rows = (0, db_1.getDb)().prepare(`
+                UPDATE players_mails
+                SET receive_time = ?
+                WHERE player_id = ?
+                  AND receive_time = '0000-00-00 00:00:00'
+                  AND id IN (${placeholders})
+                RETURNING id
+            `).all(now, playerId, ...chunk);
+            for (const row of rows)
+                claimed.add(row.id);
         }
-    })();
-    return claimed;
+        return normalized.filter(mailId => claimed.has(mailId));
+    };
+    const db = (0, db_1.getDb)();
+    return db.inTransaction ? claim() : db.transaction(claim)();
 }
 exports.receiveAllMailsSync = receiveAllMailsSync;
 /**

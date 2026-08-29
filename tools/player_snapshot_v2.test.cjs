@@ -48,6 +48,18 @@ function createAccount(insertAccountSync, label) {
     })
 }
 
+function seedLeaderboardRecord(playerId, competitionKey) {
+    const run = db.prepare(`INSERT INTO leaderboard_runs
+        (competition_key, player_id, player_name, season, status, started_at_ms, finished_at_ms,
+         server_duration_ms, client_battle_ms, rounds_cleared, total_rounds, tracked_from_round)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+        .run(competitionKey, playerId, `榜单玩家-${playerId}`, 1, "completed", 1000, 2000, 1000, 800, 1, 1, 1)
+    db.prepare(`INSERT INTO leaderboard_run_rounds
+        (run_id, round_number, quest_id, client_battle_ms, server_elapsed_ms, started_at_ms, finished_at_ms)
+        VALUES (?, ?, ?, ?, ?, ?, ?)`)
+        .run(Number(run.lastInsertRowid), 1, 999001, 800, 1000, 1000, 2000)
+}
+
 function seedRepresentativeState(playerId, otherPlayerId) {
     db.prepare(`UPDATE players SET name = ?, comment = ?, exp_pool = ?, free_vmoney = ? WHERE id = ?`)
         .run("完整存档来源", "snapshot-v2", 4321, 8765, playerId)
@@ -138,8 +150,12 @@ function seedRepresentativeState(playerId, otherPlayerId) {
         (player_id, play_id, quest_id, category, use_boss_boost_point, use_boost_point, is_auto_start_mode, is_multi, room_number, entry_item_id, event_id, continue_count, is_multi_host)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
         .run(playerId, "source-active-battle", 92001, 1, 0, 0, 0, 0, null, null, null, 0, 0)
+    db.prepare(`INSERT INTO players_repair_versions
+        (player_id, repair_key, repair_version, applied_at) VALUES (?, ?, ?, ?)`)
+        .run(playerId, "snapshot-source-repair", 1, "2026-08-22T00:04:00.000Z")
     db.prepare(`INSERT INTO players_follows (follower_player_id, followed_player_id, created_at) VALUES (?, ?, ?)`)
         .run(playerId, otherPlayerId, Date.now())
+    seedLeaderboardRecord(playerId, "snapshot-source")
 }
 
 function assertHistoryWasRemapped(sourcePlayerId, targetPlayerId) {
@@ -181,10 +197,20 @@ function runFreshDatabaseTests(api) {
         .run(target.id, "target-active-battle", 1, 1)
     db.prepare(`INSERT INTO players_follows (follower_player_id, followed_player_id, created_at) VALUES (?, ?, ?)`)
         .run(target.id, other.id, Date.now())
+    db.prepare(`INSERT INTO players_repair_versions
+        (player_id, repair_key, repair_version, applied_at) VALUES (?, ?, ?, ?)`)
+        .run(target.id, "snapshot-target-repair", 1, "2026-08-22T00:05:00.000Z")
+    seedLeaderboardRecord(target.id, "snapshot-target")
 
     const snapshot = api.createPlayerSaveSnapshotV2Sync(source.id)
     assert.equal(snapshot.version, 2)
     assert.equal(snapshot.summary.includedTableCount, api.PLAYER_SNAPSHOT_V2_TABLES.length)
+    assert.equal(Object.hasOwn(snapshot.data.tables, "players_repair_versions"), false)
+    assert.ok(snapshot.summary.excludedState.some(entry =>
+        entry.policy === "reset" && entry.tables.includes("players_repair_versions")))
+    assert.equal(Object.hasOwn(snapshot.data.tables, "leaderboard_runs"), false)
+    assert.ok(snapshot.summary.excludedState.some(entry =>
+        entry.policy === "preserve-target" && entry.tables.includes("leaderboard_runs")))
     assert.ok(snapshot.data.tables.players_carnival_event_reward_claims.rows.length > 0)
     assert.equal(snapshot.data.tables.players_practice_battle_history.rows.length, 1)
 
@@ -198,7 +224,10 @@ function runFreshDatabaseTests(api) {
     assert.equal(restoredPlayer.exp_pool, 4321)
     assert.equal(restoredPlayer.free_vmoney, 8765)
     assert.equal(db.prepare(`SELECT COUNT(*) count FROM players_active_quests WHERE player_id = ?`).get(target.id).count, 0)
+    assert.equal(db.prepare(`SELECT COUNT(*) count FROM players_repair_versions WHERE player_id = ?`).get(target.id).count, 0)
     assert.equal(db.prepare(`SELECT COUNT(*) count FROM players_follows WHERE follower_player_id = ? AND followed_player_id = ?`).get(target.id, other.id).count, 1)
+    assert.equal(db.prepare(`SELECT COUNT(*) count FROM leaderboard_runs WHERE player_id = ? AND competition_key = ?`).get(target.id, "snapshot-target").count, 1)
+    assert.equal(db.prepare(`SELECT COUNT(*) count FROM leaderboard_runs WHERE player_id = ? AND competition_key = ?`).get(target.id, "snapshot-source").count, 0)
     assert.equal(db.prepare(`SELECT claimed_at FROM players_carnival_event_reward_claims WHERE player_id = ?`).get(target.id).claimed_at, 1888888)
     assertHistoryWasRemapped(source.id, target.id)
 
@@ -355,6 +384,7 @@ async function runHttpIntegrationTests(api, fixture) {
         db.prepare(`INSERT INTO raid_event_global_kill_ledger
             (event_id, play_id, player_id, quest_id, created_at) VALUES (?, ?, ?, ?, ?)`)
             .run(999002, `legacy-play-${legacyTarget.id}`, legacyTarget.id, 999003, 2000004)
+        seedLeaderboardRecord(legacyTarget.id, "legacy-target")
         const legacySnapshot = {
             schema: "starpoint-cn-save",
             version: 1,
@@ -378,6 +408,7 @@ async function runHttpIntegrationTests(api, fixture) {
         assert.equal(db.prepare(`SELECT COUNT(*) count FROM published_parties WHERE owner_player_id = ?`).get(legacyTarget.id).count, 1)
         assert.equal(db.prepare(`SELECT COUNT(*) count FROM quest_npc_party_pool WHERE source_player_id = ?`).get(legacyTarget.id).count, 1)
         assert.equal(db.prepare(`SELECT COUNT(*) count FROM raid_event_global_kill_ledger WHERE player_id = ?`).get(legacyTarget.id).count, 1)
+        assert.equal(db.prepare(`SELECT COUNT(*) count FROM leaderboard_runs WHERE player_id = ? AND competition_key = ?`).get(legacyTarget.id, "legacy-target").count, 1)
         const legacyBackupDirectory = path.join(
             databaseDirectory,
             legacyImported.json().backup.replace(/^\.database[\\/]admin-backups[\\/]/, "admin-backups/"),

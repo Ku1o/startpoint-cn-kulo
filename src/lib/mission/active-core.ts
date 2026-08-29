@@ -267,6 +267,36 @@ const rewardStageIdsByRepository = new WeakMap<
     Map<number, readonly number[]>
 >()
 
+const missionDefinitionsByEventRepository = new WeakMap<
+    ReadonlyContentRepository,
+    ReadonlyMap<number, readonly ParsedActiveMissionDefinition[]>
+>()
+
+function getActiveMissionDefinitionsForEvent(
+    eventId: number,
+    repository: ReadonlyContentRepository,
+): readonly ParsedActiveMissionDefinition[] {
+    let byEvent = missionDefinitionsByEventRepository.get(repository)
+    if (!byEvent) {
+        const mutable = new Map<number, ParsedActiveMissionDefinition[]>()
+        for (const definition of getActiveMissionMasterDefinitions(repository)) {
+            try {
+                const parsed = getParsedActiveMissionDefinition(definition.missionId, repository)
+                if (!parsed) continue
+                const eventDefinitions = mutable.get(parsed.eventId) ?? []
+                eventDefinitions.push(parsed)
+                mutable.set(parsed.eventId, eventDefinitions)
+            } catch {
+                // Malformed master rows remain unavailable, matching the caller's
+                // existing fail-closed behavior.
+            }
+        }
+        byEvent = mutable
+        missionDefinitionsByEventRepository.set(repository, byEvent)
+    }
+    return byEvent.get(eventId) ?? []
+}
+
 export function getActiveMissionRewardStageIds(
     missionId: number,
     repository: ReadonlyContentRepository,
@@ -317,9 +347,7 @@ export function getActiveMissionEventReleasePhase(
     const maxPhase = event.maxPhase
     if (maxPhase === undefined || maxPhase <= 0) return 0
 
-    const missions = getActiveMissionMasterDefinitions(repository)
-        .map(definition => getParsedActiveMissionDefinition(definition.missionId, repository)!)
-        .filter(definition => definition.eventId === eventId)
+    const missions = getActiveMissionDefinitionsForEvent(eventId, repository)
     let releasedPhase = 1
     for (let phase = 1; phase < maxPhase; phase++) {
         const phaseMissions = missions.filter(mission => mission.phase === phase)

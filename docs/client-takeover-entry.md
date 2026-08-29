@@ -110,24 +110,40 @@ case 8:
 
 如果其他版本不存在 `MenuTopListItemKind.TakeOver`、上述 `case 8`、`LoadingTaskKind.TakeOver` 或 `SceneKind.TakeOver`，说明该版本不是单纯隐藏入口，不能只套用这一处补丁。
 
-### 4. 回编 SWF
+### 4. 制作 carrier 并只移植目标方法体
 
-修改后可通过 FFDec 图形界面保存，或用命令行导入脚本：
+完整类导入或完整类替换只能用于制作临时 carrier，不能把 carrier SWF 直接回封发版。FFDec 可能
+重编译常量池和大量无关方法体，即使源码只改了一处也不能证明其他客户端功能没有变化。
+
+可先用 FFDec 把修改后的类导入临时 carrier：
 
 ```bash
-java -jar ffdec.jar \
-  -air \
-  -onerror abort \
-  -importScript worldflipper_android_release.swf \
-  patched.swf \
-  export_dir/scripts
+java -jar ffdec.jar -onerror abort \
+  -replace worldflipper_android_release.swf carrier.swf \
+  pinball.scene.menuTop.MenuTopScene \
+  export_dir/scripts/pinball/scene/menuTop/MenuTopScene.as
 ```
 
-建议重新用 FFDec 打开 `patched.swf`，确认 `MenuTopScene.createMenuListData()` 中仍能看到新增项，并确认 SWF 可以正常解析。
+随后从 carrier 导出 P-code，只截取 `createMenuListData` 方法，并在干净基线中重新定位方法体索引后，
+用 FFDec `-replace <P-code> <methodBodyIndex>` 移植。标题菜单应对
+`TitleMenuDialogContentView.setupContents` 使用同一方法体移植流程。最终必须使用全方法体比较器证明
+只变化这两个目标方法体。
+
+本项目当前已把这两个载荷、精确局域网 Rush 基线和自动门禁固化在
+[`client-patch/account-takeover`](../client-patch/account-takeover/README.md)，应优先使用该构建器，
+不要再按本文手工回封完整类。
+
+2026-08-30 真机验收后的权威公网 APK SHA-256 为
+`0C7BBA3D8E2EF07B8AC9E98B11AAF257008A0B373950FD98332047C727064857`，内嵌 SWF SHA-256 为
+`7EEA1972F568E31CE5B708E057EB7FEF306E2B25BA5CF7C6A198557914623CA7`。后续修改必须从该公网
+成品开始；累计构建器的 `--target public` 用于重建同一 SWF 并自动检查继承入口、Rush 排行榜、角色
+轮播和公网地址没有丢失。公网模式还会以 V51 SWF
+`EB7962184DF5E7D1DA112E4BEF9DED8DB8526E14A6F6F1710E051063A8F1D17C` 为历史参照，严格核对
+后续 19 个方法体变化，确保 MOD 五合一和幻想连战客户端实现同样没有被覆盖。
 
 ### 5. 放回 APK、对齐并签名
 
-用 `patched.swf` 替换 APK 中同路径文件：
+用只完成目标方法体移植的 SWF 替换 APK 中同路径文件：
 
 ```text
 assets/worldflipper_android_release.swf
@@ -140,6 +156,9 @@ zipalign -p -f 4 unsigned.apk aligned.apk
 apksigner sign --ks your.keystore --out final.apk aligned.apk
 apksigner verify --verbose --print-certs final.apk
 ```
+
+只要 SWF 载荷变化，就必须在同一包中生成全新的 AIR `uniqueappversionid`。回封后还必须回读实际
+APK，验证 SWF 哈希、UUID 唯一性、无关 ZIP 成员保持、zipalign、v1/v2 签名和证书指纹。
 
 覆盖安装时必须使用与设备上旧 APK 相同的签名证书；否则 Android 不允许覆盖安装。更换签名通常只能卸载后重装，而卸载可能清除本地数据。
 
@@ -154,9 +173,10 @@ apksigner verify --verbose --print-certs final.apk
 
 如果按钮已经显示，但点击后出现网络错误，说明客户端入口补丁已经生效，问题在服务端接口，不应继续修改菜单代码。
 
-## 可选修改：标题菜单也显示数据继承
+## 标题菜单：把“下载设定”替换为“数据继承”
 
-这不是恢复游戏内入口所必需的。
+如果需要让尚未创建临时账号的新设备直接恢复账号，就必须修改标题菜单的实际显示列表。只调整
+`TitleMenuDialog.prepare()` 的按钮逻辑顺序不会改变四个可见槽位，已经由真机截图证明无效。
 
 V51 的标题菜单同样已经有按钮 ID `0` 的处理：
 
@@ -169,20 +189,21 @@ case 0:
    break;
 ```
 
-只是该按钮在原顺序中排得较后，没有出现在当前可见区域。可在：
+四个可见按钮实际由下列方法硬编码：
 
 ```text
-pinball.dialog.titleMenu.TitleMenuDialog.prepare()
+pinball.dialog.titleMenu.TitleMenuDialogContentView.setupContents()
 ```
 
-把按钮 ID `0` 提到关闭按钮之后：
+把最后一个“下载设定”按钮 ID `6` 替换为继承按钮 ID `0`：
 
 ```diff
--var _loc2_:Array = [16777216,4,1,2,3,5,0,6,7,8,9,10,12,11,13];
-+var _loc2_:Array = [16777216,0,4,1,2,3,5,6,7,8,9,10,12,11,13];
+-_loc1_ = _loc1_.concat([11,12,4,6]);
++_loc1_ = _loc1_.concat([11,12,4,0]);
 ```
 
-这样标题页菜单会直接进入现成的数据继承流程，适合在新设备尚未创建临时账号前恢复老账号。
+这样标题菜单右下角会由“下载设定”直接变成“数据继承”，并进入现成的数据继承流程。
+`TitleMenuDialog.prepare()` 应保持原版不变。
 
 ## 可选配套：让继承功能真正可用
 

@@ -837,9 +837,7 @@ function computeRecoverableProgress(definition, ctx) {
             if (statisticKind === 2 && mode === "any") {
                 return Math.max(ctx.player.totalDashes, currentCounter, legacyCounter);
             }
-            if (statisticKind === 15) {
-                return Math.floor(Math.max(currentCounter, legacyCounter) / 1000);
-            }
+            // Fever-time counters and targets stay in milliseconds; the client converts them only for display.
             return Math.max(currentCounter, legacyCounter);
         }
         case 29: {

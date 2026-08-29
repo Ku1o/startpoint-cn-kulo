@@ -17,6 +17,7 @@ export interface RaidEventRewardEntry {
 export interface RaidEventRewardClaimResult {
     receivedUpTo: number
     rewardList: RaidEventRewardEntry[]
+    rewardResult: ReturnType<typeof givePlayerRewardsSync>
 }
 
 interface OverallReward {
@@ -141,7 +142,10 @@ function aggregateRewards(rewards: RaidEventRewardEntry[]): RaidEventRewardEntry
     return [...aggregated.values()]
 }
 
-function applyRewardEntriesSync(playerId: number, entries: RaidEventRewardEntry[]): void {
+function applyRewardEntriesSync(
+    playerId: number,
+    entries: RaidEventRewardEntry[],
+): ReturnType<typeof givePlayerRewardsSync> {
     const ordinaryRewards: Reward[] = []
     for (const entry of entries) {
         switch (entry.kind) {
@@ -193,7 +197,9 @@ function applyRewardEntriesSync(playerId: number, entries: RaidEventRewardEntry[
                 break
         }
     }
-    if (ordinaryRewards.length > 0) givePlayerRewardsSync(playerId, ordinaryRewards)
+    return ordinaryRewards.length > 0
+        ? givePlayerRewardsSync(playerId, ordinaryRewards)
+        : null
 }
 
 function calculateHpPercentage(weightedKillCount: number, requiredKillCount: number): number {
@@ -429,13 +435,14 @@ export function claimRaidEventOverallRewardsSync(
             return {
                 receivedUpTo: previousCount,
                 rewardList: [],
+                rewardResult: null,
             }
         }
 
         const rewardList = aggregateRewards(
             getBattleBanquetRewardsBetween(previousCount, totalKillCount),
         )
-        applyRewardEntriesSync(playerId, rewardList)
+        const rewardResult = applyRewardEntriesSync(playerId, rewardList)
         getDb().prepare(`
             INSERT INTO players_raid_event_overall_rewards
                 (player_id, event_id, received_up_to, updated_at)
@@ -448,6 +455,7 @@ export function claimRaidEventOverallRewardsSync(
         return {
             receivedUpTo: totalKillCount,
             rewardList,
+            rewardResult,
         }
     })()
 }

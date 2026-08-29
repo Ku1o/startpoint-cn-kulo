@@ -1,6 +1,8 @@
-import gachasJson from "../../assets/gacha.json"
-import characterJson from "../../assets/character.json"
-import characterTextJson from "../../assets/cdndata/character_text.json"
+import {
+    cdnCharacterTexts as characterTextJson,
+    serverCharacters as characterJson,
+    serverGachas as gachasJson,
+} from "./content-master"
 import { deepFreeze } from "../content/deep-freeze"
 
 const SHORT_TERM_MAX_DAYS = 60

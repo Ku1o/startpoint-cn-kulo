@@ -81,6 +81,11 @@ const schemaColumns = {
         column: "started_at_ms",
         definition: "INTEGER DEFAULT NULL",
     },
+    "leaderboard_seasons.content_revision": {
+        table: "leaderboard_seasons",
+        column: "content_revision",
+        definition: "TEXT DEFAULT NULL",
+    },
     "device_bindings.name": {
         table: "device_bindings",
         column: "name",

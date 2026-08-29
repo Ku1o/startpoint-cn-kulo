@@ -35,6 +35,7 @@ const stamina_cost_1 = require("../../lib/stamina-cost");
 const carnival_handler_1 = require("../../lib/quest/finish/carnival-handler");
 const carnival_reward_handler_1 = require("../../lib/quest/finish/carnival-reward-handler");
 const rush_handler_1 = require("../../lib/quest/finish/rush-handler");
+const service_1 = require("../../lib/leaderboard/service");
 const rogue_drops_1 = require("../../lib/quest/finish/rogue-drops");
 const raid_handler_1 = require("../../lib/quest/finish/raid-handler");
 const quest_calc_1 = require("../../lib/quest/finish/quest-calc");
@@ -406,6 +407,30 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 getSerializedParties: (pid, eid) => (0, rush_1.getSerializedPlayerRushEventPlayedPartiesSync)(pid, eid),
                 getFolderRewards: (eid, fid) => (0, assets_1.getRushEventFolderClearRewards)(eid, fid),
                 giveRewards: (pid, r) => (0, quest_2.givePlayerRewardsSync)(pid, r),
+            });
+            (0, service_1.finishLeaderboardQuestSync)({
+                playerId,
+                quest: {
+                    category: questCategory,
+                    eventId: questData.rushEventId,
+                    folderId: questData.rushEventFolderId,
+                    round: questData.rushEventRound,
+                    questId,
+                    totalRounds: questData.rushEventId === undefined
+                        || questData.rushEventFolderId === undefined
+                        ? 0
+                        : (0, rushEvent_2.getRushEventFolderMaxRounds)(questData.rushEventId, questData.rushEventFolderId),
+                },
+                accomplished: questAccomplished,
+                clientBattleMs: clearTime,
+                party: {
+                    characterIds: bodyPartyStatistics.characters.map(value => { var _a; return (_a = value === null || value === void 0 ? void 0 : value.id) !== null && _a !== void 0 ? _a : null; }),
+                    unisonCharacterIds: bodyPartyStatistics.unison_characters.map(value => { var _a; return (_a = value === null || value === void 0 ? void 0 : value.id) !== null && _a !== void 0 ? _a : null; }),
+                    equipmentIds: bodyPartyStatistics.equipments.map(value => { var _a; return (_a = value === null || value === void 0 ? void 0 : value.id) !== null && _a !== void 0 ? _a : null; }),
+                    abilitySoulIds: bodyPartyStatistics.ability_soul_ids,
+                    evolutionImgLevels: (0, character_1.getCharactersEvolutionImgLevels)(playerId, bodyPartyStatistics.characters.map(value => { var _a; return (_a = value === null || value === void 0 ? void 0 : value.id) !== null && _a !== void 0 ? _a : null; })),
+                    unisonEvolutionImgLevels: (0, character_1.getCharactersEvolutionImgLevels)(playerId, bodyPartyStatistics.unison_characters.map(value => { var _a; return (_a = value === null || value === void 0 ? void 0 : value.id) !== null && _a !== void 0 ? _a : null; })),
+                },
             });
             if (questAccomplished
                 && questCategory === types_1.QuestCategory.RUSH_EVENT

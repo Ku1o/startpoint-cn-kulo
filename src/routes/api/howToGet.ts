@@ -6,7 +6,7 @@ import { getPlayerShopPurchasesMapSync } from "../../data/domains/shopPurchase";
 import { getGenericShopItemsSync } from "../../lib/assets";
 import { ShopItem, ShopType, ShopItems, ShopItemRewardType } from "../../lib/types";
 import boxRewardData from "../../../assets/box_reward.json";
-import eventItemShopItems from "../../../assets/event_item_shop.json";
+import { serverEventShops as eventItemShopItems } from "../../lib/content-master";
 import bossCoinShopItems from "../../../assets/boss_coin_shop.json";
 
 interface GetListBody {

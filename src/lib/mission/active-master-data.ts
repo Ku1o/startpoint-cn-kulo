@@ -62,10 +62,26 @@ const eventDefinitions = buildEventDefinitions()
 
 const missionById = new Map(missionDefinitions.map(definition => [definition.missionId, definition]))
 const eventById = new Map(eventDefinitions.map(definition => [definition.eventId, definition]))
+const missionDefinitionsByPattern = buildMissionDefinitionsByPattern(missionDefinitions)
 const repositoryMissionDefinitions = new WeakMap<ReadonlyContentRepository, readonly ActiveMissionMasterDefinition[]>()
 const repositoryEventDefinitions = new WeakMap<ReadonlyContentRepository, readonly ActiveMissionEventMasterDefinition[]>()
 const repositoryMissionById = new WeakMap<ReadonlyContentRepository, ReadonlyMap<number, ActiveMissionMasterDefinition>>()
 const repositoryEventById = new WeakMap<ReadonlyContentRepository, ReadonlyMap<number, ActiveMissionEventMasterDefinition>>()
+const repositoryMissionDefinitionsByPattern = new WeakMap<ReadonlyContentRepository, ReadonlyMap<number, readonly ActiveMissionMasterDefinition[]>>()
+
+function buildMissionDefinitionsByPattern(
+    definitions: readonly ActiveMissionMasterDefinition[],
+): ReadonlyMap<number, readonly ActiveMissionMasterDefinition[]> {
+    const byPattern = new Map<number, ActiveMissionMasterDefinition[]>()
+    for (const definition of definitions) {
+        const pattern = Number(definition.row[29])
+        if (!Number.isSafeInteger(pattern) || pattern < 0) continue
+        const entries = byPattern.get(pattern) ?? []
+        entries.push(definition)
+        byPattern.set(pattern, entries)
+    }
+    return byPattern
+}
 
 function cachedMissionDefinitions(
     repository: ReadonlyContentRepository,
@@ -75,6 +91,7 @@ function cachedMissionDefinitions(
     const definitions = buildMissionDefinitions(repository)
     repositoryMissionDefinitions.set(repository, definitions)
     repositoryMissionById.set(repository, new Map(definitions.map(definition => [definition.missionId, definition])))
+    repositoryMissionDefinitionsByPattern.set(repository, buildMissionDefinitionsByPattern(definitions))
     return definitions
 }
 
@@ -102,6 +119,23 @@ export function getActiveMissionMasterDefinition(
     if (!repository) return missionById.get(missionId)
     cachedMissionDefinitions(repository)
     return repositoryMissionById.get(repository)?.get(missionId)
+}
+
+/** Returns only definitions whose condition pattern can be affected by the caller. */
+export function getActiveMissionMasterDefinitionsByPatterns(
+    patterns: readonly number[],
+    repository?: ReadonlyContentRepository,
+): readonly ActiveMissionMasterDefinition[] {
+    const requested = [...new Set(patterns.filter(
+        pattern => Number.isSafeInteger(pattern) && pattern >= 0,
+    ))]
+    if (requested.length === 0) return []
+    let byPattern = missionDefinitionsByPattern
+    if (repository) {
+        cachedMissionDefinitions(repository)
+        byPattern = repositoryMissionDefinitionsByPattern.get(repository)!
+    }
+    return requested.flatMap(pattern => byPattern.get(pattern) ?? [])
 }
 
 export function getActiveMissionEventMasterDefinitions(

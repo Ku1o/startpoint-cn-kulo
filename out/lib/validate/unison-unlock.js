@@ -77,5 +77,6 @@ function repairUnisonUnlockProgressSync(playerId) {
 exports.repairUnisonUnlockProgressSync = repairUnisonUnlockProgressSync;
 exports.UnisonUnlockValidator = {
     name: "unison-unlock",
+    version: 1,
     validate: repairUnisonUnlockProgressSync
 };

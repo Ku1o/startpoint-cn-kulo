@@ -24,6 +24,7 @@ import { getStaminaCost } from "../../lib/stamina-cost";
 import { handleCarnivalEventFinish } from "../../lib/quest/finish/carnival-handler";
 import { grantCarnivalTotalScoreRewardsSync } from "../../lib/quest/finish/carnival-reward-handler";
 import { handleRushEventFinish } from "../../lib/quest/finish/rush-handler";
+import { finishLeaderboardQuestSync } from "../../lib/leaderboard/service";
 import { handleRoguePerRoundDrops } from "../../lib/quest/finish/rogue-drops";
 import { handleRaidEventFinish } from "../../lib/quest/finish/raid-handler";
 import { calculateClearRank } from "../../lib/quest/finish/quest-calc";
@@ -586,6 +587,39 @@ const routes = async (fastify: FastifyInstance) => {
             getSerializedParties: (pid, eid) => getSerializedPlayerRushEventPlayedPartiesSync(pid, eid),
             getFolderRewards: (eid, fid) => getRushEventFolderClearRewards(eid, fid),
             giveRewards: (pid, r) => givePlayerRewardsSync(pid, r),
+        })
+        finishLeaderboardQuestSync({
+            playerId,
+            quest: {
+                category: questCategory,
+                eventId: questData.rushEventId,
+                folderId: questData.rushEventFolderId,
+                round: questData.rushEventRound,
+                questId,
+                totalRounds: questData.rushEventId === undefined
+                    || questData.rushEventFolderId === undefined
+                    ? 0
+                    : getRushEventFolderMaxRounds(
+                        questData.rushEventId,
+                        questData.rushEventFolderId,
+                    ),
+            },
+            accomplished: questAccomplished,
+            clientBattleMs: clearTime,
+            party: {
+                characterIds: bodyPartyStatistics.characters.map(value => value?.id ?? null),
+                unisonCharacterIds: bodyPartyStatistics.unison_characters.map(value => value?.id ?? null),
+                equipmentIds: bodyPartyStatistics.equipments.map(value => value?.id ?? null),
+                abilitySoulIds: bodyPartyStatistics.ability_soul_ids,
+                evolutionImgLevels: getCharactersEvolutionImgLevels(
+                    playerId,
+                    bodyPartyStatistics.characters.map(value => value?.id ?? null),
+                ),
+                unisonEvolutionImgLevels: getCharactersEvolutionImgLevels(
+                    playerId,
+                    bodyPartyStatistics.unison_characters.map(value => value?.id ?? null),
+                ),
+            },
         })
         if (
             questAccomplished

@@ -26,6 +26,16 @@ import { getDb } from "../db"
 import { getCarnivalSaveStateSync } from "../../lib/carnival-save-state"
 import { getContentSnapshot } from "../../content/runtime/content-snapshot"
 
+export interface ClientSerializedDataOptions extends SerializePlayerDataOptions {
+    /** Fresh request-local snapshot; callers remain responsible for invalidating stale data. */
+    preloadedPlayer?: Player
+    preloadedCharacterList?: Record<string, PlayerCharacter>
+    preloadedCharacterManaNodeList?: Record<string, number[]>
+    preloadedEquipmentList?: Record<string, PlayerEquipment>
+    preloadedPartyGroupList?: Record<string, PlayerPartyGroup>
+    preloadedQuestProgress?: Record<string, PlayerQuestProgress[]>
+}
+
 /**
  * Generates default player data.
  * 
@@ -85,20 +95,43 @@ export function getDefaultPlayerData(): Omit<Player, 'id'> {
  */
 export function getClientSerializedData(
     playerId: number,
-    options: SerializePlayerDataOptions
+    options: ClientSerializedDataOptions
 ): ClientPlayerData | null {
+    const {
+        preloadedPlayer,
+        preloadedCharacterList,
+        preloadedCharacterManaNodeList,
+        preloadedEquipmentList,
+        preloadedPartyGroupList,
+        preloadedQuestProgress,
+        ...serializeOptions
+    } = options
+    if (preloadedPlayer && preloadedPlayer.id !== playerId) {
+        throw new Error(`Player snapshot ${preloadedPlayer.id} does not match ${playerId}.`)
+    }
 
     // Old/imported saves can lack the bond-token row that marks a completed
     // base board as receivable. Repair it before loading the response snapshot.
-    reconcilePlayerManaBoardCompletionSync(playerId)
+    reconcilePlayerManaBoardCompletionSync(
+        playerId,
+        undefined,
+        preloadedCharacterList && preloadedCharacterManaNodeList
+            ? {
+                characters: preloadedCharacterList,
+                learnedNodes: preloadedCharacterManaNodeList,
+            }
+            : undefined,
+    )
 
-    const playerData = getPlayerSync(playerId)
+    const playerData = preloadedPlayer ?? getPlayerSync(playerId)
     if (playerData === null) return null
 
-    const doSerializeRushEventData = options.serializeRushEventData ?? false
+    const doSerializeRushEventData = serializeOptions.serializeRushEventData ?? false
 
     // Compute awake mission summary for /load injection
-    const awakeSummary = computeAwakeSummary(playerId)
+    const awakeSummary = computeAwakeSummary(playerId, {
+        characterList: preloadedCharacterList,
+    })
     awakeSummary.manaBoardAwakeMap = reconcileAwakeUnlocksFromProgress(
         playerId,
         awakeSummary.activeMissionList.map(mission => ({
@@ -110,7 +143,8 @@ export function getClientSerializedData(
     // The client uses mana_board_awake both to unlock the Awake tab and as the
     // target node-awake level. Keep mission unlocks and persisted node state.
     const nodeAwakeLevels = getPlayerCharactersManaNodeAwakeLevelsSync(playerId)
-    const learnedManaNodes = getPlayerCharactersManaNodesSync(playerId)
+    const learnedManaNodes = preloadedCharacterManaNodeList
+        ?? getPlayerCharactersManaNodesSync(playerId)
     const missionAwakeMap = new Map<string, Record<number, number>>()
     for (const [characterId, levels] of awakeSummary.manaBoardAwakeMap) {
         const visible = filterCharacterManaBoardAwakeLevels(
@@ -130,14 +164,14 @@ export function getClientSerializedData(
         dailyChallengePointList: getPlayerDailyChallengePointListSync(playerId),
         triggeredTutorial: getPlayerTriggeredTutorialsSync(playerId),
         clearedRegularMissionList: getPlayerClearedRegularMissionListSync(playerId),
-        characterList: getPlayerCharactersSync(playerId),
+        characterList: preloadedCharacterList ?? getPlayerCharactersSync(playerId),
         characterManaNodeList: learnedManaNodes,
         characterManaNodeAwakeLevels: nodeAwakeLevels,
         manaBoardAwakeMap,
-        partyGroupList: getPlayerPartyGroupListSync(playerId),
+        partyGroupList: preloadedPartyGroupList ?? getPlayerPartyGroupListSync(playerId),
         itemList: getPlayerItemsSync(playerId),
-        equipmentList: getPlayerEquipmentListSync(playerId),
-        questProgress: getPlayerQuestProgressSync(playerId),
+        equipmentList: preloadedEquipmentList ?? getPlayerEquipmentListSync(playerId),
+        questProgress: preloadedQuestProgress ?? getPlayerQuestProgressSync(playerId),
         gachaInfoList: getPlayerGachaInfoListSync(playerId),
         gachaCampaignList: getPlayerGachaCampaignListSync(playerId),
         drawnQuestList: getPlayerDrawnQuestsSync(playerId),
@@ -155,7 +189,7 @@ export function getClientSerializedData(
         rushEventClearedFolderList: doSerializeRushEventData ? getPlayerRushEventListClearedFoldersSync(playerId) : undefined,
         rushEventPlayedPartyList: doSerializeRushEventData ? getPlayerRushEventListPlayedPartiesSync(playerId) : undefined
     }, {
-        ...options,
+        ...serializeOptions,
         activeMissionList: awakeSummary.activeMissionList,
     })
 }

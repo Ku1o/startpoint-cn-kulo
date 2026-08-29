@@ -1,7 +1,8 @@
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { deletePlayerRushEventPlayedPartiesUntilSync, deletePlayerRushEventPlayedPartyListSync, deletePlayerRushEventPlayedPartySync, getDefaultPlayerRushEventSync, getPlayerRushEventClearedFoldersSync, getPlayerRushEventSync, insertPlayerRushEventSync, updatePlayerRushEventSync } from "../../data/domains/rushEvent"
-import { getDefaultPlayerPartyGroupsSync } from "../../data/domains/player"
+import { getDefaultPlayerPartyGroupsSync, getPlayerSync } from "../../data/domains/player"
 import { getPlayerCharactersSync } from "../../data/domains/character"
+import { getPlayerMailCountSync } from "../../data/domains/mail"
 import { ensurePlayerPartyGroupListSync, getPlayerPartyGroupListSync } from "../../data/domains/party"
 import { getSession } from "../../data/domains/session"
 import { resolvePlayerIdSync } from "../../data/activeAccount";
@@ -99,6 +100,10 @@ const routes = async (fastify: FastifyInstance) => {
         const raidBoss = getRaidEventGlobalBossSync(eventId)
         const totalKillCount = raidBoss.totalKillCount
         const rewardClaim = claimRaidEventOverallRewardsSync(playerId, eventId, totalKillCount)
+        const playerAfterClaim = rewardClaim.rewardResult ? getPlayerSync(playerId) : null
+        if (rewardClaim.rewardResult && playerAfterClaim === null) {
+            throw new Error(`Player ${playerId} disappeared during Raid reward settlement.`)
+        }
         const questKillCounts = getRaidEventQuestKillCountsSync(eventId)
         gameVerboseLog(() => `[RAID] summary: folderParties=${Object.keys(serializedPlayedParties.folderParties ?? {}).length} endlessParties=${Object.keys(serializedPlayedParties.endlessParties ?? {}).length}`)
 
@@ -117,6 +122,18 @@ const routes = async (fastify: FastifyInstance) => {
                     "hp_percentage": raidBoss.hpPercentage,
                     "total_kill_count": totalKillCount,
                 },
+                ...(rewardClaim.rewardResult && playerAfterClaim ? {
+                    "user_info": {
+                        "free_mana": playerAfterClaim.freeMana,
+                        "free_vmoney": playerAfterClaim.freeVmoney,
+                        "exp_pool": playerAfterClaim.expPool,
+                    },
+                    "character_list": rewardClaim.rewardResult.character_list,
+                    "joined_character_id_list": rewardClaim.rewardResult.joined_character_id_list,
+                    "equipment_list": rewardClaim.rewardResult.equipment_list,
+                    "item_list": rewardClaim.rewardResult.items,
+                } : {}),
+                "mail_arrived": getPlayerMailCountSync(playerId, true) > 0,
                 "endless_battle_next_round": rushEventData.endlessBattleNextRound,
                 "active_rush_battle_folder_id": rushEventData.activeRushBattleFolderId,
                 "endless_battle_played_max_round": rushEventData.endlessBattleNextRound,
