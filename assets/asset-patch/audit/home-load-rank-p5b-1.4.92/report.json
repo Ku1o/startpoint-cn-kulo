@@ -1,0 +1,635 @@
+{
+  "schema_version": 1,
+  "patch_id": "home-load-rank-p5b-1.4.92",
+  "dry_run": false,
+  "from_version": "1.4.91",
+  "version": "1.4.92",
+  "baseline_plan": {
+    "ok": true,
+    "tail": "1.4.91",
+    "files": 140046,
+    "bytes": 10434636862,
+    "rejected": 72,
+    "per_root": {
+      "common": {
+        "files": 115182,
+        "bytes": 6815785447
+      },
+      "medium": {
+        "files": 23826,
+        "bytes": 3527686179
+      },
+      "android": {
+        "files": 1038,
+        "bytes": 91165236
+      }
+    },
+    "unreachable_edges": 0,
+    "unreachable_samples": [],
+    "max_visible_version": "1.4.92",
+    "chain_issues": []
+  },
+  "source_bundle": "F:\\codex\\reviews\\wf-rank-p5b-gray-20260829",
+  "source_contract_profile": "rank-p5b-gray-v1",
+  "selected_logical_files": 650,
+  "selected_archive_members": 650,
+  "direct_resources": 617,
+  "feature_banner": {
+    "logical": "master/feature_banner/feature_banner.orderedmap",
+    "removed_id": 10010,
+    "removed_link": "SideStory",
+    "rows_before": 603,
+    "rows_after": 602,
+    "other_rows_byte_identical": 602,
+    "baseline_sha256": "6e6cab7e6c8c02071f36aa38224a7a648c4532b8119c5d651d4ca10eb62c5185",
+    "output_sha256": "abce0f5b97564d1e89eabd92f975da7b8b83dc931a9b1119ab39e597096c586f"
+  },
+  "ability_restore": {
+    "logical": "master/ability/ability.orderedmap",
+    "source_archive": "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip",
+    "source_payload_sha256": "85206e103d5916c0abb0469cf5678949a59a8afd0929b5aeb92283f739c1ead3",
+    "baseline_before_sha256": "aa17b3c4f52a326048f3741673b81efba1cf33d0cf1fdf0eaf7110f39856822b",
+    "baseline_before_rows": 3068,
+    "baseline_after_sha256": "85206e103d5916c0abb0469cf5678949a59a8afd0929b5aeb92283f739c1ead3",
+    "baseline_after_rows": 3086,
+    "restored_keys": [
+      "1499951",
+      "1499952",
+      "1499953",
+      "1499954",
+      "1499955",
+      "1499956",
+      "1699961",
+      "1699962",
+      "1699963",
+      "1699964",
+      "1699965",
+      "1699966",
+      "1699971",
+      "1699972",
+      "1699973",
+      "1699974",
+      "1699975",
+      "1699976"
+    ],
+    "existing_rows_byte_identical": 3068
+  },
+  "abyss_gacha_client_cleanup": {
+    "included_in_combined_release": true,
+    "version": "1.4.92",
+    "before_counts": {
+      "5": 253,
+      "4": 144,
+      "3": 78
+    },
+    "after_counts": {
+      "5": 248,
+      "4": 125,
+      "3": 76
+    },
+    "bucket_totals": {
+      "5": 1593000,
+      "4": 2184,
+      "3": 1113
+    },
+    "removed_character_ids": [
+      10,
+      113001,
+      141003,
+      153001,
+      163001,
+      213001,
+      213013,
+      223001,
+      223007,
+      223013,
+      223019,
+      233001,
+      233007,
+      233013,
+      243001,
+      243007,
+      243013,
+      243019,
+      253001,
+      253007,
+      253013,
+      253019,
+      263001,
+      263002,
+      323001,
+      333001
+    ],
+    "retained_exception_ids": [
+      123001,
+      131182,
+      213007,
+      263003,
+      263009,
+      263015
+    ],
+    "client_server_membership_equal": true,
+    "tables": {
+      "master/gacha_odds/cnmod_abyss_limited_gacha_character_5.orderedmap": {
+        "before_sha256": "b725c7cb3d18f3a523459c7560709a615e428f8d922957f696ccccef5c953f86",
+        "after_sha256": "f0e26dc788b15accf1fb4cc17e3339be7467bcef6f7a2a55c8478b7bb6d186ab"
+      },
+      "master/gacha_odds/cnmod_abyss_limited_gacha_character_4.orderedmap": {
+        "before_sha256": "064633ae6f07af2d37dbeb842107d173e1be1518363ac6c89b9a56449427e4f0",
+        "after_sha256": "1ee755af9f237ca09a7beff40398f6b3414a9f8344a391a09569cce17a0361d9"
+      },
+      "master/gacha_odds/cnmod_abyss_limited_gacha_character_3.orderedmap": {
+        "before_sha256": "c8eb0ad42d569b27aef42eaf3699e5d1e88802844fa192631dbd759e0a8988dd",
+        "after_sha256": "b5fe70a8610adc116817173c75e0a46cb192b0cf64f2ab8e6df1fa11f001e9b2"
+      }
+    }
+  },
+  "ticket_icons": {
+    "source_variant": "full",
+    "sheet_logical": "item/sprite_sheet.png",
+    "atlas_logical": "item/sprite_sheet.atlas.amf3.deflate",
+    "baseline_sheet_sha256": "13039ef5b3fe8429a4f356dc770620c4f3ccb273ab960a81a06d4fe0960abfc7",
+    "output_sheet_sha256": "0f3c6d7c356196c688cb914eb7e8a85cd32506f72a86a361e5dffc25d2852b92",
+    "baseline_atlas_sha256": "34526c17de84f53e341324a3dd4ea63915987255f118e669ccda280db8abb2af",
+    "output_atlas_sha256": "c9ede674ccbf3da1f4403734e909a3407afbf7f10dc4f2c35f631f2c89ea1b01",
+    "baseline_dimensions": [
+      505,
+      1682
+    ],
+    "output_dimensions": [
+      505,
+      1704
+    ],
+    "baseline_pixels_preserved": true,
+    "baseline_atlas_rows_preserved": 1512,
+    "added_frames": [
+      {
+        "item_id": 999015,
+        "logical_name": "item/spends/tickets/ashen_verdict_once_gacha_character_ticket",
+        "rect": [
+          1,
+          1683,
+          20,
+          20
+        ],
+        "rgba_sha256": "6368424c64fb698b2ff21ad762845676ffaf5f845fe90e4606fc1388b55a18aa"
+      },
+      {
+        "item_id": 999016,
+        "logical_name": "item/spends/tickets/ashen_verdict_ten_times_gacha_character_ticket",
+        "rect": [
+          22,
+          1683,
+          20,
+          20
+        ],
+        "rgba_sha256": "40cee8e57e77a3bac3441c9982db6f3ea6ca77f1001563f92ee9e33805c58909"
+      }
+    ],
+    "item_reference_closure_verified": true
+  },
+  "tables": [
+    {
+      "logical": "master/ability/ability.orderedmap",
+      "baseline_sha256": "85206e103d5916c0abb0469cf5678949a59a8afd0929b5aeb92283f739c1ead3",
+      "output_sha256": "5de94b400f852eb21a2a085e9298fc4e86907b2ce8a9a3458b6261f5326f9ceb",
+      "baseline_rows_preserved": 3086,
+      "added_keys": [
+        "1699801",
+        "1699802",
+        "1699803",
+        "1699804",
+        "1699805",
+        "1699806",
+        "1699941",
+        "1699942",
+        "1699943",
+        "1699944",
+        "1699945",
+        "1699946",
+        "1699951",
+        "1699952",
+        "1699953",
+        "1699954",
+        "1699955",
+        "1699956",
+        "1799811",
+        "1799812",
+        "1799813",
+        "1799814",
+        "1799815",
+        "1799816"
+      ]
+    },
+    {
+      "logical": "master/ability/leader_ability.orderedmap",
+      "baseline_sha256": "ecd003bd67abf454d0b56db5bfd3dd94adb4f3f9da8a4c34988d2d185f9061aa",
+      "output_sha256": "11f2e289acba577538df63dfd701a643fcc60244aa7e6ca02a2b92901c10dd47",
+      "baseline_rows_preserved": 515,
+      "added_keys": [
+        "169980",
+        "169994",
+        "169995",
+        "179981"
+      ]
+    },
+    {
+      "logical": "master/character/character.orderedmap",
+      "baseline_sha256": "2f93ade4301553db7cfc0d9489b0fc77b505bd062c6719fbfed56b20c3b492c3",
+      "output_sha256": "dc90308bd5dd7b59a7f68e276828ae72c507b19b1e85def86c8b75bdef9b7587",
+      "baseline_rows_preserved": 524,
+      "added_keys": [
+        "169980",
+        "169994",
+        "169995",
+        "179981"
+      ]
+    },
+    {
+      "logical": "master/character/character_awake_status.orderedmap",
+      "baseline_sha256": "cb83d19959b6bc08b28f2d2150a81f11b3eeb4fe15c3abadde4f08f72828acf4",
+      "output_sha256": "cf01c50dba115f4502b8425989569d2b26bdf5dc6d890788ccdf9229a70581f7",
+      "baseline_rows_preserved": 40,
+      "added_keys": [
+        "169980",
+        "169994",
+        "169995",
+        "179981"
+      ]
+    },
+    {
+      "logical": "master/character/character_gacha_sound.orderedmap",
+      "baseline_sha256": "d82890951b5ac1794f72c8854ddd9035b13f43d6cacc9ae11a38ab82815209ba",
+      "output_sha256": "c72e5c04b56fa63fd89982656063ad4cf950847aa3c28393f56cb4438c2caa7f",
+      "baseline_rows_preserved": 410,
+      "added_keys": [
+        "169980",
+        "169995",
+        "179981"
+      ]
+    },
+    {
+      "logical": "master/character/character_speech.orderedmap",
+      "baseline_sha256": "2892006804468b0d73fba436bf5b25a2c13f385da768618d03529aa0c7cb95ca",
+      "output_sha256": "adba61010d790d1b3de69ae56677279bbc65aa7e3d69c54315c709d3504716e4",
+      "baseline_rows_preserved": 513,
+      "added_keys": [
+        "169980",
+        "169994",
+        "169995",
+        "179981"
+      ]
+    },
+    {
+      "logical": "master/character/character_status.orderedmap",
+      "baseline_sha256": "c08b7a53b76eb0d3497bcc2c85c376401ee23ddfd6738e89545a8a4f437f215e",
+      "output_sha256": "0f517c7d48a2d78e57226daefe9f051ecd57ce8a36dbd22fbcb6490f87743f62",
+      "baseline_rows_preserved": 524,
+      "added_keys": [
+        "169980",
+        "169994",
+        "169995",
+        "179981"
+      ]
+    },
+    {
+      "logical": "master/character/character_text.orderedmap",
+      "baseline_sha256": "edeb2ba1d81ad2f2b28875dd1390c4555497c0a03d0ae2c4a04fcaa3afcc3f43",
+      "output_sha256": "1092371b4da81ff2949e3379b54b4e075d587c5fd22bd76c757e6d9d2f2381a1",
+      "baseline_rows_preserved": 524,
+      "added_keys": [
+        "169980",
+        "169994",
+        "169995",
+        "179981"
+      ]
+    },
+    {
+      "logical": "master/character/full_shot_image_attribute.orderedmap",
+      "baseline_sha256": "4c26a920c92c916be0d1ffaa9251b0feead76b1035ff65f5a4abb75988b41063",
+      "output_sha256": "b2342273b33cc662e7b10cbf6053dcb353616c05b1f8584c411076a43bca70f0",
+      "baseline_rows_preserved": 519,
+      "added_keys": [
+        "169980",
+        "169994",
+        "169995",
+        "179981"
+      ]
+    },
+    {
+      "logical": "master/character/unique_condition.orderedmap",
+      "baseline_sha256": "301068989faea47d1c116f57b68e2e96096e4f4b762c03beb232816122592093",
+      "output_sha256": "509feb42912624c3c9a1e90517301d275263ae86547e22ea41b7cd6dc4fa4492",
+      "baseline_rows_preserved": 44,
+      "added_keys": [
+        "1699950",
+        "1699940",
+        "1799810",
+        "180001"
+      ]
+    },
+    {
+      "logical": "master/degree/degree.orderedmap",
+      "baseline_sha256": "c1f55b7579d788ab85e0ac6d7009e126f112f8858bf4e0c1088e7bef1d1f4379",
+      "output_sha256": "16ff62699c58a8f81e8a48f8ada202d4553e9d2719a0908122553e82bf164133",
+      "baseline_rows_preserved": 1485,
+      "added_keys": [
+        "9900002",
+        "9900003",
+        "9900004",
+        "9900005",
+        "9900006"
+      ]
+    },
+    {
+      "logical": "master/gacha/gacha.orderedmap",
+      "baseline_sha256": "4ef5c1bcd4daffdca622c73fe6f161d6cee770715e4fbfa33d16112b1b004988",
+      "output_sha256": "6403268e2cb0342a1116a2ea1f6ea6c2dc8fb9776eb6dbb693784ac3bc3f0450",
+      "baseline_rows_preserved": 585,
+      "added_keys": [
+        "990002"
+      ]
+    },
+    {
+      "logical": "master/gacha/gacha_feature_content.orderedmap",
+      "baseline_sha256": "388eb768a122fbebb02d8f38678b622bf7b51afd150c54cae7d6f691772a0e5a",
+      "output_sha256": "33b474fd8efe37c55062cf4562e76d89ea93215b4506cff725562c5f88963309",
+      "baseline_rows_preserved": 585,
+      "added_keys": [
+        "990002"
+      ]
+    },
+    {
+      "logical": "master/generated/character_image.orderedmap",
+      "baseline_sha256": "b71b2d513e21edb64cbb8e263801250cd2d8b149a0e16cc5923d32c0f3ebf085",
+      "output_sha256": "ba81d73a2559c2478232c39b489e3ecd337bb63de7afab7199ff4d5c92c7b795",
+      "baseline_rows_preserved": 513,
+      "added_keys": [
+        "169980",
+        "169994",
+        "169995",
+        "179981"
+      ]
+    },
+    {
+      "logical": "master/generated/mana_board.orderedmap",
+      "baseline_sha256": "b59ff2bbaa80135373342aca5814201a74d0b1fdc0cdda73edf05e623c8fa3c4",
+      "output_sha256": "e90b35ff9afac01a008bbb894426169db57f30e713624b614d534b9ba7586e1a",
+      "baseline_rows_preserved": 513,
+      "added_keys": [
+        "169980",
+        "169994",
+        "169995",
+        "179981"
+      ]
+    },
+    {
+      "logical": "master/generated/trimmed_image.orderedmap",
+      "baseline_sha256": "5e4f842df25b6d4cae790bc2918ba8499b1dbdafea2558e928baea280487ceea",
+      "output_sha256": "56ebc489aef5472c02f883fed187cc55dded572d617907064bbf0ad0f0975952",
+      "baseline_rows_preserved": 11910,
+      "added_keys": [
+        "character/maou2_playable/ui/full_shot_1440_1920_0",
+        "character/maou2_playable/ui/full_shot_1440_1920_1",
+        "character/maou2_playable/ui/skill_cutin_0",
+        "character/maou2_playable/ui/skill_cutin_1",
+        "character/white_tiger_ghost_playable/ui/full_shot_1440_1920_0",
+        "character/white_tiger_ghost_playable/ui/full_shot_1440_1920_1",
+        "character/white_tiger_ghost_playable/ui/skill_cutin_0",
+        "character/white_tiger_ghost_playable/ui/skill_cutin_1",
+        "character/cnmod_epuration_empress/ui/full_shot_1440_1920_0",
+        "character/cnmod_epuration_empress/ui/full_shot_1440_1920_1",
+        "character/cnmod_epuration_empress/ui/skill_cutin_0",
+        "character/cnmod_epuration_empress/ui/skill_cutin_1",
+        "character/abyss_beast_playable/ui/full_shot_1440_1920_0",
+        "character/abyss_beast_playable/ui/full_shot_1440_1920_1",
+        "character/abyss_beast_playable/ui/skill_cutin_0",
+        "character/abyss_beast_playable/ui/skill_cutin_1"
+      ]
+    },
+    {
+      "logical": "master/item/item.orderedmap",
+      "baseline_sha256": "baf45520a75cee30e7222e8381fa08731ed7afd71abe97b58d46e08fff12c647",
+      "output_sha256": "a3cd8d6b0de04443916271864fb23f4a9c562d8bcebd794cdcb081482d46c512",
+      "baseline_rows_preserved": 1332,
+      "added_keys": [
+        "999015",
+        "999016"
+      ]
+    },
+    {
+      "logical": "master/mana_board/mana_board2_open_condition.orderedmap",
+      "baseline_sha256": "72a8de220a3d5e8bd4727a9251b62f48dccd5b83f872d6e9d21ad37fd5e00753",
+      "output_sha256": "91d6b400208becae07866344e85c99220c1b36a41c5f820d545f0f1724cd9614",
+      "baseline_rows_preserved": 524,
+      "added_keys": [
+        "169980",
+        "169994",
+        "169995",
+        "179981"
+      ]
+    },
+    {
+      "logical": "master/mana_board/mana_node.orderedmap",
+      "baseline_sha256": "648acac2d60d9bfa1edc9789e0339a4509b1e573bd1386e04ab4ecec086c7fb9",
+      "output_sha256": "c8ae6dd28697d88b332db43619ce7891bfe9a9fc0a1bba6f5c71b6f2ca6bff32",
+      "baseline_rows_preserved": 514,
+      "added_keys": [
+        "169980",
+        "169994",
+        "169995",
+        "179981"
+      ]
+    },
+    {
+      "logical": "master/mana_board/upskill.orderedmap",
+      "baseline_sha256": "14e09963c7c853ad05a29f2b51efda488c5aaf8af68d287fba5c8b1d84f324f6",
+      "output_sha256": "0da9f8813a93d03a8cc6ed62a2fe83eb4fdf501f1c05e54dc0a1c2405249abbe",
+      "baseline_rows_preserved": 378,
+      "added_keys": [
+        "169980",
+        "169994",
+        "169995",
+        "179981"
+      ]
+    },
+    {
+      "logical": "master/rich_text/rich_text_html.orderedmap",
+      "baseline_sha256": "5fe21e1e1bdcccf98156760505e397309d9ed041906d341dd48ad17643dc6994",
+      "output_sha256": "a0021e4a36837b93ea3f285cfae133c58614e63ab7d094f75328f577a8b40103",
+      "baseline_rows_preserved": 215,
+      "added_keys": [
+        "rich_text/cnmod_ashen_verdict_gacha_note"
+      ]
+    },
+    {
+      "logical": "master/shop/event_item_shop.orderedmap",
+      "baseline_sha256": "62e45ceb649555f32019dba12c1f6127e635b2a1426995eb7b686766b0e69230",
+      "output_sha256": "f4fd06bc0ea19e5f8a790a7d99144355509104814a1f2c941666e219a3fe2700",
+      "baseline_rows_preserved": 8573,
+      "added_keys": [
+        "9700118"
+      ]
+    },
+    {
+      "logical": "master/skill/action_skill.orderedmap",
+      "baseline_sha256": "6ee8da3796ac683bdb230d36cb70d6777f2634295ae570c7155f57c03ae4a6ce",
+      "output_sha256": "d1f97662da340d6e8dbce906ff464e6c30d6acb7cbd1ddc8912dc4d96eb8640e",
+      "baseline_rows_preserved": 588,
+      "added_keys": [
+        "maou2_playable",
+        "white_tiger_ghost_playable",
+        "cnmod_epuration_empress",
+        "abyss_beast_playable"
+      ]
+    },
+    {
+      "logical": "master/skill/power_flip_action.orderedmap",
+      "baseline_sha256": "c7031ae9133866d674ff8d928c5b429373c4e1538068b116b674bc8a75656461",
+      "output_sha256": "a63a205269a023fa95f0f74721361d3cb450d829ed434fddf4a6fbc378c02b23",
+      "baseline_rows_preserved": 16,
+      "added_keys": [
+        "maou2_playable_pf",
+        "white_tiger_ghost_playable_pf",
+        "cnmod_epuration_empress_pf",
+        "abyss_beast_playable_pf"
+      ]
+    },
+    {
+      "logical": "master/skill_preview/skill_preview_character.orderedmap",
+      "baseline_sha256": "2ba4d7a4c4d29e4cf82aa1ec88f395c0e8e9d591c34cf4952720971d0731cf0a",
+      "output_sha256": "82f62e87db85e1a725646afdd68eeb0d155290c21fba2467f0b31cc3808af899",
+      "baseline_rows_preserved": 506,
+      "added_keys": [
+        "169980",
+        "169994",
+        "169995",
+        "179981"
+      ]
+    },
+    {
+      "logical": "master/stance_detail/character_stance_detail.orderedmap",
+      "baseline_sha256": "ce89c381db325f914b06224bc4355af750a03039f2993dcf153608bdb1668183",
+      "output_sha256": "80f290955eb49be12f68ee07be11d09e22b052698551a219037bd361b5056641",
+      "baseline_rows_preserved": 508,
+      "added_keys": [
+        "169980",
+        "169994",
+        "169995",
+        "179981"
+      ]
+    },
+    {
+      "logical": "master/string/custom_ability_string.orderedmap",
+      "baseline_sha256": "806546e08ba85bab8b4e37498ae07895f56ad1fbd387fcdb211cac187f6cf375",
+      "output_sha256": "bd055b0a4a3a07887a930753ff412af5a024822efefb8316a164c8538f2348d0",
+      "baseline_rows_preserved": 118,
+      "added_keys": [
+        "ability_skill_maou2_playable_followup",
+        "ability_skill_maou2_playable_pf_lv2",
+        "ability_skill_maou2_playable_pf_lv3",
+        "ability_skill_maou2_playable_dash",
+        "ability_skill_maou2_playable_eye",
+        "ability_skill_maou2_playable_meteor",
+        "ability_skill_maou2_playable_ring",
+        "override_string_white_tiger_ghost_playable_pf",
+        "ability_skill_white_tiger_ghost_pf_lv1_followup",
+        "ability_skill_white_tiger_ghost_pf_lv2_followup",
+        "ability_skill_white_tiger_ghost_pf_lv3_followup",
+        "ability_skill_white_tiger_ghost_twin_followup",
+        "ability_skill_white_tiger_ghost_pf_lv3_ex_followup",
+        "ability_skill_cnmod_epuration_empress_a6_chase",
+        "power_flip_abyss_beast_playable",
+        "ability_skill_abyss_beast_familiar",
+        "ability_skill_abyss_beast_awaken",
+        "ability_skill_cnmod_epuration_empress_sword",
+        "ability_skill_cnmod_epuration_empress_purge",
+        "ability_skill_cnmod_epuration_empress_final",
+        "override_string_cnmod_epuration_empress_pf"
+      ]
+    }
+  ],
+  "degrees": [
+    {
+      "degree_id": 9900002,
+      "logical": "dynamic/degree/degree_mod_abyss_rush_champion.png",
+      "size": 19800,
+      "sha256": "785a338b025f5ed025b9333cc019b00d4426bc8a5cedefd27f6795268080c4ca",
+      "dimensions": [
+        320,
+        50
+      ],
+      "cdn_png_signature": "89 70 6e 67"
+    },
+    {
+      "degree_id": 9900003,
+      "logical": "dynamic/degree/degree_mod_abyss_rush_runner_up.png",
+      "size": 21043,
+      "sha256": "e0595491452ca95d9426aa52e58a32dd00f8b0d06910d13debb0370937d13605",
+      "dimensions": [
+        320,
+        50
+      ],
+      "cdn_png_signature": "89 70 6e 67"
+    },
+    {
+      "degree_id": 9900004,
+      "logical": "dynamic/degree/degree_mod_abyss_rush_upper_rank.png",
+      "size": 20212,
+      "sha256": "23fb3e2d1f98495fda950c89f6a96fa2a42beb835da67b0497df270a98103c4a",
+      "dimensions": [
+        320,
+        50
+      ],
+      "cdn_png_signature": "89 70 6e 67"
+    },
+    {
+      "degree_id": 9900005,
+      "logical": "dynamic/degree/degree_mod_abyss_rush_participant.png",
+      "size": 20629,
+      "sha256": "9c46d8a48a2f75a3451b3020bbc2c591c52dcb1ec0c567b2b6fed7b1b0787f1a",
+      "dimensions": [
+        320,
+        50
+      ],
+      "cdn_png_signature": "89 70 6e 67"
+    },
+    {
+      "degree_id": 9900006,
+      "logical": "dynamic/degree/degree_mod_veteran_player.png",
+      "size": 21505,
+      "sha256": "2a5ceae62ff8e06e07ca1a506351ec634bde62874f0e02e2da3564688c5e2208",
+      "dimensions": [
+        320,
+        50
+      ],
+      "cdn_png_signature": "89 70 6e 67"
+    }
+  ],
+  "archives": [
+    {
+      "name": "pinball-1.4.91-1.4.92-1-0829-home-load-rank-p5b.zip",
+      "size": 18413421,
+      "sha256": "d488827eb143e917dfea0c984cd95e5c86ff95a69b42a868a8cf877846170104",
+      "members": 100
+    },
+    {
+      "name": "pinball-1.4.91-1.4.92-2-0829-home-load-rank-p5b.zip",
+      "size": 11346313,
+      "sha256": "33868142fc355c932f6c5f41c74a73125b32657c041a89144a03461c9ecf45fc",
+      "members": 550
+    }
+  ],
+  "manifest_before_sha256": "cbfce1991d9084610707c50d5e7f9a6e75fd599d1b33139018b91d6ab86921e0",
+  "manifest_after_sha256": "e403d6d277a2b2346aef95733773ffca824ad58a25eee2744c432123d2ed9691",
+  "preservation": {
+    "rush_event_700099_not_selected": true,
+    "equipment_8000101_through_8000115_not_selected": true,
+    "restored_legacy_character_ability_rows": 18,
+    "single_combined_release_1_4_92": true,
+    "ticket_icon_reference_closure": true,
+    "baseline_table_rows_byte_identical": 35562,
+    "feature_banner_other_rows_byte_identical": 602,
+    "client_cdn_png_signature": "official obfuscated 89 70 6e 67 retained"
+  }
+}

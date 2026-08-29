@@ -7735,7 +7735,7 @@
     "upstream full client pool row",
     "upstream full server pool snapshot",
     "old tower seed 2026082507",
-    "local historical edges 1.4.88->1.4.94 as client prerequisites"
+    "withdrawn later local edges as client prerequisites"
   ],
   "cloud_modified": false,
   "runtime_mirror_modified": false
