@@ -20,7 +20,20 @@ public final class FindMethodBody {
                 int abcIndex = 0;
                 for (ABCContainerTag container : swf.getAbcList()) {
                     ABC abc = container.getABC();
-                    int bodyIndex = abc.findMethodBodyByName(className, methodName);
+                    int bodyIndex;
+                    if (methodName.equals("<constructor>")) {
+                        int classIndex = abc.findClassByName(className);
+                        bodyIndex = classIndex < 0
+                            ? -1
+                            : abc.findBodyIndex(abc.instance_info.get(classIndex).iinit_index);
+                    } else if (methodName.equals("<class-initializer>")) {
+                        int classIndex = abc.findClassByName(className);
+                        bodyIndex = classIndex < 0
+                            ? -1
+                            : abc.findBodyIndex(abc.class_info.get(classIndex).cinit_index);
+                    } else {
+                        bodyIndex = abc.findMethodBodyByName(className, methodName);
+                    }
                     if (bodyIndex >= 0) {
                         System.out.println(
                             className + "." + methodName

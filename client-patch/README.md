@@ -43,5 +43,19 @@
 
 经过实机验证的当前编队轮播更新裁剪、单方法体 P-code 移植、AIR
 `uniqueappversionid` 缓存失效和 APK 回封要求，见
-[Android 角色编队轮播优化](./character-carousel/README.md)。后续 Android SWF 改动必须以已验证成品
-APK 为基线，并为每个不同 SWF 生成新的 `uniqueappversionid`。
+[Android 角色编队轮播优化](./character-carousel/README.md)。该 APK 是排行榜补丁的重建基线；排行榜
+验收后，后续 Android SWF 改动应从下节锁定的通用 Rush 成品继续，并为每个不同 SWF 生成新的
+`uniqueappversionid`。
+
+## Android Rush 连战排行榜
+
+复用官方 Rush 排行榜界面，通过一套服务端驱动协议读取活动名称、开放状态、排行、本人定位与
+奖励字段。深渊连战和后续幻想连战共用客户端实现；新活动只需服务端登记，不再修改 SWF。
+客户端按 15 个既有方法体从上述角色轮播成品 APK 移植，详见
+[Android Rush 连战排行榜客户端补丁](./rush-leaderboard/README.md)。完整类导入只允许作为临时 carrier，
+不得直接回封发版。
+
+当前后续修改基线是该文档锁定的通用 Rush 成品（APK SHA-256
+`07C316413E4E3F99DFF83C52A5000F03ECBD466E76D5BC9F29FCD0884072DE09`）。修改流程固定为：本地构建
+并产生新 UUID → 静态/方法体/签名校验 → 交给用户覆盖安装和真机测试 → 用户验收后再更新权威基线并
+提交。失败候选不得成为下一次基线，也不得进入 Git。

@@ -24,9 +24,10 @@
 队伍编成、左右切换、编辑和返回均可用。首次切到尚未加载过的相邻编队仍可能出现一次加载停顿，
 之后恢复流畅；这是原版已有的按需加载行为，不应通过常驻预更新相邻编队来掩盖。
 
-后续任何客户端改动都应直接以上述成品 APK 为基线，先提取它的
-`assets/worldflipper_android_release.swf`，从而自然保留本补丁。不要再从旧 LAN APK、分享包或
-AB00–AB07/AB09 诊断包开始。
+重建 Rush 排行榜补丁时应直接以上述成品 APK 为基线，先提取它的
+`assets/worldflipper_android_release.swf`，从而自然保留本补丁。Rush 排行榜已经验收后，新的客户端
+功能应从 `../rush-leaderboard/README.md` 锁定的通用 Rush 成品继续，避免重复移植或丢失排行榜。
+无论哪条路径，都不要再从旧 LAN APK、分享包或 AB00–AB07/AB09 诊断包开始。
 
 ## 从原始 LAN 基线复现补丁
 
@@ -108,6 +109,8 @@ python -X utf8 client-patch\character-carousel\repack_apk_with_unique.py `
 
 当基线是上面的最终成品时，`--old-unique` 是
 `808339e8-8e32-42f5-9a1a-d66cc876d4bb`；新 SWF 绝不能再次使用这个值。
+若以上一版通用 Rush 成品继续，旧值改为该成品的
+`690fdca8-a0cf-4bf8-9241-733bcc7ed124`，下一版同样必须生成从未使用过的新 UUID。
 
 回封后依次执行 `zipalign -p -f 4`、使用项目持久签名密钥签名，并验证：
 

@@ -62,6 +62,8 @@ wdfp_data*
 *.ipa
 
 # Generated patch workspaces and historical backups
+outputs/
+/work/
 assets/asset-patch/production/
 assets/asset-patch/retired/
 assets/asset-patch/archive/
