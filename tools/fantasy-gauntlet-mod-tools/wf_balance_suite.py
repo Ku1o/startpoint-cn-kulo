@@ -815,7 +815,7 @@ def main() -> None:
     # ---- 7.7 (2026-07-09 追加轮) ----
     # a) 技能槽最大值+15% 队长行 → 全员;b) 进入Fever充能/弹射充能 少量扩发(每属性4人,非fever系);
     # c) 三/四星再加料:家族组件行 + 第二条队长好玩行(相邻流派轮转)
-    # 技能槽最大值 = 枚举245(wf_describe 误标"2号位技能槽");捐赠体=绮拉131122 队长L3
+    # 技能槽最大值 = 枚举245(内部名SecondSkillGauge);捐赠体=绮拉131122 队长L3
     gmax_leader = [(k, li) for k, rows in lparsed.items()
                    for li, r0 in enumerate(rows, 1) if pad(r0)[45] == "245"][:1]
     fever_gauge = [(k, li) for k, rows in parsed.items()

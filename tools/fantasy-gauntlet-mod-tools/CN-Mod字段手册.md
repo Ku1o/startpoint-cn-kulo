@@ -115,7 +115,7 @@
 | 43 | `trigger.values.instant_precontent.values.threshold.first_max` | 瞬发前置效果·阈值·SLv满级值 | 数值 |
 | 44 | `trigger.values.instant_precontent.values.limit` | 瞬发前置效果·上限 | 文本/数值 |
 | 45 | `trigger.values.instant_precontent.values.unique_condition_id` | 瞬发前置效果·唯一条件ID | 文本/数值 |
-| 46 | `trigger.values.instant_delay` | 瞬发延迟(帧) | 文本/数值 |
+| 46 | `trigger.values.instant_delay` | 瞬发延迟(秒；客户端乘60换算为帧) | 文本/数值 |
 | 47 | `trigger.values.instant_content` | 瞬发效果 | 枚举(724) |
 | 48 | `trigger.values.instant_content.values.target` | 瞬发效果·目标 | 枚举(15) |
 | 49 | `trigger.values.instant_content.values.target.values.character_groups` | 瞬发效果·目标·角色组 | 文本/数值 |
@@ -203,7 +203,7 @@
 | 规则 | 说明 |
 |---|---|
 | **千分比** | 强度/阈值类数值 `1000 = 1%`(如 25000 = 25%) |
-| **帧** | 时间类数值以帧计,`60 帧 = 1 秒`(cooltime/frame/instant_delay) |
+| **时间** | `cooltime`为原始帧数；内容`frame`数值对以`100000=1帧`存储；`instant_delay`为原始秒数，客户端再乘60换算为帧 |
 | **计数阈值** | threshold `100000 = 1 次`(如 300000 = 累计 3 次触发) |
 | **SLv 两端值** | 每个数值字段有一对列:`power1` = 技能等级(SLv)1 时的值,`first_max` = SLv 满级值;游戏按当前 SLv 在两端**线性插值**(依据 `AbilityPowerValue.resolve`) |
 | **多行词条** | 一个 ability 键可有 1-2 行(CSV 多行),两行常为效果 A/B 或等级两端,行结构相同 |
