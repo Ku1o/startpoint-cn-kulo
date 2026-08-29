@@ -129,3 +129,11 @@ Android 与 iOS 的详细流程见[客户端补丁说明](./client-patch/README.
 - [wf-2.1.125-cn-decompiled](https://github.com/dennis96292/wf-2.1.125-cn-decompiled)：CN 客户端反编译参考
 
 本项目采用 [GPL-3.0](./LICENSE) 许可证。
+
+## 爱发电
+
+StarPoint CN 已入驻爱发电：
+
+https://afdian.com/a/startpoint-cn
+
+此 GitHub 项目用于确认该爱发电主页与创作者身份的关联。
