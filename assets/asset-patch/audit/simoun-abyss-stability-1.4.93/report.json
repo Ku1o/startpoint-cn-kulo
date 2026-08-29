@@ -1,0 +1,128 @@
+{
+  "schema": "wf-simoun-abyss-stability-release/v1",
+  "patch_id": "simoun-abyss-stability-1.4.93",
+  "base_version": "1.4.92",
+  "target_version": "1.4.93",
+  "segments": [
+    {
+      "schema": "wf-simoun-flock-reset-rollback/v1",
+      "base_version": "1.4.92",
+      "target_version": "1.4.93",
+      "character_id": 169996,
+      "flock_reset": false,
+      "skill_point_target_id": 20,
+      "party_skill_gauge_percent": 15,
+      "archive": {
+        "name": "pinball-1.4.92-1.4.93-1-0830-simoun-flock-reset-rollback.zip",
+        "size": 455189,
+        "sha256": "b5435249e11ab52e4d6ff38bab633ae13e318bef9c902336ee2329638d815ab2",
+        "members": 5
+      },
+      "tables": [
+        {
+          "logical": "master/character/character_text.orderedmap",
+          "target_keys": [
+            "169996"
+          ],
+          "base_sha256": "67011668c33fa6f8fb0bf718ee1e1b8fb771d13104aa10a3b5eec0efbd8772ca",
+          "source_sha256": "7b74597dfe6143f914fbe9a222ca79e46f93ae91bc372243b6ba3db0c0c45b65",
+          "output_sha256": "f1049c1b16c17febf06685d79f463a442229972ff547e40b34fbdc505125319f",
+          "non_target_rows_preserved": 527
+        },
+        {
+          "logical": "master/skill/action_skill.orderedmap",
+          "target_keys": [
+            "simoun_dark"
+          ],
+          "base_sha256": "a4f57544b6d6d9f8624b6491c9d8a50daee8a593e2b116fad79303c7f04c5a0b",
+          "source_sha256": "7a4ddb1449f662000919f37a53e95f34f8ed289d3f68f3275a10cd97a354536c",
+          "output_sha256": "a6c10aa2a90deb6a023f4da22e371dca39fe7a27a828a2b93e48490308ecc539",
+          "non_target_rows_preserved": 591
+        }
+      ],
+      "skill_dsl": [
+        {
+          "logical": "battle/action/skill/action/rare5/simoun_dark$simoun_dark_1.action.dsl.amf3.deflate",
+          "sha256": "2f05d76d7780f87f94b10764d2bf472c57c64beb6856d86e3ec741a6c5b98373",
+          "size": 959
+        },
+        {
+          "logical": "battle/action/skill/action/rare5/simoun_dark$simoun_dark_2.action.dsl.amf3.deflate",
+          "sha256": "2f05d76d7780f87f94b10764d2bf472c57c64beb6856d86e3ec741a6c5b98373",
+          "size": 959
+        },
+        {
+          "logical": "battle/action/skill/action/rare5/simoun_dark$simoun_dark_3.action.dsl.amf3.deflate",
+          "sha256": "2f05d76d7780f87f94b10764d2bf472c57c64beb6856d86e3ec741a6c5b98373",
+          "size": 959
+        }
+      ]
+    },
+    {
+      "schema": "wf-abyss-custom-position-fix/v1",
+      "base_version": "1.4.92",
+      "target_version": "1.4.93",
+      "event_id": 700099,
+      "rounds_fixed": [
+        3,
+        4
+      ],
+      "archive": {
+        "name": "pinball-1.4.92-1.4.93-2-0830-abyss-position-fix.zip",
+        "size": 82641,
+        "sha256": "76d87fd38af53c2c4b9b74318a39ddb4bbcea8f5e1059e27408f61480c8b5095",
+        "members": 1
+      },
+      "table": {
+        "logical": "master/battle/field_data.orderedmap",
+        "base_sha256": "47fd1e7f607c6cc310b25c5b0272ac39f528be0ecd6b99aac52a55199b0b8165",
+        "output_sha256": "74e25210143d5516c26583b08029d40a1f0be1d2c110a93bd338eaee53d1ac48",
+        "non_target_rows_preserved": true
+      },
+      "fields": [
+        {
+          "field": "mod_rogue_f3",
+          "source_field": "treant_single",
+          "terrain": "battle/terrain/event_quest/challenge_dungeon_event/chapter_boss/treant_single",
+          "zone_preserved": "mod_rogue_z3",
+          "required_positions": [
+            "p0"
+          ],
+          "target_positions": [
+            [
+              "p0",
+              1
+            ]
+          ],
+          "source_positions_equal": true
+        },
+        {
+          "field": "mod_rogue_f4",
+          "source_field": "hermit_crab_another_light_single",
+          "terrain": "battle/terrain/event_quest/challenge_dungeon_event/another_boss/hermit_crab_another_light_single",
+          "zone_preserved": "mod_rogue_z4",
+          "required_positions": [
+            "p0",
+            "p1",
+            "p2"
+          ],
+          "target_positions": [
+            [
+              "p0",
+              1
+            ],
+            [
+              "p1",
+              1
+            ],
+            [
+              "p2",
+              1
+            ]
+          ],
+          "source_positions_equal": true
+        }
+      ]
+    }
+  ]
+}

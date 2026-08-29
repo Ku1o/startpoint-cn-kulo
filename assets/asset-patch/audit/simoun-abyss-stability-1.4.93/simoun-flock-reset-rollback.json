@@ -1,0 +1,54 @@
+{
+  "schema": "wf-simoun-flock-reset-rollback/v1",
+  "base_version": "1.4.92",
+  "target_version": "1.4.93",
+  "character_id": 169996,
+  "flock_reset": false,
+  "skill_point_target_id": 20,
+  "party_skill_gauge_percent": 15,
+  "archive": {
+    "name": "pinball-1.4.92-1.4.93-1-0830-simoun-flock-reset-rollback.zip",
+    "size": 455189,
+    "sha256": "b5435249e11ab52e4d6ff38bab633ae13e318bef9c902336ee2329638d815ab2",
+    "members": 5
+  },
+  "tables": [
+    {
+      "logical": "master/character/character_text.orderedmap",
+      "target_keys": [
+        "169996"
+      ],
+      "base_sha256": "67011668c33fa6f8fb0bf718ee1e1b8fb771d13104aa10a3b5eec0efbd8772ca",
+      "source_sha256": "7b74597dfe6143f914fbe9a222ca79e46f93ae91bc372243b6ba3db0c0c45b65",
+      "output_sha256": "f1049c1b16c17febf06685d79f463a442229972ff547e40b34fbdc505125319f",
+      "non_target_rows_preserved": 527
+    },
+    {
+      "logical": "master/skill/action_skill.orderedmap",
+      "target_keys": [
+        "simoun_dark"
+      ],
+      "base_sha256": "a4f57544b6d6d9f8624b6491c9d8a50daee8a593e2b116fad79303c7f04c5a0b",
+      "source_sha256": "7a4ddb1449f662000919f37a53e95f34f8ed289d3f68f3275a10cd97a354536c",
+      "output_sha256": "a6c10aa2a90deb6a023f4da22e371dca39fe7a27a828a2b93e48490308ecc539",
+      "non_target_rows_preserved": 591
+    }
+  ],
+  "skill_dsl": [
+    {
+      "logical": "battle/action/skill/action/rare5/simoun_dark$simoun_dark_1.action.dsl.amf3.deflate",
+      "sha256": "2f05d76d7780f87f94b10764d2bf472c57c64beb6856d86e3ec741a6c5b98373",
+      "size": 959
+    },
+    {
+      "logical": "battle/action/skill/action/rare5/simoun_dark$simoun_dark_2.action.dsl.amf3.deflate",
+      "sha256": "2f05d76d7780f87f94b10764d2bf472c57c64beb6856d86e3ec741a6c5b98373",
+      "size": 959
+    },
+    {
+      "logical": "battle/action/skill/action/rare5/simoun_dark$simoun_dark_3.action.dsl.amf3.deflate",
+      "sha256": "2f05d76d7780f87f94b10764d2bf472c57c64beb6856d86e3ec741a6c5b98373",
+      "size": 959
+    }
+  ]
+}

@@ -3,7 +3,9 @@
 本模块只转换调用方传入的 master-data / ActionDsl 字节，不写 CDN、
 不生成补丁包，也不接触运行镜像。能力1～3与队长技中的团队向增益保留50%，
 自身专属增益保留75%；能力4～6、伤害、回复、敌方减益与「羊群」获取规则
-保持不变。主动技能的全队技能槽由20%调整为15%。
+保持不变。主动技能的全队技能槽由20%调整为15%，不再清空「羊群」。
+``AddSkillPoint`` 的第一个参数是作用对象 ID，必须保留为 20；只有第二个
+参数中的固定比例由 0.20 调整为 0.15。
 """
 
 from __future__ import annotations
@@ -41,7 +43,10 @@ SKILL_DESCRIPTION = (
     "根据发动技能时自身「羊群」等级，对全场敌人造成暗属性伤害，并恢复全体队员生命值："
     "0／1／2／3／4级时，伤害倍率为20／40／60／80／100倍，"
     "生命回复量为各自最大生命值的0%／3%／6%／9%／12%。"
-    "上述效果结算后，将自身「羊群」等级清零。"
+)
+
+UNSAFE_RESET_SKILL_DESCRIPTION = (
+    SKILL_DESCRIPTION + "上述效果结算后，将自身「羊群」等级清零。"
 )
 
 OLD_SKILL_DESCRIPTIONS = {
@@ -52,6 +57,7 @@ OLD_SKILL_DESCRIPTIONS = {
         "回复量为最大生命值的0%／3%／6%／9%／12%。"
     ),
     SKILL_DESCRIPTION,
+    UNSAFE_RESET_SKILL_DESCRIPTION,
 }
 
 # (行号, 数值列, 当前值, 目标值, 说明)
@@ -201,7 +207,7 @@ def _skill_facts(tree: list[Any], logical: str) -> dict[str, Any]:
     }
 
 
-RESET_COMMAND = [
+UNSAFE_RESET_COMMAND = [
     "Event",
     [
         "Wait",
@@ -216,7 +222,7 @@ RESET_COMMAND = [
 
 
 def patch_skill_dsl(raw: bytes, logical: str) -> tuple[bytes, dict[str, Any]]:
-    """主动技能全队技能槽 20%→15%，命中结算后清空「羊群」。"""
+    """保留技能槽作用对象 ID 20，将比例改为15%，并移除羊群清零。"""
     if logical not in SKILL_DSL_LOGICALS.values():
         raise ValueError(f"不是受支持的西蒙主动技能路径: {logical}")
     tree = _decode_skill(raw, logical)
@@ -226,36 +232,41 @@ def patch_skill_dsl(raw: bytes, logical: str) -> tuple[bytes, dict[str, Any]]:
     gauge = facts["gauge"]
     if len(gauge) != 3:
         raise ValueError(f"{logical}: AddSkillPoint 形状漂移")
+    target_id = int(gauge[1])
     ratio = _fixed_range(gauge[2], "全队技能槽")
-    if (int(gauge[1]), ratio) not in ((20, 0.2), (15, 0.15)):
-        raise ValueError(f"{logical}: 全队技能槽数值未审核: {gauge[1]}/{ratio}")
-    gauge[1] = 15
+    if (target_id, ratio) not in ((20, 0.2), (20, 0.15), (15, 0.15)):
+        raise ValueError(
+            f"{logical}: 技能槽对象ID/数值未审核: {target_id}/{ratio}"
+        )
+    # AddSkillPoint 参数1是作用对象 ID，不是百分比。历史错误把 20 改成了
+    # 15，会让运行器解析到无效对象并报 C16103。
+    gauge[1] = 20
     gauge[2][0]["min"] = 0.15
     gauge[2][0]["max"] = 0.15
 
     if facts["resets"]:
-        if RESET_COMMAND not in tree[11][1]:
+        if UNSAFE_RESET_COMMAND not in tree[11][1]:
             raise ValueError(f"{logical}: 羊群清零命令位置或延迟未审核")
-        expected = RESET_COMMAND[1][3][1][0][1]
+        expected = UNSAFE_RESET_COMMAND[1][3][1][0][1]
         if facts["resets"][0] != expected:
             raise ValueError(f"{logical}: 羊群清零命令参数漂移")
-    else:
-        tree[11][1].append(copy.deepcopy(RESET_COMMAND))
+        tree[11][1].remove(UNSAFE_RESET_COMMAND)
 
     changed = tree != before
     output = _raw_deflate(wf_dsl.encode_amf3(tree)) if changed else raw
     readback = _decode_skill(output, logical)
     final = _skill_facts(readback, logical)
-    if (final["gauge"][1], _fixed_range(final["gauge"][2], "全队技能槽")) != (15, 0.15):
+    if (final["gauge"][1], _fixed_range(final["gauge"][2], "全队技能槽")) != (20, 0.15):
         raise AssertionError(f"{logical}: 全队技能槽回读不一致")
-    if final["resets"] != [["ConsumeUniqueCondition", -17, UNIQUE_CONDITION_ID, ["None"]]]:
-        raise AssertionError(f"{logical}: 羊群清零命令回读不一致")
+    if final["resets"]:
+        raise AssertionError(f"{logical}: 羊群清零命令仍然存在")
     return output, {
         "logical": logical,
+        "skill_point_target_id": 20,
         "party_skill_gauge_percent": 15,
         "damage_multipliers": [20, 40, 60, 80, 100],
         "party_heal_max_hp_percent": [0, 3, 6, 9, 12],
-        "flock_reset": "伤害与回复命令执行后延迟3帧消耗全部羊群",
+        "flock_reset": "已撤销；主动技能不再清空羊群",
         "changed": changed,
     }
 
@@ -460,7 +471,7 @@ __all__ = [
     "CHARACTER_TEXT_LOGICAL",
     "LEADER_EDITS",
     "LEADER_ABILITY_LOGICAL",
-    "RESET_COMMAND",
+    "UNSAFE_RESET_COMMAND",
     "SKILL_DESCRIPTION",
     "SKILL_DSL_LOGICALS",
     "patch_ability_table",

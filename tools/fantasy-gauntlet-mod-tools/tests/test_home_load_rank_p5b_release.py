@@ -45,11 +45,9 @@ class HomeLoadRankP5BReleaseTest(unittest.TestCase):
         self.assertGreaterEqual(len(matches), 1, member)
         return matches[-1]
 
-    def test_single_combined_version_and_archive_integrity(self) -> None:
-        self.assertEqual("1.4.92", self.manifest["cdn_version"])
-        enabled = [item for item in self.manifest["patches"] if item.get("enabled")]
-        self.assertEqual(release.PATCH_ID, enabled[-1]["id"])
-        self.assertEqual("1.4.92", enabled[-1]["version"])
+    def test_frozen_1_4_92_archive_integrity(self) -> None:
+        self.assertEqual("1.4.92", self.entry["version"])
+        self.assertEqual("1.4.91", self.entry["depends_on"])
         for archive_path, expected in zip(self.archives, self.entry["archive_integrity"]):
             raw = archive_path.read_bytes()
             self.assertEqual(expected["size"], len(raw))

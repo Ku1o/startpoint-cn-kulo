@@ -1,0 +1,66 @@
+{
+  "schema": "wf-abyss-custom-position-fix/v1",
+  "base_version": "1.4.92",
+  "target_version": "1.4.93",
+  "event_id": 700099,
+  "rounds_fixed": [
+    3,
+    4
+  ],
+  "archive": {
+    "name": "pinball-1.4.92-1.4.93-2-0830-abyss-position-fix.zip",
+    "size": 82641,
+    "sha256": "76d87fd38af53c2c4b9b74318a39ddb4bbcea8f5e1059e27408f61480c8b5095",
+    "members": 1
+  },
+  "table": {
+    "logical": "master/battle/field_data.orderedmap",
+    "base_sha256": "47fd1e7f607c6cc310b25c5b0272ac39f528be0ecd6b99aac52a55199b0b8165",
+    "output_sha256": "74e25210143d5516c26583b08029d40a1f0be1d2c110a93bd338eaee53d1ac48",
+    "non_target_rows_preserved": true
+  },
+  "fields": [
+    {
+      "field": "mod_rogue_f3",
+      "source_field": "treant_single",
+      "terrain": "battle/terrain/event_quest/challenge_dungeon_event/chapter_boss/treant_single",
+      "zone_preserved": "mod_rogue_z3",
+      "required_positions": [
+        "p0"
+      ],
+      "target_positions": [
+        [
+          "p0",
+          1
+        ]
+      ],
+      "source_positions_equal": true
+    },
+    {
+      "field": "mod_rogue_f4",
+      "source_field": "hermit_crab_another_light_single",
+      "terrain": "battle/terrain/event_quest/challenge_dungeon_event/another_boss/hermit_crab_another_light_single",
+      "zone_preserved": "mod_rogue_z4",
+      "required_positions": [
+        "p0",
+        "p1",
+        "p2"
+      ],
+      "target_positions": [
+        [
+          "p0",
+          1
+        ],
+        [
+          "p1",
+          1
+        ],
+        [
+          "p2",
+          1
+        ]
+      ],
+      "source_positions_equal": true
+    }
+  ]
+}

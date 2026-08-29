@@ -124,7 +124,7 @@ def csv_table_fixture(
 
 
 class SimounSkillBalanceTest(unittest.TestCase):
-    def test_skill_gauge_is_fifteen_percent_and_flock_resets_after_wait(self) -> None:
+    def test_skill_gauge_is_fifteen_percent_without_flock_reset(self) -> None:
         logical = balance.SKILL_DSL_LOGICALS[1]
         raw = skill_payload()
         before = balance._decode_skill(raw, logical)
@@ -132,20 +132,15 @@ class SimounSkillBalanceTest(unittest.TestCase):
         after = balance._decode_skill(patched, logical)
         facts = balance._skill_facts(after, logical)
 
-        self.assertEqual(facts["gauge"], ["AddSkillPoint", 15, fixed(0.15)])
-        self.assertEqual(
-            facts["resets"],
-            [["ConsumeUniqueCondition", -17, balance.UNIQUE_CONDITION_ID, ["None"]]],
-        )
-        self.assertEqual(after[11][1][-1], balance.RESET_COMMAND)
+        self.assertEqual(facts["gauge"], ["AddSkillPoint", 20, fixed(0.15)])
+        self.assertEqual(facts["resets"], [])
         self.assertEqual(sorted(facts["attacks"]), [20, 40, 60, 80, 100])
         self.assertEqual(
             sorted(facts["heals"]),
             [0.03, 0.03, 0.06, 0.06, 0.09, 0.09, 0.12, 0.12],
         )
         expected = copy.deepcopy(before)
-        expected[11][1][0][1] = ["AddSkillPoint", 15, fixed(0.15)]
-        expected[11][1].append(copy.deepcopy(balance.RESET_COMMAND))
+        expected[11][1][0][1] = ["AddSkillPoint", 20, fixed(0.15)]
         self.assertEqual(after, expected)
         self.assertTrue(report["changed"])
 
@@ -153,12 +148,39 @@ class SimounSkillBalanceTest(unittest.TestCase):
         self.assertEqual(again, patched)
         self.assertFalse(second["changed"])
 
+    def test_previously_published_unsafe_flock_reset_is_removed(self) -> None:
+        logical = balance.SKILL_DSL_LOGICALS[2]
+        tree = balance._decode_skill(skill_payload(), logical)
+        tree[11][1].append(copy.deepcopy(balance.UNSAFE_RESET_COMMAND))
+        raw = balance._raw_deflate(wf_dsl.encode_amf3(tree))
+
+        patched, report = balance.patch_skill_dsl(raw, logical)
+        after = balance._decode_skill(patched, logical)
+
+        self.assertEqual(balance._skill_facts(after, logical)["resets"], [])
+        self.assertEqual(after[11][1][0][1], ["AddSkillPoint", 20, fixed(0.15)])
+        self.assertTrue(report["changed"])
+
+    def test_previously_published_invalid_skill_point_target_is_repaired(self) -> None:
+        logical = balance.SKILL_DSL_LOGICALS[3]
+        tree = balance._decode_skill(skill_payload(), logical)
+        tree[11][1][0][1] = ["AddSkillPoint", 15, fixed(0.15)]
+        raw = balance._raw_deflate(wf_dsl.encode_amf3(tree))
+
+        patched, report = balance.patch_skill_dsl(raw, logical)
+        after = balance._decode_skill(patched, logical)
+
+        self.assertEqual(after[11][1][0][1], ["AddSkillPoint", 20, fixed(0.15)])
+        self.assertEqual(balance._skill_facts(after, logical)["resets"], [])
+        self.assertEqual(report["skill_point_target_id"], 20)
+        self.assertTrue(report["changed"])
+
     def test_description_is_exact_about_hp_and_cast_time_flock(self) -> None:
         description = balance.SKILL_DESCRIPTION
         self.assertIn("发动技能时自身「羊群」等级", description)
         self.assertIn("生命回复量为各自最大生命值的0%／3%／6%／9%／12%", description)
         self.assertIn("全体队员技能槽增加15%", description)
-        self.assertIn("效果结算后，将自身「羊群」等级清零", description)
+        self.assertNotIn("清零", description)
 
 
 class SimounAbilityBalanceTest(unittest.TestCase):

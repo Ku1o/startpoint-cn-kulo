@@ -1,5 +1,5 @@
 {
-  "cdn_version": "1.4.92",
+  "cdn_version": "1.4.93",
   "patches": [
     {
       "id": "base-1.4.54-to-1.4.55-mod07141843",
@@ -5653,6 +5653,55 @@
         "pinball-1.4.91-1.4.92-2-0829-home-load-rank-p5b.zip",
         "pinball-1.4.91-1.4.92-3-58f49db214d9.zip",
         "pinball-1.4.91-1.4.92-4-0829-mod-balance-fold.zip"
+      ]
+    },
+    {
+      "id": "simoun-abyss-stability-1.4.93",
+      "type": "patch",
+      "name": "西蒙兼容回退与深渊地形修复",
+      "description": "在独立1.4.92至1.4.93版本边中撤销西蒙主动技羊群清零、恢复技能槽作用对象ID 20，并将深渊连战第3、4关恢复为对应Boss原生地形。",
+      "version": "1.4.93",
+      "depends_on": "1.4.92",
+      "enabled": true,
+      "archive": "pinball-1.4.92-1.4.93-1-0830-simoun-flock-reset-rollback.zip",
+      "archive_size": 537830,
+      "files": [
+        "production/upload/30/363f8364e183905b2d0b48b8718b7165135bc2",
+        "production/upload/8b/035728b2151de044fb245988ec5f33ebb544ab",
+        "production/upload/91/79892d704f88d98191c00548bce106402ad5b5",
+        "production/upload/9c/76dd706dc593be1938de95f0209aad444fb2cd",
+        "production/upload/b5/c02767962f79e480495085424d8ad4c9352fa1",
+        "production/upload/d9/1da7f5e99a4c498d341de953e50acfc890a8a2"
+      ],
+      "changes": [
+        "西蒙三档主动技能不再清空羊群；技能槽作用对象ID恢复为20，全队技能槽15%保持不变。",
+        "深渊连战第3关恢复树妖原生地形，补齐唯一自定义坐标p0。",
+        "深渊连战第4关恢复寄居蟹原生地形，补齐自定义坐标p0、p1、p2。",
+        "第3、4关仅替换场景与地形路径，保留mod_rogue_z3/z4及既有Boss、等级、HP和结算配置。"
+      ],
+      "created_at": "2026-08-30",
+      "audit": {
+        "directory": "assets/asset-patch/audit/simoun-abyss-stability-1.4.93",
+        "simoun": "simoun-flock-reset-rollback.json",
+        "abyss": "abyss-custom-position-fix.json"
+      },
+      "archive_integrity": [
+        {
+          "name": "pinball-1.4.92-1.4.93-1-0830-simoun-flock-reset-rollback.zip",
+          "size": 455189,
+          "sha256": "b5435249e11ab52e4d6ff38bab633ae13e318bef9c902336ee2329638d815ab2",
+          "members": 5
+        },
+        {
+          "name": "pinball-1.4.92-1.4.93-2-0830-abyss-position-fix.zip",
+          "size": 82641,
+          "sha256": "76d87fd38af53c2c4b9b74318a39ddb4bbcea8f5e1059e27408f61480c8b5095",
+          "members": 1
+        }
+      ],
+      "chain": [
+        "pinball-1.4.92-1.4.93-1-0830-simoun-flock-reset-rollback.zip",
+        "pinball-1.4.92-1.4.93-2-0830-abyss-position-fix.zip"
       ]
     }
   ]
