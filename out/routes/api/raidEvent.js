@@ -12,6 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const rushEvent_1 = require("../../data/domains/rushEvent");
 const player_1 = require("../../data/domains/player");
 const character_1 = require("../../data/domains/character");
+const mail_1 = require("../../data/domains/mail");
 const party_1 = require("../../data/domains/party");
 const session_1 = require("../../data/domains/session");
 const activeAccount_1 = require("../../data/activeAccount");
@@ -67,31 +68,32 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         const raidBoss = (0, raidEventGlobal_1.getRaidEventGlobalBossSync)(eventId);
         const totalKillCount = raidBoss.totalKillCount;
         const rewardClaim = (0, raidEventGlobal_1.claimRaidEventOverallRewardsSync)(playerId, eventId, totalKillCount);
+        const playerAfterClaim = rewardClaim.rewardResult ? (0, player_1.getPlayerSync)(playerId) : null;
+        if (rewardClaim.rewardResult && playerAfterClaim === null) {
+            throw new Error(`Player ${playerId} disappeared during Raid reward settlement.`);
+        }
         const questKillCounts = (0, raidEventGlobal_1.getRaidEventQuestKillCountsSync)(eventId);
         (0, game_logging_1.gameVerboseLog)(() => { var _a, _b; return `[RAID] summary: folderParties=${Object.keys((_a = serializedPlayedParties.folderParties) !== null && _a !== void 0 ? _a : {}).length} endlessParties=${Object.keys((_b = serializedPlayedParties.endlessParties) !== null && _b !== void 0 ? _b : {}).length}`; });
         reply.header("content-type", "application/x-msgpack");
         return reply.status(200).send({
             "data_headers": (0, utils_1.generateDataHeaders)({ viewer_id: viewerId }),
-            "data": {
-                "aggregated_time": (0, utils_2.clientSerializeDate)((0, utils_1.getServerDate)()),
-                "auto_start_point": 0,
-                "kill_count_reward_data": {
+            "data": Object.assign(Object.assign({ "aggregated_time": (0, utils_2.clientSerializeDate)((0, utils_1.getServerDate)()), "auto_start_point": 0, "kill_count_reward_data": {
                     "received_up_to": rewardClaim.receivedUpTo,
                     "reward_list": rewardClaim.rewardList,
-                },
-                "quest_list": questKillCounts,
-                "raid_boss": {
+                }, "quest_list": questKillCounts, "raid_boss": {
                     "hp_percentage": raidBoss.hpPercentage,
                     "total_kill_count": totalKillCount,
+                } }, (rewardClaim.rewardResult && playerAfterClaim ? {
+                "user_info": {
+                    "free_mana": playerAfterClaim.freeMana,
+                    "free_vmoney": playerAfterClaim.freeVmoney,
+                    "exp_pool": playerAfterClaim.expPool,
                 },
-                "endless_battle_next_round": rushEventData.endlessBattleNextRound,
-                "active_rush_battle_folder_id": rushEventData.activeRushBattleFolderId,
-                "endless_battle_played_max_round": rushEventData.endlessBattleNextRound,
-                "cleared_folder_id_list": clearedFolderIdList,
-                "endless_battle_played_party_list": serializedPlayedParties.endlessParties,
-                "rush_battle_played_party_list": serializedPlayedParties.folderParties,
-                "endless_battle_my_ranking": (0, rush_1.getPlayerRushEventEndlessBattleRankingSync)(playerId, eventId, { rushEventData }),
-            }
+                "character_list": rewardClaim.rewardResult.character_list,
+                "joined_character_id_list": rewardClaim.rewardResult.joined_character_id_list,
+                "equipment_list": rewardClaim.rewardResult.equipment_list,
+                "item_list": rewardClaim.rewardResult.items,
+            } : {})), { "mail_arrived": (0, mail_1.getPlayerMailCountSync)(playerId, true) > 0, "endless_battle_next_round": rushEventData.endlessBattleNextRound, "active_rush_battle_folder_id": rushEventData.activeRushBattleFolderId, "endless_battle_played_max_round": rushEventData.endlessBattleNextRound, "cleared_folder_id_list": clearedFolderIdList, "endless_battle_played_party_list": serializedPlayedParties.endlessParties, "rush_battle_played_party_list": serializedPlayedParties.folderParties, "endless_battle_my_ranking": (0, rush_1.getPlayerRushEventEndlessBattleRankingSync)(playerId, eventId, { rushEventData }) })
         });
     }));
     // ---- get_boss ----
