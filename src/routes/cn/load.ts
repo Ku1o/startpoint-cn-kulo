@@ -31,6 +31,7 @@ import { getPlayerEquipmentListSync } from "../../data/domains/equipment";
 import { getPlayerCharactersManaNodesSync, getPlayerCharactersSync } from "../../data/domains/character";
 import { getPlayerPartyGroupListSync } from "../../data/domains/party";
 import { getPlayerQuestProgressSync } from "../../data/domains/quest";
+import { hijackUnavailableReply } from "../../lib/http-reply";
 
 interface CnLoadBody {
     device_id: number;
@@ -285,6 +286,7 @@ const routes = async (fastify: FastifyInstance) => {
         });
         } catch(e: any) {
             console.error(`[CN-LOAD] ERROR:`, e.message, e.stack);
+            if (hijackUnavailableReply(request, reply)) return reply;
             return reply.status(500).send({ error: "Internal Server Error", message: e.message });
         }
     });

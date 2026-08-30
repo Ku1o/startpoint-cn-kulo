@@ -31,6 +31,7 @@ const equipment_1 = require("../../data/domains/equipment");
 const character_1 = require("../../data/domains/character");
 const party_1 = require("../../data/domains/party");
 const quest_1 = require("../../data/domains/quest");
+const http_reply_1 = require("../../lib/http-reply");
 function wrapOptionFields(d, playerId, resVer) {
     var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q;
     var _r, _s, _t, _u, _v, _w, _x, _y, _z, _0, _1, _2, _3, _4;
@@ -244,6 +245,8 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         }
         catch (e) {
             console.error(`[CN-LOAD] ERROR:`, e.message, e.stack);
+            if ((0, http_reply_1.hijackUnavailableReply)(request, reply))
+                return reply;
             return reply.status(500).send({ error: "Internal Server Error", message: e.message });
         }
     }));

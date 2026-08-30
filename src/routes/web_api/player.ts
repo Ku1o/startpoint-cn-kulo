@@ -26,6 +26,12 @@ import {
     validatePlayerSaveSnapshotV2Sync,
 } from "../../data/snapshots/player-snapshot";
 import { cleanupPlayerImportBackups, createPlayerImportSnapshotBackup } from "../../lib/admin-database-backup";
+import {
+    DEFAULT_PLAYER_SAVE_EXPORT_MAX_BYTES,
+    exportPlayerSaveInWorker,
+    PlayerSaveExportError,
+} from "../../lib/player-save-export";
+import { hijackUnavailableReply } from "../../lib/http-reply";
 
 interface SaveQuery {
     id: string | undefined
@@ -37,7 +43,7 @@ interface GetPlayersQuery {
 }
 
 const defaultPerPage = 25
-const maxSaveUploadBytes = 64 * 1024 * 1024
+const maxSaveUploadBytes = DEFAULT_PLAYER_SAVE_EXPORT_MAX_BYTES
 
 function applyPlayerImportBackupRetention(directory: string) {
     try {
@@ -157,18 +163,38 @@ const routes = async (fastify: FastifyInstance) => {
         const playerId = Number(id)
         if (isNaN(playerId)) return reply.redirect("/player");
 
-        let snapshot
+        const exportStartedAt = Date.now()
+        const abortController = new AbortController()
+        const abortExport = () => {
+            if (!reply.raw.writableEnded) abortController.abort()
+        }
+        reply.raw.once("close", abortExport)
         try {
-            snapshot = createPlayerSaveSnapshotV2Sync(playerId)
-        } catch (error: any) {
-            return reply.status(500).send({ error: `导出失败：${error?.message ?? error}` })
+            const exported = await exportPlayerSaveInWorker(playerId, {
+                signal: abortController.signal,
+                maxBytes: maxSaveUploadBytes,
+            })
+            if (hijackUnavailableReply(request, reply)) return reply
+            console.warn(
+                `[SAVE-EXPORT] completed player=${playerId} rows=${exported.rowCount} `
+                + `bytes=${exported.payload.byteLength} elapsedMs=${Date.now() - exportStartedAt}`,
+            )
+            reply.header("content-disposition", `attachment; filename="save_${playerId}.json"`)
+            return reply.type("application/json").send(exported.payload)
+        } catch (error) {
+            if (hijackUnavailableReply(request, reply)) return reply
+            if (error instanceof PlayerSaveExportError) {
+                if (error.code === "busy") return reply.status(429).send({ error: error.message })
+                if (error.code === "too-large") return reply.status(413).send({ error: `导出失败：${error.message}` })
+            }
+            const message = error instanceof Error ? error.message : String(error)
+            console.error(
+                `[SAVE-EXPORT] failed player=${playerId} elapsedMs=${Date.now() - exportStartedAt}: ${message}`,
+            )
+            return reply.status(500).send({ error: `导出失败：${message}` })
+        } finally {
+            reply.raw.removeListener("close", abortExport)
         }
-        const payload = JSON.stringify(snapshot)
-        if (Buffer.byteLength(payload, "utf8") > maxSaveUploadBytes) {
-            return reply.status(413).send({ error: `导出失败：存档超过 ${maxSaveUploadBytes / 1024 / 1024} MB 安全上限` })
-        }
-        reply.header("content-disposition", `attachment; filename="save_${playerId}.json"`)
-        reply.type('application/json').send(payload)
     })
 
     fastify.post("/save", async (request: FastifyRequest, reply: FastifyReply) => {
