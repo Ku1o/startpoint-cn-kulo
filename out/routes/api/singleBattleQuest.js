@@ -62,6 +62,7 @@ const gauntlet_completion_classification_1 = require("../../lib/gauntlet-complet
 const finish_response_cache_1 = require("../../lib/finish-response-cache");
 const practice_battle_history_2 = require("../../lib/quest/practice-battle-history");
 const mana_1 = require("../../lib/mana");
+const recommended_party_history_1 = require("../../lib/quest/recommended-party-history");
 // Load carnival quest score data
 let carnivalScoreLookup = {};
 try {
@@ -344,6 +345,9 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 questCategory,
                 questId, accomplished: questAccomplished, mode: "single", clearRank, clearTimeMs: clearTime, score: Number(body.score) || 0 }, singleBattleParty), { statistics: (0, mission_1.summarizeBattleStatistics)(finishCtx.statistics) }));
             const missionBattleFacts = (0, battle_facts_1.recordMissionBattleFacts)(finishCtx, missionEvaluationTime);
+            if (questData.fixedParty === undefined) {
+                (0, recommended_party_history_1.recordQuestRecommendedPartySafe)(finishCtx);
+            }
             const steamRobotMissionId = (0, steam_robot_challenge_1.trackSteamRobotChallengeMission)({
                 playerId,
                 questCategory,

@@ -72,6 +72,7 @@ import {
 } from "../../lib/finish-response-cache";
 import { buildPracticeBattleHistoryRecord } from "../../lib/quest/practice-battle-history";
 import { calculateFreeManaGrant } from "../../lib/mana";
+import { recordQuestRecommendedPartySafe } from "../../lib/quest/recommended-party-history";
 
 // Load carnival quest score data
 let carnivalScoreLookup: Record<string, { difficulty_score: number, time_limit_ms: number, folder_id: number, event_id: number }> = {}
@@ -516,6 +517,9 @@ const routes = async (fastify: FastifyInstance) => {
             statistics: summarizeBattleStatistics(finishCtx.statistics),
         })
         const missionBattleFacts = recordMissionBattleFacts(finishCtx, missionEvaluationTime)
+        if (questData.fixedParty === undefined) {
+            recordQuestRecommendedPartySafe(finishCtx)
+        }
         const steamRobotMissionId = trackSteamRobotChallengeMission({
             playerId,
             questCategory,

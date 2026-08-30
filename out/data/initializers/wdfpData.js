@@ -697,9 +697,9 @@ function init(database, exists) {
         database.prepare(`ALTER TABLE players_parties ADD COLUMN before_battle_power INTEGER NOT NULL DEFAULT 0`).run();
     }
     catch ( /* column already exists */_0) { /* column already exists */ }
-    // Historical successful-clear parties used by multiplayer COM/AI mates.
-    // The payload is a complete battle-party snapshot captured at clear time,
-    // so later edits to the player's live party do not mutate old AI records.
+    // Historical successful-clear parties used by quest recommendations. The
+    // payload is frozen at clear time, so later party edits cannot rewrite an
+    // old recommendation. Multiplayer COM snapshots use a separate worker DB.
     database.prepare(`CREATE TABLE IF NOT EXISTS quest_npc_party_pool (
         quest_category INTEGER NOT NULL,
         quest_id INTEGER NOT NULL,
