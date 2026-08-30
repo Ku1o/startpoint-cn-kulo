@@ -17,6 +17,7 @@ from typing import Any, Iterable, Mapping
 import zlib
 
 import wf_dsl
+import wf_dsl_sig
 import wf_mod_tool as core
 
 
@@ -252,9 +253,17 @@ def patch_skill_dsl(raw: bytes, logical: str) -> tuple[bytes, dict[str, Any]]:
             raise ValueError(f"{logical}: 羊群清零命令参数漂移")
         tree[11][1].remove(UNSAFE_RESET_COMMAND)
 
+    # 先按官方签名验证完整树，再声明本次只允许修改 AddSkillPoint 的“数值”
+    # 参数 p2。历史错误包的 p1=15 只允许在已识别的修复分支恢复为对象 ID 20；
+    # 干净基线若再次误改 p1，会在编码前直接失败。
+    mutable_gauge_parameters = {1, 2} if target_id == 15 else {2}
+    wf_dsl_sig.assert_command_parameter_edits(
+        before, tree, {"AddSkillPoint": mutable_gauge_parameters})
+
     changed = tree != before
     output = _raw_deflate(wf_dsl.encode_amf3(tree)) if changed else raw
     readback = _decode_skill(output, logical)
+    wf_dsl_sig.validate_action_dsl(readback)
     final = _skill_facts(readback, logical)
     if (final["gauge"][1], _fixed_range(final["gauge"][2], "全队技能槽")) != (20, 0.15):
         raise AssertionError(f"{logical}: 全队技能槽回读不一致")
