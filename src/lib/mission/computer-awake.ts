@@ -14,7 +14,7 @@ import { getCharacterStoryQuestIds, getCharacterIdFromMission } from "./characte
 import { isMissionProgressComplete } from "./stages"
 import type { MissionComputer, CategoryContext } from "./types"
 import type { PlayerCharacter, PlayerQuestProgress } from "../../data/types"
-import charAwakeDefs from "../../../assets/mission_char_awake.json"
+import { characterAwakeDefinitions } from "./awake-master-assets"
 import {
     AWAKE_DIRECT_BATTLE_MISSION_IDS,
     BARAK_AWAKE_PRACTICE_QUEST_ID,
@@ -25,8 +25,8 @@ import {
 
 // Slot 1 missions that count story reading (not party clears)
 const STORY_MISSION_IDS = new Set<number>(
-    Object.entries(charAwakeDefs)
-        .filter(([, rows]) => /阅读|剧情/.test(rows[0][3]))
+    Object.entries(characterAwakeDefinitions)
+        .filter(([, rows]) => /阅读|剧情/.test((rows as any[][])[0][3]))
         .map(([mid]) => Number(mid))
 )
 

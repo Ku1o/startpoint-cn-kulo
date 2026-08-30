@@ -1,0 +1,1676 @@
+{
+  "schema": "wf-awakened-balance-migration/v1",
+  "patch_id": "awakened-balance-migration-1.4.94",
+  "official_version": "1.4.54",
+  "base_version": "1.4.93",
+  "target_version": "1.4.94",
+  "characters": [
+    151045,
+    151027,
+    151021,
+    151015,
+    251017,
+    251053,
+    151159,
+    261089,
+    131020
+  ],
+  "tables": [
+    {
+      "logical": "master/ability/ability.orderedmap",
+      "changed_keys": [
+        "1510151",
+        "1510153",
+        "1511591",
+        "1511592",
+        "1511593",
+        "1511594",
+        "1511595",
+        "1511596",
+        "2610891",
+        "2610892",
+        "2610893",
+        "2610894",
+        "2610895",
+        "2610896",
+        "1510452",
+        "1510453",
+        "1510456",
+        "2510532",
+        "2510533",
+        "2510534",
+        "2510536",
+        "1510273",
+        "1510275",
+        "1510212",
+        "1510213",
+        "1510214",
+        "1510215",
+        "1310201",
+        "1310202",
+        "1310203",
+        "2510172",
+        "2510173",
+        "2510176"
+      ],
+      "characters": {
+        "151045": {
+          "changed_slots": [
+            2,
+            3,
+            6
+          ],
+          "abilities": {
+            "2": {
+              "key": "1510452",
+              "official": [
+                "全队合计(光)·能力伤害≥2(限20次)(CT5秒) → 赋予全队(光) 攻击力 1.25%→2.5%",
+                "全队合计(光)·能力伤害≥2(限20次)(CT5秒) → 赋予全队(光) 能力伤害 0.625%→1.25%"
+              ],
+              "awakened": [
+                "全队合计(光)·能力伤害≥2(限20次)(CT3.5秒) → 赋予全队(光) 攻击力 1.25%→2.5%",
+                "全队合计(光)·能力伤害≥2(限20次)(CT3.5秒) → 赋予全队(光) 能力伤害 0.625%→1.25%"
+              ],
+              "official_rows": 2,
+              "awakened_rows": 2
+            },
+            "3": {
+              "key": "1510453",
+              "official": [
+                "[主位] 强化弹射≥1(CT2.5秒) → 对最近的敌人 能力伤害·依攻击光 600%(6倍)→1200%(12倍)",
+                "[主位] 全队合计(光)·能力伤害≥2(限20次)(CT2.5秒) → 自身 攻击力 3.75%→7.5%",
+                "[主位] 全队合计(光)·能力伤害≥2(限20次)(CT2.5秒) → 赋予全队(光) 能力伤害 3.75%→7.5%"
+              ],
+              "awakened": [
+                "[主位] 自身·治疗计数≥1(CT2.5秒) → 对最近的敌人 能力伤害·依攻击光 280%(2.8倍)→700%(7倍)",
+                "[主位] 全队合计(光)·能力伤害≥2(限20次)(CT2秒) → 自身 攻击力 3.75%→7.5%",
+                "[主位] 全队合计(光)·能力伤害≥2(限20次)(CT2秒) → 赋予全队(光) 能力伤害 3.75%→7.5%",
+                "[主位] 经过时间≥600(限12次) → 自身 独立乘区能力伤害 25%"
+              ],
+              "official_rows": 3,
+              "awakened_rows": 4
+            },
+            "6": {
+              "key": "1510456",
+              "official": [
+                "全队合计(光)·能力伤害≥2(限20次) → 赋予全队(光) 能力伤害 0.25%→0.5%"
+              ],
+              "awakened": [
+                "全队合计(光)·能力伤害≥2(限20次) → 赋予全队(光) 能力伤害 1%→2%"
+              ],
+              "official_rows": 1,
+              "awakened_rows": 1
+            }
+          }
+        },
+        "151027": {
+          "changed_slots": [
+            3,
+            5
+          ],
+          "abilities": {
+            "3": {
+              "key": "1510273",
+              "official": [
+                "[主位] 冲刺≥1(CT0.75秒) → 对最近的敌人 能力伤害·依攻击光 300%(3倍)→600%(6倍)",
+                "[主位] 自身·技能发动≥1(限5次) → 赋予全队(光) 能力伤害 30%→60%"
+              ],
+              "awakened": [
+                "[主位] 冲刺≥1(CT1.5秒) → 对最近的敌人 能力伤害·依攻击光 320%(3.2倍)→840%(8.4倍)",
+                "[主位] 自身·技能发动≥1(限5次) → 赋予全队(光) 能力伤害 50%→100%",
+                "[主位] 经过时间≥600(限12次) → 自身 独立乘区能力伤害 25%"
+              ],
+              "official_rows": 2,
+              "awakened_rows": 3
+            },
+            "5": {
+              "key": "1510275",
+              "official": [
+                "自身·技能发动≥1(限5次) → 自身 能力伤害 2.5%→5%"
+              ],
+              "awakened": [
+                "自身·技能发动≥1(限5次) → 自身 能力伤害 5%→10%"
+              ],
+              "official_rows": 1,
+              "awakened_rows": 1
+            }
+          }
+        },
+        "151021": {
+          "changed_slots": [
+            2,
+            3,
+            4,
+            5
+          ],
+          "abilities": {
+            "2": {
+              "key": "1510212",
+              "official": [
+                "[主位] 持续·自身·屏障 → 赋予全队(光) 能力伤害 10%→20%",
+                "[主位] 自身·HP≥60% 时: 自身·伤害计数≥5(CT15秒) → 对全体敌人 能力伤害·依攻击光 1500%(15倍)→3000%(30倍)"
+              ],
+              "awakened": [
+                "[主位] 持续·自身·屏障 → 赋予全队(光) 能力伤害 25%→50%",
+                "[主位] 自身·HP≥60% 时: 自身·治疗计数≥1(CT3秒) → 对全体敌人 能力伤害·依攻击光 550%(5.5倍)→750%(7.5倍)",
+                "[主位] 经过时间≥600(限12次) → 自身 独立乘区能力伤害 25%"
+              ],
+              "official_rows": 2,
+              "awakened_rows": 3
+            },
+            "3": {
+              "key": "1510213",
+              "official": [
+                "[主位] 持续·自身·状态计数增益≥1(限8次) → 赋予全队(光) 攻击力 6.25%→12.5%",
+                "[主位] 自身·伤害·依能力≥1(CT15秒) → 赋予全队(光) 状态攻击力 5%→10%(60秒)×1次[累积上限5]",
+                "[主位] 自身·伤害·依能力≥1(CT15秒) → 赋予全队(光) 状态抗性全属性 1%→2%(60秒)×1次[累积上限5]"
+              ],
+              "awakened": [
+                "[主位] 持续·自身·状态计数增益≥1(限8次) → 赋予全队(光) 攻击力 6.25%→12.5%",
+                "[主位] 自身·伤害·依能力≥1(CT8秒) → 赋予全队(光) 状态攻击力 10%→20%(60秒)×1次[累积上限5]",
+                "[主位] 自身·伤害·依能力≥1(CT8秒) → 赋予全队(光) 状态抗性全属性 1%→2%(60秒)×1次[累积上限5]"
+              ],
+              "official_rows": 3,
+              "awakened_rows": 3
+            },
+            "4": {
+              "key": "1510214",
+              "official": [
+                "自身 HP 5%→10%"
+              ],
+              "awakened": [
+                "自身·技能发动≥1 → 赋予队长 技能槽 5%→10%"
+              ],
+              "official_rows": 1,
+              "awakened_rows": 1
+            },
+            "5": {
+              "key": "1510215",
+              "official": [
+                "自身·能力伤害≥1(限10次) → 赋予全队(光) 能力伤害 0.6%→1.2%"
+              ],
+              "awakened": [
+                "自身·能力伤害≥1(限10次) → 赋予全队(光) 能力伤害 1.5%→3%"
+              ],
+              "official_rows": 1,
+              "awakened_rows": 1
+            }
+          }
+        },
+        "151015": {
+          "changed_slots": [
+            1,
+            3
+          ],
+          "abilities": {
+            "1": {
+              "key": "1510151",
+              "official": [
+                "自身·技能发动≥1(限4次) → 赋予全队 攻击力 6.25%→12.5%"
+              ],
+              "awakened": [
+                "自身·技能发动≥1(限4次) → 赋予全队 攻击力 6.25%→12.5%",
+                "自身·技能发动≥1(限5次) → 赋予全队(光) 能力伤害 40%→80%"
+              ],
+              "official_rows": 1,
+              "awakened_rows": 2
+            },
+            "3": {
+              "key": "1510153",
+              "official": [
+                "[主位] 持续·自身·状态攻击力↑ → 赋予全队(光) 攻击力 40%→80%"
+              ],
+              "awakened": [
+                "持续·自身·状态攻击力↑ → 赋予全队(光) 攻击力 40%→80%"
+              ],
+              "official_rows": 1,
+              "awakened_rows": 1
+            }
+          }
+        },
+        "251017": {
+          "changed_slots": [
+            2,
+            3,
+            6
+          ],
+          "abilities": {
+            "2": {
+              "key": "2510172",
+              "official": [
+                "自身·状态增益≥2(CT10秒) → 对全体敌人 能力伤害·依攻击光 250%(2.5倍)→500%(5倍)"
+              ],
+              "awakened": [
+                "自身·状态增益≥2(CT0.5秒) → 对全体敌人 能力伤害·依攻击光 120%(1.2倍)→200%(2倍)"
+              ],
+              "official_rows": 1,
+              "awakened_rows": 1
+            },
+            "3": {
+              "key": "2510173",
+              "official": [
+                "[主位] 持续·自身·状态计数增益≥1(限5次) → 赋予全队(光) 攻击力 8%→16%"
+              ],
+              "awakened": [
+                "持续·自身·状态计数增益≥1(限5次) → 赋予全队(光) 攻击力 8%→16%"
+              ],
+              "official_rows": 1,
+              "awakened_rows": 1
+            },
+            "6": {
+              "key": "2510176",
+              "official": [
+                "持续·自身·状态计数增益≥1(限5次) → 赋予全队(光) 能力伤害 0.75%→1.5%"
+              ],
+              "awakened": [
+                "持续·自身·状态计数增益≥1(限5次) → 赋予全队(光) 能力伤害 1.25%→2.5%"
+              ],
+              "official_rows": 1,
+              "awakened_rows": 1
+            }
+          }
+        },
+        "251053": {
+          "changed_slots": [
+            2,
+            3,
+            4,
+            6
+          ],
+          "abilities": {
+            "2": {
+              "key": "2510532",
+              "official": [
+                "冲刺≥2(CT0.75秒) → 对最近的敌人 能力伤害·依最大HP光 300%(3倍)→600%(6倍)"
+              ],
+              "awakened": [
+                "冲刺≥1(CT0.5秒) → 对最近的敌人 能力伤害·依最大HP光 160%(1.6倍)→240%(2.4倍)"
+              ],
+              "official_rows": 1,
+              "awakened_rows": 1
+            },
+            "3": {
+              "key": "2510533",
+              "official": [
+                "[主位] 持续·除自身任一·HP≤60% → 赋予触发者 Ease治疗 5%→10%",
+                "[主位] 自身·能力伤害≥1(限20次) → 赋予全队(光) 攻击力 1.5%→3%"
+              ],
+              "awakened": [
+                "持续·除自身任一·HP≤60% → 赋予触发者 Ease治疗 5%→10%",
+                "自身·能力伤害≥1(限20次) → 赋予全队(光) 攻击力 1.5%→3%"
+              ],
+              "official_rows": 2,
+              "awakened_rows": 2
+            },
+            "4": {
+              "key": "2510534",
+              "official": [
+                "自身·能力伤害≥1(限10次) → 赋予全队(光) 能力伤害 0.2%→0.4%"
+              ],
+              "awakened": [
+                "自身·能力伤害≥1(限10次) → 赋予全队(光) 能力伤害 0.4%→0.8%"
+              ],
+              "official_rows": 1,
+              "awakened_rows": 1
+            },
+            "6": {
+              "key": "2510536",
+              "official": [
+                "自身·能力伤害≥1(限10次) → 赋予全队(光) 能力伤害 0.2%→0.4%"
+              ],
+              "awakened": [
+                "自身·能力伤害≥1(限10次) → 赋予全队(光) 能力伤害 0.4%→0.8%"
+              ],
+              "official_rows": 1,
+              "awakened_rows": 1
+            }
+          }
+        },
+        "151159": {
+          "changed_slots": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "abilities": {
+            "1": {
+              "key": "1511591",
+              "official": [
+                "持续·Fever(累积:自身·治疗计数≥1(限40次)) → 赋予全队(光) Direct伤害 1.875%→3.75%"
+              ],
+              "awakened": [
+                "持续·Fever(累积:自身·治疗计数≥1(限5次)) → 赋予全队(光/暗) Direct伤害 30%→60%"
+              ],
+              "official_rows": 1,
+              "awakened_rows": 1
+            },
+            "2": {
+              "key": "1511592",
+              "official": [
+                "全队合计(光)·治疗计数≥1 → 自身 追加Fever点 750%→1500%"
+              ],
+              "awakened": [
+                "全队合计(光/暗)·治疗计数≥1 → 自身 追加Fever点 1500%→3000%",
+                "暗·协力·且主位 → 自身 覆盖角色属性[暗]",
+                "全队合计(暗)·伤害计数≥1 → 自身 追加Fever点 30000%"
+              ],
+              "official_rows": 1,
+              "awakened_rows": 3
+            },
+            "3": {
+              "key": "1511593",
+              "official": [
+                "[主位] 持续·Fever(累积:自身·治疗计数≥1(限40次)) → 赋予全队(光) Direct伤害 2.25%→4.5%",
+                "[主位] 光·编成≥6 且 Fever 时: 自身·技能发动≥1 → 赋予全队(光) 状态独立乘区Direct伤害 17.5%→35%(20秒)×1次",
+                "[主位] 光·编成≥6 且 Fever 时: 自身·技能发动≥1 → 赋予全队(光) 状态持续回复 5000%→10000%(10秒)×1次",
+                "[主位] 光·编成≥6 时: 自身·技能发动≥1(限1次) → 自身 技能槽 25%→50%"
+              ],
+              "awakened": [
+                "持有者为主位 时: 持续·Fever(累积:自身·治疗计数≥1(限5次)) → 赋予全队(光/暗) Direct伤害 36%→72%",
+                "持有者为主位 时: 自身·技能发动≥1 → 赋予全队(光/暗) 状态独立乘区Direct伤害 35%→50%(180秒)×1次",
+                "持有者为主位 时: 自身·技能发动≥1 → 赋予全队(光/暗) 状态持续回复 10000%→15000%(30秒)×1次",
+                "持有者为主位 时: 自身·技能发动≥1(限1次) → 自身 技能槽 50%→100%",
+                "持有者为协力 时: 赋予全队(暗) Direct伤害 200%",
+                "持有者为协力 时: 赋予全队(暗) 攻击力 150%"
+              ],
+              "official_rows": 4,
+              "awakened_rows": 6
+            },
+            "4": {
+              "key": "1511594",
+              "official": [
+                "持续·Fever(累积:自身·治疗计数≥1(限40次)) → 赋予全队(光) Direct伤害 0.875%→1.75%"
+              ],
+              "awakened": [
+                "持续·Fever(累积:自身·治疗计数≥1(限5次)) → 赋予全队(光/暗) Direct伤害 14%→28%"
+              ],
+              "official_rows": 1,
+              "awakened_rows": 1
+            },
+            "5": {
+              "key": "1511595",
+              "official": [
+                "持续·Fever(累积:自身·治疗计数≥1(限40次)) → 赋予全队(光) Direct伤害 0.875%→1.75%"
+              ],
+              "awakened": [
+                "持续·Fever(累积:自身·治疗计数≥1(限5次)) → 赋予全队(光/暗) Direct伤害 14%→28%"
+              ],
+              "official_rows": 1,
+              "awakened_rows": 1
+            },
+            "6": {
+              "key": "1511596",
+              "official": [
+                "光·编成≥6 时: 赋予全队(光) 技能充能速度 2.5%→5%"
+              ],
+              "awakened": [
+                "赋予全队(光/暗) 技能充能速度 10%",
+                "自身·状态固有[固有151159] 时: 赋予全队(光/暗) 独立乘区Direct伤害 9%"
+              ],
+              "official_rows": 1,
+              "awakened_rows": 2
+            }
+          }
+        },
+        "261089": {
+          "changed_slots": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "abilities": {
+            "1": {
+              "key": "2610891",
+              "official": [
+                "自身·技能发动≥1(限4次) → 赋予全队(暗) 攻击力 7.5%→15%"
+              ],
+              "awakened": [
+                "赋予全队 攻击力 60%",
+                "赋予全队 技能伤害 60%",
+                "龙族·编成≥1 时: 赋予全队 攻击力 60%",
+                "龙族·编成≥2 时: 赋予全队 攻击力 60%",
+                "龙族·编成≥3 时: 赋予全队 攻击力 60%"
+              ],
+              "official_rows": 1,
+              "awakened_rows": 5
+            },
+            "2": {
+              "key": "2610892",
+              "official": [
+                "自身·技能发动≥1(限4次) → 赋予全队(暗) 攻击力 7.5%→15%"
+              ],
+              "awakened": [
+                "自身·技能发动≥1 → 赋予全队(光/暗) Delete状态减益 100%",
+                "自身·技能发动≥1 → 自身 追加连击 5→15",
+                "光·协力·且主位 → 自身 覆盖角色属性[光]"
+              ],
+              "official_rows": 1,
+              "awakened_rows": 3
+            },
+            "3": {
+              "key": "2610893",
+              "official": [
+                "[主位] 自身·技能发动≥1(限4次) → 赋予全队(暗) 技能伤害 25%→50%",
+                "[主位] 自身·技能发动≥1(限4次) → 赋予全队(暗) 技能充能速度 1.875%→3.75%"
+              ],
+              "awakened": [
+                "持有者为主位 时: 赋予全队(暗) 技能伤害 150%",
+                "持有者为主位 时: 赋予全队(暗) 攻击力 120%",
+                "持有者为主位 时: 赋予全队(暗) 技能充能速度 30%",
+                "持有者为主位 时: 自身·技能发动≥1 → 赋予全队(暗) 状态DirectAttack3 100%→200%(180秒)×1次",
+                "持有者为协力 时: 赋予全队(光) 技能伤害 120%",
+                "持有者为协力 时: 赋予全队(光) 攻击力 90%"
+              ],
+              "official_rows": 2,
+              "awakened_rows": 6
+            },
+            "4": {
+              "key": "2610894",
+              "official": [
+                "自身·技能发动≥1(限4次) → 赋予全队(暗) 攻击力 3.125%→6.25%"
+              ],
+              "awakened": [
+                "自身 技能槽 100%"
+              ],
+              "official_rows": 1,
+              "awakened_rows": 1
+            },
+            "5": {
+              "key": "2610895",
+              "official": [
+                "自身·技能发动≥1(限4次) → 赋予全队(暗) 攻击力 3.125%→6.25%"
+              ],
+              "awakened": [
+                "赋予全队(光/暗) 技能伤害 60%"
+              ],
+              "official_rows": 1,
+              "awakened_rows": 1
+            },
+            "6": {
+              "key": "2610896",
+              "official": [
+                "自身·技能发动≥1(限4次) → 赋予全队(暗) 攻击力 3.125%→6.25%"
+              ],
+              "awakened": [
+                "光/暗·编成≥6 时: 赋予全队(光/暗) 独立乘区技能伤害 10%",
+                "光/暗·编成≥6 时: 赋予全队(光/暗) 独立乘区Direct伤害 20%"
+              ],
+              "official_rows": 1,
+              "awakened_rows": 2
+            }
+          }
+        },
+        "131020": {
+          "changed_slots": [
+            1,
+            2,
+            3
+          ],
+          "abilities": {
+            "1": {
+              "key": "1310201",
+              "official": [
+                "[主位] Fever≥1(限3次) → 自身 攻击力 20%→40%",
+                "[主位] Fever≥1(限3次) → 自身 技能伤害 20%→40%"
+              ],
+              "awakened": [
+                "Fever≥1(限3次) → 自身 攻击力 20%→40%",
+                "Fever≥1(限3次) → 自身 技能伤害 20%→40%",
+                "Fever≥1(限3次) → 自身 能力伤害 40%"
+              ],
+              "official_rows": 2,
+              "awakened_rows": 3
+            },
+            "2": {
+              "key": "1310202",
+              "official": [
+                "[主位] 全队合计(雷)·技能发动≥1(CT15秒) → 对全体敌人 能力伤害·依攻击雷 1500%(15倍)→3000%(30倍)",
+                "[主位] 全队合计(雷)·技能发动≥1(CT15秒) → 自身 追加Fever点 7500%→15000%"
+              ],
+              "awakened": [
+                "全队合计(雷)·技能发动≥1(CT5秒) → 对全体敌人 能力伤害·依攻击雷 1500%(15倍)→3000%(30倍)",
+                "全队合计(雷)·技能发动≥1(CT5秒) → 自身 追加Fever点 7500%→15000%"
+              ],
+              "official_rows": 2,
+              "awakened_rows": 2
+            },
+            "3": {
+              "key": "1310203",
+              "official": [
+                "[主位] Fever≥1(CT30秒) → 自身 技能槽 50%→100%",
+                "[主位] Fever≥1(CT30秒) → 自身 状态攻击力 50%→100%(15秒)×1次"
+              ],
+              "awakened": [
+                "[主位] Fever≥1(CT5秒) → 自身 技能槽 50%→100%",
+                "[主位] Fever≥1(CT5秒) → 自身 状态攻击力 100%→200%(15秒)×1次"
+              ],
+              "official_rows": 2,
+              "awakened_rows": 2
+            }
+          }
+        }
+      },
+      "summer_lilith_damage_ct": {
+        "ability_3_frames_before": 180,
+        "ability_3_frames_after": 150
+      }
+    },
+    {
+      "logical": "master/ability/leader_ability.orderedmap",
+      "changed_keys": [
+        "151159",
+        "261089",
+        "151045",
+        "131020"
+      ],
+      "descriptions": {
+        "151045": {
+          "official": [
+            "赋予全队(光) 攻击力 30%→40%",
+            "全队合计(光)·能力伤害≥10(限4次) → 赋予全队(光) 攻击力 12.5%→15%",
+            "全队合计(光)·能力伤害≥10(CT20秒) → 对最近的敌人 能力伤害·依攻击光 5000%(50倍)→7000%(70倍)"
+          ],
+          "awakened": [
+            "赋予全队(光) 攻击力 30%→100%",
+            "全队合计(光)·能力伤害≥10(限4次) → 赋予全队(光) 攻击力 12.5%→15%",
+            "全队合计(光)·能力伤害≥3(CT2.5秒) → 对最近的敌人 能力伤害·依攻击光 1000%(10倍)",
+            "自身·能力伤害≥1(CT8秒) → 赋予全队(光) 技能槽 20%",
+            "赋予全队(光) 技能槽 50%"
+          ]
+        },
+        "151159": {
+          "official": [
+            "光·编成≥6 时: 赋予全队(光) 状态持续回复 3500%→5000%(14秒)×1次",
+            "赋予全队(光) HP 7.5%→10%",
+            "持续·Fever → 赋予全队(光) 攻击力 205%→270%"
+          ],
+          "awakened": [
+            "赋予全队(光) 状态持续回复 5000%→8000%(14秒)×1次",
+            "赋予全队(光) HP 20%→30%",
+            "持续·Fever → 赋予全队(光) 攻击力 270%→350%"
+          ]
+        },
+        "261089": {
+          "official": [
+            "赋予全队(暗) 攻击力 100%→130%",
+            "赋予全队(暗) 技能伤害 100%→130%"
+          ],
+          "awakened": [
+            "赋予全队(暗) 攻击力 130%→165%",
+            "赋予全队(暗) 技能伤害 250%→285%",
+            "赋予全队(暗) 技能充能速度 7.5%→10%",
+            "龙族·编成≥1 时: 赋予全队(暗) 攻击力 100%"
+          ]
+        },
+        "131020": {
+          "official": [
+            "赋予全队(雷) 攻击力 55%→75%",
+            "Fever≥1(限3次) → 赋予全队(雷) 攻击力 10%→15%",
+            "雷·编成≥6 时: Fever≥2(限1次) → 自身 计数+Fever 1"
+          ],
+          "awakened": [
+            "赋予全队(雷) 攻击力 255%→275%",
+            "Fever≥1(限4次) → 赋予全队(雷) 攻击力 40%→45%",
+            "雷·编成≥6 时: Fever≥2 → 自身 计数+Fever 1"
+          ]
+        }
+      },
+      "summer_lilith_damage_ct": {
+        "leader_frames_before": 180,
+        "leader_frames_after": 150
+      }
+    },
+    {
+      "logical": "master/skill/action_skill.orderedmap",
+      "changed_outer_keys": [
+        "hoshikawa_ririi",
+        "golden_dragon_jr",
+        "darkness_dragon",
+        "resistance_princess_smr21",
+        "desert_priest",
+        "lightbullet_wiz_vt21",
+        "wind_oracle_1anv",
+        "rec_android_1anv",
+        "resistance_princess"
+      ],
+      "characters": {
+        "151045": {
+          "label": "夏日莉莉丝",
+          "code": "resistance_princess_smr21",
+          "official_evolution_1": {
+            "name": "阿斯特拉闪光",
+            "description": "发射无数炫目的光球并引爆，对领域内全体敌人造成光属性伤害＋短时间内赋予敌人气绝效果／赋予光属性角色能力伤害提升效果",
+            "program": "battle/action/skill/action/rare5/resistance_princess_smr21$resistance_princess_smr21_1"
+          },
+          "official_evolution_2": {
+            "name": "阿斯特拉闪光＋",
+            "description": "发射无数炫目的光球并引爆，对领域内全体敌人造成光属性伤害＋短时间内赋予敌人气绝效果／赋予光属性角色能力伤害提升效果",
+            "program": "battle/action/skill/action/rare5/resistance_princess_smr21$resistance_princess_smr21_2"
+          },
+          "awakened_evolution_3": {
+            "name": "阿斯特拉闪光＋＋",
+            "description": "发射无数炫目的光球并引爆，对领域内全体敌人造成光属性伤害＋短时间内赋予敌人气绝效果／赋予光属性角色能力伤害提升效果／赋予光属性角色冲刺间隔缩短＋贯通＋最大速度固定效果",
+            "program": "battle/action/skill/action/rare5/resistance_princess_smr21$resistance_princess_smr21_3",
+            "copied_from": "battle/action/skill/action/rare5/resistance_princess_smr21$resistance_princess_smr21_2.action.dsl.amf3.deflate",
+            "sha256": "8a1743aa79ce6c5ed4c097a9011e91a56e6cbf638912bb84129f728a5a0cb9a1",
+            "size": 677
+          },
+          "official_dsl": {
+            "1": {
+              "logical": "battle/action/skill/action/rare5/resistance_princess_smr21$resistance_princess_smr21_1.action.dsl.amf3.deflate",
+              "sha256": "c6b561867bb2d30e2ea5f6ef1a997b40f4c7d5caa5877457bc1304527488face",
+              "size": 590
+            },
+            "2": {
+              "logical": "battle/action/skill/action/rare5/resistance_princess_smr21$resistance_princess_smr21_2.action.dsl.amf3.deflate",
+              "sha256": "968c10a5f57d33d38844a4299353c279f57e9537ffc6450dcd27dd26cff532a0",
+              "size": 615
+            }
+          }
+        },
+        "151027": {
+          "label": "艾莉亚",
+          "code": "lightbullet_wiz_vt21",
+          "official_evolution_1": {
+            "name": "甜蜜巧克力之光",
+            "description": "向自身正面发射扇形恋爱破坏魔法，对命中的敌人造成光属性伤害／回复全体队员的生命值【对光属性角色效果提升】／赋予自身攻击力提升＋能力伤害提升效果",
+            "program": "battle/action/skill/action/rare5/lightbullet_wiz_vt21$lightbullet_wiz_vt21_1"
+          },
+          "official_evolution_2": {
+            "name": "甜蜜巧克力之光＋",
+            "description": "向自身正面发射扇形恋爱破坏魔法，对命中的敌人造成光属性伤害／回复全体队员的生命值【对光属性角色效果提升】／赋予自身攻击力提升＋能力伤害提升效果",
+            "program": "battle/action/skill/action/rare5/lightbullet_wiz_vt21$lightbullet_wiz_vt21_2"
+          },
+          "awakened_evolution_3": {
+            "name": "甜蜜巧克力之光＋＋",
+            "description": "向自身正面发射扇形恋爱破坏魔法，对命中的敌人造成光属性伤害／赋予全体队员再生效果／赋予自身攻击力提升＋能力伤害提升效果",
+            "program": "battle/action/skill/action/rare5/lightbullet_wiz_vt21$lightbullet_wiz_vt21_3",
+            "copied_from": "battle/action/skill/action/rare5/lightbullet_wiz_vt21$lightbullet_wiz_vt21_2.action.dsl.amf3.deflate",
+            "sha256": "e4599a4e0e37a3e1f32dc0da1f9ad7b0263f9edc14c3cabf4a9a9520f018ce80",
+            "size": 998
+          },
+          "official_dsl": {
+            "1": {
+              "logical": "battle/action/skill/action/rare5/lightbullet_wiz_vt21$lightbullet_wiz_vt21_1.action.dsl.amf3.deflate",
+              "sha256": "240aa101c1bdb461d318ef01c3ad743f801dde4bf4a73def641669f30e5a1a09",
+              "size": 979
+            },
+            "2": {
+              "logical": "battle/action/skill/action/rare5/lightbullet_wiz_vt21$lightbullet_wiz_vt21_2.action.dsl.amf3.deflate",
+              "sha256": "d8d54c9e9d5a47959759c3138bb30eae2770ec6792ee9fb07a63f43b3bd6052a",
+              "size": 1002
+            }
+          }
+        },
+        "151021": {
+          "label": "菲莉亚",
+          "code": "wind_oracle_1anv",
+          "official_evolution_1": {
+            "name": "光芒之剑",
+            "description": "向距离最近的敌人连续发射光剑，对所有被贯穿的敌人造成光属性伤害【伤害随自身强化效果数量提升】／赋予自身攻击力提升＋能力伤害提升效果",
+            "program": "battle/action/skill/action/rare5/wind_oracle_1anv$wind_oracle_1anv_1"
+          },
+          "official_evolution_2": {
+            "name": "光芒之剑＋",
+            "description": "向距离最近的敌人连续发射光剑，对所有被贯穿的敌人造成光属性伤害【伤害随自身强化效果数量提升】／赋予自身攻击力提升＋能力伤害提升效果",
+            "program": "battle/action/skill/action/rare5/wind_oracle_1anv$wind_oracle_1anv_2"
+          },
+          "awakened_evolution_3": {
+            "name": "光芒之剑＋＋",
+            "description": "向距离最近的敌人连续发射光剑，对所有被贯穿的敌人造成光属性伤害【伤害随自身强化效果数量提升】／赋予自身攻击力提升＋能力伤害提升效果／赋予自身相当于最大生命值8%的屏障效果／消除全场敌人的2个强化效果",
+            "program": "battle/action/skill/action/rare5/wind_oracle_1anv$wind_oracle_1anv_3",
+            "copied_from": "battle/action/skill/action/rare5/wind_oracle_1anv$wind_oracle_1anv_2.action.dsl.amf3.deflate",
+            "sha256": "62db852608538169ffbf665da45c1d388663122ee616d34ec44fe2d8a465e0c9",
+            "size": 1690
+          },
+          "official_dsl": {
+            "1": {
+              "logical": "battle/action/skill/action/rare5/wind_oracle_1anv$wind_oracle_1anv_1.action.dsl.amf3.deflate",
+              "sha256": "986fe73069ea70c0f82ec6d78b2e06fff1b96184cd0db974817a7d7fe5b007f8",
+              "size": 1578
+            },
+            "2": {
+              "logical": "battle/action/skill/action/rare5/wind_oracle_1anv$wind_oracle_1anv_2.action.dsl.amf3.deflate",
+              "sha256": "38e67c1e89edec859399bcbbd851c789e62c2601fed56d67bd94ca0440659c46",
+              "size": 1593
+            }
+          }
+        },
+        "151015": {
+          "label": "星川莉莉",
+          "code": "hoshikawa_ririi",
+          "official_evolution_1": {
+            "name": "莉莉的亮闪闪攻击！",
+            "description": "以可爱的举止动作对全体敌人造成光属性伤害（不破坏弱点）／赋予全体队员攻击力提升效果",
+            "program": "battle/action/skill/action/rare5/hoshikawa_ririi$hoshikawa_ririi_1"
+          },
+          "official_evolution_2": {
+            "name": "莉莉的亮闪闪攻击！＋",
+            "description": "以可爱的举止动作对全体敌人造成光属性伤害（不破坏弱点）／赋予全体队员攻击力提升效果",
+            "program": "battle/action/skill/action/rare5/hoshikawa_ririi$hoshikawa_ririi_2"
+          },
+          "awakened_evolution_3": {
+            "name": "莉莉的亮闪闪攻击！＋＋",
+            "description": "以可爱的举止动作对全体敌人造成光属性伤害（不破坏弱点）／赋予全体队员攻击力提升效果／赋予光属性角色能力伤害提升效果",
+            "program": "battle/action/skill/action/rare5/hoshikawa_ririi$hoshikawa_ririi_3",
+            "copied_from": "battle/action/skill/action/rare5/hoshikawa_ririi$hoshikawa_ririi_2.action.dsl.amf3.deflate",
+            "sha256": "8476e9aaa23d6c73f5e1ea0d7835e4d5cff19041ee20863728dfc401d7500903",
+            "size": 681
+          },
+          "official_dsl": {
+            "1": {
+              "logical": "battle/action/skill/action/rare5/hoshikawa_ririi$hoshikawa_ririi_1.action.dsl.amf3.deflate",
+              "sha256": "5b2b9c58c0ed5cd1a016da89725696d0a6c93705ef522a5da37733d34f311ec5",
+              "size": 644
+            },
+            "2": {
+              "logical": "battle/action/skill/action/rare5/hoshikawa_ririi$hoshikawa_ririi_2.action.dsl.amf3.deflate",
+              "sha256": "0d2427801355ce9e7cb55bd7188122167654616e63e74546120c8afbec77b63e",
+              "size": 652
+            }
+          }
+        },
+        "251017": {
+          "label": "灯火莉莉丝",
+          "code": "resistance_princess",
+          "official_evolution_1": {
+            "name": "艾克赛里奥圣剑",
+            "description": "高举希望之剑，赋予参战者全员攻击力提升效果／赋予队伍全员能力伤害提升效果",
+            "program": "battle/action/skill/action/rare4/resistance_princess$resistance_princess_1"
+          },
+          "official_evolution_2": {
+            "name": "艾克赛里奥圣剑＋",
+            "description": "高举希望之剑，赋予参战者全员攻击力提升效果／赋予队伍全员能力伤害提升效果",
+            "program": "battle/action/skill/action/rare4/resistance_princess$resistance_princess_2"
+          },
+          "awakened_evolution_3": {
+            "name": "艾克赛里奥圣剑＋＋",
+            "description": "高举希望之剑，赋予参战者全员攻击力提升效果／赋予队伍全员能力伤害提升效果／赋予队伍全员再生效果",
+            "program": "battle/action/skill/action/rare4/resistance_princess$resistance_princess_3",
+            "copied_from": "battle/action/skill/action/rare4/resistance_princess$resistance_princess_2.action.dsl.amf3.deflate",
+            "sha256": "8fa2f4891637cf432faf44bc5b68f27c41b96a806c966f5a28a2dea92456fd3d",
+            "size": 575
+          },
+          "official_dsl": {
+            "1": {
+              "logical": "battle/action/skill/action/rare4/resistance_princess$resistance_princess_1.action.dsl.amf3.deflate",
+              "sha256": "fe3f341af534a02b9aac9bb5ac8cc59864c66aec36456dc93a3827a13734dcc7",
+              "size": 553
+            },
+            "2": {
+              "logical": "battle/action/skill/action/rare4/resistance_princess$resistance_princess_2.action.dsl.amf3.deflate",
+              "sha256": "d6f8db7d177a99c47f4e129f1274b7cd1c69f0eb7985d1c75beaee075ce5ae39",
+              "size": 562
+            }
+          }
+        },
+        "251053": {
+          "label": "萨莉哈",
+          "code": "desert_priest",
+          "official_evolution_1": {
+            "name": "闪耀之光",
+            "description": "以名为“沙漠之光”的治愈之力恢复参战者全员的生命值【对光属性角色效果提升】＋赋予攻击力提升效果",
+            "program": "battle/action/skill/action/rare4/desert_priest$desert_priest_1"
+          },
+          "official_evolution_2": {
+            "name": "闪耀之光＋",
+            "description": "以名为“沙漠之光”的治愈之力恢复参战者全员的生命值【对光属性角色效果提升】＋赋予攻击力提升效果",
+            "program": "battle/action/skill/action/rare4/desert_priest$desert_priest_2"
+          },
+          "awakened_evolution_3": {
+            "name": "闪耀之光＋＋",
+            "description": "以名为“沙漠之光”的治愈之力恢复参战者全员的生命值【对光属性角色效果提升】＋赋予攻击力提升效果／赋予光属性角色能力伤害提升效果",
+            "program": "battle/action/skill/action/rare4/desert_priest$desert_priest_3",
+            "copied_from": "battle/action/skill/action/rare4/desert_priest$desert_priest_2.action.dsl.amf3.deflate",
+            "sha256": "999b871bb7724056706ddeac5d021a205268d600fb782f9a8e1a0c23f99e4645",
+            "size": 508
+          },
+          "official_dsl": {
+            "1": {
+              "logical": "battle/action/skill/action/rare4/desert_priest$desert_priest_1.action.dsl.amf3.deflate",
+              "sha256": "7292c3964e5f8eef39aeac1a5f2d8cb3c0bd524c6191017264803546400ee979",
+              "size": 459
+            },
+            "2": {
+              "logical": "battle/action/skill/action/rare4/desert_priest$desert_priest_2.action.dsl.amf3.deflate",
+              "sha256": "0cc444fc39fc27df0252b0f77f0d750dc995f647ef7cc238d6ec864e76dc3b45",
+              "size": 468
+            }
+          }
+        },
+        "151159": {
+          "label": "拉夫马诺",
+          "code": "golden_dragon_jr",
+          "official_evolution_1": {
+            "name": "至天光辉",
+            "description": "以古龙的威光赋予领域内全体敌人累积光属性抗性降低效果 ＋ 消除1个强化效果 ／ 放出锐利的光芒，对领域内全体敌人造成光属性伤害",
+            "program": "battle/action/skill/action/rare5/golden_dragon_jr$golden_dragon_jr_1"
+          },
+          "official_evolution_2": {
+            "name": "至天光辉＋",
+            "description": "以古龙的威光赋予领域内全体敌人累积光属性抗性降低效果 ＋ 消除1个强化效果 ／ 放出锐利的光芒，对领域内全体敌人造成光属性伤害",
+            "program": "battle/action/skill/action/rare5/golden_dragon_jr$golden_dragon_jr_2"
+          },
+          "awakened_evolution_3": {
+            "name": "至天光辉＋＋",
+            "description": "以古龙的威光赋予领域内全体敌人累积光·暗属性抗性降低效果 ＋ 消除1个强化效果 ／ 放出锐利的光芒，在一段时间内对领域内全体敌人连续造成多段光属性伤害 ／ 赋予我方全体与协力角色“光暗共鸣”效果（攻击力提升＋全属性抗性提升＋持续回复），其持续期间我方直接攻击伤害进一步提升",
+            "program": "battle/action/skill/action/rare5/golden_dragon_jr$golden_dragon_jr_3",
+            "copied_from": "battle/action/skill/action/rare5/golden_dragon_jr$golden_dragon_jr_2.action.dsl.amf3.deflate",
+            "sha256": "2e98fe49227e5d3a047f6597da48a3ad81f0698dc9bf7968d1de588c2c7f7b00",
+            "size": 977
+          },
+          "official_dsl": {
+            "1": {
+              "logical": "battle/action/skill/action/rare5/golden_dragon_jr$golden_dragon_jr_1.action.dsl.amf3.deflate",
+              "sha256": "92d6f2cd03fdf6e6938918fcad2a813e2be011ba4d4cb21c01b76951b5e87bad",
+              "size": 767
+            },
+            "2": {
+              "logical": "battle/action/skill/action/rare5/golden_dragon_jr$golden_dragon_jr_2.action.dsl.amf3.deflate",
+              "sha256": "00577891e00f4f26c4e6e6f166e9ebcd7d5065af0b7e0c4ca5344b6a9ba09a05",
+              "size": 774
+            }
+          }
+        },
+        "261089": {
+          "label": "阿鲁玛德乌斯",
+          "code": "darkness_dragon",
+          "official_evolution_1": {
+            "name": "魂魄终局",
+            "description": "引爆黑暗，对领域内全体敌人造成暗属性伤害 ／ 赋予暗属性角色技能伤害提升效果",
+            "program": "battle/action/skill/action/rare4/darkness_dragon$darkness_dragon_1"
+          },
+          "official_evolution_2": {
+            "name": "魂魄终局＋",
+            "description": "引爆黑暗，对领域内全体敌人造成暗属性伤害 ／ 赋予暗属性角色技能伤害提升效果",
+            "program": "battle/action/skill/action/rare4/darkness_dragon$darkness_dragon_2"
+          },
+          "awakened_evolution_3": {
+            "name": "魂魄终局＋＋",
+            "description": "引爆黑暗，对领域内全体敌人连续释放三段暗属性伤害＋消除其强化效果＋赋予麻痹与“光暗抗性降低”效果（光属性·暗属性抗性同时降低） ／ 赋予我方全体角色攻击力提升与技能伤害提升效果",
+            "program": "battle/action/skill/action/rare4/darkness_dragon$darkness_dragon_3",
+            "copied_from": "battle/action/skill/action/rare4/darkness_dragon$darkness_dragon_2.action.dsl.amf3.deflate",
+            "sha256": "3bd9be30bc2c45ef986809d15edbd16309850a0d4c94e107a7b1019faf175f58",
+            "size": 911
+          },
+          "official_dsl": {
+            "1": {
+              "logical": "battle/action/skill/action/rare4/darkness_dragon$darkness_dragon_1.action.dsl.amf3.deflate",
+              "sha256": "7424e1f99b4d02e10179994336b9831fffc2920cf1ceaa0e265743fa51d6082d",
+              "size": 605
+            },
+            "2": {
+              "logical": "battle/action/skill/action/rare4/darkness_dragon$darkness_dragon_2.action.dsl.amf3.deflate",
+              "sha256": "eaaf0b1770e4cf4e9127d9739aec7d0dc7965a2ffb94dd717f9c4306156ac3a5",
+              "size": 605
+            }
+          }
+        },
+        "131020": {
+          "label": "雷吉斯（白花机人）",
+          "code": "rec_android_1anv",
+          "official_evolution_1": {
+            "name": "行星爆破",
+            "description": "【通常】向距离最近的敌人释放激光炮，对命中的敌人造成雷属性伤害＋赋予自身攻击力提升效果＋技能伤害提升效果／FEVER槽增加\n【FEVER状态中】向距离最近的敌人释放超高功率激光炮，对命中的敌人造成雷属性伤害",
+            "program": "battle/action/skill/action/rare5/rec_android_1anv$rec_android_1anv_1"
+          },
+          "official_evolution_2": {
+            "name": "行星爆破＋",
+            "description": "【通常】向距离最近的敌人释放激光炮，对命中的敌人造成雷属性伤害＋赋予自身攻击力提升效果＋技能伤害提升效果／FEVER槽增加\n【FEVER状态中】向距离最近的敌人释放超高功率激光炮，对命中的敌人造成雷属性伤害",
+            "program": "battle/action/skill/action/rare5/rec_android_1anv$rec_android_1anv_2"
+          },
+          "awakened_evolution_3": {
+            "name": "行星爆破＋＋",
+            "description": "【通常】向距离最近的敌人释放激光炮，对命中的敌人造成雷属性伤害＋赋予自身攻击力提升效果＋技能伤害提升效果／FEVER槽增加\n【FEVER状态中】向距离最近的敌人释放超高功率激光炮，对命中的敌人造成雷属性伤害",
+            "program": "battle/action/skill/action/rare5/rec_android_1anv$rec_android_1anv_3",
+            "copied_from": "battle/action/skill/action/rare5/rec_android_1anv$rec_android_1anv_2.action.dsl.amf3.deflate",
+            "sha256": "952e21311baaf4503b4c62e39fe7f011ef6677406b49ecbe58f3c574dcee9c0b",
+            "size": 1006
+          },
+          "official_dsl": {
+            "1": {
+              "logical": "battle/action/skill/action/rare5/rec_android_1anv$rec_android_1anv_1.action.dsl.amf3.deflate",
+              "sha256": "14f6659eb98177f791bbd11e9fab3dac6fc88057f8c3b87557a86b81a318b88f",
+              "size": 990
+            },
+            "2": {
+              "logical": "battle/action/skill/action/rare5/rec_android_1anv$rec_android_1anv_2.action.dsl.amf3.deflate",
+              "sha256": "c390c99f936a39431460eb312bc58869fade34cd9aec43b3e6de4ce849ee9d8d",
+              "size": 1010
+            }
+          }
+        }
+      },
+      "dsl_payload_count": 27
+    },
+    {
+      "logical": "master/mission/character_awake_event.orderedmap",
+      "added_keys": [
+        "151045",
+        "151027",
+        "151021",
+        "151015",
+        "251017",
+        "251053",
+        "151159",
+        "261089",
+        "131020"
+      ],
+      "start": "2020-01-01 00:00:00",
+      "end": null
+    },
+    {
+      "logical": "master/character/character_awake_status.orderedmap",
+      "added_keys": [
+        "151045",
+        "151027",
+        "151021",
+        "151015",
+        "251017",
+        "251053",
+        "151159",
+        "261089",
+        "131020"
+      ],
+      "atk_plus": 0,
+      "hp_plus": 0
+    },
+    {
+      "logical": "master/mission/character_awake_mission.orderedmap",
+      "added_keys": [
+        "1510451",
+        "1510452",
+        "1510453",
+        "1510454",
+        "1510271",
+        "1510272",
+        "1510273",
+        "1510274",
+        "1510211",
+        "1510212",
+        "1510213",
+        "1510214",
+        "1510151",
+        "1510152",
+        "1510153",
+        "1510154",
+        "2510171",
+        "2510172",
+        "2510173",
+        "2510174",
+        "2510531",
+        "2510532",
+        "2510533",
+        "2510534",
+        "1511591",
+        "1511592",
+        "1511593",
+        "1511594",
+        "2610891",
+        "2610892",
+        "2610893",
+        "2610894",
+        "1310201",
+        "1310202",
+        "1310203",
+        "1310204"
+      ],
+      "template_character_id": "341005",
+      "mission_count": 36,
+      "window": [
+        "2020-01-01 00:00:00",
+        "2099-04-13 11:59:59"
+      ]
+    },
+    {
+      "logical": "master/mission/character_awake_mission_reward.orderedmap",
+      "added_keys": [
+        "1510451",
+        "1510452",
+        "1510453",
+        "1510454",
+        "1510271",
+        "1510272",
+        "1510273",
+        "1510274",
+        "1510211",
+        "1510212",
+        "1510213",
+        "1510214",
+        "1510151",
+        "1510152",
+        "1510153",
+        "1510154",
+        "2510171",
+        "2510172",
+        "2510173",
+        "2510174",
+        "2510531",
+        "2510532",
+        "2510533",
+        "2510534",
+        "1511591",
+        "1511592",
+        "1511593",
+        "1511594",
+        "2610891",
+        "2610892",
+        "2610893",
+        "2610894",
+        "1310201",
+        "1310202",
+        "1310203",
+        "1310204"
+      ],
+      "template_character_id": "341005",
+      "reward_count": 36
+    }
+  ],
+  "dark_dragon_exception": {
+    "character_id": 261089,
+    "official_rarity": 4,
+    "preserved_rarity": 5,
+    "official_status_sha256": "bab861cfae0fec8bc19b752e04d969c1848183d9bd9fe608a494ac6f2907f7df",
+    "preserved_status_sha256": "a3f7633470a289b58876095b09f24576ee1cfb6c343e13f0a7eaf2949f274a6c",
+    "character_table_written": false,
+    "character_status_table_written": false
+  },
+  "mana_boards": {
+    "151045": {
+      "board_slots": {
+        "1": [
+          1,
+          2,
+          3,
+          "action_skill"
+        ],
+        "2": [
+          4,
+          5,
+          6
+        ]
+      },
+      "node_counts": {
+        "1": 23,
+        "2": 18
+      },
+      "linked_board2_slots": [
+        6
+      ],
+      "skill_evolution_nodes": [
+        302090219
+      ]
+    },
+    "151027": {
+      "board_slots": {
+        "1": [
+          1,
+          2,
+          3,
+          "action_skill"
+        ],
+        "2": [
+          4,
+          5,
+          6
+        ]
+      },
+      "node_counts": {
+        "1": 23,
+        "2": 18
+      },
+      "linked_board2_slots": [
+        5
+      ],
+      "skill_evolution_nodes": [
+        302054219
+      ]
+    },
+    "151021": {
+      "board_slots": {
+        "1": [
+          1,
+          2,
+          3,
+          "action_skill"
+        ],
+        "2": [
+          4,
+          5,
+          6
+        ]
+      },
+      "node_counts": {
+        "1": 23,
+        "2": 18
+      },
+      "linked_board2_slots": [
+        4,
+        5
+      ],
+      "skill_evolution_nodes": [
+        302042219
+      ]
+    },
+    "151015": {
+      "board_slots": {
+        "1": [
+          1,
+          2,
+          3,
+          "action_skill"
+        ],
+        "2": [
+          4,
+          5,
+          6
+        ]
+      },
+      "node_counts": {
+        "1": 23,
+        "2": 18
+      },
+      "linked_board2_slots": [],
+      "skill_evolution_nodes": [
+        302030219
+      ]
+    },
+    "251017": {
+      "board_slots": {
+        "1": [
+          1,
+          2,
+          3,
+          "action_skill"
+        ],
+        "2": [
+          4,
+          5,
+          6
+        ]
+      },
+      "node_counts": {
+        "1": 23,
+        "2": 18
+      },
+      "linked_board2_slots": [
+        6
+      ],
+      "skill_evolution_nodes": [
+        502034219
+      ]
+    },
+    "251053": {
+      "board_slots": {
+        "1": [
+          1,
+          2,
+          3,
+          "action_skill"
+        ],
+        "2": [
+          4,
+          5,
+          6
+        ]
+      },
+      "node_counts": {
+        "1": 23,
+        "2": 18
+      },
+      "linked_board2_slots": [
+        4,
+        6
+      ],
+      "skill_evolution_nodes": [
+        502106219
+      ]
+    },
+    "151159": {
+      "board_slots": {
+        "1": [
+          1,
+          2,
+          3,
+          "action_skill"
+        ],
+        "2": [
+          4,
+          5,
+          6
+        ]
+      },
+      "node_counts": {
+        "1": 23,
+        "2": 18
+      },
+      "linked_board2_slots": [
+        4,
+        5,
+        6
+      ],
+      "skill_evolution_nodes": [
+        302318219
+      ]
+    },
+    "261089": {
+      "board_slots": {
+        "1": [
+          1,
+          2,
+          3,
+          "action_skill"
+        ],
+        "2": [
+          4,
+          5,
+          6
+        ]
+      },
+      "node_counts": {
+        "1": 23,
+        "2": 18
+      },
+      "linked_board2_slots": [
+        4,
+        5,
+        6
+      ],
+      "skill_evolution_nodes": [
+        522178219
+      ]
+    },
+    "131020": {
+      "board_slots": {
+        "1": [
+          1,
+          2,
+          3,
+          "action_skill"
+        ],
+        "2": [
+          4,
+          5,
+          6
+        ]
+      },
+      "node_counts": {
+        "1": 23,
+        "2": 18
+      },
+      "linked_board2_slots": [],
+      "skill_evolution_nodes": [
+        262040219
+      ]
+    }
+  },
+  "server_extensions": {
+    "linked_board2_abilities": {
+      "151045": {
+        "linked_mana_node_slots": [
+          {
+            "board_index": 2,
+            "ability_slot": 6,
+            "awake_level": 1
+          }
+        ]
+      },
+      "151027": {
+        "linked_mana_node_slots": [
+          {
+            "board_index": 2,
+            "ability_slot": 5,
+            "awake_level": 1
+          }
+        ]
+      },
+      "151021": {
+        "linked_mana_node_slots": [
+          {
+            "board_index": 2,
+            "ability_slot": 4,
+            "awake_level": 1
+          },
+          {
+            "board_index": 2,
+            "ability_slot": 5,
+            "awake_level": 1
+          }
+        ]
+      },
+      "251017": {
+        "linked_mana_node_slots": [
+          {
+            "board_index": 2,
+            "ability_slot": 6,
+            "awake_level": 1
+          }
+        ]
+      },
+      "251053": {
+        "linked_mana_node_slots": [
+          {
+            "board_index": 2,
+            "ability_slot": 4,
+            "awake_level": 1
+          },
+          {
+            "board_index": 2,
+            "ability_slot": 6,
+            "awake_level": 1
+          }
+        ]
+      },
+      "151159": {
+        "linked_mana_node_slots": [
+          {
+            "board_index": 2,
+            "ability_slot": 4,
+            "awake_level": 1
+          },
+          {
+            "board_index": 2,
+            "ability_slot": 5,
+            "awake_level": 1
+          },
+          {
+            "board_index": 2,
+            "ability_slot": 6,
+            "awake_level": 1
+          }
+        ]
+      },
+      "261089": {
+        "linked_mana_node_slots": [
+          {
+            "board_index": 2,
+            "ability_slot": 4,
+            "awake_level": 1
+          },
+          {
+            "board_index": 2,
+            "ability_slot": 5,
+            "awake_level": 1
+          },
+          {
+            "board_index": 2,
+            "ability_slot": 6,
+            "awake_level": 1
+          }
+        ]
+      }
+    },
+    "mission_definition_keys": [
+      "1510451",
+      "1510452",
+      "1510453",
+      "1510454",
+      "1510271",
+      "1510272",
+      "1510273",
+      "1510274",
+      "1510211",
+      "1510212",
+      "1510213",
+      "1510214",
+      "1510151",
+      "1510152",
+      "1510153",
+      "1510154",
+      "2510171",
+      "2510172",
+      "2510173",
+      "2510174",
+      "2510531",
+      "2510532",
+      "2510533",
+      "2510534",
+      "1511591",
+      "1511592",
+      "1511593",
+      "1511594",
+      "2610891",
+      "2610892",
+      "2610893",
+      "2610894",
+      "1310201",
+      "1310202",
+      "1310203",
+      "1310204"
+    ],
+    "mission_reward_keys": [
+      "1510451",
+      "1510452",
+      "1510453",
+      "1510454",
+      "1510271",
+      "1510272",
+      "1510273",
+      "1510274",
+      "1510211",
+      "1510212",
+      "1510213",
+      "1510214",
+      "1510151",
+      "1510152",
+      "1510153",
+      "1510154",
+      "2510171",
+      "2510172",
+      "2510173",
+      "2510174",
+      "2510531",
+      "2510532",
+      "2510533",
+      "2510534",
+      "1511591",
+      "1511592",
+      "1511593",
+      "1511594",
+      "2610891",
+      "2610892",
+      "2610893",
+      "2610894",
+      "1310201",
+      "1310202",
+      "1310203",
+      "1310204"
+    ]
+  },
+  "archive": {
+    "name": "pinball-1.4.93-1.4.94-1-0830-awakened-balance-migration.zip",
+    "size": 490529,
+    "sha256": "f919a1094511eb2952b6a92f7fdd2930ea2d606a9244acc3d548ea3399b2a1b7",
+    "members": 34
+  },
+  "payloads": [
+    {
+      "member": "production/upload/1e/664c1cc8d80f4f9a69aae2c49ae8c01d1c4001",
+      "size": 324110,
+      "sha256": "b391d8cf57a23036bc3fb222510746c7311d2044c6682cd84d9c52bbd43842d4"
+    },
+    {
+      "member": "production/upload/3b/f62a05088112b4c6ab2469d6eb10188aa6c8ae",
+      "size": 998,
+      "sha256": "e4599a4e0e37a3e1f32dc0da1f9ad7b0263f9edc14c3cabf4a9a9520f018ce80"
+    },
+    {
+      "member": "production/upload/41/4091501c0f1a4cb70d00ffb678de4452208a28",
+      "size": 1002,
+      "sha256": "d8d54c9e9d5a47959759c3138bb30eae2770ec6792ee9fb07a63f43b3bd6052a"
+    },
+    {
+      "member": "production/upload/43/64fb147b8580f48276a069d9d67c49a342c30b",
+      "size": 562,
+      "sha256": "d6f8db7d177a99c47f4e129f1274b7cd1c69f0eb7985d1c75beaee075ce5ae39"
+    },
+    {
+      "member": "production/upload/46/3040b672f99151a3e52333f1c93a0134b7a869",
+      "size": 677,
+      "sha256": "8a1743aa79ce6c5ed4c097a9011e91a56e6cbf638912bb84129f728a5a0cb9a1"
+    },
+    {
+      "member": "production/upload/4e/be597c9cadac9c4c57562f0c46734b31d8d7a7",
+      "size": 652,
+      "sha256": "0d2427801355ce9e7cb55bd7188122167654616e63e74546120c8afbec77b63e"
+    },
+    {
+      "member": "production/upload/5b/961e623f731f6f6d95df9e7d5b8a6cd722937e",
+      "size": 977,
+      "sha256": "2e98fe49227e5d3a047f6597da48a3ad81f0698dc9bf7968d1de588c2c7f7b00"
+    },
+    {
+      "member": "production/upload/5c/bc2eaa935d623132fb26bb5dfeb81ceb1a35b3",
+      "size": 468,
+      "sha256": "0cc444fc39fc27df0252b0f77f0d750dc995f647ef7cc238d6ec864e76dc3b45"
+    },
+    {
+      "member": "production/upload/62/2ecf94b9de1982243a33d576c0a439ba42d2bd",
+      "size": 1010,
+      "sha256": "c390c99f936a39431460eb312bc58869fade34cd9aec43b3e6de4ce849ee9d8d"
+    },
+    {
+      "member": "production/upload/65/5ed754ce5a9e0b709fe990a64db91b32d5d0d9",
+      "size": 644,
+      "sha256": "5b2b9c58c0ed5cd1a016da89725696d0a6c93705ef522a5da37733d34f311ec5"
+    },
+    {
+      "member": "production/upload/66/7c1f51b550410625cff84efadc4b7908ccdac8",
+      "size": 1690,
+      "sha256": "62db852608538169ffbf665da45c1d388663122ee616d34ec44fe2d8a465e0c9"
+    },
+    {
+      "member": "production/upload/68/8abf377b53a073c6474dffc66fa0f3848cf174",
+      "size": 1006,
+      "sha256": "952e21311baaf4503b4c62e39fe7f011ef6677406b49ecbe58f3c574dcee9c0b"
+    },
+    {
+      "member": "production/upload/6f/527862d0369576c26604ef53efa80c4d53880b",
+      "size": 911,
+      "sha256": "3bd9be30bc2c45ef986809d15edbd16309850a0d4c94e107a7b1019faf175f58"
+    },
+    {
+      "member": "production/upload/78/5b667b7a81df46a78a8b8f59a7d86593af4b93",
+      "size": 459,
+      "sha256": "7292c3964e5f8eef39aeac1a5f2d8cb3c0bd524c6191017264803546400ee979"
+    },
+    {
+      "member": "production/upload/79/f31ddba5fa6b465d83225a7ab5e1b70e4ea66d",
+      "size": 1593,
+      "sha256": "38e67c1e89edec859399bcbbd851c789e62c2601fed56d67bd94ca0440659c46"
+    },
+    {
+      "member": "production/upload/83/39ece2223e7ae5d86d9f45ad13a9eb7d5a9371",
+      "size": 1578,
+      "sha256": "986fe73069ea70c0f82ec6d78b2e06fff1b96184cd0db974817a7d7fe5b007f8"
+    },
+    {
+      "member": "production/upload/88/982e0381b621c13d512a8531064a821afb6b24",
+      "size": 605,
+      "sha256": "eaaf0b1770e4cf4e9127d9739aec7d0dc7965a2ffb94dd717f9c4306156ac3a5"
+    },
+    {
+      "member": "production/upload/8e/576144238e7103ed1c9156eecb8c3e8f8855a3",
+      "size": 508,
+      "sha256": "999b871bb7724056706ddeac5d021a205268d600fb782f9a8e1a0c23f99e4645"
+    },
+    {
+      "member": "production/upload/91/79892d704f88d98191c00548bce106402ad5b5",
+      "size": 316852,
+      "sha256": "16367508ce4655fc04da513becdf50d1b650cf32f822410626574640e886931c"
+    },
+    {
+      "member": "production/upload/95/457b6834cc9ed88882e34efcab9752141fc22e",
+      "size": 12756,
+      "sha256": "abb569a0a917672122bc99f107862d72beab2c2ae74f7904b4d7b1b3ae7dd099"
+    },
+    {
+      "member": "production/upload/98/57ee4116d703967b8f21a8241619df6e1bacf1",
+      "size": 575,
+      "sha256": "8fa2f4891637cf432faf44bc5b68f27c41b96a806c966f5a28a2dea92456fd3d"
+    },
+    {
+      "member": "production/upload/98/7b3788317a3fb8fc6e6f2cb173f694141e88ea",
+      "size": 681,
+      "sha256": "8476e9aaa23d6c73f5e1ea0d7835e4d5cff19041ee20863728dfc401d7500903"
+    },
+    {
+      "member": "production/upload/ae/c45ffea353f4fac4ee732c5e7d597d2a1f572b",
+      "size": 1007,
+      "sha256": "05e7ca5a7736cb606149f7bd102c6357d15751b48e4fad533c08855766e07ff2"
+    },
+    {
+      "member": "production/upload/b4/46d31cfb106897118fb16642e3f938ece76256",
+      "size": 590,
+      "sha256": "c6b561867bb2d30e2ea5f6ef1a997b40f4c7d5caa5877457bc1304527488face"
+    },
+    {
+      "member": "production/upload/bf/4f8b71ac48ce39aa6a28a2b7b2970fe6be7113",
+      "size": 979,
+      "sha256": "240aa101c1bdb461d318ef01c3ad743f801dde4bf4a73def641669f30e5a1a09"
+    },
+    {
+      "member": "production/upload/c2/303ffb78d629dd6232c0d1b1c05246618466c4",
+      "size": 615,
+      "sha256": "968c10a5f57d33d38844a4299353c279f57e9537ffc6450dcd27dd26cff532a0"
+    },
+    {
+      "member": "production/upload/c5/2827bf5ce0da89fd5ca549726f4a86688b293c",
+      "size": 32043,
+      "sha256": "04285f17c4c4707c94e889111a8cc4ca0797118f4cc475be5b9b8c932ba0b482"
+    },
+    {
+      "member": "production/upload/c9/4b41956f83156ade4ee1f4077e9b4645adfe91",
+      "size": 990,
+      "sha256": "14f6659eb98177f791bbd11e9fab3dac6fc88057f8c3b87557a86b81a318b88f"
+    },
+    {
+      "member": "production/upload/cc/c535e1c37ea5b6f90b59e882256c23e48095cf",
+      "size": 774,
+      "sha256": "00577891e00f4f26c4e6e6f166e9ebcd7d5065af0b7e0c4ca5344b6a9ba09a05"
+    },
+    {
+      "member": "production/upload/d7/f1cf530ecec4f29537e2ce68a25408951e9aec",
+      "size": 553,
+      "sha256": "fe3f341af534a02b9aac9bb5ac8cc59864c66aec36456dc93a3827a13734dcc7"
+    },
+    {
+      "member": "production/upload/de/b31de8710be590d2787505019b254b4b1618ca",
+      "size": 767,
+      "sha256": "92d6f2cd03fdf6e6938918fcad2a813e2be011ba4d4cb21c01b76951b5e87bad"
+    },
+    {
+      "member": "production/upload/f0/679090eb5b7082fe2749e81ad7f52b91308937",
+      "size": 605,
+      "sha256": "7424e1f99b4d02e10179994336b9831fffc2920cf1ceaa0e265743fa51d6082d"
+    },
+    {
+      "member": "production/upload/f2/8f6638cdc6181aa3bebcdf6b94618cc32d3fa7",
+      "size": 1736,
+      "sha256": "49e6c0abbe78ca4db7f19dfd7244086455bf87bdee538fba218f71676ef420f5"
+    },
+    {
+      "member": "production/upload/ff/84353774cb95e8d7dc90c679f96a5bca7f42e5",
+      "size": 56108,
+      "sha256": "6db6d69d8151a372e93e2ab1e876deb46774605e5fdf1b8de8dc4c610e273a84"
+    }
+  ],
+  "verification": {
+    "unawakened_abilities_equal_official": true,
+    "awakened_abilities_equal_reviewed_terminal": true,
+    "unawakened_leaders_equal_official": true,
+    "awakened_leaders_equal_reviewed_terminal": true,
+    "action_evolution_1_2_equal_official": true,
+    "action_evolution_3_equal_reviewed_evolution_2": true,
+    "summer_lilith_damage_ct_180_to_150": true,
+    "dark_dragon_rarity_and_status_preserved": true,
+    "unrelated_outer_rows_preserved": true,
+    "archive_crc_ok": true
+  }
+}

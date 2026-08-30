@@ -6,7 +6,7 @@ import eventRewards from "../../../assets/mission_event_reward.json"
 import degreeRewards from "../../../assets/mission_degree_reward.json"
 import collectItemRewards from "../../../assets/mission_collect_item_reward.json"
 import weeklyRewards from "../../../assets/mission_weekly_reward.json"
-import charAwakeRewards from "../../../assets/mission_char_awake_reward.json"
+import { characterAwakeRewards } from "./awake-master-assets"
 import passDailyRewards from "../../../assets/mission_pass_daily_reward.json"
 import passWeekRewards from "../../../assets/mission_pass_week_reward.json"
 import passEventRewards from "../../../assets/mission_pass_event_reward.json"
@@ -44,7 +44,7 @@ const missionStageLookup: Record<number, Record<string, MissionStage[]>> = {
     6: buildLookup(passDailyRewards as any, 1),
     7: buildLookup(passWeekRewards as any, 1),
     8: buildLookup(passEventRewards as any, 1),
-    9: buildLookup(charAwakeRewards as any, 5),
+    9: buildLookup(characterAwakeRewards, 5),
     10: buildLookup(weeklyRewards as any, 1),
 }
 

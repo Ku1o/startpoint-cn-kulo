@@ -14,6 +14,7 @@ import { validateSessionAndPlayer, validateCharacterOwnership, computeManaDeduct
 import { incrementActiveMissionUsedManaCountSync } from "../../../data/domains/active_mission_counters";
 import { gameVerboseLog } from "../../../lib/game-logging";
 import { deriveAwakeEvolutionLevel } from "../../../lib/character-awake-evolution";
+import { collectLinkedManaNodeAwakeUpdates, getInheritedLinkedManaNodeAwakeLevel } from "../../../lib/character-awake-extension";
 
 interface LearnManaNodeBody {
     viewer_id: number,
@@ -54,6 +55,7 @@ const routes = async (fastify: FastifyInstance) => {
         let manaCost = 0
         const itemsCosts: Record<string, number> = {}
         const userCharacterManaNodeListItem: Object[] = []
+        const inheritedAwakeNodeLevels = new Map<number, number>()
 
         const currentManaNodeIndex = characterData.manaBoardIndex;
         const characterManaNodes = getCharacterManaNodesSync(characterId, currentManaNodeIndex)
@@ -82,7 +84,19 @@ const routes = async (fastify: FastifyInstance) => {
                 for (const [itemId, itemCost] of Object.entries(nodeData.items)) {
                     itemsCosts[itemId] = (itemsCosts[itemId] ?? 0) + itemCost
                 }
-                userCharacterManaNodeListItem.push({ "multiplied_id": manaNodeId, "awake_level": 0 })
+                const inheritedAwakeLevel = getInheritedLinkedManaNodeAwakeLevel(
+                    characterId,
+                    currentManaNodeIndex,
+                    nodeData,
+                    characterData.evolutionLevel,
+                )
+                userCharacterManaNodeListItem.push({
+                    "multiplied_id": manaNodeId,
+                    "awake_level": inheritedAwakeLevel,
+                })
+                if (inheritedAwakeLevel > 0) {
+                    inheritedAwakeNodeLevels.set(manaNodeId, inheritedAwakeLevel)
+                }
             }
         }
 
@@ -111,6 +125,11 @@ const routes = async (fastify: FastifyInstance) => {
                 updatePlayerItemSync(playerId, itemId, newAmount)
             }
             insertPlayerCharacterManaNodesSync(playerId, characterId, toUnlockNodeIds)
+            for (const [nodeId, awakeLevel] of inheritedAwakeNodeLevels) {
+                updatePlayerCharacterManaNodeAwakeLevelSync(
+                    playerId, characterId, nodeId, awakeLevel,
+                )
+            }
 
             const bond = computeBondTokenAndEvolution(
                 playerId, characterId, characterData, currentManaNodeIndex, isBoardComplete
@@ -189,6 +208,7 @@ const routes = async (fastify: FastifyInstance) => {
         const finalAwakeLevels = new Map(
             Object.entries(charAwakeLevels).map(([nodeId, level]) => [Number(nodeId), level]),
         )
+        const learnedNodeSet = new Set(learnedNodeIds)
 
         // Cache character rarity outside the loop
         const charAssetData = getCharacterDataSync(characterId)
@@ -227,10 +247,27 @@ const routes = async (fastify: FastifyInstance) => {
             board1Nodes,
             finalAwakeLevels,
         )
+        const linkedNodeUpdates = characterEvolutionLevel >= 2
+            ? collectLinkedManaNodeAwakeUpdates(
+                characterId,
+                learnedNodeSet,
+                finalAwakeLevels,
+                characterEvolutionLevel - 1,
+            )
+            : []
+        for (const update of linkedNodeUpdates) {
+            finalAwakeLevels.set(update.nodeId, update.awakeLevel)
+            userCharacterManaNodeListItem.push({
+                "multiplied_id": update.nodeId,
+                "awake_level": update.awakeLevel,
+            })
+        }
+
         const manaBoardAwake = board1NodeIds.every(nodeId => (
             (finalAwakeLevels.get(nodeId) ?? 0) >= targetAwakeLevel
         )) ? { "1": targetAwakeLevel } : undefined
         const hasStateUpdates = nodeUpdates.length > 0
+            || linkedNodeUpdates.length > 0
             || characterEvolutionLevel !== characterData.evolutionLevel
 
         // All nodes already at target — return current state
@@ -270,7 +307,7 @@ const routes = async (fastify: FastifyInstance) => {
                 updatePlayerItemSync(playerId, itemId, newAmount)
             }
 
-            for (const update of nodeUpdates) {
+            for (const update of [...nodeUpdates, ...linkedNodeUpdates]) {
                 updatePlayerCharacterManaNodeAwakeLevelSync(
                     playerId, characterId, update.nodeId, update.awakeLevel,
                 )

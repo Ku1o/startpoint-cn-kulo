@@ -1,0 +1,95 @@
+{
+  "151045": {
+    "linked_mana_node_slots": [
+      {
+        "board_index": 2,
+        "ability_slot": 6,
+        "awake_level": 1
+      }
+    ]
+  },
+  "151027": {
+    "linked_mana_node_slots": [
+      {
+        "board_index": 2,
+        "ability_slot": 5,
+        "awake_level": 1
+      }
+    ]
+  },
+  "151021": {
+    "linked_mana_node_slots": [
+      {
+        "board_index": 2,
+        "ability_slot": 4,
+        "awake_level": 1
+      },
+      {
+        "board_index": 2,
+        "ability_slot": 5,
+        "awake_level": 1
+      }
+    ]
+  },
+  "251017": {
+    "linked_mana_node_slots": [
+      {
+        "board_index": 2,
+        "ability_slot": 6,
+        "awake_level": 1
+      }
+    ]
+  },
+  "251053": {
+    "linked_mana_node_slots": [
+      {
+        "board_index": 2,
+        "ability_slot": 4,
+        "awake_level": 1
+      },
+      {
+        "board_index": 2,
+        "ability_slot": 6,
+        "awake_level": 1
+      }
+    ]
+  },
+  "151159": {
+    "linked_mana_node_slots": [
+      {
+        "board_index": 2,
+        "ability_slot": 4,
+        "awake_level": 1
+      },
+      {
+        "board_index": 2,
+        "ability_slot": 5,
+        "awake_level": 1
+      },
+      {
+        "board_index": 2,
+        "ability_slot": 6,
+        "awake_level": 1
+      }
+    ]
+  },
+  "261089": {
+    "linked_mana_node_slots": [
+      {
+        "board_index": 2,
+        "ability_slot": 4,
+        "awake_level": 1
+      },
+      {
+        "board_index": 2,
+        "ability_slot": 5,
+        "awake_level": 1
+      },
+      {
+        "board_index": 2,
+        "ability_slot": 6,
+        "awake_level": 1
+      }
+    ]
+  }
+}

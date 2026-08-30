@@ -3,11 +3,11 @@ import dailyDefinitions from "../../../assets/mission_daily.json"
 import eventDefinitions from "../../../assets/mission_event.json"
 import collectItemDefinitions from "../../../assets/mission_collect_item.json"
 import degreeDefinitions from "../../../assets/mission_degree.json"
-import characterAwakeDefinitions from "../../../assets/mission_char_awake.json"
 import weeklyDefinitions from "../../../assets/mission_weekly_def.json"
 import passDailyDefinitions from "../../../assets/mission_pass_daily.json"
 import passWeekDefinitions from "../../../assets/mission_pass_week.json"
 import passEventDefinitions from "../../../assets/mission_pass_event.json"
+import { characterAwakeDefinitions } from "./awake-master-assets"
 
 interface CategoryLayout {
     pattern: number

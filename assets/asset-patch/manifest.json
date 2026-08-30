@@ -1,5 +1,5 @@
 {
-  "cdn_version": "1.4.93",
+  "cdn_version": "1.4.94",
   "patches": [
     {
       "id": "base-1.4.54-to-1.4.55-mod07141843",
@@ -5702,6 +5702,76 @@
       "chain": [
         "pinball-1.4.92-1.4.93-1-0830-simoun-flock-reset-rollback.zip",
         "pinball-1.4.92-1.4.93-2-0830-abyss-position-fix.zip"
+      ]
+    },
+    {
+      "id": "awakened-balance-migration-1.4.94",
+      "type": "patch",
+      "name": "九名官方角色上修改为觉醒后生效",
+      "description": "能力光六人、光龙、暗龙与白花机人雷吉斯在未觉醒时恢复官方数值，觉醒后切换至本服最终上修设计；暗龙继续保持五星身份和五星成长。",
+      "version": "1.4.94",
+      "depends_on": "1.4.93",
+      "enabled": true,
+      "archive": "pinball-1.4.93-1.4.94-1-0830-awakened-balance-migration.zip",
+      "archive_size": 490529,
+      "files": [
+        "production/upload/1e/664c1cc8d80f4f9a69aae2c49ae8c01d1c4001",
+        "production/upload/3b/f62a05088112b4c6ab2469d6eb10188aa6c8ae",
+        "production/upload/41/4091501c0f1a4cb70d00ffb678de4452208a28",
+        "production/upload/43/64fb147b8580f48276a069d9d67c49a342c30b",
+        "production/upload/46/3040b672f99151a3e52333f1c93a0134b7a869",
+        "production/upload/4e/be597c9cadac9c4c57562f0c46734b31d8d7a7",
+        "production/upload/5b/961e623f731f6f6d95df9e7d5b8a6cd722937e",
+        "production/upload/5c/bc2eaa935d623132fb26bb5dfeb81ceb1a35b3",
+        "production/upload/62/2ecf94b9de1982243a33d576c0a439ba42d2bd",
+        "production/upload/65/5ed754ce5a9e0b709fe990a64db91b32d5d0d9",
+        "production/upload/66/7c1f51b550410625cff84efadc4b7908ccdac8",
+        "production/upload/68/8abf377b53a073c6474dffc66fa0f3848cf174",
+        "production/upload/6f/527862d0369576c26604ef53efa80c4d53880b",
+        "production/upload/78/5b667b7a81df46a78a8b8f59a7d86593af4b93",
+        "production/upload/79/f31ddba5fa6b465d83225a7ab5e1b70e4ea66d",
+        "production/upload/83/39ece2223e7ae5d86d9f45ad13a9eb7d5a9371",
+        "production/upload/88/982e0381b621c13d512a8531064a821afb6b24",
+        "production/upload/8e/576144238e7103ed1c9156eecb8c3e8f8855a3",
+        "production/upload/91/79892d704f88d98191c00548bce106402ad5b5",
+        "production/upload/95/457b6834cc9ed88882e34efcab9752141fc22e",
+        "production/upload/98/57ee4116d703967b8f21a8241619df6e1bacf1",
+        "production/upload/98/7b3788317a3fb8fc6e6f2cb173f694141e88ea",
+        "production/upload/ae/c45ffea353f4fac4ee732c5e7d597d2a1f572b",
+        "production/upload/b4/46d31cfb106897118fb16642e3f938ece76256",
+        "production/upload/bf/4f8b71ac48ce39aa6a28a2b7b2970fe6be7113",
+        "production/upload/c2/303ffb78d629dd6232c0d1b1c05246618466c4",
+        "production/upload/c5/2827bf5ce0da89fd5ca549726f4a86688b293c",
+        "production/upload/c9/4b41956f83156ade4ee1f4077e9b4645adfe91",
+        "production/upload/cc/c535e1c37ea5b6f90b59e882256c23e48095cf",
+        "production/upload/d7/f1cf530ecec4f29537e2ce68a25408951e9aec",
+        "production/upload/de/b31de8710be590d2787505019b254b4b1618ca",
+        "production/upload/f0/679090eb5b7082fe2749e81ad7f52b91308937",
+        "production/upload/f2/8f6638cdc6181aa3bebcdf6b94618cc32d3fa7",
+        "production/upload/ff/84353774cb95e8d7dc90c679f96a5bca7f42e5"
+      ],
+      "changes": [
+        "151045、151027、151021、151015、251017、251053、151159、261089、131020的官方能力作为未觉醒行，既有最终上修能力作为觉醒1级替换行。",
+        "有改动的队长技按同样规则切换；九名角色主动技进化1/2恢复官方实装，新增进化3承载现行上修DSL。",
+        "暗龙阿鲁玛德乌斯（261089）继续保持五星稀有度与当前五星HP/ATK成长曲线，不写回官方四星角色主表或四星成长。",
+        "夏日莉莉丝能力3与队长技中真正造成伤害的追击CT由3秒小幅缩短至2.5秒，纯增益触发CT不变。",
+        "为九名角色追加长期有效的觉醒活动、任务、奖励与零额外面板加成状态；二板上发生变化的能力4至6由服务端配置联动觉醒等级。"
+      ],
+      "created_at": "2026-08-30",
+      "audit": {
+        "directory": "assets/asset-patch/audit/awakened-balance-migration-1.4.94",
+        "report": "report.json"
+      },
+      "archive_integrity": [
+        {
+          "name": "pinball-1.4.93-1.4.94-1-0830-awakened-balance-migration.zip",
+          "size": 490529,
+          "sha256": "f919a1094511eb2952b6a92f7fdd2930ea2d606a9244acc3d548ea3399b2a1b7",
+          "members": 34
+        }
+      ],
+      "chain": [
+        "pinball-1.4.93-1.4.94-1-0830-awakened-balance-migration.zip"
       ]
     }
   ]
