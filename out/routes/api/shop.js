@@ -37,17 +37,24 @@ const counters_1 = require("../../lib/mission/counters");
 const free_first_deduction_1 = require("../../lib/free-first-deduction");
 const GENERAL_SHOP_CDN_KEYS = new Set(cdn_general_shop_whitelist_json_1.default);
 function isShopItemAvailable(item, now) {
-    if (item.availableFrom) {
-        const availableFrom = new Date(item.availableFrom.replace(' ', 'T') + 'Z');
-        if (availableFrom > now)
-            return false;
-    }
-    if (item.availableUntil) {
-        const availableUntil = new Date(item.availableUntil.replace(' ', 'T') + 'Z');
-        if (availableUntil < now)
-            return false;
-    }
-    return true;
+    var _a;
+    const periods = [{
+            availableFrom: item.availableFrom,
+            availableUntil: item.availableUntil,
+        }, ...((_a = item.compatibilityPeriods) !== null && _a !== void 0 ? _a : [])];
+    return periods.some(period => {
+        if (period.availableFrom) {
+            const availableFrom = new Date(period.availableFrom.replace(' ', 'T') + 'Z');
+            if (availableFrom > now)
+                return false;
+        }
+        if (period.availableUntil) {
+            const availableUntil = new Date(period.availableUntil.replace(' ', 'T') + 'Z');
+            if (availableUntil < now)
+                return false;
+        }
+        return true;
+    });
 }
 function recordTreasureShopProgress(playerId, shopType, purchaseCount, manaSpent) {
     if (shopType !== types_1.ShopType.TREASURE)
@@ -355,6 +362,15 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 "error": "Bad Request",
                 "message": "Shop item with specified id does not exist."
             });
+        // Event products may still be present in a stale client cache after
+        // their exchange window closes. The listing filter is not a security
+        // boundary, so enforce the same period again before any costs change.
+        if (shopType === types_1.ShopType.EVENT_ITEM && !isShopItemAvailable(shopItemData, (0, utils_1.getServerDate)())) {
+            return reply.status(400).send({
+                "error": "Bad Request",
+                "message": "Event shop item is not currently available."
+            });
+        }
         let degreeIds;
         try {
             degreeIds = getShopDegreeRewards(shopItemData, purchaseAmount);
@@ -945,6 +961,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             let availablePaidVmoney = player.vmoney;
             let availableBondToken = player.bondToken;
             const availableItems = new Map();
+            const purchaseNow = (0, utils_1.getServerDate)();
             let skippedEntries = Math.max(0, (buyItemList === null ? 0 : Object.keys(buyItemList).length) - rawEntries.length);
             for (const [rawShopItemId, rawPurchaseAmount] of rawEntries) {
                 const shopItemId = Number(rawShopItemId);
@@ -957,6 +974,10 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 }
                 const shopItem = (0, assets_1.getShopItemSync)(shopType, shopItemId);
                 if (shopItem === null) {
+                    skippedEntries++;
+                    continue;
+                }
+                if (shopType === types_1.ShopType.EVENT_ITEM && !isShopItemAvailable(shopItem, purchaseNow)) {
                     skippedEntries++;
                     continue;
                 }

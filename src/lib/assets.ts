@@ -204,6 +204,33 @@ function getQuestSync(
 }
 
 /**
+ * Gets the highest configured round for a Rush event folder.
+ *
+ * Official Rush events do not all use the same number of rounds: later
+ * highest-difficulty folders contain a third battle.  Derive the value from
+ * the quest master instead of assuming that every folder ends at round two.
+ */
+export function getRushEventFolderMaxRoundSync(
+    eventId: number,
+    folderId: number,
+): number {
+    let maxRound = 0
+    for (const quest of Object.values(rushEventQuests as RawQuests)) {
+        const round = quest.rushEventRound
+        if (
+            quest.rushEventId === eventId
+            && quest.rushEventFolderId === folderId
+            && typeof round === "number"
+            && Number.isInteger(round)
+            && round > maxRound
+        ) {
+            maxRound = round
+        }
+    }
+    return maxRound
+}
+
+/**
  * Gets the data for a main quest from the database.
  * 
  * @param questId The ID of the quest.
@@ -631,6 +658,39 @@ export function getGachaCampaignIdSync(
 
 // shop functions
 
+const RUSH_RERUN_SHOP_PERIODS: Record<number, { availableFrom: string, availableUntil: string }> = {
+    700011: { availableFrom: "2025-06-26 12:00:00", availableUntil: "2025-08-14 23:59:59" },
+    700012: { availableFrom: "2025-06-26 12:00:00", availableUntil: "2025-08-14 23:59:59" },
+    700013: { availableFrom: "2025-06-26 12:00:00", availableUntil: "2025-08-14 23:59:59" },
+    700014: { availableFrom: "2025-06-26 12:00:00", availableUntil: "2025-08-14 23:59:59" },
+    700015: { availableFrom: "2025-06-26 12:00:00", availableUntil: "2025-08-14 23:59:59" },
+    700016: { availableFrom: "2025-06-26 12:00:00", availableUntil: "2025-08-14 23:59:59" },
+    700017: { availableFrom: "2025-06-26 12:00:00", availableUntil: "2025-08-14 23:59:59" },
+}
+
+function addShopCompatibilityPeriod(item: ShopItem, period: { availableFrom: string, availableUntil: string }): ShopItem {
+    const compatibilityPeriods = item.compatibilityPeriods ?? []
+    if (compatibilityPeriods.some(candidate =>
+        candidate.availableFrom === period.availableFrom
+        && candidate.availableUntil === period.availableUntil
+    )) return item
+
+    return {
+        ...item,
+        compatibilityPeriods: [...compatibilityPeriods, period],
+    }
+}
+
+function addShopCompatibilityPeriodToItems(
+    items: ShopItems,
+    period: { availableFrom: string, availableUntil: string }
+): ShopItems {
+    return Object.fromEntries(Object.entries(items).map(([itemId, item]) => [
+        itemId,
+        addShopCompatibilityPeriod(item, period),
+    ]))
+}
+
 /**
  * Gets the items for a generic shop.
  * 
@@ -668,13 +728,21 @@ export function getEventShopItemsSync(
     if (typeSection === undefined) return null;
 
     // Try exact event ID first
+    const eventIdNum = Number(eventId)
+    const rerunPeriod = Number(eventType) === 11 ? RUSH_RERUN_SHOP_PERIODS[eventIdNum] : undefined
     let result = typeSection[String(eventId)] ?? null
-    if (result !== null) return result;
+    if (result !== null) {
+        return rerunPeriod === undefined
+            ? result
+            : addShopCompatibilityPeriodToItems(result, rerunPeriod)
+    }
 
     // Fallback: for rush event reruns (700011-700017), try primary event (ID - 10)
-    const eventIdNum = Number(eventId)
-    if (eventIdNum >= 700010 && eventIdNum <= 700019) {
-        return typeSection[String(eventIdNum - 10)] ?? null
+    if (rerunPeriod !== undefined) {
+        result = typeSection[String(eventIdNum - 10)] ?? null
+        return result === null
+            ? null
+            : addShopCompatibilityPeriodToItems(result, rerunPeriod)
     }
 
     return null
@@ -719,7 +787,10 @@ export function getShopItemSync(
         case ShopType.EVENT_ITEM:
             const mapInfo = (eventItemShopIdMap as Record<string, EventItemShopIdMapItem>)[itemId]
             if (mapInfo === undefined) return null;
-            return (eventItemShopItems as EventShopItems)[mapInfo.eventType][mapInfo.eventId][itemId] ?? null
+            const item = (eventItemShopItems as EventShopItems)[mapInfo.eventType][mapInfo.eventId][itemId] ?? null
+            if (item === null || Number(mapInfo.eventType) !== 11) return item
+            const rerunPeriod = RUSH_RERUN_SHOP_PERIODS[Number(mapInfo.eventId) + 10]
+            return rerunPeriod === undefined ? item : addShopCompatibilityPeriod(item, rerunPeriod)
         default:
             return null
     }

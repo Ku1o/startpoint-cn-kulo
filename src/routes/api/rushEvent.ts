@@ -8,7 +8,7 @@ import { getDefaultPlayerPartyGroupsSync, getPlayerSync } from "../../data/domai
 import { getPlayerCharacterSync } from "../../data/domains/character"
 import { ensurePlayerPartyGroupListSync, getPlayerPartyGroupListSync } from "../../data/domains/party"
 import { getSession } from "../../data/domains/session"
-import { getQuestFromCategorySync, getRogueEventConfig } from "../../lib/assets";
+import { getQuestFromCategorySync, getRogueEventConfig, getRushEventFolderMaxRoundSync } from "../../lib/assets";
 import { BattleQuest, QuestCategory, RushEventFolder } from "../../lib/types";
 import { generateDataHeaders, getServerDate, getServerTime } from "../../utils";
 import { FinishBody, insertActiveQuest } from "./singleBattleQuest";
@@ -38,6 +38,7 @@ import {
 } from "../../lib/gauntlet-entry-rank";
 import {
     getEligibleRushDegreeIds,
+    getRushDegreeRewardSourceEventId,
     grantEligibleRushEventDegreesSync,
 } from "../../lib/activity-degree-rewards";
 import {
@@ -185,6 +186,12 @@ export function getRushEventFolderMaxRounds(eventId: number, folderId: number): 
         // never closes the folder before stage-15 settlement resets the run.
         return 16;
     }
+
+    const configuredMaxRound = getRushEventFolderMaxRoundSync(eventId, folderId)
+    if (configuredMaxRound > 0) return configuredMaxRound
+
+    // Retain the legacy defaults only for old/custom rows that have no quest
+    // master data. Official event folders are resolved from their actual rows.
     return rushEventFolderMaxRounds[folderId as RushEventFolder] ?? 0;
 }
 
@@ -908,7 +915,8 @@ const routes = async (fastify: FastifyInstance) => {
         const eligibleDegreeIds = new Set(getEligibleRushDegreeIds(eventId, maxRound))
 
         // find matching reward tier
-        const rewards = rankingRewards[String(eventId)] ?? {}
+        const rewardSourceEventId = getRushDegreeRewardSourceEventId(eventId)
+        const rewards = rankingRewards[String(rewardSourceEventId)] ?? {}
         let rewardList: RushEventRankingRewardEntry[] = []
         if (maxRound !== null && maxRound > 0) {
             for (const entries of Object.values(rewards)) {

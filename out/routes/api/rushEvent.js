@@ -79,6 +79,11 @@ function getRushEventFolderMaxRounds(eventId, folderId) {
         // never closes the folder before stage-15 settlement resets the run.
         return 16;
     }
+    const configuredMaxRound = (0, assets_1.getRushEventFolderMaxRoundSync)(eventId, folderId);
+    if (configuredMaxRound > 0)
+        return configuredMaxRound;
+    // Retain the legacy defaults only for old/custom rows that have no quest
+    // master data. Official event folders are resolved from their actual rows.
     return (_b = exports.rushEventFolderMaxRounds[folderId]) !== null && _b !== void 0 ? _b : 0;
 }
 exports.getRushEventFolderMaxRounds = getRushEventFolderMaxRounds;
@@ -722,7 +727,8 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         const maxRound = (_f = rushEvent === null || rushEvent === void 0 ? void 0 : rushEvent.endlessBattleMaxRound) !== null && _f !== void 0 ? _f : null;
         const eligibleDegreeIds = new Set((0, activity_degree_rewards_1.getEligibleRushDegreeIds)(eventId, maxRound));
         // find matching reward tier
-        const rewards = (_g = rankingRewards[String(eventId)]) !== null && _g !== void 0 ? _g : {};
+        const rewardSourceEventId = (0, activity_degree_rewards_1.getRushDegreeRewardSourceEventId)(eventId);
+        const rewards = (_g = rankingRewards[String(rewardSourceEventId)]) !== null && _g !== void 0 ? _g : {};
         let rewardList = [];
         if (maxRound !== null && maxRound > 0) {
             for (const entries of Object.values(rewards)) {

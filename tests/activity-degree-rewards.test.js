@@ -7,10 +7,15 @@ const path = require("node:path")
 const temporaryDataDir = fs.mkdtempSync(path.join(os.tmpdir(), "startpoint-activity-degree-test-"))
 process.env.DATA_DIR = temporaryDataDir
 
+const Fastify = require("fastify")
+const rushEventRoutes = require("../out/routes/api/rushEvent").default
 const { insertAccountSync } = require("../out/data/domains/account")
 const { insertDefaultPlayerSync } = require("../out/data/domains/player")
 const { getDb } = require("../out/data/db")
 const { hasPlayerDegreeSync } = require("../out/data/domains/degree")
+const { getDefaultPlayerRushEventSync, insertPlayerRushEventSync } = require("../out/data/domains/rushEvent")
+const { insertSessionWithToken } = require("../out/data/domains/session")
+const { saveAccountDefaultPlayer } = require("../out/data/activeAccount")
 const {
     getEligibleRankingDegreeIdsSync,
     getEligibleRaidDegreeIdsSync,
@@ -65,4 +70,69 @@ test("rush title reward ranges are evaluated against endless round, not leaderbo
 
     assert.deepEqual(grantEligibleRushEventDegreesSync(player.id, 700001, 6), [64002])
     assert.equal(hasPlayerDegreeSync(player.id, 64002), true)
+})
+
+test("rush reruns reuse the original endless-round title milestones", () => {
+    for (let index = 0; index < 7; index++) {
+        const rerunEventId = 700011 + index
+        const firstDegreeId = 64000 + index * 3
+        assert.deepEqual(getEligibleRushDegreeIds(rerunEventId, 3), [firstDegreeId])
+        assert.deepEqual(getEligibleRushDegreeIds(rerunEventId, 5), [firstDegreeId + 1])
+        assert.deepEqual(getEligibleRushDegreeIds(rerunEventId, 6), [firstDegreeId + 2])
+    }
+
+    assert.deepEqual(grantEligibleRushEventDegreesSync(player.id, 700017, 6), [64020])
+    assert.equal(hasPlayerDegreeSync(player.id, 64020), true)
+})
+
+test("rush rerun reward endpoint returns and grants the original event title", async t => {
+    const rerunAccount = insertAccountSync({
+        appId: "wf_cn",
+        idpAlias: "",
+        idpCode: "leiting",
+        idpId: "",
+        status: "normal",
+    })
+    const rerunPlayer = insertDefaultPlayerSync(rerunAccount.id)
+    saveAccountDefaultPlayer(rerunAccount.id, rerunPlayer.id)
+
+    const progress = getDefaultPlayerRushEventSync(700011)
+    progress.endlessBattleMaxRound = 6
+    progress.endlessBattleMaxRoundTime = 12_345
+    insertPlayerRushEventSync(rerunPlayer.id, progress)
+
+    const viewerId = 77119913
+    await insertSessionWithToken({
+        token: String(viewerId),
+        accountId: rerunAccount.id,
+        expires: new Date(Date.now() + 86_400_000),
+        type: 2,
+    })
+
+    const app = Fastify({ logger: false })
+    app.addHook("onSend", (_request, reply, payload, done) => {
+        const contentType = String(reply.getHeader("content-type") ?? "")
+        done(null, contentType.startsWith("application/x-msgpack") && typeof payload === "object"
+            ? JSON.stringify(payload)
+            : payload)
+    })
+    await app.register(rushEventRoutes, { prefix: "/rush_event" })
+    await app.ready()
+    t.after(() => app.close())
+
+    const response = await app.inject({
+        method: "POST",
+        url: "/rush_event/reward",
+        headers: { "content-type": "application/json" },
+        payload: { viewer_id: viewerId, api_count: 1, event_id: 700011 },
+    })
+    assert.equal(response.statusCode, 200, response.payload)
+    const body = JSON.parse(response.payload)
+    assert.deepEqual(body.data.ranking_reward.reward_list, [
+        { kind: 7, kind_id: 64002, number: 1 },
+    ])
+    assert.deepEqual(body.data.degree_list, [
+        { viewer_id: viewerId, degree_id: 64002 },
+    ])
+    assert.equal(hasPlayerDegreeSync(rerunPlayer.id, 64002), true)
 })
