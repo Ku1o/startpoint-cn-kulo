@@ -47,6 +47,30 @@ export function getInheritedLinkedManaNodeAwakeLevel(
 }
 
 /**
+ * Resolves a configured extension board for a learn request when the player's
+ * persisted current board still points at the official awakening board.
+ */
+export function resolveLinkedManaNodeBoardIndex(
+    characterId: number,
+    nodeIds: readonly number[],
+    evolutionLevel: number,
+): number | null {
+    const extension = getExtension(characterId)
+    if (!extension || evolutionLevel < 2 || nodeIds.length === 0) return null
+
+    const boardIndices = new Set(extension.linked_mana_node_slots.map(link => link.board_index))
+    for (const boardIndex of boardIndices) {
+        const boardNodes = getCharacterManaNodesSync(characterId, boardIndex)
+        if (!boardNodes) continue
+        if (nodeIds.every(nodeId => {
+            const node = boardNodes[String(nodeId)]
+            return node !== undefined && findLinkedNode(extension, boardIndex, node) !== null
+        })) return boardIndex
+    }
+    return null
+}
+
+/**
  * Builds free node updates when an awakened design changes an ability stored
  * on mana board 2. Only already learned nodes are included; later learning is
  * handled by getInheritedLinkedManaNodeAwakeLevel.

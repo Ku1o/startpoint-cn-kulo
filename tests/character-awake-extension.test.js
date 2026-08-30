@@ -10,22 +10,24 @@ process.env.DATA_DIR = temporaryDataDir
 const Fastify = require("fastify")
 const manaRoutes = require("../out/routes/api/character/mana").default
 const { insertAccountSync } = require("../out/data/domains/account")
-const { insertDefaultPlayerSync, updatePlayerSync } = require("../out/data/domains/player")
+const { getPlayerSync, insertDefaultPlayerSync, updatePlayerSync } = require("../out/data/domains/player")
 const { insertSessionWithToken } = require("../out/data/domains/session")
 const { saveAccountDefaultPlayer } = require("../out/data/activeAccount")
 const {
     getPlayerCharacterSync,
+    getPlayerCharacterManaNodesSync,
     getPlayerCharactersManaNodeAwakeLevelsSync,
     insertDefaultPlayerCharacterSync,
     insertPlayerCharacterManaNodesSync,
     updatePlayerCharacterSync,
 } = require("../out/data/domains/character")
 const { upsertPlayerCharacterAwakeUnlockSync } = require("../out/data/domains/character_awake")
-const { insertPlayerItemsSync } = require("../out/data/domains/item")
+const { getPlayerItemSync, insertPlayerItemsSync } = require("../out/data/domains/item")
 const { getCharacterDataSync, getCharacterManaNodesSync, getManaNodeAwakeCost } = require("../out/lib/assets")
 const {
     collectLinkedManaNodeAwakeUpdates,
     getInheritedLinkedManaNodeAwakeLevel,
+    resolveLinkedManaNodeBoardIndex,
 } = require("../out/lib/character-awake-extension")
 
 const CHARACTER_ID = 151045
@@ -126,12 +128,47 @@ test("夏日莉莉丝二板能力6只联动已学习节点，后学习节点继�
         },
     })
     assert.equal(awakened.statusCode, 200, awakened.payload)
+    const awakenedNodeList = awakened.json().data.user_character_mana_node_list[String(CHARACTER_ID)]
+    assert.deepEqual(
+        new Set(awakenedNodeList.map(node => node.multiplied_id)),
+        new Set([...Object.keys(board1).map(Number), ...learnedSlot6NodeIds]),
+    )
+    for (const nodeId of learnedSlot6NodeIds) {
+        assert.equal(awakenedNodeList.find(node => node.multiplied_id === nodeId).awake_level, 1)
+    }
+    assert.equal(awakenedNodeList.some(node => node.multiplied_id === lateNodeId), false)
     assert.equal(getPlayerCharacterSync(player.id, CHARACTER_ID).evolutionLevel, 2)
     const levelsAfterAwake = getPlayerCharactersManaNodeAwakeLevelsSync(player.id)[String(CHARACTER_ID)]
     for (const nodeId of learnedSlot6NodeIds) assert.equal(levelsAfterAwake[nodeId], 1)
     assert.equal(levelsAfterAwake[lateNodeId], undefined)
 
-    updatePlayerCharacterSync(player.id, CHARACTER_ID, { manaBoardIndex: 2 })
+    assert.equal(getPlayerCharacterSync(player.id, CHARACTER_ID).manaBoardIndex, 1)
+    const replayedNodeId = learnedSlot6NodeIds[0]
+    const manaBeforeReplay = getPlayerSync(player.id).freeMana
+    const nodeCountBeforeReplay = getPlayerCharacterManaNodesSync(player.id, CHARACTER_ID).length
+    const replayedItemId = Number(Object.keys(board2[String(replayedNodeId)].items)[0])
+    const itemBeforeReplay = getPlayerItemSync(player.id, replayedItemId)
+    const replayed = await app.inject({
+        method: "POST",
+        url: "/character/learn_mana_node",
+        headers: { "content-type": "application/json" },
+        payload: {
+            viewer_id: viewerId,
+            character_id: CHARACTER_ID,
+            api_count: 2,
+            mana_node_multiplied_id_list: [replayedNodeId],
+        },
+    })
+    assert.equal(replayed.statusCode, 200, replayed.payload)
+    assert.equal(getPlayerSync(player.id).freeMana, manaBeforeReplay)
+    assert.equal(getPlayerCharacterManaNodesSync(player.id, CHARACTER_ID).length, nodeCountBeforeReplay)
+    assert.equal(getPlayerItemSync(player.id, replayedItemId), itemBeforeReplay)
+    assert.deepEqual(replayed.json().data.item_list, {})
+    const replayedResponse = replayed.json().data.user_character_mana_node_list[String(CHARACTER_ID)]
+        .find(node => node.multiplied_id === replayedNodeId)
+    assert.equal(replayedResponse.awake_level, 1)
+    assert.equal(getPlayerCharacterSync(player.id, CHARACTER_ID).manaBoardIndex, 1)
+
     const learned = await app.inject({
         method: "POST",
         url: "/character/learn_mana_node",
@@ -149,6 +186,7 @@ test("夏日莉莉丝二板能力6只联动已学习节点，后学习节点继�
     assert.equal(lateResponse.awake_level, 1)
     const finalLevels = getPlayerCharactersManaNodeAwakeLevelsSync(player.id)[String(CHARACTER_ID)]
     assert.equal(finalLevels[lateNodeId], 1)
+    assert.equal(getPlayerCharacterSync(player.id, CHARACTER_ID).manaBoardIndex, 2)
 })
 
 test("非配置槽位和未觉醒角色不会继承二板觉醒等级", () => {
@@ -158,6 +196,12 @@ test("非配置槽位和未觉醒角色不会继承二板觉醒等级", () => {
     assert.equal(getInheritedLinkedManaNodeAwakeLevel(CHARACTER_ID, 2, slot5Node, 2), 0)
     assert.equal(getInheritedLinkedManaNodeAwakeLevel(CHARACTER_ID, 2, slot6Node, 1), 0)
     assert.equal(getInheritedLinkedManaNodeAwakeLevel(CHARACTER_ID, 2, slot6Node, 2), 1)
+    assert.equal(resolveLinkedManaNodeBoardIndex(CHARACTER_ID, [Number(
+        Object.entries(board2).find(([, node]) => node === slot6Node)[0],
+    )], 2), 2)
+    assert.equal(resolveLinkedManaNodeBoardIndex(CHARACTER_ID, [Number(
+        Object.entries(board2).find(([, node]) => node === slot5Node)[0],
+    )], 2), null)
 
     const learnedIds = new Set(Object.keys(board2).map(Number))
     const updates = collectLinkedManaNodeAwakeUpdates(

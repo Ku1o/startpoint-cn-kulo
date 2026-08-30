@@ -14,7 +14,7 @@ import { validateSessionAndPlayer, validateCharacterOwnership, computeManaDeduct
 import { incrementActiveMissionUsedManaCountSync } from "../../../data/domains/active_mission_counters";
 import { gameVerboseLog } from "../../../lib/game-logging";
 import { deriveAwakeEvolutionLevel } from "../../../lib/character-awake-evolution";
-import { collectLinkedManaNodeAwakeUpdates, getInheritedLinkedManaNodeAwakeLevel } from "../../../lib/character-awake-extension";
+import { collectLinkedManaNodeAwakeUpdates, getInheritedLinkedManaNodeAwakeLevel, resolveLinkedManaNodeBoardIndex } from "../../../lib/character-awake-extension";
 
 interface LearnManaNodeBody {
     viewer_id: number,
@@ -40,7 +40,9 @@ const routes = async (fastify: FastifyInstance) => {
         const characterId = body.character_id
         const toUnlockNodeIds = body.mana_node_multiplied_id_list
         gameVerboseLog(() => `[MANA] learn_mana_node: viewer=${viewerId} char=${characterId} nodes=${JSON.stringify(toUnlockNodeIds)}`)
-        if (!viewerId || isNaN(viewerId) || !characterId || isNaN(characterId) || !toUnlockNodeIds) return reply.status(400).send({
+        if (!viewerId || isNaN(viewerId) || !characterId || isNaN(characterId)
+            || !Array.isArray(toUnlockNodeIds) || toUnlockNodeIds.length === 0
+            || toUnlockNodeIds.some(nodeId => !Number.isInteger(nodeId))) return reply.status(400).send({
             "error": "Bad Request", "message": "Invalid request body."
         })
 
@@ -56,9 +58,22 @@ const routes = async (fastify: FastifyInstance) => {
         const itemsCosts: Record<string, number> = {}
         const userCharacterManaNodeListItem: Object[] = []
         const inheritedAwakeNodeLevels = new Map<number, number>()
+        const nodesToInsert: number[] = []
+        const requestedNodeIds = [...new Set(toUnlockNodeIds)]
 
-        const currentManaNodeIndex = characterData.manaBoardIndex;
-        const characterManaNodes = getCharacterManaNodesSync(characterId, currentManaNodeIndex)
+        let currentManaNodeIndex = characterData.manaBoardIndex
+        let characterManaNodes = getCharacterManaNodesSync(characterId, currentManaNodeIndex)
+        if (!characterManaNodes || requestedNodeIds.some(nodeId => characterManaNodes?.[nodeId] === undefined)) {
+            const linkedBoardIndex = resolveLinkedManaNodeBoardIndex(
+                characterId,
+                requestedNodeIds,
+                characterData.evolutionLevel,
+            )
+            if (linkedBoardIndex !== null) {
+                currentManaNodeIndex = linkedBoardIndex
+                characterManaNodes = getCharacterManaNodesSync(characterId, currentManaNodeIndex)
+            }
+        }
         if (characterManaNodes === null) return reply.status(400).send({
             "error": "Bad Request", "message": `Character does not have mana nodes of index '${currentManaNodeIndex}'.`
         })
@@ -68,17 +83,27 @@ const routes = async (fastify: FastifyInstance) => {
         for (const manaNodeId of unlockedManaNodes) {
             unlockedManaNodesRecord[manaNodeId] = true
         }
+        const persistedAwakeLevels = getPlayerCharactersManaNodeAwakeLevelsSync(playerId)[String(characterId)] ?? {}
 
-        for (const manaNodeId of toUnlockNodeIds) {
-            if (unlockedManaNodesRecord[manaNodeId]) return reply.status(400).send({
-                "error": "Bad Request", "message": `Mana node '${manaNodeId}' already unlocked.`
-            })
-
+        for (const manaNodeId of requestedNodeIds) {
             const nodeData = characterManaNodes[manaNodeId];
             if (nodeData === undefined) return reply.status(400).send({
                 "error": "Bad Request", "message": `Mana node '${manaNodeId}' does not exist.`
             })
 
+            // The client can retain a stale learn button after an awakening
+            // response updates an already learned, linked board-2 node. Treat
+            // the resulting replay as an idempotent state refresh instead of
+            // forcing the client back to the login screen with HTTP 400.
+            if (unlockedManaNodesRecord[manaNodeId]) {
+                userCharacterManaNodeListItem.push({
+                    "multiplied_id": manaNodeId,
+                    "awake_level": persistedAwakeLevels[manaNodeId] ?? 0,
+                })
+                continue
+            }
+
+            nodesToInsert.push(manaNodeId)
             if (nodeData !== null) {
                 manaCost += nodeData.manaCost
                 for (const [itemId, itemCost] of Object.entries(nodeData.items)) {
@@ -100,6 +125,24 @@ const routes = async (fastify: FastifyInstance) => {
             }
         }
 
+        if (nodesToInsert.length === 0) {
+            gameVerboseLog(() => `[MANA] learn_mana_node: replayed=${userCharacterManaNodeListItem.length}, returning current state`)
+            return sendCharacterResponse(reply, viewerId, {
+                user_info: { free_mana: player.freeMana, paid_mana: player.paidMana },
+                character_list: [buildCharacterListEntry(characterId, characterData, {
+                    mana_board_index: currentManaNodeIndex,
+                    bond_token_list: characterData.bondTokenList.map(token => ({
+                        mana_board_index: token.manaBoardIndex,
+                        status: token.status,
+                    })),
+                })],
+                user_character_mana_node_list: { [String(characterId)]: userCharacterManaNodeListItem as { multiplied_id: number; awake_level: number }[] },
+                item_list: {},
+                evolution: [],
+                mail_arrived: false,
+            }, playerId)
+        }
+
         // Deduct mana
         const manaResult = computeManaDeduction(player, manaCost)
         if (!manaResult) return reply.status(400).send({ "error": "Bad Request", "message": "Not enough mana." })
@@ -114,17 +157,20 @@ const routes = async (fastify: FastifyInstance) => {
         let evolutionData: Object = []
         let bondTokenList: Object[] = []
         const learnedAfterRequest = new Set(unlockedManaNodes)
-        for (const manaNodeId of toUnlockNodeIds) learnedAfterRequest.add(manaNodeId)
+        for (const manaNodeId of nodesToInsert) learnedAfterRequest.add(manaNodeId)
         const isBoardComplete = Object.keys(characterManaNodes)
             .every(manaNodeId => learnedAfterRequest.has(Number(manaNodeId)))
 
         getDb().transaction(() => {
             updatePlayerSync({ id: playerId, freeMana: newFreeMana, paidMana: newPaidMana })
+            if (currentManaNodeIndex !== characterData.manaBoardIndex) {
+                updatePlayerCharacterSync(playerId, characterId, { manaBoardIndex: currentManaNodeIndex })
+            }
             incrementActiveMissionUsedManaCountSync(playerId, manaCost)
             for (const [itemId, newAmount] of Object.entries(newItemAmounts)) {
                 updatePlayerItemSync(playerId, itemId, newAmount)
             }
-            insertPlayerCharacterManaNodesSync(playerId, characterId, toUnlockNodeIds)
+            insertPlayerCharacterManaNodesSync(playerId, characterId, nodesToInsert)
             for (const [nodeId, awakeLevel] of inheritedAwakeNodeLevels) {
                 updatePlayerCharacterManaNodeAwakeLevelSync(
                     playerId, characterId, nodeId, awakeLevel,
@@ -139,11 +185,12 @@ const routes = async (fastify: FastifyInstance) => {
             bondTokenList = bond.bondTokenList
         })()
 
-        gameVerboseLog(() => `[MANA] learn_mana_node done: boardComplete=${isBoardComplete} bondGiven=${!!bondTokenList.length} evoLevel=${characterEvolutionLevel}`)
+        gameVerboseLog(() => `[MANA] learn_mana_node done: board=${currentManaNodeIndex} inserted=${nodesToInsert.length} replayed=${requestedNodeIds.length - nodesToInsert.length} boardComplete=${isBoardComplete} bondGiven=${!!bondTokenList.length} evoLevel=${characterEvolutionLevel}`)
 
         return sendCharacterResponse(reply, viewerId, {
             user_info: { free_mana: newFreeMana, paid_mana: newPaidMana },
             character_list: [buildCharacterListEntry(characterId, characterData, {
+                mana_board_index: currentManaNodeIndex,
                 evolution_level: characterEvolutionLevel,
                 evolution_img_level: characterEvolutionLevel,
                 bond_token_list: bondTokenList,
@@ -203,7 +250,6 @@ const routes = async (fastify: FastifyInstance) => {
         // Compute costs for each awakening node
         let manaCost = 0
         const itemsCosts: Record<string, number> = {}
-        const userCharacterManaNodeListItem: Object[] = []
         const nodeUpdates: { nodeId: number; awakeLevel: number }[] = []
         const finalAwakeLevels = new Map(
             Object.entries(charAwakeLevels).map(([nodeId, level]) => [Number(nodeId), level]),
@@ -224,7 +270,6 @@ const routes = async (fastify: FastifyInstance) => {
 
             const currentAwakeLevel = charAwakeLevels[manaNodeId] ?? 0
             if (currentAwakeLevel >= targetAwakeLevel) {
-                userCharacterManaNodeListItem.push({ "multiplied_id": manaNodeId, "awake_level": currentAwakeLevel })
                 continue
             }
 
@@ -237,7 +282,6 @@ const routes = async (fastify: FastifyInstance) => {
             for (const [itemId, itemCost] of Object.entries(cost.items)) {
                 itemsCosts[itemId] = (itemsCosts[itemId] ?? 0) + itemCost
             }
-            userCharacterManaNodeListItem.push({ "multiplied_id": manaNodeId, "awake_level": targetAwakeLevel })
             nodeUpdates.push({ nodeId: manaNodeId, awakeLevel: targetAwakeLevel })
             finalAwakeLevels.set(manaNodeId, targetAwakeLevel)
         }
@@ -257,11 +301,15 @@ const routes = async (fastify: FastifyInstance) => {
             : []
         for (const update of linkedNodeUpdates) {
             finalAwakeLevels.set(update.nodeId, update.awakeLevel)
-            userCharacterManaNodeListItem.push({
-                "multiplied_id": update.nodeId,
-                "awake_level": update.awakeLevel,
-            })
         }
+        // The awake endpoint is handled as an authoritative character refresh
+        // by the client. Return every learned node, not only the rows whose
+        // awake level changed, so already learned board-2 nodes cannot reappear
+        // as learnable after their linked ability is awakened.
+        const authoritativeManaNodeList = learnedNodeIds.map(nodeId => ({
+            "multiplied_id": nodeId,
+            "awake_level": finalAwakeLevels.get(nodeId) ?? 0,
+        }))
 
         const manaBoardAwake = board1NodeIds.every(nodeId => (
             (finalAwakeLevels.get(nodeId) ?? 0) >= targetAwakeLevel
@@ -281,7 +329,7 @@ const routes = async (fastify: FastifyInstance) => {
                     evolution_img_level: characterEvolutionLevel,
                     bond_token_list: (characterData.bondTokenList || []).map((e: any) => ({ mana_board_index: e.manaBoardIndex, status: e.status })),
                 })],
-                user_character_mana_node_list: { [String(characterId)]: userCharacterManaNodeListItem as { multiplied_id: number; awake_level: number }[] },
+                user_character_mana_node_list: { [String(characterId)]: authoritativeManaNodeList },
                 item_list: {},
                 evolution: [],
                 mail_arrived: false,
@@ -327,7 +375,7 @@ const routes = async (fastify: FastifyInstance) => {
                 evolution_level: characterEvolutionLevel,
                 evolution_img_level: characterEvolutionLevel,
             })],
-            user_character_mana_node_list: { [String(characterId)]: userCharacterManaNodeListItem as { multiplied_id: number; awake_level: number }[] },
+            user_character_mana_node_list: { [String(characterId)]: authoritativeManaNodeList },
             item_list: newItemAmounts,
             evolution: characterEvolutionLevel > characterData.evolutionLevel
                 ? { "character_id": characterId, "level": characterEvolutionLevel, "img_level": characterEvolutionLevel }
