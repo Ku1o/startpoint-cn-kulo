@@ -12,8 +12,10 @@ const Fastify = require("fastify")
 const rushEventRoutes = require("../out/routes/api/rushEvent").default
 const { insertAccountSync } = require("../out/data/domains/account")
 const { insertDefaultPlayerSync, updatePlayerSync } = require("../out/data/domains/player")
+const { updatePlayerPartySync } = require("../out/data/domains/party")
 const { insertSessionWithToken } = require("../out/data/domains/session")
 const { saveAccountDefaultPlayer } = require("../out/data/activeAccount")
+const { PROFILE_FAVORITE_PARTY_CATEGORY } = require("../out/lib/profileFavorite")
 const {
     countLeaderboardRanksSync,
     getLeaderboardRankPageSync,
@@ -28,6 +30,7 @@ const {
     buildLeaderboardTermsText,
     buildNativeLeaderboardPayload,
     buildUnavailableNativeLeaderboardPayload,
+    getOfficialLeaderboardPageSync,
 } = require("../out/lib/leaderboard/presentation")
 const {
     getLeaderboardSettlementConfigSync,
@@ -81,6 +84,21 @@ function completeRun(playerId, times, startAt) {
             finishedAtMs: startAt + index * 10_000 + times[index],
         })
     }
+}
+
+function addOwnedCharacter(playerId, characterId, evolutionLevel, illustrationSettings = null) {
+    getDb().prepare(`
+        INSERT INTO players_characters (
+            id, entry_count, evolution_level, over_limit_step, protection,
+            join_time, update_time, exp, stack, mana_board_index, player_id,
+            ex_boost_status_id, ex_boost_ability_id_list, illustration_settings
+        ) VALUES (?, 1, ?, 0, 0, '2026-01-01', '2026-01-01', 0, 0, 1, ?, NULL, NULL, ?)
+    `).run(
+        characterId,
+        evolutionLevel,
+        playerId,
+        illustrationSettings === null ? null : JSON.stringify(illustrationSettings),
+    )
 }
 
 test("完整连续通关才入榜，并按最佳 client_battle_ms 去重排序", () => {
@@ -144,6 +162,47 @@ test("完整连续通关才入榜，并按最佳 client_battle_ms 去重排序",
     assert.equal(payload.item.b, "character/white_tiger_ghost_playable/ui/thumb_party_unison_0")
     assert.equal(payload.item.c, "character/maou2_playable/ui/thumb_party_unison_1")
     assert.match(buildLeaderboardTermsText(competition), /深渊冠军/)
+
+    addOwnedCharacter(playerA, 10, 1, [0])
+    addOwnedCharacter(playerA, 111001, 1)
+    const favoriteParty = {
+        name: "Ranking Favorite",
+        characterIds: [1, 10, 111001],
+        unisonCharacterIds: [null, null, null],
+        equipmentIds: [null, null, null],
+        abilitySoulIds: [null, null, null],
+        edited: true,
+        category: PROFILE_FAVORITE_PARTY_CATEGORY,
+        currentBattlePower: 0,
+        beforeBattlePower: 0,
+    }
+    updatePlayerPartySync(playerA, 1, favoriteParty)
+
+    const completeFavoritePayload = buildNativeLeaderboardPayload(competition, playerA)
+    assert.equal(completeFavoritePayload.item.a, "character/alk/ui/thumb_party_unison_0")
+    assert.equal(completeFavoritePayload.item.b, "character/white_tiger/ui/thumb_party_unison_0")
+    assert.equal(completeFavoritePayload.item.c, "character/fire_dragon/ui/thumb_party_unison_1")
+
+    updatePlayerPartySync(playerA, 1, {
+        ...favoriteParty,
+        characterIds: [1, null, null],
+    })
+
+    const personalizedPayload = buildNativeLeaderboardPayload(competition, playerA)
+    assert.equal(personalizedPayload.item.a, "character/alk/ui/thumb_party_unison_0")
+    assert.equal(personalizedPayload.item.b, "character/white_tiger_ghost_playable/ui/thumb_party_unison_0")
+    assert.equal(personalizedPayload.item.c, "character/maou2_playable/ui/thumb_party_unison_1")
+
+    const official = getOfficialLeaderboardPageSync({ competition, playerId: playerA, page: 0 })
+    assert.deepEqual(official.myData.party_member_list, [
+        { character_id: 1, evolution_img_level: 0 },
+        { character_id: 169994, evolution_img_level: 0 },
+        { character_id: 169995, evolution_img_level: 1 },
+    ])
+
+    const partyIndexes = getDb().prepare("PRAGMA index_list('players_parties')").all()
+    assert.ok(partyIndexes.some(index =>
+        index.name === "idx_players_parties_player_category_order"))
 })
 
 test("旧版深渊默认奖励自动升级，现有数据库不继续发旧票券", () => {

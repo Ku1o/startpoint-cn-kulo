@@ -694,6 +694,9 @@ export default function init(
         FOREIGN KEY (group_id, player_id, category) REFERENCES players_party_groups (id, player_id, category) ON DELETE CASCADE,
         FOREIGN KEY (player_id) REFERENCES players (id) ON DELETE CASCADE
     )`).run();
+    database.prepare(`CREATE INDEX IF NOT EXISTS idx_players_parties_player_category_order
+        ON players_parties (player_id, category, group_id, slot)
+    `).run();
 
     // migration: add current_battle_power and before_battle_power to existing tables
     try { database.prepare(`ALTER TABLE players_parties ADD COLUMN current_battle_power INTEGER NOT NULL DEFAULT 0`).run(); } catch { /* column already exists */ }

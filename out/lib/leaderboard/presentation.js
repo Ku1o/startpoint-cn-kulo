@@ -5,25 +5,11 @@ const content_master_1 = require("../content-master");
 const player_1 = require("../../data/domains/player");
 const leaderboard_1 = require("../../data/domains/leaderboard");
 const rushEvent_1 = require("../../data/domains/rushEvent");
+const party_1 = require("../../data/domains/party");
 const stamina_1 = require("../stamina");
+const profileFavorite_1 = require("../profileFavorite");
 const competition_1 = require("./competition");
 const settlement_1 = require("./settlement");
-function officialRow(record) {
-    return {
-        rank_number: record.rankNumber,
-        best_round: record.totalRounds,
-        elapsed_time_ms: record.clientBattleMs,
-        name: record.displayName,
-        party_member_list: record.characterIds.flatMap((characterId, slot) => {
-            var _a;
-            return characterId === null ? [] : [{
-                    character_id: characterId,
-                    evolution_img_level: (_a = record.evolutionImgLevels[slot]) !== null && _a !== void 0 ? _a : 0,
-                }];
-        }),
-        user_rank: (0, stamina_1.getRankDegree)(record.rankPoint),
-    };
-}
 function formatTime(ms) {
     const value = Math.max(0, Math.trunc(ms));
     const minutes = Math.floor(value / 60000);
@@ -42,9 +28,45 @@ function thumbnailPath(characterId, evolutionLevel) {
     const level = Math.max(0, Math.min(1, Math.trunc(evolutionLevel !== null && evolutionLevel !== void 0 ? evolutionLevel : 0)));
     return `character/${codeName}/ui/thumb_party_unison_${level}`;
 }
-function nativeRow(record) {
+function displayedParty(record, favorite) {
+    var _a, _b, _c, _d;
+    const characterIds = [];
+    const evolutionImgLevels = [];
+    for (let slot = 0; slot < 3; slot++) {
+        const favoriteId = (_a = favorite === null || favorite === void 0 ? void 0 : favorite.characterIds[slot]) !== null && _a !== void 0 ? _a : null;
+        const favoriteLevel = (_b = favorite === null || favorite === void 0 ? void 0 : favorite.evolutionImgLevels[slot]) !== null && _b !== void 0 ? _b : null;
+        if (thumbnailPath(favoriteId, favoriteLevel) !== null) {
+            characterIds.push(favoriteId);
+            evolutionImgLevels.push(favoriteLevel);
+        }
+        else {
+            characterIds.push((_c = record.characterIds[slot]) !== null && _c !== void 0 ? _c : null);
+            evolutionImgLevels.push((_d = record.evolutionImgLevels[slot]) !== null && _d !== void 0 ? _d : null);
+        }
+    }
+    return { characterIds, evolutionImgLevels };
+}
+function officialRow(record, favorite) {
+    const party = displayedParty(record, favorite);
+    return {
+        rank_number: record.rankNumber,
+        best_round: record.totalRounds,
+        elapsed_time_ms: record.clientBattleMs,
+        name: record.displayName,
+        party_member_list: party.characterIds.flatMap((characterId, slot) => {
+            var _a;
+            return characterId === null ? [] : [{
+                    character_id: characterId,
+                    evolution_img_level: (_a = party.evolutionImgLevels[slot]) !== null && _a !== void 0 ? _a : 0,
+                }];
+        }),
+        user_rank: (0, stamina_1.getRankDegree)(record.rankPoint),
+    };
+}
+function nativeRow(record, favorite) {
     var _a, _b, _c;
-    const paths = record.characterIds.map((id, slot) => { var _a; return thumbnailPath(id, (_a = record.evolutionImgLevels[slot]) !== null && _a !== void 0 ? _a : 0); });
+    const party = displayedParty(record, favorite);
+    const paths = party.characterIds.map((id, slot) => { var _a; return thumbnailPath(id, (_a = party.evolutionImgLevels[slot]) !== null && _a !== void 0 ? _a : 0); });
     return {
         rank: `${record.rankNumber}位`,
         visible: true,
@@ -90,12 +112,16 @@ function getOfficialLeaderboardPageSync(input) {
         limit: Math.min(input.competition.pageSize, Math.max(0, input.competition.displayLimit - page * input.competition.pageSize)),
     });
     const mine = (0, leaderboard_1.getLeaderboardPlayerRankSync)(input.competition.key, season, input.playerId);
+    const favorites = (0, party_1.getFirstPlayerPartyDisplaySelectionsSync)([
+        ...rows.map(record => record.playerId),
+        ...(mine === null ? [] : [mine.playerId]),
+    ], profileFavorite_1.PROFILE_FAVORITE_PARTY_CATEGORY);
     return {
         currentPage: page + 1,
         pageMax,
         total,
-        myData: mine === null ? null : officialRow(mine),
-        rows: rows.map(officialRow),
+        myData: mine === null ? null : officialRow(mine, favorites.get(mine.playerId)),
+        rows: rows.map(record => officialRow(record, favorites.get(record.playerId))),
     };
 }
 exports.getOfficialLeaderboardPageSync = getOfficialLeaderboardPageSync;
@@ -138,15 +164,19 @@ function buildNativeLeaderboardPayload(competition, playerId) {
     const mine = playerId === null
         ? null
         : (0, leaderboard_1.getLeaderboardPlayerRankSync)(competition.key, season, playerId);
+    const favorites = (0, party_1.getFirstPlayerPartyDisplaySelectionsSync)([
+        ...records.map(record => record.playerId),
+        ...(mine === null ? [] : [mine.playerId]),
+    ], profileFavorite_1.PROFILE_FAVORITE_PARTY_CATEGORY);
     const index = mine === null ? -1 : mine.rankNumber - 1;
     const visibleIndex = index >= 0 && index < records.length ? index : -1;
     return {
         enabled: true,
         name: competition.displayName,
-        rows: records.map(nativeRow),
+        rows: records.map(record => nativeRow(record, favorites.get(record.playerId))),
         item: mine === null
             ? (playerId === null ? null : outOfRankRow(playerId))
-            : nativeRow(mine),
+            : nativeRow(mine, favorites.get(mine.playerId)),
         page: visibleIndex < 0 ? 0 : Math.floor(visibleIndex / competition.pageSize),
         row: visibleIndex < 0 ? -1 : visibleIndex % competition.pageSize,
         index,

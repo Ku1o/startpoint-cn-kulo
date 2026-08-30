@@ -8,7 +8,12 @@ import {
     LeaderboardRankRecord,
 } from "../../data/domains/leaderboard"
 import { serializePlayerRushEventPlayedParty } from "../../data/domains/rushEvent"
+import {
+    getFirstPlayerPartyDisplaySelectionsSync,
+    PlayerPartyDisplaySelection,
+} from "../../data/domains/party"
 import { getRankDegree } from "../stamina"
+import { PROFILE_FAVORITE_PARTY_CATEGORY } from "../profileFavorite"
 import {
     getLeaderboardCompetitionSeasonSync,
     LeaderboardCompetition,
@@ -38,21 +43,6 @@ export interface NativeLeaderboardRow {
     id: number
 }
 
-function officialRow(record: LeaderboardRankRecord): OfficialLeaderboardRow {
-    return {
-        rank_number: record.rankNumber,
-        best_round: record.totalRounds,
-        elapsed_time_ms: record.clientBattleMs,
-        name: record.displayName,
-        party_member_list: record.characterIds.flatMap((characterId, slot) =>
-            characterId === null ? [] : [{
-                character_id: characterId,
-                evolution_img_level: record.evolutionImgLevels[slot] ?? 0,
-            }]),
-        user_rank: getRankDegree(record.rankPoint),
-    }
-}
-
 function formatTime(ms: number): string {
     const value = Math.max(0, Math.trunc(ms))
     const minutes = Math.floor(value / 60_000)
@@ -71,9 +61,52 @@ function thumbnailPath(characterId: number | null, evolutionLevel: number | null
     return `character/${codeName}/ui/thumb_party_unison_${level}`
 }
 
-export function nativeRow(record: LeaderboardRankRecord): NativeLeaderboardRow {
-    const paths = record.characterIds.map((id, slot) =>
-        thumbnailPath(id, record.evolutionImgLevels[slot] ?? 0))
+function displayedParty(
+    record: LeaderboardRankRecord,
+    favorite: PlayerPartyDisplaySelection | undefined,
+): PlayerPartyDisplaySelection {
+    const characterIds: (number | null)[] = []
+    const evolutionImgLevels: (number | null)[] = []
+    for (let slot = 0; slot < 3; slot++) {
+        const favoriteId = favorite?.characterIds[slot] ?? null
+        const favoriteLevel = favorite?.evolutionImgLevels[slot] ?? null
+        if (thumbnailPath(favoriteId, favoriteLevel) !== null) {
+            characterIds.push(favoriteId)
+            evolutionImgLevels.push(favoriteLevel)
+        } else {
+            characterIds.push(record.characterIds[slot] ?? null)
+            evolutionImgLevels.push(record.evolutionImgLevels[slot] ?? null)
+        }
+    }
+    return { characterIds, evolutionImgLevels }
+}
+
+function officialRow(
+    record: LeaderboardRankRecord,
+    favorite: PlayerPartyDisplaySelection | undefined,
+): OfficialLeaderboardRow {
+    const party = displayedParty(record, favorite)
+    return {
+        rank_number: record.rankNumber,
+        best_round: record.totalRounds,
+        elapsed_time_ms: record.clientBattleMs,
+        name: record.displayName,
+        party_member_list: party.characterIds.flatMap((characterId, slot) =>
+            characterId === null ? [] : [{
+                character_id: characterId,
+                evolution_img_level: party.evolutionImgLevels[slot] ?? 0,
+            }]),
+        user_rank: getRankDegree(record.rankPoint),
+    }
+}
+
+export function nativeRow(
+    record: LeaderboardRankRecord,
+    favorite?: PlayerPartyDisplaySelection,
+): NativeLeaderboardRow {
+    const party = displayedParty(record, favorite)
+    const paths = party.characterIds.map((id, slot) =>
+        thumbnailPath(id, party.evolutionImgLevels[slot] ?? 0))
     return {
         rank: `${record.rankNumber}位`,
         visible: true,
@@ -136,12 +169,19 @@ export function getOfficialLeaderboardPageSync(input: {
         season,
         input.playerId,
     )
+    const favorites = getFirstPlayerPartyDisplaySelectionsSync(
+        [
+            ...rows.map(record => record.playerId),
+            ...(mine === null ? [] : [mine.playerId]),
+        ],
+        PROFILE_FAVORITE_PARTY_CATEGORY,
+    )
     return {
         currentPage: page + 1,
         pageMax,
         total,
-        myData: mine === null ? null : officialRow(mine),
-        rows: rows.map(officialRow),
+        myData: mine === null ? null : officialRow(mine, favorites.get(mine.playerId)),
+        rows: rows.map(record => officialRow(record, favorites.get(record.playerId))),
     }
 }
 
@@ -199,15 +239,22 @@ export function buildNativeLeaderboardPayload(
     const mine = playerId === null
         ? null
         : getLeaderboardPlayerRankSync(competition.key, season, playerId)
+    const favorites = getFirstPlayerPartyDisplaySelectionsSync(
+        [
+            ...records.map(record => record.playerId),
+            ...(mine === null ? [] : [mine.playerId]),
+        ],
+        PROFILE_FAVORITE_PARTY_CATEGORY,
+    )
     const index = mine === null ? -1 : mine.rankNumber - 1
     const visibleIndex = index >= 0 && index < records.length ? index : -1
     return {
         enabled: true,
         name: competition.displayName,
-        rows: records.map(nativeRow),
+        rows: records.map(record => nativeRow(record, favorites.get(record.playerId))),
         item: mine === null
             ? (playerId === null ? null : outOfRankRow(playerId))
-            : nativeRow(mine),
+            : nativeRow(mine, favorites.get(mine.playerId)),
         page: visibleIndex < 0 ? 0 : Math.floor(visibleIndex / competition.pageSize),
         row: visibleIndex < 0 ? -1 : visibleIndex % competition.pageSize,
         index,
