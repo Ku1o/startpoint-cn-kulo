@@ -1190,6 +1190,11 @@ function init(database, exists) {
         exclude_bots INTEGER NOT NULL DEFAULT 1,
         updated_at_ms INTEGER NOT NULL
     )`).run();
+    database.prepare(`CREATE TABLE IF NOT EXISTS leaderboard_availability (
+        competition_key TEXT PRIMARY KEY,
+        enabled INTEGER NOT NULL DEFAULT 1 CHECK (enabled IN (0, 1)),
+        updated_at_ms INTEGER NOT NULL
+    )`).run();
     database.prepare(`CREATE TABLE IF NOT EXISTS leaderboard_settlements (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         competition_key TEXT NOT NULL,

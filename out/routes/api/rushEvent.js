@@ -36,6 +36,7 @@ const activity_degree_rewards_1 = require("../../lib/activity-degree-rewards");
 const service_1 = require("../../lib/leaderboard/service");
 const competition_1 = require("../../lib/leaderboard/competition");
 const presentation_1 = require("../../lib/leaderboard/presentation");
+const availability_1 = require("../../lib/leaderboard/availability");
 var ResetQuestType;
 (function (ResetQuestType) {
     ResetQuestType[ResetQuestType["EMPTY"] = 0] = "EMPTY";
@@ -260,7 +261,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 "message": "No player bound to account."
             });
         const competition = (0, competition_1.getLeaderboardCompetitionForEvent)(types_2.QuestCategory.RUSH_EVENT, eventId);
-        if (competition !== null) {
+        if (competition !== null && (0, availability_1.isLeaderboardEnabledSync)(competition.key)) {
             const ranking = (0, presentation_1.getOfficialLeaderboardPageSync)({
                 competition,
                 playerId,
@@ -276,6 +277,20 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                     "my_data": ranking.myData,
                     "ranking_data": ranking.rows,
                     "total": ranking.total,
+                },
+            });
+        }
+        if (competition !== null) {
+            reply.header("content-type", "application/x-msgpack");
+            return reply.status(200).send({
+                "data_headers": (0, utils_1.generateDataHeaders)({ viewer_id: viewerId }),
+                "data": {
+                    "aggregated_time": (0, utils_2.clientSerializeDate)((0, utils_1.getServerDate)()),
+                    "current_page": 1,
+                    "page_max": 1,
+                    "my_data": null,
+                    "ranking_data": [],
+                    "total": 0,
                 },
             });
         }
@@ -323,10 +338,9 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             });
         const competition = (0, competition_1.getLeaderboardCompetitionForEvent)(types_2.QuestCategory.RUSH_EVENT, eventId);
         if (competition !== null) {
-            const partyList = (0, presentation_1.getLeaderboardPlayedPartiesSync)({
-                competition,
-                rankNumber,
-            });
+            const partyList = (0, availability_1.isLeaderboardEnabledSync)(competition.key)
+                ? (0, presentation_1.getLeaderboardPlayedPartiesSync)({ competition, rankNumber })
+                : {};
             reply.header("content-type", "application/x-msgpack");
             return reply.status(200).send({
                 "data_headers": (0, utils_1.generateDataHeaders)({ viewer_id: viewerId }),
@@ -471,7 +485,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 "message": "No player bound to account."
             });
         const competition = (0, competition_1.getLeaderboardCompetitionForEvent)(types_2.QuestCategory.RUSH_EVENT, eventId);
-        const payload = competition === null
+        const payload = competition === null || !(0, availability_1.isLeaderboardEnabledSync)(competition.key)
             ? (0, presentation_1.buildUnavailableNativeLeaderboardPayload)()
             : (0, presentation_1.buildNativeLeaderboardPayload)(competition, playerId);
         reply.header("content-type", "application/x-msgpack");

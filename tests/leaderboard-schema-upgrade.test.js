@@ -6,11 +6,16 @@ const path = require("node:path")
 const { spawnSync } = require("node:child_process")
 const Database = require("better-sqlite3")
 
+const outDir = process.env.STARPOINT_TEST_OUT_DIR
+    ? path.resolve(process.env.STARPOINT_TEST_OUT_DIR)
+    : path.resolve(__dirname, "../out")
+
 const TABLES = [
     "leaderboard_seasons",
     "leaderboard_runs",
     "leaderboard_run_rounds",
     "leaderboard_settlement_configs",
+    "leaderboard_availability",
     "leaderboard_settlements",
     "leaderboard_settlement_results",
 ]
@@ -20,14 +25,14 @@ test("版本号已是 9 的旧库启动时仍会补齐排行榜表", () => {
     const databasePath = path.join(dataDir, "wdfp_data.db")
     const database = new Database(databasePath)
     database.pragma("foreign_keys = OFF")
-    require("../out/data/initializers/wdfpData").default(database, false)
+    require(path.join(outDir, "data/initializers/wdfpData")).default(database, false)
     for (const table of [...TABLES].reverse()) {
         database.prepare(`DROP TABLE ${table}`).run()
     }
     database.close()
     fs.writeFileSync(`${databasePath}.version`, "9", "utf8")
 
-    const dbModule = path.resolve(__dirname, "../out/data/db")
+    const dbModule = path.join(outDir, "data/db")
     const script = `
         const { getDb } = require(${JSON.stringify(dbModule)});
         const db = getDb();
@@ -50,7 +55,7 @@ test("已有排行榜赛季表升级时补齐内容版本且保留原赛季", ()
     const databasePath = path.join(dataDir, "wdfp_data.db")
     const database = new Database(databasePath)
     database.pragma("foreign_keys = OFF")
-    require("../out/data/initializers/wdfpData").default(database, false)
+    require(path.join(outDir, "data/initializers/wdfpData")).default(database, false)
     database.prepare("DROP TABLE leaderboard_seasons").run()
     database.prepare(`
         CREATE TABLE leaderboard_seasons (
@@ -68,7 +73,7 @@ test("已有排行榜赛季表升级时补齐内容版本且保留原赛季", ()
     database.close()
     fs.writeFileSync(`${databasePath}.version`, "9", "utf8")
 
-    const dbModule = path.resolve(__dirname, "../out/data/db")
+    const dbModule = path.join(outDir, "data/db")
     const script = `
         const { getDb } = require(${JSON.stringify(dbModule)});
         const db = getDb();

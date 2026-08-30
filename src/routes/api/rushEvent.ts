@@ -51,6 +51,7 @@ import {
     getLeaderboardPlayedPartiesSync,
     getOfficialLeaderboardPageSync,
 } from "../../lib/leaderboard/presentation";
+import { isLeaderboardEnabledSync } from "../../lib/leaderboard/availability";
 
 interface SummaryBody {
     event_id: number,
@@ -386,7 +387,7 @@ const routes = async (fastify: FastifyInstance) => {
             QuestCategory.RUSH_EVENT,
             eventId,
         )
-        if (competition !== null) {
+        if (competition !== null && isLeaderboardEnabledSync(competition.key)) {
             const ranking = getOfficialLeaderboardPageSync({
                 competition,
                 playerId,
@@ -402,6 +403,21 @@ const routes = async (fastify: FastifyInstance) => {
                     "my_data": ranking.myData,
                     "ranking_data": ranking.rows,
                     "total": ranking.total,
+                },
+            })
+        }
+
+        if (competition !== null) {
+            reply.header("content-type", "application/x-msgpack")
+            return reply.status(200).send({
+                "data_headers": generateDataHeaders({ viewer_id: viewerId }),
+                "data": {
+                    "aggregated_time": clientSerializeDate(getServerDate()),
+                    "current_page": 1,
+                    "page_max": 1,
+                    "my_data": null,
+                    "ranking_data": [],
+                    "total": 0,
                 },
             })
         }
@@ -456,10 +472,9 @@ const routes = async (fastify: FastifyInstance) => {
             eventId,
         )
         if (competition !== null) {
-            const partyList = getLeaderboardPlayedPartiesSync({
-                competition,
-                rankNumber,
-            })
+            const partyList = isLeaderboardEnabledSync(competition.key)
+                ? getLeaderboardPlayedPartiesSync({ competition, rankNumber })
+                : {}
             reply.header("content-type", "application/x-msgpack")
             return reply.status(200).send({
                 "data_headers": generateDataHeaders({ viewer_id: viewerId }),
@@ -626,7 +641,7 @@ const routes = async (fastify: FastifyInstance) => {
             QuestCategory.RUSH_EVENT,
             eventId,
         )
-        const payload = competition === null
+        const payload = competition === null || !isLeaderboardEnabledSync(competition.key)
             ? buildUnavailableNativeLeaderboardPayload()
             : buildNativeLeaderboardPayload(competition, playerId)
 

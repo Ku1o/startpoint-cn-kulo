@@ -14,6 +14,10 @@ import {
     validateRewardTiers,
 } from "../../lib/leaderboard/settlement"
 import type { LeaderboardRewardTier } from "../../lib/leaderboard/rewards"
+import {
+    getLeaderboardAvailabilitySync,
+    setLeaderboardAvailabilitySync,
+} from "../../lib/leaderboard/availability"
 
 interface KeyParams { key: string }
 
@@ -28,6 +32,7 @@ const routes = async (fastify: FastifyInstance) => {
     fastify.get("/", async (_request, reply) => reply.send(
         getLeaderboardCompetitions().map(competition => ({
             competition,
+            availability: getLeaderboardAvailabilitySync(competition.key),
             overview: getLeaderboardSettlementOverviewSync(competition.key),
         })),
     ))
@@ -42,6 +47,7 @@ const routes = async (fastify: FastifyInstance) => {
         const page = Math.max(0, Math.floor(Number(query.page ?? 0) || 0))
         return reply.send({
             competition,
+            availability: getLeaderboardAvailabilitySync(key),
             overview: getLeaderboardSettlementOverviewSync(key),
             page,
             rows: getLeaderboardRankPageSync({
@@ -51,6 +57,19 @@ const routes = async (fastify: FastifyInstance) => {
                 limit: competition.pageSize,
             }),
             total,
+        })
+    })
+
+    fastify.patch("/:key/availability", async (request, reply) => {
+        const key = resolveKey(request, reply)
+        if (key === null) return
+        const body = (request.body ?? {}) as Record<string, unknown>
+        if (typeof body.enabled !== "boolean") {
+            return reply.status(400).send({ error: "enabled must be a boolean." })
+        }
+        return reply.send({
+            ok: true,
+            ...setLeaderboardAvailabilitySync(key, body.enabled),
         })
     })
 

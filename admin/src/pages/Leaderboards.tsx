@@ -59,6 +59,12 @@ interface SettlementConfig {
     updatedAtMs: number
 }
 
+interface LeaderboardAvailability {
+    competitionKey: string
+    enabled: boolean
+    updatedAtMs: number
+}
+
 interface SettlementHistory {
     id: number
     season: number
@@ -80,6 +86,7 @@ interface Overview {
 
 interface CompetitionSummary {
     competition: Competition
+    availability: LeaderboardAvailability
     overview: Overview
 }
 
@@ -97,6 +104,7 @@ interface RankRow {
 
 interface LeaderboardDetail {
     competition: Competition
+    availability: LeaderboardAvailability
     overview: Overview
     page: number
     rows: RankRow[]
@@ -218,6 +226,18 @@ export default function Leaderboards() {
         onError: (error: Error) => message.error(error.message),
     })
 
+    const setAvailability = useMutation({
+        mutationFn: (enabled: boolean) => apiPatch(
+            `/api/leaderboards/${encodeURIComponent(selectedKey!)}/availability`,
+            { enabled },
+        ),
+        onSuccess: async (_data, enabled) => {
+            message.success(enabled ? "排行榜已开启" : "排行榜已关闭")
+            await invalidate()
+        },
+        onError: (error: Error) => message.error(error.message),
+    })
+
     const rewardRows = useMemo(() => {
         if (!draft) return []
         try {
@@ -278,6 +298,44 @@ export default function Leaderboards() {
                             <Col xs={12} lg={6}><Card><Statistic title="客户端展示上限" value={competition.displayLimit} /></Card></Col>
                             <Col xs={12} lg={6}><Card><Statistic title="每页" value={competition.pageSize} suffix="人" /></Card></Col>
                         </Row>
+
+                        <Card title="排行榜开放状态">
+                            <Space direction="vertical" size="middle" style={{ width: "100%" }}>
+                                <Alert
+                                    type={detail.availability.enabled ? "success" : "warning"}
+                                    showIcon
+                                    message={detail.availability.enabled ? "排行榜当前开放" : "排行榜当前关闭"}
+                                    description={detail.availability.enabled
+                                        ? "玩家可以查看排行榜，完整通关成绩会继续写入当前赛季。"
+                                        : "游戏端显示“排行榜暂未开放”，不再记录新成绩；现有榜单和奖励配置均保留，结算并换季后仍会保持关闭。"}
+                                />
+                                <Space wrap>
+                                    <Tag color={detail.availability.enabled ? "green" : "default"}>
+                                        {detail.availability.enabled ? "开放中" : "已关闭"}
+                                    </Tag>
+                                    {detail.availability.enabled ? (
+                                        <Popconfirm
+                                            title="关闭排行榜？"
+                                            description="将立即停止记录新成绩，并终止当前尚未完成的排行榜挑战；已完成名次不会删除。"
+                                            okText="确认关闭"
+                                            okButtonProps={{ danger: true }}
+                                            onConfirm={() => setAvailability.mutate(false)}
+                                        >
+                                            <Button danger loading={setAvailability.isPending}>关闭排行榜</Button>
+                                        </Popconfirm>
+                                    ) : (
+                                        <Button
+                                            type="primary"
+                                            loading={setAvailability.isPending}
+                                            onClick={() => setAvailability.mutate(true)}
+                                        >开启排行榜</Button>
+                                    )}
+                                    <Text type="secondary">
+                                        状态更新时间：{dayjs(detail.availability.updatedAtMs).format("YYYY-MM-DD HH:mm:ss")}
+                                    </Text>
+                                </Space>
+                            </Space>
+                        </Card>
 
                         <Card title="当前赛季名次">
                             <Table<RankRow>
@@ -411,7 +469,9 @@ export default function Leaderboards() {
                                     </Popconfirm>
                                     <Popconfirm
                                         title="结算并进入下一赛季？"
-                                        description="当前榜单会冻结，活动仍可继续记录下一赛季成绩。"
+                                        description={detail.availability.enabled
+                                            ? "当前榜单会冻结，活动仍可继续记录下一赛季成绩。"
+                                            : "当前榜单会冻结并进入下一赛季；排行榜仍保持关闭，不会记录新成绩。"}
                                         onConfirm={() => settle.mutate(true)}
                                     >
                                         <Button danger loading={settle.isPending}>结算并换季</Button>

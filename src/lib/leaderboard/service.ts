@@ -11,6 +11,7 @@ import {
     getLeaderboardCompetitionForQuest,
     getLeaderboardCompetitionSeasonSync,
 } from "./competition"
+import { isLeaderboardEnabledSync } from "./availability"
 
 export interface LeaderboardQuestIdentity {
     category: number
@@ -30,6 +31,7 @@ export function startLeaderboardQuestSync(
     const round = quest.round
     if (
         competition === null
+        || !isLeaderboardEnabledSync(competition.key)
         || round === undefined
         || !Number.isSafeInteger(round)
         || !Number.isSafeInteger(quest.questId)
@@ -86,7 +88,12 @@ export function finishLeaderboardQuestSync(input: {
     if (!input.accomplished) return
     const competition = getLeaderboardCompetitionForQuest(input.quest)
     const round = input.quest.round
-    if (competition === null || round === undefined || round < 1) return
+    if (
+        competition === null
+        || !isLeaderboardEnabledSync(competition.key)
+        || round === undefined
+        || round < 1
+    ) return
     const clientBattleMs = Math.trunc(input.clientBattleMs)
     if (
         !Number.isSafeInteger(clientBattleMs)
