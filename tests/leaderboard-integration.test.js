@@ -34,7 +34,7 @@ const {
 } = require("../out/lib/leaderboard/presentation")
 const {
     getLeaderboardSettlementConfigSync,
-    settleAndRolloverLeaderboardSync,
+    rolloverLeaderboardSeasonSync,
     settleLeaderboardSeasonSync,
 } = require("../out/lib/leaderboard/settlement")
 
@@ -244,18 +244,35 @@ test("结算快照幂等，机器人占名次但默认不发奖，换季后榜�
     assert.equal(repeated.settlementId, first.settlementId)
     assert.equal(getDb().prepare("SELECT COUNT(*) count FROM players_mails").get().count, 2)
 
-    const rollover = settleAndRolloverLeaderboardSync(competition.key, "test-rollover", 5_200_000)
+    const rollover = rolloverLeaderboardSeasonSync(competition.key, "test-rollover", 5_200_000)
+    assert.equal(rollover.ok, true)
     assert.equal(rollover.rolled, true)
     assert.equal(rollover.nextSeason, season + 1)
     assert.equal(countLeaderboardRanksSync(competition.key, season + 1), 0)
 
-    const emptyRollover = settleAndRolloverLeaderboardSync(
+    const unsettledRollover = rolloverLeaderboardSeasonSync(
         competition.key,
         "test-empty-rollover",
         5_300_000,
     )
+    assert.equal(unsettledRollover.ok, false)
+    assert.equal(unsettledRollover.reason, "season-not-settled")
+    assert.equal(unsettledRollover.rolled, false)
+    assert.equal(unsettledRollover.nextSeason, season + 1)
+
+    const emptySettlement = settleLeaderboardSeasonSync(
+        competition.key,
+        "test-empty-settlement",
+        5_400_000,
+    )
+    assert.equal(emptySettlement.ok, true)
+    assert.equal(emptySettlement.rankedPlayers, 0)
+    const emptyRollover = rolloverLeaderboardSeasonSync(
+        competition.key,
+        "test-empty-rollover",
+        5_500_000,
+    )
     assert.equal(emptyRollover.ok, true)
-    assert.equal(emptyRollover.rankedPlayers, 0)
     assert.equal(emptyRollover.rolled, true)
     assert.equal(emptyRollover.nextSeason, season + 2)
 })

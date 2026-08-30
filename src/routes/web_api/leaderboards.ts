@@ -9,7 +9,7 @@ import {
     getLeaderboardSettlementConfigSync,
     getLeaderboardSettlementOverviewSync,
     putLeaderboardSettlementConfigSync,
-    settleAndRolloverLeaderboardSync,
+    rolloverLeaderboardSeasonSync,
     settleLeaderboardSeasonSync,
     validateRewardTiers,
 } from "../../lib/leaderboard/settlement"
@@ -120,8 +120,11 @@ const routes = async (fastify: FastifyInstance) => {
     fastify.post("/:key/rollover", async (request, reply) => {
         const key = resolveKey(request, reply)
         if (key === null) return
-        const outcome = settleAndRolloverLeaderboardSync(key, "admin-rollover")
-        return reply.status(outcome.ok ? 200 : 409).send(outcome)
+        const outcome = rolloverLeaderboardSeasonSync(key, "admin-rollover")
+        return reply.status(outcome.ok ? 200 : 409).send(outcome.ok ? outcome : {
+            ...outcome,
+            error: "当前赛季尚未结算，不能换季。",
+        })
     })
 }
 

@@ -215,11 +215,22 @@ export default function Leaderboards() {
     })
 
     const settle = useMutation({
-        mutationFn: (rollover: boolean) => apiPost(
-            `/api/leaderboards/${encodeURIComponent(selectedKey!)}/${rollover ? "rollover" : "settle"}`,
+        mutationFn: () => apiPost(
+            `/api/leaderboards/${encodeURIComponent(selectedKey!)}/settle`,
         ),
-        onSuccess: async (_data, rollover) => {
-            message.success(rollover ? "本赛季已结算并进入下一赛季" : "本赛季已完成结算")
+        onSuccess: async () => {
+            message.success("本赛季已完成结算")
+            await invalidate()
+        },
+        onError: (error: Error) => message.error(error.message),
+    })
+
+    const rollover = useMutation({
+        mutationFn: () => apiPost(
+            `/api/leaderboards/${encodeURIComponent(selectedKey!)}/rollover`,
+        ),
+        onSuccess: async () => {
+            message.success("已进入下一赛季")
             setPage(0)
             await invalidate()
         },
@@ -299,44 +310,6 @@ export default function Leaderboards() {
                             <Col xs={12} lg={6}><Card><Statistic title="每页" value={competition.pageSize} suffix="人" /></Card></Col>
                         </Row>
 
-                        <Card title="排行榜开放状态">
-                            <Space direction="vertical" size="middle" style={{ width: "100%" }}>
-                                <Alert
-                                    type={detail.availability.enabled ? "success" : "warning"}
-                                    showIcon
-                                    message={detail.availability.enabled ? "排行榜当前开放" : "排行榜当前关闭"}
-                                    description={detail.availability.enabled
-                                        ? "玩家可以查看排行榜，完整通关成绩会继续写入当前赛季。"
-                                        : "游戏端显示“排行榜暂未开放”，不再记录新成绩；现有榜单和奖励配置均保留，结算并换季后仍会保持关闭。"}
-                                />
-                                <Space wrap>
-                                    <Tag color={detail.availability.enabled ? "green" : "default"}>
-                                        {detail.availability.enabled ? "开放中" : "已关闭"}
-                                    </Tag>
-                                    {detail.availability.enabled ? (
-                                        <Popconfirm
-                                            title="关闭排行榜？"
-                                            description="将立即停止记录新成绩，并终止当前尚未完成的排行榜挑战；已完成名次不会删除。"
-                                            okText="确认关闭"
-                                            okButtonProps={{ danger: true }}
-                                            onConfirm={() => setAvailability.mutate(false)}
-                                        >
-                                            <Button danger loading={setAvailability.isPending}>关闭排行榜</Button>
-                                        </Popconfirm>
-                                    ) : (
-                                        <Button
-                                            type="primary"
-                                            loading={setAvailability.isPending}
-                                            onClick={() => setAvailability.mutate(true)}
-                                        >开启排行榜</Button>
-                                    )}
-                                    <Text type="secondary">
-                                        状态更新时间：{dayjs(detail.availability.updatedAtMs).format("YYYY-MM-DD HH:mm:ss")}
-                                    </Text>
-                                </Space>
-                            </Space>
-                        </Card>
-
                         <Card title="当前赛季名次">
                             <Table<RankRow>
                                 rowKey="id"
@@ -378,12 +351,66 @@ export default function Leaderboards() {
                             />
                         </Card>
 
+                        <Card title="排行榜操作">
+                            <Space direction="vertical" size="middle" style={{ width: "100%" }}>
+                                <Alert
+                                    type={detail.availability.enabled ? "success" : "warning"}
+                                    showIcon
+                                    message={detail.availability.enabled ? "排行榜当前开放" : "排行榜当前已冻结"}
+                                    description={detail.availability.enabled
+                                        ? "玩家可以查看排行榜，完整通关成绩会继续写入当前赛季。"
+                                        : "玩家仍可查看当前赛季已有名次，但不会再记录新成绩；换季前必须先完成结算。"}
+                                />
+                                <Space wrap>
+                                    <Tag color={detail.availability.enabled ? "green" : "default"}>
+                                        {detail.availability.enabled ? "开放中" : "已冻结"}
+                                    </Tag>
+                                    {detail.availability.enabled ? (
+                                        <Popconfirm
+                                            title="关闭排行榜？"
+                                            description="将立即停止记录新成绩，并终止当前尚未完成的排行榜挑战；玩家仍可查看已完成名次。"
+                                            okText="确认关闭"
+                                            okButtonProps={{ danger: true }}
+                                            onConfirm={() => setAvailability.mutate(false)}
+                                        >
+                                            <Button danger loading={setAvailability.isPending}>关闭排行榜</Button>
+                                        </Popconfirm>
+                                    ) : (
+                                        <Button
+                                            type="primary"
+                                            loading={setAvailability.isPending}
+                                            onClick={() => setAvailability.mutate(true)}
+                                        >开启排行榜</Button>
+                                    )}
+                                    <Popconfirm
+                                        title="结算当前赛季？"
+                                        description="将按当前名次发放邮件奖励；重复执行不会重复发奖，也不会关闭或换季。"
+                                        onConfirm={() => settle.mutate()}
+                                    >
+                                        <Button loading={settle.isPending}>结算</Button>
+                                    </Popconfirm>
+                                    <Popconfirm
+                                        title="进入下一赛季？"
+                                        description="只切换到空的新赛季，不会发奖；当前赛季必须已经结算。"
+                                        okText="确认换季"
+                                        okButtonProps={{ danger: true }}
+                                        onConfirm={() => rollover.mutate()}
+                                    >
+                                        <Button danger loading={rollover.isPending}>换季</Button>
+                                    </Popconfirm>
+                                    <Text type="secondary">
+                                        状态更新时间：{dayjs(detail.availability.updatedAtMs).format("YYYY-MM-DD HH:mm:ss")}
+                                    </Text>
+                                </Space>
+                            </Space>
+                        </Card>
+
                         <Card title="结算设置">
                             <Space direction="vertical" size="middle" style={{ width: "100%" }}>
                                 <Alert
                                     type="info"
                                     showIcon
-                                    message="“仅结算”可安全重复执行，不会重复发奖；“结算并换季”会冻结本赛季并清空当前榜单视图。"
+                                    message="自动结算到点后只结算当前赛季并冻结新成绩写入，不会换季；玩家仍可查看结算时的榜单。"
                                 />
                                 <Descriptions bordered size="small" column={{ xs: 1, md: 2 }}>
                                     <Descriptions.Item label="自动结算">
@@ -460,22 +487,6 @@ export default function Leaderboards() {
                                         loading={saveConfig.isPending}
                                         onClick={() => saveConfig.mutate()}
                                     >保存设置</Button>
-                                    <Popconfirm
-                                        title="结算当前赛季？"
-                                        description="将按当前名次发放邮件奖励；重复执行不会重复发奖。"
-                                        onConfirm={() => settle.mutate(false)}
-                                    >
-                                        <Button loading={settle.isPending}>仅结算</Button>
-                                    </Popconfirm>
-                                    <Popconfirm
-                                        title="结算并进入下一赛季？"
-                                        description={detail.availability.enabled
-                                            ? "当前榜单会冻结，活动仍可继续记录下一赛季成绩。"
-                                            : "当前榜单会冻结并进入下一赛季；排行榜仍保持关闭，不会记录新成绩。"}
-                                        onConfirm={() => settle.mutate(true)}
-                                    >
-                                        <Button danger loading={settle.isPending}>结算并换季</Button>
-                                    </Popconfirm>
                                 </Space>
                             </Space>
                         </Card>

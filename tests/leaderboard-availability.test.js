@@ -36,6 +36,11 @@ const {
     finishLeaderboardQuestSync,
     startLeaderboardQuestSync,
 } = fromOut("lib/leaderboard/service")
+const {
+    getLeaderboardSettlementConfigSync,
+    putLeaderboardSettlementConfigSync,
+    runDueLeaderboardSettlementsSync,
+} = fromOut("lib/leaderboard/settlement")
 
 const competition = getLeaderboardCompetition("rush:700099:1")
 assert.ok(competition)
@@ -88,7 +93,7 @@ function completeRun(playerId, startedAtMs) {
     }
 }
 
-test("管理开关关闭排行榜时保留名次、终止进行中挑战并阻止新成绩", async t => {
+test("排行榜冻结后保留名次，手动换季需先结算，自动结算只关闭不换季", async t => {
     assert.equal(getLeaderboardAvailabilitySync(competition.key).enabled, true)
     const ranked = createPlayer("Ranked")
     const interrupted = createPlayer("Interrupted")
@@ -122,25 +127,6 @@ test("管理开关关闭排行榜时保留名次、终止进行中挑战并阻�
     assert.equal(detailResponse.statusCode, 200, detailResponse.payload)
     assert.equal(detailResponse.json().availability.enabled, false)
 
-    const rolloverResponse = await admin.inject({
-        method: "POST",
-        url: `/api/leaderboards/${encodeURIComponent(competition.key)}/rollover`,
-    })
-    assert.equal(rolloverResponse.statusCode, 200, rolloverResponse.payload)
-    const rolloverBody = rolloverResponse.json()
-    assert.equal(rolloverBody.rolled, true)
-    assert.equal(rolloverBody.nextSeason, season + 1)
-    assert.equal(isLeaderboardEnabledSync(competition.key), false)
-    assert.equal(countLeaderboardRanksSync(competition.key, season + 1), 0)
-
-    const rolledDetailResponse = await admin.inject({
-        method: "GET",
-        url: `/api/leaderboards/${encodeURIComponent(competition.key)}`,
-    })
-    assert.equal(rolledDetailResponse.statusCode, 200, rolledDetailResponse.payload)
-    assert.equal(rolledDetailResponse.json().overview.season, season + 1)
-    assert.equal(rolledDetailResponse.json().availability.enabled, false)
-
     saveAccountDefaultPlayer(ranked.account.id, ranked.player.id)
     const viewerId = 77119913
     await insertSessionWithToken({
@@ -160,17 +146,18 @@ test("管理开关关闭排行榜时保留名次、终止进行中挑战并阻�
     await game.ready()
     t.after(() => game.close())
 
-    const leaderboardResponse = await game.inject({
+    const frozenLeaderboardResponse = await game.inject({
         method: "POST",
         url: "/event/rush/leaderboard",
         headers: { "content-type": "application/json" },
         payload: { viewer_id: viewerId, event_id: competition.eventId },
     })
-    assert.equal(leaderboardResponse.statusCode, 200, leaderboardResponse.payload)
-    const disabledPayload = JSON.parse(leaderboardResponse.payload).data
-    assert.equal(disabledPayload.enabled, false)
-    assert.equal(disabledPayload.time, "排行榜暂未开放")
-    assert.deepEqual(disabledPayload.rows, [])
+    assert.equal(frozenLeaderboardResponse.statusCode, 200, frozenLeaderboardResponse.payload)
+    const frozenPayload = JSON.parse(frozenLeaderboardResponse.payload).data
+    assert.equal(frozenPayload.enabled, true)
+    assert.equal(frozenPayload.time, "排行榜已冻结")
+    assert.equal(frozenPayload.total, 1)
+    assert.equal(frozenPayload.rows.length, 1)
 
     const officialResponse = await game.inject({
         method: "POST",
@@ -180,8 +167,77 @@ test("管理开关关闭排行榜时保留名次、终止进行中挑战并阻�
     })
     assert.equal(officialResponse.statusCode, 200, officialResponse.payload)
     const officialPayload = JSON.parse(officialResponse.payload).data
-    assert.equal(officialPayload.total, 0)
-    assert.deepEqual(officialPayload.ranking_data, [])
+    assert.equal(officialPayload.total, 1)
+    assert.equal(officialPayload.ranking_data.length, 1)
+
+    const prematureRolloverResponse = await admin.inject({
+        method: "POST",
+        url: `/api/leaderboards/${encodeURIComponent(competition.key)}/rollover`,
+    })
+    assert.equal(prematureRolloverResponse.statusCode, 409, prematureRolloverResponse.payload)
+    assert.equal(prematureRolloverResponse.json().reason, "season-not-settled")
+    assert.equal(getLeaderboardSeasonSync(competition.key), season)
+
+    const settleResponse = await admin.inject({
+        method: "POST",
+        url: `/api/leaderboards/${encodeURIComponent(competition.key)}/settle`,
+    })
+    assert.equal(settleResponse.statusCode, 200, settleResponse.payload)
+    assert.equal(isLeaderboardEnabledSync(competition.key), false)
+    assert.equal(getLeaderboardSeasonSync(competition.key), season)
+    assert.equal(countLeaderboardRanksSync(competition.key, season), 1)
+
+    const settledFrozenResponse = await game.inject({
+        method: "POST",
+        url: "/event/rush/leaderboard",
+        headers: { "content-type": "application/json" },
+        payload: { viewer_id: viewerId, event_id: competition.eventId },
+    })
+    assert.equal(settledFrozenResponse.statusCode, 200, settledFrozenResponse.payload)
+    assert.equal(JSON.parse(settledFrozenResponse.payload).data.total, 1)
+
+    const rolloverResponse = await admin.inject({
+        method: "POST",
+        url: `/api/leaderboards/${encodeURIComponent(competition.key)}/rollover`,
+    })
+    assert.equal(rolloverResponse.statusCode, 200, rolloverResponse.payload)
+    const rolloverBody = rolloverResponse.json()
+    assert.equal(rolloverBody.rolled, true)
+    assert.equal(rolloverBody.nextSeason, season + 1)
+    assert.equal(isLeaderboardEnabledSync(competition.key), false)
+    assert.equal(countLeaderboardRanksSync(competition.key, season + 1), 0)
+
+    const rolledDetailResponse = await admin.inject({
+        method: "GET",
+        url: `/api/leaderboards/${encodeURIComponent(competition.key)}`,
+    })
+    assert.equal(rolledDetailResponse.statusCode, 200, rolledDetailResponse.payload)
+    assert.equal(rolledDetailResponse.json().overview.season, season + 1)
+    assert.equal(rolledDetailResponse.json().availability.enabled, false)
+
+    const rolledFrozenResponse = await game.inject({
+        method: "POST",
+        url: "/event/rush/leaderboard",
+        headers: { "content-type": "application/json" },
+        payload: { viewer_id: viewerId, event_id: competition.eventId },
+    })
+    assert.equal(rolledFrozenResponse.statusCode, 200, rolledFrozenResponse.payload)
+    const rolledFrozenPayload = JSON.parse(rolledFrozenResponse.payload).data
+    assert.equal(rolledFrozenPayload.enabled, true)
+    assert.equal(rolledFrozenPayload.time, "排行榜已冻结")
+    assert.equal(rolledFrozenPayload.total, 1)
+    assert.equal(rolledFrozenPayload.rows.length, 1)
+
+    const rolledOfficialResponse = await game.inject({
+        method: "POST",
+        url: "/event/rush/ranking",
+        headers: { "content-type": "application/json" },
+        payload: { viewer_id: viewerId, event_id: competition.eventId, page: 0 },
+    })
+    assert.equal(rolledOfficialResponse.statusCode, 200, rolledOfficialResponse.payload)
+    const rolledOfficialPayload = JSON.parse(rolledOfficialResponse.payload).data
+    assert.equal(rolledOfficialPayload.total, 1)
+    assert.equal(rolledOfficialPayload.ranking_data.length, 1)
 
     const openResponse = await admin.inject({
         method: "PATCH",
@@ -202,6 +258,37 @@ test("管理开关关闭排行榜时保留名次、终止进行中挑战并阻�
     assert.equal(reopenedPayload.enabled, true)
     assert.equal(reopenedPayload.total, 0)
     assert.equal(reopenedPayload.rows.length, 0)
-    assert.ok(startLeaderboardQuestSync(interrupted.player.id, quest(1), 4_000_000))
-    assert.equal(countLeaderboardRanksSync(competition.key, season + 1), 0)
+    completeRun(interrupted.player.id, 4_000_000)
+    assert.equal(countLeaderboardRanksSync(competition.key, season + 1), 1)
+
+    const config = getLeaderboardSettlementConfigSync(competition.key)
+    putLeaderboardSettlementConfigSync({
+        ...config,
+        autoEnabled: true,
+        settleAtMs: 5_000_000,
+        repeatIntervalMs: null,
+        updatedAtMs: 4_900_000,
+    })
+    runDueLeaderboardSettlementsSync(5_000_000)
+
+    assert.equal(getLeaderboardSeasonSync(competition.key), season + 1)
+    assert.equal(isLeaderboardEnabledSync(competition.key), false)
+    assert.equal(countLeaderboardRanksSync(competition.key, season + 1), 1)
+    const scheduledConfig = getLeaderboardSettlementConfigSync(competition.key)
+    assert.equal(scheduledConfig.autoEnabled, false)
+    assert.equal(scheduledConfig.settleAtMs, null)
+
+    const autoFrozenResponse = await game.inject({
+        method: "POST",
+        url: "/event/rush/leaderboard",
+        headers: { "content-type": "application/json" },
+        payload: { viewer_id: viewerId, event_id: competition.eventId },
+    })
+    assert.equal(autoFrozenResponse.statusCode, 200, autoFrozenResponse.payload)
+    const autoFrozenPayload = JSON.parse(autoFrozenResponse.payload).data
+    assert.equal(autoFrozenPayload.enabled, true)
+    assert.equal(autoFrozenPayload.time, "排行榜已冻结")
+    assert.equal(autoFrozenPayload.total, 1)
+    assert.equal(autoFrozenPayload.rows.length, 1)
+    assert.equal(startLeaderboardQuestSync(ranked.player.id, quest(1), 6_000_000), null)
 })

@@ -103,8 +103,8 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         const key = resolveKey(request, reply);
         if (key === null)
             return;
-        const outcome = (0, settlement_1.settleAndRolloverLeaderboardSync)(key, "admin-rollover");
-        return reply.status(outcome.ok ? 200 : 409).send(outcome);
+        const outcome = (0, settlement_1.rolloverLeaderboardSeasonSync)(key, "admin-rollover");
+        return reply.status(outcome.ok ? 200 : 409).send(outcome.ok ? outcome : Object.assign(Object.assign({}, outcome), { error: "当前赛季尚未结算，不能换季。" }));
     }));
 });
 exports.default = routes;

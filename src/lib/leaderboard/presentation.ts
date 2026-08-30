@@ -142,6 +142,7 @@ export function getOfficialLeaderboardPageSync(input: {
     competition: LeaderboardCompetition
     playerId: number
     page: number
+    acceptingScores?: boolean
 }): {
     currentPage: number
     pageMax: number
@@ -149,7 +150,7 @@ export function getOfficialLeaderboardPageSync(input: {
     myData: OfficialLeaderboardRow | null
     rows: OfficialLeaderboardRow[]
 } {
-    const season = getSeason(input.competition.key)
+    const season = getDisplaySeason(input.competition.key, input.acceptingScores ?? true)
     const total = countLeaderboardRanksSync(input.competition.key, season)
     const visibleTotal = Math.min(total, input.competition.displayLimit)
     const pageMax = Math.max(1, Math.ceil(visibleTotal / input.competition.pageSize))
@@ -188,8 +189,9 @@ export function getOfficialLeaderboardPageSync(input: {
 export function getLeaderboardPlayedPartiesSync(input: {
     competition: LeaderboardCompetition
     rankNumber: number
+    acceptingScores?: boolean
 }): Record<number, ReturnType<typeof serializePlayerRushEventPlayedParty>> {
-    const season = getSeason(input.competition.key)
+    const season = getDisplaySeason(input.competition.key, input.acceptingScores ?? true)
     if (!Number.isInteger(input.rankNumber) || input.rankNumber < 1) return {}
     const [record] = getLeaderboardRankPageSync({
         competitionKey: input.competition.key,
@@ -216,6 +218,7 @@ export function getLeaderboardPlayedPartiesSync(input: {
 export function buildNativeLeaderboardPayload(
     competition: LeaderboardCompetition,
     playerId: number | null,
+    acceptingScores: boolean = true,
 ): {
     enabled: true
     name: string
@@ -228,7 +231,7 @@ export function buildNativeLeaderboardPayload(
     total: number
     reward: readonly LeaderboardRewardTier[]
 } {
-    const season = getSeason(competition.key)
+    const season = getDisplaySeason(competition.key, acceptingScores)
     const total = countLeaderboardRanksSync(competition.key, season)
     const records = getLeaderboardRankPageSync({
         competitionKey: competition.key,
@@ -258,7 +261,7 @@ export function buildNativeLeaderboardPayload(
         page: visibleIndex < 0 ? 0 : Math.floor(visibleIndex / competition.pageSize),
         row: visibleIndex < 0 ? -1 : visibleIndex % competition.pageSize,
         index,
-        time: "实时更新",
+        time: acceptingScores ? "实时更新" : "排行榜已冻结",
         total,
         reward: getLeaderboardSettlementConfigSync(competition.key).rewardTiers,
     }
@@ -292,6 +295,17 @@ export function buildUnavailableNativeLeaderboardPayload(): {
 
 function getSeason(competitionKey: string): number {
     return getLeaderboardCompetitionSeasonSync(competitionKey)
+}
+
+function getDisplaySeason(competitionKey: string, acceptingScores: boolean): number {
+    const currentSeason = getSeason(competitionKey)
+    if (acceptingScores || countLeaderboardRanksSync(competitionKey, currentSeason) > 0) {
+        return currentSeason
+    }
+    for (let season = currentSeason - 1; season >= 1; season--) {
+        if (countLeaderboardRanksSync(competitionKey, season) > 0) return season
+    }
+    return currentSeason
 }
 
 export function buildLeaderboardTermsText(competition: LeaderboardCompetition): string {

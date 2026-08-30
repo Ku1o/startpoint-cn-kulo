@@ -1,11 +1,12 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createLeaderboardSettlementScheduler = exports.runDueLeaderboardSettlementsSync = exports.getLeaderboardSettlementOverviewSync = exports.settleAndRolloverLeaderboardSync = exports.settleLeaderboardSeasonSync = exports.validateRewardTiers = exports.putLeaderboardSettlementConfigSync = exports.getLeaderboardSettlementConfigSync = void 0;
+exports.createLeaderboardSettlementScheduler = exports.runDueLeaderboardSettlementsSync = exports.getLeaderboardSettlementOverviewSync = exports.rolloverLeaderboardSeasonSync = exports.settleLeaderboardSeasonSync = exports.validateRewardTiers = exports.putLeaderboardSettlementConfigSync = exports.getLeaderboardSettlementConfigSync = void 0;
 const db_1 = require("../../data/db");
 const leaderboard_1 = require("../../data/domains/leaderboard");
 const mail_1 = require("../../data/domains/mail");
 const competition_1 = require("./competition");
 const rewards_1 = require("./rewards");
+const availability_1 = require("./availability");
 function defaultConfig(competitionKey, nowMs) {
     var _a, _b;
     const displayName = (_b = (_a = (0, competition_1.getLeaderboardCompetition)(competitionKey)) === null || _a === void 0 ? void 0 : _a.displayName) !== null && _b !== void 0 ? _b : competitionKey;
@@ -226,22 +227,35 @@ function settleLeaderboardSeasonSync(competitionKey, source, nowMs = Date.now())
     })();
 }
 exports.settleLeaderboardSeasonSync = settleLeaderboardSeasonSync;
-function settleAndRolloverLeaderboardSync(competitionKey, source, nowMs = Date.now()) {
-    const outcome = settleLeaderboardSeasonSync(competitionKey, source, nowMs);
-    if (!outcome.ok)
-        return Object.assign(Object.assign({}, outcome), { rolled: false, nextSeason: outcome.season });
-    const nextSeason = outcome.season + 1;
+function rolloverLeaderboardSeasonSync(competitionKey, source, nowMs = Date.now()) {
+    const season = (0, competition_1.getLeaderboardCompetitionSeasonSync)(competitionKey, nowMs);
+    const settled = (0, db_1.getDb)().prepare(`
+        SELECT 1 FROM leaderboard_settlements
+        WHERE competition_key = ? AND season = ? AND status = 'completed'
+    `).get(competitionKey, season);
+    if (settled === undefined)
+        return {
+            ok: false,
+            competitionKey,
+            season,
+            rolled: false,
+            nextSeason: season,
+            reason: "season-not-settled",
+        };
+    const nextSeason = season + 1;
     (0, db_1.getDb)().transaction(() => {
-        (0, db_1.getDb)().prepare(`
+        const result = (0, db_1.getDb)().prepare(`
             UPDATE leaderboard_seasons
             SET season = ?, started_at_ms = ?, source = ?
             WHERE competition_key = ? AND season = ?
-        `).run(nextSeason, nowMs, source, competitionKey, outcome.season);
+        `).run(nextSeason, nowMs, source, competitionKey, season);
+        if (result.changes !== 1)
+            throw new Error("Leaderboard season changed concurrently.");
         (0, leaderboard_1.abandonLeaderboardRunsSync)({ competitionKey, endedAtMs: nowMs });
     })();
-    return Object.assign(Object.assign({}, outcome), { rolled: true, nextSeason });
+    return { ok: true, competitionKey, season, rolled: true, nextSeason };
 }
-exports.settleAndRolloverLeaderboardSync = settleAndRolloverLeaderboardSync;
+exports.rolloverLeaderboardSeasonSync = rolloverLeaderboardSeasonSync;
 function getLeaderboardSettlementOverviewSync(competitionKey) {
     const config = getLeaderboardSettlementConfigSync(competitionKey);
     const season = (0, competition_1.getLeaderboardCompetitionSeasonSync)(competitionKey);
@@ -265,9 +279,10 @@ function runDueLeaderboardSettlementsSync(nowMs = Date.now()) {
         const config = getLeaderboardSettlementConfigSync(competition.key, nowMs);
         if (!config.autoEnabled || config.settleAtMs === null || config.settleAtMs > nowMs)
             continue;
-        const outcome = settleAndRolloverLeaderboardSync(competition.key, "scheduler", nowMs);
+        const outcome = settleLeaderboardSeasonSync(competition.key, "scheduler", nowMs);
         if (!outcome.ok)
             continue;
+        (0, availability_1.setLeaderboardAvailabilitySync)(competition.key, false, nowMs);
         const nextSettleAtMs = config.repeatIntervalMs === null
             ? null
             : config.settleAtMs + (Math.floor((nowMs - config.settleAtMs) / config.repeatIntervalMs) + 1) * config.repeatIntervalMs;

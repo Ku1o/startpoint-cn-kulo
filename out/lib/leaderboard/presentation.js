@@ -99,7 +99,8 @@ function outOfRankRow(playerId) {
     };
 }
 function getOfficialLeaderboardPageSync(input) {
-    const season = getSeason(input.competition.key);
+    var _a;
+    const season = getDisplaySeason(input.competition.key, (_a = input.acceptingScores) !== null && _a !== void 0 ? _a : true);
     const total = (0, leaderboard_1.countLeaderboardRanksSync)(input.competition.key, season);
     const visibleTotal = Math.min(total, input.competition.displayLimit);
     const pageMax = Math.max(1, Math.ceil(visibleTotal / input.competition.pageSize));
@@ -126,7 +127,8 @@ function getOfficialLeaderboardPageSync(input) {
 }
 exports.getOfficialLeaderboardPageSync = getOfficialLeaderboardPageSync;
 function getLeaderboardPlayedPartiesSync(input) {
-    const season = getSeason(input.competition.key);
+    var _a;
+    const season = getDisplaySeason(input.competition.key, (_a = input.acceptingScores) !== null && _a !== void 0 ? _a : true);
     if (!Number.isInteger(input.rankNumber) || input.rankNumber < 1)
         return {};
     const [record] = (0, leaderboard_1.getLeaderboardRankPageSync)({
@@ -152,8 +154,8 @@ function getLeaderboardPlayedPartiesSync(input) {
     ]));
 }
 exports.getLeaderboardPlayedPartiesSync = getLeaderboardPlayedPartiesSync;
-function buildNativeLeaderboardPayload(competition, playerId) {
-    const season = getSeason(competition.key);
+function buildNativeLeaderboardPayload(competition, playerId, acceptingScores = true) {
+    const season = getDisplaySeason(competition.key, acceptingScores);
     const total = (0, leaderboard_1.countLeaderboardRanksSync)(competition.key, season);
     const records = (0, leaderboard_1.getLeaderboardRankPageSync)({
         competitionKey: competition.key,
@@ -180,7 +182,7 @@ function buildNativeLeaderboardPayload(competition, playerId) {
         page: visibleIndex < 0 ? 0 : Math.floor(visibleIndex / competition.pageSize),
         row: visibleIndex < 0 ? -1 : visibleIndex % competition.pageSize,
         index,
-        time: "实时更新",
+        time: acceptingScores ? "实时更新" : "排行榜已冻结",
         total,
         reward: (0, settlement_1.getLeaderboardSettlementConfigSync)(competition.key).rewardTiers,
     };
@@ -203,6 +205,17 @@ function buildUnavailableNativeLeaderboardPayload() {
 exports.buildUnavailableNativeLeaderboardPayload = buildUnavailableNativeLeaderboardPayload;
 function getSeason(competitionKey) {
     return (0, competition_1.getLeaderboardCompetitionSeasonSync)(competitionKey);
+}
+function getDisplaySeason(competitionKey, acceptingScores) {
+    const currentSeason = getSeason(competitionKey);
+    if (acceptingScores || (0, leaderboard_1.countLeaderboardRanksSync)(competitionKey, currentSeason) > 0) {
+        return currentSeason;
+    }
+    for (let season = currentSeason - 1; season >= 1; season--) {
+        if ((0, leaderboard_1.countLeaderboardRanksSync)(competitionKey, season) > 0)
+            return season;
+    }
+    return currentSeason;
 }
 function buildLeaderboardTermsText(competition) {
     const tiers = (0, settlement_1.getLeaderboardSettlementConfigSync)(competition.key).rewardTiers;

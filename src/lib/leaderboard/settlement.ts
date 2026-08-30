@@ -12,6 +12,7 @@ import {
     LeaderboardRewardTier,
     matchLeaderboardRewardTier,
 } from "./rewards"
+import { setLeaderboardAvailabilitySync } from "./availability"
 
 export interface LeaderboardSettlementConfig {
     competitionKey: string
@@ -323,23 +324,44 @@ export function settleLeaderboardSeasonSync(
     })()
 }
 
-export function settleAndRolloverLeaderboardSync(
+export interface LeaderboardRolloverOutcome {
+    ok: boolean
+    competitionKey: string
+    season: number
+    rolled: boolean
+    nextSeason: number
+    reason?: "season-not-settled"
+}
+
+export function rolloverLeaderboardSeasonSync(
     competitionKey: string,
     source: string,
     nowMs: number = Date.now(),
-): SettlementOutcome & { rolled: boolean, nextSeason: number } {
-    const outcome = settleLeaderboardSeasonSync(competitionKey, source, nowMs)
-    if (!outcome.ok) return { ...outcome, rolled: false, nextSeason: outcome.season }
-    const nextSeason = outcome.season + 1
+): LeaderboardRolloverOutcome {
+    const season = getLeaderboardCompetitionSeasonSync(competitionKey, nowMs)
+    const settled = getDb().prepare(`
+        SELECT 1 FROM leaderboard_settlements
+        WHERE competition_key = ? AND season = ? AND status = 'completed'
+    `).get(competitionKey, season)
+    if (settled === undefined) return {
+        ok: false,
+        competitionKey,
+        season,
+        rolled: false,
+        nextSeason: season,
+        reason: "season-not-settled",
+    }
+    const nextSeason = season + 1
     getDb().transaction(() => {
-        getDb().prepare(`
+        const result = getDb().prepare(`
             UPDATE leaderboard_seasons
             SET season = ?, started_at_ms = ?, source = ?
             WHERE competition_key = ? AND season = ?
-        `).run(nextSeason, nowMs, source, competitionKey, outcome.season)
+        `).run(nextSeason, nowMs, source, competitionKey, season)
+        if (result.changes !== 1) throw new Error("Leaderboard season changed concurrently.")
         abandonLeaderboardRunsSync({ competitionKey, endedAtMs: nowMs })
     })()
-    return { ...outcome, rolled: true, nextSeason }
+    return { ok: true, competitionKey, season, rolled: true, nextSeason }
 }
 
 export function getLeaderboardSettlementOverviewSync(competitionKey: string): object {
@@ -364,8 +386,9 @@ export function runDueLeaderboardSettlementsSync(nowMs: number = Date.now()): vo
     for (const competition of getLeaderboardCompetitions()) {
         const config = getLeaderboardSettlementConfigSync(competition.key, nowMs)
         if (!config.autoEnabled || config.settleAtMs === null || config.settleAtMs > nowMs) continue
-        const outcome = settleAndRolloverLeaderboardSync(competition.key, "scheduler", nowMs)
+        const outcome = settleLeaderboardSeasonSync(competition.key, "scheduler", nowMs)
         if (!outcome.ok) continue
+        setLeaderboardAvailabilitySync(competition.key, false, nowMs)
         const nextSettleAtMs = config.repeatIntervalMs === null
             ? null
             : config.settleAtMs + (
