@@ -1,6 +1,5 @@
 import awakeExtensionsJson from "../../assets/character_awake_extension.json"
 import { getCharacterManaNodesSync } from "./assets"
-import type { ManaNode } from "./types"
 
 interface LinkedManaNodeSlot {
     board_index: number
@@ -19,31 +18,37 @@ export interface LinkedManaNodeAwakeUpdate {
     awakeLevel: number
 }
 
+/**
+ * Hides linked extension boards from an incremental mana response.
+ *
+ * The 1.8.1 client's common-response parser applies `mana_board_awake` but
+ * ignores `user_character_mana_node_list`. Publishing a linked board here
+ * therefore switches the board to Awake mode while its local node levels are
+ * still stale. Keep the persisted state server-side and expose it on the next
+ * full `/load`, where character and mana-node state are initialized together.
+ */
+export function deferLinkedManaBoardAwakeLevels(
+    characterId: number,
+    levels: Record<number, number> | undefined,
+): Record<number, number> | undefined {
+    if (!levels) return undefined
+    const extension = getExtension(characterId)
+    if (!extension) return levels
+
+    const deferredBoards = new Set(
+        extension.linked_mana_node_slots.map(link => link.board_index),
+    )
+    const immediate: Record<number, number> = {}
+    for (const [boardIndexText, awakeLevel] of Object.entries(levels)) {
+        const boardIndex = Number(boardIndexText)
+        if (deferredBoards.has(boardIndex)) continue
+        immediate[boardIndex] = awakeLevel
+    }
+    return Object.keys(immediate).length > 0 ? immediate : undefined
+}
+
 function getExtension(characterId: number): CharacterAwakeExtension | null {
     return awakeExtensions[String(characterId)] ?? null
-}
-
-function findLinkedNode(
-    extension: CharacterAwakeExtension,
-    boardIndex: number,
-    node: ManaNode,
-): LinkedManaNodeSlot | null {
-    const abilitySlot = Number(node.field6)
-    return extension.linked_mana_node_slots.find(link => (
-        link.board_index === boardIndex && link.ability_slot === abilitySlot
-    )) ?? null
-}
-
-/** Returns the inherited awake level for a newly learned extension node. */
-export function getInheritedLinkedManaNodeAwakeLevel(
-    characterId: number,
-    boardIndex: number,
-    node: ManaNode,
-    evolutionLevel: number,
-): number {
-    const extension = getExtension(characterId)
-    if (!extension || evolutionLevel < 2) return 0
-    return findLinkedNode(extension, boardIndex, node)?.awake_level ?? 0
 }
 
 /**
@@ -62,18 +67,20 @@ export function resolveLinkedManaNodeBoardIndex(
     for (const boardIndex of boardIndices) {
         const boardNodes = getCharacterManaNodesSync(characterId, boardIndex)
         if (!boardNodes) continue
-        if (nodeIds.every(nodeId => {
-            const node = boardNodes[String(nodeId)]
-            return node !== undefined && findLinkedNode(extension, boardIndex, node) !== null
-        })) return boardIndex
+        if (nodeIds.every(nodeId => boardNodes[String(nodeId)] !== undefined)) return boardIndex
     }
     return null
 }
 
 /**
- * Builds free node updates when an awakened design changes an ability stored
- * on mana board 2. Only already learned nodes are included; later learning is
- * handled by getInheritedLinkedManaNodeAwakeLevel.
+ * Builds free whole-board updates when an awakened design changes an ability
+ * stored on a later mana board.
+ *
+ * The client has one learn mode per board, not per ability. Mixing awake nodes
+ * with normal nodes on the same board makes an already learned node appear as
+ * a lower normal upgrade. Keep an incomplete extension board entirely normal;
+ * once it is complete, advance every node together so the board mode and all
+ * persisted node levels stay coherent.
  */
 export function collectLinkedManaNodeAwakeUpdates(
     characterId: number,
@@ -85,16 +92,25 @@ export function collectLinkedManaNodeAwakeUpdates(
     if (!extension || targetAwakeLevel <= 0) return []
 
     const updates: LinkedManaNodeAwakeUpdate[] = []
+    const boardAwakeLevels = new Map<number, number>()
     for (const link of extension.linked_mana_node_slots) {
-        const boardNodes = getCharacterManaNodesSync(characterId, link.board_index)
-        if (!boardNodes) continue
         const linkedAwakeLevel = Math.min(targetAwakeLevel, link.awake_level)
-        for (const [nodeIdText, node] of Object.entries(boardNodes)) {
-            const nodeId = Number(nodeIdText)
-            if (Number(node.field6) !== link.ability_slot
-                || !learnedNodeIds.has(nodeId)
-                || (currentAwakeLevels.get(nodeId) ?? 0) >= linkedAwakeLevel) continue
-            updates.push({ nodeId, awakeLevel: linkedAwakeLevel })
+        boardAwakeLevels.set(
+            link.board_index,
+            Math.max(boardAwakeLevels.get(link.board_index) ?? 0, linkedAwakeLevel),
+        )
+    }
+
+    for (const [boardIndex, boardAwakeLevel] of boardAwakeLevels) {
+        if (boardAwakeLevel <= 0) continue
+        const boardNodes = getCharacterManaNodesSync(characterId, boardIndex)
+        if (!boardNodes) continue
+        const boardNodeIds = Object.keys(boardNodes).map(Number)
+        if (!boardNodeIds.every(nodeId => learnedNodeIds.has(nodeId))) continue
+
+        for (const nodeId of boardNodeIds) {
+            if ((currentAwakeLevels.get(nodeId) ?? 0) >= boardAwakeLevel) continue
+            updates.push({ nodeId, awakeLevel: boardAwakeLevel })
         }
     }
     return updates

@@ -1,5 +1,5 @@
 {
-  "cdn_version": "1.4.94",
+  "cdn_version": "1.4.95",
   "patches": [
     {
       "id": "base-1.4.54-to-1.4.55-mod07141843",
@@ -5772,6 +5772,41 @@
       ],
       "chain": [
         "pinball-1.4.93-1.4.94-1-0830-awakened-balance-migration.zip"
+      ]
+    },
+    {
+      "id": "mana-node-awake-board2-1.4.95",
+      "type": "patch",
+      "name": "玛纳板2能力5/6觉醒查询修复",
+      "description": "为能力4至6随角色觉醒的扩展玛纳板补齐客户端能力5、6素材查询键，修复整板觉醒后进入玛纳板时因Key=5/6缺失触发的C8601。",
+      "version": "1.4.95",
+      "depends_on": "1.4.94",
+      "enabled": true,
+      "archive": "pinball-1.4.94-1.4.95-1-0831-mana-node-awake-board2.zip",
+      "archive_size": 763,
+      "files": [
+        "production/upload/b7/7fd08aaacca60fd70309dbdc57a07b1352063c"
+      ],
+      "changes": [
+        "mana_node_awake仅新增能力槽5、6；稀有度1至5的既有槽1至4行保持不变。",
+        "能力5沿用能力2的素材档；能力6沿用能力3的素材档，稀有度1、2因无能力3而沿用能力2。",
+        "该表仅补齐客户端觉醒态展示所需查询，不改角色星级、能力数值、玛纳板节点或既有存档。"
+      ],
+      "created_at": "2026-08-31",
+      "audit": {
+        "directory": "assets/asset-patch/audit/mana-node-awake-board2-1.4.95",
+        "report": "report.json"
+      },
+      "archive_integrity": [
+        {
+          "name": "pinball-1.4.94-1.4.95-1-0831-mana-node-awake-board2.zip",
+          "size": 763,
+          "sha256": "1059ae5af4f80478b0e15e5543d15afd97f96407c5fa6c0767e694b08c57e3ac",
+          "members": 1
+        }
+      ],
+      "chain": [
+        "pinball-1.4.94-1.4.95-1-0831-mana-node-awake-board2.zip"
       ]
     }
   ]

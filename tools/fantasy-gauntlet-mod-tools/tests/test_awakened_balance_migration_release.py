@@ -54,12 +54,15 @@ class AwakenedBalanceMigrationReleaseTests(unittest.TestCase):
         self.assertEqual(entry["depends_on"], release.BASE_VERSION)
         self.assertEqual(entry["version"], release.TARGET_VERSION)
         self.assertEqual(entry["archive_integrity"], [self.report["archive"]])
-        self.assertEqual(self.manifest["cdn_version"], release.TARGET_VERSION)
+        self.assertGreaterEqual(
+            tuple(map(int, self.manifest["cdn_version"].split("."))),
+            tuple(map(int, release.TARGET_VERSION.split("."))),
+        )
 
     def test_android_and_ios_reach_the_new_tail(self) -> None:
-        self.assertEqual(self.android_plan.tail, release.TARGET_VERSION)
+        self.assertEqual(self.android_plan.tail, self.manifest["cdn_version"])
         self.assertIsNotNone(self.ios_plan)
-        self.assertEqual(self.ios_plan.tail, release.TARGET_VERSION)
+        self.assertEqual(self.ios_plan.tail, self.manifest["cdn_version"])
         self.assertFalse(self.android_plan.health.gap(self.android_plan.tail))
         self.assertEqual(self.android_plan.health.unreachable, ())
         self.assertFalse(self.ios_plan.health.gap(self.ios_plan.tail))

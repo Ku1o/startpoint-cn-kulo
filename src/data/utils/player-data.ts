@@ -4,7 +4,7 @@ import { ClientPlayerData, DailyChallengePointListEntry, MergedPlayerData, Party
 import { deserializePlayerRushEventPlayedParty, deserializeRushEvent, getPlayerRushEventListClearedFoldersSync, getPlayerRushEventListPlayedPartiesSync, getPlayerRushEventListSync, serializePlayerRushEventPlayedParty } from "../domains/rushEvent"
 import { getPlayerActiveMissionsSync, getPlayerCategoryMissionListSync, getPlayerClearedRegularMissionListSync } from "../domains/mission"
 import { getPlayerBoxGachasSync } from "../domains/boxGacha"
-import { getPlayerCharactersManaNodesSync, getPlayerCharactersSync, getPlayerCharactersManaNodeAwakeLevelsSync } from "../domains/character"
+import { getPlayerCharactersManaNodesSync, getPlayerCharactersSync, getPlayerCharactersManaNodeAwakeLevelsSync, updatePlayerCharacterManaNodeAwakeLevelSync } from "../domains/character"
 import { getPlayerDailyChallengePointListSync, getPlayerSync, updatePlayerSync } from "../domains/player"
 import { getPlayerDrawnQuestsSync, getPlayerQuestProgressSync } from "../domains/quest"
 import { getPlayerEquipmentListSync } from "../domains/equipment"
@@ -25,6 +25,7 @@ import {
 import { getDb } from "../db"
 import { getCarnivalSaveStateSync } from "../../lib/carnival-save-state"
 import { getContentSnapshot } from "../../content/runtime/content-snapshot"
+import { collectLinkedManaNodeAwakeUpdates } from "../../lib/character-awake-extension"
 
 export interface ClientSerializedDataOptions extends SerializePlayerDataOptions {
     /** Fresh request-local snapshot; callers remain responsible for invalidating stale data. */
@@ -125,12 +126,15 @@ export function getClientSerializedData(
 
     const playerData = preloadedPlayer ?? getPlayerSync(playerId)
     if (playerData === null) return null
+    const characterList = preloadedCharacterList ?? getPlayerCharactersSync(playerId)
+    const learnedManaNodes = preloadedCharacterManaNodeList
+        ?? getPlayerCharactersManaNodesSync(playerId)
 
     const doSerializeRushEventData = serializeOptions.serializeRushEventData ?? false
 
     // Compute awake mission summary for /load injection
     const awakeSummary = computeAwakeSummary(playerId, {
-        characterList: preloadedCharacterList,
+        characterList,
     })
     awakeSummary.manaBoardAwakeMap = reconcileAwakeUnlocksFromProgress(
         playerId,
@@ -143,8 +147,35 @@ export function getClientSerializedData(
     // The client uses mana_board_awake both to unlock the Awake tab and as the
     // target node-awake level. Keep mission unlocks and persisted node state.
     const nodeAwakeLevels = getPlayerCharactersManaNodeAwakeLevelsSync(playerId)
-    const learnedManaNodes = preloadedCharacterManaNodeList
-        ?? getPlayerCharactersManaNodesSync(playerId)
+    const linkedBoardUpdates: { characterId: number; nodeId: number; awakeLevel: number }[] = []
+    for (const [characterIdText, character] of Object.entries(characterList)) {
+        if (character.evolutionLevel < 2) continue
+        const characterId = Number(characterIdText)
+        const characterNodeLevels = nodeAwakeLevels[characterIdText] ?? {}
+        const updates = collectLinkedManaNodeAwakeUpdates(
+            characterId,
+            new Set(learnedManaNodes[characterIdText] ?? []),
+            new Map(Object.entries(characterNodeLevels).map(([nodeId, level]) => [Number(nodeId), level])),
+            character.evolutionLevel - 1,
+        )
+        for (const update of updates) {
+            linkedBoardUpdates.push({ characterId, ...update })
+            characterNodeLevels[update.nodeId] = update.awakeLevel
+        }
+        if (updates.length > 0) nodeAwakeLevels[characterIdText] = characterNodeLevels
+    }
+    if (linkedBoardUpdates.length > 0) {
+        getDb().transaction(() => {
+            for (const update of linkedBoardUpdates) {
+                updatePlayerCharacterManaNodeAwakeLevelSync(
+                    playerId,
+                    update.characterId,
+                    update.nodeId,
+                    update.awakeLevel,
+                )
+            }
+        })()
+    }
     const missionAwakeMap = new Map<string, Record<number, number>>()
     for (const [characterId, levels] of awakeSummary.manaBoardAwakeMap) {
         const visible = filterCharacterManaBoardAwakeLevels(
@@ -164,7 +195,7 @@ export function getClientSerializedData(
         dailyChallengePointList: getPlayerDailyChallengePointListSync(playerId),
         triggeredTutorial: getPlayerTriggeredTutorialsSync(playerId),
         clearedRegularMissionList: getPlayerClearedRegularMissionListSync(playerId),
-        characterList: preloadedCharacterList ?? getPlayerCharactersSync(playerId),
+        characterList,
         characterManaNodeList: learnedManaNodes,
         characterManaNodeAwakeLevels: nodeAwakeLevels,
         manaBoardAwakeMap,

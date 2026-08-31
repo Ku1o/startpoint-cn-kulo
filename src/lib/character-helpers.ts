@@ -465,17 +465,23 @@ export function computeManaBoardAwakeFromNodes(
 ): Map<string, Record<number, number>> {
     const result = new Map<string, Record<number, number>>()
     for (const [charId, nodeLevels] of Object.entries(characterManaNodeAwakeLevels)) {
-        const boardNodes = getCharacterManaNodesSync(Number(charId), 1)
-        if (!boardNodes) continue
-        const boardNodeIds = Object.keys(boardNodes).map(Number)
-        if (boardNodeIds.length === 0) continue
-        let completedAwakeLevel = Number.POSITIVE_INFINITY
-        for (const nodeId of boardNodeIds) {
-            completedAwakeLevel = Math.min(completedAwakeLevel, nodeLevels[nodeId] ?? 0)
+        const characterId = Number(charId)
+        const boardCount = getCharacterManaBoardCountSync(characterId)
+        const completedBoards: Record<number, number> = {}
+        for (let boardIndex = 1; boardIndex <= boardCount; boardIndex++) {
+            const boardNodes = getCharacterManaNodesSync(characterId, boardIndex)
+            if (!boardNodes) continue
+            const boardNodeIds = Object.keys(boardNodes).map(Number)
+            if (boardNodeIds.length === 0) continue
+            let completedAwakeLevel = Number.POSITIVE_INFINITY
+            for (const nodeId of boardNodeIds) {
+                completedAwakeLevel = Math.min(completedAwakeLevel, nodeLevels[nodeId] ?? 0)
+            }
+            if (Number.isFinite(completedAwakeLevel) && completedAwakeLevel > 0) {
+                completedBoards[boardIndex] = completedAwakeLevel
+            }
         }
-        if (Number.isFinite(completedAwakeLevel) && completedAwakeLevel > 0) {
-            result.set(charId, { 1: completedAwakeLevel })
-        }
+        if (Object.keys(completedBoards).length > 0) result.set(charId, completedBoards)
     }
     return result
 }
