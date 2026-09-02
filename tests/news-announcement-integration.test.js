@@ -179,6 +179,44 @@ async function main() {
     assert.equal(response.statusCode, 200, response.payload)
 
     response = await adminApp.inject({
+        method: "POST",
+        url: "/api/news/items",
+        payload: {
+            id: 105,
+            title: "非法缩略图",
+            date: "2026-08-31 14:00:00",
+            category: 1,
+            label: 1,
+            thumbnail: 14,
+            thumbnail_path: null,
+            added_time: null,
+            html: "<p>不应保存</p>",
+            published: true,
+        },
+    })
+    assert.equal(response.statusCode, 400, response.payload)
+    assert.match(JSON.parse(response.payload).error, /thumbnail.*1–13/)
+
+    response = await adminApp.inject({
+        method: "POST",
+        url: "/api/news/items",
+        payload: {
+            id: 106,
+            title: "自定义缩略图",
+            date: "2026-08-31 14:00:00",
+            category: 1,
+            label: 1,
+            thumbnail: 1,
+            thumbnail_path: "dynamic/feature_announcement/example.png",
+            added_time: null,
+            html: "<p>不应保存</p>",
+            published: true,
+        },
+    })
+    assert.equal(response.statusCode, 400, response.payload)
+    assert.match(JSON.parse(response.payload).error, /thumbnail_path.*不支持/)
+
+    response = await adminApp.inject({
         method: "PUT",
         url: "/api/news/popup",
         payload: { enabled: true, news_id: 104 },

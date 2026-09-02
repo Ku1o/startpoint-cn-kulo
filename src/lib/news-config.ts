@@ -140,7 +140,10 @@ function optionalDateString(value: unknown, field: string): string | null {
 
 function normalizeNewsItem(value: unknown, index: number): NewsItem {
     if (!isRecord(value)) throw new Error(`news[${index}] 必须是对象`)
-    const label = integerInRange(value.label ?? 1, `news[${index}].label`, 0, 99)
+    // These values are enums in the shipped CN client, not arbitrary asset
+    // IDs. Keeping the server-side range aligned with the client prevents a
+    // malformed announcement from reaching a switch with no matching case.
+    const label = integerInRange(value.label ?? 1, `news[${index}].label`, 1, 8)
     const fallbackCategory = label >= 1 && label <= 4 ? label : 1
     const category = integerInRange(
         value.category ?? fallbackCategory,
@@ -154,14 +157,19 @@ function normalizeNewsItem(value: unknown, index: number): NewsItem {
         throw new Error(`news[${index}].published 必须是布尔值`)
     }
 
+    const thumbnailPath = optionalString(value.thumbnail_path, `news[${index}].thumbnail_path`, 512)
+    if (thumbnailPath !== null) {
+        throw new Error(`news[${index}].thumbnail_path 当前客户端不支持，请留空`)
+    }
+
     return {
         id: integerInRange(value.id, `news[${index}].id`, 1, 2_147_483_647),
         title: requiredString(value.title, `news[${index}].title`, 128),
         date: requiredDateString(value.date, `news[${index}].date`),
         category,
         label,
-        thumbnail: integerInRange(value.thumbnail ?? 1, `news[${index}].thumbnail`, 0, 99),
-        thumbnail_path: optionalString(value.thumbnail_path, `news[${index}].thumbnail_path`, 512),
+        thumbnail: integerInRange(value.thumbnail ?? 1, `news[${index}].thumbnail`, 1, 13),
+        thumbnail_path: null,
         added_time: optionalDateString(value.added_time, `news[${index}].added_time`),
         html: value.html,
         published: value.published ?? true,

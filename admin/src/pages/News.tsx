@@ -84,7 +84,7 @@ interface NewsFormValues {
     category: number
     label: number
     thumbnail: number
-    thumbnail_path?: string
+    thumbnail_path?: string | null
     added_time?: Dayjs | null
     html: string
     published: boolean
@@ -150,7 +150,9 @@ export default function News() {
                 category: values.category,
                 label: values.label,
                 thumbnail: values.thumbnail,
-                thumbnail_path: values.thumbnail_path?.trim() || null,
+                // The shipped client only supports its built-in thumbnail
+                // enum; custom resource paths are not implemented.
+                thumbnail_path: null,
                 added_time: toServerTime(values.added_time),
                 html: values.html,
                 published: values.published,
@@ -220,7 +222,6 @@ export default function News() {
         }
         newsForm.setFieldsValue({
             ...editing,
-            thumbnail_path: editing.thumbnail_path ?? "",
             date: dayjs(editing.date),
             added_time: editing.added_time ? dayjs(editing.added_time) : null,
         })
@@ -479,13 +480,13 @@ export default function News() {
                             </Form.Item>
                         </Col>
                         <Col xs={12} md={4}>
-                            <Form.Item name="label" label="标签编号" rules={[{ required: true }]}>
-                                <InputNumber min={0} max={99} precision={0} style={{ width: "100%" }} />
+                            <Form.Item name="label" label="标签编号" tooltip="客户端内置范围：1–8" rules={[{ required: true }]}>
+                                <InputNumber min={1} max={8} precision={0} style={{ width: "100%" }} />
                             </Form.Item>
                         </Col>
                         <Col xs={12} md={4}>
-                            <Form.Item name="thumbnail" label="缩略图编号" rules={[{ required: true }]}>
-                                <InputNumber min={0} max={99} precision={0} style={{ width: "100%" }} />
+                            <Form.Item name="thumbnail" label="缩略图编号" tooltip="客户端内置范围：1–13" rules={[{ required: true }]}>
+                                <InputNumber min={1} max={13} precision={0} style={{ width: "100%" }} />
                             </Form.Item>
                         </Col>
                         <Col xs={24} md={8}>
@@ -504,9 +505,12 @@ export default function News() {
                             </Form.Item>
                         </Col>
                         <Col span={24}>
-                            <Form.Item name="thumbnail_path" label="缩略图资源路径（可选）">
-                                <Input placeholder="例如 dynamic/feature_announcement/example.png" />
-                            </Form.Item>
+                            <Alert
+                                type="info"
+                                showIcon
+                                message="缩略图使用客户端内置图标"
+                                description="当前客户端不支持自定义缩略图资源路径，请使用 1–13 的缩略图编号。"
+                            />
                         </Col>
                         <Col span={24}>
                             <Form.Item
