@@ -22,6 +22,7 @@ const mission_degree_reward_json_1 = __importDefault(require("../../../assets/mi
 const carnival_event_total_score_rewards_json_1 = __importDefault(require("../../../assets/carnival_event_total_score_rewards.json"));
 const admin_mail_rules_1 = require("../../lib/admin-mail-rules");
 const admin_mail_time_1 = require("../../lib/admin-mail-time");
+const daily_vmoney_mail_1 = require("../../lib/daily-vmoney-mail");
 // Pre-built CDN validation sets
 const CDN_CHAR_IDS = new Set(Object.keys(content_master_1.serverCharacters).map(Number));
 const CDN_ITEM_IDS = new Set(content_master_1.serverItemIds);
@@ -62,6 +63,33 @@ const KNOWN_DEGREE_IDS = buildKnownDegreeIds();
 const MAX_HISTORY = 20;
 const sendHistory = [];
 const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
+    fastify.get("/daily", (_request, reply) => __awaiter(void 0, void 0, void 0, function* () {
+        return reply.send((0, daily_vmoney_mail_1.getDailyVmoneyMailOverviewSync)());
+    }));
+    fastify.patch("/daily", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
+        try {
+            const update = (0, daily_vmoney_mail_1.validateDailyVmoneyMailConfigUpdate)(request.body);
+            (0, daily_vmoney_mail_1.updateDailyVmoneyMailConfigSync)(update);
+            return reply.send((0, daily_vmoney_mail_1.getDailyVmoneyMailOverviewSync)());
+        }
+        catch (error) {
+            const detail = error instanceof Error ? error.message : String(error);
+            return reply.status(400).send({ error: detail });
+        }
+    }));
+    fastify.post("/daily/run", (_request, reply) => __awaiter(void 0, void 0, void 0, function* () {
+        try {
+            const result = (0, daily_vmoney_mail_1.dispatchDailyVmoneyMailSync)(Date.now(), "manual", true);
+            if (result.status === "disabled") {
+                return reply.status(400).send({ error: "请先启用每日自动邮件" });
+            }
+            return reply.send({ result, overview: (0, daily_vmoney_mail_1.getDailyVmoneyMailOverviewSync)() });
+        }
+        catch (error) {
+            const detail = error instanceof Error ? error.message : String(error);
+            return reply.status(500).send({ error: detail });
+        }
+    }));
     fastify.post("/send", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
         var _a, _b;
         const body = request.body;

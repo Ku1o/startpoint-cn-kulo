@@ -32,6 +32,7 @@ const character_1 = require("../../data/domains/character");
 const party_1 = require("../../data/domains/party");
 const quest_1 = require("../../data/domains/quest");
 const http_reply_1 = require("../../lib/http-reply");
+const daily_vmoney_mail_1 = require("../../lib/daily-vmoney-mail");
 function wrapOptionFields(d, playerId, resVer) {
     var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q;
     var _r, _s, _t, _u, _v, _w, _x, _y, _z, _0, _1, _2, _3, _4;
@@ -111,6 +112,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 return reply.status(500).send({ error: "Internal Server Error", message: "No player data." });
             }
             const now = (0, utils_1.getServerDate)();
+            (0, daily_vmoney_mail_1.ensureDailyVmoneyMailForPlayerSync)(playerId, now.getTime());
             (0, player_1.dailyResetPlayerDataSync)(player, now);
             (0, player_1.collectPlayerDataPooledExpSync)(player, now);
             // Equipment is needed by both validation and serialization. Validators

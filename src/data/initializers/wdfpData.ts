@@ -528,6 +528,37 @@ export default function init(
         FOREIGN KEY (player_id) REFERENCES players (id) ON DELETE CASCADE
     )`).run();
 
+    database.prepare(`CREATE TABLE IF NOT EXISTS daily_vmoney_mail_config (
+        id INTEGER PRIMARY KEY CHECK (id = 1),
+        enabled INTEGER NOT NULL DEFAULT 0,
+        amount INTEGER NOT NULL DEFAULT 150000,
+        send_hour INTEGER NOT NULL DEFAULT 5,
+        send_minute INTEGER NOT NULL DEFAULT 0,
+        subject TEXT NOT NULL DEFAULT '每日千抽',
+        description TEXT NOT NULL DEFAULT '每日星导石奖励，请查收。',
+        updated_at_ms INTEGER NOT NULL DEFAULT 0
+    )`).run();
+
+    database.prepare(`CREATE TABLE IF NOT EXISTS daily_vmoney_mail_runs (
+        bucket TEXT PRIMARY KEY,
+        scheduled_at_ms INTEGER NOT NULL,
+        executed_at_ms INTEGER NOT NULL,
+        source TEXT NOT NULL,
+        amount INTEGER NOT NULL,
+        subject TEXT NOT NULL,
+        description TEXT NOT NULL,
+        sent_count INTEGER NOT NULL DEFAULT 0
+    )`).run();
+
+    database.prepare(`CREATE TABLE IF NOT EXISTS daily_vmoney_mail_grants (
+        bucket TEXT NOT NULL,
+        player_id INTEGER NOT NULL,
+        mail_id INTEGER NOT NULL,
+        created_at_ms INTEGER NOT NULL,
+        PRIMARY KEY (bucket, player_id),
+        FOREIGN KEY (player_id) REFERENCES players (id) ON DELETE CASCADE
+    )`).run();
+
     database.prepare(`CREATE TABLE IF NOT EXISTS players_receive_history (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         player_id INTEGER NOT NULL,
@@ -1282,6 +1313,8 @@ export default function init(
     // any later table initialization.
     database.prepare(`CREATE INDEX IF NOT EXISTS idx_players_mails_player_receive_id
         ON players_mails (player_id, receive_time, id DESC)`).run();
+    database.prepare(`CREATE INDEX IF NOT EXISTS idx_daily_vmoney_mail_grants_player_bucket
+        ON daily_vmoney_mail_grants (player_id, bucket)`).run();
     database.prepare(`CREATE INDEX IF NOT EXISTS idx_players_receive_history_player_created
         ON players_receive_history (player_id, create_time DESC, id DESC)`).run();
 }

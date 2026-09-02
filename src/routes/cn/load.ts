@@ -32,6 +32,7 @@ import { getPlayerCharactersManaNodesSync, getPlayerCharactersSync } from "../..
 import { getPlayerPartyGroupListSync } from "../../data/domains/party";
 import { getPlayerQuestProgressSync } from "../../data/domains/quest";
 import { hijackUnavailableReply } from "../../lib/http-reply";
+import { ensureDailyVmoneyMailForPlayerSync } from "../../lib/daily-vmoney-mail";
 
 interface CnLoadBody {
     device_id: number;
@@ -137,6 +138,7 @@ const routes = async (fastify: FastifyInstance) => {
         }
 
         const now = getServerDate();
+        ensureDailyVmoneyMailForPlayerSync(playerId, now.getTime());
         dailyResetPlayerDataSync(player, now);
         collectPlayerDataPooledExpSync(player, now);
 
