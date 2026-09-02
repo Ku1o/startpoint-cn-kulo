@@ -59,11 +59,13 @@ fs.writeFileSync(newsConfigPath, `${JSON.stringify({
 
 let gameApp = null
 let adminApp = null
+let protectedAdminApp = null
 
 async function main() {
     const Fastify = require("fastify")
     const gameNewsRoutes = require("../out/routes/api/news").default
     const adminNewsRoutes = require("../out/routes/web_api/news").default
+    const { installManagementAuth } = require("../out/lib/management-auth")
     const { insertAccountSync } = require("../out/data/domains/account")
     const { insertSessionWithToken } = require("../out/data/domains/session")
     const { getDb } = require("../out/data/db")
@@ -101,6 +103,23 @@ async function main() {
     adminApp = Fastify({ logger: false })
     await adminApp.register(adminNewsRoutes, { prefix: "/api/news" })
     await adminApp.ready()
+
+    // The news management API must stay behind the same password session as
+    // the other admin APIs; otherwise a game-facing process would expose
+    // write access to assets/news.json.
+    const previousAdminPassword = process.env.ADMIN_PANEL_PASSWORD
+    process.env.ADMIN_PANEL_PASSWORD = "news-test-password"
+    protectedAdminApp = Fastify({ logger: false })
+    installManagementAuth(protectedAdminApp)
+    await protectedAdminApp.register(adminNewsRoutes, { prefix: "/api/news" })
+    await protectedAdminApp.ready()
+    let protectedResponse = await protectedAdminApp.inject({
+        method: "GET",
+        url: "/api/news/",
+    })
+    assert.equal(protectedResponse.statusCode, 401, protectedResponse.payload)
+    if (previousAdminPassword === undefined) delete process.env.ADMIN_PANEL_PASSWORD
+    else process.env.ADMIN_PANEL_PASSWORD = previousAdminPassword
 
     const postGame = async (url, payload = {}) => {
         const response = await gameApp.inject({
@@ -260,6 +279,7 @@ main()
     .finally(async () => {
         try { await gameApp?.close() } catch {}
         try { await adminApp?.close() } catch {}
+        try { await protectedAdminApp?.close() } catch {}
         try { require("../out/data/db").getDb().close() } catch {}
         const resolved = path.resolve(temporaryDataDir)
         if (resolved.startsWith(path.resolve(os.tmpdir()) + path.sep)) {
