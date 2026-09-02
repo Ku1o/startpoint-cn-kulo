@@ -640,6 +640,28 @@ html[data-admin-theme="dark"] body {
   color: var(--admin-muted);
 }
 
+.news-popup-form .ant-form-item {
+  margin-bottom: 16px;
+}
+
+.news-source-path {
+  overflow-wrap: anywhere;
+  font-family: AdminMono, ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.news-html-editor {
+  font-family: AdminMono, ui-monospace, SFMono-Regular, Menlo, monospace;
+  line-height: 1.55;
+}
+
+.news-preview-frame {
+  width: 100%;
+  min-height: 520px;
+  border: 1px solid var(--admin-border);
+  border-radius: 10px;
+  background: #fff;
+}
+
 .ant-card {
   border-color: var(--admin-border);
   box-shadow: var(--admin-shadow);

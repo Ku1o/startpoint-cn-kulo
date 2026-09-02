@@ -33,6 +33,7 @@ const party_1 = require("../../data/domains/party");
 const quest_1 = require("../../data/domains/quest");
 const http_reply_1 = require("../../lib/http-reply");
 const daily_vmoney_mail_1 = require("../../lib/daily-vmoney-mail");
+const news_delivery_1 = require("../../lib/news-delivery");
 function wrapOptionFields(d, playerId, resVer) {
     var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q;
     var _r, _s, _t, _u, _v, _w, _x, _y, _z, _0, _1, _2, _3, _4;
@@ -188,6 +189,8 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             const resVer = request.headers['res_ver'];
             (0, game_logging_1.gameVerboseLog)(() => { var _a; return `[CN-LOAD] res_ver=${resVer || '(not sent)'} account=${accountId} player=${playerId} party_slot=${(_a = clientData === null || clientData === void 0 ? void 0 : clientData.user_info) === null || _a === void 0 ? void 0 : _a.party_slot}`; });
             wrapOptionFields(clientData, playerId, resVer);
+            const newsDelivery = (0, news_delivery_1.getNewsDeliveryState)(accountId, now);
+            clientData.has_unread_news_item = newsDelivery.hasUnreadNews;
             // Inject unfinished quest lists for battle recovery
             const activeQuest = (0, quest_active_1.getPlayerActiveQuestSync)(playerId);
             if (activeQuest) {
@@ -239,6 +242,12 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             return reply.status(200).send({
                 data_headers: (0, utils_1.generateDataHeaders)({
                     asset_update: true,
+                    // The client treats 2 as "open the announcement list" and
+                    // will run that dialog again on every return to the home
+                    // scene. Use nil when there is no pending interrupt; unlike
+                    // nil, 0 is stored by the client as Some(0) and can become
+                    // stale state across navigation.
+                    force_news: (0, news_delivery_1.getNewsInterruptFlag)(newsDelivery),
                     viewer_id: accountId,
                     servertime: (0, utils_1.getServerTime)(),
                 }),

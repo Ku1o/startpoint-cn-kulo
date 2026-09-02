@@ -184,6 +184,21 @@ export default function init(
         FOREIGN KEY (account_id) REFERENCES accounts (id) ON DELETE CASCADE
     )`).run()
 
+    // Account-scoped announcement receipts power both the unread indicator
+    // and the "once per announcement" login popup policy. Announcement rows
+    // live in assets/news.json, so news_id intentionally has no foreign key.
+    database.prepare(`CREATE TABLE IF NOT EXISTS account_news_receipts (
+        account_id INTEGER NOT NULL,
+        news_id INTEGER NOT NULL,
+        receipt_kind TEXT NOT NULL CHECK (receipt_kind IN ('list', 'popup')),
+        seen_at INTEGER NOT NULL,
+        PRIMARY KEY (account_id, news_id, receipt_kind),
+        FOREIGN KEY (account_id) REFERENCES accounts (id) ON DELETE CASCADE
+    )`).run()
+    database.prepare(`CREATE INDEX IF NOT EXISTS idx_account_news_receipts_news
+        ON account_news_receipts (news_id, receipt_kind)
+    `).run()
+
     // create players table
     database.prepare(`CREATE TABLE IF NOT EXISTS players (
         id INTEGER PRIMARY KEY AUTOINCREMENT,

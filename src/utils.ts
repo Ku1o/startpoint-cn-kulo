@@ -118,6 +118,7 @@ export function generateViewerId(): number {
 export interface DataHeaders {
     force_update?: boolean
     asset_update?: boolean
+    force_news?: number | null
     short_udid?: number
     viewer_id?: number
     servertime?: number
@@ -133,11 +134,12 @@ export interface DataHeaders {
  */
 export function generateDataHeaders(
     customValues: Partial<DataHeaders> = {},
-    fields: (keyof DataHeaders)[] = ['force_update', 'asset_update', 'short_udid', 'viewer_id', 'servertime', 'result_code'],
+    fields: (keyof DataHeaders)[] = ['force_update', 'asset_update', 'force_news', 'short_udid', 'viewer_id', 'servertime', 'result_code'],
 ): Record<string, any> {
     const defaultHeaders: DataHeaders = {
         force_update: false,
         asset_update: false,
+        force_news: null,
         short_udid: 0,
         viewer_id: 0,
         servertime: 0,
