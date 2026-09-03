@@ -1,0 +1,1129 @@
+{
+  "schema": "gerald0903-rebased-local/v1",
+  "patch_id": "gerald0903-full-redesign-1.4.100",
+  "base_version": "1.4.99",
+  "target_version": "1.4.100",
+  "source_share": "F:\\codex\\work\\gerald_patch_review\\wfshare-1.4.354-to-1.4.355-graft",
+  "source_share_report": {
+    "tag": "gerald0903",
+    "variant": "single-character-graft",
+    "character": {
+      "id": "149999",
+      "codeName": "white_wolf_gerald",
+      "name": "杰拉德",
+      "title": "白狼骑士",
+      "element": "光(4)",
+      "rarity": 5,
+      "role": "Attacker",
+      "races": "Human,Beast"
+    },
+    "anchor": {
+      "from": "1.4.354",
+      "to": "1.4.355",
+      "semantics": "anchor 是**收方(灰)链上的编号**，与我方 chain 是两套编号。依据: 上一包 greyupd0902 的 report.json anchor.to = 1.4.354，故本包顺延一格 1.4.354 -> 1.4.355。",
+      "receiver_must_confirm": "收方装包前必须自己确认当前链尾确实是 1.4.354。若不是，需把 archive zip 文件名中的 1.4.354-1.4.355 改成<真实链尾>-<下一格>，seq 号不动。"
+    },
+    "content_source": {
+      "mode": "closure-snapshot",
+      "note": "内容取 live store 当前字节，不做逐边 diff。杰拉德本日改动横跨 1.4.701-1.4.723，终态已由门 B 与链终态逐字节核对。",
+      "our_chain_tail": "1.4.723"
+    },
+    "assets": {
+      "total": 96,
+      "by_root": {
+        "medium": 25,
+        "common": 69,
+        "android": 2
+      },
+      "by_kind": {
+        "立绘": 2,
+        "技能cut-in": 2,
+        "图标合集": 1,
+        "像素图": 2,
+        "头像": 8,
+        "缩略图": 6,
+        "战斗UI": 4,
+        "连锁cut-in": 2,
+        "配套数据": 10,
+        "语音·ally": 2,
+        "语音·battle": 13,
+        "语音·home": 6,
+        "技能特效": 14,
+        "技能特效·主图集": 2,
+        "技能特效·时之光环": 4,
+        "强化弹射特效": 8,
+        "技能 DSL": 2,
+        "词条技能 DSL": 3,
+        "强化弹射 DSL": 3,
+        "固有状态图标": 2
+      },
+      "bytes": 13798113,
+      "probed_but_absent": [],
+      "absent_in_our_chain": [],
+      "deliberately_excluded": {
+        "stale_romaji_home_voice": [
+          "character/white_wolf_gerald/voice/home/kikorano.mp3",
+          "character/white_wolf_gerald/voice/home/komaasobito.mp3",
+          "character/white_wolf_gerald/voice/home/onorewo.mp3",
+          "character/white_wolf_gerald/voice/home/oumeinakutomo.mp3",
+          "character/white_wolf_gerald/voice/home/senjoni.mp3"
+        ],
+        "reason": "1.4.279 语音重做后 character_speech 149999 已改引用 home_0..5;这 5 个旧文件在我方 store 仍在但**不再被任何表引用**，下发只会给收方留死文件。",
+        "story_assets": [
+          "character/white_wolf_gerald/ui/episode_banner_0.png",
+          "character/white_wolf_gerald/ui/episode_banner_1.png"
+        ],
+        "story_reason": "剧情横幅按 37 项硬门属 excluded，我方 store 也没有这两个文件。"
+      }
+    },
+    "client_tables": {
+      "tables": 20,
+      "rows": 33,
+      "detail": {
+        "master/character/character.orderedmap": {
+          "live_rows": 568,
+          "payload_rows": 1
+        },
+        "master/character/character_text.orderedmap": {
+          "live_rows": 568,
+          "payload_rows": 1
+        },
+        "master/character/character_status.orderedmap": {
+          "live_rows": 568,
+          "payload_rows": 1
+        },
+        "master/character/character_speech.orderedmap": {
+          "live_rows": 557,
+          "payload_rows": 1
+        },
+        "master/character/character_gacha_sound.orderedmap": {
+          "live_rows": 437,
+          "payload_rows": 1
+        },
+        "master/character/full_shot_image_attribute.orderedmap": {
+          "live_rows": 563,
+          "payload_rows": 1
+        },
+        "master/character/unique_condition.orderedmap": {
+          "live_rows": 87,
+          "payload_rows": 2
+        },
+        "master/ability/ability.orderedmap": {
+          "live_rows": 3350,
+          "payload_rows": 6
+        },
+        "master/ability/leader_ability.orderedmap": {
+          "live_rows": 559,
+          "payload_rows": 1
+        },
+        "master/skill/action_skill.orderedmap": {
+          "live_rows": 632,
+          "payload_rows": 1
+        },
+        "master/skill/power_flip_action.orderedmap": {
+          "live_rows": 28,
+          "payload_rows": 1
+        },
+        "master/skill_preview/skill_preview_character.orderedmap": {
+          "live_rows": 550,
+          "payload_rows": 1
+        },
+        "master/stance_detail/character_stance_detail.orderedmap": {
+          "live_rows": 552,
+          "payload_rows": 1
+        },
+        "master/mana_board/mana_board2_open_condition.orderedmap": {
+          "live_rows": 568,
+          "payload_rows": 1
+        },
+        "master/mana_board/mana_node.orderedmap": {
+          "live_rows": 558,
+          "payload_rows": 1
+        },
+        "master/mana_board/upskill.orderedmap": {
+          "live_rows": 408,
+          "payload_rows": 1
+        },
+        "master/generated/character_image.orderedmap": {
+          "live_rows": 557,
+          "payload_rows": 1
+        },
+        "master/generated/mana_board.orderedmap": {
+          "live_rows": 557,
+          "payload_rows": 1
+        },
+        "master/generated/trimmed_image.orderedmap": {
+          "live_rows": 12034,
+          "payload_rows": 4
+        },
+        "master/string/custom_ability_string.orderedmap": {
+          "live_rows": 193,
+          "payload_rows": 5
+        }
+      }
+    },
+    "server_rows": {
+      "character.json": [
+        "149999"
+      ],
+      "cdndata/character.json": [
+        "149999"
+      ],
+      "cdndata/character_text.json": [
+        "149999"
+      ],
+      "mana_node.json": [
+        "149999"
+      ],
+      "mana_board.json": [
+        "149999"
+      ]
+    },
+    "server_rows_missing": [],
+    "gates": {
+      "A0_double_hash_dead_address": "pass(逐条核对 sha1_path 落点，无双重哈希死副本)",
+      "A_no_orderedmap_in_zip": "pass(96 件)",
+      "B_live_vs_chain_terminal": "pass(96/96 字节相同)",
+      "R_graft_roundtrip": "pass(20 表)",
+      "Z_zip_entries_match_manifest": "pass(96 条目)",
+      "T_recompression_noise": "n/a(闭包快照，非窗口 diff)"
+    },
+    "oversize_parts_single_entry": [],
+    "outputs": [
+      {
+        "root": "common",
+        "path": "archive-common-diff/pinball-1.4.354-1.4.355-1-gerald0903.zip",
+        "entries": 69,
+        "size": 3328905,
+        "sha256": "c634efdb40ed3967768f509e2ce4402824d0f825b199f5cc8857002e3dc6de9e"
+      },
+      {
+        "root": "medium",
+        "path": "archive-medium-diff/pinball-1.4.354-1.4.355-2-gerald0903.zip",
+        "entries": 11,
+        "size": 5021746,
+        "sha256": "2b32d31a0543e11097cf013bd1177130216ab3735289baede9b309132681c8db"
+      },
+      {
+        "root": "medium",
+        "path": "archive-medium-diff/pinball-1.4.354-1.4.355-3-gerald0903.zip",
+        "entries": 14,
+        "size": 4829529,
+        "sha256": "a33c2fc053a00adf4ddf18eda7fada73fa52c2dae3f76170519c6d0e7a414798"
+      },
+      {
+        "root": "android",
+        "path": "archive-android-diff/pinball-1.4.354-1.4.355-4-gerald0903.zip",
+        "entries": 2,
+        "size": 441697,
+        "sha256": "30dcbfd50f7c175813cc2597d7d37193e19453a07d1efc63809b734d79a46243"
+      }
+    ],
+    "generated": "2026-09-03 21:30"
+  },
+  "rebased_build_report": {
+    "schema": "gerald0903-rebased/v1",
+    "patch_id": "gerald0903-1.4.100",
+    "base_version": "1.4.99",
+    "target_version": "1.4.100",
+    "tag": "gerald0903",
+    "source_share": "F:\\codex\\work\\gerald_patch_review\\wfshare-1.4.354-to-1.4.355-graft",
+    "source_share_report": {
+      "tag": "gerald0903",
+      "variant": "single-character-graft",
+      "character": {
+        "id": "149999",
+        "codeName": "white_wolf_gerald",
+        "name": "杰拉德",
+        "title": "白狼骑士",
+        "element": "光(4)",
+        "rarity": 5,
+        "role": "Attacker",
+        "races": "Human,Beast"
+      },
+      "anchor": {
+        "from": "1.4.354",
+        "to": "1.4.355",
+        "semantics": "anchor 是**收方(灰)链上的编号**，与我方 chain 是两套编号。依据: 上一包 greyupd0902 的 report.json anchor.to = 1.4.354，故本包顺延一格 1.4.354 -> 1.4.355。",
+        "receiver_must_confirm": "收方装包前必须自己确认当前链尾确实是 1.4.354。若不是，需把 archive zip 文件名中的 1.4.354-1.4.355 改成<真实链尾>-<下一格>，seq 号不动。"
+      },
+      "content_source": {
+        "mode": "closure-snapshot",
+        "note": "内容取 live store 当前字节，不做逐边 diff。杰拉德本日改动横跨 1.4.701-1.4.723，终态已由门 B 与链终态逐字节核对。",
+        "our_chain_tail": "1.4.723"
+      },
+      "assets": {
+        "total": 96,
+        "by_root": {
+          "medium": 25,
+          "common": 69,
+          "android": 2
+        },
+        "by_kind": {
+          "立绘": 2,
+          "技能cut-in": 2,
+          "图标合集": 1,
+          "像素图": 2,
+          "头像": 8,
+          "缩略图": 6,
+          "战斗UI": 4,
+          "连锁cut-in": 2,
+          "配套数据": 10,
+          "语音·ally": 2,
+          "语音·battle": 13,
+          "语音·home": 6,
+          "技能特效": 14,
+          "技能特效·主图集": 2,
+          "技能特效·时之光环": 4,
+          "强化弹射特效": 8,
+          "技能 DSL": 2,
+          "词条技能 DSL": 3,
+          "强化弹射 DSL": 3,
+          "固有状态图标": 2
+        },
+        "bytes": 13798113,
+        "probed_but_absent": [],
+        "absent_in_our_chain": [],
+        "deliberately_excluded": {
+          "stale_romaji_home_voice": [
+            "character/white_wolf_gerald/voice/home/kikorano.mp3",
+            "character/white_wolf_gerald/voice/home/komaasobito.mp3",
+            "character/white_wolf_gerald/voice/home/onorewo.mp3",
+            "character/white_wolf_gerald/voice/home/oumeinakutomo.mp3",
+            "character/white_wolf_gerald/voice/home/senjoni.mp3"
+          ],
+          "reason": "1.4.279 语音重做后 character_speech 149999 已改引用 home_0..5;这 5 个旧文件在我方 store 仍在但**不再被任何表引用**，下发只会给收方留死文件。",
+          "story_assets": [
+            "character/white_wolf_gerald/ui/episode_banner_0.png",
+            "character/white_wolf_gerald/ui/episode_banner_1.png"
+          ],
+          "story_reason": "剧情横幅按 37 项硬门属 excluded，我方 store 也没有这两个文件。"
+        }
+      },
+      "client_tables": {
+        "tables": 20,
+        "rows": 33,
+        "detail": {
+          "master/character/character.orderedmap": {
+            "live_rows": 568,
+            "payload_rows": 1
+          },
+          "master/character/character_text.orderedmap": {
+            "live_rows": 568,
+            "payload_rows": 1
+          },
+          "master/character/character_status.orderedmap": {
+            "live_rows": 568,
+            "payload_rows": 1
+          },
+          "master/character/character_speech.orderedmap": {
+            "live_rows": 557,
+            "payload_rows": 1
+          },
+          "master/character/character_gacha_sound.orderedmap": {
+            "live_rows": 437,
+            "payload_rows": 1
+          },
+          "master/character/full_shot_image_attribute.orderedmap": {
+            "live_rows": 563,
+            "payload_rows": 1
+          },
+          "master/character/unique_condition.orderedmap": {
+            "live_rows": 87,
+            "payload_rows": 2
+          },
+          "master/ability/ability.orderedmap": {
+            "live_rows": 3350,
+            "payload_rows": 6
+          },
+          "master/ability/leader_ability.orderedmap": {
+            "live_rows": 559,
+            "payload_rows": 1
+          },
+          "master/skill/action_skill.orderedmap": {
+            "live_rows": 632,
+            "payload_rows": 1
+          },
+          "master/skill/power_flip_action.orderedmap": {
+            "live_rows": 28,
+            "payload_rows": 1
+          },
+          "master/skill_preview/skill_preview_character.orderedmap": {
+            "live_rows": 550,
+            "payload_rows": 1
+          },
+          "master/stance_detail/character_stance_detail.orderedmap": {
+            "live_rows": 552,
+            "payload_rows": 1
+          },
+          "master/mana_board/mana_board2_open_condition.orderedmap": {
+            "live_rows": 568,
+            "payload_rows": 1
+          },
+          "master/mana_board/mana_node.orderedmap": {
+            "live_rows": 558,
+            "payload_rows": 1
+          },
+          "master/mana_board/upskill.orderedmap": {
+            "live_rows": 408,
+            "payload_rows": 1
+          },
+          "master/generated/character_image.orderedmap": {
+            "live_rows": 557,
+            "payload_rows": 1
+          },
+          "master/generated/mana_board.orderedmap": {
+            "live_rows": 557,
+            "payload_rows": 1
+          },
+          "master/generated/trimmed_image.orderedmap": {
+            "live_rows": 12034,
+            "payload_rows": 4
+          },
+          "master/string/custom_ability_string.orderedmap": {
+            "live_rows": 193,
+            "payload_rows": 5
+          }
+        }
+      },
+      "server_rows": {
+        "character.json": [
+          "149999"
+        ],
+        "cdndata/character.json": [
+          "149999"
+        ],
+        "cdndata/character_text.json": [
+          "149999"
+        ],
+        "mana_node.json": [
+          "149999"
+        ],
+        "mana_board.json": [
+          "149999"
+        ]
+      },
+      "server_rows_missing": [],
+      "gates": {
+        "A0_double_hash_dead_address": "pass(逐条核对 sha1_path 落点，无双重哈希死副本)",
+        "A_no_orderedmap_in_zip": "pass(96 件)",
+        "B_live_vs_chain_terminal": "pass(96/96 字节相同)",
+        "R_graft_roundtrip": "pass(20 表)",
+        "Z_zip_entries_match_manifest": "pass(96 条目)",
+        "T_recompression_noise": "n/a(闭包快照，非窗口 diff)"
+      },
+      "oversize_parts_single_entry": [],
+      "outputs": [
+        {
+          "root": "common",
+          "path": "archive-common-diff/pinball-1.4.354-1.4.355-1-gerald0903.zip",
+          "entries": 69,
+          "size": 3328905,
+          "sha256": "c634efdb40ed3967768f509e2ce4402824d0f825b199f5cc8857002e3dc6de9e"
+        },
+        {
+          "root": "medium",
+          "path": "archive-medium-diff/pinball-1.4.354-1.4.355-2-gerald0903.zip",
+          "entries": 11,
+          "size": 5021746,
+          "sha256": "2b32d31a0543e11097cf013bd1177130216ab3735289baede9b309132681c8db"
+        },
+        {
+          "root": "medium",
+          "path": "archive-medium-diff/pinball-1.4.354-1.4.355-3-gerald0903.zip",
+          "entries": 14,
+          "size": 4829529,
+          "sha256": "a33c2fc053a00adf4ddf18eda7fada73fa52c2dae3f76170519c6d0e7a414798"
+        },
+        {
+          "root": "android",
+          "path": "archive-android-diff/pinball-1.4.354-1.4.355-4-gerald0903.zip",
+          "entries": 2,
+          "size": 441697,
+          "sha256": "30dcbfd50f7c175813cc2597d7d37193e19453a07d1efc63809b734d79a46243"
+        }
+      ],
+      "generated": "2026-09-03 21:30"
+    },
+    "asset_count": 96,
+    "table_files_changed": 16,
+    "table_report": [
+      {
+        "logical": "master/ability/ability.orderedmap",
+        "source_tail": "1.4.99",
+        "source_archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.95-1.4.96-1-greyupd0902-client-tables.zip",
+        "source_rows": 3350,
+        "result_rows": 3350,
+        "payload_rows": 6,
+        "changed": [
+          "1499991",
+          "1499992",
+          "1499993",
+          "1499994",
+          "1499995",
+          "1499996"
+        ],
+        "added": [],
+        "changed_file": true,
+        "member": "production/upload/1e/664c1cc8d80f4f9a69aae2c49ae8c01d1c4001",
+        "sha256": "106fb5228004a80069ed5b5a0564d6168057e5d5f18b31e185bdabf2a3527557",
+        "size": 365801
+      },
+      {
+        "logical": "master/ability/leader_ability.orderedmap",
+        "source_tail": "1.4.99",
+        "source_archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.95-1.4.96-1-greyupd0902-client-tables.zip",
+        "source_rows": 559,
+        "result_rows": 559,
+        "payload_rows": 1,
+        "changed": [
+          "149999"
+        ],
+        "added": [],
+        "changed_file": true,
+        "member": "production/upload/ff/84353774cb95e8d7dc90c679f96a5bca7f42e5",
+        "sha256": "2ed53bbc14fda6f4a52f79ccba5d64532c18f7289ea5b12fc05d9f2a20d8937e",
+        "size": 63775
+      },
+      {
+        "logical": "master/character/character.orderedmap",
+        "source_tail": "1.4.99",
+        "source_archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.95-1.4.96-1-greyupd0902-client-tables.zip",
+        "source_rows": 568,
+        "result_rows": 568,
+        "payload_rows": 1,
+        "changed": [
+          "149999"
+        ],
+        "added": [],
+        "changed_file": true,
+        "member": "production/upload/2d/5cb9b28d18f984a51b345a4d7aab03d77bddfc",
+        "sha256": "9d86e9343258278ce22589611ec87639699ac83b6ebec01e91354e950961cc01",
+        "size": 82936
+      },
+      {
+        "logical": "master/character/character_gacha_sound.orderedmap",
+        "source_tail": "1.4.99",
+        "source_archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.95-1.4.96-1-greyupd0902-client-tables.zip",
+        "source_rows": 437,
+        "result_rows": 437,
+        "payload_rows": 1,
+        "changed": [
+          "149999"
+        ],
+        "added": [],
+        "changed_file": true,
+        "member": "production/upload/ac/b038c35f3048ba7ca07a6a84307b2fb10c041c",
+        "sha256": "f29ebf2bc47a7f4b8b80a86c4adcde78effcffbd28c6b36529eb7f766e566020",
+        "size": 109732
+      },
+      {
+        "logical": "master/character/character_speech.orderedmap",
+        "source_tail": "1.4.99",
+        "source_archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.95-1.4.96-1-greyupd0902-client-tables.zip",
+        "source_rows": 557,
+        "result_rows": 557,
+        "payload_rows": 1,
+        "changed": [
+          "149999"
+        ],
+        "added": [],
+        "changed_file": true,
+        "member": "production/upload/b4/a28679b8eeefdbdcbe6071fd4f2ff85e5b3415",
+        "sha256": "28900f95a0c4a34edbef4f6757123e6f822b69fd5bcc6722534b40f350ea5408",
+        "size": 391335
+      },
+      {
+        "logical": "master/character/character_status.orderedmap",
+        "source_tail": "1.4.99",
+        "source_archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.95-1.4.96-1-greyupd0902-client-tables.zip",
+        "source_rows": 568,
+        "result_rows": 568,
+        "payload_rows": 1,
+        "changed": [
+          "149999"
+        ],
+        "added": [],
+        "changed_file": true,
+        "member": "production/upload/5c/6a4f0e2ceb1dbcf60f9b306b0f7bfd0eca55c9",
+        "sha256": "29fd675b1c417e9010868b0948d49402030b8775bf556bfc39e52498ba8bdc0b",
+        "size": 62564
+      },
+      {
+        "logical": "master/character/character_text.orderedmap",
+        "source_tail": "1.4.99",
+        "source_archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.95-1.4.96-1-greyupd0902-client-tables.zip",
+        "source_rows": 568,
+        "result_rows": 568,
+        "payload_rows": 1,
+        "changed": [
+          "149999"
+        ],
+        "added": [],
+        "changed_file": true,
+        "member": "production/upload/8b/035728b2151de044fb245988ec5f33ebb544ab",
+        "sha256": "540ff07bed88978dcd047fafe503c8681e16419a848af49901b85d01aae7129c",
+        "size": 208411
+      },
+      {
+        "logical": "master/character/full_shot_image_attribute.orderedmap",
+        "source_tail": "1.4.99",
+        "source_archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.95-1.4.96-1-greyupd0902-client-tables.zip",
+        "source_rows": 563,
+        "result_rows": 563,
+        "payload_rows": 1,
+        "changed": [
+          "149999"
+        ],
+        "added": [],
+        "changed_file": true,
+        "member": "production/upload/b9/132d27178d27f9d91df89fc47e106bbaf2d5b5",
+        "sha256": "60caf68562d5dc9b9b3c7b2895d041b16c200ea45aeecc558b5e63d549dbf8d1",
+        "size": 45283
+      },
+      {
+        "logical": "master/character/unique_condition.orderedmap",
+        "source_tail": "1.4.99",
+        "source_archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.95-1.4.96-1-greyupd0902-client-tables.zip",
+        "source_rows": 85,
+        "result_rows": 87,
+        "payload_rows": 2,
+        "changed": [],
+        "added": [
+          "1499989",
+          "1499990"
+        ],
+        "changed_file": true,
+        "member": "production/upload/30/cbcd99de1aa6e8d245221619b393721df551b4",
+        "sha256": "c0201780a33d3163242c4790969e0200bf9f12a1c232e0526083c52d24c8ca62",
+        "size": 9700
+      },
+      {
+        "logical": "master/generated/character_image.orderedmap",
+        "source_tail": "1.4.99",
+        "source_archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.95-1.4.96-1-greyupd0902-client-tables.zip",
+        "source_rows": 557,
+        "result_rows": 557,
+        "payload_rows": 1,
+        "changed": [],
+        "added": [],
+        "changed_file": false,
+        "member": "production/upload/3e/b411841802398d5b21d422579f2eaa65d30c0e",
+        "sha256": "7cdd3ae0b0405b931a6af1981b5b6ed59e7876a8c079a02a93f188465dacf2ba",
+        "size": 45925
+      },
+      {
+        "logical": "master/generated/mana_board.orderedmap",
+        "source_tail": "1.4.99",
+        "source_archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.95-1.4.96-1-greyupd0902-client-tables.zip",
+        "source_rows": 557,
+        "result_rows": 557,
+        "payload_rows": 1,
+        "changed": [
+          "149999"
+        ],
+        "added": [],
+        "changed_file": true,
+        "member": "production/upload/27/7b65484214436114201ae654fefa60fdc822ea",
+        "sha256": "3ef2369df90c1071dfdf9822f3a1d1761b9576bcfd3300aeb7d8d8e915626c21",
+        "size": 918932
+      },
+      {
+        "logical": "master/generated/trimmed_image.orderedmap",
+        "source_tail": "1.4.99",
+        "source_archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.95-1.4.96-1-greyupd0902-client-tables.zip",
+        "source_rows": 12086,
+        "result_rows": 12086,
+        "payload_rows": 4,
+        "changed": [],
+        "added": [],
+        "changed_file": false,
+        "member": "production/upload/fb/ab4344a7456dca88f3ce06f01208922f37e395",
+        "sha256": "7850f4efd08fe527f826aaf4c9d865f2657133987bdf922638389841c1a3e905",
+        "size": 356109
+      },
+      {
+        "logical": "master/mana_board/mana_board2_open_condition.orderedmap",
+        "source_tail": "1.4.99",
+        "source_archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.95-1.4.96-1-greyupd0902-client-tables.zip",
+        "source_rows": 568,
+        "result_rows": 568,
+        "payload_rows": 1,
+        "changed": [
+          "149999"
+        ],
+        "added": [],
+        "changed_file": true,
+        "member": "production/upload/bc/0bc800f482670f3ec8a7f2fee9b9deeeca3a04",
+        "sha256": "d72a1ffd7897ee3d322efa3bed36a35108f404c49e297e437892545b7245721e",
+        "size": 27861
+      },
+      {
+        "logical": "master/mana_board/mana_node.orderedmap",
+        "source_tail": "1.4.99",
+        "source_archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.95-1.4.96-1-greyupd0902-client-tables.zip",
+        "source_rows": 558,
+        "result_rows": 558,
+        "payload_rows": 1,
+        "changed": [
+          "149999"
+        ],
+        "added": [],
+        "changed_file": true,
+        "member": "production/upload/1d/222e5126fc7ebe3f22c7efe87325f73742eb4f",
+        "sha256": "0222e495a6bfbdc4688830077d333179745855c14aefe7ffe178b0f88cdebbd5",
+        "size": 1153655
+      },
+      {
+        "logical": "master/mana_board/upskill.orderedmap",
+        "source_tail": "1.4.99",
+        "source_archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.95-1.4.96-1-greyupd0902-client-tables.zip",
+        "source_rows": 408,
+        "result_rows": 408,
+        "payload_rows": 1,
+        "changed": [
+          "149999"
+        ],
+        "added": [],
+        "changed_file": true,
+        "member": "production/upload/57/8872ecbc78561807e6846b3980c5dea980d8ce",
+        "sha256": "6980b186500feeeecb9655fcfbebe79f3a29b169b5dcb2ace69e74c67c57e5fb",
+        "size": 23717
+      },
+      {
+        "logical": "master/skill/action_skill.orderedmap",
+        "source_tail": "1.4.99",
+        "source_archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.95-1.4.96-1-greyupd0902-client-tables.zip",
+        "source_rows": 632,
+        "result_rows": 632,
+        "payload_rows": 1,
+        "changed": [
+          "white_wolf_gerald"
+        ],
+        "added": [],
+        "changed_file": true,
+        "member": "production/upload/91/79892d704f88d98191c00548bce106402ad5b5",
+        "sha256": "fb6c6455b384eab1bb82fab40f33ead901e62488c32ddf81e682eaba2aefc52b",
+        "size": 347221
+      },
+      {
+        "logical": "master/skill/power_flip_action.orderedmap",
+        "source_tail": "1.4.99",
+        "source_archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.95-1.4.96-1-greyupd0902-client-tables.zip",
+        "source_rows": 28,
+        "result_rows": 28,
+        "payload_rows": 1,
+        "changed": [],
+        "added": [],
+        "changed_file": false,
+        "member": "production/upload/38/dbe3524fee49989cccd10f2204238d25600cc8",
+        "sha256": "0f8c77e3ae9dfeb042258484b23fc01a664dfed54e0653247ac172e6c3a1d6dc",
+        "size": 2594
+      },
+      {
+        "logical": "master/skill_preview/skill_preview_character.orderedmap",
+        "source_tail": "1.4.99",
+        "source_archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.95-1.4.96-1-greyupd0902-client-tables.zip",
+        "source_rows": 550,
+        "result_rows": 550,
+        "payload_rows": 1,
+        "changed": [],
+        "added": [],
+        "changed_file": false,
+        "member": "production/upload/aa/abdd2e178d62dba4997034aab8c236a4422154",
+        "sha256": "10f5c418aa2d341565dac79d4999a0acb7c783b6dcdfa06ef7402693fdb000b8",
+        "size": 29883
+      },
+      {
+        "logical": "master/stance_detail/character_stance_detail.orderedmap",
+        "source_tail": "1.4.99",
+        "source_archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.95-1.4.96-1-greyupd0902-client-tables.zip",
+        "source_rows": 552,
+        "result_rows": 552,
+        "payload_rows": 1,
+        "changed": [
+          "149999"
+        ],
+        "added": [],
+        "changed_file": true,
+        "member": "production/upload/d7/50c2f94f83dd053bfc79039a709f1ec6f766cb",
+        "sha256": "b6a5025558007b5d717bfd907842295e3e6094542986c68024d24b2ad47c5fe9",
+        "size": 15303
+      },
+      {
+        "logical": "master/string/custom_ability_string.orderedmap",
+        "source_tail": "1.4.99",
+        "source_archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.95-1.4.96-1-greyupd0902-client-tables.zip",
+        "source_rows": 190,
+        "result_rows": 194,
+        "payload_rows": 5,
+        "changed": [],
+        "added": [
+          "ability_skill_gerald_dash_lock",
+          "ability_skill_gerald_time_rift",
+          "change_skill_white_wolf_gerald",
+          "override_string_white_wolf_gerald"
+        ],
+        "changed_file": true,
+        "member": "production/upload/07/0c6e214359ccf27b1cb8078d3fc51aecfe0149",
+        "sha256": "9399a998c9c0ee3e98e295dda09dffd4c054aa601609fd4436beffb84d7df0c9",
+        "size": 17165
+      }
+    ],
+    "archive_count": 5,
+    "archives": [
+      {
+        "root": "common",
+        "path": "F:\\codex\\work\\gerald_patch_review\\gerald_1_4_100_build\\archives.staging\\archive-common-diff\\pinball-1.4.99-1.4.100-1-gerald0903.zip",
+        "name": "pinball-1.4.99-1.4.100-1-gerald0903.zip",
+        "entries": 78,
+        "size": 5127693,
+        "sha256": "04550e70390b56634a03c80100d74624557e0a92c6a1bb4beb3fbf2ea5d3dcb1",
+        "member_paths": [
+          "production/upload/00/8e6f4a90844da67f85f28276e708081f6e43a7",
+          "production/upload/03/d2cf46a0dce90bf3ae48fd6ec833e401337991",
+          "production/upload/07/0c6e214359ccf27b1cb8078d3fc51aecfe0149",
+          "production/upload/08/0306bb545d6a7703d00b5ef6e929a244d96d7f",
+          "production/upload/08/3264dd6ea073cc27a2846d657d59d926f2fbd5",
+          "production/upload/08/9d620ea22d641e7e1d0aae90b69227ae2f9dff",
+          "production/upload/09/01c329335621c1d31be0140c902bc0951a8e05",
+          "production/upload/0c/8cd127825556067f153f57ac948e3a32528ca1",
+          "production/upload/0f/3569c24d84145038ccd4ea2108ee74f0954036",
+          "production/upload/11/c88a5733781023ce65f8279e46d79ea3b7d8a4",
+          "production/upload/13/ed39814bab184f83b3c203795af3a5479e4aae",
+          "production/upload/17/17cc2b498ba3f8479a5cf9e68d3964631f6b30",
+          "production/upload/17/7dd505438a05d33bd45bc9f6d1c57b01ca3d44",
+          "production/upload/1b/fce9a911c767b0cf230c50455a2687e5a10327",
+          "production/upload/1d/222e5126fc7ebe3f22c7efe87325f73742eb4f",
+          "production/upload/1e/664c1cc8d80f4f9a69aae2c49ae8c01d1c4001",
+          "production/upload/26/91bbdc8c01df3ad0b2c3277f4a1fd8420d55ef",
+          "production/upload/27/7b65484214436114201ae654fefa60fdc822ea",
+          "production/upload/2d/5cb9b28d18f984a51b345a4d7aab03d77bddfc",
+          "production/upload/30/cbcd99de1aa6e8d245221619b393721df551b4",
+          "production/upload/31/1267c266da784e9120523fbbcbdab8d6734379",
+          "production/upload/31/fa8d70062baacad0c442db408d4e1941e648ce",
+          "production/upload/3a/224e35cd7d6e3f5c20489b695d3aa08633d2dc",
+          "production/upload/3d/086aff57f37025b0fe3ea826b6f3d1b9ad03d4",
+          "production/upload/47/98be368c8a6fda2bb10efe13ec03044745e966",
+          "production/upload/4b/c5b3ac0fc4711af9b2213fc79e2b609de74fb5",
+          "production/upload/51/62528d1dd26004b4fe9bf92ddb64bc98bd8446",
+          "production/upload/55/e9a4f59efbc3d5ebe70696170653351d3e34f3",
+          "production/upload/56/a8c676f0d2527b4608ce5ded56e6c5349de343",
+          "production/upload/57/8872ecbc78561807e6846b3980c5dea980d8ce",
+          "production/upload/5a/2b32df9eb1ccef43b8642b6af42e3b2230ef15",
+          "production/upload/5c/6a4f0e2ceb1dbcf60f9b306b0f7bfd0eca55c9",
+          "production/upload/5c/bdd419426f2f48cc027534299660fd0eea5b71",
+          "production/upload/5d/0ceccbd438faace672df797fd723b17201470c",
+          "production/upload/5d/3f8974dbc211de057d487129bf99af4d0c3263",
+          "production/upload/62/72c82fe82b8a359eeacd602c903f7d40554c7f",
+          "production/upload/63/917efd2d3a6fed3a5a1d82d7004544345af857",
+          "production/upload/66/5fb6d9da79a7cb95215afde3b581fd0845813e",
+          "production/upload/66/68ffc092f725bd57b5661448ebbe8a94e8fda3",
+          "production/upload/69/99fbf8c65bd253d79b3f8ed4acffbcc8d60f11",
+          "production/upload/6a/c8b18fe95f00a41a354ecfd1a1e464bc0c7607",
+          "production/upload/6c/c6a7e8b76ceb8a019bb9c69ec691e0ff32f165",
+          "production/upload/6e/b986c073199d3c0e8b3db119bfb9d579db6880",
+          "production/upload/70/515a3645f05762c2c1130dea8238895b9068df",
+          "production/upload/75/fb3c53d6d9e8946bff808501f4d1b50661b429",
+          "production/upload/79/9ce1d5480321256a0737d33bb54f9c966c6a7f",
+          "production/upload/7a/d7a9e04a53175a1bb76066bd2328245712efec",
+          "production/upload/7c/3b42cb0d3cb363af9d2bcc8b07da2b9ae4fe2f",
+          "production/upload/7f/cb0db8d2e27c3361d79a32e531339043bbda79",
+          "production/upload/80/b13ee4e92b92698d91d91814500f7363a3af53",
+          "production/upload/85/09e42345acfeaad202a0c0069a4fc8b525d7b8",
+          "production/upload/86/b84dca5658e54795616bbe0446ee8191afb64b",
+          "production/upload/89/971b9dceb46e85565c50da2a65732ebd044c45",
+          "production/upload/8b/035728b2151de044fb245988ec5f33ebb544ab",
+          "production/upload/8f/350225d870470b596e911b85e00bc343e3e231",
+          "production/upload/91/79892d704f88d98191c00548bce106402ad5b5",
+          "production/upload/93/2606f0bd5e64ea7a55fa3d2716bb344d918068",
+          "production/upload/93/316abb0639d93e79ec8765e5f3ffc60fd1f442",
+          "production/upload/94/9da9e14e1cdc64730850e49fd68152d8f8d4d8",
+          "production/upload/98/62b470ece915fa6caacb9665ee28f0ae95fa3c",
+          "production/upload/99/9703d07198d995b2bf366f0669c3bcab64555a",
+          "production/upload/a5/247e937d37144df1096b447261855ddad9345e",
+          "production/upload/a6/b004266b81db6e8768e9ec9523e2f9effc5c86",
+          "production/upload/ab/cae3a6e01a2877425aa387b09b40be601a437c",
+          "production/upload/ac/b038c35f3048ba7ca07a6a84307b2fb10c041c",
+          "production/upload/af/38bcf9f512787aeaf2c081a560dfade860f22f",
+          "production/upload/b4/a28679b8eeefdbdcbe6071fd4f2ff85e5b3415",
+          "production/upload/b8/a518ad49f17b0b03feb9a8f2b7cc013f401379",
+          "production/upload/b9/132d27178d27f9d91df89fc47e106bbaf2d5b5",
+          "production/upload/bb/82873c35a9975b784b626a16fc847d0eb14329",
+          "production/upload/bc/0bc800f482670f3ec8a7f2fee9b9deeeca3a04",
+          "production/upload/be/c698001de805903c4f42db376a780b532db190",
+          "production/upload/c0/b066c3bc8fab7334a4740181a26e6b93cf894b",
+          "production/upload/c2/6d3be9ac6beb7a0dc5fa7fc5a4fec79a9a6ac3",
+          "production/upload/c6/64799d03fd4e29c974291dbdb4ccf5df264212",
+          "production/upload/d7/50c2f94f83dd053bfc79039a709f1ec6f766cb",
+          "production/upload/d9/a8ae1b3c5d428d0b8949962978eae1306c5115",
+          "production/upload/db/df4e783441cc214095071dca38051d7bf35836"
+        ]
+      },
+      {
+        "root": "common",
+        "path": "F:\\codex\\work\\gerald_patch_review\\gerald_1_4_100_build\\archives.staging\\archive-common-diff\\pinball-1.4.99-1.4.100-2-gerald0903.zip",
+        "name": "pinball-1.4.99-1.4.100-2-gerald0903.zip",
+        "entries": 7,
+        "size": 462351,
+        "sha256": "ace1a391c9e55e384a6cad0d22bf88304523750f7f9b876b0a04a6b9d0eb3263",
+        "member_paths": [
+          "production/upload/dd/728b7c5589a5559d2748247099b4e876f35ce9",
+          "production/upload/df/35d179f242661b110954127222628691e21f4b",
+          "production/upload/e8/8aa10760db672ed714819d8ddb3c9870447fe3",
+          "production/upload/ef/b082011b9be7370e888ad85389fd2f6e205ddb",
+          "production/upload/f6/fb5a1312a37ed3371c225dfe39cc44f32faefd",
+          "production/upload/fd/a9b398510c5e223461c1826de9a3b8360685c9",
+          "production/upload/ff/84353774cb95e8d7dc90c679f96a5bca7f42e5"
+        ]
+      },
+      {
+        "root": "medium",
+        "path": "F:\\codex\\work\\gerald_patch_review\\gerald_1_4_100_build\\archives.staging\\archive-medium-diff\\pinball-1.4.99-1.4.100-3-gerald0903.zip",
+        "name": "pinball-1.4.99-1.4.100-3-gerald0903.zip",
+        "entries": 11,
+        "size": 5021855,
+        "sha256": "867e3d1f5e32a82524d4ffae8ed3372a1ce24accc2b0ba0f4b60a280016522b1",
+        "member_paths": [
+          "production/medium_upload/05/b7ebb5ddb3c4938671b0d6019d34f0c499e199",
+          "production/medium_upload/0b/d6074c7ca82196f276adadd4efa7904b416f37",
+          "production/medium_upload/17/3a4f9657db12efc637fe4159e381ed87d41d87",
+          "production/medium_upload/18/01d3d2e5d39d3a3a80f15190f771448cb12f58",
+          "production/medium_upload/1a/e5c285e35ba941c3cb335de72e91d09ec8a7b4",
+          "production/medium_upload/33/c408016679634ed50329dc02ea762a935c8532",
+          "production/medium_upload/37/437f67316946acecd29bb5eee68801dae873c7",
+          "production/medium_upload/46/b2768a0146daf12c942efb01e26b503b55d91d",
+          "production/medium_upload/48/d7089ffca5c022e5c16c7d9a9c1d83e09650be",
+          "production/medium_upload/68/8d0f37016eb41aff5acb3632c406c3fa825a36",
+          "production/medium_upload/79/889e3f2c3ad7e411ada04c9b755ab705554fb6"
+        ]
+      },
+      {
+        "root": "medium",
+        "path": "F:\\codex\\work\\gerald_patch_review\\gerald_1_4_100_build\\archives.staging\\archive-medium-diff\\pinball-1.4.99-1.4.100-4-gerald0903.zip",
+        "name": "pinball-1.4.99-1.4.100-4-gerald0903.zip",
+        "entries": 14,
+        "size": 4829705,
+        "sha256": "673558e51a1de13c220debb81ce6030b2cfb719ee4d59ccd756fa9da67539c2b",
+        "member_paths": [
+          "production/medium_upload/7b/597ce5a8c2c5177c3279971bba58c6d0d71d91",
+          "production/medium_upload/82/fa25a9add272afdc7011e6e8961275d97cac1a",
+          "production/medium_upload/8b/eaa4eb73ccaeb524537ef158c1c9d0836afd3a",
+          "production/medium_upload/98/94d797a08304e4d9aa6a6c850c21a9315c0e8a",
+          "production/medium_upload/9b/445f50e0ad35963511b7d95a1f143ede03e4d4",
+          "production/medium_upload/9f/a3992ca8d27d59c8a7d7d2c2e6b6a75d0cfd95",
+          "production/medium_upload/9f/e6ccb7005bf21ba02d1c68182082276b9ec20a",
+          "production/medium_upload/aa/75288cab3c4349b585fa72b550a487a5720cd5",
+          "production/medium_upload/bd/72f7dba984d52f287966efaa09f5b74a087388",
+          "production/medium_upload/c3/eabf72a7806d00e4606c16d2bc33904b3b4ab3",
+          "production/medium_upload/c8/954d3fc714b72a29a4bfd0ac0b033237bfca0b",
+          "production/medium_upload/de/d30b256d69d5da4ce02dfd9ca61aa3dd4144d8",
+          "production/medium_upload/e2/90a8912a9dd400340feb869f75e354be3e7ff2",
+          "production/medium_upload/fb/35eeb750995e6d5269897d1f578551c34fb3c0"
+        ]
+      },
+      {
+        "root": "android",
+        "path": "F:\\codex\\work\\gerald_patch_review\\gerald_1_4_100_build\\archives.staging\\archive-android-diff\\pinball-1.4.99-1.4.100-5-gerald0903.zip",
+        "name": "pinball-1.4.99-1.4.100-5-gerald0903.zip",
+        "entries": 2,
+        "size": 441649,
+        "sha256": "5cce064a08d1a096888c7b0b244f0f8896f78065999f36a2f07d126fe4b84ce6",
+        "member_paths": [
+          "production/android_upload/a3/7854754bd6bb56fdebccc2a7c89fb72268b218",
+          "production/android_upload/ca/af8700e092755f7902f3bc36f7dbc15fe6efa2"
+        ]
+      }
+    ],
+    "member_count": 112,
+    "root_counts": {
+      "common": 85,
+      "medium": 25,
+      "android": 2
+    },
+    "text_correction": {
+      "from": "强制消除1个强化效果",
+      "to": "消除2个强化效果",
+      "occurrences": 2
+    }
+  },
+  "archive_integrity": [
+    {
+      "name": "pinball-1.4.99-1.4.100-1-gerald0903.zip",
+      "size": 5127693,
+      "sha256": "04550e70390b56634a03c80100d74624557e0a92c6a1bb4beb3fbf2ea5d3dcb1",
+      "members": 78,
+      "member_paths": [
+        "production/upload/00/8e6f4a90844da67f85f28276e708081f6e43a7",
+        "production/upload/03/d2cf46a0dce90bf3ae48fd6ec833e401337991",
+        "production/upload/07/0c6e214359ccf27b1cb8078d3fc51aecfe0149",
+        "production/upload/08/0306bb545d6a7703d00b5ef6e929a244d96d7f",
+        "production/upload/08/3264dd6ea073cc27a2846d657d59d926f2fbd5",
+        "production/upload/08/9d620ea22d641e7e1d0aae90b69227ae2f9dff",
+        "production/upload/09/01c329335621c1d31be0140c902bc0951a8e05",
+        "production/upload/0c/8cd127825556067f153f57ac948e3a32528ca1",
+        "production/upload/0f/3569c24d84145038ccd4ea2108ee74f0954036",
+        "production/upload/11/c88a5733781023ce65f8279e46d79ea3b7d8a4",
+        "production/upload/13/ed39814bab184f83b3c203795af3a5479e4aae",
+        "production/upload/17/17cc2b498ba3f8479a5cf9e68d3964631f6b30",
+        "production/upload/17/7dd505438a05d33bd45bc9f6d1c57b01ca3d44",
+        "production/upload/1b/fce9a911c767b0cf230c50455a2687e5a10327",
+        "production/upload/1d/222e5126fc7ebe3f22c7efe87325f73742eb4f",
+        "production/upload/1e/664c1cc8d80f4f9a69aae2c49ae8c01d1c4001",
+        "production/upload/26/91bbdc8c01df3ad0b2c3277f4a1fd8420d55ef",
+        "production/upload/27/7b65484214436114201ae654fefa60fdc822ea",
+        "production/upload/2d/5cb9b28d18f984a51b345a4d7aab03d77bddfc",
+        "production/upload/30/cbcd99de1aa6e8d245221619b393721df551b4",
+        "production/upload/31/1267c266da784e9120523fbbcbdab8d6734379",
+        "production/upload/31/fa8d70062baacad0c442db408d4e1941e648ce",
+        "production/upload/3a/224e35cd7d6e3f5c20489b695d3aa08633d2dc",
+        "production/upload/3d/086aff57f37025b0fe3ea826b6f3d1b9ad03d4",
+        "production/upload/47/98be368c8a6fda2bb10efe13ec03044745e966",
+        "production/upload/4b/c5b3ac0fc4711af9b2213fc79e2b609de74fb5",
+        "production/upload/51/62528d1dd26004b4fe9bf92ddb64bc98bd8446",
+        "production/upload/55/e9a4f59efbc3d5ebe70696170653351d3e34f3",
+        "production/upload/56/a8c676f0d2527b4608ce5ded56e6c5349de343",
+        "production/upload/57/8872ecbc78561807e6846b3980c5dea980d8ce",
+        "production/upload/5a/2b32df9eb1ccef43b8642b6af42e3b2230ef15",
+        "production/upload/5c/6a4f0e2ceb1dbcf60f9b306b0f7bfd0eca55c9",
+        "production/upload/5c/bdd419426f2f48cc027534299660fd0eea5b71",
+        "production/upload/5d/0ceccbd438faace672df797fd723b17201470c",
+        "production/upload/5d/3f8974dbc211de057d487129bf99af4d0c3263",
+        "production/upload/62/72c82fe82b8a359eeacd602c903f7d40554c7f",
+        "production/upload/63/917efd2d3a6fed3a5a1d82d7004544345af857",
+        "production/upload/66/5fb6d9da79a7cb95215afde3b581fd0845813e",
+        "production/upload/66/68ffc092f725bd57b5661448ebbe8a94e8fda3",
+        "production/upload/69/99fbf8c65bd253d79b3f8ed4acffbcc8d60f11",
+        "production/upload/6a/c8b18fe95f00a41a354ecfd1a1e464bc0c7607",
+        "production/upload/6c/c6a7e8b76ceb8a019bb9c69ec691e0ff32f165",
+        "production/upload/6e/b986c073199d3c0e8b3db119bfb9d579db6880",
+        "production/upload/70/515a3645f05762c2c1130dea8238895b9068df",
+        "production/upload/75/fb3c53d6d9e8946bff808501f4d1b50661b429",
+        "production/upload/79/9ce1d5480321256a0737d33bb54f9c966c6a7f",
+        "production/upload/7a/d7a9e04a53175a1bb76066bd2328245712efec",
+        "production/upload/7c/3b42cb0d3cb363af9d2bcc8b07da2b9ae4fe2f",
+        "production/upload/7f/cb0db8d2e27c3361d79a32e531339043bbda79",
+        "production/upload/80/b13ee4e92b92698d91d91814500f7363a3af53",
+        "production/upload/85/09e42345acfeaad202a0c0069a4fc8b525d7b8",
+        "production/upload/86/b84dca5658e54795616bbe0446ee8191afb64b",
+        "production/upload/89/971b9dceb46e85565c50da2a65732ebd044c45",
+        "production/upload/8b/035728b2151de044fb245988ec5f33ebb544ab",
+        "production/upload/8f/350225d870470b596e911b85e00bc343e3e231",
+        "production/upload/91/79892d704f88d98191c00548bce106402ad5b5",
+        "production/upload/93/2606f0bd5e64ea7a55fa3d2716bb344d918068",
+        "production/upload/93/316abb0639d93e79ec8765e5f3ffc60fd1f442",
+        "production/upload/94/9da9e14e1cdc64730850e49fd68152d8f8d4d8",
+        "production/upload/98/62b470ece915fa6caacb9665ee28f0ae95fa3c",
+        "production/upload/99/9703d07198d995b2bf366f0669c3bcab64555a",
+        "production/upload/a5/247e937d37144df1096b447261855ddad9345e",
+        "production/upload/a6/b004266b81db6e8768e9ec9523e2f9effc5c86",
+        "production/upload/ab/cae3a6e01a2877425aa387b09b40be601a437c",
+        "production/upload/ac/b038c35f3048ba7ca07a6a84307b2fb10c041c",
+        "production/upload/af/38bcf9f512787aeaf2c081a560dfade860f22f",
+        "production/upload/b4/a28679b8eeefdbdcbe6071fd4f2ff85e5b3415",
+        "production/upload/b8/a518ad49f17b0b03feb9a8f2b7cc013f401379",
+        "production/upload/b9/132d27178d27f9d91df89fc47e106bbaf2d5b5",
+        "production/upload/bb/82873c35a9975b784b626a16fc847d0eb14329",
+        "production/upload/bc/0bc800f482670f3ec8a7f2fee9b9deeeca3a04",
+        "production/upload/be/c698001de805903c4f42db376a780b532db190",
+        "production/upload/c0/b066c3bc8fab7334a4740181a26e6b93cf894b",
+        "production/upload/c2/6d3be9ac6beb7a0dc5fa7fc5a4fec79a9a6ac3",
+        "production/upload/c6/64799d03fd4e29c974291dbdb4ccf5df264212",
+        "production/upload/d7/50c2f94f83dd053bfc79039a709f1ec6f766cb",
+        "production/upload/d9/a8ae1b3c5d428d0b8949962978eae1306c5115",
+        "production/upload/db/df4e783441cc214095071dca38051d7bf35836"
+      ]
+    },
+    {
+      "name": "pinball-1.4.99-1.4.100-2-gerald0903.zip",
+      "size": 462351,
+      "sha256": "ace1a391c9e55e384a6cad0d22bf88304523750f7f9b876b0a04a6b9d0eb3263",
+      "members": 7,
+      "member_paths": [
+        "production/upload/dd/728b7c5589a5559d2748247099b4e876f35ce9",
+        "production/upload/df/35d179f242661b110954127222628691e21f4b",
+        "production/upload/e8/8aa10760db672ed714819d8ddb3c9870447fe3",
+        "production/upload/ef/b082011b9be7370e888ad85389fd2f6e205ddb",
+        "production/upload/f6/fb5a1312a37ed3371c225dfe39cc44f32faefd",
+        "production/upload/fd/a9b398510c5e223461c1826de9a3b8360685c9",
+        "production/upload/ff/84353774cb95e8d7dc90c679f96a5bca7f42e5"
+      ]
+    },
+    {
+      "name": "pinball-1.4.99-1.4.100-3-gerald0903.zip",
+      "size": 5021855,
+      "sha256": "867e3d1f5e32a82524d4ffae8ed3372a1ce24accc2b0ba0f4b60a280016522b1",
+      "members": 11,
+      "member_paths": [
+        "production/medium_upload/05/b7ebb5ddb3c4938671b0d6019d34f0c499e199",
+        "production/medium_upload/0b/d6074c7ca82196f276adadd4efa7904b416f37",
+        "production/medium_upload/17/3a4f9657db12efc637fe4159e381ed87d41d87",
+        "production/medium_upload/18/01d3d2e5d39d3a3a80f15190f771448cb12f58",
+        "production/medium_upload/1a/e5c285e35ba941c3cb335de72e91d09ec8a7b4",
+        "production/medium_upload/33/c408016679634ed50329dc02ea762a935c8532",
+        "production/medium_upload/37/437f67316946acecd29bb5eee68801dae873c7",
+        "production/medium_upload/46/b2768a0146daf12c942efb01e26b503b55d91d",
+        "production/medium_upload/48/d7089ffca5c022e5c16c7d9a9c1d83e09650be",
+        "production/medium_upload/68/8d0f37016eb41aff5acb3632c406c3fa825a36",
+        "production/medium_upload/79/889e3f2c3ad7e411ada04c9b755ab705554fb6"
+      ]
+    },
+    {
+      "name": "pinball-1.4.99-1.4.100-4-gerald0903.zip",
+      "size": 4829705,
+      "sha256": "673558e51a1de13c220debb81ce6030b2cfb719ee4d59ccd756fa9da67539c2b",
+      "members": 14,
+      "member_paths": [
+        "production/medium_upload/7b/597ce5a8c2c5177c3279971bba58c6d0d71d91",
+        "production/medium_upload/82/fa25a9add272afdc7011e6e8961275d97cac1a",
+        "production/medium_upload/8b/eaa4eb73ccaeb524537ef158c1c9d0836afd3a",
+        "production/medium_upload/98/94d797a08304e4d9aa6a6c850c21a9315c0e8a",
+        "production/medium_upload/9b/445f50e0ad35963511b7d95a1f143ede03e4d4",
+        "production/medium_upload/9f/a3992ca8d27d59c8a7d7d2c2e6b6a75d0cfd95",
+        "production/medium_upload/9f/e6ccb7005bf21ba02d1c68182082276b9ec20a",
+        "production/medium_upload/aa/75288cab3c4349b585fa72b550a487a5720cd5",
+        "production/medium_upload/bd/72f7dba984d52f287966efaa09f5b74a087388",
+        "production/medium_upload/c3/eabf72a7806d00e4606c16d2bc33904b3b4ab3",
+        "production/medium_upload/c8/954d3fc714b72a29a4bfd0ac0b033237bfca0b",
+        "production/medium_upload/de/d30b256d69d5da4ce02dfd9ca61aa3dd4144d8",
+        "production/medium_upload/e2/90a8912a9dd400340feb869f75e354be3e7ff2",
+        "production/medium_upload/fb/35eeb750995e6d5269897d1f578551c34fb3c0"
+      ]
+    },
+    {
+      "name": "pinball-1.4.99-1.4.100-5-gerald0903.zip",
+      "size": 441649,
+      "sha256": "5cce064a08d1a096888c7b0b244f0f8896f78065999f36a2f07d126fe4b84ce6",
+      "members": 2,
+      "member_paths": [
+        "production/android_upload/a3/7854754bd6bb56fdebccc2a7c89fb72268b218",
+        "production/android_upload/ca/af8700e092755f7902f3bc36f7dbc15fe6efa2"
+      ]
+    }
+  ],
+  "server_files_changed": [
+    "F:\\codex\\startpoint-cn-private-clean\\assets\\cdndata\\character_text.json",
+    "F:\\codex\\startpoint-cn-private-clean\\assets\\mana_board.json"
+  ],
+  "server_files_unchanged": [
+    "F:\\codex\\startpoint-cn-private-clean\\assets\\character.json",
+    "F:\\codex\\startpoint-cn-private-clean\\assets\\cdndata\\character.json",
+    "F:\\codex\\startpoint-cn-private-clean\\assets\\mana_node.json"
+  ],
+  "server_text_correction": {
+    "from": "强制消除1个强化效果",
+    "to": "消除2个强化效果",
+    "occurrences": 2
+  },
+  "verification": {
+    "base_manifest_tail_verified": "1.4.99",
+    "target_manifest_tail_written": "1.4.100",
+    "archive_crc_checked_before_copy": true,
+    "archive_hash_checked_after_copy": true,
+    "asset_member_count": 96,
+    "client_member_count": 112,
+    "table_files_changed": 16,
+    "server_rows_upserted_only_for_149999": true,
+    "other_server_json_keys_preserved": true
+  }
+}

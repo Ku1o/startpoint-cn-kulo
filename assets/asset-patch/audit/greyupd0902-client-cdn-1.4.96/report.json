@@ -1,0 +1,543 @@
+{
+  "schema": "greyupd0902-client-cdn/v1",
+  "patch_id": "greyupd0902-client-cdn-1.4.96",
+  "base_version": "1.4.95",
+  "target_version": "1.4.96",
+  "source_payload": "F:\\codex\\tmp\\wfshare-inspect-20260902\\greyupd0902\\wfshare-1.4.353-to-1.4.354-graft\\client-tables\\client_tables_payload.json",
+  "source_payload_sha256": "c0eb3b58d04c6a000f0ead8c8becae5040ff779aa5456648539233d7aa0ea27c",
+  "archive": {
+    "name": "pinball-1.4.95-1.4.96-1-greyupd0902-client-tables.zip",
+    "size": 4617265,
+    "sha256": "26b1604bfb72f1d387e0adeef0025675623389a3e598d6bb2a7c8f61749625ef",
+    "members": 49
+  },
+  "tables": [
+    {
+      "table": "master/ability/ability.orderedmap",
+      "upsert": 12,
+      "added": 240,
+      "source_rows": 3110,
+      "result_rows": 3350,
+      "skipped": [],
+      "sha256": "9aa31c77e663e42e75a34664a56081279b0956534e6bec52b2f7d37916526210"
+    },
+    {
+      "table": "master/ability/ability_soul.orderedmap",
+      "upsert": 15,
+      "added": 1,
+      "source_rows": 479,
+      "result_rows": 480,
+      "skipped": [],
+      "sha256": "44910305b7ecad1ff2177cfd06905032c6d7c4bf9662605b94fd204222417788"
+    },
+    {
+      "table": "master/ability/leader_ability.orderedmap",
+      "upsert": 3,
+      "added": 40,
+      "source_rows": 519,
+      "result_rows": 559,
+      "skipped": [],
+      "sha256": "2709341dedb04b125707b25a61993ef0994e3b64ec2e0eb9b0c5cf87eb60b362"
+    },
+    {
+      "table": "master/battle/boss/boss_level.orderedmap",
+      "upsert": 11,
+      "added": 6,
+      "source_rows": 564,
+      "result_rows": 570,
+      "skipped": [],
+      "sha256": "dc4f4a348c3e117289b8b042808256e8fa35d47161615970d233f19f92e403d7"
+    },
+    {
+      "table": "master/battle/boss/general_boss.orderedmap",
+      "upsert": 10,
+      "added": 6,
+      "source_rows": 505,
+      "result_rows": 511,
+      "skipped": [],
+      "sha256": "08785577483f5724a0f32739fd63a6bd11bda9b29a3fa2e8513fd17a79070a72"
+    },
+    {
+      "table": "master/battle/boss/general_boss_variable.orderedmap",
+      "upsert": 6,
+      "added": 5,
+      "source_rows": 334,
+      "result_rows": 339,
+      "skipped": [],
+      "sha256": "f62458d133c8d45dfb3b537261e7a71df497d4ce1abbe5926ab42d366663ff67"
+    },
+    {
+      "table": "master/battle/boss/general_enemy_watch.orderedmap",
+      "upsert": 1,
+      "added": 0,
+      "source_rows": 2,
+      "result_rows": 2,
+      "skipped": [],
+      "sha256": "cf91cc3ea5482e3736b339063fefe3a66a8b1002bbd85097b5f68e97f372d5f4"
+    },
+    {
+      "table": "master/battle/field_data.orderedmap",
+      "upsert": 17,
+      "added": 2,
+      "source_rows": 1465,
+      "result_rows": 1467,
+      "skipped": [],
+      "sha256": "9f34cbc1c1ed617a3e48638f76dffed4186f972cfd9567d12385dfae6483cfb2"
+    },
+    {
+      "table": "master/battle/multiball/multiball.orderedmap",
+      "upsert": 0,
+      "added": 1,
+      "source_rows": 58,
+      "result_rows": 59,
+      "skipped": [],
+      "sha256": "c86aed0d8b6d9eb33baf84d094ae3c7530e337ec4af5d8223bded1817398d55a"
+    },
+    {
+      "table": "master/battle/multiball/multiball_level.orderedmap",
+      "upsert": 0,
+      "added": 1,
+      "source_rows": 58,
+      "result_rows": 59,
+      "skipped": [],
+      "sha256": "6999b79a6e499070ee92ec95a63d78ce8e5e9a93c0880e3512ebe9487fabb187"
+    },
+    {
+      "table": "master/battle/zone.orderedmap",
+      "upsert": 17,
+      "added": 2,
+      "source_rows": 1123,
+      "result_rows": 1125,
+      "skipped": [],
+      "sha256": "50d744483796a577eb6e668fef3fcd44fe468254d75487cbf9649213af7fe893"
+    },
+    {
+      "table": "master/character/character.orderedmap",
+      "upsert": 5,
+      "added": 40,
+      "source_rows": 528,
+      "result_rows": 568,
+      "skipped": [],
+      "sha256": "b32482f58da96919927800d3f39eebe9873b063c895bc51bd22ef578119a8075"
+    },
+    {
+      "table": "master/character/character_gacha_sound.orderedmap",
+      "upsert": 0,
+      "added": 24,
+      "source_rows": 413,
+      "result_rows": 437,
+      "skipped": [],
+      "sha256": "114b5b20c45aa66be09656644f107f85bc7699c76d9caae570ffa6035c5150d2"
+    },
+    {
+      "table": "master/character/character_speech.orderedmap",
+      "upsert": 0,
+      "added": 40,
+      "source_rows": 517,
+      "result_rows": 557,
+      "skipped": [],
+      "sha256": "554d7eb2ebef38fd2dc510d2cdc6a860fa40ed3cbb4880de229963f01301d763"
+    },
+    {
+      "table": "master/character/character_status.orderedmap",
+      "upsert": 1,
+      "added": 40,
+      "source_rows": 528,
+      "result_rows": 568,
+      "skipped": [],
+      "sha256": "66a89167d2b601df25881e50e97315e9e193e811e93d8bec08dde728b18bba91"
+    },
+    {
+      "table": "master/character/character_tag.orderedmap",
+      "upsert": 3,
+      "added": 1,
+      "source_rows": 3,
+      "result_rows": 4,
+      "skipped": [],
+      "sha256": "08be83509ab1422ee6aaf1f1e90d9078ecbaab1d4eece3b8dc3787920c8075ba"
+    },
+    {
+      "table": "master/character/character_text.orderedmap",
+      "upsert": 1,
+      "added": 40,
+      "source_rows": 528,
+      "result_rows": 568,
+      "skipped": [],
+      "sha256": "5a262f8e7ab751e70b74f16b6d9b9da6aa234a4c9c99bb86d9a62499e5abfb3e"
+    },
+    {
+      "table": "master/character/full_shot_image_attribute.orderedmap",
+      "upsert": 0,
+      "added": 40,
+      "source_rows": 523,
+      "result_rows": 563,
+      "skipped": [],
+      "sha256": "6693260b4911bf5642b11713d72b4f30e9603137b232751af1422a7d97886adc"
+    },
+    {
+      "table": "master/character/unique_condition.orderedmap",
+      "upsert": 0,
+      "added": 37,
+      "source_rows": 48,
+      "result_rows": 85,
+      "skipped": [],
+      "sha256": "d407242c16c07b45a3f0aa4838d7985f333867540bad152a73e9a900e48cd01f"
+    },
+    {
+      "table": "master/degree/degree.orderedmap",
+      "upsert": 0,
+      "added": 1,
+      "source_rows": 1490,
+      "result_rows": 1491,
+      "skipped": [],
+      "sha256": "2a96372b40b58614470409e9eb8df3e03be24f625eb19d9f7cf9db847096e809"
+    },
+    {
+      "table": "master/equipment_enhancement/equipment_enhancement.orderedmap",
+      "upsert": 0,
+      "added": 16,
+      "source_rows": 29,
+      "result_rows": 45,
+      "skipped": [],
+      "sha256": "1c3699278e7dbd74931cf79f249ce5ed885deef097a9a154a0ee6d22d4034714"
+    },
+    {
+      "table": "master/equipment_enhancement/equipment_enhancement_ability.orderedmap",
+      "upsert": 0,
+      "added": 16,
+      "source_rows": 29,
+      "result_rows": 45,
+      "skipped": [],
+      "sha256": "2fc75a25320d01456d38863f649ffc61264603e52f385f0ca578e86493343c0f"
+    },
+    {
+      "table": "master/equipment_enhancement/equipment_enhancement_shop.orderedmap",
+      "upsert": 0,
+      "added": 96,
+      "source_rows": 215,
+      "result_rows": 311,
+      "skipped": [],
+      "sha256": "fe9284c997e9b8200464c8f3a3dae800d8dca7e4db0a7da94db6b244b2fc4471"
+    },
+    {
+      "table": "master/equipment_enhancement/equipment_enhancement_shop_category.orderedmap",
+      "upsert": 4,
+      "added": 1,
+      "source_rows": 4,
+      "result_rows": 5,
+      "skipped": [],
+      "sha256": "e6e06291ad7fc346e9a7a7e73b76777ef90a4614392de324e1c7db4f52e32c94"
+    },
+    {
+      "table": "master/equipment_enhancement/equipment_enhancement_status.orderedmap",
+      "upsert": 0,
+      "added": 16,
+      "source_rows": 29,
+      "result_rows": 45,
+      "skipped": [],
+      "sha256": "9cfc4a3b983a5d5f02f01c600e0b57312d082b1bf97a46670711dd86635faadf"
+    },
+    {
+      "table": "master/gacha/gacha.orderedmap",
+      "upsert": 2,
+      "added": 0,
+      "source_rows": 586,
+      "result_rows": 586,
+      "skipped": [],
+      "sha256": "298ee667abf7f9602d99d71a2deae363f08075474d728d24effa2a16c074bbee"
+    },
+    {
+      "table": "master/gacha/gacha_feature_content.orderedmap",
+      "upsert": 0,
+      "added": 0,
+      "skipped": []
+    },
+    {
+      "table": "master/gacha_odds/cnmod_abyss_limited_gacha_character_5.orderedmap",
+      "upsert": 1,
+      "added": 0,
+      "source_rows": 1,
+      "result_rows": 1,
+      "skipped": [],
+      "sha256": "cac972d0ed8e53a5df226b9bf73997a7868537907e10682b0f1c22e3219f1015"
+    },
+    {
+      "table": "master/gacha_odds/cnmod_ashen_verdict_gacha_character_3.orderedmap",
+      "upsert": 0,
+      "added": 0,
+      "skipped": []
+    },
+    {
+      "table": "master/gacha_odds/cnmod_ashen_verdict_gacha_character_4.orderedmap",
+      "upsert": 0,
+      "added": 0,
+      "skipped": []
+    },
+    {
+      "table": "master/gacha_odds/cnmod_ashen_verdict_gacha_character_5.orderedmap",
+      "upsert": 1,
+      "added": 0,
+      "source_rows": 1,
+      "result_rows": 1,
+      "skipped": [],
+      "sha256": "69180dc097b8e7205ed307c28ecf627bb5aa7e9cb4915f251c1dd727f943966f"
+    },
+    {
+      "table": "master/gacha_odds/cnmod_ashen_verdict_gacha_rarity.orderedmap",
+      "upsert": 1,
+      "added": 0,
+      "source_rows": 1,
+      "result_rows": 1,
+      "skipped": [],
+      "sha256": "4a3fd485972546f3e57798ac89eaa1f85d4a0480eaa9064816fb8d5aef4cc4b1"
+    },
+    {
+      "table": "master/generated/character_image.orderedmap",
+      "upsert": 0,
+      "added": 40,
+      "source_rows": 517,
+      "result_rows": 557,
+      "skipped": [],
+      "sha256": "7cdd3ae0b0405b931a6af1981b5b6ed59e7876a8c079a02a93f188465dacf2ba"
+    },
+    {
+      "table": "master/generated/mana_board.orderedmap",
+      "upsert": 0,
+      "added": 40,
+      "source_rows": 517,
+      "result_rows": 557,
+      "skipped": [],
+      "sha256": "a4ec0c3bc940896dd425050916a2318b4e1d1d92cf9e5dafad857c5be9bd6546"
+    },
+    {
+      "table": "master/generated/trimmed_image.orderedmap",
+      "upsert": 0,
+      "added": 160,
+      "source_rows": 11926,
+      "result_rows": 12086,
+      "skipped": [],
+      "sha256": "7850f4efd08fe527f826aaf4c9d865f2657133987bdf922638389841c1a3e905"
+    },
+    {
+      "table": "master/item/equipment.orderedmap",
+      "upsert": 15,
+      "added": 1,
+      "source_rows": 479,
+      "result_rows": 480,
+      "skipped": [],
+      "sha256": "70ee5aef360663aa84e555b8f5eddb088c52416839333ddbde2ba911686fac68"
+    },
+    {
+      "table": "master/item/equipment_status.orderedmap",
+      "upsert": 0,
+      "added": 1,
+      "source_rows": 479,
+      "result_rows": 480,
+      "skipped": [],
+      "sha256": "3766cc56c8cdafb21d644a1a14945f305ccc18fe83a8457523c8de5f541b8e83"
+    },
+    {
+      "table": "master/item/item.orderedmap",
+      "upsert": 1,
+      "added": 10,
+      "source_rows": 1334,
+      "result_rows": 1344,
+      "skipped": [],
+      "sha256": "a108a1fcccfe755f738e8ef9ed85a8ce35fe1e661b5b6fe689057be897fe57ac"
+    },
+    {
+      "table": "master/mana_board/mana_board2_open_condition.orderedmap",
+      "upsert": 0,
+      "added": 40,
+      "source_rows": 528,
+      "result_rows": 568,
+      "skipped": [],
+      "sha256": "0c7e02fee95be58cdfd8836b76a241b1fa14adaf6c3dd4e8cfe9c4d27eb0c5e4"
+    },
+    {
+      "table": "master/mana_board/mana_node.orderedmap",
+      "upsert": 0,
+      "added": 40,
+      "source_rows": 518,
+      "result_rows": 558,
+      "skipped": [],
+      "sha256": "8745f7cc54e976f06391854279c3dff4b9b0a938ba96ced167cca9e2109de213"
+    },
+    {
+      "table": "master/mana_board/upskill.orderedmap",
+      "upsert": 0,
+      "added": 26,
+      "source_rows": 382,
+      "result_rows": 408,
+      "skipped": [],
+      "sha256": "358ebb40a07e65a9b3aaee72ca6acb8b2a0a4d4961d9f14b3c5e380f51e29561"
+    },
+    {
+      "table": "master/quest/boss_battle_quest.orderedmap",
+      "upsert": 1,
+      "added": 0,
+      "source_rows": 1,
+      "result_rows": 1,
+      "skipped": [],
+      "sha256": "1058412261291373b954b04756505b27baacfe2dab7380f50407b51d5515a896"
+    },
+    {
+      "table": "master/quest/boss_battle_stage_node.orderedmap",
+      "upsert": 1,
+      "added": 0,
+      "source_rows": 1,
+      "result_rows": 1,
+      "skipped": [],
+      "sha256": "4c08e6acf2b039ae5d7ade4fccccb5eecb8263a65d188b26b3178a4fbe49b82a"
+    },
+    {
+      "table": "master/quest/both_boss/both_boss_group.orderedmap",
+      "upsert": 2,
+      "added": 1,
+      "source_rows": 2,
+      "result_rows": 3,
+      "skipped": [],
+      "sha256": "909dc42352d2b0b251e4638333b4934eb8abf9145525a811e67273c59648b2a5"
+    },
+    {
+      "table": "master/quest/both_boss/both_boss_map.orderedmap",
+      "upsert": 18,
+      "added": 1,
+      "source_rows": 18,
+      "result_rows": 19,
+      "skipped": [],
+      "sha256": "4129af8bee88a11c5f40243ddf81580f65584bfe2c6154bd35287b65ffd42d3a"
+    },
+    {
+      "table": "master/quest/event/ranking_event.orderedmap",
+      "upsert": 0,
+      "added": 0,
+      "skipped": []
+    },
+    {
+      "table": "master/quest/event/rush_event_quest.orderedmap",
+      "upsert": 1,
+      "added": 0,
+      "source_rows": 16,
+      "result_rows": 16,
+      "skipped": [],
+      "sha256": "c9f31a488d060b5fa613fff4340cd5b61847d4920448c15e7c243921b935c14a"
+    },
+    {
+      "table": "master/rich_text/rich_text_html.orderedmap",
+      "upsert": 0,
+      "added": 0,
+      "skipped": []
+    },
+    {
+      "table": "master/shop/event_item_shop.orderedmap",
+      "upsert": 15,
+      "added": 1,
+      "source_rows": 8574,
+      "result_rows": 8575,
+      "skipped": [
+        "9700118",
+        "59001010",
+        "9700201",
+        "9700202",
+        "9700203",
+        "9700204",
+        "9700205",
+        "9700206",
+        "9700207",
+        "9700208",
+        "9700209",
+        "9700210",
+        "9700211",
+        "9700212",
+        "9700213",
+        "9700214",
+        "9700215"
+      ],
+      "sha256": "71bf550c9b1d23a6e7d3d58afbdb5631e73452b84c5cecbd3d50d8a12d1eca36"
+    },
+    {
+      "table": "master/skill/action_skill.orderedmap",
+      "upsert": 1,
+      "added": 40,
+      "source_rows": 592,
+      "result_rows": 632,
+      "skipped": [],
+      "sha256": "b0334930a9071a153d524b130478c031acfca4e36b69d229ae1162c89c2e47f9"
+    },
+    {
+      "table": "master/skill/power_flip_action.orderedmap",
+      "upsert": 0,
+      "added": 8,
+      "source_rows": 20,
+      "result_rows": 28,
+      "skipped": [],
+      "sha256": "0f8c77e3ae9dfeb042258484b23fc01a664dfed54e0653247ac172e6c3a1d6dc"
+    },
+    {
+      "table": "master/skill_preview/skill_preview_character.orderedmap",
+      "upsert": 0,
+      "added": 40,
+      "source_rows": 510,
+      "result_rows": 550,
+      "skipped": [],
+      "sha256": "10f5c418aa2d341565dac79d4999a0acb7c783b6dcdfa06ef7402693fdb000b8"
+    },
+    {
+      "table": "master/stance_detail/character_stance_detail.orderedmap",
+      "upsert": 0,
+      "added": 40,
+      "source_rows": 512,
+      "result_rows": 552,
+      "skipped": [],
+      "sha256": "50a6b62a4281d3eeee072be992f17b4457c0d61977d47dadec17bdaac3104ec0"
+    },
+    {
+      "table": "master/string/custom_ability_string.orderedmap",
+      "upsert": 0,
+      "added": 51,
+      "source_rows": 139,
+      "result_rows": 190,
+      "skipped": [],
+      "sha256": "1a7e1cbb98f9386a4bd1ea376f9568003f36d6a39a6662cca1c4243cce859f75"
+    }
+  ],
+  "skipped": [
+    {
+      "table": "master/character/character_awake_status.orderedmap",
+      "keys": 14,
+      "reason": "character awakening is closed"
+    },
+    {
+      "table": "master/shop/event_item_shop.orderedmap",
+      "keys": [
+        "9700118",
+        "59001010",
+        "9700201",
+        "9700202",
+        "9700203",
+        "9700204",
+        "9700205",
+        "9700206",
+        "9700207",
+        "9700208",
+        "9700209",
+        "9700210",
+        "9700211",
+        "9700212",
+        "9700213",
+        "9700214",
+        "9700215"
+      ],
+      "reason": "user selection"
+    }
+  ],
+  "verification": {
+    "archive_crc_ok": true,
+    "untouched_rows_preserved": true,
+    "character_awake_status_skipped": true,
+    "client_disassembly_marker_preserved": true,
+    "weapon_exchange_second_batch_skipped": true,
+    "title_shop_preserved": true
+  }
+}

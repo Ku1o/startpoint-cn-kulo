@@ -1,0 +1,156 @@
+{
+  "schema": "season-rank-titles/v1",
+  "patch_id": "season-rank-titles-1.4.97",
+  "base_version": "1.4.96",
+  "target_version": "1.4.97",
+  "archive": {
+    "name": "pinball-1.4.96-1.4.97-1-season-rank-titles.zip",
+    "size": 311464,
+    "sha256": "c33f295e9c67511cba2184237d3841b777f51876db7edea9e3bdae3398ba9549",
+    "members": 6,
+    "member_paths": [
+      "production/upload/20/ee12876f92a663f2bf4f039b6169b2e9d8e070",
+      "production/upload/38/349cdd08216dde33eb707092d54dd263f15af3",
+      "production/upload/5b/f9af4fa865017bcf997f1a3b298b1cb37d55bd",
+      "production/upload/73/83ef82b6327adfb5d5078185f6c04572175ca8",
+      "production/upload/89/e5c25c791e2a9527422c186084a1793218c2ac",
+      "production/upload/9f/e41b1a308ba253a2389d77e26aa2851184eb3f"
+    ]
+  },
+  "degree": {
+    "logical": "master/degree/degree.orderedmap",
+    "before_rows": 1491,
+    "after_rows": 1496,
+    "preserved_old_ids": [
+      9900002,
+      9900003,
+      9900004,
+      9900005,
+      9900006
+    ],
+    "new_titles": [
+      {
+        "id": 9900007,
+        "string_id": "degree_mod_stellar_abyss_overlord",
+        "name": "星渊主宰者",
+        "condition": "获得条件：新赛季排行榜排名第1",
+        "image": "dynamic/degree/degree_mod_stellar_abyss_overlord.png"
+      },
+      {
+        "id": 9900008,
+        "string_id": "degree_mod_stellar_abyss_conqueror",
+        "name": "星渊征服者",
+        "condition": "获得条件：新赛季排行榜排名第2",
+        "image": "dynamic/degree/degree_mod_stellar_abyss_conqueror.png"
+      },
+      {
+        "id": 9900009,
+        "string_id": "degree_mod_stellar_abyss_slayer",
+        "name": "星渊讨伐者",
+        "condition": "获得条件：新赛季排行榜排名第3",
+        "image": "dynamic/degree/degree_mod_stellar_abyss_slayer.png"
+      },
+      {
+        "id": 9900010,
+        "string_id": "degree_mod_breakthrough_pioneer",
+        "name": "破阵先行者",
+        "condition": "获得条件：新赛季排行榜排名第4～15",
+        "image": "dynamic/degree/degree_mod_breakthrough_pioneer.png"
+      },
+      {
+        "id": 9900011,
+        "string_id": "degree_mod_stellar_abyss_together",
+        "name": "共赴星渊",
+        "condition": "获得条件：参加新赛季排行榜",
+        "image": "dynamic/degree/degree_mod_stellar_abyss_together.png"
+      }
+    ]
+  },
+  "png": [
+    {
+      "name": "星渊主宰者.png",
+      "sha256": "0092ff03f40e965a0f9aab6182490e8ef22574d9bbce8865592815357a80429b",
+      "width": 320,
+      "height": 50,
+      "format": "RGBA"
+    },
+    {
+      "name": "星渊征服者.png",
+      "sha256": "86e86ff1365873e6205cd185eeaf3185e0aedec7492ea94776a5a3117648eac9",
+      "width": 320,
+      "height": 50,
+      "format": "RGBA"
+    },
+    {
+      "name": "星渊讨伐者.png",
+      "sha256": "51b3e2ab657ec5d2df852f1d84e1832e71c21fef81db085632407f66ed8a3b6c",
+      "width": 320,
+      "height": 50,
+      "format": "RGBA"
+    },
+    {
+      "name": "破阵先行者.png",
+      "sha256": "d2751a280596f4eef1d32fd9788f59408f4746b3c7887b07cc3c5c66e716a660",
+      "width": 320,
+      "height": 50,
+      "format": "RGBA"
+    },
+    {
+      "name": "共赴星渊.png",
+      "sha256": "d3be58e14bcd2d44e1d77e3cb2378d5beae4dcea78f5214993ad739dae465403",
+      "width": 320,
+      "height": 50,
+      "format": "RGBA"
+    }
+  ],
+  "client_disassembly": {
+    "logical": "master/item/equipment.orderedmap",
+    "column": 13,
+    "abyss_weapon_ids": [
+      8000101,
+      8000102,
+      8000103,
+      8000104,
+      8000105,
+      8000106,
+      8000107,
+      8000108,
+      8000109,
+      8000110,
+      8000111,
+      8000112,
+      8000113,
+      8000114,
+      8000115
+    ],
+    "abyss_marker_values": [
+      "true",
+      "true",
+      "true",
+      "true",
+      "true",
+      "true",
+      "true",
+      "true",
+      "true",
+      "true",
+      "true",
+      "true",
+      "true",
+      "true",
+      "true"
+    ],
+    "death_bringer_marker": "true",
+    "server_soul_generation_ids": [
+      5900101
+    ]
+  },
+  "verification": {
+    "archive_crc_ok": true,
+    "untouched_degree_rows_preserved": true,
+    "old_titles_preserved": true,
+    "formal_png_only": true,
+    "green_zoom_excluded": true,
+    "client_disassembly_marker_preserved": true
+  }
+}
