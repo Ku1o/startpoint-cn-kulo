@@ -22,5 +22,251 @@
     "name": "歼灭者",
     "rarity": 5,
     "skill_count": 6
+  },
+  "119950": {
+    "name": "伊萨巴迪卡",
+    "rarity": 5,
+    "element": 0,
+    "skill_count": 6
+  },
+  "119951": {
+    "element": 0,
+    "name": "奥尔塔尼亚",
+    "rarity": 5,
+    "skill_count": 6
+  },
+  "119970": {
+    "element": 0,
+    "name": "海茵莱特",
+    "rarity": 5,
+    "skill_count": 6
+  },
+  "119993": {
+    "element": 0,
+    "name": "红蝮蛇",
+    "rarity": 5,
+    "skill_count": 6
+  },
+  "119994": {
+    "element": 0,
+    "name": "哈宁红Z",
+    "rarity": 5,
+    "skill_count": 6
+  },
+  "119995": {
+    "element": 0,
+    "name": "炎枪见习兵",
+    "rarity": 5,
+    "skill_count": 6
+  },
+  "129950": {
+    "name": "伊劳德雷斯",
+    "rarity": 5,
+    "element": 1,
+    "skill_count": 6
+  },
+  "129951": {
+    "element": 1,
+    "name": "斯拉姆冈",
+    "rarity": 5,
+    "skill_count": 6
+  },
+  "129952": {
+    "name": "贝尔赛蒂亚",
+    "rarity": 5,
+    "element": 1,
+    "skill_count": 6
+  },
+  "129970": {
+    "element": 1,
+    "name": "维尔努斯",
+    "rarity": 5,
+    "skill_count": 6
+  },
+  "129993": {
+    "element": 1,
+    "name": "冰冻虎鲸",
+    "rarity": 5,
+    "skill_count": 6
+  },
+  "129994": {
+    "element": 1,
+    "name": "哈宁蓝Z",
+    "rarity": 5,
+    "skill_count": 6
+  },
+  "129995": {
+    "element": 1,
+    "name": "彷徨铠甲·水",
+    "rarity": 5,
+    "skill_count": 6
+  },
+  "129996": {
+    "element": 1,
+    "name": "蓝色海妖",
+    "rarity": 5,
+    "skill_count": 6
+  },
+  "129998": {
+    "element": 1,
+    "name": "水灵幽魂",
+    "rarity": 5,
+    "skill_count": 6
+  },
+  "139950": {
+    "name": "伊尔考普斯",
+    "rarity": 5,
+    "element": 2,
+    "skill_count": 6
+  },
+  "139951": {
+    "element": 2,
+    "name": "普罗格雷奥",
+    "rarity": 5,
+    "skill_count": 6
+  },
+  "139970": {
+    "element": 2,
+    "name": "吉布西兹",
+    "rarity": 5,
+    "skill_count": 6
+  },
+  "139996": {
+    "element": 2,
+    "name": "机枪魔块·雷",
+    "rarity": 5,
+    "skill_count": 6
+  },
+  "149950": {
+    "element": 3,
+    "name": "伊尔格拉乌",
+    "rarity": 5,
+    "skill_count": 6
+  },
+  "149951": {
+    "element": 3,
+    "name": "亚特摩西亚",
+    "rarity": 5,
+    "skill_count": 6
+  },
+  "149970": {
+    "element": 3,
+    "name": "克拉格",
+    "rarity": 5,
+    "skill_count": 6
+  },
+  "149991": {
+    "element": 3,
+    "name": "疾风狂熊",
+    "rarity": 5,
+    "skill_count": 6
+  },
+  "149992": {
+    "element": 3,
+    "name": "彷徨铠甲·风",
+    "rarity": 5,
+    "skill_count": 6
+  },
+  "149993": {
+    "element": 3,
+    "name": "哈宁绿",
+    "rarity": 5,
+    "skill_count": 6
+  },
+  "149994": {
+    "element": 3,
+    "name": "风暴恶魔拉比",
+    "rarity": 5,
+    "skill_count": 6
+  },
+  "149998": {
+    "element": 3,
+    "name": "风巨蜥",
+    "rarity": 5,
+    "skill_count": 6
+  },
+  "159950": {
+    "element": 4,
+    "name": "伊尔梅塔雷",
+    "rarity": 5,
+    "skill_count": 6
+  },
+  "159951": {
+    "element": 4,
+    "name": "杜梅欧",
+    "rarity": 5,
+    "skill_count": 6
+  },
+  "159970": {
+    "element": 4,
+    "name": "艾赞",
+    "rarity": 5,
+    "skill_count": 6
+  },
+  "159999": {
+    "element": 4,
+    "name": "Sec-2600Li",
+    "rarity": 5,
+    "skill_count": 6
+  },
+  "169950": {
+    "element": 5,
+    "name": "伊尔昂斯拉",
+    "rarity": 5,
+    "skill_count": 6
+  },
+  "169951": {
+    "element": 5,
+    "name": "希亚特利欧",
+    "rarity": 5,
+    "skill_count": 6
+  },
+  "169970": {
+    "element": 5,
+    "name": "德古兰",
+    "rarity": 5,
+    "skill_count": 6
+  },
+  "169993": {
+    "name": "黑之下忍",
+    "rarity": 5,
+    "element": 5,
+    "skill_count": 6
+  },
+  "179970": {
+    "element": 5,
+    "name": "菲诺梅那",
+    "rarity": 5,
+    "skill_count": 6
+  },
+  "179982": {
+    "element": 0,
+    "name": "步兵歼灭者",
+    "rarity": 5,
+    "skill_count": 6
+  },
+  "179983": {
+    "element": 2,
+    "name": "僧正歼灭者",
+    "rarity": 5,
+    "skill_count": 6
+  },
+  "179984": {
+    "element": 3,
+    "name": "异形歼灭者",
+    "rarity": 5,
+    "skill_count": 6
+  },
+  "179985": {
+    "element": 5,
+    "name": "女帝歼灭者",
+    "rarity": 5,
+    "skill_count": 6
+  },
+  "179986": {
+    "element": 4,
+    "name": "噬龙者",
+    "rarity": 5,
+    "skill_count": 6
   }
 }
