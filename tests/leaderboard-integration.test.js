@@ -149,19 +149,20 @@ test("完整连续通关才入榜，并按最佳 client_battle_ms 去重排序",
     assert.equal(payload.index, 1)
     assert.equal(payload.row, 1)
     assert.equal(payload.total, 2)
-    assert.equal(payload.reward.length, 4)
+    assert.equal(payload.reward.length, 5)
     assert.deepEqual(payload.reward.map(tier => [
         tier.fromRank, tier.toRank, tier.itemId, tier.itemName, tier.itemCount,
     ]), [
-        [1, 1, 999016, "终焉裁定十连券", 10],
-        [2, 3, 999016, "终焉裁定十连券", 5],
-        [4, 15, 999016, "终焉裁定十连券", 2],
-        [16, null, 999015, "终焉裁定券", 1],
+        [1, 1, 999018, "竞速池十连券", 10],
+        [2, 2, 999018, "竞速池十连券", 5],
+        [3, 3, 999018, "竞速池十连券", 5],
+        [4, 15, 999018, "竞速池十连券", 2],
+        [16, null, 999017, "竞速池扭蛋券", 1],
     ])
     assert.equal(payload.item.a, "character/abyss_beast_playable/ui/thumb_party_unison_1")
     assert.equal(payload.item.b, "character/white_tiger_ghost_playable/ui/thumb_party_unison_0")
     assert.equal(payload.item.c, "character/maou2_playable/ui/thumb_party_unison_1")
-    assert.match(buildLeaderboardTermsText(competition), /深渊冠军/)
+    assert.match(buildLeaderboardTermsText(competition), /星渊主宰者/)
 
     addOwnedCharacter(playerA, 10, 1, [0])
     addOwnedCharacter(playerA, 111001, 1)
@@ -206,10 +207,12 @@ test("完整连续通关才入榜，并按最佳 client_battle_ms 去重排序",
 })
 
 test("旧版深渊默认奖励自动升级，现有数据库不继续发旧票券", () => {
-    const current = getLeaderboardSettlementConfigSync(competition.key)
-    const legacy = current.rewardTiers.map((tier, index) => index < 3
-        ? { ...tier, itemId: 999015, itemName: "终焉裁定券" }
-        : { ...tier, itemId: null, itemName: null, itemCount: 0 })
+    const legacy = [
+        { fromRank: 1, toRank: 1, itemId: 999015, itemName: "终焉裁定券", itemCount: 10, degreeId: 9900002, degreeName: "深渊冠军", degreeImage: "dynamic/degree/degree_mod_abyss_rush_champion.png" },
+        { fromRank: 2, toRank: 3, itemId: 999015, itemName: "终焉裁定券", itemCount: 5, degreeId: 9900003, degreeName: "深渊亚季军", degreeImage: "dynamic/degree/degree_mod_abyss_rush_runner_up.png" },
+        { fromRank: 4, toRank: 15, itemId: 999015, itemName: "终焉裁定券", itemCount: 2, degreeId: 9900004, degreeName: "深渊上位者", degreeImage: "dynamic/degree/degree_mod_abyss_rush_upper_rank.png" },
+        { fromRank: 16, toRank: null, itemId: null, itemName: null, itemCount: 0, degreeId: 9900005, degreeName: "深渊参与者", degreeImage: "dynamic/degree/degree_mod_abyss_rush_participant.png" },
+    ]
     getDb().prepare(`
         UPDATE leaderboard_settlement_configs SET reward_tiers_json = ?
         WHERE competition_key = ?
@@ -217,7 +220,7 @@ test("旧版深渊默认奖励自动升级，现有数据库不继续发旧票�
 
     const upgraded = getLeaderboardSettlementConfigSync(competition.key)
     assert.deepEqual(upgraded.rewardTiers.map(tier => [tier.itemId, tier.itemCount]), [
-        [999016, 10], [999016, 5], [999016, 2], [999015, 1],
+        [999018, 10], [999018, 5], [999018, 5], [999018, 2], [999017, 1],
     ])
 })
 
@@ -234,8 +237,8 @@ test("结算快照幂等，机器人占名次但默认不发奖，换季后榜�
         WHERE settlement_id = ? ORDER BY rank_number
     `).all(first.settlementId)
     assert.deepEqual(settlementRows, [
-        { rank_number: 1, skip_reason: "bot", item_id: 999016, item_count: 10, degree_id: 9900002 },
-        { rank_number: 2, skip_reason: null, item_id: 999016, item_count: 5, degree_id: 9900003 },
+        { rank_number: 1, skip_reason: "bot", item_id: 999018, item_count: 10, degree_id: 9900007 },
+        { rank_number: 2, skip_reason: null, item_id: 999018, item_count: 5, degree_id: 9900008 },
     ])
     assert.equal(getDb().prepare("SELECT COUNT(*) count FROM players_mails").get().count, 2)
 
@@ -319,7 +322,7 @@ test("独立 Rush 排行接口返回原生 item/reward/total 字段", async t =>
     assert.equal(data.row, 0)
     assert.equal(data.index, 0)
     assert.equal(data.total, 1)
-    assert.equal(data.reward.length, 4)
+    assert.equal(data.reward.length, 5)
 })
 
 test("unregistered Rush leaderboard returns a protocol-safe disabled payload", async (t) => {
