@@ -4,3 +4,4 @@
 *.jpg binary
 *.woff2 binary
 *.ttf binary
+assets/asset-patch/active/pinball-1.4.96-1.4.97-1-greyupd0902-cdn-resource-recovery.zip filter=lfs diff=lfs merge=lfs -text

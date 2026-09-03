@@ -1,0 +1,350 @@
+{
+  "task": "greyupd0902-cdn-resource-recovery-1.4.97",
+  "source_cdn": "F:\\startpoint-cn-main\\.cdn\\cn",
+  "source_packages": [
+    {
+      "name": "pinball-1.4.95-1.4.96-1-greyupd0902.zip",
+      "directory": "archive-common-diff",
+      "size": 5123117,
+      "sha256": "e58d5ff28152b1c7443d310726d5c86267a450eff71819bd41c74c91d4b79f06",
+      "members": 354
+    },
+    {
+      "name": "pinball-1.4.95-1.4.96-2-greyupd0902.zip",
+      "directory": "archive-common-diff",
+      "size": 4629609,
+      "sha256": "8dbc01bd6688b95604cd6ccc24aefd806d4d3e493bb0c1e5042742193ae3194e",
+      "members": 318
+    },
+    {
+      "name": "pinball-1.4.95-1.4.96-3-greyupd0902.zip",
+      "directory": "archive-common-diff",
+      "size": 4914215,
+      "sha256": "5a53e6bf3a5f9308053d544f4ec4f070b63a8ed38df1a1d9bc4a7934550ceae6",
+      "members": 387
+    },
+    {
+      "name": "pinball-1.4.95-1.4.96-4-greyupd0902.zip",
+      "directory": "archive-common-diff",
+      "size": 5141878,
+      "sha256": "c8b4c76478dba3ba4431432797a31011599f873e5d47f73769b65341a9e6a0b3",
+      "members": 160
+    },
+    {
+      "name": "pinball-1.4.95-1.4.96-5-greyupd0902.zip",
+      "directory": "archive-common-diff",
+      "size": 2563923,
+      "sha256": "dea7ba644b9a72c0a639e51a1e2aa0b94d94ab3c3df330c7393678fe7fcf9486",
+      "members": 335
+    },
+    {
+      "name": "pinball-1.4.95-1.4.96-10-greyupd0902.zip",
+      "directory": "archive-medium-diff",
+      "size": 5147891,
+      "sha256": "c4a1ac21a7cd1700e40dc5cad3be7abe328cf539210e00d1d18be7c89b86d721",
+      "members": 41
+    },
+    {
+      "name": "pinball-1.4.95-1.4.96-11-greyupd0902.zip",
+      "directory": "archive-medium-diff",
+      "size": 4948437,
+      "sha256": "870da3b6b2b30262a205365e94281b8d57ce35fb6b96079e3772a9ef19a74e9a",
+      "members": 65
+    },
+    {
+      "name": "pinball-1.4.95-1.4.96-12-greyupd0902.zip",
+      "directory": "archive-medium-diff",
+      "size": 4005879,
+      "sha256": "6e5f4756e0eab3ba1a8898e376d876488ceffa4481a640d0038e489ad725aaa8",
+      "members": 64
+    },
+    {
+      "name": "pinball-1.4.95-1.4.96-13-greyupd0902.zip",
+      "directory": "archive-medium-diff",
+      "size": 5089306,
+      "sha256": "5eb5a0c05b53682c5dbf4ce964cda408c45cfd012e763a529165848d7d01a3da",
+      "members": 24
+    },
+    {
+      "name": "pinball-1.4.95-1.4.96-14-greyupd0902.zip",
+      "directory": "archive-medium-diff",
+      "size": 3572916,
+      "sha256": "cd9aa7da39947603c7d5b665e110eb7208d19e0fec0a65b4e2ab8a6273e4b6b3",
+      "members": 23
+    },
+    {
+      "name": "pinball-1.4.95-1.4.96-15-greyupd0902.zip",
+      "directory": "archive-medium-diff",
+      "size": 5103376,
+      "sha256": "995c7950b17969a51cf7486278581a77dab5594a0bc7cf60167e463cd4cb1a5b",
+      "members": 54
+    },
+    {
+      "name": "pinball-1.4.95-1.4.96-16-greyupd0902.zip",
+      "directory": "archive-medium-diff",
+      "size": 5139605,
+      "sha256": "29b0268f77444b1e0faf9f86682623bc01715256294630b72f5500697edd53ef",
+      "members": 40
+    },
+    {
+      "name": "pinball-1.4.95-1.4.96-17-greyupd0902.zip",
+      "directory": "archive-medium-diff",
+      "size": 4500096,
+      "sha256": "eebd6411efff659e26e4c00f03795b894fc721caa4d17ad90ff32d6ae20ce2b3",
+      "members": 41
+    },
+    {
+      "name": "pinball-1.4.95-1.4.96-18-greyupd0902.zip",
+      "directory": "archive-medium-diff",
+      "size": 3739396,
+      "sha256": "7876b0968f7b948e3dcfcb724fa9a85f27121adda17acc2130476c0fb020d3cf",
+      "members": 18
+    },
+    {
+      "name": "pinball-1.4.95-1.4.96-19-greyupd0902.zip",
+      "directory": "archive-medium-diff",
+      "size": 5092900,
+      "sha256": "d3dedd826baeba6ac1f6ca8ef9bb8911a16307e4af6fbfe1c3ee4e4426602319",
+      "members": 46
+    },
+    {
+      "name": "pinball-1.4.95-1.4.96-20-greyupd0902.zip",
+      "directory": "archive-medium-diff",
+      "size": 5150959,
+      "sha256": "2747f39b415675a4e5c5a2f2ae80c84425e3e06e0ff2c7810c10ac2b1840916f",
+      "members": 25
+    },
+    {
+      "name": "pinball-1.4.95-1.4.96-21-greyupd0902.zip",
+      "directory": "archive-medium-diff",
+      "size": 5119705,
+      "sha256": "e81be3b0cd81d50dd31be29f789d4caf5a5b3ede49f86b4957561d41d0069a51",
+      "members": 79
+    },
+    {
+      "name": "pinball-1.4.95-1.4.96-22-greyupd0902.zip",
+      "directory": "archive-medium-diff",
+      "size": 118064,
+      "sha256": "2b1a0b899726ccd3bc71f0a00be7cfed614223c72c8ee7ea65748e7c00ce5e43",
+      "members": 1
+    },
+    {
+      "name": "pinball-1.4.95-1.4.96-23-greyupd0902.zip",
+      "directory": "archive-medium-diff",
+      "size": 5673106,
+      "sha256": "27f0eeb04003ca5ae37e181117661b81691945bb910bbe883722d78376ddb548",
+      "members": 1
+    },
+    {
+      "name": "pinball-1.4.95-1.4.96-24-greyupd0902.zip",
+      "directory": "archive-medium-diff",
+      "size": 5083925,
+      "sha256": "49b15c59ad2803f3c6b5b825033646f6f5de997bf9464a6198266a98adb9eee1",
+      "members": 50
+    },
+    {
+      "name": "pinball-1.4.95-1.4.96-25-greyupd0902.zip",
+      "directory": "archive-medium-diff",
+      "size": 5145019,
+      "sha256": "9128a91045d5d53ce1d13e5c75402dcde60e6e8f35223ab75caa093e521f8942",
+      "members": 78
+    },
+    {
+      "name": "pinball-1.4.95-1.4.96-26-greyupd0902.zip",
+      "directory": "archive-medium-diff",
+      "size": 5153389,
+      "sha256": "056d52f730148137d2501cdb512dbcb79809f8c30c84c2199373acc8a94448ea",
+      "members": 61
+    },
+    {
+      "name": "pinball-1.4.95-1.4.96-27-greyupd0902.zip",
+      "directory": "archive-medium-diff",
+      "size": 2817920,
+      "sha256": "125f5b25477e850ed445805bd5913d30c40de861050d3a2ac53d28a41c8f0ab3",
+      "members": 49
+    },
+    {
+      "name": "pinball-1.4.95-1.4.96-28-greyupd0902.zip",
+      "directory": "archive-medium-diff",
+      "size": 5141797,
+      "sha256": "01071c22b10a6f9398018c60020016d681f69a9f6ea22b61d001470f7032ecb2",
+      "members": 39
+    },
+    {
+      "name": "pinball-1.4.95-1.4.96-29-greyupd0902.zip",
+      "directory": "archive-medium-diff",
+      "size": 5153565,
+      "sha256": "97a644aa5181f3d54113dbe22c8ba32457782f1f3a8260cf1a0736e87c7b32c0",
+      "members": 49
+    },
+    {
+      "name": "pinball-1.4.95-1.4.96-30-greyupd0902.zip",
+      "directory": "archive-medium-diff",
+      "size": 5038690,
+      "sha256": "19bd99c957d782762efcce992e9931f5e5c85f61634dde42bdfc4de73dd0df4c",
+      "members": 69
+    },
+    {
+      "name": "pinball-1.4.95-1.4.96-31-greyupd0902.zip",
+      "directory": "archive-medium-diff",
+      "size": 2364771,
+      "sha256": "7df2c452bcf010a305de71969b3dc26655f6f3799fb92ddb92766a00b42dc66d",
+      "members": 23
+    },
+    {
+      "name": "pinball-1.4.95-1.4.96-6-greyupd0902.zip",
+      "directory": "archive-medium-diff",
+      "size": 5147751,
+      "sha256": "d56b8fd3a7d3678711b1943a70fb6fab845c2fcf8faedeacbaeb8df89c89449c",
+      "members": 66
+    },
+    {
+      "name": "pinball-1.4.95-1.4.96-7-greyupd0902.zip",
+      "directory": "archive-medium-diff",
+      "size": 5157000,
+      "sha256": "6cf403f3b71d752a42dd603faed8d2a3cd2ebb82acf1481809dd0500bb87314f",
+      "members": 34
+    },
+    {
+      "name": "pinball-1.4.95-1.4.96-8-greyupd0902.zip",
+      "directory": "archive-medium-diff",
+      "size": 4178681,
+      "sha256": "0d5abd9e371fd15f874285debb4e3e38c315d3f538bf8684561deb108650a231",
+      "members": 39
+    },
+    {
+      "name": "pinball-1.4.95-1.4.96-9-greyupd0902.zip",
+      "directory": "archive-medium-diff",
+      "size": 3701801,
+      "sha256": "cedcc0857aa95b2daba65a71b24ff3c1f18d4a763d18fa970f8f325b14b0d6cb",
+      "members": 47
+    },
+    {
+      "name": "pinball-1.4.95-1.4.96-32-greyupd0902.zip",
+      "directory": "archive-android-diff",
+      "size": 5072252,
+      "sha256": "9ec1cc454f85a0a5f71c1d78eb3c0da709a67202882541b79fdbf14227931be0",
+      "members": 56
+    },
+    {
+      "name": "pinball-1.4.95-1.4.96-33-greyupd0902.zip",
+      "directory": "archive-android-diff",
+      "size": 3019622,
+      "sha256": "5eb0ff43806f512c35bd909a7a3461b4da9a8eb9877598b121e5743c449a5233",
+      "members": 34
+    }
+  ],
+  "raw_member_count": 2770,
+  "raw_member_bytes": 147859393,
+  "generated_ios_member_count": 90,
+  "generated_ios_logical_paths": [
+    "character/big_bear_monster_playable/ui/skill_cutin_1.atf.deflate",
+    "character/mechanic_dragon_eater_playable/ui/skill_cutin_0.atf.deflate",
+    "character/maou2_playable/ui/skill_cutin_1.atf.deflate",
+    "character/discarded_dragon_thunder_playable/ui/skill_cutin_0.atf.deflate",
+    "character/spirit_beast_water_playable/ui/skill_cutin_1.atf.deflate",
+    "character/epuration_empress_playable/ui/skill_cutin_0.atf.deflate",
+    "character/epuration_monk_playable/ui/skill_cutin_0.atf.deflate",
+    "character/genin_playable/ui/skill_cutin_1.atf.deflate",
+    "character/steam_robot_fire_playable/ui/skill_cutin_1.atf.deflate",
+    "character/killer_whale_playable/ui/skill_cutin_0.atf.deflate",
+    "character/steam_robot_another_playable/ui/skill_cutin_1.atf.deflate",
+    "character/epuration_infantry_playable/ui/skill_cutin_0.atf.deflate",
+    "character/seofon_wind/ui/skill_cutin_1.atf.deflate",
+    "character/cobra_playable/ui/skill_cutin_1.atf.deflate",
+    "character/clione_playable/ui/skill_cutin_0.atf.deflate",
+    "character/abyss_beast_playable/ui/skill_cutin_0.atf.deflate",
+    "character/spirit_beast_light_playable/ui/skill_cutin_1.atf.deflate",
+    "character/discard_dragon_dark_playable/ui/skill_cutin_1.atf.deflate",
+    "character/cube_boss_playable/ui/skill_cutin_0.atf.deflate",
+    "character/maou2_playable/ui/skill_cutin_0.atf.deflate",
+    "character/spirit_beast_fire_playable/ui/skill_cutin_1.atf.deflate",
+    "character/discarded_dragon_fire_playable/ui/skill_cutin_0.atf.deflate",
+    "character/spirit_beast_light_playable/ui/skill_cutin_0.atf.deflate",
+    "character/dog_soldier_playable/ui/skill_cutin_0.atf.deflate",
+    "character/steam_robot_light_playable/ui/skill_cutin_1.atf.deflate",
+    "character/killer_whale_playable/ui/skill_cutin_1.atf.deflate",
+    "character/white_tiger_ghost_playable/ui/skill_cutin_1.atf.deflate",
+    "character/mechanic_dragon_eater_playable/ui/skill_cutin_1.atf.deflate",
+    "character/cube_boss_playable/ui/skill_cutin_1.atf.deflate",
+    "character/steam_robot_water_playable/ui/skill_cutin_1.atf.deflate",
+    "character/discarded_dragon_water_playable/ui/skill_cutin_1.atf.deflate",
+    "character/big_bear_monster_playable/ui/skill_cutin_0.atf.deflate",
+    "character/cobra_playable/ui/skill_cutin_0.atf.deflate",
+    "character/epuration_monk_playable/ui/skill_cutin_1.atf.deflate",
+    "character/haniwa_playable/ui/skill_cutin_0.atf.deflate",
+    "character/ghost_girl_playable/ui/skill_cutin_0.atf.deflate",
+    "character/dimension_witch_smr20_ex/ui/skill_cutin_0.atf.deflate",
+    "character/discarded_dragon_water_playable/ui/skill_cutin_0.atf.deflate",
+    "character/wander_armor_wind_playable/ui/skill_cutin_0.atf.deflate",
+    "character/seofon_wind/ui/skill_cutin_0.atf.deflate",
+    "character/steam_robot_wind_playable/ui/skill_cutin_0.atf.deflate",
+    "character/security_robot_playable/ui/skill_cutin_1.atf.deflate",
+    "character/cnmod_epuration_empress/ui/skill_cutin_0.atf.deflate",
+    "character/security_robot_playable/ui/skill_cutin_0.atf.deflate",
+    "character/spirit_beast_dark_playable/ui/skill_cutin_0.atf.deflate",
+    "character/spirit_beast_water_playable/ui/skill_cutin_0.atf.deflate",
+    "character/haniwa_blue_playable/ui/skill_cutin_0.atf.deflate",
+    "character/wander_armor_wind_playable/ui/skill_cutin_1.atf.deflate",
+    "character/steam_robot_dark_playable/ui/skill_cutin_0.atf.deflate",
+    "character/wander_armor_water_playable/ui/skill_cutin_0.atf.deflate",
+    "character/discard_dragon_light_playable/ui/skill_cutin_0.atf.deflate",
+    "character/steam_robot_fire_playable/ui/skill_cutin_0.atf.deflate",
+    "character/spirit_beast_thunder_playable/ui/skill_cutin_0.atf.deflate",
+    "character/epuration_variant_playable/ui/skill_cutin_0.atf.deflate",
+    "character/ghost_girl_playable/ui/skill_cutin_1.atf.deflate",
+    "character/one_eyed_rabbit_playable/ui/skill_cutin_0.atf.deflate",
+    "character/discard_dragon_dark_playable/ui/skill_cutin_0.atf.deflate",
+    "character/steam_robot_light_playable/ui/skill_cutin_0.atf.deflate",
+    "character/spirit_beast_dark_playable/ui/skill_cutin_1.atf.deflate",
+    "character/steam_robot_thunder_playable/ui/skill_cutin_1.atf.deflate",
+    "character/discarded_dragon_fire_playable/ui/skill_cutin_1.atf.deflate",
+    "character/white_tiger_ghost_playable/ui/skill_cutin_0.atf.deflate",
+    "character/cnmod_epuration_empress/ui/skill_cutin_1.atf.deflate",
+    "character/abyss_beast_playable/ui/skill_cutin_1.atf.deflate",
+    "character/discard_dragon_light_playable/ui/skill_cutin_1.atf.deflate",
+    "character/spirit_beast_thunder_playable/ui/skill_cutin_1.atf.deflate",
+    "character/epuration_infantry_playable/ui/skill_cutin_1.atf.deflate",
+    "character/spirit_beast_wind_playable/ui/skill_cutin_0.atf.deflate",
+    "character/steam_robot_another_playable/ui/skill_cutin_0.atf.deflate",
+    "character/steam_robot_water_playable/ui/skill_cutin_0.atf.deflate",
+    "character/steam_robot_wind_playable/ui/skill_cutin_1.atf.deflate",
+    "character/steam_robot_thunder_playable/ui/skill_cutin_0.atf.deflate",
+    "character/dimension_witch_smr20_ex/ui/skill_cutin_1.atf.deflate",
+    "character/epuration_variant_playable/ui/skill_cutin_1.atf.deflate",
+    "character/steam_robot_dark_playable/ui/skill_cutin_1.atf.deflate",
+    "character/haniwa_playable/ui/skill_cutin_1.atf.deflate",
+    "character/dog_soldier_playable/ui/skill_cutin_1.atf.deflate",
+    "character/one_eyed_rabbit_playable/ui/skill_cutin_1.atf.deflate",
+    "character/genin_playable/ui/skill_cutin_0.atf.deflate",
+    "character/discarded_dragon_thunder_playable/ui/skill_cutin_1.atf.deflate",
+    "character/spirit_beast_fire_playable/ui/skill_cutin_0.atf.deflate",
+    "character/haniwa_blue_playable/ui/skill_cutin_1.atf.deflate",
+    "character/discard_dragon_wind_playable/ui/skill_cutin_1.atf.deflate",
+    "character/discard_dragon_wind_playable/ui/skill_cutin_0.atf.deflate",
+    "character/haniwa_green_playable/ui/skill_cutin_1.atf.deflate",
+    "character/wander_armor_water_playable/ui/skill_cutin_1.atf.deflate",
+    "character/clione_playable/ui/skill_cutin_1.atf.deflate",
+    "character/haniwa_green_playable/ui/skill_cutin_0.atf.deflate",
+    "character/epuration_empress_playable/ui/skill_cutin_1.atf.deflate",
+    "character/spirit_beast_wind_playable/ui/skill_cutin_1.atf.deflate"
+  ],
+  "output": {
+    "archive": "pinball-1.4.96-1.4.97-1-greyupd0902-cdn-resource-recovery.zip",
+    "size": 156468518,
+    "sha256": "3150894f71aff238a4190730569edfa6e1a5a0c062b92e9fa8aa4b3e34073d4c",
+    "members": 2860,
+    "prefix_counts": {
+      "production/upload/": 1554,
+      "production/medium_upload/": 1126,
+      "production/android_upload/": 90,
+      "production/ios_upload/": 90
+    }
+  },
+  "safety": {
+    "raw_author_bytes_preserved": true,
+    "ios_generated_from_source_png": true,
+    "android_ios_pair_validation": "wf_atf.validate_cutin_platform_pair",
+    "table_or_server_data_changed": false
+  }
+}

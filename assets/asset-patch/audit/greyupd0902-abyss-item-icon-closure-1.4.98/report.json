@@ -1,0 +1,124 @@
+{
+  "patch_id": "greyupd0902-abyss-item-icon-closure-1.4.98",
+  "base_version": "1.4.97",
+  "version": "1.4.98",
+  "source_archives_sha256": {
+    "pinball-1.4.95-1.4.96-1-cdn-consolidated-gerald0903.zip": "6d3131f13747acfa640195c01c86e6e6e5037f6cc46eb8234eafbc96bda186cf",
+    "pinball-1.4.96-1.4.97-1-greyupd0902-cdn-resource-recovery.zip": "3150894f71aff238a4190730569edfa6e1a5a0c062b92e9fa8aa4b3e34073d4c"
+  },
+  "prior_archives_unchanged": true,
+  "item_table_source_sha256": "a108a1fcccfe755f738e8ef9ed85a8ce35fe1e661b5b6fe689057be897fe57ac",
+  "content": {
+    "baseline_dimensions": [
+      505,
+      1704
+    ],
+    "output_dimensions": [
+      505,
+      1726
+    ],
+    "baseline_frame_count": 1514,
+    "output_frame_count": 1517,
+    "baseline_pixels_preserved": true,
+    "baseline_frame_metadata_preserved": true,
+    "source_icon_pixels_preserved": true,
+    "added_frames": [
+      {
+        "item_id": 2370099,
+        "item_name": "深渊代币",
+        "logical_name": "item/materials/mod/abyss/abyss_coin",
+        "frame": {
+          "n": "item/materials/mod/abyss/abyss_coin",
+          "w": 20,
+          "h": 20,
+          "x": 1,
+          "y": 1705
+        },
+        "source_png_sha256": "114961cf0a62ac609b51d32e004ea0e6da186de974c21b63fdd86fb8e62af1b3",
+        "rgba_sha256": "d1afd6edace129e157502153bb3b777e00e96fe202cdd8748f06e37e630f09f6"
+      },
+      {
+        "item_id": 2370100,
+        "item_name": "深渊觉醒核",
+        "logical_name": "item/materials/mod/abyss/abyss_core",
+        "frame": {
+          "n": "item/materials/mod/abyss/abyss_core",
+          "w": 20,
+          "h": 20,
+          "x": 22,
+          "y": 1705
+        },
+        "source_png_sha256": "cc6722d3652a6409fbc09b947b56c9ca214e4ace255f07f7f5de2e1ba7b88e21",
+        "rgba_sha256": "89fa022d62af7567be7ac2f6b30f95004a8b0eb13876937d328ac9aa185491bf"
+      },
+      {
+        "item_id": 2370101,
+        "item_name": "深渊王印",
+        "logical_name": "item/materials/mod/abyss/abyss_seal",
+        "frame": {
+          "n": "item/materials/mod/abyss/abyss_seal",
+          "w": 20,
+          "h": 20,
+          "x": 43,
+          "y": 1705
+        },
+        "source_png_sha256": "0b392b057079b4f1997fd5debddefe6e945758f3cd5f611deb482f9c0ef18f0c",
+        "rgba_sha256": "ed6883534a3fb2da1685a86be382046fb2aae711a92905bdb70910a4cabdb6b2"
+      }
+    ],
+    "item_table_reference_closure_verified": true,
+    "item_table_changed": false,
+    "common_android_ios_pair": true,
+    "platform_atf_required": false,
+    "output_members": [
+      {
+        "logical": "item/sprite_sheet.png",
+        "member": "production/upload/6d/4d576b424178c5b2b253a2dd5aa3d78fa74ef3",
+        "sha256": "7f918220e10d635976e2d44cb39cf270653eda972324f670887a7e87dd694b66"
+      },
+      {
+        "logical": "item/sprite_sheet.atlas.amf3.deflate",
+        "member": "production/upload/7b/5e0efc0e0691038ca52fe282501dfd3a1b5ae3",
+        "sha256": "c6327b910f774c660d2279c4248f7a19c3047cf252bcd4104e0323c7075e9230"
+      }
+    ]
+  },
+  "manifest_entry": {
+    "id": "greyupd0902-abyss-item-icon-closure-1.4.98",
+    "type": "patch",
+    "name": "深渊物品图标预加载配套修复",
+    "description": "将 .97 已有的深渊代币、觉醒核和王印原图补入常驻物品图集，修复同步小图标读取；安卓与 iOS 共用，不修改玩法主表。",
+    "version": "1.4.98",
+    "depends_on": "1.4.97",
+    "enabled": true,
+    "archive": "pinball-1.4.97-1.4.98-1-greyupd0902-abyss-item-icon-closure.zip",
+    "archive_size": 756486,
+    "files": [
+      "production/upload/6d/4d576b424178c5b2b253a2dd5aa3d78fa74ef3",
+      "production/upload/7b/5e0efc0e0691038ca52fe282501dfd3a1b5ae3"
+    ],
+    "changes": [
+      "保留当前 1514 个物品图集帧及全部原始像素，仅追加深渊代币、深渊觉醒核、深渊王印三个同名图标帧。",
+      "三个图标直接复用 .97 的作者 PNG 像素，补齐同步小图标所需的常驻图集加载链。",
+      "common PNG 与 atlas 同时供 Android 和 iOS 使用，不增加或复制平台专属 ATF。",
+      "仅顺接 1.4.97 -> 1.4.98，不改写 .96/.97 旧包及称号、代币消耗、卡池、商店或连战塔主表。"
+    ],
+    "created_at": "2026-09-03",
+    "audit": {
+      "directory": "assets/asset-patch/audit/greyupd0902-abyss-item-icon-closure-1.4.98",
+      "report": "report.json"
+    },
+    "archive_integrity": [
+      {
+        "name": "pinball-1.4.97-1.4.98-1-greyupd0902-abyss-item-icon-closure.zip",
+        "size": 756486,
+        "sha256": "9d286583480da7c856088a7328d4772d943c23fa9c9598b888c375b51ad0317c",
+        "members": 2
+      }
+    ],
+    "chain": [
+      "pinball-1.4.97-1.4.98-1-greyupd0902-abyss-item-icon-closure.zip"
+    ]
+  },
+  "validation": "static payload decoding and archive readback only; no application/runtime tests"
+}
