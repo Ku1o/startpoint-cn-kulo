@@ -557,6 +557,7 @@ const routes = async (fastify: FastifyInstance) => {
                 stageMaxLevel,
                 currentEquipment.level,
                 requiredAwakeningLevel,
+                shopItemData.enhancementPurchaseMode,
             )
             if (!plan.ok) return reply.status(400).send({
                 "error": "Bad Request",

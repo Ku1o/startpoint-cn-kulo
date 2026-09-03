@@ -36,6 +36,22 @@ function resolveChance(value: unknown, rushEventRound: number): number | null {
 }
 
 /**
+ * Resolves an optional chance on a final-folder random reward entry.  Existing
+ * entries without `chance` remain unconditional; the caller supplies a
+ * deterministic random function in tests when needed.
+ */
+export function shouldRollRogueFolderRandomReward(
+    value: unknown,
+    random: () => number = Math.random,
+): boolean {
+    if (value === undefined) return true
+    const chance = Number(value)
+    if (!Number.isFinite(chance) || chance <= 0) return false
+    if (chance >= 1) return true
+    return random() < chance
+}
+
+/**
  * Resolves the independent reward slots for one Rush round.
  *
  * Legacy entries without slot controls remain one guaranteed drop. New

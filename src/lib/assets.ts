@@ -54,6 +54,7 @@ import {
     serverGachas,
     serverManaNodes,
 } from "./content-master"
+import { shouldRollRogueFolderRandomReward } from "./quest/finish/rogue-drop-schedule"
 
 const MOD_ASSETS_DIR = joinPath(__dirname, "..", "..", "assets")
 // Some CN-mod pools are intentionally mirrored in both files because the
@@ -827,6 +828,7 @@ export function getRushEventFolderClearRewards(
         return Number.isFinite(n) ? [n, n] : [fallback, fallback]
     }
     for (const entry of Array.isArray(rogueCfg?.folder_clear_random) ? rogueCfg.folder_clear_random : []) {
+        if (!shouldRollRogueFolderRandomReward(entry?.chance)) continue
         const pool = (Array.isArray(entry?.pool) ? entry.pool : []).map(Number).filter(Number.isFinite)
         if (pool.length === 0) continue
         const [pickLo, pickHi] = range(entry?.pick, pool.length)

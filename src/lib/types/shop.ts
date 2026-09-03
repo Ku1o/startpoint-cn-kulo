@@ -51,6 +51,12 @@ export interface ShopItem {
     equipmentId?: number
     enhancementMaxLevel?: number
     requireAwakeningLevel?: number
+    /**
+     * New special weapons use the real per-level material flow.  Legacy
+     * enhancement rows intentionally omit this flag and retain the existing
+     * one-purchase stage benefit.
+     */
+    enhancementPurchaseMode?: "per_level" | "stage_benefit"
     maxFrequency?: number
     dailyStock?: number
     monthlyStock?: number

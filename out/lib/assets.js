@@ -54,6 +54,7 @@ const fs_1 = require("fs");
 const path_1 = require("path");
 const types_1 = require("./types");
 const content_master_1 = require("./content-master");
+const rogue_drop_schedule_1 = require("./quest/finish/rogue-drop-schedule");
 const MOD_ASSETS_DIR = (0, path_1.join)(__dirname, "..", "..", "assets");
 // Some CN-mod pools are intentionally mirrored in both files because the
 // client/admin metadata pipeline reads gacha.json while runtime draws prefer
@@ -726,6 +727,8 @@ function getRushEventFolderClearRewards(rushEventId, folderId) {
         return Number.isFinite(n) ? [n, n] : [fallback, fallback];
     };
     for (const entry of Array.isArray(rogueCfg === null || rogueCfg === void 0 ? void 0 : rogueCfg.folder_clear_random) ? rogueCfg.folder_clear_random : []) {
+        if (!(0, rogue_drop_schedule_1.shouldRollRogueFolderRandomReward)(entry === null || entry === void 0 ? void 0 : entry.chance))
+            continue;
         const pool = (Array.isArray(entry === null || entry === void 0 ? void 0 : entry.pool) ? entry.pool : []).map(Number).filter(Number.isFinite);
         if (pool.length === 0)
             continue;

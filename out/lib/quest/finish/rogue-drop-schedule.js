@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.resolveRogueRoundDrops = void 0;
+exports.resolveRogueRoundDrops = exports.shouldRollRogueFolderRandomReward = void 0;
 function appliesToRound(drop, rushEventRound) {
     if ((drop === null || drop === void 0 ? void 0 : drop.rounds) !== undefined) {
         if (!Array.isArray(drop.rounds) || drop.rounds.length < 2)
@@ -35,6 +35,22 @@ function resolveChance(value, rushEventRound) {
         return 0;
     return Math.max(0, Math.min(1, start + (rushEventRound - baseRound) * perRound));
 }
+/**
+ * Resolves an optional chance on a final-folder random reward entry.  Existing
+ * entries without `chance` remain unconditional; the caller supplies a
+ * deterministic random function in tests when needed.
+ */
+function shouldRollRogueFolderRandomReward(value, random = Math.random) {
+    if (value === undefined)
+        return true;
+    const chance = Number(value);
+    if (!Number.isFinite(chance) || chance <= 0)
+        return false;
+    if (chance >= 1)
+        return true;
+    return random() < chance;
+}
+exports.shouldRollRogueFolderRandomReward = shouldRollRogueFolderRandomReward;
 /**
  * Resolves the independent reward slots for one Rush round.
  *

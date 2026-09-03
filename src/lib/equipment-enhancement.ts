@@ -14,6 +14,8 @@ export interface EquipmentEnhancementStageQuery {
     currentLevel: number
 }
 
+export type EquipmentEnhancementPurchaseMode = "stage_benefit" | "per_level"
+
 export type EquipmentEnhancementPurchasePlan =
     | {
         ok: true
@@ -52,9 +54,9 @@ export function findCurrentEquipmentEnhancementStage(
 /**
  * Plans one special-equipment enhancement purchase.
  *
- * The normal progression boundary is still enforced, while the private-server
- * benefit intentionally completes the current material stage for one unit of
- * its listed cost. Later material stages must still be purchased separately.
+ * Legacy rows retain the existing stage-benefit behavior. Newly-added special
+ * weapons opt into `per_level`, where the requested amount advances exactly
+ * that many levels and the caller charges the row's materials per level.
  */
 export function planEquipmentEnhancementPurchase(
     currentLevel: number,
@@ -62,6 +64,7 @@ export function planEquipmentEnhancementPurchase(
     stageMaxLevel: number,
     currentAwakeningLevel: number,
     requiredAwakeningLevel: number,
+    mode: EquipmentEnhancementPurchaseMode = "stage_benefit",
 ): EquipmentEnhancementPurchasePlan {
     if (!Number.isSafeInteger(requestedPurchaseAmount) || requestedPurchaseAmount <= 0) {
         return { ok: false, message: "Invalid enhancement purchase amount." }
@@ -77,6 +80,15 @@ export function planEquipmentEnhancementPurchase(
     }
     if (currentAwakeningLevel < requiredAwakeningLevel) {
         return { ok: false, message: "Equipment awakening level is too low." }
+    }
+
+    if (mode === "per_level") {
+        return {
+            ok: true,
+            newLevel: currentLevel + requestedPurchaseAmount,
+            chargedPurchaseAmount: requestedPurchaseAmount,
+            grantedLevelCount: requestedPurchaseAmount,
+        }
     }
 
     return {
