@@ -188,10 +188,13 @@ function runFreshDatabaseTests(api) {
     const other = insertDefaultPlayerSync(createAccount(insertAccountSync, "other").id)
     seedRepresentativeState(source.id, other.id)
 
-    db.prepare(`INSERT INTO players_mails
+    const targetMail = db.prepare(`INSERT INTO players_mails
         (player_id, subject, description, type, number, create_time)
         VALUES (?, ?, ?, ?, ?, ?)`)
         .run(target.id, "目标旧邮件", "old", 1, 1, "2026-08-20T00:00:00.000Z")
+    db.prepare(`INSERT INTO daily_vmoney_mail_grants (bucket, player_id, mail_id, created_at_ms)
+        VALUES (?, ?, ?, ?)`)
+        .run("2026-08-20", target.id, Number(targetMail.lastInsertRowid), 2026082000000)
     db.prepare(`INSERT INTO players_active_quests
         (player_id, play_id, quest_id, category) VALUES (?, ?, ?, ?)`)
         .run(target.id, "target-active-battle", 1, 1)
@@ -208,6 +211,9 @@ function runFreshDatabaseTests(api) {
     assert.equal(Object.hasOwn(snapshot.data.tables, "players_repair_versions"), false)
     assert.ok(snapshot.summary.excludedState.some(entry =>
         entry.policy === "reset" && entry.tables.includes("players_repair_versions")))
+    assert.equal(Object.hasOwn(snapshot.data.tables, "daily_vmoney_mail_grants"), false)
+    assert.ok(snapshot.summary.excludedState.some(entry =>
+        entry.policy === "reset" && entry.tables.includes("daily_vmoney_mail_grants")))
     assert.equal(Object.hasOwn(snapshot.data.tables, "leaderboard_runs"), false)
     assert.ok(snapshot.summary.excludedState.some(entry =>
         entry.policy === "preserve-target" && entry.tables.includes("leaderboard_runs")))
@@ -225,6 +231,7 @@ function runFreshDatabaseTests(api) {
     assert.equal(restoredPlayer.free_vmoney, 8765)
     assert.equal(db.prepare(`SELECT COUNT(*) count FROM players_active_quests WHERE player_id = ?`).get(target.id).count, 0)
     assert.equal(db.prepare(`SELECT COUNT(*) count FROM players_repair_versions WHERE player_id = ?`).get(target.id).count, 0)
+    assert.equal(db.prepare(`SELECT COUNT(*) count FROM daily_vmoney_mail_grants WHERE player_id = ?`).get(target.id).count, 0)
     assert.equal(db.prepare(`SELECT COUNT(*) count FROM players_follows WHERE follower_player_id = ? AND followed_player_id = ?`).get(target.id, other.id).count, 1)
     assert.equal(db.prepare(`SELECT COUNT(*) count FROM leaderboard_runs WHERE player_id = ? AND competition_key = ?`).get(target.id, "snapshot-target").count, 1)
     assert.equal(db.prepare(`SELECT COUNT(*) count FROM leaderboard_runs WHERE player_id = ? AND competition_key = ?`).get(target.id, "snapshot-source").count, 0)
@@ -384,6 +391,13 @@ async function runHttpIntegrationTests(api, fixture) {
         db.prepare(`INSERT INTO raid_event_global_kill_ledger
             (event_id, play_id, player_id, quest_id, created_at) VALUES (?, ?, ?, ?, ?)`)
             .run(999002, `legacy-play-${legacyTarget.id}`, legacyTarget.id, 999003, 2000004)
+        const legacyMail = db.prepare(`INSERT INTO players_mails
+            (player_id, subject, description, type, number, create_time)
+            VALUES (?, ?, ?, ?, ?, ?)`)
+            .run(legacyTarget.id, "旧版目标邮件", "keep?", 1, 1, "2026-08-20T00:00:00.000Z")
+        db.prepare(`INSERT INTO daily_vmoney_mail_grants (bucket, player_id, mail_id, created_at_ms)
+            VALUES (?, ?, ?, ?)`)
+            .run("2026-08-20", legacyTarget.id, Number(legacyMail.lastInsertRowid), 2026082000001)
         seedLeaderboardRecord(legacyTarget.id, "legacy-target")
         const legacySnapshot = {
             schema: "starpoint-cn-save",
@@ -409,6 +423,7 @@ async function runHttpIntegrationTests(api, fixture) {
         assert.equal(db.prepare(`SELECT COUNT(*) count FROM quest_npc_party_pool WHERE source_player_id = ?`).get(legacyTarget.id).count, 1)
         assert.equal(db.prepare(`SELECT COUNT(*) count FROM raid_event_global_kill_ledger WHERE player_id = ?`).get(legacyTarget.id).count, 1)
         assert.equal(db.prepare(`SELECT COUNT(*) count FROM leaderboard_runs WHERE player_id = ? AND competition_key = ?`).get(legacyTarget.id, "legacy-target").count, 1)
+        assert.equal(db.prepare(`SELECT COUNT(*) count FROM daily_vmoney_mail_grants WHERE player_id = ?`).get(legacyTarget.id).count, 0)
         const legacyBackupDirectory = path.join(
             databaseDirectory,
             legacyImported.json().backup.replace(/^\.database[\\/]admin-backups[\\/]/, "admin-backups/"),
