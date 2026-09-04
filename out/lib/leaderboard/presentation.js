@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.buildLeaderboardTermsText = exports.buildUnavailableNativeLeaderboardPayload = exports.buildNativeLeaderboardPayload = exports.getLeaderboardPlayedPartiesSync = exports.getOfficialLeaderboardPageSync = exports.nativeRow = void 0;
+exports.buildLeaderboardTermsText = exports.buildUnavailableNativeLeaderboardPayload = exports.buildNativeLeaderboardPayload = exports.getLeaderboardPlayedPartiesSync = exports.getOfficialLeaderboardPageSync = exports.nativeRow = exports.fromProfileTargetId = exports.toProfileTargetId = exports.RUSH_PROFILE_ID_BASE = void 0;
 const content_master_1 = require("../content-master");
 const player_1 = require("../../data/domains/player");
 const leaderboard_1 = require("../../data/domains/leaderboard");
@@ -10,6 +10,24 @@ const stamina_1 = require("../stamina");
 const profileFavorite_1 = require("../profileFavorite");
 const competition_1 = require("./competition");
 const settlement_1 = require("./settlement");
+// The game profile endpoint normally addresses a player through its viewer
+// session token. Leaderboard rows identify saved players instead, so reserve a
+// disjoint numeric namespace that the profile route can decode back to a
+// player id. Real viewer ids are generated below 900,000,000.
+exports.RUSH_PROFILE_ID_BASE = 9000000000;
+function toProfileTargetId(playerId) {
+    if (!Number.isFinite(playerId) || playerId <= 0)
+        return 0;
+    return exports.RUSH_PROFILE_ID_BASE + Math.trunc(playerId);
+}
+exports.toProfileTargetId = toProfileTargetId;
+function fromProfileTargetId(targetId) {
+    if (!Number.isFinite(targetId))
+        return null;
+    const playerId = Math.trunc(targetId) - exports.RUSH_PROFILE_ID_BASE;
+    return playerId > 0 ? playerId : null;
+}
+exports.fromProfileTargetId = fromProfileTargetId;
 function formatTime(ms) {
     const value = Math.max(0, Math.trunc(ms));
     const minutes = Math.floor(value / 60000);
@@ -77,7 +95,7 @@ function nativeRow(record, favorite) {
         a: (_a = paths[0]) !== null && _a !== void 0 ? _a : null,
         b: (_b = paths[1]) !== null && _b !== void 0 ? _b : null,
         c: (_c = paths[2]) !== null && _c !== void 0 ? _c : null,
-        id: record.playerId,
+        id: record.playerExists ? toProfileTargetId(record.playerId) : 0,
     };
 }
 exports.nativeRow = nativeRow;
@@ -95,7 +113,7 @@ function outOfRankRow(playerId) {
         a: null,
         b: null,
         c: null,
-        id: playerId,
+        id: toProfileTargetId(playerId),
     };
 }
 function getOfficialLeaderboardPageSync(input) {

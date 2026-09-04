@@ -10,6 +10,7 @@ process.env.DATA_DIR = temporaryDataDir
 const { getDb } = require("../out/data/db")
 const Fastify = require("fastify")
 const rushEventRoutes = require("../out/routes/api/rushEvent").default
+const profileRoutes = require("../out/routes/api/profile").default
 const { insertAccountSync } = require("../out/data/domains/account")
 const { insertDefaultPlayerSync, updatePlayerSync } = require("../out/data/domains/player")
 const { updatePlayerPartySync } = require("../out/data/domains/party")
@@ -31,6 +32,8 @@ const {
     buildNativeLeaderboardPayload,
     buildUnavailableNativeLeaderboardPayload,
     getOfficialLeaderboardPageSync,
+    fromProfileTargetId,
+    toProfileTargetId,
 } = require("../out/lib/leaderboard/presentation")
 const {
     getLeaderboardSettlementConfigSync,
@@ -145,7 +148,8 @@ test("完整连续通关才入榜，并按最佳 client_battle_ms 去重排序",
     assert.equal(payload.enabled, true)
     assert.equal(payload.name, "深渊连战")
     assert.equal(payload.item.rank, "2位")
-    assert.equal(payload.item.id, playerA)
+    assert.equal(payload.item.id, toProfileTargetId(playerA))
+    assert.equal(fromProfileTargetId(payload.item.id), playerA)
     assert.equal(payload.index, 1)
     assert.equal(payload.row, 1)
     assert.equal(payload.total, 2)
@@ -304,6 +308,7 @@ test("独立 Rush 排行接口返回原生 item/reward/total 字段", async t =>
             : payload)
     })
     await app.register(rushEventRoutes, { prefix: "/event/rush" })
+    await app.register(profileRoutes, { prefix: "/profile" })
     await app.ready()
     t.after(() => app.close())
 
@@ -316,13 +321,32 @@ test("独立 Rush 排行接口返回原生 item/reward/total 字段", async t =>
     assert.equal(response.statusCode, 200, response.payload)
     const data = JSON.parse(response.payload).data
     assert.equal(data.rows.length, 1)
-    assert.equal(data.item.id, player.id)
+    assert.equal(data.item.id, toProfileTargetId(player.id))
     assert.equal(data.item.rank, "1位")
     assert.equal(data.page, 0)
     assert.equal(data.row, 0)
     assert.equal(data.index, 0)
     assert.equal(data.total, 1)
     assert.equal(data.reward.length, 5)
+
+    const profileResponse = await app.inject({
+        method: "POST",
+        url: "/profile/get_profile",
+        headers: { "content-type": "application/json" },
+        payload: { viewer_id: viewerId, target_viewer_id: data.item.id },
+    })
+    assert.equal(profileResponse.statusCode, 200, profileResponse.payload)
+    const profileData = JSON.parse(profileResponse.payload).data
+    assert.equal(profileData.target_user_info.name, "Native Client")
+
+    const legacyProfileResponse = await app.inject({
+        method: "POST",
+        url: "/profile/get_profile",
+        headers: { "content-type": "application/json" },
+        payload: { viewer_id: viewerId, target_viewer_id: viewerId },
+    })
+    assert.equal(legacyProfileResponse.statusCode, 200, legacyProfileResponse.payload)
+    assert.equal(JSON.parse(legacyProfileResponse.payload).data.target_user_info.name, "Native Client")
 })
 
 test("unregistered Rush leaderboard returns a protocol-safe disabled payload", async (t) => {

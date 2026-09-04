@@ -21,6 +21,23 @@ import {
 import { LeaderboardRewardTier } from "./rewards"
 import { getLeaderboardSettlementConfigSync } from "./settlement"
 
+// The game profile endpoint normally addresses a player through its viewer
+// session token. Leaderboard rows identify saved players instead, so reserve a
+// disjoint numeric namespace that the profile route can decode back to a
+// player id. Real viewer ids are generated below 900,000,000.
+export const RUSH_PROFILE_ID_BASE = 9_000_000_000
+
+export function toProfileTargetId(playerId: number): number {
+    if (!Number.isFinite(playerId) || playerId <= 0) return 0
+    return RUSH_PROFILE_ID_BASE + Math.trunc(playerId)
+}
+
+export function fromProfileTargetId(targetId: number): number | null {
+    if (!Number.isFinite(targetId)) return null
+    const playerId = Math.trunc(targetId) - RUSH_PROFILE_ID_BASE
+    return playerId > 0 ? playerId : null
+}
+
 export interface OfficialLeaderboardRow {
     rank_number: number
     best_round: number
@@ -117,7 +134,7 @@ export function nativeRow(
         a: paths[0] ?? null,
         b: paths[1] ?? null,
         c: paths[2] ?? null,
-        id: record.playerId,
+        id: record.playerExists ? toProfileTargetId(record.playerId) : 0,
     }
 }
 
@@ -134,7 +151,7 @@ function outOfRankRow(playerId: number): NativeLeaderboardRow | null {
         a: null,
         b: null,
         c: null,
-        id: playerId,
+        id: toProfileTargetId(playerId),
     }
 }
 

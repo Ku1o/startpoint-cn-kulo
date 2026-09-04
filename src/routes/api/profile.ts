@@ -10,6 +10,7 @@ import { resolvePlayerIdSync } from "../../data/activeAccount";
 import { generateDataHeaders } from "../../utils";
 import { getPlayerIdByViewerIdSync } from "../../data/domains/follow";
 import { buildTargetProfileSync } from "../../lib/follow";
+import { fromProfileTargetId } from "../../lib/leaderboard/presentation";
 import { getFavoritePartyGroupListSync } from "../../lib/profileFavorite";
 import {
     ensurePlayerLegacyDegreesSync,
@@ -109,7 +110,11 @@ const routes = async (fastify: FastifyInstance) => {
         const session = await getSession(String(viewerId))
         if (!session) return reply.status(400).send({ error: "Bad Request", message: "Invalid viewer id." })
         const playerId = resolvePlayerIdSync(session.accountId)
-        const targetPlayerId = getPlayerIdByViewerIdSync(targetViewerId)
+        // Rush leaderboard rows carry an encoded saved-player id because a
+        // single account can have multiple player archives sharing one viewer
+        // session. Keep the normal viewer-id lookup for every other caller.
+        const targetPlayerId = fromProfileTargetId(targetViewerId)
+            ?? getPlayerIdByViewerIdSync(targetViewerId)
         if (playerId === null || targetPlayerId === null) {
             reply.header("content-type", "application/x-msgpack")
             return reply.status(200).send({

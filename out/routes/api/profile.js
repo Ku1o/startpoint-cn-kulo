@@ -16,6 +16,7 @@ const activeAccount_1 = require("../../data/activeAccount");
 const utils_1 = require("../../utils");
 const follow_1 = require("../../data/domains/follow");
 const follow_2 = require("../../lib/follow");
+const presentation_1 = require("../../lib/leaderboard/presentation");
 const profileFavorite_1 = require("../../lib/profileFavorite");
 const degree_1 = require("../../data/domains/degree");
 const carnival_reward_handler_1 = require("../../lib/quest/finish/carnival-reward-handler");
@@ -86,6 +87,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
     }));
     // Public profile opened from the follow/follower list.
     fastify.post("/get_profile", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
+        var _a;
         const body = request.body;
         const viewerId = Number(body.viewer_id);
         const targetViewerId = Number(body.target_viewer_id);
@@ -96,7 +98,10 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         if (!session)
             return reply.status(400).send({ error: "Bad Request", message: "Invalid viewer id." });
         const playerId = (0, activeAccount_1.resolvePlayerIdSync)(session.accountId);
-        const targetPlayerId = (0, follow_1.getPlayerIdByViewerIdSync)(targetViewerId);
+        // Rush leaderboard rows carry an encoded saved-player id because a
+        // single account can have multiple player archives sharing one viewer
+        // session. Keep the normal viewer-id lookup for every other caller.
+        const targetPlayerId = (_a = (0, presentation_1.fromProfileTargetId)(targetViewerId)) !== null && _a !== void 0 ? _a : (0, follow_1.getPlayerIdByViewerIdSync)(targetViewerId);
         if (playerId === null || targetPlayerId === null) {
             reply.header("content-type", "application/x-msgpack");
             return reply.status(200).send({

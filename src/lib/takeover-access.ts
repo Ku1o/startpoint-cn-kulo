@@ -15,6 +15,11 @@ function normalizeViewerId(value: unknown): string | null {
 export function installTakeoverUdidGuard(fastify: FastifyInstance): void {
     fastify.addHook("preHandler", async (request, reply) => {
         if (!request.url.startsWith("/api/index.php/")) return
+        // Leaderboard reads are public and may be retried without the local-store UDID.
+        // Keep takeover protection for mutating/authenticated APIs, but do not turn a
+        // missing UDID into an empty leaderboard response that the client cannot render.
+        const requestPath = request.url.split("?", 1)[0]
+        if (requestPath.endsWith("/event/rush/leaderboard")) return
         const body = request.body
         if (!body || typeof body !== "object" || Array.isArray(body)) return
         const viewerId = normalizeViewerId((body as Record<string, unknown>).viewer_id)
