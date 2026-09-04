@@ -26,7 +26,8 @@ ANCHOR = "_loc14_ = Boolean(_loc5_(_loc13_.questKind));"
 BEGIN_MARKER = "WF_ABYSS_MODE_EQUIPMENT_GATE_V2_BEGIN"
 END_MARKER = "WF_ABYSS_MODE_EQUIPMENT_GATE_V2_END"
 ALLOWED_SUMMARY = (
-    "single[8]=2001, single[10]=1..97, single[17]=700099xxx"
+    "single[8]=2001, single[10]=1..97, single[17]=700099xxx, "
+    "multi[4]=1099001..1099003, direct-equipment-enhancement[0].level>=120"
 )
 
 PATCH_LINES = (
@@ -43,20 +44,42 @@ PATCH_LINES = (
     "if(_loc12_ != null && _loc12_.id >= 8000101 && _loc12_.id <= 8000115)",
     "{",
     "   _loc14_ = false;",
+    "   _loc16_ = 0;",
     "   if(param3.index == 0)",
     "   {",
     "      _loc15_ = int(param3.params[0].params[0]);",
     "      switch(param3.params[0].index)",
     "      {",
     "         case 8:",
-    "            _loc14_ = _loc15_ == 2001;",
+    "            _loc16_ = _loc15_ == 2001 ? 1 : 0;",
     "            break;",
     "         case 10:",
-    "            _loc14_ = _loc15_ >= 1 && _loc15_ <= 97;",
+    "            _loc16_ = _loc15_ >= 1 && _loc15_ <= 97 ? 1 : 0;",
     "            break;",
     "         case 17:",
-    "            _loc14_ = int(Math.floor(_loc15_ / 1000 + 1e-10)) == 700099;",
+    "            _loc16_ = int(Math.floor(_loc15_ / 1000 + 1e-10)) == 700099 ? 1 : 0;",
     "      }",
+    "   }",
+    "   else if(param3.index == 1)",
+    "   {",
+    "      _loc15_ = int(param3.params[0].params[0]);",
+    "      switch(param3.params[0].index)",
+    "      {",
+    "         case 4:",
+    "            _loc16_ = _loc15_ >= 1099001 && _loc15_ <= 1099003 ? 1 : 0;",
+    "      }",
+    "   }",
+    "   if(_loc16_ == 0 && _loc13_ is EquipmentAbilityLogic)",
+    "   {",
+    "      if((_loc13_ as EquipmentAbilityLogic).enhancementAbility.index == 0 && (_loc13_ as EquipmentAbilityLogic).enhancementAbility.params[0].getCurrentLevel() >= 120)",
+    "      {",
+    "         _loc16_ = 2;",
+    "      }",
+    "   }",
+    "   _loc14_ = _loc16_ != 0;",
+    "   if(_loc16_ == 2)",
+    "   {",
+    "      _loc13_ = (_loc13_ as EquipmentAbilityLogic).abilitySoulAbility;",
     "   }",
     "}",
     f"// {END_MARKER}",
@@ -68,15 +91,23 @@ class PatchError(RuntimeError):
 
 
 def allowed_quest(group_index: int, single_index: int, quest_id: int) -> bool:
-    """Return the exact quest whitelist used by the ActionScript gate."""
-    if group_index != 0:
+    """Return the exact quest whitelist used by the ActionScript gate.
+
+    ``group_index`` 0 is the Single group and ``group_index`` 1 is the
+    Multi group.  The direct-equipment level exception is evaluated by the
+    ActionScript block separately and is therefore intentionally not part of
+    this quest-only helper.
+    """
+    if group_index == 0:
+        if single_index == 8:
+            return quest_id == 2001
+        if single_index == 10:
+            return 1 <= quest_id <= 97
+        if single_index == 17:
+            return quest_id // 1000 == 700099
         return False
-    if single_index == 8:
-        return quest_id == 2001
-    if single_index == 10:
-        return 1 <= quest_id <= 97
-    if single_index == 17:
-        return quest_id // 1000 == 700099
+    if group_index == 1 and single_index == 4:
+        return 1099001 <= quest_id <= 1099003
     return False
 
 
@@ -259,6 +290,36 @@ _SIMILAR_GATE_PREFIXES = (
     ("_loc12_", ".", "id", "<="),
     ("param3", ".", "index", "=="),
     ("Math", ".", "floor", "(", "_loc15_", "/", "1000"),
+    ("param3", ".", "index", "==", "1"),
+    ("_loc15_", ">=", "1099001"),
+    ("enhancementAbility", ".", "index", "=="),
+    ("getCurrentLevel", "(", ")"),
+)
+_REQUIRED_GATE_FEATURES = (
+    (
+        "Multi/BothBoss quest branch",
+        ("else", "if", "(", "param3", ".", "index", "==", "1", ")", "{"),
+    ),
+    (
+        "Multi/BothBoss quest range",
+        ("_loc15_", ">=", "1099001", "&&", "_loc15_", "<=", "1099003"),
+    ),
+    (
+        "level-120 direct-equipment exception",
+        ("enhancementAbility", ".", "index", "==", "0", "&&"),
+    ),
+    ("level-120 lookup", ("getCurrentLevel", "(", ")", ">=", "120")),
+    ("level-120 ability-soul switch", ("_loc16_", "==", "2")),
+)
+_LEGACY_GATE_FEATURES = (
+    ("_loc12_", "=", "null", ";"),
+    ("_loc13_", "is", "AbilitySoulAbilityLogic"),
+    ("_loc13_", "is", "EquipmentAbilityLogic"),
+    ("_loc14_", "=", "false", ";"),
+    ("param3", ".", "index", "==", "0"),
+    ("_loc15_", "==", "2001"),
+    ("_loc15_", ">=", "1", "&&", "_loc15_", "<=", "97"),
+    ("700099",),
 )
 
 
@@ -291,6 +352,26 @@ def _validate_markers(
             raise PatchError("gate markers do not surround the post-anchor gate")
 
 
+def _legacy_gate_end(post_tokens: Sequence[_Token]) -> int | None:
+    """Return the old V2 gate end token, or ``None`` for a clean source.
+
+    Earlier APK builds carried the Single-only gate without markers.  Those
+    sources are valid patch inputs and must be upgraded in place rather than
+    receiving a second gate.  The official loop always starts at the first
+    ``if(_loc14_)`` after the quest-condition anchor, so its token offset is
+    the replacement boundary once the legacy feature set is present.
+    """
+    guard_prefix = ("if", "(", "_loc14_", ")", "{")
+    positions = _sequence_positions(post_tokens, guard_prefix)
+    if not positions or positions[0] == 0:
+        return None
+    legacy_tokens = post_tokens[:positions[0]]
+    if all(_sequence_positions(legacy_tokens, feature)
+           for feature in _LEGACY_GATE_FEATURES):
+        return positions[0]
+    return None
+
+
 def verify_text(text: str, require_markers: bool) -> None:
     """Verify the gate semantically, optionally requiring source comments."""
     method_start, method_end = _target_bounds(text)
@@ -308,6 +389,10 @@ def verify_text(text: str, require_markers: bool) -> None:
         )
     if _token_values(post_tokens[:len(gate_tokens)]) != gate_tokens:
         raise PatchError("complete abyss gate is not immediately after the anchor")
+
+    for label, expected in _REQUIRED_GATE_FEATURES:
+        if len(_sequence_positions(post_tokens[:len(gate_tokens)], expected)) != 1:
+            raise PatchError(f"missing or duplicated {label} in the abyss gate")
 
     guard_start = len(gate_tokens)
     guard_prefix = ("if", "(", "_loc14_", ")", "{")
@@ -367,22 +452,34 @@ def patch_text(text: str) -> tuple[str, int]:
     """Insert the exact gate once, returning ``(text, insertion_count)``."""
     method_start, method_end = _target_bounds(text)
     method_text = text[method_start:method_end]
-    method_tokens = _tokenize(method_text)
-    has_gate_indicator = (
-        BEGIN_MARKER in text
-        or END_MARKER in text
-        or any(_sequence_positions(method_tokens, prefix)
-               for prefix in _SIMILAR_GATE_PREFIXES)
-    )
-    if has_gate_indicator:
-        require_markers = BEGIN_MARKER in text or END_MARKER in text
-        verify_text(text, require_markers=require_markers)
-        return text, 0
-
     anchor = _checked_anchor(method_text)
     indent = anchor.group("indent")
     newline = anchor.group("newline")
     insertion_at = method_start + anchor.end()
+
+    # A prior release inserted the Single-only V2 gate without markers.  If
+    # present, replace that one block in place so repeated builds converge on
+    # the accepted Multi/BothBoss + level-120 semantics instead of duplicating
+    # a gate.  A marker-bearing current gate is simply verified and retained.
+    post_anchor = method_text[anchor.end():]
+    post_tokens = _tokenize(post_anchor)
+    legacy_end = _legacy_gate_end(post_tokens)
+    has_current_markers = BEGIN_MARKER in text or END_MARKER in text
+    if has_current_markers:
+        verify_text(text, require_markers=True)
+        return text, 0
+    if legacy_end is not None:
+        block = _render_block(indent, newline) + newline
+        # Keep the official guard's line indentation in the suffix.  Token
+        # offsets point at the first non-whitespace character, so consuming
+        # the whole offset would make ``if(_loc14_)`` flush left.
+        replacement_end = (
+            insertion_at + post_tokens[legacy_end].start - len(indent)
+        )
+        patched = text[:insertion_at] + block + text[replacement_end:]
+        verify_text(patched, require_markers=True)
+        return patched, 1
+
     block = _render_block(indent, newline) + newline
     patched = text[:insertion_at] + block + text[insertion_at:]
     verify_text(patched, require_markers=True)

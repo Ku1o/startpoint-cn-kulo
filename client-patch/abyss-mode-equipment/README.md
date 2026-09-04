@@ -15,17 +15,31 @@
 `abilitySoulAbility`，与角色能力魂槽中的 `AbilitySoulAbilityLogic` 一起按上述 15 个 ID
 执行 fail-closed 覆盖。其他能力继续使用官方结果。
 
+输入若已带早期的无 marker 单人门控，`patch.py` 会将该旧门控原位升级为下面的完整规则；当前
+门控则只做语义验证，不会重复插入。
+
+这次客户端改动只负责深渊装备能力的 quest 门控，不包含“五重决战 Auto 锁”，也不会新增或改变
+排行榜、战斗自动化或其他客户端开关。
+
 ## 精确白名单
 
-只有下列三类 `(group_index, single_index, quest_id)` 允许这些装备或能力魂生效：
+只有下列四类 `(group_index, inner_index, quest_id)` 允许这些装备或能力魂生效；`group_index=0`
+是 Single，`group_index=1` 且 `inner_index=4` 是 Multi 的 BothBoss：
 
-| group_index | single_index | quest_id 条件 |
+| group_index | inner_index | quest_id 条件 |
 |---:|---:|---|
 | `0` | `8` | 恰好 `2001` |
 | `0` | `10` | `1 <= quest_id <= 97` |
 | `0` | `17` | `floor(quest_id / 1000 + 1e-10) == 700099`，即 `700099xxx` 类 |
+| `1` | `4` | `1099001 <= quest_id <= 1099003`（Multi / BothBoss） |
 
-任何其他组合都返回 `false`，包括其他 group、`2002/2006`、常规单人 ID `0/98/1001`，以及非 `700099xxx` 的深渊 ID。
+除下述直接装备等级例外外，任何其他组合都返回 `false`，包括其他 group、`2002/2006`、常规单人 ID
+`0/98/1001`，以及非 `700099xxx` 的深渊 ID。
+
+对于直接装备对象（`EquipmentAbilityLogic`），即使 quest 不在上述白名单，只要
+`enhancementAbility.index == 0` 且 `enhancementAbility.params[0].getCurrentLevel() >= 120`，
+也允许该装备能力生效；该例外随后把 `_loc13_` 切换为 `abilitySoulAbility`。能力魂对象本身没有这项
+等级例外，强化等级低于 120 的装备也不受例外影响。
 
 ## 生成和源码验证
 
@@ -56,7 +70,9 @@ python -X utf8 client-patch/abyss-mode-equipment/patch.py `
 
 验证必须确认：门控仅位于 `getAvailableAbilities`、能同时识别直接的
 `AbilitySoulAbilityLogic` 与包裹它的 `EquipmentAbilityLogic`、ID 范围为
-`8000101..8000115`、外层 group 为 `0`、内层仅有 `8/10/17` 三类及其精确 ID 边界，
+`8000101..8000115`、外层 Single group 为 `0` 时内层仅有 `8/10/17` 三类及其精确 ID 边界，
+并包含 Multi / BothBoss 的 `group=1,index=4,quest=1099001..1099003`，以及直接装备
+`enhancementAbility.index=0 && getCurrentLevel()>=120` 例外和相应的 `abilitySoulAbility` 切换，
 并且 `getAvailableAbilitiesWithCond` 没有同类门控。
 
 ## 事务式 APK 构建
