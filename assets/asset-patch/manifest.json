@@ -1,5 +1,5 @@
 {
-  "cdn_version": "1.4.98",
+  "cdn_version": "1.4.99",
   "patches": [
     {
       "id": "base-1.4.54-to-1.4.55-mod07141843",
@@ -9308,6 +9308,112 @@
       ],
       "chain": [
         "pinball-1.4.97-1.4.98-1-greyupd0902-abyss-item-icon-closure.zip"
+      ]
+    },
+    {
+      "id": "siete-balance-visual-restore-1.4.99",
+      "type": "patch",
+      "name": "希耶提主动技能平衡与视觉资源恢复",
+      "description": "恢复此前确认的希耶提两形态主动技能平衡，并把被1.4.97 recovery覆盖的29个视觉/切入资源恢复到1.4.90修正版；不修改白虎或希耶提队长技。",
+      "version": "1.4.99",
+      "depends_on": "1.4.98",
+      "enabled": true,
+      "archive": "pinball-1.4.98-1.4.99-1-siete-ui-restore.zip",
+      "archive_size": 10328085,
+      "files": [
+        "production/android_upload/27/9a6414cae68c729c11d055dcac5fca68713aee",
+        "production/android_upload/6c/7673801cc6b8c76ebf7f6688415cb37775c7e2",
+        "production/ios_upload/27/9a6414cae68c729c11d055dcac5fca68713aee",
+        "production/ios_upload/6c/7673801cc6b8c76ebf7f6688415cb37775c7e2",
+        "production/upload/40/689efadfe149c55d9a7382c41ef7d21cc390c9",
+        "production/upload/82/851f1c030a1242d30a374768d1f93601090748",
+        "production/upload/8b/035728b2151de044fb245988ec5f33ebb544ab",
+        "production/upload/91/79892d704f88d98191c00548bce106402ad5b5",
+        "production/medium_upload/07/031f0ce7c605eb129226613727708b998d10b8",
+        "production/medium_upload/0a/6f1fc6aaefa45709eddd87cc35c42aee210914",
+        "production/medium_upload/15/a3e4fa936f3510a0b07c49826ed8a48be3a62f",
+        "production/medium_upload/24/95833545f5dd9b0d7e387fc7db44f9193751e5",
+        "production/medium_upload/35/39416307eae2b336829a889f434b3ac553a7b0",
+        "production/medium_upload/40/8fee3e1a1857eb4a9ee6ff1d4b36bda8741136",
+        "production/medium_upload/46/dcf4b634d2129329bc1627783008e5763e2c16",
+        "production/medium_upload/4e/ee888c94e6ed5b8e652877a1bbc8e853025a4d",
+        "production/medium_upload/58/37896ccbf02c4d0f03013325c373798f300039",
+        "production/medium_upload/5e/507f5c41142573efa535bb38190d1d5c371621",
+        "production/medium_upload/63/78f12dc0da0d713df499623e30b3ee35ad0a9c",
+        "production/medium_upload/6e/158911105e5b38e11ff14970538f21263606af",
+        "production/medium_upload/7d/439bef73b176602a591c21e87a9796a3351828",
+        "production/medium_upload/82/afc8200078e9a47824288bad614d08edaadd7b",
+        "production/medium_upload/90/7357bae524a6db26c69996ab99200477c8dcba",
+        "production/medium_upload/9b/e5ada29ae297cb7b2adc63df7596f4226c07d9",
+        "production/medium_upload/9c/4839f9b2aeed59fc90e6a2e4009cf566689fda",
+        "production/medium_upload/a5/baee2a4f2e5180ae52b1846de8942101802722",
+        "production/medium_upload/b0/01a6f82056ee21c9c57d70621a27ed248c1d7c",
+        "production/medium_upload/b0/0620f60cfcddad31d3ac47884d2a52e4b223b1",
+        "production/medium_upload/b8/2049d0730a8a1438bb42c2b47026cfaaec383c",
+        "production/medium_upload/da/341fec8cbe569d76ad35e586ee2a63d369e6f7",
+        "production/medium_upload/f4/02ee5ec61361cc7042957b4b7cbb2e42af2925",
+        "production/medium_upload/fb/411b02417803df1fb9d9eda6b84b3df459f5e0",
+        "production/medium_upload/fe/8852e93862f16652277ddf19760dd935888458",
+        "production/upload/21/d128718ee3b71ca40c618fba8af8815d7e086f",
+        "production/upload/35/4f9464262c566a0c6d2abefc6ba02888745efc",
+        "production/upload/bf/5dc56a444450216d4f12d6b9dfc0d908a09c5d",
+        "production/upload/d4/22562d2cdb137e6bc23f903d773b5b485329a8",
+        "production/upload/f9/09c443e03ece0217c5feb7d97cff3079d141bf",
+        "production/upload/f9/a1960c6e206256bbdd8abe611a4ca1543cfb8c"
+      ],
+      "changes": [
+        "进化前剑神层数1～2/3～5/6～8/9～11/12的每段倍率为25/30/40/50/70倍。",
+        "进化后同区间每段倍率为30/35/45/55/80倍；两形态均保持N+1段命中拓扑。",
+        "同步 action_skill 与 character_text 的技能说明，避免显示值与执行 DSL 分离。",
+        "同一1.4.99边串接1.4.90审计的希耶提25张PNG与2组Android/iOS技能切入纹理。",
+        "白虎灰更与希耶提149995队长技触发枚举不在本补丁范围内。",
+        "同一1.4.99边追加竞速池与深渊池非扭蛋角色清理：两池各移除26名非扭蛋角色，UP、零权重占位和各星级总权重保持不变。"
+      ],
+      "created_at": "2026-09-04",
+      "audit": {
+        "directory": "assets/asset-patch/audit/siete-active-balance-1.4.99",
+        "report": "report.json",
+        "ui_restore": "assets/asset-patch/audit/siete-ui-restore-1.4.99/report.json",
+        "gacha_cleanup": "assets/asset-patch/audit/gacha-non-gacha-cleanup-client-1.4.99/report.json"
+      },
+      "archive_integrity": [
+        {
+          "name": "pinball-1.4.98-1.4.99-1-siete-ui-restore.zip",
+          "size": 10328085,
+          "sha256": "3a024838a67eecd8bc8a7cd853b50b45f1072dea3372fdaf8cf4b538ddad1d7b",
+          "members": 29
+        },
+        {
+          "name": "pinball-1.4.98-1.4.99-2-siete-active-balance.zip",
+          "size": 510897,
+          "sha256": "05bd5107c71e0d0cc37092f47ceb1d7d422ae99193ee70de4c2646fc8b898fac",
+          "members": 4,
+          "files": [
+            "production/upload/40/689efadfe149c55d9a7382c41ef7d21cc390c9",
+            "production/upload/82/851f1c030a1242d30a374768d1f93601090748",
+            "production/upload/8b/035728b2151de044fb245988ec5f33ebb544ab",
+            "production/upload/91/79892d704f88d98191c00548bce106402ad5b5"
+          ]
+        },
+        {
+          "name": "pinball-1.4.98-1.4.99-3-gacha-non-gacha-cleanup.zip",
+          "size": 13901,
+          "sha256": "adeb67bc1c5af46221c92ba3ca3e8a90471632dd90ead78ad9950f7a9e6a7ec3",
+          "members": 6,
+          "files": [
+            "production/upload/21/d128718ee3b71ca40c618fba8af8815d7e086f",
+            "production/upload/35/4f9464262c566a0c6d2abefc6ba02888745efc",
+            "production/upload/bf/5dc56a444450216d4f12d6b9dfc0d908a09c5d",
+            "production/upload/d4/22562d2cdb137e6bc23f903d773b5b485329a8",
+            "production/upload/f9/09c443e03ece0217c5feb7d97cff3079d141bf",
+            "production/upload/f9/a1960c6e206256bbdd8abe611a4ca1543cfb8c"
+          ]
+        }
+      ],
+      "chain": [
+        "pinball-1.4.98-1.4.99-1-siete-ui-restore.zip",
+        "pinball-1.4.98-1.4.99-2-siete-active-balance.zip",
+        "pinball-1.4.98-1.4.99-3-gacha-non-gacha-cleanup.zip"
       ]
     }
   ]

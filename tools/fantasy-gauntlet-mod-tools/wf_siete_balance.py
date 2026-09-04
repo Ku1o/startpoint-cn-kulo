@@ -7,11 +7,13 @@
 
 from __future__ import annotations
 
+import copy
 import math
 from typing import Any, Iterable, Mapping
 import zlib
 
 import wf_dsl
+import wf_dsl_sig
 import wf_mod_tool as core
 
 
@@ -34,18 +36,82 @@ OLD_SKILL_DESCRIPTION = (
     "灵剑，剑刃倍率随剑神层数成长（1/3/6/9/12层时每刃"
     "25/35/50/70/90倍），并消耗1层剑神。"
 )
-SKILL_DESCRIPTION = (
+
+# The client has two skill DSLs for the pre-/post-evolution forms.  The five
+# values supplied by the balance sheet are the tier values at Sword God
+# layers 1/3/6/9/12.  A tier remains in effect until the next listed layer,
+# so the resulting layer ranges are 1-2, 3-5, 6-8, 9-11 and 12 respectively.
+_TARGET_TIER_VALUES_BY_LEVEL = {
+    1: (25.0, 30.0, 40.0, 50.0, 70.0),
+    2: (30.0, 35.0, 45.0, 55.0, 80.0),
+}
+
+
+def _expand_tier_values(values: tuple[float, float, float, float, float]) -> dict[int, float]:
+    """Expand 1/3/6/9/12 tier values to all Sword God layers."""
+    starts = (1, 3, 6, 9, 12)
+    ends = (2, 5, 8, 11, 12)
+    expanded: dict[int, float] = {}
+    for value, start, end in zip(values, starts, ends):
+        expanded.update({layer: value for layer in range(start, end + 1)})
+    return expanded
+
+
+TARGET_MULTIPLIER_BY_LEVEL = {
+    level: _expand_tier_values(values)
+    for level, values in _TARGET_TIER_VALUES_BY_LEVEL.items()
+}
+
+# Kept as a compatibility alias for callers that only inspect the first
+# (pre-evolution) form.  Patching always uses TARGET_MULTIPLIER_BY_LEVEL so
+# the two forms cannot accidentally share the same target values.
+TARGET_MULTIPLIER_BY_LAYER = TARGET_MULTIPLIER_BY_LEVEL[1]
+
+# The previous reviewed 1.4.92 fold used the same 25/40/55 bands for both
+# forms.  Keep that state as an accepted input so this patch can repair a
+# clean 1.4.92 runtime as well as the older values carried by 1.4.97's
+# accidental recovery package.
+_PREVIOUS_TARGET_MULTIPLIER_BY_LEVEL = {
+    level: {
+        **{layer: 25.0 for layer in range(1, 8)},
+        **{layer: 40.0 for layer in range(8, 11)},
+        **{layer: 55.0 for layer in range(11, 13)},
+    }
+    for level in (1, 2)
+}
+
+SKILL_DESCRIPTION_BY_LEVEL = {
+    1: (
+        "剑神双奏：无「剑神」时，原地召唤剑神——全体队员获得15%护盾，自身获得"
+        "1级「剑神」与30%加速（10秒）；持有N级「剑神」时，剑神化身突进攻击1段，"
+        "并向前方推出N把灵剑（每把攻击1段），共N+1段，随后消耗1级「剑神」。"
+        "进化前每段倍率：1～2级25倍，3～5级30倍，6～8级40倍，9～11级50倍，12级70倍。"
+    ),
+    2: (
+        "剑神双奏：无「剑神」时，原地召唤剑神——全体队员获得15%护盾，自身获得"
+        "1级「剑神」与30%加速（10秒）；持有N级「剑神」时，剑神化身突进攻击1段，"
+        "并向前方推出N把灵剑（每把攻击1段），共N+1段，随后消耗1级「剑神」。"
+        "进化后每段倍率：1～2级30倍，3～5级35倍，6～8级45倍，9～11级55倍，12级80倍。"
+    ),
+}
+
+# The 1.4.92 fold already published this intermediate description.  Accept it
+# as a guarded source state so this repair can migrate an effective 1.4.98
+# chain without treating that prior, reviewed wording as an unknown payload.
+LEGACY_BALANCED_SKILL_DESCRIPTION = (
     "剑神双奏：无「剑神」时，原地召唤剑神——全体队员获得15%护盾，自身获得"
     "1级「剑神」与30%加速（10秒）；持有N级「剑神」时，剑神化身突进攻击1段，"
     "并向前方推出N把灵剑（每把攻击1段），共N+1段，随后消耗1级「剑神」。"
     "每段倍率：1～7级25倍，8～10级40倍，11～12级55倍。"
 )
 
-TARGET_MULTIPLIER_BY_LAYER = {
-    **{layer: 25.0 for layer in range(1, 8)},
-    **{layer: 40.0 for layer in range(8, 11)},
-    **{layer: 55.0 for layer in range(11, 13)},
-}
+SKILL_DESCRIPTION = (
+    "剑神双奏：无「剑神」时，原地召唤剑神——全体队员获得15%护盾，自身获得"
+    "1级「剑神」与30%加速（10秒）；持有N级「剑神」时，剑神化身突进攻击1段，"
+    "并向前方推出N把灵剑（每把攻击1段），共N+1段，随后消耗1级「剑神」。"
+    "进化前每段倍率：1～2级25倍，3～5级30倍，6～8级40倍，9～11级50倍，12级70倍；"
+    "进化后每段倍率：1～2级30倍，3～5级35倍，6～8级45倍，9～11级55倍，12级80倍。"
+)
 CURRENT_MULTIPLIER_BY_LEVEL = {
     1: {
         1: 25.0,
@@ -101,6 +167,90 @@ def _encode_payload(tree: Any) -> bytes:
     return compressor.compress(encoded) + compressor.flush()
 
 
+def _normalize_for_signature(tree: Any, logical: str) -> Any:
+    """Normalize the one documented nullable enum slot for signature checks.
+
+    The decompiled ``CreateCondition`` signature declares p8 as the
+    ``HitCountCheckTargetKind`` enum, while the game serializes the omitted
+    check as ``null``.  Normalize only that documented nullable slot to a
+    valid enum constructor for the generated type checker; every other null
+    or signature/type mismatch still fails closed.
+    """
+    normalized = copy.deepcopy(tree)
+
+    def walk(value: Any) -> None:
+        if isinstance(value, list):
+            if (
+                len(value) == 2
+                and isinstance(value[0], str)
+                and value[0] in {"Command", "Event"}
+                and isinstance(value[1], list)
+                and value[1]
+            ):
+                name = value[1][0]
+                for index, parameter in enumerate(value[1][1:], start=1):
+                    if parameter is None:
+                        if name != "CreateCondition" or index != 8:
+                            raise ValueError(
+                                f"{logical}: {name} 参数{index}出现未审核 null"
+                            )
+                        # The concrete enum value is ignored when no hit
+                        # count check is requested; this sentinel is only for
+                        # validating the generated enum signature.
+                        value[1][index] = ["Skill"]
+            for child in value:
+                walk(child)
+        elif isinstance(value, dict):
+            for child in value.values():
+                walk(child)
+
+    walk(normalized)
+    return normalized
+
+
+def _validate_official_dsl(tree: Any, logical: str) -> None:
+    """Run the generated command/enum signature gate on a Siete DSL."""
+    normalized = _normalize_for_signature(tree, logical)
+    try:
+        wf_dsl_sig.validate_action_dsl(normalized)
+    except wf_dsl_sig.DslSignatureError as error:
+        raise ValueError(f"{logical}: ActionDSL 官方签名/枚举校验失败: {error}") from error
+
+
+def _assert_only_attack_multiplier_change(
+    before: Any,
+    after: Any,
+    logical: str,
+) -> None:
+    """Reject any edit except CreateNormalAttack p6 min/max ranges."""
+    try:
+        wf_dsl_sig.assert_command_parameter_edits(
+            _normalize_for_signature(before, logical),
+            _normalize_for_signature(after, logical),
+            {"CreateNormalAttack": {6}},
+        )
+    except wf_dsl_sig.DslSignatureError as error:
+        raise ValueError(f"{logical}: 非倍率参数发生未授权变化: {error}") from error
+
+    expected = copy.deepcopy(before)
+    before_branches = _layer_attacks(expected, logical)
+    after_branches = _layer_attacks(after, logical)
+    for layer in range(1, 13):
+        for before_attack, after_attack in zip(
+            before_branches[layer], after_branches[layer]
+        ):
+            # _read_attack_multiplier already enforces the fixed one-range
+            # shape.  Copy exactly min/max and compare the complete tree so
+            # accidental target IDs, branches, flags, or hit topology drift
+            # cannot pass this gate.
+            before_attack[6][0]["min"] = after_attack[6][0]["min"]
+            before_attack[6][0]["max"] = after_attack[6][0]["max"]
+    if expected != after:
+        raise ValueError(
+            f"{logical}: 仅允许修改 CreateNormalAttack 参数6的 min/max"
+        )
+
+
 def _read_attack_multiplier(node: list[Any], logical: str) -> float:
     if len(node) <= 6 or node[0] != "CreateNormalAttack":
         raise ValueError(f"攻击节点形状异常: {logical}: {node!r}")
@@ -113,8 +263,19 @@ def _read_attack_multiplier(node: list[Any], logical: str) -> float:
         or "max" not in ranges[0]
     ):
         raise ValueError(f"攻击倍率字段形状异常: {logical}: {ranges!r}")
-    minimum = float(ranges[0]["min"])
-    maximum = float(ranges[0]["max"])
+    minimum_raw = ranges[0]["min"]
+    maximum_raw = ranges[0]["max"]
+    if (
+        isinstance(minimum_raw, bool)
+        or not isinstance(minimum_raw, (int, float))
+        or isinstance(maximum_raw, bool)
+        or not isinstance(maximum_raw, (int, float))
+    ):
+        raise ValueError(f"攻击倍率类型异常: {logical}: {ranges!r}")
+    minimum = float(minimum_raw)
+    maximum = float(maximum_raw)
+    if not math.isfinite(minimum) or not math.isfinite(maximum):
+        raise ValueError(f"攻击倍率不是有限数值: {logical}: {ranges!r}")
     if not math.isclose(minimum, maximum, rel_tol=0.0, abs_tol=1e-12):
         raise ValueError(f"攻击倍率不是固定值: {logical}: {minimum}/{maximum}")
     return minimum
@@ -180,11 +341,13 @@ def patch_skill_dsl(raw: bytes, logical: str) -> tuple[bytes, dict[str, Any]]:
         raise ValueError(f"不是受支持的希耶提主动技能路径: {logical}") from error
 
     tree = _decode_payload(raw, logical)
+    _validate_official_dsl(tree, logical)
     if not isinstance(tree, list) or len(tree) < 12 or tree[0] != "ActionDsl":
         raise ValueError(f"{logical}: ActionDsl 根节点形状异常")
     if tree[10] != 0:
         raise ValueError(f"{logical}: buffTargetAs 已漂移，拒绝误改伤害类型")
 
+    before = copy.deepcopy(tree)
     branches = _layer_attacks(tree, logical)
     report_layers: dict[str, dict[str, Any]] = {}
     changed = False
@@ -198,7 +361,8 @@ def patch_skill_dsl(raw: bytes, logical: str) -> tuple[bytes, dict[str, Any]]:
             raise ValueError(f"{logical}: 剑神{layer}级各段倍率不一致")
         accepted = {
             CURRENT_MULTIPLIER_BY_LEVEL[level][layer],
-            TARGET_MULTIPLIER_BY_LAYER[layer],
+            TARGET_MULTIPLIER_BY_LEVEL[level][layer],
+            _PREVIOUS_TARGET_MULTIPLIER_BY_LEVEL[level][layer],
         }
         if not any(
             math.isclose(before_values[0], value, rel_tol=0.0, abs_tol=1e-12)
@@ -209,7 +373,7 @@ def patch_skill_dsl(raw: bytes, logical: str) -> tuple[bytes, dict[str, Any]]:
                 f"不在允许前值{sorted(accepted)}中"
             )
 
-        target = TARGET_MULTIPLIER_BY_LAYER[layer]
+        target = TARGET_MULTIPLIER_BY_LEVEL[level][layer]
         for attack in attacks:
             if not math.isclose(
                 _read_attack_multiplier(attack, logical),
@@ -229,12 +393,31 @@ def patch_skill_dsl(raw: bytes, logical: str) -> tuple[bytes, dict[str, Any]]:
         }
 
     output = _encode_payload(tree) if changed else raw
+    readback = _decode_payload(output, logical)
+    _validate_official_dsl(readback, logical)
+    _assert_only_attack_multiplier_change(before, readback, logical)
+    if readback != tree:
+        raise ValueError(f"{logical}: ActionDSL 编码回读结构不一致")
+    final_branches = _layer_attacks(readback, logical)
+    for layer, attacks in final_branches.items():
+        target = TARGET_MULTIPLIER_BY_LEVEL[level][layer]
+        if any(
+            not math.isclose(_read_attack_multiplier(attack, logical), target)
+            for attack in attacks
+        ):
+            raise ValueError(f"{logical}: 剑神{layer}级目标倍率回读不一致")
     return output, {
         "character_id": CHARACTER_ID,
         "skill_level": level,
         "logical": logical,
         "damage_type": "skill",
         "hit_rule": "剑神化身1段＋N把灵剑各1段＝N+1段",
+        "official_signature_validated": True,
+        "allowed_parameter_edits": {
+            "CreateNormalAttack": [6],
+            "range_fields": ["min", "max"],
+        },
+        "only_attack_multiplier_ranges_changed": True,
         "layers": report_layers,
         "changed": changed,
     }
@@ -274,16 +457,23 @@ def patch_action_skill_entries(
         if patched[core.ACTION_SKILL_COLUMNS["program_path"]] != expected_program:
             raise ValueError(f"149995 主动技能{level}程序路径漂移")
         description_column = core.ACTION_SKILL_COLUMNS["description"]
-        if patched[description_column] not in (
+        level_number = int(level)
+        if patched[description_column] not in {
             OLD_SKILL_DESCRIPTION,
+            LEGACY_BALANCED_SKILL_DESCRIPTION,
             SKILL_DESCRIPTION,
-        ):
+            *SKILL_DESCRIPTION_BY_LEVEL.values(),
+        }:
             raise ValueError(f"149995 主动技能{level}文案出现未审核内容")
-        patched[description_column] = SKILL_DESCRIPTION
+        patched[description_column] = SKILL_DESCRIPTION_BY_LEVEL[level_number]
         output.append((level, patched))
     return output, {
         "character_id": CHARACTER_ID,
         "description": SKILL_DESCRIPTION,
+        "description_by_level": {
+            str(level): SKILL_DESCRIPTION_BY_LEVEL[level]
+            for level in (1, 2)
+        },
         "describes_layer_hit_link": True,
         "describes_new_multiplier_tiers": True,
     }
@@ -317,7 +507,11 @@ def patch_action_skill_table(raw: bytes) -> tuple[bytes, dict[str, Any]]:
         row[core.ACTION_SKILL_COLUMNS["description"]]
         for _level, row in core.decode_action_skill_row(readback.rows[index])
     ]
-    if descriptions != [SKILL_DESCRIPTION, SKILL_DESCRIPTION]:
+    expected_descriptions = [
+        SKILL_DESCRIPTION_BY_LEVEL[int(level)]
+        for level, _row in core.decode_action_skill_row(readback.rows[index])
+    ]
+    if descriptions != expected_descriptions:
         raise AssertionError("149995 主动技能说明回读不一致")
     report["changed"] = True
     return output, report
@@ -333,7 +527,12 @@ def patch_character_text_rows(
     if row[0] != CHARACTER_NAME:
         raise ValueError(f"149995 character_text 角色名漂移: {row[0]!r}")
     for column in (5, 7, 9):
-        if row[column] not in (OLD_SKILL_DESCRIPTION, SKILL_DESCRIPTION):
+        if row[column] not in {
+            OLD_SKILL_DESCRIPTION,
+            LEGACY_BALANCED_SKILL_DESCRIPTION,
+            SKILL_DESCRIPTION,
+            *SKILL_DESCRIPTION_BY_LEVEL.values(),
+        }:
             raise ValueError(f"149995 character_text c{column}出现未审核文案")
         row[column] = SKILL_DESCRIPTION
     return [row], {"character_id": CHARACTER_ID, "description": SKILL_DESCRIPTION}
@@ -396,8 +595,11 @@ __all__ = [
     "CHARACTER_TEXT_LOGICAL",
     "CURRENT_MULTIPLIER_BY_LEVEL",
     "OLD_SKILL_DESCRIPTION",
+    "LEGACY_BALANCED_SKILL_DESCRIPTION",
     "SKILL_DESCRIPTION",
+    "SKILL_DESCRIPTION_BY_LEVEL",
     "SKILL_DSL_LOGICALS",
+    "TARGET_MULTIPLIER_BY_LEVEL",
     "TARGET_MULTIPLIER_BY_LAYER",
     "patch_action_skill_entries",
     "patch_action_skill_table",

@@ -67,6 +67,7 @@ def payload_for(level: int) -> bytes:
                     ["DCUnique", 149995],
                     layer,
                     ["Block", attacks],
+                    ["Block", []],
                 ],
             ]
         )
@@ -118,11 +119,22 @@ def character_text_row(description: str) -> list[str]:
 class SieteSkillDslBalanceTest(unittest.TestCase):
     def test_confirmed_tiers_hit_counts_and_totals_for_both_forms(self) -> None:
         expected_tiers = {
-            **{layer: 25.0 for layer in range(1, 8)},
-            **{layer: 40.0 for layer in range(8, 11)},
-            **{layer: 55.0 for layer in range(11, 13)},
+            1: {
+                **{layer: 25.0 for layer in range(1, 3)},
+                **{layer: 30.0 for layer in range(3, 6)},
+                **{layer: 40.0 for layer in range(6, 9)},
+                **{layer: 50.0 for layer in range(9, 12)},
+                12: 70.0,
+            },
+            2: {
+                **{layer: 30.0 for layer in range(1, 3)},
+                **{layer: 35.0 for layer in range(3, 6)},
+                **{layer: 45.0 for layer in range(6, 9)},
+                **{layer: 55.0 for layer in range(9, 12)},
+                12: 80.0,
+            },
         }
-        self.assertEqual(balance.TARGET_MULTIPLIER_BY_LAYER, expected_tiers)
+        self.assertEqual(balance.TARGET_MULTIPLIER_BY_LEVEL, expected_tiers)
 
         for level, logical in balance.SKILL_DSL_LOGICALS.items():
             with self.subTest(level=level):
@@ -133,7 +145,7 @@ class SieteSkillDslBalanceTest(unittest.TestCase):
                     self.assertEqual(len(attacks), layer + 1)
                     self.assertEqual(
                         [attack[6][0] for attack in attacks],
-                        [numeric_range(expected_tiers[layer])] * (layer + 1),
+                        [numeric_range(expected_tiers[level][layer])] * (layer + 1),
                     )
                     detail = report["layers"][str(layer)]
                     self.assertEqual(detail["sword_avatar_hits"], 1)
@@ -141,7 +153,7 @@ class SieteSkillDslBalanceTest(unittest.TestCase):
                     self.assertEqual(detail["total_hits"], layer + 1)
                     self.assertEqual(
                         detail["after_total"],
-                        (layer + 1) * expected_tiers[layer],
+                        (layer + 1) * expected_tiers[level][layer],
                     )
 
                 repatched, second = balance.patch_skill_dsl(patched, logical)
@@ -158,9 +170,27 @@ class SieteSkillDslBalanceTest(unittest.TestCase):
         for layer, attacks in balance._layer_attacks(expected, logical).items():
             for attack in attacks:
                 attack[6][0] = numeric_range(
-                    balance.TARGET_MULTIPLIER_BY_LAYER[layer]
+                    balance.TARGET_MULTIPLIER_BY_LEVEL[1][layer]
                 )
         self.assertEqual(after, expected)
+
+    def test_accepts_the_previous_1_4_92_uniform_bands_as_source(self) -> None:
+        for level, logical in balance.SKILL_DSL_LOGICALS.items():
+            with self.subTest(level=level):
+                tree = decode_tree(payload_for(level))
+                for layer, attacks in balance._layer_attacks(tree, logical).items():
+                    legacy = balance._PREVIOUS_TARGET_MULTIPLIER_BY_LEVEL[level][layer]
+                    for attack in attacks:
+                        attack[6][0] = numeric_range(legacy)
+                patched, report = balance.patch_skill_dsl(encode_tree(tree), logical)
+                self.assertTrue(report["changed"])
+                branches = balance._layer_attacks(decode_tree(patched), logical)
+                for layer, attacks in branches.items():
+                    target = balance.TARGET_MULTIPLIER_BY_LEVEL[level][layer]
+                    self.assertEqual(
+                        [attack[6][0] for attack in attacks],
+                        [numeric_range(target)] * (layer + 1),
+                    )
 
     def test_rejects_hit_count_or_unreviewed_multiplier_drift(self) -> None:
         logical = balance.SKILL_DSL_LOGICALS[1]
@@ -183,6 +213,20 @@ class SieteSkillDslBalanceTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "各段倍率不一致"):
             balance.patch_skill_dsl(encode_tree(tree), logical)
 
+    def test_official_signature_and_parameter_allowlist_are_enforced(self) -> None:
+        logical = balance.SKILL_DSL_LOGICALS[1]
+        tree = decode_tree(payload_for(1))
+        attack = balance._layer_attacks(tree, logical)[1][0]
+        attack[1] = "not-an-attack-id"
+        with self.assertRaisesRegex(ValueError, "官方签名/枚举校验失败"):
+            balance.patch_skill_dsl(encode_tree(tree), logical)
+
+        before = decode_tree(payload_for(1))
+        after = copy.deepcopy(before)
+        balance._layer_attacks(after, logical)[1][0][1] += 1
+        with self.assertRaisesRegex(ValueError, "非倍率参数发生未授权变化"):
+            balance._assert_only_attack_multiplier_change(before, after, logical)
+
     def test_batch_requires_both_skill_forms(self) -> None:
         with self.assertRaisesRegex(ValueError, "缺少希耶提主动技能 payload"):
             balance.patch_skill_dsls({})
@@ -193,9 +237,8 @@ class SieteDescriptionBalanceTest(unittest.TestCase):
         description = balance.SKILL_DESCRIPTION
         self.assertIn("N把灵剑（每把攻击1段）", description)
         self.assertIn("共N+1段", description)
-        self.assertIn("1～7级25倍", description)
-        self.assertIn("8～10级40倍", description)
-        self.assertIn("11～12级55倍", description)
+        self.assertIn("进化前每段倍率：1～2级25倍，3～5级30倍，6～8级40倍，9～11级50倍，12级70倍", description)
+        self.assertIn("进化后每段倍率：1～2级30倍，3～5级35倍，6～8级45倍，9～11级55倍，12级80倍", description)
         self.assertIn("30%加速（10秒）", description)
 
     def test_action_skill_table_changes_only_seofon_descriptions(self) -> None:
@@ -218,9 +261,13 @@ class SieteDescriptionBalanceTest(unittest.TestCase):
             patched, balance.ACTION_SKILL_LOGICAL
         )
         self.assertEqual(readback.rows[0], unrelated)
+        rows = core.decode_action_skill_row(readback.rows[1])
         self.assertEqual(
-            [row[1] for _level, row in core.decode_action_skill_row(readback.rows[1])],
-            [balance.SKILL_DESCRIPTION, balance.SKILL_DESCRIPTION],
+            [row[1] for _level, row in rows],
+            [
+                balance.SKILL_DESCRIPTION_BY_LEVEL[1],
+                balance.SKILL_DESCRIPTION_BY_LEVEL[2],
+            ],
         )
         self.assertTrue(report["changed"])
         again, second = balance.patch_action_skill_table(patched)

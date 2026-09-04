@@ -1,0 +1,328 @@
+{
+  "schema": "siete-balance-visual-restore/v1",
+  "patch_id": "siete-balance-visual-restore-1.4.99",
+  "base_version": "1.4.98",
+  "target_version": "1.4.99",
+  "source_tail": "1.4.98",
+  "archive": {
+    "name": "pinball-1.4.98-1.4.99-2-siete-active-balance.zip",
+    "size": 510897,
+    "sha256": "05bd5107c71e0d0cc37092f47ceb1d7d422ae99193ee70de4c2646fc8b898fac",
+    "members": 4,
+    "files": [
+      "production/upload/40/689efadfe149c55d9a7382c41ef7d21cc390c9",
+      "production/upload/82/851f1c030a1242d30a374768d1f93601090748",
+      "production/upload/8b/035728b2151de044fb245988ec5f33ebb544ab",
+      "production/upload/91/79892d704f88d98191c00548bce106402ad5b5"
+    ]
+  },
+  "tables": [
+    {
+      "logical": "master/skill/action_skill.orderedmap",
+      "target_key": "seofon_wind",
+      "changed_fields": [
+        "description"
+      ],
+      "before_sha256": "fb6c6455b384eab1bb82fab40f33ead901e62488c32ddf81e682eaba2aefc52b",
+      "after_sha256": "76ab551b678d7fd0191586e985f9d6d4728b7493a95b16a22fd8d44227413fe4"
+    },
+    {
+      "logical": "master/character/character_text.orderedmap",
+      "target_key": "149995",
+      "changed_fields": [
+        "skill_desc",
+        "skill_plus_desc",
+        "skill_plusplus_desc"
+      ],
+      "before_sha256": "540ff07bed88978dcd047fafe503c8681e16419a848af49901b85d01aae7129c",
+      "after_sha256": "f194dc1a64667ed5373369aafb1800c05b2cfc9ed2fa58d49570baea510c6b1f"
+    }
+  ],
+  "skill_dsl": [
+    {
+      "logical": "battle/action/skill/action/rare5/seofon_wind$seofon_wind_1.action.dsl.amf3.deflate",
+      "before_sha256": "31c13c21d02c30016a75e963e585651443e5e902a17f116a91f89e0733c616ce",
+      "after_sha256": "0f1c854a6b568d21b7200f31cebcffe5612c7b3c2c66ebe18f5c1a7192d54bcd",
+      "before_size": 4103,
+      "after_size": 4098,
+      "report": {
+        "character_id": "149995",
+        "skill_level": 1,
+        "logical": "battle/action/skill/action/rare5/seofon_wind$seofon_wind_1.action.dsl.amf3.deflate",
+        "damage_type": "skill",
+        "hit_rule": "剑神化身1段＋N把灵剑各1段＝N+1段",
+        "official_signature_validated": true,
+        "allowed_parameter_edits": {
+          "CreateNormalAttack": [
+            6
+          ],
+          "range_fields": [
+            "min",
+            "max"
+          ]
+        },
+        "only_attack_multiplier_ranges_changed": true,
+        "layers": {
+          "1": {
+            "sword_avatar_hits": 1,
+            "spirit_sword_hits": 1,
+            "total_hits": 2,
+            "before_per_hit": 25.0,
+            "after_per_hit": 25.0,
+            "after_total": 50.0
+          },
+          "2": {
+            "sword_avatar_hits": 1,
+            "spirit_sword_hits": 2,
+            "total_hits": 3,
+            "before_per_hit": 25.0,
+            "after_per_hit": 25.0,
+            "after_total": 75.0
+          },
+          "3": {
+            "sword_avatar_hits": 1,
+            "spirit_sword_hits": 3,
+            "total_hits": 4,
+            "before_per_hit": 35.0,
+            "after_per_hit": 30.0,
+            "after_total": 120.0
+          },
+          "4": {
+            "sword_avatar_hits": 1,
+            "spirit_sword_hits": 4,
+            "total_hits": 5,
+            "before_per_hit": 35.0,
+            "after_per_hit": 30.0,
+            "after_total": 150.0
+          },
+          "5": {
+            "sword_avatar_hits": 1,
+            "spirit_sword_hits": 5,
+            "total_hits": 6,
+            "before_per_hit": 35.0,
+            "after_per_hit": 30.0,
+            "after_total": 180.0
+          },
+          "6": {
+            "sword_avatar_hits": 1,
+            "spirit_sword_hits": 6,
+            "total_hits": 7,
+            "before_per_hit": 50.0,
+            "after_per_hit": 40.0,
+            "after_total": 280.0
+          },
+          "7": {
+            "sword_avatar_hits": 1,
+            "spirit_sword_hits": 7,
+            "total_hits": 8,
+            "before_per_hit": 50.0,
+            "after_per_hit": 40.0,
+            "after_total": 320.0
+          },
+          "8": {
+            "sword_avatar_hits": 1,
+            "spirit_sword_hits": 8,
+            "total_hits": 9,
+            "before_per_hit": 50.0,
+            "after_per_hit": 40.0,
+            "after_total": 360.0
+          },
+          "9": {
+            "sword_avatar_hits": 1,
+            "spirit_sword_hits": 9,
+            "total_hits": 10,
+            "before_per_hit": 70.0,
+            "after_per_hit": 50.0,
+            "after_total": 500.0
+          },
+          "10": {
+            "sword_avatar_hits": 1,
+            "spirit_sword_hits": 10,
+            "total_hits": 11,
+            "before_per_hit": 70.0,
+            "after_per_hit": 50.0,
+            "after_total": 550.0
+          },
+          "11": {
+            "sword_avatar_hits": 1,
+            "spirit_sword_hits": 11,
+            "total_hits": 12,
+            "before_per_hit": 70.0,
+            "after_per_hit": 50.0,
+            "after_total": 600.0
+          },
+          "12": {
+            "sword_avatar_hits": 1,
+            "spirit_sword_hits": 12,
+            "total_hits": 13,
+            "before_per_hit": 90.0,
+            "after_per_hit": 70.0,
+            "after_total": 910.0
+          }
+        },
+        "changed": true
+      }
+    },
+    {
+      "logical": "battle/action/skill/action/rare5/seofon_wind$seofon_wind_2.action.dsl.amf3.deflate",
+      "before_sha256": "0696142c0829e09e3eab7841836728ef13de7a72e3900d5a6e57bbe3ac3d4ac8",
+      "after_sha256": "dc9dc0b40964cbade8ecffaa69ea14b26710cba2e62676733c79efda335f6737",
+      "before_size": 4106,
+      "after_size": 4099,
+      "report": {
+        "character_id": "149995",
+        "skill_level": 2,
+        "logical": "battle/action/skill/action/rare5/seofon_wind$seofon_wind_2.action.dsl.amf3.deflate",
+        "damage_type": "skill",
+        "hit_rule": "剑神化身1段＋N把灵剑各1段＝N+1段",
+        "official_signature_validated": true,
+        "allowed_parameter_edits": {
+          "CreateNormalAttack": [
+            6
+          ],
+          "range_fields": [
+            "min",
+            "max"
+          ]
+        },
+        "only_attack_multiplier_ranges_changed": true,
+        "layers": {
+          "1": {
+            "sword_avatar_hits": 1,
+            "spirit_sword_hits": 1,
+            "total_hits": 2,
+            "before_per_hit": 30.0,
+            "after_per_hit": 30.0,
+            "after_total": 60.0
+          },
+          "2": {
+            "sword_avatar_hits": 1,
+            "spirit_sword_hits": 2,
+            "total_hits": 3,
+            "before_per_hit": 30.0,
+            "after_per_hit": 30.0,
+            "after_total": 90.0
+          },
+          "3": {
+            "sword_avatar_hits": 1,
+            "spirit_sword_hits": 3,
+            "total_hits": 4,
+            "before_per_hit": 40.0,
+            "after_per_hit": 35.0,
+            "after_total": 140.0
+          },
+          "4": {
+            "sword_avatar_hits": 1,
+            "spirit_sword_hits": 4,
+            "total_hits": 5,
+            "before_per_hit": 40.0,
+            "after_per_hit": 35.0,
+            "after_total": 175.0
+          },
+          "5": {
+            "sword_avatar_hits": 1,
+            "spirit_sword_hits": 5,
+            "total_hits": 6,
+            "before_per_hit": 40.0,
+            "after_per_hit": 35.0,
+            "after_total": 210.0
+          },
+          "6": {
+            "sword_avatar_hits": 1,
+            "spirit_sword_hits": 6,
+            "total_hits": 7,
+            "before_per_hit": 55.0,
+            "after_per_hit": 45.0,
+            "after_total": 315.0
+          },
+          "7": {
+            "sword_avatar_hits": 1,
+            "spirit_sword_hits": 7,
+            "total_hits": 8,
+            "before_per_hit": 55.0,
+            "after_per_hit": 45.0,
+            "after_total": 360.0
+          },
+          "8": {
+            "sword_avatar_hits": 1,
+            "spirit_sword_hits": 8,
+            "total_hits": 9,
+            "before_per_hit": 55.0,
+            "after_per_hit": 45.0,
+            "after_total": 405.0
+          },
+          "9": {
+            "sword_avatar_hits": 1,
+            "spirit_sword_hits": 9,
+            "total_hits": 10,
+            "before_per_hit": 75.0,
+            "after_per_hit": 55.0,
+            "after_total": 550.0
+          },
+          "10": {
+            "sword_avatar_hits": 1,
+            "spirit_sword_hits": 10,
+            "total_hits": 11,
+            "before_per_hit": 75.0,
+            "after_per_hit": 55.0,
+            "after_total": 605.0
+          },
+          "11": {
+            "sword_avatar_hits": 1,
+            "spirit_sword_hits": 11,
+            "total_hits": 12,
+            "before_per_hit": 75.0,
+            "after_per_hit": 55.0,
+            "after_total": 660.0
+          },
+          "12": {
+            "sword_avatar_hits": 1,
+            "spirit_sword_hits": 12,
+            "total_hits": 13,
+            "before_per_hit": 90.0,
+            "after_per_hit": 80.0,
+            "after_total": 1040.0
+          }
+        },
+        "changed": true
+      }
+    }
+  ],
+  "description_reports": {
+    "action_skill": {
+      "character_id": "149995",
+      "description": "剑神双奏：无「剑神」时，原地召唤剑神——全体队员获得15%护盾，自身获得1级「剑神」与30%加速（10秒）；持有N级「剑神」时，剑神化身突进攻击1段，并向前方推出N把灵剑（每把攻击1段），共N+1段，随后消耗1级「剑神」。进化前每段倍率：1～2级25倍，3～5级30倍，6～8级40倍，9～11级50倍，12级70倍；进化后每段倍率：1～2级30倍，3～5级35倍，6～8级45倍，9～11级55倍，12级80倍。",
+      "description_by_level": {
+        "1": "剑神双奏：无「剑神」时，原地召唤剑神——全体队员获得15%护盾，自身获得1级「剑神」与30%加速（10秒）；持有N级「剑神」时，剑神化身突进攻击1段，并向前方推出N把灵剑（每把攻击1段），共N+1段，随后消耗1级「剑神」。进化前每段倍率：1～2级25倍，3～5级30倍，6～8级40倍，9～11级50倍，12级70倍。",
+        "2": "剑神双奏：无「剑神」时，原地召唤剑神——全体队员获得15%护盾，自身获得1级「剑神」与30%加速（10秒）；持有N级「剑神」时，剑神化身突进攻击1段，并向前方推出N把灵剑（每把攻击1段），共N+1段，随后消耗1级「剑神」。进化后每段倍率：1～2级30倍，3～5级35倍，6～8级45倍，9～11级55倍，12级80倍。"
+      },
+      "describes_layer_hit_link": true,
+      "describes_new_multiplier_tiers": true,
+      "changed": true
+    },
+    "character_text": {
+      "character_id": "149995",
+      "description": "剑神双奏：无「剑神」时，原地召唤剑神——全体队员获得15%护盾，自身获得1级「剑神」与30%加速（10秒）；持有N级「剑神」时，剑神化身突进攻击1段，并向前方推出N把灵剑（每把攻击1段），共N+1段，随后消耗1级「剑神」。进化前每段倍率：1～2级25倍，3～5级30倍，6～8级40倍，9～11级50倍，12级70倍；进化后每段倍率：1～2级30倍，3～5级35倍，6～8级45倍，9～11级55倍，12级80倍。",
+      "changed": true
+    }
+  },
+  "verification": {
+    "only_siete_targets_changed": true,
+    "hit_topology_preserved": true,
+    "active_skill_form1_tiers": [
+      25,
+      30,
+      40,
+      50,
+      70
+    ],
+    "active_skill_form2_tiers": [
+      30,
+      35,
+      45,
+      55,
+      80
+    ],
+    "ios_visual_pairing": "in separate audited UI archive"
+  }
+}
