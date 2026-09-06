@@ -128,6 +128,19 @@ export function upgradeLeaderboardRewardRules(
     if (isLegacyDefaultLeaderboardRewardTiers(competitionKey, tiers)) {
         return [...DEEP_ABYSS_REWARD_TIERS]
     }
+    // Existing databases already persisted the first 1% policy. Upgrade only
+    // those exact five boundaries; retain prizes and unrelated custom ranges.
+    const previousCutoffs = [1, 5, 10, 20, 100]
+    if (tiers.length === previousCutoffs.length && tiers.every((tier, index) =>
+        isPercentRewardTier(tier)
+        && tier.fromPercent === (index === 0 ? 0 : previousCutoffs[index - 1])
+        && tier.toPercent === previousCutoffs[index]
+    )) {
+        return tiers.map((tier, index) => ({ ...tier,
+            fromPercent: DEEP_ABYSS_REWARD_TIERS[index].fromPercent,
+            toPercent: DEEP_ABYSS_REWARD_TIERS[index].toPercent,
+        }))
+    }
     if (tiers.length !== FIXED_DEEP_ABYSS_REWARD_TIERS.length || !tiers.every((tier, index) =>
         !isPercentRewardTier(tier)
         && tier.fromRank === FIXED_DEEP_ABYSS_REWARD_TIERS[index].fromRank

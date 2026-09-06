@@ -12,7 +12,7 @@ const { insertPlayerSync } = require("../out/data/domains/player")
 const { getDefaultPlayerData } = require("../out/data/utils")
 const { countLeaderboardRanksSync } = require("../out/data/domains/leaderboard")
 const { getLeaderboardCompetition, getLeaderboardCompetitionSeasonSync } = require("../out/lib/leaderboard/competition")
-const { DEEP_ABYSS_REWARD_TIERS, resolveLeaderboardRewardTiers, matchLeaderboardRewardTier } = require("../out/lib/leaderboard/rewards")
+const { DEEP_ABYSS_REWARD_TIERS, resolveLeaderboardRewardTiers, matchLeaderboardRewardTier, upgradeLeaderboardRewardRules } = require("../out/lib/leaderboard/rewards")
 const {
     getLeaderboardSettlementConfigSync, putLeaderboardSettlementConfigSync,
     validateRewardTiers, settleLeaderboardSeasonSync, getLeaderboardSeasonRewardViewSync,
@@ -80,8 +80,9 @@ test("累计截止名次向上取整：零人、单人、小人数和整百分�
     assert.deepEqual(ranges(2), [[1, 1, 9900007], [2, null, 9900011]])
     assert.deepEqual(ranges(6), [[1, 1, 9900007], [2, 2, 9900010], [3, null, 9900011]])
     assert.deepEqual(ranges(50), [[1, 1, 9900007], [2, 3, 9900008], [4, 5, 9900009], [6, 10, 9900010], [11, null, 9900011]])
-    assert.deepEqual(ranges(200), [[1, 2, 9900007], [3, 10, 9900008], [11, 20, 9900009], [21, 40, 9900010], [41, null, 9900011]])
-    assert.deepEqual(ranges(1000), [[1, 10, 9900007], [11, 50, 9900008], [51, 100, 9900009], [101, 200, 9900010], [201, null, 9900011]])
+    assert.deepEqual(ranges(100), [[1, 2, 9900007], [3, 5, 9900008], [6, 10, 9900009], [11, 20, 9900010], [21, null, 9900011]])
+    assert.deepEqual(ranges(200), [[1, 4, 9900007], [5, 10, 9900008], [11, 20, 9900009], [21, 40, 9900010], [41, null, 9900011]])
+    assert.deepEqual(ranges(1000), [[1, 20, 9900007], [21, 50, 9900008], [51, 100, 9900009], [101, 200, 9900010], [201, null, 9900011]])
     for (let total = 1; total <= 200; total++) {
         const tiers = resolveLeaderboardRewardTiers(DEEP_ABYSS_REWARD_TIERS, total)
         assert.equal(matchLeaderboardRewardTier(tiers, 1).degreeId, 9900007)
@@ -102,11 +103,62 @@ test("既有五档迁移只改边界，保留后台定制的 5/4/3/2/3 数量和
     db.prepare("UPDATE leaderboard_settlement_configs SET reward_tiers_json = ? WHERE competition_key = ?")
         .run(JSON.stringify(legacy), competition.key)
     const migrated = getLeaderboardSettlementConfigSync(competition.key)
-    assert.deepEqual(migrated.rewardTiers.map(tier => [tier.fromPercent, tier.toPercent]), [[0, 1], [1, 5], [5, 10], [10, 20], [20, 100]])
+    assert.deepEqual(migrated.rewardTiers.map(tier => [tier.fromPercent, tier.toPercent]), [[0, 2], [2, 5], [5, 10], [10, 20], [20, 100]])
     assert.deepEqual(migrated.rewardTiers.map(tier => tier.itemCount), counts)
     assert.deepEqual(migrated.rewardTiers.map(tier => tier.degreeName), legacy.map(tier => tier.degreeName))
     assert.ok(migrated.rewardTiers.every(tier => !("fromRank" in tier)))
     assert.deepEqual(getLeaderboardSettlementConfigSync(competition.key), migrated)
+})
+
+function oldPercentRules(config) {
+    const cutoffs = [1, 5, 10, 20, 100]
+    return config.rewardTiers.map((tier, index) => ({ ...tier,
+        fromPercent: index === 0 ? 0 : cutoffs[index - 1], toPercent: cutoffs[index],
+    }))
+}
+
+test("已有前1%配置升级到前2%，奖品、后三档和截止设置保持，重复读取不再改写", () => {
+    const original = getLeaderboardSettlementConfigSync(competition.key)
+    const counts = [5, 4, 3, 2, 3]
+    const oldRules = oldPercentRules(original).map((tier, index) => ({ ...tier,
+        itemCount: counts[index], degreeName: `定制称号 ${index}`, degreeImage: `custom/${index}.png`,
+    }))
+    const saved = { ...original, rewardTiers: oldRules, freezeEnabled: true, autoEnabled: false,
+        settleAtMs: 1_800_000_000_000, repeatIntervalMs: 86_400_000,
+        mailSubject: "定制标题", mailBody: "定制正文", excludeBots: false, updatedAtMs: 1000 }
+    putLeaderboardSettlementConfigSync(saved)
+    const migrated = getLeaderboardSettlementConfigSync(competition.key, 2000)
+    assert.deepEqual(migrated.rewardTiers.map(t => [t.fromPercent, t.toPercent]),
+        [[0, 2], [2, 5], [5, 10], [10, 20], [20, 100]])
+    assert.deepEqual(migrated.rewardTiers.slice(2), oldRules.slice(2))
+    const prizes = tiers => tiers.map(({ fromPercent, toPercent, ...reward }) => reward)
+    assert.deepEqual(prizes(migrated.rewardTiers), prizes(oldRules))
+    assert.deepEqual({ ...migrated, rewardTiers: oldRules, updatedAtMs: 1000 }, saved)
+    assert.deepEqual(getLeaderboardSettlementConfigSync(competition.key, 3000), migrated)
+    assert.equal(upgradeLeaderboardRewardRules("another-competition", oldRules), null)
+    const custom = oldRules.map((tier, index) => ({ ...tier,
+        ...(index === 0 ? { toPercent: 3 } : index === 1 ? { fromPercent: 3 } : {}),
+    }))
+    assert.equal(upgradeLeaderboardRewardRules(competition.key, custom), null)
+})
+
+test("前1%历史结算快照不随当前前2%配置迁移而重算或重发", () => {
+    const config = getLeaderboardSettlementConfigSync(competition.key)
+    const oldRules = oldPercentRules(config)
+    putLeaderboardSettlementConfigSync({ ...config, rewardTiers: oldRules })
+    const summary = JSON.stringify({ rewardRules: oldRules,
+        rewardTiers: resolveLeaderboardRewardTiers(oldRules, 100), rounding: "cumulative-ceiling" })
+    db.prepare(`INSERT INTO leaderboard_settlements (competition_key, season, source, settled_at_ms,
+        ranked_players, rewarded_players, status, summary_json) VALUES (?, ?, 'old-policy', 1000, 100, 100, 'completed', ?)`)
+        .run(competition.key, season, summary)
+    const history = getLeaderboardSeasonRewardViewSync(competition.key, season)
+    assert.deepEqual(history.rewardTiers.map(t => [t.fromRank, t.toRank]),
+        [[1, 1], [2, 5], [6, 10], [11, 20], [21, null]])
+    assert.deepEqual(history.rewardRules, oldRules)
+    assert.equal(getLeaderboardSettlementConfigSync(competition.key).rewardTiers[0].toPercent, 2)
+    assert.equal(settleLeaderboardSeasonSync(competition.key, "repeat").reason, "already-settled")
+    assert.equal(db.prepare("SELECT summary_json FROM leaderboard_settlements").get().summary_json, summary)
+    assert.equal(db.prepare("SELECT COUNT(*) n FROM players_mails").get().n, 0)
 })
 
 test("空榜预览五档奖励但真实人数与结算档位仍为空；参榜后切回实际名次", () => {
@@ -119,12 +171,12 @@ test("空榜预览五档奖励但真实人数与结算档位仍为空；参榜�
     assert.deepEqual(preview.rows, [])
     assert.equal(preview.name, `${competition.displayName}（按100人参榜预览）`)
     assert.deepEqual(preview.reward.map(tier => [tier.fromRank, tier.toRank]),
-        [[1, 1], [2, 5], [6, 10], [11, 20], [21, null]])
+        [[1, 2], [3, 5], [6, 10], [11, 20], [21, null]])
     assert.deepEqual(preview.reward.map(tier => tier.itemCount), counts)
     assert.deepEqual(getLeaderboardSeasonRewardViewSync(competition.key, season).rewardTiers, [])
     const terms = buildLeaderboardTermsText(competition)
     assert.match(terms, /按100人参榜预览/)
-    assert.match(terms, /第2～5名/)
+    assert.match(terms, /第3～5名/)
     const [id] = participants(1)
     const single = buildNativeLeaderboardPayload(competition, id)
     assert.equal(single.total, 1)
@@ -201,8 +253,8 @@ test("完整有效成绩去重且先排除机器人和删除玩家；500 人显�
     assert.equal(preview.total, 501)
     assert.equal(preview.rows.length, 500)
     assert.equal(preview.item.rank, "501位")
-    assert.deepEqual(preview.reward.map(tier => [tier.fromRank, tier.toRank]), [[1, 6], [7, 26], [27, 51], [52, 101], [102, null]])
-    assert.match(buildLeaderboardTermsText(competition), /第7～26名/)
+    assert.deepEqual(preview.reward.map(tier => [tier.fromRank, tier.toRank]), [[1, 11], [12, 26], [27, 51], [52, 101], [102, null]])
+    assert.match(buildLeaderboardTermsText(competition), /第12～26名/)
     const official = getOfficialLeaderboardPageSync({ competition, playerId: ids[0], page: 0 })
     assert.equal(official.total, 501)
     assert.equal(official.rows[0].rank_number, 1)
@@ -218,7 +270,7 @@ test("完整有效成绩去重且先排除机器人和删除玩家；500 人显�
     assert.equal(result.rewardedPlayers, 501)
     assert.deepEqual(db.prepare(`SELECT degree_id, COUNT(*) n FROM leaderboard_settlement_results
         WHERE settlement_id = ? GROUP BY degree_id ORDER BY degree_id`).all(result.settlementId), [
-        { degree_id: 9900007, n: 6 }, { degree_id: 9900008, n: 20 }, { degree_id: 9900009, n: 25 },
+        { degree_id: 9900007, n: 11 }, { degree_id: 9900008, n: 15 }, { degree_id: 9900009, n: 25 },
         { degree_id: 9900010, n: 50 }, { degree_id: 9900011, n: 400 },
     ])
     assert.equal(db.prepare("SELECT COUNT(*) n FROM players_mails").get().n, 1002)

@@ -1,4 +1,4 @@
 {
-  "percentileCutoffs": [1, 5, 10, 20, 100],
+  "percentileCutoffs": [2, 5, 10, 20, 100],
   "titleCondition": "获得条件：赛季排行榜结算奖励，具体条件见排行报酬"
 }
