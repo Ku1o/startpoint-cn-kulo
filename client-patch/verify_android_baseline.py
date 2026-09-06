@@ -40,10 +40,17 @@ def verify(variant: str, apk: Path | None = None) -> dict:
         uuids = re.findall(r"[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}", manifest)
         if uuids != [expected_uuid]:
             raise ValueError(f"unexpected manifest UUIDs: {uuids}")
+    endpoint = entry["endpoint"]
+    if "local_endpoint_config" in entry:
+        local = ROOT / entry["local_endpoint_config"]
+        if local.is_file():
+            endpoint = "http://" + json.loads(local.read_text(encoding="utf-8"))["lan_host"]
+            if hashlib.sha256(endpoint.encode()).hexdigest() != entry["endpoint_sha256"]:
+                raise ValueError("local LAN endpoint differs from the accepted artifact record")
     return {"status": "accepted_identity_verified", "variant": variant,
             "apk": str(path), "apk_sha256": entry["apk_sha256"],
             "swf_sha256": entry["swf_sha256"], "uniqueappversionid": expected_uuid,
-            "endpoint": entry["endpoint"]}
+            "endpoint": endpoint}
 
 
 def main() -> int:

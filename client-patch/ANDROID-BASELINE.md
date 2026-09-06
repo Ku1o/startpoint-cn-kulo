@@ -7,7 +7,7 @@
 | 环境 | 已验收 APK（相对仓库根目录） | 地址 |
 | --- | --- | --- |
 | 公网 | `outputs/rush-leaderboard-self-profile-title-public-20260906/StarPoint-CN-1.8.1-self-profile-title-public-20260906.apk` | `http://175.178.160.158:8001` |
-| 内网 | `outputs/rush-leaderboard-self-profile-title-lan-20260906/StarPoint-CN-1.8.1-self-profile-title-lan-20260906.apk` | `http://192.168.3.14:8001` |
+| 内网 | `outputs/rush-leaderboard-self-profile-title-lan-20260906/StarPoint-CN-1.8.1-self-profile-title-lan-20260906.apk` | `http://<LAN_HOST>` |
 
 在仓库根目录运行只读检查：
 
@@ -17,6 +17,11 @@ python client-patch/verify_android_baseline.py --variant lan
 ```
 
 检查器读取 JSON 中的明确路径，核对 APK SHA-256、内嵌 SWF SHA-256、manifest UUID 及验收状态；不会扫描其他 APK 作为替代。成品放在其他位置时，可以显式传 `--apk`，仍须匹配同一份成品哈希。这里的身份检查不替代新包交付前的签名和对齐检查。
+
+仓库禁止硬编码个人内网 IP，`<LAN_HOST>` 表示包含端口的内网地址。已在本机忽略目录
+`outputs/android-build-local.json` 保存 `lan_host`，新会话直接读取即可；公开记录保存地址摘要以核对一致性。
+涉及地址切换的三个脚本按 `--lan-host` → `STARPOINT_LAN_HOST` 环境变量 → 本机配置的顺序取值。
+换电脑时一并携带这份本机配置；不要把它提交 Git，也不要把现有 APK 的内网地址当作通用默认值写回脚本。
 
 Git 保存修改方法和验收身份；APK 二进制仍保存在本机 `outputs`。换电脑时须另行取得这份精确已验收包。只克隆源码无法凭空得到 APK，找不到时不能回退到旧版。
 

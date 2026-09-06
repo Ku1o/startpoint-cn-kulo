@@ -9,7 +9,7 @@ from pathlib import Path
 import uuid
 
 import build_navigation_apk as nav
-from apk_build_common import BuildError, extract_swf, replace_apk, run, sha256, verify
+from apk_build_common import BuildError, extract_swf, replace_apk, resolve_lan_host, run, sha256, verify
 from build_self_profile_public_apk import CONFIG_CLASS, CONFIG_BODY, export_constructor
 from build_title_cntips_apk import export_title, extract_method, visibility_assignment
 
@@ -17,7 +17,6 @@ BASE_APK_SHA256 = "7990f9191ecf41bd35a4d886ced4d13248d13559284639c69bee5837bd682
 BASE_SWF_SHA256 = "27bdd055f8ca15f0863f564f5b4d57aba7de18d65d5fb9cdec43e87f96740e64"
 BASE_UUID = "10eb0c01-78a1-4a70-8c35-d524208b98b7"
 PUBLIC_HOST = "175.178.160.158:8001"
-LAN_HOST = "192.168.3.14:8001"
 
 
 def main() -> int:
@@ -25,7 +24,9 @@ def main() -> int:
     for name in ("base", "out", "work", "java", "javac", "ffdec", "zipalign", "apksigner", "keystore"):
         parser.add_argument(f"--{name}", required=True, type=Path)
     parser.add_argument("--password-env", required=True)
+    parser.add_argument("--lan-host", help="host:port; defaults to environment or ignored local config")
     args = parser.parse_args()
+    lan_host = resolve_lan_host(args.lan_host)
     if sha256(args.base) != BASE_APK_SHA256:
         raise BuildError("input must be the cumulative CNtips_b-hidden public APK")
     if args.work.exists() or args.out.exists():
@@ -39,7 +40,7 @@ def main() -> int:
         raise BuildError("baseline embedded SWF mismatch")
     source = export_constructor(nav, args.java, args.ffdec, baseline, args.work / "source-config")
     old = f'pushstring "{PUBLIC_HOST}"'
-    new = f'pushstring "{LAN_HOST}"'
+    new = f'pushstring "{lan_host}"'
     if source.count(old) != 1 or new in source:
         raise BuildError("expected exactly one public endpoint in configuration")
     patched = source.replace(old, new, 1)
@@ -93,7 +94,7 @@ def main() -> int:
         "runtime_or_device_verified": False,
         "base_apk": str(args.base.resolve()), "base_apk_sha256": BASE_APK_SHA256,
         "base_swf_sha256": BASE_SWF_SHA256, "base_uniqueappversionid": BASE_UUID,
-        "apk": str(args.out.resolve()), "endpoint": f"http://{LAN_HOST}",
+        "apk": str(args.out.resolve()), "endpoint": f"http://{lan_host}",
         "changed_methods": ["284:92013"], "CNtips_b_hidden_in_both_health_states": True,
         "self_profile_and_follow_fixes_preserved": True,
         "zipalign": True, "final_swf_config_and_title_reexport_verified": True,

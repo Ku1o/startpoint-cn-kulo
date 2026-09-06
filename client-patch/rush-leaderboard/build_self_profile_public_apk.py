@@ -11,6 +11,8 @@ import subprocess
 import uuid
 from pathlib import Path
 
+from apk_build_common import resolve_lan_host
+
 BASE_APK_SHA256 = "972ee319a8e6a9fefeb3360671d5dbd322a5c45b7fa39f4701c3a09b9a9c8049"
 BASE_SWF_SHA256 = "ee768121c80460cd07f92883eaea4ffec86243843a4f98d106b74fe664533684"
 BASE_UUID = "b61eb71c-dda3-4b84-af8c-60213de3f46b"
@@ -49,8 +51,8 @@ def export_constructor(nav, java: Path, ffdec: Path, swf: Path, root: Path) -> s
     return "\n".join(lines[start:end + 1]) + "\n"
 
 
-def replace_config(method: str) -> str:
-    old = 'pushstring "192.168.3.14:8001"'
+def replace_config(method: str, lan_host: str) -> str:
+    old = f'pushstring "{lan_host}"'
     if method.count(old) != 1:
         raise BuildError("LAN endpoint is not present exactly once in config constructor")
     return method.replace(old, f'pushstring "{PUBLIC_HOST}"', 1)
@@ -62,7 +64,9 @@ def main() -> int:
         parser.add_argument(f"--{name}", type=Path, required=True)
     parser.add_argument("--keystore-alias", default="wf")
     parser.add_argument("--password-env", required=True)
+    parser.add_argument("--lan-host", help="source host:port; defaults to environment or ignored local config")
     args = parser.parse_args()
+    lan_host = resolve_lan_host(args.lan_host)
     nav = load_navigation_builder()
     nav.BASE_UUID = BASE_UUID
     if nav.sha256_file(args.base) != BASE_APK_SHA256:
@@ -76,7 +80,7 @@ def main() -> int:
     nav.extract_swf(args.base, baseline)
     if nav.sha256_file(baseline) != BASE_SWF_SHA256:
         raise BuildError("base SWF hash mismatch")
-    method = replace_config(export_constructor(nav, args.java, args.ffdec, baseline, args.work / "config-pcode"))
+    method = replace_config(export_constructor(nav, args.java, args.ffdec, baseline, args.work / "config-pcode"), lan_host)
     method_file = args.work / "DevConfig_gf_android-constructor-public.pcode"
     method_file.write_text(method, encoding="utf-8", newline="\n")
     candidate = args.work / "self-profile-navigation-public.swf"

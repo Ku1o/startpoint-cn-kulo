@@ -7,6 +7,8 @@ can run from a fresh checkout without importing discarded patch logic.
 from __future__ import annotations
 
 import hashlib
+import json
+import os
 import re
 import subprocess
 import zipfile
@@ -29,6 +31,22 @@ CERT_SHA256 = "569d19a3578d4cba16e3d6e7ad8ccab4fa667efc758deef6c9be3adb99919894"
 
 class BuildError(RuntimeError):
     pass
+
+
+def resolve_lan_host(explicit: str | None = None) -> str:
+    """Read host:port from an argument, environment, or ignored local config."""
+    value = explicit or os.environ.get("STARPOINT_LAN_HOST")
+    if not value:
+        path = Path(__file__).resolve().parents[2] / "outputs/android-build-local.json"
+        if path.is_file():
+            value = json.loads(path.read_text(encoding="utf-8"))["lan_host"]
+    if not isinstance(value, str):
+        raise BuildError("set --lan-host, STARPOINT_LAN_HOST, or outputs/android-build-local.json")
+    value = value.strip()
+    host, sep, port = value.rpartition(":")
+    if not sep or not host or not re.fullmatch(r"[A-Za-z0-9.-]+", host) or not port.isdigit() or not 1 <= int(port) <= 65535:
+        raise BuildError("LAN endpoint must be host:port without scheme or path")
+    return value
 
 
 def sha256(path: Path) -> str:

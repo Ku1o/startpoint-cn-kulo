@@ -64,7 +64,7 @@ zipalign、v1/v2 签名与固定证书。签名凭据遵循根 AGENTS.md 的 DPA
 
 构建器 `build_title_cntips_lan_apk.py` 从上述标题已修复公网包
 `7990f9191ecf41bd35a4d886ced4d13248d13559284639c69bee5837bd682f0e` 继续，
-只将配置构造器 `284:92013` 的服务器地址改为 `http://192.168.3.14:8001`。
+只将配置构造器 `284:92013` 的服务器地址改为 `http://<LAN_HOST>`。
 参数与标题公网构建器相同；严格检查输入哈希和目标方法索引、唯一方法差异，
 重新导出最终配置和标题代码确认地址及 `CNtips_b` 隐藏，并校验回封载荷、新 UUID、对齐和签名。
 
@@ -101,6 +101,8 @@ zipalign、v1/v2 签名与固定证书。签名凭据遵循根 AGENTS.md 的 DPA
 `../character-carousel/`。未使用的 draw 诊断函数已从最终关注脚本移除。
 
 每个脚本的 `--help` 列出参数；本人资料两步额外要求 `--report`，其 Java 编译器 `javac` 必须在 PATH。
+涉及内网地址的三个脚本使用 `--lan-host`、`STARPOINT_LAN_HOST` 或忽略的 `outputs/android-build-local.json`，
+其中 `lan_host` 是不带协议的 `host:port`。本机地址已保存，仓库只记地址摘要；脚本不再硬编码个人内网 IP。
 其他三步显式传入 `--javac`。工作目录必须是任务专用新目录，输出不得覆盖已有成品；签名只传环境变量名称，
 密码由本机 DPAPI 凭据在签名进程内加载，退出即清理。
 

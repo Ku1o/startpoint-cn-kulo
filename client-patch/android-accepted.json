@@ -29,7 +29,7 @@
       "apk_sha256": "8e10df1f2b259fdc5cacf30f9a66ed3bc0556d5d253a22f55a931c22a0e6c9c0",
       "swf_sha256": "e18b627a7735e55d40d65753cc6079ce47e7d969980723aef392513867ec4f30",
       "uniqueappversionid": "444eb21b-7807-438d-a89c-156c617fcfb6",
-      "endpoint": "http://192.168.3.14:8001",
+      "endpoint": "http://<LAN_HOST>",
       "local_build_report": "outputs/rush-leaderboard-self-profile-title-lan-20260906/verification-report.json",
       "local_build_checks": {
         "changed_methods": [
@@ -37,7 +37,9 @@
         ],
         "zipalign": true,
         "signer_certificate_sha256": "569d19a3578d4cba16e3d6e7ad8ccab4fa667efc758deef6c9be3adb99919894"
-      }
+      },
+      "endpoint_sha256": "a32f84d19ceda3b4a466952f7deab7fbf1db96029ba70777a2cbd4a1ef79f521",
+      "local_endpoint_config": "outputs/android-build-local.json"
     }
   }
 }

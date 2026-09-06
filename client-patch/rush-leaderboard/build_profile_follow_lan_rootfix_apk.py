@@ -22,6 +22,7 @@ from apk_build_common import (
     CERT_SHA256,
     extract_swf,
     replace_apk,
+    resolve_lan_host,
     run,
     sha256,
     verify,
@@ -31,7 +32,6 @@ BASE_APK_SHA256 = "293baba18010688c836c2d94002d98c29fda0468f78aff14847eb75d9e8c5
 BASE_SWF_SHA256 = "bf43fa01bf572f334d6f012d119e96af0272cf61a96e1c1a0e9f6923cbb5be4f"
 BASE_UUID = "08468b1e-5dbd-47a4-9aec-00b7d1c97099"
 PUBLIC_HOST = "175.178.160.158:8001"
-LAN_HOST = "192.168.3.14:8001"
 CONFIG_CLASS = "pinball.config.gbits.DevConfig_gf_android"
 CONFIG_BODY = 92013
 PROFILE_CLASS = "pinball.scene.playerProfile.PlayerProfileView"
@@ -156,7 +156,9 @@ def main() -> int:
     for name in ("base", "out", "work", "ffdec", "java", "javac", "zipalign", "apksigner", "keystore"):
         parser.add_argument(f"--{name}", type=Path, required=True)
     parser.add_argument("--password-env", required=True)
+    parser.add_argument("--lan-host", help="host:port; defaults to environment or ignored local config")
     args = parser.parse_args()
+    lan_host = resolve_lan_host(args.lan_host)
     if sha256(args.base) != BASE_APK_SHA256:
         raise BuildError("input is not the retained r12b baseline")
     if args.out.exists():
@@ -177,7 +179,7 @@ def main() -> int:
     config_old = f'pushstring "{PUBLIC_HOST}"'
     if config_method.count(config_old) != 1:
         raise BuildError("r12b constructor does not contain the expected public endpoint")
-    config_patched = config_method.replace(config_old, f'pushstring "{LAN_HOST}"', 1)
+    config_patched = config_method.replace(config_old, f'pushstring "{lan_host}"', 1)
     profile_file = args.work / "refreshFollowRelationButtons.pcode"
     other_file = args.work / "applyButton.pcode"
     config_file = args.work / "DevConfig_gf_android-constructor-lan.pcode"
@@ -223,7 +225,7 @@ def main() -> int:
     verification.update({
         "status": "locally_verified_test_candidate",
         "runtime_or_device_verified": False,
-        "endpoint": f"http://{LAN_HOST}",
+        "endpoint": f"http://{lan_host}",
         "base_apk_sha256": BASE_APK_SHA256,
         "base_swf_sha256": BASE_SWF_SHA256,
         "base_uniqueappversionid": BASE_UUID,
