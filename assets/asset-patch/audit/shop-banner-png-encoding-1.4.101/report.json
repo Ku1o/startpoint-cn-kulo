@@ -1,0 +1,119 @@
+{
+  "schema": "shop-banner-png-encoding/v1",
+  "base_version": "1.4.100",
+  "target_version": "1.4.101",
+  "source_plan": {
+    "ok": true,
+    "tail": "1.4.100",
+    "files": 142800,
+    "bytes": 10572212266,
+    "rejected": 161,
+    "per_root": {
+      "common": {
+        "files": 116747,
+        "bytes": 6838854703
+      },
+      "medium": {
+        "files": 24927,
+        "bytes": 3634202102
+      },
+      "android": {
+        "files": 1126,
+        "bytes": 99155461
+      }
+    },
+    "unreachable_edges": 0,
+    "unreachable_samples": [],
+    "max_visible_version": "1.4.100",
+    "chain_issues": []
+  },
+  "banners": [
+    {
+      "label": "商店入口横幅",
+      "member": "production/upload/af/6ad4e513edc45a835d26ae8482ec384ff62ce7",
+      "source_archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.99-1.4.100-1-abyss-exchange-shop-banners.zip",
+      "size": [
+        1000,
+        184
+      ],
+      "mode": "RGB",
+      "before_sha256": "157a2af894b4500cb373ac7af56b34c74e70be757e17a2614058aae5af7d8ca3",
+      "after_sha256": "69d642b7066c984864478724509270cb127118a87c363ad538588f0941f0e386",
+      "before_client_error": "signature error: not png file.",
+      "changed_byte_offsets": [
+        1,
+        2,
+        3
+      ],
+      "strict_decode_byte_identical": true,
+      "pixel_sha256": "24c2d31a6fd12acab8a025f3924124d5d77da644a3bf4c5306870763280000d3",
+      "shared_android_ios": true
+    },
+    {
+      "label": "觉醒强化页头",
+      "member": "production/upload/35/937c7ff9d7006ffa407887910bbec9fc41bc06",
+      "source_archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.99-1.4.100-1-abyss-exchange-shop-banners.zip",
+      "size": [
+        1440,
+        556
+      ],
+      "mode": "RGBA",
+      "before_sha256": "19bef4da76737ab0bdad1cf81d3d5d50759a3a8059dd43ed86d882483d46ec3c",
+      "after_sha256": "6b8d6937c5133f2cf631cb861a6071bc5e7247e31d4edf32b62d4cea456591a4",
+      "before_client_error": "signature error: not png file.",
+      "changed_byte_offsets": [
+        1,
+        2,
+        3
+      ],
+      "strict_decode_byte_identical": true,
+      "pixel_sha256": "282c71361735830e970299b9f36a7587bdcb2582429a0eabb1f1ee66db59c101",
+      "shared_android_ios": true
+    }
+  ],
+  "archive": {
+    "name": "pinball-1.4.100-1.4.101-1-shop-banner-png-encoding.zip",
+    "size": 980604,
+    "sha256": "840b45179ece41930a2a90fb47f83ab98dc84947d488811a81744c668a6b5cf8",
+    "members": 2,
+    "files": [
+      "production/upload/35/937c7ff9d7006ffa407887910bbec9fc41bc06",
+      "production/upload/af/6ad4e513edc45a835d26ae8482ec384ff62ce7"
+    ]
+  },
+  "prior_archives_preserved": [
+    {
+      "name": "pinball-1.4.99-1.4.100-1-abyss-exchange-shop-banners.zip",
+      "size": 987008,
+      "sha256": "8875fe6cdefc39b25dc0bd28905c988fe5b6cfc9877817f7fbd6a9fc64c86f12",
+      "members": 5,
+      "files": [
+        "production/upload/35/937c7ff9d7006ffa407887910bbec9fc41bc06",
+        "production/upload/3b/94cb2772f22fb76b1a4545c5a347d764050829",
+        "production/upload/af/6ad4e513edc45a835d26ae8482ec384ff62ce7",
+        "production/upload/bf/5dc56a444450216d4f12d6b9dfc0d908a09c5d",
+        "production/upload/f9/a1960c6e206256bbdd8abe611a4ca1543cfb8c"
+      ]
+    },
+    {
+      "name": "pinball-1.4.99-1.4.100-2-rank-title-conditions.zip",
+      "size": 192086,
+      "sha256": "c96d1d2d59626c8facf17dceaa91753c24b37f7bbb139938967ae20bc25d02ee",
+      "members": 1,
+      "files": [
+        "production/upload/89/e5c25c791e2a9527422c186084a1793218c2ac"
+      ]
+    }
+  ],
+  "manifest_before_sha256": "40441f5b9ab665211db4be58e7d15fbee55d664dec312f3c429a35d9ac5525b9",
+  "manifest_after_sha256": "20b6b3943c8f8f3844b458bfa6a2f38e67b0d038c6ac5acfed194a6dcc14f563",
+  "baseline_contamination_not_used_or_modified": [
+    "F:\\startpoint-cn-main\\.cdn\\cn\\archive-ios-diff\\pinball-1.4.83-1.4.84-2-bbbc92be.zip"
+  ],
+  "unregistered_active_not_used_or_modified": [
+    "pinball-1.4.68-1.4.69-1-0807230819.zip"
+  ],
+  "client_reader": "FileReader.convertEncryptedFile -> fileFaker.converter.PNGConverter.decode",
+  "root_cause": "The .100 publisher required ordinary PNG signatures and preserved donor bytes; it omitted the client's strict stored-signature check.",
+  "device_ui_verification": "pending user testing"
+}

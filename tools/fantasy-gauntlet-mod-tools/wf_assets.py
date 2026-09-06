@@ -66,9 +66,20 @@ _SRATE_V25 = [11025, 12000, 8000]
 # ---------------------------------------------------------------- PNG
 
 def png_decode(data: bytes) -> bytes:
+    """Accept stored or ordinary PNGs for editing; not a publication check."""
     if data[:8] == PNG_FAKE:
         return PNG_REAL + data[8:]
     return data
+
+
+def png_decode_stored(data: bytes) -> bytes:
+    """Match FileReader/PNGConverter's strict stored-signature contract.
+
+    Callers must also load the decoded image to validate its PNG chunks.
+    """
+    if data[:8] != PNG_FAKE:
+        raise ValueError("signature error: not png file.")
+    return PNG_REAL + data[8:]
 
 
 def png_encode(data: bytes) -> bytes:

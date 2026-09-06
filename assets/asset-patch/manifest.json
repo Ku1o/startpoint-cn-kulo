@@ -1,5 +1,5 @@
 {
-  "cdn_version": "1.4.100",
+  "cdn_version": "1.4.101",
   "patches": [
     {
       "id": "base-1.4.54-to-1.4.55-mod07141843",
@@ -9475,6 +9475,46 @@
         "report": "report.json",
         "rank_title_conditions": "assets/asset-patch/audit/rank-title-conditions-1.4.100/report.json",
         "integrated_release": "assets/asset-patch/audit/abyss-exchange-shop-banners-1.4.100/integrated-release.json"
+      }
+    },
+    {
+      "id": "shop-banner-png-encoding-1.4.101",
+      "type": "patch",
+      "name": "商店横幅 PNG 存储格式修复 1.4.101",
+      "description": "修复进入特殊装备强化时的 C8105，保留两张横幅原画。",
+      "version": "1.4.101",
+      "depends_on": "1.4.100",
+      "enabled": true,
+      "archive": "pinball-1.4.100-1.4.101-1-shop-banner-png-encoding.zip",
+      "archive_size": 980604,
+      "chain": [
+        "pinball-1.4.100-1.4.101-1-shop-banner-png-encoding.zip"
+      ],
+      "archive_integrity": [
+        {
+          "name": "pinball-1.4.100-1.4.101-1-shop-banner-png-encoding.zip",
+          "size": 980604,
+          "sha256": "840b45179ece41930a2a90fb47f83ab98dc84947d488811a81744c668a6b5cf8",
+          "members": 2,
+          "files": [
+            "production/upload/35/937c7ff9d7006ffa407887910bbec9fc41bc06",
+            "production/upload/af/6ad4e513edc45a835d26ae8482ec384ff62ce7"
+          ]
+        }
+      ],
+      "files": [
+        "production/upload/35/937c7ff9d7006ffa407887910bbec9fc41bc06",
+        "production/upload/af/6ad4e513edc45a835d26ae8482ec384ff62ce7"
+      ],
+      "changes": [
+        "两张共通横幅由标准 PNG 转为客户端要求的 fileFaker 存储格式，仅修改文件头三个字节。",
+        "保留原图尺寸、色彩模式和所有像素；Android 与 iOS 共用这两份资源。",
+        "追加 .100→.101 更新，保留 .100 的兑换、称号和既有资源内容。"
+      ],
+      "created_at": "2026-09-06",
+      "audit": {
+        "directory": "assets/asset-patch/audit/shop-banner-png-encoding-1.4.101",
+        "report": "report.json"
       }
     }
   ]
