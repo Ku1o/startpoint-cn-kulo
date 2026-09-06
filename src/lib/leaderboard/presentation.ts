@@ -1,7 +1,7 @@
 import { cdnCharacters as characterMaster } from "../content-master"
 import { getPlayerSync } from "../../data/domains/player"
+import { getViewerIdByPlayerIdSync } from "../../data/domains/follow"
 import {
-    countLeaderboardRanksSync,
     getLeaderboardPlayerRankSync,
     getLeaderboardRankPageSync,
     getLeaderboardRunRoundsSync,
@@ -18,24 +18,21 @@ import {
     getLeaderboardCompetitionSeasonSync,
     LeaderboardCompetition,
 } from "./competition"
-import { LeaderboardRewardTier } from "./rewards"
-import { getLeaderboardSettlementConfigSync } from "./settlement"
+import { isPercentRewardTier, LeaderboardRewardTier, resolveLeaderboardRewardTiers } from "./rewards"
+import { getLeaderboardSeasonRewardViewSync, getLeaderboardSettlementConfigSync, LeaderboardSeasonRewardView } from "./settlement"
+import { isLeaderboardDeadlineDueSync, isLeaderboardEnabledSync } from "./availability"
+import { formatLeaderboardDeadlineInput } from "./schedule-time"
+export {
+    RUSH_PROFILE_ID_BASE,
+    fromProfileTargetId,
+    toProfileTargetId,
+} from "../profile-target"
 
-// The game profile endpoint normally addresses a player through its viewer
-// session token. Leaderboard rows identify saved players instead, so reserve a
-// disjoint numeric namespace that the profile route can decode back to a
-// player id. Real viewer ids are generated below 900,000,000.
-export const RUSH_PROFILE_ID_BASE = 9_000_000_000
-
-export function toProfileTargetId(playerId: number): number {
-    if (!Number.isFinite(playerId) || playerId <= 0) return 0
-    return RUSH_PROFILE_ID_BASE + Math.trunc(playerId)
-}
-
-export function fromProfileTargetId(targetId: number): number | null {
-    if (!Number.isFinite(targetId)) return null
-    const playerId = Math.trunc(targetId) - RUSH_PROFILE_ID_BASE
-    return playerId > 0 ? playerId : null
+function getRealProfileViewerId(playerId: number): number {
+    // The leaderboard stores a player archive id, but the client profile API
+    // requires the player's real viewer/session id. Never expose the archive
+    // id as a fake viewer id; rows without a live identity are not clickable.
+    return getViewerIdByPlayerIdSync(playerId) ?? 0
 }
 
 export interface OfficialLeaderboardRow {
@@ -134,7 +131,7 @@ export function nativeRow(
         a: paths[0] ?? null,
         b: paths[1] ?? null,
         c: paths[2] ?? null,
-        id: record.playerExists ? toProfileTargetId(record.playerId) : 0,
+        id: record.playerExists ? getRealProfileViewerId(record.playerId) : 0,
     }
 }
 
@@ -151,7 +148,7 @@ function outOfRankRow(playerId: number): NativeLeaderboardRow | null {
         a: null,
         b: null,
         c: null,
-        id: toProfileTargetId(playerId),
+        id: getRealProfileViewerId(playerId),
     }
 }
 
@@ -168,7 +165,7 @@ export function getOfficialLeaderboardPageSync(input: {
     rows: OfficialLeaderboardRow[]
 } {
     const season = getDisplaySeason(input.competition.key, input.acceptingScores ?? true)
-    const total = countLeaderboardRanksSync(input.competition.key, season)
+    const { total, filter } = getLeaderboardSeasonRewardViewSync(input.competition.key, season)
     const visibleTotal = Math.min(total, input.competition.displayLimit)
     const pageMax = Math.max(1, Math.ceil(visibleTotal / input.competition.pageSize))
     const requestedPage = Number.isFinite(input.page) ? Math.trunc(input.page) : 0
@@ -177,6 +174,7 @@ export function getOfficialLeaderboardPageSync(input: {
         competitionKey: input.competition.key,
         season,
         offset: page * input.competition.pageSize,
+        filter,
         limit: Math.min(
             input.competition.pageSize,
             Math.max(0, input.competition.displayLimit - page * input.competition.pageSize),
@@ -186,6 +184,7 @@ export function getOfficialLeaderboardPageSync(input: {
         input.competition.key,
         season,
         input.playerId,
+        filter,
     )
     const favorites = getFirstPlayerPartyDisplaySelectionsSync(
         [
@@ -215,6 +214,7 @@ export function getLeaderboardPlayedPartiesSync(input: {
         season,
         offset: input.rankNumber - 1,
         limit: 1,
+        filter: getLeaderboardSeasonRewardViewSync(input.competition.key, season).filter,
     })
     if (record === undefined) return {}
     return Object.fromEntries(getLeaderboardRunRoundsSync(record.id).map(round => [
@@ -236,6 +236,7 @@ export function buildNativeLeaderboardPayload(
     competition: LeaderboardCompetition,
     playerId: number | null,
     acceptingScores: boolean = true,
+    nowMs: number = Date.now(),
 ): {
     enabled: true
     name: string
@@ -248,17 +249,21 @@ export function buildNativeLeaderboardPayload(
     total: number
     reward: readonly LeaderboardRewardTier[]
 } {
-    const season = getDisplaySeason(competition.key, acceptingScores)
-    const total = countLeaderboardRanksSync(competition.key, season)
+    acceptingScores = isLeaderboardEnabledSync(competition.key, nowMs) && acceptingScores
+    const season = getDisplaySeason(competition.key, acceptingScores, nowMs)
+    const rewardView = getLeaderboardSeasonRewardViewSync(competition.key, season)
+    const { total, filter, settled } = rewardView
+    const rewardPresentation = buildLeaderboardRewardPresentation(competition, rewardView)
     const records = getLeaderboardRankPageSync({
         competitionKey: competition.key,
         season,
         offset: 0,
         limit: competition.displayLimit,
+        filter,
     })
     const mine = playerId === null
         ? null
-        : getLeaderboardPlayerRankSync(competition.key, season, playerId)
+        : getLeaderboardPlayerRankSync(competition.key, season, playerId, filter)
     const favorites = getFirstPlayerPartyDisplaySelectionsSync(
         [
             ...records.map(record => record.playerId),
@@ -270,7 +275,7 @@ export function buildNativeLeaderboardPayload(
     const visibleIndex = index >= 0 && index < records.length ? index : -1
     return {
         enabled: true,
-        name: competition.displayName,
+        name: rewardPresentation.name,
         rows: records.map(record => nativeRow(record, favorites.get(record.playerId))),
         item: mine === null
             ? (playerId === null ? null : outOfRankRow(playerId))
@@ -278,10 +283,20 @@ export function buildNativeLeaderboardPayload(
         page: visibleIndex < 0 ? 0 : Math.floor(visibleIndex / competition.pageSize),
         row: visibleIndex < 0 ? -1 : visibleIndex % competition.pageSize,
         index,
-        time: acceptingScores ? "实时更新" : "排行榜已冻结",
+        time: buildLeaderboardScheduleText(competition.key, acceptingScores, settled),
         total,
-        reward: getLeaderboardSettlementConfigSync(competition.key).rewardTiers,
+        reward: rewardPresentation.rewardTiers,
     }
+}
+
+function buildLeaderboardScheduleText(competitionKey: string, acceptingScores: boolean, settled: boolean): string {
+    if (settled) return "已结算"
+    if (!acceptingScores) return "已冻结，待结算"
+    const config = getLeaderboardSettlementConfigSync(competitionKey)
+    if (config.settleAtMs === null) return "实时更新"
+    if (!config.freezeEnabled && !config.autoEnabled) return "未启用定时结算"
+    const beijing = formatLeaderboardDeadlineInput(config.settleAtMs).slice(5).replace("T", " ")
+    return `${config.autoEnabled ? "结算" : "截止"}：${beijing}`
 }
 
 export function buildUnavailableNativeLeaderboardPayload(): {
@@ -314,19 +329,23 @@ function getSeason(competitionKey: string): number {
     return getLeaderboardCompetitionSeasonSync(competitionKey)
 }
 
-function getDisplaySeason(competitionKey: string, acceptingScores: boolean): number {
+function getDisplaySeason(competitionKey: string, acceptingScores: boolean, nowMs = Date.now()): number {
     const currentSeason = getSeason(competitionKey)
-    if (acceptingScores || countLeaderboardRanksSync(competitionKey, currentSeason) > 0) {
+    const current = getLeaderboardSeasonRewardViewSync(competitionKey, currentSeason)
+    if (acceptingScores || current.total > 0 || current.settled
+        || isLeaderboardDeadlineDueSync(competitionKey, nowMs)) {
         return currentSeason
     }
     for (let season = currentSeason - 1; season >= 1; season--) {
-        if (countLeaderboardRanksSync(competitionKey, season) > 0) return season
+        if (getLeaderboardSeasonRewardViewSync(competitionKey, season).total > 0) return season
     }
     return currentSeason
 }
 
-export function buildLeaderboardTermsText(competition: LeaderboardCompetition): string {
-    const tiers = getLeaderboardSettlementConfigSync(competition.key).rewardTiers
+export function buildLeaderboardTermsText(competition: LeaderboardCompetition, acceptingScores = true): string {
+    const season = getDisplaySeason(competition.key, acceptingScores)
+    const view = getLeaderboardSeasonRewardViewSync(competition.key, season)
+    const { name, rewardTiers: tiers } = buildLeaderboardRewardPresentation(competition, view)
     const lines = tiers.map(tier => {
         const range = tier.toRank === null
             ? `第${tier.fromRank}名起`
@@ -339,5 +358,21 @@ export function buildLeaderboardTermsText(competition: LeaderboardCompetition): 
         ].filter((value): value is string => value !== null)
         return `<p><b>${range}</b>　${rewards.join(" + ")}</p>`
     })
-    return `<h2>${competition.displayName} 排行报酬</h2>${lines.join("")}<p>排行榜按本期完整通关的 client_battle_ms 总和升序排列；每位玩家只保留最佳成绩。</p>`
+    return `<h2>${name} 排行报酬</h2>${lines.join("")}<p>排行榜按本期完整通关的 client_battle_ms 总和升序排列；每位玩家只保留最佳成绩。</p>`
+}
+
+function buildLeaderboardRewardPresentation(
+    competition: LeaderboardCompetition, view: LeaderboardSeasonRewardView,
+): { name: string; rewardTiers: LeaderboardRewardTier[] } {
+    if (view.total === 0 && view.rewardRules.some(isPercentRewardTier)) {
+        // Existing clients construct the reward page from name + rank ranges.
+        // Keep the example confined to presentation: the real count, ranks,
+        // settlement tiers and saved results must remain empty for zero players.
+        const label = view.settled ? "本期无人获奖；按100人参榜预览" : "按100人参榜预览"
+        return {
+            name: `${competition.displayName}（${label}）`,
+            rewardTiers: resolveLeaderboardRewardTiers(view.rewardRules, 100),
+        }
+    }
+    return { name: competition.displayName, rewardTiers: view.rewardTiers }
 }

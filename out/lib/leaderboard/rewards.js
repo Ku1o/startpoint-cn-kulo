@@ -1,6 +1,25 @@
 "use strict";
+var __rest = (this && this.__rest) || function (s, e) {
+    var t = {};
+    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
+        t[p] = s[p];
+    if (s != null && typeof Object.getOwnPropertySymbols === "function")
+        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
+            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
+                t[p[i]] = s[p[i]];
+        }
+    return t;
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.matchLeaderboardRewardTier = exports.getLeaderboardRewardTiers = exports.isLegacyDefaultLeaderboardRewardTiers = exports.DEEP_ABYSS_REWARD_TIERS = void 0;
+exports.matchLeaderboardRewardTier = exports.getLeaderboardRewardTiers = exports.isLegacyDefaultLeaderboardRewardTiers = exports.resolveLeaderboardRewardTiers = exports.upgradeLeaderboardRewardRules = exports.DEEP_ABYSS_REWARD_TIERS = exports.isPercentRewardTier = void 0;
+const leaderboard_reward_policy_json_1 = __importDefault(require("../../../assets/leaderboard_reward_policy.json"));
+function isPercentRewardTier(tier) {
+    return "fromPercent" in tier;
+}
+exports.isPercentRewardTier = isPercentRewardTier;
 const LEGACY_DEEP_ABYSS_REWARD_TIERS = [
     {
         fromRank: 1, toRank: 1, itemId: 999016, itemName: "终焉裁定十连券", itemCount: 10,
@@ -32,7 +51,7 @@ const LEGACY_DEEP_ABYSS_REWARD_TIERS_ALT = [
     Object.assign(Object.assign({}, LEGACY_DEEP_ABYSS_REWARD_TIERS[2]), { itemId: 999015, itemName: "终焉裁定券" }),
     Object.assign(Object.assign({}, LEGACY_DEEP_ABYSS_REWARD_TIERS[3]), { itemId: null, itemName: null, itemCount: 0 }),
 ];
-exports.DEEP_ABYSS_REWARD_TIERS = [
+const FIXED_DEEP_ABYSS_REWARD_TIERS = [
     {
         fromRank: 1,
         toRank: 1,
@@ -84,6 +103,45 @@ exports.DEEP_ABYSS_REWARD_TIERS = [
         degreeImage: "dynamic/degree/degree_mod_stellar_abyss_together.png",
     },
 ];
+exports.DEEP_ABYSS_REWARD_TIERS = FIXED_DEEP_ABYSS_REWARD_TIERS.map((_a, index) => {
+    var { fromRank, toRank } = _a, reward = __rest(_a, ["fromRank", "toRank"]);
+    return (Object.assign(Object.assign({}, reward), { fromPercent: index === 0 ? 0 : leaderboard_reward_policy_json_1.default.percentileCutoffs[index - 1], toPercent: leaderboard_reward_policy_json_1.default.percentileCutoffs[index] }));
+});
+// Upgrade the five existing positions without overwriting customized rewards.
+function upgradeLeaderboardRewardRules(competitionKey, tiers) {
+    if (competitionKey !== "rush:700099:1")
+        return null;
+    if (isLegacyDefaultLeaderboardRewardTiers(competitionKey, tiers)) {
+        return [...exports.DEEP_ABYSS_REWARD_TIERS];
+    }
+    if (tiers.length !== FIXED_DEEP_ABYSS_REWARD_TIERS.length || !tiers.every((tier, index) => !isPercentRewardTier(tier)
+        && tier.fromRank === FIXED_DEEP_ABYSS_REWARD_TIERS[index].fromRank
+        && tier.toRank === FIXED_DEEP_ABYSS_REWARD_TIERS[index].toRank))
+        return null;
+    return tiers.map((tier, index) => {
+        const _a = tier, { fromRank, toRank } = _a, reward = __rest(_a, ["fromRank", "toRank"]);
+        return Object.assign(Object.assign({}, reward), { fromPercent: exports.DEEP_ABYSS_REWARD_TIERS[index].fromPercent, toPercent: exports.DEEP_ABYSS_REWARD_TIERS[index].toPercent });
+    });
+}
+exports.upgradeLeaderboardRewardRules = upgradeLeaderboardRewardRules;
+function resolveLeaderboardRewardTiers(rules, total) {
+    if (!Number.isSafeInteger(total) || total < 0)
+        throw new Error("Invalid ranked player count.");
+    return rules.flatMap(rule => {
+        if (!isPercentRewardTier(rule))
+            return [Object.assign({}, rule)];
+        const { fromPercent, toPercent } = rule, reward = __rest(rule
+        // Integer percentages avoid rounding a floating-point product twice.
+        , ["fromPercent", "toPercent"]);
+        // Integer percentages avoid rounding a floating-point product twice.
+        const fromRank = Number((BigInt(total) * BigInt(fromPercent) + BigInt(99)) / BigInt(100)) + 1;
+        const endRank = Number((BigInt(total) * BigInt(toPercent) + BigInt(99)) / BigInt(100));
+        if (fromRank > endRank)
+            return [];
+        return [Object.assign(Object.assign({}, reward), { fromRank, toRank: toPercent === 100 ? null : endRank })];
+    });
+}
+exports.resolveLeaderboardRewardTiers = resolveLeaderboardRewardTiers;
 function isLegacyDefaultLeaderboardRewardTiers(competitionKey, tiers) {
     if (competitionKey !== "rush:700099:1" || tiers.length !== LEGACY_DEEP_ABYSS_REWARD_TIERS.length) {
         return false;
@@ -92,7 +150,8 @@ function isLegacyDefaultLeaderboardRewardTiers(competitionKey, tiers) {
         "fromRank", "toRank", "itemId", "itemName", "itemCount",
         "degreeId", "degreeName", "degreeImage",
     ];
-    return [LEGACY_DEEP_ABYSS_REWARD_TIERS, LEGACY_DEEP_ABYSS_REWARD_TIERS_ALT].some(legacy => tiers.every((tier, index) => fields.every(field => tier[field] === legacy[index][field])));
+    return [LEGACY_DEEP_ABYSS_REWARD_TIERS, LEGACY_DEEP_ABYSS_REWARD_TIERS_ALT].some(legacy => tiers.every((tier, index) => !isPercentRewardTier(tier)
+        && fields.every(field => tier[field] === legacy[index][field])));
 }
 exports.isLegacyDefaultLeaderboardRewardTiers = isLegacyDefaultLeaderboardRewardTiers;
 function getLeaderboardRewardTiers(competitionKey) {

@@ -35,7 +35,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             return;
         const competition = (0, competition_1.getLeaderboardCompetition)(key);
         const season = (0, competition_1.getLeaderboardCompetitionSeasonSync)(key);
-        const total = (0, leaderboard_1.countLeaderboardRanksSync)(key, season);
+        const { total, filter } = (0, settlement_1.getLeaderboardSeasonRewardViewSync)(key, season);
         const query = request.query;
         const page = Math.max(0, Math.floor(Number((_a = query.page) !== null && _a !== void 0 ? _a : 0) || 0));
         return reply.send({
@@ -48,6 +48,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 season,
                 offset: page * competition.pageSize,
                 limit: competition.pageSize,
+                filter,
             }),
             total,
         });
@@ -60,6 +61,15 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         const body = ((_b = request.body) !== null && _b !== void 0 ? _b : {});
         if (typeof body.enabled !== "boolean") {
             return reply.status(400).send({ error: "enabled must be a boolean." });
+        }
+        if (body.enabled) {
+            const season = (0, competition_1.getLeaderboardCompetitionSeasonSync)(key);
+            if ((0, settlement_1.getLeaderboardSeasonRewardViewSync)(key, season).settled) {
+                return reply.status(409).send({ error: "当前赛季已结算，请先换季再开启排行榜。" });
+            }
+            if ((0, availability_1.isLeaderboardDeadlineDueSync)(key)) {
+                return reply.status(409).send({ error: "已到截止时间，请先修改截止时间或关闭定时开关，再开启排行榜。" });
+            }
         }
         return reply.send(Object.assign({ ok: true }, (0, availability_1.setLeaderboardAvailabilitySync)(key, body.enabled)));
     }));
@@ -74,11 +84,23 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             ? current.rewardTiers
             : body.rewardTiers;
         try {
+            for (const field of ["autoEnabled", "freezeEnabled"]) {
+                if (body[field] !== undefined && typeof body[field] !== "boolean") {
+                    throw new Error("到时冻结和自动发奖开关必须是布尔值。");
+                }
+            }
+            const autoEnabled = body.autoEnabled === undefined ? current.autoEnabled : body.autoEnabled;
+            const freezeEnabled = autoEnabled || (body.freezeEnabled === undefined
+                ? current.freezeEnabled : body.freezeEnabled);
+            const settleAtMs = body.settleAtMs === undefined ? current.settleAtMs
+                : body.settleAtMs === null ? null : Number(body.settleAtMs);
+            if ((autoEnabled || freezeEnabled) && settleAtMs === null) {
+                throw new Error("开启定时冻结或自动发奖时必须设置截止时间。");
+            }
             (0, settlement_1.validateRewardTiers)(rewardTiers);
-            (0, settlement_1.putLeaderboardSettlementConfigSync)(Object.assign(Object.assign({}, current), { autoEnabled: body.autoEnabled === undefined
-                    ? current.autoEnabled : Boolean(body.autoEnabled), settleAtMs: body.settleAtMs === undefined
-                    ? current.settleAtMs
-                    : body.settleAtMs === null ? null : Number(body.settleAtMs), repeatIntervalMs: body.repeatIntervalMs === undefined
+            (0, settlement_1.putLeaderboardSettlementConfigSync)(Object.assign(Object.assign({}, current), { autoEnabled,
+                freezeEnabled,
+                settleAtMs, repeatIntervalMs: body.repeatIntervalMs === undefined
                     ? current.repeatIntervalMs
                     : body.repeatIntervalMs === null ? null : Number(body.repeatIntervalMs), rewardTiers, mailSubject: typeof body.mailSubject === "string"
                     ? body.mailSubject : current.mailSubject, mailBody: typeof body.mailBody === "string"

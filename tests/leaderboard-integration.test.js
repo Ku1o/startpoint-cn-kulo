@@ -11,6 +11,7 @@ const { getDb } = require("../out/data/db")
 const Fastify = require("fastify")
 const rushEventRoutes = require("../out/routes/api/rushEvent").default
 const profileRoutes = require("../out/routes/api/profile").default
+const followRoutes = require("../out/routes/api/follow").default
 const { insertAccountSync } = require("../out/data/domains/account")
 const { insertDefaultPlayerSync, updatePlayerSync } = require("../out/data/domains/player")
 const { updatePlayerPartySync } = require("../out/data/domains/party")
@@ -22,7 +23,9 @@ const {
     getLeaderboardRankPageSync,
     getLeaderboardSeasonSync,
 } = require("../out/data/domains/leaderboard")
+const { getViewerIdByPlayerIdSync } = require("../out/data/domains/follow")
 const { getLeaderboardCompetition } = require("../out/lib/leaderboard/competition")
+const { setLeaderboardAvailabilitySync } = require("../out/lib/leaderboard/availability")
 const {
     finishLeaderboardQuestSync,
     startLeaderboardQuestSync,
@@ -53,6 +56,12 @@ function createPlayer(name, idpCode = "leiting") {
         status: "normal",
     })
     const player = insertDefaultPlayerSync(account.id)
+    insertSessionWithToken({
+        token: String(700000000 + player.id),
+        accountId: account.id,
+        expires: new Date(Date.now() + 86_400_000),
+        type: 2,
+    })
     updatePlayerSync({ id: player.id, name, rankPoint: 100000 })
     return player.id
 }
@@ -147,21 +156,16 @@ test("完整连续通关才入榜，并按最佳 client_battle_ms 去重排序",
     const payload = buildNativeLeaderboardPayload(competition, playerA)
     assert.equal(payload.enabled, true)
     assert.equal(payload.name, "深渊连战")
-    assert.equal(payload.item.rank, "2位")
-    assert.equal(payload.item.id, toProfileTargetId(playerA))
-    assert.equal(fromProfileTargetId(payload.item.id), playerA)
-    assert.equal(payload.index, 1)
-    assert.equal(payload.row, 1)
-    assert.equal(payload.total, 2)
-    assert.equal(payload.reward.length, 5)
+    assert.equal(payload.item.rank, "1位")
+    assert.equal(payload.item.id, getViewerIdByPlayerIdSync(playerA))
+    assert.equal(payload.index, 0)
+    assert.equal(payload.row, 0)
+    assert.equal(payload.total, 1)
+    assert.equal(payload.reward.length, 1)
     assert.deepEqual(payload.reward.map(tier => [
         tier.fromRank, tier.toRank, tier.itemId, tier.itemName, tier.itemCount,
     ]), [
         [1, 1, 999018, "竞速池十连券", 10],
-        [2, 2, 999018, "竞速池十连券", 5],
-        [3, 3, 999018, "竞速池十连券", 5],
-        [4, 15, 999018, "竞速池十连券", 2],
-        [16, null, 999017, "竞速池扭蛋券", 1],
     ])
     assert.equal(payload.item.a, "character/abyss_beast_playable/ui/thumb_party_unison_1")
     assert.equal(payload.item.b, "character/white_tiger_ghost_playable/ui/thumb_party_unison_0")
@@ -228,11 +232,11 @@ test("旧版深渊默认奖励自动升级，现有数据库不继续发旧票�
     ])
 })
 
-test("结算快照幂等，机器人占名次但默认不发奖，换季后榜单归零", () => {
+test("结算快照幂等，百分比榜排除机器人后发奖，换季后榜单归零", () => {
     const season = getLeaderboardSeasonSync(competition.key)
     const first = settleLeaderboardSeasonSync(competition.key, "test", 5_000_000)
     assert.equal(first.ok, true)
-    assert.equal(first.rankedPlayers, 2)
+    assert.equal(first.rankedPlayers, 1)
     assert.equal(first.rewardedPlayers, 1)
 
     const settlementRows = getDb().prepare(`
@@ -241,8 +245,7 @@ test("结算快照幂等，机器人占名次但默认不发奖，换季后榜�
         WHERE settlement_id = ? ORDER BY rank_number
     `).all(first.settlementId)
     assert.deepEqual(settlementRows, [
-        { rank_number: 1, skip_reason: "bot", item_id: 999018, item_count: 10, degree_id: 9900007 },
-        { rank_number: 2, skip_reason: null, item_id: 999018, item_count: 5, degree_id: 9900008 },
+        { rank_number: 1, skip_reason: null, item_id: 999018, item_count: 10, degree_id: 9900007 },
     ])
     assert.equal(getDb().prepare("SELECT COUNT(*) count FROM players_mails").get().count, 2)
 
@@ -298,6 +301,7 @@ test("独立 Rush 排行接口返回原生 item/reward/total 字段", async t =>
         expires: new Date(Date.now() + 86_400_000),
         type: 2,
     })
+    setLeaderboardAvailabilitySync(competition.key, true)
     completeRun(player.id, [900, 900, 900], 6_000_000)
 
     const app = Fastify({ logger: false })
@@ -321,13 +325,13 @@ test("独立 Rush 排行接口返回原生 item/reward/total 字段", async t =>
     assert.equal(response.statusCode, 200, response.payload)
     const data = JSON.parse(response.payload).data
     assert.equal(data.rows.length, 1)
-    assert.equal(data.item.id, toProfileTargetId(player.id))
+    assert.equal(data.item.id, viewerId)
     assert.equal(data.item.rank, "1位")
     assert.equal(data.page, 0)
     assert.equal(data.row, 0)
     assert.equal(data.index, 0)
     assert.equal(data.total, 1)
-    assert.equal(data.reward.length, 5)
+    assert.equal(data.reward.length, 1)
 
     const profileResponse = await app.inject({
         method: "POST",
@@ -338,15 +342,91 @@ test("独立 Rush 排行接口返回原生 item/reward/total 字段", async t =>
     assert.equal(profileResponse.statusCode, 200, profileResponse.payload)
     const profileData = JSON.parse(profileResponse.payload).data
     assert.equal(profileData.target_user_info.name, "Native Client")
+    assert.equal(profileData.target_user_info.viewer_id, viewerId)
 
     const legacyProfileResponse = await app.inject({
         method: "POST",
         url: "/profile/get_profile",
         headers: { "content-type": "application/json" },
-        payload: { viewer_id: viewerId, target_viewer_id: viewerId },
+        payload: { viewer_id: viewerId, target_viewer_id: toProfileTargetId(player.id) },
     })
     assert.equal(legacyProfileResponse.statusCode, 200, legacyProfileResponse.payload)
     assert.equal(JSON.parse(legacyProfileResponse.payload).data.target_user_info.name, "Native Client")
+    assert.equal(JSON.parse(legacyProfileResponse.payload).data.target_user_info.viewer_id, viewerId)
+})
+
+test("排行榜资料页返回真实 viewer ID 并保持关注四态", async t => {
+    const viewerAccount = insertAccountSync({
+        appId: "wf_cn", idpAlias: "", idpCode: "leaderboard-follow-viewer", idpId: "", status: "normal",
+    })
+    const targetAccount = insertAccountSync({
+        appId: "wf_cn", idpAlias: "", idpCode: "leaderboard-follow-target", idpId: "", status: "normal",
+    })
+    const viewerPlayer = insertDefaultPlayerSync(viewerAccount.id)
+    const targetPlayer = insertDefaultPlayerSync(targetAccount.id)
+    updatePlayerSync({ id: viewerPlayer.id, name: "Rank viewer", rankPoint: 100000 })
+    updatePlayerSync({ id: targetPlayer.id, name: "Rank target", rankPoint: 100000 })
+    saveAccountDefaultPlayer(viewerAccount.id, viewerPlayer.id)
+    saveAccountDefaultPlayer(targetAccount.id, targetPlayer.id)
+    const viewerId = 77120001
+    const targetViewerId = 77120002
+    await insertSessionWithToken({
+        token: String(viewerId), accountId: viewerAccount.id,
+        expires: new Date(Date.now() + 86_400_000), type: 2,
+    })
+    await insertSessionWithToken({
+        token: String(targetViewerId), accountId: targetAccount.id,
+        expires: new Date(Date.now() + 86_400_000), type: 2,
+    })
+
+    const app = Fastify({ logger: false })
+    app.addHook("onSend", (_request, reply, payload, done) => {
+        const contentType = String(reply.getHeader("content-type") ?? "")
+        done(null, contentType.startsWith("application/x-msgpack") && typeof payload === "object"
+            ? JSON.stringify(payload)
+            : payload)
+    })
+    await app.register(profileRoutes, { prefix: "/profile" })
+    await app.register(followRoutes, { prefix: "/follow" })
+    await app.ready()
+    t.after(() => app.close())
+
+    const getProfile = async () => {
+        const response = await app.inject({
+            method: "POST",
+            url: "/profile/get_profile",
+            headers: { "content-type": "application/json" },
+            payload: { viewer_id: viewerId, target_viewer_id: targetViewerId },
+        })
+        assert.equal(response.statusCode, 200, response.payload)
+        return JSON.parse(response.payload).data.target_user_info
+    }
+    const follow = async (url, payload) => {
+        const response = await app.inject({
+            method: "POST", url, headers: { "content-type": "application/json" }, payload,
+        })
+        assert.equal(response.statusCode, 200, response.payload)
+        assert.equal(JSON.parse(response.payload).data_headers.result_code, 1)
+    }
+
+    let profile = await getProfile()
+    assert.equal(profile.viewer_id, targetViewerId)
+    assert.equal(profile.follow_state, 0)
+
+    // An incoming-only edge must not make the profile button look like cancel.
+    await follow("/follow/add", { viewer_id: targetViewerId, follow_id: viewerId })
+    profile = await getProfile()
+    assert.equal(profile.follow_state, 3)
+
+    // The profile button sends the real target viewer id and must affect the
+    // same player shown by the leaderboard.
+    await follow("/follow/add", { viewer_id: viewerId, follow_id: targetViewerId })
+    profile = await getProfile()
+    assert.equal(profile.follow_state, 1)
+
+    await follow("/follow/delete", { viewer_id: viewerId, follow_id: targetViewerId })
+    profile = await getProfile()
+    assert.equal(profile.follow_state, 3)
 })
 
 test("unregistered Rush leaderboard returns a protocol-safe disabled payload", async (t) => {

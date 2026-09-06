@@ -7,6 +7,8 @@ const utils_1 = require("../../utils");
 exports.MAX_FOLLOWING = 50;
 exports.MAX_FOLLOWERS = 50;
 function getPlayerIdByViewerIdSync(viewerId) {
+    if (!Number.isSafeInteger(viewerId) || viewerId <= 0)
+        return null;
     const row = (0, db_1.getDb)().prepare(`
         SELECT account_id
         FROM sessions
@@ -17,8 +19,10 @@ function getPlayerIdByViewerIdSync(viewerId) {
 }
 exports.getPlayerIdByViewerIdSync = getPlayerIdByViewerIdSync;
 function getViewerIdByPlayerIdSync(playerId) {
+    if (!Number.isSafeInteger(playerId) || playerId <= 0)
+        return null;
     const row = (0, db_1.getDb)().prepare(`
-        SELECT s.token
+        SELECT s.token, p.account_id
         FROM players p
         INNER JOIN sessions s ON s.account_id = p.account_id AND s.type = 2
         WHERE p.id = ?
@@ -27,7 +31,10 @@ function getViewerIdByPlayerIdSync(playerId) {
     if (!row)
         return null;
     const viewerId = Number(row.token);
-    return Number.isFinite(viewerId) ? viewerId : null;
+    // Viewer IDs address the account's selected archive. An inactive archive
+    // must not publish that ID and then open/follow a different saved player.
+    return Number.isSafeInteger(viewerId) && viewerId > 0
+        && (0, activeAccount_1.resolvePlayerIdSync)(row.account_id) === playerId ? viewerId : null;
 }
 exports.getViewerIdByPlayerIdSync = getViewerIdByPlayerIdSync;
 function getRelatedPlayerIdsSync(playerId) {

@@ -18,6 +18,17 @@ interface RawAvailability {
     updated_at_ms: number
 }
 
+export function isLeaderboardDeadlineDueSync(competitionKey: string, nowMs = Date.now()): boolean {
+    const config = getDb().prepare(`
+        SELECT settle_at_ms, freeze_enabled, auto_enabled
+        FROM leaderboard_settlement_configs WHERE competition_key = ?
+    `).get(competitionKey) as {
+        settle_at_ms: number | null; freeze_enabled: number; auto_enabled: number
+    } | undefined
+    return config !== undefined && (config.freeze_enabled !== 0 || config.auto_enabled !== 0)
+        && config.settle_at_ms !== null && nowMs >= config.settle_at_ms
+}
+
 function deserializeAvailability(row: RawAvailability): LeaderboardAvailability {
     return {
         competitionKey: row.competition_key,
@@ -40,11 +51,14 @@ export function getLeaderboardAvailabilitySync(
         FROM leaderboard_availability
         WHERE competition_key = ?
     `).get(competitionKey) as RawAvailability
+    if (row.enabled !== 0 && isLeaderboardDeadlineDueSync(competitionKey, nowMs)) {
+        return setLeaderboardAvailabilitySync(competitionKey, false, nowMs).availability
+    }
     return deserializeAvailability(row)
 }
 
-export function isLeaderboardEnabledSync(competitionKey: string): boolean {
-    return getLeaderboardAvailabilitySync(competitionKey).enabled
+export function isLeaderboardEnabledSync(competitionKey: string, nowMs = Date.now()): boolean {
+    return getLeaderboardAvailabilitySync(competitionKey, nowMs).enabled
 }
 
 export function setLeaderboardAvailabilitySync(

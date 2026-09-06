@@ -1,0 +1,168 @@
+{
+  "schema": "rank-title-conditions/v1",
+  "version": "1.4.100",
+  "depends_on": "1.4.99",
+  "source": {
+    "root": "common",
+    "relative": "89/e5c25c791e2a9527422c186084a1793218c2ac",
+    "member": "production/upload/89/e5c25c791e2a9527422c186084a1793218c2ac",
+    "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.95-1.4.96-1-cdn-consolidated-gerald0903.zip",
+    "size": 320009,
+    "sha256": "121519ffd16635fecf2fab693fa0c25f7d8420b37573961dd7c3d49a6617e901"
+  },
+  "logical": "master/degree/degree.orderedmap",
+  "source_plan": {
+    "ok": true,
+    "tail": "1.4.100",
+    "files": 142800,
+    "bytes": 10572212151,
+    "rejected": 161,
+    "per_root": {
+      "common": {
+        "files": 116747,
+        "bytes": 6838854588
+      },
+      "medium": {
+        "files": 24927,
+        "bytes": 3634202102
+      },
+      "android": {
+        "files": 1126,
+        "bytes": 99155461
+      }
+    },
+    "unreachable_edges": 0,
+    "unreachable_samples": [],
+    "max_visible_version": "1.4.100",
+    "chain_issues": []
+  },
+  "rows": 1496,
+  "changed_rows": [
+    {
+      "id": "9900007",
+      "name": "星渊主宰者",
+      "before_condition": "获得条件：新赛季排行榜排名第1",
+      "after_condition": "获得条件：赛季排行榜结算奖励，具体条件见排行报酬"
+    },
+    {
+      "id": "9900008",
+      "name": "星渊征服者",
+      "before_condition": "获得条件：新赛季排行榜排名第2",
+      "after_condition": "获得条件：赛季排行榜结算奖励，具体条件见排行报酬"
+    },
+    {
+      "id": "9900009",
+      "name": "星渊讨伐者",
+      "before_condition": "获得条件：新赛季排行榜排名第3",
+      "after_condition": "获得条件：赛季排行榜结算奖励，具体条件见排行报酬"
+    },
+    {
+      "id": "9900010",
+      "name": "破阵先行者",
+      "before_condition": "获得条件：新赛季排行榜排名第4～15",
+      "after_condition": "获得条件：赛季排行榜结算奖励，具体条件见排行报酬"
+    },
+    {
+      "id": "9900011",
+      "name": "共赴星渊",
+      "before_condition": "获得条件：参加新赛季排行榜",
+      "after_condition": "获得条件：赛季排行榜结算奖励，具体条件见排行报酬"
+    }
+  ],
+  "unchanged_rows": 1491,
+  "only_condition_column_changed": true,
+  "images_preserved": [
+    {
+      "logical": "dynamic/degree/degree_mod_stellar_abyss_overlord.png",
+      "sha256": "d35c3ba820fe73394b40a022728ec0f8200f3df7ac1672331a351b9d584626c7",
+      "source": {
+        "root": "common",
+        "relative": "5b/f9af4fa865017bcf997f1a3b298b1cb37d55bd",
+        "member": "production/upload/5b/f9af4fa865017bcf997f1a3b298b1cb37d55bd",
+        "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.95-1.4.96-1-cdn-consolidated-gerald0903.zip",
+        "size": 33922,
+        "sha256": "d35c3ba820fe73394b40a022728ec0f8200f3df7ac1672331a351b9d584626c7"
+      }
+    },
+    {
+      "logical": "dynamic/degree/degree_mod_stellar_abyss_conqueror.png",
+      "sha256": "a6a28a12ba28d4efd2486295bd97f2f7c08b10769152a2a3a9bdd30211b149ef",
+      "source": {
+        "root": "common",
+        "relative": "73/83ef82b6327adfb5d5078185f6c04572175ca8",
+        "member": "production/upload/73/83ef82b6327adfb5d5078185f6c04572175ca8",
+        "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.95-1.4.96-1-cdn-consolidated-gerald0903.zip",
+        "size": 33563,
+        "sha256": "a6a28a12ba28d4efd2486295bd97f2f7c08b10769152a2a3a9bdd30211b149ef"
+      }
+    },
+    {
+      "logical": "dynamic/degree/degree_mod_stellar_abyss_slayer.png",
+      "sha256": "15f94642e363619f5e4b784ee67018989267dfbeee84b39cbc1b01bed0d703ce",
+      "source": {
+        "root": "common",
+        "relative": "20/ee12876f92a663f2bf4f039b6169b2e9d8e070",
+        "member": "production/upload/20/ee12876f92a663f2bf4f039b6169b2e9d8e070",
+        "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.95-1.4.96-1-cdn-consolidated-gerald0903.zip",
+        "size": 35173,
+        "sha256": "15f94642e363619f5e4b784ee67018989267dfbeee84b39cbc1b01bed0d703ce"
+      }
+    },
+    {
+      "logical": "dynamic/degree/degree_mod_breakthrough_pioneer.png",
+      "sha256": "af1ad98c765a9dc5184e67c4448459e741e886670d11203b6ba5df907e7a0549",
+      "source": {
+        "root": "common",
+        "relative": "9f/e41b1a308ba253a2389d77e26aa2851184eb3f",
+        "member": "production/upload/9f/e41b1a308ba253a2389d77e26aa2851184eb3f",
+        "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.95-1.4.96-1-cdn-consolidated-gerald0903.zip",
+        "size": 9113,
+        "sha256": "af1ad98c765a9dc5184e67c4448459e741e886670d11203b6ba5df907e7a0549"
+      }
+    },
+    {
+      "logical": "dynamic/degree/degree_mod_stellar_abyss_together.png",
+      "sha256": "567753e99235a569196fcd87cff54327570770512b4dd1ce238cdf8973ca21ad",
+      "source": {
+        "root": "common",
+        "relative": "38/349cdd08216dde33eb707092d54dd263f15af3",
+        "member": "production/upload/38/349cdd08216dde33eb707092d54dd263f15af3",
+        "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.95-1.4.96-1-cdn-consolidated-gerald0903.zip",
+        "size": 6656,
+        "sha256": "567753e99235a569196fcd87cff54327570770512b4dd1ce238cdf8973ca21ad"
+      }
+    }
+  ],
+  "archive": {
+    "name": "pinball-1.4.99-1.4.100-2-rank-title-conditions.zip",
+    "size": 192086,
+    "sha256": "c96d1d2d59626c8facf17dceaa91753c24b37f7bbb139938967ae20bc25d02ee",
+    "members": 1,
+    "files": [
+      "production/upload/89/e5c25c791e2a9527422c186084a1793218c2ac"
+    ]
+  },
+  "payload_sha256": "d9b8e363cf5370cf09586034437ce6dcdbf3477b7297bd533eba82879f90d857",
+  "source_files": {
+    "assets/degree_rank_p5b.json": "3ae8736427ae564437ec80993182fbda17734ba93fc04318f5562ab56386ed5f",
+    "assets/leaderboard_reward_policy.json": "18ec8c1ed047b9f85d11a7c97249d312680c873f444362f3dafd9b62dee0c905"
+  },
+  "manifest_before_sha256": "ab3e64ef4fdaddfb9bf1b75ccf4a3ad74c76b0c92d00dd9b2b63e49fc4849d0d",
+  "manifest_after_sha256": "40441f5b9ab665211db4be58e7d15fbee55d664dec312f3c429a35d9ac5525b9",
+  "prior_archives_preserved": [
+    {
+      "name": "pinball-1.4.99-1.4.100-1-abyss-exchange-shop-banners.zip",
+      "size": 987008,
+      "sha256": "8875fe6cdefc39b25dc0bd28905c988fe5b6cfc9877817f7fbd6a9fc64c86f12",
+      "members": 5,
+      "files": [
+        "production/upload/35/937c7ff9d7006ffa407887910bbec9fc41bc06",
+        "production/upload/3b/94cb2772f22fb76b1a4545c5a347d764050829",
+        "production/upload/af/6ad4e513edc45a835d26ae8482ec384ff62ce7",
+        "production/upload/bf/5dc56a444450216d4f12d6b9dfc0d908a09c5d",
+        "production/upload/f9/a1960c6e206256bbdd8abe611a4ca1543cfb8c"
+      ]
+    }
+  ],
+  "same_version_behavior": "Clients reporting res_ver=1.4.100 receive no diff; local .100 testers must explicitly reacquire resource data. No .101, client cache, or database mutation is performed."
+}

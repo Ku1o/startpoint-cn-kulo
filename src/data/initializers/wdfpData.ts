@@ -1268,6 +1268,7 @@ export default function init(
     database.prepare(`CREATE TABLE IF NOT EXISTS leaderboard_settlement_configs (
         competition_key TEXT PRIMARY KEY,
         auto_enabled INTEGER NOT NULL DEFAULT 0,
+        freeze_enabled INTEGER NOT NULL DEFAULT 0 CHECK (freeze_enabled IN (0, 1)),
         settle_at_ms INTEGER,
         repeat_interval_ms INTEGER,
         reward_tiers_json TEXT NOT NULL,
@@ -1276,6 +1277,12 @@ export default function init(
         exclude_bots INTEGER NOT NULL DEFAULT 1,
         updated_at_ms INTEGER NOT NULL
     )`).run()
+
+    if (ensureSchemaColumn(database, "leaderboard_settlement_configs.freeze_enabled")) {
+        // Preserve old automatic schedules; a disabled schedule stays disabled.
+        database.prepare(`UPDATE leaderboard_settlement_configs
+            SET freeze_enabled = CASE WHEN auto_enabled <> 0 THEN 1 ELSE 0 END`).run()
+    }
 
     database.prepare(`CREATE TABLE IF NOT EXISTS leaderboard_availability (
         competition_key TEXT PRIMARY KEY,

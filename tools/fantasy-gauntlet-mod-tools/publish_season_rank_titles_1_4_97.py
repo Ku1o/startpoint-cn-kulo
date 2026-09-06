@@ -40,12 +40,16 @@ TITLE_DIR = ROOT.parent / "outputs" / "title-design-game-template-20260902-v11"
 DEGREE_LOGICAL = "master/degree/degree.orderedmap"
 EQUIPMENT_LOGICAL = "master/item/equipment.orderedmap"
 
+TITLE_CONDITION = json.loads(
+    (ROOT / "assets/leaderboard_reward_policy.json").read_text(encoding="utf-8")
+)["titleCondition"]
+
 TITLES = (
-    (9900007, "degree_mod_stellar_abyss_overlord", "星渊主宰者", "せいえんしゅさいしゃ", "获得条件：新赛季排行榜排名第1"),
-    (9900008, "degree_mod_stellar_abyss_conqueror", "星渊征服者", "せいえんせいふくしゃ", "获得条件：新赛季排行榜排名第2"),
-    (9900009, "degree_mod_stellar_abyss_slayer", "星渊讨伐者", "せいえんとうばつしゃ", "获得条件：新赛季排行榜排名第3"),
-    (9900010, "degree_mod_breakthrough_pioneer", "破阵先行者", "はじんせんこうしゃ", "获得条件：新赛季排行榜排名第4～15"),
-    (9900011, "degree_mod_stellar_abyss_together", "共赴星渊", "ともにせいえんへ", "获得条件：参加新赛季排行榜"),
+    (9900007, "degree_mod_stellar_abyss_overlord", "星渊主宰者", "せいえんしゅさいしゃ", TITLE_CONDITION),
+    (9900008, "degree_mod_stellar_abyss_conqueror", "星渊征服者", "せいえんせいふくしゃ", TITLE_CONDITION),
+    (9900009, "degree_mod_stellar_abyss_slayer", "星渊讨伐者", "せいえんとうばつしゃ", TITLE_CONDITION),
+    (9900010, "degree_mod_breakthrough_pioneer", "破阵先行者", "はじんせんこうしゃ", TITLE_CONDITION),
+    (9900011, "degree_mod_stellar_abyss_together", "共赴星渊", "ともにせいえんへ", TITLE_CONDITION),
 )
 
 

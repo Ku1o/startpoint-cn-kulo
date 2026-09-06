@@ -1,8 +1,17 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.setLeaderboardAvailabilitySync = exports.isLeaderboardEnabledSync = exports.getLeaderboardAvailabilitySync = void 0;
+exports.setLeaderboardAvailabilitySync = exports.isLeaderboardEnabledSync = exports.getLeaderboardAvailabilitySync = exports.isLeaderboardDeadlineDueSync = void 0;
 const db_1 = require("../../data/db");
 const leaderboard_1 = require("../../data/domains/leaderboard");
+function isLeaderboardDeadlineDueSync(competitionKey, nowMs = Date.now()) {
+    const config = (0, db_1.getDb)().prepare(`
+        SELECT settle_at_ms, freeze_enabled, auto_enabled
+        FROM leaderboard_settlement_configs WHERE competition_key = ?
+    `).get(competitionKey);
+    return config !== undefined && (config.freeze_enabled !== 0 || config.auto_enabled !== 0)
+        && config.settle_at_ms !== null && nowMs >= config.settle_at_ms;
+}
+exports.isLeaderboardDeadlineDueSync = isLeaderboardDeadlineDueSync;
 function deserializeAvailability(row) {
     return {
         competitionKey: row.competition_key,
@@ -21,11 +30,14 @@ function getLeaderboardAvailabilitySync(competitionKey, nowMs = Date.now()) {
         FROM leaderboard_availability
         WHERE competition_key = ?
     `).get(competitionKey);
+    if (row.enabled !== 0 && isLeaderboardDeadlineDueSync(competitionKey, nowMs)) {
+        return setLeaderboardAvailabilitySync(competitionKey, false, nowMs).availability;
+    }
     return deserializeAvailability(row);
 }
 exports.getLeaderboardAvailabilitySync = getLeaderboardAvailabilitySync;
-function isLeaderboardEnabledSync(competitionKey) {
-    return getLeaderboardAvailabilitySync(competitionKey).enabled;
+function isLeaderboardEnabledSync(competitionKey, nowMs = Date.now()) {
+    return getLeaderboardAvailabilitySync(competitionKey, nowMs).enabled;
 }
 exports.isLeaderboardEnabledSync = isLeaderboardEnabledSync;
 function setLeaderboardAvailabilitySync(competitionKey, enabled, updatedAtMs = Date.now()) {

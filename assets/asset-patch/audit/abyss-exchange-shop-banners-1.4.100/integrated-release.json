@@ -1,0 +1,47 @@
+{
+  "version": "1.4.100",
+  "depends_on": "1.4.99",
+  "chain": [
+    "pinball-1.4.99-1.4.100-1-abyss-exchange-shop-banners.zip",
+    "pinball-1.4.99-1.4.100-2-rank-title-conditions.zip"
+  ],
+  "archive_integrity": [
+    {
+      "name": "pinball-1.4.99-1.4.100-1-abyss-exchange-shop-banners.zip",
+      "size": 987008,
+      "sha256": "8875fe6cdefc39b25dc0bd28905c988fe5b6cfc9877817f7fbd6a9fc64c86f12",
+      "members": 5,
+      "files": [
+        "production/upload/35/937c7ff9d7006ffa407887910bbec9fc41bc06",
+        "production/upload/3b/94cb2772f22fb76b1a4545c5a347d764050829",
+        "production/upload/af/6ad4e513edc45a835d26ae8482ec384ff62ce7",
+        "production/upload/bf/5dc56a444450216d4f12d6b9dfc0d908a09c5d",
+        "production/upload/f9/a1960c6e206256bbdd8abe611a4ca1543cfb8c"
+      ]
+    },
+    {
+      "name": "pinball-1.4.99-1.4.100-2-rank-title-conditions.zip",
+      "size": 192086,
+      "sha256": "c96d1d2d59626c8facf17dceaa91753c24b37f7bbb139938967ae20bc25d02ee",
+      "members": 1,
+      "files": [
+        "production/upload/89/e5c25c791e2a9527422c186084a1793218c2ac"
+      ]
+    }
+  ],
+  "total_bytes": 1179094,
+  "files": [
+    "production/upload/35/937c7ff9d7006ffa407887910bbec9fc41bc06",
+    "production/upload/3b/94cb2772f22fb76b1a4545c5a347d764050829",
+    "production/upload/89/e5c25c791e2a9527422c186084a1793218c2ac",
+    "production/upload/af/6ad4e513edc45a835d26ae8482ec384ff62ce7",
+    "production/upload/bf/5dc56a444450216d4f12d6b9dfc0d908a09c5d",
+    "production/upload/f9/a1960c6e206256bbdd8abe611a4ca1543cfb8c"
+  ],
+  "manifest_sha256": "40441f5b9ab665211db4be58e7d15fbee55d664dec312f3c429a35d9ac5525b9",
+  "component_reports": [
+    "assets/asset-patch/audit/abyss-exchange-shop-banners-1.4.100/report.json",
+    "assets/asset-patch/audit/rank-title-conditions-1.4.100/report.json"
+  ],
+  "same_version_behavior": "Clients reporting res_ver=1.4.100 receive no diff; local .100 testers must explicitly reacquire resource data. No .101, client cache, or database mutation is performed."
+}

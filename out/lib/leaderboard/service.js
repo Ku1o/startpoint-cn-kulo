@@ -9,7 +9,7 @@ function startLeaderboardQuestSync(playerId, quest, startedAtMs = Date.now()) {
     const competition = (0, competition_1.getLeaderboardCompetitionForQuest)(quest);
     const round = quest.round;
     if (competition === null
-        || !(0, availability_1.isLeaderboardEnabledSync)(competition.key)
+        || !(0, availability_1.isLeaderboardEnabledSync)(competition.key, startedAtMs)
         || round === undefined
         || !Number.isSafeInteger(round)
         || !Number.isSafeInteger(quest.questId)
@@ -56,10 +56,13 @@ function finishLeaderboardQuestSync(input) {
     var _a;
     if (!input.accomplished)
         return;
+    const finishedAtMs = Math.trunc((_a = input.finishedAtMs) !== null && _a !== void 0 ? _a : Date.now());
+    if (!Number.isSafeInteger(finishedAtMs) || finishedAtMs < 0)
+        return;
     const competition = (0, competition_1.getLeaderboardCompetitionForQuest)(input.quest);
     const round = input.quest.round;
     if (competition === null
-        || !(0, availability_1.isLeaderboardEnabledSync)(competition.key)
+        || !(0, availability_1.isLeaderboardEnabledSync)(competition.key, finishedAtMs)
         || round === undefined
         || round < 1)
         return;
@@ -67,9 +70,6 @@ function finishLeaderboardQuestSync(input) {
     if (!Number.isSafeInteger(clientBattleMs)
         || clientBattleMs <= 0
         || clientBattleMs > 2147483647)
-        return;
-    const finishedAtMs = Math.trunc((_a = input.finishedAtMs) !== null && _a !== void 0 ? _a : Date.now());
-    if (!Number.isSafeInteger(finishedAtMs) || finishedAtMs < 0)
         return;
     const run = (0, leaderboard_1.getActiveLeaderboardRunSync)(input.playerId, competition.key);
     if (run === null)

@@ -20,6 +20,38 @@ const TABLES = [
     "leaderboard_settlement_results",
 ]
 
+test("旧结算配置增加独立冻结开关，仅继承原来已启用的自动结算", () => {
+    const database = new Database(":memory:")
+    const init = require(path.join(outDir, "data/initializers/wdfpData")).default
+    try {
+        init(database, false)
+        database.exec(`DROP TABLE leaderboard_settlement_configs;
+            CREATE TABLE leaderboard_settlement_configs (
+                competition_key TEXT PRIMARY KEY, auto_enabled INTEGER NOT NULL DEFAULT 0,
+                settle_at_ms INTEGER, repeat_interval_ms INTEGER, reward_tiers_json TEXT NOT NULL,
+                mail_subject TEXT NOT NULL, mail_body TEXT NOT NULL, exclude_bots INTEGER NOT NULL DEFAULT 1,
+                updated_at_ms INTEGER NOT NULL
+            )`)
+        for (const auto of [0, 1]) database.prepare(`INSERT INTO leaderboard_settlement_configs
+            VALUES (?, ?, 123456789, 3600000, '[]', 'custom title', 'custom body', 0, 42)`)
+            .run(`legacy-${auto}`, auto)
+        init(database, true)
+        const rows = database.prepare("SELECT * FROM leaderboard_settlement_configs ORDER BY competition_key").all()
+        assert.deepEqual(rows.map(row => [row.auto_enabled, row.freeze_enabled]), [[0, 0], [1, 1]])
+        for (const row of rows) {
+            assert.equal(row.settle_at_ms, 123456789)
+            assert.equal(row.repeat_interval_ms, 3600000)
+            assert.equal(row.mail_subject, "custom title")
+            assert.equal(row.mail_body, "custom body")
+            assert.equal(row.exclude_bots, 0)
+            assert.equal(row.updated_at_ms, 42)
+        }
+        database.prepare("UPDATE leaderboard_settlement_configs SET freeze_enabled = 1 WHERE competition_key = 'legacy-0'").run()
+        init(database, true)
+        assert.equal(database.prepare("SELECT freeze_enabled FROM leaderboard_settlement_configs WHERE competition_key = 'legacy-0'").get().freeze_enabled, 1)
+    } finally { database.close() }
+})
+
 test("版本号已是 9 的旧库启动时仍会补齐排行榜表", () => {
     const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), "startpoint-leaderboard-upgrade-"))
     const databasePath = path.join(dataDir, "wdfp_data.db")

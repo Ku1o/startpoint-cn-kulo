@@ -5,6 +5,7 @@ const fs = require("node:fs")
 const path = require("node:path")
 
 const repo = path.resolve(__dirname, "..")
+const { titleCondition } = require("../assets/leaderboard_reward_policy.json")
 const source = process.argv[2]
 const shopSource = process.argv[3]
 if (!source || !shopSource) {
@@ -40,11 +41,11 @@ writeJson("assets/degree_rank_p5b.json", {
     "9900004": { string_id: "degree_mod_abyss_rush_upper_rank", name: "深渊上位者", kana: "しんえんじょういしゃ", condition: "获得条件：深渊连战赛季排名第4～15", category_id: 6 },
     "9900005": { string_id: "degree_mod_abyss_rush_participant", name: "深渊参与者", kana: "しんえんさんかしゃ", condition: "获得条件：完整通关深渊连战并参与赛季排名", category_id: 6 },
     "9900006": { string_id: "degree_mod_veteran_player", name: "资深玩家", kana: "ベテランプレイヤー", condition: "获得条件：在深渊商店购买", category_id: 6 },
-    "9900007": { string_id: "degree_mod_stellar_abyss_overlord", name: "星渊主宰者", kana: "せいえんしゅさいしゃ", condition: "获得条件：新赛季排行榜排名第1", category_id: 6 },
-    "9900008": { string_id: "degree_mod_stellar_abyss_conqueror", name: "星渊征服者", kana: "せいえんせいふくしゃ", condition: "获得条件：新赛季排行榜排名第2", category_id: 6 },
-    "9900009": { string_id: "degree_mod_stellar_abyss_slayer", name: "星渊讨伐者", kana: "せいえんとうばつしゃ", condition: "获得条件：新赛季排行榜排名第3", category_id: 6 },
-    "9900010": { string_id: "degree_mod_breakthrough_pioneer", name: "破阵先行者", kana: "はじんせんこうしゃ", condition: "获得条件：新赛季排行榜排名第4～15", category_id: 6 },
-    "9900011": { string_id: "degree_mod_stellar_abyss_together", name: "共赴星渊", kana: "ともにせいえんへ", condition: "获得条件：参加新赛季排行榜", category_id: 6 },
+    "9900007": { string_id: "degree_mod_stellar_abyss_overlord", name: "星渊主宰者", kana: "せいえんしゅさいしゃ", condition: titleCondition, category_id: 6 },
+    "9900008": { string_id: "degree_mod_stellar_abyss_conqueror", name: "星渊征服者", kana: "せいえんせいふくしゃ", condition: titleCondition, category_id: 6 },
+    "9900009": { string_id: "degree_mod_stellar_abyss_slayer", name: "星渊讨伐者", kana: "せいえんとうばつしゃ", condition: titleCondition, category_id: 6 },
+    "9900010": { string_id: "degree_mod_breakthrough_pioneer", name: "破阵先行者", kana: "はじんせんこうしゃ", condition: titleCondition, category_id: 6 },
+    "9900011": { string_id: "degree_mod_stellar_abyss_together", name: "共赴星渊", kana: "ともにせいえんへ", condition: titleCondition, category_id: 6 },
 })
 
 const incomingShop = readJson(path.join(shopSource, "event-shop-700099.json"))

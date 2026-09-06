@@ -21,6 +21,7 @@ import {
 import { ReloadOutlined, SaveOutlined } from "@ant-design/icons"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import dayjs from "dayjs"
+import { formatLeaderboardDeadlineInput, parseLeaderboardDeadlineInput } from "../../../src/lib/leaderboard/schedule-time"
 import { apiGet, apiPatch, apiPost } from "../api/client"
 import { AdminPage, StateCard } from "../components/AdminPage"
 
@@ -36,9 +37,7 @@ interface Competition {
     displayLimit: number
 }
 
-interface RewardTier {
-    fromRank: number
-    toRank: number | null
+interface Reward {
     itemId: number | null
     itemName: string | null
     itemCount: number
@@ -47,9 +46,24 @@ interface RewardTier {
     degreeImage: string | null
 }
 
+type RewardTier = Reward & (
+    { fromRank: number; toRank: number | null }
+    | { fromPercent: number; toPercent: number }
+)
+
+function rewardRange(tier: RewardTier): string {
+    if ("fromPercent" in tier) {
+        if (tier.fromPercent === 0) return `前 ${tier.toPercent}%`
+        return tier.toPercent === 100 ? `${tier.fromPercent}% 之后的所有人`
+            : `${tier.fromPercent}%～${tier.toPercent}%`
+    }
+    return `${tier.fromRank}–${tier.toRank ?? "末位"}`
+}
+
 interface SettlementConfig {
     competitionKey: string
     autoEnabled: boolean
+    freezeEnabled: boolean
     settleAtMs: number | null
     repeatIntervalMs: number | null
     rewardTiers: RewardTier[]
@@ -82,6 +96,7 @@ interface Overview {
     total: number
     config: SettlementConfig
     history: SettlementHistory[]
+    resolvedRewardTiers: RewardTier[]
 }
 
 interface CompetitionSummary {
@@ -113,6 +128,7 @@ interface LeaderboardDetail {
 
 interface ConfigDraft {
     autoEnabled: boolean
+    freezeEnabled: boolean
     settleAtText: string
     repeatHours: number | null
     excludeBots: boolean
@@ -131,9 +147,10 @@ function formatBattleTime(milliseconds: number): string {
 function configToDraft(config: SettlementConfig): ConfigDraft {
     return {
         autoEnabled: config.autoEnabled,
+        freezeEnabled: config.freezeEnabled,
         settleAtText: config.settleAtMs === null
             ? ""
-            : dayjs(config.settleAtMs).format("YYYY-MM-DDTHH:mm"),
+            : formatLeaderboardDeadlineInput(config.settleAtMs),
         repeatHours: config.repeatIntervalMs === null
             ? null
             : config.repeatIntervalMs / 3_600_000,
@@ -189,14 +206,13 @@ export default function Leaderboards() {
             } catch {
                 throw new Error("奖励档位不是有效的 JSON。")
             }
-            const settleAtMs = draft.settleAtText === ""
-                ? null
-                : dayjs(draft.settleAtText).valueOf()
-            if (settleAtMs !== null && !Number.isFinite(settleAtMs)) {
-                throw new Error("结算时间无效。")
+            const settleAtMs = parseLeaderboardDeadlineInput(draft.settleAtText)
+            if ((draft.freezeEnabled || draft.autoEnabled) && settleAtMs === null) {
+                throw new Error("请设置截止时间（北京时间）。")
             }
             return apiPatch(`/api/leaderboards/${encodeURIComponent(selectedKey)}/config`, {
                 autoEnabled: draft.autoEnabled,
+                freezeEnabled: draft.freezeEnabled || draft.autoEnabled,
                 settleAtMs,
                 repeatIntervalMs: draft.repeatHours === null
                     ? null
@@ -384,7 +400,7 @@ export default function Leaderboards() {
                                     )}
                                     <Popconfirm
                                         title="结算当前赛季？"
-                                        description="将按当前名次发放邮件奖励；重复执行不会重复发奖，也不会关闭或换季。"
+                                        description="将冻结当前赛季并按最终名次发放邮件奖励；重复执行不会重复发奖，不会自动换季。"
                                         onConfirm={() => settle.mutate()}
                                     >
                                         <Button loading={settle.isPending}>结算</Button>
@@ -410,30 +426,39 @@ export default function Leaderboards() {
                                 <Alert
                                     type="info"
                                     showIcon
-                                    message="自动结算到点后只结算当前赛季并冻结新成绩写入，不会换季；玩家仍可查看结算时的榜单。"
+                                    message="到时冻结可单独开启，停榜后由管理员审核并手动发奖；自动发奖开启时同时冻结。两个动作共用截止时间，均不会自动换季。"
                                 />
                                 <Descriptions bordered size="small" column={{ xs: 1, md: 2 }}>
-                                    <Descriptions.Item label="自动结算">
+                                    <Descriptions.Item label="到时冻结">
                                         <Switch
-                                            checked={draft.autoEnabled}
-                                            onChange={value => setDraft({ ...draft, autoEnabled: value })}
+                                            checked={draft.freezeEnabled || draft.autoEnabled}
+                                            disabled={draft.autoEnabled}
+                                            onChange={value => setDraft({ ...draft, freezeEnabled: value })}
                                         />
                                     </Descriptions.Item>
-                                    <Descriptions.Item label="排除 rushbot 发奖">
+                                    <Descriptions.Item label="自动发奖">
+                                        <Switch
+                                            checked={draft.autoEnabled}
+                                            onChange={value => setDraft({ ...draft, autoEnabled: value,
+                                                freezeEnabled: value || draft.freezeEnabled })}
+                                        />
+                                    </Descriptions.Item>
+                                    <Descriptions.Item label="排除 rushbot 参榜及发奖">
                                         <Switch
                                             checked={draft.excludeBots}
                                             onChange={value => setDraft({ ...draft, excludeBots: value })}
                                         />
                                     </Descriptions.Item>
-                                    <Descriptions.Item label="下次结算时间">
+                                    <Descriptions.Item label="截止时间（北京时间）">
                                         <Input
                                             type="datetime-local"
                                             value={draft.settleAtText}
                                             onChange={event => setDraft({ ...draft, settleAtText: event.target.value })}
                                         />
                                     </Descriptions.Item>
-                                    <Descriptions.Item label="重复间隔（小时，留空为一次性）">
+                                    <Descriptions.Item label="自动发奖重复间隔（小时，留空为一次性）">
                                         <InputNumber
+                                            disabled={!draft.autoEnabled}
                                             min={0.01}
                                             precision={2}
                                             value={draft.repeatHours}
@@ -455,22 +480,34 @@ export default function Leaderboards() {
                                         />
                                     </Descriptions.Item>
                                 </Descriptions>
+                                <Paragraph type="secondary">
+                                    仅设置时间、两个开关均关闭时不会触发操作。关闭自动发奖后，到时冻结仍保留当前设置。
+                                    到点后立即停止接收新成绩；自动发奖通常在下一次定时检查时执行。
+                                    时间调整或关闭定时开关不会自动重新开放已经冻结的排行榜。
+                                </Paragraph>
 
                                 <Table<RewardTier>
-                                    rowKey={row => `${row.fromRank}-${row.toRank ?? "tail"}`}
+                                    rowKey={rewardRange}
                                     size="small"
                                     pagination={false}
                                     dataSource={rewardRows}
                                     columns={[
-                                        { title: "排名", render: (_, row) => `${row.fromRank}–${row.toRank ?? "末位"}` },
+                                        { title: "档位范围", render: (_, row) => rewardRange(row) },
                                         { title: "道具", render: (_, row) => row.itemId === null ? "-" : `${row.itemName ?? "道具"} #${row.itemId} ×${row.itemCount}` },
                                         { title: "称号", render: (_, row) => row.degreeId === null ? "-" : `${row.degreeName ?? "称号"} #${row.degreeId}` },
                                     ]}
                                 />
+                                <Paragraph type="secondary">
+                                    当前有效人数：{overview.total}；对应名次：
+                                    {overview.resolvedRewardTiers.map(rewardRange).join("、") || "暂无有效成绩"}。
+                                    名次范围按已保存配置计算；结算后保留本期最终结果。
+                                </Paragraph>
                                 <div>
                                     <Text strong>奖励档位 JSON</Text>
                                     <Paragraph type="secondary" style={{ marginBottom: 8 }}>
-                                        档位必须从第 1 名起连续排列；toRank 为 null 表示覆盖到末位。
+                                        百分比档使用 fromPercent/toPercent，从 0 连续覆盖到 100，填写整数百分数。
+                                        累计截止名次向上取整，空档不发奖；剩余玩家只领取最后一档。
+                                        固定名次配置仍支持 fromRank/toRank，从第 1 名起连续排列，toRank 为 null 表示末位；两种格式不能混用。
                                     </Paragraph>
                                     <Input.TextArea
                                         rows={12}

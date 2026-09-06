@@ -155,7 +155,7 @@ test("排行榜冻结后保留名次，手动换季需先结算，自动结算�
     assert.equal(frozenLeaderboardResponse.statusCode, 200, frozenLeaderboardResponse.payload)
     const frozenPayload = JSON.parse(frozenLeaderboardResponse.payload).data
     assert.equal(frozenPayload.enabled, true)
-    assert.equal(frozenPayload.time, "排行榜已冻结")
+    assert.equal(frozenPayload.time, "已冻结，待结算")
     assert.equal(frozenPayload.total, 1)
     assert.equal(frozenPayload.rows.length, 1)
 
@@ -224,7 +224,7 @@ test("排行榜冻结后保留名次，手动换季需先结算，自动结算�
     assert.equal(rolledFrozenResponse.statusCode, 200, rolledFrozenResponse.payload)
     const rolledFrozenPayload = JSON.parse(rolledFrozenResponse.payload).data
     assert.equal(rolledFrozenPayload.enabled, true)
-    assert.equal(rolledFrozenPayload.time, "排行榜已冻结")
+    assert.equal(rolledFrozenPayload.time, "已结算")
     assert.equal(rolledFrozenPayload.total, 1)
     assert.equal(rolledFrozenPayload.rows.length, 1)
 
@@ -287,7 +287,7 @@ test("排行榜冻结后保留名次，手动换季需先结算，自动结算�
     assert.equal(autoFrozenResponse.statusCode, 200, autoFrozenResponse.payload)
     const autoFrozenPayload = JSON.parse(autoFrozenResponse.payload).data
     assert.equal(autoFrozenPayload.enabled, true)
-    assert.equal(autoFrozenPayload.time, "排行榜已冻结")
+    assert.equal(autoFrozenPayload.time, "已结算")
     assert.equal(autoFrozenPayload.total, 1)
     assert.equal(autoFrozenPayload.rows.length, 1)
     assert.equal(startLeaderboardQuestSync(ranked.player.id, quest(1), 6_000_000), null)

@@ -7,7 +7,10 @@ import { getFavoritePartySelectionSync } from "./profileFavorite";
 import { getPlayerProfileSettingsSync } from "../data/domains/option";
 import { getPlayerProfileStatsSync } from "./profile-stats";
 
-export function buildFollowUserInfoSync(requesterPlayerId: number, targetPlayerId: number): any | null {
+export function buildFollowUserInfoSync(
+    requesterPlayerId: number,
+    targetPlayerId: number,
+): any | null {
     const player = getPlayerSync(targetPlayerId);
     const viewerId = getViewerIdByPlayerIdSync(targetPlayerId);
     if (!player || viewerId === null) return null;
@@ -45,7 +48,10 @@ export function buildFollowUserInfoSync(requesterPlayerId: number, targetPlayerI
     };
 }
 
-export function buildTargetProfileSync(requesterPlayerId: number, targetPlayerId: number): any | null {
+export function buildTargetProfileSync(
+    requesterPlayerId: number,
+    targetPlayerId: number,
+): any | null {
     const player = getPlayerSync(targetPlayerId);
     if (!player) return null;
     const publicInfo = buildFollowUserInfoSync(requesterPlayerId, targetPlayerId);
@@ -80,6 +86,9 @@ export function buildTargetProfileSync(requesterPlayerId: number, targetPlayerId
         target_user_info: {
             comment: publicInfo.comment,
             degree_id: publicInfo.degree_id,
+            // The client already uses the same four-state relation enum as
+            // getFollowRelationSync: 0=none, 1=mutual, 2=following,
+            // 3=follower. Preserve it exactly for button actions.
             follow_state: publicInfo.follow_state,
             // OtherProfileLogic throws C2821 when this optional value is None.
             // The CN server has a single region, so always provide it here.

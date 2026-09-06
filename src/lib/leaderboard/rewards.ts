@@ -1,12 +1,29 @@
-export interface LeaderboardRewardTier {
-    fromRank: number
-    toRank: number | null
+import policy from "../../../assets/leaderboard_reward_policy.json"
+
+export interface LeaderboardReward {
     itemId: number | null
     itemName: string | null
     itemCount: number
     degreeId: number | null
     degreeName: string | null
     degreeImage: string | null
+}
+
+// Keep rank ranges on the wire: existing clients already render these fields.
+export interface LeaderboardRewardTier extends LeaderboardReward {
+    fromRank: number
+    toRank: number | null
+}
+
+export interface LeaderboardPercentRewardTier extends LeaderboardReward {
+    fromPercent: number
+    toPercent: number
+}
+
+export type LeaderboardRewardRule = LeaderboardRewardTier | LeaderboardPercentRewardTier
+
+export function isPercentRewardTier(tier: LeaderboardRewardRule): tier is LeaderboardPercentRewardTier {
+    return "fromPercent" in tier
 }
 
 const LEGACY_DEEP_ABYSS_REWARD_TIERS: readonly LeaderboardRewardTier[] = [
@@ -42,7 +59,7 @@ const LEGACY_DEEP_ABYSS_REWARD_TIERS_ALT: readonly LeaderboardRewardTier[] = [
     { ...LEGACY_DEEP_ABYSS_REWARD_TIERS[3], itemId: null, itemName: null, itemCount: 0 },
 ]
 
-export const DEEP_ABYSS_REWARD_TIERS: readonly LeaderboardRewardTier[] = [
+const FIXED_DEEP_ABYSS_REWARD_TIERS: readonly LeaderboardRewardTier[] = [
     {
         fromRank: 1,
         toRank: 1,
@@ -95,9 +112,53 @@ export const DEEP_ABYSS_REWARD_TIERS: readonly LeaderboardRewardTier[] = [
     },
 ]
 
+export const DEEP_ABYSS_REWARD_TIERS: readonly LeaderboardPercentRewardTier[] =
+    FIXED_DEEP_ABYSS_REWARD_TIERS.map(({ fromRank, toRank, ...reward }, index) => ({
+        ...reward,
+        fromPercent: index === 0 ? 0 : policy.percentileCutoffs[index - 1],
+        toPercent: policy.percentileCutoffs[index],
+    }))
+
+// Upgrade the five existing positions without overwriting customized rewards.
+export function upgradeLeaderboardRewardRules(
+    competitionKey: string,
+    tiers: readonly LeaderboardRewardRule[],
+): LeaderboardRewardRule[] | null {
+    if (competitionKey !== "rush:700099:1") return null
+    if (isLegacyDefaultLeaderboardRewardTiers(competitionKey, tiers)) {
+        return [...DEEP_ABYSS_REWARD_TIERS]
+    }
+    if (tiers.length !== FIXED_DEEP_ABYSS_REWARD_TIERS.length || !tiers.every((tier, index) =>
+        !isPercentRewardTier(tier)
+        && tier.fromRank === FIXED_DEEP_ABYSS_REWARD_TIERS[index].fromRank
+        && tier.toRank === FIXED_DEEP_ABYSS_REWARD_TIERS[index].toRank
+    )) return null
+    return tiers.map((tier, index) => {
+        const { fromRank, toRank, ...reward } = tier as LeaderboardRewardTier
+        return { ...reward, fromPercent: DEEP_ABYSS_REWARD_TIERS[index].fromPercent,
+            toPercent: DEEP_ABYSS_REWARD_TIERS[index].toPercent }
+    })
+}
+
+export function resolveLeaderboardRewardTiers(
+    rules: readonly LeaderboardRewardRule[],
+    total: number,
+): LeaderboardRewardTier[] {
+    if (!Number.isSafeInteger(total) || total < 0) throw new Error("Invalid ranked player count.")
+    return rules.flatMap(rule => {
+        if (!isPercentRewardTier(rule)) return [{ ...rule }]
+        const { fromPercent, toPercent, ...reward } = rule
+        // Integer percentages avoid rounding a floating-point product twice.
+        const fromRank = Number((BigInt(total) * BigInt(fromPercent) + BigInt(99)) / BigInt(100)) + 1
+        const endRank = Number((BigInt(total) * BigInt(toPercent) + BigInt(99)) / BigInt(100))
+        if (fromRank > endRank) return []
+        return [{ ...reward, fromRank, toRank: toPercent === 100 ? null : endRank }]
+    })
+}
+
 export function isLegacyDefaultLeaderboardRewardTiers(
     competitionKey: string,
-    tiers: readonly LeaderboardRewardTier[],
+    tiers: readonly LeaderboardRewardRule[],
 ): boolean {
     if (competitionKey !== "rush:700099:1" || tiers.length !== LEGACY_DEEP_ABYSS_REWARD_TIERS.length) {
         return false
@@ -107,13 +168,14 @@ export function isLegacyDefaultLeaderboardRewardTiers(
         "degreeId", "degreeName", "degreeImage",
     ]
     return [LEGACY_DEEP_ABYSS_REWARD_TIERS, LEGACY_DEEP_ABYSS_REWARD_TIERS_ALT].some(legacy =>
-        tiers.every((tier, index) => fields.every(field => tier[field] === legacy[index][field]))
+        tiers.every((tier, index) => !isPercentRewardTier(tier)
+            && fields.every(field => tier[field] === legacy[index][field]))
     )
 }
 
 export function getLeaderboardRewardTiers(
     competitionKey: string,
-): readonly LeaderboardRewardTier[] {
+): readonly LeaderboardRewardRule[] {
     return competitionKey === "rush:700099:1" ? DEEP_ABYSS_REWARD_TIERS : []
 }
 

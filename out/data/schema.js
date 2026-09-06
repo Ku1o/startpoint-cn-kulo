@@ -2,6 +2,11 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ensureSchemaColumn = void 0;
 const schemaColumns = {
+    "leaderboard_settlement_configs.freeze_enabled": {
+        table: "leaderboard_settlement_configs",
+        column: "freeze_enabled",
+        definition: "INTEGER NOT NULL DEFAULT 0 CHECK (freeze_enabled IN (0, 1))",
+    },
     "players.tutorial_gacha_character_id": {
         table: "players",
         column: "tutorial_gacha_character_id",

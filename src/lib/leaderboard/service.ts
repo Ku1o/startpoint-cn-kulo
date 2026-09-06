@@ -31,7 +31,7 @@ export function startLeaderboardQuestSync(
     const round = quest.round
     if (
         competition === null
-        || !isLeaderboardEnabledSync(competition.key)
+        || !isLeaderboardEnabledSync(competition.key, startedAtMs)
         || round === undefined
         || !Number.isSafeInteger(round)
         || !Number.isSafeInteger(quest.questId)
@@ -86,11 +86,13 @@ export function finishLeaderboardQuestSync(input: {
     finishedAtMs?: number
 }): void {
     if (!input.accomplished) return
+    const finishedAtMs = Math.trunc(input.finishedAtMs ?? Date.now())
+    if (!Number.isSafeInteger(finishedAtMs) || finishedAtMs < 0) return
     const competition = getLeaderboardCompetitionForQuest(input.quest)
     const round = input.quest.round
     if (
         competition === null
-        || !isLeaderboardEnabledSync(competition.key)
+        || !isLeaderboardEnabledSync(competition.key, finishedAtMs)
         || round === undefined
         || round < 1
     ) return
@@ -100,8 +102,6 @@ export function finishLeaderboardQuestSync(input: {
         || clientBattleMs <= 0
         || clientBattleMs > 2_147_483_647
     ) return
-    const finishedAtMs = Math.trunc(input.finishedAtMs ?? Date.now())
-    if (!Number.isSafeInteger(finishedAtMs) || finishedAtMs < 0) return
 
     const run = getActiveLeaderboardRunSync(input.playerId, competition.key)
     if (run === null) return
