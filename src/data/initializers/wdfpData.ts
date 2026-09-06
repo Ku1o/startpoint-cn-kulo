@@ -1315,9 +1315,11 @@ export default function init(
         degree_id INTEGER,
         skip_reason TEXT,
         mail_ids_json TEXT NOT NULL DEFAULT '[]',
+        clear_count INTEGER CHECK (clear_count >= 1),
         PRIMARY KEY (settlement_id, rank_number),
         FOREIGN KEY (settlement_id) REFERENCES leaderboard_settlements (id) ON DELETE CASCADE
     )`).run()
+    ensureSchemaColumn(database, "leaderboard_settlement_results.clear_count")
     database.prepare(`CREATE INDEX IF NOT EXISTS idx_leaderboard_settlements_key_season
         ON leaderboard_settlements (competition_key, season DESC)`).run()
 

@@ -20,6 +20,27 @@ const TABLES = [
     "leaderboard_settlement_results",
 ]
 
+test("旧结算记录补齐可空通关计数，重复启动保留已保存次数", () => {
+    const database = new Database(":memory:")
+    const init = require(path.join(outDir, "data/initializers/wdfpData")).default
+    try {
+        init(database, false)
+        database.exec("ALTER TABLE leaderboard_settlement_results DROP COLUMN clear_count")
+        database.prepare(`INSERT INTO leaderboard_settlements
+            (id, competition_key, season, source, settled_at_ms, ranked_players, status)
+            VALUES (1, 'legacy', 1, 'test', 3000, 1, 'completed')`).run()
+        database.prepare(`INSERT INTO leaderboard_settlement_results
+            (settlement_id, rank_number, run_id, player_id, player_name, client_battle_ms)
+            VALUES (1, 1, 10, 20, 'Legacy', 2000)`).run()
+        init(database, true)
+        const read = () => database.prepare("SELECT player_name, client_battle_ms, clear_count FROM leaderboard_settlement_results").get()
+        assert.deepEqual(read(), { player_name: "Legacy", client_battle_ms: 2000, clear_count: null })
+        database.prepare("UPDATE leaderboard_settlement_results SET clear_count = 7").run()
+        init(database, true)
+        assert.equal(read().clear_count, 7)
+    } finally { database.close() }
+})
+
 test("旧结算配置增加独立冻结开关，仅继承原来已启用的自动结算", () => {
     const database = new Database(":memory:")
     const init = require(path.join(outDir, "data/initializers/wdfpData")).default

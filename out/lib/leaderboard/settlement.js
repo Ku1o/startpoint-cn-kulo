@@ -296,9 +296,9 @@ function settleLeaderboardSeasonSync(competitionKey, source, nowMs = Date.now())
                 INSERT INTO leaderboard_settlement_results (
                     settlement_id, rank_number, run_id, player_id, player_name,
                     client_battle_ms, item_id, item_count, degree_id,
-                    skip_reason, mail_ids_json
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            `).run(settlementId, record.rankNumber, record.id, record.playerId, record.displayName, record.clientBattleMs, (_b = tier === null || tier === void 0 ? void 0 : tier.itemId) !== null && _b !== void 0 ? _b : null, (_c = tier === null || tier === void 0 ? void 0 : tier.itemCount) !== null && _c !== void 0 ? _c : 0, (_d = tier === null || tier === void 0 ? void 0 : tier.degreeId) !== null && _d !== void 0 ? _d : null, skipReason, JSON.stringify(mailIds));
+                    skip_reason, mail_ids_json, clear_count
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            `).run(settlementId, record.rankNumber, record.id, record.playerId, record.displayName, record.clientBattleMs, (_b = tier === null || tier === void 0 ? void 0 : tier.itemId) !== null && _b !== void 0 ? _b : null, (_c = tier === null || tier === void 0 ? void 0 : tier.itemCount) !== null && _c !== void 0 ? _c : 0, (_d = tier === null || tier === void 0 ? void 0 : tier.degreeId) !== null && _d !== void 0 ? _d : null, skipReason, JSON.stringify(mailIds), record.clearCount);
         }
         (0, db_1.getDb)().prepare(`
             UPDATE leaderboard_settlements

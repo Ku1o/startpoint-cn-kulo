@@ -2,6 +2,11 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ensureSchemaColumn = void 0;
 const schemaColumns = {
+    "leaderboard_settlement_results.clear_count": {
+        table: "leaderboard_settlement_results",
+        column: "clear_count",
+        definition: "INTEGER CHECK (clear_count >= 1)",
+    },
     "leaderboard_settlement_configs.freeze_enabled": {
         table: "leaderboard_settlement_configs",
         column: "freeze_enabled",

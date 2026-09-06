@@ -401,8 +401,8 @@ export function settleLeaderboardSeasonSync(
                 INSERT INTO leaderboard_settlement_results (
                     settlement_id, rank_number, run_id, player_id, player_name,
                     client_battle_ms, item_id, item_count, degree_id,
-                    skip_reason, mail_ids_json
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    skip_reason, mail_ids_json, clear_count
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             `).run(
                 settlementId,
                 record.rankNumber,
@@ -415,6 +415,7 @@ export function settleLeaderboardSeasonSync(
                 tier?.degreeId ?? null,
                 skipReason,
                 JSON.stringify(mailIds),
+                record.clearCount,
             )
         }
 

@@ -65,6 +65,7 @@ function officialRow(record, favorite) {
     const party = displayedParty(record, favorite);
     return {
         rank_number: record.rankNumber,
+        clear_count: record.clearCount,
         best_round: record.totalRounds,
         elapsed_time_ms: record.clientBattleMs,
         name: record.displayName,
@@ -87,7 +88,7 @@ function nativeRow(record, favorite) {
         visible: true,
         level: `RANK${(0, stamina_1.getRankDegree)(record.rankPoint)}`,
         name: record.displayName,
-        count: `BEST RECORD: ${record.totalRounds}战`,
+        count: `通关次数：${record.clearCount === null ? "未记录" : `${record.clearCount}次`}`,
         time: `TIME: ${formatTime(record.clientBattleMs)}`,
         a: (_a = paths[0]) !== null && _a !== void 0 ? _a : null,
         b: (_b = paths[1]) !== null && _b !== void 0 ? _b : null,
@@ -105,7 +106,7 @@ function outOfRankRow(playerId) {
         visible: false,
         level: `RANK${(0, stamina_1.getRankDegree)(player.rankPoint)}`,
         name: player.name,
-        count: "BEST RECORD: 0战",
+        count: "通关次数：0次",
         time: "TIME: --:--.--",
         a: null,
         b: null,

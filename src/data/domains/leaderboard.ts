@@ -306,6 +306,7 @@ export function finishLeaderboardRoundSync(input: {
 
 export interface LeaderboardRankRecord extends LeaderboardRun {
     rankNumber: number
+    clearCount: number | null
     displayName: string
     playerExists: boolean
     rankPoint: number
@@ -313,6 +314,7 @@ export interface LeaderboardRankRecord extends LeaderboardRun {
 
 interface RawRankRecord extends RawRun {
     rank_number: number
+    clear_count: number | null
     live_name: string | null
     player_exists: number
     rank_point: number | null
@@ -323,6 +325,12 @@ export interface LeaderboardRankFilter {
     excludeBots?: boolean
     settled?: boolean
 }
+
+// Reuse the ranking eligibility rules for live counts and legacy snapshots.
+const ELIGIBLE_RUN_CONDITION = `r.status = 'completed' AND r.tracked_from_round = 1
+    AND r.rounds_cleared = r.total_rounds AND r.client_battle_ms > 0
+    AND (SELECT COUNT(*) FROM leaderboard_run_rounds rr WHERE rr.run_id = r.id)
+        = r.total_rounds`
 
 function rankCte(filter: LeaderboardRankFilter = {}): string {
     const snapshotColumns: Record<string, string> = {
@@ -338,7 +346,14 @@ function rankCte(filter: LeaderboardRankFilter = {}): string {
     // Results survive player deletion even when their run is cascade-deleted.
     if (filter.settled) return `WITH ranked AS (
         SELECT ${RUN_COLUMNS.split(",").map(column => column.trim()).map(column =>
-            `${snapshotColumns[column] ?? `r.${column}`} AS ${column}`).join(", ")}, result.rank_number
+            `${snapshotColumns[column] ?? `r.${column}`} AS ${column}`).join(", ")}, result.rank_number,
+            COALESCE(result.clear_count, (
+                SELECT NULLIF(COUNT(*), 0) FROM leaderboard_runs r
+                WHERE r.competition_key = settlement.competition_key
+                    AND r.season = settlement.season AND r.player_id = result.player_id
+                    AND r.finished_at_ms <= settlement.settled_at_ms
+                    AND ${ELIGIBLE_RUN_CONDITION}
+            )) AS clear_count
         FROM leaderboard_settlement_results result
         JOIN leaderboard_settlements settlement ON settlement.id = result.settlement_id
         LEFT JOIN leaderboard_runs r ON r.id = result.run_id
@@ -346,7 +361,8 @@ function rankCte(filter: LeaderboardRankFilter = {}): string {
             AND settlement.status = 'completed'
     )`
     return `WITH eligible AS (
-        SELECT r.*, ROW_NUMBER() OVER (
+        SELECT r.*, COUNT(*) OVER (PARTITION BY r.player_id) AS clear_count,
+        ROW_NUMBER() OVER (
             PARTITION BY r.player_id
             ORDER BY r.client_battle_ms ASC, r.finished_at_ms ASC, r.id ASC
         ) AS player_record_number
@@ -357,10 +373,7 @@ function rankCte(filter: LeaderboardRankFilter = {}): string {
                 SELECT 1 FROM players p JOIN accounts a ON a.id = p.account_id
                 WHERE p.id = r.player_id AND a.idp_code = 'rushbot'
             )` : ""}
-            AND r.status = 'completed' AND r.tracked_from_round = 1
-            AND r.rounds_cleared = r.total_rounds AND r.client_battle_ms > 0
-            AND (SELECT COUNT(*) FROM leaderboard_run_rounds rr WHERE rr.run_id = r.id)
-                = r.total_rounds
+            AND ${ELIGIBLE_RUN_CONDITION}
     ), ranked AS (
         SELECT eligible.*, ROW_NUMBER() OVER (
             ORDER BY client_battle_ms ASC, finished_at_ms ASC, id ASC
@@ -374,6 +387,7 @@ function deserializeRank(raw: RawRankRecord): LeaderboardRankRecord {
     return {
         ...run,
         rankNumber: raw.rank_number,
+        clearCount: raw.clear_count,
         displayName: raw.live_name ?? run.playerName ?? `Player${run.playerId}`,
         playerExists: raw.player_exists !== 0,
         rankPoint: raw.rank_point ?? 0,

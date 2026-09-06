@@ -37,6 +37,7 @@ function getRealProfileViewerId(playerId: number): number {
 
 export interface OfficialLeaderboardRow {
     rank_number: number
+    clear_count: number | null
     best_round: number
     elapsed_time_ms: number
     name: string
@@ -102,6 +103,7 @@ function officialRow(
     const party = displayedParty(record, favorite)
     return {
         rank_number: record.rankNumber,
+        clear_count: record.clearCount,
         best_round: record.totalRounds,
         elapsed_time_ms: record.clientBattleMs,
         name: record.displayName,
@@ -126,7 +128,7 @@ export function nativeRow(
         visible: true,
         level: `RANK${getRankDegree(record.rankPoint)}`,
         name: record.displayName,
-        count: `BEST RECORD: ${record.totalRounds}战`,
+        count: `通关次数：${record.clearCount === null ? "未记录" : `${record.clearCount}次`}`,
         time: `TIME: ${formatTime(record.clientBattleMs)}`,
         a: paths[0] ?? null,
         b: paths[1] ?? null,
@@ -143,7 +145,7 @@ function outOfRankRow(playerId: number): NativeLeaderboardRow | null {
         visible: false,
         level: `RANK${getRankDegree(player.rankPoint)}`,
         name: player.name,
-        count: "BEST RECORD: 0战",
+        count: "通关次数：0次",
         time: "TIME: --:--.--",
         a: null,
         b: null,

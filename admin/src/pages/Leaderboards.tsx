@@ -108,6 +108,7 @@ interface CompetitionSummary {
 interface RankRow {
     id: number
     rankNumber: number
+    clearCount: number | null
     playerId: number
     displayName: string
     playerExists: boolean
@@ -351,6 +352,12 @@ export default function Leaderboards() {
                                         ),
                                     },
                                     { title: "Rank", dataIndex: "rankPoint", width: 90 },
+                                    {
+                                        title: "通关次数",
+                                        dataIndex: "clearCount",
+                                        width: 100,
+                                        render: value => value === null ? "未记录" : `${value}次`,
+                                    },
                                     {
                                         title: "client_battle_ms",
                                         dataIndex: "clientBattleMs",
