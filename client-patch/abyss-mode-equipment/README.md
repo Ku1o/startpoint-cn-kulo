@@ -1,5 +1,7 @@
 # 深渊装备副本门控补丁
 
+> 当前 Android 直接基线统一见 [ANDROID-BASELINE.md](../ANDROID-BASELINE.md)；本页的精确输入和旧版“当前”描述仅用于该历史步骤复现。
+
 本目录提供 `BattleCharacterLogic` 的可复用 ActionScript 源码补丁、离线语义校验，以及事务式 APK 构建器。`patch.py` 本身不会修改 APK、SWF、客户端数据包或服务端数据；只有显式运行 `build_apk.py` 才会在指定的已忽略输出目录内构建新 APK。
 
 ## 权威输入与作用域

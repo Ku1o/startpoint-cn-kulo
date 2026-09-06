@@ -1,14 +1,23 @@
 # Rush 连战排行榜客户端补丁
 
-本补丁只允许以下列已经验收的角色轮播优化 APK 为基线：
+> 当前已验收 Android 成品统一见 [ANDROID-BASELINE.md](../ANDROID-BASELINE.md) 和
+> [android-accepted.json](../android-accepted.json)。2026-09-06 用户已验收关注、本人资料路由和标题隐藏的最终公网/内网包。
+> 本会话方法见 [TITLE-CNTIPS.md](./TITLE-CNTIPS.md)。以下排行榜原始构建记录仅用于历史步骤复现。
+
+## 原始排行榜构建输入（历史）
+
+`build_apk.py` 对应的历史输入是角色轮播优化 APK：
 
 - APK：`outputs/StarPoint-CN-LAN-1.8.1-character-carousel-optimized-final-20260829.apk`
 - APK SHA-256：`FA45B7727B638ACCFDEB133E7E47EB3612B54AF614D6C8DA2001FDB60B603CCF`
 - 内嵌 SWF SHA-256：`E3E6CDC8D9A5D93A297912C571BEF58239EFB50F7B77132CF1768AD5A4260475`
 - 原 `uniqueappversionid`：`808339e8-8e32-42f5-9a1a-d66cc876d4bb`
 
-不要改用旧 LAN APK、分享 APK 或 AB 诊断包；否则会丢失已经过实机验收的
-`PartyCarousel.update` 优化。
+它和 r12b 均已被累计后继包取代，不得作为新任务的直接基线。
+此前单纯保留原始状态映射、只改内网地址的候选没有解决关注显示问题；反转映射的候选也已作废。
+最终修复保持 `0=无关系、1=相互关注、2=我关注对方、3=对方关注我`，直接设置两个具体按钮的可见性。
+废弃的 `build_profile_follow_apk.py`、`build_profile_follow_lan_apk.py`、`build_lan_corrected_apk.py`
+不属于已提交的有效修复流程，详见 [TITLE-CNTIPS.md](./TITLE-CNTIPS.md)。
 
 ## 客户端协议与界面
 
@@ -18,7 +27,7 @@
 - `enabled/name`：活动是否已经登记排行榜，以及排行榜/报酬正文使用的活动名称；
 
 - `rows`：最多显示前 500 名，每页 100 人；
-- 每行的 `id`：个人资料目标 ID（`9_000_000_000 + playerId`；已删除或不存在的存档为 `0`）。点击榜单行后复用官方 `ProfileGetProfile` 流程打开该玩家的个人资料，返回时回到排行榜；
+- 每行的 `id`：真实玩家的 viewer/session ID；已删除、无有效 session 或不存在的存档为 `0`。点击榜单行后复用官方 `ProfileGetProfile` 流程打开该玩家的个人资料，返回时回到排行榜；旧版缓存中的 `9_000_000_000 + playerId` 编码仍由服务端兼容解析。
 - `item/page/row/index`：供“我的排名”定位，500 名外时追加一条只给本人看的行；
 - `time/total`：显示更新时间和真实参赛人数；
 - `reward`：在客户端生成“报酬一览”，不借用全局服务条款页面。
@@ -48,7 +57,7 @@
 `enabled/name` 和动态奖励标题实际涉及的 5 个方法。最终 APK 仍回封到批准基线，并同时要求
 “相对参照只变 5 个方法、相对批准基线仍只变上述 15 个方法”。
 
-绝不能把 carrier SWF 直接回封。当前权威基线的已验证变化集合是：
+绝不能把 carrier SWF 直接回封。该历史排行榜步骤的已验证变化集合是：
 
 ```text
 changed_count=15
@@ -89,15 +98,14 @@ changed=284:48482,284:48484,284:71113,284:71115,284:71120,284:71122,284:71123,28
 发放1张 `999015`。在当时，该 APK 是下一次 Android SWF 修改的唯一直接基线；后继不得回到角色
 轮播 APK 重复构建排行榜，也不得从上述失败候选继续。
 
-该“下一次基线”规则已在 2026-08-30 完成一次合法后继：当前最新权威基线是
+该“下一次基线”规则已在 2026-08-30 完成一次合法后继：当时的后继基线是
 [`../account-takeover/README.md`](../account-takeover/README.md) 登记并通过真机验收的公网继承版，
 APK SHA-256 为 `0C7BBA3D8E2EF07B8AC9E98B11AAF257008A0B373950FD98332047C727064857`，SWF SHA-256 为
-`7EEA1972F568E31CE5B708E057EB7FEF306E2B25BA5CF7C6A198557914623CA7`。今后新增 Android SWF
-修改必须直接从该公网成品开始；本页的通用 Rush APK只作为累计重建的精确前序基线。
+`7EEA1972F568E31CE5B708E057EB7FEF306E2B25BA5CF7C6A198557914623CA7`。该公网成品和本页的通用 Rush APK 如今均只作为累计重建的精确前序基线；新任务使用页首登记。
 
 ## 后续修改与提交顺序
 
-1. 从上面已验收 APK 提取实际 SWF，并回读 APK、SWF、UUID 与签名证书哈希；
+1. 从 `../android-accepted.json` 当前登记的已验收 APK 提取实际 SWF，并回读 APK、SWF、UUID 与签名证书哈希；
 2. 重新定位目标 ABC/方法体，只通过临时 carrier 导出 P-code，再移植到干净的直接基线；
 3. 每个不同 SWF 使用全新 `uniqueappversionid`，绝不复用
    `690fdca8-a0cf-4bf8-9241-733bcc7ed124`；
