@@ -1,6 +1,8 @@
 import { getDb } from "../db";
 import { PlayerQuestProgress, PlayerDrawnQuest, RawPlayerQuestProgress, RawPlayerDrawnQuest } from "../types";
 import { deserializeBoolean, serializeBoolean } from "../utils";
+import { refreshPlayerAbyssBestTimesSync } from "./abyss-time-revision";
+import { isAbyssFiniteQuest } from "../../lib/abyss-time-revision";
 
 /**
  * Converts a RawPlayerQuestProgress object into a PlayerQuestProgress object.
@@ -34,7 +36,7 @@ function buildPlayerQuestProgress(
 export function getPlayerQuestProgressSync(
     playerId: number
 ): Record<string, PlayerQuestProgress[]> {
-
+    refreshPlayerAbyssBestTimesSync(playerId)
     const rawProgress = getDb().prepare(`
     SELECT section, quest_id, finished, host_finished, unlocked, high_score, clear_rank, best_elapsed_time_ms, leader_character_id, multi_clear_count, s_plus_reward_received
     FROM players_quest_progress
@@ -71,6 +73,7 @@ export function getPlayerQuestProgressSubsetSync(
     playerId: number,
     scope: PlayerQuestProgressScope,
 ): Record<string, PlayerQuestProgress[]> {
+    refreshPlayerAbyssBestTimesSync(playerId)
     const sections = [...new Set((scope.sections ?? [])
         .map(Number)
         .filter(value => Number.isSafeInteger(value) && value >= 0))]
@@ -156,7 +159,7 @@ export function getPlayerSingleQuestProgressSync(
     section: number | string,
     questId: number | string
 ): PlayerQuestProgress | null {
-
+    if (isAbyssFiniteQuest(section, questId)) refreshPlayerAbyssBestTimesSync(playerId)
     const rawProgress = getDb().prepare(`
     SELECT section, quest_id, finished, host_finished, unlocked, high_score, clear_rank, best_elapsed_time_ms, leader_character_id, multi_clear_count, s_plus_reward_received
     FROM players_quest_progress
@@ -180,9 +183,11 @@ export function insertPlayerQuestProgressSync(
     section: number | string,
     data: PlayerQuestProgress
 ) {
+    const timeRevision = isAbyssFiniteQuest(section, data.questId)
+        ? refreshPlayerAbyssBestTimesSync(playerId) : null
     getDb().prepare(`
-    INSERT INTO players_quest_progress (section, quest_id, finished, host_finished, unlocked, high_score, clear_rank, best_elapsed_time_ms, leader_character_id, s_plus_reward_received, player_id)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO players_quest_progress (section, quest_id, finished, host_finished, unlocked, high_score, clear_rank, best_elapsed_time_ms, leader_character_id, s_plus_reward_received, player_id, best_time_revision)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
         Number(section),
         data.questId,
@@ -194,7 +199,8 @@ export function insertPlayerQuestProgressSync(
         data.bestElapsedTimeMs ?? null,
         data.leaderCharacterId ?? null,
         serializeBoolean(data.sPlusRewardReceived ?? false),
-        playerId
+        playerId,
+        timeRevision
     )
 }
 
@@ -229,6 +235,7 @@ export function updatePlayerQuestProgressSync(
     section: number | string,
     data: Partial<PlayerQuestProgress> & Pick<PlayerQuestProgress, 'questId'>
 ) {
+    if (isAbyssFiniteQuest(section, data.questId)) refreshPlayerAbyssBestTimesSync(playerId)
     const fieldMap: Record<string, string> = {
         'finished': 'finished',
         'hostFinished': 'host_finished',

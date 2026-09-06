@@ -31,6 +31,7 @@ const equipment_1 = require("../../data/domains/equipment");
 const character_1 = require("../../data/domains/character");
 const party_1 = require("../../data/domains/party");
 const quest_1 = require("../../data/domains/quest");
+const abyss_time_revision_1 = require("../../lib/abyss-time-revision");
 const http_reply_1 = require("../../lib/http-reply");
 const daily_vmoney_mail_1 = require("../../lib/daily-vmoney-mail");
 const news_delivery_1 = require("../../lib/news-delivery");
@@ -206,7 +207,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                     && activeRoom.raising_state === 4
                     && activeRoom.expected_real_viewer_ids.length > 0
                     && !activeRoom.expected_real_viewer_ids.includes(accountId);
-                if (!roomExists || completedMultiRoom || noLongerInCurrentBattle) {
+                if (!roomExists || completedMultiRoom || noLongerInCurrentBattle || (0, abyss_time_revision_1.isStaleAbyssBattle)(activeQuest)) {
                     const mode15Quest = (0, mode15_optional_1.isMode15Quest)(activeQuest.category, activeQuest.questId);
                     // Multiplayer rescue guests never own the Mode15 run represented
                     // by this room. Loading-stage disconnects may remove them from the

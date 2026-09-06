@@ -30,6 +30,7 @@ import { handleRaidEventFinish } from "../../lib/quest/finish/raid-handler";
 import { calculateClearRank } from "../../lib/quest/finish/quest-calc";
 import { validateSessionAndPlayer } from "../../lib/quest/finish/session-validator";
 import { resolveActiveQuest } from "../../lib/quest/finish/active-quest-resolver";
+import { getAbyssTimeRevision, getAbyssTimeRevisionAtVersion, isAbyssFiniteQuest, isStaleAbyssBattle, isStaleAbyssClient } from "../../lib/abyss-time-revision";
 import { handleDailyChallengePoint } from "../../lib/quest/finish/challenge-point";
 import {
     calculateScoreAttackClearRank,
@@ -196,6 +197,7 @@ export interface ActiveQuest {
     playId: string,
     continueCount: number,
     startedAtMs?: number
+    questTimeRevision?: string | null
 }
 
 const continueVmoneyCost = 50;
@@ -204,7 +206,9 @@ export const activeQuests: Record<number, ActiveQuest> = {}
 
 export function insertActiveQuest(playerId: number, quest: ActiveQuest) {
     const startedAtMs = quest.startedAtMs ?? getServerTime() * 1000
-    activeQuests[playerId] = { ...quest, startedAtMs }
+    const questTimeRevision = isAbyssFiniteQuest(quest.category, quest.questId)
+        ? getAbyssTimeRevision() : null
+    activeQuests[playerId] = { ...quest, startedAtMs, questTimeRevision }
     // Persist to DB for battle recovery across server restarts
     insertPlayerActiveQuestSync(playerId, {
         playerId,
@@ -221,6 +225,7 @@ export function insertActiveQuest(playerId: number, quest: ActiveQuest) {
         eventId: quest.eventId ?? null,
         continueCount: quest.continueCount,
         startedAtMs,
+        questTimeRevision,
     })
 }
 
@@ -269,6 +274,21 @@ const routes = async (fastify: FastifyInstance) => {
 
         const questCategory = activeQuestData.category
         const questId = activeQuestData.questId
+        if (resolvedActiveQuest?.source === "rebuilt" && isAbyssFiniteQuest(questCategory, questId)) {
+            // Preserve the patched client's no-/start recovery, but never
+            // assume a missing registration belongs to the newly published tower.
+            activeQuestData.questTimeRevision = getAbyssTimeRevisionAtVersion(request.headers.res_ver)
+        }
+        // A restored/late finish from the old tower cannot seed the new record.
+        if (isStaleAbyssBattle(activeQuestData) || isStaleAbyssClient(questCategory, questId, request.headers.res_ver)) {
+            deletePlayerActiveQuestSync(playerId)
+            delete activeQuests[playerId]
+            reply.header("content-type", "application/x-msgpack")
+            return reply.status(200).send({
+                data_headers: generateDataHeaders({ viewer_id: viewerId, asset_update: true, result_code: 4050 }),
+                data: {},
+            })
+        }
         gameVerboseLog(() => `[FINISH] active: category=${questCategory} questId=${questId}`)
         const questData = getQuestFromCategorySync(questCategory, questId) as BattleQuest | null
         if (questData === null || !('rankPointReward' in questData)) {
@@ -1005,6 +1025,14 @@ const routes = async (fastify: FastifyInstance) => {
             "error": "Bad Request", "message": "Invalid viewer id."
         })
         const { playerId, playerData: player } = sessionResult
+
+        if (isStaleAbyssClient(category, questId, request.headers.res_ver)) {
+            reply.header("content-type", "application/x-msgpack")
+            return reply.status(200).send({
+                data_headers: generateDataHeaders({ viewer_id: viewerId, asset_update: true, result_code: 4050 }),
+                data: {},
+            })
+        }
 
         if (!isMode15Quest(category, questId)) {
             // Carnival quests use their own saved party category.  Looking up

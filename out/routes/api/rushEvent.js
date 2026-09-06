@@ -21,6 +21,7 @@ const party_1 = require("../../data/domains/party");
 const session_1 = require("../../data/domains/session");
 const assets_1 = require("../../lib/assets");
 const types_2 = require("../../lib/types");
+const abyss_time_revision_1 = require("../../lib/abyss-time-revision");
 const utils_1 = require("../../utils");
 const singleBattleQuest_1 = require("./singleBattleQuest");
 const rush_1 = require("../../lib/rush");
@@ -501,6 +502,13 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 "error": "Bad Request",
                 "message": "Invalid request body."
             });
+        if ((0, abyss_time_revision_1.isStaleAbyssClient)(types_2.QuestCategory.RUSH_EVENT, questId, request.headers.res_ver)) {
+            reply.header("content-type", "application/x-msgpack");
+            return reply.status(200).send({
+                data_headers: (0, utils_1.generateDataHeaders)({ viewer_id: viewerId, asset_update: true, result_code: 4050 }),
+                data: {},
+            });
+        }
         const viewerIdSession = yield (0, session_1.getSession)(viewerId.toString());
         if (!viewerIdSession)
             return reply.status(400).send({

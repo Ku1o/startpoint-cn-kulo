@@ -76,6 +76,7 @@ function fromPersisted(row: PlayerActiveQuest): ActiveQuest {
         playId: row.playId,
         continueCount: row.continueCount,
         startedAtMs: row.startedAtMs ?? undefined,
+        questTimeRevision: row.questTimeRevision ?? null,
     }
 }
 

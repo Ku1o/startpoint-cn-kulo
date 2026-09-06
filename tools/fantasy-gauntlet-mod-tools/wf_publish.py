@@ -39,6 +39,7 @@ import wf_atf  # noqa: E402
 import wf_final_state_guard as final_state_guard  # noqa: E402
 import wf_publish_guard as publish_guard  # noqa: E402
 import wf_quest_lib as quest_tables  # noqa: E402
+from wf_quest_time_revision import quest_time_revisions  # noqa: E402
 
 SERVER_ROOT = core.resolve_server_dir()
 ROOT = SERVER_ROOT
@@ -241,6 +242,9 @@ def _register_active_patch(
         "changes": [f"更新 {len(prepared)} 个客户端数据文件。"],
         "created_at": time.strftime("%Y-%m-%d"),
     }
+    revisions = quest_time_revisions({item.archive_name: item.payload for item in prepared})
+    if revisions:
+        entry["quest_time_revisions"] = revisions
     patches = [
         patch
         for patch in document["patches"]

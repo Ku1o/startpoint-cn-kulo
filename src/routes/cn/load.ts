@@ -31,6 +31,7 @@ import { getPlayerEquipmentListSync } from "../../data/domains/equipment";
 import { getPlayerCharactersManaNodesSync, getPlayerCharactersSync } from "../../data/domains/character";
 import { getPlayerPartyGroupListSync } from "../../data/domains/party";
 import { getPlayerQuestProgressSync } from "../../data/domains/quest";
+import { isStaleAbyssBattle } from "../../lib/abyss-time-revision";
 import { hijackUnavailableReply } from "../../lib/http-reply";
 import { ensureDailyVmoneyMailForPlayerSync } from "../../lib/daily-vmoney-mail";
 import { getNewsDeliveryState, getNewsInterruptFlag } from "../../lib/news-delivery";
@@ -247,7 +248,7 @@ const routes = async (fastify: FastifyInstance) => {
                 && activeRoom.raising_state === 4
                 && activeRoom.expected_real_viewer_ids.length > 0
                 && !activeRoom.expected_real_viewer_ids.includes(accountId);
-            if (!roomExists || completedMultiRoom || noLongerInCurrentBattle) {
+            if (!roomExists || completedMultiRoom || noLongerInCurrentBattle || isStaleAbyssBattle(activeQuest)) {
                 const mode15Quest = isMode15Quest(activeQuest.category, activeQuest.questId);
                 // Multiplayer rescue guests never own the Mode15 run represented
                 // by this room. Loading-stage disconnects may remove them from the
