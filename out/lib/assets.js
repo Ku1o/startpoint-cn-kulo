@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getEquipmentCraftSync = exports.getItemSaleSync = exports.getEquipmentDissolveSync = exports.getStaminaRecoverySeconds = exports.getConfigSync = exports.getEquipmentElement = exports.getEquipmentMaxLevel = exports.getRogueEventConfig = exports.getRushEventFolderClearRewards = exports.getShopItemSync = exports.getBossCoinShopItemsSync = exports.getEventShopItemsSync = exports.getGenericShopItemsSync = exports.getGachaCampaignIdSync = exports.getGachaSync = exports.getBoxGachaSync = exports.getExBoostItemSync = exports.getExStatusPoolSync = exports.getExAbilityPoolsSync = exports.getManaNodeAwakeCost = exports.getCharacterManaNodeSync = exports.getCharacterManaBoardCountSync = exports.getCharacterManaNodesSync = exports.getCharacterDataSync = exports.getQuestFromCategorySync = exports.getHardMultiEventQuest = exports.getAdventEventQuest = exports.getWorldStoryEventBossBattleQuestSync = exports.getWorldStoryEventQuestSync = exports.getCharacterQuestSync = exports.getBossBattleQuestSync = exports.getPracticeQuestSync = exports.getExQuestSync = exports.getMainQuestSync = exports.getScoreRewardGroup = exports.getRareScoreRewardGroup = exports.getClearRewardSync = exports.reloadRogueEventConfig = void 0;
+exports.getEquipmentCraftSync = exports.getItemSaleSync = exports.getEquipmentDissolveSync = exports.getStaminaRecoverySeconds = exports.getConfigSync = exports.getEquipmentElement = exports.getEquipmentMaxLevel = exports.getRogueEventConfig = exports.getRushEventFolderClearRewards = exports.getShopItemSync = exports.getBossCoinShopItemsSync = exports.getEventShopItemsSync = exports.getGenericShopItemsSync = exports.getGachaCampaignIdSync = exports.getGachaSync = exports.getBoxGachaSync = exports.getExBoostItemSync = exports.getExStatusPoolSync = exports.getExAbilityPoolsSync = exports.getManaNodeAwakeCost = exports.getCharacterManaNodeSync = exports.getCharacterManaBoardCountSync = exports.getCharacterManaNodesSync = exports.getCharacterDataSync = exports.getQuestFromCategorySync = exports.getHardMultiEventQuest = exports.getAdventEventQuest = exports.getWorldStoryEventBossBattleQuestSync = exports.getWorldStoryEventQuestSync = exports.getCharacterQuestSync = exports.getBossBattleQuestSync = exports.getPracticeQuestSync = exports.getExQuestSync = exports.getMainQuestSync = exports.getRushEventFolderMaxRoundSync = exports.getScoreRewardGroup = exports.getRareScoreRewardGroup = exports.getClearRewardSync = exports.reloadRogueEventConfig = void 0;
 const advent_event_quest_json_1 = __importDefault(require("../../assets/advent_event_quest.json"));
 const boss_battle_quest_json_1 = __importDefault(require("../../assets/boss_battle_quest.json"));
 const box_gacha_json_1 = __importDefault(require("../../assets/box_gacha.json"));
@@ -54,6 +54,7 @@ const fs_1 = require("fs");
 const path_1 = require("path");
 const types_1 = require("./types");
 const content_master_1 = require("./content-master");
+const rogue_drop_schedule_1 = require("./quest/finish/rogue-drop-schedule");
 const MOD_ASSETS_DIR = (0, path_1.join)(__dirname, "..", "..", "assets");
 // Some CN-mod pools are intentionally mirrored in both files because the
 // client/admin metadata pipeline reads gacha.json while runtime draws prefer
@@ -182,6 +183,28 @@ function getQuestSync(quests, questId) {
         rushEventRound: quest.rushEventRound
     };
 }
+/**
+ * Gets the highest configured round for a Rush event folder.
+ *
+ * Official Rush events do not all use the same number of rounds: later
+ * highest-difficulty folders contain a third battle.  Derive the value from
+ * the quest master instead of assuming that every folder ends at round two.
+ */
+function getRushEventFolderMaxRoundSync(eventId, folderId) {
+    let maxRound = 0;
+    for (const quest of Object.values(rush_event_quest_json_1.default)) {
+        const round = quest.rushEventRound;
+        if (quest.rushEventId === eventId
+            && quest.rushEventFolderId === folderId
+            && typeof round === "number"
+            && Number.isInteger(round)
+            && round > maxRound) {
+            maxRound = round;
+        }
+    }
+    return maxRound;
+}
+exports.getRushEventFolderMaxRoundSync = getRushEventFolderMaxRoundSync;
 /**
  * Gets the data for a main quest from the database.
  *
@@ -552,6 +575,29 @@ function getGachaCampaignIdSync(gachaId) {
 }
 exports.getGachaCampaignIdSync = getGachaCampaignIdSync;
 // shop functions
+const RUSH_RERUN_SHOP_PERIODS = {
+    700011: { availableFrom: "2025-06-26 12:00:00", availableUntil: "2025-08-14 23:59:59" },
+    700012: { availableFrom: "2025-06-26 12:00:00", availableUntil: "2025-08-14 23:59:59" },
+    700013: { availableFrom: "2025-06-26 12:00:00", availableUntil: "2025-08-14 23:59:59" },
+    700014: { availableFrom: "2025-06-26 12:00:00", availableUntil: "2025-08-14 23:59:59" },
+    700015: { availableFrom: "2025-06-26 12:00:00", availableUntil: "2025-08-14 23:59:59" },
+    700016: { availableFrom: "2025-06-26 12:00:00", availableUntil: "2025-08-14 23:59:59" },
+    700017: { availableFrom: "2025-06-26 12:00:00", availableUntil: "2025-08-14 23:59:59" },
+};
+function addShopCompatibilityPeriod(item, period) {
+    var _a;
+    const compatibilityPeriods = (_a = item.compatibilityPeriods) !== null && _a !== void 0 ? _a : [];
+    if (compatibilityPeriods.some(candidate => candidate.availableFrom === period.availableFrom
+        && candidate.availableUntil === period.availableUntil))
+        return item;
+    return Object.assign(Object.assign({}, item), { compatibilityPeriods: [...compatibilityPeriods, period] });
+}
+function addShopCompatibilityPeriodToItems(items, period) {
+    return Object.fromEntries(Object.entries(items).map(([itemId, item]) => [
+        itemId,
+        addShopCompatibilityPeriod(item, period),
+    ]));
+}
 /**
  * Gets the items for a generic shop.
  *
@@ -585,13 +631,20 @@ function getEventShopItemsSync(eventType, eventId) {
     if (typeSection === undefined)
         return null;
     // Try exact event ID first
-    let result = (_a = typeSection[String(eventId)]) !== null && _a !== void 0 ? _a : null;
-    if (result !== null)
-        return result;
-    // Fallback: for rush event reruns (700011-700017), try primary event (ID - 10)
     const eventIdNum = Number(eventId);
-    if (eventIdNum >= 700010 && eventIdNum <= 700019) {
-        return (_b = typeSection[String(eventIdNum - 10)]) !== null && _b !== void 0 ? _b : null;
+    const rerunPeriod = Number(eventType) === 11 ? RUSH_RERUN_SHOP_PERIODS[eventIdNum] : undefined;
+    let result = (_a = typeSection[String(eventId)]) !== null && _a !== void 0 ? _a : null;
+    if (result !== null) {
+        return rerunPeriod === undefined
+            ? result
+            : addShopCompatibilityPeriodToItems(result, rerunPeriod);
+    }
+    // Fallback: for rush event reruns (700011-700017), try primary event (ID - 10)
+    if (rerunPeriod !== undefined) {
+        result = (_b = typeSection[String(eventIdNum - 10)]) !== null && _b !== void 0 ? _b : null;
+        return result === null
+            ? null
+            : addShopCompatibilityPeriodToItems(result, rerunPeriod);
     }
     return null;
 }
@@ -634,7 +687,11 @@ function getShopItemSync(shopType, itemId) {
             const mapInfo = content_master_1.serverEventShopIdMap[itemId];
             if (mapInfo === undefined)
                 return null;
-            return (_f = content_master_1.serverEventShops[mapInfo.eventType][mapInfo.eventId][itemId]) !== null && _f !== void 0 ? _f : null;
+            const item = (_f = content_master_1.serverEventShops[mapInfo.eventType][mapInfo.eventId][itemId]) !== null && _f !== void 0 ? _f : null;
+            if (item === null || Number(mapInfo.eventType) !== 11)
+                return item;
+            const rerunPeriod = RUSH_RERUN_SHOP_PERIODS[Number(mapInfo.eventId) + 10];
+            return rerunPeriod === undefined ? item : addShopCompatibilityPeriod(item, rerunPeriod);
         default:
             return null;
     }
@@ -670,6 +727,8 @@ function getRushEventFolderClearRewards(rushEventId, folderId) {
         return Number.isFinite(n) ? [n, n] : [fallback, fallback];
     };
     for (const entry of Array.isArray(rogueCfg === null || rogueCfg === void 0 ? void 0 : rogueCfg.folder_clear_random) ? rogueCfg.folder_clear_random : []) {
+        if (!(0, rogue_drop_schedule_1.shouldRollRogueFolderRandomReward)(entry === null || entry === void 0 ? void 0 : entry.chance))
+            continue;
         const pool = (Array.isArray(entry === null || entry === void 0 ? void 0 : entry.pool) ? entry.pool : []).map(Number).filter(Number.isFinite);
         if (pool.length === 0)
             continue;

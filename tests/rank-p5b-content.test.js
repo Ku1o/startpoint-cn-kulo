@@ -14,9 +14,11 @@ const rankShopMap = require("../assets/event_item_shop_id_map_rank_p5b.json")
 const rankItems = require("../assets/item_ids_rank_p5b.json")
 const itemLookup = require("../assets/item_lookup_cnmod.json")
 const rankPatchAudit = require("../assets/asset-patch/audit/home-load-rank-p5b-1.4.92/report.json")
+const seasonRankTitleAudit = require("../assets/asset-patch/audit/season-rank-titles-1.4.97/report.json")
 const { serverCharacters, serverEventShops, serverGachas } = require("../out/lib/content-master")
 
-const RANK_CHARACTER_IDS = [169980, 169994, 169995, 179981]
+const RANK_CHARACTER_IDS = Object.keys(rankCharacters).map(Number).sort((a, b) => a - b)
+const RANK_BOSS_CHARACTER_IDS = [169980, 169994, 169995, 179981]
 const CDN_PATH_SALT = "K6R9T9Hz22OpeIGEWB0ui6c6PYFQnJGy"
 const rankPatchArchives = rankPatchAudit.archives.map(entry => path.join(
     __dirname,
@@ -65,7 +67,8 @@ async function readRankPatchLogical(logicalPath) {
 }
 
 test("rank-p5b 内容以稀疏覆盖接入，不改写现有深渊与装备主数据", () => {
-    assert.deepEqual(Object.keys(rankCharacters).map(Number).sort((a, b) => a - b), RANK_CHARACTER_IDS)
+    assert.equal(RANK_CHARACTER_IDS.length, 45)
+    for (const characterId of RANK_BOSS_CHARACTER_IDS) assert.ok(RANK_CHARACTER_IDS.includes(characterId))
     assert.deepEqual(serverCharacters["700099"], baseCharacters["700099"])
     assert.deepEqual(Object.keys(rankShop), ["11"])
     assert.deepEqual(Object.keys(rankShop["11"]["700099"]), ["9700118"])
@@ -73,18 +76,28 @@ test("rank-p5b 内容以稀疏覆盖接入，不改写现有深渊与装备主�
     assert.ok(serverEventShops["11"]["700099"]["9700118"])
 })
 
-test("五个称号、两种票券和四个 Boss 角色卡池完整可见", () => {
-    assert.deepEqual(Object.keys(rankDegrees).map(Number), [9900002, 9900003, 9900004, 9900005, 9900006])
+test("旧称号保留并追加五个新赛季称号、两种竞速票券和四个 Boss 角色卡池", () => {
+    assert.deepEqual(Object.keys(rankDegrees).map(Number), [
+        9900002, 9900003, 9900004, 9900005, 9900006,
+        9900007, 9900008, 9900009, 9900010, 9900011,
+    ])
+    assert.equal(rankDegrees["9900002"].name, "深渊冠军")
+    assert.deepEqual(
+        [9900007, 9900008, 9900009, 9900010, 9900011].map(id => rankDegrees[String(id)].name),
+        ["星渊主宰者", "星渊征服者", "星渊讨伐者", "破阵先行者", "共赴星渊"],
+    )
     assert.ok(rankItems.includes(999015))
     assert.ok(rankItems.includes(999016))
+    assert.ok(rankItems.includes(999017))
+    assert.ok(rankItems.includes(999018))
     assert.equal(itemLookup["999015"], "终焉裁定券")
     assert.equal(itemLookup["999016"], "终焉裁定券（十连）")
 
     const gacha = serverGachas["990002"]
-    assert.equal(gacha.onceTicketItemId, 999015)
-    assert.equal(gacha.tenTicketItemId, 999016)
+    assert.equal(gacha.onceTicketItemId, 999017)
+    assert.equal(gacha.tenTicketItemId, 999018)
     const poolIds = new Set(Object.values(gacha.pool).flat().map(row => row.id))
-    for (const characterId of RANK_CHARACTER_IDS) {
+    for (const characterId of RANK_BOSS_CHARACTER_IDS) {
         assert.ok(poolIds.has(characterId), `missing ${characterId}`)
     }
 })
@@ -110,7 +123,7 @@ test("四个 Boss 是普通双板角色，不误注册为角色觉醒活动", as
     )
     const characterRows = require("../assets/cdndata/character_rank_p5b.json")
 
-    for (const characterId of RANK_CHARACTER_IDS) {
+    for (const characterId of RANK_BOSS_CHARACTER_IDS) {
         assert.equal(awakeStatus.get(String(characterId)).toString("utf8").trim(), "0,0")
         for (let slot = 1; slot <= 6; slot += 1) {
             const rows = abilities.get(`${characterId}${slot}`).toString("utf8").trim().split(/\r?\n/)
@@ -125,4 +138,11 @@ test("四个 Boss 是普通双板角色，不误注册为角色觉醒活动", as
         const variants = decodeOrderedMap(actionSkills.get(codeName), true)
         assert.deepEqual([...variants.keys()], ["1", "2"], `${characterId} unexpectedly has skill evolution 3`)
     }
+})
+
+test("深渊武器客户端分解标记保留，实际产魂仍仅限死亡使者", () => {
+    const marker = seasonRankTitleAudit.client_disassembly
+    assert.deepEqual(marker.abyss_marker_values, Array(15).fill("true"))
+    assert.equal(marker.death_bringer_marker, "true")
+    assert.deepEqual(marker.server_soul_generation_ids, [5900101])
 })

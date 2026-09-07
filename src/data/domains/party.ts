@@ -4,6 +4,120 @@ import { deserializeBoolean, serializeBoolean } from "../utils";
 import { insertMissingPartyGroupListSync } from "../../lib/party-group-persistence";
 import { gameVerboseLog } from "../../lib/game-logging";
 
+export interface PlayerPartyDisplaySelection {
+    characterIds: (number | null)[];
+    evolutionImgLevels: (number | null)[];
+}
+
+interface RawPlayerPartyDisplaySelection {
+    player_id: number;
+    character_id_1: number | null;
+    character_id_2: number | null;
+    character_id_3: number | null;
+    evolution_level_1: number | null;
+    evolution_level_2: number | null;
+    evolution_level_3: number | null;
+    illustration_settings_1: string | null;
+    illustration_settings_2: string | null;
+    illustration_settings_3: string | null;
+}
+
+const PARTY_DISPLAY_BATCH_SIZE = 900;
+
+function resolveEvolutionImgLevel(
+    evolutionLevel: number | null,
+    illustrationSettings: string | null,
+): number | null {
+    if (evolutionLevel === null) return null;
+    if (illustrationSettings !== null) {
+        try {
+            const parsed = JSON.parse(illustrationSettings);
+            const selected = Array.isArray(parsed) ? parsed[0] : null;
+            if (Number.isSafeInteger(selected)) return Number(selected);
+        } catch {
+            // Damaged presentation settings use the owned character's evolution.
+        }
+    }
+    return evolutionLevel;
+}
+
+/**
+ * Loads the first explicitly saved party for many players in bounded batches.
+ * Missing, stale, or unowned slots remain null for the caller's presentation
+ * fallback. It deliberately does not inherit another party category.
+ */
+export function getFirstPlayerPartyDisplaySelectionsSync(
+    playerIds: readonly number[],
+    category: PartyCategory,
+): Map<number, PlayerPartyDisplaySelection> {
+    const uniquePlayerIds = [...new Set(playerIds)].filter(
+        playerId => Number.isSafeInteger(playerId) && playerId > 0,
+    );
+    const selections = new Map<number, PlayerPartyDisplaySelection>();
+
+    for (let offset = 0; offset < uniquePlayerIds.length; offset += PARTY_DISPLAY_BATCH_SIZE) {
+        const batch = uniquePlayerIds.slice(offset, offset + PARTY_DISPLAY_BATCH_SIZE);
+        const placeholders = batch.map(() => "?").join(", ");
+        const rows = getDb().prepare(`
+            WITH ordered_parties AS (
+                SELECT player_id, character_id_1, character_id_2, character_id_3,
+                    ROW_NUMBER() OVER (
+                        PARTITION BY player_id ORDER BY group_id ASC, slot ASC
+                    ) AS party_number
+                FROM players_parties
+                WHERE category = ? AND player_id IN (${placeholders})
+            )
+            SELECT party.player_id,
+                character_1.id AS character_id_1,
+                character_2.id AS character_id_2,
+                character_3.id AS character_id_3,
+                character_1.evolution_level AS evolution_level_1,
+                character_2.evolution_level AS evolution_level_2,
+                character_3.evolution_level AS evolution_level_3,
+                character_1.illustration_settings AS illustration_settings_1,
+                character_2.illustration_settings AS illustration_settings_2,
+                character_3.illustration_settings AS illustration_settings_3
+            FROM ordered_parties party
+            LEFT JOIN players_characters character_1
+                ON character_1.player_id = party.player_id
+                AND character_1.id = party.character_id_1
+            LEFT JOIN players_characters character_2
+                ON character_2.player_id = party.player_id
+                AND character_2.id = party.character_id_2
+            LEFT JOIN players_characters character_3
+                ON character_3.player_id = party.player_id
+                AND character_3.id = party.character_id_3
+            WHERE party.party_number = 1
+        `).all(category, ...batch) as RawPlayerPartyDisplaySelection[];
+
+        for (const row of rows) {
+            selections.set(row.player_id, {
+                characterIds: [
+                    row.character_id_1,
+                    row.character_id_2,
+                    row.character_id_3,
+                ],
+                evolutionImgLevels: [
+                    resolveEvolutionImgLevel(
+                        row.evolution_level_1,
+                        row.illustration_settings_1,
+                    ),
+                    resolveEvolutionImgLevel(
+                        row.evolution_level_2,
+                        row.illustration_settings_2,
+                    ),
+                    resolveEvolutionImgLevel(
+                        row.evolution_level_3,
+                        row.illustration_settings_3,
+                    ),
+                ],
+            });
+        }
+    }
+
+    return selections;
+}
+
 export function getPlayerPartyGroupListSync(
     playerId: number,
     category: PartyCategory = PartyCategory.NORMAL

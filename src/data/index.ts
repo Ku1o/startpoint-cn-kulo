@@ -4,6 +4,7 @@ import { tmpdir } from 'os';
 import path from "path";
 import { updateBeforeInit as updateWdfpDataBefore, updateAfterInit as updateWdfpDataAfter} from "./updaters/wdfpData";
 import initWdfpData from "./initializers/wdfpData";
+import { initializeQuestTimeRevision } from "./initializers/quest-time-revision";
 import { ensureCascadeDeleteIndexes } from "../lib/admin-account-cleanup";
 
 // Use __dirname so DB path is relative to the source file, not process.cwd()
@@ -102,6 +103,7 @@ export default function getDatabase(
             // initialize
             console.log("[DB] calling init...")
             init(db, dbExists)
+            initializeQuestTimeRevision(db)
             console.log("[DB] init done")
 
             // try to update after initialization

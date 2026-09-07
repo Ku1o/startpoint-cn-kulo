@@ -1,7 +1,6 @@
 import { createHash } from "crypto"
 import type { Database as BetterSqlite3Database } from "better-sqlite3"
 import { getServerDate, getTimeOffset } from "../../utils"
-import { getDb } from "../db"
 
 type SnapshotScalar = string | number | null
 
@@ -135,6 +134,11 @@ const EXCLUDED_PLAYER_STATE = Object.freeze([
         reason: "跨玩家关系、公开副本和全局幂等账本不属于便携玩家存档，覆盖既有存档时保留目标侧数据。",
     },
     {
+        tables: ["daily_vmoney_mail_grants"],
+        policy: "reset" as const,
+        reason: "每日星导石邮件发放账本属于服务器派生的幂等状态，不能随存档迁移，导入时清除后按当前周期重新发放。",
+    },
+    {
         tables: ["leaderboard_runs", "leaderboard_run_rounds", "leaderboard_settlement_results"],
         policy: "preserve-target" as const,
         reason: "排行榜对局、轮次明细和结算结果属于服务器公共竞赛记录，不随玩家存档迁移，覆盖时保留目标侧数据。",
@@ -153,6 +157,12 @@ const TEXT_STORED_IN_INTEGER_COLUMNS = new Set([
     "players.stamina_heal_time",
     "players.exp_pooled_time",
 ])
+
+function getDefaultDatabase(): BetterSqlite3Database {
+    // Keep the default connection lazy. Read-only worker threads pass their
+    // own connection and must not initialize the main writable database.
+    return require("../db").getDb() as BetterSqlite3Database
+}
 
 function quoteIdentifier(value: string): string {
     return `"${value.replace(/"/g, '""')}"`
@@ -203,7 +213,9 @@ function getPlayerReferencingTables(db: BetterSqlite3Database): Set<string> {
     return result
 }
 
-export function assertPlayerSnapshotCoverageSync(db: BetterSqlite3Database = getDb()): void {
+export function assertPlayerSnapshotCoverageSync(
+    db: BetterSqlite3Database = getDefaultDatabase(),
+): void {
     const classified = new Set<string>(PLAYER_SNAPSHOT_V2_TABLES.slice(1))
     for (const exclusion of EXCLUDED_PLAYER_STATE) {
         for (const table of exclusion.tables) classified.add(table)
@@ -279,7 +291,7 @@ function readSnapshotTable(
 
 export function createPlayerSaveSnapshotV2Sync(
     playerId: number,
-    db: BetterSqlite3Database = getDb(),
+    db: BetterSqlite3Database = getDefaultDatabase(),
 ): PlayerSaveSnapshotV2 {
     if (!Number.isSafeInteger(playerId) || playerId < 1) throw new Error("玩家 ID 无效")
     assertPlayerSnapshotCoverageSync(db)
@@ -327,7 +339,7 @@ export function isPlayerSaveSnapshotV2(value: unknown): value is PlayerSaveSnaps
 
 export function validatePlayerSaveSnapshotV2Sync(
     value: unknown,
-    db: BetterSqlite3Database = getDb(),
+    db: BetterSqlite3Database = getDefaultDatabase(),
 ): PlayerSaveSnapshotV2 {
     if (!isPlayerSaveSnapshotV2(value)) throw new Error("不是有效的 V2 玩家存档")
     const snapshot = value as PlayerSaveSnapshotV2
@@ -436,7 +448,7 @@ export function restorePlayerSaveSnapshotV2Sync(
     snapshotValue: unknown,
     targetPlayerId: number,
     options: RestorePlayerSnapshotOptions = {},
-    db: BetterSqlite3Database = getDb(),
+    db: BetterSqlite3Database = getDefaultDatabase(),
 ): RestorePlayerSnapshotResult {
     if (!Number.isSafeInteger(targetPlayerId) || targetPlayerId < 1) throw new Error("目标玩家 ID 无效")
     const snapshot = validatePlayerSaveSnapshotV2Sync(snapshotValue, db)

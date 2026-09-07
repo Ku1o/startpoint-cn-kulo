@@ -65,6 +65,7 @@ import { embeddedMultiCoordinator } from "../coordinator/embedded";
 import { calculateFreeManaGrant } from "../../lib/mana";
 import { resolveMultiPlayerContext } from "../player-context";
 import { validateRandomRecruitmentAttention } from "../recruitment";
+import { recordQuestRecommendedPartySafe } from "../../lib/quest/recommended-party-history";
 
 async function buildFinishFollowInfo(
     viewerId: number,
@@ -537,6 +538,9 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
         let rewardCharacterExpResult!: ReturnType<typeof givePlayerCharactersExpSync>;
         await measureSettlementPhaseAsync("multi", "facts_transaction", () => withPlayerWriteQueue(playerId, () => runImmediateTransactionWithRetry(() => {
         missionBattleFacts = recordMissionBattleFacts(finishCtx, missionEvaluationTime)
+        if (questData.fixedParty === undefined) {
+            recordQuestRecommendedPartySafe(finishCtx)
+        }
         steamRobotMissionId = trackSteamRobotChallengeMission({
             playerId,
             questCategory,

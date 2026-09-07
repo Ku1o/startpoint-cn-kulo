@@ -21,6 +21,7 @@ const party_1 = require("../../data/domains/party");
 const session_1 = require("../../data/domains/session");
 const assets_1 = require("../../lib/assets");
 const types_2 = require("../../lib/types");
+const abyss_time_revision_1 = require("../../lib/abyss-time-revision");
 const utils_1 = require("../../utils");
 const singleBattleQuest_1 = require("./singleBattleQuest");
 const rush_1 = require("../../lib/rush");
@@ -36,6 +37,7 @@ const activity_degree_rewards_1 = require("../../lib/activity-degree-rewards");
 const service_1 = require("../../lib/leaderboard/service");
 const competition_1 = require("../../lib/leaderboard/competition");
 const presentation_1 = require("../../lib/leaderboard/presentation");
+const availability_1 = require("../../lib/leaderboard/availability");
 var ResetQuestType;
 (function (ResetQuestType) {
     ResetQuestType[ResetQuestType["EMPTY"] = 0] = "EMPTY";
@@ -78,6 +80,11 @@ function getRushEventFolderMaxRounds(eventId, folderId) {
         // never closes the folder before stage-15 settlement resets the run.
         return 16;
     }
+    const configuredMaxRound = (0, assets_1.getRushEventFolderMaxRoundSync)(eventId, folderId);
+    if (configuredMaxRound > 0)
+        return configuredMaxRound;
+    // Retain the legacy defaults only for old/custom rows that have no quest
+    // master data. Official event folders are resolved from their actual rows.
     return (_b = exports.rushEventFolderMaxRounds[folderId]) !== null && _b !== void 0 ? _b : 0;
 }
 exports.getRushEventFolderMaxRounds = getRushEventFolderMaxRounds;
@@ -261,10 +268,12 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             });
         const competition = (0, competition_1.getLeaderboardCompetitionForEvent)(types_2.QuestCategory.RUSH_EVENT, eventId);
         if (competition !== null) {
+            const acceptingScores = (0, availability_1.isLeaderboardEnabledSync)(competition.key);
             const ranking = (0, presentation_1.getOfficialLeaderboardPageSync)({
                 competition,
                 playerId,
                 page,
+                acceptingScores,
             });
             reply.header("content-type", "application/x-msgpack");
             return reply.status(200).send({
@@ -326,6 +335,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             const partyList = (0, presentation_1.getLeaderboardPlayedPartiesSync)({
                 competition,
                 rankNumber,
+                acceptingScores: (0, availability_1.isLeaderboardEnabledSync)(competition.key),
             });
             reply.header("content-type", "application/x-msgpack");
             return reply.status(200).send({
@@ -473,7 +483,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         const competition = (0, competition_1.getLeaderboardCompetitionForEvent)(types_2.QuestCategory.RUSH_EVENT, eventId);
         const payload = competition === null
             ? (0, presentation_1.buildUnavailableNativeLeaderboardPayload)()
-            : (0, presentation_1.buildNativeLeaderboardPayload)(competition, playerId);
+            : (0, presentation_1.buildNativeLeaderboardPayload)(competition, playerId, (0, availability_1.isLeaderboardEnabledSync)(competition.key));
         reply.header("content-type", "application/x-msgpack");
         return reply.status(200).send({
             "data_headers": (0, utils_1.generateDataHeaders)({ viewer_id: viewerId }),
@@ -492,6 +502,13 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 "error": "Bad Request",
                 "message": "Invalid request body."
             });
+        if ((0, abyss_time_revision_1.isStaleAbyssClient)(types_2.QuestCategory.RUSH_EVENT, questId, request.headers.res_ver)) {
+            reply.header("content-type", "application/x-msgpack");
+            return reply.status(200).send({
+                data_headers: (0, utils_1.generateDataHeaders)({ viewer_id: viewerId, asset_update: true, result_code: 4050 }),
+                data: {},
+            });
+        }
         const viewerIdSession = yield (0, session_1.getSession)(viewerId.toString());
         if (!viewerIdSession)
             return reply.status(400).send({
@@ -718,7 +735,8 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         const maxRound = (_f = rushEvent === null || rushEvent === void 0 ? void 0 : rushEvent.endlessBattleMaxRound) !== null && _f !== void 0 ? _f : null;
         const eligibleDegreeIds = new Set((0, activity_degree_rewards_1.getEligibleRushDegreeIds)(eventId, maxRound));
         // find matching reward tier
-        const rewards = (_g = rankingRewards[String(eventId)]) !== null && _g !== void 0 ? _g : {};
+        const rewardSourceEventId = (0, activity_degree_rewards_1.getRushDegreeRewardSourceEventId)(eventId);
+        const rewards = (_g = rankingRewards[String(rewardSourceEventId)]) !== null && _g !== void 0 ? _g : {};
         let rewardList = [];
         if (maxRound !== null && maxRound > 0) {
             for (const entries of Object.values(rewards)) {

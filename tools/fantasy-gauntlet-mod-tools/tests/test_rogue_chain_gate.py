@@ -913,8 +913,16 @@ class QuestThumbnailEvidenceCase(unittest.TestCase):
     def evidence(self):
         field_data = {
             "boss_field": "boss_field,terrain,zone",
-            "floor_only_field": "floor_only_field,terrain,zone",
+            "boss_alias_field": "boss_alias_field,terrain,zone_alias",
+            "visual_alias_field": "visual_alias_field,terrain,zone_visual",
+            "floor_only_field": "floor_only_field,terrain,zone_floor",
             "mod_rogue_f24": "mod_rogue_f24,terrain,zone",
+        }
+        zone = {
+            "zone": {"0": wave(bosses=("same_boss",))},
+            "zone_alias": {"0": wave(bosses=("same_boss",))},
+            "zone_visual": {"0": wave(bosses=("same_boss_tower",))},
+            "zone_floor": {"0": wave(bosses=("unmapped_boss",))},
         }
         floor = {
             "official_floor": (
@@ -936,10 +944,14 @@ class QuestThumbnailEvidenceCase(unittest.TestCase):
             },
         }
         return rb.field_thumbnail_evidence_map(
-            field_data=field_data,
+            field_data=field_data, zone=zone,
             floor=floor,
             quest_tables=quest_tables,
             asset_exists=lambda logical: logical.endswith(".png"),
+            boss_identity_of=lambda code: {
+                "same_boss": "Same Boss\0battle/boss/same",
+                "same_boss_tower": "Same Boss\0battle/boss/same",
+            }.get(code, code),
         )
 
     def test_exact_highest_level_quest_cover_beats_floor_icon_and_host(self):
@@ -958,6 +970,38 @@ class QuestThumbnailEvidenceCase(unittest.TestCase):
         self.assertEqual("quest/thumbnail/tower_host", evidence["thumbnail"])
         self.assertEqual("floor_host_quest", evidence["source_match"])
         self.assertEqual("official_floor", evidence["floor_key"])
+        with self.assertRaisesRegex(ValueError, "floor_host_quest"):
+            rb.resolve_quest_thumbnail(
+                "floor_only_field", "", self.evidence(), require=True)
+
+    def test_exact_boss_identity_borrows_cover_from_direct_official_quest(self):
+        evidence = self.evidence()["boss_alias_field"]
+        self.assertEqual("quest/thumbnail/boss_high", evidence["thumbnail"])
+        self.assertEqual("exact_boss_identity", evidence["source_match"])
+        self.assertEqual("boss_field", evidence["cover_field"])
+        self.assertEqual(["same_boss"], evidence["bosses"])
+        thumbnail, resolved = rb.resolve_quest_thumbnail(
+            "boss_alias_field", "quest/thumbnail/wrong", self.evidence(),
+            require=True)
+        self.assertEqual("quest/thumbnail/boss_high", thumbnail)
+        self.assertEqual("exact_boss_identity", resolved["source_match"])
+
+    def test_visual_boss_identity_covers_official_alias_ids(self):
+        evidence = self.evidence()["visual_alias_field"]
+        self.assertEqual("quest/thumbnail/boss_high", evidence["thumbnail"])
+        self.assertEqual(
+            "exact_boss_visual_identity", evidence["source_match"])
+        self.assertEqual("boss_field", evidence["cover_field"])
+        self.assertEqual(["same_boss_tower"], evidence["bosses"])
+        self.assertEqual(
+            ["Same Boss\0battle/boss/same"],
+            evidence["boss_visual_identity"])
+        thumbnail, resolved = rb.resolve_quest_thumbnail(
+            "visual_alias_field", "quest/thumbnail/wrong", self.evidence(),
+            require=True)
+        self.assertEqual("quest/thumbnail/boss_high", thumbnail)
+        self.assertEqual(
+            "exact_boss_visual_identity", resolved["source_match"])
 
     def test_generated_field_cannot_launder_its_stale_cover_into_evidence(self):
         self.assertNotIn("mod_rogue_f24", self.evidence())
@@ -4578,12 +4622,17 @@ class TaskCDryRunCase(unittest.TestCase):
         # 于是钉地形的浅层拿到不可挂 c109 的 donor，元素诅咒随后被吞掉。
         result = self.run_build_with_plan(
             {"floors": {"5": {
-                "terrain": "dark_matter_80", "curses": ["元素禁壁"]}}},
+                # dark_matter_80 与正式 portable donor 目录不兼容；继续
+                # 使用它会把本测试变成“绕过 ActionDSL/terrain 门禁”。
+                # tower_dungeon_area_10_3_2 可由树妖 donor 通过正式
+                # 兼容矩阵移植，同时仍会触发本用例关注的属性载体重排。
+                "terrain": "tower_dungeon_area_10_3_2",
+                "curses": ["元素禁壁"]}}},
             "--rounds", "8", "--seed", "2", "--difficulty", "hell")
         out = result.stdout + result.stderr
         self.assertEqual(result.returncode, 0, out)
         self.assertNotIn("round=5 reject=「元素禁壁」", out)
-        self.assertIn("@ dark_matter_80", out)
+        self.assertIn("@ tower_dungeon_area_10_3_2", out)
         self.assertRegex(out, r"第5战 .*field=mod_rogue_f5")
         self.assertRegex(out, r"第5战 .*元素禁壁")
         self.assertIn("9 关解析链复核通过", out)
@@ -5934,6 +5983,56 @@ class TripleWallCurseCase(unittest.TestCase):
 
 class SwapZoneBossesCase(unittest.TestCase):
     """--mix 模块化拼接:boss 槽整组换血,zako/其余列原样保留。"""
+
+    def test_formal_mix_gate_rejects_missing_named_positions(self):
+        slot = rbb.ActiveBossSlot(
+            "0", 1, 0, rbb.BossRef(1, "boss"), rbb.BossRef(1, "boss"))
+        requirements = rbb.BossTerrainRequirements(
+            layers=(rbb.LayerTerrainRequirements(
+                "0", custom_positions=("p0", "p1", "p2")),),
+            action_roots=("battle/action/boss",),
+            action_closure=("battle/action/boss",),
+        )
+
+        def bundle(field, positions, *, portable=True, reason=None):
+            return rbb.NativeBossBundle(
+                "family", "family", f"variant-{field}", field,
+                field, f"zone-{field}", f"terrain/{field}", ("0",),
+                (slot,), None, "", "test", portable=portable,
+                native_only_reason=reason,
+                terrain_caps=(rbb.TerrainLayerCaps(
+                    "0", (1,), (0,), (), tuple((name, 1) for name in positions),
+                    ()),),
+                terrain_requirements=requirements if portable else None,
+            )
+
+        source = bundle("source", ("p0", "p1", "p2"))
+        missing = bundle("target-missing", ("p0",))
+        accepted = bundle("target-ok", ("p0", "p1", "p2"))
+
+        rejected = rb.checked_mix_terrain_compatibility(
+            "source", "target-missing",
+            {item.source_field: item for item in (source, missing)},
+            strict_transplant=False, transplant_safe=())
+        self.assertFalse(rejected.ok)
+        self.assertEqual(rejected.reason, "CUSTOM_POSITION_MISSING")
+        self.assertIn("p1", rejected.detail)
+
+        compatible = rb.checked_mix_terrain_compatibility(
+            "source", "target-ok",
+            {item.source_field: item for item in (source, accepted)},
+            strict_transplant=False, transplant_safe=())
+        self.assertTrue(compatible.ok, compatible)
+
+        unaudited = bundle(
+            "source-native-only", ("p0", "p1", "p2"), portable=False,
+            reason="ACTION_CLOSURE_UNAUDITED")
+        closed = rb.checked_mix_terrain_compatibility(
+            "source-native-only", "target-ok",
+            {item.source_field: item for item in (unaudited, accepted)},
+            strict_transplant=False, transplant_safe=())
+        self.assertFalse(closed.ok)
+        self.assertEqual(closed.reason, "ACTION_CLOSURE_UNAUDITED")
 
     def test_boss_slots_swapped_zakos_kept(self):
         zn = {"0": wave(zakos=("zk1", "zk2"), bosses=("old_a", "old_b"))}

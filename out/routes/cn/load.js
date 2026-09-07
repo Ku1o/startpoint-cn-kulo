@@ -31,6 +31,10 @@ const equipment_1 = require("../../data/domains/equipment");
 const character_1 = require("../../data/domains/character");
 const party_1 = require("../../data/domains/party");
 const quest_1 = require("../../data/domains/quest");
+const abyss_time_revision_1 = require("../../lib/abyss-time-revision");
+const http_reply_1 = require("../../lib/http-reply");
+const daily_vmoney_mail_1 = require("../../lib/daily-vmoney-mail");
+const news_delivery_1 = require("../../lib/news-delivery");
 function wrapOptionFields(d, playerId, resVer) {
     var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q;
     var _r, _s, _t, _u, _v, _w, _x, _y, _z, _0, _1, _2, _3, _4;
@@ -110,6 +114,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 return reply.status(500).send({ error: "Internal Server Error", message: "No player data." });
             }
             const now = (0, utils_1.getServerDate)();
+            (0, daily_vmoney_mail_1.ensureDailyVmoneyMailForPlayerSync)(playerId, now.getTime());
             (0, player_1.dailyResetPlayerDataSync)(player, now);
             (0, player_1.collectPlayerDataPooledExpSync)(player, now);
             // Equipment is needed by both validation and serialization. Validators
@@ -185,6 +190,8 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             const resVer = request.headers['res_ver'];
             (0, game_logging_1.gameVerboseLog)(() => { var _a; return `[CN-LOAD] res_ver=${resVer || '(not sent)'} account=${accountId} player=${playerId} party_slot=${(_a = clientData === null || clientData === void 0 ? void 0 : clientData.user_info) === null || _a === void 0 ? void 0 : _a.party_slot}`; });
             wrapOptionFields(clientData, playerId, resVer);
+            const newsDelivery = (0, news_delivery_1.getNewsDeliveryState)(accountId, now);
+            clientData.has_unread_news_item = newsDelivery.hasUnreadNews;
             // Inject unfinished quest lists for battle recovery
             const activeQuest = (0, quest_active_1.getPlayerActiveQuestSync)(playerId);
             if (activeQuest) {
@@ -200,7 +207,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                     && activeRoom.raising_state === 4
                     && activeRoom.expected_real_viewer_ids.length > 0
                     && !activeRoom.expected_real_viewer_ids.includes(accountId);
-                if (!roomExists || completedMultiRoom || noLongerInCurrentBattle) {
+                if (!roomExists || completedMultiRoom || noLongerInCurrentBattle || (0, abyss_time_revision_1.isStaleAbyssBattle)(activeQuest)) {
                     const mode15Quest = (0, mode15_optional_1.isMode15Quest)(activeQuest.category, activeQuest.questId);
                     // Multiplayer rescue guests never own the Mode15 run represented
                     // by this room. Loading-stage disconnects may remove them from the
@@ -236,6 +243,12 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             return reply.status(200).send({
                 data_headers: (0, utils_1.generateDataHeaders)({
                     asset_update: true,
+                    // The client treats 2 as "open the announcement list" and
+                    // will run that dialog again on every return to the home
+                    // scene. Use nil when there is no pending interrupt; unlike
+                    // nil, 0 is stored by the client as Some(0) and can become
+                    // stale state across navigation.
+                    force_news: (0, news_delivery_1.getNewsInterruptFlag)(newsDelivery),
                     viewer_id: accountId,
                     servertime: (0, utils_1.getServerTime)(),
                 }),
@@ -244,6 +257,8 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         }
         catch (e) {
             console.error(`[CN-LOAD] ERROR:`, e.message, e.stack);
+            if ((0, http_reply_1.hijackUnavailableReply)(request, reply))
+                return reply;
             return reply.status(500).send({ error: "Internal Server Error", message: e.message });
         }
     }));

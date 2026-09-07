@@ -28,15 +28,22 @@ import { computeFreeFirstDeduction } from "../../lib/free-first-deduction";
 const GENERAL_SHOP_CDN_KEYS: Set<number> = new Set(CDN_GENERAL_SHOP_WHITELIST);
 
 function isShopItemAvailable(item: ShopItem, now: Date): boolean {
-    if (item.availableFrom) {
-        const availableFrom = new Date(item.availableFrom.replace(' ', 'T') + 'Z')
-        if (availableFrom > now) return false
-    }
-    if (item.availableUntil) {
-        const availableUntil = new Date(item.availableUntil.replace(' ', 'T') + 'Z')
-        if (availableUntil < now) return false
-    }
-    return true
+    const periods = [{
+        availableFrom: item.availableFrom,
+        availableUntil: item.availableUntil,
+    }, ...(item.compatibilityPeriods ?? [])]
+
+    return periods.some(period => {
+        if (period.availableFrom) {
+            const availableFrom = new Date(period.availableFrom.replace(' ', 'T') + 'Z')
+            if (availableFrom > now) return false
+        }
+        if (period.availableUntil) {
+            const availableUntil = new Date(period.availableUntil.replace(' ', 'T') + 'Z')
+            if (availableUntil < now) return false
+        }
+        return true
+    })
 }
 
 function recordTreasureShopProgress(
@@ -440,6 +447,16 @@ const routes = async (fastify: FastifyInstance) => {
             "message": "Shop item with specified id does not exist."
         })
 
+        // Event products may still be present in a stale client cache after
+        // their exchange window closes. The listing filter is not a security
+        // boundary, so enforce the same period again before any costs change.
+        if (shopType === ShopType.EVENT_ITEM && !isShopItemAvailable(shopItemData, getServerDate())) {
+            return reply.status(400).send({
+                "error": "Bad Request",
+                "message": "Event shop item is not currently available."
+            })
+        }
+
         let degreeIds: number[]
         try {
             degreeIds = getShopDegreeRewards(shopItemData, purchaseAmount)
@@ -540,6 +557,7 @@ const routes = async (fastify: FastifyInstance) => {
                 stageMaxLevel,
                 currentEquipment.level,
                 requiredAwakeningLevel,
+                shopItemData.enhancementPurchaseMode,
             )
             if (!plan.ok) return reply.status(400).send({
                 "error": "Bad Request",
@@ -1124,6 +1142,7 @@ const routes = async (fastify: FastifyInstance) => {
         let availablePaidVmoney = player.vmoney
         let availableBondToken = player.bondToken
         const availableItems = new Map<number, number>()
+        const purchaseNow = getServerDate()
         let skippedEntries = Math.max(0, (buyItemList === null ? 0 : Object.keys(buyItemList).length) - rawEntries.length)
 
         for (const [rawShopItemId, rawPurchaseAmount] of rawEntries) {
@@ -1140,6 +1159,10 @@ const routes = async (fastify: FastifyInstance) => {
 
             const shopItem = getShopItemSync(shopType, shopItemId)
             if (shopItem === null) {
+                skippedEntries++
+                continue
+            }
+            if (shopType === ShopType.EVENT_ITEM && !isShopItemAvailable(shopItem, purchaseNow)) {
                 skippedEntries++
                 continue
             }

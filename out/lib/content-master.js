@@ -32,5 +32,16 @@ exports.degreeDefinitions = Object.assign(Object.assign({}, degree_json_1.defaul
 exports.serverGachas = Object.assign(Object.assign(Object.assign({}, gacha_json_1.default), gacha_cnmod_json_1.default), gacha_rank_p5b_json_1.default);
 exports.serverManaNodes = Object.assign(Object.assign(Object.assign({}, mana_node_json_1.default), mana_node_cnmod_json_1.default), mana_node_rank_p5b_json_1.default);
 exports.serverItemIds = [...new Set([...item_ids_json_1.default, ...item_ids_rank_p5b_json_1.default])];
-exports.serverEventShops = Object.assign(Object.assign({}, event_item_shop_json_1.default), { "11": Object.assign(Object.assign({}, event_item_shop_json_1.default["11"]), { "700099": Object.assign(Object.assign({}, (_a = event_item_shop_json_1.default["11"]) === null || _a === void 0 ? void 0 : _a["700099"]), (_b = event_item_shop_rank_p5b_json_1.default["11"]) === null || _b === void 0 ? void 0 : _b["700099"]) }) });
-exports.serverEventShopIdMap = Object.assign(Object.assign({}, event_item_shop_id_map_json_1.default), event_item_shop_id_map_rank_p5b_json_1.default);
+// Five Boss is intentionally dormant.  Keep its raw definitions for a future
+// opening, but do not expose its Death Bringer exchange through the effective
+// runtime shop view while the matching client row is absent.
+const DORMANT_EVENT_SHOP_ITEM_IDS = new Set(["59001010"]);
+const mergedEventShops = Object.assign(Object.assign({}, event_item_shop_json_1.default), { "11": Object.assign(Object.assign({}, event_item_shop_json_1.default["11"]), { "700099": Object.assign(Object.assign({}, (_a = event_item_shop_json_1.default["11"]) === null || _a === void 0 ? void 0 : _a["700099"]), (_b = event_item_shop_rank_p5b_json_1.default["11"]) === null || _b === void 0 ? void 0 : _b["700099"]) }) });
+exports.serverEventShops = Object.fromEntries(Object.entries(mergedEventShops).map(([eventType, events]) => [
+    eventType,
+    Object.fromEntries(Object.entries(events).map(([eventId, items]) => [
+        eventId,
+        Object.fromEntries(Object.entries(items).filter(([itemId]) => !DORMANT_EVENT_SHOP_ITEM_IDS.has(itemId))),
+    ])),
+]));
+exports.serverEventShopIdMap = Object.fromEntries(Object.entries(Object.assign(Object.assign({}, event_item_shop_id_map_json_1.default), event_item_shop_id_map_rank_p5b_json_1.default)).filter(([itemId]) => !DORMANT_EVENT_SHOP_ITEM_IDS.has(itemId)));

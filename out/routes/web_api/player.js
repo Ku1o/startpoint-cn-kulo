@@ -31,8 +31,10 @@ const daily_challenge_point_lookup_json_1 = __importDefault(require("../../../as
 const unison_unlock_1 = require("../../lib/validate/unison-unlock");
 const player_snapshot_1 = require("../../data/snapshots/player-snapshot");
 const admin_database_backup_1 = require("../../lib/admin-database-backup");
+const player_save_export_1 = require("../../lib/player-save-export");
+const http_reply_1 = require("../../lib/http-reply");
 const defaultPerPage = 25;
-const maxSaveUploadBytes = 64 * 1024 * 1024;
+const maxSaveUploadBytes = player_save_export_1.DEFAULT_PLAYER_SAVE_EXPORT_MAX_BYTES;
 function applyPlayerImportBackupRetention(directory) {
     try {
         return (0, admin_database_backup_1.cleanupPlayerImportBackups)(directory, 5);
@@ -141,27 +143,48 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         });
     }));
     fastify.get("/save", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
-        var _g;
         const { id } = request.query;
         const playerId = Number(id);
         if (isNaN(playerId))
             return reply.redirect("/player");
-        let snapshot;
+        const exportStartedAt = Date.now();
+        const abortController = new AbortController();
+        const abortExport = () => {
+            if (!reply.raw.writableEnded)
+                abortController.abort();
+        };
+        reply.raw.once("close", abortExport);
         try {
-            snapshot = (0, player_snapshot_1.createPlayerSaveSnapshotV2Sync)(playerId);
+            const exported = yield (0, player_save_export_1.exportPlayerSaveInWorker)(playerId, {
+                signal: abortController.signal,
+                maxBytes: maxSaveUploadBytes,
+            });
+            if ((0, http_reply_1.hijackUnavailableReply)(request, reply))
+                return reply;
+            console.warn(`[SAVE-EXPORT] completed player=${playerId} rows=${exported.rowCount} `
+                + `bytes=${exported.payload.byteLength} elapsedMs=${Date.now() - exportStartedAt}`);
+            reply.header("content-disposition", `attachment; filename="save_${playerId}.json"`);
+            return reply.type("application/json").send(exported.payload);
         }
         catch (error) {
-            return reply.status(500).send({ error: `导出失败：${(_g = error === null || error === void 0 ? void 0 : error.message) !== null && _g !== void 0 ? _g : error}` });
+            if ((0, http_reply_1.hijackUnavailableReply)(request, reply))
+                return reply;
+            if (error instanceof player_save_export_1.PlayerSaveExportError) {
+                if (error.code === "busy")
+                    return reply.status(429).send({ error: error.message });
+                if (error.code === "too-large")
+                    return reply.status(413).send({ error: `导出失败：${error.message}` });
+            }
+            const message = error instanceof Error ? error.message : String(error);
+            console.error(`[SAVE-EXPORT] failed player=${playerId} elapsedMs=${Date.now() - exportStartedAt}: ${message}`);
+            return reply.status(500).send({ error: `导出失败：${message}` });
         }
-        const payload = JSON.stringify(snapshot);
-        if (Buffer.byteLength(payload, "utf8") > maxSaveUploadBytes) {
-            return reply.status(413).send({ error: `导出失败：存档超过 ${maxSaveUploadBytes / 1024 / 1024} MB 安全上限` });
+        finally {
+            reply.raw.removeListener("close", abortExport);
         }
-        reply.header("content-disposition", `attachment; filename="save_${playerId}.json"`);
-        reply.type('application/json').send(payload);
     }));
     fastify.post("/save", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
-        var _h, _j;
+        var _g, _h;
         const { id } = request.query;
         const playerId = Number(id);
         const json = (0, http_1.wantsJson)(request);
@@ -189,7 +212,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             try {
                 parsed = JSON.parse(text);
             }
-            catch (_k) {
+            catch (_j) {
                 return fail("文件不是有效的 JSON");
             }
             if (parsed === null || typeof parsed !== 'object' || parsed.schema !== 'starpoint-cn-save') {
@@ -218,7 +241,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             const rollbackSnapshot = (0, player_snapshot_1.createPlayerSaveSnapshotV2Sync)(playerId);
             safetyBackup = (0, admin_database_backup_1.createPlayerImportSnapshotBackup)(playerId, rollbackSnapshot, {
                 sourceSnapshotVersion: 1,
-                sourcePlayerId: (_h = parsed.playerId) !== null && _h !== void 0 ? _h : null,
+                sourcePlayerId: (_g = parsed.playerId) !== null && _g !== void 0 ? _g : null,
                 legacyPartialSnapshot: true,
             });
             backupCleanup = applyPlayerImportBackupRetention(safetyBackup.directory);
@@ -236,7 +259,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             const cleanupHint = backupCleanup.backupCleanupError
                 ? `；旧回滚备份清理失败：${backupCleanup.backupCleanupError}`
                 : "";
-            return fail(`恢复失败：${(_j = error === null || error === void 0 ? void 0 : error.message) !== null && _j !== void 0 ? _j : error}${backupHint}${cleanupHint}`, 500);
+            return fail(`恢复失败：${(_h = error === null || error === void 0 ? void 0 : error.message) !== null && _h !== void 0 ? _h : error}${backupHint}${cleanupHint}`, 500);
         }
         if (json)
             return reply.status(200).send(Object.assign({ ok: true, playerId, snapshotVersion: 1, legacyPartialSnapshot: true, backup: safetyBackup ? `.database/admin-backups/${safetyBackup.name}` : null }, backupCleanup));
@@ -245,7 +268,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
     // ====== New: Inline edit endpoints ======
     // Edit single field
     fastify.patch("/:id/field", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
-        var _l;
+        var _k;
         const { id } = request.params;
         const playerId = Number(id);
         if (isNaN(playerId))
@@ -272,7 +295,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             // regeneration from the current virtual time instead of retaining
             // a checkpoint copied from another clock position.
             extra.expPooledTime = (0, utils_2.getServerDate)();
-            extra.timeOffset = (_l = (0, utils_2.getTimeOffset)()) !== null && _l !== void 0 ? _l : 0;
+            extra.timeOffset = (_k = (0, utils_2.getTimeOffset)()) !== null && _k !== void 0 ? _k : 0;
         }
         try {
             const updateData = Object.assign({ id: playerId, [field]: value }, extra);
@@ -325,7 +348,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
     }));
     // Repair legacy saves that progressed past 1-6-1 but lost its completion row.
     fastify.post("/:id/repair_unison_unlock", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
-        var _m;
+        var _l;
         const playerId = Number(request.params.id);
         if (isNaN(playerId))
             return reply.status(400).send({ error: "无效的玩家 ID" });
@@ -359,7 +382,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             });
         }
         catch (e) {
-            return reply.status(500).send({ error: `合击解锁修复失败：${(_m = e === null || e === void 0 ? void 0 : e.message) !== null && _m !== void 0 ? _m : e}` });
+            return reply.status(500).send({ error: `合击解锁修复失败：${(_l = e === null || e === void 0 ? void 0 : e.message) !== null && _l !== void 0 ? _l : e}` });
         }
     }));
     // Add character
@@ -508,7 +531,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         }
     }));
     fastify.post("/:id/reset_challenge", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
-        var _o, _p;
+        var _m, _o;
         const playerId = Number(request.params.id);
         if (isNaN(playerId))
             return reply.status(400).send({ error: "Invalid params" });
@@ -526,7 +549,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 return reply.status(200).send({ ok: true, count: defaults.length, created: true });
             }
             for (const entry of entries) {
-                const maxPoint = (_p = (_o = lookup[String(entry.id)]) === null || _o === void 0 ? void 0 : _o.maxPoint) !== null && _p !== void 0 ? _p : entry.point;
+                const maxPoint = (_o = (_m = lookup[String(entry.id)]) === null || _m === void 0 ? void 0 : _m.maxPoint) !== null && _o !== void 0 ? _o : entry.point;
                 (0, player_1.updatePlayerDailyChallengePointSync)(playerId, entry.id, maxPoint);
             }
             return reply.status(200).send({ ok: true, count: entries.length });

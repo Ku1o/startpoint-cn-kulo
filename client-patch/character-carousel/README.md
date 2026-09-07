@@ -1,5 +1,7 @@
 # Android 角色编队轮播优化
 
+> 当前 Android 直接基线统一见 [ANDROID-BASELINE.md](../ANDROID-BASELINE.md)；本页的精确输入和旧版“当前”描述仅用于该历史步骤复现。
+
 本目录固化已经过实机验证的 Android AIR 客户端角色页优化。补丁只改变
 `pinball.scene.character.partyCarousel.PartyCarousel.update`：
 

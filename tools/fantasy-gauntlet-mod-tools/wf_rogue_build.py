@@ -3692,6 +3692,60 @@ def native_bundle_bosses(bundle: rbb.NativeBossBundle) -> tuple[str, ...]:
                  if slot.single is not None)
 
 
+def native_bundle_field_index(catalog: rbb.BundleCatalog | None) \
+        -> dict[str, rbb.NativeBossBundle]:
+    """把 fresh catalog 的可用 bundle 按官方来源场地建成唯一索引。"""
+    if catalog is None:
+        return {}
+    eligible = set(catalog.eligible_source_fields)
+    out: dict[str, rbb.NativeBossBundle] = {}
+    for bundles in catalog.discovered_bundles.values():
+        for bundle in bundles:
+            field = str(bundle.source_field)
+            if field not in eligible:
+                continue
+            previous = out.get(field)
+            if previous is not None and previous != bundle:
+                raise RuntimeError(f"场地存在多个不一致的原生 bundle:{field}")
+            out[field] = bundle
+    return out
+
+
+def checked_mix_terrain_compatibility(
+        source_field: str, target_field: str,
+        bundles_by_field: dict[str, rbb.NativeBossBundle], *,
+        strict_transplant: bool,
+        transplant_safe: set[str] | frozenset[str] | tuple[str, ...],
+        ) -> rbb.CompatibilityResult:
+    """正式 ``mix_pick`` 的 fail-closed 移植门禁。
+
+    Boss 来源必须先完成 ActionDSL/ESDL 递归闭包分析，再把其中引用的
+    ``p0/p1/p2``、Funnel 锚点及逐层 Boss 槽拓扑与目标地形逐项比较。
+    仅有槽位数量相同或出现在旧 ``transplant_safe`` 名单中都不够。
+    """
+    source_field, target_field = str(source_field), str(target_field)
+    source = bundles_by_field.get(source_field)
+    target = bundles_by_field.get(target_field)
+    if source is None or target is None:
+        missing = []
+        if source is None:
+            missing.append(f"source={source_field}")
+        if target is None:
+            missing.append(f"target={target_field}")
+        return rbb.CompatibilityResult(
+            False, "BUNDLE_EVIDENCE_MISSING", ",".join(missing),
+            source_field, target_field)
+    if not source.portable or source.terrain_requirements is None:
+        return rbb.CompatibilityResult(
+            False, source.native_only_reason or "ACTION_CLOSURE_UNAUDITED",
+            "Boss 来源缺可移植 ActionDSL/ESDL 闭包证明",
+            source_field, target_field)
+    return rbb.terrain_compatibility(
+        source, target, source.terrain_requirements,
+        strict_transplant=bool(strict_transplant),
+        transplant_safe=transplant_safe)
+
+
 def patch_quest_boss_fields(
         row: list[str], *, field: str, bosses, thumbnail: str | None,
         bgm: str | None, enemy_level: int, rng,
@@ -6947,10 +7001,59 @@ def quest_thumbnail_asset_logical(thumbnail: str) -> str:
     return value if value.endswith(".png") else value + ".png"
 
 
+def boss_cover_visual_identity_map(
+        general_boss: dict | None = None, standard_boss: dict | None = None,
+        names: dict[str, str] | None = None) -> dict[str, str]:
+    """Boss code → stable visual identity used only for quest-cover matching.
+
+    Single/multi/tower/difficulty aliases often use different master IDs while
+    sharing the same displayed Boss and model.  A cover describes that visual
+    identity, not its balance/action variant.  Combining the official display
+    name with the model root avoids merging theme variants which only share a
+    base model, such as the two Hermit Crab families.
+    """
+    gb = _tbl(GENERAL_BOSS) if general_boss is None else general_boss
+    sb = _tbl(STANDARD_BOSS) if standard_boss is None else standard_boss
+    display_names = wb.boss_names() if names is None else names
+
+    def leaves(node):
+        if isinstance(node, dict):
+            for child in node.values():
+                yield from leaves(child)
+        elif isinstance(node, (str, bytes, bytearray)):
+            yield (node.decode("utf-8", "replace")
+                   if isinstance(node, (bytes, bytearray)) else node)
+
+    out: dict[str, str] = {}
+    for code in sorted(set(gb) | set(sb)):
+        node = gb.get(code) if code in gb else sb.get(code)
+        models: set[str] = set()
+        for leaf in leaves(node):
+            for line in leaf.splitlines() or (leaf,):
+                try:
+                    values = cells(line)
+                except (TypeError, ValueError, csv.Error, StopIteration):
+                    continue
+                for value in values:
+                    if (value.startswith("battle/boss/")
+                            and "general_16dots" not in value):
+                        parts = value.split("/")
+                        if len(parts) > 2:
+                            models.add("/".join(parts[:3]))
+                    elif value.startswith("battle/enemy/boss/"):
+                        parts = value.split("/")
+                        if len(parts) > 3:
+                            models.add("/".join(parts[:4]).split("$")[0])
+        display = str(display_names.get(code) or "").strip()
+        model = "|".join(sorted(models))
+        out[str(code)] = f"{display}\0{model}" if display or model else str(code)
+    return out
+
+
 def field_thumbnail_evidence_map(
         *, field_data: dict | None = None, floor: dict | None = None,
-        quest_tables: dict[str, dict] | None = None,
-        asset_exists=None) -> dict[str, dict]:
+        zone: dict | None = None, quest_tables: dict[str, dict] | None = None,
+        asset_exists=None, boss_identity_of=None) -> dict[str, dict]:
     """Build a fail-closed field → official quest-cover evidence map.
 
     There are two materially different thumbnail columns in the client data:
@@ -6960,16 +7063,20 @@ def field_thumbnail_evidence_map(
     source field lives in boss-battle, practice, ranking, world-story, etc. then
     had no entry and silently kept the copied Combat Diver template cover.
 
-    Exact field references in every known quest table are strongest.  A
-    tower/challenge host cover is retained only as fallback for fields that are
-    reachable solely through a floor key.  Every accepted image must exist in
-    the effective client-visible asset chain.  Static provenance is recorded;
-    it deliberately does not claim that the UI has been verified on-device.
+    Exact field references in every known quest table are strongest.  When the
+    selected Boss field has no direct quest row, reverse-index every direct
+    official quest through field_data→zone→actual single-battle Boss tuple and
+    reuse only a cover whose Boss identity tuple is exactly equal.  A
+    tower/challenge host cover is retained as diagnostic metadata only; it is
+    never sufficient proof for a Boss floor.  Every accepted image must exist
+    in the effective client-visible asset chain.  Static provenance is
+    recorded; it deliberately does not claim on-device UI verification.
     """
     fd = (_tbl("master/battle/field_data.orderedmap")
           if field_data is None else field_data)
     floor_table = (q.load_table("master/battle/floor.orderedmap")
                    if floor is None else floor)
+    zone_table = (_tbl(ZONE_T) if zone is None else zone)
     official_fields = {
         str(field_id) for field_id in fd
         if str(field_id) not in ("", "(None)")
@@ -6977,6 +7084,30 @@ def field_thumbnail_evidence_map(
     }
     exists = asset_exists or q.exists_current
     exists_cache: dict[str, bool] = {}
+    visual_identities = (boss_cover_visual_identity_map()
+                         if boss_identity_of is None else None)
+
+    def visual_identity(code: str) -> str:
+        if boss_identity_of is not None:
+            return str(boss_identity_of(str(code)))
+        return str(visual_identities.get(str(code), str(code)))
+
+    field_bosses: dict[str, tuple[str, ...]] = {}
+    field_visual_bosses: dict[str, tuple[str, ...]] = {}
+    for field_id, leaf in fd.items():
+        if str(field_id) not in official_fields or isinstance(leaf, dict):
+            continue
+        try:
+            values = cells(leaf)
+        except (TypeError, ValueError, csv.Error, StopIteration):
+            continue
+        if len(values) <= 2:
+            continue
+        bosses = tuple(sorted(zone_single_bosses(zone_table.get(values[2]))))
+        if bosses:
+            field_bosses[str(field_id)] = bosses
+            field_visual_bosses[str(field_id)] = tuple(sorted(
+                visual_identity(code) for code in bosses))
 
     def asset_is_present(thumbnail: str) -> tuple[str, bool]:
         logical = quest_thumbnail_asset_logical(thumbnail)
@@ -6988,7 +7119,8 @@ def field_thumbnail_evidence_map(
 
     def add_candidate(field_id: str, thumbnail: str, *, match: str,
                       category: str, logical: str, path=(), level: int = 0,
-                      floor_key: str | None = None) -> None:
+                      floor_key: str | None = None,
+                      cover_field: str | None = None) -> None:
         if (field_id not in official_fields
                 or thumbnail in (None, "", "(None)")):
             return
@@ -7007,6 +7139,10 @@ def field_thumbnail_evidence_map(
             "source_path": list(map(str, path)),
             "source_level": int(level),
             "floor_key": floor_key,
+            "cover_field": str(cover_field or field_id),
+            "bosses": list(field_bosses.get(field_id, ())),
+            "boss_visual_identity": list(
+                field_visual_bosses.get(field_id, ())),
             "static_verified": True,
             "runtime_simulated": False,
             "gameplay_verified": False,
@@ -7046,7 +7182,62 @@ def field_thumbnail_evidence_map(
                 add_candidate(
                     field_id, thumbnail, match="exact_field",
                     category=category, logical=logical, path=path,
-                    level=int(level_text) if level_text else 0)
+                    level=int(level_text) if level_text else 0,
+                    cover_field=field_id)
+
+    # A field name is an implementation carrier, not the visual identity.  Use
+    # direct official quest rows to build the real Boss-tuple→cover index, then
+    # lend that cover to aliases containing the exact same runtime Boss tuple.
+    # ``treant_single`` therefore resolves through ``main_1_7_2`` to the tree
+    # Boss image instead of inheriting a challenge-floor host image of White Tiger.
+    direct_by_bosses: dict[tuple[str, ...], list[dict]] = {}
+    for field_id, options in candidates.items():
+        signature = field_bosses.get(field_id)
+        if not signature:
+            continue
+        for option in options:
+            if option["source_match"] == "exact_field":
+                direct_by_bosses.setdefault(signature, []).append(option)
+    for field_id, signature in field_bosses.items():
+        for source in direct_by_bosses.get(signature, ()):
+            if source["field"] == field_id:
+                continue
+            add_candidate(
+                field_id, source["thumbnail"], match="exact_boss_identity",
+                category=source["source_category"],
+                logical=source["source_logical"],
+                path=source["source_path"], level=source["source_level"],
+                cover_field=source["field"])
+
+    # Some official masters give single/multi/tower variants different Boss
+    # IDs even though the displayed Boss and model are identical.  Exact code
+    # equality therefore cannot cover all valid aliases.  A second reverse
+    # index uses the official display name plus model root; it is deliberately
+    # weaker than exact code equality and stronger than any floor-host relation.
+    direct_by_visual_bosses: dict[tuple[str, ...], list[dict]] = {}
+    for field_id, options in candidates.items():
+        signature = field_visual_bosses.get(field_id)
+        if not signature:
+            continue
+        for option in options:
+            if option["source_match"] == "exact_field":
+                direct_by_visual_bosses.setdefault(signature, []).append(option)
+    for field_id, signature in field_visual_bosses.items():
+        if field_id in candidates and any(
+                option["source_match"] in {
+                    "exact_field", "exact_boss_identity"}
+                for option in candidates[field_id]):
+            continue
+        for source in direct_by_visual_bosses.get(signature, ()):
+            if source["field"] == field_id:
+                continue
+            add_candidate(
+                field_id, source["thumbnail"],
+                match="exact_boss_visual_identity",
+                category=source["source_category"],
+                logical=source["source_logical"],
+                path=source["source_path"], level=source["source_level"],
+                cover_field=source["field"])
 
     fkey_fields: dict[str, list[str]] = {}
     for floor_key, leaf in floor_table.items():
@@ -7090,11 +7281,17 @@ def field_thumbnail_evidence_map(
 
     out: dict[str, dict] = {}
     for field_id, options in candidates.items():
-        # Exact field proof outranks a floor-host fallback.  Within the same
-        # proof class choose the highest official enemy level, then stable quest
-        # category/path ordering so identical data always yields identical c5.
+        # Exact field proof outranks exact Boss identity, and both outrank the
+        # diagnostic-only floor-host relation.  Within a proof class choose the
+        # highest official enemy level, then stable category/path ordering.
+        match_rank = {
+            "exact_field": 0,
+            "exact_boss_identity": 1,
+            "exact_boss_visual_identity": 2,
+            "floor_host_quest": 3,
+        }
         options.sort(key=lambda item: (
-            0 if item["source_match"] == "exact_field" else 1,
+            match_rank.get(str(item["source_match"]), 99),
             -int(item["source_level"]),
             category_order.get(str(item["source_category"]), 999),
             str(item["source_logical"]),
@@ -7119,10 +7316,17 @@ def resolve_quest_thumbnail(
     """Resolve c5 from the actual boss donor field, never the terrain donor."""
     source_field = str(source_field)
     evidence = evidence_map.get(source_field)
-    if evidence is not None:
+    if (evidence is not None
+            and (not require or evidence.get("source_match") in {
+                "exact_field", "exact_boss_identity",
+                "exact_boss_visual_identity"})):
         return str(evidence["thumbnail"]), copy.deepcopy(evidence)
     explicit = str(explicit_thumbnail or "")
     if require:
+        if evidence is not None and evidence.get("source_match") == "floor_host_quest":
+            raise ValueError(
+                f"Boss 来源场地 {source_field} 只有 floor_host_quest 封面关系; "
+                "无法证明图片中的 Boss 身份")
         raise ValueError(
             f"Boss 来源场地 {source_field} 没有可复核 quest 大图; "
             "拒绝沿用模板/地形封面")
@@ -8508,8 +8712,11 @@ def verify_hp_audit_document(document: dict, *,
                     != expected_asset):
                 errors.append(f"{label} Boss 封面字段/资源来源不闭合")
             if thumbnail_evidence.get("source_match") not in {
-                    "exact_field", "floor_host_quest"}:
+                    "exact_field", "exact_boss_identity",
+                    "exact_boss_visual_identity"}:
                 errors.append(f"{label} Boss 封面匹配类型非法")
+            if thumbnail_evidence.get("source_match") == "floor_host_quest":
+                errors.append(f"{label} Boss 封面只证明 floor host，未证明 Boss 身份")
             if (thumbnail_evidence.get("asset_exists") is not True
                     or thumbnail_evidence.get("static_verified") is not True
                     or thumbnail_evidence.get("runtime_simulated") is not False
@@ -13833,12 +14040,32 @@ def main() -> int:
     single_bar_special_dirty = set(single_bar_special_stale_families)
     sphere_dirty = set(sphere_stale_families)
 
+    # Build Boss-cover evidence before any source pool.  A floor-host image is
+    # useful diagnostic metadata but cannot advertise an unrelated Boss; such
+    # fields must be excluded while candidates are still replaceable, not
+    # allowed to fail late while patching rush quest c5.
+    thumbnail_evidence_map = field_thumbnail_evidence_map(
+        field_data=fd_t, zone=zone_t)
+    verified_cover_fields = {
+        field_id for field_id, evidence in thumbnail_evidence_map.items()
+        if evidence.get("source_match") in {
+            "exact_field", "exact_boss_identity",
+            "exact_boss_visual_identity"}
+    }
+
     def field_gate(field_id: str) -> dict:
         """引用完整性门禁 + 等级可行性(2026-07-28 改:只要该层存在可行等级即放行,
         具体等级在写入时按层自适应 —— 避免一层封顶拖垮整塔构建)。"""
         report = check_field_chain(field_id, fd_t, zone_t,
                                    set(gb_t) | set(sb_t) | set(gz_t), set(gz_t))
         if not report["ok"]:
+            return report
+        if report["bosses"] and field_id not in verified_cover_fields:
+            report["ok"] = False
+            evidence = thumbnail_evidence_map.get(field_id)
+            relation = (evidence or {}).get("source_match", "missing")
+            report["errors"] = [
+                f"Boss 封面缺精确身份关系:{relation}"]
             return report
         level = resolve_level(report["bosses"], args.enemy_level, sb_t, gv_t, gb_t,
                               prefer_max=want_max)
@@ -14265,7 +14492,6 @@ def main() -> int:
     qt_bytes = isinstance(qt[TEMPLATE_EVENT]["1"], bytes)
     ELEM_CN = QUEST_ELEM_CN      # c69 是 quest 枚举(0风1火2水3雷4暗5光),别用 boss 那套
 
-    thumbnail_evidence_map = field_thumbnail_evidence_map()
     thumb_map = {
         field_id: evidence["thumbnail"]
         for field_id, evidence in thumbnail_evidence_map.items()
@@ -14341,49 +14567,86 @@ def main() -> int:
         "__action_loader__": rbb.load_store_action,
         "__spawned_ref_gate__": _runtime_spawned_ref_gate,
     }
-    if args.strict_target_hp:
-        # Dedicated bundles stay on their official field.  Build a fresh
-        # post-purge catalog from this exact in-memory snapshot; portability is
-        # deliberately irrelevant here, while HP/level/reference gates remain
-        # mandatory.  Other special tables are read-only inputs.
-        special_catalog_tables: dict[str, dict] = {}
-        for _logical in SPECIAL_BOSS_TABLES:
-            _short = Path(_logical).name.removesuffix(".orderedmap")
-            if _logical == OROCHI:
-                special_catalog_tables[_short] = oro_t
-                continue
-            if _logical == OROCHI_EX:
-                special_catalog_tables[_short] = oro_ex_t
-                continue
-            if _short in single_bar_special_tables:
-                special_catalog_tables[_short] = single_bar_special_tables[_short]
-                continue
-            if _short in sphere_tables:
-                special_catalog_tables[_short] = sphere_tables[_short]
-                continue
-            try:
-                special_catalog_tables[_short] = q.load_table(_logical)
-            except Exception:
-                special_catalog_tables[_short] = {}
-        special_catalog_tables["orochi_ex_head"] = oro_ex_head_t
+    # A layout-plan terrain/boss pin enters ``mix_pick`` even when the CLI did
+    # not include --mix.  Load the plan once before building compatibility
+    # evidence so pinned combinations cannot run with an empty catalog.
+    plan = {} if args.ignore_plan else layout_plan()
+    planned_floors = (plan.get("floors", {})
+                      if isinstance(plan, dict) else {})
+    planned_mix = any(
+        isinstance(value, dict)
+        and bool(value.get("terrain") or value.get("boss"))
+        for value in planned_floors.values())
+    mix_compatibility_required = bool(args.mix or planned_mix)
+
+    # ``--mix`` 与严格 HP 专场共用同一份 fresh post-purge catalog。过去只有
+    # 专场选择会建立它，旧 mix_pick 因而绕过了已经存在的 ActionDSL→命名坐标
+    # →目标 terrain 门禁，只看槽数/白名单便移植，最终在 p0/p1/p2 缺失时进本崩。
+    special_catalog_tables: dict[str, dict] = {}
+    for _logical in SPECIAL_BOSS_TABLES:
+        _short = Path(_logical).name.removesuffix(".orderedmap")
+        if _logical == OROCHI:
+            special_catalog_tables[_short] = oro_t
+            continue
+        if _logical == OROCHI_EX:
+            special_catalog_tables[_short] = oro_ex_t
+            continue
+        if _short in single_bar_special_tables:
+            special_catalog_tables[_short] = single_bar_special_tables[_short]
+            continue
+        if _short in sphere_tables:
+            special_catalog_tables[_short] = sphere_tables[_short]
+            continue
         try:
-            _native_catalog = build_native_bundle_catalog(
-                100, fd=fd_t, zone=zone_t, sb=sb_t, gb=gb_t, gv=gv_t,
-                bl=bl_t, gz=gz_t, special_tables=special_catalog_tables,
-                general_boss_state=gbs_t,
-                general_enemy_watch=ew_t, code_references=code_refs,
-                general_funnel=_runtime_general_funnel,
-                standard_funnel=_runtime_standard_funnel,
-                kraken_tentacle=kraken_tentacle_t,
-                kraken_funnel_level=kraken_funnel_level_t,
-                sphere_aux_tables=sphere_aux_tables,
-                action_loader=rbb.load_store_action,
-                display_names=_boss_names,
-                metadata_of=lambda field_id: {
-                    "category": "special-native",
-                    "bgm": None,
-                    "thumbnail": thumb_map.get(field_id, ""),
-                })
+            special_catalog_tables[_short] = q.load_table(_logical)
+        except Exception:
+            special_catalog_tables[_short] = {}
+    special_catalog_tables["orochi_ex_head"] = oro_ex_head_t
+
+    def _build_runtime_native_catalog() -> rbb.BundleCatalog:
+        return build_native_bundle_catalog(
+            100, fd=fd_t, zone=zone_t, sb=sb_t, gb=gb_t, gv=gv_t,
+            bl=bl_t, gz=gz_t, special_tables=special_catalog_tables,
+            general_boss_state=gbs_t,
+            general_enemy_watch=ew_t, code_references=code_refs,
+            general_funnel=_runtime_general_funnel,
+            standard_funnel=_runtime_standard_funnel,
+            kraken_tentacle=kraken_tentacle_t,
+            kraken_funnel_level=kraken_funnel_level_t,
+            sphere_aux_tables=sphere_aux_tables,
+            action_loader=rbb.load_store_action,
+            esdl_loader=rbb.load_store_esdl,
+            display_names=_boss_names,
+            metadata_of=lambda field_id: {
+                "category": "runtime-native",
+                "bgm": None,
+                "thumbnail": thumb_map.get(field_id, ""),
+            })
+
+    _native_catalog: rbb.BundleCatalog | None = None
+    if args.strict_target_hp or mix_compatibility_required:
+        try:
+            _native_catalog = _build_runtime_native_catalog()
+        except (FileNotFoundError, KeyError, TypeError, ValueError,
+                RuntimeError, zlib.error) as _exc:
+            if mix_compatibility_required:
+                print("[ERR] --mix 无法建立 ActionDSL/terrain 兼容目录，"
+                      f"拒绝降级到旧槽数白名单:{_exc}")
+                return 1
+            print(f"[WARN] 专用 bundle 目录不可用，严格模式继续排除:{_exc}")
+            _native_catalog = None
+
+    mix_bundles_by_field = (
+        native_bundle_field_index(_native_catalog)
+        if mix_compatibility_required else {})
+    if mix_compatibility_required and not mix_bundles_by_field:
+        print("[ERR] --mix 的 ActionDSL/terrain 兼容目录为空，拒绝构建")
+        return 1
+
+    if args.strict_target_hp and _native_catalog is not None:
+        # Dedicated bundles stay on their official field.  HP/level/reference
+        # gates remain mandatory; the same catalog also feeds mix compatibility.
+        try:
             _seen_special: set[tuple[str, str, str]] = set()
             for _bundles in _native_catalog.bundles.values():
                 for _bundle in _bundles:
@@ -14405,7 +14668,8 @@ def main() -> int:
                              if _bundle_family_name == "orochi" else
                              _c8016_safe(list(native_bundle_bosses(_bundle))))
                     if (_parent is None or _key in _seen_special
-                            or field_blocked(_bundle.source_field) or not _safe):
+                            or field_blocked(_bundle.source_field) or not _safe
+                            or _bundle.source_field not in verified_cover_fields):
                         continue
                     _evidence = (orochi_native_hp_evidence(
                         _bundle, 100, orochi_tables)
@@ -14427,6 +14691,7 @@ def main() -> int:
                 RuntimeError, zlib.error) as _exc:
             print(f"[WARN] 专用 bundle 目录不可用，严格模式继续排除:{_exc}")
             native_special_bundles = []
+    if args.strict_target_hp:
         if native_special_bundles:
             _family_counts = {
                 family: sum(1 for bundle in native_special_bundles
@@ -14844,6 +15109,7 @@ def main() -> int:
                 tower.append(terrain)
             print(f"[ERR] 第{r}战混搭地形 {terrain[0]} 没有单人 boss 实体槽")
             return None
+        strict, safe_set = load_transplant_policy()
         if pin_boss:
             src_e = next((e for e in tower_master if pin_boss in e[2]), None)
             if src_e is None:                           # 塔池没有 → 搜全部来源池
@@ -14870,10 +15136,48 @@ def main() -> int:
             # strict_transplant 的语义是“只有白名单 donor 真能拼”。旧实现却先在
             # 全池随机，抽到非白名单就整场退回原味；30 层一次都没抽中安全 donor
             # 时 --mix 最终必失败。先在同一实体槽数内优先安全 donor，不放宽名单。
-            strict, safe_set = load_transplant_policy()
-            portable = [e for e in cands
-                        if (not strict or all(b in safe_set for b in e[2]))
-                        and not any(is_special_boss(b, special_bosses) for b in e[2])]
+            compatible = [
+                e for e in cands
+                if not any(is_special_boss(b, special_bosses) for b in e[2])
+                and checked_mix_terrain_compatibility(
+                    e[0], terrain[0], mix_bundles_by_field,
+                    strict_transplant=strict,
+                    transplant_safe=safe_set).ok
+            ]
+            if pin_terrain and not compatible:
+                # Earlier rounds may have consumed every compatible donor from
+                # the mutable tower pool.  A hard terrain pin may reuse a
+                # proven donor from the immutable post-gate pool; it must not
+                # reopen an incompatible fresh Boss merely to preserve quota.
+                expanded_pool = list(tower_master)
+                known_fields = {str(e[0]) for e in expanded_pool}
+                for source_entries in src.values():
+                    for source_entry in source_entries:
+                        source_field = str(source_entry["field"])
+                        if source_field in known_fields:
+                            continue
+                        known_fields.add(source_field)
+                        expanded_pool.append((
+                            source_field, None,
+                            list(source_entry.get("bosses") or ())))
+                expanded = [
+                    e for e in expanded_pool
+                    if len(e[2]) == terrain_slot_count
+                    and (elem_map.get(e[0]) is not None
+                         or any(belem_map.get(b) is not None for b in e[2]))
+                ]
+                compatible = [
+                    e for e in expanded
+                    if not any(is_special_boss(b, special_bosses) for b in e[2])
+                    and checked_mix_terrain_compatibility(
+                        e[0], terrain[0], mix_bundles_by_field,
+                        strict_transplant=strict,
+                        transplant_safe=safe_set).ok
+                ]
+            if pin_terrain and not compatible:
+                tower[:] = pool_before
+                print(f"[ERR] 第{r}战钉选地形 {terrain[0]} 没有通过正式门禁的 Boss donor")
+                return None
             # ⚠ 无条件收窄到白名单会让拼接层塌缩。rogue_special_bosses.json 的
             # transplant_safe 去掉杂鱼后**只剩 3 个去重键**(treant /
             # owl_single_tower / hermit_crab_another_light_single),配额一被吃光,
@@ -14882,13 +15186,19 @@ def main() -> int:
             # 改成**配额优先**:白名单里还有没出过的就用白名单;白名单全用完了才
             # 放开回全池——此时非白名单 donor 会走下面的「原味保护」分支,改用它
             # 自己的老家场地、不做跨地形移植,2026-07-28 那三次崩溃的防线不动。
-            portable_fresh = [e for e in portable
-                              if all(_quota_left(k) for k in name_keys(e[2]))]
-            if portable_fresh:
-                cands = portable_fresh
-            elif portable and not any(
+            compatible_fresh = [e for e in compatible
+                                if all(_quota_left(k) for k in name_keys(e[2]))]
+            if pin_terrain and compatible:
+                # A pinned terrain is a hard user constraint.  Once the
+                # compatible donor subset is known, quota freshness may rank
+                # within that subset but must never reopen incompatible Bosses
+                # and turn a solvable pin into a late TRANSPLANT_POLICY error.
+                cands = compatible_fresh or compatible
+            elif compatible_fresh:
+                cands = compatible_fresh
+            elif compatible and not any(
                     all(_quota_left(k) for k in name_keys(e[2])) for e in cands):
-                cands = portable
+                cands = compatible
             if r >= 3:
                 zkeys = set(map(str, gz_t))
                 true_b = [e for e in cands
@@ -14908,7 +15218,8 @@ def main() -> int:
                 high_threat_prefixes, high_threat_exact)
             cands = prefer_fresh(cands, lambda e: e[2])
             src_e = cands[rng.randrange(len(cands))]
-            tower.remove(src_e)
+            if src_e in tower:
+                tower.remove(src_e)
         tf, tline, _tb = terrain
         sf, _sline, sbosses = src_e
         identity_block = identity_locked_boss_reason(
@@ -14931,13 +15242,23 @@ def main() -> int:
                     "thumb": thumb_map.get(sf, ""),
                     "bgm": (cb._cols(_sline)[1] if _sline else None),
                     "label": "原味·" + ",".join(sorted(set(sbosses)))}
-        strict, safe_set = load_transplant_policy()
-        unsafe = strict and not all(b in safe_set for b in sbosses)
-        if (unsafe or any(is_special_boss(b, special_bosses) for b in sbosses))                 and not pin_terrain:
-            # 原味保护:名单 boss 不拆解,整层直用它的老家场地(诅咒照常在外层叠加)
-            if not pin_boss:
-                tower.append(terrain)               # 地形没用上,归还池子
-            return {"field": sf, "bosses": sbosses, "thumb": thumb_map.get(sf, ""),
+        compatibility = checked_mix_terrain_compatibility(
+            sf, tf, mix_bundles_by_field,
+            strict_transplant=strict, transplant_safe=safe_set)
+        if not compatibility.ok:
+            # 随机混搭遇到未证明组合就回 Boss 原生场地；显式钉选了 terrain
+            # 时不得静默改场地，直接让事务失败并报告精确门禁原因。
+            tower[:] = pool_before
+            if pin_terrain:
+                print(f"[ERR] 第{r}战钉选组合拒绝:"
+                      f"{compatibility.reason}:{compatibility.detail}")
+                return None
+            if not pin_boss and src_e in tower:
+                tower.remove(src_e)
+            log(f"[地形门禁] round={r} {sf}->{tf} reject="
+                f"{compatibility.reason}:{compatibility.detail}; 回退原味")
+            return {"field": sf, "bosses": sbosses,
+                    "thumb": thumb_map.get(sf, ""),
                     "bgm": (cb._cols(_sline)[1] if _sline else None),
                     "label": "原味·" + ",".join(sorted(set(sbosses)))}
         if len(sbosses) != terrain_slot_count:
@@ -15286,18 +15607,25 @@ def main() -> int:
                     and not carrier_ok(pick, preserve_mix=preserve_mix)):
                 return "carrier"
             if preserve_mix and current.get("_mix_terrain_entry"):
-                # HP 重排不得把混搭层偷换回原场地；候补 boss
-                # 也必须通过原有移植白名单，否则会把专用骨架塞进通用场地。
-                strict, safe_set = load_transplant_policy()
+                # HP 重排不得把混搭层偷换回原场地；候补 Boss 同样必须通过
+                # ActionDSL/ESDL→命名坐标/Funnel→目标 terrain 的完整门禁。
                 bosses = list(pick.get("bosses") or [])
                 # c86-window 内的 identity-locked general 仍是合格的原味
                 # 候选，但绝不能借 HP donor 重排进入已克隆的异地 zone。
                 # Whole-field fallback (preserve_mix=False) remains legal.
                 identity_block = identity_locked_boss_reason(
                     bosses, code_references=code_refs)
+                terrain_entry = current.get("_mix_terrain_entry")
+                target_field = str(terrain_entry[0])
+                strict, safe_set = load_transplant_policy()
+                compatibility = checked_mix_terrain_compatibility(
+                    str(pick.get("field") or ""), target_field,
+                    mix_bundles_by_field,
+                    strict_transplant=strict,
+                    transplant_safe=safe_set)
                 if (identity_block
                         or len(bosses) != int(current.get("_mix_slot_count") or 0)
-                        or (strict and not all(b in safe_set for b in bosses))
+                        or not compatibility.ok
                         or any(is_special_boss(b, special_bosses) for b in bosses)):
                     return "transplant"
             if (args.rounds == 30 and is_deep_round(r, args.rounds)
@@ -15594,7 +15922,6 @@ def main() -> int:
     quest_rows: dict[str, list[str]] = {}
     forged_pubs: set[str] = set()
     immunity_programs: dict[str, list] = {}
-    plan = {} if args.ignore_plan else layout_plan()
     if plan.get("stages") or plan.get("floors"):
         print(f"[工坊] 布局计划生效:阶段 {len(plan.get('stages') or [])} 段,"
               f"显式指定 {len(plan.get('floors') or {})} 层")

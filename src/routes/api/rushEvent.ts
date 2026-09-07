@@ -8,8 +8,9 @@ import { getDefaultPlayerPartyGroupsSync, getPlayerSync } from "../../data/domai
 import { getPlayerCharacterSync } from "../../data/domains/character"
 import { ensurePlayerPartyGroupListSync, getPlayerPartyGroupListSync } from "../../data/domains/party"
 import { getSession } from "../../data/domains/session"
-import { getQuestFromCategorySync, getRogueEventConfig } from "../../lib/assets";
+import { getQuestFromCategorySync, getRogueEventConfig, getRushEventFolderMaxRoundSync } from "../../lib/assets";
 import { BattleQuest, QuestCategory, RushEventFolder } from "../../lib/types";
+import { isStaleAbyssClient } from "../../lib/abyss-time-revision";
 import { generateDataHeaders, getServerDate, getServerTime } from "../../utils";
 import { FinishBody, insertActiveQuest } from "./singleBattleQuest";
 import { getPlayerRushEventEndlessBattleRankingSync, getRushEventEndlessBattleRankPlayedPartyListSync, getSerializedPlayerRushEventPlayedPartiesSync } from "../../lib/rush";
@@ -38,6 +39,7 @@ import {
 } from "../../lib/gauntlet-entry-rank";
 import {
     getEligibleRushDegreeIds,
+    getRushDegreeRewardSourceEventId,
     grantEligibleRushEventDegreesSync,
 } from "../../lib/activity-degree-rewards";
 import {
@@ -51,6 +53,7 @@ import {
     getLeaderboardPlayedPartiesSync,
     getOfficialLeaderboardPageSync,
 } from "../../lib/leaderboard/presentation";
+import { isLeaderboardEnabledSync } from "../../lib/leaderboard/availability";
 
 interface SummaryBody {
     event_id: number,
@@ -184,6 +187,12 @@ export function getRushEventFolderMaxRounds(eventId: number, folderId: number): 
         // never closes the folder before stage-15 settlement resets the run.
         return 16;
     }
+
+    const configuredMaxRound = getRushEventFolderMaxRoundSync(eventId, folderId)
+    if (configuredMaxRound > 0) return configuredMaxRound
+
+    // Retain the legacy defaults only for old/custom rows that have no quest
+    // master data. Official event folders are resolved from their actual rows.
     return rushEventFolderMaxRounds[folderId as RushEventFolder] ?? 0;
 }
 
@@ -387,10 +396,12 @@ const routes = async (fastify: FastifyInstance) => {
             eventId,
         )
         if (competition !== null) {
+            const acceptingScores = isLeaderboardEnabledSync(competition.key)
             const ranking = getOfficialLeaderboardPageSync({
                 competition,
                 playerId,
                 page,
+                acceptingScores,
             })
             reply.header("content-type", "application/x-msgpack")
             return reply.status(200).send({
@@ -459,6 +470,7 @@ const routes = async (fastify: FastifyInstance) => {
             const partyList = getLeaderboardPlayedPartiesSync({
                 competition,
                 rankNumber,
+                acceptingScores: isLeaderboardEnabledSync(competition.key),
             })
             reply.header("content-type", "application/x-msgpack")
             return reply.status(200).send({
@@ -628,7 +640,11 @@ const routes = async (fastify: FastifyInstance) => {
         )
         const payload = competition === null
             ? buildUnavailableNativeLeaderboardPayload()
-            : buildNativeLeaderboardPayload(competition, playerId)
+            : buildNativeLeaderboardPayload(
+                competition,
+                playerId,
+                isLeaderboardEnabledSync(competition.key),
+            )
 
         reply.header("content-type", "application/x-msgpack")
         return reply.status(200).send({
@@ -649,6 +665,14 @@ const routes = async (fastify: FastifyInstance) => {
             "error": "Bad Request",
             "message": "Invalid request body."
         })
+
+        if (isStaleAbyssClient(QuestCategory.RUSH_EVENT, questId, request.headers.res_ver)) {
+            reply.header("content-type", "application/x-msgpack")
+            return reply.status(200).send({
+                data_headers: generateDataHeaders({ viewer_id: viewerId, asset_update: true, result_code: 4050 }),
+                data: {},
+            })
+        }
 
         const viewerIdSession = await getSession(viewerId.toString())
         if (!viewerIdSession) return reply.status(400).send({
@@ -900,7 +924,8 @@ const routes = async (fastify: FastifyInstance) => {
         const eligibleDegreeIds = new Set(getEligibleRushDegreeIds(eventId, maxRound))
 
         // find matching reward tier
-        const rewards = rankingRewards[String(eventId)] ?? {}
+        const rewardSourceEventId = getRushDegreeRewardSourceEventId(eventId)
+        const rewards = rankingRewards[String(rewardSourceEventId)] ?? {}
         let rewardList: RushEventRankingRewardEntry[] = []
         if (maxRound !== null && maxRound > 0) {
             for (const entries of Object.values(rewards)) {

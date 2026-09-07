@@ -32,6 +32,7 @@ const character_helpers_1 = require("../../lib/character-helpers");
 const db_1 = require("../db");
 const carnival_save_state_1 = require("../../lib/carnival-save-state");
 const content_snapshot_1 = require("../../content/runtime/content-snapshot");
+const character_awake_extension_1 = require("../../lib/character-awake-extension");
 /**
  * Generates default player data.
  *
@@ -89,7 +90,7 @@ exports.getDefaultPlayerData = getDefaultPlayerData;
  * @returns
  */
 function getClientSerializedData(playerId, options) {
-    var _a, _b;
+    var _a, _b, _c, _d;
     const { preloadedPlayer, preloadedCharacterList, preloadedCharacterManaNodeList, preloadedEquipmentList, preloadedPartyGroupList, preloadedQuestProgress } = options, serializeOptions = __rest(options, ["preloadedPlayer", "preloadedCharacterList", "preloadedCharacterManaNodeList", "preloadedEquipmentList", "preloadedPartyGroupList", "preloadedQuestProgress"]);
     if (preloadedPlayer && preloadedPlayer.id !== playerId) {
         throw new Error(`Player snapshot ${preloadedPlayer.id} does not match ${playerId}.`);
@@ -105,10 +106,12 @@ function getClientSerializedData(playerId, options) {
     const playerData = preloadedPlayer !== null && preloadedPlayer !== void 0 ? preloadedPlayer : (0, player_1.getPlayerSync)(playerId);
     if (playerData === null)
         return null;
+    const characterList = preloadedCharacterList !== null && preloadedCharacterList !== void 0 ? preloadedCharacterList : (0, character_1.getPlayerCharactersSync)(playerId);
+    const learnedManaNodes = preloadedCharacterManaNodeList !== null && preloadedCharacterManaNodeList !== void 0 ? preloadedCharacterManaNodeList : (0, character_1.getPlayerCharactersManaNodesSync)(playerId);
     const doSerializeRushEventData = (_a = serializeOptions.serializeRushEventData) !== null && _a !== void 0 ? _a : false;
     // Compute awake mission summary for /load injection
     const awakeSummary = (0, index_1.computeAwakeSummary)(playerId, {
-        characterList: preloadedCharacterList,
+        characterList,
     });
     awakeSummary.manaBoardAwakeMap = (0, index_1.reconcileAwakeUnlocksFromProgress)(playerId, awakeSummary.activeMissionList.map(mission => ({
         missionId: mission.mission_id,
@@ -117,10 +120,30 @@ function getClientSerializedData(playerId, options) {
     // The client uses mana_board_awake both to unlock the Awake tab and as the
     // target node-awake level. Keep mission unlocks and persisted node state.
     const nodeAwakeLevels = (0, character_1.getPlayerCharactersManaNodeAwakeLevelsSync)(playerId);
-    const learnedManaNodes = preloadedCharacterManaNodeList !== null && preloadedCharacterManaNodeList !== void 0 ? preloadedCharacterManaNodeList : (0, character_1.getPlayerCharactersManaNodesSync)(playerId);
+    const linkedBoardUpdates = [];
+    for (const [characterIdText, character] of Object.entries(characterList)) {
+        if (character.evolutionLevel < 2)
+            continue;
+        const characterId = Number(characterIdText);
+        const characterNodeLevels = (_b = nodeAwakeLevels[characterIdText]) !== null && _b !== void 0 ? _b : {};
+        const updates = (0, character_awake_extension_1.collectLinkedManaNodeAwakeUpdates)(characterId, new Set((_c = learnedManaNodes[characterIdText]) !== null && _c !== void 0 ? _c : []), new Map(Object.entries(characterNodeLevels).map(([nodeId, level]) => [Number(nodeId), level])), character.evolutionLevel - 1);
+        for (const update of updates) {
+            linkedBoardUpdates.push(Object.assign({ characterId }, update));
+            characterNodeLevels[update.nodeId] = update.awakeLevel;
+        }
+        if (updates.length > 0)
+            nodeAwakeLevels[characterIdText] = characterNodeLevels;
+    }
+    if (linkedBoardUpdates.length > 0) {
+        (0, db_1.getDb)().transaction(() => {
+            for (const update of linkedBoardUpdates) {
+                (0, character_1.updatePlayerCharacterManaNodeAwakeLevelSync)(playerId, update.characterId, update.nodeId, update.awakeLevel);
+            }
+        })();
+    }
     const missionAwakeMap = new Map();
     for (const [characterId, levels] of awakeSummary.manaBoardAwakeMap) {
-        const visible = (0, character_helpers_1.filterCharacterManaBoardAwakeLevels)(Number(characterId), levels, (_b = learnedManaNodes[characterId]) !== null && _b !== void 0 ? _b : []);
+        const visible = (0, character_helpers_1.filterCharacterManaBoardAwakeLevels)(Number(characterId), levels, (_d = learnedManaNodes[characterId]) !== null && _d !== void 0 ? _d : []);
         if (Object.keys(visible).length > 0)
             missionAwakeMap.set(characterId, visible);
     }
@@ -130,7 +153,7 @@ function getClientSerializedData(playerId, options) {
         dailyChallengePointList: (0, player_1.getPlayerDailyChallengePointListSync)(playerId),
         triggeredTutorial: (0, tutorial_1.getPlayerTriggeredTutorialsSync)(playerId),
         clearedRegularMissionList: (0, mission_1.getPlayerClearedRegularMissionListSync)(playerId),
-        characterList: preloadedCharacterList !== null && preloadedCharacterList !== void 0 ? preloadedCharacterList : (0, character_1.getPlayerCharactersSync)(playerId),
+        characterList,
         characterManaNodeList: learnedManaNodes,
         characterManaNodeAwakeLevels: nodeAwakeLevels,
         manaBoardAwakeMap,

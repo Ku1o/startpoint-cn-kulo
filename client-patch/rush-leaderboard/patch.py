@@ -219,6 +219,7 @@ def patch_cell_view(text: str) -> str:
                "assetPath":"scene/rush/rush_event_ranking",
                "name":"layout/list_cell"
             });
+            extraButtonLayer.touchable = false;
          }
          else
          {
@@ -327,6 +328,16 @@ def patch_party_scene(text: str) -> str:
          }
          gear.addChild(partyList,{'''
     text = replace_once(text, old, new, "party scene ranking pager")
+    text = replace_once(
+        text,
+        "         partyList.set_cellSelectedBehavior(0);",
+        "         partyList.set_cellSelectedBehavior(0);\n"
+        "         if(mode.index == 0 && int(mode.params[0]) < 0)\n"
+        "         {\n"
+        "            partyList.addSelectHandler(copyPlayedParty);\n"
+        "         }",
+        "party scene pager click behavior",
+    )
     old = '''         allPartyListData = _loc3_;
          var _loc4_:Array = [];'''
     new = '''         if(mode.index == 0 && int(mode.params[0]) < 0)
@@ -350,10 +361,23 @@ def patch_party_scene(text: str) -> str:
          var _loc2_:* = null;
          if(mode.index == 0 && int(mode.params[0]) < 0)
          {
+            if(param1 == null)
+            {
+               return;
+            }
+            if("id" in param1)
+            {
+               if(Number(param1.id) > 0)
+               {
+                  changeSceneWithLoading(LoadingTaskKind.ProfileGetProfile(Number(param1.id)),ChangeSceneBackKind.AddCurrent);
+               }
+               return;
+            }
             var _loc20_:* = param1.params[0];
             var _loc21_:* = _loc20_.rows;
             if(_loc21_ != null)
             {
+               partyList.set_cellSelectedBehavior(1);
                partyList.abstractAdapter.appendAll(_loc21_);
                allPartyListData.item = _loc20_.item;
                allPartyListData.page = int(_loc20_.page);
@@ -582,6 +606,11 @@ def verify_target(target: Target, text: str, *, patched: bool) -> None:
         ),
         "pinball.scene.event.rush.ranking.party.RushEventRankingPartyScene": (
             "VerticalListPagerConfig.Set(100)",
+            "partyList.addSelectHandler(copyPlayedParty)",
+            "partyList.set_cellSelectedBehavior(0)",
+            'if("id" in param1)',
+            "if(Number(param1.id) > 0)",
+            "LoadingTaskKind.ProfileGetProfile(Number(param1.id))",
             "allPartyListData.item = _loc20_.item",
             "allPartyListData.reward = _loc20_.reward",
             "allPartyListData.name = _loc20_.name == null",
@@ -606,6 +635,7 @@ def verify_target(target: Target, text: str, *, patched: bool) -> None:
         ),
         "pinball.scene.event.rush.ranking.party.list.cell._RushEventRankingPartyListCellView.RushEventRankingPartyListCellContentView": (
             "scene/rush/rush_event_ranking",
+            "extraButtonLayer.touchable = false",
             "ranking_rank",
             "AssetGroupKind.CharacterFaceThumbnail",
         ),

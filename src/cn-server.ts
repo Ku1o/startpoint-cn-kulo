@@ -81,6 +81,7 @@ import {
     getCnLoadHttpCompressionConfig,
 } from "./lib/cn-load-http-compression";
 import { createLeaderboardSettlementScheduler } from "./lib/leaderboard/settlement";
+import { createDailyVmoneyMailScheduler } from "./lib/daily-vmoney-mail";
 
 const fastify = Fastify({
     logger: {
@@ -695,8 +696,10 @@ const host = process.env.CN_LISTEN_HOST ?? "127.0.0.1";
 const port = parseInt(process.env.CN_LISTEN_PORT ?? "8001");
 const receiveHistoryRetention = createReceiveHistoryRetentionService(getDb());
 const leaderboardSettlementScheduler = createLeaderboardSettlementScheduler();
+const dailyVmoneyMailScheduler = createDailyVmoneyMailScheduler(getDb());
 
 fastify.addHook("onClose", async () => {
+    dailyVmoneyMailScheduler.stop();
     leaderboardSettlementScheduler.stop();
     await receiveHistoryRetention.stop();
     await stopQuestNpcPartyPoolWorker();
@@ -711,6 +714,7 @@ fastify.listen({ port, host }, (err, address) => {
     console.log(`CN StarPoint listening on http://${host}:${port}`);
     receiveHistoryRetention.start();
     leaderboardSettlementScheduler.start();
+    dailyVmoneyMailScheduler.start();
 
     // Start multi battle TCP session server
     startSessionServer();

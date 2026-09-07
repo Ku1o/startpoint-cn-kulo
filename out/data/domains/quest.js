@@ -3,6 +3,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.insertPlayerDrawnQuestsSync = exports.getPlayerDrawnQuestsSync = exports.incrementPlayerQuestMultiClearSync = exports.updatePlayerQuestProgressSync = exports.insertPlayerQuestProgressListSync = exports.insertPlayerQuestProgressSync = exports.getPlayerSingleQuestProgressSync = exports.countFinishedPlayerQuestsSync = exports.countFinishedPlayerQuestsByCategorySync = exports.getPlayerQuestProgressSubsetSync = exports.getPlayerQuestProgressSync = void 0;
 const db_1 = require("../db");
 const utils_1 = require("../utils");
+const abyss_time_revision_1 = require("./abyss-time-revision");
+const abyss_time_revision_2 = require("../../lib/abyss-time-revision");
 /**
  * Converts a RawPlayerQuestProgress object into a PlayerQuestProgress object.
  *
@@ -31,6 +33,7 @@ function buildPlayerQuestProgress(raw) {
  * @returns A record where the index is the section and the value is a list of PlayerQuestProgress.
  */
 function getPlayerQuestProgressSync(playerId) {
+    (0, abyss_time_revision_1.refreshPlayerAbyssBestTimesSync)(playerId);
     const rawProgress = (0, db_1.getDb)().prepare(`
     SELECT section, quest_id, finished, host_finished, unlocked, high_score, clear_rank, best_elapsed_time_ms, leader_character_id, multi_clear_count, s_plus_reward_received
     FROM players_quest_progress
@@ -55,6 +58,7 @@ exports.getPlayerQuestProgressSync = getPlayerQuestProgressSync;
  */
 function getPlayerQuestProgressSubsetSync(playerId, scope) {
     var _a, _b, _c;
+    (0, abyss_time_revision_1.refreshPlayerAbyssBestTimesSync)(playerId);
     const sections = [...new Set(((_a = scope.sections) !== null && _a !== void 0 ? _a : [])
             .map(Number)
             .filter(value => Number.isSafeInteger(value) && value >= 0))];
@@ -130,6 +134,8 @@ exports.countFinishedPlayerQuestsSync = countFinishedPlayerQuestsSync;
  * @returns The quest's progress data, or null if it doesn't exist.
  */
 function getPlayerSingleQuestProgressSync(playerId, section, questId) {
+    if ((0, abyss_time_revision_2.isAbyssFiniteQuest)(section, questId))
+        (0, abyss_time_revision_1.refreshPlayerAbyssBestTimesSync)(playerId);
     const rawProgress = (0, db_1.getDb)().prepare(`
     SELECT section, quest_id, finished, host_finished, unlocked, high_score, clear_rank, best_elapsed_time_ms, leader_character_id, multi_clear_count, s_plus_reward_received
     FROM players_quest_progress
@@ -149,10 +155,12 @@ exports.getPlayerSingleQuestProgressSync = getPlayerSingleQuestProgressSync;
  */
 function insertPlayerQuestProgressSync(playerId, section, data) {
     var _a, _b, _c, _d, _e, _f, _g;
+    const timeRevision = (0, abyss_time_revision_2.isAbyssFiniteQuest)(section, data.questId)
+        ? (0, abyss_time_revision_1.refreshPlayerAbyssBestTimesSync)(playerId) : null;
     (0, db_1.getDb)().prepare(`
-    INSERT INTO players_quest_progress (section, quest_id, finished, host_finished, unlocked, high_score, clear_rank, best_elapsed_time_ms, leader_character_id, s_plus_reward_received, player_id)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(Number(section), data.questId, (0, utils_1.serializeBoolean)(data.finished), (0, utils_1.serializeBoolean)((_a = data.hostFinished) !== null && _a !== void 0 ? _a : false), (0, utils_1.serializeBoolean)((_b = data.unlocked) !== null && _b !== void 0 ? _b : false), (_c = data.highScore) !== null && _c !== void 0 ? _c : null, (_d = data.clearRank) !== null && _d !== void 0 ? _d : null, (_e = data.bestElapsedTimeMs) !== null && _e !== void 0 ? _e : null, (_f = data.leaderCharacterId) !== null && _f !== void 0 ? _f : null, (0, utils_1.serializeBoolean)((_g = data.sPlusRewardReceived) !== null && _g !== void 0 ? _g : false), playerId);
+    INSERT INTO players_quest_progress (section, quest_id, finished, host_finished, unlocked, high_score, clear_rank, best_elapsed_time_ms, leader_character_id, s_plus_reward_received, player_id, best_time_revision)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(Number(section), data.questId, (0, utils_1.serializeBoolean)(data.finished), (0, utils_1.serializeBoolean)((_a = data.hostFinished) !== null && _a !== void 0 ? _a : false), (0, utils_1.serializeBoolean)((_b = data.unlocked) !== null && _b !== void 0 ? _b : false), (_c = data.highScore) !== null && _c !== void 0 ? _c : null, (_d = data.clearRank) !== null && _d !== void 0 ? _d : null, (_e = data.bestElapsedTimeMs) !== null && _e !== void 0 ? _e : null, (_f = data.leaderCharacterId) !== null && _f !== void 0 ? _f : null, (0, utils_1.serializeBoolean)((_g = data.sPlusRewardReceived) !== null && _g !== void 0 ? _g : false), playerId, timeRevision);
 }
 exports.insertPlayerQuestProgressSync = insertPlayerQuestProgressSync;
 /**
@@ -179,6 +187,8 @@ exports.insertPlayerQuestProgressListSync = insertPlayerQuestProgressListSync;
  * @param data The partial data of the quest progress to update.
  */
 function updatePlayerQuestProgressSync(playerId, section, data) {
+    if ((0, abyss_time_revision_2.isAbyssFiniteQuest)(section, data.questId))
+        (0, abyss_time_revision_1.refreshPlayerAbyssBestTimesSync)(playerId);
     const fieldMap = {
         'finished': 'finished',
         'hostFinished': 'host_finished',

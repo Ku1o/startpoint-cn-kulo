@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ensurePlayerActivityDegreesSync = exports.grantEligibleRushEventDegreesSync = exports.getEligibleRushDegreeIds = exports.grantEligibleRaidEventDegreesSync = exports.getEligibleRaidDegreeIdsSync = exports.getRaidQuestDifficulty = exports.grantEligibleRankingEventDegreesSync = exports.getEligibleRankingDegreeIdsSync = exports.getRankingPlacementSync = exports.rankingEventIdQuestMap = void 0;
+exports.ensurePlayerActivityDegreesSync = exports.grantEligibleRushEventDegreesSync = exports.getEligibleRushDegreeIds = exports.getRushDegreeRewardSourceEventId = exports.grantEligibleRaidEventDegreesSync = exports.getEligibleRaidDegreeIdsSync = exports.getRaidQuestDifficulty = exports.grantEligibleRankingEventDegreesSync = exports.getEligibleRankingDegreeIdsSync = exports.getRankingPlacementSync = exports.rankingEventIdQuestMap = void 0;
 const rush_event_ranking_reward_json_1 = __importDefault(require("../../assets/rush_event_ranking_reward.json"));
 const db_1 = require("../data/db");
 const degree_1 = require("../data/domains/degree");
@@ -168,11 +168,21 @@ function grantEligibleRaidEventDegreesSync(playerId, eventId) {
 }
 exports.grantEligibleRaidEventDegreesSync = grantEligibleRaidEventDegreesSync;
 const rushRewards = rush_event_ranking_reward_json_1.default;
+/**
+ * Rush reruns reuse the original event's endless-round title milestones.
+ * These rewards are unrelated to leaderboard placement despite the legacy
+ * master-data filename and field names.
+ */
+function getRushDegreeRewardSourceEventId(eventId) {
+    return eventId >= 700011 && eventId <= 700017 ? eventId - 10 : eventId;
+}
+exports.getRushDegreeRewardSourceEventId = getRushDegreeRewardSourceEventId;
 function getEligibleRushDegreeIds(eventId, maxRound) {
     var _a;
     if (!Number.isFinite(maxRound) || Number(maxRound) <= 0)
         return [];
-    const eventRewards = (_a = rushRewards[String(eventId)]) !== null && _a !== void 0 ? _a : {};
+    const rewardSourceEventId = getRushDegreeRewardSourceEventId(eventId);
+    const eventRewards = (_a = rushRewards[String(rewardSourceEventId)]) !== null && _a !== void 0 ? _a : {};
     const degreeIds = [];
     for (const entries of Object.values(eventRewards)) {
         for (const entry of entries) {

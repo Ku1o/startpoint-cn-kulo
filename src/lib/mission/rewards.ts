@@ -7,7 +7,7 @@ import eventRewards from "../../../assets/mission_event_reward.json"
 import degreeRewards from "../../../assets/mission_degree_reward.json"
 import collectRewards from "../../../assets/mission_collect_item_reward.json"
 import weeklyRewards from "../../../assets/mission_weekly_reward.json"
-import charAwakeRewards from "../../../assets/mission_char_awake_reward.json"
+import { characterAwakeRewards } from "./awake-master-assets"
 import passDailyRewards from "../../../assets/mission_pass_daily_reward.json"
 import passWeekRewards from "../../../assets/mission_pass_week_reward.json"
 import passEventRewards from "../../../assets/mission_pass_event_reward.json"
@@ -142,7 +142,7 @@ export function getAwakeMissionRewardStageDefinition(
     stage: number
 ): AwakeMissionRewardStageDefinition | null {
     const row = getRewardRow(
-        charAwakeRewards as Record<string, Record<string, any[]>>,
+        characterAwakeRewards,
         missionId,
         stage
     )

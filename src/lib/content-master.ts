@@ -27,7 +27,12 @@ export const serverGachas = { ...baseGachas, ...cnmodGachas, ...rankP5bGachas }
 export const serverManaNodes = { ...baseManaNodes, ...cnmodManaNodes, ...rankP5bManaNodes }
 export const serverItemIds = [...new Set([...baseItemIds, ...rankP5bItemIds])]
 
-export const serverEventShops = {
+// Five Boss is intentionally dormant.  Keep its raw definitions for a future
+// opening, but do not expose its Death Bringer exchange through the effective
+// runtime shop view while the matching client row is absent.
+const DORMANT_EVENT_SHOP_ITEM_IDS = new Set(["59001010"])
+
+const mergedEventShops = {
     ...baseEventShops,
     "11": {
         ...(baseEventShops as Record<string, any>)["11"],
@@ -37,4 +42,27 @@ export const serverEventShops = {
         },
     },
 }
-export const serverEventShopIdMap = { ...baseEventShopIdMap, ...rankP5bEventShopIdMap }
+
+export const serverEventShops = Object.fromEntries(
+    Object.entries(mergedEventShops).map(([eventType, events]) => [
+        eventType,
+        Object.fromEntries(
+            Object.entries(events as Record<string, Record<string, unknown>>).map(
+                ([eventId, items]) => [
+                    eventId,
+                    Object.fromEntries(
+                        Object.entries(items).filter(
+                            ([itemId]) => !DORMANT_EVENT_SHOP_ITEM_IDS.has(itemId)
+                        )
+                    ),
+                ]
+            )
+        ),
+    ])
+)
+
+export const serverEventShopIdMap = Object.fromEntries(
+    Object.entries({ ...baseEventShopIdMap, ...rankP5bEventShopIdMap }).filter(
+        ([itemId]) => !DORMANT_EVENT_SHOP_ITEM_IDS.has(itemId)
+    )
+)

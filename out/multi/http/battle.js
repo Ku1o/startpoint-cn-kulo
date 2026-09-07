@@ -44,6 +44,7 @@ const embedded_1 = require("../coordinator/embedded");
 const mana_1 = require("../../lib/mana");
 const player_context_1 = require("../player-context");
 const recruitment_1 = require("../recruitment");
+const recommended_party_history_1 = require("../../lib/quest/recommended-party-history");
 function buildFinishFollowInfo(viewerId_1, mateResults_1) {
     return __awaiter(this, arguments, void 0, function* (viewerId, mateResults, fallbackMateIds = []) {
         const requesterCtx = yield (0, player_context_1.resolveMultiPlayerContext)(viewerId);
@@ -454,6 +455,9 @@ function registerBattleRoutes(fastify) {
         let rewardCharacterExpResult;
         yield (0, settlement_performance_1.measureSettlementPhaseAsync)("multi", "facts_transaction", () => (0, sqlite_write_coordinator_1.withPlayerWriteQueue)(playerId, () => (0, sqlite_write_coordinator_1.runImmediateTransactionWithRetry)(() => {
             missionBattleFacts = (0, battle_facts_1.recordMissionBattleFacts)(finishCtx, missionEvaluationTime);
+            if (questData.fixedParty === undefined) {
+                (0, recommended_party_history_1.recordQuestRecommendedPartySafe)(finishCtx);
+            }
             steamRobotMissionId = (0, steam_robot_challenge_1.trackSteamRobotChallengeMission)({
                 playerId,
                 questCategory,

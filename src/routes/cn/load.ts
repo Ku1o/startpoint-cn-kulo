@@ -31,6 +31,10 @@ import { getPlayerEquipmentListSync } from "../../data/domains/equipment";
 import { getPlayerCharactersManaNodesSync, getPlayerCharactersSync } from "../../data/domains/character";
 import { getPlayerPartyGroupListSync } from "../../data/domains/party";
 import { getPlayerQuestProgressSync } from "../../data/domains/quest";
+import { isStaleAbyssBattle } from "../../lib/abyss-time-revision";
+import { hijackUnavailableReply } from "../../lib/http-reply";
+import { ensureDailyVmoneyMailForPlayerSync } from "../../lib/daily-vmoney-mail";
+import { getNewsDeliveryState, getNewsInterruptFlag } from "../../lib/news-delivery";
 
 interface CnLoadBody {
     device_id: number;
@@ -136,6 +140,7 @@ const routes = async (fastify: FastifyInstance) => {
         }
 
         const now = getServerDate();
+        ensureDailyVmoneyMailForPlayerSync(playerId, now.getTime());
         dailyResetPlayerDataSync(player, now);
         collectPlayerDataPooledExpSync(player, now);
 
@@ -225,6 +230,8 @@ const routes = async (fastify: FastifyInstance) => {
         const resVer = request.headers['res_ver'] as string | undefined;
         gameVerboseLog(() => `[CN-LOAD] res_ver=${resVer || '(not sent)'} account=${accountId} player=${playerId} party_slot=${clientData?.user_info?.party_slot}`);
         wrapOptionFields(clientData, playerId, resVer);
+        const newsDelivery = getNewsDeliveryState(accountId, now);
+        clientData.has_unread_news_item = newsDelivery.hasUnreadNews;
 
         // Inject unfinished quest lists for battle recovery
         const activeQuest = getPlayerActiveQuestSync(playerId);
@@ -241,7 +248,7 @@ const routes = async (fastify: FastifyInstance) => {
                 && activeRoom.raising_state === 4
                 && activeRoom.expected_real_viewer_ids.length > 0
                 && !activeRoom.expected_real_viewer_ids.includes(accountId);
-            if (!roomExists || completedMultiRoom || noLongerInCurrentBattle) {
+            if (!roomExists || completedMultiRoom || noLongerInCurrentBattle || isStaleAbyssBattle(activeQuest)) {
                 const mode15Quest = isMode15Quest(activeQuest.category, activeQuest.questId);
                 // Multiplayer rescue guests never own the Mode15 run represented
                 // by this room. Loading-stage disconnects may remove them from the
@@ -278,6 +285,12 @@ const routes = async (fastify: FastifyInstance) => {
         return reply.status(200).send({
             data_headers: generateDataHeaders({
                 asset_update: true,
+                // The client treats 2 as "open the announcement list" and
+                // will run that dialog again on every return to the home
+                // scene. Use nil when there is no pending interrupt; unlike
+                // nil, 0 is stored by the client as Some(0) and can become
+                // stale state across navigation.
+                force_news: getNewsInterruptFlag(newsDelivery),
                 viewer_id: accountId,
                 servertime: getServerTime(),
             }),
@@ -285,6 +298,7 @@ const routes = async (fastify: FastifyInstance) => {
         });
         } catch(e: any) {
             console.error(`[CN-LOAD] ERROR:`, e.message, e.stack);
+            if (hijackUnavailableReply(request, reply)) return reply;
             return reply.status(500).send({ error: "Internal Server Error", message: e.message });
         }
     });

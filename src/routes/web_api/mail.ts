@@ -17,6 +17,12 @@ import {
     validateMailAttachment,
 } from "../../lib/admin-mail-rules"
 import { buildAdminMailTimestamps } from "../../lib/admin-mail-time"
+import {
+    dispatchDailyVmoneyMailSync,
+    getDailyVmoneyMailOverviewSync,
+    updateDailyVmoneyMailConfigSync,
+    validateDailyVmoneyMailConfigUpdate,
+} from "../../lib/daily-vmoney-mail"
 
 // Pre-built CDN validation sets
 const CDN_CHAR_IDS: Set<number> = new Set(Object.keys(characterData).map(Number))
@@ -81,6 +87,34 @@ const MAX_HISTORY = 20
 const sendHistory: MailSendRecord[] = []
 
 const routes = async (fastify: FastifyInstance) => {
+    fastify.get("/daily", async (_request: FastifyRequest, reply: FastifyReply) => {
+        return reply.send(getDailyVmoneyMailOverviewSync())
+    })
+
+    fastify.patch("/daily", async (request: FastifyRequest, reply: FastifyReply) => {
+        try {
+            const update = validateDailyVmoneyMailConfigUpdate(request.body)
+            updateDailyVmoneyMailConfigSync(update)
+            return reply.send(getDailyVmoneyMailOverviewSync())
+        } catch (error) {
+            const detail = error instanceof Error ? error.message : String(error)
+            return reply.status(400).send({ error: detail })
+        }
+    })
+
+    fastify.post("/daily/run", async (_request: FastifyRequest, reply: FastifyReply) => {
+        try {
+            const result = dispatchDailyVmoneyMailSync(Date.now(), "manual", true)
+            if (result.status === "disabled") {
+                return reply.status(400).send({ error: "请先启用每日自动邮件" })
+            }
+            return reply.send({ result, overview: getDailyVmoneyMailOverviewSync() })
+        } catch (error) {
+            const detail = error instanceof Error ? error.message : String(error)
+            return reply.status(500).send({ error: detail })
+        }
+    })
+
     fastify.post("/send", async (request: FastifyRequest, reply: FastifyReply) => {
         const body = request.body as SendMailBody
         // 迁移期分流：SPA 返回 JSON，旧表单保留 redirect

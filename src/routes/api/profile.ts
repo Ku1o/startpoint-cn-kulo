@@ -8,8 +8,8 @@ import { getSession } from "../../data/domains/session"
 import { resolvePlayerIdSync } from "../../data/activeAccount";
 // removed getAccountPlayers "../../data/wdfpData";
 import { generateDataHeaders } from "../../utils";
-import { getPlayerIdByViewerIdSync } from "../../data/domains/follow";
 import { buildTargetProfileSync } from "../../lib/follow";
+import { resolveProfileTargetPlayerIdSync } from "../../lib/profile-target";
 import { getFavoritePartyGroupListSync } from "../../lib/profileFavorite";
 import {
     ensurePlayerLegacyDegreesSync,
@@ -109,7 +109,10 @@ const routes = async (fastify: FastifyInstance) => {
         const session = await getSession(String(viewerId))
         if (!session) return reply.status(400).send({ error: "Bad Request", message: "Invalid viewer id." })
         const playerId = resolvePlayerIdSync(session.accountId)
-        const targetPlayerId = getPlayerIdByViewerIdSync(targetViewerId)
+        // Accept the old encoded leaderboard id for clients with a cached
+        // leaderboard response, but always return the target player's real
+        // viewer id in the profile payload.
+        const targetPlayerId = resolveProfileTargetPlayerIdSync(targetViewerId)
         if (playerId === null || targetPlayerId === null) {
             reply.header("content-type", "application/x-msgpack")
             return reply.status(200).send({

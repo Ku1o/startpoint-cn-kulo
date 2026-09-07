@@ -186,9 +186,19 @@ interface RushRewardEntry {
 
 const rushRewards = rushEventRankingRewards as Record<string, Record<string, RushRewardEntry[]>>
 
+/**
+ * Rush reruns reuse the original event's endless-round title milestones.
+ * These rewards are unrelated to leaderboard placement despite the legacy
+ * master-data filename and field names.
+ */
+export function getRushDegreeRewardSourceEventId(eventId: number): number {
+    return eventId >= 700011 && eventId <= 700017 ? eventId - 10 : eventId
+}
+
 export function getEligibleRushDegreeIds(eventId: number, maxRound: number | null | undefined): number[] {
     if (!Number.isFinite(maxRound) || Number(maxRound) <= 0) return []
-    const eventRewards = rushRewards[String(eventId)] ?? {}
+    const rewardSourceEventId = getRushDegreeRewardSourceEventId(eventId)
+    const eventRewards = rushRewards[String(rewardSourceEventId)] ?? {}
     const degreeIds: number[] = []
     for (const entries of Object.values(eventRewards)) {
         for (const entry of entries) {

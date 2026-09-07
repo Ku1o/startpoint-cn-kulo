@@ -8,9 +8,12 @@ const path = require("node:path")
 const REPOSITORY_ROOT = path.resolve(__dirname, "..")
 const BASE_GACHA_PATH = path.join(REPOSITORY_ROOT, "assets", "gacha.json")
 const CNMOD_GACHA_PATH = path.join(REPOSITORY_ROOT, "assets", "gacha_cnmod.json")
+const RACE_GACHA_PATH = path.join(REPOSITORY_ROOT, "assets", "gacha_rank_p5b.json")
 const ABYSS_GACHA_ID = "990001"
+const RACE_GACHA_ID = "990002"
+const CLEANED_GACHA_IDS = new Set([ABYSS_GACHA_ID, RACE_GACHA_ID])
 
-// Audited against every non-990001 pool in gacha.json and gacha_cnmod.json.
+// Audited against ordinary pools; 990001/990002 share the same approved exclusions.
 // These characters are rewards, shop characters, trial characters, tutorial
 // characters, or collaboration/event giveaways rather than gacha characters.
 const AUDITED_NON_GACHA_CHARACTER_IDS = Object.freeze([
@@ -72,7 +75,7 @@ function collectOtherGachaCharacterIds(...gachaSources) {
     const result = new Set()
     for (const gachas of gachaSources) {
         for (const [gachaId, gacha] of Object.entries(gachas)) {
-            if (gachaId === ABYSS_GACHA_ID || !gacha || typeof gacha !== "object") continue
+            if (CLEANED_GACHA_IDS.has(gachaId) || !gacha || typeof gacha !== "object") continue
             for (const entries of Object.values(gacha.pool ?? {})) {
                 if (!Array.isArray(entries)) continue
                 for (const entry of entries) {
@@ -84,12 +87,60 @@ function collectOtherGachaCharacterIds(...gachaSources) {
     return result
 }
 
-function findNonGachaFillers(abyssGacha, otherGachaCharacterIds) {
+function cleanupPool(gacha, gachaId) {
+    assert.ok(gacha && typeof gacha === "object", `${gachaId} gacha is missing`)
+    const removableIds = new Set(REMOVED_NON_GACHA_CHARACTER_IDS)
+    const allEntries = Object.values(gacha.pool ?? {}).flat()
+    const removable = allEntries.filter(entry => removableIds.has(entry.id))
+    for (const id of RETAINED_NON_GACHA_EXCEPTION_IDS) {
+        assert.equal(allEntries.filter(entry => entry.id === id).length, 1, `${gachaId} retained exception drifted`)
+    }
+    if (removable.length === 0) {
+        return { changed: false, removed: [], retained: [...RETAINED_NON_GACHA_EXCEPTION_IDS] }
+    }
+
+    const foundCounts = new Map()
+    for (const entry of removable) foundCounts.set(entry.id, (foundCounts.get(entry.id) ?? 0) + 1)
+    assert.deepEqual(
+        [...foundCounts.entries()].filter(([, count]) => count !== 1),
+        [],
+        `${gachaId} removable characters must appear exactly once`,
+    )
+    for (const id of REMOVED_NON_GACHA_CHARACTER_IDS) {
+        assert.equal(foundCounts.has(id), true, `${gachaId} is missing removable character ${id}`)
+    }
+
+    const rateUpsBefore = rateUpSignature(gacha)
+    const totalsBefore = Object.fromEntries(
+        Object.entries(gacha.pool ?? {}).map(([bucket, entries]) => [bucket, poolTotal(entries)]),
+    )
+    const cleaned = structuredClone(gacha)
+    for (const [bucket, entries] of Object.entries(cleaned.pool ?? {})) {
+        cleaned.pool[bucket] = removeAndRedistribute(entries, removableIds)
+    }
+    assert.deepEqual(rateUpSignature(cleaned), rateUpsBefore, `${gachaId} UP probability changed`)
+    assert.deepEqual(
+        Object.fromEntries(Object.entries(cleaned.pool).map(([bucket, entries]) => [bucket, poolTotal(entries)])),
+        totalsBefore,
+        `${gachaId} rarity bucket totals changed`,
+    )
+
+    const cleanedIds = Object.values(cleaned.pool).flat().map(entry => entry.id)
+    for (const id of REMOVED_NON_GACHA_CHARACTER_IDS) assert.equal(cleanedIds.includes(id), false)
+    for (const id of RETAINED_NON_GACHA_EXCEPTION_IDS) {
+        assert.equal(cleanedIds.filter(value => value === id).length, 1, `${gachaId} retained exception drifted`)
+    }
+    return { changed: true, cleaned, removed: removable, retained: [...RETAINED_NON_GACHA_EXCEPTION_IDS] }
+}
+
+function findNonGachaFillers(abyssGacha, otherGachaCharacterIds, includeIds = new Set()) {
     const result = []
     for (const [bucket, entries] of Object.entries(abyssGacha.pool ?? {})) {
         assert.ok(Array.isArray(entries), `abyss pool ${bucket} must be an array`)
         for (const entry of entries) {
-            if (entry.isRateUp !== true && !otherGachaCharacterIds.has(entry.id)) {
+            if ((entry.odds > 0 || includeIds.has(entry.id))
+                && entry.isRateUp !== true
+                && !otherGachaCharacterIds.has(entry.id)) {
                 result.push({ bucket, id: entry.id })
             }
         }
@@ -107,7 +158,7 @@ function rateUpSignature(abyssGacha) {
         const bucketTotal = poolTotal(entries)
         for (const entry of entries) {
             if (entry.isRateUp === true) {
-                result.push({ bucket, id: entry.id, odds: entry.odds, bucketTotal })
+                result.push({ bucket, entry: structuredClone(entry), bucketTotal })
             }
         }
     }
@@ -120,7 +171,8 @@ function removeAndRedistribute(entries, removableIds) {
     const survivors = entries
         .filter((entry) => !removableIds.has(entry.id))
         .map((entry) => ({ ...entry }))
-    const recipients = survivors.filter((entry) => entry.isRateUp !== true)
+    // Zero-weight entries are intentional placeholders, not drawable fillers.
+    const recipients = survivors.filter((entry) => entry.isRateUp !== true && entry.odds > 0)
     const removedWeight = poolTotal(removed)
 
     if (removedWeight === 0) return survivors
@@ -129,10 +181,11 @@ function removeAndRedistribute(entries, removableIds) {
     const quotient = Math.floor(removedWeight / recipients.length)
     const remainder = removedWeight % recipients.length
     for (const [index, entry] of recipients.entries()) {
-        entry.odds += quotient + (index < remainder ? 1 : 0)
-    }
-    for (const entry of survivors) {
-        entry.rarity = 1000 * entry.odds / totalBefore
+        const increment = quotient + (index < remainder ? 1 : 0)
+        if (increment > 0) {
+            entry.odds += increment
+            entry.rarity = 1000 * entry.odds / totalBefore
+        }
     }
     assert.equal(poolTotal(survivors), totalBefore, "rarity bucket total weight changed")
     return survivors
@@ -146,7 +199,11 @@ function cleanupAbyssGacha(baseGachas, cnmodGachas) {
     assert.deepEqual(cnmodAbyss, baseAbyss, "mirrored abyss gachas differ before cleanup")
 
     const otherGachaCharacterIds = collectOtherGachaCharacterIds(baseGachas, cnmodGachas)
-    const discovered = findNonGachaFillers(baseAbyss, otherGachaCharacterIds)
+    const discovered = findNonGachaFillers(
+        baseAbyss,
+        otherGachaCharacterIds,
+        new Set(AUDITED_NON_GACHA_CHARACTER_IDS),
+    )
     const allowedIds = new Set(AUDITED_NON_GACHA_CHARACTER_IDS)
     const unexpected = discovered.filter(({ id }) => !allowedIds.has(id))
     assert.deepEqual(unexpected, [], `unexpected non-gacha abyss fillers: ${JSON.stringify(unexpected)}`)
@@ -190,7 +247,11 @@ function cleanupAbyssGacha(baseGachas, cnmodGachas) {
         "abyss rarity bucket totals changed",
     )
     assert.deepEqual(
-        findNonGachaFillers(cleanedAbyss, otherGachaCharacterIds)
+        findNonGachaFillers(
+            cleanedAbyss,
+            otherGachaCharacterIds,
+            new Set(AUDITED_NON_GACHA_CHARACTER_IDS),
+        )
             .map(({ id }) => id)
             .sort((a, b) => a - b),
         [...RETAINED_NON_GACHA_EXCEPTION_IDS],
@@ -206,25 +267,50 @@ function cleanupAbyssGacha(baseGachas, cnmodGachas) {
     }
 }
 
+function cleanupRaceGacha(rankGachas, ...otherGachaSources) {
+    const race = rankGachas[RACE_GACHA_ID]
+    const otherGachaCharacterIds = collectOtherGachaCharacterIds(rankGachas, ...otherGachaSources)
+    const discovered = findNonGachaFillers(race, otherGachaCharacterIds)
+    const allowedIds = new Set(AUDITED_NON_GACHA_CHARACTER_IDS)
+    assert.deepEqual(
+        discovered.filter(({ id }) => !allowedIds.has(id)),
+        [],
+        `unexpected non-gacha race fillers: ${JSON.stringify(discovered)}`,
+    )
+    const discoveredIds = discovered.map(({ id }) => id)
+    for (const id of RETAINED_NON_GACHA_EXCEPTION_IDS) {
+        assert.equal(discoveredIds.includes(id), true, `approved retained race character ${id} is missing`)
+    }
+    const result = cleanupPool(race, RACE_GACHA_ID)
+    if (result.changed) rankGachas[RACE_GACHA_ID] = result.cleaned
+    delete result.cleaned
+    return result
+}
+
 function main() {
     const baseGachas = readJson(BASE_GACHA_PATH)
     const cnmodGachas = readJson(CNMOD_GACHA_PATH)
+    const rankGachas = readJson(RACE_GACHA_PATH)
     const result = cleanupAbyssGacha(baseGachas, cnmodGachas)
+    const raceResult = cleanupRaceGacha(rankGachas, baseGachas, cnmodGachas)
     if (result.changed) {
         writeJson(BASE_GACHA_PATH, baseGachas)
         writeJson(CNMOD_GACHA_PATH, cnmodGachas)
     }
-    process.stdout.write(`${JSON.stringify(result, null, 2)}\n`)
+    if (raceResult.changed) writeJson(RACE_GACHA_PATH, rankGachas)
+    process.stdout.write(`${JSON.stringify({ abyss: result, race: raceResult }, null, 2)}\n`)
 }
 
 if (require.main === module) main()
 
 module.exports = {
     ABYSS_GACHA_ID,
+    RACE_GACHA_ID,
     AUDITED_NON_GACHA_CHARACTER_IDS,
     REMOVED_NON_GACHA_CHARACTER_IDS,
     RETAINED_NON_GACHA_EXCEPTION_IDS,
     cleanupAbyssGacha,
+    cleanupRaceGacha,
     collectOtherGachaCharacterIds,
     findNonGachaFillers,
     poolTotal,

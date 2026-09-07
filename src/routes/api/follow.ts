@@ -12,6 +12,7 @@ import {
 } from "../../data/domains/follow";
 import { getSession } from "../../data/domains/session";
 import { buildFollowUserInfoSync } from "../../lib/follow";
+import { resolveProfileTargetPlayerIdSync } from "../../lib/profile-target";
 import { generateDataHeaders } from "../../utils";
 
 interface RequestContext {
@@ -36,6 +37,10 @@ function send(reply: FastifyReply, viewerId: number, data: any, resultCode = 1) 
     });
 }
 
+function resolveTargetPlayerId(value: unknown): number | null {
+    return resolveProfileTargetPlayerIdSync(Number(value));
+}
+
 const routes = async (fastify: FastifyInstance) => {
     fastify.post("/lists", async (request: FastifyRequest, reply: FastifyReply) => {
         const ctx = await resolveContext(request.body);
@@ -54,7 +59,7 @@ const routes = async (fastify: FastifyInstance) => {
         const body = request.body as any;
         const ctx = await resolveContext(body);
         if (!ctx) return reply.status(400).send({ error: "Bad Request", message: "Invalid viewer id." });
-        const targetPlayerId = getPlayerIdByViewerIdSync(Number(body.follow_id));
+        const targetPlayerId = resolveTargetPlayerId(body.follow_id);
         if (targetPlayerId === null) return send(reply, ctx.viewerId, {}, 1457);
 
         const result = addFollowSync(ctx.playerId, targetPlayerId);
@@ -69,7 +74,7 @@ const routes = async (fastify: FastifyInstance) => {
         const body = request.body as any;
         const ctx = await resolveContext(body);
         if (!ctx) return reply.status(400).send({ error: "Bad Request", message: "Invalid viewer id." });
-        const targetPlayerId = getPlayerIdByViewerIdSync(Number(body.follow_id));
+        const targetPlayerId = resolveTargetPlayerId(body.follow_id);
         if (targetPlayerId !== null) deleteFollowSync(ctx.playerId, targetPlayerId);
         console.log(`[FOLLOW] delete viewer=${ctx.viewerId} target=${Number(body.follow_id)}`);
         return send(reply, ctx.viewerId, {});
@@ -79,7 +84,7 @@ const routes = async (fastify: FastifyInstance) => {
         const body = request.body as any;
         const ctx = await resolveContext(body);
         if (!ctx) return reply.status(400).send({ error: "Bad Request", message: "Invalid viewer id." });
-        const followerPlayerId = getPlayerIdByViewerIdSync(Number(body.followed_id));
+        const followerPlayerId = resolveTargetPlayerId(body.followed_id);
         if (followerPlayerId !== null) deleteFollowerSync(ctx.playerId, followerPlayerId);
         console.log(`[FOLLOW] delete_follower viewer=${ctx.viewerId} follower=${Number(body.followed_id)}`);
         return send(reply, ctx.viewerId, {});
@@ -91,10 +96,10 @@ const routes = async (fastify: FastifyInstance) => {
         if (!ctx) return reply.status(400).send({ error: "Bad Request", message: "Invalid viewer id." });
 
         const addPlayerIds = ((body.add_follow_id_list || []) as any[])
-            .map(id => getPlayerIdByViewerIdSync(Number(id)))
+            .map(id => resolveTargetPlayerId(id))
             .filter((id): id is number => id !== null);
         const deletePlayerIds = ((body.delete_follow_id_list || []) as any[])
-            .map(id => getPlayerIdByViewerIdSync(Number(id)))
+            .map(id => resolveTargetPlayerId(id))
             .filter((id): id is number => id !== null);
         const fullPlayerIds = bulkEditFollowSync(ctx.playerId, addPlayerIds, deletePlayerIds);
         const fullViewerIds = fullPlayerIds

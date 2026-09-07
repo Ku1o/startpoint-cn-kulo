@@ -320,19 +320,26 @@ function computeManaBoardAwakeFromNodes(characterManaNodeAwakeLevels) {
     var _a;
     const result = new Map();
     for (const [charId, nodeLevels] of Object.entries(characterManaNodeAwakeLevels)) {
-        const boardNodes = (0, assets_1.getCharacterManaNodesSync)(Number(charId), 1);
-        if (!boardNodes)
-            continue;
-        const boardNodeIds = Object.keys(boardNodes).map(Number);
-        if (boardNodeIds.length === 0)
-            continue;
-        let completedAwakeLevel = Number.POSITIVE_INFINITY;
-        for (const nodeId of boardNodeIds) {
-            completedAwakeLevel = Math.min(completedAwakeLevel, (_a = nodeLevels[nodeId]) !== null && _a !== void 0 ? _a : 0);
+        const characterId = Number(charId);
+        const boardCount = (0, assets_1.getCharacterManaBoardCountSync)(characterId);
+        const completedBoards = {};
+        for (let boardIndex = 1; boardIndex <= boardCount; boardIndex++) {
+            const boardNodes = (0, assets_1.getCharacterManaNodesSync)(characterId, boardIndex);
+            if (!boardNodes)
+                continue;
+            const boardNodeIds = Object.keys(boardNodes).map(Number);
+            if (boardNodeIds.length === 0)
+                continue;
+            let completedAwakeLevel = Number.POSITIVE_INFINITY;
+            for (const nodeId of boardNodeIds) {
+                completedAwakeLevel = Math.min(completedAwakeLevel, (_a = nodeLevels[nodeId]) !== null && _a !== void 0 ? _a : 0);
+            }
+            if (Number.isFinite(completedAwakeLevel) && completedAwakeLevel > 0) {
+                completedBoards[boardIndex] = completedAwakeLevel;
+            }
         }
-        if (Number.isFinite(completedAwakeLevel) && completedAwakeLevel > 0) {
-            result.set(charId, { 1: completedAwakeLevel });
-        }
+        if (Object.keys(completedBoards).length > 0)
+            result.set(charId, completedBoards);
     }
     return result;
 }

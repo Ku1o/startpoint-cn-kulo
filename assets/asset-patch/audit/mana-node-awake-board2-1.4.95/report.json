@@ -1,0 +1,63 @@
+{
+  "base_version": "1.4.94",
+  "target_version": "1.4.95",
+  "logical_path": "master/mana_board/mana_node_awake.orderedmap",
+  "member": "production/upload/b7/7fd08aaacca60fd70309dbdc57a07b1352063c",
+  "source": {
+    "tail": "1.4.94",
+    "size": 1812,
+    "sha256": "4a1b4a44e2786fd76a46a490f33f4d69394595fb72f11cd39cd9998d5c3faa1e"
+  },
+  "patched": {
+    "size": 2753,
+    "sha256": "57c8cccd103554f5826ffd6e695a815ae1fa466d9737d92ac95401c6d94d787c"
+  },
+  "table": {
+    "rarity_keys": [
+      "1",
+      "2",
+      "3",
+      "4",
+      "5"
+    ],
+    "slot_template_mapping": {
+      "1": {
+        "5": "2",
+        "6": "2"
+      },
+      "2": {
+        "5": "2",
+        "6": "2"
+      },
+      "3": {
+        "5": "2",
+        "6": "3"
+      },
+      "4": {
+        "5": "2",
+        "6": "3"
+      },
+      "5": {
+        "5": "2",
+        "6": "3"
+      }
+    },
+    "existing_slots_preserved": true,
+    "added_slots": [
+      5,
+      6
+    ]
+  },
+  "archive": {
+    "name": "pinball-1.4.94-1.4.95-1-0831-mana-node-awake-board2.zip",
+    "size": 763,
+    "sha256": "1059ae5af4f80478b0e15e5543d15afd97f96407c5fa6c0767e694b08c57e3ac",
+    "members": 1
+  },
+  "verification": {
+    "archive_crc_ok": true,
+    "archive_readback_equal": true,
+    "all_rarities_have_slot_5_and_6": true,
+    "existing_slot_semantics_preserved": true
+  }
+}

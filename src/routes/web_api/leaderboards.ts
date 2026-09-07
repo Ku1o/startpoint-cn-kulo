@@ -1,5 +1,5 @@
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify"
-import { getLeaderboardRankPageSync, countLeaderboardRanksSync } from "../../data/domains/leaderboard"
+import { getLeaderboardRankPageSync } from "../../data/domains/leaderboard"
 import {
     getLeaderboardCompetition,
     getLeaderboardCompetitions,
@@ -8,12 +8,18 @@ import {
 import {
     getLeaderboardSettlementConfigSync,
     getLeaderboardSettlementOverviewSync,
+    getLeaderboardSeasonRewardViewSync,
     putLeaderboardSettlementConfigSync,
-    settleAndRolloverLeaderboardSync,
+    rolloverLeaderboardSeasonSync,
     settleLeaderboardSeasonSync,
     validateRewardTiers,
 } from "../../lib/leaderboard/settlement"
-import type { LeaderboardRewardTier } from "../../lib/leaderboard/rewards"
+import type { LeaderboardRewardRule } from "../../lib/leaderboard/rewards"
+import {
+    getLeaderboardAvailabilitySync,
+    isLeaderboardDeadlineDueSync,
+    setLeaderboardAvailabilitySync,
+} from "../../lib/leaderboard/availability"
 
 interface KeyParams { key: string }
 
@@ -28,6 +34,7 @@ const routes = async (fastify: FastifyInstance) => {
     fastify.get("/", async (_request, reply) => reply.send(
         getLeaderboardCompetitions().map(competition => ({
             competition,
+            availability: getLeaderboardAvailabilitySync(competition.key),
             overview: getLeaderboardSettlementOverviewSync(competition.key),
         })),
     ))
@@ -37,11 +44,12 @@ const routes = async (fastify: FastifyInstance) => {
         if (key === null) return
         const competition = getLeaderboardCompetition(key)!
         const season = getLeaderboardCompetitionSeasonSync(key)
-        const total = countLeaderboardRanksSync(key, season)
+        const { total, filter } = getLeaderboardSeasonRewardViewSync(key, season)
         const query = request.query as { page?: string }
         const page = Math.max(0, Math.floor(Number(query.page ?? 0) || 0))
         return reply.send({
             competition,
+            availability: getLeaderboardAvailabilitySync(key),
             overview: getLeaderboardSettlementOverviewSync(key),
             page,
             rows: getLeaderboardRankPageSync({
@@ -49,8 +57,31 @@ const routes = async (fastify: FastifyInstance) => {
                 season,
                 offset: page * competition.pageSize,
                 limit: competition.pageSize,
+                filter,
             }),
             total,
+        })
+    })
+
+    fastify.patch("/:key/availability", async (request, reply) => {
+        const key = resolveKey(request, reply)
+        if (key === null) return
+        const body = (request.body ?? {}) as Record<string, unknown>
+        if (typeof body.enabled !== "boolean") {
+            return reply.status(400).send({ error: "enabled must be a boolean." })
+        }
+        if (body.enabled) {
+            const season = getLeaderboardCompetitionSeasonSync(key)
+            if (getLeaderboardSeasonRewardViewSync(key, season).settled) {
+                return reply.status(409).send({ error: "当前赛季已结算，请先换季再开启排行榜。" })
+            }
+            if (isLeaderboardDeadlineDueSync(key)) {
+                return reply.status(409).send({ error: "已到截止时间，请先修改截止时间或关闭定时开关，再开启排行榜。" })
+            }
+        }
+        return reply.send({
+            ok: true,
+            ...setLeaderboardAvailabilitySync(key, body.enabled),
         })
     })
 
@@ -61,16 +92,27 @@ const routes = async (fastify: FastifyInstance) => {
         const body = (request.body ?? {}) as Record<string, unknown>
         const rewardTiers = body.rewardTiers === undefined
             ? current.rewardTiers
-            : body.rewardTiers as LeaderboardRewardTier[]
+            : body.rewardTiers as LeaderboardRewardRule[]
         try {
+            for (const field of ["autoEnabled", "freezeEnabled"] as const) {
+                if (body[field] !== undefined && typeof body[field] !== "boolean") {
+                    throw new Error("到时冻结和自动发奖开关必须是布尔值。")
+                }
+            }
+            const autoEnabled = body.autoEnabled === undefined ? current.autoEnabled : body.autoEnabled as boolean
+            const freezeEnabled = autoEnabled || (body.freezeEnabled === undefined
+                ? current.freezeEnabled : body.freezeEnabled as boolean)
+            const settleAtMs = body.settleAtMs === undefined ? current.settleAtMs
+                : body.settleAtMs === null ? null : Number(body.settleAtMs)
+            if ((autoEnabled || freezeEnabled) && settleAtMs === null) {
+                throw new Error("开启定时冻结或自动发奖时必须设置截止时间。")
+            }
             validateRewardTiers(rewardTiers)
             putLeaderboardSettlementConfigSync({
                 ...current,
-                autoEnabled: body.autoEnabled === undefined
-                    ? current.autoEnabled : Boolean(body.autoEnabled),
-                settleAtMs: body.settleAtMs === undefined
-                    ? current.settleAtMs
-                    : body.settleAtMs === null ? null : Number(body.settleAtMs),
+                autoEnabled,
+                freezeEnabled,
+                settleAtMs,
                 repeatIntervalMs: body.repeatIntervalMs === undefined
                     ? current.repeatIntervalMs
                     : body.repeatIntervalMs === null ? null : Number(body.repeatIntervalMs),
@@ -101,8 +143,11 @@ const routes = async (fastify: FastifyInstance) => {
     fastify.post("/:key/rollover", async (request, reply) => {
         const key = resolveKey(request, reply)
         if (key === null) return
-        const outcome = settleAndRolloverLeaderboardSync(key, "admin-rollover")
-        return reply.status(outcome.ok ? 200 : 409).send(outcome)
+        const outcome = rolloverLeaderboardSeasonSync(key, "admin-rollover")
+        return reply.status(outcome.ok ? 200 : 409).send(outcome.ok ? outcome : {
+            ...outcome,
+            error: "当前赛季尚未结算，不能换季。",
+        })
     })
 }
 

@@ -14,8 +14,8 @@ const session_1 = require("../../data/domains/session");
 const activeAccount_1 = require("../../data/activeAccount");
 // removed getAccountPlayers "../../data/wdfpData";
 const utils_1 = require("../../utils");
-const follow_1 = require("../../data/domains/follow");
-const follow_2 = require("../../lib/follow");
+const follow_1 = require("../../lib/follow");
+const profile_target_1 = require("../../lib/profile-target");
 const profileFavorite_1 = require("../../lib/profileFavorite");
 const degree_1 = require("../../data/domains/degree");
 const carnival_reward_handler_1 = require("../../lib/quest/finish/carnival-reward-handler");
@@ -96,7 +96,10 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         if (!session)
             return reply.status(400).send({ error: "Bad Request", message: "Invalid viewer id." });
         const playerId = (0, activeAccount_1.resolvePlayerIdSync)(session.accountId);
-        const targetPlayerId = (0, follow_1.getPlayerIdByViewerIdSync)(targetViewerId);
+        // Accept the old encoded leaderboard id for clients with a cached
+        // leaderboard response, but always return the target player's real
+        // viewer id in the profile payload.
+        const targetPlayerId = (0, profile_target_1.resolveProfileTargetPlayerIdSync)(targetViewerId);
         if (playerId === null || targetPlayerId === null) {
             reply.header("content-type", "application/x-msgpack");
             return reply.status(200).send({
@@ -104,7 +107,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 data: {},
             });
         }
-        const profile = (0, follow_2.buildTargetProfileSync)(playerId, targetPlayerId);
+        const profile = (0, follow_1.buildTargetProfileSync)(playerId, targetPlayerId);
         if (!profile) {
             reply.header("content-type", "application/x-msgpack");
             return reply.status(200).send({

@@ -1,6 +1,9 @@
 require("ts-node/register");
 
 const assert = require("assert");
+const raceServerGacha = require("../assets/gacha_rank_p5b.json")["990002"];
+const raceCdnGacha = require("../assets/cdndata/gacha.json")["990002"][0];
+const raceCdnExtensionGacha = require("../assets/cdndata/gacha_rank_p5b.json")["990002"][0];
 
 const {
   getGachaTicketCost,
@@ -71,6 +74,13 @@ assert.strictEqual(
   getGachaTicketCost(GACHA_EXEC_TYPES.CONFIGURED_SINGLE_TICKET, 1, noTicketGacha),
   null,
 );
+
+assert.deepStrictEqual(
+  [raceServerGacha.onceTicketItemId, raceServerGacha.tenTicketItemId],
+  [999017, 999018],
+);
+assert.deepStrictEqual(raceCdnGacha.slice(27, 29), ["999017", "999018"]);
+assert.deepStrictEqual(raceCdnExtensionGacha.slice(27, 29), ["999017", "999018"]);
 
 const equipmentGacha = {
   type: 1,

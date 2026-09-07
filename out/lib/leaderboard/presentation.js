@@ -1,28 +1,29 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.buildLeaderboardTermsText = exports.buildUnavailableNativeLeaderboardPayload = exports.buildNativeLeaderboardPayload = exports.getLeaderboardPlayedPartiesSync = exports.getOfficialLeaderboardPageSync = exports.nativeRow = void 0;
+exports.buildLeaderboardTermsText = exports.buildUnavailableNativeLeaderboardPayload = exports.buildNativeLeaderboardPayload = exports.getLeaderboardPlayedPartiesSync = exports.getOfficialLeaderboardPageSync = exports.nativeRow = exports.toProfileTargetId = exports.fromProfileTargetId = exports.RUSH_PROFILE_ID_BASE = void 0;
 const content_master_1 = require("../content-master");
 const player_1 = require("../../data/domains/player");
+const follow_1 = require("../../data/domains/follow");
 const leaderboard_1 = require("../../data/domains/leaderboard");
 const rushEvent_1 = require("../../data/domains/rushEvent");
+const party_1 = require("../../data/domains/party");
 const stamina_1 = require("../stamina");
+const profileFavorite_1 = require("../profileFavorite");
 const competition_1 = require("./competition");
+const rewards_1 = require("./rewards");
 const settlement_1 = require("./settlement");
-function officialRow(record) {
-    return {
-        rank_number: record.rankNumber,
-        best_round: record.totalRounds,
-        elapsed_time_ms: record.clientBattleMs,
-        name: record.displayName,
-        party_member_list: record.characterIds.flatMap((characterId, slot) => {
-            var _a;
-            return characterId === null ? [] : [{
-                    character_id: characterId,
-                    evolution_img_level: (_a = record.evolutionImgLevels[slot]) !== null && _a !== void 0 ? _a : 0,
-                }];
-        }),
-        user_rank: (0, stamina_1.getRankDegree)(record.rankPoint),
-    };
+const availability_1 = require("./availability");
+const schedule_time_1 = require("./schedule-time");
+var profile_target_1 = require("../profile-target");
+Object.defineProperty(exports, "RUSH_PROFILE_ID_BASE", { enumerable: true, get: function () { return profile_target_1.RUSH_PROFILE_ID_BASE; } });
+Object.defineProperty(exports, "fromProfileTargetId", { enumerable: true, get: function () { return profile_target_1.fromProfileTargetId; } });
+Object.defineProperty(exports, "toProfileTargetId", { enumerable: true, get: function () { return profile_target_1.toProfileTargetId; } });
+function getRealProfileViewerId(playerId) {
+    var _a;
+    // The leaderboard stores a player archive id, but the client profile API
+    // requires the player's real viewer/session id. Never expose the archive
+    // id as a fake viewer id; rows without a live identity are not clickable.
+    return (_a = (0, follow_1.getViewerIdByPlayerIdSync)(playerId)) !== null && _a !== void 0 ? _a : 0;
 }
 function formatTime(ms) {
     const value = Math.max(0, Math.trunc(ms));
@@ -42,20 +43,57 @@ function thumbnailPath(characterId, evolutionLevel) {
     const level = Math.max(0, Math.min(1, Math.trunc(evolutionLevel !== null && evolutionLevel !== void 0 ? evolutionLevel : 0)));
     return `character/${codeName}/ui/thumb_party_unison_${level}`;
 }
-function nativeRow(record) {
+function displayedParty(record, favorite) {
+    var _a, _b, _c, _d;
+    const characterIds = [];
+    const evolutionImgLevels = [];
+    for (let slot = 0; slot < 3; slot++) {
+        const favoriteId = (_a = favorite === null || favorite === void 0 ? void 0 : favorite.characterIds[slot]) !== null && _a !== void 0 ? _a : null;
+        const favoriteLevel = (_b = favorite === null || favorite === void 0 ? void 0 : favorite.evolutionImgLevels[slot]) !== null && _b !== void 0 ? _b : null;
+        if (thumbnailPath(favoriteId, favoriteLevel) !== null) {
+            characterIds.push(favoriteId);
+            evolutionImgLevels.push(favoriteLevel);
+        }
+        else {
+            characterIds.push((_c = record.characterIds[slot]) !== null && _c !== void 0 ? _c : null);
+            evolutionImgLevels.push((_d = record.evolutionImgLevels[slot]) !== null && _d !== void 0 ? _d : null);
+        }
+    }
+    return { characterIds, evolutionImgLevels };
+}
+function officialRow(record, favorite) {
+    const party = displayedParty(record, favorite);
+    return {
+        rank_number: record.rankNumber,
+        clear_count: record.clearCount,
+        best_round: record.totalRounds,
+        elapsed_time_ms: record.clientBattleMs,
+        name: record.displayName,
+        party_member_list: party.characterIds.flatMap((characterId, slot) => {
+            var _a;
+            return characterId === null ? [] : [{
+                    character_id: characterId,
+                    evolution_img_level: (_a = party.evolutionImgLevels[slot]) !== null && _a !== void 0 ? _a : 0,
+                }];
+        }),
+        user_rank: (0, stamina_1.getRankDegree)(record.rankPoint),
+    };
+}
+function nativeRow(record, favorite) {
     var _a, _b, _c;
-    const paths = record.characterIds.map((id, slot) => { var _a; return thumbnailPath(id, (_a = record.evolutionImgLevels[slot]) !== null && _a !== void 0 ? _a : 0); });
+    const party = displayedParty(record, favorite);
+    const paths = party.characterIds.map((id, slot) => { var _a; return thumbnailPath(id, (_a = party.evolutionImgLevels[slot]) !== null && _a !== void 0 ? _a : 0); });
     return {
         rank: `${record.rankNumber}位`,
         visible: true,
         level: `RANK${(0, stamina_1.getRankDegree)(record.rankPoint)}`,
         name: record.displayName,
-        count: `BEST RECORD: ${record.totalRounds}战`,
+        count: `通关次数：${record.clearCount === null ? "未记录" : `${record.clearCount}次`}`,
         time: `TIME: ${formatTime(record.clientBattleMs)}`,
         a: (_a = paths[0]) !== null && _a !== void 0 ? _a : null,
         b: (_b = paths[1]) !== null && _b !== void 0 ? _b : null,
         c: (_c = paths[2]) !== null && _c !== void 0 ? _c : null,
-        id: record.playerId,
+        id: record.playerExists ? getRealProfileViewerId(record.playerId) : 0,
     };
 }
 exports.nativeRow = nativeRow;
@@ -68,17 +106,18 @@ function outOfRankRow(playerId) {
         visible: false,
         level: `RANK${(0, stamina_1.getRankDegree)(player.rankPoint)}`,
         name: player.name,
-        count: "BEST RECORD: 0战",
+        count: "通关次数：0次",
         time: "TIME: --:--.--",
         a: null,
         b: null,
         c: null,
-        id: playerId,
+        id: getRealProfileViewerId(playerId),
     };
 }
 function getOfficialLeaderboardPageSync(input) {
-    const season = getSeason(input.competition.key);
-    const total = (0, leaderboard_1.countLeaderboardRanksSync)(input.competition.key, season);
+    var _a;
+    const season = getDisplaySeason(input.competition.key, (_a = input.acceptingScores) !== null && _a !== void 0 ? _a : true);
+    const { total, filter } = (0, settlement_1.getLeaderboardSeasonRewardViewSync)(input.competition.key, season);
     const visibleTotal = Math.min(total, input.competition.displayLimit);
     const pageMax = Math.max(1, Math.ceil(visibleTotal / input.competition.pageSize));
     const requestedPage = Number.isFinite(input.page) ? Math.trunc(input.page) : 0;
@@ -87,20 +126,26 @@ function getOfficialLeaderboardPageSync(input) {
         competitionKey: input.competition.key,
         season,
         offset: page * input.competition.pageSize,
+        filter,
         limit: Math.min(input.competition.pageSize, Math.max(0, input.competition.displayLimit - page * input.competition.pageSize)),
     });
-    const mine = (0, leaderboard_1.getLeaderboardPlayerRankSync)(input.competition.key, season, input.playerId);
+    const mine = (0, leaderboard_1.getLeaderboardPlayerRankSync)(input.competition.key, season, input.playerId, filter);
+    const favorites = (0, party_1.getFirstPlayerPartyDisplaySelectionsSync)([
+        ...rows.map(record => record.playerId),
+        ...(mine === null ? [] : [mine.playerId]),
+    ], profileFavorite_1.PROFILE_FAVORITE_PARTY_CATEGORY);
     return {
         currentPage: page + 1,
         pageMax,
         total,
-        myData: mine === null ? null : officialRow(mine),
-        rows: rows.map(officialRow),
+        myData: mine === null ? null : officialRow(mine, favorites.get(mine.playerId)),
+        rows: rows.map(record => officialRow(record, favorites.get(record.playerId))),
     };
 }
 exports.getOfficialLeaderboardPageSync = getOfficialLeaderboardPageSync;
 function getLeaderboardPlayedPartiesSync(input) {
-    const season = getSeason(input.competition.key);
+    var _a;
+    const season = getDisplaySeason(input.competition.key, (_a = input.acceptingScores) !== null && _a !== void 0 ? _a : true);
     if (!Number.isInteger(input.rankNumber) || input.rankNumber < 1)
         return {};
     const [record] = (0, leaderboard_1.getLeaderboardRankPageSync)({
@@ -108,6 +153,7 @@ function getLeaderboardPlayedPartiesSync(input) {
         season,
         offset: input.rankNumber - 1,
         limit: 1,
+        filter: (0, settlement_1.getLeaderboardSeasonRewardViewSync)(input.competition.key, season).filter,
     });
     if (record === undefined)
         return {};
@@ -126,36 +172,57 @@ function getLeaderboardPlayedPartiesSync(input) {
     ]));
 }
 exports.getLeaderboardPlayedPartiesSync = getLeaderboardPlayedPartiesSync;
-function buildNativeLeaderboardPayload(competition, playerId) {
-    const season = getSeason(competition.key);
-    const total = (0, leaderboard_1.countLeaderboardRanksSync)(competition.key, season);
+function buildNativeLeaderboardPayload(competition, playerId, acceptingScores = true, nowMs = Date.now()) {
+    acceptingScores = (0, availability_1.isLeaderboardEnabledSync)(competition.key, nowMs) && acceptingScores;
+    const season = getDisplaySeason(competition.key, acceptingScores, nowMs);
+    const rewardView = (0, settlement_1.getLeaderboardSeasonRewardViewSync)(competition.key, season);
+    const { total, filter, settled } = rewardView;
+    const rewardPresentation = buildLeaderboardRewardPresentation(competition, rewardView);
     const records = (0, leaderboard_1.getLeaderboardRankPageSync)({
         competitionKey: competition.key,
         season,
         offset: 0,
         limit: competition.displayLimit,
+        filter,
     });
     const mine = playerId === null
         ? null
-        : (0, leaderboard_1.getLeaderboardPlayerRankSync)(competition.key, season, playerId);
+        : (0, leaderboard_1.getLeaderboardPlayerRankSync)(competition.key, season, playerId, filter);
+    const favorites = (0, party_1.getFirstPlayerPartyDisplaySelectionsSync)([
+        ...records.map(record => record.playerId),
+        ...(mine === null ? [] : [mine.playerId]),
+    ], profileFavorite_1.PROFILE_FAVORITE_PARTY_CATEGORY);
     const index = mine === null ? -1 : mine.rankNumber - 1;
     const visibleIndex = index >= 0 && index < records.length ? index : -1;
     return {
         enabled: true,
-        name: competition.displayName,
-        rows: records.map(nativeRow),
+        name: rewardPresentation.name,
+        rows: records.map(record => nativeRow(record, favorites.get(record.playerId))),
         item: mine === null
             ? (playerId === null ? null : outOfRankRow(playerId))
-            : nativeRow(mine),
+            : nativeRow(mine, favorites.get(mine.playerId)),
         page: visibleIndex < 0 ? 0 : Math.floor(visibleIndex / competition.pageSize),
         row: visibleIndex < 0 ? -1 : visibleIndex % competition.pageSize,
         index,
-        time: "实时更新",
+        time: buildLeaderboardScheduleText(competition.key, acceptingScores, settled),
         total,
-        reward: (0, settlement_1.getLeaderboardSettlementConfigSync)(competition.key).rewardTiers,
+        reward: rewardPresentation.rewardTiers,
     };
 }
 exports.buildNativeLeaderboardPayload = buildNativeLeaderboardPayload;
+function buildLeaderboardScheduleText(competitionKey, acceptingScores, settled) {
+    if (settled)
+        return "已结算";
+    if (!acceptingScores)
+        return "已冻结，待结算";
+    const config = (0, settlement_1.getLeaderboardSettlementConfigSync)(competitionKey);
+    if (config.settleAtMs === null)
+        return "实时更新";
+    if (!config.freezeEnabled && !config.autoEnabled)
+        return "未启用定时结算";
+    const beijing = (0, schedule_time_1.formatLeaderboardDeadlineInput)(config.settleAtMs).slice(5).replace("T", " ");
+    return `${config.autoEnabled ? "结算" : "截止"}：${beijing}`;
+}
 function buildUnavailableNativeLeaderboardPayload() {
     return {
         enabled: false,
@@ -174,8 +241,23 @@ exports.buildUnavailableNativeLeaderboardPayload = buildUnavailableNativeLeaderb
 function getSeason(competitionKey) {
     return (0, competition_1.getLeaderboardCompetitionSeasonSync)(competitionKey);
 }
-function buildLeaderboardTermsText(competition) {
-    const tiers = (0, settlement_1.getLeaderboardSettlementConfigSync)(competition.key).rewardTiers;
+function getDisplaySeason(competitionKey, acceptingScores, nowMs = Date.now()) {
+    const currentSeason = getSeason(competitionKey);
+    const current = (0, settlement_1.getLeaderboardSeasonRewardViewSync)(competitionKey, currentSeason);
+    if (acceptingScores || current.total > 0 || current.settled
+        || (0, availability_1.isLeaderboardDeadlineDueSync)(competitionKey, nowMs)) {
+        return currentSeason;
+    }
+    for (let season = currentSeason - 1; season >= 1; season--) {
+        if ((0, settlement_1.getLeaderboardSeasonRewardViewSync)(competitionKey, season).total > 0)
+            return season;
+    }
+    return currentSeason;
+}
+function buildLeaderboardTermsText(competition, acceptingScores = true) {
+    const season = getDisplaySeason(competition.key, acceptingScores);
+    const view = (0, settlement_1.getLeaderboardSeasonRewardViewSync)(competition.key, season);
+    const { name, rewardTiers: tiers } = buildLeaderboardRewardPresentation(competition, view);
     const lines = tiers.map(tier => {
         const range = tier.toRank === null
             ? `第${tier.fromRank}名起`
@@ -188,6 +270,19 @@ function buildLeaderboardTermsText(competition) {
         ].filter((value) => value !== null);
         return `<p><b>${range}</b>　${rewards.join(" + ")}</p>`;
     });
-    return `<h2>${competition.displayName} 排行报酬</h2>${lines.join("")}<p>排行榜按本期完整通关的 client_battle_ms 总和升序排列；每位玩家只保留最佳成绩。</p>`;
+    return `<h2>${name} 排行报酬</h2>${lines.join("")}<p>排行榜按本期完整通关的 client_battle_ms 总和升序排列；每位玩家只保留最佳成绩。</p>`;
 }
 exports.buildLeaderboardTermsText = buildLeaderboardTermsText;
+function buildLeaderboardRewardPresentation(competition, view) {
+    if (view.total === 0 && view.rewardRules.some(rewards_1.isPercentRewardTier)) {
+        // Existing clients construct the reward page from name + rank ranges.
+        // Keep the example confined to presentation: the real count, ranks,
+        // settlement tiers and saved results must remain empty for zero players.
+        const label = view.settled ? "本期无人获奖；按100人参榜预览" : "按100人参榜预览";
+        return {
+            name: `${competition.displayName}（${label}）`,
+            rewardTiers: (0, rewards_1.resolveLeaderboardRewardTiers)(view.rewardRules, 100),
+        };
+    }
+    return { name: competition.displayName, rewardTiers: view.rewardTiers };
+}

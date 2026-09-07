@@ -1,7 +1,7 @@
 // Updates an outdated wdfp_data database
 
 import { Database } from "better-sqlite3";
-import awakeRewards from "../../../assets/mission_char_awake_reward.json";
+import { characterAwakeRewards as awakeRewards } from "../../lib/mission/awake-master-assets";
 
 function parseDecimalSafeInteger(value: unknown): number | null {
     if (typeof value !== "string" || !/^[0-9]+$/.test(value)) return null

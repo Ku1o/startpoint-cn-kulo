@@ -1,0 +1,683 @@
+{
+  "schema": "abyss-weapon-token-cost/v1",
+  "patch_id": "abyss-weapon-token-cost-1.4.98",
+  "base_version": "1.4.97",
+  "target_version": "1.4.98",
+  "source_tail": "1.4.96",
+  "source_archive": "F:\\startpoint-cn-main\\assets\\asset-patch\\active\\pinball-1.4.95-1.4.96-1-greyupd0902-client-tables.zip",
+  "logical_path": "master/equipment_enhancement/equipment_enhancement_shop.orderedmap",
+  "abyss_token_id": 2370099,
+  "per_weapon_total": 2000,
+  "weapon_ids": [
+    8000101,
+    8000102,
+    8000103,
+    8000104,
+    8000105,
+    8000106,
+    8000107,
+    8000108,
+    8000109,
+    8000110,
+    8000111,
+    8000112,
+    8000113,
+    8000114,
+    8000115
+  ],
+  "stage_token_amounts": {
+    "1": 16,
+    "2": 42,
+    "3": 16,
+    "4": 43,
+    "5": 16,
+    "6": 43
+  },
+  "rows_changed": 90,
+  "rows_total": 311,
+  "changes": [
+    {
+      "key": "8100001",
+      "equipment_id": 8000101,
+      "stage": 1,
+      "old": "30",
+      "new": "16"
+    },
+    {
+      "key": "8100002",
+      "equipment_id": 8000101,
+      "stage": 2,
+      "old": "75",
+      "new": "42"
+    },
+    {
+      "key": "8100003",
+      "equipment_id": 8000101,
+      "stage": 3,
+      "old": "30",
+      "new": "16"
+    },
+    {
+      "key": "8100004",
+      "equipment_id": 8000101,
+      "stage": 4,
+      "old": "75",
+      "new": "43"
+    },
+    {
+      "key": "8100005",
+      "equipment_id": 8000101,
+      "stage": 5,
+      "old": "30",
+      "new": "16"
+    },
+    {
+      "key": "8100006",
+      "equipment_id": 8000101,
+      "stage": 6,
+      "old": "75",
+      "new": "43"
+    },
+    {
+      "key": "8100007",
+      "equipment_id": 8000102,
+      "stage": 1,
+      "old": "30",
+      "new": "16"
+    },
+    {
+      "key": "8100008",
+      "equipment_id": 8000102,
+      "stage": 2,
+      "old": "75",
+      "new": "42"
+    },
+    {
+      "key": "8100009",
+      "equipment_id": 8000102,
+      "stage": 3,
+      "old": "30",
+      "new": "16"
+    },
+    {
+      "key": "8100010",
+      "equipment_id": 8000102,
+      "stage": 4,
+      "old": "75",
+      "new": "43"
+    },
+    {
+      "key": "8100011",
+      "equipment_id": 8000102,
+      "stage": 5,
+      "old": "30",
+      "new": "16"
+    },
+    {
+      "key": "8100012",
+      "equipment_id": 8000102,
+      "stage": 6,
+      "old": "75",
+      "new": "43"
+    },
+    {
+      "key": "8100013",
+      "equipment_id": 8000103,
+      "stage": 1,
+      "old": "30",
+      "new": "16"
+    },
+    {
+      "key": "8100014",
+      "equipment_id": 8000103,
+      "stage": 2,
+      "old": "75",
+      "new": "42"
+    },
+    {
+      "key": "8100015",
+      "equipment_id": 8000103,
+      "stage": 3,
+      "old": "30",
+      "new": "16"
+    },
+    {
+      "key": "8100016",
+      "equipment_id": 8000103,
+      "stage": 4,
+      "old": "75",
+      "new": "43"
+    },
+    {
+      "key": "8100017",
+      "equipment_id": 8000103,
+      "stage": 5,
+      "old": "30",
+      "new": "16"
+    },
+    {
+      "key": "8100018",
+      "equipment_id": 8000103,
+      "stage": 6,
+      "old": "75",
+      "new": "43"
+    },
+    {
+      "key": "8100019",
+      "equipment_id": 8000104,
+      "stage": 1,
+      "old": "30",
+      "new": "16"
+    },
+    {
+      "key": "8100020",
+      "equipment_id": 8000104,
+      "stage": 2,
+      "old": "75",
+      "new": "42"
+    },
+    {
+      "key": "8100021",
+      "equipment_id": 8000104,
+      "stage": 3,
+      "old": "30",
+      "new": "16"
+    },
+    {
+      "key": "8100022",
+      "equipment_id": 8000104,
+      "stage": 4,
+      "old": "75",
+      "new": "43"
+    },
+    {
+      "key": "8100023",
+      "equipment_id": 8000104,
+      "stage": 5,
+      "old": "30",
+      "new": "16"
+    },
+    {
+      "key": "8100024",
+      "equipment_id": 8000104,
+      "stage": 6,
+      "old": "75",
+      "new": "43"
+    },
+    {
+      "key": "8100025",
+      "equipment_id": 8000105,
+      "stage": 1,
+      "old": "30",
+      "new": "16"
+    },
+    {
+      "key": "8100026",
+      "equipment_id": 8000105,
+      "stage": 2,
+      "old": "75",
+      "new": "42"
+    },
+    {
+      "key": "8100027",
+      "equipment_id": 8000105,
+      "stage": 3,
+      "old": "30",
+      "new": "16"
+    },
+    {
+      "key": "8100028",
+      "equipment_id": 8000105,
+      "stage": 4,
+      "old": "75",
+      "new": "43"
+    },
+    {
+      "key": "8100029",
+      "equipment_id": 8000105,
+      "stage": 5,
+      "old": "30",
+      "new": "16"
+    },
+    {
+      "key": "8100030",
+      "equipment_id": 8000105,
+      "stage": 6,
+      "old": "75",
+      "new": "43"
+    },
+    {
+      "key": "8100031",
+      "equipment_id": 8000106,
+      "stage": 1,
+      "old": "30",
+      "new": "16"
+    },
+    {
+      "key": "8100032",
+      "equipment_id": 8000106,
+      "stage": 2,
+      "old": "75",
+      "new": "42"
+    },
+    {
+      "key": "8100033",
+      "equipment_id": 8000106,
+      "stage": 3,
+      "old": "30",
+      "new": "16"
+    },
+    {
+      "key": "8100034",
+      "equipment_id": 8000106,
+      "stage": 4,
+      "old": "75",
+      "new": "43"
+    },
+    {
+      "key": "8100035",
+      "equipment_id": 8000106,
+      "stage": 5,
+      "old": "30",
+      "new": "16"
+    },
+    {
+      "key": "8100036",
+      "equipment_id": 8000106,
+      "stage": 6,
+      "old": "75",
+      "new": "43"
+    },
+    {
+      "key": "8100037",
+      "equipment_id": 8000107,
+      "stage": 1,
+      "old": "30",
+      "new": "16"
+    },
+    {
+      "key": "8100038",
+      "equipment_id": 8000107,
+      "stage": 2,
+      "old": "75",
+      "new": "42"
+    },
+    {
+      "key": "8100039",
+      "equipment_id": 8000107,
+      "stage": 3,
+      "old": "30",
+      "new": "16"
+    },
+    {
+      "key": "8100040",
+      "equipment_id": 8000107,
+      "stage": 4,
+      "old": "75",
+      "new": "43"
+    },
+    {
+      "key": "8100041",
+      "equipment_id": 8000107,
+      "stage": 5,
+      "old": "30",
+      "new": "16"
+    },
+    {
+      "key": "8100042",
+      "equipment_id": 8000107,
+      "stage": 6,
+      "old": "75",
+      "new": "43"
+    },
+    {
+      "key": "8100043",
+      "equipment_id": 8000108,
+      "stage": 1,
+      "old": "30",
+      "new": "16"
+    },
+    {
+      "key": "8100044",
+      "equipment_id": 8000108,
+      "stage": 2,
+      "old": "75",
+      "new": "42"
+    },
+    {
+      "key": "8100045",
+      "equipment_id": 8000108,
+      "stage": 3,
+      "old": "30",
+      "new": "16"
+    },
+    {
+      "key": "8100046",
+      "equipment_id": 8000108,
+      "stage": 4,
+      "old": "75",
+      "new": "43"
+    },
+    {
+      "key": "8100047",
+      "equipment_id": 8000108,
+      "stage": 5,
+      "old": "30",
+      "new": "16"
+    },
+    {
+      "key": "8100048",
+      "equipment_id": 8000108,
+      "stage": 6,
+      "old": "75",
+      "new": "43"
+    },
+    {
+      "key": "8100049",
+      "equipment_id": 8000109,
+      "stage": 1,
+      "old": "30",
+      "new": "16"
+    },
+    {
+      "key": "8100050",
+      "equipment_id": 8000109,
+      "stage": 2,
+      "old": "75",
+      "new": "42"
+    },
+    {
+      "key": "8100051",
+      "equipment_id": 8000109,
+      "stage": 3,
+      "old": "30",
+      "new": "16"
+    },
+    {
+      "key": "8100052",
+      "equipment_id": 8000109,
+      "stage": 4,
+      "old": "75",
+      "new": "43"
+    },
+    {
+      "key": "8100053",
+      "equipment_id": 8000109,
+      "stage": 5,
+      "old": "30",
+      "new": "16"
+    },
+    {
+      "key": "8100054",
+      "equipment_id": 8000109,
+      "stage": 6,
+      "old": "75",
+      "new": "43"
+    },
+    {
+      "key": "8100055",
+      "equipment_id": 8000110,
+      "stage": 1,
+      "old": "30",
+      "new": "16"
+    },
+    {
+      "key": "8100056",
+      "equipment_id": 8000110,
+      "stage": 2,
+      "old": "75",
+      "new": "42"
+    },
+    {
+      "key": "8100057",
+      "equipment_id": 8000110,
+      "stage": 3,
+      "old": "30",
+      "new": "16"
+    },
+    {
+      "key": "8100058",
+      "equipment_id": 8000110,
+      "stage": 4,
+      "old": "75",
+      "new": "43"
+    },
+    {
+      "key": "8100059",
+      "equipment_id": 8000110,
+      "stage": 5,
+      "old": "30",
+      "new": "16"
+    },
+    {
+      "key": "8100060",
+      "equipment_id": 8000110,
+      "stage": 6,
+      "old": "75",
+      "new": "43"
+    },
+    {
+      "key": "8100061",
+      "equipment_id": 8000111,
+      "stage": 1,
+      "old": "30",
+      "new": "16"
+    },
+    {
+      "key": "8100062",
+      "equipment_id": 8000111,
+      "stage": 2,
+      "old": "75",
+      "new": "42"
+    },
+    {
+      "key": "8100063",
+      "equipment_id": 8000111,
+      "stage": 3,
+      "old": "30",
+      "new": "16"
+    },
+    {
+      "key": "8100064",
+      "equipment_id": 8000111,
+      "stage": 4,
+      "old": "75",
+      "new": "43"
+    },
+    {
+      "key": "8100065",
+      "equipment_id": 8000111,
+      "stage": 5,
+      "old": "30",
+      "new": "16"
+    },
+    {
+      "key": "8100066",
+      "equipment_id": 8000111,
+      "stage": 6,
+      "old": "75",
+      "new": "43"
+    },
+    {
+      "key": "8100067",
+      "equipment_id": 8000112,
+      "stage": 1,
+      "old": "30",
+      "new": "16"
+    },
+    {
+      "key": "8100068",
+      "equipment_id": 8000112,
+      "stage": 2,
+      "old": "75",
+      "new": "42"
+    },
+    {
+      "key": "8100069",
+      "equipment_id": 8000112,
+      "stage": 3,
+      "old": "30",
+      "new": "16"
+    },
+    {
+      "key": "8100070",
+      "equipment_id": 8000112,
+      "stage": 4,
+      "old": "75",
+      "new": "43"
+    },
+    {
+      "key": "8100071",
+      "equipment_id": 8000112,
+      "stage": 5,
+      "old": "30",
+      "new": "16"
+    },
+    {
+      "key": "8100072",
+      "equipment_id": 8000112,
+      "stage": 6,
+      "old": "75",
+      "new": "43"
+    },
+    {
+      "key": "8100073",
+      "equipment_id": 8000113,
+      "stage": 1,
+      "old": "30",
+      "new": "16"
+    },
+    {
+      "key": "8100074",
+      "equipment_id": 8000113,
+      "stage": 2,
+      "old": "75",
+      "new": "42"
+    },
+    {
+      "key": "8100075",
+      "equipment_id": 8000113,
+      "stage": 3,
+      "old": "30",
+      "new": "16"
+    },
+    {
+      "key": "8100076",
+      "equipment_id": 8000113,
+      "stage": 4,
+      "old": "75",
+      "new": "43"
+    },
+    {
+      "key": "8100077",
+      "equipment_id": 8000113,
+      "stage": 5,
+      "old": "30",
+      "new": "16"
+    },
+    {
+      "key": "8100078",
+      "equipment_id": 8000113,
+      "stage": 6,
+      "old": "75",
+      "new": "43"
+    },
+    {
+      "key": "8100079",
+      "equipment_id": 8000114,
+      "stage": 1,
+      "old": "30",
+      "new": "16"
+    },
+    {
+      "key": "8100080",
+      "equipment_id": 8000114,
+      "stage": 2,
+      "old": "75",
+      "new": "42"
+    },
+    {
+      "key": "8100081",
+      "equipment_id": 8000114,
+      "stage": 3,
+      "old": "30",
+      "new": "16"
+    },
+    {
+      "key": "8100082",
+      "equipment_id": 8000114,
+      "stage": 4,
+      "old": "75",
+      "new": "43"
+    },
+    {
+      "key": "8100083",
+      "equipment_id": 8000114,
+      "stage": 5,
+      "old": "30",
+      "new": "16"
+    },
+    {
+      "key": "8100084",
+      "equipment_id": 8000114,
+      "stage": 6,
+      "old": "75",
+      "new": "43"
+    },
+    {
+      "key": "8100085",
+      "equipment_id": 8000115,
+      "stage": 1,
+      "old": "30",
+      "new": "16"
+    },
+    {
+      "key": "8100086",
+      "equipment_id": 8000115,
+      "stage": 2,
+      "old": "75",
+      "new": "42"
+    },
+    {
+      "key": "8100087",
+      "equipment_id": 8000115,
+      "stage": 3,
+      "old": "30",
+      "new": "16"
+    },
+    {
+      "key": "8100088",
+      "equipment_id": 8000115,
+      "stage": 4,
+      "old": "75",
+      "new": "43"
+    },
+    {
+      "key": "8100089",
+      "equipment_id": 8000115,
+      "stage": 5,
+      "old": "30",
+      "new": "16"
+    },
+    {
+      "key": "8100090",
+      "equipment_id": 8000115,
+      "stage": 6,
+      "old": "75",
+      "new": "43"
+    }
+  ],
+  "archive": {
+    "name": "pinball-1.4.97-1.4.98-1-abyss-token-cost-2000.zip",
+    "size": 15354,
+    "sha256": "ba882aa7a2c6148387420442ab4ed199fb792a4182c22f178da60f70b45e448f",
+    "members": 1,
+    "member": "production/upload/e3/ef959b85852427577252f1651c3a93a8d2dc1e"
+  },
+  "verification": {
+    "archive_crc_ok": true,
+    "untouched_rows_preserved": true,
+    "all_15_weapons_exactly_2000": true,
+    "client_server_costs_aligned": true
+  }
+}

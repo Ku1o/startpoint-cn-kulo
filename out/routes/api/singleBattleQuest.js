@@ -41,6 +41,7 @@ const raid_handler_1 = require("../../lib/quest/finish/raid-handler");
 const quest_calc_1 = require("../../lib/quest/finish/quest-calc");
 const session_validator_1 = require("../../lib/quest/finish/session-validator");
 const active_quest_resolver_1 = require("../../lib/quest/finish/active-quest-resolver");
+const abyss_time_revision_1 = require("../../lib/abyss-time-revision");
 const challenge_point_1 = require("../../lib/quest/finish/challenge-point");
 const score_attack_handler_1 = require("../../lib/quest/finish/score-attack-handler");
 const mission_1 = require("../../lib/mission");
@@ -62,6 +63,7 @@ const gauntlet_completion_classification_1 = require("../../lib/gauntlet-complet
 const finish_response_cache_1 = require("../../lib/finish-response-cache");
 const practice_battle_history_2 = require("../../lib/quest/practice-battle-history");
 const mana_1 = require("../../lib/mana");
+const recommended_party_history_1 = require("../../lib/quest/recommended-party-history");
 // Load carnival quest score data
 let carnivalScoreLookup = {};
 try {
@@ -79,7 +81,9 @@ exports.activeQuests = {};
 function insertActiveQuest(playerId, quest) {
     var _a, _b, _c, _d, _e;
     const startedAtMs = (_a = quest.startedAtMs) !== null && _a !== void 0 ? _a : (0, utils_1.getServerTime)() * 1000;
-    exports.activeQuests[playerId] = Object.assign(Object.assign({}, quest), { startedAtMs });
+    const questTimeRevision = (0, abyss_time_revision_1.isAbyssFiniteQuest)(quest.category, quest.questId)
+        ? (0, abyss_time_revision_1.getAbyssTimeRevision)() : null;
+    exports.activeQuests[playerId] = Object.assign(Object.assign({}, quest), { startedAtMs, questTimeRevision });
     // Persist to DB for battle recovery across server restarts
     (0, quest_active_1.insertPlayerActiveQuestSync)(playerId, {
         playerId,
@@ -96,6 +100,7 @@ function insertActiveQuest(playerId, quest) {
         eventId: (_e = quest.eventId) !== null && _e !== void 0 ? _e : null,
         continueCount: quest.continueCount,
         startedAtMs,
+        questTimeRevision,
     });
 }
 exports.insertActiveQuest = insertActiveQuest;
@@ -138,6 +143,21 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         }
         const questCategory = activeQuestData.category;
         const questId = activeQuestData.questId;
+        if ((resolvedActiveQuest === null || resolvedActiveQuest === void 0 ? void 0 : resolvedActiveQuest.source) === "rebuilt" && (0, abyss_time_revision_1.isAbyssFiniteQuest)(questCategory, questId)) {
+            // Preserve the patched client's no-/start recovery, but never
+            // assume a missing registration belongs to the newly published tower.
+            activeQuestData.questTimeRevision = (0, abyss_time_revision_1.getAbyssTimeRevisionAtVersion)(request.headers.res_ver);
+        }
+        // A restored/late finish from the old tower cannot seed the new record.
+        if ((0, abyss_time_revision_1.isStaleAbyssBattle)(activeQuestData) || (0, abyss_time_revision_1.isStaleAbyssClient)(questCategory, questId, request.headers.res_ver)) {
+            (0, quest_active_1.deletePlayerActiveQuestSync)(playerId);
+            delete exports.activeQuests[playerId];
+            reply.header("content-type", "application/x-msgpack");
+            return reply.status(200).send({
+                data_headers: (0, utils_1.generateDataHeaders)({ viewer_id: viewerId, asset_update: true, result_code: 4050 }),
+                data: {},
+            });
+        }
         (0, game_logging_1.gameVerboseLog)(() => `[FINISH] active: category=${questCategory} questId=${questId}`);
         const questData = (0, assets_1.getQuestFromCategorySync)(questCategory, questId);
         if (questData === null || !('rankPointReward' in questData)) {
@@ -344,6 +364,9 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 questCategory,
                 questId, accomplished: questAccomplished, mode: "single", clearRank, clearTimeMs: clearTime, score: Number(body.score) || 0 }, singleBattleParty), { statistics: (0, mission_1.summarizeBattleStatistics)(finishCtx.statistics) }));
             const missionBattleFacts = (0, battle_facts_1.recordMissionBattleFacts)(finishCtx, missionEvaluationTime);
+            if (questData.fixedParty === undefined) {
+                (0, recommended_party_history_1.recordQuestRecommendedPartySafe)(finishCtx);
+            }
             const steamRobotMissionId = (0, steam_robot_challenge_1.trackSteamRobotChallengeMission)({
                 playerId,
                 questCategory,
@@ -733,6 +756,13 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 "error": "Bad Request", "message": "Invalid viewer id."
             });
         const { playerId, playerData: player } = sessionResult;
+        if ((0, abyss_time_revision_1.isStaleAbyssClient)(category, questId, request.headers.res_ver)) {
+            reply.header("content-type", "application/x-msgpack");
+            return reply.status(200).send({
+                data_headers: (0, utils_1.generateDataHeaders)({ viewer_id: viewerId, asset_update: true, result_code: 4050 }),
+                data: {},
+            });
+        }
         if (!(0, mode15_optional_1.isMode15Quest)(category, questId)) {
             // Carnival quests use their own saved party category.  Looking up
             // NORMAL here allowed Mode15-exclusive equipment in Carnival even

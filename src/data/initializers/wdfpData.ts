@@ -184,6 +184,21 @@ export default function init(
         FOREIGN KEY (account_id) REFERENCES accounts (id) ON DELETE CASCADE
     )`).run()
 
+    // Account-scoped announcement receipts power both the unread indicator
+    // and the "once per announcement" login popup policy. Announcement rows
+    // live in assets/news.json, so news_id intentionally has no foreign key.
+    database.prepare(`CREATE TABLE IF NOT EXISTS account_news_receipts (
+        account_id INTEGER NOT NULL,
+        news_id INTEGER NOT NULL,
+        receipt_kind TEXT NOT NULL CHECK (receipt_kind IN ('list', 'popup')),
+        seen_at INTEGER NOT NULL,
+        PRIMARY KEY (account_id, news_id, receipt_kind),
+        FOREIGN KEY (account_id) REFERENCES accounts (id) ON DELETE CASCADE
+    )`).run()
+    database.prepare(`CREATE INDEX IF NOT EXISTS idx_account_news_receipts_news
+        ON account_news_receipts (news_id, receipt_kind)
+    `).run()
+
     // create players table
     database.prepare(`CREATE TABLE IF NOT EXISTS players (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -528,6 +543,37 @@ export default function init(
         FOREIGN KEY (player_id) REFERENCES players (id) ON DELETE CASCADE
     )`).run();
 
+    database.prepare(`CREATE TABLE IF NOT EXISTS daily_vmoney_mail_config (
+        id INTEGER PRIMARY KEY CHECK (id = 1),
+        enabled INTEGER NOT NULL DEFAULT 0,
+        amount INTEGER NOT NULL DEFAULT 150000,
+        send_hour INTEGER NOT NULL DEFAULT 5,
+        send_minute INTEGER NOT NULL DEFAULT 0,
+        subject TEXT NOT NULL DEFAULT '每日千抽',
+        description TEXT NOT NULL DEFAULT '每日星导石奖励，请查收。',
+        updated_at_ms INTEGER NOT NULL DEFAULT 0
+    )`).run();
+
+    database.prepare(`CREATE TABLE IF NOT EXISTS daily_vmoney_mail_runs (
+        bucket TEXT PRIMARY KEY,
+        scheduled_at_ms INTEGER NOT NULL,
+        executed_at_ms INTEGER NOT NULL,
+        source TEXT NOT NULL,
+        amount INTEGER NOT NULL,
+        subject TEXT NOT NULL,
+        description TEXT NOT NULL,
+        sent_count INTEGER NOT NULL DEFAULT 0
+    )`).run();
+
+    database.prepare(`CREATE TABLE IF NOT EXISTS daily_vmoney_mail_grants (
+        bucket TEXT NOT NULL,
+        player_id INTEGER NOT NULL,
+        mail_id INTEGER NOT NULL,
+        created_at_ms INTEGER NOT NULL,
+        PRIMARY KEY (bucket, player_id),
+        FOREIGN KEY (player_id) REFERENCES players (id) ON DELETE CASCADE
+    )`).run();
+
     database.prepare(`CREATE TABLE IF NOT EXISTS players_receive_history (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         player_id INTEGER NOT NULL,
@@ -694,14 +740,17 @@ export default function init(
         FOREIGN KEY (group_id, player_id, category) REFERENCES players_party_groups (id, player_id, category) ON DELETE CASCADE,
         FOREIGN KEY (player_id) REFERENCES players (id) ON DELETE CASCADE
     )`).run();
+    database.prepare(`CREATE INDEX IF NOT EXISTS idx_players_parties_player_category_order
+        ON players_parties (player_id, category, group_id, slot)
+    `).run();
 
     // migration: add current_battle_power and before_battle_power to existing tables
     try { database.prepare(`ALTER TABLE players_parties ADD COLUMN current_battle_power INTEGER NOT NULL DEFAULT 0`).run(); } catch { /* column already exists */ }
     try { database.prepare(`ALTER TABLE players_parties ADD COLUMN before_battle_power INTEGER NOT NULL DEFAULT 0`).run(); } catch { /* column already exists */ }
 
-    // Historical successful-clear parties used by multiplayer COM/AI mates.
-    // The payload is a complete battle-party snapshot captured at clear time,
-    // so later edits to the player's live party do not mutate old AI records.
+    // Historical successful-clear parties used by quest recommendations. The
+    // payload is frozen at clear time, so later party edits cannot rewrite an
+    // old recommendation. Multiplayer COM snapshots use a separate worker DB.
     database.prepare(`CREATE TABLE IF NOT EXISTS quest_npc_party_pool (
         quest_category INTEGER NOT NULL,
         quest_id INTEGER NOT NULL,
@@ -1219,12 +1268,25 @@ export default function init(
     database.prepare(`CREATE TABLE IF NOT EXISTS leaderboard_settlement_configs (
         competition_key TEXT PRIMARY KEY,
         auto_enabled INTEGER NOT NULL DEFAULT 0,
+        freeze_enabled INTEGER NOT NULL DEFAULT 0 CHECK (freeze_enabled IN (0, 1)),
         settle_at_ms INTEGER,
         repeat_interval_ms INTEGER,
         reward_tiers_json TEXT NOT NULL,
         mail_subject TEXT NOT NULL,
         mail_body TEXT NOT NULL,
         exclude_bots INTEGER NOT NULL DEFAULT 1,
+        updated_at_ms INTEGER NOT NULL
+    )`).run()
+
+    if (ensureSchemaColumn(database, "leaderboard_settlement_configs.freeze_enabled")) {
+        // Preserve old automatic schedules; a disabled schedule stays disabled.
+        database.prepare(`UPDATE leaderboard_settlement_configs
+            SET freeze_enabled = CASE WHEN auto_enabled <> 0 THEN 1 ELSE 0 END`).run()
+    }
+
+    database.prepare(`CREATE TABLE IF NOT EXISTS leaderboard_availability (
+        competition_key TEXT PRIMARY KEY,
+        enabled INTEGER NOT NULL DEFAULT 1 CHECK (enabled IN (0, 1)),
         updated_at_ms INTEGER NOT NULL
     )`).run()
 
@@ -1253,9 +1315,11 @@ export default function init(
         degree_id INTEGER,
         skip_reason TEXT,
         mail_ids_json TEXT NOT NULL DEFAULT '[]',
+        clear_count INTEGER CHECK (clear_count >= 1),
         PRIMARY KEY (settlement_id, rank_number),
         FOREIGN KEY (settlement_id) REFERENCES leaderboard_settlements (id) ON DELETE CASCADE
     )`).run()
+    ensureSchemaColumn(database, "leaderboard_settlement_results.clear_count")
     database.prepare(`CREATE INDEX IF NOT EXISTS idx_leaderboard_settlements_key_season
         ON leaderboard_settlements (competition_key, season DESC)`).run()
 
@@ -1273,6 +1337,8 @@ export default function init(
     // any later table initialization.
     database.prepare(`CREATE INDEX IF NOT EXISTS idx_players_mails_player_receive_id
         ON players_mails (player_id, receive_time, id DESC)`).run();
+    database.prepare(`CREATE INDEX IF NOT EXISTS idx_daily_vmoney_mail_grants_player_bucket
+        ON daily_vmoney_mail_grants (player_id, bucket)`).run();
     database.prepare(`CREATE INDEX IF NOT EXISTS idx_players_receive_history_player_created
         ON players_receive_history (player_id, create_time DESC, id DESC)`).run();
 }

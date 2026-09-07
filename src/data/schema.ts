@@ -1,6 +1,16 @@
 import type { Database } from "better-sqlite3";
 
 const schemaColumns = {
+    "leaderboard_settlement_results.clear_count": {
+        table: "leaderboard_settlement_results",
+        column: "clear_count",
+        definition: "INTEGER CHECK (clear_count >= 1)",
+    },
+    "leaderboard_settlement_configs.freeze_enabled": {
+        table: "leaderboard_settlement_configs",
+        column: "freeze_enabled",
+        definition: "INTEGER NOT NULL DEFAULT 0 CHECK (freeze_enabled IN (0, 1))",
+    },
     "players.tutorial_gacha_character_id": {
         table: "players",
         column: "tutorial_gacha_character_id",

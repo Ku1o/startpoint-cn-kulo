@@ -37,22 +37,30 @@
   "protected_prefixes": {
     "master/ability/ability.orderedmap": [
       "151015", "151021", "151027", "151045", "251017", "251053",
+      "151159", "261089", "131020",
       "129999", "139999", "149998", "149999", "169998"
     ],
     "master/ability/leader_ability.orderedmap": [
       "151015", "151021", "151027", "151045", "251017", "251053",
+      "151159", "261089", "131020",
       "129999", "139999", "149998", "149999", "169998"
     ],
     "master/skill/action_skill.orderedmap": [
+      "resistance_princess_smr21", "lightbullet_wiz_vt21", "wind_oracle_1anv",
+      "hoshikawa_ririi", "resistance_princess", "desert_priest",
+      "golden_dragon_jr", "darkness_dragon", "rec_android_1anv",
       "129999", "139999", "149998", "149999", "169998"
     ],
     "master/character/character.orderedmap": [
+      "261089",
       "129999", "139999", "149998", "149999", "169998"
     ],
     "master/character/character_status.orderedmap": [
+      "261089",
       "129999", "139999", "149998", "149999", "169998"
     ],
     "master/character/character_text.orderedmap": [
+      "261089",
       "129999", "139999", "149998", "149999", "169998"
     ],
     "master/ability/ability_soul.orderedmap": [

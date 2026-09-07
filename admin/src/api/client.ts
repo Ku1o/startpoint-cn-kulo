@@ -29,6 +29,14 @@ export function apiPost<T>(url: string, body?: unknown): Promise<T> {
     }).then(r => handle<T>(r))
 }
 
+export function apiPut<T>(url: string, body?: unknown): Promise<T> {
+    return fetch(url, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: body === undefined ? undefined : JSON.stringify(body)
+    }).then(r => handle<T>(r))
+}
+
 export function apiPatch<T>(url: string, body?: unknown): Promise<T> {
     return fetch(url, {
         method: "PATCH",

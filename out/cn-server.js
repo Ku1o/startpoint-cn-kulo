@@ -88,6 +88,7 @@ const db_1 = require("./data/db");
 const receive_history_retention_1 = require("./lib/receive-history-retention");
 const cn_load_http_compression_1 = require("./lib/cn-load-http-compression");
 const settlement_1 = require("./lib/leaderboard/settlement");
+const daily_vmoney_mail_1 = require("./lib/daily-vmoney-mail");
 const fastify = (0, fastify_1.default)({
     logger: {
         // Default remains compatible with the existing development behavior.
@@ -713,7 +714,9 @@ const host = (_a = process.env.CN_LISTEN_HOST) !== null && _a !== void 0 ? _a : 
 const port = parseInt((_b = process.env.CN_LISTEN_PORT) !== null && _b !== void 0 ? _b : "8001");
 const receiveHistoryRetention = (0, receive_history_retention_1.createReceiveHistoryRetentionService)((0, db_1.getDb)());
 const leaderboardSettlementScheduler = (0, settlement_1.createLeaderboardSettlementScheduler)();
+const dailyVmoneyMailScheduler = (0, daily_vmoney_mail_1.createDailyVmoneyMailScheduler)((0, db_1.getDb)());
 fastify.addHook("onClose", () => __awaiter(void 0, void 0, void 0, function* () {
+    dailyVmoneyMailScheduler.stop();
     leaderboardSettlementScheduler.stop();
     yield receiveHistoryRetention.stop();
     yield (0, player_party_pool_1.stopQuestNpcPartyPoolWorker)();
@@ -727,6 +730,7 @@ fastify.listen({ port, host }, (err, address) => {
     console.log(`CN StarPoint listening on http://${host}:${port}`);
     receiveHistoryRetention.start();
     leaderboardSettlementScheduler.start();
+    dailyVmoneyMailScheduler.start();
     // Start multi battle TCP session server
     (0, multi_2.startSessionServer)();
 });

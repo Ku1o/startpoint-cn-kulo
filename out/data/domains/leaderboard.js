@@ -167,18 +167,53 @@ function finishLeaderboardRoundSync(input) {
     })();
 }
 exports.finishLeaderboardRoundSync = finishLeaderboardRoundSync;
-function rankCte() {
+// Reuse the ranking eligibility rules for live counts and legacy snapshots.
+const ELIGIBLE_RUN_CONDITION = `r.status = 'completed' AND r.tracked_from_round = 1
+    AND r.rounds_cleared = r.total_rounds AND r.client_battle_ms > 0
+    AND (SELECT COUNT(*) FROM leaderboard_run_rounds rr WHERE rr.run_id = r.id)
+        = r.total_rounds`;
+function rankCte(filter = {}) {
+    const snapshotColumns = {
+        id: "result.run_id", competition_key: "settlement.competition_key",
+        player_id: "result.player_id", player_name: "result.player_name",
+        season: "settlement.season", status: "'completed'",
+        client_battle_ms: "result.client_battle_ms",
+        started_at_ms: "COALESCE(r.started_at_ms, 0)",
+        rounds_cleared: "COALESCE(r.rounds_cleared, 0)",
+        total_rounds: "COALESCE(r.total_rounds, 0)",
+        tracked_from_round: "COALESCE(r.tracked_from_round, 1)",
+    };
+    // Results survive player deletion even when their run is cascade-deleted.
+    if (filter.settled)
+        return `WITH ranked AS (
+        SELECT ${RUN_COLUMNS.split(",").map(column => column.trim()).map(column => { var _a; return `${(_a = snapshotColumns[column]) !== null && _a !== void 0 ? _a : `r.${column}`} AS ${column}`; }).join(", ")}, result.rank_number,
+            COALESCE(result.clear_count, (
+                SELECT NULLIF(COUNT(*), 0) FROM leaderboard_runs r
+                WHERE r.competition_key = settlement.competition_key
+                    AND r.season = settlement.season AND r.player_id = result.player_id
+                    AND r.finished_at_ms <= settlement.settled_at_ms
+                    AND ${ELIGIBLE_RUN_CONDITION}
+            )) AS clear_count
+        FROM leaderboard_settlement_results result
+        JOIN leaderboard_settlements settlement ON settlement.id = result.settlement_id
+        LEFT JOIN leaderboard_runs r ON r.id = result.run_id
+        WHERE settlement.competition_key = ? AND settlement.season = ?
+            AND settlement.status = 'completed'
+    )`;
     return `WITH eligible AS (
-        SELECT r.*, ROW_NUMBER() OVER (
+        SELECT r.*, COUNT(*) OVER (PARTITION BY r.player_id) AS clear_count,
+        ROW_NUMBER() OVER (
             PARTITION BY r.player_id
             ORDER BY r.client_battle_ms ASC, r.finished_at_ms ASC, r.id ASC
         ) AS player_record_number
         FROM leaderboard_runs r
         WHERE r.competition_key = ? AND r.season = ?
-            AND r.status = 'completed' AND r.tracked_from_round = 1
-            AND r.rounds_cleared = r.total_rounds AND r.client_battle_ms > 0
-            AND (SELECT COUNT(*) FROM leaderboard_run_rounds rr WHERE rr.run_id = r.id)
-                = r.total_rounds
+            ${filter.excludeDeleted ? "AND EXISTS (SELECT 1 FROM players p WHERE p.id = r.player_id)" : ""}
+            ${filter.excludeBots ? `AND NOT EXISTS (
+                SELECT 1 FROM players p JOIN accounts a ON a.id = p.account_id
+                WHERE p.id = r.player_id AND a.idp_code = 'rushbot'
+            )` : ""}
+            AND ${ELIGIBLE_RUN_CONDITION}
     ), ranked AS (
         SELECT eligible.*, ROW_NUMBER() OVER (
             ORDER BY client_battle_ms ASC, finished_at_ms ASC, id ASC
@@ -189,17 +224,17 @@ function rankCte() {
 function deserializeRank(raw) {
     var _a, _b, _c;
     const run = deserializeRun(raw);
-    return Object.assign(Object.assign({}, run), { rankNumber: raw.rank_number, displayName: (_b = (_a = raw.live_name) !== null && _a !== void 0 ? _a : run.playerName) !== null && _b !== void 0 ? _b : `Player${run.playerId}`, playerExists: raw.player_exists !== 0, rankPoint: (_c = raw.rank_point) !== null && _c !== void 0 ? _c : 0 });
+    return Object.assign(Object.assign({}, run), { rankNumber: raw.rank_number, clearCount: raw.clear_count, displayName: (_b = (_a = raw.live_name) !== null && _a !== void 0 ? _a : run.playerName) !== null && _b !== void 0 ? _b : `Player${run.playerId}`, playerExists: raw.player_exists !== 0, rankPoint: (_c = raw.rank_point) !== null && _c !== void 0 ? _c : 0 });
 }
-function countLeaderboardRanksSync(competitionKey, season) {
-    const row = (0, db_1.getDb)().prepare(`${rankCte()}
+function countLeaderboardRanksSync(competitionKey, season, filter = {}) {
+    const row = (0, db_1.getDb)().prepare(`${rankCte(filter)}
         SELECT COUNT(*) AS count FROM ranked
     `).get(competitionKey, season);
     return row.count;
 }
 exports.countLeaderboardRanksSync = countLeaderboardRanksSync;
 function getLeaderboardRankPageSync(input) {
-    const rows = (0, db_1.getDb)().prepare(`${rankCte()}
+    const rows = (0, db_1.getDb)().prepare(`${rankCte(input.filter)}
         SELECT ranked.*, COALESCE(p.name, ranked.player_name) AS live_name,
             CASE WHEN p.id IS NULL THEN 0 ELSE 1 END AS player_exists,
             p.rank_point
@@ -209,8 +244,8 @@ function getLeaderboardRankPageSync(input) {
     return rows.map(deserializeRank);
 }
 exports.getLeaderboardRankPageSync = getLeaderboardRankPageSync;
-function getLeaderboardPlayerRankSync(competitionKey, season, playerId) {
-    const row = (0, db_1.getDb)().prepare(`${rankCte()}
+function getLeaderboardPlayerRankSync(competitionKey, season, playerId, filter = {}) {
+    const row = (0, db_1.getDb)().prepare(`${rankCte(filter)}
         SELECT ranked.*, COALESCE(p.name, ranked.player_name) AS live_name,
             CASE WHEN p.id IS NULL THEN 0 ELSE 1 END AS player_exists,
             p.rank_point
