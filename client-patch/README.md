@@ -60,6 +60,11 @@ P-code 方法体和带血统门禁的构建器见 [Android 账号继承入口补
 [iOS MemberView.draw 稳定保护](./ios-memberview-draw-safe/README.md)。仓库仅保存哈希锁定的
 差分构建器，不保存原始或修改后的 IPA，也不保存任何签名材料。
 
+2026-09-07 用户真机验收的最新累计 IPA 在 Rush 排行榜 v3 和 `MemberView.draw` v6 基础上，
+补齐了深渊装备的 Multi / BothBoss `1099001..1099003` 与直接装备强化等级 `>=120` 例外。
+精确输入/输出哈希、AOT 门控规则及可复现构建方法见
+[iOS 深渊装备门控补丁](./ios-abyss-equipment/README.md)。
+
 ## Android 角色页性能
 
 经过实机验证的当前编队轮播更新裁剪、单方法体 P-code 移植、AIR
