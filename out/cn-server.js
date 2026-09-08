@@ -29,6 +29,7 @@ const online_presence_1 = require("./lib/online-presence");
 const takeover_access_1 = require("./lib/takeover-access");
 const local_client_compat_1 = require("./lib/local-client-compat");
 const version_1 = require("./lib/version");
+const custom_cdn_resource_routes_1 = require("./lib/custom-cdn-resource-routes");
 const versionCheck_1 = __importDefault(require("./routes/cn/versionCheck"));
 const ios_leiting_1 = __importDefault(require("./routes/cn/ios-leiting"));
 const leitingAuth_1 = __importDefault(require("./routes/cn/leitingAuth"));
@@ -657,19 +658,11 @@ const cdnPort = process.env.CN_LISTEN_PORT || "8001";
 const cdnDisplayHost = cdnHost === "0.0.0.0" ? "localhost" : cdnHost;
 const CDN_BASE_URL = process.env.CDN_BASE_URL || `http://${cdnDisplayHost}:${cdnPort}/patch/cn`;
 const cdnDir = process.env.CDN_DIR || ".cdn";
-// Serve patched orderedmap files for missing CDN resources
-// Registered BEFORE fastifyStatic to intercept matching requests
-fastify.get("/patch/cn/dummy/download/production/upload/:prefix/:hash", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
-    const { prefix, hash } = request.params;
-    const relPath = `${prefix}/${hash}`;
-    const patchFile = path_1.default.join(__dirname, "..", "assets", "asset-patch", "production", "upload", prefix, hash);
-    if ((0, fs_1.existsSync)(patchFile)) {
-        console.log("[PATCH-SERVE]", relPath);
-        return reply.type("application/octet-stream").send((0, fs_1.readFileSync)(patchFile));
-    }
-    console.log("[PATCH-MISS]", relPath);
-    return reply.status(404).send("Not Found");
-}));
+// Native readers can request common, medium, Android or iOS files directly.
+(0, custom_cdn_resource_routes_1.installCustomCdnResourceRoutes)(fastify, {
+    patchRoot: path_1.default.join(__dirname, "..", "assets", "asset-patch"),
+    cdnRoot: path_1.default.isAbsolute(cdnDir) ? cdnDir : path_1.default.join(__dirname, "..", cdnDir),
+});
 // Serve patch archive files for asset update
 fastify.get("/patch/cn/asset-patch/active/:file", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
     const { file } = request.params;

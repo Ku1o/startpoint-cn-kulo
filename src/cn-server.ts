@@ -15,6 +15,7 @@ import { markPlayerOnline } from "./lib/online-presence";
 import { installTakeoverUdidGuard } from "./lib/takeover-access";
 import { installLocalClientCompat } from "./lib/local-client-compat";
 import { getPatchManifest } from "./lib/version";
+import { installCustomCdnResourceRoutes } from "./lib/custom-cdn-resource-routes";
 
 import versionCheckPlugin from "./routes/cn/versionCheck";
 import iosLeitingPlugin from "./routes/cn/ios-leiting";
@@ -637,18 +638,10 @@ const cdnDisplayHost = cdnHost === "0.0.0.0" ? "localhost" : cdnHost;
 const CDN_BASE_URL = process.env.CDN_BASE_URL || `http://${cdnDisplayHost}:${cdnPort}/patch/cn`;
 const cdnDir = process.env.CDN_DIR || ".cdn";
 
-// Serve patched orderedmap files for missing CDN resources
-// Registered BEFORE fastifyStatic to intercept matching requests
-fastify.get("/patch/cn/dummy/download/production/upload/:prefix/:hash", async (request, reply) => {
-    const { prefix, hash } = request.params as { prefix: string; hash: string };
-    const relPath = `${prefix}/${hash}`;
-    const patchFile = path.join(__dirname, "..", "assets", "asset-patch", "production", "upload", prefix, hash);
-    if (existsSync(patchFile)) {
-        console.log("[PATCH-SERVE]", relPath);
-        return reply.type("application/octet-stream").send(readFileSync(patchFile));
-    }
-    console.log("[PATCH-MISS]", relPath);
-    return reply.status(404).send("Not Found");
+// Native readers can request common, medium, Android or iOS files directly.
+installCustomCdnResourceRoutes(fastify, {
+    patchRoot: path.join(__dirname, "..", "assets", "asset-patch"),
+    cdnRoot: path.isAbsolute(cdnDir) ? cdnDir : path.join(__dirname, "..", cdnDir),
 });
 
 // Serve patch archive files for asset update
