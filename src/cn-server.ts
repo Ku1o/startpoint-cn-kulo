@@ -3,7 +3,9 @@ import { ContentTypeParserDoneFunction } from "fastify/types/content-type-parser
 import { pack, unpack } from "msgpackr";
 import fastifyStatic from "@fastify/static";
 import path from "path";
-import { existsSync, readFileSync } from "fs";
+import { existsSync, mkdirSync, readFileSync } from "fs";
+import { writeJsonAtomicSync } from "./lib/atomic-json-file";
+import { getStorageLayoutVersion } from "./lib/storage-layout";
 import { getServerTime, getServerTimeForPlayer } from "./utils";
 import { restoreTimeOffset } from "./data/activeAccount";
 import { migrateUnsafeViewerIdsSync } from "./data/domains/session";
@@ -718,4 +720,10 @@ fastify.listen({ port, host }, (err, address) => {
 
     // Start multi battle TCP session server
     startSessionServer();
+    const logDirectory = path.resolve(__dirname,"../.logs");
+    mkdirSync(logDirectory,{recursive:true});
+    writeJsonAtomicSync(path.join(logDirectory,"cn-server-ready.json"),{
+        pid:process.pid,readyAt:new Date().toISOString(),port,
+        database:path.resolve(getDb().name),storageLayoutVersion:getStorageLayoutVersion(getDb()),
+    });
 });

@@ -36,7 +36,7 @@ function createDatabase(filename = ":memory:") {
     return db
 }
 
-function insertHistory(db, playerId, count, createTimeForIndex = index => String(index).padStart(8, "0")) {
+function insertHistory(db, playerId, count, createTimeForIndex = index => new Date(Date.now() - (count-index)*1000).toISOString()) {
     const insert = db.prepare(`
         INSERT INTO players_receive_history
             (player_id, type, type_id, number, reason_id, create_time)

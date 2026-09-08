@@ -1,6 +1,7 @@
 import { createHash } from "crypto"
 import type { Database as BetterSqlite3Database } from "better-sqlite3"
 import { getServerDate, getTimeOffset } from "../../utils"
+import { COMPACT_COUNTER_VALUES, getStorageSnapshotTableInfo, isCompactStorage, RETIRED_COUNTER_SNAPSHOTS } from "../../lib/storage-layout"
 
 type SnapshotScalar = string | number | null
 
@@ -169,6 +170,8 @@ function quoteIdentifier(value: string): string {
 }
 
 function getTableInfo(db: BetterSqlite3Database, table: string): TableInfoRow[] {
+    const logicalInfo = getStorageSnapshotTableInfo(db, table)
+    if (logicalInfo) return logicalInfo
     const rows = db.prepare(`PRAGMA table_info(${quoteIdentifier(table)})`).all() as TableInfoRow[]
     if (rows.length === 0) throw new Error(`存档表不存在：${table}`)
     return rows
@@ -217,6 +220,9 @@ export function assertPlayerSnapshotCoverageSync(
     db: BetterSqlite3Database = getDefaultDatabase(),
 ): void {
     const classified = new Set<string>(PLAYER_SNAPSHOT_V2_TABLES.slice(1))
+    // The physical values table is exported/restored through the logical
+    // players_mission_counters view, including the original textual keys.
+    if (isCompactStorage(db)) classified.add(COMPACT_COUNTER_VALUES)
     for (const exclusion of EXCLUDED_PLAYER_STATE) {
         for (const table of exclusion.tables) classified.add(table)
     }
@@ -457,9 +463,11 @@ export function restorePlayerSaveSnapshotV2Sync(
 
     const includeArchiveHistory = options.includeArchiveHistory !== false
     const skippedTables = [...ARCHIVE_HISTORY_TABLES].filter(() => !includeArchiveHistory)
+    if (isCompactStorage(db)) skippedTables.push(RETIRED_COUNTER_SNAPSHOTS)
     const restoredTables = PLAYER_SNAPSHOT_V2_TABLES
         .filter(table => table !== "players")
         .filter(table => includeArchiveHistory || !ARCHIVE_HISTORY_TABLES.has(table))
+        .filter(table => !skippedTables.includes(table))
     const resetTables = EXCLUDED_PLAYER_STATE
         .filter(entry => entry.policy === "reset")
         .flatMap(entry => [...entry.tables])

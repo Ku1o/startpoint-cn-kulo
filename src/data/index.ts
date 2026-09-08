@@ -6,6 +6,7 @@ import { updateBeforeInit as updateWdfpDataBefore, updateAfterInit as updateWdfp
 import initWdfpData from "./initializers/wdfpData";
 import { initializeQuestTimeRevision } from "./initializers/quest-time-revision";
 import { ensureCascadeDeleteIndexes } from "../lib/admin-account-cleanup";
+import { assertStorageLayout, WDFP_DATA_VERSION } from "../lib/storage-layout";
 
 // Use __dirname so DB path is relative to the source file, not process.cwd()
 const dataDir = process.env.DATA_DIR
@@ -39,7 +40,7 @@ const databasesMetadata: {[key in Database]: DatabaseMetadata} = {
         init: initWdfpData,
         updateBefore: updateWdfpDataBefore,
         updateAfter: updateWdfpDataAfter,
-        latestVersion: 9
+        latestVersion: WDFP_DATA_VERSION
     }
 }
 
@@ -59,6 +60,9 @@ export default function getDatabase(
 
     const relativeDatabasePath = metadata.path
     const absoluteDatabasePath = path.join(dataDir, relativeDatabasePath)
+    if (existsSync(path.join(dataDir,"storage-maintenance.lock"))) {
+        throw new Error("数据库维护尚未结束，请使用维护恢复入口；禁止启动业务服务写入")
+    }
     // check if the db already exists
     const dbExists = existsSync(absoluteDatabasePath)
 
@@ -73,6 +77,7 @@ export default function getDatabase(
 
     // create new db
     const db = new sqlite3(absoluteDatabasePath)
+    assertStorageLayout(db)
 
     // set pragma
     // Keep temporary SQLite structures on disk. Windows launchers point the
@@ -122,6 +127,8 @@ export default function getDatabase(
         } catch (error) {
             console.log(error)
             console.log(`Initalization failed for module ${metadata.path}. Error: ${error}`)
+            db.close()
+            throw error
         }
     }
 

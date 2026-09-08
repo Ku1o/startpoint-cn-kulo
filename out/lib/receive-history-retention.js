@@ -10,6 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createReceiveHistoryRetentionService = exports.runReceiveHistoryRetentionPass = exports.millisecondsUntilNextReceiveHistoryRetentionRun = exports.getReceiveHistoryRetentionSchedule = exports.isReceiveHistoryRetentionEnabled = void 0;
+const maintenance_state_1 = require("./maintenance-state");
 const DEFAULT_MAX_ROWS = 500;
 const DEFAULT_DAILY_HOUR = 4;
 const DEFAULT_DAILY_MINUTE = 30;
@@ -17,6 +18,7 @@ const DEFAULT_BATCH_PLAYERS = 5;
 const DEFAULT_PAUSE_MS = 100;
 const DEFAULT_BUSY_RETRY_ATTEMPTS = 5;
 const DEFAULT_BUSY_RETRY_DELAY_MS = 20;
+const DELETE_BATCH_ROWS = 1000;
 function normalizedInteger(value, fallback, minimum) {
     if (!Number.isSafeInteger(value) || value === undefined || value < minimum)
         return fallback;
@@ -57,11 +59,13 @@ function millisecondsUntilNextReceiveHistoryRetentionRun(now, hour, minute) {
 }
 exports.millisecondsUntilNextReceiveHistoryRetentionRun = millisecondsUntilNextReceiveHistoryRetentionRun;
 function resolveOptions(options) {
-    var _a, _b;
+    var _a, _b, _c;
     const schedule = getReceiveHistoryRetentionSchedule();
     return {
         enabled: (_a = options.enabled) !== null && _a !== void 0 ? _a : isReceiveHistoryRetentionEnabled(),
         maxRows: normalizedInteger(options.maxRows, DEFAULT_MAX_ROWS, 1),
+        maxDays: normalizedInteger(options.maxDays, 7, 1),
+        nowMs: (_b = options.nowMs) !== null && _b !== void 0 ? _b : Date.now(),
         initialDelayMs: options.initialDelayMs === undefined
             ? null
             : normalizedInteger(options.initialDelayMs, 0, 0),
@@ -71,7 +75,7 @@ function resolveOptions(options) {
         pauseMs: normalizedInteger(options.pauseMs, DEFAULT_PAUSE_MS, 0),
         busyRetryAttempts: normalizedInteger(options.busyRetryAttempts, DEFAULT_BUSY_RETRY_ATTEMPTS, 1),
         busyRetryDelayMs: normalizedInteger(options.busyRetryDelayMs, DEFAULT_BUSY_RETRY_DELAY_MS, 0),
-        logger: (_b = options.logger) !== null && _b !== void 0 ? _b : console,
+        logger: (_c = options.logger) !== null && _c !== void 0 ? _c : console,
     };
 }
 function delay(milliseconds) {
@@ -89,18 +93,18 @@ function isSqliteBusyError(error) {
 function describeError(error) {
     return error instanceof Error ? error.message : String(error);
 }
-function prunePlayerWithRetry(database, playerId, maxRows, maxAttempts, retryDelayMs) {
+function prunePlayerWithRetry(database, playerId, maxRows, maxAttempts, retryDelayMs, cutoff) {
     return __awaiter(this, void 0, void 0, function* () {
         const prune = database.prepare(`
         DELETE FROM players_receive_history
-        WHERE player_id = ?
-          AND id NOT IN (
+        WHERE id IN (SELECT id FROM players_receive_history WHERE player_id = ?
+          AND (julianday(create_time) < julianday(?) OR id NOT IN (
               SELECT id
               FROM players_receive_history
               WHERE player_id = ?
               ORDER BY create_time DESC, id DESC
               LIMIT ?
-          )
+          )) LIMIT ${DELETE_BATCH_ROWS})
     `);
         let lastError;
         for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
@@ -108,7 +112,7 @@ function prunePlayerWithRetry(database, playerId, maxRows, maxAttempts, retryDel
             try {
                 database.exec("BEGIN IMMEDIATE");
                 began = true;
-                const deletedRows = prune.run(playerId, playerId, maxRows).changes;
+                const deletedRows = prune.run(playerId, cutoff, playerId, maxRows).changes;
                 database.exec("COMMIT");
                 return deletedRows;
             }
@@ -131,6 +135,7 @@ function prunePlayerWithRetry(database, playerId, maxRows, maxAttempts, retryDel
 function runReceiveHistoryRetentionPass(database_1) {
     return __awaiter(this, arguments, void 0, function* (database, options = {}, shouldStop = () => false) {
         const config = resolveOptions(options);
+        const cutoff = new Date(config.nowMs - config.maxDays * 86400000).toISOString();
         const startedAt = Date.now();
         const result = {
             candidatePlayers: 0,
@@ -150,13 +155,13 @@ function runReceiveHistoryRetentionPass(database_1) {
         FROM players_receive_history
         WHERE player_id > ?
         GROUP BY player_id
-        HAVING COUNT(*) > ?
+        HAVING COUNT(*) > ? OR MIN(julianday(create_time)) < julianday(?)
         ORDER BY player_id
         LIMIT ?
     `);
         let playerCursor = 0;
         while (!shouldStop()) {
-            const candidates = selectCandidates.all(playerCursor, config.maxRows, config.batchPlayers);
+            const candidates = selectCandidates.all(playerCursor, config.maxRows, cutoff, config.batchPlayers);
             if (candidates.length === 0)
                 break;
             for (const candidate of candidates) {
@@ -167,9 +172,20 @@ function runReceiveHistoryRetentionPass(database_1) {
                 }
                 result.candidatePlayers += 1;
                 try {
-                    const deletedRows = yield prunePlayerWithRetry(database, candidate.player_id, config.maxRows, config.busyRetryAttempts, config.busyRetryDelayMs);
+                    let deletedRows = 0;
+                    let batchRows;
+                    do {
+                        if (shouldStop()) {
+                            result.stopped = true;
+                            break;
+                        }
+                        batchRows = yield prunePlayerWithRetry(database, candidate.player_id, config.maxRows, config.busyRetryAttempts, config.busyRetryDelayMs, cutoff);
+                        deletedRows += batchRows;
+                        result.deletedRows += batchRows;
+                        if (batchRows === DELETE_BATCH_ROWS)
+                            yield delay(config.pauseMs);
+                    } while (batchRows === DELETE_BATCH_ROWS);
                     result.processedPlayers += 1;
-                    result.deletedRows += deletedRows;
                     if (deletedRows > 0)
                         result.prunedPlayers += 1;
                 }
@@ -191,7 +207,10 @@ function runReceiveHistoryRetentionPass(database_1) {
 }
 exports.runReceiveHistoryRetentionPass = runReceiveHistoryRetentionPass;
 function createReceiveHistoryRetentionService(database, options = {}) {
-    const config = resolveOptions(options);
+    (0, maintenance_state_1.initializeMaintenanceState)(database);
+    const persisted = (0, maintenance_state_1.readHistoryPolicy)(database);
+    const envSchedule = process.env.RECEIVE_HISTORY_RETENTION_TIME ? getReceiveHistoryRetentionSchedule() : null;
+    const config = resolveOptions(Object.assign(Object.assign(Object.assign({}, persisted), envSchedule && { dailyHour: envSchedule.hour, dailyMinute: envSchedule.minute }), options));
     let stopped = true;
     let timer = null;
     let activePass = null;
@@ -207,32 +226,50 @@ function createReceiveHistoryRetentionService(database, options = {}) {
             if (stopped)
                 return;
             activePass = (() => __awaiter(this, void 0, void 0, function* () {
+                let lease = null;
                 try {
+                    lease = (0, maintenance_state_1.acquireHistoryLease)(database);
+                    if (!lease)
+                        return;
                     const result = yield runReceiveHistoryRetentionPass(database, {
                         enabled: config.enabled,
                         maxRows: config.maxRows,
+                        maxDays: config.maxDays,
                         batchPlayers: config.batchPlayers,
                         pauseMs: config.pauseMs,
                         busyRetryAttempts: config.busyRetryAttempts,
                         busyRetryDelayMs: config.busyRetryDelayMs,
                         logger: config.logger,
-                    }, () => stopped);
+                    }, () => {
+                        if (!stopped && lease)
+                            (0, maintenance_state_1.refreshHistoryLease)(database, lease);
+                        return stopped;
+                    });
+                    (0, maintenance_state_1.finishHistoryLease)(database, lease, result, !result.stopped && result.failedPlayers === 0, result.failedPlayers > 0 ? `${result.failedPlayers} players failed` : result.stopped ? "interrupted" : null);
+                    lease = null;
                     config.logger.log(`[DB_MAINTENANCE] receive history retention completed: candidates=${result.candidatePlayers} prunedPlayers=${result.prunedPlayers} deletedRows=${result.deletedRows} failures=${result.failedPlayers} stopped=${result.stopped} elapsedMs=${result.elapsedMs}`);
                 }
                 catch (error) {
+                    if (lease) {
+                        try {
+                            (0, maintenance_state_1.finishHistoryLease)(database, lease, undefined, false, describeError(error));
+                        }
+                        catch (_a) { }
+                    }
                     config.logger.warn(`[DB_MAINTENANCE] receive history retention pass failed: ${describeError(error)}`);
                 }
             }))();
             void activePass.then(() => {
                 activePass = null;
                 if (!stopped)
-                    schedule();
+                    schedule((0, maintenance_state_1.isHistoryCatchupNeeded)(database, config.dailyHour, config.dailyMinute) ? 120000 : null);
             });
         }, delayMs);
         timer.unref();
     };
     return {
         start() {
+            var _a;
             if (!stopped)
                 return;
             stopped = false;
@@ -241,7 +278,7 @@ function createReceiveHistoryRetentionService(database, options = {}) {
                 return;
             }
             config.logger.log(`[DB_MAINTENANCE] receive history retention enabled: maxRows=${config.maxRows} dailyTime=${String(config.dailyHour).padStart(2, "0")}:${String(config.dailyMinute).padStart(2, "0")} localServerTime`);
-            schedule(config.initialDelayMs);
+            schedule((_a = config.initialDelayMs) !== null && _a !== void 0 ? _a : ((0, maintenance_state_1.isHistoryCatchupNeeded)(database, config.dailyHour, config.dailyMinute) ? 10000 : null));
         },
         stop() {
             return __awaiter(this, void 0, void 0, function* () {

@@ -18,6 +18,8 @@ const msgpackr_1 = require("msgpackr");
 const static_1 = __importDefault(require("@fastify/static"));
 const path_1 = __importDefault(require("path"));
 const fs_1 = require("fs");
+const atomic_json_file_1 = require("./lib/atomic-json-file");
+const storage_layout_1 = require("./lib/storage-layout");
 const utils_1 = require("./utils");
 const activeAccount_1 = require("./data/activeAccount");
 const session_1 = require("./data/domains/session");
@@ -733,4 +735,10 @@ fastify.listen({ port, host }, (err, address) => {
     dailyVmoneyMailScheduler.start();
     // Start multi battle TCP session server
     (0, multi_2.startSessionServer)();
+    const logDirectory = path_1.default.resolve(__dirname, "../.logs");
+    (0, fs_1.mkdirSync)(logDirectory, { recursive: true });
+    (0, atomic_json_file_1.writeJsonAtomicSync)(path_1.default.join(logDirectory, "cn-server-ready.json"), {
+        pid: process.pid, readyAt: new Date().toISOString(), port,
+        database: path_1.default.resolve((0, db_1.getDb)().name), storageLayoutVersion: (0, storage_layout_1.getStorageLayoutVersion)((0, db_1.getDb)()),
+    });
 });
