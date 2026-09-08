@@ -1,0 +1,54 @@
+method
+   name null
+   returns QName(PackageNamespace(""),"void")
+
+   body
+      maxstack 13
+      localcount 1
+      initscopedepth 1
+      maxscopedepth 3
+
+      code
+         getlocal0
+         pushscope
+         getglobalscope
+         getlex QName(PackageNamespace("pinball.scene.playerProfile.profile"),"ProfileLogicBase")
+         pushscope
+         getlex QName(PackageNamespace("pinball.scene.playerProfile.profile"),"ProfileLogicBase")
+         newclass 8261
+         popscope
+         initproperty QName(PackageNamespace("pinball.scene.playerProfile.profile.otherProfile"),"OtherProfileLogic")
+         getlex QName(PackageNamespace("pinball.scene.playerProfile.profile.otherProfile"),"OtherProfileLogic")
+         pushstring "fields"
+         pushstring "scene"
+         pushstring "absorb"
+         pushstring "pinball.context.scene.ILogicScene"
+         newarray 1
+         newobject 1
+         pushstring "logic"
+         pushstring "absorb"
+         pushstring "pinball.context.Logic"
+         newarray 1
+         newobject 1
+         pushstring "playerProfileScene"
+         pushstring "absorb"
+         pushstring "pinball.scene.playerProfile.PlayerProfileScene"
+         newarray 1
+         newobject 1
+         pushstring "processingDialogManager"
+         pushstring "absorb"
+         pushstring "pinball.dialog.processing.ProcessingDialogManager"
+         newarray 1
+         newobject 1
+         pushstring "serviceLauncher"
+         pushstring "absorb"
+         pushstring "pinball.dialog.processing.ServiceLauncher"
+         newarray 1
+         newobject 1
+         newobject 5
+         newobject 1
+         initproperty QName(PackageNamespace(""),"__meta__")
+         returnvoid
+      end ; code
+   end ; body
+end ; method

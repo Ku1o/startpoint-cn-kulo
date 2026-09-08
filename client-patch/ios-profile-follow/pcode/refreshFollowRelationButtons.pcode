@@ -1,0 +1,396 @@
+trait method QName(PackageNamespace(""),"refreshFollowRelationButtons")
+   dispid 0
+   method
+      name null
+      returns QName(PackageNamespace(""),"void")
+
+      body
+         maxstack 10
+         localcount 5
+         initscopedepth 1
+         maxscopedepth 2
+
+         code
+            getlocal0
+            pushscope
+            pushbyte 0
+            setlocal1
+            pushbyte 0
+            setlocal2
+            pushfalse
+            setlocal3
+            pushbyte 0
+            setlocal 4
+            findproperty QName(PackageNamespace(""),"peek")
+            getproperty QName(PackageNamespace(""),"peek")
+            getproperty QName(PackageNamespace(""),"profileKind")
+            coerce QName(PackageNamespace("pinball.scene.playerProfile"),"ProfileKind")
+            getproperty QName(PackageNamespace(""),"index")
+            lookupswitch ofs002d, [ofs0031, ofs006a, ofs0490]
+   ofs002d:
+            jump ofs04c5
+   ofs0031:
+            findproperty QName(PackageNamespace(""),"mainLayer")
+            getproperty QName(PackageNamespace(""),"mainLayer")
+            pushstring "follow_state"
+            pushstring "fileName"
+            pushstring "flatomo/generated/scene/player_profile/PlayerProfileLayoutIds.hx"
+            pushstring "lineNumber"
+            pushint 412
+            pushstring "className"
+            pushstring "flatomo.generated.scene.player_profile._PlayerProfileLayoutIds.PlayerProfileLayout_profile_layout_Impl_"
+            pushstring "methodName"
+            pushstring "get_follow_state"
+            newobject 4
+            callproperty QName(PackageNamespace(""),"getContainer"), 2
+            coerce QName(PackageNamespace("pinball.ui.display"),"UiDisplayObjectContainer")
+            pushfalse
+            initproperty QName(PackageNamespace(""),"visible")
+            jump ofs04c5
+   ofs006a:
+            findproperty QName(PackageNamespace(""),"peek")
+            getproperty QName(PackageNamespace(""),"peek")
+            callproperty QName(Namespace("pinball.scene.playerProfile:PlayerProfileScenePeek"),"getProfile"), 0
+            coerce QName(PackageNamespace("pinball.scene.playerProfile.profile"),"ProfilePeek")
+            callproperty QName(Namespace("pinball.scene.playerProfile.profile:ProfilePeek"),"getFollowState"), 0
+            convert_i
+            convert_i
+            setlocal1
+            getlocal1
+            convert_i
+            setlocal2
+            getlocal2
+            lookupswitch ofs0098, [ofs00a3, ofs009c, ofs009c, ofs00a3]
+   ofs0098:
+            jump ofs00a6
+   ofs009c:
+            pushtrue
+            convert_b
+            setlocal3
+            jump ofs00a6
+   ofs00a3:
+            pushfalse
+            convert_b
+            setlocal3
+   ofs00a6:
+            getlocal3
+            iffalse ofs00b1
+            pushbyte 1
+            jump ofs00b3
+   ofs00b1:
+            pushbyte 2
+   ofs00b3:
+            convert_i
+            setlocal 4
+            findproperty QName(PackageNamespace(""),"mainLayer")
+            getproperty QName(PackageNamespace(""),"mainLayer")
+            pushstring "top_right_button_layer"
+            pushstring "fileName"
+            pushstring "flatomo/generated/scene/player_profile/PlayerProfileLayoutIds.hx"
+            pushstring "lineNumber"
+            pushint 427
+            pushstring "className"
+            pushstring "flatomo.generated.scene.player_profile._PlayerProfileLayoutIds.PlayerProfileLayout_profile_layout_Impl_"
+            pushstring "methodName"
+            pushstring "get_top_right_button_layer"
+            newobject 4
+            callproperty QName(PackageNamespace(""),"getContainer"), 2
+            coerce QName(PackageNamespace("pinball.ui.display"),"UiDisplayObjectContainer")
+            pushtrue
+            initproperty QName(PackageNamespace(""),"visible")
+            findproperty QName(PackageNamespace(""),"mainLayer")
+            getproperty QName(PackageNamespace(""),"mainLayer")
+            pushstring "top_right_button_layer"
+            pushstring "fileName"
+            pushstring "flatomo/generated/scene/player_profile/PlayerProfileLayoutIds.hx"
+            pushstring "lineNumber"
+            pushint 427
+            pushstring "className"
+            pushstring "flatomo.generated.scene.player_profile._PlayerProfileLayoutIds.PlayerProfileLayout_profile_layout_Impl_"
+            pushstring "methodName"
+            pushstring "get_top_right_button_layer"
+            newobject 4
+            callproperty QName(PackageNamespace(""),"getContainer"), 2
+            coerce QName(PackageNamespace("pinball.ui.display"),"UiDisplayObjectContainer")
+            getlocal 4
+            callpropvoid QName(PackageNamespace(""),"goto"), 1
+            getlocal3
+            iffalse ofs0172
+            findproperty QName(PackageNamespace(""),"mainLayer")
+            getproperty QName(PackageNamespace(""),"mainLayer")
+            pushstring "top_right_button_layer"
+            newobject 0
+            callproperty QName(PackageNamespace(""),"getContainer"), 2
+            pushstring "follow_button"
+            newobject 0
+            callproperty QName(PackageNamespace(""),"getContainer"), 2
+            pushfalse
+            initproperty QName(PackageNamespace(""),"visible")
+            findproperty QName(PackageNamespace(""),"mainLayer")
+            getproperty QName(PackageNamespace(""),"mainLayer")
+            pushstring "top_right_button_layer"
+            newobject 0
+            callproperty QName(PackageNamespace(""),"getContainer"), 2
+            pushstring "remove_button"
+            newobject 0
+            callproperty QName(PackageNamespace(""),"getContainer"), 2
+            pushtrue
+            initproperty QName(PackageNamespace(""),"visible")
+            jump ofs01b6
+   ofs0172:
+            findproperty QName(PackageNamespace(""),"mainLayer")
+            getproperty QName(PackageNamespace(""),"mainLayer")
+            pushstring "top_right_button_layer"
+            newobject 0
+            callproperty QName(PackageNamespace(""),"getContainer"), 2
+            pushstring "follow_button"
+            newobject 0
+            callproperty QName(PackageNamespace(""),"getContainer"), 2
+            pushtrue
+            initproperty QName(PackageNamespace(""),"visible")
+            findproperty QName(PackageNamespace(""),"mainLayer")
+            getproperty QName(PackageNamespace(""),"mainLayer")
+            pushstring "top_right_button_layer"
+            newobject 0
+            callproperty QName(PackageNamespace(""),"getContainer"), 2
+            pushstring "remove_button"
+            newobject 0
+            callproperty QName(PackageNamespace(""),"getContainer"), 2
+            pushfalse
+            initproperty QName(PackageNamespace(""),"visible")
+   ofs01b6:
+            findproperty QName(PackageNamespace(""),"mainLayer")
+            getproperty QName(PackageNamespace(""),"mainLayer")
+            pushstring "follow_state"
+            pushstring "fileName"
+            pushstring "flatomo/generated/scene/player_profile/PlayerProfileLayoutIds.hx"
+            pushstring "lineNumber"
+            pushint 412
+            pushstring "className"
+            pushstring "flatomo.generated.scene.player_profile._PlayerProfileLayoutIds.PlayerProfileLayout_profile_layout_Impl_"
+            pushstring "methodName"
+            pushstring "get_follow_state"
+            newobject 4
+            callproperty QName(PackageNamespace(""),"getContainer"), 2
+            coerce QName(PackageNamespace("pinball.ui.display"),"UiDisplayObjectContainer")
+            pushtrue
+            initproperty QName(PackageNamespace(""),"visible")
+            getlocal1
+            lookupswitch ofs01fd, [ofs0201, ofs023d, ofs02ea, ofs0397]
+   ofs01fd:
+            jump ofs0440
+   ofs0201:
+            findproperty QName(PackageNamespace(""),"mainLayer")
+            getproperty QName(PackageNamespace(""),"mainLayer")
+            pushstring "follow_state"
+            pushstring "fileName"
+            pushstring "flatomo/generated/scene/player_profile/PlayerProfileLayoutIds.hx"
+            pushstring "lineNumber"
+            pushint 412
+            pushstring "className"
+            pushstring "flatomo.generated.scene.player_profile._PlayerProfileLayoutIds.PlayerProfileLayout_profile_layout_Impl_"
+            pushstring "methodName"
+            pushstring "get_follow_state"
+            newobject 4
+            callproperty QName(PackageNamespace(""),"getContainer"), 2
+            coerce QName(PackageNamespace("pinball.ui.display"),"UiDisplayObjectContainer")
+            pushbyte 1
+            callpropvoid QName(PackageNamespace(""),"goto"), 1
+            jump ofs0440
+   ofs023d:
+            findproperty QName(PackageNamespace(""),"mainLayer")
+            getproperty QName(PackageNamespace(""),"mainLayer")
+            pushstring "follow_state"
+            pushstring "fileName"
+            pushstring "flatomo/generated/scene/player_profile/PlayerProfileLayoutIds.hx"
+            pushstring "lineNumber"
+            pushint 412
+            pushstring "className"
+            pushstring "flatomo.generated.scene.player_profile._PlayerProfileLayoutIds.PlayerProfileLayout_profile_layout_Impl_"
+            pushstring "methodName"
+            pushstring "get_follow_state"
+            newobject 4
+            callproperty QName(PackageNamespace(""),"getContainer"), 2
+            coerce QName(PackageNamespace("pinball.ui.display"),"UiDisplayObjectContainer")
+            pushbyte 2
+            callpropvoid QName(PackageNamespace(""),"goto"), 1
+            findproperty QName(PackageNamespace(""),"mainLayer")
+            getproperty QName(PackageNamespace(""),"mainLayer")
+            pushstring "follow_state"
+            pushstring "fileName"
+            pushstring "flatomo/generated/scene/player_profile/PlayerProfileLayoutIds.hx"
+            pushstring "lineNumber"
+            pushint 412
+            pushstring "className"
+            pushstring "flatomo.generated.scene.player_profile._PlayerProfileLayoutIds.PlayerProfileLayout_profile_layout_Impl_"
+            pushstring "methodName"
+            pushstring "get_follow_state"
+            newobject 4
+            callproperty QName(PackageNamespace(""),"getContainer"), 2
+            coerce QName(PackageNamespace("pinball.ui.display"),"UiDisplayObjectContainer")
+            pushstring "text"
+            pushstring "fileName"
+            pushstring "flatomo/generated/scene/player_profile/PlayerProfileLayoutIds.hx"
+            pushstring "lineNumber"
+            pushint 140
+            pushstring "className"
+            pushstring "flatomo.generated.scene.player_profile._PlayerProfileLayoutIds.PlayerProfileContainer_follow_state_Impl_"
+            pushstring "methodName"
+            pushstring "get_text"
+            newobject 4
+            callproperty QName(PackageNamespace(""),"getText"), 2
+            coerce QName(PackageNamespace("pinball.ui.display.text"),"UiText")
+            findproperty QName(PackageNamespace(""),"view")
+            getproperty QName(PackageNamespace(""),"view")
+            getproperty QName(PackageNamespace(""),"asset")
+            pushstring "player_profile_mutual_follow"
+            callproperty QName(PackageNamespace(""),"getUiString"), 1
+            coerce QName(PackageNamespace(""),"String")
+            callpropvoid QName(PackageNamespace(""),"set_text"), 1
+            jump ofs0440
+   ofs02ea:
+            findproperty QName(PackageNamespace(""),"mainLayer")
+            getproperty QName(PackageNamespace(""),"mainLayer")
+            pushstring "follow_state"
+            pushstring "fileName"
+            pushstring "flatomo/generated/scene/player_profile/PlayerProfileLayoutIds.hx"
+            pushstring "lineNumber"
+            pushint 412
+            pushstring "className"
+            pushstring "flatomo.generated.scene.player_profile._PlayerProfileLayoutIds.PlayerProfileLayout_profile_layout_Impl_"
+            pushstring "methodName"
+            pushstring "get_follow_state"
+            newobject 4
+            callproperty QName(PackageNamespace(""),"getContainer"), 2
+            coerce QName(PackageNamespace("pinball.ui.display"),"UiDisplayObjectContainer")
+            pushbyte 3
+            callpropvoid QName(PackageNamespace(""),"goto"), 1
+            findproperty QName(PackageNamespace(""),"mainLayer")
+            getproperty QName(PackageNamespace(""),"mainLayer")
+            pushstring "follow_state"
+            pushstring "fileName"
+            pushstring "flatomo/generated/scene/player_profile/PlayerProfileLayoutIds.hx"
+            pushstring "lineNumber"
+            pushint 412
+            pushstring "className"
+            pushstring "flatomo.generated.scene.player_profile._PlayerProfileLayoutIds.PlayerProfileLayout_profile_layout_Impl_"
+            pushstring "methodName"
+            pushstring "get_follow_state"
+            newobject 4
+            callproperty QName(PackageNamespace(""),"getContainer"), 2
+            coerce QName(PackageNamespace("pinball.ui.display"),"UiDisplayObjectContainer")
+            pushstring "text"
+            pushstring "fileName"
+            pushstring "flatomo/generated/scene/player_profile/PlayerProfileLayoutIds.hx"
+            pushstring "lineNumber"
+            pushint 140
+            pushstring "className"
+            pushstring "flatomo.generated.scene.player_profile._PlayerProfileLayoutIds.PlayerProfileContainer_follow_state_Impl_"
+            pushstring "methodName"
+            pushstring "get_text"
+            newobject 4
+            callproperty QName(PackageNamespace(""),"getText"), 2
+            coerce QName(PackageNamespace("pinball.ui.display.text"),"UiText")
+            findproperty QName(PackageNamespace(""),"view")
+            getproperty QName(PackageNamespace(""),"view")
+            getproperty QName(PackageNamespace(""),"asset")
+            pushstring "player_profile_follow"
+            callproperty QName(PackageNamespace(""),"getUiString"), 1
+            coerce QName(PackageNamespace(""),"String")
+            callpropvoid QName(PackageNamespace(""),"set_text"), 1
+            jump ofs0440
+   ofs0397:
+            findproperty QName(PackageNamespace(""),"mainLayer")
+            getproperty QName(PackageNamespace(""),"mainLayer")
+            pushstring "follow_state"
+            pushstring "fileName"
+            pushstring "flatomo/generated/scene/player_profile/PlayerProfileLayoutIds.hx"
+            pushstring "lineNumber"
+            pushint 412
+            pushstring "className"
+            pushstring "flatomo.generated.scene.player_profile._PlayerProfileLayoutIds.PlayerProfileLayout_profile_layout_Impl_"
+            pushstring "methodName"
+            pushstring "get_follow_state"
+            newobject 4
+            callproperty QName(PackageNamespace(""),"getContainer"), 2
+            coerce QName(PackageNamespace("pinball.ui.display"),"UiDisplayObjectContainer")
+            pushbyte 4
+            callpropvoid QName(PackageNamespace(""),"goto"), 1
+            findproperty QName(PackageNamespace(""),"mainLayer")
+            getproperty QName(PackageNamespace(""),"mainLayer")
+            pushstring "follow_state"
+            pushstring "fileName"
+            pushstring "flatomo/generated/scene/player_profile/PlayerProfileLayoutIds.hx"
+            pushstring "lineNumber"
+            pushint 412
+            pushstring "className"
+            pushstring "flatomo.generated.scene.player_profile._PlayerProfileLayoutIds.PlayerProfileLayout_profile_layout_Impl_"
+            pushstring "methodName"
+            pushstring "get_follow_state"
+            newobject 4
+            callproperty QName(PackageNamespace(""),"getContainer"), 2
+            coerce QName(PackageNamespace("pinball.ui.display"),"UiDisplayObjectContainer")
+            pushstring "text"
+            pushstring "fileName"
+            pushstring "flatomo/generated/scene/player_profile/PlayerProfileLayoutIds.hx"
+            pushstring "lineNumber"
+            pushint 140
+            pushstring "className"
+            pushstring "flatomo.generated.scene.player_profile._PlayerProfileLayoutIds.PlayerProfileContainer_follow_state_Impl_"
+            pushstring "methodName"
+            pushstring "get_text"
+            newobject 4
+            callproperty QName(PackageNamespace(""),"getText"), 2
+            coerce QName(PackageNamespace("pinball.ui.display.text"),"UiText")
+            findproperty QName(PackageNamespace(""),"view")
+            getproperty QName(PackageNamespace(""),"view")
+            getproperty QName(PackageNamespace(""),"asset")
+            pushstring "player_profile_follower"
+            callproperty QName(PackageNamespace(""),"getUiString"), 1
+            coerce QName(PackageNamespace(""),"String")
+            callpropvoid QName(PackageNamespace(""),"set_text"), 1
+   ofs0440:
+            findproperty QName(PackageNamespace(""),"mainLayer")
+            getproperty QName(PackageNamespace(""),"mainLayer")
+            pushstring "remove_fans"
+            pushstring "fileName"
+            pushstring "flatomo/generated/scene/player_profile/PlayerProfileLayoutIds.hx"
+            pushstring "lineNumber"
+            pushint 407
+            pushstring "className"
+            pushstring "flatomo.generated.scene.player_profile._PlayerProfileLayoutIds.PlayerProfileLayout_profile_layout_Impl_"
+            pushstring "methodName"
+            pushstring "get_remove_fans"
+            newobject 4
+            callproperty QName(PackageNamespace(""),"getContainer"), 2
+            coerce QName(PackageNamespace("pinball.ui.display"),"UiDisplayObjectContainer")
+            findproperty QName(PackageNamespace(""),"peek")
+            getproperty QName(PackageNamespace(""),"peek")
+            callproperty QName(Namespace("pinball.scene.playerProfile:PlayerProfileScenePeek"),"getProfile"), 0
+            coerce QName(PackageNamespace("pinball.scene.playerProfile.profile"),"ProfilePeek")
+            callproperty QName(Namespace("pinball.scene.playerProfile.profile:ProfilePeek"),"isFollower"), 0
+            convert_b
+            initproperty QName(PackageNamespace(""),"visible")
+            jump ofs04c5
+   ofs0490:
+            findproperty QName(PackageNamespace(""),"mainLayer")
+            getproperty QName(PackageNamespace(""),"mainLayer")
+            pushstring "follow_state"
+            pushstring "fileName"
+            pushstring "flatomo/generated/scene/player_profile/PlayerProfileLayoutIds.hx"
+            pushstring "lineNumber"
+            pushint 412
+            pushstring "className"
+            pushstring "flatomo.generated.scene.player_profile._PlayerProfileLayoutIds.PlayerProfileLayout_profile_layout_Impl_"
+            pushstring "methodName"
+            pushstring "get_follow_state"
+            newobject 4
+            callproperty QName(PackageNamespace(""),"getContainer"), 2
+            coerce QName(PackageNamespace("pinball.ui.display"),"UiDisplayObjectContainer")
+            pushfalse
+            initproperty QName(PackageNamespace(""),"visible")
+   ofs04c5:
+            returnvoid
+         end ; code
+      end ; body
+   end ; method

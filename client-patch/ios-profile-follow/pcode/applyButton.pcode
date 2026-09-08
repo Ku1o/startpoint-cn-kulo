@@ -1,0 +1,160 @@
+trait method QName(PackageNamespace(""),"applyButton")
+   dispid 0
+   method
+      name null
+      param QName(PackageNamespace(""),"int")
+      returns QName(PackageNamespace(""),"void")
+
+      body
+         maxstack 10
+         localcount 4
+         initscopedepth 1
+         maxscopedepth 2
+
+         code
+            getlocal0
+            pushscope
+            pushbyte 0
+            setlocal3
+            getlocal1
+            pushint 240
+            bitand
+            convert_i
+            setlocal2
+            getlocal2
+            lookupswitch ofs0255, [ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0259, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs02c4, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0363, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0363, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0363, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0363, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0363, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0363, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0363, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0255, ofs0367]
+   ofs0255:
+            jump ofs03e9
+   ofs0259:
+            findproperty QName(PackageNamespace(""),"gear")
+            getproperty QName(PackageNamespace(""),"gear")
+            findpropstrict QName(PackageNamespace("pinball.dialog.followFollower"),"FollowFollowerAddProcessingFlow")
+            findproperty QName(PackageNamespace(""),"response")
+            getproperty QName(PackageNamespace(""),"response")
+            getproperty QName(PackageNamespace(""),"target_user_info")
+            coerce_a
+            getproperty QName(PackageNamespace(""),"viewer_id")
+            convert_d
+            findproperty QName(PackageNamespace(""),"response")
+            getproperty QName(PackageNamespace(""),"response")
+            getproperty QName(PackageNamespace(""),"target_user_info")
+            coerce_a
+            getproperty QName(PackageNamespace(""),"follow_state")
+            convert_i
+            findproperty QName(PackageNamespace(""),"followStateUpdateFunction")
+            getproperty QName(PackageNamespace(""),"followStateUpdateFunction")
+            coerce QName(PackageNamespace(""),"Function")
+            findproperty QName(PackageNamespace(""),"followStateUpdateFunction")
+            getproperty QName(PackageNamespace(""),"followStateUpdateFunction")
+            coerce QName(PackageNamespace(""),"Function")
+            constructprop QName(PackageNamespace("pinball.dialog.followFollower"),"FollowFollowerAddProcessingFlow"), 4
+            pushstring "fileName"
+            pushstring "pinball/scene/playerProfile/profile/otherProfile/OtherProfileLogic.hx"
+            pushstring "lineNumber"
+            pushbyte 83
+            pushstring "className"
+            pushstring "pinball.scene.playerProfile.profile.otherProfile.OtherProfileLogic"
+            pushstring "methodName"
+            pushstring "applyButton"
+            newobject 4
+            callpropvoid QName(PackageNamespace(""),"addChild"), 2
+            jump ofs03e9
+   ofs02c4:
+            findproperty QName(PackageNamespace(""),"response")
+            getproperty QName(PackageNamespace(""),"response")
+            getproperty QName(PackageNamespace(""),"target_user_info")
+            coerce_a
+            getproperty QName(PackageNamespace(""),"follow_state")
+            convert_i
+            lookupswitch ofs02e7, [ofs0259, ofs02eb, ofs02eb, ofs0259]
+   ofs02e7:
+            jump ofs035f
+   ofs02eb:
+            findproperty QName(PackageNamespace(""),"response")
+            getproperty QName(PackageNamespace(""),"response")
+            getproperty QName(PackageNamespace(""),"target_user_info")
+            coerce_a
+            getproperty QName(PackageNamespace(""),"follow_state")
+            convert_i
+            convert_i
+            setlocal3
+            getlocal3
+            lookupswitch ofs0311, [ofs0325, ofs0315, ofs031d, ofs0325]
+   ofs0311:
+            jump ofs0325
+   ofs0315:
+            pushbyte 3
+            convert_i
+            setlocal3
+            jump ofs0325
+   ofs031d:
+            pushbyte 0
+            convert_i
+            setlocal3
+            jump ofs0325
+   ofs0325:
+            findproperty QName(PackageNamespace(""),"response")
+            getproperty QName(PackageNamespace(""),"response")
+            getproperty QName(PackageNamespace(""),"target_user_info")
+            coerce_a
+            getlocal3
+            initproperty QName(PackageNamespace(""),"follow_state")
+            findproperty QName(PackageNamespace(""),"startFollowDelete")
+            callpropvoid QName(PackageNamespace(""),"startFollowDelete"), 0
+            jump ofs035f
+            findproperty QName(PackageNamespace(""),"followStateUpdateFunction")
+            findproperty QName(PackageNamespace(""),"response")
+            getproperty QName(PackageNamespace(""),"response")
+            getproperty QName(PackageNamespace(""),"target_user_info")
+            coerce_a
+            getproperty QName(PackageNamespace(""),"follow_state")
+            convert_i
+            callpropvoid QName(PackageNamespace(""),"followStateUpdateFunction"), 1
+   ofs035f:
+            jump ofs03e9
+   ofs0363:
+            jump ofs03e9
+   ofs0367:
+            findproperty QName(PackageNamespace(""),"response")
+            getproperty QName(PackageNamespace(""),"response")
+            getproperty QName(PackageNamespace(""),"target_user_info")
+            coerce_a
+            getproperty QName(PackageNamespace(""),"follow_state")
+            convert_i
+            lookupswitch ofs038a, [ofs03ae, ofs038e, ofs03ae, ofs03cd]
+   ofs038a:
+            jump ofs03e9
+   ofs038e:
+            findproperty QName(PackageNamespace(""),"response")
+            getproperty QName(PackageNamespace(""),"response")
+            getproperty QName(PackageNamespace(""),"target_user_info")
+            coerce_a
+            pushbyte 2
+            initproperty QName(PackageNamespace(""),"follow_state")
+            findproperty QName(PackageNamespace(""),"startFollowedDelete")
+            callpropvoid QName(PackageNamespace(""),"startFollowedDelete"), 0
+            jump ofs03e9
+   ofs03ae:
+            findproperty QName(PackageNamespace(""),"followStateUpdateFunction")
+            findproperty QName(PackageNamespace(""),"response")
+            getproperty QName(PackageNamespace(""),"response")
+            getproperty QName(PackageNamespace(""),"target_user_info")
+            coerce_a
+            getproperty QName(PackageNamespace(""),"follow_state")
+            convert_i
+            callpropvoid QName(PackageNamespace(""),"followStateUpdateFunction"), 1
+            jump ofs03e9
+   ofs03cd:
+            findproperty QName(PackageNamespace(""),"response")
+            getproperty QName(PackageNamespace(""),"response")
+            getproperty QName(PackageNamespace(""),"target_user_info")
+            coerce_a
+            pushbyte 0
+            initproperty QName(PackageNamespace(""),"follow_state")
+            findproperty QName(PackageNamespace(""),"startFollowedDelete")
+            callpropvoid QName(PackageNamespace(""),"startFollowedDelete"), 0
+   ofs03e9:
+            returnvoid
+         end ; code
+      end ; body
+   end ; method
