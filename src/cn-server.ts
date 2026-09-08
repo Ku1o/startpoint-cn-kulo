@@ -13,6 +13,8 @@ import { installManagementAuth } from "./lib/management-auth";
 import { installRoutePerformanceMonitor } from "./lib/route-performance";
 import { markPlayerOnline } from "./lib/online-presence";
 import { installTakeoverUdidGuard } from "./lib/takeover-access";
+import { installLocalClientCompat } from "./lib/local-client-compat";
+import { getPatchManifest } from "./lib/version";
 
 import versionCheckPlugin from "./routes/cn/versionCheck";
 import iosLeitingPlugin from "./routes/cn/ios-leiting";
@@ -96,6 +98,11 @@ const fastify = Fastify({
 });
 
 const cnLoadCompressionConfig = getCnLoadHttpCompressionConfig();
+
+installLocalClientCompat(fastify, process.env.CN_LOCAL_CLIENT_PLATFORM || (
+    getPatchManifest().patches.some(p => p.enabled && p.local_test_only
+        && p.required_local_platform === "android") ? "android" : undefined
+));
 
 installRoutePerformanceMonitor(fastify);
 

@@ -3,6 +3,8 @@ import { sessionManager } from "../state/SessionManager"
 import type { SessionClient } from "../state/SessionManager"
 import { relayToBattleRoom } from "./relay"
 import { recordBattleNotify } from "./chain-diagnostic"
+import { getRoom } from "../room/manager"
+import { recordFiveBossSignal } from "../five-boss/lobby-runtime"
 
 function findBattleClientBySocket(socket: net.Socket): SessionClient | undefined {
     const client = sessionManager.findClientBySocket(socket)
@@ -33,11 +35,15 @@ function handleBattleNotify(socket: net.Socket, data: unknown): void {
         }
         case 1: { // LevelNext (CN dual-boss battle)
             if (client) {
+                const room = getRoom(client.roomNumber)
+                if (room?.five_boss_runtime) recordFiveBossSignal(room, client, "level_next")
                 sessionManager.beginBattleLevelNext(client.connectionId, client.roomNumber)
             }
             break
         }
         case 2: { // Finalize
+            const room = client && getRoom(client.roomNumber)
+            if (client && room?.five_boss_runtime) recordFiveBossSignal(room, client, "finalize")
             if (client) sendToBattleClient(client, [1, [2]], "battle_finalize_ack")
             break
         }

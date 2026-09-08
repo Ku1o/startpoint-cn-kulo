@@ -54,6 +54,13 @@ export interface MultiRoomLifecycle {
 
 
 export interface MultiRoom {
+    five_boss_runtime?: {
+        runId: string
+        expectedRealPlayerIds: number[]
+        autoplayModeByPlayerId: Record<string, boolean>
+        partyCharacterIdsByPlayerId: Record<string, number[]>
+        battleIdentityByViewerId: Record<string, { playerId: number, remoteAddress: string, connectionId: string }>
+    }
     room_number: string
     access_token: string
     category: QuestCategory

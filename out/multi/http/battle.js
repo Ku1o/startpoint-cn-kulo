@@ -10,6 +10,11 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.registerBattleRoutes = void 0;
+const lobby_runtime_1 = require("../five-boss/lobby-runtime");
+const continue_runtime_1 = require("../five-boss/continue-runtime");
+const active_quest_resolver_1 = require("../../lib/quest/finish/active-quest-resolver");
+const contract_1 = require("../five-boss/contract");
+const five_boss_battle_1 = require("./five-boss-battle");
 const utils_1 = require("../../utils");
 const manager_1 = require("../room/manager");
 const SessionManager_1 = require("../state/SessionManager");
@@ -97,6 +102,9 @@ function registerBattleRoutes(fastify) {
                 "error": "Bad Request", "message": "Invalid attention key."
             });
         }
+        if ((0, contract_1.isFiveBossHiddenQuest)(category, quest_id)) {
+            return reply.status(400).send({ error: "Bad Request", message: "Internal five-boss scene is not an entry quest." });
+        }
         const questData = (0, assets_1.getQuestFromCategorySync)(category, quest_id);
         if (questData === null || !('rankPointReward' in questData)) {
             return reply.status(400).send({
@@ -131,6 +139,8 @@ function registerBattleRoutes(fastify) {
             if ((0, mode15_room_gate_1.isMode15RoomClosed)(currentRoom)) {
                 return { status: "mode15_closed", room: currentRoom };
             }
+            if (!(0, lobby_runtime_1.freezeFiveBossLobby)(currentRoom))
+                return { status: "unavailable" };
             if (!(0, manager_1.setRoomBattle)(room_number)) {
                 return { status: "unavailable" };
             }
@@ -167,6 +177,16 @@ function registerBattleRoutes(fastify) {
             });
         }
         const room = roomStart.room;
+        if ((0, five_boss_battle_1.shouldHandleFiveBossStart)(body)) {
+            try {
+                return (0, five_boss_battle_1.handleFiveBossStart)(body, ctx.playerId, reply);
+            }
+            catch (error) {
+                if (!(0, five_boss_battle_1.isFiveBossBattleRequestError)(error))
+                    throw error;
+                return reply.status(400).send({ error: "Bad Request", message: error.message });
+            }
+        }
         const mateComIds = room.mates.map(m => m.com_id);
         const activeQuest = {
             questId: quest_id,
@@ -240,6 +260,16 @@ function registerBattleRoutes(fastify) {
             });
         }
         const { playerId, player } = ctx;
+        if ((0, five_boss_battle_1.shouldHandleFiveBossMemberRequest)(body, playerId)) {
+            try {
+                return yield (0, five_boss_battle_1.handleFiveBossFinish)(body, playerId, reply, buildFinishFollowInfo);
+            }
+            catch (error) {
+                if (!(0, five_boss_battle_1.isFiveBossBattleRequestError)(error))
+                    throw error;
+                return reply.status(400).send({ error: "Bad Request", message: error.message });
+            }
+        }
         const finishCacheKey = (0, finish_response_cache_1.buildFinishResponseCacheKey)("multi", viewerId, body);
         const cachedFinishResponse = (0, finish_response_cache_1.getCachedFinishResponse)(finishCacheKey);
         if (cachedFinishResponse !== undefined) {
@@ -656,6 +686,16 @@ function registerBattleRoutes(fastify) {
             });
         }
         const { playerId, player } = ctx;
+        if ((0, five_boss_battle_1.shouldHandleFiveBossMemberRequest)(body, playerId)) {
+            try {
+                return (0, five_boss_battle_1.handleFiveBossAbort)(body, playerId, reply);
+            }
+            catch (error) {
+                if (!(0, five_boss_battle_1.isFiveBossBattleRequestError)(error))
+                    throw error;
+                return reply.status(400).send({ error: "Bad Request", message: error.message });
+            }
+        }
         const activeQuestData = singleBattleQuest_1.activeQuests[playerId];
         if (activeQuestData) {
             if (activeQuestData.roomNumber) {
@@ -711,6 +751,22 @@ function registerBattleRoutes(fastify) {
             });
         }
         const { playerId } = ctx;
+        if ((0, continue_runtime_1.isFiveBossContinueRequest)(playerId, Number(body.category), Number(body.quest_id), body.play_id)) {
+            try {
+                const data = (0, continue_runtime_1.continueFiveBossSync)({ playerId, category: Number(body.category), questId: Number(body.quest_id),
+                    playId: body.play_id, isMulti: true, apiCount: body.api_count, statistics: body.statistics });
+                const recovered = (0, active_quest_resolver_1.resolveActiveQuest)({ playerId, hint: body, memory: singleBattleQuest_1.activeQuests, allowRebuild: false });
+                if ((recovered === null || recovered === void 0 ? void 0 : recovered.quest.playId) === body.play_id)
+                    recovered.quest.continueCount = data.continue_count;
+                reply.header("content-type", "application/x-msgpack");
+                return reply.status(200).send({ data_headers: (0, utils_1.generateDataHeaders)({ viewer_id: viewerId }), data });
+            }
+            catch (error) {
+                if (!(error instanceof continue_runtime_1.FiveBossContinueError))
+                    throw error;
+                return reply.status(400).send({ error: "Bad Request", message: error.message });
+            }
+        }
         if (singleBattleQuest_1.activeQuests[playerId] === undefined) {
             return reply.status(400).send({
                 "error": "Bad Request", "message": "No active quest to continue."

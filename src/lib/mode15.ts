@@ -11,6 +11,7 @@ export const MODE15_MULTI_EVENT_ID = 300098;
 export const MODE15_LEGACY_HARD_MULTI_EVENT_ID = 100098;
 export const MODE15_TOKEN_ID = 2370098;
 export const MODE15_FULL_CLEAR_TOKEN_ID = 2370097;
+export const MODE15_FULL_CLEAR_TICKET_ID = 10000143;
 export const MODE15_DREAM_EMBLEM_ID = 99;
 export const MODE15_BOSS_TOKEN_REWARD_GROUP_ID = 237009800;
 export const MODE15_FULL_CLEAR_REWARD_GROUP_ID = 237009700;
@@ -397,6 +398,7 @@ export function settleMode15BattleSync(
     if (fullClear) rewards.push(
         { type: RewardType.ITEM, id: MODE15_DREAM_EMBLEM_ID, count: 200 },
         { type: RewardType.ITEM, id: MODE15_FULL_CLEAR_TOKEN_ID, count: 1 },
+        { type: RewardType.ITEM, id: MODE15_FULL_CLEAR_TICKET_ID, count: 1 },
     );
     const reward = givePlayerRewardsSync(playerId, rewards as any) as Mode15SettlementResult;
     reward.mode15_additional_reward_ids = [];
@@ -416,11 +418,13 @@ export function settleMode15BattleSync(
     if (fullClear) reward.mode15_additional_reward_ids.push(
         { group_id: MODE15_FULL_CLEAR_REWARD_GROUP_ID, index: 1, number: 200 },
         { group_id: MODE15_FULL_CLEAR_REWARD_GROUP_ID, index: 2, number: 1 },
+        { group_id: MODE15_FULL_CLEAR_REWARD_GROUP_ID, index: 3, number: 1 },
     );
     reward.mode15_rush_event = fullClear ? {
         rush_battle_reward_list: [
             { kind: 1, kind_id: MODE15_DREAM_EMBLEM_ID, number: 200 },
             { kind: 1, kind_id: MODE15_FULL_CLEAR_TOKEN_ID, number: 1 },
+            { kind: 1, kind_id: MODE15_FULL_CLEAR_TICKET_ID, number: 1 },
         ],
         rush_battle_played_party_list: null,
         endless_battle_played_party_list: null,

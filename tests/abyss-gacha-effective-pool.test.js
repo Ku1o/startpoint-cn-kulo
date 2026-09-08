@@ -25,11 +25,8 @@ const {
 const ABYSS_GACHA_ID = "990001"
 const RACE_GACHA_ID = "990002"
 const ABYSS_NON_EXCHANGEABLE_IDS = new Set([
-    129952, // 水魔女（潮汐的魔女）
-    169980, // 深渊之兽
-    169994, // 白虎
-    169995, // 魔王
-    179981, // 歼灭者
+    129992, // 杰拉尔：新角色暂不可兑换
+    139995, // 稻穗：新角色暂不可兑换
 ])
 const CLIENT_PATCH_DIR = path.join(
     __dirname,
@@ -43,11 +40,13 @@ const CLIENT_TITLE_ARCHIVE = "pinball-1.4.99-1.4.100-2-rank-title-conditions.zip
 const clientArchives = new Map()
 const CLIENT_HASH_SALT = "K6R9T9Hz22OpeIGEWB0ui6c6PYFQnJGy"
 const EXPECTED_RATE_UP_WEIGHTS = new Map([
-    [129952, 30_000],
-    [169980, 30_000],
-    [169994, 30_000],
-    [169995, 30_000],
-    [179981, 30_000],
+    [129992, 38_000],
+    [139995, 38_000],
+    [129952, 10_000],
+    [169980, 10_000],
+    [169994, 10_000],
+    [169995, 10_000],
+    [179981, 10_000],
     [119996, 10_000],
     [119997, 10_000],
     [129997, 10_000],
@@ -94,6 +93,18 @@ async function readClientPayload(logical) {
         .update(logical + CLIENT_HASH_SALT)
         .digest("hex")
     const memberName = `production/upload/${digest.slice(0, 2)}/${digest.slice(2)}`
+    // Offline validation of a prepared resource candidate. With no explicit
+    // candidate, this remains a release gate against the enabled client chain.
+    if (process.env.LENS_RESOURCE_CANDIDATE) {
+        const directory = path.resolve(process.env.LENS_RESOURCE_CANDIDATE)
+        const inventory = JSON.parse(await fs.readFile(path.join(directory, 'resources.json'), 'utf8'))
+        const row = inventory.find(item => item.member === memberName)
+        if (row) {
+            const bytes = await fs.readFile(path.join(directory, 'resources', 'upload', digest.slice(0, 2), digest.slice(2)))
+            assert.equal(crypto.createHash('sha256').update(bytes).digest('hex'), row.sha256)
+            return bytes
+        }
+    }
     const releases = manifest.patches.filter(item => item.enabled && item.type === "patch")
     for (const release of [...releases].reverse()) {
         const names = release.chain ?? [release.archive]
@@ -113,14 +124,14 @@ async function readClientOddsRows(logical) {
     const outer = decodeOrderedMapRaw(await readClientPayload(logical))
     assert.equal(outer.keys.length, 1)
     const inner = decodeOrderedMapRaw(outer.rows[0])
-    return inner.rows.map(row => zlib.inflateSync(row).toString("utf8"))
+    return inner.rows.map(row => zlib.inflateSync(row).toString("utf8").trimEnd())
 }
 
 test("keeps the mirrored abyss pool identical in both runtime sources", () => {
     assert.deepEqual(cnmodGachas[ABYSS_GACHA_ID], baseGachas[ABYSS_GACHA_ID])
 })
 
-test("abyss exchange flags allow only UP and collab characters except five locked pickups", () => {
+test("abyss exchange flags add the five old pickups and keep the two new characters locked", () => {
     const gacha = getGachaSync(ABYSS_GACHA_ID)
     assert.ok(gacha)
     assert.deepEqual(gacha, cnmodGachas[ABYSS_GACHA_ID])
@@ -142,14 +153,16 @@ test("abyss exchange flags allow only UP and collab characters except five locke
             `exchange policy drifted for character ${entry.id}`,
         )
     }
-    assert.equal(entries.filter(entry => entry.isExchangeable).length, 39)
+    assert.equal(entries.filter(entry => entry.isExchangeable).length, 44)
+    assert.equal(entries.filter(entry => entry.rank === 5 && entry.isExchangeable).length, 37)
+    assert.equal(entries.filter(entry => entry.rank === 4 && entry.isExchangeable).length, 7)
     assert.deepEqual(
         entries.filter(entry => entry.isRateUp && !entry.isExchangeable).map(entry => entry.id),
         [...ABYSS_NON_EXCHANGEABLE_IDS].filter(id => entries.some(entry => entry.id === id)),
     )
 })
 
-test("removes audited fillers except the six approved characters without changing any UP rate", () => {
+test("preserves removed fillers and applies the approved September UP rates", () => {
     const gacha = getGachaSync(Number(ABYSS_GACHA_ID))
     assert.ok(gacha)
     assert.deepEqual(gacha.rankRates.normal, [150, 350, 500])
@@ -159,7 +172,7 @@ test("removes audited fillers except the six approved characters without changin
 
     assert.deepEqual(
         Object.fromEntries(Object.entries(gacha.pool).map(([bucket, entries]) => [bucket, entries.length])),
-        { "1": 253, "2": 125, "3": 76 },
+        { "1": 255, "2": 125, "3": 76 },
     )
     assert.deepEqual(
         Object.fromEntries(Object.entries(gacha.pool).map(([bucket, entries]) => [bucket, poolTotal(entries)])),
@@ -199,7 +212,7 @@ test("removes audited fillers except the six approved characters without changin
         assert.equal(rows[0].odds, expectedWeight)
         assert.equal(rows[0].isRateUp, true)
         assert.equal(rows[0].isLimited, true)
-        const expectedRate = expectedWeight === 30_000 ? 0.003 : 0.001
+        const expectedRate = expectedWeight === 38_000 ? 0.0038 : 0.001
         for (const fiveStarRate of fiveStarRates) {
             assert.ok(Math.abs(fiveStarRate * rows[0].odds / totalWeight - expectedRate) < 1e-12)
         }
@@ -276,12 +289,12 @@ test(
     }
 })
 
-test("1.4.100 combines six resources and preserves published archives", async () => {
+test("preserves the published 1.4.100 archives and verifies the effective gacha notice", async () => {
     const release = manifest.patches.find(item => item.id === "abyss-exchange-shop-banners-1.4.100")
     assert.ok(release?.enabled)
     assert.equal(release.depends_on, "1.4.99")
     assert.equal(release.version, "1.4.100")
-    assert.equal(manifest.cdn_version, "1.4.100")
+    assert.ok(Number(manifest.cdn_version.split('.').at(-1)) >= 100)
     assert.deepEqual(release.chain, [CLIENT_EXCHANGE_ARCHIVE, CLIENT_TITLE_ARCHIVE])
     assert.equal(release.files.length, 6)
     assert.equal(release.archive_integrity[0].sha256, "8875fe6cdefc39b25dc0bd28905c988fe5b6cfc9877817f7fbd6a9fc64c86f12")
@@ -311,8 +324,8 @@ test("1.4.100 combines six resources and preserves published archives", async ()
         assert.equal(bytes.readUInt32BE(20), height)
     }
     const note = zlib.inflateRawSync(await readClientPayload("rich_text/cnmod_abyss_limited_gacha_note.html.deflate")).toString("utf8")
-    assert.ok(note.includes("除水魔女、深渊之兽、白虎、魔王、歼灭者外，其余UP角色及池内联动角色可兑换，每名需250点；其余角色不可兑换。"))
-    assert.ok(note.includes("其余231名★5角色的总出现概率为11.8%"))
+    assert.ok(note.includes("杰拉尔、稻穗暂不可兑换；原有22名UP角色及池内联动角色可兑换，共37名★5、7名★4，每名需250点；其余角色不可兑换。"))
+    assert.ok(note.includes("其余231名★5角色的总出现概率为12.04%"))
     assert.equal(note.includes("其余★5角色各需250点兑换"), false)
 })
 

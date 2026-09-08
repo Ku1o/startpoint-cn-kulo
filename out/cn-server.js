@@ -27,6 +27,8 @@ const management_auth_1 = require("./lib/management-auth");
 const route_performance_1 = require("./lib/route-performance");
 const online_presence_1 = require("./lib/online-presence");
 const takeover_access_1 = require("./lib/takeover-access");
+const local_client_compat_1 = require("./lib/local-client-compat");
+const version_1 = require("./lib/version");
 const versionCheck_1 = __importDefault(require("./routes/cn/versionCheck"));
 const ios_leiting_1 = __importDefault(require("./routes/cn/ios-leiting"));
 const leitingAuth_1 = __importDefault(require("./routes/cn/leitingAuth"));
@@ -101,6 +103,8 @@ const fastify = (0, fastify_1.default)({
     bodyLimit: 262144 // 256KB — covers /single_battle_quest/finish large battle stats
 });
 const cnLoadCompressionConfig = (0, cn_load_http_compression_1.getCnLoadHttpCompressionConfig)();
+(0, local_client_compat_1.installLocalClientCompat)(fastify, process.env.CN_LOCAL_CLIENT_PLATFORM || ((0, version_1.getPatchManifest)().patches.some(p => p.enabled && p.local_test_only
+    && p.required_local_platform === "android") ? "android" : undefined));
 (0, route_performance_1.installRoutePerformanceMonitor)(fastify);
 // Viewer IDs >= 900,000,000 are interpreted as COM/AI members by the
 // multiplayer protocol. Repair legacy human sessions before rooms can open.

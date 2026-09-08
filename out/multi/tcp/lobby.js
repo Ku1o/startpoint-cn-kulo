@@ -10,6 +10,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.handleMessage = exports.scheduleRematchDisconnectCleanup = exports.recruitNpcMatesForRoom = exports.scheduleNpcReconcile = exports.notifyRoomDisbanded = exports.checkHostAutoReady = void 0;
+const contract_1 = require("../five-boss/contract");
+const lobby_runtime_1 = require("../five-boss/lobby-runtime");
 const SessionManager_1 = require("../state/SessionManager");
 const manager_1 = require("../room/manager");
 const controller_1 = require("../npc/controller");
@@ -403,7 +405,7 @@ function notifyRoomDisbanded(roomNumber) {
 exports.notifyRoomDisbanded = notifyRoomDisbanded;
 function handleEnterComs(client, coms) {
     return __awaiter(this, void 0, void 0, function* () {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l;
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m;
         let room = (0, manager_1.getRoom)(client.roomNumber);
         if (!room)
             return;
@@ -416,7 +418,14 @@ function handleEnterComs(client, coms) {
             return;
         }
         room.is_npc_mode = true;
-        const hostMate = (_a = client.yourself) !== null && _a !== void 0 ? _a : client.mates[0];
+        if ((0, contract_1.isFiveBossGauntletQuest)(room.category, room.quest_id)) {
+            const remaining = room.created_at + contract_1.FIVE_BOSS_GAUNTLET.aiFillTimeoutMs - Date.now();
+            if (remaining > 0) {
+                scheduleNpcReconcile(room.room_number, remaining);
+                return;
+            }
+        }
+        const hostMate = (_b = (_a = findHostClient(client.roomNumber)) === null || _a === void 0 ? void 0 : _a.yourself) !== null && _b !== void 0 ? _b : client.mates[0];
         if (!hostMate)
             return;
         // Rebuild from live connections so an older client's local array cannot
@@ -439,7 +448,7 @@ function handleEnterComs(client, coms) {
             return;
         }
         const npcProvider = new controller_1.NpcMateProvider();
-        const recruitResult = yield npcProvider.onRecruit(client.roomNumber, String((_b = room === null || room === void 0 ? void 0 : room.host_viewer_id) !== null && _b !== void 0 ? _b : 0));
+        const recruitResult = yield npcProvider.onRecruit(client.roomNumber, String((_c = room === null || room === void 0 ? void 0 : room.host_viewer_id) !== null && _c !== void 0 ? _c : 0));
         room = (0, manager_1.getRoom)(client.roomNumber);
         if (!embedded_1.embeddedMultiCoordinator.isCurrentInstance(room, roomInstanceId)
             || room.lobby_generation !== roomGeneration
@@ -463,7 +472,7 @@ function handleEnterComs(client, coms) {
         let npcParties = [];
         try {
             const selectionOptions = (0, player_party_pool_1.getNpcPartySelectionOptions)(room.category, room.quest_id);
-            npcParties = (0, player_party_pool_1.getRandomPlayerNpcPartiesSync)(client.playerId, needNPCs, selectionOptions)
+            npcParties = (0, contract_1.isFiveBossGauntletQuest)(room.category, room.quest_id) ? [] : (0, player_party_pool_1.getRandomPlayerNpcPartiesSync)(client.playerId, needNPCs, selectionOptions)
                 .map(entry => entry.party);
         }
         catch (error) {
@@ -473,14 +482,14 @@ function handleEnterComs(client, coms) {
         const recruitedMates = (0, controller_1.selectStableNpcSlots)(recruitResult.recruitedMates, needNPCs);
         const firstFallbackComId = 3 - needNPCs;
         for (let i = 0; i < needNPCs; i++) {
-            const recruited = (_c = recruitedMates[i]) !== null && _c !== void 0 ? _c : null;
-            const comId = (_d = recruited === null || recruited === void 0 ? void 0 : recruited.com_id) !== null && _d !== void 0 ? _d : (firstFallbackComId + i);
-            const viewerId = (_e = recruited === null || recruited === void 0 ? void 0 : recruited.viewer_id) !== null && _e !== void 0 ? _e : (900000000 + comId);
-            const party = (_g = (_f = npcParties[i]) !== null && _f !== void 0 ? _f : npcParties[0]) !== null && _g !== void 0 ? _g : hostMate.party;
+            const recruited = (_d = recruitedMates[i]) !== null && _d !== void 0 ? _d : null;
+            const comId = (_e = recruited === null || recruited === void 0 ? void 0 : recruited.com_id) !== null && _e !== void 0 ? _e : (firstFallbackComId + i);
+            const viewerId = (_f = recruited === null || recruited === void 0 ? void 0 : recruited.viewer_id) !== null && _f !== void 0 ? _f : (900000000 + comId);
+            const party = (_h = (_g = npcParties[i]) !== null && _g !== void 0 ? _g : npcParties[0]) !== null && _h !== void 0 ? _h : hostMate.party;
             npcMates.push({
                 viewerId: viewerId,
                 comId: comId,
-                name: (_l = (_j = (_h = coms[comId - 1]) === null || _h === void 0 ? void 0 : _h.name) !== null && _j !== void 0 ? _j : (_k = coms[i]) === null || _k === void 0 ? void 0 : _k.name) !== null && _l !== void 0 ? _l : `NPC${comId}`,
+                name: (_m = (_k = (_j = coms[comId - 1]) === null || _j === void 0 ? void 0 : _j.name) !== null && _k !== void 0 ? _k : (_l = coms[i]) === null || _l === void 0 ? void 0 : _l.name) !== null && _m !== void 0 ? _m : `NPC${comId}`,
                 rank: hostMate.rank,
                 degreeId: hostMate.degreeId,
                 playerRoleKind: 99,
@@ -989,6 +998,8 @@ function handleStartBattle(_socket, client, _data) {
     const realViewerIds = [...new Set(members
             .filter(mate => !mate.comId && Number.isFinite(Number(mate.viewerId)))
             .map(mate => Number(mate.viewerId)))];
+    if (!(0, lobby_runtime_1.freezeFiveBossLobby)(room, members))
+        return;
     const expectedCount = realViewerIds.length;
     for (const viewerId of realViewerIds) {
         SessionManager_1.sessionManager.clearRescueGuestLobbyWait(client.roomNumber, viewerId);

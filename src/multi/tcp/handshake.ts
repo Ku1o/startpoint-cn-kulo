@@ -6,6 +6,8 @@
 // HandshakeResult: Accept=0, Denied=1, Reconnect=2, Exception=3, Complete=4
 
 import * as net from "net"
+import { isFiveBossGauntletQuest } from "../five-boss/contract"
+import { isFrozenFiveBossBattleClient } from "../five-boss/lobby-runtime"
 import {
     getPlayerPartyGroupListSync,
 } from "../../data/domains/party"
@@ -169,7 +171,14 @@ export async function handleHandshake(socket: net.Socket, data: any): Promise<vo
             String(connectionId),
             roomClient?.playerId ?? null,
         )
-        battleClient.roomGeneration = roomClient?.roomGeneration ?? getRoom(roomId)?.lobby_generation ?? 0
+        const battleRoom = getRoom(roomId)
+        if (battleRoom && isFiveBossGauntletQuest(battleRoom.category, battleRoom.quest_id)
+            && !isFrozenFiveBossBattleClient(battleRoom, battleClient)) {
+            sessionManager.sendJson(socket, [3, "HANDSHAKE_DENIED"])
+            socket.end()
+            return
+        }
+        battleClient.roomGeneration = roomClient?.roomGeneration ?? battleRoom?.lobby_generation ?? 0
         battleClient.isBattle = true
         sessionManager.addBattleClient(String(connectionId), battleClient)
         sessionManager.sendJson(socket, [0, roomNumber, ""])

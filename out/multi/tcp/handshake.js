@@ -16,6 +16,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.handleHandshake = exports.buildRealParty = void 0;
+const contract_1 = require("../five-boss/contract");
+const lobby_runtime_1 = require("../five-boss/lobby-runtime");
 const party_1 = require("../../data/domains/party");
 const character_1 = require("../../data/domains/character");
 const equipment_1 = require("../../data/domains/equipment");
@@ -142,7 +144,7 @@ function buildRealParty(playerId, targetParty) {
 exports.buildRealParty = buildRealParty;
 function handleHandshake(socket, data) {
     return __awaiter(this, void 0, void 0, function* () {
-        var _a, _b, _c, _d, _e, _f, _g;
+        var _a, _b, _c, _d, _e, _f;
         (0, game_logging_1.gameVerboseLog)(() => `[TCP] handshake: ${JSON.stringify(data).substring(0, 200)}`);
         const socklet = data.socklet;
         const roomNumber = data.room_number || data.roomNumber;
@@ -160,7 +162,14 @@ function handleHandshake(socket, data) {
             // like duplicate connections and causes one side to be replaced.
             const roomClient = SessionManager_1.sessionManager.getRoomClientByConnectionId(roomId, String(connectionId));
             const battleClient = SessionManager_1.sessionManager.createClient(socket, (_a = roomClient === null || roomClient === void 0 ? void 0 : roomClient.viewerId) !== null && _a !== void 0 ? _a : 0, roomId, String(connectionId), (_b = roomClient === null || roomClient === void 0 ? void 0 : roomClient.playerId) !== null && _b !== void 0 ? _b : null);
-            battleClient.roomGeneration = (_e = (_c = roomClient === null || roomClient === void 0 ? void 0 : roomClient.roomGeneration) !== null && _c !== void 0 ? _c : (_d = (0, manager_1.getRoom)(roomId)) === null || _d === void 0 ? void 0 : _d.lobby_generation) !== null && _e !== void 0 ? _e : 0;
+            const battleRoom = (0, manager_1.getRoom)(roomId);
+            if (battleRoom && (0, contract_1.isFiveBossGauntletQuest)(battleRoom.category, battleRoom.quest_id)
+                && !(0, lobby_runtime_1.isFrozenFiveBossBattleClient)(battleRoom, battleClient)) {
+                SessionManager_1.sessionManager.sendJson(socket, [3, "HANDSHAKE_DENIED"]);
+                socket.end();
+                return;
+            }
+            battleClient.roomGeneration = (_d = (_c = roomClient === null || roomClient === void 0 ? void 0 : roomClient.roomGeneration) !== null && _c !== void 0 ? _c : battleRoom === null || battleRoom === void 0 ? void 0 : battleRoom.lobby_generation) !== null && _d !== void 0 ? _d : 0;
             battleClient.isBattle = true;
             SessionManager_1.sessionManager.addBattleClient(String(connectionId), battleClient);
             SessionManager_1.sessionManager.sendJson(socket, [0, roomNumber, ""]);
@@ -215,8 +224,8 @@ function handleHandshake(socket, data) {
                 && client.socket.writable);
             const liveViewerIds = new Set(liveClients.map(client => client.viewerId));
             const viewerAlreadyConnected = liveViewerIds.has(Number(viewerId));
-            const requestedCategory = (_f = data.questCategory) !== null && _f !== void 0 ? _f : data.quest_category;
-            const requestedQuestId = (_g = data.questId) !== null && _g !== void 0 ? _g : data.quest_id;
+            const requestedCategory = (_e = data.questCategory) !== null && _e !== void 0 ? _e : data.quest_category;
+            const requestedQuestId = (_f = data.questId) !== null && _f !== void 0 ? _f : data.quest_id;
             const categoryMismatch = requestedCategory !== undefined
                 && Number(requestedCategory) !== currentRoom.category;
             const questMismatch = requestedQuestId !== undefined

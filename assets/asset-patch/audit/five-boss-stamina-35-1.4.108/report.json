@@ -1,0 +1,52 @@
+{
+  "base": "1.4.107",
+  "version": "1.4.108",
+  "archive": {
+    "name": "pinball-1.4.107-1.4.108-1-five-boss-stamina-35.zip",
+    "size": 73841,
+    "sha256": "2dc1839b80e3d5bd7020155519e04e502ff851d0946d8e88aea42bd351ff0258",
+    "members": 1,
+    "files": [
+      "production/upload/eb/f8ef19148af9c1330b78c7fb3ce75e3f202e64"
+    ]
+  },
+  "quest_ids": [
+    1099001,
+    1099002,
+    1099003,
+    1099004,
+    1099005,
+    1099006,
+    1099007,
+    1099008,
+    1099009,
+    1099010,
+    1099011,
+    1099012,
+    1099013,
+    1099014,
+    1099015,
+    1099016,
+    1099017,
+    1099018,
+    1099019,
+    1099020,
+    1099021,
+    1099022,
+    1099023
+  ],
+  "column": 69,
+  "stamina_cost": 35,
+  "one_continue_preserved": true,
+  "other_fields_preserved": true,
+  "native_proof": "BossBattleQuestValues.as:1271: battle_stamina_cost = int(Std.parseInt(param1[69]));",
+  "source_reads": {
+    "common|eb/f8ef19148af9c1330b78c7fb3ce75e3f202e64": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.104-1.4.105-1-five-boss-continue-limit.zip",
+      "member": "production/upload/eb/f8ef19148af9c1330b78c7fb3ce75e3f202e64",
+      "sha256": "483202a251261b846191113ee322f17a6401e64b65fffec1b0b1ab18249c206f"
+    }
+  },
+  "swf_changed": false,
+  "device_tested": false
+}

@@ -1,0 +1,522 @@
+{
+  "base": "1.4.106",
+  "version": "1.4.107",
+  "archive": {
+    "name": "pinball-1.4.106-1.4.107-1-race-character-nerf.zip",
+    "size": 226863,
+    "sha256": "b9903835e2529151239c5b8f4ded43488e19764f3e47d29ec763d8f172801a6a",
+    "members": 2,
+    "files": [
+      "production/upload/1e/664c1cc8d80f4f9a69aae2c49ae8c01d1c4001",
+      "production/upload/ff/84353774cb95e8d7dc90c679f96a5bca7f42e5"
+    ]
+  },
+  "tables": [
+    {
+      "table": "ability",
+      "logical": "master/ability/ability.orderedmap",
+      "input_sha256": "5dd57a21a4b86a333cc611b8c7444074c053bbb3753a01740fb38b94d824f949",
+      "output_sha256": "622d42377fc7973552f1f8b98356788948ec263887dcc893a66a4dc204a62ea5",
+      "key_count": 3362,
+      "changed_keys": [
+        "1299982",
+        "1299984",
+        "1199931",
+        "1199933",
+        "1199935",
+        "1499943",
+        "1499944",
+        "1499946",
+        "1399962",
+        "1399964"
+      ],
+      "changed_cells": 50,
+      "changes": [
+        {
+          "key": "1299982",
+          "row": 0,
+          "column": 113,
+          "before": "30000",
+          "after": "20000",
+          "changed": true
+        },
+        {
+          "key": "1299982",
+          "row": 0,
+          "column": 114,
+          "before": "60000",
+          "after": "40000",
+          "changed": true
+        },
+        {
+          "key": "1299982",
+          "row": 1,
+          "column": 113,
+          "before": "30000",
+          "after": "20000",
+          "changed": true
+        },
+        {
+          "key": "1299982",
+          "row": 1,
+          "column": 114,
+          "before": "60000",
+          "after": "40000",
+          "changed": true
+        },
+        {
+          "key": "1299982",
+          "row": 2,
+          "column": 113,
+          "before": "22500",
+          "after": "15000",
+          "changed": true
+        },
+        {
+          "key": "1299982",
+          "row": 2,
+          "column": 114,
+          "before": "45000",
+          "after": "30000",
+          "changed": true
+        },
+        {
+          "key": "1299982",
+          "row": 3,
+          "column": 113,
+          "before": "12500",
+          "after": "7500",
+          "changed": true
+        },
+        {
+          "key": "1299982",
+          "row": 3,
+          "column": 114,
+          "before": "25000",
+          "after": "15000",
+          "changed": true
+        },
+        {
+          "key": "1299982",
+          "row": 4,
+          "column": 113,
+          "before": "12500",
+          "after": "7500",
+          "changed": true
+        },
+        {
+          "key": "1299982",
+          "row": 4,
+          "column": 114,
+          "before": "25000",
+          "after": "15000",
+          "changed": true
+        },
+        {
+          "key": "1299982",
+          "row": 5,
+          "column": 113,
+          "before": "10000",
+          "after": "6000",
+          "changed": true
+        },
+        {
+          "key": "1299982",
+          "row": 5,
+          "column": 114,
+          "before": "20000",
+          "after": "12000",
+          "changed": true
+        },
+        {
+          "key": "1299982",
+          "row": 6,
+          "column": 113,
+          "before": "5000",
+          "after": "3000",
+          "changed": true
+        },
+        {
+          "key": "1299982",
+          "row": 6,
+          "column": 114,
+          "before": "10000",
+          "after": "6000",
+          "changed": true
+        },
+        {
+          "key": "1299984",
+          "row": 3,
+          "column": 51,
+          "before": "25000",
+          "after": "15000",
+          "changed": true
+        },
+        {
+          "key": "1299984",
+          "row": 3,
+          "column": 52,
+          "before": "50000",
+          "after": "30000",
+          "changed": true
+        },
+        {
+          "key": "1299984",
+          "row": 5,
+          "column": 51,
+          "before": "2000",
+          "after": "1000",
+          "changed": true
+        },
+        {
+          "key": "1299984",
+          "row": 5,
+          "column": 52,
+          "before": "4000",
+          "after": "2000",
+          "changed": true
+        },
+        {
+          "key": "1199931",
+          "row": 1,
+          "column": 113,
+          "before": "10000",
+          "after": "7500",
+          "changed": true
+        },
+        {
+          "key": "1199931",
+          "row": 1,
+          "column": 114,
+          "before": "20000",
+          "after": "15000",
+          "changed": true
+        },
+        {
+          "key": "1199931",
+          "row": 2,
+          "column": 113,
+          "before": "10000",
+          "after": "7500",
+          "changed": true
+        },
+        {
+          "key": "1199931",
+          "row": 2,
+          "column": 114,
+          "before": "20000",
+          "after": "15000",
+          "changed": true
+        },
+        {
+          "key": "1199933",
+          "row": 0,
+          "column": 113,
+          "before": "12500",
+          "after": "8750",
+          "changed": true
+        },
+        {
+          "key": "1199933",
+          "row": 0,
+          "column": 114,
+          "before": "25000",
+          "after": "17500",
+          "changed": true
+        },
+        {
+          "key": "1199933",
+          "row": 1,
+          "column": 113,
+          "before": "8750",
+          "after": "6250",
+          "changed": true
+        },
+        {
+          "key": "1199933",
+          "row": 1,
+          "column": 114,
+          "before": "17500",
+          "after": "12500",
+          "changed": true
+        },
+        {
+          "key": "1199935",
+          "row": 1,
+          "column": 113,
+          "before": "2500",
+          "after": "1750",
+          "changed": true
+        },
+        {
+          "key": "1199935",
+          "row": 1,
+          "column": 114,
+          "before": "5000",
+          "after": "3500",
+          "changed": true
+        },
+        {
+          "key": "1499943",
+          "row": 3,
+          "column": 51,
+          "before": "4000",
+          "after": "2000",
+          "changed": true
+        },
+        {
+          "key": "1499943",
+          "row": 3,
+          "column": 52,
+          "before": "6000",
+          "after": "3000",
+          "changed": true
+        },
+        {
+          "key": "1499943",
+          "row": 4,
+          "column": 51,
+          "before": "60000",
+          "after": "36000",
+          "changed": true
+        },
+        {
+          "key": "1499943",
+          "row": 4,
+          "column": 52,
+          "before": "100000",
+          "after": "60000",
+          "changed": true
+        },
+        {
+          "key": "1499944",
+          "row": 2,
+          "column": 51,
+          "before": "30000",
+          "after": "18750",
+          "changed": true
+        },
+        {
+          "key": "1499944",
+          "row": 2,
+          "column": 52,
+          "before": "40000",
+          "after": "25000",
+          "changed": true
+        },
+        {
+          "key": "1499946",
+          "row": 4,
+          "column": 51,
+          "before": "60000",
+          "after": "36000",
+          "changed": true
+        },
+        {
+          "key": "1499946",
+          "row": 4,
+          "column": 52,
+          "before": "100000",
+          "after": "60000",
+          "changed": true
+        },
+        {
+          "key": "1499946",
+          "row": 5,
+          "column": 51,
+          "before": "60000",
+          "after": "36000",
+          "changed": true
+        },
+        {
+          "key": "1499946",
+          "row": 5,
+          "column": 52,
+          "before": "100000",
+          "after": "60000",
+          "changed": true
+        },
+        {
+          "key": "1399962",
+          "row": 0,
+          "column": 51,
+          "before": "30000",
+          "after": "20000",
+          "changed": true
+        },
+        {
+          "key": "1399962",
+          "row": 0,
+          "column": 52,
+          "before": "60000",
+          "after": "40000",
+          "changed": true
+        },
+        {
+          "key": "1399962",
+          "row": 1,
+          "column": 51,
+          "before": "10000",
+          "after": "7500",
+          "changed": true
+        },
+        {
+          "key": "1399962",
+          "row": 1,
+          "column": 52,
+          "before": "20000",
+          "after": "15000",
+          "changed": true
+        },
+        {
+          "key": "1399962",
+          "row": 2,
+          "column": 51,
+          "before": "20000",
+          "after": "12500",
+          "changed": true
+        },
+        {
+          "key": "1399962",
+          "row": 2,
+          "column": 52,
+          "before": "40000",
+          "after": "25000",
+          "changed": true
+        },
+        {
+          "key": "1399962",
+          "row": 3,
+          "column": 51,
+          "before": "20000",
+          "after": "12500",
+          "changed": true
+        },
+        {
+          "key": "1399962",
+          "row": 3,
+          "column": 52,
+          "before": "40000",
+          "after": "25000",
+          "changed": true
+        },
+        {
+          "key": "1399964",
+          "row": 2,
+          "column": 51,
+          "before": "20000",
+          "after": "12500",
+          "changed": true
+        },
+        {
+          "key": "1399964",
+          "row": 2,
+          "column": 52,
+          "before": "40000",
+          "after": "25000",
+          "changed": true
+        },
+        {
+          "key": "1399964",
+          "row": 2,
+          "column": 6,
+          "before": "0",
+          "after": "202",
+          "changed": true
+        },
+        {
+          "key": "1399964",
+          "row": 0,
+          "column": 6,
+          "before": "0",
+          "after": "202",
+          "changed": true
+        }
+      ],
+      "unrelated_stored_rows_unchanged": true,
+      "serialized_readback_verified": true
+    },
+    {
+      "table": "leader_ability",
+      "logical": "master/ability/leader_ability.orderedmap",
+      "input_sha256": "8f04b0e7e5c7204d6cd9821aca48ee49855b2d224683ebd32b259bb47f840e02",
+      "output_sha256": "e3becef39f2c3f95eb144e751f7c4d66c2b6588f6195c90a3a60cf900ada6101",
+      "key_count": 561,
+      "changed_keys": [
+        "119993",
+        "139996"
+      ],
+      "changed_cells": 6,
+      "changes": [
+        {
+          "key": "119993",
+          "row": 2,
+          "column": 111,
+          "before": "25000",
+          "after": "17857",
+          "changed": true
+        },
+        {
+          "key": "119993",
+          "row": 2,
+          "column": 112,
+          "before": "35000",
+          "after": "25000",
+          "changed": true
+        },
+        {
+          "key": "119993",
+          "row": 3,
+          "column": 111,
+          "before": "35000",
+          "after": "23333",
+          "changed": true
+        },
+        {
+          "key": "119993",
+          "row": 3,
+          "column": 112,
+          "before": "45000",
+          "after": "30000",
+          "changed": true
+        },
+        {
+          "key": "139996",
+          "row": 4,
+          "column": 49,
+          "before": "45000",
+          "after": "30000",
+          "changed": true
+        },
+        {
+          "key": "139996",
+          "row": 4,
+          "column": 50,
+          "before": "60000",
+          "after": "40000",
+          "changed": true
+        }
+      ],
+      "unrelated_stored_rows_unchanged": true,
+      "serialized_readback_verified": true
+    }
+  ],
+  "source_reads": {
+    "common|1e/664c1cc8d80f4f9a69aae2c49ae8c01d1c4001": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.101-1.4.102-1-lens0907-0908-local-android.zip",
+      "member": "production/upload/1e/664c1cc8d80f4f9a69aae2c49ae8c01d1c4001",
+      "sha256": "5dd57a21a4b86a333cc611b8c7444074c053bbb3753a01740fb38b94d824f949"
+    },
+    "common|ff/84353774cb95e8d7dc90c679f96a5bca7f42e5": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.101-1.4.102-1-lens0907-0908-local-android.zip",
+      "member": "production/upload/ff/84353774cb95e8d7dc90c679f96a5bca7f42e5",
+      "sha256": "8f04b0e7e5c7204d6cd9821aca48ee49855b2d224683ebd32b259bb47f840e02"
+    }
+  },
+  "shared_android_ios_data": true,
+  "runtime_platform_gate": "android",
+  "device_tested": false,
+  "candidate_spec_sha256": "71bbf958c129dc040309e9cd396390aaea0b762d712f893ebe3819cf6a9562db",
+  "all_unrelated_keys_preserved": true,
+  "regression_tests_passed": 8
+}

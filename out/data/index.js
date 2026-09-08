@@ -11,6 +11,7 @@ const path_1 = __importDefault(require("path"));
 const wdfpData_1 = require("./updaters/wdfpData");
 const wdfpData_2 = __importDefault(require("./initializers/wdfpData"));
 const quest_time_revision_1 = require("./initializers/quest-time-revision");
+const five_boss_gauntlet_1 = require("./initializers/five-boss-gauntlet");
 const admin_account_cleanup_1 = require("../lib/admin-account-cleanup");
 const storage_layout_1 = require("../lib/storage-layout");
 // Use __dirname so DB path is relative to the source file, not process.cwd()
@@ -90,6 +91,7 @@ function getDatabase(database) {
             console.log("[DB] calling init...");
             init(db, dbExists);
             (0, quest_time_revision_1.initializeQuestTimeRevision)(db);
+            (0, five_boss_gauntlet_1.initializeFiveBossGauntlet)(db);
             console.log("[DB] init done");
             // try to update after initialization
             if (updateRequired && updateAfter !== undefined) {

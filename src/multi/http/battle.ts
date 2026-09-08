@@ -1,3 +1,10 @@
+import { freezeFiveBossLobby } from "../five-boss/lobby-runtime";
+import { continueFiveBossSync, FiveBossContinueError, isFiveBossContinueRequest } from "../five-boss/continue-runtime";
+import { resolveActiveQuest } from "../../lib/quest/finish/active-quest-resolver";
+import { isFiveBossHiddenQuest } from "../five-boss/contract";
+import { shouldHandleFiveBossStart, shouldHandleFiveBossMemberRequest,
+    handleFiveBossStart, handleFiveBossFinish, handleFiveBossAbort,
+    isFiveBossBattleRequestError } from "./five-boss-battle";
 import { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import { MultiStartBody, MultiFinishBody, MultiAbortBody, PlayContinueBody } from "../types";
 import { generateDataHeaders, getServerTime, realToVirtual } from "../../utils";
@@ -125,6 +132,9 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
             });
         }
 
+        if (isFiveBossHiddenQuest(category, quest_id)) {
+            return reply.status(400).send({ error: "Bad Request", message: "Internal five-boss scene is not an entry quest." });
+        }
         const questData = getQuestFromCategorySync(category, quest_id) as BattleQuest | null;
         if (questData === null || !('rankPointReward' in questData)) {
             return reply.status(400).send({
@@ -162,6 +172,7 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
             if (isMode15RoomClosed(currentRoom)) {
                 return { status: "mode15_closed" as const, room: currentRoom };
             }
+            if (!freezeFiveBossLobby(currentRoom)) return { status: "unavailable" as const };
             if (!setRoomBattle(room_number)) {
                 return { status: "unavailable" as const };
             }
@@ -202,6 +213,14 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
         }
 
         const room = roomStart.room;
+        if (shouldHandleFiveBossStart(body)) {
+            try { return handleFiveBossStart(body, ctx.playerId, reply); }
+            catch (error) {
+                if (!isFiveBossBattleRequestError(error)) throw error;
+                return reply.status(400).send({ error: "Bad Request", message: (error as Error).message });
+            }
+        }
+
 
         const mateComIds = room.mates.map(m => m.com_id);
         const activeQuest = {
@@ -286,6 +305,14 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
         }
 
         const { playerId, player } = ctx;
+        if (shouldHandleFiveBossMemberRequest(body, playerId)) {
+            try { return await handleFiveBossFinish(body, playerId, reply, buildFinishFollowInfo); }
+            catch (error) {
+                if (!isFiveBossBattleRequestError(error)) throw error;
+                return reply.status(400).send({ error: "Bad Request", message: (error as Error).message });
+            }
+        }
+
         const finishCacheKey = buildFinishResponseCacheKey(
             "multi",
             viewerId,
@@ -827,6 +854,14 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
         }
 
         const { playerId, player } = ctx;
+        if (shouldHandleFiveBossMemberRequest(body, playerId)) {
+            try { return handleFiveBossAbort(body, playerId, reply); }
+            catch (error) {
+                if (!isFiveBossBattleRequestError(error)) throw error;
+                return reply.status(400).send({ error: "Bad Request", message: (error as Error).message });
+            }
+        }
+
         const activeQuestData = activeQuests[playerId];
 
         if (activeQuestData) {
@@ -896,6 +931,20 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
         }
 
         const { playerId } = ctx;
+
+        if (isFiveBossContinueRequest(playerId, Number(body.category), Number(body.quest_id), body.play_id)) {
+            try {
+                const data = continueFiveBossSync({ playerId, category: Number(body.category), questId: Number(body.quest_id),
+                    playId: body.play_id, isMulti: true, apiCount: body.api_count, statistics: body.statistics })
+                const recovered = resolveActiveQuest({ playerId, hint: body, memory: activeQuests, allowRebuild: false })
+                if (recovered?.quest.playId === body.play_id) recovered.quest.continueCount = data.continue_count
+                reply.header("content-type", "application/x-msgpack")
+                return reply.status(200).send({ data_headers: generateDataHeaders({ viewer_id: viewerId }), data })
+            } catch (error) {
+                if (!(error instanceof FiveBossContinueError)) throw error
+                return reply.status(400).send({ error: "Bad Request", message: error.message })
+            }
+        }
 
         if (activeQuests[playerId] === undefined) {
             return reply.status(400).send({

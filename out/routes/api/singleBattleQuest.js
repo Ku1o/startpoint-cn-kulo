@@ -13,6 +13,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.insertActiveQuest = exports.activeQuests = void 0;
+const contract_1 = require("../../multi/five-boss/contract");
+const continue_runtime_1 = require("../../multi/five-boss/continue-runtime");
+const solo_rewards_1 = require("../../multi/five-boss/solo-rewards");
+const solo_runtime_1 = require("../../multi/five-boss/solo-runtime");
 const quest_active_1 = require("../../data/domains/quest_active");
 const rushEvent_1 = require("../../data/domains/rushEvent");
 const player_1 = require("../../data/domains/player");
@@ -106,6 +110,7 @@ function insertActiveQuest(playerId, quest) {
 exports.insertActiveQuest = insertActiveQuest;
 const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
     fastify.post("/finish", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
+        var _b;
         const body = request.body;
         const viewerId = body.viewer_id;
         if (!viewerId || isNaN(viewerId))
@@ -119,7 +124,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             });
         const { playerId, playerData } = sessionResult;
         const finishCacheKey = (0, finish_response_cache_1.buildFinishResponseCacheKey)("single", viewerId, body);
-        const cachedFinishResponse = (0, finish_response_cache_1.getCachedFinishResponse)(finishCacheKey);
+        const cachedFinishResponse = (_b = (0, solo_runtime_1.getFiveBossSoloReceiptSync)(playerId, finishCacheKey)) !== null && _b !== void 0 ? _b : (0, finish_response_cache_1.getCachedFinishResponse)(finishCacheKey);
         if (cachedFinishResponse !== undefined) {
             reply.header("content-type", "application/x-msgpack");
             return reply.status(200).send(cachedFinishResponse);
@@ -143,6 +148,14 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         }
         const questCategory = activeQuestData.category;
         const questId = activeQuestData.questId;
+        if ((0, contract_1.isFiveBossHiddenQuest)(questCategory, questId)) {
+            return reply.status(400).send({ error: "Bad Request", message: "Internal five-boss scene cannot settle separately." });
+        }
+        const fiveBossSoloQuest = (0, contract_1.isFiveBossGauntletQuest)(questCategory, questId);
+        if (fiveBossSoloQuest && (activeQuestData.isMulti || (resolvedActiveQuest === null || resolvedActiveQuest === void 0 ? void 0 : resolvedActiveQuest.source) === "rebuilt"
+            || !finishCacheKey || !(0, solo_runtime_1.isActiveFiveBossSoloSync)(playerId, activeQuestData.playId))) {
+            return reply.status(400).send({ error: "Bad Request", message: "No registered five-boss solo run." });
+        }
         if ((resolvedActiveQuest === null || resolvedActiveQuest === void 0 ? void 0 : resolvedActiveQuest.source) === "rebuilt" && (0, abyss_time_revision_1.isAbyssFiniteQuest)(questCategory, questId)) {
             // Preserve the patched client's no-/start recovery, but never
             // assume a missing registration belongs to the newly published tower.
@@ -216,7 +229,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             questAccomplished = body.score >= scoreAttackBorderTiers[0].score;
         }
         const finishResponse = (0, settlement_performance_1.measureSettlementPhase)("single", "transaction", () => (0, db_1.getDb)().transaction(() => {
-            var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u;
+            var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w;
             (0, quest_active_1.deletePlayerActiveQuestSync)(playerId);
             const missionEvaluationTime = new Date((0, utils_1.getServerTime)() * 1000);
             let clearReward = null;
@@ -527,7 +540,9 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 carnivalRewardsResult = granted.rewards;
             }
             const mode15RewardsResult = (0, mode15_optional_1.settleMode15BattleSync)(playerId, questCategory, questId, questAccomplished);
-            const itemList = Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign({}, (activeQuestData.entryItemId ? { [activeQuestData.entryItemId]: (_g = (0, item_1.getPlayerItemSync)(playerId, activeQuestData.entryItemId)) !== null && _g !== void 0 ? _g : 0 } : {})), ((_h = clearReward === null || clearReward === void 0 ? void 0 : clearReward.items) !== null && _h !== void 0 ? _h : {})), ((_j = sPlusClearReward === null || sPlusClearReward === void 0 ? void 0 : sPlusClearReward.items) !== null && _j !== void 0 ? _j : {})), scoreRewardsResult.items), ((_k = rushEventRewardsResult === null || rushEventRewardsResult === void 0 ? void 0 : rushEventRewardsResult.items) !== null && _k !== void 0 ? _k : {})), ((_l = rogueDrops === null || rogueDrops === void 0 ? void 0 : rogueDrops.rewardResult.items) !== null && _l !== void 0 ? _l : {})), ((_m = carnivalRewardsResult === null || carnivalRewardsResult === void 0 ? void 0 : carnivalRewardsResult.items) !== null && _m !== void 0 ? _m : {})), ((_o = mode15RewardsResult === null || mode15RewardsResult === void 0 ? void 0 : mode15RewardsResult.items) !== null && _o !== void 0 ? _o : {}));
+            const fiveBossSolo = fiveBossSoloQuest && questAccomplished
+                ? (0, solo_rewards_1.grantFiveBossSoloRewardsSync)({ playerId, firstClear: !(questProgress === null || questProgress === void 0 ? void 0 : questProgress.finished) }) : null;
+            const itemList = Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign({}, ((_g = fiveBossSolo === null || fiveBossSolo === void 0 ? void 0 : fiveBossSolo.items) !== null && _g !== void 0 ? _g : {})), (activeQuestData.entryItemId ? { [activeQuestData.entryItemId]: (_h = (0, item_1.getPlayerItemSync)(playerId, activeQuestData.entryItemId)) !== null && _h !== void 0 ? _h : 0 } : {})), ((_j = clearReward === null || clearReward === void 0 ? void 0 : clearReward.items) !== null && _j !== void 0 ? _j : {})), ((_k = sPlusClearReward === null || sPlusClearReward === void 0 ? void 0 : sPlusClearReward.items) !== null && _k !== void 0 ? _k : {})), scoreRewardsResult.items), ((_l = rushEventRewardsResult === null || rushEventRewardsResult === void 0 ? void 0 : rushEventRewardsResult.items) !== null && _l !== void 0 ? _l : {})), ((_m = rogueDrops === null || rogueDrops === void 0 ? void 0 : rogueDrops.rewardResult.items) !== null && _m !== void 0 ? _m : {})), ((_o = carnivalRewardsResult === null || carnivalRewardsResult === void 0 ? void 0 : carnivalRewardsResult.items) !== null && _o !== void 0 ? _o : {})), ((_p = mode15RewardsResult === null || mode15RewardsResult === void 0 ? void 0 : mode15RewardsResult.items) !== null && _p !== void 0 ? _p : {}));
             const characterList = [
                 ...rewardCharacterExpResult.character_list,
                 ...((clearReward === null || clearReward === void 0 ? void 0 : clearReward.character_list) || []),
@@ -551,12 +566,12 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             const finalPlayerData = (0, player_1.getPlayerSync)(playerId);
             const responseData = {
                 "user_info": {
-                    "free_mana": (_p = finalPlayerData === null || finalPlayerData === void 0 ? void 0 : finalPlayerData.freeMana) !== null && _p !== void 0 ? _p : newMana,
-                    "exp_pool": (_q = finalPlayerData === null || finalPlayerData === void 0 ? void 0 : finalPlayerData.expPool) !== null && _q !== void 0 ? _q : rewardCharacterExpResult.exp_pool,
+                    "free_mana": (_q = finalPlayerData === null || finalPlayerData === void 0 ? void 0 : finalPlayerData.freeMana) !== null && _q !== void 0 ? _q : newMana,
+                    "exp_pool": (_r = finalPlayerData === null || finalPlayerData === void 0 ? void 0 : finalPlayerData.expPool) !== null && _r !== void 0 ? _r : rewardCharacterExpResult.exp_pool,
                     "exp_pooled_time": (0, utils_1.getServerTime)(playerData.expPooledTime),
-                    "free_vmoney": (_r = finalPlayerData === null || finalPlayerData === void 0 ? void 0 : finalPlayerData.freeVmoney) !== null && _r !== void 0 ? _r : playerData.freeVmoney,
+                    "free_vmoney": (_s = finalPlayerData === null || finalPlayerData === void 0 ? void 0 : finalPlayerData.freeVmoney) !== null && _s !== void 0 ? _s : playerData.freeVmoney,
                     "rank_point": newRankPoint,
-                    "degree_id": (_s = playerData.degreeId) !== null && _s !== void 0 ? _s : 1,
+                    "degree_id": (_t = playerData.degreeId) !== null && _t !== void 0 ? _t : 1,
                     "stamina": playerData.stamina,
                     "stamina_heal_time": (0, utils_1.realToVirtual)(playerData.staminaHealTime),
                     "boost_point": newBoostPoint,
@@ -594,8 +609,9 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 "drop_score_reward_ids": scoreRewardsResult.drop_score_reward_ids,
                 "drop_rare_reward_ids": scoreRewardsResult.drop_rare_reward_ids,
                 "drop_additional_reward_ids": [
-                    ...((_t = rogueDrops === null || rogueDrops === void 0 ? void 0 : rogueDrops.additionalRewardEntries) !== null && _t !== void 0 ? _t : []),
-                    ...((_u = mode15RewardsResult === null || mode15RewardsResult === void 0 ? void 0 : mode15RewardsResult.mode15_additional_reward_ids) !== null && _u !== void 0 ? _u : []),
+                    ...((_u = fiveBossSolo === null || fiveBossSolo === void 0 ? void 0 : fiveBossSolo.dropAdditionalRewardIds) !== null && _u !== void 0 ? _u : []),
+                    ...((_v = rogueDrops === null || rogueDrops === void 0 ? void 0 : rogueDrops.additionalRewardEntries) !== null && _v !== void 0 ? _v : []),
+                    ...((_w = mode15RewardsResult === null || mode15RewardsResult === void 0 ? void 0 : mode15RewardsResult.mode15_additional_reward_ids) !== null && _w !== void 0 ? _w : []),
                 ],
                 "drop_periodic_reward_ids": [],
                 "equipment_list": [
@@ -633,10 +649,10 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 responseData.active_mission_list = activeMissionSettlement;
             }
             responseData.mail_arrived = (0, mail_1.getPlayerMailCountSync)(playerId, true) > 0;
-            return {
-                "data_headers": dataHeaders,
-                "data": responseData,
-            };
+            const response = { data_headers: dataHeaders, data: responseData };
+            if (fiveBossSoloQuest)
+                (0, solo_runtime_1.saveFiveBossSoloReceiptSync)(playerId, activeQuestData.playId, finishCacheKey, response);
+            return response;
         })());
         delete exports.activeQuests[playerId];
         (0, finish_response_cache_1.cacheFinishResponse)(finishCacheKey, finishResponse);
@@ -713,6 +729,9 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         // Keep the failure transition, history row, and active-quest deletion
         // atomic so a partial settlement cannot erase the recoverable battle.
         (0, db_1.getDb)().transaction(() => {
+            if (abortQuest && !abortQuest.isMulti && (0, contract_1.isFiveBossGauntletQuest)(abortQuest.category, abortQuest.questId)) {
+                (0, solo_runtime_1.abortFiveBossSoloSync)(playerId, abortQuest.playId);
+            }
             if (abortQuest && (0, mode15_optional_1.isMode15Quest)(abortQuest.category, abortQuest.questId)) {
                 (0, mode15_optional_1.settleMode15BattleSync)(playerId, abortQuest.category, abortQuest.questId, false);
             }
@@ -737,7 +756,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         });
     }));
     fastify.post("/start", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
-        var _b, _c, _d;
+        var _c, _d, _e, _f;
         const body = request.body;
         const viewerId = body.viewer_id;
         const partyId = body.party_id;
@@ -784,6 +803,9 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 });
             }
         }
+        if ((0, contract_1.isFiveBossHiddenQuest)(category, questId)) {
+            return reply.status(400).send({ error: "Bad Request", message: "Internal five-boss scene is not an entry quest." });
+        }
         // get quest data
         const questData = (0, assets_1.getQuestFromCategorySync)(category, questId);
         if (questData === null || !('rankPointReward' in questData)) {
@@ -793,6 +815,44 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 "message": "Quest doesn't exist."
             });
         }
+        if ((0, contract_1.isFiveBossGauntletQuest)(category, questId)) {
+            const previousMemory = exports.activeQuests[playerId];
+            let mission;
+            try {
+                (0, solo_runtime_1.startFiveBossSoloSync)(playerId, body.play_id, () => {
+                    insertActiveQuest(playerId, {
+                        questId, category, useBoostPoint: false, useBossBoostPoint: false,
+                        isAutoStartMode, isMulti: false, entryItemId: contract_1.FIVE_BOSS_GAUNTLET.ticketItemId,
+                        playId: body.play_id, continueCount: 0,
+                    });
+                    (0, player_1.updatePlayerSync)({ id: playerId, partySlot: partyId });
+                    (0, active_entry_facts_1.recordActiveMissionQuestChallengeFactSync)(playerId, category);
+                    mission = (0, mission_2.settleMissionCategories)(playerId, [1, 2, 10], new Date((0, utils_1.getServerTime)() * 1000));
+                    return true;
+                });
+            }
+            catch (error) {
+                if (previousMemory)
+                    exports.activeQuests[playerId] = previousMemory;
+                else
+                    delete exports.activeQuests[playerId];
+                return reply.status(400).send({ error: "Bad Request", message: error.message });
+            }
+            const latest = (0, player_1.getPlayerSync)(playerId);
+            const headers = (0, utils_1.generateDataHeaders)({ viewer_id: viewerId });
+            const data = {
+                user_info: { last_main_quest_id: questId, stamina: latest.stamina,
+                    stamina_heal_time: (0, utils_1.realToVirtual)(latest.staminaHealTime) },
+                item_list: { [contract_1.FIVE_BOSS_GAUNTLET.ticketItemId]: (_c = (0, item_1.getPlayerItemSync)(playerId, contract_1.FIVE_BOSS_GAUNTLET.ticketItemId)) !== null && _c !== void 0 ? _c : 0 },
+                category_id: category, is_multi: "single", start_time: headers.servertime,
+                quest_name: "", client_checks: (0, steam_robot_challenge_1.getSteamRobotMissionClientChecks)(category, questId),
+                mail_arrived: (0, mail_1.getPlayerMailCountSync)(playerId, true) > 0,
+            };
+            if (mission)
+                (0, mission_2.mergeMissionSettlementResponse)(data, mission, viewerId);
+            reply.header("content-type", "application/x-msgpack");
+            return reply.status(200).send({ data_headers: headers, data });
+        }
         // Deduct entry cost (ticket/item)
         const questKey = `${category}_${questId}`;
         const configuredEntryCost = quest_entry_costs_json_1.default[questKey];
@@ -801,7 +861,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         const nominalStaminaCost = Math.max(0, staminaInfo.cost);
         (0, game_logging_1.gameVerboseLog)(() => `[BATTLE] start free-entry: questId=${questId} questKey=${questKey} nominalEntryCost=${JSON.stringify(configuredEntryCost)} nominalStamina=${nominalStaminaCost}`);
         if (entryCost && entryCost.itemId > 0) {
-            const playerItemCount = (_b = (0, item_1.getPlayerItemSync)(playerId, entryCost.itemId)) !== null && _b !== void 0 ? _b : 0;
+            const playerItemCount = (_d = (0, item_1.getPlayerItemSync)(playerId, entryCost.itemId)) !== null && _d !== void 0 ? _d : 0;
             (0, game_logging_1.gameVerboseLog)(() => `[BATTLE] start deduct: itemId=${entryCost.itemId} playerHas=${playerItemCount} need=${entryCost.itemCount}`);
             if (playerItemCount < entryCost.itemCount) {
                 return reply.status(400).send({
@@ -828,7 +888,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 id: playerId,
                 stamina: newStamina,
                 staminaHealTime: new Date(),
-                totalStaminaUsed: ((_c = player.totalStaminaUsed) !== null && _c !== void 0 ? _c : 0) + staminaCost
+                totalStaminaUsed: ((_e = player.totalStaminaUsed) !== null && _e !== void 0 ? _e : 0) + staminaCost
             });
             afterStamina = newStamina;
             (0, game_logging_1.gameVerboseLog)(() => `[BATTLE-START] stamina: ${currentStamina} -> ${newStamina} (cost: ${staminaCost}, rate: ${staminaInfo.rate})`);
@@ -836,7 +896,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         else {
             // No stamina deduction, read current stamina for response
             const player = (0, player_1.getPlayerSync)(playerId);
-            afterStamina = (_d = player === null || player === void 0 ? void 0 : player.stamina) !== null && _d !== void 0 ? _d : 0;
+            afterStamina = (_f = player === null || player === void 0 ? void 0 : player.stamina) !== null && _f !== void 0 ? _f : 0;
         }
         // add to active quests table
         delete exports.activeQuests[playerId];
@@ -912,15 +972,15 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         method: ["GET", "POST"],
         url: "/play_continue",
         handler: (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
-            var _e, _f;
+            var _g, _h;
             // Some legacy builds submit this endpoint as GET, while newer builds
             // use POST. Normalize both forms so a revive is not treated as an
             // unknown route by the client.
-            const raw = ((_e = (request.method === "GET" ? request.query : request.body)) !== null && _e !== void 0 ? _e : {});
+            const raw = ((_g = (request.method === "GET" ? request.query : request.body)) !== null && _g !== void 0 ? _g : {});
             const viewerId = Number(raw.viewer_id);
             const questId = Number(raw.quest_id);
             const category = Number(raw.category);
-            const playId = (_f = raw.play_id) !== null && _f !== void 0 ? _f : raw.paly_id;
+            const playId = (_h = raw.play_id) !== null && _h !== void 0 ? _h : raw.paly_id;
             if (!Number.isSafeInteger(viewerId)
                 || !Number.isSafeInteger(questId)
                 || !Number.isSafeInteger(category))
@@ -933,6 +993,23 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                     "error": "Bad Request", "message": "Invalid viewer id."
                 });
             const { playerId, playerData: player } = sessionResult;
+            if ((0, continue_runtime_1.isFiveBossContinueRequest)(playerId, category, questId, playId)) {
+                try {
+                    const data = (0, continue_runtime_1.continueFiveBossSync)({ playerId, category, questId, playId,
+                        isMulti: false, apiCount: raw.api_count, statistics: raw.statistics });
+                    const recovered = (0, active_quest_resolver_1.resolveActiveQuest)({ playerId, hint: { category, quest_id: questId, play_id: playId },
+                        memory: exports.activeQuests, allowRebuild: false });
+                    if (recovered && recovered.quest.playId === playId)
+                        recovered.quest.continueCount = data.continue_count;
+                    reply.header("content-type", "application/x-msgpack");
+                    return reply.status(200).send({ data_headers: (0, utils_1.generateDataHeaders)({ viewer_id: viewerId }), data });
+                }
+                catch (error) {
+                    if (!(error instanceof continue_runtime_1.FiveBossContinueError))
+                        throw error;
+                    return reply.status(400).send({ error: "Bad Request", message: error.message });
+                }
+            }
             // Continue may recover a persisted battle after a restart, but never
             // rebuild one from request data: doing so would create a new revive path.
             const resolvedContinueQuest = (0, active_quest_resolver_1.resolveActiveQuest)({

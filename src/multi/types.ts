@@ -107,6 +107,12 @@ export interface QuestStatistics {
 }
 
 export interface MultiFinishBody {
+    is_accomplished?: boolean
+    elapsed_time_ms?: number
+    score?: number
+    contribution_score?: number
+    statistics?: QuestStatistics
+    mate_player_result?: Array<{ viewer_id?: number }>
     viewer_id: number
     quest_id: number
     category: number
@@ -135,6 +141,7 @@ export interface MultiAbortBody {
 }
 
 export interface PlayContinueBody {
+    statistics?: unknown
     viewer_id: number
     quest_id: number
     category: number

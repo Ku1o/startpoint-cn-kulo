@@ -27,9 +27,9 @@ export const serverGachas = { ...baseGachas, ...cnmodGachas, ...rankP5bGachas }
 export const serverManaNodes = { ...baseManaNodes, ...cnmodManaNodes, ...rankP5bManaNodes }
 export const serverItemIds = [...new Set([...baseItemIds, ...rankP5bItemIds])]
 
-// Five Boss is intentionally dormant.  Keep its raw definitions for a future
-// opening, but do not expose its Death Bringer exchange through the effective
-// runtime shop view while the matching client row is absent.
+// Retain the retired event-shop row as source data. Five Boss now uses the
+// approved boss-coin shop (category 99); reopening the old event row would
+// introduce a second exchange with different costs and no matching client row.
 const DORMANT_EVENT_SHOP_ITEM_IDS = new Set(["59001010"])
 
 const mergedEventShops = {

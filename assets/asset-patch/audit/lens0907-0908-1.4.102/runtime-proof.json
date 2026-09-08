@@ -1,0 +1,44 @@
+{
+  "swf_sha256": "6bad8317da5e1fc9e528393c1d57bf6f4217a3861ad47d6daa329607ffbecc76",
+  "independent_parser": "FFDec 26.2.1",
+  "classes": [
+    {
+      "class": "Formation",
+      "path": "F:\\codex\\work\\lens0907-0908-integration-20260908\\client\\terrain-as\\scripts\\pinball\\battle\\action\\dsl\\§const§\\Formation.as",
+      "sha256": "77d9d4e843aa6ce9ca77ce055f88ccf44a0488b3620410241bd0cf98b4cbca00"
+    },
+    {
+      "class": "GeneralFunnelStateValues",
+      "path": "F:\\codex\\work\\lens0907-0908-integration-20260908\\client\\terrain-as\\scripts\\pinball\\master\\generated\\GeneralFunnelStateValues.as",
+      "sha256": "113fca6741b226144f7eda46a2d28f7811b5cfffadf48e914696d5f5e58e0ac3"
+    },
+    {
+      "class": "GeneralFunnelValues",
+      "path": "F:\\codex\\work\\lens0907-0908-integration-20260908\\client\\terrain-as\\scripts\\pinball\\master\\generated\\GeneralFunnelValues.as",
+      "sha256": "ad9659b7cf4cfc2f710afedce805a7d8089dc484c38b90e501de9e78e5e9a029"
+    },
+    {
+      "class": "ActionEvaluator",
+      "path": "F:\\codex\\work\\lens0907-0908-integration-20260908\\client\\terrain-as\\scripts\\pinball\\scene\\battle\\battle\\action\\ActionEvaluator.as",
+      "sha256": "3af1ae620bda0415652831fabf1ff926f20bf6955bcad5d7978501a7cd9a2d87"
+    },
+    {
+      "class": "ActionHitAreaGroup",
+      "path": "F:\\codex\\work\\lens0907-0908-integration-20260908\\client\\terrain-as\\scripts\\pinball\\scene\\battle\\battle\\action\\ActionHitAreaGroup.as",
+      "sha256": "c7e810b533f6c2b7fa6d25b7f60dc1a45da6d32c58478075818eccfe9fe02970"
+    },
+    {
+      "class": "FunnelImpl",
+      "path": "F:\\codex\\work\\lens0907-0908-integration-20260908\\client\\terrain-as\\scripts\\pinball\\scene\\battle\\battle\\funnel\\FunnelImpl.as",
+      "sha256": "3f37d9b24312f9bfef0d364336072c509a1abd723f97529291e3866307ac6847"
+    }
+  ],
+  "facts": [
+    "Formation.Single index 0",
+    "ActionHitAreaGroup formation 0 appends exactly one hit area; getSubjects returns that list",
+    "ActionEvaluator.createReferencePoint executes callback once per created hit area",
+    "FunnelImpl.initialize registers *start-point* as initialPoint",
+    "GeneralFunnelValues c36/40/43/47/51 positions, c37 routine and c32 damage share",
+    "GeneralFunnelStateValues c49/50 movement and c29/30 GeneralBossAlive match audited schema"
+  ]
+}

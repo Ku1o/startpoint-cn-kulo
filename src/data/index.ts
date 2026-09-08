@@ -5,6 +5,7 @@ import path from "path";
 import { updateBeforeInit as updateWdfpDataBefore, updateAfterInit as updateWdfpDataAfter} from "./updaters/wdfpData";
 import initWdfpData from "./initializers/wdfpData";
 import { initializeQuestTimeRevision } from "./initializers/quest-time-revision";
+import { initializeFiveBossGauntlet } from "./initializers/five-boss-gauntlet";
 import { ensureCascadeDeleteIndexes } from "../lib/admin-account-cleanup";
 import { assertStorageLayout, WDFP_DATA_VERSION } from "../lib/storage-layout";
 
@@ -109,6 +110,7 @@ export default function getDatabase(
             console.log("[DB] calling init...")
             init(db, dbExists)
             initializeQuestTimeRevision(db)
+            initializeFiveBossGauntlet(db)
             console.log("[DB] init done")
 
             // try to update after initialization

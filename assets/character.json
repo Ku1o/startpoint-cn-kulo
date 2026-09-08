@@ -3130,5 +3130,23 @@
     "name": "巴萨拉卡",
     "rarity": 5,
     "skill_count": 6
+  },
+  "129992": {
+    "element": 1,
+    "name": "杰拉尔",
+    "rarity": 5,
+    "skill_count": 6
+  },
+  "139995": {
+    "element": 2,
+    "name": "稻穗",
+    "rarity": 5,
+    "skill_count": 6
+  },
+  "169980": {
+    "element": 5,
+    "name": "深渊之兽",
+    "rarity": 5,
+    "skill_count": 6
   }
 }
