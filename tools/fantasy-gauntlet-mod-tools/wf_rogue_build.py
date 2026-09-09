@@ -5277,6 +5277,24 @@ def _resistance_totals_by_target(picks: list[dict], key: str) -> dict[int, float
     return totals
 
 
+def damage_resistance_totals(picks: list[dict]) -> dict[int, float]:
+    """按实际落表结果合计关卡、一次性和叠层三种伤害抗性。
+
+    同一来源先沿用其编译合并规则；不同来源在客户端 ConditionSlot 中
+    相加。不能只分别判断各来源是否达到 100%，否则会漏放 90%+40%。
+    """
+    totals = _resistance_totals_by_target(picks, "damage_resistance")
+    for constructor, value in _stacked_resistance_totals(picks).items():
+        kind = STACKED_DAMAGE_AC_KIND.get(constructor)
+        if kind is not None:
+            totals[kind] = totals.get(kind, 0.0) + value
+    for kind, value in merge_conds(picks):
+        if kind in {"0", "1", "2", "3"}:
+            target = int(kind)
+            totals[target] = totals.get(target, 0.0) + float(value)
+    return totals
+
+
 def immunity_axes(picks: list[dict]) -> tuple[set[str], set[int]]:
     """返回跨诅咒合并后的(完全免疫伤害类型,高阻断属性)。
 
@@ -5288,23 +5306,8 @@ def immunity_axes(picks: list[dict]) -> tuple[set[str], set[int]]:
     specificDamageResistance 均固定为 0，能绕过两轴；这些集合服务于 NormalAttack
     常规输出路的设计门禁，不宣称战斗在机制上绝对无解。
     """
-    damage_total = _resistance_totals_by_target(picks, "damage_resistance")
-    for constructor, value in _stacked_resistance_totals(picks).items():
-        kind = STACKED_DAMAGE_AC_KIND.get(constructor)
-        if kind is not None:
-            # 两种条件的 ID 不同，但 ConditionSlot 的四个 resistance getter 会把
-            # 它们相加；必须跨“一次性/叠层”后再判是否封死该伤害类型。
-            damage_total[kind] = damage_total.get(kind, 0.0) + float(value)
-    damage = {str(kind) for kind, value in damage_total.items()
+    damage = {str(kind) for kind, value in damage_resistance_totals(picks).items()
               if value >= 1.0 - 1e-12}
-    for kind, value in merge_conds(picks):
-        if kind not in {"0", "1", "2", "3"}:
-            continue
-        try:
-            if float(value) >= 1.0 - 1e-12:
-                damage.add(kind)
-        except (TypeError, ValueError):
-            pass
     elements = {int(element) for element, value in
                 _resistance_totals_by_target(picks, "element_resistance").items()
                 if 1 <= int(element) <= 6
@@ -6034,6 +6037,9 @@ def _curse_pool(t: int, rng, *, stack_layers: int = 50,
 def apply_picks(out: dict, picks: list[dict], combo: str | None = None) -> dict:
     """把一组诅咒条目合成效果包。**降档闸改了 picks 之后重算走同一条路**,
     保证 hp/atk/conds/desc 永远与 picks 一致(不会出现"文案写×2.6、落表 1.4")。"""
+    why = curse_conflict(picks)
+    if why:
+        raise ValueError(f"诅咒效果包未过组合门禁:{why}")
     profile = out.get("capability_profile")
     if isinstance(profile, dict):
         blocked = [
