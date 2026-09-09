@@ -11,6 +11,7 @@ import type { ReliableSendContext, ReliableSendResult } from "../tcp/reliable-se
 import { clearChainDiagnosticRoom } from "../tcp/chain-diagnostic"
 import { embeddedMultiCoordinator } from "../coordinator/embedded"
 import { roomAdmissionRegistry } from "../room/admission"
+import { fiveBossConnectionDiagnostics } from "../five-boss/connection-diagnostic"
 
 export interface SessionClient {
     socket: net.Socket
@@ -213,6 +214,7 @@ export class SessionManager {
                 || this.battleConnectionPhase.get(connectionId) !== "loading") return
             console.warn(`[MULTI] battle loading timed out: room=${current.roomNumber}`
                 + ` viewer=${current.viewerId} connection=${connectionId} timeoutMs=${leaseMs}`)
+            fiveBossConnectionDiagnostics.socketEvent(current.socket, "loading_timeout", String(leaseMs))
             current.socket.destroy()
         }, leaseMs)
         timer.unref()
@@ -239,6 +241,7 @@ export class SessionManager {
             }
             console.warn(`[MULTI] real battle connection heartbeat expired: room=${current.roomNumber}`
                 + ` viewer=${current.viewerId} connection=${connectionId} inactiveMs=${inactiveMs}`)
+            fiveBossConnectionDiagnostics.socketEvent(current.socket, "heartbeat_timeout", String(inactiveMs))
             // Destroy only a battle socket that completed the real handshake.
             // Its normal close handler performs the native Leave path using the
             // connection id already known by every remaining client.
@@ -363,6 +366,7 @@ export class SessionManager {
         if (retired.has(key) || retired.has(`connection:${seat.connectionId}`)) return
         retired.add(key)
         retired.add(`connection:${seat.connectionId}`)
+        fiveBossConnectionDiagnostics.seatEvent(roomNumber, seat.viewerId, "seat_expired")
         this.queueBattleLeave(roomNumber, seat.connectionId)
         this.battleExpectedCount.set(roomNumber, expected - 1)
         this.logBattleBarrierState(roomNumber, "missing_seat_expired")
@@ -956,6 +960,8 @@ export class SessionManager {
     }
 
     removeClient(client: SessionClient): Result<void> {
+        if (client.isBattle) fiveBossConnectionDiagnostics.socketEvent(client.socket, "removed",
+            this.cidToBattleClient.get(client.connectionId) === client ? "current_connection" : "stale_connection")
         this.unindexClientSocket(client)
         if (!client.isBattle && client.admissionClaimed) {
             roomAdmissionRegistry.releaseClaim(
@@ -1130,6 +1136,7 @@ export class SessionManager {
             this.cidToBattleClient.delete(existingConnectionId)
             this.supersededBattleClients.add(existing)
             existing.superseded = true
+            fiveBossConnectionDiagnostics.socketEvent(existing.socket, "replaced")
             this.unindexClientSocket(existing)
             clearReliableSendState(existing.socket)
             const ownerIdentity = client.viewerId > 0 ? `viewer:${client.viewerId}` : `connection:${connectionId}`
@@ -1156,6 +1163,7 @@ export class SessionManager {
         this.cidToBattleClient.set(connectionId, client)
         this.indexClientSocket(client)
         this.armBattleLoadingLease(connectionId)
+        fiveBossConnectionDiagnostics.socketEvent(client.socket, "accepted")
         this.logBattleBarrierState(client.roomNumber, "connected")
         return true
     }
@@ -1164,6 +1172,7 @@ export class SessionManager {
         this.clearBattleHeartbeatLease(connectionId)
         const client = this.cidToBattleClient.get(connectionId)
         if (client) {
+            fiveBossConnectionDiagnostics.socketEvent(client.socket, "removed", "remove_battle_client")
             if (this.battleSceneStartedRooms.has(client.roomNumber)) {
                 this.broadcastBattleLeave(client.roomNumber, connectionId)
             } else {

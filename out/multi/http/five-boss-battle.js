@@ -25,6 +25,7 @@ const solo_runtime_1 = require("../five-boss/solo-runtime");
 const db_1 = require("../../data/db");
 const settlement_performance_1 = require("../../lib/settlement-performance");
 const coalesced_diagnostics_1 = require("../../lib/coalesced-diagnostics");
+const connection_diagnostic_1 = require("../five-boss/connection-diagnostic");
 /** Small structured evidence, without logging tokens, party data or the full request. */
 function logFiveBossRequestFailure(operation, body, playerId, error) {
     const code = error === null || error === void 0 ? void 0 : error.code;
@@ -36,10 +37,13 @@ function logFiveBossRequestFailure(operation, body, playerId, error) {
         const member = run ? (0, db_1.getDb)().prepare(`SELECT started_at, aborted_at, level_next_at, finalized_at
             FROM five_boss_gauntlet_members WHERE run_id = ? AND player_id = ?`).get(run.runId, playerId) : null;
         const active = (0, quest_active_1.getPlayerActiveQuestSync)(playerId);
+        if (run && operation === "finish")
+            connection_diagnostic_1.fiveBossConnectionDiagnostics.memberEvent(run.runId, playerId, "finish_rejected", code);
         return `[FIVE-BOSS-REJECT] ${JSON.stringify({ operation, player: playerId, play: body.play_id,
             category: body.category, quest: body.quest_id, run: run === null || run === void 0 ? void 0 : run.runId, room: run === null || run === void 0 ? void 0 : run.roomNumber,
             status: run === null || run === void 0 ? void 0 : run.status, code, message,
-            proof: member, active: active ? { play: active.playId, multi: active.isMulti, room: active.roomNumber } : null })}`;
+            proof: member, active: active ? { play: active.playId, multi: active.isMulti, room: active.roomNumber } : null,
+            transport: run ? connection_diagnostic_1.fiveBossConnectionDiagnostics.snapshot(run.runId, playerId) : { available: false, reason: "run_not_found" } })}`;
     });
 }
 exports.logFiveBossRequestFailure = logFiveBossRequestFailure;
@@ -293,6 +297,8 @@ function handleFiveBossStart(body, playerId, reply) {
         throw error;
     }
     singleBattleQuest_1.activeQuests[playerId] = result.activeQuest;
+    connection_diagnostic_1.fiveBossConnectionDiagnostics.begin(room);
+    connection_diagnostic_1.fiveBossConnectionDiagnostics.memberEvent(result.runId, playerId, "http_start", result.startStatus);
     (0, player_1.updatePlayerSync)({ id: playerId, partySlot: body.party_id });
     const player = requirePlayer(playerId);
     reply.header("content-type", "application/x-msgpack");
@@ -312,12 +318,15 @@ function handleFiveBossFinish(body, playerId, reply, buildFollowInfo) {
         var _a, _b, _c, _d;
         const memoryBeforeFinish = singleBattleQuest_1.activeQuests[playerId];
         const boundRun = (0, fiveBossGauntletRun_1.getFiveBossRunByClientSync)({ playerId, clientPlayId: body.play_id });
+        if (boundRun)
+            connection_diagnostic_1.fiveBossConnectionDiagnostics.memberEvent(boundRun.runId, playerId, "http_finish", body.is_accomplished === true ? "success_requested" : "failure_requested");
         const roomNumber = resolveFiveBossRoomNumber(body.room_number, playerId, body.play_id, boundRun);
         const party = (_b = (_a = body.statistics) === null || _a === void 0 ? void 0 : _a.party) !== null && _b !== void 0 ? _b : (_c = body.quest_statistics) === null || _c === void 0 ? void 0 : _c.party;
         if (body.is_accomplished === true && (0, contract_1.isFiveBossGauntletQuest)(body.category, body.quest_id)
             && (boundRun === null || boundRun === void 0 ? void 0 : boundRun.roomNumber) === roomNumber) {
             const backfill = (0, fiveBossGauntletRun_1.backfillMissingFinalizeSync)({ playerId, clientPlayId: body.play_id });
             if (backfill.backfilled) {
+                connection_diagnostic_1.fiveBossConnectionDiagnostics.memberEvent(boundRun.runId, playerId, "finalize_recorded", "http_backfill");
                 console.warn(`[MULTI] five-boss finish: finalize signal never reached the battle channel;`
                     + ` backfilled from HTTP finish player=${playerId} run=${backfill.runId} room=${backfill.roomNumber}`);
             }

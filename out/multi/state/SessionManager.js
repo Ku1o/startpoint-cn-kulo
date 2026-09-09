@@ -11,6 +11,7 @@ const reliable_send_1 = require("../tcp/reliable-send");
 const chain_diagnostic_1 = require("../tcp/chain-diagnostic");
 const embedded_1 = require("../coordinator/embedded");
 const admission_1 = require("../room/admission");
+const connection_diagnostic_1 = require("../five-boss/connection-diagnostic");
 class SessionManager {
     constructor() {
         this.clients = new Map();
@@ -160,6 +161,7 @@ class SessionManager {
                 return;
             console.warn(`[MULTI] battle loading timed out: room=${current.roomNumber}`
                 + ` viewer=${current.viewerId} connection=${connectionId} timeoutMs=${leaseMs}`);
+            connection_diagnostic_1.fiveBossConnectionDiagnostics.socketEvent(current.socket, "loading_timeout", String(leaseMs));
             current.socket.destroy();
         }, leaseMs);
         timer.unref();
@@ -188,6 +190,7 @@ class SessionManager {
             }
             console.warn(`[MULTI] real battle connection heartbeat expired: room=${current.roomNumber}`
                 + ` viewer=${current.viewerId} connection=${connectionId} inactiveMs=${inactiveMs}`);
+            connection_diagnostic_1.fiveBossConnectionDiagnostics.socketEvent(current.socket, "heartbeat_timeout", String(inactiveMs));
             // Destroy only a battle socket that completed the real handshake.
             // Its normal close handler performs the native Leave path using the
             // connection id already known by every remaining client.
@@ -324,6 +327,7 @@ class SessionManager {
             return;
         retired.add(key);
         retired.add(`connection:${seat.connectionId}`);
+        connection_diagnostic_1.fiveBossConnectionDiagnostics.seatEvent(roomNumber, seat.viewerId, "seat_expired");
         this.queueBattleLeave(roomNumber, seat.connectionId);
         this.battleExpectedCount.set(roomNumber, expected - 1);
         this.logBattleBarrierState(roomNumber, "missing_seat_expired");
@@ -932,6 +936,8 @@ class SessionManager {
     }
     removeClient(client) {
         var _a, _b, _c, _d, _e, _f, _g;
+        if (client.isBattle)
+            connection_diagnostic_1.fiveBossConnectionDiagnostics.socketEvent(client.socket, "removed", this.cidToBattleClient.get(client.connectionId) === client ? "current_connection" : "stale_connection");
         this.unindexClientSocket(client);
         if (!client.isBattle && client.admissionClaimed) {
             admission_1.roomAdmissionRegistry.releaseClaim(client.roomNumber, (_a = client.admissionGeneration) !== null && _a !== void 0 ? _a : client.roomGeneration, client.viewerId, client.connectionId);
@@ -1120,6 +1126,7 @@ class SessionManager {
             this.cidToBattleClient.delete(existingConnectionId);
             this.supersededBattleClients.add(existing);
             existing.superseded = true;
+            connection_diagnostic_1.fiveBossConnectionDiagnostics.socketEvent(existing.socket, "replaced");
             this.unindexClientSocket(existing);
             (0, reliable_send_1.clearReliableSendState)(existing.socket);
             const ownerIdentity = client.viewerId > 0 ? `viewer:${client.viewerId}` : `connection:${connectionId}`;
@@ -1144,6 +1151,7 @@ class SessionManager {
         this.cidToBattleClient.set(connectionId, client);
         this.indexClientSocket(client);
         this.armBattleLoadingLease(connectionId);
+        connection_diagnostic_1.fiveBossConnectionDiagnostics.socketEvent(client.socket, "accepted");
         this.logBattleBarrierState(client.roomNumber, "connected");
         return true;
     }
@@ -1152,6 +1160,7 @@ class SessionManager {
         this.clearBattleHeartbeatLease(connectionId);
         const client = this.cidToBattleClient.get(connectionId);
         if (client) {
+            connection_diagnostic_1.fiveBossConnectionDiagnostics.socketEvent(client.socket, "removed", "remove_battle_client");
             if (this.battleSceneStartedRooms.has(client.roomNumber)) {
                 this.broadcastBattleLeave(client.roomNumber, connectionId);
             }

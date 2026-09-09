@@ -45,6 +45,34 @@ function setup(t, count = 2, initialCount = count) {
     return { manager, clients, make, ready, fire, grace, drop, roomNumber, room, timers }
 }
 
+test('five-boss diagnostics identify loading timeout, seat expiry and heartbeat expiry by player', async t => {
+    const x = setup(t), [a,b] = x.clients
+    const trace = require('../out/multi/five-boss/connection-diagnostic').fiveBossConnectionDiagnostics
+    Object.assign(x.room, { room_number: x.roomNumber, lobby_generation: 1, five_boss_runtime: {
+        runId: 'diagnostic-timeouts', expectedRealPlayerIds: [1, 2], battleIdentityByViewerId: {
+            1: { playerId: 1, connectionId: a.connectionId }, 2: { playerId: 2, connectionId: b.connectionId },
+        },
+    } })
+    trace.bind(x.room, a); trace.bind(x.room, b)
+    const loading = x.manager.battleHeartbeatTimers.get(b.connectionId)
+    await x.fire(loading)
+    assert.equal(b.socket.destroyed, true)
+    x.manager.removeClient(b)
+    await x.fire(x.grace())
+    const missing = trace.snapshot('diagnostic-timeouts', 2)
+    assert.equal(missing.counts.loading_timeout.count, 1)
+    assert.equal(missing.counts.removed.count, 1)
+    assert.equal(missing.counts.seat_expired.count, 1)
+    assert.equal(trace.snapshot('diagnostic-timeouts', 1).counts.seat_expired, undefined)
+    x.ready(a)
+    const heartbeat = x.manager.battleHeartbeatTimers.get(a.connectionId)
+    const future = Date.now() + 120000
+    t.mock.method(Date, 'now', () => future)
+    await x.fire(heartbeat)
+    assert.equal(a.socket.destroyed, true)
+    assert.equal(trace.snapshot('diagnostic-timeouts', 1).counts.heartbeat_timeout.count, 1)
+})
+
 test('two-player loading: grace then BattleStart before AI Leave; late peer denied', async t => {
     const x = setup(t), [a,b] = x.clients
     assert.equal(x.ready(a), false); x.drop(b)

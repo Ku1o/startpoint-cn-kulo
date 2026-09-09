@@ -10,6 +10,7 @@ import { sessionManager } from "../state/SessionManager"
 import { gameVerboseLog } from "../../lib/game-logging"
 import { clearReliableSendState } from "./reliable-send"
 import { embeddedMultiCoordinator } from "../coordinator/embedded"
+import { fiveBossConnectionDiagnostics } from "../five-boss/connection-diagnostic"
 import {
     detachLoungeSocket,
     handleLoungeHandshake,
@@ -56,6 +57,7 @@ export function startSessionServer(): Promise<void> {
                 protocolClosed = true
                 buffer = ""
                 console.warn(`[TCP] protocol violation from ${remoteAddr}: ${reason}`)
+                fiveBossConnectionDiagnostics.socketEvent(socket, "protocol_close", reason.split(":", 1)[0])
                 socket.destroy()
             }
 
@@ -148,13 +150,17 @@ export function startSessionServer(): Promise<void> {
                 }
             })
 
-            socket.on("close", () => {
+            socket.on("end", () => fiveBossConnectionDiagnostics.socketEvent(socket, "socket_end", "peer_fin"))
+
+            socket.on("close", (hadError: boolean) => {
+                fiveBossConnectionDiagnostics.socketEvent(socket, "socket_close", hadError ? "with_error" : "without_error")
                 clearHandshakeTimer()
                 gameVerboseLog(() => `[TCP] connection closed: ${remoteAddr}`)
                 removeSocketClient()
             })
 
             socket.on("error", (err) => {
+                fiveBossConnectionDiagnostics.socketEvent(socket, "socket_error", (err as NodeJS.ErrnoException).code ?? "unknown")
                 clearHandshakeTimer()
                 console.warn(`[TCP] socket error from ${remoteAddr}:`, err.message)
                 removeSocketClient()

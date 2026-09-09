@@ -6,6 +6,7 @@ const relay_1 = require("./relay");
 const chain_diagnostic_1 = require("./chain-diagnostic");
 const manager_1 = require("../room/manager");
 const lobby_runtime_1 = require("../five-boss/lobby-runtime");
+const connection_diagnostic_1 = require("../five-boss/connection-diagnostic");
 function findBattleClientBySocket(socket) {
     const client = SessionManager_1.sessionManager.findClientBySocket(socket);
     return (client === null || client === void 0 ? void 0 : client.isBattle) ? client : undefined;
@@ -27,6 +28,9 @@ function handleBattleNotify(socket, data) {
     const client = findBattleClientBySocket(socket);
     if (client)
         (0, chain_diagnostic_1.recordBattleNotify)(client, tag, data);
+    if (tag === 0 || tag === 1 || tag === 2) {
+        connection_diagnostic_1.fiveBossConnectionDiagnostics.socketEvent(socket, tag === 0 ? "scene_ready" : tag === 1 ? "level_next" : "finalize", client ? "indexed" : "client_unindexed");
+    }
     switch (tag) {
         case 0: { // SceneReady
             if (!client)
@@ -75,6 +79,7 @@ function handleBattleMessage(socket, data) {
         return;
     const tag = data[0];
     const activityClient = findBattleClientBySocket(socket);
+    connection_diagnostic_1.fiveBossConnectionDiagnostics.packet(socket, !!activityClient);
     if (activityClient)
         SessionManager_1.sessionManager.noteBattleActivity(activityClient.connectionId);
     switch (tag) {

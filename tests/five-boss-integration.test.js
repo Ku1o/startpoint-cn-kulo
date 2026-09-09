@@ -553,6 +553,100 @@ test('stale multiplayer with a missing room field is recovered from its immutabl
     } finally { await app.close() }
 })
 
+test('real TCP disconnect and later proof arrival explain HTTP H400 without granting unproven rewards', { timeout: 15000 }, async () => {
+    const p = player(), room = run([p]), connectionId = `trace-${p.id}`
+    room.lifecycle.phase = 'BATTLE'
+    room.lobby_generation = 1
+    room.five_boss_runtime.battleIdentityByViewerId[String(p.viewerId)] = {
+        playerId: p.id, connectionId, remoteAddress: '127.0.0.1',
+    }
+    const runId = room.five_boss_runtime.runId
+    const manager = load('multi/state/SessionManager').sessionManager
+    const coordinator = load('multi/coordinator/embedded').embeddedMultiCoordinator
+    const trace = load('multi/five-boss/connection-diagnostic').fiveBossConnectionDiagnostics
+    const { EventEmitter, once } = require('node:events'), net = require('node:net')
+    const lobbySocket = new EventEmitter()
+    Object.assign(lobbySocket, { remoteAddress: '127.0.0.1', readable: true, writable: true, destroyed: false,
+        write: () => true, end: () => {}, destroy: () => { lobbySocket.destroyed = true } })
+    const lobbyClient = manager.createClient(lobbySocket, p.viewerId, room.room_number, connectionId, p.id)
+    lobbyClient.roomGeneration = 1
+    manager.addClientToRoom(lobbyClient)
+    manager.setBattleExpectedCount(room.room_number, 1, [{ viewerId: p.viewerId, connectionId }])
+    const app = await httpApp(p, load('multi/http/battle').registerBattleRoutes)
+    const originalCreateServer = net.createServer, previousPort = process.env.SESSION_PORT
+    const originalWarn = console.warn, messages = [], sockets = []
+    let rawServer, tcp
+    const waitFor = async condition => {
+        const deadline = Date.now() + 3000
+        while (!condition()) {
+            assert.ok(Date.now() < deadline, 'TCP operation did not reach its expected state')
+            await new Promise(resolve => setTimeout(resolve, 5))
+        }
+    }
+    try {
+        console.warn = (...args) => messages.push(args.join(' '))
+        process.env.SESSION_PORT = '0'
+        net.createServer = (...args) => { rawServer = originalCreateServer(...args); return rawServer }
+        tcp = load('multi/tcp/server')
+        await tcp.startSessionServer()
+        net.createServer = originalCreateServer
+        assert.equal((await app.inject({ method: 'POST', url: '/start', payload: httpStart(p, room) })).statusCode, 200)
+        const connect = async () => {
+            const incoming = once(rawServer, 'connection')
+            const socket = net.createConnection({ host: '127.0.0.1', port: rawServer.address().port })
+            sockets.push(socket)
+            await once(socket, 'connect')
+            const [serverSocket] = await incoming
+            sockets.push(serverSocket)
+            socket.on('data', () => {})
+            socket.write(JSON.stringify({ socklet: 'cooperation_battle', room_number: room.room_number,
+                connection_id: connectionId }) + '\0')
+            await waitFor(() => manager.getBattleClient(connectionId)?.socket === serverSocket)
+            return { socket, serverSocket }
+        }
+        const first = await connect()
+        first.socket.write(JSON.stringify([0, [0]]) + '\0')
+        await waitFor(() => trace.snapshot(runId, p.id).counts?.scene_ready)
+        const closed = once(first.serverSocket, 'close')
+        first.socket.end()
+        await closed
+        await coordinator.enqueueRoomCommand(room.room_number, () => {})
+        const response = await app.inject({ method: 'POST', url: '/finish', payload: httpFinish(p) })
+        assert.equal(response.statusCode, 400)
+        assert.equal(items.getPlayerItemSync(p.id, 10000145), null)
+        const failure = JSON.parse(messages.find(line => line.startsWith('[FIVE-BOSS-REJECT]')).split('] ')[1])
+        assert.equal(failure.code, 'battle_proof_missing')
+        assert.equal(failure.proof.level_next_at, null)
+        for (const event of ['http_start', 'handshake', 'accepted', 'scene_ready', 'socket_end', 'socket_close', 'removed']) {
+            assert.ok(failure.transport.counts[event], `missing diagnostic ${event}`)
+        }
+        assert.equal(failure.transport.counts.level_next, undefined)
+        assert.equal(failure.transport.counts.finalize, undefined)
+        assert.equal(failure.transport.connections[0].packets, 1)
+        const restored = await connect()
+        restored.socket.write(JSON.stringify([0, [1]]) + '\0' + JSON.stringify([0, [2]]) + '\0')
+        await waitFor(() => trace.snapshot(runId, p.id).counts?.finalize_recorded)
+        assert.ok(messages.some(line => line.startsWith('[FIVE-BOSS-TRANSPORT]') && line.includes('level_next_recorded')))
+        assert.ok(messages.some(line => line.startsWith('[FIVE-BOSS-TRANSPORT]') && line.includes('"event":"finalize_recorded"')))
+        const settled = await app.inject({ method: 'POST', url: '/finish', payload: httpFinish(p) })
+        assert.equal(settled.statusCode, 200, settled.body)
+        const crystals = items.getPlayerItemSync(p.id, 10000145)
+        assert.ok(crystals > 0)
+        assert.equal((await app.inject({ method: 'POST', url: '/finish', payload: httpFinish(p) })).statusCode, 200)
+        assert.equal(items.getPlayerItemSync(p.id, 10000145), crystals)
+    } finally {
+        net.createServer = originalCreateServer
+        if (previousPort === undefined) delete process.env.SESSION_PORT
+        else process.env.SESSION_PORT = previousPort
+        for (const socket of sockets) socket.destroy()
+        if (tcp) await tcp.stopSessionServer()
+        manager.removeClient(lobbyClient)
+        load('multi/room/manager').disbandRoom(room.room_number)
+        await app.close()
+        console.warn = originalWarn
+    }
+})
+
 test('finish reports missing individual proof and forged finish cannot create finalize evidence', async () => {
     const p = player(), room = run([p]);start(p, room)
     const app = await httpApp(p, load('multi/http/battle').registerBattleRoutes)
@@ -607,7 +701,10 @@ test('multiplayer finish keeps the authenticated requester and distinct real tea
 
 test('real multiplayer HTTP routes reject forged identities and replay after room disband', async () => {
     const p = player(), room = run([p])
-    const app = await httpApp(p, load('multi/http/battle').registerBattleRoutes)
+    const app = await httpApp(p, async app => {
+        load('multi/http/battle').registerBattleRoutes(app)
+        load('multi/http/room').registerRoomRoutes(app)
+    })
     try {
         const start = await app.inject({ method: 'POST', url: '/start', payload: httpStart(p, room) })
         assert.equal(start.statusCode, 200, start.body)
@@ -620,10 +717,95 @@ test('real multiplayer HTTP routes reject forged identities and replay after roo
         assert.equal(finish.statusCode, 200, finish.body)
         assert.equal(load('multi/room/manager').getRoom(room.room_number), undefined)
         const exp = characters.getPlayerCharacterSync(p.id, 111001).exp
+        const crystalCount = items.getPlayerItemSync(p.id, 10000145)
+        const nextRoom = createRoom(p.viewerId, p.id, 1, mode.category, mode.visibleQuestId, 0, 111001)
+        const dismissals = await Promise.all(Array.from({ length: 4 }, () => app.inject({
+            method: 'POST', url: '/disband_room', payload: { viewer_id: p.viewerId, room_number: room.room_number },
+        })))
+        for (const response of dismissals) {
+            assert.equal(response.statusCode, 200, response.body)
+            assert.match(response.headers['content-type'], /application\/x-msgpack/)
+            assert.deepEqual(response.json().data, {})
+        }
+        assert.equal(load('multi/room/manager').getRoom(nextRoom.room_number), nextRoom)
+        assert.equal(items.getPlayerItemSync(p.id, mode.ticketItemId), 1)
+        assert.equal(items.getPlayerItemSync(p.id, 10000145), crystalCount)
         const retry = await app.inject({ method: 'POST', url: '/finish', payload })
         assert.equal(retry.statusCode, 200, retry.body)
         assert.equal(characters.getPlayerCharacterSync(p.id, 111001).exp, exp)
         assert.deepEqual(retry.json().data.add_exp_list, finish.json().data.add_exp_list)
+    } finally { await app.close() }
+})
+
+test('room disband accepts repeated host cleanup but retains authentication and live-room ownership', async () => {
+    const p = player(), guest = player()
+    const room = createRoom(p.viewerId, p.id, 1, mode.category, 1000101, 0, 111001)
+    room.member_viewer_ids.push(guest.viewerId)
+    const app = await httpApp(p, load('multi/http/room').registerRoomRoutes)
+    const guestApp = await httpApp(guest, async () => {})
+    const dismiss = payload => app.inject({ method: 'POST', url: '/disband_room', payload })
+    const payload = { viewer_id: p.viewerId, room_number: room.room_number }
+    const manager = load('multi/room/manager')
+    try {
+        assert.equal((await dismiss({ ...payload, viewer_id: guest.viewerId })).statusCode, 403)
+        assert.equal((await dismiss({ ...payload, viewer_id: 999999999 })).statusCode, 400)
+        for (const room_number of [undefined, null, '', 123456, {}]) {
+            assert.equal((await dismiss({ ...payload, room_number })).statusCode, 400)
+        }
+        assert.equal(manager.getRoom(room.room_number), room)
+        const replies = await Promise.all(Array.from({ length: 4 }, () => dismiss(payload)))
+        for (const response of replies) assert.equal(response.statusCode, 200, response.body)
+        assert.equal(manager.getRoom(room.room_number), undefined)
+        assert.equal((await dismiss(payload)).statusCode, 200)
+        assert.equal((await dismiss({ ...payload, viewer_id: 999999999 })).statusCode, 400)
+    } finally { await app.close(); await guestApp.close(); manager.disbandRoom(room.room_number) }
+})
+
+test('queued room disband cannot delete a replacement room or a later lobby generation', { timeout: 10000 }, async () => {
+    const p = player(), manager = load('multi/room/manager')
+    const coordinator = load('multi/coordinator/embedded').embeddedMultiCoordinator
+    const app = await httpApp(p, load('multi/http/room').registerRoomRoutes)
+    try {
+        for (const replace of [true, false]) {
+            const room = createRoom(p.viewerId, p.id, 1, mode.category, 1000101, 0, 111001)
+            let release, onQueued
+            const blocked = new Promise(resolve => { release = resolve })
+            const queued = new Promise(resolve => { onQueued = resolve })
+            const enqueue = coordinator.enqueueRoomCommand
+            const blocker = enqueue.call(coordinator, room.room_number, () => blocked)
+            coordinator.enqueueRoomCommand = function (number, command) {
+                const result = enqueue.call(this, number, command)
+                onQueued()
+                return result
+            }
+            let request
+            try {
+                request = app.inject({ method: 'POST', url: '/disband_room', payload: {
+                    viewer_id: p.viewerId, room_number: room.room_number,
+                } }).then(response => response)
+                await queued
+                let retained = room
+                if (replace) {
+                    manager.disbandRoom(room.room_number)
+                    const crypto = require('node:crypto'), randomInt = crypto.randomInt
+                    crypto.randomInt = () => Number(room.room_number)
+                    try { retained = createRoom(p.viewerId, p.id, 1, mode.category, 1000101, 0, 111001) }
+                    finally { crypto.randomInt = randomInt }
+                } else {
+                    room.lobby_generation += 1
+                }
+                release()
+                const response = await request
+                assert.equal(response.statusCode, 200, response.body)
+                assert.equal(manager.getRoom(room.room_number), retained)
+            } finally {
+                coordinator.enqueueRoomCommand = enqueue
+                release()
+                await blocker
+                if (request) await request
+                manager.disbandRoom(room.room_number)
+            }
+        }
     } finally { await app.close() }
 })
 

@@ -18,6 +18,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.handleHandshake = exports.buildRealParty = void 0;
 const contract_1 = require("../five-boss/contract");
 const lobby_runtime_1 = require("../five-boss/lobby-runtime");
+const connection_diagnostic_1 = require("../five-boss/connection-diagnostic");
 const party_1 = require("../../data/domains/party");
 const character_1 = require("../../data/domains/character");
 const equipment_1 = require("../../data/domains/equipment");
@@ -163,20 +164,25 @@ function handleHandshake(socket, data) {
             const roomClient = SessionManager_1.sessionManager.getRoomClientByConnectionId(roomId, String(connectionId));
             const battleClient = SessionManager_1.sessionManager.createClient(socket, (_a = roomClient === null || roomClient === void 0 ? void 0 : roomClient.viewerId) !== null && _a !== void 0 ? _a : 0, roomId, String(connectionId), (_b = roomClient === null || roomClient === void 0 ? void 0 : roomClient.playerId) !== null && _b !== void 0 ? _b : null);
             const battleRoom = (0, manager_1.getRoom)(roomId);
+            battleClient.roomGeneration = (_d = (_c = roomClient === null || roomClient === void 0 ? void 0 : roomClient.roomGeneration) !== null && _c !== void 0 ? _c : battleRoom === null || battleRoom === void 0 ? void 0 : battleRoom.lobby_generation) !== null && _d !== void 0 ? _d : 0;
+            if (battleRoom)
+                connection_diagnostic_1.fiveBossConnectionDiagnostics.bind(battleRoom, battleClient);
             if (!battleRoom || battleRoom.lifecycle.phase !== "BATTLE") {
+                connection_diagnostic_1.fiveBossConnectionDiagnostics.socketEvent(socket, "handshake_denied", "room_not_in_battle");
                 SessionManager_1.sessionManager.sendJson(socket, [3, "HANDSHAKE_DENIED"]);
                 socket.end();
                 return;
             }
             if (battleRoom && (0, contract_1.isFiveBossGauntletQuest)(battleRoom.category, battleRoom.quest_id)
                 && !(0, lobby_runtime_1.isFrozenFiveBossBattleClient)(battleRoom, battleClient)) {
+                connection_diagnostic_1.fiveBossConnectionDiagnostics.socketEvent(socket, "handshake_denied", "frozen_identity_mismatch");
                 SessionManager_1.sessionManager.sendJson(socket, [3, "HANDSHAKE_DENIED"]);
                 socket.end();
                 return;
             }
-            battleClient.roomGeneration = (_d = (_c = roomClient === null || roomClient === void 0 ? void 0 : roomClient.roomGeneration) !== null && _c !== void 0 ? _c : battleRoom === null || battleRoom === void 0 ? void 0 : battleRoom.lobby_generation) !== null && _d !== void 0 ? _d : 0;
             battleClient.isBattle = true;
             if (!SessionManager_1.sessionManager.addBattleClient(String(connectionId), battleClient)) {
+                connection_diagnostic_1.fiveBossConnectionDiagnostics.socketEvent(socket, "handshake_denied", "retired_seat");
                 SessionManager_1.sessionManager.sendJson(socket, [3, "HANDSHAKE_DENIED"]);
                 socket.end();
                 return;

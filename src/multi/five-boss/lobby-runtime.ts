@@ -6,6 +6,7 @@ import { recordMemberBattleSignalSync } from "../../data/domains/fiveBossGauntle
 import { getPlayerCharacterSync } from "../../data/domains/character"
 import { isFiveBossGauntletQuest } from "./contract"
 import { fiveBossDiagnostics } from "../../lib/coalesced-diagnostics"
+import { fiveBossConnectionDiagnostics } from "./connection-diagnostic"
 
 /** Freeze the canonical live lobby before either HTTP or TCP starts the battle. */
 export function freezeFiveBossLobby(room: MultiRoom, members?: any[]): boolean {
@@ -49,6 +50,7 @@ export function freezeFiveBossLobby(room: MultiRoom, members?: any[]): boolean {
     }
     if (!frozen.expectedRealPlayerIds.includes(room.host_player_id)) return false
     room.five_boss_runtime = frozen
+    fiveBossConnectionDiagnostics.begin(room)
     return true
 }
 
@@ -61,6 +63,7 @@ export function isFrozenFiveBossBattleClient(room: MultiRoom, client: SessionCli
 
 export function recordFiveBossSignal(room: MultiRoom, client: SessionClient, signal: "level_next" | "finalize"): void {
     if (!isFrozenFiveBossBattleClient(room, client)) {
+        fiveBossConnectionDiagnostics.socketEvent(client.socket, "signal_rejected", `${signal}:identity`)
         fiveBossDiagnostics.report(JSON.stringify(["signal", room.five_boss_runtime?.runId, room.room_number,
             client.playerId, signal, "identity"]), () => `[FIVE-BOSS-SIGNAL] rejected=identity room=${room.room_number}`
             + ` run=${room.five_boss_runtime?.runId} player=${client.playerId} connection=${client.connectionId} signal=${signal}`)
@@ -69,8 +72,11 @@ export function recordFiveBossSignal(room: MultiRoom, client: SessionClient, sig
     try {
         recordMemberBattleSignalSync({ runId: room.five_boss_runtime!.runId,
             playerId: client.playerId!, roomNumber: room.room_number, signal })
+        fiveBossConnectionDiagnostics.socketEvent(client.socket,
+            signal === "level_next" ? "level_next_recorded" : "finalize_recorded", "tcp")
     } catch (error) {
         const code = (error as { code?: string }).code ?? "unknown"
+        fiveBossConnectionDiagnostics.socketEvent(client.socket, "signal_rejected", `${signal}:${code}`)
         fiveBossDiagnostics.report(JSON.stringify(["signal", room.five_boss_runtime!.runId, room.room_number,
             client.playerId, signal, code]), () => `[FIVE-BOSS-SIGNAL] rejected=${code}`
             + ` room=${room.room_number} run=${room.five_boss_runtime!.runId}`

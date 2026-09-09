@@ -24,6 +24,7 @@ import { abandonFiveBossSoloForMultiSync } from "../five-boss/solo-runtime"
 import { getDb } from "../../data/db"
 import { measureSettlementPhase, measureSettlementPhaseAsync } from "../../lib/settlement-performance"
 import { fiveBossDiagnostics } from "../../lib/coalesced-diagnostics"
+import { fiveBossConnectionDiagnostics } from "../five-boss/connection-diagnostic"
 
 /** Small structured evidence, without logging tokens, party data or the full request. */
 export function logFiveBossRequestFailure(operation: "start" | "finish" | "abort", body: MultiStartBody | MultiFinishBody | MultiAbortBody,
@@ -37,10 +38,12 @@ export function logFiveBossRequestFailure(operation: "start" | "finish" | "abort
         const member = run ? getDb().prepare(`SELECT started_at, aborted_at, level_next_at, finalized_at
             FROM five_boss_gauntlet_members WHERE run_id = ? AND player_id = ?`).get(run.runId, playerId) : null
         const active = getPlayerActiveQuestSync(playerId)
+        if (run && operation === "finish") fiveBossConnectionDiagnostics.memberEvent(run.runId, playerId, "finish_rejected", code)
         return `[FIVE-BOSS-REJECT] ${JSON.stringify({ operation, player: playerId, play: body.play_id,
             category: body.category, quest: body.quest_id, run: run?.runId, room: run?.roomNumber,
             status: run?.status, code, message,
-            proof: member, active: active ? { play: active.playId, multi: active.isMulti, room: active.roomNumber } : null })}`
+            proof: member, active: active ? { play: active.playId, multi: active.isMulti, room: active.roomNumber } : null,
+            transport: run ? fiveBossConnectionDiagnostics.snapshot(run.runId, playerId) : { available: false, reason: "run_not_found" } })}`
     })
 }
 
@@ -333,6 +336,8 @@ export function handleFiveBossStart(
         throw error
     }
     activeQuests[playerId] = result.activeQuest
+    fiveBossConnectionDiagnostics.begin(room)
+    fiveBossConnectionDiagnostics.memberEvent(result.runId, playerId, "http_start", result.startStatus)
     updatePlayerSync({ id: playerId, partySlot: body.party_id })
     const player = requirePlayer(playerId)
 
@@ -357,12 +362,15 @@ export async function handleFiveBossFinish(
 ) {
     const memoryBeforeFinish = activeQuests[playerId]
     const boundRun = getFiveBossRunByClientSync({ playerId, clientPlayId: body.play_id })
+    if (boundRun) fiveBossConnectionDiagnostics.memberEvent(boundRun.runId, playerId, "http_finish",
+        body.is_accomplished === true ? "success_requested" : "failure_requested")
     const roomNumber = resolveFiveBossRoomNumber(body.room_number, playerId, body.play_id, boundRun)
     const party = body.statistics?.party ?? body.quest_statistics?.party
     if (body.is_accomplished === true && isFiveBossGauntletQuest(body.category, body.quest_id)
         && boundRun?.roomNumber === roomNumber) {
         const backfill = backfillMissingFinalizeSync({ playerId, clientPlayId: body.play_id })
         if (backfill.backfilled) {
+            fiveBossConnectionDiagnostics.memberEvent(boundRun.runId, playerId, "finalize_recorded", "http_backfill")
             console.warn(`[MULTI] five-boss finish: finalize signal never reached the battle channel;`
                 + ` backfilled from HTTP finish player=${playerId} run=${backfill.runId} room=${backfill.roomNumber}`)
         }
