@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updatePlayerProfileSettingsSync = exports.getPlayerProfileSettingsSync = exports.updatePlayerOptionsSync = exports.updatePlayerOptionSync = exports.getPlayerOptionSync = exports.getPlayerOptionsSync = exports.insertPlayerOptionsSync = exports.insertPlayerOptionSync = void 0;
+exports.updatePlayerProfileSettingsSync = exports.getPlayerProfileSettingsSync = exports.updatePlayerOptionsInTransactionSync = exports.updatePlayerOptionsSync = exports.updatePlayerOptionSync = exports.getPlayerOptionSync = exports.getPlayerOptionsSync = exports.insertPlayerOptionsSync = exports.insertPlayerOptionSync = void 0;
 const db_1 = require("../db");
 const utils_1 = require("../utils");
 const PROFILE_SETTING_KEYS = {
@@ -105,24 +105,27 @@ exports.updatePlayerOptionSync = updatePlayerOptionSync;
  * @param options A record of options to update the values of.
  */
 function updatePlayerOptionsSync(playerId, options) {
-    // get all of a player's options
-    const allOptions = getPlayerOptionsSync(playerId);
-    const db = (0, db_1.getDb)();
-    db.transaction(() => {
-        for (const [key, newValue] of Object.entries(options)) {
-            if (!isClientOptionKey(key))
-                continue;
-            const existingValue = allOptions[key];
-            if (existingValue === undefined) {
-                insertPlayerOptionSync(playerId, key, newValue);
-            }
-            else if (newValue !== existingValue) {
-                updatePlayerOptionSync(playerId, key, newValue);
-            }
-        }
-    })();
+    (0, db_1.getDb)().transaction(() => updatePlayerOptionsInTransactionSync(playerId, options))();
 }
 exports.updatePlayerOptionsSync = updatePlayerOptionsSync;
+/** The caller must roll back its transaction if any option or AUTO update fails. */
+function updatePlayerOptionsInTransactionSync(playerId, options) {
+    const db = (0, db_1.getDb)();
+    if (!db.inTransaction)
+        throw new Error("Player option updates require a caller-owned transaction.");
+    const entries = Object.entries(options).filter(([key]) => isClientOptionKey(key));
+    if (entries.length === 0)
+        return;
+    const upsert = db.prepare(`
+        INSERT INTO players_options (key, value, player_id) VALUES (?, ?, ?)
+        ON CONFLICT(key, player_id) DO UPDATE SET value = excluded.value
+        WHERE players_options.value IS NOT excluded.value
+    `);
+    for (const [key, value] of entries) {
+        upsert.run(key, (0, utils_1.serializeBoolean)(value), playerId);
+    }
+}
+exports.updatePlayerOptionsInTransactionSync = updatePlayerOptionsInTransactionSync;
 function getPlayerProfileSettingsSync(playerId) {
     var _a, _b, _c;
     const keys = Object.values(PROFILE_SETTING_KEYS);

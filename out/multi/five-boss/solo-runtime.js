@@ -51,12 +51,11 @@ exports.startFiveBossSoloSync = startFiveBossSoloSync;
 /** Monotone marker, bound to the persistent current solo play, never a retry snapshot. */
 function markFiveBossSoloAutoUsedSync(playerId) {
     (0, db_1.getDb)().prepare(`UPDATE five_boss_solo_runs SET auto_used = 1
-        WHERE player_id = ? AND status = 'active' AND auto_used = 0
-          AND EXISTS (SELECT 1 FROM players_active_quests q
-              WHERE q.player_id = five_boss_solo_runs.player_id
-                AND q.play_id = five_boss_solo_runs.play_id AND q.is_multi = 0
-                AND q.category = ? AND q.quest_id = ?)`)
-        .run(playerId, contract_1.FIVE_BOSS_GAUNTLET.category, contract_1.FIVE_BOSS_GAUNTLET.visibleQuestId);
+        WHERE player_id = ? AND play_id = (
+            SELECT play_id FROM players_active_quests
+            WHERE player_id = ? AND is_multi = 0 AND category = ? AND quest_id = ?
+        ) AND status = 'active' AND auto_used = 0`)
+        .run(playerId, playerId, contract_1.FIVE_BOSS_GAUNTLET.category, contract_1.FIVE_BOSS_GAUNTLET.visibleQuestId);
 }
 exports.markFiveBossSoloAutoUsedSync = markFiveBossSoloAutoUsedSync;
 function getFiveBossSoloRewardMultiplierSync(playerId, playId) {

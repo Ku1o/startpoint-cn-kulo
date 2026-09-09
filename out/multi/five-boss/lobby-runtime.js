@@ -7,6 +7,7 @@ const SessionManager_1 = require("../state/SessionManager");
 const fiveBossGauntletRun_1 = require("../../data/domains/fiveBossGauntletRun");
 const character_1 = require("../../data/domains/character");
 const contract_1 = require("./contract");
+const coalesced_diagnostics_1 = require("../../lib/coalesced-diagnostics");
 /** Freeze the canonical live lobby before either HTTP or TCP starts the battle. */
 function freezeFiveBossLobby(room, members) {
     var _a, _b, _c, _d;
@@ -72,8 +73,12 @@ exports.isFrozenFiveBossBattleClient = isFrozenFiveBossBattleClient;
 function recordFiveBossSignal(room, client, signal) {
     var _a, _b;
     if (!isFrozenFiveBossBattleClient(room, client)) {
-        console.warn(`[FIVE-BOSS-SIGNAL] rejected=identity room=${room.room_number}`
-            + ` run=${(_a = room.five_boss_runtime) === null || _a === void 0 ? void 0 : _a.runId} player=${client.playerId} connection=${client.connectionId} signal=${signal}`);
+        coalesced_diagnostics_1.fiveBossDiagnostics.report(JSON.stringify(["signal", (_a = room.five_boss_runtime) === null || _a === void 0 ? void 0 : _a.runId, room.room_number,
+            client.playerId, signal, "identity"]), () => {
+            var _a;
+            return `[FIVE-BOSS-SIGNAL] rejected=identity room=${room.room_number}`
+                + ` run=${(_a = room.five_boss_runtime) === null || _a === void 0 ? void 0 : _a.runId} player=${client.playerId} connection=${client.connectionId} signal=${signal}`;
+        });
         return;
     }
     try {
@@ -81,7 +86,9 @@ function recordFiveBossSignal(room, client, signal) {
             playerId: client.playerId, roomNumber: room.room_number, signal });
     }
     catch (error) {
-        console.warn(`[FIVE-BOSS-SIGNAL] rejected=${(_b = error.code) !== null && _b !== void 0 ? _b : "unknown"}`
+        const code = (_b = error.code) !== null && _b !== void 0 ? _b : "unknown";
+        coalesced_diagnostics_1.fiveBossDiagnostics.report(JSON.stringify(["signal", room.five_boss_runtime.runId, room.room_number,
+            client.playerId, signal, code]), () => `[FIVE-BOSS-SIGNAL] rejected=${code}`
             + ` room=${room.room_number} run=${room.five_boss_runtime.runId}`
             + ` player=${client.playerId} connection=${client.connectionId} signal=${signal}: ${error.message}`);
     }

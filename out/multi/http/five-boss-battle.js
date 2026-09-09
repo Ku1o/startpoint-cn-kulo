@@ -24,16 +24,23 @@ const rewards_1 = require("../five-boss/rewards");
 const solo_runtime_1 = require("../five-boss/solo-runtime");
 const db_1 = require("../../data/db");
 const settlement_performance_1 = require("../../lib/settlement-performance");
+const coalesced_diagnostics_1 = require("../../lib/coalesced-diagnostics");
 /** Small structured evidence, without logging tokens, party data or the full request. */
 function logFiveBossRequestFailure(operation, body, playerId, error) {
-    const run = (0, fiveBossGauntletRun_1.getFiveBossRunByClientSync)({ playerId, clientPlayId: body.play_id });
-    const member = run ? (0, db_1.getDb)().prepare(`SELECT started_at, aborted_at, level_next_at, finalized_at
-        FROM five_boss_gauntlet_members WHERE run_id = ? AND player_id = ?`).get(run.runId, playerId) : null;
-    const active = (0, quest_active_1.getPlayerActiveQuestSync)(playerId);
-    console.warn(`[FIVE-BOSS-REJECT] ${JSON.stringify({ operation, player: playerId, play: body.play_id,
-        category: body.category, quest: body.quest_id, run: run === null || run === void 0 ? void 0 : run.runId, room: run === null || run === void 0 ? void 0 : run.roomNumber,
-        status: run === null || run === void 0 ? void 0 : run.status, code: error === null || error === void 0 ? void 0 : error.code, message: error === null || error === void 0 ? void 0 : error.message,
-        proof: member, active: active ? { play: active.playId, multi: active.isMulti, room: active.roomNumber } : null })}`);
+    const code = error === null || error === void 0 ? void 0 : error.code;
+    const message = error === null || error === void 0 ? void 0 : error.message;
+    const key = JSON.stringify(["request", operation, playerId, String(body.play_id).slice(0, 255),
+        body.category, body.quest_id, code, message === null || message === void 0 ? void 0 : message.slice(0, 160)]);
+    coalesced_diagnostics_1.fiveBossDiagnostics.report(key, () => {
+        const run = (0, fiveBossGauntletRun_1.getFiveBossRunByClientSync)({ playerId, clientPlayId: body.play_id });
+        const member = run ? (0, db_1.getDb)().prepare(`SELECT started_at, aborted_at, level_next_at, finalized_at
+            FROM five_boss_gauntlet_members WHERE run_id = ? AND player_id = ?`).get(run.runId, playerId) : null;
+        const active = (0, quest_active_1.getPlayerActiveQuestSync)(playerId);
+        return `[FIVE-BOSS-REJECT] ${JSON.stringify({ operation, player: playerId, play: body.play_id,
+            category: body.category, quest: body.quest_id, run: run === null || run === void 0 ? void 0 : run.runId, room: run === null || run === void 0 ? void 0 : run.roomNumber,
+            status: run === null || run === void 0 ? void 0 : run.status, code, message,
+            proof: member, active: active ? { play: active.playId, multi: active.isMulti, room: active.roomNumber } : null })}`;
+    });
 }
 exports.logFiveBossRequestFailure = logFiveBossRequestFailure;
 function isFiveBossBattleRequestError(error) {
@@ -95,13 +102,13 @@ function terminalRoomTransition(roomNumber, runId, runStatus) {
  * BattleQuestFinishRealRemote / QuestAbortRealRemote 都没有这个字段),原生多人路径
  * 一直是靠服务端 activeQuests 记住房号。五重 runtime 的冻结契约要求 requestRoomNumber
  * 非空,真机首战(2026-09-04)就因此在结算时连吃 6 个 H400。这里按
- * 请求体 → 内存 activeQuests → 持久化 players_active_quests 的顺序补房号;
+ * 请求体 → 此玩家/对局的不可变账本 → 内存 activeQuests → 持久化活动记录补房号;
  * 全都没有才让 runtime 用原来的 invalid_argument 拒绝。
  */
-function resolveFiveBossRoomNumber(bodyRoomNumber, playerId, playId) {
+function resolveFiveBossRoomNumber(bodyRoomNumber, playerId, playId, boundRun) {
     if (typeof bodyRoomNumber === "string" && bodyRoomNumber.length > 0)
         return bodyRoomNumber;
-    const run = (0, fiveBossGauntletRun_1.getFiveBossRunByClientSync)({ playerId, clientPlayId: playId });
+    const run = boundRun === undefined ? (0, fiveBossGauntletRun_1.getFiveBossRunByClientSync)({ playerId, clientPlayId: playId }) : boundRun;
     if (run)
         return run.roomNumber;
     const memory = singleBattleQuest_1.activeQuests[playerId];
@@ -304,9 +311,9 @@ function handleFiveBossFinish(body, playerId, reply, buildFollowInfo) {
     return __awaiter(this, void 0, void 0, function* () {
         var _a, _b, _c, _d;
         const memoryBeforeFinish = singleBattleQuest_1.activeQuests[playerId];
-        const roomNumber = resolveFiveBossRoomNumber(body.room_number, playerId, body.play_id);
-        const party = (_b = (_a = body.statistics) === null || _a === void 0 ? void 0 : _a.party) !== null && _b !== void 0 ? _b : (_c = body.quest_statistics) === null || _c === void 0 ? void 0 : _c.party;
         const boundRun = (0, fiveBossGauntletRun_1.getFiveBossRunByClientSync)({ playerId, clientPlayId: body.play_id });
+        const roomNumber = resolveFiveBossRoomNumber(body.room_number, playerId, body.play_id, boundRun);
+        const party = (_b = (_a = body.statistics) === null || _a === void 0 ? void 0 : _a.party) !== null && _b !== void 0 ? _b : (_c = body.quest_statistics) === null || _c === void 0 ? void 0 : _c.party;
         if (body.is_accomplished === true && (0, contract_1.isFiveBossGauntletQuest)(body.category, body.quest_id)
             && (boundRun === null || boundRun === void 0 ? void 0 : boundRun.roomNumber) === roomNumber) {
             const backfill = (0, fiveBossGauntletRun_1.backfillMissingFinalizeSync)({ playerId, clientPlayId: body.play_id });

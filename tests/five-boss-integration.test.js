@@ -401,6 +401,75 @@ test('both option endpoints mark AUTO permanently for this solo play across retr
     }
 })
 
+test('AUTO updates use the exact current solo play even with historical and unrelated active rows', () => {
+    const p = player(), other = player(), db = getDb()
+    const insert = db.prepare(`INSERT INTO five_boss_solo_runs
+        (player_id, play_id, status, auto_at_start, auto_used) VALUES (?, ?, ?, 0, 0)`)
+    db.transaction(() => {
+        for (let i = 0; i < 2000; i++) insert.run(p.id, `history-${i}`, 'settled')
+        insert.run(p.id, 'stale-active', 'active')
+        insert.run(p.id, p.playId, 'active')
+        insert.run(other.id, p.playId, 'active')
+    })()
+    const bind = (category, questId, isMulti = false) => active.insertPlayerActiveQuestSync(p.id,
+        { playerId: p.id, playId: p.playId, category, questId, isMulti, continueCount: 0 })
+    bind(mode.category, mode.visibleQuestId, true)
+    solo.markFiveBossSoloAutoUsedSync(p.id)
+    bind(mode.category, 1000101)
+    solo.markFiveBossSoloAutoUsedSync(p.id)
+    assert.equal(db.prepare('SELECT COUNT(*) AS n FROM five_boss_solo_runs WHERE player_id = ? AND auto_used = 1').get(p.id).n, 0)
+    bind(mode.category, mode.visibleQuestId)
+    const prepare = db.prepare
+    let markerSql
+    db.prepare = function (sql) {
+        if (/UPDATE five_boss_solo_runs SET auto_used/.test(sql)) markerSql = sql
+        return prepare.call(this, sql)
+    }
+    try { solo.markFiveBossSoloAutoUsedSync(p.id) } finally { db.prepare = prepare }
+    const changed = db.prepare('SELECT player_id,play_id FROM five_boss_solo_runs WHERE auto_used = 1 AND player_id IN (?, ?)').all(p.id, other.id)
+    assert.deepEqual(changed, [{ player_id: p.id, play_id: p.playId }])
+    const plan = db.prepare('EXPLAIN QUERY PLAN ' + markerSql)
+        .all(p.id, p.id, mode.category, mode.visibleQuestId).map(row => row.detail).join('\n')
+    assert.match(plan, /player_id=\? AND play_id=\?/)
+})
+
+test('option batches preserve privacy, skip equal coerced values and roll back with the AUTO marker', async () => {
+    const p = player(), db = getDb(), options = load('data/domains/option')
+    options.updatePlayerProfileSettingsSync(p.id, { showOwnedCharacterCount: false })
+    options.updatePlayerOptionsSync(p.id, { auto_play: true, sound: false })
+    const changes = () => db.prepare('SELECT total_changes() AS n').get().n
+    const before = changes()
+    options.updatePlayerOptionsSync(p.id, { auto_play: 1, sound: 0, 'profile.show_owned_character_count': true })
+    assert.equal(changes(), before)
+    assert.equal(options.getPlayerProfileSettingsSync(p.id).showOwnedCharacterCount, false)
+    options.updatePlayerOptionsSync(p.id, { auto_play: false })
+    const app = await httpApp(p, async app => {
+        await app.register(load('routes/api/singleBattleQuest').default, { prefix: '/quest' })
+        await app.register(load('routes/api/option').default, { prefix: '/option' })
+    })
+    try {
+        assert.equal((await app.inject({ method: 'POST', url: '/quest/start', payload: httpStart(p) })).statusCode, 200)
+        db.exec(`CREATE TEMP TRIGGER fail_auto_marker BEFORE UPDATE OF auto_used ON five_boss_solo_runs
+            WHEN NEW.player_id = ${p.id} BEGIN SELECT RAISE(ABORT, 'injected marker failure'); END`)
+        const response = await app.inject({ method: 'POST', url: '/option/update', payload: {
+            viewer_id: p.viewerId, api_count: 4, option_params: { sound: true, auto_play: true } } })
+        assert.equal(response.statusCode, 500)
+        assert.equal(options.getPlayerOptionSync(p.id, 'sound'), false)
+        assert.equal(options.getPlayerOptionSync(p.id, 'auto_play'), false)
+        assert.equal(solo.getFiveBossSoloRewardMultiplierSync(p.id, p.playId), 2)
+    } finally { db.exec('DROP TRIGGER IF EXISTS fail_auto_marker'); await app.close() }
+    db.exec(`CREATE TEMP TRIGGER fail_option_batch BEFORE INSERT ON players_options
+        WHEN NEW.key = 'fail-batch' BEGIN SELECT RAISE(ABORT, 'injected batch failure'); END`)
+    try {
+        assert.throws(() => options.updatePlayerOptionsSync(p.id, { sound: true, 'fail-batch': true }), /injected batch failure/)
+        assert.equal(options.getPlayerOptionSync(p.id, 'sound'), false)
+        db.transaction(() => {
+            assert.throws(() => options.updatePlayerOptionsSync(p.id, { sound: true, 'fail-batch': true }), /injected batch failure/)
+            assert.equal(options.getPlayerOptionSync(p.id, 'sound'), false)
+        })()
+    } finally { db.exec('DROP TRIGGER fail_option_batch') }
+})
+
 test('AUTO at start stays 1x; aborted marker cannot contaminate a fresh manual play', () => {
     const p = player(3), options = load('data/domains/option')
     const persist = () => active.insertPlayerActiveQuestSync(p.id, { playerId: p.id, playId: p.playId,
@@ -496,6 +565,19 @@ test('finish reports missing individual proof and forged finish cannot create fi
         assert.equal(evidence.code, 'battle_proof_missing')
         assert.equal(evidence.proof.level_next_at, null)
         assert.equal(evidence.proof.finalized_at, null)
+        const prepare = getDb().prepare
+        let diagnosticReads = 0
+        getDb().prepare = function (sql) {
+            if (/SELECT started_at, aborted_at, level_next_at, finalized_at/.test(sql)) diagnosticReads++
+            return prepare.call(this, sql)
+        }
+        try {
+            const retries = await Promise.all(Array.from({ length: 20 }, () =>
+                app.inject({ method: 'POST', url: '/finish', payload: httpFinish(p) })))
+            assert.ok(retries.every(response => response.statusCode === 400))
+            assert.equal(diagnosticReads, 0)
+            assert.equal(messages.filter(line => line.startsWith('[FIVE-BOSS-REJECT]')).length, 1)
+        } finally { getDb().prepare = prepare }
         ledger.recordMemberBattleSignalSync({ runId: room.five_boss_runtime.runId,
             playerId: p.id, roomNumber: room.room_number, signal: 'level_next' })
         const forged = await app.inject({ method: 'POST', url: '/finish', payload: { ...httpFinish(p), quest_id: 1000101 } })
@@ -505,6 +587,22 @@ test('finish reports missing individual proof and forged finish cannot create fi
         assert.equal(items.getPlayerItemSync(p.id, 10000145), null)
         assert.equal((await app.inject({ method: 'POST', url: '/finish', payload: httpFinish(p) })).statusCode, 200)
     } finally { console.warn = originalWarn; await app.close() }
+})
+
+test('multiplayer finish keeps the authenticated requester and distinct real teammates in follow info', async () => {
+    const p = player(), mate = player(), room = run([p, mate])
+    start(p, room); start(mate, room); proof(p, room); proof(mate, room)
+    const app = await httpApp(p, load('multi/http/battle').registerBattleRoutes)
+    const mateApp = await httpApp(mate, async () => {})
+    try {
+        load('data/domains/follow').addFollowSync(p.id, mate.id)
+        const expected = load('lib/follow').buildFollowUserInfoSync(p.id, mate.id)
+        assert.ok(expected)
+        const response = await app.inject({ method: 'POST', url: '/finish', payload: { ...httpFinish(p),
+            mate_player_result: [p.viewerId, mate.viewerId, mate.viewerId, 900000001].map(viewer_id => ({ viewer_id })) } })
+        assert.equal(response.statusCode, 200, response.body)
+        assert.deepEqual(response.json().data.follow_info, [expected])
+    } finally { await app.close(); await mateApp.close() }
 })
 
 test('real multiplayer HTTP routes reject forged identities and replay after room disband', async () => {

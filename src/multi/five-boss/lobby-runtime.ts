@@ -5,6 +5,7 @@ import { sessionManager, type SessionClient } from "../state/SessionManager"
 import { recordMemberBattleSignalSync } from "../../data/domains/fiveBossGauntletRun"
 import { getPlayerCharacterSync } from "../../data/domains/character"
 import { isFiveBossGauntletQuest } from "./contract"
+import { fiveBossDiagnostics } from "../../lib/coalesced-diagnostics"
 
 /** Freeze the canonical live lobby before either HTTP or TCP starts the battle. */
 export function freezeFiveBossLobby(room: MultiRoom, members?: any[]): boolean {
@@ -60,7 +61,8 @@ export function isFrozenFiveBossBattleClient(room: MultiRoom, client: SessionCli
 
 export function recordFiveBossSignal(room: MultiRoom, client: SessionClient, signal: "level_next" | "finalize"): void {
     if (!isFrozenFiveBossBattleClient(room, client)) {
-        console.warn(`[FIVE-BOSS-SIGNAL] rejected=identity room=${room.room_number}`
+        fiveBossDiagnostics.report(JSON.stringify(["signal", room.five_boss_runtime?.runId, room.room_number,
+            client.playerId, signal, "identity"]), () => `[FIVE-BOSS-SIGNAL] rejected=identity room=${room.room_number}`
             + ` run=${room.five_boss_runtime?.runId} player=${client.playerId} connection=${client.connectionId} signal=${signal}`)
         return
     }
@@ -68,7 +70,9 @@ export function recordFiveBossSignal(room: MultiRoom, client: SessionClient, sig
         recordMemberBattleSignalSync({ runId: room.five_boss_runtime!.runId,
             playerId: client.playerId!, roomNumber: room.room_number, signal })
     } catch (error) {
-        console.warn(`[FIVE-BOSS-SIGNAL] rejected=${(error as { code?: string }).code ?? "unknown"}`
+        const code = (error as { code?: string }).code ?? "unknown"
+        fiveBossDiagnostics.report(JSON.stringify(["signal", room.five_boss_runtime!.runId, room.room_number,
+            client.playerId, signal, code]), () => `[FIVE-BOSS-SIGNAL] rejected=${code}`
             + ` room=${room.room_number} run=${room.five_boss_runtime!.runId}`
             + ` player=${client.playerId} connection=${client.connectionId} signal=${signal}: ${(error as Error).message}`)
     }

@@ -39,7 +39,7 @@ const updateRoute = (request, reply) => __awaiter(void 0, void 0, void 0, functi
     // update options
     const updatedOptions = body.option_params;
     (0, db_1.getDb)().transaction(() => {
-        (0, option_1.updatePlayerOptionsSync)(playerId, updatedOptions);
+        (0, option_1.updatePlayerOptionsInTransactionSync)(playerId, updatedOptions);
         // Match the option store's boolean coercion for values received on the wire.
         if (updatedOptions.auto_play)
             (0, solo_runtime_1.markFiveBossSoloAutoUsedSync)(playerId);

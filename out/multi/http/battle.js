@@ -51,11 +51,8 @@ const mana_1 = require("../../lib/mana");
 const player_context_1 = require("../player-context");
 const recruitment_1 = require("../recruitment");
 const recommended_party_history_1 = require("../../lib/quest/recommended-party-history");
-function buildFinishFollowInfo(viewerId_1, mateResults_1) {
-    return __awaiter(this, arguments, void 0, function* (viewerId, mateResults, fallbackMateIds = []) {
-        const requesterCtx = yield (0, player_context_1.resolveMultiPlayerContext)(viewerId);
-        if (!requesterCtx)
-            return [];
+function buildFinishFollowInfo(requesterPlayerId_1, viewerId_1, mateResults_1) {
+    return __awaiter(this, arguments, void 0, function* (requesterPlayerId, viewerId, mateResults, fallbackMateIds = []) {
         const ids = new Set();
         for (const result of mateResults) {
             const mateViewerId = Number(result === null || result === void 0 ? void 0 : result.viewer_id);
@@ -73,7 +70,7 @@ function buildFinishFollowInfo(viewerId_1, mateResults_1) {
             const mateCtx = yield (0, player_context_1.resolveMultiPlayerContext)(mateViewerId);
             if (!mateCtx)
                 continue;
-            const info = (0, follow_1.buildFollowUserInfoSync)(requesterCtx.playerId, mateCtx.playerId);
+            const info = (0, follow_1.buildFollowUserInfoSync)(requesterPlayerId, mateCtx.playerId);
             if (info)
                 followInfo.push(info);
         }
@@ -266,7 +263,7 @@ function registerBattleRoutes(fastify) {
         const { playerId, player } = ctx;
         if ((0, five_boss_battle_1.shouldHandleFiveBossMemberRequest)(body, playerId)) {
             try {
-                return yield (0, five_boss_battle_1.handleFiveBossFinish)(body, playerId, reply, buildFinishFollowInfo);
+                return yield (0, five_boss_battle_1.handleFiveBossFinish)(body, playerId, reply, (viewer, mates, fallback) => buildFinishFollowInfo(playerId, viewer, mates, fallback));
             }
             catch (error) {
                 if (!(0, five_boss_battle_1.isFiveBossBattleRequestError)(error))
@@ -546,7 +543,7 @@ function registerBattleRoutes(fastify) {
             + `generation=${settlementGeneration} viewer=${viewerId} `
             + `submitted=${settlementResult.submittedCount}/${settlementResult.expectedCount} `
             + `returned=${matePlayerResult.length} synthesized=${settlementResult.synthesizedViewerIds.join(",") || "none"}`);
-        const followInfo = yield buildFinishFollowInfo(viewerId, matePlayerResult, activeQuestData.matePlayerIds || []);
+        const followInfo = yield buildFinishFollowInfo(playerId, viewerId, matePlayerResult, activeQuestData.matePlayerIds || []);
         const finalPlayerData = (0, player_1.getPlayerSync)(playerId);
         const characterList = [
             ...rewardCharacterExpResult.character_list,

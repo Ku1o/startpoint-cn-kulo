@@ -1,6 +1,6 @@
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { getSession } from "../../data/domains/session"
-import { updatePlayerOptionsSync } from "../../data/domains/option"
+import { updatePlayerOptionsInTransactionSync } from "../../data/domains/option"
 import { resolvePlayerIdSync } from "../../data/activeAccount";
 import { generateDataHeaders } from "../../utils";
 import { getDb } from "../../data/db";
@@ -38,7 +38,7 @@ const updateRoute = async (request: FastifyRequest, reply: FastifyReply) => {
     // update options
     const updatedOptions = body.option_params
     getDb().transaction(() => {
-        updatePlayerOptionsSync(playerId, updatedOptions)
+        updatePlayerOptionsInTransactionSync(playerId, updatedOptions)
         // Match the option store's boolean coercion for values received on the wire.
         if (updatedOptions.auto_play) markFiveBossSoloAutoUsedSync(playerId)
     }).immediate()

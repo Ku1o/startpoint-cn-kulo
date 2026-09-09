@@ -23,18 +23,25 @@ import { buildFiveBossAdditionalRewardDrops } from "../five-boss/rewards"
 import { abandonFiveBossSoloForMultiSync } from "../five-boss/solo-runtime"
 import { getDb } from "../../data/db"
 import { measureSettlementPhase, measureSettlementPhaseAsync } from "../../lib/settlement-performance"
+import { fiveBossDiagnostics } from "../../lib/coalesced-diagnostics"
 
 /** Small structured evidence, without logging tokens, party data or the full request. */
 export function logFiveBossRequestFailure(operation: "start" | "finish" | "abort", body: MultiStartBody | MultiFinishBody | MultiAbortBody,
     playerId: number, error: unknown): void {
-    const run = getFiveBossRunByClientSync({ playerId, clientPlayId: body.play_id })
-    const member = run ? getDb().prepare(`SELECT started_at, aborted_at, level_next_at, finalized_at
-        FROM five_boss_gauntlet_members WHERE run_id = ? AND player_id = ?`).get(run.runId, playerId) : null
-    const active = getPlayerActiveQuestSync(playerId)
-    console.warn(`[FIVE-BOSS-REJECT] ${JSON.stringify({ operation, player: playerId, play: body.play_id,
-        category: body.category, quest: body.quest_id, run: run?.runId, room: run?.roomNumber,
-        status: run?.status, code: (error as { code?: string })?.code, message: (error as Error)?.message,
-        proof: member, active: active ? { play: active.playId, multi: active.isMulti, room: active.roomNumber } : null })}`)
+    const code = (error as { code?: string })?.code
+    const message = (error as Error)?.message
+    const key = JSON.stringify(["request", operation, playerId, String(body.play_id).slice(0, 255),
+        body.category, body.quest_id, code, message?.slice(0, 160)])
+    fiveBossDiagnostics.report(key, () => {
+        const run = getFiveBossRunByClientSync({ playerId, clientPlayId: body.play_id })
+        const member = run ? getDb().prepare(`SELECT started_at, aborted_at, level_next_at, finalized_at
+            FROM five_boss_gauntlet_members WHERE run_id = ? AND player_id = ?`).get(run.runId, playerId) : null
+        const active = getPlayerActiveQuestSync(playerId)
+        return `[FIVE-BOSS-REJECT] ${JSON.stringify({ operation, player: playerId, play: body.play_id,
+            category: body.category, quest: body.quest_id, run: run?.runId, room: run?.roomNumber,
+            status: run?.status, code, message,
+            proof: member, active: active ? { play: active.playId, multi: active.isMulti, room: active.roomNumber } : null })}`
+    })
 }
 
 
@@ -118,12 +125,13 @@ function terminalRoomTransition(
  * BattleQuestFinishRealRemote / QuestAbortRealRemote 都没有这个字段),原生多人路径
  * 一直是靠服务端 activeQuests 记住房号。五重 runtime 的冻结契约要求 requestRoomNumber
  * 非空,真机首战(2026-09-04)就因此在结算时连吃 6 个 H400。这里按
- * 请求体 → 内存 activeQuests → 持久化 players_active_quests 的顺序补房号;
+ * 请求体 → 此玩家/对局的不可变账本 → 内存 activeQuests → 持久化活动记录补房号;
  * 全都没有才让 runtime 用原来的 invalid_argument 拒绝。
  */
-function resolveFiveBossRoomNumber(bodyRoomNumber: unknown, playerId: number, playId: string): string {
+function resolveFiveBossRoomNumber(bodyRoomNumber: unknown, playerId: number, playId: string,
+    boundRun?: ReturnType<typeof getFiveBossRunByClientSync>): string {
     if (typeof bodyRoomNumber === "string" && bodyRoomNumber.length > 0) return bodyRoomNumber
-    const run = getFiveBossRunByClientSync({ playerId, clientPlayId: playId })
+    const run = boundRun === undefined ? getFiveBossRunByClientSync({ playerId, clientPlayId: playId }) : boundRun
     if (run) return run.roomNumber
     const memory = activeQuests[playerId]
     if (memory && isFiveBossGauntletQuest(memory.category, memory.questId) && memory.roomNumber) {
@@ -348,9 +356,9 @@ export async function handleFiveBossFinish(
     buildFollowInfo: FollowInfoBuilder,
 ) {
     const memoryBeforeFinish = activeQuests[playerId]
-    const roomNumber = resolveFiveBossRoomNumber(body.room_number, playerId, body.play_id)
-    const party = body.statistics?.party ?? body.quest_statistics?.party
     const boundRun = getFiveBossRunByClientSync({ playerId, clientPlayId: body.play_id })
+    const roomNumber = resolveFiveBossRoomNumber(body.room_number, playerId, body.play_id, boundRun)
+    const party = body.statistics?.party ?? body.quest_statistics?.party
     if (body.is_accomplished === true && isFiveBossGauntletQuest(body.category, body.quest_id)
         && boundRun?.roomNumber === roomNumber) {
         const backfill = backfillMissingFinalizeSync({ playerId, clientPlayId: body.play_id })

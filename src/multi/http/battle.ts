@@ -76,12 +76,11 @@ import { validateRandomRecruitmentAttention } from "../recruitment";
 import { recordQuestRecommendedPartySafe } from "../../lib/quest/recommended-party-history";
 
 async function buildFinishFollowInfo(
+    requesterPlayerId: number,
     viewerId: number,
     mateResults: Array<{ viewer_id?: number }>,
     fallbackMateIds: number[] = [],
 ) {
-    const requesterCtx = await resolveMultiPlayerContext(viewerId);
-    if (!requesterCtx) return [];
     const ids = new Set<number>();
     for (const result of mateResults) {
         const mateViewerId = Number(result?.viewer_id);
@@ -98,7 +97,7 @@ async function buildFinishFollowInfo(
         const mateCtx = await resolveMultiPlayerContext(mateViewerId);
         if (!mateCtx) continue;
 
-        const info = buildFollowUserInfoSync(requesterCtx.playerId, mateCtx.playerId);
+        const info = buildFollowUserInfoSync(requesterPlayerId, mateCtx.playerId);
         if (info) followInfo.push(info);
     }
 
@@ -309,7 +308,8 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
 
         const { playerId, player } = ctx;
         if (shouldHandleFiveBossMemberRequest(body, playerId)) {
-            try { return await handleFiveBossFinish(body, playerId, reply, buildFinishFollowInfo); }
+            try { return await handleFiveBossFinish(body, playerId, reply,
+                (viewer, mates, fallback) => buildFinishFollowInfo(playerId, viewer, mates, fallback)); }
             catch (error) {
                 if (!isFiveBossBattleRequestError(error)) throw error;
                 logFiveBossRequestFailure("finish", body, playerId, error);
@@ -666,7 +666,7 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
             + `submitted=${settlementResult.submittedCount}/${settlementResult.expectedCount} `
             + `returned=${matePlayerResult.length} synthesized=${settlementResult.synthesizedViewerIds.join(",") || "none"}`
         );
-        const followInfo = await buildFinishFollowInfo(viewerId, matePlayerResult, activeQuestData.matePlayerIds || []);
+        const followInfo = await buildFinishFollowInfo(playerId, viewerId, matePlayerResult, activeQuestData.matePlayerIds || []);
         const finalPlayerData = getPlayerSync(playerId);
         const characterList = [
             ...rewardCharacterExpResult.character_list as unknown as Record<string, unknown>[],
