@@ -10380,8 +10380,7 @@
         "production/upload/ff/f4dd420538f5b693f8270917c31f2cee581ef1"
       ],
       "created_at": "2026-09-08",
-      "local_test_only": true,
-      "required_local_platform": "android",
+      "local_test_only": false,
       "audit": {
         "directory": "assets/asset-patch/audit/lens-consolidated-1.4.102",
         "report": "report.json"
