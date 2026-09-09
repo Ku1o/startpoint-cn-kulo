@@ -4,11 +4,12 @@
 
 **开始 APK/SWF 工作先读 [ANDROID-BASELINE.md](./ANDROID-BASELINE.md)，再运行 [基线检查器](./verify_android_baseline.py)。**
 最新已验收公网和内网包的路径、APK/SWF 哈希、UUID 与验收依据统一登记在
-[android-accepted.json](./android-accepted.json)。2026-09-06 用户已确认本会话最终两版全部通过。
+[android-accepted.json](./android-accepted.json)。2026-09-09 应用户要求完成离线验收后，当前基线为深渊续战 Lens 公网/内网累计成品；验收范围见 [验收记录](./ACCEPTANCE-ABYSS-AUTOSTART-20260909.md)，不等同于真机测试。
 
 本会话新增的关注按钮、本人资料路由、标题 `CNtips_b` 隐藏及环境切换流程见
 [rush-leaderboard/TITLE-CNTIPS.md](./rush-leaderboard/TITLE-CNTIPS.md)。
-新修改从这些累计包继续；下文及各专题文档的旧包仅描述历史实现，不能覆盖当前登记。
+新增 Lens 724/422 能力、稻穗/基诺维、五重地图及手动 Auto 锁、5900101 铁钢限制见
+[Lens 累计方法](./lens0907-0908/README.md)。深渊续战跨关阵容复用见 [续战方法](./abyss-autostart/README.md)。新修改从当前续战累计成品继续；原 Lens v3、9 月 6 日标题包及下文各专题旧包仅描述历史实现，不能覆盖当前登记。
 
 累计保留免登录与私服地址、MOD 五合一、幻想连战路由/战斗/结算/图标修复、角色轮播优化、
 通用排行榜和资料导航、标题与游戏内数据继承入口、深渊装备限制，以及最新资料页和标题修复。
@@ -53,11 +54,12 @@ P-code 方法体和带血统门禁的构建器见 [Android 账号继承入口补
 
 ## iOS 1.8.4
 
-**当前累计基线见 [ios-accepted.json](./ios-accepted.json)，后续 IPA 修改先回读其中三个文件哈希。**
-2026-09-08 用户已验收不带 DEBUG 的关注按钮状态/操作及排行榜本人资料路由修复包；
-它从下述 r12b 导航包继续累积，明确保留标题 `CNtips_b` 原有行为。用户澄清此前异常反馈使用了旧版，
-随后确认无 DEBUG 修复包正常。确切输入/输出哈希和可复现流程见
-[iOS 资料页关注与本人路由](./ios-profile-follow/README.md)。诊断包及下述历史步骤输出不替代当前登记。
+**当前累计基线见 [ios-accepted.json](./ios-accepted.json)，后续 IPA 修改先运行 [iOS 基线检查器](./verify_ios_baseline.py)。**
+2026-09-09 应用户要求，深渊续战 Lens 累计 IPA 已完成离线验收并登记为当前基线，仍为 unsigned；本次没有安装或真机测试。
+它保留 Lens 的全部 33 个原生方法、此前资料页修复及 iOS 标题 `CNtips_b` 原有行为，新增一个续战方法。
+具体方法见 [iOS 深渊续战](./ios-abyss-autostart/README.md)，范围见 [验收记录](./ACCEPTANCE-ABYSS-AUTOSTART-20260909.md)。
+原 [iOS Lens](./ios-lens0907-0908/README.md)、9 月 8 日 [资料页关注与本人路由包](./ios-profile-follow/README.md)
+及诊断包都是历史版本，不替代当前登记。
 
 已经通过真机回归的 iOS 五合一、数据继承、幻想连战及幻想魂珠纹理修复流程见
 [iOS 1.8.4 私服客户端补丁](./ios-five-in-one/README.md)。幻想魂珠补丁的独立设计与维护实现见

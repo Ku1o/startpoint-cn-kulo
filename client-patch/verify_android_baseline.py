@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Read-only identity check for the explicitly accepted Android APK."""
+"""Read-only identity check for the registered Android baseline and acceptance scope."""
 from __future__ import annotations
 
 import argparse
@@ -19,10 +19,15 @@ def digest(path: Path) -> str:
         return hashlib.file_digest(stream, "sha256").hexdigest()
 
 
-def verify(variant: str, apk: Path | None = None) -> dict:
-    record = json.loads(RECORD.read_text(encoding="utf-8"))
-    if record["schema_version"] != 1 or record["status"] != "user_accepted":
-        raise ValueError("baseline record must explicitly identify a user-accepted release")
+def verify(variant: str, apk: Path | None = None, *, record_path: Path | None = None) -> dict:
+    record_file = record_path if record_path is not None else RECORD
+    record = json.loads(record_file.read_text(encoding="utf-8"))
+    identity = (record["schema_version"], record["status"])
+    if identity not in ((1, "user_accepted"), (2, "accepted_offline")):
+        raise ValueError("baseline record must explicitly identify an accepted release and scope")
+    if identity == (2, "accepted_offline"):
+        if not record["acceptance"]["user_statement"] or record["acceptance"]["scope"] != "offline_artifact_and_lineage":
+            raise ValueError("offline acceptance must record user authorization and its limited scope")
     entry = record["variants"][variant]
     path = apk.resolve() if apk else ROOT / entry["apk"]
     if not path.is_file():
@@ -30,6 +35,8 @@ def verify(variant: str, apk: Path | None = None) -> dict:
     if digest(path) != entry["apk_sha256"]:
         raise ValueError(f"APK SHA-256 differs from the accepted {variant} package: {path}")
     with zipfile.ZipFile(path) as archive:
+        if len(archive.namelist()) != len(set(archive.namelist())):
+            raise ValueError("duplicate APK members")
         swf = archive.read("assets/worldflipper_android_release.swf")
         if hashlib.sha256(swf).hexdigest() != entry["swf_sha256"]:
             raise ValueError("embedded SWF SHA-256 mismatch")
@@ -48,6 +55,9 @@ def verify(variant: str, apk: Path | None = None) -> dict:
             if hashlib.sha256(endpoint.encode()).hexdigest() != entry["endpoint_sha256"]:
                 raise ValueError("local LAN endpoint differs from the accepted artifact record")
     return {"status": "accepted_identity_verified", "variant": variant,
+            "registry": str(record_file),
+            "acceptance_status": record["status"],
+            "device_tested_by_this_check": False,
             "apk": str(path), "apk_sha256": entry["apk_sha256"],
             "swf_sha256": entry["swf_sha256"], "uniqueappversionid": expected_uuid,
             "endpoint": endpoint}

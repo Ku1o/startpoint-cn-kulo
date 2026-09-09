@@ -1,0 +1,68 @@
+#!/usr/bin/env python3
+"""Read-only identity check for the registered iOS IPA, native executable and SWF."""
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+from pathlib import Path
+import plistlib
+import sys
+import zipfile
+
+ROOT = Path(__file__).resolve().parent.parent
+RECORD = Path(__file__).with_name("ios-accepted.json")
+
+
+def verify(ipa: Path | None = None, *, record_path: Path | None = None) -> dict:
+    record_file = record_path if record_path is not None else RECORD
+    record = json.loads(record_file.read_text(encoding="utf-8"))
+    identity = (record["schema_version"], record["status"])
+    if identity not in ((1, "user_accepted"), (2, "accepted_offline")):
+        raise ValueError("baseline record must explicitly identify an accepted release and scope")
+    if identity == (2, "accepted_offline"):
+        if not record["acceptance"]["user_statement"] or record["acceptance"]["scope"] != "offline_artifact_and_lineage":
+            raise ValueError("offline acceptance must record user authorization and its limited scope")
+    entry = record["artifact"]
+    path = ipa.resolve() if ipa else ROOT / entry["ipa"]
+    if not path.is_file():
+        raise ValueError(f"accepted IPA is missing; do not substitute an older package: {path}")
+    if path.stat().st_size != entry["size_bytes"]:
+        raise ValueError("IPA size differs from the accepted package")
+    with path.open("rb") as stream:
+        if hashlib.file_digest(stream, "sha256").hexdigest() != entry["ipa_sha256"]:
+            raise ValueError("IPA SHA-256 differs from the accepted package")
+    with zipfile.ZipFile(path) as archive:
+        if len(archive.namelist()) != len(set(archive.namelist())):
+            raise ValueError("duplicate IPA members")
+        for part in ("native", "swf"):
+            if hashlib.sha256(archive.read(entry[f"{part}_member"])).hexdigest() != entry[f"{part}_sha256"]:
+                raise ValueError(f"embedded {part} SHA-256 mismatch")
+        plist_path = str(Path(entry["native_member"]).with_name("Info.plist")).replace("\\", "/")
+        plist = plistlib.loads(archive.read(plist_path))
+        for key, name in (("CFBundleIdentifier", "bundle_id"),
+                          ("CFBundleShortVersionString", "version"),
+                          ("CFBundleVersion", "build")):
+            if plist[key] != entry[name]:
+                raise ValueError(f"application identity mismatch: {key}")
+    return {"status": "accepted_identity_verified", "acceptance_status": record["status"],
+            "registry": str(record_file),
+            "ipa": str(path), "ipa_sha256": entry["ipa_sha256"],
+            "native_sha256": entry["native_sha256"], "swf_sha256": entry["swf_sha256"],
+            "signing": entry["signing"], "device_tested_by_this_check": False}
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--ipa", type=Path, help="explicit alternate location; identity must still match")
+    args = parser.parse_args()
+    try:
+        print(json.dumps(verify(args.ipa), ensure_ascii=False, indent=2))
+    except (ValueError, KeyError, OSError, zipfile.BadZipFile, plistlib.InvalidFileException) as error:
+        print(f"ERROR: {error}", file=sys.stderr)
+        return 1
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

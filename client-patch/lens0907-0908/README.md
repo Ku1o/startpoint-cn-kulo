@@ -1,4 +1,10 @@
-# Lens 0907 + 0908 安卓累计候选
+# Lens 0907 + 0908 安卓累计修改
+
+2026-09-09：本页保留 Lens v3 的历史方法与离线验收，原身份见 [Lens 历史登记](../accepted-history/android-lens-v3-20260909.json) 和 [验收记录](../ACCEPTANCE-20260909.md)。
+当前基线已升级为 [深渊续战累计 APK](../android-accepted.json)，新任务必须保留续战与全部 Lens 内容；方法见 [续战目录](../abyss-autostart/README.md)。
+以下构建报告保持生成时状态，不改写为真机通过。iOS Lens 方法见 [iOS 目录](../ios-lens0907-0908/README.md)。
+
+## 历史构建与交付记录（以下“当前”“待验收”均指当时）
 
 2026-09-08 整合交付补充：本轮资源 .102～.108 已按用户要求合入 **1.4.102** 单一增量，Android 继续使用既有 v3，不重建或重签 APK。iOS 的 11 组平台贴图已完整纳入；用户明确本次只处理资源增量，IPA 运行补丁留待后续，不能视作双平台客户端均已完成。下文是各历史步骤的身份和验证记录。
 
@@ -14,7 +20,8 @@
 
 ## 输入与输出
 
-直接输入是 `client-patch/android-accepted.json` 登记的 2026-09-06 公网/内网标题修复包。两版均已执行基线校验；不从作者 APK 或历史 r12b 重做累计包。
+本步骤当时的直接输入是 2026-09-06 公网/内网标题修复包，原登记已归档至
+[历史验收记录](../accepted-history/android-20260906.json)。两版当时均执行基线校验；这不是新任务的起点。
 
 作者 V14 SWF SHA-256：`dee19b6a96d8cece93021c09f937fdf35832ed362dcbf9b9df0b8750a3774572`。作者材料仅作为待审代码/数据输入，未执行其安装、构建或发布入口。
 
@@ -40,7 +47,7 @@
 
 `vendor/` 只含经检查的纯 ABC/SWF 解析汇编模块，来源哈希见 `vendor/provenance.json`。本目录脚本还复用 `tools/lens-integration/compare_clients.py` 和 `client-patch/rush-leaderboard/apk_build_common.py`。
 
-1. 先按上级 AGENTS 验证最新已验收的对应 APK，提取其 SWF。
+1. 本节仅描述当时的精确构建步骤；输入锁定上述 9 月 6 日历史父版本。当前登记已升级为深渊续战 Lens 累计成品，旧构建器会拒绝直接重复套用；新工作必须先验证当前基线并重新审计目标改动，不绕过输入保护。
 2. `python build_swf.py --base <accepted.swf> --donor <V14.swf> --out <全新输出.swf>`。输入身份和方法体哈希受 `method-plan.json` 约束；发生基线变化时重新审计，不绕过断言。
 3. `python verify_swf.py --base <accepted.swf> --swf <输出.swf> --out <全新核验目录> --ffdec <ffdec.jar>`。独立比对全部方法，回读 5 个关键类；检测 FFDec 返回成功却只导出半个文件的情况。
 4. `python package_apk.py --variant public或lan --swf <输出.swf> --validation-report <核验目录/verification.json> --out <全新成品目录> --build-tools <Android build-tools目录>`。

@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "status": "user_accepted",
+  "accepted_on": "2026-09-08",
+  "acceptance": {
+    "source": "本会话用户确认先前无 DEBUG 修复包测试正常并明确验收",
+    "user_statement": "确认了，用户用先前的版本反馈正常，那`DEBUG`  可以去掉了，验收前面的那个版本",
+    "confirmed_features": ["资料页关注功能正常", "排行榜点击本人进入带编辑等入口的本人资料卡"],
+    "prior_feedback_resolution": "用户澄清此前使用旧版测试，随后确认先前无 DEBUG 修复包正常；没有取得之前误测旧包的设备文件或哈希。",
+    "build_reports_are_immutable": true,
+    "note": "本记录单独登记后续用户真机验收，不改写原离线构建或诊断报告；直接采用原无 DEBUG 成品，没有重新打包。"
+  },
+  "artifact": {
+    "ipa": "F:/codex/ios-artifacts/StarPoint-iOS-1.8.4-profile-follow-self-20260908-unsigned.ipa",
+    "ipa_sha256": "09eca214d1e73559bbc7af98d642f9056b0eeee4a44f3e09dd25f2a1e9091a43",
+    "size_bytes": 134897041,
+    "native_member": "Payload/worldflipper.app/worldflipper",
+    "native_sha256": "82afb40b01ca016002aca36a31ff921111885065ddfdb5dac7d13e6b75f1d978",
+    "swf_member": "Payload/worldflipper.app/worldflipper_ios_release.swf",
+    "swf_sha256": "ae7899011bc55c4a988d2773f96f9222a3f881fc55f2c4f7bb04a12a77983b33",
+    "bundle_id": "com.kulo.wf",
+    "version": "1.8.4",
+    "build": "1.8.46",
+    "signing": "unsigned",
+    "profile_debug_overlay": false,
+    "title_cntips_b_unchanged": true,
+    "endpoint_policy": "沿用历史输入，未修改服务端地址"
+  },
+  "lineage": {
+    "previous_accepted_ipa_sha256": "f44710abcbb6c657f25a205b8d72ca597be551f19e2f7b02a9591605339dcc40",
+    "previous_accepted_role": "本次修复的历史 r12b 导航输入，仅供精确复现",
+    "documentation": "client-patch/ios-profile-follow/README.md",
+    "patch_manifest": "client-patch/ios-profile-follow/patch-manifest.json",
+    "preserved": ["私服连接及免登录", "MOD 五合一", "标题及游戏内数据继承", "幻想连战和幻想魂珠纹理", "MemberView v6", "Rush 排行榜 r12b 分页、资料导航及整行点击", "深渊装备 Multi/BothBoss 与 120 级门控", "iOS 原有 CNtips_b 显示行为"],
+    "added": ["真实关系对应的关注/取消关注按钮可见性", "真实关注/取消操作及陈旧按钮处理", "通过 get_viewerId() 分流到原生本人资料卡"]
+  },
+  "excluded_diagnostic": {
+    "ipa": "F:/codex/ios-artifacts/StarPoint-iOS-1.8.4-profile-follow-DIAGNOSTIC-20260908-unsigned.ipa",
+    "ipa_sha256": "616cd229bb34bcb52c2be40c4f747bbdd6574c2e92c963658729b6605a356e67",
+    "status": "diagnostic_only_not_current_baseline",
+    "reason": "用户验收的是前一份无 DEBUG 包；诊断版仅供历史审查，不再用于交付或后续修改基线。"
+  }
+}

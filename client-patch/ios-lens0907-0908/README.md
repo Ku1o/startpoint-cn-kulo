@@ -1,11 +1,18 @@
 # iOS Lens 0907 / 0908 客户端修改方法
 
+2026-09-09：本页保留原 Lens IPA 的历史方法与离线验收，身份见 [Lens 历史登记](../accepted-history/ios-lens-20260909.json) 和 [验收记录](../ACCEPTANCE-20260909.md)。
+当前基线已升级为 [深渊续战累计 IPA](../ios-accepted.json)，新任务先运行 `python client-patch/verify_ios_baseline.py`，同时保留续战与全部 Lens 方法。
+原 IPA 和当前累计版均为 unsigned。以下构建与提交记录保留其当时事实。
+
+## 历史构建与交付记录
+
 2026-09-09 固化本轮方法、构建脚本和独立验证脚本。初次交付配套资源为 1.4.102；
 服务端后续已更新到 1.4.103，本次只保存客户端修改方法，不重建 IPA 或调整资源版本。
 
-从 `client-patch/ios-accepted.json` 登记的 2026-09-08 无 DEBUG、已验收的关注/本人资料 IPA 继续构建。
+当时从 2026-09-08 无 DEBUG、已验收的关注/本人资料 IPA 继续构建，原登记已归档至
+`client-patch/accepted-history/ios-20260908.json`。
 原签名状态为 unsigned；本次仍交付未签名 IPA，保留 `com.kulo.wf`、`1.8.4`、`1.8.46` 和原服务地址。
-本次输出尚待用户真机验收，不更新已验收登记。
+原构建报告记录“尚待用户真机验收，不更新登记”；本次另行登记离线验收，不修改该历史报告。
 
 ## 内容
 
@@ -33,7 +40,7 @@ SWF 只更新 20 字节 AOT 身份。交付包需要重新签名；原生布局�
 
 ## 精确输入与成品身份
 
-输入沿用 [已验收 iOS 登记](../ios-accepted.json) 和 [资料页累计修改方法](../ios-profile-follow/README.md)。
+本步骤输入沿用 [历史 iOS 登记](../accepted-history/ios-20260908.json) 和 [资料页累计修改方法](../ios-profile-follow/README.md)。
 这是本步骤的历史输入锁，不代表以后可以回退新的已验收客户端；登记变化时脚本会拒绝继续。
 
 | 文件 | SHA-256 |
@@ -53,7 +60,8 @@ IPA、APK、ABC、编译对象及签名材料不进入 Git。
 ## 构建与验证
 
 工作目录默认 `F:/codex/work/lens-ios-20260908`，可通过 `STARPOINT_IOS_LENS_WORK` 指定新的目录。
-使用当前登记 IPA 和哈希锁定的本任务安卓公网 v3；没有回退至作者包或旧版 iOS 成品。
+本步骤使用上表精确锁定的历史资料页 IPA 和安卓公网 v3。当前登记已升级，旧构建器会拒绝重复套用；
+新修改须验证最新 Lens IPA 后重新审计方法与 AOT 输入，不绕过历史断言。
 依赖现有 AIR 51.2.1.5、LIEF、仓库 AVM2 解析器，以及此前 iOS 移植中已经验证的运行库地址映射。
 完整重编译还需要以下本机材料；只克隆仓库不能直接完成 AOT 构建：
 

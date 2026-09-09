@@ -1,0 +1,85 @@
+{
+  "schema_version": 2,
+  "status": "accepted_offline",
+  "accepted_on": "2026-09-09",
+  "acceptance": {
+    "source": "用户要求先验收此前已提交的 Android 和 iOS 累计成品；本次执行离线成品及累计血统验收后登记为后续开发基线。",
+    "user_statement": "你先把之前提交的安卓和ios验收了，避免再出现问题",
+    "scope": "offline_artifact_and_lineage",
+    "device_tested_by_codex": false,
+    "device_acceptance": "not_established_by_this_audit",
+    "build_reports_are_immutable": true,
+    "audit": "client-patch/ACCEPTANCE-20260909.md",
+    "note": "accepted_offline 表示本次离线验收通过，不表示用户已真机验收 Lens 功能。原始 candidate/device_tested/pending 记录保留生成时事实。此次直接登记原成品，没有重编译、重签、安装或运行游戏。"
+  },
+  "variants": {
+    "public": {
+      "apk": "outputs/lens0907-0908-android-20260908/public-v3-final/StarPoint-CN-1.8.1-lens0907-0908-public-v3-20260908.apk",
+      "apk_sha256": "8e5999e2689788159362acc81cd4bcd89182966fce9af7800d085ff89dccb41b",
+      "swf_sha256": "ff96d39ae9dd30b7341958da0dbb19db38f557f5eb37ec9ed5284fd15f238a71",
+      "uniqueappversionid": "a2694d9e-471a-42a5-b204-901b9d859adb",
+      "endpoint": "http://175.178.160.158:8001",
+      "local_build_report": "outputs/lens0907-0908-android-20260908/public-v3-final/verification-report.json",
+      "local_build_checks": {
+        "changed_existing_methods_from_previous_baseline": 33,
+        "added_methods": 7,
+        "zipalign": true,
+        "v1_signature": true,
+        "v2_signature": true,
+        "signer_certificate_sha256": "569d19a3578d4cba16e3d6e7ad8ccab4fa667efc758deef6c9be3adb99919894"
+      }
+    },
+    "lan": {
+      "apk": "outputs/lens0907-0908-android-20260908/lan-v3-final/StarPoint-CN-1.8.1-lens0907-0908-lan-v3-20260908.apk",
+      "apk_sha256": "966facaa01de0fc9952fe648f4ffef0fd99a53fad73deac7f652d6cf6f9fbc04",
+      "swf_sha256": "1884e5b95a28db8e69d6a6c1de53c27e074c36550099ef1684b5d42dd7cd983c",
+      "uniqueappversionid": "6c0f2af3-a986-45f0-8923-679093952691",
+      "endpoint": "http://<LAN_HOST>",
+      "local_build_report": "outputs/lens0907-0908-android-20260908/lan-v3-final/verification-report.json",
+      "local_build_checks": {
+        "changed_existing_methods_from_previous_baseline": 33,
+        "added_methods": 7,
+        "zipalign": true,
+        "v1_signature": true,
+        "v2_signature": true,
+        "signer_certificate_sha256": "569d19a3578d4cba16e3d6e7ad8ccab4fa667efc758deef6c9be3adb99919894"
+      },
+      "endpoint_sha256": "a32f84d19ceda3b4a466952f7deab7fbf1db96029ba70777a2cbd4a1ef79f521",
+      "local_endpoint_config": "outputs/android-build-local.json"
+    }
+  },
+  "lineage": {
+    "previous_accepted_registry": "client-patch/accepted-history/android-20260906.json",
+    "documentation": "client-patch/lens0907-0908/README.md",
+    "source_commit": "a7ac300ab9bed46307a9aa78415835682d86fa9e",
+    "preserved": [
+      "此前 MOD、幻想连战、轮播、排行榜、继承入口、深渊装备门控",
+      "关注和取消关注按钮、原生本人资料路由",
+      "Android CNtips_b 隐藏",
+      "对应公网/内网地址及固定签名身份"
+    ],
+    "added": [
+      "724 Fever 满槽比例增减",
+      "422 冲刺参数的解析、描述、汇总和战斗执行",
+      "稻穗 PF 弹射前连击数",
+      "基诺维配置冲刺参数",
+      "五重决战随机地图与联机房号种子",
+      "五重联机手动开战后的 Auto 锁及暂停菜单状态",
+      "5900101 不使用五星铁钢替代觉醒材料"
+    ]
+  },
+  "excluded_artifacts": [
+    {
+      "apk": "outputs/abyss-autostart-public-test-20260909/StarPoint-CN-1.8.1-abyss-autostart-public-test-20260909.apk",
+      "apk_sha256": "c0823d0e5ad6c8677de7ee7dddf2094e527c498c0972ae6d0b9ede5180754bc7",
+      "status": "rejected_baseline_regression",
+      "reason": "从 2026-09-06 旧包制作，遗漏 Lens 422/724 等累计内容；禁止继续测试、交付或作为基线。"
+    },
+    {
+      "apk": "outputs/abyss-autostart-lan-test-20260909/StarPoint-CN-1.8.1-abyss-autostart-lan-test-20260909.apk",
+      "apk_sha256": "111a396cd8a80cbb6a64ce27be37639c33a2a876addec41f0832ac78726ebd5d",
+      "status": "rejected_baseline_regression",
+      "reason": "从 2026-09-06 旧包制作，缺少基诺维 422 能力解析，用户反馈点击角色报 C7050；禁止继续测试、交付或作为基线。"
+    }
+  ]
+}

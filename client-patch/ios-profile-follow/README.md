@@ -1,8 +1,12 @@
 # iOS 资料页关注状态与排行榜本人资料路由
 
+2026-09-09：本页是历史步骤；当前开发基线已升级为 [深渊续战 Lens 累计 IPA](../ios-accepted.json)，
+经本次离线验收登记。下文的无 DEBUG 资料页包是 Lens 的父版本，原用户真机验收记录见
+[历史登记](../accepted-history/ios-20260908.json)，不得作为新任务直接输入。
+
 2026-09-08 从当天**已验收的 r12b 导航累计 IPA**增量构建，并已获得用户明确真机验收。
-当前成品是下列原始无 DEBUG 修复包，已登记到 [ios-accepted.json](../ios-accepted.json)；
-后续修改从这个累计输出继续，不回退到 r12b 输入，不采用诊断版。
+当时成品是下列原始无 DEBUG 修复包，验收记录现归档至 [历史登记](../accepted-history/ios-20260908.json)；
+后续修改以页面顶部的最新累计登记为准，不回退到本步骤或 r12b 输入，不采用诊断版。
 此前“关注无反应、本人仍进入他人卡”的反馈，用户随后澄清测试时使用了旧版，
 再确认先前无 DEBUG 修复包正常。过程与证据边界见 [AUDIT-20260908.md](./AUDIT-20260908.md)。
 用户明确要求：**不加入标题页 `CNtips_b` 隐藏**。
@@ -26,7 +30,7 @@
 | `OtherProfileLogic.applyButton` | `79819 / 87420` | 保留真实服务端关注流程。旧取消关注按钮误触时，0/3 走新增关注，1/2 走删除关注。 |
 | `RushEventRankingPartyScene.copyPlayedParty` | `71659 / 78115` | 对比 `globalLogic.getPlayer().get_viewerId()` 与排名行 `id`；本人走原生 `ProfileGetMyProfile`，他人仍走 `ProfileGetProfile(id)`，均保留返回栈。 |
 
-P-code 来自 [已验收安卓包记录](../android-accepted.json) 的公网成品，仅移植上述方法。
+P-code 来自 [当时已验收安卓包记录](../accepted-history/android-20260906.json) 的公网成品，仅移植上述方法。
 保存的 [三个方法及编译初始化声明](./pcode/) 与 [方法编号及哈希](./methods.json) 用于继续维护。
 不反转关注枚举，不伪造本地关系，不直接读取 `viewerId` 属性，不加入曾引起 F1069 的提前刷新。
 本次没有新的服务端修改。
