@@ -1,8 +1,9 @@
 import { FIVE_BOSS_GAUNTLET, isFiveBossGauntletQuest, isFiveBossHiddenQuest } from "../../multi/five-boss/contract";
 import { continueFiveBossSync, FiveBossContinueError, isFiveBossContinueRequest } from "../../multi/five-boss/continue-runtime";
 import { grantFiveBossSoloRewardsSync } from "../../multi/five-boss/solo-rewards";
+import { isFiveBossTicketShortage, sendFiveBossTicketShortage } from "../../multi/five-boss/entry-response";
 import { startFiveBossSoloSync, abortFiveBossSoloSync, getFiveBossSoloReceiptSync, isActiveFiveBossSoloSync,
-    saveFiveBossSoloReceiptSync } from "../../multi/five-boss/solo-runtime";
+    saveFiveBossSoloReceiptSync, getFiveBossSoloRewardMultiplierSync } from "../../multi/five-boss/solo-runtime";
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { deletePlayerActiveQuestSync, getPlayerActiveQuestSync, insertPlayerActiveQuestSync, updatePlayerActiveQuestContinueCountSync } from "../../data/domains/quest_active"
 import { deletePlayerRushEventPlayedPartyListSync, getPlayerRushEventPlayedPartiesSync, getPlayerRushEventSync, insertPlayerRushEventClearedFolderSync, insertPlayerRushEventPlayedPartySync, updatePlayerRushEventSync } from "../../data/domains/rushEvent"
@@ -761,7 +762,8 @@ const routes = async (fastify: FastifyInstance) => {
         )
 
         const fiveBossSolo = fiveBossSoloQuest && questAccomplished
-            ? grantFiveBossSoloRewardsSync({ playerId, firstClear: !questProgress?.finished }) : null
+            ? grantFiveBossSoloRewardsSync({ playerId, firstClear: !questProgress?.finished,
+                rewardMultiplier: getFiveBossSoloRewardMultiplierSync(playerId, activeQuestData.playId) }) : null
         const itemList = {
             ...(fiveBossSolo?.items ?? {}),
             ...(activeQuestData.entryItemId ? { [activeQuestData.entryItemId]: getPlayerItemSync(playerId, activeQuestData.entryItemId) ?? 0 } : {}),
@@ -1113,6 +1115,7 @@ const routes = async (fastify: FastifyInstance) => {
             } catch (error) {
                 if (previousMemory) activeQuests[playerId] = previousMemory
                 else delete activeQuests[playerId]
+                if (isFiveBossTicketShortage(error)) return sendFiveBossTicketShortage(reply, viewerId)
                 return reply.status(400).send({ error: "Bad Request", message: (error as Error).message })
             }
             const latest = getPlayerSync(playerId)!

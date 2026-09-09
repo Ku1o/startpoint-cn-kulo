@@ -1,0 +1,8 @@
+[
+  {
+    "source": "devil_commander_evil_envy_80",
+    "target": "mod_fb_envy_trial_actor",
+    "routine": "mod_fb_envy_trial",
+    "partner_aliases": 2
+  }
+]

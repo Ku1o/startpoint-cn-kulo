@@ -1,6 +1,8 @@
 import { getDb } from "../../data/db"
 import { getPlayerSync, updatePlayerSync } from "../../data/domains/player"
 import { getPlayerActiveQuestSync } from "../../data/domains/quest_active"
+import { getPlayerOptionSync } from "../../data/domains/option"
+import { FiveBossGauntletRunError } from "../../data/domains/fiveBossGauntletRun"
 import { computeRealTimeStamina } from "../../lib/stamina"
 import { FIVE_BOSS_GAUNTLET, isFiveBossGauntletQuest } from "./contract"
 
@@ -27,12 +29,45 @@ export function startFiveBossSoloSync<T>(playerId: number, playId: string, persi
         if (stamina < staminaCost) throw new Error("Insufficient stamina.")
         const debit = db.prepare(`UPDATE players_items SET amount = amount - 1
             WHERE player_id = ? AND id = ? AND amount >= 1`).run(playerId, FIVE_BOSS_GAUNTLET.ticketItemId)
-        if (debit.changes !== 1) throw new Error("Not enough entry tickets.")
+        if (debit.changes !== 1) throw new FiveBossGauntletRunError("insufficient_ticket", "Not enough entry tickets.")
         updatePlayerSync({ id: playerId, stamina: stamina - staminaCost, staminaHealTime: new Date(),
             totalStaminaUsed: (player.totalStaminaUsed ?? 0) + staminaCost })
         db.prepare("UPDATE five_boss_solo_runs SET status = 'aborted' WHERE player_id = ? AND status = 'active'").run(playerId)
-        db.prepare("INSERT INTO five_boss_solo_runs(player_id, play_id, status) VALUES (?, ?, 'active')").run(playerId, playId)
+        const autoAtStart = getPlayerOptionSync(playerId, "auto_play", true)
+        db.prepare(`INSERT INTO five_boss_solo_runs(player_id, play_id, status, auto_at_start, auto_used)
+            VALUES (?, ?, 'active', ?, ?)`).run(playerId, playId, autoAtStart ? 1 : 0, autoAtStart ? 1 : 0)
         return persist()
+    }).immediate()
+}
+
+/** Monotone marker, bound to the persistent current solo play, never a retry snapshot. */
+export function markFiveBossSoloAutoUsedSync(playerId: number): void {
+    getDb().prepare(`UPDATE five_boss_solo_runs SET auto_used = 1
+        WHERE player_id = ? AND status = 'active' AND auto_used = 0
+          AND EXISTS (SELECT 1 FROM players_active_quests q
+              WHERE q.player_id = five_boss_solo_runs.player_id
+                AND q.play_id = five_boss_solo_runs.play_id AND q.is_multi = 0
+                AND q.category = ? AND q.quest_id = ?)`)
+        .run(playerId, FIVE_BOSS_GAUNTLET.category, FIVE_BOSS_GAUNTLET.visibleQuestId)
+}
+
+export function getFiveBossSoloRewardMultiplierSync(playerId: number, playId: string): 1 | 2 {
+    const row = getDb().prepare(`SELECT auto_at_start, auto_used FROM five_boss_solo_runs
+        WHERE player_id = ? AND play_id = ? AND status = 'active'`)
+        .get(playerId, playId) as { auto_at_start: number | null, auto_used: number } | undefined
+    return row?.auto_at_start === 0 && row.auto_used === 0 ? 2 : 1
+}
+
+/** An explicit new multiplayer start abandons the old solo run without inventing a room. */
+export function abandonFiveBossSoloForMultiSync(playerId: number, playId: string): boolean {
+    return getDb().transaction(() => {
+        const active = getPlayerActiveQuestSync(playerId)
+        if (!active || active.isMulti || active.playId !== playId
+            || !isFiveBossGauntletQuest(active.category, active.questId)) return false
+        abortFiveBossSoloSync(playerId, playId)
+        getDb().prepare("DELETE FROM players_active_quests WHERE player_id = ? AND play_id = ? AND is_multi = 0")
+            .run(playerId, playId)
+        return true
     }).immediate()
 }
 

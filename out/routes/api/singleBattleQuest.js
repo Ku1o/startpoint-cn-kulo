@@ -16,6 +16,7 @@ exports.insertActiveQuest = exports.activeQuests = void 0;
 const contract_1 = require("../../multi/five-boss/contract");
 const continue_runtime_1 = require("../../multi/five-boss/continue-runtime");
 const solo_rewards_1 = require("../../multi/five-boss/solo-rewards");
+const entry_response_1 = require("../../multi/five-boss/entry-response");
 const solo_runtime_1 = require("../../multi/five-boss/solo-runtime");
 const quest_active_1 = require("../../data/domains/quest_active");
 const rushEvent_1 = require("../../data/domains/rushEvent");
@@ -541,7 +542,8 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             }
             const mode15RewardsResult = (0, mode15_optional_1.settleMode15BattleSync)(playerId, questCategory, questId, questAccomplished);
             const fiveBossSolo = fiveBossSoloQuest && questAccomplished
-                ? (0, solo_rewards_1.grantFiveBossSoloRewardsSync)({ playerId, firstClear: !(questProgress === null || questProgress === void 0 ? void 0 : questProgress.finished) }) : null;
+                ? (0, solo_rewards_1.grantFiveBossSoloRewardsSync)({ playerId, firstClear: !(questProgress === null || questProgress === void 0 ? void 0 : questProgress.finished),
+                    rewardMultiplier: (0, solo_runtime_1.getFiveBossSoloRewardMultiplierSync)(playerId, activeQuestData.playId) }) : null;
             const itemList = Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign({}, ((_g = fiveBossSolo === null || fiveBossSolo === void 0 ? void 0 : fiveBossSolo.items) !== null && _g !== void 0 ? _g : {})), (activeQuestData.entryItemId ? { [activeQuestData.entryItemId]: (_h = (0, item_1.getPlayerItemSync)(playerId, activeQuestData.entryItemId)) !== null && _h !== void 0 ? _h : 0 } : {})), ((_j = clearReward === null || clearReward === void 0 ? void 0 : clearReward.items) !== null && _j !== void 0 ? _j : {})), ((_k = sPlusClearReward === null || sPlusClearReward === void 0 ? void 0 : sPlusClearReward.items) !== null && _k !== void 0 ? _k : {})), scoreRewardsResult.items), ((_l = rushEventRewardsResult === null || rushEventRewardsResult === void 0 ? void 0 : rushEventRewardsResult.items) !== null && _l !== void 0 ? _l : {})), ((_m = rogueDrops === null || rogueDrops === void 0 ? void 0 : rogueDrops.rewardResult.items) !== null && _m !== void 0 ? _m : {})), ((_o = carnivalRewardsResult === null || carnivalRewardsResult === void 0 ? void 0 : carnivalRewardsResult.items) !== null && _o !== void 0 ? _o : {})), ((_p = mode15RewardsResult === null || mode15RewardsResult === void 0 ? void 0 : mode15RewardsResult.items) !== null && _p !== void 0 ? _p : {}));
             const characterList = [
                 ...rewardCharacterExpResult.character_list,
@@ -836,6 +838,8 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                     exports.activeQuests[playerId] = previousMemory;
                 else
                     delete exports.activeQuests[playerId];
+                if ((0, entry_response_1.isFiveBossTicketShortage)(error))
+                    return (0, entry_response_1.sendFiveBossTicketShortage)(reply, viewerId);
                 return reply.status(400).send({ error: "Bad Request", message: error.message });
             }
             const latest = (0, player_1.getPlayerSync)(playerId);

@@ -1,0 +1,277 @@
+{
+  "common|38/4f7b0efcadfae7f4dd232be7067800ad6cd7d2": {
+    "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.86-1.4.87-1-0823-lion-balance-raid-abyss-ios.zip",
+    "member": "production/upload/38/4f7b0efcadfae7f4dd232be7067800ad6cd7d2",
+    "sha256": "509488845f2381007dae51f313862abd95f31dc1dc9689e1149221d521abcda0"
+  },
+  "common|ed/05df84fa911816fdcb5ce96141bd7c5615ae5e": {
+    "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.86-1.4.87-1-0823-lion-balance-raid-abyss-ios.zip",
+    "member": "production/upload/ed/05df84fa911816fdcb5ce96141bd7c5615ae5e",
+    "sha256": "643ea1c368c8ee246bb2fbf139c9e7457f3824e32b465fdb4cab8adbb2d2a7c9"
+  },
+  "common|d7/0a07172524eeb2993dd340c831ec2afc64339d": {
+    "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.79-1.4.80-1-swimex139997-author-g.zip",
+    "member": "production/upload/d7/0a07172524eeb2993dd340c831ec2afc64339d",
+    "sha256": "a382015cf41f65e9dc63e255600a140d4d9e6cd8c68893e53bc329a17a84efcd"
+  },
+  "common|5e/20360ce54965a5f8ad2bb5782e7d1647462f74": {
+    "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.79-1.4.80-1-swimex139997-author-g.zip",
+    "member": "production/upload/5e/20360ce54965a5f8ad2bb5782e7d1647462f74",
+    "sha256": "de089a7c233bb1d7d3559639d17c28ff9269eab900e451c0e209d0d84d9ee6ba"
+  },
+  "common|77/5c1387ab6f8eb33ad9da0ad468d31b0fb4af6e": {
+    "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.79-1.4.80-1-swimex139997-author-g.zip",
+    "member": "production/upload/77/5c1387ab6f8eb33ad9da0ad468d31b0fb4af6e",
+    "sha256": "ab8e2e47b0d4538d7fb4df4a2b28064312751a0e7fa171bc2a33e6da9f9b3d1d"
+  },
+  "common|72/3339f2b5734354b4758e077f1cde864129677f": {
+    "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.79-1.4.80-1-swimex139997-author-g.zip",
+    "member": "production/upload/72/3339f2b5734354b4758e077f1cde864129677f",
+    "sha256": "b031814957cb8415f93c4d4a6f31a0b3fbce812ae0c57af8eab6b4e87ccb77d7"
+  },
+  "common|94/9da9e14e1cdc64730850e49fd68152d8f8d4d8": {
+    "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.95-1.4.96-1-cdn-consolidated-gerald0903.zip",
+    "member": "production/upload/94/9da9e14e1cdc64730850e49fd68152d8f8d4d8",
+    "sha256": "acd6c2e893ef14618a85c9ccf5b4b7259fd74027809bd6d519c9d712ed19fce0"
+  },
+  "common|4b/c5b3ac0fc4711af9b2213fc79e2b609de74fb5": {
+    "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.95-1.4.96-1-cdn-consolidated-gerald0903.zip",
+    "member": "production/upload/4b/c5b3ac0fc4711af9b2213fc79e2b609de74fb5",
+    "sha256": "047cb38a3978f07653fd8c1139151b953b07cb49f581e570efec468699f09782"
+  },
+  "common|20/e4dae1fb11ed34552144561a05a187110ef884": {
+    "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.60-1.4.61-4-post60-terminal-overlay-sixpack-v2.zip",
+    "member": "production/upload/20/e4dae1fb11ed34552144561a05a187110ef884",
+    "sha256": "8bdec474177c74e47eee6b0c3bfc173e480e4b5973b9c1527cd06a4aa0781d83"
+  },
+  "common|2c/0f5a7e41d67c986e6ce785e0471d259c0c8204": {
+    "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.60-1.4.61-4-post60-terminal-overlay-sixpack-v2.zip",
+    "member": "production/upload/2c/0f5a7e41d67c986e6ce785e0471d259c0c8204",
+    "sha256": "4e98f135a555d002a1fa37b5c375a3a7b40d1d4bdfdc63890661112b138b0a0a"
+  },
+  "common|a9/029fc30891d4708dafc3d56b75a2c967cf5367": {
+    "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.60-1.4.61-6-post60-terminal-overlay-sixpack-v2.zip",
+    "member": "production/upload/a9/029fc30891d4708dafc3d56b75a2c967cf5367",
+    "sha256": "8bdec474177c74e47eee6b0c3bfc173e480e4b5973b9c1527cd06a4aa0781d83"
+  },
+  "common|71/33db2be8729bde9791b24060937e76ff5c3daf": {
+    "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.60-1.4.61-5-post60-terminal-overlay-sixpack-v2.zip",
+    "member": "production/upload/71/33db2be8729bde9791b24060937e76ff5c3daf",
+    "sha256": "ca86e6a424e2afbc3363f5a7a9f512adbe6ab6e71a43324d73e8e8ae77f04e5c"
+  },
+  "common|77/ab58f77415ce12e99c0fabaf72207c6d0f3ff8": {
+    "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.86-1.4.87-1-0823-lion-balance-raid-abyss-ios.zip",
+    "member": "production/upload/77/ab58f77415ce12e99c0fabaf72207c6d0f3ff8",
+    "sha256": "79ac0e7e0961e53bf0277e76be3f668a3d7ba1115b10e46cf56944e06282a201"
+  },
+  "common|12/c7fd86cb102ca803d5a52393e5a46756b4f6f6": {
+    "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.86-1.4.87-1-0823-lion-balance-raid-abyss-ios.zip",
+    "member": "production/upload/12/c7fd86cb102ca803d5a52393e5a46756b4f6f6",
+    "sha256": "8a52b3f7d02548f31fb65a57c40168b128b5ae8a502b33e546dc24a3a5fafe91"
+  },
+  "common|d9/873bf7087b014bfccf5d547123b9c17777023e": {
+    "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.79-1.4.80-1-swimex139997-author-g.zip",
+    "member": "production/upload/d9/873bf7087b014bfccf5d547123b9c17777023e",
+    "sha256": "bf62731f4dc820facb11e113a0af6a336290e641ef434ccf69dd6fc482d29542"
+  },
+  "common|ac/c10f9d67ea6de64d3b2763188fc6a5ececd3a0": {
+    "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.79-1.4.80-1-swimex139997-author-g.zip",
+    "member": "production/upload/ac/c10f9d67ea6de64d3b2763188fc6a5ececd3a0",
+    "sha256": "bb1c3c37957844529ba32cbf199f3efd904a82d46b95a4d42c9c42ac32958a69"
+  },
+  "common|d0/7ee63935c48f8de874a1ab4c8a88fb6961988e": {
+    "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.79-1.4.80-1-swimex139997-author-g.zip",
+    "member": "production/upload/d0/7ee63935c48f8de874a1ab4c8a88fb6961988e",
+    "sha256": "cd2dbc6b1872c3ce1f9fe72788ae2e82873c262b8e793239c6cfa49dea812e94"
+  },
+  "common|04/ebcef550b4b357bb7ea3ef5bca3d4a8c9d9514": {
+    "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.79-1.4.80-1-swimex139997-author-g.zip",
+    "member": "production/upload/04/ebcef550b4b357bb7ea3ef5bca3d4a8c9d9514",
+    "sha256": "586831ea3b836fbe32578f1d0399b9841dd086d2bd250df2e4faf69f0156ac01"
+  },
+  "common|ce/d99a237c8a33a5673f509db1769a403b14dac8": {
+    "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.60-1.4.61-6-post60-terminal-overlay-sixpack-v2.zip",
+    "member": "production/upload/ce/d99a237c8a33a5673f509db1769a403b14dac8",
+    "sha256": "294e96cbc2f9228b8abb6537e6080ed1400821018fe8f22652074d9925fd792d"
+  },
+  "common|84/5a1b6ec569b6d397d6eec45d49c504f55ac91c": {
+    "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.60-1.4.61-5-post60-terminal-overlay-sixpack-v2.zip",
+    "member": "production/upload/84/5a1b6ec569b6d397d6eec45d49c504f55ac91c",
+    "sha256": "8fd137399b23bf1cb9972279555e20982588b16e0ed3c2113a49af07b9e8006c"
+  },
+  "common|6c/35be06962370c4e2730ead864002603018cb72": {
+    "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.60-1.4.61-5-post60-terminal-overlay-sixpack-v2.zip",
+    "member": "production/upload/6c/35be06962370c4e2730ead864002603018cb72",
+    "sha256": "e52e9f9c553de695132b9abc447297525ff3c0f57954699fa798d89405db05e1"
+  },
+  "common|06/d364033bed31d29ceb55df0b41e1b653c3c27b": {
+    "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.60-1.4.61-4-post60-terminal-overlay-sixpack-v2.zip",
+    "member": "production/upload/06/d364033bed31d29ceb55df0b41e1b653c3c27b",
+    "sha256": "0da9207fef9e43b004f73169c98cacfe55b3437a5793ecc957ace4acbb1db79d"
+  },
+  "common|3c/77b4b24030c530f00bafa9efbcabaf6fd6bc6d": {
+    "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.60-1.4.61-4-post60-terminal-overlay-sixpack-v2.zip",
+    "member": "production/upload/3c/77b4b24030c530f00bafa9efbcabaf6fd6bc6d",
+    "sha256": "37cbce49cf37431b7af72770d560d5bc7280aa462c4ba5f036d7ee7a1cbf11cc"
+  },
+  "common|26/751bbab8bb1dad5294d584854827781a4560a7": {
+    "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.60-1.4.61-4-post60-terminal-overlay-sixpack-v2.zip",
+    "member": "production/upload/26/751bbab8bb1dad5294d584854827781a4560a7",
+    "sha256": "d7bdd24e2f6c2d70ca16e1ffe40b5e28121ef6f55d275d46e79ee6a5fbc36d6a"
+  },
+  "common|b6/5fabd1eeab14cac977c41286abd377c37de6c8": {
+    "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.101-1.4.102-1-lens0907-0908-consolidated.zip",
+    "member": "production/upload/b6/5fabd1eeab14cac977c41286abd377c37de6c8",
+    "sha256": "87b4a10339180506a8e8f739ee1780b9a92ffa41f85fd305ae68ca3350c4a06e"
+  },
+  "common|d0/e2e6284ee0dc696b318dd8d1873bf582366159": {
+    "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.101-1.4.102-1-lens0907-0908-consolidated.zip",
+    "member": "production/upload/d0/e2e6284ee0dc696b318dd8d1873bf582366159",
+    "sha256": "6d385903ce894ee7a667508f8db602f8d9f20066af69b4639d3abcde0f51b6bc"
+  },
+  "common|66/5fb6d9da79a7cb95215afde3b581fd0845813e": {
+    "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.95-1.4.96-1-cdn-consolidated-gerald0903.zip",
+    "member": "production/upload/66/5fb6d9da79a7cb95215afde3b581fd0845813e",
+    "sha256": "e27129ca82b532fa106a0ffaa9c1cb136aff062d49b2198370973250c4177e08"
+  },
+  "common|be/c698001de805903c4f42db376a780b532db190": {
+    "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.95-1.4.96-1-cdn-consolidated-gerald0903.zip",
+    "member": "production/upload/be/c698001de805903c4f42db376a780b532db190",
+    "sha256": "6cd6876c5971fd9ff7c0650bcde6a6a00b82d50dcce8ddc3bc07b4fa4eabaa65"
+  },
+  "common|5d/3f8974dbc211de057d487129bf99af4d0c3263": {
+    "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.95-1.4.96-1-cdn-consolidated-gerald0903.zip",
+    "member": "production/upload/5d/3f8974dbc211de057d487129bf99af4d0c3263",
+    "sha256": "889ae82e535248df3f201ef3be9d7f4095decfc9a343c9544951becd507b26b0"
+  },
+  "common|86/b84dca5658e54795616bbe0446ee8191afb64b": {
+    "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.95-1.4.96-1-cdn-consolidated-gerald0903.zip",
+    "member": "production/upload/86/b84dca5658e54795616bbe0446ee8191afb64b",
+    "sha256": "3558d319b52a541a1a457e444ae97c49705eaf556b1f50d0d6cccc12616b2b97"
+  },
+  "common|5e/235daaf64bbc718efcfd5b46e5a0175e836432": {
+    "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.96-1.4.97-1-greyupd0902-cdn-resource-recovery.zip",
+    "member": "production/upload/5e/235daaf64bbc718efcfd5b46e5a0175e836432",
+    "sha256": "b514cb84bb5f9ab4c27308d9b78c0296750ba3151b5cc497ec4123b35f99b9c8"
+  },
+  "common|ae/02da2a7388a44bc3ab27fb4d77fa0a1e7649c0": {
+    "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.96-1.4.97-1-greyupd0902-cdn-resource-recovery.zip",
+    "member": "production/upload/ae/02da2a7388a44bc3ab27fb4d77fa0a1e7649c0",
+    "sha256": "162b00e66029d5fceb02b7e99a49b282f3af6dfe91cba50e4bf120d6ce806626"
+  },
+  "common|a9/a9c324a4d07f938012a62f7cc6850fde5b247b": {
+    "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.96-1.4.97-1-greyupd0902-cdn-resource-recovery.zip",
+    "member": "production/upload/a9/a9c324a4d07f938012a62f7cc6850fde5b247b",
+    "sha256": "764390da591dc1e217b4cbbab164f8bb85fbadcdc96c091b287bb311532b95c1"
+  },
+  "common|3d/38be05424e4b71f8fe40b553a304adc3478d3f": {
+    "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.96-1.4.97-1-greyupd0902-cdn-resource-recovery.zip",
+    "member": "production/upload/3d/38be05424e4b71f8fe40b553a304adc3478d3f",
+    "sha256": "c37d9ccc0e5cb19d83d3fb62cb263f4ab9215f1d869cb6c8c325f65b977882ea"
+  },
+  "common|ab/2c7aa166fcb7757f9eebefe7983406062ef710": {
+    "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.96-1.4.97-1-greyupd0902-cdn-resource-recovery.zip",
+    "member": "production/upload/ab/2c7aa166fcb7757f9eebefe7983406062ef710",
+    "sha256": "ff24077ef227207552d74e58186a093ab097f10ed689658167c978302f79540c"
+  },
+  "common|e2/ceca50d78de1eafb65c29d4c66cb8f5caa769a": {
+    "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.96-1.4.97-1-greyupd0902-cdn-resource-recovery.zip",
+    "member": "production/upload/e2/ceca50d78de1eafb65c29d4c66cb8f5caa769a",
+    "sha256": "eff75443e0a602afc2abfb1c98b0b1a30fedde1a109322de40b8c252b2480a3e"
+  },
+  "common|90/b31155afd0074e12571973f4f5658bbf611c79": {
+    "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.96-1.4.97-1-greyupd0902-cdn-resource-recovery.zip",
+    "member": "production/upload/90/b31155afd0074e12571973f4f5658bbf611c79",
+    "sha256": "09ead077620693df6f9d55450fe7e7ce7d39cdb355ac83ebc2dc98c1bc62e1ab"
+  },
+  "common|ff/b69b314fef0ed1a8672e6b659985d018545e64": {
+    "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.96-1.4.97-1-greyupd0902-cdn-resource-recovery.zip",
+    "member": "production/upload/ff/b69b314fef0ed1a8672e6b659985d018545e64",
+    "sha256": "3623920825db677b8019bb12ad8158d09a7b18d7bc4a062b1b398ff0439c5a27"
+  },
+  "common|26/276fb3b8287942e7b6c0867979e62a3146a275": {
+    "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.96-1.4.97-1-greyupd0902-cdn-resource-recovery.zip",
+    "member": "production/upload/26/276fb3b8287942e7b6c0867979e62a3146a275",
+    "sha256": "b95217b8089110590cfc5a527b06d05dde83f05d899a81d77a01d5ecf615e883"
+  },
+  "common|7c/5d4276c20540b227031df8a72234e8c2dd5c89": {
+    "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.96-1.4.97-1-greyupd0902-cdn-resource-recovery.zip",
+    "member": "production/upload/7c/5d4276c20540b227031df8a72234e8c2dd5c89",
+    "sha256": "1e30cf83facb2325d73475a42e3085731b9d39e5eb0f57859efa34354343fec4"
+  },
+  "common|ae/16509b77cde9e8ead6db40c1b1a0ca4172fd1d": {
+    "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.96-1.4.97-1-greyupd0902-cdn-resource-recovery.zip",
+    "member": "production/upload/ae/16509b77cde9e8ead6db40c1b1a0ca4172fd1d",
+    "sha256": "bef7b2fa13ed7ba58fd966f1bce03033de46456621a1722a69d608e8cd32acab"
+  },
+  "common|ff/af7e959833435bff065e7b66eaf3d0c8988f60": {
+    "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.96-1.4.97-1-greyupd0902-cdn-resource-recovery.zip",
+    "member": "production/upload/ff/af7e959833435bff065e7b66eaf3d0c8988f60",
+    "sha256": "ba9efc5c6662c9e3396c0be01286b0a0417ae7a4efe03b899ac2fd27d72d3033"
+  },
+  "common|d8/530d6b177e446aaa5c9923eec6ffddf96c295c": {
+    "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.101-1.4.102-1-lens0907-0908-consolidated.zip",
+    "member": "production/upload/d8/530d6b177e446aaa5c9923eec6ffddf96c295c",
+    "sha256": "9a9b48b7c852f58b564c568e14207443139cd89184de0a2c306b8a31e5b6b66a"
+  },
+  "common|0f/9fa3c463d083f1042767744de6cbd447eff7a9": {
+    "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.101-1.4.102-1-lens0907-0908-consolidated.zip",
+    "member": "production/upload/0f/9fa3c463d083f1042767744de6cbd447eff7a9",
+    "sha256": "d10c0bdcdb8b10f3d56d16e93d201a0a74081ff859aa04ec3243d3ab914392c3"
+  },
+  "common|7c/1abdc202e957bbcfb2a480509c114e72730e0d": {
+    "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.101-1.4.102-1-lens0907-0908-consolidated.zip",
+    "member": "production/upload/7c/1abdc202e957bbcfb2a480509c114e72730e0d",
+    "sha256": "e32c7f3071c14232f2b2dfccc83ed101963fcee25c89a103b25e247c1e1e70e5"
+  },
+  "common|a5/a4953f02f7612a8829e6cb30e2b66599f6fc6b": {
+    "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.101-1.4.102-1-lens0907-0908-consolidated.zip",
+    "member": "production/upload/a5/a4953f02f7612a8829e6cb30e2b66599f6fc6b",
+    "sha256": "a108f352d024f93df0e331c60d63775af7ec2514ba443945e6f5eb174d12ff73"
+  },
+  "common|4c/789ce3c77855db71bb76ed4c33de7255080101": {
+    "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.60-1.4.61-5-post60-terminal-overlay-sixpack-v2.zip",
+    "member": "production/upload/4c/789ce3c77855db71bb76ed4c33de7255080101",
+    "sha256": "a3d21fb6c6a24c6ce3737c1137aa3261e184b23c815a4c5ceea6d5a126df4fd6"
+  },
+  "common|d5/ab45aeb17cadf1b734c2fa53f5f71b7d2eb9c9": {
+    "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.60-1.4.61-6-post60-terminal-overlay-sixpack-v2.zip",
+    "member": "production/upload/d5/ab45aeb17cadf1b734c2fa53f5f71b7d2eb9c9",
+    "sha256": "bc1e8e8e96ad654a8ae4092d823cd5ec9a15b6357a36a2d810ad6ead84bfe5fe"
+  },
+  "common|49/051bd8e353aa87a6816020779774dbff47a619": {
+    "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.60-1.4.61-5-post60-terminal-overlay-sixpack-v2.zip",
+    "member": "production/upload/49/051bd8e353aa87a6816020779774dbff47a619",
+    "sha256": "8bdec474177c74e47eee6b0c3bfc173e480e4b5973b9c1527cd06a4aa0781d83"
+  },
+  "common|47/601fe86eba485abf72d39d38f1e6ad41128632": {
+    "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.60-1.4.61-5-post60-terminal-overlay-sixpack-v2.zip",
+    "member": "production/upload/47/601fe86eba485abf72d39d38f1e6ad41128632",
+    "sha256": "18e42ec1a5aaf192493e8deb50cd7fdd9b66b7892a3939641b49b7cc3ad715a8"
+  },
+  "common|aa/e5fe0e8ce971e9a1fb2adb6f1312004cffe849": {
+    "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.96-1.4.97-1-greyupd0902-cdn-resource-recovery.zip",
+    "member": "production/upload/aa/e5fe0e8ce971e9a1fb2adb6f1312004cffe849",
+    "sha256": "b789384e9925d9934b103bcf2fde62ad1bcd178a9ecdfa6aa4ed78271ebf6fed"
+  },
+  "common|10/da27cc57eb473ecc34d2221809080ee701f9c0": {
+    "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.96-1.4.97-1-greyupd0902-cdn-resource-recovery.zip",
+    "member": "production/upload/10/da27cc57eb473ecc34d2221809080ee701f9c0",
+    "sha256": "089710c0af92522e4912d701c2a5134a71829975f0cf71e2e2d9545b9375e46e"
+  },
+  "common|61/b540a76a91181111308a408c59dd1d0b8afa1d": {
+    "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.96-1.4.97-1-greyupd0902-cdn-resource-recovery.zip",
+    "member": "production/upload/61/b540a76a91181111308a408c59dd1d0b8afa1d",
+    "sha256": "1daabe52efe3f2a224c242390ead1e1183978cbc297f37ecf8228978c3d0bbee"
+  },
+  "common|a4/731a843d4dc0c84120bf8c88784c1e74c03baa": {
+    "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.95-1.4.96-1-cdn-consolidated-gerald0903.zip",
+    "member": "production/upload/a4/731a843d4dc0c84120bf8c88784c1e74c03baa",
+    "sha256": "a108a1fcccfe755f738e8ef9ed85a8ce35fe1e661b5b6fe689057be897fe57ac"
+  },
+  "common|d6/88e4a5f7d84cc422357cc8acbdb72817bc8670": {
+    "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.82-1.4.83-1-0818-gauntlet-hub-rank140.zip",
+    "member": "production/upload/d6/88e4a5f7d84cc422357cc8acbdb72817bc8670",
+    "sha256": "abd1d58ad606ec16929bd21930c93c10dc54ea5a27463d4af5ca993564c34e35"
+  }
+}

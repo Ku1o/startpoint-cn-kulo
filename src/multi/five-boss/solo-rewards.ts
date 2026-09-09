@@ -16,6 +16,7 @@ export interface FiveBossSoloRewardResult {
 export interface GrantFiveBossSoloRewardsInput {
     playerId: number
     firstClear: boolean
+    rewardMultiplier?: 1 | 2
     randomFloat?: () => number
     givePlayerItemSync?: (playerId: number, itemId: number, amount: number) => number
 }
@@ -24,14 +25,13 @@ export interface GrantFiveBossSoloRewardsInput {
  * 单人打五重决战(2026-09-05 作者:"单人那还是有奖励")的结算发放。
  *
  * 单人 start/finish 走 singleBattleQuest 的普通领主战链路,不经过 five-boss runtime,
- * 所以模式材料(图纸/结晶/证/心核)要在这里按同一张 reward plan 发,倍率固定 1
- * (单人没有 AUTO 关闭双倍那套 boost 语义)。
+ * 按整轮 AUTO 记录决定模式材料倍率；图纸和首通凭证仍遵循固定奖励口径。
  */
 export function grantFiveBossSoloRewardsSync(input: GrantFiveBossSoloRewardsInput): FiveBossSoloRewardResult {
     const give = input.givePlayerItemSync ?? givePlayerItemSyncDefault
     const plan = buildFiveBossGauntletRewardPlan({
         firstClear: input.firstClear,
-        rewardMultiplier: 1,
+        rewardMultiplier: input.rewardMultiplier ?? 1,
         randomFloat: input.randomFloat,
     })
     const items: Record<number, number> = {}

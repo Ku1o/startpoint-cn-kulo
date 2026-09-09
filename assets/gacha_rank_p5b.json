@@ -2890,6 +2890,16 @@
           "isExchangeable": true,
           "rarity": 1.2136842105263157,
           "trialReadingForced": false
+        },
+        {
+          "id": 149990,
+          "rank": 5,
+          "odds": 0,
+          "isRateUp": false,
+          "isLimited": true,
+          "isExchangeable": false,
+          "rarity": 0,
+          "trialReadingForced": false
         }
       ],
       "2": [

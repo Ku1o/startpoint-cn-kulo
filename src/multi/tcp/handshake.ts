@@ -172,6 +172,11 @@ export async function handleHandshake(socket: net.Socket, data: any): Promise<vo
             roomClient?.playerId ?? null,
         )
         const battleRoom = getRoom(roomId)
+        if (!battleRoom || battleRoom.lifecycle.phase !== "BATTLE") {
+            sessionManager.sendJson(socket, [3, "HANDSHAKE_DENIED"])
+            socket.end()
+            return
+        }
         if (battleRoom && isFiveBossGauntletQuest(battleRoom.category, battleRoom.quest_id)
             && !isFrozenFiveBossBattleClient(battleRoom, battleClient)) {
             sessionManager.sendJson(socket, [3, "HANDSHAKE_DENIED"])
@@ -180,7 +185,11 @@ export async function handleHandshake(socket: net.Socket, data: any): Promise<vo
         }
         battleClient.roomGeneration = roomClient?.roomGeneration ?? battleRoom?.lobby_generation ?? 0
         battleClient.isBattle = true
-        sessionManager.addBattleClient(String(connectionId), battleClient)
+        if (!sessionManager.addBattleClient(String(connectionId), battleClient)) {
+            sessionManager.sendJson(socket, [3, "HANDSHAKE_DENIED"])
+            socket.end()
+            return
+        }
         sessionManager.sendJson(socket, [0, roomNumber, ""])
         return
     }

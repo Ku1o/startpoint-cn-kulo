@@ -3126,9 +3126,9 @@
     "skill_count": 6
   },
   "169997": {
-    "element": 5,
     "name": "巴萨拉卡",
     "rarity": 5,
+    "element": 5,
     "skill_count": 6
   },
   "129992": {
@@ -3146,6 +3146,18 @@
   "169980": {
     "element": 5,
     "name": "深渊之兽",
+    "rarity": 5,
+    "skill_count": 6
+  },
+  "169994": {
+    "element": 2,
+    "name": "白虎",
+    "rarity": 5,
+    "skill_count": 6
+  },
+  "149990": {
+    "element": 3,
+    "name": "白",
     "rarity": 5,
     "skill_count": 6
   }

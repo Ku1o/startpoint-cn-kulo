@@ -1,0 +1,29 @@
+{
+  "status": "validated_local_change",
+  "item_id": 10000143,
+  "item_name": "深界连战凭证",
+  "changed_columns": [
+    5
+  ],
+  "other_item_rows_unchanged": 1343,
+  "description_before": "五重决战入场凭证。\n单人出战消耗1张；多人仅房主消耗1张，客人无需持有或消耗。\n每轮开始时扣除，换阶段及同局重试不重复扣除；缺票无法开局。\n可在五重决战交换所用10个深界结晶兑换1张。",
+  "description_after": "用于开启五重连战房间的凭证。仅房主在战斗开始时消耗。",
+  "original_archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.95-1.4.96-1-cdn-consolidated-gerald0903.zip",
+  "original_table_sha256": "a108a1fcccfe755f738e8ef9ed85a8ce35fe1e661b5b6fe689057be897fe57ac",
+  "archive": {
+    "name": "pinball-1.4.104-1.4.105-1-ticket-description-revert-cn.zip",
+    "size": 170741,
+    "sha256": "e678bc53ad3d4ca2f2c936d886520118b6ef5f19869e865898b9c3a5cc5fdb3d",
+    "members": 1,
+    "files": [
+      "production/upload/a4/731a843d4dc0c84120bf8c88784c1e74c03baa"
+    ]
+  },
+  "manifest_before_sha256": "01d473205529b894be2d2563ec00ea1edb519c8d1e6c5e5269b704912e7a832b",
+  "scope": "按用户要求恢复凭证原说明；不修改商品说明、缺票错误提示、扣票规则、奖励、图标或客户端安装包。",
+  "platforms": [
+    "android",
+    "ios"
+  ],
+  "published_archives_preserved": true
+}

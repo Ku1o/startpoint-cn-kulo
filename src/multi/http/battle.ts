@@ -1,10 +1,11 @@
 import { freezeFiveBossLobby } from "../five-boss/lobby-runtime";
+import { isFiveBossTicketShortage, sendFiveBossTicketShortage } from "../five-boss/entry-response";
 import { continueFiveBossSync, FiveBossContinueError, isFiveBossContinueRequest } from "../five-boss/continue-runtime";
 import { resolveActiveQuest } from "../../lib/quest/finish/active-quest-resolver";
 import { isFiveBossHiddenQuest } from "../five-boss/contract";
 import { shouldHandleFiveBossStart, shouldHandleFiveBossMemberRequest,
     handleFiveBossStart, handleFiveBossFinish, handleFiveBossAbort,
-    isFiveBossBattleRequestError } from "./five-boss-battle";
+    isFiveBossBattleRequestError, logFiveBossRequestFailure } from "./five-boss-battle";
 import { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import { MultiStartBody, MultiFinishBody, MultiAbortBody, PlayContinueBody } from "../types";
 import { generateDataHeaders, getServerTime, realToVirtual } from "../../utils";
@@ -217,6 +218,8 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
             try { return handleFiveBossStart(body, ctx.playerId, reply); }
             catch (error) {
                 if (!isFiveBossBattleRequestError(error)) throw error;
+                logFiveBossRequestFailure("start", body, ctx.playerId, error);
+                if (isFiveBossTicketShortage(error)) return sendFiveBossTicketShortage(reply, viewer_id);
                 return reply.status(400).send({ error: "Bad Request", message: (error as Error).message });
             }
         }
@@ -309,6 +312,7 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
             try { return await handleFiveBossFinish(body, playerId, reply, buildFinishFollowInfo); }
             catch (error) {
                 if (!isFiveBossBattleRequestError(error)) throw error;
+                logFiveBossRequestFailure("finish", body, playerId, error);
                 return reply.status(400).send({ error: "Bad Request", message: (error as Error).message });
             }
         }
@@ -858,6 +862,7 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
             try { return handleFiveBossAbort(body, playerId, reply); }
             catch (error) {
                 if (!isFiveBossBattleRequestError(error)) throw error;
+                logFiveBossRequestFailure("abort", body, playerId, error);
                 return reply.status(400).send({ error: "Bad Request", message: (error as Error).message });
             }
         }

@@ -70,14 +70,20 @@ function isFrozenFiveBossBattleClient(room, client) {
 }
 exports.isFrozenFiveBossBattleClient = isFrozenFiveBossBattleClient;
 function recordFiveBossSignal(room, client, signal) {
-    if (!isFrozenFiveBossBattleClient(room, client))
+    var _a, _b;
+    if (!isFrozenFiveBossBattleClient(room, client)) {
+        console.warn(`[FIVE-BOSS-SIGNAL] rejected=identity room=${room.room_number}`
+            + ` run=${(_a = room.five_boss_runtime) === null || _a === void 0 ? void 0 : _a.runId} player=${client.playerId} connection=${client.connectionId} signal=${signal}`);
         return;
+    }
     try {
         (0, fiveBossGauntletRun_1.recordMemberBattleSignalSync)({ runId: room.five_boss_runtime.runId,
             playerId: client.playerId, roomNumber: room.room_number, signal });
     }
     catch (error) {
-        console.warn(`[MULTI] five-boss signal rejected: ${error.message}`);
+        console.warn(`[FIVE-BOSS-SIGNAL] rejected=${(_b = error.code) !== null && _b !== void 0 ? _b : "unknown"}`
+            + ` room=${room.room_number} run=${room.five_boss_runtime.runId}`
+            + ` player=${client.playerId} connection=${client.connectionId} signal=${signal}: ${error.message}`);
     }
 }
 exports.recordFiveBossSignal = recordFiveBossSignal;

@@ -11,6 +11,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.registerBattleRoutes = void 0;
 const lobby_runtime_1 = require("../five-boss/lobby-runtime");
+const entry_response_1 = require("../five-boss/entry-response");
 const continue_runtime_1 = require("../five-boss/continue-runtime");
 const active_quest_resolver_1 = require("../../lib/quest/finish/active-quest-resolver");
 const contract_1 = require("../five-boss/contract");
@@ -184,6 +185,9 @@ function registerBattleRoutes(fastify) {
             catch (error) {
                 if (!(0, five_boss_battle_1.isFiveBossBattleRequestError)(error))
                     throw error;
+                (0, five_boss_battle_1.logFiveBossRequestFailure)("start", body, ctx.playerId, error);
+                if ((0, entry_response_1.isFiveBossTicketShortage)(error))
+                    return (0, entry_response_1.sendFiveBossTicketShortage)(reply, viewer_id);
                 return reply.status(400).send({ error: "Bad Request", message: error.message });
             }
         }
@@ -267,6 +271,7 @@ function registerBattleRoutes(fastify) {
             catch (error) {
                 if (!(0, five_boss_battle_1.isFiveBossBattleRequestError)(error))
                     throw error;
+                (0, five_boss_battle_1.logFiveBossRequestFailure)("finish", body, playerId, error);
                 return reply.status(400).send({ error: "Bad Request", message: error.message });
             }
         }
@@ -693,6 +698,7 @@ function registerBattleRoutes(fastify) {
             catch (error) {
                 if (!(0, five_boss_battle_1.isFiveBossBattleRequestError)(error))
                     throw error;
+                (0, five_boss_battle_1.logFiveBossRequestFailure)("abort", body, playerId, error);
                 return reply.status(400).send({ error: "Bad Request", message: error.message });
             }
         }

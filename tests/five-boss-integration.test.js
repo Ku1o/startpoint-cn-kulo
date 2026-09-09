@@ -155,7 +155,8 @@ test('five-boss starts require 35 stamina, preserve tickets on failure, and allo
         players.updatePlayerSync({ id: p.id, stamina: 35, staminaHealTime: new Date() })
         items.setPlayerItemSync(p.id, 10000143, 0)
         response = await app.inject({ method: 'POST', url: '/start', payload: httpStart(p) })
-        assert.equal(response.statusCode, 400, response.body)
+        assert.equal(response.statusCode, 200, response.body)
+        assert.equal(response.json().data_headers.result_code, 4050)
         assert.equal(players.getPlayerSync(p.id).stamina, 35)
         items.setPlayerItemSync(p.id, 10000143, 1)
         response = await app.inject({ method: 'POST', url: '/start', payload: httpStart(p) })
@@ -181,7 +182,9 @@ test('five-boss starts require 35 stamina, preserve tickets on failure, and allo
         players.updatePlayerSync({ id: host.id, stamina: 35, staminaHealTime: new Date() })
         items.setPlayerItemSync(host.id, 10000143, 0)
         response = await guestApp.inject({ method: 'POST', url: '/start', payload: httpStart(guest, room) })
-        assert.equal(response.statusCode, 400, response.body)
+        assert.equal(response.statusCode, 200, response.body)
+        assert.equal(response.json().data_headers.result_code, 4050)
+        assert.equal(active.getPlayerActiveQuestSync(guest.id), null)
         assert.equal(players.getPlayerSync(host.id).stamina, 35)
         items.setPlayerItemSync(host.id, 10000143, 1)
         response = await guestApp.inject({ method: 'POST', url: '/start', payload: httpStart(guest, room) })
@@ -352,6 +355,158 @@ function httpFinish(p) {
             unison_characters: [], equipments: [], ability_soul_ids: [] } }, api_count: 2, mate_player_result: [] }
 }
 
+test('solo full-manual rewards use the whole-run AUTO record and replay exactly once', async () => {
+    const p = player()
+    load('data/domains/option').updatePlayerOptionsSync(p.id, { auto_play: false })
+    const app = await httpApp(p, async app => {
+        await app.register(load('routes/api/singleBattleQuest').default, { prefix: '/quest' })
+        await app.register(load('routes/api/option').default, { prefix: '/option' })
+    })
+    try {
+        assert.equal((await app.inject({ method: 'POST', url: '/quest/start', payload: httpStart(p) })).statusCode, 200)
+        assert.equal(solo.getFiveBossSoloRewardMultiplierSync(p.id, p.playId), 2)
+        const result = await app.inject({ method: 'POST', url: '/quest/finish', payload: httpFinish(p) })
+        assert.equal(result.statusCode, 200, result.body)
+        assert.equal(result.json().data.item_list['10000145'], 10)
+        const exp = characters.getPlayerCharacterSync(p.id, 111001).exp
+        const again = await app.inject({ method: 'POST', url: '/quest/finish', payload: httpFinish(p) })
+        assert.deepEqual(again.json(), result.json())
+        assert.equal(items.getPlayerItemSync(p.id, 10000145), 10)
+        assert.equal(characters.getPlayerCharacterSync(p.id, 111001).exp, exp)
+    } finally { await app.close() }
+})
+
+test('both option endpoints mark AUTO permanently for this solo play across retry and memory loss', async () => {
+    for (const [endpoint, enabled] of [['update', true], ['update_in_battle', true], ['update', 1], ['update_in_battle', 1]]) {
+        const p = player()
+        load('data/domains/option').updatePlayerOptionsSync(p.id, { auto_play: false })
+        const app = await httpApp(p, async app => {
+            await app.register(load('routes/api/singleBattleQuest').default, { prefix: '/quest' })
+            await app.register(load('routes/api/option').default, { prefix: '/option' })
+        })
+        try {
+            assert.equal((await app.inject({ method: 'POST', url: '/quest/start', payload: httpStart(p) })).statusCode, 200)
+            const option = value => app.inject({ method: 'POST', url: `/option/${endpoint}`,
+                payload: { viewer_id: p.viewerId, api_count: 4, option_params: { auto_play: value } } })
+            assert.equal((await option(enabled)).statusCode, 200)
+            assert.equal((await option(false)).statusCode, 200)
+            delete load('routes/api/singleBattleQuest').activeQuests[p.id]
+            assert.equal((await app.inject({ method: 'POST', url: '/quest/start', payload: httpStart(p) })).statusCode, 200)
+            assert.equal(solo.getFiveBossSoloRewardMultiplierSync(p.id, p.playId), 1)
+            assert.equal(items.getPlayerItemSync(p.id, 10000143), 1)
+            const result = await app.inject({ method: 'POST', url: '/quest/finish', payload: httpFinish(p) })
+            assert.equal(result.statusCode, 200, result.body)
+            assert.equal(result.json().data.item_list['10000145'], 5)
+        } finally { await app.close() }
+    }
+})
+
+test('AUTO at start stays 1x; aborted marker cannot contaminate a fresh manual play', () => {
+    const p = player(3), options = load('data/domains/option')
+    const persist = () => active.insertPlayerActiveQuestSync(p.id, { playerId: p.id, playId: p.playId,
+        category: mode.category, questId: mode.visibleQuestId, isMulti: false, continueCount: 0 })
+    options.updatePlayerOptionsSync(p.id, { auto_play: true })
+    solo.startFiveBossSoloSync(p.id, p.playId, persist)
+    options.updatePlayerOptionsSync(p.id, { auto_play: false })
+    assert.equal(solo.getFiveBossSoloRewardMultiplierSync(p.id, p.playId), 1)
+    solo.abortFiveBossSoloSync(p.id, p.playId)
+    p.playId += '-new'
+    solo.startFiveBossSoloSync(p.id, p.playId, persist)
+    assert.equal(solo.getFiveBossSoloRewardMultiplierSync(p.id, p.playId), 2)
+    const planned = load('multi/five-boss/solo-rewards').grantFiveBossSoloRewardsSync({
+        playerId: p.id, firstClear: true, rewardMultiplier: 2, randomFloat: () => 0,
+        givePlayerItemSync: (_p, _id, amount) => amount })
+    assert.equal(planned.items[10000145], 10)
+    assert.equal(planned.items[10000147], 2)
+    assert.equal(planned.items[10000144], 1)
+    assert.equal(planned.items[10000146], 1)
+})
+
+test('solo ledger migration is additive, repeatable, and old active runs stay 1x', () => {
+    const Database = require('better-sqlite3'), db = new Database(':memory:')
+    try {
+        db.exec(`CREATE TABLE players (id INTEGER PRIMARY KEY);
+            INSERT INTO players VALUES (1);
+            CREATE TABLE five_boss_solo_runs (player_id INTEGER NOT NULL, play_id TEXT NOT NULL,
+                status TEXT NOT NULL, finish_request_key TEXT, response_json TEXT,
+                PRIMARY KEY(player_id,play_id), UNIQUE(player_id,finish_request_key));
+            INSERT INTO five_boss_solo_runs VALUES (1,'legacy','active',NULL,NULL);`)
+        const init = load('data/initializers/five-boss-gauntlet').initializeFiveBossGauntlet
+        init(db); init(db)
+        assert.deepEqual(db.prepare('SELECT auto_at_start,auto_used FROM five_boss_solo_runs').get(),
+            { auto_at_start: null, auto_used: 1 })
+    } finally { db.close() }
+})
+
+test('new valid multiplayer start abandons solo atomically; invalid start preserves solo', async () => {
+    const p = player(3), soloApp = await httpApp(p, load('routes/api/singleBattleQuest').default)
+    const multiApp = await httpApp(p, load('multi/http/battle').registerBattleRoutes, true)
+    try {
+        assert.equal((await soloApp.inject({ method: 'POST', url: '/start', payload: httpStart(p) })).statusCode, 200)
+        const oldPlay = p.playId, room = run([p])
+        p.playId += '-multi'
+        // Failure after attempted cleanup must roll both persistent and memory state back.
+        const frozen = room.five_boss_runtime
+        delete room.five_boss_runtime
+        const rejected = await multiApp.inject({ method: 'POST', url: '/start', payload: httpStart(p, room) })
+        assert.equal(rejected.statusCode, 400, rejected.body)
+        assert.equal(active.getPlayerActiveQuestSync(p.id).playId, oldPlay)
+        assert.equal(solo.isActiveFiveBossSoloSync(p.id, oldPlay), true)
+        room.five_boss_runtime = frozen
+        const response = await multiApp.inject({ method: 'POST', url: '/start', payload: httpStart(p, room) })
+        assert.equal(response.statusCode, 200, response.body)
+        assert.equal(solo.isActiveFiveBossSoloSync(p.id, oldPlay), false)
+        assert.equal(active.getPlayerActiveQuestSync(p.id).playId, p.playId)
+        assert.equal(items.getPlayerItemSync(p.id, mode.ticketItemId), 1)
+        assert.equal(players.getPlayerSync(p.id).stamina, 30)
+        assert.equal(solo.abandonFiveBossSoloForMultiSync(p.id, oldPlay), false)
+        assert.equal(active.getPlayerActiveQuestSync(p.id).playId, p.playId)
+    } finally { await soloApp.close(); await multiApp.close() }
+})
+
+test('stale multiplayer with a missing room field is recovered from its immutable ledger', async () => {
+    const p = player(3), previousRoom = run([p])
+    start(p, previousRoom)
+    const oldPlay = p.playId
+    load('multi/room/manager').disbandRoom(previousRoom.room_number)
+    getDb().prepare('UPDATE players_active_quests SET room_number = NULL WHERE player_id = ?').run(p.id)
+    p.playId += '-next'
+    const next = run([p]), app = await httpApp(p, load('multi/http/battle').registerBattleRoutes)
+    try {
+        const response = await app.inject({ method: 'POST', url: '/start', payload: httpStart(p, next) })
+        assert.equal(response.statusCode, 200, response.body)
+        assert.equal(active.getPlayerActiveQuestSync(p.id).playId, p.playId)
+        assert.equal(ledger.getFiveBossRunByClientSync({ playerId: p.id, clientPlayId: oldPlay }).status, 'aborted')
+        const late = await app.inject({ method: 'POST', url: '/finish', payload: { ...httpFinish(p), play_id: oldPlay } })
+        assert.equal(late.statusCode, 400, late.body)
+        assert.equal(active.getPlayerActiveQuestSync(p.id).playId, p.playId)
+        assert.equal(items.getPlayerItemSync(p.id, 10000145), null)
+    } finally { await app.close() }
+})
+
+test('finish reports missing individual proof and forged finish cannot create finalize evidence', async () => {
+    const p = player(), room = run([p]);start(p, room)
+    const app = await httpApp(p, load('multi/http/battle').registerBattleRoutes)
+    const originalWarn = console.warn, messages = []
+    console.warn = (...args) => messages.push(args.join(' '))
+    try {
+        const rejected = await app.inject({ method: 'POST', url: '/finish', payload: httpFinish(p) })
+        assert.equal(rejected.statusCode, 400)
+        const evidence = JSON.parse(messages.find(line => line.startsWith('[FIVE-BOSS-REJECT]')).split('] ')[1])
+        assert.equal(evidence.code, 'battle_proof_missing')
+        assert.equal(evidence.proof.level_next_at, null)
+        assert.equal(evidence.proof.finalized_at, null)
+        ledger.recordMemberBattleSignalSync({ runId: room.five_boss_runtime.runId,
+            playerId: p.id, roomNumber: room.room_number, signal: 'level_next' })
+        const forged = await app.inject({ method: 'POST', url: '/finish', payload: { ...httpFinish(p), quest_id: 1000101 } })
+        assert.equal(forged.statusCode, 400)
+        assert.equal(getDb().prepare('SELECT finalized_at FROM five_boss_gauntlet_members WHERE run_id = ? AND player_id = ?')
+            .get(room.five_boss_runtime.runId, p.id).finalized_at, null)
+        assert.equal(items.getPlayerItemSync(p.id, 10000145), null)
+        assert.equal((await app.inject({ method: 'POST', url: '/finish', payload: httpFinish(p) })).statusCode, 200)
+    } finally { console.warn = originalWarn; await app.close() }
+})
+
 test('real multiplayer HTTP routes reject forged identities and replay after room disband', async () => {
     const p = player(), room = run([p])
     const app = await httpApp(p, load('multi/http/battle').registerBattleRoutes)
@@ -376,6 +531,7 @@ test('real multiplayer HTTP routes reject forged identities and replay after roo
 
 test('real solo HTTP start/finish persists receipt; hidden scene and free finish are rejected', async () => {
     const p = player()
+    load('data/domains/option').updatePlayerOptionsSync(p.id, { auto_play: true })
     const app = await httpApp(p, load('routes/api/singleBattleQuest').default)
     try {
         const free = await app.inject({ method: 'POST', url: '/finish', payload: httpFinish(p) })

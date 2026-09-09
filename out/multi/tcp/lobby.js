@@ -1030,7 +1030,10 @@ function handleStartBattle(_socket, client, _data) {
         };
     if (!battleStart.ok)
         return;
-    SessionManager_1.sessionManager.setBattleExpectedCount(client.roomNumber, expectedCount);
+    const expectedBattleSeats = SessionManager_1.sessionManager.getClientsInRoom(client.roomNumber, battleStart.previousGeneration)
+        .filter(current => realViewerIds.includes(current.viewerId))
+        .map(current => ({ viewerId: current.viewerId, connectionId: current.connectionId }));
+    SessionManager_1.sessionManager.setBattleExpectedCount(client.roomNumber, expectedCount, expectedBattleSeats);
     (0, recruitment_1.stopRandomRecruitment)(client.roomNumber);
     // Keep rescue membership for the whole room lifecycle.  Battle finish
     // needs this marker to grant the repeatable rescue reward, and a rescue

@@ -1,0 +1,37 @@
+[
+  {
+    "path": "assets/cdndata/character.json",
+    "before_sha256": "0083c315f025e57fa73a9f0ea8e56432eff80397b0f9e67fc8789c502ab390cf",
+    "sha256": "2f490100051eafb6ce583e574740602da9f7b9a37eead0738ef3a42a24f08350"
+  },
+  {
+    "path": "assets/cdndata/character_text.json",
+    "before_sha256": "fda801cbb97bb0fe75116e0bcffdeda6a46969df375f69265a1e896edf8e4d74",
+    "sha256": "f732ab31016dca4ee509bc88a35e8f3493b1abd93736bb5999bfaa5e5ae57bd2"
+  },
+  {
+    "path": "assets/cdndata/character_text_rank_p5b.json",
+    "before_sha256": "f558bfa24411a6dcd780ce462ec1954b801e0f1bdb4d480a59f08079c4f99cb6",
+    "sha256": "9f03de40452b303f6a05412b12b51b926f1ef6be188b77a6c8ed7e98935fefb1"
+  },
+  {
+    "path": "assets/character.json",
+    "before_sha256": "2ce177df4e5e7d50492c777dfaa9bc4bdacb3064cf28f301363c6b3deab6dfdf",
+    "sha256": "65fabd357255877edfcafe9711dd87b3bd7c4c5f7c0895bcc7996b05e23c9d6b"
+  },
+  {
+    "path": "assets/gacha_rank_p5b.json",
+    "before_sha256": "da4917e971d53b51af02a2725aa992b8099634198dc59e5207b7a51c3ea19ea1",
+    "sha256": "edbb767e87a071c84545b843d982f6dd7f3d887e2136246991409d8c6cd312a8"
+  },
+  {
+    "path": "assets/mana_board.json",
+    "before_sha256": "f1ecc6369210ee6e2a69772b0cf4728350779a936901e91a6b2c9f12f780b9df",
+    "sha256": "b731a4b249e5b7c011a8c4fd42b3df3da3ea92953c4aa17d77af985911594e72"
+  },
+  {
+    "path": "assets/mana_node.json",
+    "before_sha256": "5176ed8f5dd339926604a993444a23755caa4927c6960f2fdb434063d3003fbd",
+    "sha256": "041200a1757e172cf3b58a97d901b43a6e9e331867a1d5dafb4495c2cff698e0"
+  }
+]

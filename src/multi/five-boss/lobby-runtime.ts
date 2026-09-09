@@ -59,11 +59,17 @@ export function isFrozenFiveBossBattleClient(room: MultiRoom, client: SessionCli
 }
 
 export function recordFiveBossSignal(room: MultiRoom, client: SessionClient, signal: "level_next" | "finalize"): void {
-    if (!isFrozenFiveBossBattleClient(room, client)) return
+    if (!isFrozenFiveBossBattleClient(room, client)) {
+        console.warn(`[FIVE-BOSS-SIGNAL] rejected=identity room=${room.room_number}`
+            + ` run=${room.five_boss_runtime?.runId} player=${client.playerId} connection=${client.connectionId} signal=${signal}`)
+        return
+    }
     try {
         recordMemberBattleSignalSync({ runId: room.five_boss_runtime!.runId,
             playerId: client.playerId!, roomNumber: room.room_number, signal })
     } catch (error) {
-        console.warn(`[MULTI] five-boss signal rejected: ${(error as Error).message}`)
+        console.warn(`[FIVE-BOSS-SIGNAL] rejected=${(error as { code?: string }).code ?? "unknown"}`
+            + ` room=${room.room_number} run=${room.five_boss_runtime!.runId}`
+            + ` player=${client.playerId} connection=${client.connectionId} signal=${signal}: ${(error as Error).message}`)
     }
 }

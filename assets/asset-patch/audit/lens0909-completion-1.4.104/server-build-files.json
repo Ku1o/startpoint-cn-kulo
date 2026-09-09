@@ -1,0 +1,135 @@
+{
+  "status": "local_build_and_isolated_tests_passed",
+  "files": [
+    {
+      "path": "src/data/initializers/five-boss-gauntlet.ts",
+      "size": 3489,
+      "sha256": "42dbaf998e2410874e629696c32b90a1ef761ccd859f0f2268216a0be51759c2"
+    },
+    {
+      "path": "out/data/initializers/five-boss-gauntlet.js",
+      "size": 3583,
+      "sha256": "0c1f2cd5d84831b61f86e51da07479c6c6cefaca4d39c913569d9722c3474b81"
+    },
+    {
+      "path": "src/multi/five-boss/entry-response.ts",
+      "size": 890,
+      "sha256": "2c729716e400145dbdfaac46c45bdf61bead9037aa2c441e445556de9ab9978e"
+    },
+    {
+      "path": "out/multi/five-boss/entry-response.js",
+      "size": 1100,
+      "sha256": "7f968e7ff77c7e80ead5546644ac071381857da5ab0eb4e16c050bfe4e234edd"
+    },
+    {
+      "path": "src/multi/five-boss/lobby-runtime.ts",
+      "size": 4583,
+      "sha256": "4504221c2f72a13d444f8f98d7eb740df1e5d48262b2c810d6438c7897378aa5"
+    },
+    {
+      "path": "out/multi/five-boss/lobby-runtime.js",
+      "size": 5550,
+      "sha256": "06dad91658bca22bb2d5a754edd32780ee2b88c0affabe214d26222a0c89f922"
+    },
+    {
+      "path": "src/multi/five-boss/solo-rewards.ts",
+      "size": 1948,
+      "sha256": "86854d481af8d60cdeb1f0e44fb19881c81822e656961295a4630609b0462df2"
+    },
+    {
+      "path": "out/multi/five-boss/solo-rewards.js",
+      "size": 1435,
+      "sha256": "c75165afdaf4beea2ebe245b979055cb7cbd5ecc6465bb4cf9f5d10071b61bb5"
+    },
+    {
+      "path": "src/multi/five-boss/solo-runtime.ts",
+      "size": 6186,
+      "sha256": "c26e70a647bef5cefdb4c435113866f202898ecd11e71bd6443e2cf3e24b79a2"
+    },
+    {
+      "path": "out/multi/five-boss/solo-runtime.js",
+      "size": 7191,
+      "sha256": "923b0551b1154e98e5971f64df6629b5778aa1065f7d70ef1006421def7929a1"
+    },
+    {
+      "path": "src/multi/http/battle.ts",
+      "size": 50475,
+      "sha256": "7b7c93c4e6ca0742fe279bb2dc4881d94b21d9a57a9bfc858b76cc174dd56b11"
+    },
+    {
+      "path": "out/multi/http/battle.js",
+      "size": 54518,
+      "sha256": "e1a2a5cbe75176bf7170ac7211108cca8cdb35c5a5dce5bfa5d61ce73b524767"
+    },
+    {
+      "path": "src/multi/http/five-boss-battle.ts",
+      "size": 18756,
+      "sha256": "355aa9a792db2c551106b169a45130e025e0e0c6c20943a30a7bea8b086dcdca"
+    },
+    {
+      "path": "out/multi/http/five-boss-battle.js",
+      "size": 21084,
+      "sha256": "fef355566821b5a158b2b9a96d4e451053d9e49e97341672cf240b150d820408"
+    },
+    {
+      "path": "src/multi/state/SessionManager.ts",
+      "size": 67405,
+      "sha256": "4f6984c50cdb9fa365a742400d712d26c6e2d430083e8490731f7636e17692c4"
+    },
+    {
+      "path": "out/multi/state/SessionManager.js",
+      "size": 70593,
+      "sha256": "4692f7b240e3ad43257867a16ad0e53b1fec6f363cb5f3668bf601e8027922af"
+    },
+    {
+      "path": "src/multi/tcp/handshake.ts",
+      "size": 15363,
+      "sha256": "52e2a5207df58f6b77f30528f917e4f0c02e2a51a14d7ef7f729a5d0454deeac"
+    },
+    {
+      "path": "out/multi/tcp/handshake.js",
+      "size": 18498,
+      "sha256": "ae086a981a0dd0cbb7da5c54227c68ac39b0f8793e1589d782afc37edbeb7ca6"
+    },
+    {
+      "path": "src/multi/tcp/lobby.ts",
+      "size": 51686,
+      "sha256": "8191538fbea22e2232ecc1f52094e7076372e4e899c5101f0e95372bf9e8861a"
+    },
+    {
+      "path": "out/multi/tcp/lobby.js",
+      "size": 58866,
+      "sha256": "f132cfeb96cbd3b956440a84698e3bdbf879b3038d7b19dd91e20a8e1f36605a"
+    },
+    {
+      "path": "src/routes/api/option.ts",
+      "size": 2091,
+      "sha256": "da5e1c7145a501df587cc7a4c43a5d0b7d62ad5ed8f14395301986cfb49c41b4"
+    },
+    {
+      "path": "out/routes/api/option.js",
+      "size": 2817,
+      "sha256": "05a091d928ca72bee5c8fc0fd4b3436c9adb57a45bc14e4cfedb5979e236e977"
+    },
+    {
+      "path": "src/routes/api/singleBattleQuest.ts",
+      "size": 67139,
+      "sha256": "41c00b17b3b062142f8ffc9e49fcb7e4f29a90e8920ba999980533101661d33a"
+    },
+    {
+      "path": "out/routes/api/singleBattleQuest.js",
+      "size": 71936,
+      "sha256": "52964b694b8b53676b11846fe48ad154aec52fb28aef554110d45f2c4e3d68b0"
+    }
+  ],
+  "tests": {
+    "server_tests": 60,
+    "atlas_unit_tests": 2,
+    "server_log_sha256": "4e398d64de25ce4930d2174a94a1506fb26f647e4e3ba17910956e3bd701b079"
+  },
+  "explicit_generated_paths_hidden_by_gitignore": [
+    "out/routes/api/option.js",
+    "out/multi/five-boss/entry-response.js"
+  ],
+  "scope": "Local only; existing role JSON and resource patches must accompany these files in a later authorized release. No runtime sync or deployment."
+}

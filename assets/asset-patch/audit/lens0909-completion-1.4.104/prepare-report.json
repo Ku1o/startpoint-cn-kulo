@@ -1,0 +1,26 @@
+{
+  "baseline": "1.4.103",
+  "manifest_sha256": "85247f09e35fef5e862e93bc79288a58e9470e5e9cabe18f2f8703533dcc73a4",
+  "sources": [
+    {
+      "path": "F:\\codex\\work\\lens0909-review-20260909\\donor\\wfshare-1.4.357-to-1.4.358-graft\\archive-android-diff\\pinball-1.4.357-1.4.358-5-lens0909.zip",
+      "sha256": "4a08c109bffdd114d24c8146211274afe6e4e5bec144423cacae4ee7a522b00f"
+    },
+    {
+      "path": "F:\\codex\\work\\lens0909-review-20260909\\donor\\wfshare-1.4.357-to-1.4.358-graft\\archive-common-diff\\pinball-1.4.357-1.4.358-1-lens0909.zip",
+      "sha256": "c1fba48b7a17028c3e9f133d7bda9a63ab84a36c4b62f2781872f66a7b586717"
+    },
+    {
+      "path": "F:\\codex\\work\\lens0909-review-20260909\\donor\\wfshare-1.4.357-to-1.4.358-graft\\archive-medium-diff\\pinball-1.4.357-1.4.358-2-lens0909.zip",
+      "sha256": "f9f4adff47b393142985b991c9fad643b447f047009906a475f0402ad2fb20d2"
+    },
+    {
+      "path": "F:\\codex\\work\\lens0909-review-20260909\\donor\\wfshare-1.4.357-to-1.4.358-graft\\archive-medium-diff\\pinball-1.4.357-1.4.358-3-lens0909.zip",
+      "sha256": "075fda83dd76943412bbc7900d2adc457c2c1824f165907e9eb9e24ae1bd7ee7"
+    },
+    {
+      "path": "F:\\codex\\work\\lens0909-review-20260909\\donor\\wfshare-1.4.357-to-1.4.358-graft\\archive-medium-diff\\pinball-1.4.357-1.4.358-4-lens0909.zip",
+      "sha256": "00f25bc1998afd98bd156479af7705f7c628824bbe1127adee0081334a23c919"
+    }
+  ]
+}

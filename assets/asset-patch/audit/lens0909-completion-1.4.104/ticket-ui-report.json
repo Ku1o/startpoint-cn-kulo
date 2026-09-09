@@ -1,0 +1,14 @@
+{
+  "item": 10000143,
+  "description": "五重决战入场凭证。\n单人出战消耗1张；多人仅房主消耗1张，客人无需持有或消耗。\n每轮开始时扣除，换阶段及同局重试不重复扣除；缺票无法开局。\n可在五重决战交换所用10个深界结晶兑换1张。",
+  "native_result_code": 4050,
+  "ui_key": "quest_start_out_of_period_error",
+  "message": "当前不满足出战条件。\n请检查关卡开放状态、入场门票和队伍限制后重试。",
+  "old_message": [
+    [
+      "该战斗的活动时间已经结束，无法挑战。"
+    ]
+  ],
+  "scope": "同一原生返回分支已用于关卡关闭、过期资源和装备限制，因此提示覆盖这些原因；不改变其他字符串。",
+  "native_ticket_dialog_not_enabled": "c55 会拦住免票客人，且 BossBattleAsSingle 强化点展示与票数展示冲突 C2086；保留 c55=None。"
+}

@@ -228,7 +228,7 @@ test("removes the same audited fillers from the race pool while preserving zero-
     assert.equal(gacha.tenTicketItemId, 999018)
     assert.deepEqual(
         Object.fromEntries(Object.entries(gacha.pool).map(([bucket, entries]) => [bucket, entries.length])),
-        { "1": 286, "2": 125, "3": 76 },
+        { "1": 287, "2": 125, "3": 76 },
     )
     assert.deepEqual(
         Object.fromEntries(Object.entries(gacha.pool).map(([bucket, entries]) => [bucket, poolTotal(entries)])),
@@ -248,7 +248,12 @@ test("removes the same audited fillers from the race pool while preserving zero-
         .flat()
         .filter(item => item.odds === 0)
         .map(item => item.id)
-    assert.equal(sourceZeroWeightIds.length, 19)
+    assert.equal(sourceZeroWeightIds.length, 20)
+    const summerPreview = gacha.pool["1"].find(item => item.id === 149990)
+    assert.ok(summerPreview)
+    assert.equal(summerPreview.odds, 0)
+    assert.equal(summerPreview.isExchangeable, false)
+    assert.equal(getExchangeableGachaItem(gacha, 149990), null)
     for (const characterId of sourceZeroWeightIds) {
         assert.equal(gacha.pool["1"].find(item => item.id === characterId)?.odds, 0)
     }

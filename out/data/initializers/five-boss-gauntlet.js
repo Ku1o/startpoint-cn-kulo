@@ -57,5 +57,14 @@ function initializeFiveBossGauntlet(database) {
                 REFERENCES five_boss_gauntlet_members(run_id, player_id) ON DELETE CASCADE
         );
     `);
+    // NULL/1 keeps runs started before this migration at their original 1x.
+    const soloInfo = database.prepare("PRAGMA table_info(five_boss_solo_runs)").all();
+    const soloColumns = new Set(soloInfo.map(column => column.name));
+    if (!soloColumns.has("auto_at_start")) {
+        database.exec("ALTER TABLE five_boss_solo_runs ADD COLUMN auto_at_start INTEGER CHECK(auto_at_start IN (0, 1))");
+    }
+    if (!soloColumns.has("auto_used")) {
+        database.exec("ALTER TABLE five_boss_solo_runs ADD COLUMN auto_used INTEGER NOT NULL DEFAULT 1 CHECK(auto_used IN (0, 1))");
+    }
 }
 exports.initializeFiveBossGauntlet = initializeFiveBossGauntlet;

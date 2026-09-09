@@ -1,0 +1,312 @@
+[
+  {
+    "quest": 1099001,
+    "field": "mod_five_boss_coop_v1_scene_1",
+    "enemy_level": 80,
+    "actors": [
+      "mod_fb_sand_s1",
+      "mod_fb_thunder_s1",
+      "mod_fb_hero_s1"
+    ],
+    "donor_coefficient": "214.8",
+    "cn_coefficient": "214.809420469094",
+    "donor_result_in_cn": 299986843495
+  },
+  {
+    "quest": 1099002,
+    "field": "mod_five_boss_coop_v1_scene_1",
+    "enemy_level": 80,
+    "actors": [
+      "mod_fb_sand_s1",
+      "mod_fb_thunder_s1",
+      "mod_fb_hero_s1"
+    ],
+    "donor_coefficient": "214.8",
+    "cn_coefficient": "214.809420469094",
+    "donor_result_in_cn": 299986843495
+  },
+  {
+    "quest": 1099003,
+    "field": "mod_five_boss_coop_v1_scene_2",
+    "enemy_level": 80,
+    "actors": [
+      "administrator_light_multi_80",
+      "mod_fb_eye_r",
+      "mod_fb_envy_trial_actor",
+      "mod_fb_yokai_r"
+    ],
+    "donor_coefficient": "123.6",
+    "cn_coefficient": "175.986508031812",
+    "donor_result_in_cn": 210697970057
+  },
+  {
+    "quest": 1099004,
+    "field": "mod_five_boss_var_s1_ability_a",
+    "enemy_level": 80,
+    "actors": [
+      "mod_fb_water_s1",
+      "mod_fb_thunder_s1",
+      "mod_fb_admin_s1"
+    ],
+    "donor_coefficient": "268.4",
+    "cn_coefficient": "268.389446759221",
+    "donor_result_in_cn": 300011796186
+  },
+  {
+    "quest": 1099014,
+    "field": "mod_five_boss_var_s2_ability_a",
+    "enemy_level": 80,
+    "actors": [
+      "mod_fb_eye_s2",
+      "mod_fb_yokai_r",
+      "mod_fb_envy_trial_actor",
+      "mod_fb_hero_r"
+    ],
+    "donor_coefficient": "113.1",
+    "cn_coefficient": "145.16921869989",
+    "donor_result_in_cn": 233727234352
+  },
+  {
+    "quest": 1099005,
+    "field": "mod_five_boss_var_s1_direct_a",
+    "enemy_level": 80,
+    "actors": [
+      "mod_fb_water_s1",
+      "mod_fb_sand_s1",
+      "mod_fb_eye_s1"
+    ],
+    "donor_coefficient": "129.3",
+    "cn_coefficient": "129.333663147418",
+    "donor_result_in_cn": 299921915577
+  },
+  {
+    "quest": 1099015,
+    "field": "mod_five_boss_var_s2_direct_a",
+    "enemy_level": 80,
+    "actors": [
+      "mod_fb_envy_trial_actor",
+      "mod_fb_yokai_r",
+      "mod_fb_hero_s2",
+      "mod_fb_admin_r"
+    ],
+    "donor_coefficient": "192.2",
+    "cn_coefficient": "307.531398700941",
+    "donor_result_in_cn": 187493050280
+  },
+  {
+    "quest": 1099006,
+    "field": "mod_five_boss_var_s1_pf_a",
+    "enemy_level": 80,
+    "actors": [
+      "mod_fb_sand_s1",
+      "mod_fb_thunder_s1",
+      "mod_fb_yokai_s1"
+    ],
+    "donor_coefficient": "254.2",
+    "cn_coefficient": "254.202733823728",
+    "donor_result_in_cn": 299996773648
+  },
+  {
+    "quest": 1099016,
+    "field": "mod_five_boss_var_s2_pf_a",
+    "enemy_level": 80,
+    "actors": [
+      "mod_fb_envy_trial_actor",
+      "mod_fb_hero_r",
+      "administrator_light_multi_80",
+      "mod_fb_eye_r"
+    ],
+    "donor_coefficient": "113.5",
+    "cn_coefficient": "156.160327537837",
+    "donor_result_in_cn": 218045136922
+  },
+  {
+    "quest": 1099007,
+    "field": "mod_five_boss_var_s1_skill_a",
+    "enemy_level": 80,
+    "actors": [
+      "mod_fb_water_s1",
+      "mod_fb_thunder_s1",
+      "mod_fb_envy_trial_actor"
+    ],
+    "donor_coefficient": "174.8",
+    "cn_coefficient": "265.292354916517",
+    "donor_result_in_cn": 197668719161
+  },
+  {
+    "quest": 1099017,
+    "field": "mod_five_boss_var_s2_skill_a",
+    "enemy_level": 80,
+    "actors": [
+      "mod_fb_hero_s2",
+      "mod_fb_admin_r",
+      "mod_fb_eye_s2",
+      "mod_fb_yokai_r"
+    ],
+    "donor_coefficient": "146.1",
+    "cn_coefficient": "146.091713735025",
+    "donor_result_in_cn": 300017015881
+  },
+  {
+    "quest": 1099008,
+    "field": "mod_five_boss_var_s1_attack_a",
+    "enemy_level": 80,
+    "actors": [
+      "mod_fb_water_s1",
+      "mod_fb_sand_s1",
+      "mod_fb_hero_s1"
+    ],
+    "donor_coefficient": "206.3",
+    "cn_coefficient": "206.344951186161",
+    "donor_result_in_cn": 299934646543
+  },
+  {
+    "quest": 1099018,
+    "field": "mod_five_boss_var_s2_attack_a",
+    "enemy_level": 80,
+    "actors": [
+      "mod_fb_eye_s2",
+      "mod_fb_yokai_r",
+      "mod_fb_envy_trial_actor",
+      "mod_fb_admin_r"
+    ],
+    "donor_coefficient": "123.6",
+    "cn_coefficient": "162.935823166531",
+    "donor_result_in_cn": 227574263775
+  },
+  {
+    "quest": 1099009,
+    "field": "mod_five_boss_var_s1_ability_b",
+    "enemy_level": 80,
+    "actors": [
+      "mod_fb_sand_s1",
+      "mod_fb_thunder_s1",
+      "mod_fb_admin_s1"
+    ],
+    "donor_coefficient": "256.1",
+    "cn_coefficient": "256.136885059343",
+    "donor_result_in_cn": 299956798419
+  },
+  {
+    "quest": 1099019,
+    "field": "mod_five_boss_var_s2_ability_b",
+    "enemy_level": 80,
+    "actors": [
+      "mod_fb_envy_trial_actor",
+      "mod_fb_yokai_r",
+      "mod_fb_hero_s2",
+      "mod_fb_eye_r"
+    ],
+    "donor_coefficient": "113.1",
+    "cn_coefficient": "145.16921869989",
+    "donor_result_in_cn": 233727234352
+  },
+  {
+    "quest": 1099010,
+    "field": "mod_five_boss_var_s1_direct_b",
+    "enemy_level": 80,
+    "actors": [
+      "mod_fb_water_s1",
+      "mod_fb_thunder_s1",
+      "mod_fb_eye_s1"
+    ],
+    "donor_coefficient": "135.8",
+    "cn_coefficient": "135.818982279306",
+    "donor_result_in_cn": 299958071517
+  },
+  {
+    "quest": 1099020,
+    "field": "mod_five_boss_var_s2_direct_b",
+    "enemy_level": 80,
+    "actors": [
+      "mod_fb_envy_trial_actor",
+      "mod_fb_hero_r",
+      "administrator_light_multi_80",
+      "mod_fb_yokai_r"
+    ],
+    "donor_coefficient": "192.2",
+    "cn_coefficient": "357.581083846124",
+    "donor_result_in_cn": 161250140469
+  },
+  {
+    "quest": 1099011,
+    "field": "mod_five_boss_var_s1_pf_b",
+    "enemy_level": 80,
+    "actors": [
+      "mod_fb_water_s1",
+      "mod_fb_sand_s1",
+      "mod_fb_yokai_s1"
+    ],
+    "donor_coefficient": "242.4",
+    "cn_coefficient": "242.434088739296",
+    "donor_result_in_cn": 299957816897
+  },
+  {
+    "quest": 1099021,
+    "field": "mod_five_boss_var_s2_pf_b",
+    "enemy_level": 80,
+    "actors": [
+      "mod_fb_hero_s2",
+      "mod_fb_admin_r",
+      "mod_fb_envy_trial_actor",
+      "mod_fb_eye_r"
+    ],
+    "donor_coefficient": "113.5",
+    "cn_coefficient": "145.797948494723",
+    "donor_result_in_cn": 233542380749
+  },
+  {
+    "quest": 1099012,
+    "field": "mod_five_boss_var_s1_skill_b",
+    "enemy_level": 80,
+    "actors": [
+      "mod_fb_sand_s1",
+      "mod_fb_thunder_s1",
+      "mod_fb_envy_trial_actor"
+    ],
+    "donor_coefficient": "169.5",
+    "cn_coefficient": "253.314629674384",
+    "donor_result_in_cn": 200738504780
+  },
+  {
+    "quest": 1099022,
+    "field": "mod_five_boss_var_s2_skill_b",
+    "enemy_level": 80,
+    "actors": [
+      "administrator_light_multi_80",
+      "mod_fb_eye_r",
+      "yokai_emaki_middle_boss_multi",
+      "mod_fb_hero_r"
+    ],
+    "donor_coefficient": "146.1",
+    "cn_coefficient": "169.133991928653",
+    "donor_result_in_cn": 259143649954
+  },
+  {
+    "quest": 1099013,
+    "field": "mod_five_boss_var_s1_attack_b",
+    "enemy_level": 80,
+    "actors": [
+      "mod_fb_water_s1",
+      "mod_fb_thunder_s1",
+      "mod_fb_hero_s1"
+    ],
+    "donor_coefficient": "223.4",
+    "cn_coefficient": "223.36107512284",
+    "donor_result_in_cn": 300052280653
+  },
+  {
+    "quest": 1099023,
+    "field": "mod_five_boss_var_s2_attack_b",
+    "enemy_level": 80,
+    "actors": [
+      "mod_fb_envy_trial_actor",
+      "mod_fb_yokai_r",
+      "administrator_light_multi_80",
+      "mod_fb_eye_r"
+    ],
+    "donor_coefficient": "123.6",
+    "cn_coefficient": "175.986508031812",
+    "donor_result_in_cn": 210697970057
+  }
+]

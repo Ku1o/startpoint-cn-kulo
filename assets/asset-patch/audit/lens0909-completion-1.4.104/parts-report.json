@@ -1,0 +1,83 @@
+[
+  {
+    "logical": "battle/effect/skill_unique/land_dragon_wind_playable/wave_arc120_middle/wave_arc120_middle.parts.amf3.deflate",
+    "image_references": 6,
+    "families": [
+      "battle/effect/skill_unique/land_dragon_wind_playable/wave_arc120_fast"
+    ],
+    "top_keys_before": [
+      "i",
+      "g",
+      "m",
+      "a",
+      "o",
+      "t",
+      "c",
+      "s"
+    ],
+    "top_keys_after": [
+      "i",
+      "g",
+      "m",
+      "a",
+      "o",
+      "t",
+      "c",
+      "s"
+    ]
+  },
+  {
+    "logical": "battle/effect/skill_unique/land_dragon_wind_playable/wave_arc120_slow/wave_arc120_slow.parts.amf3.deflate",
+    "image_references": 6,
+    "families": [
+      "battle/effect/skill_unique/land_dragon_wind_playable/wave_arc120_fast"
+    ],
+    "top_keys_before": [
+      "i",
+      "g",
+      "m",
+      "a",
+      "o",
+      "t",
+      "c",
+      "s"
+    ],
+    "top_keys_after": [
+      "i",
+      "g",
+      "m",
+      "a",
+      "o",
+      "t",
+      "c",
+      "s"
+    ]
+  },
+  {
+    "logical": "battle/effect/skill_unique/maou2_playable/world_end/world_end.parts.amf3.deflate",
+    "image_references": 18,
+    "families": [
+      "battle/effect/skill_unique/maou2_playable/world_end"
+    ],
+    "top_keys_before": [
+      "i",
+      "g",
+      "m",
+      "a",
+      "o",
+      "t",
+      "c",
+      "s"
+    ],
+    "top_keys_after": [
+      "i",
+      "g",
+      "m",
+      "a",
+      "o",
+      "t",
+      "c",
+      "s"
+    ]
+  }
+]

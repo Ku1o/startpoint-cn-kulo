@@ -1,0 +1,412 @@
+[
+  {
+    "logical": "battle/effect/powerflip/lion_swordman_reborn/lion_swordman_reborn.atlas.amf3.deflate",
+    "before_size": [
+      984,
+      127
+    ],
+    "after_size": [
+      352,
+      365
+    ],
+    "frames": 79,
+    "unique_pixel_regions": 53,
+    "visible_signature": "f6da83f167a6f0a6faee2bbce672a4c3c14892bc7ab193ed8f75da10dd686413",
+    "before_area": 124968,
+    "after_area": 128480,
+    "compact_shape_repack": true,
+    "changed": true
+  },
+  {
+    "logical": "battle/effect/powerflip/resistance_princess_ex_pf_fist/resistance_princess_ex_pf_fist.atlas.amf3.deflate",
+    "before_size": [
+      592,
+      63
+    ],
+    "after_size": [
+      192,
+      200
+    ],
+    "frames": 63,
+    "unique_pixel_regions": 35,
+    "visible_signature": "69e6b1d246069cc7c489764afc5d67a0da0e8794855eaade3802834eafd3e08d",
+    "before_area": 37296,
+    "after_area": 38400,
+    "compact_shape_repack": true,
+    "changed": true
+  },
+  {
+    "logical": "battle/effect/powerflip/resistance_princess_ex_pf_spin/resistance_princess_ex_pf_spin.atlas.amf3.deflate",
+    "before_size": [
+      285,
+      127
+    ],
+    "after_size": [
+      188,
+      196
+    ],
+    "frames": 14,
+    "unique_pixel_regions": 12,
+    "visible_signature": "198d1ed908c11295c30414d3232bd64467cd71105c13c6f544e2fa400eeda6b0",
+    "before_area": 36195,
+    "after_area": 36848,
+    "compact_shape_repack": true,
+    "changed": true
+  },
+  {
+    "logical": "battle/effect/powerflip/white_wolf_gerald_powerflip/white_wolf_gerald_powerflip.atlas.amf3.deflate",
+    "before_size": [
+      330,
+      532
+    ],
+    "after_size": [
+      351,
+      386
+    ],
+    "frames": 32,
+    "unique_pixel_regions": 32,
+    "visible_signature": "b7eae1f9ca24724fb9c7b4be8dbe056eed9c87df1a973e43613657c7f9c28c42",
+    "before_area": 175560,
+    "after_area": 135486,
+    "compact_shape_repack": true,
+    "changed": true
+  },
+  {
+    "logical": "battle/effect/skill_unique/land_dragon_wind_playable/wave_arc120_middle/wave_arc120_middle.atlas.amf3.deflate",
+    "before_size": [
+      111,
+      587
+    ],
+    "after_size": [
+      8,
+      8
+    ],
+    "frames": 6,
+    "before_area": 65157,
+    "after_area": 64,
+    "changed": true,
+    "verification": "all old rendered frames are matched against the shared fast atlas; no own frame is consumed"
+  },
+  {
+    "logical": "battle/effect/skill_unique/land_dragon_wind_playable/wave_arc120_slow/wave_arc120_slow.atlas.amf3.deflate",
+    "before_size": [
+      111,
+      587
+    ],
+    "after_size": [
+      8,
+      8
+    ],
+    "frames": 6,
+    "before_area": 65157,
+    "after_area": 64,
+    "changed": true,
+    "verification": "all old rendered frames are matched against the shared fast atlas; no own frame is consumed"
+  },
+  {
+    "logical": "battle/effect/skill_unique/lion_swordman_reborn/lion_swordman_reborn.atlas.amf3.deflate",
+    "before_size": [
+      1564,
+      124
+    ],
+    "after_size": [
+      447,
+      486
+    ],
+    "frames": 96,
+    "unique_pixel_regions": 94,
+    "visible_signature": "53ef66c02a5848007c82f2e9e424fa1c612a905d58f080dde3a5faac1217390a",
+    "before_area": 193936,
+    "after_area": 217242,
+    "compact_shape_repack": true,
+    "changed": true
+  },
+  {
+    "logical": "battle/effect/skill_unique/resistance_princess_ex/blade/blade.atlas.amf3.deflate",
+    "before_size": [
+      439,
+      146
+    ],
+    "after_size": [
+      256,
+      281
+    ],
+    "frames": 19,
+    "unique_pixel_regions": 14,
+    "visible_signature": "589671bf77779100ac8733e6ea8aacd3f28268074f30926434ecf869d0e69630",
+    "before_area": 64094,
+    "after_area": 71936,
+    "compact_shape_repack": true,
+    "changed": true
+  },
+  {
+    "logical": "battle/effect/skill_unique/resistance_princess_ex/ring/ring.atlas.amf3.deflate",
+    "before_size": [
+      121,
+      1719
+    ],
+    "after_size": [
+      512,
+      422
+    ],
+    "frames": 38,
+    "unique_pixel_regions": 33,
+    "visible_signature": "61cb2adc6b95e87170ac5c9f74fc9c8b33e31317ffd26d453ffc221c8b9896fa",
+    "before_area": 207999,
+    "after_area": 216064,
+    "compact_shape_repack": true,
+    "changed": true
+  },
+  {
+    "logical": "battle/effect/skill_unique/touyakiren_ceo_ny26/touyakiren_ceo_ny26.atlas.amf3.deflate",
+    "before_size": [
+      126,
+      1019
+    ],
+    "after_size": [
+      384,
+      356
+    ],
+    "frames": 75,
+    "unique_pixel_regions": 75,
+    "visible_signature": "8979530579475b23320d013228e04119afea2a88f7f3bd6d1f1ae51c77956137",
+    "before_area": 128394,
+    "after_area": 136704,
+    "compact_shape_repack": true,
+    "changed": true
+  },
+  {
+    "logical": "battle/effect/skill_unique/touyakiren_ceo_ny26_petal/touyakiren_ceo_ny26_petal.atlas.amf3.deflate",
+    "before_size": [
+      124,
+      222
+    ],
+    "after_size": [
+      96,
+      86
+    ],
+    "frames": 23,
+    "unique_pixel_regions": 23,
+    "visible_signature": "f043679b0d1804b7e6c417df151a63520638563205f151d91d8f362a263daab9",
+    "before_area": 27528,
+    "after_area": 8256,
+    "compact_shape_repack": true,
+    "changed": true
+  },
+  {
+    "logical": "battle/effect/skill_unique/touyakiren_ceo_ny26_sakura/touyakiren_ceo_ny26_sakura.atlas.amf3.deflate",
+    "before_size": [
+      884,
+      124
+    ],
+    "after_size": [
+      160,
+      160
+    ],
+    "frames": 41,
+    "unique_pixel_regions": 41,
+    "visible_signature": "447e73ba73150ea63ec1a7885e5dbc069b0dd3062ac171a084a9741ddc5bbda8",
+    "before_area": 109616,
+    "after_area": 25600,
+    "compact_shape_repack": true,
+    "changed": true
+  },
+  {
+    "logical": "battle/effect/skill_unique/white_wolf_gerald/rainbow_burst/rainbow_burst.atlas.amf3.deflate",
+    "before_size": [
+      194,
+      248
+    ],
+    "after_size": [
+      128,
+      250
+    ],
+    "frames": 12,
+    "unique_pixel_regions": 12,
+    "visible_signature": "419c50d9f1499ebe92d6b8ea05153e48140277a824faafe992b0b9c5b7deee38",
+    "before_area": 48112,
+    "after_area": 32000,
+    "compact_shape_repack": false,
+    "changed": true
+  },
+  {
+    "logical": "battle/effect/skill_unique/white_wolf_gerald/time_aura/time_aura.atlas.amf3.deflate",
+    "before_size": [
+      128,
+      160
+    ],
+    "after_size": [
+      128,
+      125
+    ],
+    "frames": 19,
+    "unique_pixel_regions": 19,
+    "visible_signature": "5c328129a9303d2301ad46a29056796bbd3817122a6cdf207e128eef7d455d05",
+    "before_area": 20480,
+    "after_area": 16000,
+    "compact_shape_repack": false,
+    "changed": true
+  },
+  {
+    "logical": "battle/effect/skill_unique/white_wolf_gerald/white_wolf_gerald.atlas.amf3.deflate",
+    "before_size": [
+      406,
+      782
+    ],
+    "after_size": [
+      512,
+      478
+    ],
+    "frames": 37,
+    "unique_pixel_regions": 37,
+    "visible_signature": "881bb2e9b06a2d1f713a6618f77756bb1b041f6a8c8d8dd5aaf522c578309d77",
+    "before_area": 317492,
+    "after_area": 244736,
+    "compact_shape_repack": true,
+    "changed": true
+  },
+  {
+    "logical": "character/abyss_beast_playable/pixelart/sprite_sheet.atlas.amf3.deflate",
+    "before_size": [
+      512,
+      3028
+    ],
+    "after_size": [
+      576,
+      639
+    ],
+    "frames": 743,
+    "unique_pixel_regions": 161,
+    "visible_signature": "d4efeb040b8b197c67b7b3c88102d96a0bfd91b66b383d2eeefbc9cafaaad2df",
+    "before_area": 1550336,
+    "after_area": 368064,
+    "compact_shape_repack": true,
+    "changed": true
+  },
+  {
+    "logical": "character/cnmod_epuration_empress/pixelart/sprite_sheet.atlas.amf3.deflate",
+    "before_size": [
+      512,
+      3374
+    ],
+    "after_size": [
+      416,
+      451
+    ],
+    "frames": 750,
+    "unique_pixel_regions": 68,
+    "visible_signature": "21aaa7bcebd21ec780f3ac47b8e77161a16d04899935b565e85f46b6d482c7c0",
+    "before_area": 1727488,
+    "after_area": 187616,
+    "compact_shape_repack": true,
+    "changed": true
+  },
+  {
+    "logical": "character/epuration_empress_playable/pixelart/sprite_sheet.atlas.amf3.deflate",
+    "before_size": [
+      512,
+      2817
+    ],
+    "after_size": [
+      320,
+      323
+    ],
+    "frames": 645,
+    "unique_pixel_regions": 51,
+    "visible_signature": "cf5a21f6f2c4e5d231320159837f61254fcb5dbe7b0420b79ce4d0bd20b69d3a",
+    "before_area": 1442304,
+    "after_area": 103360,
+    "compact_shape_repack": true,
+    "changed": true
+  },
+  {
+    "logical": "character/epuration_infantry_playable/pixelart/sprite_sheet.atlas.amf3.deflate",
+    "before_size": [
+      512,
+      1993
+    ],
+    "after_size": [
+      384,
+      373
+    ],
+    "frames": 521,
+    "unique_pixel_regions": 67,
+    "visible_signature": "9906542f1dbefd07b5c40167fcfc617759ed200448db8afc0d566f297cdb00f3",
+    "before_area": 1020416,
+    "after_area": 143232,
+    "compact_shape_repack": true,
+    "changed": true
+  },
+  {
+    "logical": "character/epuration_monk_playable/pixelart/sprite_sheet.atlas.amf3.deflate",
+    "before_size": [
+      512,
+      2641
+    ],
+    "after_size": [
+      447,
+      431
+    ],
+    "frames": 458,
+    "unique_pixel_regions": 51,
+    "visible_signature": "0f07890ec1eed1563c187711292cf45c81a15836d1275bd3ffc2eafcc3b4a824",
+    "before_area": 1352192,
+    "after_area": 192657,
+    "compact_shape_repack": true,
+    "changed": true
+  },
+  {
+    "logical": "character/epuration_variant_playable/pixelart/sprite_sheet.atlas.amf3.deflate",
+    "before_size": [
+      512,
+      2580
+    ],
+    "after_size": [
+      351,
+      413
+    ],
+    "frames": 567,
+    "unique_pixel_regions": 50,
+    "visible_signature": "28a9d6aa8947863e6900f3b8a984f1e6ab92082ac3244c63bb0d5a11d08e1ccc",
+    "before_area": 1320960,
+    "after_area": 144963,
+    "compact_shape_repack": true,
+    "changed": true
+  },
+  {
+    "logical": "character/fox_oracle_autumn/pixelart/sprite_sheet.atlas.amf3.deflate",
+    "before_size": [
+      1019,
+      1019
+    ],
+    "after_size": [
+      864,
+      885
+    ],
+    "frames": 550,
+    "unique_pixel_regions": 133,
+    "visible_signature": "288ad52be2ed3196e7740a60aa9f0d54017c45a13c7472ae069c7b7da1a027ec",
+    "before_area": 1038361,
+    "after_area": 764640,
+    "compact_shape_repack": false,
+    "changed": true
+  },
+  {
+    "logical": "character/unicorn_lancer_rose/pixelart/sprite_sheet.atlas.amf3.deflate",
+    "before_size": [
+      1024,
+      199
+    ],
+    "after_size": [
+      320,
+      336
+    ],
+    "frames": 428,
+    "unique_pixel_regions": 118,
+    "visible_signature": "3ce65d8b1ebccc71d9f31f904fb834bed04121d05db575a9c83c26ef68a352c5",
+    "before_area": 203776,
+    "after_area": 107520,
+    "compact_shape_repack": true,
+    "changed": true
+  }
+]

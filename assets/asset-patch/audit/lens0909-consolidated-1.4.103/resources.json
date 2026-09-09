@@ -1,0 +1,1811 @@
+[
+  {
+    "root": "android",
+    "rel": "28/1102adc9cec02aba2023fed506e3073826de94",
+    "logical": "character/unicorn_lancer_rose/ui/skill_cutin_0.atf.deflate",
+    "member": "production/android_upload/28/1102adc9cec02aba2023fed506e3073826de94",
+    "sha256": "a737409fb78d9776605d3019c12f274236fd191577b486d0273852effd5a11b3",
+    "before_sha256": "623ec373833e62699894a02bb6611aaebe7585386f6a8d299e8e2f6ccc6feb31",
+    "bytes": 119451
+  },
+  {
+    "root": "android",
+    "rel": "95/c78b166636dd6ff34aaadce3f907b87e21e617",
+    "logical": "character/white_tiger_summer/ui/skill_cutin_0.atf.deflate",
+    "member": "production/android_upload/95/c78b166636dd6ff34aaadce3f907b87e21e617",
+    "sha256": "784e25d1e25ca2b7eb3af707f705fc0205eb208a11fed9f70181f370a2a71728",
+    "before_sha256": null,
+    "bytes": 71514
+  },
+  {
+    "root": "android",
+    "rel": "bf/469a900c3d60033b4a1cd89a88bb4c52b1ba3a",
+    "logical": "character/white_tiger_summer/ui/skill_cutin_1.atf.deflate",
+    "member": "production/android_upload/bf/469a900c3d60033b4a1cd89a88bb4c52b1ba3a",
+    "sha256": "83b544b6c5bd69b3652c182f5e67db81ca54bad201af8762747986e04a5c0e70",
+    "before_sha256": null,
+    "bytes": 80866
+  },
+  {
+    "root": "android",
+    "rel": "f9/22195576de6b9ef0a374fc93e4b8c4b9e532ab",
+    "logical": "character/unicorn_lancer_rose/ui/skill_cutin_1.atf.deflate",
+    "member": "production/android_upload/f9/22195576de6b9ef0a374fc93e4b8c4b9e532ab",
+    "sha256": "70d988f1333b77b050497f1c0aef3063668cabe1c72dd58c70803ff8819ba394",
+    "before_sha256": "bf85b50a35dac0c8958d34942fd74acffc456062787d69d23eb95db3dee35a15",
+    "bytes": 130437
+  },
+  {
+    "root": "ios",
+    "rel": "28/1102adc9cec02aba2023fed506e3073826de94",
+    "logical": "character/unicorn_lancer_rose/ui/skill_cutin_0.atf.deflate",
+    "member": "production/ios_upload/28/1102adc9cec02aba2023fed506e3073826de94",
+    "sha256": "baf78e780a070f7a6ca39ed59bc32206673d54f07ff75234377fef294b64c2e1",
+    "before_sha256": "29e74b4b4bc6091b4e7c08a3610269b443d195fdb4d45973c9a09d5469393f4d",
+    "bytes": 133637
+  },
+  {
+    "root": "ios",
+    "rel": "95/c78b166636dd6ff34aaadce3f907b87e21e617",
+    "logical": "character/white_tiger_summer/ui/skill_cutin_0.atf.deflate",
+    "member": "production/ios_upload/95/c78b166636dd6ff34aaadce3f907b87e21e617",
+    "sha256": "91a9f980b33fad5ae4d3b209e6fcc66dd177f52474d5290bb142fd5982e52f90",
+    "before_sha256": null,
+    "bytes": 79953
+  },
+  {
+    "root": "ios",
+    "rel": "bf/469a900c3d60033b4a1cd89a88bb4c52b1ba3a",
+    "logical": "character/white_tiger_summer/ui/skill_cutin_1.atf.deflate",
+    "member": "production/ios_upload/bf/469a900c3d60033b4a1cd89a88bb4c52b1ba3a",
+    "sha256": "6e11b649c053848d2ec3ca24afba8e086863db5f0f8941730ab7b37bc77f46fe",
+    "before_sha256": null,
+    "bytes": 91070
+  },
+  {
+    "root": "ios",
+    "rel": "f9/22195576de6b9ef0a374fc93e4b8c4b9e532ab",
+    "logical": "character/unicorn_lancer_rose/ui/skill_cutin_1.atf.deflate",
+    "member": "production/ios_upload/f9/22195576de6b9ef0a374fc93e4b8c4b9e532ab",
+    "sha256": "f8c1297664ef43c5e18dbc5a279b65747873c1a7a908f76ace6137b2fada0128",
+    "before_sha256": "631fb587e214a3ebfbad132028363efdf145fa21f441029973380bce4222844a",
+    "bytes": 145825
+  },
+  {
+    "root": "medium",
+    "rel": "09/1698904eefc2c272a292975925c103761025d7",
+    "logical": "character/white_tiger_summer/ui/battle_member_status_0.png",
+    "member": "production/medium_upload/09/1698904eefc2c272a292975925c103761025d7",
+    "sha256": "705b0543415ed4dd7103fc433e52145d01ed1fa8c8008b32ab22b2a0722ad140",
+    "before_sha256": null,
+    "bytes": 9223
+  },
+  {
+    "root": "medium",
+    "rel": "0a/d158f2086631f0485592b746137d8cac6f82a4",
+    "logical": "character/unicorn_lancer_rose/ui/square_132_132_0.png",
+    "member": "production/medium_upload/0a/d158f2086631f0485592b746137d8cac6f82a4",
+    "sha256": "4f24b59fdd44efa96c00287d28e001cb55d81616588832bd4544db242ed6b4b6",
+    "before_sha256": "6a27030efcafe85ebe8d2c60587c13baf43bcaeb29ddd077847550702bf6f9dc",
+    "bytes": 28529
+  },
+  {
+    "root": "medium",
+    "rel": "0b/a446ef223e89ed00c34adf6ce7f101e47ae8bf",
+    "logical": "character/white_tiger_summer/ui/square_round_95_95_0.png",
+    "member": "production/medium_upload/0b/a446ef223e89ed00c34adf6ce7f101e47ae8bf",
+    "sha256": "a4f83b2370aee20680123561dfc12f86ea6dfbbf7a50197ff497aaac4ba6c905",
+    "before_sha256": null,
+    "bytes": 21691
+  },
+  {
+    "root": "medium",
+    "rel": "12/88029ce8d770e6105b9ef73702479dab9864e6",
+    "logical": "character/unicorn_lancer_rose/ui/square_1.png",
+    "member": "production/medium_upload/12/88029ce8d770e6105b9ef73702479dab9864e6",
+    "sha256": "5e175b2b9b707122e64985340316433835a8a075e296c441ddfe568c5e358bbc",
+    "before_sha256": "d6d2763954ee16707de0ed5dcfc3692540b1986044306a5274c96ebb02b82254",
+    "bytes": 64470
+  },
+  {
+    "root": "medium",
+    "rel": "1d/0516a08ca5d94b60d9900d253d98728f00ebb6",
+    "logical": "character/unicorn_lancer_rose/ui/battle_control_board_0.png",
+    "member": "production/medium_upload/1d/0516a08ca5d94b60d9900d253d98728f00ebb6",
+    "sha256": "2f7ad4708a329f02c9136cd80e8e595be0207e50909076bca6444f8e16824217",
+    "before_sha256": "9914ddb818406287be4086d1c9cac5d5d4c04b9252516ca7c3887be3060eb0d1",
+    "bytes": 59636
+  },
+  {
+    "root": "medium",
+    "rel": "22/3839a14f7ecd68526aab72061f0e6d9d5409c9",
+    "logical": "character/unicorn_lancer_rose/ui/skill_cutin_0.png",
+    "member": "production/medium_upload/22/3839a14f7ecd68526aab72061f0e6d9d5409c9",
+    "sha256": "c0acc6a7acad7fb3ad00cc850764c4e961b389cabc11b983b07e9ab212d69372",
+    "before_sha256": "8a045eb4fd41940b20fdfc9d84f8d7192a486cb5b16110b79d9b78c177f435fa",
+    "bytes": 425397
+  },
+  {
+    "root": "medium",
+    "rel": "2b/24799093d1c299b18f9e118a3fdcf5cc77e0e7",
+    "logical": "character/white_tiger_summer/ui/thumb_level_up_0.png",
+    "member": "production/medium_upload/2b/24799093d1c299b18f9e118a3fdcf5cc77e0e7",
+    "sha256": "455544e5331f16083eaeadea2b342ade43624fb7fbe1815975fa9916277a40e1",
+    "before_sha256": null,
+    "bytes": 123017
+  },
+  {
+    "root": "medium",
+    "rel": "32/1b89943ca261f5c6785270e56d52ea07ff62e3",
+    "logical": "character/unicorn_lancer_rose/ui/thumb_party_unison_1.png",
+    "member": "production/medium_upload/32/1b89943ca261f5c6785270e56d52ea07ff62e3",
+    "sha256": "2ba45191765c809ff9a235b3b21483b0eca28051390433d1477c1bd1e8a56550",
+    "before_sha256": "e3b0bac346cc2d6f2e789a84564ba60e14e1c7f9a4c3793a4ac05a8e53dde52d",
+    "bytes": 45861
+  },
+  {
+    "root": "medium",
+    "rel": "36/2e3c6ef7c600f40151827a6867739915ac207a",
+    "logical": "character/white_tiger_summer/ui/thumb_party_unison_0.png",
+    "member": "production/medium_upload/36/2e3c6ef7c600f40151827a6867739915ac207a",
+    "sha256": "a66da8bc6edba20a547cba3e2a33615c0b8b3d275b4f092212c39108a2da98c1",
+    "before_sha256": null,
+    "bytes": 51925
+  },
+  {
+    "root": "medium",
+    "rel": "38/ef1cb2fde4837c68b4de5a6e22190bad33c010",
+    "logical": "character/white_tiger_summer/ui/skill_cutin_0.png",
+    "member": "production/medium_upload/38/ef1cb2fde4837c68b4de5a6e22190bad33c010",
+    "sha256": "31d0c9b8ce367590a514515cf3e968e46b663cbdbd583cbd1d83b5ee30fda9f9",
+    "before_sha256": null,
+    "bytes": 224364
+  },
+  {
+    "root": "medium",
+    "rel": "43/67d34ee2a18bf4be25237e19c5f00f50b4c4b7",
+    "logical": "character/white_tiger_summer/ui/square_0.png",
+    "member": "production/medium_upload/43/67d34ee2a18bf4be25237e19c5f00f50b4c4b7",
+    "sha256": "5cd0a4c33ae0198ad92ae7438ad4dfb80c9f1489716b6d542383b1191c117530",
+    "before_sha256": null,
+    "bytes": 78262
+  },
+  {
+    "root": "medium",
+    "rel": "43/7ac120d8eed2eb677f0ceda4f4114a385f74e3",
+    "logical": "character/white_tiger_summer/ui/thumb_party_unison_1.png",
+    "member": "production/medium_upload/43/7ac120d8eed2eb677f0ceda4f4114a385f74e3",
+    "sha256": "ceb8165a8f9b9ba0828751915bacfa0cdbe2bff5a964a6b18b7a67d347c5ccf3",
+    "before_sha256": null,
+    "bytes": 51428
+  },
+  {
+    "root": "medium",
+    "rel": "51/4ed34b6f826a423d3c6149cf7531fb3f6d301b",
+    "logical": "character/unicorn_lancer_rose/ui/full_shot_1440_1920_0.png",
+    "member": "production/medium_upload/51/4ed34b6f826a423d3c6149cf7531fb3f6d301b",
+    "sha256": "2e2dea1207d5f90992eaf19936038bd64d005dd87c9bf4d7d6d8729a53a8edb6",
+    "before_sha256": "2723662f3d6d6e2d1dc1fdad0e44877505ef8ae222bcac7bc809cd11138875b3",
+    "bytes": 2558444
+  },
+  {
+    "root": "medium",
+    "rel": "5d/abc646c343ee8b110daabe7be6b601d748d9ee",
+    "logical": "character/white_tiger_summer/ui/square_132_132_0.png",
+    "member": "production/medium_upload/5d/abc646c343ee8b110daabe7be6b601d748d9ee",
+    "sha256": "e5a500ae6d6a51adf3d999df32724e6cfb3219041dc89846286ffefe19cb0351",
+    "before_sha256": null,
+    "bytes": 37473
+  },
+  {
+    "root": "medium",
+    "rel": "5d/f708bc39e33718b586244d3178a7265310ac71",
+    "logical": "character/unicorn_lancer_rose/ui/battle_member_status_0.png",
+    "member": "production/medium_upload/5d/f708bc39e33718b586244d3178a7265310ac71",
+    "sha256": "cdc420609755d40df381bbf72950ebfc3bbe0b8aa85744235b9717ce249e09e1",
+    "before_sha256": "da40400903636fe144c03dac7dd171e1290c44ae37c4d4c85ae0fd54d2bf9a22",
+    "bytes": 7513
+  },
+  {
+    "root": "medium",
+    "rel": "67/a900d1f92530565be9d78e8ecd0ee9f6267224",
+    "logical": "character/unicorn_lancer_rose/ui/square_0.png",
+    "member": "production/medium_upload/67/a900d1f92530565be9d78e8ecd0ee9f6267224",
+    "sha256": "e06864874e67b1dd7ea933336f3088e5937b11ebcd85cd8891d7bdcb071dabbd",
+    "before_sha256": "76eb68870cf1fcb15d617cd7492bc5dc42e566a4e814dbd610a63a21a0353f71",
+    "bytes": 65067
+  },
+  {
+    "root": "medium",
+    "rel": "76/37cd4ae372d165ab31a63f8ec6d34538a35aeb",
+    "logical": "character/white_tiger_summer/ui/battle_control_board_0.png",
+    "member": "production/medium_upload/76/37cd4ae372d165ab31a63f8ec6d34538a35aeb",
+    "sha256": "1a987128c1bb42c3e97c4c49994ba3983519c9abfaaf8473fa0efe4e2f7d1026",
+    "before_sha256": null,
+    "bytes": 52632
+  },
+  {
+    "root": "medium",
+    "rel": "7e/d1831a1e9c73d75715cc6b25c5ba099a897017",
+    "logical": "character/unicorn_lancer_rose/ui/thumb_party_main_0.png",
+    "member": "production/medium_upload/7e/d1831a1e9c73d75715cc6b25c5ba099a897017",
+    "sha256": "1dbc02238dc3b7d9ec2bc29b8a2cc144a856b427bc71e1897c6491e4c1665a85",
+    "before_sha256": "3892f60f1a720f33a9d6752457c8e832e52b45e59157b28829816617f29d365d",
+    "bytes": 133087
+  },
+  {
+    "root": "medium",
+    "rel": "7f/8a5d969ac3ee343b5fa9b881870c9e1fc21b2b",
+    "logical": "character/white_tiger_summer/ui/battle_control_board_1.png",
+    "member": "production/medium_upload/7f/8a5d969ac3ee343b5fa9b881870c9e1fc21b2b",
+    "sha256": "e5c8bb48212668b477c15f6f2e035b116579163bae3bae88ba6130e15bbddfc4",
+    "before_sha256": null,
+    "bytes": 54669
+  },
+  {
+    "root": "medium",
+    "rel": "86/32b0857cad52f1741bb8b75d860ef7b0115654",
+    "logical": "character/white_tiger_summer/ui/battle_member_status_1.png",
+    "member": "production/medium_upload/86/32b0857cad52f1741bb8b75d860ef7b0115654",
+    "sha256": "c3c61624b33760341f5f3479e41bf5f2ec769ca802bfdfad6767a7121480cb1f",
+    "before_sha256": null,
+    "bytes": 9309
+  },
+  {
+    "root": "medium",
+    "rel": "87/077d78b9ff90ed0ac9452a95c36d8863c9cce1",
+    "logical": "character/white_tiger_summer/ui/square_round_136_136_0.png",
+    "member": "production/medium_upload/87/077d78b9ff90ed0ac9452a95c36d8863c9cce1",
+    "sha256": "3955253d4f6ab39d0fdfef27b858e6e2264298eb94516c19bde12b1ecee3fa89",
+    "before_sha256": null,
+    "bytes": 39368
+  },
+  {
+    "root": "medium",
+    "rel": "87/ed31018c5c3928bdeba0e85279653e5e218f97",
+    "logical": "character/white_tiger_summer/ui/full_shot_1440_1920_1.png",
+    "member": "production/medium_upload/87/ed31018c5c3928bdeba0e85279653e5e218f97",
+    "sha256": "9497c9699054f45e08d4ac6c3f17b35eb026288164ff1f7f2d041d95807a76d8",
+    "before_sha256": null,
+    "bytes": 1168336
+  },
+  {
+    "root": "medium",
+    "rel": "88/dfc5e0c113fec7787ec9e495d0a0b36c64bb46",
+    "logical": "character/white_tiger_summer/ui/thumb_party_main_0.png",
+    "member": "production/medium_upload/88/dfc5e0c113fec7787ec9e495d0a0b36c64bb46",
+    "sha256": "31c7797c068c794eed4eb076255d7cf46aa2c187721b44116f287c2a051d49ba",
+    "before_sha256": null,
+    "bytes": 108820
+  },
+  {
+    "root": "medium",
+    "rel": "8d/3f047bd2b4c4762592118c7dbf4c789ea06e6d",
+    "logical": "character/unicorn_lancer_rose/ui/thumb_level_up_1.png",
+    "member": "production/medium_upload/8d/3f047bd2b4c4762592118c7dbf4c789ea06e6d",
+    "sha256": "a83ff3f1347322353dfa464e6caf9d0fb8b92864dc954928b0d8590b18c2c184",
+    "before_sha256": "64582b827e8e39918d25918e1ace3baaa690fb45c42334f14b54a4cf6b3cd716",
+    "bytes": 120552
+  },
+  {
+    "root": "medium",
+    "rel": "93/2220d596429cb1e84fbd22a6186de15a457fad",
+    "logical": "character/unicorn_lancer_rose/ui/thumb_party_main_1.png",
+    "member": "production/medium_upload/93/2220d596429cb1e84fbd22a6186de15a457fad",
+    "sha256": "1a9e00f1423c091b056f45545250d11d3ca73207c73998c6e410315d806b3bcd",
+    "before_sha256": "244fef594aa55fd4fb102fa79bc27ad303d9603ad3e3c32119b68ba35d7981cc",
+    "bytes": 119686
+  },
+  {
+    "root": "medium",
+    "rel": "94/c841317e7e8a48bd56f6197e2acdab8958ee2e",
+    "logical": "character/unicorn_lancer_rose/ui/thumb_party_unison_0.png",
+    "member": "production/medium_upload/94/c841317e7e8a48bd56f6197e2acdab8958ee2e",
+    "sha256": "1dd3394bde20d1585f442aa92d1d15f8eeea136a9f8bf79d7bdcd1944ea91a66",
+    "before_sha256": "6ca37b1c719f582bf2c41efc7030112dc60faef105c0dfbca916a8bb7b9484a5",
+    "bytes": 48618
+  },
+  {
+    "root": "medium",
+    "rel": "96/42efbb54d8ef2f325cfab794967146c4ea484c",
+    "logical": "character/unicorn_lancer_rose/ui/battle_control_board_1.png",
+    "member": "production/medium_upload/96/42efbb54d8ef2f325cfab794967146c4ea484c",
+    "sha256": "79663fcee6414efca1fc48c08632c6fa9a24fe5211237902d6b7f64fb294a03e",
+    "before_sha256": "b5cc3f7a128d1c9a56d6f03403a4536f4be2aeb7455dfdfd1fe57aee5e663111",
+    "bytes": 54110
+  },
+  {
+    "root": "medium",
+    "rel": "9c/923d6b281ba47635a8f7da12865dd0dd8cb4a8",
+    "logical": "character/white_tiger_summer/ui/cutin_skill_chain_1.png",
+    "member": "production/medium_upload/9c/923d6b281ba47635a8f7da12865dd0dd8cb4a8",
+    "sha256": "f5e2fbf54eb7a86d36be37e32db83b87b78fe366d7f85090f5d61e0e4caa181d",
+    "before_sha256": null,
+    "bytes": 125679
+  },
+  {
+    "root": "medium",
+    "rel": "9d/964a171ec49e88031e97d4ddc57c4061e0956a",
+    "logical": "character/unicorn_lancer_rose/ui/illustration_setting_sprite_sheet.png",
+    "member": "production/medium_upload/9d/964a171ec49e88031e97d4ddc57c4061e0956a",
+    "sha256": "9eb379e737b9a98f21e42231c98b4c63962b951d58eb8347005607873b237f3a",
+    "before_sha256": "807053edd2307901b8b04e9d34d7665bb11deee3a664675ad1a1049336956399",
+    "bytes": 326788
+  },
+  {
+    "root": "medium",
+    "rel": "9f/94feedb7b38c3ca25ff009d5ea00f9f69a64fe",
+    "logical": "character/unicorn_lancer_rose/ui/battle_member_status_1.png",
+    "member": "production/medium_upload/9f/94feedb7b38c3ca25ff009d5ea00f9f69a64fe",
+    "sha256": "d809cfde82bac5b7716ff35cc5725e18cef40300bb06e985ea29e68085822847",
+    "before_sha256": "92e64a7d7a53dcbbd4ef1928a140f31a6074af772286ae85acd349e463ec6feb",
+    "bytes": 7551
+  },
+  {
+    "root": "medium",
+    "rel": "ae/6d246a4a60583c374a6856122bca502b89e205",
+    "logical": "character/white_tiger_summer/ui/square_132_132_1.png",
+    "member": "production/medium_upload/ae/6d246a4a60583c374a6856122bca502b89e205",
+    "sha256": "915bc66c2b99a5aa9dfe4ff0b355ce2ca8364c037c22da408add5ead1d610d2f",
+    "before_sha256": null,
+    "bytes": 35916
+  },
+  {
+    "root": "medium",
+    "rel": "af/a375cd9b26aa956cc74304b922d44dab2b0cd1",
+    "logical": "character/white_tiger_summer/ui/thumb_party_main_1.png",
+    "member": "production/medium_upload/af/a375cd9b26aa956cc74304b922d44dab2b0cd1",
+    "sha256": "fc9e6fff0a1c536c7ff5df51523718f1f0010acc2db1794bb91428cf6774b485",
+    "before_sha256": null,
+    "bytes": 111023
+  },
+  {
+    "root": "medium",
+    "rel": "b3/467415c5be84dfdf3432813bd63444abc2fffa",
+    "logical": "character/white_tiger_summer/ui/thumb_level_up_1.png",
+    "member": "production/medium_upload/b3/467415c5be84dfdf3432813bd63444abc2fffa",
+    "sha256": "ce33083ead9fee83be019e3959a904bca9f8cd43b875f3a6a97eaf11ecc0f716",
+    "before_sha256": null,
+    "bytes": 123040
+  },
+  {
+    "root": "medium",
+    "rel": "b8/f1e6aad8c8371f1e8fe010c2b5ee53fa06c207",
+    "logical": "character/white_tiger_summer/ui/square_round_95_95_1.png",
+    "member": "production/medium_upload/b8/f1e6aad8c8371f1e8fe010c2b5ee53fa06c207",
+    "sha256": "548859f84345e2272ac0d8ec05de7e045c8a4bd50905663f4e8e0ffedbab6b93",
+    "before_sha256": null,
+    "bytes": 20829
+  },
+  {
+    "root": "medium",
+    "rel": "bc/602c3b43b0634d93f7c2c5dc917636553e8805",
+    "logical": "character/unicorn_lancer_rose/ui/skill_cutin_1.png",
+    "member": "production/medium_upload/bc/602c3b43b0634d93f7c2c5dc917636553e8805",
+    "sha256": "dceac74f4e6eb7e24e1a2937449d31eb28b192a06554f33081f20e1fa33b3f18",
+    "before_sha256": "451864c20dec9258ce80e0cec49404333ec70f7876aa3d9bf6b38c9ad857bc61",
+    "bytes": 481337
+  },
+  {
+    "root": "medium",
+    "rel": "c6/6a4d418885bcab88cd4c200883b796c38b6deb",
+    "logical": "character/unicorn_lancer_rose/ui/square_round_136_136_1.png",
+    "member": "production/medium_upload/c6/6a4d418885bcab88cd4c200883b796c38b6deb",
+    "sha256": "0e4b1c9f11b71a9ba801badfb48379af379eed5fd881d9347503846cdc0244c7",
+    "before_sha256": "753ad432a94ff326d6d77c2e1d4050630240a17d6c4acdd83109496ff5f0484c",
+    "bytes": 30329
+  },
+  {
+    "root": "medium",
+    "rel": "cb/d2d4f3ad43956a2b4650cde900861ea3199f6a",
+    "logical": "character/unicorn_lancer_rose/ui/cutin_skill_chain_0.png",
+    "member": "production/medium_upload/cb/d2d4f3ad43956a2b4650cde900861ea3199f6a",
+    "sha256": "1d4bd8620030767198a675aeb3d1929a214dd05de48114fb32db38dce4afc276",
+    "before_sha256": "b8cd501101ff9b9532d00fda64b1575a8eea542de9778feb104ce0b4ae3a829a",
+    "bytes": 126600
+  },
+  {
+    "root": "medium",
+    "rel": "cf/22061280d2d810e41d805cd3346cf64748a21b",
+    "logical": "character/white_tiger_summer/ui/illustration_setting_sprite_sheet.png",
+    "member": "production/medium_upload/cf/22061280d2d810e41d805cd3346cf64748a21b",
+    "sha256": "be20e4ae7a15b580a2ab9aa8797b846cee534d3503ec12f51cd3c8970bdfd674",
+    "before_sha256": null,
+    "bytes": 293746
+  },
+  {
+    "root": "medium",
+    "rel": "cf/85f144d0e1ae09e66325e1ea6fa31b54947f6b",
+    "logical": "character/unicorn_lancer_rose/ui/square_round_95_95_1.png",
+    "member": "production/medium_upload/cf/85f144d0e1ae09e66325e1ea6fa31b54947f6b",
+    "sha256": "91f2a88c9525f50c422256bec241be364f05edf78610635ef4c1c429b7eb48e1",
+    "before_sha256": "1bb396bc555381b7f00f9cf622712545c3910c35882fc00eb094471e6bfe0967",
+    "bytes": 16460
+  },
+  {
+    "root": "medium",
+    "rel": "d0/1194804ddc3086f6a518c2986a34c7ade5b043",
+    "logical": "character/white_tiger_summer/ui/full_shot_1440_1920_0.png",
+    "member": "production/medium_upload/d0/1194804ddc3086f6a518c2986a34c7ade5b043",
+    "sha256": "e4925cac4e06d6632b414b9ec9afc2ceb5a73c7a0af7c7b2db68e6836db767b2",
+    "before_sha256": null,
+    "bytes": 1126229
+  },
+  {
+    "root": "medium",
+    "rel": "da/665dd06bd64204987ceeee34ce91c98dd29259",
+    "logical": "character/unicorn_lancer_rose/ui/thumb_level_up_0.png",
+    "member": "production/medium_upload/da/665dd06bd64204987ceeee34ce91c98dd29259",
+    "sha256": "002e0035f0f4b79a979c5741550779f3ef09d6c915977394dc820fd211cd6184",
+    "before_sha256": "43af7088a3a5eaa4857a80bdaf7a6449b6ed83b607c5d998bcd8774c66e6a05d",
+    "bytes": 128425
+  },
+  {
+    "root": "medium",
+    "rel": "db/88ddb4ca970b1f6b67b4aa92e0dd46258d7b24",
+    "logical": "character/unicorn_lancer_rose/ui/square_round_136_136_0.png",
+    "member": "production/medium_upload/db/88ddb4ca970b1f6b67b4aa92e0dd46258d7b24",
+    "sha256": "132b4b46661c2f71f5535be47c6e9f36dc5840b88e36d314956de6fc22bb3f45",
+    "before_sha256": "007e41d438edc462e9827703d1f6acd63678efef57e2aee855e41ef27ea9ed90",
+    "bytes": 30363
+  },
+  {
+    "root": "medium",
+    "rel": "dd/c08227523dd8ad9df87b81cc88c16b46909b07",
+    "logical": "character/unicorn_lancer_rose/ui/full_shot_1440_1920_1.png",
+    "member": "production/medium_upload/dd/c08227523dd8ad9df87b81cc88c16b46909b07",
+    "sha256": "89247dcd7c706f4573572117384a974d6978b255b62e476c7e59531b6984acd9",
+    "before_sha256": "97855b56cd600a781d928783abc4196a70a8495f175649f7506cc3766e924392",
+    "bytes": 2624832
+  },
+  {
+    "root": "medium",
+    "rel": "de/bf0c18c3a708bd62efbd575fc014f79c6cef16",
+    "logical": "character/white_tiger_summer/ui/cutin_skill_chain_0.png",
+    "member": "production/medium_upload/de/bf0c18c3a708bd62efbd575fc014f79c6cef16",
+    "sha256": "ba3f639764a239c35f8c9761b8655730db9fc109e1dac1138ad139c8d84f193d",
+    "before_sha256": null,
+    "bytes": 130173
+  },
+  {
+    "root": "medium",
+    "rel": "df/8cf8e3aeed71123fe0233845bafae5f09019ff",
+    "logical": "character/unicorn_lancer_rose/ui/cutin_skill_chain_1.png",
+    "member": "production/medium_upload/df/8cf8e3aeed71123fe0233845bafae5f09019ff",
+    "sha256": "ef2a589fa4d1e7f8045d3fcbb14fe37c8a197ee6ebd1308520c6c7fed724eabd",
+    "before_sha256": "e6c1e2a0daba2b1df839f1bbdf223dc9e8db9aa17e9f37a4c4c66525648f9805",
+    "bytes": 120142
+  },
+  {
+    "root": "medium",
+    "rel": "e5/982510d3ca22d686aa0f6caee32addb8386f35",
+    "logical": "character/unicorn_lancer_rose/ui/square_round_95_95_0.png",
+    "member": "production/medium_upload/e5/982510d3ca22d686aa0f6caee32addb8386f35",
+    "sha256": "7be24da855804a68f2374632234783d561549a14e6f1ccb32a03f6af137e3704",
+    "before_sha256": "c60b5fc530e4d713afa62e706f624c3a5119a884c44758dfd307dca82fa99aaf",
+    "bytes": 16387
+  },
+  {
+    "root": "medium",
+    "rel": "eb/e480bd1a5c4c5a4697ffe4801947eb1fe480e9",
+    "logical": "character/white_tiger_summer/ui/square_round_136_136_1.png",
+    "member": "production/medium_upload/eb/e480bd1a5c4c5a4697ffe4801947eb1fe480e9",
+    "sha256": "60d33ef857119005b5dd76175e081d42985fb8a5326ede6caa5cbde0761c32f4",
+    "before_sha256": null,
+    "bytes": 37718
+  },
+  {
+    "root": "medium",
+    "rel": "f7/f4d690ea20181823c09b2576f8b967e8d600c5",
+    "logical": "character/white_tiger_summer/ui/skill_cutin_1.png",
+    "member": "production/medium_upload/f7/f4d690ea20181823c09b2576f8b967e8d600c5",
+    "sha256": "cbb1a4bd1117da88c68700152f6a6f575ff3cbb15711dd233d94a4e6fe56c613",
+    "before_sha256": null,
+    "bytes": 253867
+  },
+  {
+    "root": "medium",
+    "rel": "f8/77ab9e0fb0ead538b36572744e5a390cc51852",
+    "logical": "character/white_tiger_summer/ui/square_1.png",
+    "member": "production/medium_upload/f8/77ab9e0fb0ead538b36572744e5a390cc51852",
+    "sha256": "a205b9037eba127a616ce1becf4746bbe45fac915995d663b8cdfd5e6597f04e",
+    "before_sha256": null,
+    "bytes": 74467
+  },
+  {
+    "root": "medium",
+    "rel": "fc/337c9cad3494f69f8287edb27d79815dfa80b5",
+    "logical": "character/unicorn_lancer_rose/ui/square_132_132_1.png",
+    "member": "production/medium_upload/fc/337c9cad3494f69f8287edb27d79815dfa80b5",
+    "sha256": "f85624dbe7eaea0384d7f45ce0bd4325e54f923a5fe8a252fa2c57d2a61aeb9b",
+    "before_sha256": "c9e2469bf8d2d8aee61cc3758b8c99596ca3966d0345a7d9d8462867a4d08677",
+    "bytes": 28608
+  },
+  {
+    "root": "common",
+    "rel": "00/4e05f8555922c8f0a06ec755e16faf2c13515f",
+    "logical": "character/white_tiger_summer/pixelart/special.frame.amf3.deflate",
+    "member": "production/upload/00/4e05f8555922c8f0a06ec755e16faf2c13515f",
+    "sha256": "12c35a83e0f567da9f4d0924cea95a3fc89272672e6f82964f728624109599a3",
+    "before_sha256": null,
+    "bytes": 85
+  },
+  {
+    "root": "common",
+    "logical": "battle/effect/skill_unique/resistance_princess_ex/ring/ring.atlas.amf3.deflate",
+    "rel": "04/ebcef550b4b357bb7ea3ef5bca3d4a8c9d9514",
+    "member": "production/upload/04/ebcef550b4b357bb7ea3ef5bca3d4a8c9d9514",
+    "before_sha256": "586831ea3b836fbe32578f1d0399b9841dd086d2bd250df2e4faf69f0156ac01",
+    "sha256": "8fec2495398fb62858be3fc85378e8bcd61588195f263f56763f27c8cee49641",
+    "kind": "cn-lossless-atlas"
+  },
+  {
+    "root": "common",
+    "rel": "06/c6beaee19ffb14c84ab5de28b8bce034dc153b",
+    "logical": "character/white_tiger_summer/voice/battle/win_0.mp3",
+    "member": "production/upload/06/c6beaee19ffb14c84ab5de28b8bce034dc153b",
+    "sha256": "6b1105bd4f27dac73cf8ad6f16e3a1459e593f1cf0668faffae6a2057c91adfb",
+    "before_sha256": null,
+    "bytes": 37339
+  },
+  {
+    "root": "common",
+    "logical": "battle/effect/skill_unique/touyakiren_ceo_ny26_petal/touyakiren_ceo_ny26_petal.atlas.amf3.deflate",
+    "rel": "06/d364033bed31d29ceb55df0b41e1b653c3c27b",
+    "member": "production/upload/06/d364033bed31d29ceb55df0b41e1b653c3c27b",
+    "before_sha256": "0da9207fef9e43b004f73169c98cacfe55b3437a5793ecc957ace4acbb1db79d",
+    "sha256": "b0c7a23eeae0846ae02f1f5c902ee12c384f539395aff1d98c95d45a606cb153",
+    "kind": "cn-lossless-atlas"
+  },
+  {
+    "root": "common",
+    "rel": "07/0c6e214359ccf27b1cb8078d3fc51aecfe0149",
+    "logical": "master/string/custom_ability_string.orderedmap",
+    "member": "production/upload/07/0c6e214359ccf27b1cb8078d3fc51aecfe0149",
+    "sha256": "b8712a23bd6c7ec8578b5751aa29a070c57145ab2042d11b910506d77b4acd04",
+    "before_sha256": "83a59d9575e36ce7b92de3d637b7638ef78286430c53d962bd4e9eafe05ea56c",
+    "bytes": 20518
+  },
+  {
+    "root": "common",
+    "rel": "07/be635a82b11e8ebc9bab95e05cd7f932397139",
+    "logical": "battle/effect/skill_unique/lion_swordman_reborn/zenith_explosion/explosion_front.timeline.amf3.deflate",
+    "member": "production/upload/07/be635a82b11e8ebc9bab95e05cd7f932397139",
+    "sha256": "904bef40b0f62e82235dbf8d18b0204d67ce20fe6a6d4caf421c6a458a66d6b3",
+    "before_sha256": null,
+    "bytes": 120
+  },
+  {
+    "root": "common",
+    "rel": "08/0306bb545d6a7703d00b5ef6e929a244d96d7f",
+    "logical": "battle/action/skill/action/ability_skill/ability_skill_white_wolf_moon_fang$ability_skill_white_wolf_moon_fang.action.dsl.amf3.deflate",
+    "member": "production/upload/08/0306bb545d6a7703d00b5ef6e929a244d96d7f",
+    "sha256": "a4fcd2f8919f087eef16e2d10fb89cf9304e914ca0d7d1c67b9e0bac0e98e60b",
+    "before_sha256": "8074438d423fd5bb74a0047f915e67436e7cdc3c5cf98773d6ffa327d79962c9",
+    "bytes": 718
+  },
+  {
+    "root": "common",
+    "rel": "0a/a2e3c238a8f21b457c0d84f1d4d3e46f62a00b",
+    "logical": "battle/effect/skill_unique/lion_swordman_reborn/zenith_explosion/explosion_front.parts.amf3.deflate",
+    "member": "production/upload/0a/a2e3c238a8f21b457c0d84f1d4d3e46f62a00b",
+    "sha256": "a63d1d951bf28cbd79ac4b074adc83643672a9b52c1c80c07ffbc7f52e532faf",
+    "before_sha256": null,
+    "bytes": 2577
+  },
+  {
+    "root": "common",
+    "rel": "0b/97162ce6d40c473cbac39fa21427688922a48a",
+    "logical": "master/battle/boss/general_boss_state.orderedmap",
+    "member": "production/upload/0b/97162ce6d40c473cbac39fa21427688922a48a",
+    "sha256": "a5c783c0ef203f94a6284ed1fc709daafe83797606ddee026d3b7039255b5e89",
+    "before_sha256": "c01487f66965871615368819139b7abfcf5147fd350537c8f0a1fd35ab43de25",
+    "bytes": 5331359
+  },
+  {
+    "root": "common",
+    "rel": "0b/c135f35388fbab4f03498653aed618509b3531",
+    "logical": "character/white_tiger_summer/voice/battle/power_flip_0.mp3",
+    "member": "production/upload/0b/c135f35388fbab4f03498653aed618509b3531",
+    "sha256": "c44e97aaa1142aef07e5f2cb3902244d1f064e03c8ad49de3918ef211db42d17",
+    "before_sha256": null,
+    "bytes": 15714
+  },
+  {
+    "root": "common",
+    "logical": "item_icon/sprite_sheet.atlas.amf3.deflate",
+    "rel": "0c/4561a50deb7b22c977212a62ac8409074bddbe",
+    "member": "production/upload/0c/4561a50deb7b22c977212a62ac8409074bddbe",
+    "before_sha256": "8f1428226a129a3fa63bb558947cd8d57719a9c2a7140a70c6f44da0ad0577af",
+    "sha256": "b77b137909203bc14fbcd5e10691e2990affc1d1fa8aa4eafc099a489bfa22cd",
+    "kind": "user-item-art"
+  },
+  {
+    "root": "common",
+    "logical": "character/fox_oracle_autumn/pixelart/sprite_sheet.atlas.amf3.deflate",
+    "rel": "0f/9fa3c463d083f1042767744de6cbd447eff7a9",
+    "member": "production/upload/0f/9fa3c463d083f1042767744de6cbd447eff7a9",
+    "before_sha256": "d10c0bdcdb8b10f3d56d16e93d201a0a74081ff859aa04ec3243d3ab914392c3",
+    "sha256": "16a84af1aec821d87d38f4820b7d292c08b571f725cc965dee1dd02c9d42508d",
+    "kind": "cn-lossless-atlas"
+  },
+  {
+    "root": "common",
+    "logical": "battle/effect/skill_unique/lion_swordman_reborn/lion_swordman_reborn.atlas.amf3.deflate",
+    "rel": "12/c7fd86cb102ca803d5a52393e5a46756b4f6f6",
+    "member": "production/upload/12/c7fd86cb102ca803d5a52393e5a46756b4f6f6",
+    "before_sha256": "8a52b3f7d02548f31fb65a57c40168b128b5ae8a502b33e546dc24a3a5fafe91",
+    "sha256": "cf1dad241950655a76ab162689fdc1a7784917be9fce9bc2f87e5666efedc31a",
+    "kind": "cn-lossless-atlas"
+  },
+  {
+    "root": "common",
+    "rel": "15/9eadaeb07d6aade96fe52e97d87a0288f63ddb",
+    "logical": "battle/action/power_flip/action/override/white_tiger_summer_pf$white_tiger_summer_pf_lv3.action.dsl.amf3.deflate",
+    "member": "production/upload/15/9eadaeb07d6aade96fe52e97d87a0288f63ddb",
+    "sha256": "63823e486eab4315fa619b4c701158e7b789fe10ff8f0871be9f7f4ec95e5414",
+    "before_sha256": null,
+    "bytes": 1208
+  },
+  {
+    "root": "common",
+    "rel": "17/7c96e6f75e6d252dbdaa8681aa0b018691bf7b",
+    "logical": "character/white_tiger_summer/voice/battle/outhole_0.mp3",
+    "member": "production/upload/17/7c96e6f75e6d252dbdaa8681aa0b018691bf7b",
+    "sha256": "847bd4a2440439553e54c1f01db1f56b238be107390a189571c2a5c8f6c2525b",
+    "before_sha256": null,
+    "bytes": 12555
+  },
+  {
+    "root": "common",
+    "rel": "19/a4aa442b3249499356e7a3f6370e530bfe355e",
+    "logical": "master/battle/boss/boss_level.orderedmap",
+    "member": "production/upload/19/a4aa442b3249499356e7a3f6370e530bfe355e",
+    "sha256": "f7ebfb4b17e8fabe64e4bb2316dbeaa08ff25d5e0a778644108138a0ae3e87a8",
+    "before_sha256": "54fe2d06151884d797f86a86ca4c4d71c1c7bcafdd03b2c7c85938db85f433c8",
+    "bytes": 45603
+  },
+  {
+    "root": "common",
+    "rel": "1d/222e5126fc7ebe3f22c7efe87325f73742eb4f",
+    "logical": "master/mana_board/mana_node.orderedmap",
+    "member": "production/upload/1d/222e5126fc7ebe3f22c7efe87325f73742eb4f",
+    "sha256": "e9f0a707f42615b25163475c0a020dea1752dd1ada59cafb8a409253362c0b22",
+    "before_sha256": "0b5dd2b721bcd45a7232d118944bc180828c0b774c27b6c314f8fb11c97ced1c",
+    "bytes": 1159882
+  },
+  {
+    "root": "common",
+    "rel": "1e/664c1cc8d80f4f9a69aae2c49ae8c01d1c4001",
+    "logical": "master/ability/ability.orderedmap",
+    "member": "production/upload/1e/664c1cc8d80f4f9a69aae2c49ae8c01d1c4001",
+    "sha256": "0492715f0374af3066c9a14872edcfb6b5dbd2cefe493e2aee6e051021b7bd98",
+    "before_sha256": "622d42377fc7973552f1f8b98356788948ec263887dcc893a66a4dc204a62ea5",
+    "bytes": 367789
+  },
+  {
+    "root": "common",
+    "rel": "1e/c59de5abd9256f9a8e3b029eeac51ab104af0d",
+    "logical": "character/white_tiger_summer/battle/character_detail_skill_preview.battle.amf3.deflate",
+    "member": "production/upload/1e/c59de5abd9256f9a8e3b029eeac51ab104af0d",
+    "sha256": "1815174862202ab6e8878ee1590dc2bc0e2cd2bf91cc242f887cf6f835a2b23b",
+    "before_sha256": null,
+    "bytes": 143
+  },
+  {
+    "root": "common",
+    "logical": "battle/effect/skill_unique/land_dragon_wind_playable/wave_arc120_middle/wave_arc120_middle.png",
+    "rel": "20/e4dae1fb11ed34552144561a05a187110ef884",
+    "member": "production/upload/20/e4dae1fb11ed34552144561a05a187110ef884",
+    "before_sha256": "8bdec474177c74e47eee6b0c3bfc173e480e4b5973b9c1527cd06a4aa0781d83",
+    "sha256": "7ae734238e54d30251068e8abaee2434bc558310161fbe43baf91e448337e841",
+    "kind": "shared-wave-empty-sheet"
+  },
+  {
+    "root": "common",
+    "rel": "25/5aa31ce1a2f0629b7941139165174cad040ced",
+    "logical": "character/white_tiger_summer/voice/home/stellaga.mp3",
+    "member": "production/upload/25/5aa31ce1a2f0629b7941139165174cad040ced",
+    "sha256": "10d64cf58c3e325c8d0e2bd7ee37a57fd2a5a6dccec5848fe0f640a8e68cc36c",
+    "before_sha256": null,
+    "bytes": 145882
+  },
+  {
+    "root": "common",
+    "rel": "25/6529866c848435067a211abd09a70eb526af6f",
+    "logical": "character/white_tiger_summer/voice/battle/win_1.mp3",
+    "member": "production/upload/25/6529866c848435067a211abd09a70eb526af6f",
+    "sha256": "fe4c140296eff860c7c8c016bf0eb8ed8f78139758611ecfe779c8d72c512dca",
+    "before_sha256": null,
+    "bytes": 38274
+  },
+  {
+    "root": "common",
+    "logical": "character/epuration_monk_playable/pixelart/sprite_sheet.png",
+    "rel": "26/276fb3b8287942e7b6c0867979e62a3146a275",
+    "member": "production/upload/26/276fb3b8287942e7b6c0867979e62a3146a275",
+    "before_sha256": "b95217b8089110590cfc5a527b06d05dde83f05d899a81d77a01d5ecf615e883",
+    "sha256": "cfbfcef574097c0b927afa6864c2fff91330bc4305a9abb3d447d4a9fc2149b2",
+    "kind": "cn-lossless-atlas"
+  },
+  {
+    "root": "common",
+    "logical": "battle/effect/skill_unique/touyakiren_ceo_ny26_sakura/touyakiren_ceo_ny26_sakura.atlas.amf3.deflate",
+    "rel": "26/751bbab8bb1dad5294d584854827781a4560a7",
+    "member": "production/upload/26/751bbab8bb1dad5294d584854827781a4560a7",
+    "before_sha256": "d7bdd24e2f6c2d70ca16e1ffe40b5e28121ef6f55d275d46e79ee6a5fbc36d6a",
+    "sha256": "7b71d848671e02de3eec99cb700997fd6d4887cc59958bb58b1fa40942ffec31",
+    "kind": "cn-lossless-atlas"
+  },
+  {
+    "root": "common",
+    "rel": "27/7b65484214436114201ae654fefa60fdc822ea",
+    "logical": "master/generated/mana_board.orderedmap",
+    "member": "production/upload/27/7b65484214436114201ae654fefa60fdc822ea",
+    "sha256": "34f574740015188e9012d2513d31d48fa490f0880955e356accd76de65dc621c",
+    "before_sha256": "53841f6bca88660ca77d80d4821dac32f214dc7665eef9fa5f67ab1939150099",
+    "bytes": 924021
+  },
+  {
+    "root": "common",
+    "rel": "29/ab88d1929ce05e1f39b42d3659c41f8d772ddf",
+    "logical": "battle/effect/skill_unique/white_tiger_summer/white_tiger_summer_finish.parts.amf3.deflate",
+    "member": "production/upload/29/ab88d1929ce05e1f39b42d3659c41f8d772ddf",
+    "sha256": "10a18fdc767d5a55b12d8690b3f975dc7b772a3eba38248c3717dcc06f46ab61",
+    "before_sha256": null,
+    "bytes": 4233
+  },
+  {
+    "root": "common",
+    "logical": "battle/effect/skill_unique/land_dragon_wind_playable/wave_arc120_middle/wave_arc120_middle.atlas.amf3.deflate",
+    "rel": "2c/0f5a7e41d67c986e6ce785e0471d259c0c8204",
+    "member": "production/upload/2c/0f5a7e41d67c986e6ce785e0471d259c0c8204",
+    "before_sha256": "4e98f135a555d002a1fa37b5c375a3a7b40d1d4bdfdc63890661112b138b0a0a",
+    "sha256": "e41400854463b759d6c10052ff2678a45ded0f7b7605674a1f260c0ee8bd004c",
+    "kind": "shared-wave-empty-sheet"
+  },
+  {
+    "root": "common",
+    "rel": "2d/5cb9b28d18f984a51b345a4d7aab03d77bddfc",
+    "logical": "master/character/character.orderedmap",
+    "member": "production/upload/2d/5cb9b28d18f984a51b345a4d7aab03d77bddfc",
+    "sha256": "9d9003936d77854d30b641bb091d4d2f945a2b27b2617085bf0cda3e9ccae713",
+    "before_sha256": "e44dc0d5c47f4cec0f73840296eeedd3a9faa1113c617db832c8c9eacc347493",
+    "bytes": 83387
+  },
+  {
+    "root": "common",
+    "rel": "30/cbcd99de1aa6e8d245221619b393721df551b4",
+    "logical": "master/character/unique_condition.orderedmap",
+    "member": "production/upload/30/cbcd99de1aa6e8d245221619b393721df551b4",
+    "sha256": "bbe3c677616d6a03acfab7eb0f25e96d2f05ca78cc019bb8c5f0202b6e320a50",
+    "before_sha256": "c60843a5db38c3fa5a662cd2c4bb45806aa0315e6f46802af8e3acb4c3e3330f",
+    "bytes": 10412
+  },
+  {
+    "root": "common",
+    "logical": "battle/effect/powerflip/lion_swordman_reborn/lion_swordman_reborn.png",
+    "rel": "38/4f7b0efcadfae7f4dd232be7067800ad6cd7d2",
+    "member": "production/upload/38/4f7b0efcadfae7f4dd232be7067800ad6cd7d2",
+    "before_sha256": "509488845f2381007dae51f313862abd95f31dc1dc9689e1149221d521abcda0",
+    "sha256": "cc5baa154aa5bd252f20c70f2b1e68ce0fe4641422b009f23e316e359388a13b",
+    "kind": "cn-lossless-atlas"
+  },
+  {
+    "root": "common",
+    "rel": "38/dbe3524fee49989cccd10f2204238d25600cc8",
+    "logical": "master/skill/power_flip_action.orderedmap",
+    "member": "production/upload/38/dbe3524fee49989cccd10f2204238d25600cc8",
+    "sha256": "d0a0db72467eeba7e8c2b9a7cd91873cd761fede4f77fac6076de5b9094fc813",
+    "before_sha256": "a1282e39abcc4a40fd40ff6d40b21b6d40c12b8c018428e326a2e3bc77fdb894",
+    "bytes": 2892
+  },
+  {
+    "root": "common",
+    "rel": "39/0151ccf0af3bb1a9cb89d2cb675d5386e73aef",
+    "logical": "battle/effect/skill_unique/white_tiger_summer/white_tiger_summer.atlas.amf3.deflate",
+    "member": "production/upload/39/0151ccf0af3bb1a9cb89d2cb675d5386e73aef",
+    "sha256": "08135596f734a1f007ded26bdefdf70ba1bed1272c72fe34a0366ec33c22f91b",
+    "before_sha256": null,
+    "bytes": 541
+  },
+  {
+    "root": "common",
+    "rel": "3c/208537182ec1c0749d88725d494a6f2c632a0d",
+    "logical": "character/white_tiger_summer/voice/battle/skill_1.mp3",
+    "member": "production/upload/3c/208537182ec1c0749d88725d494a6f2c632a0d",
+    "sha256": "ad4c1982c4ee4dc3a234d8e84226c21a0fecafe06617a62f9227f960b2934005",
+    "before_sha256": null,
+    "bytes": 21027
+  },
+  {
+    "root": "common",
+    "logical": "battle/effect/skill_unique/touyakiren_ceo_ny26_sakura/touyakiren_ceo_ny26_sakura.png",
+    "rel": "3c/77b4b24030c530f00bafa9efbcabaf6fd6bc6d",
+    "member": "production/upload/3c/77b4b24030c530f00bafa9efbcabaf6fd6bc6d",
+    "before_sha256": "37cbce49cf37431b7af72770d560d5bc7280aa462c4ba5f036d7ee7a1cbf11cc",
+    "sha256": "ed7bf94aa98c4302f12d8d91aff8235caae3e975381a1f3483fefc48234c5d24",
+    "kind": "cn-lossless-atlas"
+  },
+  {
+    "root": "common",
+    "logical": "character/cnmod_epuration_empress/pixelart/sprite_sheet.atlas.amf3.deflate",
+    "rel": "3d/38be05424e4b71f8fe40b553a304adc3478d3f",
+    "member": "production/upload/3d/38be05424e4b71f8fe40b553a304adc3478d3f",
+    "before_sha256": "c37d9ccc0e5cb19d83d3fb62cb263f4ab9215f1d869cb6c8c325f65b977882ea",
+    "sha256": "dd0c326bcc7f265649a2d075c819111de6decc3d8ec978f2fb0b8cab1a679521",
+    "kind": "cn-lossless-atlas"
+  },
+  {
+    "root": "common",
+    "rel": "3e/b411841802398d5b21d422579f2eaa65d30c0e",
+    "logical": "master/generated/character_image.orderedmap",
+    "member": "production/upload/3e/b411841802398d5b21d422579f2eaa65d30c0e",
+    "sha256": "7451c3d1b46d42052440f1ad39a5fa2dfb300dc4496338a5d8ec7ab7afd8ea94",
+    "before_sha256": "38ea283080f0bf72cd03a7617bc146c4b17059e93b24b037fdb5ca73a8e4fe08",
+    "bytes": 46172
+  },
+  {
+    "root": "common",
+    "rel": "42/1e6a4b354514c963b197a97442b28b4b9c4eb7",
+    "logical": "character/white_tiger_summer/pixelart/special.timeline.amf3.deflate",
+    "member": "production/upload/42/1e6a4b354514c963b197a97442b28b4b9c4eb7",
+    "sha256": "a62524695cc132bb994064e0b478e27ebd29f0557193c587e3f3223d44e79378",
+    "before_sha256": null,
+    "bytes": 109
+  },
+  {
+    "root": "common",
+    "rel": "42/be9c1a0f896f743c65fa16e04b0f71d84f1acc",
+    "logical": "battle/action/skill/action/rare5/white_tiger_summer$white_tiger_summer_2.action.dsl.amf3.deflate",
+    "member": "production/upload/42/be9c1a0f896f743c65fa16e04b0f71d84f1acc",
+    "sha256": "3adbe2502d201b825978ac384259f0fb11a1748faaa542ec34c13a047ace7207",
+    "before_sha256": null,
+    "bytes": 1071
+  },
+  {
+    "root": "common",
+    "rel": "43/6b1461629ec20b683bc202b5513c7186e42dbf",
+    "logical": "character/white_tiger_summer/voice/battle/skill_ready.mp3",
+    "member": "production/upload/43/6b1461629ec20b683bc202b5513c7186e42dbf",
+    "sha256": "f87560ac72d487276f4da8cb13365b8e5ed015d2ad3f9d3a1f894c57afc63d3d",
+    "before_sha256": null,
+    "bytes": 12887
+  },
+  {
+    "root": "common",
+    "rel": "43/bc1c47ab634820b85f0ae57380036953d9e898",
+    "logical": "battle/effect/skill_unique/lion_swordman_reborn/zenith_explosion/zenith_explosion.atlas.amf3.deflate",
+    "member": "production/upload/43/bc1c47ab634820b85f0ae57380036953d9e898",
+    "sha256": "b23539044c5d07168eb56dc8240aa3bcb50f16f584d6fb5fad891c97b09b659b",
+    "before_sha256": null,
+    "bytes": 377
+  },
+  {
+    "root": "common",
+    "rel": "44/598f57fb656621b28bd5a63752bc2fa3804c25",
+    "logical": "character/white_tiger_summer/voice/ally/evolution.mp3",
+    "member": "production/upload/44/598f57fb656621b28bd5a63752bc2fa3804c25",
+    "sha256": "bf74f569fc3f19b981821a4ec9c91f125ff866d1f3d1b96d7e3d21d1ec4e2770",
+    "before_sha256": null,
+    "bytes": 143452
+  },
+  {
+    "root": "common",
+    "logical": "battle/effect/skill_unique/land_dragon_wind_playable/wave_arc120_slow/wave_arc120_slow.parts.amf3.deflate",
+    "rel": "47/601fe86eba485abf72d39d38f1e6ad41128632",
+    "member": "production/upload/47/601fe86eba485abf72d39d38f1e6ad41128632",
+    "before_sha256": "18e42ec1a5aaf192493e8deb50cd7fdd9b66b7892a3939641b49b7cc3ad715a8",
+    "sha256": "364134289c32f4846cd460f92c66a8304872bd95afb61ee27e7e323d9ff2d830",
+    "kind": "author-shared-wave"
+  },
+  {
+    "root": "common",
+    "rel": "48/4710e8f387a5a6313e7b539b25407bc98301c1",
+    "logical": "battle/effect/skill_unique/white_tiger_summer/white_tiger_summer.parts.amf3.deflate",
+    "member": "production/upload/48/4710e8f387a5a6313e7b539b25407bc98301c1",
+    "sha256": "0b1bfc27dc31a4963a2b1317a410ae25f57d9a4d5e9906a63d017c0b795cccff",
+    "before_sha256": null,
+    "bytes": 1549
+  },
+  {
+    "root": "common",
+    "rel": "4b/c1d944f71285230bcbaca84f793490769de97d",
+    "logical": "battle/effect/skill_unique/lion_swordman_reborn/zenith_explosion/explosion_back.timeline.amf3.deflate",
+    "member": "production/upload/4b/c1d944f71285230bcbaca84f793490769de97d",
+    "sha256": "b4edda7a6990cc07776470beecf714b614ad79d0103457991e28b9c7309955c8",
+    "before_sha256": null,
+    "bytes": 204
+  },
+  {
+    "root": "common",
+    "logical": "battle/effect/powerflip/white_wolf_gerald_powerflip/white_wolf_gerald_powerflip.atlas.amf3.deflate",
+    "rel": "4b/c5b3ac0fc4711af9b2213fc79e2b609de74fb5",
+    "member": "production/upload/4b/c5b3ac0fc4711af9b2213fc79e2b609de74fb5",
+    "before_sha256": "047cb38a3978f07653fd8c1139151b953b07cb49f581e570efec468699f09782",
+    "sha256": "cb5b252d9422b06475043d889ff710deada0285a63e2d8dd8b229c04a13f4d9b",
+    "kind": "cn-lossless-atlas"
+  },
+  {
+    "root": "common",
+    "logical": "battle/effect/skill_unique/land_dragon_wind_playable/wave_arc120_middle/wave_arc120_middle.parts.amf3.deflate",
+    "rel": "4c/789ce3c77855db71bb76ed4c33de7255080101",
+    "member": "production/upload/4c/789ce3c77855db71bb76ed4c33de7255080101",
+    "before_sha256": "a3d21fb6c6a24c6ce3737c1137aa3261e184b23c815a4c5ceea6d5a126df4fd6",
+    "sha256": "1fa64336084784cf4a08760369bbe7ea6af5ac5297d8375da13f5235e1d166ec",
+    "kind": "author-shared-wave"
+  },
+  {
+    "root": "common",
+    "rel": "4d/28de6daea5189613c2d63583b76526d3ef1aa1",
+    "logical": "battle/action/skill/action/rare5/lion_swordman_reborn$lion_swordman_reborn_2.action.dsl.amf3.deflate",
+    "member": "production/upload/4d/28de6daea5189613c2d63583b76526d3ef1aa1",
+    "sha256": "39fb9586ae2e9b7bfdda947d39b5c4e65629e03aed39795e0983319a014d7126",
+    "before_sha256": "401aa671a2fb7d1a92f599bb251ebedf1ec82186375289659c78dd3e046f5391",
+    "bytes": 1228
+  },
+  {
+    "root": "common",
+    "rel": "4e/9e5b87a1e98737a247f8214670376754a1feb3",
+    "logical": "character/white_tiger_summer/voice/home/nn.mp3",
+    "member": "production/upload/4e/9e5b87a1e98737a247f8214670376754a1feb3",
+    "sha256": "6e8341f6c189f4ccb2b4603874bfbc899d18222e0d3e920bd3fab8fe7467cc0f",
+    "before_sha256": null,
+    "bytes": 131771
+  },
+  {
+    "root": "common",
+    "rel": "51/66b0634ed80e0c24c8a37e8f970f331474ad83",
+    "logical": "battle/effect/skill_unique/lion_swordman_reborn/zenith_explosion/zenith_explosion.png",
+    "member": "production/upload/51/66b0634ed80e0c24c8a37e8f970f331474ad83",
+    "sha256": "1188dc147343e18b6d607a202e80aeb0509ede10fc6ab2f892a364af5c8b7499",
+    "before_sha256": null,
+    "bytes": 22360
+  },
+  {
+    "root": "common",
+    "rel": "57/8872ecbc78561807e6846b3980c5dea980d8ce",
+    "logical": "master/mana_board/upskill.orderedmap",
+    "member": "production/upload/57/8872ecbc78561807e6846b3980c5dea980d8ce",
+    "sha256": "00b0b4f5012acb521dc256d7681531ed0597a152cfb614384e03f56cce3de2fe",
+    "before_sha256": "495adc0694a9408d748e1ad41dfd6cde3509a143306a34b1a0a87c57e862ae22",
+    "bytes": 23915
+  },
+  {
+    "root": "common",
+    "rel": "58/95e3eaca183466645390f199ab3adbd7f5a7c3",
+    "logical": "battle/action/skill/action/rare5/maou2_playable$maou2_playable_eye.action.dsl.amf3.deflate",
+    "member": "production/upload/58/95e3eaca183466645390f199ab3adbd7f5a7c3",
+    "sha256": "9cc216414a2182a69224ccda76e39d00e0c2da4ff43b2d4d225de9604d071dee",
+    "before_sha256": "f1d028ee5834cbb33f9b748fec0b53fc34b5d584d346a757989ab8c688838d81",
+    "bytes": 613
+  },
+  {
+    "root": "common",
+    "rel": "5a/a95cff7a0b248577dbbfaf8d5e3c84361f3ce3",
+    "logical": "battle/effect/skill_unique/white_tiger_summer/white_tiger_summer.png",
+    "member": "production/upload/5a/a95cff7a0b248577dbbfaf8d5e3c84361f3ce3",
+    "sha256": "72cf09c1f6ef596e85cbdbd6584da04da847a6f6d4652dd0e1eb89a0424e0b44",
+    "before_sha256": null,
+    "bytes": 18582
+  },
+  {
+    "root": "common",
+    "rel": "5c/6a4f0e2ceb1dbcf60f9b306b0f7bfd0eca55c9",
+    "logical": "master/character/character_status.orderedmap",
+    "member": "production/upload/5c/6a4f0e2ceb1dbcf60f9b306b0f7bfd0eca55c9",
+    "sha256": "c1383fcddb20d1a9fd2ff3d4a4fe678268a6c9925bcfc4d81f2062a7b3ab6bd0",
+    "before_sha256": "8d69881549e528495f63f14bde2a54983c891cfa6fc4a68c74db7b235200f96f",
+    "bytes": 62896
+  },
+  {
+    "root": "common",
+    "logical": "battle/effect/skill_unique/white_wolf_gerald/white_wolf_gerald.png",
+    "rel": "5d/3f8974dbc211de057d487129bf99af4d0c3263",
+    "member": "production/upload/5d/3f8974dbc211de057d487129bf99af4d0c3263",
+    "before_sha256": "889ae82e535248df3f201ef3be9d7f4095decfc9a343c9544951becd507b26b0",
+    "sha256": "7805e18021939caa6630539cf43a905417e4d08ae6cdb577bfa00bf98a1b6e3f",
+    "kind": "cn-lossless-atlas"
+  },
+  {
+    "root": "common",
+    "logical": "battle/effect/powerflip/resistance_princess_ex_pf_fist/resistance_princess_ex_pf_fist.atlas.amf3.deflate",
+    "rel": "5e/20360ce54965a5f8ad2bb5782e7d1647462f74",
+    "member": "production/upload/5e/20360ce54965a5f8ad2bb5782e7d1647462f74",
+    "before_sha256": "de089a7c233bb1d7d3559639d17c28ff9269eab900e451c0e209d0d84d9ee6ba",
+    "sha256": "4537becc8b4d398d0c63e8713c434df4a491d49f6f1435f574c0cff36a74d620",
+    "kind": "cn-lossless-atlas"
+  },
+  {
+    "root": "common",
+    "logical": "character/abyss_beast_playable/pixelart/sprite_sheet.png",
+    "rel": "5e/235daaf64bbc718efcfd5b46e5a0175e836432",
+    "member": "production/upload/5e/235daaf64bbc718efcfd5b46e5a0175e836432",
+    "before_sha256": "b514cb84bb5f9ab4c27308d9b78c0296750ba3151b5cc497ec4123b35f99b9c8",
+    "sha256": "c0678fcd1639e52dcd7bfa131d655d7a82a5a3704a9ef9993da84dba5ac22e82",
+    "kind": "cn-lossless-atlas"
+  },
+  {
+    "root": "common",
+    "rel": "62/d9db3b05b008aeac00bdecc042a8c6ec4f4e0d",
+    "logical": "character/white_tiger_summer/voice/battle/power_flip_1.mp3",
+    "member": "production/upload/62/d9db3b05b008aeac00bdecc042a8c6ec4f4e0d",
+    "sha256": "f101fa8cd8358258328790156352863b41d97657090c3b54b2c99004cb0d4d2f",
+    "before_sha256": null,
+    "bytes": 21338
+  },
+  {
+    "root": "common",
+    "logical": "battle/effect/skill_unique/white_wolf_gerald/time_aura/time_aura.png",
+    "rel": "66/5fb6d9da79a7cb95215afde3b581fd0845813e",
+    "member": "production/upload/66/5fb6d9da79a7cb95215afde3b581fd0845813e",
+    "before_sha256": "e27129ca82b532fa106a0ffaa9c1cb136aff062d49b2198370973250c4177e08",
+    "sha256": "19cd04cb4e1ebe4ebdd676ab4b879d1985a15184cf53d2809dbf495d703c15cf",
+    "kind": "cn-lossless-atlas"
+  },
+  {
+    "root": "common",
+    "rel": "69/8dff1f56120e8ef2cb00950d2b8f20c384e129",
+    "logical": "character/white_tiger_summer/pixelart/sprite_sheet.png",
+    "member": "production/upload/69/8dff1f56120e8ef2cb00950d2b8f20c384e129",
+    "sha256": "4ad11252bed06195026f1916d038c158018b01e769ee2968538fe7e98eb05393",
+    "before_sha256": null,
+    "bytes": 6999
+  },
+  {
+    "root": "common",
+    "rel": "6b/7237dfb68c667f191a69fda8627c80fca91803",
+    "logical": "rich_text/cnmod_ashen_verdict_gacha_note.html.deflate",
+    "member": "production/upload/6b/7237dfb68c667f191a69fda8627c80fca91803",
+    "sha256": "296f30f26f35b04e11b711124447492b7852b8220fc4b57007be1ec7958057f2",
+    "before_sha256": "4427be2f8d65131b77e378914b69bd9ebd0841bbc45acba03c4af035aec9ee13",
+    "bytes": 719
+  },
+  {
+    "root": "common",
+    "rel": "6b/79f266dd414d5377134a4bcb68ab38a7484364",
+    "logical": "battle/effect/skill_unique/white_tiger_summer/white_tiger_summer.timeline.amf3.deflate",
+    "member": "production/upload/6b/79f266dd414d5377134a4bcb68ab38a7484364",
+    "sha256": "7aaae7eb1fbc62605fa56aa23a97b236d97135d049191caa2479fcff2f62dd4d",
+    "before_sha256": null,
+    "bytes": 198
+  },
+  {
+    "root": "common",
+    "logical": "battle/effect/skill_unique/touyakiren_ceo_ny26_petal/touyakiren_ceo_ny26_petal.png",
+    "rel": "6c/35be06962370c4e2730ead864002603018cb72",
+    "member": "production/upload/6c/35be06962370c4e2730ead864002603018cb72",
+    "before_sha256": "e52e9f9c553de695132b9abc447297525ff3c0f57954699fa798d89405db05e1",
+    "sha256": "397856c40c064eb29662ca3c8f9939381744960eecec92f72a0b73dba57bdcd6",
+    "kind": "cn-lossless-atlas"
+  },
+  {
+    "root": "common",
+    "logical": "item/sprite_sheet.png",
+    "rel": "6d/4d576b424178c5b2b253a2dd5aa3d78fa74ef3",
+    "member": "production/upload/6d/4d576b424178c5b2b253a2dd5aa3d78fa74ef3",
+    "before_sha256": "b729cd50049fbe0255492638cf6cc45aff23388f4dd18a3006414e92600c72b4",
+    "sha256": "e1db8f2d017de7a93f006930d5f312fcdfaf904bdd15269b31c272bdb5b47843",
+    "kind": "user-item-art"
+  },
+  {
+    "root": "common",
+    "logical": "item/materials/mod/five_boss/entry_ticket_v2.png",
+    "rel": "70/0e22050ee329943b09f0bbc92c636ec8b51849",
+    "member": "production/upload/70/0e22050ee329943b09f0bbc92c636ec8b51849",
+    "before_sha256": null,
+    "sha256": "d7bbf35d1a5d037e81024f309b7ce555b2222daee706a75f95a3630efa778458",
+    "kind": "user-item-art"
+  },
+  {
+    "root": "common",
+    "logical": "battle/effect/skill_unique/land_dragon_wind_playable/wave_arc120_slow/wave_arc120_slow.atlas.amf3.deflate",
+    "rel": "71/33db2be8729bde9791b24060937e76ff5c3daf",
+    "member": "production/upload/71/33db2be8729bde9791b24060937e76ff5c3daf",
+    "before_sha256": "ca86e6a424e2afbc3363f5a7a9f512adbe6ab6e71a43324d73e8e8ae77f04e5c",
+    "sha256": "e41400854463b759d6c10052ff2678a45ded0f7b7605674a1f260c0ee8bd004c",
+    "kind": "shared-wave-empty-sheet"
+  },
+  {
+    "root": "common",
+    "rel": "71/f9d38468b25b988d2f8c523d67e3d40353b1d9",
+    "logical": "character/white_tiger_summer/voice/home/ano.mp3",
+    "member": "production/upload/71/f9d38468b25b988d2f8c523d67e3d40353b1d9",
+    "sha256": "2b26cc504e2b5c6ba8af0a1357c7cd3e9b69b2bdf2be6e400181beac7b631967",
+    "before_sha256": null,
+    "bytes": 97270
+  },
+  {
+    "root": "common",
+    "logical": "battle/effect/powerflip/resistance_princess_ex_pf_spin/resistance_princess_ex_pf_spin.atlas.amf3.deflate",
+    "rel": "72/3339f2b5734354b4758e077f1cde864129677f",
+    "member": "production/upload/72/3339f2b5734354b4758e077f1cde864129677f",
+    "before_sha256": "b031814957cb8415f93c4d4a6f31a0b3fbce812ae0c57af8eab6b4e87ccb77d7",
+    "sha256": "06e22e731692db8efa6fedcde23a6e038b2295a2f738de1f29b3797c9505c8bc",
+    "kind": "cn-lossless-atlas"
+  },
+  {
+    "root": "common",
+    "logical": "item/materials/mod/five_boss/deathbringer_blueprint_v2.png",
+    "rel": "74/0186df579e871706e0925f175db73ef0b5e3ca",
+    "member": "production/upload/74/0186df579e871706e0925f175db73ef0b5e3ca",
+    "before_sha256": null,
+    "sha256": "31904fcfc4e7172fe585ecc707aafa8771fb666ab1323ded462ebd285a87cd4a",
+    "kind": "user-item-art"
+  },
+  {
+    "root": "common",
+    "logical": "battle/effect/powerflip/resistance_princess_ex_pf_spin/resistance_princess_ex_pf_spin.png",
+    "rel": "77/5c1387ab6f8eb33ad9da0ad468d31b0fb4af6e",
+    "member": "production/upload/77/5c1387ab6f8eb33ad9da0ad468d31b0fb4af6e",
+    "before_sha256": "ab8e2e47b0d4538d7fb4df4a2b28064312751a0e7fa171bc2a33e6da9f9b3d1d",
+    "sha256": "058d52068f47724cef79ceac6197a75540b047a9fa0c5b78dc5cb45679d5cb17",
+    "kind": "cn-lossless-atlas"
+  },
+  {
+    "root": "common",
+    "logical": "battle/effect/skill_unique/lion_swordman_reborn/lion_swordman_reborn.png",
+    "rel": "77/ab58f77415ce12e99c0fabaf72207c6d0f3ff8",
+    "member": "production/upload/77/ab58f77415ce12e99c0fabaf72207c6d0f3ff8",
+    "before_sha256": "79ac0e7e0961e53bf0277e76be3f668a3d7ba1115b10e46cf56944e06282a201",
+    "sha256": "80138942aea514e421c28402167af591833391f4a2f6f65f4eb50f8fbdfae729",
+    "kind": "cn-lossless-atlas"
+  },
+  {
+    "root": "common",
+    "rel": "79/f26b82e8c007d99948efca3b9495250a80bbaa",
+    "logical": "battle/action/skill/action/rare5/lion_swordman_reborn$lion_swordman_reborn_1.action.dsl.amf3.deflate",
+    "member": "production/upload/79/f26b82e8c007d99948efca3b9495250a80bbaa",
+    "sha256": "4ac78fd4cf225ab35673175ca10a18216b32de9a084a90b22b329dd0fa190011",
+    "before_sha256": "68afd7bf11b21ebe09d46ed662c1b2732fcbab4deea64b9627c55aa055e30ded",
+    "bytes": 1239
+  },
+  {
+    "root": "common",
+    "logical": "item/sprite_sheet.atlas.amf3.deflate",
+    "rel": "7b/5e0efc0e0691038ca52fe282501dfd3a1b5ae3",
+    "member": "production/upload/7b/5e0efc0e0691038ca52fe282501dfd3a1b5ae3",
+    "before_sha256": "0d20e31489b9bef9a5fdcea507905834b250895965839feac96620742c35e5ec",
+    "sha256": "fad7044c6a883835a97bedd7aa1f332969145b1091507108ca76b37f3ed1517b",
+    "kind": "user-item-art"
+  },
+  {
+    "root": "common",
+    "logical": "character/unicorn_lancer_rose/pixelart/sprite_sheet.png",
+    "rel": "7c/1abdc202e957bbcfb2a480509c114e72730e0d",
+    "member": "production/upload/7c/1abdc202e957bbcfb2a480509c114e72730e0d",
+    "before_sha256": "e32c7f3071c14232f2b2dfccc83ed101963fcee25c89a103b25e247c1e1e70e5",
+    "sha256": "9f27bdf702d544e1c2686250ab441d69781513b59243c560e1ca9f9292c7d7da",
+    "kind": "cn-lossless-atlas"
+  },
+  {
+    "root": "common",
+    "logical": "character/epuration_monk_playable/pixelart/sprite_sheet.atlas.amf3.deflate",
+    "rel": "7c/5d4276c20540b227031df8a72234e8c2dd5c89",
+    "member": "production/upload/7c/5d4276c20540b227031df8a72234e8c2dd5c89",
+    "before_sha256": "1e30cf83facb2325d73475a42e3085731b9d39e5eb0f57859efa34354343fec4",
+    "sha256": "3f2e018fca4978c9a0e99132652999be93bcc43b32d34150a6aef97ebed1b371",
+    "kind": "cn-lossless-atlas"
+  },
+  {
+    "root": "common",
+    "rel": "7d/d3af328129e7ec4636a8f3ef067cd7ca4342c5",
+    "logical": "battle/action/skill/action/rare5/white_tiger_summer$white_tiger_summer_1.action.dsl.amf3.deflate",
+    "member": "production/upload/7d/d3af328129e7ec4636a8f3ef067cd7ca4342c5",
+    "sha256": "81ddf94aec7c3d1e494c8f6bb209421c45118767e2c9557590063e6f7b805ee3",
+    "before_sha256": null,
+    "bytes": 1062
+  },
+  {
+    "root": "common",
+    "rel": "82/93e535e806d70640f45950db1fe14ed9482bdf",
+    "logical": "master/battle/boss/general_boss_variable.orderedmap",
+    "member": "production/upload/82/93e535e806d70640f45950db1fe14ed9482bdf",
+    "sha256": "529f73618bed3b09b4d5293baae27290638eae139abaf088c4cb7cdf452c6ddf",
+    "before_sha256": "bd729648d33113763cd51bcc34376d52d5e5ee0a6f6bd612d87c13b923f0e338",
+    "bytes": 89812
+  },
+  {
+    "root": "common",
+    "logical": "battle/effect/skill_unique/touyakiren_ceo_ny26/touyakiren_ceo_ny26.atlas.amf3.deflate",
+    "rel": "84/5a1b6ec569b6d397d6eec45d49c504f55ac91c",
+    "member": "production/upload/84/5a1b6ec569b6d397d6eec45d49c504f55ac91c",
+    "before_sha256": "8fd137399b23bf1cb9972279555e20982588b16e0ed3c2113a49af07b9e8006c",
+    "sha256": "3bd85125a350ea76a6b3e60d162da5ff6b1368083d2f885f719664813ac4c5ce",
+    "kind": "cn-lossless-atlas"
+  },
+  {
+    "root": "common",
+    "rel": "84/fd6ee6a23114c8f888fadc838bbe8bdf668677",
+    "logical": "master/battle/boss/general_enemy_watch.orderedmap",
+    "member": "production/upload/84/fd6ee6a23114c8f888fadc838bbe8bdf668677",
+    "sha256": "bfdf0a6d34bed237af1f17710bf2f8609d5956e77f26ac2ca8709044cedae9f8",
+    "before_sha256": "fb648905efe91dd72bae1e7410683777a976ab3f0d3aab48009cedbb054601d5",
+    "bytes": 68549
+  },
+  {
+    "root": "common",
+    "logical": "battle/effect/skill_unique/white_wolf_gerald/white_wolf_gerald.atlas.amf3.deflate",
+    "rel": "86/b84dca5658e54795616bbe0446ee8191afb64b",
+    "member": "production/upload/86/b84dca5658e54795616bbe0446ee8191afb64b",
+    "before_sha256": "3558d319b52a541a1a457e444ae97c49705eaf556b1f50d0d6cccc12616b2b97",
+    "sha256": "dd2ed4c926cf7319693cf127dbef087cb052a79e509c4440a46027e7d4e40179",
+    "kind": "cn-lossless-atlas"
+  },
+  {
+    "root": "common",
+    "rel": "8b/035728b2151de044fb245988ec5f33ebb544ab",
+    "logical": "master/character/character_text.orderedmap",
+    "member": "production/upload/8b/035728b2151de044fb245988ec5f33ebb544ab",
+    "sha256": "ce87328ca31a97fc2e3fdfcbd57ec1da33c78473badf2a57d17cc1cfc5319317",
+    "before_sha256": "789fef0cf488390ea8d0cca213c18b0bec521c0d348b357771bab175ca1d139f",
+    "bytes": 209587
+  },
+  {
+    "root": "common",
+    "logical": "character/epuration_infantry_playable/pixelart/sprite_sheet.png",
+    "rel": "90/b31155afd0074e12571973f4f5658bbf611c79",
+    "member": "production/upload/90/b31155afd0074e12571973f4f5658bbf611c79",
+    "before_sha256": "09ead077620693df6f9d55450fe7e7ce7d39cdb355ac83ebc2dc98c1bc62e1ab",
+    "sha256": "1bd270ef611e10a1b97d8c19e45015139ef00b6597d5dd0158bae542eff65177",
+    "kind": "cn-lossless-atlas"
+  },
+  {
+    "root": "common",
+    "rel": "91/79892d704f88d98191c00548bce106402ad5b5",
+    "logical": "master/skill/action_skill.orderedmap",
+    "member": "production/upload/91/79892d704f88d98191c00548bce106402ad5b5",
+    "sha256": "2781bb40ef8e5d0306c283fc8c6c8f55de79c03a69951dde14ec352ecea95f4a",
+    "before_sha256": "ad067c7d5e9d4694c0efaebad1afd3a0ddccb056a3c92dff0460f74d0f3dfd71",
+    "bytes": 348842
+  },
+  {
+    "root": "common",
+    "logical": "item_icon/materials/mod/five_boss/entry_ticket_v2.png",
+    "rel": "91/e5b42c759fec14593d4612e3ff4b89d8955d76",
+    "member": "production/upload/91/e5b42c759fec14593d4612e3ff4b89d8955d76",
+    "before_sha256": null,
+    "sha256": "64652ef1ea171d7db22dbf1e64f21ceb601f4dfefee960940d3e61e0540f8740",
+    "kind": "user-item-art"
+  },
+  {
+    "root": "common",
+    "rel": "92/b7ed6f160b2bdd4a227021661c1f43eb813e0f",
+    "logical": "character/white_tiger_summer/pixelart/special_sprite_sheet.png",
+    "member": "production/upload/92/b7ed6f160b2bdd4a227021661c1f43eb813e0f",
+    "sha256": "58144bd5edffaf1d8b8058caa42b50c6a58d3b6efd9136e91cc8451302715ac0",
+    "before_sha256": null,
+    "bytes": 4311
+  },
+  {
+    "root": "common",
+    "rel": "92/d5f6cd3ff4921314b47ace31be29b4964a8f04",
+    "logical": "character/white_tiger_summer/voice/home/zzzz.mp3",
+    "member": "production/upload/92/d5f6cd3ff4921314b47ace31be29b4964a8f04",
+    "sha256": "8b5d0de341cbc2b8642c8988a2d6714a829f499711104b70d17ebf5633b00cad",
+    "before_sha256": null,
+    "bytes": 111378
+  },
+  {
+    "root": "common",
+    "logical": "battle/effect/powerflip/white_wolf_gerald_powerflip/white_wolf_gerald_powerflip.png",
+    "rel": "94/9da9e14e1cdc64730850e49fd68152d8f8d4d8",
+    "member": "production/upload/94/9da9e14e1cdc64730850e49fd68152d8f8d4d8",
+    "before_sha256": "acd6c2e893ef14618a85c9ccf5b4b7259fd74027809bd6d519c9d712ed19fce0",
+    "sha256": "6fc75e139a6ba4bab936e0e5f05ab8a1b497a2e791602a2c9fe0997d0126f7e6",
+    "kind": "cn-lossless-atlas"
+  },
+  {
+    "root": "common",
+    "rel": "97/0b86968d5fb55ecc15ba0eb901cbe352e1e4c6",
+    "logical": "character/white_tiger_summer/voice/battle/outhole_1.mp3",
+    "member": "production/upload/97/0b86968d5fb55ecc15ba0eb901cbe352e1e4c6",
+    "sha256": "bcb22d1b3fe650e330428f714427843ba7bb25d03ae9cc15a8dcd6b2a92e8c32",
+    "before_sha256": null,
+    "bytes": 10067
+  },
+  {
+    "root": "common",
+    "rel": "9f/fb9a2a39702cfb712f34f2261aff1dc2ea8b49",
+    "logical": "character/white_tiger_summer/voice/home/dose.mp3",
+    "member": "production/upload/9f/fb9a2a39702cfb712f34f2261aff1dc2ea8b49",
+    "sha256": "d6a26741a3b08c0f28f82c4e1180f6e86d1d0f2d5d9e65809dd20791c597d611",
+    "before_sha256": null,
+    "bytes": 55540
+  },
+  {
+    "root": "common",
+    "logical": "item_icon/sprite_sheet.png",
+    "rel": "a1/96e15706a47e7bd6214f62b390a7fa4d58bf35",
+    "member": "production/upload/a1/96e15706a47e7bd6214f62b390a7fa4d58bf35",
+    "before_sha256": "4ed028adfcd6ff3475f58c4b591cdac4f5de9a8f33d70b55bf0447349728a592",
+    "sha256": "b7cf952496bf78fd357985f8564818edcc9910a6b5fb8391c321e89f721e862d",
+    "kind": "user-item-art"
+  },
+  {
+    "root": "common",
+    "rel": "a3/7ac2a83615e53ce07a987d402e1ea1c149b214",
+    "logical": "battle/action/power_flip/action/override/white_tiger_summer_pf$white_tiger_summer_pf_lv1.action.dsl.amf3.deflate",
+    "member": "production/upload/a3/7ac2a83615e53ce07a987d402e1ea1c149b214",
+    "sha256": "aa201d9d4b640aff1c99eb8a1d84296e55012f3ce5417f882088311fddcf8dc8",
+    "before_sha256": null,
+    "bytes": 1128
+  },
+  {
+    "root": "common",
+    "logical": "master/item/item.orderedmap",
+    "rel": "a4/731a843d4dc0c84120bf8c88784c1e74c03baa",
+    "member": "production/upload/a4/731a843d4dc0c84120bf8c88784c1e74c03baa",
+    "before_sha256": "a108a1fcccfe755f738e8ef9ed85a8ce35fe1e661b5b6fe689057be897fe57ac",
+    "sha256": "442cf8c8e027a5c4cfe543adaf2d966d74f4dbe62657c5baa1914793703e4fce",
+    "kind": "user-item-art"
+  },
+  {
+    "root": "common",
+    "logical": "character/unicorn_lancer_rose/pixelart/sprite_sheet.atlas.amf3.deflate",
+    "rel": "a5/a4953f02f7612a8829e6cb30e2b66599f6fc6b",
+    "member": "production/upload/a5/a4953f02f7612a8829e6cb30e2b66599f6fc6b",
+    "before_sha256": "a108f352d024f93df0e331c60d63775af7ec2514ba443945e6f5eb174d12ff73",
+    "sha256": "e2d0ff2c683d284e485edd90b06daf5b80fb1feff0b819303d701c63155ab92e",
+    "kind": "cn-lossless-atlas"
+  },
+  {
+    "root": "common",
+    "rel": "a7/fd7de6ac3ad4b662533d5d8c7d21ec23ae59ae",
+    "logical": "character/white_tiger_summer/voice/home/alk.mp3",
+    "member": "production/upload/a7/fd7de6ac3ad4b662533d5d8c7d21ec23ae59ae",
+    "sha256": "a66a5be2f4138bf64c7ec246b763fb6280535299e48db31933ed88105b6633b4",
+    "before_sha256": null,
+    "bytes": 64956
+  },
+  {
+    "root": "common",
+    "logical": "battle/effect/skill_unique/land_dragon_wind_playable/wave_arc120_slow/wave_arc120_slow.png",
+    "rel": "a9/029fc30891d4708dafc3d56b75a2c967cf5367",
+    "member": "production/upload/a9/029fc30891d4708dafc3d56b75a2c967cf5367",
+    "before_sha256": "8bdec474177c74e47eee6b0c3bfc173e480e4b5973b9c1527cd06a4aa0781d83",
+    "sha256": "7ae734238e54d30251068e8abaee2434bc558310161fbe43baf91e448337e841",
+    "kind": "shared-wave-empty-sheet"
+  },
+  {
+    "root": "common",
+    "logical": "character/cnmod_epuration_empress/pixelart/sprite_sheet.png",
+    "rel": "a9/a9c324a4d07f938012a62f7cc6850fde5b247b",
+    "member": "production/upload/a9/a9c324a4d07f938012a62f7cc6850fde5b247b",
+    "before_sha256": "764390da591dc1e217b4cbbab164f8bb85fbadcdc96c091b287bb311532b95c1",
+    "sha256": "215b3bb37d5947fd0d1fd9f6b7e107c8835a0354d5b005a3d178e83d751901ec",
+    "kind": "cn-lossless-atlas"
+  },
+  {
+    "root": "common",
+    "rel": "aa/abdd2e178d62dba4997034aab8c236a4422154",
+    "logical": "master/skill_preview/skill_preview_character.orderedmap",
+    "member": "production/upload/aa/abdd2e178d62dba4997034aab8c236a4422154",
+    "sha256": "ca9436f08298b8ddc6adb95fbb69450d93d8f08b797286a5372023d9ef8cf45f",
+    "before_sha256": "1b1f47e822eb1fc4ab3e562e8f16bdb23ea7435246a000efbbc5df96fccc3b39",
+    "bytes": 29991
+  },
+  {
+    "root": "common",
+    "logical": "battle/effect/skill_unique/maou2_playable/world_end/world_end.parts.amf3.deflate",
+    "rel": "aa/e5fe0e8ce971e9a1fb2adb6f1312004cffe849",
+    "member": "production/upload/aa/e5fe0e8ce971e9a1fb2adb6f1312004cffe849",
+    "before_sha256": "b789384e9925d9934b103bcf2fde62ad1bcd178a9ecdfa6aa4ed78271ebf6fed",
+    "sha256": "80bf8ab1aefe3d617f8b3cde231568df2177168db0cfd5d177009f09dab724f8",
+    "kind": "author-particle-reduction"
+  },
+  {
+    "root": "common",
+    "logical": "character/epuration_empress_playable/pixelart/sprite_sheet.png",
+    "rel": "ab/2c7aa166fcb7757f9eebefe7983406062ef710",
+    "member": "production/upload/ab/2c7aa166fcb7757f9eebefe7983406062ef710",
+    "before_sha256": "ff24077ef227207552d74e58186a093ab097f10ed689658167c978302f79540c",
+    "sha256": "f829e23245a6cbad54f35ee88048e244a7875a24768e54ec5e161bb6e7ce8ad0",
+    "kind": "cn-lossless-atlas"
+  },
+  {
+    "root": "common",
+    "rel": "ac/b038c35f3048ba7ca07a6a84307b2fb10c041c",
+    "logical": "master/character/character_gacha_sound.orderedmap",
+    "member": "production/upload/ac/b038c35f3048ba7ca07a6a84307b2fb10c041c",
+    "sha256": "b60400a2173be525b7ed2c119829df53d15ea46fad0813299978ecc83f260745",
+    "before_sha256": "4725805a999ea428fd4cb1b675d1c26273f37a22174250973d279613ef33655d",
+    "bytes": 110857
+  },
+  {
+    "root": "common",
+    "logical": "battle/effect/skill_unique/resistance_princess_ex/blade/blade.atlas.amf3.deflate",
+    "rel": "ac/c10f9d67ea6de64d3b2763188fc6a5ececd3a0",
+    "member": "production/upload/ac/c10f9d67ea6de64d3b2763188fc6a5ececd3a0",
+    "before_sha256": "bb1c3c37957844529ba32cbf199f3efd904a82d46b95a4d42c9c42ac32958a69",
+    "sha256": "acfc4752fed2be29bc2035b4324d368e959593fee2f64cab1c62eacf8f5b5163",
+    "kind": "cn-lossless-atlas"
+  },
+  {
+    "root": "common",
+    "logical": "character/abyss_beast_playable/pixelart/sprite_sheet.atlas.amf3.deflate",
+    "rel": "ae/02da2a7388a44bc3ab27fb4d77fa0a1e7649c0",
+    "member": "production/upload/ae/02da2a7388a44bc3ab27fb4d77fa0a1e7649c0",
+    "before_sha256": "162b00e66029d5fceb02b7e99a49b282f3af6dfe91cba50e4bf120d6ce806626",
+    "sha256": "60d5fe5a5cdddbd88446172e251f45c88006af3eb13d3ee217e5c23a46ead32e",
+    "kind": "cn-lossless-atlas"
+  },
+  {
+    "root": "common",
+    "logical": "character/epuration_variant_playable/pixelart/sprite_sheet.png",
+    "rel": "ae/16509b77cde9e8ead6db40c1b1a0ca4172fd1d",
+    "member": "production/upload/ae/16509b77cde9e8ead6db40c1b1a0ca4172fd1d",
+    "before_sha256": "bef7b2fa13ed7ba58fd966f1bce03033de46456621a1722a69d608e8cd32acab",
+    "sha256": "9088bdeeb12171ad28fb021e3f533067a688e1cacb915a94beffc1e0ae8b08ec",
+    "kind": "cn-lossless-atlas"
+  },
+  {
+    "root": "common",
+    "rel": "ae/c45ffea353f4fac4ee732c5e7d597d2a1f572b",
+    "logical": "master/character/character_awake_status.orderedmap",
+    "member": "production/upload/ae/c45ffea353f4fac4ee732c5e7d597d2a1f572b",
+    "sha256": "9cfbb19b0879c09e330ba1fbf7cb69a85bf68987245258cb389cd3d919a4cb1d",
+    "before_sha256": "5cf460e300f3bcfe16db5b4362fb843de08f4905d0f82cc3e2faab9e632e897f",
+    "bytes": 1071
+  },
+  {
+    "root": "common",
+    "rel": "b2/9aabb3786cc44a06ff961c476afe3c06493292",
+    "logical": "character/white_tiger_summer/pixelart/sprite_sheet.atlas.amf3.deflate",
+    "member": "production/upload/b2/9aabb3786cc44a06ff961c476afe3c06493292",
+    "sha256": "8cf8a1d82675518f28d3d03a51d1df28c5931247c2ce1e445be9c581fdd218ff",
+    "before_sha256": null,
+    "bytes": 1569
+  },
+  {
+    "root": "common",
+    "rel": "b4/a28679b8eeefdbdcbe6071fd4f2ff85e5b3415",
+    "logical": "master/character/character_speech.orderedmap",
+    "member": "production/upload/b4/a28679b8eeefdbdcbe6071fd4f2ff85e5b3415",
+    "sha256": "dc3a5c4695ba8aa5e771a95e4d4394f28a6ed01302760bbcf1f3c6a9dea046fc",
+    "before_sha256": "f8e418dc14022c4a9b63e2d12f2083e9491f37df6936ab11086aaeae6c005f89",
+    "bytes": 393478
+  },
+  {
+    "root": "common",
+    "logical": "battle/effect/skill_unique/white_wolf_gerald/rainbow_burst/rainbow_burst.png",
+    "rel": "b6/5fabd1eeab14cac977c41286abd377c37de6c8",
+    "member": "production/upload/b6/5fabd1eeab14cac977c41286abd377c37de6c8",
+    "before_sha256": "87b4a10339180506a8e8f739ee1780b9a92ffa41f85fd305ae68ca3350c4a06e",
+    "sha256": "9a234cbd25cfd181808eaf9df7eb2b3cdbfbd21cdd3b06940072cca642f0ed74",
+    "kind": "cn-lossless-atlas"
+  },
+  {
+    "root": "common",
+    "rel": "b9/132d27178d27f9d91df89fc47e106bbaf2d5b5",
+    "logical": "master/character/full_shot_image_attribute.orderedmap",
+    "member": "production/upload/b9/132d27178d27f9d91df89fc47e106bbaf2d5b5",
+    "sha256": "55c2de44648430a16ef9be5c38e308dcb4a2bf168646717a392e76b9b822f93d",
+    "before_sha256": "c12f307cf136e46429ad62461bc79be59914a18e790f19179260283565da2015",
+    "bytes": 45499
+  },
+  {
+    "root": "common",
+    "rel": "bb/4c24e8857f65c68b14fc1afd60a5a2724ffb4b",
+    "logical": "battle/effect/skill_unique/lion_swordman_reborn/zenith_explosion/explosion_back.parts.amf3.deflate",
+    "member": "production/upload/bb/4c24e8857f65c68b14fc1afd60a5a2724ffb4b",
+    "sha256": "1a9c5e753dcd54b6cb14e4dfe15c4c88075670feda9538da5faf0b9e51a67a23",
+    "before_sha256": null,
+    "bytes": 3816
+  },
+  {
+    "root": "common",
+    "rel": "bc/0bc800f482670f3ec8a7f2fee9b9deeeca3a04",
+    "logical": "master/mana_board/mana_board2_open_condition.orderedmap",
+    "member": "production/upload/bc/0bc800f482670f3ec8a7f2fee9b9deeeca3a04",
+    "sha256": "65a368ea8982c7382f320df9e68a64c7ad06d0b9ae7df18eafd74fe647470424",
+    "before_sha256": "0ab89747fbfffae77985763e50a556c134559d5c1db6eebe1c82df185a759451",
+    "bytes": 28006
+  },
+  {
+    "root": "common",
+    "logical": "battle/effect/skill_unique/white_wolf_gerald/time_aura/time_aura.atlas.amf3.deflate",
+    "rel": "be/c698001de805903c4f42db376a780b532db190",
+    "member": "production/upload/be/c698001de805903c4f42db376a780b532db190",
+    "before_sha256": "6cd6876c5971fd9ff7c0650bcde6a6a00b82d50dcce8ddc3bc07b4fa4eabaa65",
+    "sha256": "feaa5f145e118ba71d5b9a92c12060cf086499a4710dfcd18ec7135d81e46c00",
+    "kind": "cn-lossless-atlas"
+  },
+  {
+    "root": "common",
+    "rel": "c0/b066c3bc8fab7334a4740181a26e6b93cf894b",
+    "logical": "battle/action/skill/action/ability_skill/ability_skill_gerald_dash_lock$ability_skill_gerald_dash_lock.action.dsl.amf3.deflate",
+    "member": "production/upload/c0/b066c3bc8fab7334a4740181a26e6b93cf894b",
+    "sha256": "da8b7b25f9fd3e3da0a8aafb0af61b1483b0f16728bac49a2d76928e0de1cffc",
+    "before_sha256": "af95bde2bebf40bbc071df753896456cbafe790ced82bcf0628282b150101157",
+    "bytes": 100
+  },
+  {
+    "root": "common",
+    "rel": "c2/61f60384799bca6ef4d35a2f744b3293caab8c",
+    "logical": "character/white_tiger_summer/voice/battle/battle_start_0.mp3",
+    "member": "production/upload/c2/61f60384799bca6ef4d35a2f744b3293caab8c",
+    "sha256": "1601a410ff81e4ef539de8d078d94239986843cf1d637cdc0fbacf203d2a1634",
+    "before_sha256": null,
+    "bytes": 12242
+  },
+  {
+    "root": "common",
+    "rel": "c6/df7af3aa65cb9b2d1f470d379cd5f80e53ef23",
+    "logical": "battle/effect/skill_unique/white_tiger_summer/white_tiger_summer_finish.timeline.amf3.deflate",
+    "member": "production/upload/c6/df7af3aa65cb9b2d1f470d379cd5f80e53ef23",
+    "sha256": "a6ad3052ab4bc8efeef1357762788f6bf9976e36b1140f342397d97ffbba43cf",
+    "before_sha256": null,
+    "bytes": 159
+  },
+  {
+    "root": "common",
+    "rel": "cc/edcec1e5e7f12155e518586e0c1353ae59ff37",
+    "logical": "character/white_tiger_summer/voice/home/aa.mp3",
+    "member": "production/upload/cc/edcec1e5e7f12155e518586e0c1353ae59ff37",
+    "sha256": "2774780f721c8726e52cf3900395c3b2062e222daf7096f91316d5c767225e2e",
+    "before_sha256": null,
+    "bytes": 124552
+  },
+  {
+    "root": "common",
+    "rel": "cd/6336795a27ea33bf8d0c5d5a9bfb466bedcf1e",
+    "logical": "master/battle/zone.orderedmap",
+    "member": "production/upload/cd/6336795a27ea33bf8d0c5d5a9bfb466bedcf1e",
+    "sha256": "8e59729a4dc676c9eb85e3fd78681d241fcb2c6ac15aedf4e3469a31ec6e4173",
+    "before_sha256": "2fe22926e1eab93cec7968b06db7cd4e3fdfc4eb0b5aee44b0a5678a9f88002e",
+    "bytes": 256392
+  },
+  {
+    "root": "common",
+    "logical": "battle/effect/skill_unique/touyakiren_ceo_ny26/touyakiren_ceo_ny26.png",
+    "rel": "ce/d99a237c8a33a5673f509db1769a403b14dac8",
+    "member": "production/upload/ce/d99a237c8a33a5673f509db1769a403b14dac8",
+    "before_sha256": "294e96cbc2f9228b8abb6537e6080ed1400821018fe8f22652074d9925fd792d",
+    "sha256": "17c736dbee9e3989bfeb5e2dde597edc11a7e025f2e8c86d1cb918a2f6961176",
+    "kind": "cn-lossless-atlas"
+  },
+  {
+    "root": "common",
+    "logical": "battle/effect/skill_unique/resistance_princess_ex/ring/ring.png",
+    "rel": "d0/7ee63935c48f8de874a1ab4c8a88fb6961988e",
+    "member": "production/upload/d0/7ee63935c48f8de874a1ab4c8a88fb6961988e",
+    "before_sha256": "cd2dbc6b1872c3ce1f9fe72788ae2e82873c262b8e793239c6cfa49dea812e94",
+    "sha256": "852ecabbe18792498df0f46210767dbeb18f52ad07597ea8f70a8d689477361a",
+    "kind": "cn-lossless-atlas"
+  },
+  {
+    "root": "common",
+    "logical": "battle/effect/skill_unique/white_wolf_gerald/rainbow_burst/rainbow_burst.atlas.amf3.deflate",
+    "rel": "d0/e2e6284ee0dc696b318dd8d1873bf582366159",
+    "member": "production/upload/d0/e2e6284ee0dc696b318dd8d1873bf582366159",
+    "before_sha256": "6d385903ce894ee7a667508f8db602f8d9f20066af69b4639d3abcde0f51b6bc",
+    "sha256": "c0b14edaf89a65001bdca18d146f8593e9ae51143b616e9ba7fccdb917b2cf8f",
+    "kind": "cn-lossless-atlas"
+  },
+  {
+    "root": "common",
+    "logical": "item/materials/mod/five_boss/fivefold_clear_badge_v2.png",
+    "rel": "d1/445ea3783f671404cfe5628dbb9448e749f026",
+    "member": "production/upload/d1/445ea3783f671404cfe5628dbb9448e749f026",
+    "before_sha256": null,
+    "sha256": "366649a574fe2ec353062b6a34807f6c31ad78dc3acb1e6e9567da5838efbbd0",
+    "kind": "user-item-art"
+  },
+  {
+    "root": "common",
+    "rel": "d4/22562d2cdb137e6bc23f903d773b5b485329a8",
+    "logical": "master/gacha_odds/cnmod_ashen_verdict_gacha_character_5.orderedmap",
+    "member": "production/upload/d4/22562d2cdb137e6bc23f903d773b5b485329a8",
+    "sha256": "e14e95e968422281ac4b33f6f4a280e501d2bd5af2e76c503c5ecb0ef15ef087",
+    "before_sha256": "9ea08ca5f0705347b77c1c65e27520cc6f771ddbb45b7e72e581a4114681defe",
+    "bytes": 11010
+  },
+  {
+    "root": "common",
+    "logical": "master/string/ui_string.orderedmap",
+    "rel": "d6/88e4a5f7d84cc422357cc8acbdb72817bc8670",
+    "member": "production/upload/d6/88e4a5f7d84cc422357cc8acbdb72817bc8670",
+    "before_sha256": "abd1d58ad606ec16929bd21930c93c10dc54ea5a27463d4af5ca993564c34e35",
+    "sha256": "a901379873ae114774f79b0fb4eada438e6e962c5fbcbe3ab2eb6ba76e85593d",
+    "kind": "native-entry-condition-message"
+  },
+  {
+    "root": "common",
+    "logical": "battle/effect/powerflip/resistance_princess_ex_pf_fist/resistance_princess_ex_pf_fist.png",
+    "rel": "d7/0a07172524eeb2993dd340c831ec2afc64339d",
+    "member": "production/upload/d7/0a07172524eeb2993dd340c831ec2afc64339d",
+    "before_sha256": "a382015cf41f65e9dc63e255600a140d4d9e6cd8c68893e53bc329a17a84efcd",
+    "sha256": "c3d7ed737261eafaf2320fda1e4b806b9c471f4b50faa97395863c8d3bd38f38",
+    "kind": "cn-lossless-atlas"
+  },
+  {
+    "root": "common",
+    "rel": "d7/50c2f94f83dd053bfc79039a709f1ec6f766cb",
+    "logical": "master/stance_detail/character_stance_detail.orderedmap",
+    "member": "production/upload/d7/50c2f94f83dd053bfc79039a709f1ec6f766cb",
+    "sha256": "eb1580a830c2755dc3743c933c2e9abe0b3bbb916e3ecbd5825a1e76b5f5f3a3",
+    "before_sha256": "387af80737dfb939639e7b70b7d33afd192ff1521e7a01e8028b43bc0e294ac0",
+    "bytes": 15387
+  },
+  {
+    "root": "common",
+    "logical": "character/fox_oracle_autumn/pixelart/sprite_sheet.png",
+    "rel": "d8/530d6b177e446aaa5c9923eec6ffddf96c295c",
+    "member": "production/upload/d8/530d6b177e446aaa5c9923eec6ffddf96c295c",
+    "before_sha256": "9a9b48b7c852f58b564c568e14207443139cd89184de0a2c306b8a31e5b6b66a",
+    "sha256": "dca8b084095be37eaa57eeffa7bc095961a273c1883227a43104a8f00bdff598",
+    "kind": "cn-lossless-atlas"
+  },
+  {
+    "root": "common",
+    "logical": "battle/effect/skill_unique/resistance_princess_ex/blade/blade.png",
+    "rel": "d9/873bf7087b014bfccf5d547123b9c17777023e",
+    "member": "production/upload/d9/873bf7087b014bfccf5d547123b9c17777023e",
+    "before_sha256": "bf62731f4dc820facb11e113a0af6a336290e641ef434ccf69dd6fc482d29542",
+    "sha256": "51bf0bd270518b66623d00e8012a60fbedf0dcfc57f0eb73a1ddbffa41954f38",
+    "kind": "cn-lossless-atlas"
+  },
+  {
+    "root": "common",
+    "rel": "da/89be30822515d51dee4c3d8829644245a4069e",
+    "logical": "character/white_tiger_summer/voice/battle/skill_0.mp3",
+    "member": "production/upload/da/89be30822515d51dee4c3d8829644245a4069e",
+    "sha256": "cdc01cad5b0369ad9f396194fd742c62b2eb011d4afb2826238d293bea505f37",
+    "before_sha256": null,
+    "bytes": 22596
+  },
+  {
+    "root": "common",
+    "logical": "item_icon/materials/mod/five_boss/deathbringer_blueprint_v2.png",
+    "rel": "dc/d03da09ca3440230620ce68990628251632913",
+    "member": "production/upload/dc/d03da09ca3440230620ce68990628251632913",
+    "before_sha256": null,
+    "sha256": "1dae5e5c1c227af2af27cc65d4b40724214c24176882928c8706f193d8343860",
+    "kind": "user-item-art"
+  },
+  {
+    "root": "common",
+    "rel": "df/ccfbef2ed9a44db2a8096cbb409be0574cb864",
+    "logical": "character/white_tiger_summer/ui/illustration_setting_sprite_sheet.atlas.amf3.deflate",
+    "member": "production/upload/df/ccfbef2ed9a44db2a8096cbb409be0574cb864",
+    "sha256": "b55c849e8b137a3b207a8e5d68c53b9d2b26718567249fdd9794a7a4e41b72f5",
+    "before_sha256": null,
+    "bytes": 156
+  },
+  {
+    "root": "common",
+    "rel": "e0/e3ee775972dbb22afff647d6ab6b6e51c31ea4",
+    "logical": "battle/action/power_flip/action/override/white_tiger_summer_pf$white_tiger_summer_pf_lv2.action.dsl.amf3.deflate",
+    "member": "production/upload/e0/e3ee775972dbb22afff647d6ab6b6e51c31ea4",
+    "sha256": "3e93f3b590e6fd724aaa88975725e509e5182ed332d272d96bd321baabd184fb",
+    "before_sha256": null,
+    "bytes": 1164
+  },
+  {
+    "root": "common",
+    "logical": "character/epuration_empress_playable/pixelart/sprite_sheet.atlas.amf3.deflate",
+    "rel": "e2/ceca50d78de1eafb65c29d4c66cb8f5caa769a",
+    "member": "production/upload/e2/ceca50d78de1eafb65c29d4c66cb8f5caa769a",
+    "before_sha256": "eff75443e0a602afc2abfb1c98b0b1a30fedde1a109322de40b8c252b2480a3e",
+    "sha256": "77df25e85c9ee2ba3a60f69f59d202ceace3fd1641180a07cfd666dfe8e790c2",
+    "kind": "cn-lossless-atlas"
+  },
+  {
+    "root": "common",
+    "rel": "e2/dcccdac0a616df91003cc1f6f0039baeae938b",
+    "logical": "character/white_tiger_summer/pixelart/special_sprite_sheet.atlas.amf3.deflate",
+    "member": "production/upload/e2/dcccdac0a616df91003cc1f6f0039baeae938b",
+    "sha256": "5635d8dbb658bcf6aecd0e93592d7f3a3b5935f35e6dc9523951acdf3e44cb9a",
+    "before_sha256": null,
+    "bytes": 643
+  },
+  {
+    "root": "common",
+    "rel": "eb/f8ef19148af9c1330b78c7fb3ce75e3f202e64",
+    "logical": "master/quest/boss_battle_quest.orderedmap",
+    "member": "production/upload/eb/f8ef19148af9c1330b78c7fb3ce75e3f202e64",
+    "sha256": "809c3d6162e5c77e7493106b1ac9566fd06e04bb623a92594f71b13938a1bf8d",
+    "before_sha256": "730149fca9887b51b1a80724565290c1d19ab8e23ec173f4395635b54c14162a",
+    "bytes": 79583
+  },
+  {
+    "root": "common",
+    "rel": "ec/d8f66b60947ca05643c4080a6cc925c750b9d6",
+    "logical": "master/battle/boss/general_boss.orderedmap",
+    "member": "production/upload/ec/d8f66b60947ca05643c4080a6cc925c750b9d6",
+    "sha256": "c62a3ea66e6b01a7f3fae089c08ec5a198475f0ae0e71b1b1ce1672d64f100f0",
+    "before_sha256": "d830b5cbf62b3c84cb43775e621178687dd56cad6758b3a61a3d035d820020dd",
+    "bytes": 388246
+  },
+  {
+    "root": "common",
+    "logical": "battle/effect/powerflip/lion_swordman_reborn/lion_swordman_reborn.atlas.amf3.deflate",
+    "rel": "ed/05df84fa911816fdcb5ce96141bd7c5615ae5e",
+    "member": "production/upload/ed/05df84fa911816fdcb5ce96141bd7c5615ae5e",
+    "before_sha256": "643ea1c368c8ee246bb2fbf139c9e7457f3824e32b465fdb4cab8adbb2d2a7c9",
+    "sha256": "6048342b68520bfcb4ce2a08c568a82c873fcaf424203d7f69347b157c5dbcf8",
+    "kind": "cn-lossless-atlas"
+  },
+  {
+    "root": "common",
+    "rel": "f0/58e61d2edc6bd0b89c7ec441d08743418b4e5e",
+    "logical": "character/white_tiger_summer/pixelart/pixelart.frame.amf3.deflate",
+    "member": "production/upload/f0/58e61d2edc6bd0b89c7ec441d08743418b4e5e",
+    "sha256": "3711da9cc2cbbeedaa171f01db3c05ced8384efb2217d550e8e963eeb7e49aff",
+    "before_sha256": null,
+    "bytes": 80
+  },
+  {
+    "root": "common",
+    "rel": "f1/acc0d30fa9c673105b2896e1aeb64a3072f2f3",
+    "logical": "character/white_tiger_summer/voice/battle/battle_start_1.mp3",
+    "member": "production/upload/f1/acc0d30fa9c673105b2896e1aeb64a3072f2f3",
+    "sha256": "535f81452b31fb43d068f2763f8050fac67190095205fdf3c446438135117e19",
+    "before_sha256": null,
+    "bytes": 19765
+  },
+  {
+    "root": "common",
+    "rel": "f1/ddf9f49491067c34b0564e815b351809fb907e",
+    "logical": "character/white_tiger_summer/pixelart/pixelart.timeline.amf3.deflate",
+    "member": "production/upload/f1/ddf9f49491067c34b0564e815b351809fb907e",
+    "sha256": "a9a077629f69f6a96c267a2c34f9f81c6d0b7cbec4db88c607b62dcb546fd400",
+    "before_sha256": null,
+    "bytes": 471
+  },
+  {
+    "root": "common",
+    "logical": "item_icon/materials/mod/five_boss/fivefold_clear_badge_v2.png",
+    "rel": "f5/0e08259b2684bc738896b2ad6389f21d54d62e",
+    "member": "production/upload/f5/0e08259b2684bc738896b2ad6389f21d54d62e",
+    "before_sha256": null,
+    "sha256": "9af5dd2e0c3b44fda2b243762c011d43668236c1fb64da9d57628125c01d701a",
+    "kind": "user-item-art"
+  },
+  {
+    "root": "common",
+    "rel": "f8/debc2e1105f1d86242517503ad167f29fe5b63",
+    "logical": "character/white_tiger_summer/voice/ally/join.mp3",
+    "member": "production/upload/f8/debc2e1105f1d86242517503ad167f29fe5b63",
+    "sha256": "967a863e146d95b247b4d599fb4055ccf3d579eee589c5e4da82f19fe4c6b757",
+    "before_sha256": null,
+    "bytes": 82193
+  },
+  {
+    "root": "common",
+    "rel": "fb/ab4344a7456dca88f3ce06f01208922f37e395",
+    "logical": "master/generated/trimmed_image.orderedmap",
+    "member": "production/upload/fb/ab4344a7456dca88f3ce06f01208922f37e395",
+    "sha256": "c0e6192ffb1aebbfc2c183703cc0a78fcb478abec3496b5efe0c71fdb2a0ebc7",
+    "before_sha256": "ee8edd9f85590e6755ab897bf08615d376a3a670d1af6e244422578cad143df6",
+    "bytes": 356423
+  },
+  {
+    "root": "common",
+    "rel": "ff/84353774cb95e8d7dc90c679f96a5bca7f42e5",
+    "logical": "master/ability/leader_ability.orderedmap",
+    "member": "production/upload/ff/84353774cb95e8d7dc90c679f96a5bca7f42e5",
+    "sha256": "2ef9936948d3a16870c2c5d84975da4aaf39d376098e3c0e524712e1dc34cb20",
+    "before_sha256": "e3becef39f2c3f95eb144e751f7c4d66c2b6588f6195c90a3a60cf900ada6101",
+    "bytes": 64695
+  },
+  {
+    "root": "common",
+    "logical": "character/epuration_variant_playable/pixelart/sprite_sheet.atlas.amf3.deflate",
+    "rel": "ff/af7e959833435bff065e7b66eaf3d0c8988f60",
+    "member": "production/upload/ff/af7e959833435bff065e7b66eaf3d0c8988f60",
+    "before_sha256": "ba9efc5c6662c9e3396c0be01286b0a0417ae7a4efe03b899ac2fd27d72d3033",
+    "sha256": "9e150acf116ce4c0b776e2893c8b8b8ea68b0522ffe53e1a9d44a530e3aae0aa",
+    "kind": "cn-lossless-atlas"
+  },
+  {
+    "root": "common",
+    "logical": "character/epuration_infantry_playable/pixelart/sprite_sheet.atlas.amf3.deflate",
+    "rel": "ff/b69b314fef0ed1a8672e6b659985d018545e64",
+    "member": "production/upload/ff/b69b314fef0ed1a8672e6b659985d018545e64",
+    "before_sha256": "3623920825db677b8019bb12ad8158d09a7b18d7bc4a062b1b398ff0439c5a27",
+    "sha256": "dae57b2f0693080a748332060d82ee3dd2d835abf4cce1d539b0b0d2985daeba",
+    "kind": "cn-lossless-atlas"
+  }
+]
