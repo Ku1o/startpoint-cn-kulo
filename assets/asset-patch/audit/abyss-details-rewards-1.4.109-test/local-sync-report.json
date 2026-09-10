@@ -1,0 +1,32 @@
+{
+  "status": "local_test_increment_synced",
+  "target": "F:\\startpoint-cn-main",
+  "mode": "authorized_uncommitted_local_test_increment",
+  "files": [
+    {
+      "path": "assets/asset-patch/active/pinball-1.4.108-1.4.109-1-abyss-details-rewards-test.zip",
+      "size": 52288,
+      "sha256": "f35bfe5851da534929420d5110d7907a0d1fee7eb70d1c2980ff85d16e7dfe78",
+      "before_sha256": null
+    },
+    {
+      "path": "assets/asset-patch/production/upload/b6/595dedd9cfa79b7e6eccab25dd9a2a81b066a2",
+      "size": 50688,
+      "sha256": "3a5fc62319b38ea68f3f69ef62965d5d86f4a2d6d96e666030143945e19baf3c",
+      "before_sha256": "025cbe53c8ad7ce3c7f5f091f25daf303acc2a9edd8df584c0f7e433bead8bb6"
+    },
+    {
+      "path": "assets/asset-patch/production/upload/e6/e407d1adb48131eaefdf5ec32208f3d4f46910",
+      "size": 9858,
+      "sha256": "3f12847d10d90158541bc88b81a1baf87371867a98e82197ab2149e9a89488a4",
+      "before_sha256": "c960912a7860091586e26d124566ed5e3884b394f00326b83a27c7f1ba20edab"
+    },
+    {
+      "path": "assets/asset-patch/manifest.json",
+      "size": 772981,
+      "sha256": "4ff9d07800d2ae840f5ca592b5a4fa2c9375778ad751466d8b6b737c77140fa9",
+      "before_sha256": "8a6318eac8c1391d9c135d6b6cb80179606ff43d8511013bac8efa18ca9465a6"
+    }
+  ],
+  "backup": "F:\\startpoint-cn-main\\.codex-backups\\20260910-174153-abyss-details-rewards"
+}

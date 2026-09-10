@@ -1,0 +1,21 @@
+{
+  "status": "passed",
+  "resource_version": "1.4.110",
+  "runtime_chain_inventory_checked": 311,
+  "synced_files_checked": 16,
+  "strict_png_route_readbacks": [
+    "item/equipment/mod/five_boss/deathbringer_final_lv0.png",
+    "item/equipment/mod/five_boss/deathbringer_final_lv120.png",
+    "item/equipment/mod/five_boss/deathbringer_final_shop.png",
+    "item/materials/mod/five_boss/deep_crystal.png",
+    "item/materials/mod/five_boss/five_king_core.png",
+    "item/sprite_sheet.png"
+  ],
+  "original_art_files_unchanged": true,
+  "protected_source_files_unchanged": true,
+  "published_archives_unchanged": true,
+  "png_storage_regressions_passed": 4,
+  "network_server_running": false,
+  "device_ui_tested": false,
+  "air_started": false
+}

@@ -32,6 +32,16 @@
     "pool": {
       "1": [
         {
+          "id": 149990,
+          "rank": 5,
+          "odds": 0,
+          "isRateUp": false,
+          "isLimited": true,
+          "isExchangeable": false,
+          "rarity": 0.0,
+          "trialReadingForced": false
+        },
+        {
           "id": 129992,
           "rank": 5,
           "odds": 38000,
@@ -1397,7 +1407,7 @@
           "odds": 5212,
           "isRateUp": false,
           "isLimited": false,
-          "isExchangeable": false,
+          "isExchangeable": true,
           "rarity": 3.474667,
           "trialReadingForced": false
         },

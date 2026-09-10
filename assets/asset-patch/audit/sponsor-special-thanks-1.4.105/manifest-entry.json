@@ -1,0 +1,35 @@
+{
+  "id": "sponsor-special-thanks-1.4.105",
+  "type": "patch",
+  "name": "赞助者称号「特别鸣谢」",
+  "description": "新增永久赞助者称号9900012，采用已选定的B款中国结图片，由管理员通过称号邮件定向发放。",
+  "version": "1.4.105",
+  "depends_on": "1.4.104",
+  "enabled": true,
+  "archive": "pinball-1.4.104-1.4.105-1-sponsor-special-thanks-cn.zip",
+  "archive_size": 214626,
+  "chain": [
+    "pinball-1.4.104-1.4.105-1-sponsor-special-thanks-cn.zip"
+  ],
+  "archive_integrity": [
+    {
+      "name": "pinball-1.4.104-1.4.105-1-sponsor-special-thanks-cn.zip",
+      "size": 214626,
+      "sha256": "f0d52b2c2ae2c3ff9bd7264a9e9c6fc07dce0baea08a7986257567482d5870f1",
+      "members": 2,
+      "files": [
+        "production/upload/03/076857d74f07bb194f6185d4f1c1d6061850ce",
+        "production/upload/89/e5c25c791e2a9527422c186084a1793218c2ac"
+      ]
+    }
+  ],
+  "files": [
+    "production/upload/03/076857d74f07bb194f6185d4f1c1d6061850ce",
+    "production/upload/89/e5c25c791e2a9527422c186084a1793218c2ac"
+  ],
+  "created_at": "2026-09-09",
+  "audit": {
+    "directory": "assets/asset-patch/audit/sponsor-special-thanks-1.4.105",
+    "report": "report.json"
+  }
+}

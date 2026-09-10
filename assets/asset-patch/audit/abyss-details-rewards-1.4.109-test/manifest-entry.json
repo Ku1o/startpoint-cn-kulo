@@ -1,0 +1,37 @@
+{
+  "id": "abyss-details-rewards-1.4.109-test",
+  "type": "patch",
+  "name": "深渊奖励预览与关卡详情（本地测试）",
+  "description": "固定奖励预览与服务端一致；为关卡详情提供敌人与血量说明；保留全部战斗数据。",
+  "version": "1.4.109",
+  "depends_on": "1.4.108",
+  "enabled": true,
+  "archive": "pinball-1.4.108-1.4.109-1-abyss-details-rewards-test.zip",
+  "archive_size": 52288,
+  "chain": [
+    "pinball-1.4.108-1.4.109-1-abyss-details-rewards-test.zip"
+  ],
+  "archive_integrity": [
+    {
+      "name": "pinball-1.4.108-1.4.109-1-abyss-details-rewards-test.zip",
+      "size": 52288,
+      "sha256": "f35bfe5851da534929420d5110d7907a0d1fee7eb70d1c2980ff85d16e7dfe78",
+      "members": 2,
+      "files": [
+        "production/upload/b6/595dedd9cfa79b7e6eccab25dd9a2a81b066a2",
+        "production/upload/e6/e407d1adb48131eaefdf5ec32208f3d4f46910"
+      ]
+    }
+  ],
+  "files": [
+    "production/upload/b6/595dedd9cfa79b7e6eccab25dd9a2a81b066a2",
+    "production/upload/e6/e407d1adb48131eaefdf5ec32208f3d4f46910"
+  ],
+  "created_at": "2026-09-10",
+  "local_test_only": true,
+  "required_client_capability": "cn.ui.AbyssDetails/v1 + cn.rules.QuestElementResistance/v1",
+  "audit": {
+    "directory": "assets/asset-patch/audit/abyss-details-rewards-1.4.109-test",
+    "report": "report.json"
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "id": "abyss-pre-action-empty-1.4.105-test",
+  "type": "patch",
+  "name": "深渊空初始化脚本修复（本地测试）",
+  "description": "修正九关十三条 General Boss 配置的空脚本列表，避免加载 (None).action.dsl.amf3.deflate；保留原塔和属性封锁。",
+  "version": "1.4.105",
+  "depends_on": "1.4.104",
+  "enabled": true,
+  "archive": "pinball-1.4.104-1.4.105-1-abyss-pre-action-empty-test.zip",
+  "archive_size": 279544,
+  "chain": [
+    "pinball-1.4.104-1.4.105-1-abyss-pre-action-empty-test.zip"
+  ],
+  "archive_integrity": [
+    {
+      "name": "pinball-1.4.104-1.4.105-1-abyss-pre-action-empty-test.zip",
+      "size": 279544,
+      "sha256": "6d696ccae176bed4ea048b47a9c19cce1d33b818e7b4906f436878756ef15b38",
+      "members": 1,
+      "files": [
+        "production/upload/ec/d8f66b60947ca05643c4080a6cc925c750b9d6"
+      ]
+    }
+  ],
+  "files": [
+    "production/upload/ec/d8f66b60947ca05643c4080a6cc925c750b9d6"
+  ],
+  "created_at": "2026-09-10",
+  "local_test_only": true,
+  "required_client_capability": "cn.rules.QuestElementResistance/v1",
+  "audit": {
+    "directory": "assets/asset-patch/audit/abyss-pre-action-empty-1.4.105-test",
+    "report": "report.json"
+  }
+}

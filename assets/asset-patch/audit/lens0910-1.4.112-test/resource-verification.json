@@ -1,0 +1,126 @@
+{
+  "status": "passed",
+  "resources": 295,
+  "dsl_count": 15,
+  "dsl": [
+    "battle/action/power_flip/action/override/white_tiger_ghost_playable_pf$white_tiger_ghost_playable_pf_lv1.action.dsl.amf3.deflate",
+    "battle/action/power_flip/action/override/white_tiger_ghost_playable_pf$white_tiger_ghost_playable_pf_lv2.action.dsl.amf3.deflate",
+    "battle/action/power_flip/action/override/white_tiger_ghost_playable_pf$white_tiger_ghost_playable_pf_lv3.action.dsl.amf3.deflate",
+    "battle/action/power_flip/action/override/white_tiger_summer_pf$white_tiger_summer_pf_lv1.action.dsl.amf3.deflate",
+    "battle/action/power_flip/action/override/white_tiger_summer_pf$white_tiger_summer_pf_lv2.action.dsl.amf3.deflate",
+    "battle/action/power_flip/action/override/white_tiger_summer_pf$white_tiger_summer_pf_lv3.action.dsl.amf3.deflate",
+    "battle/action/skill/action/rare5/fox_oracle_autumn$fox_oracle_autumn_1.action.dsl.amf3.deflate",
+    "battle/action/skill/action/rare5/fox_oracle_autumn$fox_oracle_autumn_2.action.dsl.amf3.deflate",
+    "battle/action/skill/action/rare5/white_tiger_ghost_playable$white_tiger_ghost_playable_pf_lv1_followup.action.dsl.amf3.deflate",
+    "battle/action/skill/action/rare5/white_tiger_ghost_playable$white_tiger_ghost_playable_pf_lv2_followup.action.dsl.amf3.deflate",
+    "battle/action/skill/action/rare5/white_tiger_ghost_playable$white_tiger_ghost_playable_pf_lv3_ex_followup.action.dsl.amf3.deflate",
+    "battle/action/skill/action/rare5/white_tiger_ghost_playable$white_tiger_ghost_playable_pf_lv3_followup.action.dsl.amf3.deflate",
+    "battle/action/skill/action/rare5/white_tiger_ghost_playable$white_tiger_ghost_playable_twin_followup.action.dsl.amf3.deflate",
+    "battle/action/skill/action/rare5/white_tiger_summer$white_tiger_summer_1.action.dsl.amf3.deflate",
+    "battle/action/skill/action/rare5/white_tiger_summer$white_tiger_summer_2.action.dsl.amf3.deflate"
+  ],
+  "media_count": 246,
+  "atlas_checks": [
+    {
+      "root": "common",
+      "logical": "battle/effect/skill_unique/white_tiger_summer/wts_fever_burst/wts_fever_burst.atlas.amf3.deflate",
+      "frames": 6
+    },
+    {
+      "root": "common",
+      "logical": "character/unicorn_lancer_rose/pixelart/special_sprite_sheet.atlas.amf3.deflate",
+      "frames": 37
+    },
+    {
+      "root": "common",
+      "logical": "character/unicorn_lancer_rose/pixelart/sprite_sheet.atlas.amf3.deflate",
+      "frames": 118
+    },
+    {
+      "root": "common",
+      "logical": "character/white_tiger_summer/pixelart/special_sprite_sheet.atlas.amf3.deflate",
+      "frames": 36
+    },
+    {
+      "root": "common",
+      "logical": "character/white_tiger_summer/pixelart/sprite_sheet.atlas.amf3.deflate",
+      "frames": 136
+    }
+  ],
+  "direct_references": [
+    "battle/action/skill/action/rare5/unicorn_lancer_rose$unicorn_lancer_rose_1.action.dsl.amf3.deflate",
+    "battle/action/skill/action/rare5/unicorn_lancer_rose$unicorn_lancer_rose_2.action.dsl.amf3.deflate",
+    "battle/action/skill/action/rare5/white_tiger_ghost_playable$white_tiger_ghost_playable_pf_lv1_followup.action.dsl.amf3.deflate",
+    "battle/action/skill/action/rare5/white_tiger_ghost_playable$white_tiger_ghost_playable_pf_lv2_followup.action.dsl.amf3.deflate",
+    "battle/action/skill/action/rare5/white_tiger_ghost_playable$white_tiger_ghost_playable_pf_lv3_ex_followup.action.dsl.amf3.deflate",
+    "battle/action/skill/action/rare5/white_tiger_ghost_playable$white_tiger_ghost_playable_pf_lv3_followup.action.dsl.amf3.deflate",
+    "battle/action/skill/action/rare5/white_tiger_summer$white_tiger_summer_1.action.dsl.amf3.deflate",
+    "battle/action/skill/action/rare5/white_tiger_summer$white_tiger_summer_2.action.dsl.amf3.deflate"
+  ],
+  "pool_checks": [
+    {
+      "id": "990001",
+      "count": 256,
+      "total": 1500000
+    },
+    {
+      "id": "990002",
+      "count": 286,
+      "total": 950000
+    }
+  ],
+  "previous_resources_preserved": 314,
+  "icon_display": {
+    "required_small_icons": [
+      {
+        "id": 10000143,
+        "name": "深界连战凭证",
+        "icon": "item_icon/materials/mod/five_boss/entry_ticket_v2"
+      },
+      {
+        "id": 10000144,
+        "name": "终式武装图纸",
+        "icon": "item_icon/materials/mod/five_boss/deathbringer_blueprint_v2"
+      },
+      {
+        "id": 10000145,
+        "name": "深界结晶",
+        "icon": "item_icon/materials/mod/five_boss/deep_crystal_v2"
+      },
+      {
+        "id": 10000146,
+        "name": "五重决战之证",
+        "icon": "item_icon/materials/mod/five_boss/fivefold_clear_badge_v2"
+      },
+      {
+        "id": 10000147,
+        "name": "五王心核",
+        "icon": "item_icon/materials/mod/five_boss/five_king_core_v2"
+      }
+    ],
+    "material_size": [
+      40,
+      40
+    ],
+    "thumbnail_size": [
+      20,
+      20
+    ],
+    "native_thumbnail_scale": 6,
+    "rendered_thumbnail_size": [
+      120,
+      120
+    ],
+    "native_frame_size": 168,
+    "weapon_thumbnail_paths": [
+      "item/equipment/mod/five_boss/deathbringer_final_lv0",
+      "item/equipment/mod/five_boss/deathbringer_final_lv120",
+      "item/equipment/mod/five_boss/deathbringer_final_shop"
+    ],
+    "full_canvas_trim": true
+  },
+  "summer_ability6_author_exact": true,
+  "kyubi_existing_fixes_preserved": true,
+  "device_tested": false,
+  "desktop_air_run": false
+}

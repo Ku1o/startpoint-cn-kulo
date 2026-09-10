@@ -1,0 +1,9 @@
+{
+  "9900012": {
+    "string_id": "degree_mod_special_thanks",
+    "name": "特别鸣谢",
+    "kana": "special_thanks",
+    "condition": "感谢您对 StarPoint CN 的支持与赞助。",
+    "category_id": 8
+  }
+}

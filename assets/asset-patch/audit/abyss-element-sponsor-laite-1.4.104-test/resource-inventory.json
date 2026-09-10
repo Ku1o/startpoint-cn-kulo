@@ -1,0 +1,358 @@
+[
+  {
+    "logical": "battle/action/enemy/action/mod_rogue/immunity_8e4361b91999.action.dsl.amf3.deflate",
+    "member": "production/upload/49/61970598c560a0ef40fe30c834d7cd2b5136c6",
+    "size": 352,
+    "sha256": "40355e43115c418fb47e02e5a09739d61eef10332ab699d4445f2780f6abb3f3",
+    "source": "abyss",
+    "before_sha256": null,
+    "included": true
+  },
+  {
+    "logical": "battle/action/enemy/action/mod_rogue/immunity_b853b0950500.action.dsl.amf3.deflate",
+    "member": "production/upload/8d/f12b47729cf749d495a98f8dbf919cbf5355b8",
+    "size": 230,
+    "sha256": "fa736e387d141446e6228aa6ff1ce7a56a6f53f7f6251012aa7632371abdaf93",
+    "source": "abyss",
+    "before_sha256": "fa736e387d141446e6228aa6ff1ce7a56a6f53f7f6251012aa7632371abdaf93",
+    "included": false
+  },
+  {
+    "logical": "battle/action/enemy/action/mod_rogue/immunity_c2ec9e72f774.action.dsl.amf3.deflate",
+    "member": "production/upload/92/32341a30550db1f476267f937623d89384796b",
+    "size": 230,
+    "sha256": "eb8b5396fd47310e6ad065c5cb5edca276e3bf766d90faa918ff10e7a9485bd7",
+    "source": "abyss",
+    "before_sha256": "eb8b5396fd47310e6ad065c5cb5edca276e3bf766d90faa918ff10e7a9485bd7",
+    "included": false
+  },
+  {
+    "logical": "battle/action/enemy/action/mod_rogue/immunity_d9fcff68c333.action.dsl.amf3.deflate",
+    "member": "production/upload/89/4367c026148f78da6f3a96226c88e56cb635f4",
+    "size": 212,
+    "sha256": "0005050316b50e6b5426e6e9f9046d00c7427001c1a1c76647c3026624c57f1c",
+    "source": "abyss",
+    "before_sha256": "0005050316b50e6b5426e6e9f9046d00c7427001c1a1c76647c3026624c57f1c",
+    "included": false
+  },
+  {
+    "logical": "battle/enemy/boss/mod_rogue/standard_r12_1.esdl.amf3.deflate",
+    "member": "production/upload/e0/72d4a7ffa27a6cfb60d43e70f67771318c8442",
+    "size": 3583,
+    "sha256": "aadc0197c98a6cb357e93d59e58389b604907fef9d9419a038fc91f5a95178e7",
+    "source": "abyss",
+    "before_sha256": null,
+    "included": true
+  },
+  {
+    "logical": "battle/enemy/boss/mod_rogue/standard_r15_1.esdl.amf3.deflate",
+    "member": "production/upload/af/969a1e2e96fefa725b8142333f606ea984c3ba",
+    "size": 9167,
+    "sha256": "5d2a4858c40424d50b4a255f2bcb918842eb89606d123e682832f4ed52bca1f6",
+    "source": "abyss",
+    "before_sha256": "5d2a4858c40424d50b4a255f2bcb918842eb89606d123e682832f4ed52bca1f6",
+    "included": false
+  },
+  {
+    "logical": "battle/enemy/boss/mod_rogue/standard_r15_2.esdl.amf3.deflate",
+    "member": "production/upload/e2/737a35dd2ed8d84a0b0dc8c560827d2b49a0f5",
+    "size": 644,
+    "sha256": "db8a94d3d5ab53920a5edb069ef5bb4f61ce94b94276aa5fbb36fdf854b9a2c0",
+    "source": "abyss",
+    "before_sha256": "db8a94d3d5ab53920a5edb069ef5bb4f61ce94b94276aa5fbb36fdf854b9a2c0",
+    "included": false
+  },
+  {
+    "logical": "battle/enemy/boss/mod_rogue/standard_r18_1.esdl.amf3.deflate",
+    "member": "production/upload/43/5f605925e46a07ace99e9a37f48c572b3910b2",
+    "size": 3688,
+    "sha256": "8c1a1cd0af553f5e995275658f7d9f4a7463a09757fec529661262bdc70efe3c",
+    "source": "abyss",
+    "before_sha256": "c71dc6882c1e269a18bb1b2ab668066e947f430983d4fefab0134c3d6d593f90",
+    "included": true
+  },
+  {
+    "logical": "battle/enemy/boss/mod_rogue/standard_r19_1.esdl.amf3.deflate",
+    "member": "production/upload/59/c5bb8f7fb001d1657bf646d4f6f6df3e78547c",
+    "size": 28529,
+    "sha256": "c661bd53b7747df2fb89cc5d8f9e410bc2abc4348bc2ef428b1eb94ef86d3d02",
+    "source": "abyss",
+    "before_sha256": "b3b9e759b026e4c67cc5e8fe23d1d77a0075fe19e41c90b0f74910aae25dc5ea",
+    "included": true
+  },
+  {
+    "logical": "battle/enemy/boss/mod_rogue/standard_r21_1.esdl.amf3.deflate",
+    "member": "production/upload/cb/5233f0c38e2299db1cd32b55f02c2a126e9be2",
+    "size": 9834,
+    "sha256": "f8611db0b79a356d0158c5dfca18e522e1fd4ed8c2904f028c91833cf17c74e7",
+    "source": "abyss",
+    "before_sha256": "f8611db0b79a356d0158c5dfca18e522e1fd4ed8c2904f028c91833cf17c74e7",
+    "included": false
+  },
+  {
+    "logical": "battle/enemy/boss/mod_rogue/standard_r29_1.esdl.amf3.deflate",
+    "member": "production/upload/56/02a557d238e3971cfe8593c7cacf5bf54c9f4a",
+    "size": 5441,
+    "sha256": "ca8219fb1df9524a83ad15747b143992a4d505ca8836db52bac129c815041584",
+    "source": "abyss",
+    "before_sha256": "4f95eb270c210f6ba06ddb8f77471e9be42a2b507a1c902a70b6e15e05217eb8",
+    "included": true
+  },
+  {
+    "logical": "battle/enemy/boss/mod_rogue/standard_r29_2.esdl.amf3.deflate",
+    "member": "production/upload/59/bf5b23f0218e8342a1448910aad80f00834818",
+    "size": 955,
+    "sha256": "bea1da70ee6fb2a37d666e72d537352ae63fe3763f71a39f7cf3ed7bd12ba968",
+    "source": "abyss",
+    "before_sha256": "f46f93f9049ff211d7758ba936c61b7bb0ca9a59e94e0eb792e4e00d08848cf4",
+    "included": true
+  },
+  {
+    "logical": "battle/enemy/boss/mod_rogue/standard_r6_1.esdl.amf3.deflate",
+    "member": "production/upload/42/b1d50adc81eb1fe334079478672e79ae2c1006",
+    "size": 13385,
+    "sha256": "6fbbd4e1e6d844a5f7d4e66ade2df74db3916ead9c46b19f2b300722227aea8e",
+    "source": "abyss",
+    "before_sha256": "7c4152f522762dcb67f1e5461349ecbb3c861abbb6026c4af7e58d9c2eb8559d",
+    "included": true
+  },
+  {
+    "logical": "battle/enemy/boss/mod_rogue/standard_r9_1.esdl.amf3.deflate",
+    "member": "production/upload/d3/07658fbc5d17a270abd68a356b73266556a8e9",
+    "size": 4836,
+    "sha256": "460f39d4de22a0858cbf0e4c71601f3a24d97bbfbbfcbea53d651818ec696562",
+    "source": "abyss",
+    "before_sha256": "e8e7ceb5a66a8aec759e36ea7b6ab6b920506f186184beeda09bf7d7c5e56607",
+    "included": true
+  },
+  {
+    "logical": "master/battle/boss/boss_level.orderedmap",
+    "member": "production/upload/19/a4aa442b3249499356e7a3f6370e530bfe355e",
+    "size": 45959,
+    "sha256": "e4360d8b2389bfc0576452f8dd19520f8ef3e71d886ee049655973dfb43cfe3b",
+    "source": "abyss",
+    "before_sha256": "f7ebfb4b17e8fabe64e4bb2316dbeaa08ff25d5e0a778644108138a0ae3e87a8",
+    "included": true
+  },
+  {
+    "logical": "master/battle/boss/conductor.orderedmap",
+    "member": "production/upload/e4/d1e3b7e223e1151195626286f773e305144b0a",
+    "size": 1724,
+    "sha256": "41eb80c5da30df1048e8a4ee8294fb6b87d07b3c8e59ecb82b116d09328d35c5",
+    "source": "abyss",
+    "before_sha256": "039748f590e10dbf1dffc268c471577a480375d314c60324b2fe2bad1f5b188b",
+    "included": true
+  },
+  {
+    "logical": "master/battle/boss/general_boss.orderedmap",
+    "member": "production/upload/ec/d8f66b60947ca05643c4080a6cc925c750b9d6",
+    "size": 378713,
+    "sha256": "19310bb3d96794fa3d206cac77bfd194077a3557ee35c9a2a0c2332a4dfbce2c",
+    "source": "abyss",
+    "before_sha256": "c62a3ea66e6b01a7f3fae089c08ec5a198475f0ae0e71b1b1ce1672d64f100f0",
+    "included": true
+  },
+  {
+    "logical": "master/battle/boss/general_boss_state.orderedmap",
+    "member": "production/upload/0b/97162ce6d40c473cbac39fa21427688922a48a",
+    "size": 5317465,
+    "sha256": "6ec9ed11b40d8db8012d0784d473dd424ec2001082c670686f11bb73231a519e",
+    "source": "abyss",
+    "before_sha256": "a5c783c0ef203f94a6284ed1fc709daafe83797606ddee026d3b7039255b5e89",
+    "included": true
+  },
+  {
+    "logical": "master/battle/boss/general_boss_variable.orderedmap",
+    "member": "production/upload/82/93e535e806d70640f45950db1fe14ed9482bdf",
+    "size": 87740,
+    "sha256": "0dcda519718b6d910fb9fc1a61b1870100d76ed67f7d510f22cd9ca4570d2700",
+    "source": "abyss",
+    "before_sha256": "529f73618bed3b09b4d5293baae27290638eae139abaf088c4cb7cdf452c6ddf",
+    "included": true
+  },
+  {
+    "logical": "master/battle/boss/general_enemy_watch.orderedmap",
+    "member": "production/upload/84/fd6ee6a23114c8f888fadc838bbe8bdf668677",
+    "size": 64656,
+    "sha256": "b0d8d710d48c4fe3f193bf4fbece184db10ab158ff7b38103dce064f0f0eb4c7",
+    "source": "abyss",
+    "before_sha256": "bfdf0a6d34bed237af1f17710bf2f8609d5956e77f26ac2ca8709044cedae9f8",
+    "included": true
+  },
+  {
+    "logical": "master/battle/boss/kraken.orderedmap",
+    "member": "production/upload/fd/80bb595562a9f2bf69deb917e572e159c28839",
+    "size": 4433,
+    "sha256": "deb5d2fef96701898e44ef12adb0798b5d3c2b09d9a28c932f57bb4829d89082",
+    "source": "abyss",
+    "before_sha256": "22db0fe5f52790969188399285d122822dbc692379fa2606b56212c14ffa2d67",
+    "included": true
+  },
+  {
+    "logical": "master/battle/boss/orochi_ex.orderedmap",
+    "member": "production/upload/7c/0159ffd7078028b1c2eec135beb1884f7224fb",
+    "size": 1037,
+    "sha256": "2a5cb8414362ad7dccc2115cdc7b062bad46eaa63a58e7911fe74aafb0ab9a5a",
+    "source": "abyss",
+    "before_sha256": "be2617317a1e57493bb001cf6612bdc81d83878b5b4b98108c0512a7c26426ff",
+    "included": true
+  },
+  {
+    "logical": "master/battle/boss/orochi_ex_head.orderedmap",
+    "member": "production/upload/01/313477f2616628879b578fa78722fbb54dd69c",
+    "size": 7449,
+    "sha256": "9b696a46dd551527181729847539c995b6380f7ced949fc8907e6941d472d992",
+    "source": "abyss",
+    "before_sha256": "80e5ebbfa387377349a35e15f72e79f878aa705ec77c32fb240e3210b12c7a8e",
+    "included": true
+  },
+  {
+    "logical": "master/battle/boss/standard_boss.orderedmap",
+    "member": "production/upload/d1/73e8ff929070d4c0bbef95fa679afcfa1c203f",
+    "size": 24772,
+    "sha256": "59f278d3640ba071e34a9ce9002332c494fe7e765783eac8916122cb5cab8e57",
+    "source": "abyss",
+    "before_sha256": "49019893d699c7625c1bae4dcd59ba82c847db3c1ed777689238dc80ac33154a",
+    "included": true
+  },
+  {
+    "logical": "master/battle/boss/touyakiren_ceo.orderedmap",
+    "member": "production/upload/32/764d5b978aeec498c0a0f8b90100024273297a",
+    "size": 2716,
+    "sha256": "859ff0d054f2536257c86ff2e8012ae5520241de7b6386221dd94cb51f75d061",
+    "source": "abyss",
+    "before_sha256": "3e2d40b42148c614db5e0ffd794bb8678b0724a13afd3c0af0a02b72c4e062ae",
+    "included": true
+  },
+  {
+    "logical": "master/battle/boss/wind_sphere.orderedmap",
+    "member": "production/upload/71/65684e1bb9b106cb3a5964645395ecac93a7fa",
+    "size": 2525,
+    "sha256": "f5e165f49504a0cf1df77faec5ac41fc6eb52431b4b219f57a7ef153e3d07c78",
+    "source": "abyss",
+    "before_sha256": "dc0eef33fc997a072fcb9fcaf00746825b52cfcdada83c7d03494e3ba15d1cf5",
+    "included": true
+  },
+  {
+    "logical": "master/battle/boss/wind_sphere_micronucleus.orderedmap",
+    "member": "production/upload/cc/698ac0cd7383303d7d48f7489494731e463179",
+    "size": 2638,
+    "sha256": "746969a94d631a7d3bde3290b3f748c996e6c6c2138fc1c9824d570ab9c162ba",
+    "source": "abyss",
+    "before_sha256": "6b488083e0f4c539057acb58380b1a0c4a41813ed6f01815dd03386ec7cae417",
+    "included": true
+  },
+  {
+    "logical": "master/battle/field_data.orderedmap",
+    "member": "production/upload/30/363f8364e183905b2d0b48b8718b7165135bc2",
+    "size": 127327,
+    "sha256": "50af2e73c9c00da42eca15d51de6a79cd0ea20e091c38abea762432db5466bdf",
+    "source": "abyss",
+    "before_sha256": "0e9de27c80b3fbff82d007b29b25afb6862d05ca2c047949721db2bd839a910b",
+    "included": true
+  },
+  {
+    "logical": "master/battle/zako/general_zako.orderedmap",
+    "member": "production/upload/40/7bd387079092ff09744d22f4aaf0ba27c3817e",
+    "size": 26551,
+    "sha256": "9de3cc292a82832e507b89fda1797aea5136ae6206535bac4e268100c854de50",
+    "source": "abyss",
+    "before_sha256": "9de3cc292a82832e507b89fda1797aea5136ae6206535bac4e268100c854de50",
+    "included": false
+  },
+  {
+    "logical": "master/battle/zako/zako_level.orderedmap",
+    "member": "production/upload/96/4ae337734cfeccb85ea6eecddce1f8de89c5d0",
+    "size": 9684,
+    "sha256": "92a1374244b77e0114c990876430d9457cf17b9b8881738db7647dcfc7378988",
+    "source": "abyss",
+    "before_sha256": "92a1374244b77e0114c990876430d9457cf17b9b8881738db7647dcfc7378988",
+    "included": false
+  },
+  {
+    "logical": "master/battle/zone.orderedmap",
+    "member": "production/upload/cd/6336795a27ea33bf8d0c5d5a9bfb466bedcf1e",
+    "size": 256238,
+    "sha256": "f55304889e739a810bb4a37b3fa8fbc02abc638600f4a382408e6efab32e5718",
+    "source": "abyss",
+    "before_sha256": "8e59729a4dc676c9eb85e3fd78681d241fcb2c6ac15aedf4e3469a31ec6e4173",
+    "included": true
+  },
+  {
+    "logical": "master/quest/event/event_list.orderedmap",
+    "member": "production/upload/48/bd931bce4f30c62b124a693b683581c32c9483",
+    "size": 6144,
+    "sha256": "a7a62c7a73772a7521ab237e49457c45b578e626e0c264ccc250afc0275b5647",
+    "source": "abyss",
+    "before_sha256": "a7a62c7a73772a7521ab237e49457c45b578e626e0c264ccc250afc0275b5647",
+    "included": false
+  },
+  {
+    "logical": "master/quest/event/rush_event.orderedmap",
+    "member": "production/upload/72/9edf423a2a32ad7948bb61488845271025caf2",
+    "size": 4074,
+    "sha256": "d857a7549dc87407cbd25270604163a37cc2dde6707bef748720ee1c67fdb5d7",
+    "source": "abyss",
+    "before_sha256": "d857a7549dc87407cbd25270604163a37cc2dde6707bef748720ee1c67fdb5d7",
+    "included": false
+  },
+  {
+    "logical": "master/quest/event/rush_event_battle_quest_correction.orderedmap",
+    "member": "production/upload/0a/ec155b261ae7801d4c9a9bb579f88fe5bcc324",
+    "size": 6937,
+    "sha256": "832923d5ca08dfe6903b04e7c969cab492b22530293690caf642fac78162e1fa",
+    "source": "abyss",
+    "before_sha256": "832923d5ca08dfe6903b04e7c969cab492b22530293690caf642fac78162e1fa",
+    "included": false
+  },
+  {
+    "logical": "master/quest/event/rush_event_quest.orderedmap",
+    "member": "production/upload/b6/595dedd9cfa79b7e6eccab25dd9a2a81b066a2",
+    "size": 44248,
+    "sha256": "b0d893abfad4b6e169d61399f8cf0c77f9c42fd610ba1ae59f2f8bb0216017cc",
+    "source": "abyss",
+    "before_sha256": "b8564fc37eb207f04b523619db4c5d03acabea8154f2c7f86e5da76f89ce2516",
+    "included": true
+  },
+  {
+    "logical": "master/quest/event/rush_event_quest_folder.orderedmap",
+    "member": "production/upload/e6/e407d1adb48131eaefdf5ec32208f3d4f46910",
+    "size": 9855,
+    "sha256": "c960912a7860091586e26d124566ed5e3884b394f00326b83a27c7f1ba20edab",
+    "source": "abyss",
+    "before_sha256": "eeb8b39aa4a681a7a5b03aa27848e3a6249626c793dcf3cf7f24f5406e9f7ee1",
+    "included": true
+  },
+  {
+    "logical": "master/degree/degree.orderedmap",
+    "member": "production/upload/89/e5c25c791e2a9527422c186084a1793218c2ac",
+    "size": 320279,
+    "sha256": "4fc497d4bf7375bdbb4c3215f269f76671665f3f0e51ada2fcff3a8d336cc8f4",
+    "source": "sponsor",
+    "included": true
+  },
+  {
+    "logical": "dynamic/degree/degree_mod_special_thanks.png",
+    "member": "production/upload/03/076857d74f07bb194f6185d4f1c1d6061850ce",
+    "size": 22217,
+    "sha256": "b44cafb1c8f2a7d4528e129489d68b9c9d986093fd537e551f302ff1ef66d7b1",
+    "source": "sponsor",
+    "included": true
+  },
+  {
+    "logical": "master/gacha_odds/cnmod_abyss_limited_gacha_character_5.orderedmap",
+    "member": "production/upload/bf/5dc56a444450216d4f12d6b9dfc0d908a09c5d",
+    "size": 8956,
+    "sha256": "faf12b4e05c70a9fa67b344584f7110f3134be2f08138bf102e1918be004cd2c",
+    "source": "laite",
+    "included": true
+  },
+  {
+    "logical": "rich_text/cnmod_abyss_limited_gacha_note.html.deflate",
+    "member": "production/upload/3b/94cb2772f22fb76b1a4545c5a347d764050829",
+    "size": 743,
+    "sha256": "24e373c26220cb4d8232769d8de259632e7f6ec9d932e03cdff6350fabfcbb73",
+    "source": "laite",
+    "included": true
+  }
+]

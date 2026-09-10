@@ -1,0 +1,69 @@
+{
+  "status": "local_assets_verified_device_acceptance_pending",
+  "base": "1.4.105",
+  "version": "1.4.106",
+  "character_id": 131182,
+  "gacha_id": 990001,
+  "exchange_points": 250,
+  "exchangeable_counts": {
+    "5": 38,
+    "4": 7,
+    "3": 0
+  },
+  "exchangeable_total": 45,
+  "only_server_change": "990001.pool.1[id=131182].isExchangeable: false -> true",
+  "only_client_row_change": "131182 column 5: false -> true",
+  "other_client_compressed_rows_preserved": 254,
+  "probabilities_unchanged": true,
+  "idempotent_transforms_verified": true,
+  "archive": {
+    "name": "pinball-1.4.105-1.4.106-1-abyss-laite-exchange.zip",
+    "size": 4599,
+    "sha256": "0cfac3b0e130b133d7d25fa4c455a8c840998f8e208fb512ea8b07f290b6db5e",
+    "members": 2,
+    "files": [
+      "production/upload/3b/94cb2772f22fb76b1a4545c5a347d764050829",
+      "production/upload/bf/5dc56a444450216d4f12d6b9dfc0d908a09c5d"
+    ]
+  },
+  "source_reads": {
+    "common|bf/5dc56a444450216d4f12d6b9dfc0d908a09c5d": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.101-1.4.102-1-lens0907-0908-consolidated.zip",
+      "member": "production/upload/bf/5dc56a444450216d4f12d6b9dfc0d908a09c5d",
+      "sha256": "886418ca6013d3d36031919d59a0a12e18602aec9c8239bebb032958ff8524a8"
+    },
+    "common|3b/94cb2772f22fb76b1a4545c5a347d764050829": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.101-1.4.102-1-lens0907-0908-consolidated.zip",
+      "member": "production/upload/3b/94cb2772f22fb76b1a4545c5a347d764050829",
+      "sha256": "11603bd591dc6b4d6d57def1124f21cd75838207a349dc39522a3b7187da253d"
+    }
+  },
+  "manifest_before_sha256": "4f2565ff6ad98b96dcf6e269574ad57a3245c98248ce44f2f3ab19ab82541844",
+  "before_sha256": {
+    "assets/gacha.json": "9ced65f7ff0a4e0c1a6e26c01968e5fd2960bc985df5dc1f58f83814831c6e6e",
+    "assets/gacha_cnmod.json": "c1fba53c3534cc6607c90f910cd7496ee8ab5f199e6918a5747ea009c1c8a8f3",
+    "assets/asset-patch/production/upload/bf/5dc56a444450216d4f12d6b9dfc0d908a09c5d": "886418ca6013d3d36031919d59a0a12e18602aec9c8239bebb032958ff8524a8",
+    "assets/asset-patch/production/upload/3b/94cb2772f22fb76b1a4545c5a347d764050829": "11603bd591dc6b4d6d57def1124f21cd75838207a349dc39522a3b7187da253d",
+    "assets/asset-patch/manifest.json": "4f2565ff6ad98b96dcf6e269574ad57a3245c98248ce44f2f3ab19ab82541844"
+  },
+  "output_sha256": {
+    "assets/gacha.json": "02dc588e16724f29b36a199d015287d78a5618afd4ee3c08ccb8a73b6beef704",
+    "assets/gacha_cnmod.json": "1065ea460c88c0203c598f1a7c0d055487ed9cfca86e990aa23cdbbb09f36722",
+    "assets/asset-patch/production/upload/bf/5dc56a444450216d4f12d6b9dfc0d908a09c5d": "faf12b4e05c70a9fa67b344584f7110f3134be2f08138bf102e1918be004cd2c",
+    "assets/asset-patch/production/upload/3b/94cb2772f22fb76b1a4545c5a347d764050829": "24e373c26220cb4d8232769d8de259632e7f6ec9d932e03cdff6350fabfcbb73",
+    "assets/asset-patch/active/pinball-1.4.105-1.4.106-1-abyss-laite-exchange.zip": "0cfac3b0e130b133d7d25fa4c455a8c840998f8e208fb512ea8b07f290b6db5e",
+    "assets/asset-patch/manifest.json": "e38b370106b02eff34e2ef59d6c67ccb6ebbbdc6e11b56e31f888352b37b102f"
+  },
+  "baseline_contamination_not_used_or_modified": [
+    "F:\\startpoint-cn-main\\.cdn\\cn\\archive-ios-diff\\pinball-1.4.83-1.4.84-2-bbbc92be.zip"
+  ],
+  "platforms": [
+    "android",
+    "ios"
+  ],
+  "resource_root": "common",
+  "runtime_delivered": false,
+  "device_tested": false,
+  "cloud_overlay_created": false,
+  "backup_directory": "F:\\codex\\startpoint-cn-private-clean\\work\\abyss-laite-exchange-20260909\\before"
+}

@@ -24,6 +24,8 @@ const {
 
 const ABYSS_GACHA_ID = "990001"
 const RACE_GACHA_ID = "990002"
+// Thunder Laite was exchangeable before the UP/collaboration-only rebuild.
+const ABYSS_EXCHANGE_EXCEPTION_IDS = new Set([131182])
 const ABYSS_NON_EXCHANGEABLE_IDS = new Set([
     129992, // 杰拉尔：新角色暂不可兑换
     139995, // 稻穗：新角色暂不可兑换
@@ -131,7 +133,7 @@ test("keeps the mirrored abyss pool identical in both runtime sources", () => {
     assert.deepEqual(cnmodGachas[ABYSS_GACHA_ID], baseGachas[ABYSS_GACHA_ID])
 })
 
-test("abyss exchange flags add the five old pickups and keep the two new characters locked", () => {
+test("abyss exchange flags preserve the Laite exception and keep the two new characters locked", () => {
     const gacha = getGachaSync(ABYSS_GACHA_ID)
     assert.ok(gacha)
     assert.deepEqual(gacha, cnmodGachas[ABYSS_GACHA_ID])
@@ -143,7 +145,7 @@ test("abyss exchange flags add the five old pickups and keep the two new charact
     const entries = Object.values(gacha.pool).flat()
     const expectedExchangeable = entry => (
         !ABYSS_NON_EXCHANGEABLE_IDS.has(entry.id)
-        && (entry.isRateUp || collabIds.has(entry.id))
+        && (entry.isRateUp || collabIds.has(entry.id) || ABYSS_EXCHANGE_EXCEPTION_IDS.has(entry.id))
     )
 
     for (const entry of entries) {
@@ -153,13 +155,70 @@ test("abyss exchange flags add the five old pickups and keep the two new charact
             `exchange policy drifted for character ${entry.id}`,
         )
     }
-    assert.equal(entries.filter(entry => entry.isExchangeable).length, 44)
-    assert.equal(entries.filter(entry => entry.rank === 5 && entry.isExchangeable).length, 37)
+    assert.equal(entries.filter(entry => entry.isExchangeable).length, 45)
+    assert.equal(entries.filter(entry => entry.rank === 5 && entry.isExchangeable).length, 38)
     assert.equal(entries.filter(entry => entry.rank === 4 && entry.isExchangeable).length, 7)
     assert.deepEqual(
         entries.filter(entry => entry.isRateUp && !entry.isExchangeable).map(entry => entry.id),
         [...ABYSS_NON_EXCHANGEABLE_IDS].filter(id => entries.some(entry => entry.id === id)),
     )
+})
+
+test("thunder Laite exchange restores only its flag in the effective server and client pool", async () => {
+    const gacha = getGachaSync(ABYSS_GACHA_ID)
+    const laite = getExchangeableGachaItem(gacha, 131182)
+    assert.ok(laite, "thunder Laite must remain exchangeable even without UP/collaboration tags")
+    assert.equal(laite.isRateUp, false)
+    assert.equal(laite.odds, 5212)
+    assert.equal(laite.rank, 5)
+    assert.equal(getExchangeableGachaItem(gacha, 151153), null, "light Laite keeps its existing policy")
+
+    const logical = "master/gacha_odds/cnmod_abyss_limited_gacha_character_5.orderedmap"
+    const digest = crypto.createHash("sha1").update(logical + CLIENT_HASH_SALT).digest("hex")
+    const memberName = `production/upload/${digest.slice(0, 2)}/${digest.slice(2)}`
+    const baseline = await unzipper.Open.file(path.join(CLIENT_PATCH_DIR,
+        "pinball-1.4.101-1.4.102-1-lens0907-0908-consolidated.zip"))
+    const beforeRaw = await baseline.files.find(file => file.path === memberName).buffer()
+    assert.equal(crypto.createHash("sha256").update(beforeRaw).digest("hex"),
+        "886418ca6013d3d36031919d59a0a12e18602aec9c8239bebb032958ff8524a8")
+    const before = decodeOrderedMapRaw(decodeOrderedMapRaw(beforeRaw).rows[0])
+    const afterRaw = await readClientPayload(logical)
+    const after = decodeOrderedMapRaw(decodeOrderedMapRaw(afterRaw).rows[0])
+    assert.equal(after.keys.length, before.keys.length + 1)
+    const currentById = new Map(after.rows.map(raw => [
+        zlib.inflateSync(raw).toString("utf8").trimEnd().split(",")[0], raw,
+    ]))
+    assert.equal(currentById.size, after.rows.length)
+    assert.equal(zlib.inflateSync(after.rows[0]).toString("utf8").trimEnd(),
+        "149990,5,0,false,true,false,false")
+    assert.deepEqual([...currentById.keys()].slice(1), before.rows.map(raw =>
+        zlib.inflateSync(raw).toString("utf8").trimEnd().split(",")[0]))
+    const changed = []
+    for (const [index, raw] of before.rows.entries()) {
+        const oldFields = zlib.inflateSync(raw).toString("utf8").trimEnd().split(",")
+        if (oldFields[0] !== "131182") {
+            assert.deepEqual(currentById.get(oldFields[0]), raw, `unrelated compressed row changed: ${oldFields[0]}`)
+            continue
+        }
+        assert.equal(oldFields[5], "false", "fixture must reproduce the missing exchange flag")
+        const expected = [...oldFields]
+        expected[5] = "true"
+        assert.deepEqual(zlib.inflateSync(currentById.get(oldFields[0])).toString("utf8").trimEnd().split(","), expected)
+        changed.push(oldFields[0])
+    }
+    assert.deepEqual(changed, ["131182"])
+
+    const release = manifest.patches.find(item => item.id === "abyss-lens0910-consolidated-1.4.104")
+    assert.ok(release?.enabled)
+    assert.equal(release.depends_on, "1.4.103")
+    const receipt = release.archive_integrity[0]
+    const archiveBytes = await fs.readFile(path.join(CLIENT_PATCH_DIR, receipt.name))
+    assert.equal(archiveBytes.length, receipt.size)
+    assert.equal(crypto.createHash("sha256").update(archiveBytes).digest("hex"), receipt.sha256)
+    const archive = await unzipper.Open.buffer(archiveBytes)
+    assert.deepEqual(archive.files.map(file => file.path).sort(), [...receipt.files].sort())
+    const integratedRaw = await archive.files.find(file => file.path === memberName).buffer()
+    assert.deepEqual(integratedRaw, afterRaw, "the consolidated archive must publish the final effective pool")
 })
 
 test("preserves removed fillers and applies the approved September UP rates", () => {
@@ -172,7 +231,7 @@ test("preserves removed fillers and applies the approved September UP rates", ()
 
     assert.deepEqual(
         Object.fromEntries(Object.entries(gacha.pool).map(([bucket, entries]) => [bucket, entries.length])),
-        { "1": 255, "2": 125, "3": 76 },
+        { "1": 256, "2": 125, "3": 76 },
     )
     assert.deepEqual(
         Object.fromEntries(Object.entries(gacha.pool).map(([bucket, entries]) => [bucket, poolTotal(entries)])),
@@ -228,7 +287,7 @@ test("removes the same audited fillers from the race pool while preserving zero-
     assert.equal(gacha.tenTicketItemId, 999018)
     assert.deepEqual(
         Object.fromEntries(Object.entries(gacha.pool).map(([bucket, entries]) => [bucket, entries.length])),
-        { "1": 287, "2": 125, "3": 76 },
+        { "1": 286, "2": 125, "3": 76 },
     )
     assert.deepEqual(
         Object.fromEntries(Object.entries(gacha.pool).map(([bucket, entries]) => [bucket, poolTotal(entries)])),
@@ -248,11 +307,16 @@ test("removes the same audited fillers from the race pool while preserving zero-
         .flat()
         .filter(item => item.odds === 0)
         .map(item => item.id)
-    assert.equal(sourceZeroWeightIds.length, 20)
-    const summerPreview = gacha.pool["1"].find(item => item.id === 149990)
+    assert.equal(sourceZeroWeightIds.length, 19)
+    assert.equal(gacha.pool["1"].some(item => item.id === 149990), false)
+    const abyss = getGachaSync(Number(ABYSS_GACHA_ID))
+    const summerPreview = abyss.pool["1"][0]
     assert.ok(summerPreview)
+    assert.equal(summerPreview.id, 149990)
     assert.equal(summerPreview.odds, 0)
     assert.equal(summerPreview.isExchangeable, false)
+    assert.equal(summerPreview.trialReadingForced, false)
+    assert.equal(getExchangeableGachaItem(abyss, 149990), null)
     assert.equal(getExchangeableGachaItem(gacha, 149990), null)
     for (const characterId of sourceZeroWeightIds) {
         assert.equal(gacha.pool["1"].find(item => item.id === characterId)?.odds, 0)
@@ -329,7 +393,7 @@ test("preserves the published 1.4.100 archives and verifies the effective gacha 
         assert.equal(bytes.readUInt32BE(20), height)
     }
     const note = zlib.inflateRawSync(await readClientPayload("rich_text/cnmod_abyss_limited_gacha_note.html.deflate")).toString("utf8")
-    assert.ok(note.includes("杰拉尔、稻穗暂不可兑换；原有22名UP角色及池内联动角色可兑换，共37名★5、7名★4，每名需250点；其余角色不可兑换。"))
+    assert.ok(note.includes("杰拉尔、稻穗暂不可兑换；原有22名UP角色、池内联动角色及雷属性莱特可兑换，共38名★5、7名★4，每名需250点；其余角色不可兑换。"))
     assert.ok(note.includes("其余231名★5角色的总出现概率为12.04%"))
     assert.equal(note.includes("其余★5角色各需250点兑换"), false)
 })
@@ -341,7 +405,9 @@ test("same .100 update changes only five title conditions and preserves all othe
     const sourceArchive = await unzipper.Open.file(path.join(CLIENT_PATCH_DIR, path.basename(audit.source.archive)))
     const beforeRaw = await sourceArchive.files.find(file => file.path === audit.source.member).buffer()
     assert.equal(crypto.createHash("sha256").update(beforeRaw).digest("hex"), audit.source.sha256)
-    const afterRaw = await readClientPayload("master/degree/degree.orderedmap")
+    // Audit the published .100 delta. Later patches may legitimately add titles.
+    const archive = await unzipper.Open.file(path.join(CLIENT_PATCH_DIR, CLIENT_TITLE_ARCHIVE))
+    const afterRaw = await archive.files.find(file => file.path === audit.source.member).buffer()
     const before = decodeOrderedMapRaw(beforeRaw)
     const after = decodeOrderedMapRaw(afterRaw)
     assert.deepEqual(after.keys, before.keys)
@@ -364,7 +430,6 @@ test("same .100 update changes only five title conditions and preserves all othe
         changed.push(key)
     }
     assert.deepEqual(changed, [...targets])
-    const archive = await unzipper.Open.file(path.join(CLIENT_PATCH_DIR, CLIENT_TITLE_ARCHIVE))
     assert.deepEqual(archive.files.map(file => file.path), [audit.source.member])
     const integrated = require("../assets/asset-patch/audit/abyss-exchange-shop-banners-1.4.100/integrated-release.json")
     assert.equal(integrated.version, "1.4.100")

@@ -1,0 +1,244 @@
+[
+  {
+    "path": [
+      "mod_rogue_boss2",
+      "100"
+    ],
+    "pre_actions": []
+  },
+  {
+    "path": [
+      "mod_rogue_boss3",
+      "49"
+    ],
+    "pre_actions": []
+  },
+  {
+    "path": [
+      "mod_rogue_boss3",
+      "100"
+    ],
+    "pre_actions": []
+  },
+  {
+    "path": [
+      "mod_rogue_boss4",
+      "49"
+    ],
+    "pre_actions": []
+  },
+  {
+    "path": [
+      "mod_rogue_boss4",
+      "100"
+    ],
+    "pre_actions": []
+  },
+  {
+    "path": [
+      "mod_rogue_boss5",
+      "100"
+    ],
+    "pre_actions": []
+  },
+  {
+    "path": [
+      "mod_rogue_boss8",
+      "49"
+    ],
+    "pre_actions": []
+  },
+  {
+    "path": [
+      "mod_rogue_boss8",
+      "100"
+    ],
+    "pre_actions": []
+  },
+  {
+    "path": [
+      "mod_rogue_boss10",
+      "89"
+    ],
+    "pre_actions": []
+  },
+  {
+    "path": [
+      "mod_rogue_boss13",
+      "100"
+    ],
+    "pre_actions": []
+  },
+  {
+    "path": [
+      "mod_rogue_boss14",
+      "59"
+    ],
+    "pre_actions": [
+      "battle/action/enemy/action/mod_rogue/immunity_c2ec9e72f774"
+    ]
+  },
+  {
+    "path": [
+      "mod_rogue_boss14",
+      "80"
+    ],
+    "pre_actions": [
+      "battle/action/enemy/action/mod_rogue/immunity_c2ec9e72f774"
+    ]
+  },
+  {
+    "path": [
+      "mod_rogue_boss14",
+      "100"
+    ],
+    "pre_actions": [
+      "battle/action/enemy/action/mod_rogue/immunity_c2ec9e72f774"
+    ]
+  },
+  {
+    "path": [
+      "mod_rogue_boss16",
+      "49"
+    ],
+    "pre_actions": [
+      "battle/action/enemy/action/mod_rogue/immunity_d9fcff68c333"
+    ]
+  },
+  {
+    "path": [
+      "mod_rogue_boss16",
+      "100"
+    ],
+    "pre_actions": [
+      "battle/action/enemy/action/mod_rogue/immunity_d9fcff68c333"
+    ]
+  },
+  {
+    "path": [
+      "mod_rogue_boss17",
+      "100"
+    ],
+    "pre_actions": []
+  },
+  {
+    "path": [
+      "mod_rogue_boss20",
+      "49"
+    ],
+    "pre_actions": []
+  },
+  {
+    "path": [
+      "mod_rogue_boss20",
+      "100"
+    ],
+    "pre_actions": []
+  },
+  {
+    "path": [
+      "mod_rogue_boss22",
+      "49"
+    ],
+    "pre_actions": [
+      "battle/action/enemy/action/mod_rogue/immunity_b853b0950500"
+    ]
+  },
+  {
+    "path": [
+      "mod_rogue_boss22",
+      "100"
+    ],
+    "pre_actions": [
+      "battle/action/enemy/action/mod_rogue/immunity_b853b0950500"
+    ]
+  },
+  {
+    "path": [
+      "mod_rogue_boss23",
+      "100"
+    ],
+    "pre_actions": [
+      "battle/action/enemy/action/mod_rogue/immunity_d9fcff68c333"
+    ]
+  },
+  {
+    "path": [
+      "mod_rogue_boss26",
+      "79"
+    ],
+    "pre_actions": [
+      "battle/action/enemy/action/mod/five_boss/five_boss_curse$five_boss_curse_s1"
+    ]
+  },
+  {
+    "path": [
+      "mod_rogue_boss26",
+      "100"
+    ],
+    "pre_actions": [
+      "battle/action/enemy/action/mod/five_boss/five_boss_curse$five_boss_curse_s1"
+    ]
+  },
+  {
+    "path": [
+      "mod_rogue_boss26_2",
+      "79"
+    ],
+    "pre_actions": [
+      "battle/action/enemy/action/mod/five_boss/five_boss_curse$five_boss_curse_s1"
+    ]
+  },
+  {
+    "path": [
+      "mod_rogue_boss26_2",
+      "100"
+    ],
+    "pre_actions": [
+      "battle/action/enemy/action/mod/five_boss/five_boss_curse$five_boss_curse_s1"
+    ]
+  },
+  {
+    "path": [
+      "mod_rogue_boss26_3",
+      "79"
+    ],
+    "pre_actions": [
+      "battle/action/enemy/action/mod/five_boss/five_boss_curse$five_boss_curse_s1"
+    ]
+  },
+  {
+    "path": [
+      "mod_rogue_boss26_3",
+      "100"
+    ],
+    "pre_actions": [
+      "battle/action/enemy/action/mod/five_boss/five_boss_curse$five_boss_curse_s1"
+    ]
+  },
+  {
+    "path": [
+      "mod_rogue_boss27",
+      "100"
+    ],
+    "pre_actions": []
+  },
+  {
+    "path": [
+      "mod_rogue_boss30",
+      "79"
+    ],
+    "pre_actions": [
+      "battle/action/enemy/action/mod_rogue/immunity_8e4361b91999"
+    ]
+  },
+  {
+    "path": [
+      "mod_rogue_boss30",
+      "100"
+    ],
+    "pre_actions": [
+      "battle/action/enemy/action/mod_rogue/immunity_8e4361b91999"
+    ]
+  }
+]

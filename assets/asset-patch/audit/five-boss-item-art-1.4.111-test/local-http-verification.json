@@ -1,0 +1,195 @@
+{
+  "status": "passed",
+  "server": "<LAN_HOST>",
+  "version": "1.4.111",
+  "real_http_checks": [
+    {
+      "device": "Android",
+      "from_version": "1.4.109",
+      "target": "1.4.111",
+      "diffs": [
+        "1.4.110",
+        "1.4.111"
+      ]
+    },
+    {
+      "device": "Android",
+      "from_version": "1.4.110",
+      "target": "1.4.111",
+      "diffs": [
+        "1.4.111"
+      ]
+    },
+    {
+      "device": "Android",
+      "from_version": "1.4.111",
+      "target": "1.4.111",
+      "diffs": []
+    },
+    {
+      "device": "iOS",
+      "from_version": "1.4.109",
+      "target": "1.4.111",
+      "diffs": [
+        "1.4.110",
+        "1.4.111"
+      ]
+    },
+    {
+      "device": "iOS",
+      "from_version": "1.4.110",
+      "target": "1.4.111",
+      "diffs": [
+        "1.4.111"
+      ]
+    },
+    {
+      "device": "iOS",
+      "from_version": "1.4.111",
+      "target": "1.4.111",
+      "diffs": []
+    }
+  ],
+  "display_contract": {
+    "required_small_icons": [
+      {
+        "id": 10000143,
+        "name": "深界连战凭证",
+        "icon": "item_icon/materials/mod/five_boss/entry_ticket_v2"
+      },
+      {
+        "id": 10000144,
+        "name": "终式武装图纸",
+        "icon": "item_icon/materials/mod/five_boss/deathbringer_blueprint_v2"
+      },
+      {
+        "id": 10000145,
+        "name": "深界结晶",
+        "icon": "item_icon/materials/mod/five_boss/deep_crystal_v2"
+      },
+      {
+        "id": 10000146,
+        "name": "五重决战之证",
+        "icon": "item_icon/materials/mod/five_boss/fivefold_clear_badge_v2"
+      },
+      {
+        "id": 10000147,
+        "name": "五王心核",
+        "icon": "item_icon/materials/mod/five_boss/five_king_core_v2"
+      }
+    ],
+    "material_size": [
+      40,
+      40
+    ],
+    "thumbnail_size": [
+      20,
+      20
+    ],
+    "native_thumbnail_scale": 6,
+    "rendered_thumbnail_size": [
+      120,
+      120
+    ],
+    "native_frame_size": 168,
+    "weapon_thumbnail_paths": [
+      "item/equipment/mod/five_boss/deathbringer_final_lv0",
+      "item/equipment/mod/five_boss/deathbringer_final_lv120",
+      "item/equipment/mod/five_boss/deathbringer_final_shop"
+    ],
+    "full_canvas_trim": true
+  },
+  "http_resources": {
+    "item/equipment/mod/five_boss/deathbringer_final_lv0.png": {
+      "sha256": "f5a8bf6cc2aee87ae13b8a4da25edaddf5982b5712b2f21566e8063e33119f47",
+      "size": 804
+    },
+    "item/equipment/mod/five_boss/deathbringer_final_lv120.png": {
+      "sha256": "f5a8bf6cc2aee87ae13b8a4da25edaddf5982b5712b2f21566e8063e33119f47",
+      "size": 804
+    },
+    "item_icon/materials/mod/five_boss/deep_crystal_v2.png": {
+      "sha256": "ae1af4bb9f0e0f0b4a102dcfbc09aceed2fa53dd91c3903be0a4b32028a4f388",
+      "size": 718
+    },
+    "item_icon/materials/mod/five_boss/five_king_core_v2.png": {
+      "sha256": "b63306dc6493b9a1f01ab52ec5de29a521adcd1e7b7500091296881d46f59ac9",
+      "size": 521
+    },
+    "item_icon/sprite_sheet.atlas.amf3.deflate": {
+      "sha256": "df992612e0beaf611b4c1e8da9222e20c2aba1ac6a26f579bbc4d7929b3af713",
+      "size": 1577
+    },
+    "item_icon/sprite_sheet.png": {
+      "sha256": "62170c448820426e12788e3ddaee3023cc146c21e9dd7628fd8ac6334bb77f5d",
+      "size": 91350
+    },
+    "master/generated/trimmed_image.orderedmap": {
+      "sha256": "14597d67969ede98a8b8938bee4f1c6ffcca659322c43d4f2880d123264543a9",
+      "size": 356503
+    },
+    "master/item/item.orderedmap": {
+      "sha256": "fb966abfe9d6fcd5a215f4e5163a11ce383ac8552f514091ebd6c21dbee484e9",
+      "size": 294208
+    },
+    "master/shop/boss_coin_shop.orderedmap": {
+      "sha256": "942d3f39b8eb94830cfb50f54bdaae2d4b5ee012b2b642cf8d33c290b01de789",
+      "size": 1769704
+    },
+    "master/quest/boss_battle_stage_node.orderedmap": {
+      "sha256": "ff90f38b3b1e0e5a1fa415cffbafd7e2ce7db619917d4d2a62fc1e51d743a42e",
+      "size": 8025
+    },
+    "master/item/equipment.orderedmap": {
+      "sha256": "70ee5aef360663aa84e555b8f5eddb088c52416839333ddbde2ba911686fac68",
+      "size": 98517
+    },
+    "item/sprite_sheet.atlas.amf3.deflate": {
+      "sha256": "fad7044c6a883835a97bedd7aa1f332969145b1091507108ca76b37f3ed1517b",
+      "size": 16033
+    },
+    "item_icon/materials/mod/five_boss/entry_ticket_v2.png": {
+      "sha256": "64652ef1ea171d7db22dbf1e64f21ceb601f4dfefee960940d3e61e0540f8740",
+      "size": 600
+    },
+    "item/materials/mod/five_boss/entry_ticket_v2.png": {
+      "sha256": "d7bbf35d1a5d037e81024f309b7ce555b2222daee706a75f95a3630efa778458",
+      "size": 581
+    },
+    "item_icon/materials/mod/five_boss/deathbringer_blueprint_v2.png": {
+      "sha256": "1dae5e5c1c227af2af27cc65d4b40724214c24176882928c8706f193d8343860",
+      "size": 637
+    },
+    "item/materials/mod/five_boss/deathbringer_blueprint_v2.png": {
+      "sha256": "31904fcfc4e7172fe585ecc707aafa8771fb666ab1323ded462ebd285a87cd4a",
+      "size": 601
+    },
+    "item/materials/mod/five_boss/deep_crystal.png": {
+      "sha256": "e7664a6ec6b46f98bff011adb50fcd2ae73c243ff783d1b685864a8504ceeede",
+      "size": 655
+    },
+    "item_icon/materials/mod/five_boss/fivefold_clear_badge_v2.png": {
+      "sha256": "9af5dd2e0c3b44fda2b243762c011d43668236c1fb64da9d57628125c01d701a",
+      "size": 577
+    },
+    "item/materials/mod/five_boss/fivefold_clear_badge_v2.png": {
+      "sha256": "366649a574fe2ec353062b6a34807f6c31ad78dc3acb1e6e9567da5838efbbd0",
+      "size": 576
+    },
+    "item/materials/mod/five_boss/five_king_core.png": {
+      "sha256": "6bcdcbe6cd9a93359a6db03c7249f6b8a77559e227c2922b458c4f81baa1221e",
+      "size": 521
+    },
+    "item/equipment/mod/five_boss/deathbringer_final_shop.png": {
+      "sha256": "f5a8bf6cc2aee87ae13b8a4da25edaddf5982b5712b2f21566e8063e33119f47",
+      "size": 804
+    }
+  },
+  "effective_inventory_checked": 317,
+  "synced_files": 10,
+  "regressions_passed": 6,
+  "protected_source_preserved": true,
+  "older_archives_unchanged": true,
+  "air_started": false,
+  "device_ui_tested": false
+}

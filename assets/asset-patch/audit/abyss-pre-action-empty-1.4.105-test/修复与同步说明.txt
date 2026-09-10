@@ -1,0 +1,25 @@
+深渊第二关缺资源修复 · 本地资源 1.4.105
+
+保留已安装的内网 APK，无需重新安装或清除游戏数据。
+返回标题画面并完成资源更新，确认版本为 1.4.105 后重试第二关。
+如标题尚未检查更新，可关闭游戏后重新打开。
+
+原因：General Boss 空初始化脚本列表被错误写成 (None)，客户端按普通路径加载
+(None).action.dsl.amf3.deflate，日志报 8100 / notify_asset_recovery。
+已改为空字符串，并一并修复第 2、3、4、5、8、13、17、20、27 关共 13 条配置。
+30 层 Boss、领域、HP、原有诅咒、ban 属性和强度保持不变。
+
+修复包为 1.4.104 -> 1.4.105，279,544 字节，仅一个 General Boss 表资源。
+已验证重新生成结果、所有 30 条深渊 General Boss 行、保留脚本引用、31 项关卡链检查、
+19 项 Python 回归，以及本地 HTTP 更新链、实际下载 ZIP 和直接资源一致。
+旧 1.4.104 包保留，APK 哈希保持一致。真机进入第二关仍待用户复测。
+
+本次同步的 3 个运行路径（相对 F:\startpoint-cn-main）：
+assets/asset-patch/active/pinball-1.4.104-1.4.105-1-abyss-pre-action-empty-test.zip
+assets/asset-patch/production/upload/ec/d8f66b60947ca05643c4080a6cc925c750b9d6
+assets/asset-patch/manifest.json
+
+备份：F:\startpoint-cn-main\.codex-backups\20260910-121107-abyss-pre-action-repair
+分支 staging，HEAD 8f6252bb31c7f18a8cb61f11fa699282e68ebc4b。
+仅本地未提交测试修复；未提交、推送或部署云端，未制作云服整合包。
+源仓库暂缓清单、其他用户修改和游戏存档均保持原样。

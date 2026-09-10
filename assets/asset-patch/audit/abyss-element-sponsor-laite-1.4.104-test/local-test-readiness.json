@@ -1,0 +1,314 @@
+{
+  "status": "ready_for_user_android_test",
+  "resource_version": "1.4.104",
+  "apk": "F:\\codex\\startpoint-cn-private-clean\\outputs\\quest-element-channel-lan-test-20260910\\StarPoint-CN-1.8.1-quest-element-channel-lan-test-20260910.apk",
+  "apk_sha256": "8e21b793091415be13d13ac170a1dc53e89fb92a3d688c135deb86644a71bbcb",
+  "apk_swf_sha256": "70ae68d0b5ca59650e3a41468b81fd00d6ce1d2861eebb5fb66d90b61b0da653",
+  "rules": {
+    "minimum_bans": 2,
+    "maximum_bans": 5,
+    "actual_per_floor_bans": [
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2
+    ]
+  },
+  "backup": "F:\\startpoint-cn-main\\.codex-backups\\20260910-114620-abyss-element-local-test",
+  "synced_files": [
+    {
+      "path": "assets/gacha.json",
+      "source": "F:\\codex\\work\\abyss-element-local-test-20260910\\candidate-server\\assets\\gacha.json",
+      "before_sha256": "1e7dc81a608ee38d0d223a83eba9885269a3b2b36339ccaefb948fc2f13aac43",
+      "sha256": "aed4840c4e81b4a94a4c4f22e805f5d2b660cf2972d5de0b5452d6ae0d3de82a",
+      "size": 27203066
+    },
+    {
+      "path": "assets/gacha_cnmod.json",
+      "source": "F:\\codex\\work\\abyss-element-local-test-20260910\\candidate-server\\assets\\gacha_cnmod.json",
+      "before_sha256": "e8763196e4cd024a6b2c923eccafb24eadc58bb13a9d4e6b658e9a32bdcb75ef",
+      "sha256": "bb1eba37667e8e16204ed9e4e7c566367045c3f13afa15df53ca87a35b12d7d6",
+      "size": 116450
+    },
+    {
+      "path": "assets/degree_sponsor.json",
+      "source": "F:\\codex\\work\\abyss-element-local-test-20260910\\candidate-server\\assets\\degree_sponsor.json",
+      "before_sha256": null,
+      "sha256": "46df529d1f5f4e960bbf05bcee0297ffa5820a22f4a0f4046b2f64e8d3377638",
+      "size": 216
+    },
+    {
+      "path": "src/lib/content-master.ts",
+      "source": "F:\\codex\\work\\abyss-element-local-test-20260910\\candidate-server\\src\\lib\\content-master.ts",
+      "before_sha256": "5ff709a3e6cc8df28a6107685b687ede0b5d774f6643d906a940f0f567203235",
+      "sha256": "d3e0c35c724b79c4d2140fedc57274adc01cb79538dfbc9b49e1af4a9ad2143b",
+      "size": 3382
+    },
+    {
+      "path": "out/lib/content-master.js",
+      "source": "F:\\codex\\work\\abyss-element-local-test-20260910\\candidate-server\\out\\lib\\content-master.js",
+      "before_sha256": "932fe8505dde6b4b9a074fe737fced4ca410b44b005f5dddf8fd564e55710f51",
+      "sha256": "3e9c3ac47e336beead54146c5598f5202133a68198f88c77706690417ecc7785",
+      "size": 4749
+    },
+    {
+      "path": "assets/asset-patch/active/pinball-1.4.103-1.4.104-1-abyss-element-sponsor-laite-test.zip",
+      "source": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\candidates\\pinball-1.4.103-1.4.104-1-abyss-element-sponsor-laite-test.zip",
+      "before_sha256": null,
+      "sha256": "d6cee14a122878c3c97f33c910ac8fd1b585de63d1b6e52860f195521dad5fc1",
+      "size": 3778769
+    },
+    {
+      "path": "assets/asset-patch/production/upload/49/61970598c560a0ef40fe30c834d7cd2b5136c6",
+      "source": "F:\\codex\\work\\abyss-element-local-test-20260910\\candidate-server\\assets\\asset-patch\\production\\upload\\49\\61970598c560a0ef40fe30c834d7cd2b5136c6",
+      "before_sha256": null,
+      "sha256": "40355e43115c418fb47e02e5a09739d61eef10332ab699d4445f2780f6abb3f3",
+      "size": 352
+    },
+    {
+      "path": "assets/asset-patch/production/upload/e0/72d4a7ffa27a6cfb60d43e70f67771318c8442",
+      "source": "F:\\codex\\work\\abyss-element-local-test-20260910\\candidate-server\\assets\\asset-patch\\production\\upload\\e0\\72d4a7ffa27a6cfb60d43e70f67771318c8442",
+      "before_sha256": null,
+      "sha256": "aadc0197c98a6cb357e93d59e58389b604907fef9d9419a038fc91f5a95178e7",
+      "size": 3583
+    },
+    {
+      "path": "assets/asset-patch/production/upload/43/5f605925e46a07ace99e9a37f48c572b3910b2",
+      "source": "F:\\codex\\work\\abyss-element-local-test-20260910\\candidate-server\\assets\\asset-patch\\production\\upload\\43\\5f605925e46a07ace99e9a37f48c572b3910b2",
+      "before_sha256": null,
+      "sha256": "8c1a1cd0af553f5e995275658f7d9f4a7463a09757fec529661262bdc70efe3c",
+      "size": 3688
+    },
+    {
+      "path": "assets/asset-patch/production/upload/59/c5bb8f7fb001d1657bf646d4f6f6df3e78547c",
+      "source": "F:\\codex\\work\\abyss-element-local-test-20260910\\candidate-server\\assets\\asset-patch\\production\\upload\\59\\c5bb8f7fb001d1657bf646d4f6f6df3e78547c",
+      "before_sha256": null,
+      "sha256": "c661bd53b7747df2fb89cc5d8f9e410bc2abc4348bc2ef428b1eb94ef86d3d02",
+      "size": 28529
+    },
+    {
+      "path": "assets/asset-patch/production/upload/56/02a557d238e3971cfe8593c7cacf5bf54c9f4a",
+      "source": "F:\\codex\\work\\abyss-element-local-test-20260910\\candidate-server\\assets\\asset-patch\\production\\upload\\56\\02a557d238e3971cfe8593c7cacf5bf54c9f4a",
+      "before_sha256": null,
+      "sha256": "ca8219fb1df9524a83ad15747b143992a4d505ca8836db52bac129c815041584",
+      "size": 5441
+    },
+    {
+      "path": "assets/asset-patch/production/upload/59/bf5b23f0218e8342a1448910aad80f00834818",
+      "source": "F:\\codex\\work\\abyss-element-local-test-20260910\\candidate-server\\assets\\asset-patch\\production\\upload\\59\\bf5b23f0218e8342a1448910aad80f00834818",
+      "before_sha256": null,
+      "sha256": "bea1da70ee6fb2a37d666e72d537352ae63fe3763f71a39f7cf3ed7bd12ba968",
+      "size": 955
+    },
+    {
+      "path": "assets/asset-patch/production/upload/42/b1d50adc81eb1fe334079478672e79ae2c1006",
+      "source": "F:\\codex\\work\\abyss-element-local-test-20260910\\candidate-server\\assets\\asset-patch\\production\\upload\\42\\b1d50adc81eb1fe334079478672e79ae2c1006",
+      "before_sha256": null,
+      "sha256": "6fbbd4e1e6d844a5f7d4e66ade2df74db3916ead9c46b19f2b300722227aea8e",
+      "size": 13385
+    },
+    {
+      "path": "assets/asset-patch/production/upload/d3/07658fbc5d17a270abd68a356b73266556a8e9",
+      "source": "F:\\codex\\work\\abyss-element-local-test-20260910\\candidate-server\\assets\\asset-patch\\production\\upload\\d3\\07658fbc5d17a270abd68a356b73266556a8e9",
+      "before_sha256": null,
+      "sha256": "460f39d4de22a0858cbf0e4c71601f3a24d97bbfbbfcbea53d651818ec696562",
+      "size": 4836
+    },
+    {
+      "path": "assets/asset-patch/production/upload/19/a4aa442b3249499356e7a3f6370e530bfe355e",
+      "source": "F:\\codex\\work\\abyss-element-local-test-20260910\\candidate-server\\assets\\asset-patch\\production\\upload\\19\\a4aa442b3249499356e7a3f6370e530bfe355e",
+      "before_sha256": "f7ebfb4b17e8fabe64e4bb2316dbeaa08ff25d5e0a778644108138a0ae3e87a8",
+      "sha256": "e4360d8b2389bfc0576452f8dd19520f8ef3e71d886ee049655973dfb43cfe3b",
+      "size": 45959
+    },
+    {
+      "path": "assets/asset-patch/production/upload/e4/d1e3b7e223e1151195626286f773e305144b0a",
+      "source": "F:\\codex\\work\\abyss-element-local-test-20260910\\candidate-server\\assets\\asset-patch\\production\\upload\\e4\\d1e3b7e223e1151195626286f773e305144b0a",
+      "before_sha256": "039748f590e10dbf1dffc268c471577a480375d314c60324b2fe2bad1f5b188b",
+      "sha256": "41eb80c5da30df1048e8a4ee8294fb6b87d07b3c8e59ecb82b116d09328d35c5",
+      "size": 1724
+    },
+    {
+      "path": "assets/asset-patch/production/upload/ec/d8f66b60947ca05643c4080a6cc925c750b9d6",
+      "source": "F:\\codex\\work\\abyss-element-local-test-20260910\\candidate-server\\assets\\asset-patch\\production\\upload\\ec\\d8f66b60947ca05643c4080a6cc925c750b9d6",
+      "before_sha256": "c62a3ea66e6b01a7f3fae089c08ec5a198475f0ae0e71b1b1ce1672d64f100f0",
+      "sha256": "19310bb3d96794fa3d206cac77bfd194077a3557ee35c9a2a0c2332a4dfbce2c",
+      "size": 378713
+    },
+    {
+      "path": "assets/asset-patch/production/upload/0b/97162ce6d40c473cbac39fa21427688922a48a",
+      "source": "F:\\codex\\work\\abyss-element-local-test-20260910\\candidate-server\\assets\\asset-patch\\production\\upload\\0b\\97162ce6d40c473cbac39fa21427688922a48a",
+      "before_sha256": "a5c783c0ef203f94a6284ed1fc709daafe83797606ddee026d3b7039255b5e89",
+      "sha256": "6ec9ed11b40d8db8012d0784d473dd424ec2001082c670686f11bb73231a519e",
+      "size": 5317465
+    },
+    {
+      "path": "assets/asset-patch/production/upload/82/93e535e806d70640f45950db1fe14ed9482bdf",
+      "source": "F:\\codex\\work\\abyss-element-local-test-20260910\\candidate-server\\assets\\asset-patch\\production\\upload\\82\\93e535e806d70640f45950db1fe14ed9482bdf",
+      "before_sha256": "529f73618bed3b09b4d5293baae27290638eae139abaf088c4cb7cdf452c6ddf",
+      "sha256": "0dcda519718b6d910fb9fc1a61b1870100d76ed67f7d510f22cd9ca4570d2700",
+      "size": 87740
+    },
+    {
+      "path": "assets/asset-patch/production/upload/84/fd6ee6a23114c8f888fadc838bbe8bdf668677",
+      "source": "F:\\codex\\work\\abyss-element-local-test-20260910\\candidate-server\\assets\\asset-patch\\production\\upload\\84\\fd6ee6a23114c8f888fadc838bbe8bdf668677",
+      "before_sha256": "bfdf0a6d34bed237af1f17710bf2f8609d5956e77f26ac2ca8709044cedae9f8",
+      "sha256": "b0d8d710d48c4fe3f193bf4fbece184db10ab158ff7b38103dce064f0f0eb4c7",
+      "size": 64656
+    },
+    {
+      "path": "assets/asset-patch/production/upload/fd/80bb595562a9f2bf69deb917e572e159c28839",
+      "source": "F:\\codex\\work\\abyss-element-local-test-20260910\\candidate-server\\assets\\asset-patch\\production\\upload\\fd\\80bb595562a9f2bf69deb917e572e159c28839",
+      "before_sha256": "22db0fe5f52790969188399285d122822dbc692379fa2606b56212c14ffa2d67",
+      "sha256": "deb5d2fef96701898e44ef12adb0798b5d3c2b09d9a28c932f57bb4829d89082",
+      "size": 4433
+    },
+    {
+      "path": "assets/asset-patch/production/upload/7c/0159ffd7078028b1c2eec135beb1884f7224fb",
+      "source": "F:\\codex\\work\\abyss-element-local-test-20260910\\candidate-server\\assets\\asset-patch\\production\\upload\\7c\\0159ffd7078028b1c2eec135beb1884f7224fb",
+      "before_sha256": "be2617317a1e57493bb001cf6612bdc81d83878b5b4b98108c0512a7c26426ff",
+      "sha256": "2a5cb8414362ad7dccc2115cdc7b062bad46eaa63a58e7911fe74aafb0ab9a5a",
+      "size": 1037
+    },
+    {
+      "path": "assets/asset-patch/production/upload/01/313477f2616628879b578fa78722fbb54dd69c",
+      "source": "F:\\codex\\work\\abyss-element-local-test-20260910\\candidate-server\\assets\\asset-patch\\production\\upload\\01\\313477f2616628879b578fa78722fbb54dd69c",
+      "before_sha256": "80e5ebbfa387377349a35e15f72e79f878aa705ec77c32fb240e3210b12c7a8e",
+      "sha256": "9b696a46dd551527181729847539c995b6380f7ced949fc8907e6941d472d992",
+      "size": 7449
+    },
+    {
+      "path": "assets/asset-patch/production/upload/d1/73e8ff929070d4c0bbef95fa679afcfa1c203f",
+      "source": "F:\\codex\\work\\abyss-element-local-test-20260910\\candidate-server\\assets\\asset-patch\\production\\upload\\d1\\73e8ff929070d4c0bbef95fa679afcfa1c203f",
+      "before_sha256": "49019893d699c7625c1bae4dcd59ba82c847db3c1ed777689238dc80ac33154a",
+      "sha256": "59f278d3640ba071e34a9ce9002332c494fe7e765783eac8916122cb5cab8e57",
+      "size": 24772
+    },
+    {
+      "path": "assets/asset-patch/production/upload/32/764d5b978aeec498c0a0f8b90100024273297a",
+      "source": "F:\\codex\\work\\abyss-element-local-test-20260910\\candidate-server\\assets\\asset-patch\\production\\upload\\32\\764d5b978aeec498c0a0f8b90100024273297a",
+      "before_sha256": "3e2d40b42148c614db5e0ffd794bb8678b0724a13afd3c0af0a02b72c4e062ae",
+      "sha256": "859ff0d054f2536257c86ff2e8012ae5520241de7b6386221dd94cb51f75d061",
+      "size": 2716
+    },
+    {
+      "path": "assets/asset-patch/production/upload/71/65684e1bb9b106cb3a5964645395ecac93a7fa",
+      "source": "F:\\codex\\work\\abyss-element-local-test-20260910\\candidate-server\\assets\\asset-patch\\production\\upload\\71\\65684e1bb9b106cb3a5964645395ecac93a7fa",
+      "before_sha256": "dc0eef33fc997a072fcb9fcaf00746825b52cfcdada83c7d03494e3ba15d1cf5",
+      "sha256": "f5e165f49504a0cf1df77faec5ac41fc6eb52431b4b219f57a7ef153e3d07c78",
+      "size": 2525
+    },
+    {
+      "path": "assets/asset-patch/production/upload/cc/698ac0cd7383303d7d48f7489494731e463179",
+      "source": "F:\\codex\\work\\abyss-element-local-test-20260910\\candidate-server\\assets\\asset-patch\\production\\upload\\cc\\698ac0cd7383303d7d48f7489494731e463179",
+      "before_sha256": null,
+      "sha256": "746969a94d631a7d3bde3290b3f748c996e6c6c2138fc1c9824d570ab9c162ba",
+      "size": 2638
+    },
+    {
+      "path": "assets/asset-patch/production/upload/30/363f8364e183905b2d0b48b8718b7165135bc2",
+      "source": "F:\\codex\\work\\abyss-element-local-test-20260910\\candidate-server\\assets\\asset-patch\\production\\upload\\30\\363f8364e183905b2d0b48b8718b7165135bc2",
+      "before_sha256": "0e9de27c80b3fbff82d007b29b25afb6862d05ca2c047949721db2bd839a910b",
+      "sha256": "50af2e73c9c00da42eca15d51de6a79cd0ea20e091c38abea762432db5466bdf",
+      "size": 127327
+    },
+    {
+      "path": "assets/asset-patch/production/upload/cd/6336795a27ea33bf8d0c5d5a9bfb466bedcf1e",
+      "source": "F:\\codex\\work\\abyss-element-local-test-20260910\\candidate-server\\assets\\asset-patch\\production\\upload\\cd\\6336795a27ea33bf8d0c5d5a9bfb466bedcf1e",
+      "before_sha256": "8e59729a4dc676c9eb85e3fd78681d241fcb2c6ac15aedf4e3469a31ec6e4173",
+      "sha256": "f55304889e739a810bb4a37b3fa8fbc02abc638600f4a382408e6efab32e5718",
+      "size": 256238
+    },
+    {
+      "path": "assets/asset-patch/production/upload/b6/595dedd9cfa79b7e6eccab25dd9a2a81b066a2",
+      "source": "F:\\codex\\work\\abyss-element-local-test-20260910\\candidate-server\\assets\\asset-patch\\production\\upload\\b6\\595dedd9cfa79b7e6eccab25dd9a2a81b066a2",
+      "before_sha256": "b8564fc37eb207f04b523619db4c5d03acabea8154f2c7f86e5da76f89ce2516",
+      "sha256": "b0d893abfad4b6e169d61399f8cf0c77f9c42fd610ba1ae59f2f8bb0216017cc",
+      "size": 44248
+    },
+    {
+      "path": "assets/asset-patch/production/upload/e6/e407d1adb48131eaefdf5ec32208f3d4f46910",
+      "source": "F:\\codex\\work\\abyss-element-local-test-20260910\\candidate-server\\assets\\asset-patch\\production\\upload\\e6\\e407d1adb48131eaefdf5ec32208f3d4f46910",
+      "before_sha256": "eeb8b39aa4a681a7a5b03aa27848e3a6249626c793dcf3cf7f24f5406e9f7ee1",
+      "sha256": "c960912a7860091586e26d124566ed5e3884b394f00326b83a27c7f1ba20edab",
+      "size": 9855
+    },
+    {
+      "path": "assets/asset-patch/production/upload/89/e5c25c791e2a9527422c186084a1793218c2ac",
+      "source": "F:\\codex\\work\\abyss-element-local-test-20260910\\candidate-server\\assets\\asset-patch\\production\\upload\\89\\e5c25c791e2a9527422c186084a1793218c2ac",
+      "before_sha256": "d9b8e363cf5370cf09586034437ce6dcdbf3477b7297bd533eba82879f90d857",
+      "sha256": "4fc497d4bf7375bdbb4c3215f269f76671665f3f0e51ada2fcff3a8d336cc8f4",
+      "size": 320279
+    },
+    {
+      "path": "assets/asset-patch/production/upload/03/076857d74f07bb194f6185d4f1c1d6061850ce",
+      "source": "F:\\codex\\work\\abyss-element-local-test-20260910\\candidate-server\\assets\\asset-patch\\production\\upload\\03\\076857d74f07bb194f6185d4f1c1d6061850ce",
+      "before_sha256": null,
+      "sha256": "b44cafb1c8f2a7d4528e129489d68b9c9d986093fd537e551f302ff1ef66d7b1",
+      "size": 22217
+    },
+    {
+      "path": "assets/asset-patch/production/upload/bf/5dc56a444450216d4f12d6b9dfc0d908a09c5d",
+      "source": "F:\\codex\\work\\abyss-element-local-test-20260910\\candidate-server\\assets\\asset-patch\\production\\upload\\bf\\5dc56a444450216d4f12d6b9dfc0d908a09c5d",
+      "before_sha256": "886418ca6013d3d36031919d59a0a12e18602aec9c8239bebb032958ff8524a8",
+      "sha256": "faf12b4e05c70a9fa67b344584f7110f3134be2f08138bf102e1918be004cd2c",
+      "size": 8956
+    },
+    {
+      "path": "assets/asset-patch/production/upload/3b/94cb2772f22fb76b1a4545c5a347d764050829",
+      "source": "F:\\codex\\work\\abyss-element-local-test-20260910\\candidate-server\\assets\\asset-patch\\production\\upload\\3b\\94cb2772f22fb76b1a4545c5a347d764050829",
+      "before_sha256": "11603bd591dc6b4d6d57def1124f21cd75838207a349dc39522a3b7187da253d",
+      "sha256": "24e373c26220cb4d8232769d8de259632e7f6ec9d932e03cdff6350fabfcbb73",
+      "size": 743
+    },
+    {
+      "path": "assets/asset-patch/manifest.json",
+      "source": "F:\\codex\\work\\abyss-element-local-test-20260910\\candidate-server\\assets\\asset-patch\\manifest.json",
+      "before_sha256": "d3be9e13245264893c6e1ae8528026b9e97c6103b9e07ca7d3dafc857d5400ec",
+      "sha256": "657305f03a431435db79ee5ee11d853392e22e835af4ad81247432cf894b9c04",
+      "size": 726923
+    }
+  ],
+  "server_process": {
+    "pid": 22216,
+    "startedAt": "2026-09-10T11:46:22.4068727+08:00",
+    "stdout": "F:\\startpoint-cn-main\\.logs\\cn-server-abyss-element-20260910-114622.stdout.log",
+    "stderr": "F:\\startpoint-cn-main\\.logs\\cn-server-abyss-element-20260910-114622.stderr.log",
+    "purpose": "abyss-element-local-test",
+    "runtime": "F:\\startpoint-cn-main"
+  },
+  "runtime_http_verified": true,
+  "android_gameplay_verified": false,
+  "git_branch": "staging",
+  "git_head": "8f6252bb31c7f18a8cb61f11fa699282e68ebc4b",
+  "committed": false,
+  "pushed": false,
+  "cloud_overlay_created": false,
+  "cloud_deployed": false
+}

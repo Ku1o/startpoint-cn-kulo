@@ -2183,18 +2183,17 @@ class StandardBossHpCase(unittest.TestCase):
                     "b": ["T2", ["T1", ["T1", [171]]]],
                     "c": ["T2", ["T1", ["T1", [170]]]],
                     "d": ["T1", ["T1", 600]],
-                    "e": rb.STANDARD_DAMAGE_CHECK_STATE_KIND,
+                    "e": 0,  # animation index; must not filter out the trial
                     "m": ["T2", {"a": 1.5, "d": True, "g": [335]}],
                 },
                 {
-                    # State kind 17 also uses packed T2, but it is a variable
-                    # check rather than the percentage-based red damage trial.
+                    # A real non-damage trial uses a different Trial tag.
                     "a": 28,
                     "b": ["T2", ["T1", ["T1", [29]]]],
                     "c": ["T2", ["T1", ["T1", [28]]]],
                     "d": ["T1", ["T1", 845]],
                     "e": 17,
-                    "m": ["T2", {
+                    "m": ["T3", {
                         "h": ["T6", [["T2", "damage_check_a"]]],
                         "d": True,
                         "g": [93],
@@ -2229,6 +2228,22 @@ class StandardBossHpCase(unittest.TestCase):
         del tree["au"][0]["g"][0]["m"][1]["a"]
         with self.assertRaisesRegex(ValueError, "DamageCheck payload 非法"):
             rb.standard_damage_check_records(tree)
+
+    def test_script_damage_threshold_is_not_silently_skipped(self):
+        tree = self._damage_check_tree()
+        tree["au"][0]["g"][0]["m"][1]["h"] = ["T6", [["T2", "damage_check_a"]]]
+        original = copy.deepcopy(tree)
+        with self.assertRaisesRegex(ValueError, "script 门槛缺独立 HP 依赖证明"):
+            rb.scale_standard_enemy_hp_tree(tree, 10)
+        self.assertEqual(tree, original)
+
+    def test_dynamic_damage_trial_window_requires_independent_evidence(self):
+        tree = self._damage_check_tree()
+        tree["au"][0]["g"][0]["d"] = ["T6", [["T2", "trial_duration"]]]
+        original = copy.deepcopy(tree)
+        with self.assertRaisesRegex(ValueError, "DamageCheck 百分比/窗口/state id 非法"):
+            rb.scale_standard_enemy_hp_tree(tree, 10)
+        self.assertEqual(tree, original)
 
     def test_live_epuration_red_trials_keep_absolute_damage_thresholds(self):
         try:
@@ -4637,22 +4652,25 @@ class TaskCDryRunCase(unittest.TestCase):
         self.assertRegex(out, r"第5战 .*元素禁壁")
         self.assertIn("9 关解析链复核通过", out)
 
-    def test_ineligible_pinned_boss_and_immunity_fails_instead_of_eating_pin(self):
-        # 显式 boss 与显式诅咒同属用户意图；两者冲突时不能成功返回后
-        # 把属性免疫随机替换掉。dark_matter_single 的实际 c36=true。
+    def test_positive_element_resistance_does_not_reject_a_c36_true_pin(self):
+        # c36 only prevents some non-positive changes; positive resistance is
+        # accepted by the cumulative client's EnemyImpl.isConditionPrevented.
+        # Seed 2 also draws an unrelated final Boss with a dynamic trial window;
+        # its fail-closed HP gate is covered by StandardBossHpCase separately.
         result = self.run_build_with_plan(
             {"floors": {"5": {
                 "boss": "dark_matter_single", "curses": ["元素禁壁"]}}},
-            "--rounds", "8", "--seed", "2", "--difficulty", "hell")
+            "--rounds", "8", "--seed", "3", "--difficulty", "hell")
         out = result.stdout + result.stderr
-        self.assertNotEqual(result.returncode, 0, out)
-        self.assertIn("钉选 boss dark_matter_single 与属性免疫冲突", out)
-        self.assertIn("c36=true", out)
-        self.assertIn("resist_element_resistance", out)
+        self.assertEqual(result.returncode, 0, out)
+        self.assertNotIn("钉选 boss dark_matter_single 与属性免疫冲突", out)
+        self.assertIn("元素禁壁", out)
 
     def test_flat_hell_mix_build_has_at_least_one_real_safe_transplant(self):
+        # The old seed selects a scripted DamageCheck threshold on floor 19.
+        # Do not weaken that gate to exercise the independent transplant path.
         result = self.run_build(
-            "--rounds", "30", "--seed", "20260805",
+            "--rounds", "30", "--seed", "20260806",
             "--difficulty", "hell", "--ignore-plan", "--mix")
         out = result.stdout + result.stderr
         self.assertEqual(result.returncode, 0, out)
@@ -4907,12 +4925,11 @@ class CurseConflictCase(unittest.TestCase):
         a = {"name": "深渊壁垒", "cond": [(str(k), "0.3") for k in range(4)]}
         self.assertIsNone(rb.curse_conflict([a]))
 
-    def test_any_positive_element_resistance_consumes_the_unaffected_exit(self):
-        # r=1/9 不是高阻断，但仍算“受影响”；六属性全受影响也必须拒绝。
+    def test_weak_resistance_on_all_elements_does_not_count_as_six_bans(self):
         low = {"name": "低阻测试", "element_resistance": [
             (1, 1.0), (2, 9.0), (3, 1.0), (4, 9.0), (5, 1.0), (6, 9.0)]}
         self.assertEqual(rb.immunity_axes([low])[1], set())
-        self.assertIn("完全不受影响", rb.curse_conflict([low]) or "")
+        self.assertIsNone(rb.curse_conflict([low]))
 
     def test_overlapping_element_resistance_matches_client_addition(self):
         # 元素抗性跨卡累加，显式 cancelable=True 也统一钉死为不可驱散。
@@ -4937,16 +4954,12 @@ class CurseConflictCase(unittest.TestCase):
             damage, elements = rb.immunity_axes(out["picks"])
             self.assertLess(len(damage), 4, f"seed {seed} 四伤害类型全免疫")
             self.assertLess(len(elements), 6, f"seed {seed} 六属性高阻断")
-            affected = {e for e, value in rb._resistance_totals_by_target(
-                out["picks"], "element_resistance").items() if value > 0}
-            self.assertLess(len(affected), 6, f"seed {seed} 六属性全受影响")
 
-    def test_cross_curse_element_cards_are_rejected_before_merge(self):
+    def test_cross_curse_element_cards_cannot_merge_into_six_bans(self):
         a = {"name": "高阻甲", "element_resistance": [(1, 99.0), (2, 99.0), (3, 99.0)]}
         b = {"name": "高阻乙", "element_resistance": [(4, 999.0), (5, 99.0), (6, 99.0)]}
         why = rb.curse_conflict([a, b])
-        self.assertIn("每层最多一张", why or "")
-        self.assertIn("高阻甲+高阻乙", why or "")
+        self.assertIn("六属性", why or "")
 
     def test_five_element_immunities_still_leave_one_exit(self):
         a = {"name": "五相绝域", "element_resistance": [(e, 999.0) for e in range(1, 6)]}
@@ -5477,11 +5490,11 @@ class GeneralBossElementResistanceCase(unittest.TestCase):
             row[110] = "false"
         return {"80": {"variant": rb.join(row, False)}}
 
-    def test_c36_true_blocks_the_actual_cloned_row(self):
+    def test_c36_true_accepts_positive_resistance_on_the_actual_cloned_row(self):
         gb = {"source": self._node("true")}
         gb["mod_rogue_boss4"] = gb["source"]
         why = rb.general_boss_element_immunity_block(gb, "mod_rogue_boss4")
-        self.assertIn("c36=true", why or "")
+        self.assertIsNone(why)
 
     def test_false_is_allowed_but_unknown_values_fail_closed(self):
         self.assertIsNone(rb.general_boss_element_immunity_block(
@@ -5492,7 +5505,7 @@ class GeneralBossElementResistanceCase(unittest.TestCase):
         self.assertIsNotNone(rb.general_boss_element_immunity_block({}, "missing"))
 
     @requires_store
-    def test_known_official_prototypes_are_blocked_before_cloning(self):
+    def test_known_official_c36_prototypes_accept_positive_resistance(self):
         gb = q.load_table(rb.GENERAL_BOSS)
         gv = q.load_table("master/battle/boss/general_boss_variable.orderedmap")
         # 2026-08-05 用户按 getSurjectivity 独立复算：具体塔层/clone ID 会随 seed
@@ -5501,7 +5514,7 @@ class GeneralBossElementResistanceCase(unittest.TestCase):
         for code, level in (("dark_matter_single", 80), ("smr21_big_boss_ex", 90),
                             ("beasts_big_boss_multi_80", 90)):
             why = rb.general_boss_element_immunity_block(gb, code, level, gv)
-            self.assertIn("c36=true", why or "", code)
+            self.assertIsNone(why, code)
 
     def test_only_the_runtime_selected_level_row_controls_c36(self):
         gb = {"mixed": {"79": self._node("false")["80"],
@@ -5510,8 +5523,9 @@ class GeneralBossElementResistanceCase(unittest.TestCase):
         # GeneralBossSource 直接按 enemy level 在 general_boss 上取首个 ≥level 的行；
         # gv 另行解析,不能拿 gv 的下取整结果替 c36 选行。
         self.assertIsNone(rb.general_boss_element_immunity_block(gb, "mixed", 79, gv))
-        self.assertIn("gb[100]", rb.general_boss_element_immunity_block(
-            gb, "mixed", 90, gv) or "")
+        self.assertIsNone(rb.general_boss_element_immunity_block(gb, "mixed", 90, gv))
+        gb["mixed"]["100"] = self._node("invalid")["80"]
+        self.assertIn("gb[100]", rb.general_boss_element_immunity_block(gb, "mixed", 90, gv) or "")
 
     def test_auto_high_level_future_score_attack_is_a_hard_gate(self):
         rb.assert_element_immunity_runtime_safe(rb.Q_QUEST, 100)
@@ -5567,9 +5581,8 @@ class GeneralBossElementResistanceCase(unittest.TestCase):
         self.assertIn("血肉高墙", names)
         self.assertNotIn("元素禁壁", names)
         self.assertLess(len(rb.immunity_axes(out["picks"])[1]), 6)
-        # 属性卡硬去重必须先于旧的“六属性全部锁死”兜底触发；显式钉选也不能
-        # 绕过这条门禁，且被拒名额仍须回补到完整配额。
-        self.assertTrue(any("元素属性诅咒每层最多一张" in str(call)
+        # Multiple cards are legal, but their union cannot close all six axes.
+        self.assertTrue(any("六属性" in str(call)
                             and "redraw" in str(call)
                             for call in logger.call_args_list), logger.call_args_list)
 
@@ -5828,19 +5841,23 @@ class CursePacingAndFallbackCase(unittest.TestCase):
                                  if c["name"] in rb.ELEMENT_CURSE_NAMES]
                 self.assertLessEqual(len(element_picks), 1, (seed, out["picks"]))
 
-    def test_element_curse_duplicate_is_a_hard_conflict_even_when_forced(self):
+    def test_forced_multiple_element_cards_keep_all_legal_bans(self):
         import random as _r
         pool = {c["name"]: c for c in rb._curse_pool(2, _r.Random(7))}
         reason = rb.curse_conflict([pool["五相绝域"], pool["元素禁壁"]])
-        self.assertIn("每层最多一张", reason)
-        self.assertIn("五相绝域+元素禁壁", reason)
+        combined = rb.immunity_axes([pool["五相绝域"], pool["元素禁壁"]])[1]
+        if len(combined) == 6:
+            self.assertIn("六属性", reason)
+        else:
+            self.assertIsNone(reason)
         out = rb.abyss_curses(
             29, 30, _r.Random(7), "hell",
             caps={"boss": True, "element": True, "panel": True},
             forced={"curses": ["五相绝域", "元素禁壁"]})
         element_names = {c["name"] for c in out["picks"]
                          if c["name"] in rb.ELEMENT_CURSE_NAMES}
-        self.assertEqual(element_names, {"五相绝域"})
+        expected = {"五相绝域"} if len(combined) == 6 else {"五相绝域", "元素禁壁"}
+        self.assertEqual(element_names, expected)
 
     def test_element_preference_never_bypasses_missing_carrier(self):
         import random as _r

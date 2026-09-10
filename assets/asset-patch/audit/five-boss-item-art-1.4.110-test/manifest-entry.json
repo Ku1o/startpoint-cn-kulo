@@ -1,0 +1,46 @@
+{
+  "id": "five-boss-item-art-1.4.110-test",
+  "type": "patch",
+  "name": "五重决战道具与商品图更新（本地测试）",
+  "description": "死亡使者基础及强化图、深界结晶、五王心核采用用户新图；材料图集同步，门票商品改用现有新版凭证。",
+  "version": "1.4.110",
+  "depends_on": "item/sprite_sheet",
+  "enabled": true,
+  "archive": "pinball-1.4.109-1.4.110-1-five-boss-item-art-test.zip",
+  "archive_size": 1559816,
+  "chain": [
+    "pinball-1.4.109-1.4.110-1-five-boss-item-art-test.zip"
+  ],
+  "archive_integrity": [
+    {
+      "name": "pinball-1.4.109-1.4.110-1-five-boss-item-art-test.zip",
+      "size": 1559816,
+      "sha256": "6c6d51cf4ed010b19df8d2cbc9c8f7d4b40b1873a40c7548ffe755ca6ff219e3",
+      "members": 7,
+      "files": [
+        "production/upload/0d/227c8e7bcb1222c7cb2d4fb82ace96fe605cef",
+        "production/upload/5a/8557140d67bf8b9d06fe1ddff2343d05607e11",
+        "production/upload/5d/587cee98ce26a0ff22fa62f401241c7875176c",
+        "production/upload/6d/4d576b424178c5b2b253a2dd5aa3d78fa74ef3",
+        "production/upload/a5/35aaa48a5290e76d07c40e497742e4a407a0d0",
+        "production/upload/e8/e94d472f8d41f8d2954a8d106bb0d18b47d0ac",
+        "production/upload/f0/de168aad4299c068f3427535f469a49ff9cbbb"
+      ]
+    }
+  ],
+  "files": [
+    "production/upload/0d/227c8e7bcb1222c7cb2d4fb82ace96fe605cef",
+    "production/upload/5a/8557140d67bf8b9d06fe1ddff2343d05607e11",
+    "production/upload/5d/587cee98ce26a0ff22fa62f401241c7875176c",
+    "production/upload/6d/4d576b424178c5b2b253a2dd5aa3d78fa74ef3",
+    "production/upload/a5/35aaa48a5290e76d07c40e497742e4a407a0d0",
+    "production/upload/e8/e94d472f8d41f8d2954a8d106bb0d18b47d0ac",
+    "production/upload/f0/de168aad4299c068f3427535f469a49ff9cbbb"
+  ],
+  "created_at": "2026-09-10",
+  "local_test_only": true,
+  "audit": {
+    "directory": "assets/asset-patch/audit/five-boss-item-art-1.4.110-test",
+    "report": "report.json"
+  }
+}

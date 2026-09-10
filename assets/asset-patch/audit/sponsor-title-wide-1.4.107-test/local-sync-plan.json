@@ -1,0 +1,25 @@
+{
+  "status": "preflight_passed",
+  "target": "F:\\startpoint-cn-main",
+  "mode": "authorized_uncommitted_local_test_increment",
+  "files": [
+    {
+      "path": "assets/asset-patch/active/pinball-1.4.106-1.4.107-1-sponsor-title-wide-test.zip",
+      "size": 34501,
+      "sha256": "25598d1475baa39c98f66493b0c224cca73e7f1199c14e57d6633da6cf7e2c8b",
+      "before_sha256": null
+    },
+    {
+      "path": "assets/asset-patch/production/upload/03/076857d74f07bb194f6185d4f1c1d6061850ce",
+      "size": 34270,
+      "sha256": "7b690cff5528f1ba6c565d214483ba4614f0c8ff89822beb43df0d806fe4133f",
+      "before_sha256": "b44cafb1c8f2a7d4528e129489d68b9c9d986093fd537e551f302ff1ef66d7b1"
+    },
+    {
+      "path": "assets/asset-patch/manifest.json",
+      "size": 769836,
+      "sha256": "ae1ebd7dfa320002c4fc04acca75d1ecea876e96a5b95b9a3622a948105815cd",
+      "before_sha256": "3e4a05d6b9fb8ec7e22e323fd107a462148a077dd2375467c298e433a0cc4673"
+    }
+  ]
+}

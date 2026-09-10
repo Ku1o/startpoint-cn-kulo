@@ -1,0 +1,130 @@
+{
+  "status": "runtime_http_verified",
+  "resource_version": "1.4.105",
+  "updates": {
+    "1.4.103": {
+      "data_headers": {
+        "force_update": false,
+        "asset_update": true,
+        "force_news": null,
+        "short_udid": 0,
+        "viewer_id": 0,
+        "servertime": 1754453467,
+        "result_code": 1
+      },
+      "data": {
+        "info": {
+          "client_asset_version": "1.4.103",
+          "target_asset_version": "1.4.105",
+          "eventual_target_asset_version": "1.4.105",
+          "is_initial": false,
+          "latest_maj_first_version": "1.4.0"
+        },
+        "full": {
+          "version": "1.4.103",
+          "archive": []
+        },
+        "diff": [
+          {
+            "original_version": "1.4.103",
+            "version": "1.4.104",
+            "archive": [
+              {
+                "location": "http://<LAN_HOST>/patch/cn/asset-patch/active/pinball-1.4.103-1.4.104-1-abyss-element-sponsor-laite-test.zip",
+                "size": 3778769,
+                "sha256": ""
+              }
+            ]
+          },
+          {
+            "original_version": "1.4.104",
+            "version": "1.4.105",
+            "archive": [
+              {
+                "location": "http://<LAN_HOST>/patch/cn/asset-patch/active/pinball-1.4.104-1.4.105-1-abyss-pre-action-empty-test.zip",
+                "size": 279544,
+                "sha256": ""
+              }
+            ]
+          }
+        ],
+        "asset_version_hash": ""
+      }
+    },
+    "1.4.104": {
+      "data_headers": {
+        "force_update": false,
+        "asset_update": true,
+        "force_news": null,
+        "short_udid": 0,
+        "viewer_id": 0,
+        "servertime": 1754453467,
+        "result_code": 1
+      },
+      "data": {
+        "info": {
+          "client_asset_version": "1.4.104",
+          "target_asset_version": "1.4.105",
+          "eventual_target_asset_version": "1.4.105",
+          "is_initial": false,
+          "latest_maj_first_version": "1.4.0"
+        },
+        "full": {
+          "version": "1.4.104",
+          "archive": []
+        },
+        "diff": [
+          {
+            "original_version": "1.4.104",
+            "version": "1.4.105",
+            "archive": [
+              {
+                "location": "http://<LAN_HOST>/patch/cn/asset-patch/active/pinball-1.4.104-1.4.105-1-abyss-pre-action-empty-test.zip",
+                "size": 279544,
+                "sha256": ""
+              }
+            ]
+          }
+        ],
+        "asset_version_hash": ""
+      }
+    },
+    "1.4.105": {
+      "data_headers": {
+        "force_update": false,
+        "asset_update": true,
+        "force_news": null,
+        "short_udid": 0,
+        "viewer_id": 0,
+        "servertime": 1754453467,
+        "result_code": 1
+      },
+      "data": {
+        "info": {
+          "client_asset_version": "1.4.105",
+          "target_asset_version": "1.4.105",
+          "eventual_target_asset_version": "1.4.105",
+          "is_initial": false,
+          "latest_maj_first_version": "1.4.0"
+        },
+        "full": {
+          "version": "1.4.105",
+          "archive": []
+        },
+        "diff": [],
+        "asset_version_hash": ""
+      }
+    }
+  },
+  "archive": {
+    "location": "http://<LAN_HOST>/patch/cn/asset-patch/active/pinball-1.4.104-1.4.105-1-abyss-pre-action-empty-test.zip",
+    "size": 279544,
+    "sha256": ""
+  },
+  "archive_sha256": "6d696ccae176bed4ea048b47a9c19cce1d33b818e7b4906f436878756ef15b38",
+  "general_boss_sha256": "a3fd5dcfdbc5357d6f04454f07f85eec8382a477032929ce591efdbc0bb6c3b5",
+  "custom_general_rows_checked": 30,
+  "direct_resource_equals_archive": true,
+  "old_published_archive_unchanged": true,
+  "android_retest_passed": false
+}

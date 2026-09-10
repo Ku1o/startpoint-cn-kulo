@@ -1,0 +1,467 @@
+{
+  "status": "local_test_http_and_effective_data_verified",
+  "version": "1.4.108",
+  "effective_inventory_checked": 303,
+  "loose_overrides_checked": 301,
+  "event_chain_checks": [
+    {
+      "ok": true,
+      "field": "main_10_11_4",
+      "zone": "main_10_11_4",
+      "bosses": [],
+      "zakos": [
+        "enemy_dragon_human"
+      ],
+      "errors": [],
+      "round": "1",
+      "quest_id": "700099001"
+    },
+    {
+      "ok": true,
+      "field": "mod_rogue_f2",
+      "zone": "mod_rogue_z2",
+      "bosses": [
+        "mod_rogue_boss2"
+      ],
+      "zakos": [
+        "bug1",
+        "bug2"
+      ],
+      "errors": [],
+      "round": "2",
+      "quest_id": "700099002"
+    },
+    {
+      "ok": true,
+      "field": "mod_rogue_f3",
+      "zone": "mod_rogue_z3",
+      "bosses": [
+        "mod_rogue_boss3"
+      ],
+      "zakos": [],
+      "errors": [],
+      "round": "3",
+      "quest_id": "700099003"
+    },
+    {
+      "ok": true,
+      "field": "mod_rogue_f4",
+      "zone": "mod_rogue_z4",
+      "bosses": [
+        "mod_rogue_boss4"
+      ],
+      "zakos": [],
+      "errors": [],
+      "round": "4",
+      "quest_id": "700099004"
+    },
+    {
+      "ok": true,
+      "field": "mod_rogue_f5",
+      "zone": "mod_rogue_z5",
+      "bosses": [
+        "mod_rogue_boss5"
+      ],
+      "zakos": [],
+      "errors": [],
+      "round": "5",
+      "quest_id": "700099005"
+    },
+    {
+      "ok": true,
+      "field": "mod_rogue_f6",
+      "zone": "mod_rogue_z6",
+      "bosses": [
+        "mod_rogue_standard6",
+        "steampunk_fire_multi"
+      ],
+      "zakos": [],
+      "errors": [],
+      "round": "6",
+      "quest_id": "700099006"
+    },
+    {
+      "ok": true,
+      "field": "mod_rogue_f7",
+      "zone": "mod_rogue_z7",
+      "bosses": [
+        "mod_rogue_kraken7"
+      ],
+      "zakos": [],
+      "errors": [],
+      "round": "7",
+      "quest_id": "700099007"
+    },
+    {
+      "ok": true,
+      "field": "mod_rogue_f8",
+      "zone": "mod_rogue_z8",
+      "bosses": [
+        "mod_rogue_boss8"
+      ],
+      "zakos": [],
+      "errors": [],
+      "round": "8",
+      "quest_id": "700099008"
+    },
+    {
+      "ok": true,
+      "field": "mod_rogue_f9",
+      "zone": "mod_rogue_z9",
+      "bosses": [
+        "mod_rogue_standard9"
+      ],
+      "zakos": [],
+      "errors": [],
+      "round": "9",
+      "quest_id": "700099009"
+    },
+    {
+      "ok": true,
+      "field": "mod_rogue_f10",
+      "zone": "mod_rogue_z10",
+      "bosses": [
+        "mod_rogue_boss10"
+      ],
+      "zakos": [],
+      "errors": [],
+      "round": "10",
+      "quest_id": "700099010"
+    },
+    {
+      "ok": true,
+      "field": "mod_rogue_f11",
+      "zone": "mod_rogue_z11",
+      "bosses": [
+        "mod_rogue_touyakiren_ceo11"
+      ],
+      "zakos": [],
+      "errors": [],
+      "round": "11",
+      "quest_id": "700099011"
+    },
+    {
+      "ok": true,
+      "field": "mod_rogue_f12",
+      "zone": "mod_rogue_z12",
+      "bosses": [
+        "mod_rogue_standard12"
+      ],
+      "zakos": [],
+      "errors": [],
+      "round": "12",
+      "quest_id": "700099012"
+    },
+    {
+      "ok": true,
+      "field": "mod_rogue_f13",
+      "zone": "mod_rogue_z13",
+      "bosses": [
+        "mod_rogue_boss13"
+      ],
+      "zakos": [],
+      "errors": [],
+      "round": "13",
+      "quest_id": "700099013"
+    },
+    {
+      "ok": true,
+      "field": "mod_rogue_f14",
+      "zone": "mod_rogue_z14",
+      "bosses": [
+        "mod_rogue_boss14"
+      ],
+      "zakos": [],
+      "errors": [],
+      "round": "14",
+      "quest_id": "700099014"
+    },
+    {
+      "ok": true,
+      "field": "mod_rogue_f15",
+      "zone": "mod_rogue_z15",
+      "bosses": [
+        "mod_rogue_standard15",
+        "mod_rogue_standard15_2"
+      ],
+      "zakos": [],
+      "errors": [],
+      "round": "15",
+      "quest_id": "700099015"
+    },
+    {
+      "ok": true,
+      "field": "mod_rogue_f16",
+      "zone": "mod_rogue_z16",
+      "bosses": [
+        "mod_rogue_boss16"
+      ],
+      "zakos": [],
+      "errors": [],
+      "round": "16",
+      "quest_id": "700099016"
+    },
+    {
+      "ok": true,
+      "field": "mod_rogue_f17",
+      "zone": "mod_rogue_z17",
+      "bosses": [
+        "mod_rogue_boss17"
+      ],
+      "zakos": [],
+      "errors": [],
+      "round": "17",
+      "quest_id": "700099017"
+    },
+    {
+      "ok": true,
+      "field": "mod_rogue_f18",
+      "zone": "mod_rogue_z18",
+      "bosses": [
+        "mod_rogue_standard18"
+      ],
+      "zakos": [],
+      "errors": [],
+      "round": "18",
+      "quest_id": "700099018"
+    },
+    {
+      "ok": true,
+      "field": "mod_rogue_f19",
+      "zone": "mod_rogue_z19",
+      "bosses": [
+        "mod_rogue_standard19"
+      ],
+      "zakos": [],
+      "errors": [],
+      "round": "19",
+      "quest_id": "700099019"
+    },
+    {
+      "ok": true,
+      "field": "mod_rogue_f20",
+      "zone": "mod_rogue_z20",
+      "bosses": [
+        "mod_rogue_boss20"
+      ],
+      "zakos": [],
+      "errors": [],
+      "round": "20",
+      "quest_id": "700099020"
+    },
+    {
+      "ok": true,
+      "field": "mod_rogue_f21",
+      "zone": "mod_rogue_z21",
+      "bosses": [
+        "mod_rogue_standard21"
+      ],
+      "zakos": [],
+      "errors": [],
+      "round": "21",
+      "quest_id": "700099021"
+    },
+    {
+      "ok": true,
+      "field": "mod_rogue_f22",
+      "zone": "mod_rogue_z22",
+      "bosses": [
+        "mod_rogue_boss22"
+      ],
+      "zakos": [],
+      "errors": [],
+      "round": "22",
+      "quest_id": "700099022"
+    },
+    {
+      "ok": true,
+      "field": "mod_rogue_f23",
+      "zone": "mod_rogue_z23",
+      "bosses": [
+        "mod_rogue_boss23"
+      ],
+      "zakos": [],
+      "errors": [],
+      "round": "23",
+      "quest_id": "700099023"
+    },
+    {
+      "ok": true,
+      "field": "mod_rogue_f24",
+      "zone": "mod_rogue_z24",
+      "bosses": [
+        "mod_rogue_conductor24"
+      ],
+      "zakos": [],
+      "errors": [],
+      "round": "24",
+      "quest_id": "700099024"
+    },
+    {
+      "ok": true,
+      "field": "mod_rogue_f25",
+      "zone": "mod_rogue_z25",
+      "bosses": [
+        "mod_rogue_orochi_ex25"
+      ],
+      "zakos": [],
+      "errors": [],
+      "round": "25",
+      "quest_id": "700099025"
+    },
+    {
+      "ok": true,
+      "field": "mod_rogue_f30",
+      "zone": "mod_rogue_z30",
+      "bosses": [
+        "mod_rogue_boss30"
+      ],
+      "zakos": [],
+      "errors": [],
+      "round": "26",
+      "quest_id": "700099026"
+    },
+    {
+      "ok": true,
+      "field": "mod_rogue_f27",
+      "zone": "mod_rogue_z27",
+      "bosses": [
+        "mod_rogue_boss27"
+      ],
+      "zakos": [],
+      "errors": [],
+      "round": "27",
+      "quest_id": "700099027"
+    },
+    {
+      "ok": true,
+      "field": "mod_rogue_f28",
+      "zone": "mod_rogue_z28",
+      "bosses": [
+        "mod_rogue_wind_sphere28"
+      ],
+      "zakos": [],
+      "errors": [],
+      "round": "28",
+      "quest_id": "700099028"
+    },
+    {
+      "ok": true,
+      "field": "mod_rogue_f29",
+      "zone": "mod_rogue_z29",
+      "bosses": [
+        "mod_rogue_standard29",
+        "mod_rogue_standard29_2"
+      ],
+      "zakos": [],
+      "errors": [],
+      "round": "29",
+      "quest_id": "700099029"
+    },
+    {
+      "ok": true,
+      "field": "mod_rogue_f26",
+      "zone": "mod_rogue_z26",
+      "bosses": [
+        "mod_rogue_boss26",
+        "mod_rogue_boss26_2",
+        "mod_rogue_boss26_3"
+      ],
+      "zakos": [],
+      "errors": [],
+      "round": "30",
+      "quest_id": "700099030"
+    },
+    {
+      "ok": true,
+      "field": "tower_dungeon_area_8_3_3",
+      "zone": "tower_dungeon_area_8_3_3",
+      "bosses": [
+        "desert_diver"
+      ],
+      "zakos": [],
+      "errors": [],
+      "round": "99",
+      "quest_id": "700099099"
+    }
+  ],
+  "http_matrix": [
+    {
+      "platform": "Android",
+      "from_version": "1.4.106",
+      "target": "1.4.108",
+      "diff_versions": [
+        "1.4.107",
+        "1.4.108"
+      ]
+    },
+    {
+      "platform": "Android",
+      "from_version": "1.4.107",
+      "target": "1.4.108",
+      "diff_versions": [
+        "1.4.108"
+      ]
+    },
+    {
+      "platform": "Android",
+      "from_version": "1.4.108",
+      "target": "1.4.108",
+      "diff_versions": []
+    },
+    {
+      "platform": "iOS",
+      "from_version": "1.4.106",
+      "target": "1.4.108",
+      "diff_versions": [
+        "1.4.107",
+        "1.4.108"
+      ]
+    },
+    {
+      "platform": "iOS",
+      "from_version": "1.4.107",
+      "target": "1.4.108",
+      "diff_versions": [
+        "1.4.108"
+      ]
+    },
+    {
+      "platform": "iOS",
+      "from_version": "1.4.108",
+      "target": "1.4.108",
+      "diff_versions": []
+    }
+  ],
+  "direct_resources": [
+    {
+      "logical": "master/battle/boss/boss_level.orderedmap",
+      "url": "http://<LAN_HOST>/patch/cn/dummy/download/production/upload/19/a4aa442b3249499356e7a3f6370e530bfe355e",
+      "sha256": "597648a2a4b2498b7376b4ed84a461b3c24457fb2c8d9e41241b7cb8dcdc8ef1",
+      "bytes": 45963
+    },
+    {
+      "logical": "master/battle/boss/general_boss_state.orderedmap",
+      "url": "http://<LAN_HOST>/patch/cn/dummy/download/production/upload/0b/97162ce6d40c473cbac39fa21427688922a48a",
+      "sha256": "93c1bf42e64de2afe98fb603100d38dfd5240b2ec2f64ee2f26c9684ed2a6002",
+      "bytes": 5317928
+    },
+    {
+      "logical": "master/quest/event/rush_event_quest.orderedmap",
+      "url": "http://<LAN_HOST>/patch/cn/dummy/download/production/upload/b6/595dedd9cfa79b7e6eccab25dd9a2a81b066a2",
+      "sha256": "025cbe53c8ad7ce3c7f5f091f25daf303acc2a9edd8df584c0f7e433bead8bb6",
+      "bytes": 45753
+    }
+  ],
+  "archive_http_sha256": "17ecf7182e783a69600bb1542c0e3681cdb830467c88dae8394834e5e3cd61e8",
+  "apk_sha256_unchanged": "8e21b793091415be13d13ac170a1dc53e89fb92a3d688c135deb86644a71bbcb",
+  "server_listening": "<LAN_HOST>",
+  "android_gameplay_verified": false,
+  "ios_gameplay_verified": false,
+  "apk_reinstall_required": false,
+  "test_suites": {
+    "new_tower_adjustment_tests": 7,
+    "existing_element_ban_channel_resistance_tests": 26,
+    "existing_general_hp_trial_tests": 3
+  }
+}

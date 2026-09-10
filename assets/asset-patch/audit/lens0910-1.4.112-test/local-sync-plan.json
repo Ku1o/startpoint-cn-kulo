@@ -1,0 +1,2480 @@
+{
+  "status": "preflight_passed",
+  "audit": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\audit\\lens0910-1.4.112-test",
+  "version": "1.4.112",
+  "files": [
+    {
+      "root": "F:\\codex\\startpoint-cn-private-clean",
+      "path": "assets/cdndata/character.json",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-private-clean\\assets\\cdndata\\character.json",
+      "sha256": "1a803bc92d0b171c5f4f6f7b3d3d6bae603b85a2b93684d8c56f438b1b4b6327",
+      "size": 321162,
+      "before_sha256": "2f490100051eafb6ce583e574740602da9f7b9a37eead0738ef3a42a24f08350"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/cdndata/character.json",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\cdndata\\character.json",
+      "sha256": "1a803bc92d0b171c5f4f6f7b3d3d6bae603b85a2b93684d8c56f438b1b4b6327",
+      "size": 321162,
+      "before_sha256": "b2ddb813a9464c89df6af453541efd2342c4f28cbe3ebc554b8b983bdd77eb6f"
+    },
+    {
+      "root": "F:\\codex\\startpoint-cn-private-clean",
+      "path": "assets/cdndata/character_text.json",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-private-clean\\assets\\cdndata\\character_text.json",
+      "sha256": "f1bd3e08f15e40030dc889b7859dffb7b8157e92db03a43e3b76e62259c60e7f",
+      "size": 420109,
+      "before_sha256": "f732ab31016dca4ee509bc88a35e8f3493b1abd93736bb5999bfaa5e5ae57bd2"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/cdndata/character_text.json",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\cdndata\\character_text.json",
+      "sha256": "f1bd3e08f15e40030dc889b7859dffb7b8157e92db03a43e3b76e62259c60e7f",
+      "size": 420109,
+      "before_sha256": "871faea21fe8ce7a88a694b495e4b162bd08685c73415330a1c53ed07f259f7e"
+    },
+    {
+      "root": "F:\\codex\\startpoint-cn-private-clean",
+      "path": "assets/cdndata/character_text_rank_p5b.json",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-private-clean\\assets\\cdndata\\character_text_rank_p5b.json",
+      "sha256": "d5e653db38f2aa8881c92df3068adc99bf578a7c82f6393b26c86cacb3a9f39a",
+      "size": 45180,
+      "before_sha256": "9f03de40452b303f6a05412b12b51b926f1ef6be188b77a6c8ed7e98935fefb1"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/cdndata/character_text_rank_p5b.json",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\cdndata\\character_text_rank_p5b.json",
+      "sha256": "d5e653db38f2aa8881c92df3068adc99bf578a7c82f6393b26c86cacb3a9f39a",
+      "size": 45180,
+      "before_sha256": "82ea6cdc8f266ef0db8c6fb37733bee4b339df5b51f5ff12be51287d1e346ab2"
+    },
+    {
+      "root": "F:\\codex\\startpoint-cn-private-clean",
+      "path": "assets/gacha.json",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-private-clean\\assets\\gacha.json",
+      "sha256": "5d61933ef607e6f5ba11d5007fc1fe0b737f7a7b42f9558df568fffc93008d11",
+      "size": 28318282,
+      "before_sha256": "02dc588e16724f29b36a199d015287d78a5618afd4ee3c08ccb8a73b6beef704"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/gacha.json",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\gacha.json",
+      "sha256": "5d61933ef607e6f5ba11d5007fc1fe0b737f7a7b42f9558df568fffc93008d11",
+      "size": 28318282,
+      "before_sha256": "aed4840c4e81b4a94a4c4f22e805f5d2b660cf2972d5de0b5452d6ae0d3de82a"
+    },
+    {
+      "root": "F:\\codex\\startpoint-cn-private-clean",
+      "path": "assets/gacha_cnmod.json",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-private-clean\\assets\\gacha_cnmod.json",
+      "sha256": "8ce29354aafbfa533d8e1b4347cab72d755234e86e5843201da40081c66b5c9f",
+      "size": 121304,
+      "before_sha256": "1065ea460c88c0203c598f1a7c0d055487ed9cfca86e990aa23cdbbb09f36722"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/gacha_cnmod.json",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\gacha_cnmod.json",
+      "sha256": "8ce29354aafbfa533d8e1b4347cab72d755234e86e5843201da40081c66b5c9f",
+      "size": 121304,
+      "before_sha256": "bb1eba37667e8e16204ed9e4e7c566367045c3f13afa15df53ca87a35b12d7d6"
+    },
+    {
+      "root": "F:\\codex\\startpoint-cn-private-clean",
+      "path": "assets/gacha_rank_p5b.json",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-private-clean\\assets\\gacha_rank_p5b.json",
+      "sha256": "6b0229e7d06580ea06bc190f05dfe4fc62a41dd407c2bd2772791ac4092c83a5",
+      "size": 130931,
+      "before_sha256": "edbb767e87a071c84545b843d982f6dd7f3d887e2136246991409d8c6cd312a8"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/gacha_rank_p5b.json",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\gacha_rank_p5b.json",
+      "sha256": "6b0229e7d06580ea06bc190f05dfe4fc62a41dd407c2bd2772791ac4092c83a5",
+      "size": 130931,
+      "before_sha256": "b1df552dad83f4524a0aaadf07246e03487b89e7cfcf1947b02252deecb24478"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/active/pinball-1.4.111-1.4.112-1-lens0910-details-test.zip",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\active\\pinball-1.4.111-1.4.112-1-lens0910-details-test.zip",
+      "sha256": "ae139d009656e329833c8aadc6e7475cbd653fca14e7c3452ef0084763ebf746",
+      "size": 34251355,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/android_upload/84/22ac3b08ccdd077bf5f460f3fe984ec8aff811",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\android_upload\\84\\22ac3b08ccdd077bf5f460f3fe984ec8aff811",
+      "sha256": "1fe8b030c0b67f00c3dff8344e31f94f37642552e74ed1212d8b260065b7ef16",
+      "size": 107036,
+      "before_sha256": "02b973bac566038c6c7714c7e54fdeab66ae5c8c088178085fb18d4ed14d874b"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/android_upload/a0/9b916f3457e6827148151101aa95d634bd6f96",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\android_upload\\a0\\9b916f3457e6827148151101aa95d634bd6f96",
+      "sha256": "c157c96ccf9f560eb3b1010690a9dc2830a158b3074ccba587c32c336014a7b0",
+      "size": 120354,
+      "before_sha256": "3e71235c0bff7353eb0afe5f6e627aac4387d16d126e7c40930ccb6d4b86c8d8"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/android_upload/b0/5668cff66ce011c3c45ddd6240059872100f99",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\android_upload\\b0\\5668cff66ce011c3c45ddd6240059872100f99",
+      "sha256": "831c9ee2cd66f82ee340175147559033d1959e55c29fe542026b8f211e501bfc",
+      "size": 176076,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/android_upload/53/2ae28d5b68a0e3d5e5df65f5c6ce57e4413347",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\android_upload\\53\\2ae28d5b68a0e3d5e5df65f5c6ce57e4413347",
+      "sha256": "831c9ee2cd66f82ee340175147559033d1959e55c29fe542026b8f211e501bfc",
+      "size": 176076,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/android_upload/95/c78b166636dd6ff34aaadce3f907b87e21e617",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\android_upload\\95\\c78b166636dd6ff34aaadce3f907b87e21e617",
+      "sha256": "c49a667dd084e2ddf54dcda26fb00591911782a5d80bae1b96e3d6fdf985f77e",
+      "size": 88842,
+      "before_sha256": "784e25d1e25ca2b7eb3af707f705fc0205eb208a11fed9f70181f370a2a71728"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/android_upload/bf/469a900c3d60033b4a1cd89a88bb4c52b1ba3a",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\android_upload\\bf\\469a900c3d60033b4a1cd89a88bb4c52b1ba3a",
+      "sha256": "27cdf62f66bb7386a934b12e18ebb39b85bfa33788b81c7decf27dd49fcdfaf7",
+      "size": 103674,
+      "before_sha256": "83b544b6c5bd69b3652c182f5e67db81ca54bad201af8762747986e04a5c0e70"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/07/9e791a04e8de410024180c1e2e1fcd0fedcfb2",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\07\\9e791a04e8de410024180c1e2e1fcd0fedcfb2",
+      "sha256": "a551c11c485a3d3e03253dc4ec41b8b3d333f0e489f03ddffcf44a8ef2ba186e",
+      "size": 1120,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/89/6c298193f556d2544808792ac2eb85f52ab2cc",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\89\\6c298193f556d2544808792ac2eb85f52ab2cc",
+      "sha256": "5f875bda843912d216233eef251dc56c6436535d0755277129e6142e2ccbd90d",
+      "size": 1141,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/79/ae6d8f7b7d233edfe1bd71615be5e003469d5f",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\79\\ae6d8f7b7d233edfe1bd71615be5e003469d5f",
+      "sha256": "46780c27e49699f051964a1004e8fff4ac32fc3f6adaded94a78284777796ae9",
+      "size": 1198,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/a3/7ac2a83615e53ce07a987d402e1ea1c149b214",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\a3\\7ac2a83615e53ce07a987d402e1ea1c149b214",
+      "sha256": "a68d94c88ac3de51b755b37a49ba16c21cadcc98e4b523ee0446732e13d2175f",
+      "size": 1098,
+      "before_sha256": "aa201d9d4b640aff1c99eb8a1d84296e55012f3ce5417f882088311fddcf8dc8"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/e0/e3ee775972dbb22afff647d6ab6b6e51c31ea4",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\e0\\e3ee775972dbb22afff647d6ab6b6e51c31ea4",
+      "sha256": "d2dabba2e28432f5d33d7c7e121cad5f5a8d99090a0f5825a00f63d454af6553",
+      "size": 1118,
+      "before_sha256": "3e93f3b590e6fd724aaa88975725e509e5182ed332d272d96bd321baabd184fb"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/15/9eadaeb07d6aade96fe52e97d87a0288f63ddb",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\15\\9eadaeb07d6aade96fe52e97d87a0288f63ddb",
+      "sha256": "5111cb3e0b1801c7fef066443b95fc30d9bc3b09455bfb31ad682fd3240c738d",
+      "size": 1177,
+      "before_sha256": "63823e486eab4315fa619b4c701158e7b789fe10ff8f0871be9f7f4ec95e5414"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/48/00cce19fa1d5e454321608f3feef58d0a76590",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\48\\00cce19fa1d5e454321608f3feef58d0a76590",
+      "sha256": "dd06ecfe33e7dabaa29e1002be41519ff0f4d1929df279e389032bca8945b048",
+      "size": 794,
+      "before_sha256": "56dba2b60be1cc8a9b8ea24f4e5e15c59f86f4484f258da4bffa3303edba6a4c"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/ff/f4dd420538f5b693f8270917c31f2cee581ef1",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\ff\\f4dd420538f5b693f8270917c31f2cee581ef1",
+      "sha256": "defe652c78ff88cac4f1bb47ed5d7b38e93a312565993135bc5d47cc8d77317b",
+      "size": 799,
+      "before_sha256": "e4282f531075daa7ddfdbbc769ffb82010a63c0bc17c6affb270cb0433919740"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/f3/bc2fbc0d85e19b42c6403dab9752e2dde51504",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\f3\\bc2fbc0d85e19b42c6403dab9752e2dde51504",
+      "sha256": "0e690af4684800fe759149599fb6c785c6c8ce71c3730583805fa69e2031e99b",
+      "size": 507,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/10/bef75cbc6690bf34be235d4ca03ebe74f9116c",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\10\\bef75cbc6690bf34be235d4ca03ebe74f9116c",
+      "sha256": "903a4aeb04a489285daa1e05076f80e29a2d68a251202af9e56dc426445d4680",
+      "size": 612,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/15/501852057f0b800d63acb65f9db8b5dd43feb1",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\15\\501852057f0b800d63acb65f9db8b5dd43feb1",
+      "sha256": "f7d9a6334326e4cec20e9ef9009e84f8a6ab992a4a4a570f88f52d340eaba84c",
+      "size": 504,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/87/9d5ba316e9af19234460308cb3fdce5c5ffc75",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\87\\9d5ba316e9af19234460308cb3fdce5c5ffc75",
+      "sha256": "d7459c171070ffe66b40dfea0d09d8857bac35ef1edacc45bcebc1550f3133d1",
+      "size": 673,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/08/c61a292c08efdd0abceacb9e07b58dfdf8d25d",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\08\\c61a292c08efdd0abceacb9e07b58dfdf8d25d",
+      "sha256": "742a519f754519b50f44ba59f23da299a1f935db6ed614bf065a4f9ff6fe6317",
+      "size": 599,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/7d/d3af328129e7ec4636a8f3ef067cd7ca4342c5",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\7d\\d3af328129e7ec4636a8f3ef067cd7ca4342c5",
+      "sha256": "6309fc53106aa682185aa5ca7e9a9f6e6f31e1c82e1197a6c106685f362aad95",
+      "size": 1277,
+      "before_sha256": "81ddf94aec7c3d1e494c8f6bb209421c45118767e2c9557590063e6f7b805ee3"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/42/be9c1a0f896f743c65fa16e04b0f71d84f1acc",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\42\\be9c1a0f896f743c65fa16e04b0f71d84f1acc",
+      "sha256": "449d01ad85806f29e0971ef75ca776ff24eb1be317523beaae3f47c98f888790",
+      "size": 1280,
+      "before_sha256": "3adbe2502d201b825978ac384259f0fb11a1748faaa542ec34c13a047ace7207"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/de/d19d99a68d1fd23d432a7d0b62a4b4fbb26d7d",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\de\\d19d99a68d1fd23d432a7d0b62a4b4fbb26d7d",
+      "sha256": "be8ebf792dc2b5654697980e0eee92f685949e57959e314b817df0dbf8ea75eb",
+      "size": 3022,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/22/754a7153a920ccadd4af8dd6903df3c9d319fc",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\22\\754a7153a920ccadd4af8dd6903df3c9d319fc",
+      "sha256": "7ffa0fad67b793dc5101e3ff995da49d34eed84217b33cb6f66532a286bfc549",
+      "size": 3437,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/9e/c2fb6e27ede33598ac3a8185d7cc09e9eba145",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\9e\\c2fb6e27ede33598ac3a8185d7cc09e9eba145",
+      "sha256": "be8ebf792dc2b5654697980e0eee92f685949e57959e314b817df0dbf8ea75eb",
+      "size": 3022,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/90/b1c8a2aa336b1656889002f1a0e1c958fb98bd",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\90\\b1c8a2aa336b1656889002f1a0e1c958fb98bd",
+      "sha256": "0e75ff22e8b491642c27513ba057af1ee767f9f582f03b44c86a62417d6af65a",
+      "size": 209,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/20/57fb5378ff5523545b0a6df421a9e322d889bd",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\20\\57fb5378ff5523545b0a6df421a9e322d889bd",
+      "sha256": "ea5317c1d91894c94b6ffc98385046826a3bfe567b8593a99db6cad8b59c11ef",
+      "size": 152747,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/1a/dff3efadf007d2ae288b34bf2527ff2c2ec528",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\1a\\dff3efadf007d2ae288b34bf2527ff2c2ec528",
+      "sha256": "e2230e15ab63fc98fecbfb2c7cee4ceeadb1bf0df0ea9bf19626fcdf864807f0",
+      "size": 1673,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/95/d1be7d562ed627cd0b49125c93828520eb60b7",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\95\\d1be7d562ed627cd0b49125c93828520eb60b7",
+      "sha256": "47a22d0511e75bedda30f2507d916c621ad6a4c154181e1042444eab25403b47",
+      "size": 143,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/9c/babd53c090f98b9c807dabe204afc000e39fc5",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\9c\\babd53c090f98b9c807dabe204afc000e39fc5",
+      "sha256": "05aaf6f76e9dbb35a8b4f999140c2226ab2c36e77d4395873bd6b288c63e7747",
+      "size": 153017,
+      "before_sha256": "320bcbcb66eb104be9a2c2cd01b20e9c03e87359e6f2dae43c2c38cbd582fd1b"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/20/b51cc2e1a9c106d70e48ba09db17fc823908a2",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\20\\b51cc2e1a9c106d70e48ba09db17fc823908a2",
+      "sha256": "f791092d56448950c45d5eca8ed61b3bcfb78d9ed0977fe2adfe1be4616f5d25",
+      "size": 113519,
+      "before_sha256": "f0704e2767e3b82ac3f5b30f78f9035b9d64370473d38e6519ebb6f41adbc940"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/16/74ee615499f2241c60c6f98e07d855e4d4e135",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\16\\74ee615499f2241c60c6f98e07d855e4d4e135",
+      "sha256": "4ea85348cb52138c06b029ecdb33693b2ed6f6600ee6a1e036274b81782fbc85",
+      "size": 19165,
+      "before_sha256": "95a99d928963ea27b0763aeeb82974c3c76d6c6e281f8946bb848721fbab04d9"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/dc/c4c0f318886c656d665e562fecbad1ba8e11a2",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\dc\\c4c0f318886c656d665e562fecbad1ba8e11a2",
+      "sha256": "9a155b20ac754a9239f154cf5b9262bd505701e2f8af28e6080d8217304d3422",
+      "size": 21359,
+      "before_sha256": "f1c112a6a49ddb8967dc9510724d030a07b7a6ca755f1e7932667752f6f7a81a"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/20/5d6086a214cd41174666193997fe149bbbe32b",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\20\\5d6086a214cd41174666193997fe149bbbe32b",
+      "sha256": "2e3cf2f5a71d7a07fdab7e18dadac77dbfc18d602776789ef2429644ab592eda",
+      "size": 22300,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/51/fb102ccf2c964875f632110136d3e8b9bdd590",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\51\\fb102ccf2c964875f632110136d3e8b9bdd590",
+      "sha256": "63b7a699e3835c0a0f1a6ca087a470c2bc6b311f56c65379bf7128df5412ac47",
+      "size": 18852,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/4c/12b380a7cf784062282eb38cd35bf6f5c85ac1",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\4c\\12b380a7cf784062282eb38cd35bf6f5c85ac1",
+      "sha256": "d1de80e73cdee6e044dff9e5109b683f262ff6c12d6157e93b19549a488cf66e",
+      "size": 7880,
+      "before_sha256": "72439099eebbfdfabd6c039edfba32707f27fe248553e2d28be26ca195fb5727"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/18/534205df80a55ac79d53c538be613c3dd9e73c",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\18\\534205df80a55ac79d53c538be613c3dd9e73c",
+      "sha256": "7aafbbdfafcc7698c223a9ec1997edd0f7875e6f3093a16d85aca78b7d0c9d31",
+      "size": 10388,
+      "before_sha256": "d3575d0217bfc089f1b9f2b1543ebe59c7044b2bfbb9b23f186febb529c0b6b7"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/d4/f89a1e5e4cac0dd9604d526f6e2d01348dd2d3",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\d4\\f89a1e5e4cac0dd9604d526f6e2d01348dd2d3",
+      "sha256": "eeebcba29e750ffc3afe8bb0031ff135f17aef452786b3cb3599794d3d78385d",
+      "size": 11328,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/1d/d7e628bf0eff5a27558b32572636c3e8ebada1",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\1d\\d7e628bf0eff5a27558b32572636c3e8ebada1",
+      "sha256": "b3b821de6521150d0819ba3e9bab3b560746f6fa48bebca79ea85b9a38abec5a",
+      "size": 10388,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/ee/25ce25c6cc07f834fb4e77e4397e87d577b3a9",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\ee\\25ce25c6cc07f834fb4e77e4397e87d577b3a9",
+      "sha256": "eb5d9954107d6b9441a3e156055ec8a30db8385f43bbe7769ff6940d53ba91aa",
+      "size": 21046,
+      "before_sha256": "c30d17e436989d22f5c8ac92ed7f11ae80ed6348f4360512087c3058df8c1ea0"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/e5/0e6a79c640f58807ac54b88aaed5b092c6516a",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\e5\\0e6a79c640f58807ac54b88aaed5b092c6516a",
+      "sha256": "5170765f2683ed7bf85b564ca639bb18b5a3bc0e62f9865f5fbbd5c0f39caf7a",
+      "size": 9134,
+      "before_sha256": "e77e0e51950359a673048573fa79d6bc9487d5b94ea83873f409595a76fe2a94"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/0d/a1628946b4feced695899d4a5eb05e70745f75",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\0d\\a1628946b4feced695899d4a5eb05e70745f75",
+      "sha256": "8d871fe200bcdf4dc92cbf101844610978291d11b37f65dd7c51337342c7c747",
+      "size": 12896,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/26/856494131b46171f3f5815f3944baae4c92ee1",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\26\\856494131b46171f3f5815f3944baae4c92ee1",
+      "sha256": "050b38c98bb549820412d37877cb440cc5065f17c7ccd6435a50fbfa2390f0d5",
+      "size": 11328,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/fb/bcb0272607a545b2fa64ce046f910c56e537b5",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\fb\\bcb0272607a545b2fa64ce046f910c56e537b5",
+      "sha256": "9074b16d15615f067890e009afac8e79357dfe00aa38ccd1b240af3360f79c27",
+      "size": 24181,
+      "before_sha256": "3b4b8ee74d355f700c842d2b4602a2d3ada830412d07037d3af22ba0d69c9884"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/92/6f9c8aaeef98aabe68e467780a9c88b8908db7",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\92\\6f9c8aaeef98aabe68e467780a9c88b8908db7",
+      "sha256": "1167c7f9a909b9b2cf0b12704c87a5d4892424340c0dc24ec81bf514f09a4d7e",
+      "size": 22300,
+      "before_sha256": "534250c49846622b4bdd9b535b0a82029a160a09ab78a51605c0f503ca463e85"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/98/a824dfda9bfaea83913da8285acb6910af9dc4",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\98\\a824dfda9bfaea83913da8285acb6910af9dc4",
+      "sha256": "c12f8b430e4bebaea796fd548650262210844995d7ffa5ec703c075e7f8fa4f4",
+      "size": 17598,
+      "before_sha256": "d677fa2cf28befa3315d089094de8a00d454a5424bbd58a3b91220306f664e3c"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/16/855e791c45848d1f534ec48fa014c1694ac178",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\16\\855e791c45848d1f534ec48fa014c1694ac178",
+      "sha256": "8725f37cd2722bcacf3c2c4d835510bc1ef173eeffa62d340ee54cc1ea00c5d9",
+      "size": 19792,
+      "before_sha256": "fb12af61717b2b7f8e1f14e4c84bce44f263bb2a3feea9a907467421d1b8c826"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/57/f676c40696da6583b5482aa03284782e708e40",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\57\\f676c40696da6583b5482aa03284782e708e40",
+      "sha256": "ea9fefa44fd4447f6fc83c08308307c67da881718442e992ebc31a46c79c6c18",
+      "size": 23867,
+      "before_sha256": "c41756c450d9e98c30c3fb1820d92438c62db1580369a5a5592fc1c67e0793de"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/2b/343ffd747314db399b828f059434e1341f23eb",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\2b\\343ffd747314db399b828f059434e1341f23eb",
+      "sha256": "51b75f42ffc4de828304b627c363c3a76acd143ed0f23f77a8de70ab0dac2890",
+      "size": 26062,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/76/1ac22d93c021bb8d1ee43eea5a25cbbdea2013",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\76\\1ac22d93c021bb8d1ee43eea5a25cbbdea2013",
+      "sha256": "57c90577acd34e8837764ab67c739e67fbc73ce8c9a5eaecf6cb8b850a5851d7",
+      "size": 22300,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/fd/b728a029cb9009c34fbb2ff0d1da9f2b310568",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\fd\\b728a029cb9009c34fbb2ff0d1da9f2b310568",
+      "sha256": "d4e0797e4497864b5c0de77d12e9800019233eebebfe4011815e03189fb8619e",
+      "size": 147061,
+      "before_sha256": "a20cc2ae6884bd23d088fc1b420bcb880038cdc5ce988623902b0758124dd8f1"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/e5/0f42990eda30caf39ffeaff440d7c9b73cc309",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\e5\\0f42990eda30caf39ffeaff440d7c9b73cc309",
+      "sha256": "35332c388e7c7616ba5c2bc92dd29bbe66f64a9845a31afa930b4503cf16cd67",
+      "size": 153957,
+      "before_sha256": "fd63f0fd99888f728492a1fb3caaa69738870eed5294c6c713744ec977b64055"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/80/464f77d66680bcb71b4b2bbd033f9faddecb61",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\80\\464f77d66680bcb71b4b2bbd033f9faddecb61",
+      "sha256": "e33f172ef8c8dc64fb8dee8336af4e3e22b60c751dc01af377c1238c6ecb5664",
+      "size": 156778,
+      "before_sha256": "31b9b44370330e5d7198bf24b216984a268cb4303bb9f3dee50cb188193ab45f"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/65/260b19754043ff4387660b6feedb6a0f175f57",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\65\\260b19754043ff4387660b6feedb6a0f175f57",
+      "sha256": "e8706ecf4dabdc233e2b831094872b95e664531a2a7624fc250f9cd9a48ae1ed",
+      "size": 107250,
+      "before_sha256": "8c2cf0a6bd3262cbf5edfb673e5974b68dbe012ce5721e7f871deb110d25d3fb"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/0a/4d2cd3846c2c06bc58c8e36499c37032c93616",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\0a\\4d2cd3846c2c06bc58c8e36499c37032c93616",
+      "sha256": "606573f5f8675bd69034174ddd8ff5e0f5b42d000144d42a3becb1bebfe0bf2b",
+      "size": 173706,
+      "before_sha256": "a08e35109dfa64ce9a6482c739b8b8838c73d66aa61c0b04450fe87270f28323"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/d1/afa7332fa6d885f70c7633802dadb54b367efe",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\d1\\afa7332fa6d885f70c7633802dadb54b367efe",
+      "sha256": "b828e645a9012965b3e79f21e02ccde1921ce9e4a8b536b9a0687d50bcd51532",
+      "size": 163675,
+      "before_sha256": "40857bb3841f277360d2b57891f21690e2bf4dca417299bbfb0b039c8a59b9e9"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/33/49fe45e079355a2caa1e9cb93bc35f24aa1ab3",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\33\\49fe45e079355a2caa1e9cb93bc35f24aa1ab3",
+      "sha256": "d2d63e6ac7575d8ed40e9a8cd09afc79aaa081a6b85c7cab4f2361a4f298bab6",
+      "size": 44140,
+      "before_sha256": "6413e50ccbc5aad46520d33cad434b00a14f7cedb8c23f871f6aaa8a502b08d2"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/ad/800741ece5977147fc0c6b3d1c4874e7c685e2",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\ad\\800741ece5977147fc0c6b3d1c4874e7c685e2",
+      "sha256": "6b35ca71fb00726ccf53e08a5e7412fbb66dfd72233b7b79a6dba1c99d4f40e8",
+      "size": 6666,
+      "before_sha256": "c34d7c68d65aa89c3497fdf20b8615c60657a5eb915cdc566cd2fe5324481026"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/23/0dfd3570b144a29a89d0f510ca74b588a0dc70",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\23\\0dfd3570b144a29a89d0f510ca74b588a0dc70",
+      "sha256": "f5b9762df6eca14a3e30abcd030d36a48fc0598a1620bc1b9a4ee981986255a5",
+      "size": 137657,
+      "before_sha256": "d412180dd0cffaa083100f8497f2a243633adfd56a58a50f31c8a3fa912430ff"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/36/d22e0204b61a02b03ab742dffe3535ed8798c1",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\36\\d22e0204b61a02b03ab742dffe3535ed8798c1",
+      "sha256": "02f3a048ee1946d3fe5b122412bf7095df0377191879963524fb5c4ad62a8cfd",
+      "size": 125745,
+      "before_sha256": "2685b53e986c087b6ded48d2ae8b0c371f468d5d55c558154333a4432cefb3a7"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/88/37ca0d2748227d6f707877ee22764ae092c041",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\88\\37ca0d2748227d6f707877ee22764ae092c041",
+      "sha256": "6c92aad89616ab5e66e02a121dfef2f06a27fa3a223470b7ced153bacbaf2a8b",
+      "size": 15404,
+      "before_sha256": "cdb19bbd11630821b05373ba8a0abb1d03cd89946a76213ce5e483cef7d5ced9"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/75/64d48fc752fecfe68f473f8323f539bf4e78fe",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\75\\64d48fc752fecfe68f473f8323f539bf4e78fe",
+      "sha256": "19183db95f146886c6dfb7cec742787aa52f3462b7626774124084db1bf8f9b9",
+      "size": 15090,
+      "before_sha256": "afca08c576a720e8336c831abb0525db28a88bac1df4ff37cf39c2410bb5150b"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/7e/acfa6f10db02e5930ae3b5acfd548a6c032122",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\7e\\acfa6f10db02e5930ae3b5acfd548a6c032122",
+      "sha256": "17ebe3158ddd87233ce04e3a96d36f8f32dcebfbf6791100d4cc5e2eaef02f8f",
+      "size": 7880,
+      "before_sha256": "7beacb9d5ac5e6518ee1d778047f2cf3f7fd090fd74d013281f4980255df3e1e"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/25/278c682659c5e9ac6db8bb5bb0753e5b505529",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\25\\278c682659c5e9ac6db8bb5bb0753e5b505529",
+      "sha256": "ee5c03c0290d4f6d9759bf0cdbb0a3297aa87c49aa4c76f60687459929003593",
+      "size": 5686,
+      "before_sha256": "7c029138b2274dee33c9e067d3187e67c5ef5219817dae9e2c08fd503a1012b1"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/d5/160bfa30ed2798f3695e0808a346ac6e3bb2cf",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\d5\\160bfa30ed2798f3695e0808a346ac6e3bb2cf",
+      "sha256": "d07e863b4654d6bcfe5d2bfa3b69daecd2d324482ae8bd23355fd528ae09cc2f",
+      "size": 6940,
+      "before_sha256": "a4d1f5e70b291638fc12415080b87bd9fd2f09b3943ddee6daf3dfbea3e80b7e"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/f2/7e1e51b6e62b61dc940aaace1181b7e39a351f",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\f2\\7e1e51b6e62b61dc940aaace1181b7e39a351f",
+      "sha256": "77fafc7d9d11e96fe1520ea862066a7198a1cfcc6dd22075212ecaf4f3b2e7ae",
+      "size": 5999,
+      "before_sha256": "63c7cd389eed05a78c05d1947faec5f7ca1c9b95aa1cf8c6b70a3590227fccfa"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/c8/735dc0b9ac035461558f166b1c8b12d15bc4ff",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\c8\\735dc0b9ac035461558f166b1c8b12d15bc4ff",
+      "sha256": "139f1f5981e1a02e2dd0ab757309bcb9cfd79a11f4ad8cc236246e5ce5e2bdda",
+      "size": 20419,
+      "before_sha256": "8490b7ca60b914c794bbf1dda4c5f23166b575513b7153554ff3016af9120b38"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/1f/c31c14491e871da23160ea58e06628ad98e492",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\1f\\c31c14491e871da23160ea58e06628ad98e492",
+      "sha256": "381fce794d523c873cfe8c67f773144519a817343502073b82506c68e5d79518",
+      "size": 26688,
+      "before_sha256": "2f6d0bd473a4c91c23fa9c544e8862a1d3c123e6775107d7913f6cc219f476c0"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/af/f4787eefbe32c572ef545af6f39b643a954164",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\af\\f4787eefbe32c572ef545af6f39b643a954164",
+      "sha256": "48eaca5c512a7845be9106f0c6b38ef942b86122ad154b5e1c3a00142d240a70",
+      "size": 16344,
+      "before_sha256": "07471d2ac9047c5809d97bb4d642c9e2b05745d9c61786e9be92e2014f5e7564"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/0f/8f1d845c9c8208649423e1c76d732bf1046981",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\0f\\8f1d845c9c8208649423e1c76d732bf1046981",
+      "sha256": "c8debc779588216d3c43be21da870bb74be60ef34b9509f5af7f0dc86498bc3e",
+      "size": 24494,
+      "before_sha256": "b8cac2ee8731ae39e1389d6f220d43a5e98193915208ba5b695935fec89c2a93"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/79/994a69609dfc4e4be7463977707186c248922d",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\79\\994a69609dfc4e4be7463977707186c248922d",
+      "sha256": "ca99b16eb58037d96504c3e39da339b0ab2356e33493c12de6ee987a2766327f",
+      "size": 13523,
+      "before_sha256": "93a1835ee203d3b5152142db16ec913ab43325a09521a4b662443064a749e9dc"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/d2/93c4d7929d4fa6dad961511993479d7c6feea5",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\d2\\93c4d7929d4fa6dad961511993479d7c6feea5",
+      "sha256": "2cd2bfd2ea3031eb4440e8000c4f6f3668ddf7ba1e33ab48d0ee2a0d4fc935e0",
+      "size": 126685,
+      "before_sha256": "0f0eda9072834ba82ef08eab2a96c1485ae0aac57cff14b821cbe1d06517e741"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/8b/eedee8e05ab2942ac82c14e4cdf58b91b6b58c",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\8b\\eedee8e05ab2942ac82c14e4cdf58b91b6b58c",
+      "sha256": "b2684730fa71b04fed22d854493acb66824aca761e37bf00f8c23a9d76b01b66",
+      "size": 121983,
+      "before_sha256": "be5f2cdecabff7f3ed129d39800e25608402c8ab0a91a207a61685899c61c975"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/6c/6f5108cc4af8907fa289893a1652cb81126cbe",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\6c\\6f5108cc4af8907fa289893a1652cb81126cbe",
+      "sha256": "090954a3ca911292fc851c720d603b84279099c226cf3dd74d1d689de73a2924",
+      "size": 127312,
+      "before_sha256": "fcf99ed305b63ba334319d2d1db8641f5288e444a11c8012f7f35fdab01e172e"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/05/4a755fba723bfa2d828efb6b6e0034c362b4c4",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\05\\4a755fba723bfa2d828efb6b6e0034c362b4c4",
+      "sha256": "52e040a58f0d38e3e1a2feab1d56e4934a9702fa362c48358c8b9928b59bdb98",
+      "size": 120416,
+      "before_sha256": "95da0727d2c56f9fe9f16dd757070f7f05b9d7e1c815e4fc10fccf2681b13607"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/11/788b8b4098d007eabf05905ec77ef0770ba402",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\11\\788b8b4098d007eabf05905ec77ef0770ba402",
+      "sha256": "6188d7cb6325b6a7799d9b6d36e206568f20e23b45d8327f3c1a86a6711c1063",
+      "size": 125431,
+      "before_sha256": "7bf8eab584d00e3908f1ccddc71377b1e77ecb8e8f2107095a6e2d8778cfe603"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/1b/bf0d82a73ade655410a0c2a0c9b2e390c761a8",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\1b\\bf0d82a73ade655410a0c2a0c9b2e390c761a8",
+      "sha256": "902dc7414b3408c3bc1b3b6fab39ca22edb2ecb407655c1d46990eeca79c7187",
+      "size": 129506,
+      "before_sha256": "fafe93d693304a88970d6e4332f60fdd581031ea85a0e2797a3fa5606300104c"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/00/7549ede06dbb65500ef3119668b805891b34aa",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\00\\7549ede06dbb65500ef3119668b805891b34aa",
+      "sha256": "8a1e1e89789a12f3b2364537246a52904a40cfabbdac7f23a94b4286bc945652",
+      "size": 176213,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/24/720c9cba647c39502e180c5f19a4a01c2a9607",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\24\\720c9cba647c39502e180c5f19a4a01c2a9607",
+      "sha256": "59bbc21ae2c37b5f4b0c02a2ae3e6ed07c05600f96683c46266ccab33be32dbc",
+      "size": 113519,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/4f/6d338472079c3d4ad48dc5529eb7f035bf9ad7",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\4f\\6d338472079c3d4ad48dc5529eb7f035bf9ad7",
+      "sha256": "4db2b9806269a7c3cc7b3e1ed11985894d23c706e9f762067fd515f86eb0116e",
+      "size": 27002,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/01/6bf88acdb92e43fadea4ecf84d129db876c7eb",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\01\\6bf88acdb92e43fadea4ecf84d129db876c7eb",
+      "sha256": "c52e5a52c23a11d6482845edd3e1d211c9ff6d75eac8c6f4296d8389b0da65fd",
+      "size": 34525,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/79/0ec0f5af683cf9b95b5f917a394c6ec5f5df27",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\79\\0ec0f5af683cf9b95b5f917a394c6ec5f5df27",
+      "sha256": "a9e5263c0c09c932c141fb32a910a5bd15bfd597ef4081cd66f43a8277f357db",
+      "size": 6313,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/77/3d496e406ab03beb053be4a4276d45c5f43366",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\77\\3d496e406ab03beb053be4a4276d45c5f43366",
+      "sha256": "e0283ac2c0ce08feadc286321b87e278f9f8fe3ee50fe446e0d0f26a762b29b1",
+      "size": 11328,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/46/9ab88a33a50e2f92f3e55587be6527d5b736ca",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\46\\9ab88a33a50e2f92f3e55587be6527d5b736ca",
+      "sha256": "7f1fd6cf39c338ea01f0e9c7848c22e77740b93c630b66e218ad91f0b478a54a",
+      "size": 10075,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/2b/140301f2ec3d64294b3d4ac7b5115e7e0ea44a",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\2b\\140301f2ec3d64294b3d4ac7b5115e7e0ea44a",
+      "sha256": "5ee35f6653d9be027249a945ce2f8399b200d8c75dd1bc9772cbeab2f0674d3d",
+      "size": 10702,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/5d/0091ef738f08a2024207a3eadcf048df30ba66",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\5d\\0091ef738f08a2024207a3eadcf048df30ba66",
+      "sha256": "2602c0c983bc970a1b2da1392ec9194491ad32bdf32ccc322915ba6d216a97ea",
+      "size": 31390,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/93/a3174738deca41bde0ae07e38f7969cc217972",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\93\\a3174738deca41bde0ae07e38f7969cc217972",
+      "sha256": "aa88145a62717e0cdacdbeba45beaf1326409f81008c2e4fb0b8f3f4f0c4a631",
+      "size": 24494,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/aa/21487e37197390b5dec23f0fdba485d9e48586",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\aa\\21487e37197390b5dec23f0fdba485d9e48586",
+      "sha256": "b4d7d4487b20234ab971ac3932af65d27396de9f30c260a320a7b1df3008744b",
+      "size": 16657,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/75/90e457fe61aa4bd0f928ee7b7457e137e6b1bb",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\75\\90e457fe61aa4bd0f928ee7b7457e137e6b1bb",
+      "sha256": "f81f0302d9786cedca041f868581af8b62e1de5ed75a295ba12ff9ff4e2d757b",
+      "size": 46750,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/34/5819fe009b5369042880d03811e028270bbdcd",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\34\\5819fe009b5369042880d03811e028270bbdcd",
+      "sha256": "f4209425a122c4ba127d9408627f2a7831493406bdad18a9a4ea111e546737fa",
+      "size": 45183,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/9f/3f076f145c683c95ce9a8506720e825a29f3e9",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\9f\\3f076f145c683c95ce9a8506720e825a29f3e9",
+      "sha256": "fed8c9faaa1ae9ceb95197a9c999be0e20072d274a8bcbf777c93b5efd1bf1ae",
+      "size": 149882,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/9c/b31cb8e68d083d58909f6573c6c535bf18f5dd",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\9c\\b31cb8e68d083d58909f6573c6c535bf18f5dd",
+      "sha256": "3c5d33e8697323d02e12a5e15b0307d12673d001b98add0b10db379fc61efe58",
+      "size": 152703,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/d9/a28d79e050c6874bddd52fcfd2797675f4af9f",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\d9\\a28d79e050c6874bddd52fcfd2797675f4af9f",
+      "sha256": "ad08e8c0c21961baef6835dfca4efe4e37f1d1f8c9aed358c83f54228904a30c",
+      "size": 149882,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/42/cdbc14604af4c9d21e357603724d2f0dfe9d7b",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\42\\cdbc14604af4c9d21e357603724d2f0dfe9d7b",
+      "sha256": "ae346d28d3e5781b50f2b874267388ef56e2e74077dd9a8264ca355b2c05ae02",
+      "size": 133895,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/13/1cd1a37af26e83dac46333e1a7cc2898b2e7e9",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\13\\1cd1a37af26e83dac46333e1a7cc2898b2e7e9",
+      "sha256": "1e6f969f4d3b2f8c0112a2c77b059e6d486817aec71bda88b8b3588c5f3c7b47",
+      "size": 150195,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/18/680fcc0e5f084d604c696f9e35fe47eaf00075",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\18\\680fcc0e5f084d604c696f9e35fe47eaf00075",
+      "sha256": "c9d666ff17f871b09b33c46958a8b146335b69507a106cbc90d8394cbd601835",
+      "size": 137030,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/92/fe02c219dccc61fbb9fd7098f1af64a3d1af7e",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\92\\fe02c219dccc61fbb9fd7098f1af64a3d1af7e",
+      "sha256": "7579ed6ccc310940eb569a104d3330b3af51ddba4a676f6f3a768e971db2617d",
+      "size": 144239,
+      "before_sha256": "b7118d74e8e9e865616da8464da76a8ac8560c124f5660830eafcb49d00ed7b0"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/34/e902d2761c80157f563463c9331baf4c2f52e3",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\34\\e902d2761c80157f563463c9331baf4c2f52e3",
+      "sha256": "7bc81f13eccf5cdcebde9b1864bac98c9004887ae1d4152e82b828e53456d600",
+      "size": 229190,
+      "before_sha256": "d48af3bf59a2a7ac1aa819bff3368c69d0474ce78e4ab399e9e5e6014202d774"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/08/c27b373192d6acfcd50df13ca0c4c93375a5ed",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\08\\c27b373192d6acfcd50df13ca0c4c93375a5ed",
+      "sha256": "7580d3b58fc4674d8d23f386e7fc05612e01f1e581610cea7e312de984528ac4",
+      "size": 23867,
+      "before_sha256": "fa0fb9f0a1eb2d179586c7ccddcddf42b647fb0986fcf7e692e0fb30b88ea5ae"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/f8/a9ba7f7501a2f05c0ed18f58c89159d523255e",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\f8\\a9ba7f7501a2f05c0ed18f58c89159d523255e",
+      "sha256": "beba877293a21438a2838858969bec3928c7fc62baa30d17da5d710d71101282",
+      "size": 26062,
+      "before_sha256": "20fff66dca025ab3fa62c1fe2ccb7fec4b79dee19beff65dda2440daf658f4a5"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/56/210d5902029d33922adbcec76fefd511b80b23",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\56\\210d5902029d33922adbcec76fefd511b80b23",
+      "sha256": "c813c67d179b47c4cd8b69c0bf3184486d10e9001beb46d2232d9e399c8463b7",
+      "size": 18852,
+      "before_sha256": "5e268b3d2bcd2501fde3aeccbe79c3f02bdda16cac752ba7050e0c5393f9377b"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/ac/878d05126af6f465bea4336bb0590c2c416d14",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\ac\\878d05126af6f465bea4336bb0590c2c416d14",
+      "sha256": "283594909064b4ab676aefadf5dd186a440b0588680d21da408fa769bf6fe686",
+      "size": 20106,
+      "before_sha256": "eb639073f6540a601b71642fee1be580f84e0ae5b31c35289a328e86010f7340"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/95/a901e118ab34e5eb5a4e74df6699e09f0a3011",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\95\\a901e118ab34e5eb5a4e74df6699e09f0a3011",
+      "sha256": "e4aafcff4e02bbafa8977a79e8fbbed2286784a980c429016063dae0dd730c80",
+      "size": 31704,
+      "before_sha256": "6a284e57a236f35a44dfc9f1d7a56453b142de0a0ade79bcef4530fd27b1f4c9"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/12/ff57a05a37912ed4d479f933167cea09a99c1b",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\12\\ff57a05a37912ed4d479f933167cea09a99c1b",
+      "sha256": "82819dac8a81f8cceb3bbd4e2383865c1c17465a47413805c0b31ba7fd0f3d54",
+      "size": 19792,
+      "before_sha256": "34cc4b5de3baebc87ddb2b9383c3a4d7c53049de2a749bb7430b9bc56c748392"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/3b/3d2f74ebbad82f714d5cf407e24b6011080343",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\3b\\3d2f74ebbad82f714d5cf407e24b6011080343",
+      "sha256": "ad3b26703e8f3117632ca8a208e5292e11f14227f3b0b4071fa5467afc7ee071",
+      "size": 29510,
+      "before_sha256": "1ec3feb52652f94fed945818b3af61ee4233943142de825901a0a8f1f3783cc2"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/d5/d622f5f85ad4c425856737a8b7049d2634c16a",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\d5\\d622f5f85ad4c425856737a8b7049d2634c16a",
+      "sha256": "555076f32833b9499f99dc207a53eabbdc4afc6e84a160c6b7cd93ca70cf1dd4",
+      "size": 34212,
+      "before_sha256": "2edecc2e54345f54cd3d1c92694cc58496e5d51ebdee0e33198ffe0117f60164"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/2c/9416975872c58d1e82fafcc337242c10894aa8",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\2c\\9416975872c58d1e82fafcc337242c10894aa8",
+      "sha256": "bb906f9636a69d452d920034155cf804924ff0717c9d052cd750aa7288694831",
+      "size": 25748,
+      "before_sha256": "59662e0b9ed7838816399f27fd35e6d9ffbfc8552846f9fa22d33cb28cfe4edc"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/54/865b7084d9106f3f3e0c3bd3d50deedcc06679",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\54\\865b7084d9106f3f3e0c3bd3d50deedcc06679",
+      "sha256": "190ed74c64f9c2edfbdb7f41b4a7555d90fddf37cc349dd30805e73408b0de8a",
+      "size": 55528,
+      "before_sha256": "f4d49a6e696ecd2e470d69b0702f245d76ad036d55948cdcdb08aea2265e7bd7"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/0c/344bbc8666750831759010ea0d88f3f6347258",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\0c\\344bbc8666750831759010ea0d88f3f6347258",
+      "sha256": "427bfe7c95099f2a5c0f20ab4286957a4c1d99b5ed961d4ff1ff81e8a99c076e",
+      "size": 55528,
+      "before_sha256": "215ed23ecb5237c9427fbcc369fd966d9d140e29c42ff5a963ec4fb7c85cd0ca"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/06/f9971d898c648a1d63729351eecfd27bc6d96b",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\06\\f9971d898c648a1d63729351eecfd27bc6d96b",
+      "sha256": "7c0461693908dc109d6ce1686125ccbf6a47eb71c4ea9a25e5625ff870e709bc",
+      "size": 142672,
+      "before_sha256": "93537e91eb1c8591efe435f52b5fdad8b1c837a40f50c2fdfda4dfda656a6a81"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/21/850935839e2a058fc75d3db9e35753bd2cfada",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\21\\850935839e2a058fc75d3db9e35753bd2cfada",
+      "sha256": "c686446d14c3cd79975cc9a547a8f7f6cc58d0bd79e522fade8ba2749e342486",
+      "size": 249565,
+      "before_sha256": "3645c003bf541bbb7e7b29648b7d722e2eaf3dcd7238b16491205d3e3f85f776"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/46/c149dab9d4a33e61f0869d4406d565c7ed14b3",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\46\\c149dab9d4a33e61f0869d4406d565c7ed14b3",
+      "sha256": "2bfbef957bdfbadaff92506406642f1c7a65e231ad68f26890b776809752a2ff",
+      "size": 180915,
+      "before_sha256": "c61473c1ba60bbbdcd51699994d6493ad4a59c6a8b950486b006b2cd73fadb9b"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/26/8c300e354ec6046361d0c8db096eab32218d48",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\26\\8c300e354ec6046361d0c8db096eab32218d48",
+      "sha256": "f7ddb0ff475b1a335a1c13c13a46c5d1186d6a9d235ce89fd480cde0f4ae4ccc",
+      "size": 178408,
+      "before_sha256": "f52f41668cce06ca741fb2161a0cc99f08e3f26bbabbf3d6cb1781e3dc7cc491"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/f8/69a6616c6a06bf5d63c07ecc509b110bc05998",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\f8\\69a6616c6a06bf5d63c07ecc509b110bc05998",
+      "sha256": "315c209c41d9add4c903ef787f2bdb67f06e99168cadbbeb2c3ea8a23999921a",
+      "size": 186558,
+      "before_sha256": "b65c2ecee44e84a7b7a91439f19ee26ddafc851acbf1b49d17beab98af5fff3c"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/1a/9c742d7d184178fba2779b504f0bfce2b17a31",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\1a\\9c742d7d184178fba2779b504f0bfce2b17a31",
+      "sha256": "fa48960eedc1f8ca48a2d660bc21637aa906e355a58bc1dea44a1d975c67d81c",
+      "size": 161480,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/51/32fb25b848d55e26814cbd348023ca0f00da00",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\51\\32fb25b848d55e26814cbd348023ca0f00da00",
+      "sha256": "2a1e6fd8e21417b8520abc38bdd0bd40955b079e856b45a350c8591dc1410f25",
+      "size": 121356,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/47/5e31f1e238ecd894cf111c7ec586233130b995",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\47\\5e31f1e238ecd894cf111c7ec586233130b995",
+      "sha256": "7bdb2735bbf3cbdc3cb1d86416526569acdf4ca1d580cf1d22601bbe4d19d6fd",
+      "size": 16971,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/35/9896e83abe45fdb47f521f7135719160079fcd",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\35\\9896e83abe45fdb47f521f7135719160079fcd",
+      "sha256": "24d599ed0b7b88ec134514652a1ddf38043e193b47b8e0b98edfd876507ebf41",
+      "size": 21046,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/85/09d45dbeb081dca6d1bf7fee87ecf6ef893217",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\85\\09d45dbeb081dca6d1bf7fee87ecf6ef893217",
+      "sha256": "70de4358a53d25b8b10504086f5b699d678fc3b5ab8ac0dfb36844ae8ec4e8fb",
+      "size": 15404,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/51/928357b8bdb89ee803e4fff7ae8a2489c4c1ea",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\51\\928357b8bdb89ee803e4fff7ae8a2489c4c1ea",
+      "sha256": "2413b01cdef8c4a34651eb7b60877f7e0bfd64d91788a684af0f75192e7d3ef6",
+      "size": 16030,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/c8/7aae581aedc7231692553ea5957309b36ef304",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\c8\\7aae581aedc7231692553ea5957309b36ef304",
+      "sha256": "e6c1a33d89beec3f17be09ff10815c02f3fd97a12469273493076e98734a2ef8",
+      "size": 11328,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/8a/74c298f1ddfc6f0efaf14ce925f97b5b4341b9",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\8a\\74c298f1ddfc6f0efaf14ce925f97b5b4341b9",
+      "sha256": "9e8d84334add6e7a291bdc449ad7582a5140a6727f824f9921e58b609e8bfdb7",
+      "size": 11015,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/71/6fb621935f3fea7fa40115538d96219a54ecd8",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\71\\6fb621935f3fea7fa40115538d96219a54ecd8",
+      "sha256": "6c68e3182a14eb5cd2d3aba51eb6696e5869fe47d04177abf652148fd0073f9c",
+      "size": 28883,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/2a/7a7ca6a00f5cd839fa8450cdfb1627cefe4f4b",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\2a\\7a7ca6a00f5cd839fa8450cdfb1627cefe4f4b",
+      "sha256": "345aa6ec0f8b166e2219afc928617cad07580e2f18f32e543c0144f21ae4577f",
+      "size": 32331,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/2e/e3605193c4e3d54c9a01d45cf89f872f5507fb",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\2e\\e3605193c4e3d54c9a01d45cf89f872f5507fb",
+      "sha256": "316df2998163520d32835ab5453937f73b453ee41577b7a65a3642b58f8f98a9",
+      "size": 24808,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/48/8861e014f3a97b1e1deae2329199150416cfd1",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\48\\8861e014f3a97b1e1deae2329199150416cfd1",
+      "sha256": "6b2154a738d4a929b0bed9ea819b70e939645bda1830261f168f4d325ba87436",
+      "size": 54901,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/1b/df8102019b9c616ecfc033596dc0f7ff4fd90a",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\1b\\df8102019b9c616ecfc033596dc0f7ff4fd90a",
+      "sha256": "146fd0ee1c8bda673688a07e5609cfd26daac1a4dca65d681e1f66c4ade3dd83",
+      "size": 53960,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/d2/e9530631632d0fc3bd050067b5ec4228dd8e7d",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\d2\\e9530631632d0fc3bd050067b5ec4228dd8e7d",
+      "sha256": "ac3d6e1f44230b4d604397ad5dc9b587201d8eeba4c1dbc798a0a435efcc54b2",
+      "size": 168690,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/c9/f68ea07436044be6b89e6da55121c35db9fec4",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\c9\\f68ea07436044be6b89e6da55121c35db9fec4",
+      "sha256": "f25f15c24fc1f66b67f51f167dc4d1c33a1761ae06fa3f88ae37800dad4310e3",
+      "size": 189379,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/e4/73fb8a3e057398963df00a5e6b9fe1fa73e34d",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\e4\\73fb8a3e057398963df00a5e6b9fe1fa73e34d",
+      "sha256": "83916b42ab282ed4b60e2b5602b26198c899cc752394c1dba2449aaca7b883d4",
+      "size": 196902,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/ba/f51a8537f340fbdb9854ff10fc4b0104a5e1b7",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\ba\\f51a8537f340fbdb9854ff10fc4b0104a5e1b7",
+      "sha256": "117fdc61eb53d45794432d2590c418ea3b4ad9019695aa16a73af33dbecdf653",
+      "size": 161480,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/d6/ec756906e0ee396cf0ae8cdcc0dfdb75df62a5",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\d6\\ec756906e0ee396cf0ae8cdcc0dfdb75df62a5",
+      "sha256": "ca50d021032218e0543f5d7f48ed22a1775502a960cad2b92b340e6b2220f2bb",
+      "size": 144553,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/04/8e75dff8d5f288a48c36842e1bc39ed704cdc6",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\04\\8e75dff8d5f288a48c36842e1bc39ed704cdc6",
+      "sha256": "9bf02d3bd39e18e52fd783b622f263e940a48133cb419e0a5d3747f96fe268d4",
+      "size": 174333,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/65/1cd9171129085c81d102971ac4194a098e08bb",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\65\\1cd9171129085c81d102971ac4194a098e08bb",
+      "sha256": "191a356c7c274aa4dc39cad25630aa1da27cbc8a88099e7b071fc4d114592e79",
+      "size": 186871,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/59/c491f676ce78589521137e9ce69e40172eea9e",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\59\\c491f676ce78589521137e9ce69e40172eea9e",
+      "sha256": "a328ef6869e3ce167182240e716592363022e8a24e5627846589e29bedb4d57f",
+      "size": 146747,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/ca/03d8fa84042fb84aa9f566e6bcd8e1a65d74f6",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\ca\\03d8fa84042fb84aa9f566e6bcd8e1a65d74f6",
+      "sha256": "aad2deeea42975aa6f001b18930765bcc6c869e81ba8631fa8c4a3e29f1f83be",
+      "size": 561,
+      "before_sha256": "c4573ef167c9efae66e83926a7c91f2f8d5f384063a8e1610a91d2c2da92d27b"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/6f/2271be3142961080bc357fe09472f92113ffef",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\6f\\2271be3142961080bc357fe09472f92113ffef",
+      "sha256": "5cf2bcdd1cca1d4dabf71543d034cca73991d691991e36d668f356b080b2e93e",
+      "size": 11202,
+      "before_sha256": "27a6ff088153c06ec9bd8290f7296a74249261d1e3881e32baaee99d97a486d3"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/a5/a4953f02f7612a8829e6cb30e2b66599f6fc6b",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\a5\\a4953f02f7612a8829e6cb30e2b66599f6fc6b",
+      "sha256": "350f11fb80882a1cc20a526fdc0baf9f31d9b7654273c9ee2c9dccaf7c1bf64d",
+      "size": 906,
+      "before_sha256": "e2d0ff2c683d284e485edd90b06daf5b80fb1feff0b819303d701c63155ab92e"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/7c/1abdc202e957bbcfb2a480509c114e72730e0d",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\7c\\1abdc202e957bbcfb2a480509c114e72730e0d",
+      "sha256": "5f8112658b88ad27d03405ee8e62eb176693cf33a7476c8b4ae39a48c10e7f00",
+      "size": 6727,
+      "before_sha256": "9f27bdf702d544e1c2686250ab441d69781513b59243c560e1ca9f9292c7d7da"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/b5/927689a2134ff293778ee1465e603eb0cbb7f2",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\b5\\927689a2134ff293778ee1465e603eb0cbb7f2",
+      "sha256": "1821983d2825cd68a6f23d28fe532d456f2c0acdaf9a3224be3dda1ed4e26b43",
+      "size": 236713,
+      "before_sha256": "9886aa7ff1e6a041780cfa3622668805c0253c74b662c7fbde7d7ce44d302011"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/bc/92be1242ff714c2c2765cca2dde9c5db65bb6d",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\bc\\92be1242ff714c2c2765cca2dde9c5db65bb6d",
+      "sha256": "e7aa4e97db183d70d08b467d2ff59b6c77220e84704ee0ee81591928aabe139e",
+      "size": 195022,
+      "before_sha256": "42e91f2fb365cd2dcbe8a62ff2f6126b88eb0c73f1b69a315718142fc068a2a6"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/49/75dbcc3ba2e7dac9c44741594426f20cb2942e",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\49\\75dbcc3ba2e7dac9c44741594426f20cb2942e",
+      "sha256": "6ea585158db8c8e9b93ffe59076387a2c31ab916d9508b249d0ce74cd9586dfd",
+      "size": 13209,
+      "before_sha256": "2815cf66d25f03bdf543b4f1df8ecd29eee9660a74773f28927a41cf2ec5a023"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/1f/89dcb9e0f0bbcdb13f677850a51d20d744e70f",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\1f\\89dcb9e0f0bbcdb13f677850a51d20d744e70f",
+      "sha256": "77f23f480a6acf0c1acf122744704ea6d275c81fca1b2cf928854bb8e072eb0b",
+      "size": 12896,
+      "before_sha256": "c5f3663ca3941a24554d35335c547f89f989233facb1a038ecc5397512a11740"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/7c/ea3a147ca5528c4f502829987ff0824f7f894e",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\7c\\ea3a147ca5528c4f502829987ff0824f7f894e",
+      "sha256": "daf6dfcff9dec9680d8b692f367541520e1fae2974a8145bf9b0365d89701e53",
+      "size": 12896,
+      "before_sha256": "8be9fe564eca92a668d8aa4ddc136ab3abe18b97cc2e367e7d3435a676cf467c"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/c4/cadbc26e990e3e87bd47a10cc9aa82607ff85d",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\c4\\cadbc26e990e3e87bd47a10cc9aa82607ff85d",
+      "sha256": "adaf659e507dd098ff4585fd0dd1aa48efd86268d6051c336161f26d9917ab61",
+      "size": 10702,
+      "before_sha256": "7a360354d3ceaa7f5582ccdb86e5f79912e8a4f43639b6e6f63c512a7d88f219"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/2f/5c5159d624560536e3a4a31f7a0d9c028e366e",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\2f\\5c5159d624560536e3a4a31f7a0d9c028e366e",
+      "sha256": "55362042f4ec16cef74bad41b25ed1c39401c00f99b07472e10b66af2c82e0ce",
+      "size": 11642,
+      "before_sha256": "f2c4006880b8b7e8d633d6d9bf5d752e725b190e4ac8489a2e9a8a5711e64cee"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/d0/7ccd90891ea326721ac738edc393492f154296",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\d0\\7ccd90891ea326721ac738edc393492f154296",
+      "sha256": "9d9e102f405ee32096d0e7e7fd20b251379bfe24952218bb7740c7a4ea6e4fc4",
+      "size": 13523,
+      "before_sha256": "85402850712db9af016d131a5a3edcbd33173e93475c12e1112d9b65b09cb468"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/04/f5244c8dbdb0a2edb5725c747549912ce2ffb7",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\04\\f5244c8dbdb0a2edb5725c747549912ce2ffb7",
+      "sha256": "de34d8625c943097720191dceca7f6caec1140e052719ad6766adac43ea82b27",
+      "size": 28256,
+      "before_sha256": "99e81d3e19420c254c9214c81b1eb763270d46705a668fd09d451af6f920f2f4"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/fa/79dd75300f908749f766a4f492138e8135c611",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\fa\\79dd75300f908749f766a4f492138e8135c611",
+      "sha256": "d715c253ae53273303f1629b34aea4001983ad1d5c7449dd3f9b53ebac9acfee",
+      "size": 32331,
+      "before_sha256": "b86762ead9cbe70b61995751acc501ffc3cb2a3cdd72bb9c86fa1e5fe274cae8"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/0b/d8ffb3b11d36487b58ffaafdfe28c57ec9066e",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\0b\\d8ffb3b11d36487b58ffaafdfe28c57ec9066e",
+      "sha256": "ea89cfae7b2830fd4ecbc207915556e6f9213ec86c78b961b99c8d38ab3f9ffd",
+      "size": 32958,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/fe/e62d58fef9476bbec6c7982950f614cfa5fb27",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\fe\\e62d58fef9476bbec6c7982950f614cfa5fb27",
+      "sha256": "9eb6e2cc7d9154920a7eb8d912c32cdea3ac5cdbd6bd69dd40c83d7926eea6e3",
+      "size": 21046,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/49/b11418cee43d055d6c9c2b41388212edcdcecc",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\49\\b11418cee43d055d6c9c2b41388212edcdcecc",
+      "sha256": "3093e8f80a5485f32a10e3cd4795d71b31365e281b5617b2ef5ed0401ff9d1b8",
+      "size": 11642,
+      "before_sha256": "b8124a056ba02c7760e9e2199fd3cf86bb65a60d9319f88199db63c94c41453c"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/35/b7bb80b6de3b58a1e631009cd98481a71ac90f",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\35\\b7bb80b6de3b58a1e631009cd98481a71ac90f",
+      "sha256": "aa47d553c422b5c3963b961f5d7fb131a201d2738a5b90faa514327a8e507ec4",
+      "size": 15404,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/14/4c66acd110559703ab726a268a490756879c82",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\14\\4c66acd110559703ab726a268a490756879c82",
+      "sha256": "bf27ab324c70e62dd352eb6edca0cac56604f59d8b4aa498245a267981f7a88b",
+      "size": 18852,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/29/396d5c7915595c01a729a99bcdf4834a29aab7",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\29\\396d5c7915595c01a729a99bcdf4834a29aab7",
+      "sha256": "229d653418b27d4422616d1a495ddf6add09d12bb8a63864f69a9c4ad84a5fb5",
+      "size": 14150,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/67/b5a2becf6c315ac978c219382d724ac455ad72",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\67\\b5a2becf6c315ac978c219382d724ac455ad72",
+      "sha256": "15c67a439466718531ba785bdfead600a4d42ffbffa61fe457bb09d7935dab35",
+      "size": 28569,
+      "before_sha256": "78897ccb1d1e110dfd7ba7978f325684acf2f71bcd904c084ae959cb6deb1de7"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/7d/1642d157cca16829b70fe119b1ca0bba9aa65a",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\7d\\1642d157cca16829b70fe119b1ca0bba9aa65a",
+      "sha256": "0c23f49c9014810cc5ebd030febf3c0d1bdae4a8383f02dcf6ce7e84d422743d",
+      "size": 37973,
+      "before_sha256": "f6c762d278ce754e9be3118e5505362f4895c446d2926f55287592858eb5af6f"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/e1/f34ccdbd802459449b69d9383e1e0fa8fe37b3",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\e1\\f34ccdbd802459449b69d9383e1e0fa8fe37b3",
+      "sha256": "fca3dcd4e8eef660011889d7acab3f2a3a93b55d8c7b298f0c8972750d579019",
+      "size": 216024,
+      "before_sha256": "29e0a4b0e1174b3d493b21007592c9838968fd74c96166a40028f45e33b4c820"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/7c/70b127b24429c0dc3c1f42c80f99020f31f1be",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\7c\\70b127b24429c0dc3c1f42c80f99020f31f1be",
+      "sha256": "9e313c3e83fd67225f563c97aafacff190e5069399a5be0fed4ff3ea258ef69d",
+      "size": 218532,
+      "before_sha256": "3c4e2d1f1a3d6bc73ed0eb9af1a160bb6fa6a1c045ccdb238a7f817012db7f6c"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/98/f2e5950748065ae50cd957930df5f16ef86e3a",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\98\\f2e5950748065ae50cd957930df5f16ef86e3a",
+      "sha256": "bf21394dba466283893147d54fe0bdf7b2a67f3669f62141997e546245d2097b",
+      "size": 198470,
+      "before_sha256": "44029afedc28d3d64a5a83fec417fad336df256158fa1baf35fa30d14be34208"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/e4/109351a9e987e668279f4efb9a7f2e53a50f36",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\e4\\109351a9e987e668279f4efb9a7f2e53a50f36",
+      "sha256": "64c4e3281bed9b7f8b03ea768ce24c55ff97f07a3ad63cb6bdc854b2a658de01",
+      "size": 221039,
+      "before_sha256": "b8bebe4b1ffe084786b5f93e0c6e14d58857d58b084bd66ca387ab71eb541294"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/fa/b787026bcea246d75da88ded186043c9dab544",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\fa\\b787026bcea246d75da88ded186043c9dab544",
+      "sha256": "4d6afd4ea253b0c32699d9e085628bf11a8b48ca71f3dceb7e957a09b38f3e4d",
+      "size": 236713,
+      "before_sha256": "0fb6704c4e3e973a5b1a211d63e2dc6dbdf7c98cdc2c488de4d281a5f6c8f61f"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/5c/4ea0a2f8cc7071c7f2c52742c42dcbc67936ba",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\5c\\4ea0a2f8cc7071c7f2c52742c42dcbc67936ba",
+      "sha256": "8f8110af03d63afc043a3568844766f70975c45a32a5d9b3b8c634f2486c7b4d",
+      "size": 210695,
+      "before_sha256": "66fcb449dd7742ef25fa1e5fe984495524b4e6ba86ef48379fbba6c1a5204728"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/e2/dcccdac0a616df91003cc1f6f0039baeae938b",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\e2\\dcccdac0a616df91003cc1f6f0039baeae938b",
+      "sha256": "2c1419cf918697f99fa6e290a46e0b811036521f6838a9e296c04b55d5cdbd45",
+      "size": 626,
+      "before_sha256": "5635d8dbb658bcf6aecd0e93592d7f3a3b5935f35e6dc9523951acdf3e44cb9a"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/92/b7ed6f160b2bdd4a227021661c1f43eb813e0f",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\92\\b7ed6f160b2bdd4a227021661c1f43eb813e0f",
+      "sha256": "783ed74e805d1ef36e9eee301cfbbf9ce91f704dbd07176d9ecbe80654ed8caf",
+      "size": 23716,
+      "before_sha256": "58144bd5edffaf1d8b8058caa42b50c6a58d3b6efd9136e91cc8451302715ac0"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/b2/9aabb3786cc44a06ff961c476afe3c06493292",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\b2\\9aabb3786cc44a06ff961c476afe3c06493292",
+      "sha256": "f7bc131a1048efb7e0f1a454adc57f59d0016def8ad6502ea9b6c90cd71dfe6d",
+      "size": 1140,
+      "before_sha256": "8cf8a1d82675518f28d3d03a51d1df28c5931247c2ce1e445be9c581fdd218ff"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/69/8dff1f56120e8ef2cb00950d2b8f20c384e129",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\69\\8dff1f56120e8ef2cb00950d2b8f20c384e129",
+      "sha256": "c86a259bab28a6acb3e8346e55ad7a2283d72dd9e5f2f3e1ebb70d0569b7e683",
+      "size": 12168,
+      "before_sha256": "4ad11252bed06195026f1916d038c158018b01e769ee2968538fe7e98eb05393"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/44/598f57fb656621b28bd5a63752bc2fa3804c25",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\44\\598f57fb656621b28bd5a63752bc2fa3804c25",
+      "sha256": "d1d2b7cefb07e0276cbd037825834b33c478ed6bbd6c55b0e56841c6e1a28cb6",
+      "size": 137657,
+      "before_sha256": "bf74f569fc3f19b981821a4ec9c91f125ff866d1f3d1b96d7e3d21d1ec4e2770"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/f8/debc2e1105f1d86242517503ad167f29fe5b63",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\f8\\debc2e1105f1d86242517503ad167f29fe5b63",
+      "sha256": "8ef7df7ebb949ffedc474a88da329d0fd1af9bee39b5106c545587c45ba418ad",
+      "size": 158346,
+      "before_sha256": "967a863e146d95b247b4d599fb4055ccf3d579eee589c5e4da82f19fe4c6b757"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/c2/61f60384799bca6ef4d35a2f744b3293caab8c",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\c2\\61f60384799bca6ef4d35a2f744b3293caab8c",
+      "sha256": "1254734432585cdb86b51a27e1884291d9c3cbc6e9a7986afca5005b0f3cbf6b",
+      "size": 23867,
+      "before_sha256": "1601a410ff81e4ef539de8d078d94239986843cf1d637cdc0fbacf203d2a1634"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/f1/acc0d30fa9c673105b2896e1aeb64a3072f2f3",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\f1\\acc0d30fa9c673105b2896e1aeb64a3072f2f3",
+      "sha256": "26087e6ef1ae2457ceb2750e96b7fdfb72a6d5d15725f92516e4f9bef6f307ed",
+      "size": 22300,
+      "before_sha256": "535f81452b31fb43d068f2763f8050fac67190095205fdf3c446438135117e19"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/00/abf21463d49973a5dee0268ada0c1599c4ded3",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\00\\abf21463d49973a5dee0268ada0c1599c4ded3",
+      "sha256": "fcf8520a11a242792ef373d96d3172854d942a814ae086d0f13e440de589ad3f",
+      "size": 14150,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/5a/6102214fd132bb9db6547a68bacc2c26c8a15d",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\5a\\6102214fd132bb9db6547a68bacc2c26c8a15d",
+      "sha256": "3c8184bb35db35699b685fa772f9f9aa0ed64017fd9a2d5222e9d6595ebcdf1e",
+      "size": 16030,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/66/7750a8fd48e53409023e4d98dbbc51b01013f6",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\66\\7750a8fd48e53409023e4d98dbbc51b01013f6",
+      "sha256": "2a0cf7d69184eb1dcdb7be3da6fb7806f1b6c17a22d54ad0b73f5bc0c511adc2",
+      "size": 27315,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/5e/460223f5f36886ac626ac0db4bac78ca04816a",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\5e\\460223f5f36886ac626ac0db4bac78ca04816a",
+      "sha256": "46b7200ec61df8e01880d6f27362b3cbe530914daec3ee95b5fd0f9c324edf20",
+      "size": 29510,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/ea/0bcdcbd8f00b85e8c9113a70ade178ae2ab42c",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\ea\\0bcdcbd8f00b85e8c9113a70ade178ae2ab42c",
+      "sha256": "d8b10a5af9d13b2b88abb5361fcb9a78f6c8c57024202823700e61e4bbbf46ce",
+      "size": 16344,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/e7/0a89f6f641e943bfa774d261b1df18cbdf62e6",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\e7\\0a89f6f641e943bfa774d261b1df18cbdf62e6",
+      "sha256": "c48c094818d4ffad451df4c20b9b66eac31ef91e0547bf3fe4061de49f6ab360",
+      "size": 17598,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/17/7c96e6f75e6d252dbdaa8681aa0b018691bf7b",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\17\\7c96e6f75e6d252dbdaa8681aa0b018691bf7b",
+      "sha256": "7d28f8c5ff7b58793b20e518313ef67bea7b9a8939db16f63ab44669c74b7878",
+      "size": 18852,
+      "before_sha256": "847bd4a2440439553e54c1f01db1f56b238be107390a189571c2a5c8f6c2525b"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/97/0b86968d5fb55ecc15ba0eb901cbe352e1e4c6",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\97\\0b86968d5fb55ecc15ba0eb901cbe352e1e4c6",
+      "sha256": "075259afff2b551d42b02b1af0151f001fd05734a5f01778d1ff68b555cdd963",
+      "size": 21046,
+      "before_sha256": "bcb22d1b3fe650e330428f714427843ba7bb25d03ae9cc15a8dcd6b2a92e8c32"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/18/ebd4ebd1ba178c15d44f0213d33f7b7038e566",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\18\\ebd4ebd1ba178c15d44f0213d33f7b7038e566",
+      "sha256": "9f4a61f41421e1bdeb5be4e4fe1e1fcb6931f388b9e93446f319f9dabf605d93",
+      "size": 7880,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/fc/63b9e295f096ecf0066e2e9b3bbb13510dfb27",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\fc\\63b9e295f096ecf0066e2e9b3bbb13510dfb27",
+      "sha256": "b0527c97bd512feedfee0905ef05bb17bc229a258a9afc157f94d436d0a0a8c5",
+      "size": 10388,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/0b/c135f35388fbab4f03498653aed618509b3531",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\0b\\c135f35388fbab4f03498653aed618509b3531",
+      "sha256": "500b2506f5362e291e3a539d3495f4339b6b436c789cd203a853cf0ec68aa3bb",
+      "size": 10075,
+      "before_sha256": "c44e97aaa1142aef07e5f2cb3902244d1f064e03c8ad49de3918ef211db42d17"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/62/d9db3b05b008aeac00bdecc042a8c6ec4f4e0d",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\62\\d9db3b05b008aeac00bdecc042a8c6ec4f4e0d",
+      "sha256": "5b9d96f4f6a10a210b7c30be37128f05f825f22f3b3ab4e724f2c6cad1a86ad3",
+      "size": 14150,
+      "before_sha256": "f101fa8cd8358258328790156352863b41d97657090c3b54b2c99004cb0d4d2f"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/55/4dc0bf8eb450c84303f97bee1f25b20adc35cd",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\55\\4dc0bf8eb450c84303f97bee1f25b20adc35cd",
+      "sha256": "fc6f106e17ecfa410a7e40f7127f2660befa2bbe0e78f8c586c9c0713446f0b8",
+      "size": 7880,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/58/68d5daa112624f3a640d8d4247012708b68fa2",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\58\\68d5daa112624f3a640d8d4247012708b68fa2",
+      "sha256": "a6bf35cb9bd9a4166cac5ddf8d64f3652987050bd318f65ffdb71d913e8d5e01",
+      "size": 11955,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/da/89be30822515d51dee4c3d8829644245a4069e",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\da\\89be30822515d51dee4c3d8829644245a4069e",
+      "sha256": "f52fde001f77660aa83c37c78d072ab6c9c62673ff9631d632a37e078fd1df8a",
+      "size": 30764,
+      "before_sha256": "cdc01cad5b0369ad9f396194fd742c62b2eb011d4afb2826238d293bea505f37"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/3c/208537182ec1c0749d88725d494a6f2c632a0d",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\3c\\208537182ec1c0749d88725d494a6f2c632a0d",
+      "sha256": "eb6d63ffddc259123eb4fb5c3db05ccf291be4cb673f49faaa022b4e68abc5e4",
+      "size": 30764,
+      "before_sha256": "ad4c1982c4ee4dc3a234d8e84226c21a0fecafe06617a62f9227f960b2934005"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/43/6b1461629ec20b683bc202b5513c7186e42dbf",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\43\\6b1461629ec20b683bc202b5513c7186e42dbf",
+      "sha256": "78001e9a68c9c2f1fe1ea5972e994c23986af9f72769a773ae427c459382e158",
+      "size": 21673,
+      "before_sha256": "f87560ac72d487276f4da8cb13365b8e5ed015d2ad3f9d3a1f894c57afc63d3d"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/d5/8c7c471c9365a11e7d3a432c753a36a2a85387",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\d5\\8c7c471c9365a11e7d3a432c753a36a2a85387",
+      "sha256": "311d65b42dfc01c52e855ac17db6bbd6edd788464c83c88af354b7c74f19aaea",
+      "size": 19165,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/06/c6beaee19ffb14c84ab5de28b8bce034dc153b",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\06\\c6beaee19ffb14c84ab5de28b8bce034dc153b",
+      "sha256": "0f6f0d387531895cd5831593792f1472a6af7bf214cf9a71971e4a41f232899a",
+      "size": 48318,
+      "before_sha256": "6b1105bd4f27dac73cf8ad6f16e3a1459e593f1cf0668faffae6a2057c91adfb"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/25/6529866c848435067a211abd09a70eb526af6f",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\25\\6529866c848435067a211abd09a70eb526af6f",
+      "sha256": "9cc26457f3e0ae8a3a65f6b78262499fff24fb5c09446e283726704dde873719",
+      "size": 54587,
+      "before_sha256": "fe4c140296eff860c7c8c016bf0eb8ed8f78139758611ecfe779c8d72c512dca"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/de/52b04cca8023bcbe65a2bd843db83d23b7b9a1",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\de\\52b04cca8023bcbe65a2bd843db83d23b7b9a1",
+      "sha256": "279f448a628a2a97870c15d30cd9907504307f519dd929e1c9d1a995294e0dc0",
+      "size": 22300,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/fd/418e44e91ca530620baef84a7688502cbba30c",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\fd\\418e44e91ca530620baef84a7688502cbba30c",
+      "sha256": "5df4659dcf825d422b3daf420878dc095a0ad6e3adb46df433c404bb37c7a471",
+      "size": 29823,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/cc/edcec1e5e7f12155e518586e0c1353ae59ff37",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\cc\\edcec1e5e7f12155e518586e0c1353ae59ff37",
+      "sha256": "2579b2954db4231631df8964048dafb6400587c489ba2d88196c61fd1063fb05",
+      "size": 158346,
+      "before_sha256": "2774780f721c8726e52cf3900395c3b2062e222daf7096f91316d5c767225e2e"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/a7/fd7de6ac3ad4b662533d5d8c7d21ec23ae59ae",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\a7\\fd7de6ac3ad4b662533d5d8c7d21ec23ae59ae",
+      "sha256": "edbc4b06d787620225dc94317bfecaf83fe25083eba0122fda7ab3c14ba60a86",
+      "size": 142986,
+      "before_sha256": "a66a5be2f4138bf64c7ec246b763fb6280535299e48db31933ed88105b6633b4"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/71/f9d38468b25b988d2f8c523d67e3d40353b1d9",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\71\\f9d38468b25b988d2f8c523d67e3d40353b1d9",
+      "sha256": "8dc90f4881da333e98d6b6991b7a0794bc13c981e216d2183013633747e84949",
+      "size": 152703,
+      "before_sha256": "2b26cc504e2b5c6ba8af0a1357c7cd3e9b69b2bdf2be6e400181beac7b631967"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/9f/fb9a2a39702cfb712f34f2261aff1dc2ea8b49",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\9f\\fb9a2a39702cfb712f34f2261aff1dc2ea8b49",
+      "sha256": "8fb6e0fe282d4abcde99312daadc9adce67d47674aac6b4de64821b2fb3814c3",
+      "size": 102862,
+      "before_sha256": "d6a26741a3b08c0f28f82c4e1180f6e86d1d0f2d5d9e65809dd20791c597d611"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/4e/9e5b87a1e98737a247f8214670376754a1feb3",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\4e\\9e5b87a1e98737a247f8214670376754a1feb3",
+      "sha256": "b85890d0b02a0f3e95ee285133ec7f3dfcdf18d9cabb09ff20ebccc4c167255b",
+      "size": 157405,
+      "before_sha256": "6e8341f6c189f4ccb2b4603874bfbc899d18222e0d3e920bd3fab8fe7467cc0f"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/25/5aa31ce1a2f0629b7941139165174cad040ced",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\25\\5aa31ce1a2f0629b7941139165174cad040ced",
+      "sha256": "089918215cb0e04fce6acc87258a6463d90b8e16f75a821fd41084024db13312",
+      "size": 159286,
+      "before_sha256": "10d64cf58c3e325c8d0e2bd7ee37a57fd2a5a6dccec5848fe0f640a8e68cc36c"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/92/d5f6cd3ff4921314b47ace31be29b4964a8f04",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\92\\d5f6cd3ff4921314b47ace31be29b4964a8f04",
+      "sha256": "83542c375ecd0586539430ebe414cfc49f53f2e9f6e442b09cfa8cbf78982419",
+      "size": 120729,
+      "before_sha256": "8b5d0de341cbc2b8642c8988a2d6714a829f499711104b70d17ebf5633b00cad"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/1e/664c1cc8d80f4f9a69aae2c49ae8c01d1c4001",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\1e\\664c1cc8d80f4f9a69aae2c49ae8c01d1c4001",
+      "sha256": "8dce3d83363d49cceb2603a600d1ae36e4043f44e85d92614d253e03b02f9c39",
+      "size": 368096,
+      "before_sha256": "0492715f0374af3066c9a14872edcfb6b5dbd2cefe493e2aee6e051021b7bd98"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/ff/84353774cb95e8d7dc90c679f96a5bca7f42e5",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\ff\\84353774cb95e8d7dc90c679f96a5bca7f42e5",
+      "sha256": "f1a541df701c9c4b840566d624dd43422404417b3f8d4d8a524ce79aab988760",
+      "size": 64667,
+      "before_sha256": "2ef9936948d3a16870c2c5d84975da4aaf39d376098e3c0e524712e1dc34cb20"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/2d/5cb9b28d18f984a51b345a4d7aab03d77bddfc",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\2d\\5cb9b28d18f984a51b345a4d7aab03d77bddfc",
+      "sha256": "82e33527b4de4098dee4a09358621f3354fae7e3c3525f9be1a7cf8dd4f9df5f",
+      "size": 83397,
+      "before_sha256": "9d9003936d77854d30b641bb091d4d2f945a2b27b2617085bf0cda3e9ccae713"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/b4/a28679b8eeefdbdcbe6071fd4f2ff85e5b3415",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\b4\\a28679b8eeefdbdcbe6071fd4f2ff85e5b3415",
+      "sha256": "24035f1b9d186405c7dd1b3547bcf00e79d6dce27ea86f6ab8b35fa434039d3c",
+      "size": 394362,
+      "before_sha256": "dc3a5c4695ba8aa5e771a95e4d4394f28a6ed01302760bbcf1f3c6a9dea046fc"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/8b/035728b2151de044fb245988ec5f33ebb544ab",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\8b\\035728b2151de044fb245988ec5f33ebb544ab",
+      "sha256": "78d7a9937c1f27593a36549257ce9ff2eee64616b230b7019d59d0c5933dedfb",
+      "size": 209755,
+      "before_sha256": "ce87328ca31a97fc2e3fdfcbd57ec1da33c78473badf2a57d17cc1cfc5319317"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/b9/132d27178d27f9d91df89fc47e106bbaf2d5b5",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\b9\\132d27178d27f9d91df89fc47e106bbaf2d5b5",
+      "sha256": "c12a04f49cf64176fcdac40dce84ca136d4771ddf6a4a450a79b53d3e4b12e88",
+      "size": 45470,
+      "before_sha256": "55c2de44648430a16ef9be5c38e308dcb4a2bf168646717a392e76b9b822f93d"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/30/cbcd99de1aa6e8d245221619b393721df551b4",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\30\\cbcd99de1aa6e8d245221619b393721df551b4",
+      "sha256": "da814ab85edcf54b6ba28e2551826dab5b7729619006e4c1e557077818390079",
+      "size": 10770,
+      "before_sha256": "bbe3c677616d6a03acfab7eb0f25e96d2f05ca78cc019bb8c5f0202b6e320a50"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/bf/5dc56a444450216d4f12d6b9dfc0d908a09c5d",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\bf\\5dc56a444450216d4f12d6b9dfc0d908a09c5d",
+      "sha256": "5b4140a4fdff17b6d1c68ead2b96fac8995eb9c909785fc7032c3e3c2abb9796",
+      "size": 9005,
+      "before_sha256": "faf12b4e05c70a9fa67b344584f7110f3134be2f08138bf102e1918be004cd2c"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/d4/22562d2cdb137e6bc23f903d773b5b485329a8",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\d4\\22562d2cdb137e6bc23f903d773b5b485329a8",
+      "sha256": "9ea08ca5f0705347b77c1c65e27520cc6f771ddbb45b7e72e581a4114681defe",
+      "size": 10973,
+      "before_sha256": "e14e95e968422281ac4b33f6f4a280e501d2bd5af2e76c503c5ecb0ef15ef087"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/3e/b411841802398d5b21d422579f2eaa65d30c0e",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\3e\\b411841802398d5b21d422579f2eaa65d30c0e",
+      "sha256": "b9f2ad69b3edd1ab8e7011e5086701430cf0e8d9fe68fe8e4e762567887e3368",
+      "size": 46176,
+      "before_sha256": "7451c3d1b46d42052440f1ad39a5fa2dfb300dc4496338a5d8ec7ab7afd8ea94"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/fb/ab4344a7456dca88f3ce06f01208922f37e395",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\fb\\ab4344a7456dca88f3ce06f01208922f37e395",
+      "sha256": "34001c1ad9e9e769d9ba65f4fefc41a548ba2661dc194252ded1fb5d33e36134",
+      "size": 356504,
+      "before_sha256": "14597d67969ede98a8b8938bee4f1c6ffcca659322c43d4f2880d123264543a9"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/91/79892d704f88d98191c00548bce106402ad5b5",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\91\\79892d704f88d98191c00548bce106402ad5b5",
+      "sha256": "debc8fc5fc1eddae37265b13b3c70d3fa67bf80815ca4acf12a296c66f9069fe",
+      "size": 348936,
+      "before_sha256": "2781bb40ef8e5d0306c283fc8c6c8f55de79c03a69951dde14ec352ecea95f4a"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/07/0c6e214359ccf27b1cb8078d3fc51aecfe0149",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\07\\0c6e214359ccf27b1cb8078d3fc51aecfe0149",
+      "sha256": "7234f476772b8c159f6a2a35d6bc081a7620fff44f56c9a03940d0fee361d7ad",
+      "size": 23375,
+      "before_sha256": "b8712a23bd6c7ec8578b5751aa29a070c57145ab2042d11b910506d77b4acd04"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/3b/94cb2772f22fb76b1a4545c5a347d764050829",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\3b\\94cb2772f22fb76b1a4545c5a347d764050829",
+      "sha256": "0da53ae676c30f74b42b8d489af6da8204dfc959fecb761208abd03c52940a39",
+      "size": 792,
+      "before_sha256": "24e373c26220cb4d8232769d8de259632e7f6ec9d932e03cdff6350fabfcbb73"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/6b/7237dfb68c667f191a69fda8627c80fca91803",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\6b\\7237dfb68c667f191a69fda8627c80fca91803",
+      "sha256": "e4508ac7291153e05f39837984373bf910e5d02cbe221c2615376780bb85a22a",
+      "size": 671,
+      "before_sha256": "296f30f26f35b04e11b711124447492b7852b8220fc4b57007be1ec7958057f2"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/ios_upload/84/22ac3b08ccdd077bf5f460f3fe984ec8aff811",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\ios_upload\\84\\22ac3b08ccdd077bf5f460f3fe984ec8aff811",
+      "sha256": "4f0fdd432d381f0fbdf8f775cbc24c53c96ab542d6b56f3f65782cde893ab91c",
+      "size": 118679,
+      "before_sha256": "c5be586bef610583fc6fbff4e0aedaa611f8c64518fe14bbd72057e4637a8c97"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/ios_upload/a0/9b916f3457e6827148151101aa95d634bd6f96",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\ios_upload\\a0\\9b916f3457e6827148151101aa95d634bd6f96",
+      "sha256": "c73a62c69a638b8d2315aa35f748ad657357dc5a5685896974c881e0d3499034",
+      "size": 132501,
+      "before_sha256": "60d4d2a3c58dbf2606a7f043309e0facab1377ca5ca84bca8f958657ea76c7ee"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/ios_upload/b0/5668cff66ce011c3c45ddd6240059872100f99",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\ios_upload\\b0\\5668cff66ce011c3c45ddd6240059872100f99",
+      "sha256": "76e38785c3e26c776f94fe7d91257fb7b095b4369ec56bff176ce6d2d27d28a8",
+      "size": 196406,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/ios_upload/53/2ae28d5b68a0e3d5e5df65f5c6ce57e4413347",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\ios_upload\\53\\2ae28d5b68a0e3d5e5df65f5c6ce57e4413347",
+      "sha256": "76e38785c3e26c776f94fe7d91257fb7b095b4369ec56bff176ce6d2d27d28a8",
+      "size": 196406,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/ios_upload/95/c78b166636dd6ff34aaadce3f907b87e21e617",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\ios_upload\\95\\c78b166636dd6ff34aaadce3f907b87e21e617",
+      "sha256": "6e19ea2f563082a87cfd42fbf2e514b21016789bafbca75c8672e5d83d3e4b4a",
+      "size": 99552,
+      "before_sha256": "91a9f980b33fad5ae4d3b209e6fcc66dd177f52474d5290bb142fd5982e52f90"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/ios_upload/bf/469a900c3d60033b4a1cd89a88bb4c52b1ba3a",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\ios_upload\\bf\\469a900c3d60033b4a1cd89a88bb4c52b1ba3a",
+      "sha256": "2c1ab0e6df0bf4573060af4da61ef185df606ba469141afe5183e13008a55a1a",
+      "size": 117197,
+      "before_sha256": "6e11b649c053848d2ec3ca24afba8e086863db5f0f8941730ab7b37bc77f46fe"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/medium_upload/98/76ae1f1278e06c8a661849d61a06ca4aac7c2e",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\medium_upload\\98\\76ae1f1278e06c8a661849d61a06ca4aac7c2e",
+      "sha256": "e223705704f93bb591d2f0aa3cd34b775668390e2fd2ab20aa4ca2caf28d5e69",
+      "size": 64182,
+      "before_sha256": "b8954ccce52abe1487bccb9fd1e2559649634d4a8c6531bbade787f1032c6a6c"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/medium_upload/8d/b850b302b26b27ba9588eaeaf2c40ff90ef77a",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\medium_upload\\8d\\b850b302b26b27ba9588eaeaf2c40ff90ef77a",
+      "sha256": "58cbc96f0cf53aea7191792d71c687f170b82c8de10422440aa1a1d5fde1bcd1",
+      "size": 61844,
+      "before_sha256": "b4c034222ae9e5da18bf2b1c152414145a7339dac7735c12a0471cf761c70f1e"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/medium_upload/84/aa849317af7a767fc27c96c52e9644b7901c30",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\medium_upload\\84\\aa849317af7a767fc27c96c52e9644b7901c30",
+      "sha256": "f29f5c64d4d8cf2fd294cf5689011fe7ffa65f8b64cf657cad08b3a6144c444a",
+      "size": 9714,
+      "before_sha256": "40bb4fb19a0e5a68606a62229b96d050b871cb329af8a07884812251eb9acdc4"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/medium_upload/aa/93245399e29feb891cc7f3fb5680fc21b20e78",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\medium_upload\\aa\\93245399e29feb891cc7f3fb5680fc21b20e78",
+      "sha256": "2c830e482917260cea6b4a7c7f5f724b47e8e134db03b4d09b98ad55c1df551b",
+      "size": 9270,
+      "before_sha256": "38fe183d9d5e209027a6342d727b28584c890b9c3f5a3bb4b799eec077bc1f53"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/medium_upload/92/c31a08cbf311b708ca0762e9f0aab01559c126",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\medium_upload\\92\\c31a08cbf311b708ca0762e9f0aab01559c126",
+      "sha256": "6313923d78d088118c5bcd31b90ddf8d4204ed2e2d259633f426c75a808b7ef8",
+      "size": 165177,
+      "before_sha256": "a8021838a4e886890bca77379f877ebaf8ac70d978a854d1c6a7ddbccfd3f5ce"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/medium_upload/5f/2c2da595cd78c7634e479504085636b359c583",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\medium_upload\\5f\\2c2da595cd78c7634e479504085636b359c583",
+      "sha256": "3dd4acc0be8cffddd39fd62d091ba273483cf61d008016603c99d2379d651d96",
+      "size": 146653,
+      "before_sha256": "c1e09c89aa6157088c0f4c9a550af6825e7dc5293edcb06a5bc8df4eb7a18057"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/medium_upload/e5/7ccdccfd8a5052812fedda3a09622954f6294c",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\medium_upload\\e5\\7ccdccfd8a5052812fedda3a09622954f6294c",
+      "sha256": "ff30f5d866d66c82290e91589262b7beeb392d0eea290aba733222f359a88f50",
+      "size": 1961645,
+      "before_sha256": "ee6a5f9ebab738d4e6e7ac8405ba337a4c82c7852ad05728c744f75bcf1523f0"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/medium_upload/d3/1a0e2aea2b134cc6bac5e3dae74052649048d7",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\medium_upload\\d3\\1a0e2aea2b134cc6bac5e3dae74052649048d7",
+      "sha256": "f069c5c6dc0dd0992876f0be1a7f9820572a546a4906399b0749aced637bd7a2",
+      "size": 2575348,
+      "before_sha256": "8025917e3d3534adc7392c509ca30693440004ef1ba8f502ccd972df876bffd6"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/medium_upload/de/ea11d6c7ad7f4e28546c7b0395fee91cb116f6",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\medium_upload\\de\\ea11d6c7ad7f4e28546c7b0395fee91cb116f6",
+      "sha256": "134091509d0b9a4c548d9e3d668f7a0de4a6760e0202c74e9f382acb99923bcf",
+      "size": 293102,
+      "before_sha256": "4c494894e6c56686e9b6f57eea04311e53c004f997c0b8f04f17e81bb0bbf31c"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/medium_upload/b0/f3e49a9da913d59519c2cc2db1d55bc91eb82f",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\medium_upload\\b0\\f3e49a9da913d59519c2cc2db1d55bc91eb82f",
+      "sha256": "3658212caf5fd329e1033d1569478b99440d3e9b4dffe2873a26cab1eabb22cc",
+      "size": 405778,
+      "before_sha256": "2c39bbe84f497d1320d5ce3dda53698bead004713dd283c4c3b6ef7abbba8345"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/medium_upload/3e/4d63bec79d1865805e8a0c3592c704ade59c8e",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\medium_upload\\3e\\4d63bec79d1865805e8a0c3592c704ade59c8e",
+      "sha256": "6191072e050397229f66ba1e9d8b0d20eccdae5d0d5068c56de8edc27ac323d5",
+      "size": 462581,
+      "before_sha256": "07ac9ea6ebeebb3d1923bc1afd7c2ddec20bc8f76e78e31a6512c077c3230dbf"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/medium_upload/83/9e1b0ad070aaa6ac683d7963bc18ea162c24f4",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\medium_upload\\83\\9e1b0ad070aaa6ac683d7963bc18ea162c24f4",
+      "sha256": "8d71e0a775c1662623910d4d35afc11c9235d418c4afd9d71157396efd9b3141",
+      "size": 93509,
+      "before_sha256": "42d35e2bd61d9f6f378ee6494fd85555d297b055e6731650e1e5aa9c378d75c1"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/medium_upload/00/63c0a4996b73c23a51c4f228b8d41ee0ee2fd2",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\medium_upload\\00\\63c0a4996b73c23a51c4f228b8d41ee0ee2fd2",
+      "sha256": "c2ad371c7da0ac7df009a0313720bb9588cbed3de8fb2073ccf3052329c15127",
+      "size": 86183,
+      "before_sha256": "1ba4da5acfc627d9c0d259667d9a47b7318356e5886a8911129d7e9882f92097"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/medium_upload/bf/82048c973cc57be43fc10e4d095508461a9d0a",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\medium_upload\\bf\\82048c973cc57be43fc10e4d095508461a9d0a",
+      "sha256": "965089b0cebd1efc150ca87ef67c26a82351be88f725ec7fbfa0a9eb465d5ac4",
+      "size": 41401,
+      "before_sha256": "2114fed04b80289ab2492b23b78c1719513adc32848d9f7b15bbad92a8906440"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/medium_upload/1e/307ce15921aa48e404d1652a22239ede153bfe",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\medium_upload\\1e\\307ce15921aa48e404d1652a22239ede153bfe",
+      "sha256": "4d864644c4ba8b9cc44ed90b983fe35a43903b8a2f644e4877d121dce5f7cc52",
+      "size": 38145,
+      "before_sha256": "a5e5901cc466b8030c01a52624dc79ed4685ae8289739898ce2691cddfa67d38"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/medium_upload/41/ed92f4b7c7077adbe6c8c6f02ead4483861913",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\medium_upload\\41\\ed92f4b7c7077adbe6c8c6f02ead4483861913",
+      "sha256": "78e1fabcdbd5bc8763fb0e527321f20ec3fb8b4a738637018e28dc91b9a9f834",
+      "size": 43686,
+      "before_sha256": "37ceb0a1296147ad10649373b601a3b4afc2b52c643609fb2cc5b5205c1a2e13"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/medium_upload/7e/13c3c18a49b4b67892e5ee766558ce6816b502",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\medium_upload\\7e\\13c3c18a49b4b67892e5ee766558ce6816b502",
+      "sha256": "86b2a51a6b355fd4335e793c7008565fdaf23a76eab445c0564e962685e6d468",
+      "size": 40215,
+      "before_sha256": "426eac6436265cc9fb22aa40d39cf765d872fe1174e4d36da6f29d8b6f71abcd"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/medium_upload/71/7939c7b5ed405b19e9bba1d0d11421b5751f1f",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\medium_upload\\71\\7939c7b5ed405b19e9bba1d0d11421b5751f1f",
+      "sha256": "f0700d08bfa24def64023877eb450f057b20dc6fbf3e1964d609c2c22163d697",
+      "size": 23089,
+      "before_sha256": "77057e7c1294a6485f2857d5909d3e3a4e6a4ebc5cfcf98b5f3bb33a3fe99cc4"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/medium_upload/c6/3a0c84c334db8c2f57932ae62220bb355fdf4e",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\medium_upload\\c6\\3a0c84c334db8c2f57932ae62220bb355fdf4e",
+      "sha256": "aa0278695c922cdccf2ac89a77d4bbd0b5c2a80454117a52f6fb3d1e9320461e",
+      "size": 21359,
+      "before_sha256": "032a3f16dae1a0d975e6c15b0cff1d99ec2b8f87416b0ba534b9206544693500"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/medium_upload/c4/bd3d59babf5d061c5cd213c32416bdac3f289b",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\medium_upload\\c4\\bd3d59babf5d061c5cd213c32416bdac3f289b",
+      "sha256": "1b78203505bc998b72e01619968e3fb4d55362a4e73b0cc004d1aeab0d38c19e",
+      "size": 161369,
+      "before_sha256": "057e81d2ebd09eec0b92451bc99c115ddd6a619aaae10a5805f341b2ff48b720"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/medium_upload/05/6431aa580254cb4624f7f8c61e04bc4533976d",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\medium_upload\\05\\6431aa580254cb4624f7f8c61e04bc4533976d",
+      "sha256": "b58b0a1b11d34d0be98b50b08f042fd0da8af083d9e2927692305e4e76e14599",
+      "size": 147896,
+      "before_sha256": "ca26f641cb60434df0ff16a41015a8a843adceec0eedacbed6bef735d92364d4"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/medium_upload/66/7586d44a3c13435b419391e35c555c068726d8",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\medium_upload\\66\\7586d44a3c13435b419391e35c555c068726d8",
+      "sha256": "cca021b8656cd0b732c1bdee2148bdc417645f5340e1f41e0364528bc1b0ae4a",
+      "size": 143919,
+      "before_sha256": "9d1059ca6940b138e36c7f8e4ef1e195e1a997a96842ef0edc1ea646ffd3f030"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/medium_upload/7d/ea85cf2f7e9ab81ea02bf98dc196a43a2a964b",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\medium_upload\\7d\\ea85cf2f7e9ab81ea02bf98dc196a43a2a964b",
+      "sha256": "ad632e1b8bb841d87691041799628b0a9110d271cd36b1d55d996d7d69316ed0",
+      "size": 139911,
+      "before_sha256": "bf3c7ea08318832e710159724361ae2f39e2636f4431b7f281dd936628de20d6"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/medium_upload/4e/6c46cf135383c15677c4e5601a129985ae431f",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\medium_upload\\4e\\6c46cf135383c15677c4e5601a129985ae431f",
+      "sha256": "fec453f27b04db9652f8f443c4c4cce4f3dccceddbc62ec8d41183933eb5a582",
+      "size": 61632,
+      "before_sha256": "b57d15199bca9bbce4e377537bb2c5f4808184aa83b4bf1afc46bf0a97e6fab5"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/medium_upload/ea/aa31c8f218e29165678b1068ac7839c6419257",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\medium_upload\\ea\\aa31c8f218e29165678b1068ac7839c6419257",
+      "sha256": "6e45ee613270e1af297a245828fd6540d7ade992329f6f4891cb41725d793dae",
+      "size": 57072,
+      "before_sha256": "cbc0b7afb02b45a1bcda6334a386cbe9693d115e31cf54a4a3359554abcc0a2b"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/medium_upload/ae/d203a3ab5735665ebcd3448f26af16605cce9d",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\medium_upload\\ae\\d203a3ab5735665ebcd3448f26af16605cce9d",
+      "sha256": "41112d872ef6781cbde47827bf440421eab180356fee6b10420e22069e15db8c",
+      "size": 58119,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/medium_upload/1b/44da7c5ecaf21801284f18296a4beba3cd2cab",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\medium_upload\\1b\\44da7c5ecaf21801284f18296a4beba3cd2cab",
+      "sha256": "41112d872ef6781cbde47827bf440421eab180356fee6b10420e22069e15db8c",
+      "size": 58119,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/medium_upload/bf/0c31b065228aa10e44d657b0ff6117f99a830c",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\medium_upload\\bf\\0c31b065228aa10e44d657b0ff6117f99a830c",
+      "sha256": "f2f0cddbabc246728da334f21be00ab326c0b202111fa3bcd333940433f98d07",
+      "size": 8014,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/medium_upload/8a/039f79f69033c1e410b5e2e5c9201bb8bbc98a",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\medium_upload\\8a\\039f79f69033c1e410b5e2e5c9201bb8bbc98a",
+      "sha256": "f2f0cddbabc246728da334f21be00ab326c0b202111fa3bcd333940433f98d07",
+      "size": 8014,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/medium_upload/d2/d2563f22b187dd4b0f0dc131dd9d2f4593d594",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\medium_upload\\d2\\d2563f22b187dd4b0f0dc131dd9d2f4593d594",
+      "sha256": "1bb556877845d5ddfba54df0234cbf1af82945ecf6c2ca96b2a8504e38017d3f",
+      "size": 131791,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/medium_upload/35/7e4851b84a5a809e128a0612e16dd54467b588",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\medium_upload\\35\\7e4851b84a5a809e128a0612e16dd54467b588",
+      "sha256": "1bb556877845d5ddfba54df0234cbf1af82945ecf6c2ca96b2a8504e38017d3f",
+      "size": 131791,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/medium_upload/64/e390e9312353e326f891e6d65ba94f2d424d8b",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\medium_upload\\64\\e390e9312353e326f891e6d65ba94f2d424d8b",
+      "sha256": "2622119f61dcc6c8957ffcf1a6a832e2514abfa061dd21b51a135fd72f307b03",
+      "size": 2028982,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/medium_upload/85/1a97869a124d67a1002fb423d145e48bdd36c9",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\medium_upload\\85\\1a97869a124d67a1002fb423d145e48bdd36c9",
+      "sha256": "2622119f61dcc6c8957ffcf1a6a832e2514abfa061dd21b51a135fd72f307b03",
+      "size": 2028982,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/medium_upload/53/94e011a380b62d80155d56418a0cc7e4779f6a",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\medium_upload\\53\\94e011a380b62d80155d56418a0cc7e4779f6a",
+      "sha256": "0b7b884d2459b98ee8abde779bd96bb453838ff2f6bd753985e2d95fd3fbbf74",
+      "size": 422442,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/medium_upload/e0/84dd1745ec07481bb928496d069ccf4872ca0b",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\medium_upload\\e0\\84dd1745ec07481bb928496d069ccf4872ca0b",
+      "sha256": "eb0bcb777e69985c7727aad49a2418296cde7035b4b33a74d6c7ce6f4ec53ef6",
+      "size": 648962,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/medium_upload/d6/863741644fb4d1b3e8ab5e731d173b48dfe906",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\medium_upload\\d6\\863741644fb4d1b3e8ab5e731d173b48dfe906",
+      "sha256": "eb0bcb777e69985c7727aad49a2418296cde7035b4b33a74d6c7ce6f4ec53ef6",
+      "size": 648962,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/medium_upload/a2/fcc2ae1c139b07b99efdb24b32447411014208",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\medium_upload\\a2\\fcc2ae1c139b07b99efdb24b32447411014208",
+      "sha256": "68f3794f04c089565f0edc9bdb167c4d735440dc7bf1b1c010e6ea8a9729bd9a",
+      "size": 75031,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/medium_upload/45/dd891827e1ce33a4363c2c01477f7f586aa023",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\medium_upload\\45\\dd891827e1ce33a4363c2c01477f7f586aa023",
+      "sha256": "68f3794f04c089565f0edc9bdb167c4d735440dc7bf1b1c010e6ea8a9729bd9a",
+      "size": 75031,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/medium_upload/3d/4927769200b30c7793f6a2b8cb7d54b40bb513",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\medium_upload\\3d\\4927769200b30c7793f6a2b8cb7d54b40bb513",
+      "sha256": "154741d9db3a3ce3fb2ec2511b2f55684e0ed2d5318b997ba3a6e715a014abed",
+      "size": 33418,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/medium_upload/d7/178d82d5a76ddbc455b547564e55c40d986843",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\medium_upload\\d7\\178d82d5a76ddbc455b547564e55c40d986843",
+      "sha256": "154741d9db3a3ce3fb2ec2511b2f55684e0ed2d5318b997ba3a6e715a014abed",
+      "size": 33418,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/medium_upload/c4/d61d681b943715ca0c06ad52a76b5fb7247f74",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\medium_upload\\c4\\d61d681b943715ca0c06ad52a76b5fb7247f74",
+      "sha256": "9373d283dd541c79c0146d9568862504a5ba81f63b8b559ce834ce182a228241",
+      "size": 35379,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/medium_upload/d1/f5fcd33eb079ee9eaf71474e74c0708cbc2fd1",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\medium_upload\\d1\\f5fcd33eb079ee9eaf71474e74c0708cbc2fd1",
+      "sha256": "9373d283dd541c79c0146d9568862504a5ba81f63b8b559ce834ce182a228241",
+      "size": 35379,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/medium_upload/52/d15b033992317a37bb7e62e65087e498deb88d",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\medium_upload\\52\\d15b033992317a37bb7e62e65087e498deb88d",
+      "sha256": "11a75c8a0de933cdf54d355fc859820ac27251cc733ccc51f4c4f46d838510c5",
+      "size": 18961,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/medium_upload/62/d57e952cb832933d3c8f3e23baa378ec0eb413",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\medium_upload\\62\\d57e952cb832933d3c8f3e23baa378ec0eb413",
+      "sha256": "11a75c8a0de933cdf54d355fc859820ac27251cc733ccc51f4c4f46d838510c5",
+      "size": 18961,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/medium_upload/f6/6d7cd3288634b067370df984eaad216250efd0",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\medium_upload\\f6\\6d7cd3288634b067370df984eaad216250efd0",
+      "sha256": "8f5a2bbc1b4ed1e8005a9d6bf1e3ba2a0688b2f8a7478aa4a6790fef6bf20b16",
+      "size": 133995,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/medium_upload/31/aa655f37e7ffa4d0a181f704a163e24f84394f",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\medium_upload\\31\\aa655f37e7ffa4d0a181f704a163e24f84394f",
+      "sha256": "8f5a2bbc1b4ed1e8005a9d6bf1e3ba2a0688b2f8a7478aa4a6790fef6bf20b16",
+      "size": 133995,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/medium_upload/7e/b3a67eb1dfd0f49390449539a7b0c63874d063",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\medium_upload\\7e\\b3a67eb1dfd0f49390449539a7b0c63874d063",
+      "sha256": "5b3f372033ec56a22af7c3d54066933e660d70646b43cafc52669a32c1c068bb",
+      "size": 124643,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/medium_upload/b7/db8d3f0b88c188ddb68f001d4e6dd6abe4eaee",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\medium_upload\\b7\\db8d3f0b88c188ddb68f001d4e6dd6abe4eaee",
+      "sha256": "5b3f372033ec56a22af7c3d54066933e660d70646b43cafc52669a32c1c068bb",
+      "size": 124643,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/medium_upload/71/02759e1af2be1b159e21f453dd634928d4bb90",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\medium_upload\\71\\02759e1af2be1b159e21f453dd634928d4bb90",
+      "sha256": "11319997fba4bc54d8bd0ec8f282231ecc305785a2fe554751a29faae1a78976",
+      "size": 51530,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/medium_upload/f2/559dbeba3c700764437b97b19364ce853c5dc7",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\medium_upload\\f2\\559dbeba3c700764437b97b19364ce853c5dc7",
+      "sha256": "11319997fba4bc54d8bd0ec8f282231ecc305785a2fe554751a29faae1a78976",
+      "size": 51530,
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/medium_upload/76/37cd4ae372d165ab31a63f8ec6d34538a35aeb",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\medium_upload\\76\\37cd4ae372d165ab31a63f8ec6d34538a35aeb",
+      "sha256": "eeb7234c829d473d95ac16bbb9f7c2cb0851b7f4b7c91ca556e6a3e0d8e84e58",
+      "size": 59934,
+      "before_sha256": "1a987128c1bb42c3e97c4c49994ba3983519c9abfaaf8473fa0efe4e2f7d1026"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/medium_upload/7f/8a5d969ac3ee343b5fa9b881870c9e1fc21b2b",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\medium_upload\\7f\\8a5d969ac3ee343b5fa9b881870c9e1fc21b2b",
+      "sha256": "ec350425b5859d0d908aeee2f8ec539bc21b6752dcb664925f3583ab48e2f86e",
+      "size": 62454,
+      "before_sha256": "e5c8bb48212668b477c15f6f2e035b116579163bae3bae88ba6130e15bbddfc4"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/medium_upload/09/1698904eefc2c272a292975925c103761025d7",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\medium_upload\\09\\1698904eefc2c272a292975925c103761025d7",
+      "sha256": "0f96c93fb626b70b1fc611ba5903453d19d58c3bfd5f011f24218436e5732f83",
+      "size": 9420,
+      "before_sha256": "705b0543415ed4dd7103fc433e52145d01ed1fa8c8008b32ab22b2a0722ad140"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/medium_upload/86/32b0857cad52f1741bb8b75d860ef7b0115654",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\medium_upload\\86\\32b0857cad52f1741bb8b75d860ef7b0115654",
+      "sha256": "9af8ae915eacd88919cc2104ee565694dbdea1f3a10eaaf6951f441b1c767cf9",
+      "size": 9362,
+      "before_sha256": "c3c61624b33760341f5f3479e41bf5f2ec769ca802bfdfad6767a7121480cb1f"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/medium_upload/de/bf0c18c3a708bd62efbd575fc014f79c6cef16",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\medium_upload\\de\\bf0c18c3a708bd62efbd575fc014f79c6cef16",
+      "sha256": "ecd1ccf8242bb5506c5bc344a38267908e3232645008f359a1fdcf3646149295",
+      "size": 131270,
+      "before_sha256": "ba3f639764a239c35f8c9761b8655730db9fc109e1dac1138ad139c8d84f193d"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/medium_upload/9c/923d6b281ba47635a8f7da12865dd0dd8cb4a8",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\medium_upload\\9c\\923d6b281ba47635a8f7da12865dd0dd8cb4a8",
+      "sha256": "3e25b5b989c6a3b86c1d6525d1ecc400a32b7d4b85e46e04827f98b2d8299306",
+      "size": 138544,
+      "before_sha256": "f5e2fbf54eb7a86d36be37e32db83b87b78fe366d7f85090f5d61e0e4caa181d"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/medium_upload/d0/1194804ddc3086f6a518c2986a34c7ade5b043",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\medium_upload\\d0\\1194804ddc3086f6a518c2986a34c7ade5b043",
+      "sha256": "9c0a9f5bf59cd776d4c6451d9e3b148fd61b6f87a50da370fecd23042dc476bf",
+      "size": 1105600,
+      "before_sha256": "e4925cac4e06d6632b414b9ec9afc2ceb5a73c7a0af7c7b2db68e6836db767b2"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/medium_upload/87/ed31018c5c3928bdeba0e85279653e5e218f97",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\medium_upload\\87\\ed31018c5c3928bdeba0e85279653e5e218f97",
+      "sha256": "b672f07593b53c4ac48f893b4547b609c88d53a3a03d077247d072a6949661c6",
+      "size": 1665401,
+      "before_sha256": "9497c9699054f45e08d4ac6c3f17b35eb026288164ff1f7f2d041d95807a76d8"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/medium_upload/cf/22061280d2d810e41d805cd3346cf64748a21b",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\medium_upload\\cf\\22061280d2d810e41d805cd3346cf64748a21b",
+      "sha256": "c92fde060f93eb54efb3aef97f142a0300b3e298d3305806317de8a4d4119693",
+      "size": 279776,
+      "before_sha256": "be20e4ae7a15b580a2ab9aa8797b846cee534d3503ec12f51cd3c8970bdfd674"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/medium_upload/38/ef1cb2fde4837c68b4de5a6e22190bad33c010",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\medium_upload\\38\\ef1cb2fde4837c68b4de5a6e22190bad33c010",
+      "sha256": "7676283a7b8ecdf6d2f41d46c8e8a8739f2773d2cfd0e6b4ceb7161d7bddc99e",
+      "size": 311061,
+      "before_sha256": "31d0c9b8ce367590a514515cf3e968e46b663cbdbd583cbd1d83b5ee30fda9f9"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/medium_upload/f7/f4d690ea20181823c09b2576f8b967e8d600c5",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\medium_upload\\f7\\f4d690ea20181823c09b2576f8b967e8d600c5",
+      "sha256": "230094ec048623b4ce8452b593f19bd258e0f5a5bf050b66ccfd486594abcaa8",
+      "size": 351569,
+      "before_sha256": "cbb1a4bd1117da88c68700152f6a6f575ff3cbb15711dd233d94a4e6fe56c613"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/medium_upload/43/67d34ee2a18bf4be25237e19c5f00f50b4c4b7",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\medium_upload\\43\\67d34ee2a18bf4be25237e19c5f00f50b4c4b7",
+      "sha256": "174dbf2ff02fb5708b8b9a3fae19b4642735477f19bde6e8470dc1821283bcf4",
+      "size": 85753,
+      "before_sha256": "5cd0a4c33ae0198ad92ae7438ad4dfb80c9f1489716b6d542383b1191c117530"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/medium_upload/f8/77ab9e0fb0ead538b36572744e5a390cc51852",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\medium_upload\\f8\\77ab9e0fb0ead538b36572744e5a390cc51852",
+      "sha256": "7dd08cc2b26172d191437f07f0f303f23dc90e7af1d742dc2cb8ffc0befa60fc",
+      "size": 82268,
+      "before_sha256": "a205b9037eba127a616ce1becf4746bbe45fac915995d663b8cdfd5e6597f04e"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/medium_upload/5d/abc646c343ee8b110daabe7be6b601d748d9ee",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\medium_upload\\5d\\abc646c343ee8b110daabe7be6b601d748d9ee",
+      "sha256": "fe6486559fc65ef14107c9ed733f79cbef86c2472f7c8bd4fc7ed6a5bfe8458d",
+      "size": 38747,
+      "before_sha256": "e5a500ae6d6a51adf3d999df32724e6cfb3219041dc89846286ffefe19cb0351"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/medium_upload/ae/6d246a4a60583c374a6856122bca502b89e205",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\medium_upload\\ae\\6d246a4a60583c374a6856122bca502b89e205",
+      "sha256": "afe9450f5dec2bde648ac0d0de91964e29bc8cd88de46b3d10ee4fa66975a76d",
+      "size": 37428,
+      "before_sha256": "915bc66c2b99a5aa9dfe4ff0b355ce2ca8364c037c22da408add5ead1d610d2f"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/medium_upload/87/077d78b9ff90ed0ac9452a95c36d8863c9cce1",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\medium_upload\\87\\077d78b9ff90ed0ac9452a95c36d8863c9cce1",
+      "sha256": "1f842ba0542f9cf836026ae7596fa09d9e1eb07b7a9cba39bda5bb70b19b7abc",
+      "size": 41052,
+      "before_sha256": "3955253d4f6ab39d0fdfef27b858e6e2264298eb94516c19bde12b1ecee3fa89"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/medium_upload/eb/e480bd1a5c4c5a4697ffe4801947eb1fe480e9",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\medium_upload\\eb\\e480bd1a5c4c5a4697ffe4801947eb1fe480e9",
+      "sha256": "6d2df11b6c4e06b9a531e5cfabf26cf495d5eb31233ff77b1ad199a29b282ed3",
+      "size": 39511,
+      "before_sha256": "60d33ef857119005b5dd76175e081d42985fb8a5326ede6caa5cbde0761c32f4"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/medium_upload/0b/a446ef223e89ed00c34adf6ce7f101e47ae8bf",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\medium_upload\\0b\\a446ef223e89ed00c34adf6ce7f101e47ae8bf",
+      "sha256": "94c1622127906e62cef2c2c0cabe41de3da28440b2b9e22e9454f54125ce424f",
+      "size": 22075,
+      "before_sha256": "a4f83b2370aee20680123561dfc12f86ea6dfbbf7a50197ff497aaac4ba6c905"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/medium_upload/b8/f1e6aad8c8371f1e8fe010c2b5ee53fa06c207",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\medium_upload\\b8\\f1e6aad8c8371f1e8fe010c2b5ee53fa06c207",
+      "sha256": "31223d6a50fb6074d34a9c200428a9ac4cac4adc6501e42722121a954cbf8398",
+      "size": 21295,
+      "before_sha256": "548859f84345e2272ac0d8ec05de7e045c8a4bd50905663f4e8e0ffedbab6b93"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/medium_upload/2b/24799093d1c299b18f9e118a3fdcf5cc77e0e7",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\medium_upload\\2b\\24799093d1c299b18f9e118a3fdcf5cc77e0e7",
+      "sha256": "92d2d3038847bb595f268071fe35950e74a0e9d2756ae9642868708d7f687f70",
+      "size": 141217,
+      "before_sha256": "455544e5331f16083eaeadea2b342ade43624fb7fbe1815975fa9916277a40e1"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/medium_upload/b3/467415c5be84dfdf3432813bd63444abc2fffa",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\medium_upload\\b3\\467415c5be84dfdf3432813bd63444abc2fffa",
+      "sha256": "71c3c192478a9626f902e3a23b35750bed1f7161417f7854f15593112c849d99",
+      "size": 137609,
+      "before_sha256": "ce33083ead9fee83be019e3959a904bca9f8cd43b875f3a6a97eaf11ecc0f716"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/medium_upload/88/dfc5e0c113fec7787ec9e495d0a0b36c64bb46",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\medium_upload\\88\\dfc5e0c113fec7787ec9e495d0a0b36c64bb46",
+      "sha256": "cabeba6ff391ec57c68a5b7b6f2bf1a93926e2e6e6f070aaa419982dfde11051",
+      "size": 130096,
+      "before_sha256": "31c7797c068c794eed4eb076255d7cf46aa2c187721b44116f287c2a051d49ba"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/medium_upload/af/a375cd9b26aa956cc74304b922d44dab2b0cd1",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\medium_upload\\af\\a375cd9b26aa956cc74304b922d44dab2b0cd1",
+      "sha256": "3c2e86bec5e8ccdcee194d6001fe07f939aed28982baeb121b6a7b56ac15ec59",
+      "size": 139660,
+      "before_sha256": "fc9e6fff0a1c536c7ff5df51523718f1f0010acc2db1794bb91428cf6774b485"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/medium_upload/36/2e3c6ef7c600f40151827a6867739915ac207a",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\medium_upload\\36\\2e3c6ef7c600f40151827a6867739915ac207a",
+      "sha256": "876c0b736ea61667c497822017763864d26f95aa01149c593d10019b40176c59",
+      "size": 55746,
+      "before_sha256": "a66da8bc6edba20a547cba3e2a33615c0b8b3d275b4f092212c39108a2da98c1"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/medium_upload/43/7ac120d8eed2eb677f0ceda4f4114a385f74e3",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\medium_upload\\43\\7ac120d8eed2eb677f0ceda4f4114a385f74e3",
+      "sha256": "d804c169a3d1f9249ddf4f0954d198b488499dfbd1672dd8c525ca320efc448f",
+      "size": 53754,
+      "before_sha256": "ceb8165a8f9b9ba0828751915bacfa0cdbe2bff5a964a6b18b7a67d347c5ccf3"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/manifest.json",
+      "source": "F:\\codex\\work\\lens0910-merge-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\manifest.json",
+      "sha256": "9f8c2af119598bf65396f49825463f61e793c54646502ecccdde74b7b39b4f64",
+      "size": 822765,
+      "before_sha256": "828cfea0002cd5fc585d1ad4effa327b17506a1020023cabc41cf8f77515f0bd"
+    }
+  ],
+  "mode": "authorized_uncommitted_local_test_increment"
+}

@@ -1,0 +1,24 @@
+{
+  "evidence_type": "Previously exported client code plus user .110 device screenshots; no client launch",
+  "sources": [
+    {
+      "path": "F:\\codex\\work\\news-decomp-all2\\scripts\\pinball\\ui\\component\\item\\ItemThumbnailView.as",
+      "sha256": "4da98f298ecc5dd39100f44aff1e02a6ee26a460e166aa99118162cefa3ee1f7"
+    },
+    {
+      "path": "F:\\codex\\work\\five-boss-icons-ticket-audit-20260909\\client-export\\scripts\\pinball\\ui\\component\\template\\DropItemContentsView.as",
+      "sha256": "6c4bb51f6c43494aa62a073983531fe9ae4c28327ddf70834e5558ee7c4a43b5"
+    },
+    {
+      "path": "F:\\codex\\work\\news-decomp-all2\\scripts\\pinball\\common\\data\\asset\\TrimmedImageRepository.as",
+      "sha256": "97d35dfc2422d98337eb3fc3cf0f893f1ccd557188c8322613c0dc57e8f47054"
+    }
+  ],
+  "rules": {
+    "thumbnail_native_scale": 6,
+    "thumbnail_frame": 168,
+    "material_bar_uses_raw_frame_size": true
+  },
+  "regression_command": "python -X utf8 tools/lens-integration/test_five_boss_art_contract.py --work F:/codex/work/five-boss-icon-size-20260910",
+  "regressions_passed": 6
+}

@@ -1,0 +1,109 @@
+{
+  "status": "local_assets_verified_device_acceptance_pending",
+  "degree_id": 9900012,
+  "definition": {
+    "string_id": "degree_mod_special_thanks",
+    "name": "特别鸣谢",
+    "kana": "special_thanks",
+    "condition": "感谢您对 StarPoint CN 的支持与赞助。",
+    "category_id": 8
+  },
+  "client_fields": [
+    "degree_mod_special_thanks",
+    "9900011",
+    "特别鸣谢",
+    "special_thanks",
+    "感谢您对 StarPoint CN 的支持与赞助。",
+    "8",
+    "dynamic/degree/background",
+    "item/etc/degree",
+    "dynamic/degree/degree_mod_special_thanks"
+  ],
+  "base": "1.4.104",
+  "version": "1.4.105",
+  "archive": {
+    "name": "pinball-1.4.104-1.4.105-1-sponsor-special-thanks-cn.zip",
+    "size": 214626,
+    "sha256": "f0d52b2c2ae2c3ff9bd7264a9e9c6fc07dce0baea08a7986257567482d5870f1",
+    "members": 2,
+    "files": [
+      "production/upload/03/076857d74f07bb194f6185d4f1c1d6061850ce",
+      "production/upload/89/e5c25c791e2a9527422c186084a1793218c2ac"
+    ]
+  },
+  "artwork": {
+    "selected_variant": "B-锦绣中国结",
+    "path": "assets/asset-patch/artwork/sponsor-special-thanks/degree_mod_special_thanks.png",
+    "sha256": "c2c4d06e1b386abfcf11a15a23ac2c72a01617fbed02c4a1d4cfca88ed0354ff",
+    "size": [
+      320,
+      50
+    ],
+    "mode": "RGBA",
+    "pixels_preserved": true
+  },
+  "degree": {
+    "logical": "master/degree/degree.orderedmap",
+    "before_sha256": "d9b8e363cf5370cf09586034437ce6dcdbf3477b7297bd533eba82879f90d857",
+    "after_sha256": "4fc497d4bf7375bdbb4c3215f269f76671665f3f0e51ada2fcff3a8d336cc8f4",
+    "preserved_rows": 1496
+  },
+  "icon": {
+    "name": "item/etc/degree",
+    "frame": {
+      "n": "item/etc/degree",
+      "w": 20,
+      "h": 20,
+      "x": 145,
+      "y": 879
+    },
+    "existing_item_atlas_reused": true
+  },
+  "source_reads": {
+    "common|89/e5c25c791e2a9527422c186084a1793218c2ac": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.99-1.4.100-2-rank-title-conditions.zip",
+      "member": "production/upload/89/e5c25c791e2a9527422c186084a1793218c2ac",
+      "sha256": "d9b8e363cf5370cf09586034437ce6dcdbf3477b7297bd533eba82879f90d857"
+    },
+    "common|9b/03c2b18b43af0e3aacda9ac9ce1c6412d4299a": {
+      "archive": "F:\\startpoint-cn-main\\.cdn\\cn\\archive-common-full\\pinball-1.4.0-198-2aacdccd.zip",
+      "member": "production/upload/9b/03c2b18b43af0e3aacda9ac9ce1c6412d4299a",
+      "sha256": "05528cfe02f7abd2c4486845e7e56128a020e35dde83e160881cffc3c381dc7d"
+    },
+    "common|88/c1bf34ba74d0f011d1825638a99f74a0dfb716": {
+      "archive": "F:\\startpoint-cn-main\\.cdn\\cn\\archive-common-full\\pinball-1.4.0-176-708178d4.zip",
+      "member": "production/upload/88/c1bf34ba74d0f011d1825638a99f74a0dfb716",
+      "sha256": "aad40b44b8a45242a44a737013521961996ddc1fe8834a75492a7a0a17094d80"
+    },
+    "common|7b/5e0efc0e0691038ca52fe282501dfd3a1b5ae3": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.102-1.4.103-1-lens0909-consolidated-cn.zip",
+      "member": "production/upload/7b/5e0efc0e0691038ca52fe282501dfd3a1b5ae3",
+      "sha256": "fad7044c6a883835a97bedd7aa1f332969145b1091507108ca76b37f3ed1517b"
+    },
+    "common|6d/4d576b424178c5b2b253a2dd5aa3d78fa74ef3": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.102-1.4.103-1-lens0909-consolidated-cn.zip",
+      "member": "production/upload/6d/4d576b424178c5b2b253a2dd5aa3d78fa74ef3",
+      "sha256": "e1db8f2d017de7a93f006930d5f312fcdfaf904bdd15269b31c272bdb5b47843"
+    }
+  },
+  "platforms": [
+    "android",
+    "ios"
+  ],
+  "root": "common",
+  "mail": {
+    "type": 13,
+    "type_id": 9900012,
+    "number": 0,
+    "target": "admin_selected_player",
+    "ownership": "permanent",
+    "eligibility": "administrator_confirms_sponsorship"
+  },
+  "manifest_before_sha256": "1ea0b2a34cffca4c52195fd508ab80b0a020c492b5a8101e4b2e27ed28c3d2b3",
+  "preceding_local_hold": "entry-condition-message-1.4.104; separate release authorization required",
+  "device_tested": false,
+  "runtime_delivered": false,
+  "real_player_mails_sent": 0,
+  "manifest_after_sha256": "4f2565ff6ad98b96dcf6e269574ad57a3245c98248ce44f2f3ab19ab82541844",
+  "effective_chain_and_direct_files_match": true
+}

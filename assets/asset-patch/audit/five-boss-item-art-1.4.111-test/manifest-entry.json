@@ -1,0 +1,48 @@
+{
+  "id": "five-boss-item-art-1.4.111-test",
+  "type": "patch",
+  "name": "五重决战道具与商品图更新（本地测试）",
+  "description": "五重材料栏使用独立40px小图，死亡使者详情与商店使用原生20px缩略图，保持当前用户美术。",
+  "version": "1.4.111",
+  "depends_on": "1.4.110",
+  "enabled": true,
+  "archive": "pinball-1.4.110-1.4.111-1-five-boss-item-art-test.zip",
+  "archive_size": 414043,
+  "chain": [
+    "pinball-1.4.110-1.4.111-1-five-boss-item-art-test.zip"
+  ],
+  "archive_integrity": [
+    {
+      "name": "pinball-1.4.110-1.4.111-1-five-boss-item-art-test.zip",
+      "size": 414043,
+      "sha256": "ff7eea837db07de7644c7b23f04b066f698998fc17a0efe176b82998b8412f55",
+      "members": 8,
+      "files": [
+        "production/upload/0c/4561a50deb7b22c977212a62ac8409074bddbe",
+        "production/upload/41/514c427ad3f060eeed9b608ee78e7c62c1943a",
+        "production/upload/5d/587cee98ce26a0ff22fa62f401241c7875176c",
+        "production/upload/67/8be14929bc19b6a6d560138f43a858cfc11c58",
+        "production/upload/a1/96e15706a47e7bd6214f62b390a7fa4d58bf35",
+        "production/upload/a4/731a843d4dc0c84120bf8c88784c1e74c03baa",
+        "production/upload/f0/de168aad4299c068f3427535f469a49ff9cbbb",
+        "production/upload/fb/ab4344a7456dca88f3ce06f01208922f37e395"
+      ]
+    }
+  ],
+  "files": [
+    "production/upload/0c/4561a50deb7b22c977212a62ac8409074bddbe",
+    "production/upload/41/514c427ad3f060eeed9b608ee78e7c62c1943a",
+    "production/upload/5d/587cee98ce26a0ff22fa62f401241c7875176c",
+    "production/upload/67/8be14929bc19b6a6d560138f43a858cfc11c58",
+    "production/upload/a1/96e15706a47e7bd6214f62b390a7fa4d58bf35",
+    "production/upload/a4/731a843d4dc0c84120bf8c88784c1e74c03baa",
+    "production/upload/f0/de168aad4299c068f3427535f469a49ff9cbbb",
+    "production/upload/fb/ab4344a7456dca88f3ce06f01208922f37e395"
+  ],
+  "created_at": "2026-09-10",
+  "local_test_only": true,
+  "audit": {
+    "directory": "assets/asset-patch/audit/five-boss-item-art-1.4.111-test",
+    "report": "report.json"
+  }
+}

@@ -1,0 +1,71 @@
+{
+  "status": "local_http_and_resource_verified",
+  "resource_version": "1.4.109",
+  "effective_inventory_checked": 303,
+  "loose_overrides_checked": 301,
+  "http_matrix": [
+    {
+      "platform": "Android",
+      "from_version": "1.4.107",
+      "target": "1.4.109",
+      "diff_versions": [
+        "1.4.108",
+        "1.4.109"
+      ]
+    },
+    {
+      "platform": "Android",
+      "from_version": "1.4.108",
+      "target": "1.4.109",
+      "diff_versions": [
+        "1.4.109"
+      ]
+    },
+    {
+      "platform": "Android",
+      "from_version": "1.4.109",
+      "target": "1.4.109",
+      "diff_versions": []
+    },
+    {
+      "platform": "iOS",
+      "from_version": "1.4.107",
+      "target": "1.4.109",
+      "diff_versions": [
+        "1.4.108",
+        "1.4.109"
+      ]
+    },
+    {
+      "platform": "iOS",
+      "from_version": "1.4.108",
+      "target": "1.4.109",
+      "diff_versions": [
+        "1.4.109"
+      ]
+    },
+    {
+      "platform": "iOS",
+      "from_version": "1.4.109",
+      "target": "1.4.109",
+      "diff_versions": []
+    }
+  ],
+  "direct_resources": [
+    {
+      "logical": "master/quest/event/rush_event_quest.orderedmap",
+      "sha256": "3a5fc62319b38ea68f3f69ef62965d5d86f4a2d6d96e666030143945e19baf3c",
+      "size": 50688
+    },
+    {
+      "logical": "master/quest/event/rush_event_quest_folder.orderedmap",
+      "sha256": "3f12847d10d90158541bc88b81a1baf87371867a98e82197ab2149e9a89488a4",
+      "size": 9858
+    }
+  ],
+  "archive_http_sha256": "f35bfe5851da534929420d5110d7907a0d1fee7eb70d1c2980ff85d16e7dfe78",
+  "sync_files_verified": 4,
+  "backup": "F:\\startpoint-cn-main\\.codex-backups\\20260910-174153-abyss-details-rewards",
+  "android_device_tested": false,
+  "original_combat_resources_preserved": true
+}
