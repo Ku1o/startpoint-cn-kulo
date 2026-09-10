@@ -1,15 +1,15 @@
 {
   "schema_version": 2,
   "status": "accepted_offline",
-  "accepted_on": "2026-09-10",
+  "accepted_on": "2026-09-09",
   "acceptance": {
-    "source": "用户要求验收当前累计 Android APK 修改方法并提交；本次仅推进最新内网包，公网保留原登记。",
-    "user_statement": "apk的修改方法也可以验收并提交了",
+    "source": "用户要求验收 Android 与 iOS 深渊续战累计成品并提交 GitHub；完成离线包体与累计血统检查后登记。",
+    "user_statement": "ios和安卓都验收并提交修改内容至github",
     "scope": "offline_artifact_and_lineage",
     "device_tested_by_codex": false,
     "device_acceptance": "not_established_by_this_audit",
     "build_reports_are_immutable": true,
-    "audit": "client-patch/ACCEPTANCE-LENS0910-20260910.md",
+    "audit": "client-patch/ACCEPTANCE-ABYSS-AUTOSTART-20260909.md",
     "note": "本条用户指令授权执行验收与提交，不是用户已完成真机测试的声明。原构建报告保持生成时状态；本次直接登记原交付成品，没有重编译、重签或安装。"
   },
   "variants": {
@@ -38,26 +38,20 @@
           "non_target_bodies_exceptions_and_activations_preserved": true,
           "non_main_swf_tags_preserved": true
         }
-      },
-      "accepted_on": "2026-09-09",
-      "acceptance_audit": "client-patch/ACCEPTANCE-ABYSS-AUTOSTART-20260909.md",
-      "main_abc_index": 284
+      }
     },
     "lan": {
-      "apk": "outputs/lens0910-abyss-details-lan-test-20260910/StarPoint-CN-1.8.1-lens0910-abyss-details-lan-test.apk",
-      "apk_sha256": "fd42a417dc7231c8dbc421e4839ceeefcfb027f8c83d8bc418baa427dd0b969d",
-      "swf_sha256": "7e3f40fc17ac6fbbec52a0775c6a6357edd258874ed62d13d4ceb287d56d97d3",
-      "uniqueappversionid": "2c7e1eae-872e-4da6-8c8a-42cbdb2360fe",
+      "apk": "outputs/abyss-autostart-lens-lan-test-20260909/StarPoint-CN-1.8.1-abyss-autostart-lens-lan-test-20260909.apk",
+      "apk_sha256": "3dd568ff64c3c099cf60d99985d706f1704a1c5666f945f8b548d8eaefa3d588",
+      "swf_sha256": "bfda9db4b244e4518362a97cfa69d8d029b6710eab647727b8eb551bfe1e70d0",
+      "uniqueappversionid": "307d6b58-8c73-4e9f-a064-9fba4b08908f",
       "endpoint": "http://<LAN_HOST>",
-      "local_build_report": "outputs/lens0910-abyss-details-lan-test-20260910/verification-report.json",
+      "local_build_report": "outputs/abyss-autostart-lens-lan-test-20260909/verification-report.json",
       "local_build_checks": {
         "changed_methods": [
-          "286:56844",
-          "286:58882",
-          "286:59846",
-          "286:92450"
+          "284:24599"
         ],
-        "method_bodies_checked": 96422,
+        "method_bodies_checked": 96404,
         "zipalign": true,
         "v1_signature": true,
         "v2_signature": true,
@@ -70,23 +64,17 @@
           "abc_metadata_preserved": true,
           "non_target_bodies_exceptions_and_activations_preserved": true,
           "non_main_swf_tags_preserved": true
-        },
-        "bytecode_cases": 624,
-        "existing_helper_bodies": 18
+        }
       },
       "endpoint_sha256": "a32f84d19ceda3b4a466952f7deab7fbf1db96029ba70777a2cbd4a1ef79f521",
-      "local_endpoint_config": "outputs/android-build-local.json",
-      "accepted_on": "2026-09-10",
-      "acceptance_audit": "client-patch/ACCEPTANCE-LENS0910-20260910.md",
-      "main_abc_index": 286,
-      "required_resource_version": "1.4.104"
+      "local_endpoint_config": "outputs/android-build-local.json"
     }
   },
   "lineage": {
-    "previous_accepted_registry": "client-patch/accepted-history/android-abyss-autostart-lens-20260909.json",
-    "documentation": "client-patch/ACCEPTANCE-LENS0910-20260910.md",
-    "build_entry": "client-patch/lens0910/package_apk.py",
-    "previous_method_source_commit": "8ae133a09e59a5430f71012aee77a7dda2a45c32",
+    "previous_accepted_registry": "client-patch/accepted-history/android-lens-v3-20260909.json",
+    "documentation": "client-patch/abyss-autostart/README.md",
+    "build_entry": "client-patch/abyss-autostart/build_apk.py",
+    "previous_method_source_commit": "a7ac300ab9bed46307a9aa78415835682d86fa9e",
     "preserved": [
       "此前 MOD、幻想连战、轮播、排行榜、继承入口、深渊装备门控",
       "关注和取消关注按钮、原生本人资料路由",
@@ -98,14 +86,12 @@
       "基诺维配置冲刺参数",
       "五重决战随机地图与联机房号种子",
       "五重联机手动开战后的 Auto 锁及暂停菜单状态",
-      "5900101 不使用五星铁钢替代觉醒材料",
-      "深渊活动 700099 续战队伍跨关复用角色，逐关选队与其他活动原限制保持"
+      "5900101 不使用五星铁钢替代觉醒材料"
     ],
     "added": [
-      "仅内网：按关卡配置属性耐性通道、深渊摘要和滚动详情",
-      "仅内网：Lens 0910 日晒耐性与夏白/杰拉尔语音修正"
+      "深渊活动 700099 续战队伍跨关复用角色，逐关选队与其他活动原限制保持"
     ],
-    "method_archive": "属性通道、关卡详情与 Lens 0910 方法已随此前会话提交；本次登记累计内网成品验收。"
+    "method_archive": "续战脚本、验收登记与入口文档在同一提交归档"
   },
   "excluded_artifacts": [
     {

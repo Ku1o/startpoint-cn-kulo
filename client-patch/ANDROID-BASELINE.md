@@ -1,15 +1,13 @@
 # Android APK/SWF：新会话从这里开始
 
-**2026-09-10 会话成果待合并：** 用户明确指定在“关卡详情”版本上继续融合，形成了包含属性封锁、关卡详情与 Lens 0910 的更晚累计内网 APK。后续合并本会话成果先读 [会话身份记录](./session-checkpoint-20260910.json) 和 [存档说明](../docs/development/SESSION-CHECKPOINT-20260910.md)，避免用下方较旧祖先覆盖新增内容；本记录不提升验收状态。配套 CDN 已按用户要求归并到 `1.4.104`，APK 未重打。
-
-2026-09-09，应用户“ios和安卓都验收并提交修改内容至github”的要求，**深渊续战 Lens 公网、内网累计 APK 已通过离线验收**，登记为当前开发基线。准确身份见 [android-accepted.json](./android-accepted.json)，验收项目见 [ACCEPTANCE-ABYSS-AUTOSTART-20260909.md](./ACCEPTANCE-ABYSS-AUTOSTART-20260909.md)。`accepted_offline` 不代表已完成真机测试。原 Lens v3 与更早标题包均是历史父版本。
+2026-09-10，应用户要求，**Lens 0910 + 属性封锁 + 深渊关卡详情累计内网 APK 已通过离线验收**。后续内网修改直接从该包接续。公网仍为 9 月 9 日已登记包，本次没有补做公网版本。准确身份见 [android-accepted.json](./android-accepted.json)，范围见 [本次验收](./ACCEPTANCE-LENS0910-20260910.md)。`accepted_offline` 不代表完成真机验收。配套 CDN 已合并到 **1.4.104**，旧构建报告保持原样。
 
 ## 当前直接基线
 
 | 环境 | 已验收 APK（相对仓库根目录） | 地址 |
 | --- | --- | --- |
 | 公网 | `outputs/abyss-autostart-lens-public-test-20260909/StarPoint-CN-1.8.1-abyss-autostart-lens-public-test-20260909.apk` | `http://175.178.160.158:8001` |
-| 内网 | `outputs/abyss-autostart-lens-lan-test-20260909/StarPoint-CN-1.8.1-abyss-autostart-lens-lan-test-20260909.apk` | `http://<LAN_HOST>` |
+| 内网 | `outputs/lens0910-abyss-details-lan-test-20260910/StarPoint-CN-1.8.1-lens0910-abyss-details-lan-test.apk` | `http://<LAN_HOST>` |
 
 在仓库根目录运行只读检查：
 
@@ -29,12 +27,14 @@ Git 保存修改方法和验收身份；APK 二进制仍保存在本机 `outputs
 
 ## 深渊续战与 Lens 累计内容
 
-当前成品仅对活动 `700099` 放开续战队伍的跨关角色复用；每关返回独立空数组，逐关选队、其他活动的重复检查保持。只改 `284:24599`，方法见 [深渊续战](./abyss-autostart/README.md)。
+9 月 9 日续战步骤仅对活动 `700099` 放开续战队伍的跨关角色复用；每关返回独立空数组，逐关选队、其他活动的重复检查保持。该历史步骤只改 `284:24599`（当前内网为 `286:24599`），方法见 [深渊续战](./abyss-autostart/README.md)。
 
 当前包在下表的资料页和标题修复上加入 724 Fever、422 冲刺参数完整解析/描述/战斗逻辑、
 稻穗 PF 连击数、基诺维冲刺、五重决战随机地图与联机房号种子、手动开局后的 Auto 锁、
 5900101 禁止铁钢替代觉醒材料。详见 [Lens 方法](./lens0907-0908/README.md)。
 两个错误续战测试包遗漏这批内容，已经明确排除；当前成品已从 Lens v3 重新移植，并完成全方法与基诺维解析保护检查。
+
+当前内网另保留属性通道 21496、详情 71835/78350、Lens 0910 四方法及三个 HUD 状态槽；主 ABC 为 286，原方法总计 96,422。下面的 284 是历史容器序号，方法体索引不变。
 
 ## 9 月 6 日累计修改（继续保留）
 
