@@ -10823,22 +10823,22 @@
     {
       "id": "abyss-lens0910-consolidated-1.4.104",
       "type": "patch",
-      "name": "深渊连战、称号、五重道具与 Lens 0910 合并增量",
-      "description": "将本会话测试链的最终资源合并为云服 1.4.103 后的单一 1.4.104 增量。",
+      "name": "深渊连战、称号、五重道具、Lens 0910 与出战提示合并增量",
+      "description": "在原本会话 1.4.104 合并终态上加入已解除暂缓的幻想装备与魂珠使用限制提示。",
       "version": "1.4.104",
       "depends_on": "1.4.103",
       "enabled": true,
-      "archive": "pinball-1.4.103-1.4.104-1-abyss-lens0910-consolidated.zip",
-      "archive_size": 40081641,
+      "archive": "pinball-1.4.103-1.4.104-1-abyss-lens0910-entry-message-consolidated.zip",
+      "archive_size": 40201420,
       "chain": [
-        "pinball-1.4.103-1.4.104-1-abyss-lens0910-consolidated.zip"
+        "pinball-1.4.103-1.4.104-1-abyss-lens0910-entry-message-consolidated.zip"
       ],
       "archive_integrity": [
         {
-          "name": "pinball-1.4.103-1.4.104-1-abyss-lens0910-consolidated.zip",
-          "size": 40081641,
-          "sha256": "2af51b045cf16766c0dcaaa9239564d8e383201695a187a515826858ef98d971",
-          "members": 600,
+          "name": "pinball-1.4.103-1.4.104-1-abyss-lens0910-entry-message-consolidated.zip",
+          "size": 40201420,
+          "sha256": "bfdc008bbd59056354466603bba49f63bf4c1663bd2ee84d2c5ddc7d3f139c43",
+          "members": 601,
           "files": [
             "production/android_upload/53/2ae28d5b68a0e3d5e5df65f5c6ce57e4413347",
             "production/android_upload/84/22ac3b08ccdd077bf5f460f3fe984ec8aff811",
@@ -11359,6 +11359,7 @@
             "production/upload/d5/d622f5f85ad4c425856737a8b7049d2634c16a",
             "production/upload/d5/f4392a2cc57a0c74da3a4d9268548eb323c719",
             "production/upload/d5/fbd73cd7d20e9d7ec1877f4277c53da75413d7",
+            "production/upload/d6/88e4a5f7d84cc422357cc8acbdb72817bc8670",
             "production/upload/d6/ec756906e0ee396cf0ae8cdcc0dfdb75df62a5",
             "production/upload/d7/bfc1324797b5d3dfca9d7f250d0df951b024e0",
             "production/upload/d8/a5790569eab4a4e0995b454d2e8654a5ebb77d",
@@ -11963,6 +11964,7 @@
         "production/upload/d5/d622f5f85ad4c425856737a8b7049d2634c16a",
         "production/upload/d5/f4392a2cc57a0c74da3a4d9268548eb323c719",
         "production/upload/d5/fbd73cd7d20e9d7ec1877f4277c53da75413d7",
+        "production/upload/d6/88e4a5f7d84cc422357cc8acbdb72817bc8670",
         "production/upload/d6/ec756906e0ee396cf0ae8cdcc0dfdb75df62a5",
         "production/upload/d7/bfc1324797b5d3dfca9d7f250d0df951b024e0",
         "production/upload/d8/a5790569eab4a4e0995b454d2e8654a5ebb77d",
@@ -12048,7 +12050,7 @@
       "created_at": "2026-09-10",
       "required_client_capability": "cn.ui.AbyssDetails/v1 + cn.rules.QuestElementResistance/v1 + Lens0910",
       "audit": {
-        "directory": "assets/asset-patch/audit/session-consolidated-1.4.104",
+        "directory": "assets/asset-patch/audit/entry-condition-message-1.4.104-approved",
         "report": "report.json"
       }
     }

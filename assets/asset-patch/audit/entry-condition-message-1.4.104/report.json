@@ -1,0 +1,55 @@
+{
+  "status": "local_resource_verified_device_acceptance_pending",
+  "base": "1.4.103",
+  "version": "1.4.104",
+  "archive": {
+    "name": "pinball-1.4.103-1.4.104-1-entry-condition-message-cn.zip",
+    "size": 119801,
+    "sha256": "96ad038ab9b83a701251aa919060b5fd53bcbe17362a031f7edc222b1f363b8f",
+    "members": 1,
+    "files": [
+      "production/upload/d6/88e4a5f7d84cc422357cc8acbdb72817bc8670"
+    ]
+  },
+  "logical": "master/string/ui_string.orderedmap",
+  "ui_key": "quest_start_out_of_period_error",
+  "old_message": "当前不满足出战条件。\n请检查关卡开放状态、入场门票和队伍限制后重试。",
+  "checks": {
+    "rows": 3344,
+    "changed_keys": [
+      "quest_start_out_of_period_error"
+    ],
+    "other_rows_byte_identical": true,
+    "message": "当前不满足出战条件。\n请检查关卡开放状态、入场门票和队伍限制。\n幻想连战专属装备及魂珠仅限幻想连战使用，\n挑战其他关卡前请先卸下或更换。"
+  },
+  "before_sha256": "a901379873ae114774f79b0fb4eada438e6e962c5fbcbe3ab2eb6ba76e85593d",
+  "after_sha256": "9ca56e9fc89b868d18abaf7b839b8b84354b0c6193b55938f9ffeb57eecac62c",
+  "manifest_before_sha256": "d3be9e13245264893c6e1ae8528026b9e97c6103b9e07ca7d3dafc857d5400ec",
+  "source_reads": {
+    "common|d6/88e4a5f7d84cc422357cc8acbdb72817bc8670": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.102-1.4.103-1-lens0909-consolidated-cn.zip",
+      "member": "production/upload/d6/88e4a5f7d84cc422357cc8acbdb72817bc8670",
+      "sha256": "a901379873ae114774f79b0fb4eada438e6e962c5fbcbe3ab2eb6ba76e85593d"
+    }
+  },
+  "platforms": [
+    "android",
+    "ios"
+  ],
+  "root": "common",
+  "scope": "共用4050文案，幻想装备/魂珠门禁、五重缺票及其他4050场景均显示；没有按拒绝原因区分弹窗。",
+  "runtime_evidence": [
+    "src/lib/mode15.ts: MODE15_EXCLUSIVE_EQUIPMENT_IDS and getMode15ExclusivePartyItemsSync check equipment and ability_soul slots",
+    "src/routes/api/singleBattleQuest.ts, src/routes/api/rushEvent.ts, src/routes/api/raidEvent.ts, src/multi/http/battle.ts: equipment gates return 4050",
+    "src/multi/five-boss/entry-response.ts: ticket shortage returns 4050",
+    "assets/asset-patch/audit/lens0909-completion-1.4.104/client-evidence.json: native 4050 branch reads this UI key",
+    "src/cn-server.ts: direct custom CDN routes read assets/asset-patch/production before pristine CDN"
+  ],
+  "swf_changed": false,
+  "device_tested": false,
+  "runtime_delivered": false,
+  "cloud_overlay_created": false,
+  "effective_chain_and_direct_file_match": true,
+  "manifest_after_sha256": "1ea0b2a34cffca4c52195fd508ab80b0a020c492b5a8101e4b2e27ed28c3d2b3",
+  "backup_directory": "F:\\codex\\work\\entry-condition-message-20260909\\before"
+}

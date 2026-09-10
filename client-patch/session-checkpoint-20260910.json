@@ -12,11 +12,16 @@
   "cdn_base": "1.4.103",
   "cdn_target": "1.4.104",
   "equivalent_old_test_tail": "1.4.112",
-  "cdn_archive_sha256": "2af51b045cf16766c0dcaaa9239564d8e383201695a187a515826858ef98d971",
+  "cdn_archive_sha256": "bfdc008bbd59056354466603bba49f63bf4c1663bd2ee84d2c5ddc7d3f139c43",
   "apk_changed_by_consolidation": false,
   "cached_higher_version_auto_downgrade": false,
   "acceptance_registry_changed": false,
   "desktop_air_launched": false,
   "device_acceptance_claimed": false,
-  "documentation": "docs/development/SESSION-CHECKPOINT-20260910.md"
+  "documentation": "docs/development/SESSION-CHECKPOINT-20260910.md",
+  "previous_cdn_archive_sha256": "2af51b045cf16766c0dcaaa9239564d8e383201695a187a515826858ef98d971",
+  "additional_cdn_changes": [
+    "quest_start_out_of_period_error: approved equipment and ability-soul usage reminder"
+  ],
+  "cdn_addendum_documentation": "docs/development/ENTRY-CONDITION-MESSAGE-20260910.md"
 }
