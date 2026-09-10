@@ -6,6 +6,7 @@
 // HandshakeResult: Accept=0, Denied=1, Reconnect=2, Exception=3, Complete=4
 
 import * as net from "net"
+import { playerSocketAllowed } from "../../lib/player-login"
 import { isFiveBossGauntletQuest } from "../five-boss/contract"
 import { isFrozenFiveBossBattleClient } from "../five-boss/lobby-runtime"
 import { fiveBossConnectionDiagnostics } from "../five-boss/connection-diagnostic"
@@ -146,7 +147,7 @@ export function buildRealParty(playerId: number, targetParty?: PlayerParty): any
 }
 
 export async function handleHandshake(socket: net.Socket, data: any): Promise<void> {
-    gameVerboseLog(() => `[TCP] handshake: ${JSON.stringify(data).substring(0, 200)}`)
+    gameVerboseLog(() => `[TCP] handshake: ${JSON.stringify({ socklet: data.socklet, viewerId: data.viewerId, room_number: data.room_number || data.roomNumber })}`)
 
     const socklet = data.socklet
     const roomNumber = data.room_number || data.roomNumber
@@ -165,6 +166,11 @@ export async function handleHandshake(socket: net.Socket, data: any): Promise<vo
         // battle client as viewer 0 makes unrelated host/guest sockets look
         // like duplicate connections and causes one side to be replaced.
         const roomClient = sessionManager.getRoomClientByConnectionId(roomId, String(connectionId))
+        if (roomClient && !playerSocketAllowed(roomClient.viewerId, data.sp_session)) {
+            sessionManager.sendJson(socket, [3, "HANDSHAKE_DENIED"])
+            socket.end()
+            return
+        }
         const battleClient = sessionManager.createClient(
             socket,
             roomClient?.viewerId ?? 0,
@@ -201,6 +207,11 @@ export async function handleHandshake(socket: net.Socket, data: any): Promise<vo
 
     if (socklet === "cooperation_room") {
         const viewerId = data.viewerId
+        if (!playerSocketAllowed(viewerId, data.sp_session)) {
+            sessionManager.sendJson(socket, [3, "HANDSHAKE_DENIED"])
+            socket.end()
+            return
+        }
         if (!viewerId || !roomNumber) {
             sessionManager.sendJson(socket, [3, "HANDSHAKE_DENIED"])
             socket.end()

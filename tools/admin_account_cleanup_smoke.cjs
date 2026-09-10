@@ -16,7 +16,7 @@ async function main() {
     const { insertAccountSync, getAccountSync } = require(`${serverModuleRoot}/data/domains/account`)
     const { insertDefaultPlayerSync } = require(`${serverModuleRoot}/data/domains/player`)
     const { insertDeviceBindingSync } = require(`${serverModuleRoot}/data/domains/session`)
-    const { setActivePlayerId } = require(`${serverModuleRoot}/data/activeAccount`)
+    const { setActivePlayerId, getActivePlayerId } = require(`${serverModuleRoot}/data/activeAccount`)
     const { stopQuestNpcPartyPoolWorker } = require(`${serverModuleRoot}/multi/npc/player-party-pool`)
     const serverRoutes = require(`${serverModuleRoot}/routes/web_api/server`).default
 
@@ -110,14 +110,15 @@ async function main() {
     assert.ok(maximumStatusLatency < 1000, `main thread status latency was ${maximumStatusLatency}ms`)
     assert.ok(writeAttempts > 0, "test should write through the main connection during cleanup")
     assert.ok(maximumWriteLatency < 1000, `main thread write latency was ${maximumWriteLatency}ms`)
-    assert.equal(result.deletedAccounts, 139)
-    assert.equal(result.deletedSaves, 139)
-    assert.equal(result.skippedActiveAccount, activeUnnoted.account.id)
+    assert.equal(result.deletedAccounts, 140)
+    assert.equal(result.deletedSaves, 140)
+    assert.equal(result.skippedActiveAccount, null)
     assert.equal(result.removedBackups, 1)
     assert.equal(result.backupCleanupError, null)
     assert.equal(getAccountSync(unnoted.account.id), null)
     assert.notEqual(getAccountSync(noted.account.id), null)
-    assert.notEqual(getAccountSync(activeUnnoted.account.id), null)
+    assert.equal(getAccountSync(activeUnnoted.account.id), null)
+    assert.equal(getActivePlayerId(), null)
 
     const backupDirectory = path.join(
         dataDirectory,

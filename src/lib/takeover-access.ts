@@ -2,6 +2,7 @@ import type { FastifyInstance, FastifyRequest } from "fastify"
 import { getDb } from "../data/db"
 import { SessionType } from "../data/types"
 import { generateDataHeaders } from "../utils"
+import { verifiedPlayerLogin } from "./player-login"
 
 export const TAKEOVER_OLD_ACCESS_ERROR = 516
 
@@ -15,6 +16,8 @@ function normalizeViewerId(value: unknown): string | null {
 export function installTakeoverUdidGuard(fastify: FastifyInstance): void {
     fastify.addHook("preHandler", async (request, reply) => {
         if (!request.url.startsWith("/api/index.php/")) return
+        // The new account guard has already checked this exact request and account.
+        if (verifiedPlayerLogin(request)) return
         // Leaderboard reads are public and may be retried without the local-store UDID.
         // Keep takeover protection for mutating/authenticated APIs, but do not turn a
         // missing UDID into an empty leaderboard response that the client cannot render.

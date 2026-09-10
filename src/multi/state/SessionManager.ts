@@ -61,6 +61,12 @@ interface BattleBarrierCycle {
 }
 
 export class SessionManager {
+    /** An account login replacement revokes both lobby and battle transports. */
+    public disconnectPlayerLogin(viewerId: number): void {
+        for (const client of Array.from(this.clients.values())) {
+            if (client.viewerId === viewerId) client.socket.destroy()
+        }
+    }
     private clients = new Map<string, SessionClient>()
     private roomClients = new Map<string, Set<string>>()
     private battleClients = new Map<string, Set<string>>()

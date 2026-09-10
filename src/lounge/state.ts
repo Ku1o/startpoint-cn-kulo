@@ -40,6 +40,12 @@ interface LoungeSocketContext {
 }
 
 const rooms = new Map<number, LoungeRoom>()
+export function disconnectLoungePlayerLogin(viewerId: number): void {
+    for (const room of rooms.values()) {
+        room.members.get(viewerId)?.socket.destroy()
+        room.pendingSockets.get(viewerId)?.destroy()
+    }
+}
 const roomIdsByNumber = new Map<string, number>()
 const socketContexts = new WeakMap<net.Socket, LoungeSocketContext>()
 let loungeSequence = 0

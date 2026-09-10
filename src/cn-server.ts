@@ -13,6 +13,10 @@ import { installManagementAuth } from "./lib/management-auth";
 import { installRoutePerformanceMonitor } from "./lib/route-performance";
 import { markPlayerOnline } from "./lib/online-presence";
 import { installTakeoverUdidGuard } from "./lib/takeover-access";
+import { initializePlayerLogin } from "./lib/player-login";
+import playerLoginRoutes, { installPlayerLoginGuard } from "./routes/cn/playerLogin";
+import { sessionManager as playerLoginSessionManager } from "./multi/state/SessionManager";
+import { disconnectLoungePlayerLogin } from "./lounge/state";
 import { installLocalClientCompat } from "./lib/local-client-compat";
 import { getPatchManifest } from "./lib/version";
 import { installCustomCdnResourceRoutes } from "./lib/custom-cdn-resource-routes";
@@ -406,7 +410,13 @@ fastify.addContentTypeParser("application/x-www-form-urlencoded", { parseAs: "st
 );
 fastify.addContentTypeParser("application/json", { parseAs: "string" }, jsonParser);
 
+initializePlayerLogin(viewerId => {
+    playerLoginSessionManager.disconnectPlayerLogin(viewerId);
+    disconnectLoungePlayerLogin(viewerId);
+});
+installPlayerLoginGuard(fastify);
 installTakeoverUdidGuard(fastify);
+fastify.register(playerLoginRoutes);
 
 const iosCompat = parseIosCompatConfig();
 fastify.register(versionCheckPlugin, { ios: iosCompat });

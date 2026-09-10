@@ -488,6 +488,65 @@ html[data-admin-theme="dark"] body {
   font-family: AdminMono, ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
+.account-login-cell {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.account-login-name {
+  width: 210px;
+  max-width: 100%;
+  margin: 0 !important;
+}
+
+.account-login-meta,
+.account-login-summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.account-login-meta .ant-tag,
+.account-login-summary .ant-tag {
+  margin-inline-end: 0;
+}
+
+.account-login-meta .ant-btn-link {
+  height: 22px;
+  padding: 0;
+  font-size: 12px;
+}
+
+.account-login-dialog {
+  padding-top: 12px;
+}
+
+.account-login-summary {
+  justify-content: space-between;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--admin-border);
+}
+
+.account-login-dialog .ant-descriptions-item-label {
+  width: 96px;
+}
+
+.account-login-dialog .ant-descriptions-item-content {
+  overflow-wrap: anywhere;
+}
+
+.account-login-recovery {
+  padding: 16px;
+  border: 1px solid var(--admin-border);
+  border-radius: 12px;
+}
+
+.account-login-recovery .ant-typography-secondary {
+  margin-top: 8px;
+}
+
 .account-takeover-head,
 .account-save-head {
   display: flex;

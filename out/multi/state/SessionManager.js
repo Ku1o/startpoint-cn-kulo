@@ -45,6 +45,13 @@ class SessionManager {
         this.hostReconnectTimers = new Map();
         this.roomConnectionGenerations = new Map();
     }
+    /** An account login replacement revokes both lobby and battle transports. */
+    disconnectPlayerLogin(viewerId) {
+        for (const client of Array.from(this.clients.values())) {
+            if (client.viewerId === viewerId)
+                client.socket.destroy();
+        }
+    }
     addr(viewerId, roomNumber) {
         return `${viewerId}@${roomNumber}`;
     }

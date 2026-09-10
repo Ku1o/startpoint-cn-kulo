@@ -378,70 +378,6 @@ export default function Mail() {
             description="按全体、账号或单个存档发送附件邮件。高风险发送动作会先展示目标和附件摘要。"
         >
         <Space direction="vertical" size="large" className="admin-stack">
-            <Card title="每日星导石自动邮件" className="admin-form-panel" loading={dailyLoading}>
-                <Alert
-                    type={dailyHasUnsavedChanges ? "warning" : dailyPersistedEnabled ? "success" : "info"}
-                    showIcon
-                    style={{ marginBottom: 16 }}
-                    message={dailyStatusMessage}
-                    description={dailyStatusDescription}
-                />
-                <Form
-                    form={dailyForm}
-                    layout="vertical"
-                    initialValues={{ enabled: false, amount: 150000, sendHour: 5, sendMinute: 0, subject: "每日千抽", description: "每日星导石奖励，请查收。" }}
-                    onValuesChange={() => setDailyHasUnsavedChanges(true)}
-                    onFinish={(values) => saveDaily.mutate(values as DailyVmoneyMailConfig)}
-                >
-                    <Form.Item name="enabled" label="启用状态" valuePropName="checked">
-                        <Switch checkedChildren="已启用" unCheckedChildren="已停用" />
-                    </Form.Item>
-                    <Space wrap align="start" size="middle">
-                        <Form.Item
-                            name="amount"
-                            label="每日免费星导石"
-                            rules={[{ required: true, message: "请输入数量" }]}
-                        >
-                            <InputNumber min={1} max={2147483647} precision={0} style={{ width: 220 }} />
-                        </Form.Item>
-                        <Form.Item name="sendHour" label="北京时间（时）" rules={[{ required: true }]}>
-                            <InputNumber min={0} max={23} precision={0} style={{ width: 140 }} />
-                        </Form.Item>
-                        <Form.Item name="sendMinute" label="北京时间（分）" rules={[{ required: true }]}>
-                            <InputNumber min={0} max={59} precision={0} style={{ width: 140 }} />
-                        </Form.Item>
-                    </Space>
-                    <Form.Item name="subject" label="邮件标题" rules={[{ required: true, message: "请输入标题" }]}>
-                        <Input maxLength={64} showCount />
-                    </Form.Item>
-                    <Form.Item name="description" label="邮件正文">
-                        <TextArea rows={3} maxLength={512} showCount />
-                    </Form.Item>
-                    <Space wrap>
-                        <Button type="primary" htmlType="submit" loading={saveDaily.isPending}>保存配置</Button>
-                        <Button danger disabled={!dailyPersistedEnabled || dailyHasUnsavedChanges} loading={runDaily.isPending} onClick={confirmRunDaily}>立即发放今日周期</Button>
-                        <Text type="secondary">
-                            {dailyHasUnsavedChanges
-                                ? "请先保存配置后再发放。"
-                                : "若在今日设定时间之后才启用，自动任务会从明天开始；需要当天发放时可点击“立即发放”。"}
-                        </Text>
-                    </Space>
-                </Form>
-
-                <Descriptions bordered size="small" column={{ xs: 1, sm: 2, md: 3 }} style={{ marginTop: 20 }}>
-                    <Descriptions.Item label="当前周期">{dailyOverview?.currentBucket ?? "—"}</Descriptions.Item>
-                    <Descriptions.Item label="下次执行">
-                        {dailyOverview?.due ? <Tag color="warning">等待补跑</Tag> : formatChinaTime(dailyOverview?.nextRunAtMs ?? null)}
-                    </Descriptions.Item>
-                    <Descriptions.Item label="当前存档数">{dailyOverview?.totalPlayers ?? totalSaves}</Descriptions.Item>
-                    <Descriptions.Item label="最近发放">
-                        {dailyOverview?.lastRun ? `${dailyOverview.lastRun.bucket} · ${formatChinaTime(dailyOverview.lastRun.executedAtMs)}` : "尚未发放"}
-                    </Descriptions.Item>
-                    <Descriptions.Item label="最近数量">{dailyOverview?.lastRun ? `${dailyOverview.lastRun.amount} / 人` : "—"}</Descriptions.Item>
-                    <Descriptions.Item label="最近发送数">{dailyOverview?.lastRun?.sentCount ?? "—"}</Descriptions.Item>
-                </Descriptions>
-            </Card>
-
             <Card title="发送邮件" className="admin-form-panel">
                 <Alert type={targetMode === "all" ? "warning" : "info"} showIcon style={{ marginBottom: 16 }}
                     message={
@@ -592,6 +528,70 @@ export default function Mail() {
                         </Space>
                     </Form.Item>
                 </Form>
+            </Card>
+
+            <Card title="每日星导石自动邮件" className="admin-form-panel" loading={dailyLoading}>
+                <Alert
+                    type={dailyHasUnsavedChanges ? "warning" : dailyPersistedEnabled ? "success" : "info"}
+                    showIcon
+                    style={{ marginBottom: 16 }}
+                    message={dailyStatusMessage}
+                    description={dailyStatusDescription}
+                />
+                <Form
+                    form={dailyForm}
+                    layout="vertical"
+                    initialValues={{ enabled: false, amount: 150000, sendHour: 5, sendMinute: 0, subject: "每日千抽", description: "每日星导石奖励，请查收。" }}
+                    onValuesChange={() => setDailyHasUnsavedChanges(true)}
+                    onFinish={(values) => saveDaily.mutate(values as DailyVmoneyMailConfig)}
+                >
+                    <Form.Item name="enabled" label="启用状态" valuePropName="checked">
+                        <Switch checkedChildren="已启用" unCheckedChildren="已停用" />
+                    </Form.Item>
+                    <Space wrap align="start" size="middle">
+                        <Form.Item
+                            name="amount"
+                            label="每日免费星导石"
+                            rules={[{ required: true, message: "请输入数量" }]}
+                        >
+                            <InputNumber min={1} max={2147483647} precision={0} style={{ width: 220 }} />
+                        </Form.Item>
+                        <Form.Item name="sendHour" label="北京时间（时）" rules={[{ required: true }]}>
+                            <InputNumber min={0} max={23} precision={0} style={{ width: 140 }} />
+                        </Form.Item>
+                        <Form.Item name="sendMinute" label="北京时间（分）" rules={[{ required: true }]}>
+                            <InputNumber min={0} max={59} precision={0} style={{ width: 140 }} />
+                        </Form.Item>
+                    </Space>
+                    <Form.Item name="subject" label="邮件标题" rules={[{ required: true, message: "请输入标题" }]}>
+                        <Input maxLength={64} showCount />
+                    </Form.Item>
+                    <Form.Item name="description" label="邮件正文">
+                        <TextArea rows={3} maxLength={512} showCount />
+                    </Form.Item>
+                    <Space wrap>
+                        <Button type="primary" htmlType="submit" loading={saveDaily.isPending}>保存配置</Button>
+                        <Button danger disabled={!dailyPersistedEnabled || dailyHasUnsavedChanges} loading={runDaily.isPending} onClick={confirmRunDaily}>立即发放今日周期</Button>
+                        <Text type="secondary">
+                            {dailyHasUnsavedChanges
+                                ? "请先保存配置后再发放。"
+                                : "若在今日设定时间之后才启用，自动任务会从明天开始；需要当天发放时可点击“立即发放”。"}
+                        </Text>
+                    </Space>
+                </Form>
+
+                <Descriptions bordered size="small" column={{ xs: 1, sm: 2, md: 3 }} style={{ marginTop: 20 }}>
+                    <Descriptions.Item label="当前周期">{dailyOverview?.currentBucket ?? "—"}</Descriptions.Item>
+                    <Descriptions.Item label="下次执行">
+                        {dailyOverview?.due ? <Tag color="warning">等待补跑</Tag> : formatChinaTime(dailyOverview?.nextRunAtMs ?? null)}
+                    </Descriptions.Item>
+                    <Descriptions.Item label="当前存档数">{dailyOverview?.totalPlayers ?? totalSaves}</Descriptions.Item>
+                    <Descriptions.Item label="最近发放">
+                        {dailyOverview?.lastRun ? `${dailyOverview.lastRun.bucket} · ${formatChinaTime(dailyOverview.lastRun.executedAtMs)}` : "尚未发放"}
+                    </Descriptions.Item>
+                    <Descriptions.Item label="最近数量">{dailyOverview?.lastRun ? `${dailyOverview.lastRun.amount} / 人` : "—"}</Descriptions.Item>
+                    <Descriptions.Item label="最近发送数">{dailyOverview?.lastRun?.sentCount ?? "—"}</Descriptions.Item>
+                </Descriptions>
             </Card>
 
             <Card title="最近群发记录" size="small" className="admin-table-card">

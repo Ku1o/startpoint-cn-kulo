@@ -17,7 +17,8 @@ import { buildShortUpCharacterGachaTimeline } from "../../lib/admin-clairvoyance
 import { wantsJson } from "./http";
 import { SessionType } from "../../data/types";
 import { getDb } from "../../data/db";
-import { ensureCascadeDeleteIndexes, selectUnnotedAccountIds } from "../../lib/admin-account-cleanup";
+import { disconnectDeletedPlayerLogin, playerLoginAdminOverview, playerLoginManaged } from "../../lib/player-login";
+import { accountHasNote, ensureCascadeDeleteIndexes, selectUnnotedAccountIds } from "../../lib/admin-account-cleanup";
 import { removePlayerQuestNpcPartySnapshots } from "../../multi/npc/player-party-pool";
 import { runImmediateTransactionWithRetry } from "../../lib/sqlite-write-coordinator";
 import { createFullDatabaseBackup, getDatabaseDirectory } from "../../lib/admin-database-backup";
@@ -167,31 +168,30 @@ async function executeAccountCleanupPlan(
             if (requestedIds.length === 0) continue
             const placeholders = requestedIds.map(() => "?").join(", ")
             const batch = await runImmediateTransactionWithRetry(() => {
-                const activePlayerId = getActivePlayerId()
-                const existingAccounts = getDb().prepare(`
-                    SELECT a.id
+                const candidates = getDb().prepare(`
+                    SELECT a.id, a.admin_note
                     FROM accounts AS a
                     WHERE a.id IN (${placeholders})
-                      AND (a.admin_note IS NULL OR trim(a.admin_note) = '')
-                      AND NOT EXISTS (
-                          SELECT 1 FROM players AS active_player
-                          WHERE active_player.account_id = a.id AND active_player.id = ?
-                      )
-                      AND NOT EXISTS (
-                          SELECT 1 FROM account_transfer_audit AS transfer
-                          WHERE transfer.target_account_id = a.id
-                            AND transfer.transferred_at >= ?
-                      )
-                `).all(...requestedIds, activePlayerId ?? -1, job.startedAt) as { id: number }[]
+                `).all(...requestedIds) as { id: number; admin_note: string | null }[]
+                // Recheck inside the delete transaction using the same Unicode
+                // whitespace rule as the UI and planner. Only a note preserves it.
+                const existingAccounts = candidates.filter(account => !accountHasNote({
+                    id: account.id, adminNote: account.admin_note,
+                }))
                 if (existingAccounts.length === 0) return []
                 const eligibleIds = existingAccounts.map(account => account.id)
                 const eligiblePlaceholders = eligibleIds.map(() => "?").join(", ")
                 const players = getDb().prepare(
                     `SELECT id, account_id FROM players WHERE account_id IN (${eligiblePlaceholders})`,
                 ).all(...eligibleIds) as { id: number; account_id: number }[]
+                const viewers = getDb().prepare(
+                    `SELECT token, account_id FROM sessions WHERE account_id IN (${eligiblePlaceholders}) AND type = ?`,
+                ).all(...eligibleIds, SessionType.VIEWER) as { token: string; account_id: number }[]
                 getDb().prepare(`DELETE FROM accounts WHERE id IN (${eligiblePlaceholders})`).run(...eligibleIds)
                 return existingAccounts.map(account => ({
                     accountId: account.id,
+                    viewerIds: viewers.filter(viewer => viewer.account_id === account.id)
+                        .map(viewer => Number(viewer.token)).filter(viewer => Number.isSafeInteger(viewer) && viewer > 0),
                     playerIds: players
                         .filter(player => player.account_id === account.id)
                         .map(player => player.id),
@@ -205,6 +205,9 @@ async function executeAccountCleanupPlan(
             deletedAccountIds.push(...batch.map(entry => entry.accountId))
             deletedPlayerIds.push(...batchPlayerIds)
             removeDeletedAccountsFromState(batch)
+            for (const viewerId of new Set(batch.flatMap(entry => entry.viewerIds))) {
+                disconnectDeletedPlayerLogin(viewerId)
+            }
             job.processedAccounts = processedAccounts
             job.deletedAccounts = deletedAccounts
             job.deletedSaves = deletedSaves
@@ -262,7 +265,6 @@ function getCleanupWorkerLocation(): { filename: string; execArgv?: string[] } {
 
 function startAccountCleanupWorker(
     accountIds: number[],
-    skippedActiveAccount: number | null,
 ): AccountCleanupJob {
     const jobId = randomUUID()
     const databaseDirectory = getDatabaseDirectory()
@@ -278,7 +280,7 @@ function startAccountCleanupWorker(
         processedAccounts: 0,
         deletedAccounts: 0,
         deletedSaves: 0,
-        skippedActiveAccount,
+        skippedActiveAccount: null,
         backup: null,
         removedBackups: 0,
         backupCleanupError: null,
@@ -507,6 +509,7 @@ const routes = async (fastify: FastifyInstance) => {
     // === Account list (JSON, for admin SPA) ===
 
     fastify.get("/accounts", async (_request: FastifyRequest, reply: FastifyReply) => {
+        const loginByAccount = playerLoginAdminOverview()
         const accounts = getAllAccountsSync()
         const selection = getAdminPlayerSelectionState()
         const activePlayerId = selection.activePlayerId
@@ -563,6 +566,8 @@ const routes = async (fastify: FastifyInstance) => {
                 id: acc.id,
                 viewerId: viewerIdByAccount.get(acc.id) ?? null,
                 note: acc.adminNote ?? null,
+                loginUsername: acc.username || null,
+                playerLogin: loginByAccount.get(acc.id) ?? { bound: false, boundAt: null, sessionExpiresAt: null },
                 takeoverConfigured: Boolean(acc.takeoverPassword),
                 latestTransfer: latestTransfer ? {
                     abolishedViewerId: latestTransfer.source_viewer_id,
@@ -761,8 +766,7 @@ const routes = async (fastify: FastifyInstance) => {
         })
     })
 
-    // Start a background cleanup for all accounts whose device-binding notes
-    // are blank. The current active account is always preserved.
+    // Only account notes determine eligibility, including bound and selected accounts.
     fastify.post("/deleteUnnotedAccounts", async (request: FastifyRequest, reply: FastifyReply) => {
         const body = (request.body || {}) as { confirm?: unknown }
         if (body.confirm !== "DELETE_UNNOTED_ACCOUNTS") {
@@ -776,12 +780,7 @@ const routes = async (fastify: FastifyInstance) => {
         }
 
         const accounts = getAllAccountsSync()
-        const activePlayerId = getActivePlayerId()
-        const accountPlayers = new Map(accounts.map(account => [account.id, getAccountPlayersSync(account.id)]))
-        const activeAccountId = activePlayerId === null
-            ? null
-            : accounts.find(account => accountPlayers.get(account.id)?.includes(activePlayerId))?.id ?? null
-        const accountIds = selectUnnotedAccountIds(accounts, activeAccountId)
+        const accountIds = selectUnnotedAccountIds(accounts)
 
         if (accountIds.length === 0) {
             const now = new Date().toISOString()
@@ -803,14 +802,14 @@ const routes = async (fastify: FastifyInstance) => {
                 batchSize: ACCOUNT_CLEANUP_BATCH_SIZE,
                 pauseMs: ACCOUNT_CLEANUP_BATCH_PAUSE_MS,
                 workerThreadId: null,
-                skippedActiveAccount: activeAccountId,
+                skippedActiveAccount: null,
                 error: null,
             }
             return reply.send(accountCleanupJob)
         }
 
         try {
-            const job = startAccountCleanupWorker(accountIds, activeAccountId)
+            const job = startAccountCleanupWorker(accountIds)
             return reply.status(202).send(job)
         } catch (error) {
             accountCleanupJob = null
@@ -893,6 +892,9 @@ const routes = async (fastify: FastifyInstance) => {
         }
         if (body.confirm !== "RESET_TAKEOVER_PASSWORD") {
             return reply.status(400).send({ error: "Confirmation token is required" })
+        }
+        if (playerLoginManaged(accountId)) {
+            return reply.status(409).send({ error: "该存档已绑定登录账号，请生成登录密码重置码。旧继承密码不能恢复已绑定账号。" })
         }
         const account = getAllAccountsSync().find(candidate => candidate.id === accountId)
         if (!account) return reply.status(404).send({ error: "Account not found" })

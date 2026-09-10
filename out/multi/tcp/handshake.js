@@ -16,6 +16,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.handleHandshake = exports.buildRealParty = void 0;
+const player_login_1 = require("../../lib/player-login");
 const contract_1 = require("../five-boss/contract");
 const lobby_runtime_1 = require("../five-boss/lobby-runtime");
 const connection_diagnostic_1 = require("../five-boss/connection-diagnostic");
@@ -146,7 +147,7 @@ exports.buildRealParty = buildRealParty;
 function handleHandshake(socket, data) {
     return __awaiter(this, void 0, void 0, function* () {
         var _a, _b, _c, _d, _e, _f;
-        (0, game_logging_1.gameVerboseLog)(() => `[TCP] handshake: ${JSON.stringify(data).substring(0, 200)}`);
+        (0, game_logging_1.gameVerboseLog)(() => `[TCP] handshake: ${JSON.stringify({ socklet: data.socklet, viewerId: data.viewerId, room_number: data.room_number || data.roomNumber })}`);
         const socklet = data.socklet;
         const roomNumber = data.room_number || data.roomNumber;
         if (socklet === "cooperation_battle") {
@@ -162,6 +163,11 @@ function handleHandshake(socket, data) {
             // battle client as viewer 0 makes unrelated host/guest sockets look
             // like duplicate connections and causes one side to be replaced.
             const roomClient = SessionManager_1.sessionManager.getRoomClientByConnectionId(roomId, String(connectionId));
+            if (roomClient && !(0, player_login_1.playerSocketAllowed)(roomClient.viewerId, data.sp_session)) {
+                SessionManager_1.sessionManager.sendJson(socket, [3, "HANDSHAKE_DENIED"]);
+                socket.end();
+                return;
+            }
             const battleClient = SessionManager_1.sessionManager.createClient(socket, (_a = roomClient === null || roomClient === void 0 ? void 0 : roomClient.viewerId) !== null && _a !== void 0 ? _a : 0, roomId, String(connectionId), (_b = roomClient === null || roomClient === void 0 ? void 0 : roomClient.playerId) !== null && _b !== void 0 ? _b : null);
             const battleRoom = (0, manager_1.getRoom)(roomId);
             battleClient.roomGeneration = (_d = (_c = roomClient === null || roomClient === void 0 ? void 0 : roomClient.roomGeneration) !== null && _c !== void 0 ? _c : battleRoom === null || battleRoom === void 0 ? void 0 : battleRoom.lobby_generation) !== null && _d !== void 0 ? _d : 0;
@@ -192,6 +198,11 @@ function handleHandshake(socket, data) {
         }
         if (socklet === "cooperation_room") {
             const viewerId = data.viewerId;
+            if (!(0, player_login_1.playerSocketAllowed)(viewerId, data.sp_session)) {
+                SessionManager_1.sessionManager.sendJson(socket, [3, "HANDSHAKE_DENIED"]);
+                socket.end();
+                return;
+            }
             if (!viewerId || !roomNumber) {
                 SessionManager_1.sessionManager.sendJson(socket, [3, "HANDSHAKE_DENIED"]);
                 socket.end();

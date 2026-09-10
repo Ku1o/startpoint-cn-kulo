@@ -11,6 +11,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.detachLoungeSocket = exports.handleLoungeMessage = exports.handleLoungeHandshake = void 0;
 const session_1 = require("../data/domains/session");
+const player_login_1 = require("../lib/player-login");
 const state_1 = require("./state");
 Object.defineProperty(exports, "detachLoungeSocket", { enumerable: true, get: function () { return state_1.detachLoungeSocket; } });
 const protocol_1 = require("./protocol");
@@ -25,6 +26,10 @@ function deny(socket, message = protocol_1.LOUNGE_DISMISSED_MESSAGE) {
 function handleLoungeHandshake(socket, data) {
     return __awaiter(this, void 0, void 0, function* () {
         const viewerId = positiveSafeInteger(data.viewerId);
+        if (!(0, player_login_1.playerSocketAllowed)(viewerId, data.sp_session)) {
+            deny(socket);
+            return;
+        }
         const loungeId = positiveSafeInteger(data.loungeId);
         const useCase = positiveSafeInteger(data.useCase);
         const establisherViewerId = positiveSafeInteger(data.establisherViewerId);

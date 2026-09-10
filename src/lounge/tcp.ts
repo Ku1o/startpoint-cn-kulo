@@ -1,5 +1,6 @@
 import * as net from "net"
 import { getSession } from "../data/domains/session"
+import { playerSocketAllowed } from "../lib/player-login"
 import {
     attachLoungeSocket,
     broadcastLoungeFrame,
@@ -29,6 +30,7 @@ function deny(socket: net.Socket, message = LOUNGE_DISMISSED_MESSAGE): void {
 
 export async function handleLoungeHandshake(socket: net.Socket, data: Record<string, unknown>): Promise<void> {
     const viewerId = positiveSafeInteger(data.viewerId)
+    if (!playerSocketAllowed(viewerId, data.sp_session)) { deny(socket); return }
     const loungeId = positiveSafeInteger(data.loungeId)
     const useCase = positiveSafeInteger(data.useCase)
     const establisherViewerId = positiveSafeInteger(data.establisherViewerId)

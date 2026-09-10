@@ -387,7 +387,7 @@ export function getPlayerSync(
         bond_token, exp_pool, exp_pooled_time, leader_character_id, party_slot,
         degree_id, birth, free_mana, paid_mana, enable_auto_3x, total_stamina_used, total_powerflips, total_dashes, total_mana_obtained, max_combo_achieved, total_login_days, tutorial_step, tutorial_skip_flag, tutorial_gacha_character_id, time_offset
     FROM players
-    WHERE id = ?    
+    WHERE id = ?
     `).get(playerId) as RawPlayer | undefined
 
     if (raw === undefined) return null
@@ -1236,6 +1236,33 @@ const LEGACY_REPLACE_PRESERVED_RELATIONS = [
         table: "leaderboard_run_rounds",
         where: "run_id IN (SELECT id FROM leaderboard_runs WHERE player_id = ?)",
         parameters: (playerId: number) => [playerId],
+    },
+    {
+        table: "five_boss_continue_receipts",
+        where: "player_id = ?",
+        parameters: (playerId: number) => [playerId],
+    },
+    {
+        table: "five_boss_solo_runs",
+        where: "player_id = ?",
+        parameters: (playerId: number) => [playerId],
+    },
+    // Deleting a host cascades through the entire shared run. Preserve every
+    // affected member and receipt, then restore parent rows before children.
+    {
+        table: "five_boss_gauntlet_runs",
+        where: "host_player_id = ?",
+        parameters: (playerId: number) => [playerId],
+    },
+    {
+        table: "five_boss_gauntlet_members",
+        where: "player_id = ? OR run_id IN (SELECT run_id FROM five_boss_gauntlet_runs WHERE host_player_id = ?)",
+        parameters: (playerId: number) => [playerId, playerId],
+    },
+    {
+        table: "five_boss_gauntlet_receipts",
+        where: "player_id = ? OR run_id IN (SELECT run_id FROM five_boss_gauntlet_runs WHERE host_player_id = ?)",
+        parameters: (playerId: number) => [playerId, playerId],
     },
 ] as const
 

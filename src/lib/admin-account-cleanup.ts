@@ -3,6 +3,7 @@ import type { Database } from "better-sqlite3"
 export interface AdminAccountNote {
     id: number
     adminNote?: string | null
+    username?: string | null
 }
 
 interface ForeignKeyRow {
@@ -29,11 +30,8 @@ export function accountHasNote(account: AdminAccountNote): boolean {
 
 export function selectUnnotedAccountIds(
     accounts: AdminAccountNote[],
-    activeAccountId: number | null,
 ): number[] {
-    return accounts.filter(account =>
-        account.id !== activeAccountId && !accountHasNote(account),
-    ).map(account => account.id)
+    return accounts.filter(account => !accountHasNote(account)).map(account => account.id)
 }
 
 function quoteIdentifier(identifier: string): string {

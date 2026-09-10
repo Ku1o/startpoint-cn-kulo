@@ -1,4 +1,27 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -27,6 +50,10 @@ const management_auth_1 = require("./lib/management-auth");
 const route_performance_1 = require("./lib/route-performance");
 const online_presence_1 = require("./lib/online-presence");
 const takeover_access_1 = require("./lib/takeover-access");
+const player_login_1 = require("./lib/player-login");
+const playerLogin_1 = __importStar(require("./routes/cn/playerLogin"));
+const SessionManager_1 = require("./multi/state/SessionManager");
+const state_1 = require("./lounge/state");
 const local_client_compat_1 = require("./lib/local-client-compat");
 const version_1 = require("./lib/version");
 const custom_cdn_resource_routes_1 = require("./lib/custom-cdn-resource-routes");
@@ -432,7 +459,13 @@ fastify.addContentTypeParser("application/x-www-form-urlencoded", { parseAs: "st
     }
 });
 fastify.addContentTypeParser("application/json", { parseAs: "string" }, jsonParser);
+(0, player_login_1.initializePlayerLogin)(viewerId => {
+    SessionManager_1.sessionManager.disconnectPlayerLogin(viewerId);
+    (0, state_1.disconnectLoungePlayerLogin)(viewerId);
+});
+(0, playerLogin_1.installPlayerLoginGuard)(fastify);
 (0, takeover_access_1.installTakeoverUdidGuard)(fastify);
+fastify.register(playerLogin_1.default);
 const iosCompat = (0, ios_compat_1.parseIosCompatConfig)();
 fastify.register(versionCheck_1.default, { ios: iosCompat });
 if (iosCompat.enabled) {

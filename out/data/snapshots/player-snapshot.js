@@ -94,6 +94,17 @@ const EXCLUDED_PLAYER_STATE = Object.freeze([
         policy: "preserve-target",
         reason: "排行榜对局、轮次明细和结算结果属于服务器公共竞赛记录，不随玩家存档迁移，覆盖时保留目标侧数据。",
     },
+    {
+        tables: [
+            "five_boss_continue_receipts",
+            "five_boss_solo_runs",
+            "five_boss_gauntlet_runs",
+            "five_boss_gauntlet_members",
+            "five_boss_gauntlet_receipts",
+        ],
+        policy: "preserve-target",
+        reason: "五王挑战的场次、成员和扣费/奖励回执绑定本服对局，不随存档迁移；覆盖时保留目标侧账本，避免影响同局其他玩家或重复结算。",
+    },
 ]);
 const REMAPPED_AUTOINCREMENT_IDS = new Map([
     ["players_mails", new Set(["id"])],
