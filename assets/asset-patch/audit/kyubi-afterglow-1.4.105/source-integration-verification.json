@@ -1,0 +1,28 @@
+{
+  "status": "passed",
+  "single_105_edge": true,
+  "chain": [
+    "pinball-1.4.104-1.4.105-1-five-boss-ui-art.zip",
+    "pinball-1.4.104-1.4.105-2-gerald-portrait.zip",
+    "pinball-1.4.104-1.4.105-3-how-to-get-sources.zip",
+    "pinball-1.4.104-1.4.105-4-kyubi-afterglow.zip"
+  ],
+  "platform_tails": {
+    "android": "1.4.105",
+    "ios": "1.4.105"
+  },
+  "effective_archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.104-1.4.105-4-kyubi-afterglow.zip",
+  "effective_and_loose_sha256": "4f639fd2c2bc87325b10dda025aabbf75aad6d7de98fd822a63938097fd489a2",
+  "source_manifest_sha256": "5d3ba4910e62f0b9dfe35f195fd0d1a7396f88d1682cc3362407d8691a947b36",
+  "unmodified_ability1_and_text_and_character_tables": true,
+  "independent_stack_sources": {
+    "leader": 1,
+    "ability1": 1
+  },
+  "source_loose_matches_effective": true,
+  "all_four_archive_hashes_unchanged": true,
+  "runtime_version": "1.4.104",
+  "runtime_kyubi_resource_unchanged": true,
+  "device_tested": false,
+  "coordinator_audit": "assets/asset-patch/audit/split-content-1.4.105"
+}

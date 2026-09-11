@@ -1,0 +1,871 @@
+{
+  "version": "1.4.105",
+  "depends_on": "1.4.104",
+  "part": 3,
+  "archive": {
+    "name": "pinball-1.4.104-1.4.105-3-how-to-get-sources.zip",
+    "size": 220115,
+    "sha256": "7d67de5fa0467bea639dc52cd2783fc55937496cb418608ae92c4c1d8d7ad625",
+    "members": 2,
+    "files": [
+      "production/upload/56/7d81eea3c08fac7b1b69cbeabe2b9fd7b9591e",
+      "production/upload/a4/731a843d4dc0c84120bf8c88784c1e74c03baa"
+    ]
+  },
+  "checks": {
+    "existing_item_rows": 1344,
+    "existing_search_rows": 495,
+    "new_search_keys": 12,
+    "new_source_rows": 71,
+    "description_rows": 16,
+    "five_boss_display_contract": {
+      "required_small_icons": [
+        {
+          "id": 10000143,
+          "name": "深界连战凭证",
+          "icon": "item_icon/materials/mod/five_boss/entry_ticket_v2"
+        },
+        {
+          "id": 10000144,
+          "name": "终式武装图纸",
+          "icon": "item_icon/materials/mod/five_boss/deathbringer_blueprint_v2"
+        },
+        {
+          "id": 10000145,
+          "name": "深界结晶",
+          "icon": "item_icon/materials/mod/five_boss/deep_crystal_v2"
+        },
+        {
+          "id": 10000146,
+          "name": "五重决战之证",
+          "icon": "item_icon/materials/mod/five_boss/fivefold_clear_badge_v2"
+        },
+        {
+          "id": 10000147,
+          "name": "五王心核",
+          "icon": "item_icon/materials/mod/five_boss/five_king_core_v2"
+        }
+      ],
+      "material_size": [
+        40,
+        40
+      ],
+      "thumbnail_size": [
+        20,
+        20
+      ],
+      "native_thumbnail_scale": 6,
+      "rendered_thumbnail_size": [
+        120,
+        120
+      ],
+      "native_frame_size": 168,
+      "weapon_thumbnail_paths": [
+        "item/equipment/mod/five_boss/deathbringer_final_lv0",
+        "item/equipment/mod/five_boss/deathbringer_final_lv120",
+        "item/equipment/mod/five_boss/deathbringer_final_shop"
+      ],
+      "full_canvas_trim": true
+    }
+  },
+  "sources": {
+    "999013": [
+      [
+        "16",
+        "700099",
+        "",
+        "1",
+        "700099001",
+        "0.01"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "2",
+        "700099002",
+        "0.015"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "3",
+        "700099003",
+        "0.02"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "4",
+        "700099004",
+        "0.025"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "6",
+        "700099006",
+        "0.035"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "7",
+        "700099007",
+        "0.04"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "8",
+        "700099008",
+        "0.045"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "9",
+        "700099009",
+        "0.05"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "11",
+        "700099011",
+        "0.06"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "12",
+        "700099012",
+        "0.065"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "13",
+        "700099013",
+        "0.07"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "14",
+        "700099014",
+        "0.075"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "16",
+        "700099016",
+        "0.085"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "17",
+        "700099017",
+        "0.09"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "18",
+        "700099018",
+        "0.095"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "19",
+        "700099019",
+        "0.1"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "21",
+        "700099021",
+        "0.11"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "22",
+        "700099022",
+        "0.115"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "23",
+        "700099023",
+        "0.12"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "24",
+        "700099024",
+        "0.125"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "26",
+        "700099026",
+        "0.135"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "27",
+        "700099027",
+        "0.14"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "28",
+        "700099028",
+        "0.145"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "29",
+        "700099029",
+        "0.15"
+      ]
+    ],
+    "999014": [
+      [
+        "16",
+        "700099",
+        "",
+        "5",
+        "700099005",
+        "0.01"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "10",
+        "700099010",
+        "0.02"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "15",
+        "700099015",
+        "0.03"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "20",
+        "700099020",
+        "0.04"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "25",
+        "700099025",
+        "0.05"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "30",
+        "700099030",
+        "0.1"
+      ]
+    ],
+    "10000143": [
+      [
+        "16",
+        "700099",
+        "",
+        "30",
+        "700099030",
+        "1.5"
+      ],
+      [
+        "16",
+        "700098",
+        "",
+        "15",
+        "700098015",
+        "1"
+      ]
+    ],
+    "10000144": [
+      [
+        "2",
+        "1",
+        "99",
+        "1",
+        "1099001",
+        "0.5"
+      ]
+    ],
+    "2370097": [
+      [
+        "16",
+        "700098",
+        "",
+        "15",
+        "700098015",
+        "1"
+      ]
+    ],
+    "2370098": [
+      [
+        "16",
+        "700098",
+        "",
+        "5",
+        "700098005",
+        "5"
+      ],
+      [
+        "16",
+        "700098",
+        "",
+        "10",
+        "700098010",
+        "10"
+      ],
+      [
+        "16",
+        "700098",
+        "",
+        "15",
+        "700098015",
+        "20"
+      ]
+    ],
+    "2370099": [
+      [
+        "16",
+        "700099",
+        "",
+        "1",
+        "700099001",
+        "1"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "2",
+        "700099002",
+        "3.24"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "3",
+        "700099003",
+        "3.3"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "4",
+        "700099004",
+        "3.36"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "5",
+        "700099005",
+        "3.42"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "6",
+        "700099006",
+        "3.48"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "7",
+        "700099007",
+        "3.54"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "8",
+        "700099008",
+        "3.6"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "9",
+        "700099009",
+        "3.66"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "10",
+        "700099010",
+        "3.72"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "11",
+        "700099011",
+        "4.78"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "12",
+        "700099012",
+        "4.84"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "13",
+        "700099013",
+        "4.9"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "14",
+        "700099014",
+        "4.96"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "15",
+        "700099015",
+        "5"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "16",
+        "700099016",
+        "5.02"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "17",
+        "700099017",
+        "5.04"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "18",
+        "700099018",
+        "5.06"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "19",
+        "700099019",
+        "5.08"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "20",
+        "700099020",
+        "5.1"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "21",
+        "700099021",
+        "6.68"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "22",
+        "700099022",
+        "6.71"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "23",
+        "700099023",
+        "6.74"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "24",
+        "700099024",
+        "6.77"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "25",
+        "700099025",
+        "6.8"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "26",
+        "700099026",
+        "6.83"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "27",
+        "700099027",
+        "6.86"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "28",
+        "700099028",
+        "6.89"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "29",
+        "700099029",
+        "6.92"
+      ]
+    ],
+    "2370100": [
+      [
+        "16",
+        "700099",
+        "",
+        "30",
+        "700099030",
+        "0.15"
+      ]
+    ],
+    "2370101": [
+      [
+        "16",
+        "700099",
+        "",
+        "30",
+        "700099030",
+        "1.2"
+      ]
+    ],
+    "10000145": [
+      [
+        "2",
+        "1",
+        "99",
+        "1",
+        "1099001",
+        "5"
+      ]
+    ],
+    "10000146": [
+      [
+        "2",
+        "1",
+        "99",
+        "1",
+        "1099001",
+        "0"
+      ]
+    ],
+    "10000147": [
+      [
+        "2",
+        "1",
+        "99",
+        "1",
+        "1099001",
+        "0.25"
+      ]
+    ]
+  },
+  "notes": {
+    "2370097": "入手方式：完成幻想连战第15关整轮通关奖励，非救援结算获得1个。需依次完成整轮关卡。",
+    "2370098": "入手方式：幻想连战第5、10、15关协力首领结算，分别获得5、10、20枚。",
+    "2370099": "入手方式：深渊连战逐层通关奖励，不同层数的保底数量与概率槽不同。",
+    "2370100": "入手方式：深渊连战第30层整轮通关概率奖励，或深渊活动商店兑换。需依次完成整轮关卡。",
+    "2370101": "入手方式：深渊连战第30层整轮通关概率奖励。需依次完成整轮关卡。",
+    "10000143": "入手方式：深渊连战第30层整轮通关必得1～2张；幻想连战第15关整轮通关（非救援）获得1张；五重交换所可用10个深界结晶兑换1张。",
+    "10000144": "入手方式：五重决战整轮通关，50%概率获得1张。",
+    "10000145": "入手方式：五重决战整轮通关获得5个；满足手动奖励倍率条件时获得10个。",
+    "10000146": "入手方式：首次完成五重决战的纪念奖励。仅首通获得，已经领取后无法通过重复挑战再次获得。",
+    "10000147": "入手方式：五重决战整轮通关，25%概率获得；数量随适用的手动奖励倍率变化。",
+    "999013": "入手方式：深渊连战部分层数概率掉落，或深渊活动商店兑换。",
+    "999014": "入手方式：深渊连战指定层数和整轮通关概率奖励，或幻想、深渊活动商店兑换。",
+    "999015": "入手方式：旧版道具已停用，不再通过现用赛季奖励发放。现用竞速池请使用竞速池扭蛋券。",
+    "999016": "入手方式：旧版道具已停用，不再通过现用赛季奖励发放。现用竞速池请使用竞速池十连券。",
+    "999017": "入手方式：深渊赛季排行榜结算奖励。请从深渊活动入口进入排行榜，查看当前赛季排行报酬和结算时间。",
+    "999018": "入手方式：深渊赛季排行榜结算奖励。请从深渊活动入口进入排行榜，查看当前赛季排行报酬和结算时间。"
+  },
+  "source_reads": {
+    "common|a4/731a843d4dc0c84120bf8c88784c1e74c03baa": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.103-1.4.104-1-abyss-lens0910-entry-message-consolidated.zip",
+      "member": "production/upload/a4/731a843d4dc0c84120bf8c88784c1e74c03baa",
+      "sha256": "fb966abfe9d6fcd5a215f4e5163a11ce383ac8552f514091ebd6c21dbee484e9"
+    },
+    "common|56/7d81eea3c08fac7b1b69cbeabe2b9fd7b9591e": {
+      "archive": "F:\\startpoint-cn-main\\.cdn\\cn\\archive-common-diff\\pinball-1.4.48-1.4.49-1-4c2dd780.zip",
+      "member": "production/upload/56/7d81eea3c08fac7b1b69cbeabe2b9fd7b9591e",
+      "sha256": "85bb60fbf99972ce30a6901b6e40abdcd8091d6094cf71700c34bbdc6d6b1445"
+    },
+    "common|b6/595dedd9cfa79b7e6eccab25dd9a2a81b066a2": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.103-1.4.104-1-abyss-lens0910-entry-message-consolidated.zip",
+      "member": "production/upload/b6/595dedd9cfa79b7e6eccab25dd9a2a81b066a2",
+      "sha256": "3a5fc62319b38ea68f3f69ef62965d5d86f4a2d6d96e666030143945e19baf3c"
+    },
+    "common|eb/f8ef19148af9c1330b78c7fb3ce75e3f202e64": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.102-1.4.103-1-lens0909-consolidated-cn.zip",
+      "member": "production/upload/eb/f8ef19148af9c1330b78c7fb3ce75e3f202e64",
+      "sha256": "809c3d6162e5c77e7493106b1ac9566fd06e04bb623a92594f71b13938a1bf8d"
+    },
+    "common|a5/35aaa48a5290e76d07c40e497742e4a407a0d0": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.103-1.4.104-1-abyss-lens0910-entry-message-consolidated.zip",
+      "member": "production/upload/a5/35aaa48a5290e76d07c40e497742e4a407a0d0",
+      "sha256": "942d3f39b8eb94830cfb50f54bdaae2d4b5ee012b2b642cf8d33c290b01de789"
+    },
+    "common|97/efacb322621f7bf6671dad3bdf7bdc55cb350b": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.104-1.4.105-1-five-boss-ui-art.zip",
+      "member": "production/upload/97/efacb322621f7bf6671dad3bdf7bdc55cb350b",
+      "sha256": "614141e24e977255045b8e44dde571c2f6bf9dd9ce6e97ebce6345c0353afb6d"
+    },
+    "common|49/a073fdd109e00ac9daf801113cb5e19f64a8cf": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.95-1.4.96-1-cdn-consolidated-gerald0903.zip",
+      "member": "production/upload/49/a073fdd109e00ac9daf801113cb5e19f64a8cf",
+      "sha256": "70ee5aef360663aa84e555b8f5eddb088c52416839333ddbde2ba911686fac68"
+    },
+    "common|3f/7deacd3130269e59c5b44a9bd68901be13e960": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.95-1.4.96-1-cdn-consolidated-gerald0903.zip",
+      "member": "production/upload/3f/7deacd3130269e59c5b44a9bd68901be13e960",
+      "sha256": "1c3699278e7dbd74931cf79f249ce5ed885deef097a9a154a0ee6d22d4034714"
+    },
+    "common|fb/ab4344a7456dca88f3ce06f01208922f37e395": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.103-1.4.104-1-abyss-lens0910-entry-message-consolidated.zip",
+      "member": "production/upload/fb/ab4344a7456dca88f3ce06f01208922f37e395",
+      "sha256": "34001c1ad9e9e769d9ba65f4fefc41a548ba2661dc194252ded1fb5d33e36134"
+    },
+    "common|7b/5e0efc0e0691038ca52fe282501dfd3a1b5ae3": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.102-1.4.103-1-lens0909-consolidated-cn.zip",
+      "member": "production/upload/7b/5e0efc0e0691038ca52fe282501dfd3a1b5ae3",
+      "sha256": "fad7044c6a883835a97bedd7aa1f332969145b1091507108ca76b37f3ed1517b"
+    },
+    "common|0d/284621a3d469b304e1a001f6a21a99890c8907": {
+      "archive": "F:\\startpoint-cn-main\\.cdn\\cn\\archive-common-full\\pinball-1.4.0-20-a09e4a6d.zip",
+      "member": "production/upload/0d/284621a3d469b304e1a001f6a21a99890c8907",
+      "sha256": "3b7fe57225a0623ce0f8d289e3714c40b7652b51d1a07159ab6042311076b3ff"
+    },
+    "common|0c/4561a50deb7b22c977212a62ac8409074bddbe": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.103-1.4.104-1-abyss-lens0910-entry-message-consolidated.zip",
+      "member": "production/upload/0c/4561a50deb7b22c977212a62ac8409074bddbe",
+      "sha256": "df992612e0beaf611b4c1e8da9222e20c2aba1ac6a26f579bbc4d7929b3af713"
+    },
+    "common|a1/96e15706a47e7bd6214f62b390a7fa4d58bf35": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.103-1.4.104-1-abyss-lens0910-entry-message-consolidated.zip",
+      "member": "production/upload/a1/96e15706a47e7bd6214f62b390a7fa4d58bf35",
+      "sha256": "62170c448820426e12788e3ddaee3023cc146c21e9dd7628fd8ac6334bb77f5d"
+    },
+    "common|91/e5b42c759fec14593d4612e3ff4b89d8955d76": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.102-1.4.103-1-lens0909-consolidated-cn.zip",
+      "member": "production/upload/91/e5b42c759fec14593d4612e3ff4b89d8955d76",
+      "sha256": "64652ef1ea171d7db22dbf1e64f21ceb601f4dfefee960940d3e61e0540f8740"
+    },
+    "common|70/0e22050ee329943b09f0bbc92c636ec8b51849": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.102-1.4.103-1-lens0909-consolidated-cn.zip",
+      "member": "production/upload/70/0e22050ee329943b09f0bbc92c636ec8b51849",
+      "sha256": "d7bbf35d1a5d037e81024f309b7ce555b2222daee706a75f95a3630efa778458"
+    },
+    "common|dc/d03da09ca3440230620ce68990628251632913": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.102-1.4.103-1-lens0909-consolidated-cn.zip",
+      "member": "production/upload/dc/d03da09ca3440230620ce68990628251632913",
+      "sha256": "1dae5e5c1c227af2af27cc65d4b40724214c24176882928c8706f193d8343860"
+    },
+    "common|74/0186df579e871706e0925f175db73ef0b5e3ca": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.102-1.4.103-1-lens0909-consolidated-cn.zip",
+      "member": "production/upload/74/0186df579e871706e0925f175db73ef0b5e3ca",
+      "sha256": "31904fcfc4e7172fe585ecc707aafa8771fb666ab1323ded462ebd285a87cd4a"
+    },
+    "common|67/8be14929bc19b6a6d560138f43a858cfc11c58": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.103-1.4.104-1-abyss-lens0910-entry-message-consolidated.zip",
+      "member": "production/upload/67/8be14929bc19b6a6d560138f43a858cfc11c58",
+      "sha256": "ae1af4bb9f0e0f0b4a102dcfbc09aceed2fa53dd91c3903be0a4b32028a4f388"
+    },
+    "common|5a/8557140d67bf8b9d06fe1ddff2343d05607e11": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.103-1.4.104-1-abyss-lens0910-entry-message-consolidated.zip",
+      "member": "production/upload/5a/8557140d67bf8b9d06fe1ddff2343d05607e11",
+      "sha256": "e7664a6ec6b46f98bff011adb50fcd2ae73c243ff783d1b685864a8504ceeede"
+    },
+    "common|f5/0e08259b2684bc738896b2ad6389f21d54d62e": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.102-1.4.103-1-lens0909-consolidated-cn.zip",
+      "member": "production/upload/f5/0e08259b2684bc738896b2ad6389f21d54d62e",
+      "sha256": "9af5dd2e0c3b44fda2b243762c011d43668236c1fb64da9d57628125c01d701a"
+    },
+    "common|d1/445ea3783f671404cfe5628dbb9448e749f026": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.102-1.4.103-1-lens0909-consolidated-cn.zip",
+      "member": "production/upload/d1/445ea3783f671404cfe5628dbb9448e749f026",
+      "sha256": "366649a574fe2ec353062b6a34807f6c31ad78dc3acb1e6e9567da5838efbbd0"
+    },
+    "common|41/514c427ad3f060eeed9b608ee78e7c62c1943a": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.103-1.4.104-1-abyss-lens0910-entry-message-consolidated.zip",
+      "member": "production/upload/41/514c427ad3f060eeed9b608ee78e7c62c1943a",
+      "sha256": "b63306dc6493b9a1f01ab52ec5de29a521adcd1e7b7500091296881d46f59ac9"
+    },
+    "common|e8/e94d472f8d41f8d2954a8d106bb0d18b47d0ac": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.103-1.4.104-1-abyss-lens0910-entry-message-consolidated.zip",
+      "member": "production/upload/e8/e94d472f8d41f8d2954a8d106bb0d18b47d0ac",
+      "sha256": "6bcdcbe6cd9a93359a6db03c7249f6b8a77559e227c2922b458c4f81baa1221e"
+    },
+    "common|f0/de168aad4299c068f3427535f469a49ff9cbbb": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.103-1.4.104-1-abyss-lens0910-entry-message-consolidated.zip",
+      "member": "production/upload/f0/de168aad4299c068f3427535f469a49ff9cbbb",
+      "sha256": "f5a8bf6cc2aee87ae13b8a4da25edaddf5982b5712b2f21566e8063e33119f47"
+    },
+    "common|5d/587cee98ce26a0ff22fa62f401241c7875176c": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.103-1.4.104-1-abyss-lens0910-entry-message-consolidated.zip",
+      "member": "production/upload/5d/587cee98ce26a0ff22fa62f401241c7875176c",
+      "sha256": "f5a8bf6cc2aee87ae13b8a4da25edaddf5982b5712b2f21566e8063e33119f47"
+    },
+    "common|0d/227c8e7bcb1222c7cb2d4fb82ace96fe605cef": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.103-1.4.104-1-abyss-lens0910-entry-message-consolidated.zip",
+      "member": "production/upload/0d/227c8e7bcb1222c7cb2d4fb82ace96fe605cef",
+      "sha256": "f5a8bf6cc2aee87ae13b8a4da25edaddf5982b5712b2f21566e8063e33119f47"
+    }
+  },
+  "resources": [
+    {
+      "logical": "master/item/item.orderedmap",
+      "member": "production/upload/a4/731a843d4dc0c84120bf8c88784c1e74c03baa",
+      "before_sha256": "fb966abfe9d6fcd5a215f4e5163a11ce383ac8552f514091ebd6c21dbee484e9",
+      "after_sha256": "93015a75aefac039e57f8bc0eede7b7954c2e745316f19b87453cdb0869ae5e9",
+      "changed_rows": [
+        999013,
+        999014,
+        999015,
+        999016,
+        999017,
+        999018,
+        2370097,
+        2370098,
+        2370099,
+        2370100,
+        2370101,
+        10000143,
+        10000144,
+        10000145,
+        10000146,
+        10000147
+      ]
+    },
+    {
+      "logical": "master/search/item_quest_search.orderedmap",
+      "member": "production/upload/56/7d81eea3c08fac7b1b69cbeabe2b9fd7b9591e",
+      "before_sha256": "85bb60fbf99972ce30a6901b6e40abdcd8091d6094cf71700c34bbdc6d6b1445",
+      "after_sha256": "0666488998fedf754871560e182fc4046aea5db9d7f22ee257a364875f9f1ba3",
+      "changed_rows": [
+        999013,
+        999014,
+        2370097,
+        2370098,
+        2370099,
+        2370100,
+        2370101,
+        10000143,
+        10000144,
+        10000145,
+        10000146,
+        10000147
+      ]
+    }
+  ],
+  "manifest_before_sha256": "aecdf1a23e25f2ef7e415dc298bb094c683b2b450ccfdf76b266119f03117b39",
+  "manifest_written": false,
+  "swf_changed": false,
+  "runtime_synced": false,
+  "device_tested": false,
+  "save_impact": "No IDs, inventory, schema or persisted progress changed.",
+  "limitations": [
+    "Native UI cannot add a ranking button or dynamically hide an already claimed first-clear source without SWF changes.",
+    "Rush sources target the actual reward round and keep the existing unlock checks; no hidden quest or fake first-round reward."
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "source_cdn_tail": "1.4.105",
+  "part3_registered": true,
+  "chain": [
+    "pinball-1.4.104-1.4.105-1-five-boss-ui-art.zip",
+    "pinball-1.4.104-1.4.105-2-gerald-portrait.zip",
+    "pinball-1.4.104-1.4.105-3-how-to-get-sources.zip",
+    "pinball-1.4.104-1.4.105-4-kyubi-afterglow.zip"
+  ],
+  "sibling_member_intersections": {
+    "pinball-1.4.104-1.4.105-1-five-boss-ui-art.zip": [],
+    "pinball-1.4.104-1.4.105-2-gerald-portrait.zip": [],
+    "pinball-1.4.104-1.4.105-4-kyubi-afterglow.zip": []
+  },
+  "manifest_owner_thread": "01a085d0-91ab-7252-bbf5-dbf895f27fda",
+  "runtime_synced": false,
+  "manifest_sha256": "5d3ba4910e62f0b9dfe35f195fd0d1a7396f88d1682cc3362407d8691a947b36",
+  "source_loose_checks": [
+    {
+      "member": "production/upload/a4/731a843d4dc0c84120bf8c88784c1e74c03baa",
+      "sha256": "93015a75aefac039e57f8bc0eede7b7954c2e745316f19b87453cdb0869ae5e9",
+      "match": true
+    },
+    {
+      "member": "production/upload/56/7d81eea3c08fac7b1b69cbeabe2b9fd7b9591e",
+      "sha256": "0666488998fedf754871560e182fc4046aea5db9d7f22ee257a364875f9f1ba3",
+      "match": true
+    }
+  ],
+  "coordinator_platform_tails": {
+    "android": "1.4.105",
+    "ios": "1.4.105"
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "baseline_commit": "f440d283f84b84671d7cd2cfebdbe66d2d775448",
+  "last_requested_overlay": "startpoint-cn-cloud-overlay-login-abyss-cdn104-20260911-000735.zip",
+  "release_count": 54,
+  "source": "13 committed runtime paths plus 41 payloads extracted from committed active ZIPs",
+  "line_endings": [
+    {
+      "path": "src/routes/api/howToGet.ts",
+      "worktree_sha256": "882e0bc9c36be9749dec17d6eb2e39667b46dbe27b8efb71eb6565c6d82946e8",
+      "git_sha256": "c307573bc847ebd5b586c420f0d51bdea6c35fad9334f706d55495ca2b2ca203",
+      "change": "CRLF to LF only"
+    },
+    {
+      "path": "src/routes/api/shop.ts",
+      "worktree_sha256": "06740c13e4770f946ecf31345c01e5c750f120a299d4a65decfcc753755659f3",
+      "git_sha256": "cba2459d9bdcfc6ee7bfce0f95f943e45d0866645b0468bb0c70734abb22c27c",
+      "change": "CRLF to LF only"
+    }
+  ],
+  "save_impact": "No schema, saved ID, purchase key or save transfer contract changes; V1/V2 unchanged.",
+  "validation": "Prior isolated npm run build, 17 server cases, 8 CDN cases and 5 Kyubi cases passed; integrated 41-resource replay and Android/iOS pair validation passed.",
+  "runtime_before": "The 70 prior overlay files match their release hashes.",
+  "delivery_status": "Not yet synchronized at this preflight; final receipt is created after commit outside the repo."
+}

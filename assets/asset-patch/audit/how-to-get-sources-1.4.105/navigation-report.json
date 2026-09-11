@@ -1,0 +1,18 @@
+{
+  "apk_sha256": "fd42a417dc7231c8dbc421e4839ceeefcfb027f8c83d8bc418baa427dd0b969d",
+  "swf_sha256": "7e3f40fc17ac6fbbec52a0775c6a6357edd258874ed62d13d4ceb287d56d97d3",
+  "classes": [
+    "pinball.scene.itemSearchQuest.ItemSearchQuestScene",
+    "pinball.common.data.quest.id.QuestReferenceIdKindTools",
+    "pinball.scene.ui.SingleQuestStartFlow",
+    "pinball.common.data.quest.repository.QuestRepository",
+    "pinball.common.data.quest.event.rush.RushEventQuestLogic",
+    "pinball.scene.ui.QuestUnlockFlow",
+    "pinball.common.data.quest.common.OrdinaryQuestBase",
+    "pinball.common.data.quest.event.rush.RushEventQuestDetailFactory",
+    "pinball.master.generated.RushEventQuestValues",
+    "pinball.common.data.quest.condition.selectable.QuestSelectableConditionByQuestClear"
+  ],
+  "output": "F:\\codex\\work\\how-to-get-fix-20260911\\client",
+  "files": 10
+}

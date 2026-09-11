@@ -24,27 +24,9 @@ import { reconcileAwakeUnlockCharacterList } from "../../lib/mission";
 import { getDegreeMissionIdsForConditionTypes, mergeMissionSettlementResponse, settleMissionCategories } from "../../lib/mission";
 import { addMissionCounterSync } from "../../lib/mission/counters";
 import { computeFreeFirstDeduction } from "../../lib/free-first-deduction";
+import { buildShopSalesEntry, getShopPurchaseKey, isShopItemAvailable } from "../../lib/shop-sales";
 
 const GENERAL_SHOP_CDN_KEYS: Set<number> = new Set(CDN_GENERAL_SHOP_WHITELIST);
-
-function isShopItemAvailable(item: ShopItem, now: Date): boolean {
-    const periods = [{
-        availableFrom: item.availableFrom,
-        availableUntil: item.availableUntil,
-    }, ...(item.compatibilityPeriods ?? [])]
-
-    return periods.some(period => {
-        if (period.availableFrom) {
-            const availableFrom = new Date(period.availableFrom.replace(' ', 'T') + 'Z')
-            if (availableFrom > now) return false
-        }
-        if (period.availableUntil) {
-            const availableUntil = new Date(period.availableUntil.replace(' ', 'T') + 'Z')
-            if (availableUntil < now) return false
-        }
-        return true
-    })
-}
 
 function recordTreasureShopProgress(
     playerId: number,
@@ -86,94 +68,16 @@ function mergeShopDegreeSettlement(
     )
 }
 
-// These one-time GENERAL products reuse shop_item_id values from STAR_GRAIN.
-// The legacy table is keyed only by (player_id, shop_item_id), so store these
-// purchases under private negative keys. Equipment ownership cannot be used as
-// a substitute because the same equipment may have been granted elsewhere.
-const GENERAL_EQUIPMENT_SCOPED_PURCHASE_KEYS: ReadonlyMap<number, number> = new Map([
-    [100008, -8_100_008], // 酒神权杖
-    [110005, -8_110_005], // 埃癸斯·日华
-    [110006, -8_110_006], // 埃癸斯·幽冥
-])
-
-// Fantasy Rush exposes the same twelve products through its Rush (solo) and
-// Advent (multiplayer) screens.  The client requires different shop_item_id
-// rows for those two event families, but the inventory is one-time and shared.
-// Store each pair under one private key so either screen immediately reflects
-// a purchase made in the other screen.
-const MODE15_SHARED_EVENT_PURCHASE_KEYS: ReadonlyMap<number, number> = new Map(
-    Array.from({ length: 12 }, (_, index) => {
-        const sharedKey = -9_702_001 - index
-        return [
-            [9_700_201 + index, sharedKey],
-            [9_700_301 + index, sharedKey],
-        ] as const
-    }).flat(),
-)
-
 function getEffectiveShopPurchaseCountSync(
-    playerId: number,
-    shopType: number,
-    shopItemId: number,
+    playerId: number, shopType: number, shopItemId: number,
 ): number {
-    if (shopType === ShopType.EVENT_ITEM) {
-        const sharedPurchaseKey = MODE15_SHARED_EVENT_PURCHASE_KEYS.get(shopItemId)
-        if (sharedPurchaseKey !== undefined) {
-            return getPlayerShopPurchaseCountSync(playerId, sharedPurchaseKey)
-        }
-    }
-    if (shopType === ShopType.GENERAL) {
-        const scopedPurchaseKey = GENERAL_EQUIPMENT_SCOPED_PURCHASE_KEYS.get(shopItemId)
-        if (scopedPurchaseKey !== undefined) {
-            return getPlayerShopPurchaseCountSync(playerId, scopedPurchaseKey)
-        }
-    }
-    return getPlayerShopPurchaseCountSync(playerId, shopItemId)
+    return getPlayerShopPurchaseCountSync(playerId, getShopPurchaseKey(shopType, shopItemId))
 }
 
 function addEffectiveShopPurchaseCountSync(
-    playerId: number,
-    shopType: number,
-    shopItemId: number,
-    count: number,
+    playerId: number, shopType: number, shopItemId: number, count: number,
 ): number {
-    if (shopType === ShopType.EVENT_ITEM) {
-        const sharedPurchaseKey = MODE15_SHARED_EVENT_PURCHASE_KEYS.get(shopItemId)
-        if (sharedPurchaseKey !== undefined) {
-            return addPlayerShopPurchaseCountSync(playerId, sharedPurchaseKey, count)
-        }
-    }
-    if (
-        shopType === ShopType.GENERAL &&
-        GENERAL_EQUIPMENT_SCOPED_PURCHASE_KEYS.has(shopItemId)
-    ) {
-        return addPlayerShopPurchaseCountSync(
-            playerId,
-            GENERAL_EQUIPMENT_SCOPED_PURCHASE_KEYS.get(shopItemId)!,
-            count,
-        )
-    }
-    return addPlayerShopPurchaseCountSync(playerId, shopItemId, count)
-}
-
-// Item 5000 originally shipped with max_frequency=2 in the 1.4.57 client
-// master. The server-side stock was later expanded to 999. Keep cached legacy
-// clients usable by offsetting only the client-facing lifetime counter; the
-// authoritative purchased count and stock validation remain unchanged.
-const LEGACY_CLIENT_MAX_FREQUENCY: ReadonlyMap<number, number> = new Map([
-    [5000, 2],
-])
-
-function getClientTotalPurchaseNum(
-    shopType: number,
-    itemId: number,
-    purchased: number,
-    stock: number | undefined
-): number {
-    if (shopType !== ShopType.EVENT_ITEM) return purchased
-    const legacyLimit = LEGACY_CLIENT_MAX_FREQUENCY.get(itemId)
-    if (legacyLimit === undefined || stock === undefined || stock <= legacyLimit) return purchased
-    return purchased - (stock - legacyLimit)
+    return addPlayerShopPurchaseCountSync(playerId, getShopPurchaseKey(shopType, shopItemId), count)
 }
 
 interface EnhancementGroup {
@@ -911,38 +815,11 @@ const routes = async (fastify: FastifyInstance) => {
                     continue
                 }
 
-                const purchased = getEffectiveShopPurchaseCountSync(
-                    playerId,
-                    shopTypeNum,
-                    Number(itemId)
-                )
-                const stock = item.stock
                 const degreeOwned = item.rewards.some(reward =>
                     reward.type === ShopItemRewardType.DEGREE
                     && ownedDegrees.has((reward as DegreeShopItemReward).id)
                 )
-                const stockQuantity = degreeOwned
-                    ? 0
-                    : (stock !== undefined ? Math.max(0, stock - purchased) : -1)
-                const clientTotalPurchaseNum = getClientTotalPurchaseNum(
-                    shopTypeNum,
-                    Number(itemId),
-                    purchased,
-                    stock
-                )
-                salesList.push({
-                    "shop_item_id": Number(itemId),
-                    "stock_quantity": stockQuantity,
-                    "today_purchase_num": purchased,
-                    "this_month_purchase_num": purchased,
-                    "total_purchase_num": clientTotalPurchaseNum,
-                    "group_info": {
-                        "group_total_stock_quantity": stockQuantity,
-                        "group_total_purchase_num": purchased,
-                        "multi_stage": false
-                    },
-                    "shop_type": Number(shopType)
-                })
+                salesList.push(buildShopSalesEntry(shopTypeNum, Number(itemId), item, purchasedMap, degreeOwned))
             }
         }
 
