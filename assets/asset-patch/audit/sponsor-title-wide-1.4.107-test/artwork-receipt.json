@@ -1,0 +1,39 @@
+{
+  "source": "F:\\codex\\work\\sponsor-thanks-width-preview-20260910\\degree_mod_special_thanks_wide_preview.png",
+  "source_sha256": "91af3cc31e0cccdcfc50d3c11f660f5c1700c0aeaf1c2d1520da4beba63bbf29",
+  "method": "user-authorized local background extraction and proportional fit",
+  "extracted_bbox": [
+    13,
+    208,
+    2158,
+    513
+  ],
+  "source_subject_size": [
+    2145,
+    305
+  ],
+  "output_size": [
+    320,
+    50
+  ],
+  "output_mode": "RGBA",
+  "alpha_range": [
+    0,
+    255
+  ],
+  "visible_bbox": [
+    3,
+    2,
+    317,
+    47
+  ],
+  "fit_size": [
+    314,
+    45
+  ],
+  "scale_x": 0.14638694638694638,
+  "scale_y": 0.14754098360655737,
+  "background_method": "neutral-paper-key plus contour dematting",
+  "glyphs_and_ornaments_redrawn": false,
+  "sha256": "54c217185bb463354c8aed169746023ffa6a2b42a6fd022fc678435da66ed82a"
+}

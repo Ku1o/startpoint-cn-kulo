@@ -1,0 +1,36 @@
+特别鸣谢称号宽版 · 本地增量 1.4.107
+
+已同步到 F:\startpoint-cn-main，可使用现有内网客户端返回标题更新到 1.4.107。
+称号 ID 9900012，显示名称“特别鸣谢”；拥有与发放机制、主表字段均不变。
+正式透明 PNG 仍为 320×50，实际可见范围 [3,2,317,47]，主体为 314×45。
+旧主体宽 215；此次沿用已确认的红金中国结、祥云、飘带与四字构图，只做透明化和等比尺寸整理。
+内置 image_gen 此次提供的 RGB 假透明已弃用；正式成品来自已选白底预览，经用户明确允许本地脚本处理。
+提示词和处理记录见审计目录的 approved-preview-prompt.md 与 transparent-output-attempt-and-authorization.md。
+
+正式 PNG：F:\codex\startpoint-cn-private-clean\assets\asset-patch\artwork\sponsor-special-thanks\degree_mod_special_thanks_wide.png
+PNG SHA-256：54c217185bb463354c8aed169746023ffa6a2b42a6fd022fc678435da66ed82a
+增量包：F:\codex\startpoint-cn-private-clean\assets\asset-patch\active\candidates\pinball-1.4.106-1.4.107-1-sponsor-title-wide-test.zip
+ZIP 大小：34501 字节；只有一张游戏存储格式 PNG。
+ZIP SHA-256：25598d1475baa39c98f66493b0c224cca73e7f1199c14e57d6633da6cf7e2c8b
+逻辑资源：dynamic/degree/degree_mod_special_thanks.png
+Android/iOS 共用 production/upload 资源，无需单独 ATF 或 APK/IPA 重建。
+
+本次验证：
+- 原生 320×50 检查与四种背景的边缘检查；文字为“特别鸣谢”，无棋盘格、无明显白晕。
+- 8-bit RGBA，alpha 范围 0–255；PNG 存储头编码后严格解码等于正式 PNG。
+- 四项 PNG 存储回归通过；实际下载 ZIP 与直接资源回读一致。
+- 303 个有效资源逐个校验：只有此 PNG 改变，深渊塔、血量、诅咒、ban、第二关与苍机兵修复都保留。
+- Android/iOS 更新链六组检查通过：.105 两段、.106 一段、.107 无新增差分。
+- 实际客户端下载并显示的 UI 验收待用户测试，不冒充已完成真机验收。
+
+精确同步路径：
+assets/asset-patch/active/pinball-1.4.106-1.4.107-1-sponsor-title-wide-test.zip
+assets/asset-patch/production/upload/03/076857d74f07bb194f6185d4f1c1d6061850ce
+assets/asset-patch/manifest.json
+备份：F:\startpoint-cn-main\.codex-backups\20260910-161724-sponsor-title-wide
+完整前后哈希清单：F:\codex\startpoint-cn-private-clean\assets\asset-patch\audit\sponsor-title-wide-1.4.107-test\local-sync-report.json
+
+分支 staging，HEAD 8f6252bb31c7f18a8cb61f11fa699282e68ebc4b，与跟踪的 origin/staging 无提交分歧。
+本次只生成并同步经过验证的未提交本地测试增量；没有 Git 提交/推送、main 合并或云端部署。
+没有要求、没有制作云服覆盖整合包。APK/IPA 未改；.cdn 未写入。
+旧正式图、已发布的 .104/.105/.106 ZIP 及源仓库暂缓清单保留；其他用户既有修改未处理。

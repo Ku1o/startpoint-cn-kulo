@@ -1,0 +1,5516 @@
+[
+  {
+    "schema": "wf-general-boss-damage-check/v1",
+    "source_routine_id": "mod_rogue_boss26_state",
+    "final_routine_id": "mod_rogue_boss26_state",
+    "occurrence_count": 56,
+    "source_max_hp": 2417241652.777462,
+    "baseline_max_hp": 2729143825.144636,
+    "final_max_hp": 2729143825.144636,
+    "baseline_hp_scale": 1.1290322678366855,
+    "final_hp_scale": 1.1290322678366855,
+    "hp_curse_multiplier": 0.85,
+    "checks": [
+      {
+        "occurrence": 1,
+        "path": [
+          "2",
+          "funnel_start1"
+        ],
+        "state_id": "shield_on1",
+        "source_percentage": 2.70046915458351,
+        "baseline_percentage": 2.39184408764315,
+        "final_percentage": 2.39184408764315,
+        "source_max_hp": 2417241652.777462,
+        "baseline_max_hp": 2729143825.144636,
+        "final_max_hp": 2729143825.144636,
+        "source_absolute_threshold_hp": 65276865.224999994,
+        "baseline_absolute_threshold_hp": 65276865.22500008,
+        "final_absolute_threshold_hp": 65276865.22500008,
+        "baseline_absolute_error_hp": 8.940696716308594e-08,
+        "final_absolute_error_hp": 8.940696716308594e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 2,
+        "path": [
+          "2",
+          "funnel_charge1"
+        ],
+        "state_id": "shield_on1",
+        "source_percentage": 2.70046915458351,
+        "baseline_percentage": 2.39184408764315,
+        "final_percentage": 2.39184408764315,
+        "source_max_hp": 2417241652.777462,
+        "baseline_max_hp": 2729143825.144636,
+        "final_max_hp": 2729143825.144636,
+        "source_absolute_threshold_hp": 65276865.224999994,
+        "baseline_absolute_threshold_hp": 65276865.22500008,
+        "final_absolute_threshold_hp": 65276865.22500008,
+        "baseline_absolute_error_hp": 8.940696716308594e-08,
+        "final_absolute_error_hp": 8.940696716308594e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 3,
+        "path": [
+          "2",
+          "funnel_shot_start1"
+        ],
+        "state_id": "shield_on1",
+        "source_percentage": 2.70046915458351,
+        "baseline_percentage": 2.39184408764315,
+        "final_percentage": 2.39184408764315,
+        "source_max_hp": 2417241652.777462,
+        "baseline_max_hp": 2729143825.144636,
+        "final_max_hp": 2729143825.144636,
+        "source_absolute_threshold_hp": 65276865.224999994,
+        "baseline_absolute_threshold_hp": 65276865.22500008,
+        "final_absolute_threshold_hp": 65276865.22500008,
+        "baseline_absolute_error_hp": 8.940696716308594e-08,
+        "final_absolute_error_hp": 8.940696716308594e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 4,
+        "path": [
+          "2",
+          "funnel_shot_loop1"
+        ],
+        "state_id": "shield_on1",
+        "source_percentage": 2.70046915458351,
+        "baseline_percentage": 2.39184408764315,
+        "final_percentage": 2.39184408764315,
+        "source_max_hp": 2417241652.777462,
+        "baseline_max_hp": 2729143825.144636,
+        "final_max_hp": 2729143825.144636,
+        "source_absolute_threshold_hp": 65276865.224999994,
+        "baseline_absolute_threshold_hp": 65276865.22500008,
+        "final_absolute_threshold_hp": 65276865.22500008,
+        "baseline_absolute_error_hp": 8.940696716308594e-08,
+        "final_absolute_error_hp": 8.940696716308594e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 5,
+        "path": [
+          "2",
+          "funnel_shot_end1"
+        ],
+        "state_id": "shield_on1",
+        "source_percentage": 2.70046915458351,
+        "baseline_percentage": 2.39184408764315,
+        "final_percentage": 2.39184408764315,
+        "source_max_hp": 2417241652.777462,
+        "baseline_max_hp": 2729143825.144636,
+        "final_max_hp": 2729143825.144636,
+        "source_absolute_threshold_hp": 65276865.224999994,
+        "baseline_absolute_threshold_hp": 65276865.22500008,
+        "final_absolute_threshold_hp": 65276865.22500008,
+        "baseline_absolute_error_hp": 8.940696716308594e-08,
+        "final_absolute_error_hp": 8.940696716308594e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 6,
+        "path": [
+          "2",
+          "p2_buff_end_check2"
+        ],
+        "state_id": "shield_on1",
+        "source_percentage": 2.70046915458351,
+        "baseline_percentage": 2.39184408764315,
+        "final_percentage": 2.39184408764315,
+        "source_max_hp": 2417241652.777462,
+        "baseline_max_hp": 2729143825.144636,
+        "final_max_hp": 2729143825.144636,
+        "source_absolute_threshold_hp": 65276865.224999994,
+        "baseline_absolute_threshold_hp": 65276865.22500008,
+        "final_absolute_threshold_hp": 65276865.22500008,
+        "baseline_absolute_error_hp": 8.940696716308594e-08,
+        "final_absolute_error_hp": 8.940696716308594e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 7,
+        "path": [
+          "2",
+          "p2_neutral3"
+        ],
+        "state_id": "shield_on1",
+        "source_percentage": 2.70046915458351,
+        "baseline_percentage": 2.39184408764315,
+        "final_percentage": 2.39184408764315,
+        "source_max_hp": 2417241652.777462,
+        "baseline_max_hp": 2729143825.144636,
+        "final_max_hp": 2729143825.144636,
+        "source_absolute_threshold_hp": 65276865.224999994,
+        "baseline_absolute_threshold_hp": 65276865.22500008,
+        "final_absolute_threshold_hp": 65276865.22500008,
+        "baseline_absolute_error_hp": 8.940696716308594e-08,
+        "final_absolute_error_hp": 8.940696716308594e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 8,
+        "path": [
+          "2",
+          "p2_dps_cutin1"
+        ],
+        "state_id": "shield_on1",
+        "source_percentage": 2.70046915458351,
+        "baseline_percentage": 2.39184408764315,
+        "final_percentage": 2.39184408764315,
+        "source_max_hp": 2417241652.777462,
+        "baseline_max_hp": 2729143825.144636,
+        "final_max_hp": 2729143825.144636,
+        "source_absolute_threshold_hp": 65276865.224999994,
+        "baseline_absolute_threshold_hp": 65276865.22500008,
+        "final_absolute_threshold_hp": 65276865.22500008,
+        "baseline_absolute_error_hp": 8.940696716308594e-08,
+        "final_absolute_error_hp": 8.940696716308594e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 9,
+        "path": [
+          "2",
+          "p2_stun_recover_dps_check1"
+        ],
+        "state_id": "shield_on1",
+        "source_percentage": 2.70046915458351,
+        "baseline_percentage": 2.39184408764315,
+        "final_percentage": 2.39184408764315,
+        "source_max_hp": 2417241652.777462,
+        "baseline_max_hp": 2729143825.144636,
+        "final_max_hp": 2729143825.144636,
+        "source_absolute_threshold_hp": 65276865.224999994,
+        "baseline_absolute_threshold_hp": 65276865.22500008,
+        "final_absolute_threshold_hp": 65276865.22500008,
+        "baseline_absolute_error_hp": 8.940696716308594e-08,
+        "final_absolute_error_hp": 8.940696716308594e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 10,
+        "path": [
+          "2",
+          "p2_buff_end_check_cutin1"
+        ],
+        "state_id": "shield_on1",
+        "source_percentage": 2.70046915458351,
+        "baseline_percentage": 2.39184408764315,
+        "final_percentage": 2.39184408764315,
+        "source_max_hp": 2417241652.777462,
+        "baseline_max_hp": 2729143825.144636,
+        "final_max_hp": 2729143825.144636,
+        "source_absolute_threshold_hp": 65276865.224999994,
+        "baseline_absolute_threshold_hp": 65276865.22500008,
+        "final_absolute_threshold_hp": 65276865.22500008,
+        "baseline_absolute_error_hp": 8.940696716308594e-08,
+        "final_absolute_error_hp": 8.940696716308594e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 11,
+        "path": [
+          "2",
+          "torrent_start1"
+        ],
+        "state_id": "shield_on1",
+        "source_percentage": 2.70046915458351,
+        "baseline_percentage": 2.39184408764315,
+        "final_percentage": 2.39184408764315,
+        "source_max_hp": 2417241652.777462,
+        "baseline_max_hp": 2729143825.144636,
+        "final_max_hp": 2729143825.144636,
+        "source_absolute_threshold_hp": 65276865.224999994,
+        "baseline_absolute_threshold_hp": 65276865.22500008,
+        "final_absolute_threshold_hp": 65276865.22500008,
+        "baseline_absolute_error_hp": 8.940696716308594e-08,
+        "final_absolute_error_hp": 8.940696716308594e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 12,
+        "path": [
+          "2",
+          "torrent_charge1"
+        ],
+        "state_id": "shield_on1",
+        "source_percentage": 2.70046915458351,
+        "baseline_percentage": 2.39184408764315,
+        "final_percentage": 2.39184408764315,
+        "source_max_hp": 2417241652.777462,
+        "baseline_max_hp": 2729143825.144636,
+        "final_max_hp": 2729143825.144636,
+        "source_absolute_threshold_hp": 65276865.224999994,
+        "baseline_absolute_threshold_hp": 65276865.22500008,
+        "final_absolute_threshold_hp": 65276865.22500008,
+        "baseline_absolute_error_hp": 8.940696716308594e-08,
+        "final_absolute_error_hp": 8.940696716308594e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 13,
+        "path": [
+          "2",
+          "torrent_shot_start1"
+        ],
+        "state_id": "shield_on1",
+        "source_percentage": 2.70046915458351,
+        "baseline_percentage": 2.39184408764315,
+        "final_percentage": 2.39184408764315,
+        "source_max_hp": 2417241652.777462,
+        "baseline_max_hp": 2729143825.144636,
+        "final_max_hp": 2729143825.144636,
+        "source_absolute_threshold_hp": 65276865.224999994,
+        "baseline_absolute_threshold_hp": 65276865.22500008,
+        "final_absolute_threshold_hp": 65276865.22500008,
+        "baseline_absolute_error_hp": 8.940696716308594e-08,
+        "final_absolute_error_hp": 8.940696716308594e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 14,
+        "path": [
+          "2",
+          "torrent_shot_loop1"
+        ],
+        "state_id": "shield_on1",
+        "source_percentage": 2.70046915458351,
+        "baseline_percentage": 2.39184408764315,
+        "final_percentage": 2.39184408764315,
+        "source_max_hp": 2417241652.777462,
+        "baseline_max_hp": 2729143825.144636,
+        "final_max_hp": 2729143825.144636,
+        "source_absolute_threshold_hp": 65276865.224999994,
+        "baseline_absolute_threshold_hp": 65276865.22500008,
+        "final_absolute_threshold_hp": 65276865.22500008,
+        "baseline_absolute_error_hp": 8.940696716308594e-08,
+        "final_absolute_error_hp": 8.940696716308594e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 15,
+        "path": [
+          "2",
+          "torrent_shot_end1"
+        ],
+        "state_id": "shield_on1",
+        "source_percentage": 2.70046915458351,
+        "baseline_percentage": 2.39184408764315,
+        "final_percentage": 2.39184408764315,
+        "source_max_hp": 2417241652.777462,
+        "baseline_max_hp": 2729143825.144636,
+        "final_max_hp": 2729143825.144636,
+        "source_absolute_threshold_hp": 65276865.224999994,
+        "baseline_absolute_threshold_hp": 65276865.22500008,
+        "final_absolute_threshold_hp": 65276865.22500008,
+        "baseline_absolute_error_hp": 8.940696716308594e-08,
+        "final_absolute_error_hp": 8.940696716308594e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 16,
+        "path": [
+          "2",
+          "p2_buff_end_check3"
+        ],
+        "state_id": "shield_on1",
+        "source_percentage": 2.70046915458351,
+        "baseline_percentage": 2.39184408764315,
+        "final_percentage": 2.39184408764315,
+        "source_max_hp": 2417241652.777462,
+        "baseline_max_hp": 2729143825.144636,
+        "final_max_hp": 2729143825.144636,
+        "source_absolute_threshold_hp": 65276865.224999994,
+        "baseline_absolute_threshold_hp": 65276865.22500008,
+        "final_absolute_threshold_hp": 65276865.22500008,
+        "baseline_absolute_error_hp": 8.940696716308594e-08,
+        "final_absolute_error_hp": 8.940696716308594e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 17,
+        "path": [
+          "2",
+          "p2_neutral4"
+        ],
+        "state_id": "shield_on1",
+        "source_percentage": 2.70046915458351,
+        "baseline_percentage": 2.39184408764315,
+        "final_percentage": 2.39184408764315,
+        "source_max_hp": 2417241652.777462,
+        "baseline_max_hp": 2729143825.144636,
+        "final_max_hp": 2729143825.144636,
+        "source_absolute_threshold_hp": 65276865.224999994,
+        "baseline_absolute_threshold_hp": 65276865.22500008,
+        "final_absolute_threshold_hp": 65276865.22500008,
+        "baseline_absolute_error_hp": 8.940696716308594e-08,
+        "final_absolute_error_hp": 8.940696716308594e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 18,
+        "path": [
+          "2",
+          "p2_dps_cutin2"
+        ],
+        "state_id": "shield_on1",
+        "source_percentage": 2.70046915458351,
+        "baseline_percentage": 2.39184408764315,
+        "final_percentage": 2.39184408764315,
+        "source_max_hp": 2417241652.777462,
+        "baseline_max_hp": 2729143825.144636,
+        "final_max_hp": 2729143825.144636,
+        "source_absolute_threshold_hp": 65276865.224999994,
+        "baseline_absolute_threshold_hp": 65276865.22500008,
+        "final_absolute_threshold_hp": 65276865.22500008,
+        "baseline_absolute_error_hp": 8.940696716308594e-08,
+        "final_absolute_error_hp": 8.940696716308594e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 19,
+        "path": [
+          "2",
+          "p2_stun_recover_dps_check2"
+        ],
+        "state_id": "shield_on1",
+        "source_percentage": 2.70046915458351,
+        "baseline_percentage": 2.39184408764315,
+        "final_percentage": 2.39184408764315,
+        "source_max_hp": 2417241652.777462,
+        "baseline_max_hp": 2729143825.144636,
+        "final_max_hp": 2729143825.144636,
+        "source_absolute_threshold_hp": 65276865.224999994,
+        "baseline_absolute_threshold_hp": 65276865.22500008,
+        "final_absolute_threshold_hp": 65276865.22500008,
+        "baseline_absolute_error_hp": 8.940696716308594e-08,
+        "final_absolute_error_hp": 8.940696716308594e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 20,
+        "path": [
+          "2",
+          "p2_buff_end_check_cutin2"
+        ],
+        "state_id": "shield_on1",
+        "source_percentage": 2.70046915458351,
+        "baseline_percentage": 2.39184408764315,
+        "final_percentage": 2.39184408764315,
+        "source_max_hp": 2417241652.777462,
+        "baseline_max_hp": 2729143825.144636,
+        "final_max_hp": 2729143825.144636,
+        "source_absolute_threshold_hp": 65276865.224999994,
+        "baseline_absolute_threshold_hp": 65276865.22500008,
+        "final_absolute_threshold_hp": 65276865.22500008,
+        "baseline_absolute_error_hp": 8.940696716308594e-08,
+        "final_absolute_error_hp": 8.940696716308594e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 21,
+        "path": [
+          "2",
+          "breathe_start1"
+        ],
+        "state_id": "shield_on1",
+        "source_percentage": 2.70046915458351,
+        "baseline_percentage": 2.39184408764315,
+        "final_percentage": 2.39184408764315,
+        "source_max_hp": 2417241652.777462,
+        "baseline_max_hp": 2729143825.144636,
+        "final_max_hp": 2729143825.144636,
+        "source_absolute_threshold_hp": 65276865.224999994,
+        "baseline_absolute_threshold_hp": 65276865.22500008,
+        "final_absolute_threshold_hp": 65276865.22500008,
+        "baseline_absolute_error_hp": 8.940696716308594e-08,
+        "final_absolute_error_hp": 8.940696716308594e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 22,
+        "path": [
+          "2",
+          "breathe_charge1"
+        ],
+        "state_id": "shield_on1",
+        "source_percentage": 2.70046915458351,
+        "baseline_percentage": 2.39184408764315,
+        "final_percentage": 2.39184408764315,
+        "source_max_hp": 2417241652.777462,
+        "baseline_max_hp": 2729143825.144636,
+        "final_max_hp": 2729143825.144636,
+        "source_absolute_threshold_hp": 65276865.224999994,
+        "baseline_absolute_threshold_hp": 65276865.22500008,
+        "final_absolute_threshold_hp": 65276865.22500008,
+        "baseline_absolute_error_hp": 8.940696716308594e-08,
+        "final_absolute_error_hp": 8.940696716308594e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 23,
+        "path": [
+          "2",
+          "breathe_shot_start1"
+        ],
+        "state_id": "shield_on1",
+        "source_percentage": 2.70046915458351,
+        "baseline_percentage": 2.39184408764315,
+        "final_percentage": 2.39184408764315,
+        "source_max_hp": 2417241652.777462,
+        "baseline_max_hp": 2729143825.144636,
+        "final_max_hp": 2729143825.144636,
+        "source_absolute_threshold_hp": 65276865.224999994,
+        "baseline_absolute_threshold_hp": 65276865.22500008,
+        "final_absolute_threshold_hp": 65276865.22500008,
+        "baseline_absolute_error_hp": 8.940696716308594e-08,
+        "final_absolute_error_hp": 8.940696716308594e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 24,
+        "path": [
+          "2",
+          "breathe_shot_loop1"
+        ],
+        "state_id": "shield_on1",
+        "source_percentage": 2.70046915458351,
+        "baseline_percentage": 2.39184408764315,
+        "final_percentage": 2.39184408764315,
+        "source_max_hp": 2417241652.777462,
+        "baseline_max_hp": 2729143825.144636,
+        "final_max_hp": 2729143825.144636,
+        "source_absolute_threshold_hp": 65276865.224999994,
+        "baseline_absolute_threshold_hp": 65276865.22500008,
+        "final_absolute_threshold_hp": 65276865.22500008,
+        "baseline_absolute_error_hp": 8.940696716308594e-08,
+        "final_absolute_error_hp": 8.940696716308594e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 25,
+        "path": [
+          "2",
+          "breathe_shot_end1"
+        ],
+        "state_id": "shield_on1",
+        "source_percentage": 2.70046915458351,
+        "baseline_percentage": 2.39184408764315,
+        "final_percentage": 2.39184408764315,
+        "source_max_hp": 2417241652.777462,
+        "baseline_max_hp": 2729143825.144636,
+        "final_max_hp": 2729143825.144636,
+        "source_absolute_threshold_hp": 65276865.224999994,
+        "baseline_absolute_threshold_hp": 65276865.22500008,
+        "final_absolute_threshold_hp": 65276865.22500008,
+        "baseline_absolute_error_hp": 8.940696716308594e-08,
+        "final_absolute_error_hp": 8.940696716308594e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 26,
+        "path": [
+          "2",
+          "p2_buff_end_check4"
+        ],
+        "state_id": "shield_on1",
+        "source_percentage": 2.70046915458351,
+        "baseline_percentage": 2.39184408764315,
+        "final_percentage": 2.39184408764315,
+        "source_max_hp": 2417241652.777462,
+        "baseline_max_hp": 2729143825.144636,
+        "final_max_hp": 2729143825.144636,
+        "source_absolute_threshold_hp": 65276865.224999994,
+        "baseline_absolute_threshold_hp": 65276865.22500008,
+        "final_absolute_threshold_hp": 65276865.22500008,
+        "baseline_absolute_error_hp": 8.940696716308594e-08,
+        "final_absolute_error_hp": 8.940696716308594e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 27,
+        "path": [
+          "2",
+          "p2_neutral5"
+        ],
+        "state_id": "shield_on1",
+        "source_percentage": 2.70046915458351,
+        "baseline_percentage": 2.39184408764315,
+        "final_percentage": 2.39184408764315,
+        "source_max_hp": 2417241652.777462,
+        "baseline_max_hp": 2729143825.144636,
+        "final_max_hp": 2729143825.144636,
+        "source_absolute_threshold_hp": 65276865.224999994,
+        "baseline_absolute_threshold_hp": 65276865.22500008,
+        "final_absolute_threshold_hp": 65276865.22500008,
+        "baseline_absolute_error_hp": 8.940696716308594e-08,
+        "final_absolute_error_hp": 8.940696716308594e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 28,
+        "path": [
+          "2",
+          "dps_check"
+        ],
+        "state_id": "shield_on1",
+        "source_percentage": 2.70046915458351,
+        "baseline_percentage": 2.39184408764315,
+        "final_percentage": 2.39184408764315,
+        "source_max_hp": 2417241652.777462,
+        "baseline_max_hp": 2729143825.144636,
+        "final_max_hp": 2729143825.144636,
+        "source_absolute_threshold_hp": 65276865.224999994,
+        "baseline_absolute_threshold_hp": 65276865.22500008,
+        "final_absolute_threshold_hp": 65276865.22500008,
+        "baseline_absolute_error_hp": 8.940696716308594e-08,
+        "final_absolute_error_hp": 8.940696716308594e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 29,
+        "path": [
+          "2",
+          "buff_end_after_p2_neutral3"
+        ],
+        "state_id": "shield_on1",
+        "source_percentage": 2.70046915458351,
+        "baseline_percentage": 2.39184408764315,
+        "final_percentage": 2.39184408764315,
+        "source_max_hp": 2417241652.777462,
+        "baseline_max_hp": 2729143825.144636,
+        "final_max_hp": 2729143825.144636,
+        "source_absolute_threshold_hp": 65276865.224999994,
+        "baseline_absolute_threshold_hp": 65276865.22500008,
+        "final_absolute_threshold_hp": 65276865.22500008,
+        "baseline_absolute_error_hp": 8.940696716308594e-08,
+        "final_absolute_error_hp": 8.940696716308594e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 30,
+        "path": [
+          "2",
+          "buff_end_after_p2_neutral_cutin1"
+        ],
+        "state_id": "shield_on1",
+        "source_percentage": 2.70046915458351,
+        "baseline_percentage": 2.39184408764315,
+        "final_percentage": 2.39184408764315,
+        "source_max_hp": 2417241652.777462,
+        "baseline_max_hp": 2729143825.144636,
+        "final_max_hp": 2729143825.144636,
+        "source_absolute_threshold_hp": 65276865.224999994,
+        "baseline_absolute_threshold_hp": 65276865.22500008,
+        "final_absolute_threshold_hp": 65276865.22500008,
+        "baseline_absolute_error_hp": 8.940696716308594e-08,
+        "final_absolute_error_hp": 8.940696716308594e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 31,
+        "path": [
+          "2",
+          "buff_end_after_p2_neutral4"
+        ],
+        "state_id": "shield_on1",
+        "source_percentage": 2.70046915458351,
+        "baseline_percentage": 2.39184408764315,
+        "final_percentage": 2.39184408764315,
+        "source_max_hp": 2417241652.777462,
+        "baseline_max_hp": 2729143825.144636,
+        "final_max_hp": 2729143825.144636,
+        "source_absolute_threshold_hp": 65276865.224999994,
+        "baseline_absolute_threshold_hp": 65276865.22500008,
+        "final_absolute_threshold_hp": 65276865.22500008,
+        "baseline_absolute_error_hp": 8.940696716308594e-08,
+        "final_absolute_error_hp": 8.940696716308594e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 32,
+        "path": [
+          "2",
+          "buff_end_after_p2_neutral_cutin2"
+        ],
+        "state_id": "shield_on1",
+        "source_percentage": 2.70046915458351,
+        "baseline_percentage": 2.39184408764315,
+        "final_percentage": 2.39184408764315,
+        "source_max_hp": 2417241652.777462,
+        "baseline_max_hp": 2729143825.144636,
+        "final_max_hp": 2729143825.144636,
+        "source_absolute_threshold_hp": 65276865.224999994,
+        "baseline_absolute_threshold_hp": 65276865.22500008,
+        "final_absolute_threshold_hp": 65276865.22500008,
+        "baseline_absolute_error_hp": 8.940696716308594e-08,
+        "final_absolute_error_hp": 8.940696716308594e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 33,
+        "path": [
+          "2",
+          "buff_end_after_p2_neutral5"
+        ],
+        "state_id": "shield_on1",
+        "source_percentage": 2.70046915458351,
+        "baseline_percentage": 2.39184408764315,
+        "final_percentage": 2.39184408764315,
+        "source_max_hp": 2417241652.777462,
+        "baseline_max_hp": 2729143825.144636,
+        "final_max_hp": 2729143825.144636,
+        "source_absolute_threshold_hp": 65276865.224999994,
+        "baseline_absolute_threshold_hp": 65276865.22500008,
+        "final_absolute_threshold_hp": 65276865.22500008,
+        "baseline_absolute_error_hp": 8.940696716308594e-08,
+        "final_absolute_error_hp": 8.940696716308594e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 34,
+        "path": [
+          "2",
+          "funnel_start1_buff_end_after"
+        ],
+        "state_id": "shield_on1",
+        "source_percentage": 2.70046915458351,
+        "baseline_percentage": 2.39184408764315,
+        "final_percentage": 2.39184408764315,
+        "source_max_hp": 2417241652.777462,
+        "baseline_max_hp": 2729143825.144636,
+        "final_max_hp": 2729143825.144636,
+        "source_absolute_threshold_hp": 65276865.224999994,
+        "baseline_absolute_threshold_hp": 65276865.22500008,
+        "final_absolute_threshold_hp": 65276865.22500008,
+        "baseline_absolute_error_hp": 8.940696716308594e-08,
+        "final_absolute_error_hp": 8.940696716308594e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 35,
+        "path": [
+          "2",
+          "funnel_charge1_buff_end_after"
+        ],
+        "state_id": "shield_on1",
+        "source_percentage": 2.70046915458351,
+        "baseline_percentage": 2.39184408764315,
+        "final_percentage": 2.39184408764315,
+        "source_max_hp": 2417241652.777462,
+        "baseline_max_hp": 2729143825.144636,
+        "final_max_hp": 2729143825.144636,
+        "source_absolute_threshold_hp": 65276865.224999994,
+        "baseline_absolute_threshold_hp": 65276865.22500008,
+        "final_absolute_threshold_hp": 65276865.22500008,
+        "baseline_absolute_error_hp": 8.940696716308594e-08,
+        "final_absolute_error_hp": 8.940696716308594e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 36,
+        "path": [
+          "2",
+          "funnel_shot_start1_buff_end_after"
+        ],
+        "state_id": "shield_on1",
+        "source_percentage": 2.70046915458351,
+        "baseline_percentage": 2.39184408764315,
+        "final_percentage": 2.39184408764315,
+        "source_max_hp": 2417241652.777462,
+        "baseline_max_hp": 2729143825.144636,
+        "final_max_hp": 2729143825.144636,
+        "source_absolute_threshold_hp": 65276865.224999994,
+        "baseline_absolute_threshold_hp": 65276865.22500008,
+        "final_absolute_threshold_hp": 65276865.22500008,
+        "baseline_absolute_error_hp": 8.940696716308594e-08,
+        "final_absolute_error_hp": 8.940696716308594e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 37,
+        "path": [
+          "2",
+          "funnel_shot_loop1_buff_end_after"
+        ],
+        "state_id": "shield_on1",
+        "source_percentage": 2.70046915458351,
+        "baseline_percentage": 2.39184408764315,
+        "final_percentage": 2.39184408764315,
+        "source_max_hp": 2417241652.777462,
+        "baseline_max_hp": 2729143825.144636,
+        "final_max_hp": 2729143825.144636,
+        "source_absolute_threshold_hp": 65276865.224999994,
+        "baseline_absolute_threshold_hp": 65276865.22500008,
+        "final_absolute_threshold_hp": 65276865.22500008,
+        "baseline_absolute_error_hp": 8.940696716308594e-08,
+        "final_absolute_error_hp": 8.940696716308594e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 38,
+        "path": [
+          "2",
+          "funnel_shot_end1_buff_end_after"
+        ],
+        "state_id": "shield_on1",
+        "source_percentage": 2.70046915458351,
+        "baseline_percentage": 2.39184408764315,
+        "final_percentage": 2.39184408764315,
+        "source_max_hp": 2417241652.777462,
+        "baseline_max_hp": 2729143825.144636,
+        "final_max_hp": 2729143825.144636,
+        "source_absolute_threshold_hp": 65276865.224999994,
+        "baseline_absolute_threshold_hp": 65276865.22500008,
+        "final_absolute_threshold_hp": 65276865.22500008,
+        "baseline_absolute_error_hp": 8.940696716308594e-08,
+        "final_absolute_error_hp": 8.940696716308594e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 39,
+        "path": [
+          "2",
+          "p2_neutral3_buff_end_after"
+        ],
+        "state_id": "shield_on1",
+        "source_percentage": 2.70046915458351,
+        "baseline_percentage": 2.39184408764315,
+        "final_percentage": 2.39184408764315,
+        "source_max_hp": 2417241652.777462,
+        "baseline_max_hp": 2729143825.144636,
+        "final_max_hp": 2729143825.144636,
+        "source_absolute_threshold_hp": 65276865.224999994,
+        "baseline_absolute_threshold_hp": 65276865.22500008,
+        "final_absolute_threshold_hp": 65276865.22500008,
+        "baseline_absolute_error_hp": 8.940696716308594e-08,
+        "final_absolute_error_hp": 8.940696716308594e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 40,
+        "path": [
+          "2",
+          "p2_dps_cutin1_buff_end_after"
+        ],
+        "state_id": "shield_on1",
+        "source_percentage": 2.70046915458351,
+        "baseline_percentage": 2.39184408764315,
+        "final_percentage": 2.39184408764315,
+        "source_max_hp": 2417241652.777462,
+        "baseline_max_hp": 2729143825.144636,
+        "final_max_hp": 2729143825.144636,
+        "source_absolute_threshold_hp": 65276865.224999994,
+        "baseline_absolute_threshold_hp": 65276865.22500008,
+        "final_absolute_threshold_hp": 65276865.22500008,
+        "baseline_absolute_error_hp": 8.940696716308594e-08,
+        "final_absolute_error_hp": 8.940696716308594e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 41,
+        "path": [
+          "2",
+          "p2_stun_recover_dps_check1_buff_end_after"
+        ],
+        "state_id": "shield_on1",
+        "source_percentage": 2.70046915458351,
+        "baseline_percentage": 2.39184408764315,
+        "final_percentage": 2.39184408764315,
+        "source_max_hp": 2417241652.777462,
+        "baseline_max_hp": 2729143825.144636,
+        "final_max_hp": 2729143825.144636,
+        "source_absolute_threshold_hp": 65276865.224999994,
+        "baseline_absolute_threshold_hp": 65276865.22500008,
+        "final_absolute_threshold_hp": 65276865.22500008,
+        "baseline_absolute_error_hp": 8.940696716308594e-08,
+        "final_absolute_error_hp": 8.940696716308594e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 42,
+        "path": [
+          "2",
+          "torrent_start1_buff_end_after"
+        ],
+        "state_id": "shield_on1",
+        "source_percentage": 2.70046915458351,
+        "baseline_percentage": 2.39184408764315,
+        "final_percentage": 2.39184408764315,
+        "source_max_hp": 2417241652.777462,
+        "baseline_max_hp": 2729143825.144636,
+        "final_max_hp": 2729143825.144636,
+        "source_absolute_threshold_hp": 65276865.224999994,
+        "baseline_absolute_threshold_hp": 65276865.22500008,
+        "final_absolute_threshold_hp": 65276865.22500008,
+        "baseline_absolute_error_hp": 8.940696716308594e-08,
+        "final_absolute_error_hp": 8.940696716308594e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 43,
+        "path": [
+          "2",
+          "torrent_charge1_buff_end_after"
+        ],
+        "state_id": "shield_on1",
+        "source_percentage": 2.70046915458351,
+        "baseline_percentage": 2.39184408764315,
+        "final_percentage": 2.39184408764315,
+        "source_max_hp": 2417241652.777462,
+        "baseline_max_hp": 2729143825.144636,
+        "final_max_hp": 2729143825.144636,
+        "source_absolute_threshold_hp": 65276865.224999994,
+        "baseline_absolute_threshold_hp": 65276865.22500008,
+        "final_absolute_threshold_hp": 65276865.22500008,
+        "baseline_absolute_error_hp": 8.940696716308594e-08,
+        "final_absolute_error_hp": 8.940696716308594e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 44,
+        "path": [
+          "2",
+          "torrent_shot_start1_buff_end_after"
+        ],
+        "state_id": "shield_on1",
+        "source_percentage": 2.70046915458351,
+        "baseline_percentage": 2.39184408764315,
+        "final_percentage": 2.39184408764315,
+        "source_max_hp": 2417241652.777462,
+        "baseline_max_hp": 2729143825.144636,
+        "final_max_hp": 2729143825.144636,
+        "source_absolute_threshold_hp": 65276865.224999994,
+        "baseline_absolute_threshold_hp": 65276865.22500008,
+        "final_absolute_threshold_hp": 65276865.22500008,
+        "baseline_absolute_error_hp": 8.940696716308594e-08,
+        "final_absolute_error_hp": 8.940696716308594e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 45,
+        "path": [
+          "2",
+          "torrent_shot_loop1_buff_end_after"
+        ],
+        "state_id": "shield_on1",
+        "source_percentage": 2.70046915458351,
+        "baseline_percentage": 2.39184408764315,
+        "final_percentage": 2.39184408764315,
+        "source_max_hp": 2417241652.777462,
+        "baseline_max_hp": 2729143825.144636,
+        "final_max_hp": 2729143825.144636,
+        "source_absolute_threshold_hp": 65276865.224999994,
+        "baseline_absolute_threshold_hp": 65276865.22500008,
+        "final_absolute_threshold_hp": 65276865.22500008,
+        "baseline_absolute_error_hp": 8.940696716308594e-08,
+        "final_absolute_error_hp": 8.940696716308594e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 46,
+        "path": [
+          "2",
+          "torrent_shot_end1_buff_end_after"
+        ],
+        "state_id": "shield_on1",
+        "source_percentage": 2.70046915458351,
+        "baseline_percentage": 2.39184408764315,
+        "final_percentage": 2.39184408764315,
+        "source_max_hp": 2417241652.777462,
+        "baseline_max_hp": 2729143825.144636,
+        "final_max_hp": 2729143825.144636,
+        "source_absolute_threshold_hp": 65276865.224999994,
+        "baseline_absolute_threshold_hp": 65276865.22500008,
+        "final_absolute_threshold_hp": 65276865.22500008,
+        "baseline_absolute_error_hp": 8.940696716308594e-08,
+        "final_absolute_error_hp": 8.940696716308594e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 47,
+        "path": [
+          "2",
+          "p2_neutral4_buff_end_after"
+        ],
+        "state_id": "shield_on1",
+        "source_percentage": 2.70046915458351,
+        "baseline_percentage": 2.39184408764315,
+        "final_percentage": 2.39184408764315,
+        "source_max_hp": 2417241652.777462,
+        "baseline_max_hp": 2729143825.144636,
+        "final_max_hp": 2729143825.144636,
+        "source_absolute_threshold_hp": 65276865.224999994,
+        "baseline_absolute_threshold_hp": 65276865.22500008,
+        "final_absolute_threshold_hp": 65276865.22500008,
+        "baseline_absolute_error_hp": 8.940696716308594e-08,
+        "final_absolute_error_hp": 8.940696716308594e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 48,
+        "path": [
+          "2",
+          "p2_dps_cutin2_buff_end_after"
+        ],
+        "state_id": "shield_on1",
+        "source_percentage": 2.70046915458351,
+        "baseline_percentage": 2.39184408764315,
+        "final_percentage": 2.39184408764315,
+        "source_max_hp": 2417241652.777462,
+        "baseline_max_hp": 2729143825.144636,
+        "final_max_hp": 2729143825.144636,
+        "source_absolute_threshold_hp": 65276865.224999994,
+        "baseline_absolute_threshold_hp": 65276865.22500008,
+        "final_absolute_threshold_hp": 65276865.22500008,
+        "baseline_absolute_error_hp": 8.940696716308594e-08,
+        "final_absolute_error_hp": 8.940696716308594e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 49,
+        "path": [
+          "2",
+          "p2_stun_recover_dps_check2_buff_end_after"
+        ],
+        "state_id": "shield_on1",
+        "source_percentage": 2.70046915458351,
+        "baseline_percentage": 2.39184408764315,
+        "final_percentage": 2.39184408764315,
+        "source_max_hp": 2417241652.777462,
+        "baseline_max_hp": 2729143825.144636,
+        "final_max_hp": 2729143825.144636,
+        "source_absolute_threshold_hp": 65276865.224999994,
+        "baseline_absolute_threshold_hp": 65276865.22500008,
+        "final_absolute_threshold_hp": 65276865.22500008,
+        "baseline_absolute_error_hp": 8.940696716308594e-08,
+        "final_absolute_error_hp": 8.940696716308594e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 50,
+        "path": [
+          "2",
+          "breathe_start1_buff_end_after"
+        ],
+        "state_id": "shield_on1",
+        "source_percentage": 2.70046915458351,
+        "baseline_percentage": 2.39184408764315,
+        "final_percentage": 2.39184408764315,
+        "source_max_hp": 2417241652.777462,
+        "baseline_max_hp": 2729143825.144636,
+        "final_max_hp": 2729143825.144636,
+        "source_absolute_threshold_hp": 65276865.224999994,
+        "baseline_absolute_threshold_hp": 65276865.22500008,
+        "final_absolute_threshold_hp": 65276865.22500008,
+        "baseline_absolute_error_hp": 8.940696716308594e-08,
+        "final_absolute_error_hp": 8.940696716308594e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 51,
+        "path": [
+          "2",
+          "breathe_charge1_buff_end_after"
+        ],
+        "state_id": "shield_on1",
+        "source_percentage": 2.70046915458351,
+        "baseline_percentage": 2.39184408764315,
+        "final_percentage": 2.39184408764315,
+        "source_max_hp": 2417241652.777462,
+        "baseline_max_hp": 2729143825.144636,
+        "final_max_hp": 2729143825.144636,
+        "source_absolute_threshold_hp": 65276865.224999994,
+        "baseline_absolute_threshold_hp": 65276865.22500008,
+        "final_absolute_threshold_hp": 65276865.22500008,
+        "baseline_absolute_error_hp": 8.940696716308594e-08,
+        "final_absolute_error_hp": 8.940696716308594e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 52,
+        "path": [
+          "2",
+          "breathe_shot_start1_buff_end_after"
+        ],
+        "state_id": "shield_on1",
+        "source_percentage": 2.70046915458351,
+        "baseline_percentage": 2.39184408764315,
+        "final_percentage": 2.39184408764315,
+        "source_max_hp": 2417241652.777462,
+        "baseline_max_hp": 2729143825.144636,
+        "final_max_hp": 2729143825.144636,
+        "source_absolute_threshold_hp": 65276865.224999994,
+        "baseline_absolute_threshold_hp": 65276865.22500008,
+        "final_absolute_threshold_hp": 65276865.22500008,
+        "baseline_absolute_error_hp": 8.940696716308594e-08,
+        "final_absolute_error_hp": 8.940696716308594e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 53,
+        "path": [
+          "2",
+          "breathe_shot_loop1_buff_end_after"
+        ],
+        "state_id": "shield_on1",
+        "source_percentage": 2.70046915458351,
+        "baseline_percentage": 2.39184408764315,
+        "final_percentage": 2.39184408764315,
+        "source_max_hp": 2417241652.777462,
+        "baseline_max_hp": 2729143825.144636,
+        "final_max_hp": 2729143825.144636,
+        "source_absolute_threshold_hp": 65276865.224999994,
+        "baseline_absolute_threshold_hp": 65276865.22500008,
+        "final_absolute_threshold_hp": 65276865.22500008,
+        "baseline_absolute_error_hp": 8.940696716308594e-08,
+        "final_absolute_error_hp": 8.940696716308594e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 54,
+        "path": [
+          "2",
+          "breathe_shot_end1_buff_end_after"
+        ],
+        "state_id": "shield_on1",
+        "source_percentage": 2.70046915458351,
+        "baseline_percentage": 2.39184408764315,
+        "final_percentage": 2.39184408764315,
+        "source_max_hp": 2417241652.777462,
+        "baseline_max_hp": 2729143825.144636,
+        "final_max_hp": 2729143825.144636,
+        "source_absolute_threshold_hp": 65276865.224999994,
+        "baseline_absolute_threshold_hp": 65276865.22500008,
+        "final_absolute_threshold_hp": 65276865.22500008,
+        "baseline_absolute_error_hp": 8.940696716308594e-08,
+        "final_absolute_error_hp": 8.940696716308594e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 55,
+        "path": [
+          "2",
+          "p2_neutral5_buff_end_after"
+        ],
+        "state_id": "shield_on1",
+        "source_percentage": 2.70046915458351,
+        "baseline_percentage": 2.39184408764315,
+        "final_percentage": 2.39184408764315,
+        "source_max_hp": 2417241652.777462,
+        "baseline_max_hp": 2729143825.144636,
+        "final_max_hp": 2729143825.144636,
+        "source_absolute_threshold_hp": 65276865.224999994,
+        "baseline_absolute_threshold_hp": 65276865.22500008,
+        "final_absolute_threshold_hp": 65276865.22500008,
+        "baseline_absolute_error_hp": 8.940696716308594e-08,
+        "final_absolute_error_hp": 8.940696716308594e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 56,
+        "path": [
+          "2",
+          "dps_check_buff_end_after"
+        ],
+        "state_id": "shield_on1",
+        "source_percentage": 2.70046915458351,
+        "baseline_percentage": 2.39184408764315,
+        "final_percentage": 2.39184408764315,
+        "source_max_hp": 2417241652.777462,
+        "baseline_max_hp": 2729143825.144636,
+        "final_max_hp": 2729143825.144636,
+        "source_absolute_threshold_hp": 65276865.224999994,
+        "baseline_absolute_threshold_hp": 65276865.22500008,
+        "final_absolute_threshold_hp": 65276865.22500008,
+        "baseline_absolute_error_hp": 8.940696716308594e-08,
+        "final_absolute_error_hp": 8.940696716308594e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      }
+    ],
+    "routine_cloned": false,
+    "materialized": true,
+    "enemy_watch_lookup_preserved": true,
+    "enemy_watch_routine_alias_count": 0,
+    "topology_preserved": true,
+    "non_percentage_columns_preserved": true,
+    "absolute_thresholds_preserved": true,
+    "static_verified": true,
+    "runtime_simulated": false,
+    "gameplay_verified": false,
+    "round": 30,
+    "private_routine_updated_in_place": true,
+    "source_hp_is_previous_verified_local_test": true
+  },
+  {
+    "schema": "wf-general-boss-damage-check/v1",
+    "source_routine_id": "mod_rogue_boss26_2_state",
+    "final_routine_id": "mod_rogue_boss26_2_state",
+    "occurrence_count": 154,
+    "source_max_hp": 2677559985.41973,
+    "baseline_max_hp": 3023051603.190687,
+    "final_max_hp": 3023051603.190687,
+    "baseline_hp_scale": 1.1290322605851155,
+    "final_hp_scale": 1.1290322605851155,
+    "hp_curse_multiplier": 0.85,
+    "checks": [
+      {
+        "occurrence": 1,
+        "path": [
+          "2",
+          "dpscheck_attack1"
+        ],
+        "state_id": "dpscheck_attack1",
+        "source_percentage": 3.37558644221491,
+        "baseline_percentage": 2.98980512785837,
+        "final_percentage": 2.98980512785837,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 90383351.84999995,
+        "baseline_absolute_threshold_hp": 90383351.84999983,
+        "final_absolute_threshold_hp": 90383351.84999983,
+        "baseline_absolute_error_hp": -1.1920928955078125e-07,
+        "final_absolute_error_hp": -1.1920928955078125e-07,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 2,
+        "path": [
+          "2",
+          "neutral21"
+        ],
+        "state_id": "neutral21",
+        "source_percentage": 3.37558644221491,
+        "baseline_percentage": 2.98980512785837,
+        "final_percentage": 2.98980512785837,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 90383351.84999995,
+        "baseline_absolute_threshold_hp": 90383351.84999983,
+        "final_absolute_threshold_hp": 90383351.84999983,
+        "baseline_absolute_error_hp": -1.1920928955078125e-07,
+        "final_absolute_error_hp": -1.1920928955078125e-07,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 3,
+        "path": [
+          "2",
+          "debuff_start2"
+        ],
+        "state_id": "debuff_start2",
+        "source_percentage": 3.37558644221491,
+        "baseline_percentage": 2.98980512785837,
+        "final_percentage": 2.98980512785837,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 90383351.84999995,
+        "baseline_absolute_threshold_hp": 90383351.84999983,
+        "final_absolute_threshold_hp": 90383351.84999983,
+        "baseline_absolute_error_hp": -1.1920928955078125e-07,
+        "final_absolute_error_hp": -1.1920928955078125e-07,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 4,
+        "path": [
+          "2",
+          "debuff_charge2"
+        ],
+        "state_id": "debuff_charge2",
+        "source_percentage": 3.37558644221491,
+        "baseline_percentage": 2.98980512785837,
+        "final_percentage": 2.98980512785837,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 90383351.84999995,
+        "baseline_absolute_threshold_hp": 90383351.84999983,
+        "final_absolute_threshold_hp": 90383351.84999983,
+        "baseline_absolute_error_hp": -1.1920928955078125e-07,
+        "final_absolute_error_hp": -1.1920928955078125e-07,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 5,
+        "path": [
+          "2",
+          "debuff_fire2"
+        ],
+        "state_id": "debuff_fire2",
+        "source_percentage": 3.37558644221491,
+        "baseline_percentage": 2.98980512785837,
+        "final_percentage": 2.98980512785837,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 90383351.84999995,
+        "baseline_absolute_threshold_hp": 90383351.84999983,
+        "final_absolute_threshold_hp": 90383351.84999983,
+        "baseline_absolute_error_hp": -1.1920928955078125e-07,
+        "final_absolute_error_hp": -1.1920928955078125e-07,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 6,
+        "path": [
+          "2",
+          "neutral200"
+        ],
+        "state_id": "neutral200",
+        "source_percentage": 3.37558644221491,
+        "baseline_percentage": 2.98980512785837,
+        "final_percentage": 2.98980512785837,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 90383351.84999995,
+        "baseline_absolute_threshold_hp": 90383351.84999983,
+        "final_absolute_threshold_hp": 90383351.84999983,
+        "baseline_absolute_error_hp": -1.1920928955078125e-07,
+        "final_absolute_error_hp": -1.1920928955078125e-07,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 7,
+        "path": [
+          "2",
+          "extension_ready1"
+        ],
+        "state_id": "extension_ready1",
+        "source_percentage": 3.37558644221491,
+        "baseline_percentage": 2.98980512785837,
+        "final_percentage": 2.98980512785837,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 90383351.84999995,
+        "baseline_absolute_threshold_hp": 90383351.84999983,
+        "final_absolute_threshold_hp": 90383351.84999983,
+        "baseline_absolute_error_hp": -1.1920928955078125e-07,
+        "final_absolute_error_hp": -1.1920928955078125e-07,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 8,
+        "path": [
+          "2",
+          "extension_charge1"
+        ],
+        "state_id": "extension_charge1",
+        "source_percentage": 3.37558644221491,
+        "baseline_percentage": 2.98980512785837,
+        "final_percentage": 2.98980512785837,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 90383351.84999995,
+        "baseline_absolute_threshold_hp": 90383351.84999983,
+        "final_absolute_threshold_hp": 90383351.84999983,
+        "baseline_absolute_error_hp": -1.1920928955078125e-07,
+        "final_absolute_error_hp": -1.1920928955078125e-07,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 9,
+        "path": [
+          "2",
+          "extension_attack1"
+        ],
+        "state_id": "extension_attack1",
+        "source_percentage": 3.37558644221491,
+        "baseline_percentage": 2.98980512785837,
+        "final_percentage": 2.98980512785837,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 90383351.84999995,
+        "baseline_absolute_threshold_hp": 90383351.84999983,
+        "final_absolute_threshold_hp": 90383351.84999983,
+        "baseline_absolute_error_hp": -1.1920928955078125e-07,
+        "final_absolute_error_hp": -1.1920928955078125e-07,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 10,
+        "path": [
+          "2",
+          "neutral295"
+        ],
+        "state_id": "neutral290",
+        "source_percentage": 3.37558644221491,
+        "baseline_percentage": 2.98980512785837,
+        "final_percentage": 2.98980512785837,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 90383351.84999995,
+        "baseline_absolute_threshold_hp": 90383351.84999983,
+        "final_absolute_threshold_hp": 90383351.84999983,
+        "baseline_absolute_error_hp": -1.1920928955078125e-07,
+        "final_absolute_error_hp": -1.1920928955078125e-07,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 11,
+        "path": [
+          "2",
+          "shot3_start1"
+        ],
+        "state_id": "shot3_start1",
+        "source_percentage": 3.37558644221491,
+        "baseline_percentage": 2.98980512785837,
+        "final_percentage": 2.98980512785837,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 90383351.84999995,
+        "baseline_absolute_threshold_hp": 90383351.84999983,
+        "final_absolute_threshold_hp": 90383351.84999983,
+        "baseline_absolute_error_hp": -1.1920928955078125e-07,
+        "final_absolute_error_hp": -1.1920928955078125e-07,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 12,
+        "path": [
+          "2",
+          "shot3_charge1"
+        ],
+        "state_id": "shot3_charge1",
+        "source_percentage": 3.37558644221491,
+        "baseline_percentage": 2.98980512785837,
+        "final_percentage": 2.98980512785837,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 90383351.84999995,
+        "baseline_absolute_threshold_hp": 90383351.84999983,
+        "final_absolute_threshold_hp": 90383351.84999983,
+        "baseline_absolute_error_hp": -1.1920928955078125e-07,
+        "final_absolute_error_hp": -1.1920928955078125e-07,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 13,
+        "path": [
+          "2",
+          "shot3_attack1"
+        ],
+        "state_id": "shot3_attack1",
+        "source_percentage": 3.37558644221491,
+        "baseline_percentage": 2.98980512785837,
+        "final_percentage": 2.98980512785837,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 90383351.84999995,
+        "baseline_absolute_threshold_hp": 90383351.84999983,
+        "final_absolute_threshold_hp": 90383351.84999983,
+        "baseline_absolute_error_hp": -1.1920928955078125e-07,
+        "final_absolute_error_hp": -1.1920928955078125e-07,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 14,
+        "path": [
+          "2",
+          "shot3_charge2"
+        ],
+        "state_id": "shot3_charge2",
+        "source_percentage": 3.37558644221491,
+        "baseline_percentage": 2.98980512785837,
+        "final_percentage": 2.98980512785837,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 90383351.84999995,
+        "baseline_absolute_threshold_hp": 90383351.84999983,
+        "final_absolute_threshold_hp": 90383351.84999983,
+        "baseline_absolute_error_hp": -1.1920928955078125e-07,
+        "final_absolute_error_hp": -1.1920928955078125e-07,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 15,
+        "path": [
+          "2",
+          "shot3_attack2"
+        ],
+        "state_id": "shot3_attack2",
+        "source_percentage": 3.37558644221491,
+        "baseline_percentage": 2.98980512785837,
+        "final_percentage": 2.98980512785837,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 90383351.84999995,
+        "baseline_absolute_threshold_hp": 90383351.84999983,
+        "final_absolute_threshold_hp": 90383351.84999983,
+        "baseline_absolute_error_hp": -1.1920928955078125e-07,
+        "final_absolute_error_hp": -1.1920928955078125e-07,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 16,
+        "path": [
+          "2",
+          "shot3_end1"
+        ],
+        "state_id": "shot3_end1",
+        "source_percentage": 3.37558644221491,
+        "baseline_percentage": 2.98980512785837,
+        "final_percentage": 2.98980512785837,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 90383351.84999995,
+        "baseline_absolute_threshold_hp": 90383351.84999983,
+        "final_absolute_threshold_hp": 90383351.84999983,
+        "baseline_absolute_error_hp": -1.1920928955078125e-07,
+        "final_absolute_error_hp": -1.1920928955078125e-07,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 17,
+        "path": [
+          "2",
+          "neutral33"
+        ],
+        "state_id": "neutral33",
+        "source_percentage": 3.37558644221491,
+        "baseline_percentage": 2.98980512785837,
+        "final_percentage": 2.98980512785837,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 90383351.84999995,
+        "baseline_absolute_threshold_hp": 90383351.84999983,
+        "final_absolute_threshold_hp": 90383351.84999983,
+        "baseline_absolute_error_hp": -1.1920928955078125e-07,
+        "final_absolute_error_hp": -1.1920928955078125e-07,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 18,
+        "path": [
+          "2",
+          "target_start5"
+        ],
+        "state_id": "target_start5",
+        "source_percentage": 3.37558644221491,
+        "baseline_percentage": 2.98980512785837,
+        "final_percentage": 2.98980512785837,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 90383351.84999995,
+        "baseline_absolute_threshold_hp": 90383351.84999983,
+        "final_absolute_threshold_hp": 90383351.84999983,
+        "baseline_absolute_error_hp": -1.1920928955078125e-07,
+        "final_absolute_error_hp": -1.1920928955078125e-07,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 19,
+        "path": [
+          "2",
+          "target_charge5"
+        ],
+        "state_id": "target_charge5",
+        "source_percentage": 3.37558644221491,
+        "baseline_percentage": 2.98980512785837,
+        "final_percentage": 2.98980512785837,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 90383351.84999995,
+        "baseline_absolute_threshold_hp": 90383351.84999983,
+        "final_absolute_threshold_hp": 90383351.84999983,
+        "baseline_absolute_error_hp": -1.1920928955078125e-07,
+        "final_absolute_error_hp": -1.1920928955078125e-07,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 20,
+        "path": [
+          "2",
+          "target_fire5"
+        ],
+        "state_id": "target_fire5",
+        "source_percentage": 3.37558644221491,
+        "baseline_percentage": 2.98980512785837,
+        "final_percentage": 2.98980512785837,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 90383351.84999995,
+        "baseline_absolute_threshold_hp": 90383351.84999983,
+        "final_absolute_threshold_hp": 90383351.84999983,
+        "baseline_absolute_error_hp": -1.1920928955078125e-07,
+        "final_absolute_error_hp": -1.1920928955078125e-07,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 21,
+        "path": [
+          "2",
+          "neutral29"
+        ],
+        "state_id": "neutral29",
+        "source_percentage": 3.37558644221491,
+        "baseline_percentage": 2.98980512785837,
+        "final_percentage": 2.98980512785837,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 90383351.84999995,
+        "baseline_absolute_threshold_hp": 90383351.84999983,
+        "final_absolute_threshold_hp": 90383351.84999983,
+        "baseline_absolute_error_hp": -1.1920928955078125e-07,
+        "final_absolute_error_hp": -1.1920928955078125e-07,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 22,
+        "path": [
+          "2",
+          "beam_start4"
+        ],
+        "state_id": "beam_start4",
+        "source_percentage": 3.37558644221491,
+        "baseline_percentage": 2.98980512785837,
+        "final_percentage": 2.98980512785837,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 90383351.84999995,
+        "baseline_absolute_threshold_hp": 90383351.84999983,
+        "final_absolute_threshold_hp": 90383351.84999983,
+        "baseline_absolute_error_hp": -1.1920928955078125e-07,
+        "final_absolute_error_hp": -1.1920928955078125e-07,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 23,
+        "path": [
+          "2",
+          "beam_charge4"
+        ],
+        "state_id": "beam_charge4",
+        "source_percentage": 3.37558644221491,
+        "baseline_percentage": 2.98980512785837,
+        "final_percentage": 2.98980512785837,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 90383351.84999995,
+        "baseline_absolute_threshold_hp": 90383351.84999983,
+        "final_absolute_threshold_hp": 90383351.84999983,
+        "baseline_absolute_error_hp": -1.1920928955078125e-07,
+        "final_absolute_error_hp": -1.1920928955078125e-07,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 24,
+        "path": [
+          "2",
+          "beam_attack4"
+        ],
+        "state_id": "beam_attack4",
+        "source_percentage": 3.37558644221491,
+        "baseline_percentage": 2.98980512785837,
+        "final_percentage": 2.98980512785837,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 90383351.84999995,
+        "baseline_absolute_threshold_hp": 90383351.84999983,
+        "final_absolute_threshold_hp": 90383351.84999983,
+        "baseline_absolute_error_hp": -1.1920928955078125e-07,
+        "final_absolute_error_hp": -1.1920928955078125e-07,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 25,
+        "path": [
+          "2",
+          "beam_fire_loop"
+        ],
+        "state_id": "beam_attack4",
+        "source_percentage": 3.37558644221491,
+        "baseline_percentage": 2.98980512785837,
+        "final_percentage": 2.98980512785837,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 90383351.84999995,
+        "baseline_absolute_threshold_hp": 90383351.84999983,
+        "final_absolute_threshold_hp": 90383351.84999983,
+        "baseline_absolute_error_hp": -1.1920928955078125e-07,
+        "final_absolute_error_hp": -1.1920928955078125e-07,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 26,
+        "path": [
+          "2",
+          "beam_end4"
+        ],
+        "state_id": "beam_end4",
+        "source_percentage": 3.37558644221491,
+        "baseline_percentage": 2.98980512785837,
+        "final_percentage": 2.98980512785837,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 90383351.84999995,
+        "baseline_absolute_threshold_hp": 90383351.84999983,
+        "final_absolute_threshold_hp": 90383351.84999983,
+        "baseline_absolute_error_hp": -1.1920928955078125e-07,
+        "final_absolute_error_hp": -1.1920928955078125e-07,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 27,
+        "path": [
+          "2",
+          "neutral288"
+        ],
+        "state_id": "neutral288",
+        "source_percentage": 3.37558644221491,
+        "baseline_percentage": 2.98980512785837,
+        "final_percentage": 2.98980512785837,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 90383351.84999995,
+        "baseline_absolute_threshold_hp": 90383351.84999983,
+        "final_absolute_threshold_hp": 90383351.84999983,
+        "baseline_absolute_error_hp": -1.1920928955078125e-07,
+        "final_absolute_error_hp": -1.1920928955078125e-07,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 28,
+        "path": [
+          "2",
+          "funnel_start2"
+        ],
+        "state_id": "funnel_start2",
+        "source_percentage": 3.37558644221491,
+        "baseline_percentage": 2.98980512785837,
+        "final_percentage": 2.98980512785837,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 90383351.84999995,
+        "baseline_absolute_threshold_hp": 90383351.84999983,
+        "final_absolute_threshold_hp": 90383351.84999983,
+        "baseline_absolute_error_hp": -1.1920928955078125e-07,
+        "final_absolute_error_hp": -1.1920928955078125e-07,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 29,
+        "path": [
+          "2",
+          "funnel_fire2"
+        ],
+        "state_id": "funnel_fire2",
+        "source_percentage": 3.37558644221491,
+        "baseline_percentage": 2.98980512785837,
+        "final_percentage": 2.98980512785837,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 90383351.84999995,
+        "baseline_absolute_threshold_hp": 90383351.84999983,
+        "final_absolute_threshold_hp": 90383351.84999983,
+        "baseline_absolute_error_hp": -1.1920928955078125e-07,
+        "final_absolute_error_hp": -1.1920928955078125e-07,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 30,
+        "path": [
+          "2",
+          "funnel_end2"
+        ],
+        "state_id": "funnel_end2",
+        "source_percentage": 3.37558644221491,
+        "baseline_percentage": 2.98980512785837,
+        "final_percentage": 2.98980512785837,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 90383351.84999995,
+        "baseline_absolute_threshold_hp": 90383351.84999983,
+        "final_absolute_threshold_hp": 90383351.84999983,
+        "baseline_absolute_error_hp": -1.1920928955078125e-07,
+        "final_absolute_error_hp": -1.1920928955078125e-07,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 31,
+        "path": [
+          "2",
+          "neutral28"
+        ],
+        "state_id": "neutral28",
+        "source_percentage": 3.37558644221491,
+        "baseline_percentage": 2.98980512785837,
+        "final_percentage": 2.98980512785837,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 90383351.84999995,
+        "baseline_absolute_threshold_hp": 90383351.84999983,
+        "final_absolute_threshold_hp": 90383351.84999983,
+        "baseline_absolute_error_hp": -1.1920928955078125e-07,
+        "final_absolute_error_hp": -1.1920928955078125e-07,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 32,
+        "path": [
+          "2",
+          "right_target_ready1"
+        ],
+        "state_id": "right_target_ready1",
+        "source_percentage": 3.37558644221491,
+        "baseline_percentage": 2.98980512785837,
+        "final_percentage": 2.98980512785837,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 90383351.84999995,
+        "baseline_absolute_threshold_hp": 90383351.84999983,
+        "final_absolute_threshold_hp": 90383351.84999983,
+        "baseline_absolute_error_hp": -1.1920928955078125e-07,
+        "final_absolute_error_hp": -1.1920928955078125e-07,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 33,
+        "path": [
+          "2",
+          "right_target_charge1"
+        ],
+        "state_id": "right_target_charge1",
+        "source_percentage": 3.37558644221491,
+        "baseline_percentage": 2.98980512785837,
+        "final_percentage": 2.98980512785837,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 90383351.84999995,
+        "baseline_absolute_threshold_hp": 90383351.84999983,
+        "final_absolute_threshold_hp": 90383351.84999983,
+        "baseline_absolute_error_hp": -1.1920928955078125e-07,
+        "final_absolute_error_hp": -1.1920928955078125e-07,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 34,
+        "path": [
+          "2",
+          "right_target_attack1"
+        ],
+        "state_id": "right_target_attack1",
+        "source_percentage": 3.37558644221491,
+        "baseline_percentage": 2.98980512785837,
+        "final_percentage": 2.98980512785837,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 90383351.84999995,
+        "baseline_absolute_threshold_hp": 90383351.84999983,
+        "final_absolute_threshold_hp": 90383351.84999983,
+        "baseline_absolute_error_hp": -1.1920928955078125e-07,
+        "final_absolute_error_hp": -1.1920928955078125e-07,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 35,
+        "path": [
+          "2",
+          "neutral401"
+        ],
+        "state_id": "neutral401",
+        "source_percentage": 3.37558644221491,
+        "baseline_percentage": 2.98980512785837,
+        "final_percentage": 2.98980512785837,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 90383351.84999995,
+        "baseline_absolute_threshold_hp": 90383351.84999983,
+        "final_absolute_threshold_hp": 90383351.84999983,
+        "baseline_absolute_error_hp": -1.1920928955078125e-07,
+        "final_absolute_error_hp": -1.1920928955078125e-07,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 36,
+        "path": [
+          "2",
+          "nearbeam_start2"
+        ],
+        "state_id": "nearbeam_start2",
+        "source_percentage": 3.37558644221491,
+        "baseline_percentage": 2.98980512785837,
+        "final_percentage": 2.98980512785837,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 90383351.84999995,
+        "baseline_absolute_threshold_hp": 90383351.84999983,
+        "final_absolute_threshold_hp": 90383351.84999983,
+        "baseline_absolute_error_hp": -1.1920928955078125e-07,
+        "final_absolute_error_hp": -1.1920928955078125e-07,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 37,
+        "path": [
+          "2",
+          "nearbeam_charge2"
+        ],
+        "state_id": "nearbeam_charge2",
+        "source_percentage": 3.37558644221491,
+        "baseline_percentage": 2.98980512785837,
+        "final_percentage": 2.98980512785837,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 90383351.84999995,
+        "baseline_absolute_threshold_hp": 90383351.84999983,
+        "final_absolute_threshold_hp": 90383351.84999983,
+        "baseline_absolute_error_hp": -1.1920928955078125e-07,
+        "final_absolute_error_hp": -1.1920928955078125e-07,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 38,
+        "path": [
+          "2",
+          "nearbeam_fire2"
+        ],
+        "state_id": "nearbeam_fire2",
+        "source_percentage": 3.37558644221491,
+        "baseline_percentage": 2.98980512785837,
+        "final_percentage": 2.98980512785837,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 90383351.84999995,
+        "baseline_absolute_threshold_hp": 90383351.84999983,
+        "final_absolute_threshold_hp": 90383351.84999983,
+        "baseline_absolute_error_hp": -1.1920928955078125e-07,
+        "final_absolute_error_hp": -1.1920928955078125e-07,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 39,
+        "path": [
+          "2",
+          "nearbeam_loop2"
+        ],
+        "state_id": "nearbeam_fire2",
+        "source_percentage": 3.37558644221491,
+        "baseline_percentage": 2.98980512785837,
+        "final_percentage": 2.98980512785837,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 90383351.84999995,
+        "baseline_absolute_threshold_hp": 90383351.84999983,
+        "final_absolute_threshold_hp": 90383351.84999983,
+        "baseline_absolute_error_hp": -1.1920928955078125e-07,
+        "final_absolute_error_hp": -1.1920928955078125e-07,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 40,
+        "path": [
+          "2",
+          "nearbeam_end2"
+        ],
+        "state_id": "nearbeam_end2",
+        "source_percentage": 3.37558644221491,
+        "baseline_percentage": 2.98980512785837,
+        "final_percentage": 2.98980512785837,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 90383351.84999995,
+        "baseline_absolute_threshold_hp": 90383351.84999983,
+        "final_absolute_threshold_hp": 90383351.84999983,
+        "baseline_absolute_error_hp": -1.1920928955078125e-07,
+        "final_absolute_error_hp": -1.1920928955078125e-07,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 41,
+        "path": [
+          "2",
+          "neutral402"
+        ],
+        "state_id": "neutral402",
+        "source_percentage": 3.37558644221491,
+        "baseline_percentage": 2.98980512785837,
+        "final_percentage": 2.98980512785837,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 90383351.84999995,
+        "baseline_absolute_threshold_hp": 90383351.84999983,
+        "final_absolute_threshold_hp": 90383351.84999983,
+        "baseline_absolute_error_hp": -1.1920928955078125e-07,
+        "final_absolute_error_hp": -1.1920928955078125e-07,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 42,
+        "path": [
+          "2",
+          "shot3_start3"
+        ],
+        "state_id": "shot3_start3",
+        "source_percentage": 3.37558644221491,
+        "baseline_percentage": 2.98980512785837,
+        "final_percentage": 2.98980512785837,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 90383351.84999995,
+        "baseline_absolute_threshold_hp": 90383351.84999983,
+        "final_absolute_threshold_hp": 90383351.84999983,
+        "baseline_absolute_error_hp": -1.1920928955078125e-07,
+        "final_absolute_error_hp": -1.1920928955078125e-07,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 43,
+        "path": [
+          "2",
+          "shot3_charge3"
+        ],
+        "state_id": "shot3_charge3",
+        "source_percentage": 3.37558644221491,
+        "baseline_percentage": 2.98980512785837,
+        "final_percentage": 2.98980512785837,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 90383351.84999995,
+        "baseline_absolute_threshold_hp": 90383351.84999983,
+        "final_absolute_threshold_hp": 90383351.84999983,
+        "baseline_absolute_error_hp": -1.1920928955078125e-07,
+        "final_absolute_error_hp": -1.1920928955078125e-07,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 44,
+        "path": [
+          "2",
+          "shot3_attack3"
+        ],
+        "state_id": "shot3_attack3",
+        "source_percentage": 3.37558644221491,
+        "baseline_percentage": 2.98980512785837,
+        "final_percentage": 2.98980512785837,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 90383351.84999995,
+        "baseline_absolute_threshold_hp": 90383351.84999983,
+        "final_absolute_threshold_hp": 90383351.84999983,
+        "baseline_absolute_error_hp": -1.1920928955078125e-07,
+        "final_absolute_error_hp": -1.1920928955078125e-07,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 45,
+        "path": [
+          "2",
+          "shot3_charge4"
+        ],
+        "state_id": "shot3_charge4",
+        "source_percentage": 3.37558644221491,
+        "baseline_percentage": 2.98980512785837,
+        "final_percentage": 2.98980512785837,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 90383351.84999995,
+        "baseline_absolute_threshold_hp": 90383351.84999983,
+        "final_absolute_threshold_hp": 90383351.84999983,
+        "baseline_absolute_error_hp": -1.1920928955078125e-07,
+        "final_absolute_error_hp": -1.1920928955078125e-07,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 46,
+        "path": [
+          "2",
+          "shot3_attack4"
+        ],
+        "state_id": "shot3_attack4",
+        "source_percentage": 3.37558644221491,
+        "baseline_percentage": 2.98980512785837,
+        "final_percentage": 2.98980512785837,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 90383351.84999995,
+        "baseline_absolute_threshold_hp": 90383351.84999983,
+        "final_absolute_threshold_hp": 90383351.84999983,
+        "baseline_absolute_error_hp": -1.1920928955078125e-07,
+        "final_absolute_error_hp": -1.1920928955078125e-07,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 47,
+        "path": [
+          "2",
+          "shot3_end3"
+        ],
+        "state_id": "shot3_end3",
+        "source_percentage": 3.37558644221491,
+        "baseline_percentage": 2.98980512785837,
+        "final_percentage": 2.98980512785837,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 90383351.84999995,
+        "baseline_absolute_threshold_hp": 90383351.84999983,
+        "final_absolute_threshold_hp": 90383351.84999983,
+        "baseline_absolute_error_hp": -1.1920928955078125e-07,
+        "final_absolute_error_hp": -1.1920928955078125e-07,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 48,
+        "path": [
+          "2",
+          "neutral333"
+        ],
+        "state_id": "neutral333",
+        "source_percentage": 3.37558644221491,
+        "baseline_percentage": 2.98980512785837,
+        "final_percentage": 2.98980512785837,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 90383351.84999995,
+        "baseline_absolute_threshold_hp": 90383351.84999983,
+        "final_absolute_threshold_hp": 90383351.84999983,
+        "baseline_absolute_error_hp": -1.1920928955078125e-07,
+        "final_absolute_error_hp": -1.1920928955078125e-07,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 49,
+        "path": [
+          "2",
+          "target_start3"
+        ],
+        "state_id": "target_start3",
+        "source_percentage": 3.37558644221491,
+        "baseline_percentage": 2.98980512785837,
+        "final_percentage": 2.98980512785837,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 90383351.84999995,
+        "baseline_absolute_threshold_hp": 90383351.84999983,
+        "final_absolute_threshold_hp": 90383351.84999983,
+        "baseline_absolute_error_hp": -1.1920928955078125e-07,
+        "final_absolute_error_hp": -1.1920928955078125e-07,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 50,
+        "path": [
+          "2",
+          "target_charge3"
+        ],
+        "state_id": "target_charge3",
+        "source_percentage": 3.37558644221491,
+        "baseline_percentage": 2.98980512785837,
+        "final_percentage": 2.98980512785837,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 90383351.84999995,
+        "baseline_absolute_threshold_hp": 90383351.84999983,
+        "final_absolute_threshold_hp": 90383351.84999983,
+        "baseline_absolute_error_hp": -1.1920928955078125e-07,
+        "final_absolute_error_hp": -1.1920928955078125e-07,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 51,
+        "path": [
+          "2",
+          "target_fire3"
+        ],
+        "state_id": "target_fire3",
+        "source_percentage": 3.37558644221491,
+        "baseline_percentage": 2.98980512785837,
+        "final_percentage": 2.98980512785837,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 90383351.84999995,
+        "baseline_absolute_threshold_hp": 90383351.84999983,
+        "final_absolute_threshold_hp": 90383351.84999983,
+        "baseline_absolute_error_hp": -1.1920928955078125e-07,
+        "final_absolute_error_hp": -1.1920928955078125e-07,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 52,
+        "path": [
+          "2",
+          "neutral273"
+        ],
+        "state_id": "neutral273",
+        "source_percentage": 3.37558644221491,
+        "baseline_percentage": 2.98980512785837,
+        "final_percentage": 2.98980512785837,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 90383351.84999995,
+        "baseline_absolute_threshold_hp": 90383351.84999983,
+        "final_absolute_threshold_hp": 90383351.84999983,
+        "baseline_absolute_error_hp": -1.1920928955078125e-07,
+        "final_absolute_error_hp": -1.1920928955078125e-07,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 53,
+        "path": [
+          "2",
+          "funnel_start3"
+        ],
+        "state_id": "funnel_start3",
+        "source_percentage": 3.37558644221491,
+        "baseline_percentage": 2.98980512785837,
+        "final_percentage": 2.98980512785837,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 90383351.84999995,
+        "baseline_absolute_threshold_hp": 90383351.84999983,
+        "final_absolute_threshold_hp": 90383351.84999983,
+        "baseline_absolute_error_hp": -1.1920928955078125e-07,
+        "final_absolute_error_hp": -1.1920928955078125e-07,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 54,
+        "path": [
+          "2",
+          "funnel_fire3"
+        ],
+        "state_id": "funnel_fire3",
+        "source_percentage": 3.37558644221491,
+        "baseline_percentage": 2.98980512785837,
+        "final_percentage": 2.98980512785837,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 90383351.84999995,
+        "baseline_absolute_threshold_hp": 90383351.84999983,
+        "final_absolute_threshold_hp": 90383351.84999983,
+        "baseline_absolute_error_hp": -1.1920928955078125e-07,
+        "final_absolute_error_hp": -1.1920928955078125e-07,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 55,
+        "path": [
+          "2",
+          "funnel_end3"
+        ],
+        "state_id": "funnel_end3",
+        "source_percentage": 3.37558644221491,
+        "baseline_percentage": 2.98980512785837,
+        "final_percentage": 2.98980512785837,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 90383351.84999995,
+        "baseline_absolute_threshold_hp": 90383351.84999983,
+        "final_absolute_threshold_hp": 90383351.84999983,
+        "baseline_absolute_error_hp": -1.1920928955078125e-07,
+        "final_absolute_error_hp": -1.1920928955078125e-07,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 56,
+        "path": [
+          "2",
+          "neutral338"
+        ],
+        "state_id": "neutral33",
+        "source_percentage": 3.37558644221491,
+        "baseline_percentage": 2.98980512785837,
+        "final_percentage": 2.98980512785837,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 90383351.84999995,
+        "baseline_absolute_threshold_hp": 90383351.84999983,
+        "final_absolute_threshold_hp": 90383351.84999983,
+        "baseline_absolute_error_hp": -1.1920928955078125e-07,
+        "final_absolute_error_hp": -1.1920928955078125e-07,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 57,
+        "path": [
+          "2",
+          "left_target_ready1"
+        ],
+        "state_id": "left_target_ready1",
+        "source_percentage": 3.37558644221491,
+        "baseline_percentage": 2.98980512785837,
+        "final_percentage": 2.98980512785837,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 90383351.84999995,
+        "baseline_absolute_threshold_hp": 90383351.84999983,
+        "final_absolute_threshold_hp": 90383351.84999983,
+        "baseline_absolute_error_hp": -1.1920928955078125e-07,
+        "final_absolute_error_hp": -1.1920928955078125e-07,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 58,
+        "path": [
+          "2",
+          "left_target_charge1"
+        ],
+        "state_id": "left_target_charge1",
+        "source_percentage": 3.37558644221491,
+        "baseline_percentage": 2.98980512785837,
+        "final_percentage": 2.98980512785837,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 90383351.84999995,
+        "baseline_absolute_threshold_hp": 90383351.84999983,
+        "final_absolute_threshold_hp": 90383351.84999983,
+        "baseline_absolute_error_hp": -1.1920928955078125e-07,
+        "final_absolute_error_hp": -1.1920928955078125e-07,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 59,
+        "path": [
+          "2",
+          "left_target_attack1"
+        ],
+        "state_id": "left_target_attack1",
+        "source_percentage": 3.37558644221491,
+        "baseline_percentage": 2.98980512785837,
+        "final_percentage": 2.98980512785837,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 90383351.84999995,
+        "baseline_absolute_threshold_hp": 90383351.84999983,
+        "final_absolute_threshold_hp": 90383351.84999983,
+        "baseline_absolute_error_hp": -1.1920928955078125e-07,
+        "final_absolute_error_hp": -1.1920928955078125e-07,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 60,
+        "path": [
+          "2",
+          "neutral403"
+        ],
+        "state_id": "neutral403",
+        "source_percentage": 3.37558644221491,
+        "baseline_percentage": 2.98980512785837,
+        "final_percentage": 2.98980512785837,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 90383351.84999995,
+        "baseline_absolute_threshold_hp": 90383351.84999983,
+        "final_absolute_threshold_hp": 90383351.84999983,
+        "baseline_absolute_error_hp": -1.1920928955078125e-07,
+        "final_absolute_error_hp": -1.1920928955078125e-07,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 61,
+        "path": [
+          "2",
+          "nearbeam_start3"
+        ],
+        "state_id": "nearbeam_start3",
+        "source_percentage": 3.37558644221491,
+        "baseline_percentage": 2.98980512785837,
+        "final_percentage": 2.98980512785837,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 90383351.84999995,
+        "baseline_absolute_threshold_hp": 90383351.84999983,
+        "final_absolute_threshold_hp": 90383351.84999983,
+        "baseline_absolute_error_hp": -1.1920928955078125e-07,
+        "final_absolute_error_hp": -1.1920928955078125e-07,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 62,
+        "path": [
+          "2",
+          "nearbeam_charge3"
+        ],
+        "state_id": "nearbeam_charge3",
+        "source_percentage": 3.37558644221491,
+        "baseline_percentage": 2.98980512785837,
+        "final_percentage": 2.98980512785837,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 90383351.84999995,
+        "baseline_absolute_threshold_hp": 90383351.84999983,
+        "final_absolute_threshold_hp": 90383351.84999983,
+        "baseline_absolute_error_hp": -1.1920928955078125e-07,
+        "final_absolute_error_hp": -1.1920928955078125e-07,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 63,
+        "path": [
+          "2",
+          "nearbeam_fire3"
+        ],
+        "state_id": "nearbeam_fire3",
+        "source_percentage": 3.37558644221491,
+        "baseline_percentage": 2.98980512785837,
+        "final_percentage": 2.98980512785837,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 90383351.84999995,
+        "baseline_absolute_threshold_hp": 90383351.84999983,
+        "final_absolute_threshold_hp": 90383351.84999983,
+        "baseline_absolute_error_hp": -1.1920928955078125e-07,
+        "final_absolute_error_hp": -1.1920928955078125e-07,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 64,
+        "path": [
+          "2",
+          "nearbeam_loop3"
+        ],
+        "state_id": "nearbeam_fire3",
+        "source_percentage": 3.37558644221491,
+        "baseline_percentage": 2.98980512785837,
+        "final_percentage": 2.98980512785837,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 90383351.84999995,
+        "baseline_absolute_threshold_hp": 90383351.84999983,
+        "final_absolute_threshold_hp": 90383351.84999983,
+        "baseline_absolute_error_hp": -1.1920928955078125e-07,
+        "final_absolute_error_hp": -1.1920928955078125e-07,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 65,
+        "path": [
+          "2",
+          "nearbeam_end3"
+        ],
+        "state_id": "nearbeam_end3",
+        "source_percentage": 3.37558644221491,
+        "baseline_percentage": 2.98980512785837,
+        "final_percentage": 2.98980512785837,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 90383351.84999995,
+        "baseline_absolute_threshold_hp": 90383351.84999983,
+        "final_absolute_threshold_hp": 90383351.84999983,
+        "baseline_absolute_error_hp": -1.1920928955078125e-07,
+        "final_absolute_error_hp": -1.1920928955078125e-07,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 66,
+        "path": [
+          "2",
+          "neutral404"
+        ],
+        "state_id": "neutral404",
+        "source_percentage": 3.37558644221491,
+        "baseline_percentage": 2.98980512785837,
+        "final_percentage": 2.98980512785837,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 90383351.84999995,
+        "baseline_absolute_threshold_hp": 90383351.84999983,
+        "final_absolute_threshold_hp": 90383351.84999983,
+        "baseline_absolute_error_hp": -1.1920928955078125e-07,
+        "final_absolute_error_hp": -1.1920928955078125e-07,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 67,
+        "path": [
+          "2",
+          "target_start4"
+        ],
+        "state_id": "target_start4",
+        "source_percentage": 3.37558644221491,
+        "baseline_percentage": 2.98980512785837,
+        "final_percentage": 2.98980512785837,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 90383351.84999995,
+        "baseline_absolute_threshold_hp": 90383351.84999983,
+        "final_absolute_threshold_hp": 90383351.84999983,
+        "baseline_absolute_error_hp": -1.1920928955078125e-07,
+        "final_absolute_error_hp": -1.1920928955078125e-07,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 68,
+        "path": [
+          "2",
+          "target_charge4"
+        ],
+        "state_id": "target_charge4",
+        "source_percentage": 3.37558644221491,
+        "baseline_percentage": 2.98980512785837,
+        "final_percentage": 2.98980512785837,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 90383351.84999995,
+        "baseline_absolute_threshold_hp": 90383351.84999983,
+        "final_absolute_threshold_hp": 90383351.84999983,
+        "baseline_absolute_error_hp": -1.1920928955078125e-07,
+        "final_absolute_error_hp": -1.1920928955078125e-07,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 69,
+        "path": [
+          "2",
+          "target_fire4"
+        ],
+        "state_id": "target_fire4",
+        "source_percentage": 3.37558644221491,
+        "baseline_percentage": 2.98980512785837,
+        "final_percentage": 2.98980512785837,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 90383351.84999995,
+        "baseline_absolute_threshold_hp": 90383351.84999983,
+        "final_absolute_threshold_hp": 90383351.84999983,
+        "baseline_absolute_error_hp": -1.1920928955078125e-07,
+        "final_absolute_error_hp": -1.1920928955078125e-07,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 70,
+        "path": [
+          "2",
+          "neutral274"
+        ],
+        "state_id": "neutral274",
+        "source_percentage": 3.37558644221491,
+        "baseline_percentage": 2.98980512785837,
+        "final_percentage": 2.98980512785837,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 90383351.84999995,
+        "baseline_absolute_threshold_hp": 90383351.84999983,
+        "final_absolute_threshold_hp": 90383351.84999983,
+        "baseline_absolute_error_hp": -1.1920928955078125e-07,
+        "final_absolute_error_hp": -1.1920928955078125e-07,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 71,
+        "path": [
+          "2",
+          "skill_start1"
+        ],
+        "state_id": "skill_start1",
+        "source_percentage": 3.37558644221491,
+        "baseline_percentage": 2.98980512785837,
+        "final_percentage": 2.98980512785837,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 90383351.84999995,
+        "baseline_absolute_threshold_hp": 90383351.84999983,
+        "final_absolute_threshold_hp": 90383351.84999983,
+        "baseline_absolute_error_hp": -1.1920928955078125e-07,
+        "final_absolute_error_hp": -1.1920928955078125e-07,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 72,
+        "path": [
+          "2",
+          "skill_charge1"
+        ],
+        "state_id": "skill_charge1",
+        "source_percentage": 3.37558644221491,
+        "baseline_percentage": 2.98980512785837,
+        "final_percentage": 2.98980512785837,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 90383351.84999995,
+        "baseline_absolute_threshold_hp": 90383351.84999983,
+        "final_absolute_threshold_hp": 90383351.84999983,
+        "baseline_absolute_error_hp": -1.1920928955078125e-07,
+        "final_absolute_error_hp": -1.1920928955078125e-07,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 73,
+        "path": [
+          "2",
+          "skill_fire1"
+        ],
+        "state_id": "skill_fire1",
+        "source_percentage": 3.37558644221491,
+        "baseline_percentage": 2.98980512785837,
+        "final_percentage": 2.98980512785837,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 90383351.84999995,
+        "baseline_absolute_threshold_hp": 90383351.84999983,
+        "final_absolute_threshold_hp": 90383351.84999983,
+        "baseline_absolute_error_hp": -1.1920928955078125e-07,
+        "final_absolute_error_hp": -1.1920928955078125e-07,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 74,
+        "path": [
+          "2",
+          "skill_fire1_loop"
+        ],
+        "state_id": "skill_fire1",
+        "source_percentage": 3.37558644221491,
+        "baseline_percentage": 2.98980512785837,
+        "final_percentage": 2.98980512785837,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 90383351.84999995,
+        "baseline_absolute_threshold_hp": 90383351.84999983,
+        "final_absolute_threshold_hp": 90383351.84999983,
+        "baseline_absolute_error_hp": -1.1920928955078125e-07,
+        "final_absolute_error_hp": -1.1920928955078125e-07,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 75,
+        "path": [
+          "2",
+          "skill_end1"
+        ],
+        "state_id": "skill_end1",
+        "source_percentage": 3.37558644221491,
+        "baseline_percentage": 2.98980512785837,
+        "final_percentage": 2.98980512785837,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 90383351.84999995,
+        "baseline_absolute_threshold_hp": 90383351.84999983,
+        "final_absolute_threshold_hp": 90383351.84999983,
+        "baseline_absolute_error_hp": -1.1920928955078125e-07,
+        "final_absolute_error_hp": -1.1920928955078125e-07,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 76,
+        "path": [
+          "2",
+          "neutral30"
+        ],
+        "state_id": "neutral30",
+        "source_percentage": 3.37558644221491,
+        "baseline_percentage": 2.98980512785837,
+        "final_percentage": 2.98980512785837,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 90383351.84999995,
+        "baseline_absolute_threshold_hp": 90383351.84999983,
+        "final_absolute_threshold_hp": 90383351.84999983,
+        "baseline_absolute_error_hp": -1.1920928955078125e-07,
+        "final_absolute_error_hp": -1.1920928955078125e-07,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 77,
+        "path": [
+          "2",
+          "dpscheck_attack2"
+        ],
+        "state_id": "dpscheck_attack2",
+        "source_percentage": 3.37558644221491,
+        "baseline_percentage": 2.98980512785837,
+        "final_percentage": 2.98980512785837,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 90383351.84999995,
+        "baseline_absolute_threshold_hp": 90383351.84999983,
+        "final_absolute_threshold_hp": 90383351.84999983,
+        "baseline_absolute_error_hp": -1.1920928955078125e-07,
+        "final_absolute_error_hp": -1.1920928955078125e-07,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 78,
+        "path": [
+          "3",
+          "phase3_dpscheck_attack1"
+        ],
+        "state_id": "phase3_dpscheck_attack1",
+        "source_percentage": 4.72582101910088,
+        "baseline_percentage": 4.18572717900173,
+        "final_percentage": 4.18572717900173,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 126536692.59000006,
+        "baseline_absolute_threshold_hp": 126536692.59000011,
+        "final_absolute_threshold_hp": 126536692.59000011,
+        "baseline_absolute_error_hp": 4.470348358154297e-08,
+        "final_absolute_error_hp": 4.470348358154297e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 79,
+        "path": [
+          "3",
+          "phase3_neutral21"
+        ],
+        "state_id": "phase3_neutral21",
+        "source_percentage": 4.72582101910088,
+        "baseline_percentage": 4.18572717900173,
+        "final_percentage": 4.18572717900173,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 126536692.59000006,
+        "baseline_absolute_threshold_hp": 126536692.59000011,
+        "final_absolute_threshold_hp": 126536692.59000011,
+        "baseline_absolute_error_hp": 4.470348358154297e-08,
+        "final_absolute_error_hp": 4.470348358154297e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 80,
+        "path": [
+          "3",
+          "phase3_debuff_start2"
+        ],
+        "state_id": "phase3_debuff_start2",
+        "source_percentage": 4.72582101910088,
+        "baseline_percentage": 4.18572717900173,
+        "final_percentage": 4.18572717900173,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 126536692.59000006,
+        "baseline_absolute_threshold_hp": 126536692.59000011,
+        "final_absolute_threshold_hp": 126536692.59000011,
+        "baseline_absolute_error_hp": 4.470348358154297e-08,
+        "final_absolute_error_hp": 4.470348358154297e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 81,
+        "path": [
+          "3",
+          "phase3_debuff_charge2"
+        ],
+        "state_id": "phase3_debuff_charge2",
+        "source_percentage": 4.72582101910088,
+        "baseline_percentage": 4.18572717900173,
+        "final_percentage": 4.18572717900173,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 126536692.59000006,
+        "baseline_absolute_threshold_hp": 126536692.59000011,
+        "final_absolute_threshold_hp": 126536692.59000011,
+        "baseline_absolute_error_hp": 4.470348358154297e-08,
+        "final_absolute_error_hp": 4.470348358154297e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 82,
+        "path": [
+          "3",
+          "phase3_debuff_fire2"
+        ],
+        "state_id": "phase3_debuff_fire2",
+        "source_percentage": 4.72582101910088,
+        "baseline_percentage": 4.18572717900173,
+        "final_percentage": 4.18572717900173,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 126536692.59000006,
+        "baseline_absolute_threshold_hp": 126536692.59000011,
+        "final_absolute_threshold_hp": 126536692.59000011,
+        "baseline_absolute_error_hp": 4.470348358154297e-08,
+        "final_absolute_error_hp": 4.470348358154297e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 83,
+        "path": [
+          "3",
+          "phase3_neutral200"
+        ],
+        "state_id": "phase3_neutral200",
+        "source_percentage": 4.72582101910088,
+        "baseline_percentage": 4.18572717900173,
+        "final_percentage": 4.18572717900173,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 126536692.59000006,
+        "baseline_absolute_threshold_hp": 126536692.59000011,
+        "final_absolute_threshold_hp": 126536692.59000011,
+        "baseline_absolute_error_hp": 4.470348358154297e-08,
+        "final_absolute_error_hp": 4.470348358154297e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 84,
+        "path": [
+          "3",
+          "phase3_extension_ready1"
+        ],
+        "state_id": "phase3_extension_ready1",
+        "source_percentage": 4.72582101910088,
+        "baseline_percentage": 4.18572717900173,
+        "final_percentage": 4.18572717900173,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 126536692.59000006,
+        "baseline_absolute_threshold_hp": 126536692.59000011,
+        "final_absolute_threshold_hp": 126536692.59000011,
+        "baseline_absolute_error_hp": 4.470348358154297e-08,
+        "final_absolute_error_hp": 4.470348358154297e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 85,
+        "path": [
+          "3",
+          "phase3_extension_charge1"
+        ],
+        "state_id": "phase3_extension_charge1",
+        "source_percentage": 4.72582101910088,
+        "baseline_percentage": 4.18572717900173,
+        "final_percentage": 4.18572717900173,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 126536692.59000006,
+        "baseline_absolute_threshold_hp": 126536692.59000011,
+        "final_absolute_threshold_hp": 126536692.59000011,
+        "baseline_absolute_error_hp": 4.470348358154297e-08,
+        "final_absolute_error_hp": 4.470348358154297e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 86,
+        "path": [
+          "3",
+          "phase3_extension_attack1"
+        ],
+        "state_id": "phase3_extension_attack1",
+        "source_percentage": 4.72582101910088,
+        "baseline_percentage": 4.18572717900173,
+        "final_percentage": 4.18572717900173,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 126536692.59000006,
+        "baseline_absolute_threshold_hp": 126536692.59000011,
+        "final_absolute_threshold_hp": 126536692.59000011,
+        "baseline_absolute_error_hp": 4.470348358154297e-08,
+        "final_absolute_error_hp": 4.470348358154297e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 87,
+        "path": [
+          "3",
+          "phase3_neutral295"
+        ],
+        "state_id": "phase3_neutral290",
+        "source_percentage": 4.72582101910088,
+        "baseline_percentage": 4.18572717900173,
+        "final_percentage": 4.18572717900173,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 126536692.59000006,
+        "baseline_absolute_threshold_hp": 126536692.59000011,
+        "final_absolute_threshold_hp": 126536692.59000011,
+        "baseline_absolute_error_hp": 4.470348358154297e-08,
+        "final_absolute_error_hp": 4.470348358154297e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 88,
+        "path": [
+          "3",
+          "phase3_shot3_start1"
+        ],
+        "state_id": "phase3_shot3_start1",
+        "source_percentage": 4.72582101910088,
+        "baseline_percentage": 4.18572717900173,
+        "final_percentage": 4.18572717900173,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 126536692.59000006,
+        "baseline_absolute_threshold_hp": 126536692.59000011,
+        "final_absolute_threshold_hp": 126536692.59000011,
+        "baseline_absolute_error_hp": 4.470348358154297e-08,
+        "final_absolute_error_hp": 4.470348358154297e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 89,
+        "path": [
+          "3",
+          "phase3_shot3_charge1"
+        ],
+        "state_id": "phase3_shot3_charge1",
+        "source_percentage": 4.72582101910088,
+        "baseline_percentage": 4.18572717900173,
+        "final_percentage": 4.18572717900173,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 126536692.59000006,
+        "baseline_absolute_threshold_hp": 126536692.59000011,
+        "final_absolute_threshold_hp": 126536692.59000011,
+        "baseline_absolute_error_hp": 4.470348358154297e-08,
+        "final_absolute_error_hp": 4.470348358154297e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 90,
+        "path": [
+          "3",
+          "phase3_shot3_attack1"
+        ],
+        "state_id": "phase3_shot3_attack1",
+        "source_percentage": 4.72582101910088,
+        "baseline_percentage": 4.18572717900173,
+        "final_percentage": 4.18572717900173,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 126536692.59000006,
+        "baseline_absolute_threshold_hp": 126536692.59000011,
+        "final_absolute_threshold_hp": 126536692.59000011,
+        "baseline_absolute_error_hp": 4.470348358154297e-08,
+        "final_absolute_error_hp": 4.470348358154297e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 91,
+        "path": [
+          "3",
+          "phase3_shot3_charge2"
+        ],
+        "state_id": "phase3_shot3_charge2",
+        "source_percentage": 4.72582101910088,
+        "baseline_percentage": 4.18572717900173,
+        "final_percentage": 4.18572717900173,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 126536692.59000006,
+        "baseline_absolute_threshold_hp": 126536692.59000011,
+        "final_absolute_threshold_hp": 126536692.59000011,
+        "baseline_absolute_error_hp": 4.470348358154297e-08,
+        "final_absolute_error_hp": 4.470348358154297e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 92,
+        "path": [
+          "3",
+          "phase3_shot3_attack2"
+        ],
+        "state_id": "phase3_shot3_attack2",
+        "source_percentage": 4.72582101910088,
+        "baseline_percentage": 4.18572717900173,
+        "final_percentage": 4.18572717900173,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 126536692.59000006,
+        "baseline_absolute_threshold_hp": 126536692.59000011,
+        "final_absolute_threshold_hp": 126536692.59000011,
+        "baseline_absolute_error_hp": 4.470348358154297e-08,
+        "final_absolute_error_hp": 4.470348358154297e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 93,
+        "path": [
+          "3",
+          "phase3_shot3_end1"
+        ],
+        "state_id": "phase3_shot3_end1",
+        "source_percentage": 4.72582101910088,
+        "baseline_percentage": 4.18572717900173,
+        "final_percentage": 4.18572717900173,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 126536692.59000006,
+        "baseline_absolute_threshold_hp": 126536692.59000011,
+        "final_absolute_threshold_hp": 126536692.59000011,
+        "baseline_absolute_error_hp": 4.470348358154297e-08,
+        "final_absolute_error_hp": 4.470348358154297e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 94,
+        "path": [
+          "3",
+          "phase3_neutral33"
+        ],
+        "state_id": "phase3_neutral33",
+        "source_percentage": 4.72582101910088,
+        "baseline_percentage": 4.18572717900173,
+        "final_percentage": 4.18572717900173,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 126536692.59000006,
+        "baseline_absolute_threshold_hp": 126536692.59000011,
+        "final_absolute_threshold_hp": 126536692.59000011,
+        "baseline_absolute_error_hp": 4.470348358154297e-08,
+        "final_absolute_error_hp": 4.470348358154297e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 95,
+        "path": [
+          "3",
+          "phase3_target_start5"
+        ],
+        "state_id": "phase3_target_start5",
+        "source_percentage": 4.72582101910088,
+        "baseline_percentage": 4.18572717900173,
+        "final_percentage": 4.18572717900173,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 126536692.59000006,
+        "baseline_absolute_threshold_hp": 126536692.59000011,
+        "final_absolute_threshold_hp": 126536692.59000011,
+        "baseline_absolute_error_hp": 4.470348358154297e-08,
+        "final_absolute_error_hp": 4.470348358154297e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 96,
+        "path": [
+          "3",
+          "phase3_target_charge5"
+        ],
+        "state_id": "phase3_target_charge5",
+        "source_percentage": 4.72582101910088,
+        "baseline_percentage": 4.18572717900173,
+        "final_percentage": 4.18572717900173,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 126536692.59000006,
+        "baseline_absolute_threshold_hp": 126536692.59000011,
+        "final_absolute_threshold_hp": 126536692.59000011,
+        "baseline_absolute_error_hp": 4.470348358154297e-08,
+        "final_absolute_error_hp": 4.470348358154297e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 97,
+        "path": [
+          "3",
+          "phase3_target_fire5"
+        ],
+        "state_id": "phase3_target_fire5",
+        "source_percentage": 4.72582101910088,
+        "baseline_percentage": 4.18572717900173,
+        "final_percentage": 4.18572717900173,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 126536692.59000006,
+        "baseline_absolute_threshold_hp": 126536692.59000011,
+        "final_absolute_threshold_hp": 126536692.59000011,
+        "baseline_absolute_error_hp": 4.470348358154297e-08,
+        "final_absolute_error_hp": 4.470348358154297e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 98,
+        "path": [
+          "3",
+          "phase3_neutral29"
+        ],
+        "state_id": "phase3_neutral29",
+        "source_percentage": 4.72582101910088,
+        "baseline_percentage": 4.18572717900173,
+        "final_percentage": 4.18572717900173,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 126536692.59000006,
+        "baseline_absolute_threshold_hp": 126536692.59000011,
+        "final_absolute_threshold_hp": 126536692.59000011,
+        "baseline_absolute_error_hp": 4.470348358154297e-08,
+        "final_absolute_error_hp": 4.470348358154297e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 99,
+        "path": [
+          "3",
+          "phase3_beam_start4"
+        ],
+        "state_id": "phase3_beam_start4",
+        "source_percentage": 4.72582101910088,
+        "baseline_percentage": 4.18572717900173,
+        "final_percentage": 4.18572717900173,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 126536692.59000006,
+        "baseline_absolute_threshold_hp": 126536692.59000011,
+        "final_absolute_threshold_hp": 126536692.59000011,
+        "baseline_absolute_error_hp": 4.470348358154297e-08,
+        "final_absolute_error_hp": 4.470348358154297e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 100,
+        "path": [
+          "3",
+          "phase3_beam_charge4"
+        ],
+        "state_id": "phase3_beam_charge4",
+        "source_percentage": 4.72582101910088,
+        "baseline_percentage": 4.18572717900173,
+        "final_percentage": 4.18572717900173,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 126536692.59000006,
+        "baseline_absolute_threshold_hp": 126536692.59000011,
+        "final_absolute_threshold_hp": 126536692.59000011,
+        "baseline_absolute_error_hp": 4.470348358154297e-08,
+        "final_absolute_error_hp": 4.470348358154297e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 101,
+        "path": [
+          "3",
+          "phase3_beam_attack4"
+        ],
+        "state_id": "phase3_beam_attack4",
+        "source_percentage": 4.72582101910088,
+        "baseline_percentage": 4.18572717900173,
+        "final_percentage": 4.18572717900173,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 126536692.59000006,
+        "baseline_absolute_threshold_hp": 126536692.59000011,
+        "final_absolute_threshold_hp": 126536692.59000011,
+        "baseline_absolute_error_hp": 4.470348358154297e-08,
+        "final_absolute_error_hp": 4.470348358154297e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 102,
+        "path": [
+          "3",
+          "phase3_beam_fire_loop"
+        ],
+        "state_id": "phase3_beam_attack4",
+        "source_percentage": 4.72582101910088,
+        "baseline_percentage": 4.18572717900173,
+        "final_percentage": 4.18572717900173,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 126536692.59000006,
+        "baseline_absolute_threshold_hp": 126536692.59000011,
+        "final_absolute_threshold_hp": 126536692.59000011,
+        "baseline_absolute_error_hp": 4.470348358154297e-08,
+        "final_absolute_error_hp": 4.470348358154297e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 103,
+        "path": [
+          "3",
+          "phase3_beam_end4"
+        ],
+        "state_id": "phase3_beam_end4",
+        "source_percentage": 4.72582101910088,
+        "baseline_percentage": 4.18572717900173,
+        "final_percentage": 4.18572717900173,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 126536692.59000006,
+        "baseline_absolute_threshold_hp": 126536692.59000011,
+        "final_absolute_threshold_hp": 126536692.59000011,
+        "baseline_absolute_error_hp": 4.470348358154297e-08,
+        "final_absolute_error_hp": 4.470348358154297e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 104,
+        "path": [
+          "3",
+          "phase3_neutral288"
+        ],
+        "state_id": "phase3_neutral288",
+        "source_percentage": 4.72582101910088,
+        "baseline_percentage": 4.18572717900173,
+        "final_percentage": 4.18572717900173,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 126536692.59000006,
+        "baseline_absolute_threshold_hp": 126536692.59000011,
+        "final_absolute_threshold_hp": 126536692.59000011,
+        "baseline_absolute_error_hp": 4.470348358154297e-08,
+        "final_absolute_error_hp": 4.470348358154297e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 105,
+        "path": [
+          "3",
+          "phase3_funnel_start2"
+        ],
+        "state_id": "phase3_funnel_start2",
+        "source_percentage": 4.72582101910088,
+        "baseline_percentage": 4.18572717900173,
+        "final_percentage": 4.18572717900173,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 126536692.59000006,
+        "baseline_absolute_threshold_hp": 126536692.59000011,
+        "final_absolute_threshold_hp": 126536692.59000011,
+        "baseline_absolute_error_hp": 4.470348358154297e-08,
+        "final_absolute_error_hp": 4.470348358154297e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 106,
+        "path": [
+          "3",
+          "phase3_funnel_fire2"
+        ],
+        "state_id": "phase3_funnel_fire2",
+        "source_percentage": 4.72582101910088,
+        "baseline_percentage": 4.18572717900173,
+        "final_percentage": 4.18572717900173,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 126536692.59000006,
+        "baseline_absolute_threshold_hp": 126536692.59000011,
+        "final_absolute_threshold_hp": 126536692.59000011,
+        "baseline_absolute_error_hp": 4.470348358154297e-08,
+        "final_absolute_error_hp": 4.470348358154297e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 107,
+        "path": [
+          "3",
+          "phase3_funnel_end2"
+        ],
+        "state_id": "phase3_funnel_end2",
+        "source_percentage": 4.72582101910088,
+        "baseline_percentage": 4.18572717900173,
+        "final_percentage": 4.18572717900173,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 126536692.59000006,
+        "baseline_absolute_threshold_hp": 126536692.59000011,
+        "final_absolute_threshold_hp": 126536692.59000011,
+        "baseline_absolute_error_hp": 4.470348358154297e-08,
+        "final_absolute_error_hp": 4.470348358154297e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 108,
+        "path": [
+          "3",
+          "phase3_neutral28"
+        ],
+        "state_id": "phase3_neutral28",
+        "source_percentage": 4.72582101910088,
+        "baseline_percentage": 4.18572717900173,
+        "final_percentage": 4.18572717900173,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 126536692.59000006,
+        "baseline_absolute_threshold_hp": 126536692.59000011,
+        "final_absolute_threshold_hp": 126536692.59000011,
+        "baseline_absolute_error_hp": 4.470348358154297e-08,
+        "final_absolute_error_hp": 4.470348358154297e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 109,
+        "path": [
+          "3",
+          "phase3_right_target_ready1"
+        ],
+        "state_id": "phase3_right_target_ready1",
+        "source_percentage": 4.72582101910088,
+        "baseline_percentage": 4.18572717900173,
+        "final_percentage": 4.18572717900173,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 126536692.59000006,
+        "baseline_absolute_threshold_hp": 126536692.59000011,
+        "final_absolute_threshold_hp": 126536692.59000011,
+        "baseline_absolute_error_hp": 4.470348358154297e-08,
+        "final_absolute_error_hp": 4.470348358154297e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 110,
+        "path": [
+          "3",
+          "phase3_right_target_charge1"
+        ],
+        "state_id": "phase3_right_target_charge1",
+        "source_percentage": 4.72582101910088,
+        "baseline_percentage": 4.18572717900173,
+        "final_percentage": 4.18572717900173,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 126536692.59000006,
+        "baseline_absolute_threshold_hp": 126536692.59000011,
+        "final_absolute_threshold_hp": 126536692.59000011,
+        "baseline_absolute_error_hp": 4.470348358154297e-08,
+        "final_absolute_error_hp": 4.470348358154297e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 111,
+        "path": [
+          "3",
+          "phase3_right_target_attack1"
+        ],
+        "state_id": "phase3_right_target_attack1",
+        "source_percentage": 4.72582101910088,
+        "baseline_percentage": 4.18572717900173,
+        "final_percentage": 4.18572717900173,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 126536692.59000006,
+        "baseline_absolute_threshold_hp": 126536692.59000011,
+        "final_absolute_threshold_hp": 126536692.59000011,
+        "baseline_absolute_error_hp": 4.470348358154297e-08,
+        "final_absolute_error_hp": 4.470348358154297e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 112,
+        "path": [
+          "3",
+          "phase3_neutral401"
+        ],
+        "state_id": "phase3_neutral401",
+        "source_percentage": 4.72582101910088,
+        "baseline_percentage": 4.18572717900173,
+        "final_percentage": 4.18572717900173,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 126536692.59000006,
+        "baseline_absolute_threshold_hp": 126536692.59000011,
+        "final_absolute_threshold_hp": 126536692.59000011,
+        "baseline_absolute_error_hp": 4.470348358154297e-08,
+        "final_absolute_error_hp": 4.470348358154297e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 113,
+        "path": [
+          "3",
+          "phase3_nearbeam_start2"
+        ],
+        "state_id": "phase3_nearbeam_start2",
+        "source_percentage": 4.72582101910088,
+        "baseline_percentage": 4.18572717900173,
+        "final_percentage": 4.18572717900173,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 126536692.59000006,
+        "baseline_absolute_threshold_hp": 126536692.59000011,
+        "final_absolute_threshold_hp": 126536692.59000011,
+        "baseline_absolute_error_hp": 4.470348358154297e-08,
+        "final_absolute_error_hp": 4.470348358154297e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 114,
+        "path": [
+          "3",
+          "phase3_nearbeam_charge2"
+        ],
+        "state_id": "phase3_nearbeam_charge2",
+        "source_percentage": 4.72582101910088,
+        "baseline_percentage": 4.18572717900173,
+        "final_percentage": 4.18572717900173,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 126536692.59000006,
+        "baseline_absolute_threshold_hp": 126536692.59000011,
+        "final_absolute_threshold_hp": 126536692.59000011,
+        "baseline_absolute_error_hp": 4.470348358154297e-08,
+        "final_absolute_error_hp": 4.470348358154297e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 115,
+        "path": [
+          "3",
+          "phase3_nearbeam_fire2"
+        ],
+        "state_id": "phase3_nearbeam_fire2",
+        "source_percentage": 4.72582101910088,
+        "baseline_percentage": 4.18572717900173,
+        "final_percentage": 4.18572717900173,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 126536692.59000006,
+        "baseline_absolute_threshold_hp": 126536692.59000011,
+        "final_absolute_threshold_hp": 126536692.59000011,
+        "baseline_absolute_error_hp": 4.470348358154297e-08,
+        "final_absolute_error_hp": 4.470348358154297e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 116,
+        "path": [
+          "3",
+          "phase3_nearbeam_loop2"
+        ],
+        "state_id": "phase3_nearbeam_fire2",
+        "source_percentage": 4.72582101910088,
+        "baseline_percentage": 4.18572717900173,
+        "final_percentage": 4.18572717900173,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 126536692.59000006,
+        "baseline_absolute_threshold_hp": 126536692.59000011,
+        "final_absolute_threshold_hp": 126536692.59000011,
+        "baseline_absolute_error_hp": 4.470348358154297e-08,
+        "final_absolute_error_hp": 4.470348358154297e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 117,
+        "path": [
+          "3",
+          "phase3_nearbeam_end2"
+        ],
+        "state_id": "phase3_nearbeam_end2",
+        "source_percentage": 4.72582101910088,
+        "baseline_percentage": 4.18572717900173,
+        "final_percentage": 4.18572717900173,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 126536692.59000006,
+        "baseline_absolute_threshold_hp": 126536692.59000011,
+        "final_absolute_threshold_hp": 126536692.59000011,
+        "baseline_absolute_error_hp": 4.470348358154297e-08,
+        "final_absolute_error_hp": 4.470348358154297e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 118,
+        "path": [
+          "3",
+          "phase3_neutral402"
+        ],
+        "state_id": "phase3_neutral402",
+        "source_percentage": 4.72582101910088,
+        "baseline_percentage": 4.18572717900173,
+        "final_percentage": 4.18572717900173,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 126536692.59000006,
+        "baseline_absolute_threshold_hp": 126536692.59000011,
+        "final_absolute_threshold_hp": 126536692.59000011,
+        "baseline_absolute_error_hp": 4.470348358154297e-08,
+        "final_absolute_error_hp": 4.470348358154297e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 119,
+        "path": [
+          "3",
+          "phase3_shot3_start3"
+        ],
+        "state_id": "phase3_shot3_start3",
+        "source_percentage": 4.72582101910088,
+        "baseline_percentage": 4.18572717900173,
+        "final_percentage": 4.18572717900173,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 126536692.59000006,
+        "baseline_absolute_threshold_hp": 126536692.59000011,
+        "final_absolute_threshold_hp": 126536692.59000011,
+        "baseline_absolute_error_hp": 4.470348358154297e-08,
+        "final_absolute_error_hp": 4.470348358154297e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 120,
+        "path": [
+          "3",
+          "phase3_shot3_charge3"
+        ],
+        "state_id": "phase3_shot3_charge3",
+        "source_percentage": 4.72582101910088,
+        "baseline_percentage": 4.18572717900173,
+        "final_percentage": 4.18572717900173,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 126536692.59000006,
+        "baseline_absolute_threshold_hp": 126536692.59000011,
+        "final_absolute_threshold_hp": 126536692.59000011,
+        "baseline_absolute_error_hp": 4.470348358154297e-08,
+        "final_absolute_error_hp": 4.470348358154297e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 121,
+        "path": [
+          "3",
+          "phase3_shot3_attack3"
+        ],
+        "state_id": "phase3_shot3_attack3",
+        "source_percentage": 4.72582101910088,
+        "baseline_percentage": 4.18572717900173,
+        "final_percentage": 4.18572717900173,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 126536692.59000006,
+        "baseline_absolute_threshold_hp": 126536692.59000011,
+        "final_absolute_threshold_hp": 126536692.59000011,
+        "baseline_absolute_error_hp": 4.470348358154297e-08,
+        "final_absolute_error_hp": 4.470348358154297e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 122,
+        "path": [
+          "3",
+          "phase3_shot3_charge4"
+        ],
+        "state_id": "phase3_shot3_charge4",
+        "source_percentage": 4.72582101910088,
+        "baseline_percentage": 4.18572717900173,
+        "final_percentage": 4.18572717900173,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 126536692.59000006,
+        "baseline_absolute_threshold_hp": 126536692.59000011,
+        "final_absolute_threshold_hp": 126536692.59000011,
+        "baseline_absolute_error_hp": 4.470348358154297e-08,
+        "final_absolute_error_hp": 4.470348358154297e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 123,
+        "path": [
+          "3",
+          "phase3_shot3_attack4"
+        ],
+        "state_id": "phase3_shot3_attack4",
+        "source_percentage": 4.72582101910088,
+        "baseline_percentage": 4.18572717900173,
+        "final_percentage": 4.18572717900173,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 126536692.59000006,
+        "baseline_absolute_threshold_hp": 126536692.59000011,
+        "final_absolute_threshold_hp": 126536692.59000011,
+        "baseline_absolute_error_hp": 4.470348358154297e-08,
+        "final_absolute_error_hp": 4.470348358154297e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 124,
+        "path": [
+          "3",
+          "phase3_shot3_end3"
+        ],
+        "state_id": "phase3_shot3_end3",
+        "source_percentage": 4.72582101910088,
+        "baseline_percentage": 4.18572717900173,
+        "final_percentage": 4.18572717900173,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 126536692.59000006,
+        "baseline_absolute_threshold_hp": 126536692.59000011,
+        "final_absolute_threshold_hp": 126536692.59000011,
+        "baseline_absolute_error_hp": 4.470348358154297e-08,
+        "final_absolute_error_hp": 4.470348358154297e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 125,
+        "path": [
+          "3",
+          "phase3_neutral333"
+        ],
+        "state_id": "phase3_neutral333",
+        "source_percentage": 4.72582101910088,
+        "baseline_percentage": 4.18572717900173,
+        "final_percentage": 4.18572717900173,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 126536692.59000006,
+        "baseline_absolute_threshold_hp": 126536692.59000011,
+        "final_absolute_threshold_hp": 126536692.59000011,
+        "baseline_absolute_error_hp": 4.470348358154297e-08,
+        "final_absolute_error_hp": 4.470348358154297e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 126,
+        "path": [
+          "3",
+          "phase3_target_start3"
+        ],
+        "state_id": "phase3_target_start3",
+        "source_percentage": 4.72582101910088,
+        "baseline_percentage": 4.18572717900173,
+        "final_percentage": 4.18572717900173,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 126536692.59000006,
+        "baseline_absolute_threshold_hp": 126536692.59000011,
+        "final_absolute_threshold_hp": 126536692.59000011,
+        "baseline_absolute_error_hp": 4.470348358154297e-08,
+        "final_absolute_error_hp": 4.470348358154297e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 127,
+        "path": [
+          "3",
+          "phase3_target_charge3"
+        ],
+        "state_id": "phase3_target_charge3",
+        "source_percentage": 4.72582101910088,
+        "baseline_percentage": 4.18572717900173,
+        "final_percentage": 4.18572717900173,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 126536692.59000006,
+        "baseline_absolute_threshold_hp": 126536692.59000011,
+        "final_absolute_threshold_hp": 126536692.59000011,
+        "baseline_absolute_error_hp": 4.470348358154297e-08,
+        "final_absolute_error_hp": 4.470348358154297e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 128,
+        "path": [
+          "3",
+          "phase3_target_fire3"
+        ],
+        "state_id": "phase3_target_fire3",
+        "source_percentage": 4.72582101910088,
+        "baseline_percentage": 4.18572717900173,
+        "final_percentage": 4.18572717900173,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 126536692.59000006,
+        "baseline_absolute_threshold_hp": 126536692.59000011,
+        "final_absolute_threshold_hp": 126536692.59000011,
+        "baseline_absolute_error_hp": 4.470348358154297e-08,
+        "final_absolute_error_hp": 4.470348358154297e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 129,
+        "path": [
+          "3",
+          "phase3_neutral273"
+        ],
+        "state_id": "phase3_neutral273",
+        "source_percentage": 4.72582101910088,
+        "baseline_percentage": 4.18572717900173,
+        "final_percentage": 4.18572717900173,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 126536692.59000006,
+        "baseline_absolute_threshold_hp": 126536692.59000011,
+        "final_absolute_threshold_hp": 126536692.59000011,
+        "baseline_absolute_error_hp": 4.470348358154297e-08,
+        "final_absolute_error_hp": 4.470348358154297e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 130,
+        "path": [
+          "3",
+          "phase3_funnel_start3"
+        ],
+        "state_id": "phase3_funnel_start3",
+        "source_percentage": 4.72582101910088,
+        "baseline_percentage": 4.18572717900173,
+        "final_percentage": 4.18572717900173,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 126536692.59000006,
+        "baseline_absolute_threshold_hp": 126536692.59000011,
+        "final_absolute_threshold_hp": 126536692.59000011,
+        "baseline_absolute_error_hp": 4.470348358154297e-08,
+        "final_absolute_error_hp": 4.470348358154297e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 131,
+        "path": [
+          "3",
+          "phase3_funnel_fire3"
+        ],
+        "state_id": "phase3_funnel_fire3",
+        "source_percentage": 4.72582101910088,
+        "baseline_percentage": 4.18572717900173,
+        "final_percentage": 4.18572717900173,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 126536692.59000006,
+        "baseline_absolute_threshold_hp": 126536692.59000011,
+        "final_absolute_threshold_hp": 126536692.59000011,
+        "baseline_absolute_error_hp": 4.470348358154297e-08,
+        "final_absolute_error_hp": 4.470348358154297e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 132,
+        "path": [
+          "3",
+          "phase3_funnel_end3"
+        ],
+        "state_id": "phase3_funnel_end3",
+        "source_percentage": 4.72582101910088,
+        "baseline_percentage": 4.18572717900173,
+        "final_percentage": 4.18572717900173,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 126536692.59000006,
+        "baseline_absolute_threshold_hp": 126536692.59000011,
+        "final_absolute_threshold_hp": 126536692.59000011,
+        "baseline_absolute_error_hp": 4.470348358154297e-08,
+        "final_absolute_error_hp": 4.470348358154297e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 133,
+        "path": [
+          "3",
+          "phase3_neutral338"
+        ],
+        "state_id": "phase3_neutral33",
+        "source_percentage": 4.72582101910088,
+        "baseline_percentage": 4.18572717900173,
+        "final_percentage": 4.18572717900173,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 126536692.59000006,
+        "baseline_absolute_threshold_hp": 126536692.59000011,
+        "final_absolute_threshold_hp": 126536692.59000011,
+        "baseline_absolute_error_hp": 4.470348358154297e-08,
+        "final_absolute_error_hp": 4.470348358154297e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 134,
+        "path": [
+          "3",
+          "phase3_left_target_ready1"
+        ],
+        "state_id": "phase3_left_target_ready1",
+        "source_percentage": 4.72582101910088,
+        "baseline_percentage": 4.18572717900173,
+        "final_percentage": 4.18572717900173,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 126536692.59000006,
+        "baseline_absolute_threshold_hp": 126536692.59000011,
+        "final_absolute_threshold_hp": 126536692.59000011,
+        "baseline_absolute_error_hp": 4.470348358154297e-08,
+        "final_absolute_error_hp": 4.470348358154297e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 135,
+        "path": [
+          "3",
+          "phase3_left_target_charge1"
+        ],
+        "state_id": "phase3_left_target_charge1",
+        "source_percentage": 4.72582101910088,
+        "baseline_percentage": 4.18572717900173,
+        "final_percentage": 4.18572717900173,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 126536692.59000006,
+        "baseline_absolute_threshold_hp": 126536692.59000011,
+        "final_absolute_threshold_hp": 126536692.59000011,
+        "baseline_absolute_error_hp": 4.470348358154297e-08,
+        "final_absolute_error_hp": 4.470348358154297e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 136,
+        "path": [
+          "3",
+          "phase3_left_target_attack1"
+        ],
+        "state_id": "phase3_left_target_attack1",
+        "source_percentage": 4.72582101910088,
+        "baseline_percentage": 4.18572717900173,
+        "final_percentage": 4.18572717900173,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 126536692.59000006,
+        "baseline_absolute_threshold_hp": 126536692.59000011,
+        "final_absolute_threshold_hp": 126536692.59000011,
+        "baseline_absolute_error_hp": 4.470348358154297e-08,
+        "final_absolute_error_hp": 4.470348358154297e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 137,
+        "path": [
+          "3",
+          "phase3_neutral403"
+        ],
+        "state_id": "phase3_neutral403",
+        "source_percentage": 4.72582101910088,
+        "baseline_percentage": 4.18572717900173,
+        "final_percentage": 4.18572717900173,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 126536692.59000006,
+        "baseline_absolute_threshold_hp": 126536692.59000011,
+        "final_absolute_threshold_hp": 126536692.59000011,
+        "baseline_absolute_error_hp": 4.470348358154297e-08,
+        "final_absolute_error_hp": 4.470348358154297e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 138,
+        "path": [
+          "3",
+          "phase3_nearbeam_start3"
+        ],
+        "state_id": "phase3_nearbeam_start3",
+        "source_percentage": 4.72582101910088,
+        "baseline_percentage": 4.18572717900173,
+        "final_percentage": 4.18572717900173,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 126536692.59000006,
+        "baseline_absolute_threshold_hp": 126536692.59000011,
+        "final_absolute_threshold_hp": 126536692.59000011,
+        "baseline_absolute_error_hp": 4.470348358154297e-08,
+        "final_absolute_error_hp": 4.470348358154297e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 139,
+        "path": [
+          "3",
+          "phase3_nearbeam_charge3"
+        ],
+        "state_id": "phase3_nearbeam_charge3",
+        "source_percentage": 4.72582101910088,
+        "baseline_percentage": 4.18572717900173,
+        "final_percentage": 4.18572717900173,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 126536692.59000006,
+        "baseline_absolute_threshold_hp": 126536692.59000011,
+        "final_absolute_threshold_hp": 126536692.59000011,
+        "baseline_absolute_error_hp": 4.470348358154297e-08,
+        "final_absolute_error_hp": 4.470348358154297e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 140,
+        "path": [
+          "3",
+          "phase3_nearbeam_fire3"
+        ],
+        "state_id": "phase3_nearbeam_fire3",
+        "source_percentage": 4.72582101910088,
+        "baseline_percentage": 4.18572717900173,
+        "final_percentage": 4.18572717900173,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 126536692.59000006,
+        "baseline_absolute_threshold_hp": 126536692.59000011,
+        "final_absolute_threshold_hp": 126536692.59000011,
+        "baseline_absolute_error_hp": 4.470348358154297e-08,
+        "final_absolute_error_hp": 4.470348358154297e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 141,
+        "path": [
+          "3",
+          "phase3_nearbeam_loop3"
+        ],
+        "state_id": "phase3_nearbeam_fire3",
+        "source_percentage": 4.72582101910088,
+        "baseline_percentage": 4.18572717900173,
+        "final_percentage": 4.18572717900173,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 126536692.59000006,
+        "baseline_absolute_threshold_hp": 126536692.59000011,
+        "final_absolute_threshold_hp": 126536692.59000011,
+        "baseline_absolute_error_hp": 4.470348358154297e-08,
+        "final_absolute_error_hp": 4.470348358154297e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 142,
+        "path": [
+          "3",
+          "phase3_nearbeam_end3"
+        ],
+        "state_id": "phase3_nearbeam_end3",
+        "source_percentage": 4.72582101910088,
+        "baseline_percentage": 4.18572717900173,
+        "final_percentage": 4.18572717900173,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 126536692.59000006,
+        "baseline_absolute_threshold_hp": 126536692.59000011,
+        "final_absolute_threshold_hp": 126536692.59000011,
+        "baseline_absolute_error_hp": 4.470348358154297e-08,
+        "final_absolute_error_hp": 4.470348358154297e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 143,
+        "path": [
+          "3",
+          "phase3_neutral404"
+        ],
+        "state_id": "phase3_neutral404",
+        "source_percentage": 4.72582101910088,
+        "baseline_percentage": 4.18572717900173,
+        "final_percentage": 4.18572717900173,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 126536692.59000006,
+        "baseline_absolute_threshold_hp": 126536692.59000011,
+        "final_absolute_threshold_hp": 126536692.59000011,
+        "baseline_absolute_error_hp": 4.470348358154297e-08,
+        "final_absolute_error_hp": 4.470348358154297e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 144,
+        "path": [
+          "3",
+          "phase3_target_start4"
+        ],
+        "state_id": "phase3_target_start4",
+        "source_percentage": 4.72582101910088,
+        "baseline_percentage": 4.18572717900173,
+        "final_percentage": 4.18572717900173,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 126536692.59000006,
+        "baseline_absolute_threshold_hp": 126536692.59000011,
+        "final_absolute_threshold_hp": 126536692.59000011,
+        "baseline_absolute_error_hp": 4.470348358154297e-08,
+        "final_absolute_error_hp": 4.470348358154297e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 145,
+        "path": [
+          "3",
+          "phase3_target_charge4"
+        ],
+        "state_id": "phase3_target_charge4",
+        "source_percentage": 4.72582101910088,
+        "baseline_percentage": 4.18572717900173,
+        "final_percentage": 4.18572717900173,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 126536692.59000006,
+        "baseline_absolute_threshold_hp": 126536692.59000011,
+        "final_absolute_threshold_hp": 126536692.59000011,
+        "baseline_absolute_error_hp": 4.470348358154297e-08,
+        "final_absolute_error_hp": 4.470348358154297e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 146,
+        "path": [
+          "3",
+          "phase3_target_fire4"
+        ],
+        "state_id": "phase3_target_fire4",
+        "source_percentage": 4.72582101910088,
+        "baseline_percentage": 4.18572717900173,
+        "final_percentage": 4.18572717900173,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 126536692.59000006,
+        "baseline_absolute_threshold_hp": 126536692.59000011,
+        "final_absolute_threshold_hp": 126536692.59000011,
+        "baseline_absolute_error_hp": 4.470348358154297e-08,
+        "final_absolute_error_hp": 4.470348358154297e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 147,
+        "path": [
+          "3",
+          "phase3_neutral274"
+        ],
+        "state_id": "phase3_neutral274",
+        "source_percentage": 4.72582101910088,
+        "baseline_percentage": 4.18572717900173,
+        "final_percentage": 4.18572717900173,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 126536692.59000006,
+        "baseline_absolute_threshold_hp": 126536692.59000011,
+        "final_absolute_threshold_hp": 126536692.59000011,
+        "baseline_absolute_error_hp": 4.470348358154297e-08,
+        "final_absolute_error_hp": 4.470348358154297e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 148,
+        "path": [
+          "3",
+          "phase3_skill_start1"
+        ],
+        "state_id": "phase3_skill_start1",
+        "source_percentage": 4.72582101910088,
+        "baseline_percentage": 4.18572717900173,
+        "final_percentage": 4.18572717900173,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 126536692.59000006,
+        "baseline_absolute_threshold_hp": 126536692.59000011,
+        "final_absolute_threshold_hp": 126536692.59000011,
+        "baseline_absolute_error_hp": 4.470348358154297e-08,
+        "final_absolute_error_hp": 4.470348358154297e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 149,
+        "path": [
+          "3",
+          "phase3_skill_charge1"
+        ],
+        "state_id": "phase3_skill_charge1",
+        "source_percentage": 4.72582101910088,
+        "baseline_percentage": 4.18572717900173,
+        "final_percentage": 4.18572717900173,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 126536692.59000006,
+        "baseline_absolute_threshold_hp": 126536692.59000011,
+        "final_absolute_threshold_hp": 126536692.59000011,
+        "baseline_absolute_error_hp": 4.470348358154297e-08,
+        "final_absolute_error_hp": 4.470348358154297e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 150,
+        "path": [
+          "3",
+          "phase3_skill_fire1"
+        ],
+        "state_id": "phase3_skill_fire1",
+        "source_percentage": 4.72582101910088,
+        "baseline_percentage": 4.18572717900173,
+        "final_percentage": 4.18572717900173,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 126536692.59000006,
+        "baseline_absolute_threshold_hp": 126536692.59000011,
+        "final_absolute_threshold_hp": 126536692.59000011,
+        "baseline_absolute_error_hp": 4.470348358154297e-08,
+        "final_absolute_error_hp": 4.470348358154297e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 151,
+        "path": [
+          "3",
+          "phase3_skill_fire1_loop"
+        ],
+        "state_id": "phase3_skill_fire1",
+        "source_percentage": 4.72582101910088,
+        "baseline_percentage": 4.18572717900173,
+        "final_percentage": 4.18572717900173,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 126536692.59000006,
+        "baseline_absolute_threshold_hp": 126536692.59000011,
+        "final_absolute_threshold_hp": 126536692.59000011,
+        "baseline_absolute_error_hp": 4.470348358154297e-08,
+        "final_absolute_error_hp": 4.470348358154297e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 152,
+        "path": [
+          "3",
+          "phase3_skill_skill_end1"
+        ],
+        "state_id": "phase3_skill_skill_end1",
+        "source_percentage": 4.72582101910088,
+        "baseline_percentage": 4.18572717900173,
+        "final_percentage": 4.18572717900173,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 126536692.59000006,
+        "baseline_absolute_threshold_hp": 126536692.59000011,
+        "final_absolute_threshold_hp": 126536692.59000011,
+        "baseline_absolute_error_hp": 4.470348358154297e-08,
+        "final_absolute_error_hp": 4.470348358154297e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 153,
+        "path": [
+          "3",
+          "phase3_neutral30"
+        ],
+        "state_id": "phase3_neutral30",
+        "source_percentage": 4.72582101910088,
+        "baseline_percentage": 4.18572717900173,
+        "final_percentage": 4.18572717900173,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 126536692.59000006,
+        "baseline_absolute_threshold_hp": 126536692.59000011,
+        "final_absolute_threshold_hp": 126536692.59000011,
+        "baseline_absolute_error_hp": 4.470348358154297e-08,
+        "final_absolute_error_hp": 4.470348358154297e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      },
+      {
+        "occurrence": 154,
+        "path": [
+          "3",
+          "phase3_dpscheck_attack2"
+        ],
+        "state_id": "phase3_dpscheck_attack2",
+        "source_percentage": 4.72582101910088,
+        "baseline_percentage": 4.18572717900173,
+        "final_percentage": 4.18572717900173,
+        "source_max_hp": 2677559985.41973,
+        "baseline_max_hp": 3023051603.190687,
+        "final_max_hp": 3023051603.190687,
+        "source_absolute_threshold_hp": 126536692.59000006,
+        "baseline_absolute_threshold_hp": 126536692.59000011,
+        "final_absolute_threshold_hp": 126536692.59000011,
+        "baseline_absolute_error_hp": 4.470348358154297e-08,
+        "final_absolute_error_hp": 4.470348358154297e-08,
+        "options_c17_c21": [
+          "true",
+          "true",
+          "false",
+          "false",
+          "(None)"
+        ]
+      }
+    ],
+    "routine_cloned": false,
+    "materialized": true,
+    "enemy_watch_lookup_preserved": true,
+    "enemy_watch_routine_alias_count": 0,
+    "topology_preserved": true,
+    "non_percentage_columns_preserved": true,
+    "absolute_thresholds_preserved": true,
+    "static_verified": true,
+    "runtime_simulated": false,
+    "gameplay_verified": false,
+    "round": 30,
+    "private_routine_updated_in_place": true,
+    "source_hp_is_previous_verified_local_test": true
+  }
+]

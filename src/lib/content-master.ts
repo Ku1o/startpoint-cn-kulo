@@ -6,6 +6,7 @@ import baseCdnCharacterTexts from "../../assets/cdndata/character_text.json"
 import rankP5bCdnCharacterTexts from "../../assets/cdndata/character_text_rank_p5b.json"
 import baseDegrees from "../../assets/degree.json"
 import rankP5bDegrees from "../../assets/degree_rank_p5b.json"
+import sponsorDegrees from "../../assets/degree_sponsor.json"
 import baseEventShops from "../../assets/event_item_shop.json"
 import rankP5bEventShops from "../../assets/event_item_shop_rank_p5b.json"
 import baseEventShopIdMap from "../../assets/event_item_shop_id_map.json"
@@ -22,14 +23,14 @@ import rankP5bManaNodes from "../../assets/mana_node_rank_p5b.json"
 export const serverCharacters = { ...baseCharacters, ...rankP5bCharacters }
 export const cdnCharacters = { ...baseCdnCharacters, ...rankP5bCdnCharacters }
 export const cdnCharacterTexts = { ...baseCdnCharacterTexts, ...rankP5bCdnCharacterTexts }
-export const degreeDefinitions = { ...baseDegrees, ...rankP5bDegrees }
+export const degreeDefinitions = { ...baseDegrees, ...rankP5bDegrees, ...sponsorDegrees }
 export const serverGachas = { ...baseGachas, ...cnmodGachas, ...rankP5bGachas }
 export const serverManaNodes = { ...baseManaNodes, ...cnmodManaNodes, ...rankP5bManaNodes }
 export const serverItemIds = [...new Set([...baseItemIds, ...rankP5bItemIds])]
 
-// Five Boss is intentionally dormant.  Keep its raw definitions for a future
-// opening, but do not expose its Death Bringer exchange through the effective
-// runtime shop view while the matching client row is absent.
+// Retain the retired event-shop row as source data. Five Boss now uses the
+// approved boss-coin shop (category 99); reopening the old event row would
+// introduce a second exchange with different costs and no matching client row.
 const DORMANT_EVENT_SHOP_ITEM_IDS = new Set(["59001010"])
 
 const mergedEventShops = {

@@ -1,0 +1,25 @@
+{
+  "status": "preflight_passed",
+  "target": "F:\\startpoint-cn-main",
+  "mode": "authorized_uncommitted_local_test_repair",
+  "files": [
+    {
+      "path": "assets/asset-patch/active/pinball-1.4.104-1.4.105-1-abyss-pre-action-empty-test.zip",
+      "size": 279544,
+      "sha256": "6d696ccae176bed4ea048b47a9c19cce1d33b818e7b4906f436878756ef15b38",
+      "before_sha256": null
+    },
+    {
+      "path": "assets/asset-patch/production/upload/ec/d8f66b60947ca05643c4080a6cc925c750b9d6",
+      "size": 378706,
+      "sha256": "a3fd5dcfdbc5357d6f04454f07f85eec8382a477032929ce591efdbc0bb6c3b5",
+      "before_sha256": "19310bb3d96794fa3d206cac77bfd194077a3557ee35c9a2a0c2332a4dfbce2c"
+    },
+    {
+      "path": "assets/asset-patch/manifest.json",
+      "size": 728282,
+      "sha256": "e9f00ef3bb4373d8243d77e6f6aba0b9b7e9f183a94660bc964b7a368820c1e9",
+      "before_sha256": "657305f03a431435db79ee5ee11d853392e22e835af4ad81247432cf894b9c04"
+    }
+  ]
+}

@@ -102,9 +102,13 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
     fastify.post("/load", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
         try {
             const body = request.body;
-            const viewerId = body.viewer_id || body.keychain || 1;
+            const viewerId = body.viewer_id || body.keychain;
             const session = yield (0, session_1.getSession)(String(viewerId));
-            const accountId = session ? session.accountId : (body.viewer_id || body.keychain || 1);
+            if (!session || session.type !== 2) {
+                reply.type("application/x-msgpack");
+                return reply.send({ data_headers: (0, utils_1.generateDataHeaders)({ result_code: 516 }), data: {} });
+            }
+            const accountId = session.accountId;
             const playerId = (0, activeAccount_1.resolvePlayerIdSync)(accountId);
             if (!playerId) {
                 return reply.status(400).send({ error: "Bad Request", message: "No player found" });

@@ -1,0 +1,61 @@
+{
+  "status": "passed",
+  "version": "1.4.104",
+  "inventory_checked": 610,
+  "archive_members": 601,
+  "archive_sha256": "bfdc008bbd59056354466603bba49f63bf4c1663bd2ee84d2c5ddc7d3f139c43",
+  "all_final_payloads_preserved": true,
+  "display": {
+    "required_small_icons": [
+      {
+        "id": 10000143,
+        "name": "深界连战凭证",
+        "icon": "item_icon/materials/mod/five_boss/entry_ticket_v2"
+      },
+      {
+        "id": 10000144,
+        "name": "终式武装图纸",
+        "icon": "item_icon/materials/mod/five_boss/deathbringer_blueprint_v2"
+      },
+      {
+        "id": 10000145,
+        "name": "深界结晶",
+        "icon": "item_icon/materials/mod/five_boss/deep_crystal_v2"
+      },
+      {
+        "id": 10000146,
+        "name": "五重决战之证",
+        "icon": "item_icon/materials/mod/five_boss/fivefold_clear_badge_v2"
+      },
+      {
+        "id": 10000147,
+        "name": "五王心核",
+        "icon": "item_icon/materials/mod/five_boss/five_king_core_v2"
+      }
+    ],
+    "material_size": [
+      40,
+      40
+    ],
+    "thumbnail_size": [
+      20,
+      20
+    ],
+    "native_thumbnail_scale": 6,
+    "rendered_thumbnail_size": [
+      120,
+      120
+    ],
+    "native_frame_size": 168,
+    "weapon_thumbnail_paths": [
+      "item/equipment/mod/five_boss/deathbringer_final_lv0",
+      "item/equipment/mod/five_boss/deathbringer_final_lv120",
+      "item/equipment/mod/five_boss/deathbringer_final_shop"
+    ],
+    "full_canvas_trim": true
+  },
+  "apk_sha256": "fd42a417dc7231c8dbc421e4839ceeefcfb027f8c83d8bc418baa427dd0b969d",
+  "apk_unchanged": true,
+  "desktop_air_run": false,
+  "device_tested": false
+}

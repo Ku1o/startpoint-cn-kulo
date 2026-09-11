@@ -1,0 +1,32 @@
+[
+  {
+    "path": "abcasm/asm.py",
+    "sha256": "a70c8186da5e8f8e2a71f62cbb803db6d9f89543b785a9266cc72e6d439c40ac",
+    "source": "F:\\codex\\work\\lens0908-review-20260908\\nested\\client-patch-src\\client-patch\\abcasm\\asm.py"
+  },
+  {
+    "path": "abcasm/swfabc.py",
+    "sha256": "d3a56b7f23d809e14d78b0ac11e55f8bf127fb60f1d9dfd5814502cc691eaad3",
+    "source": "F:\\codex\\work\\lens0908-review-20260908\\nested\\client-patch-src\\client-patch\\abcasm\\swfabc.py"
+  },
+  {
+    "path": "abcasm/bodies.py",
+    "sha256": "daa069c919b46d25bf6b25e367f1ac2744ffd64f76d6d0469e0eacf42d0d25d8",
+    "source": "F:\\codex\\work\\lens0908-review-20260908\\nested\\client-patch-src\\client-patch\\abcasm\\bodies.py"
+  },
+  {
+    "path": "rank-button-p1/abc/abcfmt.py",
+    "sha256": "2d35f0fb5476bde3a400756ece1467a4dce665fd9c9e7618e1c6815cb5f51f82",
+    "source": "F:\\codex\\work\\lens0908-review-20260908\\nested\\client-patch-src\\client-patch\\rank-button-p1\\abc\\abcfmt.py"
+  },
+  {
+    "path": "rank-button-p1/abc/opwalk.py",
+    "sha256": "c3e17d85438d5f1a62320c811b77bdfd7f475a123e0e8ea2ac759062bb9d6080",
+    "source": "F:\\codex\\work\\lens0908-review-20260908\\nested\\client-patch-src\\client-patch\\rank-button-p1\\abc\\opwalk.py"
+  },
+  {
+    "path": "rank-button-p1/abc/swftags.py",
+    "sha256": "81d253a0c27ada1f4e377384484fcadd8bf8a360e4d93b456483ef1128ea6b06",
+    "source": "F:\\codex\\work\\lens0908-review-20260908\\nested\\client-patch-src\\client-patch\\rank-button-p1\\abc\\swftags.py"
+  }
+]

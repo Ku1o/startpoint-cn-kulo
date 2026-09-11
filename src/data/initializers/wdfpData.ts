@@ -1,5 +1,6 @@
 import { Database } from "better-sqlite3";
 import { ensureSchemaColumn } from "../schema";
+import { assertStorageLayout, isCompactStorage } from "../../lib/storage-layout";
 
 interface TableColumnInfo {
     name: string
@@ -951,6 +952,8 @@ export default function init(
             progress = MAX(progress, excluded.progress)
     `).run()
 
+    assertStorageLayout(database)
+    if (!isCompactStorage(database)) {
     database.prepare(`CREATE TABLE IF NOT EXISTS players_mission_counters (
         player_id INTEGER NOT NULL,
         counter_key TEXT NOT NULL,
@@ -977,6 +980,8 @@ export default function init(
         PRIMARY KEY (player_id, period_type, counter_key),
         FOREIGN KEY (player_id) REFERENCES players (id) ON DELETE CASCADE
     )`).run()
+
+    }
 
     database.prepare(`CREATE TABLE IF NOT EXISTS players_pass_cards (
         player_id INTEGER NOT NULL,

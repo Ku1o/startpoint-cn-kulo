@@ -13,8 +13,7 @@ interface RecentPartyRequestBody {
 /**
  * Returns up to ten distinct parties that actually cleared this quest. Frozen
  * clear snapshots are ordered only by the battle power used for that clear.
- * Legacy progress is used only while an upgraded server builds exact snapshots,
- * and unrelated globally high-power parties are never used.
+ * Without a matching snapshot, a player's current party is never substituted.
  */
 const routes = async (fastify: FastifyInstance) => {
     fastify.post("/get_recent_other_player_party", async (
@@ -62,7 +61,6 @@ const routes = async (fastify: FastifyInstance) => {
         console.log(
             `[QUEST-RECOMMEND] player=${playerId} category=${category} ` +
             `quest=${questId} exact=${recommendations.exactCandidateCount} ` +
-            `legacy=${recommendations.legacyCandidateCount} ` +
             `returned=${recommendations.parties.length}`,
         )
 

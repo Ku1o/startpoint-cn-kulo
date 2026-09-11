@@ -1,0 +1,30 @@
+{
+  "status": "offline_checks_passed_local_sync_pending",
+  "isolated_typescript_css_build": "passed",
+  "gacha_and_sponsor_node_tests": 17,
+  "asset_api_device_version_combinations": 6,
+  "effective_resource_inventory": 609,
+  "consolidated_zip_members": 600,
+  "art_contract_regressions": 6,
+  "apk_avm2_bytecode_cases": 624,
+  "tower_python_cases_across_suite_and_targeted_retests": 373,
+  "tower_initial_suite": {
+    "cases": 371,
+    "initial_failures": 7,
+    "cause": "Reward preview read an obsolete server/assets path under the already resolved server root."
+  },
+  "tower_targeted_retest": {
+    "cases": 26,
+    "initial_failures": 2,
+    "cause": "The corrected trial detector rejects scripted damage thresholds and dynamic trial windows lacking independent proof. Two old random seeds included those unrelated bosses.",
+    "resolution": "Keep both fail-closed gates; use independently verified deterministic seeds for the transplant and c36 positive-resistance cases, with two added negative trial regressions.",
+    "final_retest_cases": 4,
+    "final_retest_result": "passed"
+  },
+  "runtime_preflight_matching_loose_resources": 600,
+  "apk_changed": false,
+  "desktop_air_launched": false,
+  "device_gameplay_acceptance_claimed": false,
+  "cloud_overlay_created": false,
+  "local_logs": "F:/codex/work/session-checkpoint-20260910"
+}

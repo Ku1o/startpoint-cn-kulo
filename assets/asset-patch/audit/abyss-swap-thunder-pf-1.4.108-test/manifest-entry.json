@@ -1,0 +1,39 @@
+{
+  "id": "abyss-swap-thunder-pf-1.4.108-test",
+  "type": "patch",
+  "name": "深渊换层与雷/PF调校（本地测试）",
+  "description": "26与30层完整战斗互换并按新层数调整血量；移除全塔附加雷抗及雷封锁；随机15层额外PF抗性-15个百分点。",
+  "version": "1.4.108",
+  "depends_on": "1.4.107",
+  "enabled": true,
+  "archive": "pinball-1.4.107-1.4.108-1-abyss-swap-thunder-pf-test.zip",
+  "archive_size": 2905950,
+  "chain": [
+    "pinball-1.4.107-1.4.108-1-abyss-swap-thunder-pf-test.zip"
+  ],
+  "archive_integrity": [
+    {
+      "name": "pinball-1.4.107-1.4.108-1-abyss-swap-thunder-pf-test.zip",
+      "size": 2905950,
+      "sha256": "17ecf7182e783a69600bb1542c0e3681cdb830467c88dae8394834e5e3cd61e8",
+      "members": 3,
+      "files": [
+        "production/upload/0b/97162ce6d40c473cbac39fa21427688922a48a",
+        "production/upload/19/a4aa442b3249499356e7a3f6370e530bfe355e",
+        "production/upload/b6/595dedd9cfa79b7e6eccab25dd9a2a81b066a2"
+      ]
+    }
+  ],
+  "files": [
+    "production/upload/0b/97162ce6d40c473cbac39fa21427688922a48a",
+    "production/upload/19/a4aa442b3249499356e7a3f6370e530bfe355e",
+    "production/upload/b6/595dedd9cfa79b7e6eccab25dd9a2a81b066a2"
+  ],
+  "created_at": "2026-09-10",
+  "local_test_only": true,
+  "required_client_capability": "cn.rules.QuestElementResistance/v1",
+  "audit": {
+    "directory": "assets/asset-patch/audit/abyss-swap-thunder-pf-1.4.108-test",
+    "report": "report.json"
+  }
+}

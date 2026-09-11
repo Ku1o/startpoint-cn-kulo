@@ -1,0 +1,189 @@
+{
+  "status": "runtime_http_verified",
+  "target_version": "1.4.104",
+  "archive": {
+    "location": "http://<LAN_HOST>/patch/cn/asset-patch/active/pinball-1.4.103-1.4.104-1-abyss-element-sponsor-laite-test.zip",
+    "size": 3778769,
+    "sha256": ""
+  },
+  "sha256": "d6cee14a122878c3c97f33c910ac8fd1b585de63d1b6e52860f195521dad5fc1",
+  "members_checked": 29,
+  "resources": [
+    {
+      "logical": "battle/action/enemy/action/mod_rogue/immunity_8e4361b91999.action.dsl.amf3.deflate",
+      "member": "production/upload/49/61970598c560a0ef40fe30c834d7cd2b5136c6",
+      "sha256": "40355e43115c418fb47e02e5a09739d61eef10332ab699d4445f2780f6abb3f3",
+      "http_direct_equals_archive": true
+    },
+    {
+      "logical": "battle/enemy/boss/mod_rogue/standard_r12_1.esdl.amf3.deflate",
+      "member": "production/upload/e0/72d4a7ffa27a6cfb60d43e70f67771318c8442",
+      "sha256": "aadc0197c98a6cb357e93d59e58389b604907fef9d9419a038fc91f5a95178e7",
+      "http_direct_equals_archive": true
+    },
+    {
+      "logical": "battle/enemy/boss/mod_rogue/standard_r18_1.esdl.amf3.deflate",
+      "member": "production/upload/43/5f605925e46a07ace99e9a37f48c572b3910b2",
+      "sha256": "8c1a1cd0af553f5e995275658f7d9f4a7463a09757fec529661262bdc70efe3c",
+      "http_direct_equals_archive": true
+    },
+    {
+      "logical": "battle/enemy/boss/mod_rogue/standard_r19_1.esdl.amf3.deflate",
+      "member": "production/upload/59/c5bb8f7fb001d1657bf646d4f6f6df3e78547c",
+      "sha256": "c661bd53b7747df2fb89cc5d8f9e410bc2abc4348bc2ef428b1eb94ef86d3d02",
+      "http_direct_equals_archive": true
+    },
+    {
+      "logical": "battle/enemy/boss/mod_rogue/standard_r29_1.esdl.amf3.deflate",
+      "member": "production/upload/56/02a557d238e3971cfe8593c7cacf5bf54c9f4a",
+      "sha256": "ca8219fb1df9524a83ad15747b143992a4d505ca8836db52bac129c815041584",
+      "http_direct_equals_archive": true
+    },
+    {
+      "logical": "battle/enemy/boss/mod_rogue/standard_r29_2.esdl.amf3.deflate",
+      "member": "production/upload/59/bf5b23f0218e8342a1448910aad80f00834818",
+      "sha256": "bea1da70ee6fb2a37d666e72d537352ae63fe3763f71a39f7cf3ed7bd12ba968",
+      "http_direct_equals_archive": true
+    },
+    {
+      "logical": "battle/enemy/boss/mod_rogue/standard_r6_1.esdl.amf3.deflate",
+      "member": "production/upload/42/b1d50adc81eb1fe334079478672e79ae2c1006",
+      "sha256": "6fbbd4e1e6d844a5f7d4e66ade2df74db3916ead9c46b19f2b300722227aea8e",
+      "http_direct_equals_archive": true
+    },
+    {
+      "logical": "battle/enemy/boss/mod_rogue/standard_r9_1.esdl.amf3.deflate",
+      "member": "production/upload/d3/07658fbc5d17a270abd68a356b73266556a8e9",
+      "sha256": "460f39d4de22a0858cbf0e4c71601f3a24d97bbfbbfcbea53d651818ec696562",
+      "http_direct_equals_archive": true
+    },
+    {
+      "logical": "master/battle/boss/boss_level.orderedmap",
+      "member": "production/upload/19/a4aa442b3249499356e7a3f6370e530bfe355e",
+      "sha256": "e4360d8b2389bfc0576452f8dd19520f8ef3e71d886ee049655973dfb43cfe3b",
+      "http_direct_equals_archive": true
+    },
+    {
+      "logical": "master/battle/boss/conductor.orderedmap",
+      "member": "production/upload/e4/d1e3b7e223e1151195626286f773e305144b0a",
+      "sha256": "41eb80c5da30df1048e8a4ee8294fb6b87d07b3c8e59ecb82b116d09328d35c5",
+      "http_direct_equals_archive": true
+    },
+    {
+      "logical": "master/battle/boss/general_boss.orderedmap",
+      "member": "production/upload/ec/d8f66b60947ca05643c4080a6cc925c750b9d6",
+      "sha256": "19310bb3d96794fa3d206cac77bfd194077a3557ee35c9a2a0c2332a4dfbce2c",
+      "http_direct_equals_archive": true
+    },
+    {
+      "logical": "master/battle/boss/general_boss_state.orderedmap",
+      "member": "production/upload/0b/97162ce6d40c473cbac39fa21427688922a48a",
+      "sha256": "6ec9ed11b40d8db8012d0784d473dd424ec2001082c670686f11bb73231a519e",
+      "http_direct_equals_archive": true
+    },
+    {
+      "logical": "master/battle/boss/general_boss_variable.orderedmap",
+      "member": "production/upload/82/93e535e806d70640f45950db1fe14ed9482bdf",
+      "sha256": "0dcda519718b6d910fb9fc1a61b1870100d76ed67f7d510f22cd9ca4570d2700",
+      "http_direct_equals_archive": true
+    },
+    {
+      "logical": "master/battle/boss/general_enemy_watch.orderedmap",
+      "member": "production/upload/84/fd6ee6a23114c8f888fadc838bbe8bdf668677",
+      "sha256": "b0d8d710d48c4fe3f193bf4fbece184db10ab158ff7b38103dce064f0f0eb4c7",
+      "http_direct_equals_archive": true
+    },
+    {
+      "logical": "master/battle/boss/kraken.orderedmap",
+      "member": "production/upload/fd/80bb595562a9f2bf69deb917e572e159c28839",
+      "sha256": "deb5d2fef96701898e44ef12adb0798b5d3c2b09d9a28c932f57bb4829d89082",
+      "http_direct_equals_archive": true
+    },
+    {
+      "logical": "master/battle/boss/orochi_ex.orderedmap",
+      "member": "production/upload/7c/0159ffd7078028b1c2eec135beb1884f7224fb",
+      "sha256": "2a5cb8414362ad7dccc2115cdc7b062bad46eaa63a58e7911fe74aafb0ab9a5a",
+      "http_direct_equals_archive": true
+    },
+    {
+      "logical": "master/battle/boss/orochi_ex_head.orderedmap",
+      "member": "production/upload/01/313477f2616628879b578fa78722fbb54dd69c",
+      "sha256": "9b696a46dd551527181729847539c995b6380f7ced949fc8907e6941d472d992",
+      "http_direct_equals_archive": true
+    },
+    {
+      "logical": "master/battle/boss/standard_boss.orderedmap",
+      "member": "production/upload/d1/73e8ff929070d4c0bbef95fa679afcfa1c203f",
+      "sha256": "59f278d3640ba071e34a9ce9002332c494fe7e765783eac8916122cb5cab8e57",
+      "http_direct_equals_archive": true
+    },
+    {
+      "logical": "master/battle/boss/touyakiren_ceo.orderedmap",
+      "member": "production/upload/32/764d5b978aeec498c0a0f8b90100024273297a",
+      "sha256": "859ff0d054f2536257c86ff2e8012ae5520241de7b6386221dd94cb51f75d061",
+      "http_direct_equals_archive": true
+    },
+    {
+      "logical": "master/battle/boss/wind_sphere.orderedmap",
+      "member": "production/upload/71/65684e1bb9b106cb3a5964645395ecac93a7fa",
+      "sha256": "f5e165f49504a0cf1df77faec5ac41fc6eb52431b4b219f57a7ef153e3d07c78",
+      "http_direct_equals_archive": true
+    },
+    {
+      "logical": "master/battle/boss/wind_sphere_micronucleus.orderedmap",
+      "member": "production/upload/cc/698ac0cd7383303d7d48f7489494731e463179",
+      "sha256": "746969a94d631a7d3bde3290b3f748c996e6c6c2138fc1c9824d570ab9c162ba",
+      "http_direct_equals_archive": true
+    },
+    {
+      "logical": "master/battle/field_data.orderedmap",
+      "member": "production/upload/30/363f8364e183905b2d0b48b8718b7165135bc2",
+      "sha256": "50af2e73c9c00da42eca15d51de6a79cd0ea20e091c38abea762432db5466bdf",
+      "http_direct_equals_archive": true
+    },
+    {
+      "logical": "master/battle/zone.orderedmap",
+      "member": "production/upload/cd/6336795a27ea33bf8d0c5d5a9bfb466bedcf1e",
+      "sha256": "f55304889e739a810bb4a37b3fa8fbc02abc638600f4a382408e6efab32e5718",
+      "http_direct_equals_archive": true
+    },
+    {
+      "logical": "master/quest/event/rush_event_quest.orderedmap",
+      "member": "production/upload/b6/595dedd9cfa79b7e6eccab25dd9a2a81b066a2",
+      "sha256": "b0d893abfad4b6e169d61399f8cf0c77f9c42fd610ba1ae59f2f8bb0216017cc",
+      "http_direct_equals_archive": true
+    },
+    {
+      "logical": "master/quest/event/rush_event_quest_folder.orderedmap",
+      "member": "production/upload/e6/e407d1adb48131eaefdf5ec32208f3d4f46910",
+      "sha256": "c960912a7860091586e26d124566ed5e3884b394f00326b83a27c7f1ba20edab",
+      "http_direct_equals_archive": true
+    },
+    {
+      "logical": "master/degree/degree.orderedmap",
+      "member": "production/upload/89/e5c25c791e2a9527422c186084a1793218c2ac",
+      "sha256": "4fc497d4bf7375bdbb4c3215f269f76671665f3f0e51ada2fcff3a8d336cc8f4",
+      "http_direct_equals_archive": true
+    },
+    {
+      "logical": "dynamic/degree/degree_mod_special_thanks.png",
+      "member": "production/upload/03/076857d74f07bb194f6185d4f1c1d6061850ce",
+      "sha256": "b44cafb1c8f2a7d4528e129489d68b9c9d986093fd537e551f302ff1ef66d7b1",
+      "http_direct_equals_archive": true
+    },
+    {
+      "logical": "master/gacha_odds/cnmod_abyss_limited_gacha_character_5.orderedmap",
+      "member": "production/upload/bf/5dc56a444450216d4f12d6b9dfc0d908a09c5d",
+      "sha256": "faf12b4e05c70a9fa67b344584f7110f3134be2f08138bf102e1918be004cd2c",
+      "http_direct_equals_archive": true
+    },
+    {
+      "logical": "rich_text/cnmod_abyss_limited_gacha_note.html.deflate",
+      "member": "production/upload/3b/94cb2772f22fb76b1a4545c5a347d764050829",
+      "sha256": "24e373c26220cb4d8232769d8de259632e7f6ec9d932e03cdff6350fabfcbb73",
+      "http_direct_equals_archive": true
+    }
+  ],
+  "held_entry_message_absent": true,
+  "android_gameplay_verified": false
+}

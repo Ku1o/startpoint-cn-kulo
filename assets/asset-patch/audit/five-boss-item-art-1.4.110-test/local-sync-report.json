@@ -1,0 +1,137 @@
+{
+  "status": "local_test_increment_synced",
+  "audit": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\audit\\five-boss-item-art-1.4.110-test",
+  "version": "1.4.110",
+  "mode": "authorized_uncommitted_local_test_increment",
+  "files": [
+    {
+      "root": "F:\\codex\\startpoint-cn-private-clean",
+      "path": "assets/cdndata/boss_coin_shop.json",
+      "source": "F:\\codex\\work\\five-boss-icons-20260910\\delivery\\startpoint-cn-private-clean\\assets\\cdndata\\boss_coin_shop.json",
+      "size": 6014978,
+      "sha256": "394847b28a467a828bf81c3635675b803099a096308eb225c706d68ac5c82951",
+      "before_sha256": "2cc8c1564fa5a9f115c1e1868d691408ef12bdd657a846877f3b22cc6f74c0d7"
+    },
+    {
+      "root": "F:\\codex\\startpoint-cn-private-clean",
+      "path": "assets/asset-patch/artwork/five-boss/20260910/新·深界结晶.png",
+      "source": "F:\\codex\\work\\five-boss-icons-20260910\\delivery\\startpoint-cn-private-clean\\assets\\asset-patch\\artwork\\five-boss\\20260910\\新·深界结晶.png",
+      "size": 655,
+      "sha256": "d08e5a35e07b76c3d790379d729094f4783df6ef55b9cba47bf9d2890232c63b",
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\codex\\startpoint-cn-private-clean",
+      "path": "assets/asset-patch/artwork/five-boss/20260910/五王心核.png",
+      "source": "F:\\codex\\work\\five-boss-icons-20260910\\delivery\\startpoint-cn-private-clean\\assets\\asset-patch\\artwork\\five-boss\\20260910\\五王心核.png",
+      "size": 521,
+      "sha256": "3fdb546388fc18b0cfdbb9f1157959a85ad0349127eba06ec6d17a381f778430",
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\codex\\startpoint-cn-private-clean",
+      "path": "assets/asset-patch/artwork/five-boss/20260910/死亡使者.png",
+      "source": "F:\\codex\\work\\five-boss-icons-20260910\\delivery\\startpoint-cn-private-clean\\assets\\asset-patch\\artwork\\five-boss\\20260910\\死亡使者.png",
+      "size": 804,
+      "sha256": "23911ca588ceafd61330392dd8f352e575121607d356215596409cb3301bfec3",
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\codex\\startpoint-cn-private-clean",
+      "path": "assets/asset-patch/artwork/five-boss/20260910/新·深界连战凭证.png",
+      "source": "F:\\codex\\work\\five-boss-icons-20260910\\delivery\\startpoint-cn-private-clean\\assets\\asset-patch\\artwork\\five-boss\\20260910\\新·深界连战凭证.png",
+      "size": 581,
+      "sha256": "1a4fdb3bc7541a7e687f4add754cac66efd379166745d61758e5f4e513ad1db0",
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/cdndata/boss_coin_shop.json",
+      "source": "F:\\codex\\work\\five-boss-icons-20260910\\delivery\\startpoint-cn-main\\assets\\cdndata\\boss_coin_shop.json",
+      "size": 5660304,
+      "sha256": "b94c6b6c6dad855eadfe4b8c276438148c84e445cd6f6423e3fec7ea197de568",
+      "before_sha256": "b78c34bb80b8bc7dc375da85da88a3e5499a7c77470eb4e6ef06d97328b95d63"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/active/pinball-1.4.109-1.4.110-1-five-boss-item-art-test.zip",
+      "source": "F:\\codex\\work\\five-boss-icons-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\active\\pinball-1.4.109-1.4.110-1-five-boss-item-art-test.zip",
+      "size": 1559816,
+      "sha256": "6c6d51cf4ed010b19df8d2cbc9c8f7d4b40b1873a40c7548ffe755ca6ff219e3",
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/5a/8557140d67bf8b9d06fe1ddff2343d05607e11",
+      "source": "F:\\codex\\work\\five-boss-icons-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\5a\\8557140d67bf8b9d06fe1ddff2343d05607e11",
+      "size": 655,
+      "sha256": "e7664a6ec6b46f98bff011adb50fcd2ae73c243ff783d1b685864a8504ceeede",
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/e8/e94d472f8d41f8d2954a8d106bb0d18b47d0ac",
+      "source": "F:\\codex\\work\\five-boss-icons-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\e8\\e94d472f8d41f8d2954a8d106bb0d18b47d0ac",
+      "size": 521,
+      "sha256": "6bcdcbe6cd9a93359a6db03c7249f6b8a77559e227c2922b458c4f81baa1221e",
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/f0/de168aad4299c068f3427535f469a49ff9cbbb",
+      "source": "F:\\codex\\work\\five-boss-icons-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\f0\\de168aad4299c068f3427535f469a49ff9cbbb",
+      "size": 848,
+      "sha256": "bd9b72f78c0704d96a5859d0631d4dc025573824f33714c860bd915f4a86e91d",
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/5d/587cee98ce26a0ff22fa62f401241c7875176c",
+      "source": "F:\\codex\\work\\five-boss-icons-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\5d\\587cee98ce26a0ff22fa62f401241c7875176c",
+      "size": 848,
+      "sha256": "bd9b72f78c0704d96a5859d0631d4dc025573824f33714c860bd915f4a86e91d",
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/0d/227c8e7bcb1222c7cb2d4fb82ace96fe605cef",
+      "source": "F:\\codex\\work\\five-boss-icons-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\0d\\227c8e7bcb1222c7cb2d4fb82ace96fe605cef",
+      "size": 804,
+      "sha256": "f5a8bf6cc2aee87ae13b8a4da25edaddf5982b5712b2f21566e8063e33119f47",
+      "before_sha256": null
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/a5/35aaa48a5290e76d07c40e497742e4a407a0d0",
+      "source": "F:\\codex\\work\\five-boss-icons-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\a5\\35aaa48a5290e76d07c40e497742e4a407a0d0",
+      "size": 1769704,
+      "sha256": "942d3f39b8eb94830cfb50f54bdaae2d4b5ee012b2b642cf8d33c290b01de789",
+      "before_sha256": "948def479587bcec33318ce79bc035556a5cf3f48e93b22429d740f9bdb3366b"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/6d/4d576b424178c5b2b253a2dd5aa3d78fa74ef3",
+      "source": "F:\\codex\\work\\five-boss-icons-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\6d\\4d576b424178c5b2b253a2dd5aa3d78fa74ef3",
+      "size": 744605,
+      "sha256": "2ba13f354441a91a9e97500eee45902bee26671292bc5a7a8714f73f574ac7fb",
+      "before_sha256": "e1db8f2d017de7a93f006930d5f312fcdfaf904bdd15269b31c272bdb5b47843"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/49/a073fdd109e00ac9daf801113cb5e19f64a8cf",
+      "source": "F:\\codex\\work\\five-boss-icons-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\production\\upload\\49\\a073fdd109e00ac9daf801113cb5e19f64a8cf",
+      "size": 98517,
+      "sha256": "70ee5aef360663aa84e555b8f5eddb088c52416839333ddbde2ba911686fac68",
+      "before_sha256": "8b5c89403ee73e2fcce0b0d5c5ba7c8f2780a516d60c2456e954d0659da39b31"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/manifest.json",
+      "source": "F:\\codex\\work\\five-boss-icons-20260910\\delivery\\startpoint-cn-main\\assets\\asset-patch\\manifest.json",
+      "size": 775143,
+      "sha256": "d5fffb813e5ac8838f4604359d802b1f835b164d6e389817f5011a2e05a483d9",
+      "before_sha256": "4ff9d07800d2ae840f5ca592b5a4fa2c9375778ad751466d8b6b737c77140fa9"
+    }
+  ],
+  "backup": "F:\\startpoint-cn-main\\.codex-backups\\20260910-203332-five-boss-item-art"
+}

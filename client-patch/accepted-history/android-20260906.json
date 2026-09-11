@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "status": "user_accepted",
+  "accepted_on": "2026-09-06",
+  "acceptance": {
+    "source": "用户在“修复排行榜关注按钮状态”会话明确验收最终公网和内网标题修复包",
+    "user_statement": "都验收了，你看看github上关于apk的修改方法还有什么没提交的，也提交上去。",
+    "build_reports_are_immutable": true,
+    "note": "本地构建报告的 candidate 状态保留其生成时事实；本记录单独登记之后的用户真机验收。"
+  },
+  "variants": {
+    "public": {
+      "apk": "outputs/rush-leaderboard-self-profile-title-public-20260906/StarPoint-CN-1.8.1-self-profile-title-public-20260906.apk",
+      "apk_sha256": "7990f9191ecf41bd35a4d886ced4d13248d13559284639c69bee5837bd682f0e",
+      "swf_sha256": "27bdd055f8ca15f0863f564f5b4d57aba7de18d65d5fb9cdec43e87f96740e64",
+      "uniqueappversionid": "10eb0c01-78a1-4a70-8c35-d524208b98b7",
+      "endpoint": "http://175.178.160.158:8001",
+      "local_build_report": "outputs/rush-leaderboard-self-profile-title-public-20260906/verification-report.json",
+      "local_build_checks": {
+        "changed_methods": [
+          "284:82510"
+        ],
+        "zipalign": true,
+        "signer_certificate_sha256": "569d19a3578d4cba16e3d6e7ad8ccab4fa667efc758deef6c9be3adb99919894"
+      }
+    },
+    "lan": {
+      "apk": "outputs/rush-leaderboard-self-profile-title-lan-20260906/StarPoint-CN-1.8.1-self-profile-title-lan-20260906.apk",
+      "apk_sha256": "8e10df1f2b259fdc5cacf30f9a66ed3bc0556d5d253a22f55a931c22a0e6c9c0",
+      "swf_sha256": "e18b627a7735e55d40d65753cc6079ce47e7d969980723aef392513867ec4f30",
+      "uniqueappversionid": "444eb21b-7807-438d-a89c-156c617fcfb6",
+      "endpoint": "http://<LAN_HOST>",
+      "local_build_report": "outputs/rush-leaderboard-self-profile-title-lan-20260906/verification-report.json",
+      "local_build_checks": {
+        "changed_methods": [
+          "284:92013"
+        ],
+        "zipalign": true,
+        "signer_certificate_sha256": "569d19a3578d4cba16e3d6e7ad8ccab4fa667efc758deef6c9be3adb99919894"
+      },
+      "endpoint_sha256": "a32f84d19ceda3b4a466952f7deab7fbf1db96029ba70777a2cbd4a1ef79f521",
+      "local_endpoint_config": "outputs/android-build-local.json"
+    }
+  }
+}

@@ -9,6 +9,7 @@ const game_logging_1 = require("../../lib/game-logging");
 const admission_1 = require("./admission");
 const embedded_1 = require("../coordinator/embedded");
 const assets_1 = require("../../lib/assets");
+const connection_diagnostic_1 = require("../five-boss/connection-diagnostic");
 const rooms = new Map();
 let roomSequence = 1;
 const INCOMPLETE_EXPIRY_MS = parseInt(process.env.MULTI_ROOM_INCOMPLETE_EXPIRY_MS || "900000"); // 15min, mates < 3
@@ -224,6 +225,8 @@ function setRoomBattle(roomNumber) {
 exports.setRoomBattle = setRoomBattle;
 function disbandRoom(roomNumber, reason = "room_manager_delete") {
     const room = rooms.get(roomNumber);
+    if (room)
+        connection_diagnostic_1.fiveBossConnectionDiagnostics.roomEvent(roomNumber, "room_disband", reason);
     if (room)
         embedded_1.embeddedMultiCoordinator.commitDisband(room, reason);
     const deleted = rooms.delete(roomNumber);

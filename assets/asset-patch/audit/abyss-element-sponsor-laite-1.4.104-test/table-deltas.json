@@ -1,0 +1,388 @@
+{
+  "master/battle/boss/boss_level.orderedmap": {
+    "added": [
+      "mod_rogue_kraken7",
+      "mod_rogue_touyakiren_ceo11",
+      "mod_rogue_conductor24",
+      "mod_rogue_orochi_ex25",
+      "mod_rogue_orochi_ex25_head1",
+      "mod_rogue_orochi_ex25_head2",
+      "mod_rogue_orochi_ex25_head3",
+      "mod_rogue_orochi_ex25_head4",
+      "mod_rogue_orochi_ex25_head5",
+      "mod_rogue_orochi_ex25_head6",
+      "mod_rogue_boss26_2",
+      "mod_rogue_boss26_3",
+      "mod_rogue_wind_sphere28",
+      "mod_rogue_wind_sphere28_g52c1",
+      "mod_rogue_wind_sphere28_g1c1",
+      "mod_rogue_wind_sphere28_g1c2",
+      "mod_rogue_wind_sphere28_g1c3"
+    ],
+    "removed": [
+      "mod_rogue_boss6",
+      "mod_rogue_boss7",
+      "mod_rogue_boss9",
+      "mod_rogue_boss11",
+      "mod_rogue_boss12",
+      "mod_rogue_boss15",
+      "mod_rogue_boss18",
+      "mod_rogue_boss19",
+      "mod_rogue_boss21",
+      "mod_rogue_boss24",
+      "mod_rogue_boss25",
+      "mod_rogue_boss28",
+      "mod_rogue_boss29"
+    ],
+    "changed": [
+      "mod_rogue_boss2",
+      "mod_rogue_boss3",
+      "mod_rogue_boss4",
+      "mod_rogue_boss5",
+      "mod_rogue_boss8",
+      "mod_rogue_boss10",
+      "mod_rogue_boss13",
+      "mod_rogue_boss14",
+      "mod_rogue_boss16",
+      "mod_rogue_boss17",
+      "mod_rogue_boss20",
+      "mod_rogue_boss22",
+      "mod_rogue_boss23",
+      "mod_rogue_boss26",
+      "mod_rogue_boss27",
+      "mod_rogue_boss30"
+    ]
+  },
+  "master/battle/boss/conductor.orderedmap": {
+    "added": [
+      "mod_rogue_conductor24"
+    ],
+    "removed": [],
+    "changed": []
+  },
+  "master/battle/boss/general_boss.orderedmap": {
+    "added": [
+      "mod_rogue_boss26_2",
+      "mod_rogue_boss26_3"
+    ],
+    "removed": [
+      "mod_rogue_boss6",
+      "mod_rogue_boss7",
+      "mod_rogue_boss9",
+      "mod_rogue_boss11",
+      "mod_rogue_boss12",
+      "mod_rogue_boss15",
+      "mod_rogue_boss18",
+      "mod_rogue_boss19",
+      "mod_rogue_boss21",
+      "mod_rogue_boss24",
+      "mod_rogue_boss25",
+      "mod_rogue_boss28",
+      "mod_rogue_boss29"
+    ],
+    "changed": [
+      "mod_rogue_boss2",
+      "mod_rogue_boss3",
+      "mod_rogue_boss4",
+      "mod_rogue_boss5",
+      "mod_rogue_boss8",
+      "mod_rogue_boss10",
+      "mod_rogue_boss13",
+      "mod_rogue_boss14",
+      "mod_rogue_boss16",
+      "mod_rogue_boss17",
+      "mod_rogue_boss20",
+      "mod_rogue_boss22",
+      "mod_rogue_boss23",
+      "mod_rogue_boss26",
+      "mod_rogue_boss27",
+      "mod_rogue_boss30",
+      "mod_fb_hero_r",
+      "mod_fb_admin_r",
+      "mod_fb_eye_r",
+      "mod_fb_yokai_r",
+      "mod_fb_hero_c",
+      "mod_fb_admin_c",
+      "mod_fb_eye_c",
+      "mod_fb_yokai_c",
+      "mod_fb_water_s1",
+      "mod_fb_sand_s1",
+      "mod_fb_thunder_s1",
+      "mod_fb_hero_s1",
+      "mod_fb_admin_s1",
+      "mod_fb_eye_s1",
+      "mod_fb_yokai_s1",
+      "mod_fb_eye_s2",
+      "mod_fb_hero_s2"
+    ]
+  },
+  "master/battle/boss/general_boss_state.orderedmap": {
+    "added": [
+      "mod_rogue_boss10_state",
+      "mod_rogue_boss26_2_state"
+    ],
+    "removed": [
+      "mod_rogue_boss20_state",
+      "mod_rogue_boss28_state"
+    ],
+    "changed": [
+      "mod_rogue_boss26_state",
+      "mod_fb_eye_trial",
+      "mod_fb_hero_trial"
+    ]
+  },
+  "master/battle/boss/general_boss_variable.orderedmap": {
+    "added": [
+      "mod_rogue_boss2",
+      "mod_rogue_boss10",
+      "mod_rogue_boss16",
+      "mod_rogue_boss26"
+    ],
+    "removed": [
+      "mod_rogue_boss6",
+      "mod_rogue_boss7",
+      "mod_rogue_boss9",
+      "mod_rogue_boss11",
+      "mod_rogue_boss12",
+      "mod_rogue_boss13",
+      "mod_rogue_boss15",
+      "mod_rogue_boss19",
+      "mod_rogue_boss21",
+      "mod_rogue_boss23",
+      "mod_rogue_boss27"
+    ],
+    "changed": [
+      "mod_rogue_boss3",
+      "mod_rogue_boss4",
+      "mod_rogue_boss5",
+      "mod_rogue_boss8",
+      "mod_rogue_boss14",
+      "mod_rogue_boss22",
+      "mod_rogue_boss30"
+    ]
+  },
+  "master/battle/boss/general_enemy_watch.orderedmap": {
+    "added": [],
+    "removed": [],
+    "changed": [
+      "1",
+      "2"
+    ]
+  },
+  "master/battle/boss/kraken.orderedmap": {
+    "added": [
+      "mod_rogue_kraken7"
+    ],
+    "removed": [],
+    "changed": []
+  },
+  "master/battle/boss/orochi_ex.orderedmap": {
+    "added": [
+      "mod_rogue_orochi_ex25"
+    ],
+    "removed": [],
+    "changed": []
+  },
+  "master/battle/boss/orochi_ex_head.orderedmap": {
+    "added": [
+      "mod_rogue_orochi_ex25_head1",
+      "mod_rogue_orochi_ex25_head2",
+      "mod_rogue_orochi_ex25_head3",
+      "mod_rogue_orochi_ex25_head4",
+      "mod_rogue_orochi_ex25_head5",
+      "mod_rogue_orochi_ex25_head6"
+    ],
+    "removed": [],
+    "changed": []
+  },
+  "master/battle/boss/standard_boss.orderedmap": {
+    "added": [
+      "mod_rogue_standard6",
+      "mod_rogue_standard9",
+      "mod_rogue_standard12",
+      "mod_rogue_standard15",
+      "mod_rogue_standard15_2",
+      "mod_rogue_standard18",
+      "mod_rogue_standard19",
+      "mod_rogue_standard21",
+      "mod_rogue_standard29",
+      "mod_rogue_standard29_2"
+    ],
+    "removed": [],
+    "changed": []
+  },
+  "master/battle/boss/touyakiren_ceo.orderedmap": {
+    "added": [
+      "mod_rogue_touyakiren_ceo11"
+    ],
+    "removed": [],
+    "changed": []
+  },
+  "master/battle/boss/wind_sphere.orderedmap": {
+    "added": [
+      "mod_rogue_wind_sphere28"
+    ],
+    "removed": [],
+    "changed": []
+  },
+  "master/battle/boss/wind_sphere_micronucleus.orderedmap": {
+    "added": [
+      "2010280101",
+      "2010280102",
+      "2010280103"
+    ],
+    "removed": [],
+    "changed": []
+  },
+  "master/battle/field_data.orderedmap": {
+    "added": [],
+    "removed": [],
+    "changed": [
+      "mod_five_boss_coop_v1_scene_1",
+      "mod_five_boss_coop_v1_scene_2",
+      "mod_rogue_f2",
+      "mod_rogue_f3",
+      "mod_rogue_f4",
+      "mod_rogue_f5",
+      "mod_rogue_f6",
+      "mod_rogue_f7",
+      "mod_rogue_f8",
+      "mod_rogue_f9",
+      "mod_rogue_f10",
+      "mod_rogue_f11",
+      "mod_rogue_f12",
+      "mod_rogue_f13",
+      "mod_rogue_f14",
+      "mod_rogue_f15",
+      "mod_rogue_f16",
+      "mod_rogue_f17",
+      "mod_rogue_f18",
+      "mod_rogue_f19",
+      "mod_rogue_f20",
+      "mod_rogue_f21",
+      "mod_rogue_f22",
+      "mod_rogue_f23",
+      "mod_rogue_f24",
+      "mod_rogue_f25",
+      "mod_rogue_f26",
+      "mod_rogue_f27",
+      "mod_rogue_f28",
+      "mod_rogue_f29",
+      "mod_rogue_f30",
+      "mod_five_boss_var_s1_ability_a",
+      "mod_five_boss_var_s2_ability_a",
+      "mod_five_boss_var_s1_direct_a",
+      "mod_five_boss_var_s2_direct_a",
+      "mod_five_boss_var_s1_pf_a",
+      "mod_five_boss_var_s2_pf_a",
+      "mod_five_boss_var_s1_skill_a",
+      "mod_five_boss_var_s2_skill_a",
+      "mod_five_boss_var_s1_attack_a",
+      "mod_five_boss_var_s2_attack_a",
+      "mod_five_boss_var_s1_ability_b",
+      "mod_five_boss_var_s2_ability_b",
+      "mod_five_boss_var_s1_direct_b",
+      "mod_five_boss_var_s2_direct_b",
+      "mod_five_boss_var_s1_pf_b",
+      "mod_five_boss_var_s2_pf_b",
+      "mod_five_boss_var_s1_skill_b",
+      "mod_five_boss_var_s2_skill_b",
+      "mod_five_boss_var_s1_attack_b",
+      "mod_five_boss_var_s2_attack_b"
+    ]
+  },
+  "master/battle/zako/general_zako.orderedmap": {
+    "added": [],
+    "removed": [],
+    "changed": []
+  },
+  "master/battle/zako/zako_level.orderedmap": {
+    "added": [],
+    "removed": [],
+    "changed": []
+  },
+  "master/battle/zone.orderedmap": {
+    "added": [],
+    "removed": [],
+    "changed": [
+      "mod_five_boss_coop_v1_zone_1",
+      "mod_five_boss_coop_v1_zone_2",
+      "mod_rogue_z2",
+      "mod_rogue_z3",
+      "mod_rogue_z4",
+      "mod_rogue_z5",
+      "mod_rogue_z6",
+      "mod_rogue_z7",
+      "mod_rogue_z8",
+      "mod_rogue_z9",
+      "mod_rogue_z10",
+      "mod_rogue_z11",
+      "mod_rogue_z12",
+      "mod_rogue_z13",
+      "mod_rogue_z14",
+      "mod_rogue_z15",
+      "mod_rogue_z16",
+      "mod_rogue_z17",
+      "mod_rogue_z18",
+      "mod_rogue_z19",
+      "mod_rogue_z20",
+      "mod_rogue_z21",
+      "mod_rogue_z22",
+      "mod_rogue_z23",
+      "mod_rogue_z24",
+      "mod_rogue_z25",
+      "mod_rogue_z26",
+      "mod_rogue_z27",
+      "mod_rogue_z28",
+      "mod_rogue_z29",
+      "mod_rogue_z30",
+      "mod_five_boss_var_s1_ability_a",
+      "mod_five_boss_var_s2_ability_a",
+      "mod_five_boss_var_s1_direct_a",
+      "mod_five_boss_var_s2_direct_a",
+      "mod_five_boss_var_s1_pf_a",
+      "mod_five_boss_var_s2_pf_a",
+      "mod_five_boss_var_s2_skill_a",
+      "mod_five_boss_var_s1_attack_a",
+      "mod_five_boss_var_s2_attack_a",
+      "mod_five_boss_var_s1_ability_b",
+      "mod_five_boss_var_s2_ability_b",
+      "mod_five_boss_var_s1_direct_b",
+      "mod_five_boss_var_s2_direct_b",
+      "mod_five_boss_var_s1_pf_b",
+      "mod_five_boss_var_s2_pf_b",
+      "mod_five_boss_var_s2_skill_b",
+      "mod_five_boss_var_s1_attack_b",
+      "mod_five_boss_var_s2_attack_b"
+    ]
+  },
+  "master/quest/event/event_list.orderedmap": {
+    "added": [],
+    "removed": [],
+    "changed": []
+  },
+  "master/quest/event/rush_event.orderedmap": {
+    "added": [],
+    "removed": [],
+    "changed": []
+  },
+  "master/quest/event/rush_event_battle_quest_correction.orderedmap": {
+    "added": [],
+    "removed": [],
+    "changed": []
+  },
+  "master/quest/event/rush_event_quest.orderedmap": {
+    "added": [],
+    "removed": [],
+    "changed": [
+      "700099"
+    ]
+  },
+  "master/quest/event/rush_event_quest_folder.orderedmap": {
+    "added": [],
+    "removed": [],
+    "changed": [
+      "700099"
+    ]
+  }
+}

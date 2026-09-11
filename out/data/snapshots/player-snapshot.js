@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.restorePlayerSaveSnapshotV2Sync = exports.validatePlayerSaveSnapshotV2Sync = exports.isPlayerSaveSnapshotV2 = exports.createPlayerSaveSnapshotV2Sync = exports.assertPlayerSnapshotCoverageSync = exports.PLAYER_SNAPSHOT_V2_TABLES = void 0;
 const crypto_1 = require("crypto");
 const utils_1 = require("../../utils");
+const storage_layout_1 = require("../../lib/storage-layout");
 const ARCHIVE_HISTORY_TABLES = new Set([
     "players_mails",
     "players_receive_history",
@@ -93,6 +94,17 @@ const EXCLUDED_PLAYER_STATE = Object.freeze([
         policy: "preserve-target",
         reason: "排行榜对局、轮次明细和结算结果属于服务器公共竞赛记录，不随玩家存档迁移，覆盖时保留目标侧数据。",
     },
+    {
+        tables: [
+            "five_boss_continue_receipts",
+            "five_boss_solo_runs",
+            "five_boss_gauntlet_runs",
+            "five_boss_gauntlet_members",
+            "five_boss_gauntlet_receipts",
+        ],
+        policy: "preserve-target",
+        reason: "五王挑战的场次、成员和扣费/奖励回执绑定本服对局，不随存档迁移；覆盖时保留目标侧账本，避免影响同局其他玩家或重复结算。",
+    },
 ]);
 const REMAPPED_AUTOINCREMENT_IDS = new Map([
     ["players_mails", new Set(["id"])],
@@ -114,6 +126,9 @@ function quoteIdentifier(value) {
     return `"${value.replace(/"/g, '""')}"`;
 }
 function getTableInfo(db, table) {
+    const logicalInfo = (0, storage_layout_1.getStorageSnapshotTableInfo)(db, table);
+    if (logicalInfo)
+        return logicalInfo;
     const rows = db.prepare(`PRAGMA table_info(${quoteIdentifier(table)})`).all();
     if (rows.length === 0)
         throw new Error(`存档表不存在：${table}`);
@@ -157,6 +172,10 @@ function getPlayerReferencingTables(db) {
 }
 function assertPlayerSnapshotCoverageSync(db = getDefaultDatabase()) {
     const classified = new Set(exports.PLAYER_SNAPSHOT_V2_TABLES.slice(1));
+    // The physical values table is exported/restored through the logical
+    // players_mission_counters view, including the original textual keys.
+    if ((0, storage_layout_1.isCompactStorage)(db))
+        classified.add(storage_layout_1.COMPACT_COUNTER_VALUES);
     for (const exclusion of EXCLUDED_PLAYER_STATE) {
         for (const table of exclusion.tables)
             classified.add(table);
@@ -373,9 +392,12 @@ function restorePlayerSaveSnapshotV2Sync(snapshotValue, targetPlayerId, options 
         throw new Error(`目标玩家 ${targetPlayerId} 不存在`);
     const includeArchiveHistory = options.includeArchiveHistory !== false;
     const skippedTables = [...ARCHIVE_HISTORY_TABLES].filter(() => !includeArchiveHistory);
+    if ((0, storage_layout_1.isCompactStorage)(db))
+        skippedTables.push(storage_layout_1.RETIRED_COUNTER_SNAPSHOTS);
     const restoredTables = exports.PLAYER_SNAPSHOT_V2_TABLES
         .filter(table => table !== "players")
-        .filter(table => includeArchiveHistory || !ARCHIVE_HISTORY_TABLES.has(table));
+        .filter(table => includeArchiveHistory || !ARCHIVE_HISTORY_TABLES.has(table))
+        .filter(table => !skippedTables.includes(table));
     const resetTables = EXCLUDED_PLAYER_STATE
         .filter(entry => entry.policy === "reset")
         .flatMap(entry => [...entry.tables]);

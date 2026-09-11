@@ -279,26 +279,33 @@ export function registerRoomRoutes(fastify: FastifyInstance): void {
     // ---- disband_room ----
     fastify.post("/disband_room", async (request: FastifyRequest, reply: FastifyReply) => {
         const body = request.body as RestoreRoomBody;
-        const viewerId = body.viewer_id;
-        gameVerboseLog(() => `[MULTI] disband_room: viewer=${viewerId} room=${body.room_number}`);
+        const viewerId = body?.viewer_id;
+        const roomNumber = body?.room_number;
+        gameVerboseLog(() => `[MULTI] disband_room: viewer=${viewerId} room=${roomNumber}`);
 
-        if (!await hasValidViewer(viewerId)) {
+        if (typeof roomNumber !== "string" || !roomNumber
+            || !await hasValidViewer(viewerId)) {
             return reply.status(400).send({
                 "error": "Bad Request", "message": "Invalid request body."
             });
         }
 
-        const room = getRoom(body.room_number);
-        if (!room) return reply.status(400).send({
-            "error": "Bad Request", "message": "Room doesn't exist."
-        });
-        if (room.host_viewer_id !== viewerId) return forbidden(reply);
-
-        await embeddedMultiCoordinator.enqueueRoomCommand(
-            body.room_number,
-            () => sessionManager.commitRoomDisband(body.room_number, `viewer_${viewerId}_requested`),
-        );
-        gameVerboseLog(() => `[MULTI] room ${body.room_number} disbanded by viewer ${viewerId}`);
+        const room = getRoom(roomNumber);
+        // Settlement or disconnect cleanup may already have removed the room
+        // before the client returns to the quest selector. Repeated cleanup
+        // must succeed; a 400 here makes the CN client show H400 and log out.
+        if (room) {
+            if (room.host_viewer_id !== viewerId) return forbidden(reply);
+            const generation = room.lobby_generation;
+            await embeddedMultiCoordinator.enqueueRoomCommand(roomNumber, () => {
+                // A queued request belongs only to the room and round that
+                // passed the ownership check, even if its number is reused.
+                if (getRoom(roomNumber) !== room || room.lobby_generation !== generation) return;
+                if (sessionManager.commitRoomDisband(roomNumber, `viewer_${viewerId}_requested`)) {
+                    gameVerboseLog(() => `[MULTI] room ${roomNumber} disbanded by viewer ${viewerId}`);
+                }
+            });
+        }
 
         reply.header("content-type", "application/x-msgpack");
         return reply.status(200).send({

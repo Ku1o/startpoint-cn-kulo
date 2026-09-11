@@ -264,22 +264,33 @@ function registerRoomRoutes(fastify) {
     // ---- disband_room ----
     fastify.post("/disband_room", (request, reply) => __awaiter(this, void 0, void 0, function* () {
         const body = request.body;
-        const viewerId = body.viewer_id;
-        (0, game_logging_1.gameVerboseLog)(() => `[MULTI] disband_room: viewer=${viewerId} room=${body.room_number}`);
-        if (!(yield hasValidViewer(viewerId))) {
+        const viewerId = body === null || body === void 0 ? void 0 : body.viewer_id;
+        const roomNumber = body === null || body === void 0 ? void 0 : body.room_number;
+        (0, game_logging_1.gameVerboseLog)(() => `[MULTI] disband_room: viewer=${viewerId} room=${roomNumber}`);
+        if (typeof roomNumber !== "string" || !roomNumber
+            || !(yield hasValidViewer(viewerId))) {
             return reply.status(400).send({
                 "error": "Bad Request", "message": "Invalid request body."
             });
         }
-        const room = (0, manager_1.getRoom)(body.room_number);
-        if (!room)
-            return reply.status(400).send({
-                "error": "Bad Request", "message": "Room doesn't exist."
+        const room = (0, manager_1.getRoom)(roomNumber);
+        // Settlement or disconnect cleanup may already have removed the room
+        // before the client returns to the quest selector. Repeated cleanup
+        // must succeed; a 400 here makes the CN client show H400 and log out.
+        if (room) {
+            if (room.host_viewer_id !== viewerId)
+                return forbidden(reply);
+            const generation = room.lobby_generation;
+            yield embedded_1.embeddedMultiCoordinator.enqueueRoomCommand(roomNumber, () => {
+                // A queued request belongs only to the room and round that
+                // passed the ownership check, even if its number is reused.
+                if ((0, manager_1.getRoom)(roomNumber) !== room || room.lobby_generation !== generation)
+                    return;
+                if (SessionManager_1.sessionManager.commitRoomDisband(roomNumber, `viewer_${viewerId}_requested`)) {
+                    (0, game_logging_1.gameVerboseLog)(() => `[MULTI] room ${roomNumber} disbanded by viewer ${viewerId}`);
+                }
             });
-        if (room.host_viewer_id !== viewerId)
-            return forbidden(reply);
-        yield embedded_1.embeddedMultiCoordinator.enqueueRoomCommand(body.room_number, () => SessionManager_1.sessionManager.commitRoomDisband(body.room_number, `viewer_${viewerId}_requested`));
-        (0, game_logging_1.gameVerboseLog)(() => `[MULTI] room ${body.room_number} disbanded by viewer ${viewerId}`);
+        }
         reply.header("content-type", "application/x-msgpack");
         return reply.status(200).send({
             "data_headers": (0, utils_1.generateDataHeaders)({ viewer_id: viewerId }),

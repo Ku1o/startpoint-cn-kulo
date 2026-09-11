@@ -1,0 +1,23 @@
+[
+  {
+    "class_name": "pinball.scene.playerProfile.PlayerProfileView",
+    "method": "refreshFollowRelationButtons",
+    "ios_body_index": 79682,
+    "ios_aot_id": 87249,
+    "pcode_sha256": "8c32807bb919aaea10df8dc2487e004b0085fcf0c9dbb248cf1382b572962c4a"
+  },
+  {
+    "class_name": "pinball.scene.playerProfile.profile.otherProfile.OtherProfileLogic",
+    "method": "applyButton",
+    "ios_body_index": 79819,
+    "ios_aot_id": 87420,
+    "pcode_sha256": "c0317adbe5056d6ddc533c52b43e42412dad84142c388a6acd4e5796f479cfff"
+  },
+  {
+    "class_name": "pinball.scene.event.rush.ranking.party.RushEventRankingPartyScene",
+    "method": "copyPlayedParty",
+    "ios_body_index": 71659,
+    "ios_aot_id": 78115,
+    "pcode_sha256": "8b457966c957a2d6af2463d8cb57ddaf278c8df2fa64d815cdb5d4fbdbd119c7"
+  }
+]

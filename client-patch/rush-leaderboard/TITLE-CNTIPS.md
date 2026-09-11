@@ -1,5 +1,9 @@
 # 本会话 Android 资料页、本人资料和标题修复
 
+2026-09-09：本页保留 9 月 6 日的历史实现与验收。当前开发基线已经升级为
+[深渊续战 Lens 累计版](../android-accepted.json)，新增修改必须保留续战及 422/724 等 Lens 内容；
+下列标题修复包只作历史父版本。原验收登记见 [历史记录](../accepted-history/android-20260906.json)。
+
 2026-09-06：用户发现最新公网资料页修复 APK 遗漏了先前的标题提示隐藏。
 2026-09-06 用户随后确认最终公网和内网包全部验收。当前直接基线由
 [ANDROID-BASELINE.md](../ANDROID-BASELINE.md) 和 [android-accepted.json](../android-accepted.json) 统一登记。
@@ -48,13 +52,13 @@ zipalign、v1/v2 签名与固定证书。签名凭据遵循根 AGENTS.md 的 DPA
 均需显式指定；输出与工作目录不得已存在。构建会删除自身的 unsigned/aligned 中间 APK。
 本任务不修改服务端、CDN 或 IPA。
 
-## 当前公网交付（用户已验收）
+## 历史公网交付（2026-09-06，用户已验收）
 
 - 公网 APK：`outputs/rush-leaderboard-self-profile-title-public-20260906/StarPoint-CN-1.8.1-self-profile-title-public-20260906.apk`
 - APK SHA-256：`7990f9191ecf41bd35a4d886ced4d13248d13559284639c69bee5837bd682f0e`
 - SWF SHA-256：`27bdd055f8ca15f0863f564f5b4d57aba7de18d65d5fb9cdec43e87f96740e64`
 - `uniqueappversionid`：`10eb0c01-78a1-4a70-8c35-d524208b98b7`
-- 同目录 `verification-report.json` 保留构建当时的 `locally_verified_test_candidate` 状态；后续用户明确验收的依据另记于 `../android-accepted.json`。
+- 同目录 `verification-report.json` 保留构建当时的 `locally_verified_test_candidate` 状态；后续用户明确验收的依据另记于 `../accepted-history/android-20260906.json`。
 
 后续回归需查看首次标题页、进入游戏再回标题页，确认 `CNtips_b` 不再出现。
 后续修改需保留 `284:82510` 隐藏逻辑，并以此累计包继续。
@@ -72,7 +76,7 @@ zipalign、v1/v2 签名与固定证书。签名凭据遵循根 AGENTS.md 的 DPA
 - APK SHA-256：`8e10df1f2b259fdc5cacf30f9a66ed3bc0556d5d253a22f55a931c22a0e6c9c0`
 - SWF SHA-256：`e18b627a7735e55d40d65753cc6079ce47e7d969980723aef392513867ec4f30`
 - `uniqueappversionid`：`444eb21b-7807-438d-a89c-156c617fcfb6`
-- 同目录 `verification-report.json` 记录构建时的本地校验；用户现已明确验收此次标题补回版本，依据见 `../android-accepted.json`。
+- 同目录 `verification-report.json` 记录构建时的本地校验；用户现已明确验收此次标题补回版本，依据见 `../accepted-history/android-20260906.json`。
 
 该内网版保留标题隐藏、本人资料路由及关注修复，不得改用没有标题隐藏的旧内网 v2 代替。
 

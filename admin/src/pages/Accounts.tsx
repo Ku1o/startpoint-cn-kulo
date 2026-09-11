@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react"
-import { Alert, Card, Table, Button, Space, Popconfirm, Input, message, Tag, Typography, Upload, Modal, Drawer, Progress } from "antd"
+import { Alert, Card, Table, Button, Space, Popconfirm, Input, message, Tag, Typography, Upload, Modal, Drawer, Progress, Descriptions, Collapse, Tooltip } from "antd"
 import { PlusOutlined, CopyOutlined, DeleteOutlined, SwapOutlined, EditOutlined, DownloadOutlined, UploadOutlined } from "@ant-design/icons"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { useNavigate } from "react-router-dom"
@@ -10,6 +10,8 @@ interface AccountRow {
     id: number
     viewerId: string | null
     note: string | null
+    loginUsername: string | null
+    playerLogin: { bound: boolean; boundAt: number | null; sessionExpiresAt: number | null }
     takeoverConfigured: boolean
     latestTransfer: TransferBrief | null
     bindings: DeviceBinding[]
@@ -48,7 +50,7 @@ interface CleanupJob {
     ok: boolean
     jobId?: string
     status: "idle" | "running" | "completed" | "failed"
-    phase?: "preparing" | "backing_up" | "indexing" | "deleting" | "finalizing"
+    phase?: "preparing" | "planning" | "backing_up" | "indexing" | "deleting" | "finalizing"
     totalAccounts?: number
     processedAccounts?: number
     deletedAccounts: number
@@ -96,6 +98,7 @@ export default function Accounts() {
     const qc = useQueryClient()
     const navigate = useNavigate()
     const [selectedAccountId, setSelectedAccountId] = useState<number | null>(null)
+    const [loginAccountId, setLoginAccountId] = useState<number | null>(null)
     const [renameId, setRenameId] = useState<number | null>(null)
     const [renameName, setRenameName] = useState("")
     const [accountQuery, setAccountQuery] = useState("")
@@ -115,6 +118,7 @@ export default function Accounts() {
     })
 
     const selectedAccount = accounts.find(a => a.id === selectedAccountId)
+    const loginAccount = accounts.find(a => a.id === loginAccountId)
     const savePlayers = selectedAccount?.players ?? []
     const normalizedQuery = accountQuery.trim().toLowerCase()
     const filteredAccounts = normalizedQuery
@@ -122,19 +126,15 @@ export default function Accounts() {
             account.id,
             account.viewerId,
             account.note,
+            account.loginUsername,
             ...account.bindings.map(binding => binding.deviceId),
             ...account.players.flatMap(player => [player.id, player.name, player.comment]),
         ].filter(value => value != null).join(" ").toLowerCase().includes(normalizedQuery))
         : accounts
     const unnotedAccounts = accounts.filter(account =>
         !(typeof account.note === "string" && account.note.trim().length > 0)
-        && !account.players.some(player => player.isActive),
     )
     const unnotedSaveCount = unnotedAccounts.reduce((count, account) => count + account.saveCount, 0)
-    const activeUnnotedAccount = accounts.find(account =>
-        account.players.some(player => player.isActive)
-        && !(typeof account.note === "string" && account.note.trim().length > 0),
-    )
 
     const refresh = () => {
         qc.invalidateQueries({ queryKey: ["accounts"] })
@@ -207,6 +207,33 @@ export default function Accounts() {
         onError: (error: Error) => message.error(error.message),
     })
 
+    const issueLoginCode = useMutation({
+        mutationFn: async (account: AccountRow) => {
+            const result = await apiPost<{ ok: boolean; message?: string; data: { code: string; expires_at: number; profile: { username: string | null; viewer_id: number; name: string } } }>("/api/server/account/player-login-code", {
+                viewer_id: account.viewerId,
+                purpose: account.playerLogin?.bound ? "reset" : "bind",
+            })
+            if (!result.ok) throw new Error(result.message || "生成失败，请重试")
+            return result.data
+        },
+        onSuccess: (result, account) => {
+            Modal.success({
+                title: account.playerLogin?.bound ? "登录密码重置码已生成" : "旧存档绑定码已生成",
+                content: <Space direction="vertical" size="middle">
+                    <Typography.Text strong>{result.profile.name} · UID {result.profile.viewer_id}</Typography.Text>
+                    {result.profile.username && <Typography.Text>登录账号：{result.profile.username}</Typography.Text>}
+                    <Typography.Text code copyable>{result.code}</Typography.Text>
+                    <Typography.Text type="secondary">有效期至 {new Date(result.expires_at).toLocaleString()}，只能使用一次；新码替换之前的同用途验证码。</Typography.Text>
+                    <Typography.Text>{account.playerLogin?.bound
+                        ? "请让玩家在登录页选择“忘记密码”，使用此码设置新密码。设置成功后旧登录凭据失效，原存档与备注保留。"
+                        : "请让老玩家选择“绑定旧存档 → 使用服主提供的绑定码”，确认角色和 UID 后设置账号密码。无需先注册新账号。"}</Typography.Text>
+                </Space>,
+            })
+            refresh()
+        },
+        onError: (error: Error) => message.error(error.message),
+    })
+
     const importSave = useMutation({
         mutationFn: ({ playerId, file }: { playerId: number; file: File }) =>
             apiUpload<ImportSaveResult>(`/api/player/save?id=${playerId}`, file),
@@ -266,11 +293,15 @@ export default function Accounts() {
         : 0
     const cleanupPhaseText = {
         preparing: "正在准备 Worker",
+        planning: "正在整理清理清单",
         backing_up: "正在创建完整数据库备份",
         indexing: "正在检查删除索引",
         deleting: "正在分批删除",
         finalizing: "正在写入结果并清理旧备份",
     }[cleanupJob?.phase ?? "preparing"]
+    const cleanupScopeText = isLoading
+        ? "正在统计可清理账号…"
+        : `可清理 ${unnotedAccounts.length} 个：所有未备注账号，不论是否绑定登录。`
 
     const confirmCleanupUnnotedAccounts = () => {
         Modal.confirm({
@@ -278,13 +309,13 @@ export default function Accounts() {
             content: (
                 <Space direction="vertical" size="small">
                     <Typography.Text>
-                        将同时删除这些账号下的 {unnotedSaveCount} 个存档。空备注、纯空格备注和无设备绑定都视为未备注。
+                        将同时删除这些账号下的 {unnotedSaveCount} 个存档及登录账号。空备注或纯空格均视为未备注，不论是否绑定登录或设备。
                     </Typography.Text>
                     <Typography.Text type="warning">
-                        当前活动账号会自动保留；执行前服务端会创建完整数据库备份。
+                        当前选中的账号也按备注判断；需要保留的账号请先填写备注。执行前服务端会创建完整数据库备份。
                     </Typography.Text>
                     <Typography.Text type="secondary">
-                        清理由独立 Worker 分批执行，期间可以继续登录和游戏；涉及数据库写入的操作偶尔可能短暂停顿。
+                        Worker 整理清单后，服务端分批清理。期间可以继续登录和游戏；涉及数据库写入的操作偶尔可能短暂停顿。
                     </Typography.Text>
                     <Typography.Text type="secondary">
                         新备份和清理均成功后，只保留本次清理备份，较早的同类自动备份会被删除。
@@ -363,7 +394,7 @@ export default function Accounts() {
             ),
         },
         {
-            title: "设备 ID",
+            title: <Tooltip title="旧客户端留下的设备绑定记录，不代表当前手机；账号登录不依赖此记录。">原设备 ID</Tooltip>,
             width: 150,
             responsive: ["sm"] as any,
             render: (_: unknown, row: AccountRow) => (
@@ -377,61 +408,30 @@ export default function Accounts() {
                                 {binding.deviceId}
                             </Typography.Text>
                         ))
-                        : <Typography.Text type="secondary">未绑定</Typography.Text>}
+                        : <Tooltip title="没有旧设备绑定记录"><Typography.Text type="secondary">—</Typography.Text></Tooltip>}
                 </div>
             ),
         },
         {
-            title: "数据继承",
-            width: 250,
-            responsive: ["md"] as any,
+            title: "登录账号",
+            width: 240,
             render: (_: unknown, row: AccountRow) => (
-                <div className="account-takeover-cell">
-                    <div className="account-takeover-head">
-                        <Tag color={row.takeoverConfigured ? "green" : "default"}>
-                            {row.takeoverConfigured ? "已设置密码" : "未设置密码"}
+                <div className="account-login-cell">
+                    {row.loginUsername
+                        ? <Typography.Text strong className="account-login-name"
+                            ellipsis={{ tooltip: row.loginUsername }} copyable={{ text: row.loginUsername }}>
+                            {row.loginUsername}
+                        </Typography.Text>
+                        : <Typography.Text type="secondary">尚未设置登录账号</Typography.Text>}
+                    <div className="account-login-meta">
+                        <Tag bordered={false} color={row.playerLogin?.bound ? "cyan" : "gold"}>
+                            {row.playerLogin?.bound ? "已绑定" : "未绑定"}
                         </Tag>
-                        <Popconfirm
-                            title={row.takeoverConfigured
-                                ? "重置该账号的继承密码？"
-                                : "为该账号生成继承密码？"}
-                            description={row.takeoverConfigured
-                                ? "将生成一个新密码并仅显示一次，旧密码立即失效。"
-                                : "将生成一个仅显示一次的继承密码，请单独交给玩家。"}
-                            okText={row.takeoverConfigured ? "确认重置" : "确认生成"}
-                            cancelText="取消"
-                            okButtonProps={{ danger: row.takeoverConfigured }}
-                            onConfirm={() => issueTakeoverPassword.mutate({
-                                accountId: row.id,
-                                reset: row.takeoverConfigured,
-                            })}
-                        >
-                            <Button
-                                type="link"
-                                danger={row.takeoverConfigured}
-                                size="small"
-                                loading={issueTakeoverPassword.isPending
-                                    && issueTakeoverPassword.variables?.accountId === row.id}
-                            >
-                                {row.takeoverConfigured ? "重置密码" : "生成继承密码"}
-                            </Button>
-                        </Popconfirm>
+                        <Button type="link" size="small" onClick={() => setLoginAccountId(row.id)}
+                            aria-label={`管理账号 ${row.viewerId || row.id} 的登录与绑定`}>
+                            {row.playerLogin?.bound ? "管理登录" : "绑定存档"}
+                        </Button>
                     </div>
-                    {row.latestTransfer && (
-                        <div className="account-transfer-detail">
-                            <Typography.Text type="secondary" className="account-cell-meta">
-                                最近继承 · {new Date(row.latestTransfer.transferredAt).toLocaleString()}
-                            </Typography.Text>
-                            <Typography.Text type="secondary" className="account-cell-meta">
-                                {row.latestTransfer.abolishedViewerId
-                                    ? `已废弃临时账号 ${row.latestTransfer.abolishedViewerId}`
-                                    : "标题页直接恢复"}
-                            </Typography.Text>
-                        </div>
-                    )}
-                    {!row.latestTransfer && (
-                        <Typography.Text type="secondary" className="account-cell-meta">暂无继承记录</Typography.Text>
-                    )}
                 </div>
             ),
         },
@@ -607,18 +607,20 @@ export default function Accounts() {
             <Alert
                 type="info"
                 showIcon
-                message="选档状态说明"
-                description="备注现在是账号级备注，数据继承和设备更换后仍会保留。新建和复制存档会设为该账号默认并切换为当前活动；删除默认存档后，服务端会在该账号剩余存档中回退到第一个可用存档。删除最后一个存档会同时删除账号。"
+                message="账号登录与旧存档绑定"
+                description="备注是账号级备注，绑定登录和设备更换后仍保留。老玩家无需先注册：核实原 UID 后生成绑定码即可。已绑定账号使用登录密码重置码找回；原设备 ID 仅供历史定位。账号默认存档决定玩家登录时选用的存档，当前活动存档只是管理端最近切换的全局状态。"
             />
             <Card
                 title="账号管理"
                 className="admin-table-card"
                 extra={(
                     <Space wrap>
+                        <Tooltip title={cleanupRunning ? "清理任务正在进行，请等待完成" : cleanupScopeText}>
+                        <span>
                         <Button
                             danger
                             icon={<DeleteOutlined />}
-                            disabled={unnotedAccounts.length === 0 || cleanupRunning}
+                            disabled={isLoading || unnotedAccounts.length === 0 || cleanupRunning}
                             loading={cleanupUnnotedAccounts.isPending}
                             onClick={confirmCleanupUnnotedAccounts}
                         >
@@ -626,22 +628,27 @@ export default function Accounts() {
                                 ? `后台清理中 (${cleanupJob.processedAccounts ?? 0}/${cleanupJob.totalAccounts ?? 0})`
                                 : `删除未备注账号 (${unnotedAccounts.length})`}
                         </Button>
+                        </span>
+                        </Tooltip>
                         <Input.Search
                             allowClear
                             value={accountQuery}
                             onChange={event => setAccountQuery(event.target.value)}
-                            placeholder="搜索账号 ID、设备 ID、备注或存档"
+                            placeholder="搜索登录账号、UID、设备 ID、备注或存档"
                             style={{ width: 300, maxWidth: "65vw" }}
                         />
                     </Space>
                 )}
             >
+                <Typography.Paragraph type="secondary" style={{ marginBottom: 12 }}>
+                    {cleanupScopeText}
+                </Typography.Paragraph>
                 {cleanupRunning && (
                     <Alert
                         type="info"
                         showIcon
                         style={{ marginBottom: 12 }}
-                        message={`${cleanupPhaseText}（Worker #${cleanupJob.workerThreadId ?? "启动中"}）`}
+                        message={`${cleanupPhaseText}${cleanupJob.workerThreadId ? `（Worker #${cleanupJob.workerThreadId}）` : ""}`}
                         description={(
                             <Space direction="vertical" style={{ width: "100%" }} size={4}>
                                 <Typography.Text>
@@ -651,14 +658,6 @@ export default function Accounts() {
                                 <Progress percent={cleanupPercent} status="active" size="small" />
                             </Space>
                         )}
-                    />
-                )}
-                {activeUnnotedAccount && (
-                    <Alert
-                        type="warning"
-                        showIcon
-                        style={{ marginBottom: 12 }}
-                        message={`当前活动账号 ${activeUnnotedAccount.viewerId ?? `内部 #${activeUnnotedAccount.id}`} 没有备注，批量清理时会自动保留`}
                     />
                 )}
                 <Table
@@ -674,9 +673,99 @@ export default function Accounts() {
                         showTotal: total => `共 ${total} 个账号`,
                     }}
                     size="small"
-                    scroll={{ x: 1300 }}
+                    scroll={{ x: 1320 }}
                 />
             </Card>
+
+            <Modal
+                title="登录与绑定管理"
+                open={Boolean(loginAccount)}
+                onCancel={() => setLoginAccountId(null)}
+                footer={<Button onClick={() => setLoginAccountId(null)}>完成</Button>}
+                width={560}
+                destroyOnClose
+            >
+                {loginAccount && <Space direction="vertical" size="large" className="admin-stack account-login-dialog">
+                    <div className="account-login-summary">
+                        <div>
+                            <Typography.Text strong>{loginAccount.defaultPlayerName || "未命名角色"}</Typography.Text>
+                            <Typography.Text type="secondary" className="account-cell-meta">UID {loginAccount.viewerId || "未生成"}</Typography.Text>
+                        </div>
+                        <Tag bordered={false} color={loginAccount.playerLogin?.bound ? "cyan" : "gold"}>
+                            {loginAccount.playerLogin?.bound ? "已绑定" : "未绑定"}
+                        </Tag>
+                    </div>
+                    <Descriptions size="small" column={1} colon={false}>
+                        <Descriptions.Item label="登录账号">
+                            {loginAccount.loginUsername
+                                ? <Typography.Text copyable>{loginAccount.loginUsername}</Typography.Text>
+                                : "尚未设置"}
+                        </Descriptions.Item>
+                        {loginAccount.playerLogin?.bound && <>
+                            <Descriptions.Item label="绑定时间">
+                                {loginAccount.playerLogin.boundAt ? new Date(loginAccount.playerLogin.boundAt).toLocaleString() : "—"}
+                            </Descriptions.Item>
+                            <Descriptions.Item label="凭据有效期">
+                                {loginAccount.playerLogin.sessionExpiresAt && loginAccount.playerLogin.sessionExpiresAt > Date.now()
+                                    ? new Date(loginAccount.playerLogin.sessionExpiresAt).toLocaleString()
+                                    : "暂无有效凭据，可用账号密码登录"}
+                            </Descriptions.Item>
+                        </>}
+                    </Descriptions>
+                    <div className="account-login-recovery">
+                        <Typography.Text strong>{loginAccount.playerLogin?.bound ? "找回登录密码" : "绑定原有存档"}</Typography.Text>
+                        <Typography.Paragraph type="secondary">
+                            {loginAccount.playerLogin?.bound
+                                ? "核实玩家身份后生成重置码，玩家在登录页选择“忘记密码”设置新密码。原 UID、存档和备注保留。"
+                                : "老玩家无需先注册。使用原 UID 和继承密码验证，或领取绑定码，确认原存档后设置账号密码。"}
+                        </Typography.Paragraph>
+                        <Popconfirm
+                            title={loginAccount.playerLogin?.bound ? "生成登录密码重置码？" : "生成旧存档绑定码？"}
+                            description={`请确认已核实 UID ${loginAccount.viewerId} 的存档归属。新码将替换之前的同用途验证码。`}
+                            okText="生成验证码" cancelText="取消"
+                            onConfirm={() => issueLoginCode.mutate(loginAccount)}
+                        >
+                            <Button type="primary" disabled={!loginAccount.viewerId}
+                                loading={issueLoginCode.isPending && issueLoginCode.variables?.id === loginAccount.id}>
+                                {loginAccount.playerLogin?.bound ? "生成重置码" : "生成绑定码"}
+                            </Button>
+                        </Popconfirm>
+                        <Typography.Text type="secondary" className="account-cell-meta">15 分钟有效 · 仅限一次使用</Typography.Text>
+                    </div>
+                    <Collapse ghost size="small" items={[{
+                        key: "legacy", label: "设备记录与继承信息",
+                        children: <Space direction="vertical" size="middle" className="admin-stack">
+                            <Typography.Text type="secondary">
+                                原设备 ID：{loginAccount.bindings.length ? loginAccount.bindings.map(binding => binding.deviceId).join("、") : "无记录"}
+                            </Typography.Text>
+                            <Typography.Text type="secondary">
+                                {loginAccount.playerLogin?.bound
+                                    ? "设备记录仅供历史定位；旧继承入口已停用。登录凭据有效不代表当前在线。"
+                                    : "绑定账号前仍沿用原设备和继承机制；绑定后使用账号密码登录。"}
+                            </Typography.Text>
+                            {!loginAccount.playerLogin?.bound && <Space wrap>
+                                <Tag>{loginAccount.takeoverConfigured ? "已设置继承密码" : "未设置继承密码"}</Tag>
+                                <Popconfirm
+                                    title={loginAccount.takeoverConfigured ? "重置该账号的继承密码？" : "为该账号生成继承密码？"}
+                                    description="新密码仅显示一次；已存在的旧继承密码立即失效。"
+                                    okText={loginAccount.takeoverConfigured ? "确认重置" : "确认生成"} cancelText="取消"
+                                    okButtonProps={{ danger: loginAccount.takeoverConfigured }}
+                                    onConfirm={() => issueTakeoverPassword.mutate({ accountId: loginAccount.id, reset: loginAccount.takeoverConfigured })}
+                                >
+                                    <Button size="small" danger={loginAccount.takeoverConfigured}
+                                        loading={issueTakeoverPassword.isPending && issueTakeoverPassword.variables?.accountId === loginAccount.id}>
+                                        {loginAccount.takeoverConfigured ? "重置继承密码" : "生成继承密码"}
+                                    </Button>
+                                </Popconfirm>
+                            </Space>}
+                            {loginAccount.latestTransfer && <Typography.Text type="secondary">
+                                最近继承：{new Date(loginAccount.latestTransfer.transferredAt).toLocaleString()} · {loginAccount.latestTransfer.abolishedViewerId
+                                    ? `已废弃临时账号 ${loginAccount.latestTransfer.abolishedViewerId}` : "标题页直接恢复"}
+                            </Typography.Text>}
+                        </Space>,
+                    }]} />
+                </Space>}
+            </Modal>
 
             <Drawer
                 open={selectedAccountId !== null}

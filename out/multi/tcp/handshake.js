@@ -16,6 +16,10 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.handleHandshake = exports.buildRealParty = void 0;
+const player_login_1 = require("../../lib/player-login");
+const contract_1 = require("../five-boss/contract");
+const lobby_runtime_1 = require("../five-boss/lobby-runtime");
+const connection_diagnostic_1 = require("../five-boss/connection-diagnostic");
 const party_1 = require("../../data/domains/party");
 const character_1 = require("../../data/domains/character");
 const equipment_1 = require("../../data/domains/equipment");
@@ -142,8 +146,8 @@ function buildRealParty(playerId, targetParty) {
 exports.buildRealParty = buildRealParty;
 function handleHandshake(socket, data) {
     return __awaiter(this, void 0, void 0, function* () {
-        var _a, _b, _c, _d, _e, _f, _g;
-        (0, game_logging_1.gameVerboseLog)(() => `[TCP] handshake: ${JSON.stringify(data).substring(0, 200)}`);
+        var _a, _b, _c, _d, _e, _f;
+        (0, game_logging_1.gameVerboseLog)(() => `[TCP] handshake: ${JSON.stringify({ socklet: data.socklet, viewerId: data.viewerId, room_number: data.room_number || data.roomNumber })}`);
         const socklet = data.socklet;
         const roomNumber = data.room_number || data.roomNumber;
         if (socklet === "cooperation_battle") {
@@ -159,15 +163,46 @@ function handleHandshake(socket, data) {
             // battle client as viewer 0 makes unrelated host/guest sockets look
             // like duplicate connections and causes one side to be replaced.
             const roomClient = SessionManager_1.sessionManager.getRoomClientByConnectionId(roomId, String(connectionId));
+            if (roomClient && !(0, player_login_1.playerSocketAllowed)(roomClient.viewerId, data.sp_session)) {
+                SessionManager_1.sessionManager.sendJson(socket, [3, "HANDSHAKE_DENIED"]);
+                socket.end();
+                return;
+            }
             const battleClient = SessionManager_1.sessionManager.createClient(socket, (_a = roomClient === null || roomClient === void 0 ? void 0 : roomClient.viewerId) !== null && _a !== void 0 ? _a : 0, roomId, String(connectionId), (_b = roomClient === null || roomClient === void 0 ? void 0 : roomClient.playerId) !== null && _b !== void 0 ? _b : null);
-            battleClient.roomGeneration = (_e = (_c = roomClient === null || roomClient === void 0 ? void 0 : roomClient.roomGeneration) !== null && _c !== void 0 ? _c : (_d = (0, manager_1.getRoom)(roomId)) === null || _d === void 0 ? void 0 : _d.lobby_generation) !== null && _e !== void 0 ? _e : 0;
+            const battleRoom = (0, manager_1.getRoom)(roomId);
+            battleClient.roomGeneration = (_d = (_c = roomClient === null || roomClient === void 0 ? void 0 : roomClient.roomGeneration) !== null && _c !== void 0 ? _c : battleRoom === null || battleRoom === void 0 ? void 0 : battleRoom.lobby_generation) !== null && _d !== void 0 ? _d : 0;
+            if (battleRoom)
+                connection_diagnostic_1.fiveBossConnectionDiagnostics.bind(battleRoom, battleClient);
+            if (!battleRoom || battleRoom.lifecycle.phase !== "BATTLE") {
+                connection_diagnostic_1.fiveBossConnectionDiagnostics.socketEvent(socket, "handshake_denied", "room_not_in_battle");
+                SessionManager_1.sessionManager.sendJson(socket, [3, "HANDSHAKE_DENIED"]);
+                socket.end();
+                return;
+            }
+            if (battleRoom && (0, contract_1.isFiveBossGauntletQuest)(battleRoom.category, battleRoom.quest_id)
+                && !(0, lobby_runtime_1.isFrozenFiveBossBattleClient)(battleRoom, battleClient)) {
+                connection_diagnostic_1.fiveBossConnectionDiagnostics.socketEvent(socket, "handshake_denied", "frozen_identity_mismatch");
+                SessionManager_1.sessionManager.sendJson(socket, [3, "HANDSHAKE_DENIED"]);
+                socket.end();
+                return;
+            }
             battleClient.isBattle = true;
-            SessionManager_1.sessionManager.addBattleClient(String(connectionId), battleClient);
+            if (!SessionManager_1.sessionManager.addBattleClient(String(connectionId), battleClient)) {
+                connection_diagnostic_1.fiveBossConnectionDiagnostics.socketEvent(socket, "handshake_denied", "retired_seat");
+                SessionManager_1.sessionManager.sendJson(socket, [3, "HANDSHAKE_DENIED"]);
+                socket.end();
+                return;
+            }
             SessionManager_1.sessionManager.sendJson(socket, [0, roomNumber, ""]);
             return;
         }
         if (socklet === "cooperation_room") {
             const viewerId = data.viewerId;
+            if (!(0, player_login_1.playerSocketAllowed)(viewerId, data.sp_session)) {
+                SessionManager_1.sessionManager.sendJson(socket, [3, "HANDSHAKE_DENIED"]);
+                socket.end();
+                return;
+            }
             if (!viewerId || !roomNumber) {
                 SessionManager_1.sessionManager.sendJson(socket, [3, "HANDSHAKE_DENIED"]);
                 socket.end();
@@ -215,8 +250,8 @@ function handleHandshake(socket, data) {
                 && client.socket.writable);
             const liveViewerIds = new Set(liveClients.map(client => client.viewerId));
             const viewerAlreadyConnected = liveViewerIds.has(Number(viewerId));
-            const requestedCategory = (_f = data.questCategory) !== null && _f !== void 0 ? _f : data.quest_category;
-            const requestedQuestId = (_g = data.questId) !== null && _g !== void 0 ? _g : data.quest_id;
+            const requestedCategory = (_e = data.questCategory) !== null && _e !== void 0 ? _e : data.quest_category;
+            const requestedQuestId = (_f = data.questId) !== null && _f !== void 0 ? _f : data.quest_id;
             const categoryMismatch = requestedCategory !== undefined
                 && Number(requestedCategory) !== currentRoom.category;
             const questMismatch = requestedQuestId !== undefined

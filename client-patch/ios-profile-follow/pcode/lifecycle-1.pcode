@@ -1,0 +1,34 @@
+method
+   name null
+   returns QName(PackageNamespace(""),"void")
+
+   body
+      maxstack 5
+      localcount 1
+      initscopedepth 1
+      maxscopedepth 3
+
+      code
+         getlocal0
+         pushscope
+         getglobalscope
+         getlex QName(PackageNamespace("pinball.scene.ui"),"UiSceneView")
+         pushscope
+         getlex QName(PackageNamespace("pinball.scene.ui"),"UiSceneView")
+         newclass 8254
+         popscope
+         initproperty QName(PackageNamespace("pinball.scene.playerProfile"),"PlayerProfileView")
+         getlex QName(PackageNamespace("pinball.scene.playerProfile"),"PlayerProfileView")
+         pushstring "fields"
+         pushstring "devConfig"
+         pushstring "absorb"
+         pushstring "pinball.config.core.DevConfig"
+         newarray 1
+         newobject 1
+         newobject 1
+         newobject 1
+         initproperty QName(PackageNamespace(""),"__meta__")
+         returnvoid
+      end ; code
+   end ; body
+end ; method

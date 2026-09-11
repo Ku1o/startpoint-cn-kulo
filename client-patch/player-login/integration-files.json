@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "source_task": "分析并提出登录机制方案",
+  "source_task_id": "01a0872b-8df1-7a23-992f-b90096b351e0",
+  "scope": "r15 最终登录方案、管理面板、存档导入导出、未备注清理修复，以及邮件页面区块顺序调整",
+  "server_sources": [
+    "src/cn-server.ts",
+    "src/lib/player-login.ts",
+    "src/routes/cn/playerLogin.ts",
+    "src/routes/cn/tool.ts",
+    "src/routes/cn/load.ts",
+    "src/lib/takeover-access.ts",
+    "src/multi/state/SessionManager.ts",
+    "src/multi/tcp/handshake.ts",
+    "src/lounge/tcp.ts",
+    "src/lounge/state.ts",
+    "src/lib/admin-account-cleanup.ts",
+    "src/routes/web_api/server.ts",
+    "src/data/snapshots/player-snapshot.ts",
+    "src/data/domains/player.ts"
+  ],
+  "admin_sources": ["admin/src/pages/Accounts.tsx", "admin/src/styles.css", "admin/src/pages/Mail.tsx"],
+  "build_outputs": "每个 server_sources 对应 out/*.js；管理页面及 index.html 引用的当前 JS/CSS",
+  "regression_checks": [
+    "tests/player-login-integration.test.js",
+    "tests/player-login-local-migration.test.js",
+    "tests/account-takeover-integration.test.js",
+    "tests/admin-unnoted-cleanup-integration.test.js",
+    "tests/admin-account-save-ui.test.js",
+    "tests/admin-save-transfer-integration.test.js",
+    "tests/player-save-export-worker.test.js",
+    "tests/storage-snapshot-compat.test.cjs",
+    "tools/player_snapshot_v2.test.cjs"
+  ],
+  "client": {
+    "apk": "outputs/player-login-cumulative-lan-test-20260910/StarPoint-CN-1.8.1-player-login-abyss-lens-lan-test.apk",
+    "apk_sha256": "27de717e8864ea35a329032fa3f7dc23e8d99e3f6187b411a39f321d1509a200",
+    "helper_source": "client-patch/player-login/src/cn/account/PlayerLogin.as",
+    "helper_source_sha256": "dae90d006f357585e8b30b1a171e0fc0c39e259a6d35a393e53328f16ce7d1f2",
+    "status": "local_candidate_not_accepted",
+    "note": "基于本会话累计包的登录融合成品；本次补齐存档功能没有修改 APK。"
+  },
+  "not_implemented_by_user_choice": ["自助修改登录密码", "游戏内新增账号管理按钮"],
+  "do_not_transfer": ["8002 试验库、登录凭据或管理员密码", "战斗诊断与联机实验 APK", "IPA", "未授权云服部署"]
+}

@@ -1,4 +1,5 @@
 import type { Database } from "better-sqlite3"
+import { acquireHistoryLease, finishHistoryLease, initializeMaintenanceState, isHistoryCatchupNeeded, readHistoryPolicy, refreshHistoryLease } from "./maintenance-state"
 
 const DEFAULT_MAX_ROWS = 500
 const DEFAULT_DAILY_HOUR = 4
@@ -7,6 +8,7 @@ const DEFAULT_BATCH_PLAYERS = 5
 const DEFAULT_PAUSE_MS = 100
 const DEFAULT_BUSY_RETRY_ATTEMPTS = 5
 const DEFAULT_BUSY_RETRY_DELAY_MS = 20
+const DELETE_BATCH_ROWS = 1000
 
 interface ReceiveHistoryCandidateRow {
     player_id: number
@@ -21,6 +23,8 @@ export interface ReceiveHistoryRetentionLogger {
 export interface ReceiveHistoryRetentionOptions {
     enabled?: boolean
     maxRows?: number
+    maxDays?: number
+    nowMs?: number
     initialDelayMs?: number
     dailyHour?: number
     dailyMinute?: number
@@ -34,6 +38,8 @@ export interface ReceiveHistoryRetentionOptions {
 interface ResolvedReceiveHistoryRetentionOptions {
     enabled: boolean
     maxRows: number
+    maxDays: number
+    nowMs: number
     initialDelayMs: number | null
     dailyHour: number
     dailyMinute: number
@@ -118,6 +124,8 @@ function resolveOptions(options: ReceiveHistoryRetentionOptions): ResolvedReceiv
     return {
         enabled: options.enabled ?? isReceiveHistoryRetentionEnabled(),
         maxRows: normalizedInteger(options.maxRows, DEFAULT_MAX_ROWS, 1),
+        maxDays: normalizedInteger(options.maxDays, 7, 1),
+        nowMs: options.nowMs ?? Date.now(),
         initialDelayMs: options.initialDelayMs === undefined
             ? null
             : normalizedInteger(options.initialDelayMs, 0, 0),
@@ -160,17 +168,18 @@ async function prunePlayerWithRetry(
     maxRows: number,
     maxAttempts: number,
     retryDelayMs: number,
+    cutoff: string,
 ): Promise<number> {
     const prune = database.prepare(`
         DELETE FROM players_receive_history
-        WHERE player_id = ?
-          AND id NOT IN (
+        WHERE id IN (SELECT id FROM players_receive_history WHERE player_id = ?
+          AND (julianday(create_time) < julianday(?) OR id NOT IN (
               SELECT id
               FROM players_receive_history
               WHERE player_id = ?
               ORDER BY create_time DESC, id DESC
               LIMIT ?
-          )
+          )) LIMIT ${DELETE_BATCH_ROWS})
     `)
 
     let lastError: unknown
@@ -179,7 +188,7 @@ async function prunePlayerWithRetry(
         try {
             database.exec("BEGIN IMMEDIATE")
             began = true
-            const deletedRows = prune.run(playerId, playerId, maxRows).changes
+            const deletedRows = prune.run(playerId, cutoff, playerId, maxRows).changes
             database.exec("COMMIT")
             return deletedRows
         } catch (error) {
@@ -200,6 +209,7 @@ export async function runReceiveHistoryRetentionPass(
     shouldStop: () => boolean = () => false,
 ): Promise<ReceiveHistoryRetentionPassResult> {
     const config = resolveOptions(options)
+    const cutoff = new Date(config.nowMs - config.maxDays * 86400_000).toISOString()
     const startedAt = Date.now()
     const result: ReceiveHistoryRetentionPassResult = {
         candidatePlayers: 0,
@@ -220,7 +230,7 @@ export async function runReceiveHistoryRetentionPass(
         FROM players_receive_history
         WHERE player_id > ?
         GROUP BY player_id
-        HAVING COUNT(*) > ?
+        HAVING COUNT(*) > ? OR MIN(julianday(create_time)) < julianday(?)
         ORDER BY player_id
         LIMIT ?
     `)
@@ -230,6 +240,7 @@ export async function runReceiveHistoryRetentionPass(
         const candidates = selectCandidates.all(
             playerCursor,
             config.maxRows,
+            cutoff,
             config.batchPlayers,
         ) as ReceiveHistoryCandidateRow[]
         if (candidates.length === 0) break
@@ -242,15 +253,23 @@ export async function runReceiveHistoryRetentionPass(
             }
             result.candidatePlayers += 1
             try {
-                const deletedRows = await prunePlayerWithRetry(
+                let deletedRows = 0
+                let batchRows: number
+                do {
+                if (shouldStop()) { result.stopped = true; break }
+                batchRows = await prunePlayerWithRetry(
                     database,
                     candidate.player_id,
                     config.maxRows,
                     config.busyRetryAttempts,
                     config.busyRetryDelayMs,
+                    cutoff,
                 )
+                deletedRows += batchRows
+                result.deletedRows += batchRows
+                if (batchRows === DELETE_BATCH_ROWS) await delay(config.pauseMs)
+                } while (batchRows === DELETE_BATCH_ROWS)
                 result.processedPlayers += 1
-                result.deletedRows += deletedRows
                 if (deletedRows > 0) result.prunedPlayers += 1
             } catch (error) {
                 result.failedPlayers += 1
@@ -271,7 +290,10 @@ export function createReceiveHistoryRetentionService(
     database: Database,
     options: ReceiveHistoryRetentionOptions = {},
 ): ReceiveHistoryRetentionService {
-    const config = resolveOptions(options)
+    initializeMaintenanceState(database)
+    const persisted = readHistoryPolicy(database)
+    const envSchedule = process.env.RECEIVE_HISTORY_RETENTION_TIME ? getReceiveHistoryRetentionSchedule() : null
+    const config = resolveOptions({ ...persisted, ...envSchedule && {dailyHour:envSchedule.hour,dailyMinute:envSchedule.minute}, ...options })
     let stopped = true
     let timer: NodeJS.Timeout | null = null
     let activePass: Promise<void> | null = null
@@ -292,24 +314,37 @@ export function createReceiveHistoryRetentionService(
             timer = null
             if (stopped) return
             activePass = (async () => {
+                let lease: ReturnType<typeof acquireHistoryLease> = null
                 try {
+                    lease = acquireHistoryLease(database)
+                    if (!lease) return
                     const result = await runReceiveHistoryRetentionPass(
                         database,
                         {
                             enabled: config.enabled,
                             maxRows: config.maxRows,
+                            maxDays: config.maxDays,
                             batchPlayers: config.batchPlayers,
                             pauseMs: config.pauseMs,
                             busyRetryAttempts: config.busyRetryAttempts,
                             busyRetryDelayMs: config.busyRetryDelayMs,
                             logger: config.logger,
                         },
-                        () => stopped,
+                        () => {
+                            if (!stopped && lease) refreshHistoryLease(database, lease)
+                            return stopped
+                        },
                     )
+                    finishHistoryLease(database, lease, result, !result.stopped && result.failedPlayers === 0,
+                        result.failedPlayers > 0 ? `${result.failedPlayers} players failed` : result.stopped ? "interrupted" : null)
+                    lease = null
                     config.logger.log(
                         `[DB_MAINTENANCE] receive history retention completed: candidates=${result.candidatePlayers} prunedPlayers=${result.prunedPlayers} deletedRows=${result.deletedRows} failures=${result.failedPlayers} stopped=${result.stopped} elapsedMs=${result.elapsedMs}`,
                     )
                 } catch (error) {
+                    if (lease) {
+                        try { finishHistoryLease(database, lease, undefined, false, describeError(error)) } catch {}
+                    }
                     config.logger.warn(
                         `[DB_MAINTENANCE] receive history retention pass failed: ${describeError(error)}`,
                     )
@@ -317,7 +352,7 @@ export function createReceiveHistoryRetentionService(
             })()
             void activePass.then(() => {
                 activePass = null
-                if (!stopped) schedule()
+                if (!stopped) schedule(isHistoryCatchupNeeded(database,config.dailyHour,config.dailyMinute) ? 120_000 : null)
             })
         }, delayMs)
         timer.unref()
@@ -336,7 +371,7 @@ export function createReceiveHistoryRetentionService(
             config.logger.log(
                 `[DB_MAINTENANCE] receive history retention enabled: maxRows=${config.maxRows} dailyTime=${String(config.dailyHour).padStart(2, "0")}:${String(config.dailyMinute).padStart(2, "0")} localServerTime`,
             )
-            schedule(config.initialDelayMs)
+            schedule(config.initialDelayMs ?? (isHistoryCatchupNeeded(database,config.dailyHour,config.dailyMinute) ? 10_000 : null))
         },
         async stop(): Promise<void> {
             stopped = true

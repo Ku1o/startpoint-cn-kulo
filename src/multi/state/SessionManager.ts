@@ -11,6 +11,7 @@ import type { ReliableSendContext, ReliableSendResult } from "../tcp/reliable-se
 import { clearChainDiagnosticRoom } from "../tcp/chain-diagnostic"
 import { embeddedMultiCoordinator } from "../coordinator/embedded"
 import { roomAdmissionRegistry } from "../room/admission"
+import { fiveBossConnectionDiagnostics } from "../five-boss/connection-diagnostic"
 
 export interface SessionClient {
     socket: net.Socket
@@ -46,7 +47,26 @@ interface SupersededSocketBucket {
     sockets: Set<net.Socket>
 }
 
+interface BattleSeat {
+    viewerId: number
+    connectionId: string
+}
+
+interface BattleBarrierCycle {
+    roomInstanceId?: string
+    battleSessionId?: string | null
+    timers: Map<string, NodeJS.Timeout>
+    missing: Map<string, BattleSeat>
+    arrived: Set<string>
+}
+
 export class SessionManager {
+    /** An account login replacement revokes both lobby and battle transports. */
+    public disconnectPlayerLogin(viewerId: number): void {
+        for (const client of Array.from(this.clients.values())) {
+            if (client.viewerId === viewerId) client.socket.destroy()
+        }
+    }
     private clients = new Map<string, SessionClient>()
     private roomClients = new Map<string, Set<string>>()
     private battleClients = new Map<string, Set<string>>()
@@ -55,6 +75,8 @@ export class SessionManager {
     private sceneReadyClients = new Map<string, Set<string>>()
     private battleLevelNextClients = new Map<string, Set<string>>()
     private battleExpectedCount = new Map<string, number>()
+    private battleBarrierCycles = new Map<string, BattleBarrierCycle>()
+    private retiredBattleSeats = new Map<string, Set<string>>()
     private battleHeartbeatTimers = new Map<string, NodeJS.Timeout>()
     private battleLastActivityAt = new Map<string, number>()
     private battleConnectionPhase = new Map<string, "loading" | "ready" | "active">()
@@ -198,6 +220,7 @@ export class SessionManager {
                 || this.battleConnectionPhase.get(connectionId) !== "loading") return
             console.warn(`[MULTI] battle loading timed out: room=${current.roomNumber}`
                 + ` viewer=${current.viewerId} connection=${connectionId} timeoutMs=${leaseMs}`)
+            fiveBossConnectionDiagnostics.socketEvent(current.socket, "loading_timeout", String(leaseMs))
             current.socket.destroy()
         }, leaseMs)
         timer.unref()
@@ -224,6 +247,7 @@ export class SessionManager {
             }
             console.warn(`[MULTI] real battle connection heartbeat expired: room=${current.roomNumber}`
                 + ` viewer=${current.viewerId} connection=${connectionId} inactiveMs=${inactiveMs}`)
+            fiveBossConnectionDiagnostics.socketEvent(current.socket, "heartbeat_timeout", String(inactiveMs))
             // Destroy only a battle socket that completed the real handshake.
             // Its normal close handler performs the native Leave path using the
             // connection id already known by every remaining client.
@@ -298,9 +322,83 @@ export class SessionManager {
         this.logBattleBarrierState(roomNumber, reason)
         if (connected <= 0 || ready < expected || ready < connected) return false
         this.battleExpectedCount.set(roomNumber, 0)
+        this.clearBattleBarrierCycle(roomNumber)
         this.battleLevelNextClients.delete(roomNumber)
         this.logBattleBarrierState(roomNumber, `${reason}:released`)
         return true
+    }
+
+    private battleSeatKey(seat: BattleSeat): string {
+        return seat.viewerId > 0 ? `viewer:${seat.viewerId}` : `connection:${seat.connectionId}`
+    }
+
+    private clearBattleBarrierCycle(roomNumber: string): void {
+        const cycle = this.battleBarrierCycles.get(roomNumber)
+        for (const timer of cycle?.timers.values() ?? []) clearTimeout(timer)
+        this.battleBarrierCycles.delete(roomNumber)
+    }
+
+    private beginBattleBarrierCycle(roomNumber: string): BattleBarrierCycle {
+        this.clearBattleBarrierCycle(roomNumber)
+        const room = require("../room/manager").getRoom(roomNumber)
+        const cycle: BattleBarrierCycle = {
+            roomInstanceId: room?.lifecycle?.instanceId,
+            battleSessionId: room?.lifecycle?.battleSessionId,
+            timers: new Map(), missing: new Map(),
+            arrived: new Set(this.getConnectedBattleClients(roomNumber)
+                .flatMap(client => [this.battleSeatKey(client), `connection:${client.connectionId}`])),
+        }
+        this.battleBarrierCycles.set(roomNumber, cycle)
+        return cycle
+    }
+
+    private isCurrentBattleBarrier(roomNumber: string, cycle: BattleBarrierCycle): boolean {
+        if (this.battleBarrierCycles.get(roomNumber) !== cycle) return false
+        const room = require("../room/manager").getRoom(roomNumber)
+        return room?.lifecycle?.instanceId === cycle.roomInstanceId
+            && room?.lifecycle?.battleSessionId === cycle.battleSessionId
+            && (!room || room.lifecycle.phase === "BATTLE")
+    }
+
+    private expireMissingBattleSeat(roomNumber: string, cycle: BattleBarrierCycle, seat: BattleSeat): void {
+        if (!this.isCurrentBattleBarrier(roomNumber, cycle)) return
+        const key = this.battleSeatKey(seat)
+        if (this.getConnectedBattleClients(roomNumber).some(client => this.battleSeatKey(client) === key
+            || client.connectionId === seat.connectionId)) return
+        const expected = this.battleExpectedCount.get(roomNumber) ?? 0
+        if (expected <= 0) return
+        let retired = this.retiredBattleSeats.get(roomNumber)
+        if (!retired) this.retiredBattleSeats.set(roomNumber, retired = new Set())
+        if (retired.has(key) || retired.has(`connection:${seat.connectionId}`)) return
+        retired.add(key)
+        retired.add(`connection:${seat.connectionId}`)
+        fiveBossConnectionDiagnostics.seatEvent(roomNumber, seat.viewerId, "seat_expired")
+        this.queueBattleLeave(roomNumber, seat.connectionId)
+        this.battleExpectedCount.set(roomNumber, expected - 1)
+        this.logBattleBarrierState(roomNumber, "missing_seat_expired")
+        if (this.releaseSceneReadyBarrierIfSatisfied(roomNumber, "missing_seat_recheck")) {
+            this.activateBattleScene(roomNumber)
+        }
+    }
+
+    private scheduleMissingBattleSeat(roomNumber: string, seat: BattleSeat): void {
+        const cycle = this.battleBarrierCycles.get(roomNumber)
+        if (!cycle || (this.battleExpectedCount.get(roomNumber) ?? 0) <= 0) return
+        const key = this.battleSeatKey(seat)
+        if (cycle.timers.has(key) || this.retiredBattleSeats.get(roomNumber)?.has(key)) return
+        cycle.missing.set(key, seat)
+        const graceMs = this.parsePositiveDuration("BATTLE_BARRIER_RECONNECT_GRACE_MS", 8_000)
+        const timer = setTimeout(() => {
+            void embeddedMultiCoordinator.enqueueRoomCommand(roomNumber, () => {
+                // Recheck after entering the room queue: reconnect, settlement,
+                // the next scene, or a reused room number may have won the race.
+                if (cycle.timers.get(key) !== timer) return
+                cycle.timers.delete(key)
+                this.expireMissingBattleSeat(roomNumber, cycle, seat)
+            }).catch(error => console.error(`[MULTI] barrier grace failed: room=${roomNumber}`, error))
+        }, graceMs)
+        timer.unref()
+        cycle.timers.set(key, timer)
     }
 
     private queueBattleLeave(roomNumber: string, connectionId: string): void {
@@ -655,9 +753,8 @@ export class SessionManager {
         this.closeSupersededSocketsForRoom(roomNumber)
         this.roomClients.delete(roomNumber)
         this.battleClients.delete(roomNumber)
-        this.sceneReadyClients.delete(roomNumber)
-        this.battleLevelNextClients.delete(roomNumber)
-        this.battleExpectedCount.delete(roomNumber)
+        this.clearBattleExpectedCount(roomNumber)
+        this.retiredBattleSeats.delete(roomNumber)
         gameVerboseLog(() => `[MULTI] room disbanded: room=${roomNumber} reason=${reason}`)
         return true
     }
@@ -869,6 +966,8 @@ export class SessionManager {
     }
 
     removeClient(client: SessionClient): Result<void> {
+        if (client.isBattle) fiveBossConnectionDiagnostics.socketEvent(client.socket, "removed",
+            this.cidToBattleClient.get(client.connectionId) === client ? "current_connection" : "stale_connection")
         this.unindexClientSocket(client)
         if (!client.isBattle && client.admissionClaimed) {
             roomAdmissionRegistry.releaseClaim(
@@ -891,7 +990,7 @@ export class SessionManager {
             const isCurrentBattleConnection = this.cidToBattleClient.get(client.connectionId) === client
             if (isCurrentBattleConnection) this.clearBattleHeartbeatLease(client.connectionId)
             const bSet = this.battleClients.get(client.roomNumber)
-            if (bSet && !superseded) {
+            if (bSet && !superseded && isCurrentBattleConnection) {
                 if (this.battleSceneStartedRooms.has(client.roomNumber)) {
                     this.broadcastBattleLeave(client.roomNumber, client.connectionId)
                 } else {
@@ -907,14 +1006,7 @@ export class SessionManager {
                 this.sceneReadyClients.get(client.roomNumber)?.delete(client.connectionId)
                 this.battleLevelNextClients.get(client.roomNumber)?.delete(client.connectionId)
             }
-            const exp = this.battleExpectedCount.get(client.roomNumber)
-            // A three-person loading barrier may safely fall back to the two
-            // clients that actually reached the scene.  Never turn a two-real-
-            // player battle into two independent one-player battles.
-            if (!superseded && exp && exp > 2) this.battleExpectedCount.set(client.roomNumber, exp - 1)
-            if (!superseded && this.releaseSceneReadyBarrierIfSatisfied(client.roomNumber, "disconnect")) {
-                this.activateBattleScene(client.roomNumber)
-            }
+            if (!superseded && isCurrentBattleConnection) this.scheduleMissingBattleSeat(client.roomNumber, client)
         }
 
         const set = this.roomClients.get(client.roomNumber)
@@ -1009,7 +1101,21 @@ export class SessionManager {
         return false
     }
 
-    addBattleClient(connectionId: string, client: SessionClient): void {
+    addBattleClient(connectionId: string, client: SessionClient): boolean {
+        const seatKey = this.battleSeatKey(client)
+        // A seat already handed to AI cannot form a second independent battle
+        // by arriving after grace. The next actual round resets this decision.
+        const retired = this.retiredBattleSeats.get(client.roomNumber)
+        if (retired?.has(seatKey) || retired?.has(`connection:${connectionId}`)) return false
+        const cycle = this.battleBarrierCycles.get(client.roomNumber)
+        cycle?.arrived.add(seatKey)
+        cycle?.arrived.add(`connection:${connectionId}`)
+        const reconnectTimer = cycle?.timers.get(seatKey)
+        if (reconnectTimer) clearTimeout(reconnectTimer)
+        cycle?.timers.delete(seatKey)
+        const missing = cycle?.missing.get(seatKey)
+        if (missing) this.pendingBattleLeaves.get(client.roomNumber)?.delete(missing.connectionId)
+        cycle?.missing.delete(seatKey)
         const pendingTimer = this.abandonedBattleTimers.get(client.roomNumber)
         if (pendingTimer) clearTimeout(pendingTimer)
         this.abandonedBattleTimers.delete(client.roomNumber)
@@ -1036,6 +1142,7 @@ export class SessionManager {
             this.cidToBattleClient.delete(existingConnectionId)
             this.supersededBattleClients.add(existing)
             existing.superseded = true
+            fiveBossConnectionDiagnostics.socketEvent(existing.socket, "replaced")
             this.unindexClientSocket(existing)
             clearReliableSendState(existing.socket)
             const ownerIdentity = client.viewerId > 0 ? `viewer:${client.viewerId}` : `connection:${connectionId}`
@@ -1062,13 +1169,16 @@ export class SessionManager {
         this.cidToBattleClient.set(connectionId, client)
         this.indexClientSocket(client)
         this.armBattleLoadingLease(connectionId)
+        fiveBossConnectionDiagnostics.socketEvent(client.socket, "accepted")
         this.logBattleBarrierState(client.roomNumber, "connected")
+        return true
     }
 
     removeBattleClient(connectionId: string): void {
         this.clearBattleHeartbeatLease(connectionId)
         const client = this.cidToBattleClient.get(connectionId)
         if (client) {
+            fiveBossConnectionDiagnostics.socketEvent(client.socket, "removed", "remove_battle_client")
             if (this.battleSceneStartedRooms.has(client.roomNumber)) {
                 this.broadcastBattleLeave(client.roomNumber, connectionId)
             } else {
@@ -1080,9 +1190,7 @@ export class SessionManager {
             this.battleLevelNextClients.get(client.roomNumber)?.delete(connectionId)
         }
         this.cidToBattleClient.delete(connectionId)
-        if (client && this.releaseSceneReadyBarrierIfSatisfied(client.roomNumber, "removed")) {
-            this.activateBattleScene(client.roomNumber)
-        }
+        if (client) this.scheduleMissingBattleSeat(client.roomNumber, client)
     }
 
     getBattleClient(connectionId: string): SessionClient | undefined {
@@ -1126,6 +1234,8 @@ export class SessionManager {
     }
 
     markSceneReady(connectionId: string, roomNumber: string): boolean {
+        const client = this.cidToBattleClient.get(connectionId)
+        if (!client || client.roomNumber !== roomNumber || client.socket.destroyed) return false
         const expected = this.battleExpectedCount.get(roomNumber) ?? 0
         if (expected <= 0) return false
         let readySet = this.sceneReadyClients.get(roomNumber)
@@ -1141,6 +1251,8 @@ export class SessionManager {
     }
 
     beginBattleLevelNext(connectionId: string, roomNumber: string): void {
+        const client = this.cidToBattleClient.get(connectionId)
+        if (!client || client.roomNumber !== roomNumber || client.socket.destroyed) return
         let levelNextSet = this.battleLevelNextClients.get(roomNumber)
         if (!levelNextSet) {
             levelNextSet = new Set()
@@ -1153,28 +1265,54 @@ export class SessionManager {
             this.sceneReadyClients.set(roomNumber, new Set())
             const connected = this.battleClients.get(roomNumber)?.size ?? 0
             this.battleExpectedCount.set(roomNumber, connected)
+            this.beginBattleBarrierCycle(roomNumber)
             this.battleSceneStartedRooms.delete(roomNumber)
-            for (const battleConnectionId of this.battleClients.get(roomNumber) ?? []) {
-                this.armBattleLoadingLease(battleConnectionId)
-            }
             this.logBattleBarrierState(roomNumber, "level_next")
         }
+        if (levelNextSet.has(connectionId)) return
         levelNextSet.add(connectionId)
+        // A teammate can still be fighting the preceding scene. Only its own
+        // LevelNext starts its fixed loading deadline; duplicate packets cannot
+        // reset that deadline or demote an already-ready connection.
+        this.armBattleLoadingLease(connectionId)
     }
 
     clearSceneReady(roomNumber: string): void {
+        this.clearBattleBarrierCycle(roomNumber)
         this.sceneReadyClients.delete(roomNumber)
         this.battleLevelNextClients.delete(roomNumber)
         this.battleSceneStartedRooms.delete(roomNumber)
         this.pendingBattleLeaves.delete(roomNumber)
     }
 
-    setBattleExpectedCount(roomNumber: string, count: number): void {
+    setBattleExpectedCount(roomNumber: string, count: number, seats: BattleSeat[] = []): void {
+        this.retiredBattleSeats.delete(roomNumber)
+        const cycle = this.beginBattleBarrierCycle(roomNumber)
         this.sceneReadyClients.set(roomNumber, new Set())
         this.battleLevelNextClients.delete(roomNumber)
         this.battleExpectedCount.set(roomNumber, count)
         this.battleSceneStartedRooms.delete(roomNumber)
         this.pendingBattleLeaves.delete(roomNumber)
+        if (count > 0 && seats.length === count && seats.every(seat => seat.viewerId > 0 && seat.connectionId)
+            && new Set(seats.map(seat => this.battleSeatKey(seat))).size === count) {
+            // A frozen lobby member might never open a battle socket, so it
+            // cannot trigger removeClient or a per-connection loading lease.
+            const loadingMs = this.parsePositiveDuration("BATTLE_LOADING_LEASE_MS", 60_000, 10_000)
+            const timer = setTimeout(() => {
+                void embeddedMultiCoordinator.enqueueRoomCommand(roomNumber, () => {
+                    if (cycle.timers.get("initial_roster") !== timer) return
+                    cycle.timers.delete("initial_roster")
+                    for (const seat of seats) {
+                        if (!cycle.arrived.has(this.battleSeatKey(seat))
+                            && !cycle.arrived.has(`connection:${seat.connectionId}`)) {
+                            this.expireMissingBattleSeat(roomNumber, cycle, seat)
+                        }
+                    }
+                }).catch(error => console.error(`[MULTI] initial barrier timeout failed: room=${roomNumber}`, error))
+            }, loadingMs)
+            timer.unref()
+            cycle.timers.set("initial_roster", timer)
+        }
         this.logBattleBarrierState(roomNumber, "expected_changed")
         if (this.releaseSceneReadyBarrierIfSatisfied(roomNumber, "expected_recheck")) {
             this.activateBattleScene(roomNumber)
@@ -1182,6 +1320,9 @@ export class SessionManager {
     }
 
     clearBattleExpectedCount(roomNumber: string): void {
+        this.clearBattleBarrierCycle(roomNumber)
+        // Settlement may clear transient barriers before the room leaves
+        // BATTLE. Keep expired seats fenced until the next round or disband.
         this.sceneReadyClients.delete(roomNumber)
         this.battleLevelNextClients.delete(roomNumber)
         this.battleExpectedCount.delete(roomNumber)
@@ -1191,6 +1332,8 @@ export class SessionManager {
     }
 
     removeRoomState(roomNumber: string): void {
+        this.clearBattleBarrierCycle(roomNumber)
+        this.retiredBattleSeats.delete(roomNumber)
         clearChainDiagnosticRoom(roomNumber)
         const abandonedTimer = this.abandonedBattleTimers.get(roomNumber)
         if (abandonedTimer) clearTimeout(abandonedTimer)

@@ -1,4 +1,27 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -18,6 +41,8 @@ const msgpackr_1 = require("msgpackr");
 const static_1 = __importDefault(require("@fastify/static"));
 const path_1 = __importDefault(require("path"));
 const fs_1 = require("fs");
+const atomic_json_file_1 = require("./lib/atomic-json-file");
+const storage_layout_1 = require("./lib/storage-layout");
 const utils_1 = require("./utils");
 const activeAccount_1 = require("./data/activeAccount");
 const session_1 = require("./data/domains/session");
@@ -25,6 +50,13 @@ const management_auth_1 = require("./lib/management-auth");
 const route_performance_1 = require("./lib/route-performance");
 const online_presence_1 = require("./lib/online-presence");
 const takeover_access_1 = require("./lib/takeover-access");
+const player_login_1 = require("./lib/player-login");
+const playerLogin_1 = __importStar(require("./routes/cn/playerLogin"));
+const SessionManager_1 = require("./multi/state/SessionManager");
+const state_1 = require("./lounge/state");
+const local_client_compat_1 = require("./lib/local-client-compat");
+const version_1 = require("./lib/version");
+const custom_cdn_resource_routes_1 = require("./lib/custom-cdn-resource-routes");
 const versionCheck_1 = __importDefault(require("./routes/cn/versionCheck"));
 const ios_leiting_1 = __importDefault(require("./routes/cn/ios-leiting"));
 const leitingAuth_1 = __importDefault(require("./routes/cn/leitingAuth"));
@@ -99,6 +131,8 @@ const fastify = (0, fastify_1.default)({
     bodyLimit: 262144 // 256KB — covers /single_battle_quest/finish large battle stats
 });
 const cnLoadCompressionConfig = (0, cn_load_http_compression_1.getCnLoadHttpCompressionConfig)();
+(0, local_client_compat_1.installLocalClientCompat)(fastify, process.env.CN_LOCAL_CLIENT_PLATFORM || ((0, version_1.getPatchManifest)().patches.some(p => p.enabled && p.local_test_only
+    && p.required_local_platform === "android") ? "android" : undefined));
 (0, route_performance_1.installRoutePerformanceMonitor)(fastify);
 // Viewer IDs >= 900,000,000 are interpreted as COM/AI members by the
 // multiplayer protocol. Repair legacy human sessions before rooms can open.
@@ -425,7 +459,13 @@ fastify.addContentTypeParser("application/x-www-form-urlencoded", { parseAs: "st
     }
 });
 fastify.addContentTypeParser("application/json", { parseAs: "string" }, jsonParser);
+(0, player_login_1.initializePlayerLogin)(viewerId => {
+    SessionManager_1.sessionManager.disconnectPlayerLogin(viewerId);
+    (0, state_1.disconnectLoungePlayerLogin)(viewerId);
+});
+(0, playerLogin_1.installPlayerLoginGuard)(fastify);
 (0, takeover_access_1.installTakeoverUdidGuard)(fastify);
+fastify.register(playerLogin_1.default);
 const iosCompat = (0, ios_compat_1.parseIosCompatConfig)();
 fastify.register(versionCheck_1.default, { ios: iosCompat });
 if (iosCompat.enabled) {
@@ -651,19 +691,11 @@ const cdnPort = process.env.CN_LISTEN_PORT || "8001";
 const cdnDisplayHost = cdnHost === "0.0.0.0" ? "localhost" : cdnHost;
 const CDN_BASE_URL = process.env.CDN_BASE_URL || `http://${cdnDisplayHost}:${cdnPort}/patch/cn`;
 const cdnDir = process.env.CDN_DIR || ".cdn";
-// Serve patched orderedmap files for missing CDN resources
-// Registered BEFORE fastifyStatic to intercept matching requests
-fastify.get("/patch/cn/dummy/download/production/upload/:prefix/:hash", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
-    const { prefix, hash } = request.params;
-    const relPath = `${prefix}/${hash}`;
-    const patchFile = path_1.default.join(__dirname, "..", "assets", "asset-patch", "production", "upload", prefix, hash);
-    if ((0, fs_1.existsSync)(patchFile)) {
-        console.log("[PATCH-SERVE]", relPath);
-        return reply.type("application/octet-stream").send((0, fs_1.readFileSync)(patchFile));
-    }
-    console.log("[PATCH-MISS]", relPath);
-    return reply.status(404).send("Not Found");
-}));
+// Native readers can request common, medium, Android or iOS files directly.
+(0, custom_cdn_resource_routes_1.installCustomCdnResourceRoutes)(fastify, {
+    patchRoot: path_1.default.join(__dirname, "..", "assets", "asset-patch"),
+    cdnRoot: path_1.default.isAbsolute(cdnDir) ? cdnDir : path_1.default.join(__dirname, "..", cdnDir),
+});
 // Serve patch archive files for asset update
 fastify.get("/patch/cn/asset-patch/active/:file", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
     const { file } = request.params;
@@ -733,4 +765,10 @@ fastify.listen({ port, host }, (err, address) => {
     dailyVmoneyMailScheduler.start();
     // Start multi battle TCP session server
     (0, multi_2.startSessionServer)();
+    const logDirectory = path_1.default.resolve(__dirname, "../.logs");
+    (0, fs_1.mkdirSync)(logDirectory, { recursive: true });
+    (0, atomic_json_file_1.writeJsonAtomicSync)(path_1.default.join(logDirectory, "cn-server-ready.json"), {
+        pid: process.pid, readyAt: new Date().toISOString(), port,
+        database: path_1.default.resolve((0, db_1.getDb)().name), storageLayoutVersion: (0, storage_layout_1.getStorageLayoutVersion)((0, db_1.getDb)()),
+    });
 });

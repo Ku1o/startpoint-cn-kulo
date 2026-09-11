@@ -1,0 +1,236 @@
+{
+  "version": "1.4.104",
+  "base": "1.4.103",
+  "required_small_icons": [
+    {
+      "id": 10000143,
+      "name": "深界连战凭证",
+      "icon": "item_icon/materials/event/boss_epuration_event/boss_epuration_point"
+    },
+    {
+      "id": 10000144,
+      "name": "终式武装图纸",
+      "icon": "item_icon/materials/mod/five_boss/deathbringer_blueprint"
+    },
+    {
+      "id": 10000145,
+      "name": "深界结晶",
+      "icon": "item/materials/mod/five_boss/deep_crystal"
+    },
+    {
+      "id": 10000146,
+      "name": "五重决战之证",
+      "icon": "item_icon/materials/mod/five_boss/fivefold_clear_badge"
+    },
+    {
+      "id": 10000147,
+      "name": "五王心核",
+      "icon": "item/materials/mod/five_boss/five_king_core"
+    }
+  ],
+  "preimage_missing_icons": [
+    {
+      "id": 10000144,
+      "name": "终式武装图纸",
+      "icon": "item_icon/materials/mod/five_boss/deathbringer_blueprint"
+    },
+    {
+      "id": 10000145,
+      "name": "深界结晶",
+      "icon": "item/materials/mod/five_boss/deep_crystal"
+    },
+    {
+      "id": 10000146,
+      "name": "五重决战之证",
+      "icon": "item_icon/materials/mod/five_boss/fivefold_clear_badge"
+    },
+    {
+      "id": 10000147,
+      "name": "五王心核",
+      "icon": "item/materials/mod/five_boss/five_king_core"
+    }
+  ],
+  "checks": {
+    "item/sprite_sheet": {
+      "before_size": [
+        505,
+        1726
+      ],
+      "after_size": [
+        505,
+        1748
+      ],
+      "before_frames": 1517,
+      "after_frames": 1519,
+      "old_pixels_and_metadata_preserved": true,
+      "added": [
+        {
+          "n": "item/materials/mod/five_boss/deep_crystal",
+          "w": 20,
+          "h": 20,
+          "x": 1,
+          "y": 1727
+        },
+        {
+          "n": "item/materials/mod/five_boss/five_king_core",
+          "w": 20,
+          "h": 20,
+          "x": 22,
+          "y": 1727
+        }
+      ]
+    },
+    "item_icon/sprite_sheet": {
+      "before_size": [
+        970,
+        128
+      ],
+      "after_size": [
+        970,
+        171
+      ],
+      "before_frames": 71,
+      "after_frames": 73,
+      "old_pixels_and_metadata_preserved": true,
+      "added": [
+        {
+          "n": "item_icon/materials/mod/five_boss/deathbringer_blueprint",
+          "w": 41,
+          "h": 41,
+          "x": 1,
+          "y": 129
+        },
+        {
+          "n": "item_icon/materials/mod/five_boss/fivefold_clear_badge",
+          "w": 41,
+          "h": 41,
+          "x": 43,
+          "y": 129
+        }
+      ]
+    }
+  },
+  "archive": {
+    "name": "pinball-1.4.103-1.4.104-1-five-boss-icon-closure.zip",
+    "size": 846624,
+    "sha256": "3f591173bf63568fdf605a4e92152b06975ee609ac6cd806bbfa14425a34ffa6",
+    "members": 4,
+    "files": [
+      "production/upload/0c/4561a50deb7b22c977212a62ac8409074bddbe",
+      "production/upload/6d/4d576b424178c5b2b253a2dd5aa3d78fa74ef3",
+      "production/upload/7b/5e0efc0e0691038ca52fe282501dfd3a1b5ae3",
+      "production/upload/a1/96e15706a47e7bd6214f62b390a7fa4d58bf35"
+    ]
+  },
+  "source_reads": {
+    "common|a4/731a843d4dc0c84120bf8c88784c1e74c03baa": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.95-1.4.96-1-cdn-consolidated-gerald0903.zip",
+      "member": "production/upload/a4/731a843d4dc0c84120bf8c88784c1e74c03baa",
+      "sha256": "a108a1fcccfe755f738e8ef9ed85a8ce35fe1e661b5b6fe689057be897fe57ac"
+    },
+    "common|97/efacb322621f7bf6671dad3bdf7bdc55cb350b": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.102-1.4.103-1-five-boss-entry-shop.zip",
+      "member": "production/upload/97/efacb322621f7bf6671dad3bdf7bdc55cb350b",
+      "sha256": "ff90f38b3b1e0e5a1fa415cffbafd7e2ce7db619917d4d2a62fc1e51d743a42e"
+    },
+    "common|a5/35aaa48a5290e76d07c40e497742e4a407a0d0": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.102-1.4.103-1-five-boss-entry-shop.zip",
+      "member": "production/upload/a5/35aaa48a5290e76d07c40e497742e4a407a0d0",
+      "sha256": "948def479587bcec33318ce79bc035556a5cf3f48e93b22429d740f9bdb3366b"
+    },
+    "common|6d/4d576b424178c5b2b253a2dd5aa3d78fa74ef3": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.97-1.4.98-1-greyupd0902-abyss-item-icon-closure.zip",
+      "member": "production/upload/6d/4d576b424178c5b2b253a2dd5aa3d78fa74ef3",
+      "sha256": "7f918220e10d635976e2d44cb39cf270653eda972324f670887a7e87dd694b66"
+    },
+    "common|7b/5e0efc0e0691038ca52fe282501dfd3a1b5ae3": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.97-1.4.98-1-greyupd0902-abyss-item-icon-closure.zip",
+      "member": "production/upload/7b/5e0efc0e0691038ca52fe282501dfd3a1b5ae3",
+      "sha256": "c6327b910f774c660d2279c4248f7a19c3047cf252bcd4104e0323c7075e9230"
+    },
+    "common|37/07e33147751ad684c7153497c466e7bc388305": {
+      "archive": "F:\\startpoint-cn-main\\.cdn\\cn\\archive-common-full\\pinball-1.4.0-72-7153408d.zip",
+      "member": "production/upload/37/07e33147751ad684c7153497c466e7bc388305",
+      "sha256": "5272104aca2a28f549ada16e683b7b6d24e8e515190a4a49d56aea40800ab60b"
+    },
+    "common|0d/284621a3d469b304e1a001f6a21a99890c8907": {
+      "archive": "F:\\startpoint-cn-main\\.cdn\\cn\\archive-common-full\\pinball-1.4.0-20-a09e4a6d.zip",
+      "member": "production/upload/0d/284621a3d469b304e1a001f6a21a99890c8907",
+      "sha256": "3b7fe57225a0623ce0f8d289e3714c40b7652b51d1a07159ab6042311076b3ff"
+    },
+    "common|a1/96e15706a47e7bd6214f62b390a7fa4d58bf35": {
+      "archive": "F:\\startpoint-cn-main\\.cdn\\cn\\archive-common-full\\pinball-1.4.0-205-a741ab10.zip",
+      "member": "production/upload/a1/96e15706a47e7bd6214f62b390a7fa4d58bf35",
+      "sha256": "b64f78257b4d188c6413c1f71a69e8b989b9cc3b53972357e21ffd6a93616e9f"
+    },
+    "common|0c/4561a50deb7b22c977212a62ac8409074bddbe": {
+      "archive": "F:\\startpoint-cn-main\\.cdn\\cn\\archive-common-full\\pinball-1.4.0-19-7cf91583.zip",
+      "member": "production/upload/0c/4561a50deb7b22c977212a62ac8409074bddbe",
+      "sha256": "43bf2d538405bcaeeb12592662c9a9e74d77eefb1df9818af942a2bd56258cb3"
+    },
+    "common|5a/c31e7507dd4cfb12c983ab54bf89f1b9a37f19": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.96-1.4.97-1-greyupd0902-cdn-resource-recovery.zip",
+      "member": "production/upload/5a/c31e7507dd4cfb12c983ab54bf89f1b9a37f19",
+      "sha256": "2d6f259037b91913ff720eb55846cca5e9d89ef22dfa6b94e8be9065663ab5c8"
+    },
+    "common|5a/8557140d67bf8b9d06fe1ddff2343d05607e11": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.96-1.4.97-1-greyupd0902-cdn-resource-recovery.zip",
+      "member": "production/upload/5a/8557140d67bf8b9d06fe1ddff2343d05607e11",
+      "sha256": "379d426c9c4319ea8755063d2d2cf431f494b3fd93e7359fe89eb8b3038fbf09"
+    },
+    "common|8f/c639e9d1d874bfe54cceb75855fa1a8a2dbd8b": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.96-1.4.97-1-greyupd0902-cdn-resource-recovery.zip",
+      "member": "production/upload/8f/c639e9d1d874bfe54cceb75855fa1a8a2dbd8b",
+      "sha256": "294c0034572423467f2f8c327bc6c9266dabff3f3ad52c0e56746670736780e6"
+    },
+    "common|e8/e94d472f8d41f8d2954a8d106bb0d18b47d0ac": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.96-1.4.97-1-greyupd0902-cdn-resource-recovery.zip",
+      "member": "production/upload/e8/e94d472f8d41f8d2954a8d106bb0d18b47d0ac",
+      "sha256": "415d3722c814bbaf9db00c860bfd652a7b093c2384244e21ac6399459c71db7f"
+    }
+  },
+  "runtime_delivered": true,
+  "device_tested": false,
+  "swf_changed": false,
+  "item_tables_changed": false,
+  "common_png_atlas_only": true,
+  "backup": "F:\\startpoint-cn-main\\.codex-backups\\20260908-185343-five-boss-icon-closure",
+  "delivery": [
+    {
+      "path": "assets/asset-patch/production/upload/6d/4d576b424178c5b2b253a2dd5aa3d78fa74ef3",
+      "before_sha256": null,
+      "sha256": "b729cd50049fbe0255492638cf6cc45aff23388f4dd18a3006414e92600c72b4"
+    },
+    {
+      "path": "assets/asset-patch/production/upload/7b/5e0efc0e0691038ca52fe282501dfd3a1b5ae3",
+      "before_sha256": null,
+      "sha256": "0d20e31489b9bef9a5fdcea507905834b250895965839feac96620742c35e5ec"
+    },
+    {
+      "path": "assets/asset-patch/production/upload/a1/96e15706a47e7bd6214f62b390a7fa4d58bf35",
+      "before_sha256": null,
+      "sha256": "4ed028adfcd6ff3475f58c4b591cdac4f5de9a8f33d70b55bf0447349728a592"
+    },
+    {
+      "path": "assets/asset-patch/production/upload/0c/4561a50deb7b22c977212a62ac8409074bddbe",
+      "before_sha256": null,
+      "sha256": "8f1428226a129a3fa63bb558947cd8d57719a9c2a7140a70c6f44da0ad0577af"
+    },
+    {
+      "path": "assets/asset-patch/active/pinball-1.4.103-1.4.104-1-five-boss-icon-closure.zip",
+      "before_sha256": null,
+      "sha256": "3f591173bf63568fdf605a4e92152b06975ee609ac6cd806bbfa14425a34ffa6"
+    },
+    {
+      "path": "assets/asset-patch/manifest.json",
+      "before_sha256": "66602a90f02b5be77ab375689ecb696437245ac98af3859e3dcf6ecdee32f865",
+      "sha256": "fc86e8810a6bf1fd12fbb969147a3cbcca40f0a0477b346430ceb543e745db01"
+    }
+  ],
+  "validation": {
+    "regression_tests": 7,
+    "http_download_verified": true,
+    "device_ui_tested": false,
+    "staged_preexisting_bytes_preserved": true
+  }
+}

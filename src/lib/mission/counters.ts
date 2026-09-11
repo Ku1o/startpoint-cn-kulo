@@ -1,4 +1,5 @@
 import { getDb } from "../../data/db"
+import { isCompactStorage, writeCompactMissionCounter } from "../storage-layout"
 
 export type MissionCounterScopeType = "lifetime" | "event" | "character"
 export type MissionCounterPeriod = "daily" | "weekly"
@@ -52,6 +53,9 @@ export function addMissionCounterSync(playerId: number, query: MissionCounterQue
     if (amount <= 0) return getMissionCounterValueSync(playerId, query)
     const counterKey = makeMissionCounterKey(query)
     const qualifierJson = serializeMissionCounterQualifier(query.qualifier)
+    if (isCompactStorage(getDb())) return writeCompactMissionCounter(getDb(), playerId, {
+        key: counterKey, dimension: query.dimension, scopeType: query.scopeType, scopeKey: query.scopeKey, qualifierJson,
+    }, amount, "add")
     const row = getDb().prepare(`
     INSERT INTO players_mission_counters
         (player_id, counter_key, dimension, scope_type, scope_key, qualifier_json, value, updated_at)
@@ -67,6 +71,9 @@ export function addMissionCounterSync(playerId: number, query: MissionCounterQue
 export function setMissionCounterMaxSync(playerId: number, query: MissionCounterQuery, value: number): number {
     const counterKey = makeMissionCounterKey(query)
     const qualifierJson = serializeMissionCounterQualifier(query.qualifier)
+    if (isCompactStorage(getDb())) return writeCompactMissionCounter(getDb(), playerId, {
+        key: counterKey, dimension: query.dimension, scopeType: query.scopeType, scopeKey: query.scopeKey, qualifierJson,
+    }, value, "max")
     const row = getDb().prepare(`
     INSERT INTO players_mission_counters
         (player_id, counter_key, dimension, scope_type, scope_key, qualifier_json, value, updated_at)
@@ -83,6 +90,9 @@ export function setMissionCounterMinSync(playerId: number, query: MissionCounter
     if (!Number.isFinite(value) || value <= 0) return getMissionCounterValueSync(playerId, query)
     const counterKey = makeMissionCounterKey(query)
     const qualifierJson = serializeMissionCounterQualifier(query.qualifier)
+    if (isCompactStorage(getDb())) return writeCompactMissionCounter(getDb(), playerId, {
+        key: counterKey, dimension: query.dimension, scopeType: query.scopeType, scopeKey: query.scopeKey, qualifierJson,
+    }, value, "min")
     const row = getDb().prepare(`
     INSERT INTO players_mission_counters
         (player_id, counter_key, dimension, scope_type, scope_key, qualifier_json, value, updated_at)
@@ -122,6 +132,7 @@ export function getMissionCounterValuesSync(
 }
 
 export function getMissionCounterSnapshotValueSync(playerId: number, periodType: MissionCounterPeriod, query: MissionCounterQuery): number {
+    if (isCompactStorage(getDb())) throw new Error("旧任务快照已退役，周期任务应使用 players_periodic_snapshots")
     const counterKey = makeMissionCounterKey(query)
     const row = getDb().prepare(`
     SELECT value FROM players_mission_counter_snapshots
@@ -137,6 +148,7 @@ export function getMissionCounterDeltaSync(playerId: number, periodType: Mission
 }
 
 export function snapshotAllMissionCountersSync(playerId: number, periodType: MissionCounterPeriod): number {
+    if (isCompactStorage(getDb())) throw new Error("旧任务快照已退役，禁止重新生成全量副本")
     const rows = getDb().prepare(`
     SELECT counter_key, value FROM players_mission_counters
     WHERE player_id = ?

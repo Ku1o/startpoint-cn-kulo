@@ -137,21 +137,26 @@ export function updatePlayerOptionsSync(
     playerId: number,
     options: Record<string, boolean>
 ) {
-    // get all of a player's options
-    const allOptions = getPlayerOptionsSync(playerId)
+    getDb().transaction(() => updatePlayerOptionsInTransactionSync(playerId, options))()
+}
 
+/** The caller must roll back its transaction if any option or AUTO update fails. */
+export function updatePlayerOptionsInTransactionSync(
+    playerId: number,
+    options: Record<string, boolean>,
+): void {
     const db = getDb();
-    db.transaction(() => {
-        for (const [key, newValue] of Object.entries(options)) {
-            if (!isClientOptionKey(key)) continue
-            const existingValue = allOptions[key]
-            if (existingValue === undefined) {
-                insertPlayerOptionSync(playerId, key, newValue)
-            } else if (newValue !== existingValue) {
-                updatePlayerOptionSync(playerId, key, newValue)
-            }
-        }
-    })()
+    if (!db.inTransaction) throw new Error("Player option updates require a caller-owned transaction.")
+    const entries = Object.entries(options).filter(([key]) => isClientOptionKey(key))
+    if (entries.length === 0) return
+    const upsert = db.prepare(`
+        INSERT INTO players_options (key, value, player_id) VALUES (?, ?, ?)
+        ON CONFLICT(key, player_id) DO UPDATE SET value = excluded.value
+        WHERE players_options.value IS NOT excluded.value
+    `)
+    for (const [key, value] of entries) {
+        upsert.run(key, serializeBoolean(value), playerId)
+    }
 }
 
 export function getPlayerProfileSettingsSync(playerId: number): PlayerProfileSettings {

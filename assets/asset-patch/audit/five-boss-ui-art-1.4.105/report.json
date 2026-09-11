@@ -1,0 +1,153 @@
+{
+  "version": "1.4.105",
+  "base_version": "1.4.104",
+  "images": [
+    {
+      "file": "五重关卡预览图.png",
+      "logical": "quest/thumbnail/multi_battle/mod_five_boss.png",
+      "stored_sha256": "1907068f2091e2e565efc946c56d53dd08fc1df3ba17e2b183b0cfb39d2fdb20",
+      "size": [
+        240,
+        188
+      ],
+      "mode": "RGB",
+      "original_png_sha256": "e21e994f2b7c3a7be7b79e3d02add9229f152703f0916338c3270e1bf6e773f8"
+    },
+    {
+      "file": "五重决战交换所横幅.png",
+      "logical": "quest/boss_battle/banner/mod_five_boss_exchange.png",
+      "stored_sha256": "f2a90a35fad1cc2191d62e858f8022834320a3023a051dd9ace3fd84ed2ed79b",
+      "size": [
+        1000,
+        184
+      ],
+      "mode": "RGBA",
+      "original_png_sha256": "0f054029078114edcc574d409a4f6dc9ede9d39beff3052f7bdf679f83a352c7"
+    },
+    {
+      "file": "五重关卡-讨伐页.png",
+      "logical": "quest/boss_battle/background/mod_five_boss.png",
+      "stored_sha256": "2add12e6c32d165ac7f855b81d762fcd2d286a5b61162933c41897d0a5f9887c",
+      "size": [
+        1440,
+        556
+      ],
+      "mode": "RGB",
+      "original_png_sha256": "d93b308b548633fd931000716b71de81a7cf3f278a30e5609cd641fabf5adedb"
+    }
+  ],
+  "archive": {
+    "name": "pinball-1.4.104-1.4.105-1-five-boss-ui-art.zip",
+    "size": 1956374,
+    "sha256": "04f775c38a16c7e6646ea8c5df6bea93f5cd3f64ccc3653fd7f4b0fd32607959",
+    "members": 5,
+    "files": [
+      "production/upload/24/eecf0418222b143f11d2839a802a92041af066",
+      "production/upload/59/9a322b2b502b17e3ac626be2243e9631d8b630",
+      "production/upload/97/efacb322621f7bf6671dad3bdf7bdc55cb350b",
+      "production/upload/d9/014faaf3b6323850a22cc892a376427f6c42f5",
+      "production/upload/e5/2bdb970ed33dad0a25f81768cb9b68971263d6"
+    ]
+  },
+  "resources": [
+    {
+      "logical": "master/quest/boss_battle_stage_node.orderedmap",
+      "member": "production/upload/97/efacb322621f7bf6671dad3bdf7bdc55cb350b",
+      "sha256": "614141e24e977255045b8e44dde571c2f6bf9dd9ce6e97ebce6345c0353afb6d"
+    },
+    {
+      "logical": "master/shop/boss_coin_shop_category.orderedmap",
+      "member": "production/upload/24/eecf0418222b143f11d2839a802a92041af066",
+      "sha256": "aadfc7e19306631b067daaa461713a2a3be3b70ec8b76c33ac96e07640dff914"
+    },
+    {
+      "logical": "quest/thumbnail/multi_battle/mod_five_boss.png",
+      "member": "production/upload/e5/2bdb970ed33dad0a25f81768cb9b68971263d6",
+      "sha256": "1907068f2091e2e565efc946c56d53dd08fc1df3ba17e2b183b0cfb39d2fdb20"
+    },
+    {
+      "logical": "quest/boss_battle/banner/mod_five_boss_exchange.png",
+      "member": "production/upload/59/9a322b2b502b17e3ac626be2243e9631d8b630",
+      "sha256": "f2a90a35fad1cc2191d62e858f8022834320a3023a051dd9ace3fd84ed2ed79b"
+    },
+    {
+      "logical": "quest/boss_battle/background/mod_five_boss.png",
+      "member": "production/upload/d9/014faaf3b6323850a22cc892a376427f6c42f5",
+      "sha256": "2add12e6c32d165ac7f855b81d762fcd2d286a5b61162933c41897d0a5f9887c"
+    }
+  ],
+  "table_changes": [
+    {
+      "logical": "master/quest/boss_battle_stage_node.orderedmap",
+      "row": "1/99",
+      "column": 12,
+      "before": "quest/boss_battle/background/boss_battle_owl",
+      "after": "quest/boss_battle/background/mod_five_boss"
+    },
+    {
+      "logical": "master/shop/boss_coin_shop_category.orderedmap",
+      "row": "99",
+      "column": 10,
+      "before": "quest/boss_battle/background/boss_battle_owl",
+      "after": "quest/boss_battle/background/mod_five_boss"
+    }
+  ],
+  "all_other_table_rows_and_cells_preserved": true,
+  "donor_png_roundtrip_exact": true,
+  "official_shared_background_preserved": true,
+  "both_platforms_use_common_png": true,
+  "save_impact": "仅图片与图片路径变化；不改变持久化数据、存档ID或导入导出兼容性。",
+  "source_manifest_before_sha256": "687cc5f5e7bba3f278dec79bdfe380ff2eb4aa0d1395472a61639fdeaf0d63a3",
+  "source_reads": {
+    "common|97/efacb322621f7bf6671dad3bdf7bdc55cb350b": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.101-1.4.102-1-lens0907-0908-consolidated.zip",
+      "member": "production/upload/97/efacb322621f7bf6671dad3bdf7bdc55cb350b",
+      "sha256": "ff90f38b3b1e0e5a1fa415cffbafd7e2ce7db619917d4d2a62fc1e51d743a42e"
+    },
+    "common|24/eecf0418222b143f11d2839a802a92041af066": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.101-1.4.102-1-lens0907-0908-consolidated.zip",
+      "member": "production/upload/24/eecf0418222b143f11d2839a802a92041af066",
+      "sha256": "67f966e4947134fdea195661db825bd52dcc55a058a37c43ea0fe2fbacea47f1"
+    },
+    "common|03/d09593d5e909fb37eee0abd59c1a0482707e0c": {
+      "archive": "F:\\startpoint-cn-main\\.cdn\\cn\\archive-common-full\\pinball-1.4.0-5-7aed4caf.zip",
+      "member": "production/upload/03/d09593d5e909fb37eee0abd59c1a0482707e0c",
+      "sha256": "41272fc62d7a2246bc84866ffb6da8453303a71931edd1eec2220fbfb26d02c2"
+    },
+    "common|e5/2bdb970ed33dad0a25f81768cb9b68971263d6": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.101-1.4.102-1-lens0907-0908-consolidated.zip",
+      "member": "production/upload/e5/2bdb970ed33dad0a25f81768cb9b68971263d6",
+      "sha256": "6eb9056e888e5b214e0b82731074919d65e1d9b21c17537e4fd2edb9a0e68e4a"
+    },
+    "common|59/9a322b2b502b17e3ac626be2243e9631d8b630": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.101-1.4.102-1-lens0907-0908-consolidated.zip",
+      "member": "production/upload/59/9a322b2b502b17e3ac626be2243e9631d8b630",
+      "sha256": "b293dfa39ded545a4b4ffe036d4dfed1ae7f651d69ae70dee212a5c66f6cf09f"
+    },
+    "common|fb/ab4344a7456dca88f3ce06f01208922f37e395": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.103-1.4.104-1-abyss-lens0910-entry-message-consolidated.zip",
+      "member": "production/upload/fb/ab4344a7456dca88f3ce06f01208922f37e395",
+      "sha256": "34001c1ad9e9e769d9ba65f4fefc41a548ba2661dc194252ded1fb5d33e36134"
+    }
+  },
+  "source_applied": true,
+  "runtime_synced": false,
+  "device_tested": false,
+  "excluded_cdn_archives": [
+    "F:\\startpoint-cn-main\\.cdn\\cn\\archive-ios-diff\\pinball-1.4.83-1.4.84-2-bbbc92be.zip"
+  ],
+  "source_paths": [
+    "assets/asset-patch/active/pinball-1.4.104-1.4.105-1-five-boss-ui-art.zip",
+    "assets/asset-patch/artwork/five-boss/ui-20260911/五重关卡-讨伐页.png",
+    "assets/asset-patch/artwork/five-boss/ui-20260911/五重关卡预览图.png",
+    "assets/asset-patch/artwork/five-boss/ui-20260911/五重决战交换所横幅.png",
+    "assets/asset-patch/production/upload/24/eecf0418222b143f11d2839a802a92041af066",
+    "assets/asset-patch/production/upload/59/9a322b2b502b17e3ac626be2243e9631d8b630",
+    "assets/asset-patch/production/upload/97/efacb322621f7bf6671dad3bdf7bdc55cb350b",
+    "assets/asset-patch/production/upload/d9/014faaf3b6323850a22cc892a376427f6c42f5",
+    "assets/asset-patch/production/upload/e5/2bdb970ed33dad0a25f81768cb9b68971263d6",
+    "assets/asset-patch/audit/five-boss-ui-art-1.4.105/report.json",
+    "assets/asset-patch/manifest.json"
+  ],
+  "source_backup": "F:\\codex\\work\\five-boss-ui-art-20260911\\build\\source-before"
+}

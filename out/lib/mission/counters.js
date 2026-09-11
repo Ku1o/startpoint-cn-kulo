@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.snapshotAllMissionCountersSync = exports.getMissionCounterDeltaSync = exports.getMissionCounterSnapshotValueSync = exports.getMissionCounterValuesSync = exports.getMissionCounterValueSync = exports.setMissionCounterMinSync = exports.setMissionCounterMaxSync = exports.addMissionCounterSync = exports.makeMissionCounterKey = exports.serializeMissionCounterQualifier = exports.normalizeMissionCounterQualifier = void 0;
 const db_1 = require("../../data/db");
+const storage_layout_1 = require("../storage-layout");
 function normalizeMissionCounterQualifier(qualifier = {}) {
     const normalized = {};
     for (const key of Object.keys(qualifier).sort()) {
@@ -34,6 +35,10 @@ function addMissionCounterSync(playerId, query, amount = 1) {
         return getMissionCounterValueSync(playerId, query);
     const counterKey = makeMissionCounterKey(query);
     const qualifierJson = serializeMissionCounterQualifier(query.qualifier);
+    if ((0, storage_layout_1.isCompactStorage)((0, db_1.getDb)()))
+        return (0, storage_layout_1.writeCompactMissionCounter)((0, db_1.getDb)(), playerId, {
+            key: counterKey, dimension: query.dimension, scopeType: query.scopeType, scopeKey: query.scopeKey, qualifierJson,
+        }, amount, "add");
     const row = (0, db_1.getDb)().prepare(`
     INSERT INTO players_mission_counters
         (player_id, counter_key, dimension, scope_type, scope_key, qualifier_json, value, updated_at)
@@ -49,6 +54,10 @@ exports.addMissionCounterSync = addMissionCounterSync;
 function setMissionCounterMaxSync(playerId, query, value) {
     const counterKey = makeMissionCounterKey(query);
     const qualifierJson = serializeMissionCounterQualifier(query.qualifier);
+    if ((0, storage_layout_1.isCompactStorage)((0, db_1.getDb)()))
+        return (0, storage_layout_1.writeCompactMissionCounter)((0, db_1.getDb)(), playerId, {
+            key: counterKey, dimension: query.dimension, scopeType: query.scopeType, scopeKey: query.scopeKey, qualifierJson,
+        }, value, "max");
     const row = (0, db_1.getDb)().prepare(`
     INSERT INTO players_mission_counters
         (player_id, counter_key, dimension, scope_type, scope_key, qualifier_json, value, updated_at)
@@ -66,6 +75,10 @@ function setMissionCounterMinSync(playerId, query, value) {
         return getMissionCounterValueSync(playerId, query);
     const counterKey = makeMissionCounterKey(query);
     const qualifierJson = serializeMissionCounterQualifier(query.qualifier);
+    if ((0, storage_layout_1.isCompactStorage)((0, db_1.getDb)()))
+        return (0, storage_layout_1.writeCompactMissionCounter)((0, db_1.getDb)(), playerId, {
+            key: counterKey, dimension: query.dimension, scopeType: query.scopeType, scopeKey: query.scopeKey, qualifierJson,
+        }, value, "min");
     const row = (0, db_1.getDb)().prepare(`
     INSERT INTO players_mission_counters
         (player_id, counter_key, dimension, scope_type, scope_key, qualifier_json, value, updated_at)
@@ -106,6 +119,8 @@ function getMissionCounterValuesSync(playerId, queries) {
 exports.getMissionCounterValuesSync = getMissionCounterValuesSync;
 function getMissionCounterSnapshotValueSync(playerId, periodType, query) {
     var _a;
+    if ((0, storage_layout_1.isCompactStorage)((0, db_1.getDb)()))
+        throw new Error("旧任务快照已退役，周期任务应使用 players_periodic_snapshots");
     const counterKey = makeMissionCounterKey(query);
     const row = (0, db_1.getDb)().prepare(`
     SELECT value FROM players_mission_counter_snapshots
@@ -121,6 +136,8 @@ function getMissionCounterDeltaSync(playerId, periodType, query) {
 }
 exports.getMissionCounterDeltaSync = getMissionCounterDeltaSync;
 function snapshotAllMissionCountersSync(playerId, periodType) {
+    if ((0, storage_layout_1.isCompactStorage)((0, db_1.getDb)()))
+        throw new Error("旧任务快照已退役，禁止重新生成全量副本");
     const rows = (0, db_1.getDb)().prepare(`
     SELECT counter_key, value FROM players_mission_counters
     WHERE player_id = ?

@@ -1,0 +1,54 @@
+[
+  {
+    "logical": "character/unicorn_lancer_rose/ui/skill_cutin_0.atf.deflate",
+    "path": "F:\\codex\\work\\lens0909-integration-20260909\\ios\\28\\1102adc9cec02aba2023fed506e3073826de94",
+    "sha256": "baf78e780a070f7a6ca39ed59bc32206673d54f07ff75234377fef294b64c2e1",
+    "png_sha256": "4e9649c09a6221d9f2d4ebacb3939831a226f77d6deaf281baa06fbf7fda77b1",
+    "pair": {
+      "w": 1024,
+      "h": 512,
+      "mips": 11,
+      "android_slot": 2,
+      "ios_slot": 3
+    }
+  },
+  {
+    "logical": "character/white_tiger_summer/ui/skill_cutin_0.atf.deflate",
+    "path": "F:\\codex\\work\\lens0909-integration-20260909\\ios\\95\\c78b166636dd6ff34aaadce3f907b87e21e617",
+    "sha256": "91a9f980b33fad5ae4d3b209e6fcc66dd177f52474d5290bb142fd5982e52f90",
+    "png_sha256": "7a48fc38e44e2ab2cc9acd7f33cf477ad8c8560db5906079115350f6c0eb835a",
+    "pair": {
+      "w": 1024,
+      "h": 512,
+      "mips": 11,
+      "android_slot": 2,
+      "ios_slot": 3
+    }
+  },
+  {
+    "logical": "character/white_tiger_summer/ui/skill_cutin_1.atf.deflate",
+    "path": "F:\\codex\\work\\lens0909-integration-20260909\\ios\\bf\\469a900c3d60033b4a1cd89a88bb4c52b1ba3a",
+    "sha256": "6e11b649c053848d2ec3ca24afba8e086863db5f0f8941730ab7b37bc77f46fe",
+    "png_sha256": "e7156efbcb3fd21479d5c048d5b59b567cfd90f9c884f95f2af9f7cd8a1f2e16",
+    "pair": {
+      "w": 1024,
+      "h": 512,
+      "mips": 11,
+      "android_slot": 2,
+      "ios_slot": 3
+    }
+  },
+  {
+    "logical": "character/unicorn_lancer_rose/ui/skill_cutin_1.atf.deflate",
+    "path": "F:\\codex\\work\\lens0909-integration-20260909\\ios\\f9\\22195576de6b9ef0a374fc93e4b8c4b9e532ab",
+    "sha256": "f8c1297664ef43c5e18dbc5a279b65747873c1a7a908f76ace6137b2fada0128",
+    "png_sha256": "959c0afb222fe7aa682f1b7d1935b4e48d4df1b6758a6cc7750299198c0eb395",
+    "pair": {
+      "w": 1024,
+      "h": 512,
+      "mips": 11,
+      "android_slot": 2,
+      "ios_slot": 3
+    }
+  }
+]

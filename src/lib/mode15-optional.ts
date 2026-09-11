@@ -14,6 +14,7 @@ export interface Mode15SettlementResult extends PlayerRewardResult {
 }
 
 interface Mode15Runtime {
+    getMode15ExclusiveItemIds?: (itemIds: readonly unknown[]) => number[];
     MODE15_RUSH_EVENT_ID?: number;
     MODE15_MULTI_EVENT_ID?: number;
     MODE15_LEGACY_HARD_MULTI_EVENT_ID?: number;
@@ -121,6 +122,10 @@ export function isMode15RuntimeLoaded(): boolean {
 
 export function isMode15Quest(category: number, questId: number): boolean {
     return runtime?.isMode15Quest?.(category, questId) ?? false;
+}
+
+export function getMode15ExclusiveItemIds(itemIds: readonly unknown[]): number[] {
+    return runtime?.getMode15ExclusiveItemIds?.(itemIds) ?? [];
 }
 
 export function getExpectedMode15StageSync(playerId: number): number {

@@ -1,0 +1,34 @@
+{
+  "description": "Actual effective .104 Kyubi data before restoration, plus the exact missing author leader row. Two separate ability owners intentionally share the same state.",
+  "donor_payload_sha256": "03b1bfd52d985c0a69973019f41c5dff6882d8cbac518719c5b92638f1a36b87",
+  "sources": {
+    "master/ability/leader_ability.orderedmap": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.103-1.4.104-1-abyss-lens0910-entry-message-consolidated.zip",
+      "member": "production/upload/ff/84353774cb95e8d7dc90c679f96a5bca7f42e5",
+      "sha256": "f1a541df701c9c4b840566d624dd43422404417b3f8d4d8a524ce79aab988760",
+      "size": 64667,
+      "version": "1.4.104"
+    },
+    "master/ability/ability.orderedmap": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.103-1.4.104-1-abyss-lens0910-entry-message-consolidated.zip",
+      "member": "production/upload/1e/664c1cc8d80f4f9a69aae2c49ae8c01d1c4001",
+      "sha256": "8dce3d83363d49cceb2603a600d1ae36e4043f44e85d92614d253e03b02f9c39",
+      "size": 368096,
+      "version": "1.4.104"
+    }
+  },
+  "records": {
+    "leader_before": {
+      "sha256": "9d97246a337f0845b24ad76ba32623942385312a16f4d3ab0f37a7a18cff02d3",
+      "zlib_base64": "eJzdVMsKwjAQvPsZPSmskE2Tan/Cu6dQNBUhNtJa9fM1SeNbUVuVOhSykN0ws7PdVG+FzpOJkiIpV+UiAwL7jwJARAz8MZZK6Y25c/AnDU2ILqk6ALojncmeS6piX0YRgR+eYyafuaJm0EnrSjrjcsGeE3uNkdMbkc9Txxeov48znRYYsmtrfRqGcRxzQwzSRBUScGhJMOINPaVU35Mh1BgyagvoF7yqKwlvq2H8J2raMXn7DQT3/8g2KyMnrv+jPuTsbYVNLfQBpU8o1WuZ5/OpFFdcxLRMlFimEJieh8ExtVjl82z2oOJZfLYB1DW778wix6AptHlCGdrlwk0SvxjLHZabC6o="
+    },
+    "ability1": {
+      "sha256": "53dc28790023d2a6d092af3f3ff775e99cbf6de48f55c1d5f0e810e08ca19ee7",
+      "zlib_base64": "eJzN0lELgjAQB/D3PknBP9hNp/kleu9pDJkvmUJMqm8ft+kgSWgU2D3sxm4Df941/V33V1O3VpvBDZdOE9x1sDDOmfqsH7Zt+xsEICABFIJjSqdQ5bKPefaxPfad3cWKJPL1rFRCgJeX21/FpkngLH10DoCCb0zRIN55ZMEbyRABv64EIrkgKlQiiQgqNpdl3rWO6vOpO6Qp8yIM4vwJFs5AWVVVavzJ4e0q7ZS8S4CWkkcae393Sn/WS5pjZZao5KGleBiQv6U+Aa4hK/U="
+    },
+    "restored_leader_row": {
+      "sha256": "23e523f120679afa7c9c3436f3c743aab54785b1c6673d4110f8da26f167ad00",
+      "zlib_base64": "eJxLy6+Izy9KTM5JjU8sLSnNzdMx0AEiIx0dHTMDEIBRkak5OfnlIDkIgNEWQGwIUQKldHQ0/PLzUjUhSqBsmCYTM0OwOLoWHRxiOobGlpaWpkZQDtxaEgAXALsPL8Y="
+    }
+  }
+}

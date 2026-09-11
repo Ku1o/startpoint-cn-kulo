@@ -11,7 +11,9 @@ const path_1 = __importDefault(require("path"));
 const wdfpData_1 = require("./updaters/wdfpData");
 const wdfpData_2 = __importDefault(require("./initializers/wdfpData"));
 const quest_time_revision_1 = require("./initializers/quest-time-revision");
+const five_boss_gauntlet_1 = require("./initializers/five-boss-gauntlet");
 const admin_account_cleanup_1 = require("../lib/admin-account-cleanup");
+const storage_layout_1 = require("../lib/storage-layout");
 // Use __dirname so DB path is relative to the source file, not process.cwd()
 const dataDir = process.env.DATA_DIR
     ? path_1.default.resolve(process.env.DATA_DIR)
@@ -32,7 +34,7 @@ const databasesMetadata = {
         init: wdfpData_2.default,
         updateBefore: wdfpData_1.updateBeforeInit,
         updateAfter: wdfpData_1.updateAfterInit,
-        latestVersion: 9
+        latestVersion: storage_layout_1.WDFP_DATA_VERSION
     }
 };
 const loadedDatabases = {};
@@ -45,6 +47,9 @@ function getDatabase(database) {
     const metadata = databasesMetadata[database];
     const relativeDatabasePath = metadata.path;
     const absoluteDatabasePath = path_1.default.join(dataDir, relativeDatabasePath);
+    if ((0, fs_1.existsSync)(path_1.default.join(dataDir, "storage-maintenance.lock"))) {
+        throw new Error("数据库维护尚未结束，请使用维护恢复入口；禁止启动业务服务写入");
+    }
     // check if the db already exists
     const dbExists = (0, fs_1.existsSync)(absoluteDatabasePath);
     // get the database's version
@@ -57,6 +62,7 @@ function getDatabase(database) {
     }
     // create new db
     const db = new better_sqlite3_1.default(absoluteDatabasePath);
+    (0, storage_layout_1.assertStorageLayout)(db);
     // set pragma
     // Keep temporary SQLite structures on disk. Windows launchers point the
     // process at a stable project-local directory instead of an RDP session
@@ -85,6 +91,7 @@ function getDatabase(database) {
             console.log("[DB] calling init...");
             init(db, dbExists);
             (0, quest_time_revision_1.initializeQuestTimeRevision)(db);
+            (0, five_boss_gauntlet_1.initializeFiveBossGauntlet)(db);
             console.log("[DB] init done");
             // try to update after initialization
             if (updateRequired && updateAfter !== undefined) {
@@ -101,6 +108,8 @@ function getDatabase(database) {
         catch (error) {
             console.log(error);
             console.log(`Initalization failed for module ${metadata.path}. Error: ${error}`);
+            db.close();
+            throw error;
         }
     }
     // re-enable foreign keys

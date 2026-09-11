@@ -1,0 +1,1283 @@
+{
+  "schema": "abyss-element-channel-finalization/v1",
+  "seed": 46454236,
+  "rounds": 30,
+  "input_sha256": {
+    "floor-details.json": "6e6397d437e3cb2b96adaddbd40157e3af6dd668ccdb3e594b6fa75d3a1c48b0",
+    "tower-resource-inventory.json": "f50bd5f32a6ee3accb8885ea15ce8b51b1edee153adfb80f1e74ef4274c01c98",
+    "hp-audit.json": "e13aedfd6fb4e0ce2fc9a626dbde963340b26535ccb6a4c3c602caf75a6a893a"
+  },
+  "client_swf_sha256": "20aef6d02b5bf72c1a0b4628d4bc51df6c0646b96584058aa82314b39c945226",
+  "minimum": 2,
+  "maximum": 5,
+  "original_bosses_fields_and_non_element_curses_preserved": true,
+  "original_hp_audit_sha256": "e13aedfd6fb4e0ce2fc9a626dbde963340b26535ccb6a4c3c602caf75a6a893a",
+  "rows": [
+    {
+      "minimum": 2,
+      "maximum": 5,
+      "threshold": 99.0,
+      "original_banned": [],
+      "added_banned": [
+        2,
+        4
+      ],
+      "final_banned": [
+        2,
+        4
+      ],
+      "open_elements": [
+        1,
+        3,
+        5,
+        6
+      ],
+      "ordinary_slots_consumed": 0,
+      "runtime_verified": false,
+      "channel": "quest_initial_conditions",
+      "config_block": "【属性伤害：水=0.1%;风=0.1%】",
+      "totals": {
+        "2": 999.0,
+        "4": 999.0
+      },
+      "original_cards_preserved": true,
+      "configuration_verified": true,
+      "boss_dsl_migration_required": false,
+      "round": 1,
+      "quest_id": "700099001",
+      "original_subtitle": "「术式扰流」技能耐性40%",
+      "final_subtitle": "「术式扰流」技能耐性40% 【属性伤害：水=0.1%;风=0.1%】"
+    },
+    {
+      "minimum": 2,
+      "maximum": 5,
+      "threshold": 99.0,
+      "original_banned": [],
+      "added_banned": [
+        2,
+        4
+      ],
+      "final_banned": [
+        2,
+        4
+      ],
+      "open_elements": [
+        1,
+        3,
+        5,
+        6
+      ],
+      "ordinary_slots_consumed": 0,
+      "runtime_verified": false,
+      "channel": "quest_initial_conditions",
+      "config_block": "【属性伤害：水=0.1%;雷=50%;风=0.1%】",
+      "totals": {
+        "2": 999.0,
+        "3": 1.0,
+        "4": 999.0
+      },
+      "original_cards_preserved": true,
+      "configuration_verified": true,
+      "boss_dsl_migration_required": true,
+      "round": 2,
+      "quest_id": "700099002",
+      "original_subtitle": "「元素滞钝」雷属性伤害减半",
+      "final_subtitle": "「元素滞钝」雷属性伤害减半 【属性伤害：水=0.1%;雷=50%;风=0.1%】"
+    },
+    {
+      "minimum": 2,
+      "maximum": 5,
+      "threshold": 99.0,
+      "original_banned": [],
+      "added_banned": [
+        3,
+        5
+      ],
+      "final_banned": [
+        3,
+        5
+      ],
+      "open_elements": [
+        1,
+        2,
+        4,
+        6
+      ],
+      "ordinary_slots_consumed": 0,
+      "runtime_verified": false,
+      "channel": "quest_initial_conditions",
+      "config_block": "【属性伤害：火=50%;雷=0.1%;风=50%;光=0.1%;暗=50%】",
+      "totals": {
+        "1": 1.0,
+        "3": 999.0,
+        "4": 1.0,
+        "5": 999.0,
+        "6": 1.0
+      },
+      "original_cards_preserved": true,
+      "configuration_verified": true,
+      "boss_dsl_migration_required": true,
+      "round": 3,
+      "quest_id": "700099003",
+      "original_subtitle": "「混相禁域」火伤害减半·雷伤害减半·风伤害减半·光伤害减半·暗伤害减半",
+      "final_subtitle": "「混相禁域」火伤害减半·雷伤害减半·风伤害减半·光伤害减半·暗伤害减半 【属性伤害：火=50%;雷=0.1%;风=50%;光=0.1%;暗=50%】"
+    },
+    {
+      "minimum": 2,
+      "maximum": 5,
+      "threshold": 99.0,
+      "original_banned": [],
+      "added_banned": [
+        1,
+        5
+      ],
+      "final_banned": [
+        1,
+        5
+      ],
+      "open_elements": [
+        2,
+        3,
+        4,
+        6
+      ],
+      "ordinary_slots_consumed": 0,
+      "runtime_verified": false,
+      "channel": "quest_initial_conditions",
+      "config_block": "【属性伤害：火=0.1%;光=0.1%】",
+      "totals": {
+        "1": 999.0,
+        "5": 999.0
+      },
+      "original_cards_preserved": true,
+      "configuration_verified": true,
+      "boss_dsl_migration_required": true,
+      "round": 4,
+      "quest_id": "700099004",
+      "original_subtitle": "「元素滞钝」火属性伤害减半",
+      "final_subtitle": "「元素滞钝」火属性伤害减半 【属性伤害：火=0.1%;光=0.1%】"
+    },
+    {
+      "minimum": 2,
+      "maximum": 5,
+      "threshold": 99.0,
+      "original_banned": [],
+      "added_banned": [
+        1,
+        6
+      ],
+      "final_banned": [
+        1,
+        6
+      ],
+      "open_elements": [
+        2,
+        3,
+        4,
+        5
+      ],
+      "ordinary_slots_consumed": 0,
+      "runtime_verified": false,
+      "channel": "quest_initial_conditions",
+      "config_block": "【属性伤害：火=0.1%;暗=0.1%】",
+      "totals": {
+        "1": 999.0,
+        "6": 999.0
+      },
+      "original_cards_preserved": true,
+      "configuration_verified": true,
+      "boss_dsl_migration_required": true,
+      "round": 5,
+      "quest_id": "700099005",
+      "original_subtitle": "「混相禁域」火伤害减半",
+      "final_subtitle": "「混相禁域」火伤害减半 【属性伤害：火=0.1%;暗=0.1%】"
+    },
+    {
+      "minimum": 2,
+      "maximum": 5,
+      "threshold": 99.0,
+      "original_banned": [],
+      "added_banned": [
+        1,
+        2
+      ],
+      "final_banned": [
+        1,
+        2
+      ],
+      "open_elements": [
+        3,
+        4,
+        5,
+        6
+      ],
+      "ordinary_slots_consumed": 0,
+      "runtime_verified": false,
+      "channel": "quest_initial_conditions",
+      "config_block": "【属性伤害：火=0.1%;水=0.1%】",
+      "totals": {
+        "1": 999.0,
+        "2": 999.0
+      },
+      "original_cards_preserved": true,
+      "configuration_verified": true,
+      "boss_dsl_migration_required": false,
+      "round": 6,
+      "quest_id": "700099006",
+      "original_subtitle": "「亡者不屈」减益免疫·能耐50%",
+      "final_subtitle": "「亡者不屈」减益免疫·能耐50% 【属性伤害：火=0.1%;水=0.1%】"
+    },
+    {
+      "minimum": 2,
+      "maximum": 5,
+      "threshold": 99.0,
+      "original_banned": [],
+      "added_banned": [
+        5,
+        6
+      ],
+      "final_banned": [
+        5,
+        6
+      ],
+      "open_elements": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "ordinary_slots_consumed": 0,
+      "runtime_verified": false,
+      "channel": "quest_initial_conditions",
+      "config_block": "【属性伤害：光=0.1%;暗=0.1%】",
+      "totals": {
+        "5": 999.0,
+        "6": 999.0
+      },
+      "original_cards_preserved": true,
+      "configuration_verified": true,
+      "boss_dsl_migration_required": false,
+      "round": 7,
+      "quest_id": "700099007",
+      "original_subtitle": "「能力抑制」能力耐性40% 「嗜血狂潮」敌攻×1.15·血-15%",
+      "final_subtitle": "「能力抑制」能力耐性40% 「嗜血狂潮」敌攻×1.15·血-15% 【属性伤害：光=0.1%;暗=0.1%】"
+    },
+    {
+      "minimum": 2,
+      "maximum": 5,
+      "threshold": 99.0,
+      "original_banned": [],
+      "added_banned": [
+        1,
+        6
+      ],
+      "final_banned": [
+        1,
+        6
+      ],
+      "open_elements": [
+        2,
+        3,
+        4,
+        5
+      ],
+      "ordinary_slots_consumed": 0,
+      "runtime_verified": false,
+      "channel": "quest_initial_conditions",
+      "config_block": "【属性伤害：火=0.1%;雷=10%;风=10%;暗=0.1%】",
+      "totals": {
+        "1": 999.0,
+        "3": 9.0,
+        "4": 9.0,
+        "6": 999.0
+      },
+      "original_cards_preserved": true,
+      "configuration_verified": true,
+      "boss_dsl_migration_required": true,
+      "round": 8,
+      "quest_id": "700099008",
+      "original_subtitle": "「三相封界」火·雷·风属性伤害降至1/10(只留水·光·暗) 「深渊法阵」狂风领域·轻风0.25·8秒·方向2",
+      "final_subtitle": "「三相封界」火·雷·风属性伤害降至1/10(只留水·光·暗) 「深渊法阵」狂风领域·轻风0.25·8秒·方向2 【属性伤害：火=0.1%;雷=10%;风=10%;暗=0.1%】"
+    },
+    {
+      "minimum": 2,
+      "maximum": 5,
+      "threshold": 99.0,
+      "original_banned": [],
+      "added_banned": [
+        1,
+        5
+      ],
+      "final_banned": [
+        1,
+        5
+      ],
+      "open_elements": [
+        2,
+        3,
+        4,
+        6
+      ],
+      "ordinary_slots_consumed": 0,
+      "runtime_verified": false,
+      "channel": "quest_initial_conditions",
+      "config_block": "【属性伤害：火=0.1%;光=0.1%】",
+      "totals": {
+        "1": 999.0,
+        "5": 999.0
+      },
+      "original_cards_preserved": true,
+      "configuration_verified": true,
+      "boss_dsl_migration_required": false,
+      "round": 9,
+      "quest_id": "700099009",
+      "original_subtitle": "「深渊重甲」韧性×9·弹耐40% 「血肉高墙」敌血×2.5",
+      "final_subtitle": "「深渊重甲」韧性×9·弹耐40% 「血肉高墙」敌血×2.5 【属性伤害：火=0.1%;光=0.1%】"
+    },
+    {
+      "minimum": 2,
+      "maximum": 5,
+      "threshold": 99.0,
+      "original_banned": [],
+      "added_banned": [
+        3,
+        6
+      ],
+      "final_banned": [
+        3,
+        6
+      ],
+      "open_elements": [
+        1,
+        2,
+        4,
+        5
+      ],
+      "ordinary_slots_consumed": 0,
+      "runtime_verified": false,
+      "channel": "quest_initial_conditions",
+      "config_block": "【属性伤害：雷=0.1%;暗=0.1%】",
+      "totals": {
+        "3": 999.0,
+        "6": 999.0
+      },
+      "original_cards_preserved": true,
+      "configuration_verified": true,
+      "boss_dsl_migration_required": false,
+      "round": 10,
+      "quest_id": "700099010",
+      "original_subtitle": "【风暴】「深渊法阵」狂风领域·轻风0.15·20秒·方向2 「深渊逆鳞」敌攻×1.2·强化弹射易伤40%",
+      "final_subtitle": "【风暴】「深渊法阵」狂风领域·轻风0.15·20秒·方向2 「深渊逆鳞」敌攻×1.2·强化弹射易伤40% 【属性伤害：雷=0.1%;暗=0.1%】"
+    },
+    {
+      "minimum": 2,
+      "maximum": 5,
+      "threshold": 99.0,
+      "original_banned": [],
+      "added_banned": [
+        5,
+        6
+      ],
+      "final_banned": [
+        5,
+        6
+      ],
+      "open_elements": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "ordinary_slots_consumed": 0,
+      "runtime_verified": false,
+      "channel": "quest_initial_conditions",
+      "config_block": "【属性伤害：光=0.1%;暗=0.1%】",
+      "totals": {
+        "5": 999.0,
+        "6": 999.0
+      },
+      "original_cards_preserved": true,
+      "configuration_verified": true,
+      "boss_dsl_migration_required": false,
+      "round": 11,
+      "quest_id": "700099011",
+      "original_subtitle": "【速攻】「玻璃深渊」敌攻×1.4·血-50% 「时之枷锁」限时3分",
+      "final_subtitle": "【速攻】「玻璃深渊」敌攻×1.4·血-50% 「时之枷锁」限时3分 【属性伤害：光=0.1%;暗=0.1%】"
+    },
+    {
+      "minimum": 2,
+      "maximum": 5,
+      "threshold": 99.0,
+      "original_banned": [],
+      "added_banned": [
+        2,
+        6
+      ],
+      "final_banned": [
+        2,
+        6
+      ],
+      "open_elements": [
+        1,
+        3,
+        4,
+        5
+      ],
+      "ordinary_slots_consumed": 0,
+      "runtime_verified": false,
+      "channel": "quest_initial_conditions",
+      "config_block": "【属性伤害：水=0.1%;暗=0.1%】",
+      "totals": {
+        "2": 999.0,
+        "6": 999.0
+      },
+      "original_cards_preserved": true,
+      "configuration_verified": true,
+      "boss_dsl_migration_required": false,
+      "round": 12,
+      "quest_id": "700099012",
+      "original_subtitle": "「直击偏转」直击耐性40% 「魔力枯竭」FEVER需求×3",
+      "final_subtitle": "「直击偏转」直击耐性40% 「魔力枯竭」FEVER需求×3 【属性伤害：水=0.1%;暗=0.1%】"
+    },
+    {
+      "minimum": 2,
+      "maximum": 5,
+      "threshold": 99.0,
+      "original_banned": [],
+      "added_banned": [
+        1,
+        4
+      ],
+      "final_banned": [
+        1,
+        4
+      ],
+      "open_elements": [
+        2,
+        3,
+        5,
+        6
+      ],
+      "ordinary_slots_consumed": 0,
+      "runtime_verified": false,
+      "channel": "quest_initial_conditions",
+      "config_block": "【属性伤害：火=0.1%;风=0.1%】",
+      "totals": {
+        "1": 999.0,
+        "4": 999.0
+      },
+      "original_cards_preserved": true,
+      "configuration_verified": true,
+      "boss_dsl_migration_required": true,
+      "round": 13,
+      "quest_id": "700099013",
+      "original_subtitle": "「元素滞钝」风属性伤害减半 「深渊法阵」重力领域·引力2·10秒·左侧/上方·复合",
+      "final_subtitle": "「元素滞钝」风属性伤害减半 「深渊法阵」重力领域·引力2·10秒·左侧/上方·复合 【属性伤害：火=0.1%;风=0.1%】"
+    },
+    {
+      "minimum": 2,
+      "maximum": 5,
+      "threshold": 99.0,
+      "original_banned": [],
+      "added_banned": [
+        4,
+        6
+      ],
+      "final_banned": [
+        4,
+        6
+      ],
+      "open_elements": [
+        1,
+        2,
+        3,
+        5
+      ],
+      "ordinary_slots_consumed": 0,
+      "runtime_verified": false,
+      "channel": "quest_initial_conditions",
+      "config_block": "【属性伤害：风=0.1%;暗=0.1%】",
+      "totals": {
+        "4": 999.0,
+        "6": 999.0
+      },
+      "original_cards_preserved": true,
+      "configuration_verified": true,
+      "boss_dsl_migration_required": false,
+      "round": 14,
+      "quest_id": "700099014",
+      "original_subtitle": "「深渊法阵」攻击领域·攻击+100%/直击+50%/光耐性+100%·复合 「层叠龙鳞」直击抗性×50层（减50%）",
+      "final_subtitle": "「深渊法阵」攻击领域·攻击+100%/直击+50%/光耐性+100%·复合 「层叠龙鳞」直击抗性×50层（减50%） 【属性伤害：风=0.1%;暗=0.1%】"
+    },
+    {
+      "minimum": 2,
+      "maximum": 5,
+      "threshold": 99.0,
+      "original_banned": [],
+      "added_banned": [
+        2,
+        6
+      ],
+      "final_banned": [
+        2,
+        6
+      ],
+      "open_elements": [
+        1,
+        3,
+        4,
+        5
+      ],
+      "ordinary_slots_consumed": 0,
+      "runtime_verified": false,
+      "channel": "quest_initial_conditions",
+      "config_block": "【属性伤害：水=0.1%;暗=0.1%】",
+      "totals": {
+        "2": 999.0,
+        "6": 999.0
+      },
+      "original_cards_preserved": true,
+      "configuration_verified": true,
+      "boss_dsl_migration_required": false,
+      "round": 15,
+      "quest_id": "700099015",
+      "original_subtitle": "「亡者不屈」减益免疫·能耐50% 「深渊重甲」韧性×9·弹耐40%",
+      "final_subtitle": "「亡者不屈」减益免疫·能耐50% 「深渊重甲」韧性×9·弹耐40% 【属性伤害：水=0.1%;暗=0.1%】"
+    },
+    {
+      "minimum": 2,
+      "maximum": 5,
+      "threshold": 99.0,
+      "original_banned": [],
+      "added_banned": [
+        5,
+        6
+      ],
+      "final_banned": [
+        5,
+        6
+      ],
+      "open_elements": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "ordinary_slots_consumed": 0,
+      "runtime_verified": false,
+      "channel": "quest_initial_conditions",
+      "config_block": "【属性伤害：水=10%;光=0.1%;暗=0.1%】",
+      "totals": {
+        "2": 9.0,
+        "5": 999.0,
+        "6": 999.0
+      },
+      "original_cards_preserved": true,
+      "configuration_verified": true,
+      "boss_dsl_migration_required": true,
+      "round": 16,
+      "quest_id": "700099016",
+      "original_subtitle": "「三相封界」水·光·暗属性伤害降至1/10(只留火·雷·风) 「深渊法阵」狂风领域·微风0.1·5秒·方向2 「不屈龙心」减益耐性×50层（普通减益几乎无法命中；强制赋予除外）",
+      "final_subtitle": "「三相封界」水·光·暗属性伤害降至1/10(只留火·雷·风) 「深渊法阵」狂风领域·微风0.1·5秒·方向2 「不屈龙心」减益耐性×50层（普通减益几乎无法命中；强制赋予除外） 【属性伤害：水=10%;光=0.1%;暗=0.1%】"
+    },
+    {
+      "minimum": 2,
+      "maximum": 5,
+      "threshold": 99.0,
+      "original_banned": [],
+      "added_banned": [
+        5,
+        6
+      ],
+      "final_banned": [
+        5,
+        6
+      ],
+      "open_elements": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "ordinary_slots_consumed": 0,
+      "runtime_verified": false,
+      "channel": "quest_initial_conditions",
+      "config_block": "【属性伤害：雷=10%;光=0.1%;暗=0.1%】",
+      "totals": {
+        "3": 9.0,
+        "5": 999.0,
+        "6": 999.0
+      },
+      "original_cards_preserved": true,
+      "configuration_verified": true,
+      "boss_dsl_migration_required": true,
+      "round": 17,
+      "quest_id": "700099017",
+      "original_subtitle": "【风暴】「混相禁域」雷伤害降至1/10 「深渊法阵」狂风领域·轻风0.125·15秒·方向2 「深渊逆鳞」敌攻×1.2·能力易伤40% 「魔力枯竭」FEVER需求×3",
+      "final_subtitle": "【风暴】「混相禁域」雷伤害降至1/10 「深渊法阵」狂风领域·轻风0.125·15秒·方向2 「深渊逆鳞」敌攻×1.2·能力易伤40% 「魔力枯竭」FEVER需求×3 【属性伤害：雷=10%;光=0.1%;暗=0.1%】"
+    },
+    {
+      "minimum": 2,
+      "maximum": 5,
+      "threshold": 99.0,
+      "original_banned": [],
+      "added_banned": [
+        3,
+        5
+      ],
+      "final_banned": [
+        3,
+        5
+      ],
+      "open_elements": [
+        1,
+        2,
+        4,
+        6
+      ],
+      "ordinary_slots_consumed": 0,
+      "runtime_verified": false,
+      "channel": "quest_initial_conditions",
+      "config_block": "【属性伤害：雷=0.1%;光=0.1%】",
+      "totals": {
+        "3": 999.0,
+        "5": 999.0
+      },
+      "original_cards_preserved": true,
+      "configuration_verified": true,
+      "boss_dsl_migration_required": false,
+      "round": 18,
+      "quest_id": "700099018",
+      "original_subtitle": "「直击偏转」直击耐性40% 「术式扰流」技能耐性40% 「能力抑制」能力耐性40%",
+      "final_subtitle": "「直击偏转」直击耐性40% 「术式扰流」技能耐性40% 「能力抑制」能力耐性40% 【属性伤害：雷=0.1%;光=0.1%】"
+    },
+    {
+      "minimum": 2,
+      "maximum": 5,
+      "threshold": 99.0,
+      "original_banned": [],
+      "added_banned": [
+        3,
+        4
+      ],
+      "final_banned": [
+        3,
+        4
+      ],
+      "open_elements": [
+        1,
+        2,
+        5,
+        6
+      ],
+      "ordinary_slots_consumed": 0,
+      "runtime_verified": false,
+      "channel": "quest_initial_conditions",
+      "config_block": "【属性伤害：雷=0.1%;风=0.1%】",
+      "totals": {
+        "3": 999.0,
+        "4": 999.0
+      },
+      "original_cards_preserved": true,
+      "configuration_verified": true,
+      "boss_dsl_migration_required": false,
+      "round": 19,
+      "quest_id": "700099019",
+      "original_subtitle": "【偏转阵列】「直击偏转」直击耐性40% 「术式扰流」技能耐性40% 「深渊重甲」韧性×9·弹耐40%",
+      "final_subtitle": "【偏转阵列】「直击偏转」直击耐性40% 「术式扰流」技能耐性40% 「深渊重甲」韧性×9·弹耐40% 【属性伤害：雷=0.1%;风=0.1%】"
+    },
+    {
+      "minimum": 2,
+      "maximum": 5,
+      "threshold": 99.0,
+      "original_banned": [
+        4,
+        5
+      ],
+      "added_banned": [],
+      "final_banned": [
+        4,
+        5
+      ],
+      "open_elements": [
+        1,
+        2,
+        3,
+        6
+      ],
+      "ordinary_slots_consumed": 0,
+      "runtime_verified": false,
+      "channel": "quest_initial_conditions",
+      "config_block": "【属性伤害：火=50%;风=1%;光=1%】",
+      "totals": {
+        "1": 1.0,
+        "4": 99.0,
+        "5": 99.0
+      },
+      "original_cards_preserved": true,
+      "configuration_verified": true,
+      "boss_dsl_migration_required": true,
+      "round": 20,
+      "quest_id": "700099020",
+      "original_subtitle": "【风暴】「混相禁域」火伤害减半·风伤害降至1%·光伤害降至1% 「深渊法阵」狂风领域·强风0.5·10秒·方向1 「深渊逆鳞」敌攻×1.3·强化弹射易伤50% 「血肉高墙」敌血×2.5",
+      "final_subtitle": "【风暴】「混相禁域」火伤害减半·风伤害降至1%·光伤害降至1% 「深渊法阵」狂风领域·强风0.5·10秒·方向1 「深渊逆鳞」敌攻×1.3·强化弹射易伤50% 「血肉高墙」敌血×2.5 【属性伤害：火=50%;风=1%;光=1%】"
+    },
+    {
+      "minimum": 2,
+      "maximum": 5,
+      "threshold": 99.0,
+      "original_banned": [],
+      "added_banned": [
+        1,
+        6
+      ],
+      "final_banned": [
+        1,
+        6
+      ],
+      "open_elements": [
+        2,
+        3,
+        4,
+        5
+      ],
+      "ordinary_slots_consumed": 0,
+      "runtime_verified": false,
+      "channel": "quest_initial_conditions",
+      "config_block": "【属性伤害：火=0.1%;暗=0.1%】",
+      "totals": {
+        "1": 999.0,
+        "6": 999.0
+      },
+      "original_cards_preserved": true,
+      "configuration_verified": true,
+      "boss_dsl_migration_required": false,
+      "round": 21,
+      "quest_id": "700099021",
+      "original_subtitle": "「魔力枯竭」FEVER需求×3 「亡者不屈」减益免疫·能耐50% 「深渊重甲」韧性×9·弹耐40%",
+      "final_subtitle": "「魔力枯竭」FEVER需求×3 「亡者不屈」减益免疫·能耐50% 「深渊重甲」韧性×9·弹耐40% 【属性伤害：火=0.1%;暗=0.1%】"
+    },
+    {
+      "minimum": 2,
+      "maximum": 5,
+      "threshold": 99.0,
+      "original_banned": [],
+      "added_banned": [
+        2,
+        3
+      ],
+      "final_banned": [
+        2,
+        3
+      ],
+      "open_elements": [
+        1,
+        4,
+        5,
+        6
+      ],
+      "ordinary_slots_consumed": 0,
+      "runtime_verified": false,
+      "channel": "quest_initial_conditions",
+      "config_block": "【属性伤害：火=10%;水=0.1%;雷=0.1%;光=10%;暗=10%】",
+      "totals": {
+        "1": 9.0,
+        "2": 999.0,
+        "3": 999.0,
+        "5": 9.0,
+        "6": 9.0
+      },
+      "original_cards_preserved": true,
+      "configuration_verified": true,
+      "boss_dsl_migration_required": true,
+      "round": 22,
+      "quest_id": "700099022",
+      "original_subtitle": "「三相封界」火·光·暗属性伤害降至1/10(只留水·雷·风) 「深渊法阵」重力领域·引力1.5·10秒·左侧/上方 「深渊壁垒」全系耐性30% 「玻璃深渊·残响」敌血-50%（攻击增幅已摘）",
+      "final_subtitle": "「三相封界」火·光·暗属性伤害降至1/10(只留水·雷·风) 「深渊法阵」重力领域·引力1.5·10秒·左侧/上方 「深渊壁垒」全系耐性30% 「玻璃深渊·残响」敌血-50%（攻击增幅已摘） 【属性伤害：火=10%;水=0.1%;雷=0.1%;光=10%;暗=10%】"
+    },
+    {
+      "minimum": 2,
+      "maximum": 5,
+      "threshold": 99.0,
+      "original_banned": [],
+      "added_banned": [
+        1,
+        2
+      ],
+      "final_banned": [
+        1,
+        2
+      ],
+      "open_elements": [
+        3,
+        4,
+        5,
+        6
+      ],
+      "ordinary_slots_consumed": 0,
+      "runtime_verified": false,
+      "channel": "quest_initial_conditions",
+      "config_block": "【属性伤害：火=0.1%;水=0.1%】",
+      "totals": {
+        "1": 999.0,
+        "2": 999.0
+      },
+      "original_cards_preserved": true,
+      "configuration_verified": true,
+      "boss_dsl_migration_required": false,
+      "round": 23,
+      "quest_id": "700099023",
+      "original_subtitle": "【风暴】「深渊法阵」狂风领域·狂风1·5秒·方向2 「深渊逆鳞」敌攻×1.3·强化弹射易伤50% 「不屈龙心」减益耐性×50层（普通减益几乎无法命中；强制赋予除外） 「血肉高墙」敌血×2.5",
+      "final_subtitle": "【风暴】「深渊法阵」狂风领域·狂风1·5秒·方向2 「深渊逆鳞」敌攻×1.3·强化弹射易伤50% 「不屈龙心」减益耐性×50层（普通减益几乎无法命中；强制赋予除外） 「血肉高墙」敌血×2.5 【属性伤害：火=0.1%;水=0.1%】"
+    },
+    {
+      "minimum": 2,
+      "maximum": 5,
+      "threshold": 99.0,
+      "original_banned": [],
+      "added_banned": [
+        3,
+        6
+      ],
+      "final_banned": [
+        3,
+        6
+      ],
+      "open_elements": [
+        1,
+        2,
+        4,
+        5
+      ],
+      "ordinary_slots_consumed": 0,
+      "runtime_verified": false,
+      "channel": "quest_initial_conditions",
+      "config_block": "【属性伤害：雷=0.1%;暗=0.1%】",
+      "totals": {
+        "3": 999.0,
+        "6": 999.0
+      },
+      "original_cards_preserved": true,
+      "configuration_verified": true,
+      "boss_dsl_migration_required": false,
+      "round": 24,
+      "quest_id": "700099024",
+      "original_subtitle": "「嗜血狂潮」敌攻×1.15·血-15% 「亡者不屈」减益免疫·能耐50% 「魔力枯竭」FEVER需求×3",
+      "final_subtitle": "「嗜血狂潮」敌攻×1.15·血-15% 「亡者不屈」减益免疫·能耐50% 「魔力枯竭」FEVER需求×3 【属性伤害：雷=0.1%;暗=0.1%】"
+    },
+    {
+      "minimum": 2,
+      "maximum": 5,
+      "threshold": 99.0,
+      "original_banned": [],
+      "added_banned": [
+        1,
+        6
+      ],
+      "final_banned": [
+        1,
+        6
+      ],
+      "open_elements": [
+        2,
+        3,
+        4,
+        5
+      ],
+      "ordinary_slots_consumed": 0,
+      "runtime_verified": false,
+      "channel": "quest_initial_conditions",
+      "config_block": "【属性伤害：火=0.1%;暗=0.1%】",
+      "totals": {
+        "1": 999.0,
+        "6": 999.0
+      },
+      "original_cards_preserved": true,
+      "configuration_verified": true,
+      "boss_dsl_migration_required": false,
+      "round": 25,
+      "quest_id": "700099025",
+      "original_subtitle": "【迟滞战线】「直击偏转」直击耐性40% 「魔力枯竭」FEVER需求×3 「亡者不屈」减益免疫·能耐50% 「玻璃深渊」敌攻×1.4·血-50%",
+      "final_subtitle": "【迟滞战线】「直击偏转」直击耐性40% 「魔力枯竭」FEVER需求×3 「亡者不屈」减益免疫·能耐50% 「玻璃深渊」敌攻×1.4·血-50% 【属性伤害：火=0.1%;暗=0.1%】"
+    },
+    {
+      "minimum": 2,
+      "maximum": 5,
+      "threshold": 99.0,
+      "original_banned": [],
+      "added_banned": [
+        2,
+        4
+      ],
+      "final_banned": [
+        2,
+        4
+      ],
+      "open_elements": [
+        1,
+        3,
+        5,
+        6
+      ],
+      "ordinary_slots_consumed": 0,
+      "runtime_verified": false,
+      "channel": "quest_initial_conditions",
+      "config_block": "【属性伤害：水=0.1%;风=0.1%】",
+      "totals": {
+        "2": 999.0,
+        "4": 999.0
+      },
+      "original_cards_preserved": true,
+      "configuration_verified": true,
+      "boss_dsl_migration_required": false,
+      "round": 26,
+      "quest_id": "700099026",
+      "original_subtitle": "【迟滞战线】「直击偏转」直击耐性40% 「魔力枯竭」FEVER需求×3 「亡者不屈」减益免疫·能耐50% 「嗜血狂潮」敌攻×1.1·血-15%",
+      "final_subtitle": "【迟滞战线】「直击偏转」直击耐性40% 「魔力枯竭」FEVER需求×3 「亡者不屈」减益免疫·能耐50% 「嗜血狂潮」敌攻×1.1·血-15% 【属性伤害：水=0.1%;风=0.1%】"
+    },
+    {
+      "minimum": 2,
+      "maximum": 5,
+      "threshold": 99.0,
+      "original_banned": [
+        5
+      ],
+      "added_banned": [
+        1
+      ],
+      "final_banned": [
+        1,
+        5
+      ],
+      "open_elements": [
+        2,
+        3,
+        4,
+        6
+      ],
+      "ordinary_slots_consumed": 0,
+      "runtime_verified": false,
+      "channel": "quest_initial_conditions",
+      "config_block": "【属性伤害：火=0.1%;光=1%】",
+      "totals": {
+        "1": 999.0,
+        "5": 99.0
+      },
+      "original_cards_preserved": true,
+      "configuration_verified": true,
+      "boss_dsl_migration_required": true,
+      "round": 27,
+      "quest_id": "700099027",
+      "original_subtitle": "【绞肉机】「血肉高墙」敌血×2.5 「嗜血狂潮」敌攻×1.15·血-15% 「深渊重甲」韧性×9·弹耐40% 「深渊法阵」技能伤害领域·技能伤害 「元素禁壁」光属性伤害降至1%",
+      "final_subtitle": "【绞肉机】「血肉高墙」敌血×2.5 「嗜血狂潮」敌攻×1.15·血-15% 「深渊重甲」韧性×9·弹耐40% 「深渊法阵」技能伤害领域·技能伤害 「元素禁壁」光属性伤害降至1% 【属性伤害：火=0.1%;光=1%】"
+    },
+    {
+      "minimum": 2,
+      "maximum": 5,
+      "threshold": 99.0,
+      "original_banned": [],
+      "added_banned": [
+        4,
+        6
+      ],
+      "final_banned": [
+        4,
+        6
+      ],
+      "open_elements": [
+        1,
+        2,
+        3,
+        5
+      ],
+      "ordinary_slots_consumed": 0,
+      "runtime_verified": false,
+      "channel": "quest_initial_conditions",
+      "config_block": "【属性伤害：风=0.1%;暗=0.1%】",
+      "totals": {
+        "4": 999.0,
+        "6": 999.0
+      },
+      "original_cards_preserved": true,
+      "configuration_verified": true,
+      "boss_dsl_migration_required": false,
+      "round": 28,
+      "quest_id": "700099028",
+      "original_subtitle": "【迟滞战线】「直击偏转」直击耐性40% 「魔力枯竭」FEVER需求×3 「亡者不屈」减益免疫·能耐50% 「能力抑制」能力耐性40%",
+      "final_subtitle": "【迟滞战线】「直击偏转」直击耐性40% 「魔力枯竭」FEVER需求×3 「亡者不屈」减益免疫·能耐50% 「能力抑制」能力耐性40% 【属性伤害：风=0.1%;暗=0.1%】"
+    },
+    {
+      "minimum": 2,
+      "maximum": 5,
+      "threshold": 99.0,
+      "original_banned": [],
+      "added_banned": [
+        3,
+        5
+      ],
+      "final_banned": [
+        3,
+        5
+      ],
+      "open_elements": [
+        1,
+        2,
+        4,
+        6
+      ],
+      "ordinary_slots_consumed": 0,
+      "runtime_verified": false,
+      "channel": "quest_initial_conditions",
+      "config_block": "【属性伤害：雷=0.1%;光=0.1%】",
+      "totals": {
+        "3": 999.0,
+        "5": 999.0
+      },
+      "original_cards_preserved": true,
+      "configuration_verified": true,
+      "boss_dsl_migration_required": false,
+      "round": 29,
+      "quest_id": "700099029",
+      "original_subtitle": "「血肉高墙」敌血×2.5 「术式扰流」技能耐性40% 「能力抑制」能力耐性40% 「亡者不屈」减益免疫·能耐50%",
+      "final_subtitle": "「血肉高墙」敌血×2.5 「术式扰流」技能耐性40% 「能力抑制」能力耐性40% 「亡者不屈」减益免疫·能耐50% 【属性伤害：雷=0.1%;光=0.1%】"
+    },
+    {
+      "minimum": 2,
+      "maximum": 5,
+      "threshold": 99.0,
+      "original_banned": [],
+      "added_banned": [
+        2,
+        5
+      ],
+      "final_banned": [
+        2,
+        5
+      ],
+      "open_elements": [
+        1,
+        3,
+        4,
+        6
+      ],
+      "ordinary_slots_consumed": 0,
+      "runtime_verified": false,
+      "channel": "quest_initial_conditions",
+      "config_block": "【属性伤害：水=0.1%;光=0.1%】",
+      "totals": {
+        "2": 999.0,
+        "5": 999.0
+      },
+      "original_cards_preserved": true,
+      "configuration_verified": true,
+      "boss_dsl_migration_required": false,
+      "round": 30,
+      "quest_id": "700099030",
+      "original_subtitle": "「深渊法阵」充能领域·充能-30% 「绝对壁垒」技能完全免疫 「三重壁垒」能力·强化弹射·技能三重免疫(只剩直击能打) 「深渊壁垒」全系耐性30% 「层叠龙鳞」强化弹射抗性×90层（减90%）",
+      "final_subtitle": "「深渊法阵」充能领域·充能-30% 「绝对壁垒」技能完全免疫 「三重壁垒」能力·强化弹射·技能三重免疫(只剩直击能打) 「深渊壁垒」全系耐性30% 「层叠龙鳞」强化弹射抗性×90层（减90%） 【属性伤害：水=0.1%;光=0.1%】"
+    }
+  ],
+  "generated_program_replacements": {
+    "battle/action/enemy/action/mod_rogue/immunity_871feefd4043": null,
+    "battle/action/enemy/action/mod_rogue/immunity_fa4c534756c1": null,
+    "battle/action/enemy/action/mod_rogue/immunity_7b344cde920b": null,
+    "battle/action/enemy/action/mod_rogue/immunity_3373c58ba0b6": null,
+    "battle/action/enemy/action/mod_rogue/immunity_fee6e23a615f": null,
+    "battle/action/enemy/action/mod_rogue/immunity_5295865ccdb1": "battle/action/enemy/action/mod_rogue/immunity_d9fcff68c333",
+    "battle/action/enemy/action/mod_rogue/immunity_1e541aadb01b": null,
+    "battle/action/enemy/action/mod_rogue/immunity_84f7347e131f": null,
+    "battle/action/enemy/action/mod_rogue/immunity_5d56dc434583": "battle/action/enemy/action/mod_rogue/immunity_b853b0950500",
+    "battle/action/enemy/action/mod_rogue/immunity_aa500f5fb393": null
+  },
+  "carrier_changes": [
+    {
+      "path": [
+        "mod_rogue_boss2",
+        "100"
+      ],
+      "before": "battle/action/enemy/action/mod_rogue/immunity_871feefd4043",
+      "after": "(None)",
+      "removed_generated_programs": [
+        "battle/action/enemy/action/mod_rogue/immunity_871feefd4043"
+      ]
+    },
+    {
+      "path": [
+        "mod_rogue_boss3",
+        "49"
+      ],
+      "before": "battle/action/enemy/action/mod_rogue/immunity_fa4c534756c1",
+      "after": "(None)",
+      "removed_generated_programs": [
+        "battle/action/enemy/action/mod_rogue/immunity_fa4c534756c1"
+      ]
+    },
+    {
+      "path": [
+        "mod_rogue_boss3",
+        "100"
+      ],
+      "before": "battle/action/enemy/action/mod_rogue/immunity_fa4c534756c1",
+      "after": "(None)",
+      "removed_generated_programs": [
+        "battle/action/enemy/action/mod_rogue/immunity_fa4c534756c1"
+      ]
+    },
+    {
+      "path": [
+        "mod_rogue_boss4",
+        "49"
+      ],
+      "before": "battle/action/enemy/action/mod_rogue/immunity_7b344cde920b",
+      "after": "(None)",
+      "removed_generated_programs": [
+        "battle/action/enemy/action/mod_rogue/immunity_7b344cde920b"
+      ]
+    },
+    {
+      "path": [
+        "mod_rogue_boss4",
+        "100"
+      ],
+      "before": "battle/action/enemy/action/mod_rogue/immunity_7b344cde920b",
+      "after": "(None)",
+      "removed_generated_programs": [
+        "battle/action/enemy/action/mod_rogue/immunity_7b344cde920b"
+      ]
+    },
+    {
+      "path": [
+        "mod_rogue_boss5",
+        "100"
+      ],
+      "before": "battle/action/enemy/action/mod_rogue/immunity_7b344cde920b",
+      "after": "(None)",
+      "removed_generated_programs": [
+        "battle/action/enemy/action/mod_rogue/immunity_7b344cde920b"
+      ]
+    },
+    {
+      "path": [
+        "mod_rogue_boss8",
+        "49"
+      ],
+      "before": "battle/action/enemy/action/mod_rogue/immunity_3373c58ba0b6",
+      "after": "(None)",
+      "removed_generated_programs": [
+        "battle/action/enemy/action/mod_rogue/immunity_3373c58ba0b6"
+      ]
+    },
+    {
+      "path": [
+        "mod_rogue_boss8",
+        "100"
+      ],
+      "before": "battle/action/enemy/action/mod_rogue/immunity_3373c58ba0b6",
+      "after": "(None)",
+      "removed_generated_programs": [
+        "battle/action/enemy/action/mod_rogue/immunity_3373c58ba0b6"
+      ]
+    },
+    {
+      "path": [
+        "mod_rogue_boss13",
+        "100"
+      ],
+      "before": "battle/action/enemy/action/mod_rogue/immunity_fee6e23a615f",
+      "after": "(None)",
+      "removed_generated_programs": [
+        "battle/action/enemy/action/mod_rogue/immunity_fee6e23a615f"
+      ]
+    },
+    {
+      "path": [
+        "mod_rogue_boss16",
+        "49"
+      ],
+      "before": "battle/action/enemy/action/mod_rogue/immunity_5295865ccdb1",
+      "after": "battle/action/enemy/action/mod_rogue/immunity_d9fcff68c333",
+      "removed_generated_programs": [
+        "battle/action/enemy/action/mod_rogue/immunity_5295865ccdb1"
+      ]
+    },
+    {
+      "path": [
+        "mod_rogue_boss16",
+        "100"
+      ],
+      "before": "battle/action/enemy/action/mod_rogue/immunity_5295865ccdb1",
+      "after": "battle/action/enemy/action/mod_rogue/immunity_d9fcff68c333",
+      "removed_generated_programs": [
+        "battle/action/enemy/action/mod_rogue/immunity_5295865ccdb1"
+      ]
+    },
+    {
+      "path": [
+        "mod_rogue_boss17",
+        "100"
+      ],
+      "before": "battle/action/enemy/action/mod_rogue/immunity_1e541aadb01b",
+      "after": "(None)",
+      "removed_generated_programs": [
+        "battle/action/enemy/action/mod_rogue/immunity_1e541aadb01b"
+      ]
+    },
+    {
+      "path": [
+        "mod_rogue_boss20",
+        "49"
+      ],
+      "before": "battle/action/enemy/action/mod_rogue/immunity_84f7347e131f",
+      "after": "(None)",
+      "removed_generated_programs": [
+        "battle/action/enemy/action/mod_rogue/immunity_84f7347e131f"
+      ]
+    },
+    {
+      "path": [
+        "mod_rogue_boss20",
+        "100"
+      ],
+      "before": "battle/action/enemy/action/mod_rogue/immunity_84f7347e131f",
+      "after": "(None)",
+      "removed_generated_programs": [
+        "battle/action/enemy/action/mod_rogue/immunity_84f7347e131f"
+      ]
+    },
+    {
+      "path": [
+        "mod_rogue_boss22",
+        "49"
+      ],
+      "before": "battle/action/enemy/action/mod_rogue/immunity_5d56dc434583",
+      "after": "battle/action/enemy/action/mod_rogue/immunity_b853b0950500",
+      "removed_generated_programs": [
+        "battle/action/enemy/action/mod_rogue/immunity_5d56dc434583"
+      ]
+    },
+    {
+      "path": [
+        "mod_rogue_boss22",
+        "100"
+      ],
+      "before": "battle/action/enemy/action/mod_rogue/immunity_5d56dc434583",
+      "after": "battle/action/enemy/action/mod_rogue/immunity_b853b0950500",
+      "removed_generated_programs": [
+        "battle/action/enemy/action/mod_rogue/immunity_5d56dc434583"
+      ]
+    },
+    {
+      "path": [
+        "mod_rogue_boss27",
+        "100"
+      ],
+      "before": "battle/action/enemy/action/mod_rogue/immunity_aa500f5fb393",
+      "after": "(None)",
+      "removed_generated_programs": [
+        "battle/action/enemy/action/mod_rogue/immunity_aa500f5fb393"
+      ]
+    }
+  ],
+  "generated_element_dsl_removed": true,
+  "android_gameplay_verified": false
+}

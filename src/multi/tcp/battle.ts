@@ -3,6 +3,9 @@ import { sessionManager } from "../state/SessionManager"
 import type { SessionClient } from "../state/SessionManager"
 import { relayToBattleRoom } from "./relay"
 import { recordBattleNotify } from "./chain-diagnostic"
+import { getRoom } from "../room/manager"
+import { recordFiveBossSignal } from "../five-boss/lobby-runtime"
+import { fiveBossConnectionDiagnostics } from "../five-boss/connection-diagnostic"
 
 function findBattleClientBySocket(socket: net.Socket): SessionClient | undefined {
     const client = sessionManager.findClientBySocket(socket)
@@ -24,6 +27,10 @@ function handleBattleNotify(socket: net.Socket, data: unknown): void {
     const tag = data[0] as number
     const client = findBattleClientBySocket(socket)
     if (client) recordBattleNotify(client, tag, data)
+    if (tag === 0 || tag === 1 || tag === 2) {
+        fiveBossConnectionDiagnostics.socketEvent(socket, tag === 0 ? "scene_ready" : tag === 1 ? "level_next" : "finalize",
+            client ? "indexed" : "client_unindexed")
+    }
 
     switch (tag) {
         case 0: { // SceneReady
@@ -33,11 +40,15 @@ function handleBattleNotify(socket: net.Socket, data: unknown): void {
         }
         case 1: { // LevelNext (CN dual-boss battle)
             if (client) {
+                const room = getRoom(client.roomNumber)
+                if (room?.five_boss_runtime) recordFiveBossSignal(room, client, "level_next")
                 sessionManager.beginBattleLevelNext(client.connectionId, client.roomNumber)
             }
             break
         }
         case 2: { // Finalize
+            const room = client && getRoom(client.roomNumber)
+            if (client && room?.five_boss_runtime) recordFiveBossSignal(room, client, "finalize")
             if (client) sendToBattleClient(client, [1, [2]], "battle_finalize_ack")
             break
         }
@@ -64,6 +75,7 @@ export function handleBattleMessage(socket: net.Socket, data: unknown): void {
     if (!Array.isArray(data)) return
     const tag = data[0] as number
     const activityClient = findBattleClientBySocket(socket)
+    fiveBossConnectionDiagnostics.packet(socket, !!activityClient)
     if (activityClient) sessionManager.noteBattleActivity(activityClient.connectionId)
 
     switch (tag) {

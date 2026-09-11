@@ -6,6 +6,10 @@
 // HandshakeResult: Accept=0, Denied=1, Reconnect=2, Exception=3, Complete=4
 
 import * as net from "net"
+import { playerSocketAllowed } from "../../lib/player-login"
+import { isFiveBossGauntletQuest } from "../five-boss/contract"
+import { isFrozenFiveBossBattleClient } from "../five-boss/lobby-runtime"
+import { fiveBossConnectionDiagnostics } from "../five-boss/connection-diagnostic"
 import {
     getPlayerPartyGroupListSync,
 } from "../../data/domains/party"
@@ -143,7 +147,7 @@ export function buildRealParty(playerId: number, targetParty?: PlayerParty): any
 }
 
 export async function handleHandshake(socket: net.Socket, data: any): Promise<void> {
-    gameVerboseLog(() => `[TCP] handshake: ${JSON.stringify(data).substring(0, 200)}`)
+    gameVerboseLog(() => `[TCP] handshake: ${JSON.stringify({ socklet: data.socklet, viewerId: data.viewerId, room_number: data.room_number || data.roomNumber })}`)
 
     const socklet = data.socklet
     const roomNumber = data.room_number || data.roomNumber
@@ -162,6 +166,11 @@ export async function handleHandshake(socket: net.Socket, data: any): Promise<vo
         // battle client as viewer 0 makes unrelated host/guest sockets look
         // like duplicate connections and causes one side to be replaced.
         const roomClient = sessionManager.getRoomClientByConnectionId(roomId, String(connectionId))
+        if (roomClient && !playerSocketAllowed(roomClient.viewerId, data.sp_session)) {
+            sessionManager.sendJson(socket, [3, "HANDSHAKE_DENIED"])
+            socket.end()
+            return
+        }
         const battleClient = sessionManager.createClient(
             socket,
             roomClient?.viewerId ?? 0,
@@ -169,15 +178,40 @@ export async function handleHandshake(socket: net.Socket, data: any): Promise<vo
             String(connectionId),
             roomClient?.playerId ?? null,
         )
-        battleClient.roomGeneration = roomClient?.roomGeneration ?? getRoom(roomId)?.lobby_generation ?? 0
+        const battleRoom = getRoom(roomId)
+        battleClient.roomGeneration = roomClient?.roomGeneration ?? battleRoom?.lobby_generation ?? 0
+        if (battleRoom) fiveBossConnectionDiagnostics.bind(battleRoom, battleClient)
+        if (!battleRoom || battleRoom.lifecycle.phase !== "BATTLE") {
+            fiveBossConnectionDiagnostics.socketEvent(socket, "handshake_denied", "room_not_in_battle")
+            sessionManager.sendJson(socket, [3, "HANDSHAKE_DENIED"])
+            socket.end()
+            return
+        }
+        if (battleRoom && isFiveBossGauntletQuest(battleRoom.category, battleRoom.quest_id)
+            && !isFrozenFiveBossBattleClient(battleRoom, battleClient)) {
+            fiveBossConnectionDiagnostics.socketEvent(socket, "handshake_denied", "frozen_identity_mismatch")
+            sessionManager.sendJson(socket, [3, "HANDSHAKE_DENIED"])
+            socket.end()
+            return
+        }
         battleClient.isBattle = true
-        sessionManager.addBattleClient(String(connectionId), battleClient)
+        if (!sessionManager.addBattleClient(String(connectionId), battleClient)) {
+            fiveBossConnectionDiagnostics.socketEvent(socket, "handshake_denied", "retired_seat")
+            sessionManager.sendJson(socket, [3, "HANDSHAKE_DENIED"])
+            socket.end()
+            return
+        }
         sessionManager.sendJson(socket, [0, roomNumber, ""])
         return
     }
 
     if (socklet === "cooperation_room") {
         const viewerId = data.viewerId
+        if (!playerSocketAllowed(viewerId, data.sp_session)) {
+            sessionManager.sendJson(socket, [3, "HANDSHAKE_DENIED"])
+            socket.end()
+            return
+        }
         if (!viewerId || !roomNumber) {
             sessionManager.sendJson(socket, [3, "HANDSHAKE_DENIED"])
             socket.end()

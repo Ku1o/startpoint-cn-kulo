@@ -125,10 +125,14 @@ const routes = async (fastify: FastifyInstance) => {
     fastify.post("/load", async (request: FastifyRequest, reply: FastifyReply) => {
         try {
         const body = request.body as CnLoadBody;
-        const viewerId = body.viewer_id || body.keychain || 1;
+        const viewerId = body.viewer_id || body.keychain;
 
         const session = await getSession(String(viewerId));
-        const accountId = session ? session.accountId : (body.viewer_id || body.keychain || 1);
+        if (!session || session.type !== 2) {
+            reply.type("application/x-msgpack")
+            return reply.send({ data_headers: generateDataHeaders({ result_code: 516 }), data: {} })
+        }
+        const accountId = session.accountId;
         const playerId = resolvePlayerIdSync(accountId);
         if (!playerId) {
             return reply.status(400).send({ error: "Bad Request", message: "No player found" });

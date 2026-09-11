@@ -13,6 +13,7 @@ exports.getRequestUdid = exports.installTakeoverUdidGuard = exports.TAKEOVER_OLD
 const db_1 = require("../data/db");
 const types_1 = require("../data/types");
 const utils_1 = require("../utils");
+const player_login_1 = require("./player-login");
 exports.TAKEOVER_OLD_ACCESS_ERROR = 516;
 function normalizeViewerId(value) {
     if (typeof value === "number" && Number.isSafeInteger(value) && value > 0)
@@ -26,6 +27,9 @@ function installTakeoverUdidGuard(fastify) {
     fastify.addHook("preHandler", (request, reply) => __awaiter(this, void 0, void 0, function* () {
         var _a;
         if (!request.url.startsWith("/api/index.php/"))
+            return;
+        // The new account guard has already checked this exact request and account.
+        if ((0, player_login_1.verifiedPlayerLogin)(request))
             return;
         // Leaderboard reads are public and may be retried without the local-store UDID.
         // Keep takeover protection for mutating/authenticated APIs, but do not turn a

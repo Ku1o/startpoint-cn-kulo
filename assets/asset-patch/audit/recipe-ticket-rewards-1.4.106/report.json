@@ -1,0 +1,110 @@
+{
+  "base": "1.4.105",
+  "version": "1.4.106",
+  "archive": {
+    "name": "pinball-1.4.105-1.4.106-1-recipe-ticket-rewards.zip",
+    "size": 29512,
+    "sha256": "af70f76e7a6d613f1fae3c60a55816b276c7fd332c7706233c88d391918b036e",
+    "members": 4,
+    "files": [
+      "production/upload/2c/0a67faebb3ed5f46ee3da01609f323e002b387",
+      "production/upload/e3/ef959b85852427577252f1651c3a93a8d2dc1e",
+      "production/upload/e6/e407d1adb48131eaefdf5ec32208f3d4f46910",
+      "production/upload/f3/921ba88d5f256d84dd474ab6f499097afd7212"
+    ]
+  },
+  "changes": {
+    "master/equipment_enhancement/equipment_enhancement_shop.orderedmap": [
+      "59001102",
+      "59001104",
+      "59001105",
+      "59001106"
+    ],
+    "master/quest/event/rush_event_quest_folder.orderedmap": [
+      "700098/1",
+      "700099/1"
+    ],
+    "master/reward/event/additional_reward.orderedmap": [
+      "237009700/3"
+    ],
+    "master/quest/event/cnmod_rogue_event.orderedmap": [
+      "700099"
+    ]
+  },
+  "icon_checks": [
+    {
+      "id": 2370097,
+      "name": "究极图腾",
+      "small_icon": "(None)"
+    },
+    {
+      "id": 2370100,
+      "name": "深渊觉醒核",
+      "small_icon": "item/materials/mod/abyss/abyss_core"
+    },
+    {
+      "id": 10000143,
+      "name": "深界连战凭证",
+      "small_icon": "item_icon/materials/event/boss_epuration_event/boss_epuration_point"
+    },
+    {
+      "id": 10000145,
+      "name": "深界结晶",
+      "small_icon": "item/materials/mod/five_boss/deep_crystal"
+    },
+    {
+      "id": 10000147,
+      "name": "五王心核",
+      "small_icon": "item/materials/mod/five_boss/five_king_core"
+    }
+  ],
+  "source_reads": {
+    "common|e3/ef959b85852427577252f1651c3a93a8d2dc1e": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.95-1.4.96-1-cdn-consolidated-gerald0903.zip",
+      "member": "production/upload/e3/ef959b85852427577252f1651c3a93a8d2dc1e",
+      "sha256": "8b03eb0671510a7e97838f5dfd583f4e3a28e6d5ca5851fdbd6758b70ca65e6d"
+    },
+    "common|e6/e407d1adb48131eaefdf5ec32208f3d4f46910": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.95-1.4.96-1-cdn-consolidated-gerald0903.zip",
+      "member": "production/upload/e6/e407d1adb48131eaefdf5ec32208f3d4f46910",
+      "sha256": "625d551645eda9fabaca1effe0cfa2f66c58fdae6a0b322e418a5f01105ca97d"
+    },
+    "common|f3/921ba88d5f256d84dd474ab6f499097afd7212": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.101-1.4.102-1-lens0907-0908-local-android.zip",
+      "member": "production/upload/f3/921ba88d5f256d84dd474ab6f499097afd7212",
+      "sha256": "21ba5c9b0ff34e91e4d8eb77d0b1688dc2ec0a53186b72a818f014c85178230f"
+    },
+    "common|2c/0a67faebb3ed5f46ee3da01609f323e002b387": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.77-1.4.78-1-0816-thunder-abyss-fantasy.zip",
+      "member": "production/upload/2c/0a67faebb3ed5f46ee3da01609f323e002b387",
+      "sha256": "7bb20abc5f99a51a560a23373f11c28b81d445597fde751c238183eb8c62a9bc"
+    },
+    "common|a4/731a843d4dc0c84120bf8c88784c1e74c03baa": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.95-1.4.96-1-cdn-consolidated-gerald0903.zip",
+      "member": "production/upload/a4/731a843d4dc0c84120bf8c88784c1e74c03baa",
+      "sha256": "a108a1fcccfe755f738e8ef9ed85a8ce35fe1e661b5b6fe689057be897fe57ac"
+    },
+    "common|7b/5e0efc0e0691038ca52fe282501dfd3a1b5ae3": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.103-1.4.104-1-five-boss-icon-closure.zip",
+      "member": "production/upload/7b/5e0efc0e0691038ca52fe282501dfd3a1b5ae3",
+      "sha256": "0d20e31489b9bef9a5fdcea507905834b250895965839feac96620742c35e5ec"
+    },
+    "common|0d/284621a3d469b304e1a001f6a21a99890c8907": {
+      "archive": "F:\\startpoint-cn-main\\.cdn\\cn\\archive-common-full\\pinball-1.4.0-20-a09e4a6d.zip",
+      "member": "production/upload/0d/284621a3d469b304e1a001f6a21a99890c8907",
+      "sha256": "3b7fe57225a0623ce0f8d289e3714c40b7652b51d1a07159ab6042311076b3ff"
+    },
+    "common|0c/4561a50deb7b22c977212a62ac8409074bddbe": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.103-1.4.104-1-five-boss-icon-closure.zip",
+      "member": "production/upload/0c/4561a50deb7b22c977212a62ac8409074bddbe",
+      "sha256": "8f1428226a129a3fa63bb558947cd8d57719a9c2a7140a70c6f44da0ad0577af"
+    },
+    "common|98/d280194b20eeabea87881b775b4a10796beb38": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.60-1.4.61-6-post60-terminal-overlay-sixpack-v2.zip",
+      "member": "production/upload/98/d280194b20eeabea87881b775b4a10796beb38",
+      "sha256": "9b0b7ee3fae45107ebfbd9645b51b0b3ad9e1f00ddcf2c112bff9c5479aa4217"
+    }
+  },
+  "swf_changed": false,
+  "device_tested": false
+}

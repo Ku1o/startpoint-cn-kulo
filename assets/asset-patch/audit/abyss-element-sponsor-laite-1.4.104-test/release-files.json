@@ -1,0 +1,44 @@
+[
+  {
+    "path": "assets/gacha.json",
+    "sha256": "aed4840c4e81b4a94a4c4f22e805f5d2b660cf2972d5de0b5452d6ae0d3de82a",
+    "size": 27203066,
+    "changed_from_working_source": true
+  },
+  {
+    "path": "assets/gacha_cnmod.json",
+    "sha256": "bb1eba37667e8e16204ed9e4e7c566367045c3f13afa15df53ca87a35b12d7d6",
+    "size": 116450,
+    "changed_from_working_source": true
+  },
+  {
+    "path": "assets/degree_sponsor.json",
+    "sha256": "46df529d1f5f4e960bbf05bcee0297ffa5820a22f4a0f4046b2f64e8d3377638",
+    "size": 216,
+    "changed_from_working_source": false
+  },
+  {
+    "path": "src/lib/content-master.ts",
+    "sha256": "d3e0c35c724b79c4d2140fedc57274adc01cb79538dfbc9b49e1af4a9ad2143b",
+    "size": 3382,
+    "changed_from_working_source": false
+  },
+  {
+    "path": "out/lib/content-master.js",
+    "sha256": "3e9c3ac47e336beead54146c5598f5202133a68198f88c77706690417ecc7785",
+    "size": 4749,
+    "changed_from_working_source": false
+  },
+  {
+    "path": "assets/rush_event_quest.json",
+    "sha256": "20ce463eee86d67ea2aa02a245207f1506bcf85f792d3f07c797ab63286443c2",
+    "size": 45041,
+    "changed_from_working_source": false
+  },
+  {
+    "path": "assets/rush_event_quest_folder.json",
+    "sha256": "b8264574a19c630d3b4a2958ee0aa3cb610caa679b097a2710cc0f3de90dd169",
+    "size": 19110,
+    "changed_from_working_source": false
+  }
+]

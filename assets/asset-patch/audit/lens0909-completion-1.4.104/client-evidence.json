@@ -1,0 +1,16 @@
+{
+  "accepted_apk": "outputs/rush-leaderboard-self-profile-title-public-20260906/StarPoint-CN-1.8.1-self-profile-title-public-20260906.apk",
+  "apk_sha256": "7990f9191ecf41bd35a4d886ced4d13248d13559284639c69bee5837bd682f0e",
+  "swf_sha256": "27bdd055f8ca15f0863f564f5b4d57aba7de18d65d5fb9cdec43e87f96740e64",
+  "inspection": "Accepted baseline verified; selected classes exported in a bounded foreground FFDec process. No APK/SWF modified or executed.",
+  "findings": [
+    {"class": "pinball.loading.battle.BattleStartProductionViewService", "method": "pack", "finding": "Packs whole source sheets; reducing their dimensions reduces the packing footprint."},
+    {"class": "pinball.asset.logic.AssetPathCollectionBuilder", "method": "addAnimationLayout", "finding": "Preloads each animation family's own sheet even when its parts image paths reference another family. Middle/slow keep valid 8x8 transparent sheets and empty atlas entries; all consumed images resolve to the fast sheet already loaded by both skill variants."},
+    {"class": "starling.textures.SubTexture", "finding": "Rotated packed width/height and frame offsets are reconstructed by the independent rendered-frame validator."},
+    {"class": "pinball.ui.component.list.quest.RoomListLogic", "method": "isListEnabled", "finding": "Native ticket requirement also gates guests on possession. Enabling it would violate the existing host-only ticket rule."},
+    {"class": "pinball.scene.partySelect.PartySelectScene", "method": "get_boostKind", "finding": "BossBattleAsSingle selects boost-point display; adding an entry ticket conflicts with the ticket display precondition and can raise C2086."},
+    {"class": "pinball.remote.quest.start.QuestStartRealRemote", "method": "defaultErrorHandler", "finding": "Result 4050 maps to the existing OutOfPeriodError return flow. Other failure codes use the common error handler."},
+    {"class": "pinball.loading.battle.MultiQuestStartLoadingTask", "method": "remoteInput", "finding": "The existing 4050 branch shows quest_start_out_of_period_error and returns to the preceding quest scene. The replacement string describes general entry conditions, including tickets."}
+  ],
+  "limitations": "Read-only native code and asset-chain evidence, not device playback or UI acceptance. No native ticket-count confirmation popup enabled."
+}

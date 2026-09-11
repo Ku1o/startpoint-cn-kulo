@@ -148,20 +148,31 @@ class TestRushEventMetadata(unittest.TestCase):
             records, 7, last_band=(40.0, 60.0), ramp=True))
 
     def test_folder_preview_matches_server_fixed_rewards(self):
+        import json
+        from pathlib import Path
+        rewards = json.loads((Path(__file__).resolve().parents[3] /
+            "assets/rush_event_quest_folder.json").read_text("utf8"))["700099"]["1"]
         template = [f"template-{index}" for index in range(37)]
-
-        actual = rogue_build.cells(
-            rogue_build.build_deep_abyss_folder_leaf(
-                rogue_build.join(template, False),
-            )
-        )
-
+        actual = rogue_build.cells(rogue_build.build_deep_abyss_folder_leaf(
+            rogue_build.join(template, False), rewards))
         self.assertEqual(["1", "1", rogue_build.EVENT_NAME], actual[:3])
-        self.assertEqual(["0", "99", "1500"], actual[7:10])
-        self.assertEqual(["0", rogue_build.TOKEN_ID, "50"], actual[10:13])
-        self.assertEqual(["0", "11003", "2"], actual[13:16])
-        for base in range(16, 37, 3):
+        self.assertEqual(template[3:7], actual[3:7])
+        decoded = [dict(zip(("type", "id", "count"), map(int, actual[i:i+3])))
+                   for i in range(7, 37, 3) if actual[i] != "(None)"]
+        self.assertEqual(rewards, decoded)
+        for base in range(7 + 3 * len(rewards), 37, 3):
             self.assertEqual(["(None)", "", "(None)"], actual[base:base + 3])
+
+    def test_folder_preview_tracks_custom_reward_configuration(self):
+        rewards = [{"type": 0, "id": 99, "count": 314}]
+        leaf = rogue_build.build_deep_abyss_folder_leaf(
+            rogue_build.join([""] * 37, True), rewards)
+        self.assertIsInstance(leaf, bytes)
+        self.assertEqual(["0", "99", "314"], rogue_build.cells(leaf)[7:10])
+        with self.assertRaises(ValueError):
+            rogue_build.build_deep_abyss_folder_leaf(leaf, rewards * 11)
+        with self.assertRaises(ValueError):
+            rogue_build.build_deep_abyss_folder_leaf(leaf, [{"type": 0, "id": 99, "count": 0}])
 
 
 class TestBossKindSynchronization(unittest.TestCase):

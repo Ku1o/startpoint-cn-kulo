@@ -1,0 +1,79 @@
+{
+  "schema_version": 2,
+  "status": "accepted_offline",
+  "accepted_on": "2026-09-09",
+  "acceptance": {
+    "source": "用户要求先验收此前已提交的 Android 和 iOS 累计成品；本次执行离线成品及累计血统验收后登记为后续开发基线。",
+    "user_statement": "你先把之前提交的安卓和ios验收了，避免再出现问题",
+    "scope": "offline_artifact_and_lineage",
+    "device_tested_by_codex": false,
+    "device_acceptance": "not_established_by_this_audit",
+    "build_reports_are_immutable": true,
+    "audit": "client-patch/ACCEPTANCE-20260909.md",
+    "note": "accepted_offline 表示本次离线验收通过，不表示用户已真机验收 Lens 功能。原始 candidate/device_tested/pending 记录保留生成时事实。此次直接登记原成品，没有重编译、重签、安装或运行游戏。"
+  },
+  "artifact": {
+    "ipa": "F:/codex/ios-artifacts/StarPoint-iOS-1.8.4-lens0907-0908-cdn102-20260908-unsigned.ipa",
+    "ipa_sha256": "de28d8134e51d22f3c596869e53e90072866c17f54ec54af99b2a3fcd78dcd02",
+    "size_bytes": 137580458,
+    "native_member": "Payload/worldflipper.app/worldflipper",
+    "native_sha256": "932f2b0da7a229b3c55cb5d762994a1ea28e661e3ddb08643ec11c9ec751aab8",
+    "swf_member": "Payload/worldflipper.app/worldflipper_ios_release.swf",
+    "swf_sha256": "beef743a7da817181955badceb43fd617cb7e696279751529ed189bdbd238062",
+    "bundle_id": "com.kulo.wf",
+    "version": "1.8.4",
+    "build": "1.8.46",
+    "signing": "unsigned",
+    "profile_debug_overlay": false,
+    "title_cntips_b_unchanged": true,
+    "endpoint_policy": "沿用历史输入，未修改服务端地址"
+  },
+  "lineage": {
+    "previous_accepted_registry": "client-patch/accepted-history/ios-20260908.json",
+    "previous_accepted_ipa_sha256": "09eca214d1e73559bbc7af98d642f9056b0eeee4a44f3e09dd25f2a1e9091a43",
+    "previous_accepted_role": "资料页无 DEBUG 累计包，仅作历史输入，不作为当前直接基线",
+    "documentation": "client-patch/ios-lens0907-0908/README.md",
+    "build_entry": "client-patch/ios-lens0907-0908/prepare.py",
+    "verification_script": "client-patch/ios-lens0907-0908/verify.py",
+    "source_commit": "dc440e622db544e9fc9be1f5fd9b05b43515c941",
+    "preserved": [
+      "私服连接及免登录",
+      "MOD 五合一",
+      "标题及游戏内数据继承",
+      "幻想连战和幻想魂珠纹理",
+      "MemberView v6",
+      "Rush 排行榜 r12b 分页、资料导航及整行点击",
+      "深渊装备 Multi/BothBoss 与 120 级门控",
+      "iOS 原有 CNtips_b 显示行为",
+      "真实关系对应的关注/取消关注按钮可见性",
+      "真实关注/取消操作及陈旧按钮处理",
+      "通过 get_viewerId() 分流到原生本人资料卡"
+    ],
+    "added": [
+      "724 Fever 满槽比例增减",
+      "422 冲刺参数的解析、描述、汇总和战斗执行",
+      "稻穗 PF 弹射前连击数",
+      "基诺维配置冲刺参数",
+      "五重决战随机地图与联机房号种子",
+      "五重联机手动开战后的 Auto 锁及暂停菜单状态",
+      "5900101 不使用五星铁钢替代觉醒材料"
+    ]
+  },
+  "excluded_diagnostic": {
+    "ipa": "F:/codex/ios-artifacts/StarPoint-iOS-1.8.4-profile-follow-DIAGNOSTIC-20260908-unsigned.ipa",
+    "ipa_sha256": "616cd229bb34bcb52c2be40c4f747bbdd6574c2e92c963658729b6605a356e67",
+    "status": "diagnostic_only_not_current_baseline",
+    "reason": "用户验收的是前一份无 DEBUG 包；诊断版仅供历史审查，不再用于交付或后续修改基线。"
+  },
+  "local_build_report": "F:/codex/ios-artifacts/lens0907-0908-cdn102-20260908/verification-report.json",
+  "local_acceptance_checks": {
+    "native_methods": 33,
+    "relocations_verified": 32258,
+    "zip_members_verified": 3568,
+    "all_prior_non_target_native_bytes_preserved": true,
+    "existing_method_ids_and_dyld_rebases_preserved": true,
+    "closure_layouts_preserved": true,
+    "title_cntips_b_unchanged": true,
+    "signing": "unsigned"
+  }
+}

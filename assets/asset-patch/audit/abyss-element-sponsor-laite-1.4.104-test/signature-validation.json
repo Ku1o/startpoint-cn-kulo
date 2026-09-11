@@ -1,0 +1,12 @@
+{
+  "generated_immunity_programs": 4,
+  "programs": [
+    "battle/action/enemy/action/mod_rogue/immunity_8e4361b91999.action.dsl.amf3.deflate",
+    "battle/action/enemy/action/mod_rogue/immunity_b853b0950500.action.dsl.amf3.deflate",
+    "battle/action/enemy/action/mod_rogue/immunity_c2ec9e72f774.action.dsl.amf3.deflate",
+    "battle/action/enemy/action/mod_rogue/immunity_d9fcff68c333.action.dsl.amf3.deflate"
+  ],
+  "before_and_after_serialization_checked": true,
+  "no_element_conditions_in_generated_dsl": true,
+  "otherwise_strict": true
+}

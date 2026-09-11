@@ -1,0 +1,493 @@
+{
+  "status": "local_implementation_validated_device_acceptance_pending",
+  "archive": {
+    "name": "pinball-1.4.102-1.4.103-1-lens0909-cn.zip",
+    "size": 19997569,
+    "sha256": "a2f066d5d5c38765fb4088d43c53476c1649444efe4dbeaba204f0afb3f0df13",
+    "members": 140,
+    "files": [
+      "production/android_upload/28/1102adc9cec02aba2023fed506e3073826de94",
+      "production/android_upload/95/c78b166636dd6ff34aaadce3f907b87e21e617",
+      "production/android_upload/bf/469a900c3d60033b4a1cd89a88bb4c52b1ba3a",
+      "production/android_upload/f9/22195576de6b9ef0a374fc93e4b8c4b9e532ab",
+      "production/ios_upload/28/1102adc9cec02aba2023fed506e3073826de94",
+      "production/ios_upload/95/c78b166636dd6ff34aaadce3f907b87e21e617",
+      "production/ios_upload/bf/469a900c3d60033b4a1cd89a88bb4c52b1ba3a",
+      "production/ios_upload/f9/22195576de6b9ef0a374fc93e4b8c4b9e532ab",
+      "production/medium_upload/09/1698904eefc2c272a292975925c103761025d7",
+      "production/medium_upload/0a/d158f2086631f0485592b746137d8cac6f82a4",
+      "production/medium_upload/0b/a446ef223e89ed00c34adf6ce7f101e47ae8bf",
+      "production/medium_upload/12/88029ce8d770e6105b9ef73702479dab9864e6",
+      "production/medium_upload/1d/0516a08ca5d94b60d9900d253d98728f00ebb6",
+      "production/medium_upload/22/3839a14f7ecd68526aab72061f0e6d9d5409c9",
+      "production/medium_upload/2b/24799093d1c299b18f9e118a3fdcf5cc77e0e7",
+      "production/medium_upload/32/1b89943ca261f5c6785270e56d52ea07ff62e3",
+      "production/medium_upload/36/2e3c6ef7c600f40151827a6867739915ac207a",
+      "production/medium_upload/38/ef1cb2fde4837c68b4de5a6e22190bad33c010",
+      "production/medium_upload/43/67d34ee2a18bf4be25237e19c5f00f50b4c4b7",
+      "production/medium_upload/43/7ac120d8eed2eb677f0ceda4f4114a385f74e3",
+      "production/medium_upload/51/4ed34b6f826a423d3c6149cf7531fb3f6d301b",
+      "production/medium_upload/5d/abc646c343ee8b110daabe7be6b601d748d9ee",
+      "production/medium_upload/5d/f708bc39e33718b586244d3178a7265310ac71",
+      "production/medium_upload/67/a900d1f92530565be9d78e8ecd0ee9f6267224",
+      "production/medium_upload/76/37cd4ae372d165ab31a63f8ec6d34538a35aeb",
+      "production/medium_upload/7e/d1831a1e9c73d75715cc6b25c5ba099a897017",
+      "production/medium_upload/7f/8a5d969ac3ee343b5fa9b881870c9e1fc21b2b",
+      "production/medium_upload/86/32b0857cad52f1741bb8b75d860ef7b0115654",
+      "production/medium_upload/87/077d78b9ff90ed0ac9452a95c36d8863c9cce1",
+      "production/medium_upload/87/ed31018c5c3928bdeba0e85279653e5e218f97",
+      "production/medium_upload/88/dfc5e0c113fec7787ec9e495d0a0b36c64bb46",
+      "production/medium_upload/8d/3f047bd2b4c4762592118c7dbf4c789ea06e6d",
+      "production/medium_upload/93/2220d596429cb1e84fbd22a6186de15a457fad",
+      "production/medium_upload/94/c841317e7e8a48bd56f6197e2acdab8958ee2e",
+      "production/medium_upload/96/42efbb54d8ef2f325cfab794967146c4ea484c",
+      "production/medium_upload/9c/923d6b281ba47635a8f7da12865dd0dd8cb4a8",
+      "production/medium_upload/9d/964a171ec49e88031e97d4ddc57c4061e0956a",
+      "production/medium_upload/9f/94feedb7b38c3ca25ff009d5ea00f9f69a64fe",
+      "production/medium_upload/ae/6d246a4a60583c374a6856122bca502b89e205",
+      "production/medium_upload/af/a375cd9b26aa956cc74304b922d44dab2b0cd1",
+      "production/medium_upload/b3/467415c5be84dfdf3432813bd63444abc2fffa",
+      "production/medium_upload/b8/f1e6aad8c8371f1e8fe010c2b5ee53fa06c207",
+      "production/medium_upload/bc/602c3b43b0634d93f7c2c5dc917636553e8805",
+      "production/medium_upload/c6/6a4d418885bcab88cd4c200883b796c38b6deb",
+      "production/medium_upload/cb/d2d4f3ad43956a2b4650cde900861ea3199f6a",
+      "production/medium_upload/cf/22061280d2d810e41d805cd3346cf64748a21b",
+      "production/medium_upload/cf/85f144d0e1ae09e66325e1ea6fa31b54947f6b",
+      "production/medium_upload/d0/1194804ddc3086f6a518c2986a34c7ade5b043",
+      "production/medium_upload/da/665dd06bd64204987ceeee34ce91c98dd29259",
+      "production/medium_upload/db/88ddb4ca970b1f6b67b4aa92e0dd46258d7b24",
+      "production/medium_upload/dd/c08227523dd8ad9df87b81cc88c16b46909b07",
+      "production/medium_upload/de/bf0c18c3a708bd62efbd575fc014f79c6cef16",
+      "production/medium_upload/df/8cf8e3aeed71123fe0233845bafae5f09019ff",
+      "production/medium_upload/e5/982510d3ca22d686aa0f6caee32addb8386f35",
+      "production/medium_upload/eb/e480bd1a5c4c5a4697ffe4801947eb1fe480e9",
+      "production/medium_upload/f7/f4d690ea20181823c09b2576f8b967e8d600c5",
+      "production/medium_upload/f8/77ab9e0fb0ead538b36572744e5a390cc51852",
+      "production/medium_upload/fc/337c9cad3494f69f8287edb27d79815dfa80b5",
+      "production/upload/00/4e05f8555922c8f0a06ec755e16faf2c13515f",
+      "production/upload/06/c6beaee19ffb14c84ab5de28b8bce034dc153b",
+      "production/upload/07/0c6e214359ccf27b1cb8078d3fc51aecfe0149",
+      "production/upload/07/be635a82b11e8ebc9bab95e05cd7f932397139",
+      "production/upload/08/0306bb545d6a7703d00b5ef6e929a244d96d7f",
+      "production/upload/0a/a2e3c238a8f21b457c0d84f1d4d3e46f62a00b",
+      "production/upload/0b/97162ce6d40c473cbac39fa21427688922a48a",
+      "production/upload/0b/c135f35388fbab4f03498653aed618509b3531",
+      "production/upload/15/9eadaeb07d6aade96fe52e97d87a0288f63ddb",
+      "production/upload/17/7c96e6f75e6d252dbdaa8681aa0b018691bf7b",
+      "production/upload/19/a4aa442b3249499356e7a3f6370e530bfe355e",
+      "production/upload/1d/222e5126fc7ebe3f22c7efe87325f73742eb4f",
+      "production/upload/1e/664c1cc8d80f4f9a69aae2c49ae8c01d1c4001",
+      "production/upload/1e/c59de5abd9256f9a8e3b029eeac51ab104af0d",
+      "production/upload/25/5aa31ce1a2f0629b7941139165174cad040ced",
+      "production/upload/25/6529866c848435067a211abd09a70eb526af6f",
+      "production/upload/27/7b65484214436114201ae654fefa60fdc822ea",
+      "production/upload/29/ab88d1929ce05e1f39b42d3659c41f8d772ddf",
+      "production/upload/2d/5cb9b28d18f984a51b345a4d7aab03d77bddfc",
+      "production/upload/30/cbcd99de1aa6e8d245221619b393721df551b4",
+      "production/upload/38/dbe3524fee49989cccd10f2204238d25600cc8",
+      "production/upload/39/0151ccf0af3bb1a9cb89d2cb675d5386e73aef",
+      "production/upload/3c/208537182ec1c0749d88725d494a6f2c632a0d",
+      "production/upload/3e/b411841802398d5b21d422579f2eaa65d30c0e",
+      "production/upload/42/1e6a4b354514c963b197a97442b28b4b9c4eb7",
+      "production/upload/42/be9c1a0f896f743c65fa16e04b0f71d84f1acc",
+      "production/upload/43/6b1461629ec20b683bc202b5513c7186e42dbf",
+      "production/upload/43/bc1c47ab634820b85f0ae57380036953d9e898",
+      "production/upload/44/598f57fb656621b28bd5a63752bc2fa3804c25",
+      "production/upload/48/4710e8f387a5a6313e7b539b25407bc98301c1",
+      "production/upload/4b/c1d944f71285230bcbaca84f793490769de97d",
+      "production/upload/4d/28de6daea5189613c2d63583b76526d3ef1aa1",
+      "production/upload/4e/9e5b87a1e98737a247f8214670376754a1feb3",
+      "production/upload/51/66b0634ed80e0c24c8a37e8f970f331474ad83",
+      "production/upload/57/8872ecbc78561807e6846b3980c5dea980d8ce",
+      "production/upload/58/95e3eaca183466645390f199ab3adbd7f5a7c3",
+      "production/upload/5a/a95cff7a0b248577dbbfaf8d5e3c84361f3ce3",
+      "production/upload/5c/6a4f0e2ceb1dbcf60f9b306b0f7bfd0eca55c9",
+      "production/upload/62/d9db3b05b008aeac00bdecc042a8c6ec4f4e0d",
+      "production/upload/69/8dff1f56120e8ef2cb00950d2b8f20c384e129",
+      "production/upload/6b/7237dfb68c667f191a69fda8627c80fca91803",
+      "production/upload/6b/79f266dd414d5377134a4bcb68ab38a7484364",
+      "production/upload/71/f9d38468b25b988d2f8c523d67e3d40353b1d9",
+      "production/upload/79/f26b82e8c007d99948efca3b9495250a80bbaa",
+      "production/upload/7d/d3af328129e7ec4636a8f3ef067cd7ca4342c5",
+      "production/upload/82/93e535e806d70640f45950db1fe14ed9482bdf",
+      "production/upload/84/fd6ee6a23114c8f888fadc838bbe8bdf668677",
+      "production/upload/8b/035728b2151de044fb245988ec5f33ebb544ab",
+      "production/upload/91/79892d704f88d98191c00548bce106402ad5b5",
+      "production/upload/92/b7ed6f160b2bdd4a227021661c1f43eb813e0f",
+      "production/upload/92/d5f6cd3ff4921314b47ace31be29b4964a8f04",
+      "production/upload/97/0b86968d5fb55ecc15ba0eb901cbe352e1e4c6",
+      "production/upload/9f/fb9a2a39702cfb712f34f2261aff1dc2ea8b49",
+      "production/upload/a3/7ac2a83615e53ce07a987d402e1ea1c149b214",
+      "production/upload/a7/fd7de6ac3ad4b662533d5d8c7d21ec23ae59ae",
+      "production/upload/aa/abdd2e178d62dba4997034aab8c236a4422154",
+      "production/upload/ac/b038c35f3048ba7ca07a6a84307b2fb10c041c",
+      "production/upload/ae/c45ffea353f4fac4ee732c5e7d597d2a1f572b",
+      "production/upload/b2/9aabb3786cc44a06ff961c476afe3c06493292",
+      "production/upload/b4/a28679b8eeefdbdcbe6071fd4f2ff85e5b3415",
+      "production/upload/b9/132d27178d27f9d91df89fc47e106bbaf2d5b5",
+      "production/upload/bb/4c24e8857f65c68b14fc1afd60a5a2724ffb4b",
+      "production/upload/bc/0bc800f482670f3ec8a7f2fee9b9deeeca3a04",
+      "production/upload/c0/b066c3bc8fab7334a4740181a26e6b93cf894b",
+      "production/upload/c2/61f60384799bca6ef4d35a2f744b3293caab8c",
+      "production/upload/c6/df7af3aa65cb9b2d1f470d379cd5f80e53ef23",
+      "production/upload/cc/edcec1e5e7f12155e518586e0c1353ae59ff37",
+      "production/upload/cd/6336795a27ea33bf8d0c5d5a9bfb466bedcf1e",
+      "production/upload/d4/22562d2cdb137e6bc23f903d773b5b485329a8",
+      "production/upload/d7/50c2f94f83dd053bfc79039a709f1ec6f766cb",
+      "production/upload/da/89be30822515d51dee4c3d8829644245a4069e",
+      "production/upload/df/ccfbef2ed9a44db2a8096cbb409be0574cb864",
+      "production/upload/e0/e3ee775972dbb22afff647d6ab6b6e51c31ea4",
+      "production/upload/e2/dcccdac0a616df91003cc1f6f0039baeae938b",
+      "production/upload/eb/f8ef19148af9c1330b78c7fb3ce75e3f202e64",
+      "production/upload/ec/d8f66b60947ca05643c4080a6cc925c750b9d6",
+      "production/upload/f0/58e61d2edc6bd0b89c7ec441d08743418b4e5e",
+      "production/upload/f1/acc0d30fa9c673105b2896e1aeb64a3072f2f3",
+      "production/upload/f1/ddf9f49491067c34b0564e815b351809fb907e",
+      "production/upload/f8/debc2e1105f1d86242517503ad167f29fe5b63",
+      "production/upload/fb/ab4344a7456dca88f3ce06f01208922f37e395",
+      "production/upload/ff/84353774cb95e8d7dc90c679f96a5bca7f42e5"
+    ]
+  },
+  "manifest_before_sha256": "08f500e3345a7bb7fafdc59d7e0ae10785de92e61d5d8158c59f8d31d6530c11",
+  "acceptance": {
+    "status": "passed",
+    "resources_inventory_sha256": "6f68d23e0244ff8dca6dc37848b0dff8ff147e7cb2bbb56c6968629ce31bf046",
+    "server_inventory_sha256": "84128f1ff4d55533571ec2105ddfc401017884de8db7b26e780f487166bf6443",
+    "quest_rows": [
+      {
+        "quest": 1099001,
+        "boss_hp_multiplier": "214.809420469094",
+        "boss_tp_multiplier": "36",
+        "time_frames": "64800",
+        "single_hp_factor": 0.55,
+        "single_tp_factor": 0.5
+      },
+      {
+        "quest": 1099002,
+        "boss_hp_multiplier": "214.809420469094",
+        "boss_tp_multiplier": "36",
+        "time_frames": "64800",
+        "single_hp_factor": 0.55,
+        "single_tp_factor": 0.5
+      },
+      {
+        "quest": 1099003,
+        "boss_hp_multiplier": "175.986508031812",
+        "boss_tp_multiplier": "48",
+        "time_frames": "43200",
+        "single_hp_factor": 0.55,
+        "single_tp_factor": 0.5
+      },
+      {
+        "quest": 1099004,
+        "boss_hp_multiplier": "268.389446759221",
+        "boss_tp_multiplier": "36",
+        "time_frames": "64800",
+        "single_hp_factor": 0.55,
+        "single_tp_factor": 0.5
+      },
+      {
+        "quest": 1099014,
+        "boss_hp_multiplier": "145.16921869989",
+        "boss_tp_multiplier": "48",
+        "time_frames": "43200",
+        "single_hp_factor": 0.55,
+        "single_tp_factor": 0.5
+      },
+      {
+        "quest": 1099005,
+        "boss_hp_multiplier": "129.333663147418",
+        "boss_tp_multiplier": "36",
+        "time_frames": "64800",
+        "single_hp_factor": 0.55,
+        "single_tp_factor": 0.5
+      },
+      {
+        "quest": 1099015,
+        "boss_hp_multiplier": "307.531398700941",
+        "boss_tp_multiplier": "48",
+        "time_frames": "43200",
+        "single_hp_factor": 0.55,
+        "single_tp_factor": 0.5
+      },
+      {
+        "quest": 1099006,
+        "boss_hp_multiplier": "254.202733823728",
+        "boss_tp_multiplier": "36",
+        "time_frames": "64800",
+        "single_hp_factor": 0.55,
+        "single_tp_factor": 0.5
+      },
+      {
+        "quest": 1099016,
+        "boss_hp_multiplier": "156.160327537837",
+        "boss_tp_multiplier": "48",
+        "time_frames": "43200",
+        "single_hp_factor": 0.55,
+        "single_tp_factor": 0.5
+      },
+      {
+        "quest": 1099007,
+        "boss_hp_multiplier": "265.292354916517",
+        "boss_tp_multiplier": "36",
+        "time_frames": "64800",
+        "single_hp_factor": 0.55,
+        "single_tp_factor": 0.5
+      },
+      {
+        "quest": 1099017,
+        "boss_hp_multiplier": "146.091713735025",
+        "boss_tp_multiplier": "48",
+        "time_frames": "43200",
+        "single_hp_factor": 0.55,
+        "single_tp_factor": 0.5
+      },
+      {
+        "quest": 1099008,
+        "boss_hp_multiplier": "206.344951186161",
+        "boss_tp_multiplier": "36",
+        "time_frames": "64800",
+        "single_hp_factor": 0.55,
+        "single_tp_factor": 0.5
+      },
+      {
+        "quest": 1099018,
+        "boss_hp_multiplier": "162.935823166531",
+        "boss_tp_multiplier": "48",
+        "time_frames": "43200",
+        "single_hp_factor": 0.55,
+        "single_tp_factor": 0.5
+      },
+      {
+        "quest": 1099009,
+        "boss_hp_multiplier": "256.136885059343",
+        "boss_tp_multiplier": "36",
+        "time_frames": "64800",
+        "single_hp_factor": 0.55,
+        "single_tp_factor": 0.5
+      },
+      {
+        "quest": 1099019,
+        "boss_hp_multiplier": "145.16921869989",
+        "boss_tp_multiplier": "48",
+        "time_frames": "43200",
+        "single_hp_factor": 0.55,
+        "single_tp_factor": 0.5
+      },
+      {
+        "quest": 1099010,
+        "boss_hp_multiplier": "135.818982279306",
+        "boss_tp_multiplier": "36",
+        "time_frames": "64800",
+        "single_hp_factor": 0.55,
+        "single_tp_factor": 0.5
+      },
+      {
+        "quest": 1099020,
+        "boss_hp_multiplier": "357.581083846124",
+        "boss_tp_multiplier": "48",
+        "time_frames": "43200",
+        "single_hp_factor": 0.55,
+        "single_tp_factor": 0.5
+      },
+      {
+        "quest": 1099011,
+        "boss_hp_multiplier": "242.434088739296",
+        "boss_tp_multiplier": "36",
+        "time_frames": "64800",
+        "single_hp_factor": 0.55,
+        "single_tp_factor": 0.5
+      },
+      {
+        "quest": 1099021,
+        "boss_hp_multiplier": "145.797948494723",
+        "boss_tp_multiplier": "48",
+        "time_frames": "43200",
+        "single_hp_factor": 0.55,
+        "single_tp_factor": 0.5
+      },
+      {
+        "quest": 1099012,
+        "boss_hp_multiplier": "253.314629674384",
+        "boss_tp_multiplier": "36",
+        "time_frames": "64800",
+        "single_hp_factor": 0.55,
+        "single_tp_factor": 0.5
+      },
+      {
+        "quest": 1099022,
+        "boss_hp_multiplier": "169.133991928653",
+        "boss_tp_multiplier": "48",
+        "time_frames": "43200",
+        "single_hp_factor": 0.55,
+        "single_tp_factor": 0.5
+      },
+      {
+        "quest": 1099013,
+        "boss_hp_multiplier": "223.36107512284",
+        "boss_tp_multiplier": "36",
+        "time_frames": "64800",
+        "single_hp_factor": 0.55,
+        "single_tp_factor": 0.5
+      },
+      {
+        "quest": 1099023,
+        "boss_hp_multiplier": "175.986508031812",
+        "boss_tp_multiplier": "48",
+        "time_frames": "43200",
+        "single_hp_factor": 0.55,
+        "single_tp_factor": 0.5
+      }
+    ],
+    "stage_hp": [
+      {
+        "quest": 1099002,
+        "field": "mod_five_boss_coop_v1_scene_1",
+        "multi_hp": 299999999998,
+        "time_frames": "64800"
+      },
+      {
+        "quest": 1099003,
+        "field": "mod_five_boss_coop_v1_scene_2",
+        "multi_hp": 299999999998,
+        "time_frames": "43200"
+      },
+      {
+        "quest": 1099004,
+        "field": "mod_five_boss_var_s1_ability_a",
+        "multi_hp": 299999999998,
+        "time_frames": "64800"
+      },
+      {
+        "quest": 1099014,
+        "field": "mod_five_boss_var_s2_ability_a",
+        "multi_hp": 299999999998,
+        "time_frames": "43200"
+      },
+      {
+        "quest": 1099005,
+        "field": "mod_five_boss_var_s1_direct_a",
+        "multi_hp": 299999999999,
+        "time_frames": "64800"
+      },
+      {
+        "quest": 1099015,
+        "field": "mod_five_boss_var_s2_direct_a",
+        "multi_hp": 299999999999,
+        "time_frames": "43200"
+      },
+      {
+        "quest": 1099006,
+        "field": "mod_five_boss_var_s1_pf_a",
+        "multi_hp": 299999999998,
+        "time_frames": "64800"
+      },
+      {
+        "quest": 1099016,
+        "field": "mod_five_boss_var_s2_pf_a",
+        "multi_hp": 299999999998,
+        "time_frames": "43200"
+      },
+      {
+        "quest": 1099007,
+        "field": "mod_five_boss_var_s1_skill_a",
+        "multi_hp": 299999999999,
+        "time_frames": "64800"
+      },
+      {
+        "quest": 1099017,
+        "field": "mod_five_boss_var_s2_skill_a",
+        "multi_hp": 299999999998,
+        "time_frames": "43200"
+      },
+      {
+        "quest": 1099008,
+        "field": "mod_five_boss_var_s1_attack_a",
+        "multi_hp": 299999999999,
+        "time_frames": "64800"
+      },
+      {
+        "quest": 1099018,
+        "field": "mod_five_boss_var_s2_attack_a",
+        "multi_hp": 299999999998,
+        "time_frames": "43200"
+      },
+      {
+        "quest": 1099009,
+        "field": "mod_five_boss_var_s1_ability_b",
+        "multi_hp": 299999999998,
+        "time_frames": "64800"
+      },
+      {
+        "quest": 1099019,
+        "field": "mod_five_boss_var_s2_ability_b",
+        "multi_hp": 299999999998,
+        "time_frames": "43200"
+      },
+      {
+        "quest": 1099010,
+        "field": "mod_five_boss_var_s1_direct_b",
+        "multi_hp": 299999999999,
+        "time_frames": "64800"
+      },
+      {
+        "quest": 1099020,
+        "field": "mod_five_boss_var_s2_direct_b",
+        "multi_hp": 299999999998,
+        "time_frames": "43200"
+      },
+      {
+        "quest": 1099011,
+        "field": "mod_five_boss_var_s1_pf_b",
+        "multi_hp": 299999999999,
+        "time_frames": "64800"
+      },
+      {
+        "quest": 1099021,
+        "field": "mod_five_boss_var_s2_pf_b",
+        "multi_hp": 299999999998,
+        "time_frames": "43200"
+      },
+      {
+        "quest": 1099012,
+        "field": "mod_five_boss_var_s1_skill_b",
+        "multi_hp": 299999999998,
+        "time_frames": "64800"
+      },
+      {
+        "quest": 1099022,
+        "field": "mod_five_boss_var_s2_skill_b",
+        "multi_hp": 299999999998,
+        "time_frames": "43200"
+      },
+      {
+        "quest": 1099013,
+        "field": "mod_five_boss_var_s1_attack_b",
+        "multi_hp": 299999999998,
+        "time_frames": "64800"
+      },
+      {
+        "quest": 1099023,
+        "field": "mod_five_boss_var_s2_attack_b",
+        "multi_hp": 299999999998,
+        "time_frames": "43200"
+      }
+    ],
+    "envy_trial_rows": 296,
+    "envy_partner_aliases": 2,
+    "existing_watch_leaves_preserved": 312,
+    "race_five_star_count": 287,
+    "solo_scaling": "deferred by user; native 0.55 HP / 0.5 TP unchanged",
+    "terrain_scenes": 22,
+    "dsl_count": 10,
+    "resource_count": 140,
+    "deferred_resources": 51,
+    "ios_pairs": 4
+  },
+  "remaining_device_checks": [
+    "角色技能与水杰拉尔立绘",
+    "嫉妒主怪与随从试炼",
+    "双人/三人换关及断线恢复"
+  ],
+  "scope": "本地未提交；未同步运行镜像、未部署云服；没有修改 APK/IPA/SWF。"
+}

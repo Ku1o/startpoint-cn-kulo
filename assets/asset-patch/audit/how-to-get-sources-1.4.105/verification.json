@@ -1,0 +1,49 @@
+{
+  "source_root": "F:\\codex\\startpoint-cn-private-clean",
+  "build_workspace": "F:\\codex\\work\\how-to-get-fix-20260911\\build",
+  "modules": [
+    {
+      "source": "src/lib/how-to-get-sources.ts",
+      "source_sha256": "796cd40a8eda04da205b1b4d6f3b6b5e3d8eaa50f729c2b08a0d8ded283fed0b",
+      "output": "out/lib/how-to-get-sources.js",
+      "output_sha256": "1bfbb6d8324a083c2ba87142834a719814c9cda95239756bf90fbb4b4985a6e2"
+    },
+    {
+      "source": "src/lib/shop-sales.ts",
+      "source_sha256": "c4d4fa8b027736935d3242ad161f712a48052136318704c78af728d24f8f23de",
+      "output": "out/lib/shop-sales.js",
+      "output_sha256": "580d4a681829a7e1c5cec2d01891b37eafdb1953286d72136fc003fa41f47d34"
+    },
+    {
+      "source": "src/routes/api/howToGet.ts",
+      "source_sha256": "882e0bc9c36be9749dec17d6eb2e39667b46dbe27b8efb71eb6565c6d82946e8",
+      "output": "out/routes/api/howToGet.js",
+      "output_sha256": "e7dd8492f2735d778205a8fe0b8f26c3cc10030dcb928cf8098bb6c21a3b2dac"
+    },
+    {
+      "source": "src/routes/api/shop.ts",
+      "source_sha256": "06740c13e4770f946ecf31345c01e5c750f120a299d4a65decfcc753755659f3",
+      "output": "out/routes/api/shop.js",
+      "output_sha256": "cc51a89afc46ce58eb58acfcb582a19ba19e7cadddca993007e79d330f361f33"
+    }
+  ],
+  "build_passed": true,
+  "server_tests_passed": true,
+  "cdn_tests_passed": true,
+  "generated_outputs_copied_to_source_only": true,
+  "runtime_synced": false,
+  "server_started": false,
+  "device_tested": false,
+  "cloud_benchmarked": false,
+  "swf_modified": false,
+  "database_schema_changed": false,
+  "saved_ids_changed": false,
+  "purchase_key_changes": false,
+  "save_compatibility": "Existing persisted purchase keys are preserved; no save schema, IDs, inventory or transfer handling changed. No save import/export suite needed for this change.",
+  "navigation": "Accepted LAN SWF read-only inspection: ItemSearchQuestScene uses ordinary visibility/selection and start flows. Actual reward rounds retain previous-round visibility gates; Fantasy retains selection gates. No training rounds indexed.",
+  "runtime_routes_match_before": {
+    "howToGet.ts": true,
+    "shop.ts": true
+  },
+  "runtime_cdn_tail_at_verification": "1.4.104"
+}

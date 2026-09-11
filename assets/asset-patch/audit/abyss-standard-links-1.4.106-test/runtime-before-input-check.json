@@ -1,0 +1,6 @@
+{
+  "scope": "Diagnostic only: dummy/download serves active patch resources; pristine-only inputs are checked using effective runtime archive selection.",
+  "http_matched": 2,
+  "http_missing": 265,
+  "effective_inputs_verified": true
+}

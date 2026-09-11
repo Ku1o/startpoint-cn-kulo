@@ -1,0 +1,21 @@
+{
+  "status": "passed",
+  "source_version": "1.4.105",
+  "platform_tails": {
+    "android": "1.4.105",
+    "ios": "1.4.105"
+  },
+  "archive_members": 5,
+  "donor_png_exact_roundtrips": 3,
+  "table_cells_changed": 2,
+  "unrelated_rows_preserved": true,
+  "official_background_preserved": true,
+  "protected_user_files_unchanged": 71,
+  "runtime_not_written": true,
+  "runtime_manifest_differs_from_source_before_task": true,
+  "runtime_version_observed": "1.4.104",
+  "source_loose_and_archive_reads_match": true,
+  "save_impact": "none",
+  "device_tested": false,
+  "server_started": false
+}

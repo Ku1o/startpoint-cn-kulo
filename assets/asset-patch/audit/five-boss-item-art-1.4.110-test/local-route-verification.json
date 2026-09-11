@@ -1,0 +1,96 @@
+{
+  "status": "passed",
+  "method": "Fastify inject using the actual runtime asset and resource handlers; no listening server or client started",
+  "checks": [
+    {
+      "device": "Android",
+      "from": "1.4.108",
+      "target": "1.4.110",
+      "diffs": [
+        "1.4.109",
+        "1.4.110"
+      ]
+    },
+    {
+      "device": "Android",
+      "from": "1.4.109",
+      "target": "1.4.110",
+      "diffs": [
+        "1.4.110"
+      ]
+    },
+    {
+      "device": "Android",
+      "from": "1.4.110",
+      "target": "1.4.110",
+      "diffs": []
+    },
+    {
+      "device": "iOS",
+      "from": "1.4.108",
+      "target": "1.4.110",
+      "diffs": [
+        "1.4.109",
+        "1.4.110"
+      ]
+    },
+    {
+      "device": "iOS",
+      "from": "1.4.109",
+      "target": "1.4.110",
+      "diffs": [
+        "1.4.110"
+      ]
+    },
+    {
+      "device": "iOS",
+      "from": "1.4.110",
+      "target": "1.4.110",
+      "diffs": []
+    }
+  ],
+  "routes": [
+    {
+      "member": "production/upload/5a/8557140d67bf8b9d06fe1ddff2343d05607e11",
+      "sha256": "e7664a6ec6b46f98bff011adb50fcd2ae73c243ff783d1b685864a8504ceeede",
+      "size": 655
+    },
+    {
+      "member": "production/upload/e8/e94d472f8d41f8d2954a8d106bb0d18b47d0ac",
+      "sha256": "6bcdcbe6cd9a93359a6db03c7249f6b8a77559e227c2922b458c4f81baa1221e",
+      "size": 521
+    },
+    {
+      "member": "production/upload/f0/de168aad4299c068f3427535f469a49ff9cbbb",
+      "sha256": "bd9b72f78c0704d96a5859d0631d4dc025573824f33714c860bd915f4a86e91d",
+      "size": 848
+    },
+    {
+      "member": "production/upload/5d/587cee98ce26a0ff22fa62f401241c7875176c",
+      "sha256": "bd9b72f78c0704d96a5859d0631d4dc025573824f33714c860bd915f4a86e91d",
+      "size": 848
+    },
+    {
+      "member": "production/upload/0d/227c8e7bcb1222c7cb2d4fb82ace96fe605cef",
+      "sha256": "f5a8bf6cc2aee87ae13b8a4da25edaddf5982b5712b2f21566e8063e33119f47",
+      "size": 804
+    },
+    {
+      "member": "production/upload/a5/35aaa48a5290e76d07c40e497742e4a407a0d0",
+      "sha256": "942d3f39b8eb94830cfb50f54bdaae2d4b5ee012b2b642cf8d33c290b01de789",
+      "size": 1769704
+    },
+    {
+      "member": "production/upload/6d/4d576b424178c5b2b253a2dd5aa3d78fa74ef3",
+      "sha256": "2ba13f354441a91a9e97500eee45902bee26671292bc5a7a8714f73f574ac7fb",
+      "size": 744605
+    },
+    {
+      "member": "production/upload/49/a073fdd109e00ac9daf801113cb5e19f64a8cf",
+      "sha256": "70ee5aef360663aa84e555b8f5eddb088c52416839333ddbde2ba911686fac68",
+      "size": 98517
+    }
+  ],
+  "apk_started": false,
+  "air_started": false
+}

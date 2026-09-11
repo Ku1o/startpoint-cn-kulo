@@ -1,0 +1,110 @@
+{
+  "schema_version": 2,
+  "status": "accepted_offline",
+  "accepted_on": "2026-09-09",
+  "acceptance": {
+    "source": "用户要求验收 Android 与 iOS 深渊续战累计成品并提交 GitHub；完成离线包体与累计血统检查后登记。",
+    "user_statement": "ios和安卓都验收并提交修改内容至github",
+    "scope": "offline_artifact_and_lineage",
+    "device_tested_by_codex": false,
+    "device_acceptance": "not_established_by_this_audit",
+    "build_reports_are_immutable": true,
+    "audit": "client-patch/ACCEPTANCE-ABYSS-AUTOSTART-20260909.md",
+    "note": "本条用户指令授权执行验收与提交，不是用户已完成真机测试的声明。原构建报告保持生成时状态；本次直接登记原交付成品，没有重编译、重签或安装。"
+  },
+  "variants": {
+    "public": {
+      "apk": "outputs/abyss-autostart-lens-public-test-20260909/StarPoint-CN-1.8.1-abyss-autostart-lens-public-test-20260909.apk",
+      "apk_sha256": "c868534b575348dde825fcd4c88c156157174fd4444724f1141fd9aa95e32a2d",
+      "swf_sha256": "11c06fd77a0e3811164d196208ecce28cba5ec3a602e3d798f3c67d5d5b17e04",
+      "uniqueappversionid": "8f559397-1911-4b5b-bdba-245048f37a36",
+      "endpoint": "http://175.178.160.158:8001",
+      "local_build_report": "outputs/abyss-autostart-lens-public-test-20260909/verification-report.json",
+      "local_build_checks": {
+        "changed_methods": [
+          "284:24599"
+        ],
+        "method_bodies_checked": 96404,
+        "zipalign": true,
+        "v1_signature": true,
+        "v2_signature": true,
+        "signer_certificate_sha256": "569d19a3578d4cba16e3d6e7ad8ccab4fa667efc758deef6c9be3adb99919894",
+        "lens_cumulative_checks": {
+          "base_release": "Lens v3 2026-09-08",
+          "main_abc_bodies": 92561,
+          "ability_422_parser_sha256": "4a035a6b48b89a8a1b3f60eb371c49dfcf8095b1fe129e7bff46730e3a81b065",
+          "existing_constant_pools_preserved": true,
+          "abc_metadata_preserved": true,
+          "non_target_bodies_exceptions_and_activations_preserved": true,
+          "non_main_swf_tags_preserved": true
+        }
+      }
+    },
+    "lan": {
+      "apk": "outputs/abyss-autostart-lens-lan-test-20260909/StarPoint-CN-1.8.1-abyss-autostart-lens-lan-test-20260909.apk",
+      "apk_sha256": "3dd568ff64c3c099cf60d99985d706f1704a1c5666f945f8b548d8eaefa3d588",
+      "swf_sha256": "bfda9db4b244e4518362a97cfa69d8d029b6710eab647727b8eb551bfe1e70d0",
+      "uniqueappversionid": "307d6b58-8c73-4e9f-a064-9fba4b08908f",
+      "endpoint": "http://<LAN_HOST>",
+      "local_build_report": "outputs/abyss-autostart-lens-lan-test-20260909/verification-report.json",
+      "local_build_checks": {
+        "changed_methods": [
+          "284:24599"
+        ],
+        "method_bodies_checked": 96404,
+        "zipalign": true,
+        "v1_signature": true,
+        "v2_signature": true,
+        "signer_certificate_sha256": "569d19a3578d4cba16e3d6e7ad8ccab4fa667efc758deef6c9be3adb99919894",
+        "lens_cumulative_checks": {
+          "base_release": "Lens v3 2026-09-08",
+          "main_abc_bodies": 92561,
+          "ability_422_parser_sha256": "4a035a6b48b89a8a1b3f60eb371c49dfcf8095b1fe129e7bff46730e3a81b065",
+          "existing_constant_pools_preserved": true,
+          "abc_metadata_preserved": true,
+          "non_target_bodies_exceptions_and_activations_preserved": true,
+          "non_main_swf_tags_preserved": true
+        }
+      },
+      "endpoint_sha256": "a32f84d19ceda3b4a466952f7deab7fbf1db96029ba70777a2cbd4a1ef79f521",
+      "local_endpoint_config": "outputs/android-build-local.json"
+    }
+  },
+  "lineage": {
+    "previous_accepted_registry": "client-patch/accepted-history/android-lens-v3-20260909.json",
+    "documentation": "client-patch/abyss-autostart/README.md",
+    "build_entry": "client-patch/abyss-autostart/build_apk.py",
+    "previous_method_source_commit": "a7ac300ab9bed46307a9aa78415835682d86fa9e",
+    "preserved": [
+      "此前 MOD、幻想连战、轮播、排行榜、继承入口、深渊装备门控",
+      "关注和取消关注按钮、原生本人资料路由",
+      "Android CNtips_b 隐藏",
+      "对应公网/内网地址及固定签名身份",
+      "724 Fever 满槽比例增减",
+      "422 冲刺参数的解析、描述、汇总和战斗执行",
+      "稻穗 PF 弹射前连击数",
+      "基诺维配置冲刺参数",
+      "五重决战随机地图与联机房号种子",
+      "五重联机手动开战后的 Auto 锁及暂停菜单状态",
+      "5900101 不使用五星铁钢替代觉醒材料"
+    ],
+    "added": [
+      "深渊活动 700099 续战队伍跨关复用角色，逐关选队与其他活动原限制保持"
+    ],
+    "method_archive": "续战脚本、验收登记与入口文档在同一提交归档"
+  },
+  "excluded_artifacts": [
+    {
+      "apk": "outputs/abyss-autostart-public-test-20260909/StarPoint-CN-1.8.1-abyss-autostart-public-test-20260909.apk",
+      "apk_sha256": "c0823d0e5ad6c8677de7ee7dddf2094e527c498c0972ae6d0b9ede5180754bc7",
+      "status": "rejected_baseline_regression",
+      "reason": "从 2026-09-06 旧包制作，遗漏 Lens 422/724 等累计内容；禁止继续测试、交付或作为基线。"
+    },
+    {
+      "apk": "outputs/abyss-autostart-lan-test-20260909/StarPoint-CN-1.8.1-abyss-autostart-lan-test-20260909.apk",
+      "apk_sha256": "111a396cd8a80cbb6a64ce27be37639c33a2a876addec41f0832ac78726ebd5d",
+      "status": "rejected_baseline_regression",
+      "reason": "从 2026-09-06 旧包制作，缺少基诺维 422 能力解析，用户反馈点击角色报 C7050；禁止继续测试、交付或作为基线。"
+    }
+  ]
+}

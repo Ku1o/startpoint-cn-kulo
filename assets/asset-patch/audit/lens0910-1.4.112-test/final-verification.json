@@ -1,0 +1,79 @@
+{
+  "status": "passed",
+  "source_delta": [
+    {
+      "path": "assets/cdndata/character.json",
+      "keys": [
+        "129992"
+      ],
+      "unchanged_other_keys": true,
+      "changed_lines": 2
+    },
+    {
+      "path": "assets/cdndata/character_text.json",
+      "keys": [
+        "169994",
+        "129992",
+        "149990"
+      ],
+      "unchanged_other_keys": true,
+      "changed_lines": 20
+    },
+    {
+      "path": "assets/cdndata/character_text_rank_p5b.json",
+      "keys": [
+        "169994"
+      ],
+      "unchanged_other_keys": true,
+      "changed_lines": 2
+    },
+    {
+      "path": "assets/gacha.json",
+      "keys": [
+        "990001"
+      ],
+      "unchanged_other_keys": true,
+      "changed_lines": 10
+    },
+    {
+      "path": "assets/gacha_cnmod.json",
+      "keys": [
+        "990001"
+      ],
+      "unchanged_other_keys": true,
+      "changed_lines": 10
+    },
+    {
+      "path": "assets/gacha_rank_p5b.json",
+      "keys": [
+        "990002"
+      ],
+      "unchanged_other_keys": true,
+      "changed_lines": 10
+    }
+  ],
+  "source_lineage": "8f6252bb31c7f18a8cb61f11fa699282e68ebc4b",
+  "http": "passed",
+  "bytecode": {
+    "status": "passed",
+    "cases": 624,
+    "swf_sha256": "7e3f40fc17ac6fbbec52a0775c6a6357edd258874ed62d13d4ceb287d56d97d3",
+    "execution": "actual_AVM2_blocks_in_small_test_interpreter_with_doubles",
+    "desktop_air_run": false,
+    "device_tested": false
+  },
+  "server_process": {
+    "pid": 21868,
+    "previous_pid": 5972,
+    "port": 8001,
+    "cwd": "F:\\startpoint-cn-main",
+    "stdout": "F:\\startpoint-cn-main\\.logs\\cn-server-lens0910-test-20260910-213350.stdout.log",
+    "stderr": "F:\\startpoint-cn-main\\.logs\\cn-server-lens0910-test-20260910-213350.stderr.log",
+    "version": "1.4.112"
+  },
+  "protected_holds_unchanged": true,
+  "registry_unchanged": true,
+  "submitted": false,
+  "cloud_overlay_created": false,
+  "device_tested": false
+}

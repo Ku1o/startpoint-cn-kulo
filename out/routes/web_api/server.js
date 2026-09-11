@@ -29,6 +29,7 @@ const admin_clairvoyance_1 = require("../../lib/admin-clairvoyance");
 const http_1 = require("./http");
 const types_1 = require("../../data/types");
 const db_1 = require("../../data/db");
+const player_login_1 = require("../../lib/player-login");
 const admin_account_cleanup_1 = require("../../lib/admin-account-cleanup");
 const player_party_pool_1 = require("../../multi/npc/player-party-pool");
 const sqlite_write_coordinator_1 = require("../../lib/sqlite-write-coordinator");
@@ -133,30 +134,27 @@ function executeAccountCleanupPlan(jobId, plannedEntries) {
                     continue;
                 const placeholders = requestedIds.map(() => "?").join(", ");
                 const batch = yield (0, sqlite_write_coordinator_1.runImmediateTransactionWithRetry)(() => {
-                    const activePlayerId = (0, activeAccount_1.getActivePlayerId)();
-                    const existingAccounts = (0, db_1.getDb)().prepare(`
-                    SELECT a.id
+                    const candidates = (0, db_1.getDb)().prepare(`
+                    SELECT a.id, a.admin_note
                     FROM accounts AS a
                     WHERE a.id IN (${placeholders})
-                      AND (a.admin_note IS NULL OR trim(a.admin_note) = '')
-                      AND NOT EXISTS (
-                          SELECT 1 FROM players AS active_player
-                          WHERE active_player.account_id = a.id AND active_player.id = ?
-                      )
-                      AND NOT EXISTS (
-                          SELECT 1 FROM account_transfer_audit AS transfer
-                          WHERE transfer.target_account_id = a.id
-                            AND transfer.transferred_at >= ?
-                      )
-                `).all(...requestedIds, activePlayerId !== null && activePlayerId !== void 0 ? activePlayerId : -1, job.startedAt);
+                `).all(...requestedIds);
+                    // Recheck inside the delete transaction using the same Unicode
+                    // whitespace rule as the UI and planner. Only a note preserves it.
+                    const existingAccounts = candidates.filter(account => !(0, admin_account_cleanup_1.accountHasNote)({
+                        id: account.id, adminNote: account.admin_note,
+                    }));
                     if (existingAccounts.length === 0)
                         return [];
                     const eligibleIds = existingAccounts.map(account => account.id);
                     const eligiblePlaceholders = eligibleIds.map(() => "?").join(", ");
                     const players = (0, db_1.getDb)().prepare(`SELECT id, account_id FROM players WHERE account_id IN (${eligiblePlaceholders})`).all(...eligibleIds);
+                    const viewers = (0, db_1.getDb)().prepare(`SELECT token, account_id FROM sessions WHERE account_id IN (${eligiblePlaceholders}) AND type = ?`).all(...eligibleIds, types_1.SessionType.VIEWER);
                     (0, db_1.getDb)().prepare(`DELETE FROM accounts WHERE id IN (${eligiblePlaceholders})`).run(...eligibleIds);
                     return existingAccounts.map(account => ({
                         accountId: account.id,
+                        viewerIds: viewers.filter(viewer => viewer.account_id === account.id)
+                            .map(viewer => Number(viewer.token)).filter(viewer => Number.isSafeInteger(viewer) && viewer > 0),
                         playerIds: players
                             .filter(player => player.account_id === account.id)
                             .map(player => player.id),
@@ -169,6 +167,9 @@ function executeAccountCleanupPlan(jobId, plannedEntries) {
                 deletedAccountIds.push(...batch.map(entry => entry.accountId));
                 deletedPlayerIds.push(...batchPlayerIds);
                 (0, activeAccount_1.removeDeletedAccountsFromState)(batch);
+                for (const viewerId of new Set(batch.flatMap(entry => entry.viewerIds))) {
+                    (0, player_login_1.disconnectDeletedPlayerLogin)(viewerId);
+                }
                 job.processedAccounts = processedAccounts;
                 job.deletedAccounts = deletedAccounts;
                 job.deletedSaves = deletedSaves;
@@ -219,7 +220,7 @@ function getCleanupWorkerLocation() {
         execArgv: ["-r", require.resolve("ts-node/register/transpile-only")],
     };
 }
-function startAccountCleanupWorker(accountIds, skippedActiveAccount) {
+function startAccountCleanupWorker(accountIds) {
     const jobId = (0, crypto_1.randomUUID)();
     const databaseDirectory = (0, admin_database_backup_1.getDatabaseDirectory)();
     const workerLocation = getCleanupWorkerLocation();
@@ -234,7 +235,7 @@ function startAccountCleanupWorker(accountIds, skippedActiveAccount) {
         processedAccounts: 0,
         deletedAccounts: 0,
         deletedSaves: 0,
-        skippedActiveAccount,
+        skippedActiveAccount: null,
         backup: null,
         removedBackups: 0,
         backupCleanupError: null,
@@ -455,6 +456,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
     // === Account list (JSON, for admin SPA) ===
     fastify.get("/accounts", (_request, reply) => __awaiter(void 0, void 0, void 0, function* () {
         var _b, _c;
+        const loginByAccount = (0, player_login_1.playerLoginAdminOverview)();
         const accounts = (0, account_1.getAllAccountsSync)();
         const selection = (0, activeAccount_1.getAdminPlayerSelectionState)();
         const activePlayerId = selection.activePlayerId;
@@ -489,7 +491,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         `).all();
         const latestTransferByAccount = new Map(latestTransfers.map(transfer => [transfer.target_account_id, transfer]));
         const result = accounts.map(acc => {
-            var _a, _b, _c, _d, _e, _f;
+            var _a, _b, _c, _d, _e, _f, _g;
             const players = (_a = playersByAccount.get(acc.id)) !== null && _a !== void 0 ? _a : [];
             const playerIds = players.map(player => player.id);
             const savedDefaultPid = selection.defaultPlayers[acc.id];
@@ -502,6 +504,8 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 id: acc.id,
                 viewerId: (_c = viewerIdByAccount.get(acc.id)) !== null && _c !== void 0 ? _c : null,
                 note: (_d = acc.adminNote) !== null && _d !== void 0 ? _d : null,
+                loginUsername: acc.username || null,
+                playerLogin: (_e = loginByAccount.get(acc.id)) !== null && _e !== void 0 ? _e : { bound: false, boundAt: null, sessionExpiresAt: null },
                 takeoverConfigured: Boolean(acc.takeoverPassword),
                 latestTransfer: latestTransfer ? {
                     abolishedViewerId: latestTransfer.source_viewer_id,
@@ -511,10 +515,10 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                     transferredAt: latestTransfer.transferred_at,
                     source: latestTransfer.source,
                 } : null,
-                bindings: (_e = bindingsByAccount.get(acc.id)) !== null && _e !== void 0 ? _e : [],
+                bindings: (_f = bindingsByAccount.get(acc.id)) !== null && _f !== void 0 ? _f : [],
                 saveCount: playerIds.length,
                 defaultPlayerId: defaultPid,
-                defaultPlayerName: (_f = defaultPlayer === null || defaultPlayer === void 0 ? void 0 : defaultPlayer.name) !== null && _f !== void 0 ? _f : null,
+                defaultPlayerName: (_g = defaultPlayer === null || defaultPlayer === void 0 ? void 0 : defaultPlayer.name) !== null && _g !== void 0 ? _g : null,
                 activePlayerId,
                 players: players.map(player => {
                     return {
@@ -719,10 +723,8 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             status: "idle",
         });
     }));
-    // Start a background cleanup for all accounts whose device-binding notes
-    // are blank. The current active account is always preserved.
+    // Only account notes determine eligibility, including bound and selected accounts.
     fastify.post("/deleteUnnotedAccounts", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
-        var _j, _k;
         const body = (request.body || {});
         if (body.confirm !== "DELETE_UNNOTED_ACCOUNTS") {
             return reply.status(400).send({ error: "Confirmation token is required" });
@@ -734,12 +736,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             });
         }
         const accounts = (0, account_1.getAllAccountsSync)();
-        const activePlayerId = (0, activeAccount_1.getActivePlayerId)();
-        const accountPlayers = new Map(accounts.map(account => [account.id, (0, account_1.getAccountPlayersSync)(account.id)]));
-        const activeAccountId = activePlayerId === null
-            ? null
-            : (_k = (_j = accounts.find(account => { var _a; return (_a = accountPlayers.get(account.id)) === null || _a === void 0 ? void 0 : _a.includes(activePlayerId); })) === null || _j === void 0 ? void 0 : _j.id) !== null && _k !== void 0 ? _k : null;
-        const accountIds = (0, admin_account_cleanup_1.selectUnnotedAccountIds)(accounts, activeAccountId);
+        const accountIds = (0, admin_account_cleanup_1.selectUnnotedAccountIds)(accounts);
         if (accountIds.length === 0) {
             const now = new Date().toISOString();
             accountCleanupJob = {
@@ -760,13 +757,13 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 batchSize: ACCOUNT_CLEANUP_BATCH_SIZE,
                 pauseMs: ACCOUNT_CLEANUP_BATCH_PAUSE_MS,
                 workerThreadId: null,
-                skippedActiveAccount: activeAccountId,
+                skippedActiveAccount: null,
                 error: null,
             };
             return reply.send(accountCleanupJob);
         }
         try {
-            const job = startAccountCleanupWorker(accountIds, activeAccountId);
+            const job = startAccountCleanupWorker(accountIds);
             return reply.status(202).send(job);
         }
         catch (error) {
@@ -790,7 +787,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
     }));
     // Clone a save to another account
     fastify.post("/cloneSave", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
-        var _l, _m;
+        var _j, _k;
         const { playerId: pid, accountId: aid } = (request.query || {});
         const playerId = parseInt(pid);
         const accountId = parseInt(aid);
@@ -810,7 +807,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         }
         catch (error) {
             if ((0, http_1.wantsJson)(request))
-                return reply.status(500).send({ error: `克隆前导出失败：${(_l = error === null || error === void 0 ? void 0 : error.message) !== null && _l !== void 0 ? _l : error}` });
+                return reply.status(500).send({ error: `克隆前导出失败：${(_j = error === null || error === void 0 ? void 0 : error.message) !== null && _j !== void 0 ? _j : error}` });
             return reply.redirect('/player');
         }
         const newPlayer = (0, player_1.insertDefaultPlayerSync)(accountId);
@@ -824,9 +821,9 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             try {
                 (0, player_1.deletePlayerSync)(newPlayer.id);
             }
-            catch ( /* preserve original clone error */_o) { /* preserve original clone error */ }
+            catch ( /* preserve original clone error */_l) { /* preserve original clone error */ }
             if ((0, http_1.wantsJson)(request))
-                return reply.status(500).send({ error: `克隆恢复失败：${(_m = error === null || error === void 0 ? void 0 : error.message) !== null && _m !== void 0 ? _m : error}` });
+                return reply.status(500).send({ error: `克隆恢复失败：${(_k = error === null || error === void 0 ? void 0 : error.message) !== null && _k !== void 0 ? _k : error}` });
             return reply.redirect('/player');
         }
         (0, activeAccount_1.setActivePlayerId)(newPlayer.id);
@@ -857,6 +854,9 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         }
         if (body.confirm !== "RESET_TAKEOVER_PASSWORD") {
             return reply.status(400).send({ error: "Confirmation token is required" });
+        }
+        if ((0, player_login_1.playerLoginManaged)(accountId)) {
+            return reply.status(409).send({ error: "该存档已绑定登录账号，请生成登录密码重置码。旧继承密码不能恢复已绑定账号。" });
         }
         const account = (0, account_1.getAllAccountsSync)().find(candidate => candidate.id === accountId);
         if (!account)

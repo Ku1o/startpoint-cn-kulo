@@ -18,6 +18,7 @@ import { resolvePlayerIdSync } from "../../data/activeAccount";
 import { addMissionCounterSync, setMissionCounterMaxSync } from "../../lib/mission/counters";
 import { getDegreeMissionIdsForConditionTypes, mergeMissionSettlementResponse, settleMissionCategories } from "../../lib/mission";
 import { gameVerboseLog } from "../../lib/game-logging";
+import { canUseAwakeningSubstitutionItem } from "../../multi/five-boss/rewards";
 
 interface SetProtectionBody {
     protection: boolean
@@ -103,6 +104,9 @@ const routes = async (fastify: FastifyInstance) => {
 
         const equipment = getPlayerEquipmentSync(playerId, equipmentId)
         if (!equipment) return reply.status(400).send({ "error": "Bad Request", "message": "Player does not own equipment." })
+        if (!useStack && !canUseAwakeningSubstitutionItem(equipmentId)) {
+            return reply.status(400).send({ error: "Bad Request", message: "This equipment requires duplicate bodies for awakening." })
+        }
 
         const cdnInfo = getEquipmentDissolveSync(equipmentId)
         const maxLevel = cdnInfo?.max_level ?? 5

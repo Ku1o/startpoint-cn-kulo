@@ -1,0 +1,137 @@
+{
+  "base": "1.4.104",
+  "version": "1.4.105",
+  "archive": {
+    "name": "pinball-1.4.104-1.4.105-1-five-boss-continue-limit.zip",
+    "size": 73807,
+    "sha256": "fe5a79abf3ac1a977957a40a6a3d637fd9a65c8fed5d3ecdcbfa30177c6491f2",
+    "members": 1,
+    "files": [
+      "production/upload/eb/f8ef19148af9c1330b78c7fb3ce75e3f202e64"
+    ]
+  },
+  "checks": {
+    "quest_ids": [
+      1099001,
+      1099002,
+      1099003,
+      1099004,
+      1099005,
+      1099006,
+      1099007,
+      1099008,
+      1099009,
+      1099010,
+      1099011,
+      1099012,
+      1099013,
+      1099014,
+      1099015,
+      1099016,
+      1099017,
+      1099018,
+      1099019,
+      1099020,
+      1099021,
+      1099022,
+      1099023
+    ],
+    "native_max_continue_count_column": 119,
+    "max_continue_count": 1,
+    "all_other_fields_and_quests_preserved": true
+  },
+  "source_reads": {
+    "common|eb/f8ef19148af9c1330b78c7fb3ce75e3f202e64": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.101-1.4.102-1-lens0907-0908-local-android.zip",
+      "member": "production/upload/eb/f8ef19148af9c1330b78c7fb3ce75e3f202e64",
+      "sha256": "a082fc368b4cdec980f9c9c8950c914a59b4c3289953e0f5656e4d946290ead4"
+    }
+  },
+  "swf_changed": false,
+  "runtime_delivered": true,
+  "device_tested": false,
+  "backup": "F:\\startpoint-cn-main\\.codex-backups\\20260908-201551-five-boss-continue-limit",
+  "delivery": [
+    {
+      "path": "src/multi/five-boss/contract.ts",
+      "before_sha256": "d56592fd8a610be3498386d64e115ceb595d3fb6b1f9aa9804739748fc912724",
+      "sha256": "6181cfd9ac15d010d4948e2c9502013f9526543a240cea351bf0bbf2ce13b1c7"
+    },
+    {
+      "path": "src/data/initializers/five-boss-gauntlet.ts",
+      "before_sha256": "f621c312ba9612d3f87a81bbf0b515cd8f231a1b2a3cfdb14454c3f87c18afc3",
+      "sha256": "7607d0e737206da1c05716303aaff73f260832109163622da30c90e163cc2e5b"
+    },
+    {
+      "path": "src/multi/five-boss/continue-runtime.ts",
+      "before_sha256": null,
+      "sha256": "20396b176150ac95e8af909985483f5dd13b36ee0833d561adb7d14b52cabe86"
+    },
+    {
+      "path": "src/multi/five-boss/battle-runtime.ts",
+      "before_sha256": "08618644f1b65363c5b99047b3735ca401df65f63d4c8b14c9c77105c56ebfee",
+      "sha256": "703cec3ed72512929ae0cf982ce6a2042a4766c3fb032d82817027965295890b"
+    },
+    {
+      "path": "src/routes/api/singleBattleQuest.ts",
+      "before_sha256": "03b562d7467e045d4832a2785c9ddbe948e2fd5f3e1a76756c5d913207e32d23",
+      "sha256": "75ed430bb8ea871c0814aaecdd1ff1ede22234a2c44a3b5fdb9a19fe983b4967"
+    },
+    {
+      "path": "src/multi/http/battle.ts",
+      "before_sha256": "c83db1831691d05bfc31475166b13bfcb82d287a51f0493e62a3bb559fa5ff51",
+      "sha256": "f2ddd1c23fd9d3482abf5ac31f7b5b88d5ffcfaa123aaf868267aa5f9b91cfac"
+    },
+    {
+      "path": "src/multi/types.ts",
+      "before_sha256": "91d0b465205a06e8b8a93eed528c43bd15eb6aae44fa32dcaa7eeb58df1a6f3a",
+      "sha256": "e147301c7ce3a73137dc60133c01fcc64c8b80df238292ce6adacf55079150b7"
+    },
+    {
+      "path": "out/routes/api/singleBattleQuest.js",
+      "before_sha256": "186bdde2368b4a61960959d5480fc7d537c0f6d2ef56282a3a04c77d0b4c6b4b",
+      "sha256": "77f354837609c754d6daa0d4037d7852597f6c213df7c2eb977089056b9b8f02"
+    },
+    {
+      "path": "out/multi/five-boss/battle-runtime.js",
+      "before_sha256": "696c0c27e4b21f18dc5df9c27954e74e7a47b6f9c1fad6b289eb8c2e9d752ebc",
+      "sha256": "a15f6536c7e0f21e3cea8d2a78a67a14b217f0737da2798c781a69b502ed31eb"
+    },
+    {
+      "path": "out/multi/five-boss/contract.js",
+      "before_sha256": "5e6dcfdde1b3d02cb6b6af9d73097dbbfa87e5b86be9eedf75e5a53a8867d4da",
+      "sha256": "3ac82a4991bfd2470b33df56642a72386f0b895dd34b3c2a9056a0f52ca63300"
+    },
+    {
+      "path": "out/multi/http/battle.js",
+      "before_sha256": "08619e7aeaf692345ed445e0fce531f9e144cf18950c610ee4fff3bdc13aa4b7",
+      "sha256": "44514cd8633be50e576615df0f7548355e0691f159112805347e993380d4cc3c"
+    },
+    {
+      "path": "out/data/initializers/five-boss-gauntlet.js",
+      "before_sha256": "de660283f7e1dddae52ab04df6a6fa524c663656571db86402c6f7ec980de2f0",
+      "sha256": "d4b57a8bbc39b45ba74f3d0a2d0a427d2ccf9077c4a039e1660134f57bcfe538"
+    },
+    {
+      "path": "out/multi/five-boss/continue-runtime.js",
+      "before_sha256": null,
+      "sha256": "6434e104e91c173dea15024d9cc328f6270b7505bb3fafffe8395865dce15f8f"
+    },
+    {
+      "path": "assets/asset-patch/active/pinball-1.4.104-1.4.105-1-five-boss-continue-limit.zip",
+      "before_sha256": null,
+      "sha256": "fe5a79abf3ac1a977957a40a6a3d637fd9a65c8fed5d3ecdcbfa30177c6491f2"
+    },
+    {
+      "path": "assets/asset-patch/production/upload/eb/f8ef19148af9c1330b78c7fb3ce75e3f202e64",
+      "before_sha256": "a082fc368b4cdec980f9c9c8950c914a59b4c3289953e0f5656e4d946290ead4",
+      "sha256": "483202a251261b846191113ee322f17a6401e64b65fffec1b0b1ab18249c206f"
+    },
+    {
+      "path": "assets/asset-patch/manifest.json",
+      "before_sha256": "fc86e8810a6bf1fd12fbb969147a3cbcca40f0a0477b346430ceb543e745db01",
+      "sha256": "36af3ec0ac3f3c3ef6a6cb190b5a7b62f16518c37f61095490a20059f75e249e"
+    }
+  ],
+  "local_uncommitted_test_sync": true
+}

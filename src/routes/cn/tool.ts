@@ -6,6 +6,7 @@ import { getPlayerSync, insertDefaultPlayerSync } from "../../data/domains/playe
 import { SessionType } from "../../data/types";
 import { saveAccountDefaultPlayer } from "../../data/activeAccount";
 import { getDb } from "../../data/db";
+import { readPlayerLoginSession, playerLoginProfile, verifiedPlayerLogin } from "../../lib/player-login";
 
 interface CnSignupBody {
     device_id: number;
@@ -73,6 +74,14 @@ const routes = async (fastify: FastifyInstance) => {
     });
 
     fastify.post("/signup", async (request: FastifyRequest, reply: FastifyReply) => {
+        const signedIn = verifiedPlayerLogin(request) ?? readPlayerLoginSession(request.headers["x-sp-session"])
+        if (signedIn) {
+            const profile = playerLoginProfile(signedIn.account_id)
+            reply.type("application/x-msgpack")
+            return reply.send({ data_headers: generateDataHeaders({ viewer_id: signedIn.viewer_id, short_udid: 0, udid: signedIn.udid }),
+                data: { login_token: signedIn.token, newAccount: 0, roleName: profile.name, accountName: profile.username,
+                    sign: "dummy_sign", createDate: new Date().toISOString(), serverName: "StarPoint CN", serverId: 1 } })
+        }
         const body = request.body as CnSignupBody;
         const udid = request.headers["udid"] as string || "unknown";
         const shortUdid = 0;

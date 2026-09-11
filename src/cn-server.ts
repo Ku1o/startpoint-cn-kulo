@@ -3,7 +3,9 @@ import { ContentTypeParserDoneFunction } from "fastify/types/content-type-parser
 import { pack, unpack } from "msgpackr";
 import fastifyStatic from "@fastify/static";
 import path from "path";
-import { existsSync, readFileSync } from "fs";
+import { existsSync, mkdirSync, readFileSync } from "fs";
+import { writeJsonAtomicSync } from "./lib/atomic-json-file";
+import { getStorageLayoutVersion } from "./lib/storage-layout";
 import { getServerTime, getServerTimeForPlayer } from "./utils";
 import { restoreTimeOffset } from "./data/activeAccount";
 import { migrateUnsafeViewerIdsSync } from "./data/domains/session";
@@ -11,6 +13,13 @@ import { installManagementAuth } from "./lib/management-auth";
 import { installRoutePerformanceMonitor } from "./lib/route-performance";
 import { markPlayerOnline } from "./lib/online-presence";
 import { installTakeoverUdidGuard } from "./lib/takeover-access";
+import { initializePlayerLogin } from "./lib/player-login";
+import playerLoginRoutes, { installPlayerLoginGuard } from "./routes/cn/playerLogin";
+import { sessionManager as playerLoginSessionManager } from "./multi/state/SessionManager";
+import { disconnectLoungePlayerLogin } from "./lounge/state";
+import { installLocalClientCompat } from "./lib/local-client-compat";
+import { getPatchManifest } from "./lib/version";
+import { installCustomCdnResourceRoutes } from "./lib/custom-cdn-resource-routes";
 
 import versionCheckPlugin from "./routes/cn/versionCheck";
 import iosLeitingPlugin from "./routes/cn/ios-leiting";
@@ -94,6 +103,11 @@ const fastify = Fastify({
 });
 
 const cnLoadCompressionConfig = getCnLoadHttpCompressionConfig();
+
+installLocalClientCompat(fastify, process.env.CN_LOCAL_CLIENT_PLATFORM || (
+    getPatchManifest().patches.some(p => p.enabled && p.local_test_only
+        && p.required_local_platform === "android") ? "android" : undefined
+));
 
 installRoutePerformanceMonitor(fastify);
 
@@ -396,7 +410,13 @@ fastify.addContentTypeParser("application/x-www-form-urlencoded", { parseAs: "st
 );
 fastify.addContentTypeParser("application/json", { parseAs: "string" }, jsonParser);
 
+initializePlayerLogin(viewerId => {
+    playerLoginSessionManager.disconnectPlayerLogin(viewerId);
+    disconnectLoungePlayerLogin(viewerId);
+});
+installPlayerLoginGuard(fastify);
 installTakeoverUdidGuard(fastify);
+fastify.register(playerLoginRoutes);
 
 const iosCompat = parseIosCompatConfig();
 fastify.register(versionCheckPlugin, { ios: iosCompat });
@@ -628,18 +648,10 @@ const cdnDisplayHost = cdnHost === "0.0.0.0" ? "localhost" : cdnHost;
 const CDN_BASE_URL = process.env.CDN_BASE_URL || `http://${cdnDisplayHost}:${cdnPort}/patch/cn`;
 const cdnDir = process.env.CDN_DIR || ".cdn";
 
-// Serve patched orderedmap files for missing CDN resources
-// Registered BEFORE fastifyStatic to intercept matching requests
-fastify.get("/patch/cn/dummy/download/production/upload/:prefix/:hash", async (request, reply) => {
-    const { prefix, hash } = request.params as { prefix: string; hash: string };
-    const relPath = `${prefix}/${hash}`;
-    const patchFile = path.join(__dirname, "..", "assets", "asset-patch", "production", "upload", prefix, hash);
-    if (existsSync(patchFile)) {
-        console.log("[PATCH-SERVE]", relPath);
-        return reply.type("application/octet-stream").send(readFileSync(patchFile));
-    }
-    console.log("[PATCH-MISS]", relPath);
-    return reply.status(404).send("Not Found");
+// Native readers can request common, medium, Android or iOS files directly.
+installCustomCdnResourceRoutes(fastify, {
+    patchRoot: path.join(__dirname, "..", "assets", "asset-patch"),
+    cdnRoot: path.isAbsolute(cdnDir) ? cdnDir : path.join(__dirname, "..", cdnDir),
 });
 
 // Serve patch archive files for asset update
@@ -718,4 +730,10 @@ fastify.listen({ port, host }, (err, address) => {
 
     // Start multi battle TCP session server
     startSessionServer();
+    const logDirectory = path.resolve(__dirname,"../.logs");
+    mkdirSync(logDirectory,{recursive:true});
+    writeJsonAtomicSync(path.join(logDirectory,"cn-server-ready.json"),{
+        pid:process.pid,readyAt:new Date().toISOString(),port,
+        database:path.resolve(getDb().name),storageLayoutVersion:getStorageLayoutVersion(getDb()),
+    });
 });

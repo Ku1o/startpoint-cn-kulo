@@ -1,3 +1,9 @@
+import { FIVE_BOSS_GAUNTLET, isFiveBossGauntletQuest, isFiveBossHiddenQuest } from "../../multi/five-boss/contract";
+import { continueFiveBossSync, FiveBossContinueError, isFiveBossContinueRequest } from "../../multi/five-boss/continue-runtime";
+import { grantFiveBossSoloRewardsSync } from "../../multi/five-boss/solo-rewards";
+import { isFiveBossTicketShortage, sendFiveBossTicketShortage } from "../../multi/five-boss/entry-response";
+import { startFiveBossSoloSync, abortFiveBossSoloSync, getFiveBossSoloReceiptSync, isActiveFiveBossSoloSync,
+    saveFiveBossSoloReceiptSync, getFiveBossSoloRewardMultiplierSync } from "../../multi/five-boss/solo-runtime";
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { deletePlayerActiveQuestSync, getPlayerActiveQuestSync, insertPlayerActiveQuestSync, updatePlayerActiveQuestContinueCountSync } from "../../data/domains/quest_active"
 import { deletePlayerRushEventPlayedPartyListSync, getPlayerRushEventPlayedPartiesSync, getPlayerRushEventSync, insertPlayerRushEventClearedFolderSync, insertPlayerRushEventPlayedPartySync, updatePlayerRushEventSync } from "../../data/domains/rushEvent"
@@ -141,6 +147,7 @@ export interface FinishBody {
 }
 
 interface PlayContinueBody {
+    statistics?: unknown,
     api_count: number | string,
     payment_type: number | string,
     quest_id: number | string,
@@ -249,7 +256,8 @@ const routes = async (fastify: FastifyInstance) => {
             viewerId,
             body as unknown as Record<string, unknown>,
         )
-        const cachedFinishResponse = getCachedFinishResponse(finishCacheKey)
+        const cachedFinishResponse = getFiveBossSoloReceiptSync(playerId, finishCacheKey)
+            ?? getCachedFinishResponse(finishCacheKey)
         if (cachedFinishResponse !== undefined) {
             reply.header("content-type", "application/x-msgpack")
             return reply.status(200).send(cachedFinishResponse)
@@ -274,6 +282,15 @@ const routes = async (fastify: FastifyInstance) => {
 
         const questCategory = activeQuestData.category
         const questId = activeQuestData.questId
+        if (isFiveBossHiddenQuest(questCategory, questId)) {
+            return reply.status(400).send({ error: "Bad Request", message: "Internal five-boss scene cannot settle separately." })
+        }
+        const fiveBossSoloQuest = isFiveBossGauntletQuest(questCategory, questId)
+        if (fiveBossSoloQuest && (activeQuestData.isMulti || resolvedActiveQuest?.source === "rebuilt"
+            || !finishCacheKey || !isActiveFiveBossSoloSync(playerId, activeQuestData.playId))) {
+            return reply.status(400).send({ error: "Bad Request", message: "No registered five-boss solo run." })
+        }
+
         if (resolvedActiveQuest?.source === "rebuilt" && isAbyssFiniteQuest(questCategory, questId)) {
             // Preserve the patched client's no-/start recovery, but never
             // assume a missing registration belongs to the newly published tower.
@@ -744,7 +761,11 @@ const routes = async (fastify: FastifyInstance) => {
             questAccomplished,
         )
 
+        const fiveBossSolo = fiveBossSoloQuest && questAccomplished
+            ? grantFiveBossSoloRewardsSync({ playerId, firstClear: !questProgress?.finished,
+                rewardMultiplier: getFiveBossSoloRewardMultiplierSync(playerId, activeQuestData.playId) }) : null
         const itemList = {
+            ...(fiveBossSolo?.items ?? {}),
             ...(activeQuestData.entryItemId ? { [activeQuestData.entryItemId]: getPlayerItemSync(playerId, activeQuestData.entryItemId) ?? 0 } : {}),
             ...(clearReward?.items ?? {}),
             ...(sPlusClearReward?.items ?? {}),
@@ -845,6 +866,7 @@ const routes = async (fastify: FastifyInstance) => {
                 "drop_score_reward_ids": scoreRewardsResult.drop_score_reward_ids,
                 "drop_rare_reward_ids": scoreRewardsResult.drop_rare_reward_ids,
                 "drop_additional_reward_ids": [
+                    ...(fiveBossSolo?.dropAdditionalRewardIds ?? []),
                     ...(rogueDrops?.additionalRewardEntries ?? []),
                     ...(mode15RewardsResult?.mode15_additional_reward_ids ?? []),
                 ],
@@ -884,10 +906,9 @@ const routes = async (fastify: FastifyInstance) => {
             responseData.active_mission_list = activeMissionSettlement
         }
         responseData.mail_arrived = getPlayerMailCountSync(playerId, true) > 0
-        return {
-            "data_headers": dataHeaders,
-            "data": responseData,
-        }
+        const response = { data_headers: dataHeaders, data: responseData }
+        if (fiveBossSoloQuest) saveFiveBossSoloReceiptSync(playerId, activeQuestData.playId, finishCacheKey, response)
+        return response
         })())
 
         delete activeQuests[playerId]
@@ -973,6 +994,9 @@ const routes = async (fastify: FastifyInstance) => {
         // Keep the failure transition, history row, and active-quest deletion
         // atomic so a partial settlement cannot erase the recoverable battle.
         getDb().transaction(() => {
+            if (abortQuest && !abortQuest.isMulti && isFiveBossGauntletQuest(abortQuest.category, abortQuest.questId)) {
+                abortFiveBossSoloSync(playerId, abortQuest.playId)
+            }
             if (abortQuest && isMode15Quest(abortQuest.category, abortQuest.questId)) {
                 settleMode15BattleSync(
                     playerId,
@@ -1026,6 +1050,8 @@ const routes = async (fastify: FastifyInstance) => {
         })
         const { playerId, playerData: player } = sessionResult
 
+
+
         if (isStaleAbyssClient(category, questId, request.headers.res_ver)) {
             reply.header("content-type", "application/x-msgpack")
             return reply.status(200).send({
@@ -1058,6 +1084,9 @@ const routes = async (fastify: FastifyInstance) => {
             }
         }
 
+        if (isFiveBossHiddenQuest(category, questId)) {
+            return reply.status(400).send({ error: "Bad Request", message: "Internal five-boss scene is not an entry quest." })
+        }
         // get quest data
         const questData = getQuestFromCategorySync(category, questId) as BattleQuest | null
         if (questData === null || !('rankPointReward' in questData)) {
@@ -1066,6 +1095,42 @@ const routes = async (fastify: FastifyInstance) => {
                 "error": "Bad Request",
                 "message": "Quest doesn't exist."
             })
+        }
+
+        if (isFiveBossGauntletQuest(category, questId)) {
+            const previousMemory = activeQuests[playerId]
+            let mission: MissionSettlementResult | undefined
+            try {
+                startFiveBossSoloSync(playerId, body.play_id, () => {
+                    insertActiveQuest(playerId, {
+                        questId, category, useBoostPoint: false, useBossBoostPoint: false,
+                        isAutoStartMode, isMulti: false, entryItemId: FIVE_BOSS_GAUNTLET.ticketItemId,
+                        playId: body.play_id, continueCount: 0,
+                    })
+                    updatePlayerSync({ id: playerId, partySlot: partyId })
+                    recordActiveMissionQuestChallengeFactSync(playerId, category)
+                    mission = settleMissionCategories(playerId, [1, 2, 10], new Date(getServerTime() * 1000))
+                    return true
+                })
+            } catch (error) {
+                if (previousMemory) activeQuests[playerId] = previousMemory
+                else delete activeQuests[playerId]
+                if (isFiveBossTicketShortage(error)) return sendFiveBossTicketShortage(reply, viewerId)
+                return reply.status(400).send({ error: "Bad Request", message: (error as Error).message })
+            }
+            const latest = getPlayerSync(playerId)!
+            const headers = generateDataHeaders({ viewer_id: viewerId })
+            const data: Record<string, any> = {
+                user_info: { last_main_quest_id: questId, stamina: latest.stamina,
+                    stamina_heal_time: realToVirtual(latest.staminaHealTime) },
+                item_list: { [FIVE_BOSS_GAUNTLET.ticketItemId]: getPlayerItemSync(playerId, FIVE_BOSS_GAUNTLET.ticketItemId) ?? 0 },
+                category_id: category, is_multi: "single", start_time: headers.servertime,
+                quest_name: "", client_checks: getSteamRobotMissionClientChecks(category, questId),
+                mail_arrived: getPlayerMailCountSync(playerId, true) > 0,
+            }
+            if (mission) mergeMissionSettlementResponse(data, mission, viewerId)
+            reply.header("content-type", "application/x-msgpack")
+            return reply.status(200).send({ data_headers: headers, data })
         }
 
         // Deduct entry cost (ticket/item)
@@ -1215,6 +1280,21 @@ const routes = async (fastify: FastifyInstance) => {
             "error": "Bad Request", "message": "Invalid viewer id."
         })
         const { playerId, playerData: player } = sessionResult
+
+        if (isFiveBossContinueRequest(playerId, category, questId, playId)) {
+            try {
+                const data = continueFiveBossSync({ playerId, category, questId, playId,
+                    isMulti: false, apiCount: raw.api_count, statistics: raw.statistics })
+                const recovered = resolveActiveQuest({ playerId, hint: { category, quest_id: questId, play_id: playId },
+                    memory: activeQuests, allowRebuild: false })
+                if (recovered && recovered.quest.playId === playId) recovered.quest.continueCount = data.continue_count
+                reply.header("content-type", "application/x-msgpack")
+                return reply.status(200).send({ data_headers: generateDataHeaders({ viewer_id: viewerId }), data })
+            } catch (error) {
+                if (!(error instanceof FiveBossContinueError)) throw error
+                return reply.status(400).send({ error: "Bad Request", message: error.message })
+            }
+        }
 
         // Continue may recover a persisted battle after a restart, but never
         // rebuild one from request data: doing so would create a new revive path.

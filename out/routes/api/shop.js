@@ -35,27 +35,8 @@ const mission_1 = require("../../lib/mission");
 const mission_2 = require("../../lib/mission");
 const counters_1 = require("../../lib/mission/counters");
 const free_first_deduction_1 = require("../../lib/free-first-deduction");
+const shop_sales_1 = require("../../lib/shop-sales");
 const GENERAL_SHOP_CDN_KEYS = new Set(cdn_general_shop_whitelist_json_1.default);
-function isShopItemAvailable(item, now) {
-    var _a;
-    const periods = [{
-            availableFrom: item.availableFrom,
-            availableUntil: item.availableUntil,
-        }, ...((_a = item.compatibilityPeriods) !== null && _a !== void 0 ? _a : [])];
-    return periods.some(period => {
-        if (period.availableFrom) {
-            const availableFrom = new Date(period.availableFrom.replace(' ', 'T') + 'Z');
-            if (availableFrom > now)
-                return false;
-        }
-        if (period.availableUntil) {
-            const availableUntil = new Date(period.availableUntil.replace(' ', 'T') + 'Z');
-            if (availableUntil < now)
-                return false;
-        }
-        return true;
-    });
-}
 function recordTreasureShopProgress(playerId, shopType, purchaseCount, manaSpent) {
     if (shopType !== types_1.ShopType.TREASURE)
         return;
@@ -82,69 +63,11 @@ function mergeShopDegreeSettlement(responseData, playerId, viewerId) {
             missionIds: (0, mission_2.getDegreeMissionIdsForConditionTypes)([3, 45]),
         }], new Date((0, utils_1.getServerTime)() * 1000)), viewerId);
 }
-// These one-time GENERAL products reuse shop_item_id values from STAR_GRAIN.
-// The legacy table is keyed only by (player_id, shop_item_id), so store these
-// purchases under private negative keys. Equipment ownership cannot be used as
-// a substitute because the same equipment may have been granted elsewhere.
-const GENERAL_EQUIPMENT_SCOPED_PURCHASE_KEYS = new Map([
-    [100008, -8100008], // 酒神权杖
-    [110005, -8110005], // 埃癸斯·日华
-    [110006, -8110006], // 埃癸斯·幽冥
-]);
-// Fantasy Rush exposes the same twelve products through its Rush (solo) and
-// Advent (multiplayer) screens.  The client requires different shop_item_id
-// rows for those two event families, but the inventory is one-time and shared.
-// Store each pair under one private key so either screen immediately reflects
-// a purchase made in the other screen.
-const MODE15_SHARED_EVENT_PURCHASE_KEYS = new Map(Array.from({ length: 12 }, (_, index) => {
-    const sharedKey = -9702001 - index;
-    return [
-        [9700201 + index, sharedKey],
-        [9700301 + index, sharedKey],
-    ];
-}).flat());
 function getEffectiveShopPurchaseCountSync(playerId, shopType, shopItemId) {
-    if (shopType === types_1.ShopType.EVENT_ITEM) {
-        const sharedPurchaseKey = MODE15_SHARED_EVENT_PURCHASE_KEYS.get(shopItemId);
-        if (sharedPurchaseKey !== undefined) {
-            return (0, shopPurchase_1.getPlayerShopPurchaseCountSync)(playerId, sharedPurchaseKey);
-        }
-    }
-    if (shopType === types_1.ShopType.GENERAL) {
-        const scopedPurchaseKey = GENERAL_EQUIPMENT_SCOPED_PURCHASE_KEYS.get(shopItemId);
-        if (scopedPurchaseKey !== undefined) {
-            return (0, shopPurchase_1.getPlayerShopPurchaseCountSync)(playerId, scopedPurchaseKey);
-        }
-    }
-    return (0, shopPurchase_1.getPlayerShopPurchaseCountSync)(playerId, shopItemId);
+    return (0, shopPurchase_1.getPlayerShopPurchaseCountSync)(playerId, (0, shop_sales_1.getShopPurchaseKey)(shopType, shopItemId));
 }
 function addEffectiveShopPurchaseCountSync(playerId, shopType, shopItemId, count) {
-    if (shopType === types_1.ShopType.EVENT_ITEM) {
-        const sharedPurchaseKey = MODE15_SHARED_EVENT_PURCHASE_KEYS.get(shopItemId);
-        if (sharedPurchaseKey !== undefined) {
-            return (0, shopPurchase_1.addPlayerShopPurchaseCountSync)(playerId, sharedPurchaseKey, count);
-        }
-    }
-    if (shopType === types_1.ShopType.GENERAL &&
-        GENERAL_EQUIPMENT_SCOPED_PURCHASE_KEYS.has(shopItemId)) {
-        return (0, shopPurchase_1.addPlayerShopPurchaseCountSync)(playerId, GENERAL_EQUIPMENT_SCOPED_PURCHASE_KEYS.get(shopItemId), count);
-    }
-    return (0, shopPurchase_1.addPlayerShopPurchaseCountSync)(playerId, shopItemId, count);
-}
-// Item 5000 originally shipped with max_frequency=2 in the 1.4.57 client
-// master. The server-side stock was later expanded to 999. Keep cached legacy
-// clients usable by offsetting only the client-facing lifetime counter; the
-// authoritative purchased count and stock validation remain unchanged.
-const LEGACY_CLIENT_MAX_FREQUENCY = new Map([
-    [5000, 2],
-]);
-function getClientTotalPurchaseNum(shopType, itemId, purchased, stock) {
-    if (shopType !== types_1.ShopType.EVENT_ITEM)
-        return purchased;
-    const legacyLimit = LEGACY_CLIENT_MAX_FREQUENCY.get(itemId);
-    if (legacyLimit === undefined || stock === undefined || stock <= legacyLimit)
-        return purchased;
-    return purchased - (stock - legacyLimit);
+    return (0, shopPurchase_1.addPlayerShopPurchaseCountSync)(playerId, (0, shop_sales_1.getShopPurchaseKey)(shopType, shopItemId), count);
 }
 function buildEnhancementSalesList(playerId, items) {
     var _a, _b, _c, _d, _e, _f, _g, _h;
@@ -365,7 +288,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         // Event products may still be present in a stale client cache after
         // their exchange window closes. The listing filter is not a security
         // boundary, so enforce the same period again before any costs change.
-        if (shopType === types_1.ShopType.EVENT_ITEM && !isShopItemAvailable(shopItemData, (0, utils_1.getServerDate)())) {
+        if (shopType === types_1.ShopType.EVENT_ITEM && !(0, shop_sales_1.isShopItemAvailable)(shopItemData, (0, utils_1.getServerDate)())) {
             return reply.status(400).send({
                 "error": "Bad Request",
                 "message": "Event shop item is not currently available."
@@ -400,7 +323,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         let enhancementPurchase = null;
         if (shopType === types_1.ShopType.TREASURE_EQUIPMENT) {
             const now = (0, utils_1.getServerDate)();
-            if (!isShopItemAvailable(shopItemData, now))
+            if (!(0, shop_sales_1.isShopItemAvailable)(shopItemData, now))
                 return reply.status(400).send({
                     "error": "Bad Request",
                     "message": "Enhancement item is not currently available."
@@ -426,7 +349,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                     "message": "Player does not own the target equipment."
                 });
             const stages = Object.entries((_a = (0, assets_1.getGenericShopItemsSync)(types_1.ShopType.TREASURE_EQUIPMENT)) !== null && _a !== void 0 ? _a : {})
-                .filter(([, item]) => isShopItemAvailable(item, now))
+                .filter(([, item]) => (0, shop_sales_1.isShopItemAvailable)(item, now))
                 .flatMap(([id, item]) => {
                 if (item.shopCategoryId === undefined
                     || item.groupId === undefined
@@ -758,34 +681,16 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                     }
                 }
                 // Date filtering: only show items active at current server time
-                if (!isShopItemAvailable(item, (0, utils_1.getServerDate)()))
+                if (!(0, shop_sales_1.isShopItemAvailable)(item, (0, utils_1.getServerDate)()))
                     continue;
                 if (shopTypeNum === types_1.ShopType.TREASURE_EQUIPMENT) {
                     // Collect for group-level processing later
                     enhancementItems[itemId] = item;
                     continue;
                 }
-                const purchased = getEffectiveShopPurchaseCountSync(playerId, shopTypeNum, Number(itemId));
-                const stock = item.stock;
                 const degreeOwned = item.rewards.some(reward => reward.type === types_1.ShopItemRewardType.DEGREE
                     && ownedDegrees.has(reward.id));
-                const stockQuantity = degreeOwned
-                    ? 0
-                    : (stock !== undefined ? Math.max(0, stock - purchased) : -1);
-                const clientTotalPurchaseNum = getClientTotalPurchaseNum(shopTypeNum, Number(itemId), purchased, stock);
-                salesList.push({
-                    "shop_item_id": Number(itemId),
-                    "stock_quantity": stockQuantity,
-                    "today_purchase_num": purchased,
-                    "this_month_purchase_num": purchased,
-                    "total_purchase_num": clientTotalPurchaseNum,
-                    "group_info": {
-                        "group_total_stock_quantity": stockQuantity,
-                        "group_total_purchase_num": purchased,
-                        "multi_stage": false
-                    },
-                    "shop_type": Number(shopType)
-                });
+                salesList.push((0, shop_sales_1.buildShopSalesEntry)(shopTypeNum, Number(itemId), item, purchasedMap, degreeOwned));
             }
         }
         // Process equipment enhancement items by group
@@ -977,7 +882,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                     skippedEntries++;
                     continue;
                 }
-                if (shopType === types_1.ShopType.EVENT_ITEM && !isShopItemAvailable(shopItem, purchaseNow)) {
+                if (shopType === types_1.ShopType.EVENT_ITEM && !(0, shop_sales_1.isShopItemAvailable)(shopItem, purchaseNow)) {
                     skippedEntries++;
                     continue;
                 }

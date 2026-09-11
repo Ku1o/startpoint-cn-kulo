@@ -1,0 +1,8 @@
+{
+  "status": "passed",
+  "cases": 624,
+  "swf_sha256": "7e3f40fc17ac6fbbec52a0775c6a6357edd258874ed62d13d4ceb287d56d97d3",
+  "execution": "actual_AVM2_blocks_in_small_test_interpreter_with_doubles",
+  "desktop_air_run": false,
+  "device_tested": false
+}

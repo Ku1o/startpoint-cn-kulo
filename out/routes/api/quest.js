@@ -16,8 +16,7 @@ const utils_1 = require("../../utils");
 /**
  * Returns up to ten distinct parties that actually cleared this quest. Frozen
  * clear snapshots are ordered only by the battle power used for that clear.
- * Legacy progress is used only while an upgraded server builds exact snapshots,
- * and unrelated globally high-power parties are never used.
+ * Without a matching snapshot, a player's current party is never substituted.
  */
 const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
     fastify.post("/get_recent_other_player_party", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
@@ -50,7 +49,6 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         const recommendations = (0, recommended_party_history_1.getRecommendedQuestPartiesSync)(playerId, category, questId);
         console.log(`[QUEST-RECOMMEND] player=${playerId} category=${category} ` +
             `quest=${questId} exact=${recommendations.exactCandidateCount} ` +
-            `legacy=${recommendations.legacyCandidateCount} ` +
             `returned=${recommendations.parties.length}`);
         reply.header("content-type", "application/x-msgpack");
         return reply.status(200).send({

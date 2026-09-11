@@ -1,0 +1,199 @@
+TAP version 13
+# Subtest: Five Boss 关闭时不暴露死亡使者兑换，但保留原始备用定义
+ok 1 - Five Boss 关闭时不暴露死亡使者兑换，但保留原始备用定义
+  ---
+  duration_ms: 62.2733
+  ...
+# [DB] temp_dir=C:\\Users\\ASUS\\AppData\\Local\\Temp
+# [DB] temp_store=1 (1=FILE)
+# [DB] init: dbExists=false currentVersion=0 latestVersion=9 updateRequired=false
+# [DB] calling init...
+# [DB] init done
+# [DB] created 41 cascade-delete indexes
+# [TIME] startup offset=null(system)
+# [TIME] setServerTime → 2024-01-01T00:00:00.000Z offset=-85033901154
+# [TIME] setServerTime → 2023-11-24T00:00:00.000Z offset=-88317101190
+# [TIME] setServerTime → 2025-07-26T00:00:00.000Z offset=-35613101191
+# [shop:req] viewer=77119051 types=[] bossCats=[] equipCats=undefined events=1 eventList=[{"event_type":11,"event_ids":[700011]}]
+# [shop:get_sales] player=1 purchasedKeys=0 totalPurchased=0
+# [shop:res] totalSales=33 byType={"4":33} toParseItems={"4":33}
+# [TIME] setServerTime → 2025-08-15T00:00:00.000Z offset=-33885101195
+# [TIME] setServerTime → 2025-07-26T00:00:00.000Z offset=-35613101197
+# Subtest: 入手方式沿用真实商店期限和库存，静态索引不缓存玩家状态
+    # Subtest: 过期来源隐藏，原期和复刻期间恢复；索引初始化后时间变化仍生效
+    ok 1 - 过期来源隐藏，原期和复刻期间恢复；索引初始化后时间变化仍生效
+      ---
+      duration_ms: 42.0692
+      ...
+# [shop:req] viewer=77119051 types=[] bossCats=[] equipCats=undefined events=2 eventList=[{"event_type":11,"event_ids":[700098]},{"event_type":0,"event_ids":[300098]}]
+# [shop:get_sales] player=1 purchasedKeys=1 totalPurchased=1
+# [shop:res] totalSales=24 byType={"4":24} toParseItems={"4":24}
+# [shop:req] viewer=77119051 types=[] bossCats=[] equipCats=undefined events=2 eventList=[{"event_type":11,"event_ids":[700098]},{"event_type":0,"event_ids":[300098]}]
+# [shop:get_sales] player=1 purchasedKeys=2 totalPurchased=2
+# [shop:res] totalSales=24 byType={"4":24} toParseItems={"4":24}
+# [shop:req] viewer=77119051 types=[] bossCats=[] equipCats=undefined events=2 eventList=[{"event_type":11,"event_ids":[700098]},{"event_type":0,"event_ids":[300098]}]
+# [shop:get_sales] player=1 purchasedKeys=3 totalPurchased=3
+# [shop:res] totalSales=24 byType={"4":24} toParseItems={"4":24}
+# [shop:req] viewer=77119051 types=[] bossCats=[] equipCats=undefined events=2 eventList=[{"event_type":11,"event_ids":[700098]},{"event_type":0,"event_ids":[300098]}]
+# [shop:get_sales] player=1 purchasedKeys=4 totalPurchased=4
+# [shop:res] totalSales=24 byType={"4":24} toParseItems={"4":24}
+# [shop:req] viewer=77119051 types=[] bossCats=[] equipCats=undefined events=2 eventList=[{"event_type":11,"event_ids":[700098]},{"event_type":0,"event_ids":[300098]}]
+# [shop:get_sales] player=1 purchasedKeys=5 totalPurchased=5
+# [shop:res] totalSales=24 byType={"4":24} toParseItems={"4":24}
+# [shop:req] viewer=77119051 types=[] bossCats=[] equipCats=undefined events=2 eventList=[{"event_type":11,"event_ids":[700098]},{"event_type":0,"event_ids":[300098]}]
+# [shop:get_sales] player=1 purchasedKeys=6 totalPurchased=6
+# [shop:res] totalSales=24 byType={"4":24} toParseItems={"4":24}
+# [shop:req] viewer=77119051 types=[] bossCats=[] equipCats=undefined events=2 eventList=[{"event_type":11,"event_ids":[700098]},{"event_type":0,"event_ids":[300098]}]
+# [shop:get_sales] player=1 purchasedKeys=7 totalPurchased=7
+# [shop:res] totalSales=24 byType={"4":24} toParseItems={"4":24}
+# [shop:req] viewer=77119051 types=[] bossCats=[] equipCats=undefined events=2 eventList=[{"event_type":11,"event_ids":[700098]},{"event_type":0,"event_ids":[300098]}]
+# [shop:get_sales] player=1 purchasedKeys=8 totalPurchased=8
+# [shop:res] totalSales=24 byType={"4":24} toParseItems={"4":24}
+# [shop:req] viewer=77119051 types=[] bossCats=[] equipCats=undefined events=2 eventList=[{"event_type":11,"event_ids":[700098]},{"event_type":0,"event_ids":[300098]}]
+# [shop:get_sales] player=1 purchasedKeys=9 totalPurchased=9
+# [shop:res] totalSales=24 byType={"4":24} toParseItems={"4":24}
+# [shop:req] viewer=77119051 types=[] bossCats=[] equipCats=undefined events=2 eventList=[{"event_type":11,"event_ids":[700098]},{"event_type":0,"event_ids":[300098]}]
+# [shop:get_sales] player=1 purchasedKeys=10 totalPurchased=10
+# [shop:res] totalSales=24 byType={"4":24} toParseItems={"4":24}
+# [shop:req] viewer=77119051 types=[] bossCats=[] equipCats=undefined events=2 eventList=[{"event_type":11,"event_ids":[700098]},{"event_type":0,"event_ids":[300098]}]
+# [shop:get_sales] player=1 purchasedKeys=11 totalPurchased=11
+# [shop:res] totalSales=24 byType={"4":24} toParseItems={"4":24}
+# [shop:req] viewer=77119051 types=[] bossCats=[] equipCats=undefined events=2 eventList=[{"event_type":11,"event_ids":[700098]},{"event_type":0,"event_ids":[300098]}]
+# [shop:get_sales] player=1 purchasedKeys=12 totalPurchased=10010
+# [shop:res] totalSales=24 byType={"4":24} toParseItems={"4":24}
+    # Subtest: 12 对幻想商品沿用已存共享购买键，另一玩家不受影响
+    ok 2 - 12 对幻想商品沿用已存共享购买键，另一玩家不受影响
+      ---
+      duration_ms: 45.9962
+      ...
+    # Subtest: 普通商店与星粒同号商品的购买计数隔离
+    ok 3 - 普通商店与星粒同号商品的购买计数隔离
+      ---
+      duration_ms: 5.8491
+      ...
+# [TIME] setServerTime → null(system) offset=null
+    # Subtest: 保留现用五重来源和普通箱池，旧死亡使者商品不返回
+    ok 4 - 保留现用五重来源和普通箱池，旧死亡使者商品不返回
+      ---
+      duration_ms: 5.5792
+      ...
+    1..4
+ok 2 - 入手方式沿用真实商店期限和库存，静态索引不缓存玩家状态
+  ---
+  duration_ms: 252.658
+  ...
+# [DB] temp_dir=C:\\Users\\ASUS\\AppData\\Local\\Temp
+# [DB] temp_store=1 (1=FILE)
+# [DB] init: dbExists=false currentVersion=0 latestVersion=9 updateRequired=false
+# [DB] calling init...
+# [DB] init done
+# [DB] created 41 cascade-delete indexes
+# [TIME] startup offset=null(system)
+# [shop:buy] player=1 shopType=4 item=9700118 requested=1 charged=1 before freeMana=20000 paidMana=2000 freeVmoney=5000000 vmoney=0
+# [shop:buy] after DB freeMana=20000 paidMana=2000 freeVmoney=0 vmoney=0 rewardItems={}
+# [shop:req] viewer=77119911 types=[] bossCats=[] equipCats=[] events=1 eventList=[{"event_type":11,"event_ids":[700099]}]
+# [shop:get_sales] player=1 purchasedKeys=1 totalPurchased=1
+# [shop:res] totalSales=19 byType={"4":19} toParseItems={"4":19}
+# Subtest: 深渊商店称号按一次性库存原子购买，并阻止重复扣款
+ok 3 - 深渊商店称号按一次性库存原子购买，并阻止重复扣款
+  ---
+  duration_ms: 165.5606
+  ...
+# [DB] temp_dir=C:\\Users\\ASUS\\AppData\\Local\\Temp
+# [DB] temp_store=1 (1=FILE)
+# [DB] init: dbExists=false currentVersion=0 latestVersion=9 updateRequired=false
+# [DB] calling init...
+# [DB] init done
+# [DB] created 41 cascade-delete indexes
+# [TIME] startup offset=null(system)
+# [TIME] setServerTime → 2024-01-01T00:00:00.000Z offset=-85033901184
+# [TIME] setServerTime → 2023-11-24T00:00:00.000Z offset=-88317101199
+# [shop:buy] player=1 shopType=4 item=700000 requested=1 charged=1 before freeMana=20000 paidMana=2000 freeVmoney=10000 vmoney=100
+# [shop:buy] after DB freeMana=20000 paidMana=2000 freeVmoney=10000 vmoney=100 rewardItems={"49100":1}
+# [TIME] setServerTime → 2025-07-26T00:00:00.000Z offset=-35613101205
+# [shop:req] viewer=77119912 types=[] bossCats=[] equipCats=undefined events=1 eventList=[{"event_type":11,"event_ids":[700011]}]
+# [shop:get_sales] player=1 purchasedKeys=1 totalPurchased=1
+# [shop:res] totalSales=33 byType={"4":33} toParseItems={"4":33}
+# [shop:buy] player=1 shopType=4 item=700000 requested=1 charged=1 before freeMana=20000 paidMana=2000 freeVmoney=10000 vmoney=100
+# [shop:buy] after DB freeMana=20000 paidMana=2000 freeVmoney=10000 vmoney=100 rewardItems={"49100":2}
+# [TIME] setServerTime → 2025-08-15T00:00:00.000Z offset=-33885101210
+# [shop:bulk_buy] player=1 shopType=4 items={} skipped=1 manaCost=0 vmoneyCost=0 bondTokenCost=0 itemCosts={}
+# [shop:bulk_buy] completed player=1 freeMana=20000 paidMana=2000 freeVmoney=10000 vmoney=100 rewardItems={}
+# [TIME] setServerTime → null(system) offset=null
+# Subtest: 活动商品的单买和批量购买都执行兑换期校验
+ok 4 - 活动商品的单买和批量购买都执行兑换期校验
+  ---
+  duration_ms: 179.6607
+  ...
+# [DB] temp_dir=C:\\Users\\ASUS\\AppData\\Local\\Temp
+# [DB] temp_store=1 (1=FILE)
+# [DB] init: dbExists=false currentVersion=0 latestVersion=9 updateRequired=false
+# [DB] calling init...
+# [DB] init done
+# [DB] created 41 cascade-delete indexes
+# [TIME] startup offset=null(system)
+# Subtest: free-first deduction covers free, mixed, paid, and insufficient balances
+ok 5 - free-first deduction covers free, mixed, paid, and insufficient balances
+  ---
+  duration_ms: 1.0449
+  ...
+# Subtest: generic shop helper spends mixed mana and beads free-first
+ok 6 - generic shop helper spends mixed mana and beads free-first
+  ---
+  duration_ms: 0.7775
+  ...
+# [shop:buy] player=1 shopType=2 item=200092 requested=1 charged=1 before freeMana=260 paidMana=3000 freeVmoney=10000 vmoney=100
+# [shop:buy] after DB freeMana=0 paidMana=260 freeVmoney=10000 vmoney=100 rewardItems={"51":1}
+# Subtest: shop routes use mixed balances without changing insufficient behavior
+    # Subtest: single mana purchase consumes paid overflow
+    ok 1 - single mana purchase consumes paid overflow
+      ---
+      duration_ms: 20.4288
+      ...
+# [shop:buy] player=1 shopType=2 item=200003 requested=1 charged=1 before freeMana=0 paidMana=260 freeVmoney=20 vmoney=30
+# [shop:buy] after DB freeMana=0 paidMana=260 freeVmoney=0 vmoney=0 rewardItems={"3":1}
+    # Subtest: single bead purchase consumes paid overflow
+    ok 2 - single bead purchase consumes paid overflow
+      ---
+      duration_ms: 4.6361
+      ...
+# [shop:bulk_buy] player=1 shopType=2 items={"200091":1} skipped=0 manaCost=2000 vmoneyCost=0 bondTokenCost=0 itemCosts={}
+# [shop:bulk_buy] completed player=1 freeMana=0 paidMana=0 freeVmoney=0 vmoney=0 rewardItems={"50":1}
+    # Subtest: bulk purchase calculates quantity from combined mana
+    ok 3 - bulk purchase calculates quantity from combined mana
+      ---
+      duration_ms: 4.0452
+      ...
+# [shop:bulk_buy] player=1 shopType=2 items={"200004":1} skipped=0 manaCost=0 vmoneyCost=50 bondTokenCost=0 itemCosts={}
+# [shop:bulk_buy] completed player=1 freeMana=0 paidMana=0 freeVmoney=0 vmoney=0 rewardItems={"4":1}
+    # Subtest: bulk purchase calculates quantity from combined beads
+    ok 4 - bulk purchase calculates quantity from combined beads
+      ---
+      duration_ms: 3.3205
+      ...
+# [RECOVER-STAMINA] player 1: stamina 9->109 (+100), freeVmoney 20->0, vmoney 30->0
+    # Subtest: stamina recovery consumes paid bead overflow
+    ok 5 - stamina recovery consumes paid bead overflow
+      ---
+      duration_ms: 1.9953
+      ...
+# [shop:buy] player=1 shopType=2 item=200001 requested=1 charged=1 before freeMana=100 paidMana=100 freeVmoney=0 vmoney=0
+    # Subtest: combined insufficient mana still rejects without deduction
+    ok 6 - combined insufficient mana still rejects without deduction
+      ---
+      duration_ms: 1.7898
+      ...
+    1..6
+ok 7 - shop routes use mixed balances without changing insufficient behavior
+  ---
+  duration_ms: 185.6406
+  ...
+1..7
+# tests 17
+# suites 0
+# pass 17
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 991.7857

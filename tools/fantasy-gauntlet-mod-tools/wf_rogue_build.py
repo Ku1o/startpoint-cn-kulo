@@ -67,6 +67,7 @@ import wf_dsl_sig                 # noqa: E402
 import wf_rogue_bundle as rbb      # noqa: E402
 import wf_apk_paths               # noqa: E402
 import wf_orochi_ex               # noqa: E402
+import wf_abyss_quest_details as quest_details  # noqa: E402
 
 EVENT_ID = "700099"
 GAUNTLET_HUB_EVENT_IDS = ("700098", EVENT_ID)
@@ -1258,11 +1259,9 @@ def standard_enemy_hp_base(tree: dict) -> dict:
 
 
 STANDARD_DAMAGE_CHECK_SCHEMA = "wf-standard-damage-check/v1"
-# Standard Enemy state kind 13 is DamageCheck.  The ``m`` field is a union
-# reused by many other state kinds (for example expression/variable checks),
-# so treating every packed T2 as a red damage trial corrupts unrelated boss
-# logic and rejects otherwise safe HP clones.
-STANDARD_DAMAGE_CHECK_STATE_KIND = 13
+# TypePackerResource2: state.e is animation, state.m is Trial, and Trial.T2
+# is DamageCheck. A script-based DamageCheck is still a damage trial; it
+# cannot be silently skipped or rescaled as a literal percentage.
 
 
 def _dsl_scalar(value):
@@ -1294,10 +1293,13 @@ def standard_damage_check_records(tree: dict) -> tuple[dict, ...]:
     def walk(value, path: tuple, form_index: int | None) -> None:
         if isinstance(value, dict):
             union = value.get("m")
-            if (value.get("e") == STANDARD_DAMAGE_CHECK_STATE_KIND
+            if (len(path) == 4 and path[0] == "au" and path[2] == "g"
                     and isinstance(union, list) and len(union) == 2
                     and union[0] == "T2"):
                 payload = union[1]
+                if isinstance(payload, dict) and payload.get("h") is not None:
+                    raise ValueError(
+                        f"DamageCheck script 门槛缺独立 HP 依赖证明:path={path}")
                 if not isinstance(payload, dict) or "a" not in payload:
                     raise ValueError(f"DamageCheck payload 非法:path={path}")
                 if form_index is None or form_index not in health_by_form:
@@ -2665,6 +2667,18 @@ def code_referenced_bosses(gb_t: dict | None = None) -> dict:
     except Exception as e:
         print(f"[WARN] BossAlive 扫描失败({e});本轮不发深渊法阵")
         degraded = True
+    # Standard Funnel reverse links live inside ESDL, not general_funnel CSV.
+    # Omitting them let the floor-12 HP clone silently sever both cores.
+    standard_links = set()
+    try:
+        from wf_standard_enemy_links import funnel_boss_references
+        standard_links = funnel_boss_references(
+            _tbl(STANDARD_FUNNEL), cells, _read_standard_enemy_dsl)
+        damage_share.update(code for kind, code in standard_links if kind == "damage_share")
+        enemy_watch_partner.update(code for kind, code in standard_links if kind == "enemy_watch_partner")
+    except Exception as exc:
+        print(f"[WARN] Standard Funnel 反向引用扫描失败({exc});拒绝未经证明的克隆")
+        degraded = True
     hard = damage_share | enemy_watch_partner | boss_alive
     codes = set(gb)
     result = {"hard": frozenset(hard & codes),
@@ -2684,6 +2698,7 @@ def code_referenced_bosses(gb_t: dict | None = None) -> dict:
               "all_enemy_watch_partner": frozenset(enemy_watch_partner),
               "all_enemy_watch_self": frozenset(soft),
               "all_boss_alive": frozenset(boss_alive),
+              "standard_identity_references": frozenset(code for _, code in standard_links),
               "degraded": degraded}
     if gb_t is None:
         _CODE_REFS = result
@@ -2694,8 +2709,8 @@ def identity_locked_boss_reason(
         bosses, *, code_references: dict | None = None) -> str | None:
     """Return why an identity-changing operation must not touch ``bosses``.
 
-    The authoritative identity-lock set is exactly
-    ``code_referenced_bosses()["hard"]``: these ids are referenced by another
+    The authoritative identity-lock set combines General ``hard`` and
+    ``standard_identity_references``: these ids are referenced by another
     runtime object and renaming them silently breaks damage sharing, partner
     watches, or phase-alive checks.  A degraded scan is fail-closed because its
     hard set is known to be incomplete.
@@ -2708,7 +2723,8 @@ def identity_locked_boss_reason(
     if refs.get("degraded"):
         return (f"identity-locked 判据扫描降级，拒绝改名/异地搬运:"
                 f"{','.join(codes)}")
-    hard = frozenset(map(str, refs.get("hard") or ()))
+    hard = (frozenset(map(str, refs.get("hard") or ()))
+            | frozenset(map(str, refs.get("standard_identity_references") or ())))
     hits = sorted(set(codes) & hard)
     if not hits:
         return None
@@ -2742,7 +2758,8 @@ def identity_clone_locked_boss_reason(
         return identity_locked_boss_reason(
             codes, code_references=refs)
     locked = (set(map(str, refs.get("damage_share") or ()))
-              | set(map(str, refs.get("boss_alive") or ())))
+              | set(map(str, refs.get("boss_alive") or ()))
+              | set(map(str, refs.get("standard_identity_references") or ())))
     hits = sorted(set(codes) & locked)
     if not hits:
         return None
@@ -2751,6 +2768,8 @@ def identity_clone_locked_boss_reason(
         kinds.append("damage_share")
     if set(hits) & set(map(str, refs.get("boss_alive") or ())):
         kinds.append("BossAlive")
+    if set(hits) & set(map(str, refs.get("standard_identity_references") or ())):
+        kinds.append("Standard ESDL")
     return (f"identity-locked boss {','.join(hits)} 存在不可局部闭合的 "
             f"{'/'.join(kinds)} 代号引用，拒绝改名克隆")
 
@@ -5277,6 +5296,24 @@ def _resistance_totals_by_target(picks: list[dict], key: str) -> dict[int, float
     return totals
 
 
+def damage_resistance_totals(picks: list[dict]) -> dict[int, float]:
+    """按实际落表结果合计关卡、一次性和叠层三种伤害抗性。
+
+    同一来源先沿用其编译合并规则；不同来源在客户端 ConditionSlot 中
+    相加。不能只分别判断各来源是否达到 100%，否则会漏放 90%+40%。
+    """
+    totals = _resistance_totals_by_target(picks, "damage_resistance")
+    for constructor, value in _stacked_resistance_totals(picks).items():
+        kind = STACKED_DAMAGE_AC_KIND.get(constructor)
+        if kind is not None:
+            totals[kind] = totals.get(kind, 0.0) + value
+    for kind, value in merge_conds(picks):
+        if kind in {"0", "1", "2", "3"}:
+            target = int(kind)
+            totals[target] = totals.get(target, 0.0) + float(value)
+    return totals
+
+
 def immunity_axes(picks: list[dict]) -> tuple[set[str], set[int]]:
     """返回跨诅咒合并后的(完全免疫伤害类型,高阻断属性)。
 
@@ -5288,28 +5325,78 @@ def immunity_axes(picks: list[dict]) -> tuple[set[str], set[int]]:
     specificDamageResistance 均固定为 0，能绕过两轴；这些集合服务于 NormalAttack
     常规输出路的设计门禁，不宣称战斗在机制上绝对无解。
     """
-    damage_total = _resistance_totals_by_target(picks, "damage_resistance")
-    for constructor, value in _stacked_resistance_totals(picks).items():
-        kind = STACKED_DAMAGE_AC_KIND.get(constructor)
-        if kind is not None:
-            # 两种条件的 ID 不同，但 ConditionSlot 的四个 resistance getter 会把
-            # 它们相加；必须跨“一次性/叠层”后再判是否封死该伤害类型。
-            damage_total[kind] = damage_total.get(kind, 0.0) + float(value)
-    damage = {str(kind) for kind, value in damage_total.items()
+    damage = {str(kind) for kind, value in damage_resistance_totals(picks).items()
               if value >= 1.0 - 1e-12}
-    for kind, value in merge_conds(picks):
-        if kind not in {"0", "1", "2", "3"}:
-            continue
-        try:
-            if float(value) >= 1.0 - 1e-12:
-                damage.add(kind)
-        except (TypeError, ValueError):
-            pass
     elements = {int(element) for element, value in
                 _resistance_totals_by_target(picks, "element_resistance").items()
                 if 1 <= int(element) <= 6
                 and float(value) >= ELEMENT_LOCK_THRESHOLD - 1e-12}
     return damage, elements
+
+
+ELEMENT_BAN_GUARANTEE_NAME = "属性封锁保底"
+ELEMENT_BAN_GUARANTEE_STRENGTH = 999.0
+
+
+def guarantee_element_bans(picks: list[dict], rng, minimum: int = 2, *,
+                           excluded_elements=()) -> tuple[list[dict], dict]:
+    """Plan additive elemental bans without replacing cards or spending slots.
+
+    This is a policy operation, not proof that a Boss can execute the conditions.
+    A runtime carrier must be checked separately before compiling a floor. Use
+    a per-floor RNG independent of the tower RNG so this supplement cannot move
+    the subsequent Boss/curse rolls. Existing >=99 totals count as bans; weaker
+    resistance stays intact, including on the one remaining open element.
+    """
+    if isinstance(minimum, bool) or not isinstance(minimum, int) or not 0 <= minimum <= 5:
+        raise ValueError("属性封锁保底数量只接受 0..5 的整数")
+    excluded = set(excluded_elements)
+    if any(type(e) is not int or e not in ELEMENT_DATA_CN for e in excluded):
+        raise ValueError("属性封锁排除项必须是 1..6 的属性整数")
+    if minimum > len(set(ELEMENT_DATA_CN) - excluded):
+        raise ValueError("属性封锁保底超过可选属性数量")
+    why = curse_conflict(picks)
+    if why:
+        raise ValueError(f"属性封锁保底前的原始组合非法，须重抽:{why}")
+    totals = _resistance_totals_by_target(picks, "element_resistance")
+    if any(totals.get(e, 0.0) > 0 for e in excluded):
+        raise ValueError("排除属性仍有原始抗性，须先明确处理原有诅咒")
+    blocked = immunity_axes(picks)[1]
+    missing = max(0, minimum - len(blocked))
+    selected = sorted(rng.sample(sorted(set(ELEMENT_DATA_CN) - blocked - excluded), missing)) if missing else []
+    result = copy.deepcopy(picks)
+    if selected:
+        # Supplement only the missing strength. A weak original curse on a
+        # selected element survives unchanged; the resulting total is r=999.
+        atoms = [(element, ELEMENT_BAN_GUARANTEE_STRENGTH - totals.get(element, 0.0), False)
+                 for element in selected]
+        result.append({"name": ELEMENT_BAN_GUARANTEE_NAME,
+                       "element_ban_guarantee": True,
+                       "element_resistance": atoms,
+                       "text": "·".join(ELEMENT_DATA_CN[e] for e in selected) + "伤害降至0.1%"})
+    final = immunity_axes(result)[1]
+    if not minimum <= len(final) <= 5 or not blocked <= final:
+        raise ValueError("属性封锁保底合并后越界或丢失原有封锁")
+    why = curse_conflict(result)
+    if why:
+        raise ValueError(f"属性封锁保底后的组合非法:{why}")
+    receipt = {"minimum": minimum, "maximum": 5, "threshold": ELEMENT_LOCK_THRESHOLD,
+                    "original_banned": sorted(blocked), "added_banned": selected,
+                    "final_banned": sorted(final), "open_elements": sorted(set(ELEMENT_DATA_CN) - final),
+                    "ordinary_slots_consumed": 0, "runtime_verified": False}
+    if excluded:
+        receipt["excluded_elements"] = sorted(excluded)
+    return result, receipt
+
+
+def element_ban_rng(seed: int, round_no: int):
+    """Domain-separated reproducible RNG; independent of other floor draws."""
+    if isinstance(seed, bool) or not isinstance(seed, int):
+        raise ValueError("属性保底种子必须是整数")
+    if isinstance(round_no, bool) or not isinstance(round_no, int) or round_no < 1:
+        raise ValueError("属性保底层号必须为正整数")
+    digest = hashlib.sha256(f"abyss-element-ban-v1:{seed}:{round_no}".encode("ascii")).digest()
+    return random.Random(int.from_bytes(digest, "big"))
 
 
 def _slv(value: int | float) -> list[dict]:
@@ -5487,12 +5574,15 @@ def build_immunity_dsl_tree(
 
 def build_immunity_dsl_blob(tree: list) -> bytes:
     """AMF3 + raw-deflate 往返自校验；构造名/参数树有任何漂移就拒绝产出。"""
+    from wf_siete_balance import _validate_official_dsl
+    _validate_official_dsl(tree, "abyss-immunity-before-serialization")
     raw = wf_dsl.encode_amf3(tree)
     co = zlib.compressobj(9, zlib.DEFLATED, -15)
     blob = co.compress(raw) + co.flush()
     parsed = wf_dsl.parse_dsl(zlib.decompress(blob, -15))["tree"]
     if parsed != tree:
         raise RuntimeError("属性免疫 DSL build→parse 往返不等价")
+    _validate_official_dsl(parsed, "abyss-immunity-after-serialization")
     return blob
 
 
@@ -5577,11 +5667,6 @@ def curse_conflict(picks: list[dict]) -> str | None:
         _stacked_resistance_totals(picks)
     except (TypeError, ValueError) as exc:
         return f"叠层抗性参数非法:{exc}"
-    element_cards = [str(p.get("name") or "(未命名)") for p in picks
-                     if p.get("element_resistance")]
-    if len(element_cards) > 1:
-        return ("元素属性诅咒每层最多一张，禁止重复叠加:"
-                + "+".join(element_cards))
     signs: dict[str, set] = {}
     for p in picks:
         for k, v in p.get("cond", []):
@@ -5614,17 +5699,9 @@ def curse_conflict(picks: list[dict]) -> str | None:
     damage_immune, element_immune = immunity_axes(picks)
     if damage_immune >= {"0", "1", "2", "3"}:
         return "四种伤害类型全免疫(无解层)"
-    affected_elements = {
-        int(element) for element, value in
-        _resistance_totals_by_target(picks, "element_resistance").items()
-        if float(value) > 0
-    }
-    if affected_elements >= {1, 2, 3, 4, 5, 6}:
-        # FixedAttackCalculator / RatioAttackCalculator 不吃属性耐性，因此这是
-        # NormalAttack 普通属性伤害必须留一条完全不受影响路径的产品闸，
-        # 不宣称机制上绝对无解。
-        return ("六属性均受正抗性影响，未留至少一个完全不受影响"
-                "的普通属性伤害出口（定值/比例伤害仍可绕过）")
+    # 2026-09-09: keep all rolled cards and allow a separate minimum-ban
+    # supplement. The open element may retain weak resistance; only six
+    # combined high-blocking totals are forbidden.
     if element_immune >= {1, 2, 3, 4, 5, 6}:
         return (f"六属性均达高阻断阈值(r≥{fmt(ELEMENT_LOCK_THRESHOLD)};"
                 "普通属性伤害出口封死，定值/比例伤害仍可绕过)")
@@ -6034,6 +6111,9 @@ def _curse_pool(t: int, rng, *, stack_layers: int = 50,
 def apply_picks(out: dict, picks: list[dict], combo: str | None = None) -> dict:
     """把一组诅咒条目合成效果包。**降档闸改了 picks 之后重算走同一条路**,
     保证 hp/atk/conds/desc 永远与 picks 一致(不会出现"文案写×2.6、落表 1.4")。"""
+    why = curse_conflict(picks)
+    if why:
+        raise ValueError(f"诅咒效果包未过组合门禁:{why}")
     profile = out.get("capability_profile")
     if isinstance(profile, dict):
         blocked = [
@@ -6638,10 +6718,8 @@ def abyss_curses(r: int, n: int, rng, tier: str, caps: dict | None = None,
                 continue
             if any(pick_key(c) == pick_key(p) for p in current):
                 continue
-            # 随机属性卡每层最多一张。不同属性卡仍会在相同 element 上叠加 strength，
-            # 例如五相绝域(水 r=999) + 元素禁壁(水 r=99) 只把伤害从约0.1%
-            # 进一步压到约0.091%，没有新的玩法出口，属于名额浪费。这里提前跳过
-            # 只是减少重抽；`curse_conflict` 还会对随机/组合/显式钉选统一硬拦。
+            # 保留普通随机池原有的一张属性卡节奏；独立 ban 保底在完整抽取之后
+            # 追加，不消耗普通名额。显式多卡由合并后的六属性封锁门禁裁定。
             if (c.get("name") in ELEMENT_CURSE_NAMES
                     and any(p.get("name") in ELEMENT_CURSE_NAMES for p in current)):
                 continue
@@ -7373,8 +7451,10 @@ def enforce_gauntlet_quest_table_player_rank(quest_table: dict) -> dict:
     return quest_table
 
 
-def build_deep_abyss_folder_leaf(template_leaf: bytes | str) -> bytes | str:
-    """Build the client-visible fixed clear rewards for event 700099."""
+def build_deep_abyss_folder_leaf(template_leaf: bytes | str, fixed_rewards: list[dict]) -> bytes | str:
+    """Preview the same fixed rewards that the server grants; never guess a default."""
+    if not isinstance(fixed_rewards, list) or not 1 <= len(fixed_rewards) <= 10:
+        raise ValueError("深渊固定奖励必须有 1 至 10 项，不能静默截断预览")
     row = list(cells(template_leaf))
     if len(row) != 37:
         raise ValueError(f"rush folder template has {len(row)} columns, expected 37")
@@ -7385,9 +7465,12 @@ def build_deep_abyss_folder_leaf(template_leaf: bytes | str) -> bytes | str:
     # from this static preview.
     for base in range(7, 37, 3):
         row[base:base + 3] = ["(None)", "", "(None)"]
-    row[7:10] = ["0", "99", "1500"]
-    row[10:13] = ["0", TOKEN_ID, "50"]
-    row[13:16] = ["0", "11003", "2"]
+    for index, reward in enumerate(fixed_rewards):
+        values = [reward.get(key) for key in ("type", "id", "count")]
+        if any(type(value) is not int for value in values) or values[0] < 0 or min(values[1:]) <= 0:
+            raise ValueError(f"深渊固定奖励格式无效: {reward!r}")
+        base = 7 + 3 * index
+        row[base:base + 3] = [str(value) for value in values]
     return join(row, isinstance(template_leaf, bytes))
 
 
@@ -13635,11 +13718,12 @@ _GB_BOOL_FALSE = {"false", "False", "FALSE"}
 def general_boss_element_immunity_block(general_boss: dict, code: str,
                                         enemy_level: int | None = None,
                                         general_boss_variable: dict | None = None) -> str | None:
-    """实际 general_boss 代号能否承载属性免疫；返回阻断原因或 None。
+    """实际 general_boss 代号能否承载正向属性耐性；返回阻断原因或 None。
 
     `resist_element_resistance` 已由 GeneralBossValues.as:725-754 钉死为 c36。
-    必须先按本层 enemy level 选中最终/克隆后的实际档,再检查该档的全部 leaf；
-    该档任一运行变体为真都会吞掉 ElementResistance。
+    必须先按本层 enemy level 选中最终/克隆后的实际档,再检查该档的全部 leaf。
+    Lens v3 EnemyImpl.isConditionPrevented 对 strength>0 提前返回 false；c36
+    仅限制部分非正向属性耐性，因此 true 不能用于拒绝本工具的正向耐性卡。
     客户端只接受六种大小写布尔字面量,缺行/短行/未知值一律 fail closed。
     """
     node = general_boss.get(code)
@@ -13672,9 +13756,7 @@ def general_boss_element_immunity_block(general_boss: dict, code: str,
             return (f"actual boss {code} {row_where} 行列数={len(row)}"
                     "(应为162),fail closed")
         raw = row[GB_RESIST_ELEMENT_RESISTANCE_COL]
-        if raw in _GB_BOOL_TRUE:
-            return f"actual boss {code} {row_where} c36=true(resist_element_resistance)"
-        if raw not in _GB_BOOL_FALSE:
+        if raw not in _GB_BOOL_FALSE | _GB_BOOL_TRUE:
             return (f"actual boss {code} {row_where} c36={raw!r}"
                     " 非客户端合法布尔字面量,fail closed")
         seen += 1
@@ -13729,6 +13811,8 @@ def build_event_metadata_leaf(
 
 def main() -> int:
     ap = argparse.ArgumentParser(description="生成 700099 深渊连战")
+    ap.add_argument("--details-ui", action="store_true", default=None,
+                    help="首次为 cn.ui.AbyssDetails 客户端开启详情；已开启的塔会自动沿用")
     ap.add_argument("--rounds", type=int, default=15)
     ap.add_argument("--seed", type=int, default=int(date.today().strftime("%Y%m%d")))
     ap.add_argument("--difficulty", choices=tuple(DIFF_PRESETS), default="hell",
@@ -14477,7 +14561,12 @@ def main() -> int:
 
     # ---- ② folder 行(连战=700007 超级 folder 3 模板;无尽=folder 4 模板)----
     fo = q.load_table(Q_FOLDER)
-    folder_leaf = build_deep_abyss_folder_leaf(fo[TEMPLATE_EVENT]["3"])
+    with open(os.path.join(server_root, "assets", "rush_event_quest_folder.json"),
+              encoding="utf-8") as fh:
+        server_folders = json.load(fh)
+    # Match the server's later setdefault behavior when introducing a new tower.
+    fixed_rewards = server_folders[EVENT_ID if EVENT_ID in server_folders else TEMPLATE_EVENT]["1"]
+    folder_leaf = build_deep_abyss_folder_leaf(fo[TEMPLATE_EVENT]["3"], fixed_rewards)
     fo_bytes = isinstance(fo[TEMPLATE_EVENT]["3"], bytes)
     fo_endless = list(cells(fo[TEMPLATE_EVENT]["4"]))
     fo_endless[0] = "100"
@@ -14486,6 +14575,8 @@ def main() -> int:
 
     # ---- ② quest 行 ----
     qt = q.load_table(Q_QUEST)
+    details_ui_enabled = quest_details.should_enable(
+        args.details_ui, (cells(leaf)[3] for leaf in qt.get(EVENT_ID, {}).values()))
     tmpl_r1 = cells(qt[TEMPLATE_EVENT]["1"])
     tmpl_rn = cells(qt[TEMPLATE_EVENT]["2"])
     tmpl_endless = cells(qt[TEMPLATE_EVENT]["8"])
@@ -16967,6 +17058,8 @@ def main() -> int:
             row[72 + slot * 2] = strength
         row[3] = curse["desc"] if curse["desc"] else "(None)"
         pick = frec["pick"]
+        if details_ui_enabled:
+            row[3] = quest_details.for_generated_floor(frec)
         eff = f" | {curse['desc']}" if curse["desc"] else ""
         # boss 层的 HP 已由 boss_level.c2（general）或反解 c86（standard）
         # 精确落表；旧 bh/HP normalize 只剩 raw 诊断量，不能再打印成“补偿”误导。
@@ -17477,7 +17570,7 @@ def main() -> int:
 
     # 服务端 json
     quest_json_path = os.path.join(
-        server_root, "server", "assets", "rush_event_quest.json"
+        server_root, "assets", "rush_event_quest.json"
     )
     with open(quest_json_path, encoding="utf-8") as fh:
         quest_json = json.load(fh)
@@ -17505,13 +17598,13 @@ def main() -> int:
         json.dump(quest_json, fh, ensure_ascii=False, indent=1)
 
     folder_json_path = os.path.join(
-        server_root, "server", "assets", "rush_event_quest_folder.json"
+        server_root, "assets", "rush_event_quest_folder.json"
     )
     with open(folder_json_path, encoding="utf-8") as fh:
         folder_json = json.load(fh)
     # 保留自定义通关奖励(2026-07-28 起服务端 json 的 700099 奖励由用户定制,
     # 重摇只在条目缺失时才从模板补种)
-    folder_json.setdefault(EVENT_ID, {"1": folder_json[TEMPLATE_EVENT]["1"]})
+    folder_json.setdefault(EVENT_ID, {"1": fixed_rewards})
     with open(folder_json_path, "w", encoding="utf-8", newline="\n") as fh:
         json.dump(folder_json, fh, ensure_ascii=False, indent=1)
     print("[OK] 服务端 json 已写入(rush_event_quest / rush_event_quest_folder)——静态 import,须重启服务端")

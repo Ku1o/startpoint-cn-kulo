@@ -1,0 +1,96 @@
+{
+  "status": "passed_static_navigation_and_shop_checks",
+  "version": "1.4.103",
+  "checks": {
+    "stage": 1099,
+    "quest": 1099001,
+    "category": 99,
+    "products": [
+      "990099001",
+      "990099002"
+    ]
+  },
+  "original_rows_preserved": true,
+  "preimage_rejected": true,
+  "images_resolve": true,
+  "baseline_manifest_sha256": "e51285f047e274b3f27bcb73e710ea367c4be5e6c4a5622aef81ab242e71833a",
+  "archive": {
+    "name": "pinball-1.4.102-1.4.103-1-five-boss-entry-shop.zip",
+    "size": 839834,
+    "sha256": "990cfd61e122fcda0e2d903ada1495181f72e5173c6832483552ebef86a3541e",
+    "members": 4,
+    "files": [
+      "production/upload/24/eecf0418222b143f11d2839a802a92041af066",
+      "production/upload/59/9a322b2b502b17e3ac626be2243e9631d8b630",
+      "production/upload/97/efacb322621f7bf6671dad3bdf7bdc55cb350b",
+      "production/upload/a5/35aaa48a5290e76d07c40e497742e4a407a0d0"
+    ]
+  },
+  "source_reads": {
+    "common|97/efacb322621f7bf6671dad3bdf7bdc55cb350b": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.95-1.4.96-1-cdn-consolidated-gerald0903.zip",
+      "member": "production/upload/97/efacb322621f7bf6671dad3bdf7bdc55cb350b",
+      "sha256": "4c08e6acf2b039ae5d7ade4fccccb5eecb8263a65d188b26b3178a4fbe49b82a"
+    },
+    "common|24/eecf0418222b143f11d2839a802a92041af066": {
+      "archive": "F:\\startpoint-cn-main\\.cdn\\cn\\archive-common-diff\\pinball-1.4.48-1.4.49-1-4c2dd780.zip",
+      "member": "production/upload/24/eecf0418222b143f11d2839a802a92041af066",
+      "sha256": "5e60db8c4f0fe302e6ed08b09133f0a77570bdfb82584aa4ec6b4c6c3aefc7cb"
+    },
+    "common|a5/35aaa48a5290e76d07c40e497742e4a407a0d0": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.101-1.4.102-1-lens0907-0908-local-android.zip",
+      "member": "production/upload/a5/35aaa48a5290e76d07c40e497742e4a407a0d0",
+      "sha256": "27c9dc04e92d88de10d55551701d368e19f964aa9e29890a78a856b58fd6abce"
+    },
+    "common|e5/2bdb970ed33dad0a25f81768cb9b68971263d6": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.101-1.4.102-1-lens0907-0908-local-android.zip",
+      "member": "production/upload/e5/2bdb970ed33dad0a25f81768cb9b68971263d6",
+      "sha256": "6eb9056e888e5b214e0b82731074919d65e1d9b21c17537e4fd2edb9a0e68e4a"
+    },
+    "common|03/d09593d5e909fb37eee0abd59c1a0482707e0c": {
+      "archive": "F:\\startpoint-cn-main\\.cdn\\cn\\archive-common-full\\pinball-1.4.0-5-7aed4caf.zip",
+      "member": "production/upload/03/d09593d5e909fb37eee0abd59c1a0482707e0c",
+      "sha256": "41272fc62d7a2246bc84866ffb6da8453303a71931edd1eec2220fbfb26d02c2"
+    },
+    "common|0d/227c8e7bcb1222c7cb2d4fb82ace96fe605cef": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.96-1.4.97-1-greyupd0902-cdn-resource-recovery.zip",
+      "member": "production/upload/0d/227c8e7bcb1222c7cb2d4fb82ace96fe605cef",
+      "sha256": "36744a1927644593d04a8d216f4a42e82c7e51441ed12be336c1309b55fda55d"
+    }
+  },
+  "device_tested": false,
+  "runtime_delivered": true,
+  "backup": "F:\\startpoint-cn-main\\.codex-backups\\20260908-182720-five-boss-entry-shop",
+  "delivery": [
+    {
+      "path": "assets/asset-patch/production/upload/97/efacb322621f7bf6671dad3bdf7bdc55cb350b",
+      "before_sha256": null,
+      "sha256": "ff90f38b3b1e0e5a1fa415cffbafd7e2ce7db619917d4d2a62fc1e51d743a42e"
+    },
+    {
+      "path": "assets/asset-patch/production/upload/24/eecf0418222b143f11d2839a802a92041af066",
+      "before_sha256": null,
+      "sha256": "67f966e4947134fdea195661db825bd52dcc55a058a37c43ea0fe2fbacea47f1"
+    },
+    {
+      "path": "assets/asset-patch/production/upload/a5/35aaa48a5290e76d07c40e497742e4a407a0d0",
+      "before_sha256": "27c9dc04e92d88de10d55551701d368e19f964aa9e29890a78a856b58fd6abce",
+      "sha256": "948def479587bcec33318ce79bc035556a5cf3f48e93b22429d740f9bdb3366b"
+    },
+    {
+      "path": "assets/asset-patch/production/upload/59/9a322b2b502b17e3ac626be2243e9631d8b630",
+      "before_sha256": null,
+      "sha256": "b293dfa39ded545a4b4ffe036d4dfed1ae7f651d69ae70dee212a5c66f6cf09f"
+    },
+    {
+      "path": "assets/asset-patch/active/pinball-1.4.102-1.4.103-1-five-boss-entry-shop.zip",
+      "before_sha256": null,
+      "sha256": "990cfd61e122fcda0e2d903ada1495181f72e5173c6832483552ebef86a3541e"
+    },
+    {
+      "path": "assets/asset-patch/manifest.json",
+      "before_sha256": "e51285f047e274b3f27bcb73e710ea367c4be5e6c4a5622aef81ab242e71833a",
+      "sha256": "66602a90f02b5be77ab375689ecb696437245ac98af3859e3dcf6ecdee32f865"
+    }
+  ]
+}

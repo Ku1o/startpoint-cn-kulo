@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const schema_1 = require("../schema");
+const storage_layout_1 = require("../../lib/storage-layout");
 function getTableColumns(database, tableName) {
     return database.prepare(`PRAGMA table_info("${tableName}")`).all();
 }
@@ -921,7 +922,9 @@ function init(database, exists) {
         ON CONFLICT(category, id, player_id) DO UPDATE SET
             progress = MAX(progress, excluded.progress)
     `).run();
-    database.prepare(`CREATE TABLE IF NOT EXISTS players_mission_counters (
+    (0, storage_layout_1.assertStorageLayout)(database);
+    if (!(0, storage_layout_1.isCompactStorage)(database)) {
+        database.prepare(`CREATE TABLE IF NOT EXISTS players_mission_counters (
         player_id INTEGER NOT NULL,
         counter_key TEXT NOT NULL,
         dimension TEXT NOT NULL,
@@ -933,11 +936,11 @@ function init(database, exists) {
         PRIMARY KEY (player_id, counter_key),
         FOREIGN KEY (player_id) REFERENCES players (id) ON DELETE CASCADE
     )`).run();
-    database.prepare(`
+        database.prepare(`
         CREATE INDEX IF NOT EXISTS idx_players_mission_counters_dimension
         ON players_mission_counters (player_id, scope_type, scope_key, dimension)
     `).run();
-    database.prepare(`CREATE TABLE IF NOT EXISTS players_mission_counter_snapshots (
+        database.prepare(`CREATE TABLE IF NOT EXISTS players_mission_counter_snapshots (
         player_id INTEGER NOT NULL,
         period_type TEXT NOT NULL,
         counter_key TEXT NOT NULL,
@@ -946,6 +949,7 @@ function init(database, exists) {
         PRIMARY KEY (player_id, period_type, counter_key),
         FOREIGN KEY (player_id) REFERENCES players (id) ON DELETE CASCADE
     )`).run();
+    }
     database.prepare(`CREATE TABLE IF NOT EXISTS players_pass_cards (
         player_id INTEGER NOT NULL,
         event_id INTEGER NOT NULL,

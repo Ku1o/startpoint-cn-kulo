@@ -1,0 +1,1886 @@
+{
+  "status": "passed",
+  "version": "1.4.112",
+  "real_api_checks": [
+    {
+      "device": "Android",
+      "from_version": "1.4.109",
+      "target": "1.4.112",
+      "diffs": [
+        "1.4.110",
+        "1.4.111",
+        "1.4.112"
+      ]
+    },
+    {
+      "device": "Android",
+      "from_version": "1.4.111",
+      "target": "1.4.112",
+      "diffs": [
+        "1.4.112"
+      ]
+    },
+    {
+      "device": "Android",
+      "from_version": "1.4.112",
+      "target": "1.4.112",
+      "diffs": []
+    },
+    {
+      "device": "iOS",
+      "from_version": "1.4.109",
+      "target": "1.4.112",
+      "diffs": [
+        "1.4.110",
+        "1.4.111",
+        "1.4.112"
+      ]
+    },
+    {
+      "device": "iOS",
+      "from_version": "1.4.111",
+      "target": "1.4.112",
+      "diffs": [
+        "1.4.112"
+      ]
+    },
+    {
+      "device": "iOS",
+      "from_version": "1.4.112",
+      "target": "1.4.112",
+      "diffs": []
+    }
+  ],
+  "direct_resources": [
+    {
+      "root": "android",
+      "logical": "character/lion_swordman_reborn/ui/skill_cutin_0.atf.deflate",
+      "sha256": "1fe8b030c0b67f00c3dff8344e31f94f37642552e74ed1212d8b260065b7ef16",
+      "size": 107036
+    },
+    {
+      "root": "android",
+      "logical": "character/lion_swordman_reborn/ui/skill_cutin_1.atf.deflate",
+      "sha256": "c157c96ccf9f560eb3b1010690a9dc2830a158b3074ccba587c32c336014a7b0",
+      "size": 120354
+    },
+    {
+      "root": "android",
+      "logical": "character/white_tiger_ghost_playable/ui/skill_cutin_0.atf.deflate",
+      "sha256": "831c9ee2cd66f82ee340175147559033d1959e55c29fe542026b8f211e501bfc",
+      "size": 176076
+    },
+    {
+      "root": "android",
+      "logical": "character/white_tiger_ghost_playable/ui/skill_cutin_1.atf.deflate",
+      "sha256": "831c9ee2cd66f82ee340175147559033d1959e55c29fe542026b8f211e501bfc",
+      "size": 176076
+    },
+    {
+      "root": "android",
+      "logical": "character/white_tiger_summer/ui/skill_cutin_0.atf.deflate",
+      "sha256": "c49a667dd084e2ddf54dcda26fb00591911782a5d80bae1b96e3d6fdf985f77e",
+      "size": 88842
+    },
+    {
+      "root": "android",
+      "logical": "character/white_tiger_summer/ui/skill_cutin_1.atf.deflate",
+      "sha256": "27cdf62f66bb7386a934b12e18ebb39b85bfa33788b81c7decf27dd49fcdfaf7",
+      "size": 103674
+    },
+    {
+      "root": "common",
+      "logical": "battle/action/power_flip/action/override/white_tiger_ghost_playable_pf$white_tiger_ghost_playable_pf_lv1.action.dsl.amf3.deflate",
+      "sha256": "a551c11c485a3d3e03253dc4ec41b8b3d333f0e489f03ddffcf44a8ef2ba186e",
+      "size": 1120
+    },
+    {
+      "root": "common",
+      "logical": "battle/action/power_flip/action/override/white_tiger_ghost_playable_pf$white_tiger_ghost_playable_pf_lv2.action.dsl.amf3.deflate",
+      "sha256": "5f875bda843912d216233eef251dc56c6436535d0755277129e6142e2ccbd90d",
+      "size": 1141
+    },
+    {
+      "root": "common",
+      "logical": "battle/action/power_flip/action/override/white_tiger_ghost_playable_pf$white_tiger_ghost_playable_pf_lv3.action.dsl.amf3.deflate",
+      "sha256": "46780c27e49699f051964a1004e8fff4ac32fc3f6adaded94a78284777796ae9",
+      "size": 1198
+    },
+    {
+      "root": "common",
+      "logical": "battle/action/power_flip/action/override/white_tiger_summer_pf$white_tiger_summer_pf_lv1.action.dsl.amf3.deflate",
+      "sha256": "a68d94c88ac3de51b755b37a49ba16c21cadcc98e4b523ee0446732e13d2175f",
+      "size": 1098
+    },
+    {
+      "root": "common",
+      "logical": "battle/action/power_flip/action/override/white_tiger_summer_pf$white_tiger_summer_pf_lv2.action.dsl.amf3.deflate",
+      "sha256": "d2dabba2e28432f5d33d7c7e121cad5f5a8d99090a0f5825a00f63d454af6553",
+      "size": 1118
+    },
+    {
+      "root": "common",
+      "logical": "battle/action/power_flip/action/override/white_tiger_summer_pf$white_tiger_summer_pf_lv3.action.dsl.amf3.deflate",
+      "sha256": "5111cb3e0b1801c7fef066443b95fc30d9bc3b09455bfb31ad682fd3240c738d",
+      "size": 1177
+    },
+    {
+      "root": "common",
+      "logical": "battle/action/skill/action/rare5/fox_oracle_autumn$fox_oracle_autumn_1.action.dsl.amf3.deflate",
+      "sha256": "dd06ecfe33e7dabaa29e1002be41519ff0f4d1929df279e389032bca8945b048",
+      "size": 794
+    },
+    {
+      "root": "common",
+      "logical": "battle/action/skill/action/rare5/fox_oracle_autumn$fox_oracle_autumn_2.action.dsl.amf3.deflate",
+      "sha256": "defe652c78ff88cac4f1bb47ed5d7b38e93a312565993135bc5d47cc8d77317b",
+      "size": 799
+    },
+    {
+      "root": "common",
+      "logical": "battle/action/skill/action/rare5/white_tiger_ghost_playable$white_tiger_ghost_playable_pf_lv1_followup.action.dsl.amf3.deflate",
+      "sha256": "0e690af4684800fe759149599fb6c785c6c8ce71c3730583805fa69e2031e99b",
+      "size": 507
+    },
+    {
+      "root": "common",
+      "logical": "battle/action/skill/action/rare5/white_tiger_ghost_playable$white_tiger_ghost_playable_pf_lv2_followup.action.dsl.amf3.deflate",
+      "sha256": "903a4aeb04a489285daa1e05076f80e29a2d68a251202af9e56dc426445d4680",
+      "size": 612
+    },
+    {
+      "root": "common",
+      "logical": "battle/action/skill/action/rare5/white_tiger_ghost_playable$white_tiger_ghost_playable_pf_lv3_ex_followup.action.dsl.amf3.deflate",
+      "sha256": "f7d9a6334326e4cec20e9ef9009e84f8a6ab992a4a4a570f88f52d340eaba84c",
+      "size": 504
+    },
+    {
+      "root": "common",
+      "logical": "battle/action/skill/action/rare5/white_tiger_ghost_playable$white_tiger_ghost_playable_pf_lv3_followup.action.dsl.amf3.deflate",
+      "sha256": "d7459c171070ffe66b40dfea0d09d8857bac35ef1edacc45bcebc1550f3133d1",
+      "size": 673
+    },
+    {
+      "root": "common",
+      "logical": "battle/action/skill/action/rare5/white_tiger_ghost_playable$white_tiger_ghost_playable_twin_followup.action.dsl.amf3.deflate",
+      "sha256": "742a519f754519b50f44ba59f23da299a1f935db6ed614bf065a4f9ff6fe6317",
+      "size": 599
+    },
+    {
+      "root": "common",
+      "logical": "battle/action/skill/action/rare5/white_tiger_summer$white_tiger_summer_1.action.dsl.amf3.deflate",
+      "sha256": "6309fc53106aa682185aa5ca7e9a9f6e6f31e1c82e1197a6c106685f362aad95",
+      "size": 1277
+    },
+    {
+      "root": "common",
+      "logical": "battle/action/skill/action/rare5/white_tiger_summer$white_tiger_summer_2.action.dsl.amf3.deflate",
+      "sha256": "449d01ad85806f29e0971ef75ca776ff24eb1be317523beaae3f47c98f888790",
+      "size": 1280
+    },
+    {
+      "root": "common",
+      "logical": "battle/common/unique_condition/unique_white_tiger_summer_frailty.png",
+      "sha256": "be8ebf792dc2b5654697980e0eee92f685949e57959e314b817df0dbf8ea75eb",
+      "size": 3022
+    },
+    {
+      "root": "common",
+      "logical": "battle/common/unique_condition/unique_white_tiger_summer_holiday.png",
+      "sha256": "7ffa0fad67b793dc5101e3ff995da49d34eed84217b33cb6f66532a286bfc549",
+      "size": 3437
+    },
+    {
+      "root": "common",
+      "logical": "battle/common/unique_condition/unique_white_tiger_summer_sunburn.png",
+      "sha256": "be8ebf792dc2b5654697980e0eee92f685949e57959e314b817df0dbf8ea75eb",
+      "size": 3022
+    },
+    {
+      "root": "common",
+      "logical": "battle/effect/skill_unique/white_tiger_summer/wts_fever_burst/wts_fever_burst.atlas.amf3.deflate",
+      "sha256": "0e75ff22e8b491642c27513ba057af1ee767f9f582f03b44c86a62417d6af65a",
+      "size": 209
+    },
+    {
+      "root": "common",
+      "logical": "battle/effect/skill_unique/white_tiger_summer/wts_fever_burst/wts_fever_burst.png",
+      "sha256": "ea5317c1d91894c94b6ffc98385046826a3bfe567b8593a99db6cad8b59c11ef",
+      "size": 152747
+    },
+    {
+      "root": "common",
+      "logical": "battle/effect/skill_unique/white_tiger_summer/wts_fever_burst/wts_fever_burst_all.parts.amf3.deflate",
+      "sha256": "e2230e15ab63fc98fecbfb2c7cee4ceeadb1bf0df0ea9bf19626fcdf864807f0",
+      "size": 1673
+    },
+    {
+      "root": "common",
+      "logical": "battle/effect/skill_unique/white_tiger_summer/wts_fever_burst/wts_fever_burst_all.timeline.amf3.deflate",
+      "sha256": "47a22d0511e75bedda30f2507d916c621ad6a4c154181e1042444eab25403b47",
+      "size": 143
+    },
+    {
+      "root": "common",
+      "logical": "character/black_wolf_knight_wt26/voice/ally/evolution.mp3",
+      "sha256": "05aaf6f76e9dbb35a8b4f999140c2226ab2c36e77d4395873bd6b288c63e7747",
+      "size": 153017
+    },
+    {
+      "root": "common",
+      "logical": "character/black_wolf_knight_wt26/voice/ally/join.mp3",
+      "sha256": "f791092d56448950c45d5eca8ed61b3bcfb78d9ed0977fe2adfe1be4616f5d25",
+      "size": 113519
+    },
+    {
+      "root": "common",
+      "logical": "character/black_wolf_knight_wt26/voice/battle/battle_start_0.mp3",
+      "sha256": "4ea85348cb52138c06b029ecdb33693b2ed6f6600ee6a1e036274b81782fbc85",
+      "size": 19165
+    },
+    {
+      "root": "common",
+      "logical": "character/black_wolf_knight_wt26/voice/battle/battle_start_1.mp3",
+      "sha256": "9a155b20ac754a9239f154cf5b9262bd505701e2f8af28e6080d8217304d3422",
+      "size": 21359
+    },
+    {
+      "root": "common",
+      "logical": "character/black_wolf_knight_wt26/voice/battle/battle_start_2.mp3",
+      "sha256": "2e3cf2f5a71d7a07fdab7e18dadac77dbfc18d602776789ef2429644ab592eda",
+      "size": 22300
+    },
+    {
+      "root": "common",
+      "logical": "character/black_wolf_knight_wt26/voice/battle/battle_start_3.mp3",
+      "sha256": "63b7a699e3835c0a0f1a6ca087a470c2bc6b311f56c65379bf7128df5412ac47",
+      "size": 18852
+    },
+    {
+      "root": "common",
+      "logical": "character/black_wolf_knight_wt26/voice/battle/outhole_0.mp3",
+      "sha256": "d1de80e73cdee6e044dff9e5109b683f262ff6c12d6157e93b19549a488cf66e",
+      "size": 7880
+    },
+    {
+      "root": "common",
+      "logical": "character/black_wolf_knight_wt26/voice/battle/outhole_1.mp3",
+      "sha256": "7aafbbdfafcc7698c223a9ec1997edd0f7875e6f3093a16d85aca78b7d0c9d31",
+      "size": 10388
+    },
+    {
+      "root": "common",
+      "logical": "character/black_wolf_knight_wt26/voice/battle/outhole_2.mp3",
+      "sha256": "eeebcba29e750ffc3afe8bb0031ff135f17aef452786b3cb3599794d3d78385d",
+      "size": 11328
+    },
+    {
+      "root": "common",
+      "logical": "character/black_wolf_knight_wt26/voice/battle/outhole_3.mp3",
+      "sha256": "b3b821de6521150d0819ba3e9bab3b560746f6fa48bebca79ea85b9a38abec5a",
+      "size": 10388
+    },
+    {
+      "root": "common",
+      "logical": "character/black_wolf_knight_wt26/voice/battle/power_flip_0.mp3",
+      "sha256": "eb5d9954107d6b9441a3e156055ec8a30db8385f43bbe7769ff6940d53ba91aa",
+      "size": 21046
+    },
+    {
+      "root": "common",
+      "logical": "character/black_wolf_knight_wt26/voice/battle/power_flip_1.mp3",
+      "sha256": "5170765f2683ed7bf85b564ca639bb18b5a3bc0e62f9865f5fbbd5c0f39caf7a",
+      "size": 9134
+    },
+    {
+      "root": "common",
+      "logical": "character/black_wolf_knight_wt26/voice/battle/power_flip_2.mp3",
+      "sha256": "8d871fe200bcdf4dc92cbf101844610978291d11b37f65dd7c51337342c7c747",
+      "size": 12896
+    },
+    {
+      "root": "common",
+      "logical": "character/black_wolf_knight_wt26/voice/battle/power_flip_3.mp3",
+      "sha256": "050b38c98bb549820412d37877cb440cc5065f17c7ccd6435a50fbfa2390f0d5",
+      "size": 11328
+    },
+    {
+      "root": "common",
+      "logical": "character/black_wolf_knight_wt26/voice/battle/skill_0.mp3",
+      "sha256": "9074b16d15615f067890e009afac8e79357dfe00aa38ccd1b240af3360f79c27",
+      "size": 24181
+    },
+    {
+      "root": "common",
+      "logical": "character/black_wolf_knight_wt26/voice/battle/skill_1.mp3",
+      "sha256": "1167c7f9a909b9b2cf0b12704c87a5d4892424340c0dc24ec81bf514f09a4d7e",
+      "size": 22300
+    },
+    {
+      "root": "common",
+      "logical": "character/black_wolf_knight_wt26/voice/battle/skill_ready.mp3",
+      "sha256": "c12f8b430e4bebaea796fd548650262210844995d7ffa5ec703c075e7f8fa4f4",
+      "size": 17598
+    },
+    {
+      "root": "common",
+      "logical": "character/black_wolf_knight_wt26/voice/battle/win_0.mp3",
+      "sha256": "8725f37cd2722bcacf3c2c4d835510bc1ef173eeffa62d340ee54cc1ea00c5d9",
+      "size": 19792
+    },
+    {
+      "root": "common",
+      "logical": "character/black_wolf_knight_wt26/voice/battle/win_1.mp3",
+      "sha256": "ea9fefa44fd4447f6fc83c08308307c67da881718442e992ebc31a46c79c6c18",
+      "size": 23867
+    },
+    {
+      "root": "common",
+      "logical": "character/black_wolf_knight_wt26/voice/battle/win_2.mp3",
+      "sha256": "51b75f42ffc4de828304b627c363c3a76acd143ed0f23f77a8de70ab0dac2890",
+      "size": 26062
+    },
+    {
+      "root": "common",
+      "logical": "character/black_wolf_knight_wt26/voice/battle/win_3.mp3",
+      "sha256": "57c90577acd34e8837764ab67c739e67fbc73ce8c9a5eaecf6cb8b850a5851d7",
+      "size": 22300
+    },
+    {
+      "root": "common",
+      "logical": "character/black_wolf_knight_wt26/voice/home/chugio.mp3",
+      "sha256": "d4e0797e4497864b5c0de77d12e9800019233eebebfe4011815e03189fb8619e",
+      "size": 147061
+    },
+    {
+      "root": "common",
+      "logical": "character/black_wolf_knight_wt26/voice/home/happihowaitofuesu_masaka.mp3",
+      "sha256": "35332c388e7c7616ba5c2bc92dd29bbe66f64a9845a31afa930b4503cf16cd67",
+      "size": 153957
+    },
+    {
+      "root": "common",
+      "logical": "character/black_wolf_knight_wt26/voice/home/saikinwa_shibuyano.mp3",
+      "sha256": "e33f172ef8c8dc64fb8dee8336af4e3e22b60c751dc01af377c1238c6ecb5664",
+      "size": 156778
+    },
+    {
+      "root": "common",
+      "logical": "character/black_wolf_knight_wt26/voice/home/shirodononimo.mp3",
+      "sha256": "e8706ecf4dabdc233e2b831094872b95e664531a2a7624fc250f9cd9a48ae1ed",
+      "size": 107250
+    },
+    {
+      "root": "common",
+      "logical": "character/black_wolf_knight_wt26/voice/home/shirokumasan.mp3",
+      "sha256": "606573f5f8675bd69034174ddd8ff5e0f5b42d000144d42a3becb1bebfe0bf2b",
+      "size": 173706
+    },
+    {
+      "root": "common",
+      "logical": "character/black_wolf_knight_wt26/voice/home/watashiwa_oto.mp3",
+      "sha256": "b828e645a9012965b3e79f21e02ccde1921ce9e4a8b536b9a0687d50bcd51532",
+      "size": 163675
+    },
+    {
+      "root": "common",
+      "logical": "character/claude_wolf_assassin_ex/pixelart/special_sprite_sheet.png",
+      "sha256": "d2d63e6ac7575d8ed40e9a8cd09afc79aaa081a6b85c7cab4f2361a4f298bab6",
+      "size": 44140
+    },
+    {
+      "root": "common",
+      "logical": "character/claude_wolf_assassin_ex/pixelart/sprite_sheet.png",
+      "sha256": "6b35ca71fb00726ccf53e08a5e7412fbb66dfd72233b7b79a6dba1c99d4f40e8",
+      "size": 6666
+    },
+    {
+      "root": "common",
+      "logical": "character/claude_wolf_assassin_ex/voice/ally/evolution.mp3",
+      "sha256": "f5b9762df6eca14a3e30abcd030d36a48fc0598a1620bc1b9a4ee981986255a5",
+      "size": 137657
+    },
+    {
+      "root": "common",
+      "logical": "character/claude_wolf_assassin_ex/voice/ally/join.mp3",
+      "sha256": "02f3a048ee1946d3fe5b122412bf7095df0377191879963524fb5c4ad62a8cfd",
+      "size": 125745
+    },
+    {
+      "root": "common",
+      "logical": "character/claude_wolf_assassin_ex/voice/battle/battle_start_0.mp3",
+      "sha256": "6c92aad89616ab5e66e02a121dfef2f06a27fa3a223470b7ced153bacbaf2a8b",
+      "size": 15404
+    },
+    {
+      "root": "common",
+      "logical": "character/claude_wolf_assassin_ex/voice/battle/battle_start_1.mp3",
+      "sha256": "19183db95f146886c6dfb7cec742787aa52f3462b7626774124084db1bf8f9b9",
+      "size": 15090
+    },
+    {
+      "root": "common",
+      "logical": "character/claude_wolf_assassin_ex/voice/battle/outhole_0.mp3",
+      "sha256": "17ebe3158ddd87233ce04e3a96d36f8f32dcebfbf6791100d4cc5e2eaef02f8f",
+      "size": 7880
+    },
+    {
+      "root": "common",
+      "logical": "character/claude_wolf_assassin_ex/voice/battle/outhole_1.mp3",
+      "sha256": "ee5c03c0290d4f6d9759bf0cdbb0a3297aa87c49aa4c76f60687459929003593",
+      "size": 5686
+    },
+    {
+      "root": "common",
+      "logical": "character/claude_wolf_assassin_ex/voice/battle/power_flip_0.mp3",
+      "sha256": "d07e863b4654d6bcfe5d2bfa3b69daecd2d324482ae8bd23355fd528ae09cc2f",
+      "size": 6940
+    },
+    {
+      "root": "common",
+      "logical": "character/claude_wolf_assassin_ex/voice/battle/power_flip_1.mp3",
+      "sha256": "77fafc7d9d11e96fe1520ea862066a7198a1cfcc6dd22075212ecaf4f3b2e7ae",
+      "size": 5999
+    },
+    {
+      "root": "common",
+      "logical": "character/claude_wolf_assassin_ex/voice/battle/skill_0.mp3",
+      "sha256": "139f1f5981e1a02e2dd0ab757309bcb9cfd79a11f4ad8cc236246e5ce5e2bdda",
+      "size": 20419
+    },
+    {
+      "root": "common",
+      "logical": "character/claude_wolf_assassin_ex/voice/battle/skill_1.mp3",
+      "sha256": "381fce794d523c873cfe8c67f773144519a817343502073b82506c68e5d79518",
+      "size": 26688
+    },
+    {
+      "root": "common",
+      "logical": "character/claude_wolf_assassin_ex/voice/battle/skill_ready.mp3",
+      "sha256": "48eaca5c512a7845be9106f0c6b38ef942b86122ad154b5e1c3a00142d240a70",
+      "size": 16344
+    },
+    {
+      "root": "common",
+      "logical": "character/claude_wolf_assassin_ex/voice/battle/win_0.mp3",
+      "sha256": "c8debc779588216d3c43be21da870bb74be60ef34b9509f5af7f0dc86498bc3e",
+      "size": 24494
+    },
+    {
+      "root": "common",
+      "logical": "character/claude_wolf_assassin_ex/voice/battle/win_1.mp3",
+      "sha256": "ca99b16eb58037d96504c3e39da339b0ab2356e33493c12de6ee987a2766327f",
+      "size": 13523
+    },
+    {
+      "root": "common",
+      "logical": "character/claude_wolf_assassin_ex/voice/home/chumonwa.mp3",
+      "sha256": "2cd2bfd2ea3031eb4440e8000c4f6f3668ddf7ba1e33ab48d0ee2a0d4fc935e0",
+      "size": 126685
+    },
+    {
+      "root": "common",
+      "logical": "character/claude_wolf_assassin_ex/voice/home/kariokaesu.mp3",
+      "sha256": "b2684730fa71b04fed22d854493acb66824aca761e37bf00f8c23a9d76b01b66",
+      "size": 121983
+    },
+    {
+      "root": "common",
+      "logical": "character/claude_wolf_assassin_ex/voice/home/kashizukurino.mp3",
+      "sha256": "090954a3ca911292fc851c720d603b84279099c226cf3dd74d1d689de73a2924",
+      "size": 127312
+    },
+    {
+      "root": "common",
+      "logical": "character/claude_wolf_assassin_ex/voice/home/moorenikamauna.mp3",
+      "sha256": "52e040a58f0d38e3e1a2feab1d56e4934a9702fa362c48358c8b9928b59bdb98",
+      "size": 120416
+    },
+    {
+      "root": "common",
+      "logical": "character/claude_wolf_assassin_ex/voice/home/nandearoto.mp3",
+      "sha256": "6188d7cb6325b6a7799d9b6d36e206568f20e23b45d8327f3c1a86a6711c1063",
+      "size": 125431
+    },
+    {
+      "root": "common",
+      "logical": "character/claude_wolf_assassin_ex/voice/home/omaenoeranda.mp3",
+      "sha256": "902dc7414b3408c3bc1b3b6fab39ca22edb2ecb407655c1d46990eeca79c7187",
+      "size": 129506
+    },
+    {
+      "root": "common",
+      "logical": "character/dimension_witch_smr20_ex/voice/ally/evolution.mp3",
+      "sha256": "8a1e1e89789a12f3b2364537246a52904a40cfabbdac7f23a94b4286bc945652",
+      "size": 176213
+    },
+    {
+      "root": "common",
+      "logical": "character/dimension_witch_smr20_ex/voice/ally/join.mp3",
+      "sha256": "59bbc21ae2c37b5f4b0c02a2ae3e6ed07c05600f96683c46266ccab33be32dbc",
+      "size": 113519
+    },
+    {
+      "root": "common",
+      "logical": "character/dimension_witch_smr20_ex/voice/battle/battle_start_0.mp3",
+      "sha256": "4db2b9806269a7c3cc7b3e1ed11985894d23c706e9f762067fd515f86eb0116e",
+      "size": 27002
+    },
+    {
+      "root": "common",
+      "logical": "character/dimension_witch_smr20_ex/voice/battle/battle_start_1.mp3",
+      "sha256": "c52e5a52c23a11d6482845edd3e1d211c9ff6d75eac8c6f4296d8389b0da65fd",
+      "size": 34525
+    },
+    {
+      "root": "common",
+      "logical": "character/dimension_witch_smr20_ex/voice/battle/outhole_0.mp3",
+      "sha256": "a9e5263c0c09c932c141fb32a910a5bd15bfd597ef4081cd66f43a8277f357db",
+      "size": 6313
+    },
+    {
+      "root": "common",
+      "logical": "character/dimension_witch_smr20_ex/voice/battle/outhole_1.mp3",
+      "sha256": "e0283ac2c0ce08feadc286321b87e278f9f8fe3ee50fe446e0d0f26a762b29b1",
+      "size": 11328
+    },
+    {
+      "root": "common",
+      "logical": "character/dimension_witch_smr20_ex/voice/battle/power_flip_0.mp3",
+      "sha256": "7f1fd6cf39c338ea01f0e9c7848c22e77740b93c630b66e218ad91f0b478a54a",
+      "size": 10075
+    },
+    {
+      "root": "common",
+      "logical": "character/dimension_witch_smr20_ex/voice/battle/power_flip_1.mp3",
+      "sha256": "5ee35f6653d9be027249a945ce2f8399b200d8c75dd1bc9772cbeab2f0674d3d",
+      "size": 10702
+    },
+    {
+      "root": "common",
+      "logical": "character/dimension_witch_smr20_ex/voice/battle/skill_0.mp3",
+      "sha256": "2602c0c983bc970a1b2da1392ec9194491ad32bdf32ccc322915ba6d216a97ea",
+      "size": 31390
+    },
+    {
+      "root": "common",
+      "logical": "character/dimension_witch_smr20_ex/voice/battle/skill_1.mp3",
+      "sha256": "aa88145a62717e0cdacdbeba45beaf1326409f81008c2e4fb0b8f3f4f0c4a631",
+      "size": 24494
+    },
+    {
+      "root": "common",
+      "logical": "character/dimension_witch_smr20_ex/voice/battle/skill_ready.mp3",
+      "sha256": "b4d7d4487b20234ab971ac3932af65d27396de9f30c260a320a7b1df3008744b",
+      "size": 16657
+    },
+    {
+      "root": "common",
+      "logical": "character/dimension_witch_smr20_ex/voice/battle/win_0.mp3",
+      "sha256": "f81f0302d9786cedca041f868581af8b62e1de5ed75a295ba12ff9ff4e2d757b",
+      "size": 46750
+    },
+    {
+      "root": "common",
+      "logical": "character/dimension_witch_smr20_ex/voice/battle/win_1.mp3",
+      "sha256": "f4209425a122c4ba127d9408627f2a7831493406bdad18a9a4ea111e546737fa",
+      "size": 45183
+    },
+    {
+      "root": "common",
+      "logical": "character/dimension_witch_smr20_ex/voice/home/hoshiminomachi.mp3",
+      "sha256": "fed8c9faaa1ae9ceb95197a9c999be0e20072d274a8bcbf777c93b5efd1bf1ae",
+      "size": 149882
+    },
+    {
+      "root": "common",
+      "logical": "character/dimension_witch_smr20_ex/voice/home/konnanitoku.mp3",
+      "sha256": "3c5d33e8697323d02e12a5e15b0307d12673d001b98add0b10db379fc61efe58",
+      "size": 152703
+    },
+    {
+      "root": "common",
+      "logical": "character/dimension_witch_smr20_ex/voice/home/nandaka.mp3",
+      "sha256": "ad08e8c0c21961baef6835dfca4efe4e37f1d1f8c9aed358c83f54228904a30c",
+      "size": 149882
+    },
+    {
+      "root": "common",
+      "logical": "character/dimension_witch_smr20_ex/voice/home/oneesan.mp3",
+      "sha256": "ae346d28d3e5781b50f2b874267388ef56e2e74077dd9a8264ca355b2c05ae02",
+      "size": 133895
+    },
+    {
+      "root": "common",
+      "logical": "character/dimension_witch_smr20_ex/voice/home/saa_oneesanto.mp3",
+      "sha256": "1e6f969f4d3b2f8c0112a2c77b059e6d486817aec71bda88b8b3588c5f3c7b47",
+      "size": 150195
+    },
+    {
+      "root": "common",
+      "logical": "character/dimension_witch_smr20_ex/voice/home/ubuna.mp3",
+      "sha256": "c9d666ff17f871b09b33c46958a8b146335b69507a106cbc90d8394cbd601835",
+      "size": 137030
+    },
+    {
+      "root": "common",
+      "logical": "character/fox_oracle_autumn/voice/ally/evolution.mp3",
+      "sha256": "7579ed6ccc310940eb569a104d3330b3af51ddba4a676f6f3a768e971db2617d",
+      "size": 144239
+    },
+    {
+      "root": "common",
+      "logical": "character/fox_oracle_autumn/voice/ally/join.mp3",
+      "sha256": "7bc81f13eccf5cdcebde9b1864bac98c9004887ae1d4152e82b828e53456d600",
+      "size": 229190
+    },
+    {
+      "root": "common",
+      "logical": "character/fox_oracle_autumn/voice/battle/battle_start_0.mp3",
+      "sha256": "7580d3b58fc4674d8d23f386e7fc05612e01f1e581610cea7e312de984528ac4",
+      "size": 23867
+    },
+    {
+      "root": "common",
+      "logical": "character/fox_oracle_autumn/voice/battle/battle_start_1.mp3",
+      "sha256": "beba877293a21438a2838858969bec3928c7fc62baa30d17da5d710d71101282",
+      "size": 26062
+    },
+    {
+      "root": "common",
+      "logical": "character/fox_oracle_autumn/voice/battle/outhole_0.mp3",
+      "sha256": "c813c67d179b47c4cd8b69c0bf3184486d10e9001beb46d2232d9e399c8463b7",
+      "size": 18852
+    },
+    {
+      "root": "common",
+      "logical": "character/fox_oracle_autumn/voice/battle/outhole_1.mp3",
+      "sha256": "283594909064b4ab676aefadf5dd186a440b0588680d21da408fa769bf6fe686",
+      "size": 20106
+    },
+    {
+      "root": "common",
+      "logical": "character/fox_oracle_autumn/voice/battle/power_flip_0.mp3",
+      "sha256": "e4aafcff4e02bbafa8977a79e8fbbed2286784a980c429016063dae0dd730c80",
+      "size": 31704
+    },
+    {
+      "root": "common",
+      "logical": "character/fox_oracle_autumn/voice/battle/power_flip_1.mp3",
+      "sha256": "82819dac8a81f8cceb3bbd4e2383865c1c17465a47413805c0b31ba7fd0f3d54",
+      "size": 19792
+    },
+    {
+      "root": "common",
+      "logical": "character/fox_oracle_autumn/voice/battle/skill_0.mp3",
+      "sha256": "ad3b26703e8f3117632ca8a208e5292e11f14227f3b0b4071fa5467afc7ee071",
+      "size": 29510
+    },
+    {
+      "root": "common",
+      "logical": "character/fox_oracle_autumn/voice/battle/skill_1.mp3",
+      "sha256": "555076f32833b9499f99dc207a53eabbdc4afc6e84a160c6b7cd93ca70cf1dd4",
+      "size": 34212
+    },
+    {
+      "root": "common",
+      "logical": "character/fox_oracle_autumn/voice/battle/skill_ready.mp3",
+      "sha256": "bb906f9636a69d452d920034155cf804924ff0717c9d052cd750aa7288694831",
+      "size": 25748
+    },
+    {
+      "root": "common",
+      "logical": "character/fox_oracle_autumn/voice/battle/win_0.mp3",
+      "sha256": "190ed74c64f9c2edfbdb7f41b4a7555d90fddf37cc349dd30805e73408b0de8a",
+      "size": 55528
+    },
+    {
+      "root": "common",
+      "logical": "character/fox_oracle_autumn/voice/battle/win_1.mp3",
+      "sha256": "427bfe7c95099f2a5c0f20ab4286957a4c1d99b5ed961d4ff1ff81e8a99c076e",
+      "size": 55528
+    },
+    {
+      "root": "common",
+      "logical": "character/fox_oracle_autumn/voice/home/alk.mp3",
+      "sha256": "7c0461693908dc109d6ce1686125ccbf6a47eb71c4ea9a25e5625ff870e709bc",
+      "size": 142672
+    },
+    {
+      "root": "common",
+      "logical": "character/fox_oracle_autumn/voice/home/haa.mp3",
+      "sha256": "c686446d14c3cd79975cc9a547a8f7f6cc58d0bd79e522fade8ba2749e342486",
+      "size": 249565
+    },
+    {
+      "root": "common",
+      "logical": "character/fox_oracle_autumn/voice/home/kokono.mp3",
+      "sha256": "2bfbef957bdfbadaff92506406642f1c7a65e231ad68f26890b776809752a2ff",
+      "size": 180915
+    },
+    {
+      "root": "common",
+      "logical": "character/fox_oracle_autumn/voice/home/onushirano.mp3",
+      "sha256": "f7ddb0ff475b1a335a1c13c13a46c5d1186d6a9d235ce89fd480cde0f4ae4ccc",
+      "size": 178408
+    },
+    {
+      "root": "common",
+      "logical": "character/fox_oracle_autumn/voice/home/onushitachi.mp3",
+      "sha256": "315c209c41d9add4c903ef787f2bdb67f06e99168cadbbeb2c3ea8a23999921a",
+      "size": 186558
+    },
+    {
+      "root": "common",
+      "logical": "character/resistance_princess_ex/voice/ally/evolution.mp3",
+      "sha256": "fa48960eedc1f8ca48a2d660bc21637aa906e355a58bc1dea44a1d975c67d81c",
+      "size": 161480
+    },
+    {
+      "root": "common",
+      "logical": "character/resistance_princess_ex/voice/ally/join.mp3",
+      "sha256": "2a1e6fd8e21417b8520abc38bdd0bd40955b079e856b45a350c8591dc1410f25",
+      "size": 121356
+    },
+    {
+      "root": "common",
+      "logical": "character/resistance_princess_ex/voice/battle/battle_start_0.mp3",
+      "sha256": "7bdb2735bbf3cbdc3cb1d86416526569acdf4ca1d580cf1d22601bbe4d19d6fd",
+      "size": 16971
+    },
+    {
+      "root": "common",
+      "logical": "character/resistance_princess_ex/voice/battle/battle_start_1.mp3",
+      "sha256": "24d599ed0b7b88ec134514652a1ddf38043e193b47b8e0b98edfd876507ebf41",
+      "size": 21046
+    },
+    {
+      "root": "common",
+      "logical": "character/resistance_princess_ex/voice/battle/outhole_0.mp3",
+      "sha256": "70de4358a53d25b8b10504086f5b699d678fc3b5ab8ac0dfb36844ae8ec4e8fb",
+      "size": 15404
+    },
+    {
+      "root": "common",
+      "logical": "character/resistance_princess_ex/voice/battle/outhole_1.mp3",
+      "sha256": "2413b01cdef8c4a34651eb7b60877f7e0bfd64d91788a684af0f75192e7d3ef6",
+      "size": 16030
+    },
+    {
+      "root": "common",
+      "logical": "character/resistance_princess_ex/voice/battle/power_flip_0.mp3",
+      "sha256": "e6c1a33d89beec3f17be09ff10815c02f3fd97a12469273493076e98734a2ef8",
+      "size": 11328
+    },
+    {
+      "root": "common",
+      "logical": "character/resistance_princess_ex/voice/battle/power_flip_1.mp3",
+      "sha256": "9e8d84334add6e7a291bdc449ad7582a5140a6727f824f9921e58b609e8bfdb7",
+      "size": 11015
+    },
+    {
+      "root": "common",
+      "logical": "character/resistance_princess_ex/voice/battle/skill_0.mp3",
+      "sha256": "6c68e3182a14eb5cd2d3aba51eb6696e5869fe47d04177abf652148fd0073f9c",
+      "size": 28883
+    },
+    {
+      "root": "common",
+      "logical": "character/resistance_princess_ex/voice/battle/skill_1.mp3",
+      "sha256": "345aa6ec0f8b166e2219afc928617cad07580e2f18f32e543c0144f21ae4577f",
+      "size": 32331
+    },
+    {
+      "root": "common",
+      "logical": "character/resistance_princess_ex/voice/battle/skill_ready.mp3",
+      "sha256": "316df2998163520d32835ab5453937f73b453ee41577b7a65a3642b58f8f98a9",
+      "size": 24808
+    },
+    {
+      "root": "common",
+      "logical": "character/resistance_princess_ex/voice/battle/win_0.mp3",
+      "sha256": "6b2154a738d4a929b0bed9ea819b70e939645bda1830261f168f4d325ba87436",
+      "size": 54901
+    },
+    {
+      "root": "common",
+      "logical": "character/resistance_princess_ex/voice/battle/win_1.mp3",
+      "sha256": "146fd0ee1c8bda673688a07e5609cfd26daac1a4dca65d681e1f66c4ade3dd83",
+      "size": 53960
+    },
+    {
+      "root": "common",
+      "logical": "character/resistance_princess_ex/voice/home/fufufufu_esuteruniwa.mp3",
+      "sha256": "ac3d6e1f44230b4d604397ad5dc9b587201d8eeba4c1dbc798a0a435efcc54b2",
+      "size": 168690
+    },
+    {
+      "root": "common",
+      "logical": "character/resistance_princess_ex/voice/home/higekio.mp3",
+      "sha256": "f25f15c24fc1f66b67f51f167dc4d1c33a1761ae06fa3f88ae37800dad4310e3",
+      "size": 189379
+    },
+    {
+      "root": "common",
+      "logical": "character/resistance_princess_ex/voice/home/hontoni_okashiku.mp3",
+      "sha256": "83916b42ab282ed4b60e2b5602b26198c899cc752394c1dba2449aaca7b883d4",
+      "size": 196902
+    },
+    {
+      "root": "common",
+      "logical": "character/resistance_princess_ex/voice/home/ima_mitemashita.mp3",
+      "sha256": "117fdc61eb53d45794432d2590c418ea3b4ad9019695aa16a73af33dbecdf653",
+      "size": 161480
+    },
+    {
+      "root": "common",
+      "logical": "character/resistance_princess_ex/voice/home/ki_kinishisugitowa.mp3",
+      "sha256": "ca50d021032218e0543f5d7f48ed22a1775502a960cad2b92b340e6b2220f2bb",
+      "size": 144553
+    },
+    {
+      "root": "common",
+      "logical": "character/resistance_princess_ex/voice/home/koorigashidesuka.mp3",
+      "sha256": "9bf02d3bd39e18e52fd783b622f263e940a48133cb419e0a5d3747f96fe268d4",
+      "size": 174333
+    },
+    {
+      "root": "common",
+      "logical": "character/resistance_princess_ex/voice/home/mochiron_konnakotode.mp3",
+      "sha256": "191a356c7c274aa4dc39cad25630aa1da27cbc8a88099e7b071fc4d114592e79",
+      "size": 186871
+    },
+    {
+      "root": "common",
+      "logical": "character/resistance_princess_ex/voice/home/watashigabaka.mp3",
+      "sha256": "a328ef6869e3ce167182240e716592363022e8a24e5627846589e29bedb4d57f",
+      "size": 146747
+    },
+    {
+      "root": "common",
+      "logical": "character/unicorn_lancer_rose/pixelart/special_sprite_sheet.atlas.amf3.deflate",
+      "sha256": "aad2deeea42975aa6f001b18930765bcc6c869e81ba8631fa8c4a3e29f1f83be",
+      "size": 561
+    },
+    {
+      "root": "common",
+      "logical": "character/unicorn_lancer_rose/pixelart/special_sprite_sheet.png",
+      "sha256": "5cf2bcdd1cca1d4dabf71543d034cca73991d691991e36d668f356b080b2e93e",
+      "size": 11202
+    },
+    {
+      "root": "common",
+      "logical": "character/unicorn_lancer_rose/pixelart/sprite_sheet.atlas.amf3.deflate",
+      "sha256": "350f11fb80882a1cc20a526fdc0baf9f31d9b7654273c9ee2c9dccaf7c1bf64d",
+      "size": 906
+    },
+    {
+      "root": "common",
+      "logical": "character/unicorn_lancer_rose/pixelart/sprite_sheet.png",
+      "sha256": "5f8112658b88ad27d03405ee8e62eb176693cf33a7476c8b4ae39a48c10e7f00",
+      "size": 6727
+    },
+    {
+      "root": "common",
+      "logical": "character/unicorn_lancer_rose/voice/ally/evolution.mp3",
+      "sha256": "1821983d2825cd68a6f23d28fe532d456f2c0acdaf9a3224be3dda1ed4e26b43",
+      "size": 236713
+    },
+    {
+      "root": "common",
+      "logical": "character/unicorn_lancer_rose/voice/ally/join.mp3",
+      "sha256": "e7aa4e97db183d70d08b467d2ff59b6c77220e84704ee0ee81591928aabe139e",
+      "size": 195022
+    },
+    {
+      "root": "common",
+      "logical": "character/unicorn_lancer_rose/voice/battle/battle_start_0.mp3",
+      "sha256": "6ea585158db8c8e9b93ffe59076387a2c31ab916d9508b249d0ce74cd9586dfd",
+      "size": 13209
+    },
+    {
+      "root": "common",
+      "logical": "character/unicorn_lancer_rose/voice/battle/battle_start_1.mp3",
+      "sha256": "77f23f480a6acf0c1acf122744704ea6d275c81fca1b2cf928854bb8e072eb0b",
+      "size": 12896
+    },
+    {
+      "root": "common",
+      "logical": "character/unicorn_lancer_rose/voice/battle/outhole_0.mp3",
+      "sha256": "daf6dfcff9dec9680d8b692f367541520e1fae2974a8145bf9b0365d89701e53",
+      "size": 12896
+    },
+    {
+      "root": "common",
+      "logical": "character/unicorn_lancer_rose/voice/battle/outhole_1.mp3",
+      "sha256": "adaf659e507dd098ff4585fd0dd1aa48efd86268d6051c336161f26d9917ab61",
+      "size": 10702
+    },
+    {
+      "root": "common",
+      "logical": "character/unicorn_lancer_rose/voice/battle/power_flip_0.mp3",
+      "sha256": "55362042f4ec16cef74bad41b25ed1c39401c00f99b07472e10b66af2c82e0ce",
+      "size": 11642
+    },
+    {
+      "root": "common",
+      "logical": "character/unicorn_lancer_rose/voice/battle/power_flip_1.mp3",
+      "sha256": "9d9e102f405ee32096d0e7e7fd20b251379bfe24952218bb7740c7a4ea6e4fc4",
+      "size": 13523
+    },
+    {
+      "root": "common",
+      "logical": "character/unicorn_lancer_rose/voice/battle/skill_0.mp3",
+      "sha256": "de34d8625c943097720191dceca7f6caec1140e052719ad6766adac43ea82b27",
+      "size": 28256
+    },
+    {
+      "root": "common",
+      "logical": "character/unicorn_lancer_rose/voice/battle/skill_1.mp3",
+      "sha256": "d715c253ae53273303f1629b34aea4001983ad1d5c7449dd3f9b53ebac9acfee",
+      "size": 32331
+    },
+    {
+      "root": "common",
+      "logical": "character/unicorn_lancer_rose/voice/battle/skill_2.mp3",
+      "sha256": "ea89cfae7b2830fd4ecbc207915556e6f9213ec86c78b961b99c8d38ab3f9ffd",
+      "size": 32958
+    },
+    {
+      "root": "common",
+      "logical": "character/unicorn_lancer_rose/voice/battle/skill_3.mp3",
+      "sha256": "9eb6e2cc7d9154920a7eb8d912c32cdea3ac5cdbd6bd69dd40c83d7926eea6e3",
+      "size": 21046
+    },
+    {
+      "root": "common",
+      "logical": "character/unicorn_lancer_rose/voice/battle/skill_ready.mp3",
+      "sha256": "3093e8f80a5485f32a10e3cd4795d71b31365e281b5617b2ef5ed0401ff9d1b8",
+      "size": 11642
+    },
+    {
+      "root": "common",
+      "logical": "character/unicorn_lancer_rose/voice/battle/skill_ready_alt_1.mp3",
+      "sha256": "aa47d553c422b5c3963b961f5d7fb131a201d2738a5b90faa514327a8e507ec4",
+      "size": 15404
+    },
+    {
+      "root": "common",
+      "logical": "character/unicorn_lancer_rose/voice/battle/skill_ready_alt_2.mp3",
+      "sha256": "bf27ab324c70e62dd352eb6edca0cac56604f59d8b4aa498245a267981f7a88b",
+      "size": 18852
+    },
+    {
+      "root": "common",
+      "logical": "character/unicorn_lancer_rose/voice/battle/skill_ready_alt_3.mp3",
+      "sha256": "229d653418b27d4422616d1a495ddf6add09d12bb8a63864f69a9c4ad84a5fb5",
+      "size": 14150
+    },
+    {
+      "root": "common",
+      "logical": "character/unicorn_lancer_rose/voice/battle/win_0.mp3",
+      "sha256": "15c67a439466718531ba785bdfead600a4d42ffbffa61fe457bb09d7935dab35",
+      "size": 28569
+    },
+    {
+      "root": "common",
+      "logical": "character/unicorn_lancer_rose/voice/battle/win_1.mp3",
+      "sha256": "0c23f49c9014810cc5ebd030febf3c0d1bdae4a8383f02dcf6ce7e84d422743d",
+      "size": 37973
+    },
+    {
+      "root": "common",
+      "logical": "character/unicorn_lancer_rose/voice/home/home_0.mp3",
+      "sha256": "fca3dcd4e8eef660011889d7acab3f2a3a93b55d8c7b298f0c8972750d579019",
+      "size": 216024
+    },
+    {
+      "root": "common",
+      "logical": "character/unicorn_lancer_rose/voice/home/home_1.mp3",
+      "sha256": "9e313c3e83fd67225f563c97aafacff190e5069399a5be0fed4ff3ea258ef69d",
+      "size": 218532
+    },
+    {
+      "root": "common",
+      "logical": "character/unicorn_lancer_rose/voice/home/home_2.mp3",
+      "sha256": "bf21394dba466283893147d54fe0bdf7b2a67f3669f62141997e546245d2097b",
+      "size": 198470
+    },
+    {
+      "root": "common",
+      "logical": "character/unicorn_lancer_rose/voice/home/home_3.mp3",
+      "sha256": "64c4e3281bed9b7f8b03ea768ce24c55ff97f07a3ad63cb6bdc854b2a658de01",
+      "size": 221039
+    },
+    {
+      "root": "common",
+      "logical": "character/unicorn_lancer_rose/voice/home/home_4.mp3",
+      "sha256": "4d6afd4ea253b0c32699d9e085628bf11a8b48ca71f3dceb7e957a09b38f3e4d",
+      "size": 236713
+    },
+    {
+      "root": "common",
+      "logical": "character/unicorn_lancer_rose/voice/home/home_5.mp3",
+      "sha256": "8f8110af03d63afc043a3568844766f70975c45a32a5d9b3b8c634f2486c7b4d",
+      "size": 210695
+    },
+    {
+      "root": "common",
+      "logical": "character/white_tiger_summer/pixelart/special_sprite_sheet.atlas.amf3.deflate",
+      "sha256": "2c1419cf918697f99fa6e290a46e0b811036521f6838a9e296c04b55d5cdbd45",
+      "size": 626
+    },
+    {
+      "root": "common",
+      "logical": "character/white_tiger_summer/pixelart/special_sprite_sheet.png",
+      "sha256": "783ed74e805d1ef36e9eee301cfbbf9ce91f704dbd07176d9ecbe80654ed8caf",
+      "size": 23716
+    },
+    {
+      "root": "common",
+      "logical": "character/white_tiger_summer/pixelart/sprite_sheet.atlas.amf3.deflate",
+      "sha256": "f7bc131a1048efb7e0f1a454adc57f59d0016def8ad6502ea9b6c90cd71dfe6d",
+      "size": 1140
+    },
+    {
+      "root": "common",
+      "logical": "character/white_tiger_summer/pixelart/sprite_sheet.png",
+      "sha256": "c86a259bab28a6acb3e8346e55ad7a2283d72dd9e5f2f3e1ebb70d0569b7e683",
+      "size": 12168
+    },
+    {
+      "root": "common",
+      "logical": "character/white_tiger_summer/voice/ally/evolution.mp3",
+      "sha256": "d1d2b7cefb07e0276cbd037825834b33c478ed6bbd6c55b0e56841c6e1a28cb6",
+      "size": 137657
+    },
+    {
+      "root": "common",
+      "logical": "character/white_tiger_summer/voice/ally/join.mp3",
+      "sha256": "8ef7df7ebb949ffedc474a88da329d0fd1af9bee39b5106c545587c45ba418ad",
+      "size": 158346
+    },
+    {
+      "root": "common",
+      "logical": "character/white_tiger_summer/voice/battle/battle_start_0.mp3",
+      "sha256": "1254734432585cdb86b51a27e1884291d9c3cbc6e9a7986afca5005b0f3cbf6b",
+      "size": 23867
+    },
+    {
+      "root": "common",
+      "logical": "character/white_tiger_summer/voice/battle/battle_start_1.mp3",
+      "sha256": "26087e6ef1ae2457ceb2750e96b7fdfb72a6d5d15725f92516e4f9bef6f307ed",
+      "size": 22300
+    },
+    {
+      "root": "common",
+      "logical": "character/white_tiger_summer/voice/battle/battle_start_2.mp3",
+      "sha256": "fcf8520a11a242792ef373d96d3172854d942a814ae086d0f13e440de589ad3f",
+      "size": 14150
+    },
+    {
+      "root": "common",
+      "logical": "character/white_tiger_summer/voice/battle/battle_start_3.mp3",
+      "sha256": "3c8184bb35db35699b685fa772f9f9aa0ed64017fd9a2d5222e9d6595ebcdf1e",
+      "size": 16030
+    },
+    {
+      "root": "common",
+      "logical": "character/white_tiger_summer/voice/battle/matched_skill_0.mp3",
+      "sha256": "2a0cf7d69184eb1dcdb7be3da6fb7806f1b6c17a22d54ad0b73f5bc0c511adc2",
+      "size": 27315
+    },
+    {
+      "root": "common",
+      "logical": "character/white_tiger_summer/voice/battle/matched_skill_1.mp3",
+      "sha256": "46b7200ec61df8e01880d6f27362b3cbe530914daec3ee95b5fd0f9c324edf20",
+      "size": 29510
+    },
+    {
+      "root": "common",
+      "logical": "character/white_tiger_summer/voice/battle/matched_skill_ready.mp3",
+      "sha256": "d8b10a5af9d13b2b88abb5361fcb9a78f6c8c57024202823700e61e4bbbf46ce",
+      "size": 16344
+    },
+    {
+      "root": "common",
+      "logical": "character/white_tiger_summer/voice/battle/matched_skill_ready_alt_1.mp3",
+      "sha256": "c48c094818d4ffad451df4c20b9b66eac31ef91e0547bf3fe4061de49f6ab360",
+      "size": 17598
+    },
+    {
+      "root": "common",
+      "logical": "character/white_tiger_summer/voice/battle/outhole_0.mp3",
+      "sha256": "7d28f8c5ff7b58793b20e518313ef67bea7b9a8939db16f63ab44669c74b7878",
+      "size": 18852
+    },
+    {
+      "root": "common",
+      "logical": "character/white_tiger_summer/voice/battle/outhole_1.mp3",
+      "sha256": "075259afff2b551d42b02b1af0151f001fd05734a5f01778d1ff68b555cdd963",
+      "size": 21046
+    },
+    {
+      "root": "common",
+      "logical": "character/white_tiger_summer/voice/battle/outhole_2.mp3",
+      "sha256": "9f4a61f41421e1bdeb5be4e4fe1e1fcb6931f388b9e93446f319f9dabf605d93",
+      "size": 7880
+    },
+    {
+      "root": "common",
+      "logical": "character/white_tiger_summer/voice/battle/outhole_3.mp3",
+      "sha256": "b0527c97bd512feedfee0905ef05bb17bc229a258a9afc157f94d436d0a0a8c5",
+      "size": 10388
+    },
+    {
+      "root": "common",
+      "logical": "character/white_tiger_summer/voice/battle/power_flip_0.mp3",
+      "sha256": "500b2506f5362e291e3a539d3495f4339b6b436c789cd203a853cf0ec68aa3bb",
+      "size": 10075
+    },
+    {
+      "root": "common",
+      "logical": "character/white_tiger_summer/voice/battle/power_flip_1.mp3",
+      "sha256": "5b9d96f4f6a10a210b7c30be37128f05f825f22f3b3ab4e724f2c6cad1a86ad3",
+      "size": 14150
+    },
+    {
+      "root": "common",
+      "logical": "character/white_tiger_summer/voice/battle/power_flip_2.mp3",
+      "sha256": "fc6f106e17ecfa410a7e40f7127f2660befa2bbe0e78f8c586c9c0713446f0b8",
+      "size": 7880
+    },
+    {
+      "root": "common",
+      "logical": "character/white_tiger_summer/voice/battle/power_flip_3.mp3",
+      "sha256": "a6bf35cb9bd9a4166cac5ddf8d64f3652987050bd318f65ffdb71d913e8d5e01",
+      "size": 11955
+    },
+    {
+      "root": "common",
+      "logical": "character/white_tiger_summer/voice/battle/skill_0.mp3",
+      "sha256": "f52fde001f77660aa83c37c78d072ab6c9c62673ff9631d632a37e078fd1df8a",
+      "size": 30764
+    },
+    {
+      "root": "common",
+      "logical": "character/white_tiger_summer/voice/battle/skill_1.mp3",
+      "sha256": "eb6d63ffddc259123eb4fb5c3db05ccf291be4cb673f49faaa022b4e68abc5e4",
+      "size": 30764
+    },
+    {
+      "root": "common",
+      "logical": "character/white_tiger_summer/voice/battle/skill_ready.mp3",
+      "sha256": "78001e9a68c9c2f1fe1ea5972e994c23986af9f72769a773ae427c459382e158",
+      "size": 21673
+    },
+    {
+      "root": "common",
+      "logical": "character/white_tiger_summer/voice/battle/skill_ready_alt_1.mp3",
+      "sha256": "311d65b42dfc01c52e855ac17db6bbd6edd788464c83c88af354b7c74f19aaea",
+      "size": 19165
+    },
+    {
+      "root": "common",
+      "logical": "character/white_tiger_summer/voice/battle/win_0.mp3",
+      "sha256": "0f6f0d387531895cd5831593792f1472a6af7bf214cf9a71971e4a41f232899a",
+      "size": 48318
+    },
+    {
+      "root": "common",
+      "logical": "character/white_tiger_summer/voice/battle/win_1.mp3",
+      "sha256": "9cc26457f3e0ae8a3a65f6b78262499fff24fb5c09446e283726704dde873719",
+      "size": 54587
+    },
+    {
+      "root": "common",
+      "logical": "character/white_tiger_summer/voice/battle/win_2.mp3",
+      "sha256": "279f448a628a2a97870c15d30cd9907504307f519dd929e1c9d1a995294e0dc0",
+      "size": 22300
+    },
+    {
+      "root": "common",
+      "logical": "character/white_tiger_summer/voice/battle/win_3.mp3",
+      "sha256": "5df4659dcf825d422b3daf420878dc095a0ad6e3adb46df433c404bb37c7a471",
+      "size": 29823
+    },
+    {
+      "root": "common",
+      "logical": "character/white_tiger_summer/voice/home/aa.mp3",
+      "sha256": "2579b2954db4231631df8964048dafb6400587c489ba2d88196c61fd1063fb05",
+      "size": 158346
+    },
+    {
+      "root": "common",
+      "logical": "character/white_tiger_summer/voice/home/alk.mp3",
+      "sha256": "edbc4b06d787620225dc94317bfecaf83fe25083eba0122fda7ab3c14ba60a86",
+      "size": 142986
+    },
+    {
+      "root": "common",
+      "logical": "character/white_tiger_summer/voice/home/ano.mp3",
+      "sha256": "8dc90f4881da333e98d6b6991b7a0794bc13c981e216d2183013633747e84949",
+      "size": 152703
+    },
+    {
+      "root": "common",
+      "logical": "character/white_tiger_summer/voice/home/dose.mp3",
+      "sha256": "8fb6e0fe282d4abcde99312daadc9adce67d47674aac6b4de64821b2fb3814c3",
+      "size": 102862
+    },
+    {
+      "root": "common",
+      "logical": "character/white_tiger_summer/voice/home/nn.mp3",
+      "sha256": "b85890d0b02a0f3e95ee285133ec7f3dfcdf18d9cabb09ff20ebccc4c167255b",
+      "size": 157405
+    },
+    {
+      "root": "common",
+      "logical": "character/white_tiger_summer/voice/home/stellaga.mp3",
+      "sha256": "089918215cb0e04fce6acc87258a6463d90b8e16f75a821fd41084024db13312",
+      "size": 159286
+    },
+    {
+      "root": "common",
+      "logical": "character/white_tiger_summer/voice/home/zzzz.mp3",
+      "sha256": "83542c375ecd0586539430ebe414cfc49f53f2e9f6e442b09cfa8cbf78982419",
+      "size": 120729
+    },
+    {
+      "root": "common",
+      "logical": "master/ability/ability.orderedmap",
+      "sha256": "8dce3d83363d49cceb2603a600d1ae36e4043f44e85d92614d253e03b02f9c39",
+      "size": 368096
+    },
+    {
+      "root": "common",
+      "logical": "master/ability/leader_ability.orderedmap",
+      "sha256": "f1a541df701c9c4b840566d624dd43422404417b3f8d4d8a524ce79aab988760",
+      "size": 64667
+    },
+    {
+      "root": "common",
+      "logical": "master/character/character.orderedmap",
+      "sha256": "82e33527b4de4098dee4a09358621f3354fae7e3c3525f9be1a7cf8dd4f9df5f",
+      "size": 83397
+    },
+    {
+      "root": "common",
+      "logical": "master/character/character_speech.orderedmap",
+      "sha256": "24035f1b9d186405c7dd1b3547bcf00e79d6dce27ea86f6ab8b35fa434039d3c",
+      "size": 394362
+    },
+    {
+      "root": "common",
+      "logical": "master/character/character_text.orderedmap",
+      "sha256": "78d7a9937c1f27593a36549257ce9ff2eee64616b230b7019d59d0c5933dedfb",
+      "size": 209755
+    },
+    {
+      "root": "common",
+      "logical": "master/character/full_shot_image_attribute.orderedmap",
+      "sha256": "c12a04f49cf64176fcdac40dce84ca136d4771ddf6a4a450a79b53d3e4b12e88",
+      "size": 45470
+    },
+    {
+      "root": "common",
+      "logical": "master/character/unique_condition.orderedmap",
+      "sha256": "da814ab85edcf54b6ba28e2551826dab5b7729619006e4c1e557077818390079",
+      "size": 10770
+    },
+    {
+      "root": "common",
+      "logical": "master/gacha_odds/cnmod_abyss_limited_gacha_character_5.orderedmap",
+      "sha256": "5b4140a4fdff17b6d1c68ead2b96fac8995eb9c909785fc7032c3e3c2abb9796",
+      "size": 9005
+    },
+    {
+      "root": "common",
+      "logical": "master/gacha_odds/cnmod_ashen_verdict_gacha_character_5.orderedmap",
+      "sha256": "9ea08ca5f0705347b77c1c65e27520cc6f771ddbb45b7e72e581a4114681defe",
+      "size": 10973
+    },
+    {
+      "root": "common",
+      "logical": "master/generated/character_image.orderedmap",
+      "sha256": "b9f2ad69b3edd1ab8e7011e5086701430cf0e8d9fe68fe8e4e762567887e3368",
+      "size": 46176
+    },
+    {
+      "root": "common",
+      "logical": "master/generated/trimmed_image.orderedmap",
+      "sha256": "34001c1ad9e9e769d9ba65f4fefc41a548ba2661dc194252ded1fb5d33e36134",
+      "size": 356504
+    },
+    {
+      "root": "common",
+      "logical": "master/skill/action_skill.orderedmap",
+      "sha256": "debc8fc5fc1eddae37265b13b3c70d3fa67bf80815ca4acf12a296c66f9069fe",
+      "size": 348936
+    },
+    {
+      "root": "common",
+      "logical": "master/string/custom_ability_string.orderedmap",
+      "sha256": "7234f476772b8c159f6a2a35d6bc081a7620fff44f56c9a03940d0fee361d7ad",
+      "size": 23375
+    },
+    {
+      "root": "common",
+      "logical": "rich_text/cnmod_abyss_limited_gacha_note.html.deflate",
+      "sha256": "0da53ae676c30f74b42b8d489af6da8204dfc959fecb761208abd03c52940a39",
+      "size": 792
+    },
+    {
+      "root": "common",
+      "logical": "rich_text/cnmod_ashen_verdict_gacha_note.html.deflate",
+      "sha256": "e4508ac7291153e05f39837984373bf910e5d02cbe221c2615376780bb85a22a",
+      "size": 671
+    },
+    {
+      "root": "ios",
+      "logical": "character/lion_swordman_reborn/ui/skill_cutin_0.atf.deflate",
+      "sha256": "4f0fdd432d381f0fbdf8f775cbc24c53c96ab542d6b56f3f65782cde893ab91c",
+      "size": 118679
+    },
+    {
+      "root": "ios",
+      "logical": "character/lion_swordman_reborn/ui/skill_cutin_1.atf.deflate",
+      "sha256": "c73a62c69a638b8d2315aa35f748ad657357dc5a5685896974c881e0d3499034",
+      "size": 132501
+    },
+    {
+      "root": "ios",
+      "logical": "character/white_tiger_ghost_playable/ui/skill_cutin_0.atf.deflate",
+      "sha256": "76e38785c3e26c776f94fe7d91257fb7b095b4369ec56bff176ce6d2d27d28a8",
+      "size": 196406
+    },
+    {
+      "root": "ios",
+      "logical": "character/white_tiger_ghost_playable/ui/skill_cutin_1.atf.deflate",
+      "sha256": "76e38785c3e26c776f94fe7d91257fb7b095b4369ec56bff176ce6d2d27d28a8",
+      "size": 196406
+    },
+    {
+      "root": "ios",
+      "logical": "character/white_tiger_summer/ui/skill_cutin_0.atf.deflate",
+      "sha256": "6e19ea2f563082a87cfd42fbf2e514b21016789bafbca75c8672e5d83d3e4b4a",
+      "size": 99552
+    },
+    {
+      "root": "ios",
+      "logical": "character/white_tiger_summer/ui/skill_cutin_1.atf.deflate",
+      "sha256": "2c1ab0e6df0bf4573060af4da61ef185df606ba469141afe5183e13008a55a1a",
+      "size": 117197
+    },
+    {
+      "root": "medium",
+      "logical": "character/lion_swordman_reborn/ui/battle_control_board_0.png",
+      "sha256": "e223705704f93bb591d2f0aa3cd34b775668390e2fd2ab20aa4ca2caf28d5e69",
+      "size": 64182
+    },
+    {
+      "root": "medium",
+      "logical": "character/lion_swordman_reborn/ui/battle_control_board_1.png",
+      "sha256": "58cbc96f0cf53aea7191792d71c687f170b82c8de10422440aa1a1d5fde1bcd1",
+      "size": 61844
+    },
+    {
+      "root": "medium",
+      "logical": "character/lion_swordman_reborn/ui/battle_member_status_0.png",
+      "sha256": "f29f5c64d4d8cf2fd294cf5689011fe7ffa65f8b64cf657cad08b3a6144c444a",
+      "size": 9714
+    },
+    {
+      "root": "medium",
+      "logical": "character/lion_swordman_reborn/ui/battle_member_status_1.png",
+      "sha256": "2c830e482917260cea6b4a7c7f5f724b47e8e134db03b4d09b98ad55c1df551b",
+      "size": 9270
+    },
+    {
+      "root": "medium",
+      "logical": "character/lion_swordman_reborn/ui/cutin_skill_chain_0.png",
+      "sha256": "6313923d78d088118c5bcd31b90ddf8d4204ed2e2d259633f426c75a808b7ef8",
+      "size": 165177
+    },
+    {
+      "root": "medium",
+      "logical": "character/lion_swordman_reborn/ui/cutin_skill_chain_1.png",
+      "sha256": "3dd4acc0be8cffddd39fd62d091ba273483cf61d008016603c99d2379d651d96",
+      "size": 146653
+    },
+    {
+      "root": "medium",
+      "logical": "character/lion_swordman_reborn/ui/full_shot_1440_1920_0.png",
+      "sha256": "ff30f5d866d66c82290e91589262b7beeb392d0eea290aba733222f359a88f50",
+      "size": 1961645
+    },
+    {
+      "root": "medium",
+      "logical": "character/lion_swordman_reborn/ui/full_shot_1440_1920_1.png",
+      "sha256": "f069c5c6dc0dd0992876f0be1a7f9820572a546a4906399b0749aced637bd7a2",
+      "size": 2575348
+    },
+    {
+      "root": "medium",
+      "logical": "character/lion_swordman_reborn/ui/illustration_setting_sprite_sheet.png",
+      "sha256": "134091509d0b9a4c548d9e3d668f7a0de4a6760e0202c74e9f382acb99923bcf",
+      "size": 293102
+    },
+    {
+      "root": "medium",
+      "logical": "character/lion_swordman_reborn/ui/skill_cutin_0.png",
+      "sha256": "3658212caf5fd329e1033d1569478b99440d3e9b4dffe2873a26cab1eabb22cc",
+      "size": 405778
+    },
+    {
+      "root": "medium",
+      "logical": "character/lion_swordman_reborn/ui/skill_cutin_1.png",
+      "sha256": "6191072e050397229f66ba1e9d8b0d20eccdae5d0d5068c56de8edc27ac323d5",
+      "size": 462581
+    },
+    {
+      "root": "medium",
+      "logical": "character/lion_swordman_reborn/ui/square_0.png",
+      "sha256": "8d71e0a775c1662623910d4d35afc11c9235d418c4afd9d71157396efd9b3141",
+      "size": 93509
+    },
+    {
+      "root": "medium",
+      "logical": "character/lion_swordman_reborn/ui/square_1.png",
+      "sha256": "c2ad371c7da0ac7df009a0313720bb9588cbed3de8fb2073ccf3052329c15127",
+      "size": 86183
+    },
+    {
+      "root": "medium",
+      "logical": "character/lion_swordman_reborn/ui/square_132_132_0.png",
+      "sha256": "965089b0cebd1efc150ca87ef67c26a82351be88f725ec7fbfa0a9eb465d5ac4",
+      "size": 41401
+    },
+    {
+      "root": "medium",
+      "logical": "character/lion_swordman_reborn/ui/square_132_132_1.png",
+      "sha256": "4d864644c4ba8b9cc44ed90b983fe35a43903b8a2f644e4877d121dce5f7cc52",
+      "size": 38145
+    },
+    {
+      "root": "medium",
+      "logical": "character/lion_swordman_reborn/ui/square_round_136_136_0.png",
+      "sha256": "78e1fabcdbd5bc8763fb0e527321f20ec3fb8b4a738637018e28dc91b9a9f834",
+      "size": 43686
+    },
+    {
+      "root": "medium",
+      "logical": "character/lion_swordman_reborn/ui/square_round_136_136_1.png",
+      "sha256": "86b2a51a6b355fd4335e793c7008565fdaf23a76eab445c0564e962685e6d468",
+      "size": 40215
+    },
+    {
+      "root": "medium",
+      "logical": "character/lion_swordman_reborn/ui/square_round_95_95_0.png",
+      "sha256": "f0700d08bfa24def64023877eb450f057b20dc6fbf3e1964d609c2c22163d697",
+      "size": 23089
+    },
+    {
+      "root": "medium",
+      "logical": "character/lion_swordman_reborn/ui/square_round_95_95_1.png",
+      "sha256": "aa0278695c922cdccf2ac89a77d4bbd0b5c2a80454117a52f6fb3d1e9320461e",
+      "size": 21359
+    },
+    {
+      "root": "medium",
+      "logical": "character/lion_swordman_reborn/ui/thumb_level_up_0.png",
+      "sha256": "1b78203505bc998b72e01619968e3fb4d55362a4e73b0cc004d1aeab0d38c19e",
+      "size": 161369
+    },
+    {
+      "root": "medium",
+      "logical": "character/lion_swordman_reborn/ui/thumb_level_up_1.png",
+      "sha256": "b58b0a1b11d34d0be98b50b08f042fd0da8af083d9e2927692305e4e76e14599",
+      "size": 147896
+    },
+    {
+      "root": "medium",
+      "logical": "character/lion_swordman_reborn/ui/thumb_party_main_0.png",
+      "sha256": "cca021b8656cd0b732c1bdee2148bdc417645f5340e1f41e0364528bc1b0ae4a",
+      "size": 143919
+    },
+    {
+      "root": "medium",
+      "logical": "character/lion_swordman_reborn/ui/thumb_party_main_1.png",
+      "sha256": "ad632e1b8bb841d87691041799628b0a9110d271cd36b1d55d996d7d69316ed0",
+      "size": 139911
+    },
+    {
+      "root": "medium",
+      "logical": "character/lion_swordman_reborn/ui/thumb_party_unison_0.png",
+      "sha256": "fec453f27b04db9652f8f443c4c4cce4f3dccceddbc62ec8d41183933eb5a582",
+      "size": 61632
+    },
+    {
+      "root": "medium",
+      "logical": "character/lion_swordman_reborn/ui/thumb_party_unison_1.png",
+      "sha256": "6e45ee613270e1af297a245828fd6540d7ade992329f6f4891cb41725d793dae",
+      "size": 57072
+    },
+    {
+      "root": "medium",
+      "logical": "character/white_tiger_ghost_playable/ui/battle_control_board_0.png",
+      "sha256": "41112d872ef6781cbde47827bf440421eab180356fee6b10420e22069e15db8c",
+      "size": 58119
+    },
+    {
+      "root": "medium",
+      "logical": "character/white_tiger_ghost_playable/ui/battle_control_board_1.png",
+      "sha256": "41112d872ef6781cbde47827bf440421eab180356fee6b10420e22069e15db8c",
+      "size": 58119
+    },
+    {
+      "root": "medium",
+      "logical": "character/white_tiger_ghost_playable/ui/battle_member_status_0.png",
+      "sha256": "f2f0cddbabc246728da334f21be00ab326c0b202111fa3bcd333940433f98d07",
+      "size": 8014
+    },
+    {
+      "root": "medium",
+      "logical": "character/white_tiger_ghost_playable/ui/battle_member_status_1.png",
+      "sha256": "f2f0cddbabc246728da334f21be00ab326c0b202111fa3bcd333940433f98d07",
+      "size": 8014
+    },
+    {
+      "root": "medium",
+      "logical": "character/white_tiger_ghost_playable/ui/cutin_skill_chain_0.png",
+      "sha256": "1bb556877845d5ddfba54df0234cbf1af82945ecf6c2ca96b2a8504e38017d3f",
+      "size": 131791
+    },
+    {
+      "root": "medium",
+      "logical": "character/white_tiger_ghost_playable/ui/cutin_skill_chain_1.png",
+      "sha256": "1bb556877845d5ddfba54df0234cbf1af82945ecf6c2ca96b2a8504e38017d3f",
+      "size": 131791
+    },
+    {
+      "root": "medium",
+      "logical": "character/white_tiger_ghost_playable/ui/full_shot_1440_1920_0.png",
+      "sha256": "2622119f61dcc6c8957ffcf1a6a832e2514abfa061dd21b51a135fd72f307b03",
+      "size": 2028982
+    },
+    {
+      "root": "medium",
+      "logical": "character/white_tiger_ghost_playable/ui/full_shot_1440_1920_1.png",
+      "sha256": "2622119f61dcc6c8957ffcf1a6a832e2514abfa061dd21b51a135fd72f307b03",
+      "size": 2028982
+    },
+    {
+      "root": "medium",
+      "logical": "character/white_tiger_ghost_playable/ui/illustration_setting_sprite_sheet.png",
+      "sha256": "0b7b884d2459b98ee8abde779bd96bb453838ff2f6bd753985e2d95fd3fbbf74",
+      "size": 422442
+    },
+    {
+      "root": "medium",
+      "logical": "character/white_tiger_ghost_playable/ui/skill_cutin_0.png",
+      "sha256": "eb0bcb777e69985c7727aad49a2418296cde7035b4b33a74d6c7ce6f4ec53ef6",
+      "size": 648962
+    },
+    {
+      "root": "medium",
+      "logical": "character/white_tiger_ghost_playable/ui/skill_cutin_1.png",
+      "sha256": "eb0bcb777e69985c7727aad49a2418296cde7035b4b33a74d6c7ce6f4ec53ef6",
+      "size": 648962
+    },
+    {
+      "root": "medium",
+      "logical": "character/white_tiger_ghost_playable/ui/square_0.png",
+      "sha256": "68f3794f04c089565f0edc9bdb167c4d735440dc7bf1b1c010e6ea8a9729bd9a",
+      "size": 75031
+    },
+    {
+      "root": "medium",
+      "logical": "character/white_tiger_ghost_playable/ui/square_1.png",
+      "sha256": "68f3794f04c089565f0edc9bdb167c4d735440dc7bf1b1c010e6ea8a9729bd9a",
+      "size": 75031
+    },
+    {
+      "root": "medium",
+      "logical": "character/white_tiger_ghost_playable/ui/square_132_132_0.png",
+      "sha256": "154741d9db3a3ce3fb2ec2511b2f55684e0ed2d5318b997ba3a6e715a014abed",
+      "size": 33418
+    },
+    {
+      "root": "medium",
+      "logical": "character/white_tiger_ghost_playable/ui/square_132_132_1.png",
+      "sha256": "154741d9db3a3ce3fb2ec2511b2f55684e0ed2d5318b997ba3a6e715a014abed",
+      "size": 33418
+    },
+    {
+      "root": "medium",
+      "logical": "character/white_tiger_ghost_playable/ui/square_round_136_136_0.png",
+      "sha256": "9373d283dd541c79c0146d9568862504a5ba81f63b8b559ce834ce182a228241",
+      "size": 35379
+    },
+    {
+      "root": "medium",
+      "logical": "character/white_tiger_ghost_playable/ui/square_round_136_136_1.png",
+      "sha256": "9373d283dd541c79c0146d9568862504a5ba81f63b8b559ce834ce182a228241",
+      "size": 35379
+    },
+    {
+      "root": "medium",
+      "logical": "character/white_tiger_ghost_playable/ui/square_round_95_95_0.png",
+      "sha256": "11a75c8a0de933cdf54d355fc859820ac27251cc733ccc51f4c4f46d838510c5",
+      "size": 18961
+    },
+    {
+      "root": "medium",
+      "logical": "character/white_tiger_ghost_playable/ui/square_round_95_95_1.png",
+      "sha256": "11a75c8a0de933cdf54d355fc859820ac27251cc733ccc51f4c4f46d838510c5",
+      "size": 18961
+    },
+    {
+      "root": "medium",
+      "logical": "character/white_tiger_ghost_playable/ui/thumb_level_up_0.png",
+      "sha256": "8f5a2bbc1b4ed1e8005a9d6bf1e3ba2a0688b2f8a7478aa4a6790fef6bf20b16",
+      "size": 133995
+    },
+    {
+      "root": "medium",
+      "logical": "character/white_tiger_ghost_playable/ui/thumb_level_up_1.png",
+      "sha256": "8f5a2bbc1b4ed1e8005a9d6bf1e3ba2a0688b2f8a7478aa4a6790fef6bf20b16",
+      "size": 133995
+    },
+    {
+      "root": "medium",
+      "logical": "character/white_tiger_ghost_playable/ui/thumb_party_main_0.png",
+      "sha256": "5b3f372033ec56a22af7c3d54066933e660d70646b43cafc52669a32c1c068bb",
+      "size": 124643
+    },
+    {
+      "root": "medium",
+      "logical": "character/white_tiger_ghost_playable/ui/thumb_party_main_1.png",
+      "sha256": "5b3f372033ec56a22af7c3d54066933e660d70646b43cafc52669a32c1c068bb",
+      "size": 124643
+    },
+    {
+      "root": "medium",
+      "logical": "character/white_tiger_ghost_playable/ui/thumb_party_unison_0.png",
+      "sha256": "11319997fba4bc54d8bd0ec8f282231ecc305785a2fe554751a29faae1a78976",
+      "size": 51530
+    },
+    {
+      "root": "medium",
+      "logical": "character/white_tiger_ghost_playable/ui/thumb_party_unison_1.png",
+      "sha256": "11319997fba4bc54d8bd0ec8f282231ecc305785a2fe554751a29faae1a78976",
+      "size": 51530
+    },
+    {
+      "root": "medium",
+      "logical": "character/white_tiger_summer/ui/battle_control_board_0.png",
+      "sha256": "eeb7234c829d473d95ac16bbb9f7c2cb0851b7f4b7c91ca556e6a3e0d8e84e58",
+      "size": 59934
+    },
+    {
+      "root": "medium",
+      "logical": "character/white_tiger_summer/ui/battle_control_board_1.png",
+      "sha256": "ec350425b5859d0d908aeee2f8ec539bc21b6752dcb664925f3583ab48e2f86e",
+      "size": 62454
+    },
+    {
+      "root": "medium",
+      "logical": "character/white_tiger_summer/ui/battle_member_status_0.png",
+      "sha256": "0f96c93fb626b70b1fc611ba5903453d19d58c3bfd5f011f24218436e5732f83",
+      "size": 9420
+    },
+    {
+      "root": "medium",
+      "logical": "character/white_tiger_summer/ui/battle_member_status_1.png",
+      "sha256": "9af8ae915eacd88919cc2104ee565694dbdea1f3a10eaaf6951f441b1c767cf9",
+      "size": 9362
+    },
+    {
+      "root": "medium",
+      "logical": "character/white_tiger_summer/ui/cutin_skill_chain_0.png",
+      "sha256": "ecd1ccf8242bb5506c5bc344a38267908e3232645008f359a1fdcf3646149295",
+      "size": 131270
+    },
+    {
+      "root": "medium",
+      "logical": "character/white_tiger_summer/ui/cutin_skill_chain_1.png",
+      "sha256": "3e25b5b989c6a3b86c1d6525d1ecc400a32b7d4b85e46e04827f98b2d8299306",
+      "size": 138544
+    },
+    {
+      "root": "medium",
+      "logical": "character/white_tiger_summer/ui/full_shot_1440_1920_0.png",
+      "sha256": "9c0a9f5bf59cd776d4c6451d9e3b148fd61b6f87a50da370fecd23042dc476bf",
+      "size": 1105600
+    },
+    {
+      "root": "medium",
+      "logical": "character/white_tiger_summer/ui/full_shot_1440_1920_1.png",
+      "sha256": "b672f07593b53c4ac48f893b4547b609c88d53a3a03d077247d072a6949661c6",
+      "size": 1665401
+    },
+    {
+      "root": "medium",
+      "logical": "character/white_tiger_summer/ui/illustration_setting_sprite_sheet.png",
+      "sha256": "c92fde060f93eb54efb3aef97f142a0300b3e298d3305806317de8a4d4119693",
+      "size": 279776
+    },
+    {
+      "root": "medium",
+      "logical": "character/white_tiger_summer/ui/skill_cutin_0.png",
+      "sha256": "7676283a7b8ecdf6d2f41d46c8e8a8739f2773d2cfd0e6b4ceb7161d7bddc99e",
+      "size": 311061
+    },
+    {
+      "root": "medium",
+      "logical": "character/white_tiger_summer/ui/skill_cutin_1.png",
+      "sha256": "230094ec048623b4ce8452b593f19bd258e0f5a5bf050b66ccfd486594abcaa8",
+      "size": 351569
+    },
+    {
+      "root": "medium",
+      "logical": "character/white_tiger_summer/ui/square_0.png",
+      "sha256": "174dbf2ff02fb5708b8b9a3fae19b4642735477f19bde6e8470dc1821283bcf4",
+      "size": 85753
+    },
+    {
+      "root": "medium",
+      "logical": "character/white_tiger_summer/ui/square_1.png",
+      "sha256": "7dd08cc2b26172d191437f07f0f303f23dc90e7af1d742dc2cb8ffc0befa60fc",
+      "size": 82268
+    },
+    {
+      "root": "medium",
+      "logical": "character/white_tiger_summer/ui/square_132_132_0.png",
+      "sha256": "fe6486559fc65ef14107c9ed733f79cbef86c2472f7c8bd4fc7ed6a5bfe8458d",
+      "size": 38747
+    },
+    {
+      "root": "medium",
+      "logical": "character/white_tiger_summer/ui/square_132_132_1.png",
+      "sha256": "afe9450f5dec2bde648ac0d0de91964e29bc8cd88de46b3d10ee4fa66975a76d",
+      "size": 37428
+    },
+    {
+      "root": "medium",
+      "logical": "character/white_tiger_summer/ui/square_round_136_136_0.png",
+      "sha256": "1f842ba0542f9cf836026ae7596fa09d9e1eb07b7a9cba39bda5bb70b19b7abc",
+      "size": 41052
+    },
+    {
+      "root": "medium",
+      "logical": "character/white_tiger_summer/ui/square_round_136_136_1.png",
+      "sha256": "6d2df11b6c4e06b9a531e5cfabf26cf495d5eb31233ff77b1ad199a29b282ed3",
+      "size": 39511
+    },
+    {
+      "root": "medium",
+      "logical": "character/white_tiger_summer/ui/square_round_95_95_0.png",
+      "sha256": "94c1622127906e62cef2c2c0cabe41de3da28440b2b9e22e9454f54125ce424f",
+      "size": 22075
+    },
+    {
+      "root": "medium",
+      "logical": "character/white_tiger_summer/ui/square_round_95_95_1.png",
+      "sha256": "31223d6a50fb6074d34a9c200428a9ac4cac4adc6501e42722121a954cbf8398",
+      "size": 21295
+    },
+    {
+      "root": "medium",
+      "logical": "character/white_tiger_summer/ui/thumb_level_up_0.png",
+      "sha256": "92d2d3038847bb595f268071fe35950e74a0e9d2756ae9642868708d7f687f70",
+      "size": 141217
+    },
+    {
+      "root": "medium",
+      "logical": "character/white_tiger_summer/ui/thumb_level_up_1.png",
+      "sha256": "71c3c192478a9626f902e3a23b35750bed1f7161417f7854f15593112c849d99",
+      "size": 137609
+    },
+    {
+      "root": "medium",
+      "logical": "character/white_tiger_summer/ui/thumb_party_main_0.png",
+      "sha256": "cabeba6ff391ec57c68a5b7b6f2bf1a93926e2e6e6f070aaa419982dfde11051",
+      "size": 130096
+    },
+    {
+      "root": "medium",
+      "logical": "character/white_tiger_summer/ui/thumb_party_main_1.png",
+      "sha256": "3c2e86bec5e8ccdcee194d6001fe07f939aed28982baeb121b6a7b56ac15ec59",
+      "size": 139660
+    },
+    {
+      "root": "medium",
+      "logical": "character/white_tiger_summer/ui/thumb_party_unison_0.png",
+      "sha256": "876c0b736ea61667c497822017763864d26f95aa01149c593d10019b40176c59",
+      "size": 55746
+    },
+    {
+      "root": "medium",
+      "logical": "character/white_tiger_summer/ui/thumb_party_unison_1.png",
+      "sha256": "d804c169a3d1f9249ddf4f0954d198b488499dfbd1672dd8c525ca320efc448f",
+      "size": 53754
+    }
+  ],
+  "unchanged_native_reads_from_preloaded_archives": [
+    "master/equipment_enhancement/equipment_enhancement.orderedmap",
+    "item_sec/sprite_sheet.atlas.amf3.deflate"
+  ],
+  "archive_sha256": "ae139d009656e329833c8aadc6e7475cbd653fca14e7c3452ef0084763ebf746",
+  "effective_inventory_checked": 609,
+  "synced_files": 309,
+  "icon_display": {
+    "required_small_icons": [
+      {
+        "id": 10000143,
+        "name": "深界连战凭证",
+        "icon": "item_icon/materials/mod/five_boss/entry_ticket_v2"
+      },
+      {
+        "id": 10000144,
+        "name": "终式武装图纸",
+        "icon": "item_icon/materials/mod/five_boss/deathbringer_blueprint_v2"
+      },
+      {
+        "id": 10000145,
+        "name": "深界结晶",
+        "icon": "item_icon/materials/mod/five_boss/deep_crystal_v2"
+      },
+      {
+        "id": 10000146,
+        "name": "五重决战之证",
+        "icon": "item_icon/materials/mod/five_boss/fivefold_clear_badge_v2"
+      },
+      {
+        "id": 10000147,
+        "name": "五王心核",
+        "icon": "item_icon/materials/mod/five_boss/five_king_core_v2"
+      }
+    ],
+    "material_size": [
+      40,
+      40
+    ],
+    "thumbnail_size": [
+      20,
+      20
+    ],
+    "native_thumbnail_scale": 6,
+    "rendered_thumbnail_size": [
+      120,
+      120
+    ],
+    "native_frame_size": 168,
+    "weapon_thumbnail_paths": [
+      "item/equipment/mod/five_boss/deathbringer_final_lv0",
+      "item/equipment/mod/five_boss/deathbringer_final_lv120",
+      "item/equipment/mod/five_boss/deathbringer_final_shop"
+    ],
+    "full_canvas_trim": true
+  },
+  "older_archives_unchanged": true,
+  "protected_source_preserved": true,
+  "desktop_air_run": false,
+  "device_tested": false
+}

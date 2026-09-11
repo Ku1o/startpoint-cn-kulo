@@ -7,6 +7,7 @@ import { gameVerboseLog } from "../../lib/game-logging";
 import { roomAdmissionRegistry } from "./admission";
 import { embeddedMultiCoordinator } from "../coordinator/embedded";
 import { getQuestFromCategorySync } from "../../lib/assets";
+import { fiveBossConnectionDiagnostics } from "../five-boss/connection-diagnostic";
 
 const rooms = new Map<string, MultiRoom>();
 
@@ -219,6 +220,7 @@ export function setRoomBattle(roomNumber: string): boolean {
 
 export function disbandRoom(roomNumber: string, reason = "room_manager_delete"): boolean {
     const room = rooms.get(roomNumber);
+    if (room) fiveBossConnectionDiagnostics.roomEvent(roomNumber, "room_disband", reason);
     if (room) embeddedMultiCoordinator.commitDisband(room, reason);
     const deleted = rooms.delete(roomNumber);
     if (deleted) {

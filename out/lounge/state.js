@@ -1,10 +1,18 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.resetLoungesForTests = exports.detachLoungeSocket = exports.disbandLounge = exports.broadcastLoungeFrame = exports.sendLoungeFrame = exports.loungeCanStart = exports.touchLoungeActivity = exports.setLoungeMemberReady = exports.serializeLoungeMates = exports.getLoungeSocketContext = exports.enterLounge = exports.attachLoungeSocket = exports.canAttachLoungeViewer = exports.setLoungeShareTypes = exports.prepareLounge = exports.matchesLoungeAccess = exports.listLounges = exports.getLoungeByNumber = exports.getLounge = exports.createLounge = exports.cleanupExpiredLounges = exports.getLoungeOccupancy = void 0;
+exports.resetLoungesForTests = exports.detachLoungeSocket = exports.disbandLounge = exports.broadcastLoungeFrame = exports.sendLoungeFrame = exports.loungeCanStart = exports.touchLoungeActivity = exports.setLoungeMemberReady = exports.serializeLoungeMates = exports.getLoungeSocketContext = exports.enterLounge = exports.attachLoungeSocket = exports.canAttachLoungeViewer = exports.setLoungeShareTypes = exports.prepareLounge = exports.matchesLoungeAccess = exports.listLounges = exports.getLoungeByNumber = exports.getLounge = exports.createLounge = exports.cleanupExpiredLounges = exports.getLoungeOccupancy = exports.disconnectLoungePlayerLogin = void 0;
 const LOUNGE_CAPACITY = 3;
 const LOUNGE_TTL_MS = 30 * 60 * 1000;
 const MAX_LOUNGES = 1024;
 const rooms = new Map();
+function disconnectLoungePlayerLogin(viewerId) {
+    var _a, _b;
+    for (const room of rooms.values()) {
+        (_a = room.members.get(viewerId)) === null || _a === void 0 ? void 0 : _a.socket.destroy();
+        (_b = room.pendingSockets.get(viewerId)) === null || _b === void 0 ? void 0 : _b.destroy();
+    }
+}
+exports.disconnectLoungePlayerLogin = disconnectLoungePlayerLogin;
 const roomIdsByNumber = new Map();
 const socketContexts = new WeakMap();
 let loungeSequence = 0;

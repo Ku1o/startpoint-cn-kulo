@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<application xmlns="http://ns.adobe.com/air/application/33.1">
+  <id>cn.starpoint.questelement.harness.20260910</id>
+  <versionNumber>1.0.0</versionNumber>
+  <filename>StarPointQuestElementHarness</filename>
+  <initialWindow><content>harness.swf</content><visible>false</visible><width>540</width><height>960</height></initialWindow>
+  <supportedProfiles>extendedDesktop</supportedProfiles>
+</application>

@@ -1,0 +1,30 @@
+{
+  "sources": [
+    {
+      "path": "F:\\codex\\work\\abyss-element-ban-20260909\\client-readback\\scripts\\pinball\\common\\data\\quest\\battle\\BattleQuestBaseImpl.as",
+      "sha256": "328ecf84c658ef35bee694a6af7ab990d495b4e32d8ba7f76adc0277e3e15b00",
+      "finding": "resolveInitialEnemyCondition kind 2 passes signed Float strength to PowerFlipDamageResistance"
+    },
+    {
+      "path": "F:\\codex\\work\\abyss-element-ban-20260909\\client-readback\\scripts\\pinball\\scene\\battle\\battle\\enemy\\EnemyImpl.as",
+      "sha256": "dc7017eacac27aed967621ace8d15f4a14963e22046c3d7c04b9fa6007e67e60",
+      "finding": "getStatModifierPowerFlipDamageResistance sums the two origin groups; initial conditions persist across spawns"
+    },
+    {
+      "path": "F:\\codex\\work\\news-decomp-all2\\scripts\\pinball\\master\\generated\\RushEventQuestValues.as",
+      "sha256": "d4250b17e6e5159baf40dd20987370cafd6165bed9316d7c1d1a1bc90ae6c013",
+      "finding": "c69 recommended element; c71..80 five signed condition pairs; c98 field; c102 max mana reward remains in slot"
+    },
+    {
+      "path": "F:\\codex\\work\\news-decomp-all2\\scripts\\pinball\\scene\\battle\\battle\\condition\\ConditionSlot.as",
+      "sha256": "9d657ad9d5982db8f4891e7d4980ae145434108dd47d25873221f9843471241a",
+      "finding": "kind index 5 totals magnified strengths; initial conditions use distinct identities and initialization origin"
+    },
+    {
+      "path": "F:\\codex\\work\\news-decomp-all2\\scripts\\boot_ffc6.as",
+      "sha256": "e7da4efa9d1e44495b949b86d0ff0f74781f869cfbecc0e8d1935fed9ed30848",
+      "finding": "DEBUF_POWER_FLIP_DAMAGE_RESISTANCE_LIMIT = -1; selected quest conditions remain above this floor"
+    }
+  ],
+  "scope": "Existing readbacks and previously verified unchanged native methods; current APK file hash rechecked. No new APK/SWF modification or device gameplay claim."
+}

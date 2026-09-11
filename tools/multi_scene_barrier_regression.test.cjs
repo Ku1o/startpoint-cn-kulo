@@ -82,8 +82,11 @@ assert.equal(trioManager.battleConnectionPhase.get(trioA.connectionId), "ready",
 trioManager.removeClient(trioA)
 assert.deepEqual(trioB.socket.writes, [], "a pre-start disconnect must remain deferred")
 assert.deepEqual(trioC.socket.writes, [], "all survivors must remain on the same loading barrier")
-assert.equal(trioManager.battleExpectedCount.get("888888"), 2,
-    "a three-player barrier may fall back to the two surviving real players")
+assert.equal(trioManager.battleExpectedCount.get("888888"), 3,
+    "a disconnected loading seat remains reserved throughout reconnect grace")
+// Deterministically exercise the same expiry command; asynchronous generation
+// and reconnect races are covered by tests/multi-barrier-recovery.test.js.
+trioManager.expireMissingBattleSeat("888888", trioManager.battleBarrierCycles.get("888888"), trioA)
 
 assert.equal(trioManager.markSceneReady(trioB.connectionId, "888888"), false)
 assert.equal(trioManager.markSceneReady(trioC.connectionId, "888888"), true)

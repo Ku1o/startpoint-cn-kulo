@@ -65,6 +65,8 @@ export interface PatchMeta {
     id: string; type: "patch" | "mod"; name: string;
     version: string; depends_on: string; enabled: boolean;
     quest_time_revisions?: Record<string, string>;
+    local_test_only?: boolean;
+    required_local_platform?: "android";
 }
 
 let _manifestCache: { cdn_version: string; patches: PatchMeta[] } | null = null;

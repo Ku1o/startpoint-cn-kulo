@@ -31,13 +31,13 @@ assert.match(accounts, /account-action-row/)
 assert.match(adminStyles, /\.accounts-overview-table/)
 assert.match(adminStyles, /\.account-action-row/)
 assert.ok(
-    accounts.indexOf('title: "数据继承"') < accounts.indexOf('title: "备注"'),
-    "数据继承列应显示在备注列之前",
+    accounts.indexOf('title: "登录账号"') < accounts.indexOf('title: "备注"'),
+    "登录与绑定列应显示在备注列之前",
 )
-assert.match(accounts, /搜索账号 ID、设备 ID、备注或存档/)
+assert.match(accounts, /搜索登录账号、UID、设备 ID、备注或存档/)
 assert.match(accounts, /\/api\/server\/account\/rename/)
 assert.match(accounts, /账号级备注/)
-assert.match(accounts, /row\.takeoverConfigured \? "重置密码" : "生成继承密码"/)
+assert.match(accounts, /loginAccount\.takeoverConfigured \? "重置继承密码" : "生成继承密码"/)
 assert.match(accounts, /title: reset \? "继承密码已重置" : "继承密码已生成"/)
 assert.match(adminStyles, /\.account-note-edit[\s\S]*transform: translateY\(15px\)/)
 assert.match(accounts, /确认覆盖存档/)
@@ -50,7 +50,9 @@ assert.match(accounts, /<Drawer/)
 assert.match(accounts, /defaultPageSize: 20/)
 assert.match(accounts, /删除未备注账号/)
 assert.match(accounts, /DELETE_UNNOTED_ACCOUNTS/)
-assert.match(accounts, /player\.isActive/)
+assert.match(accounts, /所有未备注账号，不论是否绑定登录/)
+assert.match(accounts, /当前选中的账号也按备注判断/)
+assert.doesNotMatch(accounts, /protectedLoginCount|activeUnnotedAccount/)
 assert.match(accounts, /执行前服务端会创建完整数据库备份/)
 assert.match(accounts, /只保留本次清理备份/)
 assert.match(accounts, /deleteUnnotedAccounts\/status/)

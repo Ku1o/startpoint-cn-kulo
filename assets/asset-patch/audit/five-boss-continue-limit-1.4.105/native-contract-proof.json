@@ -1,0 +1,87 @@
+{
+  "swf": "F:\\codex\\work\\lens0907-0908-integration-20260908\\client\\lens-lan-v3.swf",
+  "swf_sha256": "1884e5b95a28db8e69d6a6c1de53c27e074c36550099ef1684b5d42dd7cd983c",
+  "swf_changed": false,
+  "checks": {
+    "native_master_column": {
+      "class": "master/generated/BossBattleQuestValues.as",
+      "sha256": "ad4efde9caace23ef43bdfea59cda4f1e948ab92767dd1802d6fc0403d963988",
+      "lines": [
+        1557,
+        1558
+      ]
+    },
+    "native_quest_limit": {
+      "class": "common/data/quest/battle/BattleQuestBaseImpl.as",
+      "sha256": "328ecf84c658ef35bee694a6af7ab990d495b4e32d8ba7f76adc0277e3e15b00",
+      "lines": [
+        1252,
+        1296
+      ]
+    },
+    "local_player_limit": {
+      "class": "scene/battle/state/BattleScenePlayingStateImpl.as",
+      "sha256": "9c03784fac1a0c034dff2c0bc9fdaeee757870c444b49701c8afd6ca2015f386",
+      "lines": [
+        1147,
+        1151,
+        203
+      ]
+    },
+    "solo_transition": {
+      "class": "scene/battle/state/BattleScenePlayingStateImpl.as",
+      "sha256": "9c03784fac1a0c034dff2c0bc9fdaeee757870c444b49701c8afd6ca2015f386",
+      "lines": [
+        1489
+      ]
+    },
+    "each_multi_transition": {
+      "class": "scene/battle/state/BattleScenePlayingStateImpl.as",
+      "sha256": "9c03784fac1a0c034dff2c0bc9fdaeee757870c444b49701c8afd6ca2015f386",
+      "lines": [
+        1557,
+        1557
+      ]
+    },
+    "counter_carried_to_next_scene": {
+      "class": "common/data/battle/restore/BattleContinuationData.as",
+      "sha256": "ea1866a81dff470bdbe14d713b3a5d68f12325f354fa9f4fc6e05bab30d60624",
+      "lines": [
+        541,
+        625
+      ]
+    },
+    "counter_initialized_from_continuation": {
+      "class": "scene/battle/battle/ContinueCounterImpl.as",
+      "sha256": "21fc4887aa193df47915aadfcd22a1b43d441bdd5e58c2445d6014e3f7bd1afa",
+      "lines": [
+        17
+      ]
+    },
+    "native_limit_label": {
+      "class": "scene/partySelect/topPanel/PartySelectTopPanelView.as",
+      "sha256": "a85cce3bf54198a1b55ef5f83ece799d884328798668b8becf149a31bf2bf95f",
+      "lines": [
+        245,
+        240
+      ]
+    },
+    "native_quest_outline_label": {
+      "class": "ui/component/questOutlineContent/QuestEssentialContentView.as",
+      "sha256": "f21569124112f00c231da06b496f6c793c32802815cee0d9b8948a18c6200ec9",
+      "lines": [
+        323,
+        748
+      ]
+    },
+    "retry_identity": {
+      "class": "context/remote/RequestQueue.as",
+      "sha256": "9c68365408d7af0b3bef1049cafebdf0045596370c731074bb0942cd4d6de391",
+      "lines": [
+        166,
+        170
+      ]
+    }
+  },
+  "device_tested": false
+}

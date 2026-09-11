@@ -1,0 +1,156 @@
+{
+  "status": "http_verified",
+  "version": "1.4.107",
+  "archive_url": "http://<LAN_HOST>/patch/cn/asset-patch/active/pinball-1.4.106-1.4.107-1-sponsor-title-wide-test.zip",
+  "archive_size": 34501,
+  "archive_sha256": "25598d1475baa39c98f66493b0c224cca73e7f1199c14e57d6633da6cf7e2c8b",
+  "update_checks": [
+    {
+      "device": "Android",
+      "from_version": "1.4.105",
+      "info": {
+        "client_asset_version": "1.4.105",
+        "target_asset_version": "1.4.107",
+        "eventual_target_asset_version": "1.4.107",
+        "is_initial": false,
+        "latest_maj_first_version": "1.4.0"
+      },
+      "diff": [
+        {
+          "original_version": "1.4.105",
+          "version": "1.4.106",
+          "archive": [
+            {
+              "location": "http://<LAN_HOST>/patch/cn/asset-patch/active/pinball-1.4.105-1.4.106-1-abyss-standard-links-test.zip",
+              "size": 230640,
+              "sha256": ""
+            }
+          ]
+        },
+        {
+          "original_version": "1.4.106",
+          "version": "1.4.107",
+          "archive": [
+            {
+              "location": "http://<LAN_HOST>/patch/cn/asset-patch/active/pinball-1.4.106-1.4.107-1-sponsor-title-wide-test.zip",
+              "size": 34501,
+              "sha256": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "device": "Android",
+      "from_version": "1.4.106",
+      "info": {
+        "client_asset_version": "1.4.106",
+        "target_asset_version": "1.4.107",
+        "eventual_target_asset_version": "1.4.107",
+        "is_initial": false,
+        "latest_maj_first_version": "1.4.0"
+      },
+      "diff": [
+        {
+          "original_version": "1.4.106",
+          "version": "1.4.107",
+          "archive": [
+            {
+              "location": "http://<LAN_HOST>/patch/cn/asset-patch/active/pinball-1.4.106-1.4.107-1-sponsor-title-wide-test.zip",
+              "size": 34501,
+              "sha256": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "device": "Android",
+      "from_version": "1.4.107",
+      "info": {
+        "client_asset_version": "1.4.107",
+        "target_asset_version": "1.4.107",
+        "eventual_target_asset_version": "1.4.107",
+        "is_initial": false,
+        "latest_maj_first_version": "1.4.0"
+      },
+      "diff": []
+    },
+    {
+      "device": "iOS",
+      "from_version": "1.4.105",
+      "info": {
+        "client_asset_version": "1.4.105",
+        "target_asset_version": "1.4.107",
+        "eventual_target_asset_version": "1.4.107",
+        "is_initial": false,
+        "latest_maj_first_version": "1.4.0"
+      },
+      "diff": [
+        {
+          "original_version": "1.4.105",
+          "version": "1.4.106",
+          "archive": [
+            {
+              "location": "http://<LAN_HOST>/patch/cn/asset-patch/active/pinball-1.4.105-1.4.106-1-abyss-standard-links-test.zip",
+              "size": 230640,
+              "sha256": ""
+            }
+          ]
+        },
+        {
+          "original_version": "1.4.106",
+          "version": "1.4.107",
+          "archive": [
+            {
+              "location": "http://<LAN_HOST>/patch/cn/asset-patch/active/pinball-1.4.106-1.4.107-1-sponsor-title-wide-test.zip",
+              "size": 34501,
+              "sha256": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "device": "iOS",
+      "from_version": "1.4.106",
+      "info": {
+        "client_asset_version": "1.4.106",
+        "target_asset_version": "1.4.107",
+        "eventual_target_asset_version": "1.4.107",
+        "is_initial": false,
+        "latest_maj_first_version": "1.4.0"
+      },
+      "diff": [
+        {
+          "original_version": "1.4.106",
+          "version": "1.4.107",
+          "archive": [
+            {
+              "location": "http://<LAN_HOST>/patch/cn/asset-patch/active/pinball-1.4.106-1.4.107-1-sponsor-title-wide-test.zip",
+              "size": 34501,
+              "sha256": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "device": "iOS",
+      "from_version": "1.4.107",
+      "info": {
+        "client_asset_version": "1.4.107",
+        "target_asset_version": "1.4.107",
+        "eventual_target_asset_version": "1.4.107",
+        "is_initial": false,
+        "latest_maj_first_version": "1.4.0"
+      },
+      "diff": []
+    }
+  ],
+  "single_image_member": "production/upload/03/076857d74f07bb194f6185d4f1c1d6061850ce",
+  "zip_and_direct_strict_decode_match_formal": true,
+  "degree_table_http_sha256": "4fc497d4bf7375bdbb4c3215f269f76671665f3f0e51ada2fcff3a8d336cc8f4",
+  "degree_table_unchanged": true,
+  "device_ui_verified": false
+}

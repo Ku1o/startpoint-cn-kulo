@@ -1,0 +1,461 @@
+[
+  {
+    "root": "common",
+    "logical": "battle/effect/powerflip/lion_swordman_reborn/lion_swordman_reborn.atlas.amf3.deflate",
+    "rel": "ed/05df84fa911816fdcb5ce96141bd7c5615ae5e",
+    "member": "production/upload/ed/05df84fa911816fdcb5ce96141bd7c5615ae5e",
+    "before_sha256": "643ea1c368c8ee246bb2fbf139c9e7457f3824e32b465fdb4cab8adbb2d2a7c9",
+    "sha256": "6048342b68520bfcb4ce2a08c568a82c873fcaf424203d7f69347b157c5dbcf8",
+    "kind": "cn-lossless-atlas"
+  },
+  {
+    "root": "common",
+    "logical": "battle/effect/powerflip/lion_swordman_reborn/lion_swordman_reborn.png",
+    "rel": "38/4f7b0efcadfae7f4dd232be7067800ad6cd7d2",
+    "member": "production/upload/38/4f7b0efcadfae7f4dd232be7067800ad6cd7d2",
+    "before_sha256": "509488845f2381007dae51f313862abd95f31dc1dc9689e1149221d521abcda0",
+    "sha256": "cc5baa154aa5bd252f20c70f2b1e68ce0fe4641422b009f23e316e359388a13b",
+    "kind": "cn-lossless-atlas"
+  },
+  {
+    "root": "common",
+    "logical": "battle/effect/powerflip/resistance_princess_ex_pf_fist/resistance_princess_ex_pf_fist.atlas.amf3.deflate",
+    "rel": "5e/20360ce54965a5f8ad2bb5782e7d1647462f74",
+    "member": "production/upload/5e/20360ce54965a5f8ad2bb5782e7d1647462f74",
+    "before_sha256": "de089a7c233bb1d7d3559639d17c28ff9269eab900e451c0e209d0d84d9ee6ba",
+    "sha256": "4537becc8b4d398d0c63e8713c434df4a491d49f6f1435f574c0cff36a74d620",
+    "kind": "cn-lossless-atlas"
+  },
+  {
+    "root": "common",
+    "logical": "battle/effect/powerflip/resistance_princess_ex_pf_fist/resistance_princess_ex_pf_fist.png",
+    "rel": "d7/0a07172524eeb2993dd340c831ec2afc64339d",
+    "member": "production/upload/d7/0a07172524eeb2993dd340c831ec2afc64339d",
+    "before_sha256": "a382015cf41f65e9dc63e255600a140d4d9e6cd8c68893e53bc329a17a84efcd",
+    "sha256": "c3d7ed737261eafaf2320fda1e4b806b9c471f4b50faa97395863c8d3bd38f38",
+    "kind": "cn-lossless-atlas"
+  },
+  {
+    "root": "common",
+    "logical": "battle/effect/powerflip/resistance_princess_ex_pf_spin/resistance_princess_ex_pf_spin.atlas.amf3.deflate",
+    "rel": "72/3339f2b5734354b4758e077f1cde864129677f",
+    "member": "production/upload/72/3339f2b5734354b4758e077f1cde864129677f",
+    "before_sha256": "b031814957cb8415f93c4d4a6f31a0b3fbce812ae0c57af8eab6b4e87ccb77d7",
+    "sha256": "06e22e731692db8efa6fedcde23a6e038b2295a2f738de1f29b3797c9505c8bc",
+    "kind": "cn-lossless-atlas"
+  },
+  {
+    "root": "common",
+    "logical": "battle/effect/powerflip/resistance_princess_ex_pf_spin/resistance_princess_ex_pf_spin.png",
+    "rel": "77/5c1387ab6f8eb33ad9da0ad468d31b0fb4af6e",
+    "member": "production/upload/77/5c1387ab6f8eb33ad9da0ad468d31b0fb4af6e",
+    "before_sha256": "ab8e2e47b0d4538d7fb4df4a2b28064312751a0e7fa171bc2a33e6da9f9b3d1d",
+    "sha256": "058d52068f47724cef79ceac6197a75540b047a9fa0c5b78dc5cb45679d5cb17",
+    "kind": "cn-lossless-atlas"
+  },
+  {
+    "root": "common",
+    "logical": "battle/effect/powerflip/white_wolf_gerald_powerflip/white_wolf_gerald_powerflip.atlas.amf3.deflate",
+    "rel": "4b/c5b3ac0fc4711af9b2213fc79e2b609de74fb5",
+    "member": "production/upload/4b/c5b3ac0fc4711af9b2213fc79e2b609de74fb5",
+    "before_sha256": "047cb38a3978f07653fd8c1139151b953b07cb49f581e570efec468699f09782",
+    "sha256": "cb5b252d9422b06475043d889ff710deada0285a63e2d8dd8b229c04a13f4d9b",
+    "kind": "cn-lossless-atlas"
+  },
+  {
+    "root": "common",
+    "logical": "battle/effect/powerflip/white_wolf_gerald_powerflip/white_wolf_gerald_powerflip.png",
+    "rel": "94/9da9e14e1cdc64730850e49fd68152d8f8d4d8",
+    "member": "production/upload/94/9da9e14e1cdc64730850e49fd68152d8f8d4d8",
+    "before_sha256": "acd6c2e893ef14618a85c9ccf5b4b7259fd74027809bd6d519c9d712ed19fce0",
+    "sha256": "6fc75e139a6ba4bab936e0e5f05ab8a1b497a2e791602a2c9fe0997d0126f7e6",
+    "kind": "cn-lossless-atlas"
+  },
+  {
+    "root": "common",
+    "logical": "battle/effect/skill_unique/land_dragon_wind_playable/wave_arc120_middle/wave_arc120_middle.atlas.amf3.deflate",
+    "rel": "2c/0f5a7e41d67c986e6ce785e0471d259c0c8204",
+    "member": "production/upload/2c/0f5a7e41d67c986e6ce785e0471d259c0c8204",
+    "before_sha256": "4e98f135a555d002a1fa37b5c375a3a7b40d1d4bdfdc63890661112b138b0a0a",
+    "sha256": "e41400854463b759d6c10052ff2678a45ded0f7b7605674a1f260c0ee8bd004c",
+    "kind": "shared-wave-empty-sheet"
+  },
+  {
+    "root": "common",
+    "logical": "battle/effect/skill_unique/land_dragon_wind_playable/wave_arc120_middle/wave_arc120_middle.png",
+    "rel": "20/e4dae1fb11ed34552144561a05a187110ef884",
+    "member": "production/upload/20/e4dae1fb11ed34552144561a05a187110ef884",
+    "before_sha256": "8bdec474177c74e47eee6b0c3bfc173e480e4b5973b9c1527cd06a4aa0781d83",
+    "sha256": "7ae734238e54d30251068e8abaee2434bc558310161fbe43baf91e448337e841",
+    "kind": "shared-wave-empty-sheet"
+  },
+  {
+    "root": "common",
+    "logical": "battle/effect/skill_unique/land_dragon_wind_playable/wave_arc120_slow/wave_arc120_slow.atlas.amf3.deflate",
+    "rel": "71/33db2be8729bde9791b24060937e76ff5c3daf",
+    "member": "production/upload/71/33db2be8729bde9791b24060937e76ff5c3daf",
+    "before_sha256": "ca86e6a424e2afbc3363f5a7a9f512adbe6ab6e71a43324d73e8e8ae77f04e5c",
+    "sha256": "e41400854463b759d6c10052ff2678a45ded0f7b7605674a1f260c0ee8bd004c",
+    "kind": "shared-wave-empty-sheet"
+  },
+  {
+    "root": "common",
+    "logical": "battle/effect/skill_unique/land_dragon_wind_playable/wave_arc120_slow/wave_arc120_slow.png",
+    "rel": "a9/029fc30891d4708dafc3d56b75a2c967cf5367",
+    "member": "production/upload/a9/029fc30891d4708dafc3d56b75a2c967cf5367",
+    "before_sha256": "8bdec474177c74e47eee6b0c3bfc173e480e4b5973b9c1527cd06a4aa0781d83",
+    "sha256": "7ae734238e54d30251068e8abaee2434bc558310161fbe43baf91e448337e841",
+    "kind": "shared-wave-empty-sheet"
+  },
+  {
+    "root": "common",
+    "logical": "battle/effect/skill_unique/lion_swordman_reborn/lion_swordman_reborn.atlas.amf3.deflate",
+    "rel": "12/c7fd86cb102ca803d5a52393e5a46756b4f6f6",
+    "member": "production/upload/12/c7fd86cb102ca803d5a52393e5a46756b4f6f6",
+    "before_sha256": "8a52b3f7d02548f31fb65a57c40168b128b5ae8a502b33e546dc24a3a5fafe91",
+    "sha256": "cf1dad241950655a76ab162689fdc1a7784917be9fce9bc2f87e5666efedc31a",
+    "kind": "cn-lossless-atlas"
+  },
+  {
+    "root": "common",
+    "logical": "battle/effect/skill_unique/lion_swordman_reborn/lion_swordman_reborn.png",
+    "rel": "77/ab58f77415ce12e99c0fabaf72207c6d0f3ff8",
+    "member": "production/upload/77/ab58f77415ce12e99c0fabaf72207c6d0f3ff8",
+    "before_sha256": "79ac0e7e0961e53bf0277e76be3f668a3d7ba1115b10e46cf56944e06282a201",
+    "sha256": "80138942aea514e421c28402167af591833391f4a2f6f65f4eb50f8fbdfae729",
+    "kind": "cn-lossless-atlas"
+  },
+  {
+    "root": "common",
+    "logical": "battle/effect/skill_unique/resistance_princess_ex/blade/blade.atlas.amf3.deflate",
+    "rel": "ac/c10f9d67ea6de64d3b2763188fc6a5ececd3a0",
+    "member": "production/upload/ac/c10f9d67ea6de64d3b2763188fc6a5ececd3a0",
+    "before_sha256": "bb1c3c37957844529ba32cbf199f3efd904a82d46b95a4d42c9c42ac32958a69",
+    "sha256": "acfc4752fed2be29bc2035b4324d368e959593fee2f64cab1c62eacf8f5b5163",
+    "kind": "cn-lossless-atlas"
+  },
+  {
+    "root": "common",
+    "logical": "battle/effect/skill_unique/resistance_princess_ex/blade/blade.png",
+    "rel": "d9/873bf7087b014bfccf5d547123b9c17777023e",
+    "member": "production/upload/d9/873bf7087b014bfccf5d547123b9c17777023e",
+    "before_sha256": "bf62731f4dc820facb11e113a0af6a336290e641ef434ccf69dd6fc482d29542",
+    "sha256": "51bf0bd270518b66623d00e8012a60fbedf0dcfc57f0eb73a1ddbffa41954f38",
+    "kind": "cn-lossless-atlas"
+  },
+  {
+    "root": "common",
+    "logical": "battle/effect/skill_unique/resistance_princess_ex/ring/ring.atlas.amf3.deflate",
+    "rel": "04/ebcef550b4b357bb7ea3ef5bca3d4a8c9d9514",
+    "member": "production/upload/04/ebcef550b4b357bb7ea3ef5bca3d4a8c9d9514",
+    "before_sha256": "586831ea3b836fbe32578f1d0399b9841dd086d2bd250df2e4faf69f0156ac01",
+    "sha256": "8fec2495398fb62858be3fc85378e8bcd61588195f263f56763f27c8cee49641",
+    "kind": "cn-lossless-atlas"
+  },
+  {
+    "root": "common",
+    "logical": "battle/effect/skill_unique/resistance_princess_ex/ring/ring.png",
+    "rel": "d0/7ee63935c48f8de874a1ab4c8a88fb6961988e",
+    "member": "production/upload/d0/7ee63935c48f8de874a1ab4c8a88fb6961988e",
+    "before_sha256": "cd2dbc6b1872c3ce1f9fe72788ae2e82873c262b8e793239c6cfa49dea812e94",
+    "sha256": "852ecabbe18792498df0f46210767dbeb18f52ad07597ea8f70a8d689477361a",
+    "kind": "cn-lossless-atlas"
+  },
+  {
+    "root": "common",
+    "logical": "battle/effect/skill_unique/touyakiren_ceo_ny26/touyakiren_ceo_ny26.atlas.amf3.deflate",
+    "rel": "84/5a1b6ec569b6d397d6eec45d49c504f55ac91c",
+    "member": "production/upload/84/5a1b6ec569b6d397d6eec45d49c504f55ac91c",
+    "before_sha256": "8fd137399b23bf1cb9972279555e20982588b16e0ed3c2113a49af07b9e8006c",
+    "sha256": "3bd85125a350ea76a6b3e60d162da5ff6b1368083d2f885f719664813ac4c5ce",
+    "kind": "cn-lossless-atlas"
+  },
+  {
+    "root": "common",
+    "logical": "battle/effect/skill_unique/touyakiren_ceo_ny26/touyakiren_ceo_ny26.png",
+    "rel": "ce/d99a237c8a33a5673f509db1769a403b14dac8",
+    "member": "production/upload/ce/d99a237c8a33a5673f509db1769a403b14dac8",
+    "before_sha256": "294e96cbc2f9228b8abb6537e6080ed1400821018fe8f22652074d9925fd792d",
+    "sha256": "17c736dbee9e3989bfeb5e2dde597edc11a7e025f2e8c86d1cb918a2f6961176",
+    "kind": "cn-lossless-atlas"
+  },
+  {
+    "root": "common",
+    "logical": "battle/effect/skill_unique/touyakiren_ceo_ny26_petal/touyakiren_ceo_ny26_petal.atlas.amf3.deflate",
+    "rel": "06/d364033bed31d29ceb55df0b41e1b653c3c27b",
+    "member": "production/upload/06/d364033bed31d29ceb55df0b41e1b653c3c27b",
+    "before_sha256": "0da9207fef9e43b004f73169c98cacfe55b3437a5793ecc957ace4acbb1db79d",
+    "sha256": "b0c7a23eeae0846ae02f1f5c902ee12c384f539395aff1d98c95d45a606cb153",
+    "kind": "cn-lossless-atlas"
+  },
+  {
+    "root": "common",
+    "logical": "battle/effect/skill_unique/touyakiren_ceo_ny26_petal/touyakiren_ceo_ny26_petal.png",
+    "rel": "6c/35be06962370c4e2730ead864002603018cb72",
+    "member": "production/upload/6c/35be06962370c4e2730ead864002603018cb72",
+    "before_sha256": "e52e9f9c553de695132b9abc447297525ff3c0f57954699fa798d89405db05e1",
+    "sha256": "397856c40c064eb29662ca3c8f9939381744960eecec92f72a0b73dba57bdcd6",
+    "kind": "cn-lossless-atlas"
+  },
+  {
+    "root": "common",
+    "logical": "battle/effect/skill_unique/touyakiren_ceo_ny26_sakura/touyakiren_ceo_ny26_sakura.atlas.amf3.deflate",
+    "rel": "26/751bbab8bb1dad5294d584854827781a4560a7",
+    "member": "production/upload/26/751bbab8bb1dad5294d584854827781a4560a7",
+    "before_sha256": "d7bdd24e2f6c2d70ca16e1ffe40b5e28121ef6f55d275d46e79ee6a5fbc36d6a",
+    "sha256": "7b71d848671e02de3eec99cb700997fd6d4887cc59958bb58b1fa40942ffec31",
+    "kind": "cn-lossless-atlas"
+  },
+  {
+    "root": "common",
+    "logical": "battle/effect/skill_unique/touyakiren_ceo_ny26_sakura/touyakiren_ceo_ny26_sakura.png",
+    "rel": "3c/77b4b24030c530f00bafa9efbcabaf6fd6bc6d",
+    "member": "production/upload/3c/77b4b24030c530f00bafa9efbcabaf6fd6bc6d",
+    "before_sha256": "37cbce49cf37431b7af72770d560d5bc7280aa462c4ba5f036d7ee7a1cbf11cc",
+    "sha256": "ed7bf94aa98c4302f12d8d91aff8235caae3e975381a1f3483fefc48234c5d24",
+    "kind": "cn-lossless-atlas"
+  },
+  {
+    "root": "common",
+    "logical": "battle/effect/skill_unique/white_wolf_gerald/rainbow_burst/rainbow_burst.atlas.amf3.deflate",
+    "rel": "d0/e2e6284ee0dc696b318dd8d1873bf582366159",
+    "member": "production/upload/d0/e2e6284ee0dc696b318dd8d1873bf582366159",
+    "before_sha256": "6d385903ce894ee7a667508f8db602f8d9f20066af69b4639d3abcde0f51b6bc",
+    "sha256": "c0b14edaf89a65001bdca18d146f8593e9ae51143b616e9ba7fccdb917b2cf8f",
+    "kind": "cn-lossless-atlas"
+  },
+  {
+    "root": "common",
+    "logical": "battle/effect/skill_unique/white_wolf_gerald/rainbow_burst/rainbow_burst.png",
+    "rel": "b6/5fabd1eeab14cac977c41286abd377c37de6c8",
+    "member": "production/upload/b6/5fabd1eeab14cac977c41286abd377c37de6c8",
+    "before_sha256": "87b4a10339180506a8e8f739ee1780b9a92ffa41f85fd305ae68ca3350c4a06e",
+    "sha256": "9a234cbd25cfd181808eaf9df7eb2b3cdbfbd21cdd3b06940072cca642f0ed74",
+    "kind": "cn-lossless-atlas"
+  },
+  {
+    "root": "common",
+    "logical": "battle/effect/skill_unique/white_wolf_gerald/time_aura/time_aura.atlas.amf3.deflate",
+    "rel": "be/c698001de805903c4f42db376a780b532db190",
+    "member": "production/upload/be/c698001de805903c4f42db376a780b532db190",
+    "before_sha256": "6cd6876c5971fd9ff7c0650bcde6a6a00b82d50dcce8ddc3bc07b4fa4eabaa65",
+    "sha256": "feaa5f145e118ba71d5b9a92c12060cf086499a4710dfcd18ec7135d81e46c00",
+    "kind": "cn-lossless-atlas"
+  },
+  {
+    "root": "common",
+    "logical": "battle/effect/skill_unique/white_wolf_gerald/time_aura/time_aura.png",
+    "rel": "66/5fb6d9da79a7cb95215afde3b581fd0845813e",
+    "member": "production/upload/66/5fb6d9da79a7cb95215afde3b581fd0845813e",
+    "before_sha256": "e27129ca82b532fa106a0ffaa9c1cb136aff062d49b2198370973250c4177e08",
+    "sha256": "19cd04cb4e1ebe4ebdd676ab4b879d1985a15184cf53d2809dbf495d703c15cf",
+    "kind": "cn-lossless-atlas"
+  },
+  {
+    "root": "common",
+    "logical": "battle/effect/skill_unique/white_wolf_gerald/white_wolf_gerald.atlas.amf3.deflate",
+    "rel": "86/b84dca5658e54795616bbe0446ee8191afb64b",
+    "member": "production/upload/86/b84dca5658e54795616bbe0446ee8191afb64b",
+    "before_sha256": "3558d319b52a541a1a457e444ae97c49705eaf556b1f50d0d6cccc12616b2b97",
+    "sha256": "dd2ed4c926cf7319693cf127dbef087cb052a79e509c4440a46027e7d4e40179",
+    "kind": "cn-lossless-atlas"
+  },
+  {
+    "root": "common",
+    "logical": "battle/effect/skill_unique/white_wolf_gerald/white_wolf_gerald.png",
+    "rel": "5d/3f8974dbc211de057d487129bf99af4d0c3263",
+    "member": "production/upload/5d/3f8974dbc211de057d487129bf99af4d0c3263",
+    "before_sha256": "889ae82e535248df3f201ef3be9d7f4095decfc9a343c9544951becd507b26b0",
+    "sha256": "7805e18021939caa6630539cf43a905417e4d08ae6cdb577bfa00bf98a1b6e3f",
+    "kind": "cn-lossless-atlas"
+  },
+  {
+    "root": "common",
+    "logical": "character/abyss_beast_playable/pixelart/sprite_sheet.atlas.amf3.deflate",
+    "rel": "ae/02da2a7388a44bc3ab27fb4d77fa0a1e7649c0",
+    "member": "production/upload/ae/02da2a7388a44bc3ab27fb4d77fa0a1e7649c0",
+    "before_sha256": "162b00e66029d5fceb02b7e99a49b282f3af6dfe91cba50e4bf120d6ce806626",
+    "sha256": "60d5fe5a5cdddbd88446172e251f45c88006af3eb13d3ee217e5c23a46ead32e",
+    "kind": "cn-lossless-atlas"
+  },
+  {
+    "root": "common",
+    "logical": "character/abyss_beast_playable/pixelart/sprite_sheet.png",
+    "rel": "5e/235daaf64bbc718efcfd5b46e5a0175e836432",
+    "member": "production/upload/5e/235daaf64bbc718efcfd5b46e5a0175e836432",
+    "before_sha256": "b514cb84bb5f9ab4c27308d9b78c0296750ba3151b5cc497ec4123b35f99b9c8",
+    "sha256": "c0678fcd1639e52dcd7bfa131d655d7a82a5a3704a9ef9993da84dba5ac22e82",
+    "kind": "cn-lossless-atlas"
+  },
+  {
+    "root": "common",
+    "logical": "character/cnmod_epuration_empress/pixelart/sprite_sheet.atlas.amf3.deflate",
+    "rel": "3d/38be05424e4b71f8fe40b553a304adc3478d3f",
+    "member": "production/upload/3d/38be05424e4b71f8fe40b553a304adc3478d3f",
+    "before_sha256": "c37d9ccc0e5cb19d83d3fb62cb263f4ab9215f1d869cb6c8c325f65b977882ea",
+    "sha256": "dd0c326bcc7f265649a2d075c819111de6decc3d8ec978f2fb0b8cab1a679521",
+    "kind": "cn-lossless-atlas"
+  },
+  {
+    "root": "common",
+    "logical": "character/cnmod_epuration_empress/pixelart/sprite_sheet.png",
+    "rel": "a9/a9c324a4d07f938012a62f7cc6850fde5b247b",
+    "member": "production/upload/a9/a9c324a4d07f938012a62f7cc6850fde5b247b",
+    "before_sha256": "764390da591dc1e217b4cbbab164f8bb85fbadcdc96c091b287bb311532b95c1",
+    "sha256": "215b3bb37d5947fd0d1fd9f6b7e107c8835a0354d5b005a3d178e83d751901ec",
+    "kind": "cn-lossless-atlas"
+  },
+  {
+    "root": "common",
+    "logical": "character/epuration_empress_playable/pixelart/sprite_sheet.atlas.amf3.deflate",
+    "rel": "e2/ceca50d78de1eafb65c29d4c66cb8f5caa769a",
+    "member": "production/upload/e2/ceca50d78de1eafb65c29d4c66cb8f5caa769a",
+    "before_sha256": "eff75443e0a602afc2abfb1c98b0b1a30fedde1a109322de40b8c252b2480a3e",
+    "sha256": "77df25e85c9ee2ba3a60f69f59d202ceace3fd1641180a07cfd666dfe8e790c2",
+    "kind": "cn-lossless-atlas"
+  },
+  {
+    "root": "common",
+    "logical": "character/epuration_empress_playable/pixelart/sprite_sheet.png",
+    "rel": "ab/2c7aa166fcb7757f9eebefe7983406062ef710",
+    "member": "production/upload/ab/2c7aa166fcb7757f9eebefe7983406062ef710",
+    "before_sha256": "ff24077ef227207552d74e58186a093ab097f10ed689658167c978302f79540c",
+    "sha256": "f829e23245a6cbad54f35ee88048e244a7875a24768e54ec5e161bb6e7ce8ad0",
+    "kind": "cn-lossless-atlas"
+  },
+  {
+    "root": "common",
+    "logical": "character/epuration_infantry_playable/pixelart/sprite_sheet.atlas.amf3.deflate",
+    "rel": "ff/b69b314fef0ed1a8672e6b659985d018545e64",
+    "member": "production/upload/ff/b69b314fef0ed1a8672e6b659985d018545e64",
+    "before_sha256": "3623920825db677b8019bb12ad8158d09a7b18d7bc4a062b1b398ff0439c5a27",
+    "sha256": "dae57b2f0693080a748332060d82ee3dd2d835abf4cce1d539b0b0d2985daeba",
+    "kind": "cn-lossless-atlas"
+  },
+  {
+    "root": "common",
+    "logical": "character/epuration_infantry_playable/pixelart/sprite_sheet.png",
+    "rel": "90/b31155afd0074e12571973f4f5658bbf611c79",
+    "member": "production/upload/90/b31155afd0074e12571973f4f5658bbf611c79",
+    "before_sha256": "09ead077620693df6f9d55450fe7e7ce7d39cdb355ac83ebc2dc98c1bc62e1ab",
+    "sha256": "1bd270ef611e10a1b97d8c19e45015139ef00b6597d5dd0158bae542eff65177",
+    "kind": "cn-lossless-atlas"
+  },
+  {
+    "root": "common",
+    "logical": "character/epuration_monk_playable/pixelart/sprite_sheet.atlas.amf3.deflate",
+    "rel": "7c/5d4276c20540b227031df8a72234e8c2dd5c89",
+    "member": "production/upload/7c/5d4276c20540b227031df8a72234e8c2dd5c89",
+    "before_sha256": "1e30cf83facb2325d73475a42e3085731b9d39e5eb0f57859efa34354343fec4",
+    "sha256": "3f2e018fca4978c9a0e99132652999be93bcc43b32d34150a6aef97ebed1b371",
+    "kind": "cn-lossless-atlas"
+  },
+  {
+    "root": "common",
+    "logical": "character/epuration_monk_playable/pixelart/sprite_sheet.png",
+    "rel": "26/276fb3b8287942e7b6c0867979e62a3146a275",
+    "member": "production/upload/26/276fb3b8287942e7b6c0867979e62a3146a275",
+    "before_sha256": "b95217b8089110590cfc5a527b06d05dde83f05d899a81d77a01d5ecf615e883",
+    "sha256": "cfbfcef574097c0b927afa6864c2fff91330bc4305a9abb3d447d4a9fc2149b2",
+    "kind": "cn-lossless-atlas"
+  },
+  {
+    "root": "common",
+    "logical": "character/epuration_variant_playable/pixelart/sprite_sheet.atlas.amf3.deflate",
+    "rel": "ff/af7e959833435bff065e7b66eaf3d0c8988f60",
+    "member": "production/upload/ff/af7e959833435bff065e7b66eaf3d0c8988f60",
+    "before_sha256": "ba9efc5c6662c9e3396c0be01286b0a0417ae7a4efe03b899ac2fd27d72d3033",
+    "sha256": "9e150acf116ce4c0b776e2893c8b8b8ea68b0522ffe53e1a9d44a530e3aae0aa",
+    "kind": "cn-lossless-atlas"
+  },
+  {
+    "root": "common",
+    "logical": "character/epuration_variant_playable/pixelart/sprite_sheet.png",
+    "rel": "ae/16509b77cde9e8ead6db40c1b1a0ca4172fd1d",
+    "member": "production/upload/ae/16509b77cde9e8ead6db40c1b1a0ca4172fd1d",
+    "before_sha256": "bef7b2fa13ed7ba58fd966f1bce03033de46456621a1722a69d608e8cd32acab",
+    "sha256": "9088bdeeb12171ad28fb021e3f533067a688e1cacb915a94beffc1e0ae8b08ec",
+    "kind": "cn-lossless-atlas"
+  },
+  {
+    "root": "common",
+    "logical": "character/fox_oracle_autumn/pixelart/sprite_sheet.atlas.amf3.deflate",
+    "rel": "0f/9fa3c463d083f1042767744de6cbd447eff7a9",
+    "member": "production/upload/0f/9fa3c463d083f1042767744de6cbd447eff7a9",
+    "before_sha256": "d10c0bdcdb8b10f3d56d16e93d201a0a74081ff859aa04ec3243d3ab914392c3",
+    "sha256": "16a84af1aec821d87d38f4820b7d292c08b571f725cc965dee1dd02c9d42508d",
+    "kind": "cn-lossless-atlas"
+  },
+  {
+    "root": "common",
+    "logical": "character/fox_oracle_autumn/pixelart/sprite_sheet.png",
+    "rel": "d8/530d6b177e446aaa5c9923eec6ffddf96c295c",
+    "member": "production/upload/d8/530d6b177e446aaa5c9923eec6ffddf96c295c",
+    "before_sha256": "9a9b48b7c852f58b564c568e14207443139cd89184de0a2c306b8a31e5b6b66a",
+    "sha256": "dca8b084095be37eaa57eeffa7bc095961a273c1883227a43104a8f00bdff598",
+    "kind": "cn-lossless-atlas"
+  },
+  {
+    "root": "common",
+    "logical": "character/unicorn_lancer_rose/pixelart/sprite_sheet.atlas.amf3.deflate",
+    "rel": "a5/a4953f02f7612a8829e6cb30e2b66599f6fc6b",
+    "member": "production/upload/a5/a4953f02f7612a8829e6cb30e2b66599f6fc6b",
+    "before_sha256": "a108f352d024f93df0e331c60d63775af7ec2514ba443945e6f5eb174d12ff73",
+    "sha256": "e2d0ff2c683d284e485edd90b06daf5b80fb1feff0b819303d701c63155ab92e",
+    "kind": "cn-lossless-atlas"
+  },
+  {
+    "root": "common",
+    "logical": "character/unicorn_lancer_rose/pixelart/sprite_sheet.png",
+    "rel": "7c/1abdc202e957bbcfb2a480509c114e72730e0d",
+    "member": "production/upload/7c/1abdc202e957bbcfb2a480509c114e72730e0d",
+    "before_sha256": "e32c7f3071c14232f2b2dfccc83ed101963fcee25c89a103b25e247c1e1e70e5",
+    "sha256": "9f27bdf702d544e1c2686250ab441d69781513b59243c560e1ca9f9292c7d7da",
+    "kind": "cn-lossless-atlas"
+  },
+  {
+    "root": "common",
+    "logical": "battle/effect/skill_unique/land_dragon_wind_playable/wave_arc120_middle/wave_arc120_middle.parts.amf3.deflate",
+    "rel": "4c/789ce3c77855db71bb76ed4c33de7255080101",
+    "member": "production/upload/4c/789ce3c77855db71bb76ed4c33de7255080101",
+    "before_sha256": "a3d21fb6c6a24c6ce3737c1137aa3261e184b23c815a4c5ceea6d5a126df4fd6",
+    "sha256": "1fa64336084784cf4a08760369bbe7ea6af5ac5297d8375da13f5235e1d166ec",
+    "kind": "author-shared-wave"
+  },
+  {
+    "root": "common",
+    "logical": "battle/effect/skill_unique/land_dragon_wind_playable/wave_arc120_slow/wave_arc120_slow.parts.amf3.deflate",
+    "rel": "47/601fe86eba485abf72d39d38f1e6ad41128632",
+    "member": "production/upload/47/601fe86eba485abf72d39d38f1e6ad41128632",
+    "before_sha256": "18e42ec1a5aaf192493e8deb50cd7fdd9b66b7892a3939641b49b7cc3ad715a8",
+    "sha256": "364134289c32f4846cd460f92c66a8304872bd95afb61ee27e7e323d9ff2d830",
+    "kind": "author-shared-wave"
+  },
+  {
+    "root": "common",
+    "logical": "battle/effect/skill_unique/maou2_playable/world_end/world_end.parts.amf3.deflate",
+    "rel": "aa/e5fe0e8ce971e9a1fb2adb6f1312004cffe849",
+    "member": "production/upload/aa/e5fe0e8ce971e9a1fb2adb6f1312004cffe849",
+    "before_sha256": "b789384e9925d9934b103bcf2fde62ad1bcd178a9ecdfa6aa4ed78271ebf6fed",
+    "sha256": "80bf8ab1aefe3d617f8b3cde231568df2177168db0cfd5d177009f09dab724f8",
+    "kind": "author-particle-reduction"
+  },
+  {
+    "root": "common",
+    "logical": "master/item/item.orderedmap",
+    "rel": "a4/731a843d4dc0c84120bf8c88784c1e74c03baa",
+    "member": "production/upload/a4/731a843d4dc0c84120bf8c88784c1e74c03baa",
+    "before_sha256": "a108a1fcccfe755f738e8ef9ed85a8ce35fe1e661b5b6fe689057be897fe57ac",
+    "sha256": "34eb44ef3e5b9869946be10338ac50354d242839438ab7ac7ce5aa9b3cebe086",
+    "kind": "ticket-description"
+  },
+  {
+    "root": "common",
+    "logical": "master/string/ui_string.orderedmap",
+    "rel": "d6/88e4a5f7d84cc422357cc8acbdb72817bc8670",
+    "member": "production/upload/d6/88e4a5f7d84cc422357cc8acbdb72817bc8670",
+    "before_sha256": "abd1d58ad606ec16929bd21930c93c10dc54ea5a27463d4af5ca993564c34e35",
+    "sha256": "a901379873ae114774f79b0fb4eada438e6e962c5fbcbe3ab2eb6ba76e85593d",
+    "kind": "native-entry-condition-message"
+  }
+]

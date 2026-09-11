@@ -37,6 +37,8 @@ const { getMissionMasterDefinition } = require("../src/lib/mission/master-data")
 
 initializeDatabase()
 db = getDb()
+const compactStorage = process.env.MISSION_DEGREE_COMPACT_STORAGE === "1"
+if (compactStorage) require("../src/lib/storage-layout").migrateStorageLayout(db)
 const counterPlan = db.prepare(`
     EXPLAIN QUERY PLAN
     SELECT dimension, qualifier_json, value
@@ -44,7 +46,7 @@ const counterPlan = db.prepare(`
     WHERE player_id = ? AND scope_type = 'lifetime' AND scope_key = 'all'
       AND dimension IN (?, ?)
 `).all(1, "battle.stat", "battle.quest_clear")
-assert.ok(counterPlan.some(row => String(row.detail).includes("idx_players_mission_counters_dimension")),
+assert.ok(counterPlan.some(row => String(row.detail).includes(compactStorage ? "USING PRIMARY KEY" : "idx_players_mission_counters_dimension")),
     "称号计数维度查询必须使用复合索引")
 const account = insertAccountSync({
     appId: "wf_cn",
@@ -129,7 +131,7 @@ insertPlayerEquipmentSync(playerId, 5010002, {
 const context = DegreeComputer.buildContext(playerId, 5)
 const expectedProgress = new Map([
     [16000, 50],
-    [17000, 180],
+    [17000, 180000], // Fever duration and mission targets are stored in milliseconds.
     [18000, 50],
     [19000, 50],
     [20000, 50],

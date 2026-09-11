@@ -1,0 +1,534 @@
+{
+  "phase": "Cloud package revised by explicit user instruction on 2026-09-11",
+  "commit": "93da44d341bc6804ca4b77430d779476c84b5a3e",
+  "files": [
+    {
+      "path": "src/lib/how-to-get-sources.ts",
+      "sha256": "796cd40a8eda04da205b1b4d6f3b6b5e3d8eaa50f729c2b08a0d8ded283fed0b",
+      "kind": "server",
+      "source_worktree_sha256": "796cd40a8eda04da205b1b4d6f3b6b5e3d8eaa50f729c2b08a0d8ded283fed0b",
+      "source": "Committed repository file"
+    },
+    {
+      "path": "out/lib/how-to-get-sources.js",
+      "sha256": "1bfbb6d8324a083c2ba87142834a719814c9cda95239756bf90fbb4b4985a6e2",
+      "kind": "server",
+      "source_worktree_sha256": "1bfbb6d8324a083c2ba87142834a719814c9cda95239756bf90fbb4b4985a6e2",
+      "source": "Committed repository file"
+    },
+    {
+      "path": "src/lib/shop-sales.ts",
+      "sha256": "c4d4fa8b027736935d3242ad161f712a48052136318704c78af728d24f8f23de",
+      "kind": "server",
+      "source_worktree_sha256": "c4d4fa8b027736935d3242ad161f712a48052136318704c78af728d24f8f23de",
+      "source": "Committed repository file"
+    },
+    {
+      "path": "out/lib/shop-sales.js",
+      "sha256": "580d4a681829a7e1c5cec2d01891b37eafdb1953286d72136fc003fa41f47d34",
+      "kind": "server",
+      "source_worktree_sha256": "580d4a681829a7e1c5cec2d01891b37eafdb1953286d72136fc003fa41f47d34",
+      "source": "Committed repository file"
+    },
+    {
+      "path": "src/routes/api/howToGet.ts",
+      "sha256": "c307573bc847ebd5b586c420f0d51bdea6c35fad9334f706d55495ca2b2ca203",
+      "kind": "server",
+      "source_worktree_sha256": "882e0bc9c36be9749dec17d6eb2e39667b46dbe27b8efb71eb6565c6d82946e8",
+      "source": "Committed repository file"
+    },
+    {
+      "path": "out/routes/api/howToGet.js",
+      "sha256": "e7dd8492f2735d778205a8fe0b8f26c3cc10030dcb928cf8098bb6c21a3b2dac",
+      "kind": "server",
+      "source_worktree_sha256": "e7dd8492f2735d778205a8fe0b8f26c3cc10030dcb928cf8098bb6c21a3b2dac",
+      "source": "Committed repository file"
+    },
+    {
+      "path": "src/routes/api/shop.ts",
+      "sha256": "cba2459d9bdcfc6ee7bfce0f95f943e45d0866645b0468bb0c70734abb22c27c",
+      "kind": "server",
+      "source_worktree_sha256": "06740c13e4770f946ecf31345c01e5c750f120a299d4a65decfcc753755659f3",
+      "source": "Committed repository file"
+    },
+    {
+      "path": "out/routes/api/shop.js",
+      "sha256": "cc51a89afc46ce58eb58acfcb582a19ba19e7cadddca993007e79d330f361f33",
+      "kind": "server",
+      "source_worktree_sha256": "cc51a89afc46ce58eb58acfcb582a19ba19e7cadddca993007e79d330f361f33",
+      "source": "Committed repository file"
+    },
+    {
+      "path": "assets/asset-patch/active/pinball-1.4.104-1.4.105-1-five-boss-ui-art.zip",
+      "sha256": "04f775c38a16c7e6646ea8c5df6bea93f5cd3f64ccc3653fd7f4b0fd32607959",
+      "kind": "archive",
+      "source_worktree_sha256": "04f775c38a16c7e6646ea8c5df6bea93f5cd3f64ccc3653fd7f4b0fd32607959",
+      "source": "Committed repository file"
+    },
+    {
+      "path": "assets/asset-patch/active/pinball-1.4.104-1.4.105-2-gerald-portrait.zip",
+      "sha256": "57f0734e524faac79899f10624044b52bd4c2ede0c846ca3bf4e744e9d3536ec",
+      "kind": "archive",
+      "source_worktree_sha256": "57f0734e524faac79899f10624044b52bd4c2ede0c846ca3bf4e744e9d3536ec",
+      "source": "Committed repository file"
+    },
+    {
+      "path": "assets/asset-patch/active/pinball-1.4.104-1.4.105-3-how-to-get-sources.zip",
+      "sha256": "7d67de5fa0467bea639dc52cd2783fc55937496cb418608ae92c4c1d8d7ad625",
+      "kind": "archive",
+      "source_worktree_sha256": "7d67de5fa0467bea639dc52cd2783fc55937496cb418608ae92c4c1d8d7ad625",
+      "source": "Committed repository file"
+    },
+    {
+      "path": "assets/asset-patch/active/pinball-1.4.104-1.4.105-4-kyubi-afterglow.zip",
+      "sha256": "7096b45412c7d07fce17074b55c15f405f85a3b477d14a799d96959ebcda3166",
+      "kind": "archive",
+      "source_worktree_sha256": "7096b45412c7d07fce17074b55c15f405f85a3b477d14a799d96959ebcda3166",
+      "source": "Committed repository file"
+    },
+    {
+      "path": "assets/asset-patch/manifest.json",
+      "sha256": "5d3ba4910e62f0b9dfe35f195fd0d1a7396f88d1682cc3362407d8691a947b36",
+      "kind": "manifest",
+      "source_worktree_sha256": "5d3ba4910e62f0b9dfe35f195fd0d1a7396f88d1682cc3362407d8691a947b36",
+      "source": "Committed repository file"
+    }
+  ],
+  "cloud_overlay_files": [
+    {
+      "path": "src/lib/how-to-get-sources.ts",
+      "sha256": "796cd40a8eda04da205b1b4d6f3b6b5e3d8eaa50f729c2b08a0d8ded283fed0b",
+      "kind": "server",
+      "source_worktree_sha256": "796cd40a8eda04da205b1b4d6f3b6b5e3d8eaa50f729c2b08a0d8ded283fed0b",
+      "source": "Committed repository file"
+    },
+    {
+      "path": "out/lib/how-to-get-sources.js",
+      "sha256": "1bfbb6d8324a083c2ba87142834a719814c9cda95239756bf90fbb4b4985a6e2",
+      "kind": "server",
+      "source_worktree_sha256": "1bfbb6d8324a083c2ba87142834a719814c9cda95239756bf90fbb4b4985a6e2",
+      "source": "Committed repository file"
+    },
+    {
+      "path": "src/lib/shop-sales.ts",
+      "sha256": "c4d4fa8b027736935d3242ad161f712a48052136318704c78af728d24f8f23de",
+      "kind": "server",
+      "source_worktree_sha256": "c4d4fa8b027736935d3242ad161f712a48052136318704c78af728d24f8f23de",
+      "source": "Committed repository file"
+    },
+    {
+      "path": "out/lib/shop-sales.js",
+      "sha256": "580d4a681829a7e1c5cec2d01891b37eafdb1953286d72136fc003fa41f47d34",
+      "kind": "server",
+      "source_worktree_sha256": "580d4a681829a7e1c5cec2d01891b37eafdb1953286d72136fc003fa41f47d34",
+      "source": "Committed repository file"
+    },
+    {
+      "path": "src/routes/api/howToGet.ts",
+      "sha256": "c307573bc847ebd5b586c420f0d51bdea6c35fad9334f706d55495ca2b2ca203",
+      "kind": "server",
+      "source_worktree_sha256": "882e0bc9c36be9749dec17d6eb2e39667b46dbe27b8efb71eb6565c6d82946e8",
+      "source": "Committed repository file"
+    },
+    {
+      "path": "out/routes/api/howToGet.js",
+      "sha256": "e7dd8492f2735d778205a8fe0b8f26c3cc10030dcb928cf8098bb6c21a3b2dac",
+      "kind": "server",
+      "source_worktree_sha256": "e7dd8492f2735d778205a8fe0b8f26c3cc10030dcb928cf8098bb6c21a3b2dac",
+      "source": "Committed repository file"
+    },
+    {
+      "path": "src/routes/api/shop.ts",
+      "sha256": "cba2459d9bdcfc6ee7bfce0f95f943e45d0866645b0468bb0c70734abb22c27c",
+      "kind": "server",
+      "source_worktree_sha256": "06740c13e4770f946ecf31345c01e5c750f120a299d4a65decfcc753755659f3",
+      "source": "Committed repository file"
+    },
+    {
+      "path": "out/routes/api/shop.js",
+      "sha256": "cc51a89afc46ce58eb58acfcb582a19ba19e7cadddca993007e79d330f361f33",
+      "kind": "server",
+      "source_worktree_sha256": "cc51a89afc46ce58eb58acfcb582a19ba19e7cadddca993007e79d330f361f33",
+      "source": "Committed repository file"
+    },
+    {
+      "path": "assets/asset-patch/active/pinball-1.4.104-1.4.105-1-five-boss-ui-art.zip",
+      "sha256": "04f775c38a16c7e6646ea8c5df6bea93f5cd3f64ccc3653fd7f4b0fd32607959",
+      "kind": "archive",
+      "source_worktree_sha256": "04f775c38a16c7e6646ea8c5df6bea93f5cd3f64ccc3653fd7f4b0fd32607959",
+      "source": "Committed repository file"
+    },
+    {
+      "path": "assets/asset-patch/active/pinball-1.4.104-1.4.105-2-gerald-portrait.zip",
+      "sha256": "57f0734e524faac79899f10624044b52bd4c2ede0c846ca3bf4e744e9d3536ec",
+      "kind": "archive",
+      "source_worktree_sha256": "57f0734e524faac79899f10624044b52bd4c2ede0c846ca3bf4e744e9d3536ec",
+      "source": "Committed repository file"
+    },
+    {
+      "path": "assets/asset-patch/active/pinball-1.4.104-1.4.105-3-how-to-get-sources.zip",
+      "sha256": "7d67de5fa0467bea639dc52cd2783fc55937496cb418608ae92c4c1d8d7ad625",
+      "kind": "archive",
+      "source_worktree_sha256": "7d67de5fa0467bea639dc52cd2783fc55937496cb418608ae92c4c1d8d7ad625",
+      "source": "Committed repository file"
+    },
+    {
+      "path": "assets/asset-patch/active/pinball-1.4.104-1.4.105-4-kyubi-afterglow.zip",
+      "sha256": "7096b45412c7d07fce17074b55c15f405f85a3b477d14a799d96959ebcda3166",
+      "kind": "archive",
+      "source_worktree_sha256": "7096b45412c7d07fce17074b55c15f405f85a3b477d14a799d96959ebcda3166",
+      "source": "Committed repository file"
+    },
+    {
+      "path": "assets/asset-patch/manifest.json",
+      "sha256": "5d3ba4910e62f0b9dfe35f195fd0d1a7396f88d1682cc3362407d8691a947b36",
+      "kind": "manifest",
+      "source_worktree_sha256": "5d3ba4910e62f0b9dfe35f195fd0d1a7396f88d1682cc3362407d8691a947b36",
+      "source": "Committed repository file"
+    }
+  ],
+  "cloud_overlay_excluded_prefixes": [
+    "production/",
+    "assets/asset-patch/production/"
+  ],
+  "historical_local_runtime_sync_files": [
+    {
+      "path": "src/lib/how-to-get-sources.ts",
+      "sha256": "796cd40a8eda04da205b1b4d6f3b6b5e3d8eaa50f729c2b08a0d8ded283fed0b",
+      "kind": "server",
+      "source_worktree_sha256": "796cd40a8eda04da205b1b4d6f3b6b5e3d8eaa50f729c2b08a0d8ded283fed0b",
+      "source": "Committed repository file"
+    },
+    {
+      "path": "out/lib/how-to-get-sources.js",
+      "sha256": "1bfbb6d8324a083c2ba87142834a719814c9cda95239756bf90fbb4b4985a6e2",
+      "kind": "server",
+      "source_worktree_sha256": "1bfbb6d8324a083c2ba87142834a719814c9cda95239756bf90fbb4b4985a6e2",
+      "source": "Committed repository file"
+    },
+    {
+      "path": "src/lib/shop-sales.ts",
+      "sha256": "c4d4fa8b027736935d3242ad161f712a48052136318704c78af728d24f8f23de",
+      "kind": "server",
+      "source_worktree_sha256": "c4d4fa8b027736935d3242ad161f712a48052136318704c78af728d24f8f23de",
+      "source": "Committed repository file"
+    },
+    {
+      "path": "out/lib/shop-sales.js",
+      "sha256": "580d4a681829a7e1c5cec2d01891b37eafdb1953286d72136fc003fa41f47d34",
+      "kind": "server",
+      "source_worktree_sha256": "580d4a681829a7e1c5cec2d01891b37eafdb1953286d72136fc003fa41f47d34",
+      "source": "Committed repository file"
+    },
+    {
+      "path": "src/routes/api/howToGet.ts",
+      "sha256": "c307573bc847ebd5b586c420f0d51bdea6c35fad9334f706d55495ca2b2ca203",
+      "kind": "server",
+      "source_worktree_sha256": "882e0bc9c36be9749dec17d6eb2e39667b46dbe27b8efb71eb6565c6d82946e8",
+      "source": "Committed repository file"
+    },
+    {
+      "path": "out/routes/api/howToGet.js",
+      "sha256": "e7dd8492f2735d778205a8fe0b8f26c3cc10030dcb928cf8098bb6c21a3b2dac",
+      "kind": "server",
+      "source_worktree_sha256": "e7dd8492f2735d778205a8fe0b8f26c3cc10030dcb928cf8098bb6c21a3b2dac",
+      "source": "Committed repository file"
+    },
+    {
+      "path": "src/routes/api/shop.ts",
+      "sha256": "cba2459d9bdcfc6ee7bfce0f95f943e45d0866645b0468bb0c70734abb22c27c",
+      "kind": "server",
+      "source_worktree_sha256": "06740c13e4770f946ecf31345c01e5c750f120a299d4a65decfcc753755659f3",
+      "source": "Committed repository file"
+    },
+    {
+      "path": "out/routes/api/shop.js",
+      "sha256": "cc51a89afc46ce58eb58acfcb582a19ba19e7cadddca993007e79d330f361f33",
+      "kind": "server",
+      "source_worktree_sha256": "cc51a89afc46ce58eb58acfcb582a19ba19e7cadddca993007e79d330f361f33",
+      "source": "Committed repository file"
+    },
+    {
+      "path": "assets/asset-patch/production/upload/97/efacb322621f7bf6671dad3bdf7bdc55cb350b",
+      "sha256": "614141e24e977255045b8e44dde571c2f6bf9dd9ce6e97ebce6345c0353afb6d",
+      "kind": "resource",
+      "source": "Committed active ZIP member; materialize after commit"
+    },
+    {
+      "path": "assets/asset-patch/production/upload/24/eecf0418222b143f11d2839a802a92041af066",
+      "sha256": "aadfc7e19306631b067daaa461713a2a3be3b70ec8b76c33ac96e07640dff914",
+      "kind": "resource",
+      "source": "Committed active ZIP member; materialize after commit"
+    },
+    {
+      "path": "assets/asset-patch/production/upload/e5/2bdb970ed33dad0a25f81768cb9b68971263d6",
+      "sha256": "1907068f2091e2e565efc946c56d53dd08fc1df3ba17e2b183b0cfb39d2fdb20",
+      "kind": "resource",
+      "source": "Committed active ZIP member; materialize after commit"
+    },
+    {
+      "path": "assets/asset-patch/production/upload/59/9a322b2b502b17e3ac626be2243e9631d8b630",
+      "sha256": "f2a90a35fad1cc2191d62e858f8022834320a3023a051dd9ace3fd84ed2ed79b",
+      "kind": "resource",
+      "source": "Committed active ZIP member; materialize after commit"
+    },
+    {
+      "path": "assets/asset-patch/production/upload/d9/014faaf3b6323850a22cc892a376427f6c42f5",
+      "sha256": "2add12e6c32d165ac7f855b81d762fcd2d286a5b61162933c41897d0a5f9887c",
+      "kind": "resource",
+      "source": "Committed active ZIP member; materialize after commit"
+    },
+    {
+      "path": "assets/asset-patch/production/android_upload/28/1102adc9cec02aba2023fed506e3073826de94",
+      "sha256": "623ec373833e62699894a02bb6611aaebe7585386f6a8d299e8e2f6ccc6feb31",
+      "kind": "resource",
+      "source": "Committed active ZIP member; materialize after commit"
+    },
+    {
+      "path": "assets/asset-patch/production/android_upload/f9/22195576de6b9ef0a374fc93e4b8c4b9e532ab",
+      "sha256": "bf85b50a35dac0c8958d34942fd74acffc456062787d69d23eb95db3dee35a15",
+      "kind": "resource",
+      "source": "Committed active ZIP member; materialize after commit"
+    },
+    {
+      "path": "assets/asset-patch/production/ios_upload/28/1102adc9cec02aba2023fed506e3073826de94",
+      "sha256": "29e74b4b4bc6091b4e7c08a3610269b443d195fdb4d45973c9a09d5469393f4d",
+      "kind": "resource",
+      "source": "Committed active ZIP member; materialize after commit"
+    },
+    {
+      "path": "assets/asset-patch/production/ios_upload/f9/22195576de6b9ef0a374fc93e4b8c4b9e532ab",
+      "sha256": "631fb587e214a3ebfbad132028363efdf145fa21f441029973380bce4222844a",
+      "kind": "resource",
+      "source": "Committed active ZIP member; materialize after commit"
+    },
+    {
+      "path": "assets/asset-patch/production/medium_upload/0a/d158f2086631f0485592b746137d8cac6f82a4",
+      "sha256": "6a27030efcafe85ebe8d2c60587c13baf43bcaeb29ddd077847550702bf6f9dc",
+      "kind": "resource",
+      "source": "Committed active ZIP member; materialize after commit"
+    },
+    {
+      "path": "assets/asset-patch/production/medium_upload/12/88029ce8d770e6105b9ef73702479dab9864e6",
+      "sha256": "d6d2763954ee16707de0ed5dcfc3692540b1986044306a5274c96ebb02b82254",
+      "kind": "resource",
+      "source": "Committed active ZIP member; materialize after commit"
+    },
+    {
+      "path": "assets/asset-patch/production/medium_upload/1d/0516a08ca5d94b60d9900d253d98728f00ebb6",
+      "sha256": "9914ddb818406287be4086d1c9cac5d5d4c04b9252516ca7c3887be3060eb0d1",
+      "kind": "resource",
+      "source": "Committed active ZIP member; materialize after commit"
+    },
+    {
+      "path": "assets/asset-patch/production/medium_upload/22/3839a14f7ecd68526aab72061f0e6d9d5409c9",
+      "sha256": "8a045eb4fd41940b20fdfc9d84f8d7192a486cb5b16110b79d9b78c177f435fa",
+      "kind": "resource",
+      "source": "Committed active ZIP member; materialize after commit"
+    },
+    {
+      "path": "assets/asset-patch/production/medium_upload/32/1b89943ca261f5c6785270e56d52ea07ff62e3",
+      "sha256": "e3b0bac346cc2d6f2e789a84564ba60e14e1c7f9a4c3793a4ac05a8e53dde52d",
+      "kind": "resource",
+      "source": "Committed active ZIP member; materialize after commit"
+    },
+    {
+      "path": "assets/asset-patch/production/medium_upload/51/4ed34b6f826a423d3c6149cf7531fb3f6d301b",
+      "sha256": "2723662f3d6d6e2d1dc1fdad0e44877505ef8ae222bcac7bc809cd11138875b3",
+      "kind": "resource",
+      "source": "Committed active ZIP member; materialize after commit"
+    },
+    {
+      "path": "assets/asset-patch/production/medium_upload/5d/f708bc39e33718b586244d3178a7265310ac71",
+      "sha256": "da40400903636fe144c03dac7dd171e1290c44ae37c4d4c85ae0fd54d2bf9a22",
+      "kind": "resource",
+      "source": "Committed active ZIP member; materialize after commit"
+    },
+    {
+      "path": "assets/asset-patch/production/medium_upload/67/a900d1f92530565be9d78e8ecd0ee9f6267224",
+      "sha256": "76eb68870cf1fcb15d617cd7492bc5dc42e566a4e814dbd610a63a21a0353f71",
+      "kind": "resource",
+      "source": "Committed active ZIP member; materialize after commit"
+    },
+    {
+      "path": "assets/asset-patch/production/medium_upload/7e/d1831a1e9c73d75715cc6b25c5ba099a897017",
+      "sha256": "3892f60f1a720f33a9d6752457c8e832e52b45e59157b28829816617f29d365d",
+      "kind": "resource",
+      "source": "Committed active ZIP member; materialize after commit"
+    },
+    {
+      "path": "assets/asset-patch/production/medium_upload/8d/3f047bd2b4c4762592118c7dbf4c789ea06e6d",
+      "sha256": "64582b827e8e39918d25918e1ace3baaa690fb45c42334f14b54a4cf6b3cd716",
+      "kind": "resource",
+      "source": "Committed active ZIP member; materialize after commit"
+    },
+    {
+      "path": "assets/asset-patch/production/medium_upload/93/2220d596429cb1e84fbd22a6186de15a457fad",
+      "sha256": "244fef594aa55fd4fb102fa79bc27ad303d9603ad3e3c32119b68ba35d7981cc",
+      "kind": "resource",
+      "source": "Committed active ZIP member; materialize after commit"
+    },
+    {
+      "path": "assets/asset-patch/production/medium_upload/94/c841317e7e8a48bd56f6197e2acdab8958ee2e",
+      "sha256": "6ca37b1c719f582bf2c41efc7030112dc60faef105c0dfbca916a8bb7b9484a5",
+      "kind": "resource",
+      "source": "Committed active ZIP member; materialize after commit"
+    },
+    {
+      "path": "assets/asset-patch/production/medium_upload/96/42efbb54d8ef2f325cfab794967146c4ea484c",
+      "sha256": "b5cc3f7a128d1c9a56d6f03403a4536f4be2aeb7455dfdfd1fe57aee5e663111",
+      "kind": "resource",
+      "source": "Committed active ZIP member; materialize after commit"
+    },
+    {
+      "path": "assets/asset-patch/production/medium_upload/9d/964a171ec49e88031e97d4ddc57c4061e0956a",
+      "sha256": "807053edd2307901b8b04e9d34d7665bb11deee3a664675ad1a1049336956399",
+      "kind": "resource",
+      "source": "Committed active ZIP member; materialize after commit"
+    },
+    {
+      "path": "assets/asset-patch/production/medium_upload/9f/94feedb7b38c3ca25ff009d5ea00f9f69a64fe",
+      "sha256": "92e64a7d7a53dcbbd4ef1928a140f31a6074af772286ae85acd349e463ec6feb",
+      "kind": "resource",
+      "source": "Committed active ZIP member; materialize after commit"
+    },
+    {
+      "path": "assets/asset-patch/production/medium_upload/bc/602c3b43b0634d93f7c2c5dc917636553e8805",
+      "sha256": "451864c20dec9258ce80e0cec49404333ec70f7876aa3d9bf6b38c9ad857bc61",
+      "kind": "resource",
+      "source": "Committed active ZIP member; materialize after commit"
+    },
+    {
+      "path": "assets/asset-patch/production/medium_upload/c6/6a4d418885bcab88cd4c200883b796c38b6deb",
+      "sha256": "753ad432a94ff326d6d77c2e1d4050630240a17d6c4acdd83109496ff5f0484c",
+      "kind": "resource",
+      "source": "Committed active ZIP member; materialize after commit"
+    },
+    {
+      "path": "assets/asset-patch/production/medium_upload/cb/d2d4f3ad43956a2b4650cde900861ea3199f6a",
+      "sha256": "b8cd501101ff9b9532d00fda64b1575a8eea542de9778feb104ce0b4ae3a829a",
+      "kind": "resource",
+      "source": "Committed active ZIP member; materialize after commit"
+    },
+    {
+      "path": "assets/asset-patch/production/medium_upload/cf/85f144d0e1ae09e66325e1ea6fa31b54947f6b",
+      "sha256": "1bb396bc555381b7f00f9cf622712545c3910c35882fc00eb094471e6bfe0967",
+      "kind": "resource",
+      "source": "Committed active ZIP member; materialize after commit"
+    },
+    {
+      "path": "assets/asset-patch/production/medium_upload/da/665dd06bd64204987ceeee34ce91c98dd29259",
+      "sha256": "43af7088a3a5eaa4857a80bdaf7a6449b6ed83b607c5d998bcd8774c66e6a05d",
+      "kind": "resource",
+      "source": "Committed active ZIP member; materialize after commit"
+    },
+    {
+      "path": "assets/asset-patch/production/medium_upload/db/88ddb4ca970b1f6b67b4aa92e0dd46258d7b24",
+      "sha256": "007e41d438edc462e9827703d1f6acd63678efef57e2aee855e41ef27ea9ed90",
+      "kind": "resource",
+      "source": "Committed active ZIP member; materialize after commit"
+    },
+    {
+      "path": "assets/asset-patch/production/medium_upload/dd/c08227523dd8ad9df87b81cc88c16b46909b07",
+      "sha256": "97855b56cd600a781d928783abc4196a70a8495f175649f7506cc3766e924392",
+      "kind": "resource",
+      "source": "Committed active ZIP member; materialize after commit"
+    },
+    {
+      "path": "assets/asset-patch/production/medium_upload/df/8cf8e3aeed71123fe0233845bafae5f09019ff",
+      "sha256": "e6c1e2a0daba2b1df839f1bbdf223dc9e8db9aa17e9f37a4c4c66525648f9805",
+      "kind": "resource",
+      "source": "Committed active ZIP member; materialize after commit"
+    },
+    {
+      "path": "assets/asset-patch/production/medium_upload/e5/982510d3ca22d686aa0f6caee32addb8386f35",
+      "sha256": "c60b5fc530e4d713afa62e706f624c3a5119a884c44758dfd307dca82fa99aaf",
+      "kind": "resource",
+      "source": "Committed active ZIP member; materialize after commit"
+    },
+    {
+      "path": "assets/asset-patch/production/medium_upload/fc/337c9cad3494f69f8287edb27d79815dfa80b5",
+      "sha256": "c9e2469bf8d2d8aee61cc3758b8c99596ca3966d0345a7d9d8462867a4d08677",
+      "kind": "resource",
+      "source": "Committed active ZIP member; materialize after commit"
+    },
+    {
+      "path": "assets/asset-patch/production/upload/3e/b411841802398d5b21d422579f2eaa65d30c0e",
+      "sha256": "ec4e9b927eac95c63d66206b541bbc34b8da47d06a07b9c7b0df7978f5dac205",
+      "kind": "resource",
+      "source": "Committed active ZIP member; materialize after commit"
+    },
+    {
+      "path": "assets/asset-patch/production/upload/49/2de62c47a538c83f5ebb2c9ca9ec44c13f3538",
+      "sha256": "ed04442635d970e025b91e646412472843bc8737d01e2c4e6806a61ea15b1064",
+      "kind": "resource",
+      "source": "Committed active ZIP member; materialize after commit"
+    },
+    {
+      "path": "assets/asset-patch/production/upload/b9/132d27178d27f9d91df89fc47e106bbaf2d5b5",
+      "sha256": "015b9ec0f938a831bff58f29c11283a285cda73608742b14f4bfc633434bc655",
+      "kind": "resource",
+      "source": "Committed active ZIP member; materialize after commit"
+    },
+    {
+      "path": "assets/asset-patch/production/upload/fb/ab4344a7456dca88f3ce06f01208922f37e395",
+      "sha256": "c220ed7910bd70fcaf3c4e074b37e16b8ea5e06af6c134168cc83ffe16afd4a0",
+      "kind": "resource",
+      "source": "Committed active ZIP member; materialize after commit"
+    },
+    {
+      "path": "assets/asset-patch/production/upload/a4/731a843d4dc0c84120bf8c88784c1e74c03baa",
+      "sha256": "93015a75aefac039e57f8bc0eede7b7954c2e745316f19b87453cdb0869ae5e9",
+      "kind": "resource",
+      "source": "Committed active ZIP member; materialize after commit"
+    },
+    {
+      "path": "assets/asset-patch/production/upload/56/7d81eea3c08fac7b1b69cbeabe2b9fd7b9591e",
+      "sha256": "0666488998fedf754871560e182fc4046aea5db9d7f22ee257a364875f9f1ba3",
+      "kind": "resource",
+      "source": "Committed active ZIP member; materialize after commit"
+    },
+    {
+      "path": "assets/asset-patch/production/upload/ff/84353774cb95e8d7dc90c679f96a5bca7f42e5",
+      "sha256": "4f639fd2c2bc87325b10dda025aabbf75aad6d7de98fd822a63938097fd489a2",
+      "kind": "resource",
+      "source": "Committed active ZIP member; materialize after commit"
+    },
+    {
+      "path": "assets/asset-patch/active/pinball-1.4.104-1.4.105-1-five-boss-ui-art.zip",
+      "sha256": "04f775c38a16c7e6646ea8c5df6bea93f5cd3f64ccc3653fd7f4b0fd32607959",
+      "kind": "archive",
+      "source_worktree_sha256": "04f775c38a16c7e6646ea8c5df6bea93f5cd3f64ccc3653fd7f4b0fd32607959",
+      "source": "Committed repository file"
+    },
+    {
+      "path": "assets/asset-patch/active/pinball-1.4.104-1.4.105-2-gerald-portrait.zip",
+      "sha256": "57f0734e524faac79899f10624044b52bd4c2ede0c846ca3bf4e744e9d3536ec",
+      "kind": "archive",
+      "source_worktree_sha256": "57f0734e524faac79899f10624044b52bd4c2ede0c846ca3bf4e744e9d3536ec",
+      "source": "Committed repository file"
+    },
+    {
+      "path": "assets/asset-patch/active/pinball-1.4.104-1.4.105-3-how-to-get-sources.zip",
+      "sha256": "7d67de5fa0467bea639dc52cd2783fc55937496cb418608ae92c4c1d8d7ad625",
+      "kind": "archive",
+      "source_worktree_sha256": "7d67de5fa0467bea639dc52cd2783fc55937496cb418608ae92c4c1d8d7ad625",
+      "source": "Committed repository file"
+    },
+    {
+      "path": "assets/asset-patch/active/pinball-1.4.104-1.4.105-4-kyubi-afterglow.zip",
+      "sha256": "7096b45412c7d07fce17074b55c15f405f85a3b477d14a799d96959ebcda3166",
+      "kind": "archive",
+      "source_worktree_sha256": "7096b45412c7d07fce17074b55c15f405f85a3b477d14a799d96959ebcda3166",
+      "source": "Committed repository file"
+    },
+    {
+      "path": "assets/asset-patch/manifest.json",
+      "sha256": "5d3ba4910e62f0b9dfe35f195fd0d1a7396f88d1682cc3362407d8691a947b36",
+      "kind": "manifest",
+      "source_worktree_sha256": "5d3ba4910e62f0b9dfe35f195fd0d1a7396f88d1682cc3362407d8691a947b36",
+      "source": "Committed repository file"
+    }
+  ],
+  "note": "外层云服包为 13 个文件。历史本地同步为 54 个文件，不能作为云服清单。禁止重新解出 active ZIP 的 production 散文件加入外层；保留内层 ZIP 原字节。此次只修订包和规则，未删除或同步运行文件。"
+}

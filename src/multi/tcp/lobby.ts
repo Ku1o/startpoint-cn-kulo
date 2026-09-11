@@ -1,4 +1,6 @@
 import * as net from "net"
+import { FIVE_BOSS_GAUNTLET, isFiveBossGauntletQuest } from "../five-boss/contract"
+import { freezeFiveBossLobby } from "../five-boss/lobby-runtime"
 import { sessionManager, SessionClient } from "../state/SessionManager"
 import { addRoomMember, getRoom, removeRoomMember } from "../room/manager"
 import { NpcMateProvider, selectStableNpcSlots } from "../npc/controller"
@@ -427,7 +429,15 @@ async function handleEnterComs(client: SessionClient, coms: { name: string }[]):
     }
     room.is_npc_mode = true
 
-    const hostMate = client.yourself ?? client.mates[0]
+    if (isFiveBossGauntletQuest(room.category, room.quest_id)) {
+        const remaining = room.created_at + FIVE_BOSS_GAUNTLET.aiFillTimeoutMs - Date.now()
+        if (remaining > 0) {
+            scheduleNpcReconcile(room.room_number, remaining)
+            return
+        }
+    }
+
+    const hostMate = findHostClient(client.roomNumber)?.yourself ?? client.mates[0]
     if (!hostMate) return
 
     // Rebuild from live connections so an older client's local array cannot
@@ -479,7 +489,7 @@ async function handleEnterComs(client: SessionClient, coms: { name: string }[]):
     let npcParties: any[] = []
     try {
         const selectionOptions = getNpcPartySelectionOptions(room.category, room.quest_id)
-        npcParties = getRandomPlayerNpcPartiesSync(
+        npcParties = isFiveBossGauntletQuest(room.category, room.quest_id) ? [] : getRandomPlayerNpcPartiesSync(
             client.playerId,
             needNPCs,
             selectionOptions,
@@ -1046,6 +1056,7 @@ function handleStartBattle(_socket: net.Socket, client: SessionClient, _data: an
             .filter(mate => !mate.comId && Number.isFinite(Number(mate.viewerId)))
             .map(mate => Number(mate.viewerId)),
     )]
+    if (!freezeFiveBossLobby(room, members)) return
     const expectedCount = realViewerIds.length
     for (const viewerId of realViewerIds) {
         sessionManager.clearRescueGuestLobbyWait(client.roomNumber, viewerId)
@@ -1071,7 +1082,10 @@ function handleStartBattle(_socket: net.Socket, client: SessionClient, _data: an
             battleSessionId: room.lifecycle.battleSessionId ?? "",
         }
     if (!battleStart.ok) return
-    sessionManager.setBattleExpectedCount(client.roomNumber, expectedCount)
+    const expectedBattleSeats = sessionManager.getClientsInRoom(client.roomNumber, battleStart.previousGeneration)
+        .filter(current => realViewerIds.includes(current.viewerId))
+        .map(current => ({ viewerId: current.viewerId, connectionId: current.connectionId }))
+    sessionManager.setBattleExpectedCount(client.roomNumber, expectedCount, expectedBattleSeats)
     stopRandomRecruitment(client.roomNumber)
     // Keep rescue membership for the whole room lifecycle.  Battle finish
     // needs this marker to grant the repeatable rescue reward, and a rescue
