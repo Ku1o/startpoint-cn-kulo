@@ -1,8 +1,7 @@
 {
   "baseline_commit": "f440d283f84b84671d7cd2cfebdbe66d2d775448",
   "last_requested_overlay": "startpoint-cn-cloud-overlay-login-abyss-cdn104-20260911-000735.zip",
-  "release_count": 54,
-  "source": "13 committed runtime paths plus 41 payloads extracted from committed active ZIPs",
+  "source": "13 committed paths in cloud overlay; the 41 loose resources remain inside unchanged active ZIPs",
   "line_endings": [
     {
       "path": "src/routes/api/howToGet.ts",
@@ -20,5 +19,11 @@
   "save_impact": "No schema, saved ID, purchase key or save transfer contract changes; V1/V2 unchanged.",
   "validation": "Prior isolated npm run build, 17 server cases, 8 CDN cases and 5 Kyubi cases passed; integrated 41-resource replay and Android/iOS pair validation passed.",
   "runtime_before": "The 70 prior overlay files match their release hashes.",
-  "delivery_status": "Not yet synchronized at this preflight; final receipt is created after commit outside the repo."
+  "delivery_status": "Original code committed/pushed as 93da44d3. Cloud package subsequently revised locally to exclude loose production paths; old 54-file records are local-sync history only.",
+  "historical_local_runtime_sync_count": 54,
+  "cloud_overlay_file_count": 13,
+  "cloud_overlay_excluded_prefixes": [
+    "production/",
+    "assets/asset-patch/production/"
+  ]
 }
