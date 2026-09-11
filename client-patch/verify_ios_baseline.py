@@ -7,6 +7,7 @@ import hashlib
 import json
 from pathlib import Path
 import plistlib
+import struct
 import sys
 import zipfile
 
@@ -18,11 +19,15 @@ def verify(ipa: Path | None = None, *, record_path: Path | None = None) -> dict:
     record_file = record_path if record_path is not None else RECORD
     record = json.loads(record_file.read_text(encoding="utf-8"))
     identity = (record["schema_version"], record["status"])
-    if identity not in ((1, "user_accepted"), (2, "accepted_offline")):
+    if identity not in ((1, "user_accepted"), (2, "accepted_offline"), (3, "user_accepted")):
         raise ValueError("baseline record must explicitly identify an accepted release and scope")
     if identity == (2, "accepted_offline"):
         if not record["acceptance"]["user_statement"] or record["acceptance"]["scope"] != "offline_artifact_and_lineage":
             raise ValueError("offline acceptance must record user authorization and its limited scope")
+    if identity == (3, "user_accepted"):
+        acceptance = record["acceptance"]
+        if not acceptance["user_statement"] or acceptance["scope"] != "user_confirmed_acceptance_and_offline_identity":
+            raise ValueError("user acceptance must record the user's confirmation and audit scope")
     entry = record["artifact"]
     path = ipa.resolve() if ipa else ROOT / entry["ipa"]
     if not path.is_file():
@@ -45,6 +50,20 @@ def verify(ipa: Path | None = None, *, record_path: Path | None = None) -> dict:
                           ("CFBundleVersion", "build")):
             if plist[key] != entry[name]:
                 raise ValueError(f"application identity mismatch: {key}")
+        if identity == (3, "user_accepted"):
+            full = ROOT / entry["full_abc"]
+            if not full.is_file():
+                raise ValueError("accepted full ABC is missing; do not substitute stripped runtime ABC")
+            full_bytes = full.read_bytes()
+            if hashlib.sha256(full_bytes).hexdigest() != entry["full_abc_sha256"]:
+                raise ValueError("accepted full ABC SHA-256 mismatch")
+            digest = hashlib.sha1(full_bytes).digest()
+            native = archive.read(entry["native_member"])
+            at = entry["aot_info_file_offset"]
+            if digest.hex() != entry["full_abc_sha1"] or native[at:at + 20] != digest:
+                raise ValueError("accepted full ABC and native AOT identity differ")
+            if struct.unpack_from("<Q", native, at + 56)[0] != entry["aot_method_count"]:
+                raise ValueError("accepted native AOT method count differs")
     return {"status": "accepted_identity_verified", "acceptance_status": record["status"],
             "registry": str(record_file),
             "ipa": str(path), "ipa_sha256": entry["ipa_sha256"],
@@ -55,9 +74,10 @@ def verify(ipa: Path | None = None, *, record_path: Path | None = None) -> dict:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--ipa", type=Path, help="explicit alternate location; identity must still match")
+    parser.add_argument("--record", type=Path, help="explicit historical acceptance record for reproduction")
     args = parser.parse_args()
     try:
-        print(json.dumps(verify(args.ipa), ensure_ascii=False, indent=2))
+        print(json.dumps(verify(args.ipa, record_path=args.record), ensure_ascii=False, indent=2))
     except (ValueError, KeyError, OSError, zipfile.BadZipFile, plistlib.InvalidFileException) as error:
         print(f"ERROR: {error}", file=sys.stderr)
         return 1

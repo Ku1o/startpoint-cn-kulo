@@ -1,0 +1,82 @@
+{
+  "schema_version": 2,
+  "status": "accepted_offline",
+  "accepted_on": "2026-09-09",
+  "acceptance": {
+    "source": "用户要求验收 Android 与 iOS 深渊续战累计成品并提交 GitHub；完成离线包体与累计血统检查后登记。",
+    "user_statement": "ios和安卓都验收并提交修改内容至github",
+    "scope": "offline_artifact_and_lineage",
+    "device_tested_by_codex": false,
+    "device_acceptance": "not_established_by_this_audit",
+    "build_reports_are_immutable": true,
+    "audit": "client-patch/ACCEPTANCE-ABYSS-AUTOSTART-20260909.md",
+    "note": "本条用户指令授权执行验收与提交，不是用户已完成真机测试的声明。原构建报告保持生成时状态；本次直接登记原交付成品，没有重编译、重签或安装。 iOS 登记的是原始 unsigned IPA。"
+  },
+  "artifact": {
+    "ipa": "F:/codex/ios-artifacts/StarPoint-iOS-1.8.4-abyss-autostart-lens-20260909-unsigned.ipa",
+    "ipa_sha256": "8e6fb8cc4de6fe1c79efaded8e4ab1159c012645bdc3a52a22e19562e0661193",
+    "size_bytes": 139474596,
+    "native_member": "Payload/worldflipper.app/worldflipper",
+    "native_sha256": "7c37c6ad5fd9019a502fb4f01fd5b1af6dfcdf608996240c26319186f0d594ba",
+    "swf_member": "Payload/worldflipper.app/worldflipper_ios_release.swf",
+    "swf_sha256": "051c240268db2953cedf5571fc641bcac7a139044c17513b83c9b09833eb7e52",
+    "bundle_id": "com.kulo.wf",
+    "version": "1.8.4",
+    "build": "1.8.46",
+    "signing": "unsigned",
+    "profile_debug_overlay": false,
+    "title_cntips_b_unchanged": true,
+    "endpoint_policy": "沿用历史输入，未修改服务端地址"
+  },
+  "lineage": {
+    "previous_accepted_registry": "client-patch/accepted-history/ios-lens-20260909.json",
+    "previous_accepted_ipa_sha256": "de28d8134e51d22f3c596869e53e90072866c17f54ec54af99b2a3fcd78dcd02",
+    "previous_accepted_role": "原 Lens IPA 仅作本步骤精确复现输入，不再作为新任务直接基线",
+    "documentation": "client-patch/ios-abyss-autostart/README.md",
+    "build_entry": "client-patch/ios-abyss-autostart/prepare.py",
+    "verification_script": "client-patch/ios-abyss-autostart/verify.py",
+    "previous_method_source_commit": "dc440e622db544e9fc9be1f5fd9b05b43515c941",
+    "preserved": [
+      "私服连接及免登录",
+      "MOD 五合一",
+      "标题及游戏内数据继承",
+      "幻想连战和幻想魂珠纹理",
+      "MemberView v6",
+      "Rush 排行榜 r12b 分页、资料导航及整行点击",
+      "深渊装备 Multi/BothBoss 与 120 级门控",
+      "iOS 原有 CNtips_b 显示行为",
+      "真实关系对应的关注/取消关注按钮可见性",
+      "真实关注/取消操作及陈旧按钮处理",
+      "通过 get_viewerId() 分流到原生本人资料卡",
+      "724 Fever 满槽比例增减",
+      "422 冲刺参数的解析、描述、汇总和战斗执行",
+      "稻穗 PF 弹射前连击数",
+      "基诺维配置冲刺参数",
+      "五重决战随机地图与联机房号种子",
+      "五重联机手动开战后的 Auto 锁及暂停菜单状态",
+      "5900101 不使用五星铁钢替代觉醒材料"
+    ],
+    "added": [
+      "深渊活动 700099 续战队伍跨关复用角色，逐关选队与其他活动原限制保持"
+    ],
+    "method_archive": "续战脚本、验收登记与入口文档在同一提交归档"
+  },
+  "excluded_diagnostic": {
+    "ipa": "F:/codex/ios-artifacts/StarPoint-iOS-1.8.4-profile-follow-DIAGNOSTIC-20260908-unsigned.ipa",
+    "ipa_sha256": "616cd229bb34bcb52c2be40c4f747bbdd6574c2e92c963658729b6605a356e67",
+    "status": "diagnostic_only_not_current_baseline",
+    "reason": "用户验收的是前一份无 DEBUG 包；诊断版仅供历史审查，不再用于交付或后续修改基线。"
+  },
+  "local_build_report": "F:/codex/ios-artifacts/abyss-autostart-lens-20260909/verification-report.json",
+  "local_acceptance_checks": {
+    "native_methods": 1,
+    "relocations_verified": 73,
+    "zip_members_verified": 3568,
+    "all_prior_non_target_native_bytes_preserved": true,
+    "prior_lens_segment_bytes_preserved": true,
+    "existing_method_ids_and_dyld_rebases_preserved": true,
+    "closure_layouts_preserved": true,
+    "title_cntips_b_unchanged": true,
+    "signing": "unsigned"
+  }
+}

@@ -1,45 +1,48 @@
 {
-  "schema_version": 2,
-  "status": "accepted_offline",
-  "accepted_on": "2026-09-09",
+  "schema_version": 3,
+  "status": "user_accepted",
+  "accepted_on": "2026-09-11",
   "acceptance": {
-    "source": "用户要求验收 Android 与 iOS 深渊续战累计成品并提交 GitHub；完成离线包体与累计血统检查后登记。",
-    "user_statement": "ios和安卓都验收并提交修改内容至github",
-    "scope": "offline_artifact_and_lineage",
+    "source": "用户在 R4 公网 HUD 修正版交付后明确表示 IPA 已验收并要求提交 GitHub。",
+    "user_statement": "ipa也验收了，然后提交修改内容到github",
+    "scope": "user_confirmed_acceptance_and_offline_identity",
     "device_tested_by_codex": false,
-    "device_acceptance": "not_established_by_this_audit",
+    "device_acceptance": "user_confirmed_without_per_feature_test_log",
     "build_reports_are_immutable": true,
-    "audit": "client-patch/ACCEPTANCE-ABYSS-AUTOSTART-20260909.md",
-    "note": "本条用户指令授权执行验收与提交，不是用户已完成真机测试的声明。原构建报告保持生成时状态；本次直接登记原交付成品，没有重编译、重签或安装。 iOS 登记的是原始 unsigned IPA。"
+    "audit": "client-patch/ACCEPTANCE-IOS-R4-20260911.md",
+    "note": "登记用户验收与本次离线身份核对；不推断每个功能的独立真机测试结果，不改写原构建报告。保留原 unsigned IPA，没有重新打包、重签或安装。"
   },
   "artifact": {
-    "ipa": "F:/codex/ios-artifacts/StarPoint-iOS-1.8.4-abyss-autostart-lens-20260909-unsigned.ipa",
-    "ipa_sha256": "8e6fb8cc4de6fe1c79efaded8e4ab1159c012645bdc3a52a22e19562e0661193",
-    "size_bytes": 139474596,
+    "ipa": "F:/codex/ios-artifacts/StarPoint-iOS-1.8.4-login-abyss-hud-public-fix-r4-20260911-unsigned.ipa",
+    "ipa_sha256": "560d5787411dfa1b603a9c8f0b4fba46f045e02531256e476df5b6474d822fae",
+    "size_bytes": 141714300,
     "native_member": "Payload/worldflipper.app/worldflipper",
-    "native_sha256": "7c37c6ad5fd9019a502fb4f01fd5b1af6dfcdf608996240c26319186f0d594ba",
+    "native_sha256": "44d1b32d27a7564eec03207a4cc1f8fb74573185fba2ea624444180182b428be",
     "swf_member": "Payload/worldflipper.app/worldflipper_ios_release.swf",
-    "swf_sha256": "051c240268db2953cedf5571fc641bcac7a139044c17513b83c9b09833eb7e52",
+    "swf_sha256": "7558dbdf13ad6c24c6249a85d3dffbef2527b36c92f2da6d3c9edb37d61b1f83",
     "bundle_id": "com.kulo.wf",
     "version": "1.8.4",
     "build": "1.8.46",
     "signing": "unsigned",
     "profile_debug_overlay": false,
     "title_cntips_b_unchanged": true,
-    "endpoint_policy": "沿用历史输入，未修改服务端地址"
+    "endpoint_policy": "R3/R4 初始 API 与版本配置均为 http://175.178.160.158，公网默认端口 80",
+    "full_abc": "F:/codex/ios-artifacts/login-abyss-hud-public-fix-r4-20260911/cumulative-full-r4.abc",
+    "full_abc_sha256": "7151e3d2ffb4e03e2204e5630011d98e5e8a7c0d3f29c073c7bafbe71b6547e8",
+    "full_abc_sha1": "790739d3540c5cd857354d2c23487504c302e55e",
+    "aot_info_file_offset": 104549248,
+    "aot_method_count": 101182
   },
   "lineage": {
-    "previous_accepted_registry": "client-patch/accepted-history/ios-lens-20260909.json",
-    "previous_accepted_ipa_sha256": "de28d8134e51d22f3c596869e53e90072866c17f54ec54af99b2a3fcd78dcd02",
-    "previous_accepted_role": "原 Lens IPA 仅作本步骤精确复现输入，不再作为新任务直接基线",
-    "documentation": "client-patch/ios-abyss-autostart/README.md",
-    "build_entry": "client-patch/ios-abyss-autostart/prepare.py",
-    "verification_script": "client-patch/ios-abyss-autostart/verify.py",
-    "previous_method_source_commit": "dc440e622db544e9fc9be1f5fd9b05b43515c941",
+    "previous_accepted_registry": "client-patch/accepted-history/ios-abyss-autostart-20260909.json",
+    "previous_accepted_ipa_sha256": "8e6fb8cc4de6fe1c79efaded8e4ab1159c012645bdc3a52a22e19562e0661193",
+    "previous_accepted_role": "Sep 9 深渊续战 Lens IPA 仅用于历史移植步骤精确复现；新任务从 R4 公网累计成品继续。",
+    "documentation": "client-patch/ios-cumulative-login/README.md",
+    "build_entry": "client-patch/ios-cumulative-login/hud_state_layout.py",
+    "verification_script": "client-patch/ios-cumulative-login/verify_hud_state.py",
+    "previous_method_source_commit": "f440d283f84b84671d7cd2cfebdbe66d2d775448",
     "preserved": [
-      "私服连接及免登录",
       "MOD 五合一",
-      "标题及游戏内数据继承",
       "幻想连战和幻想魂珠纹理",
       "MemberView v6",
       "Rush 排行榜 r12b 分页、资料导航及整行点击",
@@ -54,12 +57,41 @@
       "基诺维配置冲刺参数",
       "五重决战随机地图与联机房号种子",
       "五重联机手动开战后的 Auto 锁及暂停菜单状态",
-      "5900101 不使用五星铁钢替代觉醒材料"
-    ],
-    "added": [
+      "5900101 不使用五星铁钢替代觉醒材料",
       "深渊活动 700099 续战队伍跨关复用角色，逐关选队与其他活动原限制保持"
     ],
-    "method_archive": "续战脚本、验收登记与入口文档在同一提交归档"
+    "added": [
+      "玩家注册登录、旧存档绑定、UID/管理员绑定码继承、重置码找回密码、记住登录及多账号管理",
+      "标题与菜单登录入口、继续游戏后停留标题再开始、请求队列和 Socket 会话接入",
+      "深渊摘要及可滚动详情、通用关卡属性伤害通道",
+      "Lens 0910 灼晒能力伤害耐性及夏白/杰拉尔语音轮换和预加载",
+      "TrollStore 重签兼容的 LINKEDIT、字符串表与重定位数据布局",
+      "版本查询前的实际公网 API 初始配置，修复登录面板缓存官网地址",
+      "HUD 语音计数 Number 尾部存储，保留旧字段偏移，修复进场 F1009"
+    ],
+    "method_archive": "本次提交归档累计移植、R2/R3/R4 修复脚本、校验工具及验收登记，IPA/完整 ABC 成品不进入 Git。",
+    "intermediate_candidates": [
+      {
+        "name": "cumulative_initial",
+        "ipa_sha256": "54a305686a8cf0ae9ad6f1ea3158d34009a7eb0a7221e807de334570d56ebe2a",
+        "role": "rejected_launch_crash"
+      },
+      {
+        "name": "launch_fix_r1",
+        "ipa_sha256": "77757cb88ed43593d1df3ab48b7d4fc0601476362163a013c20159f3e3832499",
+        "role": "rejected_trollstore_rebase_crash"
+      },
+      {
+        "name": "trollstore_fix_r2",
+        "ipa_sha256": "171f0eb1d1671c9684c1ee9829af4b7f29a9ccc7481ec42144743c51cc2e6d7c",
+        "role": "historical_pre_public_endpoint_fix"
+      },
+      {
+        "name": "public_fix_r3",
+        "ipa_sha256": "61a545ea867e97837fee2204c1649e362d6e3be2d98aa80abd3931111354a9af",
+        "role": "exact_r4_reproduction_input_not_current_baseline"
+      }
+    ]
   },
   "excluded_diagnostic": {
     "ipa": "F:/codex/ios-artifacts/StarPoint-iOS-1.8.4-profile-follow-DIAGNOSTIC-20260908-unsigned.ipa",
@@ -67,16 +99,21 @@
     "status": "diagnostic_only_not_current_baseline",
     "reason": "用户验收的是前一份无 DEBUG 包；诊断版仅供历史审查，不再用于交付或后续修改基线。"
   },
-  "local_build_report": "F:/codex/ios-artifacts/abyss-autostart-lens-20260909/verification-report.json",
+  "local_build_report": "F:/codex/ios-artifacts/login-abyss-hud-public-fix-r4-20260911/verification-report.json",
   "local_acceptance_checks": {
-    "native_methods": 1,
-    "relocations_verified": 73,
-    "zip_members_verified": 3568,
-    "all_prior_non_target_native_bytes_preserved": true,
-    "prior_lens_segment_bytes_preserved": true,
-    "existing_method_ids_and_dyld_rebases_preserved": true,
-    "closure_layouts_preserved": true,
-    "title_cntips_b_unchanged": true,
-    "signing": "unsigned"
+    "zip_members_checked": 3568,
+    "only_native_and_swf_changed": true,
+    "r3_hud_slot_regression_detected": true,
+    "actual_old_run_and_new_update_loads_verified": true,
+    "voice_control_flow_and_round_robin_preserved": true,
+    "all_other_methods_preserved": 101181,
+    "native_relocations_checked": 81,
+    "r2_rebases_preserved": true,
+    "ldid_signature_models_passed": 3,
+    "initial_public_origin": "http://175.178.160.158",
+    "save_impact": "none",
+    "desktop_air_run": false,
+    "actual_signing_performed": false,
+    "device_tested": false
   }
 }
