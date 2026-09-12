@@ -290,9 +290,15 @@ const routes = async (fastify: FastifyInstance) => {
             device,
         );
 
+        // Empty objects/arrays become Option.Some in AIR and open a 0 MB dialog.
+        // Only acknowledge an already-current client with no archive tasks.
+        // Keep initial downloads and real (even tiny) archives on the download path.
+        const noUpdate = !first && resVer === targetVersion
+            && fullArchives.length === 0 && diffArchives.length === 0;
+
         reply.type("application/json");
         reply.status(200).send({
-            data_headers: generateDataHeaders({ asset_update: true }),
+            data_headers: generateDataHeaders({ asset_update: !noUpdate }),
             data: {
                 info: {
                     client_asset_version: resVer ?? "",
@@ -301,11 +307,11 @@ const routes = async (fastify: FastifyInstance) => {
                     is_initial: first,
                     latest_maj_first_version: "1.4.0"
                 },
-                full: {
+                full: noUpdate ? null : {
                     version: fullVersion,
                     archive: fullArchives
                 },
-                diff: diffArchives,
+                diff: noUpdate ? null : diffArchives,
                 asset_version_hash: ""
             }
         });

@@ -280,9 +280,14 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             : [];
         const diffBaseVersion = first ? fullVersion : (resVer !== null && resVer !== void 0 ? resVer : fullVersion);
         const diffArchives = buildDiffList(baseUrl, cdnDir, diffBaseVersion, targetVersion, device);
+        // Empty objects/arrays become Option.Some in AIR and open a 0 MB dialog.
+        // Only acknowledge an already-current client with no archive tasks.
+        // Keep initial downloads and real (even tiny) archives on the download path.
+        const noUpdate = !first && resVer === targetVersion
+            && fullArchives.length === 0 && diffArchives.length === 0;
         reply.type("application/json");
         reply.status(200).send({
-            data_headers: (0, utils_1.generateDataHeaders)({ asset_update: true }),
+            data_headers: (0, utils_1.generateDataHeaders)({ asset_update: !noUpdate }),
             data: {
                 info: {
                     client_asset_version: resVer !== null && resVer !== void 0 ? resVer : "",
@@ -291,11 +296,11 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                     is_initial: first,
                     latest_maj_first_version: "1.4.0"
                 },
-                full: {
+                full: noUpdate ? null : {
                     version: fullVersion,
                     archive: fullArchives
                 },
-                diff: diffArchives,
+                diff: noUpdate ? null : diffArchives,
                 asset_version_hash: ""
             }
         });

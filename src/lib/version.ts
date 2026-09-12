@@ -7,7 +7,7 @@
  * Flow:
  *   1st-time (no resVer): full.version="1.4.0", full.archives=all, target=CDN_VERSION
  *   Update  (resVer<target):  full.version=resVer, full.archives=[], target=max(CDN, patches)
- *   Up-to-date (resVer≥target): same als update but no diffs to download
+ *   Up-to-date (resVer≥target): full=null, diff=null when no archive task remains
  */
 import { readFileSync, existsSync, readdirSync, statSync } from "fs";
 import path from "path";
