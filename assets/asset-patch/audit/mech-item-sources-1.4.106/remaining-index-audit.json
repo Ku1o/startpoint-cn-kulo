@@ -1,0 +1,26 @@
+{
+  "referenced_score_reward_items_without_index": 0,
+  "unreferenced_legacy_rewards": {
+    "2370002": [
+      "700001",
+      "700002",
+      "700003"
+    ],
+    "2370003": [
+      "700004",
+      "700005",
+      "700006"
+    ],
+    "2370004": [
+      "700007",
+      "700008",
+      "700009"
+    ],
+    "2370007": [
+      "7000016",
+      "7000017",
+      "7000018"
+    ]
+  },
+  "scope": "Concrete score/rare item keys; complete custom pair coverage separately checked in report.json."
+}

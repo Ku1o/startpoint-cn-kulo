@@ -1,0 +1,153 @@
+{
+  "checks": [
+    {
+      "device": "android",
+      "version": "1.4.105",
+      "response": {
+        "data_headers": {
+          "force_update": false,
+          "asset_update": true,
+          "force_news": null,
+          "short_udid": 0,
+          "viewer_id": 0,
+          "servertime": 1754657398,
+          "result_code": 1
+        },
+        "data": {
+          "info": {
+            "client_asset_version": "1.4.105",
+            "target_asset_version": "1.4.106",
+            "eventual_target_asset_version": "1.4.106",
+            "is_initial": false,
+            "latest_maj_first_version": "1.4.0"
+          },
+          "full": {
+            "version": "1.4.105",
+            "archive": []
+          },
+          "diff": [
+            {
+              "original_version": "1.4.105",
+              "version": "1.4.106",
+              "archive": [
+                {
+                  "location": "http://<LAN_HOST>/patch/cn/asset-patch/active/pinball-1.4.105-1.4.106-1-mech-item-sources.zip",
+                  "size": 357164,
+                  "sha256": ""
+                },
+                {
+                  "location": "http://<LAN_HOST>/patch/cn/asset-patch/active/pinball-1.4.105-1.4.106-2-deathbringer-core-icons.zip",
+                  "size": 970506,
+                  "sha256": ""
+                }
+              ]
+            }
+          ],
+          "asset_version_hash": ""
+        }
+      }
+    },
+    {
+      "device": "android",
+      "version": "1.4.106",
+      "response": {
+        "data_headers": {
+          "force_update": false,
+          "asset_update": false,
+          "force_news": null,
+          "short_udid": 0,
+          "viewer_id": 0,
+          "servertime": 1754657398,
+          "result_code": 1
+        },
+        "data": {
+          "info": {
+            "client_asset_version": "1.4.106",
+            "target_asset_version": "1.4.106",
+            "eventual_target_asset_version": "1.4.106",
+            "is_initial": false,
+            "latest_maj_first_version": "1.4.0"
+          },
+          "full": null,
+          "diff": null,
+          "asset_version_hash": ""
+        }
+      }
+    },
+    {
+      "device": "ios",
+      "version": "1.4.105",
+      "response": {
+        "data_headers": {
+          "force_update": false,
+          "asset_update": true,
+          "force_news": null,
+          "short_udid": 0,
+          "viewer_id": 0,
+          "servertime": 1754657398,
+          "result_code": 1
+        },
+        "data": {
+          "info": {
+            "client_asset_version": "1.4.105",
+            "target_asset_version": "1.4.106",
+            "eventual_target_asset_version": "1.4.106",
+            "is_initial": false,
+            "latest_maj_first_version": "1.4.0"
+          },
+          "full": {
+            "version": "1.4.105",
+            "archive": []
+          },
+          "diff": [
+            {
+              "original_version": "1.4.105",
+              "version": "1.4.106",
+              "archive": [
+                {
+                  "location": "http://<LAN_HOST>/patch/cn/asset-patch/active/pinball-1.4.105-1.4.106-1-mech-item-sources.zip",
+                  "size": 357164,
+                  "sha256": ""
+                },
+                {
+                  "location": "http://<LAN_HOST>/patch/cn/asset-patch/active/pinball-1.4.105-1.4.106-2-deathbringer-core-icons.zip",
+                  "size": 970506,
+                  "sha256": ""
+                }
+              ]
+            }
+          ],
+          "asset_version_hash": ""
+        }
+      }
+    },
+    {
+      "device": "ios",
+      "version": "1.4.106",
+      "response": {
+        "data_headers": {
+          "force_update": false,
+          "asset_update": false,
+          "force_news": null,
+          "short_udid": 0,
+          "viewer_id": 0,
+          "servertime": 1754657398,
+          "result_code": 1
+        },
+        "data": {
+          "info": {
+            "client_asset_version": "1.4.106",
+            "target_asset_version": "1.4.106",
+            "eventual_target_asset_version": "1.4.106",
+            "is_initial": false,
+            "latest_maj_first_version": "1.4.0"
+          },
+          "full": null,
+          "diff": null,
+          "asset_version_hash": ""
+        }
+      }
+    }
+  ],
+  "archive_served_sha256": "eeb310b65106cf8a3a827cd8bc5bc434ff95e91d939e1a01557f610cdae343b4"
+}

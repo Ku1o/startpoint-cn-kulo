@@ -37,6 +37,7 @@ import { calculateClearRank } from "../../lib/quest/finish/quest-calc";
 import { validateSessionAndPlayer } from "../../lib/quest/finish/session-validator";
 import { resolveActiveQuest } from "../../lib/quest/finish/active-quest-resolver";
 import { getAbyssTimeRevision, getAbyssTimeRevisionAtVersion, isAbyssFiniteQuest, isStaleAbyssBattle, isStaleAbyssClient } from "../../lib/abyss-time-revision";
+import { recordAbyssFloorFinishSync } from "../../data/domains/abyss-records";
 import { handleDailyChallengePoint } from "../../lib/quest/finish/challenge-point";
 import {
     calculateScoreAttackClearRank,
@@ -133,6 +134,7 @@ interface QuestStatistics {
 }
 
 export interface FinishBody {
+    play_id?: string
     is_restored: boolean
     continue_count: number
     elapsed_time_ms: number
@@ -382,6 +384,15 @@ const routes = async (fastify: FastifyInstance) => {
         let sPlusClearReward: PlayerRewardResult | null = null
         const leaderId = body.statistics.party.characters[0]?.id
         if (questAccomplished) {
+            recordAbyssFloorFinishSync({
+                category: questCategory, questId, revision: activeQuestData.questTimeRevision,
+                viewerId, elapsedTimeMs: clearTime, startedAtMs: activeQuestData.startedAtMs,
+                nowMs: getServerTime() * 1000, accomplished: true,
+                registered: resolvedActiveQuest?.source !== "rebuilt",
+                matchingPlay: body.play_id === activeQuestData.playId
+                    && Number(body.quest_id) === questId && Number(body.category) === questCategory,
+                isMulti: activeQuestData.isMulti,
+            })
             // update quest progress
             if (questPreviouslyCompleted) {
                 // simply update the quest progress if it already exists.

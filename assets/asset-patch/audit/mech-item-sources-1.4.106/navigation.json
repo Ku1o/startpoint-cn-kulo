@@ -1,0 +1,33 @@
+{
+  "accepted_registry": "client-patch/android-accepted.json",
+  "apk_sha256": "e38ef8256a9fdabd6f834302fbde0c0fdcedf7c8972b3ed5d15b15f66d1038f1",
+  "swf_sha256": "52b32a54553be65e62d781fcdf1dff4e136d1452dfdf03cfe19607a010a76a15",
+  "classes": {
+    "scripts\\pinball\\scene\\itemSearchQuest\\ItemSearchQuestScene.as": "aa334e182e1ed36611a543e8b6c7fe0d8412817ab12dbcc2a736c4fbf76c126b",
+    "scripts\\pinball\\master\\generated\\HardMultiEventQuestValues.as": "8a114af60bbf8e8d5d984af02196bc1dd81bf528d61f1289f18f57416d80bd0c",
+    "scripts\\pinball\\common\\data\\quest\\id\\QuestReferenceIdKindTools.as": "272edb12eac788767c54cbd5774a3c4eba8b19bc0ffd4d0a5014394c015f8daa",
+    "scripts\\pinball\\common\\data\\quest\\repository\\QuestRepository.as": "e54386945f9ab811813c0f48d540f5b4dd948f0bdcea30bfaea5772edfd10d72",
+    "scripts\\pinball\\common\\data\\quest\\event\\hardMulti\\HardMultiEventQuestLogic.as": "319b9b598b7ed433df5f84b1f37df6bedf1c4ca3bd5c82d104a77a1bf4ed50c8"
+  },
+  "output": "F:\\codex\\work\\item-source-audit-20260912\\client",
+  "swf_modified": false,
+  "device_tested": false,
+  "findings": [
+    "QuestReferenceIdKind.HardMultiEvent uses master enum 18; server QuestCategory 26 is not interchangeable.",
+    "HardMultiEvent is a multiplayer quest; existing scene opens startAsMulti via SingleQuestStartFlow.",
+    "getQuestForHowToGet applies existing game-system unlock visibility."
+  ],
+  "completion_inspection": {
+    "client\\scripts\\pinball\\master\\generated\\ItemValues.as": "56e38c0584321e213e49c9cabb63d46b6e86068db74bd4a65a2b9a750ce15813",
+    "client\\scripts\\pinball\\common\\data\\item\\ItemLogic.as": "80b6211dd65f1f7ec1122d3becfbf63abd928d8e92f16ce377e889c182d3be1d",
+    "client-more\\scripts\\pinball\\ui\\component\\item\\ItemThumbnailView.as": "4da98f298ecc5dd39100f44aff1e02a6ee26a460e166aa99118162cefa3ee1f7",
+    "client-more\\scripts\\pinball\\ui\\component\\template\\DropItemContentsView.as": "6c4bb51f6c43494aa62a073983531fe9ae4c28327ddf70834e5558ee7c4a43b5",
+    "client-more\\scripts\\pinball\\scene\\itemHowToGet\\questSearch\\ItemHowToGetQuestSearcher.as": "ecffe3e1281c91038cc5a762a240004e64b9d49c7c6dd23106ea79e152e866e9",
+    "client-more\\scripts\\pinball\\master\\generated\\ExpertSingleEventQuestValues.as": "108f9826f35ecf66673f75816ae40020abe993fe83f53ef6ff071aee0d4faa7c"
+  },
+  "completion_findings": [
+    "Expert references use master map keys; grouping/display-order columns are not multiplied quest IDs.",
+    "ItemThumbnailView.setTexture loads the thumbnail asynchronously. Optional small-vector IDs are only mandatory when the stage explicitly displays that item in its synchronous bar.",
+    "ItemHowToGetQuestSearcher preserves visibility/selection filtering and the original 5-entry maximum."
+  ]
+}

@@ -1,15 +1,15 @@
 # Android APK/SWF：新会话从这里开始
 
-2026-09-12，用户明确确认 Android 与 iOS 均已验收。Android 公网/内网当前直接基线更新为缓存、圆角和切队 F1009 累计包；准确身份见 [android-accepted.json](./android-accepted.json)，证据范围见 [本次验收](./ACCEPTANCE-CACHE-PARTY-20260912.md)。用户整体验收与 Codex 的既有 MuMu 设备-1 / 离线检查分开记录，历史报告不改写。
+2026-09-12，用户明确验收最新深渊纪录保持者昵称版，并要求后续 APK 及 iOS 移植以这版功能为准。准确身份见 [android-accepted.json](./android-accepted.json)，范围见 [本次验收](./ACCEPTANCE-RECORD-HOLDER-20260912.md)。LAN 为用户验收原件，公网为同一载荷的地址转换派生件，公网没有另行真机验收。
 
 ## 当前直接基线
 
-| 环境 | 已验收 APK（相对仓库根目录） | 地址 |
+| 环境 | APK（相对仓库根目录） | 状态 |
 | --- | --- | --- |
-| 公网 | `outputs/party-carousel-f1009-public-20260912/StarPoint-CN-1.8.1-party-f1009-public-20260912.apk` | `http://175.178.160.158:8001` |
-| 内网 | `outputs/party-carousel-f1009-lan-20260912/StarPoint-CN-1.8.1-party-f1009-lan-20260912.apk` | `http://<LAN_HOST>` |
+| 公网 | `outputs/abyss-record-holder-public-20260912/StarPoint-CN-1.8.1-abyss-record-holder-public-20260912.apk` | 从用户验收 LAN 派生，离线比对通过 |
+| 内网 | `outputs/abyss-record-holder-lan-test-20260912/StarPoint-CN-1.8.1-abyss-record-holder-lan-test-20260912.apk` | 用户已验收 |
 
-两端均保留此前登录、属性通道、深渊详情和 Lens 0910；新增空更新兼容、覆盖安装首次启动缓存清理、圆角按钮、切队目标先初始化及空触摸保护。主 ABC 288，共 96520 个方法体。旧登记按原字节保存在 `accepted-history/android-lens0910-20260910.json`；下面的 9 月 9/10 日说明为累计来源记录。
+两端保留缓存、圆角、切队 F1009 及之前全部累计功能，新增深渊详情全服最快用时、保持者昵称，以及常驻活动文件夹的入手方法修正。主 ABC 290，共 96535 个方法体；配套资源版本 1.4.106。旧注册表按原字节保存在 `accepted-history/android-cache-party-20260912.json`。iOS 应从其自身已验收 IPA 移植新增功能，继续保留 iOS 专属行为，不直接套用 Android 包或原生布局。
 
 在仓库根目录运行只读检查：
 

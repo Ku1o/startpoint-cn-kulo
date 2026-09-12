@@ -3,86 +3,83 @@
   "status": "user_accepted",
   "accepted_on": "2026-09-12",
   "acceptance": {
-    "source": "用户明确确认 Android 与 iOS 已验收并要求提交修改。",
-    "user_statement": "安卓和ios的都验收了，提交修改内容到github。然后是其余的服务端更新也提交并给我云服整合包",
+    "source": "用户明确验收昵称版，并要求以此为最新 APK 基准继续发布及 iOS 移植。",
+    "user_statement": "ok，验收了，继续刚刚暂停的任务，注意一下，apk以最新的这版为准哈，ios制作的时候留意一下",
     "scope": "user_confirmed_acceptance_and_offline_identity",
     "device_tested_by_codex": false,
     "device_acceptance": "user_confirmed_without_per_variant_or_feature_test_log",
     "build_reports_are_immutable": true,
-    "audit": "client-patch/ACCEPTANCE-CACHE-PARTY-20260912.md",
-    "note": "用户整体验收与既有本地验证分开记录，不推断每个环境或每种操作均已独立真机测试。本次登记原交付物，不重新编译、签名或安装。"
+    "audit": "client-patch/ACCEPTANCE-RECORD-HOLDER-20260912.md",
+    "note": "本次用户验收指最新昵称版 LAN APK；公网派生包的离线核验与用户真机验收分开登记。"
   },
   "variants": {
     "public": {
-      "apk": "outputs/party-carousel-f1009-public-20260912/StarPoint-CN-1.8.1-party-f1009-public-20260912.apk",
-      "apk_sha256": "e38ef8256a9fdabd6f834302fbde0c0fdcedf7c8972b3ed5d15b15f66d1038f1",
-      "swf_sha256": "52b32a54553be65e62d781fcdf1dff4e136d1452dfdf03cfe19607a010a76a15",
-      "uniqueappversionid": "d5e2c200-4516-4898-ab5e-029e1e0a9cad",
+      "apk": "outputs/abyss-record-holder-public-20260912/StarPoint-CN-1.8.1-abyss-record-holder-public-20260912.apk",
+      "apk_sha256": "69e143bc70a8f03f5c78b89c0262715c41f5a5847f35dde7f482c0443d5dd894",
+      "swf_sha256": "0bbe58fab5f51b16220b11f9ffefece899854749ce3287a9c264ba67d4941eae",
+      "uniqueappversionid": "dfc8a7fd-86f1-42aa-adb9-8b5541272bce",
       "endpoint": "http://175.178.160.158:8001",
-      "local_build_report": "outputs/party-carousel-f1009-public-20260912/verification.json",
+      "local_build_report": "outputs/abyss-record-holder-public-20260912/verification.json",
       "local_build_checks": {
-        "changed_methods": [
-          "288:66013",
-          "288:66523"
-        ],
-        "method_bodies_checked": 96520,
+        "method_bodies_checked": 96535,
+        "changed_method_bytes": 0,
+        "endpoint_pool_index": 92871,
+        "native_logic_unchanged": true,
+        "holder_name_preserved": true,
         "zipalign": true,
         "v1_signature": true,
         "v2_signature": true,
-        "signer_certificate_sha256": "569d19a3578d4cba16e3d6e7ad8ccab4fa667efc758deef6c9be3adb99919894",
-        "previous_three_features_preserved": true,
-        "pools_and_class_layouts_unchanged": true,
-        "current_party_only_update_preserved": true
+        "signer_certificate_sha256": "569d19a3578d4cba16e3d6e7ad8ccab4fa667efc758deef6c9be3adb99919894"
       },
       "accepted_on": "2026-09-12",
-      "acceptance_audit": "client-patch/ACCEPTANCE-CACHE-PARTY-20260912.md",
-      "main_abc_index": 288,
-      "size_bytes": 170020035,
-      "dex_sha256": "c9e4f05607dd02a231d2a86c970d07ca57642e4e3aa03db459bbae2804978b42",
-      "native_build_identity": "d5e2c200-4516-4898-ab5e-029e1e0a9cad",
+      "acceptance_audit": "client-patch/ACCEPTANCE-RECORD-HOLDER-20260912.md",
+      "main_abc_index": 290,
+      "size_bytes": 170024131,
+      "dex_sha256": "76ea385f5ab32964ab89edd0def78eff2409cab58849bc6d403464882be1419c",
+      "native_build_identity": "dfc8a7fd-86f1-42aa-adb9-8b5541272bce",
       "package_name": "com.leiting.wf",
       "version_name": "1.8.1",
-      "version_code": 1008001
+      "version_code": 1008001,
+      "required_resource_version": "1.4.106",
+      "acceptance_status": "derived_from_user_accepted_lan",
+      "device_acceptance": "not_independently_device_tested",
+      "derived_from_apk_sha256": "e04b9e4f367be0ee447f1cfc8f45ff314fafc4a2df7efcef03db120347278f32"
     },
     "lan": {
-      "apk": "outputs/party-carousel-f1009-lan-20260912/StarPoint-CN-1.8.1-party-f1009-lan-20260912.apk",
-      "apk_sha256": "0636312d521aa0e075a7c1180cdc6d0e93817e02df63f488cdaf1b8b0f801a1b",
-      "swf_sha256": "22a19f20657b3334983bede36fe75010060e03d89d8029e82cc2678e9da42efa",
-      "uniqueappversionid": "d2b67ca3-9373-4fa6-9aaa-905159a33e15",
+      "apk": "outputs/abyss-record-holder-lan-test-20260912/StarPoint-CN-1.8.1-abyss-record-holder-lan-test-20260912.apk",
+      "apk_sha256": "e04b9e4f367be0ee447f1cfc8f45ff314fafc4a2df7efcef03db120347278f32",
+      "swf_sha256": "c5fcc853a10db415fc898d24ac940dc59a2ee1c886e7cff9544fd6a0ba661559",
+      "uniqueappversionid": "eeb1d3e6-eb89-47d6-887a-419ad6d063e3",
       "endpoint": "http://<LAN_HOST>",
-      "local_build_report": "outputs/party-carousel-f1009-lan-20260912/verification.json",
+      "local_build_report": "outputs/abyss-record-holder-lan-test-20260912/verification.json",
       "local_build_checks": {
-        "changed_methods": [
-          "288:66013",
-          "288:66523"
-        ],
-        "method_bodies_checked": 96520,
+        "method_bodies_checked": 96535,
+        "holder_changed_method": "288:1",
+        "all_other_original_methods_preserved": true,
         "zipalign": true,
         "v1_signature": true,
         "v2_signature": true,
-        "signer_certificate_sha256": "569d19a3578d4cba16e3d6e7ad8ccab4fa667efc758deef6c9be3adb99919894",
-        "previous_three_features_preserved": true,
-        "pools_and_class_layouts_unchanged": true,
-        "current_party_only_update_preserved": true
+        "signer_certificate_sha256": "569d19a3578d4cba16e3d6e7ad8ccab4fa667efc758deef6c9be3adb99919894"
       },
       "endpoint_sha256": "a32f84d19ceda3b4a466952f7deab7fbf1db96029ba70777a2cbd4a1ef79f521",
       "local_endpoint_config": "outputs/android-build-local.json",
       "accepted_on": "2026-09-12",
-      "acceptance_audit": "client-patch/ACCEPTANCE-CACHE-PARTY-20260912.md",
-      "main_abc_index": 288,
-      "required_resource_version": "1.4.104",
-      "size_bytes": 170020035,
-      "dex_sha256": "974706b8a05b047218ab5751974054a703914e9dc5eb55e5dd6309077788961d",
-      "native_build_identity": "d2b67ca3-9373-4fa6-9aaa-905159a33e15",
+      "acceptance_audit": "client-patch/ACCEPTANCE-RECORD-HOLDER-20260912.md",
+      "main_abc_index": 290,
+      "required_resource_version": "1.4.106",
+      "size_bytes": 170024131,
+      "dex_sha256": "442ad53a226ddeaa6b11decfed6a70ccb068a0c4cd357c61a4836397d3f466b2",
+      "native_build_identity": "eeb1d3e6-eb89-47d6-887a-419ad6d063e3",
       "package_name": "com.leiting.wf",
       "version_name": "1.8.1",
-      "version_code": 1008001
+      "version_code": 1008001,
+      "acceptance_status": "user_accepted"
     }
   },
   "lineage": {
-    "previous_accepted_registry": "client-patch/accepted-history/android-lens0910-20260910.json",
-    "documentation": "client-patch/ACCEPTANCE-CACHE-PARTY-20260912.md",
-    "build_entry": "client-patch/party-carousel-f1009/build_apk.py",
+    "previous_accepted_registry": "client-patch/accepted-history/android-cache-party-20260912.json",
+    "documentation": "client-patch/ACCEPTANCE-RECORD-HOLDER-20260912.md",
+    "build_entry": "client-patch/abyss-record-holder/build_apk.py",
     "previous_method_source_commit": "8ae133a09e59a5430f71012aee77a7dda2a45c32",
     "preserved": [
       "此前 MOD、幻想连战、轮播、排行榜、继承入口、深渊装备门控",
@@ -103,7 +100,9 @@
       "兼容旧服务端空更新响应；账号切换保留下载模式和设备偏好",
       "覆盖安装首次启动清理 AIR 启动缓存；普通重开跳过",
       "深渊连战详情按钮四角曲线",
-      "切队先初始化目标队伍，再绑定触摸及更新名称；无角色格子的触摸安全返回；保留仅更新当前队伍的优化"
+      "切队先初始化目标队伍，再绑定触摸及更新名称；无角色格子的触摸安全返回；保留仅更新当前队伍的优化",
+      "深渊关卡详情本期全服最快用时和纪录保持者当前公开昵称",
+      "入手方法支持已解锁且开放的常驻活动文件夹，保留关卡准入检查"
     ],
     "method_archive": "startup-cache、party-carousel-f1009、PlayerLogin 和 AbyssDetails 源码与验收身份；APK 不提交 Git。"
   },

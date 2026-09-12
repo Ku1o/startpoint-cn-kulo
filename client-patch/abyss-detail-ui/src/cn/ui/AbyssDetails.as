@@ -142,12 +142,8 @@ package cn.ui {
         }
 
         public static function openDetails(scene:Object):void {
-            var DialogClass:Class = getDefinitionByName("pinball.dialog.richTextDialog.RichTextDialog") as Class;
-            var kind:Object = getDefinitionByName("pinball.dialog.richTextDialog.RichTextAssetKind");
-            var option:Object = getDefinitionByName("haxe.ds.Option");
-            var dialog:Object = new DialogClass("关卡详情", kind.Text(detailsHtml(rawSubtitle(scene.targetQuest))),
-                false, option.None, function():void {});
-            scene.openDialog(dialog);
+            var records:Object = getDefinitionByName("cn.ui.AbyssRecordDetails");
+            records.open(scene, detailsHtml(rawSubtitle(scene.targetQuest)));
         }
     }
 }

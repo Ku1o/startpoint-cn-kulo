@@ -1,0 +1,3275 @@
+{
+  "base_version": "1.4.105",
+  "version": "1.4.106",
+  "archive": {
+    "name": "pinball-1.4.105-1.4.106-1-mech-item-sources.zip",
+    "size": 357164,
+    "sha256": "f25bccc0027d54b980462d78b792d86d015efabb568a76c207e6ba7debd3d9b2",
+    "members": 86,
+    "files": [
+      "production/upload/02/16bb8e4f0382545c33ac37e64ea659bcb89021",
+      "production/upload/04/4bc7871aa57c6890b5571ff4b8549bd097dc40",
+      "production/upload/04/9b5a3aa304473bbc18df629211d34e0be5eb7b",
+      "production/upload/07/867c12ac0a5558bbce3e75f3e9950c2ae4afbe",
+      "production/upload/12/e8cdc547b061d3c49bc7ba9ecea6a72629e44c",
+      "production/upload/1e/f2c5f7339819a018c43a41b9c9147e0298635c",
+      "production/upload/20/79c957e68ed510b0e00f73f8b771b505eb06e5",
+      "production/upload/22/b03e5007a33ed9002d4bb34969264cda1ba5f8",
+      "production/upload/24/36d7b2d2c89ab6a5a3a046de9aa088e592a40b",
+      "production/upload/24/441e60ad481a0c69743d826bd17b6e6ff06e44",
+      "production/upload/2b/084d2b805763729705347147de11533b11c5ee",
+      "production/upload/2c/0a2be23e5c438545ea44c9d4c1a93499954f02",
+      "production/upload/2c/cbd5bc4bb12d576bfe387845042a01079b2ff2",
+      "production/upload/31/3299ab963115a42ad08a8ed8ec565262faadfc",
+      "production/upload/34/9e6b24b06a4e0a86fe91666ae1204dca5235b8",
+      "production/upload/37/1adf192e9e9d755c6ebefadc88045ebb8d4d4a",
+      "production/upload/37/ff9520d960b4f3bc8666c6780d40cd94d11f17",
+      "production/upload/3f/17cd712a0499b919d5cea2dc2e8dc31f530ed0",
+      "production/upload/3f/5c6d23ce3c5cb20c443df8fb6bf9722e8a1f42",
+      "production/upload/3f/da0fca97aad693aa40ac025f45e0f809503772",
+      "production/upload/3f/e027034248ef0ef6831db02a020d6588cbc25e",
+      "production/upload/42/a56c3c431d9529ff446ba444f20eb450f6e9cc",
+      "production/upload/42/b2f50078d5723654bd567b5b1f3f5441e7eabe",
+      "production/upload/46/e4b595eaa0573809e86145d17c6b3d148b36e1",
+      "production/upload/46/fed2a31c440e833580dcf02c5cbf02797ff119",
+      "production/upload/49/5cbb096725282147bc2f6806712320b7fcd529",
+      "production/upload/49/bb8ab78ed00e2f80abc929de28f2b6e0bd5539",
+      "production/upload/4e/8f16a44b009388086a8c20175a693fbc598eac",
+      "production/upload/4e/d936f89042a88454e0483419d1d8d8a389e802",
+      "production/upload/56/216de7888df4c8f07f48a795cc8ade05064374",
+      "production/upload/56/7d81eea3c08fac7b1b69cbeabe2b9fd7b9591e",
+      "production/upload/60/9ca8ddcfce403933cd1247e360a2678a47fabe",
+      "production/upload/68/29fbddba60f7fac148b562c7eece0caab0e5d8",
+      "production/upload/68/73b5ecdc9400f5794245a25fcac254510bae93",
+      "production/upload/6e/10b558616536ad7333b672dd129a9b794651be",
+      "production/upload/72/357c6e091487a47a11600054adcf165ae3aa46",
+      "production/upload/73/65cb39c0c6e6b685111b98810fd88a7e44dbcd",
+      "production/upload/75/2f45932ee1584c699719c9e26785f1391cd823",
+      "production/upload/76/ed44a4a7dbc574fa59103c271c62b441be53ee",
+      "production/upload/78/d93672cdcd7a2802e20935704a53f650a3bc54",
+      "production/upload/7a/c99a24a9927973d5dd03763af69f5f5680f270",
+      "production/upload/7d/78b3ca6a53520504ffec70293a54839ab186d6",
+      "production/upload/7e/7c4ebed033d40b421cad2813bc6ebef87b78cf",
+      "production/upload/84/88438a1a173182b558e1b272b359aeab2064eb",
+      "production/upload/85/c26a97b638be6f95198bc7247dcca98ccccfb0",
+      "production/upload/86/c82767117fcffb40bbb11fd503720f61c8a9a9",
+      "production/upload/87/fcc02c52f1d878c398e54d44f040b61223cd52",
+      "production/upload/89/2cf9c4912599f388c056d73b6e8bbd18e8c43d",
+      "production/upload/89/bd4bbbc9f8ac2008e8093104dc33d87c39b7e9",
+      "production/upload/8b/9ce4f02127d2ad7b41f011647d943ddd1b20c7",
+      "production/upload/91/de121b352ce7b039ff311e095339cf513fcb23",
+      "production/upload/94/5b9735fee042f3b8982d48080a46957238f676",
+      "production/upload/95/57d83deb6413a22860b80711c4e6da2728ba46",
+      "production/upload/95/eb2415976b833884821bdec3cf009feaadb1f6",
+      "production/upload/97/1a9a69e37b5e5cfa853a4e1b7605cc28b52558",
+      "production/upload/9b/e4e05a28b0d0b0434baa6b3af82297790e0c49",
+      "production/upload/9c/fbefd3fd02aebd12bbca4018e3cc6a1281fa5b",
+      "production/upload/9f/dcd5043905ac3a944ed3f5edfd9378ce2449d2",
+      "production/upload/a3/bd0149ebd029ce5488ec0a33ec9138ec628bd7",
+      "production/upload/a4/11519de35a46ad4f5e175ca211b176c6399500",
+      "production/upload/a4/731a843d4dc0c84120bf8c88784c1e74c03baa",
+      "production/upload/a7/5b7a0d700943bfff701d10843b130e4069fa74",
+      "production/upload/a8/dcccda8e0d0830de1a1d48642142164985c078",
+      "production/upload/ab/6028324f2a6c230b5c75b46de0f881a6458218",
+      "production/upload/ab/a5b4a70354e1ce7c82a191513aaeebfdcfed29",
+      "production/upload/ad/48f711200e98e74742b25c08a4c0df8d07e098",
+      "production/upload/b1/497e57a5a73a164685cbd1be27183e802faed7",
+      "production/upload/b6/819d73f45ae092d0ba5645af4371fbb50c5007",
+      "production/upload/b7/d674f8819790b5bab4227b3a7707d7cb7ed0f8",
+      "production/upload/ba/995d1ef79e2eaa977a2539b4b1b3871ba8d763",
+      "production/upload/c4/0ba1c0c962604ea7bb49cb69ec610b55a5067a",
+      "production/upload/cc/4ad9f7d36b4407afd73658adbc665bf4a8041b",
+      "production/upload/ce/a3f20c86cfbe1c937f486cda2d0e404a886347",
+      "production/upload/db/9d8c15a8d3f79bb6ab3c88490388219120c533",
+      "production/upload/e2/10c4ef0b7f9b65d3104e689d2ea48540e57df9",
+      "production/upload/e3/62f51103c8fb0f658c54280eb34070d3592a88",
+      "production/upload/e7/b37d9675cebf92c5454bb1b626cd969dccf43c",
+      "production/upload/ec/ecf848d17b5e3b2d1c63e3dcad9d9aabb95fc4",
+      "production/upload/ee/3b03d758917eb39ffa3627980d584f14b6c418",
+      "production/upload/f2/915e1a6214f559000746e7a5c5634ac4ac8573",
+      "production/upload/f3/2f24c1d4a1a6bad8d30e415d9ccde6abe1e172",
+      "production/upload/f4/c21eee469297db5c53d89362b8fadac6ba2fb1",
+      "production/upload/f6/c39e7bb9035e648ce53cc2b04c378a80002142",
+      "production/upload/fa/ae47edf21eca4cf242771f69585be796d27146",
+      "production/upload/fb/d588a0b5c9a291bd44a367a718b8267d358655",
+      "production/upload/ff/6176bb347f984b198d140e5e7903b209888f9f"
+    ]
+  },
+  "checks": {
+    "base_search_keys": 507,
+    "final_search_keys": 518,
+    "new_keys": 11,
+    "changed_keys": 55,
+    "appended_source_rows": 152,
+    "changed_item_ids": [
+      "1",
+      "2",
+      "3",
+      "4",
+      "5",
+      "6",
+      "7",
+      "8",
+      "9",
+      "10",
+      "11",
+      "12",
+      "13",
+      "14",
+      "15",
+      "16",
+      "42",
+      "43",
+      "44",
+      "45",
+      "46",
+      "47",
+      "48",
+      "49",
+      "50",
+      "51",
+      "52",
+      "53",
+      "54",
+      "55",
+      "56",
+      "57",
+      "58",
+      "59",
+      "60",
+      "61",
+      "62",
+      "63",
+      "64",
+      "65",
+      "66",
+      "67",
+      "99",
+      "10002",
+      "12001",
+      "14040",
+      "40407",
+      "40408",
+      "40409",
+      "40410",
+      "40411",
+      "40412",
+      "2370099",
+      "10000095",
+      "10000096"
+    ],
+    "covered_items": 66,
+    "covered_pairs": 223,
+    "groups": {
+      "mech": {
+        "items": 8,
+        "pairs": 8
+      },
+      "fantasy_fixed": {
+        "items": 43,
+        "pairs": 105
+      },
+      "fantasy_boss": {
+        "items": 1,
+        "pairs": 3
+      },
+      "fantasy_final": {
+        "items": 3,
+        "pairs": 3
+      },
+      "abyss_round": {
+        "items": 3,
+        "pairs": 58
+      },
+      "abyss_final_fixed": {
+        "items": 4,
+        "pairs": 4
+      },
+      "abyss_final_chance": {
+        "items": 1,
+        "pairs": 1
+      },
+      "abyss_final_random": {
+        "items": 9,
+        "pairs": 9
+      },
+      "five_boss": {
+        "items": 4,
+        "pairs": 4
+      },
+      "expert_first_ss": {
+        "items": 1,
+        "pairs": 28
+      }
+    },
+    "missing_expected_pairs": 0,
+    "preserved_old_source_rows": 6186,
+    "preloaded_icons": [
+      {
+        "item": "50",
+        "icon": "item/materials/elements/red/item_aether_red_01",
+        "atlas": "item/sprite_sheet"
+      },
+      {
+        "item": "51",
+        "icon": "item/materials/elements/red/item_aether_red_02",
+        "atlas": "item/sprite_sheet"
+      },
+      {
+        "item": "52",
+        "icon": "item/materials/elements/red/item_aether_red_03",
+        "atlas": "item/sprite_sheet"
+      },
+      {
+        "item": "53",
+        "icon": "item/materials/elements/blue/item_aether_blue_01",
+        "atlas": "item/sprite_sheet"
+      },
+      {
+        "item": "54",
+        "icon": "item/materials/elements/blue/item_aether_blue_02",
+        "atlas": "item/sprite_sheet"
+      },
+      {
+        "item": "55",
+        "icon": "item/materials/elements/blue/item_aether_blue_03",
+        "atlas": "item/sprite_sheet"
+      },
+      {
+        "item": "56",
+        "icon": "item/materials/elements/yellow/item_aether_yellow_01",
+        "atlas": "item/sprite_sheet"
+      },
+      {
+        "item": "57",
+        "icon": "item/materials/elements/yellow/item_aether_yellow_02",
+        "atlas": "item/sprite_sheet"
+      },
+      {
+        "item": "58",
+        "icon": "item/materials/elements/yellow/item_aether_yellow_03",
+        "atlas": "item/sprite_sheet"
+      },
+      {
+        "item": "59",
+        "icon": "item/materials/elements/green/item_aether_green_01",
+        "atlas": "item/sprite_sheet"
+      },
+      {
+        "item": "60",
+        "icon": "item/materials/elements/green/item_aether_green_02",
+        "atlas": "item/sprite_sheet"
+      },
+      {
+        "item": "61",
+        "icon": "item/materials/elements/green/item_aether_green_03",
+        "atlas": "item/sprite_sheet"
+      },
+      {
+        "item": "62",
+        "icon": "item/materials/elements/black/item_aether_dark_01",
+        "atlas": "item/sprite_sheet"
+      },
+      {
+        "item": "63",
+        "icon": "item/materials/elements/black/item_aether_dark_02",
+        "atlas": "item/sprite_sheet"
+      },
+      {
+        "item": "64",
+        "icon": "item/materials/elements/black/item_aether_dark_03",
+        "atlas": "item/sprite_sheet"
+      },
+      {
+        "item": "65",
+        "icon": "item/materials/elements/white/item_aether_light_01",
+        "atlas": "item/sprite_sheet"
+      },
+      {
+        "item": "66",
+        "icon": "item/materials/elements/white/item_aether_light_02",
+        "atlas": "item/sprite_sheet"
+      },
+      {
+        "item": "67",
+        "icon": "item/materials/elements/white/item_aether_light_03",
+        "atlas": "item/sprite_sheet"
+      },
+      {
+        "item": "14040",
+        "icon": "item/materials/equipment_enhancement_materials/equipment_enhancement_material_none_r5",
+        "atlas": "item/sprite_sheet"
+      },
+      {
+        "item": "40401",
+        "icon": "item/materials/equipment_enhancement_materials/steam_robot_material_red_r4",
+        "atlas": "item/sprite_sheet"
+      },
+      {
+        "item": "40402",
+        "icon": "item/materials/equipment_enhancement_materials/steam_robot_material_blue_r4",
+        "atlas": "item/sprite_sheet"
+      },
+      {
+        "item": "40403",
+        "icon": "item/materials/equipment_enhancement_materials/steam_robot_material_yellow_r4",
+        "atlas": "item/sprite_sheet"
+      },
+      {
+        "item": "40404",
+        "icon": "item/materials/equipment_enhancement_materials/steam_robot_material_green_r4",
+        "atlas": "item/sprite_sheet"
+      },
+      {
+        "item": "40405",
+        "icon": "item/materials/equipment_enhancement_materials/steam_robot_material_white_r4",
+        "atlas": "item/sprite_sheet"
+      },
+      {
+        "item": "40406",
+        "icon": "item/materials/equipment_enhancement_materials/steam_robot_material_black_r4",
+        "atlas": "item/sprite_sheet"
+      },
+      {
+        "item": "40407",
+        "icon": "item/materials/equipment_enhancement_materials/steam_robot_material_red_r5",
+        "atlas": "item/sprite_sheet"
+      },
+      {
+        "item": "40408",
+        "icon": "item/materials/equipment_enhancement_materials/steam_robot_material_blue_r5",
+        "atlas": "item/sprite_sheet"
+      },
+      {
+        "item": "40409",
+        "icon": "item/materials/equipment_enhancement_materials/steam_robot_material_yellow_r5",
+        "atlas": "item/sprite_sheet"
+      },
+      {
+        "item": "40410",
+        "icon": "item/materials/equipment_enhancement_materials/steam_robot_material_green_r5",
+        "atlas": "item/sprite_sheet"
+      },
+      {
+        "item": "40411",
+        "icon": "item/materials/equipment_enhancement_materials/steam_robot_material_white_r5",
+        "atlas": "item/sprite_sheet"
+      },
+      {
+        "item": "40412",
+        "icon": "item/materials/equipment_enhancement_materials/steam_robot_material_black_r5",
+        "atlas": "item/sprite_sheet"
+      },
+      {
+        "item": "2370098",
+        "icon": "item_icon/materials/event/rush_event/rush_event_item",
+        "atlas": "item_icon/sprite_sheet"
+      },
+      {
+        "item": "2370099",
+        "icon": "item/materials/mod/abyss/abyss_coin",
+        "atlas": "item/sprite_sheet"
+      },
+      {
+        "item": "2370100",
+        "icon": "item/materials/mod/abyss/abyss_core",
+        "atlas": "item/sprite_sheet"
+      },
+      {
+        "item": "2370101",
+        "icon": "item/materials/mod/abyss/abyss_seal",
+        "atlas": "item/sprite_sheet"
+      },
+      {
+        "item": "10000091",
+        "icon": "item_icon/materials/boss_coin/boss_coin_1",
+        "atlas": "item_icon/sprite_sheet"
+      },
+      {
+        "item": "10000092",
+        "icon": "item_icon/materials/boss_coin/boss_coin_2",
+        "atlas": "item_icon/sprite_sheet"
+      },
+      {
+        "item": "10000093",
+        "icon": "item_icon/materials/boss_coin/boss_coin_3",
+        "atlas": "item_icon/sprite_sheet"
+      },
+      {
+        "item": "10000095",
+        "icon": "item/materials/equipment_enhancement_materials/steam_robot_material_none_r4",
+        "atlas": "item/sprite_sheet"
+      },
+      {
+        "item": "10000096",
+        "icon": "item/materials/equipment_enhancement_materials/steam_robot_material_none_r5",
+        "atlas": "item/sprite_sheet"
+      },
+      {
+        "item": "10000143",
+        "icon": "item_icon/materials/mod/five_boss/entry_ticket_v2",
+        "atlas": "item_icon/sprite_sheet"
+      },
+      {
+        "item": "10000144",
+        "icon": "item_icon/materials/mod/five_boss/deathbringer_blueprint_v2",
+        "atlas": "item_icon/sprite_sheet"
+      },
+      {
+        "item": "10000145",
+        "icon": "item_icon/materials/mod/five_boss/deep_crystal_v2",
+        "atlas": "item_icon/sprite_sheet"
+      },
+      {
+        "item": "10000146",
+        "icon": "item_icon/materials/mod/five_boss/fivefold_clear_badge_v2",
+        "atlas": "item_icon/sprite_sheet"
+      },
+      {
+        "item": "10000147",
+        "icon": "item_icon/materials/mod/five_boss/five_king_core_v2",
+        "atlas": "item_icon/sprite_sheet"
+      }
+    ],
+    "thumbnails": [
+      {
+        "item": "40408",
+        "thumbnail": "item/materials/equipment_enhancement_materials/steam_robot_material_blue_r5",
+        "source": "item/sprite_sheet",
+        "size": [
+          20,
+          18
+        ],
+        "small_icon_present": true
+      },
+      {
+        "item": "40409",
+        "thumbnail": "item/materials/equipment_enhancement_materials/steam_robot_material_yellow_r5",
+        "source": "item/sprite_sheet",
+        "size": [
+          20,
+          18
+        ],
+        "small_icon_present": true
+      },
+      {
+        "item": "40410",
+        "thumbnail": "item/materials/equipment_enhancement_materials/steam_robot_material_green_r5",
+        "source": "item/sprite_sheet",
+        "size": [
+          20,
+          18
+        ],
+        "small_icon_present": true
+      },
+      {
+        "item": "40407",
+        "thumbnail": "item/materials/equipment_enhancement_materials/steam_robot_material_red_r5",
+        "source": "item/sprite_sheet",
+        "size": [
+          20,
+          18
+        ],
+        "small_icon_present": true
+      },
+      {
+        "item": "40412",
+        "thumbnail": "item/materials/equipment_enhancement_materials/steam_robot_material_black_r5",
+        "source": "item/sprite_sheet",
+        "size": [
+          20,
+          18
+        ],
+        "small_icon_present": true
+      },
+      {
+        "item": "40411",
+        "thumbnail": "item/materials/equipment_enhancement_materials/steam_robot_material_white_r5",
+        "source": "item/sprite_sheet",
+        "size": [
+          20,
+          18
+        ],
+        "small_icon_present": true
+      },
+      {
+        "item": "10000095",
+        "thumbnail": "item/materials/equipment_enhancement_materials/steam_robot_material_none_r4",
+        "source": "item/sprite_sheet",
+        "size": [
+          20,
+          20
+        ],
+        "small_icon_present": true
+      },
+      {
+        "item": "10000096",
+        "thumbnail": "item/materials/equipment_enhancement_materials/steam_robot_material_none_r5",
+        "source": "item/sprite_sheet",
+        "size": [
+          20,
+          18
+        ],
+        "small_icon_present": true
+      },
+      {
+        "item": "1",
+        "thumbnail": "item/materials/elements/red/item_jewel_red_01",
+        "source": "item/sprite_sheet",
+        "size": [
+          15,
+          13
+        ],
+        "small_icon_present": false
+      },
+      {
+        "item": "5",
+        "thumbnail": "item/materials/elements/blue/item_jewel_blue_01",
+        "source": "item/sprite_sheet",
+        "size": [
+          14,
+          13
+        ],
+        "small_icon_present": false
+      },
+      {
+        "item": "9",
+        "thumbnail": "item/materials/elements/yellow/item_jewel_yellow_01",
+        "source": "item/sprite_sheet",
+        "size": [
+          14,
+          13
+        ],
+        "small_icon_present": false
+      },
+      {
+        "item": "13",
+        "thumbnail": "item/materials/elements/green/item_jewel_green_01",
+        "source": "item/sprite_sheet",
+        "size": [
+          13,
+          12
+        ],
+        "small_icon_present": false
+      },
+      {
+        "item": "42",
+        "thumbnail": "item/materials/elements/black/item_jewel_dark_01",
+        "source": "item/sprite_sheet",
+        "size": [
+          13,
+          12
+        ],
+        "small_icon_present": false
+      },
+      {
+        "item": "46",
+        "thumbnail": "item/materials/elements/white/item_jewel_light_01",
+        "source": "item/sprite_sheet",
+        "size": [
+          15,
+          15
+        ],
+        "small_icon_present": false
+      },
+      {
+        "item": "2",
+        "thumbnail": "item/materials/elements/red/item_jewel_red_02",
+        "source": "item/sprite_sheet",
+        "size": [
+          13,
+          11
+        ],
+        "small_icon_present": false
+      },
+      {
+        "item": "6",
+        "thumbnail": "item/materials/elements/blue/item_jewel_blue_02",
+        "source": "item/sprite_sheet",
+        "size": [
+          18,
+          11
+        ],
+        "small_icon_present": false
+      },
+      {
+        "item": "10",
+        "thumbnail": "item/materials/elements/yellow/item_jewel_yellow_02",
+        "source": "item/sprite_sheet",
+        "size": [
+          15,
+          12
+        ],
+        "small_icon_present": false
+      },
+      {
+        "item": "14",
+        "thumbnail": "item/materials/elements/green/item_jewel_green_02",
+        "source": "item/sprite_sheet",
+        "size": [
+          16,
+          14
+        ],
+        "small_icon_present": false
+      },
+      {
+        "item": "43",
+        "thumbnail": "item/materials/elements/black/item_jewel_dark_02",
+        "source": "item/sprite_sheet",
+        "size": [
+          13,
+          13
+        ],
+        "small_icon_present": false
+      },
+      {
+        "item": "47",
+        "thumbnail": "item/materials/elements/white/item_jewel_light_02",
+        "source": "item/sprite_sheet",
+        "size": [
+          16,
+          14
+        ],
+        "small_icon_present": false
+      },
+      {
+        "item": "99",
+        "thumbnail": "item/materials/event/challenge_dungeon/yumemi_no_monsho_05",
+        "source": "item/sprite_sheet",
+        "size": [
+          20,
+          20
+        ],
+        "small_icon_present": false
+      },
+      {
+        "item": "3",
+        "thumbnail": "item/materials/elements/red/item_jewel_red_03",
+        "source": "item/sprite_sheet",
+        "size": [
+          17,
+          13
+        ],
+        "small_icon_present": false
+      },
+      {
+        "item": "7",
+        "thumbnail": "item/materials/elements/blue/item_jewel_blue_03",
+        "source": "item/sprite_sheet",
+        "size": [
+          18,
+          15
+        ],
+        "small_icon_present": false
+      },
+      {
+        "item": "11",
+        "thumbnail": "item/materials/elements/yellow/item_jewel_yellow_03",
+        "source": "item/sprite_sheet",
+        "size": [
+          17,
+          11
+        ],
+        "small_icon_present": false
+      },
+      {
+        "item": "15",
+        "thumbnail": "item/materials/elements/green/item_jewel_green_03",
+        "source": "item/sprite_sheet",
+        "size": [
+          14,
+          11
+        ],
+        "small_icon_present": false
+      },
+      {
+        "item": "44",
+        "thumbnail": "item/materials/elements/black/item_jewel_dark_03",
+        "source": "item/sprite_sheet",
+        "size": [
+          15,
+          15
+        ],
+        "small_icon_present": false
+      },
+      {
+        "item": "48",
+        "thumbnail": "item/materials/elements/white/item_jewel_light_03",
+        "source": "item/sprite_sheet",
+        "size": [
+          17,
+          15
+        ],
+        "small_icon_present": false
+      },
+      {
+        "item": "50",
+        "thumbnail": "item/materials/elements/red/item_aether_red_01",
+        "source": "item/sprite_sheet",
+        "size": [
+          17,
+          17
+        ],
+        "small_icon_present": true
+      },
+      {
+        "item": "53",
+        "thumbnail": "item/materials/elements/blue/item_aether_blue_01",
+        "source": "item/sprite_sheet",
+        "size": [
+          17,
+          17
+        ],
+        "small_icon_present": true
+      },
+      {
+        "item": "56",
+        "thumbnail": "item/materials/elements/yellow/item_aether_yellow_01",
+        "source": "item/sprite_sheet",
+        "size": [
+          17,
+          17
+        ],
+        "small_icon_present": true
+      },
+      {
+        "item": "59",
+        "thumbnail": "item/materials/elements/green/item_aether_green_01",
+        "source": "item/sprite_sheet",
+        "size": [
+          17,
+          17
+        ],
+        "small_icon_present": true
+      },
+      {
+        "item": "62",
+        "thumbnail": "item/materials/elements/black/item_aether_dark_01",
+        "source": "item/sprite_sheet",
+        "size": [
+          17,
+          17
+        ],
+        "small_icon_present": true
+      },
+      {
+        "item": "65",
+        "thumbnail": "item/materials/elements/white/item_aether_light_01",
+        "source": "item/sprite_sheet",
+        "size": [
+          17,
+          17
+        ],
+        "small_icon_present": true
+      },
+      {
+        "item": "51",
+        "thumbnail": "item/materials/elements/red/item_aether_red_02",
+        "source": "item/sprite_sheet",
+        "size": [
+          18,
+          18
+        ],
+        "small_icon_present": true
+      },
+      {
+        "item": "54",
+        "thumbnail": "item/materials/elements/blue/item_aether_blue_02",
+        "source": "item/sprite_sheet",
+        "size": [
+          18,
+          18
+        ],
+        "small_icon_present": true
+      },
+      {
+        "item": "57",
+        "thumbnail": "item/materials/elements/yellow/item_aether_yellow_02",
+        "source": "item/sprite_sheet",
+        "size": [
+          18,
+          18
+        ],
+        "small_icon_present": true
+      },
+      {
+        "item": "60",
+        "thumbnail": "item/materials/elements/green/item_aether_green_02",
+        "source": "item/sprite_sheet",
+        "size": [
+          18,
+          18
+        ],
+        "small_icon_present": true
+      },
+      {
+        "item": "63",
+        "thumbnail": "item/materials/elements/black/item_aether_dark_02",
+        "source": "item/sprite_sheet",
+        "size": [
+          18,
+          18
+        ],
+        "small_icon_present": true
+      },
+      {
+        "item": "66",
+        "thumbnail": "item/materials/elements/white/item_aether_light_02",
+        "source": "item/sprite_sheet",
+        "size": [
+          18,
+          18
+        ],
+        "small_icon_present": true
+      },
+      {
+        "item": "4",
+        "thumbnail": "item/materials/elements/red/item_jewel_red_04",
+        "source": "item/sprite_sheet",
+        "size": [
+          19,
+          19
+        ],
+        "small_icon_present": false
+      },
+      {
+        "item": "8",
+        "thumbnail": "item/materials/elements/blue/item_jewel_blue_04",
+        "source": "item/sprite_sheet",
+        "size": [
+          19,
+          19
+        ],
+        "small_icon_present": false
+      },
+      {
+        "item": "12",
+        "thumbnail": "item/materials/elements/yellow/item_jewel_yellow_04",
+        "source": "item/sprite_sheet",
+        "size": [
+          19,
+          19
+        ],
+        "small_icon_present": false
+      },
+      {
+        "item": "16",
+        "thumbnail": "item/materials/elements/green/item_jewel_green_04",
+        "source": "item/sprite_sheet",
+        "size": [
+          19,
+          17
+        ],
+        "small_icon_present": false
+      },
+      {
+        "item": "45",
+        "thumbnail": "item/materials/elements/black/item_jewel_dark_04",
+        "source": "item/sprite_sheet",
+        "size": [
+          19,
+          15
+        ],
+        "small_icon_present": false
+      },
+      {
+        "item": "49",
+        "thumbnail": "item/materials/elements/white/item_jewel_light_04",
+        "source": "item/sprite_sheet",
+        "size": [
+          19,
+          18
+        ],
+        "small_icon_present": false
+      },
+      {
+        "item": "52",
+        "thumbnail": "item/materials/elements/red/item_aether_red_03",
+        "source": "item/sprite_sheet",
+        "size": [
+          20,
+          20
+        ],
+        "small_icon_present": true
+      },
+      {
+        "item": "55",
+        "thumbnail": "item/materials/elements/blue/item_aether_blue_03",
+        "source": "item/sprite_sheet",
+        "size": [
+          20,
+          20
+        ],
+        "small_icon_present": true
+      },
+      {
+        "item": "58",
+        "thumbnail": "item/materials/elements/yellow/item_aether_yellow_03",
+        "source": "item/sprite_sheet",
+        "size": [
+          20,
+          20
+        ],
+        "small_icon_present": true
+      },
+      {
+        "item": "61",
+        "thumbnail": "item/materials/elements/green/item_aether_green_03",
+        "source": "item/sprite_sheet",
+        "size": [
+          20,
+          20
+        ],
+        "small_icon_present": true
+      },
+      {
+        "item": "64",
+        "thumbnail": "item/materials/elements/black/item_aether_dark_03",
+        "source": "item/sprite_sheet",
+        "size": [
+          20,
+          20
+        ],
+        "small_icon_present": true
+      },
+      {
+        "item": "67",
+        "thumbnail": "item/materials/elements/white/item_aether_light_03",
+        "source": "item/sprite_sheet",
+        "size": [
+          20,
+          20
+        ],
+        "small_icon_present": true
+      },
+      {
+        "item": "2370098",
+        "thumbnail": "item/materials/event/rush_event/rush_event_item_01",
+        "source": "item/sprite_sheet",
+        "size": [
+          20,
+          20
+        ],
+        "small_icon_present": true
+      },
+      {
+        "item": "2370097",
+        "thumbnail": "item/item/mod/fantasy/fantasy_core_token",
+        "source": "item/item/mod/fantasy/fantasy_core_token.png",
+        "size": [
+          20,
+          20
+        ],
+        "small_icon_present": false
+      },
+      {
+        "item": "10000143",
+        "thumbnail": "item/materials/mod/five_boss/entry_ticket_v2",
+        "source": "item/sprite_sheet",
+        "size": [
+          20,
+          20
+        ],
+        "small_icon_present": true
+      },
+      {
+        "item": "2370099",
+        "thumbnail": "item/materials/mod/abyss/abyss_coin",
+        "source": "item/sprite_sheet",
+        "size": [
+          20,
+          20
+        ],
+        "small_icon_present": true
+      },
+      {
+        "item": "999013",
+        "thumbnail": "item/spends/tickets/abyss_once_gacha_character_ticket",
+        "source": "item/sprite_sheet",
+        "size": [
+          20,
+          20
+        ],
+        "small_icon_present": false
+      },
+      {
+        "item": "999014",
+        "thumbnail": "item/spends/tickets/abyss_ten_times_gacha_character_ticket",
+        "source": "item/sprite_sheet",
+        "size": [
+          20,
+          20
+        ],
+        "small_icon_present": false
+      },
+      {
+        "item": "10002",
+        "thumbnail": "item/materials/awaking_crystal/general/awaking_crystal_04",
+        "source": "item/sprite_sheet",
+        "size": [
+          16,
+          16
+        ],
+        "small_icon_present": false
+      },
+      {
+        "item": "12001",
+        "thumbnail": "item/materials/awaking_crystal/general/equipment_awaking_crystal_4",
+        "source": "item/sprite_sheet",
+        "size": [
+          20,
+          17
+        ],
+        "small_icon_present": false
+      },
+      {
+        "item": "2370101",
+        "thumbnail": "item/materials/mod/abyss/abyss_seal",
+        "source": "item/sprite_sheet",
+        "size": [
+          20,
+          20
+        ],
+        "small_icon_present": true
+      },
+      {
+        "item": "2370100",
+        "thumbnail": "item/materials/mod/abyss/abyss_core",
+        "source": "item/sprite_sheet",
+        "size": [
+          20,
+          20
+        ],
+        "small_icon_present": true
+      },
+      {
+        "item": "10000144",
+        "thumbnail": "item/materials/mod/five_boss/deathbringer_blueprint_v2",
+        "source": "item/sprite_sheet",
+        "size": [
+          20,
+          20
+        ],
+        "small_icon_present": true
+      },
+      {
+        "item": "10000145",
+        "thumbnail": "item/materials/mod/five_boss/deep_crystal",
+        "source": "item/sprite_sheet",
+        "size": [
+          20,
+          20
+        ],
+        "small_icon_present": true
+      },
+      {
+        "item": "10000146",
+        "thumbnail": "item/materials/mod/five_boss/fivefold_clear_badge_v2",
+        "source": "item/sprite_sheet",
+        "size": [
+          20,
+          20
+        ],
+        "small_icon_present": true
+      },
+      {
+        "item": "10000147",
+        "thumbnail": "item/materials/mod/five_boss/five_king_core",
+        "source": "item/sprite_sheet",
+        "size": [
+          20,
+          20
+        ],
+        "small_icon_present": true
+      },
+      {
+        "item": "14040",
+        "thumbnail": "item/materials/equipment_enhancement_materials/equipment_enhancement_material_none_r5",
+        "source": "item/sprite_sheet",
+        "size": [
+          19,
+          16
+        ],
+        "small_icon_present": true
+      }
+    ],
+    "previous_mod_display_contract": {
+      "required_small_icons": [
+        {
+          "id": 10000143,
+          "name": "深界连战凭证",
+          "icon": "item_icon/materials/mod/five_boss/entry_ticket_v2"
+        },
+        {
+          "id": 10000144,
+          "name": "终式武装图纸",
+          "icon": "item_icon/materials/mod/five_boss/deathbringer_blueprint_v2"
+        },
+        {
+          "id": 10000145,
+          "name": "深界结晶",
+          "icon": "item_icon/materials/mod/five_boss/deep_crystal_v2"
+        },
+        {
+          "id": 10000146,
+          "name": "五重决战之证",
+          "icon": "item_icon/materials/mod/five_boss/fivefold_clear_badge_v2"
+        },
+        {
+          "id": 10000147,
+          "name": "五王心核",
+          "icon": "item_icon/materials/mod/five_boss/five_king_core_v2"
+        }
+      ],
+      "material_size": [
+        40,
+        40
+      ],
+      "thumbnail_size": [
+        20,
+        20
+      ],
+      "native_thumbnail_scale": 6,
+      "rendered_thumbnail_size": [
+        120,
+        120
+      ],
+      "native_frame_size": 168,
+      "weapon_thumbnail_paths": [
+        "item/equipment/mod/five_boss/deathbringer_final_lv0",
+        "item/equipment/mod/five_boss/deathbringer_final_lv120",
+        "item/equipment/mod/five_boss/deathbringer_final_shop"
+      ],
+      "full_canvas_trim": true
+    }
+  },
+  "sources": {
+    "40408": [
+      [
+        "18",
+        "1001",
+        "",
+        "1",
+        "1001001",
+        "0.1"
+      ]
+    ],
+    "40409": [
+      [
+        "18",
+        "1002",
+        "",
+        "1",
+        "1002001",
+        "0.1"
+      ]
+    ],
+    "40410": [
+      [
+        "18",
+        "1003",
+        "",
+        "1",
+        "1003001",
+        "0.1"
+      ]
+    ],
+    "40407": [
+      [
+        "18",
+        "1004",
+        "",
+        "1",
+        "1004001",
+        "0.1"
+      ]
+    ],
+    "40412": [
+      [
+        "18",
+        "1005",
+        "",
+        "1",
+        "1005001",
+        "0.1"
+      ]
+    ],
+    "40411": [
+      [
+        "18",
+        "1006",
+        "",
+        "1",
+        "1006001",
+        "0.1"
+      ]
+    ],
+    "10000095": [
+      [
+        "2",
+        "1",
+        "60",
+        "5",
+        "1060005",
+        "1"
+      ]
+    ],
+    "10000096": [
+      [
+        "2",
+        "1",
+        "60",
+        "5",
+        "1060005",
+        "0.1"
+      ]
+    ],
+    "1": [
+      [
+        "16",
+        "700098",
+        "",
+        "1",
+        "700098001",
+        "100"
+      ],
+      [
+        "16",
+        "700098",
+        "",
+        "2",
+        "700098002",
+        "150"
+      ]
+    ],
+    "5": [
+      [
+        "16",
+        "700098",
+        "",
+        "1",
+        "700098001",
+        "100"
+      ],
+      [
+        "16",
+        "700098",
+        "",
+        "2",
+        "700098002",
+        "150"
+      ]
+    ],
+    "9": [
+      [
+        "16",
+        "700098",
+        "",
+        "1",
+        "700098001",
+        "100"
+      ],
+      [
+        "16",
+        "700098",
+        "",
+        "2",
+        "700098002",
+        "150"
+      ]
+    ],
+    "13": [
+      [
+        "16",
+        "700098",
+        "",
+        "1",
+        "700098001",
+        "100"
+      ],
+      [
+        "16",
+        "700098",
+        "",
+        "2",
+        "700098002",
+        "150"
+      ]
+    ],
+    "42": [
+      [
+        "16",
+        "700098",
+        "",
+        "1",
+        "700098001",
+        "100"
+      ],
+      [
+        "16",
+        "700098",
+        "",
+        "2",
+        "700098002",
+        "150"
+      ]
+    ],
+    "46": [
+      [
+        "16",
+        "700098",
+        "",
+        "1",
+        "700098001",
+        "100"
+      ],
+      [
+        "16",
+        "700098",
+        "",
+        "2",
+        "700098002",
+        "150"
+      ]
+    ],
+    "2": [
+      [
+        "16",
+        "700098",
+        "",
+        "3",
+        "700098003",
+        "100"
+      ],
+      [
+        "16",
+        "700098",
+        "",
+        "4",
+        "700098004",
+        "150"
+      ]
+    ],
+    "6": [
+      [
+        "16",
+        "700098",
+        "",
+        "3",
+        "700098003",
+        "100"
+      ],
+      [
+        "16",
+        "700098",
+        "",
+        "4",
+        "700098004",
+        "150"
+      ]
+    ],
+    "10": [
+      [
+        "16",
+        "700098",
+        "",
+        "3",
+        "700098003",
+        "100"
+      ],
+      [
+        "16",
+        "700098",
+        "",
+        "4",
+        "700098004",
+        "150"
+      ]
+    ],
+    "14": [
+      [
+        "16",
+        "700098",
+        "",
+        "3",
+        "700098003",
+        "100"
+      ],
+      [
+        "16",
+        "700098",
+        "",
+        "4",
+        "700098004",
+        "150"
+      ]
+    ],
+    "43": [
+      [
+        "16",
+        "700098",
+        "",
+        "3",
+        "700098003",
+        "100"
+      ],
+      [
+        "16",
+        "700098",
+        "",
+        "4",
+        "700098004",
+        "150"
+      ]
+    ],
+    "47": [
+      [
+        "16",
+        "700098",
+        "",
+        "3",
+        "700098003",
+        "100"
+      ],
+      [
+        "16",
+        "700098",
+        "",
+        "4",
+        "700098004",
+        "150"
+      ]
+    ],
+    "99": [
+      [
+        "16",
+        "700098",
+        "",
+        "4",
+        "700098004",
+        "5"
+      ],
+      [
+        "16",
+        "700098",
+        "",
+        "9",
+        "700098009",
+        "10"
+      ],
+      [
+        "16",
+        "700098",
+        "",
+        "14",
+        "700098014",
+        "15"
+      ],
+      [
+        "16",
+        "700098",
+        "",
+        "15",
+        "700098015",
+        "200"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "30",
+        "700099030",
+        "1000"
+      ]
+    ],
+    "3": [
+      [
+        "16",
+        "700098",
+        "",
+        "6",
+        "700098006",
+        "75"
+      ],
+      [
+        "16",
+        "700098",
+        "",
+        "8",
+        "700098008",
+        "125"
+      ]
+    ],
+    "7": [
+      [
+        "16",
+        "700098",
+        "",
+        "6",
+        "700098006",
+        "75"
+      ],
+      [
+        "16",
+        "700098",
+        "",
+        "8",
+        "700098008",
+        "125"
+      ]
+    ],
+    "11": [
+      [
+        "16",
+        "700098",
+        "",
+        "6",
+        "700098006",
+        "75"
+      ],
+      [
+        "16",
+        "700098",
+        "",
+        "8",
+        "700098008",
+        "125"
+      ]
+    ],
+    "15": [
+      [
+        "16",
+        "700098",
+        "",
+        "6",
+        "700098006",
+        "75"
+      ],
+      [
+        "16",
+        "700098",
+        "",
+        "8",
+        "700098008",
+        "125"
+      ]
+    ],
+    "44": [
+      [
+        "16",
+        "700098",
+        "",
+        "6",
+        "700098006",
+        "75"
+      ],
+      [
+        "16",
+        "700098",
+        "",
+        "8",
+        "700098008",
+        "125"
+      ]
+    ],
+    "48": [
+      [
+        "16",
+        "700098",
+        "",
+        "6",
+        "700098006",
+        "75"
+      ],
+      [
+        "16",
+        "700098",
+        "",
+        "8",
+        "700098008",
+        "125"
+      ]
+    ],
+    "50": [
+      [
+        "16",
+        "700098",
+        "",
+        "7",
+        "700098007",
+        "50"
+      ],
+      [
+        "16",
+        "700098",
+        "",
+        "8",
+        "700098008",
+        "50"
+      ],
+      [
+        "16",
+        "700098",
+        "",
+        "11",
+        "700098011",
+        "100"
+      ],
+      [
+        "16",
+        "700098",
+        "",
+        "14",
+        "700098014",
+        "100"
+      ]
+    ],
+    "53": [
+      [
+        "16",
+        "700098",
+        "",
+        "7",
+        "700098007",
+        "50"
+      ],
+      [
+        "16",
+        "700098",
+        "",
+        "8",
+        "700098008",
+        "50"
+      ],
+      [
+        "16",
+        "700098",
+        "",
+        "11",
+        "700098011",
+        "100"
+      ],
+      [
+        "16",
+        "700098",
+        "",
+        "14",
+        "700098014",
+        "100"
+      ]
+    ],
+    "56": [
+      [
+        "16",
+        "700098",
+        "",
+        "7",
+        "700098007",
+        "50"
+      ],
+      [
+        "16",
+        "700098",
+        "",
+        "8",
+        "700098008",
+        "50"
+      ],
+      [
+        "16",
+        "700098",
+        "",
+        "11",
+        "700098011",
+        "100"
+      ],
+      [
+        "16",
+        "700098",
+        "",
+        "14",
+        "700098014",
+        "100"
+      ]
+    ],
+    "59": [
+      [
+        "16",
+        "700098",
+        "",
+        "7",
+        "700098007",
+        "50"
+      ],
+      [
+        "16",
+        "700098",
+        "",
+        "8",
+        "700098008",
+        "50"
+      ],
+      [
+        "16",
+        "700098",
+        "",
+        "11",
+        "700098011",
+        "100"
+      ],
+      [
+        "16",
+        "700098",
+        "",
+        "14",
+        "700098014",
+        "100"
+      ]
+    ],
+    "62": [
+      [
+        "16",
+        "700098",
+        "",
+        "7",
+        "700098007",
+        "50"
+      ],
+      [
+        "16",
+        "700098",
+        "",
+        "8",
+        "700098008",
+        "50"
+      ],
+      [
+        "16",
+        "700098",
+        "",
+        "11",
+        "700098011",
+        "100"
+      ],
+      [
+        "16",
+        "700098",
+        "",
+        "14",
+        "700098014",
+        "100"
+      ]
+    ],
+    "65": [
+      [
+        "16",
+        "700098",
+        "",
+        "7",
+        "700098007",
+        "50"
+      ],
+      [
+        "16",
+        "700098",
+        "",
+        "8",
+        "700098008",
+        "50"
+      ],
+      [
+        "16",
+        "700098",
+        "",
+        "11",
+        "700098011",
+        "100"
+      ],
+      [
+        "16",
+        "700098",
+        "",
+        "14",
+        "700098014",
+        "100"
+      ]
+    ],
+    "51": [
+      [
+        "16",
+        "700098",
+        "",
+        "9",
+        "700098009",
+        "50"
+      ],
+      [
+        "16",
+        "700098",
+        "",
+        "12",
+        "700098012",
+        "75"
+      ],
+      [
+        "16",
+        "700098",
+        "",
+        "14",
+        "700098014",
+        "75"
+      ]
+    ],
+    "54": [
+      [
+        "16",
+        "700098",
+        "",
+        "9",
+        "700098009",
+        "50"
+      ],
+      [
+        "16",
+        "700098",
+        "",
+        "12",
+        "700098012",
+        "75"
+      ],
+      [
+        "16",
+        "700098",
+        "",
+        "14",
+        "700098014",
+        "75"
+      ]
+    ],
+    "57": [
+      [
+        "16",
+        "700098",
+        "",
+        "9",
+        "700098009",
+        "50"
+      ],
+      [
+        "16",
+        "700098",
+        "",
+        "12",
+        "700098012",
+        "75"
+      ],
+      [
+        "16",
+        "700098",
+        "",
+        "14",
+        "700098014",
+        "75"
+      ]
+    ],
+    "60": [
+      [
+        "16",
+        "700098",
+        "",
+        "9",
+        "700098009",
+        "50"
+      ],
+      [
+        "16",
+        "700098",
+        "",
+        "12",
+        "700098012",
+        "75"
+      ],
+      [
+        "16",
+        "700098",
+        "",
+        "14",
+        "700098014",
+        "75"
+      ]
+    ],
+    "63": [
+      [
+        "16",
+        "700098",
+        "",
+        "9",
+        "700098009",
+        "50"
+      ],
+      [
+        "16",
+        "700098",
+        "",
+        "12",
+        "700098012",
+        "75"
+      ],
+      [
+        "16",
+        "700098",
+        "",
+        "14",
+        "700098014",
+        "75"
+      ]
+    ],
+    "66": [
+      [
+        "16",
+        "700098",
+        "",
+        "9",
+        "700098009",
+        "50"
+      ],
+      [
+        "16",
+        "700098",
+        "",
+        "12",
+        "700098012",
+        "75"
+      ],
+      [
+        "16",
+        "700098",
+        "",
+        "14",
+        "700098014",
+        "75"
+      ]
+    ],
+    "4": [
+      [
+        "16",
+        "700098",
+        "",
+        "11",
+        "700098011",
+        "50"
+      ],
+      [
+        "16",
+        "700098",
+        "",
+        "13",
+        "700098013",
+        "100"
+      ]
+    ],
+    "8": [
+      [
+        "16",
+        "700098",
+        "",
+        "11",
+        "700098011",
+        "50"
+      ],
+      [
+        "16",
+        "700098",
+        "",
+        "13",
+        "700098013",
+        "100"
+      ]
+    ],
+    "12": [
+      [
+        "16",
+        "700098",
+        "",
+        "11",
+        "700098011",
+        "50"
+      ],
+      [
+        "16",
+        "700098",
+        "",
+        "13",
+        "700098013",
+        "100"
+      ]
+    ],
+    "16": [
+      [
+        "16",
+        "700098",
+        "",
+        "11",
+        "700098011",
+        "50"
+      ],
+      [
+        "16",
+        "700098",
+        "",
+        "13",
+        "700098013",
+        "100"
+      ]
+    ],
+    "45": [
+      [
+        "16",
+        "700098",
+        "",
+        "11",
+        "700098011",
+        "50"
+      ],
+      [
+        "16",
+        "700098",
+        "",
+        "13",
+        "700098013",
+        "100"
+      ]
+    ],
+    "49": [
+      [
+        "16",
+        "700098",
+        "",
+        "11",
+        "700098011",
+        "50"
+      ],
+      [
+        "16",
+        "700098",
+        "",
+        "13",
+        "700098013",
+        "100"
+      ]
+    ],
+    "52": [
+      [
+        "16",
+        "700098",
+        "",
+        "13",
+        "700098013",
+        "50"
+      ],
+      [
+        "16",
+        "700098",
+        "",
+        "14",
+        "700098014",
+        "50"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "30",
+        "700099030",
+        "135.416666667"
+      ]
+    ],
+    "55": [
+      [
+        "16",
+        "700098",
+        "",
+        "13",
+        "700098013",
+        "50"
+      ],
+      [
+        "16",
+        "700098",
+        "",
+        "14",
+        "700098014",
+        "50"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "30",
+        "700099030",
+        "135.416666667"
+      ]
+    ],
+    "58": [
+      [
+        "16",
+        "700098",
+        "",
+        "13",
+        "700098013",
+        "50"
+      ],
+      [
+        "16",
+        "700098",
+        "",
+        "14",
+        "700098014",
+        "50"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "30",
+        "700099030",
+        "135.416666667"
+      ]
+    ],
+    "61": [
+      [
+        "16",
+        "700098",
+        "",
+        "13",
+        "700098013",
+        "50"
+      ],
+      [
+        "16",
+        "700098",
+        "",
+        "14",
+        "700098014",
+        "50"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "30",
+        "700099030",
+        "135.416666667"
+      ]
+    ],
+    "64": [
+      [
+        "16",
+        "700098",
+        "",
+        "13",
+        "700098013",
+        "50"
+      ],
+      [
+        "16",
+        "700098",
+        "",
+        "14",
+        "700098014",
+        "50"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "30",
+        "700099030",
+        "135.416666667"
+      ]
+    ],
+    "67": [
+      [
+        "16",
+        "700098",
+        "",
+        "13",
+        "700098013",
+        "50"
+      ],
+      [
+        "16",
+        "700098",
+        "",
+        "14",
+        "700098014",
+        "50"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "30",
+        "700099030",
+        "135.416666667"
+      ]
+    ],
+    "2370098": [
+      [
+        "16",
+        "700098",
+        "",
+        "5",
+        "700098005",
+        "5"
+      ],
+      [
+        "16",
+        "700098",
+        "",
+        "10",
+        "700098010",
+        "10"
+      ],
+      [
+        "16",
+        "700098",
+        "",
+        "15",
+        "700098015",
+        "20"
+      ]
+    ],
+    "2370097": [
+      [
+        "16",
+        "700098",
+        "",
+        "15",
+        "700098015",
+        "1"
+      ]
+    ],
+    "10000143": [
+      [
+        "16",
+        "700098",
+        "",
+        "15",
+        "700098015",
+        "1"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "30",
+        "700099030",
+        "1.5"
+      ]
+    ],
+    "2370099": [
+      [
+        "16",
+        "700099",
+        "",
+        "1",
+        "700099001",
+        "1"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "2",
+        "700099002",
+        "3.24"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "3",
+        "700099003",
+        "3.3"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "4",
+        "700099004",
+        "3.36"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "5",
+        "700099005",
+        "3.42"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "6",
+        "700099006",
+        "3.48"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "7",
+        "700099007",
+        "3.54"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "8",
+        "700099008",
+        "3.6"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "9",
+        "700099009",
+        "3.66"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "10",
+        "700099010",
+        "3.72"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "11",
+        "700099011",
+        "4.78"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "12",
+        "700099012",
+        "4.84"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "13",
+        "700099013",
+        "4.9"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "14",
+        "700099014",
+        "4.96"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "15",
+        "700099015",
+        "5"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "16",
+        "700099016",
+        "5.02"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "17",
+        "700099017",
+        "5.04"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "18",
+        "700099018",
+        "5.06"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "19",
+        "700099019",
+        "5.08"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "20",
+        "700099020",
+        "5.1"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "21",
+        "700099021",
+        "6.68"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "22",
+        "700099022",
+        "6.71"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "23",
+        "700099023",
+        "6.74"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "24",
+        "700099024",
+        "6.77"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "25",
+        "700099025",
+        "6.8"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "26",
+        "700099026",
+        "6.83"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "27",
+        "700099027",
+        "6.86"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "28",
+        "700099028",
+        "6.89"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "29",
+        "700099029",
+        "6.92"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "30",
+        "700099030",
+        "100"
+      ]
+    ],
+    "999013": [
+      [
+        "16",
+        "700099",
+        "",
+        "1",
+        "700099001",
+        "0.01"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "2",
+        "700099002",
+        "0.015"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "3",
+        "700099003",
+        "0.02"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "4",
+        "700099004",
+        "0.025"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "6",
+        "700099006",
+        "0.035"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "7",
+        "700099007",
+        "0.04"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "8",
+        "700099008",
+        "0.045"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "9",
+        "700099009",
+        "0.05"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "11",
+        "700099011",
+        "0.06"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "12",
+        "700099012",
+        "0.065"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "13",
+        "700099013",
+        "0.07"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "14",
+        "700099014",
+        "0.075"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "16",
+        "700099016",
+        "0.085"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "17",
+        "700099017",
+        "0.09"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "18",
+        "700099018",
+        "0.095"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "19",
+        "700099019",
+        "0.1"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "21",
+        "700099021",
+        "0.11"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "22",
+        "700099022",
+        "0.115"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "23",
+        "700099023",
+        "0.12"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "24",
+        "700099024",
+        "0.125"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "26",
+        "700099026",
+        "0.135"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "27",
+        "700099027",
+        "0.14"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "28",
+        "700099028",
+        "0.145"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "29",
+        "700099029",
+        "0.15"
+      ]
+    ],
+    "999014": [
+      [
+        "16",
+        "700099",
+        "",
+        "5",
+        "700099005",
+        "0.01"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "10",
+        "700099010",
+        "0.02"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "15",
+        "700099015",
+        "0.03"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "20",
+        "700099020",
+        "0.04"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "25",
+        "700099025",
+        "0.05"
+      ],
+      [
+        "16",
+        "700099",
+        "",
+        "30",
+        "700099030",
+        "0.1"
+      ]
+    ],
+    "10002": [
+      [
+        "16",
+        "700099",
+        "",
+        "30",
+        "700099030",
+        "2"
+      ]
+    ],
+    "12001": [
+      [
+        "16",
+        "700099",
+        "",
+        "30",
+        "700099030",
+        "2"
+      ]
+    ],
+    "2370101": [
+      [
+        "16",
+        "700099",
+        "",
+        "30",
+        "700099030",
+        "1.2"
+      ]
+    ],
+    "2370100": [
+      [
+        "16",
+        "700099",
+        "",
+        "30",
+        "700099030",
+        "0.15"
+      ]
+    ],
+    "10000144": [
+      [
+        "2",
+        "1",
+        "99",
+        "1",
+        "1099001",
+        "0.5"
+      ]
+    ],
+    "10000145": [
+      [
+        "2",
+        "1",
+        "99",
+        "1",
+        "1099001",
+        "5"
+      ]
+    ],
+    "10000146": [
+      [
+        "2",
+        "1",
+        "99",
+        "1",
+        "1099001",
+        "0"
+      ]
+    ],
+    "10000147": [
+      [
+        "2",
+        "1",
+        "99",
+        "1",
+        "1099001",
+        "0.25"
+      ]
+    ],
+    "14040": [
+      [
+        "12",
+        "1",
+        "",
+        "1",
+        "1001",
+        "0"
+      ],
+      [
+        "12",
+        "1",
+        "",
+        "2",
+        "1002",
+        "0"
+      ],
+      [
+        "12",
+        "1",
+        "",
+        "3",
+        "1003",
+        "0"
+      ],
+      [
+        "12",
+        "1",
+        "",
+        "4",
+        "1004",
+        "0"
+      ],
+      [
+        "12",
+        "1",
+        "",
+        "5",
+        "1005",
+        "0"
+      ],
+      [
+        "12",
+        "1",
+        "",
+        "6",
+        "1006",
+        "0"
+      ],
+      [
+        "12",
+        "1",
+        "",
+        "7",
+        "1007",
+        "0"
+      ],
+      [
+        "12",
+        "1",
+        "",
+        "8",
+        "1008",
+        "0"
+      ],
+      [
+        "12",
+        "1",
+        "",
+        "9",
+        "1009",
+        "0"
+      ],
+      [
+        "12",
+        "1",
+        "",
+        "10",
+        "1010",
+        "0"
+      ],
+      [
+        "12",
+        "1",
+        "",
+        "11",
+        "1011",
+        "0"
+      ],
+      [
+        "12",
+        "1",
+        "",
+        "12",
+        "1012",
+        "0"
+      ],
+      [
+        "12",
+        "2",
+        "",
+        "1",
+        "2001",
+        "0"
+      ],
+      [
+        "12",
+        "2",
+        "",
+        "2",
+        "2002",
+        "0"
+      ],
+      [
+        "12",
+        "2",
+        "",
+        "3",
+        "2003",
+        "0"
+      ],
+      [
+        "12",
+        "2",
+        "",
+        "4",
+        "2004",
+        "0"
+      ],
+      [
+        "12",
+        "2",
+        "",
+        "5",
+        "2005",
+        "0"
+      ],
+      [
+        "12",
+        "2",
+        "",
+        "6",
+        "2006",
+        "0"
+      ],
+      [
+        "12",
+        "2",
+        "",
+        "7",
+        "2007",
+        "0"
+      ],
+      [
+        "12",
+        "2",
+        "",
+        "8",
+        "2008",
+        "0"
+      ],
+      [
+        "12",
+        "2",
+        "",
+        "9",
+        "2009",
+        "0"
+      ],
+      [
+        "12",
+        "2",
+        "",
+        "10",
+        "2010",
+        "0"
+      ],
+      [
+        "12",
+        "2",
+        "",
+        "11",
+        "2011",
+        "0"
+      ],
+      [
+        "12",
+        "2",
+        "",
+        "12",
+        "2012",
+        "0"
+      ],
+      [
+        "12",
+        "2",
+        "",
+        "13",
+        "2013",
+        "0"
+      ],
+      [
+        "12",
+        "2",
+        "",
+        "14",
+        "2014",
+        "0"
+      ],
+      [
+        "12",
+        "2",
+        "",
+        "15",
+        "2015",
+        "0"
+      ],
+      [
+        "12",
+        "2",
+        "",
+        "16",
+        "2016",
+        "0"
+      ]
+    ]
+  },
+  "source_reads": {
+    "common|a4/731a843d4dc0c84120bf8c88784c1e74c03baa": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.104-1.4.105-3-how-to-get-sources.zip",
+      "member": "production/upload/a4/731a843d4dc0c84120bf8c88784c1e74c03baa",
+      "sha256": "93015a75aefac039e57f8bc0eede7b7954c2e745316f19b87453cdb0869ae5e9"
+    },
+    "common|56/7d81eea3c08fac7b1b69cbeabe2b9fd7b9591e": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.105-1.4.106-1-mech-item-sources.zip",
+      "member": "production/upload/56/7d81eea3c08fac7b1b69cbeabe2b9fd7b9591e",
+      "sha256": "d33710a8f2cbe3767ece0a7918ac5882bbf0ba5a1323785d1baa754422e4cf03"
+    },
+    "common|8a/b96162f1210de71fafa87333abe257dc619183": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.71-1.4.72-1-merge7274into72.zip",
+      "member": "production/upload/8a/b96162f1210de71fafa87333abe257dc619183",
+      "sha256": "0cff010d66830f98a6856f98874852a249fe6373f91ec48d1d09c303efc9e6c3"
+    },
+    "common|eb/f8ef19148af9c1330b78c7fb3ce75e3f202e64": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.102-1.4.103-1-lens0909-consolidated-cn.zip",
+      "member": "production/upload/eb/f8ef19148af9c1330b78c7fb3ce75e3f202e64",
+      "sha256": "809c3d6162e5c77e7493106b1ac9566fd06e04bb623a92594f71b13938a1bf8d"
+    },
+    "common|93/a3763bc243c7178e1d97a3acd9dab2e9406a5e": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.56-1.4.57-1-consolidated-ability-v7-and-custom-drops.zip",
+      "member": "production/upload/93/a3763bc243c7178e1d97a3acd9dab2e9406a5e",
+      "sha256": "c35c6ff8441a330cf1f035d46985c59a5bd11da7b8e11c090b090afe57332b27"
+    },
+    "common|68/6c1822fcaa320f71e8245ae7be98d553b84cb7": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.56-1.4.57-1-consolidated-ability-v7-and-custom-drops.zip",
+      "member": "production/upload/68/6c1822fcaa320f71e8245ae7be98d553b84cb7",
+      "sha256": "851f2ac0c485a5a61a2494543b89555a39a11550211e8383898d2d9555af0201"
+    },
+    "common|b6/595dedd9cfa79b7e6eccab25dd9a2a81b066a2": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.103-1.4.104-1-abyss-lens0910-entry-message-consolidated.zip",
+      "member": "production/upload/b6/595dedd9cfa79b7e6eccab25dd9a2a81b066a2",
+      "sha256": "3a5fc62319b38ea68f3f69ef62965d5d86f4a2d6d96e666030143945e19baf3c"
+    },
+    "common|4d/ddfc9f3101ca83075ea99fa681aa239e15d066": {
+      "archive": "F:\\startpoint-cn-main\\.cdn\\cn\\archive-common-diff\\pinball-1.4.47-1.4.48-1-74436299.zip",
+      "member": "production/upload/4d/ddfc9f3101ca83075ea99fa681aa239e15d066",
+      "sha256": "eec9e371f46f46a2ef181bf09fa9ac64e01e76513be1b6ddceb930f82ed5337d"
+    },
+    "common|7b/5e0efc0e0691038ca52fe282501dfd3a1b5ae3": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.102-1.4.103-1-lens0909-consolidated-cn.zip",
+      "member": "production/upload/7b/5e0efc0e0691038ca52fe282501dfd3a1b5ae3",
+      "sha256": "fad7044c6a883835a97bedd7aa1f332969145b1091507108ca76b37f3ed1517b"
+    },
+    "common|0d/284621a3d469b304e1a001f6a21a99890c8907": {
+      "archive": "F:\\startpoint-cn-main\\.cdn\\cn\\archive-common-full\\pinball-1.4.0-20-a09e4a6d.zip",
+      "member": "production/upload/0d/284621a3d469b304e1a001f6a21a99890c8907",
+      "sha256": "3b7fe57225a0623ce0f8d289e3714c40b7652b51d1a07159ab6042311076b3ff"
+    },
+    "common|0c/4561a50deb7b22c977212a62ac8409074bddbe": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.103-1.4.104-1-abyss-lens0910-entry-message-consolidated.zip",
+      "member": "production/upload/0c/4561a50deb7b22c977212a62ac8409074bddbe",
+      "sha256": "df992612e0beaf611b4c1e8da9222e20c2aba1ac6a26f579bbc4d7929b3af713"
+    },
+    "common|97/efacb322621f7bf6671dad3bdf7bdc55cb350b": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.104-1.4.105-1-five-boss-ui-art.zip",
+      "member": "production/upload/97/efacb322621f7bf6671dad3bdf7bdc55cb350b",
+      "sha256": "614141e24e977255045b8e44dde571c2f6bf9dd9ce6e97ebce6345c0353afb6d"
+    },
+    "common|6d/4d576b424178c5b2b253a2dd5aa3d78fa74ef3": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.103-1.4.104-1-abyss-lens0910-entry-message-consolidated.zip",
+      "member": "production/upload/6d/4d576b424178c5b2b253a2dd5aa3d78fa74ef3",
+      "sha256": "2ba13f354441a91a9e97500eee45902bee26671292bc5a7a8714f73f574ac7fb"
+    },
+    "common|a1/96e15706a47e7bd6214f62b390a7fa4d58bf35": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.103-1.4.104-1-abyss-lens0910-entry-message-consolidated.zip",
+      "member": "production/upload/a1/96e15706a47e7bd6214f62b390a7fa4d58bf35",
+      "sha256": "62170c448820426e12788e3ddaee3023cc146c21e9dd7628fd8ac6334bb77f5d"
+    },
+    "common|98/d280194b20eeabea87881b775b4a10796beb38": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.60-1.4.61-6-post60-terminal-overlay-sixpack-v2.zip",
+      "member": "production/upload/98/d280194b20eeabea87881b775b4a10796beb38",
+      "sha256": "9b0b7ee3fae45107ebfbd9645b51b0b3ad9e1f00ddcf2c112bff9c5479aa4217"
+    },
+    "common|a5/35aaa48a5290e76d07c40e497742e4a407a0d0": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.103-1.4.104-1-abyss-lens0910-entry-message-consolidated.zip",
+      "member": "production/upload/a5/35aaa48a5290e76d07c40e497742e4a407a0d0",
+      "sha256": "942d3f39b8eb94830cfb50f54bdaae2d4b5ee012b2b642cf8d33c290b01de789"
+    },
+    "common|49/a073fdd109e00ac9daf801113cb5e19f64a8cf": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.95-1.4.96-1-cdn-consolidated-gerald0903.zip",
+      "member": "production/upload/49/a073fdd109e00ac9daf801113cb5e19f64a8cf",
+      "sha256": "70ee5aef360663aa84e555b8f5eddb088c52416839333ddbde2ba911686fac68"
+    },
+    "common|3f/7deacd3130269e59c5b44a9bd68901be13e960": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.95-1.4.96-1-cdn-consolidated-gerald0903.zip",
+      "member": "production/upload/3f/7deacd3130269e59c5b44a9bd68901be13e960",
+      "sha256": "1c3699278e7dbd74931cf79f249ce5ed885deef097a9a154a0ee6d22d4034714"
+    },
+    "common|fb/ab4344a7456dca88f3ce06f01208922f37e395": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.104-1.4.105-2-gerald-portrait.zip",
+      "member": "production/upload/fb/ab4344a7456dca88f3ce06f01208922f37e395",
+      "sha256": "c220ed7910bd70fcaf3c4e074b37e16b8ea5e06af6c134168cc83ffe16afd4a0"
+    },
+    "common|91/e5b42c759fec14593d4612e3ff4b89d8955d76": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.102-1.4.103-1-lens0909-consolidated-cn.zip",
+      "member": "production/upload/91/e5b42c759fec14593d4612e3ff4b89d8955d76",
+      "sha256": "64652ef1ea171d7db22dbf1e64f21ceb601f4dfefee960940d3e61e0540f8740"
+    },
+    "common|70/0e22050ee329943b09f0bbc92c636ec8b51849": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.102-1.4.103-1-lens0909-consolidated-cn.zip",
+      "member": "production/upload/70/0e22050ee329943b09f0bbc92c636ec8b51849",
+      "sha256": "d7bbf35d1a5d037e81024f309b7ce555b2222daee706a75f95a3630efa778458"
+    },
+    "common|dc/d03da09ca3440230620ce68990628251632913": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.102-1.4.103-1-lens0909-consolidated-cn.zip",
+      "member": "production/upload/dc/d03da09ca3440230620ce68990628251632913",
+      "sha256": "1dae5e5c1c227af2af27cc65d4b40724214c24176882928c8706f193d8343860"
+    },
+    "common|74/0186df579e871706e0925f175db73ef0b5e3ca": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.102-1.4.103-1-lens0909-consolidated-cn.zip",
+      "member": "production/upload/74/0186df579e871706e0925f175db73ef0b5e3ca",
+      "sha256": "31904fcfc4e7172fe585ecc707aafa8771fb666ab1323ded462ebd285a87cd4a"
+    },
+    "common|67/8be14929bc19b6a6d560138f43a858cfc11c58": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.103-1.4.104-1-abyss-lens0910-entry-message-consolidated.zip",
+      "member": "production/upload/67/8be14929bc19b6a6d560138f43a858cfc11c58",
+      "sha256": "ae1af4bb9f0e0f0b4a102dcfbc09aceed2fa53dd91c3903be0a4b32028a4f388"
+    },
+    "common|5a/8557140d67bf8b9d06fe1ddff2343d05607e11": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.103-1.4.104-1-abyss-lens0910-entry-message-consolidated.zip",
+      "member": "production/upload/5a/8557140d67bf8b9d06fe1ddff2343d05607e11",
+      "sha256": "e7664a6ec6b46f98bff011adb50fcd2ae73c243ff783d1b685864a8504ceeede"
+    },
+    "common|f5/0e08259b2684bc738896b2ad6389f21d54d62e": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.102-1.4.103-1-lens0909-consolidated-cn.zip",
+      "member": "production/upload/f5/0e08259b2684bc738896b2ad6389f21d54d62e",
+      "sha256": "9af5dd2e0c3b44fda2b243762c011d43668236c1fb64da9d57628125c01d701a"
+    },
+    "common|d1/445ea3783f671404cfe5628dbb9448e749f026": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.102-1.4.103-1-lens0909-consolidated-cn.zip",
+      "member": "production/upload/d1/445ea3783f671404cfe5628dbb9448e749f026",
+      "sha256": "366649a574fe2ec353062b6a34807f6c31ad78dc3acb1e6e9567da5838efbbd0"
+    },
+    "common|41/514c427ad3f060eeed9b608ee78e7c62c1943a": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.103-1.4.104-1-abyss-lens0910-entry-message-consolidated.zip",
+      "member": "production/upload/41/514c427ad3f060eeed9b608ee78e7c62c1943a",
+      "sha256": "b63306dc6493b9a1f01ab52ec5de29a521adcd1e7b7500091296881d46f59ac9"
+    },
+    "common|e8/e94d472f8d41f8d2954a8d106bb0d18b47d0ac": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.103-1.4.104-1-abyss-lens0910-entry-message-consolidated.zip",
+      "member": "production/upload/e8/e94d472f8d41f8d2954a8d106bb0d18b47d0ac",
+      "sha256": "6bcdcbe6cd9a93359a6db03c7249f6b8a77559e227c2922b458c4f81baa1221e"
+    },
+    "common|f0/de168aad4299c068f3427535f469a49ff9cbbb": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.103-1.4.104-1-abyss-lens0910-entry-message-consolidated.zip",
+      "member": "production/upload/f0/de168aad4299c068f3427535f469a49ff9cbbb",
+      "sha256": "f5a8bf6cc2aee87ae13b8a4da25edaddf5982b5712b2f21566e8063e33119f47"
+    },
+    "common|5d/587cee98ce26a0ff22fa62f401241c7875176c": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.103-1.4.104-1-abyss-lens0910-entry-message-consolidated.zip",
+      "member": "production/upload/5d/587cee98ce26a0ff22fa62f401241c7875176c",
+      "sha256": "f5a8bf6cc2aee87ae13b8a4da25edaddf5982b5712b2f21566e8063e33119f47"
+    },
+    "common|0d/227c8e7bcb1222c7cb2d4fb82ace96fe605cef": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.103-1.4.104-1-abyss-lens0910-entry-message-consolidated.zip",
+      "member": "production/upload/0d/227c8e7bcb1222c7cb2d4fb82ace96fe605cef",
+      "sha256": "f5a8bf6cc2aee87ae13b8a4da25edaddf5982b5712b2f21566e8063e33119f47"
+    }
+  },
+  "source_manifest_before_sha256": "cb10997cabefecb67b8f7c47403d137adb70cc6a0a7a6d960aaa5d5f20cf8d3b",
+  "superseded_unpublished_archive_sha256": "f80e7e886100c64041f0929e0b482a775a3d8dadc305bb263a5fb98dd6331d3a",
+  "replacement_authorization": "用户：一起补齐呗，都做到.106的包里",
+  "runtime_synced": false,
+  "device_tested": false,
+  "swf_changed": false,
+  "save_impact": "仅查询索引与星空记忆晶说明；ID、库存、进度、数据库及V1/V2存档格式不变。",
+  "resources": {
+    "master/search/item_quest_search.orderedmap": {
+      "before_sha256": "0666488998fedf754871560e182fc4046aea5db9d7f22ee257a364875f9f1ba3",
+      "after_sha256": "65570494c31cdbc8049fcd0ca8d7352b77a8a3d651b031005bbfb579a4482906",
+      "member": "production/upload/56/7d81eea3c08fac7b1b69cbeabe2b9fd7b9591e"
+    },
+    "master/item/item.orderedmap": {
+      "before_sha256": "93015a75aefac039e57f8bc0eede7b7954c2e745316f19b87453cdb0869ae5e9",
+      "after_sha256": "7bc75aab1ab4d49be721f537831e6a7b2c3e47331b503530dc43b9b878eb3992",
+      "member": "production/upload/a4/731a843d4dc0c84120bf8c88784c1e74c03baa"
+    }
+  },
+  "limitations": [
+    "原生界面最多展示5项，保留其筛选与排序。",
+    "首次SS已领取状态不能通过静态索引动态移除来源；说明已标注一次性。",
+    "覆盖本次自定义奖励来源清单及现行奖励数据；不为停用、任务、排行榜等伪造关卡入口。"
+  ],
+  "source_applied": true,
+  "source_paths": [
+    "assets/asset-patch/manifest.json",
+    "assets/asset-patch/active/pinball-1.4.105-1.4.106-1-mech-item-sources.zip",
+    "assets/asset-patch/audit/mech-item-sources-1.4.106/report.json",
+    "assets/asset-patch/production/upload/56/7d81eea3c08fac7b1b69cbeabe2b9fd7b9591e",
+    "assets/asset-patch/production/upload/a4/731a843d4dc0c84120bf8c88784c1e74c03baa"
+  ],
+  "excluded_nonbaseline_cdn_archives": [
+    "F:\\startpoint-cn-main\\.cdn\\cn\\archive-ios-diff\\pinball-1.4.83-1.4.84-2-bbbc92be.zip"
+  ],
+  "item_stage_archive": {
+    "name": "pinball-1.4.105-1.4.106-1-mech-item-sources.zip",
+    "size": 221787,
+    "sha256": "8b0d3913bb47f0b13eabbae5aeec1e882fd7fe6f036d9da6f0005344df8cbb94",
+    "members": 2,
+    "files": [
+      "production/upload/56/7d81eea3c08fac7b1b69cbeabe2b9fd7b9591e",
+      "production/upload/a4/731a843d4dc0c84120bf8c88784c1e74c03baa"
+    ]
+  },
+  "gacha_completion": {
+    "report": "../gacha-consistency-1.4.106/report.json",
+    "original_item_members_preserved": true
+  }
+}

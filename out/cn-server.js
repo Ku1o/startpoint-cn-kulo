@@ -100,6 +100,7 @@ const payment_1 = __importDefault(require("./routes/api/payment"));
 const news_1 = __importDefault(require("./routes/api/news"));
 const raidEvent_1 = __importDefault(require("./routes/api/raidEvent"));
 const rushEvent_1 = __importDefault(require("./routes/api/rushEvent"));
+const abyssRecords_1 = __importDefault(require("./routes/cn/abyssRecords"));
 const carnivalEvent_1 = __importDefault(require("./routes/api/carnivalEvent"));
 const howToGet_1 = __importDefault(require("./routes/api/howToGet"));
 const contentsGuide_1 = __importDefault(require("./routes/api/contentsGuide"));
@@ -466,6 +467,7 @@ fastify.addContentTypeParser("application/json", { parseAs: "string" }, jsonPars
 (0, playerLogin_1.installPlayerLoginGuard)(fastify);
 (0, takeover_access_1.installTakeoverUdidGuard)(fastify);
 fastify.register(playerLogin_1.default);
+fastify.register(abyssRecords_1.default);
 const iosCompat = (0, ios_compat_1.parseIosCompatConfig)();
 fastify.register(versionCheck_1.default, { ios: iosCompat });
 if (iosCompat.enabled) {

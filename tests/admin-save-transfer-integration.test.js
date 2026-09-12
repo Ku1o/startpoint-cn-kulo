@@ -19,6 +19,7 @@ const { installPlayerLoginGuard } = require('../out/routes/cn/playerLogin')
 const db = getDb()
 const app = require('fastify')({ logger: false, bodyLimit: 262144 })
 const ledgerTables = [
+    'abyss_floor_records',
     'five_boss_continue_receipts', 'five_boss_solo_runs', 'five_boss_gauntlet_runs',
     'five_boss_gauntlet_members', 'five_boss_gauntlet_receipts',
 ]
@@ -53,7 +54,7 @@ function seedRun(key, host, guest) {
     }
 }
 function ledgerState() {
-    return Object.fromEntries(ledgerTables.map(table => [table, db.prepare(`SELECT * FROM ${table} ORDER BY rowid`).all()]))
+    return Object.fromEntries(ledgerTables.map(table => [table, db.prepare(`SELECT * FROM ${table} ORDER BY 1, 2`).all()]))
 }
 function identityState() {
     return Object.fromEntries(['accounts', 'sessions', 'device_bindings', 'player_login_credentials', 'player_login_sessions']
@@ -74,6 +75,8 @@ async function main() {
     seedRun('target-host', host.playerId, other.playerId)
     seedRun('target-member', other.playerId, member.playerId)
     seedRun('source-run', source.playerId, other.playerId)
+    db.prepare(`INSERT INTO abyss_floor_records VALUES (?,700099001,45678,?,123456789)`)
+        .run('a'.repeat(64), host.login.profile.viewer_id)
     db.prepare('UPDATE players SET name=?,free_vmoney=? WHERE id=?').run('导出来源', 13579, source.playerId)
     db.prepare('UPDATE players SET free_vmoney=? WHERE id=?').run(24680, other.playerId)
     const insert = db.prepare(`INSERT INTO players_receive_history

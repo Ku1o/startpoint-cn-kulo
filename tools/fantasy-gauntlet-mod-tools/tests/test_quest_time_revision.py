@@ -10,7 +10,7 @@ from unittest import mock
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import wf_quest_lib as q
 import wf_publish
-from wf_quest_time_revision import ABYSS_REVISION_KEY, RUSH_QUEST_MEMBER, quest_time_revisions
+from wf_quest_time_revision import ABYSS_REVISION_KEY, RUSH_QUEST_MEMBER, quest_time_revisions, validate_current_chain
 
 
 class QuestTimeRevisionTests(unittest.TestCase):
@@ -59,21 +59,48 @@ class QuestTimeRevisionTests(unittest.TestCase):
 
     def test_current_revision_matches_the_winning_live_archive(self):
         root = Path(__file__).resolve().parents[3]
-        manifest = json.loads((root / "assets/asset-patch/manifest.json").read_text(encoding="utf-8-sig"))
-        patches = sorted((p for p in manifest["patches"] if p.get("enabled") and p.get("type") == "patch"),
-                         key=lambda p: tuple(map(int, p["version"].split("."))), reverse=True)
-        for patch in patches:
-            names = patch.get("archives") or [patch.get("archive")]
-            for name in names:
-                if not isinstance(name, str):
-                    continue
-                with zipfile.ZipFile(root / "assets/asset-patch/active" / name) as z:
-                    if RUSH_QUEST_MEMBER not in z.namelist():
-                        continue
-                    expected = quest_time_revisions({RUSH_QUEST_MEMBER: z.read(RUSH_QUEST_MEMBER)})
-                    self.assertEqual(expected[ABYSS_REVISION_KEY], patch["quest_time_revisions"][ABYSS_REVISION_KEY])
-                    return
-        self.fail("No effective Rush quest table found in the active patch chain")
+        self.assertEqual(64, len(validate_current_chain(root)['revision']))
+
+    def test_consolidation_cannot_drop_revision_and_later_metadata_can_repair_it(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            active = root / 'assets/asset-patch/active'
+            active.mkdir(parents=True)
+            manifest = active.parent / 'manifest.json'
+            old = self.revision(self.table)
+            changed = copy.deepcopy(self.table)
+            changed['700099']['1'] = '700099001,1,1,new tower'
+            new = self.revision(changed)
+            with zipfile.ZipFile(active / 'tower.zip', 'w') as archive:
+                archive.writestr(RUSH_QUEST_MEMBER, q.build_node(changed))
+            patches = [dict(type='patch', enabled=True, version='1.4.96', quest_time_revisions=old),
+                       dict(type='patch', enabled=True, version='1.4.104', archive='tower.zip')]
+            manifest.write_text(json.dumps(dict(patches=patches)))
+            with self.assertRaisesRegex(ValueError, 'stale'):
+                validate_current_chain(root)
+            patches.append(dict(type='patch', enabled=True, version='1.4.106', quest_time_revisions=new))
+            manifest.write_text(json.dumps(dict(patches=patches)))
+            self.assertEqual('1.4.106', validate_current_chain(root)['marker_version'])
+
+    def test_multipart_chain_last_tower_wins_over_archive_alias(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            active = root / 'assets/asset-patch/active'
+            active.mkdir(parents=True)
+            changed = copy.deepcopy(self.table)
+            changed['700099']['1'] = '700099001,1,1,later split tower'
+            for name, table in [('first.zip', self.table), ('second.zip', changed)]:
+                with zipfile.ZipFile(active / name, 'w') as archive:
+                    archive.writestr(RUSH_QUEST_MEMBER, q.build_node(table))
+            patch = dict(type='patch', enabled=True, version='1.4.106', archive='first.zip',
+                         chain=['first.zip', 'second.zip'], quest_time_revisions=self.revision(self.table))
+            manifest = active.parent / 'manifest.json'
+            manifest.write_text(json.dumps(dict(patches=[patch])))
+            with self.assertRaisesRegex(ValueError, 'stale'):
+                validate_current_chain(root)
+            patch['quest_time_revisions'] = self.revision(changed)
+            manifest.write_text(json.dumps(dict(patches=[patch])))
+            self.assertEqual(self.revision(changed)[ABYSS_REVISION_KEY], validate_current_chain(root)['revision'])
 
 
 if __name__ == "__main__":

@@ -65,7 +65,7 @@ def verify(variant: str, apk: Path | None = None, *, record_path: Path | None = 
                 raise ValueError("local LAN endpoint differs from the accepted artifact record")
     return {"status": "accepted_identity_verified", "variant": variant,
             "registry": str(record_file),
-            "acceptance_status": record["status"],
+            "acceptance_status": entry.get("acceptance_status", record["status"]),
             "accepted_on": entry.get("accepted_on", record["accepted_on"]),
             "acceptance_audit": entry.get("acceptance_audit", record.get("acceptance", {}).get("audit")),
             "main_abc_index": entry.get("main_abc_index", 284),

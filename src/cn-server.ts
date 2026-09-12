@@ -64,6 +64,7 @@ import paymentApiPlugin from "./routes/api/payment";
 import newsApiPlugin from "./routes/api/news";
 import raidEventApiPlugin from "./routes/api/raidEvent";
 import rushEventApiPlugin from "./routes/api/rushEvent";
+import abyssRecordsRoutes from "./routes/cn/abyssRecords";
 import carnivalEventApiPlugin from "./routes/api/carnivalEvent";
 import howToGetApiPlugin from "./routes/api/howToGet";
 import contentsGuideApiPlugin from "./routes/api/contentsGuide";
@@ -417,6 +418,7 @@ initializePlayerLogin(viewerId => {
 installPlayerLoginGuard(fastify);
 installTakeoverUdidGuard(fastify);
 fastify.register(playerLoginRoutes);
+fastify.register(abyssRecordsRoutes);
 
 const iosCompat = parseIosCompatConfig();
 fastify.register(versionCheckPlugin, { ios: iosCompat });

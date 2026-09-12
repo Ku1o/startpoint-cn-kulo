@@ -1,0 +1,17 @@
+{
+  "scope": "Fastify inject against source files; no listener or runtime service started",
+  "checks": [
+    {
+      "logical": "master/search/item_quest_search.orderedmap",
+      "status": 200,
+      "sha256": "65570494c31cdbc8049fcd0ca8d7352b77a8a3d651b031005bbfb579a4482906",
+      "bytes": 56880
+    },
+    {
+      "logical": "master/item/item.orderedmap",
+      "status": 200,
+      "sha256": "7bc75aab1ab4d49be721f537831e6a7b2c3e47331b503530dc43b9b878eb3992",
+      "bytes": 295846
+    }
+  ]
+}

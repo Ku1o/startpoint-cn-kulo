@@ -47,6 +47,7 @@ const quest_calc_1 = require("../../lib/quest/finish/quest-calc");
 const session_validator_1 = require("../../lib/quest/finish/session-validator");
 const active_quest_resolver_1 = require("../../lib/quest/finish/active-quest-resolver");
 const abyss_time_revision_1 = require("../../lib/abyss-time-revision");
+const abyss_records_1 = require("../../data/domains/abyss-records");
 const challenge_point_1 = require("../../lib/quest/finish/challenge-point");
 const score_attack_handler_1 = require("../../lib/quest/finish/score-attack-handler");
 const mission_1 = require("../../lib/mission");
@@ -237,6 +238,15 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             let sPlusClearReward = null;
             const leaderId = (_a = body.statistics.party.characters[0]) === null || _a === void 0 ? void 0 : _a.id;
             if (questAccomplished) {
+                (0, abyss_records_1.recordAbyssFloorFinishSync)({
+                    category: questCategory, questId, revision: activeQuestData.questTimeRevision,
+                    viewerId, elapsedTimeMs: clearTime, startedAtMs: activeQuestData.startedAtMs,
+                    nowMs: (0, utils_1.getServerTime)() * 1000, accomplished: true,
+                    registered: (resolvedActiveQuest === null || resolvedActiveQuest === void 0 ? void 0 : resolvedActiveQuest.source) !== "rebuilt",
+                    matchingPlay: body.play_id === activeQuestData.playId
+                        && Number(body.quest_id) === questId && Number(body.category) === questCategory,
+                    isMulti: activeQuestData.isMulti,
+                });
                 // update quest progress
                 if (questPreviouslyCompleted) {
                     // simply update the quest progress if it already exists.

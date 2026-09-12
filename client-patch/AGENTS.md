@@ -1,5 +1,8 @@
 # Android APK/SWF 工作入口
 
+最新 Android 登记（2026-09-12）：用户已验收纪录保持者昵称 LAN 版，公网是其地址转换派生件；见 `client-patch/ACCEPTANCE-RECORD-HOLDER-20260912.md` 和 `android-accepted.json`（客户端目录内为同名文件）。当前主 ABC 290、96535 方法体；下述缓存/圆角/切队包为历史累计来源，不再作为新 Android 输入。iOS 基线仍以独立注册表为准，移植时包含昵称及入手来源文件夹修正。
+
+
 - 开始 Android APK/SWF 任务前，先读本目录 `ANDROID-BASELINE.md` 和 `android-accepted.json`，再读具体补丁文档。JSON 中登记的已验收公网/内网成品是当前直接基线；其他文档中的旧哈希只代表历史步骤。
 - 在修改前运行 `python client-patch/verify_android_baseline.py --variant public` 或 `--variant lan`，回读实际 APK、内嵌 SWF 和 AIR UUID。输入缺失或不匹配时不得按日期、文件名或旧报告另选 APK，也不得跳过哈希保护。
 - 当前公网/内网直接基线均为 2026-09-12 用户验收的缓存/圆角 + 切队 F1009 累计包，主 ABC 288、96520 方法体，见 `ACCEPTANCE-CACHE-PARTY-20260912.md`。保留玩家登录、Lens 0910、属性通道、深渊详情、旧服空更新兼容、覆盖安装首次启动缓存清理、圆角按钮与切队初始化/触摸保护，以及此前全部 MOD、幻想连战、排行榜、关注/本人资料路由、CNtips_b 隐藏、422/724、五重决战及 700099 续战队伍复用。9 月 9/10 日登记是归档复现输入，不再作为新任务基线。
