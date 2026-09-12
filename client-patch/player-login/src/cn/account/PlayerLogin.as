@@ -58,7 +58,11 @@ package cn.account {
             show(display.stage,endpoint,function(data:Object):void {
                 var account:Object=getDefinitionByName("pinball.context.localStore._AccountLocalStore.AccountLocalStore_Impl_");
                 var previous:Object=account.get(local.get_account());
-                if(previous.index==0 && Number(previous.params[0].viewerId)!=Number(data.profile.viewer_id)) local.clearCaches();
+                if(previous.index==0 && Number(previous.params[0].viewerId)!=Number(data.profile.viewer_id)) {
+                    // Reset account selections, preserving device download mode and preferences.
+                    var misc:Object=getDefinitionByName("pinball.context.localStore._MiscLocalStore.MiscLocalStore_Impl_");
+                    misc.reset(local.get_misc());
+                }
                 account.saveAccountData(local.get_account(),{viewerId:Number(data.profile.viewer_id),shortUdid:"0",udid:data.udid,firstViewerId:Number(data.profile.viewer_id)});
             },dispose,function():Object {
                 // The trial uses separate game storage; read the original directory without changing it.

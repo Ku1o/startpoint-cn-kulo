@@ -1,25 +1,25 @@
 {
   "schema_version": 3,
   "status": "user_accepted",
-  "accepted_on": "2026-09-11",
+  "accepted_on": "2026-09-12",
   "acceptance": {
-    "source": "用户在 R4 公网 HUD 修正版交付后明确表示 IPA 已验收并要求提交 GitHub。",
-    "user_statement": "ipa也验收了，然后提交修改内容到github",
+    "source": "用户明确确认 Android 与 iOS 已验收并要求提交修改。",
+    "user_statement": "安卓和ios的都验收了，提交修改内容到github。然后是其余的服务端更新也提交并给我云服整合包",
     "scope": "user_confirmed_acceptance_and_offline_identity",
     "device_tested_by_codex": false,
-    "device_acceptance": "user_confirmed_without_per_feature_test_log",
+    "device_acceptance": "user_confirmed_without_per_variant_or_feature_test_log",
     "build_reports_are_immutable": true,
-    "audit": "client-patch/ACCEPTANCE-IOS-R4-20260911.md",
-    "note": "登记用户验收与本次离线身份核对；不推断每个功能的独立真机测试结果，不改写原构建报告。保留原 unsigned IPA，没有重新打包、重签或安装。"
+    "audit": "client-patch/ACCEPTANCE-CACHE-PARTY-20260912.md",
+    "note": "用户整体验收与既有本地验证分开记录，不推断每个环境或每种操作均已独立真机测试。本次登记原交付物，不重新编译、签名或安装。"
   },
   "artifact": {
-    "ipa": "F:/codex/ios-artifacts/StarPoint-iOS-1.8.4-login-abyss-hud-public-fix-r4-20260911-unsigned.ipa",
-    "ipa_sha256": "560d5787411dfa1b603a9c8f0b4fba46f045e02531256e476df5b6474d822fae",
-    "size_bytes": 141714300,
+    "ipa": "F:/codex/ios-artifacts/StarPoint-iOS-1.8.4-cache-rounded-public-20260912-unsigned.ipa",
+    "ipa_sha256": "11ccd92b75e00484e57d124b52a02aedc4cecfb9c0012387288fd69e58af42d9",
+    "size_bytes": 143910596,
     "native_member": "Payload/worldflipper.app/worldflipper",
-    "native_sha256": "44d1b32d27a7564eec03207a4cc1f8fb74573185fba2ea624444180182b428be",
+    "native_sha256": "4aa933a6909a7fb1259151b58a2fceb19663ad76d9a019e6ccfbe36046dbc158",
     "swf_member": "Payload/worldflipper.app/worldflipper_ios_release.swf",
-    "swf_sha256": "7558dbdf13ad6c24c6249a85d3dffbef2527b36c92f2da6d3c9edb37d61b1f83",
+    "swf_sha256": "8c932ef3fbc813371e915c45580e6bcc6fc0f0fdf6423d74785f822e6472187d",
     "bundle_id": "com.kulo.wf",
     "version": "1.8.4",
     "build": "1.8.46",
@@ -27,19 +27,19 @@
     "profile_debug_overlay": false,
     "title_cntips_b_unchanged": true,
     "endpoint_policy": "R3/R4 初始 API 与版本配置均为 http://175.178.160.158，公网默认端口 80",
-    "full_abc": "F:/codex/ios-artifacts/login-abyss-hud-public-fix-r4-20260911/cumulative-full-r4.abc",
-    "full_abc_sha256": "7151e3d2ffb4e03e2204e5630011d98e5e8a7c0d3f29c073c7bafbe71b6547e8",
-    "full_abc_sha1": "790739d3540c5cd857354d2c23487504c302e55e",
+    "full_abc": "F:/codex/ios-artifacts/cache-rounded-public-20260912/cache-rounded-full.abc",
+    "full_abc_sha256": "d4f9e01de7272d43decfd834e1859c57baf735d8cac4bbe5ddeb5db94d020573",
+    "full_abc_sha1": "54535d7b89d0a12e11f40736f279f28270de45d0",
     "aot_info_file_offset": 104549248,
-    "aot_method_count": 101182
+    "aot_method_count": 101191
   },
   "lineage": {
-    "previous_accepted_registry": "client-patch/accepted-history/ios-abyss-autostart-20260909.json",
-    "previous_accepted_ipa_sha256": "8e6fb8cc4de6fe1c79efaded8e4ab1159c012645bdc3a52a22e19562e0661193",
-    "previous_accepted_role": "Sep 9 深渊续战 Lens IPA 仅用于历史移植步骤精确复现；新任务从 R4 公网累计成品继续。",
-    "documentation": "client-patch/ios-cumulative-login/README.md",
-    "build_entry": "client-patch/ios-cumulative-login/hud_state_layout.py",
-    "verification_script": "client-patch/ios-cumulative-login/verify_hud_state.py",
+    "previous_accepted_registry": "client-patch/accepted-history/ios-login-abyss-hud-r4-20260911.json",
+    "previous_accepted_ipa_sha256": "560d5787411dfa1b603a9c8f0b4fba46f045e02531256e476df5b6474d822fae",
+    "previous_accepted_role": "R4 为本次增量的精确复现输入；后续新任务从 2026-09-12 已验收缓存/圆角包继续。",
+    "documentation": "client-patch/ios-cache-rounded/README.md",
+    "build_entry": "client-patch/ios-cache-rounded/build.py",
+    "verification_script": "client-patch/ios-cache-rounded/verify.py",
     "previous_method_source_commit": "f440d283f84b84671d7cd2cfebdbe66d2d775448",
     "preserved": [
       "MOD 五合一",
@@ -67,9 +67,12 @@
       "Lens 0910 灼晒能力伤害耐性及夏白/杰拉尔语音轮换和预加载",
       "TrollStore 重签兼容的 LINKEDIT、字符串表与重定位数据布局",
       "版本查询前的实际公网 API 初始配置，修复登录面板缓存官网地址",
-      "HUD 语音计数 Number 尾部存储，保留旧字段偏移，修复进场 F1009"
+      "HUD 语音计数 Number 尾部存储，保留旧字段偏移，修复进场 F1009",
+      "旧服空任务响应归一化，登录回调保留下载设置",
+      "检测安装变化后清理一次 NSURLCache 网络响应缓存；保留游戏文件和账号",
+      "深渊详情按钮四角曲线，保持既有点击闭包字段布局"
     ],
-    "method_archive": "本次提交归档累计移植、R2/R3/R4 修复脚本、校验工具及验收登记，IPA/完整 ABC 成品不进入 Git。",
+    "method_archive": "本次归档 ios-cache-rounded 增量方法及验收；保留 R4 和更早累计移植方法。",
     "intermediate_candidates": [
       {
         "name": "cumulative_initial",
@@ -99,21 +102,89 @@
     "status": "diagnostic_only_not_current_baseline",
     "reason": "用户验收的是前一份无 DEBUG 包；诊断版仅供历史审查，不再用于交付或后续修改基线。"
   },
-  "local_build_report": "F:/codex/ios-artifacts/login-abyss-hud-public-fix-r4-20260911/verification-report.json",
+  "local_build_report": "F:/codex/ios-artifacts/cache-rounded-public-20260912/build-report.json",
   "local_acceptance_checks": {
-    "zip_members_checked": 3568,
-    "only_native_and_swf_changed": true,
-    "r3_hud_slot_regression_detected": true,
-    "actual_old_run_and_new_update_loads_verified": true,
-    "voice_control_flow_and_round_robin_preserved": true,
-    "all_other_methods_preserved": 101181,
-    "native_relocations_checked": 81,
-    "r2_rebases_preserved": true,
+    "status": "offline_verified_unsigned_candidate",
+    "ipa": "F:\\codex\\work\\ios-cache-rounded-r2-20260912\\output\\StarPoint-iOS-1.8.4-cache-rounded-public-20260912-unsigned.ipa",
+    "ipa_sha256": "11ccd92b75e00484e57d124b52a02aedc4cecfb9c0012387288fd69e58af42d9",
+    "zip_members": 3568,
+    "changed_zip_members": [
+      "Payload/worldflipper.app/worldflipper_ios_release.swf",
+      "Payload/worldflipper.app/worldflipper"
+    ],
+    "existing_methods_preserved": 101179,
+    "old_class_and_activation_layouts_preserved": true,
+    "patched_existing_methods": [
+      51820,
+      101083,
+      101091
+    ],
+    "new_helper_methods": 9,
+    "native_relocations_checked": 291,
+    "new_rebases": 92718,
     "ldid_signature_models_passed": 3,
-    "initial_public_origin": "http://175.178.160.158",
-    "save_impact": "none",
-    "desktop_air_run": false,
-    "actual_signing_performed": false,
-    "device_tested": false
+    "public_origin": "http://175.178.160.158",
+    "signing_layout": {
+      "signature_offset": 138323760,
+      "signature_size": 2711920,
+      "signature_is_last": true,
+      "loader_metadata_before_signature": true,
+      "ldid_code_limit": 138323760,
+      "ldid_metadata_preserved": true,
+      "metadata_ranges": [
+        {
+          "name": "rebase",
+          "offset": 138208160,
+          "size": 75236
+        },
+        {
+          "name": "bind",
+          "offset": 137780704,
+          "size": 59712
+        },
+        {
+          "name": "lazy_bind",
+          "offset": 137840416,
+          "size": 26368
+        },
+        {
+          "name": "export",
+          "offset": 137866784,
+          "size": 536
+        },
+        {
+          "name": "symbols",
+          "offset": 138116216,
+          "size": 25392
+        },
+        {
+          "name": "strings",
+          "offset": 138283408,
+          "size": 40352
+        },
+        {
+          "name": "indirect_symbols",
+          "offset": 138141608,
+          "size": 8728
+        },
+        {
+          "name": "0x26",
+          "offset": 137867320,
+          "size": 248864
+        },
+        {
+          "name": "0x29",
+          "offset": 138116184,
+          "size": 32
+        }
+      ]
+    },
+    "ios_carousel_unchanged": true,
+    "save_schema_changed": false,
+    "device_tested": false,
+    "server_changed": false,
+    "cleanup_scope": "NSURLCache responses only; no downloaded game files or accounts",
+    "native_execution_tests_passed": 10,
+    "user_acceptance_recorded_separately": true
   }
 }

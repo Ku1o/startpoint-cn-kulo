@@ -1,13 +1,15 @@
 # Android APK/SWF：新会话从这里开始
 
-2026-09-10，应用户要求，**Lens 0910 + 属性封锁 + 深渊关卡详情累计内网 APK 已通过离线验收**。后续内网修改直接从该包接续。公网仍为 9 月 9 日已登记包，本次没有补做公网版本。准确身份见 [android-accepted.json](./android-accepted.json)，范围见 [本次验收](./ACCEPTANCE-LENS0910-20260910.md)。`accepted_offline` 不代表完成真机验收。配套 CDN 已合并到 **1.4.104**，旧构建报告保持原样。
+2026-09-12，用户明确确认 Android 与 iOS 均已验收。Android 公网/内网当前直接基线更新为缓存、圆角和切队 F1009 累计包；准确身份见 [android-accepted.json](./android-accepted.json)，证据范围见 [本次验收](./ACCEPTANCE-CACHE-PARTY-20260912.md)。用户整体验收与 Codex 的既有 MuMu 设备-1 / 离线检查分开记录，历史报告不改写。
 
 ## 当前直接基线
 
 | 环境 | 已验收 APK（相对仓库根目录） | 地址 |
 | --- | --- | --- |
-| 公网 | `outputs/abyss-autostart-lens-public-test-20260909/StarPoint-CN-1.8.1-abyss-autostart-lens-public-test-20260909.apk` | `http://175.178.160.158:8001` |
-| 内网 | `outputs/lens0910-abyss-details-lan-test-20260910/StarPoint-CN-1.8.1-lens0910-abyss-details-lan-test.apk` | `http://<LAN_HOST>` |
+| 公网 | `outputs/party-carousel-f1009-public-20260912/StarPoint-CN-1.8.1-party-f1009-public-20260912.apk` | `http://175.178.160.158:8001` |
+| 内网 | `outputs/party-carousel-f1009-lan-20260912/StarPoint-CN-1.8.1-party-f1009-lan-20260912.apk` | `http://<LAN_HOST>` |
+
+两端均保留此前登录、属性通道、深渊详情和 Lens 0910；新增空更新兼容、覆盖安装首次启动缓存清理、圆角按钮、切队目标先初始化及空触摸保护。主 ABC 288，共 96520 个方法体。旧登记按原字节保存在 `accepted-history/android-lens0910-20260910.json`；下面的 9 月 9/10 日说明为累计来源记录。
 
 在仓库根目录运行只读检查：
 
@@ -34,7 +36,7 @@ Git 保存修改方法和验收身份；APK 二进制仍保存在本机 `outputs
 5900101 禁止铁钢替代觉醒材料。详见 [Lens 方法](./lens0907-0908/README.md)。
 两个错误续战测试包遗漏这批内容，已经明确排除；当前成品已从 Lens v3 重新移植，并完成全方法与基诺维解析保护检查。
 
-当前内网另保留属性通道 21496、详情 71835/78350、Lens 0910 四方法及三个 HUD 状态槽；主 ABC 为 286，原方法总计 96,422。下面的 284 是历史容器序号，方法体索引不变。
+9 月 10 日内网步骤保留属性通道 21496、详情 71835/78350、Lens 0910 四方法及三个 HUD 状态槽；该历史包主 ABC 为 286，原方法总计 96,422。下面的 284 是历史容器序号，方法体索引不变。
 
 ## 9 月 6 日累计修改（继续保留）
 

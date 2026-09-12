@@ -1,91 +1,88 @@
 {
-  "schema_version": 2,
-  "status": "accepted_offline",
-  "accepted_on": "2026-09-10",
+  "schema_version": 3,
+  "status": "user_accepted",
+  "accepted_on": "2026-09-12",
   "acceptance": {
-    "source": "用户要求验收当前累计 Android APK 修改方法并提交；本次仅推进最新内网包，公网保留原登记。",
-    "user_statement": "apk的修改方法也可以验收并提交了",
-    "scope": "offline_artifact_and_lineage",
+    "source": "用户明确确认 Android 与 iOS 已验收并要求提交修改。",
+    "user_statement": "安卓和ios的都验收了，提交修改内容到github。然后是其余的服务端更新也提交并给我云服整合包",
+    "scope": "user_confirmed_acceptance_and_offline_identity",
     "device_tested_by_codex": false,
-    "device_acceptance": "not_established_by_this_audit",
+    "device_acceptance": "user_confirmed_without_per_variant_or_feature_test_log",
     "build_reports_are_immutable": true,
-    "audit": "client-patch/ACCEPTANCE-LENS0910-20260910.md",
-    "note": "本条用户指令授权执行验收与提交，不是用户已完成真机测试的声明。原构建报告保持生成时状态；本次直接登记原交付成品，没有重编译、重签或安装。"
+    "audit": "client-patch/ACCEPTANCE-CACHE-PARTY-20260912.md",
+    "note": "用户整体验收与既有本地验证分开记录，不推断每个环境或每种操作均已独立真机测试。本次登记原交付物，不重新编译、签名或安装。"
   },
   "variants": {
     "public": {
-      "apk": "outputs/abyss-autostart-lens-public-test-20260909/StarPoint-CN-1.8.1-abyss-autostart-lens-public-test-20260909.apk",
-      "apk_sha256": "c868534b575348dde825fcd4c88c156157174fd4444724f1141fd9aa95e32a2d",
-      "swf_sha256": "11c06fd77a0e3811164d196208ecce28cba5ec3a602e3d798f3c67d5d5b17e04",
-      "uniqueappversionid": "8f559397-1911-4b5b-bdba-245048f37a36",
+      "apk": "outputs/party-carousel-f1009-public-20260912/StarPoint-CN-1.8.1-party-f1009-public-20260912.apk",
+      "apk_sha256": "e38ef8256a9fdabd6f834302fbde0c0fdcedf7c8972b3ed5d15b15f66d1038f1",
+      "swf_sha256": "52b32a54553be65e62d781fcdf1dff4e136d1452dfdf03cfe19607a010a76a15",
+      "uniqueappversionid": "d5e2c200-4516-4898-ab5e-029e1e0a9cad",
       "endpoint": "http://175.178.160.158:8001",
-      "local_build_report": "outputs/abyss-autostart-lens-public-test-20260909/verification-report.json",
+      "local_build_report": "outputs/party-carousel-f1009-public-20260912/verification.json",
       "local_build_checks": {
         "changed_methods": [
-          "284:24599"
+          "288:66013",
+          "288:66523"
         ],
-        "method_bodies_checked": 96404,
+        "method_bodies_checked": 96520,
         "zipalign": true,
         "v1_signature": true,
         "v2_signature": true,
         "signer_certificate_sha256": "569d19a3578d4cba16e3d6e7ad8ccab4fa667efc758deef6c9be3adb99919894",
-        "lens_cumulative_checks": {
-          "base_release": "Lens v3 2026-09-08",
-          "main_abc_bodies": 92561,
-          "ability_422_parser_sha256": "4a035a6b48b89a8a1b3f60eb371c49dfcf8095b1fe129e7bff46730e3a81b065",
-          "existing_constant_pools_preserved": true,
-          "abc_metadata_preserved": true,
-          "non_target_bodies_exceptions_and_activations_preserved": true,
-          "non_main_swf_tags_preserved": true
-        }
+        "previous_three_features_preserved": true,
+        "pools_and_class_layouts_unchanged": true,
+        "current_party_only_update_preserved": true
       },
-      "accepted_on": "2026-09-09",
-      "acceptance_audit": "client-patch/ACCEPTANCE-ABYSS-AUTOSTART-20260909.md",
-      "main_abc_index": 284
+      "accepted_on": "2026-09-12",
+      "acceptance_audit": "client-patch/ACCEPTANCE-CACHE-PARTY-20260912.md",
+      "main_abc_index": 288,
+      "size_bytes": 170020035,
+      "dex_sha256": "c9e4f05607dd02a231d2a86c970d07ca57642e4e3aa03db459bbae2804978b42",
+      "native_build_identity": "d5e2c200-4516-4898-ab5e-029e1e0a9cad",
+      "package_name": "com.leiting.wf",
+      "version_name": "1.8.1",
+      "version_code": 1008001
     },
     "lan": {
-      "apk": "outputs/lens0910-abyss-details-lan-test-20260910/StarPoint-CN-1.8.1-lens0910-abyss-details-lan-test.apk",
-      "apk_sha256": "fd42a417dc7231c8dbc421e4839ceeefcfb027f8c83d8bc418baa427dd0b969d",
-      "swf_sha256": "7e3f40fc17ac6fbbec52a0775c6a6357edd258874ed62d13d4ceb287d56d97d3",
-      "uniqueappversionid": "2c7e1eae-872e-4da6-8c8a-42cbdb2360fe",
+      "apk": "outputs/party-carousel-f1009-lan-20260912/StarPoint-CN-1.8.1-party-f1009-lan-20260912.apk",
+      "apk_sha256": "0636312d521aa0e075a7c1180cdc6d0e93817e02df63f488cdaf1b8b0f801a1b",
+      "swf_sha256": "22a19f20657b3334983bede36fe75010060e03d89d8029e82cc2678e9da42efa",
+      "uniqueappversionid": "d2b67ca3-9373-4fa6-9aaa-905159a33e15",
       "endpoint": "http://<LAN_HOST>",
-      "local_build_report": "outputs/lens0910-abyss-details-lan-test-20260910/verification-report.json",
+      "local_build_report": "outputs/party-carousel-f1009-lan-20260912/verification.json",
       "local_build_checks": {
         "changed_methods": [
-          "286:56844",
-          "286:58882",
-          "286:59846",
-          "286:92450"
+          "288:66013",
+          "288:66523"
         ],
-        "method_bodies_checked": 96422,
+        "method_bodies_checked": 96520,
         "zipalign": true,
         "v1_signature": true,
         "v2_signature": true,
         "signer_certificate_sha256": "569d19a3578d4cba16e3d6e7ad8ccab4fa667efc758deef6c9be3adb99919894",
-        "lens_cumulative_checks": {
-          "base_release": "Lens v3 2026-09-08",
-          "main_abc_bodies": 92561,
-          "ability_422_parser_sha256": "4a035a6b48b89a8a1b3f60eb371c49dfcf8095b1fe129e7bff46730e3a81b065",
-          "existing_constant_pools_preserved": true,
-          "abc_metadata_preserved": true,
-          "non_target_bodies_exceptions_and_activations_preserved": true,
-          "non_main_swf_tags_preserved": true
-        },
-        "bytecode_cases": 624,
-        "existing_helper_bodies": 18
+        "previous_three_features_preserved": true,
+        "pools_and_class_layouts_unchanged": true,
+        "current_party_only_update_preserved": true
       },
       "endpoint_sha256": "a32f84d19ceda3b4a466952f7deab7fbf1db96029ba70777a2cbd4a1ef79f521",
       "local_endpoint_config": "outputs/android-build-local.json",
-      "accepted_on": "2026-09-10",
-      "acceptance_audit": "client-patch/ACCEPTANCE-LENS0910-20260910.md",
-      "main_abc_index": 286,
-      "required_resource_version": "1.4.104"
+      "accepted_on": "2026-09-12",
+      "acceptance_audit": "client-patch/ACCEPTANCE-CACHE-PARTY-20260912.md",
+      "main_abc_index": 288,
+      "required_resource_version": "1.4.104",
+      "size_bytes": 170020035,
+      "dex_sha256": "974706b8a05b047218ab5751974054a703914e9dc5eb55e5dd6309077788961d",
+      "native_build_identity": "d2b67ca3-9373-4fa6-9aaa-905159a33e15",
+      "package_name": "com.leiting.wf",
+      "version_name": "1.8.1",
+      "version_code": 1008001
     }
   },
   "lineage": {
-    "previous_accepted_registry": "client-patch/accepted-history/android-abyss-autostart-lens-20260909.json",
-    "documentation": "client-patch/ACCEPTANCE-LENS0910-20260910.md",
-    "build_entry": "client-patch/lens0910/package_apk.py",
+    "previous_accepted_registry": "client-patch/accepted-history/android-lens0910-20260910.json",
+    "documentation": "client-patch/ACCEPTANCE-CACHE-PARTY-20260912.md",
+    "build_entry": "client-patch/party-carousel-f1009/build_apk.py",
     "previous_method_source_commit": "8ae133a09e59a5430f71012aee77a7dda2a45c32",
     "preserved": [
       "此前 MOD、幻想连战、轮播、排行榜、继承入口、深渊装备门控",
@@ -102,10 +99,13 @@
       "深渊活动 700099 续战队伍跨关复用角色，逐关选队与其他活动原限制保持"
     ],
     "added": [
-      "仅内网：按关卡配置属性耐性通道、深渊摘要和滚动详情",
-      "仅内网：Lens 0910 日晒耐性与夏白/杰拉尔语音修正"
+      "公网与内网均保留关卡属性通道、深渊详情、Lens 0910 与玩家登录累计功能",
+      "兼容旧服务端空更新响应；账号切换保留下载模式和设备偏好",
+      "覆盖安装首次启动清理 AIR 启动缓存；普通重开跳过",
+      "深渊连战详情按钮四角曲线",
+      "切队先初始化目标队伍，再绑定触摸及更新名称；无角色格子的触摸安全返回；保留仅更新当前队伍的优化"
     ],
-    "method_archive": "属性通道、关卡详情与 Lens 0910 方法已随此前会话提交；本次登记累计内网成品验收。"
+    "method_archive": "startup-cache、party-carousel-f1009、PlayerLogin 和 AbyssDetails 源码与验收身份；APK 不提交 Git。"
   },
   "excluded_artifacts": [
     {
