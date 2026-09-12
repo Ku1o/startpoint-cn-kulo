@@ -4,6 +4,8 @@
 
 最新状态：用户已验收昵称版 Android，并恢复提交、公网 APK、云服整合包及之后的 iOS 制作。下文各项保留当时记录；最新 Android 身份以 `client-patch/ACCEPTANCE-RECORD-HOLDER-20260912.md` 为准。打包和本地同步仍不表示云服已覆盖。
 
+已完成打包：`F:/codex/outputs/server-overlays/startpoint-cn-cloud-overlay-106-record-holder-20260912-215250.zip`，发布提交 `4d4c326502a1250d5d04773aac182c20f645870a`，22 个文件，SHA-256 `ce480e16e9a5c0d067eddb7db335d11099c851d3b47000bc30647db69fc64246`。包含旧空更新四文件、gacha JSON、深渊纪录源文件/产物及最新 `.106` manifest 和两个原样分包；客户端 APK/IPA 独立交付。已推送 staging 并同步本地，CI 通过；**云端仍待用户覆盖**。iOS 对应候选见 `client-patch/ios-record-holder/README.md`，尚待设备验收。
+
 用户明确说明：`startpoint-cn-cloud-overlay-empty-update-20260912-140840.zip` 还没有覆盖到云服，要求后续打包时把该包内容与本次 .106 入手方法补全一并加入。这是后续交付范围记录，本次没有要求立即重打整合包或部署。
 
 ## 1. 空资源更新响应修复（旧包尚未部署）

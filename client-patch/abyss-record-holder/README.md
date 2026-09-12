@@ -1,5 +1,7 @@
 # 深渊全服纪录保持者昵称（2026-09-12 本地试用）
 
+后续状态：用户已验收本页 LAN 原件并恢复发布。当前基准和公网派生件见 `../ACCEPTANCE-RECORD-HOLDER-20260912.md`；iOS 对应候选见 `../ios-record-holder/README.md`。下文保留本次试用交付时记录。
+
 在关卡详情现有“本期全服最快”用时下增加“纪录保持者：昵称”。本次基于用户已验收的入手来源文件夹修正 APK，保留其全部累计修改；只替换 `cn.ui.AbyssRecordDetails.responseText`（288:1）的方法体。
 
 ## 行为与边界
