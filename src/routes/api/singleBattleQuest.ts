@@ -164,7 +164,7 @@ interface PlayContinueBody {
 interface AbortBody {
     api_count: number,
     finish_kind: number,
-    statistics: QuestStatistics,
+    statistics?: QuestStatistics | null,
     viewer_id: number,
     quest_id: number,
     play_id: string,
@@ -967,7 +967,16 @@ const routes = async (fastify: FastifyInstance) => {
                     "message": "Active practice quest does not match abort request.",
                 })
             }
-            if (abortQuest.startedAtMs === undefined) {
+            if (body.statistics == null) {
+                // QuestAbortRealRemote omits playStatistics when the player
+                // declines recovery after a crash. History is optional here:
+                // rejecting abandonment leaves the persisted quest active and
+                // traps every later login in the same H400 recovery loop.
+                console.warn(
+                    `[PRACTICE-HISTORY] abort history skipped because statistics are unavailable: `
+                    + `player=${playerId} quest=${abortQuest.questId}`,
+                )
+            } else if (abortQuest.startedAtMs === undefined) {
                 console.warn(
                     `[PRACTICE-HISTORY] abort history skipped because start time is unavailable: `
                     + `player=${playerId} quest=${abortQuest.questId} play=${abortQuest.playId}`,
@@ -994,10 +1003,9 @@ const routes = async (fastify: FastifyInstance) => {
                         `[PRACTICE-HISTORY] invalid abort history payload: player=${playerId} `
                         + `quest=${abortQuest.questId} error=${(error as Error).message}`,
                     )
-                    return reply.status(400).send({
-                        "error": "Bad Request",
-                        "message": "Invalid practice battle abort data.",
-                    })
+                    // Invalid optional telemetry must not prevent leaving a
+                    // matched battle. Keep strict history validation and omit
+                    // the row instead of inventing damage/party data.
                 }
             }
         }
