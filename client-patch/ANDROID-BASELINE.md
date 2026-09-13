@@ -1,31 +1,37 @@
 # Android APK/SWF：新会话从这里开始
 
-2026-09-12，用户明确验收最新深渊纪录保持者昵称版，并要求后续 APK 及 iOS 移植以这版功能为准。准确身份见 [android-accepted.json](./android-accepted.json)，范围见 [本次验收](./ACCEPTANCE-RECORD-HOLDER-20260912.md)。LAN 为用户验收原件，公网为同一载荷的地址转换派生件，公网没有另行真机验收。
+2026-09-13，用户认可商店优化 LAN 版效果，并授权制作公网版、验收及提交。当前身份见
+[android-accepted.json](./android-accepted.json)，范围见 [商店优化验收](./ACCEPTANCE-SHOP-FIRST-OPEN-20260913.md)。
+登记为 `accepted_offline`：保留用户 LAN 商店反馈，公网派生包未独立真机测试。
 
 ## 当前直接基线
 
 | 环境 | APK（相对仓库根目录） | 状态 |
 | --- | --- | --- |
-| 公网 | `outputs/abyss-record-holder-public-20260912/StarPoint-CN-1.8.1-abyss-record-holder-public-20260912.apk` | 从用户验收 LAN 派生，离线比对通过 |
-| 内网 | `outputs/abyss-record-holder-lan-test-20260912/StarPoint-CN-1.8.1-abyss-record-holder-lan-test-20260912.apk` | 用户已验收 |
+| 公网 | `outputs/shop-first-open-public-20260913/StarPoint-CN-1.8.1-shop-first-open-public-20260913.apk` | 用户授权离线验收，从已测试 LAN 转换 |
+| 内网 | `outputs/shop-first-open-lan-test-20260913/StarPoint-CN-1.8.1-shop-first-open-lan-test-20260913.apk` | 用户反馈商店卡顿明显减轻；离线身份与累计方法已核验 |
 
-两端保留缓存、圆角、切队 F1009 及之前全部累计功能，新增深渊详情全服最快用时、保持者昵称，以及常驻活动文件夹的入手方法修正。主 ABC 290，共 96535 个方法体；配套资源版本 1.4.106。旧注册表按原字节保存在 `accepted-history/android-cache-party-20260912.json`。iOS 应从其自身已验收 IPA 移植新增功能，继续保留 iOS 专属行为，不直接套用 Android 包或原生布局。
+主 ABC 291，共 96543 个方法体。商店新增活动商品成员索引及存在性短路，同时包含觉醒任务响应后
+角色、等级与页签即时刷新。保留昵称、入手来源文件夹、缓存、圆角、切队 F1009、登录和全部既有累计功能。
+不包含共斗加载改造；服务端觉醒和称号查询修复仍单独待交付，不因安装 APK 生效。
 
-在仓库根目录运行只读检查：
+旧昵称注册表按原字节保存在 `accepted-history/android-record-holder-20260912.json`。
+历史构建器只复现其精确输入；新功能从当前注册表继续。
+iOS 使用独立已验收注册表，商店移植候选须等用户验收后再提交，不能直接套用 Android 原生布局。
+
+在仓库根目录执行只读身份检查：
 
 ```powershell
 python client-patch/verify_android_baseline.py --variant public
 python client-patch/verify_android_baseline.py --variant lan
 ```
 
-检查器读取 JSON 中的明确路径，核对 APK SHA-256、内嵌 SWF SHA-256、manifest UUID 及验收状态；不会扫描其他 APK 作为替代。成品放在其他位置时，可以显式传 `--apk`，仍须匹配同一份成品哈希。这里的身份检查不替代新包交付前的签名和对齐检查。
+检查器核对明确登记的 APK、内嵌 SWF、DEX、大小及 AIR UUID，不扫描其他 APK 作为替代。
+需要验收输入位于其他位置时，可用 `--apk` 指定，但必须匹配原件哈希。签名和 ZIP 对齐另由制作入口核验。
 
-仓库禁止硬编码个人内网 IP，`<LAN_HOST>` 表示包含端口的内网地址。已在本机忽略目录
-`outputs/android-build-local.json` 保存 `lan_host`，新会话直接读取即可；公开记录保存地址摘要以核对一致性。
-涉及地址切换的三个脚本按 `--lan-host` → `STARPOINT_LAN_HOST` 环境变量 → 本机配置的顺序取值。
-换电脑时一并携带这份本机配置；不要把它提交 Git，也不要把现有 APK 的内网地址当作通用默认值写回脚本。
-
-Git 保存修改方法和验收身份；APK 二进制仍保存在本机 `outputs`。换电脑时须另行取得这份精确已验收包。只克隆源码无法凭空得到 APK，找不到时不能回退到旧版。
+个人内网地址只存在忽略的 `outputs/android-build-local.json`，公开记录使用 `<LAN_HOST>` 与摘要。
+不要把具体个人内网 IP 写进源码。Git 保存制作代码与身份，APK/SWF 二进制留在本机 `outputs`；
+换电脑必须取得精确成品，不能因为缺失而回退旧版。
 
 ## 深渊续战与 Lens 累计内容
 

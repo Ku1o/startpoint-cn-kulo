@@ -1,6 +1,6 @@
 # Android APK/SWF 工作入口
 
-最新 Android 登记（2026-09-12）：用户已验收纪录保持者昵称 LAN 版，公网是其地址转换派生件；见 `client-patch/ACCEPTANCE-RECORD-HOLDER-20260912.md` 和 `android-accepted.json`（客户端目录内为同名文件）。当前主 ABC 290、96535 方法体；下述缓存/圆角/切队包为历史累计来源，不再作为新 Android 输入。iOS 基线仍以独立注册表为准，移植时包含昵称及入手来源文件夹修正。
+最新 Android 登记（2026-09-13）：用户认可商店优化 LAN 效果并授权公网转换、离线验收与提交；见 `client-patch/ACCEPTANCE-SHOP-FIRST-OPEN-20260913.md` 和 `android-accepted.json`（客户端目录内为同名文件）。当前状态 `accepted_offline`，主 ABC 291、96543 方法体，包含商店索引/存在性短路和觉醒页刷新。公网未独立真机测试；下述昵称/缓存/圆角/切队包均为历史累计来源，不再作为新 Android 输入。iOS 仍使用独立已验收注册表，商店候选等待用户验收后提交。
 
 
 - 开始 Android APK/SWF 任务前，先读本目录 `ANDROID-BASELINE.md` 和 `android-accepted.json`，再读具体补丁文档。JSON 中登记的已验收公网/内网成品是当前直接基线；其他文档中的旧哈希只代表历史步骤。

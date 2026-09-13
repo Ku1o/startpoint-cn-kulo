@@ -44,9 +44,10 @@ def verify(variant: str, apk: Path | None = None, *, record_path: Path | None = 
         swf = archive.read("assets/worldflipper_android_release.swf")
         if hashlib.sha256(swf).hexdigest() != entry["swf_sha256"]:
             raise ValueError("embedded SWF SHA-256 mismatch")
-        if identity == (3, "user_accepted"):
+        if identity == (3, "user_accepted") or "size_bytes" in entry:
             if path.stat().st_size != entry["size_bytes"]:
                 raise ValueError("APK size differs from the accepted package")
+        if identity == (3, "user_accepted") or "dex_sha256" in entry:
             if hashlib.sha256(archive.read("classes.dex")).hexdigest() != entry["dex_sha256"]:
                 raise ValueError("embedded startup-cache DEX SHA-256 mismatch")
         manifest = archive.read("AndroidManifest.xml").decode("utf-16le", errors="ignore")
