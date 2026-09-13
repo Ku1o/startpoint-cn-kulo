@@ -13649,7 +13649,7 @@
       "version": "1.4.108",
       "enabled": true,
       "archive": "pinball-1.4.107-1.4.108-1-reborn-character-degrees.zip",
-      "archive_size": 1827598,
+      "archive_size": 1837788,
       "archive_integrity": [
         {
           "name": "pinball-1.4.107-1.4.108-1-reborn-character-degrees.zip",
@@ -13707,6 +13707,18 @@
             "production/upload/f6/016f48f36131fd442470faad7cc7ac69da9733",
             "production/upload/f7/f40f0d6977bf8035fe82676aba0c57ff89fa68"
           ]
+        },
+        {
+          "name": "pinball-1.4.107-1.4.108-2-epuration-gacha.zip",
+          "size": 10190,
+          "sha256": "51e148075ca1e166b661f99c7617921f473232eda1cb697e2ff28795059f7b33",
+          "members": 4,
+          "files": [
+            "production/upload/3b/94cb2772f22fb76b1a4545c5a347d764050829",
+            "production/upload/6b/7237dfb68c667f191a69fda8627c80fca91803",
+            "production/upload/bf/5dc56a444450216d4f12d6b9dfc0d908a09c5d",
+            "production/upload/d4/22562d2cdb137e6bc23f903d773b5b485329a8"
+          ]
         }
       ],
       "files": [
@@ -13723,6 +13735,7 @@
         "production/upload/2f/baffa12f88fee40bc6057555e6e478a071703f",
         "production/upload/30/12e2056341aa7e2ec547356cdf79bea63bf956",
         "production/upload/35/37857702eb7453889d233238e77c3bdb08b705",
+        "production/upload/3b/94cb2772f22fb76b1a4545c5a347d764050829",
         "production/upload/40/93f135bf6fcd624a2ca34ca2844cc0b3ba5c59",
         "production/upload/41/7217483a2d4e5fcff573faeb15801597b4bbd6",
         "production/upload/43/685a1a1623b82e948769b05bf2236642fc931d",
@@ -13732,6 +13745,7 @@
         "production/upload/66/d47f9fe679168e5ee6ee9d470d34699ebfb013",
         "production/upload/69/4d3d7e423b7b2e70721a68cd377c7e87018fae",
         "production/upload/6a/f79cd340bba59119e34f5ca556036f5ce95865",
+        "production/upload/6b/7237dfb68c667f191a69fda8627c80fca91803",
         "production/upload/7c/ef4c9b09d1864f9612be26f1e3d442c4f653f9",
         "production/upload/88/2a37f5583621cf0fb35f876fe9b4ad176152c7",
         "production/upload/89/e5c25c791e2a9527422c186084a1793218c2ac",
@@ -13749,9 +13763,11 @@
         "production/upload/af/597e12f41420dde97b76b05d62d2beab98ed1f",
         "production/upload/b0/061bc31058690017dd6e01b8214a9bb80c5d46",
         "production/upload/b7/346c5eea234478e7272d95fcac0f4d720eba6b",
+        "production/upload/bf/5dc56a444450216d4f12d6b9dfc0d908a09c5d",
         "production/upload/bf/9d085f0856d0133e8c8f7f413ab7b7c0a8937b",
         "production/upload/c6/48c4b463b5fcf8bb63c83932c6e38625ef3e20",
         "production/upload/d3/d2612a6e456957ae891399e60497f06bbf55ad",
+        "production/upload/d4/22562d2cdb137e6bc23f903d773b5b485329a8",
         "production/upload/dd/40bfa16e1ce1894305dc323640e429479e5da5",
         "production/upload/e6/e4e5f1740c255d6400c5e09152be6a75b7e784",
         "production/upload/e7/3aa534ee23e935a27fe8711d0592aba066893f",
@@ -13762,13 +13778,19 @@
       ],
       "changes": [
         "追加48条称号及获取条件，保留全部既有称号压缩行。",
-        "48张320×50透明称号图使用原生PNG存储格式，Android与iOS共用。"
+        "48张320×50透明称号图使用原生PNG存储格式，Android与iOS共用。",
+        "第2分包：歼灭者179981恢复深渊0.100%、竞速1.000%抽取，两池250点兑换；保留其他MOD概率及五星总率，同步池说明。"
       ],
       "created_at": "2026-09-13",
       "audit": {
         "directory": "assets/asset-patch/audit/reborn-character-degrees-1.4.108",
-        "report": "report.json"
-      }
+        "report": "report.json",
+        "epuration_gacha_directory": "assets/asset-patch/audit/epuration-gacha-1.4.108"
+      },
+      "chain": [
+        "pinball-1.4.107-1.4.108-1-reborn-character-degrees.zip",
+        "pinball-1.4.107-1.4.108-2-epuration-gacha.zip"
+      ]
     }
   ]
 }
