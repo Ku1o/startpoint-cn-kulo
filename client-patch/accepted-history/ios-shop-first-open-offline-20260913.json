@@ -1,17 +1,15 @@
 {
   "schema_version": 4,
-  "status": "user_accepted",
+  "status": "accepted_offline",
   "accepted_on": "2026-09-13",
   "acceptance": {
-    "source": "用户确认此前交付的 iOS 公网商店优化累计版已验收，并授权提交。",
-    "user_statement": "ios的也验收了，然后提交修改内容",
-    "scope": "user_confirmed_acceptance_and_offline_identity",
+    "source": "用户要求接受并整合三个会话的已完成内容，排除当前闪退诊断。",
+    "user_statement": "接受、整合这3个会话中的内容，不过会话“觉醒修复及性能优化”目前进行中的闪退诊断不用接受。先同步到本地，告诉我需要分类测试什么新内容",
+    "scope": "offline_artifact_and_lineage",
     "device_tested_by_codex": false,
-    "device_acceptance": "user_confirmed_without_per_variant_or_feature_test_log",
+    "device_acceptance": "not_claimed_pending_device_tests",
     "build_reports_are_immutable": true,
-    "audit": "client-patch/ACCEPTANCE-IOS-SHOP-FIRST-OPEN-20260913.md",
-    "previous_offline_registry": "client-patch/accepted-history/ios-shop-first-open-offline-20260913.json",
-    "note": "登记原交付 unsigned IPA；用户确认与 Codex 离线检查分开记录，不推断逐功能真机测试明细，不重新编译、重签或安装。"
+    "audit": "client-patch/ACCEPTANCE-IOS-SHOP-FIRST-OPEN-20260913.md"
   },
   "artifact": {
     "ipa": "F:/codex/ios-artifacts/StarPoint-iOS-1.8.4-shop-first-open-public-20260913-unsigned.ipa",
@@ -38,7 +36,7 @@
   "lineage": {
     "previous_accepted_registry": "client-patch/accepted-history/ios-record-holder-20260912.json",
     "previous_accepted_ipa_sha256": "93695c623782164c243ace5bafd52c8ba170778d2fd9fd73199ef5c8840b2470",
-    "previous_accepted_role": "纪录昵称版是商店移植的历史精确输入；后续新任务从用户已验收的商店累计版继续。",
+    "previous_accepted_role": "纪录昵称版是商店移植的历史精确输入；后续新任务从已离线验收的商店累计版继续。",
     "documentation": "client-patch/ios-shop-first-open/README.md",
     "build_entry": "client-patch/ios-shop-first-open/build.py",
     "verification_script": "client-patch/ios-shop-first-open/verify.py",

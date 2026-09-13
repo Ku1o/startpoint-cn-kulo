@@ -1,26 +1,25 @@
 {
-  "schema_version": 4,
+  "schema_version": 3,
   "status": "user_accepted",
-  "accepted_on": "2026-09-13",
+  "accepted_on": "2026-09-12",
   "acceptance": {
-    "source": "用户确认此前交付的 iOS 公网商店优化累计版已验收，并授权提交。",
-    "user_statement": "ios的也验收了，然后提交修改内容",
+    "source": "用户在本任务确认最新 iOS 昵称版已验收。",
+    "user_statement": "ios也验收了",
     "scope": "user_confirmed_acceptance_and_offline_identity",
     "device_tested_by_codex": false,
     "device_acceptance": "user_confirmed_without_per_variant_or_feature_test_log",
     "build_reports_are_immutable": true,
-    "audit": "client-patch/ACCEPTANCE-IOS-SHOP-FIRST-OPEN-20260913.md",
-    "previous_offline_registry": "client-patch/accepted-history/ios-shop-first-open-offline-20260913.json",
-    "note": "登记原交付 unsigned IPA；用户确认与 Codex 离线检查分开记录，不推断逐功能真机测试明细，不重新编译、重签或安装。"
+    "audit": "client-patch/ACCEPTANCE-IOS-RECORD-HOLDER-20260912.md",
+    "note": "登记此前交付的 unsigned IPA 原件；用户确认验收与离线回读分开记录，不推断逐功能测试明细，不重编译、重签或安装。"
   },
   "artifact": {
-    "ipa": "F:/codex/ios-artifacts/StarPoint-iOS-1.8.4-shop-first-open-public-20260913-unsigned.ipa",
-    "ipa_sha256": "544ec90332845ff6c6b06e98aad691c0d9f10c725470eceeb4237c8bdbd65361",
-    "size_bytes": 148326093,
+    "ipa": "F:/codex/ios-artifacts/StarPoint-iOS-1.8.4-record-holder-public-20260912-unsigned.ipa",
+    "ipa_sha256": "93695c623782164c243ace5bafd52c8ba170778d2fd9fd73199ef5c8840b2470",
+    "size_bytes": 146115922,
     "native_member": "Payload/worldflipper.app/worldflipper",
-    "native_sha256": "541a5359004bfc06cbb537d3da8910389123013cfa899b1171f4ff61b1d25866",
+    "native_sha256": "2b7914b36773b24c2990ae5907615c2ea20835ec8959de27d22e8765f3c3397d",
     "swf_member": "Payload/worldflipper.app/worldflipper_ios_release.swf",
-    "swf_sha256": "79582442f8e21880fc1862f2e157224c1171682708d9bbae67b93c27e45862ab",
+    "swf_sha256": "a2b6d8fa02047f643fa0ef5ff747a7f55fea08b0eddc011400609e35e2bdbcc3",
     "bundle_id": "com.kulo.wf",
     "version": "1.8.4",
     "build": "1.8.46",
@@ -28,21 +27,21 @@
     "profile_debug_overlay": false,
     "title_cntips_b_unchanged": true,
     "endpoint_policy": "R3/R4 初始 API 与版本配置均为 http://175.178.160.158，公网默认端口 80",
-    "full_abc": "F:/codex/ios-artifacts/shop-first-open-public-20260913/shop-first-open-full.abc",
-    "full_abc_sha256": "10772c48345fc196e8c76d1442c350915175a2c6ca514fa610bb23afed7981bc",
-    "full_abc_sha1": "8a7abe527eaa5f45f9f4f553629023324f7a5bfb",
+    "full_abc": "F:/codex/ios-artifacts/record-holder-public-20260912/record-holder-full.abc",
+    "full_abc_sha256": "99f753dfb209e1070ec47d7d0725c147dfd60db2616a6b704224a7c0028135cc",
+    "full_abc_sha1": "dc34a20c60027d19e84ebd98c2e24ae2001b4d17",
     "aot_info_file_offset": 104549248,
-    "aot_method_count": 101214,
+    "aot_method_count": 101206,
     "required_resource_version": "1.4.106"
   },
   "lineage": {
-    "previous_accepted_registry": "client-patch/accepted-history/ios-record-holder-20260912.json",
-    "previous_accepted_ipa_sha256": "93695c623782164c243ace5bafd52c8ba170778d2fd9fd73199ef5c8840b2470",
-    "previous_accepted_role": "纪录昵称版是商店移植的历史精确输入；后续新任务从用户已验收的商店累计版继续。",
-    "documentation": "client-patch/ios-shop-first-open/README.md",
-    "build_entry": "client-patch/ios-shop-first-open/build.py",
-    "verification_script": "client-patch/ios-shop-first-open/verify.py",
-    "previous_method_source_commit": "0691fef4208bb56263984fcfbc2a4dae846cc188",
+    "previous_accepted_registry": "client-patch/accepted-history/ios-cache-rounded-20260912.json",
+    "previous_accepted_ipa_sha256": "11ccd92b75e00484e57d124b52a02aedc4cecfb9c0012387288fd69e58af42d9",
+    "previous_accepted_role": "缓存圆角包为本次移植的历史精确输入；后续新任务从已验收的纪录昵称版继续。",
+    "documentation": "client-patch/ios-record-holder/README.md",
+    "build_entry": "client-patch/ios-record-holder/build.py",
+    "verification_script": "client-patch/ios-record-holder/verify.py",
+    "previous_method_source_commit": "d35eb315cc2575330f0c4dd3a4ee5a520c45bf4d",
     "preserved": [
       "MOD 五合一",
       "幻想连战和幻想魂珠纹理",
@@ -74,11 +73,9 @@
       "检测安装变化后清理一次 NSURLCache 网络响应缓存；保留游戏文件和账号",
       "深渊详情按钮四角曲线，保持既有点击闭包字段布局",
       "深渊有限层详情本期全服最快用时及纪录保持者公开昵称，保留个人最佳",
-      "入手方法支持已解锁且开放的常驻活动文件夹，保留关卡准入检查",
-      "活动商品成员索引、商店首页与常驻活动文件夹存在性短路",
-      "觉醒任务响应后刷新角色、觉醒等级与能力页签"
+      "入手方法支持已解锁且开放的常驻活动文件夹，保留关卡准入检查"
     ],
-    "method_archive": "ios-shop-first-open 五个既有方法与八个辅助方法，保留此前全部 iOS 累计功能。",
+    "method_archive": "ios-record-holder 增量方法及用户验收；保留缓存圆角、R4 和此前全部累计功能。",
     "intermediate_candidates": [
       {
         "name": "cumulative_initial",
@@ -108,82 +105,78 @@
     "status": "diagnostic_only_not_current_baseline",
     "reason": "用户验收的是前一份无 DEBUG 包；诊断版仅供历史审查，不再用于交付或后续修改基线。"
   },
-  "local_build_report": "F:/codex/ios-artifacts/shop-first-open-public-20260913/build-report.json",
+  "local_build_report": "F:/codex/ios-artifacts/record-holder-public-20260912/build-report.json",
   "local_acceptance_checks": {
     "status": "offline_verified_unsigned_candidate",
-    "ipa": "F:\\codex\\work\\shop-public-release-20260913\\ios-port\\output\\StarPoint-iOS-1.8.4-shop-first-open-public-20260913-unsigned.ipa",
-    "ipa_sha256": "544ec90332845ff6c6b06e98aad691c0d9f10c725470eceeb4237c8bdbd65361",
+    "ipa": "F:\\codex\\work\\ios-record-holder-20260912\\output\\StarPoint-iOS-1.8.4-record-holder-public-20260912-unsigned.ipa",
+    "ipa_sha256": "93695c623782164c243ace5bafd52c8ba170778d2fd9fd73199ef5c8840b2470",
     "zip_members": 3568,
     "changed_zip_members": [
       "Payload/worldflipper.app/worldflipper_ios_release.swf",
       "Payload/worldflipper.app/worldflipper"
     ],
-    "existing_methods_preserved": 101201,
+    "existing_methods_preserved": 101189,
     "old_class_and_activation_layouts_preserved": true,
     "patched_existing_methods": [
-      27170,
-      27172,
-      73812,
-      79342,
-      89719
+      83560,
+      101085
     ],
-    "new_helper_methods": 8,
-    "native_relocations_checked": 351,
-    "long_branch_veneers_checked": 32,
-    "new_rebases": 92741,
+    "new_helper_methods": 15,
+    "native_relocations_checked": 407,
+    "new_rebases": 92733,
     "ldid_signature_models_passed": 3,
     "public_origin": "http://175.178.160.158",
     "signing_layout": {
-      "signature_offset": 155664144,
+      "signature_offset": 146985248,
       "signature_size": 2711920,
       "signature_is_last": true,
       "loader_metadata_before_signature": true,
-      "ldid_code_limit": 155664144,
+      "ldid_code_limit": 146985248,
       "ldid_metadata_preserved": true,
       "metadata_ranges": [
         {
           "name": "rebase",
-          "offset": 155513728,
-          "size": 110062
+          "offset": 146852240,
+          "size": 92649
         },
         {
           "name": "bind",
-          "offset": 154918368,
+          "offset": 146349536,
           "size": 59712
         },
         {
           "name": "lazy_bind",
-          "offset": 154978080,
+          "offset": 146409248,
           "size": 26368
         },
         {
           "name": "export",
-          "offset": 155004448,
+          "offset": 146435616,
           "size": 536
         },
         {
           "name": "symbols",
-          "offset": 155253880,
+          "offset": 146685048,
           "size": 25392
         },
         {
           "name": "strings",
-          "offset": 155623792,
+          "offset": 146944896,
           "size": 40352
         },
         {
           "name": "indirect_symbols",
-          "offset": 155279272,
+          "offset": 146710440,
           "size": 8728
         },
         {
           "name": "0x26",
-          "offset": 155004984,
+          "offset": 146436152,
           "size": 248864
         },
         {
           "name": "0x29",
-          "offset": 155253848,
+          "offset": 146685016,
           "size": 32
         }
       ]
@@ -193,13 +186,7 @@
     "device_tested": false,
     "server_endpoint_required": true,
     "old_startup_cache_preserved": true,
-    "android_reference_sha256": "35e0e7c777798594d68c9bcd74c507c6f0b7d065453e0425c301258c6bc38ac6",
+    "android_reference_sha256": "e04b9e4f367be0ee447f1cfc8f45ff314fafc4a2df7efcef03db120347278f32",
     "user_acceptance_recorded_separately": true
-  },
-  "excluded_current_loading_diagnostic": {
-    "thread": "觉醒修复及性能优化",
-    "path": "client-patch/loading-diagnostic/",
-    "status": "excluded_by_user_from_three_session_integration",
-    "apk_or_ipa_selected": false
   }
 }

@@ -19,12 +19,13 @@ def verify(ipa: Path | None = None, *, record_path: Path | None = None) -> dict:
     record_file = record_path if record_path is not None else RECORD
     record = json.loads(record_file.read_text(encoding="utf-8"))
     identity = (record["schema_version"], record["status"])
-    if identity not in ((1, "user_accepted"), (2, "accepted_offline"), (3, "user_accepted")):
+    if identity not in ((1, "user_accepted"), (2, "accepted_offline"), (3, "user_accepted"),
+                        (4, "accepted_offline"), (4, "user_accepted")):
         raise ValueError("baseline record must explicitly identify an accepted release and scope")
-    if identity == (2, "accepted_offline"):
+    if identity in ((2, "accepted_offline"), (4, "accepted_offline")):
         if not record["acceptance"]["user_statement"] or record["acceptance"]["scope"] != "offline_artifact_and_lineage":
             raise ValueError("offline acceptance must record user authorization and its limited scope")
-    if identity == (3, "user_accepted"):
+    if identity in ((3, "user_accepted"), (4, "user_accepted")):
         acceptance = record["acceptance"]
         if not acceptance["user_statement"] or acceptance["scope"] != "user_confirmed_acceptance_and_offline_identity":
             raise ValueError("user acceptance must record the user's confirmation and audit scope")
@@ -50,7 +51,7 @@ def verify(ipa: Path | None = None, *, record_path: Path | None = None) -> dict:
                           ("CFBundleVersion", "build")):
             if plist[key] != entry[name]:
                 raise ValueError(f"application identity mismatch: {key}")
-        if identity == (3, "user_accepted"):
+        if identity in ((3, "user_accepted"), (4, "accepted_offline"), (4, "user_accepted")):
             full = ROOT / entry["full_abc"]
             if not full.is_file():
                 raise ValueError("accepted full ABC is missing; do not substitute stripped runtime ABC")

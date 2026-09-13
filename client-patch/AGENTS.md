@@ -1,6 +1,6 @@
 # Android APK/SWF 工作入口
 
-最新 Android 登记（2026-09-13）：用户认可商店优化 LAN 效果并授权公网转换、离线验收与提交；见 `client-patch/ACCEPTANCE-SHOP-FIRST-OPEN-20260913.md` 和 `android-accepted.json`（客户端目录内为同名文件）。当前状态 `accepted_offline`，主 ABC 291、96543 方法体，包含商店索引/存在性短路和觉醒页刷新。公网未独立真机测试；下述昵称/缓存/圆角/切队包均为历史累计来源，不再作为新 Android 输入。iOS 仍使用独立已验收注册表，商店候选等待用户验收后提交。
+最新 Android 登记（2026-09-13）：用户认可商店优化 LAN 效果并授权公网转换、离线验收与提交；见 `client-patch/ACCEPTANCE-SHOP-FIRST-OPEN-20260913.md` 和 `android-accepted.json`（客户端目录内为同名文件）。当前状态 `accepted_offline`，主 ABC 291、96543 方法体，包含商店索引/存在性短路和觉醒页刷新。公网未独立真机测试；下述昵称/缓存/圆角/切队包均为历史累计来源，不再作为新 Android 输入。iOS 使用独立注册表，商店累计版已于 2026-09-13 获用户验收并授权提交。
 
 
 - 开始 Android APK/SWF 任务前，先读本目录 `ANDROID-BASELINE.md` 和 `android-accepted.json`，再读具体补丁文档。JSON 中登记的已验收公网/内网成品是当前直接基线；其他文档中的旧哈希只代表历史步骤。
@@ -11,6 +11,9 @@
 - 构建报告只记录本地校验；用户明确验收或明确要求执行验收后，按实际证据更新 `android-accepted.json`、方法文档和检查器，再按用户授权提交。离线验收记为 `accepted_offline`，不得记成用户已真机验收。APK、SWF 成品、临时产物和签名凭据不提交 Git；IPA 必须单独授权。
 
 # iOS IPA 工作入口
+
+最新 iOS 登记（2026-09-13）：用户确认“ios的也验收了，然后提交修改内容”，商店优化及觉醒页刷新累计版按 `user_accepted` 登记，见 `ACCEPTANCE-IOS-SHOP-FIRST-OPEN-20260913.md` 和 `ios-accepted.json`。当前完整 AOT 方法数 101214；后续从该 IPA 继续。用户确认与 Codex 离线检查分开记录，不推断逐功能设备测试明细；当前共斗加载诊断排除，纪录昵称版保留为历史精确输入。
+
 
 - 开始 iOS IPA/SWF/AOT 工作前，先读 `ios-accepted.json` 和其中指定的方法文档，运行 `python client-patch/verify_ios_baseline.py` 回读实际 IPA、主可执行文件、主 SWF 的 SHA-256 和包身份。输入缺失或不匹配时不得改用旧包、诊断包或按文件名推测最新包。
 - 当前 iOS 基线为用户于 2026-09-12 验收的公网缓存/圆角累计 IPA，见 `ACCEPTANCE-CACHE-PARTY-20260912.md`；保留本次空更新、安装变化后一次 NSURLCache 清理、圆角按钮及 R4 的登录、深渊、属性伤害通道、Lens 0910、TrollStore 布局、公网初始地址和 HUD 字段修复，以及旧方法 26363 和全部 Lens/资料页行为。iOS 不加入 Android 切队修复。登记原 unsigned 成品与 101191 方法的完整 ABC，用户确认与离线检查分开记录。R4 和更早包仅作历史精确复现，不以 stripped ABC 替代完整 ABC，不绕过历史哈希保护。
