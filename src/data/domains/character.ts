@@ -2,6 +2,26 @@ import { getDb } from "../db";
 import { PlayerCharacter, PlayerCharacterBondToken, PlayerCharacterExBoost, RawPlayerCharacter, RawPlayerCharacterBondToken, RawPlayerCharacterManaNode } from "../types";
 import { deserializeBoolean, deserializeNumberList, serializeBoolean, serializeNumberList } from "../utils";
 import { getCharacterDataSync } from "../../lib/assets";
+import type { Statement } from "better-sqlite3";
+
+// Cache query plans per connection, never parameter values or player results.
+// These queries have bounded shapes: three statistic flags, one board query,
+// and favor batches of at most 400 ids.
+const characterMissionStatements = new WeakMap<ReturnType<typeof getDb>, Map<string, Statement>>()
+function prepareCharacterMissionQuery(sql: string): Statement {
+    const db = getDb()
+    let statements = characterMissionStatements.get(db)
+    if (!statements) {
+        statements = new Map()
+        characterMissionStatements.set(db, statements)
+    }
+    let statement = statements.get(sql)
+    if (!statement) {
+        statement = db.prepare(sql)
+        statements.set(sql, statement)
+    }
+    return statement
+}
 
 /**
  * Converts a RawPlayerCharacterBondToken into a PlayerCharacterBondToken
@@ -209,6 +229,28 @@ export function getPlayerCharactersByIdsSync(
             rawCharacter,
             bondBuckets[characterId] ?? [],
         )
+    }
+    return result
+}
+
+/** Only EXP and received-token presence are needed by character favor titles. */
+export function getPlayerCharacterFavorFactsSync(
+    playerId: number,
+    characterIds: readonly number[],
+): Record<string, { exp: number; hasReceivedBondToken: boolean }> {
+    const ids = [...new Set(characterIds)].filter(id => Number.isSafeInteger(id) && id > 0)
+    const result: Record<string, { exp: number; hasReceivedBondToken: boolean }> = {}
+    for (let offset = 0; offset < ids.length; offset += 400) {
+        const chunk = ids.slice(offset, offset + 400)
+        const rows = prepareCharacterMissionQuery(`
+            SELECT owned.id, owned.exp, EXISTS (
+                SELECT 1 FROM players_characters_bond_tokens AS token
+                WHERE token.player_id = owned.player_id AND token.character_id = owned.id AND token.status >= 2
+            ) AS received_bond
+            FROM players_characters AS owned
+            WHERE owned.player_id = ? AND owned.id IN (${chunk.map(() => "?").join(", ")})
+        `).all(playerId, ...chunk) as { id: number; exp: number; received_bond: number }[]
+        for (const row of rows) result[String(row.id)] = { exp: row.exp, hasReceivedBondToken: row.received_bond === 1 }
     }
     return result
 }
@@ -458,6 +500,88 @@ export function getPlayerCharactersManaNodesSync(
     }
 
     return buckets
+}
+
+/** Scalar counts and an optional compact id list; no full character/node objects. */
+export function getPlayerCharacterMissionStatsSync(playerId: number, needs: {
+    manaNodes?: boolean,
+    bondTokens?: boolean,
+    ownedCharacterIds?: boolean,
+}): { manaNodeCount: number; bondTokenCount: number; ownedCharacterIds: number[] } {
+    if (!needs.manaNodes && !needs.bondTokens && !needs.ownedCharacterIds) {
+        return { manaNodeCount: 0, bondTokenCount: 0, ownedCharacterIds: [] }
+    }
+    const manaCount = needs.manaNodes
+        ? "(SELECT COUNT(*) FROM players_characters_mana_nodes WHERE player_id = @playerId)" : "0"
+    const bondCount = needs.bondTokens ? `(
+        SELECT COUNT(*) FROM players_characters_bond_tokens AS token
+        JOIN players_characters AS owned
+          ON owned.player_id = token.player_id AND owned.id = token.character_id
+        WHERE token.player_id = @playerId AND token.status >= 2
+    )` : "0"
+    const ownedIds = needs.ownedCharacterIds
+        ? "(SELECT json_group_array(id) FROM players_characters WHERE player_id = @playerId)" : "'[]'"
+    const row = prepareCharacterMissionQuery(`SELECT ${manaCount} AS mana_count, ${bondCount} AS bond_count, ${ownedIds} AS owned_ids`)
+        .get({ playerId }) as { mana_count: number; bond_count: number; owned_ids: string }
+    return { manaNodeCount: row.mana_count, bondTokenCount: row.bond_count, ownedCharacterIds: JSON.parse(row.owned_ids) }
+}
+
+export function countPlayerCharacterManaNodesSync(playerId: number): number {
+    return getPlayerCharacterMissionStatsSync(playerId, { manaNodes: true }).manaNodeCount
+}
+
+export function countPlayerReceivedBondTokensSync(playerId: number): number {
+    return getPlayerCharacterMissionStatsSync(playerId, { bondTokens: true }).bondTokenCount
+}
+
+/**
+ * Returns owned characters containing every required node. Extra or awakened
+ * nodes do not substitute for missing requirements; empty boards never complete.
+ */
+export function getPlayerCompletedManaBoardCharacterIdsSync(
+    playerId: number,
+    requiredNodes: Readonly<Record<string, readonly number[]>>,
+    ownedCharacterIds?: readonly number[],
+): Set<number> {
+    if (Object.keys(requiredNodes).length === 0) return new Set()
+    // Small saves should not serialize or scan the entire master roster.
+    // Keep only owned ids here; character details and individual nodes stay in SQLite.
+    const ids = ownedCharacterIds ?? getPlayerCharacterMissionStatsSync(playerId, { ownedCharacterIds: true }).ownedCharacterIds
+    const boards = Object.fromEntries(ids.flatMap(id => {
+        const nodes = requiredNodes[String(id)]
+        return nodes?.length ? [[String(id), nodes]] : []
+    }))
+    if (Object.keys(boards).length === 0) return new Set()
+    // Keep board enumeration outermost; an ordinary JOIN can make SQLite
+    // rescan every JSON board for each owned character.
+    const rows = prepareCharacterMissionQuery(`
+        SELECT owned.id AS character_id
+        FROM json_each(?) AS board
+        CROSS JOIN players_characters AS owned
+          ON owned.id = CAST(board.key AS INTEGER) AND owned.player_id = ?
+        WHERE json_array_length(board.value) > 0
+          AND NOT EXISTS (
+            SELECT 1 FROM json_each(board.value) AS required
+            WHERE NOT EXISTS (
+                SELECT 1 FROM players_characters_mana_nodes AS learned
+                WHERE learned.value = required.value
+                  AND learned.character_id = owned.id AND learned.player_id = owned.player_id
+            )
+          )
+    `).all(JSON.stringify(boards), playerId) as { character_id: number }[]
+    return new Set(rows.map(row => row.character_id))
+}
+
+/** Reads both learned membership and awake levels for one character. */
+export function getPlayerCharacterManaNodeAwakeLevelsSync(
+    playerId: number,
+    characterId: number,
+): Record<number, number> {
+    const rows = getDb().prepare(`
+        SELECT value, awake_level FROM players_characters_mana_nodes
+        WHERE player_id = ? AND character_id = ?
+    `).all(playerId, characterId) as { value: number; awake_level: number }[]
+    return Object.fromEntries(rows.map(row => [row.value, row.awake_level]))
 }
 
 /** Retrieves mana nodes for only the requested characters with one bounded read. */

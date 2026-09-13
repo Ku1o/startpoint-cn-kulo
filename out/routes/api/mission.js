@@ -23,7 +23,7 @@ const progress_1 = require("../../lib/mission/progress");
 const game_logging_1 = require("../../lib/game-logging");
 const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
     fastify.post("/get_mission_progress", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
-        var _a, _b, _c, _d, _e, _f;
+        var _a, _b, _c, _d, _e, _f, _g;
         const body = request.body;
         const viewerId = body.viewer_id;
         if (!viewerId || isNaN(viewerId))
@@ -75,6 +75,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         const missionProgressList = [];
         const categoryMissionCache = new Map();
         const awakeProgressByCharacter = new Map();
+        const awakeSnapshots = new Map();
         for (const requestEntry of requestList) {
             const category = requestEntry.category;
             const computer = (0, index_1.getComputer)(category);
@@ -84,7 +85,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 ? allIds.filter(missionId => (0, index_1.getCharacterIdFromMission)(missionId) === charId)
                 : allIds;
             let ctx;
-            let categoryMissions = categoryMissionCache.get(category);
+            let categoryMissions = category === 9 ? undefined : categoryMissionCache.get(category);
             for (const missionId of requestedIds) {
                 const settledKey = `${category}:${missionId}`;
                 if (automaticProgress.has(settledKey)) {
@@ -98,11 +99,19 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                     continue;
                 }
                 if (!categoryMissions) {
-                    categoryMissions = (0, mission_1.getPlayerCategoryMissionsSync)(playerId, category);
-                    categoryMissionCache.set(category, categoryMissions);
+                    if (category === 9) {
+                        ctx !== null && ctx !== void 0 ? ctx : (ctx = getCtx(category, requestedIds));
+                        categoryMissions = (_d = ctx.persistedMissions) !== null && _d !== void 0 ? _d : (0, mission_1.getPlayerCategoryMissionsSync)(playerId, category, requestedIds);
+                        if (charId !== undefined)
+                            awakeSnapshots.set(charId, categoryMissions);
+                    }
+                    else {
+                        categoryMissions = (0, mission_1.getPlayerCategoryMissionsSync)(playerId, category);
+                        categoryMissionCache.set(category, categoryMissions);
+                    }
                 }
                 ctx !== null && ctx !== void 0 ? ctx : (ctx = getCtx(category, requestedIds));
-                const dbProgress = (_e = (_d = categoryMissions[String(missionId)]) === null || _d === void 0 ? void 0 : _d.progress) !== null && _e !== void 0 ? _e : 0;
+                const dbProgress = (_f = (_e = categoryMissions[String(missionId)]) === null || _e === void 0 ? void 0 : _e.progress) !== null && _f !== void 0 ? _f : 0;
                 const computed = computer.compute(missionId, ctx, dbProgress);
                 const finalTarget = (0, index_1.getMissionFinalTargetProgress)(category, missionId);
                 const monotonicProgress = Math.max(0, dbProgress, Number.isFinite(computed) ? computed : 0);
@@ -117,7 +126,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                     stage: stage
                 });
                 if (category === 9 && charId !== undefined) {
-                    const awakeProgress = (_f = awakeProgressByCharacter.get(charId)) !== null && _f !== void 0 ? _f : [];
+                    const awakeProgress = (_g = awakeProgressByCharacter.get(charId)) !== null && _g !== void 0 ? _g : [];
                     awakeProgress.push({ missionId, progress: Number(progress) });
                     awakeProgressByCharacter.set(charId, awakeProgress);
                 }
@@ -130,8 +139,8 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         const equipmentList = [];
         const degreeIds = [];
         let userInfo;
-        for (const awakeProgress of awakeProgressByCharacter.values()) {
-            const settlement = (0, index_1.settleAwakeMissionRewards)(playerId, awakeProgress);
+        for (const [characterId, awakeProgress] of awakeProgressByCharacter) {
+            const settlement = (0, index_1.settleAwakeMissionRewards)(playerId, awakeProgress, awakeSnapshots.get(characterId));
             missionInfo.push(...settlement.missionInfo);
             Object.assign(itemList, settlement.itemList);
             characterList.push(...settlement.characterList);
@@ -142,15 +151,6 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             }
             if (settlement.userInfo)
                 userInfo = settlement.userInfo;
-        }
-        const requestedAwakeProgress = [...awakeProgressByCharacter.values()].flat();
-        if (requestedAwakeProgress.length > 0) {
-            // The client caches Awake availability separately from the mission
-            // page.  Reconcile from the progress already computed above, then
-            // always re-publish the scoped character state so a lost earlier
-            // response never forces a relogin.
-            const unlocks = (0, index_1.reconcileAwakeUnlocksFromProgress)(playerId, requestedAwakeProgress).all;
-            characterList = (0, index_1.refreshAwakeUnlockCharacterList)(playerId, characterList, unlocks, [...awakeProgressByCharacter.keys()].map(Number));
         }
         const responseData = {
             mission_progress_list: missionProgressList,

@@ -8,12 +8,17 @@ export function getPlayerCharacterClearSync(playerId: number, characterId: numbe
     return row || { clear_count: 0, multi_count: 0, leader_clear_count: 0, leader_multi_count: 0, leader_power_flip_count: 0 };
 }
 
-export function getPlayerCharacterClearsSync(playerId: number) {
-    const rows = getDb().prepare(`
+export function getPlayerCharacterClearsSync(playerId: number, characterIds?: readonly number[]) {
+    const ids = characterIds === undefined ? undefined : [...new Set(characterIds)]
+        .filter(id => Number.isSafeInteger(id) && id > 0)
+    const scopes: (number[] | undefined)[] = ids === undefined ? [undefined] : []
+    for (let offset = 0; ids && offset < ids.length; offset += 400) scopes.push(ids.slice(offset, offset + 400))
+    const rows = scopes.flatMap(scope => getDb().prepare(`
     SELECT character_id, clear_count, multi_count, leader_clear_count, leader_multi_count, leader_power_flip_count
     FROM players_character_quest_clears
     WHERE player_id = ?
-    `).all(playerId) as Array<{
+    ${scope ? `AND character_id IN (${scope.map(() => "?").join(", ")})` : ""}
+    `).all(playerId, ...(scope ?? []))) as Array<{
         character_id: number
         clear_count: number
         multi_count: number

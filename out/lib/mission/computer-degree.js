@@ -11,6 +11,7 @@ const party_1 = require("../../data/domains/party");
 const shopPurchase_1 = require("../../data/domains/shopPurchase");
 const quest_1 = require("../../data/domains/quest");
 const assets_1 = require("../assets");
+const content_master_1 = require("../content-master");
 const character_2 = require("../character");
 const stamina_1 = require("../stamina");
 const master_data_1 = require("./master-data");
@@ -222,8 +223,14 @@ function loadCounterMaps(playerId, conditionTypes) {
     }
     return { questClearCounters, counterValues };
 }
+// Immutable server master data only; no player progress is cached across requests.
+const secondBoardRequirements = Object.fromEntries(Object.keys(content_master_1.serverManaNodes).flatMap(characterId => {
+    var _a;
+    const nodes = Object.keys((_a = (0, assets_1.getCharacterManaNodesSync)(characterId, 2)) !== null && _a !== void 0 ? _a : {}).map(Number);
+    return nodes.length > 0 ? [[characterId, nodes]] : [];
+}));
 function buildStats(playerId, category, missionIds, shared = new evaluation_context_1.MissionEvaluationReadContext(playerId)) {
-    var _a, _b, _c;
+    var _a, _b;
     const selectedDefinitions = missionIds === undefined
         ? [...degreeDefinitions.values()]
         : missionIds
@@ -231,7 +238,7 @@ function buildStats(playerId, category, missionIds, shared = new evaluation_cont
             .filter((definition) => definition !== undefined);
     const conditionTypes = new Set(selectedDefinitions.map(definition => definition.conditionType));
     const specificCharacterIds = [...new Set(selectedDefinitions
-            .filter(definition => definition.conditionType === 44 || definition.conditionType === 48)
+            .filter(definition => definition.conditionType === 44)
             .map(definition => optionalNumber(definition.row[15]))
             .filter((characterId) => characterId !== undefined))];
     const targetItemIds = [...new Set(selectedDefinitions
@@ -240,28 +247,40 @@ function buildStats(playerId, category, missionIds, shared = new evaluation_cont
             .filter((itemId) => itemId !== undefined))];
     const needsQuestProgress = [14, 15, 16, 22, 23, 25, 26]
         .some(conditionType => conditionTypes.has(conditionType));
-    const needsAllCharacters = [4, 5, 8, 9].some(conditionType => conditionTypes.has(conditionType))
-        || selectedDefinitions.some(definition => ((definition.conditionType === 44 || definition.conditionType === 48)
+    const needsAllCharacters = [4, 5, 9].some(conditionType => conditionTypes.has(conditionType))
+        || selectedDefinitions.some(definition => (definition.conditionType === 44
             && optionalNumber(definition.row[15]) === undefined));
-    const needsAllManaNodes = conditionTypes.has(7)
-        || selectedDefinitions.some(definition => (definition.conditionType === 48
-            && optionalNumber(definition.row[15]) === undefined));
+    const boardDefinitions = selectedDefinitions.filter(definition => definition.conditionType === 48);
+    const needsAllBoards = boardDefinitions.some(definition => optionalNumber(definition.row[15]) === undefined);
+    const requiredBoards = needsAllBoards
+        ? secondBoardRequirements
+        : Object.fromEntries(boardDefinitions.flatMap(definition => {
+            const characterId = optionalNumber(definition.row[15]);
+            const nodes = characterId === undefined ? undefined : secondBoardRequirements[String(characterId)];
+            return nodes ? [[String(characterId), nodes]] : [];
+        }));
     const needsCounters = [3, 14, 15, 16, 17, 19, 20, 23, 25, 26, 27, 28, 29, 30, 31, 34, 35, 36, 45, 92]
         .some(conditionType => conditionTypes.has(conditionType));
     const needsBattleCounters = conditionTypes.has(16)
         || conditionTypes.has(17)
         || conditionTypes.has(26);
     const player = shared.player;
-    const characters = needsAllCharacters
-        ? (0, character_1.getPlayerCharactersSync)(playerId)
-        : specificCharacterIds.length > 0
-            ? (0, character_1.getPlayerCharactersByIdsSync)(playerId, specificCharacterIds)
-            : {};
-    const manaNodes = needsAllManaNodes
-        ? (0, character_1.getPlayerCharactersManaNodesSync)(playerId)
-        : conditionTypes.has(48) && specificCharacterIds.length > 0
-            ? (0, character_1.getPlayerCharactersManaNodesByIdsSync)(playerId, specificCharacterIds)
-            : {};
+    const characters = needsAllCharacters ? (0, character_1.getPlayerCharactersSync)(playerId) : {};
+    const favorFacts = needsAllCharacters
+        ? Object.fromEntries(Object.entries(characters).map(([id, character]) => [id, {
+                exp: character.exp, hasReceivedBondToken: character.bondTokenList.some(token => token.status >= 2),
+            }]))
+        : (0, character_1.getPlayerCharacterFavorFactsSync)(playerId, specificCharacterIds);
+    const characterCounts = (0, character_1.getPlayerCharacterMissionStatsSync)(playerId, {
+        manaNodes: conditionTypes.has(7),
+        bondTokens: conditionTypes.has(8) && !needsAllCharacters,
+        ownedCharacterIds: needsAllBoards && !needsAllCharacters,
+    });
+    const boardCharacterIds = needsAllBoards
+        ? needsAllCharacters ? Object.keys(characters).map(Number) : characterCounts.ownedCharacterIds
+        : Object.keys(requiredBoards).map(Number);
+    const completedSecondManaBoardCharacterIds = (0, character_1.getPlayerCompletedManaBoardCharacterIdsSync)(playerId, requiredBoards, boardCharacterIds);
+    const characterFavorProgress = new Map(Object.entries(favorFacts).map(([id, facts]) => [Number(id), getCharacterFavorProgress(Number(id), facts)]));
     const battleCounters = needsBattleCounters
         ? shared.battleCounters
         : {
@@ -317,20 +336,9 @@ function buildStats(playerId, category, missionIds, shared = new evaluation_cont
         }
     }
     const characterLevels = new Map();
-    const completedSecondManaBoardCharacterIds = new Set();
-    for (const [characterIdValue, character] of Object.entries(characters)) {
+    for (const [characterIdValue, character] of Object.entries(favorFacts)) {
         const characterId = Number(characterIdValue);
         characterLevels.set(characterId, estimateCharacterLevel(characterId, character.exp));
-        const secondBoard = (0, assets_1.getCharacterManaNodesSync)(characterId, 2);
-        if (!secondBoard)
-            continue;
-        const requiredNodes = Object.keys(secondBoard).map(Number);
-        if (requiredNodes.length === 0)
-            continue;
-        const unlockedNodes = new Set((_c = manaNodes[characterIdValue]) !== null && _c !== void 0 ? _c : []);
-        if (requiredNodes.every(nodeId => unlockedNodes.has(nodeId))) {
-            completedSecondManaBoardCharacterIds.add(characterId);
-        }
     }
     const counters = needsCounters
         ? loadCounterMaps(playerId, conditionTypes)
@@ -340,7 +348,7 @@ function buildStats(playerId, category, missionIds, shared = new evaluation_cont
         playerId,
         player,
         questProgress, totalQuestClears: 0, totalStories: 0, rankCounts: {}, characters,
-        manaNodes, equipment: conditionTypes.has(34) || conditionTypes.has(36)
+        characterFavorProgress, equipment: conditionTypes.has(34) || conditionTypes.has(36)
             ? (0, equipment_1.getPlayerEquipmentListSync)(playerId)
             : {}, items: conditionTypes.has(37) ? (0, item_1.getPlayerItemsByIdsSync)(playerId, targetItemIds) : {}, collectedItemTotals: conditionTypes.has(37)
             ? (0, item_1.getPlayerCollectedItemTotalsByIdsSync)(playerId, targetItemIds)
@@ -354,23 +362,25 @@ function buildStats(playerId, category, missionIds, shared = new evaluation_cont
             maxCharacterLevel: Math.max(0, ...characterLevels.values()),
             overLimitCount: Object.values(characters)
                 .reduce((total, character) => total + character.overLimitStep, 0),
-            manaBoardCount: Object.values(manaNodes)
-                .reduce((total, nodes) => total + nodes.length, 0),
+            manaBoardCount: characterCounts.manaNodeCount,
             secondManaBoardCompleteCount: completedSecondManaBoardCharacterIds.size,
-            bondTokenCount: Object.values(characters)
-                .reduce((total, character) => total
-                + character.bondTokenList.filter(token => token.status >= 2).length, 0),
+            bondTokenCount: conditionTypes.has(8)
+                ? needsAllCharacters
+                    ? Object.values(characters).reduce((total, character) => total
+                        + character.bondTokenList.filter(token => token.status >= 2).length, 0)
+                    : characterCounts.bondTokenCount
+                : 0,
             singleSsCount: battleCounters.singleRankSsCount,
             multiClearCount: battleCounters.multiClearCount,
             multiHostClearCount: battleCounters.multiHostClearCount,
             episodeClearCount: conditionTypes.has(21)
                 ? (0, quest_1.countFinishedPlayerQuestsByCategorySync)(playerId, 3)
                 : 0,
-            level100BondedCharacterIds: new Set(Object.entries(characters)
+            level100BondedCharacterIds: new Set(Object.entries(favorFacts)
                 .filter(([characterId, character]) => {
                 var _a;
                 return (((_a = characterLevels.get(Number(characterId))) !== null && _a !== void 0 ? _a : 0) >= 100
-                    && character.bondTokenList.some(token => token.status >= 2));
+                    && character.hasReceivedBondToken);
             })
                 .map(([characterId]) => Number(characterId))),
             completedSecondManaBoardCharacterIds,
@@ -383,8 +393,7 @@ function getCharacterFavorProgress(characterId, character) {
     const expCaps = asset ? character_2.characterExpCaps[asset.rarity] : undefined;
     const level100Exp = expCaps === null || expCaps === void 0 ? void 0 : expCaps[expCaps.length - 1];
     const reachedLevel100 = level100Exp !== undefined && character.exp >= level100Exp;
-    const receivedBondToken = character.bondTokenList.some(token => token.status >= 2);
-    return Number(reachedLevel100) + Number(receivedBondToken);
+    return Number(reachedLevel100) + Number(character.hasReceivedBondToken);
 }
 function questCategoriesForKind(kind) {
     switch (kind) {
@@ -745,7 +754,7 @@ function getSpecificCharacterId(missionId, missionType) {
 }
 exports.getSpecificCharacterId = getSpecificCharacterId;
 function computeRecoverableProgress(definition, ctx) {
-    var _a, _b, _c, _d;
+    var _a, _b, _c, _d, _e;
     const { conditionType, row, description, pattern } = definition;
     const stats = ctx.degreeStats;
     switch (conditionType) {
@@ -872,7 +881,7 @@ function computeRecoverableProgress(definition, ctx) {
             const characterId = optionalNumber(row[15]);
             if (characterId === undefined)
                 return 0;
-            return getCharacterFavorProgress(characterId, ctx.characters[String(characterId)]);
+            return (_e = ctx.characterFavorProgress.get(characterId)) !== null && _e !== void 0 ? _e : 0;
         }
         case 45:
             return Math.max(ctx.treasureShopPurchaseCount, readCounter(ctx, "shop.treasure_purchase"));

@@ -1,6 +1,6 @@
 // Mission computer core types
 
-import type { Player } from "../../data/types"
+import type { Player, PlayerActiveMission } from "../../data/types"
 import type { SnapshotData } from "./snapshot"
 import type { MissionBattleCounters } from "../../data/domains/mission_battle_facts"
 import type { MissionEvaluationReadContext } from "./evaluation-context"
@@ -41,6 +41,8 @@ export interface CategoryContext {
     battleCounters?: MissionBattleCounters
     missionCounterValues?: ReadonlyMap<string, number>
     snapshot?: SnapshotData | null
+    /** Same-evaluation snapshot; do not reuse after this category grants rewards. */
+    persistedMissions?: Record<string, PlayerActiveMission>
     passEventLoginProgress?: Record<number, number>
 }
 

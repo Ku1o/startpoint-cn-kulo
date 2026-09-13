@@ -64,8 +64,19 @@ function evaluateMissionCategories(playerId, categories, evaluationTime) {
     for (const { scope, candidateMissionIds } of preparedScopes) {
         const { category, eventId } = scope;
         const computer = (0, registry_1.getComputer)(category);
-        const context = computer.buildContext(playerId, category, evaluationTime, candidateMissionIds, readContext);
         const persisted = (_b = persistedByCategory[String(category)]) !== null && _b !== void 0 ? _b : {};
+        // Title progress is monotonic and capped at its final target. Completed
+        // titles need no fact scan, but still enter persistence preparation so
+        // unreceived stages and missing legacy degree ownership can be repaired.
+        const factMissionIds = category === 5 ? candidateMissionIds.filter(missionId => {
+            var _a, _b;
+            if (!(0, patterns_1.isMissionEnabledAt)(category, missionId, evaluationTime, eventId))
+                return false;
+            const target = (0, stages_1.getMissionFinalTargetProgress)(category, missionId);
+            return target === undefined || ((_b = (_a = persisted[String(missionId)]) === null || _a === void 0 ? void 0 : _a.progress) !== null && _b !== void 0 ? _b : 0) < target;
+        }) : candidateMissionIds;
+        const factMissionIdSet = new Set(factMissionIds);
+        const context = factMissionIds.length > 0 ? computer.buildContext(playerId, category, evaluationTime, factMissionIds, readContext) : undefined;
         for (const missionId of candidateMissionIds) {
             if (!(0, patterns_1.isMissionEnabledAt)(category, missionId, evaluationTime, eventId))
                 continue;
@@ -75,7 +86,8 @@ function evaluateMissionCategories(playerId, categories, evaluationTime) {
             evaluatedMissionKeys.add(missionKey);
             const current = persisted[String(missionId)];
             const dbProgress = (_c = current === null || current === void 0 ? void 0 : current.progress) !== null && _c !== void 0 ? _c : 0;
-            const computed = computer.compute(missionId, context, dbProgress);
+            const computed = context && factMissionIdSet.has(missionId)
+                ? computer.compute(missionId, context, dbProgress) : dbProgress;
             const finalTarget = (0, stages_1.getMissionFinalTargetProgress)(category, missionId);
             const monotonicProgress = Math.max(0, dbProgress, Number.isFinite(computed) ? computed : 0);
             evaluatedMissions.push({

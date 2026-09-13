@@ -16,6 +16,7 @@ import { getCompletedStageNumbers } from "./stages"
 import { getMissionFinalTargetProgress, getMissionIdsByCategory } from "./stages"
 import { getCharacterIdFromMission } from "./character-queries"
 import { getComputer } from "./registry"
+import type { PlayerActiveMission } from "../../data/types"
 
 export interface AwakeMissionComputedProgress {
     missionId: number
@@ -68,9 +69,9 @@ export function settleAwakeMissionCandidates(
             degreeIds: [], passCardPoints: {},
         }
     }
-    const persisted = getPlayerCategoryMissionsSync(playerId, 9)
     const computer = getComputer(9)
     const context = computer.buildContext(playerId, 9, evaluationTime, uniqueMissionIds)
+    const persisted = context.persistedMissions ?? getPlayerCategoryMissionsSync(playerId, 9, uniqueMissionIds)
     const progressList = uniqueMissionIds.map(missionId => {
         const dbProgress = persisted[String(missionId)]?.progress ?? 0
         const computed = computer.compute(missionId, context, dbProgress)
@@ -87,12 +88,13 @@ export function settleAwakeMissionCandidates(
                 : Math.min(monotonicProgress, finalTarget),
         }
     })
-    return settleAwakeMissionRewards(playerId, progressList)
+    return settleAwakeMissionRewards(playerId, progressList, persisted)
 }
 
 export function settleAwakeMissionRewards(
     playerId: number,
-    progressList: AwakeMissionComputedProgress[]
+    progressList: AwakeMissionComputedProgress[],
+    missionSnapshot?: Record<string, PlayerActiveMission>,
 ): AwakeMissionSettlementResult {
     const progressByMissionId = new Map<number, number>()
     for (const entry of progressList) {
@@ -109,18 +111,21 @@ export function settleAwakeMissionRewards(
     const player = getPlayerSync(playerId)
     if (!player) throw new Error(`Player ${playerId} not found during CharacterAwake settlement.`)
 
-    const persistedMissions = getPlayerCategoryMissionsSync(playerId, 9)
+    const persistedMissions = missionSnapshot ?? getPlayerCategoryMissionsSync(playerId, 9, [...progressByMissionId.keys()])
     const granter = new MissionRewardGranter(playerId, player)
     const missionInfo: AwakeMissionInfo[] = []
-    const unlockMap = new Map<string, Record<number, number>>()
     const unlockCandidateCharacterIds = aggregatedProgressList.map(
         entry => Number(getCharacterIdFromMission(entry.missionId)),
     )
-    let persistedUnlocks: ReturnType<typeof getPlayerCharacterAwakeUnlocksByCharacterIdsSync> | null = null
+    // Publish the scoped authoritative state on retries, including higher levels
+    // already saved. The mission route no longer needs a second reconciliation.
+    const unlockMap = getPlayerCharacterAwakeUnlocksByCharacterIdsSync(playerId, unlockCandidateCharacterIds)
 
     getDb().transaction(() => {
         for (const entry of aggregatedProgressList) {
-            updatePlayerCategoryMissionSync(playerId, 9, entry.missionId, entry.progress)
+            if (persistedMissions[String(entry.missionId)]?.progress !== entry.progress) {
+                updatePlayerCategoryMissionSync(playerId, 9, entry.missionId, entry.progress)
+            }
         }
 
         for (const entry of aggregatedProgressList) {
@@ -135,12 +140,8 @@ export function settleAwakeMissionRewards(
                 // lost. The monotonic upsert keeps this idempotent.
                 if (definition.specialReward) {
                     const special = definition.specialReward
-                    persistedUnlocks ??= getPlayerCharacterAwakeUnlocksByCharacterIdsSync(
-                        playerId,
-                        unlockCandidateCharacterIds,
-                    )
                     const characterKey = String(special.characterId)
-                    const persistedLevels = persistedUnlocks.get(characterKey) ?? {}
+                    const persistedLevels = unlockMap.get(characterKey) ?? {}
                     if ((persistedLevels[special.boardIndex] ?? 0) < special.awakeLevel) {
                         upsertPlayerCharacterAwakeUnlockSync(
                             playerId,
@@ -149,7 +150,7 @@ export function settleAwakeMissionRewards(
                             special.awakeLevel,
                         )
                         persistedLevels[special.boardIndex] = special.awakeLevel
-                        persistedUnlocks.set(characterKey, persistedLevels)
+                        unlockMap.set(characterKey, persistedLevels)
                     }
                     const levels = unlockMap.get(characterKey) ?? {}
                     levels[special.boardIndex] = Math.max(

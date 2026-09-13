@@ -7,7 +7,7 @@ import { getSession } from "../../data/domains/session"
 import { getDb } from "../../data/db"
 import { getPlayerMailCountSync } from "../../data/domains/mail"
 import { generateDataHeaders, getServerTime } from "../../utils";
-import { getComputer, getMissionIdsByCategory, getCurrentStage, getCharacterIdFromMission, getMissionFinalTargetProgress, isMissionEnabledAt, mergeMissionSettlementResponse, reconcileAwakeUnlockCharacterList, reconcileAwakeUnlocksFromProgress, refreshAwakeUnlockCharacterList, settleAwakeMissionRewards, settleMissionCategories, settleMissionCategoriesWithProgress } from "../../lib/mission/index";
+import { getComputer, getMissionIdsByCategory, getCurrentStage, getCharacterIdFromMission, getMissionFinalTargetProgress, isMissionEnabledAt, mergeMissionSettlementResponse, reconcileAwakeUnlockCharacterList, settleAwakeMissionRewards, settleMissionCategories, settleMissionCategoriesWithProgress } from "../../lib/mission/index";
 import { resolveClientProgressTargets } from "../../lib/mission/client-progress";
 import type { AwakeMissionComputedProgress, AwakeMissionInfo } from "../../lib/mission/index";
 import { resolvePlayerIdSync } from "../../data/activeAccount";
@@ -97,6 +97,7 @@ const routes = async (fastify: FastifyInstance) => {
         const missionProgressList: any[] = []
         const categoryMissionCache = new Map<number, ReturnType<typeof getPlayerCategoryMissionsSync>>()
         const awakeProgressByCharacter = new Map<string, AwakeMissionComputedProgress[]>()
+        const awakeSnapshots = new Map<string, ReturnType<typeof getPlayerCategoryMissionsSync>>()
 
         for (const requestEntry of requestList) {
             const category = requestEntry.category
@@ -109,7 +110,7 @@ const routes = async (fastify: FastifyInstance) => {
                 ? allIds.filter(missionId => getCharacterIdFromMission(missionId) === charId)
                 : allIds
             let ctx: CategoryContext | undefined
-            let categoryMissions = categoryMissionCache.get(category)
+            let categoryMissions = category === 9 ? undefined : categoryMissionCache.get(category)
 
             for (const missionId of requestedIds) {
                 const settledKey = `${category}:${missionId}`
@@ -124,8 +125,14 @@ const routes = async (fastify: FastifyInstance) => {
                     continue
                 }
                 if (!categoryMissions) {
-                    categoryMissions = getPlayerCategoryMissionsSync(playerId, category)
-                    categoryMissionCache.set(category, categoryMissions)
+                    if (category === 9) {
+                        ctx ??= getCtx(category, requestedIds)
+                        categoryMissions = ctx.persistedMissions ?? getPlayerCategoryMissionsSync(playerId, category, requestedIds)
+                        if (charId !== undefined) awakeSnapshots.set(charId, categoryMissions)
+                    } else {
+                        categoryMissions = getPlayerCategoryMissionsSync(playerId, category)
+                        categoryMissionCache.set(category, categoryMissions)
+                    }
                 }
                 ctx ??= getCtx(category, requestedIds)
                 const dbProgress = categoryMissions[String(missionId)]?.progress ?? 0
@@ -165,8 +172,8 @@ const routes = async (fastify: FastifyInstance) => {
         const degreeIds: number[] = []
         let userInfo: Record<string, number> | undefined
 
-        for (const awakeProgress of awakeProgressByCharacter.values()) {
-            const settlement = settleAwakeMissionRewards(playerId, awakeProgress)
+        for (const [characterId, awakeProgress] of awakeProgressByCharacter) {
+            const settlement = settleAwakeMissionRewards(playerId, awakeProgress, awakeSnapshots.get(characterId))
             missionInfo.push(...settlement.missionInfo)
             Object.assign(itemList, settlement.itemList)
             characterList.push(...settlement.characterList)
@@ -175,24 +182,6 @@ const routes = async (fastify: FastifyInstance) => {
                 if (!degreeIds.includes(degreeId)) degreeIds.push(degreeId)
             }
             if (settlement.userInfo) userInfo = settlement.userInfo
-        }
-
-        const requestedAwakeProgress = [...awakeProgressByCharacter.values()].flat()
-        if (requestedAwakeProgress.length > 0) {
-            // The client caches Awake availability separately from the mission
-            // page.  Reconcile from the progress already computed above, then
-            // always re-publish the scoped character state so a lost earlier
-            // response never forces a relogin.
-            const unlocks = reconcileAwakeUnlocksFromProgress(
-                playerId,
-                requestedAwakeProgress,
-            ).all
-            characterList = refreshAwakeUnlockCharacterList(
-                playerId,
-                characterList,
-                unlocks,
-                [...awakeProgressByCharacter.keys()].map(Number),
-            )
         }
 
         const responseData: Record<string, unknown> = {
