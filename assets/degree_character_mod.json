@@ -1,0 +1,338 @@
+{
+  "9910001": {
+    "string_id": "degree_mod_character_119989_awake0",
+    "name": "碧安卡·绯焰召唤学讲师",
+    "kana": "degree_mod_character_119989_awake0",
+    "condition": "获得条件：将碧安卡突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+    "category_id": 2
+  },
+  "9910002": {
+    "string_id": "degree_mod_character_119989_awake1",
+    "name": "碧安卡·幼龙点名",
+    "kana": "degree_mod_character_119989_awake1",
+    "condition": "获得条件：将碧安卡突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+    "category_id": 2
+  },
+  "9910003": {
+    "string_id": "degree_mod_character_119996_awake0",
+    "name": "玛格诺斯·灼原的狮王",
+    "kana": "degree_mod_character_119996_awake0",
+    "condition": "获得条件：将玛格诺斯突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+    "category_id": 2
+  },
+  "9910004": {
+    "string_id": "degree_mod_character_119996_awake1",
+    "name": "玛格诺斯·灼原咆哮",
+    "kana": "degree_mod_character_119996_awake1",
+    "condition": "获得条件：将玛格诺斯突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+    "category_id": 2
+  },
+  "9910005": {
+    "string_id": "degree_mod_character_119997_awake0",
+    "name": "夏可缇·焚身之誓",
+    "kana": "degree_mod_character_119997_awake0",
+    "condition": "获得条件：将夏可缇突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+    "category_id": 2
+  },
+  "9910006": {
+    "string_id": "degree_mod_character_119997_awake1",
+    "name": "夏可缇·血祭·爆炎",
+    "kana": "degree_mod_character_119997_awake1",
+    "condition": "获得条件：将夏可缇突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+    "category_id": 2
+  },
+  "9910007": {
+    "string_id": "degree_mod_character_129952_awake0",
+    "name": "贝尔赛蒂亚·碧海淑女",
+    "kana": "degree_mod_character_129952_awake0",
+    "condition": "获得条件：将贝尔赛蒂亚突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+    "category_id": 2
+  },
+  "9910008": {
+    "string_id": "degree_mod_character_129952_awake1",
+    "name": "贝尔赛蒂亚·碧潮之爪",
+    "kana": "degree_mod_character_129952_awake1",
+    "condition": "获得条件：将贝尔赛蒂亚突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+    "category_id": 2
+  },
+  "9910009": {
+    "string_id": "degree_mod_character_129992_awake0",
+    "name": "杰拉尔·纯白誓约的骑士",
+    "kana": "degree_mod_character_129992_awake0",
+    "condition": "获得条件：将杰拉尔突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+    "category_id": 2
+  },
+  "9910010": {
+    "string_id": "degree_mod_character_129992_awake1",
+    "name": "杰拉尔·誓约之枪",
+    "kana": "degree_mod_character_129992_awake1",
+    "condition": "获得条件：将杰拉尔突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+    "category_id": 2
+  },
+  "9910011": {
+    "string_id": "degree_mod_character_129997_awake0",
+    "name": "克劳斯·碧牙的狩夜者",
+    "kana": "degree_mod_character_129997_awake0",
+    "condition": "获得条件：将克劳斯突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+    "category_id": 2
+  },
+  "9910012": {
+    "string_id": "degree_mod_character_129997_awake1",
+    "name": "克劳斯·蚀刃终决",
+    "kana": "degree_mod_character_129997_awake1",
+    "condition": "获得条件：将克劳斯突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+    "category_id": 2
+  },
+  "9910013": {
+    "string_id": "degree_mod_character_129999_awake0",
+    "name": "赛瑞斯·苍海龙王",
+    "kana": "degree_mod_character_129999_awake0",
+    "condition": "获得条件：将赛瑞斯突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+    "category_id": 2
+  },
+  "9910014": {
+    "string_id": "degree_mod_character_129999_awake1",
+    "name": "赛瑞斯·龙王显现",
+    "kana": "degree_mod_character_129999_awake1",
+    "condition": "获得条件：将赛瑞斯突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+    "category_id": 2
+  },
+  "9910015": {
+    "string_id": "degree_mod_character_139995_awake0",
+    "name": "稻穗·秋灯九尾",
+    "kana": "degree_mod_character_139995_awake0",
+    "condition": "获得条件：将稻穗突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+    "category_id": 2
+  },
+  "9910016": {
+    "string_id": "degree_mod_character_139995_awake1",
+    "name": "稻穗·秋灯缭乱",
+    "kana": "degree_mod_character_139995_awake1",
+    "condition": "获得条件：将稻穗突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+    "category_id": 2
+  },
+  "9910017": {
+    "string_id": "degree_mod_character_139997_awake0",
+    "name": "莉莉丝·雷雨的夏日公主",
+    "kana": "degree_mod_character_139997_awake0",
+    "condition": "获得条件：将莉莉丝突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+    "category_id": 2
+  },
+  "9910018": {
+    "string_id": "degree_mod_character_139997_awake1",
+    "name": "莉莉丝·环刃变生",
+    "kana": "degree_mod_character_139997_awake1",
+    "condition": "获得条件：将莉莉丝突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+    "category_id": 2
+  },
+  "9910019": {
+    "string_id": "degree_mod_character_139998_awake0",
+    "name": "拉姆斯·鸣彻碧海的雷龙",
+    "kana": "degree_mod_character_139998_awake0",
+    "condition": "获得条件：将拉姆斯突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+    "category_id": 2
+  },
+  "9910020": {
+    "string_id": "degree_mod_character_139998_awake1",
+    "name": "拉姆斯·碧海雷潮",
+    "kana": "degree_mod_character_139998_awake1",
+    "condition": "获得条件：将拉姆斯突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+    "category_id": 2
+  },
+  "9910021": {
+    "string_id": "degree_mod_character_139999_awake0",
+    "name": "史黛拉（夏日）·夏日女神",
+    "kana": "degree_mod_character_139999_awake0",
+    "condition": "获得条件：将史黛拉（夏日）突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+    "category_id": 2
+  },
+  "9910022": {
+    "string_id": "degree_mod_character_139999_awake1",
+    "name": "史黛拉（夏日）·海滩的守望之光",
+    "kana": "degree_mod_character_139999_awake1",
+    "condition": "获得条件：将史黛拉（夏日）突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+    "category_id": 2
+  },
+  "9910023": {
+    "string_id": "degree_mod_character_149988_awake0",
+    "name": "盾牌座·庆典星盾",
+    "kana": "degree_mod_character_149988_awake0",
+    "condition": "获得条件：将盾牌座突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+    "category_id": 2
+  },
+  "9910024": {
+    "string_id": "degree_mod_character_149988_awake1",
+    "name": "盾牌座·青苔的爱",
+    "kana": "degree_mod_character_149988_awake1",
+    "condition": "获得条件：将盾牌座突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+    "category_id": 2
+  },
+  "9910025": {
+    "string_id": "degree_mod_character_149989_awake0",
+    "name": "希尔媞·定格星风的剑圣",
+    "kana": "degree_mod_character_149989_awake0",
+    "condition": "获得条件：将希尔媞突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+    "category_id": 2
+  },
+  "9910026": {
+    "string_id": "degree_mod_character_149989_awake1",
+    "name": "希尔媞·十字双空牙",
+    "kana": "degree_mod_character_149989_awake1",
+    "condition": "获得条件：将希尔媞突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+    "category_id": 2
+  },
+  "9910027": {
+    "string_id": "degree_mod_character_149990_awake0",
+    "name": "白·盛夏白虎兽人",
+    "kana": "degree_mod_character_149990_awake0",
+    "condition": "获得条件：将白突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+    "category_id": 2
+  },
+  "9910028": {
+    "string_id": "degree_mod_character_149990_awake1",
+    "name": "白·盛夏咆哮",
+    "kana": "degree_mod_character_149990_awake1",
+    "condition": "获得条件：将白突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+    "category_id": 2
+  },
+  "9910029": {
+    "string_id": "degree_mod_character_149995_awake0",
+    "name": "希耶提·十天众之首",
+    "kana": "degree_mod_character_149995_awake0",
+    "condition": "获得条件：将希耶提突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+    "category_id": 2
+  },
+  "9910030": {
+    "string_id": "degree_mod_character_149995_awake1",
+    "name": "希耶提·十万剑",
+    "kana": "degree_mod_character_149995_awake1",
+    "condition": "获得条件：将希耶提突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+    "category_id": 2
+  },
+  "9910031": {
+    "string_id": "degree_mod_character_149996_awake0",
+    "name": "希尔媞·苍蓝疾光",
+    "kana": "degree_mod_character_149996_awake0",
+    "condition": "获得条件：将希尔媞突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+    "category_id": 2
+  },
+  "9910032": {
+    "string_id": "degree_mod_character_149996_awake1",
+    "name": "希尔媞·疾影·瞬闪",
+    "kana": "degree_mod_character_149996_awake1",
+    "condition": "获得条件：将希尔媞突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+    "category_id": 2
+  },
+  "9910033": {
+    "string_id": "degree_mod_character_149997_awake0",
+    "name": "墨斯伊克·游历世界的羽龙",
+    "kana": "degree_mod_character_149997_awake0",
+    "condition": "获得条件：将墨斯伊克突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+    "category_id": 2
+  },
+  "9910034": {
+    "string_id": "degree_mod_character_149997_awake1",
+    "name": "墨斯伊克·庇佑之风",
+    "kana": "degree_mod_character_149997_awake1",
+    "condition": "获得条件：将墨斯伊克突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+    "category_id": 2
+  },
+  "9910035": {
+    "string_id": "degree_mod_character_149999_awake0",
+    "name": "杰拉德·白狼骑士",
+    "kana": "degree_mod_character_149999_awake0",
+    "condition": "获得条件：将杰拉德突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+    "category_id": 2
+  },
+  "9910036": {
+    "string_id": "degree_mod_character_149999_awake1",
+    "name": "杰拉德·月耀一闪",
+    "kana": "degree_mod_character_149999_awake1",
+    "condition": "获得条件：将杰拉德突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+    "category_id": 2
+  },
+  "9910037": {
+    "string_id": "degree_mod_character_169989_awake0",
+    "name": "奈芙提姆·午后珍珠星光",
+    "kana": "degree_mod_character_169989_awake0",
+    "condition": "获得条件：将奈芙提姆突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+    "category_id": 2
+  },
+  "9910038": {
+    "string_id": "degree_mod_character_169989_awake1",
+    "name": "奈芙提姆·甜蜜续杯",
+    "kana": "degree_mod_character_169989_awake1",
+    "condition": "获得条件：将奈芙提姆突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+    "category_id": 2
+  },
+  "9910039": {
+    "string_id": "degree_mod_character_169996_awake0",
+    "name": "西蒙·愿望的牧羊人",
+    "kana": "degree_mod_character_169996_awake0",
+    "condition": "获得条件：将西蒙突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+    "category_id": 2
+  },
+  "9910040": {
+    "string_id": "degree_mod_character_169996_awake1",
+    "name": "西蒙·众生之愿",
+    "kana": "degree_mod_character_169996_awake1",
+    "condition": "获得条件：将西蒙突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+    "category_id": 2
+  },
+  "9910041": {
+    "string_id": "degree_mod_character_169997_awake0",
+    "name": "巴萨拉卡·不死大镰",
+    "kana": "degree_mod_character_169997_awake0",
+    "condition": "获得条件：将巴萨拉卡突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+    "category_id": 2
+  },
+  "9910042": {
+    "string_id": "degree_mod_character_169997_awake1",
+    "name": "巴萨拉卡·失落传说",
+    "kana": "degree_mod_character_169997_awake1",
+    "condition": "获得条件：将巴萨拉卡突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+    "category_id": 2
+  },
+  "9910043": {
+    "string_id": "degree_mod_character_169998_awake0",
+    "name": "拉芙·NY★绯樱夜宴",
+    "kana": "degree_mod_character_169998_awake0",
+    "condition": "获得条件：将拉芙突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+    "category_id": 2
+  },
+  "9910044": {
+    "string_id": "degree_mod_character_169998_awake1",
+    "name": "拉芙·绯樱唱诗班",
+    "kana": "degree_mod_character_169998_awake1",
+    "condition": "获得条件：将拉芙突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+    "category_id": 2
+  },
+  "9910045": {
+    "string_id": "degree_mod_character_169999_awake0",
+    "name": "基诺维·破契的黑鸦",
+    "kana": "degree_mod_character_169999_awake0",
+    "condition": "获得条件：将基诺维突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+    "category_id": 2
+  },
+  "9910046": {
+    "string_id": "degree_mod_character_169999_awake1",
+    "name": "基诺维·掠影协奏",
+    "kana": "degree_mod_character_169999_awake1",
+    "condition": "获得条件：将基诺维突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+    "category_id": 2
+  },
+  "9910047": {
+    "string_id": "degree_mod_character_179999_awake0",
+    "name": "罗尔夫·雪夜里的炉火",
+    "kana": "degree_mod_character_179999_awake0",
+    "condition": "获得条件：将罗尔夫突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+    "category_id": 2
+  },
+  "9910048": {
+    "string_id": "degree_mod_character_179999_awake1",
+    "name": "罗尔夫·炉心颂歌",
+    "kana": "degree_mod_character_179999_awake1",
+    "condition": "获得条件：将罗尔夫突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+    "category_id": 2
+  }
+}

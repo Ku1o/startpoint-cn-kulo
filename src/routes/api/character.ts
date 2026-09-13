@@ -7,6 +7,7 @@ import { getPlayerSync, updatePlayerSync } from "../../data/domains/player"
 import { getSession } from "../../data/domains/session"
 import { generateDataHeaders } from "../../utils";
 import { getCharacterDataSync } from "../../lib/assets";
+import { grantCharacterDegreeRewardsSync } from "../../lib/character-degree-rewards";
 import { characterExpCaps, givePlayerCharacterSync } from "../../lib/character";
 import { clientSerializeDate } from "../../data/utils";
 import { resolvePlayerIdSync } from "../../data/activeAccount";
@@ -179,6 +180,8 @@ const routes = async (fastify: FastifyInstance) => {
             })
         }
 
+        grantCharacterDegreeRewardsSync(playerId, [characterId])
+
         const responseData: Record<string, any> = {
             "character_list": [
                 {
@@ -248,6 +251,7 @@ const routes = async (fastify: FastifyInstance) => {
                 overLimitStep: newOverLimit,
                 stack: newStack,
             })
+            grantCharacterDegreeRewardsSync(playerId, [Number(charId)])
 
             characterList.push({
                 character_id: Number(charId),

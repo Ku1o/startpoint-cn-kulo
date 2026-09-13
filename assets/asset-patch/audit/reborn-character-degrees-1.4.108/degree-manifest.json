@@ -1,0 +1,1061 @@
+{
+  "schema_version": 1,
+  "degrees": [
+    {
+      "degree_id": 9910001,
+      "character_id": 119989,
+      "state": 0,
+      "row": [
+        "degree_mod_character_119989_awake0",
+        "991001",
+        "碧安卡·绯焰召唤学讲师",
+        "degree_mod_character_119989_awake0",
+        "获得条件：将碧安卡突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+        "2",
+        "dynamic/degree/background",
+        "item/etc/degree",
+        "dynamic/degree/degree_mod_character_119989_awake0"
+      ],
+      "image": {
+        "file": "png/9910001.png",
+        "logical": "dynamic/degree/degree_mod_character_119989_awake0.png",
+        "sha256": "d863ef1b3449774cb456c20005b7ca4d961904d54feb64f239914d47a2c8969d",
+        "stored_sha256": "c5ff8b430da13879d207381134ae9857ef606a5d8ae612e0e2a476896d45c5f0"
+      }
+    },
+    {
+      "degree_id": 9910002,
+      "character_id": 119989,
+      "state": 1,
+      "row": [
+        "degree_mod_character_119989_awake1",
+        "991002",
+        "碧安卡·幼龙点名",
+        "degree_mod_character_119989_awake1",
+        "获得条件：将碧安卡突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+        "2",
+        "dynamic/degree/background",
+        "item/etc/degree",
+        "dynamic/degree/degree_mod_character_119989_awake1"
+      ],
+      "image": {
+        "file": "png/9910002.png",
+        "logical": "dynamic/degree/degree_mod_character_119989_awake1.png",
+        "sha256": "0a7dbf5f0a872742c3c94801384050531d20cef37d90cf181112e05f6bf88fd8",
+        "stored_sha256": "19b4b11a3e743e233ccfdc4b299bf4a134cd3796377003a164e00e1539b169c9"
+      }
+    },
+    {
+      "degree_id": 9910003,
+      "character_id": 119996,
+      "state": 0,
+      "row": [
+        "degree_mod_character_119996_awake0",
+        "991003",
+        "玛格诺斯·灼原的狮王",
+        "degree_mod_character_119996_awake0",
+        "获得条件：将玛格诺斯突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+        "2",
+        "dynamic/degree/background",
+        "item/etc/degree",
+        "dynamic/degree/degree_mod_character_119996_awake0"
+      ],
+      "image": {
+        "file": "png/9910003.png",
+        "logical": "dynamic/degree/degree_mod_character_119996_awake0.png",
+        "sha256": "233e33cc67880efba0c125dfa7592922c247e918ed31518c70d3c6d3c8655a52",
+        "stored_sha256": "abb4b11d74fbdf9844508d4e70d0b1d8b6ab9cdf0f6b0745c206b360dc677fd4"
+      }
+    },
+    {
+      "degree_id": 9910004,
+      "character_id": 119996,
+      "state": 1,
+      "row": [
+        "degree_mod_character_119996_awake1",
+        "991004",
+        "玛格诺斯·灼原咆哮",
+        "degree_mod_character_119996_awake1",
+        "获得条件：将玛格诺斯突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+        "2",
+        "dynamic/degree/background",
+        "item/etc/degree",
+        "dynamic/degree/degree_mod_character_119996_awake1"
+      ],
+      "image": {
+        "file": "png/9910004.png",
+        "logical": "dynamic/degree/degree_mod_character_119996_awake1.png",
+        "sha256": "3bac374d0e0ec3f1fed89d7e7e8bbfb2509595f72c26803a0c2e352579b4dc07",
+        "stored_sha256": "e5587a90f91425481001f1056ce9673216b549e584e4520d1aa4970bb006f2dc"
+      }
+    },
+    {
+      "degree_id": 9910005,
+      "character_id": 119997,
+      "state": 0,
+      "row": [
+        "degree_mod_character_119997_awake0",
+        "991005",
+        "夏可缇·焚身之誓",
+        "degree_mod_character_119997_awake0",
+        "获得条件：将夏可缇突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+        "2",
+        "dynamic/degree/background",
+        "item/etc/degree",
+        "dynamic/degree/degree_mod_character_119997_awake0"
+      ],
+      "image": {
+        "file": "png/9910005.png",
+        "logical": "dynamic/degree/degree_mod_character_119997_awake0.png",
+        "sha256": "776d11d469f35bb056a1719b8d09773e8712480388e89b372ee861da297e4362",
+        "stored_sha256": "1c8f6952b1431e29f0339da6deb0f835b18517a612a2c7e72fff08e70ef09d73"
+      }
+    },
+    {
+      "degree_id": 9910006,
+      "character_id": 119997,
+      "state": 1,
+      "row": [
+        "degree_mod_character_119997_awake1",
+        "991006",
+        "夏可缇·血祭·爆炎",
+        "degree_mod_character_119997_awake1",
+        "获得条件：将夏可缇突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+        "2",
+        "dynamic/degree/background",
+        "item/etc/degree",
+        "dynamic/degree/degree_mod_character_119997_awake1"
+      ],
+      "image": {
+        "file": "png/9910006.png",
+        "logical": "dynamic/degree/degree_mod_character_119997_awake1.png",
+        "sha256": "8310e7820482dec3364da25201a0f2ae6af1842f99398e29a1dc3ca457f9e922",
+        "stored_sha256": "3b269fd84983da08df7e2dfde2d6d5c8a2996f1b94a63b6b1b59b037032b3965"
+      }
+    },
+    {
+      "degree_id": 9910007,
+      "character_id": 129952,
+      "state": 0,
+      "row": [
+        "degree_mod_character_129952_awake0",
+        "991007",
+        "贝尔赛蒂亚·碧海淑女",
+        "degree_mod_character_129952_awake0",
+        "获得条件：将贝尔赛蒂亚突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+        "2",
+        "dynamic/degree/background",
+        "item/etc/degree",
+        "dynamic/degree/degree_mod_character_129952_awake0"
+      ],
+      "image": {
+        "file": "png/9910007.png",
+        "logical": "dynamic/degree/degree_mod_character_129952_awake0.png",
+        "sha256": "573432660aaee6757aeee2f683f4dbee561c0311ba2d271969be886d2bb83d87",
+        "stored_sha256": "5db61d7cb3fccb59d2b0ac0f5003c83be1006cb2219e44c4ae8adbd48383c5bf"
+      }
+    },
+    {
+      "degree_id": 9910008,
+      "character_id": 129952,
+      "state": 1,
+      "row": [
+        "degree_mod_character_129952_awake1",
+        "991008",
+        "贝尔赛蒂亚·碧潮之爪",
+        "degree_mod_character_129952_awake1",
+        "获得条件：将贝尔赛蒂亚突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+        "2",
+        "dynamic/degree/background",
+        "item/etc/degree",
+        "dynamic/degree/degree_mod_character_129952_awake1"
+      ],
+      "image": {
+        "file": "png/9910008.png",
+        "logical": "dynamic/degree/degree_mod_character_129952_awake1.png",
+        "sha256": "5e05570dd9287dbdc1ca805239cf853f780eb3b7c51e4c03325d14e79dce33e2",
+        "stored_sha256": "5a5ea6c48504a63242b6551fce981fc7b46c08f9cff942d64373c410723d4aed"
+      }
+    },
+    {
+      "degree_id": 9910009,
+      "character_id": 129992,
+      "state": 0,
+      "row": [
+        "degree_mod_character_129992_awake0",
+        "991009",
+        "杰拉尔·纯白誓约的骑士",
+        "degree_mod_character_129992_awake0",
+        "获得条件：将杰拉尔突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+        "2",
+        "dynamic/degree/background",
+        "item/etc/degree",
+        "dynamic/degree/degree_mod_character_129992_awake0"
+      ],
+      "image": {
+        "file": "png/9910009.png",
+        "logical": "dynamic/degree/degree_mod_character_129992_awake0.png",
+        "sha256": "69a5ad5b9638e47ef3678412f4a169d0b7e47394fe5d48483c40b37b55d135ba",
+        "stored_sha256": "ba7667bd9ff2a0581ba5018dd969c53262ded869a9d359762924d38564939ba9"
+      }
+    },
+    {
+      "degree_id": 9910010,
+      "character_id": 129992,
+      "state": 1,
+      "row": [
+        "degree_mod_character_129992_awake1",
+        "991010",
+        "杰拉尔·誓约之枪",
+        "degree_mod_character_129992_awake1",
+        "获得条件：将杰拉尔突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+        "2",
+        "dynamic/degree/background",
+        "item/etc/degree",
+        "dynamic/degree/degree_mod_character_129992_awake1"
+      ],
+      "image": {
+        "file": "png/9910010.png",
+        "logical": "dynamic/degree/degree_mod_character_129992_awake1.png",
+        "sha256": "83954b84d392d1b76b7893bbd6ea74dc7a61bc0d605553fcc508418adfbe821a",
+        "stored_sha256": "85628b07470caf097c12200b560745075253b89f7d217c442b82e91a4747af4b"
+      }
+    },
+    {
+      "degree_id": 9910011,
+      "character_id": 129997,
+      "state": 0,
+      "row": [
+        "degree_mod_character_129997_awake0",
+        "991011",
+        "克劳斯·碧牙的狩夜者",
+        "degree_mod_character_129997_awake0",
+        "获得条件：将克劳斯突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+        "2",
+        "dynamic/degree/background",
+        "item/etc/degree",
+        "dynamic/degree/degree_mod_character_129997_awake0"
+      ],
+      "image": {
+        "file": "png/9910011.png",
+        "logical": "dynamic/degree/degree_mod_character_129997_awake0.png",
+        "sha256": "0a35b7fee597a8b89da809406d0cfdc29f55b0732d6270dca73febe7948ff9b4",
+        "stored_sha256": "4e2ddc7f98e17973f108e264d054621684b814462832a897fe4fac7fe96673cc"
+      }
+    },
+    {
+      "degree_id": 9910012,
+      "character_id": 129997,
+      "state": 1,
+      "row": [
+        "degree_mod_character_129997_awake1",
+        "991012",
+        "克劳斯·蚀刃终决",
+        "degree_mod_character_129997_awake1",
+        "获得条件：将克劳斯突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+        "2",
+        "dynamic/degree/background",
+        "item/etc/degree",
+        "dynamic/degree/degree_mod_character_129997_awake1"
+      ],
+      "image": {
+        "file": "png/9910012.png",
+        "logical": "dynamic/degree/degree_mod_character_129997_awake1.png",
+        "sha256": "f4f7f6b9622251e7db6f396bb267d349a2bf5245b3a45a91fa5497399e178297",
+        "stored_sha256": "2c423d16c5ada09c19fa03b840a82be4867a93cd6ac35693c8c671f3aa582ce3"
+      }
+    },
+    {
+      "degree_id": 9910013,
+      "character_id": 129999,
+      "state": 0,
+      "row": [
+        "degree_mod_character_129999_awake0",
+        "991013",
+        "赛瑞斯·苍海龙王",
+        "degree_mod_character_129999_awake0",
+        "获得条件：将赛瑞斯突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+        "2",
+        "dynamic/degree/background",
+        "item/etc/degree",
+        "dynamic/degree/degree_mod_character_129999_awake0"
+      ],
+      "image": {
+        "file": "png/9910013.png",
+        "logical": "dynamic/degree/degree_mod_character_129999_awake0.png",
+        "sha256": "0aba45bfea5440513b0507b2ff717ec54a643a78d4c9b5c56374854fe58cc41a",
+        "stored_sha256": "12f12da61443fc8d71315b9b44cbdc15a59655896482f009a3886f65d8b459ae"
+      }
+    },
+    {
+      "degree_id": 9910014,
+      "character_id": 129999,
+      "state": 1,
+      "row": [
+        "degree_mod_character_129999_awake1",
+        "991014",
+        "赛瑞斯·龙王显现",
+        "degree_mod_character_129999_awake1",
+        "获得条件：将赛瑞斯突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+        "2",
+        "dynamic/degree/background",
+        "item/etc/degree",
+        "dynamic/degree/degree_mod_character_129999_awake1"
+      ],
+      "image": {
+        "file": "png/9910014.png",
+        "logical": "dynamic/degree/degree_mod_character_129999_awake1.png",
+        "sha256": "85096cc490a06d3f4833de5031228ab130f4fd56ccae3f43659011554745d8d4",
+        "stored_sha256": "a1d02cf3eedb038d6a8bee316b176e78ebf556bf53068727d3ae367c297e5a36"
+      }
+    },
+    {
+      "degree_id": 9910015,
+      "character_id": 139995,
+      "state": 0,
+      "row": [
+        "degree_mod_character_139995_awake0",
+        "991015",
+        "稻穗·秋灯九尾",
+        "degree_mod_character_139995_awake0",
+        "获得条件：将稻穗突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+        "2",
+        "dynamic/degree/background",
+        "item/etc/degree",
+        "dynamic/degree/degree_mod_character_139995_awake0"
+      ],
+      "image": {
+        "file": "png/9910015.png",
+        "logical": "dynamic/degree/degree_mod_character_139995_awake0.png",
+        "sha256": "178b2004b923b8f22b6ac5d912f9bf8d7936b91659fbe044e756e04d8c0e74ce",
+        "stored_sha256": "2d5701554a89604298acad0f01b03d25ecfbf2a3416ec62dc7683ba8fa5dc8b6"
+      }
+    },
+    {
+      "degree_id": 9910016,
+      "character_id": 139995,
+      "state": 1,
+      "row": [
+        "degree_mod_character_139995_awake1",
+        "991016",
+        "稻穗·秋灯缭乱",
+        "degree_mod_character_139995_awake1",
+        "获得条件：将稻穗突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+        "2",
+        "dynamic/degree/background",
+        "item/etc/degree",
+        "dynamic/degree/degree_mod_character_139995_awake1"
+      ],
+      "image": {
+        "file": "png/9910016.png",
+        "logical": "dynamic/degree/degree_mod_character_139995_awake1.png",
+        "sha256": "a8c73f6beb5eb4fbad8b223c361a7268d32fa5560c8c0367577f7c78e94e73b9",
+        "stored_sha256": "47885ec0c25bbffc8ac6c15a2028f96a4c2a9381aec551649a3e8da5321259cc"
+      }
+    },
+    {
+      "degree_id": 9910017,
+      "character_id": 139997,
+      "state": 0,
+      "row": [
+        "degree_mod_character_139997_awake0",
+        "991017",
+        "莉莉丝·雷雨的夏日公主",
+        "degree_mod_character_139997_awake0",
+        "获得条件：将莉莉丝突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+        "2",
+        "dynamic/degree/background",
+        "item/etc/degree",
+        "dynamic/degree/degree_mod_character_139997_awake0"
+      ],
+      "image": {
+        "file": "png/9910017.png",
+        "logical": "dynamic/degree/degree_mod_character_139997_awake0.png",
+        "sha256": "a8bf62b9cc5f987151d1a4d7e3a257eb1bd61cb0edc6d53b3d07dc8ccfb785c5",
+        "stored_sha256": "7995252d12fbcd5d11373055c18c6234d04074b9054013a6823eaa2e0ed2fcdb"
+      }
+    },
+    {
+      "degree_id": 9910018,
+      "character_id": 139997,
+      "state": 1,
+      "row": [
+        "degree_mod_character_139997_awake1",
+        "991018",
+        "莉莉丝·环刃变生",
+        "degree_mod_character_139997_awake1",
+        "获得条件：将莉莉丝突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+        "2",
+        "dynamic/degree/background",
+        "item/etc/degree",
+        "dynamic/degree/degree_mod_character_139997_awake1"
+      ],
+      "image": {
+        "file": "png/9910018.png",
+        "logical": "dynamic/degree/degree_mod_character_139997_awake1.png",
+        "sha256": "e8d296fd60577ba516c90e7f767a8aefa51c3adc593e35d047d91872f5be8e90",
+        "stored_sha256": "ac02e56322eef3da69a30219204ac763624c637f2432cf8229448cacc044dda4"
+      }
+    },
+    {
+      "degree_id": 9910019,
+      "character_id": 139998,
+      "state": 0,
+      "row": [
+        "degree_mod_character_139998_awake0",
+        "991019",
+        "拉姆斯·鸣彻碧海的雷龙",
+        "degree_mod_character_139998_awake0",
+        "获得条件：将拉姆斯突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+        "2",
+        "dynamic/degree/background",
+        "item/etc/degree",
+        "dynamic/degree/degree_mod_character_139998_awake0"
+      ],
+      "image": {
+        "file": "png/9910019.png",
+        "logical": "dynamic/degree/degree_mod_character_139998_awake0.png",
+        "sha256": "7ce14af6ade72c0d7dab1ccd23c26476c666b85c158d0d254ad9c4f31e61eed7",
+        "stored_sha256": "a997684d842238a90201d48470bff7af1404be984d1acb62d26b07a036e80d32"
+      }
+    },
+    {
+      "degree_id": 9910020,
+      "character_id": 139998,
+      "state": 1,
+      "row": [
+        "degree_mod_character_139998_awake1",
+        "991020",
+        "拉姆斯·碧海雷潮",
+        "degree_mod_character_139998_awake1",
+        "获得条件：将拉姆斯突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+        "2",
+        "dynamic/degree/background",
+        "item/etc/degree",
+        "dynamic/degree/degree_mod_character_139998_awake1"
+      ],
+      "image": {
+        "file": "png/9910020.png",
+        "logical": "dynamic/degree/degree_mod_character_139998_awake1.png",
+        "sha256": "e74c9ffadc41ee5213c9fa45a054d41fa3589961b28ba4cb4704dced4d8f9c2e",
+        "stored_sha256": "bf818265f7e24ab4be1b69c80dc9a44737428f9511684637486a6a1446ef6193"
+      }
+    },
+    {
+      "degree_id": 9910021,
+      "character_id": 139999,
+      "state": 0,
+      "row": [
+        "degree_mod_character_139999_awake0",
+        "991021",
+        "史黛拉（夏日）·夏日女神",
+        "degree_mod_character_139999_awake0",
+        "获得条件：将史黛拉（夏日）突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+        "2",
+        "dynamic/degree/background",
+        "item/etc/degree",
+        "dynamic/degree/degree_mod_character_139999_awake0"
+      ],
+      "image": {
+        "file": "png/9910021.png",
+        "logical": "dynamic/degree/degree_mod_character_139999_awake0.png",
+        "sha256": "ea2095e5d4a74dda0f09769390eaebc7af4372d7c4ce0a7c37ffd4ac8876e091",
+        "stored_sha256": "feb679941074beb835018cda0024d3bdb4b3dbd05bea1ab491a37783c07b5366"
+      }
+    },
+    {
+      "degree_id": 9910022,
+      "character_id": 139999,
+      "state": 1,
+      "row": [
+        "degree_mod_character_139999_awake1",
+        "991022",
+        "史黛拉（夏日）·海滩的守望之光",
+        "degree_mod_character_139999_awake1",
+        "获得条件：将史黛拉（夏日）突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+        "2",
+        "dynamic/degree/background",
+        "item/etc/degree",
+        "dynamic/degree/degree_mod_character_139999_awake1"
+      ],
+      "image": {
+        "file": "png/9910022.png",
+        "logical": "dynamic/degree/degree_mod_character_139999_awake1.png",
+        "sha256": "8ff49f8587ec890a39ce6f7df24ec8ff4c8cf34b7eb04a8aa4c360042a94ddc7",
+        "stored_sha256": "ba69ad93a9c2c3308afcfd3c8732310c774463aa778380deb8e03afc1f2261fd"
+      }
+    },
+    {
+      "degree_id": 9910023,
+      "character_id": 149988,
+      "state": 0,
+      "row": [
+        "degree_mod_character_149988_awake0",
+        "991023",
+        "盾牌座·庆典星盾",
+        "degree_mod_character_149988_awake0",
+        "获得条件：将盾牌座突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+        "2",
+        "dynamic/degree/background",
+        "item/etc/degree",
+        "dynamic/degree/degree_mod_character_149988_awake0"
+      ],
+      "image": {
+        "file": "png/9910023.png",
+        "logical": "dynamic/degree/degree_mod_character_149988_awake0.png",
+        "sha256": "e66a919e492965877620830ea31af3e3d69e817d2a4823d5e90970aff592aa36",
+        "stored_sha256": "907afba95a1623465ede90486829af48cad58a6f6a05df4bd11f94918462fc86"
+      }
+    },
+    {
+      "degree_id": 9910024,
+      "character_id": 149988,
+      "state": 1,
+      "row": [
+        "degree_mod_character_149988_awake1",
+        "991024",
+        "盾牌座·青苔的爱",
+        "degree_mod_character_149988_awake1",
+        "获得条件：将盾牌座突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+        "2",
+        "dynamic/degree/background",
+        "item/etc/degree",
+        "dynamic/degree/degree_mod_character_149988_awake1"
+      ],
+      "image": {
+        "file": "png/9910024.png",
+        "logical": "dynamic/degree/degree_mod_character_149988_awake1.png",
+        "sha256": "33c62bd0198eacd693fca8b5a5d803b7daf5341dbbe87e35e19d6e1f1f2a07fc",
+        "stored_sha256": "2a0fd855b52d4f34b79d6dc7238fb3522c5c2eb8c0a575e0877e936a70af82e8"
+      }
+    },
+    {
+      "degree_id": 9910025,
+      "character_id": 149989,
+      "state": 0,
+      "row": [
+        "degree_mod_character_149989_awake0",
+        "991025",
+        "希尔媞·定格星风的剑圣",
+        "degree_mod_character_149989_awake0",
+        "获得条件：将希尔媞突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+        "2",
+        "dynamic/degree/background",
+        "item/etc/degree",
+        "dynamic/degree/degree_mod_character_149989_awake0"
+      ],
+      "image": {
+        "file": "png/9910025.png",
+        "logical": "dynamic/degree/degree_mod_character_149989_awake0.png",
+        "sha256": "6ac2b1e825a69746386d0fe4e9a81b3659492d8fcbb1784ed56602290841b625",
+        "stored_sha256": "9a6fb56cddebe321d220fdad0c0e18b36cff08e8504dec2a4a4e3c509ce8f871"
+      }
+    },
+    {
+      "degree_id": 9910026,
+      "character_id": 149989,
+      "state": 1,
+      "row": [
+        "degree_mod_character_149989_awake1",
+        "991026",
+        "希尔媞·十字双空牙",
+        "degree_mod_character_149989_awake1",
+        "获得条件：将希尔媞突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+        "2",
+        "dynamic/degree/background",
+        "item/etc/degree",
+        "dynamic/degree/degree_mod_character_149989_awake1"
+      ],
+      "image": {
+        "file": "png/9910026.png",
+        "logical": "dynamic/degree/degree_mod_character_149989_awake1.png",
+        "sha256": "2fdb1487b183479349d3ff1985dc9c05d735d80f8a8639958b65df6e1fdf124f",
+        "stored_sha256": "42316ad6512dd5b832ce8074c1d706032baaacd1756c3f59215e61cd56ba8b4c"
+      }
+    },
+    {
+      "degree_id": 9910027,
+      "character_id": 149990,
+      "state": 0,
+      "row": [
+        "degree_mod_character_149990_awake0",
+        "991027",
+        "白·盛夏白虎兽人",
+        "degree_mod_character_149990_awake0",
+        "获得条件：将白突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+        "2",
+        "dynamic/degree/background",
+        "item/etc/degree",
+        "dynamic/degree/degree_mod_character_149990_awake0"
+      ],
+      "image": {
+        "file": "png/9910027.png",
+        "logical": "dynamic/degree/degree_mod_character_149990_awake0.png",
+        "sha256": "f2eebb248bd879e4cbcf9373a6f1f8bab814791cd71bbfba417206a5b736e283",
+        "stored_sha256": "de8cf0f30b93ae32131a71380856b2822e2b37c6835064903436be0405bb9aaa"
+      }
+    },
+    {
+      "degree_id": 9910028,
+      "character_id": 149990,
+      "state": 1,
+      "row": [
+        "degree_mod_character_149990_awake1",
+        "991028",
+        "白·盛夏咆哮",
+        "degree_mod_character_149990_awake1",
+        "获得条件：将白突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+        "2",
+        "dynamic/degree/background",
+        "item/etc/degree",
+        "dynamic/degree/degree_mod_character_149990_awake1"
+      ],
+      "image": {
+        "file": "png/9910028.png",
+        "logical": "dynamic/degree/degree_mod_character_149990_awake1.png",
+        "sha256": "99f0540f8f42029f0e1d9f1eeb3dc8af37e0275f3c0ead5fcea19b8d81fb1688",
+        "stored_sha256": "9ee9b7daa8f24debf31bf9775e5dc53554dab2b65da8f40e2c1b39d9af862870"
+      }
+    },
+    {
+      "degree_id": 9910029,
+      "character_id": 149995,
+      "state": 0,
+      "row": [
+        "degree_mod_character_149995_awake0",
+        "991029",
+        "希耶提·十天众之首",
+        "degree_mod_character_149995_awake0",
+        "获得条件：将希耶提突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+        "2",
+        "dynamic/degree/background",
+        "item/etc/degree",
+        "dynamic/degree/degree_mod_character_149995_awake0"
+      ],
+      "image": {
+        "file": "png/9910029.png",
+        "logical": "dynamic/degree/degree_mod_character_149995_awake0.png",
+        "sha256": "5aa1e7c6e40dc71653658532ac0bd956fa6734129d91a4ded24082cdf3ef6021",
+        "stored_sha256": "a0c184bd05a1fbb41f962873aa7dcea1eac13f914a275fac263fc5f36823fbf4"
+      }
+    },
+    {
+      "degree_id": 9910030,
+      "character_id": 149995,
+      "state": 1,
+      "row": [
+        "degree_mod_character_149995_awake1",
+        "991030",
+        "希耶提·十万剑",
+        "degree_mod_character_149995_awake1",
+        "获得条件：将希耶提突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+        "2",
+        "dynamic/degree/background",
+        "item/etc/degree",
+        "dynamic/degree/degree_mod_character_149995_awake1"
+      ],
+      "image": {
+        "file": "png/9910030.png",
+        "logical": "dynamic/degree/degree_mod_character_149995_awake1.png",
+        "sha256": "2c2b014ea613a92b2cebcaf950ab366f55fe0d6e0dfa83ba89893be92c1bf9ee",
+        "stored_sha256": "b42f613f562e4a415dc80da57d0b8f114064fb6042385f22b654fdbb1e66e460"
+      }
+    },
+    {
+      "degree_id": 9910031,
+      "character_id": 149996,
+      "state": 0,
+      "row": [
+        "degree_mod_character_149996_awake0",
+        "991031",
+        "希尔媞·苍蓝疾光",
+        "degree_mod_character_149996_awake0",
+        "获得条件：将希尔媞突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+        "2",
+        "dynamic/degree/background",
+        "item/etc/degree",
+        "dynamic/degree/degree_mod_character_149996_awake0"
+      ],
+      "image": {
+        "file": "png/9910031.png",
+        "logical": "dynamic/degree/degree_mod_character_149996_awake0.png",
+        "sha256": "96dd9b9486d45a3358e0a3962d9e6fca8de223f56d46e17b67b976528bf2539f",
+        "stored_sha256": "ae6c9b74d0535ff4ca49981fd012a8cecc884aa1669ef753052ee11ddf724d87"
+      }
+    },
+    {
+      "degree_id": 9910032,
+      "character_id": 149996,
+      "state": 1,
+      "row": [
+        "degree_mod_character_149996_awake1",
+        "991032",
+        "希尔媞·疾影·瞬闪",
+        "degree_mod_character_149996_awake1",
+        "获得条件：将希尔媞突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+        "2",
+        "dynamic/degree/background",
+        "item/etc/degree",
+        "dynamic/degree/degree_mod_character_149996_awake1"
+      ],
+      "image": {
+        "file": "png/9910032.png",
+        "logical": "dynamic/degree/degree_mod_character_149996_awake1.png",
+        "sha256": "4c19b1acf775c3cbad099d999ec05e0712eb99b120136c636854645654308839",
+        "stored_sha256": "1ac6229d21d81bb3b32ea12eeb3fc0a61a68cc5d6799256d7074b4a4ab6abde2"
+      }
+    },
+    {
+      "degree_id": 9910033,
+      "character_id": 149997,
+      "state": 0,
+      "row": [
+        "degree_mod_character_149997_awake0",
+        "991033",
+        "墨斯伊克·游历世界的羽龙",
+        "degree_mod_character_149997_awake0",
+        "获得条件：将墨斯伊克突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+        "2",
+        "dynamic/degree/background",
+        "item/etc/degree",
+        "dynamic/degree/degree_mod_character_149997_awake0"
+      ],
+      "image": {
+        "file": "png/9910033.png",
+        "logical": "dynamic/degree/degree_mod_character_149997_awake0.png",
+        "sha256": "0e5f3f2e102782ebfa37a6c3c5ffd7123b0c290fd199aa99fc007154e70367d7",
+        "stored_sha256": "15d81df93f6265c44d75ad138c6ebda9f1115ace664fbd287af31ae3c1ce654b"
+      }
+    },
+    {
+      "degree_id": 9910034,
+      "character_id": 149997,
+      "state": 1,
+      "row": [
+        "degree_mod_character_149997_awake1",
+        "991034",
+        "墨斯伊克·庇佑之风",
+        "degree_mod_character_149997_awake1",
+        "获得条件：将墨斯伊克突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+        "2",
+        "dynamic/degree/background",
+        "item/etc/degree",
+        "dynamic/degree/degree_mod_character_149997_awake1"
+      ],
+      "image": {
+        "file": "png/9910034.png",
+        "logical": "dynamic/degree/degree_mod_character_149997_awake1.png",
+        "sha256": "26633feb0bc23e62bb4f73c5e444ea567c8fb53767dbc5d2880ec193dac2102d",
+        "stored_sha256": "67a7f8049b47062bd34b5a0de7192d284a6dde387668b97783b3dffd52ee3de8"
+      }
+    },
+    {
+      "degree_id": 9910035,
+      "character_id": 149999,
+      "state": 0,
+      "row": [
+        "degree_mod_character_149999_awake0",
+        "991035",
+        "杰拉德·白狼骑士",
+        "degree_mod_character_149999_awake0",
+        "获得条件：将杰拉德突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+        "2",
+        "dynamic/degree/background",
+        "item/etc/degree",
+        "dynamic/degree/degree_mod_character_149999_awake0"
+      ],
+      "image": {
+        "file": "png/9910035.png",
+        "logical": "dynamic/degree/degree_mod_character_149999_awake0.png",
+        "sha256": "3001a28a6afe0bf2b8540bd61710657949c85fdc31a5bcf6c021324d7a7edbfe",
+        "stored_sha256": "f39d02cb1dae30be73918f92901a5721ba1fa09a8573ed597f029ca8cde8a12c"
+      }
+    },
+    {
+      "degree_id": 9910036,
+      "character_id": 149999,
+      "state": 1,
+      "row": [
+        "degree_mod_character_149999_awake1",
+        "991036",
+        "杰拉德·月耀一闪",
+        "degree_mod_character_149999_awake1",
+        "获得条件：将杰拉德突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+        "2",
+        "dynamic/degree/background",
+        "item/etc/degree",
+        "dynamic/degree/degree_mod_character_149999_awake1"
+      ],
+      "image": {
+        "file": "png/9910036.png",
+        "logical": "dynamic/degree/degree_mod_character_149999_awake1.png",
+        "sha256": "031d2733ce8ad2ce357988a8e3ca6f2d3567a218b5d29d1c74537d4af0e5a39d",
+        "stored_sha256": "acde6e1d92e0ea80fe5f5201cda8d24117b031d1eab4da1dcddc31bb5b08ee68"
+      }
+    },
+    {
+      "degree_id": 9910037,
+      "character_id": 169989,
+      "state": 0,
+      "row": [
+        "degree_mod_character_169989_awake0",
+        "991037",
+        "奈芙提姆·午后珍珠星光",
+        "degree_mod_character_169989_awake0",
+        "获得条件：将奈芙提姆突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+        "2",
+        "dynamic/degree/background",
+        "item/etc/degree",
+        "dynamic/degree/degree_mod_character_169989_awake0"
+      ],
+      "image": {
+        "file": "png/9910037.png",
+        "logical": "dynamic/degree/degree_mod_character_169989_awake0.png",
+        "sha256": "b0e523f5e8e099f376902f7a84248742e71120f0963d920602b13ce64fe2f763",
+        "stored_sha256": "75cf778e8645df6eab980835daa56c6ed0b1344c1bb798b9c29f075cda5b4054"
+      }
+    },
+    {
+      "degree_id": 9910038,
+      "character_id": 169989,
+      "state": 1,
+      "row": [
+        "degree_mod_character_169989_awake1",
+        "991038",
+        "奈芙提姆·甜蜜续杯",
+        "degree_mod_character_169989_awake1",
+        "获得条件：将奈芙提姆突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+        "2",
+        "dynamic/degree/background",
+        "item/etc/degree",
+        "dynamic/degree/degree_mod_character_169989_awake1"
+      ],
+      "image": {
+        "file": "png/9910038.png",
+        "logical": "dynamic/degree/degree_mod_character_169989_awake1.png",
+        "sha256": "f34caf33f02c24723746ad0c0d5e4d7c67e01ad9e334f408a8498605cc0189c8",
+        "stored_sha256": "6f9898f1509aafc749b04481191801f49b0bd4d3506363845afae9812d9f560b"
+      }
+    },
+    {
+      "degree_id": 9910039,
+      "character_id": 169996,
+      "state": 0,
+      "row": [
+        "degree_mod_character_169996_awake0",
+        "991039",
+        "西蒙·愿望的牧羊人",
+        "degree_mod_character_169996_awake0",
+        "获得条件：将西蒙突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+        "2",
+        "dynamic/degree/background",
+        "item/etc/degree",
+        "dynamic/degree/degree_mod_character_169996_awake0"
+      ],
+      "image": {
+        "file": "png/9910039.png",
+        "logical": "dynamic/degree/degree_mod_character_169996_awake0.png",
+        "sha256": "12a512e0e31d4cf4302a12f8b5e6241259376a66b159d97b15f0d955afc3da69",
+        "stored_sha256": "301455f51524965f64a05ca8cb8d5723be57e04b697c19b7e7394f1b81a7a11e"
+      }
+    },
+    {
+      "degree_id": 9910040,
+      "character_id": 169996,
+      "state": 1,
+      "row": [
+        "degree_mod_character_169996_awake1",
+        "991040",
+        "西蒙·众生之愿",
+        "degree_mod_character_169996_awake1",
+        "获得条件：将西蒙突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+        "2",
+        "dynamic/degree/background",
+        "item/etc/degree",
+        "dynamic/degree/degree_mod_character_169996_awake1"
+      ],
+      "image": {
+        "file": "png/9910040.png",
+        "logical": "dynamic/degree/degree_mod_character_169996_awake1.png",
+        "sha256": "f74df4904209935f8075cf2bac7ae4111c23f07dcf05b3168394dfffae96a68f",
+        "stored_sha256": "287d4a239227fccb25c019a0d642f155de04a974777cfcec39a07b3cf160ba1c"
+      }
+    },
+    {
+      "degree_id": 9910041,
+      "character_id": 169997,
+      "state": 0,
+      "row": [
+        "degree_mod_character_169997_awake0",
+        "991041",
+        "巴萨拉卡·不死大镰",
+        "degree_mod_character_169997_awake0",
+        "获得条件：将巴萨拉卡突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+        "2",
+        "dynamic/degree/background",
+        "item/etc/degree",
+        "dynamic/degree/degree_mod_character_169997_awake0"
+      ],
+      "image": {
+        "file": "png/9910041.png",
+        "logical": "dynamic/degree/degree_mod_character_169997_awake0.png",
+        "sha256": "34e437726dfedc8d9ec75e2e4b5eefd28446e0bf2c31a726ef9d093c0cfd3155",
+        "stored_sha256": "a776aa661aec836c550e530f216e3a842ed64814885632001c97c1f96bf5c219"
+      }
+    },
+    {
+      "degree_id": 9910042,
+      "character_id": 169997,
+      "state": 1,
+      "row": [
+        "degree_mod_character_169997_awake1",
+        "991042",
+        "巴萨拉卡·失落传说",
+        "degree_mod_character_169997_awake1",
+        "获得条件：将巴萨拉卡突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+        "2",
+        "dynamic/degree/background",
+        "item/etc/degree",
+        "dynamic/degree/degree_mod_character_169997_awake1"
+      ],
+      "image": {
+        "file": "png/9910042.png",
+        "logical": "dynamic/degree/degree_mod_character_169997_awake1.png",
+        "sha256": "6ede374051ef09ba4321389bfeb919caa7737365ec2df7e09dc98e003fb18ce6",
+        "stored_sha256": "1db06da63b29b225f39e4d5b88abc13aa4c99917c6c96f78f248195ff92c4a6c"
+      }
+    },
+    {
+      "degree_id": 9910043,
+      "character_id": 169998,
+      "state": 0,
+      "row": [
+        "degree_mod_character_169998_awake0",
+        "991043",
+        "拉芙·NY★绯樱夜宴",
+        "degree_mod_character_169998_awake0",
+        "获得条件：将拉芙突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+        "2",
+        "dynamic/degree/background",
+        "item/etc/degree",
+        "dynamic/degree/degree_mod_character_169998_awake0"
+      ],
+      "image": {
+        "file": "png/9910043.png",
+        "logical": "dynamic/degree/degree_mod_character_169998_awake0.png",
+        "sha256": "89402a2a2df1cc3249a4e5a8d93b73b8baa8cb301bdceb92d9aaf353c2b8e093",
+        "stored_sha256": "58e4ee44382b231a0502804038307d075d8417ceb8500901106706b7f6dc34bb"
+      }
+    },
+    {
+      "degree_id": 9910044,
+      "character_id": 169998,
+      "state": 1,
+      "row": [
+        "degree_mod_character_169998_awake1",
+        "991044",
+        "拉芙·绯樱唱诗班",
+        "degree_mod_character_169998_awake1",
+        "获得条件：将拉芙突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+        "2",
+        "dynamic/degree/background",
+        "item/etc/degree",
+        "dynamic/degree/degree_mod_character_169998_awake1"
+      ],
+      "image": {
+        "file": "png/9910044.png",
+        "logical": "dynamic/degree/degree_mod_character_169998_awake1.png",
+        "sha256": "d4cac5faa1214979b015a557998b82a542414bb6d23d8990c17fb87670ae5a60",
+        "stored_sha256": "bfd2b4509b23fd6bf16742d34c28e087e7625459c684e6540bbda0092e0f88a9"
+      }
+    },
+    {
+      "degree_id": 9910045,
+      "character_id": 169999,
+      "state": 0,
+      "row": [
+        "degree_mod_character_169999_awake0",
+        "991045",
+        "基诺维·破契的黑鸦",
+        "degree_mod_character_169999_awake0",
+        "获得条件：将基诺维突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+        "2",
+        "dynamic/degree/background",
+        "item/etc/degree",
+        "dynamic/degree/degree_mod_character_169999_awake0"
+      ],
+      "image": {
+        "file": "png/9910045.png",
+        "logical": "dynamic/degree/degree_mod_character_169999_awake0.png",
+        "sha256": "77b1aac18bad539ad9a08956f5f5c59d74c73c000de5847cdce4be38cfd08686",
+        "stored_sha256": "3c2acac60eccf180527fa65bd3d558aef16f1c7ac04e3e0959c04f8c2799aa01"
+      }
+    },
+    {
+      "degree_id": 9910046,
+      "character_id": 169999,
+      "state": 1,
+      "row": [
+        "degree_mod_character_169999_awake1",
+        "991046",
+        "基诺维·掠影协奏",
+        "degree_mod_character_169999_awake1",
+        "获得条件：将基诺维突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+        "2",
+        "dynamic/degree/background",
+        "item/etc/degree",
+        "dynamic/degree/degree_mod_character_169999_awake1"
+      ],
+      "image": {
+        "file": "png/9910046.png",
+        "logical": "dynamic/degree/degree_mod_character_169999_awake1.png",
+        "sha256": "aeee364a6a40fb43a4688f2b2986c9dbddb54c96aaf9371d8a958b870b0470a3",
+        "stored_sha256": "b6d57b161c9794942806a8c8b5e06feac34da48ddf5cdded2cb0d5532ee8e11a"
+      }
+    },
+    {
+      "degree_id": 9910047,
+      "character_id": 179999,
+      "state": 0,
+      "row": [
+        "degree_mod_character_179999_awake0",
+        "991047",
+        "罗尔夫·雪夜里的炉火",
+        "degree_mod_character_179999_awake0",
+        "获得条件：将罗尔夫突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+        "2",
+        "dynamic/degree/background",
+        "item/etc/degree",
+        "dynamic/degree/degree_mod_character_179999_awake0"
+      ],
+      "image": {
+        "file": "png/9910047.png",
+        "logical": "dynamic/degree/degree_mod_character_179999_awake0.png",
+        "sha256": "ed76cc19f2955b66a3eb07ebf7fcb21cd4e7492288c298078f18e1b757f83971",
+        "stored_sha256": "ab441a532c51d83816c3121c3e9fbc7ab6799d0fd4b7eee66656c71617d472ed"
+      }
+    },
+    {
+      "degree_id": 9910048,
+      "character_id": 179999,
+      "state": 1,
+      "row": [
+        "degree_mod_character_179999_awake1",
+        "991048",
+        "罗尔夫·炉心颂歌",
+        "degree_mod_character_179999_awake1",
+        "获得条件：将罗尔夫突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+        "2",
+        "dynamic/degree/background",
+        "item/etc/degree",
+        "dynamic/degree/degree_mod_character_179999_awake1"
+      ],
+      "image": {
+        "file": "png/9910048.png",
+        "logical": "dynamic/degree/degree_mod_character_179999_awake1.png",
+        "sha256": "e1790702066457a0cd804886c7c96fa64779630485344824fc160bfff4d34224",
+        "stored_sha256": "ce44699faf18f568fa6cc1793ed2cee2039de9b93670cf499cff6895ff1bc95c"
+      }
+    }
+  ]
+}

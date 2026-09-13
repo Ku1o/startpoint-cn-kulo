@@ -1,0 +1,139 @@
+{
+  "schema_version": 1,
+  "branch": "staging",
+  "base_commit": "726d6771efadbaf82f4178fc034b01810a8d00fb",
+  "base_version": "1.4.107",
+  "target_version": "1.4.108",
+  "committed": false,
+  "pushed": false,
+  "runtime_synced": false,
+  "cloud_overlay_created": false,
+  "cloud_deployed": false,
+  "work_directory": "F:\\codex\\work\\reborn-degrees-1.4.108-20260913-153326",
+  "validation": {
+    "typecheck": "passed",
+    "isolated_npm_build": "passed",
+    "new_server_and_save_http_tests": 14,
+    "existing_regressions": 28,
+    "android_ios_asset_http_tests": 2,
+    "resource_regressions": 7,
+    "total_selected_tests": 51,
+    "effective_chain_verified": "1.4.108",
+    "existing_rows_preserved": 1497,
+    "new_rows": 48,
+    "images": 48,
+    "archive_members": 49,
+    "preexisting_files_unchanged_except_appended_pending_entry": 202,
+    "old_pending_content_preserved": true,
+    "source_outputs_match_isolated_build": true,
+    "runtime_mirror_modified": false,
+    "cloud_deployed": false,
+    "device_tested": false,
+    "shared_manifest_sha256": "91018e3e97b5e8381069a3f39c47de7d95db9d00de3045183df1733a220f4f1e",
+    "shared_release_archive_count": 2,
+    "shared_release_download_bytes": 1837788,
+    "parallel_component_archives_preserved": [
+      {
+        "path": "assets/asset-patch/active/pinball-1.4.107-1.4.108-2-epuration-gacha.zip",
+        "bytes": 10190,
+        "sha256": "51e148075ca1e166b661f99c7617921f473232eda1cb697e2ff28795059f7b33"
+      }
+    ],
+    "shared_release_download_http_checked": true,
+    "last_http_verified_manifest_sha256": "91018e3e97b5e8381069a3f39c47de7d95db9d00de3045183df1733a220f4f1e",
+    "verified_at": "2026-09-13T16:01:09.850541+08:00"
+  },
+  "runtime_files": [
+    {
+      "path": "src/lib/character-degree-catalog.ts",
+      "bytes": 2194,
+      "sha256": "ff6f3e1a9384e6528e0044358dd8e06c680ac9cb0363fa3882b7707e9151e70f"
+    },
+    {
+      "path": "src/lib/character-degree-rewards.ts",
+      "bytes": 3342,
+      "sha256": "dc2eb86fa67f4486b028be64cb79699425def9f967ce73bb1caabf027b4f6bf5"
+    },
+    {
+      "path": "src/lib/character.ts",
+      "bytes": 11067,
+      "sha256": "077928d2a09a69c280a7a1320d3f23eed4256a0d01aa0f91369a9fc04bdb360c"
+    },
+    {
+      "path": "src/lib/content-master.ts",
+      "bytes": 3473,
+      "sha256": "9f98c1923582bc52125608e194f49a9fe670de4220cac2e87ad51ba7e82397c5"
+    },
+    {
+      "path": "src/lib/mission/battle-dimensions.ts",
+      "bytes": 9606,
+      "sha256": "1f9b286c2d56fab80c28b4a51ddc8762c7b012b8cc8c6c13a5d1993e329e2ff6"
+    },
+    {
+      "path": "src/routes/api/character.ts",
+      "bytes": 13153,
+      "sha256": "9765b08a2135529722887ba83916164e1740767c887a5934240f50452c6acdaa"
+    },
+    {
+      "path": "out/lib/character-degree-catalog.js",
+      "bytes": 2490,
+      "sha256": "0e6a3f0fbebb1c078d2b0d5ed7fa91c41b40bc53f020050181ab9ddee4a10d29"
+    },
+    {
+      "path": "out/lib/character-degree-rewards.js",
+      "bytes": 3783,
+      "sha256": "af3604308745684ac2ccac2925440768004d304ca52ea09add6453fbf954d5bb"
+    },
+    {
+      "path": "out/lib/character.js",
+      "bytes": 11039,
+      "sha256": "58895b6138f6ea3abf16848684e9f85d3315499084ac5fc05d4e3caefe49b112"
+    },
+    {
+      "path": "out/lib/content-master.js",
+      "bytes": 4905,
+      "sha256": "205f115f1f71e945a19b42cc831aa585c3d046ff65ff8b08a48d736f5e2c0f62"
+    },
+    {
+      "path": "out/lib/mission/battle-dimensions.js",
+      "bytes": 9743,
+      "sha256": "e44726a70c24352b887acde82da2480f8a01fb3a76639fd157b98279e05d6f78"
+    },
+    {
+      "path": "out/routes/api/character.js",
+      "bytes": 14363,
+      "sha256": "6f6151992646d2089db5c49bcc8711fcbfb655c0e59907985621651189b62ad5"
+    },
+    {
+      "path": "assets/degree_character_mod.json",
+      "bytes": 15105,
+      "sha256": "0ed8d6140cc7bfbf7990c608e79d73544dce3f30b92b12890b8886d56daaac96"
+    },
+    {
+      "path": "assets/character_degree_rewards.json",
+      "bytes": 2611,
+      "sha256": "5a60a4085ec5682c0773e60a4bd3cc4d5e131b069ca848d04242b5f786372184"
+    },
+    {
+      "path": "assets/asset-patch/manifest.json",
+      "bytes": 934746,
+      "sha256": "91018e3e97b5e8381069a3f39c47de7d95db9d00de3045183df1733a220f4f1e"
+    },
+    {
+      "path": "assets/asset-patch/active/pinball-1.4.107-1.4.108-1-reborn-character-degrees.zip",
+      "bytes": 1827598,
+      "sha256": "99175068d87d22887b48cce0f06d61a9235c66f2c552bbdacccb6374a8dc0d10"
+    }
+  ],
+  "shared_release_dependencies": {
+    "component_audit_directory": "assets/asset-patch/audit/epuration-gacha-1.4.108",
+    "additional_archives": [
+      {
+        "path": "assets/asset-patch/active/pinball-1.4.107-1.4.108-2-epuration-gacha.zip",
+        "bytes": 10190,
+        "sha256": "51e148075ca1e166b661f99c7617921f473232eda1cb697e2ff28795059f7b33"
+      }
+    ],
+    "note": "These parallel-component archives and its server files must accompany the shared manifest; see the component audit."
+  }
+}

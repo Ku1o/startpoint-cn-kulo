@@ -1,0 +1,33 @@
+{
+  "typecheck": "passed",
+  "isolated_npm_build": "passed",
+  "new_server_and_save_http_tests": 14,
+  "existing_regressions": 28,
+  "android_ios_asset_http_tests": 2,
+  "resource_regressions": 7,
+  "total_selected_tests": 51,
+  "effective_chain_verified": "1.4.108",
+  "existing_rows_preserved": 1497,
+  "new_rows": 48,
+  "images": 48,
+  "archive_members": 49,
+  "preexisting_files_unchanged_except_appended_pending_entry": 202,
+  "old_pending_content_preserved": true,
+  "source_outputs_match_isolated_build": true,
+  "runtime_mirror_modified": false,
+  "cloud_deployed": false,
+  "device_tested": false,
+  "shared_manifest_sha256": "91018e3e97b5e8381069a3f39c47de7d95db9d00de3045183df1733a220f4f1e",
+  "shared_release_archive_count": 2,
+  "shared_release_download_bytes": 1837788,
+  "parallel_component_archives_preserved": [
+    {
+      "path": "assets/asset-patch/active/pinball-1.4.107-1.4.108-2-epuration-gacha.zip",
+      "bytes": 10190,
+      "sha256": "51e148075ca1e166b661f99c7617921f473232eda1cb697e2ff28795059f7b33"
+    }
+  ],
+  "shared_release_download_http_checked": true,
+  "last_http_verified_manifest_sha256": "91018e3e97b5e8381069a3f39c47de7d95db9d00de3045183df1733a220f4f1e",
+  "verified_at": "2026-09-13T16:01:09.850541+08:00"
+}
