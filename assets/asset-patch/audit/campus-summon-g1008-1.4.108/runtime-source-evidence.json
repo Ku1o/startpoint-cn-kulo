@@ -1,0 +1,50 @@
+{
+  "swf_sha256": "e60cc4a82e3b305257040dedc54d180794234e2c2d4d3cef68a105b9f8405927",
+  "class_files": [
+    {
+      "path": "F:\\codex\\work\\practice-g1008-h400-20260913\\decompiled\\scripts\\pinball\\scene\\battle\\battle\\action\\ActionEvaluator.as",
+      "sha256": "3af1ae620bda0415652831fabf1ff926f20bf6955bcad5d7978501a7cd9a2d87"
+    },
+    {
+      "path": "F:\\codex\\work\\campus-bianca-g1008-repro-20260913\\decompiled\\scripts\\pinball\\scene\\battle\\battle\\action\\ActionEvaluatorManager.as",
+      "sha256": "3836cb1f5d7dcf58fd7b39409db5416d2d8e77c538dff5b5396d6760e070e6eb"
+    },
+    {
+      "path": "F:\\codex\\work\\campus-bianca-g1008-repro-20260913\\decompiled\\scripts\\pinball\\scene\\battle\\battle\\action\\ListeningEvent.as",
+      "sha256": "99f133e3c08cafa1ecb3a27404b7f48fc64512e8ddf87f82be0ad204605390fd"
+    },
+    {
+      "path": "F:\\codex\\work\\practice-g1008-h400-20260913\\decompiled\\scripts\\pinball\\master\\generated\\UniqueConditionValues.as",
+      "sha256": "a5996a9093b9f2cb8ce6ef3735bd26e3b5d56859a3337718ae59e8d7c36e8b5b"
+    },
+    {
+      "path": "F:\\codex\\work\\practice-g1008-h400-20260913\\decompiled\\scripts\\pinball\\scene\\battle\\battle\\Battle.as",
+      "sha256": "3f090e3e6f411a6ca28a31d70328c9c27b1242558dc8659e80cab5d3e704a5c2"
+    },
+    {
+      "path": "F:\\codex\\work\\campus-bianca-g1008-repro-20260913\\decompiled\\scripts\\pinball\\scene\\battle\\battle\\squad\\SquadImpl.as",
+      "sha256": "a442f75a511b15f9edab8db3ceadbd6cb6e51e2cc1a723d48e4a46b551a9c753"
+    },
+    {
+      "path": "F:\\codex\\work\\practice-g1008-h400-20260913\\decompiled\\scripts\\pinball\\scene\\battle\\battle\\squad\\member\\MemberImpl.as",
+      "sha256": "70155d925206413396c66202563c9d98cc02bdbb4d5956e3192c963a421ef6fb"
+    },
+    {
+      "path": "F:\\codex\\work\\practice-g1008-h400-20260913\\decompiled\\scripts\\pinball\\scene\\battle\\battle\\squad\\SquadManagerImpl.as",
+      "sha256": "b73730fddc3a11f5e1861a7fefc52b2288dd994582837b250c31c2640b08d1e4"
+    },
+    {
+      "path": "F:\\codex\\work\\practice-g1008-h400-20260913\\decompiled\\scripts\\pinball\\scene\\battle\\battle\\impact\\ImpactManagerImpl.as",
+      "sha256": "beef261639ce7fbd084457dd7707cf5b9a8e674bf2f9c807bc4784244eea865a"
+    },
+    {
+      "path": "F:\\codex\\work\\campus-nephtim-g1008-20260913\\decompiled\\scripts\\pinball\\scene\\battle\\battle\\action\\ActionEvaluationResolver.as",
+      "sha256": "bc2a41ff6a37186875f877328f21d346b7b4d23d5e533b0cc63b1f63b634bf56"
+    },
+    {
+      "path": "F:\\codex\\work\\practice-g1008-h400-20260913\\decompiled\\scripts\\jp\\sipo\\gipo\\core\\Gear.as",
+      "sha256": "ad09f9dfd4e9433be54d83bfb317b10f29b7a7727806f29427c3c0a996d77688"
+    }
+  ],
+  "AIR_or_device_executed": false
+}

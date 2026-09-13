@@ -1,0 +1,59 @@
+{
+  "passed": true,
+  "in_process_route_test": true,
+  "runtime_service_or_device_tested": false,
+  "source_route_sha256": "2d8ce867187b99826431d2b73b88bc0d4f330654197e098f0a49fe7b5eebb438",
+  "compiled_route_sha256": "f98df56ee9a10740220f8d9e03e81d555ab8b97fecca684d42be70224f93b327",
+  "receipts": [
+    {
+      "device": "Android",
+      "from": "1.4.107",
+      "to": "1.4.108",
+      "archives": [
+        {
+          "name": "pinball-1.4.107-1.4.108-1-reborn-character-degrees.zip",
+          "size": 1827598
+        },
+        {
+          "name": "pinball-1.4.107-1.4.108-2-epuration-gacha.zip",
+          "size": 10190
+        },
+        {
+          "name": "pinball-1.4.107-1.4.108-3-campus-summon-g1008.zip",
+          "size": 5135
+        }
+      ]
+    },
+    {
+      "device": "Android",
+      "from": "1.4.108",
+      "to": "1.4.108",
+      "no_repeat_download": true
+    },
+    {
+      "device": "iOS",
+      "from": "1.4.107",
+      "to": "1.4.108",
+      "archives": [
+        {
+          "name": "pinball-1.4.107-1.4.108-1-reborn-character-degrees.zip",
+          "size": 1827598
+        },
+        {
+          "name": "pinball-1.4.107-1.4.108-2-epuration-gacha.zip",
+          "size": 10190
+        },
+        {
+          "name": "pinball-1.4.107-1.4.108-3-campus-summon-g1008.zip",
+          "size": 5135
+        }
+      ]
+    },
+    {
+      "device": "iOS",
+      "from": "1.4.108",
+      "to": "1.4.108",
+      "no_repeat_download": true
+    }
+  ]
+}

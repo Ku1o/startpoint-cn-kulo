@@ -1,0 +1,8 @@
+{
+  "tests": 11,
+  "failures": 0,
+  "errors": 0,
+  "passed": true,
+  "scope": "actual before/after resources and source-grounded bounded lifecycle models",
+  "device_or_AIR_tested": false
+}

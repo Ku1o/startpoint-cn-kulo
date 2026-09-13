@@ -1,0 +1,219 @@
+{
+  "base": "1.4.107",
+  "target": "1.4.108",
+  "archive": {
+    "name": "pinball-1.4.107-1.4.108-3-campus-summon-g1008.zip",
+    "size": 5135,
+    "sha256": "5737d357d7f9e83ac0702df898ebd6eaf88a5878e24b885177ead42e9ba43911",
+    "members": 6,
+    "files": [
+      "production/upload/13/eeb1a2e1182c0651721e0814b90d927bd18265",
+      "production/upload/5a/b60d3221af3ce1082db6c4f42cce500a7a75d0",
+      "production/upload/a1/c5eb7286e3886b84f18204e5437ebfc79f5a6a",
+      "production/upload/a4/5d11413c26b81bf4d5161c326f30debeb59802",
+      "production/upload/be/3dbe536a2169ade70f753d170aaf0a909bcbd9",
+      "production/upload/c3/30d13404453540d851eb762cb60f693ce908d4"
+    ]
+  },
+  "manifest_before_sha256": "91018e3e97b5e8381069a3f39c47de7d95db9d00de3045183df1733a220f4f1e",
+  "manifest_after_sha256": "b2755624f4b1d568de6590db56371af50766a6f0b77caef42621dd7c80819712",
+  "preserved_archives": {
+    "pinball-1.4.107-1.4.108-1-reborn-character-degrees.zip": "99175068d87d22887b48cce0f06d61a9235c66f2c552bbdacccb6374a8dc0d10",
+    "pinball-1.4.107-1.4.108-2-epuration-gacha.zip": "51e148075ca1e166b661f99c7617921f473232eda1cb697e2ff28795059f7b33"
+  },
+  "sources": {
+    "battle/action/skill/action/rare5/lady_summoner_campus$lady_summoner_campus_1.action.dsl.amf3.deflate": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.106-1.4.107-2-author858-selected.zip",
+      "member": "production/upload/a4/5d11413c26b81bf4d5161c326f30debeb59802",
+      "sha256": "d8a00ca55ed65bfcfce2a6c6be45042e391998e6f12556c0f6ea7b3aa656a4ff",
+      "size": 962
+    },
+    "battle/action/skill/action/rare5/lady_summoner_campus$lady_summoner_campus_2.action.dsl.amf3.deflate": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.106-1.4.107-2-author858-selected.zip",
+      "member": "production/upload/13/eeb1a2e1182c0651721e0814b90d927bd18265",
+      "sha256": "d8a00ca55ed65bfcfce2a6c6be45042e391998e6f12556c0f6ea7b3aa656a4ff",
+      "size": 962
+    },
+    "battle/action/skill/action/rare5/ruin_girl_campus$ruin_girl_campus_1.action.dsl.amf3.deflate": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.106-1.4.107-2-author858-selected.zip",
+      "member": "production/upload/a1/c5eb7286e3886b84f18204e5437ebfc79f5a6a",
+      "sha256": "a5333be524f06f9a1be4a6540ffa6582c1f3c48b20f45ca1ec6155a11df12cd2",
+      "size": 700
+    },
+    "battle/action/skill/action/rare5/ruin_girl_campus$ruin_girl_campus_2.action.dsl.amf3.deflate": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.106-1.4.107-2-author858-selected.zip",
+      "member": "production/upload/5a/b60d3221af3ce1082db6c4f42cce500a7a75d0",
+      "sha256": "a5333be524f06f9a1be4a6540ffa6582c1f3c48b20f45ca1ec6155a11df12cd2",
+      "size": 700
+    },
+    "battle/action/skill/action/ability_skill/ruin_girl_campus$ruin_girl_campus_multiball_direct.action.dsl.amf3.deflate": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.106-1.4.107-2-author858-selected.zip",
+      "member": "production/upload/c3/30d13404453540d851eb762cb60f693ce908d4",
+      "sha256": "66a42a466a06f2d56821f320943fa6b35a066c8df138610f7130459f4734f0a8",
+      "size": 299
+    },
+    "battle/action/skill/action/ability_skill/ruin_girl_campus$ruin_girl_campus_multiball_direct_a4.action.dsl.amf3.deflate": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.106-1.4.107-2-author858-selected.zip",
+      "member": "production/upload/be/3dbe536a2169ade70f753d170aaf0a909bcbd9",
+      "sha256": "0409013ad7e453f408238b913917f041c54b119c6c78d0e2c14420829299e19b",
+      "size": 212
+    },
+    "battle/action/skill/action/ability_skill/ruin_girl_campus$ruin_girl_campus_fever_spawn.action.dsl.amf3.deflate": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.106-1.4.107-2-author858-selected.zip",
+      "member": "production/upload/6e/4dd6850c01c218a8408c59f26f44a75c4cb469",
+      "sha256": "3b28adf1289ddc7251b009db2ffc7fc2b53e307548ecd12dffc6a3a5c72cef30",
+      "size": 646
+    },
+    "battle/action/power_flip/action/override/ruin_girl_campus_fever$ruin_girl_campus_fever_lv1.action.dsl.amf3.deflate": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.106-1.4.107-2-author858-selected.zip",
+      "member": "production/upload/ba/0bb2ec636eaeed318937050250a1902fb84baf",
+      "sha256": "9860cb7754c11a718be45553a1b01f845648e39fe7d64db5a1616aab6528744b",
+      "size": 956
+    },
+    "battle/action/power_flip/action/override/ruin_girl_campus_fever$ruin_girl_campus_fever_lv2.action.dsl.amf3.deflate": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.106-1.4.107-2-author858-selected.zip",
+      "member": "production/upload/57/e1af6f1eeb55c2e413c3d6b9673ffdedb780e2",
+      "sha256": "8dd079caf4e2d42548b5a5a995b41505689398db62d9e27d6a810cce40427962",
+      "size": 985
+    },
+    "battle/action/power_flip/action/override/ruin_girl_campus_fever$ruin_girl_campus_fever_lv3.action.dsl.amf3.deflate": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.106-1.4.107-2-author858-selected.zip",
+      "member": "production/upload/3d/7883aad0d6ca2f973dac44711ca4393a1d326f",
+      "sha256": "191c9e7d065be60a916d957f98a774a5f3f74824dbad63e3317dc4d6128c4150",
+      "size": 1055
+    },
+    "master/ability/ability.orderedmap": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.106-1.4.107-2-author858-selected.zip",
+      "member": "production/upload/1e/664c1cc8d80f4f9a69aae2c49ae8c01d1c4001",
+      "sha256": "07ed6579eea0d9564c63bd9cb12002873d49ab9f0a8a33c79d98ac1d246b16c4",
+      "size": 369550
+    },
+    "master/character/unique_condition.orderedmap": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.106-1.4.107-2-author858-selected.zip",
+      "member": "production/upload/30/cbcd99de1aa6e8d245221619b393721df551b4",
+      "sha256": "eb3f8529c627c1672d857322357d7b1e138c4cb940a9d11a6bd014a6c307a48d",
+      "size": 12051
+    },
+    "master/battle/multiball/multiball.orderedmap": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.106-1.4.107-2-author858-selected.zip",
+      "member": "production/upload/53/43a72c056d5952f7c3cef3116b11517c3dbc53",
+      "sha256": "01e913156e99b243a63ba61eb16615b1d385aa324ed36f0d627103df7a444980",
+      "size": 6101
+    },
+    "master/battle/multiball/multiball_level.orderedmap": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.106-1.4.107-2-author858-selected.zip",
+      "member": "production/upload/53/64e89c2d2e7a9e751de14f95c1a08c5c2fd7a1",
+      "sha256": "c29b3667714778611a95ba4ef2c565570ecc9145a314d82d689e74557ef92770",
+      "size": 3751
+    },
+    "master/skill/action_skill.orderedmap": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.106-1.4.107-2-author858-selected.zip",
+      "member": "production/upload/91/79892d704f88d98191c00548bce106402ad5b5",
+      "sha256": "945e997577d2caf20a752a89a7f284f52615ec393a274d638b0e484f1b114898",
+      "size": 349302
+    },
+    "master/skill/switched_action_skill.orderedmap": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.106-1.4.107-2-author858-selected.zip",
+      "member": "production/upload/99/66e657364570f266d31806ab82d9ee19b42c1f",
+      "sha256": "0ff897ae3a6ad66e1898c09f40c25dbc9d2cb4cea2d9eab6182721413d8a17d1",
+      "size": 2504
+    },
+    "master/character/character_text.orderedmap": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.106-1.4.107-2-author858-selected.zip",
+      "member": "production/upload/8b/035728b2151de044fb245988ec5f33ebb544ab",
+      "sha256": "f4419da50e1d8aa8aaa2bb15820b0adb9d7b0a17f77f3856dac5d88580deaaea",
+      "size": 210091
+    }
+  },
+  "changes": [
+    {
+      "logical": "battle/action/skill/action/rare5/lady_summoner_campus$lady_summoner_campus_1.action.dsl.amf3.deflate",
+      "before_sha256": "d8a00ca55ed65bfcfce2a6c6be45042e391998e6f12556c0f6ea7b3aa656a4ff",
+      "after_sha256": "620a912dc6589a33afe602e4969cf16fb7c460fa8e6433d49620f3cedf3d5dbf",
+      "inverse_scope_check": true,
+      "idempotent": true,
+      "signature_and_serialized_readback": true
+    },
+    {
+      "logical": "battle/action/skill/action/rare5/lady_summoner_campus$lady_summoner_campus_2.action.dsl.amf3.deflate",
+      "before_sha256": "d8a00ca55ed65bfcfce2a6c6be45042e391998e6f12556c0f6ea7b3aa656a4ff",
+      "after_sha256": "620a912dc6589a33afe602e4969cf16fb7c460fa8e6433d49620f3cedf3d5dbf",
+      "inverse_scope_check": true,
+      "idempotent": true,
+      "signature_and_serialized_readback": true
+    },
+    {
+      "logical": "battle/action/skill/action/rare5/ruin_girl_campus$ruin_girl_campus_1.action.dsl.amf3.deflate",
+      "before_sha256": "a5333be524f06f9a1be4a6540ffa6582c1f3c48b20f45ca1ec6155a11df12cd2",
+      "after_sha256": "65b1d2c681c479993a4b3891272cb5b82a1166af4cf37fbcd8455ac73a6359ec",
+      "inverse_scope_check": true,
+      "idempotent": true,
+      "signature_and_serialized_readback": true
+    },
+    {
+      "logical": "battle/action/skill/action/rare5/ruin_girl_campus$ruin_girl_campus_2.action.dsl.amf3.deflate",
+      "before_sha256": "a5333be524f06f9a1be4a6540ffa6582c1f3c48b20f45ca1ec6155a11df12cd2",
+      "after_sha256": "65b1d2c681c479993a4b3891272cb5b82a1166af4cf37fbcd8455ac73a6359ec",
+      "inverse_scope_check": true,
+      "idempotent": true,
+      "signature_and_serialized_readback": true
+    },
+    {
+      "logical": "battle/action/skill/action/ability_skill/ruin_girl_campus$ruin_girl_campus_multiball_direct.action.dsl.amf3.deflate",
+      "before_sha256": "66a42a466a06f2d56821f320943fa6b35a066c8df138610f7130459f4734f0a8",
+      "after_sha256": "6da6e8a83f925359f68f3b2ff39b523a4d49b1c634d8995ff65b1446db6efde2",
+      "inverse_scope_check": true,
+      "idempotent": true,
+      "signature_and_serialized_readback": true
+    },
+    {
+      "logical": "battle/action/skill/action/ability_skill/ruin_girl_campus$ruin_girl_campus_multiball_direct_a4.action.dsl.amf3.deflate",
+      "before_sha256": "0409013ad7e453f408238b913917f041c54b119c6c78d0e2c14420829299e19b",
+      "after_sha256": "2ec2a906d21de7ed2fb6bfb93d61754d72aed96f54a0eba460754d1967ce8c21",
+      "inverse_scope_check": true,
+      "idempotent": true,
+      "signature_and_serialized_readback": true
+    }
+  ],
+  "unchanged": {
+    "battle/action/skill/action/ability_skill/ruin_girl_campus$ruin_girl_campus_fever_spawn.action.dsl.amf3.deflate": "3b28adf1289ddc7251b009db2ffc7fc2b53e307548ecd12dffc6a3a5c72cef30",
+    "battle/action/power_flip/action/override/ruin_girl_campus_fever$ruin_girl_campus_fever_lv1.action.dsl.amf3.deflate": "9860cb7754c11a718be45553a1b01f845648e39fe7d64db5a1616aab6528744b",
+    "battle/action/power_flip/action/override/ruin_girl_campus_fever$ruin_girl_campus_fever_lv2.action.dsl.amf3.deflate": "8dd079caf4e2d42548b5a5a995b41505689398db62d9e27d6a810cce40427962",
+    "battle/action/power_flip/action/override/ruin_girl_campus_fever$ruin_girl_campus_fever_lv3.action.dsl.amf3.deflate": "191c9e7d065be60a916d957f98a774a5f3f74824dbad63e3317dc4d6128c4150",
+    "master/ability/ability.orderedmap": "07ed6579eea0d9564c63bd9cb12002873d49ab9f0a8a33c79d98ac1d246b16c4",
+    "master/character/unique_condition.orderedmap": "eb3f8529c627c1672d857322357d7b1e138c4cb940a9d11a6bd014a6c307a48d",
+    "master/battle/multiball/multiball.orderedmap": "01e913156e99b243a63ba61eb16615b1d385aa324ed36f0d627103df7a444980",
+    "master/battle/multiball/multiball_level.orderedmap": "c29b3667714778611a95ba4ef2c565570ecc9145a314d82d689e74557ef92770",
+    "master/skill/action_skill.orderedmap": "945e997577d2caf20a752a89a7f284f52615ec393a274d638b0e484f1b114898",
+    "master/skill/switched_action_skill.orderedmap": "0ff897ae3a6ad66e1898c09f40c25dbc9d2cb4cea2d9eab6182721413d8a17d1",
+    "master/character/character_text.orderedmap": "f4419da50e1d8aa8aaa2bb15820b0adb9d7b0a17f77f3856dac5d88580deaaea"
+  },
+  "bianca": {
+    "forms": [
+      1,
+      2
+    ],
+    "dragon_id": 1199891,
+    "unique_condition_id": 11998902,
+    "breath_wait": 24,
+    "self_signal_nested_wait": 1,
+    "departure_initial_wait": 29,
+    "repeated_casts": "preserve per-cast signals; refresh only departure",
+    "new_generation": "cancel prior owner breath/signal/depart/activated events"
+  },
+  "nephtim": {
+    "forms": [
+      1,
+      2
+    ],
+    "changed_force_apply_positions": 6,
+    "scope": "two summon-target buffs per skill form; one summon-target condition in each A3/A4 action",
+    "fresh_spawn_callback": "unchanged: evaluated in the normal action/impact cycle; mixed heal-rejection semantics preserved"
+  },
+  "platforms": "Android/iOS common ActionDSL; no texture, SWF, APK or IPA changes",
+  "save_impact": "transient combat script only; no saved IDs, schema, ownership, rewards or transfer format changes",
+  "device_tested": false,
+  "runtime_synced": false,
+  "committed": false,
+  "cloud_deployed": false
+}

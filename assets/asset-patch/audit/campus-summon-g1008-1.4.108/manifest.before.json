@@ -13649,7 +13649,7 @@
       "version": "1.4.108",
       "enabled": true,
       "archive": "pinball-1.4.107-1.4.108-1-reborn-character-degrees.zip",
-      "archive_size": 1842923,
+      "archive_size": 1837788,
       "archive_integrity": [
         {
           "name": "pinball-1.4.107-1.4.108-1-reborn-character-degrees.zip",
@@ -13719,20 +13719,6 @@
             "production/upload/bf/5dc56a444450216d4f12d6b9dfc0d908a09c5d",
             "production/upload/d4/22562d2cdb137e6bc23f903d773b5b485329a8"
           ]
-        },
-        {
-          "name": "pinball-1.4.107-1.4.108-3-campus-summon-g1008.zip",
-          "size": 5135,
-          "sha256": "5737d357d7f9e83ac0702df898ebd6eaf88a5878e24b885177ead42e9ba43911",
-          "members": 6,
-          "files": [
-            "production/upload/13/eeb1a2e1182c0651721e0814b90d927bd18265",
-            "production/upload/5a/b60d3221af3ce1082db6c4f42cce500a7a75d0",
-            "production/upload/a1/c5eb7286e3886b84f18204e5437ebfc79f5a6a",
-            "production/upload/a4/5d11413c26b81bf4d5161c326f30debeb59802",
-            "production/upload/be/3dbe536a2169ade70f753d170aaf0a909bcbd9",
-            "production/upload/c3/30d13404453540d851eb762cb60f693ce908d4"
-          ]
         }
       ],
       "files": [
@@ -13740,7 +13726,6 @@
         "production/upload/0f/22660b1f939cd7f45158302295cca125986157",
         "production/upload/0f/6283097beac07ed50cc4aeda06577b0ea49036",
         "production/upload/12/fa94908575c59f51118879347390031b51fe2e",
-        "production/upload/13/eeb1a2e1182c0651721e0814b90d927bd18265",
         "production/upload/15/d0c87d63debc0080f6e027afdde6a773d41a71",
         "production/upload/16/43732ceeaa0efbc8c27215e1a60627f85ce1fe",
         "production/upload/18/a05ae5b9b26a7a0e1086ff6a49f6af90156a50",
@@ -13757,7 +13742,6 @@
         "production/upload/46/47ad396bb5ba3bf3313feabe327a8a0edc238c",
         "production/upload/59/299a4f5ab5b4c4b2f6db55379d08d94856712b",
         "production/upload/59/d69abe33dce8e820cf285e6c5a0b5213ee7a0b",
-        "production/upload/5a/b60d3221af3ce1082db6c4f42cce500a7a75d0",
         "production/upload/66/d47f9fe679168e5ee6ee9d470d34699ebfb013",
         "production/upload/69/4d3d7e423b7b2e70721a68cd377c7e87018fae",
         "production/upload/6a/f79cd340bba59119e34f5ca556036f5ce95865",
@@ -13772,19 +13756,15 @@
         "production/upload/97/00cea7cbee46cc212912accf354c9dd4c86702",
         "production/upload/9a/017c9882c70562cd874114e5c03440234fcdd1",
         "production/upload/9f/99e1c582fa55d35047166ae161c3852a51db1b",
-        "production/upload/a1/c5eb7286e3886b84f18204e5437ebfc79f5a6a",
         "production/upload/a2/53cdd8a9e3be744637a6a72a32a816a1dfbb57",
-        "production/upload/a4/5d11413c26b81bf4d5161c326f30debeb59802",
         "production/upload/a4/7d63d0330266cfcdaea276ab8fcdb52b566b45",
         "production/upload/a5/3b902bd14952832d7c2c26f27f69f5f4762f9f",
         "production/upload/a5/7a151ff5c3c648d08e34c95b8f0ad724d58650",
         "production/upload/af/597e12f41420dde97b76b05d62d2beab98ed1f",
         "production/upload/b0/061bc31058690017dd6e01b8214a9bb80c5d46",
         "production/upload/b7/346c5eea234478e7272d95fcac0f4d720eba6b",
-        "production/upload/be/3dbe536a2169ade70f753d170aaf0a909bcbd9",
         "production/upload/bf/5dc56a444450216d4f12d6b9dfc0d908a09c5d",
         "production/upload/bf/9d085f0856d0133e8c8f7f413ab7b7c0a8937b",
-        "production/upload/c3/30d13404453540d851eb762cb60f693ce908d4",
         "production/upload/c6/48c4b463b5fcf8bb63c83932c6e38625ef3e20",
         "production/upload/d3/d2612a6e456957ae891399e60497f06bbf55ad",
         "production/upload/d4/22562d2cdb137e6bc23f903d773b5b485329a8",
@@ -13799,21 +13779,17 @@
       "changes": [
         "追加48条称号及获取条件，保留全部既有称号压缩行。",
         "48张320×50透明称号图使用原生PNG存储格式，Android与iOS共用。",
-        "第2分包：歼灭者179981恢复深渊0.100%、竞速1.000%抽取，两池250点兑换；保留其他MOD概率及五星总率，同步池说明。",
-        "校园碧安卡重复吐息刷新统一退场计时；延迟状态重查小龙，重新召唤前清理旧回调。",
-        "校园奈芙提姆主动技能及能力3/4的召唤物普通增益不再强制施加，跳过已退场对象；数值与召唤数量不变。"
+        "第2分包：歼灭者179981恢复深渊0.100%、竞速1.000%抽取，两池250点兑换；保留其他MOD概率及五星总率，同步池说明。"
       ],
       "created_at": "2026-09-13",
       "audit": {
         "directory": "assets/asset-patch/audit/reborn-character-degrees-1.4.108",
         "report": "report.json",
-        "epuration_gacha_directory": "assets/asset-patch/audit/epuration-gacha-1.4.108",
-        "campus_summon_g1008_directory": "assets/asset-patch/audit/campus-summon-g1008-1.4.108"
+        "epuration_gacha_directory": "assets/asset-patch/audit/epuration-gacha-1.4.108"
       },
       "chain": [
         "pinball-1.4.107-1.4.108-1-reborn-character-degrees.zip",
-        "pinball-1.4.107-1.4.108-2-epuration-gacha.zip",
-        "pinball-1.4.107-1.4.108-3-campus-summon-g1008.zip"
+        "pinball-1.4.107-1.4.108-2-epuration-gacha.zip"
       ]
     }
   ]
