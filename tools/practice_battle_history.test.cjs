@@ -86,7 +86,7 @@ assert.equal(record.character_1_total_damage, 130)
 assert.equal(record.character_2_total_damage, 50)
 assert.equal(record.equipment_level_1, 3)
 assert.equal(record.enhancement_level_1, 4)
-assert.equal(record.create_time, "2024-08-14 12:34:56")
+assert.equal(record.create_time, "2024-08-14 20:34:56", "real UTC instant is displayed in Beijing time")
 
 assert.equal(insertPlayerPracticeBattleHistorySync(record), true)
 assert.equal(insertPlayerPracticeBattleHistorySync(record), false)

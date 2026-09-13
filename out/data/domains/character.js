@@ -1,9 +1,27 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updatePlayerCharacterManaNodeAwakeLevelSync = exports.getPlayerCharactersManaNodeAwakeLevelsSync = exports.insertPlayerCharactersManaNodesSync = exports.insertPlayerCharacterManaNodesSync = exports.hasPlayerUnlockedCharacterManaNodeSync = exports.getPlayerCharacterManaNodesSync = exports.getPlayerCharactersManaNodesByIdsSync = exports.getPlayerCharactersManaNodesSync = exports.updatePlayerCharacterSync = exports.insertPlayerCharactersSync = exports.insertDefaultPlayerCharacterSync = exports.insertPlayerCharacterSync = exports.updatePlayerCharacterBondTokenSync = exports.insertPlayerCharacterBondTokenSync = exports.getPlayerCharactersByIdsSync = exports.getPlayerCharactersSync = exports.getPlayerCharacterSync = exports.playerOwnsCharacterSync = void 0;
+exports.updatePlayerCharacterManaNodeAwakeLevelSync = exports.getPlayerCharactersManaNodeAwakeLevelsSync = exports.insertPlayerCharactersManaNodesSync = exports.insertPlayerCharacterManaNodesSync = exports.hasPlayerUnlockedCharacterManaNodeSync = exports.getPlayerCharacterManaNodesSync = exports.getPlayerCharactersManaNodesByIdsSync = exports.getPlayerCharacterManaNodeAwakeLevelsSync = exports.getPlayerCompletedManaBoardCharacterIdsSync = exports.countPlayerReceivedBondTokensSync = exports.countPlayerCharacterManaNodesSync = exports.getPlayerCharacterMissionStatsSync = exports.getPlayerCharactersManaNodesSync = exports.updatePlayerCharacterSync = exports.insertPlayerCharactersSync = exports.insertDefaultPlayerCharacterSync = exports.insertPlayerCharacterSync = exports.updatePlayerCharacterBondTokenSync = exports.insertPlayerCharacterBondTokenSync = exports.getPlayerCharacterFavorFactsSync = exports.getPlayerCharactersByIdsSync = exports.getPlayerCharactersSync = exports.getPlayerCharacterSync = exports.playerOwnsCharacterSync = void 0;
 const db_1 = require("../db");
 const utils_1 = require("../utils");
 const assets_1 = require("../../lib/assets");
+// Cache query plans per connection, never parameter values or player results.
+// These queries have bounded shapes: three statistic flags, one board query,
+// and favor batches of at most 400 ids.
+const characterMissionStatements = new WeakMap();
+function prepareCharacterMissionQuery(sql) {
+    const db = (0, db_1.getDb)();
+    let statements = characterMissionStatements.get(db);
+    if (!statements) {
+        statements = new Map();
+        characterMissionStatements.set(db, statements);
+    }
+    let statement = statements.get(sql);
+    if (!statement) {
+        statement = db.prepare(sql);
+        statements.set(sql, statement);
+    }
+    return statement;
+}
 /**
  * Converts a RawPlayerCharacterBondToken into a PlayerCharacterBondToken
  *
@@ -170,6 +188,26 @@ function getPlayerCharactersByIdsSync(playerId, characterIds) {
     return result;
 }
 exports.getPlayerCharactersByIdsSync = getPlayerCharactersByIdsSync;
+/** Only EXP and received-token presence are needed by character favor titles. */
+function getPlayerCharacterFavorFactsSync(playerId, characterIds) {
+    const ids = [...new Set(characterIds)].filter(id => Number.isSafeInteger(id) && id > 0);
+    const result = {};
+    for (let offset = 0; offset < ids.length; offset += 400) {
+        const chunk = ids.slice(offset, offset + 400);
+        const rows = prepareCharacterMissionQuery(`
+            SELECT owned.id, owned.exp, EXISTS (
+                SELECT 1 FROM players_characters_bond_tokens AS token
+                WHERE token.player_id = owned.player_id AND token.character_id = owned.id AND token.status >= 2
+            ) AS received_bond
+            FROM players_characters AS owned
+            WHERE owned.player_id = ? AND owned.id IN (${chunk.map(() => "?").join(", ")})
+        `).all(playerId, ...chunk);
+        for (const row of rows)
+            result[String(row.id)] = { exp: row.exp, hasReceivedBondToken: row.received_bond === 1 };
+    }
+    return result;
+}
+exports.getPlayerCharacterFavorFactsSync = getPlayerCharacterFavorFactsSync;
 /**
  * Inserts a single character's bond token into a player's data.
  *
@@ -354,6 +392,79 @@ function getPlayerCharactersManaNodesSync(playerId) {
     return buckets;
 }
 exports.getPlayerCharactersManaNodesSync = getPlayerCharactersManaNodesSync;
+/** Scalar counts and an optional compact id list; no full character/node objects. */
+function getPlayerCharacterMissionStatsSync(playerId, needs) {
+    if (!needs.manaNodes && !needs.bondTokens && !needs.ownedCharacterIds) {
+        return { manaNodeCount: 0, bondTokenCount: 0, ownedCharacterIds: [] };
+    }
+    const manaCount = needs.manaNodes
+        ? "(SELECT COUNT(*) FROM players_characters_mana_nodes WHERE player_id = @playerId)" : "0";
+    const bondCount = needs.bondTokens ? `(
+        SELECT COUNT(*) FROM players_characters_bond_tokens AS token
+        JOIN players_characters AS owned
+          ON owned.player_id = token.player_id AND owned.id = token.character_id
+        WHERE token.player_id = @playerId AND token.status >= 2
+    )` : "0";
+    const ownedIds = needs.ownedCharacterIds
+        ? "(SELECT json_group_array(id) FROM players_characters WHERE player_id = @playerId)" : "'[]'";
+    const row = prepareCharacterMissionQuery(`SELECT ${manaCount} AS mana_count, ${bondCount} AS bond_count, ${ownedIds} AS owned_ids`)
+        .get({ playerId });
+    return { manaNodeCount: row.mana_count, bondTokenCount: row.bond_count, ownedCharacterIds: JSON.parse(row.owned_ids) };
+}
+exports.getPlayerCharacterMissionStatsSync = getPlayerCharacterMissionStatsSync;
+function countPlayerCharacterManaNodesSync(playerId) {
+    return getPlayerCharacterMissionStatsSync(playerId, { manaNodes: true }).manaNodeCount;
+}
+exports.countPlayerCharacterManaNodesSync = countPlayerCharacterManaNodesSync;
+function countPlayerReceivedBondTokensSync(playerId) {
+    return getPlayerCharacterMissionStatsSync(playerId, { bondTokens: true }).bondTokenCount;
+}
+exports.countPlayerReceivedBondTokensSync = countPlayerReceivedBondTokensSync;
+/**
+ * Returns owned characters containing every required node. Extra or awakened
+ * nodes do not substitute for missing requirements; empty boards never complete.
+ */
+function getPlayerCompletedManaBoardCharacterIdsSync(playerId, requiredNodes, ownedCharacterIds) {
+    if (Object.keys(requiredNodes).length === 0)
+        return new Set();
+    // Small saves should not serialize or scan the entire master roster.
+    // Keep only owned ids here; character details and individual nodes stay in SQLite.
+    const ids = ownedCharacterIds !== null && ownedCharacterIds !== void 0 ? ownedCharacterIds : getPlayerCharacterMissionStatsSync(playerId, { ownedCharacterIds: true }).ownedCharacterIds;
+    const boards = Object.fromEntries(ids.flatMap(id => {
+        const nodes = requiredNodes[String(id)];
+        return (nodes === null || nodes === void 0 ? void 0 : nodes.length) ? [[String(id), nodes]] : [];
+    }));
+    if (Object.keys(boards).length === 0)
+        return new Set();
+    // Keep board enumeration outermost; an ordinary JOIN can make SQLite
+    // rescan every JSON board for each owned character.
+    const rows = prepareCharacterMissionQuery(`
+        SELECT owned.id AS character_id
+        FROM json_each(?) AS board
+        CROSS JOIN players_characters AS owned
+          ON owned.id = CAST(board.key AS INTEGER) AND owned.player_id = ?
+        WHERE json_array_length(board.value) > 0
+          AND NOT EXISTS (
+            SELECT 1 FROM json_each(board.value) AS required
+            WHERE NOT EXISTS (
+                SELECT 1 FROM players_characters_mana_nodes AS learned
+                WHERE learned.value = required.value
+                  AND learned.character_id = owned.id AND learned.player_id = owned.player_id
+            )
+          )
+    `).all(JSON.stringify(boards), playerId);
+    return new Set(rows.map(row => row.character_id));
+}
+exports.getPlayerCompletedManaBoardCharacterIdsSync = getPlayerCompletedManaBoardCharacterIdsSync;
+/** Reads both learned membership and awake levels for one character. */
+function getPlayerCharacterManaNodeAwakeLevelsSync(playerId, characterId) {
+    const rows = (0, db_1.getDb)().prepare(`
+        SELECT value, awake_level FROM players_characters_mana_nodes
+        WHERE player_id = ? AND character_id = ?
+    `).all(playerId, characterId);
+    return Object.fromEntries(rows.map(row => [row.value, row.awake_level]));
+}
+exports.getPlayerCharacterManaNodeAwakeLevelsSync = getPlayerCharacterManaNodeAwakeLevelsSync;
 /** Retrieves mana nodes for only the requested characters with one bounded read. */
 function getPlayerCharactersManaNodesByIdsSync(playerId, characterIds) {
     var _a;

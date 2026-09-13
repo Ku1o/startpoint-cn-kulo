@@ -1,0 +1,1083 @@
+{
+  "status": "passed",
+  "installed": true,
+  "prepared_sha256": "68903e8b7b3675171aa276448225f663c7122c5385ee86c35972eec6c4194af1",
+  "assets_verified": 579,
+  "png_strict_checked": 170,
+  "dsl": [
+    {
+      "logical": "battle/action/power_flip/action/override/ruin_girl_campus_fever$ruin_girl_campus_fever_lv1.action.dsl.amf3.deflate",
+      "sha256": "9860cb7754c11a718be45553a1b01f845648e39fe7d64db5a1616aab6528744b",
+      "nullable_positions": [
+        [
+          "CreateCondition",
+          8
+        ],
+        [
+          "CreateCondition",
+          8
+        ],
+        [
+          "CreateCondition",
+          8
+        ]
+      ]
+    },
+    {
+      "logical": "battle/action/power_flip/action/override/ruin_girl_campus_fever$ruin_girl_campus_fever_lv2.action.dsl.amf3.deflate",
+      "sha256": "8dd079caf4e2d42548b5a5a995b41505689398db62d9e27d6a810cce40427962",
+      "nullable_positions": [
+        [
+          "CreateCondition",
+          8
+        ],
+        [
+          "CreateCondition",
+          8
+        ],
+        [
+          "CreateCondition",
+          8
+        ]
+      ]
+    },
+    {
+      "logical": "battle/action/power_flip/action/override/ruin_girl_campus_fever$ruin_girl_campus_fever_lv3.action.dsl.amf3.deflate",
+      "sha256": "191c9e7d065be60a916d957f98a774a5f3f74824dbad63e3317dc4d6128c4150",
+      "nullable_positions": [
+        [
+          "CreateCondition",
+          8
+        ],
+        [
+          "CreateCondition",
+          8
+        ],
+        [
+          "CreateCondition",
+          8
+        ]
+      ]
+    },
+    {
+      "logical": "battle/action/skill/action/ability_skill/lady_summoner_campus$lady_summoner_campus_fever_tick.action.dsl.amf3.deflate",
+      "sha256": "30c61442e7598622a7251ca946c6a57b5189d527e207594c3f874933f06d30ca",
+      "nullable_positions": [
+        [
+          "CreateCondition",
+          8
+        ]
+      ]
+    },
+    {
+      "logical": "battle/action/skill/action/ability_skill/ruin_girl_campus$ruin_girl_campus_fever_spawn.action.dsl.amf3.deflate",
+      "sha256": "3b28adf1289ddc7251b009db2ffc7fc2b53e307548ecd12dffc6a3a5c72cef30",
+      "nullable_positions": [
+        [
+          "CreateSummonsMultiball",
+          13
+        ],
+        [
+          "CreateCondition",
+          8
+        ],
+        [
+          "CreateSummonsMultiball",
+          13
+        ],
+        [
+          "CreateCondition",
+          8
+        ]
+      ]
+    },
+    {
+      "logical": "battle/action/skill/action/ability_skill/ruin_girl_campus$ruin_girl_campus_multiball_direct.action.dsl.amf3.deflate",
+      "sha256": "66a42a466a06f2d56821f320943fa6b35a066c8df138610f7130459f4734f0a8",
+      "nullable_positions": [
+        [
+          "MultiballNumberVariable",
+          3
+        ],
+        [
+          "CreateCondition",
+          8
+        ],
+        [
+          "CreateCondition",
+          8
+        ]
+      ]
+    },
+    {
+      "logical": "battle/action/skill/action/ability_skill/ruin_girl_campus$ruin_girl_campus_multiball_direct_a4.action.dsl.amf3.deflate",
+      "sha256": "0409013ad7e453f408238b913917f041c54b119c6c78d0e2c14420829299e19b",
+      "nullable_positions": [
+        [
+          "CreateCondition",
+          8
+        ]
+      ]
+    },
+    {
+      "logical": "battle/action/skill/action/ability_skill/scutum_valentine$scutum_valentine_collect_chase.action.dsl.amf3.deflate",
+      "sha256": "4ffa160690b138fa4bff5c642d5e62be3f2e20f984de173842c52e700f0b1ce4",
+      "nullable_positions": []
+    },
+    {
+      "logical": "battle/action/skill/action/ability_skill/scutum_valentine$scutum_valentine_piercing_chase.action.dsl.amf3.deflate",
+      "sha256": "6c0caa307461b898b519f8838008ea85fec4e178ecd505c15ea66df21e4668b2",
+      "nullable_positions": []
+    },
+    {
+      "logical": "battle/action/skill/action/ability_skill/scutum_valentine$scutum_valentine_retaliation.action.dsl.amf3.deflate",
+      "sha256": "e48230b02517d70d58e24ba6c1cb77612d374a5b2fa497ff5220760de8ed7761",
+      "nullable_positions": [
+        [
+          "CreateCondition",
+          8
+        ],
+        [
+          "CreateCondition",
+          8
+        ]
+      ]
+    },
+    {
+      "logical": "battle/action/skill/action/ability_skill/wind_spgirl_campus$wind_spgirl_campus_flip_stock.action.dsl.amf3.deflate",
+      "sha256": "9d3bc0d465bee304c8a3ab96d361dc19be3752c4359184ffe6db51c1e68c0dce",
+      "nullable_positions": [
+        [
+          "CreateCondition",
+          8
+        ]
+      ]
+    },
+    {
+      "logical": "battle/action/skill/action/ability_skill/wind_spgirl_campus$wind_spgirl_campus_flip_stock_ability.action.dsl.amf3.deflate",
+      "sha256": "a708f8eb2fb0d562267f88c1358bc3687969a9c2d7d5e3f6f704dab2605fa5bb",
+      "nullable_positions": [
+        [
+          "CreateCondition",
+          8
+        ]
+      ]
+    },
+    {
+      "logical": "battle/action/skill/action/ability_skill/wind_spgirl_campus$wind_spgirl_campus_flip_stock_ability_spent.action.dsl.amf3.deflate",
+      "sha256": "af1d52912ae6cc5d60d26e24ce2cae4a6a79b2c1a94619f525088c19cc6e3397",
+      "nullable_positions": [
+        [
+          "CreateCondition",
+          8
+        ]
+      ]
+    },
+    {
+      "logical": "battle/action/skill/action/ability_skill/wind_spgirl_campus$wind_spgirl_campus_flip_stock_spent.action.dsl.amf3.deflate",
+      "sha256": "e12503cfd241ef86324d4dc2aa1e5b9dc9273e98086f72d3a3ec5600f62d89f3",
+      "nullable_positions": [
+        [
+          "CreateCondition",
+          8
+        ]
+      ]
+    },
+    {
+      "logical": "battle/action/skill/action/power_flip/campus_celtie_fever/campus_celtie_fever_lv1.action.dsl.amf3.deflate",
+      "sha256": "5a7e6ac69cb793e0aa396d8e4bdbb35053d7ba3075385594609cb97b736c9d4d",
+      "nullable_positions": []
+    },
+    {
+      "logical": "battle/action/skill/action/power_flip/campus_celtie_fever/campus_celtie_fever_lv2.action.dsl.amf3.deflate",
+      "sha256": "2ade9b1f7c891a81169fe087930562dcd6f2bd0fdb1b921c7eb776ec46ff79fe",
+      "nullable_positions": []
+    },
+    {
+      "logical": "battle/action/skill/action/power_flip/campus_celtie_fever/campus_celtie_fever_lv3.action.dsl.amf3.deflate",
+      "sha256": "7b057b115cfe1851773a08b83707d5722eb4220f5eb7b8da75878b5601d74fbd",
+      "nullable_positions": []
+    },
+    {
+      "logical": "battle/action/skill/action/rare5/lady_summoner_campus$lady_summoner_campus_1.action.dsl.amf3.deflate",
+      "sha256": "d8a00ca55ed65bfcfce2a6c6be45042e391998e6f12556c0f6ea7b3aa656a4ff",
+      "nullable_positions": [
+        [
+          "CreateSummonsMultiball",
+          13
+        ],
+        [
+          "CreateCondition",
+          8
+        ],
+        [
+          "CreateCondition",
+          8
+        ],
+        [
+          "CreateCondition",
+          8
+        ],
+        [
+          "CreateCondition",
+          8
+        ],
+        [
+          "CreateCondition",
+          8
+        ],
+        [
+          "CreateCondition",
+          8
+        ],
+        [
+          "CreateCondition",
+          8
+        ]
+      ]
+    },
+    {
+      "logical": "battle/action/skill/action/rare5/lady_summoner_campus$lady_summoner_campus_2.action.dsl.amf3.deflate",
+      "sha256": "d8a00ca55ed65bfcfce2a6c6be45042e391998e6f12556c0f6ea7b3aa656a4ff",
+      "nullable_positions": [
+        [
+          "CreateSummonsMultiball",
+          13
+        ],
+        [
+          "CreateCondition",
+          8
+        ],
+        [
+          "CreateCondition",
+          8
+        ],
+        [
+          "CreateCondition",
+          8
+        ],
+        [
+          "CreateCondition",
+          8
+        ],
+        [
+          "CreateCondition",
+          8
+        ],
+        [
+          "CreateCondition",
+          8
+        ],
+        [
+          "CreateCondition",
+          8
+        ]
+      ]
+    },
+    {
+      "logical": "battle/action/skill/action/rare5/ruin_girl_campus$ruin_girl_campus_1.action.dsl.amf3.deflate",
+      "sha256": "a5333be524f06f9a1be4a6540ffa6582c1f3c48b20f45ca1ec6155a11df12cd2",
+      "nullable_positions": [
+        [
+          "CreateCondition",
+          8
+        ],
+        [
+          "CreateCondition",
+          8
+        ],
+        [
+          "CreateCondition",
+          8
+        ],
+        [
+          "CreateCondition",
+          8
+        ],
+        [
+          "CreateCondition",
+          8
+        ],
+        [
+          "CreateCondition",
+          8
+        ],
+        [
+          "CreateCondition",
+          8
+        ],
+        [
+          "CreateCondition",
+          8
+        ]
+      ]
+    },
+    {
+      "logical": "battle/action/skill/action/rare5/ruin_girl_campus$ruin_girl_campus_2.action.dsl.amf3.deflate",
+      "sha256": "a5333be524f06f9a1be4a6540ffa6582c1f3c48b20f45ca1ec6155a11df12cd2",
+      "nullable_positions": [
+        [
+          "CreateCondition",
+          8
+        ],
+        [
+          "CreateCondition",
+          8
+        ],
+        [
+          "CreateCondition",
+          8
+        ],
+        [
+          "CreateCondition",
+          8
+        ],
+        [
+          "CreateCondition",
+          8
+        ],
+        [
+          "CreateCondition",
+          8
+        ],
+        [
+          "CreateCondition",
+          8
+        ],
+        [
+          "CreateCondition",
+          8
+        ]
+      ]
+    },
+    {
+      "logical": "battle/action/skill/action/rare5/scutum_valentine$scutum_valentine_1.action.dsl.amf3.deflate",
+      "sha256": "37cc71fd3a5198ed1757bb63534ab947f59a1e32efbdfb6ede188749d7529a85",
+      "nullable_positions": [
+        [
+          "CreateCondition",
+          8
+        ],
+        [
+          "CreateCondition",
+          8
+        ],
+        [
+          "CreateCondition",
+          8
+        ],
+        [
+          "CreateCondition",
+          8
+        ],
+        [
+          "CreateCondition",
+          8
+        ]
+      ]
+    },
+    {
+      "logical": "battle/action/skill/action/rare5/scutum_valentine$scutum_valentine_2.action.dsl.amf3.deflate",
+      "sha256": "37cc71fd3a5198ed1757bb63534ab947f59a1e32efbdfb6ede188749d7529a85",
+      "nullable_positions": [
+        [
+          "CreateCondition",
+          8
+        ],
+        [
+          "CreateCondition",
+          8
+        ],
+        [
+          "CreateCondition",
+          8
+        ],
+        [
+          "CreateCondition",
+          8
+        ],
+        [
+          "CreateCondition",
+          8
+        ]
+      ]
+    },
+    {
+      "logical": "battle/action/skill/action/rare5/white_tiger_summer$white_tiger_summer_1.action.dsl.amf3.deflate",
+      "sha256": "9d096d5dd68d465c79b36d77fbe629a1e4370a73a940f6ae414487d86bd337f0",
+      "nullable_positions": [
+        [
+          "CreateCondition",
+          8
+        ],
+        [
+          "CreateCondition",
+          8
+        ],
+        [
+          "CreateCondition",
+          8
+        ],
+        [
+          "CreateCondition",
+          8
+        ],
+        [
+          "CreateCondition",
+          8
+        ],
+        [
+          "CreateCondition",
+          8
+        ]
+      ]
+    },
+    {
+      "logical": "battle/action/skill/action/rare5/white_tiger_summer$white_tiger_summer_2.action.dsl.amf3.deflate",
+      "sha256": "6218c6d735fdd5d77c84cf84075985e303ceaa7f12eeeccac51421af15816fd6",
+      "nullable_positions": [
+        [
+          "CreateCondition",
+          8
+        ],
+        [
+          "CreateCondition",
+          8
+        ],
+        [
+          "CreateCondition",
+          8
+        ],
+        [
+          "CreateCondition",
+          8
+        ],
+        [
+          "CreateCondition",
+          8
+        ],
+        [
+          "CreateCondition",
+          8
+        ]
+      ]
+    },
+    {
+      "logical": "battle/action/skill/action/rare5/white_wolf_gerald$white_wolf_gerald_1.action.dsl.amf3.deflate",
+      "sha256": "7170a23521756e478047d9a2d691be27a953458b2ca1594c66482590488a673c",
+      "nullable_positions": [
+        [
+          "CreateCondition",
+          8
+        ],
+        [
+          "CreateCondition",
+          8
+        ],
+        [
+          "CreateCondition",
+          8
+        ],
+        [
+          "CreateCondition",
+          8
+        ],
+        [
+          "CreateCondition",
+          8
+        ],
+        [
+          "CreateCondition",
+          8
+        ],
+        [
+          "CreateCondition",
+          8
+        ],
+        [
+          "CreateCondition",
+          8
+        ]
+      ]
+    },
+    {
+      "logical": "battle/action/skill/action/rare5/white_wolf_gerald$white_wolf_gerald_2.action.dsl.amf3.deflate",
+      "sha256": "82fe717a427edb2e4a01a8d0a7b501584855d969d01a0282ca2acebfe9be51ce",
+      "nullable_positions": [
+        [
+          "CreateCondition",
+          8
+        ],
+        [
+          "CreateCondition",
+          8
+        ],
+        [
+          "CreateCondition",
+          8
+        ],
+        [
+          "CreateCondition",
+          8
+        ],
+        [
+          "CreateCondition",
+          8
+        ],
+        [
+          "CreateCondition",
+          8
+        ],
+        [
+          "CreateCondition",
+          8
+        ],
+        [
+          "CreateCondition",
+          8
+        ]
+      ]
+    },
+    {
+      "logical": "battle/action/skill/action/rare5/wind_spgirl_campus$wind_spgirl_campus_1.action.dsl.amf3.deflate",
+      "sha256": "db0e413a094b4443482f2cf073ec9f9316dda908e2a56181e9479ff450cc25af",
+      "nullable_positions": [
+        [
+          "CreateCondition",
+          8
+        ],
+        [
+          "CreateCondition",
+          8
+        ],
+        [
+          "CreateCondition",
+          8
+        ],
+        [
+          "CreateCondition",
+          8
+        ],
+        [
+          "CreateCondition",
+          8
+        ],
+        [
+          "CreateCondition",
+          8
+        ]
+      ]
+    },
+    {
+      "logical": "battle/action/skill/action/rare5/wind_spgirl_campus$wind_spgirl_campus_2.action.dsl.amf3.deflate",
+      "sha256": "db0e413a094b4443482f2cf073ec9f9316dda908e2a56181e9479ff450cc25af",
+      "nullable_positions": [
+        [
+          "CreateCondition",
+          8
+        ],
+        [
+          "CreateCondition",
+          8
+        ],
+        [
+          "CreateCondition",
+          8
+        ],
+        [
+          "CreateCondition",
+          8
+        ],
+        [
+          "CreateCondition",
+          8
+        ],
+        [
+          "CreateCondition",
+          8
+        ]
+      ]
+    }
+  ],
+  "ios_pairs": 12,
+  "unrelated_table_keys_preserved": true,
+  "existing_saved_node_ids_preserved": true,
+  "new_boards": [
+    {
+      "logical": "master/generated/mana_board.orderedmap",
+      "id": "119989",
+      "node_ids": [
+        "239978201",
+        "239978206",
+        "239978219",
+        "239978220",
+        "239978223",
+        "239978221",
+        "239978222",
+        "239978207",
+        "239978208",
+        "239978209",
+        "239978210",
+        "239978211",
+        "239978212",
+        "239978202",
+        "239978203",
+        "239978204",
+        "239978205",
+        "239978213",
+        "239978214",
+        "239978216",
+        "239978215",
+        "239978217",
+        "239978218",
+        "239978401",
+        "239978402",
+        "239978403",
+        "239978404",
+        "239978405",
+        "239978406",
+        "239978407",
+        "239978413",
+        "239978414",
+        "239978415",
+        "239978416",
+        "239978417",
+        "239978418",
+        "239978408",
+        "239978409",
+        "239978410",
+        "239978411",
+        "239978412"
+      ]
+    },
+    {
+      "logical": "master/generated/mana_board.orderedmap",
+      "id": "149988",
+      "node_ids": [
+        "299976207",
+        "299976208",
+        "299976209",
+        "299976210",
+        "299976213",
+        "299976214",
+        "299976216",
+        "299976217",
+        "299976218",
+        "299976215",
+        "299976211",
+        "299976212",
+        "299976201",
+        "299976202",
+        "299976203",
+        "299976204",
+        "299976205",
+        "299976219",
+        "299976220",
+        "299976221",
+        "299976222",
+        "299976223",
+        "299976206",
+        "299976401",
+        "299976402",
+        "299976403",
+        "299976404",
+        "299976405",
+        "299976406",
+        "299976407",
+        "299976413",
+        "299976414",
+        "299976415",
+        "299976416",
+        "299976417",
+        "299976418",
+        "299976408",
+        "299976409",
+        "299976410",
+        "299976411",
+        "299976412"
+      ]
+    },
+    {
+      "logical": "master/generated/mana_board.orderedmap",
+      "id": "149989",
+      "node_ids": [
+        "299978201",
+        "299978202",
+        "299978203",
+        "299978204",
+        "299978205",
+        "299978219",
+        "299978221",
+        "299978222",
+        "299978223",
+        "299978220",
+        "299978206",
+        "299978207",
+        "299978208",
+        "299978209",
+        "299978210",
+        "299978211",
+        "299978212",
+        "299978213",
+        "299978214",
+        "299978215",
+        "299978216",
+        "299978217",
+        "299978218",
+        "299978401",
+        "299978402",
+        "299978403",
+        "299978404",
+        "299978405",
+        "299978406",
+        "299978407",
+        "299978413",
+        "299978414",
+        "299978415",
+        "299978416",
+        "299978417",
+        "299978418",
+        "299978408",
+        "299978409",
+        "299978410",
+        "299978411",
+        "299978412"
+      ]
+    },
+    {
+      "logical": "master/generated/mana_board.orderedmap",
+      "id": "169989",
+      "node_ids": [
+        "339978207",
+        "339978208",
+        "339978210",
+        "339978219",
+        "339978220",
+        "339978213",
+        "339978214",
+        "339978215",
+        "339978216",
+        "339978217",
+        "339978218",
+        "339978221",
+        "339978222",
+        "339978223",
+        "339978209",
+        "339978212",
+        "339978211",
+        "339978201",
+        "339978202",
+        "339978203",
+        "339978204",
+        "339978205",
+        "339978206",
+        "339978401",
+        "339978402",
+        "339978403",
+        "339978404",
+        "339978405",
+        "339978406",
+        "339978407",
+        "339978413",
+        "339978414",
+        "339978415",
+        "339978416",
+        "339978417",
+        "339978418",
+        "339978408",
+        "339978409",
+        "339978410",
+        "339978411",
+        "339978412"
+      ]
+    },
+    {
+      "logical": "master/mana_board/mana_node.orderedmap",
+      "id": "119989",
+      "node_ids": [
+        "239978201",
+        "239978202",
+        "239978203",
+        "239978204",
+        "239978205",
+        "239978206",
+        "239978207",
+        "239978208",
+        "239978209",
+        "239978210",
+        "239978211",
+        "239978212",
+        "239978213",
+        "239978214",
+        "239978215",
+        "239978216",
+        "239978217",
+        "239978218",
+        "239978219",
+        "239978220",
+        "239978221",
+        "239978222",
+        "239978223",
+        "239978401",
+        "239978402",
+        "239978403",
+        "239978404",
+        "239978405",
+        "239978406",
+        "239978407",
+        "239978408",
+        "239978409",
+        "239978410",
+        "239978411",
+        "239978412",
+        "239978413",
+        "239978414",
+        "239978415",
+        "239978416",
+        "239978417",
+        "239978418"
+      ]
+    },
+    {
+      "logical": "master/mana_board/mana_node.orderedmap",
+      "id": "149988",
+      "node_ids": [
+        "299976201",
+        "299976202",
+        "299976203",
+        "299976204",
+        "299976205",
+        "299976206",
+        "299976207",
+        "299976208",
+        "299976209",
+        "299976210",
+        "299976211",
+        "299976212",
+        "299976213",
+        "299976214",
+        "299976215",
+        "299976216",
+        "299976217",
+        "299976218",
+        "299976219",
+        "299976220",
+        "299976221",
+        "299976222",
+        "299976223",
+        "299976401",
+        "299976402",
+        "299976403",
+        "299976404",
+        "299976405",
+        "299976406",
+        "299976407",
+        "299976408",
+        "299976409",
+        "299976410",
+        "299976411",
+        "299976412",
+        "299976413",
+        "299976414",
+        "299976415",
+        "299976416",
+        "299976417",
+        "299976418"
+      ]
+    },
+    {
+      "logical": "master/mana_board/mana_node.orderedmap",
+      "id": "149989",
+      "node_ids": [
+        "299978201",
+        "299978202",
+        "299978203",
+        "299978204",
+        "299978205",
+        "299978206",
+        "299978207",
+        "299978208",
+        "299978209",
+        "299978210",
+        "299978211",
+        "299978212",
+        "299978213",
+        "299978214",
+        "299978215",
+        "299978216",
+        "299978217",
+        "299978218",
+        "299978219",
+        "299978220",
+        "299978221",
+        "299978222",
+        "299978223",
+        "299978401",
+        "299978402",
+        "299978403",
+        "299978404",
+        "299978405",
+        "299978406",
+        "299978407",
+        "299978408",
+        "299978409",
+        "299978410",
+        "299978411",
+        "299978412",
+        "299978413",
+        "299978414",
+        "299978415",
+        "299978416",
+        "299978417",
+        "299978418"
+      ]
+    },
+    {
+      "logical": "master/mana_board/mana_node.orderedmap",
+      "id": "169989",
+      "node_ids": [
+        "339978201",
+        "339978202",
+        "339978203",
+        "339978204",
+        "339978205",
+        "339978206",
+        "339978207",
+        "339978208",
+        "339978209",
+        "339978210",
+        "339978211",
+        "339978212",
+        "339978213",
+        "339978214",
+        "339978215",
+        "339978216",
+        "339978217",
+        "339978218",
+        "339978219",
+        "339978220",
+        "339978221",
+        "339978222",
+        "339978223",
+        "339978401",
+        "339978402",
+        "339978403",
+        "339978404",
+        "339978405",
+        "339978406",
+        "339978407",
+        "339978408",
+        "339978409",
+        "339978410",
+        "339978411",
+        "339978412",
+        "339978413",
+        "339978414",
+        "339978415",
+        "339978416",
+        "339978417",
+        "339978418"
+      ]
+    }
+  ],
+  "required_character_assets": [
+    {
+      "id": "119989",
+      "required": 37,
+      "present": 37
+    },
+    {
+      "id": "119993",
+      "required": 37,
+      "present": 37
+    },
+    {
+      "id": "119994",
+      "required": 37,
+      "present": 37
+    },
+    {
+      "id": "119995",
+      "required": 37,
+      "present": 37
+    },
+    {
+      "id": "129993",
+      "required": 37,
+      "present": 37
+    },
+    {
+      "id": "129994",
+      "required": 37,
+      "present": 37
+    },
+    {
+      "id": "129995",
+      "required": 37,
+      "present": 37
+    },
+    {
+      "id": "129996",
+      "required": 37,
+      "present": 37
+    },
+    {
+      "id": "129998",
+      "required": 37,
+      "present": 37
+    },
+    {
+      "id": "139996",
+      "required": 37,
+      "present": 37
+    },
+    {
+      "id": "149988",
+      "required": 37,
+      "present": 37
+    },
+    {
+      "id": "149989",
+      "required": 37,
+      "present": 37
+    },
+    {
+      "id": "149991",
+      "required": 37,
+      "present": 37
+    },
+    {
+      "id": "149992",
+      "required": 37,
+      "present": 37
+    },
+    {
+      "id": "149993",
+      "required": 37,
+      "present": 37
+    },
+    {
+      "id": "149994",
+      "required": 37,
+      "present": 37
+    },
+    {
+      "id": "159999",
+      "required": 37,
+      "present": 37
+    },
+    {
+      "id": "169989",
+      "required": 37,
+      "present": 37
+    },
+    {
+      "id": "169993",
+      "required": 37,
+      "present": 37
+    }
+  ],
+  "campus_nephtim_voice_not_excluded": true,
+  "device_tested": false,
+  "player_database_accessed": false
+}

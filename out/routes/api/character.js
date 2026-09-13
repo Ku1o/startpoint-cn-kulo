@@ -17,6 +17,7 @@ const player_1 = require("../../data/domains/player");
 const session_1 = require("../../data/domains/session");
 const utils_1 = require("../../utils");
 const assets_1 = require("../../lib/assets");
+const character_degree_rewards_1 = require("../../lib/character-degree-rewards");
 const character_2 = require("../../lib/character");
 const utils_2 = require("../../data/utils");
 const activeAccount_1 = require("../../data/activeAccount");
@@ -161,6 +162,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 overLimitStep: newOverLimit
             });
         }
+        (0, character_degree_rewards_1.grantCharacterDegreeRewardsSync)(playerId, [characterId]);
         const responseData = {
             "character_list": [
                 {
@@ -224,6 +226,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 overLimitStep: newOverLimit,
                 stack: newStack,
             });
+            (0, character_degree_rewards_1.grantCharacterDegreeRewardsSync)(playerId, [Number(charId)]);
             characterList.push({
                 character_id: Number(charId),
                 over_limit_step: newOverLimit,

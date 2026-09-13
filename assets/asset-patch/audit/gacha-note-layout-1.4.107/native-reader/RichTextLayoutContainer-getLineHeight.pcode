@@ -1,0 +1,44 @@
+header: [2, 4, 1, 2]
+0000 getlocal_0 [] ;
+0001 pushscope [] ;
+0002 pushnan [] ;
+0003 setlocal_2 [] ;
+0004 findproperty [67423] ; getFontsize
+0005 callproperty [67423, 0] ; getFontsize
+0006 convert_d [] ;
+0007 convert_d [] ;
+0008 setlocal_1 [] ;
+0009 findproperty [4796] ; style
+0010 getproperty [4796] ; style
+0011 getproperty [62016] ; lineHeight
+0012 coerce [55842] ; pinball.ui.richText.style::RichTextStyleLineHeightKind
+0013 coerce [55842] ; pinball.ui.richText.style::RichTextStyleLineHeightKind
+0014 setlocal_3 [] ;
+0015 getlocal_3 [] ;
+0016 getproperty [46] ; index
+0017 lookupswitch [] ;
+0018 jump [] -> 39 ;
+0019 findproperty [67424] ; defaultLineHeight
+0020 getproperty [67424] ; defaultLineHeight
+0021 findproperty [67423] ; getFontsize
+0022 callproperty [67423, 0] ; getFontsize
+0023 convert_d [] ;
+0024 callproperty [13394, 1] ; getValue
+0025 convert_d [] ;
+0026 convert_d [] ;
+0027 setlocal_2 [] ;
+0028 jump [] -> 39 ;
+0029 getlocal_3 [] ;
+0030 getproperty [80] ; params
+0031 pushbyte [0] ;
+0032 getproperty [14] ; <mn kind 0x1b>
+0033 coerce [55840] ; pinball.ui.richText.style::RichTextLength
+0034 getlocal_1 [] ;
+0035 callproperty [13394, 1] ; getValue
+0036 convert_d [] ;
+0037 convert_d [] ;
+0038 setlocal_2 [] ;
+0039 getlocal_2 [] ;
+0040 getlocal_1 [] ;
+0041 subtract [] ;
+0042 returnvalue [] ;

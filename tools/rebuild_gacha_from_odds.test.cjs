@@ -1,21 +1,18 @@
 const assert = require("assert");
 
 const {
-  findDefaultUploadStore,
-} = require("./gacha_odds_export.cjs");
-const {
   buildGachaFromOdds,
   diffGacha,
 } = require("./rebuild_gacha_from_odds.cjs");
 
-if (!findDefaultUploadStore(process.cwd())) {
-  console.log("rebuild_gacha_from_odds tests skipped: WorldFlipper production/upload not found");
+if (!require("node:fs").existsSync(require("node:path").join(process.cwd(), ".cdn", "cn"))) {
+  console.log("rebuild_gacha_from_odds resource tests skipped: pristine CN baseline unavailable; fixture tests run separately");
   process.exit(0);
 }
 
 const generated = buildGachaFromOdds({ root: process.cwd() });
 
-assert.strictEqual(Object.keys(generated).length, 584);
+assert.strictEqual(Object.keys(generated).length, 586);
 
 assert.strictEqual(generated["1"].type, 0);
 assert.strictEqual(generated["1"].pageKind, 0);
@@ -110,7 +107,7 @@ syntheticOld["1"].pool["1"].push({
 syntheticOld["1"].pool["1"][0].odds = 9;
 
 const diff = diffGacha(syntheticOld, generated);
-assert.strictEqual(diff.summary.compared, 584);
+assert.strictEqual(diff.summary.compared, 586);
 assert.ok(diff.banners["1"].pool["1"].count.old > diff.banners["1"].pool["1"].count.new);
 assert.strictEqual(diff.banners["1"].pool["1"].count.new, 15);
 assert.strictEqual(diff.banners["1"].pool["1"].removed[0], 199999);

@@ -1,0 +1,15 @@
+header: [3, 2, 1, 1]
+0000 getlocal_1 [] ;
+0001 pushstring [10103] ; none
+0002 ifne [] -> 7 ;
+0003 getlex [55842] ; pinball.ui.richText.style::RichTextStyleLineHeightKind
+0004 getproperty [226] ; None
+0005 returnvalue [] ;
+0006 jump [] -> 14 ;
+0007 getlex [55842] ; pinball.ui.richText.style::RichTextStyleLineHeightKind
+0008 findpropstrict [55840] ; pinball.ui.richText.style::RichTextLength
+0009 getlocal_1 [] ;
+0010 constructprop [55840, 1] ; pinball.ui.richText.style::RichTextLength
+0011 callproperty [55841, 1] ; Length
+0012 coerce [55842] ; pinball.ui.richText.style::RichTextStyleLineHeightKind
+0013 returnvalue [] ;

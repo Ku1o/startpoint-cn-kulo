@@ -247,18 +247,25 @@ export function incrementPlayerActiveMissionSync(
 /** Retrieves category-scoped mission progress without mixing equal IDs. */
 export function getPlayerCategoryMissionsSync(
     playerId: number,
-    category: number
+    category: number,
+    missionIds?: readonly number[],
 ): Record<string, PlayerActiveMission> {
+    const ids = missionIds === undefined ? undefined : [...new Set(missionIds)].filter(Number.isSafeInteger)
+    if (ids?.length === 0) return {}
+    const placeholders = ids?.map(() => "?").join(", ")
+    const parameters = [playerId, category, ...(ids ?? [])]
     const missions = getDb().prepare(`
     SELECT id, progress
     FROM players_category_missions
     WHERE player_id = ? AND category = ?
-    `).all(playerId, category) as RawPlayerActiveMission[]
+    ${ids ? `AND id IN (${placeholders})` : ""}
+    `).all(...parameters) as RawPlayerActiveMission[]
     const stages = getDb().prepare(`
     SELECT id, status, mission_id
     FROM players_category_mission_stages
     WHERE player_id = ? AND category = ?
-    `).all(playerId, category) as RawPlayerActiveMissionStage[]
+    ${ids ? `AND mission_id IN (${placeholders})` : ""}
+    `).all(...parameters) as RawPlayerActiveMissionStage[]
 
     const stageBuckets: Record<string, Record<string, boolean>> = {}
     for (const stage of stages) {

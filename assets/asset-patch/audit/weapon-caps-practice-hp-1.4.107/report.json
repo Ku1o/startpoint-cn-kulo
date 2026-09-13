@@ -1,0 +1,749 @@
+{
+  "patch_id": "weapon-caps-practice-hp-1.4.107",
+  "base_version": "1.4.106",
+  "target_version": "1.4.107",
+  "archive": {
+    "name": "pinball-1.4.106-1.4.107-1-weapon-caps-practice-hp.zip",
+    "size": 41648,
+    "sha256": "55f99926afbd3588890505ec52a26f0b67dc13225a2b951509886d91db4f4171",
+    "members": 2
+  },
+  "scope": [
+    {
+      "logical": "master/ability/ability_soul.orderedmap",
+      "changed_rows": 3,
+      "unchanged_raw_rows": 477,
+      "changes": [
+        {
+          "id": "2040001",
+          "fields": [
+            {
+              "row": 0,
+              "column": 31,
+              "before": "99",
+              "after": "10"
+            }
+          ],
+          "before": "0,1,0,0,,,,,,,0,,,,,,,0,,,,,,,12,,,4000000,4000000,,,99,0,,,,(None),,,,,,,0,211,0,,,5000,10000,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,",
+          "after": "0,1,0,0,,,,,,,0,,,,,,,0,,,,,,,12,,,4000000,4000000,,,10,0,,,,(None),,,,,,,0,211,0,,,5000,10000,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,"
+        },
+        {
+          "id": "5040009",
+          "fields": [
+            {
+              "row": 1,
+              "column": 31,
+              "before": "99",
+              "after": "10"
+            }
+          ],
+          "before": "0,1,0,0,,,,,,,0,,,,,,,0,,,,,,,20,0,,1500000,1500000,,,10,0,,,,(None),,,,,,,0,32,5,Green,,2500,5000,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,\n1,1,0,0,,,,,,,0,,,,,,,0,,,,,,,12,,,3000000,3000000,,,99,0,,,,(None),,,,,,,0,211,0,,,5000,10000,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,",
+          "after": "0,1,0,0,,,,,,,0,,,,,,,0,,,,,,,20,0,,1500000,1500000,,,10,0,,,,(None),,,,,,,0,32,5,Green,,2500,5000,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,\n1,1,0,0,,,,,,,0,,,,,,,0,,,,,,,12,,,3000000,3000000,,,10,0,,,,(None),,,,,,,0,211,0,,,5000,10000,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,"
+        },
+        {
+          "id": "4010014",
+          "fields": [
+            {
+              "row": 0,
+              "column": 31,
+              "before": "99",
+              "after": "3"
+            }
+          ],
+          "before": "0,1,0,0,,,,,,,0,,,,,,,0,,,,,,,23,0,,100000,100000,,,99,0,,,,(None),,,,,,,0,211,5,Green,,6000,12000,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,",
+          "after": "0,1,0,0,,,,,,,0,,,,,,,0,,,,,,,23,0,,100000,100000,,,3,0,,,,(None),,,,,,,0,211,5,Green,,6000,12000,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,"
+        }
+      ],
+      "before_sha256": "44910305b7ecad1ff2177cfd06905032c6d7c4bf9662605b94fd204222417788",
+      "after_sha256": "6fbdb4fb3a229fab7dfa69388cfd1c7eff435cfc158bd94304871343f73d8ae7"
+    },
+    {
+      "logical": "master/quest/practice/practice_quest.orderedmap",
+      "changed_rows": 14,
+      "unchanged_raw_rows": 77,
+      "changes": [
+        {
+          "id": "81",
+          "fields": [
+            {
+              "row": 0,
+              "column": 99,
+              "before": "1",
+              "after": "10"
+            },
+            {
+              "row": 0,
+              "column": 100,
+              "before": "1",
+              "after": "10"
+            }
+          ],
+          "before": "99,7,结实假人们・火,quest/thumbnail/practice_quest/wara_7_tafu_red,(None),2000-01-01 00:00:00,(None),(None),,,,(None),(None),,,,(None),(None),(None),,(None),,,,(None),(None),,,,(None),(None),(None),false,(None),(None),,,,(None),(None),,,,(None),(None),(None),(None),,,,1,0,true,,,,(None),,,,,,false,(None),(None),,,(None),,(None),0,(None),(None),1,false,(None),,(None),,(None),,(None),,(None),,180,180,180,180,1,1,1,1,1,0,0,0,0,1,1,1,1,1,1,1,1,1,80,4,1000,practice_waraboss_tough_funnel,town_normal_battle,10800,(None),,,(None),,,(None),0,0,,,,,",
+          "after": "99,7,结实假人们・火,quest/thumbnail/practice_quest/wara_7_tafu_red,(None),2000-01-01 00:00:00,(None),(None),,,,(None),(None),,,,(None),(None),(None),,(None),,,,(None),(None),,,,(None),(None),(None),false,(None),(None),,,,(None),(None),,,,(None),(None),(None),(None),,,,1,0,true,,,,(None),,,,,,false,(None),(None),,,(None),,(None),0,(None),(None),1,false,(None),,(None),,(None),,(None),,(None),,180,180,180,180,1,1,1,1,1,0,0,0,0,1,10,10,1,1,1,1,1,1,80,4,1000,practice_waraboss_tough_funnel,town_normal_battle,10800,(None),,,(None),,,(None),0,0,,,,,"
+        },
+        {
+          "id": "82",
+          "fields": [
+            {
+              "row": 0,
+              "column": 99,
+              "before": "1",
+              "after": "10"
+            },
+            {
+              "row": 0,
+              "column": 100,
+              "before": "1",
+              "after": "10"
+            }
+          ],
+          "before": "99,6,结实假人们・水,quest/thumbnail/practice_quest/wara_7_tafu_blue,(None),2000-01-01 00:00:00,(None),(None),,,,(None),(None),,,,(None),(None),(None),,(None),,,,(None),(None),,,,(None),(None),(None),false,(None),(None),,,,(None),(None),,,,(None),(None),(None),(None),,,,1,0,true,,,,(None),,,,,,false,(None),(None),,,(None),,(None),0,(None),(None),2,false,(None),,(None),,(None),,(None),,(None),,180,180,180,180,1,1,1,1,1,0,0,0,0,1,1,1,1,1,1,1,1,1,80,4,1000,practice_waraboss_tough_funnel,town_normal_battle,10800,(None),,,(None),,,(None),0,0,,,,,",
+          "after": "99,6,结实假人们・水,quest/thumbnail/practice_quest/wara_7_tafu_blue,(None),2000-01-01 00:00:00,(None),(None),,,,(None),(None),,,,(None),(None),(None),,(None),,,,(None),(None),,,,(None),(None),(None),false,(None),(None),,,,(None),(None),,,,(None),(None),(None),(None),,,,1,0,true,,,,(None),,,,,,false,(None),(None),,,(None),,(None),0,(None),(None),2,false,(None),,(None),,(None),,(None),,(None),,180,180,180,180,1,1,1,1,1,0,0,0,0,1,10,10,1,1,1,1,1,1,80,4,1000,practice_waraboss_tough_funnel,town_normal_battle,10800,(None),,,(None),,,(None),0,0,,,,,"
+        },
+        {
+          "id": "84",
+          "fields": [
+            {
+              "row": 0,
+              "column": 99,
+              "before": "1",
+              "after": "10"
+            },
+            {
+              "row": 0,
+              "column": 100,
+              "before": "1",
+              "after": "10"
+            }
+          ],
+          "before": "99,5,结实假人们・雷,quest/thumbnail/practice_quest/wara_7_tafu_yellow,(None),2000-01-01 00:00:00,(None),(None),,,,(None),(None),,,,(None),(None),(None),,(None),,,,(None),(None),,,,(None),(None),(None),false,(None),(None),,,,(None),(None),,,,(None),(None),(None),(None),,,,1,0,true,,,,(None),,,,,,false,(None),(None),,,(None),,(None),0,(None),(None),3,false,(None),,(None),,(None),,(None),,(None),,180,180,180,180,1,1,1,1,1,0,0,0,0,1,1,1,1,1,1,1,1,1,80,4,1000,practice_waraboss_tough_funnel,town_normal_battle,10800,(None),,,(None),,,(None),0,0,,,,,",
+          "after": "99,5,结实假人们・雷,quest/thumbnail/practice_quest/wara_7_tafu_yellow,(None),2000-01-01 00:00:00,(None),(None),,,,(None),(None),,,,(None),(None),(None),,(None),,,,(None),(None),,,,(None),(None),(None),false,(None),(None),,,,(None),(None),,,,(None),(None),(None),(None),,,,1,0,true,,,,(None),,,,,,false,(None),(None),,,(None),,(None),0,(None),(None),3,false,(None),,(None),,(None),,(None),,(None),,180,180,180,180,1,1,1,1,1,0,0,0,0,1,10,10,1,1,1,1,1,1,80,4,1000,practice_waraboss_tough_funnel,town_normal_battle,10800,(None),,,(None),,,(None),0,0,,,,,"
+        },
+        {
+          "id": "83",
+          "fields": [
+            {
+              "row": 0,
+              "column": 99,
+              "before": "1",
+              "after": "10"
+            },
+            {
+              "row": 0,
+              "column": 100,
+              "before": "1",
+              "after": "10"
+            }
+          ],
+          "before": "99,4,结实假人们・风,quest/thumbnail/practice_quest/wara_7_tafu_green,(None),2000-01-01 00:00:00,(None),(None),,,,(None),(None),,,,(None),(None),(None),,(None),,,,(None),(None),,,,(None),(None),(None),false,(None),(None),,,,(None),(None),,,,(None),(None),(None),(None),,,,1,0,true,,,,(None),,,,,,false,(None),(None),,,(None),,(None),0,(None),(None),0,false,(None),,(None),,(None),,(None),,(None),,180,180,180,180,1,1,1,1,1,0,0,0,0,1,1,1,1,1,1,1,1,1,80,4,1000,practice_waraboss_tough_funnel,town_normal_battle,10800,(None),,,(None),,,(None),0,0,,,,,",
+          "after": "99,4,结实假人们・风,quest/thumbnail/practice_quest/wara_7_tafu_green,(None),2000-01-01 00:00:00,(None),(None),,,,(None),(None),,,,(None),(None),(None),,(None),,,,(None),(None),,,,(None),(None),(None),false,(None),(None),,,,(None),(None),,,,(None),(None),(None),(None),,,,1,0,true,,,,(None),,,,,,false,(None),(None),,,(None),,(None),0,(None),(None),0,false,(None),,(None),,(None),,(None),,(None),,180,180,180,180,1,1,1,1,1,0,0,0,0,1,10,10,1,1,1,1,1,1,80,4,1000,practice_waraboss_tough_funnel,town_normal_battle,10800,(None),,,(None),,,(None),0,0,,,,,"
+        },
+        {
+          "id": "85",
+          "fields": [
+            {
+              "row": 0,
+              "column": 99,
+              "before": "1",
+              "after": "10"
+            },
+            {
+              "row": 0,
+              "column": 100,
+              "before": "1",
+              "after": "10"
+            }
+          ],
+          "before": "99,3,结实假人们・光,quest/thumbnail/practice_quest/wara_7_tafu_white,(None),2000-01-01 00:00:00,(None),(None),,,,(None),(None),,,,(None),(None),(None),,(None),,,,(None),(None),,,,(None),(None),(None),false,(None),(None),,,,(None),(None),,,,(None),(None),(None),(None),,,,1,0,true,,,,(None),,,,,,false,(None),(None),,,(None),,(None),0,(None),(None),5,false,(None),,(None),,(None),,(None),,(None),,180,180,180,180,1,1,1,1,1,0,0,0,0,1,1,1,1,1,1,1,1,1,80,4,1000,practice_waraboss_tough_funnel,town_normal_battle,10800,(None),,,(None),,,(None),0,0,,,,,",
+          "after": "99,3,结实假人们・光,quest/thumbnail/practice_quest/wara_7_tafu_white,(None),2000-01-01 00:00:00,(None),(None),,,,(None),(None),,,,(None),(None),(None),,(None),,,,(None),(None),,,,(None),(None),(None),false,(None),(None),,,,(None),(None),,,,(None),(None),(None),(None),,,,1,0,true,,,,(None),,,,,,false,(None),(None),,,(None),,(None),0,(None),(None),5,false,(None),,(None),,(None),,(None),,(None),,180,180,180,180,1,1,1,1,1,0,0,0,0,1,10,10,1,1,1,1,1,1,80,4,1000,practice_waraboss_tough_funnel,town_normal_battle,10800,(None),,,(None),,,(None),0,0,,,,,"
+        },
+        {
+          "id": "86",
+          "fields": [
+            {
+              "row": 0,
+              "column": 99,
+              "before": "1",
+              "after": "10"
+            },
+            {
+              "row": 0,
+              "column": 100,
+              "before": "1",
+              "after": "10"
+            }
+          ],
+          "before": "99,2,结实假人们・暗,quest/thumbnail/practice_quest/wara_7_tafu_black,(None),2000-01-01 00:00:00,(None),(None),,,,(None),(None),,,,(None),(None),(None),,(None),,,,(None),(None),,,,(None),(None),(None),false,(None),(None),,,,(None),(None),,,,(None),(None),(None),(None),,,,1,0,true,,,,(None),,,,,,false,(None),(None),,,(None),,(None),0,(None),(None),4,false,(None),,(None),,(None),,(None),,(None),,180,180,180,180,1,1,1,1,1,0,0,0,0,1,1,1,1,1,1,1,1,1,80,4,1000,practice_waraboss_tough_funnel,town_normal_battle,10800,(None),,,(None),,,(None),0,0,,,,,",
+          "after": "99,2,结实假人们・暗,quest/thumbnail/practice_quest/wara_7_tafu_black,(None),2000-01-01 00:00:00,(None),(None),,,,(None),(None),,,,(None),(None),(None),,(None),,,,(None),(None),,,,(None),(None),(None),false,(None),(None),,,,(None),(None),,,,(None),(None),(None),(None),,,,1,0,true,,,,(None),,,,,,false,(None),(None),,,(None),,(None),0,(None),(None),4,false,(None),,(None),,(None),,(None),,(None),,180,180,180,180,1,1,1,1,1,0,0,0,0,1,10,10,1,1,1,1,1,1,80,4,1000,practice_waraboss_tough_funnel,town_normal_battle,10800,(None),,,(None),,,(None),0,0,,,,,"
+        },
+        {
+          "id": "87",
+          "fields": [
+            {
+              "row": 0,
+              "column": 99,
+              "before": "1",
+              "after": "10"
+            },
+            {
+              "row": 0,
+              "column": 100,
+              "before": "1",
+              "after": "10"
+            }
+          ],
+          "before": "99,1,结实假人们・无,quest/thumbnail/practice_quest/wara_7_tafu_mu,(None),2000-01-01 00:00:00,(None),(None),,,,(None),(None),,,,(None),(None),(None),,(None),,,,(None),(None),,,,(None),(None),(None),false,(None),(None),,,,(None),(None),,,,(None),(None),(None),(None),,,,1,0,true,,,,(None),,,,,,false,(None),(None),,,(None),,(None),0,(None),(None),4,true,(None),,(None),,(None),,(None),,(None),,180,180,180,180,1,1,1,1,1,0,0,0,0,1,1,1,1,1,1,1,1,1,80,4,1000,practice_waraboss_tough_funnel_colorless,town_normal_battle,10800,(None),,,(None),,,(None),0,0,,,,,",
+          "after": "99,1,结实假人们・无,quest/thumbnail/practice_quest/wara_7_tafu_mu,(None),2000-01-01 00:00:00,(None),(None),,,,(None),(None),,,,(None),(None),(None),,(None),,,,(None),(None),,,,(None),(None),(None),false,(None),(None),,,,(None),(None),,,,(None),(None),(None),(None),,,,1,0,true,,,,(None),,,,,,false,(None),(None),,,(None),,(None),0,(None),(None),4,true,(None),,(None),,(None),,(None),,(None),,180,180,180,180,1,1,1,1,1,0,0,0,0,1,10,10,1,1,1,1,1,1,80,4,1000,practice_waraboss_tough_funnel_colorless,town_normal_battle,10800,(None),,,(None),,,(None),0,0,,,,,"
+        },
+        {
+          "id": "91",
+          "fields": [
+            {
+              "row": 0,
+              "column": 100,
+              "before": "1",
+              "after": "10"
+            }
+          ],
+          "before": "100,7,结实假人・火,quest/thumbnail/practice_quest/wara_6_tafu_red,(None),2000-01-01 00:00:00,(None),(None),,,,(None),(None),,,,(None),(None),(None),,(None),,,,(None),(None),,,,(None),(None),(None),false,(None),(None),,,,(None),(None),,,,(None),(None),(None),(None),,,,1,0,true,,,,(None),,,,,,false,(None),(None),,,(None),,(None),0,(None),(None),1,false,(None),,(None),,(None),,(None),,(None),,180,180,180,180,1,1,1,1,1,0,0,0,0,1,1,1,1,1,1,1,1,1,80,4,1000,practice_waraboss_tough,town_normal_battle,10800,(None),,,(None),,,(None),0,0,,,,,",
+          "after": "100,7,结实假人・火,quest/thumbnail/practice_quest/wara_6_tafu_red,(None),2000-01-01 00:00:00,(None),(None),,,,(None),(None),,,,(None),(None),(None),,(None),,,,(None),(None),,,,(None),(None),(None),false,(None),(None),,,,(None),(None),,,,(None),(None),(None),(None),,,,1,0,true,,,,(None),,,,,,false,(None),(None),,,(None),,(None),0,(None),(None),1,false,(None),,(None),,(None),,(None),,(None),,180,180,180,180,1,1,1,1,1,0,0,0,0,1,1,10,1,1,1,1,1,1,80,4,1000,practice_waraboss_tough,town_normal_battle,10800,(None),,,(None),,,(None),0,0,,,,,"
+        },
+        {
+          "id": "92",
+          "fields": [
+            {
+              "row": 0,
+              "column": 100,
+              "before": "1",
+              "after": "10"
+            }
+          ],
+          "before": "100,6,结实假人・水,quest/thumbnail/practice_quest/wara_6_tafu_blue,(None),2000-01-01 00:00:00,(None),(None),,,,(None),(None),,,,(None),(None),(None),,(None),,,,(None),(None),,,,(None),(None),(None),false,(None),(None),,,,(None),(None),,,,(None),(None),(None),(None),,,,1,0,true,,,,(None),,,,,,false,(None),(None),,,(None),,(None),0,(None),(None),2,false,(None),,(None),,(None),,(None),,(None),,180,180,180,180,1,1,1,1,1,0,0,0,0,1,1,1,1,1,1,1,1,1,80,4,1000,practice_waraboss_tough,town_normal_battle,10800,(None),,,(None),,,(None),0,0,,,,,",
+          "after": "100,6,结实假人・水,quest/thumbnail/practice_quest/wara_6_tafu_blue,(None),2000-01-01 00:00:00,(None),(None),,,,(None),(None),,,,(None),(None),(None),,(None),,,,(None),(None),,,,(None),(None),(None),false,(None),(None),,,,(None),(None),,,,(None),(None),(None),(None),,,,1,0,true,,,,(None),,,,,,false,(None),(None),,,(None),,(None),0,(None),(None),2,false,(None),,(None),,(None),,(None),,(None),,180,180,180,180,1,1,1,1,1,0,0,0,0,1,1,10,1,1,1,1,1,1,80,4,1000,practice_waraboss_tough,town_normal_battle,10800,(None),,,(None),,,(None),0,0,,,,,"
+        },
+        {
+          "id": "94",
+          "fields": [
+            {
+              "row": 0,
+              "column": 100,
+              "before": "1",
+              "after": "10"
+            }
+          ],
+          "before": "100,5,结实假人・雷,quest/thumbnail/practice_quest/wara_6_tafu_yellow,(None),2000-01-01 00:00:00,(None),(None),,,,(None),(None),,,,(None),(None),(None),,(None),,,,(None),(None),,,,(None),(None),(None),false,(None),(None),,,,(None),(None),,,,(None),(None),(None),(None),,,,1,0,true,,,,(None),,,,,,false,(None),(None),,,(None),,(None),0,(None),(None),3,false,(None),,(None),,(None),,(None),,(None),,180,180,180,180,1,1,1,1,1,0,0,0,0,1,1,1,1,1,1,1,1,1,80,4,1000,practice_waraboss_tough,town_normal_battle,10800,(None),,,(None),,,(None),0,0,,,,,",
+          "after": "100,5,结实假人・雷,quest/thumbnail/practice_quest/wara_6_tafu_yellow,(None),2000-01-01 00:00:00,(None),(None),,,,(None),(None),,,,(None),(None),(None),,(None),,,,(None),(None),,,,(None),(None),(None),false,(None),(None),,,,(None),(None),,,,(None),(None),(None),(None),,,,1,0,true,,,,(None),,,,,,false,(None),(None),,,(None),,(None),0,(None),(None),3,false,(None),,(None),,(None),,(None),,(None),,180,180,180,180,1,1,1,1,1,0,0,0,0,1,1,10,1,1,1,1,1,1,80,4,1000,practice_waraboss_tough,town_normal_battle,10800,(None),,,(None),,,(None),0,0,,,,,"
+        },
+        {
+          "id": "93",
+          "fields": [
+            {
+              "row": 0,
+              "column": 100,
+              "before": "1",
+              "after": "10"
+            }
+          ],
+          "before": "100,4,结实假人・风,quest/thumbnail/practice_quest/wara_6_tafu_green,(None),2000-01-01 00:00:00,(None),(None),,,,(None),(None),,,,(None),(None),(None),,(None),,,,(None),(None),,,,(None),(None),(None),false,(None),(None),,,,(None),(None),,,,(None),(None),(None),(None),,,,1,0,true,,,,(None),,,,,,false,(None),(None),,,(None),,(None),0,(None),(None),0,false,(None),,(None),,(None),,(None),,(None),,180,180,180,180,1,1,1,1,1,0,0,0,0,1,1,1,1,1,1,1,1,1,80,4,1000,practice_waraboss_tough,town_normal_battle,10800,(None),,,(None),,,(None),0,0,,,,,",
+          "after": "100,4,结实假人・风,quest/thumbnail/practice_quest/wara_6_tafu_green,(None),2000-01-01 00:00:00,(None),(None),,,,(None),(None),,,,(None),(None),(None),,(None),,,,(None),(None),,,,(None),(None),(None),false,(None),(None),,,,(None),(None),,,,(None),(None),(None),(None),,,,1,0,true,,,,(None),,,,,,false,(None),(None),,,(None),,(None),0,(None),(None),0,false,(None),,(None),,(None),,(None),,(None),,180,180,180,180,1,1,1,1,1,0,0,0,0,1,1,10,1,1,1,1,1,1,80,4,1000,practice_waraboss_tough,town_normal_battle,10800,(None),,,(None),,,(None),0,0,,,,,"
+        },
+        {
+          "id": "95",
+          "fields": [
+            {
+              "row": 0,
+              "column": 100,
+              "before": "1",
+              "after": "10"
+            }
+          ],
+          "before": "100,3,结实假人・光,quest/thumbnail/practice_quest/wara_6_tafu_white,(None),2000-01-01 00:00:00,(None),(None),,,,(None),(None),,,,(None),(None),(None),,(None),,,,(None),(None),,,,(None),(None),(None),false,(None),(None),,,,(None),(None),,,,(None),(None),(None),(None),,,,1,0,true,,,,(None),,,,,,false,(None),(None),,,(None),,(None),0,(None),(None),5,false,(None),,(None),,(None),,(None),,(None),,180,180,180,180,1,1,1,1,1,0,0,0,0,1,1,1,1,1,1,1,1,1,80,4,1000,practice_waraboss_tough,town_normal_battle,10800,(None),,,(None),,,(None),0,0,,,,,",
+          "after": "100,3,结实假人・光,quest/thumbnail/practice_quest/wara_6_tafu_white,(None),2000-01-01 00:00:00,(None),(None),,,,(None),(None),,,,(None),(None),(None),,(None),,,,(None),(None),,,,(None),(None),(None),false,(None),(None),,,,(None),(None),,,,(None),(None),(None),(None),,,,1,0,true,,,,(None),,,,,,false,(None),(None),,,(None),,(None),0,(None),(None),5,false,(None),,(None),,(None),,(None),,(None),,180,180,180,180,1,1,1,1,1,0,0,0,0,1,1,10,1,1,1,1,1,1,80,4,1000,practice_waraboss_tough,town_normal_battle,10800,(None),,,(None),,,(None),0,0,,,,,"
+        },
+        {
+          "id": "96",
+          "fields": [
+            {
+              "row": 0,
+              "column": 100,
+              "before": "1",
+              "after": "10"
+            }
+          ],
+          "before": "100,2,结实假人・暗,quest/thumbnail/practice_quest/wara_6_tafu_black,(None),2000-01-01 00:00:00,(None),(None),,,,(None),(None),,,,(None),(None),(None),,(None),,,,(None),(None),,,,(None),(None),(None),false,(None),(None),,,,(None),(None),,,,(None),(None),(None),(None),,,,1,0,true,,,,(None),,,,,,false,(None),(None),,,(None),,(None),0,(None),(None),4,false,(None),,(None),,(None),,(None),,(None),,180,180,180,180,1,1,1,1,1,0,0,0,0,1,1,1,1,1,1,1,1,1,80,4,1000,practice_waraboss_tough,town_normal_battle,10800,(None),,,(None),,,(None),0,0,,,,,",
+          "after": "100,2,结实假人・暗,quest/thumbnail/practice_quest/wara_6_tafu_black,(None),2000-01-01 00:00:00,(None),(None),,,,(None),(None),,,,(None),(None),(None),,(None),,,,(None),(None),,,,(None),(None),(None),false,(None),(None),,,,(None),(None),,,,(None),(None),(None),(None),,,,1,0,true,,,,(None),,,,,,false,(None),(None),,,(None),,(None),0,(None),(None),4,false,(None),,(None),,(None),,(None),,(None),,180,180,180,180,1,1,1,1,1,0,0,0,0,1,1,10,1,1,1,1,1,1,80,4,1000,practice_waraboss_tough,town_normal_battle,10800,(None),,,(None),,,(None),0,0,,,,,"
+        },
+        {
+          "id": "97",
+          "fields": [
+            {
+              "row": 0,
+              "column": 100,
+              "before": "1",
+              "after": "10"
+            }
+          ],
+          "before": "100,1,结实假人・无,quest/thumbnail/practice_quest/wara_6_tafu_mu,(None),2000-01-01 00:00:00,(None),(None),,,,(None),(None),,,,(None),(None),(None),,(None),,,,(None),(None),,,,(None),(None),(None),false,(None),(None),,,,(None),(None),,,,(None),(None),(None),(None),,,,1,0,true,,,,(None),,,,,,false,(None),(None),,,(None),,(None),0,(None),(None),4,true,(None),,(None),,(None),,(None),,(None),,180,180,180,180,1,1,1,1,1,0,0,0,0,1,1,1,1,1,1,1,1,1,80,4,1000,practice_waraboss_tough_colorless,town_normal_battle,10800,(None),,,(None),,,(None),0,0,,,,,",
+          "after": "100,1,结实假人・无,quest/thumbnail/practice_quest/wara_6_tafu_mu,(None),2000-01-01 00:00:00,(None),(None),,,,(None),(None),,,,(None),(None),(None),,(None),,,,(None),(None),,,,(None),(None),(None),false,(None),(None),,,,(None),(None),,,,(None),(None),(None),(None),,,,1,0,true,,,,(None),,,,,,false,(None),(None),,,(None),,(None),0,(None),(None),4,true,(None),,(None),,(None),,(None),,(None),,180,180,180,180,1,1,1,1,1,0,0,0,0,1,1,10,1,1,1,1,1,1,80,4,1000,practice_waraboss_tough_colorless,town_normal_battle,10800,(None),,,(None),,,(None),0,0,,,,,"
+        }
+      ],
+      "before_sha256": "7f506bf25b647f596b1ecd5f1f78dd8f6ab3b813a2631d2655b788c29635b95b",
+      "after_sha256": "817538a1e668c5c6770ffbd5da4eba6e3d86ca656b674d79aba61c681d64efff"
+    }
+  ],
+  "hp": {
+    "client_apk_sha256": "69e143bc70a8f03f5c78b89c0262715c41f5a5847f35dde7f482c0443d5dd894",
+    "quests": [
+      {
+        "quest": "81",
+        "name": "结实假人们・火",
+        "boss": {
+          "factors": [
+            "375",
+            "6",
+            "1",
+            "18310",
+            "1.8",
+            "13.491646245",
+            "10",
+            "1"
+          ],
+          "hp": 10004797731
+        },
+        "funnel_each": {
+          "factors": [
+            "375",
+            "6",
+            "1",
+            "31080",
+            "1.8",
+            "7.9464",
+            "10",
+            "1"
+          ],
+          "hp": 10002451536
+        },
+        "funnel_count": 4,
+        "initial_total": 50014603875
+      },
+      {
+        "quest": "82",
+        "name": "结实假人们・水",
+        "boss": {
+          "factors": [
+            "375",
+            "6",
+            "1",
+            "18310",
+            "1.8",
+            "13.491646245",
+            "10",
+            "1"
+          ],
+          "hp": 10004797731
+        },
+        "funnel_each": {
+          "factors": [
+            "375",
+            "6",
+            "1",
+            "31080",
+            "1.8",
+            "7.9464",
+            "10",
+            "1"
+          ],
+          "hp": 10002451536
+        },
+        "funnel_count": 4,
+        "initial_total": 50014603875
+      },
+      {
+        "quest": "83",
+        "name": "结实假人们・风",
+        "boss": {
+          "factors": [
+            "375",
+            "6",
+            "1",
+            "18310",
+            "1.8",
+            "13.491646245",
+            "10",
+            "1"
+          ],
+          "hp": 10004797731
+        },
+        "funnel_each": {
+          "factors": [
+            "375",
+            "6",
+            "1",
+            "31080",
+            "1.8",
+            "7.9464",
+            "10",
+            "1"
+          ],
+          "hp": 10002451536
+        },
+        "funnel_count": 4,
+        "initial_total": 50014603875
+      },
+      {
+        "quest": "84",
+        "name": "结实假人们・雷",
+        "boss": {
+          "factors": [
+            "375",
+            "6",
+            "1",
+            "18310",
+            "1.8",
+            "13.491646245",
+            "10",
+            "1"
+          ],
+          "hp": 10004797731
+        },
+        "funnel_each": {
+          "factors": [
+            "375",
+            "6",
+            "1",
+            "31080",
+            "1.8",
+            "7.9464",
+            "10",
+            "1"
+          ],
+          "hp": 10002451536
+        },
+        "funnel_count": 4,
+        "initial_total": 50014603875
+      },
+      {
+        "quest": "85",
+        "name": "结实假人们・光",
+        "boss": {
+          "factors": [
+            "375",
+            "6",
+            "1",
+            "18310",
+            "1.8",
+            "13.491646245",
+            "10",
+            "1"
+          ],
+          "hp": 10004797731
+        },
+        "funnel_each": {
+          "factors": [
+            "375",
+            "6",
+            "1",
+            "31080",
+            "1.8",
+            "7.9464",
+            "10",
+            "1"
+          ],
+          "hp": 10002451536
+        },
+        "funnel_count": 4,
+        "initial_total": 50014603875
+      },
+      {
+        "quest": "86",
+        "name": "结实假人们・暗",
+        "boss": {
+          "factors": [
+            "375",
+            "6",
+            "1",
+            "18310",
+            "1.8",
+            "13.491646245",
+            "10",
+            "1"
+          ],
+          "hp": 10004797731
+        },
+        "funnel_each": {
+          "factors": [
+            "375",
+            "6",
+            "1",
+            "31080",
+            "1.8",
+            "7.9464",
+            "10",
+            "1"
+          ],
+          "hp": 10002451536
+        },
+        "funnel_count": 4,
+        "initial_total": 50014603875
+      },
+      {
+        "quest": "87",
+        "name": "结实假人们・无",
+        "boss": {
+          "factors": [
+            "375",
+            "6",
+            "1",
+            "18310",
+            "1.8",
+            "13.491646245",
+            "10",
+            "1"
+          ],
+          "hp": 10004797731
+        },
+        "funnel_each": {
+          "factors": [
+            "375",
+            "6",
+            "1",
+            "31080",
+            "1.8",
+            "7.9464",
+            "10",
+            "1"
+          ],
+          "hp": 10002451536
+        },
+        "funnel_count": 4,
+        "initial_total": 50014603875
+      },
+      {
+        "quest": "91",
+        "name": "结实假人・火",
+        "boss": {
+          "factors": [
+            "375",
+            "6",
+            "1",
+            "18310",
+            "1.8",
+            "13.491646245",
+            "10",
+            "1"
+          ],
+          "hp": 10004797731
+        },
+        "funnel_each": null,
+        "funnel_count": 0,
+        "initial_total": 10004797731
+      },
+      {
+        "quest": "92",
+        "name": "结实假人・水",
+        "boss": {
+          "factors": [
+            "375",
+            "6",
+            "1",
+            "18310",
+            "1.8",
+            "13.491646245",
+            "10",
+            "1"
+          ],
+          "hp": 10004797731
+        },
+        "funnel_each": null,
+        "funnel_count": 0,
+        "initial_total": 10004797731
+      },
+      {
+        "quest": "93",
+        "name": "结实假人・风",
+        "boss": {
+          "factors": [
+            "375",
+            "6",
+            "1",
+            "18310",
+            "1.8",
+            "13.491646245",
+            "10",
+            "1"
+          ],
+          "hp": 10004797731
+        },
+        "funnel_each": null,
+        "funnel_count": 0,
+        "initial_total": 10004797731
+      },
+      {
+        "quest": "94",
+        "name": "结实假人・雷",
+        "boss": {
+          "factors": [
+            "375",
+            "6",
+            "1",
+            "18310",
+            "1.8",
+            "13.491646245",
+            "10",
+            "1"
+          ],
+          "hp": 10004797731
+        },
+        "funnel_each": null,
+        "funnel_count": 0,
+        "initial_total": 10004797731
+      },
+      {
+        "quest": "95",
+        "name": "结实假人・光",
+        "boss": {
+          "factors": [
+            "375",
+            "6",
+            "1",
+            "18310",
+            "1.8",
+            "13.491646245",
+            "10",
+            "1"
+          ],
+          "hp": 10004797731
+        },
+        "funnel_each": null,
+        "funnel_count": 0,
+        "initial_total": 10004797731
+      },
+      {
+        "quest": "96",
+        "name": "结实假人・暗",
+        "boss": {
+          "factors": [
+            "375",
+            "6",
+            "1",
+            "18310",
+            "1.8",
+            "13.491646245",
+            "10",
+            "1"
+          ],
+          "hp": 10004797731
+        },
+        "funnel_each": null,
+        "funnel_count": 0,
+        "initial_total": 10004797731
+      },
+      {
+        "quest": "97",
+        "name": "结实假人・无",
+        "boss": {
+          "factors": [
+            "375",
+            "6",
+            "1",
+            "18310",
+            "1.8",
+            "13.491646245",
+            "10",
+            "1"
+          ],
+          "hp": 10004797731
+        },
+        "funnel_each": null,
+        "funnel_count": 0,
+        "initial_total": 10004797731
+      }
+    ],
+    "formula": "floor(375 * PartyAtk * HitHpBasic * hits * coefficient * correction * questHP * battleScale)",
+    "integer_note": "倍率在客户端最终 floor 前乘 10；与旧整数直接乘 10 的差为本体 1 HP、小木人 6 HP。"
+  },
+  "sources": {
+    "master/ability/ability_soul.orderedmap": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.95-1.4.96-1-cdn-consolidated-gerald0903.zip",
+      "member": "production/upload/d6/a23f83f176b05f715a8504b8fc0fc1ffaff068",
+      "sha256": "44910305b7ecad1ff2177cfd06905032c6d7c4bf9662605b94fd204222417788",
+      "size": 43962
+    },
+    "master/quest/practice/practice_quest.orderedmap": {
+      "archive": "F:\\startpoint-cn-main\\.cdn\\cn\\archive-common-diff\\pinball-1.4.47-1.4.48-1-74436299.zip",
+      "member": "production/upload/03/003a1a50362f80e353eb6648430d50e427de8d",
+      "sha256": "7f506bf25b647f596b1ecd5f1f78dd8f6ab3b813a2631d2655b788c29635b95b",
+      "size": 20976
+    },
+    "master/battle/enemy/hp/hit_hp_basic_curve.orderedmap": {
+      "archive": "F:\\startpoint-cn-main\\.cdn\\cn\\archive-common-full\\pinball-1.4.0-210-a61c7dc9.zip",
+      "member": "production/upload/a4/e98ee0c10926cb7cc65fa7ef2c6f06bbc15fd4",
+      "sha256": "ab68d0bbadb0ba488ec3ae8aebb99e1e30d447703d1a5e2e2e6c992462d067ac",
+      "size": 16
+    },
+    "master/battle/enemy/hp/hit_hp_basic_curve_iosbundled.orderedmap": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\outputs\\abyss-record-holder-public-20260912\\StarPoint-CN-1.8.1-abyss-record-holder-public-20260912.apk",
+      "nested_archive": "assets/bundle.zip",
+      "member": "production/android_bundle/3b/0f3d2a028b8b571db06d327ca4ecfa18882077",
+      "sha256": "850378a897134640cd262fa2c2cc38c9f346f9b01565c5beb5f5b05851392789"
+    },
+    "master/battle/enemy/hp/hit_hp_correction_curve.orderedmap": {
+      "archive": "F:\\startpoint-cn-main\\.cdn\\cn\\archive-common-full\\pinball-1.4.0-152-681fde67.zip",
+      "member": "production/upload/76/43fdaa0a060ae9afeb99172471087b3a467fc7",
+      "sha256": "d0dd3bbc422be1f61d1f45e153dec69ece2b8072742eadf277ed1c30ded77a4a",
+      "size": 856
+    },
+    "master/battle/enemy/hp/hit_hp_correction_curve_iosbundled.orderedmap": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\outputs\\abyss-record-holder-public-20260912\\StarPoint-CN-1.8.1-abyss-record-holder-public-20260912.apk",
+      "nested_archive": "assets/bundle.zip",
+      "member": "production/android_bundle/96/3579db06d77d6f88b8eeb01a24e3803dd23387",
+      "sha256": "713007008fc91f55555eefe72e913380a29664e23b8e0ac2cfdca95e450f5370"
+    },
+    "master/battle/enemy/party/party_atk_curve.orderedmap": {
+      "archive": "F:\\startpoint-cn-main\\.cdn\\cn\\archive-common-full\\pinball-1.4.0-131-f0af82ff.zip",
+      "member": "production/upload/65/5488890b5abbac1c77490478e4a7568d41ec46",
+      "sha256": "ab68d0bbadb0ba488ec3ae8aebb99e1e30d447703d1a5e2e2e6c992462d067ac",
+      "size": 16
+    },
+    "master/battle/enemy/party/party_atk_curve_iosbundled.orderedmap": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\outputs\\abyss-record-holder-public-20260912\\StarPoint-CN-1.8.1-abyss-record-holder-public-20260912.apk",
+      "nested_archive": "assets/bundle.zip",
+      "member": "production/android_bundle/89/5f001ca3b5ad103311863a89c0dec59a9a2aac",
+      "sha256": "133f83eaa5c7727c6d2df9be4a5b38ec6cfa15271e32c840f4bf82ddfe2253a7"
+    },
+    "master/battle/boss/boss_level.orderedmap": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.103-1.4.104-1-abyss-lens0910-entry-message-consolidated.zip",
+      "member": "production/upload/19/a4aa442b3249499356e7a3f6370e530bfe355e",
+      "sha256": "597648a2a4b2498b7376b4ed84a461b3c24457fb2c8d9e41241b7cb8dcdc8ef1",
+      "size": 45963
+    },
+    "master/battle/boss/funnel_level.orderedmap": {
+      "archive": "F:\\startpoint-cn-main\\.cdn\\cn\\archive-common-full\\pinball-1.4.0-40-08a9cef9.zip",
+      "member": "production/upload/1d/5759da68974fececdcb154ce123b47d0a4b8ee",
+      "sha256": "1b4fae6156235db70657beaa32a9512ecabcfcd8ca66db1a97edb7667292dc67",
+      "size": 79944
+    },
+    "master/battle/field_data.orderedmap": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.103-1.4.104-1-abyss-lens0910-entry-message-consolidated.zip",
+      "member": "production/upload/30/363f8364e183905b2d0b48b8718b7165135bc2",
+      "sha256": "50af2e73c9c00da42eca15d51de6a79cd0ea20e091c38abea762432db5466bdf",
+      "size": 127327
+    },
+    "master/battle/zone.orderedmap": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.103-1.4.104-1-abyss-lens0910-entry-message-consolidated.zip",
+      "member": "production/upload/cd/6336795a27ea33bf8d0c5d5a9bfb466bedcf1e",
+      "sha256": "f55304889e739a810bb4a37b3fa8fbc02abc638600f4a382408e6efab32e5718",
+      "size": 256238
+    }
+  },
+  "weapon_rows_equal_official_1_4_54": true,
+  "platforms": "common orderedmap resources for Android and iOS; no platform texture or APK/IPA changes",
+  "save_impact": "balance-only; no stored IDs, progress, schema, rewards or acquisition changes",
+  "validation": "serialized data and client formula checks; no device battle or HTTP service run",
+  "delivery": "local source only; no commit, push, runtime sync or cloud overlay",
+  "effective_chain": {
+    "tail": "1.4.107",
+    "winning_archive": "pinball-1.4.106-1.4.107-1-weapon-caps-practice-hp.zip",
+    "both_tables_match": true
+  }
+}

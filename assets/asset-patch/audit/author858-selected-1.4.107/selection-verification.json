@@ -1,0 +1,27 @@
+{
+  "status": "passed",
+  "installed": true,
+  "prepared_sha256": "68903e8b7b3675171aa276448225f663c7122c5385ee86c35972eec6c4194af1",
+  "complete_donor_table_keys_checked": 658,
+  "rolf_only_three_position_cells": true,
+  "unselected_balance_and_date_changes_absent": true,
+  "gerald_both_reviewed_trees_matched": true,
+  "donor_invalid_enum_negative_test": "ActionDsl[0]/Block[1]/Command:FindAllSubjects 参数8(目标缺失时)类型不符: expected=IfTargetNotFound, value=['Block', []]",
+  "corrected_dsl_positive_test": true,
+  "selected_character_media_and_dependencies": 1557,
+  "current_apk_builtin_dependencies": 32,
+  "retained_gerald_optimized_atlas_identical_visible_frames": 37,
+  "gacha": {
+    "990001": {
+      "author_mod_probabilities_exact": 44,
+      "author_mod_order_and_highlights_preserved": true,
+      "ordinary_exchange_flags_preserved": 432
+    },
+    "990002": {
+      "author_mod_probabilities_exact": 68,
+      "author_mod_order_and_highlights_preserved": true,
+      "ordinary_exchange_flags_preserved": 432
+    }
+  },
+  "device_tested": false
+}

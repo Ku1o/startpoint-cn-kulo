@@ -1,0 +1,62 @@
+{
+  "status": "passed",
+  "files": [
+    {
+      "path": "assets/character.json",
+      "selected_keys": 19,
+      "unaffected_keys_preserved": 527,
+      "sha256": "4f33d363579b4f75e5dc0b98fd20aecc29926e30896cf7054185869aa478ffd8"
+    },
+    {
+      "path": "assets/cdndata/character.json",
+      "selected_keys": 21,
+      "unaffected_keys_preserved": 529,
+      "sha256": "594e349346e61761ed7b962439438c5a37960b8d186ea20c324aeb2b469b569b"
+    },
+    {
+      "path": "assets/cdndata/character_text.json",
+      "selected_keys": 22,
+      "unaffected_keys_preserved": 524,
+      "sha256": "3e0adc1e8c3627661349a738f6264e45a8bad0979f8a9cdd2dd036aff3f4d89a"
+    },
+    {
+      "path": "assets/cdndata/character_text_rank_p5b.json",
+      "selected_keys": 15,
+      "unaffected_keys_preserved": 30,
+      "sha256": "18f0b3a6fd619f4ba9d006e89313302396da5f452eaaf7523a7b3553f0f107ba"
+    },
+    {
+      "path": "assets/mana_board.json",
+      "selected_keys": 4,
+      "unaffected_keys_preserved": 546,
+      "sha256": "3474e90153937f0250fefedac892891aa39b06a467217afd64398bd98d54d2eb"
+    },
+    {
+      "path": "assets/mana_node.json",
+      "selected_keys": 19,
+      "unaffected_keys_preserved": 516,
+      "sha256": "e376c0ad575870d0b6b4d1630bd2b41d42b522244739165401f782897e0ddb00"
+    },
+    {
+      "path": "assets/gacha.json",
+      "selected_keys": 2,
+      "unaffected_keys_preserved": 584,
+      "sha256": "cf7b7af4038ac9e5c85b2718606bfd776cf9d98a432f7388dccbcb07f36d8d8a"
+    },
+    {
+      "path": "assets/gacha_cnmod.json",
+      "selected_keys": 1,
+      "unaffected_keys_preserved": 0,
+      "sha256": "94bc4a489faa83c5964fce7819cce423f623ba645590e7dfde842421905b993e"
+    },
+    {
+      "path": "assets/gacha_rank_p5b.json",
+      "selected_keys": 1,
+      "unaffected_keys_preserved": 0,
+      "sha256": "a76c10cffdcc050af75043b484d33757550d0e303914732ca01c6b1296f18b3b"
+    }
+  ],
+  "unrelated_server_keys_preserved": true,
+  "existing_root_keys_preserved": true,
+  "player_database_accessed": false
+}

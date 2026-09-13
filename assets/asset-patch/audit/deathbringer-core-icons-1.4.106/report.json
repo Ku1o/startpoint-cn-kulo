@@ -1,0 +1,165 @@
+{
+  "version": "1.4.106",
+  "archive": {
+    "name": "pinball-1.4.105-1.4.106-2-deathbringer-core-icons.zip",
+    "size": 970506,
+    "sha256": "eeb310b65106cf8a3a827cd8bc5bc434ff95e91d939e1a01557f610cdae343b4",
+    "members": 3,
+    "files": [
+      "production/upload/72/cee8107e8e90d5839dc7d3098c35167ac18e7b",
+      "production/upload/fb/ab4344a7456dca88f3ce06f01208922f37e395",
+      "production/upload/fe/1035fdd920d54f65f6797bad2d4ac054feb10d"
+    ]
+  },
+  "part1_sha256_unchanged": "f25bccc0027d54b980462d78b792d86d015efabb568a76c207e6ba7debd3d9b2",
+  "reads": {
+    "common|72/cee8107e8e90d5839dc7d3098c35167ac18e7b": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.96-1.4.97-1-greyupd0902-cdn-resource-recovery.zip",
+      "member": "production/upload/72/cee8107e8e90d5839dc7d3098c35167ac18e7b",
+      "sha256": "4167d88ea4732bf17af50c918e5087dd55927e7e07b80542f2fe8cc47e47fa51"
+    },
+    "common|f0/de168aad4299c068f3427535f469a49ff9cbbb": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.103-1.4.104-1-abyss-lens0910-entry-message-consolidated.zip",
+      "member": "production/upload/f0/de168aad4299c068f3427535f469a49ff9cbbb",
+      "sha256": "f5a8bf6cc2aee87ae13b8a4da25edaddf5982b5712b2f21566e8063e33119f47"
+    },
+    "common|46/7cbaa5d06e83adb46c4647701b8d1a06b6c600": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.96-1.4.97-1-greyupd0902-cdn-resource-recovery.zip",
+      "member": "production/upload/46/7cbaa5d06e83adb46c4647701b8d1a06b6c600",
+      "sha256": "cc6722d3652a6409fbc09b947b56c9ca214e4ace255f07f7f5de2e1ba7b88e21"
+    },
+    "common|fb/ab4344a7456dca88f3ce06f01208922f37e395": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.104-1.4.105-2-gerald-portrait.zip",
+      "member": "production/upload/fb/ab4344a7456dca88f3ce06f01208922f37e395",
+      "sha256": "c220ed7910bd70fcaf3c4e074b37e16b8ea5e06af6c134168cc83ffe16afd4a0"
+    },
+    "common|fe/1035fdd920d54f65f6797bad2d4ac054feb10d": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.95-1.4.96-1-cdn-consolidated-gerald0903.zip",
+      "member": "production/upload/fe/1035fdd920d54f65f6797bad2d4ac054feb10d",
+      "sha256": "71bf550c9b1d23a6e7d3d58afbdb5631e73452b84c5cecbd3d50d8a12d1eca36"
+    },
+    "common|6d/4d576b424178c5b2b253a2dd5aa3d78fa74ef3": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.103-1.4.104-1-abyss-lens0910-entry-message-consolidated.zip",
+      "member": "production/upload/6d/4d576b424178c5b2b253a2dd5aa3d78fa74ef3",
+      "sha256": "2ba13f354441a91a9e97500eee45902bee26671292bc5a7a8714f73f574ac7fb"
+    },
+    "common|7b/5e0efc0e0691038ca52fe282501dfd3a1b5ae3": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.102-1.4.103-1-lens0909-consolidated-cn.zip",
+      "member": "production/upload/7b/5e0efc0e0691038ca52fe282501dfd3a1b5ae3",
+      "sha256": "fad7044c6a883835a97bedd7aa1f332969145b1091507108ca76b37f3ed1517b"
+    }
+  },
+  "converter": "tools/soul-icon-converter/dist/魂珠图标一键转换工具.exe",
+  "converter_sha256": "b3d1db9bda0485042c7fdfb0a6120f0455e73fe9bd82973f16a626e37fef0462",
+  "converted_png_sha256": "61c123f880e50ccb8087f91195b9e282fd5b56b5fb2fd138ad18862f1788114e",
+  "size": [
+    20,
+    20
+  ],
+  "alpha_preserved": true,
+  "trim": [
+    0,
+    0,
+    20,
+    20
+  ],
+  "shop_changed_product": "9700199",
+  "shop_changed_column": 13,
+  "core_existing_atlas_frame": {
+    "n": "item/materials/mod/abyss/abyss_core",
+    "w": 20,
+    "h": 20,
+    "x": 22,
+    "y": 1705
+  },
+  "unrelated_rows_preserved": true,
+  "quest_time_revisions_preserved": {
+    "rush:700099": "b7f64b4be9d492d56419293d911d06c3bfef6d2d917275c9d01735fd086340f3"
+  },
+  "save_impact": "None: artwork and one thumbnail path only; IDs, costs, rewards and progress unchanged.",
+  "device_acceptance": false,
+  "runtime_delivered": true,
+  "resources": [
+    {
+      "logical": "item/generated/ability_soul/mod/five_boss/deathbringer_final.png",
+      "member": "production/upload/72/cee8107e8e90d5839dc7d3098c35167ac18e7b",
+      "before_sha256": "4167d88ea4732bf17af50c918e5087dd55927e7e07b80542f2fe8cc47e47fa51",
+      "sha256": "6e1acdb31dabc084f51dd64c5c3d3886f973c8bc204efdad249ef4347b2d1447"
+    },
+    {
+      "logical": "master/generated/trimmed_image.orderedmap",
+      "member": "production/upload/fb/ab4344a7456dca88f3ce06f01208922f37e395",
+      "before_sha256": "c220ed7910bd70fcaf3c4e074b37e16b8ea5e06af6c134168cc83ffe16afd4a0",
+      "sha256": "02dc694080049a74a002a46ca92f3becbfefda288477fdc4016687661475fc68"
+    },
+    {
+      "logical": "master/shop/event_item_shop.orderedmap",
+      "member": "production/upload/fe/1035fdd920d54f65f6797bad2d4ac054feb10d",
+      "before_sha256": "71bf550c9b1d23a6e7d3d58afbdb5631e73452b84c5cecbd3d50d8a12d1eca36",
+      "sha256": "deb8446fb39e6469cd2c62015978e885cc0e4c328a04636685d25e97111d06e1"
+    }
+  ],
+  "backup": "F:\\startpoint-cn-main\\.codex-backups\\20260912-205050-deathbringer-core-icons",
+  "delivery": [
+    {
+      "root": "F:\\codex\\startpoint-cn-private-clean",
+      "path": "assets/asset-patch/production/upload/72/cee8107e8e90d5839dc7d3098c35167ac18e7b",
+      "before_sha256": null,
+      "sha256": "6e1acdb31dabc084f51dd64c5c3d3886f973c8bc204efdad249ef4347b2d1447"
+    },
+    {
+      "root": "F:\\codex\\startpoint-cn-private-clean",
+      "path": "assets/asset-patch/production/upload/fb/ab4344a7456dca88f3ce06f01208922f37e395",
+      "before_sha256": "c220ed7910bd70fcaf3c4e074b37e16b8ea5e06af6c134168cc83ffe16afd4a0",
+      "sha256": "02dc694080049a74a002a46ca92f3becbfefda288477fdc4016687661475fc68"
+    },
+    {
+      "root": "F:\\codex\\startpoint-cn-private-clean",
+      "path": "assets/asset-patch/production/upload/fe/1035fdd920d54f65f6797bad2d4ac054feb10d",
+      "before_sha256": "62e45ceb649555f32019dba12c1f6127e635b2a1426995eb7b686766b0e69230",
+      "sha256": "deb8446fb39e6469cd2c62015978e885cc0e4c328a04636685d25e97111d06e1"
+    },
+    {
+      "root": "F:\\codex\\startpoint-cn-private-clean",
+      "path": "assets/asset-patch/active/pinball-1.4.105-1.4.106-2-deathbringer-core-icons.zip",
+      "before_sha256": null,
+      "sha256": "eeb310b65106cf8a3a827cd8bc5bc434ff95e91d939e1a01557f610cdae343b4"
+    },
+    {
+      "root": "F:\\codex\\startpoint-cn-private-clean",
+      "path": "assets/asset-patch/manifest.json",
+      "before_sha256": "13f0b6fd7f09204ba19f06bcb31f08ddd1b48f385c0d552987d3a14265d14a78",
+      "sha256": "5bfb16505fcbb2df81e622799b9d98f70ef77f941751ff7cfa067841971894af"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/72/cee8107e8e90d5839dc7d3098c35167ac18e7b",
+      "before_sha256": null,
+      "sha256": "6e1acdb31dabc084f51dd64c5c3d3886f973c8bc204efdad249ef4347b2d1447"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/fb/ab4344a7456dca88f3ce06f01208922f37e395",
+      "before_sha256": "c220ed7910bd70fcaf3c4e074b37e16b8ea5e06af6c134168cc83ffe16afd4a0",
+      "sha256": "02dc694080049a74a002a46ca92f3becbfefda288477fdc4016687661475fc68"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/production/upload/fe/1035fdd920d54f65f6797bad2d4ac054feb10d",
+      "before_sha256": "62e45ceb649555f32019dba12c1f6127e635b2a1426995eb7b686766b0e69230",
+      "sha256": "deb8446fb39e6469cd2c62015978e885cc0e4c328a04636685d25e97111d06e1"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/active/pinball-1.4.105-1.4.106-2-deathbringer-core-icons.zip",
+      "before_sha256": null,
+      "sha256": "eeb310b65106cf8a3a827cd8bc5bc434ff95e91d939e1a01557f610cdae343b4"
+    },
+    {
+      "root": "F:\\startpoint-cn-main",
+      "path": "assets/asset-patch/manifest.json",
+      "before_sha256": "13f0b6fd7f09204ba19f06bcb31f08ddd1b48f385c0d552987d3a14265d14a78",
+      "sha256": "5bfb16505fcbb2df81e622799b9d98f70ef77f941751ff7cfa067841971894af"
+    }
+  ]
+}

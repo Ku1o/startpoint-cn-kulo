@@ -171,6 +171,30 @@ export function getPlayerSingleQuestProgressSync(
     return buildPlayerQuestProgress(rawProgress)
 }
 
+/** Reads exact ids in one section without broadening to other quest categories. */
+export function getPlayerQuestProgressBySectionAndIdsSync(
+    playerId: number,
+    section: number | string,
+    questIds: readonly number[],
+): PlayerQuestProgress[] {
+    const sectionId = Number(section)
+    const ids = [...new Set(questIds)].filter(id => Number.isSafeInteger(id) && id >= 0)
+    if (!Number.isSafeInteger(sectionId) || sectionId < 0 || ids.length === 0) return []
+    if (ids.some(id => isAbyssFiniteQuest(sectionId, id))) refreshPlayerAbyssBestTimesSync(playerId)
+    const result: PlayerQuestProgress[] = []
+    for (let offset = 0; offset < ids.length; offset += 400) {
+        const chunk = ids.slice(offset, offset + 400)
+        const rows = getDb().prepare(`
+            SELECT section, quest_id, finished, host_finished, unlocked, high_score, clear_rank,
+                best_elapsed_time_ms, leader_character_id, multi_clear_count, s_plus_reward_received
+            FROM players_quest_progress
+            WHERE player_id = ? AND section = ? AND quest_id IN (${chunk.map(() => "?").join(", ")})
+        `).all(playerId, sectionId, ...chunk) as RawPlayerQuestProgress[]
+        result.push(...rows.map(buildPlayerQuestProgress))
+    }
+    return result
+}
+
 /**
  * Inserts a singular quest progress into the database.
  * 

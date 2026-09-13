@@ -1,7 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.refreshAwakeUnlockCharacterList = exports.reconcileAwakeUnlockCharacterList = void 0;
-const character_1 = require("../../data/domains/character");
 const character_helpers_1 = require("../character-helpers");
 const awake_unlock_1 = require("./awake-unlock");
 function mergeManaBoardAwake(...values) {
@@ -28,7 +27,7 @@ function reconcileAwakeUnlockCharacterList(playerId, existing) {
         const changed = (0, awake_unlock_1.reconcileAwakeUnlocks)(playerId).changed;
         if (changed.size === 0)
             return existing;
-        const updates = (0, character_helpers_1.buildManaBoardAwakeCharacterList)((0, character_1.getPlayerCharactersSync)(playerId), changed, (0, character_1.getPlayerCharactersManaNodesSync)(playerId));
+        const updates = (0, character_helpers_1.buildScopedManaBoardAwakeCharacterList)(playerId, changed);
         return mergeAwakeCharacterUpdates(existing, updates);
     }
     catch (cause) {

@@ -667,7 +667,7 @@ class SessionManager {
         this.rescueFragmentEligibleGuests.delete(roomNumber);
         this.blockedRoomRestores.delete(roomNumber);
     }
-    commitRoomDisband(roomNumber, reason) {
+    commitRoomDisband(roomNumber, reason, messageKey = "multibattle_room_dismissed") {
         const roomClients = this.getClientsInRoom(roomNumber);
         const lobbyClients = roomClients.filter(client => !client.isBattle);
         const battleClients = this.getConnectedBattleClients(roomNumber);
@@ -691,7 +691,7 @@ class SessionManager {
         // unserializer dereference a missing enum entry and crash with C5602.
         const notifiedLobbySockets = new Set();
         for (const client of lobbyClients) {
-            const sendResult = this.sendJson(client.socket, [1, [6, "multibattle_room_dismissed"]], {
+            const sendResult = this.sendJson(client.socket, [1, [6, messageKey]], {
                 roomNumber,
                 connectionId: client.connectionId,
                 viewerId: client.viewerId,

@@ -1,12 +1,12 @@
 // Character mana node endpoints — learn and awake
 
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
-import { getPlayerCharacterManaNodesSync, getPlayerCharacterSync, getPlayerCharactersManaNodesSync, hasPlayerUnlockedCharacterManaNodeSync, insertPlayerCharacterManaNodesSync, getPlayerCharactersManaNodeAwakeLevelsSync, updatePlayerCharacterManaNodeAwakeLevelSync, updatePlayerCharacterSync } from "../../../data/domains/character"
+import { getPlayerCharacterManaNodeAwakeLevelsSync, getPlayerCharacterSync, insertPlayerCharacterManaNodesSync, updatePlayerCharacterManaNodeAwakeLevelSync, updatePlayerCharacterSync } from "../../../data/domains/character"
 import { getPlayerItemSync, updatePlayerItemSync } from "../../../data/domains/item"
 import { getPlayerSync, updatePlayerSync } from "../../../data/domains/player"
 import { getSession } from "../../../data/domains/session"
 import { getDb } from "../../../data/db"
-import { getPlayerCharacterAwakeUnlocksSync } from "../../../data/domains/character_awake";
+import { getPlayerCharacterAwakeUnlocksByCharacterIdsSync } from "../../../data/domains/character_awake";
 import { getCharacterDataSync, getCharacterManaNodesSync, getManaNodeAwakeCost } from "../../../lib/assets";
 import { clientSerializeDate } from "../../../data/utils";
 import { resolvePlayerIdSync } from "../../../data/activeAccount";
@@ -76,12 +76,12 @@ const routes = async (fastify: FastifyInstance) => {
             "error": "Bad Request", "message": `Character does not have mana nodes of index '${currentManaNodeIndex}'.`
         })
 
-        const unlockedManaNodes = getPlayerCharacterManaNodesSync(playerId, characterId);
+        const persistedAwakeLevels = getPlayerCharacterManaNodeAwakeLevelsSync(playerId, characterId)
+        const unlockedManaNodes = Object.keys(persistedAwakeLevels).map(Number)
         const unlockedManaNodesRecord: Record<string, boolean> = {}
         for (const manaNodeId of unlockedManaNodes) {
             unlockedManaNodesRecord[manaNodeId] = true
         }
-        const persistedAwakeLevels = getPlayerCharactersManaNodeAwakeLevelsSync(playerId)[String(characterId)] ?? {}
 
         for (const manaNodeId of requestedNodeIds) {
             const nodeData = characterManaNodes[manaNodeId];
@@ -271,16 +271,15 @@ const routes = async (fastify: FastifyInstance) => {
             "error": "Bad Request", "message": "Character does not have an awake mana board."
         })
         const board1NodeIds = Object.keys(board1Nodes).map(Number)
-        const awakeLevels = getPlayerCharactersManaNodeAwakeLevelsSync(playerId)
-        const charAwakeLevels = awakeLevels[String(characterId)] ?? {}
-        const persistedUnlockLevel = getPlayerCharacterAwakeUnlocksSync(playerId)
+        const charAwakeLevels = getPlayerCharacterManaNodeAwakeLevelsSync(playerId, characterId)
+        const persistedUnlockLevel = getPlayerCharacterAwakeUnlocksByCharacterIdsSync(playerId, [characterId])
             .get(String(characterId))?.[1] ?? 0
         const existingNodeAwakeLevel = Object.values(charAwakeLevels)
             .reduce((highest, level) => Math.max(highest, level ?? 0), 0)
         // Existing awakened nodes remain valid for legacy saves, but new
         // awakening is never authorized before the base board is complete.
         const expectedAwakeLevel = Math.max(persistedUnlockLevel, existingNodeAwakeLevel)
-        const learnedNodeIds = getPlayerCharactersManaNodesSync(playerId)[String(characterId)] ?? []
+        const learnedNodeIds = Object.keys(charAwakeLevels).map(Number)
         const validationError = validateManaBoardAwakeRequest(
             toAwakenNodeIds,
             targetAwakeLevel,
@@ -309,7 +308,7 @@ const routes = async (fastify: FastifyInstance) => {
         const rarity = charAssetData.rarity
 
         for (const manaNodeId of toAwakenNodeIds) {
-            if (!hasPlayerUnlockedCharacterManaNodeSync(playerId, characterId, manaNodeId)) return reply.status(400).send({
+            if (!learnedNodeSet.has(manaNodeId)) return reply.status(400).send({
                 "error": "Bad Request", "message": `Mana node '${manaNodeId}' is not unlocked.`
             })
 

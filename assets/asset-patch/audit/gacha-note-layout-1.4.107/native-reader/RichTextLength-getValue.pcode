@@ -1,0 +1,30 @@
+header: [2, 2, 1, 2]
+0000 getlocal_0 [] ;
+0001 pushscope [] ;
+0002 findproperty [57232] ; unit
+0003 getproperty [57232] ; unit
+0004 getproperty [46] ; index
+0005 lookupswitch [] ;
+0006 jump [] -> 28 ;
+0007 getlocal_1 [] ;
+0008 findproperty [2681] ; value
+0009 getproperty [2681] ; value
+0010 multiply [] ;
+0011 returnvalue [] ;
+0012 jump [] -> 28 ;
+0013 findproperty [2681] ; value
+0014 getproperty [2681] ; value
+0015 returnvalue [] ;
+0016 jump [] -> 28 ;
+0017 getlocal_1 [] ;
+0018 findproperty [2681] ; value
+0019 getproperty [2681] ; value
+0020 multiply [] ;
+0021 pushbyte [100] ;
+0022 divide [] ;
+0023 returnvalue [] ;
+0024 jump [] -> 28 ;
+0025 findproperty [2681] ; value
+0026 getproperty [2681] ; value
+0027 returnvalue [] ;
+0028 returnvoid [] ;

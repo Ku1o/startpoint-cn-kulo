@@ -3160,5 +3160,119 @@
     "name": "白",
     "rarity": 5,
     "skill_count": 6
+  },
+  "119989": {
+    "element": 0,
+    "name": "碧安卡",
+    "rarity": 5,
+    "skill_count": 6
+  },
+  "119993": {
+    "element": 0,
+    "name": "红蝮蛇",
+    "rarity": 5,
+    "skill_count": 6
+  },
+  "119994": {
+    "element": 0,
+    "name": "哈宁红Z",
+    "rarity": 5,
+    "skill_count": 6
+  },
+  "119995": {
+    "element": 0,
+    "name": "炎枪见习兵",
+    "rarity": 5,
+    "skill_count": 6
+  },
+  "129993": {
+    "element": 1,
+    "name": "冰冻虎鲸",
+    "rarity": 5,
+    "skill_count": 6
+  },
+  "129994": {
+    "element": 1,
+    "name": "哈宁蓝Z",
+    "rarity": 5,
+    "skill_count": 6
+  },
+  "129995": {
+    "element": 1,
+    "name": "彷徨铠甲·水",
+    "rarity": 5,
+    "skill_count": 6
+  },
+  "129996": {
+    "element": 1,
+    "name": "蓝色海妖",
+    "rarity": 5,
+    "skill_count": 6
+  },
+  "129998": {
+    "element": 1,
+    "name": "水灵幽魂",
+    "rarity": 5,
+    "skill_count": 6
+  },
+  "139996": {
+    "element": 2,
+    "name": "机枪魔块·雷",
+    "rarity": 5,
+    "skill_count": 6
+  },
+  "149988": {
+    "element": 3,
+    "name": "盾牌座",
+    "rarity": 5,
+    "skill_count": 6
+  },
+  "149989": {
+    "element": 3,
+    "name": "希尔媞",
+    "rarity": 5,
+    "skill_count": 6
+  },
+  "149991": {
+    "element": 3,
+    "name": "疾风狂熊",
+    "rarity": 5,
+    "skill_count": 6
+  },
+  "149992": {
+    "element": 3,
+    "name": "彷徨铠甲·风",
+    "rarity": 5,
+    "skill_count": 6
+  },
+  "149993": {
+    "element": 3,
+    "name": "哈宁绿",
+    "rarity": 5,
+    "skill_count": 6
+  },
+  "149994": {
+    "element": 3,
+    "name": "风暴恶魔拉比",
+    "rarity": 5,
+    "skill_count": 6
+  },
+  "159999": {
+    "element": 4,
+    "name": "Sec-2600Li",
+    "rarity": 5,
+    "skill_count": 6
+  },
+  "169989": {
+    "element": 5,
+    "name": "奈芙提姆",
+    "rarity": 5,
+    "skill_count": 6
+  },
+  "169993": {
+    "element": 5,
+    "name": "黑之下忍",
+    "rarity": 5,
+    "skill_count": 6
   }
 }

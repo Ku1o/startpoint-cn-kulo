@@ -1,91 +1,106 @@
 {
   "schema_version": 2,
   "status": "accepted_offline",
-  "accepted_on": "2026-09-10",
+  "accepted_on": "2026-09-13",
   "acceptance": {
-    "source": "用户要求验收当前累计 Android APK 修改方法并提交；本次仅推进最新内网包，公网保留原登记。",
-    "user_statement": "apk的修改方法也可以验收并提交了",
+    "source": "用户认可 LAN 商店优化效果，并授权完成公网转换、验收及提交。",
+    "user_statement": "商店卡顿优化的apk做个公网版出来就可以验收并提交了，然后你再把ios的公网版也做出来，ios的等验收再提交",
     "scope": "offline_artifact_and_lineage",
     "device_tested_by_codex": false,
-    "device_acceptance": "not_established_by_this_audit",
+    "device_acceptance": "LAN 商店优化由用户反馈起效明显；公网派生包未单独真机测试。",
     "build_reports_are_immutable": true,
-    "audit": "client-patch/ACCEPTANCE-LENS0910-20260910.md",
-    "note": "本条用户指令授权执行验收与提交，不是用户已完成真机测试的声明。原构建报告保持生成时状态；本次直接登记原交付成品，没有重编译、重签或安装。"
+    "audit": "client-patch/ACCEPTANCE-SHOP-FIRST-OPEN-20260913.md",
+    "lan_user_feedback": "可以，起效很明显，卡顿减轻了许多。你认为客户端还有什么值得优化的点吗？"
   },
   "variants": {
     "public": {
-      "apk": "outputs/abyss-autostart-lens-public-test-20260909/StarPoint-CN-1.8.1-abyss-autostart-lens-public-test-20260909.apk",
-      "apk_sha256": "c868534b575348dde825fcd4c88c156157174fd4444724f1141fd9aa95e32a2d",
-      "swf_sha256": "11c06fd77a0e3811164d196208ecce28cba5ec3a602e3d798f3c67d5d5b17e04",
-      "uniqueappversionid": "8f559397-1911-4b5b-bdba-245048f37a36",
+      "apk": "outputs/shop-first-open-public-20260913/StarPoint-CN-1.8.1-shop-first-open-public-20260913.apk",
+      "apk_sha256": "35e0e7c777798594d68c9bcd74c507c6f0b7d065453e0425c301258c6bc38ac6",
+      "swf_sha256": "e60cc4a82e3b305257040dedc54d180794234e2c2d4d3cef68a105b9f8405927",
+      "uniqueappversionid": "dda17e46-ff9f-40bd-8bff-9e1acb542738",
       "endpoint": "http://175.178.160.158:8001",
-      "local_build_report": "outputs/abyss-autostart-lens-public-test-20260909/verification-report.json",
+      "local_build_report": "outputs/shop-first-open-public-20260913/verification.json",
       "local_build_checks": {
-        "changed_methods": [
-          "284:24599"
+        "method_bodies_checked": 96543,
+        "original_methods": 96535,
+        "changed_original_methods": [
+          25379,
+          25381,
+          67327,
+          72196,
+          81189
         ],
-        "method_bodies_checked": 96404,
+        "added_helper_methods": 8,
+        "all_other_original_methods_preserved": true,
+        "public_conversion_changed_method_bytes": 0,
+        "helper_runtime_assertions": 698,
+        "helper_abc_sha256": "a2aa1975aae4d36f55dfea907af227c1fb989cf8b3efb449df902e14b45a933e",
         "zipalign": true,
         "v1_signature": true,
         "v2_signature": true,
-        "signer_certificate_sha256": "569d19a3578d4cba16e3d6e7ad8ccab4fa667efc758deef6c9be3adb99919894",
-        "lens_cumulative_checks": {
-          "base_release": "Lens v3 2026-09-08",
-          "main_abc_bodies": 92561,
-          "ability_422_parser_sha256": "4a035a6b48b89a8a1b3f60eb371c49dfcf8095b1fe129e7bff46730e3a81b065",
-          "existing_constant_pools_preserved": true,
-          "abc_metadata_preserved": true,
-          "non_target_bodies_exceptions_and_activations_preserved": true,
-          "non_main_swf_tags_preserved": true
-        }
+        "signer_certificate_sha256": "569d19a3578d4cba16e3d6e7ad8ccab4fa667efc758deef6c9be3adb99919894"
       },
-      "accepted_on": "2026-09-09",
-      "acceptance_audit": "client-patch/ACCEPTANCE-ABYSS-AUTOSTART-20260909.md",
-      "main_abc_index": 284
+      "accepted_on": "2026-09-13",
+      "acceptance_audit": "client-patch/ACCEPTANCE-SHOP-FIRST-OPEN-20260913.md",
+      "main_abc_index": 291,
+      "size_bytes": 170024131,
+      "dex_sha256": "7798f3d8ab76f2718545cca95fd71d76df35194a5cd4853e79e964ff0f9f502e",
+      "native_build_identity": "dda17e46-ff9f-40bd-8bff-9e1acb542738",
+      "package_name": "com.leiting.wf",
+      "version_name": "1.8.1",
+      "version_code": 1008001,
+      "required_resource_version": "1.4.106",
+      "acceptance_status": "accepted_offline",
+      "device_acceptance": "not_independently_device_tested",
+      "derived_from_apk_sha256": "c158139f7c25fe9faaf39f24323fd329f7d9671e21495377a786d98971bce9e9"
     },
     "lan": {
-      "apk": "outputs/lens0910-abyss-details-lan-test-20260910/StarPoint-CN-1.8.1-lens0910-abyss-details-lan-test.apk",
-      "apk_sha256": "fd42a417dc7231c8dbc421e4839ceeefcfb027f8c83d8bc418baa427dd0b969d",
-      "swf_sha256": "7e3f40fc17ac6fbbec52a0775c6a6357edd258874ed62d13d4ceb287d56d97d3",
-      "uniqueappversionid": "2c7e1eae-872e-4da6-8c8a-42cbdb2360fe",
+      "apk": "outputs/shop-first-open-lan-test-20260913/StarPoint-CN-1.8.1-shop-first-open-lan-test-20260913.apk",
+      "apk_sha256": "c158139f7c25fe9faaf39f24323fd329f7d9671e21495377a786d98971bce9e9",
+      "swf_sha256": "50680e41d5ea4e9d075fd267645141235ef07f0eabe1aee3b6e6ee64a17b4359",
+      "uniqueappversionid": "8e57cf64-1d3c-4102-99e0-11f86a3e0d57",
       "endpoint": "http://<LAN_HOST>",
-      "local_build_report": "outputs/lens0910-abyss-details-lan-test-20260910/verification-report.json",
+      "local_build_report": "outputs/shop-first-open-lan-test-20260913/verification.json",
       "local_build_checks": {
-        "changed_methods": [
-          "286:56844",
-          "286:58882",
-          "286:59846",
-          "286:92450"
+        "method_bodies_checked": 96543,
+        "original_methods": 96535,
+        "changed_original_methods": [
+          25379,
+          25381,
+          67327,
+          72196,
+          81189
         ],
-        "method_bodies_checked": 96422,
+        "added_helper_methods": 8,
+        "all_other_original_methods_preserved": true,
+        "public_conversion_changed_method_bytes": 0,
+        "helper_runtime_assertions": 698,
+        "helper_abc_sha256": "a2aa1975aae4d36f55dfea907af227c1fb989cf8b3efb449df902e14b45a933e",
         "zipalign": true,
         "v1_signature": true,
         "v2_signature": true,
-        "signer_certificate_sha256": "569d19a3578d4cba16e3d6e7ad8ccab4fa667efc758deef6c9be3adb99919894",
-        "lens_cumulative_checks": {
-          "base_release": "Lens v3 2026-09-08",
-          "main_abc_bodies": 92561,
-          "ability_422_parser_sha256": "4a035a6b48b89a8a1b3f60eb371c49dfcf8095b1fe129e7bff46730e3a81b065",
-          "existing_constant_pools_preserved": true,
-          "abc_metadata_preserved": true,
-          "non_target_bodies_exceptions_and_activations_preserved": true,
-          "non_main_swf_tags_preserved": true
-        },
-        "bytecode_cases": 624,
-        "existing_helper_bodies": 18
+        "signer_certificate_sha256": "569d19a3578d4cba16e3d6e7ad8ccab4fa667efc758deef6c9be3adb99919894"
       },
       "endpoint_sha256": "a32f84d19ceda3b4a466952f7deab7fbf1db96029ba70777a2cbd4a1ef79f521",
       "local_endpoint_config": "outputs/android-build-local.json",
-      "accepted_on": "2026-09-10",
-      "acceptance_audit": "client-patch/ACCEPTANCE-LENS0910-20260910.md",
-      "main_abc_index": 286,
-      "required_resource_version": "1.4.104"
+      "accepted_on": "2026-09-13",
+      "acceptance_audit": "client-patch/ACCEPTANCE-SHOP-FIRST-OPEN-20260913.md",
+      "main_abc_index": 291,
+      "required_resource_version": "1.4.106",
+      "size_bytes": 170024131,
+      "dex_sha256": "4c962c4f722c5508f7cea253b148e5669f7069db951bc81db3ba9f60f461c92a",
+      "native_build_identity": "8e57cf64-1d3c-4102-99e0-11f86a3e0d57",
+      "package_name": "com.leiting.wf",
+      "version_name": "1.8.1",
+      "version_code": 1008001,
+      "acceptance_status": "accepted_offline",
+      "device_acceptance": "user_reported_shop_improvement"
     }
   },
   "lineage": {
-    "previous_accepted_registry": "client-patch/accepted-history/android-abyss-autostart-lens-20260909.json",
-    "documentation": "client-patch/ACCEPTANCE-LENS0910-20260910.md",
-    "build_entry": "client-patch/lens0910/package_apk.py",
+    "previous_accepted_registry": "client-patch/accepted-history/android-record-holder-20260912.json",
+    "documentation": "client-patch/ACCEPTANCE-SHOP-FIRST-OPEN-20260913.md",
+    "build_entry": "client-patch/shop-first-open/build_public_apk.py",
     "previous_method_source_commit": "8ae133a09e59a5430f71012aee77a7dda2a45c32",
     "preserved": [
       "此前 MOD、幻想连战、轮播、排行榜、继承入口、深渊装备门控",
@@ -102,10 +117,18 @@
       "深渊活动 700099 续战队伍跨关复用角色，逐关选队与其他活动原限制保持"
     ],
     "added": [
-      "仅内网：按关卡配置属性耐性通道、深渊摘要和滚动详情",
-      "仅内网：Lens 0910 日晒耐性与夏白/杰拉尔语音修正"
+      "公网与内网均保留关卡属性通道、深渊详情、Lens 0910 与玩家登录累计功能",
+      "兼容旧服务端空更新响应；账号切换保留下载模式和设备偏好",
+      "覆盖安装首次启动清理 AIR 启动缓存；普通重开跳过",
+      "深渊连战详情按钮四角曲线",
+      "切队先初始化目标队伍，再绑定触摸及更新名称；无角色格子的触摸安全返回；保留仅更新当前队伍的优化",
+      "深渊关卡详情本期全服最快用时和纪录保持者当前公开昵称",
+      "入手方法支持已解锁且开放的常驻活动文件夹，保留关卡准入检查",
+      "活动商品按活动类型与 ID 建立成员索引，保留库存、兑换期、过滤及原顺序",
+      "商店首页与常驻活动文件夹存在性检查找到首个可用活动即返回",
+      "觉醒任务响应后重新获取角色及觉醒等级，并刷新能力页签"
     ],
-    "method_archive": "属性通道、关卡详情与 Lens 0910 方法已随此前会话提交；本次登记累计内网成品验收。"
+    "method_archive": "shop-first-open 索引和存在性短路，包含 awake-page-refresh 客户端刷新；保留此前全部累计方法。"
   },
   "excluded_artifacts": [
     {

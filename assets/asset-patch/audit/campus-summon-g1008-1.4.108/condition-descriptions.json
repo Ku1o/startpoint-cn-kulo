@@ -1,0 +1,1668 @@
+[
+  {
+    "logical": "battle/action/skill/action/rare5/lady_summoner_campus$lady_summoner_campus_1.action.dsl.amf3.deflate",
+    "before": [
+      {
+        "command": "赋予状态(buff/debuff): 固有状态 1",
+        "target": -17,
+        "conditions": [
+          [
+            "ACUnique",
+            11998901,
+            [
+              {
+                "min": 1,
+                "max": 1
+              }
+            ]
+          ]
+        ],
+        "forceApply": false
+      },
+      {
+        "command": "赋予状态(buff/debuff): 攻击力 -0.2(900帧)",
+        "target": 40,
+        "conditions": [
+          [
+            "ACAttackPoint",
+            [
+              {
+                "min": 900,
+                "max": 900
+              }
+            ],
+            [
+              {
+                "min": -0.2,
+                "max": -0.2
+              }
+            ],
+            [
+              {
+                "min": 1,
+                "max": 1
+              }
+            ]
+          ]
+        ],
+        "forceApply": false
+      },
+      {
+        "command": "赋予状态(buff/debuff): 无敌(60帧)",
+        "target": 11,
+        "conditions": [
+          [
+            "ACInvincible",
+            [
+              {
+                "min": 60,
+                "max": 60
+              }
+            ]
+          ]
+        ],
+        "forceApply": true
+      },
+      {
+        "command": "赋予状态(buff/debuff): 属性耐性(900帧)",
+        "target": 40,
+        "conditions": [
+          [
+            "ACToleranceOfElement",
+            [
+              {
+                "min": 900,
+                "max": 900
+              }
+            ],
+            1,
+            [
+              {
+                "min": -0.25,
+                "max": -0.25
+              }
+            ],
+            [
+              {
+                "min": 1,
+                "max": 1
+              }
+            ]
+          ]
+        ],
+        "forceApply": false
+      },
+      {
+        "command": "赋予状态(buff/debuff): 能力伤害减免 -0.2(900帧)",
+        "target": 40,
+        "conditions": [
+          [
+            "ACAbilityDamageResistance",
+            [
+              {
+                "min": 900,
+                "max": 900
+              }
+            ],
+            [
+              {
+                "min": -0.2,
+                "max": -0.2
+              }
+            ],
+            [
+              {
+                "min": 1,
+                "max": 1
+              }
+            ]
+          ]
+        ],
+        "forceApply": false
+      },
+      {
+        "command": "赋予状态(buff/debuff): 固有状态 1",
+        "target": 11,
+        "conditions": [
+          [
+            "ACUnique",
+            11998902,
+            [
+              {
+                "min": 1,
+                "max": 1
+              }
+            ]
+          ]
+        ],
+        "forceApply": false
+      },
+      {
+        "command": "赋予状态(buff/debuff): 固有状态 1",
+        "target": -17,
+        "conditions": [
+          [
+            "ACUnique",
+            11998902,
+            [
+              {
+                "min": 1,
+                "max": 1
+              }
+            ]
+          ]
+        ],
+        "forceApply": false
+      }
+    ],
+    "after": [
+      {
+        "command": "赋予状态(buff/debuff): 固有状态 1",
+        "target": -17,
+        "conditions": [
+          [
+            "ACUnique",
+            11998901,
+            [
+              {
+                "min": 1,
+                "max": 1
+              }
+            ]
+          ]
+        ],
+        "forceApply": false
+      },
+      {
+        "command": "赋予状态(buff/debuff): 攻击力 -0.2(900帧)",
+        "target": 40,
+        "conditions": [
+          [
+            "ACAttackPoint",
+            [
+              {
+                "min": 900,
+                "max": 900
+              }
+            ],
+            [
+              {
+                "min": -0.2,
+                "max": -0.2
+              }
+            ],
+            [
+              {
+                "min": 1,
+                "max": 1
+              }
+            ]
+          ]
+        ],
+        "forceApply": false
+      },
+      {
+        "command": "赋予状态(buff/debuff): 无敌(60帧)",
+        "target": 11,
+        "conditions": [
+          [
+            "ACInvincible",
+            [
+              {
+                "min": 60,
+                "max": 60
+              }
+            ]
+          ]
+        ],
+        "forceApply": true
+      },
+      {
+        "command": "赋予状态(buff/debuff): 属性耐性(900帧)",
+        "target": 40,
+        "conditions": [
+          [
+            "ACToleranceOfElement",
+            [
+              {
+                "min": 900,
+                "max": 900
+              }
+            ],
+            1,
+            [
+              {
+                "min": -0.25,
+                "max": -0.25
+              }
+            ],
+            [
+              {
+                "min": 1,
+                "max": 1
+              }
+            ]
+          ]
+        ],
+        "forceApply": false
+      },
+      {
+        "command": "赋予状态(buff/debuff): 能力伤害减免 -0.2(900帧)",
+        "target": 40,
+        "conditions": [
+          [
+            "ACAbilityDamageResistance",
+            [
+              {
+                "min": 900,
+                "max": 900
+              }
+            ],
+            [
+              {
+                "min": -0.2,
+                "max": -0.2
+              }
+            ],
+            [
+              {
+                "min": 1,
+                "max": 1
+              }
+            ]
+          ]
+        ],
+        "forceApply": false
+      },
+      {
+        "command": "赋予状态(buff/debuff): 固有状态 1",
+        "target": 11,
+        "conditions": [
+          [
+            "ACUnique",
+            11998902,
+            [
+              {
+                "min": 1,
+                "max": 1
+              }
+            ]
+          ]
+        ],
+        "forceApply": false
+      },
+      {
+        "command": "赋予状态(buff/debuff): 固有状态 1",
+        "target": -17,
+        "conditions": [
+          [
+            "ACUnique",
+            11998902,
+            [
+              {
+                "min": 1,
+                "max": 1
+              }
+            ]
+          ]
+        ],
+        "forceApply": false
+      }
+    ]
+  },
+  {
+    "logical": "battle/action/skill/action/rare5/lady_summoner_campus$lady_summoner_campus_2.action.dsl.amf3.deflate",
+    "before": [
+      {
+        "command": "赋予状态(buff/debuff): 固有状态 1",
+        "target": -17,
+        "conditions": [
+          [
+            "ACUnique",
+            11998901,
+            [
+              {
+                "min": 1,
+                "max": 1
+              }
+            ]
+          ]
+        ],
+        "forceApply": false
+      },
+      {
+        "command": "赋予状态(buff/debuff): 攻击力 -0.2(900帧)",
+        "target": 40,
+        "conditions": [
+          [
+            "ACAttackPoint",
+            [
+              {
+                "min": 900,
+                "max": 900
+              }
+            ],
+            [
+              {
+                "min": -0.2,
+                "max": -0.2
+              }
+            ],
+            [
+              {
+                "min": 1,
+                "max": 1
+              }
+            ]
+          ]
+        ],
+        "forceApply": false
+      },
+      {
+        "command": "赋予状态(buff/debuff): 无敌(60帧)",
+        "target": 11,
+        "conditions": [
+          [
+            "ACInvincible",
+            [
+              {
+                "min": 60,
+                "max": 60
+              }
+            ]
+          ]
+        ],
+        "forceApply": true
+      },
+      {
+        "command": "赋予状态(buff/debuff): 属性耐性(900帧)",
+        "target": 40,
+        "conditions": [
+          [
+            "ACToleranceOfElement",
+            [
+              {
+                "min": 900,
+                "max": 900
+              }
+            ],
+            1,
+            [
+              {
+                "min": -0.25,
+                "max": -0.25
+              }
+            ],
+            [
+              {
+                "min": 1,
+                "max": 1
+              }
+            ]
+          ]
+        ],
+        "forceApply": false
+      },
+      {
+        "command": "赋予状态(buff/debuff): 能力伤害减免 -0.2(900帧)",
+        "target": 40,
+        "conditions": [
+          [
+            "ACAbilityDamageResistance",
+            [
+              {
+                "min": 900,
+                "max": 900
+              }
+            ],
+            [
+              {
+                "min": -0.2,
+                "max": -0.2
+              }
+            ],
+            [
+              {
+                "min": 1,
+                "max": 1
+              }
+            ]
+          ]
+        ],
+        "forceApply": false
+      },
+      {
+        "command": "赋予状态(buff/debuff): 固有状态 1",
+        "target": 11,
+        "conditions": [
+          [
+            "ACUnique",
+            11998902,
+            [
+              {
+                "min": 1,
+                "max": 1
+              }
+            ]
+          ]
+        ],
+        "forceApply": false
+      },
+      {
+        "command": "赋予状态(buff/debuff): 固有状态 1",
+        "target": -17,
+        "conditions": [
+          [
+            "ACUnique",
+            11998902,
+            [
+              {
+                "min": 1,
+                "max": 1
+              }
+            ]
+          ]
+        ],
+        "forceApply": false
+      }
+    ],
+    "after": [
+      {
+        "command": "赋予状态(buff/debuff): 固有状态 1",
+        "target": -17,
+        "conditions": [
+          [
+            "ACUnique",
+            11998901,
+            [
+              {
+                "min": 1,
+                "max": 1
+              }
+            ]
+          ]
+        ],
+        "forceApply": false
+      },
+      {
+        "command": "赋予状态(buff/debuff): 攻击力 -0.2(900帧)",
+        "target": 40,
+        "conditions": [
+          [
+            "ACAttackPoint",
+            [
+              {
+                "min": 900,
+                "max": 900
+              }
+            ],
+            [
+              {
+                "min": -0.2,
+                "max": -0.2
+              }
+            ],
+            [
+              {
+                "min": 1,
+                "max": 1
+              }
+            ]
+          ]
+        ],
+        "forceApply": false
+      },
+      {
+        "command": "赋予状态(buff/debuff): 无敌(60帧)",
+        "target": 11,
+        "conditions": [
+          [
+            "ACInvincible",
+            [
+              {
+                "min": 60,
+                "max": 60
+              }
+            ]
+          ]
+        ],
+        "forceApply": true
+      },
+      {
+        "command": "赋予状态(buff/debuff): 属性耐性(900帧)",
+        "target": 40,
+        "conditions": [
+          [
+            "ACToleranceOfElement",
+            [
+              {
+                "min": 900,
+                "max": 900
+              }
+            ],
+            1,
+            [
+              {
+                "min": -0.25,
+                "max": -0.25
+              }
+            ],
+            [
+              {
+                "min": 1,
+                "max": 1
+              }
+            ]
+          ]
+        ],
+        "forceApply": false
+      },
+      {
+        "command": "赋予状态(buff/debuff): 能力伤害减免 -0.2(900帧)",
+        "target": 40,
+        "conditions": [
+          [
+            "ACAbilityDamageResistance",
+            [
+              {
+                "min": 900,
+                "max": 900
+              }
+            ],
+            [
+              {
+                "min": -0.2,
+                "max": -0.2
+              }
+            ],
+            [
+              {
+                "min": 1,
+                "max": 1
+              }
+            ]
+          ]
+        ],
+        "forceApply": false
+      },
+      {
+        "command": "赋予状态(buff/debuff): 固有状态 1",
+        "target": 11,
+        "conditions": [
+          [
+            "ACUnique",
+            11998902,
+            [
+              {
+                "min": 1,
+                "max": 1
+              }
+            ]
+          ]
+        ],
+        "forceApply": false
+      },
+      {
+        "command": "赋予状态(buff/debuff): 固有状态 1",
+        "target": -17,
+        "conditions": [
+          [
+            "ACUnique",
+            11998902,
+            [
+              {
+                "min": 1,
+                "max": 1
+              }
+            ]
+          ]
+        ],
+        "forceApply": false
+      }
+    ]
+  },
+  {
+    "logical": "battle/action/skill/action/rare5/ruin_girl_campus$ruin_girl_campus_1.action.dsl.amf3.deflate",
+    "before": [
+      {
+        "command": "赋予状态(buff/debuff): 直击伤害 2(1200帧) + 贯通(1200帧)",
+        "target": 72,
+        "conditions": [
+          [
+            "ACDirectDamage",
+            [
+              {
+                "min": 1200,
+                "max": 1200
+              }
+            ],
+            [
+              {
+                "min": 2,
+                "max": 2
+              }
+            ],
+            [
+              {
+                "min": 1,
+                "max": 1
+              }
+            ]
+          ],
+          [
+            "ACPiercing",
+            [
+              {
+                "min": 1200,
+                "max": 1200
+              }
+            ]
+          ]
+        ],
+        "forceApply": true
+      },
+      {
+        "command": "赋予状态(buff/debuff): 贯通(1200帧)",
+        "target": 73,
+        "conditions": [
+          [
+            "ACPiercing",
+            [
+              {
+                "min": 1200,
+                "max": 1200
+              }
+            ]
+          ]
+        ],
+        "forceApply": true
+      },
+      {
+        "command": "赋予状态(buff/debuff): 直击追加攻击 2(1200帧)",
+        "target": 70,
+        "conditions": [
+          [
+            "ACAdditionalDirectAttack",
+            [
+              {
+                "min": 1200,
+                "max": 1200
+              }
+            ],
+            [
+              {
+                "min": 2,
+                "max": 2
+              }
+            ],
+            [
+              {
+                "min": 1,
+                "max": 1
+              }
+            ],
+            [
+              {
+                "min": 1,
+                "max": 1
+              }
+            ]
+          ]
+        ],
+        "forceApply": true
+      },
+      {
+        "command": "赋予状态(buff/debuff): 直击追加攻击 2(1200帧)",
+        "target": 71,
+        "conditions": [
+          [
+            "ACAdditionalDirectAttack",
+            [
+              {
+                "min": 1200,
+                "max": 1200
+              }
+            ],
+            [
+              {
+                "min": 2,
+                "max": 2
+              }
+            ],
+            [
+              {
+                "min": 1,
+                "max": 1
+              }
+            ],
+            [
+              {
+                "min": 1,
+                "max": 1
+              }
+            ]
+          ]
+        ],
+        "forceApply": true
+      },
+      {
+        "command": "赋予状态(buff/debuff): 攻击力 1(1200帧)",
+        "target": 70,
+        "conditions": [
+          [
+            "ACAttackPoint",
+            [
+              {
+                "min": 1200,
+                "max": 1200
+              }
+            ],
+            [
+              {
+                "min": 1,
+                "max": 1
+              }
+            ],
+            [
+              {
+                "min": 1,
+                "max": 1
+              }
+            ]
+          ]
+        ],
+        "forceApply": true
+      },
+      {
+        "command": "赋予状态(buff/debuff): 攻击力 1(1200帧)",
+        "target": 71,
+        "conditions": [
+          [
+            "ACAttackPoint",
+            [
+              {
+                "min": 1200,
+                "max": 1200
+              }
+            ],
+            [
+              {
+                "min": 1,
+                "max": 1
+              }
+            ],
+            [
+              {
+                "min": 1,
+                "max": 1
+              }
+            ]
+          ]
+        ],
+        "forceApply": true
+      },
+      {
+        "command": "赋予状态(buff/debuff): 固有状态 1",
+        "target": -17,
+        "conditions": [
+          [
+            "ACUnique",
+            16998901,
+            [
+              {
+                "min": 1,
+                "max": 1
+              }
+            ]
+          ]
+        ],
+        "forceApply": true
+      },
+      {
+        "command": "赋予状态(buff/debuff): 固有状态 1",
+        "target": -17,
+        "conditions": [
+          [
+            "ACUnique",
+            16998901,
+            [
+              {
+                "min": 1,
+                "max": 1
+              }
+            ]
+          ]
+        ],
+        "forceApply": true
+      }
+    ],
+    "after": [
+      {
+        "command": "赋予状态(buff/debuff): 直击伤害 2(1200帧) + 贯通(1200帧)",
+        "target": 72,
+        "conditions": [
+          [
+            "ACDirectDamage",
+            [
+              {
+                "min": 1200,
+                "max": 1200
+              }
+            ],
+            [
+              {
+                "min": 2,
+                "max": 2
+              }
+            ],
+            [
+              {
+                "min": 1,
+                "max": 1
+              }
+            ]
+          ],
+          [
+            "ACPiercing",
+            [
+              {
+                "min": 1200,
+                "max": 1200
+              }
+            ]
+          ]
+        ],
+        "forceApply": true
+      },
+      {
+        "command": "赋予状态(buff/debuff): 贯通(1200帧)",
+        "target": 73,
+        "conditions": [
+          [
+            "ACPiercing",
+            [
+              {
+                "min": 1200,
+                "max": 1200
+              }
+            ]
+          ]
+        ],
+        "forceApply": true
+      },
+      {
+        "command": "赋予状态(buff/debuff): 直击追加攻击 2(1200帧)",
+        "target": 70,
+        "conditions": [
+          [
+            "ACAdditionalDirectAttack",
+            [
+              {
+                "min": 1200,
+                "max": 1200
+              }
+            ],
+            [
+              {
+                "min": 2,
+                "max": 2
+              }
+            ],
+            [
+              {
+                "min": 1,
+                "max": 1
+              }
+            ],
+            [
+              {
+                "min": 1,
+                "max": 1
+              }
+            ]
+          ]
+        ],
+        "forceApply": true
+      },
+      {
+        "command": "赋予状态(buff/debuff): 直击追加攻击 2(1200帧)",
+        "target": 71,
+        "conditions": [
+          [
+            "ACAdditionalDirectAttack",
+            [
+              {
+                "min": 1200,
+                "max": 1200
+              }
+            ],
+            [
+              {
+                "min": 2,
+                "max": 2
+              }
+            ],
+            [
+              {
+                "min": 1,
+                "max": 1
+              }
+            ],
+            [
+              {
+                "min": 1,
+                "max": 1
+              }
+            ]
+          ]
+        ],
+        "forceApply": false
+      },
+      {
+        "command": "赋予状态(buff/debuff): 攻击力 1(1200帧)",
+        "target": 70,
+        "conditions": [
+          [
+            "ACAttackPoint",
+            [
+              {
+                "min": 1200,
+                "max": 1200
+              }
+            ],
+            [
+              {
+                "min": 1,
+                "max": 1
+              }
+            ],
+            [
+              {
+                "min": 1,
+                "max": 1
+              }
+            ]
+          ]
+        ],
+        "forceApply": true
+      },
+      {
+        "command": "赋予状态(buff/debuff): 攻击力 1(1200帧)",
+        "target": 71,
+        "conditions": [
+          [
+            "ACAttackPoint",
+            [
+              {
+                "min": 1200,
+                "max": 1200
+              }
+            ],
+            [
+              {
+                "min": 1,
+                "max": 1
+              }
+            ],
+            [
+              {
+                "min": 1,
+                "max": 1
+              }
+            ]
+          ]
+        ],
+        "forceApply": false
+      },
+      {
+        "command": "赋予状态(buff/debuff): 固有状态 1",
+        "target": -17,
+        "conditions": [
+          [
+            "ACUnique",
+            16998901,
+            [
+              {
+                "min": 1,
+                "max": 1
+              }
+            ]
+          ]
+        ],
+        "forceApply": true
+      },
+      {
+        "command": "赋予状态(buff/debuff): 固有状态 1",
+        "target": -17,
+        "conditions": [
+          [
+            "ACUnique",
+            16998901,
+            [
+              {
+                "min": 1,
+                "max": 1
+              }
+            ]
+          ]
+        ],
+        "forceApply": true
+      }
+    ]
+  },
+  {
+    "logical": "battle/action/skill/action/rare5/ruin_girl_campus$ruin_girl_campus_2.action.dsl.amf3.deflate",
+    "before": [
+      {
+        "command": "赋予状态(buff/debuff): 直击伤害 2(1200帧) + 贯通(1200帧)",
+        "target": 72,
+        "conditions": [
+          [
+            "ACDirectDamage",
+            [
+              {
+                "min": 1200,
+                "max": 1200
+              }
+            ],
+            [
+              {
+                "min": 2,
+                "max": 2
+              }
+            ],
+            [
+              {
+                "min": 1,
+                "max": 1
+              }
+            ]
+          ],
+          [
+            "ACPiercing",
+            [
+              {
+                "min": 1200,
+                "max": 1200
+              }
+            ]
+          ]
+        ],
+        "forceApply": true
+      },
+      {
+        "command": "赋予状态(buff/debuff): 贯通(1200帧)",
+        "target": 73,
+        "conditions": [
+          [
+            "ACPiercing",
+            [
+              {
+                "min": 1200,
+                "max": 1200
+              }
+            ]
+          ]
+        ],
+        "forceApply": true
+      },
+      {
+        "command": "赋予状态(buff/debuff): 直击追加攻击 2(1200帧)",
+        "target": 70,
+        "conditions": [
+          [
+            "ACAdditionalDirectAttack",
+            [
+              {
+                "min": 1200,
+                "max": 1200
+              }
+            ],
+            [
+              {
+                "min": 2,
+                "max": 2
+              }
+            ],
+            [
+              {
+                "min": 1,
+                "max": 1
+              }
+            ],
+            [
+              {
+                "min": 1,
+                "max": 1
+              }
+            ]
+          ]
+        ],
+        "forceApply": true
+      },
+      {
+        "command": "赋予状态(buff/debuff): 直击追加攻击 2(1200帧)",
+        "target": 71,
+        "conditions": [
+          [
+            "ACAdditionalDirectAttack",
+            [
+              {
+                "min": 1200,
+                "max": 1200
+              }
+            ],
+            [
+              {
+                "min": 2,
+                "max": 2
+              }
+            ],
+            [
+              {
+                "min": 1,
+                "max": 1
+              }
+            ],
+            [
+              {
+                "min": 1,
+                "max": 1
+              }
+            ]
+          ]
+        ],
+        "forceApply": true
+      },
+      {
+        "command": "赋予状态(buff/debuff): 攻击力 1(1200帧)",
+        "target": 70,
+        "conditions": [
+          [
+            "ACAttackPoint",
+            [
+              {
+                "min": 1200,
+                "max": 1200
+              }
+            ],
+            [
+              {
+                "min": 1,
+                "max": 1
+              }
+            ],
+            [
+              {
+                "min": 1,
+                "max": 1
+              }
+            ]
+          ]
+        ],
+        "forceApply": true
+      },
+      {
+        "command": "赋予状态(buff/debuff): 攻击力 1(1200帧)",
+        "target": 71,
+        "conditions": [
+          [
+            "ACAttackPoint",
+            [
+              {
+                "min": 1200,
+                "max": 1200
+              }
+            ],
+            [
+              {
+                "min": 1,
+                "max": 1
+              }
+            ],
+            [
+              {
+                "min": 1,
+                "max": 1
+              }
+            ]
+          ]
+        ],
+        "forceApply": true
+      },
+      {
+        "command": "赋予状态(buff/debuff): 固有状态 1",
+        "target": -17,
+        "conditions": [
+          [
+            "ACUnique",
+            16998901,
+            [
+              {
+                "min": 1,
+                "max": 1
+              }
+            ]
+          ]
+        ],
+        "forceApply": true
+      },
+      {
+        "command": "赋予状态(buff/debuff): 固有状态 1",
+        "target": -17,
+        "conditions": [
+          [
+            "ACUnique",
+            16998901,
+            [
+              {
+                "min": 1,
+                "max": 1
+              }
+            ]
+          ]
+        ],
+        "forceApply": true
+      }
+    ],
+    "after": [
+      {
+        "command": "赋予状态(buff/debuff): 直击伤害 2(1200帧) + 贯通(1200帧)",
+        "target": 72,
+        "conditions": [
+          [
+            "ACDirectDamage",
+            [
+              {
+                "min": 1200,
+                "max": 1200
+              }
+            ],
+            [
+              {
+                "min": 2,
+                "max": 2
+              }
+            ],
+            [
+              {
+                "min": 1,
+                "max": 1
+              }
+            ]
+          ],
+          [
+            "ACPiercing",
+            [
+              {
+                "min": 1200,
+                "max": 1200
+              }
+            ]
+          ]
+        ],
+        "forceApply": true
+      },
+      {
+        "command": "赋予状态(buff/debuff): 贯通(1200帧)",
+        "target": 73,
+        "conditions": [
+          [
+            "ACPiercing",
+            [
+              {
+                "min": 1200,
+                "max": 1200
+              }
+            ]
+          ]
+        ],
+        "forceApply": true
+      },
+      {
+        "command": "赋予状态(buff/debuff): 直击追加攻击 2(1200帧)",
+        "target": 70,
+        "conditions": [
+          [
+            "ACAdditionalDirectAttack",
+            [
+              {
+                "min": 1200,
+                "max": 1200
+              }
+            ],
+            [
+              {
+                "min": 2,
+                "max": 2
+              }
+            ],
+            [
+              {
+                "min": 1,
+                "max": 1
+              }
+            ],
+            [
+              {
+                "min": 1,
+                "max": 1
+              }
+            ]
+          ]
+        ],
+        "forceApply": true
+      },
+      {
+        "command": "赋予状态(buff/debuff): 直击追加攻击 2(1200帧)",
+        "target": 71,
+        "conditions": [
+          [
+            "ACAdditionalDirectAttack",
+            [
+              {
+                "min": 1200,
+                "max": 1200
+              }
+            ],
+            [
+              {
+                "min": 2,
+                "max": 2
+              }
+            ],
+            [
+              {
+                "min": 1,
+                "max": 1
+              }
+            ],
+            [
+              {
+                "min": 1,
+                "max": 1
+              }
+            ]
+          ]
+        ],
+        "forceApply": false
+      },
+      {
+        "command": "赋予状态(buff/debuff): 攻击力 1(1200帧)",
+        "target": 70,
+        "conditions": [
+          [
+            "ACAttackPoint",
+            [
+              {
+                "min": 1200,
+                "max": 1200
+              }
+            ],
+            [
+              {
+                "min": 1,
+                "max": 1
+              }
+            ],
+            [
+              {
+                "min": 1,
+                "max": 1
+              }
+            ]
+          ]
+        ],
+        "forceApply": true
+      },
+      {
+        "command": "赋予状态(buff/debuff): 攻击力 1(1200帧)",
+        "target": 71,
+        "conditions": [
+          [
+            "ACAttackPoint",
+            [
+              {
+                "min": 1200,
+                "max": 1200
+              }
+            ],
+            [
+              {
+                "min": 1,
+                "max": 1
+              }
+            ],
+            [
+              {
+                "min": 1,
+                "max": 1
+              }
+            ]
+          ]
+        ],
+        "forceApply": false
+      },
+      {
+        "command": "赋予状态(buff/debuff): 固有状态 1",
+        "target": -17,
+        "conditions": [
+          [
+            "ACUnique",
+            16998901,
+            [
+              {
+                "min": 1,
+                "max": 1
+              }
+            ]
+          ]
+        ],
+        "forceApply": true
+      },
+      {
+        "command": "赋予状态(buff/debuff): 固有状态 1",
+        "target": -17,
+        "conditions": [
+          [
+            "ACUnique",
+            16998901,
+            [
+              {
+                "min": 1,
+                "max": 1
+              }
+            ]
+          ]
+        ],
+        "forceApply": true
+      }
+    ]
+  },
+  {
+    "logical": "battle/action/skill/action/ability_skill/ruin_girl_campus$ruin_girl_campus_multiball_direct.action.dsl.amf3.deflate",
+    "before": [
+      {
+        "command": "赋予状态(buff/debuff): 直击伤害(分段) 0.5(2帧)",
+        "target": 72,
+        "conditions": [
+          [
+            "ACSeparatedTermDirectDamage",
+            [
+              {
+                "min": 2,
+                "max": 2
+              }
+            ],
+            [
+              {
+                "min": 0.5,
+                "max": 0.5,
+                "mul": 1
+              }
+            ],
+            [
+              {
+                "min": 1,
+                "max": 1
+              }
+            ]
+          ]
+        ],
+        "forceApply": true
+      },
+      {
+        "command": "赋予状态(buff/debuff): 直击伤害(分段) 0.5(2帧)",
+        "target": 71,
+        "conditions": [
+          [
+            "ACSeparatedTermDirectDamage",
+            [
+              {
+                "min": 2,
+                "max": 2
+              }
+            ],
+            [
+              {
+                "min": 0.5,
+                "max": 0.5,
+                "mul": 1
+              }
+            ],
+            [
+              {
+                "min": 1,
+                "max": 1
+              }
+            ]
+          ]
+        ],
+        "forceApply": true
+      }
+    ],
+    "after": [
+      {
+        "command": "赋予状态(buff/debuff): 直击伤害(分段) 0.5(2帧)",
+        "target": 72,
+        "conditions": [
+          [
+            "ACSeparatedTermDirectDamage",
+            [
+              {
+                "min": 2,
+                "max": 2
+              }
+            ],
+            [
+              {
+                "min": 0.5,
+                "max": 0.5,
+                "mul": 1
+              }
+            ],
+            [
+              {
+                "min": 1,
+                "max": 1
+              }
+            ]
+          ]
+        ],
+        "forceApply": true
+      },
+      {
+        "command": "赋予状态(buff/debuff): 直击伤害(分段) 0.5(2帧)",
+        "target": 71,
+        "conditions": [
+          [
+            "ACSeparatedTermDirectDamage",
+            [
+              {
+                "min": 2,
+                "max": 2
+              }
+            ],
+            [
+              {
+                "min": 0.5,
+                "max": 0.5,
+                "mul": 1
+              }
+            ],
+            [
+              {
+                "min": 1,
+                "max": 1
+              }
+            ]
+          ]
+        ],
+        "forceApply": false
+      }
+    ]
+  },
+  {
+    "logical": "battle/action/skill/action/ability_skill/ruin_girl_campus$ruin_girl_campus_multiball_direct_a4.action.dsl.amf3.deflate",
+    "before": [
+      {
+        "command": "赋予状态(buff/debuff): 直击伤害(分段) 0.5(2帧)",
+        "target": 81,
+        "conditions": [
+          [
+            "ACSeparatedTermDirectDamage",
+            [
+              {
+                "min": 2,
+                "max": 2
+              }
+            ],
+            [
+              {
+                "min": 0.5,
+                "max": 0.5
+              }
+            ],
+            [
+              {
+                "min": 1,
+                "max": 1
+              }
+            ]
+          ]
+        ],
+        "forceApply": true
+      }
+    ],
+    "after": [
+      {
+        "command": "赋予状态(buff/debuff): 直击伤害(分段) 0.5(2帧)",
+        "target": 81,
+        "conditions": [
+          [
+            "ACSeparatedTermDirectDamage",
+            [
+              {
+                "min": 2,
+                "max": 2
+              }
+            ],
+            [
+              {
+                "min": 0.5,
+                "max": 0.5
+              }
+            ],
+            [
+              {
+                "min": 1,
+                "max": 1
+              }
+            ]
+          ]
+        ],
+        "forceApply": false
+      }
+    ]
+  }
+]

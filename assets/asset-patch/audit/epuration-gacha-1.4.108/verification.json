@@ -1,0 +1,44 @@
+{
+  "status": "passed",
+  "checks": {
+    "990001": {
+      "total_weight": 150000,
+      "positive_mod_count": 44,
+      "zero_weight_count": 0,
+      "other_mod_probability_preserved": true,
+      "ordinary_weight": 83500,
+      "exact_client_server_parity": true
+    },
+    "990002": {
+      "total_weight": 950000,
+      "positive_mod_count": 44,
+      "zero_weight_count": 24,
+      "other_mod_probability_preserved": true,
+      "ordinary_weight": 510000,
+      "exact_client_server_parity": true
+    }
+  },
+  "changed_pools": {
+    "assets/gacha.json": [
+      "990001",
+      "990002"
+    ],
+    "assets/gacha_cnmod.json": [
+      "990001"
+    ],
+    "assets/gacha_rank_p5b.json": [
+      "990002"
+    ]
+  },
+  "previous_archives_preserved": true,
+  "manifest_previous_edges_preserved": true,
+  "zip_crc_and_members": true,
+  "source_runtime_tests": 3,
+  "save_impact": "No saved ID or schema change; actual exchanges checked only in an isolated database.",
+  "service_started": false,
+  "device_tested": false,
+  "runtime_mirror_synced": false,
+  "final_archive_sha256": "51e148075ca1e166b661f99c7617921f473232eda1cb697e2ff28795059f7b33",
+  "final_archive_size": 10190,
+  "final_notes_rechecked": true
+}

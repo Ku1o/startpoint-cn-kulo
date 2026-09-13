@@ -1,0 +1,39 @@
+{
+  "status": "passed",
+  "prepared_sha256": "68903e8b7b3675171aa276448225f663c7122c5385ee86c35972eec6c4194af1",
+  "accepted_swf_sha256": "e60cc4a82e3b305257040dedc54d180794234e2c2d4d3cef68a105b9f8405927",
+  "actual_native_reader_executed": true,
+  "formal_recordings": 5,
+  "native_suffixes": [
+    0,
+    1,
+    2,
+    3,
+    4
+  ],
+  "donor_formal_suffixes": [
+    0,
+    1,
+    4,
+    5,
+    6
+  ],
+  "trial_recordings_in_native_pool": 0,
+  "gap_stops_scan_negative_case": true,
+  "native_scan_limit": 512,
+  "native_ready_paths": [
+    "character/lion_swordman_reborn/voice/battle/skill_ready",
+    "character/lion_swordman_reborn/voice/battle/matched_skill_ready"
+  ],
+  "extra_ready_alternation_enabled": false,
+  "extra_ready_recordings_retained": true,
+  "apk_required": false,
+  "apk_registry_unchanged": true,
+  "device_tested": false,
+  "methods": {
+    "CharacterShortVoiceLogic/generateVoicePaths": "33b6c8702f55183f5c6221a0803d60578faef63f5a4e73bb43b872d4cde02b6f",
+    "CharacterShortVoiceLogic/get_skillVoicePaths": "04016206d2129f275c2cfd0a0350c11f5df1968fdab8019e29c849648060340a",
+    "CharacterShortVoiceLogic/get_skillReadyVoicePath": "666dc6ce6736c0db01a97075678341d0253ec911531725102ea8d4c6b5e88129",
+    "CharacterShortVoiceLogic/get_switchedSkillReadyVoicePath": "900f57d640994952cc33ed6235614ef62e747bed2ae25e33e60ace9e26147927"
+  }
+}

@@ -1,0 +1,174 @@
+{
+  "schema_version": 1,
+  "enabled": true,
+  "characters": [
+    {
+      "character_id": 119989,
+      "degree_ids": [
+        9910001,
+        9910002
+      ]
+    },
+    {
+      "character_id": 119996,
+      "degree_ids": [
+        9910003,
+        9910004
+      ]
+    },
+    {
+      "character_id": 119997,
+      "degree_ids": [
+        9910005,
+        9910006
+      ]
+    },
+    {
+      "character_id": 129952,
+      "degree_ids": [
+        9910007,
+        9910008
+      ]
+    },
+    {
+      "character_id": 129992,
+      "degree_ids": [
+        9910009,
+        9910010
+      ]
+    },
+    {
+      "character_id": 129997,
+      "degree_ids": [
+        9910011,
+        9910012
+      ]
+    },
+    {
+      "character_id": 129999,
+      "degree_ids": [
+        9910013,
+        9910014
+      ]
+    },
+    {
+      "character_id": 139995,
+      "degree_ids": [
+        9910015,
+        9910016
+      ]
+    },
+    {
+      "character_id": 139997,
+      "degree_ids": [
+        9910017,
+        9910018
+      ]
+    },
+    {
+      "character_id": 139998,
+      "degree_ids": [
+        9910019,
+        9910020
+      ]
+    },
+    {
+      "character_id": 139999,
+      "degree_ids": [
+        9910021,
+        9910022
+      ]
+    },
+    {
+      "character_id": 149988,
+      "degree_ids": [
+        9910023,
+        9910024
+      ]
+    },
+    {
+      "character_id": 149989,
+      "degree_ids": [
+        9910025,
+        9910026
+      ]
+    },
+    {
+      "character_id": 149990,
+      "degree_ids": [
+        9910027,
+        9910028
+      ]
+    },
+    {
+      "character_id": 149995,
+      "degree_ids": [
+        9910029,
+        9910030
+      ]
+    },
+    {
+      "character_id": 149996,
+      "degree_ids": [
+        9910031,
+        9910032
+      ]
+    },
+    {
+      "character_id": 149997,
+      "degree_ids": [
+        9910033,
+        9910034
+      ]
+    },
+    {
+      "character_id": 149999,
+      "degree_ids": [
+        9910035,
+        9910036
+      ]
+    },
+    {
+      "character_id": 169989,
+      "degree_ids": [
+        9910037,
+        9910038
+      ]
+    },
+    {
+      "character_id": 169996,
+      "degree_ids": [
+        9910039,
+        9910040
+      ]
+    },
+    {
+      "character_id": 169997,
+      "degree_ids": [
+        9910041,
+        9910042
+      ]
+    },
+    {
+      "character_id": 169998,
+      "degree_ids": [
+        9910043,
+        9910044
+      ]
+    },
+    {
+      "character_id": 169999,
+      "degree_ids": [
+        9910045,
+        9910046
+      ]
+    },
+    {
+      "character_id": 179999,
+      "degree_ids": [
+        9910047,
+        9910048
+      ]
+    }
+  ]
+}

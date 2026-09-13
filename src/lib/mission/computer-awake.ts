@@ -1,11 +1,11 @@
 // Character awakening mission computer (category 9)
 
-import { getPlayerCharacterClearSync, getPlayerCharacterClearsSync } from "../../data/domains/character_clear"
-import { getPlayerCharacterSync, getPlayerCharactersSync } from "../../data/domains/character"
+import { getPlayerCharacterClearsSync } from "../../data/domains/character_clear"
+import { getPlayerCharactersByIdsSync, getPlayerCharactersSync } from "../../data/domains/character"
 import {
     countFinishedPlayerQuestsByCategorySync,
     getPlayerQuestProgressSync,
-    getPlayerSingleQuestProgressSync,
+    getPlayerQuestProgressBySectionAndIdsSync,
 } from "../../data/domains/quest"
 import { getPlayerCategoryMissionsSync } from "../../data/domains/mission"
 import { getPlayerSync } from "../../data/domains/player"
@@ -119,10 +119,13 @@ function buildAwakeContext(playerId: number, missionIds?: readonly number[]): Aw
     let totalQuestClears = 0, ssClears = 0, sClears = 0, aClears = 0, bClears = 0, totalStories = 0
     const questProgress: CategoryContext["questProgress"] = {}
     const finishedQuestIds = new Set<number>()
+    const seenQuests = new Set<string>()
 
     const appendQuestProgress = (section: string, qp: PlayerQuestProgress) => {
         const list = questProgress[section] ?? []
-        if (list.some(entry => entry.questId === qp.questId)) return
+        const key = `${section}:${qp.questId}`
+        if (seenQuests.has(key)) return
+        seenQuests.add(key)
         list.push({
             questId: qp.questId, finished: qp.finished, clearRank: qp.clearRank,
             bestElapsedTimeMs: qp.bestElapsedTimeMs, leaderCharacterId: qp.leaderCharacterId,
@@ -169,9 +172,8 @@ function buildAwakeContext(playerId: number, missionIds?: readonly number[]): Aw
             }
         }
         for (const [section, questIds] of requestedQuests) {
-            for (const questId of questIds) {
-                const qp = getPlayerSingleQuestProgressSync(playerId, section, questId)
-                if (qp) appendQuestProgress(section, qp)
+            for (const qp of getPlayerQuestProgressBySectionAndIdsSync(playerId, section, [...questIds])) {
+                appendQuestProgress(section, qp)
             }
         }
         if (targetCharacterIds?.has(1)) {
@@ -185,18 +187,10 @@ function buildAwakeContext(playerId: number, missionIds?: readonly number[]): Aw
     const leaderMultiClears = new Map<string, number>()
     const leaderPowerflips = new Map<string, number>()
     const charData = new Map<string, PlayerCharacter>()
-    const clearRows = targetCharacterIds === undefined
-        ? getPlayerCharacterClearsSync(playerId)
-        : Object.fromEntries([...targetCharacterIds].map(characterId => [
-            String(characterId),
-            getPlayerCharacterClearSync(playerId, characterId),
-        ]))
+    const clearRows = getPlayerCharacterClearsSync(playerId, targetCharacterIds && [...targetCharacterIds])
     const chars = targetCharacterIds === undefined
         ? getPlayerCharactersSync(playerId)
-        : Object.fromEntries([...targetCharacterIds].flatMap(characterId => {
-            const character = getPlayerCharacterSync(playerId, characterId)
-            return character ? [[String(characterId), character] as const] : []
-        }))
+        : getPlayerCharactersByIdsSync(playerId, [...targetCharacterIds])
     for (const [cid, char] of Object.entries(chars)) {
         charData.set(cid, char)
     }
@@ -208,16 +202,30 @@ function buildAwakeContext(playerId: number, missionIds?: readonly number[]): Aw
         leaderPowerflips.set(cid, row.leader_power_flip_count)
     }
 
-    const needsCoClears = scopedMissionIds === undefined
-        || scopedMissionIds.some(missionId => MULTI_CHAR_MISSIONS.has(missionId))
-    const rows = needsCoClears ? getDb().prepare(`
-    SELECT char_id_a, char_id_b, co_clear_count FROM players_party_member_co_clears
-    WHERE player_id = ?
-    `).all(playerId) as { char_id_a: number; char_id_b: number; co_clear_count: number }[] : []
+    const pairs = new Map<string, [number, number]>()
+    for (const missionId of scopedMissionIds ?? []) {
+        const ids = MULTI_CHAR_MISSIONS.get(missionId) ?? []
+        for (let i = 0; i < ids.length; i++) {
+            for (let j = i + 1; j < ids.length; j++) {
+                // Both orientations remain readable for legacy, unnormalised rows.
+                pairs.set(`${ids[i]}:${ids[j]}`, [ids[i], ids[j]])
+                pairs.set(`${ids[j]}:${ids[i]}`, [ids[j], ids[i]])
+            }
+        }
+    }
+    const coClearSelect = "SELECT char_id_a, char_id_b, co_clear_count FROM players_party_member_co_clears WHERE player_id = ?"
+    const rows = (scopedMissionIds === undefined
+        ? getDb().prepare(coClearSelect).all(playerId)
+        : pairs.size === 0 ? [] : getDb().prepare([...pairs].map(() => (
+            `${coClearSelect} AND char_id_a = ? AND char_id_b = ?`
+        )).join(" UNION ALL ")).all(...[...pairs.values()].flatMap(([a, b]) => [playerId, a, b]))) as {
+            char_id_a: number; char_id_b: number; co_clear_count: number
+        }[]
     const coClears = mergePartyCoClearRows(rows)
 
     const categoryMissionProgress = new Map<number, number>()
-    for (const [missionId, progress] of Object.entries(getPlayerCategoryMissionsSync(playerId, 9))) {
+    const persistedMissions = getPlayerCategoryMissionsSync(playerId, 9, scopedMissionIds)
+    for (const [missionId, progress] of Object.entries(persistedMissions)) {
         categoryMissionProgress.set(Number(missionId), progress.progress)
     }
 
@@ -228,7 +236,7 @@ function buildAwakeContext(playerId: number, missionIds?: readonly number[]): Aw
         rankCounts: { rank_ss: ssClears, rank_s: sClears, rank_a: aClears, rank_b: bClears },
         charClears, leaderClears, multiClears, leaderMultiClears,
         leaderPowerflips, coClears, charData, categoryMissionProgress,
-        finishedQuestIds,
+        finishedQuestIds, persistedMissions,
     }
 }
 

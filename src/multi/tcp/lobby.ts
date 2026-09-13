@@ -254,12 +254,9 @@ function collectCanonicalRoomRoster(
     return synchronizeRoomRoster(roomNumber, candidates, false, preserveNpcCount, expectedGeneration)
 }
 
-function preflightBattleRoster(room: any, members: any[], roomGeneration = room.lobby_generation): {
-    members: any[]
-    rejectedViewerIds: number[]
-} {
+function preflightBattleRoster(room: any, members: any[], roomGeneration = room.lobby_generation): number[] {
     if (isMode15Quest(Number(room.category), Number(room.quest_id))) {
-        return { members, rejectedViewerIds: [] }
+        return []
     }
 
     const lobbyClients = sessionManager.getClientsInRoom(room.room_number, roomGeneration)
@@ -303,33 +300,7 @@ function preflightBattleRoster(room: any, members: any[], roomGeneration = room.
         }
     }
 
-    if (rejectedViewerIds.length === 0) return { members, rejectedViewerIds }
-
-    const rejectedSet = new Set(rejectedViewerIds)
-    const eligibleMembers = members.filter(member => {
-        const viewerId = Number(member?.viewerId)
-        return member?.comId || !Number.isFinite(viewerId) || !rejectedSet.has(viewerId)
-    })
-    for (const current of lobbyClients) {
-        if (rejectedSet.has(current.viewerId)) {
-            // Remove the client before StartBattle. It never becomes a battle
-            // peer, so no synthetic BattleServerMessage.Leave is required.
-            sessionManager.removeClient(current)
-            const socket = current.socket
-            try { socket.end() } catch (e) {}
-            const timer = setTimeout(() => socket.destroy(), 250)
-            timer.unref()
-            continue
-        }
-        current.mates = eligibleMembers
-        sessionManager.sendJson(current.socket, [1, [1, eligibleMembers]])
-    }
-    room.mates = eligibleMembers.map(member => ({
-        viewer_id: member.viewerId ?? null,
-        com_id: member.comId ?? 0,
-        player_id: member.playerId ?? undefined,
-    }))
-    return { members: eligibleMembers, rejectedViewerIds }
+    return rejectedViewerIds
 }
 
 export function checkHostAutoReady(roomNumber: string): void {
@@ -1012,11 +983,18 @@ function handleStartBattle(_socket: net.Socket, client: SessionClient, _data: an
         : room.lobby_generation
     // StartBattle may be sent first by any participant. Always use the
     // canonical host roster instead of that sender's potentially older copy.
-    let members = collectCanonicalRoomRoster(client.roomNumber, false, sourceGeneration)
-    const preflight = preflightBattleRoster(room, members, sourceGeneration)
-    members = preflight.members
-    if (preflight.rejectedViewerIds.includes(Number(room.host_viewer_id))) {
-        gameVerboseLog(() => `[LOBBY] StartBattle cancelled: host failed preflight room=${client.roomNumber}`)
+    const members = collectCanonicalRoomRoster(client.roomNumber, false, sourceGeneration)
+    const rejectedViewerIds = preflightBattleRoster(room, members, sourceGeneration)
+    if (rejectedViewerIds.length > 0) {
+        // CN Disbanded(reason) opens the same OkDialog/Text used by HTTP 4050.
+        // Cancel the whole start before allocating battle seats: letting the
+        // other members start would leave them waiting for a rejected peer.
+        // The disband path lets clients close their own lobby sockets after
+        // consuming the reason, avoiding S1000/C5805 from a premature FIN.
+        autoStartingRooms.delete(client.roomNumber)
+        sessionManager.commitRoomDisband(
+            client.roomNumber, "mode15_exclusive_equipment", "quest_start_out_of_period_error",
+        )
         return
     }
 

@@ -1,0 +1,158 @@
+[
+  {
+    "logical": "character/lady_summoner_campus/ui/skill_cutin_0.atf.deflate",
+    "path": "F:\\codex\\work\\author858-merge-20260913\\ios\\character\\lady_summoner_campus\\ui\\skill_cutin_0.atf.deflate",
+    "sha256": "606baf250fd3bf8087ecef00a03e122152082c485069c66c486300933dc84c52",
+    "png_sha256": "ff54ff31fd2eb7bccc536da30108943534c292face2514c22e6519f48499718f",
+    "pair": {
+      "w": 1024,
+      "h": 512,
+      "mips": 11,
+      "android_slot": 2,
+      "ios_slot": 3
+    }
+  },
+  {
+    "logical": "character/lady_summoner_campus/ui/skill_cutin_1.atf.deflate",
+    "path": "F:\\codex\\work\\author858-merge-20260913\\ios\\character\\lady_summoner_campus\\ui\\skill_cutin_1.atf.deflate",
+    "sha256": "9ee023b7416ca02e257fd77d1434bf83fbbc29298fb27c537612686b1d7feed5",
+    "png_sha256": "ac240742a4dec0718431c52ff544d251c04e22a228fbb124781365b1c18077c5",
+    "pair": {
+      "w": 1024,
+      "h": 512,
+      "mips": 11,
+      "android_slot": 2,
+      "ios_slot": 3
+    }
+  },
+  {
+    "logical": "character/lion_swordman_reborn/ui/skill_cutin_0.atf.deflate",
+    "path": "F:\\codex\\work\\author858-merge-20260913\\ios\\character\\lion_swordman_reborn\\ui\\skill_cutin_0.atf.deflate",
+    "sha256": "1f1561d59db844b9336ecda82122cfee6b5d8ceb91395a6cc76955f83ca37d6d",
+    "png_sha256": "4c417e618ef0a5800537560b71a5bbf9897ae55e5cb817441499dadbd9997fe1",
+    "pair": {
+      "w": 1024,
+      "h": 512,
+      "mips": 11,
+      "android_slot": 2,
+      "ios_slot": 3
+    }
+  },
+  {
+    "logical": "character/lion_swordman_reborn/ui/skill_cutin_1.atf.deflate",
+    "path": "F:\\codex\\work\\author858-merge-20260913\\ios\\character\\lion_swordman_reborn\\ui\\skill_cutin_1.atf.deflate",
+    "sha256": "e4e9d7671af1a79093d018439c6052edafdfb1ee4b1d011171d8e44c945ff3d6",
+    "png_sha256": "853621616caa97bd4689247b8c2125e8b80d1dc414cc76364f3bb5d8b7daa08e",
+    "pair": {
+      "w": 1024,
+      "h": 512,
+      "mips": 11,
+      "android_slot": 2,
+      "ios_slot": 3
+    }
+  },
+  {
+    "logical": "character/ruin_girl_campus/ui/skill_cutin_0.atf.deflate",
+    "path": "F:\\codex\\work\\author858-merge-20260913\\ios\\character\\ruin_girl_campus\\ui\\skill_cutin_0.atf.deflate",
+    "sha256": "c313bc55aec153bc54f60ba6747538609fd846744ac84a8ef7198bf4a3882006",
+    "png_sha256": "69f9952c7624a0d9dc0c6193810b4dee0ab8fb9547a17633303e482c099fd437",
+    "pair": {
+      "w": 1024,
+      "h": 512,
+      "mips": 11,
+      "android_slot": 2,
+      "ios_slot": 3
+    }
+  },
+  {
+    "logical": "character/ruin_girl_campus/ui/skill_cutin_1.atf.deflate",
+    "path": "F:\\codex\\work\\author858-merge-20260913\\ios\\character\\ruin_girl_campus\\ui\\skill_cutin_1.atf.deflate",
+    "sha256": "6193dcf42b780561e223f81e839b3f80371361b23001869b64d404beca89d0d8",
+    "png_sha256": "c3e30e0d06d1363bde02c7272e5de1c52ea47b7f971396a1a4f72ebfd90c21f8",
+    "pair": {
+      "w": 1024,
+      "h": 512,
+      "mips": 11,
+      "android_slot": 2,
+      "ios_slot": 3
+    }
+  },
+  {
+    "logical": "character/scutum_valentine/ui/skill_cutin_0.atf.deflate",
+    "path": "F:\\codex\\work\\author858-merge-20260913\\ios\\character\\scutum_valentine\\ui\\skill_cutin_0.atf.deflate",
+    "sha256": "cfaa55d06e33f7eec39bd8ba91d1ab2d3ba05f5d6b60b3cafb98bec0615c21d6",
+    "png_sha256": "6a2641e5dc499d63a8cf1de9a409878d44eeab6e9e91bab6296fd9117d993043",
+    "pair": {
+      "w": 1024,
+      "h": 512,
+      "mips": 11,
+      "android_slot": 2,
+      "ios_slot": 3
+    }
+  },
+  {
+    "logical": "character/scutum_valentine/ui/skill_cutin_1.atf.deflate",
+    "path": "F:\\codex\\work\\author858-merge-20260913\\ios\\character\\scutum_valentine\\ui\\skill_cutin_1.atf.deflate",
+    "sha256": "adfdd5b81141557af3cae95340cff0c1486796049f7f26b42b82fd282899e699",
+    "png_sha256": "5930a98921fff24c6e7db07552cab447b946d5204e91c08dd30e65464670efca",
+    "pair": {
+      "w": 1024,
+      "h": 512,
+      "mips": 11,
+      "android_slot": 2,
+      "ios_slot": 3
+    }
+  },
+  {
+    "logical": "character/white_tiger_summer/ui/skill_cutin_0.atf.deflate",
+    "path": "F:\\codex\\work\\author858-merge-20260913\\ios\\character\\white_tiger_summer\\ui\\skill_cutin_0.atf.deflate",
+    "sha256": "05864f8c072cd39cd542eeae58e8e526ff83b0b1627bb3710b530b3200abcfb1",
+    "png_sha256": "9387d7636fecf5ab6c3baac554ea749b6dba154ff6a9a74c2d228867c54bad9c",
+    "pair": {
+      "w": 1024,
+      "h": 512,
+      "mips": 11,
+      "android_slot": 2,
+      "ios_slot": 3
+    }
+  },
+  {
+    "logical": "character/white_tiger_summer/ui/skill_cutin_1.atf.deflate",
+    "path": "F:\\codex\\work\\author858-merge-20260913\\ios\\character\\white_tiger_summer\\ui\\skill_cutin_1.atf.deflate",
+    "sha256": "b51b28a3a253bd39bdd2d3f870feb32427ad9b0fce0afed68f0d9bc356b12d1a",
+    "png_sha256": "efa3e4c8d078f822c1642a0415f38c9e57e91cd8d17c9243a36379a68a50ddf9",
+    "pair": {
+      "w": 1024,
+      "h": 512,
+      "mips": 11,
+      "android_slot": 2,
+      "ios_slot": 3
+    }
+  },
+  {
+    "logical": "character/wind_spgirl_campus/ui/skill_cutin_0.atf.deflate",
+    "path": "F:\\codex\\work\\author858-merge-20260913\\ios\\character\\wind_spgirl_campus\\ui\\skill_cutin_0.atf.deflate",
+    "sha256": "9d4f54291a64037896f81e0b05f3ab4070de7348a857c5e3a2866e8ae8b5952c",
+    "png_sha256": "fa331480f65411214f798e244da4333ab765824c516985a99ab308ecf669404b",
+    "pair": {
+      "w": 1024,
+      "h": 512,
+      "mips": 11,
+      "android_slot": 2,
+      "ios_slot": 3
+    }
+  },
+  {
+    "logical": "character/wind_spgirl_campus/ui/skill_cutin_1.atf.deflate",
+    "path": "F:\\codex\\work\\author858-merge-20260913\\ios\\character\\wind_spgirl_campus\\ui\\skill_cutin_1.atf.deflate",
+    "sha256": "42116e80012726f93fd2e4d432e136750931f64a39e72c27c9e89dc7be7277a5",
+    "png_sha256": "e0c7eed527708a3449eff88bd7425a98668e6cbf34b9c4cf8c1b300916977d33",
+    "pair": {
+      "w": 1024,
+      "h": 512,
+      "mips": 11,
+      "android_slot": 2,
+      "ios_slot": 3
+    }
+  }
+]

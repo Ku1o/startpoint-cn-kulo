@@ -13,17 +13,22 @@
  *   play:    testSeed > playPool > playFallback > confirmPool > ...
  *   test:    testSeed > playPool > pendingPool > unknown
  */
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 var _a;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SeedValidator = void 0;
 const path_1 = require("path");
 const atomic_json_file_1 = require("./atomic-json-file");
+const seed_persistence_1 = require("./seed-persistence");
 const ASSETS_DIR = (0, path_1.join)(__dirname, "..", "..", "assets");
-const CONFIRMED_FILE = (0, path_1.join)(ASSETS_DIR, "confirmed_seeds.json");
-const PURIFIED_FILE = (0, path_1.join)(ASSETS_DIR, "purified_seeds.json");
-const VERIFIED_FILE = (0, path_1.join)(ASSETS_DIR, "verified_seeds.json");
-const CONFIG_FILE = (0, path_1.join)(ASSETS_DIR, "pool_config.json");
-const TEST_SEEDS_FILE = (0, path_1.join)(ASSETS_DIR, "test_seeds.json");
 const GACHA_VERBOSE_LOGS = /^(1|true|yes)$/i.test((_a = process.env.GACHA_VERBOSE_LOGS) !== null && _a !== void 0 ? _a : "");
 class MoviePool {
     constructor() {
@@ -39,17 +44,18 @@ class MoviePool {
 // SeedValidator
 // ============================================================================
 class SeedValidator {
-    constructor() {
+    constructor(assetsDirectory = process.env.GACHA_SEED_DIR || ASSETS_DIR) {
+        this.assetsDirectory = assetsDirectory;
         this.pools = new Map();
         this.testSeeds = [null, null, null];
         this.mode = 'natural';
         this.selectedMovieId = 'fes';
         this.poolMembershipCache = new WeakMap();
-        this.persistenceBatchDepth = 0;
-        this.confirmDirty = false;
-        this.playDirty = false;
-        this.verifiedDirty = false;
         this.load();
+        this.persistence = new seed_persistence_1.SeedPersistence(this.assetsDirectory, () => new Map([...this.pools].map(([movieId, pool]) => [movieId, {
+                confirmPool: pool.confirmPool, pendingPool: pool.pendingPool,
+                playPool: pool.playPool, verifiedPool: pool.verifiedPool,
+            }])));
     }
     pool(m) { if (!this.pools.has(m))
         this.pools.set(m, new MoviePool()); return this.pools.get(m); }
@@ -57,7 +63,7 @@ class SeedValidator {
     load() {
         var _a, _b;
         try {
-            const confirmed = (0, atomic_json_file_1.readJsonWithBackupSync)(CONFIRMED_FILE);
+            const confirmed = (0, atomic_json_file_1.readJsonWithBackupSync)((0, path_1.join)(this.assetsDirectory, "confirmed_seeds.json"));
             if (confirmed) {
                 for (const [mid, seeds] of Object.entries(confirmed)) {
                     if (mid.endsWith("_play")) {
@@ -91,7 +97,7 @@ class SeedValidator {
             console.error("[SEED] failed to load confirmed seeds", error);
         }
         try {
-            const purified = (0, atomic_json_file_1.readJsonWithBackupSync)(PURIFIED_FILE);
+            const purified = (0, atomic_json_file_1.readJsonWithBackupSync)((0, path_1.join)(this.assetsDirectory, "purified_seeds.json"));
             if (purified) {
                 for (const [movieId, seeds] of Object.entries(purified)) {
                     if (typeof seeds !== "object" || seeds === null)
@@ -111,7 +117,7 @@ class SeedValidator {
         catch (error) {
             console.error("[SEED] failed to load purified seeds", error);
         }
-        const testSeeds = (0, atomic_json_file_1.readJsonWithBackupSync)(TEST_SEEDS_FILE);
+        const testSeeds = (0, atomic_json_file_1.readJsonWithBackupSync)((0, path_1.join)(this.assetsDirectory, "test_seeds.json"));
         if (Array.isArray(testSeeds)) {
             this.testSeeds = [null, null, null];
             for (let index = 0; index < 3; index += 1) {
@@ -119,11 +125,11 @@ class SeedValidator {
                     this.testSeeds[index] = testSeeds[index];
             }
         }
-        const config = (0, atomic_json_file_1.readJsonWithBackupSync)(CONFIG_FILE);
+        const config = (0, atomic_json_file_1.readJsonWithBackupSync)((0, path_1.join)(this.assetsDirectory, "pool_config.json"));
         if (config === null || config === void 0 ? void 0 : config.selectedMovieId)
             this.selectedMovieId = config.selectedMovieId;
         try {
-            const verified = (0, atomic_json_file_1.readJsonWithBackupSync)(VERIFIED_FILE);
+            const verified = (0, atomic_json_file_1.readJsonWithBackupSync)((0, path_1.join)(this.assetsDirectory, "verified_seeds.json"));
             if (verified) {
                 for (const [movieId, seeds] of Object.entries(verified)) {
                     const pool = this.pool(movieId);
@@ -154,56 +160,21 @@ class SeedValidator {
         }
         console.log(`[SEED] Play:${pl} Confirm:${cf} Verified:${vf} Mode:${this.mode}`);
     }
-    writeConfirm() { const o = {}; for (const [mid, p] of this.pools) {
-        o[mid] = Object.fromEntries(p.confirmPool);
-        o[mid + "_pend"] = Object.fromEntries(p.pendingPool);
-    } (0, atomic_json_file_1.writeJsonAtomicSync)(CONFIRMED_FILE, o); }
-    writePlay() { const o = {}; for (const [mid, p] of this.pools) {
-        o[mid] = {};
-        for (const [s, e] of p.playPool)
-            o[mid][String(s)] = e;
-    } (0, atomic_json_file_1.writeJsonAtomicSync)(PURIFIED_FILE, o); }
-    writeVerified() { const o = {}; for (const [mid, p] of this.pools) {
-        o[mid] = Object.fromEntries(p.verifiedPool);
-    } (0, atomic_json_file_1.writeJsonAtomicSync)(VERIFIED_FILE, o); }
-    saveConfirm() { if (this.persistenceBatchDepth > 0) {
-        this.confirmDirty = true;
-        return;
-    } this.writeConfirm(); }
-    savePlay() { if (this.persistenceBatchDepth > 0) {
-        this.playDirty = true;
-        return;
-    } this.writePlay(); }
-    saveVerified() { if (this.persistenceBatchDepth > 0) {
-        this.verifiedDirty = true;
-        return;
-    } this.writeVerified(); }
-    saveConfig() { (0, atomic_json_file_1.writeJsonAtomicSync)(CONFIG_FILE, { selectedMovieId: this.selectedMovieId }); }
-    saveTestSeeds() { (0, atomic_json_file_1.writeJsonAtomicSync)(TEST_SEEDS_FILE, this.testSeeds); }
-    flushPersistenceBatch() {
-        if (this.confirmDirty) {
-            this.writeConfirm();
-            this.confirmDirty = false;
-        }
-        if (this.playDirty) {
-            this.writePlay();
-            this.playDirty = false;
-        }
-        if (this.verifiedDirty) {
-            this.writeVerified();
-            this.verifiedDirty = false;
-        }
+    persistSeed(movieId, seed) {
+        const pool = this.pool(movieId);
+        const play = pool.playPool.get(seed);
+        this.persistence.update({ movieId, seed,
+            confirmed: pool.confirmPool.get(seed), pending: pool.pendingPool.get(seed),
+            play: play && Object.assign({}, play), verified: pool.verifiedPool.get(seed), });
     }
-    withPersistenceBatch(action) {
-        this.persistenceBatchDepth += 1;
-        try {
-            action();
-        }
-        finally {
-            this.persistenceBatchDepth -= 1;
-            if (this.persistenceBatchDepth === 0)
-                this.flushPersistenceBatch();
-        }
+    saveConfig() { (0, atomic_json_file_1.writeJsonAtomicSync)((0, path_1.join)(this.assetsDirectory, "pool_config.json"), { selectedMovieId: this.selectedMovieId }); }
+    saveTestSeeds() { (0, atomic_json_file_1.writeJsonAtomicSync)((0, path_1.join)(this.assetsDirectory, "test_seeds.json"), this.testSeeds); }
+    flushPersistence() { return this.persistence.flush(); }
+    close() {
+        return __awaiter(this, void 0, void 0, function* () {
+            this.flushAll();
+            yield this.persistence.close();
+        });
     }
     // ====== 共享工具 ======
     trace(msg) {
@@ -316,9 +287,9 @@ class SeedValidator {
         if (p.playPool.has(seed))
             return;
         if (p.confirmPool.has(seed)) {
-            if (r !== undefined && r !== null) {
+            if (r !== undefined && r !== null && p.confirmPool.get(seed) !== r) {
                 p.confirmPool.set(seed, r);
-                this.saveConfirm();
+                this.persistSeed(movieId, seed);
             }
             return;
         }
@@ -326,7 +297,7 @@ class SeedValidator {
         p.confirmPool.set(seed, r !== undefined ? r : null);
         if (r !== undefined)
             this.trace(`confirm seed=${seed} r=${'★' + (r + 3)} confirmPool.size=${p.confirmPool.size}`);
-        this.saveConfirm();
+        this.persistSeed(movieId, seed);
     }
     addPlay(movieId, seed, r, didPlay) {
         const p = this.pool(movieId);
@@ -336,8 +307,7 @@ class SeedValidator {
             p.pendingPool.delete(seed);
             p.playPool.set(seed, { r, tag: '未测试', play: true });
             this.trace(`addPlay seed=${seed} r=${'★' + (r + 3)} play=true playPool.size=${p.playPool.size}`);
-            this.savePlay();
-            this.saveConfirm();
+            this.persistSeed(movieId, seed);
             this.trace(`PLAY [${movieId}] seed=${seed} ★${r + 3} play=1`);
         }
         else if (didPlay === false) {
@@ -356,19 +326,17 @@ class SeedValidator {
         p.confirmPool.delete(seed);
         if (p.playPool.has(seed)) {
             p.playPool.delete(seed);
-            this.savePlay();
         }
         // 跨池清理：种子已验证，base/guarantee 池中的确认/播放旧条目不再可靠
         const other = this.basePool(movieId) || (movieId.endsWith('_guarantee') ? null : this.pool(movieId + '_guarantee'));
         if (other) {
             if (other.confirmPool.has(seed))
                 other.confirmPool.delete(seed);
-            if (other.playPool.has(seed)) {
+            if (other.playPool.has(seed))
                 other.playPool.delete(seed);
-                this.savePlay();
-            }
+            this.persistSeed(movieId.includes('_guarantee') ? movieId.replace('_guarantee', '') : movieId + '_guarantee', seed);
         }
-        this.saveVerified();
+        this.persistSeed(movieId, seed);
         if (GACHA_VERBOSE_LOGS) {
             console.log(`[SEED] VERIFY [${movieId}] seed=${seed} ★${r + 3} (rarity verified by C3032)`);
         }
@@ -378,8 +346,10 @@ class SeedValidator {
         const e = p.playPool.get(seed);
         if (e) {
             this.cleanupPending(seed, p);
-            e.r = r !== null ? r : e.r;
-            this.savePlay();
+            if (r !== null && e.r !== r) {
+                e.r = r;
+                this.persistSeed(movieId, seed);
+            }
             return;
         }
         if (r !== null) {
@@ -387,7 +357,6 @@ class SeedValidator {
             return;
         }
         this.cleanupPending(seed, p);
-        this.saveConfirm();
     }
     markSent(movieId, seed, rarity) {
         const p = this.pool(movieId);
@@ -410,40 +379,38 @@ class SeedValidator {
     flushAll() {
         const summaries = [];
         let totalFlushed = 0, totalPlay1 = 0, totalPlay0 = 0, totalUnmarked = 0;
-        this.withPersistenceBatch(() => {
-            for (const [movieId, p] of this.pools) {
-                let flushed = 0, play1 = 0, play0 = 0, unmarked = 0;
-                for (const [seed, r] of p.sentSeeds) {
-                    const didPlay = p.sentPlayFlags.get(seed);
-                    if (didPlay === true) {
-                        this.addPlay(movieId, seed, r !== null && r !== void 0 ? r : 0, true);
-                        this.moveToVerified(movieId, seed, r !== null && r !== void 0 ? r : 0);
-                        play1++;
-                    }
-                    else if (didPlay === false) {
-                        this.confirm(movieId, seed, r);
-                        play0++;
-                    }
-                    else {
-                        // 完全丢失：pendingPool 下次重测
-                        this.addPending(movieId, seed, r);
-                        unmarked++;
-                    }
-                    flushed++;
+        for (const [movieId, p] of this.pools) {
+            let flushed = 0, play1 = 0, play0 = 0, unmarked = 0;
+            for (const [seed, r] of p.sentSeeds) {
+                const didPlay = p.sentPlayFlags.get(seed);
+                if (didPlay === true) {
+                    this.addPlay(movieId, seed, r !== null && r !== void 0 ? r : 0, true);
+                    this.moveToVerified(movieId, seed, r !== null && r !== void 0 ? r : 0);
+                    play1++;
                 }
-                if (flushed > 0) {
-                    summaries.push(`${movieId}:${flushed}`);
-                    totalFlushed += flushed;
-                    totalPlay1 += play1;
-                    totalPlay0 += play0;
-                    totalUnmarked += unmarked;
+                else if (didPlay === false) {
+                    this.confirm(movieId, seed, r);
+                    play0++;
                 }
+                else {
+                    // 完全丢失：pendingPool 下次重测
+                    this.addPending(movieId, seed, r);
+                    unmarked++;
+                }
+                flushed++;
             }
-        });
+            if (flushed > 0) {
+                summaries.push(`${movieId}:${flushed}`);
+                totalFlushed += flushed;
+                totalPlay1 += play1;
+                totalPlay0 += play0;
+                totalUnmarked += unmarked;
+            }
+        }
         if (GACHA_VERBOSE_LOGS && totalFlushed > 0) {
             console.log(`[SEED] flushAll pools=${summaries.join(",")} total=${totalFlushed}`
                 + ` play=1:${totalPlay1} play=0:${totalPlay0} unmarked:${totalUnmarked}`
-                + " persistence=batched");
+                + " persistence=worker-batched");
         }
     }
     // Tag / testSeed / mode — unchanged
@@ -454,7 +421,7 @@ class SeedValidator {
         e.tag = tag;
         if (tag === '冷血躲避球')
             this.clearTestSeed(e.r);
-        this.savePlay();
+        this.persistSeed(movieId, seed);
         return true;
     }
     setTestSeed(_movieId, rarity, seed) {

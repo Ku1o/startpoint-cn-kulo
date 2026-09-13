@@ -24,6 +24,7 @@ function getAwakeBattleMissionIds(characterIds, directlyChangedMissionIds = []) 
 }
 exports.getAwakeBattleMissionIds = getAwakeBattleMissionIds;
 function settleAwakeMissionCandidates(playerId, missionIds, evaluationTime) {
+    var _a;
     const uniqueMissionIds = [...new Set(missionIds)];
     if (uniqueMissionIds.length === 0) {
         return {
@@ -31,9 +32,9 @@ function settleAwakeMissionCandidates(playerId, missionIds, evaluationTime) {
             degreeIds: [], passCardPoints: {},
         };
     }
-    const persisted = (0, mission_1.getPlayerCategoryMissionsSync)(playerId, 9);
     const computer = (0, registry_1.getComputer)(9);
     const context = computer.buildContext(playerId, 9, evaluationTime, uniqueMissionIds);
+    const persisted = (_a = context.persistedMissions) !== null && _a !== void 0 ? _a : (0, mission_1.getPlayerCategoryMissionsSync)(playerId, 9, uniqueMissionIds);
     const progressList = uniqueMissionIds.map(missionId => {
         var _a, _b;
         const dbProgress = (_b = (_a = persisted[String(missionId)]) === null || _a === void 0 ? void 0 : _a.progress) !== null && _b !== void 0 ? _b : 0;
@@ -47,10 +48,10 @@ function settleAwakeMissionCandidates(playerId, missionIds, evaluationTime) {
                 : Math.min(monotonicProgress, finalTarget),
         };
     });
-    return settleAwakeMissionRewards(playerId, progressList);
+    return settleAwakeMissionRewards(playerId, progressList, persisted);
 }
 exports.settleAwakeMissionCandidates = settleAwakeMissionCandidates;
-function settleAwakeMissionRewards(playerId, progressList) {
+function settleAwakeMissionRewards(playerId, progressList, missionSnapshot) {
     const progressByMissionId = new Map();
     for (const entry of progressList) {
         const currentProgress = progressByMissionId.get(entry.missionId);
@@ -65,19 +66,22 @@ function settleAwakeMissionRewards(playerId, progressList) {
     const player = (0, player_1.getPlayerSync)(playerId);
     if (!player)
         throw new Error(`Player ${playerId} not found during CharacterAwake settlement.`);
-    const persistedMissions = (0, mission_1.getPlayerCategoryMissionsSync)(playerId, 9);
+    const persistedMissions = missionSnapshot !== null && missionSnapshot !== void 0 ? missionSnapshot : (0, mission_1.getPlayerCategoryMissionsSync)(playerId, 9, [...progressByMissionId.keys()]);
     const granter = new grants_1.MissionRewardGranter(playerId, player);
     const missionInfo = [];
-    const unlockMap = new Map();
     const unlockCandidateCharacterIds = aggregatedProgressList.map(entry => Number((0, character_queries_1.getCharacterIdFromMission)(entry.missionId)));
-    let persistedUnlocks = null;
+    // Publish the scoped authoritative state on retries, including higher levels
+    // already saved. The mission route no longer needs a second reconciliation.
+    const unlockMap = (0, character_awake_1.getPlayerCharacterAwakeUnlocksByCharacterIdsSync)(playerId, unlockCandidateCharacterIds);
     (0, db_1.getDb)().transaction(() => {
-        var _a, _b, _c, _d, _e;
+        var _a, _b, _c, _d, _e, _f;
         for (const entry of aggregatedProgressList) {
-            (0, mission_1.updatePlayerCategoryMissionSync)(playerId, 9, entry.missionId, entry.progress);
+            if (((_a = persistedMissions[String(entry.missionId)]) === null || _a === void 0 ? void 0 : _a.progress) !== entry.progress) {
+                (0, mission_1.updatePlayerCategoryMissionSync)(playerId, 9, entry.missionId, entry.progress);
+            }
         }
         for (const entry of aggregatedProgressList) {
-            const persistedStages = (_a = persistedMissions[String(entry.missionId)]) === null || _a === void 0 ? void 0 : _a.stages;
+            const persistedStages = (_b = persistedMissions[String(entry.missionId)]) === null || _b === void 0 ? void 0 : _b.stages;
             for (const stage of (0, stages_1.getCompletedStageNumbers)(9, entry.missionId, entry.progress)) {
                 const definition = (0, rewards_1.getAwakeMissionRewardStageDefinition)(entry.missionId, stage);
                 if (!definition)
@@ -88,16 +92,15 @@ function settleAwakeMissionRewards(playerId, progressList) {
                 // lost. The monotonic upsert keeps this idempotent.
                 if (definition.specialReward) {
                     const special = definition.specialReward;
-                    persistedUnlocks !== null && persistedUnlocks !== void 0 ? persistedUnlocks : (persistedUnlocks = (0, character_awake_1.getPlayerCharacterAwakeUnlocksByCharacterIdsSync)(playerId, unlockCandidateCharacterIds));
                     const characterKey = String(special.characterId);
-                    const persistedLevels = (_b = persistedUnlocks.get(characterKey)) !== null && _b !== void 0 ? _b : {};
-                    if (((_c = persistedLevels[special.boardIndex]) !== null && _c !== void 0 ? _c : 0) < special.awakeLevel) {
+                    const persistedLevels = (_c = unlockMap.get(characterKey)) !== null && _c !== void 0 ? _c : {};
+                    if (((_d = persistedLevels[special.boardIndex]) !== null && _d !== void 0 ? _d : 0) < special.awakeLevel) {
                         (0, character_awake_1.upsertPlayerCharacterAwakeUnlockSync)(playerId, special.characterId, special.boardIndex, special.awakeLevel);
                         persistedLevels[special.boardIndex] = special.awakeLevel;
-                        persistedUnlocks.set(characterKey, persistedLevels);
+                        unlockMap.set(characterKey, persistedLevels);
                     }
-                    const levels = (_d = unlockMap.get(characterKey)) !== null && _d !== void 0 ? _d : {};
-                    levels[special.boardIndex] = Math.max((_e = levels[special.boardIndex]) !== null && _e !== void 0 ? _e : 0, special.awakeLevel);
+                    const levels = (_e = unlockMap.get(characterKey)) !== null && _e !== void 0 ? _e : {};
+                    levels[special.boardIndex] = Math.max((_f = levels[special.boardIndex]) !== null && _f !== void 0 ? _f : 0, special.awakeLevel);
                     unlockMap.set(characterKey, levels);
                 }
                 if (!Array.isArray(persistedStages) && (persistedStages === null || persistedStages === void 0 ? void 0 : persistedStages[String(stage)]) === true)

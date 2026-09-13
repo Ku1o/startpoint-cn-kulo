@@ -1,0 +1,99 @@
+{
+  "apk": "F:\\codex\\startpoint-cn-private-clean\\outputs\\shop-first-open-public-20260913\\StarPoint-CN-1.8.1-shop-first-open-public-20260913.apk",
+  "apk_sha256": "35e0e7c777798594d68c9bcd74c507c6f0b7d065453e0425c301258c6bc38ac6",
+  "swf_sha256": "e60cc4a82e3b305257040dedc54d180794234e2c2d4d3cef68a105b9f8405927",
+  "main_abc_method_count": 92561,
+  "methods": [
+    {
+      "name": "CharacterShortVoiceLogic/get_skillVoicePaths",
+      "body_index": 17700,
+      "method_index": 18393,
+      "code_sha256": "04016206d2129f275c2cfd0a0350c11f5df1968fdab8019e29c849648060340a",
+      "instructions": 7,
+      "listing": "F:\\codex\\work\\author858-merge-20260913\\client\\CharacterShortVoiceLogic-get_skillVoicePaths.pcode"
+    },
+    {
+      "name": "CharacterVoiceLogic/createVoicePathMap",
+      "body_index": 84394,
+      "method_index": 92630,
+      "code_sha256": "1e9b3d58f3c2409cac476f6267f83f9d9100263f208c1984b88eb9f436224e03",
+      "instructions": 425,
+      "listing": "F:\\codex\\work\\author858-merge-20260913\\client\\CharacterVoiceLogic-createVoicePathMap.pcode"
+    },
+    {
+      "name": "HudMemberStatus/update",
+      "body_index": 58882,
+      "method_index": 63590,
+      "code_sha256": "dfc34b88665a15839faef83de2a78a383ae4fba2ad2b553a7e7db93b1da2e4ef",
+      "instructions": 338,
+      "listing": "F:\\codex\\work\\author858-merge-20260913\\client\\HudMemberStatus-update.pcode"
+    },
+    {
+      "name": "BattleCharacterLogic/resolveFollowingPathCollection",
+      "body_index": 92450,
+      "method_index": 100922,
+      "code_sha256": "97e2649a2d92d205f0e0991fc952112a03a4cb6421ad579ad8a82d630de8abea",
+      "instructions": 371,
+      "listing": "F:\\codex\\work\\author858-merge-20260913\\client\\BattleCharacterLogic-resolveFollowingPathCollection.pcode"
+    },
+    {
+      "name": "ActionEvaluator/evalCommand",
+      "body_index": 52303,
+      "method_index": 56242,
+      "code_sha256": "105f258ab3649922848391d6515c42df4a91d9f64e8ea3849884071a9255ecbc",
+      "instructions": 11602,
+      "listing": "F:\\codex\\work\\author858-merge-20260913\\client\\ActionEvaluator-evalCommand.pcode"
+    },
+    {
+      "name": "ActiveSquadManager/getMultiballNumberWithDetail",
+      "body_index": 59467,
+      "method_index": 64305,
+      "code_sha256": "54915ed4fa41b11cdd834bf13645e972dcbe37ce26326a31aa366ee5cd41085b",
+      "instructions": 330,
+      "listing": "F:\\codex\\work\\author858-merge-20260913\\client\\ActiveSquadManager-getMultiballNumberWithDetail.pcode"
+    },
+    {
+      "name": "InactiveSquadManager/getMultiballNumberWithDetail",
+      "body_index": 59595,
+      "method_index": 64436,
+      "code_sha256": "6eaf90cf73bd3ffe6bc8af1e51b8aba02471b44be7476c8590d492560317e7d8",
+      "instructions": 650,
+      "listing": "F:\\codex\\work\\author858-merge-20260913\\client\\InactiveSquadManager-getMultiballNumberWithDetail.pcode"
+    },
+    {
+      "name": "EctoplasmicSquadManager/getMultiballNumberWithDetail",
+      "body_index": 59539,
+      "method_index": 64380,
+      "code_sha256": "bd317bd426a52dc6288a02ddc508c4363aa9affb79b7b18728c9a9de87ec86f8",
+      "instructions": 338,
+      "listing": "F:\\codex\\work\\author858-merge-20260913\\client\\EctoplasmicSquadManager-getMultiballNumberWithDetail.pcode"
+    },
+    {
+      "name": "SquadImpl/matchMultiball",
+      "body_index": 59661,
+      "method_index": 64536,
+      "code_sha256": "b1ad76a4f6b2d76d085d89ee7a62aeaf68c02b7b07cc33070479e457cc3586ad",
+      "instructions": 43,
+      "listing": "F:\\codex\\work\\author858-merge-20260913\\client\\SquadImpl-matchMultiball.pcode"
+    },
+    {
+      "name": "Environment$/createLocalEnvironmentDetail",
+      "body_index": 52611,
+      "method_index": 56619,
+      "code_sha256": "04fdbf149892c665437cc5db4ad0274f4a6f4e8872b6ffc25ab368fc971dc7b5",
+      "instructions": 18,
+      "listing": "F:\\codex\\work\\author858-merge-20260913\\client\\Environment$-createLocalEnvironmentDetail.pcode"
+    },
+    {
+      "name": "DamageOriginKindTools$/toString",
+      "body_index": 6798,
+      "method_index": 7139,
+      "code_sha256": "874a0be4745af1536a97bbdccd21a31f1f1af333e982f9a786416a7d9f4d4d5d",
+      "instructions": 15,
+      "listing": "F:\\codex\\work\\author858-merge-20260913\\client\\DamageOriginKindTools$-toString.pcode"
+    }
+  ],
+  "lion_router_markers": [],
+  "baseline_registry_status": "accepted_offline",
+  "device_tested": false
+}

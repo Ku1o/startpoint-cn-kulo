@@ -64,6 +64,7 @@ import paymentApiPlugin from "./routes/api/payment";
 import newsApiPlugin from "./routes/api/news";
 import raidEventApiPlugin from "./routes/api/raidEvent";
 import rushEventApiPlugin from "./routes/api/rushEvent";
+import abyssRecordsRoutes from "./routes/cn/abyssRecords";
 import carnivalEventApiPlugin from "./routes/api/carnivalEvent";
 import howToGetApiPlugin from "./routes/api/howToGet";
 import contentsGuideApiPlugin from "./routes/api/contentsGuide";
@@ -417,6 +418,7 @@ initializePlayerLogin(viewerId => {
 installPlayerLoginGuard(fastify);
 installTakeoverUdidGuard(fastify);
 fastify.register(playerLoginRoutes);
+fastify.register(abyssRecordsRoutes);
 
 const iosCompat = parseIosCompatConfig();
 fastify.register(versionCheckPlugin, { ios: iosCompat });
@@ -486,12 +488,23 @@ fastify.post(`${apiPrefix}/episode_trial_reading/finish`, async (_request, reply
     stubMsgpackReply(reply, {});
 });
 
+async function persistSeedFeedback(): Promise<void> {
+    try { await seedValidator.flushPersistence(); }
+    catch {
+        // SeedPersistence logs the failure and retains changes for retry.
+        // Keep the existing best-effort beacon response contract on disk errors.
+    }
+}
+
 fastify.get("/debug", async (request, reply) => {
     const ts = new Date().toISOString();
     const loc = (request.query as any)?.loc || "unknown";
     // Parse C3032 from beacon query string (04e patch sends via CrashUtil.debugBeacon)
     try { parseC3032Beacon(loc); } catch (_) {}
     try { parsePlayBeacon(loc); } catch (_) {}
+    if (typeof loc === "string" && (loc.includes("C3032") || loc.startsWith("PLAY|"))) {
+        await persistSeedFeedback();
+    }
     reply.status(200).send("OK");
 });
 
@@ -562,6 +575,7 @@ fastify.post("/debug", async (request, reply) => {
     // Parse C3032 beacons for auto-purification (04e patch skips throw but keeps beacon)
     try { parseC3032Beacon(loc); } catch (_) {}
 
+    if (typeof loc === "string" && loc.includes("C3032")) await persistSeedFeedback();
     reply.status(200).send("OK");
 });
 
@@ -585,6 +599,8 @@ fastify.post("/crash", async (request, reply) => {
             console.log(`[CRASH] seed ${badSeed} device★${ballRarity} movie=${movieId}`);
         }
     } catch (e) {}
+
+    if (bodyStr.includes("C3032")) await persistSeedFeedback();
 
     reply.status(200).send("OK");
 });
@@ -711,6 +727,7 @@ const leaderboardSettlementScheduler = createLeaderboardSettlementScheduler();
 const dailyVmoneyMailScheduler = createDailyVmoneyMailScheduler(getDb());
 
 fastify.addHook("onClose", async () => {
+    await seedValidator.close();
     dailyVmoneyMailScheduler.stop();
     leaderboardSettlementScheduler.stop();
     await receiveHistoryRetention.stop();

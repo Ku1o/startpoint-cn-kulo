@@ -1,9 +1,5 @@
-import {
-    getPlayerCharactersManaNodesSync,
-    getPlayerCharactersSync,
-} from "../../data/domains/character"
 import type { CharacterAwakeUnlockMap } from "../../data/domains/character_awake"
-import { buildManaBoardAwakeCharacterList, buildScopedManaBoardAwakeCharacterList } from "../character-helpers"
+import { buildScopedManaBoardAwakeCharacterList } from "../character-helpers"
 import { reconcileAwakeUnlocks } from "./awake-unlock"
 
 function mergeManaBoardAwake(...values: unknown[]): Record<number, number> {
@@ -33,11 +29,7 @@ export function reconcileAwakeUnlockCharacterList(
         const changed = reconcileAwakeUnlocks(playerId).changed
         if (changed.size === 0) return existing as Record<string, unknown>[]
 
-        const updates = buildManaBoardAwakeCharacterList(
-            getPlayerCharactersSync(playerId),
-            changed,
-            getPlayerCharactersManaNodesSync(playerId),
-        )
+        const updates = buildScopedManaBoardAwakeCharacterList(playerId, changed)
         return mergeAwakeCharacterUpdates(existing, updates)
     } catch (cause) {
         const error = cause instanceof Error

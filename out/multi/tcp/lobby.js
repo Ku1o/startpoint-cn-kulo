@@ -245,7 +245,7 @@ function collectCanonicalRoomRoster(roomNumber, preserveNpcCount = false, roomGe
 function preflightBattleRoster(room, members, roomGeneration = room.lobby_generation) {
     var _a, _b, _c, _d, _e;
     if ((0, mode15_optional_1.isMode15Quest)(Number(room.category), Number(room.quest_id))) {
-        return { members, rejectedViewerIds: [] };
+        return [];
     }
     const lobbyClients = SessionManager_1.sessionManager.getClientsInRoom(room.room_number, roomGeneration);
     const clientsByViewerId = new Map(lobbyClients.map(current => [current.viewerId, current]));
@@ -285,39 +285,7 @@ function preflightBattleRoster(room, members, roomGeneration = room.lobby_genera
                 + ` viewer=${viewerId}`, e);
         }
     }
-    if (rejectedViewerIds.length === 0)
-        return { members, rejectedViewerIds };
-    const rejectedSet = new Set(rejectedViewerIds);
-    const eligibleMembers = members.filter(member => {
-        const viewerId = Number(member === null || member === void 0 ? void 0 : member.viewerId);
-        return (member === null || member === void 0 ? void 0 : member.comId) || !Number.isFinite(viewerId) || !rejectedSet.has(viewerId);
-    });
-    for (const current of lobbyClients) {
-        if (rejectedSet.has(current.viewerId)) {
-            // Remove the client before StartBattle. It never becomes a battle
-            // peer, so no synthetic BattleServerMessage.Leave is required.
-            SessionManager_1.sessionManager.removeClient(current);
-            const socket = current.socket;
-            try {
-                socket.end();
-            }
-            catch (e) { }
-            const timer = setTimeout(() => socket.destroy(), 250);
-            timer.unref();
-            continue;
-        }
-        current.mates = eligibleMembers;
-        SessionManager_1.sessionManager.sendJson(current.socket, [1, [1, eligibleMembers]]);
-    }
-    room.mates = eligibleMembers.map(member => {
-        var _a, _b, _c;
-        return ({
-            viewer_id: (_a = member.viewerId) !== null && _a !== void 0 ? _a : null,
-            com_id: (_b = member.comId) !== null && _b !== void 0 ? _b : 0,
-            player_id: (_c = member.playerId) !== null && _c !== void 0 ? _c : undefined,
-        });
-    });
-    return { members: eligibleMembers, rejectedViewerIds };
+    return rejectedViewerIds;
 }
 function checkHostAutoReady(roomNumber) {
     var _a, _b;
@@ -962,11 +930,16 @@ function handleStartBattle(_socket, client, _data) {
         : room.lobby_generation;
     // StartBattle may be sent first by any participant. Always use the
     // canonical host roster instead of that sender's potentially older copy.
-    let members = collectCanonicalRoomRoster(client.roomNumber, false, sourceGeneration);
-    const preflight = preflightBattleRoster(room, members, sourceGeneration);
-    members = preflight.members;
-    if (preflight.rejectedViewerIds.includes(Number(room.host_viewer_id))) {
-        (0, game_logging_1.gameVerboseLog)(() => `[LOBBY] StartBattle cancelled: host failed preflight room=${client.roomNumber}`);
+    const members = collectCanonicalRoomRoster(client.roomNumber, false, sourceGeneration);
+    const rejectedViewerIds = preflightBattleRoster(room, members, sourceGeneration);
+    if (rejectedViewerIds.length > 0) {
+        // CN Disbanded(reason) opens the same OkDialog/Text used by HTTP 4050.
+        // Cancel the whole start before allocating battle seats: letting the
+        // other members start would leave them waiting for a rejected peer.
+        // The disband path lets clients close their own lobby sockets after
+        // consuming the reason, avoiding S1000/C5805 from a premature FIN.
+        autoStartingRooms.delete(client.roomNumber);
+        SessionManager_1.sessionManager.commitRoomDisband(client.roomNumber, "mode15_exclusive_equipment", "quest_start_out_of_period_error");
         return;
     }
     // checkAllReadyAndStart already waits for the previous battle's real

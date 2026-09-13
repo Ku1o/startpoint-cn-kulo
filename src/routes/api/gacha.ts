@@ -23,6 +23,7 @@ import {
 } from "../../data/domains/active_mission_counters";
 import { gameVerboseLog } from "../../lib/game-logging";
 import { getPlayerOptionSync } from "../../data/domains/option";
+import { measureSettlementPhase, recordGachaRequest } from "../../lib/settlement-performance";
 
 interface ExecBody {
     api_count: number,
@@ -274,7 +275,7 @@ const routes = async (fastify: FastifyInstance) => {
         })
 
         // get player
-        const playerId = resolvePlayerIdSync(viewerIdSession.accountId)!
+        const playerId = measureSettlementPhase("gacha", "account", () => resolvePlayerIdSync(viewerIdSession.accountId))!
         if (playerId === null) return reply.status(500).send({ "error": "Internal Server Error", "message": "No players bound to account." })
         const player = getPlayerSync(playerId)
         if (player === null) return
@@ -348,20 +349,20 @@ const routes = async (fastify: FastifyInstance) => {
         const playerPaidVmoney = execPlan.paidVmoney
         const playerFreeVmoney = execPlan.freeVmoney
 
-        const drawMetadata = drawGachaWithMetadataSync(gachaData, pullCount)
+        const drawMetadata = measureSettlementPhase("gacha", "draw", () => drawGachaWithMetadataSync(gachaData, pullCount))
         const drawResult = drawMetadata.map((draw) => draw.id)
         const skipNoRarityUpMovie = isCharacterGacha
             ? getPlayerOptionSync(playerId, "gacha_play_no_rarity_up_movie", false)
             : false
         const plannedCharacterMovies = isCharacterGacha
-            ? planCharacterGachaMovies(
+            ? measureSettlementPhase("gacha", "movies", () => planCharacterGachaMovies(
                 gachaData as CharacterGacha,
                 drawResult,
                 { skipNoRarityUpMovie }
-            )
+            ))
             : undefined
 
-        const transactionResult = getDb().transaction(() => {
+        const transactionResult = measureSettlementPhase("gacha", "transaction", () => getDb().transaction(() => {
             if (execPlan.ticket) {
                 items[execPlan.ticket.itemId] = execPlan.ticket.afterCount
                 updatePlayerItemSync(playerId, execPlan.ticket.itemId, execPlan.ticket.afterCount)
@@ -426,8 +427,9 @@ const routes = async (fastify: FastifyInstance) => {
             }
 
             return { rewardResult, newGachaExchangePoint }
-        })()
+        })())
         const { rewardResult, newGachaExchangePoint } = transactionResult
+        recordGachaRequest(isCharacterGacha ? "character" : "equipment", pullCount)
 
         const rarityCounts = new Map<number, number>()
         for (const draw of drawMetadata) {
@@ -452,7 +454,7 @@ const routes = async (fastify: FastifyInstance) => {
                     && !Array.isArray(character)
             )
             const characterList = existingCharacterList.length > 0
-                ? reconcileAwakeUnlockCharacterList(playerId, existingCharacterList)
+                ? measureSettlementPhase("gacha", "awake", () => reconcileAwakeUnlockCharacterList(playerId, existingCharacterList))
                 : existingCharacterList
 
             const responseData: Record<string, any> = {
@@ -478,7 +480,7 @@ const routes = async (fastify: FastifyInstance) => {
                 "encyclopedia_info": [],
                 "mail_arrived": false
             }
-            settleDegreeMissionResponse(playerId, viewerId, responseData, undefined, [4])
+            measureSettlementPhase("gacha", "degree", () => settleDegreeMissionResponse(playerId, viewerId, responseData, undefined, [4]))
             return reply.status(200).send({
                 "data_headers": generateDataHeaders({
                     viewer_id: viewerId

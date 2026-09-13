@@ -1,0 +1,68 @@
+{
+  "runtime_files": [
+    {
+      "path": "assets/character.json",
+      "before_sha256": "65fabd357255877edfcafe9711dd87b3bd7c4c5f7c0895bcc7996b05e23c9d6b",
+      "sha256": "4f33d363579b4f75e5dc0b98fd20aecc29926e30896cf7054185869aa478ffd8"
+    },
+    {
+      "path": "assets/cdndata/character.json",
+      "before_sha256": "1a803bc92d0b171c5f4f6f7b3d3d6bae603b85a2b93684d8c56f438b1b4b6327",
+      "sha256": "594e349346e61761ed7b962439438c5a37960b8d186ea20c324aeb2b469b569b"
+    },
+    {
+      "path": "assets/cdndata/character_text.json",
+      "before_sha256": "f1bd3e08f15e40030dc889b7859dffb7b8157e92db03a43e3b76e62259c60e7f",
+      "sha256": "3e0adc1e8c3627661349a738f6264e45a8bad0979f8a9cdd2dd036aff3f4d89a"
+    },
+    {
+      "path": "assets/cdndata/character_text_rank_p5b.json",
+      "before_sha256": "d5e653db38f2aa8881c92df3068adc99bf578a7c82f6393b26c86cacb3a9f39a",
+      "sha256": "18f0b3a6fd619f4ba9d006e89313302396da5f452eaaf7523a7b3553f0f107ba"
+    },
+    {
+      "path": "assets/mana_board.json",
+      "before_sha256": "b731a4b249e5b7c011a8c4fd42b3df3da3ea92953c4aa17d77af985911594e72",
+      "sha256": "3474e90153937f0250fefedac892891aa39b06a467217afd64398bd98d54d2eb"
+    },
+    {
+      "path": "assets/mana_node.json",
+      "before_sha256": "041200a1757e172cf3b58a97d901b43a6e9e331867a1d5dafb4495c2cff698e0",
+      "sha256": "e376c0ad575870d0b6b4d1630bd2b41d42b522244739165401f782897e0ddb00"
+    },
+    {
+      "path": "assets/gacha.json",
+      "before_sha256": "38fe85ba87359b575e0191d1ba6623e53924e1f5dc22a9bf4c58bbacfb387e32",
+      "sha256": "cf7b7af4038ac9e5c85b2718606bfd776cf9d98a432f7388dccbcb07f36d8d8a"
+    },
+    {
+      "path": "assets/gacha_cnmod.json",
+      "before_sha256": "8ce29354aafbfa533d8e1b4347cab72d755234e86e5843201da40081c66b5c9f",
+      "sha256": "94bc4a489faa83c5964fce7819cce423f623ba645590e7dfde842421905b993e"
+    },
+    {
+      "path": "assets/gacha_rank_p5b.json",
+      "before_sha256": "6b0229e7d06580ea06bc190f05dfe4fc62a41dd407c2bd2772791ac4092c83a5",
+      "sha256": "a76c10cffdcc050af75043b484d33757550d0e303914732ca01c6b1296f18b3b"
+    },
+    {
+      "path": "assets/asset-patch/manifest.json",
+      "sha256": "d8937aafefc042c5fe5731accbb58ace6cf14fcbcc50cc5362a760de472bd8ce"
+    },
+    {
+      "path": "assets/asset-patch/active/pinball-1.4.106-1.4.107-2-author858-selected.zip",
+      "sha256": "0bdd8b6482f516e4aa5cfc7473cefbb34a3d3ff6cde95306f0007bd9646d17ed"
+    }
+  ],
+  "same_version_required_part1": {
+    "name": "pinball-1.4.106-1.4.107-1-weapon-caps-practice-hp.zip",
+    "size": 41648,
+    "sha256": "55f99926afbd3588890505ec52a26f0b67dc13225a2b951509886d91db4f4171",
+    "members": 2
+  },
+  "requires_current_prior_chain": true,
+  "apk_or_ipa_included": false,
+  "loose_production_included": false,
+  "commit_or_sync_authorized": false,
+  "cloud_overlay_created": false
+}

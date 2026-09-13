@@ -1,7 +1,9 @@
 # 卡池生成逻辑
 
 > 状态: 已采用 `gacha_odds` 重建 `assets/gacha.json`
-> 关键文件: `assets/cdndata/gacha.json`, `assets/gacha.json`, `tools/gacha_odds_export.cjs`, `tools/rebuild_gacha_from_odds.cjs`
+> 关键文件: `assets/gacha.json`, `tools/lens-integration/export_effective_gacha.py`, `tools/gacha_odds_export.cjs`, `tools/rebuild_gacha_from_odds.cjs`
+>
+> 2026-09-12：默认输入改为已校验的纯净基线及启用补丁链，不再默认读取旧解包目录。修复详情见 `assets/asset-patch/audit/gacha-consistency-1.4.106/README.md`。
 
 本文说明离线服务端的普通卡池数据如何从 CN CDN 还原。这里的“卡池”指 `assets/gacha.json` 中每个 banner 的可抽取角色/装备列表、UP 标记和同星级内权重。
 
@@ -66,13 +68,15 @@ master/gacha_odds/<odds_id>.orderedmap
 sha1(logicalPath + "K6R9T9Hz22OpeIGEWB0ui6c6PYFQnJGy")
 ```
 
-生成器默认会在仓库根目录和一级子目录中查找:
+生成器默认通过 `export_effective_gacha.py` 按需读取当前有效链中的 gacha 主表及所引用的 odds，并校验 active ZIP 摘要和连续版本关系。`assets/cdndata/gacha.json` 或旧解包文件本身不能证明客户端当前使用的内容。
+
+历史调查可显式指定 `--store`，目录格式为:
 
 ```text
 WorldFlipper/dummy/download/production/upload
 ```
 
-当前本地包命中的是 `弹国服/WorldFlipper/dummy/download/production/upload`。
+历史 `--store` 只允许配合 `--no-write` 调查，不能将旧基线结果发布覆盖当前卡池。底层 `gacha_odds_export.cjs` 仍可用于这种指定目录的只读导出。
 
 `gacha_odds` 是双层 orderedmap。外层 key 是 odds id，内层每行是 CSV 文本:
 
@@ -83,6 +87,13 @@ WorldFlipper/dummy/download/production/upload
 | 装备 odds | `equipmentId,rarity,weight,oddsUp,isLimited,isExchangeable` |
 
 `tools/gacha_odds_export.cjs` 会完整导出这些字段；`assets/gacha.json` 写入运行时需要的抽取、兑换、券和基础页面类型字段。
+
+## 卡池一致性规则
+
+- 每个角色的兑换、UP、限定和权重取自该池自己的 odds 行。不能遍历其他池后按角色 ID 保留第一次出现的记录；同一角色在不同池的资格与概率可以不同。
+- 缺少 odds 时必须失败并补齐有效输入，不按角色全集、属性、名字、上线日期或节日模板自行拼池。
+- 角色升星保留原 ID 时，同步检查所有引用池的星级分组；不能继续按 ID 首位推测星级。若跨星级迁移，明确记录目标池内权重策略并同时更新客户端及服务端，不改变未要求调整的总星级概率。
+- 验证实际合并的 `getGachaSync` 结果与最终客户端 odds：逐池比较成员、权重、兑换标记、UP／限定和星级；只检查角色主表是否有这个 ID 无法发现 H400 的兑换资格错误。
 
 ## 页面和券规则
 

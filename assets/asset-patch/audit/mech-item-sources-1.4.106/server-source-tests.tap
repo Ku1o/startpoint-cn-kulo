@@ -1,0 +1,88 @@
+TAP version 13
+# [DB] temp_dir=C:\\Users\\ASUS\\AppData\\Local\\Temp
+# [DB] temp_store=1 (1=FILE)
+# [DB] init: dbExists=false currentVersion=0 latestVersion=9 updateRequired=false
+# [DB] calling init...
+# [DB] init done
+# [DB] created 41 cascade-delete indexes
+# [TIME] startup offset=null(system)
+# [TIME] setServerTime → 2024-01-01T00:00:00.000Z offset=-85132852127
+# [TIME] setServerTime → 2023-11-24T00:00:00.000Z offset=-88416052163
+# [TIME] setServerTime → 2025-07-26T00:00:00.000Z offset=-35712052165
+# [shop:req] viewer=77119051 types=[] bossCats=[] equipCats=undefined events=1 eventList=[{"event_type":11,"event_ids":[700011]}]
+# [shop:get_sales] player=1 purchasedKeys=0 totalPurchased=0
+# [shop:res] totalSales=33 byType={"4":33} toParseItems={"4":33}
+# [TIME] setServerTime → 2025-08-15T00:00:00.000Z offset=-33984052169
+# [TIME] setServerTime → 2025-07-26T00:00:00.000Z offset=-35712052170
+# Subtest: 入手方式沿用真实商店期限和库存，静态索引不缓存玩家状态
+    # Subtest: 过期来源隐藏，原期和复刻期间恢复；索引初始化后时间变化仍生效
+    ok 1 - 过期来源隐藏，原期和复刻期间恢复；索引初始化后时间变化仍生效
+      ---
+      duration_ms: 42.6709
+      ...
+# [shop:req] viewer=77119051 types=[] bossCats=[] equipCats=undefined events=2 eventList=[{"event_type":11,"event_ids":[700098]},{"event_type":0,"event_ids":[300098]}]
+# [shop:get_sales] player=1 purchasedKeys=1 totalPurchased=1
+# [shop:res] totalSales=24 byType={"4":24} toParseItems={"4":24}
+# [shop:req] viewer=77119051 types=[] bossCats=[] equipCats=undefined events=2 eventList=[{"event_type":11,"event_ids":[700098]},{"event_type":0,"event_ids":[300098]}]
+# [shop:get_sales] player=1 purchasedKeys=2 totalPurchased=2
+# [shop:res] totalSales=24 byType={"4":24} toParseItems={"4":24}
+# [shop:req] viewer=77119051 types=[] bossCats=[] equipCats=undefined events=2 eventList=[{"event_type":11,"event_ids":[700098]},{"event_type":0,"event_ids":[300098]}]
+# [shop:get_sales] player=1 purchasedKeys=3 totalPurchased=3
+# [shop:res] totalSales=24 byType={"4":24} toParseItems={"4":24}
+# [shop:req] viewer=77119051 types=[] bossCats=[] equipCats=undefined events=2 eventList=[{"event_type":11,"event_ids":[700098]},{"event_type":0,"event_ids":[300098]}]
+# [shop:get_sales] player=1 purchasedKeys=4 totalPurchased=4
+# [shop:res] totalSales=24 byType={"4":24} toParseItems={"4":24}
+# [shop:req] viewer=77119051 types=[] bossCats=[] equipCats=undefined events=2 eventList=[{"event_type":11,"event_ids":[700098]},{"event_type":0,"event_ids":[300098]}]
+# [shop:get_sales] player=1 purchasedKeys=5 totalPurchased=5
+# [shop:res] totalSales=24 byType={"4":24} toParseItems={"4":24}
+# [shop:req] viewer=77119051 types=[] bossCats=[] equipCats=undefined events=2 eventList=[{"event_type":11,"event_ids":[700098]},{"event_type":0,"event_ids":[300098]}]
+# [shop:get_sales] player=1 purchasedKeys=6 totalPurchased=6
+# [shop:res] totalSales=24 byType={"4":24} toParseItems={"4":24}
+# [shop:req] viewer=77119051 types=[] bossCats=[] equipCats=undefined events=2 eventList=[{"event_type":11,"event_ids":[700098]},{"event_type":0,"event_ids":[300098]}]
+# [shop:get_sales] player=1 purchasedKeys=7 totalPurchased=7
+# [shop:res] totalSales=24 byType={"4":24} toParseItems={"4":24}
+# [shop:req] viewer=77119051 types=[] bossCats=[] equipCats=undefined events=2 eventList=[{"event_type":11,"event_ids":[700098]},{"event_type":0,"event_ids":[300098]}]
+# [shop:get_sales] player=1 purchasedKeys=8 totalPurchased=8
+# [shop:res] totalSales=24 byType={"4":24} toParseItems={"4":24}
+# [shop:req] viewer=77119051 types=[] bossCats=[] equipCats=undefined events=2 eventList=[{"event_type":11,"event_ids":[700098]},{"event_type":0,"event_ids":[300098]}]
+# [shop:get_sales] player=1 purchasedKeys=9 totalPurchased=9
+# [shop:res] totalSales=24 byType={"4":24} toParseItems={"4":24}
+# [shop:req] viewer=77119051 types=[] bossCats=[] equipCats=undefined events=2 eventList=[{"event_type":11,"event_ids":[700098]},{"event_type":0,"event_ids":[300098]}]
+# [shop:get_sales] player=1 purchasedKeys=10 totalPurchased=10
+# [shop:res] totalSales=24 byType={"4":24} toParseItems={"4":24}
+# [shop:req] viewer=77119051 types=[] bossCats=[] equipCats=undefined events=2 eventList=[{"event_type":11,"event_ids":[700098]},{"event_type":0,"event_ids":[300098]}]
+# [shop:get_sales] player=1 purchasedKeys=11 totalPurchased=11
+# [shop:res] totalSales=24 byType={"4":24} toParseItems={"4":24}
+# [shop:req] viewer=77119051 types=[] bossCats=[] equipCats=undefined events=2 eventList=[{"event_type":11,"event_ids":[700098]},{"event_type":0,"event_ids":[300098]}]
+# [shop:get_sales] player=1 purchasedKeys=12 totalPurchased=10010
+# [shop:res] totalSales=24 byType={"4":24} toParseItems={"4":24}
+    # Subtest: 12 对幻想商品沿用已存共享购买键，另一玩家不受影响
+    ok 2 - 12 对幻想商品沿用已存共享购买键，另一玩家不受影响
+      ---
+      duration_ms: 44.6768
+      ...
+    # Subtest: 普通商店与星粒同号商品的购买计数隔离
+    ok 3 - 普通商店与星粒同号商品的购买计数隔离
+      ---
+      duration_ms: 5.5079
+      ...
+# [TIME] setServerTime → null(system) offset=null
+    # Subtest: 保留现用五重来源和普通箱池，旧死亡使者商品不返回
+    ok 4 - 保留现用五重来源和普通箱池，旧死亡使者商品不返回
+      ---
+      duration_ms: 6.3013
+      ...
+    1..4
+ok 1 - 入手方式沿用真实商店期限和库存，静态索引不缓存玩家状态
+  ---
+  duration_ms: 230.4665
+  ...
+1..1
+# tests 5
+# suites 0
+# pass 5
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1824.8424

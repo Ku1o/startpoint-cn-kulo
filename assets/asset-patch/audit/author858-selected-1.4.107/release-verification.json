@@ -1,0 +1,38 @@
+{
+  "status": "passed",
+  "manifest_sha256": "d8937aafefc042c5fe5731accbb58ace6cf14fcbcc50cc5362a760de472bd8ce",
+  "actual_asset_route_handlers": true,
+  "archive_hashes_verified": true,
+  "server_file_hashes_verified": true,
+  "platforms": {
+    "android": {
+      "edge": [
+        "1.4.106",
+        "1.4.107"
+      ],
+      "parts": [
+        "pinball-1.4.106-1.4.107-1-weapon-caps-practice-hp.zip",
+        "pinball-1.4.106-1.4.107-2-author858-selected.zip"
+      ],
+      "bytes": 61482339,
+      "already_current_has_no_update": true
+    },
+    "ios": {
+      "edge": [
+        "1.4.106",
+        "1.4.107"
+      ],
+      "parts": [
+        "pinball-1.4.106-1.4.107-1-weapon-caps-practice-hp.zip",
+        "pinball-1.4.106-1.4.107-2-author858-selected.zip"
+      ],
+      "bytes": 61482339,
+      "already_current_has_no_update": true
+    }
+  },
+  "listener_started": false,
+  "runtime_service_contacted": false,
+  "runtime_mirror_modified": false,
+  "player_database_accessed": false,
+  "device_tested": false
+}

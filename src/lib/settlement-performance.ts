@@ -5,8 +5,27 @@ interface PhaseTiming {
 }
 
 const timings = new Map<string, PhaseTiming>()
+const gachaRequests = {
+    character: { requests: 0, pulls: 0 },
+    equipment: { requests: 0, pulls: 0 },
+}
 
-export function recordSettlementPhase(kind: "single" | "multi", phase: string, elapsedMs: number): void {
+export function recordGachaRequest(kind: "character" | "equipment", pulls: number): void {
+    if (!Number.isSafeInteger(pulls) || pulls <= 0) return
+    gachaRequests[kind].requests += 1
+    gachaRequests[kind].pulls += pulls
+}
+
+export function drainGachaRequestSummary(): string {
+    return Object.entries(gachaRequests).map(([kind, counters]) => {
+        const text = `${kind}{requests=${counters.requests},pulls=${counters.pulls}}`
+        counters.requests = 0
+        counters.pulls = 0
+        return text
+    }).join("; ")
+}
+
+export function recordSettlementPhase(kind: "single" | "multi" | "gacha", phase: string, elapsedMs: number): void {
     if (!Number.isFinite(elapsedMs) || elapsedMs < 0) return
     const key = `${kind}.${phase}`
     const timing = timings.get(key) ?? { count: 0, totalMs: 0, maxMs: 0 }
@@ -17,7 +36,7 @@ export function recordSettlementPhase(kind: "single" | "multi", phase: string, e
 }
 
 export function measureSettlementPhase<T>(
-    kind: "single" | "multi",
+    kind: "single" | "multi" | "gacha",
     phase: string,
     operation: () => T,
 ): T {
@@ -30,7 +49,7 @@ export function measureSettlementPhase<T>(
 }
 
 export async function measureSettlementPhaseAsync<T>(
-    kind: "single" | "multi",
+    kind: "single" | "multi" | "gacha",
     phase: string,
     operation: () => Promise<T>,
 ): Promise<T> {

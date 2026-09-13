@@ -1,0 +1,36 @@
+{
+  "id": "weapon-caps-practice-hp-1.4.107",
+  "type": "patch",
+  "name": "三把武器次数复原与练习木人十倍血量",
+  "description": "恢复木灵大剑、无名之弓、埃俄罗斯之弓原触发次数；仅三分钟结实假人及结实假人们的关卡 HP 倍率改为 10。",
+  "depends_on": "1.4.106",
+  "version": "1.4.107",
+  "enabled": true,
+  "archive": "pinball-1.4.106-1.4.107-1-weapon-caps-practice-hp.zip",
+  "chain": [
+    "pinball-1.4.106-1.4.107-1-weapon-caps-practice-hp.zip"
+  ],
+  "archive_size": 41648,
+  "archive_integrity": [
+    {
+      "name": "pinball-1.4.106-1.4.107-1-weapon-caps-practice-hp.zip",
+      "size": 41648,
+      "sha256": "55f99926afbd3588890505ec52a26f0b67dc13225a2b951509886d91db4f4171",
+      "members": 2
+    }
+  ],
+  "files": [
+    "production/upload/d6/a23f83f176b05f715a8504b8fc0fc1ffaff068",
+    "production/upload/03/003a1a50362f80e353eb6648430d50e427de8d"
+  ],
+  "changes": [
+    "木灵大剑 99→3 次，无名之弓及埃俄罗斯之弓回充 99→10 次；目标能力行逐字节恢复至 1.4.54。",
+    "Practice 91–97 本体 HP 修正 1→10；Practice 81–87 本体及小木人 HP 修正均 1→10。",
+    "两类练习关覆盖六属性及无属性；其他练习关、攻击力、回血、时间限制、存档及奖励不变。"
+  ],
+  "created_at": "2026-09-13",
+  "audit": {
+    "directory": "assets/asset-patch/audit/weapon-caps-practice-hp-1.4.107",
+    "report": "report.json"
+  }
+}

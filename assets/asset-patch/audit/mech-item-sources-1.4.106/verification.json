@@ -1,0 +1,27 @@
+{
+  "resource_suite": {
+    "command": "python -B tools/lens-integration/test_complete_how_to_get_sources.py --work F:/codex/work/item-source-audit-20260912/complete-v2/build",
+    "passed": 9,
+    "failed": 0,
+    "per_added_pair_negative_cases": 152,
+    "tests": [
+      "test_original_and_eight_item_patch_fail_expanded_coverage",
+      "test_serialized_result_covers_all_known_reward_pairs",
+      "test_removing_any_added_pair_even_from_an_existing_key_fails",
+      "test_fantasy_schedule_and_each_final_reward_are_indexed",
+      "test_random_pool_weights_include_selection_probability",
+      "test_every_first_ss_source_is_present_with_one_time_note",
+      "test_ordinary_item_fields_and_old_sources_cannot_change",
+      "test_gate_removal_and_wrong_or_hidden_targets_are_rejected",
+      "test_art_checks_distinguish_optional_small_icons_from_thumbnails"
+    ]
+  },
+  "server_suite": {
+    "command": "node --test tests/how-to-get-route.test.js",
+    "passed": 5,
+    "failed": 0,
+    "log": "server-source-tests.tap"
+  },
+  "device_tested": false,
+  "source_backup": "F:\\codex\\work\\item-source-audit-20260912\\complete-v2\\build\\apply-backup"
+}

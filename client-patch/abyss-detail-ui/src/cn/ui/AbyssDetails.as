@@ -99,13 +99,29 @@ package cn.ui {
             subtitle.set_text(summaryForQuest(rawSubtitle(scene.targetQuest), scene.targetQuest));
 
             var SpriteClass:Class = getDefinitionByName("starling.display.Sprite") as Class;
-            var QuadClass:Class = getDefinitionByName("starling.display.Quad") as Class;
+            var CanvasClass:Class = getDefinitionByName("starling.display.Canvas") as Class;
+            var PolygonClass:Class = getDefinitionByName("starling.geom.Polygon") as Class;
             var button:Object = new SpriteClass();
             button.name = "cn_abyss_details";
             var width:Number = 200 * unit, height:Number = 60 * unit;
             button.x = title.x + title.get_textWidth() - width;
             button.y = continuation.y - 10 * unit;
-            button.addChild(new QuadClass(width, height, 0x21c4bb));
+            // One convex mesh; no texture cache or overlapping fills.
+            var radius:Number = 12 * unit;
+            var vertices:Array = [];
+            for (var corner:int = 0; corner < 4; corner++) {
+                var cx:Number = corner == 0 || corner == 1 ? width - radius : radius;
+                var cy:Number = corner == 1 || corner == 2 ? height - radius : radius;
+                for (var step:int = 0; step <= 8; step++) {
+                    var angle:Number = (-90 + corner * 90 + step * 90 / 8) * Math.PI / 180;
+                    vertices.push(cx + Math.cos(angle) * radius, cy + Math.sin(angle) * radius);
+                }
+            }
+            var background:Object = new CanvasClass();
+            background.beginFill(0x21c4bb);
+            background.drawPolygon(new PolygonClass(vertices));
+            background.endFill();
+            button.addChild(background);
             var label:Object = title.clone();
             label.x = 0; label.y = 0; label.scaleX = 1; label.scaleY = 1;
             label.set_textWidth(width); label.set_textHeight(height);
@@ -126,12 +142,8 @@ package cn.ui {
         }
 
         public static function openDetails(scene:Object):void {
-            var DialogClass:Class = getDefinitionByName("pinball.dialog.richTextDialog.RichTextDialog") as Class;
-            var kind:Object = getDefinitionByName("pinball.dialog.richTextDialog.RichTextAssetKind");
-            var option:Object = getDefinitionByName("haxe.ds.Option");
-            var dialog:Object = new DialogClass("关卡详情", kind.Text(detailsHtml(rawSubtitle(scene.targetQuest))),
-                false, option.None, function():void {});
-            scene.openDialog(dialog);
+            var records:Object = getDefinitionByName("cn.ui.AbyssRecordDetails");
+            records.open(scene, detailsHtml(rawSubtitle(scene.targetQuest)));
         }
     }
 }

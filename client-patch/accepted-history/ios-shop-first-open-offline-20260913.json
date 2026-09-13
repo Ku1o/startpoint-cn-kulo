@@ -1,0 +1,203 @@
+{
+  "schema_version": 4,
+  "status": "accepted_offline",
+  "accepted_on": "2026-09-13",
+  "acceptance": {
+    "source": "用户要求接受并整合三个会话的已完成内容，排除当前闪退诊断。",
+    "user_statement": "接受、整合这3个会话中的内容，不过会话“觉醒修复及性能优化”目前进行中的闪退诊断不用接受。先同步到本地，告诉我需要分类测试什么新内容",
+    "scope": "offline_artifact_and_lineage",
+    "device_tested_by_codex": false,
+    "device_acceptance": "not_claimed_pending_device_tests",
+    "build_reports_are_immutable": true,
+    "audit": "client-patch/ACCEPTANCE-IOS-SHOP-FIRST-OPEN-20260913.md"
+  },
+  "artifact": {
+    "ipa": "F:/codex/ios-artifacts/StarPoint-iOS-1.8.4-shop-first-open-public-20260913-unsigned.ipa",
+    "ipa_sha256": "544ec90332845ff6c6b06e98aad691c0d9f10c725470eceeb4237c8bdbd65361",
+    "size_bytes": 148326093,
+    "native_member": "Payload/worldflipper.app/worldflipper",
+    "native_sha256": "541a5359004bfc06cbb537d3da8910389123013cfa899b1171f4ff61b1d25866",
+    "swf_member": "Payload/worldflipper.app/worldflipper_ios_release.swf",
+    "swf_sha256": "79582442f8e21880fc1862f2e157224c1171682708d9bbae67b93c27e45862ab",
+    "bundle_id": "com.kulo.wf",
+    "version": "1.8.4",
+    "build": "1.8.46",
+    "signing": "unsigned",
+    "profile_debug_overlay": false,
+    "title_cntips_b_unchanged": true,
+    "endpoint_policy": "R3/R4 初始 API 与版本配置均为 http://175.178.160.158，公网默认端口 80",
+    "full_abc": "F:/codex/ios-artifacts/shop-first-open-public-20260913/shop-first-open-full.abc",
+    "full_abc_sha256": "10772c48345fc196e8c76d1442c350915175a2c6ca514fa610bb23afed7981bc",
+    "full_abc_sha1": "8a7abe527eaa5f45f9f4f553629023324f7a5bfb",
+    "aot_info_file_offset": 104549248,
+    "aot_method_count": 101214,
+    "required_resource_version": "1.4.106"
+  },
+  "lineage": {
+    "previous_accepted_registry": "client-patch/accepted-history/ios-record-holder-20260912.json",
+    "previous_accepted_ipa_sha256": "93695c623782164c243ace5bafd52c8ba170778d2fd9fd73199ef5c8840b2470",
+    "previous_accepted_role": "纪录昵称版是商店移植的历史精确输入；后续新任务从已离线验收的商店累计版继续。",
+    "documentation": "client-patch/ios-shop-first-open/README.md",
+    "build_entry": "client-patch/ios-shop-first-open/build.py",
+    "verification_script": "client-patch/ios-shop-first-open/verify.py",
+    "previous_method_source_commit": "0691fef4208bb56263984fcfbc2a4dae846cc188",
+    "preserved": [
+      "MOD 五合一",
+      "幻想连战和幻想魂珠纹理",
+      "MemberView v6",
+      "Rush 排行榜 r12b 分页、资料导航及整行点击",
+      "深渊装备 Multi/BothBoss 与 120 级门控",
+      "iOS 原有 CNtips_b 显示行为",
+      "真实关系对应的关注/取消关注按钮可见性",
+      "真实关注/取消操作及陈旧按钮处理",
+      "通过 get_viewerId() 分流到原生本人资料卡",
+      "724 Fever 满槽比例增减",
+      "422 冲刺参数的解析、描述、汇总和战斗执行",
+      "稻穗 PF 弹射前连击数",
+      "基诺维配置冲刺参数",
+      "五重决战随机地图与联机房号种子",
+      "五重联机手动开战后的 Auto 锁及暂停菜单状态",
+      "5900101 不使用五星铁钢替代觉醒材料",
+      "深渊活动 700099 续战队伍跨关复用角色，逐关选队与其他活动原限制保持"
+    ],
+    "added": [
+      "玩家注册登录、旧存档绑定、UID/管理员绑定码继承、重置码找回密码、记住登录及多账号管理",
+      "标题与菜单登录入口、继续游戏后停留标题再开始、请求队列和 Socket 会话接入",
+      "深渊摘要及可滚动详情、通用关卡属性伤害通道",
+      "Lens 0910 灼晒能力伤害耐性及夏白/杰拉尔语音轮换和预加载",
+      "TrollStore 重签兼容的 LINKEDIT、字符串表与重定位数据布局",
+      "版本查询前的实际公网 API 初始配置，修复登录面板缓存官网地址",
+      "HUD 语音计数 Number 尾部存储，保留旧字段偏移，修复进场 F1009",
+      "旧服空任务响应归一化，登录回调保留下载设置",
+      "检测安装变化后清理一次 NSURLCache 网络响应缓存；保留游戏文件和账号",
+      "深渊详情按钮四角曲线，保持既有点击闭包字段布局",
+      "深渊有限层详情本期全服最快用时及纪录保持者公开昵称，保留个人最佳",
+      "入手方法支持已解锁且开放的常驻活动文件夹，保留关卡准入检查",
+      "活动商品成员索引、商店首页与常驻活动文件夹存在性短路",
+      "觉醒任务响应后刷新角色、觉醒等级与能力页签"
+    ],
+    "method_archive": "ios-shop-first-open 五个既有方法与八个辅助方法，保留此前全部 iOS 累计功能。",
+    "intermediate_candidates": [
+      {
+        "name": "cumulative_initial",
+        "ipa_sha256": "54a305686a8cf0ae9ad6f1ea3158d34009a7eb0a7221e807de334570d56ebe2a",
+        "role": "rejected_launch_crash"
+      },
+      {
+        "name": "launch_fix_r1",
+        "ipa_sha256": "77757cb88ed43593d1df3ab48b7d4fc0601476362163a013c20159f3e3832499",
+        "role": "rejected_trollstore_rebase_crash"
+      },
+      {
+        "name": "trollstore_fix_r2",
+        "ipa_sha256": "171f0eb1d1671c9684c1ee9829af4b7f29a9ccc7481ec42144743c51cc2e6d7c",
+        "role": "historical_pre_public_endpoint_fix"
+      },
+      {
+        "name": "public_fix_r3",
+        "ipa_sha256": "61a545ea867e97837fee2204c1649e362d6e3be2d98aa80abd3931111354a9af",
+        "role": "exact_r4_reproduction_input_not_current_baseline"
+      }
+    ]
+  },
+  "excluded_diagnostic": {
+    "ipa": "F:/codex/ios-artifacts/StarPoint-iOS-1.8.4-profile-follow-DIAGNOSTIC-20260908-unsigned.ipa",
+    "ipa_sha256": "616cd229bb34bcb52c2be40c4f747bbdd6574c2e92c963658729b6605a356e67",
+    "status": "diagnostic_only_not_current_baseline",
+    "reason": "用户验收的是前一份无 DEBUG 包；诊断版仅供历史审查，不再用于交付或后续修改基线。"
+  },
+  "local_build_report": "F:/codex/ios-artifacts/shop-first-open-public-20260913/build-report.json",
+  "local_acceptance_checks": {
+    "status": "offline_verified_unsigned_candidate",
+    "ipa": "F:\\codex\\work\\shop-public-release-20260913\\ios-port\\output\\StarPoint-iOS-1.8.4-shop-first-open-public-20260913-unsigned.ipa",
+    "ipa_sha256": "544ec90332845ff6c6b06e98aad691c0d9f10c725470eceeb4237c8bdbd65361",
+    "zip_members": 3568,
+    "changed_zip_members": [
+      "Payload/worldflipper.app/worldflipper_ios_release.swf",
+      "Payload/worldflipper.app/worldflipper"
+    ],
+    "existing_methods_preserved": 101201,
+    "old_class_and_activation_layouts_preserved": true,
+    "patched_existing_methods": [
+      27170,
+      27172,
+      73812,
+      79342,
+      89719
+    ],
+    "new_helper_methods": 8,
+    "native_relocations_checked": 351,
+    "long_branch_veneers_checked": 32,
+    "new_rebases": 92741,
+    "ldid_signature_models_passed": 3,
+    "public_origin": "http://175.178.160.158",
+    "signing_layout": {
+      "signature_offset": 155664144,
+      "signature_size": 2711920,
+      "signature_is_last": true,
+      "loader_metadata_before_signature": true,
+      "ldid_code_limit": 155664144,
+      "ldid_metadata_preserved": true,
+      "metadata_ranges": [
+        {
+          "name": "rebase",
+          "offset": 155513728,
+          "size": 110062
+        },
+        {
+          "name": "bind",
+          "offset": 154918368,
+          "size": 59712
+        },
+        {
+          "name": "lazy_bind",
+          "offset": 154978080,
+          "size": 26368
+        },
+        {
+          "name": "export",
+          "offset": 155004448,
+          "size": 536
+        },
+        {
+          "name": "symbols",
+          "offset": 155253880,
+          "size": 25392
+        },
+        {
+          "name": "strings",
+          "offset": 155623792,
+          "size": 40352
+        },
+        {
+          "name": "indirect_symbols",
+          "offset": 155279272,
+          "size": 8728
+        },
+        {
+          "name": "0x26",
+          "offset": 155004984,
+          "size": 248864
+        },
+        {
+          "name": "0x29",
+          "offset": 155253848,
+          "size": 32
+        }
+      ]
+    },
+    "ios_carousel_unchanged": true,
+    "save_schema_changed": false,
+    "device_tested": false,
+    "server_endpoint_required": true,
+    "old_startup_cache_preserved": true,
+    "android_reference_sha256": "35e0e7c777798594d68c9bcd74c507c6f0b7d065453e0425c301258c6bc38ac6",
+    "user_acceptance_recorded_separately": true
+  },
+  "excluded_current_loading_diagnostic": {
+    "thread": "觉醒修复及性能优化",
+    "path": "client-patch/loading-diagnostic/",
+    "status": "excluded_by_user_from_three_session_integration",
+    "apk_or_ipa_selected": false
+  }
+}

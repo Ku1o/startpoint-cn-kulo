@@ -23,11 +23,15 @@ def verify(variant: str, apk: Path | None = None, *, record_path: Path | None = 
     record_file = record_path if record_path is not None else RECORD
     record = json.loads(record_file.read_text(encoding="utf-8"))
     identity = (record["schema_version"], record["status"])
-    if identity not in ((1, "user_accepted"), (2, "accepted_offline")):
+    if identity not in ((1, "user_accepted"), (2, "accepted_offline"), (3, "user_accepted")):
         raise ValueError("baseline record must explicitly identify an accepted release and scope")
     if identity == (2, "accepted_offline"):
         if not record["acceptance"]["user_statement"] or record["acceptance"]["scope"] != "offline_artifact_and_lineage":
             raise ValueError("offline acceptance must record user authorization and its limited scope")
+    if identity == (3, "user_accepted"):
+        acceptance = record["acceptance"]
+        if not acceptance["user_statement"] or acceptance["scope"] != "user_confirmed_acceptance_and_offline_identity":
+            raise ValueError("user acceptance must record the user's confirmation and audit scope")
     entry = record["variants"][variant]
     path = apk.resolve() if apk else ROOT / entry["apk"]
     if not path.is_file():
@@ -40,6 +44,12 @@ def verify(variant: str, apk: Path | None = None, *, record_path: Path | None = 
         swf = archive.read("assets/worldflipper_android_release.swf")
         if hashlib.sha256(swf).hexdigest() != entry["swf_sha256"]:
             raise ValueError("embedded SWF SHA-256 mismatch")
+        if identity == (3, "user_accepted") or "size_bytes" in entry:
+            if path.stat().st_size != entry["size_bytes"]:
+                raise ValueError("APK size differs from the accepted package")
+        if identity == (3, "user_accepted") or "dex_sha256" in entry:
+            if hashlib.sha256(archive.read("classes.dex")).hexdigest() != entry["dex_sha256"]:
+                raise ValueError("embedded startup-cache DEX SHA-256 mismatch")
         manifest = archive.read("AndroidManifest.xml").decode("utf-16le", errors="ignore")
         expected_uuid = entry["uniqueappversionid"]
         if manifest.count(expected_uuid) != 1:
@@ -56,7 +66,7 @@ def verify(variant: str, apk: Path | None = None, *, record_path: Path | None = 
                 raise ValueError("local LAN endpoint differs from the accepted artifact record")
     return {"status": "accepted_identity_verified", "variant": variant,
             "registry": str(record_file),
-            "acceptance_status": record["status"],
+            "acceptance_status": entry.get("acceptance_status", record["status"]),
             "accepted_on": entry.get("accepted_on", record["accepted_on"]),
             "acceptance_audit": entry.get("acceptance_audit", record.get("acceptance", {}).get("audit")),
             "main_abc_index": entry.get("main_abc_index", 284),
@@ -71,9 +81,10 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--variant", required=True, choices=("public", "lan"))
     parser.add_argument("--apk", type=Path, help="explicit alternate location; identity must still match")
+    parser.add_argument("--record", type=Path, help="explicit historical acceptance record for reproduction")
     args = parser.parse_args()
     try:
-        print(json.dumps(verify(args.variant, args.apk), ensure_ascii=False, indent=2))
+        print(json.dumps(verify(args.variant, args.apk, record_path=args.record), ensure_ascii=False, indent=2))
     except (ValueError, KeyError, OSError, zipfile.BadZipFile) as error:
         print(f"ERROR: {error}", file=sys.stderr)
         return 1

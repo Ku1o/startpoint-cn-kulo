@@ -6,6 +6,7 @@ const character_1 = require("../data/domains/character");
 const player_1 = require("../data/domains/player");
 const item_1 = require("../data/domains/item");
 const assets_1 = require("./assets");
+const character_degree_rewards_1 = require("./character-degree-rewards");
 const types_1 = require("./types");
 exports.characterExpCaps = {
     [1]: [
@@ -211,6 +212,7 @@ function givePlayerCharactersExpSync(playerId, characterIds, expAmount, ignoreUp
             (0, character_1.updatePlayerCharacterSync)(playerId, characterId, {
                 exp: afterExp
             });
+            (0, character_degree_rewards_1.grantCharacterDegreeRewardsSync)(playerId, [characterId]);
             addExpList.push({
                 character_id: characterId,
                 add_exp: expAmount - overflowExp,

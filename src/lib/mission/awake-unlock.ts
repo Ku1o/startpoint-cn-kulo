@@ -1,12 +1,11 @@
 import { getPlayerCharacterAwakeUnlocksSync, upsertPlayerCharacterAwakeUnlockSync } from "../../data/domains/character_awake"
 import type { CharacterAwakeUnlockMap } from "../../data/domains/character_awake"
-import { getPlayerCharactersSync } from "../../data/domains/character"
-import { getPlayerCategoryMissionsSync } from "../../data/domains/mission"
+import { getPlayerCharactersByIdsSync } from "../../data/domains/character"
 import { getDb } from "../../data/db"
 import { getCharacterIdFromMission } from "./character-queries"
 import { getComputer } from "./registry"
 import { getAwakeMissionRewardStageDefinition } from "./rewards"
-import { getCompletedStageNumbers, getMissionIdsByCategory } from "./stages"
+import { getCompletedStageNumbers, getMissionIdsByCategory, getMissionStageIds } from "./stages"
 import { getServerDate } from "../../utils"
 
 export interface AwakeUnlockReconciliationResult {
@@ -21,30 +20,30 @@ export interface AwakeUnlockProgress {
 
 export function reconcileAwakeUnlocksFromProgress(
     playerId: number,
-    progressList: AwakeUnlockProgress[]
+    progressList: AwakeUnlockProgress[],
+    persistedUnlocks: CharacterAwakeUnlockMap = getPlayerCharacterAwakeUnlocksSync(playerId),
 ): AwakeUnlockReconciliationResult {
     const changed: CharacterAwakeUnlockMap = new Map()
+    const missing = progressList.flatMap(entry => {
+        const characterId = getCharacterIdFromMission(entry.missionId)
+        return getCompletedStageNumbers(9, entry.missionId, entry.progress).flatMap(stage => {
+            const reward = getAwakeMissionRewardStageDefinition(entry.missionId, stage)?.specialReward
+            return reward && String(reward.characterId) === characterId
+                && (persistedUnlocks.get(characterId)?.[reward.boardIndex] ?? 0) < reward.awakeLevel
+                ? [reward] : []
+        })
+    })
+    if (missing.length === 0) return { all: persistedUnlocks, changed }
 
     getDb().transaction(() => {
-        for (const entry of progressList) {
-            const characterId = getCharacterIdFromMission(entry.missionId)
-            for (const stage of getCompletedStageNumbers(9, entry.missionId, entry.progress)) {
-                const specialReward = getAwakeMissionRewardStageDefinition(entry.missionId, stage)?.specialReward
-                if (!specialReward || String(specialReward.characterId) !== characterId) continue
-                if (!upsertPlayerCharacterAwakeUnlockSync(
-                    playerId,
-                    specialReward.characterId,
-                    specialReward.boardIndex,
-                    specialReward.awakeLevel
-                )) continue
-
-                const levels = changed.get(characterId) ?? {}
-                levels[specialReward.boardIndex] = Math.max(
-                    levels[specialReward.boardIndex] ?? 0,
-                    specialReward.awakeLevel
-                )
-                changed.set(characterId, levels)
-            }
+        for (const reward of missing) {
+            if (!upsertPlayerCharacterAwakeUnlockSync(
+                playerId, reward.characterId, reward.boardIndex, reward.awakeLevel,
+            )) continue
+            const characterId = String(reward.characterId)
+            const levels = changed.get(characterId) ?? {}
+            levels[reward.boardIndex] = Math.max(levels[reward.boardIndex] ?? 0, reward.awakeLevel)
+            changed.set(characterId, levels)
         }
     })()
 
@@ -58,27 +57,36 @@ export function reconcileAwakeUnlocks(
     playerId: number,
     candidateCharacterIds?: number[]
 ): AwakeUnlockReconciliationResult {
-    if (candidateCharacterIds?.length === 0) {
-        return reconcileAwakeUnlocksFromProgress(playerId, [])
-    }
-
-    const ownedCharacters = getPlayerCharactersSync(playerId)
-    const persistedMissions = getPlayerCategoryMissionsSync(playerId, 9)
+    const all = getPlayerCharacterAwakeUnlocksSync(playerId)
     const candidateIds = candidateCharacterIds ? new Set(candidateCharacterIds.map(String)) : null
+    // This function repairs unlock state, not consumable mission rewards.
+    // A character already holding every configured level needs no fact reads.
+    const missingMissionIds = getMissionIdsByCategory(9).filter(missionId => {
+        const characterId = getCharacterIdFromMission(missionId)
+        if (candidateIds && !candidateIds.has(characterId)) return false
+        return getMissionStageIds(9, missionId).some(stage => {
+            const reward = getAwakeMissionRewardStageDefinition(missionId, stage)?.specialReward
+            return reward && String(reward.characterId) === characterId
+                && (all.get(characterId)?.[reward.boardIndex] ?? 0) < reward.awakeLevel
+        })
+    })
+    if (missingMissionIds.length === 0) return { all, changed: new Map() }
+    const ownedCharacters = getPlayerCharactersByIdsSync(
+        playerId, missingMissionIds.map(getCharacterIdFromMission).map(Number),
+    )
+    const ownedMissionIds = missingMissionIds.filter(id => ownedCharacters[getCharacterIdFromMission(id)])
+    if (ownedMissionIds.length === 0) return { all, changed: new Map() }
     const computer = getComputer(9)
-    const context = computer.buildContext(playerId, 9, getServerDate())
+    const context = computer.buildContext(playerId, 9, getServerDate(), ownedMissionIds)
     const progressList: AwakeUnlockProgress[] = []
 
-    for (const missionId of getMissionIdsByCategory(9)) {
-        const characterId = getCharacterIdFromMission(missionId)
-        if (!ownedCharacters[characterId] || (candidateIds && !candidateIds.has(characterId))) continue
-
-        const dbProgress = persistedMissions[String(missionId)]?.progress ?? 0
+    for (const missionId of ownedMissionIds) {
+        const dbProgress = context.persistedMissions?.[String(missionId)]?.progress ?? 0
         progressList.push({
             missionId,
             progress: computer.compute(missionId, context, dbProgress),
         })
     }
 
-    return reconcileAwakeUnlocksFromProgress(playerId, progressList)
+    return reconcileAwakeUnlocksFromProgress(playerId, progressList, all)
 }

@@ -17,6 +17,6 @@ Classify the request before acting:
 
 For character data investigation, reporting, balance edits, or integration handoff, read [references/character-balance-workflow.md](references/character-balance-workflow.md) and apply only the sections relevant to the request.
 
-For ActionDSL edits or Deep Abyss reroll/build safety work, read [references/runtime-content-safety.md](references/runtime-content-safety.md). Apply its semantic gates in addition to ordinary schema and asset-existence checks.
+For ActionDSL edits or Deep Abyss reroll/build safety work, read [references/runtime-content-safety.md](references/runtime-content-safety.md). Apply its semantic gates in addition to ordinary schema and asset-existence checks. For every Deep Abyss reroll or tower consolidation, also follow its time-record revision gate so personal best times reset for the new tower.
 
 Keep the skill adaptive but narrow. When the user confirms a correction as a reusable preference, or a demonstrated tool failure reveals a general invariant, refine the relevant rule and add a regression check when code is involved. Do not convert tentative questions, disputed interpretations, or one character's temporary balance values into permanent skill rules.

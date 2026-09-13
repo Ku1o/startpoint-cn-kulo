@@ -1,0 +1,32 @@
+{
+  "status": "passed",
+  "installed": false,
+  "actual_public_accessors": true,
+  "native_gacha_parity": true,
+  "prepared_sha256": "68903e8b7b3675171aa276448225f663c7122c5385ee86c35972eec6c4194af1",
+  "characters": 19,
+  "new_saved_character_ids": [
+    "119989",
+    "149988",
+    "149989",
+    "169989"
+  ],
+  "new_saved_node_ids": 164,
+  "saved_id_collisions": 0,
+  "pools": {
+    "990001": {
+      "rows": 476,
+      "native_parity": true,
+      "zero_exchangeable_ids": [
+        179981
+      ]
+    },
+    "990002": {
+      "rows": 500,
+      "native_parity": true,
+      "zero_exchangeable_ids": []
+    }
+  },
+  "service_started": false,
+  "player_database_accessed": false
+}

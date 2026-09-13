@@ -120,6 +120,11 @@ export const PLAYER_SNAPSHOT_V2_TABLES = Object.freeze([
 
 const EXCLUDED_PLAYER_STATE = Object.freeze([
     {
+        tables: ["abyss_floor_records"],
+        policy: "preserve-target" as const,
+        reason: "深渊全服纪录属于本服公共历史，viewer_id 只作归属快照且无玩家外键；V1/V2 导入均不迁移、不回填、不删除。",
+    },
+    {
         tables: ["players_active_quests"],
         policy: "reset" as const,
         reason: "未完成战斗恢复数据不能跨存档恢复，导入时清除。",

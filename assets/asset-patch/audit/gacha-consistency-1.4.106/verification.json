@@ -1,0 +1,30 @@
+{
+  "branch": "staging",
+  "head": "46bfeeaa3feb1e080ea70dd43cc1dcaecad08876",
+  "resource_tests": 7,
+  "node_tests": 15,
+  "generator_legacy_assertions": "passed against current effective chain",
+  "old_400_pairs_successfully_exchanged": 432,
+  "direct_download_resources": 86,
+  "independent_final_audit": {
+    "chain": "1.4.106",
+    "client_pools": 586,
+    "server_pools": 586,
+    "checked_entries": 110207,
+    "client_exchange_pairs": 5752,
+    "unique_odds_tables": 936
+  },
+  "zero_discrepancy_checks": [
+    "exchange",
+    "members",
+    "weights",
+    "ranks",
+    "UP",
+    "limited",
+    "rank_rates"
+  ],
+  "device_tested": false,
+  "runtime_synced": false,
+  "cloud_deployed": false,
+  "backup": "F:\\codex\\work\\gacha-fix-20260912\\backup"
+}

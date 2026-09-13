@@ -1,0 +1,738 @@
+{
+  "version": "1.4.107",
+  "base_version": "1.4.106",
+  "archive": {
+    "name": "pinball-1.4.106-1.4.107-1-weapon-caps-practice-hp.zip",
+    "size": 41940,
+    "sha256": "9527476e7df4f01460f282907a3ec6ecb1beb9b55727b4fc171cd5061b88ff50",
+    "members": 2
+  },
+  "replaces_unpublished_archive_sha256": "55f99926afbd3588890505ec52a26f0b67dc13225a2b951509886d91db4f4171",
+  "authorization": "恢复原版木人；两类对应入口增加无属性独立关，原版100倍HP、10分钟；CDN增量合并进此前生成的包。",
+  "scope": {
+    "original_rows_byte_identical": 91,
+    "added_rows": [
+      {
+        "id": "1101",
+        "source": "97",
+        "folder": "100",
+        "name": "高血量木人·无",
+        "group": false,
+        "fields": [
+          {
+            "column": 1,
+            "before": "1",
+            "after": "8"
+          },
+          {
+            "column": 2,
+            "before": "结实假人・无",
+            "after": "高血量木人·无"
+          },
+          {
+            "column": 85,
+            "before": "180",
+            "after": "600"
+          },
+          {
+            "column": 86,
+            "before": "180",
+            "after": "600"
+          },
+          {
+            "column": 87,
+            "before": "180",
+            "after": "600"
+          },
+          {
+            "column": 88,
+            "before": "180",
+            "after": "600"
+          },
+          {
+            "column": 100,
+            "before": "1",
+            "after": "100"
+          },
+          {
+            "column": 112,
+            "before": "10800",
+            "after": "36000"
+          }
+        ]
+      },
+      {
+        "id": "1102",
+        "source": "87",
+        "folder": "99",
+        "name": "高血量木人们·无",
+        "group": true,
+        "fields": [
+          {
+            "column": 1,
+            "before": "1",
+            "after": "8"
+          },
+          {
+            "column": 2,
+            "before": "结实假人们・无",
+            "after": "高血量木人们·无"
+          },
+          {
+            "column": 85,
+            "before": "180",
+            "after": "600"
+          },
+          {
+            "column": 86,
+            "before": "180",
+            "after": "600"
+          },
+          {
+            "column": 87,
+            "before": "180",
+            "after": "600"
+          },
+          {
+            "column": 88,
+            "before": "180",
+            "after": "600"
+          },
+          {
+            "column": 99,
+            "before": "1",
+            "after": "100"
+          },
+          {
+            "column": 100,
+            "before": "1",
+            "after": "100"
+          },
+          {
+            "column": 112,
+            "before": "10800",
+            "after": "36000"
+          }
+        ]
+      }
+    ],
+    "before_sha256": "7f506bf25b647f596b1ecd5f1f78dd8f6ab3b813a2631d2655b788c29635b95b",
+    "after_sha256": "f1ccdb6717b581964e06fa25a332860c59f278fd6fd0fc112833d59406215aff"
+  },
+  "weapon_scope": {
+    "logical": "master/ability/ability_soul.orderedmap",
+    "changed_rows": 3,
+    "unchanged_raw_rows": 477,
+    "changes": [
+      {
+        "id": "2040001",
+        "fields": [
+          {
+            "row": 0,
+            "column": 31,
+            "before": "99",
+            "after": "10"
+          }
+        ],
+        "before": "0,1,0,0,,,,,,,0,,,,,,,0,,,,,,,12,,,4000000,4000000,,,99,0,,,,(None),,,,,,,0,211,0,,,5000,10000,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,",
+        "after": "0,1,0,0,,,,,,,0,,,,,,,0,,,,,,,12,,,4000000,4000000,,,10,0,,,,(None),,,,,,,0,211,0,,,5000,10000,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,"
+      },
+      {
+        "id": "5040009",
+        "fields": [
+          {
+            "row": 1,
+            "column": 31,
+            "before": "99",
+            "after": "10"
+          }
+        ],
+        "before": "0,1,0,0,,,,,,,0,,,,,,,0,,,,,,,20,0,,1500000,1500000,,,10,0,,,,(None),,,,,,,0,32,5,Green,,2500,5000,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,\n1,1,0,0,,,,,,,0,,,,,,,0,,,,,,,12,,,3000000,3000000,,,99,0,,,,(None),,,,,,,0,211,0,,,5000,10000,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,",
+        "after": "0,1,0,0,,,,,,,0,,,,,,,0,,,,,,,20,0,,1500000,1500000,,,10,0,,,,(None),,,,,,,0,32,5,Green,,2500,5000,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,\n1,1,0,0,,,,,,,0,,,,,,,0,,,,,,,12,,,3000000,3000000,,,10,0,,,,(None),,,,,,,0,211,0,,,5000,10000,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,"
+      },
+      {
+        "id": "4010014",
+        "fields": [
+          {
+            "row": 0,
+            "column": 31,
+            "before": "99",
+            "after": "3"
+          }
+        ],
+        "before": "0,1,0,0,,,,,,,0,,,,,,,0,,,,,,,23,0,,100000,100000,,,99,0,,,,(None),,,,,,,0,211,5,Green,,6000,12000,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,",
+        "after": "0,1,0,0,,,,,,,0,,,,,,,0,,,,,,,23,0,,100000,100000,,,3,0,,,,(None),,,,,,,0,211,5,Green,,6000,12000,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,"
+      }
+    ],
+    "before_sha256": "44910305b7ecad1ff2177cfd06905032c6d7c4bf9662605b94fd204222417788",
+    "after_sha256": "6fbdb4fb3a229fab7dfa69388cfd1c7eff435cfc158bd94304871343f73d8ae7"
+  },
+  "weapon_rows_equal_official_1_4_54": true,
+  "weapon_table_unchanged_from_previous_archive": true,
+  "hp": {
+    "original": {
+      "client_apk_sha256": "35e0e7c777798594d68c9bcd74c507c6f0b7d065453e0425c301258c6bc38ac6",
+      "quests": [
+        {
+          "quest": "81",
+          "name": "结实假人们・火",
+          "boss": {
+            "factors": [
+              "375",
+              "6",
+              "1",
+              "18310",
+              "1.8",
+              "13.491646245",
+              "1",
+              "1"
+            ],
+            "hp": 1000479773
+          },
+          "funnel_each": {
+            "factors": [
+              "375",
+              "6",
+              "1",
+              "31080",
+              "1.8",
+              "7.9464",
+              "1",
+              "1"
+            ],
+            "hp": 1000245153
+          },
+          "funnel_count": 4,
+          "initial_total": 5001460385
+        },
+        {
+          "quest": "82",
+          "name": "结实假人们・水",
+          "boss": {
+            "factors": [
+              "375",
+              "6",
+              "1",
+              "18310",
+              "1.8",
+              "13.491646245",
+              "1",
+              "1"
+            ],
+            "hp": 1000479773
+          },
+          "funnel_each": {
+            "factors": [
+              "375",
+              "6",
+              "1",
+              "31080",
+              "1.8",
+              "7.9464",
+              "1",
+              "1"
+            ],
+            "hp": 1000245153
+          },
+          "funnel_count": 4,
+          "initial_total": 5001460385
+        },
+        {
+          "quest": "83",
+          "name": "结实假人们・风",
+          "boss": {
+            "factors": [
+              "375",
+              "6",
+              "1",
+              "18310",
+              "1.8",
+              "13.491646245",
+              "1",
+              "1"
+            ],
+            "hp": 1000479773
+          },
+          "funnel_each": {
+            "factors": [
+              "375",
+              "6",
+              "1",
+              "31080",
+              "1.8",
+              "7.9464",
+              "1",
+              "1"
+            ],
+            "hp": 1000245153
+          },
+          "funnel_count": 4,
+          "initial_total": 5001460385
+        },
+        {
+          "quest": "84",
+          "name": "结实假人们・雷",
+          "boss": {
+            "factors": [
+              "375",
+              "6",
+              "1",
+              "18310",
+              "1.8",
+              "13.491646245",
+              "1",
+              "1"
+            ],
+            "hp": 1000479773
+          },
+          "funnel_each": {
+            "factors": [
+              "375",
+              "6",
+              "1",
+              "31080",
+              "1.8",
+              "7.9464",
+              "1",
+              "1"
+            ],
+            "hp": 1000245153
+          },
+          "funnel_count": 4,
+          "initial_total": 5001460385
+        },
+        {
+          "quest": "85",
+          "name": "结实假人们・光",
+          "boss": {
+            "factors": [
+              "375",
+              "6",
+              "1",
+              "18310",
+              "1.8",
+              "13.491646245",
+              "1",
+              "1"
+            ],
+            "hp": 1000479773
+          },
+          "funnel_each": {
+            "factors": [
+              "375",
+              "6",
+              "1",
+              "31080",
+              "1.8",
+              "7.9464",
+              "1",
+              "1"
+            ],
+            "hp": 1000245153
+          },
+          "funnel_count": 4,
+          "initial_total": 5001460385
+        },
+        {
+          "quest": "86",
+          "name": "结实假人们・暗",
+          "boss": {
+            "factors": [
+              "375",
+              "6",
+              "1",
+              "18310",
+              "1.8",
+              "13.491646245",
+              "1",
+              "1"
+            ],
+            "hp": 1000479773
+          },
+          "funnel_each": {
+            "factors": [
+              "375",
+              "6",
+              "1",
+              "31080",
+              "1.8",
+              "7.9464",
+              "1",
+              "1"
+            ],
+            "hp": 1000245153
+          },
+          "funnel_count": 4,
+          "initial_total": 5001460385
+        },
+        {
+          "quest": "87",
+          "name": "结实假人们・无",
+          "boss": {
+            "factors": [
+              "375",
+              "6",
+              "1",
+              "18310",
+              "1.8",
+              "13.491646245",
+              "1",
+              "1"
+            ],
+            "hp": 1000479773
+          },
+          "funnel_each": {
+            "factors": [
+              "375",
+              "6",
+              "1",
+              "31080",
+              "1.8",
+              "7.9464",
+              "1",
+              "1"
+            ],
+            "hp": 1000245153
+          },
+          "funnel_count": 4,
+          "initial_total": 5001460385
+        },
+        {
+          "quest": "91",
+          "name": "结实假人・火",
+          "boss": {
+            "factors": [
+              "375",
+              "6",
+              "1",
+              "18310",
+              "1.8",
+              "13.491646245",
+              "1",
+              "1"
+            ],
+            "hp": 1000479773
+          },
+          "funnel_each": null,
+          "funnel_count": 0,
+          "initial_total": 1000479773
+        },
+        {
+          "quest": "92",
+          "name": "结实假人・水",
+          "boss": {
+            "factors": [
+              "375",
+              "6",
+              "1",
+              "18310",
+              "1.8",
+              "13.491646245",
+              "1",
+              "1"
+            ],
+            "hp": 1000479773
+          },
+          "funnel_each": null,
+          "funnel_count": 0,
+          "initial_total": 1000479773
+        },
+        {
+          "quest": "93",
+          "name": "结实假人・风",
+          "boss": {
+            "factors": [
+              "375",
+              "6",
+              "1",
+              "18310",
+              "1.8",
+              "13.491646245",
+              "1",
+              "1"
+            ],
+            "hp": 1000479773
+          },
+          "funnel_each": null,
+          "funnel_count": 0,
+          "initial_total": 1000479773
+        },
+        {
+          "quest": "94",
+          "name": "结实假人・雷",
+          "boss": {
+            "factors": [
+              "375",
+              "6",
+              "1",
+              "18310",
+              "1.8",
+              "13.491646245",
+              "1",
+              "1"
+            ],
+            "hp": 1000479773
+          },
+          "funnel_each": null,
+          "funnel_count": 0,
+          "initial_total": 1000479773
+        },
+        {
+          "quest": "95",
+          "name": "结实假人・光",
+          "boss": {
+            "factors": [
+              "375",
+              "6",
+              "1",
+              "18310",
+              "1.8",
+              "13.491646245",
+              "1",
+              "1"
+            ],
+            "hp": 1000479773
+          },
+          "funnel_each": null,
+          "funnel_count": 0,
+          "initial_total": 1000479773
+        },
+        {
+          "quest": "96",
+          "name": "结实假人・暗",
+          "boss": {
+            "factors": [
+              "375",
+              "6",
+              "1",
+              "18310",
+              "1.8",
+              "13.491646245",
+              "1",
+              "1"
+            ],
+            "hp": 1000479773
+          },
+          "funnel_each": null,
+          "funnel_count": 0,
+          "initial_total": 1000479773
+        },
+        {
+          "quest": "97",
+          "name": "结实假人・无",
+          "boss": {
+            "factors": [
+              "375",
+              "6",
+              "1",
+              "18310",
+              "1.8",
+              "13.491646245",
+              "1",
+              "1"
+            ],
+            "hp": 1000479773
+          },
+          "funnel_each": null,
+          "funnel_count": 0,
+          "initial_total": 1000479773
+        }
+      ],
+      "formula": "floor(375 * PartyAtk * HitHpBasic * hits * coefficient * correction * questHP * battleScale)"
+    },
+    "clones": [
+      {
+        "quest": "1101",
+        "source": "97",
+        "folder": "100",
+        "name": "高血量木人·无",
+        "group": false,
+        "time_limit_seconds": 600,
+        "hp_multiplier": 100,
+        "boss": {
+          "factors": [
+            "375",
+            "6",
+            "1",
+            "18310",
+            "1.8",
+            "13.491646245",
+            "100",
+            "1"
+          ],
+          "hp": 100047977312,
+          "decimal_floor": 100047977312
+        },
+        "funnel_each": null,
+        "funnel_count": 0,
+        "initial_total": 100047977312
+      },
+      {
+        "quest": "1102",
+        "source": "87",
+        "folder": "99",
+        "name": "高血量木人们·无",
+        "group": true,
+        "time_limit_seconds": 600,
+        "hp_multiplier": 100,
+        "boss": {
+          "factors": [
+            "375",
+            "6",
+            "1",
+            "18310",
+            "1.8",
+            "13.491646245",
+            "100",
+            "1"
+          ],
+          "hp": 100047977312,
+          "decimal_floor": 100047977312
+        },
+        "funnel_each": {
+          "factors": [
+            "375",
+            "6",
+            "1",
+            "31080",
+            "1.8",
+            "7.9464",
+            "100",
+            "1"
+          ],
+          "hp": 100024515359,
+          "decimal_floor": 100024515360
+        },
+        "funnel_count": 4,
+        "initial_total": 500146038748
+      }
+    ],
+    "client_number_range_safe": true,
+    "integer_note": "100倍在最终floor之前应用；原关保持原整数血量。"
+  },
+  "sources": {
+    "master/quest/practice/practice_quest_folder.orderedmap": {
+      "archive": "F:\\startpoint-cn-main\\.cdn\\cn\\archive-common-diff\\pinball-1.4.47-1.4.48-1-74436299.zip",
+      "member": "production/upload/2e/e15b2aa486138c57affb2cf699591f498bd6aa",
+      "sha256": "2fe54ffa50ef0ce2b3f7730d025aaee367c5b66bc5c907ef4d2695441ee0029f",
+      "size": 1451
+    },
+    "quest/thumbnail/practice_quest/wara_6_tafu_mu.png": {
+      "archive": "F:\\startpoint-cn-main\\.cdn\\cn\\archive-common-full\\pinball-1.4.0-55-aa78683b.zip",
+      "member": "production/upload/28/b813b0383292d28602f509f4a2d01643681381",
+      "sha256": "f5c3470dac43d2a41b5d1447e7d52fc463afd3f7e336ee73fac79d4112ad19f4",
+      "size": 15717
+    },
+    "quest/thumbnail/practice_quest/wara_7_tafu_mu.png": {
+      "archive": "F:\\startpoint-cn-main\\.cdn\\cn\\archive-common-full\\pinball-1.4.0-14-8a1c8ef6.zip",
+      "member": "production/upload/08/f4b2f52353dd386c81bef487c7b1254212662f",
+      "sha256": "385e81749dc35173e2321ff95d7b1159d006424d425bb32c1a56d590f61b4284",
+      "size": 19351
+    },
+    "master/battle/enemy/hp/hit_hp_basic_curve.orderedmap": {
+      "archive": "F:\\startpoint-cn-main\\.cdn\\cn\\archive-common-full\\pinball-1.4.0-210-a61c7dc9.zip",
+      "member": "production/upload/a4/e98ee0c10926cb7cc65fa7ef2c6f06bbc15fd4",
+      "sha256": "ab68d0bbadb0ba488ec3ae8aebb99e1e30d447703d1a5e2e2e6c992462d067ac",
+      "size": 16
+    },
+    "master/battle/enemy/hp/hit_hp_basic_curve_iosbundled.orderedmap": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\outputs\\shop-first-open-public-20260913\\StarPoint-CN-1.8.1-shop-first-open-public-20260913.apk",
+      "nested_archive": "assets/bundle.zip",
+      "member": "production/android_bundle/3b/0f3d2a028b8b571db06d327ca4ecfa18882077",
+      "sha256": "850378a897134640cd262fa2c2cc38c9f346f9b01565c5beb5f5b05851392789"
+    },
+    "master/battle/enemy/hp/hit_hp_correction_curve.orderedmap": {
+      "archive": "F:\\startpoint-cn-main\\.cdn\\cn\\archive-common-full\\pinball-1.4.0-152-681fde67.zip",
+      "member": "production/upload/76/43fdaa0a060ae9afeb99172471087b3a467fc7",
+      "sha256": "d0dd3bbc422be1f61d1f45e153dec69ece2b8072742eadf277ed1c30ded77a4a",
+      "size": 856
+    },
+    "master/battle/enemy/hp/hit_hp_correction_curve_iosbundled.orderedmap": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\outputs\\shop-first-open-public-20260913\\StarPoint-CN-1.8.1-shop-first-open-public-20260913.apk",
+      "nested_archive": "assets/bundle.zip",
+      "member": "production/android_bundle/96/3579db06d77d6f88b8eeb01a24e3803dd23387",
+      "sha256": "713007008fc91f55555eefe72e913380a29664e23b8e0ac2cfdca95e450f5370"
+    },
+    "master/battle/enemy/party/party_atk_curve.orderedmap": {
+      "archive": "F:\\startpoint-cn-main\\.cdn\\cn\\archive-common-full\\pinball-1.4.0-131-f0af82ff.zip",
+      "member": "production/upload/65/5488890b5abbac1c77490478e4a7568d41ec46",
+      "sha256": "ab68d0bbadb0ba488ec3ae8aebb99e1e30d447703d1a5e2e2e6c992462d067ac",
+      "size": 16
+    },
+    "master/battle/enemy/party/party_atk_curve_iosbundled.orderedmap": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\outputs\\shop-first-open-public-20260913\\StarPoint-CN-1.8.1-shop-first-open-public-20260913.apk",
+      "nested_archive": "assets/bundle.zip",
+      "member": "production/android_bundle/89/5f001ca3b5ad103311863a89c0dec59a9a2aac",
+      "sha256": "133f83eaa5c7727c6d2df9be4a5b38ec6cfa15271e32c840f4bf82ddfe2253a7"
+    },
+    "master/battle/boss/boss_level.orderedmap": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.103-1.4.104-1-abyss-lens0910-entry-message-consolidated.zip",
+      "member": "production/upload/19/a4aa442b3249499356e7a3f6370e530bfe355e",
+      "sha256": "597648a2a4b2498b7376b4ed84a461b3c24457fb2c8d9e41241b7cb8dcdc8ef1",
+      "size": 45963
+    },
+    "master/battle/boss/funnel_level.orderedmap": {
+      "archive": "F:\\startpoint-cn-main\\.cdn\\cn\\archive-common-full\\pinball-1.4.0-40-08a9cef9.zip",
+      "member": "production/upload/1d/5759da68974fececdcb154ce123b47d0a4b8ee",
+      "sha256": "1b4fae6156235db70657beaa32a9512ecabcfcd8ca66db1a97edb7667292dc67",
+      "size": 79944
+    },
+    "master/battle/field_data.orderedmap": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.103-1.4.104-1-abyss-lens0910-entry-message-consolidated.zip",
+      "member": "production/upload/30/363f8364e183905b2d0b48b8718b7165135bc2",
+      "sha256": "50af2e73c9c00da42eca15d51de6a79cd0ea20e091c38abea762432db5466bdf",
+      "size": 127327
+    },
+    "master/battle/zone.orderedmap": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.103-1.4.104-1-abyss-lens0910-entry-message-consolidated.zip",
+      "member": "production/upload/cd/6336795a27ea33bf8d0c5d5a9bfb466bedcf1e",
+      "sha256": "f55304889e739a810bb4a37b3fa8fbc02abc638600f4a382408e6efab32e5718",
+      "size": 256238
+    }
+  },
+  "server": {
+    "path": "assets/practice_quest.json",
+    "before_sha256": "f4c7e4d02e8e58e08a4e527ba10e7cd2726e2814e22d18db625e2f3ea650e6c3",
+    "after_sha256": "eb7caf46852144c99a30b60f31da35bd0f0afff0272f739374ad561723daf12f",
+    "existing_rows_preserved": 98,
+    "added": {
+      "1101": {
+        "name": "高血量木人·无",
+        "clearRewardId": 1,
+        "bRankTime": 600000,
+        "aRankTime": 600000,
+        "sRankTime": 600000,
+        "sPlusRankTime": 600000,
+        "rankPointReward": 0,
+        "characterExpReward": 0,
+        "manaReward": 0,
+        "poolExpReward": 0,
+        "scoreRewardGroup": 0
+      },
+      "1102": {
+        "name": "高血量木人们·无",
+        "clearRewardId": 1,
+        "bRankTime": 600000,
+        "aRankTime": 600000,
+        "sRankTime": 600000,
+        "sPlusRankTime": 600000,
+        "rankPointReward": 0,
+        "characterExpReward": 0,
+        "manaReward": 0,
+        "poolExpReward": 0,
+        "scoreRewardGroup": 0
+      }
+    }
+  },
+  "save_impact": "Adds category 15 quest IDs 1101/1102 using existing portable quest progress and practice history tables. Original IDs and database schema retained; old V1/V2 archives stay compatible.",
+  "resources": "Two common orderedmaps; existing folders, covers, field, bosses, funnels and heal actions reused without modification. No APK/IPA or platform texture changes.",
+  "delivery": "Source only. No commit, push, runtime sync, service restart or cloud overlay.",
+  "effective_chain": {
+    "tail": "1.4.107",
+    "archive_count_on_edge": 2,
+    "winning_tables_match": true,
+    "other_archive_integrity_preserved": true,
+    "server_rows_match": true,
+    "original_folder_table_preserved": true
+  }
+}

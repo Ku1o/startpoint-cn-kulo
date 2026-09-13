@@ -13,7 +13,7 @@ exports.computeAssetTarget = exports.isFirstTime = exports.getMaxPatchVersion = 
  * Flow:
  *   1st-time (no resVer): full.version="1.4.0", full.archives=all, target=CDN_VERSION
  *   Update  (resVer<target):  full.version=resVer, full.archives=[], target=max(CDN, patches)
- *   Up-to-date (resVer≥target): same als update but no diffs to download
+ *   Up-to-date (resVer≥target): full=null, diff=null when no archive task remains
  */
 const fs_1 = require("fs");
 const path_1 = __importDefault(require("path"));

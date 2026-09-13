@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.insertPlayerDrawnQuestsSync = exports.getPlayerDrawnQuestsSync = exports.incrementPlayerQuestMultiClearSync = exports.updatePlayerQuestProgressSync = exports.insertPlayerQuestProgressListSync = exports.insertPlayerQuestProgressSync = exports.getPlayerSingleQuestProgressSync = exports.countFinishedPlayerQuestsSync = exports.countFinishedPlayerQuestsByCategorySync = exports.getPlayerQuestProgressSubsetSync = exports.getPlayerQuestProgressSync = void 0;
+exports.insertPlayerDrawnQuestsSync = exports.getPlayerDrawnQuestsSync = exports.incrementPlayerQuestMultiClearSync = exports.updatePlayerQuestProgressSync = exports.insertPlayerQuestProgressListSync = exports.insertPlayerQuestProgressSync = exports.getPlayerQuestProgressBySectionAndIdsSync = exports.getPlayerSingleQuestProgressSync = exports.countFinishedPlayerQuestsSync = exports.countFinishedPlayerQuestsByCategorySync = exports.getPlayerQuestProgressSubsetSync = exports.getPlayerQuestProgressSync = void 0;
 const db_1 = require("../db");
 const utils_1 = require("../utils");
 const abyss_time_revision_1 = require("./abyss-time-revision");
@@ -146,6 +146,28 @@ function getPlayerSingleQuestProgressSync(playerId, section, questId) {
     return buildPlayerQuestProgress(rawProgress);
 }
 exports.getPlayerSingleQuestProgressSync = getPlayerSingleQuestProgressSync;
+/** Reads exact ids in one section without broadening to other quest categories. */
+function getPlayerQuestProgressBySectionAndIdsSync(playerId, section, questIds) {
+    const sectionId = Number(section);
+    const ids = [...new Set(questIds)].filter(id => Number.isSafeInteger(id) && id >= 0);
+    if (!Number.isSafeInteger(sectionId) || sectionId < 0 || ids.length === 0)
+        return [];
+    if (ids.some(id => (0, abyss_time_revision_2.isAbyssFiniteQuest)(sectionId, id)))
+        (0, abyss_time_revision_1.refreshPlayerAbyssBestTimesSync)(playerId);
+    const result = [];
+    for (let offset = 0; offset < ids.length; offset += 400) {
+        const chunk = ids.slice(offset, offset + 400);
+        const rows = (0, db_1.getDb)().prepare(`
+            SELECT section, quest_id, finished, host_finished, unlocked, high_score, clear_rank,
+                best_elapsed_time_ms, leader_character_id, multi_clear_count, s_plus_reward_received
+            FROM players_quest_progress
+            WHERE player_id = ? AND section = ? AND quest_id IN (${chunk.map(() => "?").join(", ")})
+        `).all(playerId, sectionId, ...chunk);
+        result.push(...rows.map(buildPlayerQuestProgress));
+    }
+    return result;
+}
+exports.getPlayerQuestProgressBySectionAndIdsSync = getPlayerQuestProgressBySectionAndIdsSync;
 /**
  * Inserts a singular quest progress into the database.
  *

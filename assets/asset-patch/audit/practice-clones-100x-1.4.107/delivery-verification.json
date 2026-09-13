@@ -1,0 +1,44 @@
+{
+  "branch": "staging",
+  "head": "0691fef4208bb56263984fcfbc2a4dae846cc188",
+  "upstream": "origin/staging",
+  "staged": [],
+  "unrelated_preexisting_dirty_files_changed": [],
+  "preserved_unrelated_dirty_file_count": 46,
+  "changed_archive_members": [
+    "production/upload/03/003a1a50362f80e353eb6648430d50e427de8d"
+  ],
+  "second_archive_byte_preserved": true,
+  "legacy_generator_byte_preserved": true,
+  "cdn_resolved_root": "F:\\startpoint-cn-main\\.cdn\\cn",
+  "cdn_zip_count": 693,
+  "cdn_nonstandard_names": [],
+  "runtime_version": "1.4.106",
+  "runtime_has_new_quest_ids": false,
+  "runtime_has_first_107_archive": false,
+  "release_files": {
+    "assets/asset-patch/manifest.json": "504fcf0171e790349793cf7e543e7ed3d8dd1f4adc821da48c9a5c2c996fece1",
+    "assets/practice_quest.json": "eb7caf46852144c99a30b60f31da35bd0f0afff0272f739374ad561723daf12f",
+    "assets/asset-patch/active/pinball-1.4.106-1.4.107-1-weapon-caps-practice-hp.zip": "9527476e7df4f01460f282907a3ec6ecb1beb9b55727b4fc171cd5061b88ff50"
+  },
+  "committed": false,
+  "pushed": false,
+  "runtime_synced": false,
+  "cloud_overlay_created": false,
+  "backup": "F:\\codex\\work\\practice-colorless-100x-20260913\\before",
+  "documentation": {
+    "pending_other_sections_byte_preserved": true,
+    "before_sha256": "68efa44d4420130b13f0bf4a54b4c87e079590afcb04c27750f3edd84c6b2b07",
+    "after_sha256": "5702a03e75177aeda8a9c611e85dcf61dc49f03e148664101ff45c2de657ca98",
+    "superseded_readme_original_body_byte_preserved": true
+  },
+  "checks": [
+    "revised archive reproducibility and effective chain",
+    "isolated compiled accessor/start/finish/abort/history",
+    "old/new V1/V2 HTTP export/import and pre-import backup",
+    "current Android history and quest-entry class inspection",
+    "Deep Abyss time revision unchanged"
+  ],
+  "build": "No TypeScript changes; compiled asset accessor reads the updated root JSON. No server/APK/IPA build.",
+  "device_tested": false
+}
