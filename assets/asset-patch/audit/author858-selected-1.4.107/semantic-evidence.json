@@ -1,0 +1,20 @@
+{
+  "source_swf_sha256": "e60cc4a82e3b305257040dedc54d180794234e2c2d4d3cef68a105b9f8405927",
+  "signature_only_nullable_parameters": [
+    {
+      "command": "CreateSummonsMultiball",
+      "parameter_1based": 13,
+      "meaning": "null selects context SLv; ActionEvaluator case 36"
+    },
+    {
+      "command": "MultiballNumberVariable",
+      "parameter_1based": 3,
+      "meaning": "null matches all multiballs; ActionEvaluator case 107 -> SquadImpl.matchMultiball"
+    }
+  ],
+  "serialized_nulls_preserved": true,
+  "summer_bai_damage_origin": "CreateHitArea parameter 24: 2 is ability damage; multiplier 75 in both forms",
+  "all_other_summer_dsl_values_preserved": true,
+  "method_hashes_in": "client-runtime-inspection.json",
+  "device_tested": false
+}

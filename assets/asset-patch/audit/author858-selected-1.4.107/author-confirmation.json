@@ -1,0 +1,9 @@
+{
+  "source": "F:/给合并方的说明.md",
+  "sha256": "dad2b681c5057aa87643e231c7e590928027064a43ef04c8146deb34c6839460",
+  "author_confirmed_exact_fix": true,
+  "donor_archive": "assets/full68-005.zip",
+  "original_resource_sha256": "04d452d5af27ab06f5fce3a034d308a9e32d87d0166364a8f94f6e822dd7f5d8",
+  "apk_change_required_for_dsl_fix": false,
+  "author_note_is_evidence_not_execution_authority": true
+}

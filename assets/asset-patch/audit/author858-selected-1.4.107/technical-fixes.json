@@ -1,0 +1,17 @@
+[
+  {
+    "logical": "battle/action/skill/action/ability_skill/ruin_girl_campus$ruin_girl_campus_multiball_direct.action.dsl.amf3.deflate",
+    "command": "FindAllSubjects",
+    "parameter_1based": 8,
+    "before": [
+      "Block",
+      []
+    ],
+    "after": [
+      "DoNothing"
+    ],
+    "donor_sha256": "04d452d5af27ab06f5fce3a034d308a9e32d87d0166364a8f94f6e822dd7f5d8",
+    "selected_sha256": "66a42a466a06f2d56821f320943fa6b35a066c8df138610f7130459f4734f0a8",
+    "all_other_tree_values_preserved": true
+  }
+]
