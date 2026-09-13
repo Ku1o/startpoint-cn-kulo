@@ -520,6 +520,17 @@ fastify.post(`${apiPrefix}/channels/channel_leiting_pay/set_unfinish_order_statu
 fastify.post(`${apiPrefix}/episode_trial_reading/finish`, (_request, reply) => __awaiter(void 0, void 0, void 0, function* () {
     stubMsgpackReply(reply, {});
 }));
+function persistSeedFeedback() {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            yield seed_validator_1.default.flushPersistence();
+        }
+        catch (_a) {
+            // SeedPersistence logs the failure and retains changes for retry.
+            // Keep the existing best-effort beacon response contract on disk errors.
+        }
+    });
+}
 fastify.get("/debug", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
     var _f;
     const ts = new Date().toISOString();
@@ -533,6 +544,9 @@ fastify.get("/debug", (request, reply) => __awaiter(void 0, void 0, void 0, func
         parsePlayBeacon(loc);
     }
     catch (_) { }
+    if (typeof loc === "string" && (loc.includes("C3032") || loc.startsWith("PLAY|"))) {
+        yield persistSeedFeedback();
+    }
     reply.status(200).send("OK");
 }));
 // Parse C3032 from beacon loc string — ★ garbled to â, extract digits via garbled pattern
@@ -613,6 +627,8 @@ fastify.post("/debug", (request, reply) => __awaiter(void 0, void 0, void 0, fun
         parseC3032Beacon(loc);
     }
     catch (_) { }
+    if (typeof loc === "string" && loc.includes("C3032"))
+        yield persistSeedFeedback();
     reply.status(200).send("OK");
 }));
 fastify.post("/crash", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
@@ -636,6 +652,8 @@ fastify.post("/crash", (request, reply) => __awaiter(void 0, void 0, void 0, fun
         }
     }
     catch (e) { }
+    if (bodyStr.includes("C3032"))
+        yield persistSeedFeedback();
     reply.status(200).send("OK");
 }));
 fastify.register(tool_1.default, { prefix: `${apiPrefix}/tool` });
@@ -750,6 +768,7 @@ const receiveHistoryRetention = (0, receive_history_retention_1.createReceiveHis
 const leaderboardSettlementScheduler = (0, settlement_1.createLeaderboardSettlementScheduler)();
 const dailyVmoneyMailScheduler = (0, daily_vmoney_mail_1.createDailyVmoneyMailScheduler)((0, db_1.getDb)());
 fastify.addHook("onClose", () => __awaiter(void 0, void 0, void 0, function* () {
+    yield seed_validator_1.default.close();
     dailyVmoneyMailScheduler.stop();
     leaderboardSettlementScheduler.stop();
     yield receiveHistoryRetention.stop();

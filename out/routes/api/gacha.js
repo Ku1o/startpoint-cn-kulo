@@ -29,6 +29,7 @@ const mission_1 = require("../../lib/mission");
 const active_mission_counters_1 = require("../../data/domains/active_mission_counters");
 const game_logging_1 = require("../../lib/game-logging");
 const option_1 = require("../../data/domains/option");
+const settlement_performance_1 = require("../../lib/settlement-performance");
 var GachaPaymentType;
 (function (GachaPaymentType) {
     GachaPaymentType[GachaPaymentType["EMPTY"] = 0] = "EMPTY";
@@ -248,7 +249,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 "message": "Invalid viewer id."
             });
         // get player
-        const playerId = (0, activeAccount_1.resolvePlayerIdSync)(viewerIdSession.accountId);
+        const playerId = (0, settlement_performance_1.measureSettlementPhase)("gacha", "account", () => (0, activeAccount_1.resolvePlayerIdSync)(viewerIdSession.accountId));
         if (playerId === null)
             return reply.status(500).send({ "error": "Internal Server Error", "message": "No players bound to account." });
         const player = (0, player_1.getPlayerSync)(playerId);
@@ -316,15 +317,15 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         const pullCount = execPlan.pullCount;
         const playerPaidVmoney = execPlan.paidVmoney;
         const playerFreeVmoney = execPlan.freeVmoney;
-        const drawMetadata = (0, gacha_2.drawGachaWithMetadataSync)(gachaData, pullCount);
+        const drawMetadata = (0, settlement_performance_1.measureSettlementPhase)("gacha", "draw", () => (0, gacha_2.drawGachaWithMetadataSync)(gachaData, pullCount));
         const drawResult = drawMetadata.map((draw) => draw.id);
         const skipNoRarityUpMovie = isCharacterGacha
             ? (0, option_1.getPlayerOptionSync)(playerId, "gacha_play_no_rarity_up_movie", false)
             : false;
         const plannedCharacterMovies = isCharacterGacha
-            ? (0, gacha_2.planCharacterGachaMovies)(gachaData, drawResult, { skipNoRarityUpMovie })
+            ? (0, settlement_performance_1.measureSettlementPhase)("gacha", "movies", () => (0, gacha_2.planCharacterGachaMovies)(gachaData, drawResult, { skipNoRarityUpMovie }))
             : undefined;
-        const transactionResult = (0, db_1.getDb)().transaction(() => {
+        const transactionResult = (0, settlement_performance_1.measureSettlementPhase)("gacha", "transaction", () => (0, db_1.getDb)().transaction(() => {
             var _a;
             if (execPlan.ticket) {
                 items[execPlan.ticket.itemId] = execPlan.ticket.afterCount;
@@ -378,8 +379,9 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 (0, active_mission_counters_1.incrementActiveMissionGachaCampaignCountSync)(playerId);
             }
             return { rewardResult, newGachaExchangePoint };
-        })();
+        })());
         const { rewardResult, newGachaExchangePoint } = transactionResult;
+        (0, settlement_performance_1.recordGachaRequest)(isCharacterGacha ? "character" : "equipment", pullCount);
         const rarityCounts = new Map();
         for (const draw of drawMetadata) {
             rarityCounts.set(draw.rank, ((_c = rarityCounts.get(draw.rank)) !== null && _c !== void 0 ? _c : 0) + 1);
@@ -397,7 +399,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 && typeof character === "object"
                 && !Array.isArray(character));
             const characterList = existingCharacterList.length > 0
-                ? (0, mission_1.reconcileAwakeUnlockCharacterList)(playerId, existingCharacterList)
+                ? (0, settlement_performance_1.measureSettlementPhase)("gacha", "awake", () => (0, mission_1.reconcileAwakeUnlockCharacterList)(playerId, existingCharacterList))
                 : existingCharacterList;
             const responseData = {
                 "user_info": {
@@ -419,7 +421,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 "encyclopedia_info": [],
                 "mail_arrived": false
             };
-            (0, mission_1.settleDegreeMissionResponse)(playerId, viewerId, responseData, undefined, [4]);
+            (0, settlement_performance_1.measureSettlementPhase)("gacha", "degree", () => (0, mission_1.settleDegreeMissionResponse)(playerId, viewerId, responseData, undefined, [4]));
             return reply.status(200).send({
                 "data_headers": (0, utils_1.generateDataHeaders)({
                     viewer_id: viewerId

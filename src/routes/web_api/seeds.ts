@@ -78,7 +78,9 @@ const routes = async (fastify: FastifyInstance) => {
         if (typeof seed !== "number" || !['未测试','热血躲避球','普通躲避球','冷血躲避球'].includes(tag))
             return reply.status(400).send({ error: "Invalid" });
         const mid = movieId || seedValidator.getSelectedMovieId() || 'fes';
-        reply.status(200).send({ seed, tag, ok: seedValidator.setTag(mid, seed, tag) });
+        const ok = seedValidator.setTag(mid, seed, tag);
+        await seedValidator.flushPersistence();
+        reply.status(200).send({ seed, tag, ok });
     });
 
     fastify.post("/test-seed", async (request: FastifyRequest, reply: FastifyReply) => {
