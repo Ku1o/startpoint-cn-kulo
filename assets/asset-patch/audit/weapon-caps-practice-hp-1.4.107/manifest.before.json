@@ -1,5 +1,5 @@
 {
-  "cdn_version": "1.4.107",
+  "cdn_version": "1.4.106",
   "patches": [
     {
       "id": "base-1.4.54-to-1.4.55-mod07141843",
@@ -12416,42 +12416,6 @@
       },
       "quest_time_revisions": {
         "rush:700099": "b7f64b4be9d492d56419293d911d06c3bfef6d2d917275c9d01735fd086340f3"
-      }
-    },
-    {
-      "id": "weapon-caps-practice-hp-1.4.107",
-      "type": "patch",
-      "depends_on": "1.4.106",
-      "version": "1.4.107",
-      "enabled": true,
-      "archive": "pinball-1.4.106-1.4.107-1-weapon-caps-practice-hp.zip",
-      "created_at": "2026-09-13",
-      "name": "三把武器次数复原与独立无属性木人百倍血量（10分钟）",
-      "description": "恢复木灵大剑、无名之弓、埃俄罗斯之弓原触发次数；保留原版练习关，新增无属性百倍血量、10分钟练习关。",
-      "chain": [
-        "pinball-1.4.106-1.4.107-1-weapon-caps-practice-hp.zip"
-      ],
-      "archive_integrity": [
-        {
-          "name": "pinball-1.4.106-1.4.107-1-weapon-caps-practice-hp.zip",
-          "size": 41940,
-          "sha256": "9527476e7df4f01460f282907a3ec6ecb1beb9b55727b4fc171cd5061b88ff50",
-          "members": 2
-        }
-      ],
-      "archive_size": 41940,
-      "files": [
-        "production/upload/d6/a23f83f176b05f715a8504b8fc0fc1ffaff068",
-        "production/upload/03/003a1a50362f80e353eb6648430d50e427de8d"
-      ],
-      "changes": [
-        "木灵大剑触发上限复原为3次，无名之弓与埃俄罗斯之弓充能上限复原为10次。",
-        "保留原版练习关，并新增无属性单人和多木人练习关；血量为原版100倍，时限10分钟。"
-      ],
-      "audit": {
-        "directory": "assets/asset-patch/audit/practice-clones-100x-1.4.107",
-        "report": "report.json",
-        "previous_directory": "assets/asset-patch/audit/weapon-caps-practice-hp-1.4.107"
       }
     }
   ]

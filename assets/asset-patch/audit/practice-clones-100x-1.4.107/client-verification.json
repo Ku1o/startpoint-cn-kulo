@@ -1,0 +1,121 @@
+{
+  "status": "current_android_static_chain_verified",
+  "apk_sha256": "35e0e7c777798594d68c9bcd74c507c6f0b7d065453e0425c301258c6bc38ac6",
+  "swf_sha256": "e60cc4a82e3b305257040dedc54d180794234e2c2d4d3cef68a105b9f8405927",
+  "history_records_resolve_by_category_and_quest_id": true,
+  "names_read_from_winning_quest_table": true,
+  "damage_and_time_are_number": true,
+  "new_quest_ids": [
+    1101,
+    1102
+  ],
+  "device_tested": false,
+  "decompile_directory": "F:\\codex\\work\\practice-colorless-100x-20260913\\history-code\\scripts",
+  "evidence": [
+    {
+      "file": "F:\\codex\\work\\practice-colorless-100x-20260913\\history-code\\scripts\\pinball\\remote\\history\\practiceBattle\\HistoryPracticeBattleRealRemote.as",
+      "sha256": "46462d92f9b9f00f175ef2595ebb5e7a34195acef46992add19b7cc57014b5de",
+      "evidence": [
+        {
+          "token": "startUserRequest(\"history/practice_battle\"",
+          "line": 24
+        },
+        {
+          "token": "\"quest_id\":int(",
+          "line": 494
+        },
+        {
+          "token": "\"total_damage\":Number(",
+          "line": 496
+        },
+        {
+          "token": "\"elapsed_time_ms\":Number(",
+          "line": 483
+        }
+      ]
+    },
+    {
+      "file": "F:\\codex\\work\\practice-colorless-100x-20260913\\history-code\\scripts\\pinball\\scene\\practice\\historyList\\PracticeHistoryListScene.as",
+      "sha256": "70ea345d85d34fd2ae2492c46ee01ab331482828c23edf902f6899283b69be61",
+      "evidence": [
+        {
+          "token": "fromCategoryAndId(int(_loc6_.category_id),int(_loc6_.quest_id))",
+          "line": 123
+        },
+        {
+          "token": "toBattleHistoryRecord(BattleHistoryRecordData.fromResponse",
+          "line": 124
+        },
+        {
+          "token": "historyListAdapter.appendAll",
+          "line": 127
+        }
+      ]
+    },
+    {
+      "file": "F:\\codex\\work\\practice-colorless-100x-20260913\\history-code\\scripts\\pinball\\ui\\component\\list\\battleHistory\\adapter\\BattleHistoryListAdapter.as",
+      "sha256": "c920d9014f0c84f99950903fc9e0700a7a8a9c0f52ac1844140cd76b0ca4d11a",
+      "evidence": [
+        {
+          "token": "\"name\":_loc3_.getName",
+          "line": 38
+        },
+        {
+          "token": "\"thumbnail\":_loc3_.getThumbnailId",
+          "line": 40
+        }
+      ]
+    },
+    {
+      "file": "F:\\codex\\work\\practice-colorless-100x-20260913\\history-code\\scripts\\pinball\\dialog\\battleHistory\\BattleHistoryDialog.as",
+      "sha256": "41d08b808d241bd8e7637df04b29618334ff48c804df35f072a640265b124c7d",
+      "evidence": [
+        {
+          "token": "quest.getName(",
+          "line": 174
+        },
+        {
+          "token": "StringExtended.commaSeparate(record.getTotalDamage())",
+          "line": 177
+        },
+        {
+          "token": "TimeSpan_Impl_.formatToMMSSFF(record.getElapsedTimeMs())",
+          "line": 178
+        },
+        {
+          "token": "record.getMembers()",
+          "line": 145
+        }
+      ]
+    },
+    {
+      "file": "F:\\codex\\work\\practice-colorless-100x-20260913\\history-code\\scripts\\pinball\\scene\\practice\\questSelect\\PracticeQuestSelectScene.as",
+      "sha256": "37b070348e9fabd2808db18092f27c4842291cee9866ad4674d59028d44f99d6",
+      "evidence": [
+        {
+          "token": "get_folderId() == _loc1_.folderId",
+          "line": 137
+        },
+        {
+          "token": "param2.get_displayOrder() - param1.get_displayOrder()",
+          "line": 90
+        }
+      ]
+    }
+  ],
+  "all_exported_class_hashes": {
+    "history-code\\scripts\\pinball\\ui\\component\\list\\battleHistory\\BattleHistoryListLogic.as": "d017a4d6ea576203e6d9a934178cf7f36b15a580403ca605d3a667d78a59c990",
+    "history-code\\scripts\\pinball\\ui\\component\\list\\battleHistory\\adapter\\BattleHistoryListAdapter.as": "c920d9014f0c84f99950903fc9e0700a7a8a9c0f52ac1844140cd76b0ca4d11a",
+    "history-code\\scripts\\pinball\\ui\\component\\list\\battleHistory\\cell\\BattleHistoryListCellContentView.as": "14700c46fbf1057f008a7ecfc2658bccc0762df8e373bf8d7dc8172116f203d3",
+    "history-code\\scripts\\pinball\\scene\\practice\\historyList\\PracticeHistoryListScene.as": "70ea345d85d34fd2ae2492c46ee01ab331482828c23edf902f6899283b69be61",
+    "history-code\\scripts\\pinball\\scene\\practice\\questSelect\\PracticeQuestSelectScene.as": "37b070348e9fabd2808db18092f27c4842291cee9866ad4674d59028d44f99d6",
+    "history-code\\scripts\\pinball\\remote\\history\\practiceBattle\\HistoryPracticeBattleDummyRemote.as": "287e89372a47cad69ed46dad142cb7001c72761f1be46e93a9fc0130c0a9d580",
+    "history-code\\scripts\\pinball\\remote\\history\\practiceBattle\\HistoryPracticeBattleRealRemote.as": "46462d92f9b9f00f175ef2595ebb5e7a34195acef46992add19b7cc57014b5de",
+    "history-code\\scripts\\pinball\\remote\\history\\practiceBattle\\HistoryPracticeBattleRemoteInput.as": "9131807c1bee6dab2c40ed3e1074b7896e4f25e70e7256b7eeadbc0f9ee42c38",
+    "history-code\\scripts\\pinball\\dialog\\battleHistory\\BattleHistoryDialog.as": "41d08b808d241bd8e7637df04b29618334ff48c804df35f072a640265b124c7d",
+    "history-code\\scripts\\pinball\\dialog\\battleHistory\\BattleHistoryDialogContentView.as": "88852f40bb73938427e6cb99d82e7e4d686368f9a8b77be3a563bef0ef4b3183",
+    "history-code\\scripts\\pinball\\common\\data\\quest\\history\\BattleHistoryRecordData.as": "28823eb864a309fced86cd10ae9601148ca6715ab27de95091f48edba274ecb1",
+    "history-code\\scripts\\pinball\\common\\data\\quest\\history\\BattleHistoryRecordLogicImpl.as": "54fda78a946e78c6b97c370a3d2ba25ed9b131d396243648153d45eaaa55c0c7",
+    "history-code\\scripts\\pinball\\common\\data\\quest\\practice\\PracticeBattleHistoryRecordLogic.as": "ae362f8ce6f36c720586df9bfbad6a6ba493b73ba9e3d5e0b4dc3c800e236b2c"
+  }
+}

@@ -1272,31 +1272,5 @@
     "manaReward": 0,
     "poolExpReward": 0,
     "scoreRewardGroup": 0
-  },
-  "1101": {
-    "name": "高血量木人·无",
-    "clearRewardId": 1,
-    "bRankTime": 600000,
-    "aRankTime": 600000,
-    "sRankTime": 600000,
-    "sPlusRankTime": 600000,
-    "rankPointReward": 0,
-    "characterExpReward": 0,
-    "manaReward": 0,
-    "poolExpReward": 0,
-    "scoreRewardGroup": 0
-  },
-  "1102": {
-    "name": "高血量木人们·无",
-    "clearRewardId": 1,
-    "bRankTime": 600000,
-    "aRankTime": 600000,
-    "sRankTime": 600000,
-    "sPlusRankTime": 600000,
-    "rankPointReward": 0,
-    "characterExpReward": 0,
-    "manaReward": 0,
-    "poolExpReward": 0,
-    "scoreRewardGroup": 0
   }
 }

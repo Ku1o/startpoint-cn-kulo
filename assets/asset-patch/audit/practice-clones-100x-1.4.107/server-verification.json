@@ -1,0 +1,86 @@
+{
+  "ok": true,
+  "winning_accessor": "out/lib/assets.getQuestFromCategorySync",
+  "isolated_database": true,
+  "battle_start_finish_and_history": [
+    {
+      "id": 97,
+      "elapsed": 180000,
+      "damage": 1000479773
+    },
+    {
+      "id": 87,
+      "elapsed": 180000,
+      "damage": 5001460385
+    },
+    {
+      "id": 1101,
+      "elapsed": 600000,
+      "damage": 100047977312,
+      "name": "高血量木人·无"
+    },
+    {
+      "id": 1102,
+      "elapsed": 600000,
+      "damage": 500146038748,
+      "name": "高血量木人们·无"
+    }
+  ],
+  "ieee754_hp_parity": true,
+  "battle_abort_and_history": [
+    {
+      "quest_id": 1101,
+      "elapsed_time_ms": 420000,
+      "total_damage": 100047977312
+    },
+    {
+      "quest_id": 1102,
+      "elapsed_time_ms": 420000,
+      "total_damage": 500146038748
+    }
+  ],
+  "original_progress_preserved": true,
+  "imports": [
+    {
+      "version": 2,
+      "quest_ids": [
+        97,
+        87
+      ],
+      "exact_pre_import_backup": true
+    },
+    {
+      "version": 1,
+      "quest_ids": [
+        97,
+        87
+      ],
+      "exact_pre_import_backup": true
+    },
+    {
+      "version": 2,
+      "quest_ids": [
+        97,
+        87,
+        1101,
+        1102
+      ],
+      "exact_pre_import_backup": true
+    },
+    {
+      "version": 1,
+      "quest_ids": [
+        97,
+        87,
+        1101,
+        1102
+      ],
+      "exact_pre_import_backup": true
+    }
+  ],
+  "invalid_input_atomic": true,
+  "existing_server_rows_preserved": 98,
+  "device_tested": false,
+  "runtime_mirror_tested": false,
+  "schema_changed": false
+}
