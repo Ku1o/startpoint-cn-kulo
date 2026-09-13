@@ -1,0 +1,63 @@
+header: [5, 3, 1, 2]
+0000 getlocal_0 [] ;
+0001 pushscope [] ;
+0002 pushnull [] ;
+0003 astype [67399] ;
+0004 setlocal_2 [] ;
+0005 findproperty [67416] ; parentContainer
+0006 getproperty [67416] ; parentContainer
+0007 coerce [79] ; haxe.ds::Option
+0008 setlocal_1 [] ;
+0009 getlocal_1 [] ;
+0010 getproperty [46] ; index
+0011 lookupswitch [] ;
+0012 jump [] -> 30 ;
+0013 getlocal_1 [] ;
+0014 getproperty [80] ; params
+0015 pushbyte [0] ;
+0016 getproperty [14] ; <mn kind 0x1b>
+0017 coerce [67399] ; pinball.ui.richText.layout::RichTextLayoutContainer
+0018 coerce [67399] ; pinball.ui.richText.layout::RichTextLayoutContainer
+0019 setlocal_2 [] ;
+0020 jump [] -> 30 ;
+0021 getlex [27] ; flash::Boot
+0022 findpropstrict [28] ; Error
+0023 constructprop [28, 0] ; Error
+0024 initproperty [29] ;
+0025 findpropstrict [3395] ; pinball.error::ClientError
+0026 pushint [4283] ; 7639
+0027 pushstring [91033] ; テキストノードに親要素がありません。
+0028 constructprop [3395, 2] ; pinball.error::ClientError
+0029 throw [] ;
+0030 findproperty [4796] ; style
+0031 findproperty [67377] ; styleManager
+0032 getproperty [67377] ; styleManager
+0033 getlocal_2 [] ;
+0034 getproperty [67408] ; tagKind
+0035 getlocal_2 [] ;
+0036 getproperty [7496] ; clazz
+0037 callproperty [67411, 2] ; getStyle
+0038 coerce_a [] ;
+0039 initproperty [4796] ;
+0040 findproperty [4796] ; style
+0041 getproperty [4796] ; style
+0042 pushnull [] ;
+0043 coerce_a [] ;
+0044 ifne [] -> 61 ;
+0045 getlex [27] ; flash::Boot
+0046 findpropstrict [28] ; Error
+0047 constructprop [28, 0] ; Error
+0048 initproperty [29] ;
+0049 findpropstrict [3395] ; pinball.error::ClientError
+0050 pushint [4279] ; 7637
+0051 pushstring [90976] ; スタイルの取得に失敗しました。指定のタグのデフォルト値の設定がされていない可能性があります。 tag=
+0052 getlex [18] ; Std
+0053 getlocal_2 [] ;
+0054 getproperty [67408] ; tagKind
+0055 callproperty [19, 1] ; string
+0056 coerce [11] ; String
+0057 add [] ;
+0058 coerce [11] ; String
+0059 constructprop [3395, 2] ; pinball.error::ClientError
+0060 throw [] ;
+0061 returnvoid [] ;

@@ -24,6 +24,7 @@ import prepare_content as p
 import wf_dsl
 import wf_battle_atlas_repack as atlas
 import optimize_battle_atlases as opt
+from gacha_notice import render_notice
 
 NEW = {'119989', '149989', '169989', '149988'}
 BOSSES = {'119993', '119994', '119995', '129993', '129994', '129995', '129996',
@@ -202,12 +203,11 @@ def main():
         rows[name] = node_bytes(payload[logical]['keys'][name], rows.get(name))
         put('common', logical, p.packmap(rows), 'author rank rates')
     note = (review / '卡池注意事项-改写稿.md').read_text('utf-8')
-    import html
     for title, logical in [('深渊限定扭蛋注意事项', 'rich_text/cnmod_abyss_limited_gacha_note.html.deflate'),
                            ('深渊竞速池注意事项', 'rich_text/cnmod_ashen_verdict_gacha_note.html.deflate')]:
         section = note.split('## ' + title + '\n', 1)[1].split('\n## ', 1)[0]
         paragraphs = [x[2:] for x in section.splitlines() if x.startswith('- ')]
-        rendered = '<html><body>\n' + '<br/><br/>\n'.join(html.escape(x) for x in paragraphs) + '\n</body></html>'
+        rendered = render_notice(title, paragraphs)
         put('common', logical, zlib.compress(rendered.encode('utf-8'), wbits=-15), 'rewrite final pool notice')
     builtin = readj(review / 'current-apk-builtin-check.json')
     builtin_same = {x['logical'] for x in builtin['rows'] if x['current_apk_matches']}

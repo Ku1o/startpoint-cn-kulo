@@ -1,0 +1,78 @@
+* {
+	margin: 0;
+	padding: 0;
+}
+
+html, body, div, h1, h2, h3, h4, h5, h6, p, img, b
+{
+	border: 0;
+	outline: 0;
+	font-size: 100%;
+	font-weight: normal;
+	vertical-align: baseline;
+	background-color: transparent;
+}
+
+body {
+	padding: 40px;
+	color: #444444;
+	background-color: #eaeaea;
+	font-size: 32px;
+	font-family: 'Helvetica', 'Arial', 'ヒラギノ角ゴ Pro W3', 'Hiragino Kaku Gothic ProN', 'Osaka', 'メイリオ', 'Meiryo', 'ＭＳ Ｐゴシック', 'MS PGothic', sans-serif;
+	line-height: 1.4;
+}
+
+h1 {
+	color: #fafafa;
+	text-align: center;
+	font-size: 40px;
+	font-weight: normal;
+	background-image: url("dynamic/news/20160901/ttl.png");
+	background-size: 888px 80px;
+	background-position: center;
+	background-repeat: no-repeat;
+	margin-bottom: 20px;
+}
+
+h2 {
+	margin: 40px 0;
+	padding-left: 16px;
+	border-left: 12px solid #999;
+	border-bottom: 2px dashed #999;
+	font-size: 40px;
+}
+
+hr {
+	margin: 40px 0;
+	border-top: 2px dashed #999;
+	border-bottom: 2px dashed #fff;
+}
+
+ul, ol {
+	padding-left: 32px;
+}
+
+.container {
+	padding: 0 16px;
+}
+
+.strong {
+	color: #ff9f1c;
+}
+
+.center{
+	text-align: center;
+}
+
+.attention {
+	color: #ff33cc;
+}
+
+.alert {
+	color: #ea354c;
+}
+
+.button {
+	font-size: 40px;
+	color: #ffffff;
+}

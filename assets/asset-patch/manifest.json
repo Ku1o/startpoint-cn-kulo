@@ -12429,9 +12429,10 @@
       "archive": "pinball-1.4.106-1.4.107-1-weapon-caps-practice-hp.zip",
       "chain": [
         "pinball-1.4.106-1.4.107-1-weapon-caps-practice-hp.zip",
-        "pinball-1.4.106-1.4.107-2-author858-selected.zip"
+        "pinball-1.4.106-1.4.107-2-author858-selected.zip",
+        "pinball-1.4.106-1.4.107-3-gacha-note-layout.zip"
       ],
-      "archive_size": 61482631,
+      "archive_size": 61484779,
       "archive_integrity": [
         {
           "name": "pinball-1.4.106-1.4.107-1-weapon-caps-practice-hp.zip",
@@ -13025,6 +13026,16 @@
             "production/upload/ff/84353774cb95e8d7dc90c679f96a5bca7f42e5",
             "production/upload/ff/c64614397819d2ab44e79697eb607f7fd23d7b"
           ]
+        },
+        {
+          "name": "pinball-1.4.106-1.4.107-3-gacha-note-layout.zip",
+          "size": 2148,
+          "sha256": "2967f361d5c5b957f40e1613c00031c8534594ee4c3200a2687000c7dd2ffd28",
+          "members": 2,
+          "files": [
+            "production/upload/3b/94cb2772f22fb76b1a4545c5a347d764050829",
+            "production/upload/6b/7237dfb68c667f191a69fda8627c80fca91803"
+          ]
         }
       ],
       "files": [
@@ -13617,14 +13628,16 @@
         "第二分包完整接入四位新角色与十五位小 Boss；定点更新光杰拉德、冰雪罗尔夫和夏日白。",
         "作者 MOD 概率、排序和标红保留；普通兑换沿用本服，排除 26 个非扭蛋角色，五位零概率角色不可兑换。",
         "正式语音、美术与十二组 iOS 立绘配套；保留图集自定义图标及已有优化。",
-        "火狮王五条正式技能语音重排为原生连续编号，通过 CDN 接入；准备音沿用原生播放，不新增 APK 轮换逻辑。"
+        "火狮王五条正式技能语音重排为原生连续编号，通过 CDN 接入；准备音沿用原生播放，不新增 APK 轮换逻辑。",
+        "第三分包修复深渊池及竞速池注意事项多行叠字，恢复原生段落排版，说明文字、概率及兑换规则不变。"
       ],
       "created_at": "2026-09-13",
       "audit": {
         "directory": "assets/asset-patch/audit/practice-clones-100x-1.4.107",
         "report": "report.json",
         "author858_directory": "assets/asset-patch/audit/author858-selected-1.4.107",
-        "previous_directory": "assets/asset-patch/audit/weapon-caps-practice-hp-1.4.107"
+        "previous_directory": "assets/asset-patch/audit/weapon-caps-practice-hp-1.4.107",
+        "gacha_note_layout_directory": "assets/asset-patch/audit/gacha-note-layout-1.4.107"
       }
     }
   ]

@@ -1,0 +1,30 @@
+{
+  "status": "passed",
+  "checkedAt": "2026-09-13T03:37:04.274Z",
+  "platforms": [
+    {
+      "device": "android",
+      "version": "1.4.107",
+      "parts": 3,
+      "totalBytes": 61484779,
+      "downloadBytes": 2148,
+      "sha256": "2967f361d5c5b957f40e1613c00031c8534594ee4c3200a2687000c7dd2ffd28",
+      "noticeReadback": true
+    },
+    {
+      "device": "ios",
+      "version": "1.4.107",
+      "parts": 3,
+      "totalBytes": 61484779,
+      "downloadBytes": 2148,
+      "sha256": "2967f361d5c5b957f40e1613c00031c8534594ee4c3200a2687000c7dd2ffd28",
+      "noticeReadback": true
+    }
+  ],
+  "priorPartsPreserved": true,
+  "gachaDataUnchanged": true,
+  "saveImpact": "none",
+  "serverRestarted": false,
+  "clientRefreshHandledByUser": true,
+  "deviceUiVerified": false
+}

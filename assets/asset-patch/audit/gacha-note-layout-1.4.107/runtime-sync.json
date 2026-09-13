@@ -1,0 +1,16 @@
+{
+  "completedAt": "2026-09-13T11:35:40.0022956+08:00",
+  "backupRoot": "F:\\startpoint-cn-main\\.codex-backups\\20260913-113539-gacha-note-layout",
+  "files": [
+    {
+      "path": "assets/asset-patch/active/pinball-1.4.106-1.4.107-3-gacha-note-layout.zip",
+      "sha256": "2967F361D5C5B957F40E1613C00031C8534594EE4C3200A2687000C7DD2FFD28",
+      "backup": null
+    },
+    {
+      "path": "assets/asset-patch/manifest.json",
+      "sha256": "EE28762FE7E8F767DF914B8E53295CD839126BCB8B05A6968BF6B1D0ACAB29CE",
+      "backup": "F:\\startpoint-cn-main\\.codex-backups\\20260913-113539-gacha-note-layout\\assets\\asset-patch\\manifest.json"
+    }
+  ]
+}
