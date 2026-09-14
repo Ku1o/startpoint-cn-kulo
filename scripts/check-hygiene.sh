@@ -19,13 +19,17 @@ allowed_nested_tool_line() {
         'home|tools/fantasy-gauntlet-mod-tools/tests/test_release_v1_canonical.py|r"C:\Users\Alice\secret.json",') return 0 ;;
         'home|tools/fantasy-gauntlet-mod-tools/tests/test_release_v1_canonical.py|"C:/Users/Alice/secret.json",') return 0 ;;
         'home|tools/fantasy-gauntlet-mod-tools/tests/test_release_v1_canonical.py|"/Users/Alice/secret.json",') return 0 ;;
+        # Preserve the upstream Node.js v20.20.2 copyright notice verbatim.
+        # Only this exact public attribution in this exact license is allowed.
+        'email|tools/player-save-extractor/NODE-LICENSE.txt|Copyright (c) 2016 Jean-Philippe Aumasson <jeanphilippe.aumasson@gmail.com>') return 0 ;;
     esac
     return 1
 }
 
 scan_sensitive_lines() {
     local kind="$1" label="$2" regex="$3" path="$4"
-    local hit line found=0 shown=0
+    local hit line found=0 shown=0 grep_flags='-nE'
+    [ "$kind" = "email" ] && grep_flags='-niE'
     while IFS= read -r hit; do
         [ -z "$hit" ] && continue
         line="${hit#*:}"
@@ -43,7 +47,7 @@ scan_sensitive_lines() {
             echo "      $hit"
             shown=$((shown + 1))
         fi
-    done < <(grep -nE "$regex" "$path" 2>/dev/null)
+    done < <(grep "$grep_flags" "$regex" "$path" 2>/dev/null)
 }
 
 if [ "$MODE" = "--all" ]; then
@@ -91,9 +95,7 @@ while IFS= read -r f; do
     if grep -Iq . "$f" 2>/dev/null; then
         scan_sensitive_lines "ip" "个人 IP" "$IP_RE" "$f"
         scan_sensitive_lines "home" "家目录路径" "$HOME_RE" "$f"
-        if grep -niqE "$EMAIL_RE" "$f" 2>/dev/null; then
-            note "个人邮箱: $f"; grep -niE "$EMAIL_RE" "$f" | head -3 | sed 's/^/      /'
-        fi
+        scan_sensitive_lines "email" "个人邮箱" "$EMAIL_RE" "$f"
     fi
 done <<< "$files"
 
