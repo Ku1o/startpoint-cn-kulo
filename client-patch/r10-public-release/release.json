@@ -1,0 +1,37 @@
+{
+  "batch": "android-181-r10-20260915",
+  "source_revision": "R10 public diagnostic fixed2",
+  "android": {
+    "build_id": "android-181-r10-20260915",
+    "apk": "F:\\codex\\startpoint-cn-private-clean\\outputs\\r10-public-release-20260915\\StarPoint-CN-1.8.1-r10-public-20260915.apk",
+    "sha256": "afca9f44d1bea9edea7b573fa96dddd32bc304afd0bbaa4d3df6fb21d41c2a90",
+    "swf_sha256": "a8130eabef7d0c13398688c8c22a8d8091dcd01a8b7a9572eaae2b68528265b8",
+    "uniqueappversionid": "fc14b494-ea2a-4056-a24d-1698f502c6d2",
+    "origin": "http://175.178.160.158:8001"
+  },
+  "ios": {
+    "build_id": "ios-184-admission-20260915",
+    "artifact": "F:\\codex\\startpoint-cn-private-clean\\outputs\\ios-admission-public-20260915\\StarPoint-iOS-1.8.4-admission-public-20260915-unsigned.ipa",
+    "sha256": "764a7c5183a8605f58364e786a08a59f65333403bded9918dd3b544a85112f09",
+    "native_sha256": "ad35c8894e5c883798e9d2ff305ada8562fdc26361d550e2affb5f5456ccf211",
+    "swf_sha256": "addf3ee62d783fff828c1811ee4b6461cb1323146871d78ee2107bff8e439c2e",
+    "full_abc": "F:\\codex\\work\\ios-admission-public-20260915\\admission-full.abc",
+    "full_abc_sha256": "86e787a8d169cabfee94e8420d56ff1bf8ed928afdb04e367d9967cf91844ae3",
+    "full_abc_sha1": "4022c42c9c1231c86b0913c3164d0bd4f98edf9a",
+    "aot_info_file_offset": 104549248,
+    "aot_method_count": 101283,
+    "origin": "http://175.178.160.158",
+    "platform": "ios",
+    "signing": "unsigned for TrollStore",
+    "status": "offline_verified_not_device_tested",
+    "accepted_input_sha256": "544ec90332845ff6c6b06e98aad691c0d9f10c725470eceeb4237c8bdbd65361",
+    "android_performance_imported": false
+  },
+  "lan_validation_build_id": "android-20260915-admission-01",
+  "first_formal_admission_rollout": true,
+  "enforce_in_prepared_policy": false,
+  "cloud_deployed": false,
+  "accepted_registry_promoted": false,
+  "private_pair_path": "F:\\codex\\startpoint-cn-private-clean\\outputs\\ios-admission-release-private-20260915\\config\\client-admission.keys.json",
+  "updated_at": "2026-09-15T21:36:26.170668+08:00"
+}
