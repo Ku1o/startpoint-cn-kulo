@@ -1,5 +1,15 @@
 # 下次云服整合包待合并内容
 
+## 2026-09-15 最新统一交付（已分类提交、推送并同步本地，云服仍待部署）
+
+作者融合、校园三人技能图、C2265、服务端双端准入、Android累计优化正式版及iOS准入版已按六类提交，运行发布提交 `7e1b2d61129843af034f977a56acce4144171249`。GitHub CI通过；本地64个运行文件与提交字节一致，更新11个并安装独立双端私有配对，已重启核验。后续原“未提交/未同步”段落保留历史时点，以本条为准。
+
+云服覆盖包 `startpoint-cn-cloud-overlay-109-dual-admission-20260915-221719.zip` 已生成，包含仍待覆盖的.108和本次.109；云端前置基础仍按用户确认的.107。没有云服已覆盖确认，保持待部署，不重复打入已部署的.107及更早资源。
+
+.109当前第1作者融合、第2C2265、第3校园技能图，总计6,016,383字节；第1/3原包不变。C2265只改变初始主页台词条件，保留当前完整文字，未恢复无效试验包。已上报.109的客户端需单独安排资源补拉。
+
+准入配置包含独立Android/iOS正式号，保持enforce:false；必须单独安装私有配对，已有云端名单先合并，不能盲目覆盖。iOS公网80和Android8001均须转发准入接口。未部署云服、未开严格模式、未合并main；IPA未真机测试。详见 [RELEASE-109-ADMISSION-20260915.md](RELEASE-109-ADMISSION-20260915.md)。
+
 2026-09-13 最新交付：五类功能已分别提交并推送 `origin/staging`，运行代码基准 `1ec70d4095bca2e348d9677c2ac1439fbfffd327`；GitHub CI 已通过。本地已同步同一提交的 43 个运行文件并重启，另 4 个此前同步的直读资源保持且与已提交内层分包一致。云服覆盖包 `startpoint-cn-cloud-overlay-1.4.108-20260913-182019.zip` 已生成并核验，**仍待用户覆盖云服**。云服部署基础继续按用户确认的 `.107` 记录；`.106/.107` 旧范围不重复打入。完整提交、文件、备份及验证见 [RELEASE-108-20260913.md](RELEASE-108-20260913.md)。
 
 用户本轮提醒 H400 已提交且已有包；已直接核对 GitHub 的 `726d6771` 和 2026-09-13 13:57 原包。本次没有重复创建 H400 提交，木人时间修复后的两个接口文件已累计保留 H400 逻辑，因此本包也覆盖该保护。没有获得 H400 云服已覆盖的确认，不把“已有包”记为“已部署”。
@@ -206,3 +216,40 @@
 - 11 项精确资源/有限生命周期模型回归、完整 DSL 类型与序列化回读、幂等和越界改动拒绝、有效资源链、Android/iOS 进程内 `.107 → .108` 三包清单、深渊计时版本检查通过。无 SWF/APK/IPA、存档 ID 或格式变更；尚未手机战斗复测。
 - 同批资源交付需用最终 `assets/asset-patch/manifest.json`，保留 `.108` 第 1 称号包、第 2 歼灭者扭蛋包及其各自交付依赖。用户确认 `.107` 已覆盖，后续云服整合不重新装入 `.107`；外层继续排除 loose production。
 - 已于2026-09-13 17:51并入称号任务同步本地`.108`；现已提交 `8f8cd498` 并推送，纳入顶部 `.108` 包，同一提交内容已重新核验双平台下载。云服待覆盖。实现证据见 `tools/campus-summon-g1008/` 与 `assets/asset-patch/audit/campus-summon-g1008-1.4.108/README.md`；最新同步回执见 `RELEASE-108-20260913.md`。
+
+## 校园三人技能展示图（.109 第 3 分包，源仓库本地完成）
+
+- 用户确认技能展示图取景过近，要求从完整立绘重裁并加入同一个版本的分包。保持 `1.4.108 → 1.4.109`，使用第 3 分包，避开 C2265 历史第 2 分包编号。
+- 新增 `assets/asset-patch/active/pinball-1.4.108-1.4.109-3-campus-skill-cutin.zip` 和对应 manifest 登记。包大小 4,551,141 字节，SHA-256 `2b89ec0ffae5fac59a36d04c1226493a2f420a4dff3b6fe4d31cbe975a5948f2`；保留既有 .109 作者融合第 1 分包原字节。
+- 校碧安卡、校希尔媞、校奈芙提姆进化前后 6 张技能图，含 6 张 medium PNG、6 个 Android ETC1 ATF、6 个 iOS ETC2 ATF。保留原画、1024×512、透明背景及已有主数据几何，不改普通头像、技能数值或存档。
+- 严格 PNG 回读、6 组双端纹理及全部 mip 解码、最终 18 成员 ZIP、有效资源链、Android/iOS 实际更新路由处理器均通过。已上报 .109 的客户端不会因同版本追加自动更新；本次按用户要求保留版本。
+- 本项未提交、推送、同步本地运行目录或部署云服，未制作云服覆盖整合包；真机战斗效果待复测。后续授权交付时使用最终 manifest 与启用分包原字节，外层继续排除 loose production。详细回执见 `assets/asset-patch/audit/campus-skill-cutin-1.4.109/README.md`。
+
+## APK 轻量接入校验（2026-09-15，本地实现与 MuMu-1 测试）
+
+- 用户要求拦截旧 APK／其他 APK 仅修改公网地址后接入；允许多个构建、配置删减和覆盖更新，无管理面板、无下载链接。实现一次性挑战、构建 HMAC、账号会话绑定的短凭证，HTTP／TCP 均在游戏处理前校验。
+- 后续授权交付需含 `src/cn-server.ts`、`out/cn-server.js`、`src/lib/client-admission.ts`、`out/lib/client-admission.js`、`src/multi/tcp/server.ts`、`out/multi/tcp/server.js`，以及运行 `config/client-admission.json`。新增 JS 被 out 忽略规则覆盖，后续提交须显式加入。
+- APK 变化时按用户明确要求带配套准入配置，并保留仍允许的旧构建；专用 `config/client-admission.keys.json` 从本地私有打包目录提供，只用于部署该功能，不提交 Git、不发送到玩家群。这是内置 APK 的准入材料，不是 Android 签名私钥/密码。不得将实际签名凭据装入包。没有 APK 变化时避免覆盖管理员已调整的名单。
+- 第一批默认 `enforce:false` 保留遗留客户端过渡期；管理员准备完成后切为 `true`。严格模式也会拦住尚未实现该协议的 iOS；没有可信平台豁免。本轮只制作隔离本地测试 APK，后续公网 APK 和配套名单需在获授权发布时生成并校验。
+- 配置约 2 秒热加载，停用/删除/到期影响下一条请求；配置不完整保留上一份有效配置。无数据库表、账号归属、存档格式或 CDN 资源变动。
+- 本轮未提交、推送、同步正式运行镜像、打云服整合包或部署云服。实现及实际验证范围见 `client-patch/client-admission/README.md` 和 `TEST-20260915.md`，不能将本地可用记为云端已生效。
+- 后续用户指定先完成服务端、客户端稍后：已补充 HTTP/TCP 有效活动延长原凭证（每次续到当前时刻后 30 分钟）、仅限已绑定账号的过期 5 分钟续期宽限、恢复动作与相对计时字段，以及 Android/iOS 独立平台条目。撤销/到期优先于续期；iOS 不享受校验豁免。真实 TCP 加速 3 小时、双端 HTTP/真实账号恢复、源码及构建 JS、登录回归通过；本地隔离 8002/8013 服务已加载新源码，正式运行镜像和云服未变。
+- 此次服务端补充更新 `src/lib/client-admission.ts`、`out/lib/client-admission.js`、`src/multi/tcp/server.ts`、`out/multi/tcp/server.js`；其余首轮接入文件仍是完整交付依赖。未修改或重打 APK/IPA。后续两端客户端按 `client-patch/client-admission/SERVER-PROTOCOL.md` 完成恢复流程并做设备验证；测试记录见同目录 `SERVER-TEST-20260915.md`。
+
+## R10 非测试公网 Android（2026-09-15，本地成品，云服待配套）
+
+- 用户要求以最终 R10 制作非测试公网 APK，明确移除日志导出。成品保留 R8/R9/R10 与此前全部累计逻辑，移除诊断入口及组件，独立保留首帧缓存清理，并接入完整构建准入、后台续期、恢复与请求取消保护。
+- Android 新正式号 `android-181-r10-20260915`；内网验证沿用初始测试号 `android-20260915-admission-01`。正式 APK 在 `outputs/r10-public-release-20260915/`，SHA-256 `afca9f44d1bea9edea7b573fa96dddd32bc304afd0bbaa4d3df6fb21d41c2a90`。未制作 IPA、未提升客户端 accepted registry。
+- 本轮实际源配置 `config/client-admission.json` 追加正式 Android 条目，保留 `enforce:false` 过渡。上项 6 个服务器源码/JS 是完整依赖，本轮独立完整构建已证明源码与现有 out 一致；`out/lib/client-admission.js` 仍需显式纳入后续提交。没有新增数据库或存档格式变更。
+- 可审查的 7 个服务器文件及哈希在成品目录 `server-files/`、`server-files.json`。独立私有伴随文件在 `outputs/r10-public-release-private-20260915/config/client-admission.keys.json`，目标为云服同相对路径，禁止加入普通整合包或 Git。APK 不放进服务器覆盖 ZIP。
+- 实际云服现有名单/私有材料未核查。若已有条目，须依据完整现有配对使用 `merge-policy.cjs` 追加，保留管理员 enforce、提示、旧版本启停/期限；不能用首次接入配置盲目覆盖。先部署配套实现和材料，再分发 APK；本轮未启用严格模式、上传/重启云服、同步运行镜像、提交/推送或制作统一云服 ZIP。
+- 实现、验证及未测范围见 `client-patch/r10-public-release/README.md` 与成品目录交接说明。五重共斗逐渐变慢仍未确认根因，不将本轮正式打包等同于已修复该问题。
+
+## 同批 iOS 正式公网准入版（2026-09-15，本地完成，云服待配套）
+
+- 用户要求补做 IPA，明确从 iOS 已验收商店累计版出发，只加入完整准入/续期/失效恢复，不带入 Android R8/R9/R10 性能、队伍缓存或加载优化，不加入诊断/日志导出。成品位于 `outputs/ios-admission-public-20260915/StarPoint-iOS-1.8.4-admission-public-20260915-unsigned.ipa`，SHA-256 `764a7c5183a8605f58364e786a08a59f65333403bded9918dd3b544a85112f09`，沿用 TrollStore unsigned 方式，未真机测试。
+- iOS 新正式号 `ios-184-admission-20260915`，平台 `ios`，公网初始/账号/准入/游戏入口沿用端口 80。Android 原号 `android-181-r10-20260915`、APK 及密钥均未改变；两端批次对应关系见 `client-patch/ios-admission-release/release.json`。
+- `config/client-admission.json` 已追加 iOS 并完整保留 Android 与 `enforce:false`。最新双端 7 文件候选和哈希在 IPA 成品目录 `server-files/`；六份准入源码/out 与上一 Android 完整构建相同，无服务器接口变更。新完整双端私有材料在 `outputs/ios-admission-release-private-20260915/config/client-admission.keys.json`，禁止放普通覆盖包、Git 或玩家群。后续整合应使用最新双端配置，不用仅 Android 的旧副本覆盖。
+- 尚未核查云服已有其他名单和私有材料；按成品说明用完整现有配对合并，保留管理员设置。先部署配套再分发，保证公网端口 80 与 Android 8001 的准入路由可达；不自动切严格模式。
+- 3568 成员、9 个既有准入入口、69 个 helper、78 个原生函数、2175 重定位、61 跳转桥接及 3 种 ldid 签名模型通过；56 项 AIR 生命周期、37 项双端正式配对/真实账号 HTTP 协议、5 项历史 iOS 失败回归通过。为离线与隔离模拟时间验证，没有 iOS 真机、云服或长时间实战验收。
+- 无存档 ID、表/列、账号归属、V1/V2 格式或 CDN 变更；未操作 MuMu/Android 安装，未提交、推送、同步正式运行镜像、部署/重启云服或制作统一 ZIP，未提升 accepted registry。实现和完整未测边界见 `client-patch/ios-admission-release/README.md`。
