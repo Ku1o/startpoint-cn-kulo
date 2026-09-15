@@ -1,0 +1,1092 @@
+{
+  "base": "1.4.108",
+  "records": [
+    {
+      "package": "864",
+      "logical": "master/ability/ability.orderedmap",
+      "key": "1499894",
+      "before_sha256": "451c1ca6843f9826c5c132daa103007aec0192e6b3afbf4e13c6bc0ce81848ed",
+      "target_sha256": "03f7884338556cbfea8fcefbdb6adfdb1b5de5806d0e90b461713d26055728f0",
+      "reason": "exact-preimage",
+      "changed": true,
+      "after_sha256": "03f7884338556cbfea8fcefbdb6adfdb1b5de5806d0e90b461713d26055728f0"
+    },
+    {
+      "package": "864",
+      "logical": "master/string/custom_ability_string.orderedmap",
+      "key": "desc_override_wind_spgirl_campus_4",
+      "before_sha256": "6ce6d54c17f67d0850e09e1f1d41545334046d66dbbca2426e99183bfdd7c83b",
+      "target_sha256": "75de81e1a8d296162ec107f9681d723dc1e6cc1786676010c44e1681e03af4b6",
+      "reason": "exact-preimage",
+      "changed": true,
+      "after_sha256": "75de81e1a8d296162ec107f9681d723dc1e6cc1786676010c44e1681e03af4b6"
+    },
+    {
+      "package": "864",
+      "logical": "master/ability/ability.orderedmap",
+      "key": "1499895",
+      "before_sha256": "2879752092534d2a2d4875a3d692aaee4991f09d789648ee66707377763e319e",
+      "target_sha256": "81dd8fef51804563559f85024b2815914e7003b99c8ddc029441b286165615f9",
+      "reason": "exact-preimage",
+      "changed": true,
+      "after_sha256": "81dd8fef51804563559f85024b2815914e7003b99c8ddc029441b286165615f9"
+    },
+    {
+      "package": "864",
+      "logical": "master/string/custom_ability_string.orderedmap",
+      "key": "desc_override_wind_spgirl_campus_5",
+      "before_sha256": "c83270b26e744334dfc36bae085801dd8cf99278e1d14e74e427374e2840fafc",
+      "target_sha256": "b00439bd369906882172a74934fff3c954405e0dd71913ae54559188c6358ee7",
+      "reason": "exact-preimage",
+      "changed": true,
+      "after_sha256": "b00439bd369906882172a74934fff3c954405e0dd71913ae54559188c6358ee7"
+    },
+    {
+      "package": "864",
+      "logical": "master/ability/ability.orderedmap",
+      "key": "1499896",
+      "before_sha256": "352f907fb4651e51fa605ba69c2ee90a2ba51e9261b74395a5d69a4b0ea6b2df",
+      "target_sha256": "d001ddca59a54bbb3f4caa6ac53a4eaf25dc51b8fc2947d7e63e70ffcb17bf43",
+      "reason": "exact-preimage",
+      "changed": true,
+      "after_sha256": "d001ddca59a54bbb3f4caa6ac53a4eaf25dc51b8fc2947d7e63e70ffcb17bf43"
+    },
+    {
+      "package": "864",
+      "logical": "master/string/custom_ability_string.orderedmap",
+      "key": "desc_override_wind_spgirl_campus_6",
+      "before_sha256": "0169227fab1978fdb41308e830ddbed3bbd95fb0cebcd86e1dd2fcc54e93b02d",
+      "target_sha256": "2f89735687586ca56a254ff690682d43bc79b7af8cf232dd4743bcc6f736341e",
+      "reason": "exact-preimage",
+      "changed": true,
+      "after_sha256": "2f89735687586ca56a254ff690682d43bc79b7af8cf232dd4743bcc6f736341e"
+    },
+    {
+      "package": "864",
+      "logical": "master/ability/ability.orderedmap",
+      "key": "1499882",
+      "before_sha256": "63739793817df73ed40f4a8f3f485f91d1bcbaefcf86847ff69e8407e12ef69f",
+      "target_sha256": "bca064049631d38afa4418880a2bf2d99f9a08de462dea39b3b7256186f7704a",
+      "reason": "exact-preimage",
+      "changed": true,
+      "after_sha256": "bca064049631d38afa4418880a2bf2d99f9a08de462dea39b3b7256186f7704a"
+    },
+    {
+      "package": "864",
+      "logical": "master/ability/ability.orderedmap",
+      "key": "1499905",
+      "before_sha256": "a93b71e8e5ada8783c954315b9c5f370e369d77ce60f0e16b9568417423e9459",
+      "target_sha256": "693da2ef34ceadb05bd5708b02bf0c5d0c25b2f0b1520c8e4b4362f4c665913c",
+      "reason": "exact-preimage",
+      "changed": true,
+      "after_sha256": "693da2ef34ceadb05bd5708b02bf0c5d0c25b2f0b1520c8e4b4362f4c665913c"
+    },
+    {
+      "package": "864",
+      "logical": "master/string/custom_ability_string.orderedmap",
+      "key": "desc_override_white_tiger_summer_5",
+      "before_sha256": "058567afee4ee467f123e5dd42e97b85bb283b9cad7db80aa60218dc55dd7c4c",
+      "target_sha256": "1475b5379ef607ed5076491f1e717ebd509c8ea99c7ff82a0033eb0f58cafef9",
+      "reason": "exact-preimage",
+      "changed": true,
+      "after_sha256": "1475b5379ef607ed5076491f1e717ebd509c8ea99c7ff82a0033eb0f58cafef9"
+    },
+    {
+      "package": "864",
+      "logical": "master/ability/ability.orderedmap",
+      "key": "1199893",
+      "before_sha256": "dda7f81040fb41e158c3b81e47af3bd9931b34475d103dd62096e79daf434fc2",
+      "target_sha256": "373bf3d3d4f362e88cdfcde863c12e8c7145f56d16910043e46d864d084ed937",
+      "reason": "exact-preimage",
+      "changed": true,
+      "after_sha256": "373bf3d3d4f362e88cdfcde863c12e8c7145f56d16910043e46d864d084ed937"
+    },
+    {
+      "package": "864",
+      "logical": "master/string/custom_ability_string.orderedmap",
+      "key": "desc_override_lady_summoner_campus_3",
+      "before_sha256": "32bf4fc237487a670476708e85740180ce32dba3414c48a52d0fa132d492b954",
+      "target_sha256": "f472b42e276ef2a89ac8045e6623283b254956336b095076ed8a44460835ea7c",
+      "reason": "exact-preimage",
+      "changed": true,
+      "after_sha256": "f472b42e276ef2a89ac8045e6623283b254956336b095076ed8a44460835ea7c"
+    },
+    {
+      "package": "864",
+      "logical": "master/ability/ability.orderedmap",
+      "key": "1699893",
+      "before_sha256": "9ecd8d1d41749889031179d82e769f210d6eb37b5977bf15a9e796b3705acef3",
+      "target_sha256": "1ded5875f9b5ea01d7530ddc901810944845b92263b6387f56e20e1aae209df5",
+      "reason": "exact-preimage",
+      "changed": true,
+      "after_sha256": "1ded5875f9b5ea01d7530ddc901810944845b92263b6387f56e20e1aae209df5"
+    },
+    {
+      "package": "864",
+      "logical": "master/string/custom_ability_string.orderedmap",
+      "key": "desc_override_ruin_girl_campus_3",
+      "before_sha256": "7f681509767702d2ad6e8d75c2d7331fd287840f0dd2672159f0dea57831426a",
+      "target_sha256": "f309270890e6a2ecf368ea4457ebb6c6d6b29b589d865fe901b6aa23104e6d0e",
+      "reason": "exact-preimage",
+      "changed": true,
+      "after_sha256": "f309270890e6a2ecf368ea4457ebb6c6d6b29b589d865fe901b6aa23104e6d0e"
+    },
+    {
+      "package": "864",
+      "logical": "master/string/custom_ability_string.orderedmap",
+      "key": "desc_override_ruin_girl_campus_1",
+      "before_sha256": "73141a8866381b349ffd8ff27472cbcac234a5e29c03e553c1dd703aa1275dc4",
+      "target_sha256": "858ceabe03c7ed1b103f9481fd150693991f8a532c04bac7a4b9b69f02d03e4d",
+      "reason": "exact-preimage",
+      "changed": true,
+      "after_sha256": "858ceabe03c7ed1b103f9481fd150693991f8a532c04bac7a4b9b69f02d03e4d"
+    },
+    {
+      "package": "864",
+      "logical": "master/string/custom_ability_string.orderedmap",
+      "key": "change_skill_ruin_girl_campus_fever",
+      "before_sha256": "2f2c68de95e4475fa164f25eaa52d51aa81893dcace4a6690a3d31e2bce977c4",
+      "target_sha256": "515004aef8ab261bc02505ff6ea02621432590e7d1b255361e2b425f8d567040",
+      "reason": "exact-preimage",
+      "changed": true,
+      "after_sha256": "515004aef8ab261bc02505ff6ea02621432590e7d1b255361e2b425f8d567040"
+    },
+    {
+      "package": "864",
+      "logical": "master/skill/action_skill.orderedmap",
+      "key": "wind_spgirl_campus",
+      "before_sha256": "6062e2ff38f54764433594301f37065c2d9da19392208e1fd99b8955e3c04b04",
+      "target_sha256": "a6bba51515208ec1dacf55eec87231fec80b23b65a29a3134500031075867a35",
+      "reason": "three-way-preserved-receiver-cells",
+      "changed": true,
+      "after_sha256": "1bfa88b010e6f63ff8dffc601c665eda1929cc9c9774530aa1a6196eb8deae09"
+    },
+    {
+      "package": "864",
+      "logical": "master/character/character_text.orderedmap",
+      "key": "149989",
+      "before_sha256": "74ce1dbcb6d4bc6de6a33a2b31e0adb45c0be5bbf621351b257ad8ea7df1b1de",
+      "target_sha256": "a5399dba090a5f3366635e11ac971156b0eb2d36836592d4b9a8ab252af7dd2a",
+      "reason": "exact-preimage",
+      "changed": true,
+      "after_sha256": "a5399dba090a5f3366635e11ac971156b0eb2d36836592d4b9a8ab252af7dd2a"
+    },
+    {
+      "package": "864",
+      "logical": "master/ability/leader_ability.orderedmap",
+      "key": "139995",
+      "before_sha256": "6f2bf843449eceb07e0df6eedbda42e5f6c4c885a6da37222a6e8fee0d701a6c",
+      "target_sha256": "72165e854d45569b8c808b943aeb7f8c73f6eca91d1dc4d0171bde3003b3bfe0",
+      "reason": "local-kyubi-row-retained",
+      "changed": true,
+      "after_sha256": "5d28b9e2376542864dd06ff7fadff0fe7fd75aeae5202398ffa0f7901b4a3785",
+      "original_error": "master/ability/leader_ability.orderedmap:139995: no compatible preimage; master/ability/leader_ability.orderedmap:139995: structure differs; exact preimage required"
+    },
+    {
+      "package": "864",
+      "logical": "master/ability/ability.orderedmap",
+      "key": "1399951",
+      "before_sha256": "53dc28790023d2a6d092af3f3ff775e99cbf6de48f55c1d5f0e810e08ca19ee7",
+      "target_sha256": "515431a95ab9fcd46efc18ba6483608d3827abd3ca9cf63f1c58d3dac2887e62",
+      "reason": "exact-preimage",
+      "changed": true,
+      "after_sha256": "515431a95ab9fcd46efc18ba6483608d3827abd3ca9cf63f1c58d3dac2887e62"
+    },
+    {
+      "package": "864",
+      "logical": "master/ability/leader_ability.orderedmap",
+      "key": "129992",
+      "before_sha256": "a08d08441149e0828c53cf0663c82764235a5ba55a2ee1b646c17e7d83431361",
+      "target_sha256": "bd7d4e0e29306cc5176ad0a3f936914bcd853ee47b0d1d519ed6bf2e149439d2",
+      "reason": "exact-preimage",
+      "changed": true,
+      "after_sha256": "bd7d4e0e29306cc5176ad0a3f936914bcd853ee47b0d1d519ed6bf2e149439d2"
+    },
+    {
+      "package": "864",
+      "logical": "master/ability/leader_ability.orderedmap",
+      "key": "129952",
+      "before_sha256": "d3dc3ca65e79b94f47b072298735f49df2dfcec27944a7685595294f02de09f4",
+      "target_sha256": "8acab3b605ee98439c69bb6d89f0a1c40a344b988deac3fab4b2f3c6f1234c4d",
+      "reason": "exact-preimage",
+      "changed": true,
+      "after_sha256": "8acab3b605ee98439c69bb6d89f0a1c40a344b988deac3fab4b2f3c6f1234c4d"
+    },
+    {
+      "package": "864",
+      "logical": "master/ability/leader_ability.orderedmap",
+      "key": "149995",
+      "before_sha256": "d4c0cedfebeb3a4b183a417837a7bb0ce12a05befdbded1aa5d5556b53199001",
+      "target_sha256": "8501e2bd2a647473ce35cff92397f668c667ab6c8dc65f3ee46e52f16587f7d8",
+      "reason": "exact-preimage",
+      "changed": true,
+      "after_sha256": "8501e2bd2a647473ce35cff92397f668c667ab6c8dc65f3ee46e52f16587f7d8"
+    },
+    {
+      "package": "864",
+      "logical": "master/ability/ability.orderedmap",
+      "key": "1499951",
+      "before_sha256": "f20f729a101b485dae9da7f01e164db942066eebae524b286cb6b1d8acb023d4",
+      "target_sha256": "c7dff3207834b27a29623208cca31859c33c10779abb6748f737cfb97e250070",
+      "reason": "exact-preimage",
+      "changed": true,
+      "after_sha256": "c7dff3207834b27a29623208cca31859c33c10779abb6748f737cfb97e250070"
+    },
+    {
+      "package": "864",
+      "logical": "master/ability/ability.orderedmap",
+      "key": "1499953",
+      "before_sha256": "a7538f5554ea421e8f5afe2665909c87fcc65482c2f107c20fc3bf78ce5d7263",
+      "target_sha256": "fc72d7e24cb2b182a009e4e03d6017cf2034aa1dec69fdae7e37e7de7f1928f2",
+      "reason": "exact-preimage",
+      "changed": true,
+      "after_sha256": "fc72d7e24cb2b182a009e4e03d6017cf2034aa1dec69fdae7e37e7de7f1928f2"
+    },
+    {
+      "package": "864",
+      "logical": "master/ability/ability.orderedmap",
+      "key": "1499955",
+      "before_sha256": "d8c505ef01423104c3373d726bb71b0097351d45ba38d6ce072986c3d5941035",
+      "target_sha256": "512baa89935a594927e9d57e864f6009d468ab9c718d70bb254a745a910075bd",
+      "reason": "exact-preimage",
+      "changed": true,
+      "after_sha256": "512baa89935a594927e9d57e864f6009d468ab9c718d70bb254a745a910075bd"
+    },
+    {
+      "package": "864",
+      "logical": "master/string/custom_ability_string.orderedmap",
+      "key": "desc_override_fox_oracle_autumn",
+      "before_sha256": "27b001d55178acba68690c15ce4fcd87440abaa03e90b8911d738950434b98b5",
+      "target_sha256": "c0d67d72d47928a71bae11ef905e1516f0999be7dc755eda9db038c399c441cb",
+      "reason": "local-kyubi-self-fever-preserved",
+      "changed": true,
+      "after_sha256": "b55405e118637b2fb7592f8dc9ad511db4e4dfc4a6626223937ee30ee00ef37a",
+      "original_error": "master/string/custom_ability_string.orderedmap:desc_override_fox_oracle_autumn: no compatible preimage; master/string/custom_ability_string.orderedmap:desc_override_fox_oracle_autumn/0/0: changed cell conflicts with both before and after"
+    },
+    {
+      "package": "864",
+      "logical": "master/skill/action_skill.orderedmap",
+      "key": "maou2_playable",
+      "before_sha256": "5d5e9a16153f860caa96be52b1ae9b04c7f46a9d68149aaabf66616b1fad9606",
+      "target_sha256": "73d1311e46dac73391b8616d03a55cd86b66a08f6820dc8651cbbb2fc604b4c7",
+      "reason": "three-way-preserved-receiver-cells",
+      "changed": true,
+      "after_sha256": "f337b0af33ff669aefe39579e61419cac9433dedb8b7269b2c3c4b3a8a40b738"
+    },
+    {
+      "package": "864",
+      "logical": "master/ability/leader_ability.orderedmap",
+      "key": "119996",
+      "before_sha256": "6f3cdbb434e95c66d586d9b2ce8393839e1f8ad3cfc68ea8429c5f6df9c7f63b",
+      "target_sha256": "ab891c82e86e578402180a910c749aeec5974f387ad57002dcc4143a7df04abc",
+      "reason": "exact-preimage",
+      "changed": true,
+      "after_sha256": "ab891c82e86e578402180a910c749aeec5974f387ad57002dcc4143a7df04abc"
+    },
+    {
+      "package": "864",
+      "logical": "master/ability/leader_ability.orderedmap",
+      "key": "169997",
+      "before_sha256": "13731c7f0fec61122daaaadafa03a239a28746eb3597752bd416d1ca6b4e0a53",
+      "target_sha256": "aa68f6e8b64770023608ec1434d5cd15ceb85a1406d3371093090a9aff09c2f3",
+      "reason": "exact-preimage",
+      "changed": true,
+      "after_sha256": "aa68f6e8b64770023608ec1434d5cd15ceb85a1406d3371093090a9aff09c2f3"
+    },
+    {
+      "package": "864",
+      "logical": "master/ability/leader_ability.orderedmap",
+      "key": "139997",
+      "before_sha256": "758a0ca6fb087e4850235d604d81af1f5997ce4beac6aed495078af226adeba1",
+      "target_sha256": "9215518e5e327d223e66bef87e42c56fffdbd1bb5bd16b7df2b14769693b0919",
+      "reason": "author-changed-cells-applied",
+      "changed": true,
+      "after_sha256": "f2886aa330624ef449192a6f7d7c78c2d12e35f07a05b6842a6ba215549027c8",
+      "original_error": "master/ability/leader_ability.orderedmap:139997: no compatible preimage; master/ability/leader_ability.orderedmap:139997/6/49: changed cell conflicts with both before and after"
+    },
+    {
+      "package": "864",
+      "logical": "master/ability/ability.orderedmap",
+      "key": "1299974",
+      "before_sha256": "761a806a04212a9843a960637fd2672d4a26ffb45664ee73cf180dd2085b5b1a",
+      "target_sha256": "6d8d57a246ca1be822cfe74c7d4b4ac3af57935bf0c122e4810783157656ae4b",
+      "reason": "exact-preimage",
+      "changed": true,
+      "after_sha256": "6d8d57a246ca1be822cfe74c7d4b4ac3af57935bf0c122e4810783157656ae4b"
+    },
+    {
+      "package": "864",
+      "logical": "master/ability/ability.orderedmap",
+      "key": "1799991",
+      "before_sha256": "7801df07df21be98cd3fc7b40c1508638563379bbf1c10b96e36a5f16e324211",
+      "target_sha256": "8437934344e35c6a93321c066c5cb7db6cef910bdf86009d5965383ace994df8",
+      "reason": "three-way-preserved-receiver-cells",
+      "changed": true,
+      "after_sha256": "3b8fb01cc771517443f6ee44d1b9c71a5a2b70048087cd58cc9fd88e91bd8a48"
+    },
+    {
+      "package": "864",
+      "logical": "master/ability/ability.orderedmap",
+      "key": "1699992",
+      "before_sha256": "d50d14447404ca4886fd534a5836185cc9090cdc2036623bf5ebd878689e1830",
+      "target_sha256": "89484187304247226e1ab48756465ba7158082575e491173eefa7a8e71f79021",
+      "reason": "exact-preimage",
+      "changed": true,
+      "after_sha256": "89484187304247226e1ab48756465ba7158082575e491173eefa7a8e71f79021"
+    },
+    {
+      "package": "864",
+      "logical": "master/ability/ability.orderedmap",
+      "key": "1699993",
+      "before_sha256": "082641022ac65a924f8bbdbb526d6033c0274992ab3886487a150d937e3dc348",
+      "target_sha256": "9c6deb75878970094fc1125d5de65d8a62d2dfc771eb976cd5e9e7594c46b71b",
+      "reason": "exact-preimage",
+      "changed": true,
+      "after_sha256": "9c6deb75878970094fc1125d5de65d8a62d2dfc771eb976cd5e9e7594c46b71b"
+    },
+    {
+      "package": "864",
+      "logical": "master/ability/ability.orderedmap",
+      "key": "1499993",
+      "before_sha256": "ee82e3713d8e6bf6901e531b4b614c1c15be0b72ba5b6d4669280e3b73c08f20",
+      "target_sha256": "be7769857f8904d79656de202d8ce3f15378c302f39fb362230581b35c442871",
+      "reason": "exact-preimage",
+      "changed": true,
+      "after_sha256": "be7769857f8904d79656de202d8ce3f15378c302f39fb362230581b35c442871"
+    },
+    {
+      "package": "864",
+      "logical": "master/ability/ability.orderedmap",
+      "key": "1299996",
+      "before_sha256": "38968c64212c764705c214e15c62b09119ef3e355a2ef4ecc544f60be8bf7ab0",
+      "target_sha256": "e1be85deeb037bbcf18d5118d731c2a83c8b5ed391915f56becf93098d3d4851",
+      "reason": "three-way-preserved-receiver-cells",
+      "changed": true,
+      "after_sha256": "8e6db8699b4d906211110fd2871da2b01df81327a022d4c5bfc35a88f084fb99"
+    },
+    {
+      "package": "864",
+      "logical": "master/string/custom_ability_string.orderedmap",
+      "key": "desc_override_ginovi_2",
+      "before_sha256": "2bf480db04b4ee2cef273c5841ac921ce5fcc37a22f4ccb574e1417e262bdc98",
+      "target_sha256": "e39ac8d5ae350866dbf136c479b08b520be7d8e863f0766dd31f93d43268aded",
+      "reason": "exact-preimage",
+      "changed": true,
+      "after_sha256": "e39ac8d5ae350866dbf136c479b08b520be7d8e863f0766dd31f93d43268aded"
+    },
+    {
+      "package": "864",
+      "logical": "master/string/custom_ability_string.orderedmap",
+      "key": "desc_override_ginovi_3",
+      "before_sha256": "e8a669a83ac912c6895da8cdba243a31f729a2e47528c185008e92dbfed41891",
+      "target_sha256": "56089d2500e5cbcd8625989851395a0d429fe6339b570c733f6d11e9fb50f219",
+      "reason": "exact-preimage",
+      "changed": true,
+      "after_sha256": "56089d2500e5cbcd8625989851395a0d429fe6339b570c733f6d11e9fb50f219"
+    },
+    {
+      "package": "864",
+      "logical": "master/ability/ability.orderedmap",
+      "key": "1299505",
+      "before_sha256": "2848b26e645e128c1e78253c50734f08a869f06326478a480c65d32e69e093a4",
+      "target_sha256": "f7c9d2f335da1774cd33a5b2bf11dc6cf7e44ba61e1f73ce700ef1a611689501",
+      "reason": "exact-preimage",
+      "changed": true,
+      "after_sha256": "f7c9d2f335da1774cd33a5b2bf11dc6cf7e44ba61e1f73ce700ef1a611689501"
+    },
+    {
+      "package": "864",
+      "logical": "master/ability/ability.orderedmap",
+      "key": "1299506",
+      "before_sha256": "7438502dc0702e90335b10afac3400b5e0ea56cbfbf7b05bf23081fb1d402902",
+      "target_sha256": "ceb71e9840f76f5cc8615f6f69191ce53395ca11a055a00f332b56ffaf465f63",
+      "reason": "exact-preimage",
+      "changed": true,
+      "after_sha256": "ceb71e9840f76f5cc8615f6f69191ce53395ca11a055a00f332b56ffaf465f63"
+    },
+    {
+      "package": "864",
+      "logical": "master/ability/ability.orderedmap",
+      "key": "1299703",
+      "before_sha256": "f104b6d043a42f4b7a4569176b759e82878c1b2767717b26faf19b0366fbdbb6",
+      "target_sha256": "a670d7f482cf87fa612d9732ae6b14d0c24c71eee97ccd004f5846f778624812",
+      "reason": "three-way-preserved-receiver-cells",
+      "changed": true,
+      "after_sha256": "ec8076d8bdf8cdaff451de7e404ee48758e602e161325ca93683409a739c58a2"
+    },
+    {
+      "package": "864",
+      "logical": "master/ability/ability.orderedmap",
+      "key": "1399504",
+      "before_sha256": "253a6eb442334dfbfe9acdcdcb68fcb1dee56ae4b1ae32a202c2641d93234650",
+      "target_sha256": "74118be8dd147d82d59297891609d2c9cdbef7c75663a8900094dd13a6d76326",
+      "reason": "exact-preimage",
+      "changed": true,
+      "after_sha256": "74118be8dd147d82d59297891609d2c9cdbef7c75663a8900094dd13a6d76326"
+    },
+    {
+      "package": "864",
+      "logical": "master/ability/leader_ability.orderedmap",
+      "key": "149998",
+      "before_sha256": "c270d1063a03e83f22b51b9c02aea3233d866a27607f165665228fcaa95951bf",
+      "target_sha256": "3bba9d08a3b6605c769e56f8650194fd97b5055b0e77ef990a2bc5977a7c47ca",
+      "reason": "author-changed-cells-applied",
+      "changed": true,
+      "after_sha256": "fba5cc731aedf80b4c7c1e7b54c5c2ff5f84dacf10033140b6b5154207647cd6",
+      "original_error": "master/ability/leader_ability.orderedmap:149998: no compatible preimage; master/ability/leader_ability.orderedmap:149998/4/50: changed cell conflicts with both before and after"
+    },
+    {
+      "package": "864",
+      "logical": "master/ability/ability.orderedmap",
+      "key": "1499982",
+      "before_sha256": "3b654f10e311e91c8c78ffef3351f69fc975f361868a04efa7d05490c77435bb",
+      "target_sha256": "cc84852bd73ff3df3e075760762394061e64a8ec38fb09a5f33256ec65ab8b6c",
+      "reason": "three-way-preserved-receiver-cells",
+      "changed": false,
+      "after_sha256": "3b654f10e311e91c8c78ffef3351f69fc975f361868a04efa7d05490c77435bb"
+    },
+    {
+      "package": "864",
+      "logical": "master/ability/ability.orderedmap",
+      "key": "1499983",
+      "before_sha256": "9cb4baeded59f533fa534c0ef55b1b9df6a1c3b51564ea57dc9d05449cd134cb",
+      "target_sha256": "be66070a1296e66d7e09b4feceb3bfc2d3dc763f426e61712f145c0e4aececef",
+      "reason": "author-changed-cells-applied",
+      "changed": true,
+      "after_sha256": "0cccf942d78513dd43bbaa6a29ef14405e6c7d0092a949ee2a67b9b257ef48e1",
+      "original_error": "master/ability/ability.orderedmap:1499983: no compatible preimage; master/ability/ability.orderedmap:1499983/3/51: changed cell conflicts with both before and after"
+    },
+    {
+      "package": "864",
+      "logical": "master/ability/ability.orderedmap",
+      "key": "1499986",
+      "before_sha256": "3a7b2bb65dd3dfdd90ab0374d3f69cbff53cd00c4379b59f69b0a23712cf01fa",
+      "target_sha256": "a3d022e3baa809eb35f90dd26955065f41d963df856098d106a76ebe5fcf3862",
+      "reason": "three-way-preserved-receiver-cells",
+      "changed": true,
+      "after_sha256": "d855c1954a8b2523f1e0ed4d28d21622b3e340ee4ba5f134ab8809802e6063f8"
+    },
+    {
+      "package": "864",
+      "logical": "master/ability/leader_ability.orderedmap",
+      "key": "159950",
+      "before_sha256": "493d6cf3672cd574e15e9776adbabbcad088f72e0f65075b071ca6d3c13538b5",
+      "target_sha256": "7e94aa1bbcf7f7ab704e9945054a241c0769d423eb14582e6cfeb88821e0eb04",
+      "reason": "exact-preimage",
+      "changed": true,
+      "after_sha256": "7e94aa1bbcf7f7ab704e9945054a241c0769d423eb14582e6cfeb88821e0eb04"
+    },
+    {
+      "package": "864",
+      "logical": "master/ability/ability.orderedmap",
+      "key": "1599501",
+      "before_sha256": "8993e145c5fbc1f237d06af4d79fb2486a180d8320bafd638aa7e3dba01341bb",
+      "target_sha256": "aff505cd736c450249ce33c33318a72950a1a17c45982856c4245a64e2caad5c",
+      "reason": "exact-preimage",
+      "changed": true,
+      "after_sha256": "aff505cd736c450249ce33c33318a72950a1a17c45982856c4245a64e2caad5c"
+    },
+    {
+      "package": "864",
+      "logical": "master/ability/ability.orderedmap",
+      "key": "1599704",
+      "before_sha256": "93ad876855509469c9750c6005df5f92786eae03df190649cbbd6f99452f11e3",
+      "target_sha256": "3dec1323be4499dcbbba5b7c8001681add25d12de8eb8ca466dda838b3b9a15c",
+      "reason": "exact-preimage",
+      "changed": true,
+      "after_sha256": "3dec1323be4499dcbbba5b7c8001681add25d12de8eb8ca466dda838b3b9a15c"
+    },
+    {
+      "package": "864",
+      "logical": "master/ability/leader_ability.orderedmap",
+      "key": "169950",
+      "before_sha256": "87aea4b4fa8721e284e63c47de6fa00dcc870b974c0e26aa840f5bf28ea1fb1a",
+      "target_sha256": "d3faecc3e95f8e70b4443761c0aa58d48350bb595dd3ecf1eed2c48cd4a352b1",
+      "reason": "three-way-preserved-receiver-cells",
+      "changed": true,
+      "after_sha256": "6c6469fbc75902ef41fd4b8be923845411304cdfe12547ae13636e73dc3d3f32"
+    },
+    {
+      "package": "864",
+      "logical": "master/ability/ability.orderedmap",
+      "key": "1699514",
+      "before_sha256": "7f4987ce246db3b9b11992e751fa890dfac39d94b092400feaea47504dc5e432",
+      "target_sha256": "acef69bbeb045b752dcea70772ae326e7d9ab8a6798587c41c51f5ed40669a98",
+      "reason": "exact-preimage",
+      "changed": true,
+      "after_sha256": "acef69bbeb045b752dcea70772ae326e7d9ab8a6798587c41c51f5ed40669a98"
+    },
+    {
+      "package": "864",
+      "logical": "master/ability/leader_ability.orderedmap",
+      "key": "169970",
+      "before_sha256": "36826813d05d5899a493de133cf25519be0bd3ae367897d98df4506d49bbb203",
+      "target_sha256": "a020d5c203e81898ce89644875d5f210e06a1a38ee8c134ff1b3dabc4a31fd32",
+      "reason": "exact-preimage",
+      "changed": true,
+      "after_sha256": "a020d5c203e81898ce89644875d5f210e06a1a38ee8c134ff1b3dabc4a31fd32"
+    },
+    {
+      "package": "864",
+      "logical": "master/ability/ability.orderedmap",
+      "key": "1699704",
+      "before_sha256": "cd94ab4a8eca1ccf85b8995067750707c5466159ff45949ab40b055802e8d461",
+      "target_sha256": "6550d26c2d9d44fba894d5db55c26157a8173df4db1b631835bd84d4bc5f70bb",
+      "reason": "exact-preimage",
+      "changed": true,
+      "after_sha256": "6550d26c2d9d44fba894d5db55c26157a8173df4db1b631835bd84d4bc5f70bb"
+    },
+    {
+      "package": "864",
+      "logical": "master/ability/ability.orderedmap",
+      "key": "1699804",
+      "before_sha256": "25ea17a4d9c4c6161fcf256dfa296e38742c0a643874c658b408bc2da0f89a4e",
+      "target_sha256": "2bee55f671eafbdbbdca70a4115b9b91e89d1cb1861c12f12ce9ef1b8dbf796a",
+      "reason": "exact-preimage",
+      "changed": true,
+      "after_sha256": "2bee55f671eafbdbbdca70a4115b9b91e89d1cb1861c12f12ce9ef1b8dbf796a"
+    },
+    {
+      "package": "864",
+      "logical": "master/ability/leader_ability.orderedmap",
+      "key": "179970",
+      "before_sha256": "7b2683af8ff0f49004b85faeb1de4031be21e16f80e5df65ae9f1d2309cb5113",
+      "target_sha256": "70e49507ad5bb32ab55ad5f804cae7514ccc640519dc3193d3fdf41fe1941cd3",
+      "reason": "three-way-preserved-receiver-cells",
+      "changed": true,
+      "after_sha256": "1cb228e38cf4a0f898e0c3b451b2dd3ee00f1d18d83397706dfd4f639bebfec8"
+    },
+    {
+      "package": "864",
+      "logical": "master/ability/leader_ability.orderedmap",
+      "key": "179981",
+      "before_sha256": "db124f49580d449d193e5b992238ea44b4b38773b0643b47324d915e0a77dec6",
+      "target_sha256": "727cb5a2648a11458533c6b020a848d57a47f041b4708fba0615c4f4f9b886d3",
+      "reason": "exact-preimage",
+      "changed": true,
+      "after_sha256": "727cb5a2648a11458533c6b020a848d57a47f041b4708fba0615c4f4f9b886d3"
+    },
+    {
+      "package": "864",
+      "logical": "master/skill/action_skill.orderedmap",
+      "key": "spirit_beast_wind_playable",
+      "before_sha256": "440e909898f2115b277c12d7339d972273217fcae1580cb84b4b1b6a0010af6a",
+      "target_sha256": "65c6cc4466c264dbf97f5313c81e35198285183aefe3075ab905d3b516fa3a16",
+      "reason": "exact-preimage",
+      "changed": true,
+      "after_sha256": "65c6cc4466c264dbf97f5313c81e35198285183aefe3075ab905d3b516fa3a16"
+    },
+    {
+      "package": "864",
+      "logical": "master/character/character_text.orderedmap",
+      "key": "149951",
+      "before_sha256": "62b22383834e5a2fc339043d0e79772a86bde9782a837870c5e3adf26bac1c1a",
+      "target_sha256": "07839a88a1e463aad0136a0513e16a464e2b87305bc3913df5043ae411a89621",
+      "reason": "exact-preimage",
+      "changed": true,
+      "after_sha256": "07839a88a1e463aad0136a0513e16a464e2b87305bc3913df5043ae411a89621"
+    },
+    {
+      "package": "864",
+      "logical": "master/ability/leader_ability.orderedmap",
+      "key": "169999",
+      "before_sha256": "71c92d20a20eeb285168069bda7f8d21bfb022ffcc10b81eafe15ed88a23c8c1",
+      "target_sha256": "0d3d993ae74a6e2bb4aab32b8ed877ff42180ff2fc77107b2b86ee60855cfa64",
+      "reason": "exact-preimage",
+      "changed": true,
+      "after_sha256": "0d3d993ae74a6e2bb4aab32b8ed877ff42180ff2fc77107b2b86ee60855cfa64"
+    },
+    {
+      "package": "864",
+      "logical": "master/string/custom_ability_string.orderedmap",
+      "key": "desc_override_ginovi",
+      "before_sha256": "2395e36ebf41550f373588c111b40afa7102510fd7cde8f28580a09f630602c9",
+      "target_sha256": "0240ed15dfbf53ace653317d591495085b3afb867bdc83fec82755b7e804b00e",
+      "reason": "exact-preimage",
+      "changed": true,
+      "after_sha256": "0240ed15dfbf53ace653317d591495085b3afb867bdc83fec82755b7e804b00e"
+    },
+    {
+      "package": "864",
+      "logical": "battle/action/skill/action/rare5/wind_spgirl_campus$wind_spgirl_campus_1.action.dsl.amf3.deflate",
+      "key": null,
+      "before_sha256": "db0e413a094b4443482f2cf073ec9f9316dda908e2a56181e9479ff450cc25af",
+      "target_sha256": "6b4debbf664f1fbc511ab7cb2a1fc2df67326afb38b97b02c63d73241c8c8bf1",
+      "reason": "exact-preimage",
+      "changed": true,
+      "after_sha256": "6b4debbf664f1fbc511ab7cb2a1fc2df67326afb38b97b02c63d73241c8c8bf1"
+    },
+    {
+      "package": "864",
+      "logical": "battle/action/skill/action/rare5/wind_spgirl_campus$wind_spgirl_campus_2.action.dsl.amf3.deflate",
+      "key": null,
+      "before_sha256": "db0e413a094b4443482f2cf073ec9f9316dda908e2a56181e9479ff450cc25af",
+      "target_sha256": "6b4debbf664f1fbc511ab7cb2a1fc2df67326afb38b97b02c63d73241c8c8bf1",
+      "reason": "exact-preimage",
+      "changed": true,
+      "after_sha256": "6b4debbf664f1fbc511ab7cb2a1fc2df67326afb38b97b02c63d73241c8c8bf1"
+    },
+    {
+      "package": "864",
+      "logical": "battle/action/skill/action/rare5/ruin_girl_campus$ruin_girl_campus_1.action.dsl.amf3.deflate",
+      "key": null,
+      "before_sha256": "65b1d2c681c479993a4b3891272cb5b82a1166af4cf37fbcd8455ac73a6359ec",
+      "target_sha256": "55fbcb20b287279a5a1dbf6cd1b8f181f3816cf6f3399e626c9b1b9e40730486",
+      "reason": "exact-preimage",
+      "changed": true,
+      "after_sha256": "55fbcb20b287279a5a1dbf6cd1b8f181f3816cf6f3399e626c9b1b9e40730486"
+    },
+    {
+      "package": "864",
+      "logical": "battle/action/skill/action/rare5/ruin_girl_campus$ruin_girl_campus_2.action.dsl.amf3.deflate",
+      "key": null,
+      "before_sha256": "65b1d2c681c479993a4b3891272cb5b82a1166af4cf37fbcd8455ac73a6359ec",
+      "target_sha256": "55fbcb20b287279a5a1dbf6cd1b8f181f3816cf6f3399e626c9b1b9e40730486",
+      "reason": "exact-preimage",
+      "changed": true,
+      "after_sha256": "55fbcb20b287279a5a1dbf6cd1b8f181f3816cf6f3399e626c9b1b9e40730486"
+    },
+    {
+      "package": "864",
+      "logical": "battle/action/skill/action/ability_skill/ruin_girl_campus$ruin_girl_campus_fever_spawn.action.dsl.amf3.deflate",
+      "key": null,
+      "before_sha256": "3b28adf1289ddc7251b009db2ffc7fc2b53e307548ecd12dffc6a3a5c72cef30",
+      "target_sha256": "36472ffe78bd06415e0c9757b7bea300d7379d849e65adc5897f1d22dd5d91ad",
+      "reason": "exact-preimage",
+      "changed": true,
+      "after_sha256": "36472ffe78bd06415e0c9757b7bea300d7379d849e65adc5897f1d22dd5d91ad"
+    },
+    {
+      "package": "864",
+      "logical": "battle/action/skill/action/rare5/spirit_beast_wind_playable$spirit_beast_wind_playable_2.action.dsl.amf3.deflate",
+      "key": null,
+      "before_sha256": "575034872185166d4719a2bcab600d0a0ca82c618f7be64c31df3d5122d8d29d",
+      "target_sha256": "604765b866d500d80cdb7d9f55fb5cd04a0d995328100392a2c26ebc7a826007",
+      "reason": "exact-preimage",
+      "changed": true,
+      "after_sha256": "604765b866d500d80cdb7d9f55fb5cd04a0d995328100392a2c26ebc7a826007"
+    },
+    {
+      "package": "864",
+      "logical": "battle/action/power_flip/action/override/ginovi_pf$ginovi_pf_lv1.action.dsl.amf3.deflate",
+      "key": null,
+      "before_sha256": "fa701890c57352e36f5df76dfb74cbe91ffe4b8b7c7232e46dd4f8358ca73c96",
+      "target_sha256": "3ec6b36b7db14a6c5bad12c2df04c8a4ef42cedfd0273ca28eb6ef2e12b95794",
+      "reason": "exact-preimage",
+      "changed": true,
+      "after_sha256": "3ec6b36b7db14a6c5bad12c2df04c8a4ef42cedfd0273ca28eb6ef2e12b95794"
+    },
+    {
+      "package": "864",
+      "logical": "battle/action/power_flip/action/override/ginovi_pf$ginovi_pf_lv2.action.dsl.amf3.deflate",
+      "key": null,
+      "before_sha256": "399b4336625f6a2b0a5059f754df030ef75feaf6c310a131ef769cdf1250dcd0",
+      "target_sha256": "2fa7e9d6eb530605b118662c76516842ed172230ce613db85ad8534dec495012",
+      "reason": "exact-preimage",
+      "changed": true,
+      "after_sha256": "2fa7e9d6eb530605b118662c76516842ed172230ce613db85ad8534dec495012"
+    },
+    {
+      "package": "864",
+      "logical": "battle/action/power_flip/action/override/ginovi_pf$ginovi_pf_lv3.action.dsl.amf3.deflate",
+      "key": null,
+      "before_sha256": "05f5b3ea297ebf8a783c7049b53bf8cf0b20cccbeb3baafc7d6bec002d50d6d8",
+      "target_sha256": "83e16959685945f206a37ebef11731ab695c9464850f6284a3c1b6747a458e4c",
+      "reason": "exact-preimage",
+      "changed": true,
+      "after_sha256": "83e16959685945f206a37ebef11731ab695c9464850f6284a3c1b6747a458e4c"
+    },
+    {
+      "package": "864",
+      "logical": "assets/cdndata/character_text.json",
+      "key": "149989",
+      "stored_logical": "assets/cdndata/character_text.json",
+      "before_sha256": "2e634ec8c306d8a93dce3de309c7bc3c01a4330998dab6a80d12f5e0e86e153e",
+      "target_sha256": "e875b6bbf8ec12c7568ac373a1800d24539e4855bb86aa6d867580b9e5be980e",
+      "reason": "exact-preimage",
+      "changed": true,
+      "after_sha256": "113ebe1afb7d5dddd93ec3cea149d9309a6c3a214ddd86777467eea3f439a208"
+    },
+    {
+      "package": "864",
+      "logical": "assets/cdndata/character_text.json",
+      "key": "149951",
+      "stored_logical": "assets/cdndata/character_text_rank_p5b.json",
+      "before_sha256": "a470a7bde501895c16696c6d40aa39d8986cf17a849b49aa1d0141404fae6dee",
+      "target_sha256": "83317386229ab9926c9ec63d5011ca4a22c8e477938677e94c18dcff8af944b0",
+      "reason": "exact-preimage",
+      "changed": true,
+      "after_sha256": "05ea6623f469d70db02c5e6fed681466ee9016fa96b9724397d255511b05b8bd"
+    },
+    {
+      "package": "867",
+      "logical": "master/ability/ability.orderedmap",
+      "key": "1499893",
+      "before_sha256": "700640cfd8d4c38f48dcdafb0abbcc3f053db4a460eecd30d504c92b099ce066",
+      "target_sha256": "38065ec5b9ab16b1bfe33f08cf4af046bbb897279a74ef6d57727851d17fd8c3",
+      "reason": "exact-preimage",
+      "changed": true,
+      "after_sha256": "38065ec5b9ab16b1bfe33f08cf4af046bbb897279a74ef6d57727851d17fd8c3"
+    },
+    {
+      "package": "867",
+      "logical": "master/string/custom_ability_string.orderedmap",
+      "key": "desc_override_wind_spgirl_campus_3",
+      "before_sha256": "37501a2a08f28dce68efa41820392ec829469bd89ad34ee616f5a87406a68920",
+      "target_sha256": "6518f308573f508762074fb145674c741cf3da3381ac28f2fea0c964a6db5a4f",
+      "reason": "exact-preimage",
+      "changed": true,
+      "after_sha256": "6518f308573f508762074fb145674c741cf3da3381ac28f2fea0c964a6db5a4f"
+    },
+    {
+      "package": "867",
+      "logical": "master/skill/action_skill.orderedmap",
+      "key": "wind_spgirl_campus",
+      "before_sha256": "1bfa88b010e6f63ff8dffc601c665eda1929cc9c9774530aa1a6196eb8deae09",
+      "target_sha256": "f723ac5d9d8a604e0fcf7a18e6fc5a5f5c1579c0edd197dec788deaff8e4f683",
+      "reason": "three-way-preserved-receiver-cells",
+      "changed": true,
+      "after_sha256": "24614d45c19ff383a5892f67d252d24c2233d28949aef1e22beb2da90da1046d"
+    },
+    {
+      "package": "867",
+      "logical": "master/character/character_text.orderedmap",
+      "key": "149989",
+      "before_sha256": "a5399dba090a5f3366635e11ac971156b0eb2d36836592d4b9a8ab252af7dd2a",
+      "target_sha256": "3d33d77ddfdc42456f3f85ba48c28509aa7ba7b5d4e990b9d1e2fd56962ca057",
+      "reason": "exact-preimage",
+      "changed": true,
+      "after_sha256": "3d33d77ddfdc42456f3f85ba48c28509aa7ba7b5d4e990b9d1e2fd56962ca057"
+    },
+    {
+      "package": "867",
+      "logical": "battle/action/skill/action/rare5/wind_spgirl_campus$wind_spgirl_campus_1.action.dsl.amf3.deflate",
+      "key": null,
+      "before_sha256": "6b4debbf664f1fbc511ab7cb2a1fc2df67326afb38b97b02c63d73241c8c8bf1",
+      "target_sha256": "6206396b2abdcabce7b48799bae7328f1b7cc25a67e5bb7f2cc335112a1a0df3",
+      "reason": "exact-preimage",
+      "changed": true,
+      "after_sha256": "6206396b2abdcabce7b48799bae7328f1b7cc25a67e5bb7f2cc335112a1a0df3"
+    },
+    {
+      "package": "867",
+      "logical": "battle/action/skill/action/rare5/wind_spgirl_campus$wind_spgirl_campus_2.action.dsl.amf3.deflate",
+      "key": null,
+      "before_sha256": "6b4debbf664f1fbc511ab7cb2a1fc2df67326afb38b97b02c63d73241c8c8bf1",
+      "target_sha256": "6206396b2abdcabce7b48799bae7328f1b7cc25a67e5bb7f2cc335112a1a0df3",
+      "reason": "exact-preimage",
+      "changed": true,
+      "after_sha256": "6206396b2abdcabce7b48799bae7328f1b7cc25a67e5bb7f2cc335112a1a0df3"
+    },
+    {
+      "package": "867",
+      "logical": "assets/cdndata/character_text.json",
+      "key": "149989",
+      "stored_logical": "assets/cdndata/character_text.json",
+      "before_sha256": "113ebe1afb7d5dddd93ec3cea149d9309a6c3a214ddd86777467eea3f439a208",
+      "target_sha256": "591b923a6c47a8dee8b290bba7fa088534c2d3d3389ebbb93c64141728954340",
+      "reason": "exact-preimage",
+      "changed": true,
+      "after_sha256": "080be78e1ba3d7ab19adc9b6bc9994d4e5764728d527081c150c73297ebc2bd8"
+    }
+  ],
+  "conflicts": [],
+  "identity": [
+    {
+      "package": "864",
+      "id": "119989",
+      "code": "lady_summoner_campus"
+    },
+    {
+      "package": "864",
+      "id": "119996",
+      "code": "lion_swordman_reborn"
+    },
+    {
+      "package": "864",
+      "id": "129950",
+      "code": "discarded_dragon_water_playable"
+    },
+    {
+      "package": "864",
+      "id": "129952",
+      "code": "dimension_witch_smr20_ex"
+    },
+    {
+      "package": "864",
+      "id": "129970",
+      "code": "steam_robot_water_playable"
+    },
+    {
+      "package": "864",
+      "id": "129992",
+      "code": "unicorn_lancer_rose"
+    },
+    {
+      "package": "864",
+      "id": "129997",
+      "code": "claude_wolf_assassin_ex"
+    },
+    {
+      "package": "864",
+      "id": "129999",
+      "code": "seris_dragon_king"
+    },
+    {
+      "package": "864",
+      "id": "139950",
+      "code": "discarded_dragon_thunder_playable"
+    },
+    {
+      "package": "864",
+      "id": "139995",
+      "code": "fox_oracle_autumn"
+    },
+    {
+      "package": "864",
+      "id": "139997",
+      "code": "resistance_princess_ex"
+    },
+    {
+      "package": "864",
+      "id": "149951",
+      "code": "spirit_beast_wind_playable"
+    },
+    {
+      "package": "864",
+      "id": "149988",
+      "code": "scutum_valentine"
+    },
+    {
+      "package": "864",
+      "id": "149989",
+      "code": "wind_spgirl_campus"
+    },
+    {
+      "package": "864",
+      "id": "149990",
+      "code": "white_tiger_summer"
+    },
+    {
+      "package": "864",
+      "id": "149995",
+      "code": "seofon_wind"
+    },
+    {
+      "package": "864",
+      "id": "149998",
+      "code": "land_dragon_wind_playable"
+    },
+    {
+      "package": "864",
+      "id": "149999",
+      "code": "white_wolf_gerald"
+    },
+    {
+      "package": "864",
+      "id": "159950",
+      "code": "discard_dragon_light_playable"
+    },
+    {
+      "package": "864",
+      "id": "159970",
+      "code": "steam_robot_light_playable"
+    },
+    {
+      "package": "864",
+      "id": "169950",
+      "code": "discard_dragon_dark_playable"
+    },
+    {
+      "package": "864",
+      "id": "169951",
+      "code": "spirit_beast_dark_playable"
+    },
+    {
+      "package": "864",
+      "id": "169970",
+      "code": "steam_robot_dark_playable"
+    },
+    {
+      "package": "864",
+      "id": "169980",
+      "code": "abyss_beast_playable"
+    },
+    {
+      "package": "864",
+      "id": "169989",
+      "code": "ruin_girl_campus"
+    },
+    {
+      "package": "864",
+      "id": "169995",
+      "code": "maou2_playable"
+    },
+    {
+      "package": "864",
+      "id": "169997",
+      "code": "vaseraga_dark"
+    },
+    {
+      "package": "864",
+      "id": "169999",
+      "code": "ginovi"
+    },
+    {
+      "package": "864",
+      "id": "179970",
+      "code": "steam_robot_another_playable"
+    },
+    {
+      "package": "864",
+      "id": "179981",
+      "code": "cnmod_epuration_empress"
+    },
+    {
+      "package": "864",
+      "id": "179999",
+      "code": "black_wolf_knight_wt26"
+    },
+    {
+      "package": "867",
+      "id": "149989",
+      "code": "wind_spgirl_campus"
+    }
+  ],
+  "client_outputs": {
+    "master/ability/ability.orderedmap": {
+      "size": 369539,
+      "sha256": "63cc66f07ee3db3f8dff0030f638d7644178be634f2f81ecbd07b9dc0fa0168a"
+    },
+    "master/string/custom_ability_string.orderedmap": {
+      "size": 43842,
+      "sha256": "45340ca6f12309178a122dacc702c2f6023eb97704c8ecdad86744f78cd265a8"
+    },
+    "master/skill/action_skill.orderedmap": {
+      "size": 349468,
+      "sha256": "75f9ed177211649f042ffa67851f7435a3df703f03aadfdbf7755d183db40597"
+    },
+    "master/character/character_text.orderedmap": {
+      "size": 210191,
+      "sha256": "7decfb92b6393daaf553058a32f6cb772077dd442c117b7952ed751dda46f02d"
+    },
+    "master/ability/leader_ability.orderedmap": {
+      "size": 64602,
+      "sha256": "f3891b3c40e74e64810ec30a80111374d97726aff4d784c2ea59ba468d28f275"
+    },
+    "battle/action/skill/action/rare5/wind_spgirl_campus$wind_spgirl_campus_1.action.dsl.amf3.deflate": {
+      "size": 1724,
+      "sha256": "6206396b2abdcabce7b48799bae7328f1b7cc25a67e5bb7f2cc335112a1a0df3"
+    },
+    "battle/action/skill/action/rare5/wind_spgirl_campus$wind_spgirl_campus_2.action.dsl.amf3.deflate": {
+      "size": 1724,
+      "sha256": "6206396b2abdcabce7b48799bae7328f1b7cc25a67e5bb7f2cc335112a1a0df3"
+    },
+    "battle/action/skill/action/rare5/ruin_girl_campus$ruin_girl_campus_1.action.dsl.amf3.deflate": {
+      "size": 713,
+      "sha256": "55fbcb20b287279a5a1dbf6cd1b8f181f3816cf6f3399e626c9b1b9e40730486"
+    },
+    "battle/action/skill/action/rare5/ruin_girl_campus$ruin_girl_campus_2.action.dsl.amf3.deflate": {
+      "size": 713,
+      "sha256": "55fbcb20b287279a5a1dbf6cd1b8f181f3816cf6f3399e626c9b1b9e40730486"
+    },
+    "battle/action/skill/action/ability_skill/ruin_girl_campus$ruin_girl_campus_fever_spawn.action.dsl.amf3.deflate": {
+      "size": 654,
+      "sha256": "36472ffe78bd06415e0c9757b7bea300d7379d849e65adc5897f1d22dd5d91ad"
+    },
+    "battle/action/skill/action/rare5/spirit_beast_wind_playable$spirit_beast_wind_playable_2.action.dsl.amf3.deflate": {
+      "size": 1095,
+      "sha256": "604765b866d500d80cdb7d9f55fb5cd04a0d995328100392a2c26ebc7a826007"
+    },
+    "battle/action/power_flip/action/override/ginovi_pf$ginovi_pf_lv1.action.dsl.amf3.deflate": {
+      "size": 867,
+      "sha256": "3ec6b36b7db14a6c5bad12c2df04c8a4ef42cedfd0273ca28eb6ef2e12b95794"
+    },
+    "battle/action/power_flip/action/override/ginovi_pf$ginovi_pf_lv2.action.dsl.amf3.deflate": {
+      "size": 915,
+      "sha256": "2fa7e9d6eb530605b118662c76516842ed172230ce613db85ad8534dec495012"
+    },
+    "battle/action/power_flip/action/override/ginovi_pf$ginovi_pf_lv3.action.dsl.amf3.deflate": {
+      "size": 964,
+      "sha256": "83e16959685945f206a37ebef11731ab695c9464850f6284a3c1b6747a458e4c"
+    }
+  },
+  "source_reads": {
+    "common|2d/5cb9b28d18f984a51b345a4d7aab03d77bddfc": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.106-1.4.107-2-author858-selected.zip",
+      "member": "production/upload/2d/5cb9b28d18f984a51b345a4d7aab03d77bddfc",
+      "sha256": "65ed20c93b9e22ae33a8302bba3e27e470d93cbd23da996cc6a71f858c0d6903"
+    },
+    "common|1e/664c1cc8d80f4f9a69aae2c49ae8c01d1c4001": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.106-1.4.107-2-author858-selected.zip",
+      "member": "production/upload/1e/664c1cc8d80f4f9a69aae2c49ae8c01d1c4001",
+      "sha256": "07ed6579eea0d9564c63bd9cb12002873d49ab9f0a8a33c79d98ac1d246b16c4"
+    },
+    "common|07/0c6e214359ccf27b1cb8078d3fc51aecfe0149": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.106-1.4.107-2-author858-selected.zip",
+      "member": "production/upload/07/0c6e214359ccf27b1cb8078d3fc51aecfe0149",
+      "sha256": "1e0a6d8033754b853b4ff79bc4102e02d29cb599f928119cf2ed5bb3254eb93f"
+    },
+    "common|91/79892d704f88d98191c00548bce106402ad5b5": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.106-1.4.107-2-author858-selected.zip",
+      "member": "production/upload/91/79892d704f88d98191c00548bce106402ad5b5",
+      "sha256": "945e997577d2caf20a752a89a7f284f52615ec393a274d638b0e484f1b114898"
+    },
+    "common|8b/035728b2151de044fb245988ec5f33ebb544ab": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.106-1.4.107-2-author858-selected.zip",
+      "member": "production/upload/8b/035728b2151de044fb245988ec5f33ebb544ab",
+      "sha256": "f4419da50e1d8aa8aaa2bb15820b0adb9d7b0a17f77f3856dac5d88580deaaea"
+    },
+    "common|ff/84353774cb95e8d7dc90c679f96a5bca7f42e5": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.106-1.4.107-2-author858-selected.zip",
+      "member": "production/upload/ff/84353774cb95e8d7dc90c679f96a5bca7f42e5",
+      "sha256": "9abe387c945ee79ed9e568a79eb0cecbc67f5ea82f8a15f82895865f09d0bdb2"
+    },
+    "common|a7/125ea34d293bf30ec77725b43d233db8bbb768": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.106-1.4.107-2-author858-selected.zip",
+      "member": "production/upload/a7/125ea34d293bf30ec77725b43d233db8bbb768",
+      "sha256": "db0e413a094b4443482f2cf073ec9f9316dda908e2a56181e9479ff450cc25af"
+    },
+    "common|60/98235735eb9fb1b69ba6f8ec8a90394494ffd7": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.106-1.4.107-2-author858-selected.zip",
+      "member": "production/upload/60/98235735eb9fb1b69ba6f8ec8a90394494ffd7",
+      "sha256": "db0e413a094b4443482f2cf073ec9f9316dda908e2a56181e9479ff450cc25af"
+    },
+    "common|a1/c5eb7286e3886b84f18204e5437ebfc79f5a6a": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.107-1.4.108-3-campus-summon-g1008.zip",
+      "member": "production/upload/a1/c5eb7286e3886b84f18204e5437ebfc79f5a6a",
+      "sha256": "65b1d2c681c479993a4b3891272cb5b82a1166af4cf37fbcd8455ac73a6359ec"
+    },
+    "common|5a/b60d3221af3ce1082db6c4f42cce500a7a75d0": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.107-1.4.108-3-campus-summon-g1008.zip",
+      "member": "production/upload/5a/b60d3221af3ce1082db6c4f42cce500a7a75d0",
+      "sha256": "65b1d2c681c479993a4b3891272cb5b82a1166af4cf37fbcd8455ac73a6359ec"
+    },
+    "common|6e/4dd6850c01c218a8408c59f26f44a75c4cb469": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.106-1.4.107-2-author858-selected.zip",
+      "member": "production/upload/6e/4dd6850c01c218a8408c59f26f44a75c4cb469",
+      "sha256": "3b28adf1289ddc7251b009db2ffc7fc2b53e307548ecd12dffc6a3a5c72cef30"
+    },
+    "common|cb/a0cd7f8229186683ed1e7bea162ef52f85655a": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.96-1.4.97-1-greyupd0902-cdn-resource-recovery.zip",
+      "member": "production/upload/cb/a0cd7f8229186683ed1e7bea162ef52f85655a",
+      "sha256": "575034872185166d4719a2bcab600d0a0ca82c618f7be64c31df3d5122d8d29d"
+    },
+    "common|30/a6c3207f698f1c3dc43d3340d4e81bf4cfb1b3": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.101-1.4.102-1-lens0907-0908-consolidated.zip",
+      "member": "production/upload/30/a6c3207f698f1c3dc43d3340d4e81bf4cfb1b3",
+      "sha256": "fa701890c57352e36f5df76dfb74cbe91ffe4b8b7c7232e46dd4f8358ca73c96"
+    },
+    "common|bb/21e6d1ec1faeefaa5caf9eebb09956b4c2f50c": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.101-1.4.102-1-lens0907-0908-consolidated.zip",
+      "member": "production/upload/bb/21e6d1ec1faeefaa5caf9eebb09956b4c2f50c",
+      "sha256": "399b4336625f6a2b0a5059f754df030ef75feaf6c310a131ef769cdf1250dcd0"
+    },
+    "common|3f/9a0838455a30cebe634ee375ef0a783fb0521a": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.101-1.4.102-1-lens0907-0908-consolidated.zip",
+      "member": "production/upload/3f/9a0838455a30cebe634ee375ef0a783fb0521a",
+      "sha256": "05f5b3ea297ebf8a783c7049b53bf8cf0b20cccbeb3baafc7d6bec002d50d6d8"
+    }
+  },
+  "complete": true
+}

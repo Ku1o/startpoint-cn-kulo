@@ -1,5 +1,5 @@
 {
-  "cdn_version": "1.4.108",
+  "cdn_version": "1.4.109",
   "patches": [
     {
       "id": "base-1.4.54-to-1.4.55-mod07141843",
@@ -13815,6 +13815,77 @@
         "pinball-1.4.107-1.4.108-2-epuration-gacha.zip",
         "pinball-1.4.107-1.4.108-3-campus-summon-g1008.zip"
       ]
+    },
+    {
+      "id": "author-update-fusion-20260914",
+      "type": "patch",
+      "name": "作者更新融合（1.4.865／1.4.866／1.4.867）",
+      "description": "将作者 1.4.865 的铭牌与角色平衡、1.4.866 校希尔媞初版及 1.4.867 最终版合入当前 1.4.108 链尾。",
+      "depends_on": "1.4.108",
+      "version": "1.4.109",
+      "enabled": true,
+      "archive": "pinball-1.4.108-1.4.109-1-author-update-fusion.zip",
+      "archive_size": 1070069,
+      "archive_integrity": [
+        {
+          "name": "pinball-1.4.108-1.4.109-1-author-update-fusion.zip",
+          "size": 1070069,
+          "sha256": "406e74c36e2ee7a2b940a4dd48f5d721f57b6d8435bdbdd2b216aa46b080a980",
+          "members": 18,
+          "files": [
+            "production/upload/07/0c6e214359ccf27b1cb8078d3fc51aecfe0149",
+            "production/upload/1e/664c1cc8d80f4f9a69aae2c49ae8c01d1c4001",
+            "production/upload/28/bdd9c0622f9d23da63929e8695af73b56bde34",
+            "production/upload/30/a6c3207f698f1c3dc43d3340d4e81bf4cfb1b3",
+            "production/upload/3b/a0cd705b621b37ae30c57f08f6301b4b5143f8",
+            "production/upload/3f/9a0838455a30cebe634ee375ef0a783fb0521a",
+            "production/upload/5a/b60d3221af3ce1082db6c4f42cce500a7a75d0",
+            "production/upload/60/98235735eb9fb1b69ba6f8ec8a90394494ffd7",
+            "production/upload/6e/4dd6850c01c218a8408c59f26f44a75c4cb469",
+            "production/upload/89/e5c25c791e2a9527422c186084a1793218c2ac",
+            "production/upload/8b/035728b2151de044fb245988ec5f33ebb544ab",
+            "production/upload/91/79892d704f88d98191c00548bce106402ad5b5",
+            "production/upload/a1/c5eb7286e3886b84f18204e5437ebfc79f5a6a",
+            "production/upload/a7/125ea34d293bf30ec77725b43d233db8bbb768",
+            "production/upload/bb/21e6d1ec1faeefaa5caf9eebb09956b4c2f50c",
+            "production/upload/cb/a0cd7f8229186683ed1e7bea162ef52f85655a",
+            "production/upload/d6/1054b22e3efacaa5148b8ce8a6c98318068780",
+            "production/upload/ff/84353774cb95e8d7dc90c679f96a5bca7f42e5"
+          ]
+        }
+      ],
+      "files": [
+        "production/upload/07/0c6e214359ccf27b1cb8078d3fc51aecfe0149",
+        "production/upload/1e/664c1cc8d80f4f9a69aae2c49ae8c01d1c4001",
+        "production/upload/28/bdd9c0622f9d23da63929e8695af73b56bde34",
+        "production/upload/30/a6c3207f698f1c3dc43d3340d4e81bf4cfb1b3",
+        "production/upload/3b/a0cd705b621b37ae30c57f08f6301b4b5143f8",
+        "production/upload/3f/9a0838455a30cebe634ee375ef0a783fb0521a",
+        "production/upload/5a/b60d3221af3ce1082db6c4f42cce500a7a75d0",
+        "production/upload/60/98235735eb9fb1b69ba6f8ec8a90394494ffd7",
+        "production/upload/6e/4dd6850c01c218a8408c59f26f44a75c4cb469",
+        "production/upload/89/e5c25c791e2a9527422c186084a1793218c2ac",
+        "production/upload/8b/035728b2151de044fb245988ec5f33ebb544ab",
+        "production/upload/91/79892d704f88d98191c00548bce106402ad5b5",
+        "production/upload/a1/c5eb7286e3886b84f18204e5437ebfc79f5a6a",
+        "production/upload/a7/125ea34d293bf30ec77725b43d233db8bbb768",
+        "production/upload/bb/21e6d1ec1faeefaa5caf9eebb09956b4c2f50c",
+        "production/upload/cb/a0cd7f8229186683ed1e7bea162ef52f85655a",
+        "production/upload/d6/1054b22e3efacaa5148b8ce8a6c98318068780",
+        "production/upload/ff/84353774cb95e8d7dc90c679f96a5bca7f42e5"
+      ],
+      "changes": [
+        "合并 1.4.864 清单内 60 条角色表记录及 9 个技能/PF 脚本，保留接收端既有未触及字段。",
+        "合并 1.4.864 的 149989 与 149951 服务端角色文本到当前分表。",
+        "追加 9911001、9911002、9911003 三项成就及 320×50 原生称号图。",
+        "校希尔媞采用 1.4.867 最终版，A3 技能槽增量为 +0.7%（700 原生值）。",
+        "服务端成就判定接入商店累计兑换、装备强化及单人练习回补路径。"
+      ],
+      "created_at": "2026-09-14",
+      "audit": {
+        "directory": "assets/asset-patch/audit/author-update-fusion-1.4.109",
+        "report": "fusion-report.json"
+      }
     }
   ]
 }

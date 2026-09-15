@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "enabled": true,
+  "degree_id": 9911001,
+  "shop_item_ids": [9700116, 9700117],
+  "required_purchases": 9999
+}

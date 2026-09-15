@@ -25,6 +25,8 @@ import { getDegreeMissionIdsForConditionTypes, mergeMissionSettlementResponse, s
 import { addMissionCounterSync } from "../../lib/mission/counters";
 import { computeFreeFirstDeduction } from "../../lib/free-first-deduction";
 import { buildShopSalesEntry, getShopPurchaseKey, isShopItemAvailable } from "../../lib/shop-sales";
+import { grantEquipmentDegreeRewardsSync } from "../../lib/equipment-degree-rewards";
+import { grantPurchasedAbyssShopDegreeRewardSync } from "../../lib/abyss-shop-degree-reward";
 
 const GENERAL_SHOP_CDN_KEYS: Set<number> = new Set(CDN_GENERAL_SHOP_WHITELIST);
 
@@ -566,6 +568,7 @@ const routes = async (fastify: FastifyInstance) => {
         // Equipment enhancement shop: update equipment enhancement level
         if (enhancementPurchase !== null) {
             const { equipmentId, newLevel, grantedLevelCount } = enhancementPurchase
+            let equipmentDegreeIds: number[] = []
             getDb().transaction(() => {
                 applyPurchaseCosts()
                 updatePlayerEquipmentSync(playerId, equipmentId, { enhancementLevel: newLevel })
@@ -575,6 +578,7 @@ const routes = async (fastify: FastifyInstance) => {
                     shopItemId,
                     chargedPurchaseAmount,
                 )
+                equipmentDegreeIds = grantEquipmentDegreeRewardsSync(playerId, [equipmentId])
             })()
 
             const currentEquipment = getPlayerEquipmentSync(playerId, equipmentId)!
@@ -598,6 +602,10 @@ const routes = async (fastify: FastifyInstance) => {
                     },
                     "character_list": [],
                     "equipment_list": [clientSerializeEquipment(equipmentId, currentEquipment)],
+                    "degree_list": equipmentDegreeIds.map(degreeId => ({
+                        viewer_id: viewerId,
+                        degree_id: degreeId,
+                    })),
                     "item_list": itemList,
                     "mail_arrived": false
                 }
@@ -673,6 +681,7 @@ const routes = async (fastify: FastifyInstance) => {
                 }
             }
             addEffectiveShopPurchaseCountSync(playerId, shopType, shopItemId, purchaseAmount)
+            degreeIds.push(...grantPurchasedAbyssShopDegreeRewardSync(playerId, shopType, [{ shopItemId }]))
             return result
         })()
 
@@ -1273,6 +1282,7 @@ const routes = async (fastify: FastifyInstance) => {
                         purchase.purchaseAmount
                     )
                 }
+                degreeIds.push(...grantPurchasedAbyssShopDegreeRewardSync(playerId, shopType, purchases))
                 recordTreasureShopProgress(
                     playerId,
                     shopType,
