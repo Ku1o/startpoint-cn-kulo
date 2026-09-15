@@ -4,6 +4,7 @@
 //   [index, param1, param2, ...]
 
 import * as net from "net"
+import { clientAdmission } from "../../lib/client-admission"
 import { handleHandshake } from "./handshake"
 import { handleBattleMessage } from "./battle"
 import { sessionManager } from "../state/SessionManager"
@@ -51,6 +52,7 @@ export function startSessionServer(): Promise<void> {
             let isLoungeSocket = false
             let socketRemoved = false
             let protocolClosed = false
+            let admissionToken: unknown, admissionSession: unknown
 
             const closeForProtocolViolation = (reason: string) => {
                 if (protocolClosed) return
@@ -120,6 +122,14 @@ export function startSessionServer(): Promise<void> {
                                 closeForProtocolViolation("first frame was not a valid handshake")
                                 return
                             }
+                            admissionToken = data.sp_admission
+                            admissionSession = data.sp_session
+                            if (!clientAdmission().checkActivity(admissionToken, admissionSession).ok) {
+                                socket.end(JSON.stringify([1, "CLIENT_ADMISSION_REQUIRED"]) + "\0")
+                                protocolClosed = true
+                                clearHandshakeTimer()
+                                return
+                            }
                             handshakeDone = true
                             clearHandshakeTimer()
                             isBattleSocket = data.socklet === "cooperation_battle"
@@ -131,6 +141,9 @@ export function startSessionServer(): Promise<void> {
                                 console.error(`[TCP] handshake failed:`, err)
                                 socket.destroy()
                             })
+                        } else if (!clientAdmission().checkActivity(admissionToken, admissionSession).ok) {
+                            closeForProtocolViolation("client build no longer admitted")
+                            return
                         } else if (isBattleSocket) {
                             handleBattleMessage(socket, data)
                         } else if (isLoungeSocket) {

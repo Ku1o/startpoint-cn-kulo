@@ -52,6 +52,7 @@ const online_presence_1 = require("./lib/online-presence");
 const takeover_access_1 = require("./lib/takeover-access");
 const player_login_1 = require("./lib/player-login");
 const playerLogin_1 = __importStar(require("./routes/cn/playerLogin"));
+const client_admission_1 = require("./lib/client-admission");
 const SessionManager_1 = require("./multi/state/SessionManager");
 const state_1 = require("./lounge/state");
 const local_client_compat_1 = require("./lib/local-client-compat");
@@ -464,6 +465,7 @@ fastify.addContentTypeParser("application/json", { parseAs: "string" }, jsonPars
     SessionManager_1.sessionManager.disconnectPlayerLogin(viewerId);
     (0, state_1.disconnectLoungePlayerLogin)(viewerId);
 });
+(0, client_admission_1.installClientAdmission)(fastify);
 (0, playerLogin_1.installPlayerLoginGuard)(fastify);
 (0, takeover_access_1.installTakeoverUdidGuard)(fastify);
 fastify.register(playerLogin_1.default);

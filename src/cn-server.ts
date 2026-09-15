@@ -15,6 +15,7 @@ import { markPlayerOnline } from "./lib/online-presence";
 import { installTakeoverUdidGuard } from "./lib/takeover-access";
 import { initializePlayerLogin } from "./lib/player-login";
 import playerLoginRoutes, { installPlayerLoginGuard } from "./routes/cn/playerLogin";
+import { installClientAdmission } from "./lib/client-admission";
 import { sessionManager as playerLoginSessionManager } from "./multi/state/SessionManager";
 import { disconnectLoungePlayerLogin } from "./lounge/state";
 import { installLocalClientCompat } from "./lib/local-client-compat";
@@ -415,6 +416,7 @@ initializePlayerLogin(viewerId => {
     playerLoginSessionManager.disconnectPlayerLogin(viewerId);
     disconnectLoungePlayerLogin(viewerId);
 });
+installClientAdmission(fastify);
 installPlayerLoginGuard(fastify);
 installTakeoverUdidGuard(fastify);
 fastify.register(playerLoginRoutes);

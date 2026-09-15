@@ -1,0 +1,20 @@
+{
+  "enforce": false,
+  "updateMessage": "当前客户端版本已停止支持，请到群聊下载新版安装包。",
+  "builds": [
+    {
+      "id": "android-181-r10-20260915",
+      "name": "StarPoint CN 1.8.1 R10 正式版",
+      "platform": "android",
+      "enabled": true,
+      "allowUntil": null
+    },
+    {
+      "id": "ios-184-admission-20260915",
+      "name": "StarPoint CN 1.8.4 iOS 正式准入版",
+      "platform": "ios",
+      "enabled": true,
+      "allowUntil": null
+    }
+  ]
+}
