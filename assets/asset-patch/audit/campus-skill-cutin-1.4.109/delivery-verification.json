@@ -2,16 +2,17 @@
   "status": "passed",
   "actual_asset_handlers": true,
   "archive_integrity_verified": true,
-  "manifest_sha256": "b355a9f725d7750cb8c2bc9a25b86820c2191278f955e2d2de48116817b5c9e5",
+  "manifest_sha256": "ba4361a9172cb4fd1784e8679f9bcef9c248a45745dbb44a1f481b5efa3235f2",
   "platforms": {
     "android": {
       "from": "1.4.108",
       "to": "1.4.109",
       "archives": [
         "pinball-1.4.108-1.4.109-1-author-update-fusion.zip",
+        "pinball-1.4.108-1.4.109-2-c2265-character-speech.zip",
         "pinball-1.4.108-1.4.109-3-campus-skill-cutin.zip"
       ],
-      "bytes": 5621210,
+      "bytes": 6016383,
       "already_current_has_no_update": true
     },
     "ios": {
@@ -19,9 +20,10 @@
       "to": "1.4.109",
       "archives": [
         "pinball-1.4.108-1.4.109-1-author-update-fusion.zip",
+        "pinball-1.4.108-1.4.109-2-c2265-character-speech.zip",
         "pinball-1.4.108-1.4.109-3-campus-skill-cutin.zip"
       ],
-      "bytes": 5621210,
+      "bytes": 6016383,
       "already_current_has_no_update": true
     }
   },

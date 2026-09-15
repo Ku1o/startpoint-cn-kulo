@@ -13825,7 +13825,7 @@
       "version": "1.4.109",
       "enabled": true,
       "archive": "pinball-1.4.108-1.4.109-1-author-update-fusion.zip",
-      "archive_size": 5621210,
+      "archive_size": 6016383,
       "archive_integrity": [
         {
           "name": "pinball-1.4.108-1.4.109-1-author-update-fusion.zip",
@@ -13851,6 +13851,15 @@
             "production/upload/cb/a0cd7f8229186683ed1e7bea162ef52f85655a",
             "production/upload/d6/1054b22e3efacaa5148b8ce8a6c98318068780",
             "production/upload/ff/84353774cb95e8d7dc90c679f96a5bca7f42e5"
+          ]
+        },
+        {
+          "name": "pinball-1.4.108-1.4.109-2-c2265-character-speech.zip",
+          "size": 395173,
+          "sha256": "4e0c253a1ba7e461231182e0a729faee06362c13a3877ac1dc9c7973a9c99f9a",
+          "members": 1,
+          "files": [
+            "production/upload/b4/a28679b8eeefdbdcbe6071fd4f2ff85e5b3415"
           ]
         },
         {
@@ -13913,6 +13922,7 @@
         "production/upload/91/79892d704f88d98191c00548bce106402ad5b5",
         "production/upload/a1/c5eb7286e3886b84f18204e5437ebfc79f5a6a",
         "production/upload/a7/125ea34d293bf30ec77725b43d233db8bbb768",
+        "production/upload/b4/a28679b8eeefdbdcbe6071fd4f2ff85e5b3415",
         "production/upload/bb/21e6d1ec1faeefaa5caf9eebb09956b4c2f50c",
         "production/upload/cb/a0cd7f8229186683ed1e7bea162ef52f85655a",
         "production/upload/d6/1054b22e3efacaa5148b8ce8a6c98318068780",
@@ -13924,16 +13934,19 @@
         "追加 9911001、9911002、9911003 三项成就及 320×50 原生称号图。",
         "校希尔媞采用 1.4.867 最终版，A3 技能槽增量为 +0.7%（700 原生值）。",
         "服务端成就判定接入商店累计兑换、装备强化及单人练习回补路径。",
-        "第3分包：校碧安卡、校希尔媞、校奈芙提姆进化前后6张技能展示图扩大取景范围，保留上半身和动作；配套Android ETC1与iOS ETC2纹理。"
+        "第3分包：校碧安卡、校希尔媞、校奈芙提姆进化前后6张技能展示图扩大取景范围，保留上半身和动作；配套Android ETC1与iOS ETC2纹理。",
+        "第2分包：149988 未进化时允许 home_0 主页台词，修复台词全部被过滤导致的 C2265；保留当前台词文字与其余行。"
       ],
       "created_at": "2026-09-14",
       "audit": {
         "directory": "assets/asset-patch/audit/author-update-fusion-1.4.109",
         "report": "fusion-report.json",
-        "campus_skill_cutin_directory": "assets/asset-patch/audit/campus-skill-cutin-1.4.109"
+        "campus_skill_cutin_directory": "assets/asset-patch/audit/campus-skill-cutin-1.4.109",
+        "c2265_directory": "assets/asset-patch/audit/c2265-1.4.109"
       },
       "chain": [
         "pinball-1.4.108-1.4.109-1-author-update-fusion.zip",
+        "pinball-1.4.108-1.4.109-2-c2265-character-speech.zip",
         "pinball-1.4.108-1.4.109-3-campus-skill-cutin.zip"
       ]
     }

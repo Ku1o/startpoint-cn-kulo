@@ -10,11 +10,14 @@ const manifestBytes = fs.readFileSync(path.join(root, 'assets/asset-patch/manife
 const manifest = JSON.parse(manifestBytes);
 const report = JSON.parse(fs.readFileSync(path.join(audit, 'report.json')));
 const patch = manifest.patches.find(x => x.enabled && x.version === '1.4.109');
-assert.equal(sha(manifestBytes), report.manifest_after_sha256);
+// The component report pins its original delivery; later same-version parts may extend the manifest.
+assert.equal(patch.archive_integrity.find(x => x.name.endsWith('-3-campus-skill-cutin.zip')).sha256,
+  '2b89ec0ffae5fac59a36d04c1226493a2f420a4dff3b6fe4d31cbe975a5948f2');
 assert.equal(manifest.cdn_version, '1.4.109');
 assert.equal(patch.depends_on, '1.4.108');
 assert.deepEqual(patch.chain, [
   'pinball-1.4.108-1.4.109-1-author-update-fusion.zip',
+  'pinball-1.4.108-1.4.109-2-c2265-character-speech.zip',
   'pinball-1.4.108-1.4.109-3-campus-skill-cutin.zip',
 ]);
 let total = 0;

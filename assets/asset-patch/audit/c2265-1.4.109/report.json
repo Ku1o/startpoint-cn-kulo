@@ -1,0 +1,28 @@
+{
+  "receipt": {
+    "name": "pinball-1.4.108-1.4.109-2-c2265-character-speech.zip",
+    "size": 395173,
+    "sha256": "4e0c253a1ba7e461231182e0a729faee06362c13a3877ac1dc9c7973a9c99f9a",
+    "members": 1,
+    "files": [
+      "production/upload/b4/a28679b8eeefdbdcbe6071fd4f2ff85e5b3415"
+    ]
+  },
+  "logical": "master/character/character_speech.orderedmap",
+  "source": {
+    "common|b4/a28679b8eeefdbdcbe6071fd4f2ff85e5b3415": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.106-1.4.107-2-author858-selected.zip",
+      "member": "production/upload/b4/a28679b8eeefdbdcbe6071fd4f2ff85e5b3415",
+      "sha256": "23cfef29d916c1c68a4f423e4ab1ed9d8911515974820f92add28753c610a43a"
+    }
+  },
+  "verified_backup_sha256": "a20bf694e18e82aafa4c96acfccf0a96584c6dd59b40436994c00e78b0d6f3d0",
+  "before_sha256": "23cfef29d916c1c68a4f423e4ab1ed9d8911515974820f92add28753c610a43a",
+  "after_sha256": "e785520886d652520151833798a93e789a19bd28e2726c7928d89b6a1c460c56",
+  "rows_preserved": 563,
+  "character": "149988",
+  "only_changed_field": "home/home_0 condition: 1 -> 0",
+  "historical_text_omission_excluded": true,
+  "save_format_changed": false,
+  "device_retest": false
+}
