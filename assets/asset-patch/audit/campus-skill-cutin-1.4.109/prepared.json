@@ -1,0 +1,830 @@
+{
+  "assets": [
+    {
+      "root": "medium",
+      "logical": "character/lady_summoner_campus/ui/skill_cutin_0.png",
+      "member": "production/medium_upload/1d/af3524f82014e8be42c9a9f55e4c7f997579bb",
+      "before_sha256": "f739116474200e7b5baf1ff04ce37200f87ab8aa980a5e2f9caff1082a810928",
+      "code": "lady_summoner_campus",
+      "form": 0,
+      "size": 538912,
+      "sha256": "b4cfda2d83cd0621461a150bcd11d4a30befc48844079cadf47a1841963d930e"
+    },
+    {
+      "root": "android",
+      "logical": "character/lady_summoner_campus/ui/skill_cutin_0.atf.deflate",
+      "member": "production/android_upload/19/9fb20a869004e386a08bd3336270b721dcff92",
+      "before_sha256": "2957e28c3fff4e4ed1c8d25bfe0d6257c2e3b30e1a4a73fe2c9d7651e364fde7",
+      "code": "lady_summoner_campus",
+      "form": 0,
+      "size": 152986,
+      "sha256": "a0b86ddce5c97227eb48f4747acafc028f30a881c07ed87b05c958c73cb89f7c"
+    },
+    {
+      "root": "ios",
+      "logical": "character/lady_summoner_campus/ui/skill_cutin_0.atf.deflate",
+      "member": "production/ios_upload/19/9fb20a869004e386a08bd3336270b721dcff92",
+      "before_sha256": "606baf250fd3bf8087ecef00a03e122152082c485069c66c486300933dc84c52",
+      "code": "lady_summoner_campus",
+      "form": 0,
+      "size": 172359,
+      "sha256": "e5ca7e53cee1f67842e9b067a02cf75d0f1d4b7f6eefb3496416c56321522b46"
+    },
+    {
+      "root": "medium",
+      "logical": "character/lady_summoner_campus/ui/skill_cutin_1.png",
+      "member": "production/medium_upload/74/254a8d931d0742048f35953c2fefb66ec1f30f",
+      "before_sha256": "0dc9a77259c5d6910b5639739045364a54a5786493b0c1c4147c4603d357f818",
+      "code": "lady_summoner_campus",
+      "form": 1,
+      "size": 572678,
+      "sha256": "ec9182b8743bb9658474d5fe4ee21f3c70b0ea91be0465d06e82fa5571331387"
+    },
+    {
+      "root": "android",
+      "logical": "character/lady_summoner_campus/ui/skill_cutin_1.atf.deflate",
+      "member": "production/android_upload/71/4dbc3bfed369cede7c84d9c206d1216e967b5f",
+      "before_sha256": "c3dcc1fcd6f03be4be80c8f1a8e435e69a88636eb6b2cdceb4b08e0736c6aa50",
+      "code": "lady_summoner_campus",
+      "form": 1,
+      "size": 160920,
+      "sha256": "962ecf137273bfe93ed2a4f977ceee2029a523308024263c4f8e84265b9ce2c4"
+    },
+    {
+      "root": "ios",
+      "logical": "character/lady_summoner_campus/ui/skill_cutin_1.atf.deflate",
+      "member": "production/ios_upload/71/4dbc3bfed369cede7c84d9c206d1216e967b5f",
+      "before_sha256": "9ee023b7416ca02e257fd77d1434bf83fbbc29298fb27c537612686b1d7feed5",
+      "code": "lady_summoner_campus",
+      "form": 1,
+      "size": 181194,
+      "sha256": "99b3272dd707ef36ed92de07a08c4df0c6e0527c36d653a1693894ea25dbc344"
+    },
+    {
+      "root": "medium",
+      "logical": "character/wind_spgirl_campus/ui/skill_cutin_0.png",
+      "member": "production/medium_upload/9f/6c7929ea0140fc974bcd0d7832bb48773ecff0",
+      "before_sha256": "46a870e9fce6e13389bfc47048dd15cc48b2c434b642a88232a6407249a6548f",
+      "code": "wind_spgirl_campus",
+      "form": 0,
+      "size": 363264,
+      "sha256": "28eeefb5e750892654bd733ed863f7b215b3db2480b12b8c3414e6473cfd369b"
+    },
+    {
+      "root": "android",
+      "logical": "character/wind_spgirl_campus/ui/skill_cutin_0.atf.deflate",
+      "member": "production/android_upload/1c/7aaa379815c407f4d63bcf4d2d40bd9fd24677",
+      "before_sha256": "83e47a8380975c076138302547f87a7b15c25d9200e1e3ca24d320b7322c994e",
+      "code": "wind_spgirl_campus",
+      "form": 0,
+      "size": 93940,
+      "sha256": "0cdcbb546494b91a88c174f78440a542e0cc967f06a13767d12ea021510f5b14"
+    },
+    {
+      "root": "ios",
+      "logical": "character/wind_spgirl_campus/ui/skill_cutin_0.atf.deflate",
+      "member": "production/ios_upload/1c/7aaa379815c407f4d63bcf4d2d40bd9fd24677",
+      "before_sha256": "9d4f54291a64037896f81e0b05f3ab4070de7348a857c5e3a2866e8ae8b5952c",
+      "code": "wind_spgirl_campus",
+      "form": 0,
+      "size": 105861,
+      "sha256": "dfb3b41080f267f12afcc257a354cac7b638a65944e4df5cd477f9ebcd8ab07f"
+    },
+    {
+      "root": "medium",
+      "logical": "character/wind_spgirl_campus/ui/skill_cutin_1.png",
+      "member": "production/medium_upload/d8/2090116c58904ee4e180a2e0c1867d3b2d1ec9",
+      "before_sha256": "a907c863eff0ce89df6f925c74924a3cbe331c0eb7e40f78e7e54aa1bac35263",
+      "code": "wind_spgirl_campus",
+      "form": 1,
+      "size": 385843,
+      "sha256": "f79a671884a370cb36de9b6fcfaa677a72025d55e545a6ff618b6e578f19ddff"
+    },
+    {
+      "root": "android",
+      "logical": "character/wind_spgirl_campus/ui/skill_cutin_1.atf.deflate",
+      "member": "production/android_upload/36/7868bcbfa7dfc10910ca2fd6ec01e058589296",
+      "before_sha256": "f056be357544fe6158fba88d70e6e99b5dcf609cbfcf7a15db7943240121b4d5",
+      "code": "wind_spgirl_campus",
+      "form": 1,
+      "size": 112192,
+      "sha256": "c92b783b7b41b6fb2b6b70c739707d0f32600dd6837d93f8baaf1a1a2db6ee00"
+    },
+    {
+      "root": "ios",
+      "logical": "character/wind_spgirl_campus/ui/skill_cutin_1.atf.deflate",
+      "member": "production/ios_upload/36/7868bcbfa7dfc10910ca2fd6ec01e058589296",
+      "before_sha256": "42116e80012726f93fd2e4d432e136750931f64a39e72c27c9e89dc7be7277a5",
+      "code": "wind_spgirl_campus",
+      "form": 1,
+      "size": 127552,
+      "sha256": "574fbc54cbeeea76c24c3b23de61a579572fab1d81cdbe9148fb275a909022af"
+    },
+    {
+      "root": "medium",
+      "logical": "character/ruin_girl_campus/ui/skill_cutin_0.png",
+      "member": "production/medium_upload/b6/a690de52b2b3825b2485100592fdefc2841ef7",
+      "before_sha256": "c9bd7178f12343ba5449624ddc98b6b8d2ec1411a9d4b478a4c71ac5f213d4b2",
+      "code": "ruin_girl_campus",
+      "form": 0,
+      "size": 394206,
+      "sha256": "f293f2937321c3e106bce4ff6206a5ea466a5b4d9e0551aa72a9e6437953daef"
+    },
+    {
+      "root": "android",
+      "logical": "character/ruin_girl_campus/ui/skill_cutin_0.atf.deflate",
+      "member": "production/android_upload/fd/754b740524f688c5b24651f616262db803e143",
+      "before_sha256": "f0c1d94f60a29378b8733969fb0d435e0ebae1da29a027aef5c6127b585f864b",
+      "code": "ruin_girl_campus",
+      "form": 0,
+      "size": 107382,
+      "sha256": "1e39ad343d8c2f4307c84a62286236cc5834d66e88093f6a3f4cc68f16179d49"
+    },
+    {
+      "root": "ios",
+      "logical": "character/ruin_girl_campus/ui/skill_cutin_0.atf.deflate",
+      "member": "production/ios_upload/fd/754b740524f688c5b24651f616262db803e143",
+      "before_sha256": "c313bc55aec153bc54f60ba6747538609fd846744ac84a8ef7198bf4a3882006",
+      "code": "ruin_girl_campus",
+      "form": 0,
+      "size": 120393,
+      "sha256": "fd8bfd8a1c3b8bb8cc1fac811724f1de11552d1c23bb85305e64fd2610cc24ba"
+    },
+    {
+      "root": "medium",
+      "logical": "character/ruin_girl_campus/ui/skill_cutin_1.png",
+      "member": "production/medium_upload/5a/fd33e22c1670550948495e8a8645c0f4a16b33",
+      "before_sha256": "15705ebc3ee8a131c9888862289d488fe5a024c7c7a592e19d4fbd6c0414ccd9",
+      "code": "ruin_girl_campus",
+      "form": 1,
+      "size": 603279,
+      "sha256": "4c17499f9c1a2169a91a6b16c406490f1e15892055dd8c7e111e58341ea24866"
+    },
+    {
+      "root": "android",
+      "logical": "character/ruin_girl_campus/ui/skill_cutin_1.atf.deflate",
+      "member": "production/android_upload/d6/305c0609528d4236d4b6f4fd0166263fce1b7b",
+      "before_sha256": "990bca33b2ae60bdba86d4ee39365cc4412a9e790c326b7bac40447bc51e5757",
+      "code": "ruin_girl_campus",
+      "form": 1,
+      "size": 173274,
+      "sha256": "180e0dba2cb7baad17052fc78e0ab477b0ea90b6a049bb9d06388552e3485818"
+    },
+    {
+      "root": "ios",
+      "logical": "character/ruin_girl_campus/ui/skill_cutin_1.atf.deflate",
+      "member": "production/ios_upload/d6/305c0609528d4236d4b6f4fd0166263fce1b7b",
+      "before_sha256": "6193dcf42b780561e223f81e839b3f80371361b23001869b64d404beca89d0d8",
+      "code": "ruin_girl_campus",
+      "form": 1,
+      "size": 194818,
+      "sha256": "b7fed80bea813e1ac344bc405e56e99a8d4528419ce1d705219e9f810241f10e"
+    }
+  ],
+  "pairs": [
+    {
+      "code": "lady_summoner_campus",
+      "form": 0,
+      "png_sha256": "0ef1103fd0ff8a095e980715f4bbf4c870ac8c6d98e516874f479261048a09e1",
+      "pair": {
+        "w": 1024,
+        "h": 512,
+        "mips": 11,
+        "android_slot": 2,
+        "ios_slot": 3
+      },
+      "all_mips_decoded": true,
+      "codec_error": {
+        "android": {
+          "opaque_rgb_mean_absolute_error": 5.768960232415499,
+          "alpha_mean_absolute_error": 1.543905258178711
+        },
+        "ios": {
+          "opaque_rgb_mean_absolute_error": 5.768960232415499,
+          "alpha_mean_absolute_error": 0.19829368591308594
+        }
+      }
+    },
+    {
+      "code": "lady_summoner_campus",
+      "form": 1,
+      "png_sha256": "85609e62ef35657ad7c925bd938e52dbfd0e08e3066c62df50a9c3ea8b22019c",
+      "pair": {
+        "w": 1024,
+        "h": 512,
+        "mips": 11,
+        "android_slot": 2,
+        "ios_slot": 3
+      },
+      "all_mips_decoded": true,
+      "codec_error": {
+        "android": {
+          "opaque_rgb_mean_absolute_error": 5.756011296993547,
+          "alpha_mean_absolute_error": 1.5251598358154297
+        },
+        "ios": {
+          "opaque_rgb_mean_absolute_error": 5.756011296993547,
+          "alpha_mean_absolute_error": 0.21352767944335938
+        }
+      }
+    },
+    {
+      "code": "wind_spgirl_campus",
+      "form": 0,
+      "png_sha256": "cfa6d8ac8ff20a3b1a9d1b1f5de33923b21efb101ac75aa1fc656732f146ca75",
+      "pair": {
+        "w": 1024,
+        "h": 512,
+        "mips": 11,
+        "android_slot": 2,
+        "ios_slot": 3
+      },
+      "all_mips_decoded": true,
+      "codec_error": {
+        "android": {
+          "opaque_rgb_mean_absolute_error": 6.363492174725532,
+          "alpha_mean_absolute_error": 1.632883071899414
+        },
+        "ios": {
+          "opaque_rgb_mean_absolute_error": 6.363492174725532,
+          "alpha_mean_absolute_error": 0.09056663513183594
+        }
+      }
+    },
+    {
+      "code": "wind_spgirl_campus",
+      "form": 1,
+      "png_sha256": "9f91ff4bc6ccf66bb1e2edf46ef4a11d42f4821450cace2bc7b5a5ef4174b201",
+      "pair": {
+        "w": 1024,
+        "h": 512,
+        "mips": 11,
+        "android_slot": 2,
+        "ios_slot": 3
+      },
+      "all_mips_decoded": true,
+      "codec_error": {
+        "android": {
+          "opaque_rgb_mean_absolute_error": 6.438231378792376,
+          "alpha_mean_absolute_error": 1.7774887084960938
+        },
+        "ios": {
+          "opaque_rgb_mean_absolute_error": 6.438231378792376,
+          "alpha_mean_absolute_error": 0.18197250366210938
+        }
+      }
+    },
+    {
+      "code": "ruin_girl_campus",
+      "form": 0,
+      "png_sha256": "18b7a8353443b9040c422515e86f0fea16c10caa4c5912f724d2f4f491a1c01c",
+      "pair": {
+        "w": 1024,
+        "h": 512,
+        "mips": 11,
+        "android_slot": 2,
+        "ios_slot": 3
+      },
+      "all_mips_decoded": true,
+      "codec_error": {
+        "android": {
+          "opaque_rgb_mean_absolute_error": 5.677981786836528,
+          "alpha_mean_absolute_error": 1.5796890258789062
+        },
+        "ios": {
+          "opaque_rgb_mean_absolute_error": 5.677981786836528,
+          "alpha_mean_absolute_error": 0.1077728271484375
+        }
+      }
+    },
+    {
+      "code": "ruin_girl_campus",
+      "form": 1,
+      "png_sha256": "470d55eda32246588b50fb3814ff1fd35dbbc0f9757c4345314650612a7e3ca7",
+      "pair": {
+        "w": 1024,
+        "h": 512,
+        "mips": 11,
+        "android_slot": 2,
+        "ios_slot": 3
+      },
+      "all_mips_decoded": true,
+      "codec_error": {
+        "android": {
+          "opaque_rgb_mean_absolute_error": 6.114366884595072,
+          "alpha_mean_absolute_error": 1.6113471984863281
+        },
+        "ios": {
+          "opaque_rgb_mean_absolute_error": 6.114366884595072,
+          "alpha_mean_absolute_error": 0.26792335510253906
+        }
+      }
+    }
+  ],
+  "approved_crop": {
+    "status": "preview_prepared_not_deployed",
+    "effective_chain": "1.4.109",
+    "authorization": "用户要求裁剪调整技能展示图并提供预览；沿用已讨论的原立绘重裁方式",
+    "method": "Deterministic crop and uniform downsampling of existing full illustrations; no generative redraw",
+    "persisted_id_or_schema_impact": false,
+    "runtime_modified": false,
+    "cdn_modified": false,
+    "device_verified": false,
+    "images": [
+      {
+        "code": "lady_summoner_campus",
+        "form": 0,
+        "name": "校碧安卡·进化前",
+        "source": "F:\\codex\\work\\campus-ui-crop-20260915\\before\\lady_summoner_campus\\full_shot_1440_1920_0.png",
+        "source_stored_sha256": "32eaad5963fdf0982f92d8fa13ee0d0b5b3c6e4f2206014b935da78ec4344474",
+        "source_png_sha256": "7cf8a9b2ab41acd75f41873148ed04f53dab62977a729b0d8bf7925fb0f42c8c",
+        "source_size": [
+          1238,
+          1496
+        ],
+        "transform": {
+          "uniform_scale": 0.8,
+          "x": 0,
+          "y": 22,
+          "scaled_size": [
+            990,
+            1197
+          ],
+          "bottom_fade_rows": [
+            488,
+            511
+          ]
+        },
+        "output": "F:\\codex\\work\\campus-ui-crop-20260915\\skill-adjusted-v1\\png\\lady_summoner_campus\\skill_cutin_0.png",
+        "output_sha256": "0ef1103fd0ff8a095e980715f4bbf4c870ac8c6d98e516874f479261048a09e1",
+        "output_bbox": [
+          0,
+          22,
+          977,
+          511
+        ],
+        "dimensions": [
+          1024,
+          512
+        ]
+      },
+      {
+        "code": "lady_summoner_campus",
+        "form": 1,
+        "name": "校碧安卡·进化后",
+        "source": "F:\\codex\\work\\campus-ui-crop-20260915\\before\\lady_summoner_campus\\full_shot_1440_1920_1.png",
+        "source_stored_sha256": "a5b0d8ceccdba73ad3e894cf02e5fdd2482faf24f4234c7763dc35c81ae3caf9",
+        "source_png_sha256": "8355270ee8071a8c42e6d6a2bb92af3e240eebb5a6471e0c5410f77511491db5",
+        "source_size": [
+          1263,
+          1500
+        ],
+        "transform": {
+          "uniform_scale": 0.75,
+          "x": 0,
+          "y": 22,
+          "scaled_size": [
+            947,
+            1125
+          ],
+          "bottom_fade_rows": [
+            488,
+            511
+          ]
+        },
+        "output": "F:\\codex\\work\\campus-ui-crop-20260915\\skill-adjusted-v1\\png\\lady_summoner_campus\\skill_cutin_1.png",
+        "output_sha256": "85609e62ef35657ad7c925bd938e52dbfd0e08e3066c62df50a9c3ea8b22019c",
+        "output_bbox": [
+          0,
+          22,
+          947,
+          511
+        ],
+        "dimensions": [
+          1024,
+          512
+        ]
+      },
+      {
+        "code": "wind_spgirl_campus",
+        "form": 0,
+        "name": "校希尔媞·进化前",
+        "source": "F:\\codex\\work\\campus-ui-crop-20260915\\before\\wind_spgirl_campus\\full_shot_1440_1920_0.png",
+        "source_stored_sha256": "3a3593624d6d4d4075c774b8016e7242e6a41e5c9c511f9ac536dc1fbcd101f6",
+        "source_png_sha256": "9ca5b8c0b9624e584e3377c860da40b3ae5fa13c10b534a33eb3c24277692a23",
+        "source_size": [
+          1243,
+          1466
+        ],
+        "transform": {
+          "uniform_scale": 0.64,
+          "x": 185,
+          "y": 24,
+          "scaled_size": [
+            796,
+            938
+          ],
+          "bottom_fade_rows": [
+            488,
+            511
+          ]
+        },
+        "output": "F:\\codex\\work\\campus-ui-crop-20260915\\skill-adjusted-v1\\png\\wind_spgirl_campus\\skill_cutin_0.png",
+        "output_sha256": "cfa6d8ac8ff20a3b1a9d1b1f5de33923b21efb101ac75aa1fc656732f146ca75",
+        "output_bbox": [
+          272,
+          24,
+          923,
+          511
+        ],
+        "dimensions": [
+          1024,
+          512
+        ]
+      },
+      {
+        "code": "wind_spgirl_campus",
+        "form": 1,
+        "name": "校希尔媞·进化后",
+        "source": "F:\\codex\\work\\campus-ui-crop-20260915\\before\\wind_spgirl_campus\\full_shot_1440_1920_1.png",
+        "source_stored_sha256": "6a27692087b36ce4eeeadf7678ca0aea31c5d69ed51f9e05f79bea76025d16c1",
+        "source_png_sha256": "4ec49083e2b105f0dcf1dd4d89ddb441094ff632718249bc8ac6a45c9f422a39",
+        "source_size": [
+          1090,
+          1660
+        ],
+        "transform": {
+          "uniform_scale": 0.72,
+          "x": 110,
+          "y": 22,
+          "scaled_size": [
+            785,
+            1195
+          ],
+          "bottom_fade_rows": [
+            488,
+            511
+          ]
+        },
+        "output": "F:\\codex\\work\\campus-ui-crop-20260915\\skill-adjusted-v1\\png\\wind_spgirl_campus\\skill_cutin_1.png",
+        "output_sha256": "9f91ff4bc6ccf66bb1e2edf46ef4a11d42f4821450cace2bc7b5a5ef4174b201",
+        "output_bbox": [
+          181,
+          22,
+          834,
+          511
+        ],
+        "dimensions": [
+          1024,
+          512
+        ]
+      },
+      {
+        "code": "ruin_girl_campus",
+        "form": 0,
+        "name": "校奈芙提姆·进化前",
+        "source": "F:\\codex\\work\\campus-ui-crop-20260915\\before\\ruin_girl_campus\\full_shot_1440_1920_0.png",
+        "source_stored_sha256": "4c699b4becbdc849e42d609fa61156a17cbdda21237b09ce2b3a6a180ac9ecb4",
+        "source_png_sha256": "593b522710fab4605a8482c370623bfea5b65aa48e9e57a3b51c5ef453271070",
+        "source_size": [
+          1236,
+          1420
+        ],
+        "transform": {
+          "uniform_scale": 0.8,
+          "x": 20,
+          "y": 22,
+          "scaled_size": [
+            989,
+            1136
+          ],
+          "bottom_fade_rows": [
+            488,
+            511
+          ]
+        },
+        "output": "F:\\codex\\work\\campus-ui-crop-20260915\\skill-adjusted-v1\\png\\ruin_girl_campus\\skill_cutin_0.png",
+        "output_sha256": "18b7a8353443b9040c422515e86f0fea16c10caa4c5912f724d2f4f491a1c01c",
+        "output_bbox": [
+          154,
+          22,
+          1002,
+          511
+        ],
+        "dimensions": [
+          1024,
+          512
+        ]
+      },
+      {
+        "code": "ruin_girl_campus",
+        "form": 1,
+        "name": "校奈芙提姆·进化后",
+        "source": "F:\\codex\\work\\campus-ui-crop-20260915\\before\\ruin_girl_campus\\full_shot_1440_1920_1.png",
+        "source_stored_sha256": "bbd6c3a5627e41ae1f639710c7928723364093b3bcb19d02538483e996eea74d",
+        "source_png_sha256": "f738f872c41331114597b62d594308b9cdac02ec5dbdc95b90d7efdf400c337f",
+        "source_size": [
+          1152,
+          1437
+        ],
+        "transform": {
+          "uniform_scale": 0.76,
+          "x": 130,
+          "y": 22,
+          "scaled_size": [
+            876,
+            1092
+          ],
+          "bottom_fade_rows": [
+            488,
+            511
+          ]
+        },
+        "output": "F:\\codex\\work\\campus-ui-crop-20260915\\skill-adjusted-v1\\png\\ruin_girl_campus\\skill_cutin_1.png",
+        "output_sha256": "470d55eda32246588b50fb3814ff1fd35dbbc0f9757c4345314650612a7e3ca7",
+        "output_bbox": [
+          130,
+          22,
+          1006,
+          511
+        ],
+        "dimensions": [
+          1024,
+          512
+        ]
+      }
+    ]
+  },
+  "manifest_before_sha256": "242009c7adb4edd5071cfff2098973dd680ea184ee48e7122bd19afa9923ccb1",
+  "previous_archives": {
+    "pinball-1.4.54-1.4.55-1-mod07141843.zip": "30ad6e374c6e48bbfeae6d15120368f1d5dabf6a72f0200a037a516e480c38cc",
+    "pinball-1.4.55-1.4.56-1-mod-ability-damage-party-balanced-v5.zip": "fe29bb29e415f940b850e9a924ddbcd2a309a1834cb13fb5c0ed93a471e011ed",
+    "pinball-1.4.56-1.4.57-1-consolidated-ability-v7-and-custom-drops.zip": "6b199288d1874389af21cc8958dd11e5d377d39a94608ae70fda754cdd3ab98a",
+    "pinball-1.4.57-1.4.58-1-shop-stock-999-consolidated.zip": "44680fb406202ecb16c5451c072a47a61828e091fbf5bc634755f97028a0a3dc",
+    "pinball-1.4.58-1.4.59-1-independent-warmup-v10-cd-balance-nephteim-voice-rescue-fragment-display.zip": "71f3f2b5a597d13f4ebc0f21a145f9ea42f0cd3947d28c69f0d34ce8b1e233c1",
+    "pinball-1.4.59-1.4.60-1-stella139999.zip": "1b8c9c5b8033098ce919d5d733ff46d22032f8af69fb2f7d5f194f1731af7e57",
+    "pinball-1.4.59-1.4.60-2-stella139999.zip": "96fffb8a16b38b58bf3e6d36eb38eec9c542213d622899dac3086d09ba7af407",
+    "pinball-1.4.59-1.4.60-3-stella139999.zip": "d842254ddfa91c32813ab6384b44e3c8eef36cc6215af9248f01cc4998ed2c76",
+    "pinball-1.4.59-1.4.60-4-stella139999.zip": "fc3c117f0c1ead71e2a1edc024461f61b1a8994efd45ee5c3a20c24e63cab1fc",
+    "pinball-1.4.59-1.4.60-5-stella139999.zip": "424720abe810e74dd2133c2d92324d838995138c161dc91fcb2d2037cdd44742",
+    "pinball-1.4.59-1.4.60-6-fragment-exchange.zip": "fa31e2808a38654d0876f1e83d82e60b64f7f1c92f33623381dd11f86a6580f8",
+    "pinball-1.4.60-1.4.61-1-post60-terminal-overlay-sixpack-v2.zip": "b1d17fb53984eaf223b8ae2492f69e1cad27467bc1dc5051114377a35ddd615f",
+    "pinball-1.4.60-1.4.61-2-post60-terminal-overlay-sixpack-v2.zip": "733f9984cee0fe13b505887840bf09435903804945c4d2c1033c2b1c88877e0d",
+    "pinball-1.4.60-1.4.61-3-post60-terminal-overlay-sixpack-v2.zip": "ea3b79d18ad3a37c6ec253df243a8158bc231dc63e1b516d9903d8a3c93d5661",
+    "pinball-1.4.60-1.4.61-4-post60-terminal-overlay-sixpack-v2.zip": "1dbfa227408cb9337c35d9239e9932cecace277d4a58c6418dc61b559c585147",
+    "pinball-1.4.60-1.4.61-5-post60-terminal-overlay-sixpack-v2.zip": "9ae7ee286cfb48be9ba8f6e3abdaf5418f75118cae5d35f8721124442fae5f38",
+    "pinball-1.4.60-1.4.61-6-post60-terminal-overlay-sixpack-v2.zip": "7a49610f95b8b8cdd2bf3d87a9280fb591785ce374ba1f5c93b799f9adda9dfe",
+    "pinball-1.4.61-1.4.62-1-0806194711-hide-deep-abyss-entry-cache-v2.zip": "6a547b0e09b6afd558a6ac24d1dc32828f8be884b1a0236494f081ccd2cc3536",
+    "pinball-1.4.62-1.4.63-1-ginovi-wind-dragon-balance-cache-v2.zip": "416e7509e1593513237e7a350b3dd7a3aa4f7058df8dc44394d2ecce44de98fb",
+    "pinball-1.4.63-1.4.64-1-0807185447.zip": "8306d1139070208e5d26c97cf44e7fe5fb71eb204b60b36b311795be7efa5f48",
+    "pinball-1.4.64-1.4.65-1-0807201059.zip": "3c41bbb9f3a07949b61b12f2b7f8ee9e0699e739604f5927212967fa2768a8a5",
+    "pinball-1.4.65-1.4.66-1-0807203058.zip": "ead344fc984238245a5837a4b1538a33b0528f18d9e11108eb02e37f07adbab6",
+    "pinball-1.4.66-1.4.67-1-0807204308.zip": "cc2673da59a2916e886646338d807715ad36724d4697c06087531ef7943209eb",
+    "pinball-1.4.67-1.4.68-1-battle-atlas-crop-fix.zip": "283aa05a53e7eb003a269a2062d48e5587c9659f2403a416af6e6ee8f7492c62",
+    "pinball-1.4.68-1.4.69-1-0807230819-light-dark-dragon-redesign.zip": "47be963f2a3063ee0889ebbe73ff1e042d0ae6a7b3bf35947964df6b9f6d9f25",
+    "pinball-1.4.69-1.4.70-1-mode15final70.zip": "d2f2980b900bb67a019ff93030c5b5afc357301ee9e76d54ecd0840aa2d09381",
+    "pinball-1.4.69-1.4.70-2-mode15final70.zip": "774ac4395b96b32fd159ed666948dec7f988b52a37a375be0258cc07056b4f4c",
+    "pinball-1.4.70-1.4.71-1-0809181408.zip": "a4effdbb42b70f0219191dc3f8c4a76817920a4db24775add9d9b5b0aff8abae",
+    "pinball-1.4.71-1.4.72-1-merge7274into72.zip": "1edcdf96e247000a34bc083a8751931fc4966da5a1dfa57125802d21b6dbaebe",
+    "pinball-1.4.72-1.4.73-1-0811190633.zip": "75e39d114fa5ffd298306f9366a93fa98cef77f8bae191a8e6344e5beb754e40",
+    "pinball-1.4.73-1.4.74-1-0811222236.zip": "438366946e85ccec8ce310ba0c2b4a1e2c9742fc584aa5d38190f327d990d7fc",
+    "pinball-1.4.74-1.4.75-1-0812tower2.zip": "416efbfce879ac37758aaa6002152e63543b23c4d5c943fd741120c059cc1b7c",
+    "pinball-1.4.75-1.4.76-1-0812-abyss-reroll-lilith-fix.zip": "fe4618b1d48b754f5a4d99fc5ef1bbba0db3679d7ba6138f6667b694a633b4fd",
+    "pinball-1.4.76-1.4.77-1-0813-abyss-reroll-rolf.zip": "0a17091ae4618c4b3bfa84cc169ac1f5d81567b7f8f8201a031d96b418aa5dfa",
+    "pinball-1.4.76-1.4.77-2-0813-abyss-reroll-rolf.zip": "4a04a4246b9e1b825f79c7de784ff1b947738e55d5319f4031a5a7f77979b6d6",
+    "pinball-1.4.76-1.4.77-3-0813-abyss-reroll-rolf.zip": "c413bea465614dc9bf3655b2867a24c543b03004f08c42aac3f62bf41572a235",
+    "pinball-1.4.76-1.4.77-4-0813-abyss-reroll-rolf.zip": "c1fbbfb4924fab3f808595c1da71016e4c79169dc3ee09610a468bcf938e3504",
+    "pinball-1.4.76-1.4.77-5-0813-abyss-reroll-rolf.zip": "224171ea8f1b28b749a91e15ba5b7e53c2f82d2fad04cf4b4c3fdf445eca1b6c",
+    "pinball-1.4.76-1.4.77-6-0813-abyss-reroll-rolf.zip": "db302b6e320a72af757cd9f046801c281c87560b663d808fbc0e690ab7da2638",
+    "pinball-1.4.77-1.4.78-1-0816-thunder-abyss-fantasy.zip": "fdfb49c3e1ae7f21e5b9c92bbcf63539ef807421a163db5e7c1f4dee3c60f1be",
+    "pinball-1.4.77-1.4.78-2-0816-thunder-abyss-fantasy.zip": "5b08a6528c88f3659fc9028a22d15079f1c9474c3d8b490c3c9a04caad0bd077",
+    "pinball-1.4.77-1.4.78-3-0816-thunder-abyss-fantasy.zip": "61445025e866311906ae1c3364da2b30fe154d1459eac2f481098ff5df4da961",
+    "pinball-1.4.77-1.4.78-4-0816-thunder-abyss-fantasy.zip": "f9c3df42f3aa4b55b6df0e2f5ef2178215ec7f84f830f9d3b9edde3727e88c28",
+    "pinball-1.4.77-1.4.78-5-0816-thunder-abyss-fantasy.zip": "32157e3df27205dad6ae22638c85f6495eedf1ab209fcfaba45870e84dff3dba",
+    "pinball-1.4.77-1.4.78-6-0816-thunder-abyss-fantasy.zip": "0924d91302a9bb2cb5ee84642e5f590c0a849c7a6112e6b7d9ac49a3667822cc",
+    "pinball-1.4.78-1.4.79-1-0817130424.zip": "7c30dc19cbcb5eacb22120a7b583a2b4157e6f448e4eaff7571f5f09554be14d",
+    "pinball-1.4.79-1.4.80-1-swimex139997-author-g.zip": "787ec40d277972770a56290e1a129cc31d9c0de2406c0f096c1c02af76bc5186",
+    "pinball-1.4.79-1.4.80-2-0817-fantasy-two-icon-refresh.zip": "6b296d8a9194ab3d81c65e393fbf268e43005facac8e3d0dd28455cafdcc4527",
+    "pinball-1.4.80-1.4.81-1-0817-thunder-dragon-fantasy-v4.zip": "385d9fb4a8f2fb62f583442ce90bfc2e997b217c85cee63e55992bc1a220f6bc",
+    "pinball-1.4.81-1.4.82-1-0818-claude-abyss-gerald-flipper.zip": "e880ad200b1b14a06ea15670ec3dc5f781ea6259aa2022bf8e4faff732dcf539",
+    "pinball-1.4.82-1.4.83-1-0818-gauntlet-hub-rank140.zip": "1798ee37bbc8b83bf054d46cf38ee97a723c13517e97b192abfc52b645ff3d41",
+    "pinball-1.4.83-1.4.84-1-0818-gauntlet-final-art.zip": "a03324e680253b8e1a250915513dc45bc470dfe424ca100e3281613b7c35a7cf",
+    "pinball-1.4.84-1.4.85-1-0821-mosiyike-balance-ios.zip": "07d12e217945d82aad2a666ff9b7d9c3a363c42240e395397efcc17ea4a4c51a",
+    "pinball-1.4.85-1.4.86-1-0822-twochar-stella-abyss-ios.zip": "83bcde05c00ba78891e9e4e1e39513dca18a47cb298a2a45e53c30ce8eabef25",
+    "pinball-1.4.86-1.4.87-1-0823-lion-balance-raid-abyss-ios.zip": "37d3edfe440ab6452ce79a2f0ca146505d4b13b161cdf8ca464828f71edb8789",
+    "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip": "0ee61e86757833ff65d8ed6c34da1284fbe84b70c587a9c37da55a64a7ab96ce",
+    "pinball-1.4.88-1.4.89-1-0826-rogue-orochi-ex24-int32-fix.zip": "148ecfbfa10571d3aca29ecf66720b0560dffdcff9ce5697cd4d08b3d4e30d4c",
+    "pinball-1.4.89-1.4.90-1-0827-trio-ui-refresh.zip": "827d8550fe14400df26c5ff4fc2f3309b8a9cea15d6203d35b153dfb64529cba",
+    "pinball-1.4.90-1.4.91-1-0827-four-character-ui-centering.zip": "589d9a061d4d51067c338a4332025257f234fcac4fe87141a8fec66bbe14a401",
+    "pinball-1.4.91-1.4.92-1-0829-home-load-rank-p5b.zip": "d488827eb143e917dfea0c984cd95e5c86ff95a69b42a868a8cf877846170104",
+    "pinball-1.4.91-1.4.92-2-0829-home-load-rank-p5b.zip": "33868142fc355c932f6c5f41c74a73125b32657c041a89144a03461c9ecf45fc",
+    "pinball-1.4.91-1.4.92-3-58f49db214d9.zip": "58f49db214d910fd29226c0e0bc7f8140e6292dc0210d25b39081f9396ebfef7",
+    "pinball-1.4.91-1.4.92-4-0829-mod-balance-fold.zip": "4d2add7d191da41bb45d9a60005b830c675b92c356712be2f4b02bd733b9577c",
+    "pinball-1.4.92-1.4.93-1-0830-simoun-flock-reset-rollback.zip": "b5435249e11ab52e4d6ff38bab633ae13e318bef9c902336ee2329638d815ab2",
+    "pinball-1.4.92-1.4.93-2-0830-abyss-position-fix.zip": "76d87fd38af53c2c4b9b74318a39ddb4bbcea8f5e1059e27408f61480c8b5095",
+    "pinball-1.4.93-1.4.94-1-0830-awakened-balance-migration.zip": "f919a1094511eb2952b6a92f7fdd2930ea2d606a9244acc3d548ea3399b2a1b7",
+    "pinball-1.4.94-1.4.95-1-0831-mana-node-awake-board2.zip": "1059ae5af4f80478b0e15e5543d15afd97f96407c5fa6c0767e694b08c57e3ac",
+    "pinball-1.4.95-1.4.96-1-cdn-consolidated-gerald0903.zip": "6d3131f13747acfa640195c01c86e6e6e5037f6cc46eb8234eafbc96bda186cf",
+    "pinball-1.4.96-1.4.97-1-greyupd0902-cdn-resource-recovery.zip": "3150894f71aff238a4190730569edfa6e1a5a0c062b92e9fa8aa4b3e34073d4c",
+    "pinball-1.4.97-1.4.98-1-greyupd0902-abyss-item-icon-closure.zip": "9d286583480da7c856088a7328d4772d943c23fa9c9598b888c375b51ad0317c",
+    "pinball-1.4.98-1.4.99-1-siete-ui-restore.zip": "3a024838a67eecd8bc8a7cd853b50b45f1072dea3372fdaf8cf4b538ddad1d7b",
+    "pinball-1.4.98-1.4.99-2-siete-active-balance.zip": "05bd5107c71e0d0cc37092f47ceb1d7d422ae99193ee70de4c2646fc8b898fac",
+    "pinball-1.4.98-1.4.99-3-gacha-non-gacha-cleanup.zip": "adeb67bc1c5af46221c92ba3ca3e8a90471632dd90ead78ad9950f7a9e6a7ec3",
+    "pinball-1.4.99-1.4.100-1-abyss-exchange-shop-banners.zip": "8875fe6cdefc39b25dc0bd28905c988fe5b6cfc9877817f7fbd6a9fc64c86f12",
+    "pinball-1.4.99-1.4.100-2-rank-title-conditions.zip": "c96d1d2d59626c8facf17dceaa91753c24b37f7bbb139938967ae20bc25d02ee",
+    "pinball-1.4.100-1.4.101-1-shop-banner-png-encoding.zip": "840b45179ece41930a2a90fb47f83ab98dc84947d488811a81744c668a6b5cf8",
+    "pinball-1.4.101-1.4.102-1-lens0907-0908-consolidated.zip": "dc749fb2dc0f971fcfbae58c42d7a651979e2969cf2dcaaaacb77ee46270faab",
+    "pinball-1.4.102-1.4.103-1-lens0909-consolidated-cn.zip": "5167a391e4d2f659c1a523153f43fbe5e49a85a91081ddbcfc7f39c40e255d04",
+    "pinball-1.4.103-1.4.104-1-abyss-lens0910-entry-message-consolidated.zip": "bfdc008bbd59056354466603bba49f63bf4c1663bd2ee84d2c5ddc7d3f139c43",
+    "pinball-1.4.104-1.4.105-1-five-boss-ui-art.zip": "04f775c38a16c7e6646ea8c5df6bea93f5cd3f64ccc3653fd7f4b0fd32607959",
+    "pinball-1.4.104-1.4.105-2-gerald-portrait.zip": "57f0734e524faac79899f10624044b52bd4c2ede0c846ca3bf4e744e9d3536ec",
+    "pinball-1.4.104-1.4.105-3-how-to-get-sources.zip": "7d67de5fa0467bea639dc52cd2783fc55937496cb418608ae92c4c1d8d7ad625",
+    "pinball-1.4.104-1.4.105-4-kyubi-afterglow.zip": "7096b45412c7d07fce17074b55c15f405f85a3b477d14a799d96959ebcda3166",
+    "pinball-1.4.105-1.4.106-1-mech-item-sources.zip": "f25bccc0027d54b980462d78b792d86d015efabb568a76c207e6ba7debd3d9b2",
+    "pinball-1.4.105-1.4.106-2-deathbringer-core-icons.zip": "eeb310b65106cf8a3a827cd8bc5bc434ff95e91d939e1a01557f610cdae343b4",
+    "pinball-1.4.106-1.4.107-1-weapon-caps-practice-hp.zip": "9527476e7df4f01460f282907a3ec6ecb1beb9b55727b4fc171cd5061b88ff50",
+    "pinball-1.4.106-1.4.107-2-author858-selected.zip": "0bdd8b6482f516e4aa5cfc7473cefbb34a3d3ff6cde95306f0007bd9646d17ed",
+    "pinball-1.4.106-1.4.107-3-gacha-note-layout.zip": "2967f361d5c5b957f40e1613c00031c8534594ee4c3200a2687000c7dd2ffd28",
+    "pinball-1.4.107-1.4.108-1-reborn-character-degrees.zip": "99175068d87d22887b48cce0f06d61a9235c66f2c552bbdacccb6374a8dc0d10",
+    "pinball-1.4.107-1.4.108-2-epuration-gacha.zip": "51e148075ca1e166b661f99c7617921f473232eda1cb697e2ff28795059f7b33",
+    "pinball-1.4.107-1.4.108-3-campus-summon-g1008.zip": "5737d357d7f9e83ac0702df898ebd6eaf88a5878e24b885177ead42e9ba43911",
+    "pinball-1.4.108-1.4.109-1-author-update-fusion.zip": "406e74c36e2ee7a2b940a4dd48f5d721f57b6d8435bdbdd2b216aa46b080a980"
+  },
+  "trim_rows_unchanged": {
+    "character/lady_summoner_campus/ui/skill_cutin_0": [
+      [
+        "0",
+        "0",
+        "1024",
+        "512"
+      ]
+    ],
+    "character/lady_summoner_campus/ui/skill_cutin_1": [
+      [
+        "0",
+        "0",
+        "1024",
+        "512"
+      ]
+    ],
+    "character/wind_spgirl_campus/ui/skill_cutin_0": [
+      [
+        "0",
+        "0",
+        "1024",
+        "512"
+      ]
+    ],
+    "character/wind_spgirl_campus/ui/skill_cutin_1": [
+      [
+        "0",
+        "0",
+        "1024",
+        "512"
+      ]
+    ],
+    "character/ruin_girl_campus/ui/skill_cutin_0": [
+      [
+        "0",
+        "0",
+        "1024",
+        "512"
+      ]
+    ],
+    "character/ruin_girl_campus/ui/skill_cutin_1": [
+      [
+        "0",
+        "0",
+        "1024",
+        "512"
+      ]
+    ]
+  },
+  "sources": {
+    "common|fb/ab4344a7456dca88f3ce06f01208922f37e395": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.106-1.4.107-2-author858-selected.zip",
+      "member": "production/upload/fb/ab4344a7456dca88f3ce06f01208922f37e395",
+      "sha256": "8b5f329cfa570ffb99d789c1de0debf32faf2895cb8d75dbe4a950d020aab927"
+    },
+    "medium|89/d51860052a00cbd3275affda9fdf8946faff5d": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.106-1.4.107-2-author858-selected.zip",
+      "member": "production/medium_upload/89/d51860052a00cbd3275affda9fdf8946faff5d",
+      "sha256": "32eaad5963fdf0982f92d8fa13ee0d0b5b3c6e4f2206014b935da78ec4344474"
+    },
+    "medium|1d/af3524f82014e8be42c9a9f55e4c7f997579bb": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.106-1.4.107-2-author858-selected.zip",
+      "member": "production/medium_upload/1d/af3524f82014e8be42c9a9f55e4c7f997579bb",
+      "sha256": "f739116474200e7b5baf1ff04ce37200f87ab8aa980a5e2f9caff1082a810928"
+    },
+    "android|19/9fb20a869004e386a08bd3336270b721dcff92": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.106-1.4.107-2-author858-selected.zip",
+      "member": "production/android_upload/19/9fb20a869004e386a08bd3336270b721dcff92",
+      "sha256": "2957e28c3fff4e4ed1c8d25bfe0d6257c2e3b30e1a4a73fe2c9d7651e364fde7"
+    },
+    "ios|19/9fb20a869004e386a08bd3336270b721dcff92": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.106-1.4.107-2-author858-selected.zip",
+      "member": "production/ios_upload/19/9fb20a869004e386a08bd3336270b721dcff92",
+      "sha256": "606baf250fd3bf8087ecef00a03e122152082c485069c66c486300933dc84c52"
+    },
+    "medium|85/2ce0a1574ecd7099378d68c483f654ca7b7106": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.106-1.4.107-2-author858-selected.zip",
+      "member": "production/medium_upload/85/2ce0a1574ecd7099378d68c483f654ca7b7106",
+      "sha256": "a5b0d8ceccdba73ad3e894cf02e5fdd2482faf24f4234c7763dc35c81ae3caf9"
+    },
+    "medium|74/254a8d931d0742048f35953c2fefb66ec1f30f": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.106-1.4.107-2-author858-selected.zip",
+      "member": "production/medium_upload/74/254a8d931d0742048f35953c2fefb66ec1f30f",
+      "sha256": "0dc9a77259c5d6910b5639739045364a54a5786493b0c1c4147c4603d357f818"
+    },
+    "android|71/4dbc3bfed369cede7c84d9c206d1216e967b5f": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.106-1.4.107-2-author858-selected.zip",
+      "member": "production/android_upload/71/4dbc3bfed369cede7c84d9c206d1216e967b5f",
+      "sha256": "c3dcc1fcd6f03be4be80c8f1a8e435e69a88636eb6b2cdceb4b08e0736c6aa50"
+    },
+    "ios|71/4dbc3bfed369cede7c84d9c206d1216e967b5f": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.106-1.4.107-2-author858-selected.zip",
+      "member": "production/ios_upload/71/4dbc3bfed369cede7c84d9c206d1216e967b5f",
+      "sha256": "9ee023b7416ca02e257fd77d1434bf83fbbc29298fb27c537612686b1d7feed5"
+    },
+    "medium|ec/ac031ac7e33e67da37b8978fbfb4e8d570c1c9": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.106-1.4.107-2-author858-selected.zip",
+      "member": "production/medium_upload/ec/ac031ac7e33e67da37b8978fbfb4e8d570c1c9",
+      "sha256": "3a3593624d6d4d4075c774b8016e7242e6a41e5c9c511f9ac536dc1fbcd101f6"
+    },
+    "medium|9f/6c7929ea0140fc974bcd0d7832bb48773ecff0": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.106-1.4.107-2-author858-selected.zip",
+      "member": "production/medium_upload/9f/6c7929ea0140fc974bcd0d7832bb48773ecff0",
+      "sha256": "46a870e9fce6e13389bfc47048dd15cc48b2c434b642a88232a6407249a6548f"
+    },
+    "android|1c/7aaa379815c407f4d63bcf4d2d40bd9fd24677": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.106-1.4.107-2-author858-selected.zip",
+      "member": "production/android_upload/1c/7aaa379815c407f4d63bcf4d2d40bd9fd24677",
+      "sha256": "83e47a8380975c076138302547f87a7b15c25d9200e1e3ca24d320b7322c994e"
+    },
+    "ios|1c/7aaa379815c407f4d63bcf4d2d40bd9fd24677": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.106-1.4.107-2-author858-selected.zip",
+      "member": "production/ios_upload/1c/7aaa379815c407f4d63bcf4d2d40bd9fd24677",
+      "sha256": "9d4f54291a64037896f81e0b05f3ab4070de7348a857c5e3a2866e8ae8b5952c"
+    },
+    "medium|f0/c17acf90ea16d4c78c0f037a2f7ba0a81f7b3e": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.106-1.4.107-2-author858-selected.zip",
+      "member": "production/medium_upload/f0/c17acf90ea16d4c78c0f037a2f7ba0a81f7b3e",
+      "sha256": "6a27692087b36ce4eeeadf7678ca0aea31c5d69ed51f9e05f79bea76025d16c1"
+    },
+    "medium|d8/2090116c58904ee4e180a2e0c1867d3b2d1ec9": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.106-1.4.107-2-author858-selected.zip",
+      "member": "production/medium_upload/d8/2090116c58904ee4e180a2e0c1867d3b2d1ec9",
+      "sha256": "a907c863eff0ce89df6f925c74924a3cbe331c0eb7e40f78e7e54aa1bac35263"
+    },
+    "android|36/7868bcbfa7dfc10910ca2fd6ec01e058589296": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.106-1.4.107-2-author858-selected.zip",
+      "member": "production/android_upload/36/7868bcbfa7dfc10910ca2fd6ec01e058589296",
+      "sha256": "f056be357544fe6158fba88d70e6e99b5dcf609cbfcf7a15db7943240121b4d5"
+    },
+    "ios|36/7868bcbfa7dfc10910ca2fd6ec01e058589296": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.106-1.4.107-2-author858-selected.zip",
+      "member": "production/ios_upload/36/7868bcbfa7dfc10910ca2fd6ec01e058589296",
+      "sha256": "42116e80012726f93fd2e4d432e136750931f64a39e72c27c9e89dc7be7277a5"
+    },
+    "medium|5d/c83aee46336dc3e96bed211467eebc36b092ef": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.106-1.4.107-2-author858-selected.zip",
+      "member": "production/medium_upload/5d/c83aee46336dc3e96bed211467eebc36b092ef",
+      "sha256": "4c699b4becbdc849e42d609fa61156a17cbdda21237b09ce2b3a6a180ac9ecb4"
+    },
+    "medium|b6/a690de52b2b3825b2485100592fdefc2841ef7": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.106-1.4.107-2-author858-selected.zip",
+      "member": "production/medium_upload/b6/a690de52b2b3825b2485100592fdefc2841ef7",
+      "sha256": "c9bd7178f12343ba5449624ddc98b6b8d2ec1411a9d4b478a4c71ac5f213d4b2"
+    },
+    "android|fd/754b740524f688c5b24651f616262db803e143": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.106-1.4.107-2-author858-selected.zip",
+      "member": "production/android_upload/fd/754b740524f688c5b24651f616262db803e143",
+      "sha256": "f0c1d94f60a29378b8733969fb0d435e0ebae1da29a027aef5c6127b585f864b"
+    },
+    "ios|fd/754b740524f688c5b24651f616262db803e143": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.106-1.4.107-2-author858-selected.zip",
+      "member": "production/ios_upload/fd/754b740524f688c5b24651f616262db803e143",
+      "sha256": "c313bc55aec153bc54f60ba6747538609fd846744ac84a8ef7198bf4a3882006"
+    },
+    "medium|c7/dc8ad44850338579bdb1b0a85ee17177890b15": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.106-1.4.107-2-author858-selected.zip",
+      "member": "production/medium_upload/c7/dc8ad44850338579bdb1b0a85ee17177890b15",
+      "sha256": "bbd6c3a5627e41ae1f639710c7928723364093b3bcb19d02538483e996eea74d"
+    },
+    "medium|5a/fd33e22c1670550948495e8a8645c0f4a16b33": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.106-1.4.107-2-author858-selected.zip",
+      "member": "production/medium_upload/5a/fd33e22c1670550948495e8a8645c0f4a16b33",
+      "sha256": "15705ebc3ee8a131c9888862289d488fe5a024c7c7a592e19d4fbd6c0414ccd9"
+    },
+    "android|d6/305c0609528d4236d4b6f4fd0166263fce1b7b": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.106-1.4.107-2-author858-selected.zip",
+      "member": "production/android_upload/d6/305c0609528d4236d4b6f4fd0166263fce1b7b",
+      "sha256": "990bca33b2ae60bdba86d4ee39365cc4412a9e790c326b7bac40447bc51e5757"
+    },
+    "ios|d6/305c0609528d4236d4b6f4fd0166263fce1b7b": {
+      "archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.106-1.4.107-2-author858-selected.zip",
+      "member": "production/ios_upload/d6/305c0609528d4236d4b6f4fd0166263fce1b7b",
+      "sha256": "6193dcf42b780561e223f81e839b3f80371361b23001869b64d404beca89d0d8"
+    }
+  }
+}

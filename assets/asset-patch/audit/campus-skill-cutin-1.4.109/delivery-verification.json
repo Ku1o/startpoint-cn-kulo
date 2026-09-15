@@ -1,0 +1,32 @@
+{
+  "status": "passed",
+  "actual_asset_handlers": true,
+  "archive_integrity_verified": true,
+  "manifest_sha256": "b355a9f725d7750cb8c2bc9a25b86820c2191278f955e2d2de48116817b5c9e5",
+  "platforms": {
+    "android": {
+      "from": "1.4.108",
+      "to": "1.4.109",
+      "archives": [
+        "pinball-1.4.108-1.4.109-1-author-update-fusion.zip",
+        "pinball-1.4.108-1.4.109-3-campus-skill-cutin.zip"
+      ],
+      "bytes": 5621210,
+      "already_current_has_no_update": true
+    },
+    "ios": {
+      "from": "1.4.108",
+      "to": "1.4.109",
+      "archives": [
+        "pinball-1.4.108-1.4.109-1-author-update-fusion.zip",
+        "pinball-1.4.108-1.4.109-3-campus-skill-cutin.zip"
+      ],
+      "bytes": 5621210,
+      "already_current_has_no_update": true
+    }
+  },
+  "listener_started": false,
+  "runtime_synced": false,
+  "player_database_accessed": false,
+  "device_tested": false
+}

@@ -13825,7 +13825,7 @@
       "version": "1.4.109",
       "enabled": true,
       "archive": "pinball-1.4.108-1.4.109-1-author-update-fusion.zip",
-      "archive_size": 5621210,
+      "archive_size": 1070069,
       "archive_integrity": [
         {
           "name": "pinball-1.4.108-1.4.109-1-author-update-fusion.zip",
@@ -13852,53 +13852,9 @@
             "production/upload/d6/1054b22e3efacaa5148b8ce8a6c98318068780",
             "production/upload/ff/84353774cb95e8d7dc90c679f96a5bca7f42e5"
           ]
-        },
-        {
-          "name": "pinball-1.4.108-1.4.109-3-campus-skill-cutin.zip",
-          "size": 4551141,
-          "sha256": "2b89ec0ffae5fac59a36d04c1226493a2f420a4dff3b6fe4d31cbe975a5948f2",
-          "members": 18,
-          "files": [
-            "production/android_upload/19/9fb20a869004e386a08bd3336270b721dcff92",
-            "production/android_upload/1c/7aaa379815c407f4d63bcf4d2d40bd9fd24677",
-            "production/android_upload/36/7868bcbfa7dfc10910ca2fd6ec01e058589296",
-            "production/android_upload/71/4dbc3bfed369cede7c84d9c206d1216e967b5f",
-            "production/android_upload/d6/305c0609528d4236d4b6f4fd0166263fce1b7b",
-            "production/android_upload/fd/754b740524f688c5b24651f616262db803e143",
-            "production/ios_upload/19/9fb20a869004e386a08bd3336270b721dcff92",
-            "production/ios_upload/1c/7aaa379815c407f4d63bcf4d2d40bd9fd24677",
-            "production/ios_upload/36/7868bcbfa7dfc10910ca2fd6ec01e058589296",
-            "production/ios_upload/71/4dbc3bfed369cede7c84d9c206d1216e967b5f",
-            "production/ios_upload/d6/305c0609528d4236d4b6f4fd0166263fce1b7b",
-            "production/ios_upload/fd/754b740524f688c5b24651f616262db803e143",
-            "production/medium_upload/1d/af3524f82014e8be42c9a9f55e4c7f997579bb",
-            "production/medium_upload/5a/fd33e22c1670550948495e8a8645c0f4a16b33",
-            "production/medium_upload/74/254a8d931d0742048f35953c2fefb66ec1f30f",
-            "production/medium_upload/9f/6c7929ea0140fc974bcd0d7832bb48773ecff0",
-            "production/medium_upload/b6/a690de52b2b3825b2485100592fdefc2841ef7",
-            "production/medium_upload/d8/2090116c58904ee4e180a2e0c1867d3b2d1ec9"
-          ]
         }
       ],
       "files": [
-        "production/android_upload/19/9fb20a869004e386a08bd3336270b721dcff92",
-        "production/android_upload/1c/7aaa379815c407f4d63bcf4d2d40bd9fd24677",
-        "production/android_upload/36/7868bcbfa7dfc10910ca2fd6ec01e058589296",
-        "production/android_upload/71/4dbc3bfed369cede7c84d9c206d1216e967b5f",
-        "production/android_upload/d6/305c0609528d4236d4b6f4fd0166263fce1b7b",
-        "production/android_upload/fd/754b740524f688c5b24651f616262db803e143",
-        "production/ios_upload/19/9fb20a869004e386a08bd3336270b721dcff92",
-        "production/ios_upload/1c/7aaa379815c407f4d63bcf4d2d40bd9fd24677",
-        "production/ios_upload/36/7868bcbfa7dfc10910ca2fd6ec01e058589296",
-        "production/ios_upload/71/4dbc3bfed369cede7c84d9c206d1216e967b5f",
-        "production/ios_upload/d6/305c0609528d4236d4b6f4fd0166263fce1b7b",
-        "production/ios_upload/fd/754b740524f688c5b24651f616262db803e143",
-        "production/medium_upload/1d/af3524f82014e8be42c9a9f55e4c7f997579bb",
-        "production/medium_upload/5a/fd33e22c1670550948495e8a8645c0f4a16b33",
-        "production/medium_upload/74/254a8d931d0742048f35953c2fefb66ec1f30f",
-        "production/medium_upload/9f/6c7929ea0140fc974bcd0d7832bb48773ecff0",
-        "production/medium_upload/b6/a690de52b2b3825b2485100592fdefc2841ef7",
-        "production/medium_upload/d8/2090116c58904ee4e180a2e0c1867d3b2d1ec9",
         "production/upload/07/0c6e214359ccf27b1cb8078d3fc51aecfe0149",
         "production/upload/1e/664c1cc8d80f4f9a69aae2c49ae8c01d1c4001",
         "production/upload/28/bdd9c0622f9d23da63929e8695af73b56bde34",
@@ -13923,19 +13879,13 @@
         "合并 1.4.864 的 149989 与 149951 服务端角色文本到当前分表。",
         "追加 9911001、9911002、9911003 三项成就及 320×50 原生称号图。",
         "校希尔媞采用 1.4.867 最终版，A3 技能槽增量为 +0.7%（700 原生值）。",
-        "服务端成就判定接入商店累计兑换、装备强化及单人练习回补路径。",
-        "第3分包：校碧安卡、校希尔媞、校奈芙提姆进化前后6张技能展示图扩大取景范围，保留上半身和动作；配套Android ETC1与iOS ETC2纹理。"
+        "服务端成就判定接入商店累计兑换、装备强化及单人练习回补路径。"
       ],
       "created_at": "2026-09-14",
       "audit": {
         "directory": "assets/asset-patch/audit/author-update-fusion-1.4.109",
-        "report": "fusion-report.json",
-        "campus_skill_cutin_directory": "assets/asset-patch/audit/campus-skill-cutin-1.4.109"
-      },
-      "chain": [
-        "pinball-1.4.108-1.4.109-1-author-update-fusion.zip",
-        "pinball-1.4.108-1.4.109-3-campus-skill-cutin.zip"
-      ]
+        "report": "fusion-report.json"
+      }
     }
   ]
 }

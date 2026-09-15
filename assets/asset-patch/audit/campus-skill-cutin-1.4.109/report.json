@@ -1,0 +1,97 @@
+{
+  "status": "packaged_source_only",
+  "version": "1.4.109",
+  "depends_on": "1.4.108",
+  "part": 3,
+  "archive": {
+    "name": "pinball-1.4.108-1.4.109-3-campus-skill-cutin.zip",
+    "size": 4551141,
+    "sha256": "2b89ec0ffae5fac59a36d04c1226493a2f420a4dff3b6fe4d31cbe975a5948f2",
+    "members": 18,
+    "files": [
+      "production/android_upload/19/9fb20a869004e386a08bd3336270b721dcff92",
+      "production/android_upload/1c/7aaa379815c407f4d63bcf4d2d40bd9fd24677",
+      "production/android_upload/36/7868bcbfa7dfc10910ca2fd6ec01e058589296",
+      "production/android_upload/71/4dbc3bfed369cede7c84d9c206d1216e967b5f",
+      "production/android_upload/d6/305c0609528d4236d4b6f4fd0166263fce1b7b",
+      "production/android_upload/fd/754b740524f688c5b24651f616262db803e143",
+      "production/ios_upload/19/9fb20a869004e386a08bd3336270b721dcff92",
+      "production/ios_upload/1c/7aaa379815c407f4d63bcf4d2d40bd9fd24677",
+      "production/ios_upload/36/7868bcbfa7dfc10910ca2fd6ec01e058589296",
+      "production/ios_upload/71/4dbc3bfed369cede7c84d9c206d1216e967b5f",
+      "production/ios_upload/d6/305c0609528d4236d4b6f4fd0166263fce1b7b",
+      "production/ios_upload/fd/754b740524f688c5b24651f616262db803e143",
+      "production/medium_upload/1d/af3524f82014e8be42c9a9f55e4c7f997579bb",
+      "production/medium_upload/5a/fd33e22c1670550948495e8a8645c0f4a16b33",
+      "production/medium_upload/74/254a8d931d0742048f35953c2fefb66ec1f30f",
+      "production/medium_upload/9f/6c7929ea0140fc974bcd0d7832bb48773ecff0",
+      "production/medium_upload/b6/a690de52b2b3825b2485100592fdefc2841ef7",
+      "production/medium_upload/d8/2090116c58904ee4e180a2e0c1867d3b2d1ec9"
+    ]
+  },
+  "manifest_before_sha256": "242009c7adb4edd5071cfff2098973dd680ea184ee48e7122bd19afa9923ccb1",
+  "manifest_after_sha256": "b355a9f725d7750cb8c2bc9a25b86820c2191278f955e2d2de48116817b5c9e5",
+  "all_18_effective_assets_verified": true,
+  "old_archives_unchanged": true,
+  "strict_png_roundtrip": true,
+  "android_ios_pair_count": 6,
+  "all_mips_decoded": true,
+  "approved_pngs_preserved_exactly": true,
+  "trim_rows_unchanged": {
+    "character/lady_summoner_campus/ui/skill_cutin_0": [
+      [
+        "0",
+        "0",
+        "1024",
+        "512"
+      ]
+    ],
+    "character/lady_summoner_campus/ui/skill_cutin_1": [
+      [
+        "0",
+        "0",
+        "1024",
+        "512"
+      ]
+    ],
+    "character/wind_spgirl_campus/ui/skill_cutin_0": [
+      [
+        "0",
+        "0",
+        "1024",
+        "512"
+      ]
+    ],
+    "character/wind_spgirl_campus/ui/skill_cutin_1": [
+      [
+        "0",
+        "0",
+        "1024",
+        "512"
+      ]
+    ],
+    "character/ruin_girl_campus/ui/skill_cutin_0": [
+      [
+        "0",
+        "0",
+        "1024",
+        "512"
+      ]
+    ],
+    "character/ruin_girl_campus/ui/skill_cutin_1": [
+      [
+        "0",
+        "0",
+        "1024",
+        "512"
+      ]
+    ]
+  },
+  "save_impact": "Art only; no saved identifiers, schema, data tables or balance changes.",
+  "runtime_synced": false,
+  "cloud_deployed": false,
+  "commit_created": false,
+  "device_tested": false,
+  "part2_note": "Part 2 was previously allocated to the C2265 repair; this art package uses part 3.",
+  "same_version_note": "Clients already reporting 1.4.109 will not automatically request a new version delta."
+}
