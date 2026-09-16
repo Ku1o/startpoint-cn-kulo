@@ -12,7 +12,7 @@
 
 # iOS IPA 工作入口
 
-最新 iOS 登记（2026-09-13）：用户确认“ios的也验收了，然后提交修改内容”，商店优化及觉醒页刷新累计版按 `user_accepted` 登记，见 `ACCEPTANCE-IOS-SHOP-FIRST-OPEN-20260913.md` 和 `ios-accepted.json`。当前完整 AOT 方法数 101214；后续从该 IPA 继续。用户确认与 Codex 离线检查分开记录，不推断逐功能设备测试明细；当前共斗加载诊断排除，纪录昵称版保留为历史精确输入。
+最新 iOS 登记（2026-09-16）：幻想连战返回修复版已登记为 `user_accepted`，精确 IPA/完整 ABC 见 `client-patch/ios-accepted.json`，验收范围见 `client-patch/ACCEPTANCE-IOS-FANTASY-RETURN-20260916.md`。保留公网准入、本地账号记录恢复与全部 iOS 累计功能；AOT 方法数 101,287，校验号沿用 `ios-184-admission-20260915`。后续从该 IPA 继续，历史包只作精确复现输入。
 
 
 - 开始 iOS IPA/SWF/AOT 工作前，先读 `ios-accepted.json` 和其中指定的方法文档，运行 `python client-patch/verify_ios_baseline.py` 回读实际 IPA、主可执行文件、主 SWF 的 SHA-256 和包身份。输入缺失或不匹配时不得改用旧包、诊断包或按文件名推测最新包。

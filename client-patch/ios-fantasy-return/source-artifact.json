@@ -1,0 +1,23 @@
+{
+  "ipa": "outputs/ios-admission-public-reopen-fix-20260915/StarPoint-iOS-1.8.4-admission-public-reopen-fix-20260915-unsigned.ipa",
+  "ipa_sha256": "90d6757bc45c8562926f7ea53b0455c219b9867bf91cbab4314237cab4ffb3f6",
+  "size_bytes": 152798348,
+  "native_member": "Payload/worldflipper.app/worldflipper",
+  "native_sha256": "abfbfad2949dfaf26cb9440a63c1cbb8893559078b91a32e868c5c843165b0fa",
+  "swf_member": "Payload/worldflipper.app/worldflipper_ios_release.swf",
+  "swf_sha256": "53db3699e912ea4f41c4945bb1c36117f18b39c40d5ce57a60546798456da9b4",
+  "bundle_id": "com.kulo.wf",
+  "version": "1.8.4",
+  "build": "1.8.46",
+  "signing": "unsigned",
+  "profile_debug_overlay": false,
+  "title_cntips_b_unchanged": true,
+  "endpoint_policy": "R3/R4 初始 API 与版本配置均为 http://175.178.160.158，公网默认端口 80",
+  "full_abc": "outputs/ios-admission-public-reopen-fix-20260915/record-recovery-full.abc",
+  "full_abc_sha256": "507109bf13ff1b665b521d135057e42f76f924d1f14960b8264ae4f2362ef96c",
+  "full_abc_sha1": "6bc1214dbef728adb4b49f13febb2391cadbd04d",
+  "aot_info_file_offset": 104549248,
+  "aot_method_count": 101287,
+  "build_id": "ios-184-admission-20260915",
+  "diagnostic_export": false
+}
