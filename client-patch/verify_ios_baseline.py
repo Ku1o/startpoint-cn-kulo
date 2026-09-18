@@ -20,7 +20,7 @@ def verify(ipa: Path | None = None, *, record_path: Path | None = None) -> dict:
     record = json.loads(record_file.read_text(encoding="utf-8"))
     identity = (record["schema_version"], record["status"])
     if identity not in ((1, "user_accepted"), (2, "accepted_offline"), (3, "user_accepted"),
-                        (4, "accepted_offline"), (4, "user_accepted"), (5, "user_accepted")):
+                        (4, "accepted_offline"), (4, "user_accepted"), (5, "user_accepted"), (6, "accepted_offline")):
         raise ValueError("baseline record must explicitly identify an accepted release and scope")
     if identity in ((2, "accepted_offline"), (4, "accepted_offline")):
         if not record["acceptance"]["user_statement"] or record["acceptance"]["scope"] != "offline_artifact_and_lineage":
@@ -34,6 +34,10 @@ def verify(ipa: Path | None = None, *, record_path: Path | None = None) -> dict:
         if acceptance.get("result") != "accepted" or acceptance.get("scope") != "public_release_and_offline_identity" or not acceptance.get("audit"):
             raise ValueError("acceptance must record an explicit result, release scope and audit")
     entry = record["artifact"]
+    if identity == (6, "accepted_offline"):
+        acceptance = record["acceptance"]
+        if acceptance.get("result") != "accepted_offline" or acceptance.get("scope") != "offline_artifact_lineage_and_public_admission" or not acceptance.get("audit"):
+            raise ValueError("offline acceptance must state its evidence scope and audit")
     path = ipa.resolve() if ipa else ROOT / entry["ipa"]
     if not path.is_file():
         raise ValueError(f"accepted IPA is missing; do not substitute an older package: {path}")
@@ -55,7 +59,7 @@ def verify(ipa: Path | None = None, *, record_path: Path | None = None) -> dict:
                           ("CFBundleVersion", "build")):
             if plist[key] != entry[name]:
                 raise ValueError(f"application identity mismatch: {key}")
-        if identity in ((3, "user_accepted"), (4, "accepted_offline"), (4, "user_accepted"), (5, "user_accepted")):
+        if identity in ((3, "user_accepted"), (4, "accepted_offline"), (4, "user_accepted"), (5, "user_accepted"), (6, "accepted_offline")):
             full = ROOT / entry["full_abc"]
             if not full.is_file():
                 raise ValueError("accepted full ABC is missing; do not substitute stripped runtime ABC")

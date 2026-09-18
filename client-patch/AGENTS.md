@@ -1,6 +1,6 @@
 # Android APK/SWF 工作入口
 
-最新 Android 登记（2026-09-13）：用户认可商店优化 LAN 效果并授权公网转换、离线验收与提交；见 `client-patch/ACCEPTANCE-SHOP-FIRST-OPEN-20260913.md` 和 `android-accepted.json`（客户端目录内为同名文件）。当前状态 `accepted_offline`，主 ABC 291、96543 方法体，包含商店索引/存在性短路和觉醒页刷新。公网未独立真机测试；下述昵称/缓存/圆角/切队包均为历史累计来源，不再作为新 Android 输入。iOS 使用独立注册表，商店累计版已于 2026-09-13 获用户验收并授权提交。
+最新 Android 登记（2026-09-18）：公网 EX 准入修正版登记为 `accepted_offline`；内网 R10 登记保持。主 ABC 索引 296，全 SWF 96,635 方法体，保留 R10 和 EX 累计功能，准入号 `android-181-abyss-ex-20260917`。精确成品以对应 accepted registry 为准，范围见 `ACCEPTANCE-ABYSS-EX-20260918.md`。下文旧日期内容仅作历史方法保留说明。
 
 
 - 开始 Android APK/SWF 任务前，先读本目录 `ANDROID-BASELINE.md` 和 `android-accepted.json`，再读具体补丁文档。JSON 中登记的已验收公网/内网成品是当前直接基线；其他文档中的旧哈希只代表历史步骤。
@@ -12,7 +12,7 @@
 
 # iOS IPA 工作入口
 
-最新 iOS 登记（2026-09-16）：幻想连战返回修复版已登记为 `user_accepted`，精确 IPA/完整 ABC 见 `client-patch/ios-accepted.json`，验收范围见 `client-patch/ACCEPTANCE-IOS-FANTASY-RETURN-20260916.md`。保留公网准入、本地账号记录恢复与全部 iOS 累计功能；AOT 方法数 101,287，校验号沿用 `ios-184-admission-20260915`。后续从该 IPA 继续，历史包只作精确复现输入。
+最新 iOS 登记（2026-09-18）：公网 EX 准入修正版登记为 `accepted_offline`。保留幻想连战返回和 EX 累计功能，AOT 方法数 101,287，准入号 `ios-184-abyss-ex-20260917`，未新增真机测试。精确成品以对应 accepted registry 为准，范围见 `ACCEPTANCE-ABYSS-EX-20260918.md`。下文旧日期内容仅作历史方法保留说明。
 
 
 - 开始 iOS IPA/SWF/AOT 工作前，先读 `ios-accepted.json` 和其中指定的方法文档，运行 `python client-patch/verify_ios_baseline.py` 回读实际 IPA、主可执行文件、主 SWF 的 SHA-256 和包身份。输入缺失或不匹配时不得改用旧包、诊断包或按文件名推测最新包。

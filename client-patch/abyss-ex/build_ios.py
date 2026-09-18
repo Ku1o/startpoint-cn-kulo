@@ -76,6 +76,7 @@ def main():
         assert fresh.strings[index]==allowed_strings.get(value,value),('string index',index)
     assert not any(value in allowed_strings for value in fresh.strings)
     constants=lan.constants([[82,None,None,fresh]])
+    assert_admission_prefix([fresh], 'ios')
     keys=read(PAIR/'config/client-admission.keys.json')
     assert constants==dict(ID=IDS['ios'],KEY=keys[IDS['ios']],ORIGIN='http://175.178.160.158')
     del constants,keys,allowed_strings

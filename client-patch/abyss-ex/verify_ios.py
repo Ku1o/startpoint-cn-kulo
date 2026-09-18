@@ -55,6 +55,7 @@ def main():
     for index,value in enumerate(oa.strings): assert na.strings[index]==replacements_.get(value,value),index
     assert not any(value in replacements_ for value in na.strings)
     keys=read(PAIR/'config/client-admission.keys.json')
+    assert_admission_prefix([na], 'ios')
     assert lan.constants([[82,None,None,na]])==dict(ID=IDS['ios'],KEY=keys[IDS['ios']],ORIGIN='http://175.178.160.158')
     del replacements_,keys
     assert slot_offsets(oa)==slot_offsets(na)

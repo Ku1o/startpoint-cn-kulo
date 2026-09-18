@@ -34,8 +34,9 @@ p = module('ex_release_ios_helpers', HERE.parent/'ios-cumulative-login/prepare.p
 view = p.view
 
 def registries():
-    android = read(HERE.parent/'android-accepted.json')['variants']['public']
-    ios = read(HERE.parent/'ios-accepted.json')['artifact']
+    # Historical builders retain exact inputs after the current baseline advances.
+    source = read(HERE/'source-artifacts.json')
+    android, ios = source['android'], source['ios']
     assert android['apk_sha256'] == '3c365e51762ad115366731fa1fa2bd1ffbdac54cbce4c3e2626010deffc91fd2'
     assert ios['ipa_sha256'] == 'f1d9f41f0b9c16ec79efa5664833fe5dea13038bc844a25f22dbafda367316dc'
     return android, ios
@@ -45,7 +46,13 @@ def replacements(platform):
     old = (a if platform == 'android' else i)['build_id']
     keys = read(PAIR/'config/client-admission.keys.json')
     assert keys[old] != keys[IDS[platform]]
-    return {old.encode(): IDS[platform].encode(), keys[old].encode(): keys[IDS[platform]].encode()}
+    return {
+        old.encode(): IDS[platform].encode(),
+        keys[old].encode(): keys[IDS[platform]].encode(),
+        # AS3 folds this concatenation at compile time; replacing only the standalone ID
+        # leaves the actual proof message signed for the predecessor build.
+        ('SP-ADMISSION-1\n'+old+'\n').encode(): ('SP-ADMISSION-1\n'+IDS[platform]+'\n').encode(),
+    }
 
 def replace_abc(raw, platform):
     abc = abcfmt.ABC(raw)
@@ -55,3 +62,8 @@ def replace_abc(raw, platform):
     result = lan.patch_strings(raw, changes)
     assert lan.patch_strings(result, {i:(new,old) for i,(old,new) in changes.items()}) == raw
     return result, sorted(changes)
+
+def assert_admission_prefix(abcs, platform):
+    """Validate the actual compiler-folded proof literal, not only BuildConfig traits."""
+    values = [value for abc in abcs for value in abc.strings if value.startswith(b'SP-ADMISSION-1\n')]
+    assert values == [('SP-ADMISSION-1\n'+IDS[platform]+'\n').encode()], 'Stale or ambiguous admission proof prefix'

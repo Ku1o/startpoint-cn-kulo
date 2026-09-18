@@ -51,6 +51,8 @@ def main(lan_origin=None):
     final_tags = s.parts(swf)[2]; final_abcs = [t for t in final_tags if t[0] == 82]
     newconst = lan.constants(final_abcs)
     assert newconst == dict(ID=build_id, KEY=keys[build_id], ORIGIN=origin)
+    proof_prefixes = [value for tag in final_abcs for value in tag[3].strings if value.startswith(b'SP-ADMISSION-1\n')]
+    assert proof_prefixes == [('SP-ADMISSION-1\n'+build_id+'\n').encode()], 'Admission proof literal differs from actual build ID'
     forbidden=set() if lan_origin else set(replacements('android'))
     for index,(original, tag) in enumerate(zip(originals, final_abcs)):
         patches = {i:(new,old) for i,(old,new) in patches_by_abc[index].items()}

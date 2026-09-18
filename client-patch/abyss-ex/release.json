@@ -1,32 +1,43 @@
 {
-  "status": "offline_verified_candidates",
+  "status": "accepted_offline",
   "device_tested": false,
-  "accepted_registry_changed": false,
+  "accepted_registry_changed": true,
   "cloud_deployed": false,
   "android": {
-    "apk": "F:\\codex\\outputs\\abyss-ex-clients-20260917\\StarPoint-CN-1.8.1-abyss-ex-20260917.apk",
-    "sha256": "4fbc354fa93942b65c28d0ecdc1f14fb39851117068b9d5a7c0cb252c87761ea",
+    "apk": "F:\\codex\\outputs\\abyss-ex-admission-fix-20260918\\StarPoint-CN-1.8.1-abyss-ex-admission-fix-20260918.apk",
+    "sha256": "86bfa97f6f8479ddeda7084e08fc9144e10caaf2aaa2cbe01ad5a27fbbdd3a71",
     "build_id": "android-181-abyss-ex-20260917",
     "previous_build_id": "android-181-r10-20260915",
-    "swf_sha256": "252003a3987fd1e7dec2e870f7c730d782a3ca8369cec0a573029cfb9bfc07c2",
-    "uniqueappversionid": "9e963096-e486-4e2d-938b-0ffa1c52d439",
+    "swf_sha256": "8b564f3f54c46fcc023622783b33feca0992f188d1092428dcd9ff795ebc9aaa",
+    "uniqueappversionid": "0a43203d-f28f-4d2a-89fc-5f365a00b273",
     "signer_sha256": "569d19a3578d4cba16e3d6e7ad8ccab4fa667efc758deef6c9be3adb99919894"
   },
   "ios": {
-    "ipa": "F:\\codex\\outputs\\abyss-ex-clients-20260917\\StarPoint-iOS-1.8.4-abyss-ex-20260917-r2-unsigned.ipa",
-    "ipa_sha256": "ce14b180816a6023c2c2bd51e231055bdf7c6083405583b7d58e75396a85c763",
+    "ipa": "F:\\codex\\outputs\\abyss-ex-admission-fix-20260918\\StarPoint-iOS-1.8.4-abyss-ex-admission-fix-20260918-unsigned.ipa",
+    "ipa_sha256": "068bd0cc82cd4c5c38380fe72b8c29e6807a8481e2c27613030c6f07769c67c2",
     "build_id": "ios-184-abyss-ex-20260917",
     "previous_build_id": "ios-184-admission-20260915",
-    "native_sha256": "1d14111267e0c20c87aaa2cd90cd948c779f23ba2f41ab6892ff2d1de2e75bc1",
-    "swf_sha256": "e3d8c67b9e5812fc67f75fed99a21bdd0dd5fbbfa86446f1c6731f7819da9261",
-    "full_abc_sha256": "fc9309a462d6739af2e7cdd6299434eb71251d6ad3f78a4da14581ab4db49f5c",
-    "full_abc_sha1": "ee46b249dfc3ccbe000cc471f26764ca8a9de757"
+    "native_sha256": "2d8dab5f453cf5d37e3bc2caa8143eea4a05198bf158b69deafea737602fe298",
+    "swf_sha256": "7c69e0cf7d04013d9982df4658472454d79dd26165feb54f87bf521ce71acce1",
+    "full_abc_sha256": "43bed2279c157df96920d6eafbeb69bcdac59f7e88da62a2cb0b6ed94f2146f2",
+    "full_abc_sha1": "507a95b5ec5e4bada216c90d2b8a16f123656953"
   },
-  "ios_full_abc": "F:\\codex\\outputs\\abyss-ex-clients-20260917\\abyss-ex-ios-full.abc",
+  "ios_full_abc": "F:\\codex\\outputs\\abyss-ex-admission-fix-20260918\\abyss-ex-ios-admission-fixed-full.abc",
   "aot_info_offset": 104549248,
   "aot_methods": 101287,
   "previous_platform_grace_seconds": 86400,
-  "grace_starts": "server_activation_command",
+  "grace_starts": "first_cloud_service_start_both_platforms",
   "cdn_target": "1.4.110",
-  "cdn_part": 2
+  "cdn_part": 2,
+  "admission_prefix_fix": {
+    "date": "2026-09-18",
+    "status": "actual_payload_public_protocol_verified",
+    "report": "F:\\codex\\outputs\\abyss-ex-admission-fix-20260918\\public-admission-verification.json",
+    "device_tested": false,
+    "build_ids_unchanged": true,
+    "keys_unchanged": true,
+    "server_configuration_changed": false,
+    "audit": "client-patch/abyss-ex/ADMISSION-PREFIX-FIX.md"
+  },
+  "acceptance_audit": "client-patch/ACCEPTANCE-ABYSS-EX-20260918.md"
 }

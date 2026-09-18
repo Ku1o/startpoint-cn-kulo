@@ -23,7 +23,7 @@ def verify(variant: str, apk: Path | None = None, *, record_path: Path | None = 
     record_file = record_path if record_path is not None else RECORD
     record = json.loads(record_file.read_text(encoding="utf-8"))
     identity = (record["schema_version"], record["status"])
-    if identity not in ((1, "user_accepted"), (2, "accepted_offline"), (3, "user_accepted")):
+    if identity not in ((1, "user_accepted"), (2, "accepted_offline"), (3, "user_accepted"), (5, "user_accepted"), (6, "accepted_offline")):
         raise ValueError("baseline record must explicitly identify an accepted release and scope")
     if identity == (2, "accepted_offline"):
         if not record["acceptance"]["user_statement"] or record["acceptance"]["scope"] != "offline_artifact_and_lineage":
@@ -32,7 +32,15 @@ def verify(variant: str, apk: Path | None = None, *, record_path: Path | None = 
         acceptance = record["acceptance"]
         if not acceptance["user_statement"] or acceptance["scope"] != "user_confirmed_acceptance_and_offline_identity":
             raise ValueError("user acceptance must record the user's confirmation and audit scope")
+    if identity == (5, "user_accepted"):
+        acceptance = record["acceptance"]
+        if acceptance.get("result") != "accepted" or acceptance.get("scope") != "public_release_and_offline_identity" or not acceptance.get("audit"):
+            raise ValueError("acceptance must record an explicit result, release scope and audit")
     entry = record["variants"][variant]
+    if identity == (6, "accepted_offline"):
+        acceptance = record["acceptance"]
+        if acceptance.get("result") != "accepted_offline" or acceptance.get("scope") != "offline_artifact_lineage_and_public_admission" or not acceptance.get("audit"):
+            raise ValueError("offline acceptance must state its evidence scope and audit")
     path = apk.resolve() if apk else ROOT / entry["apk"]
     if not path.is_file():
         raise ValueError(f"accepted APK is missing; do not substitute an older package: {path}")
@@ -44,10 +52,10 @@ def verify(variant: str, apk: Path | None = None, *, record_path: Path | None = 
         swf = archive.read("assets/worldflipper_android_release.swf")
         if hashlib.sha256(swf).hexdigest() != entry["swf_sha256"]:
             raise ValueError("embedded SWF SHA-256 mismatch")
-        if identity == (3, "user_accepted") or "size_bytes" in entry:
+        if identity in ((3, "user_accepted"), (5, "user_accepted")) or "size_bytes" in entry:
             if path.stat().st_size != entry["size_bytes"]:
                 raise ValueError("APK size differs from the accepted package")
-        if identity == (3, "user_accepted") or "dex_sha256" in entry:
+        if identity in ((3, "user_accepted"), (5, "user_accepted")) or "dex_sha256" in entry:
             if hashlib.sha256(archive.read("classes.dex")).hexdigest() != entry["dex_sha256"]:
                 raise ValueError("embedded startup-cache DEX SHA-256 mismatch")
         manifest = archive.read("AndroidManifest.xml").decode("utf-16le", errors="ignore")

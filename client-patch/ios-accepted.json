@@ -1,23 +1,23 @@
 {
-  "schema_version": 5,
-  "status": "user_accepted",
-  "accepted_on": "2026-09-16",
+  "schema_version": 6,
+  "status": "accepted_offline",
+  "accepted_on": "2026-09-18",
   "acceptance": {
-    "result": "accepted",
-    "scope": "public_release_and_offline_identity",
+    "result": "accepted_offline",
+    "scope": "offline_artifact_lineage_and_public_admission",
     "device_tested_by_codex": false,
     "per_feature_device_results": "not_recorded",
     "build_reports_are_immutable": true,
-    "audit": "client-patch/ACCEPTANCE-IOS-FANTASY-RETURN-20260916.md"
+    "audit": "client-patch/ACCEPTANCE-ABYSS-EX-20260918.md"
   },
   "artifact": {
-    "ipa": "outputs/ios-fantasy-return-fix-20260916-r2/StarPoint-iOS-1.8.4-fantasy-return-fix-20260916-unsigned.ipa",
-    "ipa_sha256": "f1d9f41f0b9c16ec79efa5664833fe5dea13038bc844a25f22dbafda367316dc",
-    "size_bytes": 152798637,
+    "ipa": "F:\\codex\\outputs\\abyss-ex-admission-fix-20260918\\StarPoint-iOS-1.8.4-abyss-ex-admission-fix-20260918-unsigned.ipa",
+    "ipa_sha256": "068bd0cc82cd4c5c38380fe72b8c29e6807a8481e2c27613030c6f07769c67c2",
+    "size_bytes": 154707017,
     "native_member": "Payload/worldflipper.app/worldflipper",
-    "native_sha256": "23507d266847bc9da7e589ac4024b62484f863375cf633700e9482369bf45d1e",
+    "native_sha256": "2d8dab5f453cf5d37e3bc2caa8143eea4a05198bf158b69deafea737602fe298",
     "swf_member": "Payload/worldflipper.app/worldflipper_ios_release.swf",
-    "swf_sha256": "53db3699e912ea4f41c4945bb1c36117f18b39c40d5ce57a60546798456da9b4",
+    "swf_sha256": "7c69e0cf7d04013d9982df4658472454d79dd26165feb54f87bf521ce71acce1",
     "bundle_id": "com.kulo.wf",
     "version": "1.8.4",
     "build": "1.8.46",
@@ -25,19 +25,19 @@
     "profile_debug_overlay": false,
     "title_cntips_b_unchanged": true,
     "endpoint_policy": "R3/R4 初始 API 与版本配置均为 http://175.178.160.158，公网默认端口 80",
-    "full_abc": "outputs/ios-admission-public-reopen-fix-20260915/record-recovery-full.abc",
-    "full_abc_sha256": "507109bf13ff1b665b521d135057e42f76f924d1f14960b8264ae4f2362ef96c",
-    "full_abc_sha1": "6bc1214dbef728adb4b49f13febb2391cadbd04d",
+    "full_abc": "F:\\codex\\outputs\\abyss-ex-admission-fix-20260918\\abyss-ex-ios-admission-fixed-full.abc",
+    "full_abc_sha256": "43bed2279c157df96920d6eafbeb69bcdac59f7e88da62a2cb0b6ed94f2146f2",
+    "full_abc_sha1": "507a95b5ec5e4bada216c90d2b8a16f123656953",
     "aot_info_file_offset": 104549248,
     "aot_method_count": 101287,
-    "build_id": "ios-184-admission-20260915",
+    "build_id": "ios-184-abyss-ex-20260917",
     "diagnostic_export": false
   },
   "lineage": {
-    "previous_accepted_ipa_sha256": "90d6757bc45c8562926f7ea53b0455c219b9867bf91cbab4314237cab4ffb3f6",
-    "documentation": "client-patch/ios-fantasy-return/README.md",
-    "build_entry": "client-patch/ios-fantasy-return/build.py",
-    "verification_script": "client-patch/ios-fantasy-return/verify.py",
+    "previous_accepted_ipa_sha256": "f1d9f41f0b9c16ec79efa5664833fe5dea13038bc844a25f22dbafda367316dc",
+    "documentation": "client-patch/ACCEPTANCE-ABYSS-EX-20260918.md",
+    "build_entry": "client-patch/abyss-ex/build_ios.py",
+    "verification_script": "client-patch/abyss-ex/verify_ios.py",
     "previous_method_source_commit": "20a416027089686f1ec0b03f3a0f778154f3fb30",
     "preserved": [
       "MOD 五合一",
@@ -75,9 +75,11 @@
       "觉醒任务响应后刷新角色、觉醒等级与能力页签",
       "iOS 独立构建准入、握手续期与账号恢复",
       "空账号文件进入登录流程；账号记录采用同目录临时文件写完后替换，设备扩展存储保持",
-      "幻想连战三个多人节点结算及房间退出时重建返回路径，修复 C2120 及连带 G1002"
+      "幻想连战三个多人节点结算及房间退出时重建返回路径，修复 C2120 及连带 G1002",
+      "独立普通深渊和 EX 活动入口、续战及装备限制",
+      "EX 正式准入号与 HMAC 签名前缀一致"
     ],
-    "method_archive": "专用返回入口 BL 重定向与 468 字节 ARM64 辅助函数；全局方法表、ABC 与类布局保持。",
+    "method_archive": "保留幻想连战返回修复；EX 方法 AOT 累计移植及准入签名前缀修复。",
     "intermediate_candidates": [
       {
         "name": "cumulative_initial",
@@ -100,102 +102,74 @@
         "role": "exact_r4_reproduction_input_not_current_baseline"
       }
     ],
-    "direct_input_ipa_sha256": "90d6757bc45c8562926f7ea53b0455c219b9867bf91cbab4314237cab4ffb3f6",
-    "source_artifact_record": "client-patch/ios-fantasy-return/source-artifact.json"
+    "direct_input_ipa_sha256": "f1d9f41f0b9c16ec79efa5664833fe5dea13038bc844a25f22dbafda367316dc",
+    "source_artifact_record": "client-patch/abyss-ex/source-artifacts.json",
+    "repair_entry": "client-patch/abyss-ex/repair_admission_prefix.py"
   },
-  "local_build_report": "outputs/ios-fantasy-return-fix-20260916-r2/build-report.json",
+  "local_build_report": "F:\\codex\\outputs\\abyss-ex-admission-fix-20260918\\ios-repair.json",
   "local_acceptance_checks": {
-    "status": "offline_structure_verified",
-    "ipa": "outputs/ios-fantasy-return-fix-20260916-r2/StarPoint-iOS-1.8.4-fantasy-return-fix-20260916-unsigned.ipa",
-    "ipa_sha256": "f1d9f41f0b9c16ec79efa5664833fe5dea13038bc844a25f22dbafda367316dc",
-    "zip_members": 3568,
-    "changed_members": [
-      "Payload/worldflipper.app/worldflipper"
-    ],
-    "linked_relocations_checked": 6,
-    "native_helper_bytes": 468,
-    "all_other_native_bytes_preserved": true,
-    "swf_and_runtime_abc_unchanged": true,
-    "all_101287_method_table_entries_unchanged": true,
-    "class_and_activation_abi_unchanged": true,
-    "admission_build_id": "ios-184-admission-20260915",
-    "admission_id_key_and_protocol_unchanged": true,
-    "public_endpoint_unchanged": true,
+    "status": "offline_structure_and_public_protocol_verified",
+    "device_tested": false,
+    "native_code_pointers_and_relocations_unchanged_by_prefix_repair": true,
+    "ldid_replacement_models": 3,
     "signature_layout": {
-      "signature_offset": 173191760,
+      "signature_offset": 178926160,
       "signature_size": 2711920,
       "signature_is_last": true,
       "loader_metadata_before_signature": true,
-      "ldid_code_limit": 173191760,
+      "ldid_code_limit": 178926160,
       "ldid_metadata_preserved": true,
       "metadata_ranges": [
         {
           "name": "rebase",
-          "offset": 173003632,
+          "offset": 178738032,
           "size": 147771
         },
         {
           "name": "bind",
-          "offset": 172170720,
+          "offset": 177905120,
           "size": 59712
         },
         {
           "name": "lazy_bind",
-          "offset": 172230432,
+          "offset": 177964832,
           "size": 26368
         },
         {
           "name": "export",
-          "offset": 172256800,
+          "offset": 177991200,
           "size": 536
         },
         {
           "name": "symbols",
-          "offset": 172506232,
+          "offset": 178240632,
           "size": 25392
         },
         {
           "name": "strings",
-          "offset": 173151408,
+          "offset": 178885808,
           "size": 40352
         },
         {
           "name": "indirect_symbols",
-          "offset": 172531624,
+          "offset": 178266024,
           "size": 8728
         },
         {
           "name": "0x26",
-          "offset": 172257336,
+          "offset": 177991736,
           "size": 248864
         },
         {
           "name": "0x29",
-          "offset": 172506200,
+          "offset": 178240600,
           "size": 32
         }
       ]
     },
-    "ldid_replacement_models": 3,
     "save_schema_changed": false,
-    "device_tested": false,
-    "native_regression": {
-      "status": "passed",
-      "tests": 5,
-      "scenarios": 25,
-      "executes_packaged_arm64": true,
-      "air_runtime_calls_mocked": true,
-      "device_tested": false,
-      "covers": [
-        "3 bosses: finish/retry, cold/warm definitions",
-        "old-binary negative control",
-        "8 unrelated quest controls",
-        "3 room exits",
-        "unrelated room fallback",
-        "AAPCS64 registers and stack",
-        "AIR MethodFrame restoration"
-      ]
-    }
+    "admission_build_id": "ios-184-abyss-ex-20260917",
+    "public_protocol_report": "F:\\codex\\outputs\\abyss-ex-admission-fix-20260918\\public-admission-verification.json"
   },
   "excluded_diagnostic": {
     "status": "diagnostic_only_not_current_baseline",
