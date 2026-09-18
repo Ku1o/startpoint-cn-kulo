@@ -208,7 +208,7 @@ export function insertPlayerQuestProgressSync(
     data: PlayerQuestProgress
 ) {
     const timeRevision = isAbyssFiniteQuest(section, data.questId)
-        ? refreshPlayerAbyssBestTimesSync(playerId) : null
+        ? refreshPlayerAbyssBestTimesSync(playerId, Math.floor(data.questId / 1000)) : null
     getDb().prepare(`
     INSERT INTO players_quest_progress (section, quest_id, finished, host_finished, unlocked, high_score, clear_rank, best_elapsed_time_ms, leader_character_id, s_plus_reward_received, player_id, best_time_revision)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)

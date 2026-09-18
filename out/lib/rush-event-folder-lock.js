@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.isStaleDeepAbyssEndlessFolderLock = exports.classifyDeepAbyssFolderReset = exports.classifyDeepAbyssFolderSelection = exports.DEEP_ABYSS_ENDLESS_FOLDER_ID = exports.DEEP_ABYSS_RUSH_FOLDER_ID = exports.DEEP_ABYSS_RUSH_EVENT_ID = void 0;
+const abyss_modes_1 = require("./abyss-modes");
 exports.DEEP_ABYSS_RUSH_EVENT_ID = 700099;
 exports.DEEP_ABYSS_RUSH_FOLDER_ID = 1;
 exports.DEEP_ABYSS_ENDLESS_FOLDER_ID = 2;
@@ -10,7 +11,7 @@ exports.DEEP_ABYSS_ENDLESS_FOLDER_ID = 2;
  * selection lock.
  */
 function classifyDeepAbyssFolderSelection(eventId, folderId) {
-    if (eventId !== exports.DEEP_ABYSS_RUSH_EVENT_ID)
+    if (!(0, abyss_modes_1.isAbyssEvent)(eventId))
         return "standard";
     if (folderId === exports.DEEP_ABYSS_RUSH_FOLDER_ID)
         return "standard";
@@ -21,14 +22,14 @@ function classifyDeepAbyssFolderSelection(eventId, folderId) {
 exports.classifyDeepAbyssFolderSelection = classifyDeepAbyssFolderSelection;
 /** Deep Abyss never supports returning to a chosen finite-folder round. */
 function classifyDeepAbyssFolderReset(eventId) {
-    return eventId === exports.DEEP_ABYSS_RUSH_EVENT_ID
+    return (0, abyss_modes_1.isAbyssEvent)(eventId)
         ? "restart_from_first"
         : "native";
 }
 exports.classifyDeepAbyssFolderReset = classifyDeepAbyssFolderReset;
 /** Match only the known stale value; other Rush events keep their own rules. */
 function isStaleDeepAbyssEndlessFolderLock(eventId, activeFolderId) {
-    return eventId === exports.DEEP_ABYSS_RUSH_EVENT_ID
+    return (0, abyss_modes_1.isAbyssEvent)(eventId)
         && activeFolderId === exports.DEEP_ABYSS_ENDLESS_FOLDER_ID;
 }
 exports.isStaleDeepAbyssEndlessFolderLock = isStaleDeepAbyssEndlessFolderLock;

@@ -1,0 +1,711 @@
+{
+  "status": "local_candidate_not_deployed",
+  "version": "1.4.110",
+  "depends_on": "1.4.109",
+  "archive": {
+    "name": "pinball-1.4.109-1.4.110-2-abyss-normal-ex-art.zip",
+    "size": 10221130,
+    "sha256": "0e35f858bfc39875eb218fb2684e769455548c92ba037bdd2aa357d7d945237c",
+    "members": 90,
+    "files": [
+      "production/upload/01/313477f2616628879b578fa78722fbb54dd69c",
+      "production/upload/02/9d1bf2d803e690744ca1086f13c2a99827db49",
+      "production/upload/07/9e71a5a5418fbb2327cbf82832eeee0dc644a2",
+      "production/upload/08/5727e08ee54b06390d09a5c1c8d6b2cc0189a0",
+      "production/upload/09/8fa2a6fb5f99dc0d5b3102d22410668cfb7d7f",
+      "production/upload/0a/ec155b261ae7801d4c9a9bb579f88fe5bcc324",
+      "production/upload/0b/97162ce6d40c473cbac39fa21427688922a48a",
+      "production/upload/0b/ce91dc13367b14fd2e66c541c2511661156519",
+      "production/upload/0e/69400c9d66e8f355462c14a485999704c03d8d",
+      "production/upload/10/bd576a6a7bd1ef3eb0762e6a8747db4428ecad",
+      "production/upload/16/0c07d343872ba89540d072364584d650b8e356",
+      "production/upload/17/904d02f36147574da2c83de5e8eff89bdfb2d4",
+      "production/upload/19/a4aa442b3249499356e7a3f6370e530bfe355e",
+      "production/upload/1b/7ca740e820c236abcb98ffb37c15f3717e81d7",
+      "production/upload/24/7f1218be5a2bc1bfacca49f0d5c744afdaeb47",
+      "production/upload/26/48b5dc4737ebf8952683aed2638f3c410b5a12",
+      "production/upload/30/363f8364e183905b2d0b48b8718b7165135bc2",
+      "production/upload/32/764d5b978aeec498c0a0f8b90100024273297a",
+      "production/upload/35/ace2275e34fe79cd9c868dea1c8e99b7232e17",
+      "production/upload/37/971211f6de962a92a5dda2b723689f38b998da",
+      "production/upload/3e/ab2b8b64983749ecd80c3ae03317be3ecbe1b0",
+      "production/upload/40/7bd387079092ff09744d22f4aaf0ba27c3817e",
+      "production/upload/42/f95b058d6372a7e4ea8357bc8e6ae059cb3fd2",
+      "production/upload/48/4c031b5e0dd73b0e00b14a4c17662f9aff5698",
+      "production/upload/48/bd931bce4f30c62b124a693b683581c32c9483",
+      "production/upload/4e/fd1fc5084d41252b3052d8be58e7314f87c5c6",
+      "production/upload/54/79f6601f03f0959efca4c118bf13ffd97f7542",
+      "production/upload/55/bd82389f4f85e782957d0c9cbafa859e050e9b",
+      "production/upload/56/02a557d238e3971cfe8593c7cacf5bf54c9f4a",
+      "production/upload/56/168c84bbf6322a88a745f8ba758267044b883b",
+      "production/upload/56/7d81eea3c08fac7b1b69cbeabe2b9fd7b9591e",
+      "production/upload/56/ea32d3e4de56bc5be00b514d5645df7fb028ac",
+      "production/upload/59/bf5b23f0218e8342a1448910aad80f00834818",
+      "production/upload/61/9144c3d77df35bb963288a6033562148c9ec58",
+      "production/upload/61/ed6854a955e7425489b07b494c4a2c1d7f2737",
+      "production/upload/66/5556a9c61154e098c12de480ddb015a20a7377",
+      "production/upload/69/51e7c72c512a88e02b3678a8be2136b797e5b0",
+      "production/upload/71/65684e1bb9b106cb3a5964645395ecac93a7fa",
+      "production/upload/72/9edf423a2a32ad7948bb61488845271025caf2",
+      "production/upload/72/a0dc4a60ed1455221625fef2413d5c24d1bc33",
+      "production/upload/73/5fae9f7ed7d76d962a02f08ddab5559814c374",
+      "production/upload/7b/a1f784ab5caaadac691a2b12cb626311768b8b",
+      "production/upload/7c/0159ffd7078028b1c2eec135beb1884f7224fb",
+      "production/upload/7d/391d67dd59c6e0dd91a9a584d73770ba6c91a0",
+      "production/upload/7d/72eb21d81976e5ebddf5a3f486616cd4fc5724",
+      "production/upload/7f/20abd995f333e4845b12280d950f1c6f56a870",
+      "production/upload/82/544012cd68cc4acc5e756388c78005c1e71a9f",
+      "production/upload/82/93e535e806d70640f45950db1fe14ed9482bdf",
+      "production/upload/84/fd6ee6a23114c8f888fadc838bbe8bdf668677",
+      "production/upload/87/d3e3ed20182af3f4cbf7c6917b6f9b41da2271",
+      "production/upload/89/b6c0d1c0da0778139bac9007a937a8b5194a3f",
+      "production/upload/8a/a782b51e2259298da3a30b0ba8d6ce7d027d95",
+      "production/upload/8c/d085df2c3c91bb09c2f26a460d96c653124dd5",
+      "production/upload/8d/c457e8c9fddfd14057c62cda9bf76aeadc9fdd",
+      "production/upload/8e/8e379b61106412a4a042d939c0cce14b97d8b9",
+      "production/upload/94/b6ab067ef6ae5f54abf9bcabfcad2a18efbddc",
+      "production/upload/96/4ae337734cfeccb85ea6eecddce1f8de89c5d0",
+      "production/upload/99/c5f5dc128fd56e82d61ff71cc14b59ec115a8d",
+      "production/upload/a9/cd3d6bc4efa7042e7c7bacf5a333302bb277e5",
+      "production/upload/b6/595dedd9cfa79b7e6eccab25dd9a2a81b066a2",
+      "production/upload/b6/aad7c62d0c37953464b1687b984847f74f602b",
+      "production/upload/b9/fa37fb903cf4cea22484fa599a42cfc7badc28",
+      "production/upload/be/73529edb74e3c975d5bde14b3987c0cd662701",
+      "production/upload/c1/a1bdc2faf811e7c8d71a6bfb7986ca7d26283e",
+      "production/upload/cc/3d2aaa5ec3b7f736dfc9fbe702ad0914ff30f9",
+      "production/upload/cc/698ac0cd7383303d7d48f7489494731e463179",
+      "production/upload/cd/6336795a27ea33bf8d0c5d5a9bfb466bedcf1e",
+      "production/upload/d0/03c156020702517fec1017a313f08f16634dad",
+      "production/upload/d0/6b8532b1e28e3064eb96b5e5b762b52117c8c5",
+      "production/upload/d1/73e8ff929070d4c0bbef95fa679afcfa1c203f",
+      "production/upload/d5/e0f8be8748ce3a53271529b2fa5cac00ab9ba4",
+      "production/upload/d8/2be60a474f2ee7defd4d22787c5a8c1f4a9c81",
+      "production/upload/d8/b05b7367abe79c5be10e7c423911b7d344ee96",
+      "production/upload/dc/1fab46803b8130dc98e8ac1a2644228c5a2b36",
+      "production/upload/df/9da7a19ac7631d0e96ed7f3ed91afcadf7e41a",
+      "production/upload/e2/f4987b704c0ea89482f94c1d97209e64c6584a",
+      "production/upload/e4/8de68827a276e1ac9e7794f3d51879f4a55627",
+      "production/upload/e4/d1e3b7e223e1151195626286f773e305144b0a",
+      "production/upload/e6/e407d1adb48131eaefdf5ec32208f3d4f46910",
+      "production/upload/ec/163f0482fbb42c0dfcf9296ec28773ccf4dbf2",
+      "production/upload/ec/d8f66b60947ca05643c4080a6cc925c750b9d6",
+      "production/upload/f0/7798175fd4c358a1439829334988f6024189bc",
+      "production/upload/f2/7d0d867ebea94c0b78bee7e51c55bef533a53d",
+      "production/upload/f4/7b227ebbdedc6de7c5f36fa0f96a3f80f9d9c3",
+      "production/upload/f5/a94a4b24b13242e21d3835ef3b475e45bd3d5a",
+      "production/upload/f7/c1927e492bde3537c23ee6d59cd9a796728d42",
+      "production/upload/f8/153551735a1d86fcdf9276cc143c24fd3e8477",
+      "production/upload/f8/9365e4b7452d7c6fb75543b627792d2709d870",
+      "production/upload/f9/f23868e4f5a7c1fa67278dad9431aba239427e",
+      "production/upload/fd/80bb595562a9f2bf69deb917e572e159c28839"
+    ]
+  },
+  "preserved_part_one": {
+    "name": "pinball-1.4.109-1.4.110-1-seasonal-characters-degrees.zip",
+    "sha256": "80d526f0051c44f63bc59ee7402d9fa99c680af33dbfdb93abad67296de040e1"
+  },
+  "overlapping_part_one_members_verified": [],
+  "quest_time_revisions": {
+    "rush:700099": "67d91dec653a296e3177adfd6e8f6c3d777798222f39191933822950f23ec704",
+    "rush:700100": "5956b26efd74f73f0da3a07d36620aeeb0aeeb02419a8fa9d4f70e691dbb8617"
+  },
+  "normal_endless_preserved": true,
+  "images": [
+    {
+      "mode": "幻想连战",
+      "role": "活动主横幅",
+      "logical": "quest/event/banner/rush_event/mod_split_fantasy_banner.png",
+      "size": [
+        1000,
+        184
+      ],
+      "source_sha256": "b084693d963db10606c525bf76860a6511f50960bbeb057c8b71a29439dd5cf3",
+      "encoded_sha256": "f7fa6c2efe8419c6e1329dcb5426c69a7239f746c5c3f9bc96f6bc442e9958a3",
+      "alpha_repair_sha256": null,
+      "preview": "fantasy_banner.png"
+    },
+    {
+      "mode": "深渊连战",
+      "role": "活动主横幅",
+      "logical": "quest/event/banner/rush_event/mod_split_abyss_banner.png",
+      "size": [
+        1000,
+        184
+      ],
+      "source_sha256": "baee6523b7673a02bb567d0aeafe756b4efa49fa53a4ca9a006d51e8b892449f",
+      "encoded_sha256": "fd1e53a213772c8cd2be4cdf6ab6491b80a787cb63b158e3839324c0f61dadfa",
+      "alpha_repair_sha256": null,
+      "preview": "abyss_banner.png"
+    },
+    {
+      "mode": "深渊连战EX",
+      "role": "活动主横幅",
+      "logical": "quest/event/banner/rush_event/mod_split_abyss_ex_banner.png",
+      "size": [
+        1000,
+        184
+      ],
+      "source_sha256": "e938177f1dacee02e807d3f2aa5c84b1d4fb0bf14fb57601f88b634a0b881494",
+      "encoded_sha256": "c8846ab063cb18f6644102cf2fa33ea831aba8ded5b32554a65f46f90fa42370",
+      "alpha_repair_sha256": null,
+      "preview": "abyss_ex_banner.png"
+    },
+    {
+      "mode": "终始之战",
+      "role": "共用文件夹背景",
+      "logical": "quest/event/background/rush_event/mod_split_hub_hub_background.png",
+      "size": [
+        1440,
+        556
+      ],
+      "source_sha256": "9e3e36af0c959171508632e04503c1d4ccb18fd81e3534a652d0ce2fc03f1203",
+      "encoded_sha256": "3e75c4cdf191fbf51df5dabd19211ee43ef73033cb83500802ed326b0c5b828c",
+      "alpha_repair_sha256": null,
+      "preview": "hub_hub_background.png"
+    },
+    {
+      "mode": "幻想连战",
+      "role": "Boss入口横幅",
+      "logical": "quest/event/bossbattle_banner/rush_event/mod_split_fantasy_boss.png",
+      "size": [
+        377,
+        199
+      ],
+      "source_sha256": "a8a0233b67163f199377cfa319bf2f997934d6f5f52fd8d6068bd3b5138a09dd",
+      "encoded_sha256": "b283d6392277b455324569404bdc7ceb2e210e5ebde59d724bfac6b0a1b6986c",
+      "alpha_repair_sha256": null,
+      "preview": "fantasy_boss.png"
+    },
+    {
+      "mode": "幻想连战",
+      "role": "活动Logo",
+      "logical": "quest/event/logo/rush_event/mod_split_fantasy_logo.png",
+      "size": [
+        1638,
+        2861
+      ],
+      "source_sha256": "928f3bdf30c1cd2e41e709487568eae3d389af027263b6e7abfb128614cb82a5",
+      "encoded_sha256": "f6283560db13635f9997954d499b496e16d7b08879371765a2146afdc16d8aa1",
+      "alpha_repair_sha256": null,
+      "preview": "fantasy_logo.png"
+    },
+    {
+      "mode": "幻想连战",
+      "role": "静态背景",
+      "logical": "quest/event/background/rush_event/mod_split_fantasy_background.png",
+      "size": [
+        1440,
+        556
+      ],
+      "source_sha256": "7b0ad4a89bb839cef8d0ac91761b87225d5d6224075f7dc7d9c138b2f70e9893",
+      "encoded_sha256": "c1ac29d0c12d05d2c3307c65d0f4ecab553b2624a03ff700366677e66db757c2",
+      "alpha_repair_sha256": null,
+      "preview": "fantasy_background.png"
+    },
+    {
+      "mode": "幻想连战",
+      "role": "入口缩略图",
+      "logical": "quest/thumbnail/mod_abyss_split/fantasy_entry.png",
+      "size": [
+        240,
+        188
+      ],
+      "source_sha256": "2393f2cb28271e4a661c3b8151b6d5634365191adc7fffd484f80b75affa42f3",
+      "encoded_sha256": "577b9ebeaf38446dbe88db5424a185f49352f67956b67864e9e9c635d2646ad2",
+      "alpha_repair_sha256": null,
+      "preview": "fantasy_entry.png"
+    },
+    {
+      "mode": "深渊连战",
+      "role": "Boss入口横幅",
+      "logical": "quest/event/bossbattle_banner/rush_event/mod_split_abyss_boss.png",
+      "size": [
+        377,
+        199
+      ],
+      "source_sha256": "9c33b7ef75429a3cc96765895c9f5f13726400f4cabd4e25679db15dae43b7b1",
+      "encoded_sha256": "9a72b36f40339dbf450587c52fcb388e89861da957bea1cacf2fe57c6f91a8d5",
+      "alpha_repair_sha256": null,
+      "preview": "abyss_boss.png"
+    },
+    {
+      "mode": "深渊连战",
+      "role": "活动Logo",
+      "logical": "quest/event/logo/rush_event/mod_split_abyss_logo.png",
+      "size": [
+        1638,
+        2861
+      ],
+      "source_sha256": "1eb3bbbe8394940ce3999e05bd9c671bbb0dd19a24295996734fe8ca2a419263",
+      "encoded_sha256": "3d69e3a82f7e5375c16ce09c149621725d53804902cea8789425e2575a5cb023",
+      "alpha_repair_sha256": null,
+      "preview": "abyss_logo.png"
+    },
+    {
+      "mode": "深渊连战",
+      "role": "静态背景",
+      "logical": "quest/event/background/rush_event/mod_split_abyss_background.png",
+      "size": [
+        1440,
+        556
+      ],
+      "source_sha256": "57cbb7c5229ea5db57c4169922c40c46b6c0abc07ff846ba02f3c837baa5aa43",
+      "encoded_sha256": "ff1abcb0376cf36f93c53cd9fd170c3c24f71e51c451d1bca5ce7fcbe5f0731b",
+      "alpha_repair_sha256": null,
+      "preview": "abyss_background.png"
+    },
+    {
+      "mode": "深渊连战",
+      "role": "入口缩略图",
+      "logical": "quest/thumbnail/mod_abyss_split/abyss_entry.png",
+      "size": [
+        240,
+        188
+      ],
+      "source_sha256": "2393f2cb28271e4a661c3b8151b6d5634365191adc7fffd484f80b75affa42f3",
+      "encoded_sha256": "577b9ebeaf38446dbe88db5424a185f49352f67956b67864e9e9c635d2646ad2",
+      "alpha_repair_sha256": null,
+      "preview": "abyss_entry.png"
+    },
+    {
+      "mode": "深渊连战EX",
+      "role": "Boss入口横幅",
+      "logical": "quest/event/bossbattle_banner/rush_event/mod_split_abyss_ex_boss.png",
+      "size": [
+        377,
+        199
+      ],
+      "source_sha256": "8d7846c408f13eee104918bcdb5ad78c567bb181ffd0676704fcec772060b34b",
+      "encoded_sha256": "f356dbb4be2b39c1f9dabb0be847cbe071be1e0142127cbef1836724669bfc08",
+      "alpha_repair_sha256": "44c88283fb504d18f5d8a4a9d06347095d00c5550e5f11e8f097b1425cd47c20",
+      "preview": "abyss_ex_boss.png"
+    },
+    {
+      "mode": "深渊连战EX",
+      "role": "活动Logo",
+      "logical": "quest/event/logo/rush_event/mod_split_abyss_ex_logo.png",
+      "size": [
+        1638,
+        2861
+      ],
+      "source_sha256": "39a09583d0e73aacca4d2ff4b5d3a16fd125d654bddb5bfb83c8e921b21179f0",
+      "encoded_sha256": "e048cb07e348d2306a9ccb7c510cee1f58e3d883e1c9d9b4eb4ecc294fe4efe6",
+      "alpha_repair_sha256": "c0702467349432921288a14dcc885f6c25ef0ce20e063fc9fe87a1b59d96b420",
+      "preview": "abyss_ex_logo.png"
+    },
+    {
+      "mode": "深渊连战EX",
+      "role": "静态背景",
+      "logical": "quest/event/background/rush_event/mod_split_abyss_ex_background.png",
+      "size": [
+        1440,
+        556
+      ],
+      "source_sha256": "fda2931d411a9759c44d2f4f2d4327f59a3a00d3a71b477edcb82daef08c2a4a",
+      "encoded_sha256": "05a3ec56cd13ba1faa30ab383126b763b46502e613ab0b16e7da256ce015e876",
+      "alpha_repair_sha256": null,
+      "preview": "abyss_ex_background.png"
+    },
+    {
+      "mode": "深渊连战EX",
+      "role": "入口缩略图",
+      "logical": "quest/thumbnail/mod_abyss_split/abyss_ex_entry.png",
+      "size": [
+        240,
+        188
+      ],
+      "source_sha256": "31428ac774020f33d0ec0bd5fa8f80fb51709639f17a832927fcf80474f9f0c1",
+      "encoded_sha256": "4d19a133a5aa518c63c8cd4aab2744432e684350288540ae5d1c8f9402fac8be",
+      "alpha_repair_sha256": null,
+      "preview": "abyss_ex_entry.png"
+    }
+  ],
+  "acquisition_items": 15,
+  "acquisition_pairs": 141,
+  "verification": {
+    "normal": {
+      "chain_floors": 31,
+      "audit": {
+        "absolute_boss_rounds": 29,
+        "audited_boss_rounds": 29,
+        "baseline_first_boss_hp": 1999999999.9999998,
+        "baseline_last_boss_hp": 10000000000.0,
+        "baseline_strictly_increasing": true,
+        "chain_failures": 0,
+        "chain_reports": 31,
+        "expected_boss_rounds": 29,
+        "identity_reference_closure_rounds": 5,
+        "identity_reference_closures": 6,
+        "max_absolute_error_hp": 23.495200157165527,
+        "proxy_components": 0,
+        "source_proxy_components": 0,
+        "special_bundle_rounds": 5,
+        "target_exempt_rounds": 0,
+        "thumbnail_static_verified_floors": 29
+      },
+      "conditions": [],
+      "time_curse_floors": [
+        7,
+        17
+      ]
+    },
+    "ex": {
+      "chain_floors": 31,
+      "audit": {
+        "absolute_boss_rounds": 30,
+        "audited_boss_rounds": 30,
+        "baseline_first_boss_hp": 15000000000.0,
+        "baseline_last_boss_hp": 50000000000.0,
+        "baseline_strictly_increasing": false,
+        "chain_failures": 0,
+        "chain_reports": 31,
+        "expected_boss_rounds": 30,
+        "identity_reference_closure_rounds": 3,
+        "identity_reference_closures": 5,
+        "max_absolute_error_hp": 49.86781311035156,
+        "proxy_components": 0,
+        "source_proxy_components": 0,
+        "special_bundle_rounds": 0,
+        "target_exempt_rounds": 0,
+        "thumbnail_static_verified_floors": 30
+      },
+      "conditions": [
+        {
+          "floor": 1,
+          "condition_carriers": [
+            "mod_abyss_ex_boss1"
+          ],
+          "open_lane": [
+            3,
+            1
+          ]
+        },
+        {
+          "floor": 2,
+          "condition_carriers": [
+            "mod_abyss_ex_boss2"
+          ],
+          "open_lane": [
+            2,
+            2
+          ]
+        },
+        {
+          "floor": 3,
+          "condition_carriers": [
+            "mod_abyss_ex_boss3"
+          ],
+          "open_lane": [
+            5,
+            1
+          ]
+        },
+        {
+          "floor": 4,
+          "condition_carriers": [
+            "mod_abyss_ex_boss4"
+          ],
+          "open_lane": [
+            5,
+            2
+          ]
+        },
+        {
+          "floor": 5,
+          "condition_carriers": [
+            "mod_abyss_ex_boss5"
+          ],
+          "open_lane": [
+            4,
+            1
+          ]
+        },
+        {
+          "floor": 6,
+          "condition_carriers": [
+            "mod_abyss_ex_boss6"
+          ],
+          "open_lane": [
+            2,
+            1
+          ]
+        },
+        {
+          "floor": 7,
+          "condition_carriers": [
+            "mod_abyss_ex_boss7"
+          ],
+          "open_lane": [
+            5,
+            2
+          ]
+        },
+        {
+          "floor": 8,
+          "condition_carriers": [
+            "mod_abyss_ex_boss8"
+          ],
+          "open_lane": [
+            6,
+            1
+          ]
+        },
+        {
+          "floor": 9,
+          "condition_carriers": [
+            "mod_abyss_ex_boss9"
+          ],
+          "open_lane": [
+            2,
+            1
+          ]
+        },
+        {
+          "floor": 10,
+          "condition_carriers": [
+            "mod_abyss_ex_boss10"
+          ],
+          "open_lane": [
+            6,
+            1
+          ]
+        },
+        {
+          "floor": 11,
+          "condition_carriers": [
+            "mod_abyss_ex_boss11"
+          ],
+          "open_lane": [
+            5,
+            3
+          ]
+        },
+        {
+          "floor": 12,
+          "condition_carriers": [
+            "mod_abyss_ex_boss12"
+          ],
+          "open_lane": [
+            3,
+            1
+          ]
+        },
+        {
+          "floor": 13,
+          "condition_carriers": [
+            "mod_abyss_ex_boss13"
+          ],
+          "open_lane": [
+            2,
+            1
+          ]
+        },
+        {
+          "floor": 14,
+          "condition_carriers": [
+            "mod_abyss_ex_boss14"
+          ],
+          "open_lane": [
+            1,
+            0
+          ]
+        },
+        {
+          "floor": 15,
+          "condition_carriers": [
+            "mod_abyss_ex_boss15"
+          ],
+          "open_lane": [
+            1,
+            0
+          ]
+        },
+        {
+          "floor": 16,
+          "condition_carriers": [
+            "mod_abyss_ex_boss16"
+          ],
+          "open_lane": [
+            1,
+            1
+          ]
+        },
+        {
+          "floor": 17,
+          "condition_carriers": [
+            "mod_abyss_ex_boss17"
+          ],
+          "open_lane": [
+            1,
+            3
+          ]
+        },
+        {
+          "floor": 18,
+          "condition_carriers": [
+            "mod_abyss_ex_boss18"
+          ],
+          "open_lane": [
+            6,
+            2
+          ]
+        },
+        {
+          "floor": 19,
+          "condition_carriers": [
+            "mod_abyss_ex_boss19"
+          ],
+          "open_lane": [
+            1,
+            2
+          ]
+        },
+        {
+          "floor": 20,
+          "condition_carriers": [
+            "mod_abyss_ex_boss20"
+          ],
+          "open_lane": [
+            4,
+            2
+          ]
+        },
+        {
+          "floor": 21,
+          "condition_carriers": [
+            "mod_abyss_ex_boss21"
+          ],
+          "open_lane": [
+            4,
+            2
+          ]
+        },
+        {
+          "floor": 22,
+          "condition_carriers": [
+            "mod_abyss_ex_boss22"
+          ],
+          "open_lane": [
+            5,
+            3
+          ]
+        },
+        {
+          "floor": 23,
+          "condition_carriers": [
+            "mod_abyss_ex_boss23"
+          ],
+          "open_lane": [
+            5,
+            1
+          ]
+        },
+        {
+          "floor": 24,
+          "condition_carriers": [
+            "mod_abyss_ex_boss24"
+          ],
+          "open_lane": [
+            6,
+            3
+          ]
+        },
+        {
+          "floor": 25,
+          "condition_carriers": [
+            "mod_abyss_ex_boss25"
+          ],
+          "open_lane": [
+            2,
+            1
+          ]
+        },
+        {
+          "floor": 26,
+          "condition_carriers": [
+            "mod_abyss_ex_boss26"
+          ],
+          "open_lane": [
+            4,
+            1
+          ]
+        },
+        {
+          "floor": 27,
+          "condition_carriers": [
+            "mod_abyss_ex_boss27"
+          ],
+          "open_lane": [
+            1,
+            1
+          ]
+        },
+        {
+          "floor": 28,
+          "condition_carriers": [
+            "mod_abyss_ex_boss28"
+          ],
+          "open_lane": [
+            3,
+            3
+          ]
+        },
+        {
+          "floor": 29,
+          "condition_carriers": [
+            "mod_abyss_ex_boss29"
+          ],
+          "open_lane": [
+            4,
+            1
+          ]
+        },
+        {
+          "floor": 30,
+          "condition_carriers": [
+            "mod_abyss_ex_boss30",
+            "mod_abyss_ex_boss30_2"
+          ],
+          "open_lane": [
+            4,
+            0
+          ]
+        }
+      ],
+      "time_curse_floors": [
+        1,
+        6,
+        9,
+        15,
+        26,
+        30
+      ]
+    }
+  },
+  "required_clients": "EX equipment/soul, auto-start, details and record predicate updates",
+  "device_tested": false,
+  "runtime_synced": false,
+  "cloud_deployed": false,
+  "tool_hashes": {
+    "wf_abyss_custom_position_fix.py": "1d6c438e6e51fc3d0e892e6666a92a5644527a1ce9260e0683d569ef6e6619f0",
+    "wf_abyss_ex.py": "ccd68ddafcb841d6d00c884687d52c86651866209fe6081fa4eb432a85729c52",
+    "wf_abyss_gacha_banner_compile.py": "294838c8abe50545d34b93c68452860ccfc902fce08cec883fdf29ba0196deb5",
+    "wf_abyss_gacha_compile.py": "378c8d780f59d5b57892e8480cb0ee4638a54fbc31b4e43aff13e6ffbc0b1106",
+    "wf_abyss_gacha_contract.py": "3315c7c7cc9b56633a97d6222ae43ccbf9b75ba4cca81870105037a52bfcd60d",
+    "wf_abyss_gacha_drop_source.py": "2d951248c3e085a3782058124811f9cb731a0e7364baf17464af31aa52ecc7e5",
+    "wf_abyss_gacha_package_audit.py": "13b52cc3c3556eaee468df9eee50e1ddcb5a5b36c27556ed549ee80418f6e18b",
+    "wf_abyss_gacha_package_cli.py": "025ff45ae47b7a6bed7079064c662002935954a6431861294224a11472687cb2",
+    "wf_abyss_gacha_package_compile.py": "eeeb8f13939b01253d87f46d4d21f96b5c95ac06cdccfed03b968f2a0bebd437",
+    "wf_abyss_gacha_package_components.py": "280cd243cca263afc95e6cc42a0ef4ec6c4c7204ecd36753b1da6e3dd9a1d193",
+    "wf_abyss_gacha_package_contract.py": "61102c92edd04665fb3372e9026f4f7164a1303cdf7829be959c3abcc3a82a7f",
+    "wf_abyss_gacha_package_sources.py": "c9e472ccc9b211d238ae631903fdde783a4c3144a5d418763e2361a71ab45f5c",
+    "wf_abyss_gacha_package_workspace.py": "6fc0335c53ff6d8d2ad0bd26b86f6d18bd2d08a67741c2f38592566ae1bf583f",
+    "wf_abyss_gacha_pool.py": "1cf4043544ce51b86cd033b081a8df3b748a7c4a7bdd309b422ad2d4d1445b8d",
+    "wf_abyss_modes.py": "2c59d2063ee6f392e44cca3d7c3c25a6e1fed8b51c03a2abf20240b874741fd3",
+    "wf_abyss_mode_sources.py": "58a60287b1bef53ae86cfac9b66b3380a08b8153c9f168058a6d79f9bbf19d88",
+    "wf_abyss_quest_details.py": "2696b52bd4f5c9f99fab6b14afd9e82a3aac0abc429a46f36b95f9adda4057b3",
+    "wf_abyss_ticket_compile.py": "5250b53d513c663015504b6249a3371282179df13bf5daad2b150707f0a7aea1",
+    "wf_abyss_ticket_drop.py": "97473fa2bc6fa802101fdeb6357fa0e56a11e504b817486f7be9813959941169",
+    "wf_abyss_tower_adjustments.py": "0f42266ddb968b9606bd5fbc74547429569514a81057f3cb6a089390c5c9eed8"
+  }
+}

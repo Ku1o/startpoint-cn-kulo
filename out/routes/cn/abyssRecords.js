@@ -19,11 +19,12 @@ function abyssRecordsRoutes(app) {
             var _a, _b;
             reply.header("Cache-Control", "no-store");
             const questId = Number(request.params.questId);
-            if (!/^7000990\d{2}$/.test(request.params.questId) || !(0, abyss_time_revision_1.isAbyssFiniteQuest)(24, questId)
+            if (!/^700(?:099|100)0\d{2}$/.test(request.params.questId) || !(0, abyss_time_revision_1.isAbyssFiniteQuest)(24, questId)
                 || !(0, assets_1.getQuestFromCategorySync)(24, questId))
                 return reply.code(404).send({ status: "not_found" });
-            const revision = (0, abyss_time_revision_1.getAbyssTimeRevision)();
-            if (!revision || (0, abyss_time_revision_1.getAbyssTimeRevisionAtVersion)(request.query.res_ver) !== revision)
+            const eventId = Math.floor(questId / 1000);
+            const revision = (0, abyss_time_revision_1.getAbyssTimeRevision)(eventId);
+            if (!revision || (0, abyss_time_revision_1.getAbyssTimeRevisionAtVersion)(request.query.res_ver, eventId) !== revision)
                 return { status: "update_required", quest_id: questId, best_time_ms: null };
             const record = (0, abyss_records_1.getAbyssFloorRecordDetailsSync)(revision, questId);
             return { status: "ok", quest_id: questId, revision,

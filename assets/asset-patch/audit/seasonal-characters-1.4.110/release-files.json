@@ -1,0 +1,210 @@
+{
+  "status": "local_candidate",
+  "files": [
+    {
+      "path": "assets/abyss_endurance_degree_reward.json",
+      "sha256": "03b7ac7c9ed763e33b5a639a602e75a6c540ccbe95e835b30017ad7643b84376",
+      "size": 180
+    },
+    {
+      "path": "assets/abyss_ex_campus_season_template.json",
+      "sha256": "f3eee5b0f3490ccdf87fbc5fddb666174ac1adf4cb586e351c669d8a7db59e1b",
+      "size": 1127
+    },
+    {
+      "path": "assets/asset-patch/active/pinball-1.4.109-1.4.110-1-seasonal-characters-degrees.zip",
+      "sha256": "80d526f0051c44f63bc59ee7402d9fa99c680af33dbfdb93abad67296de040e1",
+      "size": 74555823
+    },
+    {
+      "path": "assets/asset-patch/manifest.json",
+      "sha256": "d08ba424a216a18a88db3870b63279d315990c3aadca9e30e228d7faacd2c9f0",
+      "size": 1065765
+    },
+    {
+      "path": "assets/cdndata/character.json",
+      "sha256": "c72720291b57f95fd4e2ec625c33d096c3d3a2e4dbb7c07947ef9ddc47807343",
+      "size": 314804
+    },
+    {
+      "path": "assets/cdndata/character_text.json",
+      "sha256": "b5224b96b97cfda5cdaf32530e155bba987cffb06d5046ac1efc176b2a10232c",
+      "size": 435106
+    },
+    {
+      "path": "assets/character.json",
+      "sha256": "312608f86d3212f4b239655ee50380f30be8aae71d75aaef93cb34fc8cea4dab",
+      "size": 50818
+    },
+    {
+      "path": "assets/character_degree_rewards.json",
+      "sha256": "9901ef7030a94a2dc6ef80142c4eb740973e4fd20f024c550373d3e42cbaaed5",
+      "size": 3353
+    },
+    {
+      "path": "assets/degree_author926.json",
+      "sha256": "d426a4a060c8d663507569f490d98fa76b9fd4f3c54c74a35320860f84d5164c",
+      "size": 6762
+    },
+    {
+      "path": "assets/gacha.json",
+      "sha256": "61c993ecb76d0c06363b6fd13c0a2c8f8f6087951f296afa7fc84a6f56d90b09",
+      "size": 27300212
+    },
+    {
+      "path": "assets/gacha_cnmod.json",
+      "sha256": "2dfc75e755845a18d31e94f77a06833964918e1deed76f9b417750c66abb40be",
+      "size": 119785
+    },
+    {
+      "path": "assets/gacha_rank_p5b.json",
+      "sha256": "e7aa404d09f07fe748229d672888e9f6072d0deb7c61cfdadc11702b79a80251",
+      "size": 125529
+    },
+    {
+      "path": "assets/mana_board.json",
+      "sha256": "1b79d69257dc4fa166eb081d42277f336e1bc11ca98221c58745d684f01d6eba",
+      "size": 3491576
+    },
+    {
+      "path": "assets/mana_node.json",
+      "sha256": "e166bfb6aa2d70fd4baf45473794da3c8d211d42cf5e001b153d0fbb2cc6f4fe",
+      "size": 4886078
+    },
+    {
+      "path": "out/data/domains/degree.js",
+      "sha256": "994e0065fd803bcccfbcafa18fdce6e9d50d5165d7b57f80ca3f3a4aa560ac08",
+      "size": 6083
+    },
+    {
+      "path": "out/data/domains/player.js",
+      "sha256": "e5054b78ac743e44f37a3a735088a565e21504db6307eb88b527763c2e38162a",
+      "size": 55199
+    },
+    {
+      "path": "out/data/snapshots/player-snapshot.js",
+      "sha256": "0a18f172cdcc4b819de85c8ed6d45da1b3892e035676958bda446ff54de47387",
+      "size": 22438
+    },
+    {
+      "path": "out/data/types.js",
+      "sha256": "a981e63c3919602bfc48439a623b34fbaf15bbe576a117f6550a2c52fb04a871",
+      "size": 1243
+    },
+    {
+      "path": "out/data/utils/player-data.js",
+      "sha256": "6007f0384be4e4cbec0c32fc26e6d73aec4e90dc9b9830f5155206b4b39a2ec6",
+      "size": 12715
+    },
+    {
+      "path": "out/lib/abyss-endurance-degree-rewards.js",
+      "sha256": "3a3fd1233f2c3379e8b8b8bd091e9b1ec4880410b2b2384304003e025f570cba",
+      "size": 7525
+    },
+    {
+      "path": "out/lib/character-degree-catalog.js",
+      "sha256": "bbf359c24a201cd38fbd1638a15da8ace8e1302f57d2d20e2221d2763a354bf6",
+      "size": 2555
+    },
+    {
+      "path": "out/lib/content-master.js",
+      "sha256": "7742d80a4ba621feb4c825d64bdc6eef468e7f0a20b5597374b61f058b2eaecb",
+      "size": 5193
+    },
+    {
+      "path": "out/lib/leaderboard/service.js",
+      "sha256": "1b87f017f1046b2f3e53abd531d13b75dca7fb54dc79b21cefafda164aab762b",
+      "size": 4888
+    },
+    {
+      "path": "out/lib/player-save-export.js",
+      "sha256": "6ff014eef536a7dabc8228322084f3134be5791ebece16ff7a932843c018047e",
+      "size": 6179
+    },
+    {
+      "path": "out/multi/npc/player-party-pool.js",
+      "sha256": "bc2d11dcd75522d33255f3d9038bcc80cb5dc731fa1b96fffc139a7c2c1526a1",
+      "size": 21363
+    },
+    {
+      "path": "out/routes/api/singleBattleQuest.js",
+      "sha256": "f38e750476f147c091c395f46f2f591dd41314e6a349c984a26d9f185ec38593",
+      "size": 73679
+    },
+    {
+      "path": "out/routes/web_api/server.js",
+      "sha256": "9b68317fbaa4ccdd2cec8d2bae39fe286e3a8baa2d97eafccb1ea30524c2f178",
+      "size": 46075
+    },
+    {
+      "path": "src/data/domains/degree.ts",
+      "sha256": "7cc02f8f2ee8ea70cfee7d785b731fdf53f09fb65797358f7ee2e321a10a9a03",
+      "size": 5679
+    },
+    {
+      "path": "src/data/domains/player.ts",
+      "sha256": "a7094a3eee32bf27a608a11c4d29d317579c91a2735a8d5cb7282544cc7f64f1",
+      "size": 52016
+    },
+    {
+      "path": "src/data/snapshots/player-snapshot.ts",
+      "sha256": "df5acbee500cf368cb97ca31b38c3da1c6bfcb34aac62d4a599cda93a445ee26",
+      "size": 23674
+    },
+    {
+      "path": "src/data/types.ts",
+      "sha256": "688c238945893f8ebc6317a2f1774c3f1d690ae0306b8eedba80b7b63c8bba36",
+      "size": 21347
+    },
+    {
+      "path": "src/data/utils/player-data.ts",
+      "sha256": "ea36788be8794d532003870c9ddb92b0650b764545ef78b84b1281a692651564",
+      "size": 13118
+    },
+    {
+      "path": "src/lib/abyss-endurance-degree-rewards.ts",
+      "sha256": "95bc9f4af7e7c4e18326d7c7f04c68d7b430842b7f6f8acb3ed2ed77f905fe23",
+      "size": 7404
+    },
+    {
+      "path": "src/lib/character-degree-catalog.ts",
+      "sha256": "da23336bcfde87da1234258ecea547b559629c58f19a4b5a864037d843e648da",
+      "size": 2259
+    },
+    {
+      "path": "src/lib/content-master.ts",
+      "sha256": "dc0f80509663763c333b7bf94beb42020edfce7fdb06f5696024837b45489d11",
+      "size": 3645
+    },
+    {
+      "path": "src/lib/leaderboard/service.ts",
+      "sha256": "a0d7fab2817b59161c7052271e811ef2e12a11a4c5790c6939c5568992771c8b",
+      "size": 4848
+    },
+    {
+      "path": "src/lib/player-save-export.ts",
+      "sha256": "655c7bd6d070670ba132a7ddcd62a2d0f14198ed8be44ca437d982de4b9e019e",
+      "size": 5007
+    },
+    {
+      "path": "src/multi/npc/player-party-pool.ts",
+      "sha256": "1d2d7f06ce34e6f129aca96452bf4319f47c784379997821ae5dead8671def90",
+      "size": 19833
+    },
+    {
+      "path": "src/routes/api/singleBattleQuest.ts",
+      "sha256": "a09dacf8734ddba7aa29a0c68bb5f99b6106fffea14f9f2dd7cac7532ca0f3c4",
+      "size": 68736
+    },
+    {
+      "path": "src/routes/web_api/server.ts",
+      "sha256": "04810220af6f49d8a6e508840cbae3d8fc294aa3554e555d35ecae941e893d53",
+      "size": 42929
+    }
+  ],
+  "cloud_outer_exclusions": [
+    "production/**",
+    "assets/asset-patch/production/**"
+  ],
+  "build_configuration": "tsconfig.json"
+}

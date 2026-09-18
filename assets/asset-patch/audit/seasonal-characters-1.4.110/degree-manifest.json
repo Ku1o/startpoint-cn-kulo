@@ -1,0 +1,329 @@
+[
+  {
+    "degree_id": 9910049,
+    "row": [
+      "degree_mod_character_139994_variant0",
+      "991049",
+      "潮风中的绅士",
+      "degree_mod_character_139994_variant0",
+      "获得条件：将雷吉斯突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+      "2",
+      "dynamic/degree/background",
+      "item/etc/degree",
+      "dynamic/degree/degree_mod_character_139994_variant0"
+    ],
+    "png_sha256": "fd3200e52e92424b099691da34b3ce2089e50a64e27c326e52c01d2ff411174f"
+  },
+  {
+    "degree_id": 9910050,
+    "row": [
+      "degree_mod_character_139994_variant1",
+      "991050",
+      "珍藏与你的时光",
+      "degree_mod_character_139994_variant1",
+      "获得条件：将雷吉斯突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+      "2",
+      "dynamic/degree/background",
+      "item/etc/degree",
+      "dynamic/degree/degree_mod_character_139994_variant1"
+    ],
+    "png_sha256": "aa876e65189ee471517cd03d41f6cd0bf12c4c4689d6df7fc039769417c6df5d"
+  },
+  {
+    "degree_id": 9910051,
+    "row": [
+      "degree_mod_character_139993_variant0",
+      "991051",
+      "白蔷薇的护卫",
+      "degree_mod_character_139993_variant0",
+      "获得条件：将特克托突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+      "2",
+      "dynamic/degree/background",
+      "item/etc/degree",
+      "dynamic/degree/degree_mod_character_139993_variant0"
+    ],
+    "png_sha256": "3792340e72318cab931f4c8b73cbf458c49465e9d9b4f2b7b4e30bef78f3d94b"
+  },
+  {
+    "degree_id": 9910052,
+    "row": [
+      "degree_mod_character_139993_variant1",
+      "991052",
+      "为你鸣响的礼炮",
+      "degree_mod_character_139993_variant1",
+      "获得条件：将特克托突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+      "2",
+      "dynamic/degree/background",
+      "item/etc/degree",
+      "dynamic/degree/degree_mod_character_139993_variant1"
+    ],
+    "png_sha256": "790e32e3e47aafbf4d8fa5b2879d62d6d9ca3b381124e7f2b4b7978b8efa71f8"
+  },
+  {
+    "degree_id": 9910053,
+    "row": [
+      "degree_mod_character_159998_variant0",
+      "991053",
+      "梅影下的武士",
+      "degree_mod_character_159998_variant0",
+      "获得条件：将斩铁突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+      "2",
+      "dynamic/degree/background",
+      "item/etc/degree",
+      "dynamic/degree/degree_mod_character_159998_variant0"
+    ],
+    "png_sha256": "6ca0afb233a5ca2851aff6774568269d9bde7bec63e9ed441a8687e222aebe31"
+  },
+  {
+    "degree_id": 9910054,
+    "row": [
+      "degree_mod_character_159998_variant1",
+      "991054",
+      "此身为你守春",
+      "degree_mod_character_159998_variant1",
+      "获得条件：将斩铁突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+      "2",
+      "dynamic/degree/background",
+      "item/etc/degree",
+      "dynamic/degree/degree_mod_character_159998_variant1"
+    ],
+    "png_sha256": "b1d5d75a3127168c84fb5bbbfb04986033548972de2b5372939f6844a0b34fc1"
+  },
+  {
+    "degree_id": 9910055,
+    "row": [
+      "degree_mod_character_159997_variant0",
+      "991055",
+      "灯火酒馆的团长",
+      "degree_mod_character_159997_variant0",
+      "获得条件：将泽赫尔突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+      "2",
+      "dynamic/degree/background",
+      "item/etc/degree",
+      "dynamic/degree/degree_mod_character_159997_variant0"
+    ],
+    "png_sha256": "78622409d55a1636c084537236db42d4c6d374ef03c242ef98f3669ebffee70f"
+  },
+  {
+    "degree_id": 9910056,
+    "row": [
+      "degree_mod_character_159997_variant1",
+      "991056",
+      "今夜温柔的守护",
+      "degree_mod_character_159997_variant1",
+      "获得条件：将泽赫尔突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+      "2",
+      "dynamic/degree/background",
+      "item/etc/degree",
+      "dynamic/degree/degree_mod_character_159997_variant1"
+    ],
+    "png_sha256": "1d0a6a05acf7687061c9de185f86db93549ea27e14523b23bf3f29f4f6462be3"
+  },
+  {
+    "degree_id": 9910057,
+    "row": [
+      "degree_mod_character_159996_variant0",
+      "991057",
+      "花灯下的祈愿",
+      "degree_mod_character_159996_variant0",
+      "获得条件：将菲莉亚突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+      "2",
+      "dynamic/degree/background",
+      "item/etc/degree",
+      "dynamic/degree/degree_mod_character_159996_variant0"
+    ],
+    "png_sha256": "fbff7278dc101c2445a091d309c6492ee4a1b6abc74b59e698aeb208a58dd590"
+  },
+  {
+    "degree_id": 9910058,
+    "row": [
+      "degree_mod_character_159996_variant1",
+      "991058",
+      "风与光的夏夜",
+      "degree_mod_character_159996_variant1",
+      "获得条件：将菲莉亚突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+      "2",
+      "dynamic/degree/background",
+      "item/etc/degree",
+      "dynamic/degree/degree_mod_character_159996_variant1"
+    ],
+    "png_sha256": "a0ad8dd7be554e682482766ca6b84794836a938dcbb76640648dbb583459b744"
+  },
+  {
+    "degree_id": 9910059,
+    "row": [
+      "degree_mod_character_169992_variant0",
+      "991059",
+      "紫百合的邀约",
+      "degree_mod_character_169992_variant0",
+      "获得条件：将普莉姆拉突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+      "2",
+      "dynamic/degree/background",
+      "item/etc/degree",
+      "dynamic/degree/degree_mod_character_169992_variant0"
+    ],
+    "png_sha256": "68fccaadaefca8c8ab0c534e04eb4787ecf1fa6f0413f1a5fab3bd70d5923353"
+  },
+  {
+    "degree_id": 9910060,
+    "row": [
+      "degree_mod_character_169992_variant1",
+      "991060",
+      "与你共舞的花火",
+      "degree_mod_character_169992_variant1",
+      "获得条件：将普莉姆拉突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+      "2",
+      "dynamic/degree/background",
+      "item/etc/degree",
+      "dynamic/degree/degree_mod_character_169992_variant1"
+    ],
+    "png_sha256": "0b90f286a7b2b6114c43346182b3805383afad63d0bd1a8fb6a728aad0faf3a2"
+  },
+  {
+    "degree_id": 9910061,
+    "row": [
+      "degree_mod_character_129991_variant0",
+      "991061",
+      "晴海边的结界使",
+      "degree_mod_character_129991_variant0",
+      "获得条件：将见岛勇希突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+      "2",
+      "dynamic/degree/background",
+      "item/etc/degree",
+      "dynamic/degree/degree_mod_character_129991_variant0"
+    ],
+    "png_sha256": "f9e74461ef0a5122428ecfea3e48fd9e39c4b6a08bf24f475dd7214d9d5a809c"
+  },
+  {
+    "degree_id": 9910062,
+    "row": [
+      "degree_mod_character_129991_variant1",
+      "991062",
+      "与你重叠的夏浪",
+      "degree_mod_character_129991_variant1",
+      "获得条件：将见岛勇希突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+      "2",
+      "dynamic/degree/background",
+      "item/etc/degree",
+      "dynamic/degree/degree_mod_character_129991_variant1"
+    ],
+    "png_sha256": "5d0d15e42b4799b48659aab71410c3b09aa90342e1ee3b81e3fd6e44550d1884"
+  },
+  {
+    "degree_id": 9911101,
+    "row": [
+      "degree_mod_abyss_endurance_perseverance",
+      "991111",
+      "艰难依然前行",
+      "abyss_endurance_perseverance",
+      "获得条件：单次完整通关深渊连战或深渊连战EX的30关，累计战斗时间大于60分钟（不含关外等待；奖励可累计）。",
+      "8",
+      "dynamic/degree/background",
+      "item/etc/degree",
+      "dynamic/degree/degree_mod_abyss_endurance_perseverance"
+    ]
+  },
+  {
+    "degree_id": 9911102,
+    "row": [
+      "degree_mod_abyss_endurance_crawl",
+      "991112",
+      "蠕动化区",
+      "abyss_endurance_crawl",
+      "获得条件：单次完整通关深渊连战或深渊连战EX的30关，累计战斗时间大于120分钟（不含关外等待；奖励可累计）。",
+      "8",
+      "dynamic/degree/background",
+      "item/etc/degree",
+      "dynamic/degree/degree_mod_abyss_endurance_crawl"
+    ]
+  },
+  {
+    "degree_id": 9911103,
+    "row": [
+      "degree_mod_abyss_endurance_roguelike_fan",
+      "991113",
+      "肉鸽爱好者",
+      "abyss_endurance_roguelike_fan",
+      "获得条件：单次完整通关深渊连战或深渊连战EX的30关，累计战斗时间大于180分钟（不含关外等待；奖励可累计）。",
+      "8",
+      "dynamic/degree/background",
+      "item/etc/degree",
+      "dynamic/degree/degree_mod_abyss_endurance_roguelike_fan"
+    ]
+  },
+  {
+    "degree_id": 9911201,
+    "row": [
+      "degree_abyss_campus_top02",
+      "991201",
+      "星钟首席",
+      "degree_abyss_campus_top02",
+      "获得条件：深渊连战EX新赛季排行榜结算奖励，具体条件见排行报酬。",
+      "8",
+      "dynamic/degree/background",
+      "item/etc/degree",
+      "dynamic/degree/degree_abyss_campus_top02"
+    ],
+    "png_sha256": "46ff2d4236b11cc7f67453db136adaa28f9644153b53892d3aa8a71c5d937a8c"
+  },
+  {
+    "degree_id": 9911202,
+    "row": [
+      "degree_abyss_campus_top05",
+      "991202",
+      "穹顶学者",
+      "degree_abyss_campus_top05",
+      "获得条件：深渊连战EX新赛季排行榜结算奖励，具体条件见排行报酬。",
+      "8",
+      "dynamic/degree/background",
+      "item/etc/degree",
+      "dynamic/degree/degree_abyss_campus_top05"
+    ],
+    "png_sha256": "84e33e7ad0ff6c8546904b0a96f7c2834a5e38adc1edb229f056c9e9a05320e9"
+  },
+  {
+    "degree_id": 9911203,
+    "row": [
+      "degree_abyss_campus_top10",
+      "991203",
+      "书海俊杰",
+      "degree_abyss_campus_top10",
+      "获得条件：深渊连战EX新赛季排行榜结算奖励，具体条件见排行报酬。",
+      "8",
+      "dynamic/degree/background",
+      "item/etc/degree",
+      "dynamic/degree/degree_abyss_campus_top10"
+    ],
+    "png_sha256": "b84ec4e563fa23ce60a84bcd1c2c278cff3ce6eed7fa07c8ae843790bcb672b1"
+  },
+  {
+    "degree_id": 9911204,
+    "row": [
+      "degree_abyss_campus_top20",
+      "991204",
+      "风驰健将",
+      "degree_abyss_campus_top20",
+      "获得条件：深渊连战EX新赛季排行榜结算奖励，具体条件见排行报酬。",
+      "8",
+      "dynamic/degree/background",
+      "item/etc/degree",
+      "dynamic/degree/degree_abyss_campus_top20"
+    ],
+    "png_sha256": "ede304964a77cb30bc859d37a3f3e7e7f157a12c339358b2b4438f0a7ccfa208"
+  },
+  {
+    "degree_id": 9911205,
+    "row": [
+      "degree_abyss_campus_participation",
+      "991205",
+      "新章同窗",
+      "degree_abyss_campus_participation",
+      "获得条件：深渊连战EX新赛季排行榜结算奖励，具体条件见排行报酬。",
+      "8",
+      "dynamic/degree/background",
+      "item/etc/degree",
+      "dynamic/degree/degree_abyss_campus_participation"
+    ],
+    "png_sha256": "d9418476f2b0c5c05e8b40329d65929d2a1d944e79fca72892c389f41722e0dd"
+  }
+]

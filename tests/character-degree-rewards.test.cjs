@@ -27,7 +27,7 @@ const { QuestCategory } = require('../out/lib/types')
 const { saveAccountDefaultPlayer } = require('../out/data/activeAccount')
 const { insertSessionWithToken } = require('../out/data/domains/session')
 const snapshots = require('../out/data/snapshots/player-snapshot')
-const allIds = Array.from({ length: 48 }, (_, index) => 9910001 + index)
+const allIds = Array.from({ length: 62 }, (_, index) => 9910001 + index)
 const db = getDb()
 
 function player(label = 'fixture') {
@@ -41,7 +41,7 @@ function own(p, id = 119989, exp = 379988, overLimitStep = 4) {
     characters.updatePlayerCharacterSync(p.id, id, { exp, overLimitStep, evolutionLevel: 0, stack: 2 })
 }
 function owned(p) {
-    return degreeApi.getPlayerDegreeIdsSync(p.id).filter(id => id >= 9910001 && id <= 9910048).sort((a, b) => a - b)
+    return degreeApi.getPlayerDegreeIdsSync(p.id).filter(id => id >= 9910001 && id <= 9910062).sort((a, b) => a - b)
 }
 function practice(p, overrides = {}) {
     return { type: 'battle_finish', playerId: p.id, questCategory: QuestCategory.PRACTICE,
@@ -77,8 +77,8 @@ test.after(() => {
     fs.rmSync(resolved, { recursive: true })
 })
 
-test('24 characters and 48 client/server definitions agree with the active master accessor', () => {
-    assert.equal(catalog.CHARACTER_DEGREE_CATALOG.length, 24)
+test('31 characters and 62 stable client/server definitions agree with the active master accessor', () => {
+    assert.equal(catalog.CHARACTER_DEGREE_CATALOG.length, 31)
     assert.deepEqual(catalog.CHARACTER_DEGREE_CATALOG.flatMap(row => [...row.degree_ids]), allIds)
     assert.equal(characterExpCaps[5][4], catalog.CHARACTER_DEGREE_LEVEL_100_EXP)
     assert.equal(rewards.characterDegreeRewardsEnabled(), true)
@@ -91,6 +91,14 @@ test('24 characters and 48 client/server definitions agree with the active maste
         assert.equal(definition.condition, entry.row[4])
         assert.equal(definition.category_id, Number(entry.row[5]))
     }
+    const added = require('../assets/asset-patch/audit/seasonal-characters-1.4.110/degree-manifest.json')
+        .filter(entry => entry.degree_id >= 9910049 && entry.degree_id <= 9910062)
+    assert.equal(added.length, 14)
+    for (const entry of added) {
+        assert.equal(content.degreeDefinitions[entry.degree_id].name, entry.row[2])
+        assert.equal(content.degreeDefinitions[entry.degree_id].condition, entry.row[4])
+    }
+    assert.deepEqual(catalog.CHARACTER_DEGREE_CATALOG.slice(0, 24).flatMap(row => [...row.degree_ids]), allIds.slice(0, 48))
 })
 
 test('the legacy missing-acquired_at insert loses the grant; the adapted writer persists both variants', () => {
@@ -159,7 +167,7 @@ test('missing, disabled, malformed and redirected activation files fail closed',
     assert.deepEqual(owned(p), [])
 })
 
-test('one successful practice grants all 48 eligible inventory variants, without putting them in the party', () => {
+test('one successful practice grants all 62 eligible inventory variants, without putting them in the party', () => {
     const p = player(); for (const id of catalog.CHARACTER_DEGREE_CHARACTER_IDS) own(p, id)
     recordBattleMissionDimensions(practice(p))
     assert.deepEqual(owned(p), allIds)
@@ -243,6 +251,7 @@ test('V2 and old V1 HTTP import/export preserve identity, title progress, and th
     for (const id of catalog.CHARACTER_DEGREE_CHARACTER_IDS) own(source, id)
     const oldV2 = snapshots.createPlayerSaveSnapshotV2Sync(source.id)
     recordBattleMissionDimensions(practice(source))
+    degreeApi.grantPlayerDegreeSync(source.id, 9911101)
     playerApi.updatePlayerSync({ id: source.id, degreeId: 9910048 })
     const download = await app.inject({ method: 'GET', url: `/player/save?id=${source.id}` })
     assert.equal(download.statusCode, 200, download.payload)
@@ -256,6 +265,14 @@ test('V2 and old V1 HTTP import/export preserve identity, title progress, and th
     const boundAccount = login.playerAccountByViewer(boundLogin.profile.viewer_id)
     const bound = { id: db.prepare('SELECT id FROM players WHERE account_id=?').get(boundAccount).id, accountId: boundAccount }
     const targets = [bound, player('unbound-import-target')]
+    const endurance = require('../out/lib/abyss-endurance-degree-rewards')
+    for (const target of targets) endurance.startAbyssEnduranceQuestSync(target.id, {
+        category: QuestCategory.RUSH_EVENT, eventId: 700099, folderId: 1,
+        round: 1, questId: 700099001, totalRounds: 30,
+    })
+    const localRuns = () => db.prepare("SELECT * FROM leaderboard_runs WHERE competition_key LIKE 'achievement:%' ORDER BY id").all()
+    const localRunsBefore = localRuns()
+    assert.equal(localRunsBefore.length, 2)
     const identity = () => JSON.stringify(Object.fromEntries(['accounts','sessions','player_login_credentials','player_login_sessions']
         .map(table => [table, db.prepare(`SELECT * FROM ${table} ORDER BY rowid`).all()])))
     const identityBefore = identity()
@@ -273,25 +290,40 @@ test('V2 and old V1 HTTP import/export preserve identity, title progress, and th
         const backup = JSON.parse(fs.readFileSync(path.join(dataDir, 'admin-backups', folder, 'player-save.json'), 'utf8'))
         assert.deepEqual(backup.data.tables, before.data.tables)
         assert.equal(identity(), identityBefore)
+        assert.deepEqual(localRuns(), localRunsBefore)
         assert.equal(db.prepare('SELECT account_id FROM players WHERE id=?').get(target.id).account_id, target.accountId)
     }
     for (const target of targets) {
         await importAndCheckBackup(target, exported)
         assert.deepEqual(owned(target), allIds)
+        assert.ok(degreeApi.getPlayerDegreeIdsSync(target.id).includes(9911101))
         assert.equal(playerApi.getPlayerSync(target.id).degreeId, 9910048)
         const reread = await app.inject({ method: 'GET', url: `/player/save?id=${target.id}` })
         assert.equal(reread.statusCode, 200)
         snapshots.validatePlayerSaveSnapshotV2Sync(reread.json())
         await importAndCheckBackup(target, oldV2)
         assert.deepEqual(owned(target), [])
+        assert.equal(degreeApi.getPlayerDegreeIdsSync(target.id).includes(9911101), false)
         recordBattleMissionDimensions(practice(target))
         assert.deepEqual(owned(target), allIds)
         const legacy = { schema: 'starpoint-cn-save', version: 1, exportedAt: new Date().toISOString(),
             playerId: source.id, data: require('../out/data/utils').getMergedPlayerDataSync(source.id) }
         await importAndCheckBackup(target, legacy)
+        assert.ok(degreeApi.getPlayerDegreeIdsSync(target.id).includes(9911101))
         assert.equal(playerApi.getPlayerSync(target.id).degreeId, 9910048)
         recordBattleMissionDimensions(practice(target))
         assert.deepEqual(owned(target), allIds)
+        const oldLegacy = JSON.parse(JSON.stringify(legacy))
+        delete oldLegacy.data.degreeList
+        await importAndCheckBackup(target, oldLegacy)
+        assert.ok(degreeApi.getPlayerDegreeIdsSync(target.id).includes(9911101))
+        const beforeBadDegree = snapshots.createPlayerSaveSnapshotV2Sync(target.id)
+        const malformedLegacy = JSON.parse(JSON.stringify(legacy))
+        malformedLegacy.data.degreeList = [{ degreeId: 9911101, acquiredAt: -1 }]
+        const malformedResult = await upload(target, malformedLegacy)
+        assert.ok(malformedResult.statusCode >= 400)
+        assert.deepEqual(snapshots.createPlayerSaveSnapshotV2Sync(target.id).data.tables, beforeBadDegree.data.tables)
+        assert.deepEqual(localRuns(), localRunsBefore)
         const beforeInvalid = snapshots.createPlayerSaveSnapshotV2Sync(target.id)
         const invalid = await upload(target, { ...exported, schemaFingerprint: 'unsupported' })
         assert.ok(invalid.statusCode >= 400)

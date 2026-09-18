@@ -10,7 +10,7 @@ export interface AbyssRecordFinish {
 
 /** Called inside the settlement transaction, never by save import or progress reads. */
 export function recordAbyssFloorFinishSync(finish: AbyssRecordFinish): boolean {
-    const current = getAbyssTimeRevision()
+    const current = getAbyssTimeRevision(Math.floor(finish.questId / 1000))
     if (!isAbyssFiniteQuest(finish.category, finish.questId) || !current || finish.revision !== current
         || !finish.accomplished || !finish.registered || !finish.matchingPlay || finish.isMulti
         || !Number.isSafeInteger(finish.viewerId) || finish.viewerId <= 0

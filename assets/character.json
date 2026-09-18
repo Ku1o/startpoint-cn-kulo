@@ -3274,5 +3274,47 @@
     "name": "黑之下忍",
     "rarity": 5,
     "skill_count": 6
+  },
+  "139994": {
+    "element": 2,
+    "name": "雷吉斯",
+    "rarity": 5,
+    "skill_count": 6
+  },
+  "139993": {
+    "element": 2,
+    "name": "特克托",
+    "rarity": 5,
+    "skill_count": 6
+  },
+  "159998": {
+    "element": 4,
+    "name": "斩铁",
+    "rarity": 5,
+    "skill_count": 6
+  },
+  "159997": {
+    "element": 4,
+    "name": "泽赫尔",
+    "rarity": 5,
+    "skill_count": 6
+  },
+  "159996": {
+    "element": 4,
+    "name": "菲莉亚",
+    "rarity": 5,
+    "skill_count": 6
+  },
+  "169992": {
+    "element": 5,
+    "name": "普莉姆拉",
+    "rarity": 5,
+    "skill_count": 6
+  },
+  "129991": {
+    "element": 1,
+    "name": "见岛勇希",
+    "rarity": 5,
+    "skill_count": 6
   }
 }

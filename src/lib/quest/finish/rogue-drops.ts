@@ -5,6 +5,7 @@ import { givePlayerRewardsSync } from "../../quest"
 import type { AddExpList, ClientReturnBondTokenStatusList, ClientReturnCharacter, PlayerRewardResult, Reward, RushEventFolder } from "../../types"
 import { QuestCategory, RewardType } from "../../types"
 import { resolveRogueRoundDrops } from "./rogue-drop-schedule"
+import { ABYSS_EX_EVENT_ID } from "../../abyss-modes"
 
 // Client-side kind values accepted by RushEventLogic.rewardListToGeneralRewardKinds
 // (anything else throws ClientError 3446): 1=Item, 5=Character, 6=Equipment.
@@ -80,6 +81,7 @@ export function handleRoguePerRoundDrops(params: RogueDropParams): RogueDropOutc
     const { rushEventId, rushEventFolderId, rushEventRound } = questData
     if (rushEventId === undefined || rushEventFolderId === undefined || rushEventRound === undefined) return null
 
+    if (rushEventId === ABYSS_EX_EVENT_ID && rushEventRound === 0) return null
     const config = getRogueEventConfig(rushEventId)
     if (config === null) return null
 

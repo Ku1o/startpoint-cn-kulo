@@ -142,7 +142,7 @@ export function startQuestNpcPartyPoolWorker(): void {
         }
     })
     worker.on("error", error => {
-        rejectPendingCleanupRequests(error)
+        rejectPendingCleanupRequests(error instanceof Error ? error : new Error(String(error)))
         console.error("[LOBBY] quest NPC party worker error", error)
     })
     worker.on("exit", code => {

@@ -1,0 +1,170 @@
+[
+  {
+    "logical": "character/blackflower_wiz_yukata/ui/skill_cutin_0.atf.deflate",
+    "sha256": "e02aaa6291ac45e85ef3a4748ab870248d5cd4560fa5cd49849dda5fa360a2a8",
+    "png_sha256": "5078cabae54226fb5b0e521e526e5b45260c7385f80244da2a7db6c70ee657fa",
+    "pair": {
+      "w": 1024,
+      "h": 512,
+      "mips": 11,
+      "android_slot": 2,
+      "ios_slot": 3
+    }
+  },
+  {
+    "logical": "character/blackflower_wiz_yukata/ui/skill_cutin_1.atf.deflate",
+    "sha256": "c50e8c6e0b0ea04426fb11060cc05fdbcd6af3e81cb7bb7abc96984dd6144fec",
+    "png_sha256": "47cc4453566ec1c5ce084e7d03ffd040c1daf19016b744f5feedaacbcacbf4da",
+    "pair": {
+      "w": 1024,
+      "h": 512,
+      "mips": 11,
+      "android_slot": 2,
+      "ios_slot": 3
+    }
+  },
+  {
+    "logical": "character/guildknight_leader_tavern/ui/skill_cutin_0.atf.deflate",
+    "sha256": "5bf06ad2f1dfdc10b5288b50ff9706c0b8733efef9efe5fb90cc1b08e61afba8",
+    "png_sha256": "9a18014f269488f34f948e2f276019fdf21f3e53d0a70e76f25f0f515a731f6f",
+    "pair": {
+      "w": 1024,
+      "h": 512,
+      "mips": 11,
+      "android_slot": 2,
+      "ios_slot": 3
+    }
+  },
+  {
+    "logical": "character/guildknight_leader_tavern/ui/skill_cutin_1.atf.deflate",
+    "sha256": "b876370a5ab289dc58187fbd928c7e69848e1abf31a3ffce7ed48d24ce110206",
+    "png_sha256": "6772f6c68abc437f63f5597122397bb82877b675c5aecd9165136f0456b4c1d6",
+    "pair": {
+      "w": 1024,
+      "h": 512,
+      "mips": 11,
+      "android_slot": 2,
+      "ios_slot": 3
+    }
+  },
+  {
+    "logical": "character/psychic_yuki_swim/ui/skill_cutin_0.atf.deflate",
+    "sha256": "336789cee35b7bbe10c416919d160d3dc3f120038eb5e6d5983dc8fdea8f1aff",
+    "png_sha256": "07157592f51a2f63950ffb437a363618bf3b9bdcd6b54729cded2096c2556edf",
+    "pair": {
+      "w": 1024,
+      "h": 512,
+      "mips": 11,
+      "android_slot": 2,
+      "ios_slot": 3
+    }
+  },
+  {
+    "logical": "character/psychic_yuki_swim/ui/skill_cutin_1.atf.deflate",
+    "sha256": "561239c810289c2781bf7c3dbf60aff917ca173b78b194999a1d4990e023c958",
+    "png_sha256": "c3bf5e7bc1d397399668eca43235d5f6e9585e8b65b0adc4fe6d9787045e3b01",
+    "pair": {
+      "w": 1024,
+      "h": 512,
+      "mips": 11,
+      "android_slot": 2,
+      "ios_slot": 3
+    }
+  },
+  {
+    "logical": "character/rec_android_seaside/ui/skill_cutin_0.atf.deflate",
+    "sha256": "cd3e84cd326624e40cc3a25d73648f742ce0fb66ddcd34425e79acb4210db0fc",
+    "png_sha256": "61b72a70c9bf4947bf645fcb9dabc5a608e49416b121c63ef81296a5c7bbf698",
+    "pair": {
+      "w": 1024,
+      "h": 512,
+      "mips": 11,
+      "android_slot": 2,
+      "ios_slot": 3
+    }
+  },
+  {
+    "logical": "character/rec_android_seaside/ui/skill_cutin_1.atf.deflate",
+    "sha256": "c93301f1d042b945b9dd408c70e17de89ceac49032f49e8bf67390ba1c9effee",
+    "png_sha256": "0da4bb4cb2759fb2f07f2e3420e64dfa9940bca3caa9c81bd845db41403bfe1f",
+    "pair": {
+      "w": 1024,
+      "h": 512,
+      "mips": 11,
+      "android_slot": 2,
+      "ios_slot": 3
+    }
+  },
+  {
+    "logical": "character/samurai_robot_plum/ui/skill_cutin_0.atf.deflate",
+    "sha256": "253920e9d742cde82e150a9dae174e760be06749006c8491865a8342de629ffd",
+    "png_sha256": "c4d8c8b40a0fca7446925adb985c44eafcc3b40388a035ca3009a178f2c83f84",
+    "pair": {
+      "w": 1024,
+      "h": 512,
+      "mips": 11,
+      "android_slot": 2,
+      "ios_slot": 3
+    }
+  },
+  {
+    "logical": "character/samurai_robot_plum/ui/skill_cutin_1.atf.deflate",
+    "sha256": "ff7318dca3ca469995e544db5d3f7f53df4603f26ab2600a564462578dfa1a87",
+    "png_sha256": "1e24c04529c59754379c3c8595b5189ff165d4bfd1a52e58ea8f2ed2c2437600",
+    "pair": {
+      "w": 1024,
+      "h": 512,
+      "mips": 11,
+      "android_slot": 2,
+      "ios_slot": 3
+    }
+  },
+  {
+    "logical": "character/super_robot_tailcoat/ui/skill_cutin_0.atf.deflate",
+    "sha256": "46ab826549ee024d997238f57df82a54636acf964652e0809eda2a0d377eb469",
+    "png_sha256": "0d0d802e8bebc7cbb85c9b2a485c1289850c4db8869ab65e65d10f91bb22c6d7",
+    "pair": {
+      "w": 1024,
+      "h": 512,
+      "mips": 11,
+      "android_slot": 2,
+      "ios_slot": 3
+    }
+  },
+  {
+    "logical": "character/super_robot_tailcoat/ui/skill_cutin_1.atf.deflate",
+    "sha256": "aa89b8e7604c6024f046745e8bbdaf1d983e62f059cc1c3239003db27c6f5d89",
+    "png_sha256": "cb6cbb9977e2a1d4def09f3d90fc66ff88b18d2bd85cd4017c9b6b44efd6ce57",
+    "pair": {
+      "w": 1024,
+      "h": 512,
+      "mips": 11,
+      "android_slot": 2,
+      "ios_slot": 3
+    }
+  },
+  {
+    "logical": "character/wind_oracle_yukata/ui/skill_cutin_0.atf.deflate",
+    "sha256": "b78da548f67c47b776aa700a3011e3b52c710189f1fbc46a6ec91290c9a8bf6d",
+    "png_sha256": "2568c9800cdc27decb519553f44b7574e743d8ffe8c657f710f181888273428c",
+    "pair": {
+      "w": 1024,
+      "h": 512,
+      "mips": 11,
+      "android_slot": 2,
+      "ios_slot": 3
+    }
+  },
+  {
+    "logical": "character/wind_oracle_yukata/ui/skill_cutin_1.atf.deflate",
+    "sha256": "4ea7e6675340e5d7601d845e5e056f679d4afb666efe77bc6d4c3aefe7517076",
+    "png_sha256": "1f70b3a6960d8f8db86fa999d975e8fd87e24a01529cc82b668812a746113bea",
+    "pair": {
+      "w": 1024,
+      "h": 512,
+      "mips": 11,
+      "android_slot": 2,
+      "ios_slot": 3
+    }
+  }
+]

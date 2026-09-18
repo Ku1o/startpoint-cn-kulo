@@ -11,6 +11,7 @@ const path_1 = __importDefault(require("path"));
 const wdfpData_1 = require("./updaters/wdfpData");
 const wdfpData_2 = __importDefault(require("./initializers/wdfpData"));
 const quest_time_revision_1 = require("./initializers/quest-time-revision");
+const abyss_tower_progress_1 = require("./initializers/abyss-tower-progress");
 const abyss_records_1 = require("./initializers/abyss-records");
 const five_boss_gauntlet_1 = require("./initializers/five-boss-gauntlet");
 const admin_account_cleanup_1 = require("../lib/admin-account-cleanup");
@@ -92,6 +93,7 @@ function getDatabase(database) {
             console.log("[DB] calling init...");
             init(db, dbExists);
             (0, quest_time_revision_1.initializeQuestTimeRevision)(db);
+            (0, abyss_tower_progress_1.initializeAbyssTowerProgress)(db);
             (0, abyss_records_1.initializeAbyssRecords)(db);
             (0, five_boss_gauntlet_1.initializeFiveBossGauntlet)(db);
             console.log("[DB] init done");

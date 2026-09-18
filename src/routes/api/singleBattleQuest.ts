@@ -80,6 +80,8 @@ import {
 } from "../../lib/finish-response-cache";
 import { buildPracticeBattleHistoryRecord } from "../../lib/quest/practice-battle-history";
 import { calculateFreeManaGrant } from "../../lib/mana";
+import { canStartAbyssQuestSync } from "../../data/domains/abyss-tower-progress";
+import { isAbyssExEndlessQuest } from "../../lib/abyss-modes";
 import { recordQuestRecommendedPartySafe } from "../../lib/quest/recommended-party-history";
 
 // Load carnival quest score data
@@ -216,7 +218,7 @@ export const activeQuests: Record<number, ActiveQuest> = {}
 export function insertActiveQuest(playerId: number, quest: ActiveQuest) {
     const startedAtMs = quest.startedAtMs ?? getServerTime() * 1000
     const questTimeRevision = isAbyssFiniteQuest(quest.category, quest.questId)
-        ? getAbyssTimeRevision() : null
+        ? getAbyssTimeRevision(Math.floor(quest.questId / 1000)) : null
     activeQuests[playerId] = { ...quest, startedAtMs, questTimeRevision }
     // Persist to DB for battle recovery across server restarts
     insertPlayerActiveQuestSync(playerId, {
@@ -296,10 +298,11 @@ const routes = async (fastify: FastifyInstance) => {
         if (resolvedActiveQuest?.source === "rebuilt" && isAbyssFiniteQuest(questCategory, questId)) {
             // Preserve the patched client's no-/start recovery, but never
             // assume a missing registration belongs to the newly published tower.
-            activeQuestData.questTimeRevision = getAbyssTimeRevisionAtVersion(request.headers.res_ver)
+            activeQuestData.questTimeRevision = getAbyssTimeRevisionAtVersion(request.headers.res_ver, Math.floor(questId / 1000))
         }
         // A restored/late finish from the old tower cannot seed the new record.
-        if (isStaleAbyssBattle(activeQuestData) || isStaleAbyssClient(questCategory, questId, request.headers.res_ver)) {
+        if (isStaleAbyssBattle(activeQuestData) || isStaleAbyssClient(questCategory, questId, request.headers.res_ver)
+            || !canStartAbyssQuestSync(playerId, questCategory, questId)) {
             deletePlayerActiveQuestSync(playerId)
             delete activeQuests[playerId]
             reply.header("content-type", "application/x-msgpack")
@@ -345,7 +348,7 @@ const routes = async (fastify: FastifyInstance) => {
         const beforeRankPoint = playerData.rankPoint
         const displayMode15ManaAsFieldDrop = isMode15Quest(questCategory, questId)
         const newRankPoint = beforeRankPoint + questData.rankPointReward
-        const manaObtained = questData.manaReward + body.add_mana
+        const manaObtained = isAbyssExEndlessQuest(questCategory, questId) ? 0 : questData.manaReward + body.add_mana
         let newMana = calculateFreeManaGrant(playerData, manaObtained).freeMana
 
         // calculate boost point
@@ -640,7 +643,7 @@ const routes = async (fastify: FastifyInstance) => {
             getFolderRewards: (eid, fid) => getRushEventFolderClearRewards(eid, fid),
             giveRewards: (pid, r) => givePlayerRewardsSync(pid, r),
         })
-        finishLeaderboardQuestSync({
+        const abyssEnduranceDegrees = finishLeaderboardQuestSync({
             playerId,
             quest: {
                 category: questCategory,
@@ -909,6 +912,12 @@ const routes = async (fastify: FastifyInstance) => {
                 degree_id: degreeId,
             }))
         }
+        if (abyssEnduranceDegrees.length) {
+            responseData.degree_list = [
+                ...(responseData.degree_list ?? []),
+                ...abyssEnduranceDegrees.map(degreeId => ({ viewer_id: viewerId, degree_id: degreeId })),
+            ]
+        }
         mergeMissionSettlementResponse(responseData, missionSettlement, viewerId)
         // Awake settlement re-publishes completed special unlocks itself,
         // including already-persisted rows whose earlier response was lost.
@@ -1071,7 +1080,8 @@ const routes = async (fastify: FastifyInstance) => {
 
 
 
-        if (isStaleAbyssClient(category, questId, request.headers.res_ver)) {
+        if (isStaleAbyssClient(category, questId, request.headers.res_ver)
+            || !canStartAbyssQuestSync(playerId, category, questId)) {
             reply.header("content-type", "application/x-msgpack")
             return reply.status(200).send({
                 data_headers: generateDataHeaders({ viewer_id: viewerId, asset_update: true, result_code: 4050 }),

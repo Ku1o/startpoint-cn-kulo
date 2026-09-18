@@ -1,0 +1,47 @@
+{
+  "server_build": "passed",
+  "server_regressions": {
+    "passed": 27,
+    "failed": 0
+  },
+  "abyss_python_tests": {
+    "passed": 103,
+    "failed": 0
+  },
+  "legacy_chain_suite": {
+    "run": 315,
+    "initial_passed": 314,
+    "initial_failed": 1,
+    "failure": "legacy summary label changed",
+    "resolution": "restored legacy label; targeted test passed"
+  },
+  "actual_serialized_chain": {
+    "normal": 31,
+    "ex": 31,
+    "failed": 0
+  },
+  "actual_ex_condition_carriers": "30 floors, both final Bosses verified",
+  "client_abi": "Android four predicates; iOS three AOT methods plus native equipment helper",
+  "device_tested": false,
+  "runtime_synced": false,
+  "cloud_deployed": false,
+  "git": {
+    "branch": "staging",
+    "base_commit": "21f8ea6b693a4b23a58b15e5e9945e2cfa7c827c",
+    "committed": false,
+    "pushed": false
+  },
+  "client_installers_built": false,
+  "new_admission_ids_issued": false,
+  "formal_release_policy": {
+    "status": "apply_when_building_formal_clients",
+    "new_admission_id_per_platform": true,
+    "previous_build_grace_seconds": 86400,
+    "grace_starts_at": "formal_platform_release_activation",
+    "server_expiry_field": "allowUntil",
+    "fresh_android_air_uuid": true,
+    "keep_existing_enforcement_policy": true,
+    "complete_private_server_pair_required": true,
+    "prepare_step_must_not_start_grace_period": true
+  }
+}

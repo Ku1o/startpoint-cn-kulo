@@ -9,10 +9,11 @@ export default async function abyssRecordsRoutes(app: FastifyInstance): Promise<
         "/abyss-records/:questId", async (request, reply) => {
             reply.header("Cache-Control", "no-store")
             const questId = Number(request.params.questId)
-            if (!/^7000990\d{2}$/.test(request.params.questId) || !isAbyssFiniteQuest(24, questId)
+            if (!/^700(?:099|100)0\d{2}$/.test(request.params.questId) || !isAbyssFiniteQuest(24, questId)
                 || !getQuestFromCategorySync(24, questId)) return reply.code(404).send({ status: "not_found" })
-            const revision = getAbyssTimeRevision()
-            if (!revision || getAbyssTimeRevisionAtVersion(request.query.res_ver) !== revision)
+            const eventId = Math.floor(questId / 1000)
+            const revision = getAbyssTimeRevision(eventId)
+            if (!revision || getAbyssTimeRevisionAtVersion(request.query.res_ver, eventId) !== revision)
                 return { status: "update_required", quest_id: questId, best_time_ms: null }
             const record = getAbyssFloorRecordDetailsSync(revision, questId)
             return { status: "ok", quest_id: questId, revision,

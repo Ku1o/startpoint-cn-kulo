@@ -1,0 +1,32 @@
+{
+  "status": "offline_verified_candidates",
+  "device_tested": false,
+  "accepted_registry_changed": false,
+  "cloud_deployed": false,
+  "android": {
+    "apk": "F:\\codex\\outputs\\abyss-ex-clients-20260917\\StarPoint-CN-1.8.1-abyss-ex-20260917.apk",
+    "sha256": "4fbc354fa93942b65c28d0ecdc1f14fb39851117068b9d5a7c0cb252c87761ea",
+    "build_id": "android-181-abyss-ex-20260917",
+    "previous_build_id": "android-181-r10-20260915",
+    "swf_sha256": "252003a3987fd1e7dec2e870f7c730d782a3ca8369cec0a573029cfb9bfc07c2",
+    "uniqueappversionid": "9e963096-e486-4e2d-938b-0ffa1c52d439",
+    "signer_sha256": "569d19a3578d4cba16e3d6e7ad8ccab4fa667efc758deef6c9be3adb99919894"
+  },
+  "ios": {
+    "ipa": "F:\\codex\\outputs\\abyss-ex-clients-20260917\\StarPoint-iOS-1.8.4-abyss-ex-20260917-r2-unsigned.ipa",
+    "ipa_sha256": "ce14b180816a6023c2c2bd51e231055bdf7c6083405583b7d58e75396a85c763",
+    "build_id": "ios-184-abyss-ex-20260917",
+    "previous_build_id": "ios-184-admission-20260915",
+    "native_sha256": "1d14111267e0c20c87aaa2cd90cd948c779f23ba2f41ab6892ff2d1de2e75bc1",
+    "swf_sha256": "e3d8c67b9e5812fc67f75fed99a21bdd0dd5fbbfa86446f1c6731f7819da9261",
+    "full_abc_sha256": "fc9309a462d6739af2e7cdd6299434eb71251d6ad3f78a4da14581ab4db49f5c",
+    "full_abc_sha1": "ee46b249dfc3ccbe000cc471f26764ca8a9de757"
+  },
+  "ios_full_abc": "F:\\codex\\outputs\\abyss-ex-clients-20260917\\abyss-ex-ios-full.abc",
+  "aot_info_offset": 104549248,
+  "aot_methods": 101287,
+  "previous_platform_grace_seconds": 86400,
+  "grace_starts": "server_activation_command",
+  "cdn_target": "1.4.110",
+  "cdn_part": 2
+}

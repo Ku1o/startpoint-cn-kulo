@@ -69,6 +69,8 @@ const gauntlet_completion_classification_1 = require("../../lib/gauntlet-complet
 const finish_response_cache_1 = require("../../lib/finish-response-cache");
 const practice_battle_history_2 = require("../../lib/quest/practice-battle-history");
 const mana_1 = require("../../lib/mana");
+const abyss_tower_progress_1 = require("../../data/domains/abyss-tower-progress");
+const abyss_modes_1 = require("../../lib/abyss-modes");
 const recommended_party_history_1 = require("../../lib/quest/recommended-party-history");
 // Load carnival quest score data
 let carnivalScoreLookup = {};
@@ -88,7 +90,7 @@ function insertActiveQuest(playerId, quest) {
     var _a, _b, _c, _d, _e;
     const startedAtMs = (_a = quest.startedAtMs) !== null && _a !== void 0 ? _a : (0, utils_1.getServerTime)() * 1000;
     const questTimeRevision = (0, abyss_time_revision_1.isAbyssFiniteQuest)(quest.category, quest.questId)
-        ? (0, abyss_time_revision_1.getAbyssTimeRevision)() : null;
+        ? (0, abyss_time_revision_1.getAbyssTimeRevision)(Math.floor(quest.questId / 1000)) : null;
     exports.activeQuests[playerId] = Object.assign(Object.assign({}, quest), { startedAtMs, questTimeRevision });
     // Persist to DB for battle recovery across server restarts
     (0, quest_active_1.insertPlayerActiveQuestSync)(playerId, {
@@ -161,10 +163,11 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         if ((resolvedActiveQuest === null || resolvedActiveQuest === void 0 ? void 0 : resolvedActiveQuest.source) === "rebuilt" && (0, abyss_time_revision_1.isAbyssFiniteQuest)(questCategory, questId)) {
             // Preserve the patched client's no-/start recovery, but never
             // assume a missing registration belongs to the newly published tower.
-            activeQuestData.questTimeRevision = (0, abyss_time_revision_1.getAbyssTimeRevisionAtVersion)(request.headers.res_ver);
+            activeQuestData.questTimeRevision = (0, abyss_time_revision_1.getAbyssTimeRevisionAtVersion)(request.headers.res_ver, Math.floor(questId / 1000));
         }
         // A restored/late finish from the old tower cannot seed the new record.
-        if ((0, abyss_time_revision_1.isStaleAbyssBattle)(activeQuestData) || (0, abyss_time_revision_1.isStaleAbyssClient)(questCategory, questId, request.headers.res_ver)) {
+        if ((0, abyss_time_revision_1.isStaleAbyssBattle)(activeQuestData) || (0, abyss_time_revision_1.isStaleAbyssClient)(questCategory, questId, request.headers.res_ver)
+            || !(0, abyss_tower_progress_1.canStartAbyssQuestSync)(playerId, questCategory, questId)) {
             (0, quest_active_1.deletePlayerActiveQuestSync)(playerId);
             delete exports.activeQuests[playerId];
             reply.header("content-type", "application/x-msgpack");
@@ -206,7 +209,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         const beforeRankPoint = playerData.rankPoint;
         const displayMode15ManaAsFieldDrop = (0, mode15_optional_1.isMode15Quest)(questCategory, questId);
         const newRankPoint = beforeRankPoint + questData.rankPointReward;
-        const manaObtained = questData.manaReward + body.add_mana;
+        const manaObtained = (0, abyss_modes_1.isAbyssExEndlessQuest)(questCategory, questId) ? 0 : questData.manaReward + body.add_mana;
         let newMana = (0, mana_1.calculateFreeManaGrant)(playerData, manaObtained).freeMana;
         // calculate boost point
         let newBoostPoint = playerData.boostPoint - (activeQuestData.useBoostPoint ? 1 : 0);
@@ -231,7 +234,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             questAccomplished = body.score >= scoreAttackBorderTiers[0].score;
         }
         const finishResponse = (0, settlement_performance_1.measureSettlementPhase)("single", "transaction", () => (0, db_1.getDb)().transaction(() => {
-            var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w;
+            var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x;
             (0, quest_active_1.deletePlayerActiveQuestSync)(playerId);
             const missionEvaluationTime = new Date((0, utils_1.getServerTime)() * 1000);
             let clearReward = null;
@@ -455,7 +458,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 getFolderRewards: (eid, fid) => (0, assets_1.getRushEventFolderClearRewards)(eid, fid),
                 giveRewards: (pid, r) => (0, quest_2.givePlayerRewardsSync)(pid, r),
             });
-            (0, service_1.finishLeaderboardQuestSync)({
+            const abyssEnduranceDegrees = (0, service_1.finishLeaderboardQuestSync)({
                 playerId,
                 quest: {
                     category: questCategory,
@@ -653,6 +656,12 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                     degree_id: degreeId,
                 }));
             }
+            if (abyssEnduranceDegrees.length) {
+                responseData.degree_list = [
+                    ...((_x = responseData.degree_list) !== null && _x !== void 0 ? _x : []),
+                    ...abyssEnduranceDegrees.map(degreeId => ({ viewer_id: viewerId, degree_id: degreeId })),
+                ];
+            }
             (0, mission_2.mergeMissionSettlementResponse)(responseData, missionSettlement, viewerId);
             // Awake settlement re-publishes completed special unlocks itself,
             // including already-persisted rows whose earlier response was lost.
@@ -794,7 +803,8 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 "error": "Bad Request", "message": "Invalid viewer id."
             });
         const { playerId, playerData: player } = sessionResult;
-        if ((0, abyss_time_revision_1.isStaleAbyssClient)(category, questId, request.headers.res_ver)) {
+        if ((0, abyss_time_revision_1.isStaleAbyssClient)(category, questId, request.headers.res_ver)
+            || !(0, abyss_tower_progress_1.canStartAbyssQuestSync)(playerId, category, questId)) {
             reply.header("content-type", "application/x-msgpack");
             return reply.status(200).send({
                 data_headers: (0, utils_1.generateDataHeaders)({ viewer_id: viewerId, asset_update: true, result_code: 4050 }),

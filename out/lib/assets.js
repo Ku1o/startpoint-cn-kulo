@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getEquipmentCraftSync = exports.getItemSaleSync = exports.getEquipmentDissolveSync = exports.getStaminaRecoverySeconds = exports.getConfigSync = exports.getEquipmentElement = exports.getEquipmentMaxLevel = exports.getRogueEventConfig = exports.getRushEventFolderClearRewards = exports.getShopItemSync = exports.getBossCoinShopItemsSync = exports.getEventShopItemsSync = exports.getGenericShopItemsSync = exports.getGachaCampaignIdSync = exports.getGachaSync = exports.getBoxGachaSync = exports.getExBoostItemSync = exports.getExStatusPoolSync = exports.getExAbilityPoolsSync = exports.getManaNodeAwakeCost = exports.getCharacterManaNodeSync = exports.getCharacterManaBoardCountSync = exports.getCharacterManaNodesSync = exports.getCharacterDataSync = exports.getQuestFromCategorySync = exports.getHardMultiEventQuest = exports.getAdventEventQuest = exports.getWorldStoryEventBossBattleQuestSync = exports.getWorldStoryEventQuestSync = exports.getCharacterQuestSync = exports.getBossBattleQuestSync = exports.getPracticeQuestSync = exports.getExQuestSync = exports.getMainQuestSync = exports.getRushEventFolderMaxRoundSync = exports.getScoreRewardGroup = exports.getRareScoreRewardGroup = exports.getClearRewardSync = exports.reloadRogueEventConfig = void 0;
 const advent_event_quest_json_1 = __importDefault(require("../../assets/advent_event_quest.json"));
+const abyss_modes_1 = require("./abyss-modes");
 const boss_battle_quest_json_1 = __importDefault(require("../../assets/boss_battle_quest.json"));
 const box_gacha_json_1 = __importDefault(require("../../assets/box_gacha.json"));
 const box_reward_json_1 = __importDefault(require("../../assets/box_reward.json"));
@@ -349,8 +350,13 @@ function getQuestFromCategorySync(category, questId) {
             return getQuestSync(carnival_event_quest_json_1.default, questId);
         case types_1.QuestCategory.RAID_EVENT:
             return getQuestSync(raid_event_quest_json_1.default, questId);
-        case types_1.QuestCategory.RUSH_EVENT:
-            return getQuestSync(rush_event_quest_json_1.default, questId);
+        case types_1.QuestCategory.RUSH_EVENT: {
+            const quest = getQuestSync(rush_event_quest_json_1.default, questId);
+            if (quest !== null && (0, abyss_modes_1.isAbyssExEndlessQuest)(category, questId)) {
+                return Object.assign(Object.assign({}, quest), { rankPointReward: 0, characterExpReward: 0, manaReward: 0, poolExpReward: 0, clearReward: undefined, sPlusReward: undefined, scoreRewardGroupId: undefined, scoreRewardGroup: undefined });
+            }
+            return quest;
+        }
         case types_1.QuestCategory.SOLO_TIME_ATTACK_EVENT:
             return getQuestSync(solo_time_attack_event_quest_json_1.default, questId);
         case types_1.QuestCategory.SCORE_ATTACK_EVENT:
@@ -627,6 +633,10 @@ exports.getGenericShopItemsSync = getGenericShopItemsSync;
  */
 function getEventShopItemsSync(eventType, eventId) {
     var _a, _b;
+    // Both entrances use the same product IDs, hence the same stock ledger.
+    if (Number(eventType) === 11 && Number(eventId) === abyss_modes_1.ABYSS_EX_EVENT_ID) {
+        eventId = abyss_modes_1.ABYSS_NORMAL_EVENT_ID;
+    }
     const typeSection = content_master_1.serverEventShops[String(eventType)];
     if (typeSection === undefined)
         return null;
@@ -706,6 +716,8 @@ exports.getShopItemSync = getShopItemSync;
  */
 function getRushEventFolderClearRewards(rushEventId, folderId) {
     var _a, _b, _c, _d;
+    if ((0, abyss_modes_1.isAbyssEvent)(rushEventId) && folderId !== 1)
+        return [];
     const rogueCfg = getRogueEventConfig(rushEventId);
     const extras = [];
     const add = (type, id, count) => {

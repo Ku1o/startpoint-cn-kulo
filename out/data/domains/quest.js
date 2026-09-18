@@ -178,7 +178,7 @@ exports.getPlayerQuestProgressBySectionAndIdsSync = getPlayerQuestProgressBySect
 function insertPlayerQuestProgressSync(playerId, section, data) {
     var _a, _b, _c, _d, _e, _f, _g;
     const timeRevision = (0, abyss_time_revision_2.isAbyssFiniteQuest)(section, data.questId)
-        ? (0, abyss_time_revision_1.refreshPlayerAbyssBestTimesSync)(playerId) : null;
+        ? (0, abyss_time_revision_1.refreshPlayerAbyssBestTimesSync)(playerId, Math.floor(data.questId / 1000)) : null;
     (0, db_1.getDb)().prepare(`
     INSERT INTO players_quest_progress (section, quest_id, finished, host_finished, unlocked, high_score, clear_rank, best_elapsed_time_ms, leader_character_id, s_plus_reward_received, player_id, best_time_revision)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)

@@ -107,7 +107,7 @@ function exportPlayerSaveInWorker(playerId_1) {
                 }
                 fail((_b = message.code) !== null && _b !== void 0 ? _b : "export-failed", (_c = message.error) !== null && _c !== void 0 ? _c : "存档导出 worker 返回了无效结果");
             });
-            worker.once("error", error => fail("export-failed", error.message));
+            worker.once("error", error => fail("export-failed", error instanceof Error ? error.message : String(error)));
             worker.once("exit", code => {
                 if (!settled)
                     fail("export-failed", `存档导出 worker 未返回结果（code=${code}）`);

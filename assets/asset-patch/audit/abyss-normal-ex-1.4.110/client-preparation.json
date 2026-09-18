@@ -1,0 +1,128 @@
+{
+  "schema": 1,
+  "status": "prepared_for_next_client_build",
+  "android": {
+    "base_swf_sha256": "7b67801fc938b8f77b9919b3ca1ddd77bb57da47befbb2eec6eb208897f88a72",
+    "swf_sha256": "f7aa31167dd687c3bf847a8488c7d15dfe46924345bd8425d243d84b55d02703",
+    "methods": [
+      {
+        "kind": "details",
+        "label": "cn.ui::AbyssDetails$/isAbyss|1",
+        "body_index": 0,
+        "method_id": 1,
+        "before_code_sha256": "92f7ffa695efc0ca77e87f78f8cd8f4a55b6819cc9074f359f6a015944455b27",
+        "after_code_sha256": "41bcfc4e0b063d4a1a194c6b7c0c21ab8d34626d64235a716cdebd258c28892e",
+        "checks": {
+          "max_stack": 3,
+          "max_scope": 1,
+          "unreachable_instructions": 0
+        }
+      },
+      {
+        "kind": "records",
+        "label": "cn.ui::AbyssRecordDetails$/open|1",
+        "body_index": 5,
+        "method_id": 3,
+        "before_code_sha256": "e7b7cd908ef134569d74a38d998fe585f6c29ce1b10a988d16782f61a665b60d",
+        "after_code_sha256": "39e929fac668eb3611ba416d514a69dfd6179c0719c907bbf93b977dbc4df5fb",
+        "checks": {
+          "max_stack": 6,
+          "max_scope": 3,
+          "unreachable_instructions": 0
+        }
+      },
+      {
+        "kind": "autostart",
+        "label": "pinball.common.data.quest.singleQuestAutoStart::RushEventAutoStartQuestGroup/getDuplicatedCharacterIdsForEachQuest|1",
+        "body_index": 24599,
+        "method_id": 26152,
+        "before_code_sha256": "f6f70e0b60a656809a442cd2a6ad9ba17200f504575d3ccad5f9db7493ef926c",
+        "after_code_sha256": "a5feea4824f2dfe2406d3bd1982e31cf50fe835698911fec8ce731a56284767d",
+        "checks": {
+          "max_stack": 7,
+          "max_scope": 2,
+          "unreachable_instructions": 0
+        }
+      },
+      {
+        "kind": "equipment",
+        "label": "pinball.common.data.character::BattleCharacterLogic/getAvailableAbilities|1",
+        "body_index": 92540,
+        "method_id": 101012,
+        "before_code_sha256": "81925932bdf806587ea8d8bb98fa500c21298e9a30852738afac1304e3c0a2c4",
+        "after_code_sha256": "bd08301926770b96f2f731e00a44dd5aa1649a11f6e0dd07baa66c81c3268141",
+        "checks": {
+          "max_stack": 7,
+          "max_scope": 7,
+          "unreachable_instructions": 0
+        }
+      }
+    ]
+  },
+  "ios": {
+    "base_ipa_sha256": "f1d9f41f0b9c16ec79efa5664833fe5dea13038bc844a25f22dbafda367316dc",
+    "base_full_abc_sha256": "507109bf13ff1b665b521d135057e42f76f924d1f14960b8264ae4f2362ef96c",
+    "full_abc_sha256": "57ad0e9c55603769904b6b2a3d27787e5a749bea3bd8d8865ab6a5b1f4e68fd7",
+    "methods": [
+      {
+        "kind": "details",
+        "label": "cn.ui::AbyssDetails$/isAbyss|1",
+        "body_index": 92603,
+        "method_id": 101077,
+        "checks": {
+          "max_stack": 3,
+          "max_scope": 1,
+          "unreachable_instructions": 0
+        }
+      },
+      {
+        "kind": "records",
+        "label": "cn.ui::AbyssRecordDetails$/open|1",
+        "body_index": 92723,
+        "method_id": 101194,
+        "checks": {
+          "max_stack": 6,
+          "max_scope": 3,
+          "unreachable_instructions": 0
+        }
+      },
+      {
+        "kind": "autostart",
+        "label": "pinball.common.data.quest.singleQuestAutoStart::RushEventAutoStartQuestGroup/getDuplicatedCharacterIdsForEachQuest|1",
+        "body_index": 24810,
+        "method_id": 26363,
+        "checks": {
+          "max_stack": 7,
+          "max_scope": 2,
+          "unreachable_instructions": 0
+        }
+      }
+    ],
+    "equipment_helper": {
+      "offset": 64394848,
+      "old_size": 548,
+      "new_size": 548,
+      "source_sha256": "2ff8901d24ffb14d0c7bfa12e938326ef002059a7fa3791d1ea88164da79172e",
+      "sha256": "7321e4725a40036606eadbe32ef224b709c9766ae2d7c80828fd021847813fb1"
+    }
+  },
+  "release_requirements": [
+    "Android fresh AIR UUID and signed APK",
+    "iOS AOT compile/link and runtime pointer validation",
+    "New Android/iOS admission IDs and complete private server pairing",
+    "Previous platform build allowUntil = formal activation + 86400 seconds"
+  ],
+  "release_policy": {
+    "status": "apply_when_building_formal_clients",
+    "new_admission_id_per_platform": true,
+    "previous_build_grace_seconds": 86400,
+    "grace_starts_at": "formal_platform_release_activation",
+    "server_expiry_field": "allowUntil",
+    "fresh_android_air_uuid": true,
+    "keep_existing_enforcement_policy": true,
+    "complete_private_server_pair_required": true,
+    "prepare_step_must_not_start_grace_period": true
+  },
+  "apk_or_ipa_created": false,
+  "device_tested": false
+}

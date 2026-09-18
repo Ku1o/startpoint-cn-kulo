@@ -22,6 +22,8 @@ const session_1 = require("../../data/domains/session");
 const assets_1 = require("../../lib/assets");
 const types_2 = require("../../lib/types");
 const abyss_time_revision_1 = require("../../lib/abyss-time-revision");
+const abyss_modes_1 = require("../../lib/abyss-modes");
+const abyss_tower_progress_1 = require("../../data/domains/abyss-tower-progress");
 const utils_1 = require("../../utils");
 const singleBattleQuest_1 = require("./singleBattleQuest");
 const rush_1 = require("../../lib/rush");
@@ -67,7 +69,7 @@ function getRushEventFolderMaxRounds(eventId, folderId) {
     // Deep Abyss is a data-driven 30-floor tower.  The legacy fallback map
     // only knows the three official two-round folders, so keep its finite
     // folder open for the configured roguelike run.
-    if (eventId === 700099 && folderId === types_2.RushEventFolder.INTERMEDIATE) {
+    if ((0, abyss_modes_1.isAbyssEvent)(eventId) && folderId === types_2.RushEventFolder.INTERMEDIATE) {
         const configured = Number((_a = (0, assets_1.getRogueEventConfig)(eventId)) === null || _a === void 0 ? void 0 : _a.rounds);
         return Number.isInteger(configured) && configured > 0 ? configured : 30;
     }
@@ -89,8 +91,31 @@ function getRushEventFolderMaxRounds(eventId, folderId) {
 }
 exports.getRushEventFolderMaxRounds = getRushEventFolderMaxRounds;
 const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
+    fastify.addHook("preHandler", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
+        var _a;
+        const body = request.body;
+        if (!body || !Number.isSafeInteger(body.viewer_id))
+            return;
+        const eventId = (_a = body.event_id) !== null && _a !== void 0 ? _a : Math.floor(Number(body.quest_id) / 1000);
+        if (!(0, abyss_modes_1.isAbyssEvent)(eventId))
+            return;
+        const session = yield (0, session_1.getSession)(String(body.viewer_id));
+        if (!session)
+            return;
+        const playerId = (0, activeAccount_1.resolvePlayerIdSync)(session.accountId);
+        if (playerId === null)
+            return;
+        (0, abyss_tower_progress_1.refreshPlayerAbyssTowersSync)(playerId);
+        if (eventId === abyss_modes_1.ABYSS_EX_EVENT_ID && !(0, abyss_tower_progress_1.hasAbyssExUnlockSync)(playerId)
+            && /\/(select_folder|battle\/start|endless_battle)$/.test(request.url.split("?")[0])) {
+            reply.header("content-type", "application/x-msgpack");
+            return reply.status(200).send({
+                data_headers: (0, utils_1.generateDataHeaders)({ viewer_id: body.viewer_id, result_code: 4050 }), data: {},
+            });
+        }
+    }));
     fastify.post("/summary", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
-        var _a, _b;
+        var _b, _c;
         const body = request.body;
         const viewerId = body.viewer_id;
         const eventId = body.event_id;
@@ -144,7 +169,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         const clearedFolderIdList = (0, rushEvent_1.getPlayerRushEventClearedFoldersSync)(playerId, eventId);
         // get serialized parties
         const serializedPlayedParties = (0, rush_1.getSerializedPlayerRushEventPlayedPartiesSync)(playerId, eventId);
-        console.log(`[RUSH] summary: folderParties=${Object.keys((_a = serializedPlayedParties.folderParties) !== null && _a !== void 0 ? _a : {}).length} endlessParties=${Object.keys((_b = serializedPlayedParties.endlessParties) !== null && _b !== void 0 ? _b : {}).length}`);
+        console.log(`[RUSH] summary: folderParties=${Object.keys((_b = serializedPlayedParties.folderParties) !== null && _b !== void 0 ? _b : {}).length} endlessParties=${Object.keys((_c = serializedPlayedParties.endlessParties) !== null && _c !== void 0 ? _c : {}).length}`);
         reply.header("content-type", "application/x-msgpack");
         return reply.status(200).send({
             "data_headers": (0, utils_1.generateDataHeaders)({
@@ -242,11 +267,11 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         });
     }));
     fastify.post("/ranking", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
-        var _c;
+        var _d;
         const body = request.body;
         const viewerId = body.viewer_id;
         const eventId = body.event_id;
-        const page = (_c = body.page) !== null && _c !== void 0 ? _c : 0;
+        const page = (_d = body.page) !== null && _d !== void 0 ? _d : 0;
         console.log(`[RUSH] ranking: viewer=${viewerId} eventId=${eventId} page=${page}`);
         if (isNaN(viewerId) || isNaN(eventId))
             return reply.status(400).send({
@@ -307,7 +332,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         });
     }));
     fastify.post("/ranking/played_party", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
-        var _d;
+        var _e;
         const body = request.body;
         const viewerId = body.viewer_id;
         const eventId = body.event_id;
@@ -344,7 +369,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             });
         }
         // get party list
-        const partyList = (_d = (0, rush_1.getRushEventEndlessBattleRankPlayedPartyListSync)(rankNumber, eventId)) !== null && _d !== void 0 ? _d : [];
+        const partyList = (_e = (0, rush_1.getRushEventEndlessBattleRankPlayedPartyListSync)(rankNumber, eventId)) !== null && _e !== void 0 ? _e : [];
         reply.header("content-type", "application/x-msgpack");
         return reply.status(200).send({
             "data_headers": (0, utils_1.generateDataHeaders)({
@@ -535,7 +560,8 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         // untouched so lower-rank players can join an eligible host.
         const player = (0, player_1.getPlayerSync)(playerId);
         const playerRank = player === null ? 0 : (0, stamina_1.getRankDegree)(player.rankPoint);
-        if (!(0, gauntlet_entry_rank_1.canStartRankGatedGauntletRush)(questData.rushEventId, playerRank)) {
+        if (!(0, gauntlet_entry_rank_1.canStartRankGatedGauntletRush)(questData.rushEventId, playerRank)
+            || !(0, abyss_tower_progress_1.canStartAbyssQuestSync)(playerId, types_2.QuestCategory.RUSH_EVENT, questId)) {
             console.log(`[RUSH] rank-gated Gauntlet start rejected: player=${playerId} `
                 + `rank=${playerRank} required=${gauntlet_entry_rank_1.GAUNTLET_MIN_PLAYER_RANK} `
                 + `event=${questData.rushEventId} quest=${questId}`);
@@ -708,7 +734,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
     }));
     // ---- reward ----
     fastify.post("/reward", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
-        var _e, _f, _g;
+        var _f, _g, _h;
         const body = request.body;
         const viewerId = body.viewer_id;
         const eventId = body.event_id;
@@ -730,13 +756,13 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         // Rank remains part of the response, but the reward master-data ranges
         // describe cleared endless rounds (2-3, 4-5 and 6+), not leaderboard rank.
         const myRanking = (0, rush_1.getPlayerRushEventEndlessBattleRankingSync)(playerId, eventId);
-        const rankNumber = (_e = myRanking === null || myRanking === void 0 ? void 0 : myRanking.rank_number) !== null && _e !== void 0 ? _e : null;
+        const rankNumber = (_f = myRanking === null || myRanking === void 0 ? void 0 : myRanking.rank_number) !== null && _f !== void 0 ? _f : null;
         const rushEvent = (0, rushEvent_1.getPlayerRushEventSync)(playerId, eventId);
-        const maxRound = (_f = rushEvent === null || rushEvent === void 0 ? void 0 : rushEvent.endlessBattleMaxRound) !== null && _f !== void 0 ? _f : null;
+        const maxRound = (_g = rushEvent === null || rushEvent === void 0 ? void 0 : rushEvent.endlessBattleMaxRound) !== null && _g !== void 0 ? _g : null;
         const eligibleDegreeIds = new Set((0, activity_degree_rewards_1.getEligibleRushDegreeIds)(eventId, maxRound));
         // find matching reward tier
         const rewardSourceEventId = (0, activity_degree_rewards_1.getRushDegreeRewardSourceEventId)(eventId);
-        const rewards = (_g = rankingRewards[String(rewardSourceEventId)]) !== null && _g !== void 0 ? _g : {};
+        const rewards = (_h = rankingRewards[String(rewardSourceEventId)]) !== null && _h !== void 0 ? _h : {};
         let rewardList = [];
         if (maxRound !== null && maxRound > 0) {
             for (const entries of Object.values(rewards)) {
@@ -772,7 +798,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
     }));
     // ---- endless_battle ----
     fastify.post("/endless_battle", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
-        var _h, _j, _k;
+        var _j, _k, _l;
         const body = request.body;
         const viewerId = body.viewer_id;
         const eventId = body.event_id;
@@ -795,8 +821,8 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         const serializedPlayedParties = rushEventData !== null
             ? (0, rush_1.getSerializedPlayerRushEventPlayedPartiesSync)(playerId, eventId)
             : { endlessParties: null, folderParties: null };
-        const maxRound = (_h = rushEventData === null || rushEventData === void 0 ? void 0 : rushEventData.endlessBattleMaxRound) !== null && _h !== void 0 ? _h : null;
-        const nextRound = (_j = rushEventData === null || rushEventData === void 0 ? void 0 : rushEventData.endlessBattleNextRound) !== null && _j !== void 0 ? _j : 1;
+        const maxRound = (_j = rushEventData === null || rushEventData === void 0 ? void 0 : rushEventData.endlessBattleMaxRound) !== null && _j !== void 0 ? _j : null;
+        const nextRound = (_k = rushEventData === null || rushEventData === void 0 ? void 0 : rushEventData.endlessBattleNextRound) !== null && _k !== void 0 ? _k : 1;
         console.log(`[RUSH] endless_battle: maxRound=${maxRound} nextRound=${nextRound}`);
         reply.header("content-type", "application/x-msgpack");
         return reply.status(200).send({
@@ -804,7 +830,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             "data": {
                 "endless_battle_max_round": maxRound,
                 "endless_battle_next_round": nextRound,
-                "endless_battle_played_party_list": (_k = serializedPlayedParties.endlessParties) !== null && _k !== void 0 ? _k : null
+                "endless_battle_played_party_list": (_l = serializedPlayedParties.endlessParties) !== null && _l !== void 0 ? _l : null
             }
         });
     }));

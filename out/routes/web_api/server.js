@@ -286,7 +286,7 @@ function startAccountCleanupWorker(accountIds) {
             return;
         accountCleanupJob.status = "failed";
         accountCleanupJob.finishedAt = new Date().toISOString();
-        accountCleanupJob.error = error.message;
+        accountCleanupJob.error = error instanceof Error ? error.message : String(error);
         accountCleanupJob.workerThreadId = null;
     });
     worker.on("exit", code => {

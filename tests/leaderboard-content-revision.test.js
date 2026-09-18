@@ -93,8 +93,8 @@ test("重Roll换季作废旧活跃run，保留29关进度且要求从第1关重�
     }
     const oldRun = getDb().prepare(`
         SELECT * FROM leaderboard_runs
-        WHERE player_id = ? AND status = 'active'
-    `).get(player.id)
+        WHERE player_id = ? AND competition_key = ? AND status = 'active'
+    `).get(player.id, competition.key)
     assert.equal(oldRun.tracked_from_round, 1)
     assert.equal(oldRun.rounds_cleared, 28)
     const oldSeason = getLeaderboardSeasonSync(competition.key)
@@ -132,8 +132,8 @@ test("重Roll换季作废旧活跃run，保留29关进度且要求从第1关重�
     )
     const partialRun = getDb().prepare(`
         SELECT * FROM leaderboard_runs
-        WHERE player_id = ? AND season = ? ORDER BY id DESC LIMIT 1
-    `).get(player.id, currentSeason)
+        WHERE player_id = ? AND competition_key = ? AND season = ? ORDER BY id DESC LIMIT 1
+    `).get(player.id, competition.key, currentSeason)
     assert.equal(partialRun.status, "completed")
     assert.equal(partialRun.tracked_from_round, 29)
     assert.equal(partialRun.rounds_cleared, 30)

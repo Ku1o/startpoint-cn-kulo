@@ -5,6 +5,7 @@ import path from "path";
 import { updateBeforeInit as updateWdfpDataBefore, updateAfterInit as updateWdfpDataAfter} from "./updaters/wdfpData";
 import initWdfpData from "./initializers/wdfpData";
 import { initializeQuestTimeRevision } from "./initializers/quest-time-revision";
+import { initializeAbyssTowerProgress } from "./initializers/abyss-tower-progress";
 import { initializeAbyssRecords } from "./initializers/abyss-records";
 import { initializeFiveBossGauntlet } from "./initializers/five-boss-gauntlet";
 import { ensureCascadeDeleteIndexes } from "../lib/admin-account-cleanup";
@@ -111,6 +112,7 @@ export default function getDatabase(
             console.log("[DB] calling init...")
             init(db, dbExists)
             initializeQuestTimeRevision(db)
+            initializeAbyssTowerProgress(db)
             initializeAbyssRecords(db)
             initializeFiveBossGauntlet(db)
             console.log("[DB] init done")

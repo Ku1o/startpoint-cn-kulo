@@ -3659,6 +3659,25 @@ class BossLevelHpScalingCase(unittest.TestCase):
             with self.assertRaises(ValueError, msg=(leaf, scale)):
                 rb.clone_fix_boss_level_hp(leaf, scale)
 
+    def test_ex_final_bosses_have_equal_budgets_despite_different_native_hp(self):
+        native = {"verified": True, "absolute_verified": True, "native_hp": 400.0,
+                  "components": [{"code": "a", "kind": "general", "native_hp": 100.0},
+                                 {"code": "b", "kind": "general", "native_hp": 300.0}]}
+        args = (["a", "b"], native,
+                {"a": self._general_node(100), "b": self._general_node(100)},
+                {"a": self._boss_level(10), "b": self._boss_level(30)}, 100)
+        budgets = {"a": 25_000_000_000.0, "b": 25_000_000_000.0}
+        plan = rb.general_hp_scale_plan(*args, target_hp=50_000_000_000.0,
+            curse_hp=2.5, component_budgets=budgets, code_references=self.SAFE_REFS)
+        self.assertEqual(plan["baseline_component_hp"], (25_000_000_000.0,)*2)
+        self.assertEqual(plan["final_component_hp"], (62_500_000_000.0,)*2)
+        self.assertEqual(plan["baseline_component_target_hp"], (25_000_000_000.0,)*2)
+        for invalid in ({"a": 50_000_000_000.0}, {"a": 25e9, "b": 24e9},
+                        {"a": -25e9, "b": 75e9}):
+            with self.assertRaises(ValueError):
+                rb.general_hp_scale_plan(*args, target_hp=50e9, curse_hp=1,
+                    component_budgets=invalid, code_references=self.SAFE_REFS)
+
     def test_pure_general_plan_scales_every_code_and_keeps_c86_at_one(self):
         native = {
             "verified": True,

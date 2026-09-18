@@ -1,8 +1,9 @@
-/** Reborn 24-character nameplates, excluding bosses and minibosses. */
+/** Stable append-only nameplate roster, excluding bosses and minibosses. */
 export const CHARACTER_DEGREE_CHARACTER_IDS: readonly number[] = Object.freeze([
     119989, 119996, 119997, 129952, 129992, 129997, 129999, 139995,
     139997, 139998, 139999, 149988, 149989, 149990, 149995, 149996,
     149997, 149999, 169989, 169996, 169997, 169998, 169999, 179999,
+    139994, 139993, 159998, 159997, 159996, 169992, 129991,
 ])
 
 export const CHARACTER_DEGREE_CATALOG = Object.freeze(

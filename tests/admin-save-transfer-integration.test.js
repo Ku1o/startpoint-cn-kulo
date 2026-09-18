@@ -77,6 +77,8 @@ async function main() {
     seedRun('source-run', source.playerId, other.playerId)
     db.prepare(`INSERT INTO abyss_floor_records VALUES (?,700099001,45678,?,123456789)`)
         .run('a'.repeat(64), host.login.profile.viewer_id)
+    db.prepare(`INSERT INTO abyss_floor_records VALUES (?,700100001,56789,?,123456789)`)
+        .run('b'.repeat(64), member.login.profile.viewer_id)
     db.prepare('UPDATE players SET name=?,free_vmoney=? WHERE id=?').run('导出来源', 13579, source.playerId)
     db.prepare('UPDATE players SET free_vmoney=? WHERE id=?').run(24680, other.playerId)
     const insert = db.prepare(`INSERT INTO players_receive_history

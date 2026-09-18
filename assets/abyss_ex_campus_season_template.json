@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "theme": "campus",
+  "mode": "ex",
+  "event_id": 700100,
+  "folder_id": 1,
+  "season": null,
+  "enabled": false,
+  "degree_tiers": [
+    {
+      "fromPercent": 0,
+      "toPercent": 2,
+      "degreeId": 9911201,
+      "degreeName": "星钟首席",
+      "degreeImage": "dynamic/degree/degree_abyss_campus_top02.png"
+    },
+    {
+      "fromPercent": 2,
+      "toPercent": 5,
+      "degreeId": 9911202,
+      "degreeName": "穹顶学者",
+      "degreeImage": "dynamic/degree/degree_abyss_campus_top05.png"
+    },
+    {
+      "fromPercent": 5,
+      "toPercent": 10,
+      "degreeId": 9911203,
+      "degreeName": "书海俊杰",
+      "degreeImage": "dynamic/degree/degree_abyss_campus_top10.png"
+    },
+    {
+      "fromPercent": 10,
+      "toPercent": 20,
+      "degreeId": 9911204,
+      "degreeName": "风驰健将",
+      "degreeImage": "dynamic/degree/degree_abyss_campus_top20.png"
+    },
+    {
+      "fromPercent": 20,
+      "toPercent": 100,
+      "degreeId": 9911205,
+      "degreeName": "新章同窗",
+      "degreeImage": "dynamic/degree/degree_abyss_campus_participation.png"
+    }
+  ]
+}

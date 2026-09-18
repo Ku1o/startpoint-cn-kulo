@@ -11,6 +11,8 @@ import { getSession } from "../../data/domains/session"
 import { getQuestFromCategorySync, getRogueEventConfig, getRushEventFolderMaxRoundSync } from "../../lib/assets";
 import { BattleQuest, QuestCategory, RushEventFolder } from "../../lib/types";
 import { isStaleAbyssClient } from "../../lib/abyss-time-revision";
+import { ABYSS_EX_EVENT_ID, isAbyssEvent } from "../../lib/abyss-modes";
+import { canStartAbyssQuestSync, hasAbyssExUnlockSync, refreshPlayerAbyssTowersSync } from "../../data/domains/abyss-tower-progress";
 import { generateDataHeaders, getServerDate, getServerTime } from "../../utils";
 import { FinishBody, insertActiveQuest } from "./singleBattleQuest";
 import { getPlayerRushEventEndlessBattleRankingSync, getRushEventEndlessBattleRankPlayedPartyListSync, getSerializedPlayerRushEventPlayedPartiesSync } from "../../lib/rush";
@@ -172,7 +174,7 @@ export function getRushEventFolderMaxRounds(eventId: number, folderId: number): 
     // Deep Abyss is a data-driven 30-floor tower.  The legacy fallback map
     // only knows the three official two-round folders, so keep its finite
     // folder open for the configured roguelike run.
-    if (eventId === 700099 && folderId === RushEventFolder.INTERMEDIATE) {
+    if (isAbyssEvent(eventId) && folderId === RushEventFolder.INTERMEDIATE) {
         const configured = Number((getRogueEventConfig(eventId) as any)?.rounds)
         return Number.isInteger(configured) && configured > 0 ? configured : 30
     }
@@ -197,6 +199,24 @@ export function getRushEventFolderMaxRounds(eventId: number, folderId: number): 
 }
 
 const routes = async (fastify: FastifyInstance) => {
+    fastify.addHook("preHandler", async (request, reply) => {
+        const body = request.body as { viewer_id?: number; event_id?: number; quest_id?: number } | null
+        if (!body || !Number.isSafeInteger(body.viewer_id)) return
+        const eventId = body.event_id ?? Math.floor(Number(body.quest_id) / 1000)
+        if (!isAbyssEvent(eventId)) return
+        const session = await getSession(String(body.viewer_id))
+        if (!session) return
+        const playerId = resolvePlayerIdSync(session.accountId)
+        if (playerId === null) return
+        refreshPlayerAbyssTowersSync(playerId)
+        if (eventId === ABYSS_EX_EVENT_ID && !hasAbyssExUnlockSync(playerId)
+            && /\/(select_folder|battle\/start|endless_battle)$/.test(request.url.split("?")[0])) {
+            reply.header("content-type", "application/x-msgpack")
+            return reply.status(200).send({
+                data_headers: generateDataHeaders({ viewer_id: body.viewer_id, result_code: 4050 }), data: {},
+            })
+        }
+    })
     fastify.post("/summary", async (request: FastifyRequest, reply: FastifyReply) => {
         const body = request.body as SummaryBody
 
@@ -700,7 +720,8 @@ const routes = async (fastify: FastifyInstance) => {
         // untouched so lower-rank players can join an eligible host.
         const player = getPlayerSync(playerId)
         const playerRank = player === null ? 0 : getRankDegree(player.rankPoint)
-        if (!canStartRankGatedGauntletRush(questData.rushEventId, playerRank)) {
+        if (!canStartRankGatedGauntletRush(questData.rushEventId, playerRank)
+            || !canStartAbyssQuestSync(playerId, QuestCategory.RUSH_EVENT, questId)) {
             console.log(
                 `[RUSH] rank-gated Gauntlet start rejected: player=${playerId} `
                 + `rank=${playerRank} required=${GAUNTLET_MIN_PLAYER_RANK} `

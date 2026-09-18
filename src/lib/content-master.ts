@@ -9,6 +9,7 @@ import rankP5bDegrees from "../../assets/degree_rank_p5b.json"
 import sponsorDegrees from "../../assets/degree_sponsor.json"
 import characterDegrees from "../../assets/degree_character_mod.json"
 import exclusiveDegrees from "../../assets/degree_exclusive.json"
+import seasonalDegrees from "../../assets/degree_author926.json"
 import baseEventShops from "../../assets/event_item_shop.json"
 import rankP5bEventShops from "../../assets/event_item_shop_rank_p5b.json"
 import baseEventShopIdMap from "../../assets/event_item_shop_id_map.json"
@@ -25,7 +26,7 @@ import rankP5bManaNodes from "../../assets/mana_node_rank_p5b.json"
 export const serverCharacters = { ...baseCharacters, ...rankP5bCharacters }
 export const cdnCharacters = { ...baseCdnCharacters, ...rankP5bCdnCharacters }
 export const cdnCharacterTexts = { ...baseCdnCharacterTexts, ...rankP5bCdnCharacterTexts }
-export const degreeDefinitions = { ...baseDegrees, ...rankP5bDegrees, ...sponsorDegrees, ...characterDegrees, ...exclusiveDegrees }
+export const degreeDefinitions = { ...baseDegrees, ...rankP5bDegrees, ...sponsorDegrees, ...characterDegrees, ...exclusiveDegrees, ...seasonalDegrees }
 export const serverGachas = { ...baseGachas, ...cnmodGachas, ...rankP5bGachas }
 export const serverManaNodes = { ...baseManaNodes, ...cnmodManaNodes, ...rankP5bManaNodes }
 export const serverItemIds = [...new Set([...baseItemIds, ...rankP5bItemIds])]

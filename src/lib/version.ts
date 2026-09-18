@@ -65,6 +65,8 @@ export interface PatchMeta {
     id: string; type: "patch" | "mod"; name: string;
     version: string; depends_on: string; enabled: boolean;
     quest_time_revisions?: Record<string, string>;
+    /** Explicit finite-run reset at tower publication; values must match tower fingerprints. */
+    rush_tower_resets?: Record<string, string>;
     local_test_only?: boolean;
     required_local_platform?: "android";
 }
