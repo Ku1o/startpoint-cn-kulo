@@ -16217,6 +16217,9 @@
       ],
       "audit": {
         "directory": "assets/asset-patch/audit/abyss-ex20-exchange-1.4.115"
+      },
+      "rush_tower_preserves": {
+        "rush:700100": "e3235d26413c0da8f9f3f3e1d03d6842e8743c14cc83b167d52c348ab4fd5214"
       }
     }
   ]

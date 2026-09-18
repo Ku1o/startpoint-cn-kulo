@@ -67,6 +67,8 @@ export interface PatchMeta {
     quest_time_revisions?: Record<string, string>;
     /** Explicit finite-run reset at tower publication; values must match tower fingerprints. */
     rush_tower_resets?: Record<string, string>;
+    /** Combat repair keeps the named prior run revision while timing gets a new fingerprint. */
+    rush_tower_preserves?: Record<string, string>;
     local_test_only?: boolean;
     required_local_platform?: "android";
 }

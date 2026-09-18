@@ -11,9 +11,14 @@ import { resetLeaderboardCompetitionSync } from "../../lib/leaderboard/service"
 export function getAbyssTowerResetRevision(eventId: number): string | null {
     if (!isAbyssEvent(eventId)) return null
     const key = `rush:${eventId}`
+    const patches = getPatchManifest().patches.filter(patch => patch.enabled && patch.type === "patch")
     let winner: { version: string; revision: string } | null = null
-    for (const patch of getPatchManifest().patches) {
-        if (!patch.enabled || patch.type !== "patch") continue
+    for (const patch of patches) {
+        const preserved = patch.rush_tower_preserves?.[key]
+        if (preserved !== undefined && (!/^[a-f0-9]{64}$/.test(preserved)
+            || !/^[a-f0-9]{64}$/.test(patch.quest_time_revisions?.[key] ?? "")
+            || patch.rush_tower_resets?.[key] !== undefined))
+            throw new Error(`Invalid tower preservation marker for ${key} in ${patch.id}`)
         const revision = patch.rush_tower_resets?.[key]
         if (revision === undefined) continue
         if (!/^[a-f0-9]{64}$/.test(revision) || patch.quest_time_revisions?.[key] !== revision)
@@ -24,8 +29,16 @@ export function getAbyssTowerResetRevision(eventId: number): string | null {
         if (order > 0) winner = { version: patch.version, revision }
     }
     if (winner === null) return null
-    if (getAbyssTimeRevision(eventId) !== winner.revision)
-        throw new Error(`Tower ${key} changed without a matching progress reset marker`)
+    if (getAbyssTimeRevision(eventId) !== winner.revision) {
+        const timing = patches.filter(patch => patch.quest_time_revisions?.[key] !== undefined)
+            .sort((a, b) => compareVersion(b.version, a.version))
+        const latest = timing.filter(patch => patch.version === timing[0]?.version)
+        // An explicit repair binds the new timing fingerprint to the existing run.
+        // Missing, conflicting or obsolete declarations still fail closed.
+        if (!latest.length || latest.some(patch => compareVersion(patch.version, winner!.version) <= 0
+            || patch.rush_tower_preserves?.[key] !== winner!.revision))
+            throw new Error(`Tower ${key} changed without a matching progress reset marker`)
+    }
     return winner.revision
 }
 

@@ -10,18 +10,22 @@ const quest_1 = require("../../lib/types/quest");
 const service_1 = require("../../lib/leaderboard/service");
 /** An explicit publication marker prevents ordinary asset updates from resetting runs. */
 function getAbyssTowerResetRevision(eventId) {
-    var _a, _b;
+    var _a, _b, _c, _d, _e, _f;
     if (!(0, abyss_modes_1.isAbyssEvent)(eventId))
         return null;
     const key = `rush:${eventId}`;
+    const patches = (0, version_1.getPatchManifest)().patches.filter(patch => patch.enabled && patch.type === "patch");
     let winner = null;
-    for (const patch of (0, version_1.getPatchManifest)().patches) {
-        if (!patch.enabled || patch.type !== "patch")
-            continue;
-        const revision = (_a = patch.rush_tower_resets) === null || _a === void 0 ? void 0 : _a[key];
+    for (const patch of patches) {
+        const preserved = (_a = patch.rush_tower_preserves) === null || _a === void 0 ? void 0 : _a[key];
+        if (preserved !== undefined && (!/^[a-f0-9]{64}$/.test(preserved)
+            || !/^[a-f0-9]{64}$/.test((_c = (_b = patch.quest_time_revisions) === null || _b === void 0 ? void 0 : _b[key]) !== null && _c !== void 0 ? _c : "")
+            || ((_d = patch.rush_tower_resets) === null || _d === void 0 ? void 0 : _d[key]) !== undefined))
+            throw new Error(`Invalid tower preservation marker for ${key} in ${patch.id}`);
+        const revision = (_e = patch.rush_tower_resets) === null || _e === void 0 ? void 0 : _e[key];
         if (revision === undefined)
             continue;
-        if (!/^[a-f0-9]{64}$/.test(revision) || ((_b = patch.quest_time_revisions) === null || _b === void 0 ? void 0 : _b[key]) !== revision)
+        if (!/^[a-f0-9]{64}$/.test(revision) || ((_f = patch.quest_time_revisions) === null || _f === void 0 ? void 0 : _f[key]) !== revision)
             throw new Error(`Invalid tower reset marker for ${key} in ${patch.id}`);
         const order = winner === null ? 1 : (0, version_1.compareVersion)(patch.version, winner.version);
         if (order === 0 && winner.revision !== revision)
@@ -31,8 +35,19 @@ function getAbyssTowerResetRevision(eventId) {
     }
     if (winner === null)
         return null;
-    if ((0, abyss_time_revision_1.getAbyssTimeRevision)(eventId) !== winner.revision)
-        throw new Error(`Tower ${key} changed without a matching progress reset marker`);
+    if ((0, abyss_time_revision_1.getAbyssTimeRevision)(eventId) !== winner.revision) {
+        const timing = patches.filter(patch => { var _a; return ((_a = patch.quest_time_revisions) === null || _a === void 0 ? void 0 : _a[key]) !== undefined; })
+            .sort((a, b) => (0, version_1.compareVersion)(b.version, a.version));
+        const latest = timing.filter(patch => { var _a; return patch.version === ((_a = timing[0]) === null || _a === void 0 ? void 0 : _a.version); });
+        // An explicit repair binds the new timing fingerprint to the existing run.
+        // Missing, conflicting or obsolete declarations still fail closed.
+        if (!latest.length || latest.some(patch => {
+            var _a;
+            return (0, version_1.compareVersion)(patch.version, winner.version) <= 0
+                || ((_a = patch.rush_tower_preserves) === null || _a === void 0 ? void 0 : _a[key]) !== winner.revision;
+        }))
+            throw new Error(`Tower ${key} changed without a matching progress reset marker`);
+    }
     return winner.revision;
 }
 exports.getAbyssTowerResetRevision = getAbyssTowerResetRevision;

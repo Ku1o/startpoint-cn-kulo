@@ -214,6 +214,7 @@ def main():
           'description':'第20关改用普通讨伐三兄弟的独立完整战斗族；开放夏日白与盾牌座250点兑换。',
           'depends_on':'1.4.114','version':'1.4.115','enabled':True,'archive':name,'archive_size':integrity['size'],
           'archive_integrity':[integrity],'files':sorted(members),'quest_time_revisions':report['quest_time_revisions'],
+          'rush_tower_preserves':{'rush:700100':next(p['rush_tower_resets']['rush:700100'] for p in reversed(manifest['patches']) if p.get('enabled') and 'rush:700100' in p.get('rush_tower_resets',{}))},
           'changes':['三兄弟恢复传伤和阶段切换，保留本关血量与限制。','两名角色开放兑换，抽取概率保持不变。','仅EX成绩版本更新，保留普通塔成绩及挑战进度。'],
           'audit':{'directory':audit}})
         manifest['cdn_version']='1.4.115'
