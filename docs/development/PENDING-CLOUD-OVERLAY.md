@@ -4,7 +4,7 @@
 
 - 第20关使用普通讨伐三兄弟的私有完整战斗族，修复计分版缺少传伤导致本体不掉血、辅助实体反复复活的问题。保留约298.28亿总血量、属性和伤害限制、奖励与时限；关联实体HP同比缩放，九处破弱点保留原始绝对伤害门槛。
 - 盾牌座149988、夏日白149990开放深渊池990001的250点兑换，同步服务器获胜配置、客户端兑换列表与说明；抽取权重及竞速池不变。
-- 运行文件为 `assets/gacha.json`、`assets/gacha_cnmod.json`、完整 `assets/asset-patch/manifest.json` 和 `assets/asset-patch/active/pinball-1.4.114-1.4.115-1-abyss-ex20-exchange.zip`。服务器私有交付另带完整准入配对，保持现有平台期限。云服部署仍待完成，具体提交、同步与交付结果见批次回执。
+- 运行文件为 `assets/gacha.json`、`assets/gacha_cnmod.json`、完整 `assets/asset-patch/manifest.json` 和 `assets/asset-patch/active/pinball-1.4.114-1.4.115-1-abyss-ex20-exchange.zip`。本批沿用已安装的准入配对，不重复交付名单或密钥，保持现有平台期限。云服部署仍待完成，具体提交、同步与交付结果见批次回执。
 - 仅推进EX计时成绩版本；普通塔成绩、挑战进度、已有角色、奖励领取记录和存档结构保持不变。接口与离线资源验证通过，手机实战验收待完成。详情见 `assets/asset-patch/audit/abyss-ex20-exchange-1.4.115/README.md`。
 
 ## 服务端内存诊断与分配优化（2026-09-18）
