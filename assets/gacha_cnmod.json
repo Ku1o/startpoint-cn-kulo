@@ -107,7 +107,7 @@
           "odds": 1000,
           "isRateUp": true,
           "isLimited": true,
-          "isExchangeable": false,
+          "isExchangeable": true,
           "rarity": 16.67,
           "trialReadingForced": false
         },
@@ -146,7 +146,7 @@
           "rank": 5,
           "isRateUp": true,
           "isLimited": false,
-          "isExchangeable": false,
+          "isExchangeable": true,
           "trialReadingForced": false,
           "odds": 1000,
           "rarity": 16.67

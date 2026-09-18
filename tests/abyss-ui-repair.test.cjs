@@ -70,13 +70,13 @@ test('both shop entrances expose identical product IDs and purchase stock throug
     } finally {await app.close()}
 })
 
-test('three campus characters exchange for 250 points and unrelated exclusions remain closed',async()=>{
+test('campus, Scutum and summer White exchange for 250 points; unrelated exclusions remain closed',async()=>{
     const {app,player,post}=await appWithPlayer()
     const g=require('../out/data/domains/gacha')
     const {getPlayerCharacterSync}=require('../out/data/domains/character')
     try {
         g.insertPlayerGachaInfoSync(player.id,{gachaId:990001,isAccountFirst:false,isDailyFirst:false,gachaExchangePoint:0})
-        for(const id of [119989,149989,169989]) {
+        for(const id of [119989,149989,169989,149988,149990]) {
             g.updatePlayerGachaInfoSync(player.id,{gachaId:990001,gachaExchangePoint:249})
             assert.equal((await post('/gacha/exchange_character',{gacha_id:990001,character_id:id})).statusCode,400)
             assert.equal(g.getPlayerGachaInfoSync(player.id,990001).gachaExchangePoint,249)
@@ -87,7 +87,7 @@ test('three campus characters exchange for 250 points and unrelated exclusions r
             assert.ok(getPlayerCharacterSync(player.id,id))
         }
         g.updatePlayerGachaInfoSync(player.id,{gachaId:990001,gachaExchangePoint:250})
-        for(const id of [149990,149988,139994])assert.equal((await post('/gacha/exchange_character',{gacha_id:990001,character_id:id})).statusCode,400)
+        for(const id of [139994])assert.equal((await post('/gacha/exchange_character',{gacha_id:990001,character_id:id})).statusCode,400)
         assert.equal(g.getPlayerGachaInfoSync(player.id,990001).gachaExchangePoint,250)
     } finally {await app.close()}
 })

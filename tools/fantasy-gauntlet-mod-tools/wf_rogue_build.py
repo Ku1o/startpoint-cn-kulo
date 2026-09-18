@@ -235,7 +235,9 @@ def _hp_scale_safe(bosses: list[str]) -> bool:
 
 
 def _pool_safe(bosses: list[str]) -> bool:
-    """通用候选池总闸(C8016 崩 + 仅可走 native special 的 Boss)。"""
+    """通用候选池总闸，排除崩溃、不可击杀及未闭合的特殊 Boss。"""
+    if "shark_score_event" in bosses:
+        return False
     return _c8016_safe(bosses) and _hp_scale_safe(bosses)
 
 
@@ -2726,6 +2728,8 @@ def identity_locked_boss_reason(
     codes = sorted({str(code) for code in bosses if str(code)})
     if not codes:
         return None
+    if "shark_score_event" in codes:
+        return "shark_score_event 是不可击杀的计分活动族，不能用于击杀通关塔"
     refs = (code_referenced_bosses() if code_references is None
             else code_references)
     if refs.get("degraded"):
@@ -2754,6 +2758,8 @@ def identity_clone_locked_boss_reason(
     codes = sorted({str(code) for code in bosses if str(code)})
     if not codes:
         return None
+    if "shark_score_event" in codes:
+        return "shark_score_event 是不可击杀的计分活动族，不能用于击杀通关塔"
     refs = (code_referenced_bosses() if code_references is None
             else code_references)
     if refs.get("degraded"):
@@ -4447,14 +4453,10 @@ WARMUP_TARGET_DPS = 600_000.0
 MAX_DPS_DOWN_JITTER = 0.15
 STANDARD_C86_LIMITS = (0.9, 1.1)
 
-# 30 层塔的深层硬锚。正式池经“只留最高 quest rank”后仅剩 eye + 妄羊3/4，
-# 不足 6 个安全 general_boss 领域载体；全库约束匹配证明最小扩池是再纳入：
-#   - score_event_shark（独立 score-event 来源，但放进塔后仍由 event_quest logic 驱动）；
-#   - 妄羊1/2 的低 quest-rank field（boss_level 在塔内 lv100 可完整解析）。
-# 六层均为已知曲线/绝对 HP 证据、代号互异，c86 解落在 3.90~7.07。c36=true
-# 只会禁属性免疫，不会禁普通 StartBuffField 领域；载体门禁仍在 main 内逐层复核。
+# 30 层塔 r26~30 的深层硬锚。r25 回到常规候选池。
+# 计分鲨鱼没有传伤链，禁止作为击杀目标；保留 eye 与妄羊1~4。
+# 领域与 HP 通道仍由主流程逐层复核，候选不足时不可绕过安全门禁。
 DEEP_HP_ANCHOR_FIELDS_30 = (
-    "score_event_shark",
     "eye_dragon_multibattle",
     "raid_alter_sheep_materia1",
     "raid_alter_sheep_materia2",
@@ -4564,10 +4566,10 @@ def configured_target_dps(r: int, n: int, hp_base: float, hp_growth: float,
 
 
 def deep_hp_anchor_field(r: int, n: int) -> str | None:
-    """返回 30 层成品塔 r25~30 的绝对 HP / 领域载体锚；其它塔高不强套。"""
+    """返回 30 层塔 r26~30 的安全硬锚；r25 回到常规可击杀候选池。"""
     if n != 30 or BUILD_MODE == "ex":
         return None
-    first = 25
+    first = 26
     return DEEP_HP_ANCHOR_FIELDS_30[r - first] if first <= r <= 30 else None
 
 
