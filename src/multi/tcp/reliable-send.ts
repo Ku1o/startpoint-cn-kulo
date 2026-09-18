@@ -1,5 +1,6 @@
 import * as net from "net"
 import { recordBattleSendAnomaly } from "./chain-diagnostic"
+import { registerMemoryCounters } from "../../lib/memory-diagnostics"
 
 export type ReliableSendResult = "sent" | "queued" | "closed"
 
@@ -33,6 +34,15 @@ interface SocketSendState {
 
 const socketStates = new WeakMap<net.Socket, SocketSendState>()
 const closedAttemptLogged = new WeakSet<net.Socket>()
+let queuedMessages = 0, queuedBytes = 0
+registerMemoryCounters("tcpSendQueue", () => ({ queuedMessages, queuedBytes }))
+
+function discardQueue(state: SocketSendState): void {
+    queuedMessages -= state.queue.length
+    queuedBytes -= state.queuedBytes
+    state.queue.length = 0
+    state.queuedBytes = 0
+}
 
 function positiveInteger(name: string, fallback: number, minimum = 1): number {
     const parsed = parseInt(process.env[name] || "", 10)
@@ -128,8 +138,7 @@ function disconnectSlowSocket(socket: net.Socket, state: SocketSendState, reason
         maxAgeMs: MAX_AGE_MS,
     })
     clearTimer(state)
-    state.queue.length = 0
-    state.queuedBytes = 0
+    discardQueue(state)
     console.warn(`[MULTI] slow battle connection removed: reason=${reason}`
         + ` queuedMessages=${queuedMessages} queuedBytes=${queuedBytes}`
         + describe(state.context))
@@ -179,6 +188,8 @@ function listenForDrain(socket: net.Socket, state: SocketSendState): void {
         while (state.queue.length > 0 && socket.writable && !socket.destroyed) {
             const next = state.queue.shift()!
             state.queuedBytes -= next.bytes
+            queuedMessages--
+            queuedBytes -= next.bytes
             state.context = next.context
             let writable = false
             try {
@@ -231,6 +242,8 @@ export function sendFrameReliably(
         }
         state.queue.push({ frame, bytes, queuedAt: Date.now(), context })
         state.queuedBytes += bytes
+        queuedMessages++
+        queuedBytes += bytes
         beginBackpressure(state, context)
         updateQueuePeaks(state)
         listenForDrain(socket, state)
@@ -265,8 +278,7 @@ export function clearReliableSendState(socket: net.Socket): void {
         recordTerminalAnomaly(state, "socket_closed_during_backpressure")
     }
     clearTimer(state)
-    state.queue.length = 0
-    state.queuedBytes = 0
+    discardQueue(state)
     socketStates.delete(socket)
 }
 

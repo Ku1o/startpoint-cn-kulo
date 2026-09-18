@@ -1,4 +1,5 @@
 import type { ActiveQuest } from "../routes/api/singleBattleQuest"
+import { registerMemoryCounters } from "../lib/memory-diagnostics"
 
 export type MultiBattleLifecycle = "BATTLE" | "SETTLING" | "RETURN_PENDING" | "LOBBY"
 
@@ -27,6 +28,7 @@ export interface MultiSettlementSnapshot {
 }
 
 const snapshots = new Map<string, MultiSettlementSnapshot>()
+registerMemoryCounters("battleSnapshots", () => ({ entries: snapshots.size }))
 const LIFECYCLE_RANK: Record<MultiBattleLifecycle, number> = {
     BATTLE: 0,
     SETTLING: 1,

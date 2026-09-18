@@ -1,3 +1,4 @@
+import { cachedStatement } from "../../lib/cached-statement"
 import { getDb } from "../db";
 import { PlayerActiveMission, RawPlayerClearedRegularMission, RawPlayerActiveMission, RawPlayerActiveMissionStage } from "../types";
 import { deserializeBoolean, serializeBoolean } from "../utils";
@@ -12,7 +13,7 @@ export function getPlayerClearedRegularMissionListSync(
     playerId: number
 ): Record<string, number> {
 
-    const raw = getDb().prepare(`
+    const raw = cachedStatement(getDb(), `
     SELECT id, value
     FROM players_cleared_regular_missions
     WHERE player_id = ?
@@ -39,7 +40,7 @@ function insertPlayerClearedRegularMissionSync(
     missionId: number | string,
     value: number
 ) {
-    getDb().prepare(`
+    cachedStatement(getDb(), `
     INSERT INTO players_cleared_regular_missions (id, value, player_id)
     VALUES (?, ?, ?)
     `).run(
@@ -79,7 +80,7 @@ function insertPlayerItemSync(
     itemId: number | string,
     amount: number
 ) {
-    getDb().prepare(`
+    cachedStatement(getDb(), `
     INSERT INTO players_items (id, amount, player_id)
     VALUES (?, ?, ?)
     `).run(
@@ -106,13 +107,13 @@ function insertPlayerItemSync(
 export function getPlayerActiveMissionsSync(
     playerId: number
 ): Record<string, PlayerActiveMission> {
-    const rawMissions = getDb().prepare(`
+    const rawMissions = cachedStatement(getDb(), `
     SELECT id, progress
     FROM players_active_missions
     WHERE player_id = ?
     `).all(playerId) as RawPlayerActiveMission[]
 
-    const rawStages = getDb().prepare(`
+    const rawStages = cachedStatement(getDb(), `
     SELECT id, status, mission_id
     FROM players_active_missions_stages
     WHERE player_id = ?
@@ -159,7 +160,7 @@ function insertPlayerActiveMissionStageSync(
     missionId: number | string,
     status: boolean
 ) {
-    getDb().prepare(`
+    cachedStatement(getDb(), `
     INSERT INTO players_active_missions_stages (id, status, player_id, mission_id)
     VALUES (?, ?, ?, ?)   
     `).run(
@@ -182,7 +183,7 @@ function insertPlayerActiveMissionSync(
     missionId: number | string,
     mission: PlayerActiveMission
 ) {
-    getDb().prepare(`
+    cachedStatement(getDb(), `
     INSERT INTO players_active_missions (id, progress, player_id)
     VALUES (?, ?, ?)
     `).run(
@@ -224,7 +225,7 @@ export function updatePlayerActiveMissionSync(
     missionId: number | string,
     progress: number
 ) {
-    getDb().prepare(`
+    cachedStatement(getDb(), `
     INSERT INTO players_active_missions (id, progress, player_id)
     VALUES (?, ?, ?)
     ON CONFLICT(id, player_id) DO UPDATE SET progress = excluded.progress
@@ -237,7 +238,7 @@ export function incrementPlayerActiveMissionSync(
     missionId: number | string,
     delta: number
 ) {
-    getDb().prepare(`
+    cachedStatement(getDb(), `
     INSERT INTO players_active_missions (id, progress, player_id)
     VALUES (?, ?, ?)
     ON CONFLICT(id, player_id) DO UPDATE SET progress = progress + excluded.progress
@@ -254,13 +255,13 @@ export function getPlayerCategoryMissionsSync(
     if (ids?.length === 0) return {}
     const placeholders = ids?.map(() => "?").join(", ")
     const parameters = [playerId, category, ...(ids ?? [])]
-    const missions = getDb().prepare(`
+    const missions = cachedStatement(getDb(), `
     SELECT id, progress
     FROM players_category_missions
     WHERE player_id = ? AND category = ?
     ${ids ? `AND id IN (${placeholders})` : ""}
     `).all(...parameters) as RawPlayerActiveMission[]
-    const stages = getDb().prepare(`
+    const stages = cachedStatement(getDb(), `
     SELECT id, status, mission_id
     FROM players_category_mission_stages
     WHERE player_id = ? AND category = ?
@@ -293,12 +294,12 @@ export function getPlayerCategoryMissionsForCategoriesSync(
     const uniqueCategories = [...new Set(categories.filter(Number.isSafeInteger))]
     if (uniqueCategories.length === 0) return {}
     const placeholders = uniqueCategories.map(() => "?").join(", ")
-    const missions = getDb().prepare(`
+    const missions = cachedStatement(getDb(), `
     SELECT category, id, progress
     FROM players_category_missions
     WHERE player_id = ? AND category IN (${placeholders})
     `).all(playerId, ...uniqueCategories) as { category: number, id: number, progress: number }[]
-    const stages = getDb().prepare(`
+    const stages = cachedStatement(getDb(), `
     SELECT category, id, status, mission_id
     FROM players_category_mission_stages
     WHERE player_id = ? AND category IN (${placeholders})
@@ -332,7 +333,7 @@ export function getPlayerCategoryMissionsForCategoriesSync(
 export function getPlayerCategoryMissionListSync(
     playerId: number
 ): Record<string, Record<string, PlayerActiveMission>> {
-    const categories = getDb().prepare(`
+    const categories = cachedStatement(getDb(), `
     SELECT DISTINCT category
     FROM players_category_missions
     WHERE player_id = ?
@@ -347,7 +348,7 @@ export function getPlayerCategoryMissionListSync(
 export function getPlayerClearedCollectItemEventMissionListSync(
     playerId: number
 ): Record<string, number> {
-    const rows = getDb().prepare(`
+    const rows = cachedStatement(getDb(), `
     SELECT mission_id, MAX(id) AS stage
     FROM players_category_mission_stages
     WHERE player_id = ? AND category = 4 AND status = 1
@@ -382,7 +383,7 @@ export function updatePlayerCategoryMissionSync(
     missionId: number | string,
     progress: number
 ) {
-    getDb().prepare(`
+    cachedStatement(getDb(), `
     INSERT INTO players_category_missions (category, id, progress, player_id)
     VALUES (?, ?, ?, ?)
     ON CONFLICT(category, id, player_id) DO UPDATE SET progress = excluded.progress
@@ -400,7 +401,7 @@ export function updatePlayerCategoryMissionBatchSync(
     updates: readonly PlayerCategoryMissionProgressUpdate[],
 ): void {
     if (updates.length === 0) return
-    const statement = getDb().prepare(`
+    const statement = cachedStatement(getDb(), `
     INSERT INTO players_category_missions (category, id, progress, player_id)
     VALUES (?, ?, ?, ?)
     ON CONFLICT(category, id, player_id) DO UPDATE SET progress = excluded.progress
@@ -416,7 +417,7 @@ export function incrementPlayerCategoryMissionSync(
     missionId: number | string,
     delta: number
 ) {
-    getDb().prepare(`
+    cachedStatement(getDb(), `
     INSERT INTO players_category_missions (category, id, progress, player_id)
     VALUES (?, ?, ?, ?)
     ON CONFLICT(category, id, player_id) DO UPDATE SET progress = progress + excluded.progress
@@ -430,7 +431,7 @@ export function updatePlayerCategoryMissionStageSync(
     missionId: number | string,
     status: boolean
 ) {
-    getDb().prepare(`
+    cachedStatement(getDb(), `
     INSERT INTO players_category_mission_stages (category, id, status, player_id, mission_id)
     VALUES (?, ?, ?, ?, ?)
     ON CONFLICT(category, id, mission_id, player_id) DO UPDATE SET status = excluded.status
@@ -449,7 +450,7 @@ export function updatePlayerCategoryMissionStageBatchSync(
     updates: readonly PlayerCategoryMissionStageUpdate[],
 ): void {
     if (updates.length === 0) return
-    const statement = getDb().prepare(`
+    const statement = cachedStatement(getDb(), `
     INSERT INTO players_category_mission_stages (category, id, status, player_id, mission_id)
     VALUES (?, ?, ?, ?, ?)
     ON CONFLICT(category, id, mission_id, player_id) DO UPDATE SET status = excluded.status
@@ -467,8 +468,8 @@ export function updatePlayerCategoryMissionStageBatchSync(
 
 export function deletePlayerCategoryMissionsSync(playerId: number, category: number) {
     getDb().transaction(() => {
-        getDb().prepare(`DELETE FROM players_category_mission_stages WHERE player_id = ? AND category = ?`).run(playerId, category)
-        getDb().prepare(`DELETE FROM players_category_missions WHERE player_id = ? AND category = ?`).run(playerId, category)
+        cachedStatement(getDb(), `DELETE FROM players_category_mission_stages WHERE player_id = ? AND category = ?`).run(playerId, category)
+        cachedStatement(getDb(), `DELETE FROM players_category_missions WHERE player_id = ? AND category = ?`).run(playerId, category)
     })()
 }
 
@@ -481,7 +482,7 @@ export function updatePlayerActiveMissionStageSync(
     missionId: number | string,
     status: boolean
 ) {
-    getDb().prepare(`
+    cachedStatement(getDb(), `
     INSERT OR REPLACE INTO players_active_missions_stages (id, status, player_id, mission_id)
     VALUES (?, ?, ?, ?)
     `).run(

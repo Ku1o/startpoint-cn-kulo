@@ -1,3 +1,4 @@
+import { registerMemoryCounters } from "./memory-diagnostics"
 interface CacheEntry {
     expiresAt: number
     response: unknown
@@ -5,6 +6,7 @@ interface CacheEntry {
 
 const entries = new Map<string, CacheEntry>()
 const executionTails = new Map<string, Promise<void>>()
+registerMemoryCounters("finishCache", () => ({ entries: entries.size, executing: executionTails.size }))
 // Multiplayer clients can submit the same settlement again after the lobby has
 // already been cleaned up (slow guest, reconnect or HTTP retry).  Keep the
 // completed response long enough for that late request to remain idempotent.

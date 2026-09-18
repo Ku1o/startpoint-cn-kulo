@@ -1,3 +1,4 @@
+import { cachedStatement } from "../cached-statement"
 import { getDb } from "../../data/db"
 import { isCompactStorage, writeCompactMissionCounter } from "../storage-layout"
 
@@ -56,7 +57,7 @@ export function addMissionCounterSync(playerId: number, query: MissionCounterQue
     if (isCompactStorage(getDb())) return writeCompactMissionCounter(getDb(), playerId, {
         key: counterKey, dimension: query.dimension, scopeType: query.scopeType, scopeKey: query.scopeKey, qualifierJson,
     }, amount, "add")
-    const row = getDb().prepare(`
+    const row = cachedStatement(getDb(), `
     INSERT INTO players_mission_counters
         (player_id, counter_key, dimension, scope_type, scope_key, qualifier_json, value, updated_at)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
@@ -74,7 +75,7 @@ export function setMissionCounterMaxSync(playerId: number, query: MissionCounter
     if (isCompactStorage(getDb())) return writeCompactMissionCounter(getDb(), playerId, {
         key: counterKey, dimension: query.dimension, scopeType: query.scopeType, scopeKey: query.scopeKey, qualifierJson,
     }, value, "max")
-    const row = getDb().prepare(`
+    const row = cachedStatement(getDb(), `
     INSERT INTO players_mission_counters
         (player_id, counter_key, dimension, scope_type, scope_key, qualifier_json, value, updated_at)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
@@ -93,7 +94,7 @@ export function setMissionCounterMinSync(playerId: number, query: MissionCounter
     if (isCompactStorage(getDb())) return writeCompactMissionCounter(getDb(), playerId, {
         key: counterKey, dimension: query.dimension, scopeType: query.scopeType, scopeKey: query.scopeKey, qualifierJson,
     }, value, "min")
-    const row = getDb().prepare(`
+    const row = cachedStatement(getDb(), `
     INSERT INTO players_mission_counters
         (player_id, counter_key, dimension, scope_type, scope_key, qualifier_json, value, updated_at)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
@@ -107,7 +108,7 @@ export function setMissionCounterMinSync(playerId: number, query: MissionCounter
 
 export function getMissionCounterValueSync(playerId: number, query: MissionCounterQuery): number {
     const counterKey = makeMissionCounterKey(query)
-    const row = getDb().prepare(`
+    const row = cachedStatement(getDb(), `
     SELECT value FROM players_mission_counters
     WHERE player_id = ? AND counter_key = ?
     `).get(playerId, counterKey) as { value: number } | undefined
@@ -122,7 +123,7 @@ export function getMissionCounterValuesSync(
     const counterKeys = [...new Set(queries.map(makeMissionCounterKey))]
     if (counterKeys.length === 0) return new Map()
     const placeholders = counterKeys.map(() => "?").join(", ")
-    const rows = getDb().prepare(`
+    const rows = cachedStatement(getDb(), `
     SELECT counter_key, value FROM players_mission_counters
     WHERE player_id = ? AND counter_key IN (${placeholders})
     `).all(playerId, ...counterKeys) as { counter_key: string, value: number }[]
@@ -134,7 +135,7 @@ export function getMissionCounterValuesSync(
 export function getMissionCounterSnapshotValueSync(playerId: number, periodType: MissionCounterPeriod, query: MissionCounterQuery): number {
     if (isCompactStorage(getDb())) throw new Error("旧任务快照已退役，周期任务应使用 players_periodic_snapshots")
     const counterKey = makeMissionCounterKey(query)
-    const row = getDb().prepare(`
+    const row = cachedStatement(getDb(), `
     SELECT value FROM players_mission_counter_snapshots
     WHERE player_id = ? AND period_type = ? AND counter_key = ?
     `).get(playerId, periodType, counterKey) as { value: number } | undefined
@@ -149,12 +150,12 @@ export function getMissionCounterDeltaSync(playerId: number, periodType: Mission
 
 export function snapshotAllMissionCountersSync(playerId: number, periodType: MissionCounterPeriod): number {
     if (isCompactStorage(getDb())) throw new Error("旧任务快照已退役，禁止重新生成全量副本")
-    const rows = getDb().prepare(`
+    const rows = cachedStatement(getDb(), `
     SELECT counter_key, value FROM players_mission_counters
     WHERE player_id = ?
     `).all(playerId) as { counter_key: string; value: number }[]
 
-    const insert = getDb().prepare(`
+    const insert = cachedStatement(getDb(), `
     INSERT INTO players_mission_counter_snapshots
         (player_id, period_type, counter_key, value, updated_at)
     VALUES (?, ?, ?, ?, ?)

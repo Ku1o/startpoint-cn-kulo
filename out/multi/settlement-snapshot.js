@@ -2,7 +2,9 @@
 var _a, _b;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.transitionRoomSettlementSnapshots = exports.transitionMultiSettlementSnapshot = exports.getMultiSettlementSnapshot = exports.registerMultiSettlementSnapshot = exports.buildBattleInstanceId = void 0;
+const memory_diagnostics_1 = require("../lib/memory-diagnostics");
 const snapshots = new Map();
+(0, memory_diagnostics_1.registerMemoryCounters)("battleSnapshots", () => ({ entries: snapshots.size }));
 const LIFECYCLE_RANK = {
     BATTLE: 0,
     SETTLING: 1,

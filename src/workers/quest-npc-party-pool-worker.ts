@@ -2,6 +2,8 @@ import { parentPort } from "worker_threads"
 import Database from "better-sqlite3"
 import { mkdirSync } from "fs"
 import path from "path"
+import { cachedStatement } from "../lib/cached-statement"
+import { installWorkerMemoryProbe } from "../lib/memory-diagnostics"
 import {
     getQuestNpcPartyPoolKey,
     QuestNpcPartySnapshot,
@@ -31,7 +33,8 @@ interface RemovePlayersMessage {
     playerIds: number[]
 }
 interface StopMessage { type: "stop" }
-type WorkerMessage = RecordMessage | ReloadMessage | RemovePlayersMessage | StopMessage
+interface SnapshotAck { type: "snapshot_ack"; revision: number }
+type WorkerMessage = RecordMessage | ReloadMessage | RemovePlayersMessage | StopMessage | SnapshotAck | { type: "memory_probe" }
 
 const databaseDirectory = process.env.DATA_DIR
     ? path.resolve(process.env.DATA_DIR)
@@ -64,6 +67,9 @@ db.exec(`
 function send(message: Record<string, unknown>): void {
     parentPort?.postMessage(message)
 }
+let revision = 0, pendingOperations = 0, records = 0, publishedEntries = 0, fullRefreshes = 0
+let snapshotAck: { revision: number; resolve: () => void } | null = null
+installWorkerMemoryProbe(() => ({ pendingOperations, records, publishedEntries, fullRefreshes, revision }))
 
 function hasCompleteMainCharacters(party: any): boolean {
     return Array.isArray(party?.characters)
@@ -93,7 +99,7 @@ function parseRow(row: PoolRow): QuestNpcPartySnapshot | null {
 }
 
 function loadQuest(category: number, questId: number): QuestNpcPartySnapshot[] {
-    const rows = db.prepare(`
+    const rows = cachedStatement(db, `
         SELECT quest_category, quest_id, source_player_id, party_slot, battle_power,
                party_element, party_payload, cleared_at
         FROM quest_npc_party_pool
@@ -103,31 +109,34 @@ function loadQuest(category: number, questId: number): QuestNpcPartySnapshot[] {
 }
 
 function publishQuest(category: number, questId: number): void {
+    const entries = loadQuest(category, questId)
+    publishedEntries += entries.length
     send({
         type: "quest_snapshot",
+        revision: ++revision,
         key: getQuestNpcPartyPoolKey(category, questId),
-        entries: loadQuest(category, questId),
+        entries,
     })
 }
 
-function publishAll(): void {
-    const rows = db.prepare(`
-        SELECT quest_category, quest_id, source_player_id, party_slot, battle_power,
-               party_element, party_payload, cleared_at
-        FROM quest_npc_party_pool
-    `).all() as PoolRow[]
-    const pools: Record<string, QuestNpcPartySnapshot[]> = {}
-    for (const row of rows) {
-        const entry = parseRow(row)
-        if (!entry) continue
-        const key = getQuestNpcPartyPoolKey(entry.questCategory, entry.questId)
-        ;(pools[key] ??= []).push(entry)
+async function publishAll(): Promise<void> {
+    const quests = cachedStatement(db, `SELECT DISTINCT quest_category, quest_id FROM quest_npc_party_pool`).all() as PoolRow[]
+    send({ type: "snapshot_begin", revision: ++revision })
+    for (const quest of quests) {
+        // One quest in transit at a time; do not clone the entire database.
+        await new Promise<void>((resolve, reject) => {
+            const timer = setTimeout(() => { snapshotAck = null; reject(new Error("NPC snapshot acknowledgement timed out")) }, 30_000)
+            snapshotAck = { revision: revision + 1, resolve: () => { clearTimeout(timer); resolve() } }
+            try { publishQuest(quest.quest_category, quest.quest_id) }
+            catch (error) { clearTimeout(timer); snapshotAck = null; reject(error) }
+        })
     }
-    send({ type: "full_snapshot", pools })
+    send({ type: "snapshot_end", revision: ++revision })
+    fullRefreshes++
 }
 
-function pruneQuest(category: number, questId: number): void {
-    const rows = db.prepare(`
+function pruneQuest(category: number, questId: number): number[] {
+    const rows = cachedStatement(db, `
         SELECT source_player_id, battle_power, cleared_at
         FROM quest_npc_party_pool
         WHERE quest_category = ? AND quest_id = ?
@@ -141,21 +150,22 @@ function pruneQuest(category: number, questId: number): void {
         battlePower: row.battle_power,
         clearedAt: row.cleared_at,
     }))))
-    if (keep.size >= rows.length) return
+    if (keep.size >= rows.length) return []
     const remove = rows.filter(row => !keep.has(row.source_player_id))
-    const statement = db.prepare(`
+    const statement = cachedStatement(db, `
         DELETE FROM quest_npc_party_pool
         WHERE quest_category = ? AND quest_id = ? AND source_player_id = ?
     `)
     db.transaction(() => {
         for (const row of remove) statement.run(category, questId, row.source_player_id)
     })()
+    return remove.map(row => row.source_player_id)
 }
 
 function recordClear(message: RecordMessage): void {
     const snapshot = message.snapshot
     if (!snapshot || !hasCompleteMainCharacters(snapshot.party)) return
-    db.prepare(`
+    cachedStatement(db, `
         INSERT INTO quest_npc_party_pool (
             quest_category, quest_id, source_player_id, party_slot, battle_power,
             party_element, party_payload, cleared_at
@@ -170,8 +180,16 @@ function recordClear(message: RecordMessage): void {
         snapshot.questCategory, snapshot.questId, snapshot.sourcePlayerId, snapshot.partySlot,
         snapshot.battlePower, snapshot.partyElement, JSON.stringify(snapshot.party), snapshot.clearedAt,
     )
-    pruneQuest(snapshot.questCategory, snapshot.questId)
-    publishQuest(snapshot.questCategory, snapshot.questId)
+    const removedPlayerIds = pruneQuest(snapshot.questCategory, snapshot.questId)
+    records++
+    if (/^(0|false|no|off)$/i.test(process.env.NPC_INCREMENTAL_UPDATES ?? "true")) {
+        publishQuest(snapshot.questCategory, snapshot.questId)
+    } else {
+        const entry = removedPlayerIds.includes(snapshot.sourcePlayerId) ? null : snapshot
+        publishedEntries += entry ? 1 : 0
+        send({ type: "quest_delta", revision: ++revision,
+            key: getQuestNpcPartyPoolKey(snapshot.questCategory, snapshot.questId), entry, removedPlayerIds })
+    }
 }
 
 function removePlayers(message: RemovePlayersMessage): void {
@@ -194,7 +212,7 @@ function removePlayers(message: RemovePlayersMessage): void {
         for (let offset = 0; offset < playerIds.length; offset += 500) {
             const batch = playerIds.slice(offset, offset + 500)
             const placeholders = batch.map(() => "?").join(", ")
-            const rows = db.prepare(`
+            const rows = cachedStatement(db, `
                 SELECT DISTINCT quest_category, quest_id
                 FROM quest_npc_party_pool
                 WHERE source_player_id IN (${placeholders})
@@ -205,7 +223,7 @@ function removePlayers(message: RemovePlayersMessage): void {
                     { questCategory: row.quest_category, questId: row.quest_id },
                 )
             }
-            removedRows += db.prepare(`
+            removedRows += cachedStatement(db, `
                 DELETE FROM quest_npc_party_pool
                 WHERE source_player_id IN (${placeholders})
             `).run(...batch).changes
@@ -223,21 +241,32 @@ function removePlayers(message: RemovePlayersMessage): void {
     })
 }
 
+let operations: Promise<void>
 parentPort?.on("message", (message: WorkerMessage) => {
-    try {
+    if (message.type === "memory_probe") return
+    if (message.type === "snapshot_ack") {
+        if (snapshotAck?.revision === message.revision) { snapshotAck.resolve(); snapshotAck = null }
+        return
+    }
+    pendingOperations++
+    operations = operations.then(async () => {
         if (message.type === "record") recordClear(message)
-        else if (message.type === "reload") publishAll()
+        else if (message.type === "reload") { await publishAll(); send({ type: "ready" }) }
         else if (message.type === "remove_players") removePlayers(message)
         else if (message.type === "stop") process.exit(0)
-    } catch (error) {
+    }).catch(error => {
         send({
             type: "operation_error",
             operation: message.type,
             requestId: "requestId" in message ? message.requestId : undefined,
             error: error instanceof Error ? error.message : String(error),
         })
-    }
+    }).finally(() => {
+        pendingOperations--
+        if (message.type === "record") send({ type: "record_done" })
+    })
 })
 
-publishAll()
-send({ type: "ready" })
+operations = publishAll().then(() => { send({ type: "ready" }) }).catch(error => {
+    send({ type: "operation_error", operation: "reload", error: String(error) })
+})

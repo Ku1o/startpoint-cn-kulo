@@ -12,6 +12,7 @@ const chain_diagnostic_1 = require("../tcp/chain-diagnostic");
 const embedded_1 = require("../coordinator/embedded");
 const admission_1 = require("../room/admission");
 const connection_diagnostic_1 = require("../five-boss/connection-diagnostic");
+const memory_diagnostics_1 = require("../../lib/memory-diagnostics");
 class SessionManager {
     constructor() {
         this.clients = new Map();
@@ -44,6 +45,13 @@ class SessionManager {
         this.blockedRoomRestores = new Map();
         this.hostReconnectTimers = new Map();
         this.roomConnectionGenerations = new Map();
+    }
+    memoryCounters() {
+        return { lobbyClients: this.clients.size, battleClients: this.cidToBattleClient.size,
+            lobbyRooms: this.roomClients.size, battleRooms: this.battleClients.size,
+            heartbeatTimers: this.battleHeartbeatTimers.size, returningTimers: this.settlementReturnTimers.size,
+            abandonedTimers: this.abandonedBattleTimers.size, supersededBuckets: this.supersededSocketBuckets.size,
+            blockedRestores: this.blockedRoomRestores.size, roomGenerations: this.roomConnectionGenerations.size };
     }
     /** An account login replacement revokes both lobby and battle transports. */
     disconnectPlayerLogin(viewerId) {
@@ -1395,3 +1403,4 @@ class SessionManager {
 }
 exports.SessionManager = SessionManager;
 exports.sessionManager = new SessionManager();
+(0, memory_diagnostics_1.registerMemoryCounters)("sessions", () => exports.sessionManager.memoryCounters());

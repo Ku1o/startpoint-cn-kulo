@@ -2,6 +2,7 @@ import type { FastifyInstance, FastifyRequest } from "fastify"
 import { monitorEventLoopDelay, performance } from "perf_hooks"
 import { drainGachaRequestSummary, drainSettlementPerformanceSummary } from "./settlement-performance"
 import { drainRoomAdmissionPerformanceSummary } from "../multi/room/admission"
+import { installMemoryDiagnostics } from "./memory-diagnostics"
 
 interface RouteTiming {
     count: number
@@ -19,6 +20,7 @@ function isEnabled(): boolean {
  * production servers while still exposing the routes consuming the CPU core.
  */
 export function installRoutePerformanceMonitor(fastify: FastifyInstance): void {
+    installMemoryDiagnostics(fastify)
     if (!isEnabled()) return
 
     const starts = new WeakMap<FastifyRequest, bigint>()

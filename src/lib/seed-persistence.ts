@@ -2,6 +2,8 @@ import { join } from "path";
 import { Worker } from "worker_threads";
 import type { SeedTag } from "./seed-validator";
 import { recordSettlementPhase } from "./settlement-performance";
+import { observeWorkerMemory, registerMemoryCounters } from "./memory-diagnostics";
+let persistenceSequence = 0;
 
 export interface PersistedPlaySeed { r: number; tag: SeedTag; play?: boolean }
 export interface PersistedSeedPool {
@@ -31,12 +33,18 @@ export class SeedPersistence {
     private closed = false;
     private lastErrorLogAt = 0;
     private waiters: { revision: number; resolve: () => void; reject: (error: Error) => void }[] = [];
+    private unregisterMetrics: () => void;
 
     constructor(
         private directory: string,
         private snapshot: () => Map<string, PersistedSeedPool>,
         private delayMs = 1000,
     ) {
+        this.unregisterMetrics = registerMemoryCounters(`seedQueue${++persistenceSequence}`, () => ({
+            pendingUpdates: this.pending.size, inFlightUpdates: this.inFlight?.updates.length ?? 0,
+            waiters: this.waiters.length, revision: this.revision, savedRevision: this.savedRevision,
+            workerAvailable: this.worker !== null,
+        }));
         this.startWorker(false);
     }
 
@@ -47,7 +55,9 @@ export class SeedPersistence {
             ...(typescript ? { execArgv: ["-r", require.resolve("ts-node/register/transpile-only")] } : {}),
         });
         this.worker = worker;
+        observeWorkerMemory("seedPersistence", worker);
         worker.on("message", (result: WriteResult) => {
+            if (!Number.isSafeInteger(result.revision)) return;
             if (this.worker !== worker || result.revision !== this.inFlight?.revision) return;
             recordSettlementPhase("gacha", "seed_write_worker", result.elapsedMs);
             if (result.error) { this.failed(new Error(result.error)); return; }
@@ -133,6 +143,7 @@ export class SeedPersistence {
         try { await this.flush(); }
         finally {
             this.closed = true;
+            this.unregisterMetrics();
             if (this.timer) clearTimeout(this.timer);
             const worker = this.worker;
             this.worker = null;

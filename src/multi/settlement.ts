@@ -1,3 +1,4 @@
+import { registerMemoryCounters } from "../lib/memory-diagnostics"
 export interface MatePlayerResult {
     viewer_id: number
     com_id: number
@@ -27,6 +28,7 @@ export interface SettlementMergeResult {
 }
 
 const snapshots = new Map<string, SettlementSnapshot>()
+registerMemoryCounters("settlementBarriers", () => ({ entries: snapshots.size }))
 
 function finiteNumber(value: unknown, fallback = 0): number {
     const parsed = Number(value)

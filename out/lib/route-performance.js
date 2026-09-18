@@ -4,6 +4,7 @@ exports.installRoutePerformanceMonitor = void 0;
 const perf_hooks_1 = require("perf_hooks");
 const settlement_performance_1 = require("./settlement-performance");
 const admission_1 = require("../multi/room/admission");
+const memory_diagnostics_1 = require("./memory-diagnostics");
 function isEnabled() {
     var _a;
     return !/^(0|false|no|off)$/i.test((_a = process.env.ROUTE_PERF_SUMMARY) !== null && _a !== void 0 ? _a : "true");
@@ -15,6 +16,7 @@ function isEnabled() {
  */
 function installRoutePerformanceMonitor(fastify) {
     var _a;
+    (0, memory_diagnostics_1.installMemoryDiagnostics)(fastify);
     if (!isEnabled())
         return;
     const starts = new WeakMap();
