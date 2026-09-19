@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.installRequestDiagnostics = exports.measureResponseEncoding = exports.setRequestOutcome = exports.drainAwakeDiagnostics = exports.recordUnownedAwakeMission = void 0;
+exports.installRequestDiagnostics = exports.measureResponseEncoding = exports.recordResponseEncoding = exports.setRequestOutcome = exports.drainAwakeDiagnostics = exports.recordUnownedAwakeMission = void 0;
 const perf_hooks_1 = require("perf_hooks");
 // Fixed buckets report upper bounds, not exact quantiles or CPU time.
 const bounds = [1, 5, 10, 25, 50, 100, 250, 500, 1000, 2500, 5000, 10000, 30000, 60000, 120000];
@@ -38,6 +38,16 @@ function setRequestOutcome(request, outcome) {
         state.outcome = outcome;
 }
 exports.setRequestOutcome = setRequestOutcome;
+/** Record inline in an existing hook; do not add a Promise boundary to sending. */
+function recordResponseEncoding(request, durationMs, payload) {
+    const state = states.get(request);
+    if (!state)
+        return;
+    state.encodingMs += durationMs;
+    state.responseBytes = typeof payload === "string" ? Buffer.byteLength(payload)
+        : Buffer.isBuffer(payload) ? payload.length : 0;
+}
+exports.recordResponseEncoding = recordResponseEncoding;
 /** Includes custom encoding/compression and its asynchronous waits, never CPU time. */
 function measureResponseEncoding(request, operation) {
     return __awaiter(this, void 0, void 0, function* () {

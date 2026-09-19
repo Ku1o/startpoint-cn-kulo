@@ -50,6 +50,15 @@ export function setRequestOutcome(request: FastifyRequest, outcome: RequestOutco
     if (state) state.outcome = outcome
 }
 
+/** Record inline in an existing hook; do not add a Promise boundary to sending. */
+export function recordResponseEncoding(request: FastifyRequest, durationMs: number, payload: unknown): void {
+    const state = states.get(request)
+    if (!state) return
+    state.encodingMs += durationMs
+    state.responseBytes = typeof payload === "string" ? Buffer.byteLength(payload)
+        : Buffer.isBuffer(payload) ? payload.length : 0
+}
+
 /** Includes custom encoding/compression and its asynchronous waits, never CPU time. */
 export async function measureResponseEncoding<T>(request: FastifyRequest, operation: () => Promise<T>): Promise<T> {
     const state = states.get(request)

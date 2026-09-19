@@ -11,7 +11,8 @@ import { restoreTimeOffset } from "./data/activeAccount";
 import { migrateUnsafeViewerIdsSync } from "./data/domains/session";
 import { installManagementAuth } from "./lib/management-auth";
 import { installRoutePerformanceMonitor } from "./lib/route-performance";
-import { measureResponseEncoding } from "./lib/request-diagnostics";
+import { recordResponseEncoding } from "./lib/request-diagnostics";
+import { performance } from "perf_hooks";
 import { markPlayerOnline } from "./lib/online-presence";
 import { installTakeoverUdidGuard } from "./lib/takeover-access";
 import { initializePlayerLogin } from "./lib/player-login";
@@ -345,7 +346,9 @@ function safeCompressionLogValue(value: unknown): string {
     return String(value ?? "none").replace(/[\r\n\t]/g, " ").slice(0, 120)
 }
 
-fastify.addHook("onSend", (request, reply, payload) => measureResponseEncoding(request, async () => {
+fastify.addHook("onSend", async (request, reply, payload) => {
+    const encodingStarted = performance.now();
+    let encodedPayload = payload;
     try {
         if (reply.getHeader("content-type") === "application/x-msgpack") {
             const packed = fixUint32Tags(pack(payload));
@@ -362,7 +365,7 @@ fastify.addHook("onSend", (request, reply, payload) => measureResponseEncoding(r
                     );
                 } catch (error) {
                     console.error("[CN-LOAD-COMPRESS] compression failed; sending identity response:", error);
-                    return base64;
+                    return encodedPayload = base64;
                 }
                 if (result.encoding) {
                     reply.header("content-encoding", result.encoding);
@@ -380,15 +383,17 @@ fastify.addHook("onSend", (request, reply, payload) => measureResponseEncoding(r
                         + `before=${result.originalBytes} after=${result.wireBytes} saved=${reduction}%`,
                     );
                 }
-                return result.encoding ? result.body : base64;
+                return encodedPayload = result.encoding ? result.body : base64;
             }
-            return base64;
+            return encodedPayload = base64;
         }
     } catch (error) {
         console.error("[CN-LOAD-COMPRESS] response serialization failed; using normal serializer:", error)
+    } finally {
+        recordResponseEncoding(request, performance.now() - encodingStarted, encodedPayload);
     }
     return payload;
-}));
+});
 
 function jsonParser(_: FastifyRequest, body: string, done: ContentTypeParserDoneFunction) {
     try {
@@ -437,10 +442,10 @@ fastify.register(cnLoadPlugin, { prefix: apiPrefix });
 fastify.register(cnAssetPlugin, { prefix: `${apiPrefix}/asset` });
 fastify.register(cnTakeOverPlugin, { prefix: apiPrefix });
 
-function stubMsgpackReply(reply: any, data: any, playerId?: number) {
+function stubMsgpackReply(reply: FastifyReply, data: any, playerId?: number): FastifyReply {
     const servertime = playerId ? getServerTimeForPlayer(playerId) : getServerTime()
     reply.header("content-type", "application/x-msgpack");
-    reply.status(200).send({
+    return reply.status(200).send({
         data_headers: { force_update: false, asset_update: false, short_udid: 0, viewer_id: 0, servertime, result_code: 1 },
         data
     });
@@ -450,7 +455,7 @@ fastify.post(`${apiPrefix}/assetintitle/version_info_in_title`, async (request, 
     const { getAssetDownloadSize, getVersionInfo } = require("./routes/cn/asset");
     const resVer = request.headers['res_ver'] as string | undefined;
     const device = request.headers.device as string | undefined;
-    stubMsgpackReply(reply, getVersionInfo(
+    return stubMsgpackReply(reply, getVersionInfo(
         CDN_BASE_URL,
         getAssetDownloadSize(resVer, device),
         device,
@@ -458,37 +463,37 @@ fastify.post(`${apiPrefix}/assetintitle/version_info_in_title`, async (request, 
 });
 
 fastify.post(`${apiPrefix}/tool/check_social_link_enable`, async (_request, reply) => {
-    stubMsgpackReply(reply, { enable: false });
+    return stubMsgpackReply(reply, { enable: false });
 });
 
 // Gift code exchange (礼包码兑换): enable button in menu, exchange not implemented
 fastify.post(`${apiPrefix}/tool/check_enable_gift`, async (_request, reply) => {
-    stubMsgpackReply(reply, { enable_gift: true });
+    return stubMsgpackReply(reply, { enable_gift: true });
 });
 
 fastify.post(`${apiPrefix}/tool/contact_active`, async (_request, reply) => {
-    stubMsgpackReply(reply, { enable_customer_service: false });
+    return stubMsgpackReply(reply, { enable_customer_service: false });
 });
 
 fastify.post(`${apiPrefix}/tool/custom_notify`, async (_request, reply) => {
-    stubMsgpackReply(reply, {});
+    return stubMsgpackReply(reply, {});
 });
 
 fastify.post(`${apiPrefix}/channels/channel_leiting_pay/query_unfinish_order`, async (_request, reply) => {
-    stubMsgpackReply(reply, { order_id: "" });
+    return stubMsgpackReply(reply, { order_id: "" });
 });
 
 fastify.post(`${apiPrefix}/channels/channel_leiting_pay/query_purcharge`, async (_request, reply) => {
-    stubMsgpackReply(reply, { status: 3 });  // 3 = purchase success
+    return stubMsgpackReply(reply, { status: 3 });  // 3 = purchase success
 });
 
 fastify.post(`${apiPrefix}/channels/channel_leiting_pay/set_unfinish_order_status`, async (_request, reply) => {
-    stubMsgpackReply(reply, {});
+    return stubMsgpackReply(reply, {});
 });
 
 // Episode trial reading: finish stub (character story trial)
 fastify.post(`${apiPrefix}/episode_trial_reading/finish`, async (_request, reply) => {
-    stubMsgpackReply(reply, {});
+    return stubMsgpackReply(reply, {});
 });
 
 async function persistSeedFeedback(): Promise<void> {
@@ -508,7 +513,7 @@ fastify.get("/debug", async (request, reply) => {
     if (typeof loc === "string" && (loc.includes("C3032") || loc.startsWith("PLAY|"))) {
         await persistSeedFeedback();
     }
-    reply.status(200).send("OK");
+    return reply.status(200).send("OK");
 });
 
 // Parse C3032 from beacon loc string — ★ garbled to â, extract digits via garbled pattern
@@ -579,7 +584,7 @@ fastify.post("/debug", async (request, reply) => {
     try { parseC3032Beacon(loc); } catch (_) {}
 
     if (typeof loc === "string" && loc.includes("C3032")) await persistSeedFeedback();
-    reply.status(200).send("OK");
+    return reply.status(200).send("OK");
 });
 
 fastify.post("/crash", async (request, reply) => {
@@ -605,7 +610,7 @@ fastify.post("/crash", async (request, reply) => {
 
     if (bodyStr.includes("C3032")) await persistSeedFeedback();
 
-    reply.status(200).send("OK");
+    return reply.status(200).send("OK");
 });
 
 
