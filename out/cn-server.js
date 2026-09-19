@@ -48,6 +48,7 @@ const activeAccount_1 = require("./data/activeAccount");
 const session_1 = require("./data/domains/session");
 const management_auth_1 = require("./lib/management-auth");
 const route_performance_1 = require("./lib/route-performance");
+const request_diagnostics_1 = require("./lib/request-diagnostics");
 const online_presence_1 = require("./lib/online-presence");
 const takeover_access_1 = require("./lib/takeover-access");
 const player_login_1 = require("./lib/player-login");
@@ -398,7 +399,7 @@ function appendVaryAcceptEncoding(reply) {
 function safeCompressionLogValue(value) {
     return String(value !== null && value !== void 0 ? value : "none").replace(/[\r\n\t]/g, " ").slice(0, 120);
 }
-fastify.addHook("onSend", (request, reply, payload) => __awaiter(void 0, void 0, void 0, function* () {
+fastify.addHook("onSend", (request, reply, payload) => (0, request_diagnostics_1.measureResponseEncoding)(request, () => __awaiter(void 0, void 0, void 0, function* () {
     var _e;
     try {
         if (reply.getHeader("content-type") === "application/x-msgpack") {
@@ -438,7 +439,7 @@ fastify.addHook("onSend", (request, reply, payload) => __awaiter(void 0, void 0,
         console.error("[CN-LOAD-COMPRESS] response serialization failed; using normal serializer:", error);
     }
     return payload;
-}));
+})));
 function jsonParser(_, body, done) {
     try {
         done(null, JSON.parse(body));

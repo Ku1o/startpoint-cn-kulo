@@ -19,6 +19,7 @@ const rushEvent_1 = require("../../data/domains/rushEvent");
 const player_1 = require("../../data/domains/player");
 const party_1 = require("../../data/domains/party");
 const session_1 = require("../../data/domains/session");
+const request_diagnostics_1 = require("../../lib/request-diagnostics");
 const assets_1 = require("../../lib/assets");
 const types_2 = require("../../lib/types");
 const abyss_time_revision_1 = require("../../lib/abyss-time-revision");
@@ -108,6 +109,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         (0, abyss_tower_progress_1.refreshPlayerAbyssTowersSync)(playerId);
         if (eventId === abyss_modes_1.ABYSS_EX_EVENT_ID && !(0, abyss_tower_progress_1.hasAbyssExUnlockSync)(playerId)
             && /\/(select_folder|battle\/start|endless_battle)$/.test(request.url.split("?")[0])) {
+            (0, request_diagnostics_1.setRequestOutcome)(request, "rush_ex_locked");
             reply.header("content-type", "application/x-msgpack");
             return reply.status(200).send({
                 data_headers: (0, utils_1.generateDataHeaders)({ viewer_id: body.viewer_id, result_code: 4050 }), data: {},
@@ -190,44 +192,56 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         });
     }));
     fastify.post("/select_folder", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
-        const body = request.body;
+        var _b;
+        const body = ((_b = request.body) !== null && _b !== void 0 ? _b : {});
         const viewerId = body.viewer_id;
         const eventId = body.event_id;
         const folderId = body.folder_id;
         (0, routine_game_logging_1.routineGameLog)("rush", () => `[RUSH] select_folder: viewer=${viewerId} eventId=${eventId} folderId=${folderId}`);
-        if (isNaN(viewerId) || isNaN(eventId) || isNaN(folderId))
+        if (![viewerId, eventId, folderId].every(id => Number.isSafeInteger(id) && id > 0)) {
+            (0, request_diagnostics_1.setRequestOutcome)(request, "rush_invalid_body");
             return reply.status(400).send({
                 "error": "Bad Request",
                 "message": "Invalid request body."
             });
+        }
         const viewerIdSession = yield (0, session_1.getSession)(viewerId.toString());
-        if (!viewerIdSession)
+        if (!viewerIdSession) {
+            (0, request_diagnostics_1.setRequestOutcome)(request, "rush_invalid_session");
             return reply.status(400).send({
                 "error": "Bad Request",
                 "message": "Invalid viewer id."
             });
+        }
         // get player
         const playerId = (0, activeAccount_1.resolvePlayerIdSync)(viewerIdSession.accountId);
-        if (playerId === null)
+        if (playerId === null) {
+            (0, request_diagnostics_1.setRequestOutcome)(request, "rush_missing_player");
             return reply.status(500).send({
                 "error": "Internal Server Error",
                 "message": "No player bound to account."
             });
+        }
         // get existing rush event data
         let rushEventData = (0, rushEvent_1.getPlayerRushEventSync)(playerId, eventId);
-        if (rushEventData === null)
+        if (rushEventData === null) {
+            (0, request_diagnostics_1.setRequestOutcome)(request, "rush_missing_event");
             return reply.status(400).send({
                 "error": "Bad Request",
                 "message": `No rush event data for rush event with id '${eventId}'`
             });
+        }
         rushEventData = repairDeepAbyssEndlessFolderLockSync(playerId, rushEventData);
         const deepAbyssSelection = (0, rush_event_folder_lock_1.classifyDeepAbyssFolderSelection)(eventId, folderId);
-        if (deepAbyssSelection === "invalid")
+        if (deepAbyssSelection === "invalid") {
+            (0, request_diagnostics_1.setRequestOutcome)(request, "rush_invalid_folder");
             return reply.status(400).send({
                 "error": "Bad Request",
                 "message": "Invalid Deep Abyss rush battle folder."
             });
+        }
         if (deepAbyssSelection === "endless_compat") {
+            (0, request_diagnostics_1.setRequestOutcome)(request, "rush_endless_compat");
             // The current client enters endless battle directly and never
             // calls /select_folder. Treat calls from older clients as a
             // successful no-op: endless remains playable, while folder 2 is
@@ -243,17 +257,25 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 }
             });
         }
-        // Error if a folder has already been selected
-        if (rushEventData.activeRushBattleFolderId !== null)
+        // A lost response may replay the same selection. Return authority without
+        // reinitializing the tower, parties, rounds or any rewards.
+        if (rushEventData.activeRushBattleFolderId !== null && rushEventData.activeRushBattleFolderId !== folderId) {
+            (0, request_diagnostics_1.setRequestOutcome)(request, "rush_different_folder");
             return reply.status(400).send({
                 "error": "Bad Request",
                 "message": "Already selected a folder for this rush event."
             });
-        // update folder
-        (0, rushEvent_1.updatePlayerRushEventSync)(playerId, {
-            eventId: eventId,
-            activeRushBattleFolderId: folderId
-        });
+        }
+        if (rushEventData.activeRushBattleFolderId === null) {
+            (0, rushEvent_1.updatePlayerRushEventSync)(playerId, {
+                eventId: eventId,
+                activeRushBattleFolderId: folderId
+            });
+            (0, request_diagnostics_1.setRequestOutcome)(request, "rush_selected");
+        }
+        else {
+            (0, request_diagnostics_1.setRequestOutcome)(request, "rush_same_folder");
+        }
         reply.header("content-type", "application/x-msgpack");
         return reply.status(200).send({
             "data_headers": (0, utils_1.generateDataHeaders)({
@@ -266,11 +288,11 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         });
     }));
     fastify.post("/ranking", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
-        var _b;
+        var _c;
         const body = request.body;
         const viewerId = body.viewer_id;
         const eventId = body.event_id;
-        const page = (_b = body.page) !== null && _b !== void 0 ? _b : 0;
+        const page = (_c = body.page) !== null && _c !== void 0 ? _c : 0;
         (0, routine_game_logging_1.routineGameLog)("rush", () => `[RUSH] ranking: viewer=${viewerId} eventId=${eventId} page=${page}`);
         if (isNaN(viewerId) || isNaN(eventId))
             return reply.status(400).send({
@@ -331,7 +353,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         });
     }));
     fastify.post("/ranking/played_party", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
-        var _c;
+        var _d;
         const body = request.body;
         const viewerId = body.viewer_id;
         const eventId = body.event_id;
@@ -368,7 +390,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             });
         }
         // get party list
-        const partyList = (_c = (0, rush_1.getRushEventEndlessBattleRankPlayedPartyListSync)(rankNumber, eventId)) !== null && _c !== void 0 ? _c : [];
+        const partyList = (_d = (0, rush_1.getRushEventEndlessBattleRankPlayedPartyListSync)(rankNumber, eventId)) !== null && _d !== void 0 ? _d : [];
         reply.header("content-type", "application/x-msgpack");
         return reply.status(200).send({
             "data_headers": (0, utils_1.generateDataHeaders)({
@@ -733,7 +755,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
     }));
     // ---- reward ----
     fastify.post("/reward", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
-        var _d, _e, _f;
+        var _e, _f, _g;
         const body = request.body;
         const viewerId = body.viewer_id;
         const eventId = body.event_id;
@@ -755,13 +777,13 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         // Rank remains part of the response, but the reward master-data ranges
         // describe cleared endless rounds (2-3, 4-5 and 6+), not leaderboard rank.
         const myRanking = (0, rush_1.getPlayerRushEventEndlessBattleRankingSync)(playerId, eventId);
-        const rankNumber = (_d = myRanking === null || myRanking === void 0 ? void 0 : myRanking.rank_number) !== null && _d !== void 0 ? _d : null;
+        const rankNumber = (_e = myRanking === null || myRanking === void 0 ? void 0 : myRanking.rank_number) !== null && _e !== void 0 ? _e : null;
         const rushEvent = (0, rushEvent_1.getPlayerRushEventSync)(playerId, eventId);
-        const maxRound = (_e = rushEvent === null || rushEvent === void 0 ? void 0 : rushEvent.endlessBattleMaxRound) !== null && _e !== void 0 ? _e : null;
+        const maxRound = (_f = rushEvent === null || rushEvent === void 0 ? void 0 : rushEvent.endlessBattleMaxRound) !== null && _f !== void 0 ? _f : null;
         const eligibleDegreeIds = new Set((0, activity_degree_rewards_1.getEligibleRushDegreeIds)(eventId, maxRound));
         // find matching reward tier
         const rewardSourceEventId = (0, activity_degree_rewards_1.getRushDegreeRewardSourceEventId)(eventId);
-        const rewards = (_f = rankingRewards[String(rewardSourceEventId)]) !== null && _f !== void 0 ? _f : {};
+        const rewards = (_g = rankingRewards[String(rewardSourceEventId)]) !== null && _g !== void 0 ? _g : {};
         let rewardList = [];
         if (maxRound !== null && maxRound > 0) {
             for (const entries of Object.values(rewards)) {
@@ -797,7 +819,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
     }));
     // ---- endless_battle ----
     fastify.post("/endless_battle", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
-        var _g, _h, _j;
+        var _h, _j, _k;
         const body = request.body;
         const viewerId = body.viewer_id;
         const eventId = body.event_id;
@@ -820,8 +842,8 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         const serializedPlayedParties = rushEventData !== null
             ? (0, rush_1.getSerializedPlayerRushEventPlayedPartiesSync)(playerId, eventId)
             : { endlessParties: null, folderParties: null };
-        const maxRound = (_g = rushEventData === null || rushEventData === void 0 ? void 0 : rushEventData.endlessBattleMaxRound) !== null && _g !== void 0 ? _g : null;
-        const nextRound = (_h = rushEventData === null || rushEventData === void 0 ? void 0 : rushEventData.endlessBattleNextRound) !== null && _h !== void 0 ? _h : 1;
+        const maxRound = (_h = rushEventData === null || rushEventData === void 0 ? void 0 : rushEventData.endlessBattleMaxRound) !== null && _h !== void 0 ? _h : null;
+        const nextRound = (_j = rushEventData === null || rushEventData === void 0 ? void 0 : rushEventData.endlessBattleNextRound) !== null && _j !== void 0 ? _j : 1;
         (0, routine_game_logging_1.routineGameLog)("rush", () => `[RUSH] endless_battle: maxRound=${maxRound} nextRound=${nextRound}`);
         reply.header("content-type", "application/x-msgpack");
         return reply.status(200).send({
@@ -829,7 +851,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             "data": {
                 "endless_battle_max_round": maxRound,
                 "endless_battle_next_round": nextRound,
-                "endless_battle_played_party_list": (_j = serializedPlayedParties.endlessParties) !== null && _j !== void 0 ? _j : null
+                "endless_battle_played_party_list": (_k = serializedPlayedParties.endlessParties) !== null && _k !== void 0 ? _k : null
             }
         });
     }));

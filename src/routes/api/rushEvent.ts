@@ -9,6 +9,7 @@ import { getDefaultPlayerPartyGroupsSync, getPlayerSync } from "../../data/domai
 import { getPlayerCharacterSync } from "../../data/domains/character"
 import { ensurePlayerPartyGroupListSync, getPlayerPartyGroupListSync } from "../../data/domains/party"
 import { getSession } from "../../data/domains/session"
+import { setRequestOutcome } from "../../lib/request-diagnostics"
 import { getQuestFromCategorySync, getRogueEventConfig, getRushEventFolderMaxRoundSync } from "../../lib/assets";
 import { BattleQuest, QuestCategory, RushEventFolder } from "../../lib/types";
 import { isStaleAbyssClient } from "../../lib/abyss-time-revision";
@@ -212,6 +213,7 @@ const routes = async (fastify: FastifyInstance) => {
         refreshPlayerAbyssTowersSync(playerId)
         if (eventId === ABYSS_EX_EVENT_ID && !hasAbyssExUnlockSync(playerId)
             && /\/(select_folder|battle\/start|endless_battle)$/.test(request.url.split("?")[0])) {
+            setRequestOutcome(request, "rush_ex_locked")
             reply.header("content-type", "application/x-msgpack")
             return reply.status(200).send({
                 data_headers: generateDataHeaders({ viewer_id: body.viewer_id, result_code: 4050 }), data: {},
@@ -306,45 +308,61 @@ const routes = async (fastify: FastifyInstance) => {
     })
 
     fastify.post("/select_folder", async (request: FastifyRequest, reply: FastifyReply) => {
-        const body = request.body as SelectFolderBody
+        const body = (request.body ?? {}) as SelectFolderBody
 
         const viewerId = body.viewer_id
         const eventId = body.event_id
         const folderId = body.folder_id
         routineGameLog("rush", () => `[RUSH] select_folder: viewer=${viewerId} eventId=${eventId} folderId=${folderId}`)
-        if (isNaN(viewerId) || isNaN(eventId) || isNaN(folderId)) return reply.status(400).send({
-            "error": "Bad Request",
-            "message": "Invalid request body."
-        })
+        if (![viewerId, eventId, folderId].every(id => Number.isSafeInteger(id) && id > 0)) {
+            setRequestOutcome(request, "rush_invalid_body")
+            return reply.status(400).send({
+                "error": "Bad Request",
+                "message": "Invalid request body."
+            })
+        }
 
         const viewerIdSession = await getSession(viewerId.toString())
-        if (!viewerIdSession) return reply.status(400).send({
-            "error": "Bad Request",
-            "message": "Invalid viewer id."
-        })
+        if (!viewerIdSession) {
+            setRequestOutcome(request, "rush_invalid_session")
+            return reply.status(400).send({
+                "error": "Bad Request",
+                "message": "Invalid viewer id."
+            })
+        }
 
         // get player
         const playerId = resolvePlayerIdSync(viewerIdSession.accountId)!
-        if (playerId === null) return reply.status(500).send({
-            "error": "Internal Server Error",
-            "message": "No player bound to account."
-        })
+        if (playerId === null) {
+            setRequestOutcome(request, "rush_missing_player")
+            return reply.status(500).send({
+                "error": "Internal Server Error",
+                "message": "No player bound to account."
+            })
+        }
 
         // get existing rush event data
         let rushEventData = getPlayerRushEventSync(playerId, eventId)
-        if (rushEventData === null) return reply.status(400).send({
-            "error": "Bad Request",
-            "message": `No rush event data for rush event with id '${eventId}'`
-        });
+        if (rushEventData === null) {
+            setRequestOutcome(request, "rush_missing_event")
+            return reply.status(400).send({
+                "error": "Bad Request",
+                "message": `No rush event data for rush event with id '${eventId}'`
+            })
+        }
         rushEventData = repairDeepAbyssEndlessFolderLockSync(playerId, rushEventData)
 
         const deepAbyssSelection = classifyDeepAbyssFolderSelection(eventId, folderId)
-        if (deepAbyssSelection === "invalid") return reply.status(400).send({
-            "error": "Bad Request",
-            "message": "Invalid Deep Abyss rush battle folder."
-        });
+        if (deepAbyssSelection === "invalid") {
+            setRequestOutcome(request, "rush_invalid_folder")
+            return reply.status(400).send({
+                "error": "Bad Request",
+                "message": "Invalid Deep Abyss rush battle folder."
+            })
+        }
 
         if (deepAbyssSelection === "endless_compat") {
+            setRequestOutcome(request, "rush_endless_compat")
             // The current client enters endless battle directly and never
             // calls /select_folder. Treat calls from older clients as a
             // successful no-op: endless remains playable, while folder 2 is
@@ -363,17 +381,25 @@ const routes = async (fastify: FastifyInstance) => {
             })
         }
 
-        // Error if a folder has already been selected
-        if (rushEventData.activeRushBattleFolderId !== null) return reply.status(400).send({
-            "error": "Bad Request",
-            "message": "Already selected a folder for this rush event."
-        });
+        // A lost response may replay the same selection. Return authority without
+        // reinitializing the tower, parties, rounds or any rewards.
+        if (rushEventData.activeRushBattleFolderId !== null && rushEventData.activeRushBattleFolderId !== folderId) {
+            setRequestOutcome(request, "rush_different_folder")
+            return reply.status(400).send({
+                "error": "Bad Request",
+                "message": "Already selected a folder for this rush event."
+            })
+        }
 
-        // update folder
-        updatePlayerRushEventSync(playerId, {
-            eventId: eventId,
-            activeRushBattleFolderId: folderId
-        })
+        if (rushEventData.activeRushBattleFolderId === null) {
+            updatePlayerRushEventSync(playerId, {
+                eventId: eventId,
+                activeRushBattleFolderId: folderId
+            })
+            setRequestOutcome(request, "rush_selected")
+        } else {
+            setRequestOutcome(request, "rush_same_folder")
+        }
 
         reply.header("content-type", "application/x-msgpack")
         return reply.status(200).send({

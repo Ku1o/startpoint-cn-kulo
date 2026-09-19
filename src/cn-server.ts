@@ -11,6 +11,7 @@ import { restoreTimeOffset } from "./data/activeAccount";
 import { migrateUnsafeViewerIdsSync } from "./data/domains/session";
 import { installManagementAuth } from "./lib/management-auth";
 import { installRoutePerformanceMonitor } from "./lib/route-performance";
+import { measureResponseEncoding } from "./lib/request-diagnostics";
 import { markPlayerOnline } from "./lib/online-presence";
 import { installTakeoverUdidGuard } from "./lib/takeover-access";
 import { initializePlayerLogin } from "./lib/player-login";
@@ -344,7 +345,7 @@ function safeCompressionLogValue(value: unknown): string {
     return String(value ?? "none").replace(/[\r\n\t]/g, " ").slice(0, 120)
 }
 
-fastify.addHook("onSend", async (request, reply, payload) => {
+fastify.addHook("onSend", (request, reply, payload) => measureResponseEncoding(request, async () => {
     try {
         if (reply.getHeader("content-type") === "application/x-msgpack") {
             const packed = fixUint32Tags(pack(payload));
@@ -387,7 +388,7 @@ fastify.addHook("onSend", async (request, reply, payload) => {
         console.error("[CN-LOAD-COMPRESS] response serialization failed; using normal serializer:", error)
     }
     return payload;
-});
+}));
 
 function jsonParser(_: FastifyRequest, body: string, done: ContentTypeParserDoneFunction) {
     try {

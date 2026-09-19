@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.reconcileAwakeUnlocks = exports.reconcileAwakeUnlocksFromProgress = void 0;
 const character_awake_1 = require("../../data/domains/character_awake");
+const request_diagnostics_1 = require("../request-diagnostics");
 const character_1 = require("../../data/domains/character");
 const db_1 = require("../../data/db");
 const character_queries_1 = require("./character-queries");
@@ -18,14 +19,19 @@ function reconcileAwakeUnlocksFromProgress(playerId, progressList, persistedUnlo
             const reward = (_a = (0, rewards_1.getAwakeMissionRewardStageDefinition)(entry.missionId, stage)) === null || _a === void 0 ? void 0 : _a.specialReward;
             return reward && String(reward.characterId) === characterId
                 && ((_c = (_b = persistedUnlocks.get(characterId)) === null || _b === void 0 ? void 0 : _b[reward.boardIndex]) !== null && _c !== void 0 ? _c : 0) < reward.awakeLevel
-                ? [reward] : [];
+                ? [Object.assign(Object.assign({}, reward), { missionId: entry.missionId })] : [];
         });
     });
     if (missing.length === 0)
         return { all: persistedUnlocks, changed };
+    const ownedIds = (0, character_awake_1.getOwnedAwakeCharacterIdsSync)(playerId, missing.map(reward => reward.characterId));
     (0, db_1.getDb)().transaction(() => {
         var _a, _b;
         for (const reward of missing) {
+            if (!ownedIds.has(reward.characterId)) {
+                (0, request_diagnostics_1.recordUnownedAwakeMission)(reward.missionId, reward.characterId);
+                continue;
+            }
             if (!(0, character_awake_1.upsertPlayerCharacterAwakeUnlockSync)(playerId, reward.characterId, reward.boardIndex, reward.awakeLevel))
                 continue;
             const characterId = String(reward.characterId);
