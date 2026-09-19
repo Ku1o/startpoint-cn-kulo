@@ -1,3 +1,4 @@
+import { cachedStatement } from "../../lib/cached-statement"
 import { getDb } from "../db";
 import { RawPlayerItem } from "../types";
 
@@ -13,7 +14,7 @@ export function getPlayerItemSync(
     itemId: number | string
 ): number | null {
     const db = getDb();
-    const rawItem = db.prepare(`
+    const rawItem = cachedStatement(db, `
     SELECT id, amount
     FROM players_items
     WHERE player_id = ? AND id = ?
@@ -32,7 +33,7 @@ export function getPlayerItemsSync(
     playerId: number
 ): Record<string, number> {
     const db = getDb();
-    const rawItems = db.prepare(`
+    const rawItems = cachedStatement(db, `
     SELECT id, amount
     FROM players_items
     WHERE player_id = ?
@@ -54,7 +55,7 @@ export function getPlayerItemsByIdsSync(
     const ids = [...new Set(itemIds)].filter(itemId => Number.isSafeInteger(itemId) && itemId > 0)
     if (ids.length === 0) return {}
     const placeholders = ids.map(() => "?").join(", ")
-    const rows = getDb().prepare(`
+    const rows = cachedStatement(getDb(), `
     SELECT id, amount
     FROM players_items
     WHERE player_id = ? AND id IN (${placeholders})
@@ -66,7 +67,7 @@ export function getPlayerCollectedItemTotalSync(
     playerId: number,
     itemId: number | string
 ): number {
-    const row = getDb().prepare(`
+    const row = cachedStatement(getDb(), `
     SELECT total_obtained
     FROM players_collected_items
     WHERE player_id = ? AND item_id = ?
@@ -77,7 +78,7 @@ export function getPlayerCollectedItemTotalSync(
 export function getPlayerCollectedItemTotalsSync(
     playerId: number
 ): Record<string, number> {
-    const rows = getDb().prepare(`
+    const rows = cachedStatement(getDb(), `
     SELECT item_id, total_obtained
     FROM players_collected_items
     WHERE player_id = ?
@@ -93,7 +94,7 @@ export function getPlayerCollectedItemTotalsByIdsSync(
     const ids = [...new Set(itemIds)].filter(itemId => Number.isSafeInteger(itemId) && itemId > 0)
     if (ids.length === 0) return {}
     const placeholders = ids.map(() => "?").join(", ")
-    const rows = getDb().prepare(`
+    const rows = cachedStatement(getDb(), `
     SELECT item_id, total_obtained
     FROM players_collected_items
     WHERE player_id = ? AND item_id IN (${placeholders})
@@ -107,7 +108,7 @@ function recordPlayerCollectedItemSync(
     obtainedAmount: number
 ): void {
     if (!Number.isSafeInteger(obtainedAmount) || obtainedAmount <= 0) return
-    getDb().prepare(`
+    cachedStatement(getDb(), `
     INSERT INTO players_collected_items (player_id, item_id, total_obtained)
     VALUES (?, ?, ?)
     ON CONFLICT(player_id, item_id) DO UPDATE SET
@@ -128,7 +129,7 @@ function insertPlayerItemSync(
     amount: number
 ) {
     const db = getDb();
-    db.prepare(`
+    cachedStatement(db, `
     INSERT INTO players_items (id, amount, player_id)
     VALUES (?, ?, ?)
     `).run(Number(itemId), amount, playerId)
@@ -165,7 +166,7 @@ export function updatePlayerItemSync(
     amount: number
 ) {
     const db = getDb();
-    db.prepare(`
+    cachedStatement(db, `
     UPDATE players_items
     SET amount = ?
     WHERE player_id = ? AND id = ?

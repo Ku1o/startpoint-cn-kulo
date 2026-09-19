@@ -10,6 +10,7 @@ import { initializeAbyssRecords } from "./initializers/abyss-records";
 import { initializeFiveBossGauntlet } from "./initializers/five-boss-gauntlet";
 import { ensureCascadeDeleteIndexes } from "../lib/admin-account-cleanup";
 import { assertStorageLayout, WDFP_DATA_VERSION } from "../lib/storage-layout";
+import { observeSqliteDatabase } from "../lib/sqlite-diagnostics";
 
 // Use __dirname so DB path is relative to the source file, not process.cwd()
 const dataDir = process.env.DATA_DIR
@@ -140,6 +141,7 @@ export default function getDatabase(
 
     // re-enable foreign keys
     db.pragma('foreign_keys = ON')
+    observeSqliteDatabase(db, "main")
 
     // add to loaded databases
     loadedDatabases[database] = db

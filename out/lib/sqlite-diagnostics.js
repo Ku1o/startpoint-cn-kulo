@@ -1,0 +1,56 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.observeSqliteDatabase = void 0;
+const node_perf_hooks_1 = require("node:perf_hooks");
+const memory_diagnostics_1 = require("./memory-diagnostics");
+const observed = new WeakSet();
+/** Counts all prepare calls on a connection, including callers outside the LRU. */
+function observeSqliteDatabase(db, name) {
+    if (!(0, memory_diagnostics_1.memoryDiagnosticsEnabled)() || observed.has(db))
+        return;
+    observed.add(db);
+    const stats = { prepareCalls: 0, prepareErrors: 0, sampledPrepareCalls: 0,
+        sampledPrepareMs: 0, maxSampledPrepareMs: 0 };
+    const settings = { nativeBytesAvailable: false };
+    for (const pragma of ["cache_size", "page_size", "mmap_size", "temp_store"]) {
+        try {
+            const value = db.pragma(pragma, { simple: true });
+            settings[pragma] = typeof value === "number" ? value : null;
+        }
+        catch (_a) {
+            settings[pragma] = null;
+        }
+    }
+    const prepare = db.prepare;
+    db.prepare = function (sql) {
+        stats.prepareCalls++;
+        const sampled = stats.prepareCalls % 64 === 1;
+        const start = sampled ? node_perf_hooks_1.performance.now() : 0;
+        try {
+            return prepare.call(this, sql);
+        }
+        catch (error) {
+            stats.prepareErrors++;
+            throw error;
+        }
+        finally {
+            if (sampled) {
+                const elapsed = node_perf_hooks_1.performance.now() - start;
+                stats.sampledPrepareCalls++;
+                stats.sampledPrepareMs += elapsed;
+                stats.maxSampledPrepareMs = Math.max(stats.maxSampledPrepareMs, elapsed);
+            }
+        }
+    };
+    // Do not keep the connection alive from the process-wide counter registry.
+    const reference = new WeakRef(db);
+    const unregister = (0, memory_diagnostics_1.registerMemoryCounters)(`sqlite.${name}`, () => {
+        const connection = reference.deref();
+        if (!(connection === null || connection === void 0 ? void 0 : connection.open)) {
+            unregister();
+            return { unavailable: true };
+        }
+        return Object.assign(Object.assign(Object.assign({}, settings), stats), { inTransaction: connection.inTransaction });
+    });
+}
+exports.observeSqliteDatabase = observeSqliteDatabase;

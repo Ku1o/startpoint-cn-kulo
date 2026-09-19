@@ -4,6 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.dailyResetPlayerSync = exports.dailyResetPlayerDataSync = exports.collectPlayerPooledExpSync = exports.collectPlayerDataPooledExpSync = exports.deletePlayerSync = exports.replacePlayerDataSync = exports.adjustPlayerExpPoolSync = exports.updatePlayerSync = exports.insertDefaultPlayerSync = exports.getDefaultPlayerPartyGroupsSync = exports.insertMergedPlayerDataSync = exports.insertPlayerSync = exports.getAllPlayersSync = exports.getPlayerSync = exports.getAccountFromPlayerIdSync = exports.getPlayerFromAccountIdSync = exports.serializePlayerRushEventPlayedParty = exports.deserializePlayerRushEventPlayedParty = exports.updatePlayerDailyChallengePointSync = exports.insertPlayerDailyChallengePointListSync = exports.getPlayerDailyChallengePointListSync = void 0;
+const cached_statement_1 = require("../../lib/cached-statement");
 const db_1 = require("../db");
 const degree_1 = require("./degree");
 const types_1 = require("../types");
@@ -311,7 +312,7 @@ function buildPlayer(raw) {
     };
 }
 function getPlayerSync(playerId) {
-    const raw = (0, db_1.getDb)().prepare(`
+    const raw = (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
     SELECT id, stamina, stamina_heal_time, boost_point, boss_boost_point,
         transition_state, role, name, last_login_time, comment,
         vmoney, free_vmoney, rank_point, star_crumb,

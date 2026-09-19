@@ -16,6 +16,7 @@ const abyss_records_1 = require("./initializers/abyss-records");
 const five_boss_gauntlet_1 = require("./initializers/five-boss-gauntlet");
 const admin_account_cleanup_1 = require("../lib/admin-account-cleanup");
 const storage_layout_1 = require("../lib/storage-layout");
+const sqlite_diagnostics_1 = require("../lib/sqlite-diagnostics");
 // Use __dirname so DB path is relative to the source file, not process.cwd()
 const dataDir = process.env.DATA_DIR
     ? path_1.default.resolve(process.env.DATA_DIR)
@@ -118,6 +119,7 @@ function getDatabase(database) {
     }
     // re-enable foreign keys
     db.pragma('foreign_keys = ON');
+    (0, sqlite_diagnostics_1.observeSqliteDatabase)(db, "main");
     // add to loaded databases
     loadedDatabases[database] = db;
     return db;

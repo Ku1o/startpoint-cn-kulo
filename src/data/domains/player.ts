@@ -1,3 +1,4 @@
+import { cachedStatement } from "../../lib/cached-statement"
 import { getDb } from "../db";
 import { getPlayerPortableDegreesSync, grantPlayerDegreeSync, validatePortableDegreeList } from "./degree";
 import { Player, RawPlayer, MergedPlayerData, PartyCategory, PlayerPartyGroup, Account, PlayerParty, DailyChallengePointListEntry, DailyChallengePointListCampaign, RawDailyChallengePointListEntry, RawDailyChallengePointListCampaign, PlayerRushEventPlayedParty, RawPlayerRushEventPlayedParty, UserRushEventPlayedParty } from "../types";
@@ -381,7 +382,7 @@ function buildPlayer(
 export function getPlayerSync(
     playerId: number
 ): Player | null {
-    const raw = getDb().prepare(`
+    const raw = cachedStatement(getDb(), `
     SELECT id, stamina, stamina_heal_time, boost_point, boss_boost_point,
         transition_state, role, name, last_login_time, comment,
         vmoney, free_vmoney, rank_point, star_crumb,

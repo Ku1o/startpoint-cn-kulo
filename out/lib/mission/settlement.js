@@ -43,7 +43,7 @@ function applyDailyCompletionProgress(missions) {
     }
 }
 function evaluateMissionCategories(playerId, categories, evaluationTime) {
-    var _a, _b, _c, _d;
+    var _a, _b, _c, _d, _e;
     const evaluatedMissions = [];
     const evaluatedMissionKeys = new Set();
     const scopes = new Map();
@@ -58,13 +58,17 @@ function evaluateMissionCategories(playerId, categories, evaluationTime) {
             candidateMissionIds: (_a = scope.missionIds) !== null && _a !== void 0 ? _a : (0, stages_1.getMissionIdsByCategory)(scope.category),
         });
     }).filter(entry => entry.candidateMissionIds.length > 0);
-    const persistedByCategory = (0, mission_1.getPlayerCategoryMissionsForCategoriesSync)(playerId, preparedScopes.map(entry => entry.scope.category));
+    const persistedByCategory = /^(0|false|no|off)$/i.test((_b = process.env.MISSION_SCOPED_READS) !== null && _b !== void 0 ? _b : "true")
+        ? (0, mission_1.getPlayerCategoryMissionsForCategoriesSync)(playerId, preparedScopes.map(entry => entry.scope.category))
+        : (0, mission_1.getPlayerCategoryMissionsForScopesSync)(playerId, preparedScopes.map(entry => ({
+            category: entry.scope.category, missionIds: entry.candidateMissionIds,
+        })));
     const readContext = new evaluation_context_1.MissionEvaluationReadContext(playerId);
     const player = readContext.player;
     for (const { scope, candidateMissionIds } of preparedScopes) {
         const { category, eventId } = scope;
         const computer = (0, registry_1.getComputer)(category);
-        const persisted = (_b = persistedByCategory[String(category)]) !== null && _b !== void 0 ? _b : {};
+        const persisted = (_c = persistedByCategory[String(category)]) !== null && _c !== void 0 ? _c : {};
         // Title progress is monotonic and capped at its final target. Completed
         // titles need no fact scan, but still enter persistence preparation so
         // unreceived stages and missing legacy degree ownership can be repaired.
@@ -85,7 +89,7 @@ function evaluateMissionCategories(playerId, categories, evaluationTime) {
                 continue;
             evaluatedMissionKeys.add(missionKey);
             const current = persisted[String(missionId)];
-            const dbProgress = (_c = current === null || current === void 0 ? void 0 : current.progress) !== null && _c !== void 0 ? _c : 0;
+            const dbProgress = (_d = current === null || current === void 0 ? void 0 : current.progress) !== null && _d !== void 0 ? _d : 0;
             const computed = context && factMissionIdSet.has(missionId)
                 ? computer.compute(missionId, context, dbProgress) : dbProgress;
             const finalTarget = (0, stages_1.getMissionFinalTargetProgress)(category, missionId);
@@ -98,7 +102,7 @@ function evaluateMissionCategories(playerId, categories, evaluationTime) {
                     : category === 2
                         ? Math.max(dbProgress, Math.min(monotonicProgress, finalTarget))
                         : Math.min(monotonicProgress, finalTarget),
-                receivedStages: (_d = current === null || current === void 0 ? void 0 : current.stages) !== null && _d !== void 0 ? _d : [],
+                receivedStages: (_e = current === null || current === void 0 ? void 0 : current.stages) !== null && _e !== void 0 ? _e : [],
                 dbProgress,
             });
         }

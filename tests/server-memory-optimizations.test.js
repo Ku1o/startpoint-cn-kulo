@@ -56,6 +56,18 @@ test('streaming write failures retain primary, backup and leave no temporary fil
     assert.deepEqual(fs.readFileSync(file + '.bak'), backup)
     assert.equal(fs.readdirSync(dir).length, 2)
 })
+
+test('reused seed buffers preserve multibyte chunks, large values and short final writes', () => {
+    const data=pools(), pool=data.values().next().value, dir=directory(), file=path.join(dir,'purified.json')
+    for(let i=0;i<6000;i++)pool.playPool.set(10000+i,{r:i%3,tag:'中文😀'.repeat(i===0?20000:3),play:!!(i%2)})
+    writeSeedJsonAtomicSync(file,data,'purified')
+    const expected={'池"一':Object.fromEntries(pool.playPool)}
+    assert.deepEqual(JSON.parse(fs.readFileSync(file,'utf8')),expected)
+    pool.playPool.clear();pool.playPool.set(7,{r:1,tag:'短',play:true})
+    writeSeedJsonAtomicSync(file,data,'purified')
+    assert.deepEqual(JSON.parse(fs.readFileSync(file+'.bak','utf8')),expected)
+    assert.deepEqual(JSON.parse(fs.readFileSync(file,'utf8')),{'池"一':{'7':{r:1,tag:'短',play:true}}})
+})
 test('seed readback corruption and backup-copy failures cannot replace durable files', () => {
     const dir = directory(), file = path.join(dir, 'confirmed.json'), data = pools()
     writeSeedJsonAtomicSync(file, data, 'confirmed')

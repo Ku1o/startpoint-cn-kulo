@@ -330,6 +330,54 @@ export function getPlayerCategoryMissionsForCategoriesSync(
     return result
 }
 
+/** Two fixed query plans, restricted to the mission IDs this settlement evaluates. */
+export function getPlayerCategoryMissionsForScopesSync(
+    playerId: number,
+    scopes: readonly { category: number; missionIds: readonly number[] }[],
+): Record<string, Record<string, PlayerActiveMission>> {
+    const requested = new Map<number, Set<number>>()
+    for (const scope of scopes) {
+        if (!Number.isSafeInteger(scope.category)) continue
+        const ids = requested.get(scope.category) ?? new Set<number>()
+        for (const id of scope.missionIds) if (Number.isSafeInteger(id)) ids.add(id)
+        requested.set(scope.category, ids)
+    }
+    const result: Record<string, Record<string, PlayerActiveMission>> = {}
+    const pairs: number[][] = []
+    for (const [category, ids] of requested) {
+        result[String(category)] = {}
+        for (const id of ids) pairs.push([category, id])
+    }
+    if (pairs.length === 0) return result
+    const selection = JSON.stringify(pairs)
+    const missions = cachedStatement(getDb(), `
+        SELECT m.category, m.id, m.progress
+        FROM json_each(?) AS requested
+        CROSS JOIN players_category_missions AS m
+        WHERE m.category = CAST(json_extract(requested.value, '$[0]') AS INTEGER)
+          AND m.id = CAST(json_extract(requested.value, '$[1]') AS INTEGER)
+          AND m.player_id = ?
+    `).all(selection, playerId) as { category: number; id: number; progress: number }[]
+    for (const mission of missions) {
+        result[String(mission.category)][String(mission.id)] = { progress: mission.progress, stages: [] }
+    }
+    const stages = cachedStatement(getDb(), `
+        SELECT s.category, s.id, s.status, s.mission_id
+        FROM json_each(?) AS requested
+        CROSS JOIN players_category_mission_stages AS s
+        WHERE s.category = CAST(json_extract(requested.value, '$[0]') AS INTEGER)
+          AND s.mission_id = CAST(json_extract(requested.value, '$[1]') AS INTEGER)
+          AND s.player_id = ?
+    `).all(selection, playerId) as { category: number; id: number; status: number; mission_id: number }[]
+    for (const stage of stages) {
+        const mission = result[String(stage.category)][String(stage.mission_id)]
+        if (!mission) continue
+        if (Array.isArray(mission.stages)) mission.stages = {}
+        mission.stages[String(stage.id)] = deserializeBoolean(stage.status)
+    }
+    return result
+}
+
 export function getPlayerCategoryMissionListSync(
     playerId: number
 ): Record<string, Record<string, PlayerActiveMission>> {

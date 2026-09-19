@@ -31,6 +31,7 @@ db.prepare = function (sql) {
             return (...args) => {
                 const result = value.apply(target, args)
                 if (capture) capture.push({ sql: sql.replace(/\s+/g, " ").trim(), operation: property,
+                    parameters: args, changes: property === "run" ? result.changes : 0,
                     rows: property === "all" ? result.length : property === "get" ? Number(result !== undefined) : 0 })
                 return result
             }
@@ -267,28 +268,68 @@ test("batched character clear facts match single reads, omit missing rows and ne
     assert.deepEqual((await trace(() => clears.getPlayerCharacterClearsSync(player.playerId, []))).queries, [])
 })
 
-test("batched finite-abyss reads retain time-revision repair and do it only once per batch", async () => {
+test("batched finite-abyss reads repair each tower once and preserve unrelated or current records", async () => {
     const quests = require("../out/data/domains/quest")
     const { QuestCategory } = require("../out/lib/types/quest")
-    const { getAbyssTimeRevision, ABYSS_FIRST_QUEST_ID } = require("../out/lib/abyss-time-revision")
-    const revision = getAbyssTimeRevision()
-    assert.ok(revision)
+    const { getAbyssTimeRevision } = require("../out/lib/abyss-time-revision")
+    const { ABYSS_NORMAL_EVENT_ID, ABYSS_EX_EVENT_ID } = require("../out/lib/abyss-modes")
+    const towers = [
+        { eventId: ABYSS_NORMAL_EVENT_ID, lastRound: 98 },
+        { eventId: ABYSS_EX_EVENT_ID, lastRound: 30 },
+    ].map(tower => ({ ...tower, revision: getAbyssTimeRevision(tower.eventId) }))
+    for (const tower of towers) assert.ok(tower.revision, `published revision for ${tower.eventId}`)
     const player = seed()
+    const other = seed([])
     const section = QuestCategory.RUSH_EVENT
     const insert = prepare(`INSERT INTO players_quest_progress
         (player_id, section, quest_id, finished, best_elapsed_time_ms, best_time_revision)
-        VALUES (?, ?, ?, 1, 1234, 'older-tower')`)
-    for (const id of [ABYSS_FIRST_QUEST_ID, ABYSS_FIRST_QUEST_ID + 1, 700099999]) insert.run(player.playerId, section, id)
-    insert.run(player.playerId, 2, ABYSS_FIRST_QUEST_ID)
-    const unrelated = await trace(() => quests.getPlayerQuestProgressBySectionAndIdsSync(player.playerId, 2, [ABYSS_FIRST_QUEST_ID]))
+        VALUES (?, ?, ?, 1, 1234, ?)`)
+    const selectedIds = [], unchanged = []
+    for (const { eventId, lastRound, revision } of towers) {
+        const first = eventId * 1000 + 1, last = eventId * 1000 + lastRound
+        for (const id of [first, last]) {
+            insert.run(player.playerId, section, id, "older-tower")
+            selectedIds.push(id)
+        }
+        const preserved = [
+            [player.playerId, section, first + 1, revision],
+            [player.playerId, 2, first, "older-tower"],
+            [other.playerId, section, first, "older-tower"],
+            ...[...new Set([eventId * 1000, last + 1, eventId * 1000 + 99])]
+                .map(id => [player.playerId, section, id, "older-tower"]),
+        ]
+        for (const row of preserved) { insert.run(...row); unchanged.push(row) }
+    }
+    const unrelated = await trace(() => quests.getPlayerQuestProgressBySectionAndIdsSync(player.playerId, 2, [selectedIds[0]]))
     assert.equal(unrelated.result[0].bestElapsedTimeMs, 1234)
     assert.equal(unrelated.queries.some(q => q.operation === "run"), false)
+    const requestedIds = [...selectedIds, selectedIds[0]]
     const { result, queries } = await trace(() => quests.getPlayerQuestProgressBySectionAndIdsSync(player.playerId, section,
-        [ABYSS_FIRST_QUEST_ID, ABYSS_FIRST_QUEST_ID + 1, ABYSS_FIRST_QUEST_ID]))
-    assert.equal(result.length, 2)
+        requestedIds))
+    assert.equal(result.length, selectedIds.length)
     assert.equal(result.every(row => row.bestElapsedTimeMs === null), true)
-    assert.equal(queries.filter(q => q.operation === "run").length, 1)
-    assert.equal(quests.getPlayerSingleQuestProgressSync(player.playerId, section, 700099999).bestElapsedTimeMs, 1234)
-    assert.equal(prepare("SELECT best_time_revision FROM players_quest_progress WHERE player_id = ? AND section = ? AND quest_id = ?")
-        .get(player.playerId, section, ABYSS_FIRST_QUEST_ID).best_time_revision, revision)
+    const repairs = queries.filter(q => q.operation === "run")
+    assert.equal(repairs.length, towers.length, "one repair statement per tower, not per requested quest")
+    assert.equal(repairs.every(q => q.sql.startsWith("UPDATE players_quest_progress ")), true)
+    assert.deepEqual(repairs.map(q => q.parameters).sort((a, b) => a[3] - b[3]),
+        towers.map(({ eventId, lastRound, revision }) => [
+            revision, player.playerId, section, eventId * 1000 + 1, eventId * 1000 + lastRound, revision,
+        ]))
+    assert.deepEqual(repairs.map(q => q.changes), [2, 2])
+    const read = prepare(`SELECT best_elapsed_time_ms, best_time_revision FROM players_quest_progress
+        WHERE player_id = ? AND section = ? AND quest_id = ?`)
+    for (const id of selectedIds) {
+        assert.deepEqual(read.get(player.playerId, section, id), {
+            best_elapsed_time_ms: null, best_time_revision: getAbyssTimeRevision(Math.floor(id / 1000)),
+        })
+    }
+    for (const [playerId, rowSection, id, revision] of unchanged) {
+        assert.deepEqual(read.get(playerId, rowSection, id), {
+            best_elapsed_time_ms: 1234, best_time_revision: revision,
+        })
+    }
+    const repeated = await trace(() => quests.getPlayerQuestProgressBySectionAndIdsSync(player.playerId, section, requestedIds))
+    assert.deepEqual(repeated.result, result)
+    assert.equal(repeated.queries.filter(q => q.operation === "run").every(q => q.changes === 0), true,
+        "already repaired records must not be written again")
 })

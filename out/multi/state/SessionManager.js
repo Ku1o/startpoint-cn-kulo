@@ -1,9 +1,7 @@
 "use strict";
-// Multi battle session manager
-// Atomic indexing of room clients, battle clients and per-room state machines.
-// Protocol arrays follow typepacker useEnumIndex=true format (see sessionServer.ts).
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.sessionManager = exports.SessionManager = void 0;
+const routine_game_logging_1 = require("../../lib/routine-game-logging");
 const types_1 = require("../types");
 const ClientStateMachine_1 = require("./ClientStateMachine");
 const game_logging_1 = require("../../lib/game-logging");
@@ -272,7 +270,7 @@ class SessionManager {
         if (this.battleBarrierLogState.get(roomNumber) === signature)
             return;
         this.battleBarrierLogState.set(roomNumber, signature);
-        console.log(`[MULTI-BARRIER] room=${roomNumber} generation=${generation}`
+        (0, routine_game_logging_1.routineGameLog)("multiBarrier", () => `[MULTI-BARRIER] room=${roomNumber} generation=${generation}`
             + ` expected=${expected} connected=${connected} ready=${ready} reason=${reason}`);
     }
     releaseSceneReadyBarrierIfSatisfied(roomNumber, reason) {

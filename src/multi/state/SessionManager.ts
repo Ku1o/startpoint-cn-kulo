@@ -1,3 +1,4 @@
+import { routineGameLog } from "../../lib/routine-game-logging"
 // Multi battle session manager
 // Atomic indexing of room clients, battle clients and per-room state machines.
 // Protocol arrays follow typepacker useEnumIndex=true format (see sessionServer.ts).
@@ -318,7 +319,7 @@ export class SessionManager {
         const signature = `${generation}:${expected}:${connected}:${ready}:${reason}`
         if (this.battleBarrierLogState.get(roomNumber) === signature) return
         this.battleBarrierLogState.set(roomNumber, signature)
-        console.log(`[MULTI-BARRIER] room=${roomNumber} generation=${generation}`
+        routineGameLog("multiBarrier", () => `[MULTI-BARRIER] room=${roomNumber} generation=${generation}`
             + ` expected=${expected} connected=${connected} ready=${ready} reason=${reason}`)
     }
 

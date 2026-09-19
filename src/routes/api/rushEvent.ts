@@ -1,3 +1,4 @@
+import { routineGameLog } from "../../lib/routine-game-logging"
 // Handles mail.
 
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
@@ -222,7 +223,7 @@ const routes = async (fastify: FastifyInstance) => {
 
         const viewerId = body.viewer_id
         const eventId = body.event_id
-        console.log(`[RUSH] summary: viewer=${viewerId} eventId=${eventId}`)
+        routineGameLog("rush", () => `[RUSH] summary: viewer=${viewerId} eventId=${eventId}`)
         if (isNaN(viewerId) || isNaN(eventId)) return reply.status(400).send({
             "error": "Bad Request",
             "message": "Invalid request body."
@@ -281,7 +282,7 @@ const routes = async (fastify: FastifyInstance) => {
 
         // get serialized parties
         const serializedPlayedParties = getSerializedPlayerRushEventPlayedPartiesSync(playerId, eventId)
-        console.log(`[RUSH] summary: folderParties=${Object.keys(serializedPlayedParties.folderParties ?? {}).length} endlessParties=${Object.keys(serializedPlayedParties.endlessParties ?? {}).length}`)
+        routineGameLog("rush", () => `[RUSH] summary: folderParties=${Object.keys(serializedPlayedParties.folderParties ?? {}).length} endlessParties=${Object.keys(serializedPlayedParties.endlessParties ?? {}).length}`)
 
         reply.header("content-type", "application/x-msgpack")
         return reply.status(200).send({
@@ -310,7 +311,7 @@ const routes = async (fastify: FastifyInstance) => {
         const viewerId = body.viewer_id
         const eventId = body.event_id
         const folderId = body.folder_id
-        console.log(`[RUSH] select_folder: viewer=${viewerId} eventId=${eventId} folderId=${folderId}`)
+        routineGameLog("rush", () => `[RUSH] select_folder: viewer=${viewerId} eventId=${eventId} folderId=${folderId}`)
         if (isNaN(viewerId) || isNaN(eventId) || isNaN(folderId)) return reply.status(400).send({
             "error": "Bad Request",
             "message": "Invalid request body."
@@ -392,7 +393,7 @@ const routes = async (fastify: FastifyInstance) => {
         const viewerId = body.viewer_id
         const eventId = body.event_id
         const page = body.page ?? 0
-        console.log(`[RUSH] ranking: viewer=${viewerId} eventId=${eventId} page=${page}`)
+        routineGameLog("rush", () => `[RUSH] ranking: viewer=${viewerId} eventId=${eventId} page=${page}`)
         if (isNaN(viewerId) || isNaN(eventId)) return reply.status(400).send({
             "error": "Bad Request",
             "message": "Invalid request body."
@@ -680,7 +681,7 @@ const routes = async (fastify: FastifyInstance) => {
         const isAutoStartMode = body.is_auto_start_mode
         const partyId = body.party_id
         const questId = body.quest_id
-        console.log(`[RUSH] battle/start: viewer=${viewerId} questId=${questId} partyId=${partyId} autoStart=${isAutoStartMode}`)
+        routineGameLog("rush", () => `[RUSH] battle/start: viewer=${viewerId} questId=${questId} partyId=${partyId} autoStart=${isAutoStartMode}`)
         if (isNaN(viewerId) || isNaN(partyId) || isNaN(questId) || isAutoStartMode === undefined) return reply.status(400).send({
             "error": "Bad Request",
             "message": "Invalid request body."
@@ -825,7 +826,7 @@ const routes = async (fastify: FastifyInstance) => {
         const questType: ResetQuestType = body.quest_type
         const resetTargetId: number | undefined = body.reset_target_id
         const isResetAfterTargetRound: boolean | undefined = body.is_reset_after_target_round
-        console.log(`[RUSH] reset: viewer=${viewerId} eventId=${eventId} questType=${questType} resetTargetId=${resetTargetId} isResetAfterTarget=${isResetAfterTargetRound}`)
+        routineGameLog("rush", () => `[RUSH] reset: viewer=${viewerId} eventId=${eventId} questType=${questType} resetTargetId=${resetTargetId} isResetAfterTarget=${isResetAfterTargetRound}`)
         if (isNaN(viewerId) || isNaN(eventId) || isNaN(questType)) return reply.status(400).send({
             "error": "Bad Request",
             "message": "Invalid request body."
@@ -921,7 +922,7 @@ const routes = async (fastify: FastifyInstance) => {
         const body = request.body as { event_id: number, viewer_id: number, api_count: number };
         const viewerId = body.viewer_id;
         const eventId = body.event_id;
-        console.log(`[RUSH] reward: viewer=${viewerId} eventId=${eventId}`)
+        routineGameLog("rush", () => `[RUSH] reward: viewer=${viewerId} eventId=${eventId}`)
         if (!viewerId || isNaN(viewerId) || isNaN(eventId)) return reply.status(400).send({
             "error": "Bad Request", "message": "Invalid request body."
         });
@@ -960,7 +961,7 @@ const routes = async (fastify: FastifyInstance) => {
         }
         const degreeIds = grantEligibleRushEventDegreesSync(playerId, eventId, maxRound)
 
-        console.log(`[RUSH] reward: rank=${rankNumber} maxRound=${maxRound} rewards=${rewardList.length}`)
+        routineGameLog("rush", () => `[RUSH] reward: rank=${rankNumber} maxRound=${maxRound} rewards=${rewardList.length}`)
 
         reply.header("content-type", "application/x-msgpack")
         return reply.status(200).send({
@@ -988,7 +989,7 @@ const routes = async (fastify: FastifyInstance) => {
         const body = request.body as { event_id: number, viewer_id: number, api_count: number };
         const viewerId = body.viewer_id;
         const eventId = body.event_id;
-        console.log(`[RUSH] endless_battle: viewer=${viewerId} eventId=${eventId}`)
+        routineGameLog("rush", () => `[RUSH] endless_battle: viewer=${viewerId} eventId=${eventId}`)
         if (!viewerId || isNaN(viewerId) || isNaN(eventId)) return reply.status(400).send({
             "error": "Bad Request", "message": "Invalid request body."
         });
@@ -1010,7 +1011,7 @@ const routes = async (fastify: FastifyInstance) => {
         const maxRound = rushEventData?.endlessBattleMaxRound ?? null
         const nextRound = rushEventData?.endlessBattleNextRound ?? 1
 
-        console.log(`[RUSH] endless_battle: maxRound=${maxRound} nextRound=${nextRound}`)
+        routineGameLog("rush", () => `[RUSH] endless_battle: maxRound=${maxRound} nextRound=${nextRound}`)
 
         reply.header("content-type", "application/x-msgpack")
         return reply.status(200).send({

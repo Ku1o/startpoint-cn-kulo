@@ -31,8 +31,8 @@ export function* seedJsonChunks(pools: Map<string, PersistedSeedPool>, kind: See
     }
     yield chunk + "}"
 }
-function digestFile(file: string): string {
-    const fd = openSync(file, "r"), buffer = Buffer.allocUnsafe(CHUNK_BYTES), hash = createHash("sha256")
+function digestFile(file: string, buffer: Buffer): string {
+    const fd = openSync(file, "r"), hash = createHash("sha256")
     try {
         for (;;) {
             const length = readSync(fd, buffer, 0, buffer.length, null)
@@ -50,22 +50,26 @@ export function writeSeedJsonAtomicSync(file: string, pools: Map<string, Persist
     const prefix = join(dirname(file), `.${basename(file)}.${process.pid}.${randomUUID()}`)
     const temporary = `${prefix}.tmp`, backupTemporary = `${prefix}.bak.tmp`, backup = `${file}.bak`
     let fd: number | null = null, bytes = 0
+    let scratch = Buffer.allocUnsafe(CHUNK_BYTES)
     try {
         fd = openSync(temporary, "wx")
         const expected = createHash("sha256")
         for (const chunk of seedJsonChunks(pools, kind)) {
-            const buffer = Buffer.from(chunk, "utf8")
+            const length = Buffer.byteLength(chunk, "utf8")
+            if (length > scratch.length) scratch = Buffer.allocUnsafe(length)
+            scratch.write(chunk, "utf8")
+            const buffer = scratch.subarray(0, length)
             writeFileSync(fd, buffer)
             expected.update(buffer); bytes += buffer.length
         }
         fsyncSync(fd); closeSync(fd); fd = null
         const digest = expected.digest("hex")
-        if (digestFile(temporary) !== digest) throw new Error("Seed file readback checksum mismatch")
+        if (digestFile(temporary, scratch) !== digest) throw new Error("Seed file readback checksum mismatch")
         if (existsSync(file)) {
             let valid = false
             let previous = ""
             try {
-                previous = digestFile(file)
+                previous = digestFile(file, scratch)
                 if (verifiedFiles.get(file) === previous) valid = true
                 else {
                     // First write after startup or externally replaced content:
@@ -77,7 +81,7 @@ export function writeSeedJsonAtomicSync(file: string, pools: Map<string, Persist
             } catch { valid = false }
             if (valid) {
                 copyFileSync(file, backupTemporary)
-                if (digestFile(backupTemporary) !== previous) throw new Error("Seed backup changed during copy")
+                if (digestFile(backupTemporary, scratch) !== previous) throw new Error("Seed backup changed during copy")
                 const backupFd = openSync(backupTemporary, "r+")
                 try { fsyncSync(backupFd) } finally { closeSync(backupFd) }
                 try { renameSync(backupTemporary, backup) }

@@ -18,6 +18,7 @@ const fs_1 = require("fs");
 const path_1 = __importDefault(require("path"));
 const cached_statement_1 = require("../lib/cached-statement");
 const memory_diagnostics_1 = require("../lib/memory-diagnostics");
+const sqlite_diagnostics_1 = require("../lib/sqlite-diagnostics");
 const quest_party_pool_shared_1 = require("../multi/npc/quest-party-pool-shared");
 const databaseDirectory = process.env.DATA_DIR
     ? path_1.default.resolve(process.env.DATA_DIR)
@@ -27,6 +28,7 @@ const db = new better_sqlite3_1.default(path_1.default.join(databaseDirectory, "
 db.pragma("journal_mode = WAL");
 db.pragma("synchronous = NORMAL");
 db.pragma("busy_timeout = 5000");
+(0, sqlite_diagnostics_1.observeSqliteDatabase)(db, "npc");
 db.exec(`
     CREATE TABLE IF NOT EXISTS quest_npc_party_pool (
         quest_category INTEGER NOT NULL,

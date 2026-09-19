@@ -1,5 +1,4 @@
 "use strict";
-// Handles mail.
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -14,6 +13,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getRushEventFolderMaxRounds = exports.rushEventFolderMaxRounds = void 0;
+const routine_game_logging_1 = require("../../lib/routine-game-logging");
 const types_1 = require("../../data/types");
 const rushEvent_1 = require("../../data/domains/rushEvent");
 const player_1 = require("../../data/domains/player");
@@ -115,11 +115,10 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         }
     }));
     fastify.post("/summary", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
-        var _b, _c;
         const body = request.body;
         const viewerId = body.viewer_id;
         const eventId = body.event_id;
-        console.log(`[RUSH] summary: viewer=${viewerId} eventId=${eventId}`);
+        (0, routine_game_logging_1.routineGameLog)("rush", () => `[RUSH] summary: viewer=${viewerId} eventId=${eventId}`);
         if (isNaN(viewerId) || isNaN(eventId))
             return reply.status(400).send({
                 "error": "Bad Request",
@@ -169,7 +168,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         const clearedFolderIdList = (0, rushEvent_1.getPlayerRushEventClearedFoldersSync)(playerId, eventId);
         // get serialized parties
         const serializedPlayedParties = (0, rush_1.getSerializedPlayerRushEventPlayedPartiesSync)(playerId, eventId);
-        console.log(`[RUSH] summary: folderParties=${Object.keys((_b = serializedPlayedParties.folderParties) !== null && _b !== void 0 ? _b : {}).length} endlessParties=${Object.keys((_c = serializedPlayedParties.endlessParties) !== null && _c !== void 0 ? _c : {}).length}`);
+        (0, routine_game_logging_1.routineGameLog)("rush", () => { var _a, _b; return `[RUSH] summary: folderParties=${Object.keys((_a = serializedPlayedParties.folderParties) !== null && _a !== void 0 ? _a : {}).length} endlessParties=${Object.keys((_b = serializedPlayedParties.endlessParties) !== null && _b !== void 0 ? _b : {}).length}`; });
         reply.header("content-type", "application/x-msgpack");
         return reply.status(200).send({
             "data_headers": (0, utils_1.generateDataHeaders)({
@@ -195,7 +194,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         const viewerId = body.viewer_id;
         const eventId = body.event_id;
         const folderId = body.folder_id;
-        console.log(`[RUSH] select_folder: viewer=${viewerId} eventId=${eventId} folderId=${folderId}`);
+        (0, routine_game_logging_1.routineGameLog)("rush", () => `[RUSH] select_folder: viewer=${viewerId} eventId=${eventId} folderId=${folderId}`);
         if (isNaN(viewerId) || isNaN(eventId) || isNaN(folderId))
             return reply.status(400).send({
                 "error": "Bad Request",
@@ -267,12 +266,12 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         });
     }));
     fastify.post("/ranking", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
-        var _d;
+        var _b;
         const body = request.body;
         const viewerId = body.viewer_id;
         const eventId = body.event_id;
-        const page = (_d = body.page) !== null && _d !== void 0 ? _d : 0;
-        console.log(`[RUSH] ranking: viewer=${viewerId} eventId=${eventId} page=${page}`);
+        const page = (_b = body.page) !== null && _b !== void 0 ? _b : 0;
+        (0, routine_game_logging_1.routineGameLog)("rush", () => `[RUSH] ranking: viewer=${viewerId} eventId=${eventId} page=${page}`);
         if (isNaN(viewerId) || isNaN(eventId))
             return reply.status(400).send({
                 "error": "Bad Request",
@@ -332,7 +331,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         });
     }));
     fastify.post("/ranking/played_party", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
-        var _e;
+        var _c;
         const body = request.body;
         const viewerId = body.viewer_id;
         const eventId = body.event_id;
@@ -369,7 +368,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             });
         }
         // get party list
-        const partyList = (_e = (0, rush_1.getRushEventEndlessBattleRankPlayedPartyListSync)(rankNumber, eventId)) !== null && _e !== void 0 ? _e : [];
+        const partyList = (_c = (0, rush_1.getRushEventEndlessBattleRankPlayedPartyListSync)(rankNumber, eventId)) !== null && _c !== void 0 ? _c : [];
         reply.header("content-type", "application/x-msgpack");
         return reply.status(200).send({
             "data_headers": (0, utils_1.generateDataHeaders)({
@@ -521,7 +520,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         const isAutoStartMode = body.is_auto_start_mode;
         const partyId = body.party_id;
         const questId = body.quest_id;
-        console.log(`[RUSH] battle/start: viewer=${viewerId} questId=${questId} partyId=${partyId} autoStart=${isAutoStartMode}`);
+        (0, routine_game_logging_1.routineGameLog)("rush", () => `[RUSH] battle/start: viewer=${viewerId} questId=${questId} partyId=${partyId} autoStart=${isAutoStartMode}`);
         if (isNaN(viewerId) || isNaN(partyId) || isNaN(questId) || isAutoStartMode === undefined)
             return reply.status(400).send({
                 "error": "Bad Request",
@@ -648,7 +647,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         const questType = body.quest_type;
         const resetTargetId = body.reset_target_id;
         const isResetAfterTargetRound = body.is_reset_after_target_round;
-        console.log(`[RUSH] reset: viewer=${viewerId} eventId=${eventId} questType=${questType} resetTargetId=${resetTargetId} isResetAfterTarget=${isResetAfterTargetRound}`);
+        (0, routine_game_logging_1.routineGameLog)("rush", () => `[RUSH] reset: viewer=${viewerId} eventId=${eventId} questType=${questType} resetTargetId=${resetTargetId} isResetAfterTarget=${isResetAfterTargetRound}`);
         if (isNaN(viewerId) || isNaN(eventId) || isNaN(questType))
             return reply.status(400).send({
                 "error": "Bad Request",
@@ -734,11 +733,11 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
     }));
     // ---- reward ----
     fastify.post("/reward", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
-        var _f, _g, _h;
+        var _d, _e, _f;
         const body = request.body;
         const viewerId = body.viewer_id;
         const eventId = body.event_id;
-        console.log(`[RUSH] reward: viewer=${viewerId} eventId=${eventId}`);
+        (0, routine_game_logging_1.routineGameLog)("rush", () => `[RUSH] reward: viewer=${viewerId} eventId=${eventId}`);
         if (!viewerId || isNaN(viewerId) || isNaN(eventId))
             return reply.status(400).send({
                 "error": "Bad Request", "message": "Invalid request body."
@@ -756,13 +755,13 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         // Rank remains part of the response, but the reward master-data ranges
         // describe cleared endless rounds (2-3, 4-5 and 6+), not leaderboard rank.
         const myRanking = (0, rush_1.getPlayerRushEventEndlessBattleRankingSync)(playerId, eventId);
-        const rankNumber = (_f = myRanking === null || myRanking === void 0 ? void 0 : myRanking.rank_number) !== null && _f !== void 0 ? _f : null;
+        const rankNumber = (_d = myRanking === null || myRanking === void 0 ? void 0 : myRanking.rank_number) !== null && _d !== void 0 ? _d : null;
         const rushEvent = (0, rushEvent_1.getPlayerRushEventSync)(playerId, eventId);
-        const maxRound = (_g = rushEvent === null || rushEvent === void 0 ? void 0 : rushEvent.endlessBattleMaxRound) !== null && _g !== void 0 ? _g : null;
+        const maxRound = (_e = rushEvent === null || rushEvent === void 0 ? void 0 : rushEvent.endlessBattleMaxRound) !== null && _e !== void 0 ? _e : null;
         const eligibleDegreeIds = new Set((0, activity_degree_rewards_1.getEligibleRushDegreeIds)(eventId, maxRound));
         // find matching reward tier
         const rewardSourceEventId = (0, activity_degree_rewards_1.getRushDegreeRewardSourceEventId)(eventId);
-        const rewards = (_h = rankingRewards[String(rewardSourceEventId)]) !== null && _h !== void 0 ? _h : {};
+        const rewards = (_f = rankingRewards[String(rewardSourceEventId)]) !== null && _f !== void 0 ? _f : {};
         let rewardList = [];
         if (maxRound !== null && maxRound > 0) {
             for (const entries of Object.values(rewards)) {
@@ -775,7 +774,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             }
         }
         const degreeIds = (0, activity_degree_rewards_1.grantEligibleRushEventDegreesSync)(playerId, eventId, maxRound);
-        console.log(`[RUSH] reward: rank=${rankNumber} maxRound=${maxRound} rewards=${rewardList.length}`);
+        (0, routine_game_logging_1.routineGameLog)("rush", () => `[RUSH] reward: rank=${rankNumber} maxRound=${maxRound} rewards=${rewardList.length}`);
         reply.header("content-type", "application/x-msgpack");
         return reply.status(200).send({
             "data_headers": (0, utils_1.generateDataHeaders)({ viewer_id: viewerId }),
@@ -798,11 +797,11 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
     }));
     // ---- endless_battle ----
     fastify.post("/endless_battle", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
-        var _j, _k, _l;
+        var _g, _h, _j;
         const body = request.body;
         const viewerId = body.viewer_id;
         const eventId = body.event_id;
-        console.log(`[RUSH] endless_battle: viewer=${viewerId} eventId=${eventId}`);
+        (0, routine_game_logging_1.routineGameLog)("rush", () => `[RUSH] endless_battle: viewer=${viewerId} eventId=${eventId}`);
         if (!viewerId || isNaN(viewerId) || isNaN(eventId))
             return reply.status(400).send({
                 "error": "Bad Request", "message": "Invalid request body."
@@ -821,16 +820,16 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         const serializedPlayedParties = rushEventData !== null
             ? (0, rush_1.getSerializedPlayerRushEventPlayedPartiesSync)(playerId, eventId)
             : { endlessParties: null, folderParties: null };
-        const maxRound = (_j = rushEventData === null || rushEventData === void 0 ? void 0 : rushEventData.endlessBattleMaxRound) !== null && _j !== void 0 ? _j : null;
-        const nextRound = (_k = rushEventData === null || rushEventData === void 0 ? void 0 : rushEventData.endlessBattleNextRound) !== null && _k !== void 0 ? _k : 1;
-        console.log(`[RUSH] endless_battle: maxRound=${maxRound} nextRound=${nextRound}`);
+        const maxRound = (_g = rushEventData === null || rushEventData === void 0 ? void 0 : rushEventData.endlessBattleMaxRound) !== null && _g !== void 0 ? _g : null;
+        const nextRound = (_h = rushEventData === null || rushEventData === void 0 ? void 0 : rushEventData.endlessBattleNextRound) !== null && _h !== void 0 ? _h : 1;
+        (0, routine_game_logging_1.routineGameLog)("rush", () => `[RUSH] endless_battle: maxRound=${maxRound} nextRound=${nextRound}`);
         reply.header("content-type", "application/x-msgpack");
         return reply.status(200).send({
             "data_headers": (0, utils_1.generateDataHeaders)({ viewer_id: viewerId }),
             "data": {
                 "endless_battle_max_round": maxRound,
                 "endless_battle_next_round": nextRound,
-                "endless_battle_played_party_list": (_l = serializedPlayedParties.endlessParties) !== null && _l !== void 0 ? _l : null
+                "endless_battle_played_party_list": (_j = serializedPlayedParties.endlessParties) !== null && _j !== void 0 ? _j : null
             }
         });
     }));

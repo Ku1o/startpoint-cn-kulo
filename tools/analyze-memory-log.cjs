@@ -8,7 +8,9 @@ const MEMORY_FIELDS = new Set(['heapUsed', 'heapTotal', 'external', 'arrayBuffer
     'totalPhysicalHeap', 'mallocedMemory', 'nativeContexts', 'detachedContexts'])
 const CUMULATIVE_FIELDS = new Set(['revision', 'savedRevision', 'writeCount', 'writeBytes',
     'batches', 'records', 'publishedEntries', 'fullRefreshes', 'hits', 'misses', 'evictions',
-    'busyBypasses', 'perConnectionLimit', 'droppedBeforeReady'])
+    'busyBypasses', 'perConnectionLimit', 'droppedBeforeReady', 'prepareCalls', 'prepareErrors',
+    'sampledPrepareCalls', 'sampledPrepareMs', 'maxSampledPrepareMs', 'ageMs', 'pendingMs',
+    'cache_size', 'page_size', 'mmap_size', 'temp_store'])
 
 class MemoryLogSummary {
     constructor() {
@@ -82,6 +84,21 @@ class MemoryLogSummary {
         }
         add('rss', sample.rss, 'bytes', 'memory')
         memory('main', sample.main)
+        const os = sample.osProcess
+        if (os?.available === true && os.stale === false && !os.failed
+            && Number.isFinite(os.ageMs) && os.ageMs >= 0 && os.ageMs <= 120000) {
+            for (const field of ['privateBytes', 'workingSetBytes', 'virtualBytes']) {
+                add(`osProcess.${field}`, os.memory?.[field], 'bytes', 'memory')
+            }
+            for (const field of ['handleCount', 'threadCount']) {
+                add(`osProcess.${field}`, os.memory?.[field], 'count', 'container')
+            }
+            for (const field of ['privateCommittedBytes', 'mappedCommittedBytes', 'imageCommittedBytes',
+                'otherCommittedBytes', 'reservedBytes']) {
+                add(`osProcess.regions.${field}`, os.memory?.regions?.[field], 'bytes', 'memory')
+            }
+            add('osProcess.regions.regionCount', os.memory?.regions?.regionCount, 'count', 'container')
+        }
         for (const worker of (Array.isArray(sample.workers) ? sample.workers : []).slice(0, 16)) {
             if (!worker || typeof worker.name !== 'string' || !Number.isSafeInteger(worker.threadId)) continue
             const prefix = `worker.${worker.name.slice(0, 80)}#${worker.threadId}`
@@ -91,6 +108,9 @@ class MemoryLogSummary {
             }
             memory(prefix, worker.memory)
             counters(`${prefix}.counters`, worker.counters)
+            for (const [name, values] of Object.entries(worker.diagnostics ?? {}).slice(0, 32)) {
+                counters(`${prefix}.diagnostics.${name.slice(0, 80)}`, values)
+            }
         }
         if (sample.counters && typeof sample.counters === 'object') {
             for (const [name, values] of Object.entries(sample.counters).slice(0, 32)) {

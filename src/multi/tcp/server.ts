@@ -4,6 +4,7 @@
 //   [index, param1, param2, ...]
 
 import * as net from "net"
+import { observeServerConnections } from "../../lib/memory-diagnostics"
 import { clientAdmission } from "../../lib/client-admission"
 import { handleHandshake } from "./handshake"
 import { handleBattleMessage } from "./battle"
@@ -180,6 +181,7 @@ export function startSessionServer(): Promise<void> {
             })
         })
 
+        observeServerConnections("tcp", server)
         server.listen(SESSION_PORT, SESSION_HOST, () => {
             console.log(`[TCP] session server listening on ${SESSION_HOST}:${SESSION_PORT}`)
             resolve()

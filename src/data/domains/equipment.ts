@@ -1,3 +1,4 @@
+import { cachedStatement } from "../../lib/cached-statement"
 import { getDb } from "../db";
 import { PlayerEquipment, RawPlayerEquipment } from "../types";
 import { deserializeBoolean, serializeBoolean } from "../utils";
@@ -16,7 +17,7 @@ function buildPlayerEquipment(rawEquipment: RawPlayerEquipment): PlayerEquipment
 
 export function getPlayerEquipmentListSync(playerId: number): Record<string, PlayerEquipment> {
     const db = getDb();
-    const rawEquipment = db.prepare(`
+    const rawEquipment = cachedStatement(db, `
     SELECT id, level, enhancement_level, protection, stack
     FROM players_equipment
     WHERE player_id = ?
@@ -31,7 +32,7 @@ export function getPlayerEquipmentListSync(playerId: number): Record<string, Pla
 
 export function getPlayerEquipmentSync(playerId: number, equipmentId: number | string): PlayerEquipment | null {
     const db = getDb();
-    const rawEquipment = db.prepare(`
+    const rawEquipment = cachedStatement(db, `
     SELECT id, level, enhancement_level, protection, stack
     FROM players_equipment
     WHERE player_id = ? AND id = ?
@@ -42,7 +43,7 @@ export function getPlayerEquipmentSync(playerId: number, equipmentId: number | s
 
 export function playerOwnsEquipmentSync(playerId: number, equipmentId: number): boolean {
     const db = getDb();
-    return db.prepare(`
+    return cachedStatement(db, `
     SELECT id FROM players_equipment
     WHERE id = ? AND player_id = ?
     `).get(equipmentId, playerId) !== undefined
@@ -50,7 +51,7 @@ export function playerOwnsEquipmentSync(playerId: number, equipmentId: number): 
 
 export function insertPlayerEquipmentSync(playerId: number, equipmentId: string | number, equipment: PlayerEquipment) {
     const db = getDb();
-    db.prepare(`
+    cachedStatement(db, `
     INSERT INTO players_equipment (id, level, enhancement_level, protection, stack, player_id)
     VALUES (?, ?, ?, ?, ?, ?)
     `).run(Number(equipmentId), equipment.level, equipment.enhancementLevel, serializeBoolean(equipment.protection), equipment.stack, playerId)
@@ -78,14 +79,14 @@ export function updatePlayerEquipmentSync(playerId: number, equipmentId: string 
             values.push(typeof value === "boolean" ? serializeBoolean(value) : value)
         }
     }
-    if (sets.length > 0) db.prepare(`
+    if (sets.length > 0) cachedStatement(db, `
         UPDATE players_equipment SET ${sets.join(', ')} WHERE id = ? AND player_id = ?
     `).run([...values, Number(equipmentId), playerId])
 }
 
 export function deletePlayerEquipmentSync(playerId: number, equipmentId: string | number) {
     const db = getDb();
-    db.prepare(`
+    cachedStatement(db, `
     DELETE FROM players_equipment WHERE id = ? AND player_id = ?
     `).run(Number(equipmentId), playerId)
 }

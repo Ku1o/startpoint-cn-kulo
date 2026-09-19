@@ -11,6 +11,7 @@ const { insertAccountSync } = require("../out/data/domains/account")
 const { insertDefaultPlayerSync, updatePlayerSync } = require("../out/data/domains/player")
 const {
     getPlayerCategoryMissionsForCategoriesSync,
+    getPlayerCategoryMissionsForScopesSync,
     getPlayerCategoryMissionsSync,
     updatePlayerCategoryMissionBatchSync,
     updatePlayerCategoryMissionStageBatchSync,
@@ -68,6 +69,57 @@ test("batched progress and stage writes match the single-row domain behavior", (
         progress: 3,
         stages: { "1": true },
     })
+})
+
+test("scoped reads merge duplicate scopes and isolate players, categories and unselected stages", () => {
+    const other=insertDefaultPlayerSync(account.id)
+    updatePlayerCategoryMissionSync(player.id,1,31001,8)
+    updatePlayerCategoryMissionSync(player.id,1,31002,9)
+    updatePlayerCategoryMissionSync(player.id,2,31001,4)
+    updatePlayerCategoryMissionSync(other.id,1,31001,99)
+    updatePlayerCategoryMissionStageSync(player.id,1,1,31001,true)
+    updatePlayerCategoryMissionStageSync(player.id,1,2,31001,false)
+    updatePlayerCategoryMissionStageSync(player.id,1,1,31002,true)
+    updatePlayerCategoryMissionStageSync(other.id,1,3,31001,true)
+    const scopes=[{category:1,missionIds:[31001,31001]},
+        {category:1,missionIds:[31002,NaN]}, {category:2,missionIds:[31001]}, {category:3,missionIds:[]}]
+    const selected=getPlayerCategoryMissionsForScopesSync(player.id,scopes)
+    const full=getPlayerCategoryMissionsForCategoriesSync(player.id,[1,2])
+    assert.deepEqual(selected,{'1':{'31001':full['1']['31001'],'31002':full['1']['31002']},
+        '2':{'31001':full['2']['31001']},'3':{}})
+    assert.deepEqual(getPlayerCategoryMissionsForScopesSync(player.id,[{category:1,missionIds:[31001]}]),
+        {'1':{'31001':{progress:8,stages:{'1':true,'2':false}}}})
+    assert.deepEqual(getPlayerCategoryMissionsForScopesSync(player.id,[]),{})
+    const db=require('../out/data/db').getDb()
+    assert.throws(()=>db.transaction(()=>{
+        updatePlayerCategoryMissionSync(player.id,1,31001,50)
+        assert.equal(getPlayerCategoryMissionsForScopesSync(player.id,[scopes[0]])['1']['31001'].progress,50)
+        throw Error('rollback')
+    })(),/rollback/)
+    assert.equal(getPlayerCategoryMissionsForScopesSync(player.id,[scopes[0]])['1']['31001'].progress,8)
+})
+
+test("scoped and category-wide settlement produce identical progress and rewards", () => {
+    const db=require('../out/data/db').getDb()
+    const subject=insertDefaultPlayerSync(account.id)
+    updatePlayerSync({id:subject.id,maxComboAchieved:200})
+    const run=enabled=>{
+        let result,state
+        const previous=process.env.MISSION_SCOPED_READS
+        process.env.MISSION_SCOPED_READS=enabled?'true':'false'
+        try {
+            assert.throws(()=>db.transaction(()=>{
+                result=settleMissionCategories(subject.id,[{category:1,missionIds:[1]}],new Date())
+                state=getPlayerCategoryMissionsForCategoriesSync(subject.id,[1])
+                throw Error('restore fixture')
+            })(),/restore fixture/)
+        } finally {
+            if(previous===undefined)delete process.env.MISSION_SCOPED_READS
+            else process.env.MISSION_SCOPED_READS=previous
+        }
+        return {result,state}
+    }
+    assert.deepEqual(run(true),run(false))
 })
 
 test("mission settlement still grants completed stages exactly once", () => {

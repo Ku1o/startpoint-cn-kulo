@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updatePlayerActiveMissionStageSync = exports.deletePlayerCategoryMissionsSync = exports.updatePlayerCategoryMissionStageBatchSync = exports.updatePlayerCategoryMissionStageSync = exports.incrementPlayerCategoryMissionSync = exports.updatePlayerCategoryMissionBatchSync = exports.updatePlayerCategoryMissionSync = exports.insertPlayerCategoryMissionListSync = exports.getPlayerClearedCollectItemEventMissionListSync = exports.getPlayerCategoryMissionListSync = exports.getPlayerCategoryMissionsForCategoriesSync = exports.getPlayerCategoryMissionsSync = exports.incrementPlayerActiveMissionSync = exports.updatePlayerActiveMissionSync = exports.insertPlayerActiveMissionsSync = exports.getPlayerActiveMissionsSync = exports.insertPlayerClearedRegularMissionListSync = exports.getPlayerClearedRegularMissionListSync = void 0;
+exports.updatePlayerActiveMissionStageSync = exports.deletePlayerCategoryMissionsSync = exports.updatePlayerCategoryMissionStageBatchSync = exports.updatePlayerCategoryMissionStageSync = exports.incrementPlayerCategoryMissionSync = exports.updatePlayerCategoryMissionBatchSync = exports.updatePlayerCategoryMissionSync = exports.insertPlayerCategoryMissionListSync = exports.getPlayerClearedCollectItemEventMissionListSync = exports.getPlayerCategoryMissionListSync = exports.getPlayerCategoryMissionsForScopesSync = exports.getPlayerCategoryMissionsForCategoriesSync = exports.getPlayerCategoryMissionsSync = exports.incrementPlayerActiveMissionSync = exports.updatePlayerActiveMissionSync = exports.insertPlayerActiveMissionsSync = exports.getPlayerActiveMissionsSync = exports.insertPlayerClearedRegularMissionListSync = exports.getPlayerClearedRegularMissionListSync = void 0;
 const cached_statement_1 = require("../../lib/cached-statement");
 const db_1 = require("../db");
 const utils_1 = require("../utils");
@@ -250,6 +250,59 @@ function getPlayerCategoryMissionsForCategoriesSync(playerId, categories) {
     return result;
 }
 exports.getPlayerCategoryMissionsForCategoriesSync = getPlayerCategoryMissionsForCategoriesSync;
+/** Two fixed query plans, restricted to the mission IDs this settlement evaluates. */
+function getPlayerCategoryMissionsForScopesSync(playerId, scopes) {
+    var _a;
+    const requested = new Map();
+    for (const scope of scopes) {
+        if (!Number.isSafeInteger(scope.category))
+            continue;
+        const ids = (_a = requested.get(scope.category)) !== null && _a !== void 0 ? _a : new Set();
+        for (const id of scope.missionIds)
+            if (Number.isSafeInteger(id))
+                ids.add(id);
+        requested.set(scope.category, ids);
+    }
+    const result = {};
+    const pairs = [];
+    for (const [category, ids] of requested) {
+        result[String(category)] = {};
+        for (const id of ids)
+            pairs.push([category, id]);
+    }
+    if (pairs.length === 0)
+        return result;
+    const selection = JSON.stringify(pairs);
+    const missions = (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
+        SELECT m.category, m.id, m.progress
+        FROM json_each(?) AS requested
+        CROSS JOIN players_category_missions AS m
+        WHERE m.category = CAST(json_extract(requested.value, '$[0]') AS INTEGER)
+          AND m.id = CAST(json_extract(requested.value, '$[1]') AS INTEGER)
+          AND m.player_id = ?
+    `).all(selection, playerId);
+    for (const mission of missions) {
+        result[String(mission.category)][String(mission.id)] = { progress: mission.progress, stages: [] };
+    }
+    const stages = (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
+        SELECT s.category, s.id, s.status, s.mission_id
+        FROM json_each(?) AS requested
+        CROSS JOIN players_category_mission_stages AS s
+        WHERE s.category = CAST(json_extract(requested.value, '$[0]') AS INTEGER)
+          AND s.mission_id = CAST(json_extract(requested.value, '$[1]') AS INTEGER)
+          AND s.player_id = ?
+    `).all(selection, playerId);
+    for (const stage of stages) {
+        const mission = result[String(stage.category)][String(stage.mission_id)];
+        if (!mission)
+            continue;
+        if (Array.isArray(mission.stages))
+            mission.stages = {};
+        mission.stages[String(stage.id)] = (0, utils_1.deserializeBoolean)(stage.status);
+    }
+    return result;
+}
+exports.getPlayerCategoryMissionsForScopesSync = getPlayerCategoryMissionsForScopesSync;
 function getPlayerCategoryMissionListSync(playerId) {
     const categories = (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
     SELECT DISTINCT category

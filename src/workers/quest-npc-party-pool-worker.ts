@@ -4,6 +4,7 @@ import { mkdirSync } from "fs"
 import path from "path"
 import { cachedStatement } from "../lib/cached-statement"
 import { installWorkerMemoryProbe } from "../lib/memory-diagnostics"
+import { observeSqliteDatabase } from "../lib/sqlite-diagnostics"
 import {
     getQuestNpcPartyPoolKey,
     QuestNpcPartySnapshot,
@@ -44,6 +45,7 @@ const db = new Database(path.join(databaseDirectory, "quest_ai_party_pool.db"))
 db.pragma("journal_mode = WAL")
 db.pragma("synchronous = NORMAL")
 db.pragma("busy_timeout = 5000")
+observeSqliteDatabase(db, "npc")
 db.exec(`
     CREATE TABLE IF NOT EXISTS quest_npc_party_pool (
         quest_category INTEGER NOT NULL,

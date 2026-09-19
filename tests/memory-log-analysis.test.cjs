@@ -67,6 +67,30 @@ test('summary retains bounded process and metric state', () => {
     assert.equal(summary.report().runs.at(-1).metrics.length,384)
     assert.ok(summary.report().runs.at(-1).omittedMetrics>0)
 })
+
+test('OS memory ignores failed and stale measurements; SQL totals cannot masquerade as retained objects', () => {
+    const summary=new MemoryLogSummary()
+    const os=(privateBytes,stale=false,failed=false)=>({available:true,ageMs:60000,stale,failed,
+        memory:{privateBytes,workingSetBytes:80*MiB,virtualBytes:300*MiB,handleCount:20,threadCount:5,
+            regions:{privateCommittedBytes:privateBytes,mappedCommittedBytes:20*MiB,regionCount:200}}})
+    summary.addLine(line(60,{osProcess:os(100*MiB)}))
+    summary.addLine(line(120,{osProcess:os(900*MiB,true)}))
+    summary.addLine(line(180,{osProcess:os(900*MiB,false,true)}))
+    summary.addLine(line(660,{osProcess:os(120*MiB),counters:{'sqlite.main':{
+        prepareCalls:100000,prepareErrors:2,sampledPrepareCalls:2000,sampledPrepareMs:9000,
+        maxSampledPrepareMs:12,page_size:4096,nativeBytesAvailable:false},stdio:{stdoutQueuedBytes:64}},
+        workers:[{name:'npc',threadId:2,ageMs:10,stale:false,memory:{heapUsed:10},
+            diagnostics:{'sqlite.npc':{prepareCalls:10000},stdio:{stdoutQueuedBytes:32}}}]}))
+    const run=summary.report().runs[0]
+    assert.equal(metric(run,'osProcess.privateBytes').delta,20*MiB)
+    assert.equal(metric(run,'osProcess.privateBytes').samples,2)
+    assert.equal(metric(run,'osProcess.threadCount').last,5)
+    assert.equal(metric(run,'osProcess.regions.privateCommittedBytes').delta,20*MiB)
+    assert.equal(metric(run,'osProcess.regions.mappedCommittedBytes').last,20*MiB)
+    assert.equal(run.metrics.some(m=>/prepare|Prepare|page_size/.test(m.name)),false)
+    assert.equal(metric(run,'counters.stdio.stdoutQueuedBytes').last,64)
+    assert.equal(metric(run,'worker.npc#2.diagnostics.stdio.stdoutQueuedBytes').last,32)
+})
 test('file reader accepts prefixed CRLF logs, rejects missing files and explains old logs', async () => {
     const directory=fs.mkdtempSync(path.join(os.tmpdir(),'memory-log-analysis-'))
     try {

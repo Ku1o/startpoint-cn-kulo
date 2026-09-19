@@ -468,7 +468,7 @@ async function verifyChapterMissions() {
             return originalBuildContext(...args)
         }
         try {
-            const clientDegree = await app.inject({
+            const reportClientDegree = () => app.inject({
                 method: "POST", url: "/mission/update_mission_progress",
                 payload: {
                     viewer_id: viewerId,
@@ -479,10 +479,30 @@ async function verifyChapterMissions() {
                     }],
                 },
             })
+            const clientDegree = await reportClientDegree()
             assert.equal(clientDegree.statusCode, 200, clientDegree.body)
-            assert.deepEqual(degreeMissionScopes, [[47000]], "客户端称号事实只能结算匹配的称号")
-            assert.ok(clientDegree.json().data.degree_list.some(entry => entry.degree_id === 47000),
-                "客户端称号事实应在当前响应立即发放")
+            assert.deepEqual(degreeMissionScopes, [], "客户端计数已达到目标时，不应再扫描称号事实")
+            assert.deepEqual(clientDegree.json().data.degree_list, [{ viewer_id: viewerId, degree_id: 47000 }],
+                "当前响应应立即且仅发放匹配的称号")
+            assert.deepEqual(clientDegree.json().data.mission_info, [{
+                mission_category_id: 5, mission_id: 47000, mission_reward_id: 47000001,
+            }])
+            const titleProgress = () => db.prepare(`
+                SELECT progress FROM players_category_missions WHERE player_id = ? AND category = 5 AND id = 47000
+            `).get(chapterPlayerId)?.progress
+            const ownedTitles = () => db.prepare(`
+                SELECT degree_id FROM players_degrees WHERE player_id = ? ORDER BY degree_id
+            `).all(chapterPlayerId)
+            assert.equal(titleProgress(), 1)
+            const titlesBeforeReplay = ownedTitles()
+            assert.ok(titlesBeforeReplay.some(entry => entry.degree_id === 47000))
+            const repeatedClientDegree = await reportClientDegree()
+            assert.equal(repeatedClientDegree.statusCode, 200, repeatedClientDegree.body)
+            assert.deepEqual(repeatedClientDegree.json().data.degree_list, [], "重复上报不得重复发放称号")
+            assert.deepEqual(repeatedClientDegree.json().data.mission_info, [], "重复上报不得重复领取奖励")
+            assert.deepEqual(degreeMissionScopes, [], "已完成称号的重复上报也不应扫描事实")
+            assert.equal(titleProgress(), 1, "重复上报仍须遵守进度上限")
+            assert.deepEqual(ownedTitles(), titlesBeforeReplay)
 
             degreeContextBuilds = 0
             degreeMissionScopes.length = 0
