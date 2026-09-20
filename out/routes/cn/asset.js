@@ -13,8 +13,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ENTITY_LISTS_DIR = exports.CDN_TOTAL_SIZE = exports.getAssetDownloadSize = exports.getVersionInfo = exports.getDiffArchiveSubdirs = exports.getFullArchiveSubdirs = exports.getEntityListName = exports.isIosAssetDevice = exports.isSupportedAssetDevice = exports.DIFF_ARCHIVE_SUBDIRS = exports.FULL_ARCHIVE_SUBDIRS = exports.getAssetArchiveMetadata = exports.invalidateAssetArchiveCatalog = exports.joinCdnPath = exports.normalizeCdnBaseUrl = void 0;
+const file_exists_1 = require("../../lib/file-exists");
 const utils_1 = require("../../utils");
-const fs_1 = require("fs");
 const path_1 = __importDefault(require("path"));
 const zip_summary_cache_1 = require("../../lib/zip-summary-cache");
 const CN_PORT = process.env.CN_LISTEN_PORT || "8001";
@@ -125,9 +125,9 @@ function getDiffArchiveSubdirs(device) {
 exports.getDiffArchiveSubdirs = getDiffArchiveSubdirs;
 /** Detect CDN path-list dir name: `EntityLists` (cn_cdn) or `entities` (cn_cdn_new). */
 function entityListsDirName() {
-    if ((0, fs_1.existsSync)(path_1.default.join(cdnDir, "EntityLists")))
+    if ((0, file_exists_1.existsSync)(path_1.default.join(cdnDir, "EntityLists")))
         return "EntityLists";
-    if ((0, fs_1.existsSync)(path_1.default.join(cdnDir, "entities")))
+    if ((0, file_exists_1.existsSync)(path_1.default.join(cdnDir, "entities")))
         return "entities";
     return "EntityLists";
 }

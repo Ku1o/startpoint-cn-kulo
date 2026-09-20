@@ -4,6 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.computeAssetTarget = exports.isFirstTime = exports.getMaxPatchVersion = exports.reloadPatchManifest = exports.getPatchManifest = exports.compareVersion = exports.parseVersion = exports.detectCDNVersion = exports.getEffectiveVersion = exports.FULL_BASE = void 0;
+const file_exists_1 = require("./file-exists");
 /**
  * Unified version control for CN asset update.
  *
@@ -75,7 +76,7 @@ let _manifestCache = null;
 let _manifestMtimeMs = null;
 function getPatchManifest() {
     const mp = path_1.default.join(__dirname, "..", "..", "assets", "asset-patch", "manifest.json");
-    if (!(0, fs_1.existsSync)(mp)) {
+    if (!(0, file_exists_1.existsSync)(mp)) {
         _manifestCache = { cdn_version: "1.4.54", patches: [] };
         _manifestMtimeMs = null;
         return _manifestCache;

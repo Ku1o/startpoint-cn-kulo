@@ -1,3 +1,4 @@
+import { existsSync } from "../../lib/file-exists";
 import { FIVE_BOSS_GAUNTLET, isFiveBossGauntletQuest, isFiveBossHiddenQuest } from "../../multi/five-boss/contract";
 import { continueFiveBossSync, FiveBossContinueError, isFiveBossContinueRequest } from "../../multi/five-boss/continue-runtime";
 import { grantFiveBossSoloRewardsSync } from "../../multi/five-boss/solo-rewards";
@@ -65,7 +66,7 @@ import { reconcileActiveMissionFacts } from "../../lib/mission/active-reconcilia
 import { getContentSnapshot } from "../../content/runtime/content-snapshot"
 import { getPlayerMailCountSync } from "../../data/domains/mail"
 import type { FinishContext } from "../../lib/quest/finish/types";
-import { readFileSync, existsSync } from "fs";
+import { readFileSync } from "fs";
 import path from "path";
 import questEntryCosts from "../../../assets/quest_entry_costs.json";
 import scoreAttackBorderRewards from "../../../assets/score_attack_border_reward.json";

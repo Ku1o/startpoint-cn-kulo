@@ -1,3 +1,4 @@
+import { existsSync } from "../../lib/file-exists";
 /**
  * Comic / Manga API — get_list + image serving.
  * Comics stored in web/public/comic/{kind}/ directory.
@@ -5,7 +6,7 @@
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { getSession } from "../../data/domains/session"
 import { generateDataHeaders } from "../../utils";
-import { readdirSync, readFileSync, existsSync } from "fs";
+import { readdirSync, readFileSync } from "fs";
 import path from "path";
 
 const COMIC_DIR = path.join(__dirname, "..", "..", "..", "web", "public", "comic")

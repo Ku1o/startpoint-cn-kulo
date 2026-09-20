@@ -1,5 +1,6 @@
+import { existsSync } from "./file-exists";
 import { createHash, randomUUID } from "crypto"
-import { closeSync, copyFileSync, existsSync, fsyncSync, openSync, readFileSync, readSync,
+import { closeSync, copyFileSync, fsyncSync, openSync, readFileSync, readSync,
     renameSync, unlinkSync, writeFileSync } from "fs"
 import { basename, dirname, join } from "path"
 import type { PersistedSeedPool } from "./seed-persistence"

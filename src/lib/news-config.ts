@@ -1,5 +1,5 @@
+import { existsSync } from "./file-exists";
 import {
-    existsSync,
     readFileSync,
     renameSync,
     unlinkSync,

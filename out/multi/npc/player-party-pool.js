@@ -13,7 +13,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getPlayerNpcPartyPoolStats = exports.getRandomPlayerNpcPartiesSync = exports.invalidatePlayerNpcPartyPool = exports.refreshPlayerNpcPartyPoolSync = exports.getNpcPartySelectionOptions = exports.removePlayerQuestNpcPartySnapshots = exports.reloadQuestNpcPartyPool = exports.recordSuccessfulQuestNpcParty = exports.stopQuestNpcPartyPoolWorker = exports.startQuestNpcPartyPoolWorker = void 0;
-const fs_1 = require("fs");
+const file_exists_1 = require("../../lib/file-exists");
 const path_1 = __importDefault(require("path"));
 const worker_threads_1 = require("worker_threads");
 const quest_party_pool_cache_1 = require("./quest-party-pool-cache");
@@ -71,7 +71,7 @@ function rejectPendingCleanupRequests(error) {
 }
 function getQuestPartyWorkerLocation() {
     const compiled = path_1.default.resolve(__dirname, "../../workers/quest-npc-party-pool-worker.js");
-    if ((0, fs_1.existsSync)(compiled))
+    if ((0, file_exists_1.existsSync)(compiled))
         return { filename: compiled };
     return {
         filename: path_1.default.resolve(__dirname, "../../workers/quest-npc-party-pool-worker.ts"),

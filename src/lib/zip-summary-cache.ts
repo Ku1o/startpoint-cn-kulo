@@ -1,4 +1,5 @@
-import { existsSync, readdirSync, statSync } from "fs"
+import { existsSync } from "./file-exists";
+import { readdirSync, statSync } from "fs"
 import path from "path"
 
 const ZIP_SUMMARY_CACHE_TTL_MS = 15_000

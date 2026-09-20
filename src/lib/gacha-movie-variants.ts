@@ -1,5 +1,6 @@
+import { existsSync } from "./file-exists";
 import { randomInt } from "crypto";
-import { existsSync, readFileSync } from "fs";
+import { readFileSync } from "fs";
 import { join } from "path";
 
 export type GachaMovieVariantKind = "skip" | "play_no_rarity_up" | "play_rarity_up";

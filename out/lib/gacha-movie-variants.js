@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.GachaMovieVariantCatalog = void 0;
+const file_exists_1 = require("./file-exists");
 const crypto_1 = require("crypto");
 const fs_1 = require("fs");
 const path_1 = require("path");
@@ -58,7 +59,7 @@ class GachaMovieVariantCatalog {
         }
         else {
             const file = (0, path_1.join)(this.catalogDir, `${movieId}.json`);
-            raw = (0, fs_1.existsSync)(file) ? JSON.parse((0, fs_1.readFileSync)(file, "utf8")) : null;
+            raw = (0, file_exists_1.existsSync)(file) ? JSON.parse((0, fs_1.readFileSync)(file, "utf8")) : null;
         }
         const catalog = raw === null ? null : validateCatalog(raw, movieId);
         this.cache.set(movieId, catalog);

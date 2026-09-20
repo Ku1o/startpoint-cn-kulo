@@ -1,4 +1,5 @@
-import { existsSync } from "fs"
+import { existsSync } from "../../lib/file-exists";
+
 import path from "path"
 import { Worker } from "worker_threads"
 import { QuestPartyPoolCache } from "./quest-party-pool-cache"

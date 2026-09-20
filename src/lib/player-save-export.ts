@@ -1,4 +1,5 @@
-import { existsSync } from "fs"
+import { existsSync } from "./file-exists";
+
 import path from "path"
 import { Worker } from "worker_threads"
 import { getDatabaseDirectory } from "./admin-database-backup"

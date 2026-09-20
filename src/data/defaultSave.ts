@@ -1,3 +1,4 @@
+import { existsSync } from "../lib/file-exists";
 /**
  * 默认存档模板：管理员上传一份存档快照，作为「账户新建存档」时的初始内容。
  * 持久化到 .database/default_save.json（与 active_account.json 同目录，均 gitignored）。
@@ -38,13 +39,13 @@ export interface DefaultSaveMeta {
 
 export function saveDefaultSaveTemplate(snapshot: DefaultSaveSnapshot): void {
     const dir = path.dirname(FILE);
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    if (!existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
     fs.writeFileSync(FILE, JSON.stringify(snapshot), "utf-8");
 }
 
 export function loadDefaultSaveTemplate(): DefaultSaveSnapshot | null {
     try {
-        if (!fs.existsSync(FILE)) return null;
+        if (!existsSync(FILE)) return null;
         return JSON.parse(fs.readFileSync(FILE, "utf-8")) as DefaultSaveSnapshot;
     } catch {
         return null;
@@ -53,7 +54,7 @@ export function loadDefaultSaveTemplate(): DefaultSaveSnapshot | null {
 
 export function clearDefaultSaveTemplate(): boolean {
     try {
-        if (fs.existsSync(FILE)) { fs.unlinkSync(FILE); return true; }
+        if (existsSync(FILE)) { fs.unlinkSync(FILE); return true; }
     } catch { /* ignore */ }
     return false;
 }

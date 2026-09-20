@@ -36,6 +36,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 var _a, _b;
 Object.defineProperty(exports, "__esModule", { value: true });
+const file_exists_1 = require("./lib/file-exists");
 const fastify_1 = __importDefault(require("fastify"));
 const msgpackr_1 = require("msgpackr");
 const static_1 = __importDefault(require("@fastify/static"));
@@ -729,7 +730,7 @@ const cdnDir = process.env.CDN_DIR || ".cdn";
 fastify.get("/patch/cn/asset-patch/active/:file", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
     const { file } = request.params;
     const patchFile = path_1.default.join(__dirname, "..", "assets", "asset-patch", "active", file);
-    if ((0, fs_1.existsSync)(patchFile)) {
+    if ((0, file_exists_1.existsSync)(patchFile)) {
         return reply.type("application/zip").send((0, fs_1.readFileSync)(patchFile));
     }
     return reply.status(404).send("Not Found");
@@ -748,7 +749,7 @@ fastify.register(static_1.default, {
 // New admin SPA (React, built from admin/ into web/dist) — served at /admin.
 // Old pages at / stay untouched until the SPA fully replaces them (see docs/admin-refactor-plan.md).
 const adminDistDir = path_1.default.join(__dirname, "..", "web", "dist");
-const adminSpaAvailable = (0, fs_1.existsSync)(path_1.default.join(adminDistDir, "index.html"));
+const adminSpaAvailable = (0, file_exists_1.existsSync)(path_1.default.join(adminDistDir, "index.html"));
 if (adminSpaAvailable) {
     fastify.register(static_1.default, {
         root: adminDistDir,

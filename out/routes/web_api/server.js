@@ -12,6 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+const file_exists_1 = require("../../lib/file-exists");
 const fs_1 = require("fs");
 const path_1 = __importDefault(require("path"));
 const crypto_1 = require("crypto");
@@ -71,7 +72,7 @@ function cleanupDeletedPlayerAiSnapshots(playerIds, context) {
     });
 }
 function removeExpiredManualDatabaseBackups(backupRoot) {
-    if (!(0, fs_1.existsSync)(backupRoot))
+    if (!(0, file_exists_1.existsSync)(backupRoot))
         return [];
     const resolvedRoot = path_1.default.resolve(backupRoot);
     const backups = (0, fs_1.readdirSync)(resolvedRoot)
@@ -94,7 +95,7 @@ function removeOlderCleanupBackups(currentBackupDirectory) {
     const backupRoot = path_1.default.resolve(path_1.default.dirname(currentBackupDirectory));
     const currentDirectory = path_1.default.resolve(currentBackupDirectory);
     const removed = [];
-    if (!(0, fs_1.existsSync)(backupRoot))
+    if (!(0, file_exists_1.existsSync)(backupRoot))
         return removed;
     for (const name of (0, fs_1.readdirSync)(backupRoot)) {
         if (!/^unnoted-accounts-\d{8}-\d{6}(?:-\d{3})?$/.test(name))
@@ -212,7 +213,7 @@ function getCdnBaseUrl() {
 }
 function getCleanupWorkerLocation() {
     const compiledWorker = path_1.default.resolve(__dirname, "../../workers/admin-account-cleanup-worker.js");
-    if ((0, fs_1.existsSync)(compiledWorker))
+    if ((0, file_exists_1.existsSync)(compiledWorker))
         return { filename: compiledWorker };
     const sourceWorker = path_1.default.resolve(__dirname, "../../workers/admin-account-cleanup-worker.ts");
     return {

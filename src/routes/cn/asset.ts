@@ -1,6 +1,7 @@
+import { existsSync } from "../../lib/file-exists";
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { generateDataHeaders } from "../../utils";
-import { existsSync } from "fs";
+
 import path from "path";
 import { getZipArchiveMetadata, invalidateZipCache } from "../../lib/zip-summary-cache";
 

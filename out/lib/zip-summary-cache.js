@@ -4,6 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getZipFileSummary = exports.getZipArchiveMetadata = exports.invalidateZipSummaryCache = exports.invalidateZipCache = void 0;
+const file_exists_1 = require("./file-exists");
 const fs_1 = require("fs");
 const path_1 = __importDefault(require("path"));
 const ZIP_SUMMARY_CACHE_TTL_MS = 15000;
@@ -59,7 +60,7 @@ function getZipFileSummary(dir) {
     const cached = zipCache.get(key);
     if ((cached === null || cached === void 0 ? void 0 : cached.kind) === "summary" && cached.expiresAt > now)
         return cached.summary;
-    if (!(0, fs_1.existsSync)(resolved)) {
+    if (!(0, file_exists_1.existsSync)(resolved)) {
         const summary = { exists: false, count: 0, latestMtime: null, totalBytes: 0 };
         zipCache.set(key, { kind: "summary", expiresAt: now + ZIP_SUMMARY_CACHE_TTL_MS, summary });
         return summary;

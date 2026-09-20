@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.readJsonWithBackupSync = exports.writeJsonAtomicSync = void 0;
+const file_exists_1 = require("./file-exists");
 const fs_1 = require("fs");
 const path_1 = require("path");
 let temporarySequence = 0;
@@ -10,7 +11,7 @@ function temporaryPath(target, suffix) {
 }
 function removeIfPresent(path) {
     try {
-        if ((0, fs_1.existsSync)(path))
+        if ((0, file_exists_1.existsSync)(path))
             (0, fs_1.unlinkSync)(path);
     }
     catch (_a) {
@@ -33,7 +34,7 @@ function replaceBackup(source, destination) {
     }
     catch (error) {
         // Some Windows filesystems do not replace an existing destination.
-        if (!(0, fs_1.existsSync)(destination))
+        if (!(0, file_exists_1.existsSync)(destination))
             throw error;
         (0, fs_1.unlinkSync)(destination);
         (0, fs_1.renameSync)(source, destination);
@@ -57,7 +58,7 @@ function writeJsonAtomicSync(path, value) {
         descriptor = null;
         // Verify exactly what reached disk before it can replace the primary.
         JSON.parse((0, fs_1.readFileSync)(temporary, "utf-8"));
-        if ((0, fs_1.existsSync)(path)) {
+        if ((0, file_exists_1.existsSync)(path)) {
             // Do not overwrite a known-good backup with a corrupt primary.
             let primaryIsValid = false;
             try {
@@ -91,7 +92,7 @@ exports.writeJsonAtomicSync = writeJsonAtomicSync;
  * Reads the primary JSON file, falling back to its last valid `.bak` copy.
  */
 function readJsonWithBackupSync(path) {
-    if ((0, fs_1.existsSync)(path)) {
+    if ((0, file_exists_1.existsSync)(path)) {
         try {
             return JSON.parse((0, fs_1.readFileSync)(path, "utf-8"));
         }
@@ -100,7 +101,7 @@ function readJsonWithBackupSync(path) {
         }
     }
     const backup = `${path}.bak`;
-    if ((0, fs_1.existsSync)(backup)) {
+    if ((0, file_exists_1.existsSync)(backup)) {
         try {
             const value = JSON.parse((0, fs_1.readFileSync)(backup, "utf-8"));
             console.warn(`[JSON] recovered from backup: ${backup}`);

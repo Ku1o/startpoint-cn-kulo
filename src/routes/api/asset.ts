@@ -1,3 +1,4 @@
+import { existsSync } from "../../lib/file-exists";
 
 
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
@@ -11,7 +12,7 @@ import thAndroidFull from "../../../assets/asset_lists/th-android-full.json";
 import thAndroidShort from "../../../assets/asset_lists/th-android-short.json";
 import thIOSFull from "../../../assets/asset_lists/th-ios-full.json";
 import { Platform, generateDataHeaders, getRequestPlatformSync } from "../../utils";
-import { existsSync, readdirSync, readFileSync, statSync, writeFileSync } from "fs";
+import { readdirSync, readFileSync, statSync, writeFileSync } from "fs";
 import { createHash } from "crypto";
 import path from "path";
 

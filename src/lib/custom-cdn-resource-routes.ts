@@ -1,4 +1,5 @@
-import { existsSync, readFileSync } from "fs"
+import { existsSync } from "./file-exists";
+import { readFileSync } from "fs"
 import path from "path"
 import { FastifyInstance } from "fastify"
 

@@ -1,3 +1,4 @@
+import { existsSync } from "../lib/file-exists";
 /**
  * Web 面板状态管理：当前活跃存档。
  * 持久化到 .database/active_account.json
@@ -22,7 +23,7 @@ interface WebState {
 
 function readState(): WebState {
     try {
-        if (fs.existsSync(STATE_FILE)) {
+        if (existsSync(STATE_FILE)) {
             const raw = JSON.parse(fs.readFileSync(STATE_FILE, "utf-8"));
             return {
                 activePlayerId: raw.activePlayerId ?? null,
@@ -38,7 +39,7 @@ function readState(): WebState {
 
 function writeState(state: WebState): void {
     const dir = path.dirname(STATE_FILE);
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    if (!existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
     fs.writeFileSync(STATE_FILE, JSON.stringify(state));
 }
 

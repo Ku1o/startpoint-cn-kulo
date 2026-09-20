@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.writeSeedJsonAtomicSync = exports.seedJsonChunks = void 0;
+const file_exists_1 = require("./file-exists");
 const crypto_1 = require("crypto");
 const fs_1 = require("fs");
 const path_1 = require("path");
@@ -51,7 +52,7 @@ function digestFile(file, buffer) {
 }
 function removeTemporary(file) {
     try {
-        if ((0, fs_1.existsSync)(file))
+        if ((0, file_exists_1.existsSync)(file))
             (0, fs_1.unlinkSync)(file);
     }
     catch ( /* retain the original error */_a) { /* retain the original error */ }
@@ -81,7 +82,7 @@ function writeSeedJsonAtomicSync(file, pools, kind) {
         const digest = expected.digest("hex");
         if (digestFile(temporary, scratch) !== digest)
             throw new Error("Seed file readback checksum mismatch");
-        if ((0, fs_1.existsSync)(file)) {
+        if ((0, file_exists_1.existsSync)(file)) {
             let valid = false;
             let previous = "";
             try {
@@ -114,7 +115,7 @@ function writeSeedJsonAtomicSync(file, pools, kind) {
                     (0, fs_1.renameSync)(backupTemporary, backup);
                 }
                 catch (error) {
-                    if (!(0, fs_1.existsSync)(backup))
+                    if (!(0, file_exists_1.existsSync)(backup))
                         throw error;
                     (0, fs_1.unlinkSync)(backup);
                     (0, fs_1.renameSync)(backupTemporary, backup);

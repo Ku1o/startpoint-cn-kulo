@@ -13,7 +13,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.exportPlayerSaveInWorker = exports.PlayerSaveExportError = exports.DEFAULT_PLAYER_SAVE_EXPORT_MAX_BYTES = void 0;
-const fs_1 = require("fs");
+const file_exists_1 = require("./file-exists");
 const path_1 = __importDefault(require("path"));
 const worker_threads_1 = require("worker_threads");
 const admin_database_backup_1 = require("./admin-database-backup");
@@ -30,7 +30,7 @@ exports.PlayerSaveExportError = PlayerSaveExportError;
 let activeExportWorker = null;
 function getWorkerLocation() {
     const compiledWorker = path_1.default.resolve(__dirname, "../workers/player-save-export-worker.js");
-    if ((0, fs_1.existsSync)(compiledWorker))
+    if ((0, file_exists_1.existsSync)(compiledWorker))
         return { filename: compiledWorker };
     return {
         filename: path_1.default.resolve(__dirname, "../workers/player-save-export-worker.ts"),

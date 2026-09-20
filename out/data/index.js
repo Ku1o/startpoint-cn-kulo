@@ -4,6 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.initializeDatabase = void 0;
+const file_exists_1 = require("../lib/file-exists");
 const better_sqlite3_1 = __importDefault(require("better-sqlite3"));
 const fs_1 = require("fs");
 const os_1 = require("os");
@@ -22,7 +23,7 @@ const dataDir = process.env.DATA_DIR
     ? path_1.default.resolve(process.env.DATA_DIR)
     : path_1.default.resolve(__dirname, "../../.database");
 const versionFileExtension = ".version";
-if (!(0, fs_1.existsSync)(dataDir)) {
+if (!(0, file_exists_1.existsSync)(dataDir)) {
     // make the data directory since it doesn't exist
     try {
         (0, fs_1.mkdirSync)(dataDir);
@@ -50,15 +51,15 @@ function getDatabase(database) {
     const metadata = databasesMetadata[database];
     const relativeDatabasePath = metadata.path;
     const absoluteDatabasePath = path_1.default.join(dataDir, relativeDatabasePath);
-    if ((0, fs_1.existsSync)(path_1.default.join(dataDir, "storage-maintenance.lock"))) {
+    if ((0, file_exists_1.existsSync)(path_1.default.join(dataDir, "storage-maintenance.lock"))) {
         throw new Error("数据库维护尚未结束，请使用维护恢复入口；禁止启动业务服务写入");
     }
     // check if the db already exists
-    const dbExists = (0, fs_1.existsSync)(absoluteDatabasePath);
+    const dbExists = (0, file_exists_1.existsSync)(absoluteDatabasePath);
     // get the database's version
     let currentVersion = 0;
     const versionFilePath = path_1.default.join(dataDir, `${relativeDatabasePath}${versionFileExtension}`);
-    if (dbExists && (0, fs_1.existsSync)(versionFilePath)) {
+    if (dbExists && (0, file_exists_1.existsSync)(versionFilePath)) {
         const fileContents = (0, fs_1.readFileSync)(versionFilePath).toString('utf-8');
         const versionNumber = Number(fileContents);
         currentVersion = isNaN(versionNumber) ? currentVersion : versionNumber;

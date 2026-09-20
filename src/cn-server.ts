@@ -1,9 +1,10 @@
+import { existsSync } from "./lib/file-exists";
 import Fastify, { FastifyReply, FastifyRequest } from "fastify";
 import { ContentTypeParserDoneFunction } from "fastify/types/content-type-parser";
 import { pack, unpack } from "msgpackr";
 import fastifyStatic from "@fastify/static";
 import path from "path";
-import { existsSync, mkdirSync, readFileSync } from "fs";
+import { mkdirSync, readFileSync } from "fs";
 import { writeJsonAtomicSync } from "./lib/atomic-json-file";
 import { getStorageLayoutVersion } from "./lib/storage-layout";
 import { getServerTime, getServerTimeForPlayer } from "./utils";

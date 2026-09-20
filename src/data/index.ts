@@ -1,5 +1,6 @@
+import { existsSync } from "../lib/file-exists";
 import sqlite3, { Database as BetterSqlite3Database } from 'better-sqlite3';
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'fs';
 import { tmpdir } from 'os';
 import path from "path";
 import { updateBeforeInit as updateWdfpDataBefore, updateAfterInit as updateWdfpDataAfter} from "./updaters/wdfpData";

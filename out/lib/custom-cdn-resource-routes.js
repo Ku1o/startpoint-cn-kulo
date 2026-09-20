@@ -13,6 +13,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.installCustomCdnResourceRoutes = void 0;
+const file_exists_1 = require("./file-exists");
 const fs_1 = require("fs");
 const path_1 = __importDefault(require("path"));
 /** Serve loose custom resources in all native roots, then the pristine store. */
@@ -25,8 +26,8 @@ function installCustomCdnResourceRoutes(app, options) {
             }
             const custom = path_1.default.join(options.patchRoot, "production", root, prefix, hash);
             const pristine = path_1.default.join(options.cdnRoot, "cn", "dummy", "download", "production", root, prefix, hash);
-            const file = (0, fs_1.existsSync)(custom) ? custom : pristine;
-            if ((0, fs_1.existsSync)(file)) {
+            const file = (0, file_exists_1.existsSync)(custom) ? custom : pristine;
+            if ((0, file_exists_1.existsSync)(file)) {
                 return reply.type("application/octet-stream").send((0, fs_1.readFileSync)(file));
             }
             return reply.status(404).send("Not Found");

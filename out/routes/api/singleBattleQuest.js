@@ -13,6 +13,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.insertActiveQuest = exports.activeQuests = void 0;
+const file_exists_1 = require("../../lib/file-exists");
 const contract_1 = require("../../multi/five-boss/contract");
 const continue_runtime_1 = require("../../multi/five-boss/continue-runtime");
 const solo_rewards_1 = require("../../multi/five-boss/solo-rewards");
@@ -76,7 +77,7 @@ const recommended_party_history_1 = require("../../lib/quest/recommended-party-h
 let carnivalScoreLookup = {};
 try {
     const scorePath = path_1.default.join(process.cwd(), "assets", "carnival_event_quest_scores.json");
-    if ((0, fs_1.existsSync)(scorePath)) {
+    if ((0, file_exists_1.existsSync)(scorePath)) {
         carnivalScoreLookup = JSON.parse((0, fs_1.readFileSync)(scorePath, "utf-8"));
     }
 }
