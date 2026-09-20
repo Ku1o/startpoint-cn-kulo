@@ -3,6 +3,8 @@ import { join } from "path";
 import { performance } from "perf_hooks";
 import { writeJsonAtomicSync } from "./atomic-json-file";
 import type { PersistedSeedPool, SeedUpdate } from "./seed-persistence";
+import { writeSeedJsonAtomicSync } from "./seed-stream-file";
+import { installWorkerMemoryProbe } from "./memory-diagnostics";
 
 const { directory, pools, recover } = workerData as {
     directory: string;
@@ -11,6 +13,12 @@ const { directory, pools, recover } = workerData as {
 };
 type FileKind = "confirmed" | "purified" | "verified";
 const dirty = new Set<FileKind>(recover ? ["confirmed", "purified", "verified"] : []);
+let writeCount = 0, writeBytes = 0, batches = 0;
+installWorkerMemoryProbe(() => {
+    let entries = 0;
+    for (const pool of pools.values()) entries += pool.confirmPool.size + pool.pendingPool.size + pool.playPool.size + pool.verifiedPool.size;
+    return { poolCount: pools.size, entries, dirtyFiles: dirty.size, writeCount, writeBytes, batches };
+});
 
 function updateMap<T>(map: Map<number, T>, seed: number, value: T | undefined): boolean {
     if (value === undefined) return map.delete(seed);
@@ -44,16 +52,25 @@ function serialize(kind: FileKind): Record<string, unknown> {
     return value;
 }
 
-parentPort!.on("message", ({ revision, updates }: { revision: number; updates: SeedUpdate[] }) => {
+parentPort!.on("message", (message: { type?: string; revision: number; updates: SeedUpdate[] }) => {
+    if (message.type === "memory_probe") return;
+    const { revision, updates } = message;
     const startedAt = performance.now();
     let writes = 0;
     try {
         for (const update of updates) apply(update);
         for (const kind of dirty) {
-            writeJsonAtomicSync(join(directory, `${kind}_seeds.json`), serialize(kind));
+            const file = join(directory, `${kind}_seeds.json`);
+            if (/^(0|false|no|off)$/i.test(process.env.SEED_STREAM_WRITES ?? "true")) {
+                writeJsonAtomicSync(file, serialize(kind));
+            } else {
+                writeBytes += writeSeedJsonAtomicSync(file, pools, kind);
+            }
             dirty.delete(kind);
             writes += 1;
+            writeCount += 1;
         }
+        batches += 1;
         parentPort!.postMessage({ revision, writes, elapsedMs: performance.now() - startedAt });
     } catch (error) {
         // Dirty files remain queued; an acknowledged write is never discarded.

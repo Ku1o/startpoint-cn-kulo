@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "degrees": [
+    {
+      "degree_id": 9911001,
+      "row": [
+        "degree_mod_abyss_collector",
+        "991101",
+        "深渊珍藏家",
+        "degree_mod_abyss_collector",
+        "获得条件：在深渊商店累计兑换单抽券与十连券各9999次。",
+        "8",
+        "dynamic/degree/background",
+        "item/etc/degree",
+        "dynamic/degree/degree_mod_abyss_collector"
+      ],
+      "image": {
+        "file": "png/9911001.png",
+        "logical": "dynamic/degree/degree_mod_abyss_collector.png",
+        "sha256": "ab472dc37bbf5b2c24a373347231d69517f707038978c62aea056f2b7ed0d6c7",
+        "stored_sha256": "917eea7b8ba8671454d9aa373a2d882b6521de74561a6860e6fce4962e83d965"
+      }
+    },
+    {
+      "degree_id": 9911002,
+      "row": [
+        "degree_mod_abyss_forge_master",
+        "991102",
+        "深渊锻造大师",
+        "degree_mod_abyss_forge_master",
+        "获得条件：将全部15把深渊武器强化至120级。",
+        "8",
+        "dynamic/degree/background",
+        "item/etc/degree",
+        "dynamic/degree/degree_mod_abyss_forge_master"
+      ],
+      "image": {
+        "file": "png/9911002.png",
+        "logical": "dynamic/degree/degree_mod_abyss_forge_master.png",
+        "sha256": "f8cfdabafe83a50462514703b5c8e34d6ee9cbaa7609d56de57a892690be4fbd",
+        "stored_sha256": "c5b30e5abc7e52902ddb05c722a791b1a5374dd4818761c1dcc3753dd89c0339"
+      }
+    },
+    {
+      "degree_id": 9911003,
+      "row": [
+        "degree_mod_deathbringer_master",
+        "991103",
+        "终焉铸魂者",
+        "degree_mod_deathbringer_master",
+        "获得条件：将死亡使者·终式强化至120级。",
+        "8",
+        "dynamic/degree/background",
+        "item/etc/degree",
+        "dynamic/degree/degree_mod_deathbringer_master"
+      ],
+      "image": {
+        "file": "png/9911003.png",
+        "logical": "dynamic/degree/degree_mod_deathbringer_master.png",
+        "sha256": "23b09e11439a9a3b8fb9e8599cb61e99bff22f889312c24159f0182da47b8153",
+        "stored_sha256": "f1843145e253225d38f54bdab41216c7945d3c937e4508763207a57f1db5f5aa"
+      }
+    }
+  ]
+}

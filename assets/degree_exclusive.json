@@ -1,0 +1,23 @@
+{
+  "9911001": {
+    "string_id": "degree_mod_abyss_collector",
+    "name": "深渊珍藏家",
+    "kana": "degree_mod_abyss_collector",
+    "condition": "获得条件：在深渊商店累计兑换单抽券与十连券各9999次。",
+    "category_id": 8
+  },
+  "9911002": {
+    "string_id": "degree_mod_abyss_forge_master",
+    "name": "深渊锻造大师",
+    "kana": "degree_mod_abyss_forge_master",
+    "condition": "获得条件：将全部15把深渊武器强化至120级。",
+    "category_id": 8
+  },
+  "9911003": {
+    "string_id": "degree_mod_deathbringer_master",
+    "name": "终焉铸魂者",
+    "kana": "degree_mod_deathbringer_master",
+    "condition": "获得条件：将死亡使者·终式强化至120级。",
+    "category_id": 8
+  }
+}

@@ -1,14 +1,17 @@
+import { existsSync } from "../lib/file-exists";
 import sqlite3, { Database as BetterSqlite3Database } from 'better-sqlite3';
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'fs';
 import { tmpdir } from 'os';
 import path from "path";
 import { updateBeforeInit as updateWdfpDataBefore, updateAfterInit as updateWdfpDataAfter} from "./updaters/wdfpData";
 import initWdfpData from "./initializers/wdfpData";
 import { initializeQuestTimeRevision } from "./initializers/quest-time-revision";
+import { initializeAbyssTowerProgress } from "./initializers/abyss-tower-progress";
 import { initializeAbyssRecords } from "./initializers/abyss-records";
 import { initializeFiveBossGauntlet } from "./initializers/five-boss-gauntlet";
 import { ensureCascadeDeleteIndexes } from "../lib/admin-account-cleanup";
 import { assertStorageLayout, WDFP_DATA_VERSION } from "../lib/storage-layout";
+import { observeSqliteDatabase } from "../lib/sqlite-diagnostics";
 
 // Use __dirname so DB path is relative to the source file, not process.cwd()
 const dataDir = process.env.DATA_DIR
@@ -111,6 +114,7 @@ export default function getDatabase(
             console.log("[DB] calling init...")
             init(db, dbExists)
             initializeQuestTimeRevision(db)
+            initializeAbyssTowerProgress(db)
             initializeAbyssRecords(db)
             initializeFiveBossGauntlet(db)
             console.log("[DB] init done")
@@ -138,6 +142,7 @@ export default function getDatabase(
 
     // re-enable foreign keys
     db.pragma('foreign_keys = ON')
+    observeSqliteDatabase(db, "main")
 
     // add to loaded databases
     loadedDatabases[database] = db

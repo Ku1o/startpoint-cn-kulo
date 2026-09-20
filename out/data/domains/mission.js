@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updatePlayerActiveMissionStageSync = exports.deletePlayerCategoryMissionsSync = exports.updatePlayerCategoryMissionStageBatchSync = exports.updatePlayerCategoryMissionStageSync = exports.incrementPlayerCategoryMissionSync = exports.updatePlayerCategoryMissionBatchSync = exports.updatePlayerCategoryMissionSync = exports.insertPlayerCategoryMissionListSync = exports.getPlayerClearedCollectItemEventMissionListSync = exports.getPlayerCategoryMissionListSync = exports.getPlayerCategoryMissionsForCategoriesSync = exports.getPlayerCategoryMissionsSync = exports.incrementPlayerActiveMissionSync = exports.updatePlayerActiveMissionSync = exports.insertPlayerActiveMissionsSync = exports.getPlayerActiveMissionsSync = exports.insertPlayerClearedRegularMissionListSync = exports.getPlayerClearedRegularMissionListSync = void 0;
+exports.updatePlayerActiveMissionStageSync = exports.deletePlayerCategoryMissionsSync = exports.updatePlayerCategoryMissionStageBatchSync = exports.updatePlayerCategoryMissionStageSync = exports.incrementPlayerCategoryMissionSync = exports.updatePlayerCategoryMissionBatchSync = exports.updatePlayerCategoryMissionSync = exports.insertPlayerCategoryMissionListSync = exports.getPlayerClearedCollectItemEventMissionListSync = exports.getPlayerCategoryMissionListSync = exports.getPlayerCategoryMissionsForScopesSync = exports.getPlayerCategoryMissionsForCategoriesSync = exports.getPlayerCategoryMissionsSync = exports.incrementPlayerActiveMissionSync = exports.updatePlayerActiveMissionSync = exports.insertPlayerActiveMissionsSync = exports.getPlayerActiveMissionsSync = exports.insertPlayerClearedRegularMissionListSync = exports.getPlayerClearedRegularMissionListSync = void 0;
+const cached_statement_1 = require("../../lib/cached-statement");
 const db_1 = require("../db");
 const utils_1 = require("../utils");
 /**
@@ -10,7 +11,7 @@ const utils_1 = require("../utils");
  * @returns A record, where the index is the id of the mission and the value is ???.
  */
 function getPlayerClearedRegularMissionListSync(playerId) {
-    const raw = (0, db_1.getDb)().prepare(`
+    const raw = (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
     SELECT id, value
     FROM players_cleared_regular_missions
     WHERE player_id = ?
@@ -30,7 +31,7 @@ exports.getPlayerClearedRegularMissionListSync = getPlayerClearedRegularMissionL
  * @param value
  */
 function insertPlayerClearedRegularMissionSync(playerId, missionId, value) {
-    (0, db_1.getDb)().prepare(`
+    (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
     INSERT INTO players_cleared_regular_missions (id, value, player_id)
     VALUES (?, ?, ?)
     `).run(Number(missionId), value, playerId);
@@ -59,7 +60,7 @@ exports.insertPlayerClearedRegularMissionListSync = insertPlayerClearedRegularMi
  * @param amount The amount of the item to insert.
  */
 function insertPlayerItemSync(playerId, itemId, amount) {
-    (0, db_1.getDb)().prepare(`
+    (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
     INSERT INTO players_items (id, amount, player_id)
     VALUES (?, ?, ?)
     `).run(Number(itemId), amount, playerId);
@@ -80,12 +81,12 @@ function insertPlayerItemSync(playerId, itemId, amount) {
  * @returns A record of each mission and its current progress.
  */
 function getPlayerActiveMissionsSync(playerId) {
-    const rawMissions = (0, db_1.getDb)().prepare(`
+    const rawMissions = (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
     SELECT id, progress
     FROM players_active_missions
     WHERE player_id = ?
     `).all(playerId);
-    const rawStages = (0, db_1.getDb)().prepare(`
+    const rawStages = (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
     SELECT id, status, mission_id
     FROM players_active_missions_stages
     WHERE player_id = ?
@@ -120,7 +121,7 @@ exports.getPlayerActiveMissionsSync = getPlayerActiveMissionsSync;
  * @param status The status of the stage.
  */
 function insertPlayerActiveMissionStageSync(playerId, stageId, missionId, status) {
-    (0, db_1.getDb)().prepare(`
+    (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
     INSERT INTO players_active_missions_stages (id, status, player_id, mission_id)
     VALUES (?, ?, ?, ?)   
     `).run(Number(stageId), (0, utils_1.serializeBoolean)(status), playerId, Number(missionId));
@@ -133,7 +134,7 @@ function insertPlayerActiveMissionStageSync(playerId, stageId, missionId, status
  * @param mission The mission's data.
  */
 function insertPlayerActiveMissionSync(playerId, missionId, mission) {
-    (0, db_1.getDb)().prepare(`
+    (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
     INSERT INTO players_active_missions (id, progress, player_id)
     VALUES (?, ?, ?)
     `).run(Number(missionId), mission.progress, playerId);
@@ -162,7 +163,7 @@ exports.insertPlayerActiveMissionsSync = insertPlayerActiveMissionsSync;
  * Updates the progress value of a single active mission.
  */
 function updatePlayerActiveMissionSync(playerId, missionId, progress) {
-    (0, db_1.getDb)().prepare(`
+    (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
     INSERT INTO players_active_missions (id, progress, player_id)
     VALUES (?, ?, ?)
     ON CONFLICT(id, player_id) DO UPDATE SET progress = excluded.progress
@@ -171,7 +172,7 @@ function updatePlayerActiveMissionSync(playerId, missionId, progress) {
 exports.updatePlayerActiveMissionSync = updatePlayerActiveMissionSync;
 /** Atomically adds a client-reported counter delta to a mission. */
 function incrementPlayerActiveMissionSync(playerId, missionId, delta) {
-    (0, db_1.getDb)().prepare(`
+    (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
     INSERT INTO players_active_missions (id, progress, player_id)
     VALUES (?, ?, ?)
     ON CONFLICT(id, player_id) DO UPDATE SET progress = progress + excluded.progress
@@ -186,13 +187,13 @@ function getPlayerCategoryMissionsSync(playerId, category, missionIds) {
         return {};
     const placeholders = ids === null || ids === void 0 ? void 0 : ids.map(() => "?").join(", ");
     const parameters = [playerId, category, ...(ids !== null && ids !== void 0 ? ids : [])];
-    const missions = (0, db_1.getDb)().prepare(`
+    const missions = (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
     SELECT id, progress
     FROM players_category_missions
     WHERE player_id = ? AND category = ?
     ${ids ? `AND id IN (${placeholders})` : ""}
     `).all(...parameters);
-    const stages = (0, db_1.getDb)().prepare(`
+    const stages = (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
     SELECT id, status, mission_id
     FROM players_category_mission_stages
     WHERE player_id = ? AND category = ?
@@ -222,12 +223,12 @@ function getPlayerCategoryMissionsForCategoriesSync(playerId, categories) {
     if (uniqueCategories.length === 0)
         return {};
     const placeholders = uniqueCategories.map(() => "?").join(", ");
-    const missions = (0, db_1.getDb)().prepare(`
+    const missions = (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
     SELECT category, id, progress
     FROM players_category_missions
     WHERE player_id = ? AND category IN (${placeholders})
     `).all(playerId, ...uniqueCategories);
-    const stages = (0, db_1.getDb)().prepare(`
+    const stages = (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
     SELECT category, id, status, mission_id
     FROM players_category_mission_stages
     WHERE player_id = ? AND category IN (${placeholders})
@@ -249,8 +250,61 @@ function getPlayerCategoryMissionsForCategoriesSync(playerId, categories) {
     return result;
 }
 exports.getPlayerCategoryMissionsForCategoriesSync = getPlayerCategoryMissionsForCategoriesSync;
+/** Two fixed query plans, restricted to the mission IDs this settlement evaluates. */
+function getPlayerCategoryMissionsForScopesSync(playerId, scopes) {
+    var _a;
+    const requested = new Map();
+    for (const scope of scopes) {
+        if (!Number.isSafeInteger(scope.category))
+            continue;
+        const ids = (_a = requested.get(scope.category)) !== null && _a !== void 0 ? _a : new Set();
+        for (const id of scope.missionIds)
+            if (Number.isSafeInteger(id))
+                ids.add(id);
+        requested.set(scope.category, ids);
+    }
+    const result = {};
+    const pairs = [];
+    for (const [category, ids] of requested) {
+        result[String(category)] = {};
+        for (const id of ids)
+            pairs.push([category, id]);
+    }
+    if (pairs.length === 0)
+        return result;
+    const selection = JSON.stringify(pairs);
+    const missions = (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
+        SELECT m.category, m.id, m.progress
+        FROM json_each(?) AS requested
+        CROSS JOIN players_category_missions AS m
+        WHERE m.category = CAST(json_extract(requested.value, '$[0]') AS INTEGER)
+          AND m.id = CAST(json_extract(requested.value, '$[1]') AS INTEGER)
+          AND m.player_id = ?
+    `).all(selection, playerId);
+    for (const mission of missions) {
+        result[String(mission.category)][String(mission.id)] = { progress: mission.progress, stages: [] };
+    }
+    const stages = (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
+        SELECT s.category, s.id, s.status, s.mission_id
+        FROM json_each(?) AS requested
+        CROSS JOIN players_category_mission_stages AS s
+        WHERE s.category = CAST(json_extract(requested.value, '$[0]') AS INTEGER)
+          AND s.mission_id = CAST(json_extract(requested.value, '$[1]') AS INTEGER)
+          AND s.player_id = ?
+    `).all(selection, playerId);
+    for (const stage of stages) {
+        const mission = result[String(stage.category)][String(stage.mission_id)];
+        if (!mission)
+            continue;
+        if (Array.isArray(mission.stages))
+            mission.stages = {};
+        mission.stages[String(stage.id)] = (0, utils_1.deserializeBoolean)(stage.status);
+    }
+    return result;
+}
+exports.getPlayerCategoryMissionsForScopesSync = getPlayerCategoryMissionsForScopesSync;
 function getPlayerCategoryMissionListSync(playerId) {
-    const categories = (0, db_1.getDb)().prepare(`
+    const categories = (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
     SELECT DISTINCT category
     FROM players_category_missions
     WHERE player_id = ?
@@ -260,7 +314,7 @@ function getPlayerCategoryMissionListSync(playerId) {
 }
 exports.getPlayerCategoryMissionListSync = getPlayerCategoryMissionListSync;
 function getPlayerClearedCollectItemEventMissionListSync(playerId) {
-    const rows = (0, db_1.getDb)().prepare(`
+    const rows = (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
     SELECT mission_id, MAX(id) AS stage
     FROM players_category_mission_stages
     WHERE player_id = ? AND category = 4 AND status = 1
@@ -289,7 +343,7 @@ function insertPlayerCategoryMissionListSync(playerId, categories) {
 }
 exports.insertPlayerCategoryMissionListSync = insertPlayerCategoryMissionListSync;
 function updatePlayerCategoryMissionSync(playerId, category, missionId, progress) {
-    (0, db_1.getDb)().prepare(`
+    (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
     INSERT INTO players_category_missions (category, id, progress, player_id)
     VALUES (?, ?, ?, ?)
     ON CONFLICT(category, id, player_id) DO UPDATE SET progress = excluded.progress
@@ -299,7 +353,7 @@ exports.updatePlayerCategoryMissionSync = updatePlayerCategoryMissionSync;
 function updatePlayerCategoryMissionBatchSync(playerId, updates) {
     if (updates.length === 0)
         return;
-    const statement = (0, db_1.getDb)().prepare(`
+    const statement = (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
     INSERT INTO players_category_missions (category, id, progress, player_id)
     VALUES (?, ?, ?, ?)
     ON CONFLICT(category, id, player_id) DO UPDATE SET progress = excluded.progress
@@ -310,7 +364,7 @@ function updatePlayerCategoryMissionBatchSync(playerId, updates) {
 }
 exports.updatePlayerCategoryMissionBatchSync = updatePlayerCategoryMissionBatchSync;
 function incrementPlayerCategoryMissionSync(playerId, category, missionId, delta) {
-    (0, db_1.getDb)().prepare(`
+    (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
     INSERT INTO players_category_missions (category, id, progress, player_id)
     VALUES (?, ?, ?, ?)
     ON CONFLICT(category, id, player_id) DO UPDATE SET progress = progress + excluded.progress
@@ -318,7 +372,7 @@ function incrementPlayerCategoryMissionSync(playerId, category, missionId, delta
 }
 exports.incrementPlayerCategoryMissionSync = incrementPlayerCategoryMissionSync;
 function updatePlayerCategoryMissionStageSync(playerId, category, stageId, missionId, status) {
-    (0, db_1.getDb)().prepare(`
+    (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
     INSERT INTO players_category_mission_stages (category, id, status, player_id, mission_id)
     VALUES (?, ?, ?, ?, ?)
     ON CONFLICT(category, id, mission_id, player_id) DO UPDATE SET status = excluded.status
@@ -328,7 +382,7 @@ exports.updatePlayerCategoryMissionStageSync = updatePlayerCategoryMissionStageS
 function updatePlayerCategoryMissionStageBatchSync(playerId, updates) {
     if (updates.length === 0)
         return;
-    const statement = (0, db_1.getDb)().prepare(`
+    const statement = (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
     INSERT INTO players_category_mission_stages (category, id, status, player_id, mission_id)
     VALUES (?, ?, ?, ?, ?)
     ON CONFLICT(category, id, mission_id, player_id) DO UPDATE SET status = excluded.status
@@ -340,8 +394,8 @@ function updatePlayerCategoryMissionStageBatchSync(playerId, updates) {
 exports.updatePlayerCategoryMissionStageBatchSync = updatePlayerCategoryMissionStageBatchSync;
 function deletePlayerCategoryMissionsSync(playerId, category) {
     (0, db_1.getDb)().transaction(() => {
-        (0, db_1.getDb)().prepare(`DELETE FROM players_category_mission_stages WHERE player_id = ? AND category = ?`).run(playerId, category);
-        (0, db_1.getDb)().prepare(`DELETE FROM players_category_missions WHERE player_id = ? AND category = ?`).run(playerId, category);
+        (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `DELETE FROM players_category_mission_stages WHERE player_id = ? AND category = ?`).run(playerId, category);
+        (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `DELETE FROM players_category_missions WHERE player_id = ? AND category = ?`).run(playerId, category);
     })();
 }
 exports.deletePlayerCategoryMissionsSync = deletePlayerCategoryMissionsSync;
@@ -349,7 +403,7 @@ exports.deletePlayerCategoryMissionsSync = deletePlayerCategoryMissionsSync;
  * Updates the status of a single active mission stage (claimed/unclaimed).
  */
 function updatePlayerActiveMissionStageSync(playerId, stageId, missionId, status) {
-    (0, db_1.getDb)().prepare(`
+    (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
     INSERT OR REPLACE INTO players_active_missions_stages (id, status, player_id, mission_id)
     VALUES (?, ?, ?, ?)
     `).run(Number(stageId), (0, utils_1.serializeBoolean)(status), playerId, Number(missionId));

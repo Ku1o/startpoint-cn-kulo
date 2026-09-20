@@ -10,7 +10,18 @@ const admission_1 = require("./admission");
 const embedded_1 = require("../coordinator/embedded");
 const assets_1 = require("../../lib/assets");
 const connection_diagnostic_1 = require("../five-boss/connection-diagnostic");
+const memory_diagnostics_1 = require("../../lib/memory-diagnostics");
 const rooms = new Map();
+(0, memory_diagnostics_1.registerMemoryCounters)("rooms", () => {
+    var _a;
+    const counts = { total: rooms.size, lobby: 0, battle: 0, returning: 0, other: 0 };
+    for (const room of rooms.values()) {
+        const phase = (_a = room.lifecycle) === null || _a === void 0 ? void 0 : _a.phase;
+        const key = phase === "LOBBY" ? "lobby" : phase === "BATTLE" ? "battle" : phase === "RETURNING" ? "returning" : "other";
+        counts[key]++;
+    }
+    return counts;
+});
 let roomSequence = 1;
 const INCOMPLETE_EXPIRY_MS = parseInt(process.env.MULTI_ROOM_INCOMPLETE_EXPIRY_MS || "900000"); // 15min, mates < 3
 const FULL_ROOM_EXPIRY_MS = parseInt(process.env.MULTI_ROOM_FULL_EXPIRY_MS || "1800000"); // 30min, mates >= 3

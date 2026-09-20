@@ -23,8 +23,8 @@ function getLeaderboardAvailabilitySync(competitionKey, nowMs = Date.now()) {
     (0, db_1.getDb)().prepare(`
         INSERT OR IGNORE INTO leaderboard_availability (
             competition_key, enabled, updated_at_ms
-        ) VALUES (?, 1, ?)
-    `).run(competitionKey, nowMs);
+        ) VALUES (?, ?, ?)
+    `).run(competitionKey, competitionKey === "rush:700100:1" ? 0 : 1, nowMs);
     const row = (0, db_1.getDb)().prepare(`
         SELECT competition_key, enabled, updated_at_ms
         FROM leaderboard_availability

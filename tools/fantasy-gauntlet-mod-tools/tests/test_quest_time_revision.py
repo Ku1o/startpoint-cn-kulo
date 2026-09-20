@@ -42,6 +42,35 @@ class QuestTimeRevisionTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             quest_time_revisions({RUSH_QUEST_MEMBER: b"malformed"})
 
+    def test_ex_revision_is_independent_and_cannot_be_omitted_from_release(self):
+        original = self.revision(self.table)[ABYSS_REVISION_KEY]
+        self.table['700100']={'1':'700100001,1,1,EX A','30':'700100030,1,30,EX B','99':'endless'}
+        first = self.revision(self.table)
+        self.assertEqual(first[ABYSS_REVISION_KEY],original)
+        self.table['700100']['99']='new endless'
+        self.assertEqual(self.revision(self.table),first)
+        self.table['700100']['30']='700100030,1,30,EX C'
+        current=self.revision(self.table)
+        self.assertNotEqual(current['rush:700100'],first['rush:700100'])
+        self.assertEqual(current[ABYSS_REVISION_KEY],original)
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp); active=root/'assets/asset-patch/active'; active.mkdir(parents=True)
+            with zipfile.ZipFile(active/'tower.zip','w') as archive:
+                archive.writestr(RUSH_QUEST_MEMBER,q.build_node(self.table))
+            patch=dict(type='patch',enabled=True,version='1.4.111',archive='tower.zip',
+                       quest_time_revisions={ABYSS_REVISION_KEY:original})
+            manifest=active.parent/'manifest.json'
+            manifest.write_text(json.dumps({'patches':[patch]}))
+            with self.assertRaisesRegex(ValueError,'700100'):
+                validate_current_chain(root)
+            patch['quest_time_revisions']=first
+            manifest.write_text(json.dumps({'patches':[patch]}))
+            with self.assertRaisesRegex(ValueError,'stale'):
+                validate_current_chain(root)
+            patch['quest_time_revisions']=current
+            manifest.write_text(json.dumps({'patches':[patch]}))
+            self.assertEqual(validate_current_chain(root)['modes']['rush:700100']['revision'],current['rush:700100'])
+
     def test_publisher_registers_the_revision_from_the_archived_payload(self):
         with tempfile.TemporaryDirectory() as tmp:
             active = Path(tmp) / "active"
@@ -81,6 +110,39 @@ class QuestTimeRevisionTests(unittest.TestCase):
             patches.append(dict(type='patch', enabled=True, version='1.4.106', quest_time_revisions=new))
             manifest.write_text(json.dumps(dict(patches=patches)))
             self.assertEqual('1.4.106', validate_current_chain(root)['marker_version'])
+
+    def test_description_proof_preserves_records_but_rejects_combat_edits(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            active = root / 'assets/asset-patch/active'
+            active.mkdir(parents=True)
+            before = copy.deepcopy(self.table)
+            after = copy.deepcopy(before)
+            after['700099']['1'] = '700099001,1,1,description fixed'
+            original = self.revision(before)
+            prior = dict(id='old', type='patch', enabled=True, version='1.4.112',
+                         archive='old.zip', quest_time_revisions=original)
+            patch = dict(id='new', type='patch', enabled=True, version='1.4.113',
+                         archive='new.zip', quest_time_revisions=original)
+            def write():
+                patch['quest_description_revisions'] = {ABYSS_REVISION_KEY: {
+                    'content_revision': self.revision(after)[ABYSS_REVISION_KEY],
+                    'record_revision': original[ABYSS_REVISION_KEY], 'reference_patch': 'old'}}
+                for name, table in [('old.zip', before), ('new.zip', after)]:
+                    with zipfile.ZipFile(active/name, 'w') as archive:
+                        archive.writestr(RUSH_QUEST_MEMBER, q.build_node(table))
+                (active.parent/'manifest.json').write_text(json.dumps({'patches':[prior,patch]}))
+            write()
+            self.assertEqual(validate_current_chain(root)['revision'], original[ABYSS_REVISION_KEY])
+            after['700099']['1'] = '700099001,2,1,description fixed'
+            write()
+            with self.assertRaisesRegex(ValueError, 'combat columns'):
+                validate_current_chain(root)
+            after['700099']['1'] = '700099001,1,1,description fixed'
+            after['700099']['99'] = 'changed endless'
+            write()
+            with self.assertRaisesRegex(ValueError, 'endless'):
+                validate_current_chain(root)
 
     def test_multipart_chain_last_tower_wins_over_archive_alias(self):
         with tempfile.TemporaryDirectory() as tmp:

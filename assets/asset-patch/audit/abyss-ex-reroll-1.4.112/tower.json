@@ -1,0 +1,889 @@
+{
+  "seed": 2026091801,
+  "resources": {
+    "master/reward/event/additional_reward.orderedmap": "6bd14ef98b0986f73c3b5e1c722c108f2e7bf68e6ec240fb42415d5693d7a42f",
+    "master/battle/boss/general_boss_state.orderedmap": "22ea6417810465df50134e35f0fefcc4b2b58e50f1e2c86a26ea63f5c9470f5e",
+    "master/battle/boss/general_boss.orderedmap": "4576dbd9621b13a6064a0a74a8c5ffc6f5f259525c7d3a09970e68879e0ec900",
+    "master/battle/boss/boss_level.orderedmap": "20a74bdb2758449ea25a69ccea21c7e9bed38143a6d739ef5f7c80b283b3457e",
+    "master/battle/boss/general_boss_variable.orderedmap": "8f82661babf0dbfbd03cfcfd5bf25a550e6b1bdc36572e0469cb77cd402a3cec",
+    "master/battle/boss/general_enemy_watch.orderedmap": "ba40d4e42bffb035e4ebb33eeb9f7af1cf0f8c60763739469fc5d020d26006e0",
+    "master/battle/zone.orderedmap": "76ded07f0b6ea56208842cf56140b861f60ba0484be304c8d53afb29397fd8f2",
+    "master/battle/field_data.orderedmap": "a829ed86d866be52a8a615c63326cd099024e17c97bcb926decf956d09399b54",
+    "master/quest/event/rush_event_quest.orderedmap": "efc6025c93b74c4f8215384254d9cacb1fde4e5da90a7443061b94d4d4081a85",
+    "battle/action/enemy/action/mod_rogue/immunity_0cc8ab64b812.action.dsl.amf3.deflate": "4ffb34dce471f5f7aa8257c3baa22173678d20044cf575037a96450ef498c417",
+    "battle/action/enemy/action/mod_rogue/immunity_186f377b75ea.action.dsl.amf3.deflate": "0d040d54cdd6a1173dd9faa83f4a31d90ea4d8d2c9ff2a7c2e5be666d4e1ce0c",
+    "battle/action/enemy/action/mod_rogue/immunity_26c8199a9e03.action.dsl.amf3.deflate": "11e3b0f8b70751f8bc955db4eab3f3ae9e1ac1c8838319ab5e8d0fa4255332a8",
+    "battle/action/enemy/action/mod_rogue/immunity_2d94bf28bdcc.action.dsl.amf3.deflate": "c3097fdc016cb2db8cd044cbccaf86e7ce626ebf603f7f5c7abd3236beea72c9",
+    "battle/action/enemy/action/mod_rogue/immunity_333c275d972d.action.dsl.amf3.deflate": "9fe003f5df4505fd0866bdc85eab479b9e5904efbb84466d843738ac59478647",
+    "battle/action/enemy/action/mod_rogue/immunity_34c63749c0b5.action.dsl.amf3.deflate": "fc73bfb81083aec34052eafd2856c175757f6ad3f81dfaee716c9570938106d1",
+    "battle/action/enemy/action/mod_rogue/immunity_3a5568d00520.action.dsl.amf3.deflate": "0da2ed2b157306401af7b5e869081cad3d6fa1f41b1eebfac91229442c1aab2d",
+    "battle/action/enemy/action/mod_rogue/immunity_44d5bc4ca322.action.dsl.amf3.deflate": "d5911d644f88613d4d76f0c39757f9b35b5cd0a1185414ebf5fcbe9994b807d7",
+    "battle/action/enemy/action/mod_rogue/immunity_473c2ac7d706.action.dsl.amf3.deflate": "3be8d7e99b4c7f8ea41bbe6c381d5fe11ed0c9890716f454e315af320f18fcb5",
+    "battle/action/enemy/action/mod_rogue/immunity_5199352f0d94.action.dsl.amf3.deflate": "fe71274ebc07b3293beab80ab6e8716ff4b55481eb76740bf176536f1c1fc7c5",
+    "battle/action/enemy/action/mod_rogue/immunity_6717a66c39bb.action.dsl.amf3.deflate": "c664962d0e2e2b748c4089143f376e725ad1a81cd8b2db881f16ef2f20d76d3c",
+    "battle/action/enemy/action/mod_rogue/immunity_792d7c6f24ab.action.dsl.amf3.deflate": "1ed525d023fe0543c859ff22375c297bdd50a856267077e011584d7ca610ca8b",
+    "battle/action/enemy/action/mod_rogue/immunity_9996e96ef231.action.dsl.amf3.deflate": "e5da9d88819c221cb121450a99cd4732c517f3687a69798334db33d494ec1fdd",
+    "battle/action/enemy/action/mod_rogue/immunity_99c7d3ac5e0e.action.dsl.amf3.deflate": "b44a78f0556d08214d72db4311b1ed374c86b70be720a57f0e6214ffb88517a1",
+    "battle/action/enemy/action/mod_rogue/immunity_9e15ffac9643.action.dsl.amf3.deflate": "7f8a75da4ea57cdb24262876743e48035b2cda29bd3f3d1e37807d6be17b307a",
+    "battle/action/enemy/action/mod_rogue/immunity_a45f8da587e2.action.dsl.amf3.deflate": "379de206acbf10fbe5991460dee2a66429a07220ac1ee43b1c0b9ae6de582125",
+    "battle/action/enemy/action/mod_rogue/immunity_b072ec3d8190.action.dsl.amf3.deflate": "41f9ed03b8866967ae63429fa229060637fa7c949f46ba4e5f952ccbd47d9c36",
+    "battle/action/enemy/action/mod_rogue/immunity_cc42f91370de.action.dsl.amf3.deflate": "30d60a9ac00054ec35ad8841217d507890f884da573da01c7893b5085d977da0",
+    "battle/action/enemy/action/mod_rogue/immunity_dfe3cb4c1885.action.dsl.amf3.deflate": "23b53d464ca70a689782e4dc64efbc96ffbd85f41c4623a651f1d77c67f4bd7c",
+    "battle/action/enemy/action/mod_rogue/immunity_eb9e69acbd8a.action.dsl.amf3.deflate": "f46da09baa82c0587b8efd64ce35b3c949327cadf8ad3a9cae6ed87bbd29d3c6",
+    "battle/action/enemy/action/mod_rogue/immunity_f1d1eb6b51a2.action.dsl.amf3.deflate": "276b2a601b16ddb7b84802bb0e995c04a7eafec2261fee2894a25618c3186adc",
+    "battle/action/enemy/action/mod_rogue/immunity_f8a1345bd935.action.dsl.amf3.deflate": "4b3ee2ea21755c9981aa83674014f59d1aa7e99047d229d10b27fcf8faf92438",
+    "battle/action/enemy/action/mod_rogue/immunity_ffc7e04d4aa2.action.dsl.amf3.deflate": "5d613708da11b514b2c6375a4500dc9d2284956c49c0cd726cfe6f8b672a9902"
+  },
+  "deltas": {
+    "master/reward/event/additional_reward.orderedmap": [
+      "237010000"
+    ],
+    "master/battle/boss/general_boss_state.orderedmap": [
+      "mod_abyss_ex_boss30_2_state",
+      "mod_abyss_ex_boss8_state",
+      "mod_abyss_ex_boss23_state"
+    ],
+    "master/battle/boss/general_boss.orderedmap": [
+      "mod_abyss_ex_boss1",
+      "mod_abyss_ex_boss2",
+      "mod_abyss_ex_boss3",
+      "mod_abyss_ex_boss4",
+      "mod_abyss_ex_boss5",
+      "mod_abyss_ex_boss6",
+      "mod_abyss_ex_boss7",
+      "mod_abyss_ex_boss8",
+      "mod_abyss_ex_boss9",
+      "mod_abyss_ex_boss10",
+      "mod_abyss_ex_boss11",
+      "mod_abyss_ex_boss12",
+      "mod_abyss_ex_boss13",
+      "mod_abyss_ex_boss14",
+      "mod_abyss_ex_boss15",
+      "mod_abyss_ex_boss16",
+      "mod_abyss_ex_boss17",
+      "mod_abyss_ex_boss18",
+      "mod_abyss_ex_boss19",
+      "mod_abyss_ex_boss20",
+      "mod_abyss_ex_boss21",
+      "mod_abyss_ex_boss22",
+      "mod_abyss_ex_boss23",
+      "mod_abyss_ex_boss24",
+      "mod_abyss_ex_boss25",
+      "mod_abyss_ex_boss26",
+      "mod_abyss_ex_boss27",
+      "mod_abyss_ex_boss28",
+      "mod_abyss_ex_boss29",
+      "mod_abyss_ex_boss30",
+      "mod_abyss_ex_boss30_2"
+    ],
+    "master/battle/boss/boss_level.orderedmap": [
+      "mod_abyss_ex_boss1",
+      "mod_abyss_ex_boss2",
+      "mod_abyss_ex_boss3",
+      "mod_abyss_ex_boss4",
+      "mod_abyss_ex_boss5",
+      "mod_abyss_ex_boss6",
+      "mod_abyss_ex_boss7",
+      "mod_abyss_ex_boss8",
+      "mod_abyss_ex_boss9",
+      "mod_abyss_ex_boss10",
+      "mod_abyss_ex_boss11",
+      "mod_abyss_ex_boss12",
+      "mod_abyss_ex_boss13",
+      "mod_abyss_ex_boss14",
+      "mod_abyss_ex_boss15",
+      "mod_abyss_ex_boss16",
+      "mod_abyss_ex_boss17",
+      "mod_abyss_ex_boss18",
+      "mod_abyss_ex_boss19",
+      "mod_abyss_ex_boss20",
+      "mod_abyss_ex_boss21",
+      "mod_abyss_ex_boss22",
+      "mod_abyss_ex_boss23",
+      "mod_abyss_ex_boss24",
+      "mod_abyss_ex_boss25",
+      "mod_abyss_ex_boss26",
+      "mod_abyss_ex_boss27",
+      "mod_abyss_ex_boss28",
+      "mod_abyss_ex_boss29",
+      "mod_abyss_ex_boss30",
+      "mod_abyss_ex_boss30_2"
+    ],
+    "master/battle/boss/general_boss_variable.orderedmap": [
+      "mod_abyss_ex_boss1",
+      "mod_abyss_ex_boss2",
+      "mod_abyss_ex_boss3",
+      "mod_abyss_ex_boss6",
+      "mod_abyss_ex_boss7",
+      "mod_abyss_ex_boss9",
+      "mod_abyss_ex_boss11",
+      "mod_abyss_ex_boss13",
+      "mod_abyss_ex_boss14",
+      "mod_abyss_ex_boss16",
+      "mod_abyss_ex_boss17",
+      "mod_abyss_ex_boss18",
+      "mod_abyss_ex_boss19",
+      "mod_abyss_ex_boss4",
+      "mod_abyss_ex_boss10",
+      "mod_abyss_ex_boss15",
+      "mod_abyss_ex_boss21",
+      "mod_abyss_ex_boss22",
+      "mod_abyss_ex_boss23",
+      "mod_abyss_ex_boss24",
+      "mod_abyss_ex_boss27",
+      "mod_abyss_ex_boss28",
+      "mod_abyss_ex_boss30"
+    ],
+    "master/battle/boss/general_enemy_watch.orderedmap": [
+      "1",
+      "2"
+    ],
+    "master/battle/zone.orderedmap": [
+      "mod_abyss_ex_final_pair",
+      "mod_abyss_ex_z1",
+      "mod_abyss_ex_z2",
+      "mod_abyss_ex_z3",
+      "mod_abyss_ex_z4",
+      "mod_abyss_ex_z5",
+      "mod_abyss_ex_z6",
+      "mod_abyss_ex_z7",
+      "mod_abyss_ex_z8",
+      "mod_abyss_ex_z9",
+      "mod_abyss_ex_z10",
+      "mod_abyss_ex_z11",
+      "mod_abyss_ex_z12",
+      "mod_abyss_ex_z13",
+      "mod_abyss_ex_z14",
+      "mod_abyss_ex_z15",
+      "mod_abyss_ex_z16",
+      "mod_abyss_ex_z17",
+      "mod_abyss_ex_z18",
+      "mod_abyss_ex_z19",
+      "mod_abyss_ex_z20",
+      "mod_abyss_ex_z21",
+      "mod_abyss_ex_z22",
+      "mod_abyss_ex_z23",
+      "mod_abyss_ex_z24",
+      "mod_abyss_ex_z25",
+      "mod_abyss_ex_z26",
+      "mod_abyss_ex_z27",
+      "mod_abyss_ex_z28",
+      "mod_abyss_ex_z29"
+    ],
+    "master/battle/field_data.orderedmap": [
+      "mod_abyss_ex_f1",
+      "mod_abyss_ex_f2",
+      "mod_abyss_ex_f3",
+      "mod_abyss_ex_f4",
+      "mod_abyss_ex_f5",
+      "mod_abyss_ex_f6",
+      "mod_abyss_ex_f7",
+      "mod_abyss_ex_f8",
+      "mod_abyss_ex_f9",
+      "mod_abyss_ex_f10",
+      "mod_abyss_ex_f11",
+      "mod_abyss_ex_f12",
+      "mod_abyss_ex_f13",
+      "mod_abyss_ex_f14",
+      "mod_abyss_ex_f15",
+      "mod_abyss_ex_f16",
+      "mod_abyss_ex_f17",
+      "mod_abyss_ex_f18",
+      "mod_abyss_ex_f19",
+      "mod_abyss_ex_f20",
+      "mod_abyss_ex_f21",
+      "mod_abyss_ex_f22",
+      "mod_abyss_ex_f23",
+      "mod_abyss_ex_f24",
+      "mod_abyss_ex_f25",
+      "mod_abyss_ex_f26",
+      "mod_abyss_ex_f27",
+      "mod_abyss_ex_f28",
+      "mod_abyss_ex_f29"
+    ],
+    "master/quest/event/rush_event_quest.orderedmap": [
+      "700100"
+    ]
+  },
+  "quest_time_revisions": {
+    "rush:700099": "67d91dec653a296e3177adfd6e8f6c3d777798222f39191933822950f23ec704",
+    "rush:700100": "e3235d26413c0da8f9f3f3e1d03d6842e8743c14cc83b167d52c348ab4fd5214"
+  },
+  "normal_unchanged": true,
+  "endless_unchanged": true,
+  "rows": [
+    {
+      "floor": 1,
+      "base_hp": 20000000000,
+      "effective_hp": 19999999998.77418,
+      "blocked_elements": [
+        1,
+        2,
+        4,
+        6
+      ],
+      "immune_damage": [
+        0,
+        3
+      ],
+      "open_lane": [
+        3,
+        1
+      ],
+      "default_time": "54000",
+      "description": "「EX属性禁域」火·水·风·暗属性伤害降至0.1% 「EX伤害封锁」能力·技能免疫 「深渊壁垒」全系耐性20% 【属性伤害：火=0.1%;水=0.1%;风=0.1%;暗=0.1%】 【关卡资料：%7B%22enemy%22%3A%22%E7%84%B0%E7%8B%90%2F%E5%BD%97%E7%8B%90%2F%E9%9B%B7%E7%8B%90%2F%E5%B2%9A%E7%8B%90%2F%E7%91%9E%E7%8B%90%2F%E5%A6%96%E7%8B%90%22%2C%22hp%22%3A%22Boss%20%E6%80%BB%E8%A1%80%E9%87%8F%E7%BA%A6%20200.00%20%E4%BA%BF%EF%BC%88%E5%8C%85%E5%90%AB%E6%9C%AC%E5%85%B3%E8%A1%80%E9%87%8F%E8%AF%85%E5%92%92%EF%BC%89%22%7D】"
+    },
+    {
+      "floor": 2,
+      "base_hp": 20517241379,
+      "effective_hp": 20517241378.74642,
+      "blocked_elements": [
+        1,
+        2,
+        3,
+        5
+      ],
+      "immune_damage": [
+        2,
+        3
+      ],
+      "open_lane": [
+        4,
+        0
+      ],
+      "default_time": "54000",
+      "description": "「EX属性禁域」火·水·雷·光属性伤害降至0.1% 「EX伤害封锁」强化弹射·技能免疫 「深渊法阵」狂风领域·微风0.05·5秒·方向1 「直击偏转」直击耐性20% 【属性伤害：火=0.1%;水=0.1%;雷=0.1%;光=0.1%】 【关卡资料：%7B%22enemy%22%3A%22%E5%A1%94%C2%B7cube%22%2C%22hp%22%3A%22Boss%20%E6%80%BB%E8%A1%80%E9%87%8F%E7%BA%A6%20205.17%20%E4%BA%BF%EF%BC%88%E5%8C%85%E5%90%AB%E6%9C%AC%E5%85%B3%E8%A1%80%E9%87%8F%E8%AF%85%E5%92%92%EF%BC%89%22%7D】"
+    },
+    {
+      "floor": 3,
+      "base_hp": 21034482759,
+      "effective_hp": 21034482760.52739,
+      "blocked_elements": [
+        2,
+        4,
+        6
+      ],
+      "immune_damage": [
+        0,
+        1
+      ],
+      "open_lane": [
+        1,
+        2
+      ],
+      "default_time": "54000",
+      "description": "「EX属性禁域」水·风·暗属性伤害降至0.1% 「EX伤害封锁」能力·直击免疫 「深渊法阵」重力领域·引力1.7·10秒·左侧/上方 「绝对壁垒」直击耐性70% 【属性伤害：水=0.1%;风=0.1%;暗=0.1%】 【关卡资料：%7B%22enemy%22%3A%22%E7%99%BD%E8%99%8E%22%2C%22hp%22%3A%22Boss%20%E6%80%BB%E8%A1%80%E9%87%8F%E7%BA%A6%20210.34%20%E4%BA%BF%EF%BC%88%E5%8C%85%E5%90%AB%E6%9C%AC%E5%85%B3%E8%A1%80%E9%87%8F%E8%AF%85%E5%92%92%EF%BC%89%22%7D】"
+    },
+    {
+      "floor": 4,
+      "base_hp": 21551724138,
+      "effective_hp": 10775862081.102196,
+      "blocked_elements": [
+        1,
+        2,
+        4,
+        5
+      ],
+      "immune_damage": [
+        0,
+        3
+      ],
+      "open_lane": [
+        3,
+        1
+      ],
+      "default_time": "54000",
+      "description": "「EX属性禁域」火·水·风·光属性伤害降至0.1% 「EX伤害封锁」能力·技能免疫 「深渊法阵」重力领域·引力5·10秒·中心 「玻璃深渊·残响」敌血-50%（攻击增幅已摘） 【属性伤害：火=0.1%;水=0.1%;风=0.1%;光=0.1%】 【关卡资料：%7B%22enemy%22%3A%22%E9%99%8D%E4%B8%B4%E8%AE%A8%E4%BC%90%C2%B7%E7%8B%82%E6%9A%B4%E7%9A%84%E7%BD%97%E6%A2%85%E7%BD%97%22%2C%22hp%22%3A%22Boss%20%E6%80%BB%E8%A1%80%E9%87%8F%E7%BA%A6%20107.76%20%E4%BA%BF%EF%BC%88%E5%8C%85%E5%90%AB%E6%9C%AC%E5%85%B3%E8%A1%80%E9%87%8F%E8%AF%85%E5%92%92%EF%BC%89%22%7D】"
+    },
+    {
+      "floor": 5,
+      "base_hp": 22068965517,
+      "effective_hp": 22068965517.908466,
+      "blocked_elements": [
+        2,
+        4,
+        5
+      ],
+      "immune_damage": [
+        1,
+        2
+      ],
+      "open_lane": [
+        1,
+        0
+      ],
+      "default_time": "54000",
+      "description": "「EX属性禁域」水·风·光属性伤害降至0.1% 「EX伤害封锁」直击·强化弹射免疫 「深渊法阵」连击法阵·连击加成领域 「层叠龙鳞」技能抗性×20层（减20%） 【属性伤害：水=0.1%;风=0.1%;光=0.1%】 【关卡资料：%7B%22enemy%22%3A%22%E5%89%A7%E6%83%85boss%C2%B7%E5%BC%82%E8%B4%A8%E9%AD%94%E6%99%B6%E7%BE%8A%22%2C%22hp%22%3A%22Boss%20%E6%80%BB%E8%A1%80%E9%87%8F%E7%BA%A6%20220.69%20%E4%BA%BF%EF%BC%88%E5%8C%85%E5%90%AB%E6%9C%AC%E5%85%B3%E8%A1%80%E9%87%8F%E8%AF%85%E5%92%92%EF%BC%89%22%7D】"
+    },
+    {
+      "floor": 6,
+      "base_hp": 22586206897,
+      "effective_hp": 22586206898.63538,
+      "blocked_elements": [
+        1,
+        4,
+        5,
+        6
+      ],
+      "immune_damage": [
+        1,
+        2
+      ],
+      "open_lane": [
+        2,
+        0
+      ],
+      "default_time": "54000",
+      "description": "「EX属性禁域」火·风·光·暗属性伤害降至0.1% 「EX伤害封锁」直击·强化弹射免疫 「深渊法阵」重力领域·引力0.5·1667秒·左侧/上方 「深渊重甲」韧性×3·弹耐20% 【属性伤害：火=0.1%;风=0.1%;光=0.1%;暗=0.1%】 【关卡资料：%7B%22enemy%22%3A%22%E9%97%AA%E5%87%BB%E9%AD%85%E5%BD%B1%22%2C%22hp%22%3A%22Boss%20%E6%80%BB%E8%A1%80%E9%87%8F%E7%BA%A6%20225.86%20%E4%BA%BF%EF%BC%88%E5%8C%85%E5%90%AB%E6%9C%AC%E5%85%B3%E8%A1%80%E9%87%8F%E8%AF%85%E5%92%92%EF%BC%89%22%7D】"
+    },
+    {
+      "floor": 7,
+      "base_hp": 23103448276,
+      "effective_hp": 23103448278.607624,
+      "blocked_elements": [
+        1,
+        3,
+        4,
+        5
+      ],
+      "immune_damage": [
+        0,
+        3
+      ],
+      "open_lane": [
+        2,
+        1
+      ],
+      "default_time": "54000",
+      "description": "「EX属性禁域」火·雷·风·光属性伤害降至0.1% 「EX伤害封锁」能力·技能免疫 「魔力枯竭」FEVER需求×1.5 【属性伤害：火=0.1%;雷=0.1%;风=0.1%;光=0.1%】 【关卡资料：%7B%22enemy%22%3A%22%E7%81%AB%E7%84%B0%E6%A0%91%E5%A6%96%2F%E6%BD%AE%E6%B1%90%E6%A0%91%E5%A6%96%2F%E9%9B%B7%E9%9C%86%E6%A0%91%E5%A6%96%2F%E9%A3%8E%E6%9A%B4%E6%A0%91%E5%A6%96%2F%E9%97%AA%E5%85%89%E6%A0%91%E5%A6%96%2F%E8%AF%85%E5%92%92%E6%A0%91%E5%A6%96%22%2C%22hp%22%3A%22Boss%20%E6%80%BB%E8%A1%80%E9%87%8F%E7%BA%A6%20231.03%20%E4%BA%BF%EF%BC%88%E5%8C%85%E5%90%AB%E6%9C%AC%E5%85%B3%E8%A1%80%E9%87%8F%E8%AF%85%E5%92%92%EF%BC%89%22%7D】"
+    },
+    {
+      "floor": 8,
+      "base_hp": 23620689655,
+      "effective_hp": 23620689651.03309,
+      "blocked_elements": [
+        1,
+        2,
+        4,
+        5
+      ],
+      "immune_damage": [
+        0,
+        2
+      ],
+      "open_lane": [
+        3,
+        1
+      ],
+      "default_time": "54000",
+      "description": "「EX属性禁域」火·水·风·光属性伤害降至0.1% 「EX伤害封锁」能力·强化弹射免疫 「深渊重甲」韧性×3·弹耐20% 【属性伤害：火=0.1%;水=0.1%;风=0.1%;光=0.1%】 【关卡资料：%7B%22enemy%22%3A%22%E4%B8%96%E7%95%8C%E5%89%A7%E6%83%85%C2%B7%E5%99%AC%E6%98%9F%E5%85%BD%E6%B3%B0%E5%A5%A5%E5%BC%97%E6%8B%89%E7%B4%A2%E6%96%AF%22%2C%22hp%22%3A%22Boss%20%E6%80%BB%E8%A1%80%E9%87%8F%E7%BA%A6%20236.21%20%E4%BA%BF%EF%BC%88%E5%8C%85%E5%90%AB%E6%9C%AC%E5%85%B3%E8%A1%80%E9%87%8F%E8%AF%85%E5%92%92%EF%BC%89%22%7D】"
+    },
+    {
+      "floor": 9,
+      "base_hp": 24137931034,
+      "effective_hp": 24137931029.134228,
+      "blocked_elements": [
+        1,
+        3,
+        6
+      ],
+      "immune_damage": [
+        0,
+        1
+      ],
+      "open_lane": [
+        2,
+        2
+      ],
+      "default_time": "54000",
+      "description": "「EX属性禁域」火·雷·暗属性伤害降至0.1% 「EX伤害封锁」能力·直击免疫 「深渊法阵」狂风领域·轻风0.15·20秒·方向2 「三重壁垒」能力·直击·强化弹射三重耐性50%(只剩技能能打) 【属性伤害：火=0.1%;雷=0.1%;暗=0.1%】 【关卡资料：%7B%22enemy%22%3A%22%E4%B8%8D%E6%AD%BB%E7%8E%8B%E7%91%9E%E8%A5%BF%E5%A1%94%E5%B0%94%22%2C%22hp%22%3A%22Boss%20%E6%80%BB%E8%A1%80%E9%87%8F%E7%BA%A6%20241.38%20%E4%BA%BF%EF%BC%88%E5%8C%85%E5%90%AB%E6%9C%AC%E5%85%B3%E8%A1%80%E9%87%8F%E8%AF%85%E5%92%92%EF%BC%89%22%7D】"
+    },
+    {
+      "floor": 10,
+      "base_hp": 24655172414,
+      "effective_hp": 20956896550.650063,
+      "blocked_elements": [
+        2,
+        4,
+        6
+      ],
+      "immune_damage": [
+        2,
+        3
+      ],
+      "open_lane": [
+        1,
+        0
+      ],
+      "default_time": "54000",
+      "description": "「EX属性禁域」水·风·暗属性伤害降至0.1% 「EX伤害封锁」强化弹射·技能免疫 「嗜血狂潮·残响」敌血-15%（攻击增幅已摘） 【属性伤害：水=0.1%;风=0.1%;暗=0.1%】 【关卡资料：%7B%22enemy%22%3A%22%E7%82%8E%E5%B0%86%E7%8D%A0%E7%89%99%E9%AA%91%E5%A3%AB%2F%E6%B0%B4%E5%B0%86%E7%8D%A0%E7%89%99%E9%AA%91%E5%A3%AB%2F%E9%9B%B7%E5%B0%86%E7%8D%A0%E7%89%99%E9%AA%91%E5%A3%AB%2F%E9%A3%8E%E5%B0%86%E7%8D%A0%E7%89%99%E9%AA%91%E5%A3%AB%2F%E5%85%89%E5%B0%86%E7%8D%A0%E7%89%99%E9%AA%91%E5%A3%AB%2F%E6%9A%97%E5%B0%86%E7%8D%A0%E7%89%99%E9%AA%91%E5%A3%AB%22%2C%22hp%22%3A%22Boss%20%E6%80%BB%E8%A1%80%E9%87%8F%E7%BA%A6%20209.57%20%E4%BA%BF%EF%BC%88%E5%8C%85%E5%90%AB%E6%9C%AC%E5%85%B3%E8%A1%80%E9%87%8F%E8%AF%85%E5%92%92%EF%BC%89%22%7D】"
+    },
+    {
+      "floor": 11,
+      "base_hp": 25172413793,
+      "effective_hp": 25172413790.83684,
+      "blocked_elements": [
+        3,
+        4,
+        5,
+        6
+      ],
+      "immune_damage": [
+        2,
+        3
+      ],
+      "open_lane": [
+        1,
+        0
+      ],
+      "default_time": "54000",
+      "description": "「EX属性禁域」雷·风·光·暗属性伤害降至0.1% 「EX伤害封锁」强化弹射·技能免疫 「深渊法阵」攻击领域·攻击+100%/哨兵254耐性+30%·复合 「三重壁垒」直击·强化弹射·技能三重耐性70%(只剩能力能打) 「魔力枯竭」FEVER需求×2 【属性伤害：雷=0.1%;风=0.1%;光=0.1%;暗=0.1%】 【关卡资料：%7B%22enemy%22%3A%22%E7%AE%A1%E7%90%86%E8%80%85%22%2C%22hp%22%3A%22Boss%20%E6%80%BB%E8%A1%80%E9%87%8F%E7%BA%A6%20251.72%20%E4%BA%BF%EF%BC%88%E5%8C%85%E5%90%AB%E6%9C%AC%E5%85%B3%E8%A1%80%E9%87%8F%E8%AF%85%E5%92%92%EF%BC%89%22%7D】"
+    },
+    {
+      "floor": 12,
+      "base_hp": 25689655172,
+      "effective_hp": 25689655172.579613,
+      "blocked_elements": [
+        2,
+        4,
+        6
+      ],
+      "immune_damage": [
+        1,
+        2
+      ],
+      "open_lane": [
+        1,
+        0
+      ],
+      "default_time": "54000",
+      "description": "「EX属性禁域」水·风·暗属性伤害降至0.1% 「EX伤害封锁」直击·强化弹射免疫 「深渊法阵」重力领域·引力0.8·15秒·左侧/上方·复合 「绝对壁垒」强化弹射耐性85% 「魔力枯竭」FEVER需求×2 【属性伤害：水=0.1%;风=0.1%;暗=0.1%】 【关卡资料：%7B%22enemy%22%3A%22%E4%B8%BB%E7%BA%BFboss%C2%B7%E4%BC%8A%E9%87%8E%E9%87%8C%E7%BF%94%E5%A4%AA%22%2C%22hp%22%3A%22Boss%20%E6%80%BB%E8%A1%80%E9%87%8F%E7%BA%A6%20256.90%20%E4%BA%BF%EF%BC%88%E5%8C%85%E5%90%AB%E6%9C%AC%E5%85%B3%E8%A1%80%E9%87%8F%E8%AF%85%E5%92%92%EF%BC%89%22%7D】"
+    },
+    {
+      "floor": 13,
+      "base_hp": 26206896552,
+      "effective_hp": 13103448279.567364,
+      "blocked_elements": [
+        2,
+        3,
+        5,
+        6
+      ],
+      "immune_damage": [
+        0,
+        2
+      ],
+      "open_lane": [
+        1,
+        1
+      ],
+      "default_time": "54000",
+      "description": "「EX属性禁域」水·雷·光·暗属性伤害降至0.1% 「EX伤害封锁」能力·强化弹射免疫 「魔力枯竭」FEVER需求×2 「玻璃深渊·残响」敌血-50%（攻击增幅已摘） 【属性伤害：水=0.1%;雷=0.1%;光=0.1%;暗=0.1%】 【关卡资料：%7B%22enemy%22%3A%22%E9%87%8D%E5%8A%9B%E8%A3%85%E7%BD%AE%22%2C%22hp%22%3A%22Boss%20%E6%80%BB%E8%A1%80%E9%87%8F%E7%BA%A6%20131.03%20%E4%BA%BF%EF%BC%88%E5%8C%85%E5%90%AB%E6%9C%AC%E5%85%B3%E8%A1%80%E9%87%8F%E8%AF%85%E5%92%92%EF%BC%89%22%7D】"
+    },
+    {
+      "floor": 14,
+      "base_hp": 26724137931,
+      "effective_hp": 26724137921.418247,
+      "blocked_elements": [
+        1,
+        2,
+        4,
+        5
+      ],
+      "immune_damage": [
+        0,
+        3
+      ],
+      "open_lane": [
+        3,
+        1
+      ],
+      "default_time": "54000",
+      "description": "「EX属性禁域」火·水·风·光属性伤害降至0.1% 「EX伤害封锁」能力·技能免疫 「深渊法阵」重力领域·引力5·50帧·中心·复合 「魔力枯竭」FEVER需求×2 「深渊壁垒」全系耐性25% 【属性伤害：火=0.1%;水=0.1%;风=0.1%;光=0.1%】 【关卡资料：%7B%22enemy%22%3A%22%E9%A2%86%E4%B8%BB%E6%88%98%C2%B7%E4%B8%8D%E6%AD%BB%E7%8E%8B%E7%91%9E%E8%A5%BF%E5%A1%94%E5%B0%94%22%2C%22hp%22%3A%22Boss%20%E6%80%BB%E8%A1%80%E9%87%8F%E7%BA%A6%20267.24%20%E4%BA%BF%EF%BC%88%E5%8C%85%E5%90%AB%E6%9C%AC%E5%85%B3%E8%A1%80%E9%87%8F%E8%AF%85%E5%92%92%EF%BC%89%22%7D】"
+    },
+    {
+      "floor": 15,
+      "base_hp": 27241379310,
+      "effective_hp": 27241379302.895218,
+      "blocked_elements": [
+        2,
+        4,
+        5,
+        6
+      ],
+      "immune_damage": [
+        0,
+        3
+      ],
+      "open_lane": [
+        1,
+        1
+      ],
+      "default_time": "54000",
+      "description": "「EX属性禁域」水·风·光·暗属性伤害降至0.1% 「EX伤害封锁」能力·技能免疫 「深渊法阵」狂风领域·轻风0.125·15秒·方向1 「亡者不屈」减益免疫·能耐40% 「层叠龙鳞」能力抗性×50层（减50%） 【属性伤害：水=0.1%;风=0.1%;光=0.1%;暗=0.1%】 【关卡资料：%7B%22enemy%22%3A%22%E5%AF%84%E5%B1%85%E8%9F%B9%E8%88%B9%E9%95%BF%22%2C%22hp%22%3A%22Boss%20%E6%80%BB%E8%A1%80%E9%87%8F%E7%BA%A6%20272.41%20%E4%BA%BF%EF%BC%88%E5%8C%85%E5%90%AB%E6%9C%AC%E5%85%B3%E8%A1%80%E9%87%8F%E8%AF%85%E5%92%92%EF%BC%89%22%7D】"
+    },
+    {
+      "floor": 16,
+      "base_hp": 27758620690,
+      "effective_hp": 55517241376.101875,
+      "blocked_elements": [
+        1,
+        3,
+        6
+      ],
+      "immune_damage": [
+        1,
+        2
+      ],
+      "open_lane": [
+        2,
+        0
+      ],
+      "default_time": "54000",
+      "description": "「EX属性禁域」火·雷·暗属性伤害降至0.1% 「EX伤害封锁」直击·强化弹射免疫 「深渊法阵」二段伤害领域·二段伤害+11·复合 「绝对壁垒」强化弹射耐性85% 「血肉高墙」敌血×2.0 【属性伤害：火=0.1%;雷=0.1%;暗=0.1%】 【关卡资料：%7B%22enemy%22%3A%22%E5%BA%9F%E5%A2%9F%E5%AE%88%E5%8D%AB%C2%B7%E7%81%AB%2F%E5%BA%9F%E5%A2%9F%E5%AE%88%E5%8D%AB%C2%B7%E6%B0%B4%2F%E5%BA%9F%E5%A2%9F%E5%AE%88%E5%8D%AB%C2%B7%E9%9B%B7%2F%E5%BA%9F%E5%A2%9F%E5%AE%88%E5%8D%AB%C2%B7%E9%A3%8E%2F%E5%BA%9F%E5%A2%9F%E5%AE%88%E5%8D%AB%C2%B7%E5%85%89%2F%E5%BA%9F%E5%A2%9F%E5%AE%88%E5%8D%AB%C2%B7%E6%9A%97%22%2C%22hp%22%3A%22Boss%20%E6%80%BB%E8%A1%80%E9%87%8F%E7%BA%A6%20555.17%20%E4%BA%BF%EF%BC%88%E5%8C%85%E5%90%AB%E6%9C%AC%E5%85%B3%E8%A1%80%E9%87%8F%E8%AF%85%E5%92%92%EF%BC%89%22%7D】"
+    },
+    {
+      "floor": 17,
+      "base_hp": 28275862069,
+      "effective_hp": 24034482758.389156,
+      "blocked_elements": [
+        1,
+        2,
+        5,
+        6
+      ],
+      "immune_damage": [
+        1,
+        2
+      ],
+      "open_lane": [
+        3,
+        0
+      ],
+      "default_time": "54000",
+      "description": "「EX属性禁域」火·水·光·暗属性伤害降至0.1% 「EX伤害封锁」直击·强化弹射免疫 「深渊法阵」攻击领域·攻击+100%/直击+50%/光耐性+100%·复合 「层叠龙鳞」能力抗性×50层（减50%） 「嗜血狂潮·残响」敌血-15%（攻击增幅已摘） 【属性伤害：火=0.1%;水=0.1%;光=0.1%;暗=0.1%】 【关卡资料：%7B%22enemy%22%3A%22%E6%94%AF%E9%85%8D%E8%80%85%22%2C%22hp%22%3A%22Boss%20%E6%80%BB%E8%A1%80%E9%87%8F%E7%BA%A6%20240.34%20%E4%BA%BF%EF%BC%88%E5%8C%85%E5%90%AB%E6%9C%AC%E5%85%B3%E8%A1%80%E9%87%8F%E8%AF%85%E5%92%92%EF%BC%89%22%7D】"
+    },
+    {
+      "floor": 18,
+      "base_hp": 28793103448,
+      "effective_hp": 57586206904.24899,
+      "blocked_elements": [
+        1,
+        3,
+        5,
+        6
+      ],
+      "immune_damage": [
+        1,
+        2
+      ],
+      "open_lane": [
+        2,
+        0
+      ],
+      "default_time": "54000",
+      "description": "「EX属性禁域」火·雷·光·暗属性伤害降至0.1% 「EX伤害封锁」直击·强化弹射免疫 「深渊法阵」重力领域·引力5·10秒·中心 「术式扰流」技能耐性30% 「血肉高墙」敌血×2.0 【属性伤害：火=0.1%;雷=0.1%;光=0.1%;暗=0.1%】 【关卡资料：%7B%22enemy%22%3A%22%E4%B8%96%E7%95%8C%E5%89%A7%E6%83%85%C2%B7%E9%BB%91%E9%BE%99%22%2C%22hp%22%3A%22Boss%20%E6%80%BB%E8%A1%80%E9%87%8F%E7%BA%A6%20575.86%20%E4%BA%BF%EF%BC%88%E5%8C%85%E5%90%AB%E6%9C%AC%E5%85%B3%E8%A1%80%E9%87%8F%E8%AF%85%E5%92%92%EF%BC%89%22%7D】"
+    },
+    {
+      "floor": 19,
+      "base_hp": 29310344828,
+      "effective_hp": 29310344827.937992,
+      "blocked_elements": [
+        1,
+        4,
+        5,
+        6
+      ],
+      "immune_damage": [
+        1,
+        3
+      ],
+      "open_lane": [
+        2,
+        0
+      ],
+      "default_time": "54000",
+      "description": "「EX属性禁域」火·风·光·暗属性伤害降至0.1% 「EX伤害封锁」直击·技能免疫 「深渊法阵」血滑领域·滑行损血 「术式扰流」技能耐性30% 「深渊壁垒」全系耐性25% 【属性伤害：火=0.1%;风=0.1%;光=0.1%;暗=0.1%】 【关卡资料：%7B%22enemy%22%3A%22%E8%B4%B9%E6%88%88%E3%83%BB%E7%B4%A2%E6%8B%89%E6%96%AF%2F%E4%BA%9A%E5%92%96%E3%83%BB%E7%B4%A2%E6%8B%89%E6%96%AF%2F%E6%89%98%E9%9B%B7%E8%AF%BA%E3%83%BB%E7%B4%A2%E6%8B%89%E6%96%AF%2F%E7%BB%B4%E3%83%BB%E7%B4%A2%E6%8B%89%E6%96%AF%2F%E9%B2%81%E5%85%B9%E3%83%BB%E7%B4%A2%E6%8B%89%E6%96%AF%2F%E8%BF%9E%E7%8F%82%E3%83%BB%E7%B4%A2%E6%8B%89%E6%96%AF%22%2C%22hp%22%3A%22Boss%20%E6%80%BB%E8%A1%80%E9%87%8F%E7%BA%A6%20293.10%20%E4%BA%BF%EF%BC%88%E5%8C%85%E5%90%AB%E6%9C%AC%E5%85%B3%E8%A1%80%E9%87%8F%E8%AF%85%E5%92%92%EF%BC%89%22%7D】"
+    },
+    {
+      "floor": 20,
+      "base_hp": 29827586207,
+      "effective_hp": 29827586195.884983,
+      "blocked_elements": [
+        2,
+        5,
+        6
+      ],
+      "immune_damage": [
+        2,
+        3
+      ],
+      "open_lane": [
+        1,
+        0
+      ],
+      "default_time": "54000",
+      "description": "「EX属性禁域」水·光·暗属性伤害降至0.1% 「EX伤害封锁」强化弹射·技能免疫 「深渊法阵」加速领域·加速-15% 「魔力枯竭」FEVER需求×2 「能力抑制」能力耐性30% 【属性伤害：水=0.1%;光=0.1%;暗=0.1%】 【关卡资料：%7B%22enemy%22%3A%22%E8%83%8C%E9%B3%8D%E4%B8%89%E5%85%84%E5%BC%9F%22%2C%22hp%22%3A%22Boss%20%E6%80%BB%E8%A1%80%E9%87%8F%E7%BA%A6%20298.28%20%E4%BA%BF%EF%BC%88%E5%8C%85%E5%90%AB%E6%9C%AC%E5%85%B3%E8%A1%80%E9%87%8F%E8%AF%85%E5%92%92%EF%BC%89%22%7D】"
+    },
+    {
+      "floor": 21,
+      "base_hp": 30344827586,
+      "effective_hp": 25793103451.197586,
+      "blocked_elements": [
+        1,
+        2,
+        3
+      ],
+      "immune_damage": [
+        0,
+        2
+      ],
+      "open_lane": [
+        4,
+        1
+      ],
+      "default_time": "54000",
+      "description": "「EX属性禁域」火·水·雷属性伤害降至0.1% 「EX伤害封锁」能力·强化弹射免疫 「深渊法阵」重力领域·引力2·10秒·左侧/上方·复合 「层叠龙鳞」强化弹射抗性×50层（减50%） 「嗜血狂潮」敌攻×1.1·血-15% 「术式扰流」技能耐性40% 【属性伤害：火=0.1%;水=0.1%;雷=0.1%】 【关卡资料：%7B%22enemy%22%3A%22%E6%B7%B1%E6%B5%B7%E5%AF%84%E5%B1%85%E8%9F%B9%22%2C%22hp%22%3A%22Boss%20%E6%80%BB%E8%A1%80%E9%87%8F%E7%BA%A6%20257.93%20%E4%BA%BF%EF%BC%88%E5%8C%85%E5%90%AB%E6%9C%AC%E5%85%B3%E8%A1%80%E9%87%8F%E8%AF%85%E5%92%92%EF%BC%89%22%7D】"
+    },
+    {
+      "floor": 22,
+      "base_hp": 30862068966,
+      "effective_hp": 30862068970.686214,
+      "blocked_elements": [
+        1,
+        3,
+        5,
+        6
+      ],
+      "immune_damage": [
+        1,
+        3
+      ],
+      "open_lane": [
+        2,
+        0
+      ],
+      "default_time": "54000",
+      "description": "「EX属性禁域」火·雷·光·暗属性伤害降至0.1% 「EX伤害封锁」直击·技能免疫 「深渊法阵」充能领域·充能-5% 「直击偏转」直击耐性40% 「深渊壁垒」全系耐性30% 「亡者不屈」减益免疫·能耐50% 【属性伤害：火=0.1%;雷=0.1%;光=0.1%;暗=0.1%】 【关卡资料：%7B%22enemy%22%3A%22%E5%89%A7%E6%83%85boss%C2%B7%E8%B6%85%E4%BA%BA%E6%B3%BD%E5%8F%A4%E6%8B%89%22%2C%22hp%22%3A%22Boss%20%E6%80%BB%E8%A1%80%E9%87%8F%E7%BA%A6%20308.62%20%E4%BA%BF%EF%BC%88%E5%8C%85%E5%90%AB%E6%9C%AC%E5%85%B3%E8%A1%80%E9%87%8F%E8%AF%85%E5%92%92%EF%BC%89%22%7D】"
+    },
+    {
+      "floor": 23,
+      "base_hp": 31379310345,
+      "effective_hp": 31379310343.979294,
+      "blocked_elements": [
+        2,
+        3,
+        6
+      ],
+      "immune_damage": [
+        0,
+        3
+      ],
+      "open_lane": [
+        1,
+        1
+      ],
+      "default_time": "54000",
+      "description": "「EX属性禁域」水·雷·暗属性伤害降至0.1% 「EX伤害封锁」能力·技能免疫 「深渊法阵」封连领域·连击限制 「层叠龙鳞」强化弹射抗性×50层（减50%） 「术式扰流」技能耐性40% 「能力抑制」能力耐性40% 【属性伤害：水=0.1%;雷=0.1%;暗=0.1%】 【关卡资料：%7B%22enemy%22%3A%22%E4%B8%96%E7%95%8C%E5%89%A7%E6%83%85%C2%B7%E5%85%A8%E8%87%AA%E5%8A%A8%E8%AD%A6%E5%8D%ABSecMk2%22%2C%22hp%22%3A%22Boss%20%E6%80%BB%E8%A1%80%E9%87%8F%E7%BA%A6%20313.79%20%E4%BA%BF%EF%BC%88%E5%8C%85%E5%90%AB%E6%9C%AC%E5%85%B3%E8%A1%80%E9%87%8F%E8%AF%85%E5%92%92%EF%BC%89%22%7D】"
+    },
+    {
+      "floor": 24,
+      "base_hp": 31896551724,
+      "effective_hp": 79741379301.95407,
+      "blocked_elements": [
+        2,
+        3,
+        4
+      ],
+      "immune_damage": [
+        0,
+        2
+      ],
+      "open_lane": [
+        1,
+        1
+      ],
+      "default_time": "54000",
+      "description": "「EX属性禁域」水·雷·风属性伤害降至0.1% 「EX伤害封锁」能力·强化弹射免疫 「深渊法阵」狂风领域·强风0.5·10秒·方向2 「深渊重甲」韧性×9·弹耐40% 「血肉高墙」敌血×2.5 「层叠龙鳞」技能抗性×50层（减50%） 【属性伤害：水=0.1%;雷=0.1%;风=0.1%】 【关卡资料：%7B%22enemy%22%3A%22%E5%89%A7%E6%83%85boss%C2%B7%E5%BF%98%E5%8D%B4%E9%81%97%E5%9F%8E%22%2C%22hp%22%3A%22Boss%20%E6%80%BB%E8%A1%80%E9%87%8F%E7%BA%A6%20797.41%20%E4%BA%BF%EF%BC%88%E5%8C%85%E5%90%AB%E6%9C%AC%E5%85%B3%E8%A1%80%E9%87%8F%E8%AF%85%E5%92%92%EF%BC%89%22%7D】"
+    },
+    {
+      "floor": 25,
+      "base_hp": 32413793103,
+      "effective_hp": 27551724143.253365,
+      "blocked_elements": [
+        1,
+        2,
+        6
+      ],
+      "immune_damage": [
+        1,
+        3
+      ],
+      "open_lane": [
+        3,
+        0
+      ],
+      "default_time": "54000",
+      "description": "「EX属性禁域」火·水·暗属性伤害降至0.1% 「EX伤害封锁」直击·技能免疫 「深渊法阵」充能领域·充能+50% 「嗜血狂潮」敌攻×1.15·血-15% 「能力抑制」能力耐性40% 「魔力枯竭」FEVER需求×3 【属性伤害：火=0.1%;水=0.1%;暗=0.1%】 【关卡资料：%7B%22enemy%22%3A%22%E5%8D%95%E4%BA%BA%E6%8C%91%E6%88%98%C2%B7%E5%AF%84%E5%B1%85%E8%9F%B9%E8%88%B9%E9%95%BF%22%2C%22hp%22%3A%22Boss%20%E6%80%BB%E8%A1%80%E9%87%8F%E7%BA%A6%20275.52%20%E4%BA%BF%EF%BC%88%E5%8C%85%E5%90%AB%E6%9C%AC%E5%85%B3%E8%A1%80%E9%87%8F%E8%AF%85%E5%92%92%EF%BC%89%22%7D】"
+    },
+    {
+      "floor": 26,
+      "base_hp": 32931034483,
+      "effective_hp": 32931034475.48191,
+      "blocked_elements": [
+        1,
+        2,
+        4,
+        6
+      ],
+      "immune_damage": [
+        0,
+        1
+      ],
+      "open_lane": [
+        3,
+        2
+      ],
+      "default_time": "54000",
+      "description": "「EX属性禁域」火·水·风·暗属性伤害降至0.1% 「EX伤害封锁」能力·直击免疫 「深渊法阵」重力领域·引力5·50帧·中心·复合 「不屈龙心」减益耐性×90层（普通减益几乎无法命中；强制赋予除外） 「魔力枯竭」FEVER需求×3 「直击偏转」直击耐性40% 【属性伤害：火=0.1%;水=0.1%;风=0.1%;暗=0.1%】 【关卡资料：%7B%22enemy%22%3A%22%E5%8D%95%E4%BA%BA%E6%8C%91%E6%88%98%C2%B7%E7%AE%A1%E7%90%86%E8%80%85%22%2C%22hp%22%3A%22Boss%20%E6%80%BB%E8%A1%80%E9%87%8F%E7%BA%A6%20329.31%20%E4%BA%BF%EF%BC%88%E5%8C%85%E5%90%AB%E6%9C%AC%E5%85%B3%E8%A1%80%E9%87%8F%E8%AF%85%E5%92%92%EF%BC%89%22%7D】"
+    },
+    {
+      "floor": 27,
+      "base_hp": 33448275862,
+      "effective_hp": 83620689650.99591,
+      "blocked_elements": [
+        1,
+        2,
+        4,
+        6
+      ],
+      "immune_damage": [
+        1,
+        3
+      ],
+      "open_lane": [
+        3,
+        0
+      ],
+      "default_time": "54000",
+      "description": "「EX属性禁域」火·水·风·暗属性伤害降至0.1% 「EX伤害封锁」直击·技能免疫 「深渊法阵」连击加成领域·连击加成+10 「直击偏转」直击耐性40% 「层叠龙鳞」强化弹射抗性×90层（减90%） 「血肉高墙」敌血×2.5 【属性伤害：火=0.1%;水=0.1%;风=0.1%;暗=0.1%】 【关卡资料：%7B%22enemy%22%3A%22%E4%BC%8A%E5%B0%94%E6%98%82%E6%96%AF%E6%8B%89%22%2C%22hp%22%3A%22Boss%20%E6%80%BB%E8%A1%80%E9%87%8F%E7%BA%A6%20836.21%20%E4%BA%BF%EF%BC%88%E5%8C%85%E5%90%AB%E6%9C%AC%E5%85%B3%E8%A1%80%E9%87%8F%E8%AF%85%E5%92%92%EF%BC%89%22%7D】"
+    },
+    {
+      "floor": 28,
+      "base_hp": 33965517241,
+      "effective_hp": 16982758616.845728,
+      "blocked_elements": [
+        1,
+        2,
+        4
+      ],
+      "immune_damage": [
+        0,
+        1
+      ],
+      "open_lane": [
+        3,
+        2
+      ],
+      "default_time": "54000",
+      "description": "「EX属性禁域」火·水·风属性伤害降至0.1% 「EX伤害封锁」能力·直击免疫 「深渊法阵」攻击领域·攻击+100%/直击+50%/光耐性+100%·复合 「亡者不屈」减益免疫·能耐50% 「玻璃深渊」敌攻×1.4·血-50% 「直击偏转」直击耐性40% 【属性伤害：火=0.1%;水=0.1%;风=0.1%】 【关卡资料：%7B%22enemy%22%3A%22%E4%BC%8A%E5%B0%94%E6%A2%85%E5%A1%94%E9%9B%B7%22%2C%22hp%22%3A%22Boss%20%E6%80%BB%E8%A1%80%E9%87%8F%E7%BA%A6%20169.83%20%E4%BA%BF%EF%BC%88%E5%8C%85%E5%90%AB%E6%9C%AC%E5%85%B3%E8%A1%80%E9%87%8F%E8%AF%85%E5%92%92%EF%BC%89%22%7D】"
+    },
+    {
+      "floor": 29,
+      "base_hp": 34482758621,
+      "effective_hp": 17241379303.492264,
+      "blocked_elements": [
+        2,
+        3,
+        4,
+        6
+      ],
+      "immune_damage": [
+        2,
+        3
+      ],
+      "open_lane": [
+        1,
+        0
+      ],
+      "default_time": "54000",
+      "description": "「EX属性禁域」水·雷·风·暗属性伤害降至0.1% 「EX伤害封锁」强化弹射·技能免疫 「深渊法阵」重力领域·引力1.5·10秒·左侧/上方 「魔力枯竭」FEVER需求×3 「玻璃深渊」敌攻×1.3·血-50% 「能力抑制」能力耐性40% 【属性伤害：水=0.1%;雷=0.1%;风=0.1%;暗=0.1%】 【关卡资料：%7B%22enemy%22%3A%22%E5%BC%82%E8%B4%A8%E9%AD%94%E6%99%B6%E7%BE%8A%22%2C%22hp%22%3A%22Boss%20%E6%80%BB%E8%A1%80%E9%87%8F%E7%BA%A6%20172.41%20%E4%BA%BF%EF%BC%88%E5%8C%85%E5%90%AB%E6%9C%AC%E5%85%B3%E8%A1%80%E9%87%8F%E8%AF%85%E5%92%92%EF%BC%89%22%7D】"
+    },
+    {
+      "floor": 30,
+      "base_hp": 70000000000,
+      "effective_hp": 175000000017.62183,
+      "blocked_elements": [
+        2,
+        3,
+        4,
+        6
+      ],
+      "immune_damage": [
+        0,
+        3
+      ],
+      "open_lane": [
+        1,
+        1
+      ],
+      "default_time": "54000",
+      "description": "「EX属性禁域」水·雷·风·暗属性伤害降至0.1% 「EX伤害封锁」能力·技能免疫 「深渊法阵」重力领域·引力2.5·8秒·右侧/上方·复合 「层叠龙鳞」技能抗性×90层（减90%） 「血肉高墙」敌血×2.5 「不屈龙心」减益耐性×90层（普通减益几乎无法命中；强制赋予除外） 【属性伤害：水=0.1%;雷=0.1%;风=0.1%;暗=0.1%】 【关卡资料：%7B%22enemy%22%3A%22EX%E5%8F%8CBoss%E5%86%B3%E6%88%98%22%2C%22hp%22%3A%22Boss%20%E6%80%BB%E8%A1%80%E9%87%8F%E7%BA%A6%201750.00%20%E4%BA%BF%EF%BC%88%E5%8C%85%E5%90%AB%E6%9C%AC%E5%85%B3%E8%A1%80%E9%87%8F%E8%AF%85%E5%92%92%EF%BC%89%22%7D】"
+    }
+  ],
+  "curse_counts": {
+    "EX属性禁域": 30,
+    "EX伤害封锁": 30,
+    "深渊壁垒": 4,
+    "深渊法阵": 25,
+    "直击偏转": 5,
+    "绝对壁垒": 3,
+    "玻璃深渊·残响": 2,
+    "层叠龙鳞": 8,
+    "深渊重甲": 3,
+    "魔力枯竭": 9,
+    "三重壁垒": 2,
+    "嗜血狂潮·残响": 2,
+    "亡者不屈": 3,
+    "血肉高墙": 5,
+    "术式扰流": 4,
+    "能力抑制": 4,
+    "嗜血狂潮": 2,
+    "不屈龙心": 2,
+    "玻璃深渊": 2
+  },
+  "field_counts": {
+    "狂风领域·微风0.05·5秒·方向1 ": 1,
+    "重力领域·引力1.7·10秒·左侧/上方 ": 1,
+    "重力领域·引力5·10秒·中心 ": 2,
+    "连击法阵·连击加成领域 ": 1,
+    "重力领域·引力0.5·1667秒·左侧/上方 ": 1,
+    "狂风领域·轻风0.15·20秒·方向2 ": 1,
+    "攻击领域·攻击+100%/哨兵254耐性+30%·复合 ": 1,
+    "重力领域·引力0.8·15秒·左侧/上方·复合 ": 1,
+    "重力领域·引力5·50帧·中心·复合 ": 2,
+    "狂风领域·轻风0.125·15秒·方向1 ": 1,
+    "二段伤害领域·二段伤害+11·复合 ": 1,
+    "攻击领域·攻击+100%/直击+50%/光耐性+100%·复合 ": 2,
+    "血滑领域·滑行损血 ": 1,
+    "加速领域·加速-15% ": 1,
+    "重力领域·引力2·10秒·左侧/上方·复合 ": 1,
+    "充能领域·充能-5% ": 1,
+    "封连领域·连击限制 ": 1,
+    "狂风领域·强风0.5·10秒·方向2 ": 1,
+    "充能领域·充能+50% ": 1,
+    "连击加成领域·连击加成+10 ": 1,
+    "重力领域·引力1.5·10秒·左侧/上方 ": 1,
+    "重力领域·引力2.5·8秒·右侧/上方·复合 ": 1
+  },
+  "client_reward_group": "237010000",
+  "client_reward_slots": 10,
+  "chain_rounds": {
+    "700099": 31,
+    "700100": 31
+  },
+  "ex_final_two_bosses_each_base_hp": 35000000000.0,
+  "default_time_frames": "54000",
+  "device_tested": false,
+  "actual_resource_conditions_verified": true
+}

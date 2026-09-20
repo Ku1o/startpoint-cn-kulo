@@ -1,4 +1,6 @@
+import { cachedStatement } from "../../lib/cached-statement"
 import { getDb } from "../db";
+import { getPlayerPortableDegreesSync, grantPlayerDegreeSync, validatePortableDegreeList } from "./degree";
 import { Player, RawPlayer, MergedPlayerData, PartyCategory, PlayerPartyGroup, Account, PlayerParty, DailyChallengePointListEntry, DailyChallengePointListCampaign, RawDailyChallengePointListEntry, RawDailyChallengePointListCampaign, PlayerRushEventPlayedParty, RawPlayerRushEventPlayedParty, UserRushEventPlayedParty } from "../types";
 import { getServerDate, getTimeOffset } from "../../utils";
 import { getDefaultPlayerData, deserializeBoolean, serializeBoolean } from "../utils";
@@ -380,7 +382,7 @@ function buildPlayer(
 export function getPlayerSync(
     playerId: number
 ): Player | null {
-    const raw = getDb().prepare(`
+    const raw = cachedStatement(getDb(), `
     SELECT id, stamina, stamina_heal_time, boost_point, boss_boost_point,
         transition_state, role, name, last_login_time, comment,
         vmoney, free_vmoney, rank_point, star_crumb,
@@ -504,7 +506,11 @@ export function insertMergedPlayerDataSync(
 ) {
     const player = toInsert.player
     const playerId = player.id
+    validatePortableDegreeList(toInsert.degreeList)
     insertPlayerSync(accountId, player)
+    for (const degree of toInsert.degreeList ?? []) {
+        grantPlayerDegreeSync(playerId, degree.degreeId, degree.acquiredAt)
+    }
 
     insertPlayerDailyChallengePointListSync(playerId, toInsert.dailyChallengePointList)
     insertPlayerTriggeredTutorialsSync(playerId, toInsert.triggeredTutorial)
@@ -1291,6 +1297,12 @@ export function replacePlayerDataSync(
 
     const account = getAccountFromPlayerIdSync(playerId)
     if (account === null) throw new Error("No account tied to player id.");
+    // Old V1 exports had no title collection. They cannot express a deliberate
+    // reset of that collection; retain destination ownership in that case.
+    if (replaceWith.degreeList === undefined) {
+        replaceWith.degreeList = getPlayerPortableDegreesSync(playerId)
+    }
+    validatePortableDegreeList(replaceWith.degreeList)
 
     // Import, clone and default-template restoration all pass through this
     // function. Preserve the explicit EXP balance but start regeneration from

@@ -1,4 +1,5 @@
-import { copyFileSync, existsSync, lstatSync, mkdirSync, readdirSync, rmSync, writeFileSync } from "fs"
+import { existsSync } from "./file-exists";
+import { copyFileSync, lstatSync, mkdirSync, readdirSync, rmSync, writeFileSync } from "fs"
 import path from "path"
 import { getDb } from "../data/db"
 

@@ -1,0 +1,219 @@
+{
+  "status": "fused_local_validated_runtime_synced_device_acceptance_pending",
+  "base_version": "1.4.108",
+  "new_version": "1.4.109",
+  "archive": {
+    "name": "pinball-1.4.108-1.4.109-1-author-update-fusion.zip",
+    "size": 1070069,
+    "sha256": "406e74c36e2ee7a2b940a4dd48f5d721f57b6d8435bdbdd2b216aa46b080a980",
+    "members": 18
+  },
+  "client_resources": [
+    {
+      "logical": "battle/action/power_flip/action/override/ginovi_pf$ginovi_pf_lv1.action.dsl.amf3.deflate",
+      "member": "production/upload/30/a6c3207f698f1c3dc43d3340d4e81bf4cfb1b3",
+      "bytes": 867,
+      "sha256": "3ec6b36b7db14a6c5bad12c2df04c8a4ef42cedfd0273ca28eb6ef2e12b95794",
+      "before_sha256": "fa701890c57352e36f5df76dfb74cbe91ffe4b8b7c7232e46dd4f8358ca73c96"
+    },
+    {
+      "logical": "battle/action/power_flip/action/override/ginovi_pf$ginovi_pf_lv2.action.dsl.amf3.deflate",
+      "member": "production/upload/bb/21e6d1ec1faeefaa5caf9eebb09956b4c2f50c",
+      "bytes": 915,
+      "sha256": "2fa7e9d6eb530605b118662c76516842ed172230ce613db85ad8534dec495012",
+      "before_sha256": "399b4336625f6a2b0a5059f754df030ef75feaf6c310a131ef769cdf1250dcd0"
+    },
+    {
+      "logical": "battle/action/power_flip/action/override/ginovi_pf$ginovi_pf_lv3.action.dsl.amf3.deflate",
+      "member": "production/upload/3f/9a0838455a30cebe634ee375ef0a783fb0521a",
+      "bytes": 964,
+      "sha256": "83e16959685945f206a37ebef11731ab695c9464850f6284a3c1b6747a458e4c",
+      "before_sha256": "05f5b3ea297ebf8a783c7049b53bf8cf0b20cccbeb3baafc7d6bec002d50d6d8"
+    },
+    {
+      "logical": "battle/action/skill/action/ability_skill/ruin_girl_campus$ruin_girl_campus_fever_spawn.action.dsl.amf3.deflate",
+      "member": "production/upload/6e/4dd6850c01c218a8408c59f26f44a75c4cb469",
+      "bytes": 654,
+      "sha256": "36472ffe78bd06415e0c9757b7bea300d7379d849e65adc5897f1d22dd5d91ad",
+      "before_sha256": "3b28adf1289ddc7251b009db2ffc7fc2b53e307548ecd12dffc6a3a5c72cef30"
+    },
+    {
+      "logical": "battle/action/skill/action/rare5/ruin_girl_campus$ruin_girl_campus_1.action.dsl.amf3.deflate",
+      "member": "production/upload/a1/c5eb7286e3886b84f18204e5437ebfc79f5a6a",
+      "bytes": 713,
+      "sha256": "55fbcb20b287279a5a1dbf6cd1b8f181f3816cf6f3399e626c9b1b9e40730486",
+      "before_sha256": "65b1d2c681c479993a4b3891272cb5b82a1166af4cf37fbcd8455ac73a6359ec"
+    },
+    {
+      "logical": "battle/action/skill/action/rare5/ruin_girl_campus$ruin_girl_campus_2.action.dsl.amf3.deflate",
+      "member": "production/upload/5a/b60d3221af3ce1082db6c4f42cce500a7a75d0",
+      "bytes": 713,
+      "sha256": "55fbcb20b287279a5a1dbf6cd1b8f181f3816cf6f3399e626c9b1b9e40730486",
+      "before_sha256": "65b1d2c681c479993a4b3891272cb5b82a1166af4cf37fbcd8455ac73a6359ec"
+    },
+    {
+      "logical": "battle/action/skill/action/rare5/spirit_beast_wind_playable$spirit_beast_wind_playable_2.action.dsl.amf3.deflate",
+      "member": "production/upload/cb/a0cd7f8229186683ed1e7bea162ef52f85655a",
+      "bytes": 1095,
+      "sha256": "604765b866d500d80cdb7d9f55fb5cd04a0d995328100392a2c26ebc7a826007",
+      "before_sha256": "575034872185166d4719a2bcab600d0a0ca82c618f7be64c31df3d5122d8d29d"
+    },
+    {
+      "logical": "battle/action/skill/action/rare5/wind_spgirl_campus$wind_spgirl_campus_1.action.dsl.amf3.deflate",
+      "member": "production/upload/a7/125ea34d293bf30ec77725b43d233db8bbb768",
+      "bytes": 1724,
+      "sha256": "6206396b2abdcabce7b48799bae7328f1b7cc25a67e5bb7f2cc335112a1a0df3",
+      "before_sha256": "db0e413a094b4443482f2cf073ec9f9316dda908e2a56181e9479ff450cc25af"
+    },
+    {
+      "logical": "battle/action/skill/action/rare5/wind_spgirl_campus$wind_spgirl_campus_2.action.dsl.amf3.deflate",
+      "member": "production/upload/60/98235735eb9fb1b69ba6f8ec8a90394494ffd7",
+      "bytes": 1724,
+      "sha256": "6206396b2abdcabce7b48799bae7328f1b7cc25a67e5bb7f2cc335112a1a0df3",
+      "before_sha256": "db0e413a094b4443482f2cf073ec9f9316dda908e2a56181e9479ff450cc25af"
+    },
+    {
+      "logical": "dynamic/degree/degree_mod_abyss_collector.png",
+      "member": "production/upload/28/bdd9c0622f9d23da63929e8695af73b56bde34",
+      "bytes": 31222,
+      "sha256": "917eea7b8ba8671454d9aa373a2d882b6521de74561a6860e6fce4962e83d965",
+      "before_sha256": null
+    },
+    {
+      "logical": "dynamic/degree/degree_mod_abyss_forge_master.png",
+      "member": "production/upload/3b/a0cd705b621b37ae30c57f08f6301b4b5143f8",
+      "bytes": 33648,
+      "sha256": "c5b30e5abc7e52902ddb05c722a791b1a5374dd4818761c1dcc3753dd89c0339",
+      "before_sha256": null
+    },
+    {
+      "logical": "dynamic/degree/degree_mod_deathbringer_master.png",
+      "member": "production/upload/d6/1054b22e3efacaa5148b8ce8a6c98318068780",
+      "bytes": 31096,
+      "sha256": "f1843145e253225d38f54bdab41216c7945d3c937e4508763207a57f1db5f5aa",
+      "before_sha256": null
+    },
+    {
+      "logical": "master/ability/ability.orderedmap",
+      "member": "production/upload/1e/664c1cc8d80f4f9a69aae2c49ae8c01d1c4001",
+      "bytes": 369539,
+      "sha256": "63cc66f07ee3db3f8dff0030f638d7644178be634f2f81ecbd07b9dc0fa0168a",
+      "before_sha256": "07ed6579eea0d9564c63bd9cb12002873d49ab9f0a8a33c79d98ac1d246b16c4"
+    },
+    {
+      "logical": "master/ability/leader_ability.orderedmap",
+      "member": "production/upload/ff/84353774cb95e8d7dc90c679f96a5bca7f42e5",
+      "bytes": 64602,
+      "sha256": "f3891b3c40e74e64810ec30a80111374d97726aff4d784c2ea59ba468d28f275",
+      "before_sha256": "9abe387c945ee79ed9e568a79eb0cecbc67f5ea82f8a15f82895865f09d0bdb2"
+    },
+    {
+      "logical": "master/character/character_text.orderedmap",
+      "member": "production/upload/8b/035728b2151de044fb245988ec5f33ebb544ab",
+      "bytes": 210191,
+      "sha256": "7decfb92b6393daaf553058a32f6cb772077dd442c117b7952ed751dda46f02d",
+      "before_sha256": "f4419da50e1d8aa8aaa2bb15820b0adb9d7b0a17f77f3856dac5d88580deaaea"
+    },
+    {
+      "logical": "master/degree/degree.orderedmap",
+      "member": "production/upload/89/e5c25c791e2a9527422c186084a1793218c2ac",
+      "bytes": 332044,
+      "sha256": "70f30e4a6606aaa547912e256f9dfcc322e07a7876f35cd17e4671e40862d695",
+      "before_sha256": "8040c44fba7b26e396af1978035a44a3ab57501e33bff50db508964434e31ee8"
+    },
+    {
+      "logical": "master/skill/action_skill.orderedmap",
+      "member": "production/upload/91/79892d704f88d98191c00548bce106402ad5b5",
+      "bytes": 349468,
+      "sha256": "75f9ed177211649f042ffa67851f7435a3df703f03aadfdbf7755d183db40597",
+      "before_sha256": "945e997577d2caf20a752a89a7f284f52615ec393a274d638b0e484f1b114898"
+    },
+    {
+      "logical": "master/string/custom_ability_string.orderedmap",
+      "member": "production/upload/07/0c6e214359ccf27b1cb8078d3fc51aecfe0149",
+      "bytes": 43842,
+      "sha256": "45340ca6f12309178a122dacc702c2f6023eb97704c8ecdad86744f78cd265a8",
+      "before_sha256": "1e0a6d8033754b853b4ff79bc4102e02d29cb599f928119cf2ed5bb3254eb93f"
+    }
+  ],
+  "degree": {
+    "before_count": 1545,
+    "after_count": 1548,
+    "added": [
+      {
+        "degree_id": 9911001,
+        "row_sha256": "7b0ccda8193e76f701153e9a26c9096aed44e18c85fd9970569132c4030354dd",
+        "image_logical": "dynamic/degree/degree_mod_abyss_collector.png",
+        "image_sha256": "ab472dc37bbf5b2c24a373347231d69517f707038978c62aea056f2b7ed0d6c7"
+      },
+      {
+        "degree_id": 9911002,
+        "row_sha256": "a479313447979be64bf57598af1279308f0838dbea76387818d64b576617bcb8",
+        "image_logical": "dynamic/degree/degree_mod_abyss_forge_master.png",
+        "image_sha256": "f8cfdabafe83a50462514703b5c8e34d6ee9cbaa7609d56de57a892690be4fbd"
+      },
+      {
+        "degree_id": 9911003,
+        "row_sha256": "ef820c17be381080757f72689b443990255a7ce7e66dbdacf6dabefe39a256a9",
+        "image_logical": "dynamic/degree/degree_mod_deathbringer_master.png",
+        "image_sha256": "23b09e11439a9a3b8fb9e8599cb61e99bff22f889312c24159f0182da47b8153"
+      }
+    ]
+  },
+  "resource_preflight": {
+    "records": 78,
+    "conflicts": 0,
+    "resolution_policy": "exact/three-way plus five documented receiver-local resolutions"
+  },
+  "server_files_pending_apply": [],
+  "source_layout_note": "864 source patch targets mod-tools builder modules absent from this receiver; runtime bundle was merged by manifest and current-chain effective resources.",
+  "deployment": {
+    "apk": false,
+    "cdn_published": false,
+    "runtime_restarted": true,
+    "commit_created": false,
+    "runtime_cdn_version": "1.4.109",
+    "runtime_sync": true,
+    "reason": "已按用户授权同步并重启本地运行时；未发布云端、未提交 Git。",
+    "runtime_backup": "F:\\startpoint-cn-main\\.codex-backups\\20260914-225856-author-update-fusion-1.4.109",
+    "runtime_pid": 14276,
+    "runtime_logs": {
+      "stdout": "F:\\startpoint-cn-main\\.logs\\cn-server-20260914-225940-author-update-fusion.stdout.log",
+      "stderr": "F:\\startpoint-cn-main\\.logs\\cn-server-20260914-225940-author-update-fusion.stderr.log"
+    },
+    "asset_get_path_readback": {
+      "method": "POST",
+      "url": "http://127.0.0.1:8001/api/index.php/asset/get_path",
+      "request_res_ver": "1.4.108",
+      "device": "android",
+      "status": 200,
+      "target_asset_version": "1.4.109",
+      "diff_archive": "pinball-1.4.108-1.4.109-1-author-update-fusion.zip"
+    }
+  },
+  "validation": {
+    "typecheck": {
+      "command": "npm run typecheck",
+      "passed": true
+    },
+    "build": {
+      "command": "npm run build",
+      "passed": true
+    },
+    "tests": {
+      "command": "node --test tests/exclusive-degree-rewards.test.cjs tests/character-degree-rewards.test.cjs tests/shop-degree-reward.test.js tests/equipment-enhancement-route.test.js",
+      "passed": true,
+      "tests": 21
+    },
+    "archive": {
+      "crc": "ok",
+      "unsafe_paths": 0,
+      "duplicate_members": 0,
+      "payloads_match_after_client": true,
+      "sha256_matches_manifest": true
+    },
+    "server_bytes_match_fusion_snapshot": true,
+    "gameplay_tested": false,
+    "device_acceptance": false
+  }
+}

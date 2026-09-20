@@ -5,7 +5,9 @@ const player_1 = require("../../data/domains/player");
 const leaderboard_1 = require("../../data/domains/leaderboard");
 const competition_1 = require("./competition");
 const availability_1 = require("./availability");
+const abyss_endurance_degree_rewards_1 = require("../abyss-endurance-degree-rewards");
 function startLeaderboardQuestSync(playerId, quest, startedAtMs = Date.now()) {
+    (0, abyss_endurance_degree_rewards_1.startAbyssEnduranceQuestSync)(playerId, quest, startedAtMs);
     const competition = (0, competition_1.getLeaderboardCompetitionForQuest)(quest);
     const round = quest.round;
     if (competition === null
@@ -54,26 +56,27 @@ function startLeaderboardQuestSync(playerId, quest, startedAtMs = Date.now()) {
 exports.startLeaderboardQuestSync = startLeaderboardQuestSync;
 function finishLeaderboardQuestSync(input) {
     var _a;
+    const degrees = (0, abyss_endurance_degree_rewards_1.finishAbyssEnduranceQuestSync)(input);
     if (!input.accomplished)
-        return;
+        return degrees;
     const finishedAtMs = Math.trunc((_a = input.finishedAtMs) !== null && _a !== void 0 ? _a : Date.now());
     if (!Number.isSafeInteger(finishedAtMs) || finishedAtMs < 0)
-        return;
+        return degrees;
     const competition = (0, competition_1.getLeaderboardCompetitionForQuest)(input.quest);
     const round = input.quest.round;
     if (competition === null
         || !(0, availability_1.isLeaderboardEnabledSync)(competition.key, finishedAtMs)
         || round === undefined
         || round < 1)
-        return;
+        return degrees;
     const clientBattleMs = Math.trunc(input.clientBattleMs);
     if (!Number.isSafeInteger(clientBattleMs)
         || clientBattleMs <= 0
         || clientBattleMs > 2147483647)
-        return;
+        return degrees;
     const run = (0, leaderboard_1.getActiveLeaderboardRunSync)(input.playerId, competition.key);
     if (run === null)
-        return;
+        return degrees;
     (0, leaderboard_1.finishLeaderboardRoundSync)({
         run,
         round,
@@ -82,9 +85,11 @@ function finishLeaderboardQuestSync(input) {
         finishedAtMs,
         party: input.party,
     });
+    return degrees;
 }
 exports.finishLeaderboardQuestSync = finishLeaderboardQuestSync;
 function resetLeaderboardCompetitionSync(playerId, quest, endedAtMs = Date.now()) {
+    (0, abyss_endurance_degree_rewards_1.resetAbyssEnduranceQuestSync)(playerId, quest, endedAtMs);
     const competition = (0, competition_1.getLeaderboardCompetitionForQuest)(quest);
     if (competition === null)
         return 0;

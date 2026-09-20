@@ -32,6 +32,7 @@ const character_1 = require("../../data/domains/character");
 const party_1 = require("../../data/domains/party");
 const quest_1 = require("../../data/domains/quest");
 const abyss_time_revision_1 = require("../../lib/abyss-time-revision");
+const abyss_tower_progress_1 = require("../../data/domains/abyss-tower-progress");
 const http_reply_1 = require("../../lib/http-reply");
 const daily_vmoney_mail_1 = require("../../lib/daily-vmoney-mail");
 const news_delivery_1 = require("../../lib/news-delivery");
@@ -178,6 +179,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             // evaluate cross-event clear conditions on a cold visit. Optional
             // saved party slots are normalized to null before packing (rather than
             // MessagePack's unsupported undefined extension, 0xD4).
+            (0, abyss_tower_progress_1.refreshPlayerAbyssTowersSync)(playerId);
             const clientData = (0, utils_2.getClientSerializedData)(playerId, {
                 viewerId: accountId,
                 serializeRushEventData: true,

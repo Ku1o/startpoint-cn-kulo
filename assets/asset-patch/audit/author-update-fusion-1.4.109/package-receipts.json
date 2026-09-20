@@ -1,0 +1,20 @@
+{
+  "packages": [
+    {
+      "path": "F:\\Reborn-51款铭牌与角色平衡更新-1.4.865-20260914-r2.zip",
+      "last_write_time": "2026-09-14 12:10:57",
+      "sha256": "0b3bc0a051c0e61512de34eb25aa0a34256ba1e773dcfa95fb5d3806b41dd0d6"
+    },
+    {
+      "path": "F:\\Reborn-校希尔媞星风心得增强-1.4.866-20260914.zip",
+      "last_write_time": "2026-09-14 13:06:30",
+      "sha256": "da784e61c7671ac46ce5b81e7dcf0e5049cd10229e6b390ef0a212815a1851cb"
+    },
+    {
+      "path": "F:\\Reborn-校希尔媞星风心得增强-1.4.867-20260914.zip",
+      "last_write_time": "2026-09-14 17:37:56",
+      "sha256": "0f8aaf0a595dd0137aa153e365d0b5e46b455bd597cbed15939cba5c2c88c5dd"
+    }
+  ],
+  "nested_package": "865/resources/degree-manifest.json and 864/867 bundle manifests were CRC/hash checked before fusion"
+}

@@ -1,4 +1,5 @@
 import type { Database } from "better-sqlite3"
+import { cachedStatement } from "./cached-statement"
 
 export const STORAGE_LAYOUT_VERSION = 1
 export const WDFP_DATA_VERSION = 9
@@ -18,8 +19,10 @@ export interface StorageColumnInfo {
 function quote(name: string): string { return `"${name.replace(/"/g, '""')}"` }
 
 export function getStorageLayoutVersion(db: Database): number {
-    if (!db.prepare("SELECT 1 FROM sqlite_master WHERE type='table' AND name='server_storage_migrations'").get()) return 0
-    const row = db.prepare("SELECT MAX(version) AS version FROM server_storage_migrations").get() as { version: number | null }
+    // Reuse compilation, not the result: migrations and version changes on this
+    // connection must still be visible immediately (including after rollback).
+    if (!cachedStatement(db, "SELECT 1 FROM sqlite_master WHERE type='table' AND name='server_storage_migrations'").get()) return 0
+    const row = cachedStatement(db, "SELECT MAX(version) AS version FROM server_storage_migrations").get() as { version: number | null }
     const version = row.version ?? 0
     if (version > STORAGE_LAYOUT_VERSION) throw new Error(`数据库存储版本 ${version} 高于程序支持版本，拒绝启动旧程序`)
     return version
@@ -229,9 +232,9 @@ export function writeCompactMissionCounter(db: Database, playerId: number, defin
 }, value: number, operation: "add" | "max" | "min"): number {
     const expression = operation === "add" ? "value+excluded.value" : operation === "max" ? "MAX(value,excluded.value)" : "MIN(value,excluded.value)"
     return db.transaction(() => {
-        db.prepare(`INSERT INTO mission_counter_definitions(counter_key,dimension,scope_type,scope_key,qualifier_json)
+        cachedStatement(db, `INSERT INTO mission_counter_definitions(counter_key,dimension,scope_type,scope_key,qualifier_json)
             VALUES(?,?,?,?,?) ON CONFLICT(counter_key) DO NOTHING`).run(definition.key, definition.dimension, definition.scopeType, definition.scopeKey, definition.qualifierJson)
-        const row = db.prepare(`INSERT INTO players_mission_counter_values(player_id,counter_id,value,updated_at)
+        const row = cachedStatement(db, `INSERT INTO players_mission_counter_values(player_id,counter_id,value,updated_at)
             SELECT ?,id,?,? FROM mission_counter_definitions WHERE counter_key=?
                 AND dimension=? AND scope_type=? AND scope_key=? AND qualifier_json=?
             ON CONFLICT(player_id,counter_id) DO UPDATE SET value=${expression},updated_at=excluded.updated_at

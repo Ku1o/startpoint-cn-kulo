@@ -7,6 +7,7 @@ const character_1 = require("../../character");
 const quest_1 = require("../../quest");
 const types_1 = require("../../types");
 const rogue_drop_schedule_1 = require("./rogue-drop-schedule");
+const abyss_modes_1 = require("../../abyss-modes");
 // Client-side kind values accepted by RushEventLogic.rewardListToGeneralRewardKinds
 // (anything else throws ClientError 3446): 1=Item, 5=Character, 6=Equipment.
 const REWARD_LIST_KIND = {
@@ -39,6 +40,8 @@ function handleRoguePerRoundDrops(params) {
         return null;
     const { rushEventId, rushEventFolderId, rushEventRound } = questData;
     if (rushEventId === undefined || rushEventFolderId === undefined || rushEventRound === undefined)
+        return null;
+    if (rushEventId === abyss_modes_1.ABYSS_EX_EVENT_ID && rushEventRound === 0)
         return null;
     const config = (0, assets_1.getRogueEventConfig)(rushEventId);
     if (config === null)

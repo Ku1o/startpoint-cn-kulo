@@ -1,4 +1,16 @@
 import { getDb } from "../db"
+import { cachedStatement } from "../../lib/cached-statement"
+
+/** Ownership only: avoid constructing characters and mana boards for reward eligibility. */
+export function getOwnedAwakeCharacterIdsSync(playerId: number, characterIds: readonly number[]): Set<number> {
+    const ids = [...new Set(characterIds)].filter(id => Number.isSafeInteger(id) && id > 0)
+    if (ids.length === 0) return new Set()
+    const rows = cachedStatement(getDb(), `
+        SELECT id FROM players_characters WHERE player_id = ?
+        AND id IN (SELECT CAST(value AS INTEGER) FROM json_each(?))
+    `).all(playerId, JSON.stringify(ids)) as { id: number }[]
+    return new Set(rows.map(row => row.id))
+}
 
 export type CharacterAwakeUnlockMap = Map<string, Record<number, number>>
 

@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.writeCompactMissionCounter = exports.removeCoveredStorageIndexes = exports.migrateStorageLayout = exports.assertStorageLayout = exports.getStorageSnapshotTableInfo = exports.isCompactStorage = exports.getStorageLayoutVersion = exports.COMPACT_COUNTER_VALUES = exports.RETIRED_COUNTER_SNAPSHOTS = exports.WDFP_DATA_VERSION = exports.STORAGE_LAYOUT_VERSION = void 0;
+const cached_statement_1 = require("./cached-statement");
 exports.STORAGE_LAYOUT_VERSION = 1;
 exports.WDFP_DATA_VERSION = 9;
 exports.RETIRED_COUNTER_SNAPSHOTS = "players_mission_counter_snapshots";
@@ -9,9 +10,11 @@ const DEFINITIONS = "mission_counter_definitions";
 function quote(name) { return `"${name.replace(/"/g, '""')}"`; }
 function getStorageLayoutVersion(db) {
     var _a;
-    if (!db.prepare("SELECT 1 FROM sqlite_master WHERE type='table' AND name='server_storage_migrations'").get())
+    // Reuse compilation, not the result: migrations and version changes on this
+    // connection must still be visible immediately (including after rollback).
+    if (!(0, cached_statement_1.cachedStatement)(db, "SELECT 1 FROM sqlite_master WHERE type='table' AND name='server_storage_migrations'").get())
         return 0;
-    const row = db.prepare("SELECT MAX(version) AS version FROM server_storage_migrations").get();
+    const row = (0, cached_statement_1.cachedStatement)(db, "SELECT MAX(version) AS version FROM server_storage_migrations").get();
     const version = (_a = row.version) !== null && _a !== void 0 ? _a : 0;
     if (version > exports.STORAGE_LAYOUT_VERSION)
         throw new Error(`数据库存储版本 ${version} 高于程序支持版本，拒绝启动旧程序`);
@@ -234,9 +237,9 @@ exports.removeCoveredStorageIndexes = removeCoveredStorageIndexes;
 function writeCompactMissionCounter(db, playerId, definition, value, operation) {
     const expression = operation === "add" ? "value+excluded.value" : operation === "max" ? "MAX(value,excluded.value)" : "MIN(value,excluded.value)";
     return db.transaction(() => {
-        db.prepare(`INSERT INTO mission_counter_definitions(counter_key,dimension,scope_type,scope_key,qualifier_json)
+        (0, cached_statement_1.cachedStatement)(db, `INSERT INTO mission_counter_definitions(counter_key,dimension,scope_type,scope_key,qualifier_json)
             VALUES(?,?,?,?,?) ON CONFLICT(counter_key) DO NOTHING`).run(definition.key, definition.dimension, definition.scopeType, definition.scopeKey, definition.qualifierJson);
-        const row = db.prepare(`INSERT INTO players_mission_counter_values(player_id,counter_id,value,updated_at)
+        const row = (0, cached_statement_1.cachedStatement)(db, `INSERT INTO players_mission_counter_values(player_id,counter_id,value,updated_at)
             SELECT ?,id,?,? FROM mission_counter_definitions WHERE counter_key=?
                 AND dimension=? AND scope_type=? AND scope_key=? AND qualifier_json=?
             ON CONFLICT(player_id,counter_id) DO UPDATE SET value=${expression},updated_at=excluded.updated_at

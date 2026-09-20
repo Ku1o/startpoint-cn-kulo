@@ -1,7 +1,20 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.upsertPlayerCharacterAwakeUnlockSync = exports.getPlayerCharacterAwakeUnlocksByCharacterIdsSync = exports.getPlayerCharacterAwakeUnlocksSync = void 0;
+exports.upsertPlayerCharacterAwakeUnlockSync = exports.getPlayerCharacterAwakeUnlocksByCharacterIdsSync = exports.getPlayerCharacterAwakeUnlocksSync = exports.getOwnedAwakeCharacterIdsSync = void 0;
 const db_1 = require("../db");
+const cached_statement_1 = require("../../lib/cached-statement");
+/** Ownership only: avoid constructing characters and mana boards for reward eligibility. */
+function getOwnedAwakeCharacterIdsSync(playerId, characterIds) {
+    const ids = [...new Set(characterIds)].filter(id => Number.isSafeInteger(id) && id > 0);
+    if (ids.length === 0)
+        return new Set();
+    const rows = (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
+        SELECT id FROM players_characters WHERE player_id = ?
+        AND id IN (SELECT CAST(value AS INTEGER) FROM json_each(?))
+    `).all(playerId, JSON.stringify(ids));
+    return new Set(rows.map(row => row.id));
+}
+exports.getOwnedAwakeCharacterIdsSync = getOwnedAwakeCharacterIdsSync;
 function getPlayerCharacterAwakeUnlocksSync(playerId) {
     var _a;
     const rows = (0, db_1.getDb)().prepare(`

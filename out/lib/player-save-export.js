@@ -13,7 +13,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.exportPlayerSaveInWorker = exports.PlayerSaveExportError = exports.DEFAULT_PLAYER_SAVE_EXPORT_MAX_BYTES = void 0;
-const fs_1 = require("fs");
+const file_exists_1 = require("./file-exists");
 const path_1 = __importDefault(require("path"));
 const worker_threads_1 = require("worker_threads");
 const admin_database_backup_1 = require("./admin-database-backup");
@@ -30,7 +30,7 @@ exports.PlayerSaveExportError = PlayerSaveExportError;
 let activeExportWorker = null;
 function getWorkerLocation() {
     const compiledWorker = path_1.default.resolve(__dirname, "../workers/player-save-export-worker.js");
-    if ((0, fs_1.existsSync)(compiledWorker))
+    if ((0, file_exists_1.existsSync)(compiledWorker))
         return { filename: compiledWorker };
     return {
         filename: path_1.default.resolve(__dirname, "../workers/player-save-export-worker.ts"),
@@ -107,7 +107,7 @@ function exportPlayerSaveInWorker(playerId_1) {
                 }
                 fail((_b = message.code) !== null && _b !== void 0 ? _b : "export-failed", (_c = message.error) !== null && _c !== void 0 ? _c : "存档导出 worker 返回了无效结果");
             });
-            worker.once("error", error => fail("export-failed", error.message));
+            worker.once("error", error => fail("export-failed", error instanceof Error ? error.message : String(error)));
             worker.once("exit", code => {
                 if (!settled)
                     fail("export-failed", `存档导出 worker 未返回结果（code=${code}）`);

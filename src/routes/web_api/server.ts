@@ -1,5 +1,6 @@
+import { existsSync } from "../../lib/file-exists";
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
-import { existsSync, lstatSync, readdirSync, rmSync, statSync, writeFileSync } from "fs";
+import { lstatSync, readdirSync, rmSync, statSync, writeFileSync } from "fs";
 import path from "path";
 import { randomBytes, randomUUID } from "crypto";
 import { Worker } from "worker_threads";
@@ -331,7 +332,7 @@ function startAccountCleanupWorker(
         if (!accountCleanupJob || accountCleanupJob.jobId !== jobId || accountCleanupJob.status !== "running") return
         accountCleanupJob.status = "failed"
         accountCleanupJob.finishedAt = new Date().toISOString()
-        accountCleanupJob.error = error.message
+        accountCleanupJob.error = error instanceof Error ? error.message : String(error)
         accountCleanupJob.workerThreadId = null
     })
     worker.on("exit", code => {

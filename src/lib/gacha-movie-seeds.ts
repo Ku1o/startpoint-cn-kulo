@@ -1,4 +1,5 @@
-import { existsSync, readFileSync } from "fs";
+import { existsSync } from "./file-exists";
+import { readFileSync } from "fs";
 import { join } from "path";
 
 const ASSETS_DIR = join(__dirname, "..", "..", "assets");

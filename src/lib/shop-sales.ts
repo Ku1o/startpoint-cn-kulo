@@ -8,7 +8,7 @@ const GENERAL_EQUIPMENT_SCOPED_PURCHASE_KEYS = new Map([
     [110006, -8_110_006],
 ])
 const MODE15_SHARED_EVENT_PURCHASE_KEYS = new Map(
-    Array.from({ length: 12 }, (_, index) => [
+    Array.from({ length: 14 }, (_, index) => [
         [9_700_201 + index, -9_702_001 - index],
         [9_700_301 + index, -9_702_001 - index],
     ] as const).flat(),

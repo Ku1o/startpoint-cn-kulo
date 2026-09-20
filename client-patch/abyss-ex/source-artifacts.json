@@ -1,0 +1,63 @@
+{
+  "role": "exact_historical_reproduction_inputs_not_current_baselines",
+  "android": {
+    "apk": "outputs/r10-public-reopen-fix-20260915/StarPoint-CN-1.8.1-r10-public-reopen-fix-20260915.apk",
+    "apk_sha256": "3c365e51762ad115366731fa1fa2bd1ffbdac54cbce4c3e2626010deffc91fd2",
+    "swf_sha256": "7b67801fc938b8f77b9919b3ca1ddd77bb57da47befbb2eec6eb208897f88a72",
+    "uniqueappversionid": "e3067070-629a-4aae-8052-26e88a636533",
+    "endpoint": "http://175.178.160.158:8001",
+    "local_build_report": "outputs/r10-public-reopen-fix-20260915/StarPoint-CN-1.8.1-r10-public-reopen-fix-20260915.json",
+    "local_build_checks": {
+      "method_bodies_checked": 96635,
+      "original_methods": 96631,
+      "changed_original_methods": [
+        29386,
+        29390,
+        29456
+      ],
+      "added_helper_methods": 4,
+      "all_other_original_methods_preserved": true,
+      "zipalign": true,
+      "v1_signature": true,
+      "v2_signature": true,
+      "signer_certificate_sha256": "569d19a3578d4cba16e3d6e7ad8ccab4fa667efc758deef6c9be3adb99919894"
+    },
+    "accepted_on": "2026-09-16",
+    "acceptance_audit": "client-patch/ACCEPTANCE-LOCAL-RECORD-RECOVERY-20260916.md",
+    "main_abc_index": 296,
+    "size_bytes": 170036419,
+    "dex_sha256": "b8eeecc7e619ec04e6af971345e17130e4c997a86dbf463f575135f92c4cc786",
+    "native_build_identity": "e3067070-629a-4aae-8052-26e88a636533",
+    "package_name": "com.leiting.wf",
+    "version_name": "1.8.1",
+    "version_code": 1008001,
+    "acceptance_status": "user_accepted",
+    "device_acceptance": "accepted_without_per_feature_test_log",
+    "derived_from_apk_sha256": "afca9f44d1bea9edea7b573fa96dddd32bc304afd0bbaa4d3df6fb21d41c2a90",
+    "build_id": "android-181-r10-20260915",
+    "diagnostic_export": false
+  },
+  "ios": {
+    "ipa": "outputs/ios-fantasy-return-fix-20260916-r2/StarPoint-iOS-1.8.4-fantasy-return-fix-20260916-unsigned.ipa",
+    "ipa_sha256": "f1d9f41f0b9c16ec79efa5664833fe5dea13038bc844a25f22dbafda367316dc",
+    "size_bytes": 152798637,
+    "native_member": "Payload/worldflipper.app/worldflipper",
+    "native_sha256": "23507d266847bc9da7e589ac4024b62484f863375cf633700e9482369bf45d1e",
+    "swf_member": "Payload/worldflipper.app/worldflipper_ios_release.swf",
+    "swf_sha256": "53db3699e912ea4f41c4945bb1c36117f18b39c40d5ce57a60546798456da9b4",
+    "bundle_id": "com.kulo.wf",
+    "version": "1.8.4",
+    "build": "1.8.46",
+    "signing": "unsigned",
+    "profile_debug_overlay": false,
+    "title_cntips_b_unchanged": true,
+    "endpoint_policy": "R3/R4 初始 API 与版本配置均为 http://175.178.160.158，公网默认端口 80",
+    "full_abc": "outputs/ios-admission-public-reopen-fix-20260915/record-recovery-full.abc",
+    "full_abc_sha256": "507109bf13ff1b665b521d135057e42f76f924d1f14960b8264ae4f2362ef96c",
+    "full_abc_sha1": "6bc1214dbef728adb4b49f13febb2391cadbd04d",
+    "aot_info_file_offset": 104549248,
+    "aot_method_count": 101287,
+    "build_id": "ios-184-admission-20260915",
+    "diagnostic_export": false
+  }
+}

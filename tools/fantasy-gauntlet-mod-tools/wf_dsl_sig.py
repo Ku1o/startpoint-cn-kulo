@@ -1881,6 +1881,11 @@ def _validate_expression(node, path: str) -> None:
         raise DslSignatureError(
             f"{path}/{tag}:{name}: 参数数量 {len(args)} != {len(signature)}")
     for index, (value, expected) in enumerate(zip(args, signature), start=1):
+        # ActionEvaluator CreateCondition passes p8 through as nullable
+        # linkedHitCheckKind (official shark actions use null here).
+        # This does not make other enum parameters nullable.
+        if tag == "Command" and name == "CreateCondition" and index == 8 and value is None:
+            continue
         if not _dsl_type_ok(value, expected):
             label = PARAM_CN.get(name, {}).get(index, TYPE_CN.get(expected, expected))
             raise DslSignatureError(

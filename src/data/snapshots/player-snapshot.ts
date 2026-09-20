@@ -147,7 +147,7 @@ const EXCLUDED_PLAYER_STATE = Object.freeze([
     {
         tables: ["leaderboard_runs", "leaderboard_run_rounds", "leaderboard_settlement_results"],
         policy: "preserve-target" as const,
-        reason: "排行榜对局、轮次明细和结算结果属于服务器公共竞赛记录，不随玩家存档迁移，覆盖时保留目标侧数据。",
+        reason: "排行榜及独立深渊慢通关对局、轮次明细和结算结果绑定本服对局，不随玩家存档迁移，覆盖时保留目标侧数据；已获得铭牌随玩家存档迁移。",
     },
     {
         tables: [
@@ -204,10 +204,12 @@ function getPrimaryKeyColumns(db: BetterSqlite3Database, table: string): string[
         .map(column => column.name)
 }
 
-function getSchemaFingerprint(db: BetterSqlite3Database): string {
+function getSchemaFingerprint(db: BetterSqlite3Database, beforeAbyssTowerRevision = false): string {
     const schema = PLAYER_SNAPSHOT_V2_TABLES.map(table => ({
         table,
-        columns: getTableInfo(db, table).map(column => ({
+        columns: getTableInfo(db, table)
+            .filter(column => !(beforeAbyssTowerRevision && table === "players_rush_events" && column.name === "tower_revision"))
+            .map(column => ({
             name: column.name,
             type: column.type,
             notnull: column.notnull,
@@ -373,7 +375,11 @@ export function validatePlayerSaveSnapshotV2Sync(
 
     assertPlayerSnapshotCoverageSync(db)
     const expectedFingerprint = getSchemaFingerprint(db)
-    if (snapshot.schemaFingerprint !== expectedFingerprint) {
+    // Precisely recognize the previous portable schema. Old archives keep their
+    // original fingerprint and columns; SQL supplies NULL for the added marker.
+    const beforeAbyssTowerRevision = snapshot.schemaFingerprint !== expectedFingerprint
+        && snapshot.schemaFingerprint === getSchemaFingerprint(db, true)
+    if (snapshot.schemaFingerprint !== expectedFingerprint && !beforeAbyssTowerRevision) {
         throw new Error("存档数据库结构与当前服务器不一致，拒绝执行覆盖；请先使用匹配版本迁移")
     }
     if (!snapshot.data || typeof snapshot.data !== "object" || !snapshot.data.tables || typeof snapshot.data.tables !== "object") {
@@ -392,7 +398,8 @@ export function validatePlayerSaveSnapshotV2Sync(
     for (const table of PLAYER_SNAPSHOT_V2_TABLES) {
         const tableData = snapshot.data.tables[table]
         if (!tableData || typeof tableData !== "object") throw new Error(`${table}: 表数据无效`)
-        const tableInfo = getTableInfo(db, table)
+        const tableInfo = getTableInfo(db, table).filter(column =>
+            !(beforeAbyssTowerRevision && table === "players_rush_events" && column.name === "tower_revision"))
         const expectedColumns = tableInfo.map(column => column.name)
         if (!Array.isArray(tableData.columns) || JSON.stringify(tableData.columns) !== JSON.stringify(expectedColumns)) {
             throw new Error(`${table}: 列定义与当前服务器不一致`)
@@ -459,7 +466,10 @@ function assertRestoredTable(
     targetPlayerId: number,
 ): void {
     const actual = readSnapshotTable(db, table, targetPlayerId)
-    const expectedRows = canonicalRows(table, source.columns, source.rows, targetPlayerId)
+    const migratedSource = table === "players_rush_events" && !source.columns.includes("tower_revision")
+        ? { columns: [...source.columns, "tower_revision"], rows: source.rows.map(row => [...row, null]) }
+        : source
+    const expectedRows = canonicalRows(table, migratedSource.columns, migratedSource.rows, targetPlayerId)
     const actualRows = canonicalRows(table, actual.columns, actual.rows, targetPlayerId)
     if (JSON.stringify(actualRows) !== JSON.stringify(expectedRows)) {
         throw new Error(`${table}: 写入后校验不一致`)

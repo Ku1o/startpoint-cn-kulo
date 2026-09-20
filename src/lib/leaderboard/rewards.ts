@@ -1,4 +1,5 @@
 import policy from "../../../assets/leaderboard_reward_policy.json"
+import campus from "../../../assets/abyss_ex_campus_season_template.json"
 
 export interface LeaderboardReward {
     itemId: number | null
@@ -119,11 +120,32 @@ export const DEEP_ABYSS_REWARD_TIERS: readonly LeaderboardPercentRewardTier[] =
         toPercent: policy.percentileCutoffs[index],
     }))
 
+export const DEEP_ABYSS_EX_REWARD_TIERS: readonly LeaderboardPercentRewardTier[] =
+    DEEP_ABYSS_REWARD_TIERS.map((tier, index) => ({ ...tier,
+        degreeId: campus.degree_tiers[index].degreeId,
+        degreeName: campus.degree_tiers[index].degreeName,
+        degreeImage: campus.degree_tiers[index].degreeImage,
+    }))
+
+export function buildAbyssExRewardRules(normal: readonly LeaderboardRewardRule[]): LeaderboardRewardRule[] {
+    if (normal.length !== campus.degree_tiers.length) {
+        throw new Error("EX campus rewards require the five normal Abyss tiers.")
+    }
+    return normal.map((tier, index) => ({ ...tier,
+        degreeId: campus.degree_tiers[index].degreeId,
+        degreeName: campus.degree_tiers[index].degreeName,
+        degreeImage: campus.degree_tiers[index].degreeImage,
+    }))
+}
+
 // Upgrade the five existing positions without overwriting customized rewards.
 export function upgradeLeaderboardRewardRules(
     competitionKey: string,
     tiers: readonly LeaderboardRewardRule[],
 ): LeaderboardRewardRule[] | null {
+    if (competitionKey === "rush:700100:1" && tiers.length === 0) {
+        return DEEP_ABYSS_EX_REWARD_TIERS.map(tier => ({ ...tier }))
+    }
     if (competitionKey !== "rush:700099:1") return null
     if (isLegacyDefaultLeaderboardRewardTiers(competitionKey, tiers)) {
         return [...DEEP_ABYSS_REWARD_TIERS]
@@ -189,7 +211,8 @@ export function isLegacyDefaultLeaderboardRewardTiers(
 export function getLeaderboardRewardTiers(
     competitionKey: string,
 ): readonly LeaderboardRewardRule[] {
-    return competitionKey === "rush:700099:1" ? DEEP_ABYSS_REWARD_TIERS : []
+    return competitionKey === "rush:700099:1" ? DEEP_ABYSS_REWARD_TIERS
+        : competitionKey === "rush:700100:1" ? DEEP_ABYSS_EX_REWARD_TIERS : []
 }
 
 export function matchLeaderboardRewardTier(

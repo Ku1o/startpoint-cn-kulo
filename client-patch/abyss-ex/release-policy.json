@@ -1,0 +1,11 @@
+{
+  "status": "apply_when_building_formal_clients",
+  "new_admission_id_per_platform": true,
+  "previous_build_grace_seconds": 86400,
+  "grace_starts_at": "formal_platform_release_activation",
+  "server_expiry_field": "allowUntil",
+  "fresh_android_air_uuid": true,
+  "keep_existing_enforcement_policy": true,
+  "complete_private_server_pair_required": true,
+  "prepare_step_must_not_start_grace_period": true
+}

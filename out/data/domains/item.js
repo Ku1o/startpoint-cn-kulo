@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.givePlayerItemSync = exports.setPlayerItemSync = exports.updatePlayerItemSync = exports.insertPlayerItemsSync = exports.getPlayerCollectedItemTotalsByIdsSync = exports.getPlayerCollectedItemTotalsSync = exports.getPlayerCollectedItemTotalSync = exports.getPlayerItemsByIdsSync = exports.getPlayerItemsSync = exports.getPlayerItemSync = void 0;
+const cached_statement_1 = require("../../lib/cached-statement");
 const db_1 = require("../db");
 /**
  * Gets the amount of a singular item that a player owns.
@@ -11,7 +12,7 @@ const db_1 = require("../db");
  */
 function getPlayerItemSync(playerId, itemId) {
     const db = (0, db_1.getDb)();
-    const rawItem = db.prepare(`
+    const rawItem = (0, cached_statement_1.cachedStatement)(db, `
     SELECT id, amount
     FROM players_items
     WHERE player_id = ? AND id = ?
@@ -27,7 +28,7 @@ exports.getPlayerItemSync = getPlayerItemSync;
  */
 function getPlayerItemsSync(playerId) {
     const db = (0, db_1.getDb)();
-    const rawItems = db.prepare(`
+    const rawItems = (0, cached_statement_1.cachedStatement)(db, `
     SELECT id, amount
     FROM players_items
     WHERE player_id = ?
@@ -45,7 +46,7 @@ function getPlayerItemsByIdsSync(playerId, itemIds) {
     if (ids.length === 0)
         return {};
     const placeholders = ids.map(() => "?").join(", ");
-    const rows = (0, db_1.getDb)().prepare(`
+    const rows = (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
     SELECT id, amount
     FROM players_items
     WHERE player_id = ? AND id IN (${placeholders})
@@ -55,7 +56,7 @@ function getPlayerItemsByIdsSync(playerId, itemIds) {
 exports.getPlayerItemsByIdsSync = getPlayerItemsByIdsSync;
 function getPlayerCollectedItemTotalSync(playerId, itemId) {
     var _a;
-    const row = (0, db_1.getDb)().prepare(`
+    const row = (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
     SELECT total_obtained
     FROM players_collected_items
     WHERE player_id = ? AND item_id = ?
@@ -64,7 +65,7 @@ function getPlayerCollectedItemTotalSync(playerId, itemId) {
 }
 exports.getPlayerCollectedItemTotalSync = getPlayerCollectedItemTotalSync;
 function getPlayerCollectedItemTotalsSync(playerId) {
-    const rows = (0, db_1.getDb)().prepare(`
+    const rows = (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
     SELECT item_id, total_obtained
     FROM players_collected_items
     WHERE player_id = ?
@@ -78,7 +79,7 @@ function getPlayerCollectedItemTotalsByIdsSync(playerId, itemIds) {
     if (ids.length === 0)
         return {};
     const placeholders = ids.map(() => "?").join(", ");
-    const rows = (0, db_1.getDb)().prepare(`
+    const rows = (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
     SELECT item_id, total_obtained
     FROM players_collected_items
     WHERE player_id = ? AND item_id IN (${placeholders})
@@ -89,7 +90,7 @@ exports.getPlayerCollectedItemTotalsByIdsSync = getPlayerCollectedItemTotalsById
 function recordPlayerCollectedItemSync(playerId, itemId, obtainedAmount) {
     if (!Number.isSafeInteger(obtainedAmount) || obtainedAmount <= 0)
         return;
-    (0, db_1.getDb)().prepare(`
+    (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
     INSERT INTO players_collected_items (player_id, item_id, total_obtained)
     VALUES (?, ?, ?)
     ON CONFLICT(player_id, item_id) DO UPDATE SET
@@ -105,7 +106,7 @@ function recordPlayerCollectedItemSync(playerId, itemId, obtainedAmount) {
  */
 function insertPlayerItemSync(playerId, itemId, amount) {
     const db = (0, db_1.getDb)();
-    db.prepare(`
+    (0, cached_statement_1.cachedStatement)(db, `
     INSERT INTO players_items (id, amount, player_id)
     VALUES (?, ?, ?)
     `).run(Number(itemId), amount, playerId);
@@ -134,7 +135,7 @@ exports.insertPlayerItemsSync = insertPlayerItemsSync;
  */
 function updatePlayerItemSync(playerId, itemId, amount) {
     const db = (0, db_1.getDb)();
-    db.prepare(`
+    (0, cached_statement_1.cachedStatement)(db, `
     UPDATE players_items
     SET amount = ?
     WHERE player_id = ? AND id = ?

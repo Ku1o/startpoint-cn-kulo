@@ -1,37 +1,27 @@
-# Android APK/SWF：新会话从这里开始
+# Android APK/SWF：当前已验收基线
 
-2026-09-13，用户认可商店优化 LAN 版效果，并授权制作公网版、验收及提交。当前身份见
-[android-accepted.json](./android-accepted.json)，范围见 [商店优化验收](./ACCEPTANCE-SHOP-FIRST-OPEN-20260913.md)。
-登记为 `accepted_offline`：保留用户 LAN 商店反馈，公网派生包未独立真机测试。
+2026-09-18，双端深渊 EX 准入修正版完成离线验收。身份以
+[android-accepted.json](./android-accepted.json) 和 [ios-accepted.json](./ios-accepted.json) 为准，
+范围见 [双端 EX 验收](./ACCEPTANCE-ABYSS-EX-20260918.md)。
 
-## 当前直接基线
-
-| 环境 | APK（相对仓库根目录） | 状态 |
+| 环境 | 成品 | 状态 |
 | --- | --- | --- |
-| 公网 | `outputs/shop-first-open-public-20260913/StarPoint-CN-1.8.1-shop-first-open-public-20260913.apk` | 用户授权离线验收，从已测试 LAN 转换 |
-| 内网 | `outputs/shop-first-open-lan-test-20260913/StarPoint-CN-1.8.1-shop-first-open-lan-test-20260913.apk` | 用户反馈商店卡顿明显减轻；离线身份与累计方法已核验 |
+| Android 公网 | `F:/codex/outputs/abyss-ex-admission-fix-20260918/StarPoint-CN-1.8.1-abyss-ex-admission-fix-20260918.apk` | `accepted_offline`，实际包准入协议通过，未新增设备测试 |
+| Android 内网 | `outputs/r10-admission-lan-reopen-fix-20260915/StarPoint-CN-1.8.1-r10-admission-lan-reopen-fix-20260915.apk` | 原 `accepted_offline` 登记保持 |
 
-主 ABC 291，共 96543 个方法体。商店新增活动商品成员索引及存在性短路，同时包含觉醒任务响应后
-角色、等级与页签即时刷新。保留昵称、入手来源文件夹、缓存、圆角、切队 F1009、登录和全部既有累计功能。
-不包含共斗加载改造；服务端觉醒和称号查询修复仍单独待交付，不因安装 APK 生效。
+公网保留 R10 累计功能，增加 EX 活动、续战和装备门控，并修复实际 HMAC 消息中的旧号残留。主 ABC 索引 296，全 SWF 共 96,635 个方法体；无诊断导出。公网准入号为 `android-181-abyss-ex-20260917`，内网仍沿用原 R10 号。iOS 使用独立注册表，AOT 方法数 101,287。
 
-旧昵称注册表按原字节保存在 `accepted-history/android-record-holder-20260912.json`。
-历史构建器只复现其精确输入；新功能从当前注册表继续。
-iOS 使用独立已验收注册表；2026-09-13 用户确认商店累计版已验收并授权提交，现登记为 user_accepted，不能直接套用 Android 原生布局。
-
-在仓库根目录执行只读身份检查：
+在仓库根目录运行：
 
 ```powershell
-python client-patch/verify_android_baseline.py --variant public
-python client-patch/verify_android_baseline.py --variant lan
+python -B client-patch/verify_android_baseline.py --variant public
+python -B client-patch/verify_android_baseline.py --variant lan
+python -B client-patch/verify_ios_baseline.py
 ```
 
-检查器核对明确登记的 APK、内嵌 SWF、DEX、大小及 AIR UUID，不扫描其他 APK 作为替代。
-需要验收输入位于其他位置时，可用 `--apk` 指定，但必须匹配原件哈希。签名和 ZIP 对齐另由制作入口核验。
+检查器回读成品哈希、APK/SWF/DEX/AIR UUID、IPA 包身份与完整 AOT；协议证据和设备实测范围分别记录。原 EX 构建输入锁定于 `abyss-ex/source-artifacts.json`，只用于历史复现。旧包不替代当前成品；APK/IPA、密钥和签名材料不进入 Git。
 
-个人内网地址只存在忽略的 `outputs/android-build-local.json`，公开记录使用 `<LAN_HOST>` 与摘要。
-不要把具体个人内网 IP 写进源码。Git 保存制作代码与身份，APK/SWF 二进制留在本机 `outputs`；
-换电脑必须取得精确成品，不能因为缺失而回退旧版。
+以下为仍须保留的历史累计方法，容器索引按各历史步骤记录，不代表当前主 ABC 索引。
 
 ## 深渊续战与 Lens 累计内容
 

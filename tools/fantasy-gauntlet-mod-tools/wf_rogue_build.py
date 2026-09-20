@@ -68,12 +68,20 @@ import wf_rogue_bundle as rbb      # noqa: E402
 import wf_apk_paths               # noqa: E402
 import wf_orochi_ex               # noqa: E402
 import wf_abyss_quest_details as quest_details  # noqa: E402
+import wf_abyss_modes as abyss_modes  # noqa: E402
+import wf_abyss_ex as abyss_ex  # noqa: E402
+
+BUILD_MODE = "legacy"
+PRIVATE_PREFIX = "mod_rogue_"
+
+def first_boss_round() -> int:
+    return 1 if BUILD_MODE == "ex" else 2
 
 EVENT_ID = "700099"
-GAUNTLET_HUB_EVENT_IDS = ("700098", EVENT_ID)
+GAUNTLET_HUB_EVENT_IDS = ("700098", "700099", "700100")
 GAUNTLET_MIN_PLAYER_RANK = "130"
 TOKEN_ID = "2370099"
-EVENT_STRING_ID = "mod_rogue_gauntlet"
+EVENT_STRING_ID = f"{PRIVATE_PREFIX}gauntlet"
 EVENT_NAME = "深渊连战"
 Q_EVENT = "master/quest/event/rush_event.orderedmap"
 Q_FOLDER = "master/quest/event/rush_event_quest_folder.orderedmap"
@@ -227,7 +235,9 @@ def _hp_scale_safe(bosses: list[str]) -> bool:
 
 
 def _pool_safe(bosses: list[str]) -> bool:
-    """通用候选池总闸(C8016 崩 + 仅可走 native special 的 Boss)。"""
+    """通用候选池总闸，排除崩溃、不可击杀及未闭合的特殊 Boss。"""
+    if "shark_score_event" in bosses:
+        return False
     return _c8016_safe(bosses) and _hp_scale_safe(bosses)
 
 
@@ -2718,6 +2728,8 @@ def identity_locked_boss_reason(
     codes = sorted({str(code) for code in bosses if str(code)})
     if not codes:
         return None
+    if "shark_score_event" in codes:
+        return "shark_score_event 是不可击杀的计分活动族，不能用于击杀通关塔"
     refs = (code_referenced_bosses() if code_references is None
             else code_references)
     if refs.get("degraded"):
@@ -2746,6 +2758,8 @@ def identity_clone_locked_boss_reason(
     codes = sorted({str(code) for code in bosses if str(code)})
     if not codes:
         return None
+    if "shark_score_event" in codes:
+        return "shark_score_event 是不可击杀的计分活动族，不能用于击杀通关塔"
     refs = (code_referenced_bosses() if code_references is None
             else code_references)
     if refs.get("degraded"):
@@ -2863,7 +2877,7 @@ def enemy_watch_partner_alias_error(
 
 
 def purge_enemy_watch_partner_aliases(
-        enemy_watch: dict | None, prefix: str = "mod_rogue_boss") -> int:
+        enemy_watch: dict | None, prefix: str = f"{PRIVATE_PREFIX}boss") -> int:
     """Remove stale generated partner keys nested below official watchers."""
     if not isinstance(enemy_watch, dict):
         return 0
@@ -2926,15 +2940,25 @@ def caster_carrier_block(field_id: str, bosses: list[str],
     (它要遍历 general_boss_state 4.4MB,每层重算会白烧十几秒)。省略则内部自己算。
     refs["degraded"] 为真时一律拒发 —— 引用名单不完整,放行就是赌命。
     """
+    sequential_ex = False
     frow = fd_t.get(field_id)
     if isinstance(frow, (str, bytes, bytearray)):
         fc = cells(frow)
         if len(fc) > 2:
             slots = zone_boss_slots(zone_t.get(fc[2]))
-            if len(slots) > 1:
+            sequential_ex = (BUILD_MODE == "ex" and field_id.startswith("mod_abyss_ex_final")
+                             and len(slots) == 2 and len(set(bosses)) == 2
+                             and isinstance(zone_t.get(fc[2]), dict)
+                             and set(zone_t[fc[2]]) == {"0"}
+                             and cells(zone_t[fc[2]]["0"])[22] == "1")
+            if len(slots) > 1 and not sequential_ex:
                 return f"zone 有 {len(slots)} 个 boss 实体(法阵只换得动一只)"
     linked = phase_set if phase_set is not None else phase_linked_bosses()
     hit = {b for b in bosses if b in linked}     # bosses 可能含单人/多人同码重复
+    if sequential_ex and all(str(b).startswith("mod_fb_") for b in bosses):
+        # These private actors are flagged by the five-boss donor itself. Both
+        # actors are cloned here; the independent code-reference gate remains.
+        hit = set()
     if hit:
         return f"{','.join(sorted(hit))} 属官方成对/分阶段族"
     if refs is None:
@@ -2969,7 +2993,7 @@ def live_forged_dsl_logicals(gb: dict | None = None,
         for m in re.finditer(r"battle/action/enemy/action/mod_rogue/[^,\"\n]+", s):
             out.add(m.group(0) + ".action.dsl.amf3.deflate")
     for code, node in sb.items():
-        if not str(code).startswith("mod_rogue_standard") or not isinstance(node, dict):
+        if not str(code).startswith(f"{PRIVATE_PREFIX}standard") or not isinstance(node, dict):
             continue
         for leaf in node.values():
             if isinstance(leaf, dict):
@@ -3670,7 +3694,7 @@ def build_native_bundle_catalog(
         reference_gate=reference_gate,
         zako_codes=set(gz),
         portability_gate=portability_gate,
-        official_field=lambda field_id: not field_id.startswith("mod_rogue_"),
+        official_field=lambda field_id: not field_id.startswith(("mod_rogue_", "mod_abyss_ex_")),
         metadata_of=metadata_provider,
         c8016_prefixes=C8016_BLOCKED_BOSS_PREFIXES,
     )
@@ -3978,7 +4002,11 @@ def quest_pool(cat: str, name_eq: str | None = None, require_boss: bool = True) 
             best[fdid] = (lv, entry)
         elif lv > best[fdid][0]:
             best[fdid] = (lv, entry)
-    return [best[f][1] for f in order]
+    entries = [best[f][1] for f in order]
+    if BUILD_MODE in {"normal", "ex"}:
+        entries = [entry for entry in entries if not abyss_modes.is_five_boss_source(
+            entry["field"], entry.get("bosses", ()))]
+    return entries
 
 
 def zako_room_pool() -> list[dict]:
@@ -4425,14 +4453,10 @@ WARMUP_TARGET_DPS = 600_000.0
 MAX_DPS_DOWN_JITTER = 0.15
 STANDARD_C86_LIMITS = (0.9, 1.1)
 
-# 30 层塔的深层硬锚。正式池经“只留最高 quest rank”后仅剩 eye + 妄羊3/4，
-# 不足 6 个安全 general_boss 领域载体；全库约束匹配证明最小扩池是再纳入：
-#   - score_event_shark（独立 score-event 来源，但放进塔后仍由 event_quest logic 驱动）；
-#   - 妄羊1/2 的低 quest-rank field（boss_level 在塔内 lv100 可完整解析）。
-# 六层均为已知曲线/绝对 HP 证据、代号互异，c86 解落在 3.90~7.07。c36=true
-# 只会禁属性免疫，不会禁普通 StartBuffField 领域；载体门禁仍在 main 内逐层复核。
+# 30 层塔 r26~30 的深层硬锚。r25 回到常规候选池。
+# 计分鲨鱼没有传伤链，禁止作为击杀目标；保留 eye 与妄羊1~4。
+# 领域与 HP 通道仍由主流程逐层复核，候选不足时不可绕过安全门禁。
 DEEP_HP_ANCHOR_FIELDS_30 = (
-    "score_event_shark",
     "eye_dragon_multibattle",
     "raid_alter_sheep_materia1",
     "raid_alter_sheep_materia2",
@@ -4485,6 +4509,10 @@ def boss_target_hp(r: int, n: int) -> float:
     时优先守住终关 150 亿锚；常规 30 层则严格命中第 2 战 30 亿与第 30 战
     150 亿，中间 27 个点线性插值。
     """
+    if BUILD_MODE in {"normal", "ex"}:
+        if n != 30:
+            raise ValueError("普通深渊拆分版固定为 30 关")
+        return float(abyss_modes.base_hp(BUILD_MODE, r))
     if n < 2 or not 2 <= r <= n:
         raise ValueError(f"Boss HP 曲线轮次越界:r={r},n={n}")
     if n == 2:
@@ -4502,7 +4530,7 @@ def target_dps(r: int, n: int, *, ramp: bool = False) -> float:
         progress = (r - 1) / (n - 1)
         return RAMP_TARGET_DPS_FIRST * (
             (RAMP_TARGET_DPS_LAST / RAMP_TARGET_DPS_FIRST) ** progress)
-    if r == 1:
+    if r < first_boss_round():
         return WARMUP_TARGET_DPS
     return boss_target_hp(r, n) / TARGET_BASE_DURATION_S
 
@@ -4538,16 +4566,16 @@ def configured_target_dps(r: int, n: int, hp_base: float, hp_growth: float,
 
 
 def deep_hp_anchor_field(r: int, n: int) -> str | None:
-    """返回 30 层成品塔 r25~30 的绝对 HP / 领域载体锚；其它塔高不强套。"""
-    if n != 30:
+    """返回 30 层塔 r26~30 的安全硬锚；r25 回到常规可击杀候选池。"""
+    if n != 30 or BUILD_MODE == "ex":
         return None
-    first = 25
+    first = 26
     return DEEP_HP_ANCHOR_FIELDS_30[r - first] if first <= r <= 30 else None
 
 
 def mid_hp_anchor_field(r: int, n: int) -> str | None:
     """返回 30 层成品塔 r16~24 的绝对 HP / 单领域载体锚。"""
-    if n != 30:
+    if n != 30 or BUILD_MODE == "ex":
         return None
     first = 16
     return MID_HP_ANCHOR_FIELDS_30[r - first] if first <= r <= 24 else None
@@ -4598,10 +4626,10 @@ def hp_curve_errors(records: list[dict], n: int,
         return ["没有可审计的 DPS 记录"]
     if not ramp:
         by_round = {int(rec["r"]): rec for rec in rows}
-        warmup = by_round.get(1)
+        warmup = by_round.get(1) if BUILD_MODE != "ex" else None
         if warmup is not None and not warmup.get("warmup"):
             errors.append("第1关未标记为唯一小怪热身豁免层")
-        missing = [r for r in range(2, n + 1) if r not in all_by_round]
+        missing = [r for r in range(first_boss_round(), n + 1) if r not in all_by_round]
         if missing:
             errors.append("缺少 boss 层 DPS 记录:" + ",".join(map(str, missing)))
         last_record = all_by_round.get(n) or {}
@@ -4614,7 +4642,7 @@ def hp_curve_errors(records: list[dict], n: int,
             return errors
         lo_ratio = float(last_band[0]) / last_target
         hi_ratio = float(last_band[1]) / last_target
-        for r in range(2, n + 1):
+        for r in range(first_boss_round(), n + 1):
             rec = by_round.get(r)
             if rec is None:
                 continue
@@ -6519,7 +6547,7 @@ def abyss_curses(r: int, n: int, rng, tier: str, caps: dict | None = None,
         forced_element_mix=((forced or {}).get("element_mix")
                             if has_element_mix else None))
     safe_pool = list(raw_pool)
-    if is_deep_round(r, n):
+    if BUILD_MODE == "legacy" and is_deep_round(r, n):
         # 深层血量锚已到多人决战量级；180/240 秒会把需求 DPS 再抬 3.75~5×。
         # 随机、组合、工坊强制三条路共用同一份过滤，后面 finalize 还有最终断言。
         safe_pool = [c for c in safe_pool if "time" not in c]
@@ -6759,7 +6787,7 @@ def abyss_curses(r: int, n: int, rng, tier: str, caps: dict | None = None,
             result["field_deficit_reason"] = (caps.get("carrier_reason")
                                                or caps.get("element_reason")
                                                or "没有可用的 general_boss 领域载体")
-        if is_deep_round(r, n) and (result.get("time") is not None
+        if BUILD_MODE == "legacy" and is_deep_round(r, n) and (result.get("time") is not None
                                     or any("time" in c for c in picks)):
             raise AssertionError(f"第{r}战深层仍残留时限诅咒")
         if high_threat:
@@ -7158,7 +7186,7 @@ def field_thumbnail_evidence_map(
     official_fields = {
         str(field_id) for field_id in fd
         if str(field_id) not in ("", "(None)")
-        and not str(field_id).startswith("mod_rogue_")
+        and not str(field_id).startswith(f"{PRIVATE_PREFIX}")
     }
     exists = asset_exists or q.exists_current
     exists_cache: dict[str, bool] = {}
@@ -7864,7 +7892,7 @@ def strict_target_hp_errors(audits: list[dict]) -> list[str]:
     errors: list[str] = []
     for audit in audits:
         round_no = int(audit.get("r") or 0)
-        if round_no <= 1:
+        if round_no < first_boss_round():
             continue
         if not audit.get("verified"):
             errors.append(f"第{round_no}战没有可回读的 Boss HP")
@@ -7950,7 +7978,7 @@ def build_hp_audit_document(*, seed: int, rounds: int,
     floors: list[dict] = []
     for audit in sorted(hp_audits, key=lambda item: int(item["r"])):
         round_no = int(audit["r"])
-        if round_no <= 1:
+        if round_no < first_boss_round():
             continue
         receipt = audit.get("adapter_audit")
         if not isinstance(receipt, HpAdaptationAudit):
@@ -8037,6 +8065,12 @@ def build_hp_audit_document(*, seed: int, rounds: int,
                             if curse.get("combo") else None),
             "curse_description": str(curse.get("desc") or ""),
             "curse_hp_multiplier": curse_hp_multiplier,
+            **({"ex_lanes": copy.deepcopy(curse["ex_lanes"]),
+                "ex_native_evidence": copy.deepcopy(curse["ex_native_evidence"]),
+                "ex_attack": {"base": float(record["atk"]),
+                              "factor": abyss_modes.attack_factor("ex", round_no),
+                              "actual": float(quest_row[91])}}
+               if BUILD_MODE == "ex" else {}),
             "curse_capability_profile": copy.deepcopy(curse_capability),
             "curse_used_capabilities": list(map(
                 str, curse.get("used_capabilities") or ())),
@@ -8085,7 +8119,7 @@ def build_hp_audit_document(*, seed: int, rounds: int,
         "floors": floors,
         "chain_reports": chain,
         "summary": {
-            "expected_boss_rounds": max(0, int(rounds) - 1),
+            "expected_boss_rounds": max(0, int(rounds) - first_boss_round() + 1),
             "audited_boss_rounds": len(floors),
             "absolute_boss_rounds": sum(
                 1 for floor in floors if floor["absolute_verified"]),
@@ -8742,7 +8776,7 @@ def verify_hp_audit_document(document: dict, *,
     floors = document.get("floors")
     if not isinstance(floors, list):
         return errors + ["验收回执 floors 不是数组"]
-    expected_rounds = set(range(2, rounds + 1))
+    expected_rounds = set(range(1 if document.get("event_id") == "700100" else 2, rounds + 1))
     seen_rounds: set[int] = set()
     recomputed_max_error = 0.0
     special_count = 0
@@ -9163,7 +9197,7 @@ def verify_hp_audit_document(document: dict, *,
                         continue
                     if checks and not str(
                             contract.get("final_routine_id") or "").startswith(
-                                "mod_rogue_boss"):
+                                f"{PRIVATE_PREFIX}boss"):
                         errors.append(f"{check_label} 未落私有 c42 routine")
                     for occurrence, check in enumerate(checks, start=1):
                         try:
@@ -9225,7 +9259,7 @@ def verify_hp_audit_document(document: dict, *,
         curse_hp = (number(floor, "curse_hp_multiplier", label)
                     if "curse_hp_multiplier" in floor else None)
         if (curse_hp is None
-                and inputs.get("hp_profile") == "linear_boss_hp_30e8_150e8"):
+                and inputs.get("hp_profile") in {"linear_boss_hp_30e8_150e8", "normal_boss_hp_20e8_100e8", "ex_tiered_boss_hp"}):
             errors.append(f"{label} 线性 HP 回执缺 curse_hp_multiplier")
         if curse_hp is not None:
             if curse_hp <= 0:
@@ -9380,7 +9414,7 @@ def verify_hp_audit_document(document: dict, *,
         errors.append("验收回执缺 summary")
         return errors
     expected_summary = {
-        "expected_boss_rounds": rounds - 1,
+        "expected_boss_rounds": len(expected_rounds),
         "audited_boss_rounds": len(floors),
         "absolute_boss_rounds": sum(
             1 for floor in floors
@@ -9444,13 +9478,18 @@ def verify_hp_audit_document(document: dict, *,
         errors.append(
             f"summary.max_absolute_error_hp={summary_max:g}，"
             f"回算应为 {recomputed_max_error:g}")
-    if inputs.get("hp_profile") == "linear_boss_hp_30e8_150e8":
+    if inputs.get("hp_profile") in {"linear_boss_hp_30e8_150e8", "normal_boss_hp_20e8_100e8", "ex_tiered_boss_hp"}:
         for floor in floors:
             if not isinstance(floor, dict) or not isinstance(floor.get("adapter"), dict):
                 continue
             round_no = int(floor["round"])
             actual_target = float(floor["adapter"]["baseline_target_hp"])
-            expected_target = boss_target_hp(round_no, rounds)
+            expected_target = (
+                float(abyss_modes.base_hp("ex", round_no)) if inputs["hp_profile"] == "ex_tiered_boss_hp" else
+                float(abyss_modes.base_hp("normal", round_no))
+                if inputs["hp_profile"] == "normal_boss_hp_20e8_100e8" else
+                15_000_000_000.0 if rounds == 2 else
+                3_000_000_000.0 + (round_no - 2) * 12_000_000_000.0 / (rounds - 2))
             if not math.isclose(
                     actual_target, expected_target, rel_tol=1e-12, abs_tol=1e-4):
                 errors.append(
@@ -10117,7 +10156,7 @@ def _orochi_parent_ref(bundle: rbb.NativeBossBundle) -> rbb.BossRef | None:
     ref = refs[0]
     if (ref.kind != 3
             or (ref.code not in rbb.OROCHI_PARENT_VARIANTS
-                and re.fullmatch(r"mod_rogue_orochi\d+", ref.code) is None)):
+                and re.fullmatch(rf"{PRIVATE_PREFIX}orochi\d+", ref.code) is None)):
         return None
     return ref
 
@@ -10129,7 +10168,7 @@ def _orochi_ex_parent_ref(bundle: rbb.NativeBossBundle) -> rbb.BossRef | None:
     ref = refs[0]
     if (ref.kind != 4
             or (ref.code != "orochi_ex"
-                and re.fullmatch(r"mod_rogue_orochi_ex\d+", ref.code) is None)):
+                and re.fullmatch(rf"{PRIVATE_PREFIX}orochi_ex\d+", ref.code) is None)):
         return None
     return ref
 
@@ -10148,8 +10187,8 @@ def _single_bar_special_parent_ref(
         spec = SINGLE_BAR_SPECIAL_SPECS[name]
         if ref.kind != int(spec["kind"]):
             continue
-        if (not ref.code.startswith("mod_rogue_")
-                or re.fullmatch(rf"mod_rogue_{re.escape(name)}\d+", ref.code)):
+        if (not ref.code.startswith(f"{PRIVATE_PREFIX}")
+                or re.fullmatch(rf"{PRIVATE_PREFIX}{re.escape(name)}\d+", ref.code)):
             return ref
     return None
 
@@ -10167,7 +10206,7 @@ def _sphere_parent_ref(
         if ref.kind != int(spec["kind"]):
             continue
         if (ref.code == str(spec["canonical"])
-                or re.fullmatch(rf"mod_rogue_{re.escape(name)}\d+", ref.code)):
+                or re.fullmatch(rf"{PRIVATE_PREFIX}{re.escape(name)}\d+", ref.code)):
             return ref
     return None
 
@@ -11812,7 +11851,7 @@ def _sphere_aux_clone_id(
 def _sphere_child_clone_code(
         family: str, round_no: int, group_ordinal: int,
         entity_ordinal: int) -> str:
-    return (f"mod_rogue_{family}{int(round_no)}_"
+    return (f"{PRIVATE_PREFIX}{family}{int(round_no)}_"
             f"g{int(group_ordinal)}c{int(entity_ordinal)}")
 
 
@@ -11845,7 +11884,7 @@ def clone_single_bar_special_bundle(
     if not isinstance(dedicated, dict) or not isinstance(boss_level, dict):
         return _single_bar_special_clone_failure(
             "dedicated/boss_level clone tables missing", family)
-    target = f"mod_rogue_{family}{round_value}"
+    target = f"{PRIVATE_PREFIX}{family}{round_value}"
     occupied = [name for name, table in (
         (family, dedicated), ("boss_level", boss_level)) if target in table]
     if occupied:
@@ -11938,7 +11977,7 @@ def clone_sphere_bundle(
     if not isinstance(dedicated, dict) or not isinstance(boss_level, dict):
         return _sphere_clone_failure(
             "Sphere dedicated/boss_level clone tables missing", family)
-    target = f"mod_rogue_{family}{round_value}"
+    target = f"{PRIVATE_PREFIX}{family}{round_value}"
     occupied = [name for name, table in (
         (family, dedicated), ("boss_level", boss_level)) if target in table]
     if occupied:
@@ -12219,7 +12258,7 @@ def clone_orochi_ex_parent_bundle(
     dedicated = tables["orochi_ex"]
     heads = tables["orochi_ex_head"]
     boss_level = tables["boss_level"]
-    target_parent = f"mod_rogue_orochi_ex{round_value}"
+    target_parent = f"{PRIVATE_PREFIX}orochi_ex{round_value}"
     target_heads = tuple(
         f"{target_parent}_head{ordinal}" for ordinal in range(1, 7))
     for code in (target_parent,) + target_heads:
@@ -12551,7 +12590,7 @@ def clone_orochi_parent_bundle(bundle: rbb.NativeBossBundle, round_no: int,
     source_heads = tuple(member.code for member in source.members
                          if member.role == "head")
 
-    parent_code = f"mod_rogue_orochi{round_value}"
+    parent_code = f"{PRIVATE_PREFIX}orochi{round_value}"
     head_codes = tuple(
         f"{parent_code}_head{ordinal}" for ordinal in range(1, 9))
     target_codes = (parent_code,) + head_codes
@@ -12652,7 +12691,7 @@ def clone_orochi_parent_bundle(bundle: rbb.NativeBossBundle, round_no: int,
 def purge_orochi_clones(tables: dict) -> tuple[str, ...]:
     """Purge only the dedicated ``mod_rogue_orochi*`` clone namespace."""
     touched: list[str] = []
-    clone_pattern = re.compile(r"mod_rogue_orochi\d+(?:_head\d+)?$")
+    clone_pattern = re.compile(rf"{PRIVATE_PREFIX}orochi\d+(?:_head\d+)?$")
     for name in ("orochi", "general_boss", "general_boss_variable", "boss_level"):
         table = tables.get(name)
         if not isinstance(table, dict):
@@ -12678,7 +12717,7 @@ def purge_orochi_ex_clones(tables: dict) -> tuple[str, ...]:
     """Purge only round-local kind-4 parent/six-head clones."""
     touched: list[str] = []
     clone_pattern = re.compile(
-        r"mod_rogue_orochi_ex\d+(?:_head[1-6])?$")
+        rf"{PRIVATE_PREFIX}orochi_ex\d+(?:_head[1-6])?$")
     for name in ("orochi_ex_head", "boss_level", "orochi_ex"):
         table = tables.get(name)
         if not isinstance(table, dict):
@@ -12698,7 +12737,7 @@ def purge_single_bar_special_clones(tables: dict) -> tuple[str, ...]:
     boss_level = tables.get("boss_level")
     for family in SINGLE_BAR_SPECIAL_SPECS:
         dedicated = tables.get(family)
-        pattern = re.compile(rf"mod_rogue_{re.escape(family)}\d+$")
+        pattern = re.compile(rf"{PRIVATE_PREFIX}{re.escape(family)}\d+$")
         for name, table in ((family, dedicated), ("boss_level", boss_level)):
             if not isinstance(table, dict):
                 continue
@@ -12717,9 +12756,9 @@ def purge_sphere_clones(tables: dict) -> tuple[str, ...]:
     boss_level = tables.get("boss_level")
     for family in SPHERE_SPECS:
         dedicated = tables.get(family)
-        pattern = re.compile(rf"mod_rogue_{re.escape(family)}(\d+)$")
+        pattern = re.compile(rf"{PRIVATE_PREFIX}{re.escape(family)}(\d+)$")
         child_pattern = re.compile(
-            rf"mod_rogue_{re.escape(family)}(\d+)_g(\d+)c(\d+)$")
+            rf"{PRIVATE_PREFIX}{re.escape(family)}(\d+)_g(\d+)c(\d+)$")
         parent_keys = ([
             key for key in dedicated if pattern.fullmatch(str(key))]
             if isinstance(dedicated, dict) else [])
@@ -13114,7 +13153,8 @@ def general_hp_scale_plan(bosses: list[str], native: dict,
                           enemy_level: int, *, target_hp: float,
                           curse_hp: float,
                           code_references: dict | None = None,
-                          general_boss_state: dict | None = None) -> dict:
+                          general_boss_state: dict | None = None,
+                          component_budgets: dict[str, float] | None = None) -> dict:
     """为纯 general 层生成逐 code 的 baseline/final HP 叶与可复核证据。
 
     当前 ``boss_level`` 数据形态是 ``code -> CSV leaf``，没有等级内层；等级
@@ -13152,6 +13192,17 @@ def general_hp_scale_plan(bosses: list[str], native: dict,
             f"general HP 伸缩输入必须为有限正数:target={target_hp},curse={curse_hp},native={native_hp}")
     baseline_scale = wanted_hp / native_hp
     final_scale = baseline_scale * hp_mult
+    code_scales = {code: baseline_scale for code in ordered_codes}
+    if component_budgets is not None:
+        if (set(component_budgets) != set(ordered_codes)
+                or any(not math.isfinite(v) or v <= 0 for v in component_budgets.values())
+                or not math.isclose(math.fsum(component_budgets.values()), wanted_hp,
+                                    rel_tol=1e-12, abs_tol=1e-4)):
+            raise ValueError("逐 Boss 血量预算必须覆盖全部实体且总和等于关卡预算")
+        for code in ordered_codes:
+            code_scales[code] = component_budgets[code] / math.fsum(
+                float(component["native_hp"]) for component in components
+                if str(component["code"]) == code)
     selected_levels: dict[str, int] = {}
     baseline_leaves: dict[str, str | bytes] = {}
     final_leaves: dict[str, str | bytes] = {}
@@ -13168,6 +13219,8 @@ def general_hp_scale_plan(bosses: list[str], native: dict,
         or any(component.get("evidence_kind") == "proxy"
                for component in components))
     if source_has_proxy:
+        if component_budgets is not None:
+            raise ValueError("逐 Boss 独立预算要求绝对原生 HP 证据")
         # One boss_level row is shared by every occurrence of the same code.
         # Equal per-occurrence allocation is deterministic even when a code
         # appears twice; proxy weights never enter the target calculation.
@@ -13251,9 +13304,9 @@ def general_hp_scale_plan(bosses: list[str], native: dict,
         if source_leaf is None:
             raise ValueError(f"boss_level[{code}] 缺失")
         baseline_leaf, hp_column = clone_general_boss_level_hp(
-            source_leaf, baseline_scale)
+            source_leaf, code_scales[code])
         final_leaf, final_column = clone_general_boss_level_hp(
-            source_leaf, final_scale)
+            source_leaf, code_scales[code] * hp_mult)
         if final_column != hp_column:
             raise ValueError(f"boss_level[{code}] baseline/final HP 通道漂移")
         component_modes = {
@@ -13308,6 +13361,12 @@ def general_hp_scale_plan(bosses: list[str], native: dict,
         "hp_columns": hp_columns, "destinations": destinations,
         "baseline_true_hp": baseline_true_hp, "true_hp": true_hp,
     }
+    if component_budgets is not None:
+        plan["baseline_component_target_hp"] = tuple(
+            float(component["native_hp"]) * code_scales[str(component["code"])]
+            for component in components)
+        plan["final_component_target_hp"] = tuple(
+            value * hp_mult for value in plan["baseline_component_target_hp"])
     return attach_general_damage_check_plans(
         plan, components=components, general_boss=general_boss,
         general_boss_state=general_boss_state,
@@ -13810,7 +13869,12 @@ def build_event_metadata_leaf(
 
 
 def main() -> int:
+    global BUILD_MODE, PRIVATE_PREFIX, EVENT_ID, EVENT_STRING_ID, EVENT_NAME
+    global HELL_BOSS_HP_FIRST, HELL_BOSS_HP_LAST
+    global TARGET_DPS_FIRST, TARGET_DPS_LAST, TARGET_DPS_LAST_BAND
     ap = argparse.ArgumentParser(description="生成 700099 深渊连战")
+    ap.add_argument("--mode", choices=("legacy", "normal", "ex"), default="legacy",
+                    help="normal=拆分后的普通塔，20～100亿且排除五重；legacy=历史构建兼容")
     ap.add_argument("--details-ui", action="store_true", default=None,
                     help="首次为 cn.ui.AbyssDetails 客户端开启详情；已开启的塔会自动沿用")
     ap.add_argument("--rounds", type=int, default=15)
@@ -13884,6 +13948,23 @@ def main() -> int:
     ap.add_argument("--check-quest-path", metavar="FILE",
                     help="--check 用指定 quest 表文件(如 .bak 备份)代替 store 现状")
     args = ap.parse_args()
+    BUILD_MODE = args.mode
+    if BUILD_MODE == "ex":
+        if args.rounds != 30 or args.ramp or args.hp_base is not None or args.hp_growth is not None:
+            ap.error("EX requires 30 floors and the fixed tier HP budgets")
+        PRIVATE_PREFIX = "mod_abyss_ex_"
+        EVENT_ID, EVENT_STRING_ID, EVENT_NAME = "700100", "mod_abyss_ex_gauntlet", "深渊连战 EX"
+        args.strict_target_hp = True
+        HELL_BOSS_HP_FIRST, HELL_BOSS_HP_LAST = abyss_modes.base_hp("ex", 1), abyss_modes.base_hp("ex", 30)
+        TARGET_DPS_FIRST, TARGET_DPS_LAST = HELL_BOSS_HP_FIRST / TARGET_BASE_DURATION_S, HELL_BOSS_HP_LAST / TARGET_BASE_DURATION_S
+        TARGET_DPS_LAST_BAND = tuple(TARGET_DPS_LAST * ratio for ratio in _TARGET_DPS_BAND_RATIOS)
+    if BUILD_MODE == "normal":
+        if args.rounds != 30 or args.ramp or args.hp_base is not None or args.hp_growth is not None:
+            ap.error("normal 要求 --rounds 30，不允许用旧 HP 参数覆盖确定的普通版曲线")
+        HELL_BOSS_HP_FIRST, HELL_BOSS_HP_LAST = 2_000_000_000.0, 10_000_000_000.0
+        TARGET_DPS_FIRST = HELL_BOSS_HP_FIRST / TARGET_BASE_DURATION_S
+        TARGET_DPS_LAST = HELL_BOSS_HP_LAST / TARGET_BASE_DURATION_S
+        TARGET_DPS_LAST_BAND = tuple(TARGET_DPS_LAST * ratio for ratio in _TARGET_DPS_BAND_RATIOS)
     if args.verify_audit_json:
         if args.audit_json or args.write or args.publish or args.check:
             print("[ERR] --verify-audit-json 不能与构建/写入/发布/解析链模式混用")
@@ -14049,20 +14130,20 @@ def main() -> int:
     # 换 boss 代号时同步校正 zone 的 BossKind 列(gb_t 含构建中的克隆,必须
     # 在 gb_t/sb_t 都就位之后再建)。
     kind_fixer = zone_boss_kind_fixer(gb_t, sb_t)
-    stale = ([k for k in fd_t if str(k).startswith("mod_rogue_f")]
-             + [k for k in zone_t if str(k).startswith("mod_rogue_z")])
-    stale_c = ([k for k in gz_t if str(k).startswith("mod_rogue_caster")]
-               + [k for k in zl_t if str(k).startswith("mod_rogue_caster")]
-               + [k for k in gb_t if str(k).startswith("mod_rogue_boss")]
-               + [k for k in bl_t if str(k).startswith("mod_rogue_boss")]
-               + [k for k in gv_t if str(k).startswith("mod_rogue_boss")]
+    stale = ([k for k in fd_t if str(k).startswith(f"{PRIVATE_PREFIX}f")]
+             + [k for k in zone_t if str(k).startswith(f"{PRIVATE_PREFIX}z")])
+    stale_c = ([k for k in gz_t if str(k).startswith(f"{PRIVATE_PREFIX}caster")]
+               + [k for k in zl_t if str(k).startswith(f"{PRIVATE_PREFIX}caster")]
+               + [k for k in gb_t if str(k).startswith(f"{PRIVATE_PREFIX}boss")]
+               + [k for k in bl_t if str(k).startswith(f"{PRIVATE_PREFIX}boss")]
+               + [k for k in gv_t if str(k).startswith(f"{PRIVATE_PREFIX}boss")]
                + ([k for k in (ew_t or {}).get("1", {})
-                   if str(k).startswith("mod_rogue_boss")] if ew_t else []))
-    stale_s = [k for k in sb_t if str(k).startswith("mod_rogue_standard")]
+                   if str(k).startswith(f"{PRIVATE_PREFIX}boss")] if ew_t else []))
+    stale_s = [k for k in sb_t if str(k).startswith(f"{PRIVATE_PREFIX}standard")]
     stale_states = [
         key for key in gbs_t
-        if str(key).startswith("mod_rogue_boss")]
-    stale_watch_aliases = purge_enemy_watch_partner_aliases(ew_t)
+        if str(key).startswith(f"{PRIVATE_PREFIX}boss")]
+    stale_watch_aliases = purge_enemy_watch_partner_aliases(ew_t, prefix=f"{PRIVATE_PREFIX}boss")
     for k in stale:
         fd_t.pop(k, None)
         zone_t.pop(k, None)
@@ -14092,9 +14173,9 @@ def main() -> int:
     })
     single_bar_special_stale_families = {
         family for family in SINGLE_BAR_SPECIAL_SPECS
-        if (any(re.fullmatch(rf"mod_rogue_{re.escape(family)}\d+", str(key))
+        if (any(re.fullmatch(rf"{PRIVATE_PREFIX}{re.escape(family)}\d+", str(key))
                 for key in single_bar_special_tables[family])
-            or any(re.fullmatch(rf"mod_rogue_{re.escape(family)}\d+", str(key))
+            or any(re.fullmatch(rf"{PRIVATE_PREFIX}{re.escape(family)}\d+", str(key))
                    for key in bl_t))
     }
     purge_single_bar_special_clones({
@@ -14103,10 +14184,10 @@ def main() -> int:
     })
     sphere_stale_families = {
         family for family in SPHERE_SPECS
-        if (any(re.fullmatch(rf"mod_rogue_{re.escape(family)}\d+", str(key))
+        if (any(re.fullmatch(rf"{PRIVATE_PREFIX}{re.escape(family)}\d+", str(key))
                 for key in sphere_tables[family])
             or any(re.fullmatch(
-                       rf"mod_rogue_{re.escape(family)}\d+"
+                       rf"{PRIVATE_PREFIX}{re.escape(family)}\d+"
                        rf"(?:_g\d+c\d+)?", str(key))
                    for key in bl_t))
     }
@@ -14572,6 +14653,9 @@ def main() -> int:
     fo_endless[0] = "100"
     fo_endless[1] = "2"       # quest_kind = endless(缺它 = 点∞按钮 C3442)
     fo_endless[2] = "无尽战斗"
+    if BUILD_MODE == "ex":
+        for start in range(7,37,3):
+            fo_endless[start:start+3] = ["(None)", "", "(None)"]
 
     # ---- ② quest 行 ----
     qt = q.load_table(Q_QUEST)
@@ -14896,11 +14980,13 @@ def main() -> int:
             # gates normally make this unreachable; this last guard prevents a
             # future direct caller from leaving a renamed half-clone behind.
             raise RuntimeError(f"第{r}战 general boss clone 拒绝:{identity_block}")
-        code = clone_code or f"mod_rogue_boss{r}"
+        code = clone_code or f"{PRIVATE_PREFIX}boss{r}"
 
+        donor_node = (abyss_ex.without_five_curse(gb_t[boss_code], cells, join)
+                      if BUILD_MODE == "ex" else gb_t[boss_code])
         if action_program or action_programs or pre_action_program:
             gb_t[code] = rewrite_boss_carrier_node(
-                gb_t[boss_code], action_program=action_program,
+                donor_node, action_program=action_program,
                 action_programs=action_programs,
                 pre_action_program=pre_action_program)
         else:
@@ -15063,9 +15149,9 @@ def main() -> int:
                 f"第{r}战 standard clone 源选档漂移:{boss_code} "
                 f"plan={selected}/{source_logical},"
                 f"actual={actual_source['selected_level']}/{actual_source['logical']}")
-        clone_code = (f"mod_rogue_standard{r}" if index == 0
-                      else f"mod_rogue_standard{r}_{index + 1}")
-        resource_base = (f"battle/enemy/boss/mod_rogue/"
+        clone_code = (f"{PRIVATE_PREFIX}standard{r}" if index == 0
+                      else f"{PRIVATE_PREFIX}standard{r}_{index + 1}")
+        resource_base = (f"battle/enemy/boss/{PRIVATE_PREFIX.rstrip(chr(95))}/"
                          f"standard_r{r}_{index + 1}")
         logical = resource_base + ".esdl.amf3.deflate"
         sb_t[clone_code] = clone_standard_boss_node(
@@ -15095,7 +15181,7 @@ def main() -> int:
         zn = zone_t.get(fc[2])
         if not isinstance(zn, dict):
             return None
-        zkey, fkey = f"mod_rogue_z{r}", f"mod_rogue_f{r}"
+        zkey, fkey = f"{PRIVATE_PREFIX}z{r}", f"{PRIVATE_PREFIX}f{r}"
         swaps = list(boss_swaps or ())
         if boss_swap:
             swaps.append(boss_swap)
@@ -15362,7 +15448,7 @@ def main() -> int:
             return None
         frow = fd_t[tf]
         fc = cells(frow)
-        zkey, fkey = f"mod_rogue_z{r}", f"mod_rogue_f{r}"
+        zkey, fkey = f"{PRIVATE_PREFIX}z{r}", f"{PRIVATE_PREFIX}f{r}"
         zone_t[zkey] = swap_zone_bosses(zone_t[fc[2]], sbosses,
                                         kind_of=kind_fixer)
         realized_bosses = zone_single_bosses(zone_t[zkey])
@@ -15509,6 +15595,7 @@ def main() -> int:
         )
         return f" 属性:{ELEM_CN[elem] if elem < 6 else '无'}{tag}"
 
+    ex_lane_audit = abyss_ex.NativeLaneAudit(q.read_raw, wf_dsl.parse_dsl, cells)
     _hp_fit_cache: dict[tuple[str, int, float], dict | None] = {}
     _hp_fit_rejects: dict[tuple[str, int, float], str] = {}
 
@@ -15582,6 +15669,21 @@ def main() -> int:
             return None
         level = int(resolve_level(bosses, want_level(r), sb_t, gv_t, gb_t,
                                   prefer_max=want_max) or want_level(r))
+        if BUILD_MODE == "ex":
+            try:
+                if is_high_threat_bosses(bosses, high_threat_prefixes, high_threat_exact):
+                    raise ValueError("high-threat Boss conflicts with mandatory EX element restrictions")
+                if r < 30 and abyss_modes.is_five_boss_source(field, bosses):
+                    raise ValueError("five-boss actors are reserved for floor 30")
+                if any(str(code).startswith(("mod_rogue_", "mod_abyss_ex_")) for code in bosses):
+                    raise ValueError("generated Bosses cannot be reused as native donors")
+                lanes, evidence = ex_lane_audit.audit(bosses, level, gb_t, select_surjective_level)
+                pick["ex_native_lanes"] = sorted(lanes)
+                pick["ex_native_evidence"] = evidence
+            except (ValueError, FileNotFoundError, KeyError, IndexError) as exc:
+                _hp_fit_rejects[key] = "hp-plan-unsafe:" + str(exc)
+                _hp_fit_cache[key] = None
+                return None
         native = floor_native_hp(
             bosses, level, sb_t,
             standard_runtime_hp_scale=RUSH_EVENT_STANDARD_HP_SCALE)
@@ -15598,6 +15700,16 @@ def main() -> int:
                 deep=is_deep_round(r, args.rounds),
                 code_references=code_refs, standard_boss=sb_t,
                 general_boss_state=gbs_t)
+            if strategy["channel"] == "standard_dsl":
+                # Trial scripts can parse correctly but lack an absolute HP
+                # dependency proof. Reject before selection, not after cloning.
+                try:
+                    standard_hp_scale_plan(
+                        bosses, native, sb_t, level,
+                        target_hp=float(target) * float(tmpl_rn[100]) / 60.0,
+                        curse_hp=1.0, code_references=code_refs)
+                except ValueError as exc:
+                    raise ValueError(f"hp-plan-unsafe:{exc}") from exc
         except ValueError as exc:
             _hp_fit_rejects[key] = str(exc)
             _hp_fit_cache[key] = None
@@ -15669,6 +15781,10 @@ def main() -> int:
                     == forbidden_cooldown_group):
                 return f"family-cooldown:{forbidden_cooldown_group}"
             if metrics is None:
+                plan_error = _hp_fit_rejects.get((
+                    str(pick["field"]), r, round(float(target), 6)), "")
+                if plan_error.startswith("hp-plan-unsafe:"):
+                    return "hp-plan-unsafe"
                 # 必须把「血量按不动」与「这层压根解析不了」分开。
                 # hp_pick_metrics 里 `resolve_level(...) or want_level(r)` 会把
                 # None 吞成想要的等级,于是不可解析的层看起来只是「无 HP 证据」。
@@ -16045,6 +16161,46 @@ def main() -> int:
             for _k in name_keys(_ab):
                 future_anchor_counts[_k] = future_anchor_counts.get(_k, 0) + 1
 
+    ex_final_pick = None
+    if BUILD_MODE == "ex":
+        donors = [key for key in fd_t if key.startswith("mod_five_boss_var_s1_")]
+        rng.shuffle(donors)
+        for donor in donors:
+            donor_cells = cells(fd_t[donor])
+            donor_zone = zone_t.get(donor_cells[2], {})
+            if set(donor_zone) != {"0"}:
+                continue
+            actors = [cells(donor_zone["0"])[i] for i in (24,28,32)]
+            pairs = [(a,b) for a in actors for b in actors if a != b]
+            rng.shuffle(pairs)
+            for pair in pairs:
+                field_id = "mod_abyss_ex_final_pair"
+                try:
+                    if not all(boss_level_ok(code, 100, sb_t, gv_t, gb_t) for code in pair):
+                        continue
+                    pair_zone = abyss_ex.sequential_pair(donor, fd_t, zone_t, pair, cells, join)
+                    ex_lane_audit.audit(pair, 100, gb_t, select_surjective_level)
+                    block = identity_clone_locked_boss_reason(pair, code_references=code_refs)
+                    if block:
+                        continue
+                    zone_t[field_id] = pair_zone
+                    fd_t[field_id] = join([donor_cells[0], donor_cells[1], field_id], isinstance(fd_t[donor], bytes))
+                    candidate = {"field": field_id, "bosses": list(pair), "thumb": thumb_map.get(donor, ""),
+                                 "bgm": None, "label": "EX双Boss决战", "thumbnail_field": donor,
+                                 "ex_final_donor": donor}
+                    metrics = hp_pick_metrics(candidate, 30, abyss_modes.base_hp("ex",30)/TARGET_BASE_DURATION_S)
+                    if metrics is None or strict_hp_candidate_error(metrics):
+                        continue
+                    ex_final_pick = candidate
+                    gim_dirty = True
+                    break
+                except (ValueError, KeyError, IndexError, FileNotFoundError):
+                    continue
+            if ex_final_pick:
+                break
+        if not ex_final_pick:
+            raise RuntimeError("no verified five-boss sequential pair satisfies EX final gates")
+
     tower_bosses: list[str] = []
     floor_recs: list[dict] = []
     curse_name_history: list[set[str]] = []
@@ -16052,7 +16208,7 @@ def main() -> int:
     mix_applied_rounds: list[int] = []
     previous_boss_cooldown_group: str | None = None
     for r in range(1, args.rounds + 1):
-        label = schedule.get(r)
+        label = None if BUILD_MODE == "ex" else schedule.get(r)
         forced = (((plan.get("floors") or {}).get(str(r))) or {}) if not args.ignore_plan else {}
         pin_t, pin_b = forced.get("terrain"), forced.get("boss")
         mapped_anchor = (mid_hp_anchor_field(r, args.rounds)
@@ -16068,7 +16224,7 @@ def main() -> int:
         st_tier, st_mult = plan_tier_for(plan, r, round_tier(r))
         _target_dps = configured_target_dps(
             r, args.rounds, hp_base, hp_growth, st_mult, ramp=args.ramp)
-        if r > 1 and not args.ramp:
+        if r >= first_boss_round() and not args.ramp:
             try:
                 _template_duration_s = float(tmpl_rn[100]) / 60.0
             except (IndexError, TypeError, ValueError):
@@ -16082,10 +16238,12 @@ def main() -> int:
             # 再除以真实模板时限。这样模板时限即使以后调整，30亿→150亿的
             # 基础总 HP 仍保持不变，不会悄悄变成“固定 DPS × 新时限”。
             _target_dps *= TARGET_BASE_DURATION_S / _template_duration_s
-        if r == 1 and not args.ramp:
+        if r < first_boss_round() and not args.ramp:
             _target_dps = WARMUP_TARGET_DPS
         field_needed = required_field_slots(r, args.rounds) if st_tier == "hell" else 0
-        if label and not (pin_t or pin_b):
+        if BUILD_MODE == "ex" and r == 30:
+            pick = copy.deepcopy(ex_final_pick)
+        elif label and not (pin_t or pin_b):
             pick = PICKERS[label]()
         elif args.mix or pin_t or pin_b:
             pick = mix_pick(r, pin_t, pin_b)
@@ -16095,12 +16253,12 @@ def main() -> int:
             pick = pick or tower_pick(r)
         else:
             pick = tower_pick(r)
-        _element_required = element_immunity_requested(forced)
-        _carrier_required = hard_condition_carrier_requested(forced)
+        _element_required = BUILD_MODE == "ex" or element_immunity_requested(forced)
+        _carrier_required = BUILD_MODE == "ex" or hard_condition_carrier_requested(forced)
         # 钉地形只锁地形，不锁 donor：仍走 HP/属性载体重排，并在混搭 zone 内
         # 原地换 boss。钉 boss 则保持硬约束；与钉选属性免疫冲突时明确失败，
         # 绝不能成功产出后把「元素禁壁」随机替换掉。
-        if r > 1 and (not pin_b or _element_required or _carrier_required):
+        if r >= first_boss_round() and not (BUILD_MODE == "ex" and r == 30) and (not pin_b or _element_required or _carrier_required):
             try:
                 pick = hp_curve_fit_pick(
                     pick, r, _target_dps, field_needed,
@@ -16120,6 +16278,10 @@ def main() -> int:
                 tries += 1
         _high_threat = is_high_threat_bosses(
             pick.get("bosses") or [], high_threat_prefixes, high_threat_exact)
+        if BUILD_MODE == "normal" and abyss_modes.is_five_boss_source(
+                pick["field"], pick.get("bosses") or (),
+                [str(pick.get(key) or "") for key in ("play_field", "boost_field", "thumbnail_field")]):
+            raise ValueError(f"普通深渊第{r}关包含五重来源，拒绝生成: {pick['field']}")
         pick["high_threat"] = _high_threat
         previous_boss_cooldown_group = boss_family_cooldown_group(
             pick.get("bosses") or ())
@@ -16129,17 +16291,12 @@ def main() -> int:
         tower_bosses += pick["bosses"]
         for _k in name_keys(pick["bosses"]):
             used_counts[_k] = used_counts.get(_k, 0) + 1
-        row = list(tmpl_r1 if r == 1 else tmpl_rn)
-        row[0] = str(700099000 + r)
+        row = list(tmpl_r1 if r < first_boss_round() else tmpl_rn)
+        row[0] = str(int(EVENT_ID) * 1000 + r)
         row[1] = "1"
         row[2] = str(r)
         enforce_gauntlet_player_rank(row)
-        if r > 1:
-            row[9] = "16"
-            row[10] = EVENT_ID
-            row[11] = ""
-            row[12] = str(r - 1)
-            row[13] = str(700099000 + r - 1)
+        abyss_modes.set_finite_quest_prerequisite(row, int(EVENT_ID), r)
         bh, ba = (SRC_BOOST.get(label, (1.0, 1.0)) if label
                   else tower_area_boost(pick.get("boost_field") or pick["field"]))
         _native_bundle = pick.get("native_bundle")
@@ -16293,7 +16450,15 @@ def main() -> int:
             _curse_capabilities = resolve_curse_capabilities(
                 _hp_channel, _hp_family, caps,
                 no_base=(_anchor is None or _hp_strategy is None))
-            curse = abyss_curses(
+            if BUILD_MODE == "ex":
+                _ex_lanes, _ex_evidence = ex_lane_audit.audit(pick["bosses"], _lv, gb_t, select_surjective_level)
+                curse = abyss_ex.roll_curses(sys.modules[__name__], r, rng, _ex_lanes,
+                                             _curse_capabilities, _runtime_kwargs,
+                                             native_evidence=_ex_evidence,
+                                             history=curse_name_history)
+                curse["ex_native_evidence"] = _ex_evidence
+            else:
+                curse = abyss_curses(
                 r, args.rounds, rng, st_tier, caps, forced,
                 # _hp_strategy is None = 这层的血量按不动(读不出通道,或
                 # identity-locked 只剩 0.9~1.1 微调窗口),等价于「无基数层」:
@@ -16319,12 +16484,15 @@ def main() -> int:
         hard_damage = curse.get("damage_resistance") or []
         hard_elements = curse.get("element_resistance") or []
         hard_stacked = curse.get("stacked_resistance") or []
+        quest_elements = BUILD_MODE in ("normal", "ex") and bool(hard_elements)
+        if quest_elements and any(cancelable for _, _, cancelable in hard_elements):
+            raise ValueError("quest element carrier cannot preserve cancelable resistance")
         hard_program = None
-        if hard_damage or hard_elements or hard_stacked:
-            if hard_elements:
-                assert_element_immunity_runtime_safe(Q_QUEST, _lv)
+        if hard_elements:
+            assert_element_immunity_runtime_safe(Q_QUEST, _lv)
+        if hard_damage or (hard_elements and not quest_elements) or hard_stacked:
             hard_program, hard_tree = immunity_program(
-                hard_damage, hard_elements, hard_stacked)
+                hard_damage, [] if quest_elements else hard_elements, hard_stacked)
             build_immunity_dsl_blob(hard_tree)       # dry-run 也做 AMF3/raw-deflate 往返门禁
             immunity_programs.setdefault(hard_program, hard_tree)
             forged_pubs.add(hard_program + ".action.dsl.amf3.deflate")
@@ -16367,7 +16535,9 @@ def main() -> int:
                     target_hp=_target_dps * _base_duration_s,
                     curse_hp=float(curse["hp"]),
                     code_references=code_refs,
-                    general_boss_state=gbs_t)
+                    general_boss_state=gbs_t,
+                    component_budgets=({code: abyss_modes.base_hp("ex", 30) / 2 for code in pick["bosses"]}
+                                       if BUILD_MODE == "ex" and r == 30 else None))
             except ValueError as exc:
                 print(f"[ERR] 第{r}战 boss_level HP 伸缩计划失败:{exc}")
                 return 1
@@ -16464,7 +16634,7 @@ def main() -> int:
             curse["field_program_receipts"] = field_program_receipts
             if fields_tuned:
                 apply_picks(curse, curse.get("picks") or [], curse.get("combo"))
-            target = caps.get("element_target") if (action_programs or hard_program) else None
+            target = caps.get("element_target") if (action_programs or hard_program or hard_elements) else None
             carrier_clone = None
             if _hp_plan and _hp_plan["channel"] == "boss_level":
                 source_codes = list(_hp_plan["final_leaves"])
@@ -16472,14 +16642,14 @@ def main() -> int:
                     source_codes.remove(target)
                     source_codes.insert(0, target)
                 for index, source_code in enumerate(source_codes):
-                    clone_code = (f"mod_rogue_boss{r}" if index == 0
-                                  else f"mod_rogue_boss{r}_{index + 1}")
+                    clone_code = (f"{PRIVATE_PREFIX}boss{r}" if index == 0
+                                  else f"{PRIVATE_PREFIX}boss{r}_{index + 1}")
                     is_carrier = source_code == target
                     clone = make_caster_boss(
                         r, source_code,
                         action_programs=(action_programs if is_carrier else ()),
-                        pre_action_program=(hard_program if is_carrier else None),
-                        requires_element_resistance=(bool(hard_elements) and is_carrier),
+                        pre_action_program=(hard_program if is_carrier or BUILD_MODE == "ex" else None),
+                        requires_element_resistance=(bool(hard_elements) and (is_carrier or BUILD_MODE == "ex")),
                         enemy_level=_lv, clone_code=clone_code,
                         boss_level_leaf=_hp_plan["final_leaves"][source_code],
                         expected_selected_level=_hp_plan["selected_levels"][source_code],
@@ -16510,14 +16680,14 @@ def main() -> int:
                     general_codes.remove(target)
                     general_codes.insert(0, target)
                 for index, source_code in enumerate(general_codes):
-                    clone_code = (f"mod_rogue_boss{r}" if index == 0
-                                  else f"mod_rogue_boss{r}_{index + 1}")
+                    clone_code = (f"{PRIVATE_PREFIX}boss{r}" if index == 0
+                                  else f"{PRIVATE_PREFIX}boss{r}_{index + 1}")
                     is_carrier = source_code == target
                     clone = make_caster_boss(
                         r, source_code,
                         action_programs=(action_programs if is_carrier else ()),
-                        pre_action_program=(hard_program if is_carrier else None),
-                        requires_element_resistance=(bool(hard_elements) and is_carrier),
+                        pre_action_program=(hard_program if is_carrier or BUILD_MODE == "ex" else None),
+                        requires_element_resistance=(bool(hard_elements) and (is_carrier or BUILD_MODE == "ex")),
                         enemy_level=_lv, clone_code=clone_code,
                         boss_level_leaf=general_plan["final_leaves"][source_code],
                         expected_selected_level=general_plan[
@@ -16923,7 +17093,7 @@ def main() -> int:
             "baseline_true_hp": baseline_true_hp, "true_hp": true_hp,
             "baseline_dps": target, "realized_dps": true_hp / duration_s,
             "raw_c86": raw_c86, "family_scale": 1.0,
-            "proxy_round": None, "warmup": frec["r"] == 1,
+            "proxy_round": None, "warmup": frec["r"] < first_boss_round(),
         }
         frec["hp_audit"] = audit
         hp_audits.append(audit)
@@ -17035,7 +17205,8 @@ def main() -> int:
     for frec in floor_recs:
         r, row, curse = frec["r"], frec["row"], frec["curse"]
         audit = frec["hp_audit"]
-        atk = fmt(frec["atk"])
+        ex_atk_factor = abyss_modes.attack_factor("ex", frec["r"]) if BUILD_MODE == "ex" else 1.0
+        atk = fmt(frec["atk"] * ex_atk_factor)
         # 三类 HP 修正独立落表：Boss 层的任务级兜底只允许进入 c88；严格资源
         # clone 层三列自然均为 1。第1战纯小怪房只写 c86，炮台/召唤物 c87
         # 保持 1，绝不再让一个非 1 倍率同时放大三类实体。
@@ -17046,7 +17217,7 @@ def main() -> int:
         row[86], row[87], row[88] = enemy_hp, device_hp, boss_hp
         row[89], row[91] = atk, atk                      # atk 小怪/boss
         # 带 funnel 的层:炮台弹幕同吃 boss 倍率,观感全算在"boss 伤害"头上 → 单独降档
-        row[90] = fmt(frec["atk"] * FUNNEL_ATK_SCALE) if frec["funnel"] else atk
+        row[90] = fmt(frec["atk"] * ex_atk_factor * FUNNEL_ATK_SCALE) if frec["funnel"] else atk
         row[92] = row[93] = "1"                          # tp 小怪/炮台
         row[94] = str(curse["tp"]) if curse["tp"] else "1"   # boss 韧性(官方无尽先例×9)
         row[97] = str(curse["fever"]) if curse["fever"] else row[97]
@@ -17057,8 +17228,14 @@ def main() -> int:
             row[71 + slot * 2] = kind
             row[72 + slot * 2] = strength
         row[3] = curse["desc"] if curse["desc"] else "(None)"
+        if BUILD_MODE in ("normal", "ex") and curse.get("element_resistance"):
+            # One authoritative element carrier also feeds the native detail UI.
+            # Pre-action programs deliberately omit these same elements.
+            import wf_rogue_element_channel as element_channel
+            row[3] += " " + element_channel.encode(
+                _resistance_totals_by_target(curse["picks"], "element_resistance"))
         pick = frec["pick"]
-        if details_ui_enabled:
+        if details_ui_enabled or BUILD_MODE == "ex":
             row[3] = quest_details.for_generated_floor(frec)
         eff = f" | {curse['desc']}" if curse["desc"] else ""
         # boss 层的 HP 已由 boss_level.c2（general）或反解 c86（standard）
@@ -17175,7 +17352,7 @@ def main() -> int:
                 f"{_hp_last_band[1]:,.0f}/s")
     else:
         _targeted_boss = [a for a in hp_audits
-                          if a["r"] >= 2 and not a.get("target_exempt")]
+                          if a["r"] >= first_boss_round() and not a.get("target_exempt")]
         if _targeted_boss:
             _first_targeted = min(
                 _targeted_boss, key=lambda item: int(item["r"]))
@@ -17188,8 +17365,8 @@ def main() -> int:
         else:
             _targeted_hp_summary = "没有可归一 Boss 层"
         _hp_gate_summary = (
-            f"第1战热身 {_hp_first['baseline_dps']:,.0f}/s · "
-            f"可归一 boss层 {len(_targeted_boss)}/{args.rounds - 1} · "
+            f"{'首战' if BUILD_MODE == 'ex' else '第1战热身'} {_hp_first['baseline_dps']:,.0f}/s · "
+            f"可归一 boss层 {len(_targeted_boss)}/{args.rounds - first_boss_round() + 1} · "
             f"{_targeted_hp_summary}"
             + (f" · 未归一层 {','.join(str(a['r']) for a in _unscaled_audits)}"
                if _unscaled_audits else ""))
@@ -17200,14 +17377,14 @@ def main() -> int:
     if args.strict_target_hp:
         _strict_receipts = [
             audit["adapter_audit"] for audit in hp_audits
-            if audit["r"] >= 2
+            if audit["r"] >= first_boss_round()
             and isinstance(audit.get("adapter_audit"), HpAdaptationAudit)
         ]
         _strict_max_error = max(
             (max(abs(item.baseline_error_hp), abs(item.final_error_hp))
              for item in _strict_receipts), default=0.0)
         plan_lines.append(
-            f"  [严格HP] Boss关 {len(_strict_receipts)}/{args.rounds - 1} "
+            f"  [严格HP] Boss关 {len(_strict_receipts)}/{args.rounds - first_boss_round() + 1} "
             f"绝对证据、未归一 0、代理 0、target_exempt 0 · "
             f"最大绝对回读误差 {_strict_max_error:g} HP · "
             f"容差 ±max({HP_TARGET_ABS_TOLERANCE:g},"
@@ -17291,11 +17468,15 @@ def main() -> int:
     for _k in name_keys(endless_pick["bosses"]):
         used_counts[_k] = used_counts.get(_k, 0) + 1
     endless_row = list(tmpl_endless)
-    endless_row[0] = str(700099000 + int(ENDLESS_KEY))
+    endless_row[0] = str(int(EVENT_ID) * 1000 + int(ENDLESS_KEY))
     endless_row[1] = "2"
     endless_row[2] = "0"
     enforce_gauntlet_player_rank(endless_row)
     rec = patch_common(endless_row, f"{EVENT_NAME} 无尽", endless_pick)
+    if BUILD_MODE == "ex":
+        endless_row[6] = endless_row[68] = "(None)"
+        for column in (81,82,83,84,85,102):
+            endless_row[column] = "0"
     quest_rows[ENDLESS_KEY] = endless_row
     plan_lines.append(f"  无尽 [{endless_pick['label']}] field={endless_pick['field']}{rec}(曲线抄 700007 现值)")
 
@@ -17406,19 +17587,21 @@ def main() -> int:
                 int(audit["r"]): (
                     float(audit["target_dps"])
                     * float(audit["base_duration_s"]))
-                for audit in hp_audits if int(audit["r"]) >= 2
+                for audit in hp_audits if int(audit["r"]) >= first_boss_round()
             }
             _canonical_linear_hp = (
                 not args.ramp
-                and set(_baseline_targets) == set(range(2, args.rounds + 1))
+                and set(_baseline_targets) == set(range(first_boss_round(), args.rounds + 1))
                 and all(math.isclose(
                     _baseline_targets[round_no],
                     boss_target_hp(round_no, args.rounds),
                     rel_tol=1e-12, abs_tol=1e-4)
-                    for round_no in range(2, args.rounds + 1))
+                    for round_no in range(first_boss_round(), args.rounds + 1))
             )
             _audit_hp_profile = (
                 "legacy_geometric_dps" if args.ramp else
+                "ex_tiered_boss_hp" if BUILD_MODE == "ex" and _canonical_linear_hp else
+                "normal_boss_hp_20e8_100e8" if BUILD_MODE == "normal" and _canonical_linear_hp else
                 "linear_boss_hp_30e8_150e8" if _canonical_linear_hp else
                 "configured_boss_hp")
             audit_document = build_hp_audit_document(
@@ -17464,6 +17647,20 @@ def main() -> int:
     def save(logical: str, tree: dict) -> None:
         q.save_table(logical, tree)
         written.append(logical)
+
+    if BUILD_MODE == "ex":
+        # AdditionalRewardLogic dereferences every server result group/index.
+        # Include the EX group in the same generated publication file list.
+        with open(os.path.join(server_root, "assets", "rogue_event.json"), encoding="utf-8-sig") as fh:
+            reward_config = json.load(fh)["events"][EVENT_ID]
+        extension = Path(server_root) / "assets" / "rogue_event_cnmod.json"
+        if extension.exists():
+            with extension.open(encoding="utf-8-sig") as fh:
+                reward_config = {**reward_config, **json.load(fh).get("events", {}).get(EVENT_ID, {})}
+        reward_logical = "master/reward/event/additional_reward.orderedmap"
+        reward_table = q.load_table(reward_logical)
+        reward_table.update(abyss_modes.additional_reward_rows(reward_config))
+        save(reward_logical, reward_table)
 
     # 先落未被任何表引用的 action 文件；全部成功后才写 general_boss/quest。
     # 临时文件与目标同目录,os.replace 原子切换,避免中断留下半截 deflate。
@@ -17580,15 +17777,15 @@ def main() -> int:
         entry["rushEventId"] = int(EVENT_ID)
         entry["rushEventFolderId"] = 1
         entry["rushEventRound"] = r
-        quest_json[str(700099000 + r)] = entry
+        quest_json[str(int(EVENT_ID) * 1000 + r)] = entry
     endless_entry = dict(tmpl_entry)
     endless_entry["rushEventId"] = int(EVENT_ID)
     endless_entry["rushEventFolderId"] = 2
     endless_entry["rushEventRound"] = 0
-    quest_json[str(700099000 + int(ENDLESS_KEY))] = endless_entry
+    quest_json[str(int(EVENT_ID) * 1000 + int(ENDLESS_KEY))] = endless_entry
     # 清掉多余轮(rounds 缩小时;99=无尽键不在范围内,rounds 上限 98)
     for r in range(args.rounds + 1, 99):
-        quest_json.pop(str(700099000 + r), None)
+        quest_json.pop(str(int(EVENT_ID) * 1000 + r), None)
     # newline="\n" 是必须的:Windows 上文本模式默认吐 CRLF,而仓库 .gitattributes
     # 是全 LF。git 的 text=auto 归一化会把差异藏起来(status 显示干净),但发布回执
     # 的 _server_evidence 哈希的是**原始字节** ⇒ 跑过一次重摇之后

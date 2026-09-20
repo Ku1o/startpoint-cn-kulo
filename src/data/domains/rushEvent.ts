@@ -16,6 +16,7 @@ export function deserializeRushEvent(
 ): PlayerRushEvent {
     return {
         eventId: raw.event_id,
+        towerRevision: raw.tower_revision ?? null,
         endlessBattleNextRound: endlessBattleNextRound,
         activeRushBattleFolderId: raw.active_rush_battle_folder_id,
         endlessBattleMaxRound: raw.endless_battle_max_round,
@@ -185,7 +186,13 @@ export function insertPlayerRushEventSync(
 ) {
     getDb().prepare(`
     INSERT INTO players_rush_events
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        (player_id, event_id, active_rush_battle_folder_id, endless_battle_max_round,
+         endless_battle_max_round_time, endless_battle_max_round_character_id_1,
+         endless_battle_max_round_character_id_2, endless_battle_max_round_character_id_3,
+         endless_battle_max_round_character_evolution_img_lvl_1,
+         endless_battle_max_round_character_evolution_img_lvl_2,
+         endless_battle_max_round_character_evolution_img_lvl_3, tower_revision)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
         playerId,
         rushEvent.eventId,
@@ -193,7 +200,8 @@ export function insertPlayerRushEventSync(
         rushEvent.endlessBattleMaxRound,
         rushEvent.endlessBattleMaxRoundTime,
         ...rushEvent.endlessBattleMaxRoundCharacterIds,
-        ...rushEvent.endlessBattleMaxRoundCharacterEvolutionImgLvls
+        ...rushEvent.endlessBattleMaxRoundCharacterEvolutionImgLvls,
+        rushEvent.towerRevision ?? null
     )
 }
 
@@ -229,6 +237,7 @@ export function updatePlayerRushEventSync(
     const characterEvolutionImgLevels = rushEvent.endlessBattleMaxRoundCharacterEvolutionImgLvls
 
     const fields: Record<string, any> = {
+        'tower_revision': rushEvent.towerRevision,
         'active_rush_battle_folder_id': rushEvent.activeRushBattleFolderId,
         'endless_battle_max_round': rushEvent.endlessBattleMaxRound,
         'endless_battle_max_round_time': rushEvent.endlessBattleMaxRoundTime,

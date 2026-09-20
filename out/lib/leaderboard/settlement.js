@@ -17,7 +17,9 @@ function defaultConfig(competitionKey, nowMs) {
         freezeEnabled: false,
         settleAtMs: null,
         repeatIntervalMs: null,
-        rewardTiers: [...(0, rewards_1.getLeaderboardRewardTiers)(competitionKey)],
+        rewardTiers: competitionKey === "rush:700100:1"
+            ? (0, rewards_1.buildAbyssExRewardRules)(getLeaderboardSettlementConfigSync("rush:700099:1", nowMs).rewardTiers)
+            : [...(0, rewards_1.getLeaderboardRewardTiers)(competitionKey)],
         mailSubject: `${displayName}赛季排名报酬`,
         mailBody: `感谢参与${displayName}。本邮件为本赛季最终排名报酬。`,
         excludeBots: true,
@@ -52,7 +54,8 @@ function getLeaderboardSettlementConfigSync(competitionKey, nowMs = Date.now()) 
     const config = deserializeConfig(row);
     const upgraded = (0, rewards_1.upgradeLeaderboardRewardRules)(competitionKey, config.rewardTiers);
     if (upgraded !== null) {
-        config.rewardTiers = upgraded;
+        config.rewardTiers = competitionKey === "rush:700100:1" && config.rewardTiers.length === 0
+            ? initial.rewardTiers : upgraded;
         config.updatedAtMs = nowMs;
         putLeaderboardSettlementConfigSync(config);
     }

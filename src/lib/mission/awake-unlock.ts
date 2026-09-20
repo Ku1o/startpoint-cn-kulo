@@ -1,4 +1,5 @@
-import { getPlayerCharacterAwakeUnlocksSync, upsertPlayerCharacterAwakeUnlockSync } from "../../data/domains/character_awake"
+import { getOwnedAwakeCharacterIdsSync, getPlayerCharacterAwakeUnlocksSync, upsertPlayerCharacterAwakeUnlockSync } from "../../data/domains/character_awake"
+import { recordUnownedAwakeMission } from "../request-diagnostics"
 import type { CharacterAwakeUnlockMap } from "../../data/domains/character_awake"
 import { getPlayerCharactersByIdsSync } from "../../data/domains/character"
 import { getDb } from "../../data/db"
@@ -30,13 +31,18 @@ export function reconcileAwakeUnlocksFromProgress(
             const reward = getAwakeMissionRewardStageDefinition(entry.missionId, stage)?.specialReward
             return reward && String(reward.characterId) === characterId
                 && (persistedUnlocks.get(characterId)?.[reward.boardIndex] ?? 0) < reward.awakeLevel
-                ? [reward] : []
+                ? [{ ...reward, missionId: entry.missionId }] : []
         })
     })
     if (missing.length === 0) return { all: persistedUnlocks, changed }
+    const ownedIds = getOwnedAwakeCharacterIdsSync(playerId, missing.map(reward => reward.characterId))
 
     getDb().transaction(() => {
         for (const reward of missing) {
+            if (!ownedIds.has(reward.characterId)) {
+                recordUnownedAwakeMission(reward.missionId, reward.characterId)
+                continue
+            }
             if (!upsertPlayerCharacterAwakeUnlockSync(
                 playerId, reward.characterId, reward.boardIndex, reward.awakeLevel,
             )) continue

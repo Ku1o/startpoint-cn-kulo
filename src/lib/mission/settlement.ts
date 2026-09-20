@@ -1,5 +1,6 @@
 import {
     getPlayerCategoryMissionsForCategoriesSync,
+    getPlayerCategoryMissionsForScopesSync,
     updatePlayerCategoryMissionBatchSync,
     updatePlayerCategoryMissionStageBatchSync,
 } from "../../data/domains/mission"
@@ -108,10 +109,11 @@ function evaluateMissionCategories(
         scope,
         candidateMissionIds: scope.missionIds ?? getMissionIdsByCategory(scope.category),
     })).filter(entry => entry.candidateMissionIds.length > 0)
-    const persistedByCategory = getPlayerCategoryMissionsForCategoriesSync(
-        playerId,
-        preparedScopes.map(entry => entry.scope.category),
-    )
+    const persistedByCategory = /^(0|false|no|off)$/i.test(process.env.MISSION_SCOPED_READS ?? "true")
+        ? getPlayerCategoryMissionsForCategoriesSync(playerId, preparedScopes.map(entry => entry.scope.category))
+        : getPlayerCategoryMissionsForScopesSync(playerId, preparedScopes.map(entry => ({
+            category: entry.scope.category, missionIds: entry.candidateMissionIds,
+        })))
     const readContext = new MissionEvaluationReadContext(playerId)
     const player = readContext.player
 

@@ -14,8 +14,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.matchLeaderboardRewardTier = exports.getLeaderboardRewardTiers = exports.isLegacyDefaultLeaderboardRewardTiers = exports.resolveLeaderboardRewardTiers = exports.upgradeLeaderboardRewardRules = exports.DEEP_ABYSS_REWARD_TIERS = exports.isPercentRewardTier = void 0;
+exports.matchLeaderboardRewardTier = exports.getLeaderboardRewardTiers = exports.isLegacyDefaultLeaderboardRewardTiers = exports.resolveLeaderboardRewardTiers = exports.upgradeLeaderboardRewardRules = exports.buildAbyssExRewardRules = exports.DEEP_ABYSS_EX_REWARD_TIERS = exports.DEEP_ABYSS_REWARD_TIERS = exports.isPercentRewardTier = void 0;
 const leaderboard_reward_policy_json_1 = __importDefault(require("../../../assets/leaderboard_reward_policy.json"));
+const abyss_ex_campus_season_template_json_1 = __importDefault(require("../../../assets/abyss_ex_campus_season_template.json"));
 function isPercentRewardTier(tier) {
     return "fromPercent" in tier;
 }
@@ -107,8 +108,19 @@ exports.DEEP_ABYSS_REWARD_TIERS = FIXED_DEEP_ABYSS_REWARD_TIERS.map((_a, index) 
     var { fromRank, toRank } = _a, reward = __rest(_a, ["fromRank", "toRank"]);
     return (Object.assign(Object.assign({}, reward), { fromPercent: index === 0 ? 0 : leaderboard_reward_policy_json_1.default.percentileCutoffs[index - 1], toPercent: leaderboard_reward_policy_json_1.default.percentileCutoffs[index] }));
 });
+exports.DEEP_ABYSS_EX_REWARD_TIERS = exports.DEEP_ABYSS_REWARD_TIERS.map((tier, index) => (Object.assign(Object.assign({}, tier), { degreeId: abyss_ex_campus_season_template_json_1.default.degree_tiers[index].degreeId, degreeName: abyss_ex_campus_season_template_json_1.default.degree_tiers[index].degreeName, degreeImage: abyss_ex_campus_season_template_json_1.default.degree_tiers[index].degreeImage })));
+function buildAbyssExRewardRules(normal) {
+    if (normal.length !== abyss_ex_campus_season_template_json_1.default.degree_tiers.length) {
+        throw new Error("EX campus rewards require the five normal Abyss tiers.");
+    }
+    return normal.map((tier, index) => (Object.assign(Object.assign({}, tier), { degreeId: abyss_ex_campus_season_template_json_1.default.degree_tiers[index].degreeId, degreeName: abyss_ex_campus_season_template_json_1.default.degree_tiers[index].degreeName, degreeImage: abyss_ex_campus_season_template_json_1.default.degree_tiers[index].degreeImage })));
+}
+exports.buildAbyssExRewardRules = buildAbyssExRewardRules;
 // Upgrade the five existing positions without overwriting customized rewards.
 function upgradeLeaderboardRewardRules(competitionKey, tiers) {
+    if (competitionKey === "rush:700100:1" && tiers.length === 0) {
+        return exports.DEEP_ABYSS_EX_REWARD_TIERS.map(tier => (Object.assign({}, tier)));
+    }
     if (competitionKey !== "rush:700099:1")
         return null;
     if (isLegacyDefaultLeaderboardRewardTiers(competitionKey, tiers)) {
@@ -163,7 +175,8 @@ function isLegacyDefaultLeaderboardRewardTiers(competitionKey, tiers) {
 }
 exports.isLegacyDefaultLeaderboardRewardTiers = isLegacyDefaultLeaderboardRewardTiers;
 function getLeaderboardRewardTiers(competitionKey) {
-    return competitionKey === "rush:700099:1" ? exports.DEEP_ABYSS_REWARD_TIERS : [];
+    return competitionKey === "rush:700099:1" ? exports.DEEP_ABYSS_REWARD_TIERS
+        : competitionKey === "rush:700100:1" ? exports.DEEP_ABYSS_EX_REWARD_TIERS : [];
 }
 exports.getLeaderboardRewardTiers = getLeaderboardRewardTiers;
 function matchLeaderboardRewardTier(tiers, rank) {

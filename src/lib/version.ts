@@ -1,3 +1,4 @@
+import { existsSync } from "./file-exists";
 /**
  * Unified version control for CN asset update.
  * 
@@ -9,7 +10,7 @@
  *   Update  (resVer<target):  full.version=resVer, full.archives=[], target=max(CDN, patches)
  *   Up-to-date (resVer≥target): full=null, diff=null when no archive task remains
  */
-import { readFileSync, existsSync, readdirSync, statSync } from "fs";
+import { readFileSync, readdirSync, statSync } from "fs";
 import path from "path";
 
 // CDN full archives are at version 1.4.0
@@ -65,6 +66,10 @@ export interface PatchMeta {
     id: string; type: "patch" | "mod"; name: string;
     version: string; depends_on: string; enabled: boolean;
     quest_time_revisions?: Record<string, string>;
+    /** Explicit finite-run reset at tower publication; values must match tower fingerprints. */
+    rush_tower_resets?: Record<string, string>;
+    /** Combat repair keeps the named prior run revision while timing gets a new fingerprint. */
+    rush_tower_preserves?: Record<string, string>;
     local_test_only?: boolean;
     required_local_platform?: "android";
 }

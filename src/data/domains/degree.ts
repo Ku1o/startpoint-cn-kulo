@@ -7,6 +7,26 @@ export interface RawPlayerDegree {
     acquired_at: number
 }
 
+export function getPlayerPortableDegreesSync(playerId: number): { degreeId: number; acquiredAt: number }[] {
+    return getDb().prepare(`SELECT degree_id AS degreeId, acquired_at AS acquiredAt
+        FROM players_degrees WHERE player_id = ? ORDER BY degree_id`).all(playerId) as
+        { degreeId: number; acquiredAt: number }[]
+}
+
+/** Validate before replacing a player: malformed V1 progress must never erase the target. */
+export function validatePortableDegreeList(value: unknown): void {
+    if (value === undefined) return
+    if (!Array.isArray(value)) throw new Error("degreeList must be an array")
+    const ids = new Set<number>()
+    for (const entry of value) {
+        if (!entry || typeof entry !== "object" || Array.isArray(entry)
+            || !Number.isSafeInteger(entry.degreeId) || entry.degreeId < 1
+            || !Number.isSafeInteger(entry.acquiredAt) || entry.acquiredAt < 0
+            || ids.has(entry.degreeId)) throw new Error("Invalid or duplicate degreeList entry")
+        ids.add(entry.degreeId)
+    }
+}
+
 /**
  * Grants a title to a player. Duplicate grants are intentionally idempotent.
  * Returns true only when a new ownership row was inserted.

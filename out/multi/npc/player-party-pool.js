@@ -13,9 +13,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getPlayerNpcPartyPoolStats = exports.getRandomPlayerNpcPartiesSync = exports.invalidatePlayerNpcPartyPool = exports.refreshPlayerNpcPartyPoolSync = exports.getNpcPartySelectionOptions = exports.removePlayerQuestNpcPartySnapshots = exports.reloadQuestNpcPartyPool = exports.recordSuccessfulQuestNpcParty = exports.stopQuestNpcPartyPoolWorker = exports.startQuestNpcPartyPoolWorker = void 0;
-const fs_1 = require("fs");
+const file_exists_1 = require("../../lib/file-exists");
 const path_1 = __importDefault(require("path"));
 const worker_threads_1 = require("worker_threads");
+const quest_party_pool_cache_1 = require("./quest-party-pool-cache");
+const memory_diagnostics_1 = require("../../lib/memory-diagnostics");
 const db_1 = require("../../data/db");
 const types_1 = require("../../data/types");
 const game_logging_1 = require("../../lib/game-logging");
@@ -38,13 +40,27 @@ const MIN_BATTLE_POWER_INCLUSIVE = Math.max(0, Number.parseInt(process.env.NPC_P
 let cachedParties = [];
 let cachedPartiesByElement = new Map();
 let cacheExpiresAt = 0;
-let questPartyPools = new Map();
+const questPoolCache = new quest_party_pool_cache_1.QuestPartyPoolCache();
+let questPartyPools = questPoolCache.pools;
 let questPartyPoolWorker = null;
 let questPartyPoolWorkerReady = false;
 let pendingClearRecords = [];
 let nextCleanupRequestId = 1;
+let inFlightRecords = 0, droppedBeforeReady = 0, reloadRequested = false;
+let reloadTimer = null;
 const pendingCleanupMessages = [];
 const pendingCleanupRequests = new Map();
+(0, memory_diagnostics_1.registerMemoryCounters)("npcPool", () => (Object.assign(Object.assign({}, questPoolCache.stats()), { cachedParties: cachedParties.length, pendingRecords: pendingClearRecords.length, inFlightRecords, pendingCleanups: pendingCleanupRequests.size, droppedBeforeReady, workerReady: questPartyPoolWorkerReady })));
+function postRecord(worker, snapshot) {
+    worker.postMessage({ type: "record", snapshot });
+    inFlightRecords++;
+}
+function requestPoolReload(worker) {
+    if (reloadRequested || questPartyPoolWorker !== worker)
+        return;
+    reloadRequested = true;
+    worker.postMessage({ type: "reload" });
+}
 function rejectPendingCleanupRequests(error) {
     for (const request of pendingCleanupRequests.values()) {
         clearTimeout(request.timeout);
@@ -55,7 +71,7 @@ function rejectPendingCleanupRequests(error) {
 }
 function getQuestPartyWorkerLocation() {
     const compiled = path_1.default.resolve(__dirname, "../../workers/quest-npc-party-pool-worker.js");
-    if ((0, fs_1.existsSync)(compiled))
+    if ((0, file_exists_1.existsSync)(compiled))
         return { filename: compiled };
     return {
         filename: path_1.default.resolve(__dirname, "../../workers/quest-npc-party-pool-worker.ts"),
@@ -69,21 +85,33 @@ function startQuestNpcPartyPoolWorker() {
     const worker = new worker_threads_1.Worker(location.filename, { execArgv: location.execArgv });
     questPartyPoolWorker = worker;
     questPartyPoolWorkerReady = false;
+    questPoolCache.resetWorker();
+    inFlightRecords = 0;
+    reloadRequested = false;
+    (0, memory_diagnostics_1.observeWorkerMemory)("npcPool", worker);
     worker.on("message", (message) => {
-        if ((message === null || message === void 0 ? void 0 : message.type) === "full_snapshot" && message.pools && typeof message.pools === "object") {
-            questPartyPools = new Map(Object.entries(message.pools));
+        if (questPartyPoolWorker !== worker)
+            return;
+        if (["snapshot_begin", "snapshot_end", "quest_snapshot", "quest_delta"].includes(message === null || message === void 0 ? void 0 : message.type)) {
+            const result = questPoolCache.apply(message);
+            questPartyPools = questPoolCache.pools;
+            if (message.type === "quest_snapshot")
+                worker.postMessage({ type: "snapshot_ack", revision: message.revision });
+            if (result === "reload")
+                requestPoolReload(worker);
             return;
         }
-        if ((message === null || message === void 0 ? void 0 : message.type) === "quest_snapshot" && typeof message.key === "string") {
-            questPartyPools.set(message.key, Array.isArray(message.entries) ? message.entries : []);
+        if ((message === null || message === void 0 ? void 0 : message.type) === "record_done") {
+            inFlightRecords = Math.max(0, inFlightRecords - 1);
             return;
         }
         if ((message === null || message === void 0 ? void 0 : message.type) === "ready") {
             questPartyPoolWorkerReady = true;
+            reloadRequested = false;
             const queued = pendingClearRecords;
             pendingClearRecords = [];
             for (const snapshot of queued)
-                worker.postMessage({ type: "record", snapshot });
+                postRecord(worker, snapshot);
             for (const cleanup of pendingCleanupMessages.splice(0))
                 worker.postMessage(cleanup);
             console.log(`[LOBBY] quest-specific NPC party worker ready: pools=${questPartyPools.size}`);
@@ -104,6 +132,17 @@ function startQuestNpcPartyPoolWorker() {
             return;
         }
         if ((message === null || message === void 0 ? void 0 : message.type) === "operation_error") {
+            if (message.operation === "reload") {
+                reloadRequested = false;
+                if (!reloadTimer)
+                    reloadTimer = setTimeout(() => {
+                        reloadTimer = null;
+                        requestPoolReload(worker);
+                    }, 5000);
+                reloadTimer === null || reloadTimer === void 0 ? void 0 : reloadTimer.unref();
+            }
+            else if (message.operation === "record")
+                requestPoolReload(worker);
             if (Number.isSafeInteger(message.requestId)) {
                 const request = pendingCleanupRequests.get(message.requestId);
                 if (request) {
@@ -116,11 +155,17 @@ function startQuestNpcPartyPoolWorker() {
         }
     });
     worker.on("error", error => {
-        rejectPendingCleanupRequests(error);
+        rejectPendingCleanupRequests(error instanceof Error ? error : new Error(String(error)));
         console.error("[LOBBY] quest NPC party worker error", error);
     });
     worker.on("exit", code => {
         const wasCurrentWorker = questPartyPoolWorker === worker;
+        if (!wasCurrentWorker)
+            return;
+        if (reloadTimer)
+            clearTimeout(reloadTimer);
+        reloadTimer = null;
+        inFlightRecords = 0;
         if (wasCurrentWorker)
             questPartyPoolWorker = null;
         questPartyPoolWorkerReady = false;
@@ -140,6 +185,10 @@ function stopQuestNpcPartyPoolWorker() {
             return;
         questPartyPoolWorker = null;
         questPartyPoolWorkerReady = false;
+        if (reloadTimer)
+            clearTimeout(reloadTimer);
+        reloadTimer = null;
+        inFlightRecords = 0;
         yield worker.terminate();
     });
 }
@@ -179,14 +228,16 @@ function recordSuccessfulQuestNpcParty(playerId, questCategory, questId, partySl
     if (!questPartyPoolWorker || !questPartyPoolWorkerReady) {
         if (pendingClearRecords.length < 1000)
             pendingClearRecords.push(snapshot);
+        else
+            droppedBeforeReady++;
         return;
     }
-    questPartyPoolWorker.postMessage({ type: "record", snapshot });
+    postRecord(questPartyPoolWorker, snapshot);
 }
 exports.recordSuccessfulQuestNpcParty = recordSuccessfulQuestNpcParty;
 function reloadQuestNpcPartyPool() {
     if (questPartyPoolWorker && questPartyPoolWorkerReady) {
-        questPartyPoolWorker.postMessage({ type: "reload" });
+        requestPoolReload(questPartyPoolWorker);
     }
 }
 exports.reloadQuestNpcPartyPool = reloadQuestNpcPartyPool;

@@ -1,5 +1,6 @@
 import { QuestCategory } from "../types"
 import { getLeaderboardSeasonSync } from "../../data/domains/leaderboard"
+import { getAbyssTimeRevision } from "../abyss-time-revision"
 
 export interface LeaderboardCompetition {
     key: string
@@ -21,6 +22,15 @@ const competitions: readonly LeaderboardCompetition[] = [{
     pageSize: 100,
     displayLimit: 500,
     contentRevision: "abyss-reroll-seed-2026082902",
+}, {
+    key: "rush:700100:1",
+    displayName: "深渊连战 EX",
+    category: QuestCategory.RUSH_EVENT,
+    eventId: 700100,
+    folderId: 1,
+    pageSize: 100,
+    displayLimit: 500,
+    contentRevision: "abyss-ex-initial",
 }]
 
 export function getLeaderboardCompetitions(): readonly LeaderboardCompetition[] {
@@ -60,6 +70,8 @@ export function getLeaderboardCompetitionSeasonSync(
     return getLeaderboardSeasonSync(
         competitionKey,
         nowMs,
-        competition?.contentRevision,
+        competition?.eventId === 700100
+            ? getAbyssTimeRevision(700100) ?? competition.contentRevision
+            : competition?.contentRevision,
     )
 }

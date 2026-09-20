@@ -1,0 +1,37 @@
+{
+  "platforms": {
+    "android": {
+      "admission": true,
+      "from": "1.4.113",
+      "version": "1.4.114",
+      "archiveBytes": 995555,
+      "sha256": "814dc42c98e07f271a78a04575645d60d6978f99c8cd7d893b67c0291675ee67"
+    },
+    "ios": {
+      "admission": true,
+      "from": "1.4.113",
+      "version": "1.4.114",
+      "archiveBytes": 995555,
+      "sha256": "814dc42c98e07f271a78a04575645d60d6978f99c8cd7d893b67c0291675ee67"
+    }
+  },
+  "resourceDownloadsVerified": 2,
+  "preservedUntilTowerRefresh": [
+    "players_items",
+    "players_quest_progress",
+    "players_rush_events",
+    "players_rush_events_played_parties",
+    "players_active_quests",
+    "abyss_floor_records",
+    "leaderboard_settlement_configs",
+    "leaderboard_availability"
+  ],
+  "realHttpV2Export": {
+    "passed": true,
+    "bytes": 1621192
+  },
+  "effectiveShopProductsVerified": 4,
+  "acquisitionPairsVerified": 4,
+  "localServerVerified": true,
+  "deviceVerified": false
+}

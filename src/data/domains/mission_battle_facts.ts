@@ -1,3 +1,4 @@
+import { cachedStatement } from "../../lib/cached-statement"
 import { getDb } from "../db"
 
 export interface MissionBattleCounters {
@@ -36,7 +37,7 @@ const EMPTY_COUNTERS: Readonly<MissionBattleCounters> = Object.freeze({
 })
 
 export function getMissionBattleCountersSync(playerId: number): MissionBattleCounters {
-    const row = getDb().prepare(`
+    const row = cachedStatement(getDb(), `
         SELECT single_play_count, single_clear_count,
                multi_play_count, multi_clear_count,
                multi_host_clear_count, multi_guest_clear_count,
@@ -77,7 +78,7 @@ export function recordMissionBattleResultSync(
     const rankA = result.accomplished && result.clearRank === 3 ? 1 : 0
     const rankB = result.accomplished && result.clearRank === 2 ? 1 : 0
 
-    getDb().prepare(`
+    cachedStatement(getDb(), `
         INSERT INTO players_mission_battle_counters (
             player_id, single_play_count, single_clear_count,
             multi_play_count, multi_clear_count,

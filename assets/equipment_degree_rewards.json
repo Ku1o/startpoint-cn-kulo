@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "enabled": true,
+  "rewards": [
+    {
+      "degree_id": 9911002,
+      "equipment_ids": [8000101, 8000102, 8000103, 8000104, 8000105, 8000106, 8000107, 8000108, 8000109, 8000110, 8000111, 8000112, 8000113, 8000114, 8000115],
+      "min_enhancement_level": 120
+    },
+    {
+      "degree_id": 9911003,
+      "equipment_ids": [5900101],
+      "min_enhancement_level": 120
+    }
+  ]
+}

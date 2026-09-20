@@ -1,4 +1,5 @@
 import adventEventQuests from "../../assets/advent_event_quest.json";
+import { ABYSS_EX_EVENT_ID, ABYSS_NORMAL_EVENT_ID, isAbyssExEndlessQuest, isAbyssEvent } from "./abyss-modes";
 import bossBattleQuests from "../../assets/boss_battle_quest.json";
 import boxGacha from "../../assets/box_gacha.json";
 import boxReward from "../../assets/box_reward.json";
@@ -396,8 +397,15 @@ export function getQuestFromCategorySync(
             return getQuestSync((carnivalEventQuests as RawQuests), questId)
         case QuestCategory.RAID_EVENT:
             return getQuestSync((raidEventQuests as RawQuests), questId)
-        case QuestCategory.RUSH_EVENT:
-            return getQuestSync((rushEventQuests as RawQuests), questId)
+        case QuestCategory.RUSH_EVENT: {
+            const quest = getQuestSync((rushEventQuests as RawQuests), questId)
+            if (quest !== null && isAbyssExEndlessQuest(category, questId)) {
+                return { ...quest, rankPointReward: 0, characterExpReward: 0, manaReward: 0,
+                    poolExpReward: 0, clearReward: undefined, sPlusReward: undefined,
+                    scoreRewardGroupId: undefined, scoreRewardGroup: undefined }
+            }
+            return quest
+        }
         case QuestCategory.SOLO_TIME_ATTACK_EVENT:
             return getQuestSync((soloTimeAttackEventQuests as RawQuests), questId)
         case QuestCategory.SCORE_ATTACK_EVENT:
@@ -725,6 +733,10 @@ export function getEventShopItemsSync(
     eventType: number | string,
     eventId: number | string
 ): ShopItems | null {
+    // Both entrances use the same product IDs, hence the same stock ledger.
+    if (Number(eventType) === 11 && Number(eventId) === ABYSS_EX_EVENT_ID) {
+        eventId = ABYSS_NORMAL_EVENT_ID
+    }
     const typeSection = (eventItemShopItems as EventShopItems)[String(eventType)]
     if (typeSection === undefined) return null;
 
@@ -808,6 +820,7 @@ export function getRushEventFolderClearRewards(
     rushEventId: number,
     folderId: number
 ): Reward[] | null {
+    if (isAbyssEvent(rushEventId) && folderId !== 1) return []
     const rogueCfg = getRogueEventConfig(rushEventId) as any
     const extras: Reward[] = []
     const add = (type: number, id: number, count: number) => {

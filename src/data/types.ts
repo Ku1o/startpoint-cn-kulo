@@ -377,6 +377,7 @@ export interface UserRushEvent {
 export interface RawPlayerRushEvent extends UserRushEvent{
     player_id: number
     event_id: number
+    tower_revision?: string | null
 }
 
 export interface RawPlayerRushEventRanking extends RawPlayerRushEvent {
@@ -385,6 +386,7 @@ export interface RawPlayerRushEventRanking extends RawPlayerRushEvent {
 
 export interface PlayerRushEvent {
     eventId: number
+    towerRevision?: string | null
     endlessBattleNextRound: number
     activeRushBattleFolderId: number | null
     endlessBattleMaxRound: number | null
@@ -745,6 +747,8 @@ export interface ClientPlayerData {
 
 export interface MergedPlayerData {
     player: Player,
+    /** Optional in historical V1 saves; IDs and acquisition times are portable progress. */
+    degreeList?: { degreeId: number; acquiredAt: number }[],
     dailyChallengePointList: DailyChallengePointListEntry[],
     triggeredTutorial: number[],
     clearedRegularMissionList: Record<string, number>,

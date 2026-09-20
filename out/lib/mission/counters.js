@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.snapshotAllMissionCountersSync = exports.getMissionCounterDeltaSync = exports.getMissionCounterSnapshotValueSync = exports.getMissionCounterValuesSync = exports.getMissionCounterValueSync = exports.setMissionCounterMinSync = exports.setMissionCounterMaxSync = exports.addMissionCounterSync = exports.makeMissionCounterKey = exports.serializeMissionCounterQualifier = exports.normalizeMissionCounterQualifier = void 0;
+const cached_statement_1 = require("../cached-statement");
 const db_1 = require("../../data/db");
 const storage_layout_1 = require("../storage-layout");
 function normalizeMissionCounterQualifier(qualifier = {}) {
@@ -39,7 +40,7 @@ function addMissionCounterSync(playerId, query, amount = 1) {
         return (0, storage_layout_1.writeCompactMissionCounter)((0, db_1.getDb)(), playerId, {
             key: counterKey, dimension: query.dimension, scopeType: query.scopeType, scopeKey: query.scopeKey, qualifierJson,
         }, amount, "add");
-    const row = (0, db_1.getDb)().prepare(`
+    const row = (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
     INSERT INTO players_mission_counters
         (player_id, counter_key, dimension, scope_type, scope_key, qualifier_json, value, updated_at)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
@@ -58,7 +59,7 @@ function setMissionCounterMaxSync(playerId, query, value) {
         return (0, storage_layout_1.writeCompactMissionCounter)((0, db_1.getDb)(), playerId, {
             key: counterKey, dimension: query.dimension, scopeType: query.scopeType, scopeKey: query.scopeKey, qualifierJson,
         }, value, "max");
-    const row = (0, db_1.getDb)().prepare(`
+    const row = (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
     INSERT INTO players_mission_counters
         (player_id, counter_key, dimension, scope_type, scope_key, qualifier_json, value, updated_at)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
@@ -79,7 +80,7 @@ function setMissionCounterMinSync(playerId, query, value) {
         return (0, storage_layout_1.writeCompactMissionCounter)((0, db_1.getDb)(), playerId, {
             key: counterKey, dimension: query.dimension, scopeType: query.scopeType, scopeKey: query.scopeKey, qualifierJson,
         }, value, "min");
-    const row = (0, db_1.getDb)().prepare(`
+    const row = (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
     INSERT INTO players_mission_counters
         (player_id, counter_key, dimension, scope_type, scope_key, qualifier_json, value, updated_at)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
@@ -94,7 +95,7 @@ exports.setMissionCounterMinSync = setMissionCounterMinSync;
 function getMissionCounterValueSync(playerId, query) {
     var _a;
     const counterKey = makeMissionCounterKey(query);
-    const row = (0, db_1.getDb)().prepare(`
+    const row = (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
     SELECT value FROM players_mission_counters
     WHERE player_id = ? AND counter_key = ?
     `).get(playerId, counterKey);
@@ -107,7 +108,7 @@ function getMissionCounterValuesSync(playerId, queries) {
     if (counterKeys.length === 0)
         return new Map();
     const placeholders = counterKeys.map(() => "?").join(", ");
-    const rows = (0, db_1.getDb)().prepare(`
+    const rows = (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
     SELECT counter_key, value FROM players_mission_counters
     WHERE player_id = ? AND counter_key IN (${placeholders})
     `).all(playerId, ...counterKeys);
@@ -122,7 +123,7 @@ function getMissionCounterSnapshotValueSync(playerId, periodType, query) {
     if ((0, storage_layout_1.isCompactStorage)((0, db_1.getDb)()))
         throw new Error("旧任务快照已退役，周期任务应使用 players_periodic_snapshots");
     const counterKey = makeMissionCounterKey(query);
-    const row = (0, db_1.getDb)().prepare(`
+    const row = (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
     SELECT value FROM players_mission_counter_snapshots
     WHERE player_id = ? AND period_type = ? AND counter_key = ?
     `).get(playerId, periodType, counterKey);
@@ -138,11 +139,11 @@ exports.getMissionCounterDeltaSync = getMissionCounterDeltaSync;
 function snapshotAllMissionCountersSync(playerId, periodType) {
     if ((0, storage_layout_1.isCompactStorage)((0, db_1.getDb)()))
         throw new Error("旧任务快照已退役，禁止重新生成全量副本");
-    const rows = (0, db_1.getDb)().prepare(`
+    const rows = (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
     SELECT counter_key, value FROM players_mission_counters
     WHERE player_id = ?
     `).all(playerId);
-    const insert = (0, db_1.getDb)().prepare(`
+    const insert = (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
     INSERT INTO players_mission_counter_snapshots
         (player_id, period_type, counter_key, value, updated_at)
     VALUES (?, ?, ?, ?, ?)

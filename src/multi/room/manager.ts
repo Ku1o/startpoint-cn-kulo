@@ -8,8 +8,18 @@ import { roomAdmissionRegistry } from "./admission";
 import { embeddedMultiCoordinator } from "../coordinator/embedded";
 import { getQuestFromCategorySync } from "../../lib/assets";
 import { fiveBossConnectionDiagnostics } from "../five-boss/connection-diagnostic";
+import { registerMemoryCounters } from "../../lib/memory-diagnostics";
 
 const rooms = new Map<string, MultiRoom>();
+registerMemoryCounters("rooms", () => {
+    const counts: Record<string, number> = { total: rooms.size, lobby: 0, battle: 0, returning: 0, other: 0 };
+    for (const room of rooms.values()) {
+        const phase = room.lifecycle?.phase;
+        const key = phase === "LOBBY" ? "lobby" : phase === "BATTLE" ? "battle" : phase === "RETURNING" ? "returning" : "other";
+        counts[key]++;
+    }
+    return counts;
+});
 
 let roomSequence = 1;
 

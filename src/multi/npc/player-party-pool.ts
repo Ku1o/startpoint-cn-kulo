@@ -1,6 +1,9 @@
-import { existsSync } from "fs"
+import { existsSync } from "../../lib/file-exists";
+
 import path from "path"
 import { Worker } from "worker_threads"
+import { QuestPartyPoolCache } from "./quest-party-pool-cache"
+import { observeWorkerMemory, registerMemoryCounters } from "../../lib/memory-diagnostics"
 import { getDb } from "../../data/db"
 import { PartyCategory, PlayerParty, RawPlayerParty } from "../../data/types"
 import { gameVerboseLog } from "../../lib/game-logging"
@@ -56,11 +59,14 @@ const MIN_BATTLE_POWER_INCLUSIVE = Math.max(
 let cachedParties: CachedPlayerParty[] = []
 let cachedPartiesByElement = new Map<number, CachedPlayerParty[]>()
 let cacheExpiresAt = 0
-let questPartyPools = new Map<string, QuestNpcPartySnapshot[]>()
+const questPoolCache = new QuestPartyPoolCache()
+let questPartyPools = questPoolCache.pools
 let questPartyPoolWorker: Worker | null = null
 let questPartyPoolWorkerReady = false
 let pendingClearRecords: QuestNpcPartySnapshot[] = []
 let nextCleanupRequestId = 1
+let inFlightRecords = 0, droppedBeforeReady = 0, reloadRequested = false
+let reloadTimer: NodeJS.Timeout | null = null
 const pendingCleanupMessages: Array<{ type: "remove_players"; requestId: number; playerIds: number[] }> = []
 const pendingCleanupRequests = new Map<number, {
     resolve: (result: QuestNpcPartyCleanupResult) => void
@@ -72,6 +78,20 @@ const pendingCleanupRequests = new Map<number, {
 export interface QuestNpcPartyCleanupResult {
     removedRows: number
     affectedQuestCount: number
+}
+registerMemoryCounters("npcPool", () => ({ ...questPoolCache.stats(),
+    cachedParties: cachedParties.length, pendingRecords: pendingClearRecords.length,
+    inFlightRecords, pendingCleanups: pendingCleanupRequests.size, droppedBeforeReady,
+    workerReady: questPartyPoolWorkerReady }))
+
+function postRecord(worker: Worker, snapshot: QuestNpcPartySnapshot): void {
+    worker.postMessage({ type: "record", snapshot })
+    inFlightRecords++
+}
+function requestPoolReload(worker: Worker): void {
+    if (reloadRequested || questPartyPoolWorker !== worker) return
+    reloadRequested = true
+    worker.postMessage({ type: "reload" })
 }
 
 function rejectPendingCleanupRequests(error: Error): void {
@@ -98,20 +118,29 @@ export function startQuestNpcPartyPoolWorker(): void {
     const worker = new Worker(location.filename, { execArgv: location.execArgv })
     questPartyPoolWorker = worker
     questPartyPoolWorkerReady = false
+    questPoolCache.resetWorker()
+    inFlightRecords = 0
+    reloadRequested = false
+    observeWorkerMemory("npcPool", worker)
     worker.on("message", (message: any) => {
-        if (message?.type === "full_snapshot" && message.pools && typeof message.pools === "object") {
-            questPartyPools = new Map(Object.entries(message.pools)) as Map<string, QuestNpcPartySnapshot[]>
+        if (questPartyPoolWorker !== worker) return
+        if (["snapshot_begin", "snapshot_end", "quest_snapshot", "quest_delta"].includes(message?.type)) {
+            const result = questPoolCache.apply(message)
+            questPartyPools = questPoolCache.pools
+            if (message.type === "quest_snapshot") worker.postMessage({ type: "snapshot_ack", revision: message.revision })
+            if (result === "reload") requestPoolReload(worker)
             return
         }
-        if (message?.type === "quest_snapshot" && typeof message.key === "string") {
-            questPartyPools.set(message.key, Array.isArray(message.entries) ? message.entries : [])
+        if (message?.type === "record_done") {
+            inFlightRecords = Math.max(0, inFlightRecords - 1)
             return
         }
         if (message?.type === "ready") {
             questPartyPoolWorkerReady = true
+            reloadRequested = false
             const queued = pendingClearRecords
             pendingClearRecords = []
-            for (const snapshot of queued) worker.postMessage({ type: "record", snapshot })
+            for (const snapshot of queued) postRecord(worker, snapshot)
             for (const cleanup of pendingCleanupMessages.splice(0)) worker.postMessage(cleanup)
             console.log(`[LOBBY] quest-specific NPC party worker ready: pools=${questPartyPools.size}`)
             return
@@ -130,6 +159,13 @@ export function startQuestNpcPartyPoolWorker(): void {
             return
         }
         if (message?.type === "operation_error") {
+            if (message.operation === "reload") {
+                reloadRequested = false
+                if (!reloadTimer) reloadTimer = setTimeout(() => {
+                    reloadTimer = null; requestPoolReload(worker)
+                }, 5_000)
+                reloadTimer?.unref()
+            } else if (message.operation === "record") requestPoolReload(worker)
             if (Number.isSafeInteger(message.requestId)) {
                 const request = pendingCleanupRequests.get(message.requestId)
                 if (request) {
@@ -142,11 +178,15 @@ export function startQuestNpcPartyPoolWorker(): void {
         }
     })
     worker.on("error", error => {
-        rejectPendingCleanupRequests(error)
+        rejectPendingCleanupRequests(error instanceof Error ? error : new Error(String(error)))
         console.error("[LOBBY] quest NPC party worker error", error)
     })
     worker.on("exit", code => {
         const wasCurrentWorker = questPartyPoolWorker === worker
+        if (!wasCurrentWorker) return
+        if (reloadTimer) clearTimeout(reloadTimer)
+        reloadTimer = null
+        inFlightRecords = 0
         if (wasCurrentWorker) questPartyPoolWorker = null
         questPartyPoolWorkerReady = false
         if (wasCurrentWorker) {
@@ -163,6 +203,9 @@ export async function stopQuestNpcPartyPoolWorker(): Promise<void> {
     if (!worker) return
     questPartyPoolWorker = null
     questPartyPoolWorkerReady = false
+    if (reloadTimer) clearTimeout(reloadTimer)
+    reloadTimer = null
+    inFlightRecords = 0
     await worker.terminate()
 }
 
@@ -200,14 +243,15 @@ export function recordSuccessfulQuestNpcParty(
     }
     if (!questPartyPoolWorker || !questPartyPoolWorkerReady) {
         if (pendingClearRecords.length < 1000) pendingClearRecords.push(snapshot)
+        else droppedBeforeReady++
         return
     }
-    questPartyPoolWorker.postMessage({ type: "record", snapshot })
+    postRecord(questPartyPoolWorker, snapshot)
 }
 
 export function reloadQuestNpcPartyPool(): void {
     if (questPartyPoolWorker && questPartyPoolWorkerReady) {
-        questPartyPoolWorker.postMessage({ type: "reload" })
+        requestPoolReload(questPartyPoolWorker)
     }
 }
 

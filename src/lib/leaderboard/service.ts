@@ -12,6 +12,8 @@ import {
     getLeaderboardCompetitionSeasonSync,
 } from "./competition"
 import { isLeaderboardEnabledSync } from "./availability"
+import { startAbyssEnduranceQuestSync, finishAbyssEnduranceQuestSync,
+    resetAbyssEnduranceQuestSync } from "../abyss-endurance-degree-rewards"
 
 export interface LeaderboardQuestIdentity {
     category: number
@@ -27,6 +29,7 @@ export function startLeaderboardQuestSync(
     quest: LeaderboardQuestIdentity,
     startedAtMs: number = Date.now(),
 ): number | null {
+    startAbyssEnduranceQuestSync(playerId, quest, startedAtMs)
     const competition = getLeaderboardCompetitionForQuest(quest)
     const round = quest.round
     if (
@@ -84,10 +87,11 @@ export function finishLeaderboardQuestSync(input: {
     clientBattleMs: number
     party: LeaderboardRoundParty
     finishedAtMs?: number
-}): void {
-    if (!input.accomplished) return
+}): number[] {
+    const degrees = finishAbyssEnduranceQuestSync(input)
+    if (!input.accomplished) return degrees
     const finishedAtMs = Math.trunc(input.finishedAtMs ?? Date.now())
-    if (!Number.isSafeInteger(finishedAtMs) || finishedAtMs < 0) return
+    if (!Number.isSafeInteger(finishedAtMs) || finishedAtMs < 0) return degrees
     const competition = getLeaderboardCompetitionForQuest(input.quest)
     const round = input.quest.round
     if (
@@ -95,16 +99,16 @@ export function finishLeaderboardQuestSync(input: {
         || !isLeaderboardEnabledSync(competition.key, finishedAtMs)
         || round === undefined
         || round < 1
-    ) return
+    ) return degrees
     const clientBattleMs = Math.trunc(input.clientBattleMs)
     if (
         !Number.isSafeInteger(clientBattleMs)
         || clientBattleMs <= 0
         || clientBattleMs > 2_147_483_647
-    ) return
+    ) return degrees
 
     const run = getActiveLeaderboardRunSync(input.playerId, competition.key)
-    if (run === null) return
+    if (run === null) return degrees
     finishLeaderboardRoundSync({
         run,
         round,
@@ -113,6 +117,7 @@ export function finishLeaderboardQuestSync(input: {
         finishedAtMs,
         party: input.party,
     })
+    return degrees
 }
 
 export function resetLeaderboardCompetitionSync(
@@ -120,6 +125,7 @@ export function resetLeaderboardCompetitionSync(
     quest: Pick<LeaderboardQuestIdentity, "category" | "eventId" | "folderId">,
     endedAtMs: number = Date.now(),
 ): number {
+    resetAbyssEnduranceQuestSync(playerId, quest, endedAtMs)
     const competition = getLeaderboardCompetitionForQuest(quest)
     if (competition === null) return 0
     return abandonLeaderboardRunsSync({ competitionKey: competition.key, playerId, endedAtMs })

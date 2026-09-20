@@ -1,0 +1,63 @@
+{
+  "version": "1.4.114",
+  "base": "1.4.113",
+  "logicals": [
+    "master/shop/event_item_shop.orderedmap",
+    "master/item/item.orderedmap"
+  ],
+  "new_product_ids": [
+    "9700213",
+    "9700214",
+    "9700313",
+    "9700314"
+  ],
+  "items": [
+    {
+      "item_id": 2370101,
+      "name": "深渊王印",
+      "price": 100,
+      "stock": 999,
+      "count": 1,
+      "currency": 2370098
+    },
+    {
+      "item_id": 2370100,
+      "name": "深渊觉醒核",
+      "price": 500,
+      "stock": 999,
+      "count": 1,
+      "currency": 2370098
+    }
+  ],
+  "icons": [
+    {
+      "item": 2370100,
+      "small_icon": "item/materials/mod/abyss/abyss_core",
+      "preloaded_atlas": "item/sprite_sheet",
+      "thumbnail": "item/materials/mod/abyss/abyss_core",
+      "atlas": "item/sprite_sheet"
+    },
+    {
+      "item": 2370101,
+      "small_icon": "item/materials/mod/abyss/abyss_seal",
+      "preloaded_atlas": "item/sprite_sheet",
+      "thumbnail": "item/materials/mod/abyss/abyss_seal",
+      "atlas": "item/sprite_sheet"
+    },
+    {
+      "item": 2370098,
+      "small_icon": "item_icon/materials/event/rush_event/rush_event_item",
+      "preloaded_atlas": "item_icon/sprite_sheet",
+      "thumbnail": "item/materials/event/rush_event/rush_event_item_01",
+      "atlas": "item/sprite_sheet"
+    }
+  ],
+  "shared_stock_keys": [
+    -9702013,
+    -9702014
+  ],
+  "acquisition": "existing runtime how_to_get route indexes the four new products from the effective merged shop catalog",
+  "previous_products_unchanged": true,
+  "no_quest_or_tower_changes": true,
+  "device_verified": false
+}

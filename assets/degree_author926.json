@@ -1,0 +1,156 @@
+{
+  "9910049": {
+    "string_id": "degree_mod_character_139994_variant0",
+    "name": "潮风中的绅士",
+    "kana": "degree_mod_character_139994_variant0",
+    "condition": "获得条件：将雷吉斯突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+    "category_id": 2
+  },
+  "9910050": {
+    "string_id": "degree_mod_character_139994_variant1",
+    "name": "珍藏与你的时光",
+    "kana": "degree_mod_character_139994_variant1",
+    "condition": "获得条件：将雷吉斯突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+    "category_id": 2
+  },
+  "9910051": {
+    "string_id": "degree_mod_character_139993_variant0",
+    "name": "白蔷薇的护卫",
+    "kana": "degree_mod_character_139993_variant0",
+    "condition": "获得条件：将特克托突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+    "category_id": 2
+  },
+  "9910052": {
+    "string_id": "degree_mod_character_139993_variant1",
+    "name": "为你鸣响的礼炮",
+    "kana": "degree_mod_character_139993_variant1",
+    "condition": "获得条件：将特克托突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+    "category_id": 2
+  },
+  "9910053": {
+    "string_id": "degree_mod_character_159998_variant0",
+    "name": "梅影下的武士",
+    "kana": "degree_mod_character_159998_variant0",
+    "condition": "获得条件：将斩铁突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+    "category_id": 2
+  },
+  "9910054": {
+    "string_id": "degree_mod_character_159998_variant1",
+    "name": "此身为你守春",
+    "kana": "degree_mod_character_159998_variant1",
+    "condition": "获得条件：将斩铁突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+    "category_id": 2
+  },
+  "9910055": {
+    "string_id": "degree_mod_character_159997_variant0",
+    "name": "灯火酒馆的团长",
+    "kana": "degree_mod_character_159997_variant0",
+    "condition": "获得条件：将泽赫尔突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+    "category_id": 2
+  },
+  "9910056": {
+    "string_id": "degree_mod_character_159997_variant1",
+    "name": "今夜温柔的守护",
+    "kana": "degree_mod_character_159997_variant1",
+    "condition": "获得条件：将泽赫尔突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+    "category_id": 2
+  },
+  "9910057": {
+    "string_id": "degree_mod_character_159996_variant0",
+    "name": "花灯下的祈愿",
+    "kana": "degree_mod_character_159996_variant0",
+    "condition": "获得条件：将菲莉亚突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+    "category_id": 2
+  },
+  "9910058": {
+    "string_id": "degree_mod_character_159996_variant1",
+    "name": "风与光的夏夜",
+    "kana": "degree_mod_character_159996_variant1",
+    "condition": "获得条件：将菲莉亚突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+    "category_id": 2
+  },
+  "9910059": {
+    "string_id": "degree_mod_character_169992_variant0",
+    "name": "紫百合的邀约",
+    "kana": "degree_mod_character_169992_variant0",
+    "condition": "获得条件：将普莉姆拉突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+    "category_id": 2
+  },
+  "9910060": {
+    "string_id": "degree_mod_character_169992_variant1",
+    "name": "与你共舞的花火",
+    "kana": "degree_mod_character_169992_variant1",
+    "condition": "获得条件：将普莉姆拉突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+    "category_id": 2
+  },
+  "9910061": {
+    "string_id": "degree_mod_character_129991_variant0",
+    "name": "晴海边的结界使",
+    "kana": "degree_mod_character_129991_variant0",
+    "condition": "获得条件：将见岛勇希突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+    "category_id": 2
+  },
+  "9910062": {
+    "string_id": "degree_mod_character_129991_variant1",
+    "name": "与你重叠的夏浪",
+    "kana": "degree_mod_character_129991_variant1",
+    "condition": "获得条件：将见岛勇希突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+    "category_id": 2
+  },
+  "9911101": {
+    "string_id": "degree_mod_abyss_endurance_perseverance",
+    "name": "艰难依然前行",
+    "kana": "abyss_endurance_perseverance",
+    "condition": "获得条件：单次完整通关深渊连战或深渊连战EX的30关，累计战斗时间大于60分钟（不含关外等待；奖励可累计）。",
+    "category_id": 8
+  },
+  "9911102": {
+    "string_id": "degree_mod_abyss_endurance_crawl",
+    "name": "蠕动化区",
+    "kana": "abyss_endurance_crawl",
+    "condition": "获得条件：单次完整通关深渊连战或深渊连战EX的30关，累计战斗时间大于120分钟（不含关外等待；奖励可累计）。",
+    "category_id": 8
+  },
+  "9911103": {
+    "string_id": "degree_mod_abyss_endurance_roguelike_fan",
+    "name": "肉鸽爱好者",
+    "kana": "abyss_endurance_roguelike_fan",
+    "condition": "获得条件：单次完整通关深渊连战或深渊连战EX的30关，累计战斗时间大于180分钟（不含关外等待；奖励可累计）。",
+    "category_id": 8
+  },
+  "9911201": {
+    "string_id": "degree_abyss_campus_top02",
+    "name": "星钟首席",
+    "kana": "degree_abyss_campus_top02",
+    "condition": "获得条件：深渊连战EX新赛季排行榜结算奖励，具体条件见排行报酬。",
+    "category_id": 8
+  },
+  "9911202": {
+    "string_id": "degree_abyss_campus_top05",
+    "name": "穹顶学者",
+    "kana": "degree_abyss_campus_top05",
+    "condition": "获得条件：深渊连战EX新赛季排行榜结算奖励，具体条件见排行报酬。",
+    "category_id": 8
+  },
+  "9911203": {
+    "string_id": "degree_abyss_campus_top10",
+    "name": "书海俊杰",
+    "kana": "degree_abyss_campus_top10",
+    "condition": "获得条件：深渊连战EX新赛季排行榜结算奖励，具体条件见排行报酬。",
+    "category_id": 8
+  },
+  "9911204": {
+    "string_id": "degree_abyss_campus_top20",
+    "name": "风驰健将",
+    "kana": "degree_abyss_campus_top20",
+    "condition": "获得条件：深渊连战EX新赛季排行榜结算奖励，具体条件见排行报酬。",
+    "category_id": 8
+  },
+  "9911205": {
+    "string_id": "degree_abyss_campus_participation",
+    "name": "新章同窗",
+    "kana": "degree_abyss_campus_participation",
+    "condition": "获得条件：深渊连战EX新赛季排行榜结算奖励，具体条件见排行报酬。",
+    "category_id": 8
+  }
+}

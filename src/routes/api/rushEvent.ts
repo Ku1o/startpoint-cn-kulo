@@ -1,3 +1,4 @@
+import { routineGameLog } from "../../lib/routine-game-logging"
 // Handles mail.
 
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
@@ -8,9 +9,12 @@ import { getDefaultPlayerPartyGroupsSync, getPlayerSync } from "../../data/domai
 import { getPlayerCharacterSync } from "../../data/domains/character"
 import { ensurePlayerPartyGroupListSync, getPlayerPartyGroupListSync } from "../../data/domains/party"
 import { getSession } from "../../data/domains/session"
+import { setRequestOutcome } from "../../lib/request-diagnostics"
 import { getQuestFromCategorySync, getRogueEventConfig, getRushEventFolderMaxRoundSync } from "../../lib/assets";
 import { BattleQuest, QuestCategory, RushEventFolder } from "../../lib/types";
 import { isStaleAbyssClient } from "../../lib/abyss-time-revision";
+import { ABYSS_EX_EVENT_ID, isAbyssEvent } from "../../lib/abyss-modes";
+import { canStartAbyssQuestSync, hasAbyssExUnlockSync, refreshPlayerAbyssTowersSync } from "../../data/domains/abyss-tower-progress";
 import { generateDataHeaders, getServerDate, getServerTime } from "../../utils";
 import { FinishBody, insertActiveQuest } from "./singleBattleQuest";
 import { getPlayerRushEventEndlessBattleRankingSync, getRushEventEndlessBattleRankPlayedPartyListSync, getSerializedPlayerRushEventPlayedPartiesSync } from "../../lib/rush";
@@ -172,7 +176,7 @@ export function getRushEventFolderMaxRounds(eventId: number, folderId: number): 
     // Deep Abyss is a data-driven 30-floor tower.  The legacy fallback map
     // only knows the three official two-round folders, so keep its finite
     // folder open for the configured roguelike run.
-    if (eventId === 700099 && folderId === RushEventFolder.INTERMEDIATE) {
+    if (isAbyssEvent(eventId) && folderId === RushEventFolder.INTERMEDIATE) {
         const configured = Number((getRogueEventConfig(eventId) as any)?.rounds)
         return Number.isInteger(configured) && configured > 0 ? configured : 30
     }
@@ -197,12 +201,31 @@ export function getRushEventFolderMaxRounds(eventId: number, folderId: number): 
 }
 
 const routes = async (fastify: FastifyInstance) => {
+    fastify.addHook("preHandler", async (request, reply) => {
+        const body = request.body as { viewer_id?: number; event_id?: number; quest_id?: number } | null
+        if (!body || !Number.isSafeInteger(body.viewer_id)) return
+        const eventId = body.event_id ?? Math.floor(Number(body.quest_id) / 1000)
+        if (!isAbyssEvent(eventId)) return
+        const session = await getSession(String(body.viewer_id))
+        if (!session) return
+        const playerId = resolvePlayerIdSync(session.accountId)
+        if (playerId === null) return
+        refreshPlayerAbyssTowersSync(playerId)
+        if (eventId === ABYSS_EX_EVENT_ID && !hasAbyssExUnlockSync(playerId)
+            && /\/(select_folder|battle\/start|endless_battle)$/.test(request.url.split("?")[0])) {
+            setRequestOutcome(request, "rush_ex_locked")
+            reply.header("content-type", "application/x-msgpack")
+            return reply.status(200).send({
+                data_headers: generateDataHeaders({ viewer_id: body.viewer_id, result_code: 4050 }), data: {},
+            })
+        }
+    })
     fastify.post("/summary", async (request: FastifyRequest, reply: FastifyReply) => {
         const body = request.body as SummaryBody
 
         const viewerId = body.viewer_id
         const eventId = body.event_id
-        console.log(`[RUSH] summary: viewer=${viewerId} eventId=${eventId}`)
+        routineGameLog("rush", () => `[RUSH] summary: viewer=${viewerId} eventId=${eventId}`)
         if (isNaN(viewerId) || isNaN(eventId)) return reply.status(400).send({
             "error": "Bad Request",
             "message": "Invalid request body."
@@ -261,7 +284,7 @@ const routes = async (fastify: FastifyInstance) => {
 
         // get serialized parties
         const serializedPlayedParties = getSerializedPlayerRushEventPlayedPartiesSync(playerId, eventId)
-        console.log(`[RUSH] summary: folderParties=${Object.keys(serializedPlayedParties.folderParties ?? {}).length} endlessParties=${Object.keys(serializedPlayedParties.endlessParties ?? {}).length}`)
+        routineGameLog("rush", () => `[RUSH] summary: folderParties=${Object.keys(serializedPlayedParties.folderParties ?? {}).length} endlessParties=${Object.keys(serializedPlayedParties.endlessParties ?? {}).length}`)
 
         reply.header("content-type", "application/x-msgpack")
         return reply.status(200).send({
@@ -285,45 +308,61 @@ const routes = async (fastify: FastifyInstance) => {
     })
 
     fastify.post("/select_folder", async (request: FastifyRequest, reply: FastifyReply) => {
-        const body = request.body as SelectFolderBody
+        const body = (request.body ?? {}) as SelectFolderBody
 
         const viewerId = body.viewer_id
         const eventId = body.event_id
         const folderId = body.folder_id
-        console.log(`[RUSH] select_folder: viewer=${viewerId} eventId=${eventId} folderId=${folderId}`)
-        if (isNaN(viewerId) || isNaN(eventId) || isNaN(folderId)) return reply.status(400).send({
-            "error": "Bad Request",
-            "message": "Invalid request body."
-        })
+        routineGameLog("rush", () => `[RUSH] select_folder: viewer=${viewerId} eventId=${eventId} folderId=${folderId}`)
+        if (![viewerId, eventId, folderId].every(id => Number.isSafeInteger(id) && id > 0)) {
+            setRequestOutcome(request, "rush_invalid_body")
+            return reply.status(400).send({
+                "error": "Bad Request",
+                "message": "Invalid request body."
+            })
+        }
 
         const viewerIdSession = await getSession(viewerId.toString())
-        if (!viewerIdSession) return reply.status(400).send({
-            "error": "Bad Request",
-            "message": "Invalid viewer id."
-        })
+        if (!viewerIdSession) {
+            setRequestOutcome(request, "rush_invalid_session")
+            return reply.status(400).send({
+                "error": "Bad Request",
+                "message": "Invalid viewer id."
+            })
+        }
 
         // get player
         const playerId = resolvePlayerIdSync(viewerIdSession.accountId)!
-        if (playerId === null) return reply.status(500).send({
-            "error": "Internal Server Error",
-            "message": "No player bound to account."
-        })
+        if (playerId === null) {
+            setRequestOutcome(request, "rush_missing_player")
+            return reply.status(500).send({
+                "error": "Internal Server Error",
+                "message": "No player bound to account."
+            })
+        }
 
         // get existing rush event data
         let rushEventData = getPlayerRushEventSync(playerId, eventId)
-        if (rushEventData === null) return reply.status(400).send({
-            "error": "Bad Request",
-            "message": `No rush event data for rush event with id '${eventId}'`
-        });
+        if (rushEventData === null) {
+            setRequestOutcome(request, "rush_missing_event")
+            return reply.status(400).send({
+                "error": "Bad Request",
+                "message": `No rush event data for rush event with id '${eventId}'`
+            })
+        }
         rushEventData = repairDeepAbyssEndlessFolderLockSync(playerId, rushEventData)
 
         const deepAbyssSelection = classifyDeepAbyssFolderSelection(eventId, folderId)
-        if (deepAbyssSelection === "invalid") return reply.status(400).send({
-            "error": "Bad Request",
-            "message": "Invalid Deep Abyss rush battle folder."
-        });
+        if (deepAbyssSelection === "invalid") {
+            setRequestOutcome(request, "rush_invalid_folder")
+            return reply.status(400).send({
+                "error": "Bad Request",
+                "message": "Invalid Deep Abyss rush battle folder."
+            })
+        }
 
         if (deepAbyssSelection === "endless_compat") {
+            setRequestOutcome(request, "rush_endless_compat")
             // The current client enters endless battle directly and never
             // calls /select_folder. Treat calls from older clients as a
             // successful no-op: endless remains playable, while folder 2 is
@@ -342,17 +381,25 @@ const routes = async (fastify: FastifyInstance) => {
             })
         }
 
-        // Error if a folder has already been selected
-        if (rushEventData.activeRushBattleFolderId !== null) return reply.status(400).send({
-            "error": "Bad Request",
-            "message": "Already selected a folder for this rush event."
-        });
+        // A lost response may replay the same selection. Return authority without
+        // reinitializing the tower, parties, rounds or any rewards.
+        if (rushEventData.activeRushBattleFolderId !== null && rushEventData.activeRushBattleFolderId !== folderId) {
+            setRequestOutcome(request, "rush_different_folder")
+            return reply.status(400).send({
+                "error": "Bad Request",
+                "message": "Already selected a folder for this rush event."
+            })
+        }
 
-        // update folder
-        updatePlayerRushEventSync(playerId, {
-            eventId: eventId,
-            activeRushBattleFolderId: folderId
-        })
+        if (rushEventData.activeRushBattleFolderId === null) {
+            updatePlayerRushEventSync(playerId, {
+                eventId: eventId,
+                activeRushBattleFolderId: folderId
+            })
+            setRequestOutcome(request, "rush_selected")
+        } else {
+            setRequestOutcome(request, "rush_same_folder")
+        }
 
         reply.header("content-type", "application/x-msgpack")
         return reply.status(200).send({
@@ -372,7 +419,7 @@ const routes = async (fastify: FastifyInstance) => {
         const viewerId = body.viewer_id
         const eventId = body.event_id
         const page = body.page ?? 0
-        console.log(`[RUSH] ranking: viewer=${viewerId} eventId=${eventId} page=${page}`)
+        routineGameLog("rush", () => `[RUSH] ranking: viewer=${viewerId} eventId=${eventId} page=${page}`)
         if (isNaN(viewerId) || isNaN(eventId)) return reply.status(400).send({
             "error": "Bad Request",
             "message": "Invalid request body."
@@ -660,7 +707,7 @@ const routes = async (fastify: FastifyInstance) => {
         const isAutoStartMode = body.is_auto_start_mode
         const partyId = body.party_id
         const questId = body.quest_id
-        console.log(`[RUSH] battle/start: viewer=${viewerId} questId=${questId} partyId=${partyId} autoStart=${isAutoStartMode}`)
+        routineGameLog("rush", () => `[RUSH] battle/start: viewer=${viewerId} questId=${questId} partyId=${partyId} autoStart=${isAutoStartMode}`)
         if (isNaN(viewerId) || isNaN(partyId) || isNaN(questId) || isAutoStartMode === undefined) return reply.status(400).send({
             "error": "Bad Request",
             "message": "Invalid request body."
@@ -700,7 +747,8 @@ const routes = async (fastify: FastifyInstance) => {
         // untouched so lower-rank players can join an eligible host.
         const player = getPlayerSync(playerId)
         const playerRank = player === null ? 0 : getRankDegree(player.rankPoint)
-        if (!canStartRankGatedGauntletRush(questData.rushEventId, playerRank)) {
+        if (!canStartRankGatedGauntletRush(questData.rushEventId, playerRank)
+            || !canStartAbyssQuestSync(playerId, QuestCategory.RUSH_EVENT, questId)) {
             console.log(
                 `[RUSH] rank-gated Gauntlet start rejected: player=${playerId} `
                 + `rank=${playerRank} required=${GAUNTLET_MIN_PLAYER_RANK} `
@@ -804,7 +852,7 @@ const routes = async (fastify: FastifyInstance) => {
         const questType: ResetQuestType = body.quest_type
         const resetTargetId: number | undefined = body.reset_target_id
         const isResetAfterTargetRound: boolean | undefined = body.is_reset_after_target_round
-        console.log(`[RUSH] reset: viewer=${viewerId} eventId=${eventId} questType=${questType} resetTargetId=${resetTargetId} isResetAfterTarget=${isResetAfterTargetRound}`)
+        routineGameLog("rush", () => `[RUSH] reset: viewer=${viewerId} eventId=${eventId} questType=${questType} resetTargetId=${resetTargetId} isResetAfterTarget=${isResetAfterTargetRound}`)
         if (isNaN(viewerId) || isNaN(eventId) || isNaN(questType)) return reply.status(400).send({
             "error": "Bad Request",
             "message": "Invalid request body."
@@ -900,7 +948,7 @@ const routes = async (fastify: FastifyInstance) => {
         const body = request.body as { event_id: number, viewer_id: number, api_count: number };
         const viewerId = body.viewer_id;
         const eventId = body.event_id;
-        console.log(`[RUSH] reward: viewer=${viewerId} eventId=${eventId}`)
+        routineGameLog("rush", () => `[RUSH] reward: viewer=${viewerId} eventId=${eventId}`)
         if (!viewerId || isNaN(viewerId) || isNaN(eventId)) return reply.status(400).send({
             "error": "Bad Request", "message": "Invalid request body."
         });
@@ -939,7 +987,7 @@ const routes = async (fastify: FastifyInstance) => {
         }
         const degreeIds = grantEligibleRushEventDegreesSync(playerId, eventId, maxRound)
 
-        console.log(`[RUSH] reward: rank=${rankNumber} maxRound=${maxRound} rewards=${rewardList.length}`)
+        routineGameLog("rush", () => `[RUSH] reward: rank=${rankNumber} maxRound=${maxRound} rewards=${rewardList.length}`)
 
         reply.header("content-type", "application/x-msgpack")
         return reply.status(200).send({
@@ -967,7 +1015,7 @@ const routes = async (fastify: FastifyInstance) => {
         const body = request.body as { event_id: number, viewer_id: number, api_count: number };
         const viewerId = body.viewer_id;
         const eventId = body.event_id;
-        console.log(`[RUSH] endless_battle: viewer=${viewerId} eventId=${eventId}`)
+        routineGameLog("rush", () => `[RUSH] endless_battle: viewer=${viewerId} eventId=${eventId}`)
         if (!viewerId || isNaN(viewerId) || isNaN(eventId)) return reply.status(400).send({
             "error": "Bad Request", "message": "Invalid request body."
         });
@@ -989,7 +1037,7 @@ const routes = async (fastify: FastifyInstance) => {
         const maxRound = rushEventData?.endlessBattleMaxRound ?? null
         const nextRound = rushEventData?.endlessBattleNextRound ?? 1
 
-        console.log(`[RUSH] endless_battle: maxRound=${maxRound} nextRound=${nextRound}`)
+        routineGameLog("rush", () => `[RUSH] endless_battle: maxRound=${maxRound} nextRound=${nextRound}`)
 
         reply.header("content-type", "application/x-msgpack")
         return reply.status(200).send({

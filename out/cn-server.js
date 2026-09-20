@@ -36,6 +36,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 var _a, _b;
 Object.defineProperty(exports, "__esModule", { value: true });
+const file_exists_1 = require("./lib/file-exists");
 const fastify_1 = __importDefault(require("fastify"));
 const msgpackr_1 = require("msgpackr");
 const static_1 = __importDefault(require("@fastify/static"));
@@ -48,10 +49,13 @@ const activeAccount_1 = require("./data/activeAccount");
 const session_1 = require("./data/domains/session");
 const management_auth_1 = require("./lib/management-auth");
 const route_performance_1 = require("./lib/route-performance");
+const request_diagnostics_1 = require("./lib/request-diagnostics");
+const perf_hooks_1 = require("perf_hooks");
 const online_presence_1 = require("./lib/online-presence");
 const takeover_access_1 = require("./lib/takeover-access");
 const player_login_1 = require("./lib/player-login");
 const playerLogin_1 = __importStar(require("./routes/cn/playerLogin"));
+const client_admission_1 = require("./lib/client-admission");
 const SessionManager_1 = require("./multi/state/SessionManager");
 const state_1 = require("./lounge/state");
 const local_client_compat_1 = require("./lib/local-client-compat");
@@ -399,6 +403,8 @@ function safeCompressionLogValue(value) {
 }
 fastify.addHook("onSend", (request, reply, payload) => __awaiter(void 0, void 0, void 0, function* () {
     var _e;
+    const encodingStarted = perf_hooks_1.performance.now();
+    let encodedPayload = payload;
     try {
         if (reply.getHeader("content-type") === "application/x-msgpack") {
             const packed = fixUint32Tags((0, msgpackr_1.pack)(payload));
@@ -412,7 +418,7 @@ fastify.addHook("onSend", (request, reply, payload) => __awaiter(void 0, void 0,
                 }
                 catch (error) {
                     console.error("[CN-LOAD-COMPRESS] compression failed; sending identity response:", error);
-                    return base64;
+                    return encodedPayload = base64;
                 }
                 if (result.encoding) {
                     reply.header("content-encoding", result.encoding);
@@ -428,13 +434,16 @@ fastify.addHook("onSend", (request, reply, payload) => __awaiter(void 0, void 0,
                         + `device=${safeCompressionLogValue(request.headers.device)} `
                         + `before=${result.originalBytes} after=${result.wireBytes} saved=${reduction}%`);
                 }
-                return result.encoding ? result.body : base64;
+                return encodedPayload = result.encoding ? result.body : base64;
             }
-            return base64;
+            return encodedPayload = base64;
         }
     }
     catch (error) {
         console.error("[CN-LOAD-COMPRESS] response serialization failed; using normal serializer:", error);
+    }
+    finally {
+        (0, request_diagnostics_1.recordResponseEncoding)(request, perf_hooks_1.performance.now() - encodingStarted, encodedPayload);
     }
     return payload;
 }));
@@ -464,6 +473,7 @@ fastify.addContentTypeParser("application/json", { parseAs: "string" }, jsonPars
     SessionManager_1.sessionManager.disconnectPlayerLogin(viewerId);
     (0, state_1.disconnectLoungePlayerLogin)(viewerId);
 });
+(0, client_admission_1.installClientAdmission)(fastify);
 (0, playerLogin_1.installPlayerLoginGuard)(fastify);
 (0, takeover_access_1.installTakeoverUdidGuard)(fastify);
 fastify.register(playerLogin_1.default);
@@ -483,7 +493,7 @@ fastify.register(takeOver_1.default, { prefix: apiPrefix });
 function stubMsgpackReply(reply, data, playerId) {
     const servertime = playerId ? (0, utils_1.getServerTimeForPlayer)(playerId) : (0, utils_1.getServerTime)();
     reply.header("content-type", "application/x-msgpack");
-    reply.status(200).send({
+    return reply.status(200).send({
         data_headers: { force_update: false, asset_update: false, short_udid: 0, viewer_id: 0, servertime, result_code: 1 },
         data
     });
@@ -492,33 +502,33 @@ fastify.post(`${apiPrefix}/assetintitle/version_info_in_title`, (request, reply)
     const { getAssetDownloadSize, getVersionInfo } = require("./routes/cn/asset");
     const resVer = request.headers['res_ver'];
     const device = request.headers.device;
-    stubMsgpackReply(reply, getVersionInfo(CDN_BASE_URL, getAssetDownloadSize(resVer, device), device));
+    return stubMsgpackReply(reply, getVersionInfo(CDN_BASE_URL, getAssetDownloadSize(resVer, device), device));
 }));
 fastify.post(`${apiPrefix}/tool/check_social_link_enable`, (_request, reply) => __awaiter(void 0, void 0, void 0, function* () {
-    stubMsgpackReply(reply, { enable: false });
+    return stubMsgpackReply(reply, { enable: false });
 }));
 // Gift code exchange (礼包码兑换): enable button in menu, exchange not implemented
 fastify.post(`${apiPrefix}/tool/check_enable_gift`, (_request, reply) => __awaiter(void 0, void 0, void 0, function* () {
-    stubMsgpackReply(reply, { enable_gift: true });
+    return stubMsgpackReply(reply, { enable_gift: true });
 }));
 fastify.post(`${apiPrefix}/tool/contact_active`, (_request, reply) => __awaiter(void 0, void 0, void 0, function* () {
-    stubMsgpackReply(reply, { enable_customer_service: false });
+    return stubMsgpackReply(reply, { enable_customer_service: false });
 }));
 fastify.post(`${apiPrefix}/tool/custom_notify`, (_request, reply) => __awaiter(void 0, void 0, void 0, function* () {
-    stubMsgpackReply(reply, {});
+    return stubMsgpackReply(reply, {});
 }));
 fastify.post(`${apiPrefix}/channels/channel_leiting_pay/query_unfinish_order`, (_request, reply) => __awaiter(void 0, void 0, void 0, function* () {
-    stubMsgpackReply(reply, { order_id: "" });
+    return stubMsgpackReply(reply, { order_id: "" });
 }));
 fastify.post(`${apiPrefix}/channels/channel_leiting_pay/query_purcharge`, (_request, reply) => __awaiter(void 0, void 0, void 0, function* () {
-    stubMsgpackReply(reply, { status: 3 }); // 3 = purchase success
+    return stubMsgpackReply(reply, { status: 3 }); // 3 = purchase success
 }));
 fastify.post(`${apiPrefix}/channels/channel_leiting_pay/set_unfinish_order_status`, (_request, reply) => __awaiter(void 0, void 0, void 0, function* () {
-    stubMsgpackReply(reply, {});
+    return stubMsgpackReply(reply, {});
 }));
 // Episode trial reading: finish stub (character story trial)
 fastify.post(`${apiPrefix}/episode_trial_reading/finish`, (_request, reply) => __awaiter(void 0, void 0, void 0, function* () {
-    stubMsgpackReply(reply, {});
+    return stubMsgpackReply(reply, {});
 }));
 function persistSeedFeedback() {
     return __awaiter(this, void 0, void 0, function* () {
@@ -547,7 +557,7 @@ fastify.get("/debug", (request, reply) => __awaiter(void 0, void 0, void 0, func
     if (typeof loc === "string" && (loc.includes("C3032") || loc.startsWith("PLAY|"))) {
         yield persistSeedFeedback();
     }
-    reply.status(200).send("OK");
+    return reply.status(200).send("OK");
 }));
 // Parse C3032 from beacon loc string — ★ garbled to â, extract digits via garbled pattern
 function parseC3032Beacon(loc) {
@@ -629,7 +639,7 @@ fastify.post("/debug", (request, reply) => __awaiter(void 0, void 0, void 0, fun
     catch (_) { }
     if (typeof loc === "string" && loc.includes("C3032"))
         yield persistSeedFeedback();
-    reply.status(200).send("OK");
+    return reply.status(200).send("OK");
 }));
 fastify.post("/crash", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
     // Log crash (truncated to avoid log explosion)
@@ -654,7 +664,7 @@ fastify.post("/crash", (request, reply) => __awaiter(void 0, void 0, void 0, fun
     catch (e) { }
     if (bodyStr.includes("C3032"))
         yield persistSeedFeedback();
-    reply.status(200).send("OK");
+    return reply.status(200).send("OK");
 }));
 fastify.register(tool_1.default, { prefix: `${apiPrefix}/tool` });
 fastify.register(reproduce_1.default, { prefix: `${apiPrefix}/reproduce` });
@@ -720,7 +730,7 @@ const cdnDir = process.env.CDN_DIR || ".cdn";
 fastify.get("/patch/cn/asset-patch/active/:file", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
     const { file } = request.params;
     const patchFile = path_1.default.join(__dirname, "..", "assets", "asset-patch", "active", file);
-    if ((0, fs_1.existsSync)(patchFile)) {
+    if ((0, file_exists_1.existsSync)(patchFile)) {
         return reply.type("application/zip").send((0, fs_1.readFileSync)(patchFile));
     }
     return reply.status(404).send("Not Found");
@@ -739,7 +749,7 @@ fastify.register(static_1.default, {
 // New admin SPA (React, built from admin/ into web/dist) — served at /admin.
 // Old pages at / stay untouched until the SPA fully replaces them (see docs/admin-refactor-plan.md).
 const adminDistDir = path_1.default.join(__dirname, "..", "web", "dist");
-const adminSpaAvailable = (0, fs_1.existsSync)(path_1.default.join(adminDistDir, "index.html"));
+const adminSpaAvailable = (0, file_exists_1.existsSync)(path_1.default.join(adminDistDir, "index.html"));
 if (adminSpaAvailable) {
     fastify.register(static_1.default, {
         root: adminDistDir,

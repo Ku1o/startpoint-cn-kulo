@@ -12,6 +12,7 @@ const stages_1 = require("./stages");
 const stages_2 = require("./stages");
 const character_queries_1 = require("./character-queries");
 const registry_1 = require("./registry");
+const request_diagnostics_1 = require("../request-diagnostics");
 function getAwakeBattleMissionIds(characterIds, directlyChangedMissionIds = []) {
     const targetCharacterIds = new Set(characterIds.filter(characterId => Number.isSafeInteger(characterId) && characterId > 0));
     const missionIds = new Set(directlyChangedMissionIds.filter(missionId => Number.isSafeInteger(missionId) && missionId > 0));
@@ -59,13 +60,24 @@ function settleAwakeMissionRewards(playerId, progressList, missionSnapshot) {
             progressByMissionId.set(entry.missionId, entry.progress);
         }
     }
-    const aggregatedProgressList = [...progressByMissionId].map(([missionId, progress]) => ({
-        missionId,
-        progress,
-    }));
     const player = (0, player_1.getPlayerSync)(playerId);
     if (!player)
         throw new Error(`Player ${playerId} not found during CharacterAwake settlement.`);
+    const ownedIds = (0, character_awake_1.getOwnedAwakeCharacterIdsSync)(playerId, [...progressByMissionId.keys()].map(id => Number((0, character_queries_1.getCharacterIdFromMission)(id))));
+    // Fixed parties and old saves can contain progress for unowned characters.
+    // Keep that progress intact and rewards pending until the character is owned.
+    for (const missionId of progressByMissionId.keys()) {
+        const characterId = Number((0, character_queries_1.getCharacterIdFromMission)(missionId));
+        if (!ownedIds.has(characterId)) {
+            progressByMissionId.delete(missionId);
+            (0, request_diagnostics_1.recordUnownedAwakeMission)(missionId, characterId);
+        }
+    }
+    if (progressByMissionId.size === 0)
+        return {
+            missionInfo: [], itemList: {}, characterList: [], equipmentList: [], degreeIds: [], passCardPoints: {},
+        };
+    const aggregatedProgressList = [...progressByMissionId].map(([missionId, progress]) => ({ missionId, progress }));
     const persistedMissions = missionSnapshot !== null && missionSnapshot !== void 0 ? missionSnapshot : (0, mission_1.getPlayerCategoryMissionsSync)(playerId, 9, [...progressByMissionId.keys()]);
     const granter = new grants_1.MissionRewardGranter(playerId, player);
     const missionInfo = [];
@@ -92,6 +104,9 @@ function settleAwakeMissionRewards(playerId, progressList, missionSnapshot) {
                 // lost. The monotonic upsert keeps this idempotent.
                 if (definition.specialReward) {
                     const special = definition.specialReward;
+                    if (!ownedIds.has(special.characterId)) {
+                        throw new Error(`Awake reward character mismatch for mission ${entry.missionId}.`);
+                    }
                     const characterKey = String(special.characterId);
                     const persistedLevels = (_c = unlockMap.get(characterKey)) !== null && _c !== void 0 ? _c : {};
                     if (((_d = persistedLevels[special.boardIndex]) !== null && _d !== void 0 ? _d : 0) < special.awakeLevel) {

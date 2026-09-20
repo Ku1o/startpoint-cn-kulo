@@ -13,6 +13,8 @@ exports.SeedPersistence = void 0;
 const path_1 = require("path");
 const worker_threads_1 = require("worker_threads");
 const settlement_performance_1 = require("./settlement-performance");
+const memory_diagnostics_1 = require("./memory-diagnostics");
+let persistenceSequence = 0;
 /** Keeps only changed seeds on the request thread; one worker owns disk writes. */
 class SeedPersistence {
     constructor(directory, snapshot, delayMs = 1000) {
@@ -28,14 +30,25 @@ class SeedPersistence {
         this.closed = false;
         this.lastErrorLogAt = 0;
         this.waiters = [];
+        this.unregisterMetrics = (0, memory_diagnostics_1.registerMemoryCounters)(`seedQueue${++persistenceSequence}`, () => {
+            var _a, _b;
+            return ({
+                pendingUpdates: this.pending.size, inFlightUpdates: (_b = (_a = this.inFlight) === null || _a === void 0 ? void 0 : _a.updates.length) !== null && _b !== void 0 ? _b : 0,
+                waiters: this.waiters.length, revision: this.revision, savedRevision: this.savedRevision,
+                workerAvailable: this.worker !== null,
+            });
+        });
         this.startWorker(false);
     }
     startWorker(recover) {
         const typescript = __filename.endsWith(".ts");
         const worker = new worker_threads_1.Worker((0, path_1.join)(__dirname, `seed-persistence-worker.${typescript ? "ts" : "js"}`), Object.assign({ workerData: { directory: this.directory, pools: this.snapshot(), recover } }, (typescript ? { execArgv: ["-r", require.resolve("ts-node/register/transpile-only")] } : {})));
         this.worker = worker;
+        (0, memory_diagnostics_1.observeWorkerMemory)("seedPersistence", worker);
         worker.on("message", (result) => {
             var _a;
+            if (!Number.isSafeInteger(result.revision))
+                return;
             if (this.worker !== worker || result.revision !== ((_a = this.inFlight) === null || _a === void 0 ? void 0 : _a.revision))
                 return;
             (0, settlement_performance_1.recordSettlementPhase)("gacha", "seed_write_worker", result.elapsedMs);
@@ -141,6 +154,7 @@ class SeedPersistence {
             }
             finally {
                 this.closed = true;
+                this.unregisterMetrics();
                 if (this.timer)
                     clearTimeout(this.timer);
                 const worker = this.worker;

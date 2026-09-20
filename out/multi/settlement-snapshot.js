@@ -2,7 +2,10 @@
 var _a, _b;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.transitionRoomSettlementSnapshots = exports.transitionMultiSettlementSnapshot = exports.getMultiSettlementSnapshot = exports.registerMultiSettlementSnapshot = exports.buildBattleInstanceId = void 0;
+const routine_game_logging_1 = require("../lib/routine-game-logging");
+const memory_diagnostics_1 = require("../lib/memory-diagnostics");
 const snapshots = new Map();
+(0, memory_diagnostics_1.registerMemoryCounters)("battleSnapshots", () => ({ entries: snapshots.size }));
 const LIFECYCLE_RANK = {
     BATTLE: 0,
     SETTLING: 1,
@@ -33,7 +36,7 @@ function registerMultiSettlementSnapshot(input) {
     const now = Date.now();
     const snapshot = Object.assign(Object.assign({}, input), { activeQuest: Object.assign(Object.assign({}, input.activeQuest), { matePlayerIds: [...((_a = input.activeQuest.matePlayerIds) !== null && _a !== void 0 ? _a : [])], mateComIds: [...((_b = input.activeQuest.mateComIds) !== null && _b !== void 0 ? _b : [])] }), participants: input.participants.map(participant => (Object.assign({}, participant))), expectedRealViewerIds: [...input.expectedRealViewerIds], lifecycle: "BATTLE", createdAt: now, expiresAt: now + START_TTL_MS });
     snapshots.set(key(snapshot.playerId, snapshot.playId), snapshot);
-    console.log(`[MULTI-SETTLEMENT] instance=${snapshot.battleInstanceId} player=${snapshot.playerId} state=BATTLE`);
+    (0, routine_game_logging_1.routineGameLog)("multiSettlement", () => `[MULTI-SETTLEMENT] instance=${snapshot.battleInstanceId} player=${snapshot.playerId} state=BATTLE`);
     return snapshot;
 }
 exports.registerMultiSettlementSnapshot = registerMultiSettlementSnapshot;
@@ -53,7 +56,7 @@ function transitionMultiSettlementSnapshot(playerId, playId, lifecycle) {
     }
     if (snapshot.lifecycle !== lifecycle) {
         snapshot.lifecycle = lifecycle;
-        console.log(`[MULTI-SETTLEMENT] instance=${snapshot.battleInstanceId} player=${playerId} state=${lifecycle}`);
+        (0, routine_game_logging_1.routineGameLog)("multiSettlement", () => `[MULTI-SETTLEMENT] instance=${snapshot.battleInstanceId} player=${playerId} state=${lifecycle}`);
     }
     if (lifecycle === "RETURN_PENDING" || lifecycle === "LOBBY") {
         snapshot.expiresAt = Date.now() + COMPLETED_TTL_MS;
@@ -76,7 +79,7 @@ function transitionRoomSettlementSnapshots(roomNumber, lifecycle, roomGeneration
         }
         if (snapshot.lifecycle !== lifecycle) {
             snapshot.lifecycle = lifecycle;
-            console.log(`[MULTI-SETTLEMENT] instance=${snapshot.battleInstanceId} player=${snapshot.playerId} state=${lifecycle}`);
+            (0, routine_game_logging_1.routineGameLog)("multiSettlement", () => `[MULTI-SETTLEMENT] instance=${snapshot.battleInstanceId} player=${snapshot.playerId} state=${lifecycle}`);
             transitioned += 1;
         }
         if (lifecycle === "RETURN_PENDING" || lifecycle === "LOBBY") {

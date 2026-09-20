@@ -1,4 +1,5 @@
-import { existsSync } from "fs"
+import { existsSync } from "./file-exists";
+
 import path from "path"
 import { Worker } from "worker_threads"
 import { getDatabaseDirectory } from "./admin-database-backup"
@@ -128,7 +129,7 @@ export async function exportPlayerSaveInWorker(
             }
             fail(message.code ?? "export-failed", message.error ?? "存档导出 worker 返回了无效结果")
         })
-        worker.once("error", error => fail("export-failed", error.message))
+        worker.once("error", error => fail("export-failed", error instanceof Error ? error.message : String(error)))
         worker.once("exit", code => {
             if (!settled) fail("export-failed", `存档导出 worker 未返回结果（code=${code}）`)
         })

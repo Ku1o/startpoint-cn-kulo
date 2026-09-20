@@ -1,0 +1,919 @@
+{
+  "version": "1.4.115",
+  "actors": {
+    "funnel_shark_soldier_blue_move_bottom": "mod_ex20_funnel_shark_soldier_blue_move_bottom",
+    "funnel_shark_bomb_blue_inactive": "mod_ex20_funnel_shark_bomb_blue_inactive",
+    "shark_red": "mod_ex20_shark_red",
+    "shark_brown": "mod_ex20_shark_brown",
+    "funnel_shark_bomb_blue_skill_left": "mod_ex20_funnel_shark_bomb_blue_skill_left",
+    "shark": "mod_ex20_shark",
+    "funnel_shark_soldier_blue_left": "mod_ex20_funnel_shark_soldier_blue_left",
+    "funnel_shark_soldier_blue_move_right": "mod_ex20_funnel_shark_soldier_blue_move_right",
+    "funnel_shark_soldier_blue": "mod_ex20_funnel_shark_soldier_blue",
+    "funnel_shark_bomb_blue": "mod_ex20_funnel_shark_bomb_blue",
+    "funnel_shark_soldier_red_right": "mod_ex20_funnel_shark_soldier_red_right",
+    "shark_blue": "mod_ex20_shark_blue",
+    "funnel_shark_bomb_blue_skill": "mod_ex20_funnel_shark_bomb_blue_skill",
+    "funnel_shark_bomb": "mod_ex20_funnel_shark_bomb",
+    "funnel_shark_bomb_blue_skill_right": "mod_ex20_funnel_shark_bomb_blue_skill_right",
+    "funnel_shark_soldier_blue_skill": "mod_ex20_funnel_shark_soldier_blue_skill",
+    "shark_red_escape": "mod_ex20_shark_red_escape",
+    "funnel_shark_soldier_blue_move_top": "mod_ex20_funnel_shark_soldier_blue_move_top",
+    "funnel_shark_soldier_red_left": "mod_ex20_funnel_shark_soldier_red_left",
+    "funnel_shark_soldier_blue_move_left": "mod_ex20_funnel_shark_soldier_blue_move_left",
+    "funnel_shark_soldier_blue_right": "mod_ex20_funnel_shark_soldier_blue_right",
+    "battle/action/enemy/action/boss_shark/boss_shark_blue$ea19": "battle/action/enemy/action/mod_ex20/boss_shark_blue$ea19",
+    "battle/action/enemy/action/boss_shark/boss_shark_red$ea26": "battle/action/enemy/action/mod_ex20/boss_shark_red$ea26",
+    "battle/action/enemy/action/boss_shark/boss_shark_blue$ea14": "battle/action/enemy/action/mod_ex20/boss_shark_blue$ea14",
+    "battle/action/enemy/action/boss_shark/boss_shark_red$ea1": "battle/action/enemy/action/mod_ex20/boss_shark_red$ea1",
+    "battle/action/enemy/action/boss_shark/boss_shark$pre_action": "battle/action/enemy/action/mod_ex20/boss_shark$pre_action",
+    "battle/action/enemy/action/boss_shark/funnel_shark$soldier_blue_ea1": "battle/action/enemy/action/mod_ex20/funnel_shark$soldier_blue_ea1",
+    "battle/action/enemy/action/boss_shark/boss_shark_blue$ea17": "battle/action/enemy/action/mod_ex20/boss_shark_blue$ea17",
+    "battle/action/enemy/action/boss_shark/boss_shark_red$ea9": "battle/action/enemy/action/mod_ex20/boss_shark_red$ea9",
+    "battle/action/enemy/action/boss_shark/boss_shark_red$ea10": "battle/action/enemy/action/mod_ex20/boss_shark_red$ea10",
+    "battle/action/enemy/action/boss_shark/boss_shark_blue$ea5": "battle/action/enemy/action/mod_ex20/boss_shark_blue$ea5",
+    "battle/action/enemy/action/boss_shark/boss_shark_brown$ea7": "battle/action/enemy/action/mod_ex20/boss_shark_brown$ea7",
+    "battle/action/enemy/action/boss_shark/boss_shark_brown$ea11": "battle/action/enemy/action/mod_ex20/boss_shark_brown$ea11",
+    "battle/action/enemy/action/boss_shark/funnel_shark$bomb_blue_inactive_ea1": "battle/action/enemy/action/mod_ex20/funnel_shark$bomb_blue_inactive_ea1",
+    "battle/action/enemy/action/boss_shark/boss_shark_brown$ea9": "battle/action/enemy/action/mod_ex20/boss_shark_brown$ea9",
+    "battle/action/enemy/action/boss_shark/boss_shark_blue$ea4": "battle/action/enemy/action/mod_ex20/boss_shark_blue$ea4",
+    "battle/action/enemy/action/boss_shark/boss_shark_brown$ea12": "battle/action/enemy/action/mod_ex20/boss_shark_brown$ea12",
+    "battle/action/enemy/action/boss_shark/boss_shark_blue$ea13": "battle/action/enemy/action/mod_ex20/boss_shark_blue$ea13",
+    "battle/action/enemy/action/boss_shark/boss_shark_brown$ea2": "battle/action/enemy/action/mod_ex20/boss_shark_brown$ea2",
+    "battle/action/enemy/action/boss_shark/boss_shark_red$ea24": "battle/action/enemy/action/mod_ex20/boss_shark_red$ea24",
+    "battle/action/enemy/action/boss_shark/boss_shark_blue$ea15": "battle/action/enemy/action/mod_ex20/boss_shark_blue$ea15",
+    "battle/action/enemy/action/boss_shark/funnel_shark$bomb_blue_ea1_right": "battle/action/enemy/action/mod_ex20/funnel_shark$bomb_blue_ea1_right",
+    "battle/action/enemy/action/boss_shark/boss_shark_brown$ea14": "battle/action/enemy/action/mod_ex20/boss_shark_brown$ea14",
+    "battle/action/enemy/action/boss_shark/boss_shark_red$ea13": "battle/action/enemy/action/mod_ex20/boss_shark_red$ea13",
+    "battle/action/enemy/action/boss_shark/boss_shark_blue$ea6": "battle/action/enemy/action/mod_ex20/boss_shark_blue$ea6",
+    "battle/action/enemy/action/boss_shark/boss_shark_blue$ea7": "battle/action/enemy/action/mod_ex20/boss_shark_blue$ea7",
+    "battle/action/enemy/action/boss_shark/boss_shark_blue$ea18": "battle/action/enemy/action/mod_ex20/boss_shark_blue$ea18",
+    "battle/action/enemy/action/boss_shark/boss_shark_red$ea8": "battle/action/enemy/action/mod_ex20/boss_shark_red$ea8",
+    "battle/action/enemy/action/boss_shark/boss_shark_red$ea14": "battle/action/enemy/action/mod_ex20/boss_shark_red$ea14",
+    "battle/action/enemy/action/boss_shark/boss_shark_red$ea29": "battle/action/enemy/action/mod_ex20/boss_shark_red$ea29",
+    "battle/action/enemy/action/boss_shark/boss_shark_red$ea3": "battle/action/enemy/action/mod_ex20/boss_shark_red$ea3",
+    "battle/action/enemy/action/boss_shark/funnel_shark$soldier_invincible_ea5": "battle/action/enemy/action/mod_ex20/funnel_shark$soldier_invincible_ea5",
+    "battle/action/enemy/action/boss_shark/boss_shark_red$ea12": "battle/action/enemy/action/mod_ex20/boss_shark_red$ea12",
+    "battle/action/enemy/action/boss_shark/boss_shark_blue$ea8": "battle/action/enemy/action/mod_ex20/boss_shark_blue$ea8",
+    "battle/action/enemy/action/boss_shark/boss_shark_red$ea4": "battle/action/enemy/action/mod_ex20/boss_shark_red$ea4",
+    "battle/action/enemy/action/boss_shark/funnel_shark$bomb_blue_ea1_left": "battle/action/enemy/action/mod_ex20/funnel_shark$bomb_blue_ea1_left",
+    "battle/action/enemy/action/boss_shark/boss_shark_red$ea28": "battle/action/enemy/action/mod_ex20/boss_shark_red$ea28",
+    "battle/action/enemy/action/boss_shark/boss_shark_red$ea5": "battle/action/enemy/action/mod_ex20/boss_shark_red$ea5",
+    "battle/action/enemy/action/boss_shark/boss_shark_red$ea6": "battle/action/enemy/action/mod_ex20/boss_shark_red$ea6",
+    "battle/action/enemy/action/boss_shark/boss_shark_red$ea19": "battle/action/enemy/action/mod_ex20/boss_shark_red$ea19",
+    "battle/action/enemy/action/boss_shark/funnel_shark$soldier_red_right_ea2": "battle/action/enemy/action/mod_ex20/funnel_shark$soldier_red_right_ea2",
+    "battle/action/enemy/action/boss_shark/funnel_shark$soldier_red_ea1": "battle/action/enemy/action/mod_ex20/funnel_shark$soldier_red_ea1",
+    "battle/action/enemy/action/boss_shark/funnel_shark$soldier_invincible_elete_ea6": "battle/action/enemy/action/mod_ex20/funnel_shark$soldier_invincible_elete_ea6",
+    "battle/action/enemy/action/boss_shark/boss_shark_red$ea20": "battle/action/enemy/action/mod_ex20/boss_shark_red$ea20",
+    "battle/action/enemy/action/boss_shark/boss_shark_blue$ea10": "battle/action/enemy/action/mod_ex20/boss_shark_blue$ea10",
+    "battle/action/enemy/action/boss_shark/funnel_shark$bomb_blue_ea1": "battle/action/enemy/action/mod_ex20/funnel_shark$bomb_blue_ea1",
+    "battle/action/enemy/action/boss_shark/funnel_shark$soldier_red_left_ea2": "battle/action/enemy/action/mod_ex20/funnel_shark$soldier_red_left_ea2",
+    "battle/action/enemy/action/boss_shark/boss_shark_brown$ea13": "battle/action/enemy/action/mod_ex20/boss_shark_brown$ea13",
+    "battle/action/enemy/action/boss_shark/boss_shark_red$ea18": "battle/action/enemy/action/mod_ex20/boss_shark_red$ea18",
+    "battle/action/enemy/action/boss_shark/boss_shark_blue$ea1": "battle/action/enemy/action/mod_ex20/boss_shark_blue$ea1",
+    "battle/action/enemy/action/boss_shark/boss_shark_brown$ea8": "battle/action/enemy/action/mod_ex20/boss_shark_brown$ea8",
+    "battle/action/enemy/action/boss_shark/target_shot1_brown": "battle/action/enemy/action/mod_ex20/target_shot1_brown",
+    "battle/action/enemy/action/boss_shark/boss_shark$ea1": "battle/action/enemy/action/mod_ex20/boss_shark$ea1",
+    "battle/action/enemy/action/boss_shark/boss_shark_blue$ea2": "battle/action/enemy/action/mod_ex20/boss_shark_blue$ea2",
+    "battle/action/enemy/action/boss_shark/boss_shark_brown$ea6": "battle/action/enemy/action/mod_ex20/boss_shark_brown$ea6",
+    "battle/action/enemy/action/boss_shark/boss_shark_brown$ea3": "battle/action/enemy/action/mod_ex20/boss_shark_brown$ea3",
+    "battle/action/enemy/action/boss_shark/boss_shark_blue$ea16": "battle/action/enemy/action/mod_ex20/boss_shark_blue$ea16",
+    "battle/action/enemy/action/boss_shark/boss_shark_red$ea2": "battle/action/enemy/action/mod_ex20/boss_shark_red$ea2",
+    "battle/action/enemy/action/boss_shark/boss_shark_red$ea21": "battle/action/enemy/action/mod_ex20/boss_shark_red$ea21",
+    "battle/action/enemy/action/boss_shark/boss_shark_brown$ea5": "battle/action/enemy/action/mod_ex20/boss_shark_brown$ea5",
+    "battle/action/enemy/action/boss_shark/boss_shark_blue$ea20": "battle/action/enemy/action/mod_ex20/boss_shark_blue$ea20",
+    "battle/action/enemy/action/boss_shark/boss_shark_brown$ea10": "battle/action/enemy/action/mod_ex20/boss_shark_brown$ea10",
+    "battle/action/enemy/action/boss_shark/boss_shark_red$ea7": "battle/action/enemy/action/mod_ex20/boss_shark_red$ea7",
+    "battle/action/enemy/action/boss_shark/boss_shark_brown$ea1": "battle/action/enemy/action/mod_ex20/boss_shark_brown$ea1",
+    "battle/action/enemy/action/boss_shark/boss_shark_red$ea11": "battle/action/enemy/action/mod_ex20/boss_shark_red$ea11",
+    "battle/action/enemy/action/boss_shark/boss_shark_red$ea25": "battle/action/enemy/action/mod_ex20/boss_shark_red$ea25",
+    "battle/action/enemy/action/boss_shark/boss_shark_blue$ea3": "battle/action/enemy/action/mod_ex20/boss_shark_blue$ea3",
+    "battle/action/enemy/action/boss_shark/funnel_shark$bomb_ea1": "battle/action/enemy/action/mod_ex20/funnel_shark$bomb_ea1",
+    "battle/action/enemy/action/boss_shark/boss_shark_blue$ea12": "battle/action/enemy/action/mod_ex20/boss_shark_blue$ea12"
+  },
+  "native_fields": [
+    "multi_normal_1_23_1",
+    "multi_normal_1_23_2",
+    "multi_normal_1_23_3",
+    "multi_normal_1_23_4"
+  ],
+  "hp_scale": 86.33611975,
+  "trials": [
+    {
+      "actor": "mod_ex20_shark_blue",
+      "state": "skill_wave_shot_charge10",
+      "before_percent": 30.0,
+      "after_percent": 0.347479132567803,
+      "hp_scale": 86.33611975
+    },
+    {
+      "actor": "mod_ex20_shark_blue",
+      "state": "skill_wave_shot_charge10_sun_retrun_check",
+      "before_percent": 30.0,
+      "after_percent": 0.347479132567803,
+      "hp_scale": 86.33611975
+    },
+    {
+      "actor": "mod_ex20_shark_blue",
+      "state": "fever_in_debuff_in_skill",
+      "before_percent": 30.0,
+      "after_percent": 0.347479132567803,
+      "hp_scale": 86.33611975
+    },
+    {
+      "actor": "mod_ex20_shark_brown",
+      "state": "non_fever_skill_shot_charge10",
+      "before_percent": 30.0,
+      "after_percent": 0.347479132567803,
+      "hp_scale": 86.33611975
+    },
+    {
+      "actor": "mod_ex20_shark_brown",
+      "state": "non_fever_skill_shot_charge10_stun_return_check",
+      "before_percent": 30.0,
+      "after_percent": 0.347479132567803,
+      "hp_scale": 86.33611975
+    },
+    {
+      "actor": "mod_ex20_shark_brown",
+      "state": "fever_in_debuff_in_skill",
+      "before_percent": 30.0,
+      "after_percent": 0.347479132567803,
+      "hp_scale": 86.33611975
+    },
+    {
+      "actor": "mod_ex20_shark_red",
+      "state": "non_fever_skill_shot_charge10",
+      "before_percent": 10.0,
+      "after_percent": 0.115826377522601,
+      "hp_scale": 86.33611975
+    },
+    {
+      "actor": "mod_ex20_shark_red",
+      "state": "non_fever_skill_shot_charge10_stun_return_check",
+      "before_percent": 10.0,
+      "after_percent": 0.115826377522601,
+      "hp_scale": 86.33611975
+    },
+    {
+      "actor": "mod_ex20_shark_red",
+      "state": "fever_in_debuff_in_skill",
+      "before_percent": 10.0,
+      "after_percent": 0.115826377522601,
+      "hp_scale": 86.33611975
+    }
+  ],
+  "provenance": {
+    "master/battle/boss/general_boss.orderedmap": {
+      "archive": "assets\\asset-patch\\active\\pinball-1.4.112-1.4.113-1-abyss-normal-details.zip",
+      "member": "production/upload/ec/d8f66b60947ca05643c4080a6cc925c750b9d6",
+      "sha256": "e43788727d4ef345a59d844a327b706398db2bf8119c7e492e4de711627a9e8c"
+    },
+    "master/battle/boss/general_boss_state.orderedmap": {
+      "archive": "assets\\asset-patch\\active\\pinball-1.4.111-1.4.112-1-abyss-ex-reroll-rewards.zip",
+      "member": "production/upload/0b/97162ce6d40c473cbac39fa21427688922a48a",
+      "sha256": "22ea6417810465df50134e35f0fefcc4b2b58e50f1e2c86a26ea63f5c9470f5e"
+    },
+    "master/battle/boss/general_boss_variable.orderedmap": {
+      "archive": "assets\\asset-patch\\active\\pinball-1.4.111-1.4.112-1-abyss-ex-reroll-rewards.zip",
+      "member": "production/upload/82/93e535e806d70640f45950db1fe14ed9482bdf",
+      "sha256": "8f82661babf0dbfbd03cfcfd5bf25a550e6b1bdc36572e0469cb77cd402a3cec"
+    },
+    "master/battle/boss/boss_level.orderedmap": {
+      "archive": "assets\\asset-patch\\active\\pinball-1.4.111-1.4.112-1-abyss-ex-reroll-rewards.zip",
+      "member": "production/upload/19/a4aa442b3249499356e7a3f6370e530bfe355e",
+      "sha256": "20a74bdb2758449ea25a69ccea21c7e9bed38143a6d739ef5f7c80b283b3457e"
+    },
+    "master/battle/boss/funnel_level.orderedmap": {
+      "archive": "pinball-1.4.0-40-08a9cef9.zip",
+      "member": "production/upload/1d/5759da68974fececdcb154ce123b47d0a4b8ee",
+      "sha256": "1b4fae6156235db70657beaa32a9512ecabcfcd8ca66db1a97edb7667292dc67"
+    },
+    "master/battle/boss/funnel/general_funnel.orderedmap": {
+      "archive": "pinball-1.4.52-1.4.53-1-6b69235b.zip",
+      "member": "production/upload/23/42b64dbbc30952eda56b61310191ea5beea7fa",
+      "sha256": "b3d446e7feb46e124902c85c5d1897d2a9a722c03fe7899b8dc8c57d4e295d8e"
+    },
+    "master/battle/boss/funnel/general_funnel_state.orderedmap": {
+      "archive": "pinball-1.4.0-121-1e32cae7.zip",
+      "member": "production/upload/5d/64d35a683d685cb446b75c8ed2c4feba230fc7",
+      "sha256": "1f2304e5559b42ef5d5748b1598e2dac673bd10a414558f1e208bea88ecbaa14"
+    },
+    "master/battle/boss/funnel/general_funnel_variable.orderedmap": {
+      "archive": "pinball-1.4.0-48-8be68ff1.zip",
+      "member": "production/upload/22/dd0fa8fa5e2e994a52db3c257ac1a06c1396f9",
+      "sha256": "04a20736237cc17e8ff8439cc194b862a82537b382799b231ee5fb6560eb6f9c"
+    },
+    "master/battle/boss/general_enemy_watch.orderedmap": {
+      "archive": "assets\\asset-patch\\active\\pinball-1.4.111-1.4.112-1-abyss-ex-reroll-rewards.zip",
+      "member": "production/upload/84/fd6ee6a23114c8f888fadc838bbe8bdf668677",
+      "sha256": "ba40d4e42bffb035e4ebb33eeb9f7af1cf0f8c60763739469fc5d020d26006e0"
+    },
+    "battle/action/enemy/action/boss_shark/boss_shark_blue$ea19.action.dsl.amf3.deflate": {
+      "archive": "pinball-1.4.0-241-6b309808.zip",
+      "member": "production/upload/be/12516f84aee439b6eeeb85f8b818eab7666657",
+      "sha256": "c40aecf428240968fa9cfc12c05ec89f097d3dd3ad555c7905dfe643f50285ea"
+    },
+    "battle/action/enemy/action/boss_shark/boss_shark_red$ea26.action.dsl.amf3.deflate": {
+      "archive": "pinball-1.4.0-81-0ce8a24c.zip",
+      "member": "production/upload/3e/eeb419cc6f76ed7b3fd54bd1d1ea9d759e67ed",
+      "sha256": "6e6f5b18e6cb69680d40cd82c2950ca777d2fb539a530064a8f13feb4c93e8f7"
+    },
+    "battle/action/enemy/action/boss_shark/boss_shark_blue$ea14.action.dsl.amf3.deflate": {
+      "archive": "pinball-1.4.0-17-5203da9f.zip",
+      "member": "production/upload/0b/5a7cf870893f25268e37d496d18b3cd4904b36",
+      "sha256": "c15823526c6532b092c69d52c757aeacf42a0876bfea8c81e1ea0e7187196e70"
+    },
+    "battle/action/enemy/action/boss_shark/boss_shark_red$ea1.action.dsl.amf3.deflate": {
+      "archive": "pinball-1.4.0-116-c38e54b2.zip",
+      "member": "production/upload/5a/1181206a961d66b28f6483c813ce7299a8313c",
+      "sha256": "6731620fec0adddfd51fa5e8979771c9d3110ace8e0d473de1720f12d1789c7e"
+    },
+    "battle/action/enemy/action/boss_shark/boss_shark$pre_action.action.dsl.amf3.deflate": {
+      "archive": "pinball-1.4.0-186-5b40d1da.zip",
+      "member": "production/upload/90/ba516d60e8fdc534deb40a9d64583d3a9bb4a1",
+      "sha256": "1f8522a60f9aa732735ce0ce2b5ff8f9f403b6fef243ab32ebcd208e7f5cf94f"
+    },
+    "battle/action/enemy/action/boss_shark/funnel_shark$soldier_blue_ea1.action.dsl.amf3.deflate": {
+      "archive": "pinball-1.4.0-194-f028ba68.zip",
+      "member": "production/upload/97/96e2a667832ae7a916a0cb8dd0a5c4fd7037f6",
+      "sha256": "be7f29718a10a7ebec46c509902301b8b0844bdeaf45f522a7db518acee6a82c"
+    },
+    "battle/action/enemy/action/boss_shark/boss_shark_blue$ea17.action.dsl.amf3.deflate": {
+      "archive": "pinball-1.4.0-189-90fa70a6.zip",
+      "member": "production/upload/93/2e3bbf938387ccfaf4cecedda01e709dcfb52a",
+      "sha256": "c288d2a53c7f1b144b448ba5aa3db82e752f7b53780c39f9ffd1be99a7d34dfa"
+    },
+    "battle/action/enemy/action/boss_shark/boss_shark_red$ea9.action.dsl.amf3.deflate": {
+      "archive": "pinball-1.4.0-71-9ba79b64.zip",
+      "member": "production/upload/36/058436c998810bc6b2651dd26996326fefa4d5",
+      "sha256": "5f7e35b9fbfccdbad99dd358ce05a6719851f7c9a41b1312a6081915b8c6fdf0"
+    },
+    "battle/action/enemy/action/boss_shark/boss_shark_red$ea10.action.dsl.amf3.deflate": {
+      "archive": "pinball-1.4.0-247-36e56335.zip",
+      "member": "production/upload/c3/445f71fcb1a59a5e9db29704c898517fa23327",
+      "sha256": "93f9bba90e94d8fd6b132a779a663c262e0e0077adcd056405abe94e91415a4b"
+    },
+    "battle/action/enemy/action/boss_shark/boss_shark_blue$ea5.action.dsl.amf3.deflate": {
+      "archive": "pinball-1.4.0-53-cdd5eaf3.zip",
+      "member": "production/upload/27/b4c95b57ce4f331c76929625b09438aa1ddf5b",
+      "sha256": "c92fb7904c40faa638fb550333311e113f6ffa7b962217597aa4fc1054c032a8"
+    },
+    "battle/action/enemy/action/boss_shark/boss_shark_brown$ea7.action.dsl.amf3.deflate": {
+      "archive": "pinball-1.4.0-322-6317a3a9.zip",
+      "member": "production/upload/ff/eb0fb8d3b6f15ef5460674e608ca8b2f4dad32",
+      "sha256": "68f075afeaa87a5845f5c7121f4997455a0c1ea1b12d6f82032625a5b1cbbe80"
+    },
+    "battle/action/enemy/action/boss_shark/boss_shark_brown$ea11.action.dsl.amf3.deflate": {
+      "archive": "pinball-1.4.0-79-3783104e.zip",
+      "member": "production/upload/3c/ceb4589e152b964ea0b62b11512b832140ac2d",
+      "sha256": "22cce9efac1438e63d24ad719e9a32f51c9ae038da733807767e0b932b1222c6"
+    },
+    "battle/action/enemy/action/boss_shark/funnel_shark$bomb_blue_inactive_ea1.action.dsl.amf3.deflate": {
+      "archive": "pinball-1.4.0-94-62972b8b.zip",
+      "member": "production/upload/48/5e89391d76ba07e89fb4a491b849e6f17b0c9e",
+      "sha256": "73dcc936cc6100a4b4383957d88ab72d4a4ba3aaada18a96bded73a1dcaae926"
+    },
+    "battle/action/enemy/action/boss_shark/boss_shark_brown$ea9.action.dsl.amf3.deflate": {
+      "archive": "pinball-1.4.0-249-5c921318.zip",
+      "member": "production/upload/c5/392112095da2beb780aa2a8cd40b1d3a37b5ed",
+      "sha256": "b14a29a652ae311884930f2973f59a9aa5322bb9744c78857f7f1d7f28954067"
+    },
+    "battle/action/enemy/action/boss_shark/boss_shark_blue$ea4.action.dsl.amf3.deflate": {
+      "archive": "pinball-1.4.0-4-36495e31.zip",
+      "member": "production/upload/02/48eff72b72c87220ca8acbe80f6ac2fb1d91ed",
+      "sha256": "3e1354808adf119d0f922825ac984674c2a1a3791b6c4d6c8b01d7a6fb984dce"
+    },
+    "battle/action/enemy/action/boss_shark/boss_shark_brown$ea12.action.dsl.amf3.deflate": {
+      "archive": "pinball-1.4.0-22-acf875ad.zip",
+      "member": "production/upload/0f/55cd4bfeb8a67b4299f169eb603badaf5bad4b",
+      "sha256": "34cef682ddf1ea050f50f1da0d3d1d75245101a1080c9b6a581fe0665d65a81a"
+    },
+    "battle/action/enemy/action/boss_shark/boss_shark_blue$ea13.action.dsl.amf3.deflate": {
+      "archive": "pinball-1.4.0-228-02aedd79.zip",
+      "member": "production/upload/b2/f648a016acfd7a3e4e0305d74dacbee42cd77e",
+      "sha256": "585c9f8876499fe1eca53ec3aec38d233b2fa922cc8636b06d97d9dfddeb0f9f"
+    },
+    "battle/action/enemy/action/boss_shark/boss_shark_brown$ea2.action.dsl.amf3.deflate": {
+      "archive": "pinball-1.4.0-108-fc5e5f72.zip",
+      "member": "production/upload/53/63e926b9b2e9f669c5ca175d9790b670c378e0",
+      "sha256": "8b5693daab5c15fb732b4cb0b5e463953c172cd844f54ff06305587128a954b1"
+    },
+    "battle/action/enemy/action/boss_shark/boss_shark_red$ea24.action.dsl.amf3.deflate": {
+      "archive": "pinball-1.4.0-286-35d530c1.zip",
+      "member": "production/upload/e3/bb1071441e4ad8ff20541d489671a421042bc5",
+      "sha256": "bf3ea2346ea52c90f6a6c54ebdfbdccde0b2d3fe385601af6b8a3f43a6a36133"
+    },
+    "battle/action/enemy/action/boss_shark/boss_shark_blue$ea15.action.dsl.amf3.deflate": {
+      "archive": "pinball-1.4.0-19-7cf91583.zip",
+      "member": "production/upload/0c/281db0d8b1725ba7caeffbc404ae3f0b3089d6",
+      "sha256": "9608ce93e4374f4d2a9e3578651a5345ba7598d55b4fea249ef51087ca529d2c"
+    },
+    "battle/action/enemy/action/boss_shark/funnel_shark$bomb_blue_ea1_right.action.dsl.amf3.deflate": {
+      "archive": "pinball-1.4.0-193-510754a4.zip",
+      "member": "production/upload/97/46135bcc12039689327a7dfdd0fbfaa80bc541",
+      "sha256": "8c16f60cf5aaecde45b9ea22ac8e61abeb0e818414e554e89ce9b4d342f84149"
+    },
+    "battle/action/enemy/action/boss_shark/boss_shark_brown$ea14.action.dsl.amf3.deflate": {
+      "archive": "pinball-1.4.0-299-908b138f.zip",
+      "member": "production/upload/ef/388ed7abef15505b05f2420870b60d5397d72a",
+      "sha256": "d356761d1cdfcfec70ed7a2d2a32affff2f5ee95adf8edd8284c2a35fdbab94f"
+    },
+    "battle/action/enemy/action/boss_shark/boss_shark_red$ea13.action.dsl.amf3.deflate": {
+      "archive": "pinball-1.4.0-317-8ecd12d3.zip",
+      "member": "production/upload/fc/49bbdc6dffad228a4d7a74107aa5a34a738648",
+      "sha256": "3e090e326987ff214bcfba6ebd406514f2f50479113c127f55b2a7852be1476e"
+    },
+    "battle/action/enemy/action/boss_shark/boss_shark_blue$ea6.action.dsl.amf3.deflate": {
+      "archive": "pinball-1.4.0-281-5e9da46f.zip",
+      "member": "production/upload/df/5745e4830d274a44023788ea3540b45d6d17e5",
+      "sha256": "6df98537a8d987a6fa8369e48b0c13f5409781194a5c3b4e9ed05fe2a91576e7"
+    },
+    "battle/action/enemy/action/boss_shark/boss_shark_blue$ea7.action.dsl.amf3.deflate": {
+      "archive": "pinball-1.4.0-143-f36d1904.zip",
+      "member": "production/upload/6e/e3e98d95ad984b50bd466af5686e0e6464a266",
+      "sha256": "edd37e8f8fd84bf3f1b29daae632fafd0303e4d3213e7866477cf805ad3d0488"
+    },
+    "battle/action/enemy/action/boss_shark/boss_shark_blue$ea18.action.dsl.amf3.deflate": {
+      "archive": "pinball-1.4.0-38-9bee3d66.zip",
+      "member": "production/upload/1c/29b7dc7b46a98ce1dd9239d24f57e784068307",
+      "sha256": "c3f36de6792de76ccb234e11f20324beba8fa9479c6bdba92b2f0bf2c35ea9dd"
+    },
+    "battle/action/enemy/action/boss_shark/boss_shark_red$ea8.action.dsl.amf3.deflate": {
+      "archive": "pinball-1.4.0-275-dde2aa54.zip",
+      "member": "production/upload/da/b6a3be9e0336df761740d582bba920dd9ca50d",
+      "sha256": "bc93fd0fbccdcf365daa0af6e0171b4d15b8ccc142f923440b8902705200444e"
+    },
+    "battle/action/enemy/action/boss_shark/boss_shark_red$ea14.action.dsl.amf3.deflate": {
+      "archive": "pinball-1.4.0-255-8dfb4636.zip",
+      "member": "production/upload/ca/1aa70f6dee8193e86c4e929e5cfc5f712aa1be",
+      "sha256": "7d99e35abc932989d333843e5e2ceb29061b8b477aa934e811ac4a6e1a5f4fdd"
+    },
+    "battle/action/enemy/action/boss_shark/boss_shark_red$ea29.action.dsl.amf3.deflate": {
+      "archive": "pinball-1.4.0-150-7265c6dc.zip",
+      "member": "production/upload/74/66a98c0396c9f810c44f947753219ee8fa7379",
+      "sha256": "2d4f76d0aae69b05417f5d70074d19c273cca16bee4038caed89761952648a3c"
+    },
+    "battle/action/enemy/action/boss_shark/boss_shark_red$ea3.action.dsl.amf3.deflate": {
+      "archive": "pinball-1.4.0-233-9d13faa5.zip",
+      "member": "production/upload/b6/d3e63f3c5a99db4363c7cfb0dc16d3dd4b19fc",
+      "sha256": "fa77e879fb9e8199f0b42bf41e9595b70490bdd03da40da2b4b5cedd7ea27b19"
+    },
+    "battle/action/enemy/action/boss_shark/funnel_shark$soldier_invincible_ea5.action.dsl.amf3.deflate": {
+      "archive": "pinball-1.4.0-93-a1d732e9.zip",
+      "member": "production/upload/47/48cf5eacb16c2ac5cc04b971d601dc1ce46838",
+      "sha256": "fd87aa6ec49d17b5cf6c98912dc1db883ae8a56e9b9f03ad3664040808c0ffba"
+    },
+    "battle/action/enemy/action/boss_shark/boss_shark_red$ea12.action.dsl.amf3.deflate": {
+      "archive": "pinball-1.4.0-141-1d6d15cf.zip",
+      "member": "production/upload/6d/8cc0658a2295897a0457ceb78519aec97149a9",
+      "sha256": "0d62499b0ef17bea096e63affd83a3a61691af4d4d33f03f05cf0cd5ff9b77bf"
+    },
+    "battle/action/enemy/action/boss_shark/boss_shark_blue$ea8.action.dsl.amf3.deflate": {
+      "archive": "pinball-1.4.0-152-681fde67.zip",
+      "member": "production/upload/75/fe8749ea339dd2671018e531cc4adfa2c90aef",
+      "sha256": "12cc6e9bf21c11bc7e0b7ce31f45132ad037d202fae940d7b2ed1f3b3053ad4e"
+    },
+    "battle/action/enemy/action/boss_shark/boss_shark_red$ea4.action.dsl.amf3.deflate": {
+      "archive": "pinball-1.4.0-106-f54528d8.zip",
+      "member": "production/upload/52/3711b52af3672fe400a31279a78e012472c4f8",
+      "sha256": "562508ffbcf4e92f77118705c3b2e1533c448d07dd60fe3a441a3e7000e1aa7e"
+    },
+    "battle/action/enemy/action/boss_shark/funnel_shark$bomb_blue_ea1_left.action.dsl.amf3.deflate": {
+      "archive": "pinball-1.4.0-315-5193da59.zip",
+      "member": "production/upload/fb/1e0181790badf7000ff9ce47c8f4253b14322d",
+      "sha256": "b8007b7e60f0cfbf600c78516948234139e61b890f7da03e6cdc3aba216694a9"
+    },
+    "battle/action/enemy/action/boss_shark/boss_shark_red$ea28.action.dsl.amf3.deflate": {
+      "archive": "pinball-1.4.0-297-985b4f32.zip",
+      "member": "production/upload/ed/77171efcc47598359e1fbfafc2b8e5b9bd6f53",
+      "sha256": "2581f219091d737060221c724afe605191a9d552dec06d208e3421c99cb204ed"
+    },
+    "battle/action/enemy/action/boss_shark/boss_shark_red$ea5.action.dsl.amf3.deflate": {
+      "archive": "pinball-1.4.0-83-486bde64.zip",
+      "member": "production/upload/40/353bd0f8ba5b73895af7c2f27d1cfadd628e62",
+      "sha256": "51fa38c1c12da1cc9123b56edf8032c30ce1e35db13ed6c31d952e7f94f13eea"
+    },
+    "battle/action/enemy/action/boss_shark/boss_shark_red$ea6.action.dsl.amf3.deflate": {
+      "archive": "pinball-1.4.0-178-a9311013.zip",
+      "member": "production/upload/8b/18d9c7919a854c5f9c4fddc1cf854c84ddf3d8",
+      "sha256": "21b44a7d85428af8d02a5ad3cc83a955e3e14d113af01a698d9f852454faef3e"
+    },
+    "battle/action/enemy/action/boss_shark/boss_shark_red$ea19.action.dsl.amf3.deflate": {
+      "archive": "pinball-1.4.0-236-6773bf8c.zip",
+      "member": "production/upload/b9/58b4f5ad211743dc67a8e6063fb07bba38aa5f",
+      "sha256": "6c2ff9ae6272c544991e7e1359af9f57f4925788654bb1f04c3eaafd63b90819"
+    },
+    "battle/action/enemy/action/boss_shark/funnel_shark$soldier_red_right_ea2.action.dsl.amf3.deflate": {
+      "archive": "pinball-1.4.0-231-b9c04e0f.zip",
+      "member": "production/upload/b5/67e494ba36b0f0b2ee4defda83772bfefb3a58",
+      "sha256": "f84ec8a3740fb7e32333333da250db62dad1ca0d497a849532a5feb0898cdb29"
+    },
+    "battle/action/enemy/action/boss_shark/funnel_shark$soldier_red_ea1.action.dsl.amf3.deflate": {
+      "archive": "pinball-1.4.0-233-9d13faa5.zip",
+      "member": "production/upload/b6/ba34a87be0a65d7765a050f1b342f073f56812",
+      "sha256": "0fed7870516fedcb9eae7d93dd687be1f68b5b4ca5b59b6f9953c70d97d9c545"
+    },
+    "battle/action/enemy/action/boss_shark/funnel_shark$soldier_invincible_elete_ea6.action.dsl.amf3.deflate": {
+      "archive": "pinball-1.4.0-300-d26c3bd2.zip",
+      "member": "production/upload/ef/784d4c651f9c66e40f4e94a004625270aa714e",
+      "sha256": "a453ada45ea003ea81505f70e8e3fab598851bff3799c904a584fcc8e45a36d7"
+    },
+    "battle/action/enemy/action/boss_shark/boss_shark_red$ea20.action.dsl.amf3.deflate": {
+      "archive": "pinball-1.4.0-210-a61c7dc9.zip",
+      "member": "production/upload/a5/749f866e07093e7e60df594bd5f7ead1db6d55",
+      "sha256": "4ed15e1cbc32bca3f296683766c42e1e1a9dbc590cecf1ae8dbc47b0f1a25c10"
+    },
+    "battle/action/enemy/action/boss_shark/boss_shark_blue$ea10.action.dsl.amf3.deflate": {
+      "archive": "pinball-1.4.0-111-0ab0991a.zip",
+      "member": "production/upload/55/a7e67d3467f6bc0944ce99791244e1ae1ccc7d",
+      "sha256": "782d738b54fcacb900bff9f9d84988572a7f872aade6dd4faa7f08aa966059eb"
+    },
+    "battle/action/enemy/action/boss_shark/funnel_shark$bomb_blue_ea1.action.dsl.amf3.deflate": {
+      "archive": "pinball-1.4.0-301-72a632f5.zip",
+      "member": "production/upload/f0/29df82db3346edbac29b65004e5a81b25823f7",
+      "sha256": "5b9e4eff60e71f90523d1e089700a1add5bf643342bdcd08384c3c49f99a839e"
+    },
+    "battle/action/enemy/action/boss_shark/funnel_shark$soldier_red_left_ea2.action.dsl.amf3.deflate": {
+      "archive": "pinball-1.4.0-226-e4ae73c8.zip",
+      "member": "production/upload/b1/8951039a90df2448c04af5b168513dde0ce66f",
+      "sha256": "34c564e7702d8cdcdf181f12f1f257b8411452228853190ea08294c489830cf9"
+    },
+    "battle/action/enemy/action/boss_shark/boss_shark_brown$ea13.action.dsl.amf3.deflate": {
+      "archive": "pinball-1.4.0-317-8ecd12d3.zip",
+      "member": "production/upload/fc/4ced367db49bd4b1829761423165ff0bd71c81",
+      "sha256": "f4e35068aea469db9de0885146d1b4e08e3b0035b813e42e79467f39c658b28c"
+    },
+    "battle/action/enemy/action/boss_shark/boss_shark_red$ea18.action.dsl.amf3.deflate": {
+      "archive": "pinball-1.4.0-104-ef557b3e.zip",
+      "member": "production/upload/50/827b2f093c141cc0c4be85ee324ef09e86cbc0",
+      "sha256": "67d7d6d6e9f8fb6b881d6285c44850e550668732d6ce69541b52974cd9dd14bf"
+    },
+    "battle/action/enemy/action/boss_shark/boss_shark_blue$ea1.action.dsl.amf3.deflate": {
+      "archive": "pinball-1.4.0-238-1d367db1.zip",
+      "member": "production/upload/ba/f824a4ba1ad7f9b1bf651ebeda05a39734efd5",
+      "sha256": "6897500e5f3e2cd22825c6316ee4d6a09446df4a13c2ed1e18391ce4d39e0523"
+    },
+    "battle/action/enemy/action/boss_shark/boss_shark_brown$ea8.action.dsl.amf3.deflate": {
+      "archive": "pinball-1.4.0-228-02aedd79.zip",
+      "member": "production/upload/b2/829bc32082684a92b81690fd8d842ddd7a7d55",
+      "sha256": "f32a7441d5d5bfb3b4d691ced5502a7aae7d72738ee11494cecf868dc5e5ca2d"
+    },
+    "battle/action/enemy/action/boss_shark/target_shot1_brown.action.dsl.amf3.deflate": {
+      "archive": "pinball-1.4.0-169-8f62764b.zip",
+      "member": "production/upload/83/7adb9c6e02d6f28fc47be5fc58d682c271c6c6",
+      "sha256": "e5da7dc21ffe0ca266403f19a61745fae91ed674b55ead0a54240a1b858dd786"
+    },
+    "battle/action/enemy/action/boss_shark/boss_shark$ea1.action.dsl.amf3.deflate": {
+      "archive": "pinball-1.4.0-212-7cbb0fb5.zip",
+      "member": "production/upload/a6/86640149542564961c03ed58b70ecc1f8bfb4a",
+      "sha256": "46ad7ae620331e93f44b9c75d5feeb45de93aad5bd007085fdd24ae917b74745"
+    },
+    "battle/action/enemy/action/boss_shark/boss_shark_blue$ea2.action.dsl.amf3.deflate": {
+      "archive": "pinball-1.4.0-214-cecf51e4.zip",
+      "member": "production/upload/a8/1954188591975b3033b573b79fca665bdb3783",
+      "sha256": "15562f2debbbde807b7dd1d8e3253d7b3579bcfa2b6cf5b2f69ac5e8131e629c"
+    },
+    "battle/action/enemy/action/boss_shark/boss_shark_brown$ea6.action.dsl.amf3.deflate": {
+      "archive": "pinball-1.4.0-125-adb18d6f.zip",
+      "member": "production/upload/5f/ecdbc5473f31acfa168221a1d7a807d2a4ba65",
+      "sha256": "5766a272821b00078672266af4ffd7f4337e963337a2e4c1f5b683b0b5e5c061"
+    },
+    "battle/action/enemy/action/boss_shark/boss_shark_brown$ea3.action.dsl.amf3.deflate": {
+      "archive": "pinball-1.4.0-230-aeabb6f5.zip",
+      "member": "production/upload/b4/9a69d989135f220e65c8d96a57ced15ad3b332",
+      "sha256": "a9cbe753e7d66945ac516d1ea8678b9cd32a52cc8d23d3068672cf05dd0d950f"
+    },
+    "battle/action/enemy/action/boss_shark/boss_shark_blue$ea16.action.dsl.amf3.deflate": {
+      "archive": "pinball-1.4.0-210-a61c7dc9.zip",
+      "member": "production/upload/a5/4c1648a5fce6873a17f6ff663141782c9e150f",
+      "sha256": "09acba22d8951b3d529508ca78571c051574d28809be2e1215fd5ccb0d9f45bf"
+    },
+    "battle/action/enemy/action/boss_shark/boss_shark_red$ea2.action.dsl.amf3.deflate": {
+      "archive": "pinball-1.4.0-152-681fde67.zip",
+      "member": "production/upload/76/2c2792a2892973d7b53178b7dbf2cbf7480e85",
+      "sha256": "78664008d182f807c72282b45369723bc7307bd09d322ab7e09e28178674db55"
+    },
+    "battle/action/enemy/action/boss_shark/boss_shark_red$ea21.action.dsl.amf3.deflate": {
+      "archive": "pinball-1.4.0-286-35d530c1.zip",
+      "member": "production/upload/e3/cffd69925cee48b71a00575b2cbbeeac640b02",
+      "sha256": "8959de88632e49102ebf120f568051921464d191b1855af040c3177341c2485c"
+    },
+    "battle/action/enemy/action/boss_shark/boss_shark_brown$ea5.action.dsl.amf3.deflate": {
+      "archive": "pinball-1.4.0-190-492dcccf.zip",
+      "member": "production/upload/94/ec4ca0ce8954d7f9513f2889720906ccb119a5",
+      "sha256": "1ac4ae3d0ad22eed904217cceb364448c6b71b0ae7dbb5c45bb7256597b3a019"
+    },
+    "battle/action/enemy/action/boss_shark/boss_shark_blue$ea20.action.dsl.amf3.deflate": {
+      "archive": "pinball-1.4.0-51-124da04e.zip",
+      "member": "production/upload/25/892d415e0d811377dda8b1fc0dfb7d9b64a002",
+      "sha256": "7801233185a824862a206ecd8114fd3406bf355c9c5228b5b3350590927e2eb8"
+    },
+    "battle/action/enemy/action/boss_shark/boss_shark_brown$ea10.action.dsl.amf3.deflate": {
+      "archive": "pinball-1.4.0-173-487480d7.zip",
+      "member": "production/upload/85/f309dbe12306ddaa08b50942de00fee5967ef8",
+      "sha256": "3ff972100269b4ead75cdbaecd2b8374b70a84560e0facec6046cc121f9ad467"
+    },
+    "battle/action/enemy/action/boss_shark/boss_shark_red$ea7.action.dsl.amf3.deflate": {
+      "archive": "pinball-1.4.0-114-53a5c371.zip",
+      "member": "production/upload/58/4c2e6774d101ea1af95ba34bb91c1817622821",
+      "sha256": "18c60647713d1de3992db60c7363863c66c0ee10c2cf75bdfe82a4dc7fc90d7d"
+    },
+    "battle/action/enemy/action/boss_shark/boss_shark_brown$ea1.action.dsl.amf3.deflate": {
+      "archive": "pinball-1.4.0-141-1d6d15cf.zip",
+      "member": "production/upload/6d/12bda51e5a7660e447cdf24c5e684a07caa049",
+      "sha256": "0a728ee9fefcf332cd79847777efd48127bc535b85eda3b3730bad87a9816317"
+    },
+    "battle/action/enemy/action/boss_shark/boss_shark_red$ea11.action.dsl.amf3.deflate": {
+      "archive": "pinball-1.4.0-184-7d16d332.zip",
+      "member": "production/upload/8f/b13b4dd3a4c35eac99e826a047b308160e696a",
+      "sha256": "82683c66a8fed66b638e237eb1918deded5b26718e64462f84f930bbbc9159e0"
+    },
+    "battle/action/enemy/action/boss_shark/boss_shark_red$ea25.action.dsl.amf3.deflate": {
+      "archive": "pinball-1.4.0-293-30bfbd1a.zip",
+      "member": "production/upload/ea/166b803217617a942425da537e1300001d7818",
+      "sha256": "7f18d06304fcc594a015dc0f959e8ee78b5d7954325ce43827685f094ce85ecf"
+    },
+    "battle/action/enemy/action/boss_shark/boss_shark_blue$ea3.action.dsl.amf3.deflate": {
+      "archive": "pinball-1.4.0-109-753d1638.zip",
+      "member": "production/upload/54/d06891d8c8bf1fc7277b61d1672eaaf31ebd73",
+      "sha256": "a000d6d400e015311843d6424e36655ea3b7f63880362c7985a09568848ed3ce"
+    },
+    "battle/action/enemy/action/boss_shark/funnel_shark$bomb_ea1.action.dsl.amf3.deflate": {
+      "archive": "pinball-1.4.0-21-1c4fff7c.zip",
+      "member": "production/upload/0d/dd38f65af1dcb4ae92e7b7da0bc51048a6569c",
+      "sha256": "b950cb19ddca2ed82f495c1c2ff47303bfbd65793e347d668bee62e9972ed920"
+    },
+    "battle/action/enemy/action/boss_shark/boss_shark_blue$ea12.action.dsl.amf3.deflate": {
+      "archive": "pinball-1.4.0-50-6ea47459.zip",
+      "member": "production/upload/25/0152c6552657b3307f1914a1b3116adf18096e",
+      "sha256": "3ff972100269b4ead75cdbaecd2b8374b70a84560e0facec6046cc121f9ad467"
+    },
+    "master/battle/field_data.orderedmap": {
+      "archive": "assets\\asset-patch\\active\\pinball-1.4.111-1.4.112-1-abyss-ex-reroll-rewards.zip",
+      "member": "production/upload/30/363f8364e183905b2d0b48b8718b7165135bc2",
+      "sha256": "a829ed86d866be52a8a615c63326cd099024e17c97bcb926decf956d09399b54"
+    },
+    "master/battle/zone.orderedmap": {
+      "archive": "assets\\asset-patch\\active\\pinball-1.4.111-1.4.112-1-abyss-ex-reroll-rewards.zip",
+      "member": "production/upload/cd/6336795a27ea33bf8d0c5d5a9bfb466bedcf1e",
+      "sha256": "76ded07f0b6ea56208842cf56140b861f60ba0484be304c8d53afb29397fd8f2"
+    },
+    "master/quest/event/rush_event_quest.orderedmap": {
+      "archive": "assets\\asset-patch\\active\\pinball-1.4.112-1.4.113-1-abyss-normal-details.zip",
+      "member": "production/upload/b6/595dedd9cfa79b7e6eccab25dd9a2a81b066a2",
+      "sha256": "cdb76b395d0b2c8c7b6e7d14ebeff99087ce71f4ca6361cc5c667125dacfc4c8"
+    },
+    "battle/terrain/multi_normal_quest/chapter_01/boss_battle_shark.amf3.deflate": {
+      "archive": "pinball-1.4.0-273-a65f0586.zip",
+      "member": "production/upload/d8/bde51493bc30c8d24b801307996797a1c5b852",
+      "sha256": "1f8610f6c5deb39c7ee84ba0a14d61085ab2298a81fdbd265357a8cbfad047b2"
+    },
+    "master/gacha_odds/cnmod_abyss_limited_gacha_character_5.orderedmap": {
+      "archive": "assets\\asset-patch\\active\\pinball-1.4.110-1.4.111-1-abyss-ui-rewards.zip",
+      "member": "production/upload/bf/5dc56a444450216d4f12d6b9dfc0d908a09c5d",
+      "sha256": "796bf35e0ba8371741d76517037d1cf1806e091a8bcec88de46896ffc97eaa47"
+    },
+    "rich_text/cnmod_abyss_limited_gacha_note.html.deflate": {
+      "archive": "assets\\asset-patch\\active\\pinball-1.4.110-1.4.111-1-abyss-ui-rewards.zip",
+      "member": "production/upload/3b/94cb2772f22fb76b1a4545c5a347d764050829",
+      "sha256": "629d99cbad918cee60e09f7b3b5e995514fd7e654a443d65755d963fda9a24e6"
+    }
+  },
+  "resources": {
+    "battle/action/enemy/action/mod_ex20/boss_shark$ea1.action.dsl.amf3.deflate": {
+      "sha256": "8347e0d88a5c1f742e542798e0a788668531a720f3bfa5ec926f575793983d6c",
+      "member": "production/upload/45/5cec3f3c93408156becfe02a2bed24c2980d7e"
+    },
+    "battle/action/enemy/action/mod_ex20/boss_shark$pre_action.action.dsl.amf3.deflate": {
+      "sha256": "47c94d7e7ff01d999b6741b73a2841583470f758b1f755d6245d53c444619979",
+      "member": "production/upload/ec/ba32625629b366e303092c66a894b80c3eeab2"
+    },
+    "battle/action/enemy/action/mod_ex20/boss_shark_blue$ea1.action.dsl.amf3.deflate": {
+      "sha256": "c6aa2b952f4a359c073a09fa51bdb6a68e041e430bc36c5f7491861310316166",
+      "member": "production/upload/4a/f8705ab09f2c43c54a597ee1cc7943f52f1ab2"
+    },
+    "battle/action/enemy/action/mod_ex20/boss_shark_blue$ea10.action.dsl.amf3.deflate": {
+      "sha256": "782d738b54fcacb900bff9f9d84988572a7f872aade6dd4faa7f08aa966059eb",
+      "member": "production/upload/19/446f44d8e986af32033cedaa784a1a0ab110cb"
+    },
+    "battle/action/enemy/action/mod_ex20/boss_shark_blue$ea12.action.dsl.amf3.deflate": {
+      "sha256": "3ff972100269b4ead75cdbaecd2b8374b70a84560e0facec6046cc121f9ad467",
+      "member": "production/upload/27/0ae18e572d2cac0037ab26a20487a99cee1a3b"
+    },
+    "battle/action/enemy/action/mod_ex20/boss_shark_blue$ea13.action.dsl.amf3.deflate": {
+      "sha256": "7c51288bf2c4f4babeee9d4867e84e123f2d16453bfb7d7f1653b33419b988fe",
+      "member": "production/upload/84/aa16685c7034627eb7fcd11dba42313bc3d4bf"
+    },
+    "battle/action/enemy/action/mod_ex20/boss_shark_blue$ea14.action.dsl.amf3.deflate": {
+      "sha256": "c15823526c6532b092c69d52c757aeacf42a0876bfea8c81e1ea0e7187196e70",
+      "member": "production/upload/93/b09083d65008f037f8346dc5f948cc0adf48db"
+    },
+    "battle/action/enemy/action/mod_ex20/boss_shark_blue$ea15.action.dsl.amf3.deflate": {
+      "sha256": "e171a0e549f5500d11e09487e995d40aa9f48aefa23817bf4cb054bedbe185d4",
+      "member": "production/upload/a6/715f4d65ad6110fa3ca93a0e59dbdc8e8ea41e"
+    },
+    "battle/action/enemy/action/mod_ex20/boss_shark_blue$ea16.action.dsl.amf3.deflate": {
+      "sha256": "09acba22d8951b3d529508ca78571c051574d28809be2e1215fd5ccb0d9f45bf",
+      "member": "production/upload/e6/31b8bca2b3b61686df5702ad3ccbc1aea13ff0"
+    },
+    "battle/action/enemy/action/mod_ex20/boss_shark_blue$ea17.action.dsl.amf3.deflate": {
+      "sha256": "c288d2a53c7f1b144b448ba5aa3db82e752f7b53780c39f9ffd1be99a7d34dfa",
+      "member": "production/upload/ce/09d71ac5ed108d72dcc5f2e521d599c21eedee"
+    },
+    "battle/action/enemy/action/mod_ex20/boss_shark_blue$ea18.action.dsl.amf3.deflate": {
+      "sha256": "573231b25e7568128dcb8028dad6fe2cf03a445625cba4b6eb19364669463f17",
+      "member": "production/upload/b7/e7a7515d6ce2b56ed09ba5da8700f9da22661d"
+    },
+    "battle/action/enemy/action/mod_ex20/boss_shark_blue$ea19.action.dsl.amf3.deflate": {
+      "sha256": "92083f589ba190926be2947db08e85c73ffecd16e054ab4dd72d6ba4b1f23fb2",
+      "member": "production/upload/5c/5e6332e627803b543b9510f065358a2d3827ba"
+    },
+    "battle/action/enemy/action/mod_ex20/boss_shark_blue$ea2.action.dsl.amf3.deflate": {
+      "sha256": "cfc21e2fcac6a673dc9d4b48766656e14ccc1862fbf1c8ab2c8d6c8da420c819",
+      "member": "production/upload/f0/cd4c54460a621734892472b592390aae69cdf5"
+    },
+    "battle/action/enemy/action/mod_ex20/boss_shark_blue$ea20.action.dsl.amf3.deflate": {
+      "sha256": "81f2208231c54d7b544e27d5e4f18b329181ae415840f3f1514a1569f8edd294",
+      "member": "production/upload/e6/c0d7c5a037b76df109996edb71aa18ebc68554"
+    },
+    "battle/action/enemy/action/mod_ex20/boss_shark_blue$ea3.action.dsl.amf3.deflate": {
+      "sha256": "a000d6d400e015311843d6424e36655ea3b7f63880362c7985a09568848ed3ce",
+      "member": "production/upload/63/c56d1b10e6550466cf9b8aaa825dd6f3abfc68"
+    },
+    "battle/action/enemy/action/mod_ex20/boss_shark_blue$ea4.action.dsl.amf3.deflate": {
+      "sha256": "3e1354808adf119d0f922825ac984674c2a1a3791b6c4d6c8b01d7a6fb984dce",
+      "member": "production/upload/ef/375a875ef6b96b7085a0176f791e7a38489062"
+    },
+    "battle/action/enemy/action/mod_ex20/boss_shark_blue$ea5.action.dsl.amf3.deflate": {
+      "sha256": "51e744f158330200d5b7059589213724818b463a920211fd825c13197b8a7501",
+      "member": "production/upload/ab/71d3db254efab3ebd7da88257b9d6b90b8cfbe"
+    },
+    "battle/action/enemy/action/mod_ex20/boss_shark_blue$ea6.action.dsl.amf3.deflate": {
+      "sha256": "10f7aec37b8b7928131640499469c26277e40970ec1fcced84217abc7e09baa2",
+      "member": "production/upload/fd/06be2f4a4979ee731ec2c1001b6c43d331d8ce"
+    },
+    "battle/action/enemy/action/mod_ex20/boss_shark_blue$ea7.action.dsl.amf3.deflate": {
+      "sha256": "edd37e8f8fd84bf3f1b29daae632fafd0303e4d3213e7866477cf805ad3d0488",
+      "member": "production/upload/56/b44d92d1ef719f816872c977e8485574874763"
+    },
+    "battle/action/enemy/action/mod_ex20/boss_shark_blue$ea8.action.dsl.amf3.deflate": {
+      "sha256": "50380b9114b8deec2860bcc6ffbd47a68983169c95306c7b26c57f4c5d310a6f",
+      "member": "production/upload/6d/9ec5c34b2e627ae9b445473ee1f4242886cad6"
+    },
+    "battle/action/enemy/action/mod_ex20/boss_shark_brown$ea1.action.dsl.amf3.deflate": {
+      "sha256": "0a728ee9fefcf332cd79847777efd48127bc535b85eda3b3730bad87a9816317",
+      "member": "production/upload/64/7833a5c52541f0b12c2b1b10cfcc024da2ba35"
+    },
+    "battle/action/enemy/action/mod_ex20/boss_shark_brown$ea10.action.dsl.amf3.deflate": {
+      "sha256": "3ff972100269b4ead75cdbaecd2b8374b70a84560e0facec6046cc121f9ad467",
+      "member": "production/upload/7f/6c5e8b6b2be0e09c0d77903cfccb3d93ebe810"
+    },
+    "battle/action/enemy/action/mod_ex20/boss_shark_brown$ea11.action.dsl.amf3.deflate": {
+      "sha256": "22cce9efac1438e63d24ad719e9a32f51c9ae038da733807767e0b932b1222c6",
+      "member": "production/upload/1e/0c18c8aa8a6ded8df55c0eb990ec7a62fdab5e"
+    },
+    "battle/action/enemy/action/mod_ex20/boss_shark_brown$ea12.action.dsl.amf3.deflate": {
+      "sha256": "34cef682ddf1ea050f50f1da0d3d1d75245101a1080c9b6a581fe0665d65a81a",
+      "member": "production/upload/98/5e69c012a60c0b983b3577accb017d3157eb5c"
+    },
+    "battle/action/enemy/action/mod_ex20/boss_shark_brown$ea13.action.dsl.amf3.deflate": {
+      "sha256": "f4e35068aea469db9de0885146d1b4e08e3b0035b813e42e79467f39c658b28c",
+      "member": "production/upload/5a/9bf44d9740eb6b99cdd7cbf3f6709868400763"
+    },
+    "battle/action/enemy/action/mod_ex20/boss_shark_brown$ea14.action.dsl.amf3.deflate": {
+      "sha256": "d356761d1cdfcfec70ed7a2d2a32affff2f5ee95adf8edd8284c2a35fdbab94f",
+      "member": "production/upload/44/538e3b296fef616e98cdaf21001b8ccd90261e"
+    },
+    "battle/action/enemy/action/mod_ex20/boss_shark_brown$ea2.action.dsl.amf3.deflate": {
+      "sha256": "6b7d24ad69164f4527b83884dee2196eabeb90f67edb7fdbcb46eea746c33b4e",
+      "member": "production/upload/cd/eb23bc6e815fa7c43e3d11209ca8292b991be8"
+    },
+    "battle/action/enemy/action/mod_ex20/boss_shark_brown$ea3.action.dsl.amf3.deflate": {
+      "sha256": "1098bd2e3cc2dcd0231e119713d5eb61410f5abe26e16d7a6bb0bb7c09488722",
+      "member": "production/upload/26/72073fa031c269129dcb26bcf0ce4587a6a553"
+    },
+    "battle/action/enemy/action/mod_ex20/boss_shark_brown$ea5.action.dsl.amf3.deflate": {
+      "sha256": "1ac4ae3d0ad22eed904217cceb364448c6b71b0ae7dbb5c45bb7256597b3a019",
+      "member": "production/upload/6c/cd5796cf83a92dcceacfa222a97d8d79f882a7"
+    },
+    "battle/action/enemy/action/mod_ex20/boss_shark_brown$ea6.action.dsl.amf3.deflate": {
+      "sha256": "5766a272821b00078672266af4ffd7f4337e963337a2e4c1f5b683b0b5e5c061",
+      "member": "production/upload/db/5fb5e5defad0c0fcd4b4d0ef543c6ae273f0eb"
+    },
+    "battle/action/enemy/action/mod_ex20/boss_shark_brown$ea7.action.dsl.amf3.deflate": {
+      "sha256": "68f075afeaa87a5845f5c7121f4997455a0c1ea1b12d6f82032625a5b1cbbe80",
+      "member": "production/upload/5a/fa36194f70657c1ecd462ab29751c49a6a2043"
+    },
+    "battle/action/enemy/action/mod_ex20/boss_shark_brown$ea8.action.dsl.amf3.deflate": {
+      "sha256": "f32a7441d5d5bfb3b4d691ced5502a7aae7d72738ee11494cecf868dc5e5ca2d",
+      "member": "production/upload/b0/20b0f2fa8c09a8187f7ee03c474a3ee15ac48c"
+    },
+    "battle/action/enemy/action/mod_ex20/boss_shark_brown$ea9.action.dsl.amf3.deflate": {
+      "sha256": "b14a29a652ae311884930f2973f59a9aa5322bb9744c78857f7f1d7f28954067",
+      "member": "production/upload/c2/63927ea31e406e7ec76954b4cc680391d40b32"
+    },
+    "battle/action/enemy/action/mod_ex20/boss_shark_red$ea1.action.dsl.amf3.deflate": {
+      "sha256": "6731620fec0adddfd51fa5e8979771c9d3110ace8e0d473de1720f12d1789c7e",
+      "member": "production/upload/3f/21faa2c64267c27303dd662b167e41557bb8e1"
+    },
+    "battle/action/enemy/action/mod_ex20/boss_shark_red$ea10.action.dsl.amf3.deflate": {
+      "sha256": "93f9bba90e94d8fd6b132a779a663c262e0e0077adcd056405abe94e91415a4b",
+      "member": "production/upload/dc/4b87eab37fffd793b622b8000696224b948b40"
+    },
+    "battle/action/enemy/action/mod_ex20/boss_shark_red$ea11.action.dsl.amf3.deflate": {
+      "sha256": "82683c66a8fed66b638e237eb1918deded5b26718e64462f84f930bbbc9159e0",
+      "member": "production/upload/30/4268ef0ff127afad9e986ae36ce0d1e9911d7a"
+    },
+    "battle/action/enemy/action/mod_ex20/boss_shark_red$ea12.action.dsl.amf3.deflate": {
+      "sha256": "0d62499b0ef17bea096e63affd83a3a61691af4d4d33f03f05cf0cd5ff9b77bf",
+      "member": "production/upload/93/f732eb163d7ff0f210e753792bdca474949b87"
+    },
+    "battle/action/enemy/action/mod_ex20/boss_shark_red$ea13.action.dsl.amf3.deflate": {
+      "sha256": "3e090e326987ff214bcfba6ebd406514f2f50479113c127f55b2a7852be1476e",
+      "member": "production/upload/fa/b97e49938bc6757d1149e25178e1f474cdf196"
+    },
+    "battle/action/enemy/action/mod_ex20/boss_shark_red$ea14.action.dsl.amf3.deflate": {
+      "sha256": "7d99e35abc932989d333843e5e2ceb29061b8b477aa934e811ac4a6e1a5f4fdd",
+      "member": "production/upload/53/73cdd48d1bc99f6eb00bd08e676b98dffc8fd0"
+    },
+    "battle/action/enemy/action/mod_ex20/boss_shark_red$ea18.action.dsl.amf3.deflate": {
+      "sha256": "eb33ba8ac3f4250b7f413669953fb9aed8843d573a5b45c2d3e9cb44b2828f20",
+      "member": "production/upload/c6/be4bd58c5cad92541ccf9f52f664ef501fbd84"
+    },
+    "battle/action/enemy/action/mod_ex20/boss_shark_red$ea19.action.dsl.amf3.deflate": {
+      "sha256": "8180a49d50603cf9c658b949934f4366911d1acd885fdc220403bd336f9d4546",
+      "member": "production/upload/f5/873932041849278e6ed7b1f42b9ec14c90285a"
+    },
+    "battle/action/enemy/action/mod_ex20/boss_shark_red$ea2.action.dsl.amf3.deflate": {
+      "sha256": "78664008d182f807c72282b45369723bc7307bd09d322ab7e09e28178674db55",
+      "member": "production/upload/3a/1235892b8f119e001b5ae9488af6c24b57e45b"
+    },
+    "battle/action/enemy/action/mod_ex20/boss_shark_red$ea20.action.dsl.amf3.deflate": {
+      "sha256": "c09933c048edf11c9c33023aff7814469ea3fb6cfb7de1a1285c23c61ad5b74e",
+      "member": "production/upload/5c/d0cb71fc3a3e159030397de5a5e45977187307"
+    },
+    "battle/action/enemy/action/mod_ex20/boss_shark_red$ea21.action.dsl.amf3.deflate": {
+      "sha256": "c745d5a3d631f3983f7c79377260822f36208d3b533037871cd6fcd6f5a0e08b",
+      "member": "production/upload/df/22a8f223a855925f11366b7d967f0b03980e47"
+    },
+    "battle/action/enemy/action/mod_ex20/boss_shark_red$ea24.action.dsl.amf3.deflate": {
+      "sha256": "e5889b0bed172bdcddeb17edb3dbd302a25cccc7b00a8839787e66c90f63cf91",
+      "member": "production/upload/56/72985db15d91d3ded2df5817b5effac59b6bc3"
+    },
+    "battle/action/enemy/action/mod_ex20/boss_shark_red$ea25.action.dsl.amf3.deflate": {
+      "sha256": "05df3dfe8ab93313907d923f724964cff9981235404bb3aa088ad7b61a98afdc",
+      "member": "production/upload/fc/ffb98367bb94baa4571231b8ec819e0953b6d1"
+    },
+    "battle/action/enemy/action/mod_ex20/boss_shark_red$ea26.action.dsl.amf3.deflate": {
+      "sha256": "0da9781cb0237eb581ba8786a414d56c5842f6f483320cedcbcf04756b46a5fd",
+      "member": "production/upload/bc/6f574bae35791119770042b5144d6d1717aa29"
+    },
+    "battle/action/enemy/action/mod_ex20/boss_shark_red$ea28.action.dsl.amf3.deflate": {
+      "sha256": "2581f219091d737060221c724afe605191a9d552dec06d208e3421c99cb204ed",
+      "member": "production/upload/a6/3d1189d60bad38c75a9f501b1eb92147b69111"
+    },
+    "battle/action/enemy/action/mod_ex20/boss_shark_red$ea29.action.dsl.amf3.deflate": {
+      "sha256": "2d4f76d0aae69b05417f5d70074d19c273cca16bee4038caed89761952648a3c",
+      "member": "production/upload/87/693ff48bae788e3d94e116bc3db57b49f616a5"
+    },
+    "battle/action/enemy/action/mod_ex20/boss_shark_red$ea3.action.dsl.amf3.deflate": {
+      "sha256": "fa77e879fb9e8199f0b42bf41e9595b70490bdd03da40da2b4b5cedd7ea27b19",
+      "member": "production/upload/f5/483505a7095a6cb712124f6f8247f5c935d9ec"
+    },
+    "battle/action/enemy/action/mod_ex20/boss_shark_red$ea4.action.dsl.amf3.deflate": {
+      "sha256": "562508ffbcf4e92f77118705c3b2e1533c448d07dd60fe3a441a3e7000e1aa7e",
+      "member": "production/upload/0a/346de833180a26308e0d8b7232bfe0a547b785"
+    },
+    "battle/action/enemy/action/mod_ex20/boss_shark_red$ea5.action.dsl.amf3.deflate": {
+      "sha256": "51fa38c1c12da1cc9123b56edf8032c30ce1e35db13ed6c31d952e7f94f13eea",
+      "member": "production/upload/f9/8311cf4875cc9eff7ffb73a9f6b26a20b3bb8d"
+    },
+    "battle/action/enemy/action/mod_ex20/boss_shark_red$ea6.action.dsl.amf3.deflate": {
+      "sha256": "21b44a7d85428af8d02a5ad3cc83a955e3e14d113af01a698d9f852454faef3e",
+      "member": "production/upload/23/920e130126ff9374631f4d613a96d78494aeaa"
+    },
+    "battle/action/enemy/action/mod_ex20/boss_shark_red$ea7.action.dsl.amf3.deflate": {
+      "sha256": "18c60647713d1de3992db60c7363863c66c0ee10c2cf75bdfe82a4dc7fc90d7d",
+      "member": "production/upload/27/96501094ba628f66a5a8cdaffa1f59c258cfb2"
+    },
+    "battle/action/enemy/action/mod_ex20/boss_shark_red$ea8.action.dsl.amf3.deflate": {
+      "sha256": "bc93fd0fbccdcf365daa0af6e0171b4d15b8ccc142f923440b8902705200444e",
+      "member": "production/upload/b0/e1768d3cbea086bc455fb24f0c6acc5a490227"
+    },
+    "battle/action/enemy/action/mod_ex20/boss_shark_red$ea9.action.dsl.amf3.deflate": {
+      "sha256": "5f7e35b9fbfccdbad99dd358ce05a6719851f7c9a41b1312a6081915b8c6fdf0",
+      "member": "production/upload/6b/c80e4d5737fad2a73eb1e410a8dd84ede8f52a"
+    },
+    "battle/action/enemy/action/mod_ex20/funnel_shark$bomb_blue_ea1.action.dsl.amf3.deflate": {
+      "sha256": "5b9e4eff60e71f90523d1e089700a1add5bf643342bdcd08384c3c49f99a839e",
+      "member": "production/upload/36/bd6c7b74a1ce0e7e824c9e900e9bca3e01a6fc"
+    },
+    "battle/action/enemy/action/mod_ex20/funnel_shark$bomb_blue_ea1_left.action.dsl.amf3.deflate": {
+      "sha256": "b8007b7e60f0cfbf600c78516948234139e61b890f7da03e6cdc3aba216694a9",
+      "member": "production/upload/32/d1dfe019aaf062d877613d08058a860d3ffa16"
+    },
+    "battle/action/enemy/action/mod_ex20/funnel_shark$bomb_blue_ea1_right.action.dsl.amf3.deflate": {
+      "sha256": "8c16f60cf5aaecde45b9ea22ac8e61abeb0e818414e554e89ce9b4d342f84149",
+      "member": "production/upload/38/3a794591a5865424192cf9077f0a16a1870d59"
+    },
+    "battle/action/enemy/action/mod_ex20/funnel_shark$bomb_blue_inactive_ea1.action.dsl.amf3.deflate": {
+      "sha256": "73dcc936cc6100a4b4383957d88ab72d4a4ba3aaada18a96bded73a1dcaae926",
+      "member": "production/upload/2a/de05e783125eacee578870a2c4d0ff7f80eb9b"
+    },
+    "battle/action/enemy/action/mod_ex20/funnel_shark$bomb_ea1.action.dsl.amf3.deflate": {
+      "sha256": "b950cb19ddca2ed82f495c1c2ff47303bfbd65793e347d668bee62e9972ed920",
+      "member": "production/upload/ad/06343b00d0c9eddf9da4bac8c1792df8f97821"
+    },
+    "battle/action/enemy/action/mod_ex20/funnel_shark$soldier_blue_ea1.action.dsl.amf3.deflate": {
+      "sha256": "be7f29718a10a7ebec46c509902301b8b0844bdeaf45f522a7db518acee6a82c",
+      "member": "production/upload/62/98e2a7232d464b9975723ad7faf0425293e4ad"
+    },
+    "battle/action/enemy/action/mod_ex20/funnel_shark$soldier_invincible_ea5.action.dsl.amf3.deflate": {
+      "sha256": "fd87aa6ec49d17b5cf6c98912dc1db883ae8a56e9b9f03ad3664040808c0ffba",
+      "member": "production/upload/97/22eb1c2e51282a55081b2ca12f3aeefb86ddfa"
+    },
+    "battle/action/enemy/action/mod_ex20/funnel_shark$soldier_invincible_elete_ea6.action.dsl.amf3.deflate": {
+      "sha256": "a453ada45ea003ea81505f70e8e3fab598851bff3799c904a584fcc8e45a36d7",
+      "member": "production/upload/94/f76f64d054c7ea6b609ba7cd2e4bf4e90e78af"
+    },
+    "battle/action/enemy/action/mod_ex20/funnel_shark$soldier_red_ea1.action.dsl.amf3.deflate": {
+      "sha256": "0fed7870516fedcb9eae7d93dd687be1f68b5b4ca5b59b6f9953c70d97d9c545",
+      "member": "production/upload/fb/5de94465f04746de8df86c32f87a2f6a5e1e5d"
+    },
+    "battle/action/enemy/action/mod_ex20/funnel_shark$soldier_red_left_ea2.action.dsl.amf3.deflate": {
+      "sha256": "02fd50cf7703de6f820ec43433dc21ec4472ed987ca1c6892568525b566a05a7",
+      "member": "production/upload/7d/7d71edff6603abfe0d3c128b42d0d9b915c0a1"
+    },
+    "battle/action/enemy/action/mod_ex20/funnel_shark$soldier_red_right_ea2.action.dsl.amf3.deflate": {
+      "sha256": "50669b17e16bee82a339549d53462a65f908d90ff0e9bbb27176c900c5ffce05",
+      "member": "production/upload/88/b572fbdfb0ea1eabe0bf91eb49a48a420f13b7"
+    },
+    "battle/action/enemy/action/mod_ex20/target_shot1_brown.action.dsl.amf3.deflate": {
+      "sha256": "e5da7dc21ffe0ca266403f19a61745fae91ed674b55ead0a54240a1b858dd786",
+      "member": "production/upload/c2/648c67b0962eb0c1f0fbd477ab513bb60a6243"
+    },
+    "master/battle/boss/general_boss.orderedmap": {
+      "sha256": "f4078351d3c9b198e172f0ade0cec425707e71f53058c8a9c76084a82d63cb79",
+      "member": "production/upload/ec/d8f66b60947ca05643c4080a6cc925c750b9d6"
+    },
+    "master/battle/boss/general_boss_state.orderedmap": {
+      "sha256": "69ceb73ad3d279c56433e4046c1b4a3ebf526d3f942125e771189d945d28c89c",
+      "member": "production/upload/0b/97162ce6d40c473cbac39fa21427688922a48a"
+    },
+    "master/battle/boss/boss_level.orderedmap": {
+      "sha256": "fdf6f6e1358ae55c9c8d73255499299ae71dd262ba40c974fa6380738ea90285",
+      "member": "production/upload/19/a4aa442b3249499356e7a3f6370e530bfe355e"
+    },
+    "master/battle/boss/funnel_level.orderedmap": {
+      "sha256": "447be02b3ec21c79de087494c8b853a5bb72212b7b42996d6053d2f0c7a00ff3",
+      "member": "production/upload/1d/5759da68974fececdcb154ce123b47d0a4b8ee"
+    },
+    "master/battle/boss/funnel/general_funnel.orderedmap": {
+      "sha256": "894b5b3d19ee87542c9946503e4fe97c8f0cf2a7f5d4176a3a86a6f1de31d5e7",
+      "member": "production/upload/23/42b64dbbc30952eda56b61310191ea5beea7fa"
+    },
+    "master/battle/boss/funnel/general_funnel_state.orderedmap": {
+      "sha256": "a1ed6eb44d7c214a34abe31ccdce90a92e16f35a38fb72ec1ee1930e759f1fb8",
+      "member": "production/upload/5d/64d35a683d685cb446b75c8ed2c4feba230fc7"
+    },
+    "master/battle/boss/funnel/general_funnel_variable.orderedmap": {
+      "sha256": "b690f7a8cfe7b6202bb094545a6f7c61090a4c997ce22c490c4f520b75cedfe6",
+      "member": "production/upload/22/dd0fa8fa5e2e994a52db3c257ac1a06c1396f9"
+    },
+    "master/battle/boss/general_enemy_watch.orderedmap": {
+      "sha256": "5a0bce51cd96b4e5ebe548ed6dc28714f536f65a95a96bf840f5611273cfc580",
+      "member": "production/upload/84/fd6ee6a23114c8f888fadc838bbe8bdf668677"
+    },
+    "master/battle/field_data.orderedmap": {
+      "sha256": "9c05b23f0e01d3bc34c65005b89e583127b7577f7d6b8f5c863972cb333f9d04",
+      "member": "production/upload/30/363f8364e183905b2d0b48b8718b7165135bc2"
+    },
+    "master/battle/zone.orderedmap": {
+      "sha256": "3945f8887d7212f289d1b87782ac3d7bd7c42959b469be7ac0f763d16fb98932",
+      "member": "production/upload/cd/6336795a27ea33bf8d0c5d5a9bfb466bedcf1e"
+    },
+    "master/quest/event/rush_event_quest.orderedmap": {
+      "sha256": "9e23f48e01a8e7d5f51585f7f0d3744b309aba3655158e043305fd49a5ecc400",
+      "member": "production/upload/b6/595dedd9cfa79b7e6eccab25dd9a2a81b066a2"
+    },
+    "master/gacha_odds/cnmod_abyss_limited_gacha_character_5.orderedmap": {
+      "sha256": "e8f33714571e92eb077cf6743a52af8e304d88d65762d87b5590fde75231efb9",
+      "member": "production/upload/bf/5dc56a444450216d4f12d6b9dfc0d908a09c5d"
+    },
+    "rich_text/cnmod_abyss_limited_gacha_note.html.deflate": {
+      "sha256": "160a288b9a6390684e5ae750cc8f5dc18b4731c7911f330d7d045c4636444e3d",
+      "member": "production/upload/3b/94cb2772f22fb76b1a4545c5a347d764050829"
+    }
+  },
+  "server_preimages": {
+    "assets/gacha.json": "178a17a725d3345b625b3630e80d6fdbe9fd6fbf83090e06a30296f0d316fb86",
+    "assets/gacha_cnmod.json": "3bb40513f31797bf6c8ea0a6db78e441b7eb0a5d14c0d8b1bdb8a769e5f52de5"
+  },
+  "quest_time_revisions": {
+    "rush:700100": "cd773d63fdc0cc764c043fa2dcab9f167c79d26a352be779b0bf524396a79bf7"
+  },
+  "save_impact": "No schema, saved character IDs or reward changes. Only EX time-record revision advances; challenge progression is retained.",
+  "device_verified": false,
+  "cloud_deployed": false
+}

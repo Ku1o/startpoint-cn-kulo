@@ -4,23 +4,9 @@ exports.updatePlayerCharacterManaNodeAwakeLevelSync = exports.getPlayerCharacter
 const db_1 = require("../db");
 const utils_1 = require("../utils");
 const assets_1 = require("../../lib/assets");
-// Cache query plans per connection, never parameter values or player results.
-// These queries have bounded shapes: three statistic flags, one board query,
-// and favor batches of at most 400 ids.
-const characterMissionStatements = new WeakMap();
+const cached_statement_1 = require("../../lib/cached-statement");
 function prepareCharacterMissionQuery(sql) {
-    const db = (0, db_1.getDb)();
-    let statements = characterMissionStatements.get(db);
-    if (!statements) {
-        statements = new Map();
-        characterMissionStatements.set(db, statements);
-    }
-    let statement = statements.get(sql);
-    if (!statement) {
-        statement = db.prepare(sql);
-        statements.set(sql, statement);
-    }
-    return statement;
+    return (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), sql);
 }
 /**
  * Converts a RawPlayerCharacterBondToken into a PlayerCharacterBondToken
@@ -80,7 +66,7 @@ function buildPlayerCharacter(rawCharacter, bondTokens) {
  * @returns A boolean, stating whether the player owns the character.
  */
 function playerOwnsCharacterSync(playerId, characterId) {
-    return (0, db_1.getDb)().prepare(`
+    return (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
     SELECT id
     FROM players_characters
     WHERE player_id = ? AND id = ?
@@ -95,7 +81,7 @@ exports.playerOwnsCharacterSync = playerOwnsCharacterSync;
  * @returns The PlayerCharacter or null if it doesn't exist.
  */
 function getPlayerCharacterSync(playerId, characterId) {
-    const rawCharacter = (0, db_1.getDb)().prepare(`
+    const rawCharacter = (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
     SELECT id, entry_count, evolution_level, over_limit_step, protection,
         join_time, update_time, exp, stack, mana_board_index, ex_boost_status_id,
         ex_boost_ability_id_list, illustration_settings
@@ -105,7 +91,7 @@ function getPlayerCharacterSync(playerId, characterId) {
     if (rawCharacter === undefined)
         return null;
     // get bond tokens
-    const rawBondTokens = (0, db_1.getDb)().prepare(`
+    const rawBondTokens = (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
     SELECT mana_board_index, status, character_id
     FROM players_characters_bond_tokens
     WHERE player_id = ? AND character_id = ?
@@ -121,7 +107,7 @@ exports.getPlayerCharacterSync = getPlayerCharacterSync;
  * @returns A list of the characters that the player owns.
  */
 function getPlayerCharactersSync(playerId) {
-    const rawCharacters = (0, db_1.getDb)().prepare(`
+    const rawCharacters = (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
     SELECT id, entry_count, evolution_level, over_limit_step, protection,
         join_time, update_time, exp, stack, mana_board_index, ex_boost_status_id,
         ex_boost_ability_id_list, illustration_settings
@@ -129,7 +115,7 @@ function getPlayerCharactersSync(playerId) {
     WHERE player_id = ?
     `).all(playerId);
     // get bond tokens
-    const rawBondTokens = (0, db_1.getDb)().prepare(`
+    const rawBondTokens = (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
     SELECT mana_board_index, status, character_id
     FROM players_characters_bond_tokens
     WHERE player_id = ?
@@ -160,14 +146,14 @@ function getPlayerCharactersByIdsSync(playerId, characterIds) {
     if (ids.length === 0)
         return {};
     const placeholders = ids.map(() => "?").join(", ");
-    const rawCharacters = (0, db_1.getDb)().prepare(`
+    const rawCharacters = (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
     SELECT id, entry_count, evolution_level, over_limit_step, protection,
         join_time, update_time, exp, stack, mana_board_index, ex_boost_status_id,
         ex_boost_ability_id_list, illustration_settings
     FROM players_characters
     WHERE player_id = ? AND id IN (${placeholders})
     `).all(playerId, ...ids);
-    const rawBondTokens = (0, db_1.getDb)().prepare(`
+    const rawBondTokens = (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
     SELECT mana_board_index, status, character_id
     FROM players_characters_bond_tokens
     WHERE player_id = ? AND character_id IN (${placeholders})
@@ -216,7 +202,7 @@ exports.getPlayerCharacterFavorFactsSync = getPlayerCharacterFavorFactsSync;
  * @param bondToken The bond token to insert.
  */
 function insertPlayerCharacterBondTokenSync(playerId, characterId, bondToken) {
-    (0, db_1.getDb)().prepare(`
+    (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
     INSERT INTO players_characters_bond_tokens (mana_board_index, status, player_id, character_id)
     VALUES (?, ?, ?, ?)
     `).run(bondToken.manaBoardIndex, bondToken.status, playerId, Number(characterId));
@@ -230,7 +216,7 @@ exports.insertPlayerCharacterBondTokenSync = insertPlayerCharacterBondTokenSync;
  * @param bondToken The updated bondToken.
  */
 function updatePlayerCharacterBondTokenSync(playerId, characterId, bondToken) {
-    (0, db_1.getDb)().prepare(`
+    (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
     UPDATE players_characters_bond_tokens
     SET status = ?
     WHERE player_id = ? AND character_id = ? AND mana_board_index = ?
@@ -247,7 +233,7 @@ exports.updatePlayerCharacterBondTokenSync = updatePlayerCharacterBondTokenSync;
 function insertPlayerCharacterSync(playerId, characterId, character) {
     var _a, _b;
     // insert into characters table
-    (0, db_1.getDb)().prepare(`
+    (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
     INSERT INTO players_characters (id, entry_count, evolution_level, over_limit_step,
         protection, join_time, update_time, exp, stack, mana_board_index, player_id,
         ex_boost_status_id, ex_boost_ability_id_list, illustration_settings)
@@ -360,7 +346,7 @@ function updatePlayerCharacterSync(playerId, characterId, character) {
         values.push((0, utils_1.serializeNumberList)(illustration_settings));
     }
     if (sets.length > 0)
-        (0, db_1.getDb)().prepare(`
+        (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
         UPDATE players_characters
         SET ${sets.join(', ')}
         WHERE id = ? AND player_id = ?
@@ -374,7 +360,7 @@ exports.updatePlayerCharacterSync = updatePlayerCharacterSync;
  * @returns A record containing the statuses of the player's characters.
  */
 function getPlayerCharactersManaNodesSync(playerId) {
-    const rawNodes = (0, db_1.getDb)().prepare(`
+    const rawNodes = (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
     SELECT value, character_id
     FROM players_characters_mana_nodes
     WHERE player_id = ?
@@ -458,7 +444,7 @@ function getPlayerCompletedManaBoardCharacterIdsSync(playerId, requiredNodes, ow
 exports.getPlayerCompletedManaBoardCharacterIdsSync = getPlayerCompletedManaBoardCharacterIdsSync;
 /** Reads both learned membership and awake levels for one character. */
 function getPlayerCharacterManaNodeAwakeLevelsSync(playerId, characterId) {
-    const rows = (0, db_1.getDb)().prepare(`
+    const rows = (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
         SELECT value, awake_level FROM players_characters_mana_nodes
         WHERE player_id = ? AND character_id = ?
     `).all(playerId, characterId);
@@ -472,7 +458,7 @@ function getPlayerCharactersManaNodesByIdsSync(playerId, characterIds) {
     if (ids.length === 0)
         return {};
     const placeholders = ids.map(() => "?").join(", ");
-    const rawNodes = (0, db_1.getDb)().prepare(`
+    const rawNodes = (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
     SELECT value, character_id
     FROM players_characters_mana_nodes
     WHERE player_id = ? AND character_id IN (${placeholders})
@@ -495,7 +481,7 @@ exports.getPlayerCharactersManaNodesByIdsSync = getPlayerCharactersManaNodesById
  * @returns A list of unlocked mana node ids.
  */
 function getPlayerCharacterManaNodesSync(playerId, characterId) {
-    const rawNodes = (0, db_1.getDb)().prepare(`
+    const rawNodes = (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
     SELECT value, character_id
     FROM players_characters_mana_nodes
     WHERE character_id = ? AND player_id = ?
@@ -512,7 +498,7 @@ exports.getPlayerCharacterManaNodesSync = getPlayerCharacterManaNodesSync;
  * @returns Whether the specified mana node has been unlocked or not.
  */
 function hasPlayerUnlockedCharacterManaNodeSync(playerId, characterId, manaNodeId) {
-    return (0, db_1.getDb)().prepare(`
+    return (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
     SELECT value
     FROM players_characters_mana_nodes
     WHERE player_id = ? AND character_id = ? AND value = ?
@@ -528,7 +514,7 @@ exports.hasPlayerUnlockedCharacterManaNodeSync = hasPlayerUnlockedCharacterManaN
  */
 function insertPlayerCharacterManaNodesSync(playerId, characterId, manaNodes) {
     for (const node of manaNodes) {
-        (0, db_1.getDb)().prepare(`
+        (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
         INSERT INTO players_characters_mana_nodes (value, character_id, player_id)
         VALUES (?, ?, ?)
         `).run(node, Number(characterId), playerId);
@@ -557,7 +543,7 @@ exports.insertPlayerCharactersManaNodesSync = insertPlayerCharactersManaNodesSyn
  */
 function getPlayerCharactersManaNodeAwakeLevelsSync(playerId) {
     var _a;
-    const rawNodes = (0, db_1.getDb)().prepare(`
+    const rawNodes = (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
     SELECT value, character_id, awake_level
     FROM players_characters_mana_nodes
     WHERE player_id = ?
@@ -583,7 +569,7 @@ exports.getPlayerCharactersManaNodeAwakeLevelsSync = getPlayerCharactersManaNode
  * @param awakeLevel The new awake_level to set.
  */
 function updatePlayerCharacterManaNodeAwakeLevelSync(playerId, characterId, manaNodeId, awakeLevel) {
-    (0, db_1.getDb)().prepare(`
+    (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
     UPDATE players_characters_mana_nodes
     SET awake_level = ?
     WHERE value = ? AND character_id = ? AND player_id = ?

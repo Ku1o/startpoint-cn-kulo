@@ -4,7 +4,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.dailyResetPlayerSync = exports.dailyResetPlayerDataSync = exports.collectPlayerPooledExpSync = exports.collectPlayerDataPooledExpSync = exports.deletePlayerSync = exports.replacePlayerDataSync = exports.adjustPlayerExpPoolSync = exports.updatePlayerSync = exports.insertDefaultPlayerSync = exports.getDefaultPlayerPartyGroupsSync = exports.insertMergedPlayerDataSync = exports.insertPlayerSync = exports.getAllPlayersSync = exports.getPlayerSync = exports.getAccountFromPlayerIdSync = exports.getPlayerFromAccountIdSync = exports.serializePlayerRushEventPlayedParty = exports.deserializePlayerRushEventPlayedParty = exports.updatePlayerDailyChallengePointSync = exports.insertPlayerDailyChallengePointListSync = exports.getPlayerDailyChallengePointListSync = void 0;
+const cached_statement_1 = require("../../lib/cached-statement");
 const db_1 = require("../db");
+const degree_1 = require("./degree");
 const types_1 = require("../types");
 const utils_1 = require("../../utils");
 const utils_2 = require("../utils");
@@ -310,7 +312,7 @@ function buildPlayer(raw) {
     };
 }
 function getPlayerSync(playerId) {
-    const raw = (0, db_1.getDb)().prepare(`
+    const raw = (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
     SELECT id, stamina, stamina_heal_time, boost_point, boss_boost_point,
         transition_state, role, name, last_login_time, comment,
         vmoney, free_vmoney, rank_point, star_crumb,
@@ -417,16 +419,20 @@ exports.insertPlayerSync = insertPlayerSync;
  * @returns The newly inserted player's id.
  */
 function insertMergedPlayerDataSync(accountId, toInsert) {
-    var _a;
+    var _a, _b;
     const player = toInsert.player;
     const playerId = player.id;
+    (0, degree_1.validatePortableDegreeList)(toInsert.degreeList);
     insertPlayerSync(accountId, player);
+    for (const degree of (_a = toInsert.degreeList) !== null && _a !== void 0 ? _a : []) {
+        (0, degree_1.grantPlayerDegreeSync)(playerId, degree.degreeId, degree.acquiredAt);
+    }
     insertPlayerDailyChallengePointListSync(playerId, toInsert.dailyChallengePointList);
     (0, tutorial_1.insertPlayerTriggeredTutorialsSync)(playerId, toInsert.triggeredTutorial);
     (0, mission_1.insertPlayerClearedRegularMissionListSync)(playerId, toInsert.clearedRegularMissionList);
     (0, character_1.insertPlayerCharactersSync)(playerId, toInsert.characterList);
     (0, character_1.insertPlayerCharactersManaNodesSync)(playerId, toInsert.characterManaNodeList);
-    for (const [characterId, levels] of Object.entries((_a = toInsert.characterManaNodeAwakeLevels) !== null && _a !== void 0 ? _a : {})) {
+    for (const [characterId, levels] of Object.entries((_b = toInsert.characterManaNodeAwakeLevels) !== null && _b !== void 0 ? _b : {})) {
         for (const [nodeId, level] of Object.entries(levels)) {
             if (!Number.isSafeInteger(level) || level < 0) {
                 throw new Error(`Invalid mana node awake level for character ${characterId}, node ${nodeId}.`);
@@ -1151,6 +1157,12 @@ function replacePlayerDataSync(replaceWith) {
     const account = getAccountFromPlayerIdSync(playerId);
     if (account === null)
         throw new Error("No account tied to player id.");
+    // Old V1 exports had no title collection. They cannot express a deliberate
+    // reset of that collection; retain destination ownership in that case.
+    if (replaceWith.degreeList === undefined) {
+        replaceWith.degreeList = (0, degree_1.getPlayerPortableDegreesSync)(playerId);
+    }
+    (0, degree_1.validatePortableDegreeList)(replaceWith.degreeList);
     // Import, clone and default-template restoration all pass through this
     // function. Preserve the explicit EXP balance but start regeneration from
     // the current virtual clock so a checkpoint from another date cannot be

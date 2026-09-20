@@ -24,6 +24,7 @@ const option_1 = require("../../data/domains/option");
 const profile_stats_1 = require("../../lib/profile-stats");
 const assets_1 = require("../../lib/assets");
 const activity_degree_rewards_1 = require("../../lib/activity-degree-rewards");
+const abyss_shop_degree_reward_1 = require("../../lib/abyss-shop-degree-reward");
 const PROFILE_SETTING_FIELDS = [
     "show_opened_mana_board_second_count",
     "show_owned_character_count",
@@ -64,6 +65,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         (0, degree_1.ensurePlayerSoloTimeAttackDegreesSync)(playerId);
         (0, carnival_reward_handler_1.ensurePlayerClaimedCarnivalDegreesSync)(playerId);
         (0, activity_degree_rewards_1.ensurePlayerActivityDegreesSync)(playerId);
+        (0, abyss_shop_degree_reward_1.grantAbyssShopDegreeRewardSync)(playerId);
         const stats = (0, profile_stats_1.getPlayerProfileStatsSync)(playerId);
         const profileSettings = (0, option_1.getPlayerProfileSettingsSync)(playerId);
         const partyGroupList = (0, profileFavorite_1.getFavoritePartyGroupListSync)(playerId, player.leaderCharacterId);
@@ -170,6 +172,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         (0, degree_1.ensurePlayerSoloTimeAttackDegreesSync)(playerId);
         (0, carnival_reward_handler_1.ensurePlayerClaimedCarnivalDegreesSync)(playerId);
         (0, activity_degree_rewards_1.ensurePlayerActivityDegreesSync)(playerId);
+        (0, abyss_shop_degree_reward_1.grantAbyssShopDegreeRewardSync)(playerId);
         const degreeIds = (0, degree_1.getPlayerDegreeIdsSync)(playerId);
         reply.header("content-type", "application/x-msgpack");
         return reply.status(200).send({
@@ -212,6 +215,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         (0, degree_1.ensurePlayerSoloTimeAttackDegreesSync)(playerId);
         (0, carnival_reward_handler_1.ensurePlayerClaimedCarnivalDegreesSync)(playerId);
         (0, activity_degree_rewards_1.ensurePlayerActivityDegreesSync)(playerId);
+        (0, abyss_shop_degree_reward_1.grantAbyssShopDegreeRewardSync)(playerId);
         if (!(0, degree_1.hasPlayerDegreeSync)(playerId, Number(degreeId))) {
             return reply.status(400).send({
                 error: "Bad Request",

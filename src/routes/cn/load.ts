@@ -32,6 +32,7 @@ import { getPlayerCharactersManaNodesSync, getPlayerCharactersSync } from "../..
 import { getPlayerPartyGroupListSync } from "../../data/domains/party";
 import { getPlayerQuestProgressSync } from "../../data/domains/quest";
 import { isStaleAbyssBattle } from "../../lib/abyss-time-revision";
+import { refreshPlayerAbyssTowersSync } from "../../data/domains/abyss-tower-progress";
 import { hijackUnavailableReply } from "../../lib/http-reply";
 import { ensureDailyVmoneyMailForPlayerSync } from "../../lib/daily-vmoney-mail";
 import { getNewsDeliveryState, getNewsInterruptFlag } from "../../lib/news-delivery";
@@ -217,6 +218,7 @@ const routes = async (fastify: FastifyInstance) => {
         // evaluate cross-event clear conditions on a cold visit. Optional
         // saved party slots are normalized to null before packing (rather than
         // MessagePack's unsupported undefined extension, 0xD4).
+        refreshPlayerAbyssTowersSync(playerId)
         const clientData = getClientSerializedData(playerId, {
             viewerId: accountId,
             serializeRushEventData: true,

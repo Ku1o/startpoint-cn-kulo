@@ -29,6 +29,8 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.stopSessionServer = exports.startSessionServer = exports.SESSION_TCP_KEEPALIVE_MS = exports.SESSION_MAX_BUFFER_BYTES = exports.SESSION_MAX_FRAME_BYTES = exports.SESSION_HANDSHAKE_TIMEOUT_MS = exports.SESSION_HOST = exports.SESSION_PORT = void 0;
 const net = __importStar(require("net"));
+const memory_diagnostics_1 = require("../../lib/memory-diagnostics");
+const client_admission_1 = require("../../lib/client-admission");
 const handshake_1 = require("./handshake");
 const battle_1 = require("./battle");
 const SessionManager_1 = require("../state/SessionManager");
@@ -67,6 +69,7 @@ function startSessionServer() {
             let isLoungeSocket = false;
             let socketRemoved = false;
             let protocolClosed = false;
+            let admissionToken, admissionSession;
             const closeForProtocolViolation = (reason) => {
                 if (protocolClosed)
                     return;
@@ -134,6 +137,14 @@ function startSessionServer() {
                                 closeForProtocolViolation("first frame was not a valid handshake");
                                 return;
                             }
+                            admissionToken = data.sp_admission;
+                            admissionSession = data.sp_session;
+                            if (!(0, client_admission_1.clientAdmission)().checkActivity(admissionToken, admissionSession).ok) {
+                                socket.end(JSON.stringify([1, "CLIENT_ADMISSION_REQUIRED"]) + "\0");
+                                protocolClosed = true;
+                                clearHandshakeTimer();
+                                return;
+                            }
                             handshakeDone = true;
                             clearHandshakeTimer();
                             isBattleSocket = data.socklet === "cooperation_battle";
@@ -145,6 +156,10 @@ function startSessionServer() {
                                 console.error(`[TCP] handshake failed:`, err);
                                 socket.destroy();
                             });
+                        }
+                        else if (!(0, client_admission_1.clientAdmission)().checkActivity(admissionToken, admissionSession).ok) {
+                            closeForProtocolViolation("client build no longer admitted");
+                            return;
                         }
                         else if (isBattleSocket) {
                             (0, battle_1.handleBattleMessage)(socket, data);
@@ -182,6 +197,7 @@ function startSessionServer() {
                 removeSocketClient();
             });
         });
+        (0, memory_diagnostics_1.observeServerConnections)("tcp", server);
         server.listen(exports.SESSION_PORT, exports.SESSION_HOST, () => {
             console.log(`[TCP] session server listening on ${exports.SESSION_HOST}:${exports.SESSION_PORT}`);
             resolve();

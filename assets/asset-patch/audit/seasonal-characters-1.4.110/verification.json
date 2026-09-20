@@ -1,0 +1,25 @@
+{
+  "ok": true,
+  "version": "1.4.110",
+  "resources": 801,
+  "pngs_strict_readback": 241,
+  "ios_pairs": 14,
+  "changed_master_leaves": 270,
+  "unrelated_master_rows_preserved": true,
+  "existing_fix_rows_preserved": true,
+  "previous_archives_and_tower_markers_preserved": true,
+  "gacha_client_server_parity": true,
+  "unchanged_preexisting_modified_files": 18,
+  "roots": {
+    "android": 14,
+    "common": 598,
+    "ios": 14,
+    "medium": 175
+  },
+  "functional_tests_passed": 51,
+  "asset_http_tests_passed": 2,
+  "build": "passed",
+  "device_gameplay_acceptance": "pending",
+  "runtime_mirror_verified": false,
+  "cloud_deployed": false
+}

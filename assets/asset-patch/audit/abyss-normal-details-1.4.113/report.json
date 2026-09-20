@@ -1,0 +1,163 @@
+{
+  "archive": {
+    "name": "pinball-1.4.112-1.4.113-1-abyss-normal-details.zip",
+    "size": 380789,
+    "sha256": "17c9425885c8244f341fc8bdf184458a144f5a55b4c8a882c9e3e5f90c54224c",
+    "members": 5,
+    "files": [
+      "production/upload/45/ad0c557569b76ef03a00da5d0a2c234747b21a",
+      "production/upload/b6/595dedd9cfa79b7e6eccab25dd9a2a81b066a2",
+      "production/upload/ec/d8f66b60947ca05643c4080a6cc925c750b9d6",
+      "production/upload/ee/976fa9610dd175bea34376070fb1cc9581fc60",
+      "production/upload/f4/e325f421bfdd1c33e75f30a1d01065ae64e7c7"
+    ]
+  },
+  "resources": {
+    "battle/action/enemy/action/mod_rogue/immunity_description_53efc8d5d2df9f6c$.action.dsl.amf3.deflate": {
+      "member": "production/upload/45/ad0c557569b76ef03a00da5d0a2c234747b21a",
+      "sha256": "53efc8d5d2df9f6c2095edc6c82fea6f176da2fb2ddeb65828993f26b07e13bc"
+    },
+    "battle/action/enemy/action/mod_rogue/immunity_description_231b8a7d580b523e$.action.dsl.amf3.deflate": {
+      "member": "production/upload/ee/976fa9610dd175bea34376070fb1cc9581fc60",
+      "sha256": "231b8a7d580b523ec418b633d15e643244ae6c2917cc1f3488fc9dd3d23f2d5e"
+    },
+    "battle/action/enemy/action/mod_rogue/immunity_description_cdbb168576b9a453$.action.dsl.amf3.deflate": {
+      "member": "production/upload/f4/e325f421bfdd1c33e75f30a1d01065ae64e7c7",
+      "sha256": "cdbb168576b9a453ca8c5091abdc5ea769604f951694389be27692b6d0da3c92"
+    },
+    "master/quest/event/rush_event_quest.orderedmap": {
+      "member": "production/upload/b6/595dedd9cfa79b7e6eccab25dd9a2a81b066a2",
+      "sha256": "cdb76b395d0b2c8c7b6e7d14ebeff99087ce71f4ca6361cc5c667125dacfc4c8"
+    },
+    "master/battle/boss/general_boss.orderedmap": {
+      "member": "production/upload/ec/d8f66b60947ca05643c4080a6cc925c750b9d6",
+      "sha256": "e43788727d4ef345a59d844a327b706398db2bf8119c7e492e4de711627a9e8c"
+    }
+  },
+  "release_files": [
+    {
+      "path": "assets/asset-patch/manifest.json",
+      "sha256": "956ef02a36a4fee6998addac91bf33499b043c2fd41e45964627d8db4411a9be"
+    },
+    {
+      "path": "assets/asset-patch/active/pinball-1.4.112-1.4.113-1-abyss-normal-details.zip",
+      "sha256": "17c9425885c8244f341fc8bdf184458a144f5a55b4c8a882c9e3e5f90c54224c"
+    },
+    {
+      "path": "assets/asset-patch/production/upload/45/ad0c557569b76ef03a00da5d0a2c234747b21a",
+      "sha256": "53efc8d5d2df9f6c2095edc6c82fea6f176da2fb2ddeb65828993f26b07e13bc"
+    },
+    {
+      "path": "assets/asset-patch/production/upload/ee/976fa9610dd175bea34376070fb1cc9581fc60",
+      "sha256": "231b8a7d580b523ec418b633d15e643244ae6c2917cc1f3488fc9dd3d23f2d5e"
+    },
+    {
+      "path": "assets/asset-patch/production/upload/f4/e325f421bfdd1c33e75f30a1d01065ae64e7c7",
+      "sha256": "cdbb168576b9a453ca8c5091abdc5ea769604f951694389be27692b6d0da3c92"
+    },
+    {
+      "path": "assets/asset-patch/production/upload/b6/595dedd9cfa79b7e6eccab25dd9a2a81b066a2",
+      "sha256": "cdb76b395d0b2c8c7b6e7d14ebeff99087ce71f4ca6361cc5c667125dacfc4c8"
+    },
+    {
+      "path": "assets/asset-patch/production/upload/ec/d8f66b60947ca05643c4080a6cc925c750b9d6",
+      "sha256": "e43788727d4ef345a59d844a327b706398db2bf8119c7e492e4de711627a9e8c"
+    }
+  ],
+  "quest_time_revisions": {
+    "rush:700099": "67d91dec653a296e3177adfd6e8f6c3d777798222f39191933822950f23ec704",
+    "rush:700100": "e3235d26413c0da8f9f3f3e1d03d6842e8743c14cc83b167d52c348ab4fd5214"
+  },
+  "quest_description_revisions": {
+    "rush:700099": {
+      "content_revision": "9f82a962be22bd768bbdf27e1003f348891e85d3e9f472a334c58aa09d449f57",
+      "record_revision": "67d91dec653a296e3177adfd6e8f6c3d777798222f39191933822950f23ec704",
+      "reference_patch": "abyss-ex-reroll-20260918"
+    }
+  },
+  "previous_archives_unchanged": {
+    "pinball-1.4.54-1.4.55-1-mod07141843.zip": "30ad6e374c6e48bbfeae6d15120368f1d5dabf6a72f0200a037a516e480c38cc",
+    "pinball-1.4.60-1.4.61-1-post60-terminal-overlay-sixpack-v2.zip": "b1d17fb53984eaf223b8ae2492f69e1cad27467bc1dc5051114377a35ddd615f",
+    "pinball-1.4.60-1.4.61-2-post60-terminal-overlay-sixpack-v2.zip": "733f9984cee0fe13b505887840bf09435903804945c4d2c1033c2b1c88877e0d",
+    "pinball-1.4.60-1.4.61-3-post60-terminal-overlay-sixpack-v2.zip": "ea3b79d18ad3a37c6ec253df243a8158bc231dc63e1b516d9903d8a3c93d5661",
+    "pinball-1.4.60-1.4.61-4-post60-terminal-overlay-sixpack-v2.zip": "1dbfa227408cb9337c35d9239e9932cecace277d4a58c6418dc61b559c585147",
+    "pinball-1.4.60-1.4.61-5-post60-terminal-overlay-sixpack-v2.zip": "9ae7ee286cfb48be9ba8f6e3abdaf5418f75118cae5d35f8721124442fae5f38",
+    "pinball-1.4.60-1.4.61-6-post60-terminal-overlay-sixpack-v2.zip": "7a49610f95b8b8cdd2bf3d87a9280fb591785ce374ba1f5c93b799f9adda9dfe",
+    "pinball-1.4.61-1.4.62-1-0806194711-hide-deep-abyss-entry-cache-v2.zip": "6a547b0e09b6afd558a6ac24d1dc32828f8be884b1a0236494f081ccd2cc3536",
+    "pinball-1.4.62-1.4.63-1-ginovi-wind-dragon-balance-cache-v2.zip": "416e7509e1593513237e7a350b3dd7a3aa4f7058df8dc44394d2ecce44de98fb",
+    "pinball-1.4.67-1.4.68-1-battle-atlas-crop-fix.zip": "283aa05a53e7eb003a269a2062d48e5587c9659f2403a416af6e6ee8f7492c62",
+    "pinball-1.4.68-1.4.69-1-0807230819-light-dark-dragon-redesign.zip": "47be963f2a3063ee0889ebbe73ff1e042d0ae6a7b3bf35947964df6b9f6d9f25",
+    "pinball-1.4.69-1.4.70-1-mode15final70.zip": "d2f2980b900bb67a019ff93030c5b5afc357301ee9e76d54ecd0840aa2d09381",
+    "pinball-1.4.69-1.4.70-2-mode15final70.zip": "774ac4395b96b32fd159ed666948dec7f988b52a37a375be0258cc07056b4f4c",
+    "pinball-1.4.72-1.4.73-1-0811190633.zip": "75e39d114fa5ffd298306f9366a93fa98cef77f8bae191a8e6344e5beb754e40",
+    "pinball-1.4.73-1.4.74-1-0811222236.zip": "438366946e85ccec8ce310ba0c2b4a1e2c9742fc584aa5d38190f327d990d7fc",
+    "pinball-1.4.74-1.4.75-1-0812tower2.zip": "416efbfce879ac37758aaa6002152e63543b23c4d5c943fd741120c059cc1b7c",
+    "pinball-1.4.75-1.4.76-1-0812-abyss-reroll-lilith-fix.zip": "fe4618b1d48b754f5a4d99fc5ef1bbba0db3679d7ba6138f6667b694a633b4fd",
+    "pinball-1.4.76-1.4.77-1-0813-abyss-reroll-rolf.zip": "0a17091ae4618c4b3bfa84cc169ac1f5d81567b7f8f8201a031d96b418aa5dfa",
+    "pinball-1.4.76-1.4.77-2-0813-abyss-reroll-rolf.zip": "4a04a4246b9e1b825f79c7de784ff1b947738e55d5319f4031a5a7f77979b6d6",
+    "pinball-1.4.76-1.4.77-3-0813-abyss-reroll-rolf.zip": "c413bea465614dc9bf3655b2867a24c543b03004f08c42aac3f62bf41572a235",
+    "pinball-1.4.76-1.4.77-4-0813-abyss-reroll-rolf.zip": "c1fbbfb4924fab3f808595c1da71016e4c79169dc3ee09610a468bcf938e3504",
+    "pinball-1.4.76-1.4.77-5-0813-abyss-reroll-rolf.zip": "224171ea8f1b28b749a91e15ba5b7e53c2f82d2fad04cf4b4c3fdf445eca1b6c",
+    "pinball-1.4.76-1.4.77-6-0813-abyss-reroll-rolf.zip": "db302b6e320a72af757cd9f046801c281c87560b663d808fbc0e690ab7da2638",
+    "pinball-1.4.77-1.4.78-1-0816-thunder-abyss-fantasy.zip": "fdfb49c3e1ae7f21e5b9c92bbcf63539ef807421a163db5e7c1f4dee3c60f1be",
+    "pinball-1.4.77-1.4.78-2-0816-thunder-abyss-fantasy.zip": "5b08a6528c88f3659fc9028a22d15079f1c9474c3d8b490c3c9a04caad0bd077",
+    "pinball-1.4.77-1.4.78-3-0816-thunder-abyss-fantasy.zip": "61445025e866311906ae1c3364da2b30fe154d1459eac2f481098ff5df4da961",
+    "pinball-1.4.77-1.4.78-4-0816-thunder-abyss-fantasy.zip": "f9c3df42f3aa4b55b6df0e2f5ef2178215ec7f84f830f9d3b9edde3727e88c28",
+    "pinball-1.4.77-1.4.78-5-0816-thunder-abyss-fantasy.zip": "32157e3df27205dad6ae22638c85f6495eedf1ab209fcfaba45870e84dff3dba",
+    "pinball-1.4.77-1.4.78-6-0816-thunder-abyss-fantasy.zip": "0924d91302a9bb2cb5ee84642e5f590c0a849c7a6112e6b7d9ac49a3667822cc",
+    "pinball-1.4.79-1.4.80-1-swimex139997-author-g.zip": "787ec40d277972770a56290e1a129cc31d9c0de2406c0f096c1c02af76bc5186",
+    "pinball-1.4.79-1.4.80-2-0817-fantasy-two-icon-refresh.zip": "6b296d8a9194ab3d81c65e393fbf268e43005facac8e3d0dd28455cafdcc4527",
+    "pinball-1.4.80-1.4.81-1-0817-thunder-dragon-fantasy-v4.zip": "385d9fb4a8f2fb62f583442ce90bfc2e997b217c85cee63e55992bc1a220f6bc",
+    "pinball-1.4.81-1.4.82-1-0818-claude-abyss-gerald-flipper.zip": "e880ad200b1b14a06ea15670ec3dc5f781ea6259aa2022bf8e4faff732dcf539",
+    "pinball-1.4.82-1.4.83-1-0818-gauntlet-hub-rank140.zip": "1798ee37bbc8b83bf054d46cf38ee97a723c13517e97b192abfc52b645ff3d41",
+    "pinball-1.4.83-1.4.84-1-0818-gauntlet-final-art.zip": "a03324e680253b8e1a250915513dc45bc470dfe424ca100e3281613b7c35a7cf",
+    "pinball-1.4.84-1.4.85-1-0821-mosiyike-balance-ios.zip": "07d12e217945d82aad2a666ff9b7d9c3a363c42240e395397efcc17ea4a4c51a",
+    "pinball-1.4.85-1.4.86-1-0822-twochar-stella-abyss-ios.zip": "83bcde05c00ba78891e9e4e1e39513dca18a47cb298a2a45e53c30ce8eabef25",
+    "pinball-1.4.86-1.4.87-1-0823-lion-balance-raid-abyss-ios.zip": "37d3edfe440ab6452ce79a2f0ca146505d4b13b161cdf8ca464828f71edb8789",
+    "pinball-1.4.87-1.4.88-1-0825-integrated-ginovi-spgirl-trio-rogue.zip": "0ee61e86757833ff65d8ed6c34da1284fbe84b70c587a9c37da55a64a7ab96ce",
+    "pinball-1.4.88-1.4.89-1-0826-rogue-orochi-ex24-int32-fix.zip": "148ecfbfa10571d3aca29ecf66720b0560dffdcff9ce5697cd4d08b3d4e30d4c",
+    "pinball-1.4.89-1.4.90-1-0827-trio-ui-refresh.zip": "827d8550fe14400df26c5ff4fc2f3309b8a9cea15d6203d35b153dfb64529cba",
+    "pinball-1.4.90-1.4.91-1-0827-four-character-ui-centering.zip": "589d9a061d4d51067c338a4332025257f234fcac4fe87141a8fec66bbe14a401",
+    "pinball-1.4.91-1.4.92-1-0829-home-load-rank-p5b.zip": "d488827eb143e917dfea0c984cd95e5c86ff95a69b42a868a8cf877846170104",
+    "pinball-1.4.91-1.4.92-2-0829-home-load-rank-p5b.zip": "33868142fc355c932f6c5f41c74a73125b32657c041a89144a03461c9ecf45fc",
+    "pinball-1.4.91-1.4.92-3-58f49db214d9.zip": "58f49db214d910fd29226c0e0bc7f8140e6292dc0210d25b39081f9396ebfef7",
+    "pinball-1.4.91-1.4.92-4-0829-mod-balance-fold.zip": "4d2add7d191da41bb45d9a60005b830c675b92c356712be2f4b02bd733b9577c",
+    "pinball-1.4.92-1.4.93-1-0830-simoun-flock-reset-rollback.zip": "b5435249e11ab52e4d6ff38bab633ae13e318bef9c902336ee2329638d815ab2",
+    "pinball-1.4.92-1.4.93-2-0830-abyss-position-fix.zip": "76d87fd38af53c2c4b9b74318a39ddb4bbcea8f5e1059e27408f61480c8b5095",
+    "pinball-1.4.93-1.4.94-1-0830-awakened-balance-migration.zip": "f919a1094511eb2952b6a92f7fdd2930ea2d606a9244acc3d548ea3399b2a1b7",
+    "pinball-1.4.94-1.4.95-1-0831-mana-node-awake-board2.zip": "1059ae5af4f80478b0e15e5543d15afd97f96407c5fa6c0767e694b08c57e3ac",
+    "pinball-1.4.95-1.4.96-1-cdn-consolidated-gerald0903.zip": "6d3131f13747acfa640195c01c86e6e6e5037f6cc46eb8234eafbc96bda186cf",
+    "pinball-1.4.96-1.4.97-1-greyupd0902-cdn-resource-recovery.zip": "3150894f71aff238a4190730569edfa6e1a5a0c062b92e9fa8aa4b3e34073d4c",
+    "pinball-1.4.97-1.4.98-1-greyupd0902-abyss-item-icon-closure.zip": "9d286583480da7c856088a7328d4772d943c23fa9c9598b888c375b51ad0317c",
+    "pinball-1.4.98-1.4.99-1-siete-ui-restore.zip": "3a024838a67eecd8bc8a7cd853b50b45f1072dea3372fdaf8cf4b538ddad1d7b",
+    "pinball-1.4.98-1.4.99-2-siete-active-balance.zip": "05bd5107c71e0d0cc37092f47ceb1d7d422ae99193ee70de4c2646fc8b898fac",
+    "pinball-1.4.98-1.4.99-3-gacha-non-gacha-cleanup.zip": "adeb67bc1c5af46221c92ba3ca3e8a90471632dd90ead78ad9950f7a9e6a7ec3",
+    "pinball-1.4.99-1.4.100-1-abyss-exchange-shop-banners.zip": "8875fe6cdefc39b25dc0bd28905c988fe5b6cfc9877817f7fbd6a9fc64c86f12",
+    "pinball-1.4.99-1.4.100-2-rank-title-conditions.zip": "c96d1d2d59626c8facf17dceaa91753c24b37f7bbb139938967ae20bc25d02ee",
+    "pinball-1.4.100-1.4.101-1-shop-banner-png-encoding.zip": "840b45179ece41930a2a90fb47f83ab98dc84947d488811a81744c668a6b5cf8",
+    "pinball-1.4.101-1.4.102-1-lens0907-0908-consolidated.zip": "dc749fb2dc0f971fcfbae58c42d7a651979e2969cf2dcaaaacb77ee46270faab",
+    "pinball-1.4.102-1.4.103-1-lens0909-consolidated-cn.zip": "5167a391e4d2f659c1a523153f43fbe5e49a85a91081ddbcfc7f39c40e255d04",
+    "pinball-1.4.103-1.4.104-1-abyss-lens0910-entry-message-consolidated.zip": "bfdc008bbd59056354466603bba49f63bf4c1663bd2ee84d2c5ddc7d3f139c43",
+    "pinball-1.4.104-1.4.105-1-five-boss-ui-art.zip": "04f775c38a16c7e6646ea8c5df6bea93f5cd3f64ccc3653fd7f4b0fd32607959",
+    "pinball-1.4.104-1.4.105-2-gerald-portrait.zip": "57f0734e524faac79899f10624044b52bd4c2ede0c846ca3bf4e744e9d3536ec",
+    "pinball-1.4.104-1.4.105-3-how-to-get-sources.zip": "7d67de5fa0467bea639dc52cd2783fc55937496cb418608ae92c4c1d8d7ad625",
+    "pinball-1.4.104-1.4.105-4-kyubi-afterglow.zip": "7096b45412c7d07fce17074b55c15f405f85a3b477d14a799d96959ebcda3166",
+    "pinball-1.4.105-1.4.106-1-mech-item-sources.zip": "f25bccc0027d54b980462d78b792d86d015efabb568a76c207e6ba7debd3d9b2",
+    "pinball-1.4.105-1.4.106-2-deathbringer-core-icons.zip": "eeb310b65106cf8a3a827cd8bc5bc434ff95e91d939e1a01557f610cdae343b4",
+    "pinball-1.4.106-1.4.107-1-weapon-caps-practice-hp.zip": "9527476e7df4f01460f282907a3ec6ecb1beb9b55727b4fc171cd5061b88ff50",
+    "pinball-1.4.106-1.4.107-2-author858-selected.zip": "0bdd8b6482f516e4aa5cfc7473cefbb34a3d3ff6cde95306f0007bd9646d17ed",
+    "pinball-1.4.106-1.4.107-3-gacha-note-layout.zip": "2967f361d5c5b957f40e1613c00031c8534594ee4c3200a2687000c7dd2ffd28",
+    "pinball-1.4.107-1.4.108-1-reborn-character-degrees.zip": "99175068d87d22887b48cce0f06d61a9235c66f2c552bbdacccb6374a8dc0d10",
+    "pinball-1.4.107-1.4.108-2-epuration-gacha.zip": "51e148075ca1e166b661f99c7617921f473232eda1cb697e2ff28795059f7b33",
+    "pinball-1.4.107-1.4.108-3-campus-summon-g1008.zip": "5737d357d7f9e83ac0702df898ebd6eaf88a5878e24b885177ead42e9ba43911",
+    "pinball-1.4.108-1.4.109-1-author-update-fusion.zip": "406e74c36e2ee7a2b940a4dd48f5d721f57b6d8435bdbdd2b216aa46b080a980",
+    "pinball-1.4.108-1.4.109-2-c2265-character-speech.zip": "4e0c253a1ba7e461231182e0a729faee06362c13a3877ac1dc9c7973a9c99f9a",
+    "pinball-1.4.108-1.4.109-3-campus-skill-cutin.zip": "2b89ec0ffae5fac59a36d04c1226493a2f420a4dff3b6fe4d31cbe975a5948f2",
+    "pinball-1.4.109-1.4.110-1-seasonal-characters-degrees.zip": "80d526f0051c44f63bc59ee7402d9fa99c680af33dbfdb93abad67296de040e1",
+    "pinball-1.4.109-1.4.110-2-abyss-normal-ex-art.zip": "0e35f858bfc39875eb218fb2684e769455548c92ba037bdd2aa357d7d945237c",
+    "pinball-1.4.110-1.4.111-1-abyss-ui-rewards.zip": "124541f1f17a7a71c164635c2706391880261ea23f49a7c88ac3dcbf3d5d03fe",
+    "pinball-1.4.111-1.4.112-1-abyss-ex-reroll-rewards.zip": "62fba3a2ac5fb643376a26c51326b6b386c389f6bba92319c2ba2dd521309b3a"
+  },
+  "device_verified": false,
+  "cloud_deployed": false
+}

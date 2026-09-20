@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.insertPlayerDrawnQuestsSync = exports.getPlayerDrawnQuestsSync = exports.incrementPlayerQuestMultiClearSync = exports.updatePlayerQuestProgressSync = exports.insertPlayerQuestProgressListSync = exports.insertPlayerQuestProgressSync = exports.getPlayerQuestProgressBySectionAndIdsSync = exports.getPlayerSingleQuestProgressSync = exports.countFinishedPlayerQuestsSync = exports.countFinishedPlayerQuestsByCategorySync = exports.getPlayerQuestProgressSubsetSync = exports.getPlayerQuestProgressSync = void 0;
+const cached_statement_1 = require("../../lib/cached-statement");
 const db_1 = require("../db");
 const utils_1 = require("../utils");
 const abyss_time_revision_1 = require("./abyss-time-revision");
@@ -34,7 +35,7 @@ function buildPlayerQuestProgress(raw) {
  */
 function getPlayerQuestProgressSync(playerId) {
     (0, abyss_time_revision_1.refreshPlayerAbyssBestTimesSync)(playerId);
-    const rawProgress = (0, db_1.getDb)().prepare(`
+    const rawProgress = (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
     SELECT section, quest_id, finished, host_finished, unlocked, high_score, clear_rank, best_elapsed_time_ms, leader_character_id, multi_clear_count, s_plus_reward_received
     FROM players_quest_progress
     WHERE player_id = ?
@@ -77,7 +78,7 @@ function getPlayerQuestProgressSubsetSync(playerId, scope) {
         s_plus_reward_received`;
     if (sections.length > 0) {
         const placeholders = sections.map(() => "?").join(", ");
-        const found = (0, db_1.getDb)().prepare(`
+        const found = (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
             SELECT ${columns}
             FROM players_quest_progress
             WHERE player_id = ? AND section IN (${placeholders})
@@ -89,7 +90,7 @@ function getPlayerQuestProgressSubsetSync(playerId, scope) {
     for (let offset = 0; offset < storedQuestIds.length; offset += 400) {
         const chunk = storedQuestIds.slice(offset, offset + 400);
         const placeholders = chunk.map(() => "?").join(", ");
-        const found = (0, db_1.getDb)().prepare(`
+        const found = (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
             SELECT ${columns}
             FROM players_quest_progress
             WHERE player_id = ? AND quest_id IN (${placeholders})
@@ -106,7 +107,7 @@ function getPlayerQuestProgressSubsetSync(playerId, scope) {
 }
 exports.getPlayerQuestProgressSubsetSync = getPlayerQuestProgressSubsetSync;
 function countFinishedPlayerQuestsByCategorySync(playerId, category) {
-    const row = (0, db_1.getDb)().prepare(`
+    const row = (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
     SELECT COUNT(*) AS count
     FROM players_quest_progress
     WHERE player_id = ? AND section = ? AND finished = 1
@@ -116,7 +117,7 @@ function countFinishedPlayerQuestsByCategorySync(playerId, category) {
 }
 exports.countFinishedPlayerQuestsByCategorySync = countFinishedPlayerQuestsByCategorySync;
 function countFinishedPlayerQuestsSync(playerId) {
-    const row = (0, db_1.getDb)().prepare(`
+    const row = (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
     SELECT COUNT(*) AS count
     FROM players_quest_progress
     WHERE player_id = ? AND finished = 1
@@ -136,7 +137,7 @@ exports.countFinishedPlayerQuestsSync = countFinishedPlayerQuestsSync;
 function getPlayerSingleQuestProgressSync(playerId, section, questId) {
     if ((0, abyss_time_revision_2.isAbyssFiniteQuest)(section, questId))
         (0, abyss_time_revision_1.refreshPlayerAbyssBestTimesSync)(playerId);
-    const rawProgress = (0, db_1.getDb)().prepare(`
+    const rawProgress = (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
     SELECT section, quest_id, finished, host_finished, unlocked, high_score, clear_rank, best_elapsed_time_ms, leader_character_id, multi_clear_count, s_plus_reward_received
     FROM players_quest_progress
     WHERE player_id = ? AND section = ? AND quest_id = ?
@@ -157,7 +158,7 @@ function getPlayerQuestProgressBySectionAndIdsSync(playerId, section, questIds) 
     const result = [];
     for (let offset = 0; offset < ids.length; offset += 400) {
         const chunk = ids.slice(offset, offset + 400);
-        const rows = (0, db_1.getDb)().prepare(`
+        const rows = (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
             SELECT section, quest_id, finished, host_finished, unlocked, high_score, clear_rank,
                 best_elapsed_time_ms, leader_character_id, multi_clear_count, s_plus_reward_received
             FROM players_quest_progress
@@ -178,8 +179,8 @@ exports.getPlayerQuestProgressBySectionAndIdsSync = getPlayerQuestProgressBySect
 function insertPlayerQuestProgressSync(playerId, section, data) {
     var _a, _b, _c, _d, _e, _f, _g;
     const timeRevision = (0, abyss_time_revision_2.isAbyssFiniteQuest)(section, data.questId)
-        ? (0, abyss_time_revision_1.refreshPlayerAbyssBestTimesSync)(playerId) : null;
-    (0, db_1.getDb)().prepare(`
+        ? (0, abyss_time_revision_1.refreshPlayerAbyssBestTimesSync)(playerId, Math.floor(data.questId / 1000)) : null;
+    (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
     INSERT INTO players_quest_progress (section, quest_id, finished, host_finished, unlocked, high_score, clear_rank, best_elapsed_time_ms, leader_character_id, s_plus_reward_received, player_id, best_time_revision)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(Number(section), data.questId, (0, utils_1.serializeBoolean)(data.finished), (0, utils_1.serializeBoolean)((_a = data.hostFinished) !== null && _a !== void 0 ? _a : false), (0, utils_1.serializeBoolean)((_b = data.unlocked) !== null && _b !== void 0 ? _b : false), (_c = data.highScore) !== null && _c !== void 0 ? _c : null, (_d = data.clearRank) !== null && _d !== void 0 ? _d : null, (_e = data.bestElapsedTimeMs) !== null && _e !== void 0 ? _e : null, (_f = data.leaderCharacterId) !== null && _f !== void 0 ? _f : null, (0, utils_1.serializeBoolean)((_g = data.sPlusRewardReceived) !== null && _g !== void 0 ? _g : false), playerId, timeRevision);
@@ -237,7 +238,7 @@ function updatePlayerQuestProgressSync(playerId, section, data) {
         }
     }
     if (sets.length > 0)
-        (0, db_1.getDb)().prepare(`
+        (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
         UPDATE players_quest_progress
         SET ${sets.join(', ')}
         WHERE section = ? AND quest_id = ? AND player_id = ?
@@ -245,7 +246,7 @@ function updatePlayerQuestProgressSync(playerId, section, data) {
 }
 exports.updatePlayerQuestProgressSync = updatePlayerQuestProgressSync;
 function incrementPlayerQuestMultiClearSync(playerId, section, questId) {
-    (0, db_1.getDb)().prepare(`
+    (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
     UPDATE players_quest_progress
     SET multi_clear_count = multi_clear_count + 1
     WHERE player_id = ? AND section = ? AND quest_id = ?
@@ -265,7 +266,7 @@ exports.incrementPlayerQuestMultiClearSync = incrementPlayerQuestMultiClearSync;
  * @returns A list of the player's drawn quests.
  */
 function getPlayerDrawnQuestsSync(playerId) {
-    const rawQuests = (0, db_1.getDb)().prepare(`
+    const rawQuests = (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
     SELECT category_id, quest_id, odds_id
     FROM players_drawn_quests
     WHERE player_id = ?
@@ -286,7 +287,7 @@ exports.getPlayerDrawnQuestsSync = getPlayerDrawnQuestsSync;
  * @param drawnQuest The drawn quest to insert.
  */
 function insertPlayerDrawnQuestSync(playerId, drawnQuest) {
-    (0, db_1.getDb)().prepare(`
+    (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
     INSERT INTO players_drawn_quests (category_id, quest_id, odds_id, player_id)
     VALUES (?, ?, ?, ?)
     `).run(drawnQuest.categoryId, drawnQuest.questId, drawnQuest.oddsId, playerId);

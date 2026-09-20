@@ -3,24 +3,10 @@ import { PlayerCharacter, PlayerCharacterBondToken, PlayerCharacterExBoost, RawP
 import { deserializeBoolean, deserializeNumberList, serializeBoolean, serializeNumberList } from "../utils";
 import { getCharacterDataSync } from "../../lib/assets";
 import type { Statement } from "better-sqlite3";
+import { cachedStatement } from "../../lib/cached-statement";
 
-// Cache query plans per connection, never parameter values or player results.
-// These queries have bounded shapes: three statistic flags, one board query,
-// and favor batches of at most 400 ids.
-const characterMissionStatements = new WeakMap<ReturnType<typeof getDb>, Map<string, Statement>>()
 function prepareCharacterMissionQuery(sql: string): Statement {
-    const db = getDb()
-    let statements = characterMissionStatements.get(db)
-    if (!statements) {
-        statements = new Map()
-        characterMissionStatements.set(db, statements)
-    }
-    let statement = statements.get(sql)
-    if (!statement) {
-        statement = db.prepare(sql)
-        statements.set(sql, statement)
-    }
-    return statement
+    return cachedStatement(getDb(), sql)
 }
 
 /**
@@ -94,7 +80,7 @@ export function playerOwnsCharacterSync(
     playerId: number,
     characterId: number
 ): boolean {
-    return getDb().prepare(`
+    return cachedStatement(getDb(), `
     SELECT id
     FROM players_characters
     WHERE player_id = ? AND id = ?
@@ -113,7 +99,7 @@ export function getPlayerCharacterSync(
     characterId: number
 ): PlayerCharacter | null {
 
-    const rawCharacter = getDb().prepare(`
+    const rawCharacter = cachedStatement(getDb(), `
     SELECT id, entry_count, evolution_level, over_limit_step, protection,
         join_time, update_time, exp, stack, mana_board_index, ex_boost_status_id,
         ex_boost_ability_id_list, illustration_settings
@@ -124,7 +110,7 @@ export function getPlayerCharacterSync(
     if (rawCharacter === undefined) return null
 
     // get bond tokens
-    const rawBondTokens = getDb().prepare(`
+    const rawBondTokens = cachedStatement(getDb(), `
     SELECT mana_board_index, status, character_id
     FROM players_characters_bond_tokens
     WHERE player_id = ? AND character_id = ?
@@ -147,7 +133,7 @@ export function getPlayerCharactersSync(
     playerId: number
 ): Record<string, PlayerCharacter> {
 
-    const rawCharacters = getDb().prepare(`
+    const rawCharacters = cachedStatement(getDb(), `
     SELECT id, entry_count, evolution_level, over_limit_step, protection,
         join_time, update_time, exp, stack, mana_board_index, ex_boost_status_id,
         ex_boost_ability_id_list, illustration_settings
@@ -156,7 +142,7 @@ export function getPlayerCharactersSync(
     `).all(playerId) as RawPlayerCharacter[]
 
     // get bond tokens
-    const rawBondTokens = getDb().prepare(`
+    const rawBondTokens = cachedStatement(getDb(), `
     SELECT mana_board_index, status, character_id
     FROM players_characters_bond_tokens
     WHERE player_id = ?
@@ -200,14 +186,14 @@ export function getPlayerCharactersByIdsSync(
     if (ids.length === 0) return {}
 
     const placeholders = ids.map(() => "?").join(", ")
-    const rawCharacters = getDb().prepare(`
+    const rawCharacters = cachedStatement(getDb(), `
     SELECT id, entry_count, evolution_level, over_limit_step, protection,
         join_time, update_time, exp, stack, mana_board_index, ex_boost_status_id,
         ex_boost_ability_id_list, illustration_settings
     FROM players_characters
     WHERE player_id = ? AND id IN (${placeholders})
     `).all(playerId, ...ids) as RawPlayerCharacter[]
-    const rawBondTokens = getDb().prepare(`
+    const rawBondTokens = cachedStatement(getDb(), `
     SELECT mana_board_index, status, character_id
     FROM players_characters_bond_tokens
     WHERE player_id = ? AND character_id IN (${placeholders})
@@ -267,7 +253,7 @@ export function insertPlayerCharacterBondTokenSync(
     characterId: number | string,
     bondToken: PlayerCharacterBondToken
 ) {
-    getDb().prepare(`
+    cachedStatement(getDb(), `
     INSERT INTO players_characters_bond_tokens (mana_board_index, status, player_id, character_id)
     VALUES (?, ?, ?, ?)
     `).run(
@@ -290,7 +276,7 @@ export function updatePlayerCharacterBondTokenSync(
     characterId: number | string,
     bondToken: PlayerCharacterBondToken
 ) {
-    getDb().prepare(`
+    cachedStatement(getDb(), `
     UPDATE players_characters_bond_tokens
     SET status = ?
     WHERE player_id = ? AND character_id = ? AND mana_board_index = ?
@@ -315,7 +301,7 @@ export function insertPlayerCharacterSync(
     character: PlayerCharacter
 ) {
     // insert into characters table
-    getDb().prepare(`
+    cachedStatement(getDb(), `
     INSERT INTO players_characters (id, entry_count, evolution_level, over_limit_step,
         protection, join_time, update_time, exp, stack, mana_board_index, player_id,
         ex_boost_status_id, ex_boost_ability_id_list, illustration_settings)
@@ -463,7 +449,7 @@ export function updatePlayerCharacterSync(
         values.push(serializeNumberList(illustration_settings))
     }
 
-    if (sets.length > 0) getDb().prepare(`
+    if (sets.length > 0) cachedStatement(getDb(), `
         UPDATE players_characters
         SET ${sets.join(', ')}
         WHERE id = ? AND player_id = ?
@@ -480,7 +466,7 @@ export function getPlayerCharactersManaNodesSync(
     playerId: number
 ): Record<string, number[]> {
 
-    const rawNodes = getDb().prepare(`
+    const rawNodes = cachedStatement(getDb(), `
     SELECT value, character_id
     FROM players_characters_mana_nodes
     WHERE player_id = ?
@@ -577,7 +563,7 @@ export function getPlayerCharacterManaNodeAwakeLevelsSync(
     playerId: number,
     characterId: number,
 ): Record<number, number> {
-    const rows = getDb().prepare(`
+    const rows = cachedStatement(getDb(), `
         SELECT value, awake_level FROM players_characters_mana_nodes
         WHERE player_id = ? AND character_id = ?
     `).all(playerId, characterId) as { value: number; awake_level: number }[]
@@ -595,7 +581,7 @@ export function getPlayerCharactersManaNodesByIdsSync(
     if (ids.length === 0) return {}
 
     const placeholders = ids.map(() => "?").join(", ")
-    const rawNodes = getDb().prepare(`
+    const rawNodes = cachedStatement(getDb(), `
     SELECT value, character_id
     FROM players_characters_mana_nodes
     WHERE player_id = ? AND character_id IN (${placeholders})
@@ -621,7 +607,7 @@ export function getPlayerCharacterManaNodesSync(
     playerId: number,
     characterId: number
 ): number[] {
-    const rawNodes = getDb().prepare(`
+    const rawNodes = cachedStatement(getDb(), `
     SELECT value, character_id
     FROM players_characters_mana_nodes
     WHERE character_id = ? AND player_id = ?
@@ -643,7 +629,7 @@ export function hasPlayerUnlockedCharacterManaNodeSync(
     characterId: number,
     manaNodeId: string | number
 ): boolean {
-    return getDb().prepare(`
+    return cachedStatement(getDb(), `
     SELECT value
     FROM players_characters_mana_nodes
     WHERE player_id = ? AND character_id = ? AND value = ?
@@ -663,7 +649,7 @@ export function insertPlayerCharacterManaNodesSync(
     manaNodes: number[]
 ) {
     for (const node of manaNodes) {
-        getDb().prepare(`
+        cachedStatement(getDb(), `
         INSERT INTO players_characters_mana_nodes (value, character_id, player_id)
         VALUES (?, ?, ?)
         `).run(
@@ -700,7 +686,7 @@ export function insertPlayerCharactersManaNodesSync(
 export function getPlayerCharactersManaNodeAwakeLevelsSync(
     playerId: number
 ): Record<string, Record<number, number>> {
-    const rawNodes = getDb().prepare(`
+    const rawNodes = cachedStatement(getDb(), `
     SELECT value, character_id, awake_level
     FROM players_characters_mana_nodes
     WHERE player_id = ?
@@ -731,7 +717,7 @@ export function updatePlayerCharacterManaNodeAwakeLevelSync(
     manaNodeId: number,
     awakeLevel: number
 ) {
-    getDb().prepare(`
+    cachedStatement(getDb(), `
     UPDATE players_characters_mana_nodes
     SET awake_level = ?
     WHERE value = ? AND character_id = ? AND player_id = ?

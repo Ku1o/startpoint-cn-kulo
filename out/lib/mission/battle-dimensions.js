@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.recordBattleMissionDimensionsSafe = exports.recordBattleMissionDimensions = void 0;
 const db_1 = require("../../data/db");
 const character_degree_rewards_1 = require("../character-degree-rewards");
+const equipment_degree_rewards_1 = require("../equipment-degree-rewards");
 const race_utils_1 = require("../quest/finish/race-utils");
 const counters_1 = require("./counters");
 function add(playerId, query, amount = 1) {
@@ -243,6 +244,7 @@ function recordBattleMissionDimensions(event) {
     (0, db_1.getDb)().transaction(() => {
         recordBattleMissionDimensionWrites(event);
         (0, character_degree_rewards_1.grantPracticeCharacterDegreeRewardsSync)(event);
+        (0, equipment_degree_rewards_1.grantPracticeExclusiveDegreeRewardsSync)(event);
     })();
 }
 exports.recordBattleMissionDimensions = recordBattleMissionDimensions;

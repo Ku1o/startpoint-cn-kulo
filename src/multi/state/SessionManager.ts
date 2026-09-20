@@ -1,3 +1,4 @@
+import { routineGameLog } from "../../lib/routine-game-logging"
 // Multi battle session manager
 // Atomic indexing of room clients, battle clients and per-room state machines.
 // Protocol arrays follow typepacker useEnumIndex=true format (see sessionServer.ts).
@@ -12,6 +13,7 @@ import { clearChainDiagnosticRoom } from "../tcp/chain-diagnostic"
 import { embeddedMultiCoordinator } from "../coordinator/embedded"
 import { roomAdmissionRegistry } from "../room/admission"
 import { fiveBossConnectionDiagnostics } from "../five-boss/connection-diagnostic"
+import { registerMemoryCounters } from "../../lib/memory-diagnostics"
 
 export interface SessionClient {
     socket: net.Socket
@@ -61,6 +63,13 @@ interface BattleBarrierCycle {
 }
 
 export class SessionManager {
+    public memoryCounters(): Record<string, number> {
+        return { lobbyClients: this.clients.size, battleClients: this.cidToBattleClient.size,
+            lobbyRooms: this.roomClients.size, battleRooms: this.battleClients.size,
+            heartbeatTimers: this.battleHeartbeatTimers.size, returningTimers: this.settlementReturnTimers.size,
+            abandonedTimers: this.abandonedBattleTimers.size, supersededBuckets: this.supersededSocketBuckets.size,
+            blockedRestores: this.blockedRoomRestores.size, roomGenerations: this.roomConnectionGenerations.size }
+    }
     /** An account login replacement revokes both lobby and battle transports. */
     public disconnectPlayerLogin(viewerId: number): void {
         for (const client of Array.from(this.clients.values())) {
@@ -310,7 +319,7 @@ export class SessionManager {
         const signature = `${generation}:${expected}:${connected}:${ready}:${reason}`
         if (this.battleBarrierLogState.get(roomNumber) === signature) return
         this.battleBarrierLogState.set(roomNumber, signature)
-        console.log(`[MULTI-BARRIER] room=${roomNumber} generation=${generation}`
+        routineGameLog("multiBarrier", () => `[MULTI-BARRIER] room=${roomNumber} generation=${generation}`
             + ` expected=${expected} connected=${connected} ready=${ready} reason=${reason}`)
     }
 
@@ -1413,3 +1422,4 @@ export class SessionManager {
 }
 
 export const sessionManager = new SessionManager()
+registerMemoryCounters("sessions", () => sessionManager.memoryCounters())

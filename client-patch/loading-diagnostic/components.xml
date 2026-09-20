@@ -1,0 +1,22 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.leiting.wf">
+  <application>
+    <activity android:name="cn.startpoint.diagnostics.DiagnosticsActivity"
+        android:label="星点诊断日志" android:exported="true"
+        android:theme="@android:style/Theme.DeviceDefault.Light.NoActionBar"
+        android:taskAffinity="com.leiting.wf.loadingdiagnostics" android:excludeFromRecents="true">
+      <intent-filter>
+        <action android:name="android.intent.action.MAIN" />
+        <category android:name="android.intent.category.LAUNCHER" />
+      </intent-filter>
+      <intent-filter>
+        <action android:name="android.intent.action.VIEW" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <category android:name="android.intent.category.BROWSABLE" />
+        <data android:scheme="sp-loading-diag" android:host="report" />
+      </intent-filter>
+    </activity>
+    <provider android:name="cn.startpoint.diagnostics.DiagnosticProvider"
+        android:authorities="com.leiting.wf.loadingdiagnostics"
+        android:exported="false" android:grantUriPermissions="true" />
+  </application>
+</manifest>

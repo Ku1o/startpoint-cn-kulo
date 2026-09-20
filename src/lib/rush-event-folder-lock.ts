@@ -1,3 +1,5 @@
+import { isAbyssEvent } from "./abyss-modes";
+
 export const DEEP_ABYSS_RUSH_EVENT_ID = 700099;
 export const DEEP_ABYSS_RUSH_FOLDER_ID = 1;
 export const DEEP_ABYSS_ENDLESS_FOLDER_ID = 2;
@@ -14,7 +16,7 @@ export function classifyDeepAbyssFolderSelection(
     eventId: number,
     folderId: number,
 ): DeepAbyssFolderSelection {
-    if (eventId !== DEEP_ABYSS_RUSH_EVENT_ID) return "standard";
+    if (!isAbyssEvent(eventId)) return "standard";
     if (folderId === DEEP_ABYSS_RUSH_FOLDER_ID) return "standard";
     if (folderId === DEEP_ABYSS_ENDLESS_FOLDER_ID) return "endless_compat";
     return "invalid";
@@ -24,7 +26,7 @@ export function classifyDeepAbyssFolderSelection(
 export function classifyDeepAbyssFolderReset(
     eventId: number,
 ): DeepAbyssFolderReset {
-    return eventId === DEEP_ABYSS_RUSH_EVENT_ID
+    return isAbyssEvent(eventId)
         ? "restart_from_first"
         : "native";
 }
@@ -34,6 +36,6 @@ export function isStaleDeepAbyssEndlessFolderLock(
     eventId: number,
     activeFolderId: number | null,
 ): boolean {
-    return eventId === DEEP_ABYSS_RUSH_EVENT_ID
+    return isAbyssEvent(eventId)
         && activeFolderId === DEEP_ABYSS_ENDLESS_FOLDER_ID;
 }

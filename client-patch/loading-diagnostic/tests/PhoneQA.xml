@@ -1,0 +1,9 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="cn.startpoint.diagnosticqa" android:versionCode="1" android:versionName="1">
+  <uses-sdk android:minSdkVersion="21" android:targetSdkVersion="30" />
+  <application android:label="诊断导出测试（本机）" android:debuggable="true" android:theme="@android:style/Theme.DeviceDefault.Light.NoActionBar">
+    <activity android:name=".PhoneReceiver" android:exported="true">
+      <intent-filter><action android:name="android.intent.action.SEND" /><category android:name="android.intent.category.DEFAULT" /><data android:mimeType="application/zip" /></intent-filter>
+    </activity>
+  </application>
+  <instrumentation android:name=".PhoneProbe" android:targetPackage="com.leiting.wf" />
+</manifest>

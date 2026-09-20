@@ -6,7 +6,7 @@ const abyss_time_revision_1 = require("../../lib/abyss-time-revision");
 const activeAccount_1 = require("../activeAccount");
 /** Called inside the settlement transaction, never by save import or progress reads. */
 function recordAbyssFloorFinishSync(finish) {
-    const current = (0, abyss_time_revision_1.getAbyssTimeRevision)();
+    const current = (0, abyss_time_revision_1.getAbyssTimeRevision)(Math.floor(finish.questId / 1000));
     if (!(0, abyss_time_revision_1.isAbyssFiniteQuest)(finish.category, finish.questId) || !current || finish.revision !== current
         || !finish.accomplished || !finish.registered || !finish.matchingPlay || finish.isMulti
         || !Number.isSafeInteger(finish.viewerId) || finish.viewerId <= 0

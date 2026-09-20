@@ -1,3 +1,4 @@
+import { cachedStatement } from "../../lib/cached-statement"
 import { getDb } from "../db";
 import { PlayerQuestProgress, PlayerDrawnQuest, RawPlayerQuestProgress, RawPlayerDrawnQuest } from "../types";
 import { deserializeBoolean, serializeBoolean } from "../utils";
@@ -37,7 +38,7 @@ export function getPlayerQuestProgressSync(
     playerId: number
 ): Record<string, PlayerQuestProgress[]> {
     refreshPlayerAbyssBestTimesSync(playerId)
-    const rawProgress = getDb().prepare(`
+    const rawProgress = cachedStatement(getDb(), `
     SELECT section, quest_id, finished, host_finished, unlocked, high_score, clear_rank, best_elapsed_time_ms, leader_character_id, multi_clear_count, s_plus_reward_received
     FROM players_quest_progress
     WHERE player_id = ?
@@ -95,7 +96,7 @@ export function getPlayerQuestProgressSubsetSync(
 
     if (sections.length > 0) {
         const placeholders = sections.map(() => "?").join(", ")
-        const found = getDb().prepare(`
+        const found = cachedStatement(getDb(), `
             SELECT ${columns}
             FROM players_quest_progress
             WHERE player_id = ? AND section IN (${placeholders})
@@ -107,7 +108,7 @@ export function getPlayerQuestProgressSubsetSync(
     for (let offset = 0; offset < storedQuestIds.length; offset += 400) {
         const chunk = storedQuestIds.slice(offset, offset + 400)
         const placeholders = chunk.map(() => "?").join(", ")
-        const found = getDb().prepare(`
+        const found = cachedStatement(getDb(), `
             SELECT ${columns}
             FROM players_quest_progress
             WHERE player_id = ? AND quest_id IN (${placeholders})
@@ -127,7 +128,7 @@ export function countFinishedPlayerQuestsByCategorySync(
     playerId: number,
     category: number,
 ): number {
-    const row = getDb().prepare(`
+    const row = cachedStatement(getDb(), `
     SELECT COUNT(*) AS count
     FROM players_quest_progress
     WHERE player_id = ? AND section = ? AND finished = 1
@@ -137,7 +138,7 @@ export function countFinishedPlayerQuestsByCategorySync(
 }
 
 export function countFinishedPlayerQuestsSync(playerId: number): number {
-    const row = getDb().prepare(`
+    const row = cachedStatement(getDb(), `
     SELECT COUNT(*) AS count
     FROM players_quest_progress
     WHERE player_id = ? AND finished = 1
@@ -160,7 +161,7 @@ export function getPlayerSingleQuestProgressSync(
     questId: number | string
 ): PlayerQuestProgress | null {
     if (isAbyssFiniteQuest(section, questId)) refreshPlayerAbyssBestTimesSync(playerId)
-    const rawProgress = getDb().prepare(`
+    const rawProgress = cachedStatement(getDb(), `
     SELECT section, quest_id, finished, host_finished, unlocked, high_score, clear_rank, best_elapsed_time_ms, leader_character_id, multi_clear_count, s_plus_reward_received
     FROM players_quest_progress
     WHERE player_id = ? AND section = ? AND quest_id = ?
@@ -184,7 +185,7 @@ export function getPlayerQuestProgressBySectionAndIdsSync(
     const result: PlayerQuestProgress[] = []
     for (let offset = 0; offset < ids.length; offset += 400) {
         const chunk = ids.slice(offset, offset + 400)
-        const rows = getDb().prepare(`
+        const rows = cachedStatement(getDb(), `
             SELECT section, quest_id, finished, host_finished, unlocked, high_score, clear_rank,
                 best_elapsed_time_ms, leader_character_id, multi_clear_count, s_plus_reward_received
             FROM players_quest_progress
@@ -208,8 +209,8 @@ export function insertPlayerQuestProgressSync(
     data: PlayerQuestProgress
 ) {
     const timeRevision = isAbyssFiniteQuest(section, data.questId)
-        ? refreshPlayerAbyssBestTimesSync(playerId) : null
-    getDb().prepare(`
+        ? refreshPlayerAbyssBestTimesSync(playerId, Math.floor(data.questId / 1000)) : null
+    cachedStatement(getDb(), `
     INSERT INTO players_quest_progress (section, quest_id, finished, host_finished, unlocked, high_score, clear_rank, best_elapsed_time_ms, leader_character_id, s_plus_reward_received, player_id, best_time_revision)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
@@ -286,7 +287,7 @@ export function updatePlayerQuestProgressSync(
         }
     }
 
-    if (sets.length > 0) getDb().prepare(`
+    if (sets.length > 0) cachedStatement(getDb(), `
         UPDATE players_quest_progress
         SET ${sets.join(', ')}
         WHERE section = ? AND quest_id = ? AND player_id = ?
@@ -298,7 +299,7 @@ export function incrementPlayerQuestMultiClearSync(
     section: number | string,
     questId: number | string,
 ): void {
-    getDb().prepare(`
+    cachedStatement(getDb(), `
     UPDATE players_quest_progress
     SET multi_clear_count = multi_clear_count + 1
     WHERE player_id = ? AND section = ? AND quest_id = ?
@@ -320,7 +321,7 @@ export function incrementPlayerQuestMultiClearSync(
 export function getPlayerDrawnQuestsSync(
     playerId: number
 ): PlayerDrawnQuest[] {
-    const rawQuests = getDb().prepare(`
+    const rawQuests = cachedStatement(getDb(), `
     SELECT category_id, quest_id, odds_id
     FROM players_drawn_quests
     WHERE player_id = ?
@@ -345,7 +346,7 @@ function insertPlayerDrawnQuestSync(
     playerId: number,
     drawnQuest: PlayerDrawnQuest
 ) {
-    getDb().prepare(`
+    cachedStatement(getDb(), `
     INSERT INTO players_drawn_quests (category_id, quest_id, odds_id, player_id)
     VALUES (?, ?, ?, ?)
     `).run(

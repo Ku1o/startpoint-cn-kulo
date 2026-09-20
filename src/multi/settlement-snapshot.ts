@@ -1,4 +1,6 @@
+import { routineGameLog } from "../lib/routine-game-logging"
 import type { ActiveQuest } from "../routes/api/singleBattleQuest"
+import { registerMemoryCounters } from "../lib/memory-diagnostics"
 
 export type MultiBattleLifecycle = "BATTLE" | "SETTLING" | "RETURN_PENDING" | "LOBBY"
 
@@ -27,6 +29,7 @@ export interface MultiSettlementSnapshot {
 }
 
 const snapshots = new Map<string, MultiSettlementSnapshot>()
+registerMemoryCounters("battleSnapshots", () => ({ entries: snapshots.size }))
 const LIFECYCLE_RANK: Record<MultiBattleLifecycle, number> = {
     BATTLE: 0,
     SETTLING: 1,
@@ -75,7 +78,7 @@ export function registerMultiSettlementSnapshot(input: Omit<MultiSettlementSnaps
         expiresAt: now + START_TTL_MS,
     }
     snapshots.set(key(snapshot.playerId, snapshot.playId), snapshot)
-    console.log(`[MULTI-SETTLEMENT] instance=${snapshot.battleInstanceId} player=${snapshot.playerId} state=BATTLE`)
+    routineGameLog("multiSettlement", () => `[MULTI-SETTLEMENT] instance=${snapshot.battleInstanceId} player=${snapshot.playerId} state=BATTLE`)
     return snapshot
 }
 
@@ -98,7 +101,7 @@ export function transitionMultiSettlementSnapshot(
     }
     if (snapshot.lifecycle !== lifecycle) {
         snapshot.lifecycle = lifecycle
-        console.log(`[MULTI-SETTLEMENT] instance=${snapshot.battleInstanceId} player=${playerId} state=${lifecycle}`)
+        routineGameLog("multiSettlement", () => `[MULTI-SETTLEMENT] instance=${snapshot.battleInstanceId} player=${playerId} state=${lifecycle}`)
     }
     if (lifecycle === "RETURN_PENDING" || lifecycle === "LOBBY") {
         snapshot.expiresAt = Date.now() + COMPLETED_TTL_MS
@@ -123,7 +126,7 @@ export function transitionRoomSettlementSnapshots(
         }
         if (snapshot.lifecycle !== lifecycle) {
             snapshot.lifecycle = lifecycle
-            console.log(`[MULTI-SETTLEMENT] instance=${snapshot.battleInstanceId} player=${snapshot.playerId} state=${lifecycle}`)
+            routineGameLog("multiSettlement", () => `[MULTI-SETTLEMENT] instance=${snapshot.battleInstanceId} player=${snapshot.playerId} state=${lifecycle}`)
             transitioned += 1
         }
         if (lifecycle === "RETURN_PENDING" || lifecycle === "LOBBY") {

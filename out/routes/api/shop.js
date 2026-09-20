@@ -36,6 +36,8 @@ const mission_2 = require("../../lib/mission");
 const counters_1 = require("../../lib/mission/counters");
 const free_first_deduction_1 = require("../../lib/free-first-deduction");
 const shop_sales_1 = require("../../lib/shop-sales");
+const equipment_degree_rewards_1 = require("../../lib/equipment-degree-rewards");
+const abyss_shop_degree_reward_1 = require("../../lib/abyss-shop-degree-reward");
 const GENERAL_SHOP_CDN_KEYS = new Set(cdn_general_shop_whitelist_json_1.default);
 function recordTreasureShopProgress(playerId, shopType, purchaseCount, manaSpent) {
     if (shopType !== types_1.ShopType.TREASURE)
@@ -472,10 +474,12 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         // Equipment enhancement shop: update equipment enhancement level
         if (enhancementPurchase !== null) {
             const { equipmentId, newLevel, grantedLevelCount } = enhancementPurchase;
+            let equipmentDegreeIds = [];
             (0, db_1.getDb)().transaction(() => {
                 applyPurchaseCosts();
                 (0, equipment_1.updatePlayerEquipmentSync)(playerId, equipmentId, { enhancementLevel: newLevel });
                 addEffectiveShopPurchaseCountSync(playerId, shopType, shopItemId, chargedPurchaseAmount);
+                equipmentDegreeIds = (0, equipment_degree_rewards_1.grantEquipmentDegreeRewardsSync)(playerId, [equipmentId]);
             })();
             const currentEquipment = (0, equipment_1.getPlayerEquipmentSync)(playerId, equipmentId);
             (0, game_logging_1.gameVerboseLog)(() => `[shop:enhancement-benefit] player=${playerId} equipment=${equipmentId} ` +
@@ -495,6 +499,10 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                     },
                     "character_list": [],
                     "equipment_list": [(0, equipment_2.clientSerializeEquipment)(equipmentId, currentEquipment)],
+                    "degree_list": equipmentDegreeIds.map(degreeId => ({
+                        viewer_id: viewerId,
+                        degree_id: degreeId,
+                    })),
                     "item_list": itemList,
                     "mail_arrived": false
                 }
@@ -569,6 +577,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 }
             }
             addEffectiveShopPurchaseCountSync(playerId, shopType, shopItemId, purchaseAmount);
+            degreeIds.push(...(0, abyss_shop_degree_reward_1.grantPurchasedAbyssShopDegreeRewardSync)(playerId, shopType, [{ shopItemId }]));
             return result;
         })();
         recordTreasureShopProgress(playerId, shopType, purchaseAmount, manaSpent);
@@ -1082,6 +1091,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                     for (const purchase of purchases) {
                         addEffectiveShopPurchaseCountSync(playerId, shopType, purchase.shopItemId, purchase.purchaseAmount);
                     }
+                    degreeIds.push(...(0, abyss_shop_degree_reward_1.grantPurchasedAbyssShopDegreeRewardSync)(playerId, shopType, purchases));
                     recordTreasureShopProgress(playerId, shopType, purchases.reduce((total, purchase) => total + purchase.purchaseAmount, 0), manaCost);
                     return result;
                 })();

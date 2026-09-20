@@ -1,0 +1,16 @@
+{
+  "schema_version": 2,
+  "enabled": true,
+  "modes": [
+    {
+      "mode": "normal",
+      "event_id": 700099,
+      "folder_id": 1
+    },
+    {
+      "mode": "ex",
+      "event_id": 700100,
+      "folder_id": 1
+    }
+  ]
+}

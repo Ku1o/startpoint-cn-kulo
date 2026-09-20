@@ -6,6 +6,16 @@
           "type": 0,
           "id": 999014,
           "count": 1,
+          "chance": 0.07
+        }
+      ]
+    },
+    "700100": {
+      "folder_clear_chance": [
+        {
+          "type": 0,
+          "id": 999014,
+          "count": 2,
           "chance": 0.1
         }
       ]

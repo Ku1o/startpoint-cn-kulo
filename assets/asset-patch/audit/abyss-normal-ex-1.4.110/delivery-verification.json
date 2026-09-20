@@ -1,0 +1,26 @@
+{
+  "status": "passed",
+  "platforms": {
+    "android": {
+      "parts": [
+        "pinball-1.4.109-1.4.110-1-seasonal-characters-degrees.zip",
+        "pinball-1.4.109-1.4.110-2-abyss-normal-ex-art.zip"
+      ],
+      "bytes": 84776953,
+      "already_current_has_no_update": true
+    },
+    "ios": {
+      "parts": [
+        "pinball-1.4.109-1.4.110-1-seasonal-characters-degrees.zip",
+        "pinball-1.4.109-1.4.110-2-abyss-normal-ex-art.zip"
+      ],
+      "bytes": 84776953,
+      "already_current_has_no_update": true
+    }
+  },
+  "actual_asset_handlers": true,
+  "listener_started": false,
+  "player_database_accessed": false,
+  "runtime_synced": false,
+  "device_tested": false
+}

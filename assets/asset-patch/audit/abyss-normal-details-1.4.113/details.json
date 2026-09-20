@@ -1,0 +1,1220 @@
+{
+  "resources": {
+    "battle/action/enemy/action/mod_rogue/immunity_description_53efc8d5d2df9f6c$.action.dsl.amf3.deflate": "53efc8d5d2df9f6c2095edc6c82fea6f176da2fb2ddeb65828993f26b07e13bc",
+    "battle/action/enemy/action/mod_rogue/immunity_description_231b8a7d580b523e$.action.dsl.amf3.deflate": "231b8a7d580b523ec418b633d15e643244ae6c2917cc1f3488fc9dd3d23f2d5e",
+    "battle/action/enemy/action/mod_rogue/immunity_description_cdbb168576b9a453$.action.dsl.amf3.deflate": "cdbb168576b9a453ca8c5091abdc5ea769604f951694389be27692b6d0da3c92",
+    "master/quest/event/rush_event_quest.orderedmap": "cdb76b395d0b2c8c7b6e7d14ebeff99087ce71f4ca6361cc5c667125dacfc4c8",
+    "master/battle/boss/general_boss.orderedmap": "e43788727d4ef345a59d844a327b706398db2bf8119c7e492e4de711627a9e8c"
+  },
+  "rows": [
+    {
+      "floor": 3,
+      "block": "【属性伤害：火=50%;水=50%;雷=50%;风=50%】",
+      "carriers": [
+        {
+          "code": "mod_rogue_boss3",
+          "level": "100",
+          "strengths": {
+            "1": 1.0,
+            "2": 1.0,
+            "3": 1.0,
+            "4": 1.0
+          },
+          "programs": {
+            "battle/action/enemy/action/mod_rogue/immunity_186f6403c3d8": null
+          }
+        }
+      ]
+    },
+    {
+      "floor": 4,
+      "block": "【属性伤害：水=50%;雷=50%;光=50%;暗=50%】",
+      "carriers": [
+        {
+          "code": "mod_rogue_boss4",
+          "level": "100",
+          "strengths": {
+            "2": 1.0,
+            "3": 1.0,
+            "5": 1.0,
+            "6": 1.0
+          },
+          "programs": {
+            "battle/action/enemy/action/mod_rogue/immunity_0ecd91d18157": null
+          }
+        }
+      ]
+    },
+    {
+      "floor": 8,
+      "block": "【属性伤害：水=50%】",
+      "carriers": [
+        {
+          "code": "mod_rogue_boss8",
+          "level": "100",
+          "strengths": {
+            "2": 1.0
+          },
+          "programs": {
+            "battle/action/enemy/action/mod_rogue/immunity_cfa672fc88b1": null
+          }
+        }
+      ]
+    },
+    {
+      "floor": 9,
+      "block": "【属性伤害：火=50%】",
+      "carriers": [
+        {
+          "code": "mod_rogue_boss9",
+          "level": "80",
+          "strengths": {
+            "1": 1.0
+          },
+          "programs": {
+            "battle/action/enemy/action/mod_rogue/immunity_7b344cde920b": null
+          }
+        }
+      ]
+    },
+    {
+      "floor": 12,
+      "block": "【属性伤害：火=10%;风=10%;暗=10%】",
+      "carriers": [
+        {
+          "code": "mod_rogue_boss12",
+          "level": "100",
+          "strengths": {
+            "1": 9.0,
+            "4": 9.0,
+            "6": 9.0
+          },
+          "programs": {
+            "battle/action/enemy/action/mod_rogue/immunity_1e66ec7a4e0b": null
+          }
+        }
+      ]
+    },
+    {
+      "floor": 13,
+      "block": "【属性伤害：火=10%;水=10%;暗=10%】",
+      "carriers": [
+        {
+          "code": "mod_rogue_boss13",
+          "level": "100",
+          "strengths": {
+            "1": 9.0,
+            "2": 9.0,
+            "6": 9.0
+          },
+          "programs": {
+            "battle/action/enemy/action/mod_rogue/immunity_81a950f845ef": null
+          }
+        }
+      ]
+    },
+    {
+      "floor": 14,
+      "block": "【属性伤害：火=10%;水=10%;风=10%;光=10%;暗=50%】",
+      "carriers": [
+        {
+          "code": "mod_rogue_boss14",
+          "level": "79",
+          "strengths": {
+            "1": 9.0,
+            "2": 9.0,
+            "4": 9.0,
+            "5": 9.0,
+            "6": 1.0
+          },
+          "programs": {
+            "battle/action/enemy/action/mod_rogue/immunity_183a000855f4": null
+          }
+        }
+      ]
+    },
+    {
+      "floor": 15,
+      "block": "【属性伤害：雷=50%】",
+      "carriers": [
+        {
+          "code": "mod_rogue_boss15",
+          "level": "100",
+          "strengths": {
+            "3": 1.0
+          },
+          "programs": {
+            "battle/action/enemy/action/mod_rogue/immunity_871feefd4043": null
+          }
+        }
+      ]
+    },
+    {
+      "floor": 17,
+      "block": "【属性伤害：火=10%;水=10%;雷=10%】",
+      "carriers": [
+        {
+          "code": "mod_rogue_boss17",
+          "level": "100",
+          "strengths": {
+            "1": 9.0,
+            "2": 9.0,
+            "3": 9.0
+          },
+          "programs": {
+            "battle/action/enemy/action/mod_rogue/immunity_6f26145437ef": null
+          }
+        }
+      ]
+    },
+    {
+      "floor": 18,
+      "block": "【属性伤害：火=10%;雷=10%;暗=10%】",
+      "carriers": [
+        {
+          "code": "mod_rogue_boss18",
+          "level": "100",
+          "strengths": {
+            "1": 9.0,
+            "3": 9.0,
+            "6": 9.0
+          },
+          "programs": {
+            "battle/action/enemy/action/mod_rogue/immunity_9819c79527cd": "battle/action/enemy/action/mod_rogue/immunity_description_53efc8d5d2df9f6c$"
+          }
+        }
+      ]
+    },
+    {
+      "floor": 19,
+      "block": "【属性伤害：水=10%;雷=1%;光=50%】",
+      "carriers": [
+        {
+          "code": "mod_rogue_boss19",
+          "level": "100",
+          "strengths": {
+            "2": 9.0,
+            "3": 99.0,
+            "5": 1.0
+          },
+          "programs": {
+            "battle/action/enemy/action/mod_rogue/immunity_781bd5ec237b": null
+          }
+        }
+      ]
+    },
+    {
+      "floor": 20,
+      "block": "【属性伤害：雷=50%;光=10%;暗=1%】",
+      "carriers": [
+        {
+          "code": "mod_rogue_boss20",
+          "level": "100",
+          "strengths": {
+            "3": 1.0,
+            "5": 9.0,
+            "6": 99.0
+          },
+          "programs": {
+            "battle/action/enemy/action/mod_rogue/immunity_54d482a7ba43": null
+          }
+        }
+      ]
+    },
+    {
+      "floor": 21,
+      "block": "【属性伤害：火=10%;水=10%;雷=10%】",
+      "carriers": [
+        {
+          "code": "mod_rogue_boss21",
+          "level": "100",
+          "strengths": {
+            "1": 9.0,
+            "2": 9.0,
+            "3": 9.0
+          },
+          "programs": {
+            "battle/action/enemy/action/mod_rogue/immunity_6f26145437ef": null
+          }
+        }
+      ]
+    },
+    {
+      "floor": 27,
+      "block": "【属性伤害：水=1%】",
+      "carriers": [
+        {
+          "code": "mod_rogue_boss27",
+          "level": "100",
+          "strengths": {
+            "2": 99.0
+          },
+          "programs": {
+            "battle/action/enemy/action/mod_rogue/immunity_b2a4f18c15b9": "battle/action/enemy/action/mod_rogue/immunity_description_231b8a7d580b523e$"
+          }
+        }
+      ]
+    },
+    {
+      "floor": 30,
+      "block": "【属性伤害：火=1%;水=1%;暗=50%】",
+      "carriers": [
+        {
+          "code": "mod_rogue_boss30",
+          "level": "100",
+          "strengths": {
+            "1": 99.0,
+            "2": 99.0,
+            "6": 1.0
+          },
+          "programs": {
+            "battle/action/enemy/action/mod_rogue/immunity_d9adf73d1447": "battle/action/enemy/action/mod_rogue/immunity_description_cdbb168576b9a453$"
+          }
+        }
+      ]
+    }
+  ],
+  "program_rewrites": {
+    "battle/action/enemy/action/mod_rogue/immunity_186f6403c3d8": {
+      "replacement": null,
+      "removed_elements": [
+        [
+          "ACToleranceOfElement",
+          [
+            {
+              "min": 999999,
+              "max": 999999
+            }
+          ],
+          1,
+          [
+            {
+              "min": 1.0,
+              "max": 1.0
+            }
+          ],
+          [
+            {
+              "min": 1,
+              "max": 1
+            }
+          ]
+        ],
+        [
+          "ACToleranceOfElement",
+          [
+            {
+              "min": 999999,
+              "max": 999999
+            }
+          ],
+          2,
+          [
+            {
+              "min": 1.0,
+              "max": 1.0
+            }
+          ],
+          [
+            {
+              "min": 1,
+              "max": 1
+            }
+          ]
+        ],
+        [
+          "ACToleranceOfElement",
+          [
+            {
+              "min": 999999,
+              "max": 999999
+            }
+          ],
+          3,
+          [
+            {
+              "min": 1.0,
+              "max": 1.0
+            }
+          ],
+          [
+            {
+              "min": 1,
+              "max": 1
+            }
+          ]
+        ],
+        [
+          "ACToleranceOfElement",
+          [
+            {
+              "min": 999999,
+              "max": 999999
+            }
+          ],
+          4,
+          [
+            {
+              "min": 1.0,
+              "max": 1.0
+            }
+          ],
+          [
+            {
+              "min": 1,
+              "max": 1
+            }
+          ]
+        ]
+      ],
+      "original_sha256": "be8141474b3cddab156e55f1db721724f3ea1d3f6665f5f1dfed28302553a115"
+    },
+    "battle/action/enemy/action/mod_rogue/immunity_0ecd91d18157": {
+      "replacement": null,
+      "removed_elements": [
+        [
+          "ACToleranceOfElement",
+          [
+            {
+              "min": 999999,
+              "max": 999999
+            }
+          ],
+          2,
+          [
+            {
+              "min": 1.0,
+              "max": 1.0
+            }
+          ],
+          [
+            {
+              "min": 1,
+              "max": 1
+            }
+          ]
+        ],
+        [
+          "ACToleranceOfElement",
+          [
+            {
+              "min": 999999,
+              "max": 999999
+            }
+          ],
+          3,
+          [
+            {
+              "min": 1.0,
+              "max": 1.0
+            }
+          ],
+          [
+            {
+              "min": 1,
+              "max": 1
+            }
+          ]
+        ],
+        [
+          "ACToleranceOfElement",
+          [
+            {
+              "min": 999999,
+              "max": 999999
+            }
+          ],
+          5,
+          [
+            {
+              "min": 1.0,
+              "max": 1.0
+            }
+          ],
+          [
+            {
+              "min": 1,
+              "max": 1
+            }
+          ]
+        ],
+        [
+          "ACToleranceOfElement",
+          [
+            {
+              "min": 999999,
+              "max": 999999
+            }
+          ],
+          6,
+          [
+            {
+              "min": 1.0,
+              "max": 1.0
+            }
+          ],
+          [
+            {
+              "min": 1,
+              "max": 1
+            }
+          ]
+        ]
+      ],
+      "original_sha256": "d6042bb7bb401249f39c83bde4d9d3d7993ed105d02fc33c73889852bc11b034"
+    },
+    "battle/action/enemy/action/mod_rogue/immunity_cfa672fc88b1": {
+      "replacement": null,
+      "removed_elements": [
+        [
+          "ACToleranceOfElement",
+          [
+            {
+              "min": 999999,
+              "max": 999999
+            }
+          ],
+          2,
+          [
+            {
+              "min": 1.0,
+              "max": 1.0
+            }
+          ],
+          [
+            {
+              "min": 1,
+              "max": 1
+            }
+          ]
+        ]
+      ],
+      "original_sha256": "7ad0714ed4f204a55ac7350c98731621693bf038fe59d29eed4de9782cd5c5aa"
+    },
+    "battle/action/enemy/action/mod_rogue/immunity_7b344cde920b": {
+      "replacement": null,
+      "removed_elements": [
+        [
+          "ACToleranceOfElement",
+          [
+            {
+              "min": 999999,
+              "max": 999999
+            }
+          ],
+          1,
+          [
+            {
+              "min": 1.0,
+              "max": 1.0
+            }
+          ],
+          [
+            {
+              "min": 1,
+              "max": 1
+            }
+          ]
+        ]
+      ],
+      "original_sha256": "58f04cbea7faa367b5cd13a395a364bd9138fb5bb018d95a07b4ced372def943"
+    },
+    "battle/action/enemy/action/mod_rogue/immunity_1e66ec7a4e0b": {
+      "replacement": null,
+      "removed_elements": [
+        [
+          "ACToleranceOfElement",
+          [
+            {
+              "min": 999999,
+              "max": 999999
+            }
+          ],
+          1,
+          [
+            {
+              "min": 9.0,
+              "max": 9.0
+            }
+          ],
+          [
+            {
+              "min": 1,
+              "max": 1
+            }
+          ]
+        ],
+        [
+          "ACToleranceOfElement",
+          [
+            {
+              "min": 999999,
+              "max": 999999
+            }
+          ],
+          4,
+          [
+            {
+              "min": 9.0,
+              "max": 9.0
+            }
+          ],
+          [
+            {
+              "min": 1,
+              "max": 1
+            }
+          ]
+        ],
+        [
+          "ACToleranceOfElement",
+          [
+            {
+              "min": 999999,
+              "max": 999999
+            }
+          ],
+          6,
+          [
+            {
+              "min": 9.0,
+              "max": 9.0
+            }
+          ],
+          [
+            {
+              "min": 1,
+              "max": 1
+            }
+          ]
+        ]
+      ],
+      "original_sha256": "f353a8df1677392f7d357318ca865e423be620efa8440756e6d78396e2bb44ed"
+    },
+    "battle/action/enemy/action/mod_rogue/immunity_81a950f845ef": {
+      "replacement": null,
+      "removed_elements": [
+        [
+          "ACToleranceOfElement",
+          [
+            {
+              "min": 999999,
+              "max": 999999
+            }
+          ],
+          1,
+          [
+            {
+              "min": 9.0,
+              "max": 9.0
+            }
+          ],
+          [
+            {
+              "min": 1,
+              "max": 1
+            }
+          ]
+        ],
+        [
+          "ACToleranceOfElement",
+          [
+            {
+              "min": 999999,
+              "max": 999999
+            }
+          ],
+          2,
+          [
+            {
+              "min": 9.0,
+              "max": 9.0
+            }
+          ],
+          [
+            {
+              "min": 1,
+              "max": 1
+            }
+          ]
+        ],
+        [
+          "ACToleranceOfElement",
+          [
+            {
+              "min": 999999,
+              "max": 999999
+            }
+          ],
+          6,
+          [
+            {
+              "min": 9.0,
+              "max": 9.0
+            }
+          ],
+          [
+            {
+              "min": 1,
+              "max": 1
+            }
+          ]
+        ]
+      ],
+      "original_sha256": "d02c457c4a548c8eb016e58819d803178ba71821ef5fa7f0a9623d73e40d3bd5"
+    },
+    "battle/action/enemy/action/mod_rogue/immunity_183a000855f4": {
+      "replacement": null,
+      "removed_elements": [
+        [
+          "ACToleranceOfElement",
+          [
+            {
+              "min": 999999,
+              "max": 999999
+            }
+          ],
+          1,
+          [
+            {
+              "min": 9.0,
+              "max": 9.0
+            }
+          ],
+          [
+            {
+              "min": 1,
+              "max": 1
+            }
+          ]
+        ],
+        [
+          "ACToleranceOfElement",
+          [
+            {
+              "min": 999999,
+              "max": 999999
+            }
+          ],
+          2,
+          [
+            {
+              "min": 9.0,
+              "max": 9.0
+            }
+          ],
+          [
+            {
+              "min": 1,
+              "max": 1
+            }
+          ]
+        ],
+        [
+          "ACToleranceOfElement",
+          [
+            {
+              "min": 999999,
+              "max": 999999
+            }
+          ],
+          4,
+          [
+            {
+              "min": 9.0,
+              "max": 9.0
+            }
+          ],
+          [
+            {
+              "min": 1,
+              "max": 1
+            }
+          ]
+        ],
+        [
+          "ACToleranceOfElement",
+          [
+            {
+              "min": 999999,
+              "max": 999999
+            }
+          ],
+          5,
+          [
+            {
+              "min": 9.0,
+              "max": 9.0
+            }
+          ],
+          [
+            {
+              "min": 1,
+              "max": 1
+            }
+          ]
+        ],
+        [
+          "ACToleranceOfElement",
+          [
+            {
+              "min": 999999,
+              "max": 999999
+            }
+          ],
+          6,
+          [
+            {
+              "min": 1.0,
+              "max": 1.0
+            }
+          ],
+          [
+            {
+              "min": 1,
+              "max": 1
+            }
+          ]
+        ]
+      ],
+      "original_sha256": "e209181fdca809123e3a92f57f2942bc70c55fac11e89191c0bfa0e0966c4109"
+    },
+    "battle/action/enemy/action/mod_rogue/immunity_871feefd4043": {
+      "replacement": null,
+      "removed_elements": [
+        [
+          "ACToleranceOfElement",
+          [
+            {
+              "min": 999999,
+              "max": 999999
+            }
+          ],
+          3,
+          [
+            {
+              "min": 1.0,
+              "max": 1.0
+            }
+          ],
+          [
+            {
+              "min": 1,
+              "max": 1
+            }
+          ]
+        ]
+      ],
+      "original_sha256": "ae6c4d37f5b677872c4d32c450c5ceb9fa469f300bf33370e8160a5caec128f7"
+    },
+    "battle/action/enemy/action/mod_rogue/immunity_6f26145437ef": {
+      "replacement": null,
+      "removed_elements": [
+        [
+          "ACToleranceOfElement",
+          [
+            {
+              "min": 999999,
+              "max": 999999
+            }
+          ],
+          1,
+          [
+            {
+              "min": 9.0,
+              "max": 9.0
+            }
+          ],
+          [
+            {
+              "min": 1,
+              "max": 1
+            }
+          ]
+        ],
+        [
+          "ACToleranceOfElement",
+          [
+            {
+              "min": 999999,
+              "max": 999999
+            }
+          ],
+          2,
+          [
+            {
+              "min": 9.0,
+              "max": 9.0
+            }
+          ],
+          [
+            {
+              "min": 1,
+              "max": 1
+            }
+          ]
+        ],
+        [
+          "ACToleranceOfElement",
+          [
+            {
+              "min": 999999,
+              "max": 999999
+            }
+          ],
+          3,
+          [
+            {
+              "min": 9.0,
+              "max": 9.0
+            }
+          ],
+          [
+            {
+              "min": 1,
+              "max": 1
+            }
+          ]
+        ]
+      ],
+      "original_sha256": "87f84a20c4312ed1dbd5ba4d25fea5d59bb33eee9d67b48338d6ec3c43f8e8a6"
+    },
+    "battle/action/enemy/action/mod_rogue/immunity_9819c79527cd": {
+      "replacement": "battle/action/enemy/action/mod_rogue/immunity_description_53efc8d5d2df9f6c$",
+      "removed_elements": [
+        [
+          "ACToleranceOfElement",
+          [
+            {
+              "min": 999999,
+              "max": 999999
+            }
+          ],
+          1,
+          [
+            {
+              "min": 9.0,
+              "max": 9.0
+            }
+          ],
+          [
+            {
+              "min": 1,
+              "max": 1
+            }
+          ]
+        ],
+        [
+          "ACToleranceOfElement",
+          [
+            {
+              "min": 999999,
+              "max": 999999
+            }
+          ],
+          3,
+          [
+            {
+              "min": 9.0,
+              "max": 9.0
+            }
+          ],
+          [
+            {
+              "min": 1,
+              "max": 1
+            }
+          ]
+        ],
+        [
+          "ACToleranceOfElement",
+          [
+            {
+              "min": 999999,
+              "max": 999999
+            }
+          ],
+          6,
+          [
+            {
+              "min": 9.0,
+              "max": 9.0
+            }
+          ],
+          [
+            {
+              "min": 1,
+              "max": 1
+            }
+          ]
+        ]
+      ],
+      "original_sha256": "153ad1afff31c6140a9772c3b4701568ccc70f0d164f41ec007ee452e06f6489"
+    },
+    "battle/action/enemy/action/mod_rogue/immunity_781bd5ec237b": {
+      "replacement": null,
+      "removed_elements": [
+        [
+          "ACToleranceOfElement",
+          [
+            {
+              "min": 999999,
+              "max": 999999
+            }
+          ],
+          2,
+          [
+            {
+              "min": 9.0,
+              "max": 9.0
+            }
+          ],
+          [
+            {
+              "min": 1,
+              "max": 1
+            }
+          ]
+        ],
+        [
+          "ACToleranceOfElement",
+          [
+            {
+              "min": 999999,
+              "max": 999999
+            }
+          ],
+          3,
+          [
+            {
+              "min": 99.0,
+              "max": 99.0
+            }
+          ],
+          [
+            {
+              "min": 1,
+              "max": 1
+            }
+          ]
+        ],
+        [
+          "ACToleranceOfElement",
+          [
+            {
+              "min": 999999,
+              "max": 999999
+            }
+          ],
+          5,
+          [
+            {
+              "min": 1.0,
+              "max": 1.0
+            }
+          ],
+          [
+            {
+              "min": 1,
+              "max": 1
+            }
+          ]
+        ]
+      ],
+      "original_sha256": "dbf845da38a4cbefd0501484923b12db6a36cb0b8dacfffd464612df41945451"
+    },
+    "battle/action/enemy/action/mod_rogue/immunity_54d482a7ba43": {
+      "replacement": null,
+      "removed_elements": [
+        [
+          "ACToleranceOfElement",
+          [
+            {
+              "min": 999999,
+              "max": 999999
+            }
+          ],
+          3,
+          [
+            {
+              "min": 1.0,
+              "max": 1.0
+            }
+          ],
+          [
+            {
+              "min": 1,
+              "max": 1
+            }
+          ]
+        ],
+        [
+          "ACToleranceOfElement",
+          [
+            {
+              "min": 999999,
+              "max": 999999
+            }
+          ],
+          5,
+          [
+            {
+              "min": 9.0,
+              "max": 9.0
+            }
+          ],
+          [
+            {
+              "min": 1,
+              "max": 1
+            }
+          ]
+        ],
+        [
+          "ACToleranceOfElement",
+          [
+            {
+              "min": 999999,
+              "max": 999999
+            }
+          ],
+          6,
+          [
+            {
+              "min": 99.0,
+              "max": 99.0
+            }
+          ],
+          [
+            {
+              "min": 1,
+              "max": 1
+            }
+          ]
+        ]
+      ],
+      "original_sha256": "ad736da0836016f958fb3f00f08d3953a0372dcbeb814bd3d5b90d8d3e2e0dd3"
+    },
+    "battle/action/enemy/action/mod_rogue/immunity_b2a4f18c15b9": {
+      "replacement": "battle/action/enemy/action/mod_rogue/immunity_description_231b8a7d580b523e$",
+      "removed_elements": [
+        [
+          "ACToleranceOfElement",
+          [
+            {
+              "min": 999999,
+              "max": 999999
+            }
+          ],
+          2,
+          [
+            {
+              "min": 99.0,
+              "max": 99.0
+            }
+          ],
+          [
+            {
+              "min": 1,
+              "max": 1
+            }
+          ]
+        ]
+      ],
+      "original_sha256": "85e3e0e52b4602c64661434d618f68b118f334476acdaf0e4c6aa3393a4c98c6"
+    },
+    "battle/action/enemy/action/mod_rogue/immunity_d9adf73d1447": {
+      "replacement": "battle/action/enemy/action/mod_rogue/immunity_description_cdbb168576b9a453$",
+      "removed_elements": [
+        [
+          "ACToleranceOfElement",
+          [
+            {
+              "min": 999999,
+              "max": 999999
+            }
+          ],
+          1,
+          [
+            {
+              "min": 99.0,
+              "max": 99.0
+            }
+          ],
+          [
+            {
+              "min": 1,
+              "max": 1
+            }
+          ]
+        ],
+        [
+          "ACToleranceOfElement",
+          [
+            {
+              "min": 999999,
+              "max": 999999
+            }
+          ],
+          2,
+          [
+            {
+              "min": 99.0,
+              "max": 99.0
+            }
+          ],
+          [
+            {
+              "min": 1,
+              "max": 1
+            }
+          ]
+        ],
+        [
+          "ACToleranceOfElement",
+          [
+            {
+              "min": 999999,
+              "max": 999999
+            }
+          ],
+          6,
+          [
+            {
+              "min": 1.0,
+              "max": 1.0
+            }
+          ],
+          [
+            {
+              "min": 1,
+              "max": 1
+            }
+          ]
+        ]
+      ],
+      "original_sha256": "27f3662d621ce4d1945f9e4b5d0041ddabe1ecad50250aa6a9c9f27d86e2d56e"
+    }
+  },
+  "content_revisions": {
+    "rush:700099": "9f82a962be22bd768bbdf27e1003f348891e85d3e9f472a334c58aa09d449f57",
+    "rush:700100": "e3235d26413c0da8f9f3f3e1d03d6842e8743c14cc83b167d52c348ab4fd5214"
+  },
+  "quest_time_revisions": {
+    "rush:700099": "67d91dec653a296e3177adfd6e8f6c3d777798222f39191933822950f23ec704",
+    "rush:700100": "e3235d26413c0da8f9f3f3e1d03d6842e8743c14cc83b167d52c348ab4fd5214"
+  },
+  "quest_description_revisions": {
+    "rush:700099": {
+      "content_revision": "9f82a962be22bd768bbdf27e1003f348891e85d3e9f472a334c58aa09d449f57",
+      "record_revision": "67d91dec653a296e3177adfd6e8f6c3d777798222f39191933822950f23ec704",
+      "reference_patch": "abyss-ex-reroll-20260918"
+    }
+  },
+  "normal_bosses_hp_rewards_unchanged": true,
+  "ex_and_endless_unchanged": true,
+  "no_tower_reset": true,
+  "non_element_scripts_unchanged": true,
+  "element_values_match_each_original_carrier": true,
+  "device_verified": false
+}
