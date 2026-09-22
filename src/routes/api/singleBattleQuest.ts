@@ -170,7 +170,11 @@ interface AbortBody {
     statistics?: QuestStatistics | null,
     viewer_id: number,
     quest_id: number,
-    play_id: string,
+    // Some shipped clients omit play_id when the player explicitly leaves a
+    // practice battle from the recovery dialog. The active row is the
+    // authoritative identity in that case; an empty/missing value must not
+    // turn a valid abort into the next-login H400 loop.
+    play_id?: string,
     category: number
 }
 
@@ -967,11 +971,23 @@ const routes = async (fastify: FastifyInstance) => {
         const abortQuest = resolvedAbortQuest?.quest
         let practiceHistoryRecord: ReturnType<typeof buildPracticeBattleHistoryRecord> | null = null
         if (abortQuest?.category === QuestCategory.PRACTICE) {
+            const requestedPlayId = typeof body.play_id === "string" ? body.play_id.trim() : ""
+            const categoryMatches = body.category === undefined || body.category === abortQuest.category
+            const questMatches = body.quest_id === undefined || body.quest_id === abortQuest.questId
+            const playMatches = requestedPlayId.length === 0 || requestedPlayId === abortQuest.playId
             if (
-                body.category !== abortQuest.category
-                || body.quest_id !== abortQuest.questId
-                || body.play_id !== abortQuest.playId
+                !categoryMatches
+                || !questMatches
+                || !playMatches
             ) {
+                // Keep the diagnostic bounded to identifiers; never log
+                // statistics or session material. This distinguishes a real
+                // stale quest from the legacy empty-play-id abort shape.
+                console.warn(
+                    `[PRACTICE-ABORT] request does not match active quest: `
+                    + `player=${playerId} request=${body.category}/${body.quest_id}/${requestedPlayId || "(empty)"} `
+                    + `active=${abortQuest.category}/${abortQuest.questId}/${abortQuest.playId}`,
+                )
                 return reply.status(400).send({
                     "error": "Bad Request",
                     "message": "Active practice quest does not match abort request.",

@@ -80,6 +80,33 @@ async function main() {
             checks.push(`${questId}/${label}`)
         }
     }
+    // Recovery dialogs from older clients can omit play_id or send an empty
+    // value. The persisted active quest remains authoritative for these
+    // cancellation requests, while explicit non-empty mismatches stay unsafe.
+    for (const [label, playIdValue] of [
+        ['omitted-play-id', undefined],
+        ['empty-play-id', ''],
+        ['whitespace-play-id', '   '],
+        ['null-play-id', null],
+    ]) {
+        const playId = `recovery-missing-play-id-${label}`
+        const started = await post('/single_battle_quest/start', {
+            viewer_id: viewerId, category: 15, quest_id: 1101, party_id: 1, play_id: playId,
+            use_boss_boost_point: false, use_boost_point: false, is_auto_start_mode: false, api_count: ++apiCount,
+        })
+        assert.equal(started.statusCode, 200, started.body)
+        delete battle.activeQuests[player.id]
+        const payload = {
+            viewer_id: viewerId, category: 15, quest_id: 1101, finish_kind: 3, api_count: ++apiCount,
+        }
+        if (playIdValue !== undefined) payload.play_id = playIdValue
+        const aborted = await post('/single_battle_quest/abort', payload)
+        assert.equal(aborted.statusCode, 200, `${label}: ${aborted.body}`)
+        assert.equal(activeCount(), 0)
+        assert.equal(battle.activeQuests[player.id], undefined)
+        assert.equal(historyCount(), 0, 'missing play_id must not fabricate battle history')
+        checks.push(label)
+    }
     // Failure to commit the cancellation must preserve the recoverable battle,
     // even when no history row is being written.
     const rollbackPlayId = 'recovery-delete-rollback'
