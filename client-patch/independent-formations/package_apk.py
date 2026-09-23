@@ -1,5 +1,5 @@
 """Package and sign the independent-formations candidate from the exact 8001 APK."""
-import json, shutil, uuid, zipfile
+import json, os, shutil, uuid, zipfile
 from pathlib import Path
 
 from build_swf import INPUT, WORK
@@ -98,7 +98,7 @@ def main():
         'package_name': 'com.leiting.wf',
         'version_name': '1.8.1',
         'version_code': 1008001,
-        'endpoint': 'http://192.168.3.14:8001',
+        'endpoint': os.environ.get('STARPOINT_ENDPOINT', 'http://localhost:8001'),
         'source_main_abc_index': swf_report['source_main_abc_index'],
         'final_main_abc_index': swf_report['final_main_abc_index'],
         'source_main_method_bodies': swf_report['source_main_method_bodies'],
