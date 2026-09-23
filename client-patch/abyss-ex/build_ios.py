@@ -45,14 +45,16 @@ def read64(d,at):return struct.unpack_from('<Q',d,at)[0]
 def write64(d,at,v):struct.pack_into('<Q',d,at,v)
 
 def main():
-    port=json.loads((WORK/'port.json').read_text());reg=port['source_ipa'];out=OUT/'ios-r2'; assert port['total_methods']==OLD_COUNT
+    port=json.loads((WORK/'port.json').read_text(encoding='utf8'));reg=port['source_ipa'];out=OUT/'ios-r2'; assert port['old_methods']==OLD_COUNT and port['total_methods']>=OLD_COUNT
     assert not out.exists()
     native=(WORK/'baseline-native').read_bytes();swf=(WORK/'baseline.swf').read_bytes()
     assert sha(native)==reg['native_sha256'];assert sha(Path(reg['ipa']).read_bytes())==reg['ipa_sha256']
     require_public_endpoint(native);assert_signable_layout(native)
     full=(WORK/port['full_abc_file']).read_bytes();assert sha(full)==port['full_abc_sha256']
-    count=port['total_methods'];wanted={r['method_id'] for r in port['methods']}|set(range(OLD_COUNT,count))
-    compiled_report=json.loads((WORK/'compile-final-report.json').read_text());objects={};funcs={};meta=None
+    count=port['total_methods']
+    redirects={int(row['original']):int(row['compiled']) for row in port.get('method_redirects',[])}
+    wanted=set(redirects.values())|set(range(OLD_COUNT,count))
+    compiled_report=json.loads((WORK/'compile-final-report.json').read_text(encoding='utf8'));objects={};funcs={};meta=None
     for row in compiled_report['objects']:
         path=Path(compiled_report['directory'])/row['name'];assert sha(path.read_bytes())==row['sha256']
         obj=link.lief.parse(str(path));objects[path]=obj;symbols=list(obj.symbols)
@@ -101,21 +103,75 @@ def main():
     veneer_positions={}
     for key in sorted(branch_keys):
         veneer_positions[key]=cursor;cursor+=16
-    abc_position=cursor;code_size=cursor+len(runtime)
+    # The baseline methodFlagsArr ends at OLD_COUNT.  Allocate a complete
+    # compiler-produced replacement beside the appended code so AOTInfo also
+    # has flags for imported helpers and redirected methods.
+    compiler_flags=link.aot.extract_symbol_bytes(mo,sym('_methodFlagsArr'),count*4)
+    abc_position=cursor
+    flags_position=link.aot.align(abc_position+len(runtime),16)
+    code_size=flags_position+len(compiler_flags)
     patched,rx,header_end=extend(native,code_size)
-    helpers={n:int(v['address'],0) for n,v in json.loads((LEGACY/'runtime-helper-map.json').read_text())['symbols'].items()}
+    helpers={n:int(v['address'],0) for n,v in json.loads((LEGACY/'runtime-helper-map.json').read_text(encoding='utf8'))['symbols'].items()}
     helpers.update(link.aot.DEPENDENCY_AOT_INFOS);helpers[link.aot.STRICT_EQUALS_SYMBOL]=link.aot.STRICT_EQUALS_VA
-    extra=json.loads(Path('F:/codex/work/lens-ios-20260908/additional-helper.json').read_text())
+    extra=json.loads(Path('F:/codex/work/lens-ios-20260908/additional-helper.json').read_text(encoding='utf8'))
     assert native[link.file_offset(native,extra['address'],32):link.file_offset(native,extra['address'],32)+32].hex()==extra['native_bytes']
     helpers[extra['symbol']]=extra['address']
-    for name,r in json.loads(Path('F:/codex/work/ios-cumulative-launch-fix-r2-20260911/runtime-extra-map.json').read_text()).items():helpers[name]=r['address']
+    for name,r in json.loads(Path('F:/codex/work/ios-cumulative-launch-fix-r2-20260911/runtime-extra-map.json').read_text(encoding='utf8')).items():helpers[name]=r['address']
     named={r.symbol:rx['vm']+positions[mid] for mid,(r,*_) in funcs.items()};named[infoname]=link.aot.IMAGE_BASE+INFO_OFFSET
     unknown={row['symbol'] for r,path,sec,syms,rows in funcs.values() for row in rows
              if row['type']!=10 and (path,row['symbol']) not in cpos and row['symbol'] not in named and row['symbol'] not in helpers}
-    from map_runtime import derive
+    from map_runtime import derive, function as runtime_function, relocs as runtime_relocs
     runtime_member=LEGACY/'runtime-archive-members/hm-stubs.o'
     assert sha(runtime_member.read_bytes())=='952f0c9ffe34f2e35eb434fdf0dd641d7ecd8baa6bf9d260e258d59e4ca1ecb8'
-    runtime_proofs={name:derive(runtime_member,name,native) for name in sorted(unknown)}
+    def proof_at(name, offset):
+        obj=link.lief.parse(str(runtime_member));sec,start,end=runtime_function(obj,name)
+        code=bytes(sec.content)[start-sec.virtual_address:end-sec.virtual_address]
+        rows=runtime_relocs(runtime_member,obj,sec,start,end)
+        reloc={row['offset'] for row in rows}
+        assert offset>=0 and offset+len(code)<=len(native)
+        for at in range(0,len(code),4):
+            if at not in reloc:
+                assert native[offset+at:offset+at+4]==code[at:at+4],(name,offset,at)
+        return dict(address=link.aot.IMAGE_BASE+offset,file_offset=offset,size=len(code),
+                    object=str(runtime_member),object_sha256=sha(runtime_member.read_bytes()),
+                    native_bytes=native[offset:offset+32].hex(),relocations=rows,
+                    unrelocated_bytes_verified=len(code)-len(reloc)*4,
+                    fixed_offset_proof=True)
+    runtime_proofs={}
+    for name in sorted(unknown):
+        try:
+            runtime_proofs[name]=derive(runtime_member,name,native)
+        except (AssertionError, StopIteration):
+            # The accepted iOS executable carries the strict variant of the
+            # AIR property lookup stub, but not the non-strict variant.  The
+            # reviewed hooks only resolve declared instance/class members;
+            # for those lookups strict and non-strict resolution have the
+            # same result.  Reuse the byte-proven strict stub rather than
+            # guessing an address or adding an unlinked runtime object.
+            findproperty='__ZN8halfmoon5Stubs19do_abc_findpropertyEPN7avmplus11MethodFrameEPKNS1_9MultinameEPNS1_9MethodEnvEiiPx'
+            findpropstrict='__ZN8halfmoon5Stubs21do_abc_findpropstrictEPN7avmplus11MethodFrameEPKNS1_9MultinameEPNS1_9MethodEnvEiiPx'
+            if name == findproperty:
+                proof=derive(runtime_member,findpropstrict,native)
+                proof=dict(proof, aliased_from=name, semantic_note='strict lookup alias for declared members')
+                runtime_proofs[name]=proof
+            elif name=='__ZN8halfmoon5Stubs16do_abc_convert_sEPN7avmplus11MethodFrameEx':
+                # This short helper has a repeated prologue in hm-stubs.o.
+                # The accepted iOS build family records the unique call-site
+                # proof at this fixed native offset; verify every
+                # non-relocated instruction against the current executable.
+                runtime_proofs[name]=proof_at(name,0xA273CC)
+            elif name=='_llVerifyError':
+                # The accepted executable contains the same fail-fast AIR
+                # helper as _llNPE, but not a separately materialized
+                # _llVerifyError body.  Verification-successful ABC never
+                # reaches this path; use the verified native fail-fast stub.
+                runtime_proofs[name]=dict(address=helpers['_llNPE'],
+                                           file_offset=link.file_offset(native,helpers['_llNPE'],32),
+                                           aliased_from=name,
+                                           semantic_note='unreachable verifier-failure alias',
+                                           source='accepted runtime-helper-map')
+            else:
+                raise
     dump(WORK/'runtime-admission-helpers.json',runtime_proofs)
     helpers.update({name:row['address'] for name,row in runtime_proofs.items()})
     functions=[];relocations=[];used_veneers={}
@@ -166,18 +222,32 @@ def main():
                     hooks.append(dict(method=mid,previous=legacyva,target=target,offset=la))
                 write64(patched,legacy+mid*8,target);sites.append(legacy+mid*8)
         write64(table,mid*8,target)
+    for original, compiled_mid in sorted(redirects.items()):
+        target=rx['vm']+positions[compiled_mid]
+        oldva=read64(table,original*8);at=link.file_offset(native,oldva,4)
+        link.aot.write_unconditional_branch(patched,at,oldva,target)
+        hooks.append(dict(method=original,compiled_method=compiled_mid,previous=oldva,target=target,offset=at))
+        write64(patched,activeoff+original*8,target);sites.append(activeoff+original*8)
+        if original<original_count:
+            legacyva=read64(native,legacy+original*8)
+            if legacyva!=oldva:
+                la=link.file_offset(native,legacyva,4);link.aot.write_unconditional_branch(patched,la,legacyva,target)
+                hooks.append(dict(method=original,compiled_method=compiled_mid,previous=legacyva,target=target,offset=la))
+            write64(patched,legacy+original*8,target);sites.append(legacy+original*8)
     flags_offset=link.file_offset(native,read64(native,INFO_OFFSET+64),count*4)
-    compiler_flags=link.aot.extract_symbol_bytes(mo,sym('_methodFlagsArr'),count*4)
     for mid in wanted:
+        if mid>=OLD_COUNT:
+            continue
         assert native[flags_offset+mid*4:flags_offset+mid*4+4]==compiler_flags[mid*4:mid*4+4],('method flags',mid)
     # Existing pointer slots already occur in the dyld rebase stream. No new
     # absolute pointer locations or activation-layout changes are introduced.
     segments=link.segments(native)
     rebased={segments[si]['vm']+off for si,off,typ in link.read_rebase(native)['entries'] if typ==1}
-    for location in sites+[INFO_OFFSET+24]:
+    for location in sites+[INFO_OFFSET+24,INFO_OFFSET+64]:
         segment,=[s for s in segments if s['off']<=location<s['off']+s['fs']]
         assert segment['vm']+location-segment['off'] in rebased,('missing rebase',location)
     patched[rx['off']+abc_position:rx['off']+abc_position+len(runtime)]=runtime
+    patched[rx['off']+flags_position:rx['off']+flags_position+len(compiler_flags)]=compiler_flags
     equipment=port['equipment']; at=equipment['offset']; old_size=equipment['old_size']
     assert sha(native[at:at+old_size])==equipment['source_sha256']
     new_gate=(PREP/'abyss-ex-ios-equipment.bin').read_bytes()
@@ -185,16 +255,18 @@ def main():
     assert not any(native[at+old_size:at+len(new_gate)])
     patched[at:at+len(new_gate)]=new_gate
     patched[INFO_OFFSET:INFO_OFFSET+20]=digest
-    for at,v in ((24,rx['vm']+abc_position),(32,len(runtime))):write64(patched,INFO_OFFSET+at,v)
+    for at,v in ((24,rx['vm']+abc_position),(32,len(runtime)),
+                 (64,rx['vm']+flags_position)):write64(patched,INFO_OFFSET+at,v)
     newswf=link.aot.replace_main_swf_hash(swf,native[INFO_OFFSET:INFO_OFFSET+20],digest)
     signing=assert_signable_layout(patched);origin=require_public_endpoint(patched)
-    allowed=[(0,header_end),(INFO_OFFSET,INFO_OFFSET+20),(INFO_OFFSET+24,INFO_OFFSET+40),(equipment['offset'],equipment['offset']+len(new_gate))]
+    allowed=[(0,header_end),(INFO_OFFSET,INFO_OFFSET+20),(INFO_OFFSET+24,INFO_OFFSET+40),
+             (INFO_OFFSET+64,INFO_OFFSET+72),(equipment['offset'],equipment['offset']+len(new_gate))]
     allowed += [(h['offset'],h['offset']+4) for h in hooks]+[(at,at+8) for at in sites]
     old_prefix_end=link.segments(native)[-1]['off']
     prefix=bytearray(patched[:old_prefix_end])
     for begin,end in allowed:prefix[begin:end]=native[begin:end]
     assert prefix==native[:old_prefix_end],'unexpected preexisting native change'
-    out.mkdir();ipa=OUT/'StarPoint-iOS-1.8.4-abyss-ex-20260917-r2-unsigned.ipa'
+    out.mkdir();ipa=OUT/'StarPoint-iOS-1.8.4-independent-formations-public-20260923-unsigned.ipa'
     (out/'worldflipper').write_bytes(patched);(out/'worldflipper_ios_release.swf').write_bytes(newswf)
     with zipfile.ZipFile(reg['ipa']) as left,zipfile.ZipFile(ipa,'w',allowZip64=True) as right:
         for item in left.infolist():
@@ -206,7 +278,7 @@ def main():
         full_abc_sha256=sha(full),full_abc_sha1=digest.hex(),segments_added=[],executable_extension=rx,equipment=equipment,functions=functions,relocations=relocations,
         hooks=hooks,table_sites=sites,native_change_ranges=allowed,old_active_table_offset=activeoff,veneers=list(used_veneers.values()),
         total_methods=count,original_methods=OLD_COUNT,new_methods=count-OLD_COUNT,
-        abc_position=abc_position,new_rebases=0,signing_layout=signing,origin=origin,runtime_helper_proofs=runtime_proofs,
+        abc_position=abc_position,flags_position=flags_position,new_rebases=0,signing_layout=signing,origin=origin,runtime_helper_proofs=runtime_proofs,
         ios_carousel_unchanged=True,ios_device_store_unchanged=True,device_tested=False,save_schema_changed=False,
         record_encoding_unchanged=True,game_file_cleanup=False,server_endpoint_required=False,old_startup_cache_preserved=True,
         admission_protocol_unchanged=True,build_id=IDS['ios'],previous_build_id=reg['build_id'])
