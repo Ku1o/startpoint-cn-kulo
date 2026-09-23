@@ -12,8 +12,10 @@ import {
     getLeaderboardCompetitionSeasonSync,
 } from "./competition"
 import { isLeaderboardEnabledSync } from "./availability"
+import { QuestCategory } from "../types"
 import { startAbyssEnduranceQuestSync, finishAbyssEnduranceQuestSync,
     resetAbyssEnduranceQuestSync } from "../abyss-endurance-degree-rewards"
+import { grantAbyssSphealDegreeSync } from "../abyss-spheal-degree-reward"
 
 export interface LeaderboardQuestIdentity {
     category: number
@@ -90,6 +92,9 @@ export function finishLeaderboardQuestSync(input: {
 }): number[] {
     const degrees = finishAbyssEnduranceQuestSync(input)
     if (!input.accomplished) return degrees
+    const spheal = input.quest.category === QuestCategory.RUSH_EVENT
+        && input.quest.eventId === 700099 && input.quest.folderId === 1
+        ? () => grantAbyssSphealDegreeSync(input.playerId) : () => []
     const finishedAtMs = Math.trunc(input.finishedAtMs ?? Date.now())
     if (!Number.isSafeInteger(finishedAtMs) || finishedAtMs < 0) return degrees
     const competition = getLeaderboardCompetitionForQuest(input.quest)
@@ -99,17 +104,17 @@ export function finishLeaderboardQuestSync(input: {
         || !isLeaderboardEnabledSync(competition.key, finishedAtMs)
         || round === undefined
         || round < 1
-    ) return degrees
+    ) return [...degrees, ...spheal()]
     const clientBattleMs = Math.trunc(input.clientBattleMs)
     if (
         !Number.isSafeInteger(clientBattleMs)
         || clientBattleMs <= 0
         || clientBattleMs > 2_147_483_647
-    ) return degrees
+    ) return [...degrees, ...spheal()]
 
     const run = getActiveLeaderboardRunSync(input.playerId, competition.key)
-    if (run === null) return degrees
-    finishLeaderboardRoundSync({
+    if (run === null) return [...degrees, ...spheal()]
+    const completed = finishLeaderboardRoundSync({
         run,
         round,
         questId: input.quest.questId,
@@ -117,7 +122,8 @@ export function finishLeaderboardQuestSync(input: {
         finishedAtMs,
         party: input.party,
     })
-    return degrees
+    return [...degrees, ...(completed?.status === "completed"
+        ? spheal() : [])]
 }
 
 export function resetLeaderboardCompetitionSync(

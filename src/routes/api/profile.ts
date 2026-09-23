@@ -27,6 +27,7 @@ import { getPlayerProfileStatsSync } from "../../lib/profile-stats";
 import { getConfigSync } from "../../lib/assets";
 import { ensurePlayerActivityDegreesSync } from "../../lib/activity-degree-rewards";
 import { grantAbyssShopDegreeRewardSync } from "../../lib/abyss-shop-degree-reward";
+import { grantAbyssSphealDegreeSync } from "../../lib/abyss-spheal-degree-reward";
 
 const PROFILE_SETTING_FIELDS = [
     "show_opened_mana_board_second_count",
@@ -73,6 +74,7 @@ const routes = async (fastify: FastifyInstance) => {
         ensurePlayerClaimedCarnivalDegreesSync(playerId)
         ensurePlayerActivityDegreesSync(playerId)
         grantAbyssShopDegreeRewardSync(playerId)
+        grantAbyssSphealDegreeSync(playerId)
         const stats = getPlayerProfileStatsSync(playerId)
         const profileSettings = getPlayerProfileSettingsSync(playerId)
 
@@ -190,6 +192,7 @@ const routes = async (fastify: FastifyInstance) => {
         ensurePlayerClaimedCarnivalDegreesSync(playerId)
         ensurePlayerActivityDegreesSync(playerId)
         grantAbyssShopDegreeRewardSync(playerId)
+        grantAbyssSphealDegreeSync(playerId)
         const degreeIds = getPlayerDegreeIdsSync(playerId)
 
         reply.header("content-type", "application/x-msgpack")
@@ -236,6 +239,7 @@ const routes = async (fastify: FastifyInstance) => {
         ensurePlayerClaimedCarnivalDegreesSync(playerId)
         ensurePlayerActivityDegreesSync(playerId)
         grantAbyssShopDegreeRewardSync(playerId)
+        grantAbyssSphealDegreeSync(playerId)
         if (!hasPlayerDegreeSync(playerId, Number(degreeId))) {
             return reply.status(400).send({
                 error: "Bad Request",

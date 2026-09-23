@@ -5,7 +5,9 @@ const player_1 = require("../../data/domains/player");
 const leaderboard_1 = require("../../data/domains/leaderboard");
 const competition_1 = require("./competition");
 const availability_1 = require("./availability");
+const types_1 = require("../types");
 const abyss_endurance_degree_rewards_1 = require("../abyss-endurance-degree-rewards");
+const abyss_spheal_degree_reward_1 = require("../abyss-spheal-degree-reward");
 function startLeaderboardQuestSync(playerId, quest, startedAtMs = Date.now()) {
     (0, abyss_endurance_degree_rewards_1.startAbyssEnduranceQuestSync)(playerId, quest, startedAtMs);
     const competition = (0, competition_1.getLeaderboardCompetitionForQuest)(quest);
@@ -59,6 +61,9 @@ function finishLeaderboardQuestSync(input) {
     const degrees = (0, abyss_endurance_degree_rewards_1.finishAbyssEnduranceQuestSync)(input);
     if (!input.accomplished)
         return degrees;
+    const spheal = input.quest.category === types_1.QuestCategory.RUSH_EVENT
+        && input.quest.eventId === 700099 && input.quest.folderId === 1
+        ? () => (0, abyss_spheal_degree_reward_1.grantAbyssSphealDegreeSync)(input.playerId) : () => [];
     const finishedAtMs = Math.trunc((_a = input.finishedAtMs) !== null && _a !== void 0 ? _a : Date.now());
     if (!Number.isSafeInteger(finishedAtMs) || finishedAtMs < 0)
         return degrees;
@@ -68,16 +73,16 @@ function finishLeaderboardQuestSync(input) {
         || !(0, availability_1.isLeaderboardEnabledSync)(competition.key, finishedAtMs)
         || round === undefined
         || round < 1)
-        return degrees;
+        return [...degrees, ...spheal()];
     const clientBattleMs = Math.trunc(input.clientBattleMs);
     if (!Number.isSafeInteger(clientBattleMs)
         || clientBattleMs <= 0
         || clientBattleMs > 2147483647)
-        return degrees;
+        return [...degrees, ...spheal()];
     const run = (0, leaderboard_1.getActiveLeaderboardRunSync)(input.playerId, competition.key);
     if (run === null)
-        return degrees;
-    (0, leaderboard_1.finishLeaderboardRoundSync)({
+        return [...degrees, ...spheal()];
+    const completed = (0, leaderboard_1.finishLeaderboardRoundSync)({
         run,
         round,
         questId: input.quest.questId,
@@ -85,7 +90,8 @@ function finishLeaderboardQuestSync(input) {
         finishedAtMs,
         party: input.party,
     });
-    return degrees;
+    return [...degrees, ...((completed === null || completed === void 0 ? void 0 : completed.status) === "completed"
+            ? spheal() : [])];
 }
 exports.finishLeaderboardQuestSync = finishLeaderboardQuestSync;
 function resetLeaderboardCompetitionSync(playerId, quest, endedAtMs = Date.now()) {

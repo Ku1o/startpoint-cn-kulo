@@ -2850,6 +2850,126 @@
           "isExchangeable": false,
           "rarity": 2.4,
           "trialReadingForced": false
+        },
+        {
+          "id": 119992,
+          "rank": 5,
+          "odds": 0,
+          "isRateUp": false,
+          "isLimited": true,
+          "isExchangeable": false,
+          "rarity": 0.0,
+          "trialReadingForced": false
+        },
+        {
+          "id": 119991,
+          "rank": 5,
+          "odds": 0,
+          "isRateUp": false,
+          "isLimited": true,
+          "isExchangeable": false,
+          "rarity": 0.0,
+          "trialReadingForced": false
+        },
+        {
+          "id": 119990,
+          "rank": 5,
+          "odds": 0,
+          "isRateUp": false,
+          "isLimited": true,
+          "isExchangeable": false,
+          "rarity": 0.0,
+          "trialReadingForced": false
+        },
+        {
+          "id": 139992,
+          "rank": 5,
+          "odds": 0,
+          "isRateUp": false,
+          "isLimited": true,
+          "isExchangeable": false,
+          "rarity": 0.0,
+          "trialReadingForced": false
+        },
+        {
+          "id": 139991,
+          "rank": 5,
+          "odds": 0,
+          "isRateUp": false,
+          "isLimited": true,
+          "isExchangeable": false,
+          "rarity": 0.0,
+          "trialReadingForced": false
+        },
+        {
+          "id": 139990,
+          "rank": 5,
+          "odds": 0,
+          "isRateUp": false,
+          "isLimited": true,
+          "isExchangeable": false,
+          "rarity": 0.0,
+          "trialReadingForced": false
+        },
+        {
+          "id": 149987,
+          "rank": 5,
+          "odds": 0,
+          "isRateUp": false,
+          "isLimited": true,
+          "isExchangeable": false,
+          "rarity": 0.0,
+          "trialReadingForced": false
+        },
+        {
+          "id": 149986,
+          "rank": 5,
+          "odds": 0,
+          "isRateUp": false,
+          "isLimited": true,
+          "isExchangeable": false,
+          "rarity": 0.0,
+          "trialReadingForced": false
+        },
+        {
+          "id": 159995,
+          "rank": 5,
+          "odds": 0,
+          "isRateUp": false,
+          "isLimited": true,
+          "isExchangeable": false,
+          "rarity": 0.0,
+          "trialReadingForced": false
+        },
+        {
+          "id": 159994,
+          "rank": 5,
+          "odds": 0,
+          "isRateUp": false,
+          "isLimited": true,
+          "isExchangeable": false,
+          "rarity": 0.0,
+          "trialReadingForced": false
+        },
+        {
+          "id": 169991,
+          "rank": 5,
+          "odds": 0,
+          "isRateUp": false,
+          "isLimited": true,
+          "isExchangeable": false,
+          "rarity": 0.0,
+          "trialReadingForced": false
+        },
+        {
+          "id": 169988,
+          "rank": 5,
+          "odds": 0,
+          "isRateUp": false,
+          "isLimited": true,
+          "isExchangeable": false,
+          "rarity": 0.0,
+          "trialReadingForced": false
         }
       ],
       "2": [

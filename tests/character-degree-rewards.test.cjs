@@ -27,7 +27,15 @@ const { QuestCategory } = require('../out/lib/types')
 const { saveAccountDefaultPlayer } = require('../out/data/activeAccount')
 const { insertSessionWithToken } = require('../out/data/domains/session')
 const snapshots = require('../out/data/snapshots/player-snapshot')
-const allIds = Array.from({ length: 62 }, (_, index) => 9910001 + index)
+const catalogIds = [
+    ...Array.from({ length: 62 }, (_, index) => 9910001 + index),
+    9910063, 9910064, 9910065, 9910066, 9910067, 9910068,
+    9910069, 9910070, 9910071, 9910072, 9910073, 9910074,
+    9910087, 9910088, 9910089, 9910075, 9910076, 9910077,
+    9910078, 9910079, 9910080, 9910081, 9910082, 9910083,
+    9910084, 9910085, 9910086,
+]
+const allIds = [...catalogIds].sort((a, b) => a - b)
 const db = getDb()
 
 function player(label = 'fixture') {
@@ -41,7 +49,8 @@ function own(p, id = 119989, exp = 379988, overLimitStep = 4) {
     characters.updatePlayerCharacterSync(p.id, id, { exp, overLimitStep, evolutionLevel: 0, stack: 2 })
 }
 function owned(p) {
-    return degreeApi.getPlayerDegreeIdsSync(p.id).filter(id => id >= 9910001 && id <= 9910062).sort((a, b) => a - b)
+    const allowed = new Set(allIds)
+    return degreeApi.getPlayerDegreeIdsSync(p.id).filter(id => allowed.has(id)).sort((a, b) => a - b)
 }
 function practice(p, overrides = {}) {
     return { type: 'battle_finish', playerId: p.id, questCategory: QuestCategory.PRACTICE,
@@ -77,9 +86,9 @@ test.after(() => {
     fs.rmSync(resolved, { recursive: true })
 })
 
-test('31 characters and 62 stable client/server definitions agree with the active master accessor', () => {
-    assert.equal(catalog.CHARACTER_DEGREE_CATALOG.length, 31)
-    assert.deepEqual(catalog.CHARACTER_DEGREE_CATALOG.flatMap(row => [...row.degree_ids]), allIds)
+test('43 characters and 89 stable client/server definitions agree with the active master accessor', () => {
+    assert.equal(catalog.CHARACTER_DEGREE_CATALOG.length, 43)
+    assert.deepEqual(catalog.CHARACTER_DEGREE_CATALOG.flatMap(row => [...row.degree_ids]), catalogIds)
     assert.equal(characterExpCaps[5][4], catalog.CHARACTER_DEGREE_LEVEL_100_EXP)
     assert.equal(rewards.characterDegreeRewardsEnabled(), true)
     const manifest = require('../assets/asset-patch/audit/reborn-character-degrees-1.4.108/degree-manifest.json')
@@ -98,7 +107,7 @@ test('31 characters and 62 stable client/server definitions agree with the activ
         assert.equal(content.degreeDefinitions[entry.degree_id].name, entry.row[2])
         assert.equal(content.degreeDefinitions[entry.degree_id].condition, entry.row[4])
     }
-    assert.deepEqual(catalog.CHARACTER_DEGREE_CATALOG.slice(0, 24).flatMap(row => [...row.degree_ids]), allIds.slice(0, 48))
+    assert.deepEqual(catalog.CHARACTER_DEGREE_CATALOG.slice(0, 24).flatMap(row => [...row.degree_ids]), catalogIds.slice(0, 48))
 })
 
 test('the legacy missing-acquired_at insert loses the grant; the adapted writer persists both variants', () => {
@@ -167,7 +176,7 @@ test('missing, disabled, malformed and redirected activation files fail closed',
     assert.deepEqual(owned(p), [])
 })
 
-test('one successful practice grants all 62 eligible inventory variants, without putting them in the party', () => {
+test('one successful practice grants all 89 eligible inventory variants, without putting them in the party', () => {
     const p = player(); for (const id of catalog.CHARACTER_DEGREE_CHARACTER_IDS) own(p, id)
     recordBattleMissionDimensions(practice(p))
     assert.deepEqual(owned(p), allIds)
