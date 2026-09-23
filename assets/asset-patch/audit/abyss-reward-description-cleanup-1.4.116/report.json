@@ -1,0 +1,105 @@
+{
+  "version": "1.4.116",
+  "depends_on": "1.4.115",
+  "part": 3,
+  "archive": {
+    "name": "pinball-1.4.115-1.4.116-3-abyss-reward-and-description-cleanup.zip",
+    "size": 219500,
+    "sha256": "251ab248b55f2459f465d6226c4c649ded146ea210c6db974f39c5c0cfe13cbb",
+    "members": 2,
+    "files": [
+      "production/upload/56/7d81eea3c08fac7b1b69cbeabe2b9fd7b9591e",
+      "production/upload/a4/731a843d4dc0c84120bf8c88784c1e74c03baa"
+    ]
+  },
+  "source_reads": {
+    "item": {
+      "logical": "master/item/item.orderedmap",
+      "tail": "1.4.116",
+      "source_archive": "F:\\startpoint-cn-main\\assets\\asset-patch\\active\\pinball-1.4.113-1.4.114-1-fantasy-abyss-material-shop.zip",
+      "source_member": "production/upload/a4/731a843d4dc0c84120bf8c88784c1e74c03baa",
+      "before_sha256": "67ac8c1fb2adc5db33d9e5937de6b828b002272a74ad8db81d3cb0b7137cbf22"
+    },
+    "search": {
+      "logical": "master/search/item_quest_search.orderedmap",
+      "tail": "1.4.116",
+      "source_archive": "F:\\startpoint-cn-main\\assets\\asset-patch\\active\\pinball-1.4.110-1.4.111-1-abyss-ui-rewards.zip",
+      "source_member": "production/upload/56/7d81eea3c08fac7b1b69cbeabe2b9fd7b9591e",
+      "before_sha256": "a6b4d9eec10dde4b814367da956aea3ed2fe58b378fff827466692f00804cd51"
+    }
+  },
+  "resources": [
+    {
+      "logical": "master/item/item.orderedmap",
+      "member": "production/upload/a4/731a843d4dc0c84120bf8c88784c1e74c03baa",
+      "before_sha256": "67ac8c1fb2adc5db33d9e5937de6b828b002272a74ad8db81d3cb0b7137cbf22",
+      "after_sha256": "fd1d7c54e190263d29b5536302b355b703efc3822fc0c10ce924a3ab88c404c3",
+      "changed_rows": [
+        14040,
+        999013,
+        999014,
+        999015,
+        999016,
+        999017,
+        999018,
+        2370097,
+        2370098,
+        2370099,
+        2370100,
+        2370101,
+        10000143,
+        10000144,
+        10000145,
+        10000146,
+        10000147
+      ],
+      "change": "remove trailing acquisition-note text only from column 5"
+    },
+    {
+      "logical": "master/search/item_quest_search.orderedmap",
+      "member": "production/upload/56/7d81eea3c08fac7b1b69cbeabe2b9fd7b9591e",
+      "before_sha256": "a6b4d9eec10dde4b814367da956aea3ed2fe58b378fff827466692f00804cd51",
+      "after_sha256": "239f36349596beebcb7a1a823502a2944dcf76da781c1a04f49c98535aea4ccb",
+      "changed_rows": [
+        2370100,
+        2370101,
+        10000143
+      ],
+      "change": "carry forward the unpublished reward-source index adjustment"
+    }
+  ],
+  "removed_item_ids": [
+    14040,
+    999013,
+    999014,
+    999015,
+    999016,
+    999017,
+    999018,
+    2370097,
+    2370098,
+    2370099,
+    2370100,
+    2370101,
+    10000143,
+    10000144,
+    10000145,
+    10000146,
+    10000147
+  ],
+  "checks": {
+    "effective_tail": "1.4.116",
+    "acquisition_note_rows_before": 17,
+    "acquisition_note_rows_after": 0,
+    "unrelated_item_rows_preserved": true,
+    "search_source_values_preserved": true,
+    "fixed_reward_preview_changed": false
+  },
+  "save_impact": "Client description/source-index resources only; no saved IDs, tables, schema, inventory persistence or import/export format changed.",
+  "runtime_synced": false,
+  "device_tested": false,
+  "limitations": [
+    "The package is consolidated into the unpublished 1.4.116 third subpackage; existing first and second subpackages are byte-preserved.",
+    "The source index remains separate from server reward probability; server reward configuration is carried by assets/rogue_event.json."
+  ]
+}
