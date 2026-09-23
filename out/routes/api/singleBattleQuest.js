@@ -85,6 +85,7 @@ catch (_a) { } // Init failed silently; carnival scoring won't work
 const rush_1 = require("../../lib/rush");
 const degree_1 = require("../../data/domains/degree");
 const mode15_optional_1 = require("../../lib/mode15-optional");
+const rush_party_categories_1 = require("../../lib/rush-party-categories");
 const continueVmoneyCost = 50;
 exports.activeQuests = {};
 function insertActiveQuest(playerId, quest) {
@@ -828,7 +829,9 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             // though the selected Carnival party actually contained it.
             const partyCategory = category === types_1.QuestCategory.CARNIVAL_EVENT
                 ? types_2.PartyCategory.CARNIVAL
-                : types_2.PartyCategory.NORMAL;
+                : category === types_1.QuestCategory.RUSH_EVENT
+                    ? (0, rush_party_categories_1.partyCategoryForRushEvent)(Math.floor(Number(questId) / 1000))
+                    : types_2.PartyCategory.NORMAL;
             const restricted = (0, mode15_optional_1.getMode15ExclusiveGlobalPartyItemsSync)(playerId, partyCategory, partyId);
             if (restricted.length > 0) {
                 console.log(`[MODE15] exclusive equipment denied in single battle: player=${playerId} quest=${questId} questCategory=${category} partyCategory=${partyCategory} party=${partyId} items=${restricted.join(",")}`);

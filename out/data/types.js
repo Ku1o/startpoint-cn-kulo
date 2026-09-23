@@ -17,6 +17,12 @@ var PartyCategory;
     PartyCategory[PartyCategory["CARNIVAL"] = 2] = "CARNIVAL";
     PartyCategory[PartyCategory["RAID"] = 3] = "RAID";
     PartyCategory[PartyCategory["RUSH"] = 4] = "RUSH";
+    // Rush-event party sets are kept in their own slots so Abyss normal,
+    // Abyss EX, and Fantasy can be edited independently.  Existing values
+    // remain stable for save compatibility.
+    PartyCategory[PartyCategory["ABYSS_NORMAL"] = 5] = "ABYSS_NORMAL";
+    PartyCategory[PartyCategory["ABYSS_EX"] = 6] = "ABYSS_EX";
+    PartyCategory[PartyCategory["FANTASY"] = 7] = "FANTASY";
     PartyCategory[PartyCategory["EVENT"] = 4] = "EVENT";
 })(PartyCategory || (exports.PartyCategory = PartyCategory = {}));
 var RushEventBattleType;

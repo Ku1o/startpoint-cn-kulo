@@ -41,6 +41,7 @@ const service_1 = require("../../lib/leaderboard/service");
 const competition_1 = require("../../lib/leaderboard/competition");
 const presentation_1 = require("../../lib/leaderboard/presentation");
 const availability_1 = require("../../lib/leaderboard/availability");
+const rush_party_categories_1 = require("../../lib/rush-party-categories");
 var ResetQuestType;
 (function (ResetQuestType) {
     ResetQuestType[ResetQuestType["EMPTY"] = 0] = "EMPTY";
@@ -454,7 +455,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 "error": "Internal Server Error",
                 "message": "No player bound to account."
             });
-        const playerPartyGroups = (0, special_event_parties_1.ensureSpecialEventPartyGroupsSync)(playerId, types_1.PartyCategory.RUSH, undefined, {
+        const playerPartyGroups = (0, special_event_parties_1.ensureSpecialEventPartyGroupsSync)(playerId, (0, rush_party_categories_1.partyCategoryForRushEvent)(body.event_id), types_1.PartyCategory.RUSH, {
             getGroups: party_1.getPlayerPartyGroupListSync,
             getDefaults: player_1.getDefaultPlayerPartyGroupsSync,
             ensureGroups: party_1.ensurePlayerPartyGroupListSync,
@@ -611,9 +612,10 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             }
         }
         if (questData.rushEventId !== mode15_optional_1.MODE15_RUSH_EVENT_ID) {
-            const restricted = (0, mode15_optional_1.getMode15ExclusiveGlobalPartyItemsSync)(playerId, types_1.PartyCategory.RUSH, partyId);
+            const partyCategory = (0, rush_party_categories_1.partyCategoryForRushEvent)(questData.rushEventId);
+            const restricted = (0, mode15_optional_1.getMode15ExclusiveGlobalPartyItemsSync)(playerId, partyCategory, partyId);
             if (restricted.length > 0) {
-                console.log(`[MODE15] exclusive equipment denied in Rush: player=${playerId} quest=${questId} rushEvent=${questData.rushEventId} partyCategory=${types_1.PartyCategory.RUSH} party=${partyId} items=${restricted.join(",")}`);
+                console.log(`[MODE15] exclusive equipment denied in Rush: player=${playerId} quest=${questId} rushEvent=${questData.rushEventId} partyCategory=${partyCategory} party=${partyId} items=${restricted.join(",")}`);
                 reply.header("content-type", "application/x-msgpack");
                 return reply.status(200).send({
                     // Rush battle start has no native handling for 4507 and

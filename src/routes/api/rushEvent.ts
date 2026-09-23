@@ -58,6 +58,7 @@ import {
     getOfficialLeaderboardPageSync,
 } from "../../lib/leaderboard/presentation";
 import { isLeaderboardEnabledSync } from "../../lib/leaderboard/availability";
+import { partyCategoryForRushEvent } from "../../lib/rush-party-categories";
 
 interface SummaryBody {
     event_id: number,
@@ -66,6 +67,7 @@ interface SummaryBody {
 
 interface PartyBody {
     viewer_id: number
+    event_id?: number
 }
 
 interface SelectFolderBody {
@@ -598,8 +600,8 @@ const routes = async (fastify: FastifyInstance) => {
 
         const playerPartyGroups = ensureSpecialEventPartyGroupsSync(
             playerId,
+            partyCategoryForRushEvent(body.event_id),
             PartyCategory.RUSH,
-            undefined,
             {
                 getGroups: getPlayerPartyGroupListSync,
                 getDefaults: getDefaultPlayerPartyGroupsSync,
@@ -783,11 +785,12 @@ const routes = async (fastify: FastifyInstance) => {
         }
 
         if (questData.rushEventId !== MODE15_RUSH_EVENT_ID) {
+            const partyCategory = partyCategoryForRushEvent(questData.rushEventId)
             const restricted = getMode15ExclusiveGlobalPartyItemsSync(
-                playerId, PartyCategory.RUSH, partyId,
+                playerId, partyCategory, partyId,
             );
             if (restricted.length > 0) {
-                console.log(`[MODE15] exclusive equipment denied in Rush: player=${playerId} quest=${questId} rushEvent=${questData.rushEventId} partyCategory=${PartyCategory.RUSH} party=${partyId} items=${restricted.join(",")}`);
+                console.log(`[MODE15] exclusive equipment denied in Rush: player=${playerId} quest=${questId} rushEvent=${questData.rushEventId} partyCategory=${partyCategory} party=${partyId} items=${restricted.join(",")}`);
                 reply.header("content-type", "application/x-msgpack");
                 return reply.status(200).send({
                     // Rush battle start has no native handling for 4507 and

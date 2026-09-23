@@ -101,6 +101,7 @@ import {
     MODE15_RUSH_EVENT_ID,
     settleMode15BattleSync,
 } from "../../lib/mode15-optional";
+import { partyCategoryForRushEvent } from "../../lib/rush-party-categories";
 
 interface StartBody {
     quest_id: number
@@ -1112,7 +1113,9 @@ const routes = async (fastify: FastifyInstance) => {
             // though the selected Carnival party actually contained it.
             const partyCategory = category === QuestCategory.CARNIVAL_EVENT
                 ? PartyCategory.CARNIVAL
-                : PartyCategory.NORMAL;
+                : category === QuestCategory.RUSH_EVENT
+                    ? partyCategoryForRushEvent(Math.floor(Number(questId) / 1000))
+                    : PartyCategory.NORMAL;
             const restricted = getMode15ExclusiveGlobalPartyItemsSync(
                 playerId, partyCategory, partyId,
             );

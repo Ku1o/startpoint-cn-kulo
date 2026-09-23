@@ -152,6 +152,12 @@ export enum PartyCategory {
     CARNIVAL,
     RAID,
     RUSH,
+    // Rush-event party sets are kept in their own slots so Abyss normal,
+    // Abyss EX, and Fantasy can be edited independently.  Existing values
+    // remain stable for save compatibility.
+    ABYSS_NORMAL = 5,
+    ABYSS_EX = 6,
+    FANTASY = 7,
     EVENT = RUSH
 }
 
