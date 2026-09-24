@@ -5,9 +5,8 @@ from types import SimpleNamespace
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
-sys.path.insert(0, str(HERE.parent / 'generic-damage'))
-from common import (JAVA, SDK, dump, run, sha)  # noqa: E402
-from common import s  # noqa: E402
+sys.path.insert(0, str(HERE))
+from set_edit_common import JAVA, SDK, dump, run, sha, s  # noqa: E402
 
 INPUT = Path(r'F:\codex\work\independent-formations-20260923\input-direct8001.swf')
 INPUT_SHA = '1ed8b35a3776912d69d28a17dc87aab36bb11028a97e990a656fed6e5a95cde1'
@@ -151,6 +150,64 @@ def main():
         [('getlex', helper_name), ('callproperty', q('', 'category'), 0), ('returnvalue',)],
         maxstack=2,
     )
+
+    # The party-set editor only has title branches for the original
+    # categories 1..4.  Independent Abyss/Fantasy data can arrive as 5..7,
+    # and older data can expose a null or another out-of-range value.  The
+    # title lookup must never receive that value: keep transport/save
+    # categories untouched and use the existing rush-event title only in this
+    # UI-only switch.
+    edit_label = 'pinball.scene.partyGroupEdit::PartyGroupEditSceneView/refreshPartyCategory|1'
+    edit_bi, = v.by_label[edit_label]
+    edit_body = a.bodies[edit_bi]
+    edit_old = bytes(edit_body[5])
+    assert sha(edit_old) == '54859e428a47a505b2ed6b48d65ec8f9a07c0edb2257572d942ced4957aff2fe'
+    edit_rows = v.normalized(edit_bi)[0]
+    switch_at = next(i for i, row in enumerate(edit_rows) if row[0] == 0x1b)
+    map_special_categories = s.m.asm.assemble([
+        ('getlocal_1',), ('pushnull',), ('ifstricteq', 'special'),
+        ('getlocal_1',), ('pushbyte', 1), ('iflt', 'special'),
+        ('getlocal_1',), ('pushbyte', 4), ('ifgt', 'special'),
+        ('jump', 'done'),
+        ('label', 'special'),
+        ('pushbyte', 4), ('setlocal_1',),
+        ('label', 'done'),
+    ])
+    edit_body[5], edit_body[6], _, edit_placed = s.m.asm.splice_many(
+        edit_body, [(switch_at, map_special_categories, s.m.asm.ENTER)])
+    s.m.check_body(edit_body, a)
+
+    # The default lookup branch used to jump directly to getUiString with
+    # local2 still null.  Populate it with the existing rush title as a
+    # second guard so a legacy or malformed category cannot reach that call.
+    edit_rows_after = v.normalized(edit_bi)[0]
+    switch_after = next(i for i, row in enumerate(edit_rows_after) if row[0] == 0x1b)
+    default_at = edit_rows_after[switch_after][3]
+    assert edit_rows_after[default_at][0] == 0x10
+    string_type = q('', 'String')
+    fallback_title = s.m.asm.assemble([
+        ('pushstring', pool.string('party_group_edit_title_rush_event')),
+        ('astype', string_type),
+        ('setlocal_2',),
+    ])
+    edit_body[5], edit_body[6], _, edit_default_placed = s.m.asm.splice_many(
+        edit_body, [(default_at, fallback_title, s.m.asm.ENTER)])
+    s.m.check_body(edit_body, a)
+    changes.append({
+        'label': edit_label,
+        'body': edit_bi,
+        'original_sha256': sha(edit_old),
+        'patched_sha256': sha(edit_body[5]),
+        'insertion_at': switch_at,
+        'kind': 'map_invalid_title_categories_to_rush_event',
+        'mapped_categories': ['null', 'out_of_range'],
+        'preserved_categories': [1, 2, 3, 4],
+        'ui_category': 4,
+        'default_title_key': 'party_group_edit_title_rush_event',
+        'default_insertion_at': default_at,
+        'default_placed': edit_default_placed,
+        'reversible': True,
+    })
 
     changed = {item['body'] for item in changes} | set(PRECHANGED_BODY_IDS)
     for i, body in enumerate(a.bodies):

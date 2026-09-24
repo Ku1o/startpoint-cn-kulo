@@ -1,44 +1,44 @@
 {
   "schema_version": 6,
   "status": "accepted_offline",
-  "accepted_on": "2026-09-18",
+  "accepted_on": "2026-09-24",
   "acceptance": {
     "result": "accepted_offline",
     "scope": "offline_artifact_lineage_and_public_admission",
     "device_tested_by_codex": false,
     "per_feature_device_results": "not_recorded",
     "build_reports_are_immutable": true,
-    "audit": "client-patch/ACCEPTANCE-ABYSS-EX-20260918.md"
+    "audit": "client-patch/ACCEPTANCE-SET-EDIT-C8601-20260924.md"
   },
   "artifact": {
-    "ipa": "F:\\codex\\outputs\\abyss-ex-admission-fix-20260918\\StarPoint-iOS-1.8.4-abyss-ex-admission-fix-20260918-unsigned.ipa",
-    "ipa_sha256": "068bd0cc82cd4c5c38380fe72b8c29e6807a8481e2c27613030c6f07769c67c2",
-    "size_bytes": 154707017,
+    "ipa": "F:\\codex\\outputs\\set-edit-c8601-ios-public-20260924\\StarPoint-iOS-1.8.4-independent-formations-set-edit-c8601-public-20260924-unsigned.ipa",
+    "ipa_sha256": "64edf9ada1c0cb1dd8ebff00978394907b93174b519f0106fd41b55f2949917a",
+    "size_bytes": 158537999,
     "native_member": "Payload/worldflipper.app/worldflipper",
-    "native_sha256": "2d8dab5f453cf5d37e3bc2caa8143eea4a05198bf158b69deafea737602fe298",
+    "native_sha256": "0b23e0362ee69b6ddd1367df383e1b270eeff255bffbbb3543804b69c6a8ec9a",
     "swf_member": "Payload/worldflipper.app/worldflipper_ios_release.swf",
-    "swf_sha256": "7c69e0cf7d04013d9982df4658472454d79dd26165feb54f87bf521ce71acce1",
+    "swf_sha256": "e2033cd4a3dfaf79f413ff89e7f3cf6a38c0c6bb543afd62ade8fb3fe7516b0a",
     "bundle_id": "com.kulo.wf",
     "version": "1.8.4",
     "build": "1.8.46",
     "signing": "unsigned",
     "profile_debug_overlay": false,
     "title_cntips_b_unchanged": true,
-    "endpoint_policy": "R3/R4 初始 API 与版本配置均为 http://175.178.160.158，公网默认端口 80",
-    "full_abc": "F:\\codex\\outputs\\abyss-ex-admission-fix-20260918\\abyss-ex-ios-admission-fixed-full.abc",
-    "full_abc_sha256": "43bed2279c157df96920d6eafbeb69bcdac59f7e88da62a2cb0b6ed94f2146f2",
-    "full_abc_sha1": "507a95b5ec5e4bada216c90d2b8a16f123656953",
+    "endpoint_policy": "初始 API 与版本查询均使用 http://175.178.160.158 公网地址",
+    "full_abc": "F:\\codex\\outputs\\set-edit-c8601-ios-public-20260924\\formal-set-edit-full.abc",
+    "full_abc_sha256": "79dcca2a2936e8d0476bf42d701d4e0e6b10b206b18230909a7fec228561a10c",
+    "full_abc_sha1": "70ebcae6d09ec11f218a5fbd2bc7e75dc4fb8755",
     "aot_info_file_offset": 104549248,
     "aot_method_count": 101287,
-    "build_id": "ios-184-abyss-ex-20260917",
+    "build_id": "ios-184-independent-party-20260923",
     "diagnostic_export": false
   },
   "lineage": {
-    "previous_accepted_ipa_sha256": "f1d9f41f0b9c16ec79efa5664833fe5dea13038bc844a25f22dbafda367316dc",
-    "documentation": "client-patch/ACCEPTANCE-ABYSS-EX-20260918.md",
-    "build_entry": "client-patch/abyss-ex/build_ios.py",
-    "verification_script": "client-patch/abyss-ex/verify_ios.py",
-    "previous_method_source_commit": "20a416027089686f1ec0b03f3a0f778154f3fb30",
+    "previous_accepted_ipa_sha256": "068bd0cc82cd4c5c38380fe72b8c29e6807a8481e2c27613030c6f07769c67c2",
+    "documentation": "client-patch/ACCEPTANCE-SET-EDIT-C8601-20260924.md",
+    "build_entry": "client-patch/independent-formations/link_set_edit_ios.py",
+    "verification_script": "client-patch/independent-formations/verify_set_edit_release.py",
+    "previous_method_source_commit": "9740c3e9",
     "preserved": [
       "MOD 五合一",
       "幻想连战和幻想魂珠纹理",
@@ -77,9 +77,10 @@
       "空账号文件进入登录流程；账号记录采用同目录临时文件写完后替换，设备扩展存储保持",
       "幻想连战三个多人节点结算及房间退出时重建返回路径，修复 C2120 及连带 G1002",
       "独立普通深渊和 EX 活动入口、续战及装备限制",
-      "EX 正式准入号与 HMAC 签名前缀一致"
+      "EX 正式准入号与 HMAC 签名前缀一致",
+      "普通深渊、深渊 EX、幻想连战分别保存编队；SET 编辑标题处理空值及范围外分类，保留运输分类"
     ],
-    "method_archive": "保留幻想连战返回修复；EX 方法 AOT 累计移植及准入签名前缀修复。",
+    "method_archive": "保留独立编队公网 IPA，新增 SET 编辑标题的 AOT 方法重定向。",
     "intermediate_candidates": [
       {
         "name": "cumulative_initial",
@@ -102,74 +103,23 @@
         "role": "exact_r4_reproduction_input_not_current_baseline"
       }
     ],
-    "direct_input_ipa_sha256": "f1d9f41f0b9c16ec79efa5664833fe5dea13038bc844a25f22dbafda367316dc",
-    "source_artifact_record": "client-patch/abyss-ex/source-artifacts.json",
-    "repair_entry": "client-patch/abyss-ex/repair_admission_prefix.py"
+    "direct_input_ipa_sha256": "3eedbcb595856a0a2347058ae4a8fecc9a5a3e80a7f636ab0de35d1ffaa37188",
+    "source_artifact_record": "F:\\codex\\outputs\\set-edit-c8601-ios-public-20260924\\ios-build-report.json",
+    "repair_entry": "client-patch/independent-formations/prepare_set_edit_ios.py"
   },
-  "local_build_report": "F:\\codex\\outputs\\abyss-ex-admission-fix-20260918\\ios-repair.json",
+  "local_build_report": "F:\\codex\\outputs\\set-edit-c8601-ios-public-20260924\\ios-build-report.json",
   "local_acceptance_checks": {
-    "status": "offline_structure_and_public_protocol_verified",
+    "status": "offline_structure_and_public_endpoint_verified",
     "device_tested": false,
-    "native_code_pointers_and_relocations_unchanged_by_prefix_repair": true,
+    "native_hook_method_id": 101314,
+    "original_method_id": 85605,
+    "only_native_and_swf_ipa_members_changed": true,
     "ldid_replacement_models": 3,
-    "signature_layout": {
-      "signature_offset": 178926160,
-      "signature_size": 2711920,
-      "signature_is_last": true,
-      "loader_metadata_before_signature": true,
-      "ldid_code_limit": 178926160,
-      "ldid_metadata_preserved": true,
-      "metadata_ranges": [
-        {
-          "name": "rebase",
-          "offset": 178738032,
-          "size": 147771
-        },
-        {
-          "name": "bind",
-          "offset": 177905120,
-          "size": 59712
-        },
-        {
-          "name": "lazy_bind",
-          "offset": 177964832,
-          "size": 26368
-        },
-        {
-          "name": "export",
-          "offset": 177991200,
-          "size": 536
-        },
-        {
-          "name": "symbols",
-          "offset": 178240632,
-          "size": 25392
-        },
-        {
-          "name": "strings",
-          "offset": 178885808,
-          "size": 40352
-        },
-        {
-          "name": "indirect_symbols",
-          "offset": 178266024,
-          "size": 8728
-        },
-        {
-          "name": "0x26",
-          "offset": 177991736,
-          "size": 248864
-        },
-        {
-          "name": "0x29",
-          "offset": 178240600,
-          "size": 32
-        }
-      ]
-    },
-    "save_schema_changed": false,
-    "admission_build_id": "ios-184-abyss-ex-20260917",
-    "public_protocol_report": "F:\\codex\\outputs\\abyss-ex-admission-fix-20260918\\public-admission-verification.json"
+    "signature_layout_verified": true,
+    "admission_id_and_key_unchanged": true,
+    "full_abc_identity_verified": true,
+    "runtime_full_abc_methods": 101315,
+    "preserved_aot_table_methods": 101287
   },
   "excluded_diagnostic": {
     "status": "diagnostic_only_not_current_baseline",

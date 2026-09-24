@@ -71,8 +71,23 @@ def main():
     compiled=link.aot.extract_symbol_bytes(mo,sym('_abcBytes'),read64(info,32));fresh=abcfmt.ABC(compiled)
     oldabcoff=link.file_offset(native,read64(native,INFO_OFFSET+24));oldabclen=read64(native,INFO_OFFSET+32)
     oldraw=native[oldabcoff:oldabcoff+oldabclen];assert sha(oldraw)==port['baseline_runtime_abc_sha256'];old=abcfmt.ABC(oldraw)
-    for field in ('methods','metadata','instances','classes','scripts','ints','uints','doubles','namespaces','ns_sets','multinames'):
+    for field in ('methods','metadata','instances','scripts','ints','uints','doubles','namespaces','ns_sets','multinames'):
         rows=getattr(old,field);assert freeze(rows)==freeze(getattr(fresh,field)[:len(rows)]),field
+    trait_extensions={row['class']:row for row in port.get('class_trait_extensions',[])}
+    assert len(trait_extensions)==len(port.get('class_trait_extensions',[]))
+    for class_index,(previous,current) in enumerate(zip(old.classes,fresh.classes)):
+        assert previous[0]==current[0]
+        assert freeze(previous[1])==freeze(current[1][:len(previous[1])])
+        class_name=old.mn_name(old.instances[class_index][0])
+        extra=current[1][len(previous[1]):]
+        if class_name in trait_extensions:
+            extension=trait_extensions.pop(class_name)
+            assert len(extra)==1
+            trait,=extra
+            assert fresh.mn_name(trait.name)==extension['trait']
+            assert trait.kind==1 and trait.data==['method',0,extension['method_id']]
+        else:assert not extra,class_name
+    assert not trait_extensions,trait_extensions
     allowed_strings=replacements('ios')
     for index,value in enumerate(old.strings):
         assert fresh.strings[index]==allowed_strings.get(value,value),('string index',index)

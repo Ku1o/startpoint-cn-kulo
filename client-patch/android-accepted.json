@@ -1,45 +1,45 @@
 {
   "schema_version": 6,
   "status": "accepted_offline",
-  "accepted_on": "2026-09-18",
+  "accepted_on": "2026-09-24",
   "acceptance": {
     "result": "accepted_offline",
     "scope": "offline_artifact_lineage_and_public_admission",
     "device_tested_by_codex": false,
     "per_feature_device_results": "not_recorded",
     "build_reports_are_immutable": true,
-    "audit": "client-patch/ACCEPTANCE-ABYSS-EX-20260918.md"
+    "audit": "client-patch/ACCEPTANCE-SET-EDIT-C8601-20260924.md"
   },
   "variants": {
     "public": {
-      "apk": "F:\\codex\\outputs\\abyss-ex-admission-fix-20260918\\StarPoint-CN-1.8.1-abyss-ex-admission-fix-20260918.apk",
-      "apk_sha256": "86bfa97f6f8479ddeda7084e08fc9144e10caaf2aaa2cbe01ad5a27fbbdd3a71",
-      "swf_sha256": "8b564f3f54c46fcc023622783b33feca0992f188d1092428dcd9ff795ebc9aaa",
-      "uniqueappversionid": "0a43203d-f28f-4d2a-89fc-5f365a00b273",
+      "apk": "F:\\codex\\outputs\\set-edit-c8601-public-20260924\\StarPoint-CN-1.8.1-independent-formations-set-edit-c8601-public-20260924-0fcf027e.apk",
+      "apk_sha256": "f24f469c1be0cb3d2d16520a739ace52b58055ce65621f5243404026beba6066",
+      "swf_sha256": "1785d16b430ea7008e7d70cf1bca106f3f5410bbf86566063e83ad856d9a0a49",
+      "uniqueappversionid": "0fcf027e-c219-4d6c-9221-7e10db70b513",
       "endpoint": "http://175.178.160.158:8001",
-      "local_build_report": "F:\\codex\\outputs\\abyss-ex-admission-fix-20260918\\android-repair.json",
+      "local_build_report": "F:\\codex\\outputs\\set-edit-c8601-public-20260924\\package-report.json",
       "local_build_checks": {
-        "method_bodies_checked": 96635,
-        "admission_prefix_repair_method_bodies_unchanged": true,
-        "all_other_swf_tags_unchanged": true,
+        "method_bodies_checked": 96653,
+        "all_other_abc_bodies_unchanged_from_fixed_lan_source": true,
+        "endpoint_pool_rewrites": 9,
         "zipalign": true,
         "v1_signature": true,
         "v2_signature": true,
         "signer_certificate_sha256": "569d19a3578d4cba16e3d6e7ad8ccab4fa667efc758deef6c9be3adb99919894"
       },
-      "accepted_on": "2026-09-18",
-      "acceptance_audit": "client-patch/ACCEPTANCE-ABYSS-EX-20260918.md",
-      "main_abc_index": 296,
-      "size_bytes": 170036419,
-      "dex_sha256": "a082faddf8ebba18c88490cfe62dc338c1c18f95501b5fd3f307c58f9ea0306c",
-      "native_build_identity": "0a43203d-f28f-4d2a-89fc-5f365a00b273",
+      "accepted_on": "2026-09-24",
+      "acceptance_audit": "client-patch/ACCEPTANCE-SET-EDIT-C8601-20260924.md",
+      "main_abc_index": 361,
+      "size_bytes": 170040515,
+      "dex_sha256": "31f367a7aef3c4e310fa3c2cfa2ac5815ee8d351e3aa45a4b66c5cdb5ba03fdd",
+      "native_build_identity": "0fcf027e-c219-4d6c-9221-7e10db70b513",
       "package_name": "com.leiting.wf",
       "version_name": "1.8.1",
       "version_code": 1008001,
       "acceptance_status": "accepted_offline",
       "device_acceptance": "not_device_tested",
-      "derived_from_apk_sha256": "3c365e51762ad115366731fa1fa2bd1ffbdac54cbce4c3e2626010deffc91fd2",
-      "build_id": "android-181-abyss-ex-20260917",
+      "derived_from_apk_sha256": "e531534d9548d6e1cac5cc412d3bf9aad6d5df8330565ce022f54b0fe8180d51",
+      "build_id": "android-181-independent-party-20260923",
       "diagnostic_export": false
     },
     "lan": {
@@ -82,9 +82,9 @@
     }
   },
   "lineage": {
-    "documentation": "client-patch/ACCEPTANCE-ABYSS-EX-20260918.md",
-    "build_entry": "client-patch/abyss-ex/build_android.py",
-    "previous_method_source_commit": "20a416027089686f1ec0b03f3a0f778154f3fb30",
+    "documentation": "client-patch/ACCEPTANCE-SET-EDIT-C8601-20260924.md",
+    "build_entry": "client-patch/independent-formations/package_set_edit_public_android.py",
+    "previous_method_source_commit": "9740c3e9",
     "preserved": [
       "此前 MOD、幻想连战、轮播、排行榜、继承入口、深渊装备门控",
       "关注和取消关注按钮、原生本人资料路由",
@@ -115,14 +115,15 @@
       "Android 构建准入、握手续期与账号恢复",
       "空账号文件进入登录流程；账号与设备记录采用同目录临时文件写完后替换",
       "独立普通深渊和 EX 活动入口、续战及装备限制",
-      "EX 正式准入号与 HMAC 签名前缀一致"
+      "EX 正式准入号与 HMAC 签名前缀一致",
+      "普通深渊、深渊 EX、幻想连战分别保存编队；SET 编辑标题处理空值及范围外分类，保留运输分类"
     ],
-    "method_archive": "EX 活动及装备入口累计方法；准入签名前缀单字符串修复。",
-    "previous_accepted_registry_revision": "20a416027089686f1ec0b03f3a0f778154f3fb30",
+    "method_archive": "独立编队分类与 SET 编辑标题回退，公网 Android 从已修复内网包转换端点。",
+    "previous_accepted_registry_revision": "bfef8dd7",
     "previous_accepted_registry_path": "client-patch/android-accepted.json",
-    "repair_entry": "client-patch/abyss-ex/repair_admission_prefix.py",
-    "direct_input_apk_sha256": "3c365e51762ad115366731fa1fa2bd1ffbdac54cbce4c3e2626010deffc91fd2",
-    "source_artifact_record": "client-patch/abyss-ex/source-artifacts.json"
+    "repair_entry": "client-patch/independent-formations/build_swf.py",
+    "direct_input_apk_sha256": "e531534d9548d6e1cac5cc412d3bf9aad6d5df8330565ce022f54b0fe8180d51",
+    "source_artifact_record": "F:\\codex\\outputs\\set-edit-c8601-public-20260924\\package-report.json"
   },
   "excluded_artifacts": [
     {

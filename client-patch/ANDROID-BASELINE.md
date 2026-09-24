@@ -1,15 +1,15 @@
 # Android APK/SWF：当前已验收基线
 
-2026-09-18，双端深渊 EX 准入修正版完成离线验收。身份以
+2026-09-24，双端独立编队 SET 编辑 C8601 公网包完成离线验收。Android 公网包从已修复的内网 APK 转换端点，iOS 从此前的独立编队公网 IPA 接续；两端沿用各自的独立编队准入 ID 与密钥。精确身份以
 [android-accepted.json](./android-accepted.json) 和 [ios-accepted.json](./ios-accepted.json) 为准，
-范围见 [双端 EX 验收](./ACCEPTANCE-ABYSS-EX-20260918.md)。
+范围见 [SET 编辑 C8601 离线验收](./ACCEPTANCE-SET-EDIT-C8601-20260924.md)。原 EX 成品与方法保留在历史验收记录中。
 
 | 环境 | 成品 | 状态 |
 | --- | --- | --- |
-| Android 公网 | `F:/codex/outputs/abyss-ex-admission-fix-20260918/StarPoint-CN-1.8.1-abyss-ex-admission-fix-20260918.apk` | `accepted_offline`，实际包准入协议通过，未新增设备测试 |
+| Android 公网 | `F:/codex/outputs/set-edit-c8601-public-20260924/StarPoint-CN-1.8.1-independent-formations-set-edit-c8601-public-20260924-0fcf027e.apk` | `accepted_offline`，从 SET 修复内网包仅转换公网端点并更新 AIR UUID；公网包未新增设备测试 |
 | Android 内网 | `outputs/r10-admission-lan-reopen-fix-20260915/StarPoint-CN-1.8.1-r10-admission-lan-reopen-fix-20260915.apk` | 原 `accepted_offline` 登记保持 |
 
-公网保留 R10 累计功能，增加 EX 活动、续战和装备门控，并修复实际 HMAC 消息中的旧号残留。主 ABC 索引 296，全 SWF 共 96,635 个方法体；无诊断导出。公网准入号为 `android-181-abyss-ex-20260917`，内网仍沿用原 R10 号。iOS 使用独立注册表，AOT 方法数 101,287。
+公网保留 R10、EX 和独立编队累计功能，SET 标题回退覆盖空值及范围外分类。主 ABC 索引 361，全 SWF 共 96,653 个方法体；无诊断导出。公网准入号为 `android-181-independent-party-20260923`。iOS 使用独立注册表，完整 ABC 有 101,315 个方法，原 AOT 方法表仍为 101,287 项，新增 hook 重定向到原方法槽。原登记内网 R10 成品保持历史身份，本次内网 SET 修复包的直接输入见验收记录。
 
 在仓库根目录运行：
 
