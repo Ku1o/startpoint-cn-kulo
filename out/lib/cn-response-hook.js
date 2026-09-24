@@ -35,14 +35,14 @@ function installCnResponseEncoding(fastify, options = {}) {
         let encodedPayload = payload;
         try {
             if (reply.getHeader("content-type") === "application/x-msgpack") {
-                const compressedLoad = request.url.split("?", 1)[0].endsWith("/load")
-                    && cnLoadCompressionConfig.mode !== "off";
+                const loadResponse = request.url.split("?", 1)[0].endsWith("/load");
+                const compressedLoad = loadResponse && cnLoadCompressionConfig.mode !== "off";
                 if (compressedLoad)
                     appendVaryAcceptEncoding(reply);
                 const encoded = yield responseWorkerPool.encode(Object.assign({ payload }, (compressedLoad ? { compression: {
                         config: cnLoadCompressionConfig,
                         acceptEncoding: request.headers["accept-encoding"],
-                    } } : {})));
+                    } } : {})), { offloadObject: loadResponse });
                 if (encoded.compressionError) {
                     console.error("[CN-LOAD-COMPRESS] compression failed; sending identity response");
                 }

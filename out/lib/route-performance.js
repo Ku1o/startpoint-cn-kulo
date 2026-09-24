@@ -16,6 +16,7 @@ const admission_1 = require("../multi/room/admission");
 const memory_diagnostics_1 = require("./memory-diagnostics");
 const request_diagnostics_1 = require("./request-diagnostics");
 const server_work_performance_1 = require("./server-work-performance");
+const sqlite_commit_diagnostics_1 = require("./sqlite-commit-diagnostics");
 function isEnabled() {
     var _a;
     return !/^(0|false|no|off)$/i.test((_a = process.env.ROUTE_PERF_SUMMARY) !== null && _a !== void 0 ? _a : "true");
@@ -61,7 +62,8 @@ function installRoutePerformanceMonitor(fastify) {
         const gacha = (0, settlement_performance_1.drainGachaRequestSummary)();
         const admission = (0, admission_1.drainRoomAdmissionPerformanceSummary)();
         const work = (0, server_work_performance_1.drainServerWorkPerformance)();
-        if (requestCount === 0 && phases === "none" && admission === "none" && awake.skippedUnownedMissions === 0)
+        const commits = (0, sqlite_commit_diagnostics_1.drainSqliteCommitDiagnostics)();
+        if (requestCount === 0 && phases === "none" && admission === "none" && awake.skippedUnownedMissions === 0 && commits.n === 0)
             return;
         console.warn(`[PERF] interval=${intervalMs}ms requests=${requestCount} cpu=${cpuMs.toFixed(0)}ms `
             + `actualInterval=${actualIntervalMs.toFixed(1)}ms `
@@ -71,6 +73,8 @@ function installRoutePerformanceMonitor(fastify) {
         console.warn(`[REQUEST-PERF] ${JSON.stringify(Object.assign(Object.assign({}, summary), { awake }))}`);
         if (Object.keys(work).length > 0)
             console.warn(`[WORK-PERF] ${JSON.stringify(work)}`);
+        if (commits.n > 0)
+            console.warn(`[SQLITE-COMMIT] ${JSON.stringify(commits)}`);
     }, intervalMs);
     timer.unref();
     fastify.addHook("onClose", () => __awaiter(this, void 0, void 0, function* () { clearInterval(timer); eventLoopDelay.disable(); }));

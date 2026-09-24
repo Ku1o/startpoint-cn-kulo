@@ -69,6 +69,8 @@ export function fixUint32Tags(input: Buffer): Buffer {
 
 export interface ResponseEncodingInput {
     readonly payload: unknown
+    /** Internal immutable MessagePack snapshot; never supplied by an HTTP client. */
+    readonly packedPayload?: Uint8Array
     readonly compression?: {
         readonly config: CnLoadHttpCompressionConfig
         readonly acceptEncoding: string | readonly string[] | undefined
@@ -77,7 +79,9 @@ export interface ResponseEncodingInput {
 
 export async function encodeCnResponse(input: ResponseEncodingInput) {
     let start = performance.now()
-    const packed = pack(input.payload)
+    const packed = input.packedPayload
+        ? Buffer.isBuffer(input.packedPayload) ? input.packedPayload : Buffer.from(input.packedPayload)
+        : pack(input.payload)
     const packMs = performance.now() - start
     start = performance.now()
     const fixed = fixUint32Tags(packed)

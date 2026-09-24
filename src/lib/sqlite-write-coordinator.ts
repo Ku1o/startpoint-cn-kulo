@@ -1,6 +1,7 @@
 import { getDb } from "../data/db"
 import { performance } from "node:perf_hooks"
 import { measureServerWork, recordServerWork } from "./server-work-performance"
+import { beginCommitProbe, endCommitProbe, type CommitProbe } from "./sqlite-commit-diagnostics"
 import type { Database } from "better-sqlite3"
 
 const playerWriteTails = new Map<number, Promise<void>>()
@@ -47,7 +48,11 @@ export async function runImmediateTransactionWithRetry<T>(
             measureServerWork("db.begin", () => db.exec("BEGIN IMMEDIATE"))
             began = true
             const result = measureServerWork("db.body", operation)
-            measureServerWork("db.commit", () => db.exec("COMMIT"))
+            const probe = beginCommitProbe(db, "immediate")
+            try {
+                measureServerWork("db.commit", () => db.exec("COMMIT"))
+                endCommitProbe(db, probe, true)
+            } catch (error) { endCommitProbe(db, probe, false, error); throw error }
             return result
         } catch (error) {
             if (began && db.inTransaction) {
@@ -63,11 +68,20 @@ export async function runImmediateTransactionWithRetry<T>(
 
 /** Keep better-sqlite3's transaction/rollback semantics; time its actual commit separately. */
 export function runMeasuredSingleTransaction<T>(db: Database, operation: () => T): T {
+    const nested = db.inTransaction
     let bodyEndedAt = 0
-    const result = db.transaction(() => {
-        try { return measureServerWork("db.single.body", operation) }
-        finally { bodyEndedAt = performance.now() }
-    })()
+    let probe: CommitProbe | undefined
+    let result: T
+    try {
+        result = db.transaction(() => {
+            const value = measureServerWork("db.single.body", operation)
+            // Nested better-sqlite3 transactions release a savepoint, not a WAL commit.
+            probe = nested ? undefined : beginCommitProbe(db, "single")
+            bodyEndedAt = performance.now()
+            return value
+        })()
+    } catch (error) { endCommitProbe(db, probe, false, error); throw error }
     recordServerWork("db.single.commit", performance.now() - bodyEndedAt)
+    endCommitProbe(db, probe, true)
     return result
 }

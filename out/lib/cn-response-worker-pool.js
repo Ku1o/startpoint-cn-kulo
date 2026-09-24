@@ -17,13 +17,14 @@ const node_path_1 = __importDefault(require("node:path"));
 const node_os_1 = require("node:os");
 const node_worker_threads_1 = require("node:worker_threads");
 const node_perf_hooks_1 = require("node:perf_hooks");
+const msgpackr_1 = require("msgpackr");
 const cn_response_encoding_1 = require("./cn-response-encoding");
 const memory_diagnostics_1 = require("./memory-diagnostics");
 const server_work_performance_1 = require("./server-work-performance");
-/** Workers own immutable response data only; they never access SQLite or rooms. */
+/** Workers own response snapshots only; they never access SQLite or rooms. */
 class CnResponseWorkerPool {
     constructor(options) {
-        var _a, _b, _c, _d;
+        var _a, _b, _c, _d, _e;
         this.options = options;
         this.slots = [];
         this.queue = [];
@@ -31,32 +32,70 @@ class CnResponseWorkerPool {
         this.bytes = 0;
         this.closed = false;
         this.cooldownUntil = 0;
-        this.counters = { completed: 0, failed: 0, rejected: 0, fallback: 0, timeouts: 0 };
+        this.counters = { completed: 0, completedObjects: 0, submitted: 0,
+            failed: 0, rejected: 0, fallback: 0, timeouts: 0,
+            localDisabled: 0, localSmall: 0, localIneligible: 0 };
         this.size = Math.min(4, Math.max(0, Math.trunc(options.size) || 0));
         this.maxPending = Math.max(1, (_a = options.maxPending) !== null && _a !== void 0 ? _a : 16);
         this.maxBytes = Math.max(1, (_b = options.maxPendingBytes) !== null && _b !== void 0 ? _b : 32 * 1024 * 1024);
         this.timeoutMs = Math.max(1, (_c = options.timeoutMs) !== null && _c !== void 0 ? _c : 10000);
         this.minimumLength = Math.max(0, (_d = options.minimumLength) !== null && _d !== void 0 ? _d : 512 * 1024);
-        this.unregister = (0, memory_diagnostics_1.registerMemoryCounters)("responseWorkers", () => (Object.assign(Object.assign({}, this.counters), { workers: this.slots.length, pending: this.queue.length, active: this.slots.filter(slot => slot.job).length, retainedBytes: this.bytes, maxPending: this.maxPending, maxBytes: this.maxBytes })));
+        this.minimumObjectBytes = Math.max(0, (_e = options.minimumObjectBytes) !== null && _e !== void 0 ? _e : 32 * 1024);
+        this.unregister = (0, memory_diagnostics_1.registerMemoryCounters)("responseWorkers", () => (Object.assign(Object.assign({}, this.counters), { workers: this.slots.length, pending: this.queue.length, active: this.slots.filter(slot => slot.job).length, retainedBytes: this.bytes, maxPending: this.maxPending, maxBytes: this.maxBytes, configuredWorkers: this.size, minimumObjectBytes: this.minimumObjectBytes })));
     }
     snapshot() {
         return Object.assign(Object.assign({}, this.counters), { workers: this.slots.length, pending: this.queue.length, active: this.slots.filter(slot => slot.job).length, retainedBytes: this.bytes });
     }
-    encode(input) {
-        return __awaiter(this, void 0, void 0, function* () {
+    encode(input_1) {
+        return __awaiter(this, arguments, void 0, function* (input, options = {}) {
             let result;
-            if (!this.closed && this.size > 0 && typeof input.payload === "string"
-                && input.payload.length >= this.minimumLength) {
+            const objectPayload = options.offloadObject === true && input.payload !== null && typeof input.payload === "object";
+            const eligible = objectPayload || (typeof input.payload === "string" && input.payload.length >= this.minimumLength);
+            if (!this.closed && this.size > 0 && eligible) {
+                let snapshot;
+                let packMs = 0;
                 try {
-                    result = yield this.submit(input);
+                    // Avoid copying a large load response when the pool is already full.
+                    this.checkCapacity(0);
+                    const start = node_perf_hooks_1.performance.now();
+                    try {
+                        // MessagePack is faster to snapshot than a general object clone,
+                        // and preserves the exact wire types (including Buffers/Dates).
+                        // msgpackr reuses its buffer: own a copy before the next request.
+                        const packedPayload = objectPayload ? Buffer.from((0, msgpackr_1.pack)(input.payload)) : undefined;
+                        snapshot = Object.assign({ payload: objectPayload ? undefined : input.payload, packedPayload }, (input.compression ? { compression: {
+                                config: Object.assign({}, input.compression.config),
+                                acceptEncoding: Array.isArray(input.compression.acceptEncoding)
+                                    ? [...input.compression.acceptEncoding] : input.compression.acceptEncoding,
+                            } } : {}));
+                    }
+                    finally {
+                        (0, server_work_performance_1.recordServerWork)("encode.snapshot", node_perf_hooks_1.performance.now() - start);
+                    }
+                    packMs = objectPayload ? node_perf_hooks_1.performance.now() - start : 0;
+                    if (objectPayload && snapshot.packedPayload.byteLength < this.minimumObjectBytes) {
+                        this.counters.localSmall++;
+                        result = yield (0, cn_response_encoding_1.encodeCnResponse)(snapshot);
+                    }
+                    else
+                        result = yield this.submit(snapshot, objectPayload);
                 }
                 catch (_a) {
                     this.counters.fallback++;
-                    result = yield (0, cn_response_encoding_1.encodeCnResponse)(input);
+                    // A queued response must keep its send-time values on failure too.
+                    result = yield (0, cn_response_encoding_1.encodeCnResponse)(snapshot !== null && snapshot !== void 0 ? snapshot : input);
                 }
+                result.timings.packMs += packMs;
             }
-            else
+            else {
+                if (this.closed || this.size === 0)
+                    this.counters.localDisabled++;
+                else if (typeof input.payload === "string")
+                    this.counters.localSmall++;
+                else
+                    this.counters.localIneligible++;
                 result = yield (0, cn_response_encoding_1.encodeCnResponse)(input);
+            }
             (0, server_work_performance_1.recordServerWork)("encode.pack", result.timings.packMs);
             (0, server_work_performance_1.recordServerWork)("encode.fix", result.timings.fixMs);
             (0, server_work_performance_1.recordServerWork)("encode.base64", result.timings.base64Ms);
@@ -65,19 +104,24 @@ class CnResponseWorkerPool {
             return result;
         });
     }
-    submit(input) {
-        // UTF-16 retained string plus the in-flight structured-clone copy.
-        const bytes = input.payload.length * 4;
+    checkCapacity(bytes) {
         const pending = this.queue.length + this.slots.filter(slot => slot.job).length;
         if (this.closed || Date.now() < this.cooldownUntil
             || pending >= this.maxPending || this.bytes + bytes > this.maxBytes) {
             this.counters.rejected++;
-            return Promise.reject(new Error("Response worker capacity unavailable"));
+            throw new Error("Response worker capacity unavailable");
         }
+    }
+    submit(input, objectPayload) {
+        // Budget retained/copy buffers and decoded working data conservatively.
+        // This is an input budget, not a measurement of the V8 heap.
+        const bytes = input.packedPayload ? input.packedPayload.byteLength * 4 : input.payload.length * 4;
+        this.checkCapacity(bytes);
         return new Promise((resolve, reject) => {
-            const job = { id: ++this.nextId, input, bytes, queuedAt: node_perf_hooks_1.performance.now(), startedAt: 0,
+            const job = { id: ++this.nextId, input, objectPayload, bytes, queuedAt: node_perf_hooks_1.performance.now(), startedAt: 0,
                 timer: setTimeout(() => this.timeout(job), this.timeoutMs), resolve, reject };
             this.bytes += bytes;
+            this.counters.submitted++;
             this.queue.push(job);
             this.dispatch();
         });
@@ -105,6 +149,8 @@ class CnResponseWorkerPool {
             }
             else {
                 this.counters.completed++;
+                if (job.objectPayload)
+                    this.counters.completedObjects++;
                 const result = message.result;
                 // Structured clone turns Buffers into Uint8Arrays.
                 if (typeof result.body !== "string")

@@ -2,7 +2,7 @@ import { performance } from "node:perf_hooks"
 
 // Fixed names keep telemetry bounded even when request IDs are unbounded.
 export type ServerWorkPhase = "encode.pack" | "encode.fix" | "encode.base64"
-    | "encode.compressWait" | "encode.clone" | "encode.queue" | "encode.workerRoundTrip"
+    | "encode.compressWait" | "encode.snapshot" | "encode.clone" | "encode.queue" | "encode.workerRoundTrip"
     | "db.single.body" | "db.single.commit" | "db.begin" | "db.body" | "db.commit" | "db.playerQueue"
 
 const timings = new Map<ServerWorkPhase, { n: number, totalMs: number, maxMs: number }>()

@@ -112,7 +112,9 @@ exports.fixUint32Tags = fixUint32Tags;
 function encodeCnResponse(input) {
     return __awaiter(this, void 0, void 0, function* () {
         let start = node_perf_hooks_1.performance.now();
-        const packed = (0, msgpackr_1.pack)(input.payload);
+        const packed = input.packedPayload
+            ? Buffer.isBuffer(input.packedPayload) ? input.packedPayload : Buffer.from(input.packedPayload)
+            : (0, msgpackr_1.pack)(input.payload);
         const packMs = node_perf_hooks_1.performance.now() - start;
         start = node_perf_hooks_1.performance.now();
         const fixed = fixUint32Tags(packed);

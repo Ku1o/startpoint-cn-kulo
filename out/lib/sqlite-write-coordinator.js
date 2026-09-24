@@ -13,6 +13,7 @@ exports.runMeasuredSingleTransaction = exports.runImmediateTransactionWithRetry 
 const db_1 = require("../data/db");
 const node_perf_hooks_1 = require("node:perf_hooks");
 const server_work_performance_1 = require("./server-work-performance");
+const sqlite_commit_diagnostics_1 = require("./sqlite-commit-diagnostics");
 const playerWriteTails = new Map();
 function delay(milliseconds) {
     return new Promise(resolve => setTimeout(resolve, milliseconds));
@@ -60,7 +61,15 @@ function runImmediateTransactionWithRetry(operation_1) {
                 (0, server_work_performance_1.measureServerWork)("db.begin", () => db.exec("BEGIN IMMEDIATE"));
                 began = true;
                 const result = (0, server_work_performance_1.measureServerWork)("db.body", operation);
-                (0, server_work_performance_1.measureServerWork)("db.commit", () => db.exec("COMMIT"));
+                const probe = (0, sqlite_commit_diagnostics_1.beginCommitProbe)(db, "immediate");
+                try {
+                    (0, server_work_performance_1.measureServerWork)("db.commit", () => db.exec("COMMIT"));
+                    (0, sqlite_commit_diagnostics_1.endCommitProbe)(db, probe, true);
+                }
+                catch (error) {
+                    (0, sqlite_commit_diagnostics_1.endCommitProbe)(db, probe, false, error);
+                    throw error;
+                }
                 return result;
             }
             catch (error) {
@@ -82,16 +91,25 @@ function runImmediateTransactionWithRetry(operation_1) {
 exports.runImmediateTransactionWithRetry = runImmediateTransactionWithRetry;
 /** Keep better-sqlite3's transaction/rollback semantics; time its actual commit separately. */
 function runMeasuredSingleTransaction(db, operation) {
+    const nested = db.inTransaction;
     let bodyEndedAt = 0;
-    const result = db.transaction(() => {
-        try {
-            return (0, server_work_performance_1.measureServerWork)("db.single.body", operation);
-        }
-        finally {
+    let probe;
+    let result;
+    try {
+        result = db.transaction(() => {
+            const value = (0, server_work_performance_1.measureServerWork)("db.single.body", operation);
+            // Nested better-sqlite3 transactions release a savepoint, not a WAL commit.
+            probe = nested ? undefined : (0, sqlite_commit_diagnostics_1.beginCommitProbe)(db, "single");
             bodyEndedAt = node_perf_hooks_1.performance.now();
-        }
-    })();
+            return value;
+        })();
+    }
+    catch (error) {
+        (0, sqlite_commit_diagnostics_1.endCommitProbe)(db, probe, false, error);
+        throw error;
+    }
     (0, server_work_performance_1.recordServerWork)("db.single.commit", node_perf_hooks_1.performance.now() - bodyEndedAt);
+    (0, sqlite_commit_diagnostics_1.endCommitProbe)(db, probe, true);
     return result;
 }
 exports.runMeasuredSingleTransaction = runMeasuredSingleTransaction;
