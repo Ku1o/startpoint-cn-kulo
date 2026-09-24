@@ -6,3 +6,4 @@
 *.ttf binary
 assets/asset-patch/active/pinball-1.4.96-1.4.97-1-greyupd0902-cdn-resource-recovery.zip filter=lfs diff=lfs merge=lfs -text
 assets/asset-patch/active/pinball-1.4.115-1.4.116-2-author-characters-1033.zip filter=lfs diff=lfs merge=lfs -text
+assets/asset-patch/active/pinball-1.4.116-1.4.117-1-author-inaho-fluffy-consolidated.zip filter=lfs diff=lfs merge=lfs -text

@@ -1,0 +1,17 @@
+{
+  "status": "local_download_verified",
+  "baseline": "1.4.118",
+  "version": "1.4.119",
+  "download": {
+    "location": "http://<LAN_HOST>:8001/patch/cn/asset-patch/active/pinball-1.4.118-1.4.119-1-inaho-leader-target-fix.zip",
+    "size": 47782,
+    "sha256": ""
+  },
+  "actual_sha256": "197287f260fc7c1a00cce971dc6f4c81dd04a3d6290c0bc60594d2fa9dd09707",
+  "bytes": 47782,
+  "members": 1,
+  "already_current_no_update": true,
+  "older_117_receives_both_edges": true,
+  "device_tested": false,
+  "service_restarted": false
+}

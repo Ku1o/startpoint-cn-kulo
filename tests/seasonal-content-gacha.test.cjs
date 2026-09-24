@@ -25,7 +25,8 @@ test('winning runtime pools retain eligibility and exact pickup rates across mir
         } else {
             for(const cid of [149990,119989,149989,169989,149988,119993,119994,119995,129993,129994,129995,129996,129998,139996,149991,149992,149993,149994,159999,169993]) {
                 assert.equal(by.get(cid).odds,1000)
-                assert.equal(by.get(cid).isExchangeable,[119989,149989,169989].includes(cid))
+                // Five previously enabled roles plus the 15 legacy MOD roles.
+                assert.equal(by.get(cid).isExchangeable,true)
             }
         }
     }

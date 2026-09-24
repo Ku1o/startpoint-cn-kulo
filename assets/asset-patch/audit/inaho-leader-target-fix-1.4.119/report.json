@@ -1,0 +1,49 @@
+{
+  "status": "local_active_offline_checked",
+  "baseline": "1.4.118",
+  "target": "1.4.119",
+  "archive": "pinball-1.4.118-1.4.119-1-inaho-leader-target-fix.zip",
+  "archive_sha256": "197287f260fc7c1a00cce971dc6f4c81dd04a3d6290c0bc60594d2fa9dd09707",
+  "archive_bytes": 47782,
+  "members": 1,
+  "logical": "master/ability/leader_ability.orderedmap",
+  "member": "production/upload/ff/84353774cb95e8d7dc90c679f96a5bca7f42e5",
+  "source_archive": "pinball-1.4.117-1.4.118-1-inaho-redesign-fluffy-gauge.zip",
+  "source_archive_sha256": "8f619c3d82ce0bd89d6bff0e01895893bd1da2ae8834d2b1d02e789303410f9e",
+  "before_resource_sha256": "d60e4cfed95f6a21dadc84f79f7f8aa587c5ffdb79310f7d35914099c8fae457",
+  "after_resource_sha256": "e4ef82d7097a406d09af1c426c47d90488697d1bf8e027d0f9011b5ee765bec1",
+  "before_files": {
+    "assets/asset-patch/manifest.json": "5c63b6a9a6628210b4cdc727ea24c0fb475267918721b0f90f893fac17d6225a"
+  },
+  "after_manifest_sha256": "7c92f7567f2f89b5adea62eae31792914f2ba1f370c3b4e9d72b4fbc9a7b6782",
+  "changes": [
+    {
+      "key": "159991",
+      "row_zero_based": 15,
+      "column_zero_based": 46,
+      "before": "",
+      "after": "0",
+      "meaning": "Myself"
+    }
+  ],
+  "checks": [
+    "Only one decoded cell changed",
+    "Every unrelated raw row retained",
+    "Native required-target contract applied",
+    "Idempotent repair",
+    "Archive CRC and serialized readback",
+    "Historical manifest entries retained"
+  ],
+  "save_impact": "Existing ability target only; no persistence, saved ID or schema changes.",
+  "device_tested": false,
+  "apk_rebuilt": false,
+  "cloud_deployed": false,
+  "http_delivery_verified": true,
+  "source_runtime_files_identical": true,
+  "native_parser_rows": 62,
+  "native_parser_methods": 85,
+  "focused_regressions_passed": 3,
+  "generator_from_117_reproduces_119": true,
+  "quest_time_revisions_preserved": true,
+  "original_batch_baseline": "1.4.117"
+}
