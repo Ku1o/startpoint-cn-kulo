@@ -1,0 +1,28 @@
+{
+  "batch": "author-public-1.4.117-20260924",
+  "android": {
+    "path": "F:\\codex\\outputs\\author-public-release-20260924\\android\\StarPoint-CN-1.8.1-author-unified-damage-public-20260924-68bc1d3a.apk",
+    "sha256": "aeb1c87859b15642a5093140842d0f3b687dff0c06e8d253d3c1a3ecfb8a1596",
+    "build_id": "android-181-author-1043-20260924",
+    "status": "offline_verified_public_candidate"
+  },
+  "ios": {
+    "path": "F:\\codex\\outputs\\author-public-release-20260924\\ios\\StarPoint-iOS-1.8.4-author-unified-damage-public-20260924-r2-unsigned.ipa",
+    "sha256": "310aa3665b6ea0bc621186c76550bd3bd36aeb122bf6670e32de511539488ecd",
+    "build_id": "ios-184-author-1043-20260924",
+    "status": "offline_verified_public_candidate"
+  },
+  "previous_ids": {
+    "android": "android-181-independent-party-20260923",
+    "ios": "ios-184-independent-party-20260923"
+  },
+  "new_ids": {
+    "android": "android-181-author-1043-20260924",
+    "ios": "ios-184-author-1043-20260924"
+  },
+  "resource_version": "1.4.117",
+  "private_server_archive": "F:\\codex\\outputs\\server-overlays\\author-public-1.4.117-20260924\\startpoint-cn-cloud-overlay-author-public-1.4.117-20260924.zip",
+  "private_server_archive_sha256": "09322b7f52aaee444632465170e19f4e277a4fb8e9e1d14a683820502bc620c9",
+  "cloud_deployed": false,
+  "device_tested_this_batch": false
+}

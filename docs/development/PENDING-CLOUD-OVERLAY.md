@@ -288,3 +288,10 @@
 - 客户端机制需作者 423/424、原生 629 与对应 ActionDSL 分类支持。Android 内网成品已验收；此前的直击触发 PF 诊断增量已移除，不属于正式资源。
 - 资源更新接口还需 `src/routes/cn/asset.ts` 与 `out/routes/cn/asset.js`，按已启用 manifest 筛选归档；留存旧包不再重复下发。两个接口文件与前述五个资源文件共同交付，重启服务端加载接口。
 - 资源来源与检查记录见 `assets/asset-patch/audit/session-consolidated-1.4.117-20260924/`；客户端机制见 `client-patch/author-content-1043/`、`client-patch/author-unified-damage/`。
+
+### 双端公网客户端准入配套（待云服覆盖）
+
+- 公网 Android 从已验收作者机制内网版转换；iOS 从 1.8.4 C8601 编队 SET 修复版接续，保留独立编队、原生对象布局及累计功能。成品路径、哈希和准入 ID 见 `client-patch/author-public-release/release.json`。
+- 新号分别为 `android-181-author-1043-20260924` 和 `ios-184-author-1043-20260924`。原有 `android-181-independent-party-20260923`、`ios-184-independent-party-20260923` 及各自密钥继续启用，无新增淘汰期限，严格模式保持。
+- 本批需同时交付资源运行文件和完整 `config/client-admission.json`、`config/client-admission.keys.json`。完整准入配对由仓库外私有主记录提供，不纳入 Git，也不覆盖准入 rollout/激活状态。客户端 APK/IPA 不放入服务器覆盖包。
+- 双端公网成品通过离线载荷与配对检查；iOS 未真机测试。覆盖配套并重启服务端后使用新包登录；无依赖或数据库迁移。本地成品、提交或同步均不代表云服已部署。
