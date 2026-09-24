@@ -17,6 +17,7 @@ const manager_1 = require("../room/manager");
 const controller_1 = require("../npc/controller");
 const recruitment_1 = require("../recruitment");
 const game_logging_1 = require("../../lib/game-logging");
+const online_presence_1 = require("../../lib/online-presence");
 const player_party_pool_1 = require("../npc/player-party-pool");
 const mode15_room_gate_1 = require("../mode15-room-gate");
 const mode15_optional_1 = require("../../lib/mode15-optional");
@@ -1109,6 +1110,9 @@ function handleMessage(socket, data) {
         const current = findClientBySocket(socket);
         if (!current || current.superseded)
             return;
+        if (!socket.destroyed && (tag === 0 || tag === 1 || tag === 2)) {
+            (0, online_presence_1.markPlayerOnlineFromTcp)(current.viewerId);
+        }
         switch (tag) {
             case 0:
                 yield handleNotify(socket, current, data);

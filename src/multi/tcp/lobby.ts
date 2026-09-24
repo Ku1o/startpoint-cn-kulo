@@ -6,6 +6,7 @@ import { addRoomMember, getRoom, removeRoomMember } from "../room/manager"
 import { NpcMateProvider, selectStableNpcSlots } from "../npc/controller"
 import { stopRandomRecruitment } from "../recruitment"
 import { gameVerboseLog } from "../../lib/game-logging"
+import { markPlayerOnlineFromTcp } from "../../lib/online-presence"
 import {
     getNpcPartySelectionOptions,
     getRandomPlayerNpcPartiesSync,
@@ -1157,6 +1158,9 @@ export function handleMessage(socket: net.Socket, data: unknown): void {
     void embeddedMultiCoordinator.enqueueRoomCommand(client.roomNumber, async () => {
         const current = findClientBySocket(socket)
         if (!current || current.superseded) return
+        if (!socket.destroyed && (tag === 0 || tag === 1 || tag === 2)) {
+            markPlayerOnlineFromTcp(current.viewerId)
+        }
         switch (tag) {
             case 0: await handleNotify(socket, current, data); break
             case 1: handleBroadcast(socket, current, data); break

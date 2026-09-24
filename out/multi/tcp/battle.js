@@ -7,6 +7,7 @@ const chain_diagnostic_1 = require("./chain-diagnostic");
 const manager_1 = require("../room/manager");
 const lobby_runtime_1 = require("../five-boss/lobby-runtime");
 const connection_diagnostic_1 = require("../five-boss/connection-diagnostic");
+const online_presence_1 = require("../../lib/online-presence");
 function findBattleClientBySocket(socket) {
     const client = SessionManager_1.sessionManager.findClientBySocket(socket);
     return (client === null || client === void 0 ? void 0 : client.isBattle) ? client : undefined;
@@ -80,8 +81,12 @@ function handleBattleMessage(socket, data) {
     const tag = data[0];
     const activityClient = findBattleClientBySocket(socket);
     connection_diagnostic_1.fiveBossConnectionDiagnostics.packet(socket, !!activityClient);
-    if (activityClient)
+    if (activityClient) {
         SessionManager_1.sessionManager.noteBattleActivity(activityClient.connectionId);
+        if (!socket.destroyed && SessionManager_1.sessionManager.isCurrentBattleClient(activityClient)) {
+            (0, online_presence_1.markPlayerOnlineFromTcp)(activityClient.viewerId);
+        }
+    }
     switch (tag) {
         case 0: // Notify
             handleBattleNotify(socket, data[1]);

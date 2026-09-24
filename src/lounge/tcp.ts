@@ -1,6 +1,7 @@
 import * as net from "net"
 import { getSession } from "../data/domains/session"
 import { playerSocketAllowed } from "../lib/player-login"
+import { markPlayerOnlineFromTcp } from "../lib/online-presence"
 import {
     attachLoungeSocket,
     broadcastLoungeFrame,
@@ -59,6 +60,7 @@ export function handleLoungeMessage(socket: net.Socket, value: unknown): void {
         if (!profile || typeof profile !== "object" || Array.isArray(profile)) return
         const entered = enterLounge(socket, profile as Record<string, unknown>)
         if (!entered) return
+        markPlayerOnlineFromTcp(entered.member.viewerId)
         const mates = serializeLoungeMates(entered.room)
         sendLoungeFrame(socket, [1, [3, mates]])
         broadcastLoungeFrame(entered.room, [1, [4, mates]])
@@ -67,6 +69,9 @@ export function handleLoungeMessage(socket: net.Socket, value: unknown): void {
 
     const context = getLoungeSocketContext(socket)
     if (!context || !context.member) return
+    if (!socket.destroyed && context.member.socket === socket && kind >= 1 && kind <= 6) {
+        markPlayerOnlineFromTcp(context.viewerId)
+    }
     switch (kind) {
         case 1:
             touchLoungeActivity(context.room)

@@ -1,5 +1,6 @@
 const ONLINE_WINDOW_MS = 5 * 60 * 1000
 const CLEANUP_INTERVAL_MS = 60 * 1000
+const TCP_UPDATE_INTERVAL_MS = 30 * 1000
 
 const lastSeenByViewerId = new Map<number, number>()
 let nextCleanupAt = 0
@@ -32,10 +33,25 @@ export function markPlayerOnline(value: unknown, now = Date.now()): boolean {
     return true
 }
 
+/** Reuses the HTTP presence window for identified multiplayer TCP activity. */
+export function markPlayerOnlineFromTcp(value: unknown, now = Date.now()): boolean {
+    const viewerId = normalizeViewerId(value)
+    if (viewerId === null) return false
+
+    // Battle traffic can be frequent; at most one extra map write per UID per
+    // 30 seconds is enough to keep the five-minute activity window current.
+    const lastSeen = lastSeenByViewerId.get(viewerId)
+    if (lastSeen !== undefined && now - lastSeen < TCP_UPDATE_INTERVAL_MS) return true
+
+    lastSeenByViewerId.set(viewerId, now)
+    if (now >= nextCleanupAt) cleanupExpired(now)
+    return true
+}
+
 /** Returns the number of unique players active during the last five minutes. */
 export function getOnlinePlayerCount(now = Date.now()): number {
-    // The management page only calls this every 30 seconds. Cleaning here keeps
-    // the displayed number exact without adding a background timer.
+    // The management page calls this every 30 seconds; remove expired entries
+    // before returning without adding a background timer.
     cleanupExpired(now)
     return lastSeenByViewerId.size
 }

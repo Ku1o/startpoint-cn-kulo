@@ -6,6 +6,7 @@ import { recordBattleNotify } from "./chain-diagnostic"
 import { getRoom } from "../room/manager"
 import { recordFiveBossSignal } from "../five-boss/lobby-runtime"
 import { fiveBossConnectionDiagnostics } from "../five-boss/connection-diagnostic"
+import { markPlayerOnlineFromTcp } from "../../lib/online-presence"
 
 function findBattleClientBySocket(socket: net.Socket): SessionClient | undefined {
     const client = sessionManager.findClientBySocket(socket)
@@ -76,7 +77,12 @@ export function handleBattleMessage(socket: net.Socket, data: unknown): void {
     const tag = data[0] as number
     const activityClient = findBattleClientBySocket(socket)
     fiveBossConnectionDiagnostics.packet(socket, !!activityClient)
-    if (activityClient) sessionManager.noteBattleActivity(activityClient.connectionId)
+    if (activityClient) {
+        sessionManager.noteBattleActivity(activityClient.connectionId)
+        if (!socket.destroyed && sessionManager.isCurrentBattleClient(activityClient)) {
+            markPlayerOnlineFromTcp(activityClient.viewerId)
+        }
+    }
 
     switch (tag) {
         case 0: // Notify
