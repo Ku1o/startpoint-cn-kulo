@@ -1,7 +1,8 @@
+import { cachedStatement } from "../../lib/cached-statement"
 import { getDb } from "../db"
 
 export function getActiveMissionConditionalBattleFactsSync(playerId: number): Record<string, number> {
-    const rows = getDb().prepare(`
+    const rows = cachedStatement(getDb(), `
         SELECT pattern, character_id, progress
         FROM players_active_mission_battle_condition_facts
         WHERE player_id = ?
@@ -19,7 +20,7 @@ export function incrementActiveMissionConditionalBattleFactSync(
 ): void {
     if (!Number.isSafeInteger(pattern) || pattern <= 0
         || !Number.isSafeInteger(characterId) || characterId <= 0) return
-    getDb().prepare(`
+    cachedStatement(getDb(), `
         INSERT INTO players_active_mission_battle_condition_facts (
             player_id, pattern, character_id, progress
         ) VALUES (?, ?, ?, 1)

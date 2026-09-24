@@ -1,4 +1,5 @@
 import { getMissionBattleCountersSync } from "../../data/domains/mission_battle_facts"
+import { getPlayerCharacterMissionFactsSync } from "../../data/domains/character"
 import { getPlayerCollectedItemTotalsSync } from "../../data/domains/item"
 import { getPlayerSync } from "../../data/domains/player"
 import { countFinishedPlayerQuestsSync, getPlayerQuestProgressSync } from "../../data/domains/quest"
@@ -21,10 +22,15 @@ export class MissionEvaluationReadContext {
     private totalQuestClearsValue: number | undefined
     private collectedItemTotalsValue: Record<string, number> | undefined
     private questProgressValue: Record<string, PlayerQuestProgress[]> | undefined
+    private characterFactsValue: ReturnType<typeof getPlayerCharacterMissionFactsSync> | undefined
     private readonly snapshots = new Map<string, SnapshotData | null>()
     private readonly missionCounterValues = new Map<string, number>()
 
     constructor(readonly playerId: number) {}
+
+    get characterFacts(): ReturnType<typeof getPlayerCharacterMissionFactsSync> {
+        return this.characterFactsValue ??= getPlayerCharacterMissionFactsSync(this.playerId)
+    }
 
     get player(): Player {
         if (this.playerValue === undefined) this.playerValue = getPlayerSync(this.playerId)

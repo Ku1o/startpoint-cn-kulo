@@ -7,7 +7,7 @@ import {
 } from "../content-master"
 import { getEquipmentElement } from "../assets"
 import type { FinishContext } from "../quest/finish/types"
-import { getActiveMissionMasterDefinitions, type ActiveMissionMasterDefinition } from "./active-master-data"
+import { getActiveMissionMasterDefinitionsByPatterns, type ActiveMissionMasterDefinition } from "./active-master-data"
 import { matchesActiveMissionQuestRange } from "./active-reconciliation"
 
 const ELEMENT_LOADOUT_PATTERN = 89
@@ -253,11 +253,11 @@ function resolveRepository(): ReadonlyContentRepository | undefined {
 function resolveDefinitions(
     repository?: ReadonlyContentRepository,
 ): readonly ActiveMissionMasterDefinition[] {
-    if (!repository) return getActiveMissionMasterDefinitions()
+    if (!repository) return getActiveMissionMasterDefinitionsByPatterns([89, 90, 91])
     try {
-        return getActiveMissionMasterDefinitions(repository)
+        return getActiveMissionMasterDefinitionsByPatterns([89, 90, 91], repository)
     } catch {
-        return getActiveMissionMasterDefinitions()
+        return getActiveMissionMasterDefinitionsByPatterns([89, 90, 91])
     }
 }
 

@@ -1,3 +1,4 @@
+import { cachedStatement } from "../cached-statement"
 import mainQuests from "../../../assets/main_quest.json"
 import exQuests from "../../../assets/ex_quest.json"
 import { getDb } from "../../data/db"
@@ -51,7 +52,7 @@ function readCompletedChapters(playerId: number, missionIds?: readonly number[])
 
     // Recover old saves from authoritative clear records. Only read the two
     // chapter sections and IDs, not every event quest's full progress payload.
-    const rows = getDb().prepare(`
+    const rows = cachedStatement(getDb(), `
         SELECT section, quest_id FROM players_quest_progress
         WHERE player_id = ? AND section IN (?, ?) AND finished = 1
     `).all(playerId, QuestCategory.MAIN, QuestCategory.EX) as { section: number, quest_id: number }[]

@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.countEquippedAbilitySoulSlotsSync = exports.countAbilitySoulUsedInPartiesSync = exports.updatePlayerPartyGroupSync = exports.updatePlayerPartySync = exports.ensurePlayerPartyGroupListSync = exports.insertPlayerPartyGroupListSync = exports.getPlayerPartyGroupListSync = exports.getFirstPlayerPartyDisplaySelectionsSync = void 0;
+const cached_statement_1 = require("../../lib/cached-statement");
 const db_1 = require("../db");
 const types_1 = require("../types");
 const utils_1 = require("../utils");
@@ -34,7 +35,7 @@ function getFirstPlayerPartyDisplaySelectionsSync(playerIds, category) {
     for (let offset = 0; offset < uniquePlayerIds.length; offset += PARTY_DISPLAY_BATCH_SIZE) {
         const batch = uniquePlayerIds.slice(offset, offset + PARTY_DISPLAY_BATCH_SIZE);
         const placeholders = batch.map(() => "?").join(", ");
-        const rows = (0, db_1.getDb)().prepare(`
+        const rows = (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
             WITH ordered_parties AS (
                 SELECT player_id, character_id_1, character_id_2, character_id_3,
                     ROW_NUMBER() OVER (
@@ -86,12 +87,12 @@ exports.getFirstPlayerPartyDisplaySelectionsSync = getFirstPlayerPartyDisplaySel
 function getPlayerPartyGroupListSync(playerId, category = types_1.PartyCategory.NORMAL) {
     var _a, _b;
     const db = (0, db_1.getDb)();
-    const rawPartyGroups = db.prepare(`
+    const rawPartyGroups = (0, cached_statement_1.cachedStatement)(db, `
     SELECT id, color_id, category
     FROM players_party_groups
     WHERE player_id = ? AND category = ?
     `).all(playerId, category);
-    const rawParties = db.prepare(`
+    const rawParties = (0, cached_statement_1.cachedStatement)(db, `
     SELECT slot, name, character_id_1, character_id_2, character_id_3, unison_character_1,
         unison_character_2, unison_character_3, equipment_1, equipment_2, equipment_3,
         ability_soul_1, ability_soul_2, ability_soul_3, edited, group_id, category,
@@ -139,7 +140,7 @@ exports.getPlayerPartyGroupListSync = getPlayerPartyGroupListSync;
 function insertPlayerPartySync(playerId, slot, groupId, party) {
     var _a, _b;
     const db = (0, db_1.getDb)();
-    db.prepare(`
+    (0, cached_statement_1.cachedStatement)(db, `
     INSERT INTO players_parties (slot, name, character_id_1, character_id_2, character_id_3,
         unison_character_1, unison_character_2, unison_character_3, equipment_1, equipment_2,
         equipment_3, ability_soul_1, ability_soul_2, ability_soul_3, edited, player_id, group_id, category,
@@ -149,7 +150,7 @@ function insertPlayerPartySync(playerId, slot, groupId, party) {
 }
 function insertPlayerPartyGroupSync(playerId, groupId, group) {
     const db = (0, db_1.getDb)();
-    db.prepare(`
+    (0, cached_statement_1.cachedStatement)(db, `
     INSERT INTO players_party_groups (id, color_id, player_id, category)
     VALUES (?, ?, ?, ?)
     `).run(Number(groupId), group.colorId, playerId, group.category);
@@ -174,7 +175,7 @@ function updatePlayerPartySync(playerId, slot, party, groupId = 1) {
     var _a, _b;
     const db = (0, db_1.getDb)();
     // Upsert: try update first, insert if not exists
-    const result = db.prepare(`
+    const result = (0, cached_statement_1.cachedStatement)(db, `
     UPDATE players_parties SET name = ?, character_id_1 = ?, character_id_2 = ?, character_id_3 = ?,
         unison_character_1 = ?, unison_character_2 = ?, unison_character_3 = ?,
         equipment_1 = ?, equipment_2 = ?, equipment_3 = ?,
@@ -185,10 +186,10 @@ function updatePlayerPartySync(playerId, slot, party, groupId = 1) {
     if (result.changes === 0) {
         (0, game_logging_1.gameVerboseLog)(() => `[PARTY-DB] insert: player=${playerId} group=${groupId} slot=${slot} name="${party.name}" chars=${party.characterIds.filter(Boolean).length}`);
         // Ensure group exists
-        const groupExists = db.prepare('SELECT id FROM players_party_groups WHERE id = ? AND player_id = ? AND category = ?').get(groupId, playerId, party.category);
+        const groupExists = (0, cached_statement_1.cachedStatement)(db, 'SELECT id FROM players_party_groups WHERE id = ? AND player_id = ? AND category = ?').get(groupId, playerId, party.category);
         if (!groupExists) {
             (0, game_logging_1.gameVerboseLog)(() => `[PARTY-DB] new group: player=${playerId} id=${groupId}`);
-            db.prepare('INSERT INTO players_party_groups (id, color_id, player_id, category) VALUES (?, ?, ?, ?)').run(groupId, 15, playerId, party.category);
+            (0, cached_statement_1.cachedStatement)(db, 'INSERT INTO players_party_groups (id, color_id, player_id, category) VALUES (?, ?, ?, ?)').run(groupId, 15, playerId, party.category);
         }
         insertPlayerPartySync(playerId, slot, groupId, party);
     }
@@ -199,7 +200,7 @@ function updatePlayerPartySync(playerId, slot, party, groupId = 1) {
 exports.updatePlayerPartySync = updatePlayerPartySync;
 function updatePlayerPartyGroupSync(playerId, groupId, colorId, category = types_1.PartyCategory.NORMAL) {
     const db = (0, db_1.getDb)();
-    db.prepare(`
+    (0, cached_statement_1.cachedStatement)(db, `
     UPDATE players_party_groups SET color_id = ?
     WHERE id = ? AND player_id = ? AND category = ?
     `).run(colorId, groupId, playerId, category);
@@ -212,7 +213,7 @@ exports.updatePlayerPartyGroupSync = updatePlayerPartyGroupSync;
 function countAbilitySoulUsedInPartiesSync(playerId, abilitySoulId) {
     var _a;
     const db = (0, db_1.getDb)();
-    const row = db.prepare(`
+    const row = (0, cached_statement_1.cachedStatement)(db, `
     SELECT COUNT(*) AS cnt FROM players_parties
     WHERE player_id = ?
     AND (ability_soul_1 = ? OR ability_soul_2 = ? OR ability_soul_3 = ?)
@@ -222,7 +223,7 @@ function countAbilitySoulUsedInPartiesSync(playerId, abilitySoulId) {
 exports.countAbilitySoulUsedInPartiesSync = countAbilitySoulUsedInPartiesSync;
 /** Counts occupied ability-soul slots, used as a conservative historical floor. */
 function countEquippedAbilitySoulSlotsSync(playerId) {
-    const row = (0, db_1.getDb)().prepare(`
+    const row = (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
     SELECT
         SUM(CASE WHEN ability_soul_1 IS NOT NULL THEN 1 ELSE 0 END)
         + SUM(CASE WHEN ability_soul_2 IS NOT NULL THEN 1 ELSE 0 END)

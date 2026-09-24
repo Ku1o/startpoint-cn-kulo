@@ -1,3 +1,4 @@
+import { cachedStatement } from "../../cached-statement"
 // Tracks party member co-clears (pairwise) for multi-character awake missions
 // When 3+ specific characters must be in the same party, this tracks their co-appearances
 
@@ -30,7 +31,7 @@ export function trackPartyCoClears(ctx: FinishContext): number[] {
     const unique = [...new Set(ids)].sort((a, b) => a - b)
     if (unique.length >= 2) {
         const db = getDb()
-        const insert = db.prepare(`
+        const insert = cachedStatement(db, `
         INSERT INTO players_party_member_co_clears (player_id, char_id_a, char_id_b, co_clear_count)
         VALUES (?, ?, ?, 1)
         ON CONFLICT(player_id, char_id_a, char_id_b) DO UPDATE SET
@@ -50,7 +51,7 @@ export function trackPartyCoClears(ctx: FinishContext): number[] {
     // Race clears (unique race set)
     const raceKey = getRaceKeyString(allRaces)
     if (raceKey) {
-        getDb().prepare(`
+        cachedStatement(getDb(), `
         INSERT INTO players_party_race_clears (player_id, race_key, clear_count)
         VALUES (?, ?, 1)
         ON CONFLICT(player_id, race_key) DO UPDATE SET

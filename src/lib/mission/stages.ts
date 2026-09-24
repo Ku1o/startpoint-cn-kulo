@@ -48,10 +48,19 @@ const missionStageLookup: Record<number, Record<string, MissionStage[]>> = {
     10: buildLookup(weeklyRewards as any, 1),
 }
 
+const finalTargets = Object.fromEntries(Object.entries(missionStageLookup).map(([category, missions]) => [
+    category,
+    Object.fromEntries(Object.entries(missions).map(([id, stages]) => [
+        id, stages.length === 0 ? undefined : Math.max(...stages.map(stage => stage.targetProgress)),
+    ])),
+]))
+const missionIds = Object.fromEntries(Object.entries(missionStageLookup).map(([category, missions]) => [
+    category, Object.keys(missions).map(Number),
+]))
+
 export function getMissionIdsByCategory(category: number): number[] {
-    const lookup = missionStageLookup[category]
-    if (!lookup) return []
-    return Object.keys(lookup).map(Number)
+    // Preserve the caller-owned array contract.
+    return missionIds[category]?.slice() ?? []
 }
 
 export function getCurrentStage(category: number, missionId: number, progress: number): number {
@@ -95,7 +104,5 @@ export function getMissionFinalTargetProgress(
     category: number,
     missionId: number,
 ): number | undefined {
-    const stages = missionStageLookup[category]?.[String(missionId)]
-    if (!stages || stages.length === 0) return undefined
-    return Math.max(...stages.map(stage => stage.targetProgress))
+    return finalTargets[category]?.[missionId]
 }

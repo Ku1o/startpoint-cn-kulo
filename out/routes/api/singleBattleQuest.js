@@ -66,6 +66,7 @@ const score_attack_border_reward_json_1 = __importDefault(require("../../../asse
 const event_challenge_point_map_json_1 = __importDefault(require("../../../assets/event_challenge_point_map.json"));
 const game_logging_1 = require("../../lib/game-logging");
 const settlement_performance_1 = require("../../lib/settlement-performance");
+const sqlite_write_coordinator_1 = require("../../lib/sqlite-write-coordinator");
 const gauntlet_completion_classification_1 = require("../../lib/gauntlet-completion-classification");
 const finish_response_cache_1 = require("../../lib/finish-response-cache");
 const practice_battle_history_2 = require("../../lib/quest/practice-battle-history");
@@ -235,7 +236,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             }
             questAccomplished = body.score >= scoreAttackBorderTiers[0].score;
         }
-        const finishResponse = (0, settlement_performance_1.measureSettlementPhase)("single", "transaction", () => (0, db_1.getDb)().transaction(() => {
+        const finishResponse = (0, settlement_performance_1.measureSettlementPhase)("single", "transaction", () => (0, sqlite_write_coordinator_1.runMeasuredSingleTransaction)((0, db_1.getDb)(), () => {
             var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x;
             (0, quest_active_1.deletePlayerActiveQuestSync)(playerId);
             const missionEvaluationTime = new Date((0, utils_1.getServerTime)() * 1000);
@@ -676,7 +677,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             if (fiveBossSoloQuest)
                 (0, solo_runtime_1.saveFiveBossSoloReceiptSync)(playerId, activeQuestData.playId, finishCacheKey, response);
             return response;
-        })());
+        }));
         delete exports.activeQuests[playerId];
         (0, finish_response_cache_1.cacheFinishResponse)(finishCacheKey, finishResponse);
         reply.header("content-type", "application/x-msgpack");

@@ -1,4 +1,6 @@
 import { getDb } from "../data/db"
+import { getRaidQuestCounts } from "./raid-event-counts"
+import { cachedStatement } from "./cached-statement"
 import { givePlayerRewardsSync } from "./quest"
 import { Reward, RewardType } from "./types"
 import {
@@ -210,7 +212,7 @@ function calculateHpPercentage(weightedKillCount: number, requiredKillCount: num
 
 function rebuildRaidEventGlobalStateSync(eventId: number): RaidEventGlobalBoss {
     const rule = getRaidEventProgressRule(eventId)
-    const rows = getDb().prepare(`
+    const rows = cachedStatement(getDb(), `
         SELECT quest_id
         FROM raid_event_global_kill_ledger
         WHERE event_id = ?
@@ -228,7 +230,7 @@ function rebuildRaidEventGlobalStateSync(eventId: number): RaidEventGlobalBoss {
         }
     }
 
-    getDb().prepare(`
+    cachedStatement(getDb(), `
         INSERT INTO raid_event_global_state
             (
                 event_id,
@@ -261,7 +263,7 @@ function rebuildRaidEventGlobalStateSync(eventId: number): RaidEventGlobalBoss {
 
 export function getRaidEventGlobalBossSync(eventId: number): RaidEventGlobalBoss {
     const rule = getRaidEventProgressRule(eventId)
-    const row = getDb().prepare(`
+    const row = cachedStatement(getDb(), `
         SELECT total_kill_count, weighted_kill_count, calculation_version
         FROM raid_event_global_state
         WHERE event_id = ?
@@ -283,7 +285,7 @@ export function getRaidEventGlobalBossSync(eventId: number): RaidEventGlobalBoss
         }
     }
 
-    const hasLedger = getDb().prepare(`
+    const hasLedger = cachedStatement(getDb(), `
         SELECT 1
         FROM raid_event_global_kill_ledger
         WHERE event_id = ?
@@ -304,26 +306,11 @@ export function getRaidEventGlobalKillCountSync(eventId: number): number {
 }
 
 export function getRaidEventQuestKillCountsSync(eventId: number): Record<string, { kill_count: number }> {
-    const rows = getDb().prepare(`
-        SELECT quest_id, COUNT(*) AS kill_count
-        FROM raid_event_global_kill_ledger
-        WHERE event_id = ?
-        GROUP BY quest_id
-        ORDER BY quest_id
-    `).all(eventId) as { quest_id: number, kill_count: number }[]
-    return Object.fromEntries(rows.map(row => [
-        String(row.quest_id),
-        { kill_count: row.kill_count },
-    ]))
+    return getRaidQuestCounts(getDb(), eventId)
 }
 
 export function getRaidEventQuestKillCountSync(eventId: number, questId: number): number {
-    const row = getDb().prepare(`
-        SELECT COUNT(*) AS kill_count
-        FROM raid_event_global_kill_ledger
-        WHERE event_id = ? AND quest_id = ?
-    `).get(eventId, questId) as { kill_count: number }
-    return row.kill_count
+    return getRaidQuestCounts(getDb(), eventId)[String(questId)]?.kill_count ?? 0
 }
 
 export function recordRaidEventClearSync(params: {
@@ -360,7 +347,7 @@ export function recordRaidEventClearSync(params: {
         const currentBoss = getRaidEventGlobalBossSync(eventId)
         const rule = getRaidEventProgressRule(eventId)
         const questWeight = rule.questWeights[questId] ?? 0
-        const ledgerInsert = getDb().prepare(`
+        const ledgerInsert = cachedStatement(getDb(), `
             INSERT OR IGNORE INTO raid_event_global_kill_ledger
                 (event_id, play_id, player_id, quest_id, created_at)
             VALUES (?, ?, ?, ?, ?)
@@ -375,7 +362,7 @@ export function recordRaidEventClearSync(params: {
                 totalKillCount++
             }
 
-            getDb().prepare(`
+            cachedStatement(getDb(), `
                 INSERT INTO raid_event_global_state
                     (
                         event_id,
@@ -424,7 +411,7 @@ export function claimRaidEventOverallRewardsSync(
     totalKillCount: number,
 ): RaidEventRewardClaimResult {
     return getDb().transaction(() => {
-        const receipt = getDb().prepare(`
+        const receipt = cachedStatement(getDb(), `
             SELECT received_up_to
             FROM players_raid_event_overall_rewards
             WHERE player_id = ? AND event_id = ?
@@ -443,7 +430,7 @@ export function claimRaidEventOverallRewardsSync(
             getBattleBanquetRewardsBetween(previousCount, totalKillCount),
         )
         const rewardResult = applyRewardEntriesSync(playerId, rewardList)
-        getDb().prepare(`
+        cachedStatement(getDb(), `
             INSERT INTO players_raid_event_overall_rewards
                 (player_id, event_id, received_up_to, updated_at)
             VALUES (?, ?, ?, ?)

@@ -1,4 +1,7 @@
 import { getDb } from "../data/db"
+import { performance } from "node:perf_hooks"
+import { measureServerWork, recordServerWork } from "./server-work-performance"
+import type { Database } from "better-sqlite3"
 
 const playerWriteTails = new Map<number, Promise<void>>()
 
@@ -18,7 +21,9 @@ export async function withPlayerWriteQueue<T>(playerId: number, operation: () =>
     const current = new Promise<void>(resolve => { release = resolve })
     const tail = previous.then(() => current)
     playerWriteTails.set(playerId, tail)
+    const queuedAt = performance.now()
     await previous
+    recordServerWork("db.playerQueue", performance.now() - queuedAt)
     try {
         return await operation()
     } finally {
@@ -39,10 +44,10 @@ export async function runImmediateTransactionWithRetry<T>(
     for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
         let began = false
         try {
-            db.exec("BEGIN IMMEDIATE")
+            measureServerWork("db.begin", () => db.exec("BEGIN IMMEDIATE"))
             began = true
-            const result = operation()
-            db.exec("COMMIT")
+            const result = measureServerWork("db.body", operation)
+            measureServerWork("db.commit", () => db.exec("COMMIT"))
             return result
         } catch (error) {
             if (began && db.inTransaction) {
@@ -54,4 +59,15 @@ export async function runImmediateTransactionWithRetry<T>(
         }
     }
     throw lastError
+}
+
+/** Keep better-sqlite3's transaction/rollback semantics; time its actual commit separately. */
+export function runMeasuredSingleTransaction<T>(db: Database, operation: () => T): T {
+    let bodyEndedAt = 0
+    const result = db.transaction(() => {
+        try { return measureServerWork("db.single.body", operation) }
+        finally { bodyEndedAt = performance.now() }
+    })()
+    recordServerWork("db.single.commit", performance.now() - bodyEndedAt)
+    return result
 }

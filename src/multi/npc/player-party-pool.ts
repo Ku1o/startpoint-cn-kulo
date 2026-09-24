@@ -79,7 +79,7 @@ export interface QuestNpcPartyCleanupResult {
     removedRows: number
     affectedQuestCount: number
 }
-registerMemoryCounters("npcPool", () => ({ ...questPoolCache.stats(),
+registerMemoryCounters("npcPool", detailed => ({ ...(detailed ? questPoolCache.stats() : { pools: questPoolCache.pools.size }),
     cachedParties: cachedParties.length, pendingRecords: pendingClearRecords.length,
     inFlightRecords, pendingCleanups: pendingCleanupRequests.size, droppedBeforeReady,
     workerReady: questPartyPoolWorkerReady }))

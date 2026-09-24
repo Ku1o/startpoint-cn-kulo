@@ -129,6 +129,32 @@ export function getPlayerCharacterSync(
  * @param playerId The ID of the player.
  * @returns A list of the characters that the player owns.
  */
+export type PlayerCharacterMissionFacts = Pick<PlayerCharacter,
+    "exp" | "evolutionLevel" | "overLimitStep" | "bondTokenList">
+
+/** Facts used by mission computers; no dates, cosmetic state or boost payloads. */
+export function getPlayerCharacterMissionFactsSync(playerId: number): Record<string, PlayerCharacterMissionFacts> {
+    const db = getDb()
+    const rows = cachedStatement(db, `
+        SELECT id, exp, evolution_level, over_limit_step
+        FROM players_characters WHERE player_id = ?
+    `).all(playerId) as Pick<RawPlayerCharacter, "id" | "exp" | "evolution_level" | "over_limit_step">[]
+    const result: Record<string, PlayerCharacterMissionFacts> = {}
+    for (const row of rows) {
+        result[String(row.id)] = {
+            exp: row.exp, evolutionLevel: row.evolution_level,
+            overLimitStep: row.over_limit_step, bondTokenList: [],
+        }
+    }
+    const tokens = cachedStatement(db, `
+        SELECT mana_board_index, status, character_id
+        FROM players_characters_bond_tokens WHERE player_id = ?
+        ORDER BY character_id, mana_board_index
+    `).all(playerId) as RawPlayerCharacterBondToken[]
+    for (const token of tokens) result[String(token.character_id)]?.bondTokenList.push(buildCharacterBondToken(token))
+    return result
+}
+
 export function getPlayerCharactersSync(
     playerId: number
 ): Record<string, PlayerCharacter> {

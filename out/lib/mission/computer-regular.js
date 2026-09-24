@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 var _a;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.RegularComputer = void 0;
+const cached_statement_1 = require("../cached-statement");
 const main_quest_json_1 = __importDefault(require("../../../assets/main_quest.json"));
 const ex_quest_json_1 = __importDefault(require("../../../assets/ex_quest.json"));
 const db_1 = require("../../data/db");
@@ -55,7 +56,7 @@ function readCompletedChapters(playerId, missionIds) {
         return completed;
     // Recover old saves from authoritative clear records. Only read the two
     // chapter sections and IDs, not every event quest's full progress payload.
-    const rows = (0, db_1.getDb)().prepare(`
+    const rows = (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
         SELECT section, quest_id FROM players_quest_progress
         WHERE player_id = ? AND section IN (?, ?) AND finished = 1
     `).all(playerId, types_1.QuestCategory.MAIN, types_1.QuestCategory.EX);

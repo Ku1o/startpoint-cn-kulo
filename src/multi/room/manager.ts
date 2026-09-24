@@ -11,7 +11,8 @@ import { fiveBossConnectionDiagnostics } from "../five-boss/connection-diagnosti
 import { registerMemoryCounters } from "../../lib/memory-diagnostics";
 
 const rooms = new Map<string, MultiRoom>();
-registerMemoryCounters("rooms", () => {
+registerMemoryCounters("rooms", detailed => {
+    if (!detailed) return { total: rooms.size };
     const counts: Record<string, number> = { total: rooms.size, lobby: 0, battle: 0, returning: 0, other: 0 };
     for (const room of rooms.values()) {
         const phase = room.lifecycle?.phase;

@@ -12,8 +12,10 @@ const assets_1 = require("../../lib/assets");
 const connection_diagnostic_1 = require("../five-boss/connection-diagnostic");
 const memory_diagnostics_1 = require("../../lib/memory-diagnostics");
 const rooms = new Map();
-(0, memory_diagnostics_1.registerMemoryCounters)("rooms", () => {
+(0, memory_diagnostics_1.registerMemoryCounters)("rooms", detailed => {
     var _a;
+    if (!detailed)
+        return { total: rooms.size };
     const counts = { total: rooms.size, lobby: 0, battle: 0, returning: 0, other: 0 };
     for (const room of rooms.values()) {
         const phase = (_a = room.lifecycle) === null || _a === void 0 ? void 0 : _a.phase;

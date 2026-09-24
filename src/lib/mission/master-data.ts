@@ -59,6 +59,8 @@ export interface MissionMasterDefinition {
 }
 
 const definitionCache = new Map<number, readonly MissionMasterDefinition[]>()
+const definitionIndex = new Map<number, ReadonlyMap<number, MissionMasterDefinition>>()
+const enableTimes = new WeakMap<MissionMasterDefinition, { start?: number, end?: number }>()
 
 function optionalMasterString(value: unknown): string | undefined {
     if (value === undefined || value === null || value === "" || value === "(None)") return undefined
@@ -107,6 +109,13 @@ export function getMissionMasterDefinitions(category: number): readonly MissionM
     }
     const frozen = Object.freeze(definitions)
     definitionCache.set(category, frozen)
+    definitionIndex.set(category, new Map(definitions.map(definition => [definition.missionId, definition])))
+    for (const definition of definitions) {
+        enableTimes.set(definition, {
+            start: parseMasterCnTime(definition.enableStart),
+            end: parseMasterCnTime(definition.enableEnd),
+        })
+    }
     return frozen
 }
 
@@ -114,7 +123,8 @@ export function getMissionMasterDefinition(
     category: number,
     missionId: number,
 ): MissionMasterDefinition | undefined {
-    return getMissionMasterDefinitions(category).find(definition => definition.missionId === missionId)
+    if (!definitionIndex.has(category)) getMissionMasterDefinitions(category)
+    return definitionIndex.get(category)?.get(missionId)
 }
 
 export function isMissionDefinitionEnabledAt(
@@ -125,8 +135,11 @@ export function isMissionDefinitionEnabledAt(
     if (definition.requiresEventScope && definition.eventId !== eventId) return false
 
     const now = at.getTime()
-    const start = parseMasterCnTime(definition.enableStart)
-    const end = parseMasterCnTime(definition.enableEnd)
+    // Only repository-owned immutable definitions are cached. Callers can also
+    // supply a mutable definition (e.g. a preview), which must reflect edits.
+    const times = enableTimes.get(definition)
+    const start = times ? times.start : parseMasterCnTime(definition.enableStart)
+    const end = times ? times.end : parseMasterCnTime(definition.enableEnd)
     if (!Number.isFinite(now)) return false
     if (start !== undefined && (!Number.isFinite(start) || start > now)) return false
     if (end !== undefined && (!Number.isFinite(end) || now > end)) return false

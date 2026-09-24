@@ -1,3 +1,4 @@
+import { cachedStatement } from "../../lib/cached-statement"
 import { getDb } from "../db"
 
 export interface ActiveMissionCounters {
@@ -11,7 +12,7 @@ export interface ActiveMissionCounters {
 }
 
 export function getActiveMissionCountersSync(playerId: number): ActiveMissionCounters {
-    const row = getDb().prepare(`
+    const row = cachedStatement(getDb(), `
         SELECT total_used_mana_count, total_gacha_character_count,
             total_equipment_equip_count, total_unison_set_count, total_party_character_set_count,
             total_injected_exp_count, total_gacha_campaign_count
@@ -39,7 +40,7 @@ export function getActiveMissionCountersSync(playerId: number): ActiveMissionCou
 
 export function incrementActiveMissionUsedManaCountSync(playerId: number, amount: number): void {
     if (!Number.isSafeInteger(amount) || amount <= 0) return
-    getDb().prepare(`
+    cachedStatement(getDb(), `
         INSERT INTO players_active_mission_counters (player_id, total_used_mana_count)
         VALUES (?, ?)
         ON CONFLICT(player_id) DO UPDATE SET
@@ -49,7 +50,7 @@ export function incrementActiveMissionUsedManaCountSync(playerId: number, amount
 
 export function incrementActiveMissionGachaCharacterCountSync(playerId: number, amount: number): void {
     if (!Number.isSafeInteger(amount) || amount <= 0) return
-    getDb().prepare(`
+    cachedStatement(getDb(), `
         INSERT INTO players_active_mission_counters (player_id, total_gacha_character_count)
         VALUES (?, ?)
         ON CONFLICT(player_id) DO UPDATE SET
@@ -71,7 +72,7 @@ export function incrementActiveMissionPartyActionCountsSync(
     const unisonSetCount = normalizeCounterAmount(counts.unisonSetCount)
     const partyCharacterSetCount = normalizeCounterAmount(counts.partyCharacterSetCount)
     if (equipmentEquipCount === 0 && unisonSetCount === 0 && partyCharacterSetCount === 0) return
-    getDb().prepare(`
+    cachedStatement(getDb(), `
         INSERT INTO players_active_mission_counters (
             player_id,
             total_equipment_equip_count,
@@ -90,7 +91,7 @@ function normalizeCounterAmount(value: number | undefined): number {
 }
 
 export function incrementActiveMissionInjectedExpCountSync(playerId: number): void {
-    getDb().prepare(`
+    cachedStatement(getDb(), `
         INSERT INTO players_active_mission_counters (player_id, total_injected_exp_count)
         VALUES (?, 1)
         ON CONFLICT(player_id) DO UPDATE SET
@@ -99,7 +100,7 @@ export function incrementActiveMissionInjectedExpCountSync(playerId: number): vo
 }
 
 export function incrementActiveMissionGachaCampaignCountSync(playerId: number): void {
-    getDb().prepare(`
+    cachedStatement(getDb(), `
         INSERT INTO players_active_mission_counters (player_id, total_gacha_campaign_count)
         VALUES (?, 1)
         ON CONFLICT(player_id) DO UPDATE SET
@@ -108,7 +109,7 @@ export function incrementActiveMissionGachaCampaignCountSync(playerId: number): 
 }
 
 export function getActiveMissionPracticeQuestChallengeCountSync(playerId: number): number {
-    const row = getDb().prepare(`
+    const row = cachedStatement(getDb(), `
         SELECT practice_quest_challenge_count
         FROM players_active_mission_counters
         WHERE player_id = ?
@@ -117,7 +118,7 @@ export function getActiveMissionPracticeQuestChallengeCountSync(playerId: number
 }
 
 export function incrementActiveMissionPracticeQuestChallengeCountSync(playerId: number): void {
-    getDb().prepare(`
+    cachedStatement(getDb(), `
         INSERT INTO players_active_mission_counters (player_id, practice_quest_challenge_count)
         VALUES (?, 1)
         ON CONFLICT(player_id) DO UPDATE SET

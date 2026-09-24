@@ -12,7 +12,7 @@ import {
     updatePlayerActiveMissionStageSync,
     updatePlayerActiveMissionSync,
 } from "../../data/domains/mission"
-import { getPlayerCharactersManaNodesSync, getPlayerCharactersSync } from "../../data/domains/character"
+import { getPlayerCharactersManaNodesSync, getPlayerCharacterMissionFactsSync } from "../../data/domains/character"
 import { getPlayerEquipmentListSync } from "../../data/domains/equipment"
 import { getPlayerShopPurchasesMapSync } from "../../data/domains/shopPurchase"
 import { getPlayerPartyGroupListSync } from "../../data/domains/party"
@@ -635,7 +635,7 @@ function buildActiveMissionFactState(
     snapshot: ReconcileActiveMissionFactsInput,
 ): ActiveMissionFactState {
     const characterList = requirements.characters || requirements.manaNodes
-        ? snapshot.characterList ?? getPlayerCharactersSync(playerId)
+        ? snapshot.characterList ?? getPlayerCharacterMissionFactsSync(playerId)
         : {}
     const characterTable = readRepositoryTable<Record<string, { readonly rarity?: number }>>(
         repository,
@@ -988,13 +988,40 @@ function mergeDelta(
     deltas.set(delta.mission_id, current)
 }
 
+// The repository is an immutable content snapshot. Only definition-derived
+// plans are retained; player facts and availability are evaluated every time.
+const reconciliationPlans = new WeakMap<ReadonlyContentRepository, Map<string, ReturnType<typeof buildReconciliationPlan>>>()
+
+function buildReconciliationPlan(repository: ReadonlyContentRepository, patterns?: readonly number[]) {
+    const definitions = [...(patterns === undefined
+        ? getActiveMissionMasterDefinitions(repository)
+        : getActiveMissionMasterDefinitionsByPatterns(patterns, repository))]
+        .sort((left, right) => left.missionId - right.missionId)
+    return {
+        definitions,
+        definitionById: new Map(definitions.map(definition => [definition.missionId, definition])),
+        questReadPlan: planActiveMissionQuestRead(definitions, repository),
+        requirements: buildActiveMissionFactRequirements(definitions),
+    }
+}
+
+function getReconciliationPlan(input: ReconcileActiveMissionFactsInput) {
+    const key = input.patterns === undefined ? "all" : [...new Set(input.patterns)].sort((a, b) => a - b).join(",")
+    let plans = reconciliationPlans.get(input.repository)
+    if (!plans) { plans = new Map(); reconciliationPlans.set(input.repository, plans) }
+    let plan = plans.get(key)
+    if (!plan) {
+        plan = buildReconciliationPlan(input.repository, input.patterns)
+        if (plans.size >= 32) plans.delete(plans.keys().next().value!)
+        plans.set(key, plan)
+    }
+    return plan
+}
+
 export function reconcileActiveMissionFacts(
     input: ReconcileActiveMissionFactsInput,
 ): ActiveMissionProgressDelta[] {
-    const definitions = [...(input.patterns === undefined
-        ? getActiveMissionMasterDefinitions(input.repository)
-        : getActiveMissionMasterDefinitionsByPatterns(input.patterns, input.repository))]
-        .sort((left, right) => left.missionId - right.missionId)
+    const { definitions, definitionById, questReadPlan, requirements } = getReconciliationPlan(input)
     if (definitions.length === 0) return []
 
     return getDb().transaction(() => {
@@ -1004,9 +1031,6 @@ export function reconcileActiveMissionFacts(
             throw new Error(`Player snapshot ${player.id} does not match ${input.playerId}.`)
         }
 
-        const questReadPlan = input.questProgress === undefined
-            ? planActiveMissionQuestRead(definitions, input.repository)
-            : null
         const questProgress = input.questProgress
             ?? (questReadPlan?.full
                 ? getPlayerQuestProgressSync(input.playerId)
@@ -1028,7 +1052,6 @@ export function reconcileActiveMissionFacts(
                 .map(progress => normalizeActiveMissionQuestId(Number(category), progress.questId))
         )))
         const activeMissions = normalizeActiveMissions(getPlayerActiveMissionsSync(input.playerId))
-        const requirements = buildActiveMissionFactRequirements(definitions)
         const factState = buildActiveMissionFactState(
             input.playerId,
             player,
@@ -1042,17 +1065,17 @@ export function reconcileActiveMissionFacts(
 
         // Every definition runs once. A changed mission only requeues definitions
         // that can observe it through phase or target-mission dependencies.
-        const definitionById = new Map(definitions.map(definition => [definition.missionId, definition]))
         const dependents = getActiveMissionDependents(input.repository)
         const queue = definitions.map(definition => definition.missionId)
         const queued = new Set(queue)
         let processed = 0
         const maximumProcessed = Math.max(definitions.length, definitions.length * definitions.length * 2)
-        while (queue.length > 0) {
+        let cursor = 0
+        while (cursor < queue.length) {
             if (++processed > maximumProcessed) {
                 throw new Error("Active Mission reconciliation did not converge.")
             }
-            const missionId = queue.shift()!
+            const missionId = queue[cursor++]!
             queued.delete(missionId)
             const definition = definitionById.get(missionId)
             if (!definition) continue

@@ -54,7 +54,7 @@ export class ProcessMemoryProbe {
 
     constructor(
         readonly enabled = process.platform === "win32" && process.arch === "x64"
-            && !/^(0|false|no|off)$/i.test(process.env.PROCESS_MEMORY_DIAGNOSTICS ?? "true"),
+            && /^(1|true|yes|on)$/i.test(process.env.PROCESS_MEMORY_DIAGNOSTICS ?? "false"),
         private readonly read = readWindowsProcessMemory,
         private readonly now = () => performance.now(),
     ) {}

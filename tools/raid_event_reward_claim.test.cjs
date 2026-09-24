@@ -95,7 +95,7 @@ assert.equal(getPlayerItemSync(playerId, 999014), abyssTicketBefore + 25)
 
 assert.deepEqual(
     claimRaidEventOverallRewardsSync(playerId, 7, 300),
-    { receivedUpTo: 300, rewardList: [] },
+    { receivedUpTo: 300, rewardList: [], rewardResult: null },
     "The same overall rewards must not be granted twice",
 )
 

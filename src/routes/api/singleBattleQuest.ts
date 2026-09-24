@@ -73,6 +73,7 @@ import scoreAttackBorderRewards from "../../../assets/score_attack_border_reward
 import eventChallengePointMap from "../../../assets/event_challenge_point_map.json";
 import { gameVerboseLog } from "../../lib/game-logging";
 import { measureSettlementPhase } from "../../lib/settlement-performance";
+import { runMeasuredSingleTransaction } from "../../lib/sqlite-write-coordinator";
 import { repairGauntletCompletionClassificationSync } from "../../lib/gauntlet-completion-classification";
 import {
     buildFinishResponseCacheKey,
@@ -385,7 +386,7 @@ const routes = async (fastify: FastifyInstance) => {
             questAccomplished = body.score >= scoreAttackBorderTiers[0].score
         }
 
-        const finishResponse = measureSettlementPhase("single", "transaction", () => getDb().transaction(() => {
+        const finishResponse = measureSettlementPhase("single", "transaction", () => runMeasuredSingleTransaction(getDb(), () => {
             deletePlayerActiveQuestSync(playerId)
             const missionEvaluationTime = new Date(getServerTime() * 1000)
 
@@ -935,7 +936,7 @@ const routes = async (fastify: FastifyInstance) => {
         const response = { data_headers: dataHeaders, data: responseData }
         if (fiveBossSoloQuest) saveFiveBossSoloReceiptSync(playerId, activeQuestData.playId, finishCacheKey, response)
         return response
-        })())
+        }))
 
         delete activeQuests[playerId]
         cacheFinishResponse(finishCacheKey, finishResponse)

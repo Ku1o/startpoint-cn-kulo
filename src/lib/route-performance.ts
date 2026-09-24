@@ -4,6 +4,7 @@ import { drainGachaRequestSummary, drainSettlementPerformanceSummary } from "./s
 import { drainRoomAdmissionPerformanceSummary } from "../multi/room/admission"
 import { installMemoryDiagnostics } from "./memory-diagnostics"
 import { drainAwakeDiagnostics, installRequestDiagnostics } from "./request-diagnostics"
+import { drainServerWorkPerformance } from "./server-work-performance"
 
 function isEnabled(): boolean {
     return !/^(0|false|no|off)$/i.test(process.env.ROUTE_PERF_SUMMARY ?? "true")
@@ -27,8 +28,12 @@ export function installRoutePerformanceMonitor(fastify: FastifyInstance): void {
     eventLoopDelay.enable()
     let previousElu = performance.eventLoopUtilization()
     let previousCpu = process.cpuUsage()
+    let previousSampleAt = performance.now()
 
     const timer = setInterval(() => {
+        const sampledAt = performance.now()
+        const actualIntervalMs = sampledAt - previousSampleAt
+        previousSampleAt = sampledAt
         const { routes: snapshot, summary } = diagnostics.drain()
         const awake = drainAwakeDiagnostics()
         const requestCount = summary.n
@@ -50,14 +55,17 @@ export function installRoutePerformanceMonitor(fastify: FastifyInstance): void {
         const phases = drainSettlementPerformanceSummary()
         const gacha = drainGachaRequestSummary()
         const admission = drainRoomAdmissionPerformanceSummary()
+        const work = drainServerWorkPerformance()
         if (requestCount === 0 && phases === "none" && admission === "none" && awake.skippedUnownedMissions === 0) return
         console.warn(
             `[PERF] interval=${intervalMs}ms requests=${requestCount} cpu=${cpuMs.toFixed(0)}ms `
+            + `actualInterval=${actualIntervalMs.toFixed(1)}ms `
             + `elu=${(elu.utilization * 100).toFixed(1)}% loopP99=${loopP99Ms.toFixed(1)}ms `
             + `loopMax=${loopMaxMs.toFixed(1)}ms top=${top || "none"}`
             + ` phases=${phases} gacha=${gacha} admission=${admission}`,
         )
         console.warn(`[REQUEST-PERF] ${JSON.stringify({ ...summary, awake })}`)
+        if (Object.keys(work).length > 0) console.warn(`[WORK-PERF] ${JSON.stringify(work)}`)
     }, intervalMs)
     timer.unref()
     fastify.addHook("onClose", async () => { clearInterval(timer); eventLoopDelay.disable() })

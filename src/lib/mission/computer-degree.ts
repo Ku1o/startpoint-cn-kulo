@@ -5,7 +5,7 @@ import {
     getPlayerCharacterFavorFactsSync,
     getPlayerCharacterMissionStatsSync,
     getPlayerCompletedManaBoardCharacterIdsSync,
-    getPlayerCharactersSync,
+    type PlayerCharacterMissionFacts,
 } from "../../data/domains/character"
 import { getPlayerEquipmentListSync } from "../../data/domains/equipment"
 import {
@@ -17,7 +17,7 @@ import { getPlayerShopPurchasesMapSync } from "../../data/domains/shopPurchase"
 import {
     countFinishedPlayerQuestsByCategorySync,
 } from "../../data/domains/quest"
-import type { PlayerCharacter, PlayerEquipment } from "../../data/types"
+import type { PlayerEquipment } from "../../data/types"
 import { getCharacterDataSync, getCharacterManaNodesSync } from "../assets"
 import { serverManaNodes } from "../content-master"
 import { characterExpCaps } from "../character"
@@ -50,7 +50,7 @@ interface QuestFilter {
 }
 
 interface DegreeContext extends CategoryContext {
-    characters: Record<string, PlayerCharacter>
+    characters: Record<string, PlayerCharacterMissionFacts>
     characterFavorProgress: ReadonlyMap<number, number>
     equipment: Record<string, PlayerEquipment>
     items: Record<string, number>
@@ -323,7 +323,7 @@ function buildStats(
         || conditionTypes.has(17)
         || conditionTypes.has(26)
     const player = shared.player
-    const characters = needsAllCharacters ? getPlayerCharactersSync(playerId) : {}
+    const characters = needsAllCharacters ? shared.characterFacts : {}
     const favorFacts = needsAllCharacters
         ? Object.fromEntries(Object.entries(characters).map(([id, character]) => [id, {
             exp: character.exp, hasReceivedBondToken: character.bondTokenList.some(token => token.status >= 2),

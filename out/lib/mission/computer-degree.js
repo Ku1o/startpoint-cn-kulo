@@ -265,7 +265,7 @@ function buildStats(playerId, category, missionIds, shared = new evaluation_cont
         || conditionTypes.has(17)
         || conditionTypes.has(26);
     const player = shared.player;
-    const characters = needsAllCharacters ? (0, character_1.getPlayerCharactersSync)(playerId) : {};
+    const characters = needsAllCharacters ? shared.characterFacts : {};
     const favorFacts = needsAllCharacters
         ? Object.fromEntries(Object.entries(characters).map(([id, character]) => [id, {
                 exp: character.exp, hasReceivedBondToken: character.bondTokenList.some(token => token.status >= 2),

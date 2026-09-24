@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updatePlayerCharacterManaNodeAwakeLevelSync = exports.getPlayerCharactersManaNodeAwakeLevelsSync = exports.insertPlayerCharactersManaNodesSync = exports.insertPlayerCharacterManaNodesSync = exports.hasPlayerUnlockedCharacterManaNodeSync = exports.getPlayerCharacterManaNodesSync = exports.getPlayerCharactersManaNodesByIdsSync = exports.getPlayerCharacterManaNodeAwakeLevelsSync = exports.getPlayerCompletedManaBoardCharacterIdsSync = exports.countPlayerReceivedBondTokensSync = exports.countPlayerCharacterManaNodesSync = exports.getPlayerCharacterMissionStatsSync = exports.getPlayerCharactersManaNodesSync = exports.updatePlayerCharacterSync = exports.insertPlayerCharactersSync = exports.insertDefaultPlayerCharacterSync = exports.insertPlayerCharacterSync = exports.updatePlayerCharacterBondTokenSync = exports.insertPlayerCharacterBondTokenSync = exports.getPlayerCharacterFavorFactsSync = exports.getPlayerCharactersByIdsSync = exports.getPlayerCharactersSync = exports.getPlayerCharacterSync = exports.playerOwnsCharacterSync = void 0;
+exports.updatePlayerCharacterManaNodeAwakeLevelSync = exports.getPlayerCharactersManaNodeAwakeLevelsSync = exports.insertPlayerCharactersManaNodesSync = exports.insertPlayerCharacterManaNodesSync = exports.hasPlayerUnlockedCharacterManaNodeSync = exports.getPlayerCharacterManaNodesSync = exports.getPlayerCharactersManaNodesByIdsSync = exports.getPlayerCharacterManaNodeAwakeLevelsSync = exports.getPlayerCompletedManaBoardCharacterIdsSync = exports.countPlayerReceivedBondTokensSync = exports.countPlayerCharacterManaNodesSync = exports.getPlayerCharacterMissionStatsSync = exports.getPlayerCharactersManaNodesSync = exports.updatePlayerCharacterSync = exports.insertPlayerCharactersSync = exports.insertDefaultPlayerCharacterSync = exports.insertPlayerCharacterSync = exports.updatePlayerCharacterBondTokenSync = exports.insertPlayerCharacterBondTokenSync = exports.getPlayerCharacterFavorFactsSync = exports.getPlayerCharactersByIdsSync = exports.getPlayerCharactersSync = exports.getPlayerCharacterMissionFactsSync = exports.getPlayerCharacterSync = exports.playerOwnsCharacterSync = void 0;
 const db_1 = require("../db");
 const utils_1 = require("../utils");
 const assets_1 = require("../../lib/assets");
@@ -100,12 +100,31 @@ function getPlayerCharacterSync(playerId, characterId) {
     return buildPlayerCharacter(rawCharacter, rawBondTokens.map(raw => buildCharacterBondToken(raw)));
 }
 exports.getPlayerCharacterSync = getPlayerCharacterSync;
-/**
- * Gets a list of all of the characters that a player owns.
- *
- * @param playerId The ID of the player.
- * @returns A list of the characters that the player owns.
- */
+/** Facts used by mission computers; no dates, cosmetic state or boost payloads. */
+function getPlayerCharacterMissionFactsSync(playerId) {
+    var _a;
+    const db = (0, db_1.getDb)();
+    const rows = (0, cached_statement_1.cachedStatement)(db, `
+        SELECT id, exp, evolution_level, over_limit_step
+        FROM players_characters WHERE player_id = ?
+    `).all(playerId);
+    const result = {};
+    for (const row of rows) {
+        result[String(row.id)] = {
+            exp: row.exp, evolutionLevel: row.evolution_level,
+            overLimitStep: row.over_limit_step, bondTokenList: [],
+        };
+    }
+    const tokens = (0, cached_statement_1.cachedStatement)(db, `
+        SELECT mana_board_index, status, character_id
+        FROM players_characters_bond_tokens WHERE player_id = ?
+        ORDER BY character_id, mana_board_index
+    `).all(playerId);
+    for (const token of tokens)
+        (_a = result[String(token.character_id)]) === null || _a === void 0 ? void 0 : _a.bondTokenList.push(buildCharacterBondToken(token));
+    return result;
+}
+exports.getPlayerCharacterMissionFactsSync = getPlayerCharacterMissionFactsSync;
 function getPlayerCharactersSync(playerId) {
     const rawCharacters = (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
     SELECT id, entry_count, evolution_level, over_limit_step, protection,

@@ -2,6 +2,8 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.claimRaidEventOverallRewardsSync = exports.recordRaidEventClearSync = exports.getRaidEventQuestKillCountSync = exports.getRaidEventQuestKillCountsSync = exports.getRaidEventGlobalKillCountSync = exports.getRaidEventGlobalBossSync = void 0;
 const db_1 = require("../data/db");
+const raid_event_counts_1 = require("./raid-event-counts");
+const cached_statement_1 = require("./cached-statement");
 const quest_1 = require("./quest");
 const types_1 = require("./types");
 const raid_event_config_1 = require("./raid-event-config");
@@ -170,7 +172,7 @@ function calculateHpPercentage(weightedKillCount, requiredKillCount) {
 function rebuildRaidEventGlobalStateSync(eventId) {
     var _a;
     const rule = (0, raid_event_config_1.getRaidEventProgressRule)(eventId);
-    const rows = (0, db_1.getDb)().prepare(`
+    const rows = (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
         SELECT quest_id
         FROM raid_event_global_kill_ledger
         WHERE event_id = ?
@@ -186,7 +188,7 @@ function rebuildRaidEventGlobalStateSync(eventId) {
             totalKillCount++;
         }
     }
-    (0, db_1.getDb)().prepare(`
+    (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
         INSERT INTO raid_event_global_state
             (
                 event_id,
@@ -211,7 +213,7 @@ function rebuildRaidEventGlobalStateSync(eventId) {
 }
 function getRaidEventGlobalBossSync(eventId) {
     const rule = (0, raid_event_config_1.getRaidEventProgressRule)(eventId);
-    const row = (0, db_1.getDb)().prepare(`
+    const row = (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
         SELECT total_kill_count, weighted_kill_count, calculation_version
         FROM raid_event_global_state
         WHERE event_id = ?
@@ -224,7 +226,7 @@ function getRaidEventGlobalBossSync(eventId) {
             requiredKillCount: rule.requiredKillCount,
         };
     }
-    const hasLedger = (0, db_1.getDb)().prepare(`
+    const hasLedger = (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
         SELECT 1
         FROM raid_event_global_kill_ledger
         WHERE event_id = ?
@@ -245,26 +247,12 @@ function getRaidEventGlobalKillCountSync(eventId) {
 }
 exports.getRaidEventGlobalKillCountSync = getRaidEventGlobalKillCountSync;
 function getRaidEventQuestKillCountsSync(eventId) {
-    const rows = (0, db_1.getDb)().prepare(`
-        SELECT quest_id, COUNT(*) AS kill_count
-        FROM raid_event_global_kill_ledger
-        WHERE event_id = ?
-        GROUP BY quest_id
-        ORDER BY quest_id
-    `).all(eventId);
-    return Object.fromEntries(rows.map(row => [
-        String(row.quest_id),
-        { kill_count: row.kill_count },
-    ]));
+    return (0, raid_event_counts_1.getRaidQuestCounts)((0, db_1.getDb)(), eventId);
 }
 exports.getRaidEventQuestKillCountsSync = getRaidEventQuestKillCountsSync;
 function getRaidEventQuestKillCountSync(eventId, questId) {
-    const row = (0, db_1.getDb)().prepare(`
-        SELECT COUNT(*) AS kill_count
-        FROM raid_event_global_kill_ledger
-        WHERE event_id = ? AND quest_id = ?
-    `).get(eventId, questId);
-    return row.kill_count;
+    var _a, _b;
+    return (_b = (_a = (0, raid_event_counts_1.getRaidQuestCounts)((0, db_1.getDb)(), eventId)[String(questId)]) === null || _a === void 0 ? void 0 : _a.kill_count) !== null && _b !== void 0 ? _b : 0;
 }
 exports.getRaidEventQuestKillCountSync = getRaidEventQuestKillCountSync;
 function recordRaidEventClearSync(params) {
@@ -291,7 +279,7 @@ function recordRaidEventClearSync(params) {
         const currentBoss = getRaidEventGlobalBossSync(eventId);
         const rule = (0, raid_event_config_1.getRaidEventProgressRule)(eventId);
         const questWeight = (_a = rule.questWeights[questId]) !== null && _a !== void 0 ? _a : 0;
-        const ledgerInsert = (0, db_1.getDb)().prepare(`
+        const ledgerInsert = (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
             INSERT OR IGNORE INTO raid_event_global_kill_ledger
                 (event_id, play_id, player_id, quest_id, created_at)
             VALUES (?, ?, ?, ?, ?)
@@ -304,7 +292,7 @@ function recordRaidEventClearSync(params) {
                 weightedKillCount = 0;
                 totalKillCount++;
             }
-            (0, db_1.getDb)().prepare(`
+            (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
                 INSERT INTO raid_event_global_state
                     (
                         event_id,
@@ -339,7 +327,7 @@ exports.recordRaidEventClearSync = recordRaidEventClearSync;
 function claimRaidEventOverallRewardsSync(playerId, eventId, totalKillCount) {
     return (0, db_1.getDb)().transaction(() => {
         var _a;
-        const receipt = (0, db_1.getDb)().prepare(`
+        const receipt = (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
             SELECT received_up_to
             FROM players_raid_event_overall_rewards
             WHERE player_id = ? AND event_id = ?
@@ -354,7 +342,7 @@ function claimRaidEventOverallRewardsSync(playerId, eventId, totalKillCount) {
         }
         const rewardList = aggregateRewards(getBattleBanquetRewardsBetween(previousCount, totalKillCount));
         const rewardResult = applyRewardEntriesSync(playerId, rewardList);
-        (0, db_1.getDb)().prepare(`
+        (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
             INSERT INTO players_raid_event_overall_rewards
                 (player_id, event_id, received_up_to, updated_at)
             VALUES (?, ?, ?, ?)
