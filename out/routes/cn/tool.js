@@ -53,7 +53,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
     });
     fastify.post("/auth", (_request, reply) => __awaiter(void 0, void 0, void 0, function* () {
         reply.header("content-type", "application/x-msgpack");
-        reply.status(200).send({
+        return reply.status(200).send({
             data_headers: (0, utils_1.generateDataHeaders)(),
             data: {}
         });
@@ -116,7 +116,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         });
         viewerIdToAccountId.set(viewerId, accountId);
         reply.header("content-type", "application/x-msgpack");
-        reply.status(200).send({
+        return reply.status(200).send({
             data_headers: (0, utils_1.generateDataHeaders)({
                 viewer_id: viewerId,
                 short_udid: shortUdid,

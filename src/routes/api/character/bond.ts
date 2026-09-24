@@ -44,11 +44,11 @@ const routes = async (fastify: FastifyInstance) => {
         })
 
         const sess = await validateSessionAndPlayer(viewerId, reply)
-        if (!sess) return
+        if (!sess) return reply
         const { playerId, player } = sess
 
         const characterData = validateCharacterOwnership(playerId, characterId, reply)
-        if (!characterData) return
+        if (!characterData) return reply
 
         const bondToken = characterData.bondTokenList
             .find(token => token.manaBoardIndex === manaBoardIndex)

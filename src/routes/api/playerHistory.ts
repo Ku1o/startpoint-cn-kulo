@@ -123,7 +123,7 @@ function getStartGameDate(playerId: number, offsetMs: number): string {
 const routes = async (fastify: FastifyInstance) => {
     fastify.post("/index", async (request: FastifyRequest, reply: FastifyReply) => {
         const resolved = await resolvePlayer(request, reply)
-        if (!resolved) return
+        if (!resolved) return reply
 
         const catalog = getPlayerHistoryCatalog(getServerTimeForPlayer(resolved.playerId) * 1000)
         if (!catalog) return sendResultCode(reply, resolved.viewerId, 11101)
@@ -167,7 +167,7 @@ const routes = async (fastify: FastifyInstance) => {
 
     fastify.post("/edit", async (request: FastifyRequest, reply: FastifyReply) => {
         const resolved = await resolvePlayer(request, reply)
-        if (!resolved) return
+        if (!resolved) return reply
 
         const catalog = getPlayerHistoryCatalog(getServerTimeForPlayer(resolved.playerId) * 1000)
         if (!catalog) return sendResultCode(reply, resolved.viewerId, 11101)

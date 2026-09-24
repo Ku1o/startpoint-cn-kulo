@@ -67,7 +67,7 @@ const routes = async (fastify: FastifyInstance) => {
 
     fastify.post("/auth", async (_request: FastifyRequest, reply: FastifyReply) => {
         reply.header("content-type", "application/x-msgpack");
-        reply.status(200).send({
+        return reply.status(200).send({
             data_headers: generateDataHeaders(),
             data: {}
         });
@@ -142,7 +142,7 @@ const routes = async (fastify: FastifyInstance) => {
         viewerIdToAccountId.set(viewerId, accountId);
 
         reply.header("content-type", "application/x-msgpack");
-        reply.status(200).send({
+        return reply.status(200).send({
             data_headers: generateDataHeaders({
                 viewer_id: viewerId,
                 short_udid: shortUdid,

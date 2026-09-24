@@ -339,7 +339,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         const enabledPatches = patchManifest.patches.filter(p => p.enabled);
         const detectedVersion = (0, version_1.detectCDNVersion)();
         const effectiveVersion = (0, version_1.getEffectiveVersion)();
-        reply.status(200).send({
+        return reply.status(200).send({
             server: {
                 uptimeSeconds: Math.floor(process.uptime()),
                 onlinePlayers: (0, online_presence_1.getOnlinePlayerCount)(),
@@ -397,7 +397,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
     }));
     fastify.get("/currentTime", (_request, reply) => __awaiter(void 0, void 0, void 0, function* () {
         const date = (0, utils_1.getServerDate)();
-        reply.status(200).send({
+        return reply.status(200).send({
             servertime: (0, utils_1.getServerTime)(),
             date: date.toISOString(),
             isCustom: date.getTime() !== Date.now()
@@ -406,7 +406,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
     fastify.get("/resetTime", (_request, reply) => __awaiter(void 0, void 0, void 0, function* () {
         (0, utils_1.setServerTime)(null);
         (0, activeAccount_1.saveTimeOffset)(null);
-        reply.status(200).send({
+        return reply.status(200).send({
             servertime: (0, utils_1.getServerTime)(),
             date: (0, utils_1.getServerDate)().toISOString(),
             isCustom: false
@@ -437,7 +437,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             }
             (0, utils_1.setServerTime)(time);
             (0, activeAccount_1.saveTimeOffset)((0, utils_1.getTimeOffset)());
-            reply.status(200).send({
+            return reply.status(200).send({
                 servertime: (0, utils_1.getServerTime)(),
                 date: (0, utils_1.getServerDate)().toISOString(),
                 isCustom: true

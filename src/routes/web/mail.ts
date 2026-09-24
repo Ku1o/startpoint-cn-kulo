@@ -24,7 +24,7 @@ const routes = async (fastify: FastifyInstance) => {
         }
 
         reply.header("content-type", "text/html; charset=utf-8")
-        reply.status(200).send(html)
+        return reply.status(200).send(html)
     })
 }
 

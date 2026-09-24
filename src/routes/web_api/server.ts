@@ -385,7 +385,7 @@ const routes = async (fastify: FastifyInstance) => {
         const detectedVersion = detectCDNVersion()
         const effectiveVersion = getEffectiveVersion()
 
-        reply.status(200).send({
+        return reply.status(200).send({
             server: {
                 uptimeSeconds: Math.floor(process.uptime()),
                 onlinePlayers: getOnlinePlayerCount(),
@@ -444,7 +444,7 @@ const routes = async (fastify: FastifyInstance) => {
 
     fastify.get("/currentTime", async (_request: FastifyRequest, reply: FastifyReply) => {
         const date = getServerDate()
-        reply.status(200).send({
+        return reply.status(200).send({
             servertime: getServerTime(),
             date: date.toISOString(),
             isCustom: date.getTime() !== Date.now()
@@ -454,7 +454,7 @@ const routes = async (fastify: FastifyInstance) => {
     fastify.get("/resetTime", async (_request: FastifyRequest, reply: FastifyReply) => {
         setServerTime(null)
         saveTimeOffset(null)
-        reply.status(200).send({
+        return reply.status(200).send({
             servertime: getServerTime(),
             date: getServerDate().toISOString(),
             isCustom: false
@@ -485,7 +485,7 @@ const routes = async (fastify: FastifyInstance) => {
             }
             setServerTime(time)
             saveTimeOffset(getTimeOffset())
-            reply.status(200).send({
+            return reply.status(200).send({
                 servertime: getServerTime(),
                 date: getServerDate().toISOString(),
                 isCustom: true

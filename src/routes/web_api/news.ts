@@ -45,7 +45,7 @@ const routes = async (fastify: FastifyInstance) => {
 
     fastify.post("/items", async (request: FastifyRequest, reply: FastifyReply) => {
         const config = requireEditableConfig(reply)
-        if (!config) return
+        if (!config) return reply
         if (!isRecord(request.body)) return fail(reply, "请求正文必须是公告对象")
         const body = request.body
         const requestedId = body.id
@@ -63,7 +63,7 @@ const routes = async (fastify: FastifyInstance) => {
 
     fastify.patch("/items/:id", async (request: FastifyRequest, reply: FastifyReply) => {
         const config = requireEditableConfig(reply)
-        if (!config) return
+        if (!config) return reply
         if (!isRecord(request.body)) return fail(reply, "请求正文必须是公告对象")
         const id = Number((request.params as { id: string }).id)
         const index = config.news.findIndex(item => item.id === id)
@@ -80,7 +80,7 @@ const routes = async (fastify: FastifyInstance) => {
 
     fastify.delete("/items/:id", async (request: FastifyRequest, reply: FastifyReply) => {
         const config = requireEditableConfig(reply)
-        if (!config) return
+        if (!config) return reply
         const id = Number((request.params as { id: string }).id)
         if (!config.news.some(item => item.id === id)) return fail(reply, `公告 ID ${id} 不存在`, 404)
         const popup = config.popup.news_id === id
@@ -97,7 +97,7 @@ const routes = async (fastify: FastifyInstance) => {
 
     fastify.put("/popup", async (request: FastifyRequest, reply: FastifyReply) => {
         const config = requireEditableConfig(reply)
-        if (!config) return
+        if (!config) return reply
         if (!isRecord(request.body)) return fail(reply, "请求正文必须是弹窗配置对象")
         try {
             saveNewsConfig({ ...config, popup: { ...config.popup, ...request.body } })

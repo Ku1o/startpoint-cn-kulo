@@ -37,11 +37,11 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             });
         const sess = yield (0, character_helpers_1.validateSessionAndPlayer)(viewerId, reply);
         if (!sess)
-            return;
+            return reply;
         const { playerId, player } = sess;
         const characterData = (0, character_helpers_1.validateCharacterOwnership)(playerId, characterId, reply);
         if (!characterData)
-            return;
+            return reply;
         // compute the combined cost of each node
         let manaCost = 0;
         const itemsCosts = {};
@@ -132,7 +132,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         // Deduct items
         const itemResult = (0, character_helpers_1.computeItemDeductions)(playerId, itemsCosts, reply);
         if (!itemResult)
-            return;
+            return reply;
         const newItemAmounts = itemResult;
         let characterEvolutionLevel = characterData.evolutionLevel;
         let evolutionData = [];
@@ -207,11 +207,11 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             });
         const sess = yield (0, character_helpers_1.validateSessionAndPlayer)(viewerId, reply);
         if (!sess)
-            return;
+            return reply;
         const { playerId, player } = sess;
         const characterData = (0, character_helpers_1.validateCharacterOwnership)(playerId, characterId, reply);
         if (!characterData)
-            return;
+            return reply;
         const board1Nodes = (0, assets_1.getCharacterManaNodesSync)(characterId, 1);
         if (!board1Nodes)
             return reply.status(400).send({
@@ -311,7 +311,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         // Deduct items
         const itemResult = (0, character_helpers_1.computeItemDeductions)(playerId, itemsCosts, reply);
         if (!itemResult)
-            return;
+            return reply;
         const newItemAmounts = itemResult;
         // Apply every state change atomically. An unexpected write failure must
         // not leave mana/items deducted without the corresponding node level.

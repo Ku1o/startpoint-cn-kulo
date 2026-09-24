@@ -40,7 +40,7 @@ const routes = async (fastify: FastifyInstance) => {
         const movieTotal = mid ? countMovieSeeds(mid) : 0;
         const known = s.confirm_total + s.play_total + (s.verified_total || 0);
         const perMovieKnown = (s.confirm || 0) + (s.mov_play || 0) + (s.verified || 0);
-        reply.status(200).send({
+        return reply.status(200).send({
             movieId: mid,
             unknown: mid ? Math.max(0, movieTotal - perMovieKnown) : totalSeeds - known,
             movie_total: movieTotal,
@@ -59,7 +59,7 @@ const routes = async (fastify: FastifyInstance) => {
 
     fastify.get("/list", async (request: FastifyRequest, reply: FastifyReply) => {
         const mid = (request.query as any).movieId || seedValidator.getSelectedMovieId() || 'fes';
-        reply.status(200).send({
+        return reply.status(200).send({
             play: seedValidator.getPlayList(mid),
             verified: seedValidator.getVerifiedList(mid),
             movieId: mid
@@ -70,7 +70,7 @@ const routes = async (fastify: FastifyInstance) => {
         const { mode, selectedMovieId } = request.body as ModeBody;
         if (mode && ['natural','play','test'].includes(mode)) seedValidator.setMode(mode);
         if (selectedMovieId) seedValidator.setSelectedMovieId(selectedMovieId);
-        reply.status(200).send({ mode: seedValidator.getMode(), selectedMovieId: seedValidator.getSelectedMovieId() });
+        return reply.status(200).send({ mode: seedValidator.getMode(), selectedMovieId: seedValidator.getSelectedMovieId() });
     });
 
     fastify.post("/tag", async (request: FastifyRequest, reply: FastifyReply) => {
@@ -80,21 +80,21 @@ const routes = async (fastify: FastifyInstance) => {
         const mid = movieId || seedValidator.getSelectedMovieId() || 'fes';
         const ok = seedValidator.setTag(mid, seed, tag);
         await seedValidator.flushPersistence();
-        reply.status(200).send({ seed, tag, ok });
+        return reply.status(200).send({ seed, tag, ok });
     });
 
     fastify.post("/test-seed", async (request: FastifyRequest, reply: FastifyReply) => {
         const { seed, rarity } = request.body as any;
         const mid = seedValidator.getSelectedMovieId() || 'fes';
         if (typeof seed !== "number" || ![3,4,5].includes(rarity)) return reply.status(400).send({ error: "Invalid" });
-        reply.status(200).send({ ok: seedValidator.setTestSeed(mid, rarity, seed) });
+        return reply.status(200).send({ ok: seedValidator.setTestSeed(mid, rarity, seed) });
     });
 
     fastify.delete("/test-seed", async (request: FastifyRequest, reply: FastifyReply) => {
         const rarity = Number((request.query as any).rarity);
         const mid = seedValidator.getSelectedMovieId() || 'fes';
         if (![3,4,5].includes(rarity)) return reply.status(400).send({ error: "Invalid" });
-        reply.status(200).send({ ok: seedValidator.clearTestSeed(rarity) });
+        return reply.status(200).send({ ok: seedValidator.clearTestSeed(rarity) });
     });
 };
 

@@ -102,7 +102,7 @@ const routes = async (fastify: FastifyInstance) => {
         fallbackCategory: NewsCategory,
     ) => {
         const viewer = await requireViewer(request, reply)
-        if (!viewer) return
+        if (!viewer) return reply
         const body = request.body as Record<string, unknown>
         const publishedNews = getPublishedNews(loadNewsConfig())
         const category = parseCategory(body.category, fallbackCategory)
@@ -129,7 +129,7 @@ const routes = async (fastify: FastifyInstance) => {
         systemOnly: boolean,
     ) => {
         const viewer = await requireViewer(request, reply)
-        if (!viewer) return
+        if (!viewer) return reply
         const body = request.body as Record<string, unknown>
         const newsId = Number(body.news_id)
         const item = getPublishedNews(loadNewsConfig()).find(candidate => (
@@ -147,7 +147,7 @@ const routes = async (fastify: FastifyInstance) => {
 
     const sendForced = async (request: FastifyRequest, reply: FastifyReply) => {
         const viewer = await requireViewer(request, reply)
-        if (!viewer) return
+        if (!viewer) return reply
         const config = loadNewsConfig()
         const item = getActivePopupNews(config, getServerDate())
         // The client may ask for the forced announcement again when returning

@@ -178,7 +178,7 @@ const routes = async (fastify: FastifyInstance) => {
             })
             return null
         })
-        if (!account) return
+        if (!account) return reply
 
         // create new zat session
         await deleteSession(session.token)
@@ -189,7 +189,7 @@ const routes = async (fastify: FastifyInstance) => {
             type: SessionType.ZAT
         })
 
-        reply.status(200).send({
+        return reply.status(200).send({
             "externalToken": "",
             "firstLogin": false,
             "player": {
@@ -326,7 +326,7 @@ const routes = async (fastify: FastifyInstance) => {
             type: SessionType.ZRT
         })
 
-        reply.status(200).send({
+        return reply.status(200).send({
             "externalToken": "",
             "firstLogin": true,
             "player": {

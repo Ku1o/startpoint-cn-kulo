@@ -67,7 +67,7 @@ const routes = async (fastify: FastifyInstance) => {
         const viewerId = !viewerIds[0] ? await generateViewerIdSession(accountId) : viewerIds[0]
 
         reply.header("content-type", "application/x-msgpack")
-        reply.status(200).send({
+        return reply.status(200).send({
             "data_headers": generateDataHeaders({
                 viewer_id: Number.parseInt(viewerId.token),
                 udid: String(udid)

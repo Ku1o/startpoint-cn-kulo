@@ -290,7 +290,7 @@ const routes = async (fastify: FastifyInstance) => {
         const resVer = request.headers['res_ver'] as string | undefined;
         const device = headerValue(request, "device");
         reply.type("application/json");
-        reply.status(200).send({
+        return reply.status(200).send({
             data_headers: generateDataHeaders(),
             data: getVersionInfo(baseUrl, getAssetDownloadSize(resVer, device), device)
         });
@@ -332,7 +332,7 @@ const routes = async (fastify: FastifyInstance) => {
             && fullArchives.length === 0 && diffArchives.length === 0;
 
         reply.type("application/json");
-        reply.status(200).send({
+        return reply.status(200).send({
             data_headers: generateDataHeaders({ asset_update: !noUpdate }),
             data: {
                 info: {

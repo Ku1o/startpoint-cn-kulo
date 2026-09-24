@@ -41,7 +41,7 @@ const routes = async (fastify: FastifyInstance) => {
 
     fastify.get("/:key", async (request, reply) => {
         const key = resolveKey(request, reply)
-        if (key === null) return
+        if (key === null) return reply
         const competition = getLeaderboardCompetition(key)!
         const season = getLeaderboardCompetitionSeasonSync(key)
         const { total, filter } = getLeaderboardSeasonRewardViewSync(key, season)
@@ -65,7 +65,7 @@ const routes = async (fastify: FastifyInstance) => {
 
     fastify.patch("/:key/availability", async (request, reply) => {
         const key = resolveKey(request, reply)
-        if (key === null) return
+        if (key === null) return reply
         const body = (request.body ?? {}) as Record<string, unknown>
         if (typeof body.enabled !== "boolean") {
             return reply.status(400).send({ error: "enabled must be a boolean." })
@@ -87,7 +87,7 @@ const routes = async (fastify: FastifyInstance) => {
 
     fastify.patch("/:key/config", async (request, reply) => {
         const key = resolveKey(request, reply)
-        if (key === null) return
+        if (key === null) return reply
         const current = getLeaderboardSettlementConfigSync(key)
         const body = (request.body ?? {}) as Record<string, unknown>
         const rewardTiers = body.rewardTiers === undefined
@@ -135,14 +135,14 @@ const routes = async (fastify: FastifyInstance) => {
 
     fastify.post("/:key/settle", async (request, reply) => {
         const key = resolveKey(request, reply)
-        if (key === null) return
+        if (key === null) return reply
         const outcome = settleLeaderboardSeasonSync(key, "admin-manual")
         return reply.status(outcome.ok ? 200 : 409).send(outcome)
     })
 
     fastify.post("/:key/rollover", async (request, reply) => {
         const key = resolveKey(request, reply)
-        if (key === null) return
+        if (key === null) return reply
         const outcome = rolloverLeaderboardSeasonSync(key, "admin-rollover")
         return reply.status(outcome.ok ? 200 : 409).send(outcome.ok ? outcome : {
             ...outcome,

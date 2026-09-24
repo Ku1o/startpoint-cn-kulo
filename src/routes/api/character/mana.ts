@@ -47,11 +47,11 @@ const routes = async (fastify: FastifyInstance) => {
         })
 
         const sess = await validateSessionAndPlayer(viewerId, reply)
-        if (!sess) return
+        if (!sess) return reply
         const { playerId, player } = sess
 
         const characterData = validateCharacterOwnership(playerId, characterId, reply)
-        if (!characterData) return
+        if (!characterData) return reply
 
         // compute the combined cost of each node
         let manaCost = 0
@@ -163,7 +163,7 @@ const routes = async (fastify: FastifyInstance) => {
 
         // Deduct items
         const itemResult = computeItemDeductions(playerId, itemsCosts, reply)
-        if (!itemResult) return
+        if (!itemResult) return reply
         const newItemAmounts = itemResult
 
         let characterEvolutionLevel = characterData.evolutionLevel
@@ -260,11 +260,11 @@ const routes = async (fastify: FastifyInstance) => {
         })
 
         const sess = await validateSessionAndPlayer(viewerId, reply)
-        if (!sess) return
+        if (!sess) return reply
         const { playerId, player } = sess
 
         const characterData = validateCharacterOwnership(playerId, characterId, reply)
-        if (!characterData) return
+        if (!characterData) return reply
 
         const board1Nodes = getCharacterManaNodesSync(characterId, 1)
         if (!board1Nodes) return reply.status(400).send({
@@ -391,7 +391,7 @@ const routes = async (fastify: FastifyInstance) => {
 
         // Deduct items
         const itemResult = computeItemDeductions(playerId, itemsCosts, reply)
-        if (!itemResult) return
+        if (!itemResult) return reply
         const newItemAmounts = itemResult
 
         // Apply every state change atomically. An unexpected write failure must

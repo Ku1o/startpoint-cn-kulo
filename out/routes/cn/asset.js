@@ -286,7 +286,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         const resVer = request.headers['res_ver'];
         const device = headerValue(request, "device");
         reply.type("application/json");
-        reply.status(200).send({
+        return reply.status(200).send({
             data_headers: (0, utils_1.generateDataHeaders)(),
             data: getVersionInfo(baseUrl, getAssetDownloadSize(resVer, device), device)
         });
@@ -316,7 +316,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         const noUpdate = !first && resVer === targetVersion
             && fullArchives.length === 0 && diffArchives.length === 0;
         reply.type("application/json");
-        reply.status(200).send({
+        return reply.status(200).send({
             data_headers: (0, utils_1.generateDataHeaders)({ asset_update: !noUpdate }),
             data: {
                 info: {

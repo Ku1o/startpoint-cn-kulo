@@ -189,7 +189,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 break;
         }
         reply.header("content-type", "application/x-msgpack");
-        reply.status(200).send({
+        return reply.status(200).send({
             "data_headers": (0, utils_1.generateDataHeaders)(),
             "data": {
                 "base_url": baseUrl,

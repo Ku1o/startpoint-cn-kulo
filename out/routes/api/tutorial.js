@@ -55,7 +55,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             }
         }
         reply.header("content-type", "application/x-msgpack");
-        reply.status(200).send({
+        return reply.status(200).send({
             "data_headers": (0, utils_1.generateDataHeaders)({
                 viewer_id: viewerId
             }),
@@ -203,7 +203,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             const characterList = existingCharacterList.length > 0
                 ? (0, mission_1.reconcileAwakeUnlockCharacterList)(playerId, existingCharacterList)
                 : existingCharacterList;
-            reply.status(200).send({
+            return reply.status(200).send({
                 "data_headers": headers,
                 "data": {
                     "step": nextStep,
@@ -223,7 +223,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             });
         }
         else {
-            reply.status(200).send({
+            return reply.status(200).send({
                 "data_headers": headers,
                 "data": {
                     "step": nextStep,

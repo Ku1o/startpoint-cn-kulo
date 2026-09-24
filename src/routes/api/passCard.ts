@@ -81,7 +81,7 @@ export default async function passCardRoutes(fastify: FastifyInstance): Promise<
             return reply.status(400).send({ error: "Bad Request", message: "Invalid request body." })
         }
         const playerId = await resolvePlayerId(body, reply)
-        if (playerId === undefined) return
+        if (playerId === undefined) return reply
         const event = getPassCardEventDefinition(body.pass_card_id)
         if (!event || !isPassCardEventActiveAt(event, new Date(getServerTime() * 1000))) {
             return reply.status(400).send({ error: "Bad Request", message: "Unknown pass card." })
@@ -104,7 +104,7 @@ export default async function passCardRoutes(fastify: FastifyInstance): Promise<
             return reply.status(400).send({ error: "Bad Request", message: "Invalid request body." })
         }
         const playerId = await resolvePlayerId(body, reply)
-        if (playerId === undefined) return
+        if (playerId === undefined) return reply
         const event = getPassCardEventDefinition(body.pass_card_id)
         const requested = collectRequestedTracks(body as PassCardReceiveBody)
         if (!event

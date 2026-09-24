@@ -1,63 +1,67 @@
-import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
-import { readFileSync } from "fs";
-import path from "path";
-import { staticPagesDir } from ".";
-import { getAccountPlayersSync, getAllAccountsSync } from "../../data/domains/account"
-import { getAllDeviceBindingsSync, getSessionByAccountIdSync } from "../../data/domains/session"
-import { getAllPlayersSync, getPlayerSync } from "../../data/domains/player"
-import { getPlayerCharactersSync } from "../../data/domains/character"
-import { getPlayerDrawnQuestsSync, getPlayerQuestProgressSync } from "../../data/domains/quest"
-import { getPlayerEquipmentListSync } from "../../data/domains/equipment"
-import { getPlayerItemsSync } from "../../data/domains/item"
-import { SessionType } from "../../data/types";
-import { getActivePlayerId, getSelectedAccountId, getAccountDefaultPlayer } from "../../data/activeAccount";
-import characterTable from "../../../docs/generated/character_table.json";
-import itemLookup from "../../../assets/item_lookup.json";
-import cnmodItemLookup from "../../../assets/item_lookup_cnmod.json";
-import equipmentLookup from "../../../assets/equipment_lookup.json";
-import questLookup from "../../../assets/quest_lookup.json";
-
-interface CharInfo { name: string; title: string; rarity: string; element: string }
-const charLookup: Record<number, CharInfo> = {}
-const mergedItemLookup = {
-    ...(itemLookup as Record<string, string>),
-    ...(cnmodItemLookup as Record<string, string>),
+"use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const fs_1 = require("fs");
+const path_1 = __importDefault(require("path"));
+const _1 = require(".");
+const account_1 = require("../../data/domains/account");
+const session_1 = require("../../data/domains/session");
+const player_1 = require("../../data/domains/player");
+const character_1 = require("../../data/domains/character");
+const quest_1 = require("../../data/domains/quest");
+const equipment_1 = require("../../data/domains/equipment");
+const item_1 = require("../../data/domains/item");
+const types_1 = require("../../data/types");
+const activeAccount_1 = require("../../data/activeAccount");
+const character_table_json_1 = __importDefault(require("../../../docs/generated/character_table.json"));
+const item_lookup_json_1 = __importDefault(require("../../../assets/item_lookup.json"));
+const item_lookup_cnmod_json_1 = __importDefault(require("../../../assets/item_lookup_cnmod.json"));
+const equipment_lookup_json_1 = __importDefault(require("../../../assets/equipment_lookup.json"));
+const quest_lookup_json_1 = __importDefault(require("../../../assets/quest_lookup.json"));
+const charLookup = {};
+const mergedItemLookup = Object.assign(Object.assign({}, item_lookup_json_1.default), item_lookup_cnmod_json_1.default);
+for (const c of character_table_json_1.default) {
+    charLookup[c.id] = { name: c.name, title: c.title, rarity: c.rarity, element: c.element };
 }
-for (const c of (characterTable as { id: number; name: string; title: string; rarity: string; element: string }[])) {
-    charLookup[c.id] = { name: c.name, title: c.title, rarity: c.rarity, element: c.element }
+function formatTime(offset) {
+    if (offset === null || offset === undefined)
+        return "系统时间";
+    const d = new Date(Date.now() + offset);
+    return d.toISOString().replace("T", " ").substring(0, 19);
 }
-
-function formatTime(offset: number | null): string {
-    if (offset === null || offset === undefined) return "系统时间"
-    const d = new Date(Date.now() + offset)
-    return d.toISOString().replace("T", " ").substring(0, 19)
-}
-
-function htmlEscape(s: string): string {
+function htmlEscape(s) {
     return s.replace(/&/g, '&amp;').replace(/"/g, '&quot;')
-           .replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
-
-const routes = async (fastify: FastifyInstance) => {
-    fastify.get("/", async (request: FastifyRequest, reply: FastifyReply) => {
-        let html = readFileSync(path.join(__dirname, staticPagesDir, "players.html")).toString("utf-8")
-
-        const activePid = getActivePlayerId()
-        const selectedAccountId = getSelectedAccountId()
-
-        let listContent = ''
-
+const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
+    fastify.get("/", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
+        var _a, _b, _c;
+        let html = (0, fs_1.readFileSync)(path_1.default.join(__dirname, _1.staticPagesDir, "players.html")).toString("utf-8");
+        const activePid = (0, activeAccount_1.getActivePlayerId)();
+        const selectedAccountId = (0, activeAccount_1.getSelectedAccountId)();
+        let listContent = '';
         // Device binding table (replaces account management)
-        const deviceBindings = getAllDeviceBindingsSync()
-        let deviceRows = ''
+        const deviceBindings = (0, session_1.getAllDeviceBindingsSync)();
+        let deviceRows = '';
         for (const dev of deviceBindings) {
-            const pids = getAccountPlayersSync(dev.account_id)
-            const saveCount = pids.length
-            const defaultPid = getAccountDefaultPlayer(dev.account_id)
-            const activeName = defaultPid ? (htmlEscape(getPlayerSync(defaultPid)?.name || '-')) : '-'
-            const devName = htmlEscape(dev.name || '')
-            const session = getSessionByAccountIdSync(dev.account_id, SessionType.VIEWER)
-            const viewerIdStr = session ? htmlEscape(session.token) : '-'
+            const pids = (0, account_1.getAccountPlayersSync)(dev.account_id);
+            const saveCount = pids.length;
+            const defaultPid = (0, activeAccount_1.getAccountDefaultPlayer)(dev.account_id);
+            const activeName = defaultPid ? (htmlEscape(((_a = (0, player_1.getPlayerSync)(defaultPid)) === null || _a === void 0 ? void 0 : _a.name) || '-')) : '-';
+            const devName = htmlEscape(dev.name || '');
+            const session = (0, session_1.getSessionByAccountIdSync)(dev.account_id, types_1.SessionType.VIEWER);
+            const viewerIdStr = session ? htmlEscape(session.token) : '-';
             deviceRows += `<tr>
                 <td class="text-xs text-on-surface-variant">${dev.device_id}</td>
                 <td class="text-xs text-on-surface-variant">${viewerIdStr}</td>
@@ -79,36 +83,36 @@ const routes = async (fastify: FastifyInstance) => {
                         <button type="submit" class="text-xs text-error px-2 py-1 rounded-full border border-error">删除</button>
                     </form>
                 </td>
-            </tr>`
+            </tr>`;
         }
         listContent += `<section class="flex flex-col p-5 border border-outline-variant rounded-3xl w-full gap-3">
             <h3 class="text-xl text-on-background font-semibold">设备绑定 / 账号管理</h3>
             <table class="w-full text-sm"><thead><tr class="text-left border-b border-outline-variant">
                 <th class="p-1">设备 ID</th><th class="p-1">账号ID</th><th class="p-1">名称</th><th class="p-1">存档数</th><th class="p-1">生效存档</th><th class="p-1">操作</th>
             </tr></thead><tbody>${deviceRows || '<tr><td colspan="6" class="text-on-surface-variant p-2">暂无设备绑定</td></tr>'}</tbody></table>
-        </section>`
-
+        </section>`;
         // Save management table (for selected account)
         if (selectedAccountId !== null) {
-            const devName = htmlEscape(deviceBindings.find(d => d.account_id === selectedAccountId)?.name || '')
-            const session = getSessionByAccountIdSync(selectedAccountId, SessionType.VIEWER)
-            const viewerId = session?.token || String(selectedAccountId)
-            const accountLabel = devName ? `${viewerId}（${devName}）` : viewerId
-            const pids = getAccountPlayersSync(selectedAccountId)
-            let saveRows = ''
+            const devName = htmlEscape(((_b = deviceBindings.find(d => d.account_id === selectedAccountId)) === null || _b === void 0 ? void 0 : _b.name) || '');
+            const session = (0, session_1.getSessionByAccountIdSync)(selectedAccountId, types_1.SessionType.VIEWER);
+            const viewerId = (session === null || session === void 0 ? void 0 : session.token) || String(selectedAccountId);
+            const accountLabel = devName ? `${viewerId}（${devName}）` : viewerId;
+            const pids = (0, account_1.getAccountPlayersSync)(selectedAccountId);
+            let saveRows = '';
             for (const pid of pids) {
-                const player = getPlayerSync(pid)
-                if (!player) continue
-                const name = htmlEscape(player.name || `Player${pid}`)
-                const level = player.degreeId || 1
-                const charCount = Object.keys(getPlayerCharactersSync(pid)).length
-                const isActive = activePid === pid
+                const player = (0, player_1.getPlayerSync)(pid);
+                if (!player)
+                    continue;
+                const name = htmlEscape(player.name || `Player${pid}`);
+                const level = player.degreeId || 1;
+                const charCount = Object.keys((0, character_1.getPlayerCharactersSync)(pid)).length;
+                const isActive = activePid === pid;
                 saveRows += `<tr class="${isActive ? 'bg-primary/10' : ''}">
                     <td>${pid}</td>
                     <td><a href="/player/${pid}" class="text-primary underline">${name}</a></td>
                     <td>Lv.${level}</td>
                     <td>${charCount}</td>
-                    <td>${formatTime(player.timeOffset ?? null)}</td>
+                    <td>${formatTime((_c = player.timeOffset) !== null && _c !== void 0 ? _c : null)}</td>
                     <td>
                         <form method="post" action="/api/server/activateSave?playerId=${pid}" style="display:inline">
                             <button type="submit" class="text-xs bg-primary text-on-primary px-2 py-1 rounded-full">${isActive ? '当前' : '切换'}</button>
@@ -125,22 +129,22 @@ const routes = async (fastify: FastifyInstance) => {
                             <button type="submit" class="text-xs text-error px-2 py-1 rounded-full border border-error">删除</button>
                         </form>
                     </td>
-                </tr>`
+                </tr>`;
             }
             listContent += `<section class="flex flex-col p-5 border border-outline-variant rounded-3xl w-full gap-3">
                 <h3 class="text-xl text-on-background font-semibold">账号 ${accountLabel} 的存档</h3>
                 <table class="w-full text-sm"><thead><tr class="text-left border-b border-outline-variant">
                     <th class="p-1">存档ID</th><th class="p-1">名字</th><th class="p-1">等级</th><th class="p-1">角色数</th><th class="p-1">存档时间</th><th class="p-1">操作</th>
                 </tr></thead><tbody>${saveRows || '<tr><td colspan="6" class="text-on-surface-variant p-2">暂无存档</td></tr>'}</tbody></table>
-            </section>`
+            </section>`;
         }
-
         // Player list
-        const players = getAllPlayersSync()
+        const players = (0, player_1.getAllPlayersSync)();
         if (players.length === 0) {
-            listContent += `<h4 class="text-xl w-full text-center font-bold">暂无玩家</h4>`
-        } else {
-            let playerList = ''
+            listContent += `<h4 class="text-xl w-full text-center font-bold">暂无玩家</h4>`;
+        }
+        else {
+            let playerList = '';
             for (const player of players) {
                 playerList += `<li class="w-full">
                     <a href="/player/${player.id}" class="p-5 h-full text-on-surface hover:text-primary items-center flex gap-3 border-outline-variant transition-colors border rounded-3xl hover:bg-surface-container-low">
@@ -153,36 +157,33 @@ const routes = async (fastify: FastifyInstance) => {
                             <h4 class="text-xl font-bold">${player.id}</h4>
                         </section>
                     </a>
-                </li>`
+                </li>`;
             }
             listContent += `<section class="flex flex-col p-5 border border-outline-variant rounded-3xl w-full gap-3">
                 <h3 class="text-xl text-on-background font-semibold">玩家列表</h3>
                 <ul class="flex flex-col gap-3">${playerList}</ul>
-            </section>`
+            </section>`;
         }
-
-        html = html.replace("{{listContent}}", listContent)
-        reply.header("content-type", "text/html; charset=utf-8")
-        return reply.send(html)
-    })
-
-    fastify.get("/:playerId", async (request: FastifyRequest, reply: FastifyReply) => {
-        const { playerId } = request.params as { playerId: string }
-        const { error } = request.query as { error?: string }
-        const parsedPlayerId = Number(playerId)
-        if (isNaN(parsedPlayerId)) return reply.redirect("/player");
-
-        const player = getPlayerSync(parsedPlayerId)
-        if (player === null) return reply.redirect("/player");
-
-        let html = readFileSync(path.join(__dirname, staticPagesDir, "player.html")).toString("utf-8")
-
+        html = html.replace("{{listContent}}", listContent);
+        reply.header("content-type", "text/html; charset=utf-8");
+        return reply.send(html);
+    }));
+    fastify.get("/:playerId", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
+        var _d, _e, _f, _g;
+        const { playerId } = request.params;
+        const { error } = request.query;
+        const parsedPlayerId = Number(playerId);
+        if (isNaN(parsedPlayerId))
+            return reply.redirect("/player");
+        const player = (0, player_1.getPlayerSync)(parsedPlayerId);
+        if (player === null)
+            return reply.redirect("/player");
+        let html = (0, fs_1.readFileSync)(path_1.default.join(__dirname, _1.staticPagesDir, "player.html")).toString("utf-8");
         // Basic info
         html = html.replace(/{{playerName}}/g, htmlEscape(player.name))
             .replace(/{{playerComment}}/g, htmlEscape(player.comment))
             .replace(/{{playerId}}/g, String(parsedPlayerId))
             .replace("{{uploadError}}", error === undefined ? '' : `<h3 class="text-xl text-error font-semibold mt-2">${htmlEscape(error)}</h3>`);
-
         // Resource fields
         const resourceFields = [
             { key: 'expPool', label: '经验池', value: player.expPool },
@@ -204,9 +205,8 @@ const routes = async (fastify: FastifyInstance) => {
         }
         html = html.replace("{{resources}}", resourcesHtml);
         html = html.replace("{{resourceCols}}", "grid-cols-4");
-
         // Character list — sorted by joinTime DESC
-        const characters = getPlayerCharactersSync(parsedPlayerId);
+        const characters = (0, character_1.getPlayerCharactersSync)(parsedPlayerId);
         const charList = Object.entries(characters).sort((a, b) => b[1].joinTime.getTime() - a[1].joinTime.getTime());
         let charsHtml = '';
         for (const [code, char] of charList) {
@@ -230,9 +230,8 @@ const routes = async (fastify: FastifyInstance) => {
         }
         html = html.replace("{{characterRows}}", charsHtml || '<tr><td colspan="6" class="text-on-surface-variant p-2">暂无角色</td></tr>');
         html = html.replace("{{characterCount}}", String(charList.length));
-
         // Items
-        const items = getPlayerItemsSync(parsedPlayerId);
+        const items = (0, item_1.getPlayerItemsSync)(parsedPlayerId);
         let itemsHtml = '';
         for (const [itemId, count] of Object.entries(items)) {
             const itemName = mergedItemLookup[itemId] || '-';
@@ -244,12 +243,11 @@ const routes = async (fastify: FastifyInstance) => {
             </tr>`;
         }
         html = html.replace("{{itemRows}}", itemsHtml || '<tr><td colspan="4" class="text-on-surface-variant p-2">暂无道具</td></tr>');
-
         // Equipment
-        const equipment = getPlayerEquipmentListSync(parsedPlayerId);
+        const equipment = (0, equipment_1.getPlayerEquipmentListSync)(parsedPlayerId);
         let equipHtml = '';
         for (const [eqId, eq] of Object.entries(equipment)) {
-            const info = (equipmentLookup as Record<string, { name: string; rarity: string; category: string }>)[eqId];
+            const info = equipment_lookup_json_1.default[eqId];
             const name = info ? htmlEscape(info.name) : '-';
             const rarity = info ? info.rarity : '-';
             const cat = info ? info.category : '-';
@@ -263,58 +261,53 @@ const routes = async (fastify: FastifyInstance) => {
             </tr>`;
         }
         html = html.replace("{{equipRows}}", equipHtml || '<tr><td colspan="6" class="text-on-surface-variant p-2">暂无装备</td></tr>');
-
         // Quest Progress
-        const questProgress = getPlayerQuestProgressSync(parsedPlayerId)
-        let qpHtml = ''
-        let qpCount = 0
+        const questProgress = (0, quest_1.getPlayerQuestProgressSync)(parsedPlayerId);
+        let qpHtml = '';
+        let qpCount = 0;
         for (const [section, quests] of Object.entries(questProgress)) {
             for (const qp of quests) {
-                qpCount++
-                const qkey = `${section}_${qp.questId}`
-                const qname = (questLookup as Record<string, string>)[qkey] || '-'
+                qpCount++;
+                const qkey = `${section}_${qp.questId}`;
+                const qname = quest_lookup_json_1.default[qkey] || '-';
                 qpHtml += `<tr>
                     <td class="p-1">${htmlEscape(qname)}</td>
                     <td class="p-1 text-xs text-on-surface-variant">${section}</td>
                     <td class="p-1 text-xs text-on-surface-variant">${qp.questId}</td>
                     <td class="p-1">${qp.finished ? '✅' : '—'}</td>
-                    <td class="p-1">${qp.highScore ?? '—'}</td>
-                    <td class="p-1">${qp.clearRank ?? '—'}</td>
-                    <td class="p-1">${qp.bestElapsedTimeMs ?? '—'}</td>
+                    <td class="p-1">${(_d = qp.highScore) !== null && _d !== void 0 ? _d : '—'}</td>
+                    <td class="p-1">${(_e = qp.clearRank) !== null && _e !== void 0 ? _e : '—'}</td>
+                    <td class="p-1">${(_f = qp.bestElapsedTimeMs) !== null && _f !== void 0 ? _f : '—'}</td>
                     <td class="p-1"><button class="js-action text-xs text-error border border-error rounded-full px-2" data-action="delQuestProgress" data-section="${section}" data-quest-id="${qp.questId}">✕</button></td>
-                </tr>`
+                </tr>`;
             }
         }
-        html = html.replace("{{questProgressRows}}", qpHtml || '<tr><td colspan="8" class="text-on-surface-variant p-2">暂无关卡记录</td></tr>')
-        html = html.replace("{{questProgressCount}}", String(qpCount))
-
+        html = html.replace("{{questProgressRows}}", qpHtml || '<tr><td colspan="8" class="text-on-surface-variant p-2">暂无关卡记录</td></tr>');
+        html = html.replace("{{questProgressCount}}", String(qpCount));
         // Drawn Quests
-        const drawnQuests = getPlayerDrawnQuestsSync(parsedPlayerId)
-        let dqHtml = ''
+        const drawnQuests = (0, quest_1.getPlayerDrawnQuestsSync)(parsedPlayerId);
+        let dqHtml = '';
         for (const dq of drawnQuests) {
-            const qkey = `${dq.categoryId}_${dq.questId}`
-            const qname = (questLookup as Record<string, string>)[qkey] || '-'
+            const qkey = `${dq.categoryId}_${dq.questId}`;
+            const qname = quest_lookup_json_1.default[qkey] || '-';
             dqHtml += `<tr>
                 <td class="p-1">${htmlEscape(qname)}</td>
                 <td class="p-1 text-xs text-on-surface-variant">${dq.categoryId}</td>
                 <td class="p-1 text-xs text-on-surface-variant">${dq.questId}</td>
                 <td class="p-1 text-xs text-on-surface-variant">${dq.oddsId}</td>
                 <td class="p-1"><button class="js-action text-xs text-error border border-error rounded-full px-2" data-action="delDrawnQuest" data-category="${dq.categoryId}" data-quest-id="${dq.questId}">✕</button></td>
-            </tr>`
+            </tr>`;
         }
-        html = html.replace("{{drawnQuestRows}}", dqHtml || '<tr><td colspan="5" class="text-on-surface-variant p-2">暂无抽选记录</td></tr>')
-        html = html.replace("{{drawnQuestCount}}", String(drawnQuests.length))
-
+        html = html.replace("{{drawnQuestRows}}", dqHtml || '<tr><td colspan="5" class="text-on-surface-variant p-2">暂无抽选记录</td></tr>');
+        html = html.replace("{{drawnQuestCount}}", String(drawnQuests.length));
         // Account settings
-        html = html.replace("{{tutorialStep}}", String(player.tutorialStep ?? ''));
+        html = html.replace("{{tutorialStep}}", String((_g = player.tutorialStep) !== null && _g !== void 0 ? _g : ''));
         html = html.replace("{{auto3x}}", player.enableAuto3x ? 'checked' : '');
         html = html.replace("{{birth}}", String(player.birth));
         html = html.replace("{{degreeId}}", String(player.degreeId));
         html = html.replace("{{leaderCharacterId}}", String(player.leaderCharacterId));
-
-        reply.header("content-type", "text/html; charset=utf-8")
-        return reply.send(html)
-    })
-}
-
-export default routes;
+        reply.header("content-type", "text/html; charset=utf-8");
+        return reply.send(html);
+    }));
+});
+exports.default = routes;

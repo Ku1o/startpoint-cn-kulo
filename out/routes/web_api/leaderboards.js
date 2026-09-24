@@ -32,7 +32,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         var _a;
         const key = resolveKey(request, reply);
         if (key === null)
-            return;
+            return reply;
         const competition = (0, competition_1.getLeaderboardCompetition)(key);
         const season = (0, competition_1.getLeaderboardCompetitionSeasonSync)(key);
         const { total, filter } = (0, settlement_1.getLeaderboardSeasonRewardViewSync)(key, season);
@@ -57,7 +57,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         var _b;
         const key = resolveKey(request, reply);
         if (key === null)
-            return;
+            return reply;
         const body = ((_b = request.body) !== null && _b !== void 0 ? _b : {});
         if (typeof body.enabled !== "boolean") {
             return reply.status(400).send({ error: "enabled must be a boolean." });
@@ -77,7 +77,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         var _c;
         const key = resolveKey(request, reply);
         if (key === null)
-            return;
+            return reply;
         const current = (0, settlement_1.getLeaderboardSettlementConfigSync)(key);
         const body = ((_c = request.body) !== null && _c !== void 0 ? _c : {});
         const rewardTiers = body.rewardTiers === undefined
@@ -117,14 +117,14 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
     fastify.post("/:key/settle", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
         const key = resolveKey(request, reply);
         if (key === null)
-            return;
+            return reply;
         const outcome = (0, settlement_1.settleLeaderboardSeasonSync)(key, "admin-manual");
         return reply.status(outcome.ok ? 200 : 409).send(outcome);
     }));
     fastify.post("/:key/rollover", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
         const key = resolveKey(request, reply);
         if (key === null)
-            return;
+            return reply;
         const outcome = (0, settlement_1.rolloverLeaderboardSeasonSync)(key, "admin-rollover");
         return reply.status(outcome.ok ? 200 : 409).send(outcome.ok ? outcome : Object.assign(Object.assign({}, outcome), { error: "当前赛季尚未结算，不能换季。" }));
     }));

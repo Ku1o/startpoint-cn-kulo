@@ -59,7 +59,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         const movieTotal = mid ? countMovieSeeds(mid) : 0;
         const known = s.confirm_total + s.play_total + (s.verified_total || 0);
         const perMovieKnown = (s.confirm || 0) + (s.mov_play || 0) + (s.verified || 0);
-        reply.status(200).send({
+        return reply.status(200).send({
             movieId: mid,
             unknown: mid ? Math.max(0, movieTotal - perMovieKnown) : totalSeeds - known,
             movie_total: movieTotal,
@@ -77,7 +77,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
     }));
     fastify.get("/list", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
         const mid = request.query.movieId || seed_validator_1.default.getSelectedMovieId() || 'fes';
-        reply.status(200).send({
+        return reply.status(200).send({
             play: seed_validator_1.default.getPlayList(mid),
             verified: seed_validator_1.default.getVerifiedList(mid),
             movieId: mid
@@ -89,7 +89,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             seed_validator_1.default.setMode(mode);
         if (selectedMovieId)
             seed_validator_1.default.setSelectedMovieId(selectedMovieId);
-        reply.status(200).send({ mode: seed_validator_1.default.getMode(), selectedMovieId: seed_validator_1.default.getSelectedMovieId() });
+        return reply.status(200).send({ mode: seed_validator_1.default.getMode(), selectedMovieId: seed_validator_1.default.getSelectedMovieId() });
     }));
     fastify.post("/tag", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
         const { seed, tag, movieId } = request.body;
@@ -98,21 +98,21 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         const mid = movieId || seed_validator_1.default.getSelectedMovieId() || 'fes';
         const ok = seed_validator_1.default.setTag(mid, seed, tag);
         yield seed_validator_1.default.flushPersistence();
-        reply.status(200).send({ seed, tag, ok });
+        return reply.status(200).send({ seed, tag, ok });
     }));
     fastify.post("/test-seed", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
         const { seed, rarity } = request.body;
         const mid = seed_validator_1.default.getSelectedMovieId() || 'fes';
         if (typeof seed !== "number" || ![3, 4, 5].includes(rarity))
             return reply.status(400).send({ error: "Invalid" });
-        reply.status(200).send({ ok: seed_validator_1.default.setTestSeed(mid, rarity, seed) });
+        return reply.status(200).send({ ok: seed_validator_1.default.setTestSeed(mid, rarity, seed) });
     }));
     fastify.delete("/test-seed", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
         const rarity = Number(request.query.rarity);
         const mid = seed_validator_1.default.getSelectedMovieId() || 'fes';
         if (![3, 4, 5].includes(rarity))
             return reply.status(400).send({ error: "Invalid" });
-        reply.status(200).send({ ok: seed_validator_1.default.clearTestSeed(rarity) });
+        return reply.status(200).send({ ok: seed_validator_1.default.clearTestSeed(rarity) });
     }));
 });
 exports.default = routes;

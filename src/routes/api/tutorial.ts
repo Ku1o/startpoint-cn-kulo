@@ -67,7 +67,7 @@ const routes = async (fastify: FastifyInstance) => {
         }
 
         reply.header("content-type", "application/x-msgpack")
-        reply.status(200).send({
+        return reply.status(200).send({
             "data_headers": generateDataHeaders({
                 viewer_id: viewerId
             }),
@@ -235,7 +235,7 @@ const routes = async (fastify: FastifyInstance) => {
                 ? reconcileAwakeUnlockCharacterList(playerId, existingCharacterList)
                 : existingCharacterList
 
-            reply.status(200).send({
+            return reply.status(200).send({
                 "data_headers": headers,
                 "data": {
                     "step": nextStep,
@@ -255,7 +255,7 @@ const routes = async (fastify: FastifyInstance) => {
             })
         } else {
             
-            reply.status(200).send({
+            return reply.status(200).send({
                 "data_headers": headers,
                 "data": {
                     "step": nextStep,
