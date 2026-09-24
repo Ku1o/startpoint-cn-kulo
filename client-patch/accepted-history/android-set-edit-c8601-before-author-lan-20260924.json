@@ -43,32 +43,40 @@
       "diagnostic_export": false
     },
     "lan": {
-      "apk": "F:\\codex\\outputs\\author-unified-damage-lan-20260924\\StarPoint-CN-1.8.1-author-unified-damage-lan-20260924-eac4a37d.apk",
-      "apk_sha256": "de89cf79f4d101eae28a95175f490e2ff79040dc61ab374064fb08d60c014b09",
-      "swf_sha256": "2e806d30ad3e2f9b71f63085e03ca3d41886bb81a7b8e01a19133eaea3828ed2",
-      "uniqueappversionid": "eac4a37d-aeaa-4d43-8594-fe504a495a75",
+      "apk": "outputs/r10-admission-lan-reopen-fix-20260915/StarPoint-CN-1.8.1-r10-admission-lan-reopen-fix-20260915.apk",
+      "apk_sha256": "229ccd907f3a9909764032abf7e046e5688573206dc35d2bbc9cb8f67cd44ca9",
+      "swf_sha256": "a0c6408006e5eefef5664c27e5b1fea3673c7107596e798a7f0e45136d65488b",
+      "uniqueappversionid": "afed68d1-7a84-4ef7-8037-ef978683fbf9",
       "endpoint": "http://<LAN_HOST>:8001",
-      "local_build_report": "F:\\codex\\outputs\\author-unified-damage-lan-20260924\\package-report.json",
+      "local_build_report": "outputs/r10-admission-lan-reopen-fix-20260915/StarPoint-CN-1.8.1-r10-admission-lan-reopen-fix-20260915.json",
       "local_build_checks": {
-        "method_bodies_checked": 96654,
+        "method_bodies_checked": 96635,
+        "original_methods": 96631,
+        "changed_original_methods": [
+          29386,
+          29390,
+          29456
+        ],
+        "added_helper_methods": 4,
+        "all_other_original_methods_preserved": true,
         "zipalign": true,
         "v1_signature": true,
         "v2_signature": true,
         "signer_certificate_sha256": "569d19a3578d4cba16e3d6e7ad8ccab4fa667efc758deef6c9be3adb99919894"
       },
-      "accepted_on": "2026-09-24",
-      "acceptance_audit": "client-patch/ACCEPTANCE-AUTHOR-UNIFIED-LAN-20260924.md",
-      "main_abc_index": 361,
-      "size_bytes": 170040515,
-      "dex_sha256": "04a439ff623e3a26845f56593da5cf579d6e51afd1000bf603132580131b7d74",
-      "native_build_identity": "eac4a37d-aeaa-4d43-8594-fe504a495a75",
+      "accepted_on": "2026-09-15",
+      "acceptance_audit": "client-patch/ACCEPTANCE-LOCAL-RECORD-RECOVERY-20260916.md",
+      "main_abc_index": 296,
+      "size_bytes": 170036419,
+      "dex_sha256": "a4d23f633d525cb6d05d7900facbb59b057679da926e9063fe1cb4d4907f4fdc",
+      "native_build_identity": "afed68d1-7a84-4ef7-8037-ef978683fbf9",
       "package_name": "com.leiting.wf",
       "version_name": "1.8.1",
       "version_code": 1008001,
-      "acceptance_status": "user_accepted",
-      "device_acceptance": "accepted_lan_client",
-      "derived_from_apk_sha256": "f24f469c1be0cb3d2d16520a739ace52b58055ce65621f5243404026beba6066",
-      "build_id": "android-181-independent-party-20260923",
+      "acceptance_status": "accepted_offline",
+      "device_acceptance": "startup_and_local_filesystem_only",
+      "derived_from_apk_sha256": "af2699ea9a2e8792b4f84dd72aea0c08cb1da6a5448a572896139150e6d51d4f",
+      "build_id": "android-181-r10-20260915",
       "diagnostic_export": false,
       "endpoint_sha256": "a32f84d19ceda3b4a466952f7deab7fbf1db96029ba70777a2cbd4a1ef79f521"
     }
@@ -130,9 +138,5 @@
       "status": "rejected_baseline_regression",
       "reason": "从 2026-09-06 旧包制作，缺少基诺维 422 能力解析，点击角色可能报 C7050；禁止继续测试、交付或作为基线。"
     }
-  ],
-  "per_variant_acceptance": {
-    "public": "accepted_offline",
-    "lan": "user_accepted"
-  }
+  ]
 }

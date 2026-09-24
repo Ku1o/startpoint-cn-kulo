@@ -1,5 +1,7 @@
 # Android APK/SWF 工作入口
 
+最新内网登记（2026-09-24）：作者机制统一入口 APK 为 `user_accepted`，见 `ACCEPTANCE-AUTHOR-UNIFIED-LAN-20260924.md` 和 `android-accepted.json` 的 `lan` 条目。旧 R10 内网登记仅用于历史复现；公网 SET 修复登记与 iOS 登记保持。
+
 最新 Android 登记（2026-09-24）：公网独立编队 SET 编辑修正版登记为 `accepted_offline`；内网 R10 登记保持。主 ABC 索引 361，全 SWF 96,653 方法体，准入号 `android-181-independent-party-20260923`。精确成品以对应 accepted registry 为准，范围见 `ACCEPTANCE-SET-EDIT-C8601-20260924.md`。下文旧日期内容仅作历史方法保留说明。
 
 

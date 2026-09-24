@@ -1,5 +1,7 @@
 # Android APK/SWF：当前已验收基线
 
+最新内网登记（2026-09-24）：作者机制统一入口 APK 已验收，状态 `user_accepted`，见 [作者机制内网验收](./ACCEPTANCE-AUTHOR-UNIFIED-LAN-20260924.md)。主 ABC 索引 361；完整身份与方法数以 `android-accepted.json` 的 `lan` 条目为准。下方 SET 公网登记保持，早期 R10 内网条目已归档。
+
 2026-09-24，双端独立编队 SET 编辑 C8601 公网包完成离线验收。Android 公网包从已修复的内网 APK 转换端点，iOS 从此前的独立编队公网 IPA 接续；两端沿用各自的独立编队准入 ID 与密钥。精确身份以
 [android-accepted.json](./android-accepted.json) 和 [ios-accepted.json](./ios-accepted.json) 为准，
 范围见 [SET 编辑 C8601 离线验收](./ACCEPTANCE-SET-EDIT-C8601-20260924.md)。原 EX 成品与方法保留在历史验收记录中。
