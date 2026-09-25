@@ -1,5 +1,5 @@
 {
-  "cdn_version": "1.4.117",
+  "cdn_version": "1.4.118",
   "patches": [
     {
       "id": "base-1.4.54-to-1.4.55-mod07141843",
@@ -23196,6 +23196,57 @@
       "chain": [
         "pinball-1.4.116-1.4.117-1-author-inaho-fluffy-consolidated.zip"
       ]
+    },
+    {
+      "id": "midautumn-national-2026",
+      "version": "1.4.118",
+      "depends_on": "1.4.117",
+      "archive": "pinball-1.4.117-1.4.118-1-midautumn-national-2026.zip",
+      "enabled": true,
+      "description": "中秋国庆月饼十连池最终合并资源：横幅、动效、月饼图标、最终排版与概率表。",
+      "archive_integrity": [
+        {
+          "name": "pinball-1.4.117-1.4.118-1-midautumn-national-2026.zip",
+          "size": 8890672,
+          "sha256": "8d971bcbc32be348ac7ddeaa9db8f2a69aa849fe4f5de04f6879dd2000348937",
+          "members": 19
+        }
+      ],
+      "audit": {
+        "directory": "assets/asset-patch/audit/midautumn-national-2026"
+      },
+      "changes": [
+        "新增独立月饼十连券与卡池资源。",
+        "合并最终四角色排版、动效坐标和12位MOD合计1%的概率表。"
+      ],
+      "type": "patch",
+      "name": "中秋·国庆月饼十连池",
+      "archive_size": 8890672,
+      "files": [
+        "production/upload/15/83d96aad4b9a46d19d19b6555d3f4232b29e25",
+        "production/upload/28/31d8ef6f9805e5edcb3d191cf77716a7f72454",
+        "production/upload/3c/3047ca7805de26f7bbd9d55fdad5b9cbef939b",
+        "production/upload/42/65142b1a7bea40010f383e0b4328dd0a8fc66b",
+        "production/upload/53/12c3e9d3d48469cd1c4f1a1f9af9c6cf24310d",
+        "production/upload/6d/4d576b424178c5b2b253a2dd5aa3d78fa74ef3",
+        "production/upload/72/2a8a0dbb6bb1386faa4d29bcdf0064c64bc03e",
+        "production/upload/77/ddc5632fbc174c626de5ec665cd57d01eb474c",
+        "production/upload/78/33d63da07cac42cd0ae6e119574c9872c92740",
+        "production/upload/7b/5e0efc0e0691038ca52fe282501dfd3a1b5ae3",
+        "production/upload/7e/d47d84c6648dd1d8e288ac16a1cf205b2bb7fd",
+        "production/upload/8c/464ddab6453211f9ac4165ede4dbe59fae7e13",
+        "production/upload/a4/731a843d4dc0c84120bf8c88784c1e74c03baa",
+        "production/upload/b3/3f5084d979a37aabcdc54da2c25b30bf587661",
+        "production/upload/c0/21ef6589f76979a13f9832d91d49d3178436b3",
+        "production/upload/c6/b890b1d0ca570658830e8f6b995d313d0a3e66",
+        "production/upload/c8/79a1b712ae753afb0b5e796737fd141c8fa0ea",
+        "production/upload/fa/edf7d82340cf455a68a54bc49f393b1c3eed2c",
+        "production/medium_upload/28/31d8ef6f9805e5edcb3d191cf77716a7f72454"
+      ],
+      "chain": [
+        "pinball-1.4.117-1.4.118-1-midautumn-national-2026.zip"
+      ],
+      "created_at": "2026-09-24"
     }
   ],
   "generated_for": "candidate only; not deployed"

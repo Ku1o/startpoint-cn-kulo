@@ -1,0 +1,153 @@
+{
+  "status": "consolidated_local_runtime; cloud_not_deployed",
+  "created_at": "2026-09-25",
+  "base_version": "1.4.117",
+  "effective_version": "1.4.118",
+  "pool_id": "midautumn-national-2026",
+  "gacha_id": 990003,
+  "ticket_id": 999019,
+  "archive": "assets/asset-patch/active/pinball-1.4.117-1.4.118-1-midautumn-national-2026.zip",
+  "archive_size": 8890672,
+  "archive_sha256": "8d971bcbc32be348ac7ddeaa9db8f2a69aa849fe4f5de04f6879dd2000348937",
+  "archive_members": 19,
+  "member_sha256": {
+    "production/medium_upload/28/31d8ef6f9805e5edcb3d191cf77716a7f72454": "f2b82df09e03654c0dc95c26ae2b1ab6a67d26e60264e630eec1c5e4a0636846",
+    "production/upload/15/83d96aad4b9a46d19d19b6555d3f4232b29e25": "b91a36af2808feb6cab03ead0ddfbc050c3b27b637c0eb2cc4d6ed5589c87e9f",
+    "production/upload/28/31d8ef6f9805e5edcb3d191cf77716a7f72454": "4ba81f58659fe52a05cc2c1ff92f22c2c2fee9a5c175b83f56d9d1de3fc178a8",
+    "production/upload/3c/3047ca7805de26f7bbd9d55fdad5b9cbef939b": "2ecba483773c76ff6db3a1f224011510bb5cea3d6a5698af7c20d7c9e6726706",
+    "production/upload/42/65142b1a7bea40010f383e0b4328dd0a8fc66b": "fa8f2f58c58b3be30202b51f0fc9efa066b7f3a0020192a7e0d48ded077e73fc",
+    "production/upload/53/12c3e9d3d48469cd1c4f1a1f9af9c6cf24310d": "3b2954214d7c93ea015d3fbf72bd53aabe19ddad1a9925081ddd5530c04b6b21",
+    "production/upload/6d/4d576b424178c5b2b253a2dd5aa3d78fa74ef3": "01bc8a955ecd2455346de61adabbdf101669d7ec76d22916b887e23ba6ca482d",
+    "production/upload/72/2a8a0dbb6bb1386faa4d29bcdf0064c64bc03e": "26cdef1fd583112ed89b7efd5d68a163cf6a8b20618318d311f4bdbdb889bf94",
+    "production/upload/77/ddc5632fbc174c626de5ec665cd57d01eb474c": "8457a8a334c8c860bb92ec6bfac41af87f7182f67484b4ce6c21f8e859239272",
+    "production/upload/78/33d63da07cac42cd0ae6e119574c9872c92740": "9e8d77c9d5bbeb0761cbc6467d52d0d9e1e014bf838a11e2d58f76363d412c7f",
+    "production/upload/7b/5e0efc0e0691038ca52fe282501dfd3a1b5ae3": "f2fbc4c24bdabbcdb1dde0f63fe024631918d8d18154bcd6a20ae6622a81e14a",
+    "production/upload/7e/d47d84c6648dd1d8e288ac16a1cf205b2bb7fd": "390a7f1854754f8781e1482950a7000791a88d71ca31af019d429c2f60031278",
+    "production/upload/8c/464ddab6453211f9ac4165ede4dbe59fae7e13": "d92e908d78cf9334d8232d612eeb669bbebe63e63a32a925217d8f2afa4404d3",
+    "production/upload/a4/731a843d4dc0c84120bf8c88784c1e74c03baa": "17eac1b0009dcd7c2739db7d75072f20d945c8d807c13b78df7a310a04cff560",
+    "production/upload/b3/3f5084d979a37aabcdc54da2c25b30bf587661": "c9ffc1fa3aa6e3e271076acd15dce682e9991cf8bccf82aa9fe52726aaddf9b0",
+    "production/upload/c0/21ef6589f76979a13f9832d91d49d3178436b3": "f9049ea417edb118c2c05dd0d1920247871fada0f6b81b7d2bc85dbb30156907",
+    "production/upload/c6/b890b1d0ca570658830e8f6b995d313d0a3e66": "6816bb1dc8e7d2ff5ff474c80e2ff752860c4026689abe55ff898073f76107f4",
+    "production/upload/c8/79a1b712ae753afb0b5e796737fd141c8fa0ea": "2740a2a16c3e6fc09acf8b2651e4d381c33faf2d995e3808b1d70c8c526b237b",
+    "production/upload/fa/edf7d82340cf455a68a54bc49f393b1c3eed2c": "98477d3fadf87f5111faefc8b02bcccd51ea88173d839b40ae20d175ad8fdb33"
+  },
+  "preserved_members": 16,
+  "replaced_members": [
+    "production/upload/53/12c3e9d3d48469cd1c4f1a1f9af9c6cf24310d",
+    "production/upload/c6/b890b1d0ca570658830e8f6b995d313d0a3e66",
+    "production/upload/fa/edf7d82340cf455a68a54bc49f393b1c3eed2c"
+  ],
+  "retired_active_archive": "assets/asset-patch/active/pinball-1.4.118-1.4.119-1-midautumn-layout-odds.zip",
+  "retired_active_archive_sha256": "440768c52814c293194dfc46d48107447d4dce362e70b60d34cd164d3b1849dc",
+  "retired_active_archive_present_source": false,
+  "retired_active_archive_present_runtime": false,
+  "source_manifest_sha256": "6ba94ec9424db5ba31374d75b3317cabab8d10eb567c34fffb8d94c7c64728b0",
+  "runtime_manifest_sha256": "6ba94ec9424db5ba31374d75b3317cabab8d10eb567c34fffb8d94c7c64728b0",
+  "source_runtime_manifest_match": true,
+  "runtime_archive_sha256": "8d971bcbc32be348ac7ddeaa9db8f2a69aa849fe4f5de04f6879dd2000348937",
+  "source_runtime_archive_match": true,
+  "manifest_cdn_version": "1.4.118",
+  "manifest_pool_patch_count": 1,
+  "layout_profile": {
+    "frames": 302,
+    "per_image_peaks": [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    "visible_instance_peak": 6
+  },
+  "probability_profile": {
+    "five_star_total": "5%",
+    "mod_total": "1%",
+    "mod_each": "1/1200",
+    "permanent_five_star_total": "4%",
+    "normal_rank_weights": [
+      50,
+      350,
+      600
+    ],
+    "multi_guarantee_weights": [
+      50,
+      950
+    ]
+  },
+  "runtime_http": {
+    "port": 8001,
+    "android": {
+      "target_asset_version": "1.4.118",
+      "active_archive_count": 1,
+      "archive_bytes": 8890672,
+      "archive_sha256": "8d971bcbc32be348ac7ddeaa9db8f2a69aa849fe4f5de04f6879dd2000348937",
+      "current_version_no_update": true
+    },
+    "ios": {
+      "target_asset_version": "1.4.118",
+      "active_archive_count": 1,
+      "archive_bytes": 8890672,
+      "archive_sha256": "8d971bcbc32be348ac7ddeaa9db8f2a69aa849fe4f5de04f6879dd2000348937",
+      "current_version_no_update": true
+    }
+  },
+  "player_data_modified": false,
+  "database_or_schema_changed": false,
+  "admission_changed": false,
+  "pristine_cdn_written": false,
+  "runtime_backup": "F:\\startpoint-cn-main\\.codex-backups\\20250925-112559-midautumn-squash",
+  "device_acceptance": "passed (draw and 250-point exchange)",
+  "cloud_deployed": false,
+  "source_head": "0f1a67813645e8aaa99f8438712a581eb3943f5b",
+  "checked_at": "2026-09-25T03:42:37.115Z",
+  "runtime_http_actual": {
+    "checked_at": "2026-09-25T03:42:37.115Z",
+    "platforms": {
+      "android": {
+        "target": "1.4.118",
+        "archive_bytes": 8890672,
+        "archive_sha256": "8d971bcbc32be348ac7ddeaa9db8f2a69aa849fe4f5de04f6879dd2000348937",
+        "archive_count": 1,
+        "no_update_at_target": true,
+        "version_info": {
+          "base_url": "http://192.168.3.14:8001/patch/cn/entities/files/",
+          "files_list": "http://192.168.3.14:8001/patch/cn/entities/10939-android_medium.csv",
+          "total_size": 8890672,
+          "delayed_assets_size": 0
+        }
+      },
+      "ios": {
+        "target": "1.4.118",
+        "archive_bytes": 8890672,
+        "archive_sha256": "8d971bcbc32be348ac7ddeaa9db8f2a69aa849fe4f5de04f6879dd2000348937",
+        "archive_count": 1,
+        "no_update_at_target": true,
+        "version_info": {
+          "base_url": "http://192.168.3.14:8001/patch/cn/entities/files/",
+          "files_list": "http://192.168.3.14:8001/patch/cn/entities/10939-ios_medium.csv",
+          "total_size": 8890672,
+          "delayed_assets_size": 0
+        }
+      }
+    },
+    "runtime_config": {
+      "gacha_id": 990003,
+      "ticket": 999019,
+      "mod_total": "1%",
+      "mod_each": "1/1200",
+      "permanent_five_total": "4%",
+      "rank_rates": {
+        "normal": [
+          50,
+          350,
+          600
+        ],
+        "multiGuarantee": [
+          50,
+          950
+        ]
+      }
+    }
+  }
+}
