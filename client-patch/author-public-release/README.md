@@ -32,6 +32,6 @@ iOS 以 `64edf9ada1c0cb1dd8ebff00978394907b93174b519f0106fd41b55f2949917a` 的 C
 
 Android 已验收内网输入和公网成品分别核验。iOS 完成 18,000 余处原生重定位核验、四个 ARM64 分支包装器的八个执行场景、移植后实际字节码的十项规则测试、十五个目标分类分支、四个构造默认值场景与签名布局检查。原三十七项机制及语音用例通过；双端完整准入配对通过二十六项隔离 HTTP 协议检查，含平台/密钥错误、旧号并存及单端撤销。
 
-原有 C8601 方法入口及其他未修改原生字节保持。未执行本批设备安装、iOS 真机、多人或长时间联机测试；新公网成品为离线验证候选，不提升 accepted registry。此批无保存 ID、数据库、存档格式或账号归属变化，不需要存档迁移。
+原有 C8601 方法入口及其他未修改原生字节保持。构建时成品为离线验证候选，原报告保持该状态；2026-09-25 已补做验收并登记 `accepted_offline`，详见 [公网验收](../ACCEPTANCE-AUTHOR-PUBLIC-20260925.md)。Android 另完成模拟器安装和冷启动至登录面板，两端新旧编号均通过实际公网握手；iOS 真机、多人或长时间联机未测。此批无保存 ID、数据库、存档格式或账号归属变化，不需要存档迁移。
 
 构建入口：`prepare_admission.py` → `build_android.py`；`prepare_ios.py` → `compile_ios.py compile-final-defaults` → `link_ios.py` → `verify_ios.py` / `test_ios_rules.py`；`verify_pair.cjs` 与 `package_server.py` 生成配套。精确输入与私有材料位置由 `common.py` 固定；已完成批次不重新分配准入材料。

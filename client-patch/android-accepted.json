@@ -1,46 +1,50 @@
 {
   "schema_version": 6,
   "status": "accepted_offline",
-  "accepted_on": "2026-09-24",
+  "accepted_on": "2026-09-25",
   "acceptance": {
     "result": "accepted_offline",
     "scope": "offline_artifact_lineage_and_public_admission",
-    "device_tested_by_codex": false,
-    "per_feature_device_results": "not_recorded",
+    "device_tested_by_codex": true,
+    "per_feature_device_results": "emulator_install_cold_start_and_login_panel_only",
     "build_reports_are_immutable": true,
-    "audit": "client-patch/ACCEPTANCE-SET-EDIT-C8601-20260924.md"
+    "audit": "client-patch/ACCEPTANCE-AUTHOR-PUBLIC-20260925.md",
+    "public_admission_http_verified": true,
+    "local_acceptance_report": "F:\\codex\\outputs\\author-public-acceptance-20260925\\验收报告.md"
   },
   "variants": {
     "public": {
-      "apk": "F:\\codex\\outputs\\set-edit-c8601-public-20260924\\StarPoint-CN-1.8.1-independent-formations-set-edit-c8601-public-20260924-0fcf027e.apk",
-      "apk_sha256": "f24f469c1be0cb3d2d16520a739ace52b58055ce65621f5243404026beba6066",
-      "swf_sha256": "1785d16b430ea7008e7d70cf1bca106f3f5410bbf86566063e83ad856d9a0a49",
-      "uniqueappversionid": "0fcf027e-c219-4d6c-9221-7e10db70b513",
+      "apk": "F:\\codex\\outputs\\author-public-release-20260924\\android\\StarPoint-CN-1.8.1-author-unified-damage-public-20260924-68bc1d3a.apk",
+      "apk_sha256": "aeb1c87859b15642a5093140842d0f3b687dff0c06e8d253d3c1a3ecfb8a1596",
+      "swf_sha256": "cbbb1224f06cb01465b96eaacc2f7f839152018e2d48b76ee86fdfeefa390166",
+      "uniqueappversionid": "68bc1d3a-0d57-4ead-bb53-e9876fbcad27",
       "endpoint": "http://175.178.160.158:8001",
-      "local_build_report": "F:\\codex\\outputs\\set-edit-c8601-public-20260924\\package-report.json",
+      "local_build_report": "F:\\codex\\outputs\\author-public-release-20260924\\android\\package-report.json",
       "local_build_checks": {
-        "method_bodies_checked": 96653,
-        "all_other_abc_bodies_unchanged_from_fixed_lan_source": true,
-        "endpoint_pool_rewrites": 9,
+        "method_bodies_checked": 96654,
+        "all_other_abc_bytes_preserved": true,
+        "rules_tests": 37,
         "zipalign": true,
         "v1_signature": true,
         "v2_signature": true,
         "signer_certificate_sha256": "569d19a3578d4cba16e3d6e7ad8ccab4fa667efc758deef6c9be3adb99919894"
       },
-      "accepted_on": "2026-09-24",
-      "acceptance_audit": "client-patch/ACCEPTANCE-SET-EDIT-C8601-20260924.md",
+      "accepted_on": "2026-09-25",
+      "acceptance_audit": "client-patch/ACCEPTANCE-AUTHOR-PUBLIC-20260925.md",
       "main_abc_index": 361,
       "size_bytes": 170040515,
-      "dex_sha256": "31f367a7aef3c4e310fa3c2cfa2ac5815ee8d351e3aa45a4b66c5cdb5ba03fdd",
-      "native_build_identity": "0fcf027e-c219-4d6c-9221-7e10db70b513",
+      "dex_sha256": "99f11658221bb6a342d77807d9767a3384124269624d95865880a691447b2d7b",
+      "native_build_identity": "68bc1d3a-0d57-4ead-bb53-e9876fbcad27",
       "package_name": "com.leiting.wf",
       "version_name": "1.8.1",
       "version_code": 1008001,
       "acceptance_status": "accepted_offline",
-      "device_acceptance": "not_device_tested",
-      "derived_from_apk_sha256": "e531534d9548d6e1cac5cc412d3bf9aad6d5df8330565ce022f54b0fe8180d51",
-      "build_id": "android-181-independent-party-20260923",
-      "diagnostic_export": false
+      "device_acceptance": "emulator_install_cold_start_and_login_panel_verified; gameplay_not_retested",
+      "derived_from_apk_sha256": "de89cf79f4d101eae28a95175f490e2ff79040dc61ab374064fb08d60c014b09",
+      "build_id": "android-181-author-1043-20260924",
+      "diagnostic_export": false,
+      "local_acceptance_report": "F:\\codex\\outputs\\author-public-acceptance-20260925\\android\\verification-report.json",
+      "local_device_report": "F:\\codex\\outputs\\author-public-acceptance-20260925\\android\\device-verification.json"
     },
     "lan": {
       "apk": "F:\\codex\\outputs\\author-unified-damage-lan-20260924\\StarPoint-CN-1.8.1-author-unified-damage-lan-20260924-eac4a37d.apk",
@@ -74,8 +78,8 @@
     }
   },
   "lineage": {
-    "documentation": "client-patch/ACCEPTANCE-SET-EDIT-C8601-20260924.md",
-    "build_entry": "client-patch/independent-formations/package_set_edit_public_android.py",
+    "documentation": "client-patch/ACCEPTANCE-AUTHOR-PUBLIC-20260925.md",
+    "build_entry": "client-patch/author-public-release/build_android.py",
     "previous_method_source_commit": "9740c3e9",
     "preserved": [
       "此前 MOD、幻想连战、轮播、排行榜、继承入口、深渊装备门控",
@@ -108,14 +112,50 @@
       "空账号文件进入登录流程；账号与设备记录采用同目录临时文件写完后替换",
       "独立普通深渊和 EX 活动入口、续战及装备限制",
       "EX 正式准入号与 HMAC 签名前缀一致",
-      "普通深渊、深渊 EX、幻想连战分别保存编队；SET 编辑标题处理空值及范围外分类，保留运输分类"
+      "普通深渊、深渊 EX、幻想连战分别保存编队；SET 编辑标题处理空值及范围外分类，保留运输分类",
+      "作者 423 按充能来源限制技能槽增长，保留配置允许的开场与移动充能",
+      "作者 424 与原生 629 + ActionDSL 统一伤害分类，支持技能、能力、直击及 PF1/PF2/PF3；移除旧重复分类入口",
+      "稻穗特效选择与必要预加载由独立视觉 helper 保留",
+      "杰拉尔 6 条、特克托 3 条、斩铁 4 条满槽语音轮换、战斗预加载与详情试听",
+      "作者机制公网正式准入号与 HMAC 前缀配对，保留旧独立编队正式号兼容"
     ],
-    "method_archive": "独立编队分类与 SET 编辑标题回退，公网 Android 从已修复内网包转换端点。",
-    "previous_accepted_registry_revision": "bfef8dd7",
+    "method_archive": "作者 423/424、原生 629 + ActionDSL、独立稻穗视觉与扩展满槽语音；已验收内网包仅转换端点、准入常量和缓存身份。",
+    "previous_accepted_registry_revision": "3a02a8737a77337e2c30048a62b22a6c0fc96416",
     "previous_accepted_registry_path": "client-patch/android-accepted.json",
-    "repair_entry": "client-patch/independent-formations/build_swf.py",
-    "direct_input_apk_sha256": "e531534d9548d6e1cac5cc412d3bf9aad6d5df8330565ce022f54b0fe8180d51",
-    "source_artifact_record": "F:\\codex\\outputs\\set-edit-c8601-public-20260924\\package-report.json"
+    "repair_entry": "client-patch/author-content-1043/build_swf.py",
+    "direct_input_apk_sha256": "de89cf79f4d101eae28a95175f490e2ff79040dc61ab374064fb08d60c014b09",
+    "source_artifact_record": "F:\\codex\\outputs\\author-public-release-20260924\\android\\package-report.json",
+    "previous_accepted_artifact": {
+      "apk": "F:\\codex\\outputs\\set-edit-c8601-public-20260924\\StarPoint-CN-1.8.1-independent-formations-set-edit-c8601-public-20260924-0fcf027e.apk",
+      "apk_sha256": "f24f469c1be0cb3d2d16520a739ace52b58055ce65621f5243404026beba6066",
+      "swf_sha256": "1785d16b430ea7008e7d70cf1bca106f3f5410bbf86566063e83ad856d9a0a49",
+      "uniqueappversionid": "0fcf027e-c219-4d6c-9221-7e10db70b513",
+      "endpoint": "http://175.178.160.158:8001",
+      "local_build_report": "F:\\codex\\outputs\\set-edit-c8601-public-20260924\\package-report.json",
+      "local_build_checks": {
+        "method_bodies_checked": 96653,
+        "all_other_abc_bodies_unchanged_from_fixed_lan_source": true,
+        "endpoint_pool_rewrites": 9,
+        "zipalign": true,
+        "v1_signature": true,
+        "v2_signature": true,
+        "signer_certificate_sha256": "569d19a3578d4cba16e3d6e7ad8ccab4fa667efc758deef6c9be3adb99919894"
+      },
+      "accepted_on": "2026-09-24",
+      "acceptance_audit": "client-patch/ACCEPTANCE-SET-EDIT-C8601-20260924.md",
+      "main_abc_index": 361,
+      "size_bytes": 170040515,
+      "dex_sha256": "31f367a7aef3c4e310fa3c2cfa2ac5815ee8d351e3aa45a4b66c5cdb5ba03fdd",
+      "native_build_identity": "0fcf027e-c219-4d6c-9221-7e10db70b513",
+      "package_name": "com.leiting.wf",
+      "version_name": "1.8.1",
+      "version_code": 1008001,
+      "acceptance_status": "accepted_offline",
+      "device_acceptance": "not_device_tested",
+      "derived_from_apk_sha256": "e531534d9548d6e1cac5cc412d3bf9aad6d5df8330565ce022f54b0fe8180d51",
+      "build_id": "android-181-independent-party-20260923",
+      "diagnostic_export": false
+    }
   },
   "excluded_artifacts": [
     {

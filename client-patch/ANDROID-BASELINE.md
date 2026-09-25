@@ -1,17 +1,15 @@
 # Android APK/SWF：当前已验收基线
 
-最新内网登记（2026-09-24）：作者机制统一入口 APK 已验收，状态 `user_accepted`，见 [作者机制内网验收](./ACCEPTANCE-AUTHOR-UNIFIED-LAN-20260924.md)。主 ABC 索引 361；完整身份与方法数以 `android-accepted.json` 的 `lan` 条目为准。下方 SET 公网登记保持，早期 R10 内网条目已归档。
-
-2026-09-24，双端独立编队 SET 编辑 C8601 公网包完成离线验收。Android 公网包从已修复的内网 APK 转换端点，iOS 从此前的独立编队公网 IPA 接续；两端沿用各自的独立编队准入 ID 与密钥。精确身份以
+2026-09-25，双端作者机制公网包完成离线验收；Android 另完成模拟器安装、首次及冷启动至登录面板，iOS 未真机测试。作者机制内网包的 `user_accepted` 状态保持，见 [作者机制内网验收](./ACCEPTANCE-AUTHOR-UNIFIED-LAN-20260924.md)。精确身份以
 [android-accepted.json](./android-accepted.json) 和 [ios-accepted.json](./ios-accepted.json) 为准，
-范围见 [SET 编辑 C8601 离线验收](./ACCEPTANCE-SET-EDIT-C8601-20260924.md)。原 EX 成品与方法保留在历史验收记录中。
+范围见 [作者机制公网验收](./ACCEPTANCE-AUTHOR-PUBLIC-20260925.md)。旧 SET / EX 成品与方法保留在历史验收记录中。
 
 | 环境 | 成品 | 状态 |
 | --- | --- | --- |
-| Android 公网 | `F:/codex/outputs/set-edit-c8601-public-20260924/StarPoint-CN-1.8.1-independent-formations-set-edit-c8601-public-20260924-0fcf027e.apk` | `accepted_offline`，从 SET 修复内网包仅转换公网端点并更新 AIR UUID；公网包未新增设备测试 |
-| Android 内网 | `outputs/r10-admission-lan-reopen-fix-20260915/StarPoint-CN-1.8.1-r10-admission-lan-reopen-fix-20260915.apk` | 原 `accepted_offline` 登记保持 |
+| Android 公网 | `F:/codex/outputs/author-public-release-20260924/android/StarPoint-CN-1.8.1-author-unified-damage-public-20260924-68bc1d3a.apk` | `accepted_offline`，模拟器安装和启动至登录面板通过，未重新实战 |
+| Android 内网 | `F:/codex/outputs/author-unified-damage-lan-20260924/StarPoint-CN-1.8.1-author-unified-damage-lan-20260924-eac4a37d.apk` | `user_accepted` 保持 |
 
-公网保留 R10、EX 和独立编队累计功能，SET 标题回退覆盖空值及范围外分类。主 ABC 索引 361，全 SWF 共 96,653 个方法体；无诊断导出。公网准入号为 `android-181-independent-party-20260923`。iOS 使用独立注册表，完整 ABC 有 101,315 个方法，原 AOT 方法表仍为 101,287 项，新增 hook 重定向到原方法槽。原登记内网 R10 成品保持历史身份，本次内网 SET 修复包的直接输入见验收记录。
+公网保留 R10、EX、独立编队、SET C8601 与作者机制累计功能。主 ABC 索引 361，全 SWF 共 96,654 个方法体；无诊断导出。公网准入号为 `android-181-author-1043-20260924`。iOS 使用独立注册表，完整 ABC 与 AOT 方法表均为 101,387 项，准入号为 `ios-184-author-1043-20260924`。两端旧独立编队正式号仍可通过公网准入。
 
 在仓库根目录运行：
 

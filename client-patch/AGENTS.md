@@ -1,8 +1,6 @@
 # Android APK/SWF 工作入口
 
-最新内网登记（2026-09-24）：作者机制统一入口 APK 为 `user_accepted`，见 `ACCEPTANCE-AUTHOR-UNIFIED-LAN-20260924.md` 和 `android-accepted.json` 的 `lan` 条目。旧 R10 内网登记仅用于历史复现；公网 SET 修复登记与 iOS 登记保持。
-
-最新 Android 登记（2026-09-24）：公网独立编队 SET 编辑修正版登记为 `accepted_offline`；内网 R10 登记保持。主 ABC 索引 361，全 SWF 96,653 方法体，准入号 `android-181-independent-party-20260923`。精确成品以对应 accepted registry 为准，范围见 `ACCEPTANCE-SET-EDIT-C8601-20260924.md`。下文旧日期内容仅作历史方法保留说明。
+最新 Android 登记（2026-09-25）：作者机制统一入口公网 APK 为 `accepted_offline`，另完成模拟器安装、首次及冷启动至登录面板。主 ABC 索引 361，全 SWF 96,654 方法体，准入号 `android-181-author-1043-20260924`。作者机制内网 `user_accepted` 登记保持。精确成品以 `android-accepted.json` 为准，范围见 `ACCEPTANCE-AUTHOR-PUBLIC-20260925.md`。下文旧日期内容仅作历史方法保留说明。
 
 
 - 开始 Android APK/SWF 任务前，先读本目录 `ANDROID-BASELINE.md` 和 `android-accepted.json`，再读具体补丁文档。JSON 中登记的已验收公网/内网成品是当前直接基线；其他文档中的旧哈希只代表历史步骤。
@@ -14,7 +12,7 @@
 
 # iOS IPA 工作入口
 
-最新 iOS 登记（2026-09-24）：公网独立编队 SET 编辑修正版登记为 `accepted_offline`。保留幻想连战返回、EX 和独立编队累计功能，完整 ABC 方法数 101,315，原 AOT 方法表保持 101,287 项，新增 hook 通过原方法槽重定向；准入号 `ios-184-independent-party-20260923`，未新增真机测试。精确成品以对应 accepted registry 为准，范围见 `ACCEPTANCE-SET-EDIT-C8601-20260924.md`。下文旧日期内容仅作历史方法保留说明。
+最新 iOS 登记（2026-09-25）：作者机制公网 r2 unsigned IPA 为 `accepted_offline`，未真机测试。保留 SET C8601、幻想连战返回、EX 和独立编队累计功能，完整 ABC 与 AOT 方法表均为 101,387 项，准入号 `ios-184-author-1043-20260924`。精确成品以 `ios-accepted.json` 为准，范围见 `ACCEPTANCE-AUTHOR-PUBLIC-20260925.md`。下文旧日期内容仅作历史方法保留说明。
 
 
 - 开始 iOS IPA/SWF/AOT 工作前，先读 `ios-accepted.json` 和其中指定的方法文档，运行 `python client-patch/verify_ios_baseline.py` 回读实际 IPA、主可执行文件、主 SWF 的 SHA-256 和包身份。输入缺失或不匹配时不得改用旧包、诊断包或按文件名推测最新包。
