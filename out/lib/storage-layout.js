@@ -236,17 +236,23 @@ function removeCoveredStorageIndexes(db) {
 exports.removeCoveredStorageIndexes = removeCoveredStorageIndexes;
 function writeCompactMissionCounter(db, playerId, definition, value, operation) {
     const expression = operation === "add" ? "value+excluded.value" : operation === "max" ? "MAX(value,excluded.value)" : "MIN(value,excluded.value)";
+    const condition = operation === "add" ? "" : operation === "max" ? " WHERE excluded.value > value" : " WHERE excluded.value < value";
     return db.transaction(() => {
         (0, cached_statement_1.cachedStatement)(db, `INSERT INTO mission_counter_definitions(counter_key,dimension,scope_type,scope_key,qualifier_json)
             VALUES(?,?,?,?,?) ON CONFLICT(counter_key) DO NOTHING`).run(definition.key, definition.dimension, definition.scopeType, definition.scopeKey, definition.qualifierJson);
         const row = (0, cached_statement_1.cachedStatement)(db, `INSERT INTO players_mission_counter_values(player_id,counter_id,value,updated_at)
             SELECT ?,id,?,? FROM mission_counter_definitions WHERE counter_key=?
                 AND dimension=? AND scope_type=? AND scope_key=? AND qualifier_json=?
-            ON CONFLICT(player_id,counter_id) DO UPDATE SET value=${expression},updated_at=excluded.updated_at
+            ON CONFLICT(player_id,counter_id) DO UPDATE SET value=${expression},updated_at=excluded.updated_at${condition}
             RETURNING value`).get(playerId, value, new Date().toISOString(), definition.key, definition.dimension, definition.scopeType, definition.scopeKey, definition.qualifierJson);
-        if (!row)
+        if (row)
+            return row.value;
+        const current = (0, cached_statement_1.cachedStatement)(db, `SELECT value FROM players_mission_counter_values
+            WHERE player_id=? AND counter_id=(SELECT id FROM mission_counter_definitions WHERE counter_key=?
+                AND dimension=? AND scope_type=? AND scope_key=? AND qualifier_json=?)`).get(playerId, definition.key, definition.dimension, definition.scopeType, definition.scopeKey, definition.qualifierJson);
+        if (!current)
             throw new Error("任务计数定义冲突，拒绝更新");
-        return row.value;
+        return current.value;
     })();
 }
 exports.writeCompactMissionCounter = writeCompactMissionCounter;

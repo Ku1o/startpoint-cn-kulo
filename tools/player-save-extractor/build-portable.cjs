@@ -45,7 +45,9 @@ run(compiler, ['/nologo', '/target:winexe', '/platform:anycpu', '/optimize+', '/
 for (const file of [
     'tools/extract_player_save.cjs', 'tools/extract_player_save_gui_worker.cjs',
     'tools/player-save-extractor/MainForm.cs', 'tools/player-save-extractor/build.ps1',
-    'out/data/snapshots/player-snapshot.js', 'out/lib/storage-layout.js', 'out/utils.js',
+    'out/data/snapshots/player-snapshot.js', 'out/lib/storage-layout.js', 'out/lib/cached-statement.js',
+    'out/lib/memory-diagnostics.js', 'out/lib/process-memory-probe.js', 'tools/capture-native-memory.ps1',
+    'out/utils.js',
     'src/data/snapshots/player-snapshot.ts', 'src/lib/storage-layout.ts', 'src/utils.ts',
     'LICENSE',
 ]) copy(file)
@@ -61,11 +63,11 @@ const dependencyFiles = [
 for (const file of dependencyFiles) copy(`node_modules/${file}`)
 for (const file of filesBelow(path.join(root, 'node_modules/better-sqlite3/lib'))) copy(file, path.relative(root, file))
 fs.mkdirSync(path.join(directory, 'licenses'))
-if (process.version !== 'v20.20.2') throw new Error('Update the bundled Node license for this runtime version before packaging')
+if (process.version !== 'v24.21.0') throw new Error('Update the bundled Node license for this runtime version before packaging')
 copy('tools/player-save-extractor/NODE-LICENSE.txt', 'licenses/Node.js-LICENSE.txt')
 fs.writeFileSync(path.join(directory, 'licenses/THIRD-PARTY.txt'),
     `Node.js ${process.version} (Windows x64, ABI ${process.versions.modules}); see Node.js-LICENSE.txt.\n` +
-    'better-sqlite3 11.3.0, bindings and file-uri-to-path: MIT; licenses included in each package directory.\n' +
+    'better-sqlite3 12.11.1, bindings and file-uri-to-path: MIT; licenses included in each package directory.\n' +
     'StarPoint CN: GPL-3.0-or-later; LICENSE and corresponding tool / snapshot source included.\n')
 
 const entries = filesBelow(directory).map(file => ({

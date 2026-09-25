@@ -66,6 +66,26 @@ export interface PlayerQuestProgressScope {
     readonly questIds?: readonly number[]
 }
 
+export interface PlayerSingleQuestHistorySummary {
+    bestElapsedTimeMs: number | null
+    highScore: number
+    ssCount: number
+}
+
+/** Historical single-only facts; shared single/co-op categories cannot prove the mode. */
+export function getPlayerSingleQuestHistorySummarySync(playerId: number): PlayerSingleQuestHistorySummary {
+    refreshPlayerAbyssBestTimesSync(playerId)
+    return cachedStatement(getDb(), `
+        SELECT MIN(CASE WHEN finished = 1 AND best_elapsed_time_ms > 0
+                       AND best_elapsed_time_ms <= 1.7976931348623157e308
+                       THEN best_elapsed_time_ms END) AS bestElapsedTimeMs,
+               MAX(0, COALESCE(MAX(high_score), 0)) AS highScore,
+               COALESCE(SUM(CASE WHEN finished = 1 AND clear_rank = 5 THEN 1 ELSE 0 END), 0) AS ssCount
+        FROM players_quest_progress
+        WHERE player_id = ? AND section NOT IN (2, 8, 19, 26)
+    `).get(playerId) as PlayerSingleQuestHistorySummary
+}
+
 /**
  * Reads only the quest rows needed by an Active Mission reconciliation.
  * Section 4 ids are accepted in either stored or 10,000,000-offset form.

@@ -297,7 +297,6 @@ exports.estimateActiveMissionCharacterLevel = estimateActiveMissionCharacterLeve
 /** 根据存档状态重算官方 Active Mission 的可证明事实；未知 pattern 返回 null。 */
 function computeActiveMissionFactProgress(pattern, row, state, missionId) {
     var _a, _b;
-    const characters = Object.entries(state.characters);
     switch (pattern) {
         case PATTERN_TOTAL_LOGIN_DAYS:
             return Math.max(0, state.player.totalLoginDays);
@@ -344,7 +343,7 @@ function computeActiveMissionFactProgress(pattern, row, state, missionId) {
         case PATTERN_BATTLE_CLEAR_WITH_FULL_SKILL_START:
             return missionId === undefined ? null : (_b = state.loadoutBattleFacts[String(missionId)]) !== null && _b !== void 0 ? _b : 0;
         case PATTERN_EPISODE_CLEAR_COUNT: {
-            const storyQuestIds = new Set(characters.flatMap(([characterId]) => { var _a; return (_a = state.characterStoryQuestIds[characterId]) !== null && _a !== void 0 ? _a : []; }));
+            const storyQuestIds = new Set(Object.keys(state.characters).flatMap(characterId => { var _a; return (_a = state.characterStoryQuestIds[characterId]) !== null && _a !== void 0 ? _a : []; }));
             let count = 0;
             for (const questId of storyQuestIds) {
                 if (state.finishedQuestIds.has(questId))
@@ -353,16 +352,16 @@ function computeActiveMissionFactProgress(pattern, row, state, missionId) {
             return count;
         }
         case PATTERN_CHARACTER_LEVEL_ACHIEVEMENT:
-            return characters.reduce((maximum, [, character]) => (Math.max(maximum, estimateActiveMissionCharacterLevel(character))), 0);
+            return Object.values(state.characters).reduce((maximum, character) => (Math.max(maximum, estimateActiveMissionCharacterLevel(character))), 0);
         case PATTERN_CHARACTERS_COUNT: {
             const targetCharacterId = row[43];
             if (targetCharacterId === undefined || targetCharacterId === null || targetCharacterId === "(None)") {
-                return characters.length;
+                return Object.keys(state.characters).length;
             }
             return state.characters[String(targetCharacterId)] === undefined ? 0 : 1;
         }
         case PATTERN_EVOLVED_CHARACTER_COUNT:
-            return characters.filter(([, character]) => character.evolutionLevel > 0).length;
+            return Object.values(state.characters).filter(character => character.evolutionLevel > 0).length;
         case PATTERN_LEVEL_MAX_EQUIPMENT_COUNT:
             return state.equipment.filter(equipment => equipment.level >= equipment.maxLevel).length;
         case PATTERN_UPGRADE_EQUIPMENT_COUNT:
@@ -376,9 +375,9 @@ function computeActiveMissionFactProgress(pattern, row, state, missionId) {
         case PATTERN_BOSS_COIN_EXCHANGE:
             return state.bossCoinShopPurchaseCount;
         case PATTERN_OVER_LIMIT_TOTAL_COUNT:
-            return characters.reduce((total, [, character]) => total + Math.max(0, character.overLimitStep), 0);
+            return Object.values(state.characters).reduce((total, character) => total + Math.max(0, character.overLimitStep), 0);
         case PATTERN_TOTAL_OBTAINED_BOND_TOKEN_COUNT:
-            return characters.reduce((total, [, character]) => (total + character.bondTokenList.filter(token => token.status >= 1).length), 0);
+            return Object.values(state.characters).reduce((total, character) => (total + character.bondTokenList.filter(token => token.status >= 1).length), 0);
         case PATTERN_TOTAL_RELEASED_MANA_NODE_COUNT:
             return Object.values(state.manaNodes).reduce((total, nodes) => total + nodes.length, 0);
         case PATTERN_TOTAL_RELEASED_ABILITY_NODE_COUNT:

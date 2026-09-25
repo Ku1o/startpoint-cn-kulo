@@ -73,6 +73,7 @@ import scoreAttackBorderRewards from "../../../assets/score_attack_border_reward
 import eventChallengePointMap from "../../../assets/event_challenge_point_map.json";
 import { gameVerboseLog } from "../../lib/game-logging";
 import { measureSettlementPhase } from "../../lib/settlement-performance";
+import { createSingleSettlementBodyTimer } from "../../lib/single-settlement-diagnostics";
 import { runMeasuredSingleTransaction } from "../../lib/sqlite-write-coordinator";
 import { repairGauntletCompletionClassificationSync } from "../../lib/gauntlet-completion-classification";
 import {
@@ -387,6 +388,9 @@ const routes = async (fastify: FastifyInstance) => {
         }
 
         const finishResponse = measureSettlementPhase("single", "transaction", () => runMeasuredSingleTransaction(getDb(), () => {
+            const bodyTiming = createSingleSettlementBodyTimer(questCategory, !!fiveBossSoloQuest)
+            let bodySucceeded = false
+            try {
             deletePlayerActiveQuestSync(playerId)
             const missionEvaluationTime = new Date(getServerTime() * 1000)
 
@@ -525,6 +529,7 @@ const routes = async (fastify: FastifyInstance) => {
         }
 
         // reward character exp
+        bodyTiming.step("battle_facts")
         const bodyPartyStatistics = body.statistics.party
         const partyCharacterIds = [...bodyPartyStatistics.characters, ...bodyPartyStatistics.unison_characters]
 
@@ -590,6 +595,7 @@ const routes = async (fastify: FastifyInstance) => {
             console.log(`[MISSION] steam robot challenge cleared: player=${playerId} quest=${questId} mission=${steamRobotMissionId}`)
         }
         const partyCharacterIdsArray: number[] = []
+        bodyTiming.step("experience")
         for (const value of partyCharacterIds.values()) {
             if (value !== null && value.id !== null) partyCharacterIdsArray.push(value.id);
         }
@@ -602,6 +608,7 @@ const routes = async (fastify: FastifyInstance) => {
             questData.fixedParty !== undefined
         )
 
+        bodyTiming.step("mode_rewards")
         const dataHeaders = generateDataHeaders({
             viewer_id: viewerId
         })
@@ -806,6 +813,7 @@ const routes = async (fastify: FastifyInstance) => {
             ...((carnivalRewardsResult?.character_list || []) as Record<string, unknown>[]),
             ...((mode15RewardsResult?.character_list || []) as Record<string, unknown>[]),
         ]
+        bodyTiming.step("missions")
         const missionSettlement = measureSettlementPhase("single", "mission", () => (
             settleMissionCategories(
                 playerId,
@@ -818,6 +826,7 @@ const routes = async (fastify: FastifyInstance) => {
                 missionEvaluationTime,
             )
         ))
+        bodyTiming.step("awake")
         const awakeMissionSettlement = measureSettlementPhase("single", "awake_mission", () => (
             settleAwakeMissionCandidates(
                 playerId,
@@ -830,6 +839,7 @@ const routes = async (fastify: FastifyInstance) => {
                 missionEvaluationTime,
             )
         ))
+        bodyTiming.step("active")
         const activeMissionSettlement = measureSettlementPhase("single", "active_mission", () => (
             reconcileActiveMissionFacts({
                 playerId,
@@ -838,6 +848,7 @@ const routes = async (fastify: FastifyInstance) => {
                 patterns: getBattleActiveMissionPatterns(questCategory),
             })
         ))
+        bodyTiming.step("response")
         const finalPlayerData = getPlayerSync(playerId)
         const responseData: Record<string, any> = {
                 "user_info": {
@@ -935,7 +946,11 @@ const routes = async (fastify: FastifyInstance) => {
         responseData.mail_arrived = getPlayerMailCountSync(playerId, true) > 0
         const response = { data_headers: dataHeaders, data: responseData }
         if (fiveBossSoloQuest) saveFiveBossSoloReceiptSync(playerId, activeQuestData.playId, finishCacheKey, response)
+        bodySucceeded = true
         return response
+            } finally {
+                bodyTiming.finish(bodySucceeded)
+            }
         }))
 
         delete activeQuests[playerId]

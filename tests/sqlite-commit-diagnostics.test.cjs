@@ -30,6 +30,8 @@ test('WAL metadata proves automatic checkpoint progress without executing a chec
         const value=diagnostics.drainSqliteCommitDiagnostics(),sample=value.samples[0]
         assert.equal(value.n,1);assert.equal(value.errors,0)
         assert.equal(sample.settings.autoCheckpoint,1000);assert.equal(sample.settings.synchronous,1)
+        assert.equal(sample.settings.sqliteVersion,db.prepare('SELECT sqlite_version()').pluck().get())
+        assert.equal(sample.settings.sqliteSourceId,db.prepare('SELECT sqlite_source_id()').pluck().get())
         assert.equal(sample.checkpointProgress,true)
         assert.ok(sample.after.frames>=1000);assert.equal(sample.after.backfilled,sample.after.frames)
         assert.equal(db.prepare('SELECT count(*) AS n FROM items').get().n,1100)

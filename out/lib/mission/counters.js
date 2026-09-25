@@ -66,9 +66,12 @@ function setMissionCounterMaxSync(playerId, query, value) {
     ON CONFLICT(player_id, counter_key) DO UPDATE SET
         value = MAX(value, excluded.value),
         updated_at = excluded.updated_at
+        WHERE excluded.value > value
     RETURNING value
     `).get(playerId, counterKey, query.dimension, query.scopeType, query.scopeKey, qualifierJson, value, nowSql());
-    return row.value;
+    if (row)
+        return row.value;
+    return getMissionCounterValueSync(playerId, query);
 }
 exports.setMissionCounterMaxSync = setMissionCounterMaxSync;
 function setMissionCounterMinSync(playerId, query, value) {
@@ -87,9 +90,12 @@ function setMissionCounterMinSync(playerId, query, value) {
     ON CONFLICT(player_id, counter_key) DO UPDATE SET
         value = MIN(value, excluded.value),
         updated_at = excluded.updated_at
+        WHERE excluded.value < value
     RETURNING value
     `).get(playerId, counterKey, query.dimension, query.scopeType, query.scopeKey, qualifierJson, value, nowSql());
-    return row.value;
+    if (row)
+        return row.value;
+    return getMissionCounterValueSync(playerId, query);
 }
 exports.setMissionCounterMinSync = setMissionCounterMinSync;
 function getMissionCounterValueSync(playerId, query) {

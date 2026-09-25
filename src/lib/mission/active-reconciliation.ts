@@ -429,7 +429,6 @@ export function computeActiveMissionFactProgress(
     state: ActiveMissionFactState,
     missionId?: number,
 ): number | null {
-    const characters = Object.entries(state.characters)
     switch (pattern) {
         case PATTERN_TOTAL_LOGIN_DAYS:
             return Math.max(0, state.player.totalLoginDays)
@@ -477,7 +476,7 @@ export function computeActiveMissionFactProgress(
             return missionId === undefined ? null : state.loadoutBattleFacts[String(missionId)] ?? 0
         case PATTERN_EPISODE_CLEAR_COUNT: {
             const storyQuestIds = new Set(
-                characters.flatMap(([characterId]) => state.characterStoryQuestIds[characterId] ?? []),
+                Object.keys(state.characters).flatMap(characterId => state.characterStoryQuestIds[characterId] ?? []),
             )
             let count = 0
             for (const questId of storyQuestIds) {
@@ -486,18 +485,18 @@ export function computeActiveMissionFactProgress(
             return count
         }
         case PATTERN_CHARACTER_LEVEL_ACHIEVEMENT:
-            return characters.reduce((maximum, [, character]) => (
+            return Object.values(state.characters).reduce((maximum, character) => (
                 Math.max(maximum, estimateActiveMissionCharacterLevel(character))
             ), 0)
         case PATTERN_CHARACTERS_COUNT: {
             const targetCharacterId = row[43]
             if (targetCharacterId === undefined || targetCharacterId === null || targetCharacterId === "(None)") {
-                return characters.length
+                return Object.keys(state.characters).length
             }
             return state.characters[String(targetCharacterId)] === undefined ? 0 : 1
         }
         case PATTERN_EVOLVED_CHARACTER_COUNT:
-            return characters.filter(([, character]) => character.evolutionLevel > 0).length
+            return Object.values(state.characters).filter(character => character.evolutionLevel > 0).length
         case PATTERN_LEVEL_MAX_EQUIPMENT_COUNT:
             return state.equipment.filter(equipment => equipment.level >= equipment.maxLevel).length
         case PATTERN_UPGRADE_EQUIPMENT_COUNT:
@@ -511,9 +510,9 @@ export function computeActiveMissionFactProgress(
         case PATTERN_BOSS_COIN_EXCHANGE:
             return state.bossCoinShopPurchaseCount
         case PATTERN_OVER_LIMIT_TOTAL_COUNT:
-            return characters.reduce((total, [, character]) => total + Math.max(0, character.overLimitStep), 0)
+            return Object.values(state.characters).reduce((total, character) => total + Math.max(0, character.overLimitStep), 0)
         case PATTERN_TOTAL_OBTAINED_BOND_TOKEN_COUNT:
-            return characters.reduce((total, [, character]) => (
+            return Object.values(state.characters).reduce((total, character) => (
                 total + character.bondTokenList.filter(token => token.status >= 1).length
             ), 0)
         case PATTERN_TOTAL_RELEASED_MANA_NODE_COUNT:

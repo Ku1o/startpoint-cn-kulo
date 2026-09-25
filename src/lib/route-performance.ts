@@ -6,6 +6,7 @@ import { installMemoryDiagnostics } from "./memory-diagnostics"
 import { drainAwakeDiagnostics, installRequestDiagnostics } from "./request-diagnostics"
 import { drainServerWorkPerformance } from "./server-work-performance"
 import { drainSqliteCommitDiagnostics } from "./sqlite-commit-diagnostics"
+import { drainSingleSettlementDiagnostics } from "./single-settlement-diagnostics"
 
 function isEnabled(): boolean {
     return !/^(0|false|no|off)$/i.test(process.env.ROUTE_PERF_SUMMARY ?? "true")
@@ -58,7 +59,10 @@ export function installRoutePerformanceMonitor(fastify: FastifyInstance): void {
         const admission = drainRoomAdmissionPerformanceSummary()
         const work = drainServerWorkPerformance()
         const commits = drainSqliteCommitDiagnostics()
-        if (requestCount === 0 && phases === "none" && admission === "none" && awake.skippedUnownedMissions === 0 && commits.n === 0) return
+        const settlements = drainSingleSettlementDiagnostics()
+        if (requestCount === 0 && phases === "none" && admission === "none"
+            && awake.skippedUnownedMissions === 0 && commits.n === 0
+            && Object.keys(settlements).length === 0) return
         console.warn(
             `[PERF] interval=${intervalMs}ms requests=${requestCount} cpu=${cpuMs.toFixed(0)}ms `
             + `actualInterval=${actualIntervalMs.toFixed(1)}ms `
@@ -69,6 +73,7 @@ export function installRoutePerformanceMonitor(fastify: FastifyInstance): void {
         console.warn(`[REQUEST-PERF] ${JSON.stringify({ ...summary, awake })}`)
         if (Object.keys(work).length > 0) console.warn(`[WORK-PERF] ${JSON.stringify(work)}`)
         if (commits.n > 0) console.warn(`[SQLITE-COMMIT] ${JSON.stringify(commits)}`)
+        if (Object.keys(settlements).length > 0) console.warn(`[SINGLE-SETTLEMENT] ${JSON.stringify(settlements)}`)
     }, intervalMs)
     timer.unref()
     fastify.addHook("onClose", async () => { clearInterval(timer); eventLoopDelay.disable() })

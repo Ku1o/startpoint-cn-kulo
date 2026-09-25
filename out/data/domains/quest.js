@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.insertPlayerDrawnQuestsSync = exports.getPlayerDrawnQuestsSync = exports.incrementPlayerQuestMultiClearSync = exports.updatePlayerQuestProgressSync = exports.insertPlayerQuestProgressListSync = exports.insertPlayerQuestProgressSync = exports.getPlayerQuestProgressBySectionAndIdsSync = exports.getPlayerSingleQuestProgressSync = exports.countFinishedPlayerQuestsSync = exports.countFinishedPlayerQuestsByCategorySync = exports.getPlayerQuestProgressSubsetSync = exports.getPlayerQuestProgressSync = void 0;
+exports.insertPlayerDrawnQuestsSync = exports.getPlayerDrawnQuestsSync = exports.incrementPlayerQuestMultiClearSync = exports.updatePlayerQuestProgressSync = exports.insertPlayerQuestProgressListSync = exports.insertPlayerQuestProgressSync = exports.getPlayerQuestProgressBySectionAndIdsSync = exports.getPlayerSingleQuestProgressSync = exports.countFinishedPlayerQuestsSync = exports.countFinishedPlayerQuestsByCategorySync = exports.getPlayerQuestProgressSubsetSync = exports.getPlayerSingleQuestHistorySummarySync = exports.getPlayerQuestProgressSync = void 0;
 const cached_statement_1 = require("../../lib/cached-statement");
 const db_1 = require("../db");
 const utils_1 = require("../utils");
@@ -53,6 +53,20 @@ function getPlayerQuestProgressSync(playerId) {
     return mapped;
 }
 exports.getPlayerQuestProgressSync = getPlayerQuestProgressSync;
+/** Historical single-only facts; shared single/co-op categories cannot prove the mode. */
+function getPlayerSingleQuestHistorySummarySync(playerId) {
+    (0, abyss_time_revision_1.refreshPlayerAbyssBestTimesSync)(playerId);
+    return (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
+        SELECT MIN(CASE WHEN finished = 1 AND best_elapsed_time_ms > 0
+                       AND best_elapsed_time_ms <= 1.7976931348623157e308
+                       THEN best_elapsed_time_ms END) AS bestElapsedTimeMs,
+               MAX(0, COALESCE(MAX(high_score), 0)) AS highScore,
+               COALESCE(SUM(CASE WHEN finished = 1 AND clear_rank = 5 THEN 1 ELSE 0 END), 0) AS ssCount
+        FROM players_quest_progress
+        WHERE player_id = ? AND section NOT IN (2, 8, 19, 26)
+    `).get(playerId);
+}
+exports.getPlayerSingleQuestHistorySummarySync = getPlayerSingleQuestHistorySummarySync;
 /**
  * Reads only the quest rows needed by an Active Mission reconciliation.
  * Section 4 ids are accepted in either stored or 10,000,000-offset form.

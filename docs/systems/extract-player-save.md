@@ -4,7 +4,7 @@
 
 需要带去另一台 Windows 云服时，使用便携 ZIP：完整解压到独立目录，双击包内的 `双击提取玩家存档.cmd`。便携包自带 Windows x64 Node.js、SQLite 原生模块和所需存档代码，无需云服安装 npm 依赖，也无需覆盖服务端目录。只输出单人 JSON，不创建数据库备份。包内 `使用说明.txt`、`manifest.json` 和 ZIP 旁的 SHA-256 文件分别提供操作说明和完整性校验。
 
-生成便携包：`node tools/player-save-extractor/build-portable.cjs`；默认输出到 `outputs/player-save-extractor/`。隔离验证入口：`node tests/player-save-portable.test.cjs <解压后的便携目录>`。Node.js v20.20.2 的许可原文取自 `https://raw.githubusercontent.com/nodejs/node/v20.20.2/LICENSE`，随包保留。
+生成便携包：`node tools/player-save-extractor/build-portable.cjs`；默认输出到 `outputs/player-save-extractor/`。隔离验证入口：`node tests/player-save-portable.test.cjs <解压后的便携目录>`。Node.js v24.21.0 的许可原文取自 `https://raw.githubusercontent.com/nodejs/node/v24.21.0/LICENSE`，随包保留。
 
 双击项目根目录的 `双击提取玩家存档.cmd`，或直接打开 `tools/player-save-extractor/PlayerSaveExtractor.exe`。
 
@@ -19,7 +19,7 @@ Git 只保存源码及生成脚本，不保存 EXE、Node.js、安装依赖或�
 
 无需输入命令。查询和导出在后台进程运行，窗口保持响应；操作期间先等待完成再关闭。取消文件选择不会导出，也不会覆盖已有文件。修改数据库或 viewer id 后必须重新查询，避免沿用上一次的存档选择。
 
-这是项目内的 Windows 窗口入口，需保留当前目录结构及已有 Node.js 20+、`node_modules`、`out` 依赖，不能只把 EXE 拷到另一台电脑使用。程序复用下述只读提取逻辑，存档格式和导入行为不变。开发时可运行 `tools/player-save-extractor/build.ps1`，用 Windows 自带的 .NET Framework 编译器重新生成 EXE，无需构建服务器。
+这是项目内的 Windows 窗口入口，需保留当前目录结构及已有 Node.js 24 LTS+、`node_modules`、`out` 依赖，不能只把 EXE 拷到另一台电脑使用。程序复用下述只读提取逻辑，存档格式和导入行为不变。开发时可运行 `tools/player-save-extractor/build.ps1`，用 Windows 自带的 .NET Framework 编译器重新生成 EXE，无需构建服务器。
 
 ## 命令行入口
 

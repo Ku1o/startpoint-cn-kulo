@@ -5,7 +5,7 @@
 
 | 层级 | 技术 |
 |------|------|
-| 运行时 | Node.js 20+ |
+| 运行时 | Node.js 24 LTS+ |
 | 语言 | TypeScript |
 | HTTP | Fastify 5 |
 | 数据库 | better-sqlite3 (SQLite) |

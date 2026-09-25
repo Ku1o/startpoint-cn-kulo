@@ -14,17 +14,17 @@ sudo apt update && sudo apt install -y \
   nodejs npm nginx certbot python3-certbot-nginx \
   git apache2-utils sqlite3
 
-# Node.js ≥ 20.0.0（系统默认版本可能不够，推荐 fnm 管理版本）
+# Node.js ≥ 24.0.0（系统默认版本可能不够，推荐 fnm 管理版本）
 node -v
 ```
 
-如果 `node -v` 显示版本低于 20：
+如果 `node -v` 显示版本低于 24：
 
 ```bash
 # 用 fnm 安装（推荐）
 curl -fsSL https://fnm.vercel.app/install | bash
-fnm install 20
-fnm use 20
+fnm install 24
+fnm use 24
 ```
 
 ---

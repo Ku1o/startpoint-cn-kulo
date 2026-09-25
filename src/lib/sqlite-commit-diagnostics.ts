@@ -6,7 +6,10 @@ import { sqliteDiagnosticsEnabled } from "./memory-diagnostics"
 
 type Kind = "single" | "immediate"
 interface WalState { frames: number, backfilled: number, generation: string, pageSize: number }
-interface Settings { journalMode: string | null, synchronous: number | null, autoCheckpoint: number | null, busyTimeout: number | null }
+interface Settings {
+    journalMode: string | null, synchronous: number | null, autoCheckpoint: number | null, busyTimeout: number | null,
+    sqliteVersion: string | null, sqliteSourceId: string | null,
+}
 export interface CommitProbe {
     kind: Kind, startedAt: number, cpu: NodeJS.CpuUsage, before: WalState | null, settings: Settings,
 }
@@ -40,8 +43,14 @@ function settingsFor(db: Database): Settings {
     const read = (key: string) => { try { return db.pragma(key, { simple: true }) } catch { return null } }
     const number = (key: string) => { const v = read(key); return typeof v === "number" ? v : null }
     const mode = read("journal_mode")
+    let version: { sqliteVersion: string; sqliteSourceId: string } | undefined
+    try {
+        version = db.prepare("SELECT sqlite_version() AS sqliteVersion, sqlite_source_id() AS sqliteSourceId")
+            .get() as typeof version
+    } catch { /* Diagnostic metadata must not affect settlement. */ }
     settings = { journalMode: typeof mode === "string" ? mode : null, synchronous: number("synchronous"),
-        autoCheckpoint: number("wal_autocheckpoint"), busyTimeout: number("busy_timeout") }
+        autoCheckpoint: number("wal_autocheckpoint"), busyTimeout: number("busy_timeout"),
+        sqliteVersion: version?.sqliteVersion ?? null, sqliteSourceId: version?.sqliteSourceId ?? null }
     settingsCache.set(db, settings)
     return settings
 }

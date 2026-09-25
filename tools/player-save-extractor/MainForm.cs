@@ -172,7 +172,7 @@ internal sealed class SaveExtractorForm : Form
         foreach (string entry in (Environment.GetEnvironmentVariable("PATH") ?? "").Split(Path.PathSeparator))
             if (!String.IsNullOrWhiteSpace(entry)) candidates.Add(Path.Combine(entry.Trim().Trim('"'), "node.exe"));
         foreach (string candidate in candidates) if (File.Exists(candidate)) return candidate;
-        throw new Exception("未找到 Node.js。请在安装了项目运行环境的电脑上使用此工具（Node.js 20 或以上）。");
+        throw new Exception("未找到 Node.js。请在安装了项目运行环境的电脑上使用此工具（Node.js 24 LTS 或以上）。");
     }
 
     private void Busy(bool value)

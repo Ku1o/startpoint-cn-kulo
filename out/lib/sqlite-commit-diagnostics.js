@@ -42,6 +42,7 @@ function readWalCommitState(db) {
 }
 exports.readWalCommitState = readWalCommitState;
 function settingsFor(db) {
+    var _a, _b;
     let settings = settingsCache.get(db);
     if (settings)
         return settings;
@@ -53,8 +54,15 @@ function settingsFor(db) {
     } };
     const number = (key) => { const v = read(key); return typeof v === "number" ? v : null; };
     const mode = read("journal_mode");
+    let version;
+    try {
+        version = db.prepare("SELECT sqlite_version() AS sqliteVersion, sqlite_source_id() AS sqliteSourceId")
+            .get();
+    }
+    catch ( /* Diagnostic metadata must not affect settlement. */_c) { /* Diagnostic metadata must not affect settlement. */ }
     settings = { journalMode: typeof mode === "string" ? mode : null, synchronous: number("synchronous"),
-        autoCheckpoint: number("wal_autocheckpoint"), busyTimeout: number("busy_timeout") };
+        autoCheckpoint: number("wal_autocheckpoint"), busyTimeout: number("busy_timeout"),
+        sqliteVersion: (_a = version === null || version === void 0 ? void 0 : version.sqliteVersion) !== null && _a !== void 0 ? _a : null, sqliteSourceId: (_b = version === null || version === void 0 ? void 0 : version.sqliteSourceId) !== null && _b !== void 0 ? _b : null };
     settingsCache.set(db, settings);
     return settings;
 }
