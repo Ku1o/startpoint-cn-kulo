@@ -111,8 +111,8 @@
         "archive_count": 1,
         "no_update_at_target": true,
         "version_info": {
-          "base_url": "http://192.168.3.14:8001/patch/cn/entities/files/",
-          "files_list": "http://192.168.3.14:8001/patch/cn/entities/10939-android_medium.csv",
+          "base_url": "/patch/cn/entities/files/",
+          "files_list": "/patch/cn/entities/10939-android_medium.csv",
           "total_size": 8890672,
           "delayed_assets_size": 0
         }
@@ -124,8 +124,8 @@
         "archive_count": 1,
         "no_update_at_target": true,
         "version_info": {
-          "base_url": "http://192.168.3.14:8001/patch/cn/entities/files/",
-          "files_list": "http://192.168.3.14:8001/patch/cn/entities/10939-ios_medium.csv",
+          "base_url": "/patch/cn/entities/files/",
+          "files_list": "/patch/cn/entities/10939-ios_medium.csv",
           "total_size": 8890672,
           "delayed_assets_size": 0
         }
