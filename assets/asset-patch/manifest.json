@@ -1,5 +1,5 @@
 {
-  "cdn_version": "1.4.119",
+  "cdn_version": "1.4.121",
   "patches": [
     {
       "id": "base-1.4.54-to-1.4.55-mod07141843",
@@ -23326,7 +23326,497 @@
         "pinball-1.4.118-1.4.119-1-author-1047-wind-dragon.zip"
       ],
       "created_at": "2026-09-25"
+    },
+    {
+      "id": "orochi-boss-v3-1.4.120",
+      "version": "1.4.120",
+      "depends_on": "1.4.119",
+      "archive": "pinball-1.4.119-1.4.120-1-orochi-boss-terminal-consolidated.zip",
+      "enabled": true,
+      "type": "patch",
+      "name": "八岐大蛇 Boss 终态 CDN 浓缩包",
+      "description": "将八岐大蛇 1.4.120 至 1.4.130 的最终资源状态回拨浓缩到 1.4.119→1.4.120 单条增量；重新下载客户端后直接得到最终 Boss 状态。",
+      "archive_size": 2577869,
+      "archive_integrity": [
+        {
+          "name": "pinball-1.4.119-1.4.120-1-orochi-boss-terminal-consolidated.zip",
+          "size": 2577869,
+          "sha256": "3aedbddd3486c571deab81791b4576077f678ff6605fc733d33547ad9f531ecb",
+          "members": 17,
+          "files": [
+            "production/upload/01/313477f2616628879b578fa78722fbb54dd69c",
+            "production/upload/0c/4561a50deb7b22c977212a62ac8409074bddbe",
+            "production/upload/14/591cf18d67e538e2c2107a2731b912447f0661",
+            "production/upload/19/a4aa442b3249499356e7a3f6370e530bfe355e",
+            "production/upload/30/363f8364e183905b2d0b48b8718b7165135bc2",
+            "production/upload/56/7d81eea3c08fac7b1b69cbeabe2b9fd7b9591e",
+            "production/upload/68/6c1822fcaa320f71e8245ae7be98d553b84cb7",
+            "production/upload/6d/4d576b424178c5b2b253a2dd5aa3d78fa74ef3",
+            "production/upload/7b/5e0efc0e0691038ca52fe282501dfd3a1b5ae3",
+            "production/upload/7c/0159ffd7078028b1c2eec135beb1884f7224fb",
+            "production/upload/93/a3763bc243c7178e1d97a3acd9dab2e9406a5e",
+            "production/upload/a1/96e15706a47e7bd6214f62b390a7fa4d58bf35",
+            "production/upload/a4/731a843d4dc0c84120bf8c88784c1e74c03baa",
+            "production/upload/a5/35aaa48a5290e76d07c40e497742e4a407a0d0",
+            "production/upload/b1/bc047d89ff6f94e30a96f941caad0e4eccda7d",
+            "production/upload/cd/6336795a27ea33bf8d0c5d5a9bfb466bedcf1e",
+            "production/upload/eb/f8ef19148af9c1330b78c7fb3ce75e3f202e64"
+          ]
+        }
+      ],
+      "files": [
+        "production/upload/01/313477f2616628879b578fa78722fbb54dd69c",
+        "production/upload/0c/4561a50deb7b22c977212a62ac8409074bddbe",
+        "production/upload/14/591cf18d67e538e2c2107a2731b912447f0661",
+        "production/upload/19/a4aa442b3249499356e7a3f6370e530bfe355e",
+        "production/upload/30/363f8364e183905b2d0b48b8718b7165135bc2",
+        "production/upload/56/7d81eea3c08fac7b1b69cbeabe2b9fd7b9591e",
+        "production/upload/68/6c1822fcaa320f71e8245ae7be98d553b84cb7",
+        "production/upload/6d/4d576b424178c5b2b253a2dd5aa3d78fa74ef3",
+        "production/upload/7b/5e0efc0e0691038ca52fe282501dfd3a1b5ae3",
+        "production/upload/7c/0159ffd7078028b1c2eec135beb1884f7224fb",
+        "production/upload/93/a3763bc243c7178e1d97a3acd9dab2e9406a5e",
+        "production/upload/a1/96e15706a47e7bd6214f62b390a7fa4d58bf35",
+        "production/upload/a4/731a843d4dc0c84120bf8c88784c1e74c03baa",
+        "production/upload/a5/35aaa48a5290e76d07c40e497742e4a407a0d0",
+        "production/upload/b1/bc047d89ff6f94e30a96f941caad0e4eccda7d",
+        "production/upload/cd/6336795a27ea33bf8d0c5d5a9bfb466bedcf1e",
+        "production/upload/eb/f8ef19148af9c1330b78c7fb3ce75e3f202e64"
+      ],
+      "chain": [
+        "pinball-1.4.119-1.4.120-1-orochi-boss-terminal-consolidated.zip"
+      ],
+      "audit": {
+        "directory": "assets/asset-patch/audit/orochi-boss-terminal-consolidated-1.4.120"
+      },
+      "changes": [
+        "将八岐大蛇 1.4.120→1.4.130 的 11 条增量合并为一条 1.4.119→1.4.120 终态包。",
+        "保留 Boss 机制、蛇神残响与海豹球掉落、多人领主特选、商店兑换、CRLF/C7050 修复、P2 龙鳞抗性、四阶段血量、蛇头承伤与 Down 韧性。",
+        "保留 P4 硬弱点挑战 4 秒、输出窗口 10 秒、关闭 0.5 秒、重置 1 秒和完整 3 秒再激活动画。",
+        "1.4.121～1.4.130 条目标记为 disabled，旧归档移入 inactive/retired，仅供回滚。",
+        "不修改 SWF、Chain、服务端、APK、准入或奖励逻辑。"
+      ],
+      "consolidated_from": [
+        "orochi-boss-v3-1.4.120",
+        "orochi-multi-pickup-1.4.121",
+        "orochi-shop-exchange-1.4.122",
+        "orochi-boss-crlf-fix-1.4.123",
+        "orochi-boss-profile-off-diagnostic-1.4.124",
+        "orochi-native-field-diagnostic-1.4.125",
+        "orochi-custom-mechanics-1.4.126",
+        "orochi-boss-balance-1.4.127",
+        "orochi-boss-c7050-fix-1.4.128",
+        "orochi-boss-stun-capacity-1.4.129",
+        "orochi-p4-timing-1.4.130"
+      ],
+      "created_at": "2026-09-26"
+    },
+    {
+      "id": "orochi-multi-pickup-1.4.121",
+      "version": "1.4.121",
+      "depends_on": "1.4.120",
+      "archive": "pinball-1.4.120-1.4.121-1-orochi-multi-pickup.zip",
+      "enabled": false,
+      "description": "八岐大蛇讨伐长期启用原生多人领主特选标记与置顶；不配置额外掉落。",
+      "archive_integrity": [
+        {
+          "name": "pinball-1.4.120-1.4.121-1-orochi-multi-pickup.zip",
+          "size": 50271,
+          "sha256": "792dcebb9309a92361d961b7b3c7c20c592b903f14c26d4841c8e1803eee62cc",
+          "members": 2
+        }
+      ],
+      "audit": {
+        "directory": "assets/asset-patch/audit/orochi-multi-pickup-1.4.121"
+      },
+      "changes": [
+        "为 chapter_id=1、stage_node_id=20（复合节点1020，对应八岐大蛇讨伐 1020001-1020004）增加 BossBattleMultiPickupEventSchedule。",
+        "使用原生 Pickup 状态驱动特殊图标和领主战置顶。",
+        "不填写 boss_battle_additional_score_reward，不增加额外掉落。",
+        "使用 90000023 作为私有活动编号，避免占用后续官方活动编号。"
+      ],
+      "type": "patch",
+      "name": "八岐大蛇讨伐·多人领主特选标记",
+      "archive_size": 50271,
+      "files": [
+        "production/upload/14/591cf18d67e538e2c2107a2731b912447f0661",
+        "production/upload/b1/bc047d89ff6f94e30a96f941caad0e4eccda7d"
+      ],
+      "chain": [
+        "pinball-1.4.120-1.4.121-1-orochi-multi-pickup.zip"
+      ],
+      "created_at": "2026-09-25",
+      "superseded_by": "orochi-boss-v3-1.4.120"
+    },
+    {
+      "id": "orochi-shop-exchange-1.4.122",
+      "version": "1.4.122",
+      "depends_on": "1.4.121",
+      "archive": "pinball-1.4.121-1.4.122-1-orochi-shop-exchange.zip",
+      "enabled": false,
+      "description": "八岐大蛇商店新增蛇神残响兑换：中秋月饼、深渊王印、深渊觉醒核与竞速池十连券。",
+      "archive_integrity": [
+        {
+          "name": "pinball-1.4.121-1.4.122-1-orochi-shop-exchange.zip",
+          "size": 812970,
+          "sha256": "67c5593ee3bbf54529fa06ccf5a819fe798bbd8d5af2e08884d4625ebdff59b4",
+          "members": 1,
+          "files": [
+            "production/upload/a5/35aaa48a5290e76d07c40e497742e4a407a0d0"
+          ]
+        }
+      ],
+      "audit": {
+        "directory": "assets/asset-patch/audit/orochi-shop-exchange-1.4.122"
+      },
+      "changes": [
+        "新增 202045–202048 四个八岐大蛇商店商品，统一使用蛇神残响 40193 作为兑换消耗。",
+        "兑换库存分别为 350、12、3、1，奖励为 999019、2370101、2370100、999018。",
+        "客户端表、cdndata 镜像、服务端校验表和商品分类映射保持同一商品 ID。"
+      ],
+      "type": "patch",
+      "name": "八岐大蛇·蛇神残响兑换",
+      "archive_size": 812970,
+      "files": [
+        "production/upload/a5/35aaa48a5290e76d07c40e497742e4a407a0d0"
+      ],
+      "chain": [
+        "pinball-1.4.121-1.4.122-1-orochi-shop-exchange.zip"
+      ],
+      "created_at": "2026-09-25",
+      "superseded_by": "orochi-boss-v3-1.4.120"
+    },
+    {
+      "id": "orochi-boss-crlf-fix-1.4.123",
+      "version": "1.4.123",
+      "depends_on": "1.4.122",
+      "archive": "pinball-1.4.122-1.4.123-1-orochi-boss-crlf-fix.zip",
+      "enabled": false,
+      "type": "patch",
+      "name": "八岐大蛇副本自定义表行尾修正",
+      "description": "清理新副本 field_data、zone、quest、Boss 及 boss_level 自定义行的终止换行，避免路径和数值字段携带 CRLF。",
+      "archive_size": 350729,
+      "archive_integrity": [
+        {
+          "name": "pinball-1.4.122-1.4.123-1-orochi-boss-crlf-fix.zip",
+          "size": 350729,
+          "sha256": "92b197557393efc25336e0343a264f324cac8d0241a2c5cdf2a3f8f3bc06e05e",
+          "members": 5
+        }
+      ],
+      "files": [
+        "production/upload/19/a4aa442b3249499356e7a3f6370e530bfe355e",
+        "production/upload/30/363f8364e183905b2d0b48b8718b7165135bc2",
+        "production/upload/7c/0159ffd7078028b1c2eec135beb1884f7224fb",
+        "production/upload/cd/6336795a27ea33bf8d0c5d5a9bfb466bedcf1e",
+        "production/upload/eb/f8ef19148af9c1330b78c7fb3ce75e3f202e64"
+      ],
+      "chain": [
+        "pinball-1.4.122-1.4.123-1-orochi-boss-crlf-fix.zip"
+      ],
+      "audit": {
+        "directory": "assets/asset-patch/audit/orochi-boss-crlf-fix-1.4.123"
+      },
+      "changes": [
+        "只修改八岐大蛇新副本自定义 orderedmap 行尾；原 Boss 逻辑、掉落、旧副本及原生资源不变。"
+      ],
+      "created_at": "2026-09-25",
+      "superseded_by": "orochi-boss-v3-1.4.120"
+    },
+    {
+      "id": "orochi-boss-profile-off-diagnostic-1.4.124",
+      "version": "1.4.124",
+      "depends_on": "1.4.123",
+      "archive": "pinball-1.4.123-1.4.124-1-orochi-boss-profile-off-diagnostic.zip",
+      "enabled": false,
+      "type": "patch",
+      "name": "八岐大蛇 profile 隔离诊断",
+      "description": "只移除自定义 Boss 行尾部的 phase4 profile，保留副本、奖励、头部数据与资源；用于确认黑屏是否由 SWF profile/phase4 扩展触发。",
+      "archive_size": 2261,
+      "archive_integrity": [
+        {
+          "name": "pinball-1.4.123-1.4.124-1-orochi-boss-profile-off-diagnostic.zip",
+          "size": 2261,
+          "sha256": "76723f9c0a669ed29d6c888f12d7068a2dac2b8b7387b29609bf5e7f3a86adb7",
+          "members": 1
+        }
+      ],
+      "files": [
+        "production/upload/7c/0159ffd7078028b1c2eec135beb1884f7224fb"
+      ],
+      "chain": [
+        "pinball-1.4.123-1.4.124-1-orochi-boss-profile-off-diagnostic.zip"
+      ],
+      "audit": {
+        "directory": "assets/asset-patch/audit/orochi-boss-profile-off-diagnostic-1.4.124"
+      },
+      "changes": [
+        "custom OrochiEx parent row: 129 columns -> legacy 128 columns",
+        "does not change quest, zone, field, heads, rewards, item assets, or server battle code",
+        "diagnostic only; if black screen remains, the profile/phase4 runtime is ruled out"
+      ],
+      "created_at": "2026-09-25",
+      "superseded_by": "orochi-boss-v3-1.4.120"
+    },
+    {
+      "id": "orochi-native-field-diagnostic-1.4.125",
+      "version": "1.4.125",
+      "depends_on": "1.4.124",
+      "archive": "pinball-1.4.124-1.4.125-1-orochi-native-field-diagnostic.zip",
+      "enabled": false,
+      "type": "patch",
+      "name": "八岐大蛇原生 field 链诊断",
+      "description": "只把自定义 quest 1/20/4 的 field_id 指向原生 multi_normal_1_20_4，保留自定义 quest、奖励、数值和客户端；用于隔离自定义 field/zone 链。",
+      "archive_size": 74951,
+      "archive_integrity": [
+        {
+          "name": "pinball-1.4.124-1.4.125-1-orochi-native-field-diagnostic.zip",
+          "size": 74951,
+          "sha256": "046bd1be43b40f78919bfdc4f20e0fcc582702559610deea5ae6194ffeb5cd4b",
+          "members": 1
+        }
+      ],
+      "files": [
+        "production/upload/eb/f8ef19148af9c1330b78c7fb3ce75e3f202e64"
+      ],
+      "chain": [
+        "pinball-1.4.124-1.4.125-1-orochi-native-field-diagnostic.zip"
+      ],
+      "audit": {
+        "directory": "assets/asset-patch/audit/orochi-native-field-diagnostic-1.4.125"
+      },
+      "changes": [
+        "custom quest row 1/20/4 field_id: multi_normal_1_20_5 -> multi_normal_1_20_4",
+        "does not change custom Boss row, heads, rewards, assets, or server battle code",
+        "diagnostic only; a remaining black screen rules out the custom field/zone chain"
+      ],
+      "created_at": "2026-09-25",
+      "superseded_by": "orochi-boss-v3-1.4.120"
+    },
+    {
+      "id": "orochi-custom-mechanics-1.4.126",
+      "version": "1.4.126",
+      "depends_on": "1.4.125",
+      "archive": "pinball-1.4.125-1.4.126-1-orochi-custom-mechanics.zip",
+      "enabled": false,
+      "type": "patch",
+      "name": "八岐大蛇 EX 自定义机制恢复",
+      "description": "恢复 profile 与自定义 field，启用 200 亿独立血账本、硬弱点窗口和 BossMechanics 同步；奖励与后续新增 Boss 入口保持不变。",
+      "archive_size": 77314,
+      "archive_integrity": [
+        {
+          "name": "pinball-1.4.125-1.4.126-1-orochi-custom-mechanics.zip",
+          "size": 77314,
+          "sha256": "8a0ee7005a2611e8ea08ef5c343d03fce83cd02ecb893848b2da21bd3b063d47",
+          "members": 2
+        }
+      ],
+      "files": [
+        "production/upload/7c/0159ffd7078028b1c2eec135beb1884f7224fb",
+        "production/upload/eb/f8ef19148af9c1330b78c7fb3ce75e3f202e64"
+      ],
+      "chain": [
+        "pinball-1.4.125-1.4.126-1-orochi-custom-mechanics.zip"
+      ],
+      "audit": {
+        "directory": "assets/asset-patch/audit/orochi-custom-mechanics-1.4.126"
+      },
+      "changes": [
+        "custom Boss row: restore profile slot orochi_ex_v1 (20000000000 HP, 2 segments, 600-frame/90-frame hard-weakpoint window)",
+        "custom quest 1/20/4 field_id: multi_normal_1_20_4 -> multi_normal_1_20_5",
+        "does not change reward tables, server reward profiles, or the existing Boss row ID"
+      ],
+      "created_at": "2026-09-25",
+      "superseded_by": "orochi-boss-v3-1.4.120"
+    },
+    {
+      "id": "orochi-boss-balance-1.4.127",
+      "version": "1.4.127",
+      "depends_on": "1.4.126",
+      "archive": "pinball-1.4.126-1.4.127-1-orochi-boss-balance.zip",
+      "enabled": false,
+      "type": "patch",
+      "name": "八岐大蛇 EX 四阶段血量账本",
+      "description": "四阶段各 600 亿独立血量账本；P4 单段、五硬弱点、600 帧输出窗口，保留 P2 龙鳞原生元素抗性和四层试炼。",
+      "archive_size": 92791,
+      "archive_integrity": [
+        {
+          "name": "pinball-1.4.126-1.4.127-1-orochi-boss-balance.zip",
+          "size": 92791,
+          "sha256": "75ce72e49d7eb7523fec0017775cd66e2b3340d853b85cdfdb4c95ee02985fe8",
+          "members": 3
+        }
+      ],
+      "files": [
+        "production/upload/19/a4aa442b3249499356e7a3f6370e530bfe355e",
+        "production/upload/7c/0159ffd7078028b1c2eec135beb1884f7224fb",
+        "production/upload/eb/f8ef19148af9c1330b78c7fb3ce75e3f202e64"
+      ],
+      "chain": [
+        "pinball-1.4.126-1.4.127-1-orochi-boss-balance.zip"
+      ],
+      "audit": {
+        "directory": "assets/asset-patch/audit/orochi-boss-balance-1.4.127"
+      },
+      "changes": [
+        "Orochi profile revision 2: phase_hp=[60000000000,60000000000,60000000000,60000000000], segments=1",
+        "P4 timing: 600-frame output, 30-frame close transition, 60-frame reset wait, 60-frame rearm awake",
+        "P2 native Dragon Scale elemental resistance 0.5/0.5/1/2 and four native trials preserved",
+        "clear quest-wide c74-c81 0.8 modifiers; preserve c82=4 debuff immunity",
+        "scale six Orochi head boss_level capacity carriers by 10x for the 60-billion phase target",
+        "does not change reward tables, token drops, rare pool, server profile, or the existing Boss ID"
+      ],
+      "created_at": "2026-09-25",
+      "superseded_by": "orochi-boss-v3-1.4.120"
+    },
+    {
+      "id": "orochi-boss-c7050-fix-1.4.128",
+      "version": "1.4.128",
+      "depends_on": "1.4.127",
+      "archive": "pinball-1.4.127-1.4.128-1-orochi-boss-c7050-fix.zip",
+      "enabled": false,
+      "type": "patch",
+      "name": "八岐大蛇领主战 C7050 修复",
+      "description": "将被清除的 BossBattleQuest 初始条件类型由空字符串改为客户端认可的 (None)，保留 c82=4 减益免疫。",
+      "archive_size": 74920,
+      "archive_integrity": [
+        {
+          "name": "pinball-1.4.127-1.4.128-1-orochi-boss-c7050-fix.zip",
+          "size": 74920,
+          "sha256": "836f1da618d5757180c8777f7955385a42b18ae6177b61592612fc14dc68b562",
+          "members": 1
+        }
+      ],
+      "files": [
+        "production/upload/eb/f8ef19148af9c1330b78c7fb3ce75e3f202e64"
+      ],
+      "chain": [
+        "pinball-1.4.127-1.4.128-1-orochi-boss-c7050-fix.zip"
+      ],
+      "audit": {
+        "directory": "assets/asset-patch/audit/orochi-boss-c7050-fix-1.4.128"
+      },
+      "changes": [
+        "quest 1/20/4 condition type columns c74/c76/c78/c80: empty -> (None)",
+        "quest 1/20/4 c82=4 debuff immunity preserved",
+        "no changes to boss profile, HP ledger, P2 resistance, trials, rewards, or APK/SWF"
+      ],
+      "created_at": "2026-09-25",
+      "superseded_by": "orochi-boss-v3-1.4.120"
+    },
+    {
+      "id": "orochi-boss-stun-capacity-1.4.129",
+      "version": "1.4.129",
+      "depends_on": "1.4.128",
+      "archive": "pinball-1.4.128-1.4.129-1-orochi-stun-capacity.zip",
+      "enabled": false,
+      "type": "patch",
+      "name": "八岐大蛇蛇头承伤与 Down 韧性调整",
+      "description": "只调整六颗蛇头 c2 承伤容量及父体/蛇头 c12 基础韧性；不改 Chain、SWF、任务、掉落和服务器。",
+      "archive_size": 15533,
+      "archive_integrity": [
+        {
+          "name": "pinball-1.4.128-1.4.129-1-orochi-stun-capacity.zip",
+          "size": 15533,
+          "sha256": "f72cd4cbe88ae2a56cf9f54af322c8e73767bf3947e3f3fc692c4de971f1e513",
+          "members": 1
+        }
+      ],
+      "files": [
+        "production/upload/19/a4aa442b3249499356e7a3f6370e530bfe355e"
+      ],
+      "chain": [
+        "pinball-1.4.128-1.4.129-1-orochi-stun-capacity.zip"
+      ],
+      "audit": {
+        "directory": "assets/asset-patch/audit/orochi-boss-stun-capacity-1.4.129"
+      },
+      "changes": [
+        "P1 三蛇头 c2 总承伤覆盖 600 亿阶段门槛并保留 1% 聚合余量",
+        "P3 三蛇头 c2 总承伤覆盖 600 亿阶段门槛并保留 1% 聚合余量",
+        "父体 c12 tp_basic_value 120→1080",
+        "P1 蛇头 c12 70→630；P3 蛇头 c12 90→810",
+        "不修改技能连锁 Chain 行为、不修改 SWF、任务、奖励、准入和服务端"
+      ],
+      "created_at": "2026-09-26",
+      "superseded_by": "orochi-boss-v3-1.4.120"
+    },
+    {
+      "id": "orochi-p4-timing-1.4.130",
+      "version": "1.4.130",
+      "depends_on": "1.4.129",
+      "archive": "pinball-1.4.129-1.4.130-1-orochi-p4-timing.zip",
+      "enabled": false,
+      "type": "patch",
+      "name": "八岐大蛇 P4 硬弱点时序调整",
+      "description": "硬弱点出现后的挑战倒计时改为 4 秒；输出窗口保持 10 秒；输出结束后保留关闭、重置和完整 3 秒再激活动画。",
+      "archive_size": 2430,
+      "archive_integrity": [
+        {
+          "name": "pinball-1.4.129-1.4.130-1-orochi-p4-timing.zip",
+          "size": 2430,
+          "sha256": "1f54696aeda025ec2585d8be8bbc06bb2cc0451d9a40f348d3bc3e7529946869",
+          "members": 1
+        }
+      ],
+      "files": [
+        "production/upload/7c/0159ffd7078028b1c2eec135beb1884f7224fb"
+      ],
+      "chain": [
+        "pinball-1.4.129-1.4.130-1-orochi-p4-timing.zip"
+      ],
+      "audit": {
+        "directory": "assets/asset-patch/audit/orochi-p4-timing-1.4.130"
+      },
+      "changes": [
+        "orochi_ex c122 硬弱点出现后的原生挑战倒计时 600→240 帧（10→4 秒）",
+        "mechanics profile revision 2→3，rearm_awake_frames 60→180 帧（1→3 秒）",
+        "P4 输出窗口保持 600 帧（10 秒）",
+        "关闭过渡保持 30 帧、重置等待保持 60 帧",
+        "不修改 SWF、Chain、boss_level、任务、奖励、准入和服务端"
+      ],
+      "created_at": "2026-09-26",
+      "superseded_by": "orochi-boss-v3-1.4.120"
+    },
+    {
+      "id": "orochi-p4-hard-weakpoint-3s-1.4.121",
+      "version": "1.4.121",
+      "depends_on": "1.4.120",
+      "archive": "pinball-1.4.120-1.4.121-1-orochi-p4-hard-weakpoint-3s.zip",
+      "enabled": true,
+      "type": "patch",
+      "name": "八岐大蛇 P4 硬弱点倒数 3 秒",
+      "description": "将硬弱点阶段出现后的挑战倒数从 4 秒调整为 3 秒；P4 输出窗口、关闭、重置和再激活动画保持不变。",
+      "archive_size": 2428,
+      "archive_integrity": [
+        {
+          "name": "pinball-1.4.120-1.4.121-1-orochi-p4-hard-weakpoint-3s.zip",
+          "size": 2428,
+          "sha256": "9ac3a0e5eac6ad21a49bbc9f40a34b310a933068f7094b513f9a428ceaa3b859",
+          "members": 1,
+          "files": [
+            "production/upload/7c/0159ffd7078028b1c2eec135beb1884f7224fb"
+          ]
+        }
+      ],
+      "files": [
+        "production/upload/7c/0159ffd7078028b1c2eec135beb1884f7224fb"
+      ],
+      "chain": [
+        "pinball-1.4.120-1.4.121-1-orochi-p4-hard-weakpoint-3s.zip"
+      ],
+      "audit": {
+        "directory": "assets/asset-patch/audit/orochi-p4-hard-weakpoint-3s-1.4.121"
+      },
+      "changes": [
+        "orochi_ex c122 硬弱点出现后的原生挑战倒数 240→180 帧（4→3 秒）",
+        "mechanics profile revision 3→4",
+        "P4 输出窗口保持 600 帧（10 秒）",
+        "关闭过渡保持 30 帧、重置等待保持 60 帧、再激活保持 180 帧（3 秒）",
+        "不修改 SWF、Chain、boss_level、任务、奖励、准入和服务端"
+      ],
+      "created_at": "2026-09-26"
     }
   ],
-  "generated_for": "candidate only; not deployed"
+  "generated_for": "official active chain"
 }
