@@ -19,10 +19,10 @@ iOS 以 `64edf9ada1c0cb1dd8ebff00978394907b93174b519f0106fd41b55f2949917a` 的 C
 
 | 平台 | 内网及前一正式号 | 本批新正式号 |
 | --- | --- | --- |
-| Android | `android-181-independent-party-20260923` | `android-181-author-1043-20260924` |
-| iOS | `ios-184-independent-party-20260923` | `ios-184-author-1043-20260924` |
+| Android | `android-181-author-1047-20260925` | latest accepted |
+| iOS | `ios-184-author-1047-20260925` | latest accepted |
 
-两端各用独立配对，旧允许号、旧密钥和严格模式保持。完整私有配置已在仓库外维护，不包含准入 rollout 状态。本批服务器交付以上一个 1.4.116 正式交付为基线，仅包含合并 1.4.117 ZIP、完整 manifest、两个兑换池 JSON、角色文字和完整准入配对，共七个文件。外层无松散 production、changelog、签名材料或 .cdn；资源 ZIP 字节不变。
+两端使用最新 1047 配对，旧构建条目和旧密钥已从当前准入配置移除，严格模式保持。完整私有配置已在仓库外维护，不包含准入 rollout 状态。本批服务器交付以上一个 1.4.116 正式交付为基线，仅包含合并 1.4.117 ZIP、完整 manifest、两个兑换池 JSON、角色文字和完整准入配对，共七个文件。外层无松散 production、changelog、签名材料或 .cdn；资源 ZIP 字节不变。
 
 `release.json` 记录成品身份和本地交付位置；密钥与签名凭据不进入源码、报告或 Git。新号需在服务器覆盖配套后才能登录。本批未部署云服务器。
 
@@ -32,6 +32,16 @@ iOS 以 `64edf9ada1c0cb1dd8ebff00978394907b93174b519f0106fd41b55f2949917a` 的 C
 
 Android 已验收内网输入和公网成品分别核验。iOS 完成 18,000 余处原生重定位核验、四个 ARM64 分支包装器的八个执行场景、移植后实际字节码的十项规则测试、十五个目标分类分支、四个构造默认值场景与签名布局检查。原三十七项机制及语音用例通过；双端完整准入配对通过二十六项隔离 HTTP 协议检查，含平台/密钥错误、旧号并存及单端撤销。
 
-原有 C8601 方法入口及其他未修改原生字节保持。构建时成品为离线验证候选，原报告保持该状态；2026-09-25 已补做验收并登记 `accepted_offline`，详见 [公网验收](../ACCEPTANCE-AUTHOR-PUBLIC-20260925.md)。Android 另完成模拟器安装和冷启动至登录面板，两端新旧编号均通过实际公网握手；iOS 真机、多人或长时间联机未测。此批无保存 ID、数据库、存档格式或账号归属变化，不需要存档迁移。
+原有 C8601 方法入口及其他未修改原生字节保持。构建时成品为离线验证候选，原报告保持该状态；2026-09-25 已补做验收并登记 `accepted_offline`，详见 [八岐大蛇高难 V2 验收](../ACCEPTANCE-OROCHI-BOSS-20260926.md)。Android 另完成模拟器安装和冷启动至登录面板，最新双端通过实际公网握手；旧构建被准入接口拒绝；iOS 真机、多人或长时间联机未测。此批无保存 ID、数据库、存档格式或账号归属变化，不需要存档迁移。
 
 构建入口：`prepare_admission.py` → `build_android.py`；`prepare_ios.py` → `compile_ios.py compile-final-defaults` → `link_ios.py` → `verify_ios.py` / `test_ios_rules.py`；`verify_pair.cjs` 与 `package_server.py` 生成配套。精确输入与私有材料位置由 `common.py` 固定；已完成批次不重新分配准入材料。
+## 1.4.1047 客户端性能补丁
+
+2026-09-25 在已验收作者机制双端公网累计包上追加回槽特效性能修复：施技前拦截无效回槽演出，能力伤害总计按来源规则筛选，保留开场与正常跑条。Android 与 iOS 分别生成并确认最新公网成品，iOS 通过已有 AOT 编译 hook 接入；原生目标方法、包身份、公共地址和准入号保持。
+
+最新验收记录见 [`ACCEPTANCE-AUTHOR-1047-20260925.md`](../ACCEPTANCE-AUTHOR-1047-20260925.md)。
+
+
+## 八岐大蛇高难 V2 corrected client 2026-09-26
+
+本批客户端改为使用八岐大蛇高难 Boss 成品：Android `F:\codex\outputs\orochi-boss-public-20260926\android\StarPoint-CN-1.8.1-author-1047-orochi-boss-public-20260926.apk`，iOS corrected IPA `F:\codex\outputs\orochi-boss-public-20260926\ios\StarPoint-iOS-1.8.4-author-1047-orochi-boss-public-20260926-corrected-unsigned.ipa`。iOS 静态验收报告为 `F:\codex\outputs\orochi-boss-public-20260926\ios\boss-ios-verification.json`，完整 ABC/AOT 方法数 101433，新增 AOT 入口 46，未做真机测试。上一份 iOS 仅准入重打包候选已从当前成品登记中排除。
