@@ -10,6 +10,7 @@ import { Player } from "../data/types";
 import rewardElementMap from "../../assets/reward_element_map.json";
 import { gameVerboseLog } from "./game-logging";
 import { calculateFreeManaGrant } from "./mana";
+import { BossRewardContext, getBossRewardProfile, resolveBossTokenCount } from "./boss/reward-profile";
 
 const ELEMENT_TO_ENEMY_MAP: Record<number, number> = {
     0: 3, 1: 0, 2: 1, 3: 2, 4: 5, 5: 4,
@@ -33,6 +34,9 @@ function resolveAetherItemId(rarity: number, questElement?: number): number {
  * @param playerId The ID of the player.
  * @param groupId The ID of the score reward group.
  * @param scoreRewards The score rewards inside of the group.
+ * @param bossRewardContext Optional permanent-boss reward context. When it
+ * is present, only the matching profile applies its mode-specific token count
+ * and exact rare-pool roll.
  * @returns A result detailing what was added/changed.
  */
 export function givePlayerScoreRewardsSync(
@@ -41,6 +45,7 @@ export function givePlayerScoreRewardsSync(
     scoreRewards?: ScoreReward[],
     boostPointUsed: boolean = false,
     questElement?: number,
+    bossRewardContext?: BossRewardContext,
 ): GivePlayerScoreRewardsResult {
 
     const dropScoreRewardIds: DropScoreRewardId[] = []
@@ -56,6 +61,7 @@ export function givePlayerScoreRewardsSync(
 
     if (scoreRewards != null && groupId != null) {
         const dropMultiplier = parseFloat(process.env.DROP_MULTIPLIER || '1')
+        const bossRewardProfile = getBossRewardProfile(bossRewardContext?.questId, groupId)
         gameVerboseLog(() => `[QUEST] givePlayerScoreRewards group=${groupId} items=${scoreRewards.length} pid=${playerId}`)
         let seqIndex = 0
         for (const scoreReward of scoreRewards) {
@@ -71,10 +77,22 @@ export function givePlayerScoreRewardsSync(
                         case RewardType.ITEM: {
                             const itemReward = reward as ItemScoreReward
                             const itemId = itemReward.id
-                            const itemDropMultiplier = itemReward.ignore_drop_multiplier ? 1 : dropMultiplier
-                            rewardAmount = itemReward.count * itemDropMultiplier * (boostPointUsed ? 2 : 1)
+                            const isBossToken = bossRewardProfile !== null
+                                && bossRewardContext?.mode !== undefined
+                                && bossRewardProfile.tokenItemId === itemId
+                            if (isBossToken) {
+                                // The boss contract is per clear: an enabled
+                                // drop multiplier or boost never changes the
+                                // advertised 1/3 token count.
+                                rewardAmount = resolveBossTokenCount(bossRewardProfile, bossRewardContext.mode)
+                            } else {
+                                const itemDropMultiplier = itemReward.ignore_drop_multiplier ? 1 : dropMultiplier
+                                rewardAmount = itemReward.count * itemDropMultiplier * (boostPointUsed ? 2 : 1)
+                            }
                             items[String(itemId)] = givePlayerItemSync(playerId, itemId, rewardAmount);
-                            gameVerboseLog(() => `[QUEST-ITEM] id=${itemId} cdnCount=${itemReward.count} ×drop=${itemDropMultiplier} ×boost=${boostPointUsed ? 2 : 1} → ${rewardAmount}`)
+                            gameVerboseLog(() => isBossToken
+                                ? `[QUEST-ITEM] bossProfile=${bossRewardProfile.profileId} mode=${bossRewardContext.mode} id=${itemId} fixedCount=${rewardAmount}`
+                                : `[QUEST-ITEM] id=${itemId} cdnCount=${itemReward.count} ×drop=${itemReward.ignore_drop_multiplier ? 1 : dropMultiplier} ×boost=${boostPointUsed ? 2 : 1} → ${rewardAmount}`)
                             break;
                         }
                         case RewardType.MANA: {
@@ -127,14 +145,19 @@ export function givePlayerScoreRewardsSync(
                 }
                 case ScoreRewardType.RARE_POOL: {
                     const reward = scoreReward as RareScoreRewardGroup
-                    const roll = randomInt(0, 100) / 100
-
-                    if (reward.rarity >= roll) {
+                    const exactBossRarePool = bossRewardProfile !== null
+                        && bossRewardProfile.rareGroupId === reward.id
+                    const rarePoolHit = exactBossRarePool
+                        ? randomInt(0, 10000) < bossRewardProfile.rareChanceBasisPoints
+                        : reward.rarity >= randomInt(0, 100) / 100
+                    if (rarePoolHit) {
                         // give reward from group
                         // TODO: implement RareScoreReward rarity using .rarity field instead of having an even chance between all items in pool
                         const rareGroupId = reward.id
                         const group = getRareScoreRewardGroup(rareGroupId)
-                        gameVerboseLog(() => `[QUEST] RARE_POOL rareGroup=${rareGroupId} found=${group !== null} items=${group?.length ?? 0}`)
+                        gameVerboseLog(() => exactBossRarePool
+                            ? `[QUEST] RARE_POOL profile=${bossRewardProfile.profileId} rareGroup=${rareGroupId} chanceBp=${bossRewardProfile.rareChanceBasisPoints} found=${group !== null} items=${group?.length ?? 0}`
+                            : `[QUEST] RARE_POOL rareGroup=${rareGroupId} found=${group !== null} items=${group?.length ?? 0}`)
                         if (group !== null) {
                             const random_index = 1 >= group.length ? 0 : randomInt(group.length)
                             const reward = group[random_index]

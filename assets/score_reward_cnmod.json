@@ -1,0 +1,14 @@
+{
+  "209990": [
+    { "position": 1, "name": "", "type": 0, "reward_type": 0, "count": 1, "field5": 1, "id": 40193 },
+    { "position": 2, "name": "", "type": 1, "id": 3001404, "rarity": 1.0 },
+    { "position": 3, "name": "", "type": 1, "id": 3001405, "rarity": 1.0 },
+    { "position": 4, "name": "", "type": 1, "id": 201904, "rarity": 0.05 },
+    { "position": 5, "name": "", "type": 1, "id": 290019, "rarity": 0.003 },
+    { "position": 6, "name": "", "type": 1, "id": 300112, "rarity": 0.07 },
+    { "position": 7, "name": "", "type": 1, "id": 3001401, "rarity": 0.012 },
+    { "position": 8, "name": "", "type": 1, "id": 3001402, "rarity": 0.012 },
+    { "position": 9, "name": "", "type": 1, "id": 3001403, "rarity": 0.003 },
+    { "position": 10, "name": "", "type": 1, "id": 3099900, "rarity": 0.01 }
+  ]
+}

@@ -506,7 +506,14 @@ const routes = async (fastify: FastifyInstance) => {
             gameVerboseLog(() => `[SCORE_ATTACK] questData={localQuest:${questData.scoreAttackQuestId}, bRank:${questData.bRankScore}, aRank:${questData.aRankScore}, sRank:${questData.sRankScore}, ssRank:${questData.ssRankScore}, rankPt:${questData.rankPointReward}, charExp:${questData.characterExpReward}, mana:${questData.manaReward}, poolExp:${questData.poolExpReward}}`)
         }
         gameVerboseLog(() => `[BATTLE] scoreReward groupId=${questData.scoreRewardGroupId} groupLen=${questData.scoreRewardGroup?.length ?? 'null'} questId=${questId} category=${questCategory}`)
-        const scoreRewardsResult = givePlayerScoreRewardsSync(playerId, questData.scoreRewardGroupId, questData.scoreRewardGroup, useBoostPoint, questData.element)
+        const scoreRewardsResult = givePlayerScoreRewardsSync(
+            playerId,
+            questData.scoreRewardGroupId,
+            questData.scoreRewardGroup,
+            useBoostPoint,
+            questData.element,
+            { questId, mode: "solo" },
+        )
         let scoreAttackEventData: { reward_ids: number[], main_character_ids: Record<string, number> } | null = null
         if (isScoreAttackEvent) {
             const previousHighScore = questProgress?.highScore ?? 0

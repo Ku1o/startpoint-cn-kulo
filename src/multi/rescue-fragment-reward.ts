@@ -1,9 +1,9 @@
 import { QuestCategory, Reward, RewardType } from "../lib/types"
 import adventEventQuests from "../../assets/advent_event_quest.json"
-import bossBattleQuests from "../../assets/boss_battle_quest.json"
 import hardMultiEventQuests from "../../assets/hard_multi_event_quest.json"
 import raidEventQuests from "../../assets/raid_event_quest.json"
 import worldStoryEventBossBattleQuests from "../../assets/world_story_event_boss_battle_quest.json"
+import { serverBossBattleQuests } from "../lib/boss/boss-tables"
 
 export const RESCUE_SILVER_FRAGMENT_ITEM_ID = 49000
 export const RESCUE_GOLD_FRAGMENT_ITEM_ID = 49001
@@ -92,7 +92,7 @@ function registerSequentialDifficultyRewards(
 }
 
 // Normal and later-added permanent bosses.
-for (const questIds of groupBattleQuestIds(bossBattleQuests)) {
+for (const questIds of groupBattleQuestIds(serverBossBattleQuests as unknown as RawQuestTable)) {
     const bossId = Math.floor(questIds[0] / 1000)
     for (const questId of questIds) {
         const difficulty = questId % 1000

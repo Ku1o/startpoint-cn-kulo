@@ -148,7 +148,7 @@ function addQuestIdByChapter(target: Map<number, number[]>, questIdText: string)
 
     const mainQuests = require("../../../assets/main_quest.json") as Record<string, unknown>
     const exQuests = require("../../../assets/ex_quest.json") as Record<string, unknown>
-    const bossQuests = require("../../../assets/boss_battle_quest.json") as Record<string, unknown>
+    const bossQuests = require("../boss/boss-tables").serverBossBattleQuests as Record<string, unknown>
     for (const questId of Object.keys(mainQuests)) addQuestIdByChapter(mainQuestIdsByChapter, questId)
     for (const questId of Object.keys(exQuests)) addQuestIdByChapter(exQuestIdsByChapter, questId)
     for (const questIdText of Object.keys(bossQuests)) {

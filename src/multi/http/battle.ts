@@ -526,7 +526,14 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
             playerData.staminaHealTime = new Date();
         }
 
-        scoreRewardsResult = givePlayerScoreRewardsSync(playerId, (questData as any).scoreRewardGroupId || 0, (questData as any).scoreRewardGroup, useBoostPoint, (questData as any).element);
+        scoreRewardsResult = givePlayerScoreRewardsSync(
+            playerId,
+            (questData as any).scoreRewardGroupId || 0,
+            (questData as any).scoreRewardGroup,
+            useBoostPoint,
+            (questData as any).element,
+            { questId, mode: "multi" },
+        );
         if (eligibleRescueFragmentReward !== null) {
             rescueFragmentReward = givePlayerRewardSync(playerId, eligibleRescueFragmentReward)
             gameVerboseLog(() =>

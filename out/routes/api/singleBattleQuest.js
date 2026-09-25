@@ -343,7 +343,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                     (0, game_logging_1.gameVerboseLog)(() => `[SCORE_ATTACK] questData={localQuest:${questData.scoreAttackQuestId}, bRank:${questData.bRankScore}, aRank:${questData.aRankScore}, sRank:${questData.sRankScore}, ssRank:${questData.ssRankScore}, rankPt:${questData.rankPointReward}, charExp:${questData.characterExpReward}, mana:${questData.manaReward}, poolExp:${questData.poolExpReward}}`);
                 }
                 (0, game_logging_1.gameVerboseLog)(() => { var _a, _b; return `[BATTLE] scoreReward groupId=${questData.scoreRewardGroupId} groupLen=${(_b = (_a = questData.scoreRewardGroup) === null || _a === void 0 ? void 0 : _a.length) !== null && _b !== void 0 ? _b : 'null'} questId=${questId} category=${questCategory}`; });
-                const scoreRewardsResult = (0, quest_2.givePlayerScoreRewardsSync)(playerId, questData.scoreRewardGroupId, questData.scoreRewardGroup, useBoostPoint, questData.element);
+                const scoreRewardsResult = (0, quest_2.givePlayerScoreRewardsSync)(playerId, questData.scoreRewardGroupId, questData.scoreRewardGroup, useBoostPoint, questData.element, { questId, mode: "solo" });
                 let scoreAttackEventData = null;
                 if (isScoreAttackEvent) {
                     const previousHighScore = (_f = questProgress === null || questProgress === void 0 ? void 0 : questProgress.highScore) !== null && _f !== void 0 ? _f : 0;

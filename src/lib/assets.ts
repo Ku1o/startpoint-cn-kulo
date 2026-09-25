@@ -1,6 +1,5 @@
 import adventEventQuests from "../../assets/advent_event_quest.json";
 import { ABYSS_EX_EVENT_ID, ABYSS_NORMAL_EVENT_ID, isAbyssExEndlessQuest, isAbyssEvent } from "./abyss-modes";
-import bossBattleQuests from "../../assets/boss_battle_quest.json";
 import boxGacha from "../../assets/box_gacha.json";
 import boxReward from "../../assets/box_reward.json";
 import characterQuests from "../../assets/character_quest.json";
@@ -56,6 +55,9 @@ import {
     serverManaNodes,
 } from "./content-master"
 import { shouldRollRogueFolderRandomReward } from "./quest/finish/rogue-drop-schedule"
+import { serverBossBattleQuests } from "./boss/boss-tables"
+import cnmodRareScoreRewards from "../../assets/rare_score_reward_cnmod.json"
+import cnmodScoreRewards from "../../assets/score_reward_cnmod.json"
 
 const MOD_ASSETS_DIR = joinPath(__dirname, "..", "..", "assets")
 // Some CN-mod pools are intentionally mirrored in both files because the
@@ -71,6 +73,14 @@ const allManaBoards = {
     ...(manaBoard as Record<string, any>),
     ...(cnmodManaBoard as Record<string, any>),
 } as Record<string, any>
+const allRareScoreRewards = {
+    ...(rareScoreRewards as RareScoreRewardGroups),
+    ...(cnmodRareScoreRewards as RareScoreRewardGroups),
+} as RareScoreRewardGroups
+const allScoreRewards = {
+    ...(scoreRewards as ScoreRewardGroups),
+    ...(cnmodScoreRewards as ScoreRewardGroups),
+} as ScoreRewardGroups
 let rogueEventData: any = null
 
 function mergeRogueEventExtension(base: any, extension: any): any {
@@ -141,7 +151,7 @@ export function getClearRewardSync(
 export function getRareScoreRewardGroup(
     groupId: string | number
 ): RareScoreReward[] | null {
-    const group = (rareScoreRewards as RareScoreRewardGroups)[String(groupId)]
+    const group = allRareScoreRewards[String(groupId)]
     return group ? group as RareScoreReward[] : null
 }
 
@@ -154,7 +164,7 @@ export function getRareScoreRewardGroup(
 export function getScoreRewardGroup(
     groupId: string | number
 ): ScoreReward[] | null {
-    const group = (scoreRewards as ScoreRewardGroups)[String(groupId)]
+    const group = allScoreRewards[String(groupId)]
     return group ? group as ScoreReward[] : null
 }
 
@@ -277,7 +287,7 @@ export function getPracticeQuestSync(
 export function getBossBattleQuestSync(
     questId: string | number
 ): BattleQuest | null {
-    return getQuestSync((bossBattleQuests as RawQuests), questId) as BattleQuest | null
+    return getQuestSync(serverBossBattleQuests, questId) as BattleQuest | null
 }
 
 /**

@@ -64709,6 +64709,78 @@
       "availableUntil": null,
       "stock": 9999
     },
+    "202045": {
+      "costs": [
+        {
+          "id": 40193,
+          "amount": 1
+        }
+      ],
+      "rewards": [
+        {
+          "type": 0,
+          "id": 999019,
+          "count": 1
+        }
+      ],
+      "availableFrom": "2000-01-01 00:00:00",
+      "availableUntil": "2099-12-31 23:59:59",
+      "stock": 350
+    },
+    "202046": {
+      "costs": [
+        {
+          "id": 40193,
+          "amount": 3
+        }
+      ],
+      "rewards": [
+        {
+          "type": 0,
+          "id": 2370101,
+          "count": 1
+        }
+      ],
+      "availableFrom": "2000-01-01 00:00:00",
+      "availableUntil": "2099-12-31 23:59:59",
+      "stock": 12
+    },
+    "202047": {
+      "costs": [
+        {
+          "id": 40193,
+          "amount": 10
+        }
+      ],
+      "rewards": [
+        {
+          "type": 0,
+          "id": 2370100,
+          "count": 1
+        }
+      ],
+      "availableFrom": "2000-01-01 00:00:00",
+      "availableUntil": "2099-12-31 23:59:59",
+      "stock": 3
+    },
+    "202048": {
+      "costs": [
+        {
+          "id": 40193,
+          "amount": 100
+        }
+      ],
+      "rewards": [
+        {
+          "type": 0,
+          "id": 999018,
+          "count": 1
+        }
+      ],
+      "availableFrom": "2000-01-01 00:00:00",
+      "availableUntil": "2099-12-31 23:59:59",
+      "stock": 1
+    },
     "300064": {
       "costs": [
         {

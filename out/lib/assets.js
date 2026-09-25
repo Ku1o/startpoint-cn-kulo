@@ -6,7 +6,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.getEquipmentCraftSync = exports.getItemSaleSync = exports.getEquipmentDissolveSync = exports.getStaminaRecoverySeconds = exports.getConfigSync = exports.getEquipmentElement = exports.getEquipmentMaxLevel = exports.getRogueEventConfig = exports.getRushEventFolderClearRewards = exports.getShopItemSync = exports.getBossCoinShopItemsSync = exports.getEventShopItemsSync = exports.getGenericShopItemsSync = exports.getGachaCampaignIdSync = exports.getGachaSync = exports.getBoxGachaSync = exports.getExBoostItemSync = exports.getExStatusPoolSync = exports.getExAbilityPoolsSync = exports.getManaNodeAwakeCost = exports.getCharacterManaNodeSync = exports.getCharacterManaBoardCountSync = exports.getCharacterManaNodesSync = exports.getCharacterDataSync = exports.getQuestFromCategorySync = exports.getHardMultiEventQuest = exports.getAdventEventQuest = exports.getWorldStoryEventBossBattleQuestSync = exports.getWorldStoryEventQuestSync = exports.getCharacterQuestSync = exports.getBossBattleQuestSync = exports.getPracticeQuestSync = exports.getExQuestSync = exports.getMainQuestSync = exports.getRushEventFolderMaxRoundSync = exports.getScoreRewardGroup = exports.getRareScoreRewardGroup = exports.getClearRewardSync = exports.reloadRogueEventConfig = void 0;
 const advent_event_quest_json_1 = __importDefault(require("../../assets/advent_event_quest.json"));
 const abyss_modes_1 = require("./abyss-modes");
-const boss_battle_quest_json_1 = __importDefault(require("../../assets/boss_battle_quest.json"));
 const box_gacha_json_1 = __importDefault(require("../../assets/box_gacha.json"));
 const box_reward_json_1 = __importDefault(require("../../assets/box_reward.json"));
 const character_quest_json_1 = __importDefault(require("../../assets/character_quest.json"));
@@ -56,6 +55,9 @@ const path_1 = require("path");
 const types_1 = require("./types");
 const content_master_1 = require("./content-master");
 const rogue_drop_schedule_1 = require("./quest/finish/rogue-drop-schedule");
+const boss_tables_1 = require("./boss/boss-tables");
+const rare_score_reward_cnmod_json_1 = __importDefault(require("../../assets/rare_score_reward_cnmod.json"));
+const score_reward_cnmod_json_1 = __importDefault(require("../../assets/score_reward_cnmod.json"));
 const MOD_ASSETS_DIR = (0, path_1.join)(__dirname, "..", "..", "assets");
 // Some CN-mod pools are intentionally mirrored in both files because the
 // client/admin metadata pipeline reads gacha.json while runtime draws prefer
@@ -67,6 +69,8 @@ if (allGachas["990001"] === undefined) {
     throw new Error("[GACHA] mirrored pool 990001 is missing");
 }
 const allManaBoards = Object.assign(Object.assign({}, mana_board_json_1.default), mana_board_cnmod_json_1.default);
+const allRareScoreRewards = Object.assign(Object.assign({}, rare_score_reward_json_1.default), rare_score_reward_cnmod_json_1.default);
+const allScoreRewards = Object.assign(Object.assign({}, score_reward_json_1.default), score_reward_cnmod_json_1.default);
 let rogueEventData = null;
 function mergeRogueEventExtension(base, extension) {
     var _a, _b, _c, _d, _e;
@@ -126,7 +130,7 @@ exports.getClearRewardSync = getClearRewardSync;
  * @returns The score reward group that was found, or null.
  */
 function getRareScoreRewardGroup(groupId) {
-    const group = rare_score_reward_json_1.default[String(groupId)];
+    const group = allRareScoreRewards[String(groupId)];
     return group ? group : null;
 }
 exports.getRareScoreRewardGroup = getRareScoreRewardGroup;
@@ -137,7 +141,7 @@ exports.getRareScoreRewardGroup = getRareScoreRewardGroup;
  * @returns The score reward group that was found, or null.
  */
 function getScoreRewardGroup(groupId) {
-    const group = score_reward_json_1.default[String(groupId)];
+    const group = allScoreRewards[String(groupId)];
     return group ? group : null;
 }
 exports.getScoreRewardGroup = getScoreRewardGroup;
@@ -243,7 +247,7 @@ exports.getPracticeQuestSync = getPracticeQuestSync;
  * @returns The found BattleQuest or null
  */
 function getBossBattleQuestSync(questId) {
-    return getQuestSync(boss_battle_quest_json_1.default, questId);
+    return getQuestSync(boss_tables_1.serverBossBattleQuests, questId);
 }
 exports.getBossBattleQuestSync = getBossBattleQuestSync;
 /**

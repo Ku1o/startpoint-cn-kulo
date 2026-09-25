@@ -449,7 +449,7 @@ function registerBattleRoutes(fastify) {
                 playerData.stamina = playerData.stamina + (0, stamina_1.getMaxStamina)(newDegreeId);
                 playerData.staminaHealTime = new Date();
             }
-            scoreRewardsResult = (0, quest_2.givePlayerScoreRewardsSync)(playerId, questData.scoreRewardGroupId || 0, questData.scoreRewardGroup, useBoostPoint, questData.element);
+            scoreRewardsResult = (0, quest_2.givePlayerScoreRewardsSync)(playerId, questData.scoreRewardGroupId || 0, questData.scoreRewardGroup, useBoostPoint, questData.element, { questId, mode: "multi" });
             if (eligibleRescueFragmentReward !== null) {
                 rescueFragmentReward = (0, quest_2.givePlayerRewardSync)(playerId, eligibleRescueFragmentReward);
                 (0, game_logging_1.gameVerboseLog)(() => `[MULTI] rescue fragment granted: player=${playerId} quest=${questId} `

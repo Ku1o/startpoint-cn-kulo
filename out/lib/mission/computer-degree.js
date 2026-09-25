@@ -95,7 +95,7 @@ function addQuestIdByChapter(target, questIdText) {
     }
     const mainQuests = require("../../../assets/main_quest.json");
     const exQuests = require("../../../assets/ex_quest.json");
-    const bossQuests = require("../../../assets/boss_battle_quest.json");
+    const bossQuests = require("../boss/boss-tables").serverBossBattleQuests;
     for (const questId of Object.keys(mainQuests))
         addQuestIdByChapter(mainQuestIdsByChapter, questId);
     for (const questId of Object.keys(exQuests))
