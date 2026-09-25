@@ -4,7 +4,7 @@
 
 ## Android
 
-`build_public_android.py` 接收已验收的 Boss 内网 APK/SWF，使用现有 Android packager 完成内网地址到公网地址的字符串池替换、AIR `uniqueappversionid` 更新、zipalign、签名和 APK 成员回读。Boss ActionScript 不在公网转换阶段重新编译，输入 LAN APK 中的 Boss SWF 是功能载荷。默认输入和输出对应 2026-09-26 交付；可用 `STARPOINT_BOSS_LAN_APK`、`STARPOINT_BOSS_LAN_SWF`、`STARPOINT_BOSS_ANDROID_WORK` 和 `STARPOINT_BOSS_ANDROID_OUT` 覆盖路径。
+`build_public_android.py` 接收已验收的 Boss 内网 APK/SWF，使用现有 Android packager 完成内网地址到公网地址的字符串池替换、AIR `uniqueappversionid` 更新、zipalign、签名和 APK 成员回读。Boss ActionScript 不在公网转换阶段重新编译，输入 LAN APK 中的 Boss SWF 是功能载荷。默认输入和输出对应 2026-09-26 交付；可用 `STARPOINT_BOSS_LAN_HOST` 传入已验收的内网地址，并用 `STARPOINT_BOSS_LAN_APK`、`STARPOINT_BOSS_LAN_SWF`、`STARPOINT_BOSS_ANDROID_WORK` 和 `STARPOINT_BOSS_ANDROID_OUT` 覆盖路径。
 
 ## iOS
 

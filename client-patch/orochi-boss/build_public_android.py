@@ -34,7 +34,7 @@ OUTPUT = Path(os.environ.get(
     r"F:/codex/outputs/orochi-boss-public-20260926/android",
 ))
 PUBLIC_HOST = "175.178.160.158"
-LAN_HOST = "192.168.3.14"
+LAN_HOST = os.environ.get("STARPOINT_BOSS_LAN_HOST")
 EXPECTED_APK_SHA = "31bf5278ffc4a9834b7cf74b98b6312098708a433fddba364e075fca40c39aab"
 EXPECTED_SWF_SHA = "689e04482b204c6ae428448fa531b41cbde659fd91b3384f3e6a6cf8d2ba70e2"
 EXPECTED_UUID = "1afec300-308c-40b7-be24-bb8354ff2777"
@@ -54,6 +54,8 @@ def load(path: Path):
 
 
 def main() -> None:
+    if not LAN_HOST:
+        raise RuntimeError("set STARPOINT_BOSS_LAN_HOST to the accepted LAN endpoint")
     if sha(INPUT_APK) != EXPECTED_APK_SHA:
         raise RuntimeError("LAN APK hash changed; update the accepted input record first")
     if sha(INPUT_SWF) != EXPECTED_SWF_SHA:
