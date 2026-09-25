@@ -27,8 +27,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import dayjs, { Dayjs } from "dayjs"
 import { apiDelete, apiGet, apiPatch, apiPost, apiPut } from "../api/client"
 import { AdminPage, StateCard } from "../components/AdminPage"
-
-const { TextArea } = Input
+import NewsHtmlEditor from "../components/NewsHtmlEditor"
 
 const CATEGORY_LABELS: Record<number, string> = {
     1: "最新资讯",
@@ -36,6 +35,33 @@ const CATEGORY_LABELS: Record<number, string> = {
     3: "问题修复",
     4: "系统公告",
 }
+
+const NEWS_LABEL_OPTIONS = [
+    { value: 1, label: "1 · 更新" },
+    { value: 2, label: "2 · 抽卡" },
+    { value: 3, label: "3 · 活动" },
+    { value: 4, label: "4 · 新闻" },
+    { value: 5, label: "5 · 活动推广" },
+    { value: 6, label: "6 · 维护" },
+    { value: 7, label: "7 · BUG" },
+    { value: 8, label: "8 · 系统" },
+]
+
+const NEWS_THUMBNAIL_OPTIONS = [
+    { value: 1, label: "1 · 重要" },
+    { value: 2, label: "2 · 更新" },
+    { value: 3, label: "3 · 新闻" },
+    { value: 4, label: "4 · 任务" },
+    { value: 5, label: "5 · 装备" },
+    { value: 6, label: "6 · 活动旗帜" },
+    { value: 7, label: "7 · 战斗" },
+    { value: 8, label: "8 · 活动" },
+    { value: 9, label: "9 · 宝箱" },
+    { value: 10, label: "10 · 设置" },
+    { value: 11, label: "11 · 重要（同 1）" },
+    { value: 12, label: "12 · 设置（同 10）" },
+    { value: 13, label: "13 · 设置（同 10）" },
+]
 
 type PopupMode = "every_login" | "once_per_news"
 
@@ -92,6 +118,22 @@ interface NewsFormValues {
 
 function toServerTime(value: Dayjs | null | undefined): string | null {
     return value ? value.format("YYYY-MM-DD HH:mm:ss") : null
+}
+
+function normalizeNewsHtml(value: string): string {
+    const xmlSafe = value.trim()
+        .replace(/<(img|br|hr)\b([^>]*)>/gi, (_full, tag: string, attributes: string) => {
+            const trimmedAttributes = attributes.trimEnd()
+            return trimmedAttributes.endsWith("/")
+                ? `<${tag}${attributes}>`
+                : `<${tag}${attributes} />`
+        })
+        .replace(/<p>\s*(<img\b[^>]*\/>)\s*<\/p>/gi, '<div class="center">$1</div>')
+    const trimmed = xmlSafe
+    if (!trimmed) return ""
+    if (/<!doctype|<html[\s>]/i.test(trimmed)) return trimmed
+    if (/^<body[\s>]/i.test(trimmed)) return `<html lang="zh">${trimmed}</html>`
+    return `<html lang="zh"><body>${trimmed}</body></html>`
 }
 
 function buildPreviewDocument(item: NewsItem): string {
@@ -154,7 +196,7 @@ export default function News() {
                 // enum; custom resource paths are not implemented.
                 thumbnail_path: null,
                 added_time: toServerTime(values.added_time),
-                html: values.html,
+                html: normalizeNewsHtml(values.html),
                 published: values.published,
             }
             return editing
@@ -215,7 +257,7 @@ export default function News() {
                 thumbnail: 1,
                 thumbnail_path: "",
                 added_time: now,
-                html: "<html lang=\"zh\"><body><h2>公告标题</h2><p>在这里填写公告正文。</p></body></html>",
+                html: "",
                 published: true,
             })
             return
@@ -480,13 +522,13 @@ export default function News() {
                             </Form.Item>
                         </Col>
                         <Col xs={12} md={4}>
-                            <Form.Item name="label" label="标签编号" tooltip="客户端内置范围：1–8" rules={[{ required: true }]}>
-                                <InputNumber min={1} max={8} precision={0} style={{ width: "100%" }} />
+                            <Form.Item name="label" label="标签" tooltip="编号对应客户端公告标签样式" rules={[{ required: true }]}>
+                                <Select options={NEWS_LABEL_OPTIONS} />
                             </Form.Item>
                         </Col>
                         <Col xs={12} md={4}>
-                            <Form.Item name="thumbnail" label="缩略图编号" tooltip="客户端内置范围：1–13" rules={[{ required: true }]}>
-                                <InputNumber min={1} max={13} precision={0} style={{ width: "100%" }} />
+                            <Form.Item name="thumbnail" label="缩略图" tooltip="编号对应客户端内置图标；11 与 1 相同，12、13 与 10 相同" rules={[{ required: true }]}>
+                                <Select options={NEWS_THUMBNAIL_OPTIONS} />
                             </Form.Item>
                         </Col>
                         <Col xs={24} md={8}>
@@ -495,31 +537,23 @@ export default function News() {
                             </Form.Item>
                         </Col>
                         <Col xs={24} md={12}>
-                            <Form.Item name="date" label="公告时间" rules={[{ required: true }]}>
+                            <Form.Item name="date" label="公告时间" extra="格式：YYYY-MM-DD HH:mm:ss，按服务端当前时间填写" rules={[{ required: true }]}>
                                 <DatePicker showTime format="YYYY-MM-DD HH:mm:ss" style={{ width: "100%" }} />
                             </Form.Item>
                         </Col>
                         <Col xs={24} md={12}>
-                            <Form.Item name="added_time" label="添加时间（可选）">
+                            <Form.Item name="added_time" label="添加时间（可选）" extra="留空时沿用公告时间；格式同上">
                                 <DatePicker showTime format="YYYY-MM-DD HH:mm:ss" style={{ width: "100%" }} />
                             </Form.Item>
                         </Col>
                         <Col span={24}>
-                            <Alert
-                                type="info"
-                                showIcon
-                                message="缩略图使用客户端内置图标"
-                                description="当前客户端不支持自定义缩略图资源路径，请使用 1–13 的缩略图编号。"
-                            />
-                        </Col>
-                        <Col span={24}>
                             <Form.Item
                                 name="html"
-                                label="HTML 正文"
-                                rules={[{ required: true, message: "请输入 HTML 正文" }]}
-                                extra="游戏客户端支持基础 HTML；本页面预览运行在隔离沙箱中，不执行脚本。"
+                                label="富文本正文"
+                                rules={[{ required: true, message: "请输入公告正文" }]}
+                                extra="标题请填写在上面的标题字段；正文需要游戏内黑橙横条时使用“一级标题”。编辑器默认隐藏 HTML 源码，保存时会自动补齐客户端需要的 html/body 外壳。"
                             >
-                                <TextArea rows={16} className="news-html-editor" />
+                                <NewsHtmlEditor />
                             </Form.Item>
                         </Col>
                     </Row>

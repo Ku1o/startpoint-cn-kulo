@@ -196,6 +196,26 @@ async function main() {
         },
     })
     assert.equal(response.statusCode, 200, response.payload)
+    assert.match(JSON.parse(response.payload).news.find(item => item.id === 104).html, /^<html lang="zh"><body><p>尚未发布<\/p><\/body><\/html>$/)
+
+    response = await adminApp.inject({
+        method: "POST",
+        url: "/api/news/items",
+        payload: {
+            id: 109,
+            title: "空正文公告",
+            date: "2026-08-31 13:30:00",
+            category: 1,
+            label: 1,
+            thumbnail: 1,
+            thumbnail_path: null,
+            added_time: null,
+            html: "  ",
+            published: false,
+        },
+    })
+    assert.equal(response.statusCode, 400, response.payload)
+    assert.match(JSON.parse(response.payload).error, /html.*不能为空/)
 
     response = await adminApp.inject({
         method: "POST",
@@ -234,6 +254,44 @@ async function main() {
     })
     assert.equal(response.statusCode, 400, response.payload)
     assert.match(JSON.parse(response.payload).error, /thumbnail_path.*不支持/)
+
+    response = await adminApp.inject({
+        method: "POST",
+        url: "/api/news/items",
+        payload: {
+            id: 107,
+            title: "HTTPS 图片公告",
+            date: "2026-08-31 14:30:00",
+            category: 1,
+            label: 1,
+            thumbnail: 1,
+            thumbnail_path: null,
+            added_time: null,
+            html: "<html><body><p>图片</p><p><img src=\"https://cdn.example.com/news/107.png\" width=\"100%\" height=\"360\"></p></body></html>",
+            published: true,
+        },
+    })
+    assert.equal(response.statusCode, 200, response.payload)
+    assert.match(JSON.parse(response.payload).news.find(item => item.id === 107).html, /https:\/\/cdn\.example\.com/)
+
+    response = await adminApp.inject({
+        method: "POST",
+        url: "/api/news/items",
+        payload: {
+            id: 108,
+            title: "HTTP 图片公告",
+            date: "2026-08-31 14:31:00",
+            category: 1,
+            label: 1,
+            thumbnail: 1,
+            thumbnail_path: null,
+            added_time: null,
+            html: "<p><img src=\"http://cdn.example.com/news/108.png\"></p>",
+            published: true,
+        },
+    })
+    assert.equal(response.statusCode, 400, response.payload)
+    assert.match(JSON.parse(response.payload).error, /必须使用 HTTPS URL/)
 
     response = await adminApp.inject({
         method: "PUT",
