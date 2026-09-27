@@ -25,6 +25,8 @@ const profileFavorite_1 = require("../../lib/profileFavorite");
 const counters_1 = require("../../lib/mission/counters");
 const degree_response_1 = require("../../lib/mission/degree-response");
 const ability_soul_facts_1 = require("../../lib/mission/ability-soul-facts");
+const persistence_coordinator_1 = require("../../lib/persistence-coordinator");
+const party_snapshot_1 = require("../../multi/party-snapshot");
 function hasEditablePartyCategory(value) {
     if (value !== null
         && typeof value === "object"
@@ -288,7 +290,9 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 },
             };
         });
-        (0, db_1.getDb)().transaction(() => {
+        yield (0, persistence_coordinator_1.runPersistenceTransaction)({
+            domain: "player", playerId, operation: "edit_party",
+        }, () => {
             const battleParties = mappedParties.filter(({ party }) => party.category !== profileFavorite_1.PROFILE_FAVORITE_PARTY_CATEGORY);
             let abilitySoulEquipCount = 0;
             const getPreviousSouls = (0, db_1.getDb)().prepare(`
@@ -331,7 +335,11 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                     partyCharacterSetCount: battleParties.some(({ party }) => party.characterIds.some(id => id !== null)) ? 1 : 0,
                 });
             }
-        })();
+        });
+        // A party edit can happen while the player is still on the lobby
+        // screen. Drop the pre-handshake snapshot so a later reconnect reads
+        // the newly persisted party instead of waiting for its TTL.
+        (0, party_snapshot_1.invalidateRealPartySnapshot)(playerId);
         const responseData = { mail_arrived: false };
         (0, degree_response_1.settleDegreeMissionResponse)(playerId, viewerId, responseData, undefined, [35]);
         reply.header("content-type", "application/x-msgpack");

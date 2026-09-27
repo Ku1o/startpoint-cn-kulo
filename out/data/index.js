@@ -43,6 +43,7 @@ const databasesMetadata = {
 };
 const loadedDatabases = {};
 function getDatabase(database) {
+    var _a;
     // don't try to load an already-loaded database
     const isLoaded = loadedDatabases[database];
     if (isLoaded)
@@ -76,6 +77,10 @@ function getDatabase(database) {
     console.log(`[DB] temp_store=${db.pragma('temp_store', { simple: true })} (1=FILE)`);
     db.pragma('journal_mode = WAL');
     db.pragma('busy_timeout = 1000');
+    const externalCheckpointWorker = /^(1|true|yes|on)$/i.test((_a = process.env.SQLITE_CHECKPOINT_WORKER) !== null && _a !== void 0 ? _a : "");
+    db.pragma(`wal_autocheckpoint = ${externalCheckpointWorker ? 0 : 1000}`);
+    console.log(`[DB] wal_autocheckpoint=${db.pragma('wal_autocheckpoint', { simple: true })}`
+        + ` externalCheckpointWorker=${externalCheckpointWorker}`);
     db.pragma('foreign_keys = OFF');
     // call init & update function
     const init = metadata.init;

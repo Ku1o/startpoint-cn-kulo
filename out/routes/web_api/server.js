@@ -33,7 +33,7 @@ const db_1 = require("../../data/db");
 const player_login_1 = require("../../lib/player-login");
 const admin_account_cleanup_1 = require("../../lib/admin-account-cleanup");
 const player_party_pool_1 = require("../../multi/npc/player-party-pool");
-const sqlite_write_coordinator_1 = require("../../lib/sqlite-write-coordinator");
+const persistence_coordinator_1 = require("../../lib/persistence-coordinator");
 const admin_database_backup_1 = require("../../lib/admin-database-backup");
 const online_presence_1 = require("../../lib/online-presence");
 const takeOver_1 = require("../cn/takeOver");
@@ -121,7 +121,9 @@ function executeAccountCleanupPlan(jobId, plannedEntries) {
             const backup = yield (0, admin_database_backup_1.createFullDatabaseBackup)("unnoted-accounts");
             job.backup = `.database/admin-backups/${backup.name}`;
             job.phase = "indexing";
-            job.createdIndexes = yield (0, sqlite_write_coordinator_1.runImmediateTransactionWithRetry)(() => (0, admin_account_cleanup_1.ensureCascadeDeleteIndexes)((0, db_1.getDb)()));
+            job.createdIndexes = yield (0, persistence_coordinator_1.runPersistenceTransaction)({
+                domain: "admin", operation: "ensure_cleanup_indexes",
+            }, () => (0, admin_account_cleanup_1.ensureCascadeDeleteIndexes)((0, db_1.getDb)()));
             job.phase = "deleting";
             let processedAccounts = 0;
             let deletedAccounts = 0;
@@ -134,7 +136,9 @@ function executeAccountCleanupPlan(jobId, plannedEntries) {
                 if (requestedIds.length === 0)
                     continue;
                 const placeholders = requestedIds.map(() => "?").join(", ");
-                const batch = yield (0, sqlite_write_coordinator_1.runImmediateTransactionWithRetry)(() => {
+                const batch = yield (0, persistence_coordinator_1.runPersistenceTransaction)({
+                    domain: "admin", operation: "delete_unnoted_accounts",
+                }, () => {
                     const candidates = (0, db_1.getDb)().prepare(`
                     SELECT a.id, a.admin_note
                     FROM accounts AS a

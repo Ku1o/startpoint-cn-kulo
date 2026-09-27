@@ -23,7 +23,8 @@ import {
 } from "../../data/domains/active_mission_counters";
 import { gameVerboseLog } from "../../lib/game-logging";
 import { getPlayerOptionSync } from "../../data/domains/option";
-import { measureSettlementPhase, recordGachaRequest } from "../../lib/settlement-performance";
+import { measureSettlementPhase, measureSettlementPhaseAsync, recordGachaRequest } from "../../lib/settlement-performance";
+import { runPersistenceTransaction } from "../../lib/persistence-coordinator";
 
 interface ExecBody {
     api_count: number,
@@ -362,7 +363,9 @@ const routes = async (fastify: FastifyInstance) => {
             ))
             : undefined
 
-        const transactionResult = measureSettlementPhase("gacha", "transaction", () => getDb().transaction(() => {
+        const transactionResult = await measureSettlementPhaseAsync("gacha", "transaction", () => runPersistenceTransaction({
+            domain: "gacha", playerId, operation: "draw",
+        }, () => {
             if (execPlan.ticket) {
                 items[execPlan.ticket.itemId] = execPlan.ticket.afterCount
                 updatePlayerItemSync(playerId, execPlan.ticket.itemId, execPlan.ticket.afterCount)
@@ -427,7 +430,7 @@ const routes = async (fastify: FastifyInstance) => {
             }
 
             return { rewardResult, newGachaExchangePoint }
-        })())
+        }))
         const { rewardResult, newGachaExchangePoint } = transactionResult
         recordGachaRequest(isCharacterGacha ? "character" : "equipment", pullCount)
 

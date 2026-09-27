@@ -31,6 +31,9 @@ const installed = new WeakSet();
 const betterSqlite3Version = require("better-sqlite3/package.json").version;
 const observedServers = new WeakSet();
 let processProbe = null;
+let processCpuTotal = null;
+let processCpuSampledAt = null;
+let processCpuDelta = null;
 let monitorUsers = 0;
 function memoryDiagnosticsEnabled() {
     var _a;
@@ -96,7 +99,9 @@ function observeWorkerMemory(name, worker) {
         return;
     const state = { name, pending: false, requestedAt: 0, sampledAt: null,
         sample: null, counters: {},
-        diagnostics: {} };
+        diagnostics: {}, cpuPending: false, cpuRequestedAt: 0,
+        cpuSampledAt: null, cpuTotal: null,
+        cpuDelta: null };
     workers.set(worker, state);
     const receive = (message) => {
         var _a;
@@ -112,6 +117,35 @@ function observeWorkerMemory(name, worker) {
     worker.once("exit", () => { workers.delete(worker); worker.off("message", receive); });
 }
 exports.observeWorkerMemory = observeWorkerMemory;
+function sampleWorkerCpu(worker, state) {
+    const cpuUsage = worker.cpuUsage;
+    if (typeof cpuUsage !== "function" || state.cpuPending)
+        return;
+    state.cpuPending = true;
+    state.cpuRequestedAt = perf_hooks_1.performance.now();
+    void cpuUsage.call(worker).then(current => {
+        const previous = state.cpuTotal;
+        state.cpuTotal = current;
+        state.cpuDelta = previous === null ? null : {
+            user: Math.max(0, current.user - previous.user),
+            system: Math.max(0, current.system - previous.system),
+        };
+        state.cpuSampledAt = perf_hooks_1.performance.now();
+    }).catch(() => {
+        // Node versions before 24.6 and workers that are exiting may reject this probe.
+        state.cpuDelta = null;
+    }).finally(() => { state.cpuPending = false; });
+}
+function sampleProcessCpu() {
+    const current = process.cpuUsage();
+    const previous = processCpuTotal;
+    processCpuTotal = current;
+    processCpuDelta = previous === null ? null : {
+        user: Math.max(0, current.user - previous.user),
+        system: Math.max(0, current.system - previous.system),
+    };
+    processCpuSampledAt = perf_hooks_1.performance.now();
+}
 function observeServerConnections(name, server) {
     if (!memoryDiagnosticsEnabled() || observedServers.has(server))
         return;
@@ -141,23 +175,35 @@ function observeServerConnections(name, server) {
 exports.observeServerConnections = observeServerConnections;
 /** Constant retained state: one sample and at most one outstanding request per worker. */
 function collectMemoryDiagnostics() {
-    var _a;
+    var _a, _b, _c, _d, _e;
     const now = perf_hooks_1.performance.now();
     const memory = memoryDiagnosticsEnabled(), detailed = detailedMemoryDiagnosticsEnabled();
+    sampleProcessCpu();
     const counters = readCounters(detailed);
     const workerSamples = [...workers].map(([worker, state]) => {
+        var _a, _b, _c, _d, _e, _f, _g, _h;
+        sampleWorkerCpu(worker, state);
         const sample = { name: state.name, threadId: worker.threadId,
             ageMs: state.sampledAt === null ? null : Math.round(now - state.sampledAt),
             stale: state.sampledAt === null || now - state.sampledAt > 120000,
             pendingMs: state.pending ? Math.round(now - state.requestedAt) : 0,
-            memory: state.sample, counters: state.counters, diagnostics: state.diagnostics };
+            memory: state.sample, counters: state.counters, diagnostics: state.diagnostics,
+            cpu: {
+                supported: typeof worker.cpuUsage === "function",
+                ageMs: state.cpuSampledAt === null ? null : Math.round(now - state.cpuSampledAt),
+                pendingMs: state.cpuPending ? Math.round(now - state.cpuRequestedAt) : 0,
+                totalUserUs: (_b = (_a = state.cpuTotal) === null || _a === void 0 ? void 0 : _a.user) !== null && _b !== void 0 ? _b : null,
+                totalSystemUs: (_d = (_c = state.cpuTotal) === null || _c === void 0 ? void 0 : _c.system) !== null && _d !== void 0 ? _d : null,
+                deltaUserUs: (_f = (_e = state.cpuDelta) === null || _e === void 0 ? void 0 : _e.user) !== null && _f !== void 0 ? _f : null,
+                deltaSystemUs: (_h = (_g = state.cpuDelta) === null || _g === void 0 ? void 0 : _g.system) !== null && _h !== void 0 ? _h : null,
+            }, };
         if (samplingEnabled() && !state.pending) {
             try {
                 worker.postMessage({ type: "memory_probe" });
                 state.pending = true;
                 state.requestedAt = now;
             }
-            catch ( /* Exiting worker: exit listener removes its sample. */_a) { /* Exiting worker: exit listener removes its sample. */ }
+            catch ( /* Exiting worker: exit listener removes its sample. */_j) { /* Exiting worker: exit listener removes its sample. */ }
         }
         return sample;
     });
@@ -183,6 +229,13 @@ function collectMemoryDiagnostics() {
         memoryMode: memory ? detailed ? "detailed" : "basic" : "off",
         runtime: { node: process.versions.node, v8: process.versions.v8, betterSqlite3: betterSqlite3Version,
             platform: process.platform, arch: process.arch },
+        cpu: {
+            ageMs: processCpuSampledAt === null ? null : Math.round(now - processCpuSampledAt),
+            totalUserUs: (_b = processCpuTotal === null || processCpuTotal === void 0 ? void 0 : processCpuTotal.user) !== null && _b !== void 0 ? _b : null,
+            totalSystemUs: (_c = processCpuTotal === null || processCpuTotal === void 0 ? void 0 : processCpuTotal.system) !== null && _c !== void 0 ? _c : null,
+            deltaUserUs: (_d = processCpuDelta === null || processCpuDelta === void 0 ? void 0 : processCpuDelta.user) !== null && _d !== void 0 ? _d : null,
+            deltaSystemUs: (_e = processCpuDelta === null || processCpuDelta === void 0 ? void 0 : processCpuDelta.system) !== null && _e !== void 0 ? _e : null,
+        },
         rss: memory ? process.memoryUsage.rss() : undefined, main: memory ? threadMemory(detailed) : undefined,
         osProcess, workers: workerSamples, counters };
 }
@@ -209,7 +262,7 @@ function installMemoryDiagnostics(fastify) {
             const sample = collectMemoryDiagnostics();
             // SQLite sampling remains usable with memory collection switched off.
             console.warn(`[${tag}] ${JSON.stringify(tag === "MEM" ? sample : {
-                timestamp: sample.timestamp, pid: sample.pid, counters: sample.counters,
+                timestamp: sample.timestamp, pid: sample.pid, cpu: sample.cpu, counters: sample.counters,
                 workers: sample.workers.filter(worker => Object.keys(worker.diagnostics).length > 0).map(worker => ({
                     name: worker.name, threadId: worker.threadId, ageMs: worker.ageMs,
                     stale: worker.stale, pendingMs: worker.pendingMs, diagnostics: worker.diagnostics,
@@ -227,6 +280,9 @@ function installMemoryDiagnostics(fastify) {
         if (--monitorUsers === 0) {
             processProbe === null || processProbe === void 0 ? void 0 : processProbe.close();
             processProbe = null;
+            processCpuTotal = null;
+            processCpuSampledAt = null;
+            processCpuDelta = null;
         }
     }));
 }

@@ -91,6 +91,8 @@ import { getDb } from "./data/db";
 import { createReceiveHistoryRetentionService } from "./lib/receive-history-retention";
 import { createLeaderboardSettlementScheduler } from "./lib/leaderboard/settlement";
 import { createDailyVmoneyMailScheduler } from "./lib/daily-vmoney-mail";
+import { startSqliteCheckpointWorker, stopSqliteCheckpointWorker } from "./lib/sqlite-checkpoint-worker";
+import { drainPersistence } from "./lib/persistence-coordinator";
 
 const fastify = Fastify({
     logger: {
@@ -501,6 +503,8 @@ fastify.addHook("onClose", async () => {
     leaderboardSettlementScheduler.stop();
     await receiveHistoryRetention.stop();
     await stopQuestNpcPartyPoolWorker();
+    await drainPersistence();
+    await stopSqliteCheckpointWorker();
 });
 startQuestNpcPartyPoolWorker();
 
@@ -516,6 +520,7 @@ fastify.listen({ port, host }, (err, address) => {
 
     // Start multi battle TCP session server
     startSessionServer();
+    startSqliteCheckpointWorker(getDb().name);
     const logDirectory = path.resolve(__dirname,"../.logs");
     mkdirSync(logDirectory,{recursive:true});
     writeJsonAtomicSync(path.join(logDirectory,"cn-server-ready.json"),{

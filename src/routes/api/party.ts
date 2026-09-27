@@ -16,6 +16,8 @@ import { PROFILE_FAVORITE_PARTY_CATEGORY } from "../../lib/profileFavorite";
 import { addMissionCounterSync } from "../../lib/mission/counters";
 import { settleDegreeMissionResponse } from "../../lib/mission/degree-response";
 import { countNewAbilitySoulEquipments } from "../../lib/mission/ability-soul-facts";
+import { runPersistenceTransaction } from "../../lib/persistence-coordinator";
+import { invalidateRealPartySnapshot } from "../../multi/party-snapshot";
 
 interface PartyInfoListItem {
     party_edited: boolean
@@ -681,7 +683,9 @@ const routes = async (fastify: FastifyInstance) => {
             }
         })
 
-        getDb().transaction(() => {
+        await runPersistenceTransaction({
+            domain: "player", playerId, operation: "edit_party",
+        }, () => {
             const battleParties = mappedParties.filter(
                 ({ party }) => party.category !== PROFILE_FAVORITE_PARTY_CATEGORY,
             )
@@ -738,7 +742,11 @@ const routes = async (fastify: FastifyInstance) => {
                     partyCharacterSetCount: battleParties.some(({ party }) => party.characterIds.some(id => id !== null)) ? 1 : 0,
                 })
             }
-        })()
+        })
+        // A party edit can happen while the player is still on the lobby
+        // screen. Drop the pre-handshake snapshot so a later reconnect reads
+        // the newly persisted party instead of waiting for its TTL.
+        invalidateRealPartySnapshot(playerId)
 
         const responseData: Record<string, any> = { mail_arrived: false }
         settleDegreeMissionResponse(playerId, viewerId, responseData, undefined, [35])

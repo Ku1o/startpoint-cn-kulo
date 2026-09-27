@@ -5,7 +5,6 @@ import { getPlayerCharacterManaNodeAwakeLevelsSync, getPlayerCharacterSync, inse
 import { getPlayerItemSync, updatePlayerItemSync } from "../../../data/domains/item"
 import { getPlayerSync, updatePlayerSync } from "../../../data/domains/player"
 import { getSession } from "../../../data/domains/session"
-import { getDb } from "../../../data/db"
 import { getPlayerCharacterAwakeUnlocksByCharacterIdsSync } from "../../../data/domains/character_awake";
 import { getCharacterDataSync, getCharacterManaNodesSync, getManaNodeAwakeCost } from "../../../lib/assets";
 import { clientSerializeDate } from "../../../data/utils";
@@ -15,6 +14,7 @@ import { incrementActiveMissionUsedManaCountSync } from "../../../data/domains/a
 import { gameVerboseLog } from "../../../lib/game-logging";
 import { deriveAwakeEvolutionLevel } from "../../../lib/character-awake-evolution";
 import { collectLinkedManaNodeAwakeUpdates, deferLinkedManaBoardAwakeLevels, resolveLinkedManaNodeBoardIndex } from "../../../lib/character-awake-extension";
+import { runPersistenceTransaction } from "../../../lib/persistence-coordinator";
 
 interface LearnManaNodeBody {
     viewer_id: number,
@@ -119,14 +119,16 @@ const routes = async (fastify: FastifyInstance) => {
                 )
                 : []
             if (linkedNodeUpdates.length > 0) {
-                getDb().transaction(() => {
+                await runPersistenceTransaction({
+                    domain: "player", playerId, operation: "repair_mana_node_awake_levels",
+                }, () => {
                     for (const update of linkedNodeUpdates) {
                         updatePlayerCharacterManaNodeAwakeLevelSync(
                             playerId, characterId, update.nodeId, update.awakeLevel,
                         )
                         finalAwakeLevels.set(update.nodeId, update.awakeLevel)
                     }
-                })()
+                })
             }
             const authoritativeManaNodeList = unlockedManaNodes.map(nodeId => ({
                 "multiplied_id": nodeId,
@@ -178,7 +180,9 @@ const routes = async (fastify: FastifyInstance) => {
         const isBoardComplete = Object.keys(characterManaNodes)
             .every(manaNodeId => learnedAfterRequest.has(Number(manaNodeId)))
 
-        getDb().transaction(() => {
+        await runPersistenceTransaction({
+            domain: "player", playerId, operation: "learn_mana_node",
+        }, () => {
             updatePlayerSync({ id: playerId, freeMana: newFreeMana, paidMana: newPaidMana })
             if (currentManaNodeIndex !== characterData.manaBoardIndex) {
                 updatePlayerCharacterSync(playerId, characterId, { manaBoardIndex: currentManaNodeIndex })
@@ -210,7 +214,7 @@ const routes = async (fastify: FastifyInstance) => {
                     finalAwakeLevels.set(update.nodeId, update.awakeLevel)
                 }
             }
-        })()
+        })
 
         const authoritativeManaNodeList = [...learnedAfterRequest].map(nodeId => ({
             "multiplied_id": nodeId,
@@ -396,7 +400,9 @@ const routes = async (fastify: FastifyInstance) => {
 
         // Apply every state change atomically. An unexpected write failure must
         // not leave mana/items deducted without the corresponding node level.
-        getDb().transaction(() => {
+        await runPersistenceTransaction({
+            domain: "player", playerId, operation: "awake_mana_node",
+        }, () => {
             updatePlayerSync({ id: playerId, freeMana: newFreeMana, paidMana: newPaidMana })
             incrementActiveMissionUsedManaCountSync(playerId, manaCost)
             for (const [itemId, newAmount] of Object.entries(newItemAmounts)) {
@@ -413,7 +419,7 @@ const routes = async (fastify: FastifyInstance) => {
                     evolutionLevel: characterEvolutionLevel,
                 })
             }
-        })()
+        })
 
         gameVerboseLog(() => `[MANA] awake_mana_node done: manaCost=${manaCost} nodes=${toAwakenNodeIds.length} manaBoardAwake=${!!manaBoardAwake}`)
         return sendCharacterResponse(reply, viewerId, {

@@ -13,7 +13,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const character_1 = require("../../../data/domains/character");
 const item_1 = require("../../../data/domains/item");
 const player_1 = require("../../../data/domains/player");
-const db_1 = require("../../../data/db");
 const character_awake_1 = require("../../../data/domains/character_awake");
 const assets_1 = require("../../../lib/assets");
 const character_helpers_1 = require("../../../lib/character-helpers");
@@ -21,6 +20,7 @@ const active_mission_counters_1 = require("../../../data/domains/active_mission_
 const game_logging_1 = require("../../../lib/game-logging");
 const character_awake_evolution_1 = require("../../../lib/character-awake-evolution");
 const character_awake_extension_1 = require("../../../lib/character-awake-extension");
+const persistence_coordinator_1 = require("../../../lib/persistence-coordinator");
 const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
     fastify.post("/learn_mana_node", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
         var _a;
@@ -93,12 +93,14 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 ? (0, character_awake_extension_1.collectLinkedManaNodeAwakeUpdates)(characterId, new Set(unlockedManaNodes), finalAwakeLevels, characterData.evolutionLevel - 1)
                 : [];
             if (linkedNodeUpdates.length > 0) {
-                (0, db_1.getDb)().transaction(() => {
+                yield (0, persistence_coordinator_1.runPersistenceTransaction)({
+                    domain: "player", playerId, operation: "repair_mana_node_awake_levels",
+                }, () => {
                     for (const update of linkedNodeUpdates) {
                         (0, character_1.updatePlayerCharacterManaNodeAwakeLevelSync)(playerId, characterId, update.nodeId, update.awakeLevel);
                         finalAwakeLevels.set(update.nodeId, update.awakeLevel);
                     }
-                })();
+                });
             }
             const authoritativeManaNodeList = unlockedManaNodes.map(nodeId => {
                 var _a;
@@ -144,7 +146,9 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             learnedAfterRequest.add(manaNodeId);
         const isBoardComplete = Object.keys(characterManaNodes)
             .every(manaNodeId => learnedAfterRequest.has(Number(manaNodeId)));
-        (0, db_1.getDb)().transaction(() => {
+        yield (0, persistence_coordinator_1.runPersistenceTransaction)({
+            domain: "player", playerId, operation: "learn_mana_node",
+        }, () => {
             (0, player_1.updatePlayerSync)({ id: playerId, freeMana: newFreeMana, paidMana: newPaidMana });
             if (currentManaNodeIndex !== characterData.manaBoardIndex) {
                 (0, character_1.updatePlayerCharacterSync)(playerId, characterId, { manaBoardIndex: currentManaNodeIndex });
@@ -165,7 +169,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                     finalAwakeLevels.set(update.nodeId, update.awakeLevel);
                 }
             }
-        })();
+        });
         const authoritativeManaNodeList = [...learnedAfterRequest].map(nodeId => {
             var _a;
             return ({
@@ -315,7 +319,9 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         const newItemAmounts = itemResult;
         // Apply every state change atomically. An unexpected write failure must
         // not leave mana/items deducted without the corresponding node level.
-        (0, db_1.getDb)().transaction(() => {
+        yield (0, persistence_coordinator_1.runPersistenceTransaction)({
+            domain: "player", playerId, operation: "awake_mana_node",
+        }, () => {
             (0, player_1.updatePlayerSync)({ id: playerId, freeMana: newFreeMana, paidMana: newPaidMana });
             (0, active_mission_counters_1.incrementActiveMissionUsedManaCountSync)(playerId, manaCost);
             for (const [itemId, newAmount] of Object.entries(newItemAmounts)) {
@@ -329,7 +335,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                     evolutionLevel: characterEvolutionLevel,
                 });
             }
-        })();
+        });
         (0, game_logging_1.gameVerboseLog)(() => `[MANA] awake_mana_node done: manaCost=${manaCost} nodes=${toAwakenNodeIds.length} manaBoardAwake=${!!manaBoardAwake}`);
         return (0, character_helpers_1.sendCharacterResponse)(reply, viewerId, {
             user_info: { free_mana: newFreeMana, paid_mana: newPaidMana },

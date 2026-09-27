@@ -24,12 +24,12 @@ const character_1 = require("../../lib/character");
 const equipment_1 = require("../../lib/equipment");
 const gacha_exec_plan_1 = require("../../lib/gacha-exec-plan");
 const gacha_rules_1 = require("../../lib/gacha-rules");
-const db_1 = require("../../data/db");
 const mission_1 = require("../../lib/mission");
 const active_mission_counters_1 = require("../../data/domains/active_mission_counters");
 const game_logging_1 = require("../../lib/game-logging");
 const option_1 = require("../../data/domains/option");
 const settlement_performance_1 = require("../../lib/settlement-performance");
+const persistence_coordinator_1 = require("../../lib/persistence-coordinator");
 var GachaPaymentType;
 (function (GachaPaymentType) {
     GachaPaymentType[GachaPaymentType["EMPTY"] = 0] = "EMPTY";
@@ -325,7 +325,9 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         const plannedCharacterMovies = isCharacterGacha
             ? (0, settlement_performance_1.measureSettlementPhase)("gacha", "movies", () => (0, gacha_2.planCharacterGachaMovies)(gachaData, drawResult, { skipNoRarityUpMovie }))
             : undefined;
-        const transactionResult = (0, settlement_performance_1.measureSettlementPhase)("gacha", "transaction", () => (0, db_1.getDb)().transaction(() => {
+        const transactionResult = yield (0, settlement_performance_1.measureSettlementPhaseAsync)("gacha", "transaction", () => (0, persistence_coordinator_1.runPersistenceTransaction)({
+            domain: "gacha", playerId, operation: "draw",
+        }, () => {
             var _a;
             if (execPlan.ticket) {
                 items[execPlan.ticket.itemId] = execPlan.ticket.afterCount;
@@ -379,7 +381,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 (0, active_mission_counters_1.incrementActiveMissionGachaCampaignCountSync)(playerId);
             }
             return { rewardResult, newGachaExchangePoint };
-        })());
+        }));
         const { rewardResult, newGachaExchangePoint } = transactionResult;
         (0, settlement_performance_1.recordGachaRequest)(isCharacterGacha ? "character" : "equipment", pullCount);
         const rarityCounts = new Map();

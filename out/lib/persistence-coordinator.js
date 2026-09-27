@@ -1,0 +1,134 @@
+"use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.drainPersistence = exports.runPersistenceTransactionSync = exports.runPersistenceTransaction = void 0;
+const node_perf_hooks_1 = require("node:perf_hooks");
+const db_1 = require("../data/db");
+const memory_diagnostics_1 = require("./memory-diagnostics");
+const server_work_performance_1 = require("./server-work-performance");
+const sqlite_write_coordinator_1 = require("./sqlite-write-coordinator");
+let globalWriteTail = Promise.resolve();
+const persistenceStats = new Map();
+function statsFor(domain) {
+    const existing = persistenceStats.get(domain);
+    if (existing)
+        return existing;
+    const created = {
+        queued: 0, committed: 0, failed: 0, queueMs: 0, transactionMs: 0,
+        maxQueueMs: 0, maxTransactionMs: 0,
+    };
+    persistenceStats.set(domain, created);
+    return created;
+}
+(0, memory_diagnostics_1.registerMemoryCounters)("persistence", () => {
+    const counters = {};
+    for (const [domain, value] of persistenceStats) {
+        counters[`domain.${domain}.queued`] = value.queued;
+        counters[`domain.${domain}.committed`] = value.committed;
+        counters[`domain.${domain}.failed`] = value.failed;
+        counters[`domain.${domain}.avgQueueMs`] = value.queued === 0 ? 0 : value.queueMs / value.queued;
+        counters[`domain.${domain}.avgTransactionMs`] = value.committed + value.failed === 0
+            ? 0 : value.transactionMs / (value.committed + value.failed);
+        counters[`domain.${domain}.maxQueueMs`] = value.maxQueueMs;
+        counters[`domain.${domain}.maxTransactionMs`] = value.maxTransactionMs;
+    }
+    return counters;
+}, "sqlite");
+function enqueueGlobalWrite(operation) {
+    const previous = globalWriteTail;
+    let release;
+    const current = new Promise(resolve => { release = resolve; });
+    globalWriteTail = previous.then(() => current);
+    return previous.then(() => __awaiter(this, void 0, void 0, function* () {
+        try {
+            return yield operation();
+        }
+        finally {
+            release();
+        }
+    }));
+}
+/**
+ * Execute one complete main-database transaction under an explicit domain.
+ *
+ * The operation remains synchronous from better-sqlite3's point of view. The
+ * queue and timing seam are deliberate: business modules can migrate here one
+ * by one, while a future worker-backed executor can preserve the same contract.
+ */
+function runPersistenceTransaction(context, operation) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const queuedAt = node_perf_hooks_1.performance.now();
+        const stats = statsFor(context.domain);
+        stats.queued++;
+        const execute = () => __awaiter(this, void 0, void 0, function* () {
+            const queueMs = node_perf_hooks_1.performance.now() - queuedAt;
+            stats.queueMs += queueMs;
+            stats.maxQueueMs = Math.max(stats.maxQueueMs, queueMs);
+            (0, server_work_performance_1.recordServerWork)("persistence.queue", queueMs);
+            const startedAt = node_perf_hooks_1.performance.now();
+            try {
+                const result = yield (0, sqlite_write_coordinator_1.runImmediateTransactionWithRetry)(operation);
+                stats.committed++;
+                return result;
+            }
+            catch (error) {
+                stats.failed++;
+                throw error;
+            }
+            finally {
+                const transactionMs = node_perf_hooks_1.performance.now() - startedAt;
+                stats.transactionMs += transactionMs;
+                stats.maxTransactionMs = Math.max(stats.maxTransactionMs, transactionMs);
+                (0, server_work_performance_1.recordServerWork)("persistence.transaction", transactionMs);
+            }
+        });
+        if (context.playerId !== undefined) {
+            return (0, sqlite_write_coordinator_1.withPlayerWriteQueue)(context.playerId, execute);
+        }
+        return enqueueGlobalWrite(execute);
+    });
+}
+exports.runPersistenceTransaction = runPersistenceTransaction;
+/**
+ * Compatibility boundary for legacy synchronous callers.
+ *
+ * Synchronous APIs cannot wait on the async queue, so this helper keeps the
+ * existing better-sqlite3 immediate-transaction contract and contributes to
+ * the same domain metrics. New request paths should use the async variant.
+ */
+function runPersistenceTransactionSync(context, operation) {
+    const stats = statsFor(context.domain);
+    stats.queued++;
+    const startedAt = node_perf_hooks_1.performance.now();
+    try {
+        const result = (0, db_1.getDb)().transaction(operation).immediate();
+        stats.committed++;
+        return result;
+    }
+    catch (error) {
+        stats.failed++;
+        throw error;
+    }
+    finally {
+        const transactionMs = node_perf_hooks_1.performance.now() - startedAt;
+        stats.transactionMs += transactionMs;
+        stats.maxTransactionMs = Math.max(stats.maxTransactionMs, transactionMs);
+        (0, server_work_performance_1.recordServerWork)("persistence.transaction", transactionMs);
+    }
+}
+exports.runPersistenceTransactionSync = runPersistenceTransactionSync;
+/** Wait for queued asynchronous persistence work before a graceful shutdown. */
+function drainPersistence() {
+    return __awaiter(this, void 0, void 0, function* () {
+        yield globalWriteTail;
+    });
+}
+exports.drainPersistence = drainPersistence;

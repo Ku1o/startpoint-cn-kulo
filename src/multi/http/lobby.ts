@@ -22,7 +22,8 @@ import { isMode15RoomClosed } from "../mode15-room-gate"
 import { roomAdmissionRegistry } from "../room/admission"
 import { getSelectRoomDenialRaisingState } from "../room/select-denial"
 import { embeddedMultiCoordinator } from "../coordinator/embedded"
-import { resolveMultiPlayerContext } from "../player-context"
+import { cacheMultiPlayerContext, resolveMultiPlayerContext } from "../player-context"
+import { primeRealPartySnapshot } from "../party-snapshot"
 
 const ROOM_CAPACITY = 3
 
@@ -128,6 +129,12 @@ export function registerLobbyRoutes(fastify: FastifyInstance): void {
         if (!ctx) return reply.status(400).send({
             "error": "Bad Request", "message": "Invalid viewer id or no player bound."
         })
+
+        // Warm the party snapshot while this HTTP request is already doing
+        // database work. The subsequent TCP room handshake can then read the
+        // complete party from memory instead of blocking the event loop.
+        cacheMultiPlayerContext(viewer_id, ctx)
+        primeRealPartySnapshot(ctx.playerId)
 
         const quest = getQuestFromCategorySync(category, quest_id)
         if (!quest) return reply.status(400).send({
@@ -327,6 +334,11 @@ export function registerLobbyRoutes(fastify: FastifyInstance): void {
                 }
             })
         }
+
+        // select_room is the last HTTP step before the client opens the lobby
+        // socket. Make the party snapshot authoritative before that boundary.
+        cacheMultiPlayerContext(viewerId, ctx)
+        primeRealPartySnapshot(ctx.playerId)
 
         // A Fantasy room-code/follow entrant is also a helper for lifecycle
         // and progression purposes, but only a delivered rescue selection is

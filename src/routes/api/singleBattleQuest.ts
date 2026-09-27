@@ -1,6 +1,6 @@
 import { existsSync } from "../../lib/file-exists";
 import { FIVE_BOSS_GAUNTLET, isFiveBossGauntletQuest, isFiveBossHiddenQuest } from "../../multi/five-boss/contract";
-import { continueFiveBossSync, FiveBossContinueError, isFiveBossContinueRequest } from "../../multi/five-boss/continue-runtime";
+import { continueFiveBoss, FiveBossContinueError, isFiveBossContinueRequest } from "../../multi/five-boss/continue-runtime";
 import { grantFiveBossSoloRewardsSync } from "../../multi/five-boss/solo-rewards";
 import { isFiveBossTicketShortage, sendFiveBossTicketShortage } from "../../multi/five-boss/entry-response";
 import { startFiveBossSoloSync, abortFiveBossSoloSync, getFiveBossSoloReceiptSync, isActiveFiveBossSoloSync,
@@ -13,7 +13,6 @@ import { getPlayerItemSync, givePlayerItemSync, updatePlayerItemSync } from "../
 import { getPlayerSingleQuestProgressSync, insertPlayerQuestProgressSync, updatePlayerQuestProgressSync } from "../../data/domains/quest"
 import { repairUnisonUnlockProgressSync } from "../../lib/validate/unison-unlock"
 import { getSession } from "../../data/domains/session"
-import { getDb } from "../../data/db"
 import { incrementPlayerCharacterClearSync } from "../../data/domains/character_clear"
 import { getPlayerEquipmentListSync, updatePlayerEquipmentSync } from "../../data/domains/equipment"
 import { insertPlayerPracticeBattleHistorySync } from "../../data/domains/practice-battle-history"
@@ -72,9 +71,9 @@ import questEntryCosts from "../../../assets/quest_entry_costs.json";
 import scoreAttackBorderRewards from "../../../assets/score_attack_border_reward.json";
 import eventChallengePointMap from "../../../assets/event_challenge_point_map.json";
 import { gameVerboseLog } from "../../lib/game-logging";
-import { measureSettlementPhase } from "../../lib/settlement-performance";
+import { runPersistenceTransaction } from "../../lib/persistence-coordinator";
+import { measureSettlementPhase, measureSettlementPhaseAsync } from "../../lib/settlement-performance";
 import { createSingleSettlementBodyTimer } from "../../lib/single-settlement-diagnostics";
-import { runMeasuredSingleTransaction } from "../../lib/sqlite-write-coordinator";
 import { repairGauntletCompletionClassificationSync } from "../../lib/gauntlet-completion-classification";
 import {
     buildFinishResponseCacheKey,
@@ -387,7 +386,9 @@ const routes = async (fastify: FastifyInstance) => {
             questAccomplished = body.score >= scoreAttackBorderTiers[0].score
         }
 
-        const finishResponse = measureSettlementPhase("single", "transaction", () => runMeasuredSingleTransaction(getDb(), () => {
+        const finishResponse = await measureSettlementPhaseAsync("single", "transaction", () => runPersistenceTransaction({
+            domain: "single-quest", playerId, operation: "finish",
+        }, () => {
             const bodyTiming = createSingleSettlementBodyTimer(questCategory, !!fiveBossSoloQuest)
             let bodySucceeded = false
             try {
@@ -1062,7 +1063,9 @@ const routes = async (fastify: FastifyInstance) => {
 
         // Keep the failure transition, history row, and active-quest deletion
         // atomic so a partial settlement cannot erase the recoverable battle.
-        getDb().transaction(() => {
+        await runPersistenceTransaction({
+            domain: "single-quest", playerId, operation: "abort",
+        }, () => {
             if (abortQuest && !abortQuest.isMulti && isFiveBossGauntletQuest(abortQuest.category, abortQuest.questId)) {
                 abortFiveBossSoloSync(playerId, abortQuest.playId)
             }
@@ -1078,7 +1081,7 @@ const routes = async (fastify: FastifyInstance) => {
                 insertPlayerPracticeBattleHistorySync(practiceHistoryRecord)
             }
             deletePlayerActiveQuestSync(playerId)
-        })()
+        })
 
         delete activeQuests[playerId]
         if (abortQuest && isMode15Quest(abortQuest.category, abortQuest.questId)) {
@@ -1267,7 +1270,9 @@ const routes = async (fastify: FastifyInstance) => {
         }
 
         let missionSettlement: MissionSettlementResult | undefined
-        getDb().transaction(() => {
+        await runPersistenceTransaction({
+            domain: "single-quest", playerId, operation: "start",
+        }, () => {
             const playerUpdate: any = {
                 id: playerId,
                 totalStaminaUsed: (player.totalStaminaUsed ?? 0) + nominalStaminaCost,
@@ -1297,7 +1302,7 @@ const routes = async (fastify: FastifyInstance) => {
                 [1, 2, 10],
                 new Date(getServerTime() * 1000),
             )
-        })()
+        })
 
         const dataHeaders = generateDataHeaders({
             viewer_id: viewerId
@@ -1355,7 +1360,7 @@ const routes = async (fastify: FastifyInstance) => {
 
         if (isFiveBossContinueRequest(playerId, category, questId, playId)) {
             try {
-                const data = continueFiveBossSync({ playerId, category, questId, playId,
+                const data = await continueFiveBoss({ playerId, category, questId, playId,
                     isMulti: false, apiCount: raw.api_count, statistics: raw.statistics })
                 const recovered = resolveActiveQuest({ playerId, hint: { category, quest_id: questId, play_id: playId },
                     memory: activeQuests, allowRebuild: false })

@@ -1,6 +1,6 @@
 import { freezeFiveBossLobby } from "../five-boss/lobby-runtime";
 import { isFiveBossTicketShortage, sendFiveBossTicketShortage } from "../five-boss/entry-response";
-import { continueFiveBossSync, FiveBossContinueError, isFiveBossContinueRequest } from "../five-boss/continue-runtime";
+import { continueFiveBoss, FiveBossContinueError, isFiveBossContinueRequest } from "../five-boss/continue-runtime";
 import { resolveActiveQuest } from "../../lib/quest/finish/active-quest-resolver";
 import { isFiveBossHiddenQuest } from "../five-boss/contract";
 import { shouldHandleFiveBossStart, shouldHandleFiveBossMemberRequest,
@@ -62,7 +62,7 @@ import {
 import { isMode15RoomClosed } from "../mode15-room-gate";
 import { getMode15ExclusiveGlobalPartyItemsSync, isMode15Quest, settleMode15BattleSync } from "../../lib/mode15-optional";
 import { recordSuccessfulQuestNpcParty } from "../npc/player-party-pool";
-import { runImmediateTransactionWithRetry, withPlayerWriteQueue } from "../../lib/sqlite-write-coordinator";
+import { runPersistenceTransaction } from "../../lib/persistence-coordinator";
 import {
     buildBattleInstanceId,
     getMultiSettlementSnapshot,
@@ -214,7 +214,7 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
 
         const room = roomStart.room;
         if (shouldHandleFiveBossStart(body)) {
-            try { return handleFiveBossStart(body, ctx.playerId, reply); }
+            try { return await handleFiveBossStart(body, ctx.playerId, reply); }
             catch (error) {
                 if (!isFiveBossBattleRequestError(error)) throw error;
                 logFiveBossRequestFailure("start", body, ctx.playerId, error);
@@ -465,7 +465,9 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
         const newDegreeId = getRankDegree(newRankPoint);
         const didLevelUp = newDegreeId > oldRkDegree;
         const playerData = player;
-        await measureSettlementPhaseAsync("multi", "reward_transaction", () => withPlayerWriteQueue(playerId, () => runImmediateTransactionWithRetry(() => {
+        await measureSettlementPhaseAsync("multi", "reward_transaction", () => runPersistenceTransaction({
+            domain: "multi-settlement", playerId, operation: "reward_transaction",
+        }, () => {
         if (questAccomplished) {
             if (questPreviouslyCompleted) {
                 const updateData: any = {
@@ -541,7 +543,7 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
                 + `item=${(eligibleRescueFragmentReward as any).id} count=${(eligibleRescueFragmentReward as any).count}`
             )
         }
-        })));
+        }));
         const settledClearReward = clearReward as PlayerRewardResult | null;
         const settledSPlusClearReward = sPlusClearReward as PlayerRewardResult | null;
         const settledRescueFragmentReward = rescueFragmentReward as PlayerRewardResult | null;
@@ -574,7 +576,9 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
         let missionBattleFacts!: ReturnType<typeof recordMissionBattleFacts>;
         let steamRobotMissionId: number | null = null;
         let rewardCharacterExpResult!: ReturnType<typeof givePlayerCharactersExpSync>;
-        await measureSettlementPhaseAsync("multi", "facts_transaction", () => withPlayerWriteQueue(playerId, () => runImmediateTransactionWithRetry(() => {
+        await measureSettlementPhaseAsync("multi", "facts_transaction", () => runPersistenceTransaction({
+            domain: "multi-settlement", playerId, operation: "facts_transaction",
+        }, () => {
         missionBattleFacts = recordMissionBattleFacts(finishCtx, missionEvaluationTime)
         if (questData.fixedParty === undefined) {
             recordQuestRecommendedPartySafe(finishCtx)
@@ -595,7 +599,7 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
             playerId, partyCharacterIdsArray, questData.characterExpReward || 0,
             questData.fixedParty !== undefined
         );
-        })));
+        }));
 
         const mode15RewardsResult = settleMode15BattleSync(
             playerId,
@@ -946,7 +950,7 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
 
         if (isFiveBossContinueRequest(playerId, Number(body.category), Number(body.quest_id), body.play_id)) {
             try {
-                const data = continueFiveBossSync({ playerId, category: Number(body.category), questId: Number(body.quest_id),
+                const data = await continueFiveBoss({ playerId, category: Number(body.category), questId: Number(body.quest_id),
                     playId: body.play_id, isMulti: true, apiCount: body.api_count, statistics: body.statistics })
                 const recovered = resolveActiveQuest({ playerId, hint: body, memory: activeQuests, allowRebuild: false })
                 if (recovered?.quest.playId === body.play_id) recovered.quest.continueCount = data.continue_count

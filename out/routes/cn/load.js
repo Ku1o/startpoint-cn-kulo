@@ -36,6 +36,8 @@ const abyss_tower_progress_1 = require("../../data/domains/abyss-tower-progress"
 const http_reply_1 = require("../../lib/http-reply");
 const daily_vmoney_mail_1 = require("../../lib/daily-vmoney-mail");
 const news_delivery_1 = require("../../lib/news-delivery");
+const node_perf_hooks_1 = require("node:perf_hooks");
+const server_work_performance_1 = require("../../lib/server-work-performance");
 function wrapOptionFields(d, playerId, resVer) {
     var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q;
     var _r, _s, _t, _u, _v, _w, _x, _y, _z, _0, _1, _2, _3, _4;
@@ -102,9 +104,16 @@ function wrapOptionFields(d, playerId, resVer) {
 const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
     fastify.post("/load", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
         try {
+            let phaseStartedAt = node_perf_hooks_1.performance.now();
+            const markLoadPhase = (phase) => {
+                const now = node_perf_hooks_1.performance.now();
+                (0, server_work_performance_1.recordServerWork)(phase, now - phaseStartedAt);
+                phaseStartedAt = now;
+            };
             const body = request.body;
             const viewerId = body.viewer_id || body.keychain;
             const session = yield (0, session_1.getSession)(String(viewerId));
+            markLoadPhase("load.session");
             if (!session || session.type !== 2) {
                 reply.type("application/x-msgpack");
                 return reply.send({ data_headers: (0, utils_1.generateDataHeaders)({ result_code: 516 }), data: {} });
@@ -137,10 +146,12 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             if (currentPlayer === null) {
                 return reply.status(500).send({ error: "Internal Server Error", message: "No player data." });
             }
+            markLoadPhase("load.player");
             const characterList = (0, character_1.getPlayerCharactersSync)(playerId);
             const characterManaNodeList = (0, character_1.getPlayerCharactersManaNodesSync)(playerId);
             const partyGroupList = (0, party_1.getPlayerPartyGroupListSync)(playerId);
             const questProgress = (0, quest_1.getPlayerQuestProgressSync)(playerId);
+            markLoadPhase("load.snapshot");
             (0, active_reconciliation_1.reconcileActiveMissionFacts)({
                 playerId,
                 player: currentPlayer,
@@ -175,6 +186,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 || repairedGauntletCompletions.length > 0
                 ? (0, quest_1.getPlayerQuestProgressSync)(playerId)
                 : questProgress;
+            markLoadPhase("load.reconcile");
             // Include Rush state in the initial payload so the legacy client can
             // evaluate cross-event clear conditions on a cold visit. Optional
             // saved party slots are normalized to null before packing (rather than
@@ -198,6 +210,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             wrapOptionFields(clientData, playerId, resVer);
             const newsDelivery = (0, news_delivery_1.getNewsDeliveryState)(accountId, now);
             clientData.has_unread_news_item = newsDelivery.hasUnreadNews;
+            markLoadPhase("load.serialize");
             // Inject unfinished quest lists for battle recovery
             const activeQuest = (0, quest_active_1.getPlayerActiveQuestSync)(playerId);
             if (activeQuest) {
@@ -245,6 +258,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 clientData.unfinished_quest_list = [];
                 clientData.unfinished_multi_quest_list = [];
             }
+            markLoadPhase("load.active");
             reply.header("content-type", "application/x-msgpack");
             return reply.status(200).send({
                 data_headers: (0, utils_1.generateDataHeaders)({

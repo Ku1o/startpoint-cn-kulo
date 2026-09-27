@@ -10,17 +10,6 @@ import { playerSocketAllowed } from "../../lib/player-login"
 import { isFiveBossGauntletQuest } from "../five-boss/contract"
 import { isFrozenFiveBossBattleClient } from "../five-boss/lobby-runtime"
 import { fiveBossConnectionDiagnostics } from "../five-boss/connection-diagnostic"
-import {
-    getPlayerPartyGroupListSync,
-} from "../../data/domains/party"
-import {
-    getPlayerCharacterSync,
-    getPlayerCharacterManaNodesSync,
-} from "../../data/domains/character"
-import {
-    getPlayerEquipmentSync,
-} from "../../data/domains/equipment"
-import { PartyCategory, PlayerParty } from "../../data/types"
 import { getRankDegree } from "../../lib/stamina"
 import { getRoom, getRoomMemberPlayerId } from "../room/manager"
 import { sessionManager } from "../state/SessionManager"
@@ -33,118 +22,12 @@ import {
     recordRoomAdmissionDenial,
     roomAdmissionRegistry,
 } from "../room/admission"
-import { resolveMultiPlayerContext } from "../player-context"
+import { getCachedMultiPlayerContext, resolveMultiPlayerContext } from "../player-context"
+import { buildRealParty, getRealPartySnapshot } from "../party-snapshot"
 
-export function buildRealParty(playerId: number, targetParty?: PlayerParty): any {
-    const emptyChar = [1]
-    const filledChars: any[] = []
-    const filledUnison: any[] = []
-    const filledEquips: any[] = []
-    const filledSouls: any[] = []
-
-    // Search for an NPC-named party across NORMAL and EVENT categories
-    let selectedParty: PlayerParty | null = targetParty ?? null
-    if (!selectedParty) {
-        for (const category of [PartyCategory.NORMAL, PartyCategory.EVENT]) {
-        const groups = getPlayerPartyGroupListSync(playerId, category)
-        for (const g of Object.values(groups)) {
-            for (const party of Object.values(g.list)) {
-                if (party.name && party.name.includes("NPC")) {
-                    selectedParty = party
-                    break
-                }
-            }
-            if (selectedParty) break
-        }
-        if (selectedParty) break
-    }
-    }
-
-    for (let i = 0; i < 3; i++) {
-        const charId = selectedParty?.characterIds[i] ?? null
-        if (!charId) {
-            filledChars.push([1])
-            filledUnison.push([1])
-        } else {
-            const dbChar = getPlayerCharacterSync(playerId, charId)
-            if (!dbChar) {
-                filledChars.push([1])
-                filledUnison.push([1])
-            } else {
-                const rawManaNodes = getPlayerCharacterManaNodesSync(playerId, charId)
-                const manaNodeMap: Record<string, number> = {}
-                for (const id of rawManaNodes) manaNodeMap[String(id)] = 0
-
-                let exBoost: any = [1]
-                if (dbChar.exBoost && dbChar.exBoost.abilityIdList && dbChar.exBoost.abilityIdList.length > 0) {
-                    exBoost = [0, { ability_id_list: dbChar.exBoost.abilityIdList, status_id: dbChar.exBoost.statusId }]
-                }
-
-                const charObj = {
-                    id: charId,
-                    evolution_level: dbChar.evolutionLevel,
-                    exp: dbChar.exp,
-                    over_limit_step: dbChar.overLimitStep,
-                    mana_node_ids: manaNodeMap,
-                    ex_boost: exBoost,
-                    illustration_settings: [1],
-                }
-                filledChars.push([0, charObj])
-            }
-
-            const unisonId = selectedParty?.unisonCharacterIds[i] ?? null
-            if (!unisonId) {
-                filledUnison.push([1])
-            } else {
-                const dbUnison = getPlayerCharacterSync(playerId, unisonId)
-                if (!dbUnison) {
-                    filledUnison.push([1])
-                } else {
-                    const rawNodes = getPlayerCharacterManaNodesSync(playerId, unisonId)
-                    const nodeMap: Record<string, number> = {}
-                    for (const id of rawNodes) nodeMap[String(id)] = 0
-
-                    let ubEx: any = [1]
-                    if (dbUnison.exBoost && dbUnison.exBoost.abilityIdList && dbUnison.exBoost.abilityIdList.length > 0) {
-                        ubEx = [0, { ability_id_list: dbUnison.exBoost.abilityIdList, status_id: dbUnison.exBoost.statusId }]
-                    }
-
-                    filledUnison.push([0, {
-                        id: unisonId,
-                        evolution_level: dbUnison.evolutionLevel,
-                        exp: dbUnison.exp,
-                        over_limit_step: dbUnison.overLimitStep,
-                        mana_node_ids: nodeMap,
-                        ex_boost: ubEx,
-                        illustration_settings: [1],
-                    }])
-                }
-            }
-        }
-
-        const equipId = selectedParty?.equipmentIds[i] ?? null
-        if (!equipId) {
-            filledEquips.push([1])
-        } else {
-            const dbEquip = getPlayerEquipmentSync(playerId, equipId)
-            if (!dbEquip) {
-                filledEquips.push([1])
-            } else {
-                filledEquips.push([0, { equipmentId: equipId, level: dbEquip.level, enhancementLevel: dbEquip.enhancementLevel }])
-            }
-        }
-
-        const soulId = selectedParty?.abilitySoulIds[i] ?? null
-        filledSouls.push(soulId ? [0, soulId] : [1])
-    }
-
-    return {
-        characters: filledChars,
-        unison_characters: filledUnison,
-        equipments: filledEquips,
-        abilitySoulIds: filledSouls,
-    }
-}
+// NPC workers historically import buildRealParty from this module. Keep the
+// export stable while the implementation lives beside the warmed snapshot.
+export { buildRealParty }
 
 export async function handleHandshake(socket: net.Socket, data: any): Promise<void> {
     gameVerboseLog(() => `[TCP] handshake: ${JSON.stringify({ socklet: data.socklet, viewerId: data.viewerId, room_number: data.room_number || data.roomNumber })}`)
@@ -227,7 +110,11 @@ export async function handleHandshake(socket: net.Socket, data: any): Promise<vo
             return
         }
 
-        const ctx = await resolveMultiPlayerContext(Number(viewerId))
+        // playerSocketAllowed above still performs the authoritative session
+        // check. A context warmed by create/select_room can therefore be used
+        // here without another synchronous session/player lookup.
+        const ctx = getCachedMultiPlayerContext(Number(viewerId))
+            ?? await resolveMultiPlayerContext(Number(viewerId))
         if (!ctx) {
             sessionManager.sendJson(socket, [3, "HANDSHAKE_DENIED"])
             socket.end()
@@ -306,7 +193,10 @@ export async function handleHandshake(socket: net.Socket, data: any): Promise<vo
         const connectionId = String(
             data.connection_id || data.connectionId || `${socket.remoteAddress}:${socket.remotePort}`,
         )
-        const party = buildRealParty(playerId)
+        // The HTTP room-selection path primes this snapshot before opening the
+        // socket. Direct legacy clients still get a safe synchronous fallback,
+        // but normal handshakes now stay on the in-memory path.
+        const party = getRealPartySnapshot(playerId)
         if (isReturningMember) recordRoomAdmissionBypass("returning_member")
         const admissionClaim = isReturningMember
             ? null

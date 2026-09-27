@@ -13,7 +13,7 @@ import { serializeRealTimeForVirtualClient } from "../../lib/client-display-time
 import { grantPlayerDegreeSync } from "../../data/domains/degree";
 import { reconcileAwakeUnlockCharacterList } from "../../lib/mission";
 import { calculateFreeManaGrant } from "../../lib/mana";
-import { runImmediateTransactionWithRetry, withPlayerWriteQueue } from "../../lib/sqlite-write-coordinator";
+import { runPersistenceTransaction } from "../../lib/persistence-coordinator";
 import type { Player } from "../../data/types";
 
 interface IndexBody {
@@ -204,7 +204,9 @@ export async function claimPlayerMailRewards(
     if (requestedMailIds.length > MAX_MAIL_CLAIM_IDS) {
         throw new RangeError(`A mail claim may contain at most ${MAX_MAIL_CLAIM_IDS} IDs.`)
     }
-    return withPlayerWriteQueue(playerId, async () => runImmediateTransactionWithRetry(() => {
+    return runPersistenceTransaction({
+        domain: "mail", playerId, operation: "claim_rewards",
+    }, () => {
         const uniqueMailIds = [...new Set(requestedMailIds.filter(
             mailId => Number.isSafeInteger(mailId) && mailId > 0,
         ))]
@@ -244,7 +246,7 @@ export async function claimPlayerMailRewards(
             userInfo,
             degreeIds: [...degreeIds],
         }
-    }))
+    })
 }
 
 const routes = async (fastify: FastifyInstance) => {

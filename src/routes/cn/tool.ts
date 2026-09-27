@@ -5,8 +5,8 @@ import { getAccountSync, insertAccountSync, updateAccountSync } from "../../data
 import { getPlayerSync, insertDefaultPlayerSync } from "../../data/domains/player"
 import { SessionType } from "../../data/types";
 import { saveAccountDefaultPlayer } from "../../data/activeAccount";
-import { getDb } from "../../data/db";
 import { readPlayerLoginSession, playerLoginProfile, verifiedPlayerLogin } from "../../lib/player-login";
+import { runPersistenceTransactionSync } from "../../lib/persistence-coordinator";
 
 interface CnSignupBody {
     device_id: number;
@@ -34,14 +34,16 @@ function generateLoginToken(): string {
 const viewerIdToAccountId = new Map<number, number>();
 
 function createAccountForDevice(deviceId: number): number {
-    const created = getDb().transaction(() => {
+    const created = runPersistenceTransactionSync({
+        domain: "account", operation: "create_account_for_device",
+    }, () => {
         const account = insertAccountSync({
             appId: "wf_cn", idpAlias: "", idpCode: "leiting", idpId: "", status: "normal"
         })
         const player = insertDefaultPlayerSync(account.id)
         insertDeviceBindingSync(deviceId, account.id)
         return { accountId: account.id, playerId: player.id }
-    })()
+    })
 
     // Persist the management-panel preference only after the database commit.
     // A failed player materialization must not leave an account with no save.

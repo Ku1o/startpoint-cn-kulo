@@ -8,7 +8,7 @@ import { getViewerIdSync } from "../../data/domains/session"
 import { removeDeletedAccountFromState, resolvePlayerIdSync } from "../../data/activeAccount"
 import { SessionType } from "../../data/types"
 import { getRankDegree } from "../../lib/stamina"
-import { runImmediateTransactionWithRetry } from "../../lib/sqlite-write-coordinator"
+import { runPersistenceTransaction } from "../../lib/persistence-coordinator"
 import { getRequestUdid } from "../../lib/takeover-access"
 import { removePlayerQuestNpcPartySnapshots } from "../../multi/npc/player-party-pool"
 import { generateDataHeaders } from "../../utils"
@@ -204,7 +204,9 @@ async function performTransfer(
     deviceId: number,
     newUdid: string,
 ): Promise<TransferResult> {
-    return runImmediateTransactionWithRetry(() => {
+    return runPersistenceTransaction({
+        domain: "account", operation: "take_over_transfer",
+    }, () => {
         // Re-read both identity and password inside the write lock: preview is
         // not authorization for a later transfer after a reset/race.
         const lockedTarget = accountByViewerId(target.viewer_id)
@@ -314,7 +316,9 @@ const routes = async (fastify: FastifyInstance) => {
         if (!isValidPassword(password)) {
             return send(reply, {}, Number(viewerId), TAKEOVER_INPUT_ID_OR_PASSWORD_ERROR)
         }
-        await runImmediateTransactionWithRetry(() => {
+        await runPersistenceTransaction({
+            domain: "account", operation: "register_takeover",
+        }, () => {
             getDb().prepare(`UPDATE accounts SET takeover_password = ?, takeover_udid = ? WHERE id = ?`)
                 .run(password, udid, account.account_id)
         })

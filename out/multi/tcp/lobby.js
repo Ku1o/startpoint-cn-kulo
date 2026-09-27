@@ -24,6 +24,8 @@ const mode15_optional_1 = require("../../lib/mode15-optional");
 const player_1 = require("../../data/domains/player");
 const embedded_1 = require("../coordinator/embedded");
 const autoplay_mode_1 = require("./autoplay-mode");
+const persistence_coordinator_1 = require("../../lib/persistence-coordinator");
+const party_snapshot_1 = require("../party-snapshot");
 const admission_1 = require("../room/admission");
 const NPC_JOIN_DELAY_MS = parseInt(process.env.NPC_JOIN_DELAY_MS || "2000");
 const NPC_READY_DELAY_MS = parseInt(process.env.NPC_READY_DELAY_MS || "500");
@@ -872,6 +874,11 @@ function handleChangeParty(_socket, client, data) {
             if (pd[field] !== undefined)
                 client.yourself[field] = pd[field];
         }
+        if (client.playerId && pd.party !== undefined) {
+            // Keep reconnect handshakes aligned with the in-memory room
+            // roster immediately; the low-priority DB save may finish later.
+            (0, party_snapshot_1.setRealPartySnapshot)(client.playerId, pd.party);
+        }
         if (currentPartyId !== undefined) {
             client.yourself.currentPartyId = currentPartyId;
         }
@@ -879,11 +886,18 @@ function handleChangeParty(_socket, client, data) {
     const mate = client.mates.find(m => m.viewerId === client.viewerId);
     if (mate) {
         if (client.playerId && currentPartyId !== undefined) {
-            try {
-                const up = require("../../data/domains/player").updatePlayerSync;
-                up({ id: client.playerId, partySlot: currentPartyId });
-            }
-            catch (e) { }
+            const playerId = client.playerId;
+            const partySlot = currentPartyId;
+            // Party selection is already authoritative in the in-memory room.
+            // Defer the low-priority save so the TCP callback can broadcast the
+            // roster without synchronously waiting on SQLite.
+            setImmediate(() => {
+                void (0, persistence_coordinator_1.runPersistenceTransaction)({
+                    domain: "player", playerId, operation: "multi_change_party",
+                }, () => (0, player_1.updatePlayerSync)({ id: playerId, partySlot })).catch(error => {
+                    console.warn(`[MULTI] deferred party persistence failed player=${playerId}`, error);
+                });
+            });
         }
         const room = (0, manager_1.getRoom)(client.roomNumber);
         if (room && room.host_viewer_id === client.viewerId && currentPartyId !== undefined)

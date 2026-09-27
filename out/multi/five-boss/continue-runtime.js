@@ -1,11 +1,12 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.continueFiveBossSync = exports.isFiveBossContinueRequest = exports.FiveBossContinueError = void 0;
+exports.continueFiveBoss = exports.continueFiveBossSync = exports.isFiveBossContinueRequest = exports.FiveBossContinueError = void 0;
 const crypto_1 = require("crypto");
 const db_1 = require("../../data/db");
 const player_1 = require("../../data/domains/player");
 const quest_active_1 = require("../../data/domains/quest_active");
 const contract_1 = require("./contract");
+const persistence_coordinator_1 = require("../../lib/persistence-coordinator");
 class FiveBossContinueError extends Error {
 }
 exports.FiveBossContinueError = FiveBossContinueError;
@@ -34,7 +35,7 @@ function stableJson(value) {
     return (_a = JSON.stringify(value)) !== null && _a !== void 0 ? _a : "null";
 }
 /** Debit and count commit together. Native HTTP retries keep api_count and statistics. */
-function continueFiveBossSync(input) {
+function continueFiveBossInTransaction(input) {
     const apiCount = Number(input.apiCount);
     if (!(0, contract_1.isFiveBossGauntletQuest)(input.category, input.questId)
         || typeof input.playId !== "string" || !input.playId.length || input.playId.length > 255
@@ -45,7 +46,7 @@ function continueFiveBossSync(input) {
     const playId = input.playId;
     const requestKey = apiCount + ":" + (0, crypto_1.createHash)("sha256").update(stableJson(input.statistics)).digest("hex");
     const db = (0, db_1.getDb)();
-    return db.transaction(() => {
+    {
         // Persistent state is authoritative even if an in-memory entry is stale after reconnect.
         const active = (0, quest_active_1.getPlayerActiveQuestSync)(input.playerId);
         if (!active || active.playId !== playId || active.isMulti !== input.isMulti
@@ -88,6 +89,19 @@ function continueFiveBossSync(input) {
         }
         return { continue_count: contract_1.FIVE_BOSS_GAUNTLET.maxContinueCount,
             user_info: { free_vmoney: player.freeVmoney, vmoney: player.vmoney }, mail_arrived: false };
-    }).immediate();
+    }
+}
+/** Synchronous compatibility API for legacy callers and isolated tests. */
+function continueFiveBossSync(input) {
+    return (0, persistence_coordinator_1.runPersistenceTransactionSync)({
+        domain: "multi-settlement", playerId: input.playerId, operation: "five_boss_continue_sync",
+    }, () => continueFiveBossInTransaction(input));
 }
 exports.continueFiveBossSync = continueFiveBossSync;
+/** Async HTTP path; the transaction is owned by the persistence boundary. */
+function continueFiveBoss(input) {
+    return (0, persistence_coordinator_1.runPersistenceTransaction)({
+        domain: "multi-settlement", playerId: input.playerId, operation: "five_boss_continue",
+    }, () => continueFiveBossInTransaction(input));
+}
+exports.continueFiveBoss = continueFiveBoss;

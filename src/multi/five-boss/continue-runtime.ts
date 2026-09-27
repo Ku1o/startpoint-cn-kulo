@@ -3,6 +3,7 @@ import { getDb } from "../../data/db"
 import { getPlayerSync, updatePlayerSync } from "../../data/domains/player"
 import { getPlayerActiveQuestSync, updatePlayerActiveQuestContinueCountSync } from "../../data/domains/quest_active"
 import { FIVE_BOSS_GAUNTLET, isFiveBossGauntletQuest } from "./contract"
+import { runPersistenceTransaction, runPersistenceTransactionSync } from "../../lib/persistence-coordinator"
 
 export class FiveBossContinueError extends Error {}
 
@@ -37,7 +38,7 @@ function stableJson(value: unknown): string {
 }
 
 /** Debit and count commit together. Native HTTP retries keep api_count and statistics. */
-export function continueFiveBossSync(input: ContinueRequest) {
+function continueFiveBossInTransaction(input: ContinueRequest) {
     const apiCount = Number(input.apiCount)
     if (!isFiveBossGauntletQuest(input.category, input.questId)
         || typeof input.playId !== "string" || !input.playId.length || input.playId.length > 255
@@ -48,7 +49,7 @@ export function continueFiveBossSync(input: ContinueRequest) {
     const playId = input.playId
     const requestKey = apiCount + ":" + createHash("sha256").update(stableJson(input.statistics)).digest("hex")
     const db = getDb()
-    return db.transaction(() => {
+    {
         // Persistent state is authoritative even if an in-memory entry is stale after reconnect.
         const active = getPlayerActiveQuestSync(input.playerId)
         if (!active || active.playId !== playId || active.isMulti !== input.isMulti
@@ -89,5 +90,19 @@ export function continueFiveBossSync(input: ContinueRequest) {
         }
         return { continue_count: FIVE_BOSS_GAUNTLET.maxContinueCount,
             user_info: { free_vmoney: player.freeVmoney, vmoney: player.vmoney }, mail_arrived: false }
-    }).immediate()
+    }
+}
+
+/** Synchronous compatibility API for legacy callers and isolated tests. */
+export function continueFiveBossSync(input: ContinueRequest) {
+    return runPersistenceTransactionSync({
+        domain: "multi-settlement", playerId: input.playerId, operation: "five_boss_continue_sync",
+    }, () => continueFiveBossInTransaction(input))
+}
+
+/** Async HTTP path; the transaction is owned by the persistence boundary. */
+export function continueFiveBoss(input: ContinueRequest) {
+    return runPersistenceTransaction({
+        domain: "multi-settlement", playerId: input.playerId, operation: "five_boss_continue",
+    }, () => continueFiveBossInTransaction(input))
 }

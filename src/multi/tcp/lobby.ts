@@ -16,9 +16,11 @@ import {
     getMode15ExclusiveGlobalPartyItemsSync,
     isMode15Quest,
 } from "../../lib/mode15-optional"
-import { getPlayerSync } from "../../data/domains/player"
+import { getPlayerSync, updatePlayerSync } from "../../data/domains/player"
 import { embeddedMultiCoordinator } from "../coordinator/embedded"
 import { handleAutoplayModeChange } from "./autoplay-mode"
+import { runPersistenceTransaction } from "../../lib/persistence-coordinator"
+import { setRealPartySnapshot } from "../party-snapshot"
 import {
     recordRoomAdmissionDenial,
     roomAdmissionRegistry,
@@ -931,13 +933,31 @@ function handleChangeParty(_socket: net.Socket, client: SessionClient, data: any
         for (const field of mutableMateFields) {
             if (pd[field] !== undefined) client.yourself[field] = pd[field]
         }
+        if (client.playerId && pd.party !== undefined) {
+            // Keep reconnect handshakes aligned with the in-memory room
+            // roster immediately; the low-priority DB save may finish later.
+            setRealPartySnapshot(client.playerId, pd.party)
+        }
         if (currentPartyId !== undefined) {
             client.yourself.currentPartyId = currentPartyId
         }
     }
     const mate = client.mates.find(m => m.viewerId === client.viewerId)
     if (mate) {
-        if (client.playerId && currentPartyId !== undefined) { try { const up = require("../../data/domains/player").updatePlayerSync; up({ id: client.playerId, partySlot: currentPartyId }); } catch(e) {} }
+        if (client.playerId && currentPartyId !== undefined) {
+            const playerId = client.playerId
+            const partySlot = currentPartyId
+            // Party selection is already authoritative in the in-memory room.
+            // Defer the low-priority save so the TCP callback can broadcast the
+            // roster without synchronously waiting on SQLite.
+            setImmediate(() => {
+                void runPersistenceTransaction({
+                    domain: "player", playerId, operation: "multi_change_party",
+                }, () => updatePlayerSync({ id: playerId, partySlot })).catch(error => {
+                    console.warn(`[MULTI] deferred party persistence failed player=${playerId}`, error)
+                })
+            })
+        }
         const room = getRoom(client.roomNumber)
         if (room && room.host_viewer_id === client.viewerId && currentPartyId !== undefined) room.host_party_id = currentPartyId
         const roster = collectCanonicalRoomRoster(client.roomNumber)

@@ -25,7 +25,6 @@ const player_1 = require("../../data/domains/player");
 const item_1 = require("../../data/domains/item");
 const quest_1 = require("../../data/domains/quest");
 const unison_unlock_1 = require("../../lib/validate/unison-unlock");
-const db_1 = require("../../data/db");
 const equipment_1 = require("../../data/domains/equipment");
 const practice_battle_history_1 = require("../../data/domains/practice-battle-history");
 const carnivalEvent_1 = require("../../data/domains/carnivalEvent");
@@ -65,9 +64,9 @@ const quest_entry_costs_json_1 = __importDefault(require("../../../assets/quest_
 const score_attack_border_reward_json_1 = __importDefault(require("../../../assets/score_attack_border_reward.json"));
 const event_challenge_point_map_json_1 = __importDefault(require("../../../assets/event_challenge_point_map.json"));
 const game_logging_1 = require("../../lib/game-logging");
+const persistence_coordinator_1 = require("../../lib/persistence-coordinator");
 const settlement_performance_1 = require("../../lib/settlement-performance");
 const single_settlement_diagnostics_1 = require("../../lib/single-settlement-diagnostics");
-const sqlite_write_coordinator_1 = require("../../lib/sqlite-write-coordinator");
 const gauntlet_completion_classification_1 = require("../../lib/gauntlet-completion-classification");
 const finish_response_cache_1 = require("../../lib/finish-response-cache");
 const practice_battle_history_2 = require("../../lib/quest/practice-battle-history");
@@ -237,7 +236,9 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             }
             questAccomplished = body.score >= scoreAttackBorderTiers[0].score;
         }
-        const finishResponse = (0, settlement_performance_1.measureSettlementPhase)("single", "transaction", () => (0, sqlite_write_coordinator_1.runMeasuredSingleTransaction)((0, db_1.getDb)(), () => {
+        const finishResponse = yield (0, settlement_performance_1.measureSettlementPhaseAsync)("single", "transaction", () => (0, persistence_coordinator_1.runPersistenceTransaction)({
+            domain: "single-quest", playerId, operation: "finish",
+        }, () => {
             var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x;
             const bodyTiming = (0, single_settlement_diagnostics_1.createSingleSettlementBodyTimer)(questCategory, !!fiveBossSoloQuest);
             let bodySucceeded = false;
@@ -785,7 +786,9 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         }
         // Keep the failure transition, history row, and active-quest deletion
         // atomic so a partial settlement cannot erase the recoverable battle.
-        (0, db_1.getDb)().transaction(() => {
+        yield (0, persistence_coordinator_1.runPersistenceTransaction)({
+            domain: "single-quest", playerId, operation: "abort",
+        }, () => {
             if (abortQuest && !abortQuest.isMulti && (0, contract_1.isFiveBossGauntletQuest)(abortQuest.category, abortQuest.questId)) {
                 (0, solo_runtime_1.abortFiveBossSoloSync)(playerId, abortQuest.playId);
             }
@@ -796,7 +799,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 (0, practice_battle_history_1.insertPlayerPracticeBattleHistorySync)(practiceHistoryRecord);
             }
             (0, quest_active_1.deletePlayerActiveQuestSync)(playerId);
-        })();
+        });
         delete exports.activeQuests[playerId];
         if (abortQuest && (0, mode15_optional_1.isMode15Quest)(abortQuest.category, abortQuest.questId)) {
             console.log(`[MODE15] single battle aborted; run reset: player=${playerId} category=${abortQuest.category} quest=${abortQuest.questId}`);
@@ -975,7 +978,9 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             startedAtMs: (0, utils_1.getServerTime)() * 1000,
         };
         let missionSettlement;
-        (0, db_1.getDb)().transaction(() => {
+        yield (0, persistence_coordinator_1.runPersistenceTransaction)({
+            domain: "single-quest", playerId, operation: "start",
+        }, () => {
             var _a, _b, _c, _d, _e;
             const playerUpdate = {
                 id: playerId,
@@ -1003,7 +1008,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             });
             (0, active_entry_facts_1.recordActiveMissionQuestChallengeFactSync)(playerId, category);
             missionSettlement = (0, mission_2.settleMissionCategories)(playerId, [1, 2, 10], new Date((0, utils_1.getServerTime)() * 1000));
-        })();
+        });
         const dataHeaders = (0, utils_1.generateDataHeaders)({
             viewer_id: viewerId
         });
@@ -1057,7 +1062,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             const { playerId, playerData: player } = sessionResult;
             if ((0, continue_runtime_1.isFiveBossContinueRequest)(playerId, category, questId, playId)) {
                 try {
-                    const data = (0, continue_runtime_1.continueFiveBossSync)({ playerId, category, questId, playId,
+                    const data = yield (0, continue_runtime_1.continueFiveBoss)({ playerId, category, questId, playId,
                         isMulti: false, apiCount: raw.api_count, statistics: raw.statistics });
                     const recovered = (0, active_quest_resolver_1.resolveActiveQuest)({ playerId, hint: { category, quest_id: questId, play_id: playId },
                         memory: exports.activeQuests, allowRebuild: false });

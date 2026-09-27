@@ -10,7 +10,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const activeAccount_1 = require("../../data/activeAccount");
-const db_1 = require("../../data/db");
 const mail_1 = require("../../data/domains/mail");
 const pass_card_1 = require("../../data/domains/pass-card");
 const player_1 = require("../../data/domains/player");
@@ -18,6 +17,7 @@ const session_1 = require("../../data/domains/session");
 const grants_1 = require("../../lib/mission/grants");
 const pass_card_2 = require("../../lib/pass-card");
 const utils_1 = require("../../utils");
+const persistence_coordinator_1 = require("../../lib/persistence-coordinator");
 function isPassCardBody(body) {
     return typeof body === "object" && body !== null && !Array.isArray(body);
 }
@@ -119,7 +119,9 @@ function passCardRoutes(fastify) {
                 }
                 definitions.set(rewardId, definition);
             }
-            const result = (0, db_1.getDb)().transaction(() => {
+            const result = yield (0, persistence_coordinator_1.runPersistenceTransaction)({
+                domain: "event", playerId, operation: "receive_pass_card",
+            }, () => {
                 const player = (0, player_1.getPlayerSync)(playerId);
                 if (!player)
                     throw new Error(`Player ${playerId} not found during pass reward settlement.`);
@@ -141,7 +143,7 @@ function passCardRoutes(fastify) {
                 }
                 granter.persistPlayer();
                 return granter;
-            })();
+            });
             reply.header("content-type", "application/x-msgpack");
             return reply.send({
                 data_headers: (0, utils_1.generateDataHeaders)({ viewer_id: body.viewer_id }),

@@ -8,15 +8,22 @@ import { ProcessMemoryProbe } from "./process-memory-probe"
 type Counters = Record<string, number | boolean | null>
 type CounterReader = (detailed: boolean) => Counters
 type CounterGroup = "memory" | "sqlite"
+type ThreadCpuUsage = { user: number, system: number }
+type WorkerCpuSampler = Worker & { cpuUsage?: () => Promise<ThreadCpuUsage> }
 const providers = new Map<string, { read: CounterReader, group: CounterGroup }>()
 const workers = new Map<Worker, {
     name: string; pending: boolean; requestedAt: number; sampledAt: number | null;
     sample: ReturnType<typeof threadMemory> | null; counters: Counters; diagnostics: Record<string, Counters>;
+    cpuPending: boolean; cpuRequestedAt: number; cpuSampledAt: number | null;
+    cpuTotal: ThreadCpuUsage | null; cpuDelta: ThreadCpuUsage | null;
 }>()
 const installed = new WeakSet<FastifyInstance>()
 const betterSqlite3Version: string = require("better-sqlite3/package.json").version
 const observedServers = new WeakSet<Server>()
 let processProbe: ProcessMemoryProbe | null = null
+let processCpuTotal: ThreadCpuUsage | null = null
+let processCpuSampledAt: number | null = null
+let processCpuDelta: ThreadCpuUsage | null = null
 let monitorUsers = 0
 export function memoryDiagnosticsEnabled(): boolean {
     return !/^(0|false|no|off)$/i.test(process.env.MEMORY_DIAGNOSTICS ?? "true")
@@ -64,7 +71,9 @@ export function observeWorkerMemory(name: string, worker: Worker): void {
     if (!samplingEnabled() || workers.size >= 16) return
     const state = { name, pending: false, requestedAt: 0, sampledAt: null as number | null,
         sample: null as ReturnType<typeof threadMemory> | null, counters: {} as Counters,
-        diagnostics: {} as Record<string, Counters> }
+        diagnostics: {} as Record<string, Counters>, cpuPending: false, cpuRequestedAt: 0,
+        cpuSampledAt: null as number | null, cpuTotal: null as ThreadCpuUsage | null,
+        cpuDelta: null as ThreadCpuUsage | null }
     workers.set(worker, state)
     const receive = (message: any) => {
         if (message?.type !== "memory_sample") return
@@ -76,6 +85,37 @@ export function observeWorkerMemory(name: string, worker: Worker): void {
     }
     worker.on("message", receive)
     worker.once("exit", () => { workers.delete(worker); worker.off("message", receive) })
+}
+function sampleWorkerCpu(worker: Worker, state: {
+    cpuPending: boolean; cpuRequestedAt: number; cpuSampledAt: number | null;
+    cpuTotal: ThreadCpuUsage | null; cpuDelta: ThreadCpuUsage | null;
+}): void {
+    const cpuUsage = (worker as WorkerCpuSampler).cpuUsage
+    if (typeof cpuUsage !== "function" || state.cpuPending) return
+    state.cpuPending = true
+    state.cpuRequestedAt = performance.now()
+    void cpuUsage.call(worker).then(current => {
+        const previous = state.cpuTotal
+        state.cpuTotal = current
+        state.cpuDelta = previous === null ? null : {
+            user: Math.max(0, current.user - previous.user),
+            system: Math.max(0, current.system - previous.system),
+        }
+        state.cpuSampledAt = performance.now()
+    }).catch(() => {
+        // Node versions before 24.6 and workers that are exiting may reject this probe.
+        state.cpuDelta = null
+    }).finally(() => { state.cpuPending = false })
+}
+function sampleProcessCpu(): void {
+    const current = process.cpuUsage()
+    const previous = processCpuTotal
+    processCpuTotal = current
+    processCpuDelta = previous === null ? null : {
+        user: Math.max(0, current.user - previous.user),
+        system: Math.max(0, current.system - previous.system),
+    }
+    processCpuSampledAt = performance.now()
 }
 export function observeServerConnections(name: string, server: Server): void {
     if (!memoryDiagnosticsEnabled() || observedServers.has(server)) return
@@ -101,13 +141,24 @@ export function observeServerConnections(name: string, server: Server): void {
 export function collectMemoryDiagnostics() {
     const now = performance.now()
     const memory = memoryDiagnosticsEnabled(), detailed = detailedMemoryDiagnosticsEnabled()
+    sampleProcessCpu()
     const counters = readCounters(detailed)
     const workerSamples = [...workers].map(([worker, state]) => {
+        sampleWorkerCpu(worker, state)
         const sample = { name: state.name, threadId: worker.threadId,
             ageMs: state.sampledAt === null ? null : Math.round(now - state.sampledAt),
             stale: state.sampledAt === null || now - state.sampledAt > 120_000,
             pendingMs: state.pending ? Math.round(now - state.requestedAt) : 0,
-            memory: state.sample, counters: state.counters, diagnostics: state.diagnostics }
+            memory: state.sample, counters: state.counters, diagnostics: state.diagnostics,
+            cpu: {
+                supported: typeof (worker as WorkerCpuSampler).cpuUsage === "function",
+                ageMs: state.cpuSampledAt === null ? null : Math.round(now - state.cpuSampledAt),
+                pendingMs: state.cpuPending ? Math.round(now - state.cpuRequestedAt) : 0,
+                totalUserUs: state.cpuTotal?.user ?? null,
+                totalSystemUs: state.cpuTotal?.system ?? null,
+                deltaUserUs: state.cpuDelta?.user ?? null,
+                deltaSystemUs: state.cpuDelta?.system ?? null,
+            }, }
         if (samplingEnabled() && !state.pending) {
             try {
                 worker.postMessage({ type: "memory_probe" })
@@ -133,6 +184,13 @@ export function collectMemoryDiagnostics() {
         memoryMode: memory ? detailed ? "detailed" : "basic" : "off",
         runtime: { node: process.versions.node, v8: process.versions.v8, betterSqlite3: betterSqlite3Version,
             platform: process.platform, arch: process.arch },
+        cpu: {
+            ageMs: processCpuSampledAt === null ? null : Math.round(now - processCpuSampledAt),
+            totalUserUs: processCpuTotal?.user ?? null,
+            totalSystemUs: processCpuTotal?.system ?? null,
+            deltaUserUs: processCpuDelta?.user ?? null,
+            deltaSystemUs: processCpuDelta?.system ?? null,
+        },
         rss: memory ? process.memoryUsage.rss() : undefined, main: memory ? threadMemory(detailed) : undefined,
         osProcess, workers: workerSamples, counters }
 }
@@ -152,7 +210,7 @@ export function installMemoryDiagnostics(fastify: FastifyInstance): void {
             const sample = collectMemoryDiagnostics()
             // SQLite sampling remains usable with memory collection switched off.
             console.warn(`[${tag}] ${JSON.stringify(tag === "MEM" ? sample : {
-                timestamp: sample.timestamp, pid: sample.pid, counters: sample.counters,
+                timestamp: sample.timestamp, pid: sample.pid, cpu: sample.cpu, counters: sample.counters,
                 workers: sample.workers.filter(worker => Object.keys(worker.diagnostics).length > 0).map(worker => ({
                     name: worker.name, threadId: worker.threadId, ageMs: worker.ageMs,
                     stale: worker.stale, pendingMs: worker.pendingMs, diagnostics: worker.diagnostics,
@@ -164,6 +222,9 @@ export function installMemoryDiagnostics(fastify: FastifyInstance): void {
     timer.unref()
     fastify.addHook("onClose", async () => {
         clearInterval(timer); installed.delete(fastify)
-        if (--monitorUsers === 0) { processProbe?.close(); processProbe = null }
+        if (--monitorUsers === 0) {
+            processProbe?.close(); processProbe = null
+            processCpuTotal = null; processCpuSampledAt = null; processCpuDelta = null
+        }
     })
 }

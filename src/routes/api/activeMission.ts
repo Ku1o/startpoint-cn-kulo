@@ -12,6 +12,7 @@ import { reconcileAwakeUnlockCharacterList, validateMissionRewardClaims } from "
 import { MissionRewardGranter } from "../../lib/mission/grants";
 import { getContentSnapshot } from "../../content/runtime/content-snapshot";
 import { gameVerboseLog } from "../../lib/game-logging";
+import { runPersistenceTransaction } from "../../lib/persistence-coordinator";
 
 const routes = async (fastify: FastifyInstance) => {
     fastify.post("/receive", async (request: FastifyRequest, reply: FastifyReply) => {
@@ -64,7 +65,9 @@ const routes = async (fastify: FastifyInstance) => {
             stages: { stage: number, received: boolean }[]
         }>()
 
-        const characterList = getDb().transaction(() => {
+        const characterList = await runPersistenceTransaction({
+            domain: "mission", playerId, operation: "claim_active_missions",
+        }, () => {
             for (const claim of validation.claims) {
                 updatePlayerActiveMissionStageSync(playerId, claim.stage, claim.missionId, true)
                 let result = resultByMission.get(claim.missionId)
@@ -80,7 +83,7 @@ const routes = async (fastify: FastifyInstance) => {
             return validation.claims.length > 0
                 ? reconcileAwakeUnlockCharacterList(playerId, existingCharacterList)
                 : existingCharacterList
-        })()
+        })
 
         const resultList = [...resultByMission.values()]
         gameVerboseLog(() => `[ACTIVE_MISSION] receive viewer=${viewerId} missions=${requestList.length} items=${Object.keys(granter.itemList).length}`)

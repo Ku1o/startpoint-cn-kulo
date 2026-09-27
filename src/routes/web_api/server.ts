@@ -21,7 +21,7 @@ import { getDb } from "../../data/db";
 import { disconnectDeletedPlayerLogin, playerLoginAdminOverview, playerLoginManaged } from "../../lib/player-login";
 import { accountHasNote, ensureCascadeDeleteIndexes, selectUnnotedAccountIds } from "../../lib/admin-account-cleanup";
 import { removePlayerQuestNpcPartySnapshots } from "../../multi/npc/player-party-pool";
-import { runImmediateTransactionWithRetry } from "../../lib/sqlite-write-coordinator";
+import { runPersistenceTransaction } from "../../lib/persistence-coordinator";
 import { createFullDatabaseBackup, getDatabaseDirectory } from "../../lib/admin-database-backup";
 import { getOnlinePlayerCount } from "../../lib/online-presence";
 import { clearRecoveryFailuresForViewer } from "../cn/takeOver";
@@ -152,9 +152,9 @@ async function executeAccountCleanupPlan(
         job.backup = `.database/admin-backups/${backup.name}`
 
         job.phase = "indexing"
-        job.createdIndexes = await runImmediateTransactionWithRetry(
-            () => ensureCascadeDeleteIndexes(getDb()),
-        )
+        job.createdIndexes = await runPersistenceTransaction({
+            domain: "admin", operation: "ensure_cleanup_indexes",
+        }, () => ensureCascadeDeleteIndexes(getDb()))
 
         job.phase = "deleting"
         let processedAccounts = 0
@@ -168,7 +168,9 @@ async function executeAccountCleanupPlan(
             const requestedIds = plannedAccountIds.slice(offset, offset + ACCOUNT_CLEANUP_BATCH_SIZE)
             if (requestedIds.length === 0) continue
             const placeholders = requestedIds.map(() => "?").join(", ")
-            const batch = await runImmediateTransactionWithRetry(() => {
+            const batch = await runPersistenceTransaction({
+                domain: "admin", operation: "delete_unnoted_accounts",
+            }, () => {
                 const candidates = getDb().prepare(`
                     SELECT a.id, a.admin_note
                     FROM accounts AS a

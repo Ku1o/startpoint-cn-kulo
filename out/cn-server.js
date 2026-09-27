@@ -124,6 +124,8 @@ const db_1 = require("./data/db");
 const receive_history_retention_1 = require("./lib/receive-history-retention");
 const settlement_1 = require("./lib/leaderboard/settlement");
 const daily_vmoney_mail_1 = require("./lib/daily-vmoney-mail");
+const sqlite_checkpoint_worker_1 = require("./lib/sqlite-checkpoint-worker");
+const persistence_coordinator_1 = require("./lib/persistence-coordinator");
 const fastify = (0, fastify_1.default)({
     logger: {
         // Default remains compatible with the existing development behavior.
@@ -518,6 +520,8 @@ fastify.addHook("onClose", () => __awaiter(void 0, void 0, void 0, function* () 
     leaderboardSettlementScheduler.stop();
     yield receiveHistoryRetention.stop();
     yield (0, player_party_pool_1.stopQuestNpcPartyPoolWorker)();
+    yield (0, persistence_coordinator_1.drainPersistence)();
+    yield (0, sqlite_checkpoint_worker_1.stopSqliteCheckpointWorker)();
 }));
 (0, player_party_pool_1.startQuestNpcPartyPoolWorker)();
 fastify.listen({ port, host }, (err, address) => {
@@ -531,6 +535,7 @@ fastify.listen({ port, host }, (err, address) => {
     dailyVmoneyMailScheduler.start();
     // Start multi battle TCP session server
     (0, multi_2.startSessionServer)();
+    (0, sqlite_checkpoint_worker_1.startSqliteCheckpointWorker)((0, db_1.getDb)().name);
     const logDirectory = path_1.default.resolve(__dirname, "../.logs");
     (0, fs_1.mkdirSync)(logDirectory, { recursive: true });
     (0, atomic_json_file_1.writeJsonAtomicSync)(path_1.default.join(logDirectory, "cn-server-ready.json"), {

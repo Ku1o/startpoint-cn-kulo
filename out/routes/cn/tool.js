@@ -15,8 +15,8 @@ const account_1 = require("../../data/domains/account");
 const player_1 = require("../../data/domains/player");
 const types_1 = require("../../data/types");
 const activeAccount_1 = require("../../data/activeAccount");
-const db_1 = require("../../data/db");
 const player_login_1 = require("../../lib/player-login");
+const persistence_coordinator_1 = require("../../lib/persistence-coordinator");
 function generateLoginToken() {
     const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
     let token = "";
@@ -27,14 +27,16 @@ function generateLoginToken() {
 }
 const viewerIdToAccountId = new Map();
 function createAccountForDevice(deviceId) {
-    const created = (0, db_1.getDb)().transaction(() => {
+    const created = (0, persistence_coordinator_1.runPersistenceTransactionSync)({
+        domain: "account", operation: "create_account_for_device",
+    }, () => {
         const account = (0, account_1.insertAccountSync)({
             appId: "wf_cn", idpAlias: "", idpCode: "leiting", idpId: "", status: "normal"
         });
         const player = (0, player_1.insertDefaultPlayerSync)(account.id);
         (0, session_1.insertDeviceBindingSync)(deviceId, account.id);
         return { accountId: account.id, playerId: player.id };
-    })();
+    });
     // Persist the management-panel preference only after the database commit.
     // A failed player materialization must not leave an account with no save.
     (0, activeAccount_1.saveAccountDefaultPlayer)(created.accountId, created.playerId);

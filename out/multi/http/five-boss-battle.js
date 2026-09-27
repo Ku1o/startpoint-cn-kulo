@@ -26,6 +26,7 @@ const db_1 = require("../../data/db");
 const settlement_performance_1 = require("../../lib/settlement-performance");
 const coalesced_diagnostics_1 = require("../../lib/coalesced-diagnostics");
 const connection_diagnostic_1 = require("../five-boss/connection-diagnostic");
+const persistence_coordinator_1 = require("../../lib/persistence-coordinator");
 /** Small structured evidence, without logging tokens, party data or the full request. */
 function logFiveBossRequestFailure(operation, body, playerId, error) {
     const code = error === null || error === void 0 ? void 0 : error.code;
@@ -252,64 +253,68 @@ function buildFinishData(player, body, result, dataHeaders, matePlayerResult, fo
     };
 }
 function handleFiveBossStart(body, playerId, reply) {
-    var _a;
-    const room = (0, manager_1.getRoom)(body.room_number);
-    if (!room) {
-        return reply.status(400).send({
-            error: "Bad Request",
-            message: "Room doesn't exist.",
-        });
-    }
-    // 五重决战不消耗、不结算任何强化点:客户端在"降临讨伐"页签建房时会按官方 boss 战
-    // 习惯默认勾上领主强化点(use_boss_boost_point=true),真机实测直接被 runtime 的
-    // boost_not_allowed 拒成 H400 进不了战斗(2026-09-04)。这里把两个开关一律当 false
-    // 交给 runtime(冻结契约不变:runtime 仍只接受 false),只留一行日志说明被忽略。
-    if (body.use_boost_point === true || body.use_boss_boost_point === true) {
-        console.log(`[MULTI] five-boss start: ignoring client boost flags`
-            + ` viewer=${body.viewer_id} room=${body.room_number}`
-            + ` boost=${body.use_boost_point}/${body.use_boss_boost_point}`);
-    }
-    const previousMemory = singleBattleQuest_1.activeQuests[playerId];
-    let result;
-    try {
-        result = (0, db_1.getDb)().transaction(() => {
-            abandonStaleFiveBossRun(body, playerId);
-            return (0, battle_runtime_1.startFiveBossBattle)({
-                playerId,
-                clientPlayId: body.play_id,
-                room,
-                requestRoomNumber: body.room_number,
-                requestCategory: body.category,
-                requestQuestId: body.quest_id,
-                useBoostPoint: false,
-                useBossBoostPoint: false,
-                httpIsAutoStartMode: body.is_auto_start_mode,
-                matePlayerIds: body.mate_player_ids,
-                mateComIds: room.mates.map(mate => mate.com_id),
+    return __awaiter(this, void 0, void 0, function* () {
+        var _a;
+        const room = (0, manager_1.getRoom)(body.room_number);
+        if (!room) {
+            return reply.status(400).send({
+                error: "Bad Request",
+                message: "Room doesn't exist.",
             });
-        }).immediate();
-    }
-    catch (error) {
-        if (previousMemory)
-            singleBattleQuest_1.activeQuests[playerId] = previousMemory;
-        else
-            delete singleBattleQuest_1.activeQuests[playerId];
-        throw error;
-    }
-    singleBattleQuest_1.activeQuests[playerId] = result.activeQuest;
-    connection_diagnostic_1.fiveBossConnectionDiagnostics.begin(room);
-    connection_diagnostic_1.fiveBossConnectionDiagnostics.memberEvent(result.runId, playerId, "http_start", result.startStatus);
-    (0, player_1.updatePlayerSync)({ id: playerId, partySlot: body.party_id });
-    const player = requirePlayer(playerId);
-    reply.header("content-type", "application/x-msgpack");
-    return reply.status(200).send({
-        data_headers: (0, utils_1.generateDataHeaders)({ viewer_id: body.viewer_id }),
-        data: {
-            is_multi: "multi",
-            play_id: body.play_id,
-            user_info: { stamina: player.stamina, stamina_heal_time: (0, utils_1.realToVirtual)(player.staminaHealTime) },
-            item_list: { [contract_1.FIVE_BOSS_GAUNTLET.ticketItemId]: (_a = (0, item_1.getPlayerItemSync)(playerId, contract_1.FIVE_BOSS_GAUNTLET.ticketItemId)) !== null && _a !== void 0 ? _a : 0 },
-        },
+        }
+        // 五重决战不消耗、不结算任何强化点:客户端在"降临讨伐"页签建房时会按官方 boss 战
+        // 习惯默认勾上领主强化点(use_boss_boost_point=true),真机实测直接被 runtime 的
+        // boost_not_allowed 拒成 H400 进不了战斗(2026-09-04)。这里把两个开关一律当 false
+        // 交给 runtime(冻结契约不变:runtime 仍只接受 false),只留一行日志说明被忽略。
+        if (body.use_boost_point === true || body.use_boss_boost_point === true) {
+            console.log(`[MULTI] five-boss start: ignoring client boost flags`
+                + ` viewer=${body.viewer_id} room=${body.room_number}`
+                + ` boost=${body.use_boost_point}/${body.use_boss_boost_point}`);
+        }
+        const previousMemory = singleBattleQuest_1.activeQuests[playerId];
+        let result;
+        try {
+            result = yield (0, persistence_coordinator_1.runPersistenceTransaction)({
+                domain: "multi-settlement", playerId, operation: "five_boss_start",
+            }, () => {
+                abandonStaleFiveBossRun(body, playerId);
+                return (0, battle_runtime_1.startFiveBossBattle)({
+                    playerId,
+                    clientPlayId: body.play_id,
+                    room,
+                    requestRoomNumber: body.room_number,
+                    requestCategory: body.category,
+                    requestQuestId: body.quest_id,
+                    useBoostPoint: false,
+                    useBossBoostPoint: false,
+                    httpIsAutoStartMode: body.is_auto_start_mode,
+                    matePlayerIds: body.mate_player_ids,
+                    mateComIds: room.mates.map(mate => mate.com_id),
+                });
+            });
+        }
+        catch (error) {
+            if (previousMemory)
+                singleBattleQuest_1.activeQuests[playerId] = previousMemory;
+            else
+                delete singleBattleQuest_1.activeQuests[playerId];
+            throw error;
+        }
+        singleBattleQuest_1.activeQuests[playerId] = result.activeQuest;
+        connection_diagnostic_1.fiveBossConnectionDiagnostics.begin(room);
+        connection_diagnostic_1.fiveBossConnectionDiagnostics.memberEvent(result.runId, playerId, "http_start", result.startStatus);
+        (0, player_1.updatePlayerSync)({ id: playerId, partySlot: body.party_id });
+        const player = requirePlayer(playerId);
+        reply.header("content-type", "application/x-msgpack");
+        return reply.status(200).send({
+            data_headers: (0, utils_1.generateDataHeaders)({ viewer_id: body.viewer_id }),
+            data: {
+                is_multi: "multi",
+                play_id: body.play_id,
+                user_info: { stamina: player.stamina, stamina_heal_time: (0, utils_1.realToVirtual)(player.staminaHealTime) },
+                item_list: { [contract_1.FIVE_BOSS_GAUNTLET.ticketItemId]: (_a = (0, item_1.getPlayerItemSync)(playerId, contract_1.FIVE_BOSS_GAUNTLET.ticketItemId)) !== null && _a !== void 0 ? _a : 0 },
+            },
+        });
     });
 }
 exports.handleFiveBossStart = handleFiveBossStart;

@@ -12,6 +12,7 @@ import { getDb } from "../../data/db"
 import { reconcileAwakeUnlockCharacterList } from "../../lib/mission"
 import { givePlayerCharacterSync } from "../../lib/character"
 import { getMultiSpecialExchangeCampaignDefinition } from "../../lib/multi-special-exchange"
+import { runPersistenceTransaction } from "../../lib/persistence-coordinator"
 import { generateDataHeaders, getServerTime } from "../../utils"
 
 interface CampaignBody {
@@ -46,10 +47,12 @@ function sendResultCode(reply: FastifyReply, viewerId: number, resultCode: numbe
     })
 }
 
-function drawTicket(playerId: number, campaignId: number): { ticketItemId: number; itemAmount: number } | null {
+async function drawTicket(playerId: number, campaignId: number): Promise<{ ticketItemId: number; itemAmount: number } | null> {
     const definition = getMultiSpecialExchangeCampaignDefinition(campaignId)
     if (!definition) return null
-    return getDb().transaction(() => {
+    return runPersistenceTransaction({
+        domain: "event", playerId, operation: "draw_multi_special_ticket",
+    }, () => {
         const campaign = getPlayerMultiSpecialExchangeCampaignsSync(playerId)
             .find(value => value.campaignId === campaignId)
         if (!campaign || campaign.status !== 1) return null
@@ -61,7 +64,7 @@ function drawTicket(playerId: number, campaignId: number): { ticketItemId: numbe
             ticketItemId,
         })
         return { ticketItemId, itemAmount }
-    })()
+    })
 }
 
 const routes = async (fastify: FastifyInstance) => {
@@ -76,7 +79,7 @@ const routes = async (fastify: FastifyInstance) => {
             })
             const definition = getMultiSpecialExchangeCampaignDefinition(campaignId)
             if (!definition) return sendResultCode(reply, context.viewerId, 4901)
-            const drawn = drawTicket(context.playerId, campaignId)
+            const drawn = await drawTicket(context.playerId, campaignId)
             if (!drawn) return sendResultCode(reply, context.viewerId, 4902)
             reply.header("content-type", "application/x-msgpack")
             return reply.status(200).send({
@@ -111,7 +114,9 @@ const routes = async (fastify: FastifyInstance) => {
             return sendResultCode(reply, context.viewerId, 4901)
         }
 
-        const exchangeResult = getDb().transaction(() => {
+        const exchangeResult = await runPersistenceTransaction({
+            domain: "event", playerId: context.playerId, operation: "exchange_character",
+        }, () => {
             const campaign = getPlayerMultiSpecialExchangeCampaignsSync(context.playerId)
                 .find(value => value.campaignId === campaignId)
             const ticketAmount = getPlayerItemSync(context.playerId, ticketItemId) ?? 0
@@ -128,7 +133,7 @@ const routes = async (fastify: FastifyInstance) => {
                 ticketItemId: null,
             })
             return { reward, newTicketAmount }
-        })()
+        })
         if (!exchangeResult) return sendResultCode(reply, context.viewerId, 4902)
 
         const characterList = exchangeResult.reward.character

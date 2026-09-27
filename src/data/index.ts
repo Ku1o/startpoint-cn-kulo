@@ -93,6 +93,10 @@ export default function getDatabase(
     console.log(`[DB] temp_store=${db.pragma('temp_store', { simple: true })} (1=FILE)`)
     db.pragma('journal_mode = WAL')
     db.pragma('busy_timeout = 1000')
+    const externalCheckpointWorker = /^(1|true|yes|on)$/i.test(process.env.SQLITE_CHECKPOINT_WORKER ?? "")
+    db.pragma(`wal_autocheckpoint = ${externalCheckpointWorker ? 0 : 1000}`)
+    console.log(`[DB] wal_autocheckpoint=${db.pragma('wal_autocheckpoint', { simple: true })}`
+        + ` externalCheckpointWorker=${externalCheckpointWorker}`)
     db.pragma('foreign_keys = OFF')
 
     // call init & update function

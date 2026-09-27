@@ -1,6 +1,5 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify"
 import { resolvePlayerIdSync } from "../../data/activeAccount"
-import { getDb } from "../../data/db"
 import { getPlayerMailCountSync } from "../../data/domains/mail"
 import {
     getPlayerPassCardRewardRecordsSync,
@@ -12,6 +11,7 @@ import { getSession } from "../../data/domains/session"
 import { MissionRewardGranter } from "../../lib/mission/grants"
 import { getPassCardEventDefinition, getPassCardRewardDefinition, isPassCardEventActiveAt } from "../../lib/pass-card"
 import { generateDataHeaders, getServerTime } from "../../utils"
+import { runPersistenceTransaction } from "../../lib/persistence-coordinator"
 
 interface PassCardBody {
     viewer_id: number
@@ -127,7 +127,9 @@ export default async function passCardRoutes(fastify: FastifyInstance): Promise<
             definitions.set(rewardId, definition)
         }
 
-        const result = getDb().transaction(() => {
+        const result = await runPersistenceTransaction({
+            domain: "event", playerId, operation: "receive_pass_card",
+        }, () => {
             const player = getPlayerSync(playerId)
             if (!player) throw new Error(`Player ${playerId} not found during pass reward settlement.`)
             const granter = new MissionRewardGranter(playerId, player)
@@ -154,7 +156,7 @@ export default async function passCardRoutes(fastify: FastifyInstance): Promise<
             }
             granter.persistPlayer()
             return granter
-        })()
+        })
 
         reply.header("content-type", "application/x-msgpack")
         return reply.send({

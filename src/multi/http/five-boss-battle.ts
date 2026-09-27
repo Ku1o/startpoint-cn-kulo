@@ -25,6 +25,7 @@ import { getDb } from "../../data/db"
 import { measureSettlementPhase, measureSettlementPhaseAsync } from "../../lib/settlement-performance"
 import { fiveBossDiagnostics } from "../../lib/coalesced-diagnostics"
 import { fiveBossConnectionDiagnostics } from "../five-boss/connection-diagnostic"
+import { runPersistenceTransaction } from "../../lib/persistence-coordinator"
 
 /** Small structured evidence, without logging tokens, party data or the full request. */
 export function logFiveBossRequestFailure(operation: "start" | "finish" | "abort", body: MultiStartBody | MultiFinishBody | MultiAbortBody,
@@ -289,7 +290,7 @@ function buildFinishData(
 }
 
 
-export function handleFiveBossStart(
+export async function handleFiveBossStart(
     body: MultiStartBody,
     playerId: number,
     reply: FastifyReply,
@@ -314,7 +315,9 @@ export function handleFiveBossStart(
     const previousMemory = activeQuests[playerId]
     let result
     try {
-        result = getDb().transaction(() => {
+        result = await runPersistenceTransaction({
+            domain: "multi-settlement", playerId, operation: "five_boss_start",
+        }, () => {
             abandonStaleFiveBossRun(body, playerId)
             return startFiveBossBattle({
                 playerId,
@@ -329,7 +332,7 @@ export function handleFiveBossStart(
                 matePlayerIds: body.mate_player_ids,
                 mateComIds: room.mates.map(mate => mate.com_id),
             })
-        }).immediate()
+        })
     } catch (error) {
         if (previousMemory) activeQuests[playerId] = previousMemory
         else delete activeQuests[playerId]

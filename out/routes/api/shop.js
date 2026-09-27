@@ -21,7 +21,6 @@ const player_1 = require("../../data/domains/player");
 const degree_1 = require("../../data/domains/degree");
 const session_1 = require("../../data/domains/session");
 const activeAccount_1 = require("../../data/activeAccount");
-const db_1 = require("../../data/db");
 const assets_1 = require("../../lib/assets");
 const types_1 = require("../../lib/types");
 const utils_1 = require("../../utils");
@@ -38,6 +37,7 @@ const free_first_deduction_1 = require("../../lib/free-first-deduction");
 const shop_sales_1 = require("../../lib/shop-sales");
 const equipment_degree_rewards_1 = require("../../lib/equipment-degree-rewards");
 const abyss_shop_degree_reward_1 = require("../../lib/abyss-shop-degree-reward");
+const persistence_coordinator_1 = require("../../lib/persistence-coordinator");
 const GENERAL_SHOP_CDN_KEYS = new Set(cdn_general_shop_whitelist_json_1.default);
 function recordTreasureShopProgress(playerId, shopType, purchaseCount, manaSpent) {
     if (shopType !== types_1.ShopType.TREASURE)
@@ -475,12 +475,14 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         if (enhancementPurchase !== null) {
             const { equipmentId, newLevel, grantedLevelCount } = enhancementPurchase;
             let equipmentDegreeIds = [];
-            (0, db_1.getDb)().transaction(() => {
+            yield (0, persistence_coordinator_1.runPersistenceTransaction)({
+                domain: "shop", playerId, operation: "enhancement_purchase",
+            }, () => {
                 applyPurchaseCosts();
                 (0, equipment_1.updatePlayerEquipmentSync)(playerId, equipmentId, { enhancementLevel: newLevel });
                 addEffectiveShopPurchaseCountSync(playerId, shopType, shopItemId, chargedPurchaseAmount);
                 equipmentDegreeIds = (0, equipment_degree_rewards_1.grantEquipmentDegreeRewardsSync)(playerId, [equipmentId]);
-            })();
+            });
             const currentEquipment = (0, equipment_1.getPlayerEquipmentSync)(playerId, equipmentId);
             (0, game_logging_1.gameVerboseLog)(() => `[shop:enhancement-benefit] player=${playerId} equipment=${equipmentId} ` +
                 `item=${shopItemId} grantedLevels=${grantedLevelCount} newLevel=${newLevel}`);
@@ -566,7 +568,9 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         // Costs, ordinary rewards, title ownership and stock history must commit
         // together. A title product must never charge the player and then fail
         // between the reward and ownership writes.
-        const rewardResult = (0, db_1.getDb)().transaction(() => {
+        const rewardResult = yield (0, persistence_coordinator_1.runPersistenceTransaction)({
+            domain: "shop", playerId, operation: "purchase",
+        }, () => {
             applyPurchaseCosts();
             const result = (0, quest_1.givePlayerRewardsSync)(playerId, rewards);
             if (result === null)
@@ -579,7 +583,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             addEffectiveShopPurchaseCountSync(playerId, shopType, shopItemId, purchaseAmount);
             degreeIds.push(...(0, abyss_shop_degree_reward_1.grantPurchasedAbyssShopDegreeRewardSync)(playerId, shopType, [{ shopItemId }]));
             return result;
-        })();
+        });
         recordTreasureShopProgress(playerId, shopType, purchaseAmount, manaSpent);
         const characterList = (0, mission_1.reconcileAwakeUnlockCharacterList)(playerId, ((_d = rewardResult === null || rewardResult === void 0 ? void 0 : rewardResult.character_list) !== null && _d !== void 0 ? _d : []));
         // verify DB write
@@ -1065,7 +1069,9 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 `itemCosts=${JSON.stringify(Object.fromEntries(itemCostTotals))}`);
             let rewardResult;
             try {
-                rewardResult = (0, db_1.getDb)().transaction(() => {
+                rewardResult = yield (0, persistence_coordinator_1.runPersistenceTransaction)({
+                    domain: "shop", playerId, operation: "bulk_purchase",
+                }, () => {
                     for (const [itemId, newAmount] of Object.entries(costItemList)) {
                         (0, item_1.updatePlayerItemSync)(playerId, itemId, newAmount);
                     }
@@ -1094,7 +1100,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                     degreeIds.push(...(0, abyss_shop_degree_reward_1.grantPurchasedAbyssShopDegreeRewardSync)(playerId, shopType, purchases));
                     recordTreasureShopProgress(playerId, shopType, purchases.reduce((total, purchase) => total + purchase.purchaseAmount, 0), manaCost);
                     return result;
-                })();
+                });
             }
             catch (error) {
                 console.error(`[shop:bulk_buy] transaction failed player=${playerId}`, error);
