@@ -20,14 +20,21 @@ const memory_diagnostics_1 = require("./memory-diagnostics");
 let worker = null;
 const state = {
     enabled: false, started: false, completed: 0, errors: 0, busy: 0,
+    truncateAttempts: 0, truncateCompleted: 0, truncateBusy: 0,
     lastDurationMs: null, lastLogFrames: null, lastCheckpointedFrames: null,
-    lastError: null,
+    lastWasTruncate: false, lastWalBytes: null, lastPassiveLogFrames: null,
+    lastPassiveCheckpointedFrames: null, lastError: null,
 };
 (0, memory_diagnostics_1.registerMemoryCounters)("sqliteCheckpoint", () => {
     var _a, _b;
     return ({
         enabled: state.enabled, started: state.started, completed: state.completed,
-        errors: state.errors, busy: state.busy, lastDurationMs: state.lastDurationMs,
+        errors: state.errors, busy: state.busy, truncateAttempts: state.truncateAttempts,
+        truncateCompleted: state.truncateCompleted, truncateBusy: state.truncateBusy,
+        lastDurationMs: state.lastDurationMs, lastWasTruncate: state.lastWasTruncate,
+        lastWalBytes: state.lastWalBytes,
+        lastPassiveLogFrames: state.lastPassiveLogFrames,
+        lastPassiveCheckpointedFrames: state.lastPassiveCheckpointedFrames,
         lastLogFrames: state.lastLogFrames,
         lastCheckpointedFrames: state.lastCheckpointedFrames,
         lastError: state.lastError !== null,
@@ -37,6 +44,10 @@ const state = {
 function enabled(environment = process.env) {
     var _a;
     return /^(1|true|yes|on)$/i.test((_a = environment.SQLITE_CHECKPOINT_WORKER) !== null && _a !== void 0 ? _a : "");
+}
+function positiveInteger(value, fallback, minimum) {
+    const parsed = Number.parseInt(value !== null && value !== void 0 ? value : "", 10);
+    return Number.isFinite(parsed) ? Math.max(minimum, parsed) : fallback;
 }
 function workerLocation() {
     const compiled = node_path_1.default.resolve(__dirname, "../workers/sqlite-checkpoint-worker.js");
@@ -55,7 +66,10 @@ function startSqliteCheckpointWorker(databasePath, environment = process.env) {
     state.started = false;
     const location = workerLocation();
     const intervalMs = Math.max(1000, Number.parseInt((_a = environment.SQLITE_CHECKPOINT_INTERVAL_MS) !== null && _a !== void 0 ? _a : "5000", 10) || 5000);
-    const current = new node_worker_threads_1.Worker(location.filename, Object.assign(Object.assign({}, (location.execArgv ? { execArgv: location.execArgv } : {})), { workerData: { databasePath, intervalMs } }));
+    const truncateFrames = positiveInteger(environment.SQLITE_CHECKPOINT_TRUNCATE_FRAMES, 131072, 1000);
+    const truncateBytes = positiveInteger(environment.SQLITE_CHECKPOINT_TRUNCATE_BYTES, 536870912, 4 * 1024 * 1024);
+    const truncateCooldownMs = positiveInteger(environment.SQLITE_CHECKPOINT_TRUNCATE_COOLDOWN_MS, 60000, 5000);
+    const current = new node_worker_threads_1.Worker(location.filename, Object.assign(Object.assign({}, (location.execArgv ? { execArgv: location.execArgv } : {})), { workerData: { databasePath, intervalMs, truncateFrames, truncateBytes, truncateCooldownMs } }));
     worker = current;
     (0, memory_diagnostics_1.observeWorkerMemory)("sqlite-checkpoint", current);
     current.on("online", () => { state.started = true; });
@@ -66,7 +80,16 @@ function startSqliteCheckpointWorker(databasePath, environment = process.env) {
         if ((message === null || message === void 0 ? void 0 : message.type) === "checkpoint") {
             state.completed++;
             state.busy += message.busy === 1 ? 1 : 0;
+            state.truncateAttempts += message.truncateAttempted === true ? 1 : 0;
+            state.truncateCompleted += message.truncateAttempted === true && message.truncateBusy === 0 ? 1 : 0;
+            state.truncateBusy += Number(message.truncateBusy) === 1 ? 1 : 0;
             state.lastDurationMs = Number(message.durationMs) || 0;
+            state.lastWasTruncate = message.mode === "truncate";
+            state.lastWalBytes = Number.isFinite(Number(message.walBytes)) ? Number(message.walBytes) : null;
+            state.lastPassiveLogFrames = Number.isFinite(Number(message.passiveLogFrames))
+                ? Number(message.passiveLogFrames) : null;
+            state.lastPassiveCheckpointedFrames = Number.isFinite(Number(message.passiveCheckpointedFrames))
+                ? Number(message.passiveCheckpointedFrames) : null;
             state.lastLogFrames = Number(message.logFrames) || 0;
             state.lastCheckpointedFrames = Number(message.checkpointedFrames) || 0;
             state.lastError = null;
@@ -88,7 +111,9 @@ function startSqliteCheckpointWorker(databasePath, environment = process.env) {
             worker = null;
         state.started = false;
     });
-    console.log(`[DB] sqlite checkpoint worker enabled intervalMs=${intervalMs}`);
+    console.log(`[DB] sqlite checkpoint worker enabled intervalMs=${intervalMs}`
+        + ` truncateFrames=${truncateFrames} truncateBytes=${truncateBytes}`
+        + ` truncateCooldownMs=${truncateCooldownMs}`);
 }
 exports.startSqliteCheckpointWorker = startSqliteCheckpointWorker;
 function stopSqliteCheckpointWorker() {
