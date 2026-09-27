@@ -9,6 +9,16 @@ from common import *
 PREP=WORK
 OUT=OUT/'ios'
 OLD_COUNT=101387; NATIVE_COUNT=101387; INFO_OFFSET=104549248
+# Adding AS3 slots changes AIR's grouped storage layout.  The accepted iOS
+# carrier still has AOT entry points for these classes, so retaining those
+# entry points would make the old constructor/accessor offsets write into the
+# new pointer/Number groups.  Re-link every method owned by the affected
+# classes against the prepared ABC instead of relying on the old native body.
+LAYOUT_OWNERS=(
+    'pinball.scene.battle.battle.boss.orochi::OrochiEx',
+    'pinball.scene.battle.battle.boss.orochi::OrochiExSource',
+    'pinball.master.generated::OrochiExValues',
+)
 sys.path[:0]=[str(HERE),str(ROOT/'client-patch/ios-shop-first-open')]
 import prepare as p
 p.asm.MNEMONICS['avm_label']=0x09;p.asm.BY_OPCODE[0x09]='avm_label'
@@ -113,11 +123,50 @@ def main():
     assert sha(native)==reg['native_sha256'];assert sha(Path(reg['ipa']).read_bytes())==reg['ipa_sha256']
     require_public_endpoint(native);assert_signable_layout(native)
     full=(WORK/port['full_abc_file']).read_bytes();assert sha(full)==port['full_abc_sha256']
+    # Collect all methods on classes whose slot storage layout changed.  The
+    # port list only contains methods whose bodies differ from Android; the
+    # original constructors and unchanged accessors are still AOT compiled in
+    # the carrier and are just as unsafe after a pointer/Number group moves.
+    layout_abc=abcfmt.ABC(full)
+    layout_view=view(layout_abc)
+    layout_aot_methods=set()
+    for owner in LAYOUT_OWNERS:
+        instance_index=next(i for i,row in enumerate(layout_abc.instances)
+                            if layout_abc.mn_name(row[0])==owner)
+        for trait in layout_abc.instances[instance_index][6]+layout_abc.classes[instance_index][1]:
+            if trait.kind==1:
+                layout_aot_methods.add(trait.data[2])
+        prefixes=(owner+'/',owner+'$/','script:'+owner+'/')
+        for label,body_indices in layout_view.by_label.items():
+            if label.startswith(prefixes):
+                layout_aot_methods.update(layout_abc.bodies[i][0] for i in body_indices)
+    # ZoneSourceValues is unchanged at the class-layout level, but this
+    # resolver directly reads OrochiExValues.element.  Its accepted iOS ABC
+    # body is stripped, so include the explicitly imported body from prepare.py
+    # and rebuild its native entry against the new slot layout as well.
+    external_layout_labels=tuple(port.get('external_layout_body_labels',()))
+    external_layout_methods=set()
+    redirect_rows={row['label']:row for row in port.get('method_redirects',[])}
+    for label in external_layout_labels:
+        # External layout bodies are appended same-class hooks in prepare.py;
+        # the original method remains a stripped carrier body and therefore is
+        # not a compiler symbol.  Report and relink the redirected hook ID.
+        row=redirect_rows.get(label)
+        if row is not None:
+            external_layout_methods.add(int(row['compiled']))
+            continue
+        body_indices=layout_view.by_label.get(label,())
+        assert len(body_indices)==1,(label,body_indices)
+        external_layout_methods.add(layout_abc.bodies[body_indices[0]][0])
+    layout_aot_methods.update(external_layout_methods)
+    # applySynchronizeKind is intentionally routed to the activation-free
+    # synthetic carrier; do not also relink its old method body.
+    layout_aot_methods.discard(59365)
     count=port['total_methods']
     redirects={int(row['original']):int(row['compiled']) for row in port.get('method_redirects',[])}
     guards={row['original']:row for row in port['method_redirects'] if row['strategy']=='guard_then_original'}
     aliases={row['original']:row['compiled'] for row in port['native_aliases']}
-    wanted=(set(redirects.values())|set(range(OLD_COUNT,count)))-set(aliases)
+    wanted=(set(redirects.values())|set(range(OLD_COUNT,count))|layout_aot_methods)-set(aliases)
     compiled_report=json.loads((WORK/'compile-boss-r2-report.json').read_text(encoding='utf8'));objects={};funcs={};meta=None
     for row in compiled_report['objects']:
         path=Path(compiled_report['directory'])/row['name'];assert sha(path.read_bytes())==row['sha256']
@@ -405,6 +454,10 @@ def main():
         total_methods=count,original_methods=OLD_COUNT,new_methods=count-OLD_COUNT,
         abc_position=abc_position,flags_position=flags_position,new_rebases=len(new_entries),rebases=rebases,signing_layout=signing,origin=origin,runtime_helper_proofs=runtime_proofs,
         old_native_count=NATIVE_COUNT,activation_offset=activationoff,registered_prior_methods={},guard_wrappers=wrappers,entry_bridges=entry_bridges,native_aliases=aliases,
+        layout_relinked_classes=list(LAYOUT_OWNERS),layout_relinked_methods=sorted(layout_aot_methods),
+        layout_relinked_external_methods=sorted(external_layout_methods),
+        layout_relinked_external_labels=list(external_layout_labels),
+        sync_strategy=port.get('sync_strategy','unspecified'),
         ios_carousel_unchanged=True,ios_device_store_unchanged=True,device_tested=False,save_schema_changed=False,
         record_encoding_unchanged=True,game_file_cleanup=False,server_endpoint_required=False,old_startup_cache_preserved=True,
         admission_protocol_unchanged=True,build_id=IDS['ios'],previous_build_id=reg['build_id'])

@@ -14,6 +14,32 @@ WORK = Path(r"F:/codex/work/client-public-20260926/build/ios-boss")
 IOS_FULL = Path(r"F:/codex/outputs/starpoint-cn-merge-20260925/ios/author-full.abc")
 IOS_IPA = Path(r"F:/codex/outputs/starpoint-cn-merge-20260925/ios/StarPoint-iOS-1.8.4-author-1047-gauge-public-20260925-unsigned.ipa")
 ANDROID_SWF = Path(r"F:/codex/work/orochi-boss-v2-1047-20260925/balance-revamp-20260925/orochi-balance-ledger-f1034-fixed-v2.swf")
+# The snapshot-aware applySynchronizeKind from the current Android carrier
+# introduces an activation/catch frame that the iOS AIR compiler lowers to
+# _llVerifyError when materialized as the synthetic hook. Keep the reviewed
+# diagnostic carrier pinned for provenance, but retain the accepted iOS
+# activation-free no-op body for this method so a rebuild cannot recreate the
+# fail-fast hook.
+SAFE_SYNC_SWF = Path(r"F:/codex/work/orochi-boss-v2-1047-20260925/diagnostic-orochi-native/sync-safe-orochi-native.swf")
+SAFE_SYNC_SWF_SHA256 = "1a721889babe87cd6c8b86cf6a90511b2ae06f9e8f4af0c4677067cf03429a8a"
+SYNC_LABEL = "pinball.scene.battle.battle.boss.orochi::OrochiEx/applySynchronizeKind|1"
+# These retained callers read fields from OrochiExValues.  The accepted iOS
+# carrier keeps stripped bodies while retaining old AOT entries; importing the
+# reviewed Android bodies lets the iOS compiler rebuild those entries against
+# the appended OrochiExValues layout.
+EXTERNAL_LAYOUT_BODY_LABELS = (
+    "pinball.common.data.battle::ZoneSourceValues/resolveOrochiExsAction|1",
+    "pinball.common.data.battle::ZoneSource/get_bossGroupName|1",
+)
+# The iOS carrier keeps the native entry for this helper, but its native
+# implementation does not return the Colorless boss label used by the custom
+# OrochiEx row.  The Android carrier contains the ordinary Haxe body, which
+# handles all eight BossElementKind variants and is ABI-compatible with the
+# existing static method.
+BOSS_GROUP_NAME_LABEL = (
+    "pinball.common.data.battle.enemy::BossElementKindTools$/getHumanReadableName|1"
+)
+STATIC_HELPER_HOOK_LABELS = (BOSS_GROUP_NAME_LABEL,)
 IOS_EXPECTED_FULL_SHA = "f4706de52e975edb42a7d25750158c2986f60508127028861214f41fef500a64"
 IOS_EXPECTED_IPA_SHA = "e884eed2a859b2de0dfae40365c3aa7497ebf847f7d513db9a9545daf7f50a95"
 IOS_NATIVE_MEMBER = "Payload/worldflipper.app/worldflipper"
@@ -113,6 +139,8 @@ def relevant(label: str) -> bool:
         "pinball.master.generated::OrochiExValues",
         "pinball.online.battle.sync::EnemySynchronizeOwnerKind",
     )
+    if label == BOSS_GROUP_NAME_LABEL:
+        return True
     for owner in owners:
         if label.startswith(owner + "/") or label.startswith(owner + "$"):
             return True
@@ -171,6 +199,13 @@ def main() -> None:
     target = view(abcfmt.ABC(full_before))
     before = copy.deepcopy(target.a)
     source = p.View(p.SwfAbc(ANDROID_SWF), p.asm)
+    if not SAFE_SYNC_SWF.is_file():
+        raise FileNotFoundError(SAFE_SYNC_SWF)
+    if sha(SAFE_SYNC_SWF.read_bytes()) != SAFE_SYNC_SWF_SHA256:
+        raise RuntimeError("safe iOS synchronization carrier hash changed")
+    safe_sync_source = p.View(p.SwfAbc(SAFE_SYNC_SWF), p.asm)
+    if SYNC_LABEL not in safe_sync_source.by_label:
+        raise RuntimeError("safe iOS synchronization carrier is missing applySynchronizeKind")
     old_methods = len(before.methods)
     if old_methods != 101387:
         raise AssertionError(("unexpected iOS method count", old_methods))
@@ -234,7 +269,10 @@ def main() -> None:
                 trait_additions.append({"owner": owner, "static": static, "kind": key[0], "name": key[1]})
 
     target = view(target.a)
-    changed_labels = sorted(label for label in source.by_label if label in target.by_label and relevant(label))
+    changed_labels = sorted(
+        label for label in source.by_label
+        if label in target.by_label and (relevant(label) or label in EXTERNAL_LAYOUT_BODY_LABELS)
+    )
     # Import all relevant Boss method bodies from the reviewed Android carrier.
     # This includes the state machine, native sync enum, generated values and
     # script initializers that install the appended fields.
@@ -242,57 +280,107 @@ def main() -> None:
     redirects = []
     changed_ids = set()
     for label in changed_labels:
-        source_body_index = source.by_label[label][0]
+        body_source = safe_sync_source if label == SYNC_LABEL else source
+        source_body_index = body_source.by_label[label][0]
         target_body_index = target.by_label[label][0]
-        source_body = source.a.bodies[source_body_index]
+        source_body = body_source.a.bodies[source_body_index]
         old_body = copy.deepcopy(before.bodies[target_body_index])
-        source_sig = method_signature(source, source_body[0])
+        source_sig = method_signature(body_source, source_body[0])
         target_sig = method_signature(target, old_body[0])
         # Haxe emits `any` for constructors and class initializers in the
         # Android carrier while the accepted iOS ABC records `void`. Keep the
         # iOS method_info/flags and require the actual argument list to match.
         if source_sig[1] != target_sig[1]:
             raise AssertionError((label, source_sig, target_sig))
-        try:
-            body = importer.body(source_body_index, old_body[0], scope=old_body[3])
-        except AssertionError as exc:
-            if "lexical scope index" not in str(exc):
+        if label == SYNC_LABEL:
+            # The accepted iOS carrier intentionally has no synchronization
+            # state for this newly appended Boss hook.  Copy its verified
+            # returnvoid body and redirect the original entry to the appended
+            # method below; compiling the snapshot-aware body would emit a
+            # latent _llVerifyError path even when that path is not taken.
+            body = copy.deepcopy(old_body)
+        else:
+            body_importer = importer if body_source is source else p.Importer(target, body_source)
+            try:
+                body = body_importer.body(source_body_index, old_body[0], scope=old_body[3])
+            except AssertionError as exc:
+                if "lexical scope index" not in str(exc):
+                    raise RuntimeError(f"failed to import {label}: {exc}") from exc
+                # The Boss sync branch adds a lexical scope object. Retaining the
+                # carrier's scope depth is safe for this body and avoids shifting
+                # getscopeobject/getouterscope operands by guesswork.
+                body = body_importer.body(source_body_index, old_body[0], scope=None)
+            except Exception as exc:
                 raise RuntimeError(f"failed to import {label}: {exc}") from exc
-            # The Boss sync branch adds a lexical scope object. Retaining the
-            # carrier's scope depth is safe for this body and avoids shifting
-            # getscopeobject/getouterscope operands by guesswork.
-            body = importer.body(source_body_index, old_body[0], scope=None)
-        except Exception as exc:
-            raise RuntimeError(f"failed to import {label}: {exc}") from exc
         p.check_body(body, target.a)
         changed_ids.add(old_body[0])
         old_activation = p.activation_traits(view(before), old_body)
         new_activation = p.activation_traits(target, body)
-        if old_activation != new_activation:
+        # Keep the synchronization method on the activation-free synthetic
+        # hook.  The resolver also gets a same-class hook: the accepted iOS
+        # body is stripped, and replacing it in place does not make the AIR
+        # compiler emit a native entry for this otherwise unchanged class.
+        # Redirecting the old entry to a newly appended method preserves the
+        # original x0 context and rebuilds the nested OrochiExValues reads
+        # against the new layout.
+        force_redirect = (
+            label == SYNC_LABEL
+            or label in EXTERNAL_LAYOUT_BODY_LABELS
+            or label in STATIC_HELPER_HOOK_LABELS
+        )
+        if old_activation != new_activation or force_redirect:
             # The accepted iOS method has no activation frame, while the
             # Android implementation of applySynchronizeKind introduces one.
-            # Keep the old method body and compile the imported implementation
-            # as an appended hook. The linker redirects the original method
-            # table entry to this hook, so no existing activation metadata or
-            # native closure layout is overwritten.
+            # Keep the old method body and compile the replacement as an
+            # appended hook. The linker redirects the original method table
+            # entry to this hook, so no existing activation metadata or native
+            # closure layout is overwritten.
             hook_mid = len(target.a.methods)
-            target.a.methods.append(copy.deepcopy(target.a.methods[old_body[0]]))
+            hook_method_info = copy.deepcopy(target.a.methods[old_body[0]])
+            if label in EXTERNAL_LAYOUT_BODY_LABELS:
+                # Preserve the original explicit parameter list exactly.  The
+                # appended trait is static only to force AIR to materialize a
+                # native entry, while its implicit context slot remains local0
+                # / x0.  The linker redirects the original instance entry
+                # directly, so both the resolver and the zero-argument getter
+                # retain their original receiver/argument ABI and MethodEnv
+                # position.
+                assert len(hook_method_info[1]) == len(target.a.methods[old_body[0]][1])
+            target.a.methods.append(hook_method_info)
             hook_body = copy.deepcopy(body)
             hook_body[0] = hook_mid
             target.a.bodies.append(hook_body)
-            helper_index = class_index(target, "cn.boss::BossMechanicsRuntime")
-            hook_traits = target.a.classes[helper_index][1]
-            hook_name = f"bossMethod{old_body[0]}"
+            if (
+                label == SYNC_LABEL
+                or label in EXTERNAL_LAYOUT_BODY_LABELS
+                or label in STATIC_HELPER_HOOK_LABELS
+            ):
+                hook_index = class_index(target, "cn.boss::BossMechanicsRuntime")
+                hook_traits = target.a.classes[hook_index][1]
+                hook_namespace = "cn.boss"
+                hook_name = (
+                    f"bossMethod{old_body[0]}" if label == SYNC_LABEL
+                    else f"bossZoneResolve{old_body[0]}"
+                    if label in EXTERNAL_LAYOUT_BODY_LABELS
+                    else f"bossGroupName{old_body[0]}"
+                )
+                hook_owner = "cn.boss::BossMechanicsRuntime"
+            else:
+                hook_owner, hook_method = label.split("/", 1)
+                hook_namespace, _ = hook_owner.split("::", 1)
+                hook_index = class_index(target, hook_owner)
+                hook_traits = target.a.instances[hook_index][6]
+                hook_name = f"__iosLayout_{hook_method.split('|', 1)[0]}"
             hook_trait = abcfmt.Trait()
-            hook_trait.name = qname(target.a, "cn.boss", hook_name)
+            hook_trait.name = qname(target.a, hook_namespace, hook_name)
             hook_trait.kind = 1
             hook_trait.attr = 0
             hook_trait.metadata = []
             hook_trait.data = ["method", 0, hook_mid]
             hook_traits.append(hook_trait)
             trait_additions.append({
-                "owner": "cn.boss.BossMechanicsRuntime",
-                "static": True,
+                "owner": hook_owner,
+                "static": label == SYNC_LABEL or label in EXTERNAL_LAYOUT_BODY_LABELS,
                 "kind": 1,
                 "name": hook_name,
             })
@@ -300,7 +388,11 @@ def main() -> None:
                 "original": old_body[0],
                 "compiled": hook_mid,
                 "label": label,
-                "strategy": "redirect",
+                "strategy": (
+                    "redirect_noop" if label == SYNC_LABEL
+                    else "redirect_layout" if label in EXTERNAL_LAYOUT_BODY_LABELS
+                    else "redirect_helper"
+                ),
             })
             replacements.append({
                 "label": label,
@@ -308,7 +400,11 @@ def main() -> None:
                 "compiled_method": hook_mid,
                 "target_body": target_body_index,
                 "source_body": source_body_index,
-                "strategy": "redirect",
+                    "strategy": (
+                        "redirect_noop" if label == SYNC_LABEL
+                        else "redirect_layout" if label in EXTERNAL_LAYOUT_BODY_LABELS
+                        else "redirect_helper"
+                    ),
                 "source_code_sha256": sha(source_body[5]),
                 "target_code_sha256": sha(hook_body[5]),
             })
@@ -377,6 +473,14 @@ def main() -> None:
         "runtime_size": runtime_size,
         "admission": admission,
         "android_source_swf_sha256": sha(ANDROID_SWF.read_bytes()),
+        "safe_sync_source": {
+            "swf": str(SAFE_SYNC_SWF),
+            "sha256": SAFE_SYNC_SWF_SHA256,
+            "label": SYNC_LABEL,
+            "reason": "avoid iOS AIR verifier failure from snapshot activation/catch frame",
+        },
+        "sync_strategy": "activation_free_noop_redirect",
+        "external_layout_body_labels": list(EXTERNAL_LAYOUT_BODY_LABELS),
         "device_tested": False,
         "save_schema_changed": False,
     }

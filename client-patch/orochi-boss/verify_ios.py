@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import plistlib
 import struct
 import sys
@@ -12,16 +13,28 @@ from pathlib import Path
 
 ROOT = Path(r"F:/codex")
 SOURCE = ROOT / "startpoint-cn-private-clean"
-WORK = ROOT / "work/client-public-20260926/build/ios-boss"
-OUT = ROOT / "outputs/orochi-boss-public-20260926/ios"
+WORK = Path(os.environ.get(
+    "STARPOINT_OROCHI_WORK",
+    str(ROOT / "work/client-public-20260926/build/ios-boss"),
+))
+OUT = Path(os.environ.get(
+    "STARPOINT_OROCHI_OUT",
+    str(ROOT / "outputs/orochi-boss-public-20260926/ios"),
+))
 BASELINE = ROOT / "outputs/starpoint-cn-merge-20260925/ios/StarPoint-iOS-1.8.4-author-1047-gauge-public-20260925-unsigned.ipa"
-IPA = OUT / "StarPoint-iOS-1.8.4-author-1047-orochi-boss-public-20260926-corrected-unsigned.ipa"
+IPA = OUT / os.environ.get(
+    "STARPOINT_OROCHI_IPA_NAME",
+    "StarPoint-iOS-1.8.4-author-1047-orochi-boss-public-20260926-corrected-unsigned.ipa",
+)
 NATIVE_MEMBER = "Payload/worldflipper.app/worldflipper"
 SWF_MEMBER = "Payload/worldflipper.app/worldflipper_ios_release.swf"
 INFO_OFFSET = 104549248
 OLD_ID = b"ios-184-author-1043-20260924"
 NEW_ID = "ios-184-author-1047-20260925"
 PUBLIC_ORIGIN = "http://175.178.160.158"
+SYNC_LABEL = "pinball.scene.battle.battle.boss.orochi::OrochiEx/applySynchronizeKind|1"
+EXTERNAL_RESOLVER_LABEL = "pinball.common.data.battle::ZoneSourceValues/resolveOrochiExsAction|1"
+BOSS_GROUP_NAME_LABEL = "pinball.common.data.battle.enemy::BossElementKindTools$/getHumanReadableName|1"
 
 sys.path[:0] = [
     str(SOURCE / "client-patch/lens0907-0908"),
@@ -47,13 +60,17 @@ def main() -> None:
     full = (WORK / port["full_abc_file"]).read_bytes()
     assert sha(full) == port["full_abc_sha256"] == report["full_abc_sha256"]
     assert hashlib.sha1(full).digest().hex() == report["full_abc_sha1"]
-    assert port["total_methods"] == 101433
+    # The F2007 fix emits one helper for the boss-group name resolver and one
+    # layout-safe ZoneSource getter, so this build has two more AOT methods
+    # than the previous ABI-only package.
+    assert port["total_methods"] == 101436
     full_abc = abcfmt.ABC(full)
     full_view = View(types.SimpleNamespace(abc=full_abc), swf_tools.asm)
     required = [
         "cn.boss::BossMechanicsRuntime$/profile|1",
         "cn.boss::BossMechanicsRuntime$/accept|1",
         "cn.boss::BossMechanicsRuntime$/restore|1",
+        BOSS_GROUP_NAME_LABEL,
         "pinball.online.battle.sync::EnemySynchronizeOwnerKind$/BossMechanics|1",
         "pinball.online.battle.sync::EnemySynchronizeOwnerKind$/registerBossMechanics|1",
         "pinball.scene.battle.battle.boss.orochi::OrochiEx/acceptUnifiedPhaseDamage|1",
@@ -85,7 +102,7 @@ def main() -> None:
     runtime = native[runtime_offset:runtime_offset + runtime_size]
     assert sha(runtime) == report["runtime_abc_sha256"]
     runtime_abc = abcfmt.ABC(runtime)
-    assert len(runtime_abc.methods) == 101433
+    assert len(runtime_abc.methods) == 101436
     constants = build_lan.constants([[82, None, None, runtime_abc]])
     assert constants["ID"] == NEW_ID
     assert constants["ORIGIN"] == PUBLIC_ORIGIN
@@ -100,7 +117,62 @@ def main() -> None:
     assert report["swf_sha256"] == sha(swf)
     assert report["origin"] == PUBLIC_ORIGIN
     assert report["total_methods"] == len(full_abc.methods) == len(runtime_abc.methods)
-    assert report["new_methods"] == 46
+    assert report["new_methods"] == 49
+    expected_layout_classes = {
+        "pinball.scene.battle.battle.boss.orochi::OrochiEx",
+        "pinball.scene.battle.battle.boss.orochi::OrochiExSource",
+        "pinball.master.generated::OrochiExValues",
+    }
+    assert set(report["layout_relinked_classes"]) == expected_layout_classes
+    layout_methods = set(report["layout_relinked_methods"])
+    compiled_methods = {row["method"] for row in report["functions"]}
+    assert layout_methods <= compiled_methods
+    external_labels = {
+        "pinball.common.data.battle::ZoneSourceValues/resolveOrochiExsAction|1",
+        "pinball.common.data.battle::ZoneSource/get_bossGroupName|1",
+    }
+    assert set(report["layout_relinked_external_labels"]) == external_labels
+    assert len(report["layout_relinked_external_methods"]) == len(external_labels)
+    assert set(report["layout_relinked_external_methods"]) <= layout_methods
+    for external_label in sorted(external_labels):
+        external_original = full_abc.bodies[full_view.by_label[external_label][0]][0]
+        external_hook = next(
+            row for row in report["hooks"]
+            if row.get("method") == external_original and row.get("compiled_method") is not None
+        )
+        external_hook_method = int(external_hook["compiled_method"])
+        assert full_abc.methods[external_hook_method][1] == full_abc.methods[external_original][1]
+        assert len(full_abc.methods[external_hook_method][1]) == len(full_abc.methods[external_original][1])
+        resolver_function = next(
+            row for row in report["functions"] if row["method"] == external_hook_method
+        )
+        assert resolver_function["size"] > 0
+    boss_original = full_abc.bodies[full_view.by_label[BOSS_GROUP_NAME_LABEL][0]][0]
+    boss_redirect = next(
+        row for row in port["method_redirects"]
+        if row.get("original") == boss_original
+    )
+    assert boss_redirect["label"] == BOSS_GROUP_NAME_LABEL
+    assert boss_redirect["strategy"] == "redirect_helper"
+    boss_hook_method = int(boss_redirect["compiled"])
+    assert boss_hook_method >= 101387
+    assert full_abc.methods[boss_hook_method][1] == full_abc.methods[boss_original][1]
+    assert not any(
+        row["method"] in layout_methods and row["symbol"] == "_llVerifyError"
+        for row in report["relocations"]
+    )
+    for hook in report["hooks"]:
+        compiled = hook.get("compiled_method")
+        if compiled is None:
+            continue
+        function = next(row for row in report["functions"] if row["method"] == compiled)
+        if hook.get("label") == SYNC_LABEL:
+            assert report.get("sync_strategy") == "activation_free_noop_redirect"
+            assert function["size"] >= 8, (compiled, function["size"])
+        assert not any(
+            row["method"] == compiled and row["symbol"] == "_llVerifyError"
+            for row in report["relocations"]
+        ), compiled
     assert report["device_tested"] is False
     # The linker already proved the loader metadata is before the signature;
     # repeat the key boundary checks on the delivered bytes.
