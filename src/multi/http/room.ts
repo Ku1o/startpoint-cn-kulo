@@ -249,22 +249,25 @@ export function registerRoomRoutes(fastify: FastifyInstance): void {
         }
 
         const shareTypes = normalizeRoomShareTypes(body.share_type_list);
+        const aiSelected = shareTypes.includes(AI_RECRUITMENT_SHARE_TYPE)
+        const aiAlreadyActive = room.is_npc_mode
+        if (aiAlreadyActive && !aiSelected) shareTypes.push(AI_RECRUITMENT_SHARE_TYPE)
         room.share_room_options = encodeRoomShareOptions(shareTypes);
 
         // Option 2 is intentionally repurposed as the private-server AI switch.
-        // If both 2 and 3 are selected, AI wins so a room is never advertised to
-        // real players while it is being filled with COM mates.
-        if (shareTypes.includes(AI_RECRUITMENT_SHARE_TYPE)) {
+        // Once AI has been selected, keep it authoritative for this room. The
+        // client may send several share_room refreshes with stale subsets
+        // while the three checkboxes are enabled; treating a later [1, 3]
+        // refresh as a cancellation leaves the delayed AI reconcile stranded.
+        if (aiSelected || aiAlreadyActive) {
             room.is_npc_mode = true;
             stopRandomRecruitment(room.room_number);
             recruitNpcMatesForRoom(room.room_number);
-            gameVerboseLog(() => `[MULTI] share_room: AI recruitment enabled room=${room.room_number}`);
+            gameVerboseLog(() => `[MULTI] share_room: AI recruitment enabled/preserved room=${room.room_number}`);
         } else if (shareTypes.includes(RANDOM_RECRUITMENT_SHARE_TYPE)) {
-            if (room.npc_count <= 0) room.is_npc_mode = false;
             const recruitment = publishRandomRecruitment(room.room_number);
             gameVerboseLog(() => `[MULTI] share_room: random recruitment published room=${room.room_number} key=${recruitment.attentionKey}`);
         } else {
-            if (room.npc_count <= 0) room.is_npc_mode = false;
             stopRandomRecruitment(room.room_number);
             gameVerboseLog(() => `[MULTI] share_room: scoped visibility updated room=${room.room_number} options=${room.share_room_options}`);
         }

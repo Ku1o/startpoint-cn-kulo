@@ -28,7 +28,10 @@ function freezeFiveBossLobby(room, members) {
             canonical.set(mate.comId ? `com:${mate.comId}` : `viewer:${mate.viewerId}`, mate);
     }
     const roster = [...canonical.values()];
-    if (!host || roster.length !== 3 || !roster.every(mate => { var _a; return ((_a = mate.state) === null || _a === void 0 ? void 0 : _a[0]) === 1; }))
+    // A two-player room is valid. AI may fill the third slot, but it is not a
+    // prerequisite for starting when two real players are ready.
+    if (!host || roster.length < 2 || roster.length > contract_1.FIVE_BOSS_GAUNTLET.roomMemberLimit
+        || !roster.every(mate => { var _a; return ((_a = mate.state) === null || _a === void 0 ? void 0 : _a[0]) === 1; }))
         return false;
     const frozen = {
         runId: (0, crypto_1.randomUUID)(), expectedRealPlayerIds: [], autoplayModeByPlayerId: {},

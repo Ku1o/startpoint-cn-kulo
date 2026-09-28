@@ -4,7 +4,7 @@ import { getRoomMemberPlayerId } from "../room/manager"
 import { sessionManager, type SessionClient } from "../state/SessionManager"
 import { recordMemberBattleSignalSync } from "../../data/domains/fiveBossGauntletRun"
 import { getPlayerCharacterSync } from "../../data/domains/character"
-import { isFiveBossGauntletQuest } from "./contract"
+import { FIVE_BOSS_GAUNTLET, isFiveBossGauntletQuest } from "./contract"
 import { fiveBossDiagnostics } from "../../lib/coalesced-diagnostics"
 import { fiveBossConnectionDiagnostics } from "./connection-diagnostic"
 import { runPersistenceTransaction } from "../../lib/persistence-coordinator"
@@ -23,7 +23,10 @@ export function freezeFiveBossLobby(room: MultiRoom, members?: any[]): boolean {
         if (mate) canonical.set(mate.comId ? `com:${mate.comId}` : `viewer:${mate.viewerId}`, mate)
     }
     const roster = [...canonical.values()]
-    if (!host || roster.length !== 3 || !roster.every(mate => mate.state?.[0] === 1)) return false
+    // A two-player room is valid. AI may fill the third slot, but it is not a
+    // prerequisite for starting when two real players are ready.
+    if (!host || roster.length < 2 || roster.length > FIVE_BOSS_GAUNTLET.roomMemberLimit
+        || !roster.every(mate => mate.state?.[0] === 1)) return false
     const frozen: NonNullable<MultiRoom["five_boss_runtime"]> = {
         runId: randomUUID(), expectedRealPlayerIds: [], autoplayModeByPlayerId: {},
         partyCharacterIdsByPlayerId: {}, battleIdentityByViewerId: {},

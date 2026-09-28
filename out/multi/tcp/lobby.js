@@ -29,7 +29,7 @@ const party_snapshot_1 = require("../party-snapshot");
 const admission_1 = require("../room/admission");
 const NPC_JOIN_DELAY_MS = parseInt(process.env.NPC_JOIN_DELAY_MS || "2000");
 const NPC_READY_DELAY_MS = parseInt(process.env.NPC_READY_DELAY_MS || "500");
-const REMATCH_RECONNECT_GRACE_MS = parseInt(process.env.REMATCH_RECONNECT_GRACE_MS || "25000");
+const REMATCH_RECONNECT_GRACE_MS = parseInt(process.env.REMATCH_RECONNECT_GRACE_MS || "60000");
 const npcRecruitingRooms = new Set();
 const npcReconcilePendingRooms = new Set();
 const npcReconcileTimers = new Map();
@@ -356,7 +356,10 @@ function checkAllReadyAndStart(roomNumber) {
         const realCount = countRealPlayers(hostClient.mates);
         const presentNpcCount = hostClient.mates.filter(mate => !!mate.comId).length;
         const desiredNpcCount = Math.max(0, 3 - realCount);
-        if (presentNpcCount < desiredNpcCount) {
+        // Every multiplayer room can start with two ready real players. A
+        // pending AI seat must only hold a one-real-player room; it must not
+        // turn an otherwise valid two-player party into a silent wait.
+        if (presentNpcCount < desiredNpcCount && realCount < 2) {
             scheduleNpcReconcile(roomNumber);
             return;
         }
@@ -392,6 +395,8 @@ function handleEnterComs(client, coms) {
         if ((0, contract_1.isFiveBossGauntletQuest)(room.category, room.quest_id)) {
             const remaining = room.created_at + contract_1.FIVE_BOSS_GAUNTLET.aiFillTimeoutMs - Date.now();
             if (remaining > 0) {
+                (0, game_logging_1.gameVerboseLog)(() => `[LOBBY] AI recruitment delayed: room=${client.roomNumber}`
+                    + ` remainingMs=${remaining}`);
                 scheduleNpcReconcile(room.room_number, remaining);
                 return;
             }
@@ -986,8 +991,12 @@ function handleStartBattle(_socket, client, _data) {
     const realViewerIds = [...new Set(members
             .filter(mate => !mate.comId && Number.isFinite(Number(mate.viewerId)))
             .map(mate => Number(mate.viewerId)))];
-    if (!(0, lobby_runtime_1.freezeFiveBossLobby)(room, members))
+    if (!(0, lobby_runtime_1.freezeFiveBossLobby)(room, members)) {
+        (0, game_logging_1.gameVerboseLog)(() => `[LOBBY] StartBattle deferred: five-boss roster invalid`
+            + ` room=${client.roomNumber} roster=${members.length}`
+            + ` ready=${members.filter(mate => { var _a; return ((_a = mate.state) === null || _a === void 0 ? void 0 : _a[0]) === 1; }).length}`);
         return;
+    }
     const expectedCount = realViewerIds.length;
     for (const viewerId of realViewerIds) {
         SessionManager_1.sessionManager.clearRescueGuestLobbyWait(client.roomNumber, viewerId);
