@@ -4,6 +4,7 @@ exports.updatePlayerRushEventPlayedPartySync = exports.deletePlayerRushEventPlay
 const db_1 = require("../db");
 const types_1 = require("../types");
 const rush_1 = require("../../lib/rush");
+const persistence_coordinator_1 = require("../../lib/persistence-coordinator");
 /**
  * Deserializes a RawPlayerRushEvent into a PlayerRushEvent
  *
@@ -170,11 +171,11 @@ exports.insertPlayerRushEventSync = insertPlayerRushEventSync;
  * @param eventList An array of rush event data entries.
  */
 function insertPlayerRushEventListSync(playerId, eventList) {
-    (0, db_1.getDb)().transaction(() => {
+    (0, persistence_coordinator_1.runPersistenceTransactionSync)({ domain: "event", playerId, operation: "insert_rush_events" }, () => {
         for (const event of eventList) {
             insertPlayerRushEventSync(playerId, event);
         }
-    })();
+    });
 }
 exports.insertPlayerRushEventListSync = insertPlayerRushEventListSync;
 /**
@@ -279,14 +280,14 @@ exports.insertPlayerRushEventClearedFolderSync = insertPlayerRushEventClearedFol
  * @param folderList A record where the key is the ID of a rush event and the value is an array of folder IDs.
  */
 function insertPlayerRushEventClearedFolderListSync(playerId, folderList) {
-    (0, db_1.getDb)().transaction(() => {
+    (0, persistence_coordinator_1.runPersistenceTransactionSync)({ domain: "event", playerId, operation: "insert_rush_cleared_folders" }, () => {
         for (const [rawEventId, folders] of Object.entries(folderList)) {
             const eventId = Number(rawEventId);
             for (const folderId of folders) {
                 insertPlayerRushEventClearedFolderSync(playerId, eventId, folderId);
             }
         }
-    })();
+    });
 }
 exports.insertPlayerRushEventClearedFolderListSync = insertPlayerRushEventClearedFolderListSync;
 /**
@@ -457,14 +458,14 @@ exports.insertPlayerRushEventPlayedPartySync = insertPlayerRushEventPlayedPartyS
  * @param partyList A record where the key is an event ID, and the value is an array of rush event played parties.
  */
 function insertPlayerRushEventPlayedPartyListSync(playerId, partyList) {
-    (0, db_1.getDb)().transaction(() => {
+    (0, persistence_coordinator_1.runPersistenceTransactionSync)({ domain: "event", playerId, operation: "insert_rush_played_parties" }, () => {
         for (const [rawEventId, parties] of Object.entries(partyList)) {
             const eventId = Number(rawEventId);
             for (const party of parties) {
                 insertPlayerRushEventPlayedPartySync(playerId, eventId, party);
             }
         }
-    })();
+    });
 }
 exports.insertPlayerRushEventPlayedPartyListSync = insertPlayerRushEventPlayedPartyListSync;
 /**

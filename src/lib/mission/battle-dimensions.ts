@@ -1,10 +1,10 @@
-import { getDb } from "../../data/db"
 import { grantPracticeCharacterDegreeRewardsSync } from "../character-degree-rewards"
 import { grantPracticeExclusiveDegreeRewardsSync } from "../equipment-degree-rewards"
 import { getCharacterRaces, getRaceKeyString } from "../quest/finish/race-utils"
 import { addMissionCounterSync, setMissionCounterMaxSync, setMissionCounterMinSync } from "./counters"
 import type { BattleFinishMissionEvent } from "./events"
 import type { MissionCounterQuery } from "./counters"
+import { runPersistenceTransactionSync } from "../persistence-coordinator"
 
 function add(playerId: number, query: MissionCounterQuery, amount: number = 1): void {
     addMissionCounterSync(playerId, query, amount)
@@ -255,11 +255,13 @@ function recordBattleMissionDimensionWrites(event: BattleFinishMissionEvent): vo
 export function recordBattleMissionDimensions(event: BattleFinishMissionEvent): void {
     if (!event.accomplished) return
 
-    getDb().transaction(() => {
+    runPersistenceTransactionSync({
+        domain: "mission", playerId: event.playerId, operation: "record_battle_mission_dimensions",
+    }, () => {
         recordBattleMissionDimensionWrites(event)
         grantPracticeCharacterDegreeRewardsSync(event)
         grantPracticeExclusiveDegreeRewardsSync(event)
-    })()
+    })
 }
 
 export function recordBattleMissionDimensionsSafe(event: BattleFinishMissionEvent): void {

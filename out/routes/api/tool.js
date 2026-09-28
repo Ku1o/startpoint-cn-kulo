@@ -13,6 +13,7 @@ const types_1 = require("../../data/types");
 const session_1 = require("../../data/domains/session");
 const player_1 = require("../../data/domains/player");
 const utils_1 = require("../../utils");
+const persistence_coordinator_1 = require("../../lib/persistence-coordinator");
 const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
     fastify.post("/get_header_response", (request, reply) => {
         const body = request.body;
@@ -45,15 +46,18 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 "message": "Invalid zat provided."
             });
         const accountId = session.accountId;
-        // Create the player data if it doesn't exist.
-        const accountPlayer = (0, player_1.getPlayerFromAccountIdSync)(accountId);
-        if (accountPlayer === null) {
-            // create new player account
-            (0, player_1.insertDefaultPlayerSync)(accountId);
-        }
-        // generate viewer id
-        const viewerIds = yield (0, session_1.getAccountSessionsOfType)(accountId, types_1.SessionType.VIEWER);
-        const viewerId = !viewerIds[0] ? yield (0, session_1.generateViewerIdSession)(accountId) : viewerIds[0];
+        const viewerId = yield (0, persistence_coordinator_1.runPersistenceTransaction)({
+            domain: "account", operation: "legacy_tool_signup",
+        }, () => {
+            var _a;
+            // Create the player data if it doesn't exist, then ensure the
+            // account has exactly one viewer session under the same owner.
+            const accountPlayer = (0, player_1.getPlayerFromAccountIdSync)(accountId);
+            if (accountPlayer === null)
+                (0, player_1.insertDefaultPlayerSync)(accountId);
+            const viewerIds = (0, session_1.getAccountSessionsOfTypeSync)(accountId, types_1.SessionType.VIEWER);
+            return (_a = viewerIds[0]) !== null && _a !== void 0 ? _a : (0, session_1.generateViewerIdSessionSync)(accountId);
+        });
         reply.header("content-type", "application/x-msgpack");
         return reply.status(200).send({
             "data_headers": (0, utils_1.generateDataHeaders)({

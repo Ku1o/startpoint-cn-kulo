@@ -4,6 +4,7 @@ import { PartyCategory, PlayerParty, PlayerPartyGroup, RawPlayerParty, RawPlayer
 import { deserializeBoolean, serializeBoolean } from "../utils";
 import { insertMissingPartyGroupListSync } from "../../lib/party-group-persistence";
 import { gameVerboseLog } from "../../lib/game-logging";
+import { runPersistenceTransactionSync } from "../../lib/persistence-coordinator";
 
 export interface PlayerPartyDisplaySelection {
     characterIds: (number | null)[];
@@ -210,18 +211,20 @@ function insertPlayerPartyGroupSync(playerId: number, groupId: number | string, 
 
 export function insertPlayerPartyGroupListSync(playerId: number, groups: Record<string, PlayerPartyGroup>) {
     const db = getDb();
-    db.transaction(() => {
+    runPersistenceTransactionSync({ domain: "player", playerId, operation: "insert_player_party_groups" }, () => {
         for (const [groupId, group] of Object.entries(groups)) {
             insertPlayerPartyGroupSync(playerId, groupId, group)
         }
-    })()
+    })
 }
 
 export function ensurePlayerPartyGroupListSync(
     playerId: number,
     groups: Record<string, PlayerPartyGroup>,
 ) {
-    insertMissingPartyGroupListSync(getDb(), playerId, groups)
+    runPersistenceTransactionSync({ domain: "player", playerId, operation: "ensure_player_party_groups" }, () => {
+        insertMissingPartyGroupListSync(getDb(), playerId, groups)
+    })
 }
 
 export function updatePlayerPartySync(playerId: number, slot: number, party: PlayerParty, groupId: number = 1) {

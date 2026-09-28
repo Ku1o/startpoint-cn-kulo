@@ -219,7 +219,12 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         let newBossBoostPoint = playerData.bossBoostPoint - (activeQuestData.useBossBoostPoint ? 1 : 0);
         let useBoostPoint = (activeQuestData.useBoostPoint && (newBoostPoint >= 0)) || (activeQuestData.useBossBoostPoint && (newBossBoostPoint >= 0));
         // check current quest progress
-        const questProgress = (0, quest_1.getPlayerSingleQuestProgressSync)(playerId, questCategory, questId);
+        // This lookup refreshes published Abyss best-time revisions and is
+        // therefore a write-capable operation. Keep it under the same
+        // persistence coordinator as settlement preparation.
+        const questProgress = yield (0, settlement_performance_1.measureSettlementPhaseAsync)("single", "progress_refresh", () => ((0, persistence_coordinator_1.runPersistenceTransaction)({
+            domain: "single-quest", playerId, operation: "progress_refresh",
+        }, () => (0, quest_1.getPlayerSingleQuestProgressSync)(playerId, questCategory, questId))));
         const questPreviouslyCompleted = questProgress !== null;
         let questAccomplished = body.is_accomplished;
         let scoreAttackBorderTiers = [];
@@ -816,7 +821,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         });
     }));
     fastify.post("/start", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
-        var _c, _d, _e, _f;
+        var _c, _d;
         const body = request.body;
         const viewerId = body.viewer_id;
         const partyId = body.party_id;
@@ -934,11 +939,9 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                     "message": `Not enough entry items (need ${entryCost.itemCount} of ${entryCost.itemId}, have ${playerItemCount}).`
                 });
             }
-            (0, item_1.updatePlayerItemSync)(playerId, entryCost.itemId, playerItemCount - entryCost.itemCount);
         }
         // Deduct stamina cost
         const staminaCost = 0;
-        let afterStamina = 0;
         if (staminaCost > 0) {
             const currentStamina = (0, stamina_1.computeRealTimeStamina)(player);
             if (currentStamina < staminaCost) {
@@ -948,24 +951,9 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                     "message": "Insufficient stamina."
                 });
             }
-            const newStamina = Math.max(0, currentStamina - staminaCost);
-            (0, player_1.updatePlayerSync)({
-                id: playerId,
-                stamina: newStamina,
-                staminaHealTime: new Date(),
-                totalStaminaUsed: ((_e = player.totalStaminaUsed) !== null && _e !== void 0 ? _e : 0) + staminaCost
-            });
-            afterStamina = newStamina;
-            (0, game_logging_1.gameVerboseLog)(() => `[BATTLE-START] stamina: ${currentStamina} -> ${newStamina} (cost: ${staminaCost}, rate: ${staminaInfo.rate})`);
         }
-        else {
-            // No stamina deduction, read current stamina for response
-            const player = (0, player_1.getPlayerSync)(playerId);
-            afterStamina = (_f = player === null || player === void 0 ? void 0 : player.stamina) !== null && _f !== void 0 ? _f : 0;
-        }
-        // add to active quests table
-        delete exports.activeQuests[playerId];
-        exports.activeQuests[playerId] = {
+        const previousMemory = exports.activeQuests[playerId];
+        const activeQuest = {
             questId: questId,
             category: category,
             useBoostPoint: useBoostPoint,
@@ -977,38 +965,75 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             continueCount: 0,
             startedAtMs: (0, utils_1.getServerTime)() * 1000,
         };
+        let afterStamina = 0;
         let missionSettlement;
-        yield (0, persistence_coordinator_1.runPersistenceTransaction)({
-            domain: "single-quest", playerId, operation: "start",
-        }, () => {
-            var _a, _b, _c, _d, _e;
-            const playerUpdate = {
-                id: playerId,
-                totalStaminaUsed: ((_a = player.totalStaminaUsed) !== null && _a !== void 0 ? _a : 0) + nominalStaminaCost,
-            };
-            if (questData.fixedParty === undefined)
-                playerUpdate.partySlot = partyId;
-            (0, player_1.updatePlayerSync)(playerUpdate);
-            const activeQuest = exports.activeQuests[playerId];
-            (0, quest_active_1.insertPlayerActiveQuestSync)(playerId, {
-                playerId,
-                playId: activeQuest.playId,
-                questId: activeQuest.questId,
-                category: activeQuest.category,
-                useBossBoostPoint: activeQuest.useBossBoostPoint,
-                useBoostPoint: activeQuest.useBoostPoint,
-                isAutoStartMode: activeQuest.isAutoStartMode,
-                isMulti: activeQuest.isMulti,
-                isMultiHost: (_b = activeQuest.isMultiHost) !== null && _b !== void 0 ? _b : false,
-                roomNumber: (_c = activeQuest.roomNumber) !== null && _c !== void 0 ? _c : null,
-                entryItemId: null,
-                eventId: (_d = activeQuest.eventId) !== null && _d !== void 0 ? _d : null,
-                continueCount: activeQuest.continueCount,
-                startedAtMs: (_e = activeQuest.startedAtMs) !== null && _e !== void 0 ? _e : null,
+        try {
+            yield (0, persistence_coordinator_1.runPersistenceTransaction)({
+                domain: "single-quest", playerId, operation: "start",
+            }, () => {
+                var _a, _b, _c, _d, _e, _f, _g, _h, _j;
+                const currentPlayer = (_a = (0, player_1.getPlayerSync)(playerId)) !== null && _a !== void 0 ? _a : player;
+                if (entryCost && entryCost.itemId > 0) {
+                    const playerItemCount = (_b = (0, item_1.getPlayerItemSync)(playerId, entryCost.itemId)) !== null && _b !== void 0 ? _b : 0;
+                    if (playerItemCount < entryCost.itemCount) {
+                        throw new Error(`Not enough entry items (need ${entryCost.itemCount} of ${entryCost.itemId}, have ${playerItemCount}).`);
+                    }
+                    (0, item_1.updatePlayerItemSync)(playerId, entryCost.itemId, playerItemCount - entryCost.itemCount);
+                }
+                const playerUpdate = {
+                    id: playerId,
+                    totalStaminaUsed: ((_c = currentPlayer.totalStaminaUsed) !== null && _c !== void 0 ? _c : 0) + nominalStaminaCost,
+                };
+                if (staminaCost > 0) {
+                    const currentStamina = (0, stamina_1.computeRealTimeStamina)(currentPlayer);
+                    if (currentStamina < staminaCost) {
+                        throw new Error("Insufficient stamina.");
+                    }
+                    const newStamina = Math.max(0, currentStamina - staminaCost);
+                    playerUpdate.stamina = newStamina;
+                    playerUpdate.staminaHealTime = new Date();
+                    playerUpdate.totalStaminaUsed = ((_d = currentPlayer.totalStaminaUsed) !== null && _d !== void 0 ? _d : 0) + staminaCost;
+                    afterStamina = newStamina;
+                    (0, game_logging_1.gameVerboseLog)(() => `[BATTLE-START] stamina: ${currentStamina} -> ${newStamina} (cost: ${staminaCost}, rate: ${staminaInfo.rate})`);
+                }
+                else {
+                    afterStamina = (_e = currentPlayer.stamina) !== null && _e !== void 0 ? _e : 0;
+                }
+                if (questData.fixedParty === undefined)
+                    playerUpdate.partySlot = partyId;
+                (0, player_1.updatePlayerSync)(playerUpdate);
+                exports.activeQuests[playerId] = activeQuest;
+                (0, quest_active_1.insertPlayerActiveQuestSync)(playerId, {
+                    playerId,
+                    playId: activeQuest.playId,
+                    questId: activeQuest.questId,
+                    category: activeQuest.category,
+                    useBossBoostPoint: activeQuest.useBossBoostPoint,
+                    useBoostPoint: activeQuest.useBoostPoint,
+                    isAutoStartMode: activeQuest.isAutoStartMode,
+                    isMulti: activeQuest.isMulti,
+                    isMultiHost: (_f = activeQuest.isMultiHost) !== null && _f !== void 0 ? _f : false,
+                    roomNumber: (_g = activeQuest.roomNumber) !== null && _g !== void 0 ? _g : null,
+                    entryItemId: null,
+                    eventId: (_h = activeQuest.eventId) !== null && _h !== void 0 ? _h : null,
+                    continueCount: activeQuest.continueCount,
+                    startedAtMs: (_j = activeQuest.startedAtMs) !== null && _j !== void 0 ? _j : null,
+                });
+                (0, active_entry_facts_1.recordActiveMissionQuestChallengeFactSync)(playerId, category);
+                missionSettlement = (0, mission_2.settleMissionCategories)(playerId, [1, 2, 10], new Date((0, utils_1.getServerTime)() * 1000));
             });
-            (0, active_entry_facts_1.recordActiveMissionQuestChallengeFactSync)(playerId, category);
-            missionSettlement = (0, mission_2.settleMissionCategories)(playerId, [1, 2, 10], new Date((0, utils_1.getServerTime)() * 1000));
-        });
+        }
+        catch (error) {
+            if (previousMemory)
+                exports.activeQuests[playerId] = previousMemory;
+            else
+                delete exports.activeQuests[playerId];
+            const message = error instanceof Error ? error.message : String(error);
+            if (message === "Insufficient stamina." || message.startsWith("Not enough entry items")) {
+                return reply.status(400).send({ error: "Bad Request", message });
+            }
+            throw error;
+        }
         const dataHeaders = (0, utils_1.generateDataHeaders)({
             viewer_id: viewerId
         });
@@ -1039,15 +1064,15 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         method: ["GET", "POST"],
         url: "/play_continue",
         handler: (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
-            var _g, _h;
+            var _e, _f;
             // Some legacy builds submit this endpoint as GET, while newer builds
             // use POST. Normalize both forms so a revive is not treated as an
             // unknown route by the client.
-            const raw = ((_g = (request.method === "GET" ? request.query : request.body)) !== null && _g !== void 0 ? _g : {});
+            const raw = ((_e = (request.method === "GET" ? request.query : request.body)) !== null && _e !== void 0 ? _e : {});
             const viewerId = Number(raw.viewer_id);
             const questId = Number(raw.quest_id);
             const category = Number(raw.category);
-            const playId = (_h = raw.play_id) !== null && _h !== void 0 ? _h : raw.paly_id;
+            const playId = (_f = raw.play_id) !== null && _f !== void 0 ? _f : raw.paly_id;
             if (!Number.isSafeInteger(viewerId)
                 || !Number.isSafeInteger(questId)
                 || !Number.isSafeInteger(category))

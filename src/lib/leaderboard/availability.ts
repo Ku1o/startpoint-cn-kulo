@@ -1,5 +1,6 @@
 import { getDb } from "../../data/db"
 import { abandonLeaderboardRunsSync } from "../../data/domains/leaderboard"
+import { runPersistenceTransactionSync } from "../persistence-coordinator"
 
 export interface LeaderboardAvailability {
     competitionKey: string
@@ -88,5 +89,7 @@ export function setLeaderboardAvailabilitySync(
             abandonedRuns,
         }
     }
-    return db.inTransaction ? operation() : db.transaction(operation)()
+    return db.inTransaction ? operation() : runPersistenceTransactionSync({
+        domain: "leaderboard", operation: "set_leaderboard_availability",
+    }, operation)
 }

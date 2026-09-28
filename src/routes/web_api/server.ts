@@ -6,11 +6,10 @@ import { randomBytes, randomUUID } from "crypto";
 import { Worker } from "worker_threads";
 import { getServerTime, getServerDate, setServerTime, getTimeOffset } from "../../utils";
 import { deleteAccountSync, getAccountPlayersSync, getAllAccountsSync, updateAccountSync } from "../../data/domains/account"
-import { deletePlayerSync, getPlayerSync, insertDefaultPlayerSync, replacePlayerDataSync, updatePlayerSync } from "../../data/domains/player"
+import { deletePlayerSync, getPlayerSync, insertDefaultPlayerSync, updatePlayerSync } from "../../data/domains/player"
 import { getAllDeviceBindingsSync, getAllViewerSessionsSync, getDeviceBindingSync, getSessionByAccountIdSync } from "../../data/domains/session"
 import { getPlayerCharactersSync } from "../../data/domains/character"
 import { getAllAdminPlayerSummariesSync, type AdminPlayerSummary } from "../../data/domains/admin-player"
-import { reviveMergedPlayerDates } from "../../data/utils";
 import { getActivePlayerId, getAdminPlayerSelectionState, setActivePlayerId, getSelectedAccountId, setSelectedAccountId, saveTimeOffset, saveAccountDefaultPlayer, getAccountDefaultPlayer, removeDeletedAccountFromState, removeDeletedAccountsFromState } from "../../data/activeAccount";
 import { saveDefaultSaveTemplate, loadDefaultSaveTemplate, clearDefaultSaveTemplate, getDefaultSaveMeta } from "../../data/defaultSave";
 import { detectCDNVersion, FULL_BASE, getEffectiveVersion, getPatchManifest } from "../../lib/version";
@@ -21,7 +20,7 @@ import { getDb } from "../../data/db";
 import { disconnectDeletedPlayerLogin, playerLoginAdminOverview, playerLoginManaged } from "../../lib/player-login";
 import { accountHasNote, ensureCascadeDeleteIndexes, selectUnnotedAccountIds } from "../../lib/admin-account-cleanup";
 import { removePlayerQuestNpcPartySnapshots } from "../../multi/npc/player-party-pool";
-import { runPersistenceTransaction } from "../../lib/persistence-coordinator";
+import { runPersistenceTransaction, runPersistenceTransactionSync } from "../../lib/persistence-coordinator";
 import { createFullDatabaseBackup, getDatabaseDirectory } from "../../lib/admin-database-backup";
 import { getOnlinePlayerCount } from "../../lib/online-presence";
 import { clearRecoveryFailuresForViewer } from "../cn/takeOver";
@@ -623,14 +622,9 @@ const routes = async (fastify: FastifyInstance) => {
             try { parsed = JSON.parse(text) } catch { return reply.status(400).send({ error: "文件不是有效的 JSON" }) }
             if (!parsed || typeof parsed !== "object" || parsed.schema !== "starpoint-cn-save")
                 return reply.status(400).send({ error: "不是有效的存档快照（请使用本面板导出的存档）" })
-            if (isPlayerSaveSnapshotV2(parsed)) {
-                validatePlayerSaveSnapshotV2Sync(parsed)
-            } else {
-                if (parsed.version !== 1)
-                    return reply.status(400).send({ error: `不支持的存档版本：${parsed.version}` })
-                if (!parsed.data || typeof parsed.data !== "object" || !parsed.data.player)
-                    return reply.status(400).send({ error: "存档数据缺失 player 字段" })
-            }
+            if (!isPlayerSaveSnapshotV2(parsed))
+                return reply.status(400).send({ error: "仅支持 V2 完整存档；旧版 V1 存档与当前数据库结构不兼容" })
+            validatePlayerSaveSnapshotV2Sync(parsed)
             saveDefaultSaveTemplate(parsed)
             return reply.send({ ok: true, ...getDefaultSaveMeta() })
         } catch (e: any) {
@@ -690,25 +684,31 @@ const routes = async (fastify: FastifyInstance) => {
             if (wantsJson(request)) return reply.status(400).send({ error: "Invalid accountId" })
             return reply.redirect('/player')
         }
-        const player = insertDefaultPlayerSync(accId)
+        const player = runPersistenceTransactionSync({
+            domain: "admin", operation: "admin_create_save",
+        }, () => insertDefaultPlayerSync(accId))
         // 若管理员配置了默认存档模板，用它替换新建的空存档
         let appliedTemplate = false
         try {
             const template = loadDefaultSaveTemplate()
-            if (isPlayerSaveSnapshotV2(template)) {
+            if (template !== null) {
+                if (!isPlayerSaveSnapshotV2(template)) {
+                    throw new Error("默认存档模板不是受支持的 V2 完整存档，请重新上传")
+                }
                 const snapshot = validatePlayerSaveSnapshotV2Sync(template)
-                restorePlayerSaveSnapshotV2Sync(snapshot, player.id, {
+                runPersistenceTransactionSync({
+                    domain: "admin", playerId: player.id, operation: "admin_apply_save_template_v2",
+                }, () => restorePlayerSaveSnapshotV2Sync(snapshot, player.id, {
                     includeArchiveHistory: false,
-                })
-                appliedTemplate = true
-            } else if (template?.data?.player) {
-                const data = reviveMergedPlayerDates(template.data)
-                data.player.id = player.id
-                replacePlayerDataSync(data)
+                }))
                 appliedTemplate = true
             }
         } catch (error: any) {
-            try { deletePlayerSync(player.id) } catch { /* preserve template error */ }
+            try {
+                runPersistenceTransactionSync({
+                    domain: "admin", playerId: player.id, operation: "admin_rollback_new_save",
+                }, () => deletePlayerSync(player.id))
+            } catch { /* preserve template error */ }
             const message = `默认存档应用失败，未创建新存档：${error?.message ?? error}`
             if (wantsJson(request)) return reply.status(409).send({ error: message })
             return reply.redirect(`/player?error=${encodeURIComponent(message)}`)
@@ -733,11 +733,15 @@ const routes = async (fastify: FastifyInstance) => {
             if (getAccountPlayersSync(a.id).includes(pid)) { accountId = a.id; break }
         }
         if (accountId && getAccountPlayersSync(accountId).length <= 1) {
-            const deletedPlayerIds = deleteAccountDataSync(accountId)
+            const deletedPlayerIds = runPersistenceTransactionSync({
+                domain: "admin", operation: `admin_delete_save_account:${accountId}`,
+            }, () => deleteAccountDataSync(accountId))
             removeDeletedAccountFromState(accountId, deletedPlayerIds)
             await cleanupDeletedPlayerAiSnapshots(deletedPlayerIds, `save ${pid} and account ${accountId} deletion`)
         } else {
-            deletePlayerSync(pid)
+            runPersistenceTransactionSync({
+                domain: "admin", playerId: pid, operation: "admin_delete_save",
+            }, () => deletePlayerSync(pid))
             await cleanupDeletedPlayerAiSnapshots([pid], `save ${pid} deletion`)
             const remainingPlayerIds = getAccountPlayersSync(accountId)
             if (getAccountDefaultPlayer(accountId) === pid && remainingPlayerIds.length > 0) {
@@ -755,7 +759,9 @@ const routes = async (fastify: FastifyInstance) => {
         const { id } = (request.query || {}) as any
         const accountId = parseInt(id)
         if (isNaN(accountId)) return reply.status(400).send({ error: "Missing or invalid 'id'" })
-        const playerIds = deleteAccountDataSync(accountId)
+        const playerIds = runPersistenceTransactionSync({
+            domain: "admin", operation: `admin_delete_account:${accountId}`,
+        }, () => deleteAccountDataSync(accountId))
         removeDeletedAccountFromState(accountId, playerIds)
         await cleanupDeletedPlayerAiSnapshots(playerIds, `account ${accountId} deletion`)
         if (wantsJson(request)) return reply.send({ ok: true, accountId, deletedSaves: playerIds.length })
@@ -828,7 +834,9 @@ const routes = async (fastify: FastifyInstance) => {
         const playerId = parseInt(body.playerId)
         const name = body.name
         if (isNaN(playerId) || !name) return reply.status(400).send({ error: "Missing params" })
-        updatePlayerSync({ id: playerId, name: String(name) })
+        runPersistenceTransactionSync({
+            domain: "admin", playerId, operation: "rename_save",
+        }, () => updatePlayerSync({ id: playerId, name: String(name) }))
         if (wantsJson(request)) return reply.send({ ok: true, playerId, name: String(name) })
         return reply.redirect('/player')
     })
@@ -855,21 +863,33 @@ const routes = async (fastify: FastifyInstance) => {
             return reply.redirect('/player')
         }
 
-        const newPlayer = insertDefaultPlayerSync(accountId)
+        let newPlayerId = 0
         let restored
         try {
-            restored = restorePlayerSaveSnapshotV2Sync(snapshot, newPlayer.id, {
-                includeArchiveHistory: false,
-            })
+            ({ newPlayerId, restored } = runPersistenceTransactionSync({
+                domain: "admin", operation: "clone_save",
+            }, () => {
+                const newPlayer = insertDefaultPlayerSync(accountId)
+                try {
+                    return {
+                        newPlayerId: newPlayer.id,
+                        restored: restorePlayerSaveSnapshotV2Sync(snapshot, newPlayer.id, {
+                            includeArchiveHistory: false,
+                        }),
+                    }
+                } catch (error) {
+                    try { deletePlayerSync(newPlayer.id) } catch { /* preserve original clone error */ }
+                    throw error
+                }
+            }))
         } catch (error: any) {
-            try { deletePlayerSync(newPlayer.id) } catch { /* preserve original clone error */ }
             if (wantsJson(request)) return reply.status(500).send({ error: `克隆恢复失败：${error?.message ?? error}` })
             return reply.redirect('/player')
         }
 
-        setActivePlayerId(newPlayer.id)
-        saveAccountDefaultPlayer(accountId, newPlayer.id)
-        if (wantsJson(request)) return reply.send({ ok: true, newPlayerId: newPlayer.id, snapshotVersion: 2, restored })
+        setActivePlayerId(newPlayerId)
+        saveAccountDefaultPlayer(accountId, newPlayerId)
+        if (wantsJson(request)) return reply.send({ ok: true, newPlayerId, snapshotVersion: 2, restored })
         return reply.redirect('/player')
     })
 
@@ -883,7 +903,9 @@ const routes = async (fastify: FastifyInstance) => {
         const account = getAllAccountsSync().find(candidate => candidate.id === accountId)
         if (!account) return reply.status(404).send({ error: "Account not found" })
         const note = typeof body.name === "string" ? body.name.trim().slice(0, 100) : ""
-        updateAccountSync({ id: accountId, adminNote: note || null })
+        runPersistenceTransactionSync({
+            domain: "admin", operation: "rename_account",
+        }, () => updateAccountSync({ id: accountId, adminNote: note || null }))
         return reply.status(200).send({ ok: true, accountId, note: note || null })
     })
 
@@ -902,7 +924,9 @@ const routes = async (fastify: FastifyInstance) => {
         const account = getAllAccountsSync().find(candidate => candidate.id === accountId)
         if (!account) return reply.status(404).send({ error: "Account not found" })
         const replacementPassword = `R${randomBytes(6).toString("hex")}a1`
-        updateAccountSync({ id: accountId, takeoverPassword: replacementPassword })
+        runPersistenceTransactionSync({
+            domain: "admin", operation: "reset_takeover_password",
+        }, () => updateAccountSync({ id: accountId, takeoverPassword: replacementPassword }))
         const viewerSession = getSessionByAccountIdSync(accountId, SessionType.VIEWER)
         if (viewerSession) clearRecoveryFailuresForViewer(viewerSession.token)
         // Return the replacement once; account listing never exposes stored passwords.
@@ -919,7 +943,9 @@ const routes = async (fastify: FastifyInstance) => {
         const binding = getDeviceBindingSync(deviceId)
         if (!binding) return reply.status(404).send({ error: "Device binding not found" })
         const note = typeof body.name === "string" ? body.name.trim().slice(0, 100) : ""
-        updateAccountSync({ id: binding.account_id, adminNote: note || null })
+        runPersistenceTransactionSync({
+            domain: "admin", operation: "rename_device_account",
+        }, () => updateAccountSync({ id: binding.account_id, adminNote: note || null }))
         return reply.status(200).send({ ok: true })
     })
 }

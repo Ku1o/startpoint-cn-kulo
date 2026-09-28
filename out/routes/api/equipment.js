@@ -23,6 +23,7 @@ const counters_1 = require("../../lib/mission/counters");
 const mission_1 = require("../../lib/mission");
 const game_logging_1 = require("../../lib/game-logging");
 const rewards_1 = require("../../multi/five-boss/rewards");
+const persistence_coordinator_1 = require("../../lib/persistence-coordinator");
 const wrightpieceItemId = () => (0, assets_1.getConfigSync)().craft_point_item_id || 100000;
 // wrightpiece cost for each rank of weapon (awakening) — from CDN
 const getUpgradeCost = (rarity) => { var _a, _b; return (_b = (_a = (0, assets_1.getEquipmentCraftSync)(rarity)) === null || _a === void 0 ? void 0 : _a.awakening_craft) !== null && _b !== void 0 ? _b : 25; };
@@ -77,6 +78,8 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         }
         const cdnInfo = (0, assets_1.getEquipmentDissolveSync)(equipmentId);
         const maxLevel = (_b = cdnInfo === null || cdnInfo === void 0 ? void 0 : cdnInfo.max_level) !== null && _b !== void 0 ? _b : 5;
+        const previousLevel = equipment.level;
+        const previousStack = equipment.stack;
         const newLevel = equipment.level + upgradeCount;
         if (newLevel > maxLevel)
             return reply.status(400).send({ "error": "Bad Request", "message": "Reached max awakening level." });
@@ -94,23 +97,25 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         if (newItemCount < 0)
             return reply.status(400).send({ "error": "Bad Request", "message": "Not enough of item." });
         const returnItemList = {};
-        if (!useStack && itemId !== undefined) {
-            returnItemList[itemId] = newItemCount;
-            (0, item_1.updatePlayerItemSync)(playerId, itemId, newItemCount);
-        }
-        returnItemList[wrightpieceItemId()] = newWrightPieces;
-        (0, item_1.updatePlayerItemSync)(playerId, wrightpieceItemId(), newWrightPieces);
-        equipment.level = newLevel;
-        equipment.stack = newStack;
-        (0, equipment_1.updatePlayerEquipmentSync)(playerId, equipmentId, { stack: newStack, level: newLevel });
-        recordEquipmentAwakeningProgress(playerId, upgradeCount);
-        // give ability cores (CDN check: only if generate_ability_soul)
-        const dissolveInfo = (0, assets_1.getEquipmentDissolveSync)(equipmentId);
-        if (dissolveInfo && dissolveInfo.generate_ability_soul) {
-            returnItemList[dissolveInfo.ability_soul_id] = (0, item_1.givePlayerItemSync)(playerId, dissolveInfo.ability_soul_id, upgradeCount);
-        }
+        yield (0, persistence_coordinator_1.runPersistenceTransaction)({
+            domain: "player", playerId, operation: "equipment_upgrade",
+        }, () => {
+            if (!useStack && itemId !== undefined) {
+                returnItemList[itemId] = newItemCount;
+                (0, item_1.updatePlayerItemSync)(playerId, itemId, newItemCount);
+            }
+            returnItemList[wrightpieceItemId()] = newWrightPieces;
+            (0, item_1.updatePlayerItemSync)(playerId, wrightpieceItemId(), newWrightPieces);
+            (0, equipment_1.updatePlayerEquipmentSync)(playerId, equipmentId, { stack: newStack, level: newLevel });
+            recordEquipmentAwakeningProgress(playerId, upgradeCount);
+            // give ability cores (CDN check: only if generate_ability_soul)
+            const dissolveInfo = (0, assets_1.getEquipmentDissolveSync)(equipmentId);
+            if (dissolveInfo && dissolveInfo.generate_ability_soul) {
+                returnItemList[dissolveInfo.ability_soul_id] = (0, item_1.givePlayerItemSync)(playerId, dissolveInfo.ability_soul_id, upgradeCount);
+            }
+        });
         const returnEquipmentList = (0, equipment_2.buildFullEquipmentList)(playerId);
-        (0, game_logging_1.gameVerboseLog)(() => `[UPGRADE] account=${accountId} player=${playerId}: eid=${equipmentId} rarity=${equipmentRarity} level ${equipment.level - upgradeCount}->${equipment.level} stack ${equipment.stack + upgradeCount}->${equipment.stack} craft -${upgradeCost * upgradeCount}`);
+        (0, game_logging_1.gameVerboseLog)(() => `[UPGRADE] account=${accountId} player=${playerId}: eid=${equipmentId} rarity=${equipmentRarity} level ${previousLevel}->${newLevel} stack ${previousStack}->${newStack} craft -${upgradeCost * upgradeCount}`);
         reply.header("content-type", "application/x-msgpack");
         const responseData = {
             "equipment_list": returnEquipmentList,
@@ -172,19 +177,23 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             return reply.status(400).send({ "error": "Bad Request", "message": "Not enough craft points." });
         }
         const returnItemList = {};
-        for (const { equipmentId, upgradeCount } of upgrades) {
-            const equipment = (0, equipment_1.getPlayerEquipmentSync)(playerId, equipmentId);
-            equipment.level += upgradeCount;
-            equipment.stack -= upgradeCount;
-            (0, equipment_1.updatePlayerEquipmentSync)(playerId, equipmentId, { level: equipment.level, stack: equipment.stack });
-            const dissolveInfo = (0, assets_1.getEquipmentDissolveSync)(equipmentId);
-            if (dissolveInfo && dissolveInfo.generate_ability_soul) {
-                returnItemList[dissolveInfo.ability_soul_id] = (0, item_1.givePlayerItemSync)(playerId, dissolveInfo.ability_soul_id, upgradeCount);
-            }
-        }
-        recordEquipmentAwakeningProgress(playerId, upgrades.reduce((total, upgrade) => total + upgrade.upgradeCount, 0));
         const newCraftPoints = currentCraftPoints - totalCraftPointCost;
-        (0, item_1.updatePlayerItemSync)(playerId, wrightpieceItemId(), newCraftPoints);
+        yield (0, persistence_coordinator_1.runPersistenceTransaction)({
+            domain: "player", playerId, operation: "equipment_bulk_upgrade",
+        }, () => {
+            for (const { equipmentId, upgradeCount } of upgrades) {
+                const equipment = (0, equipment_1.getPlayerEquipmentSync)(playerId, equipmentId);
+                equipment.level += upgradeCount;
+                equipment.stack -= upgradeCount;
+                (0, equipment_1.updatePlayerEquipmentSync)(playerId, equipmentId, { level: equipment.level, stack: equipment.stack });
+                const dissolveInfo = (0, assets_1.getEquipmentDissolveSync)(equipmentId);
+                if (dissolveInfo && dissolveInfo.generate_ability_soul) {
+                    returnItemList[dissolveInfo.ability_soul_id] = (0, item_1.givePlayerItemSync)(playerId, dissolveInfo.ability_soul_id, upgradeCount);
+                }
+            }
+            recordEquipmentAwakeningProgress(playerId, upgrades.reduce((total, upgrade) => total + upgrade.upgradeCount, 0));
+            (0, item_1.updatePlayerItemSync)(playerId, wrightpieceItemId(), newCraftPoints);
+        });
         returnItemList[wrightpieceItemId()] = newCraftPoints;
         (0, game_logging_1.gameVerboseLog)(() => `[BULK_UPGRADE] account=${accountId} player=${playerId}: ${upgrades.length} equipment upgraded, craft points ${currentCraftPoints} -> ${newCraftPoints}`);
         const returnEquipmentList = (0, equipment_2.buildFullEquipmentList)(playerId);
@@ -215,11 +224,15 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         if (!player)
             return reply.status(500).send({ "error": "Internal Server Error", "message": "No players bound to account." });
         const newProtection = body.protection;
-        for (const equipmentId of body.equipment_ids) {
-            if ((0, equipment_1.playerOwnsEquipmentSync)(playerId, equipmentId)) {
-                (0, equipment_1.updatePlayerEquipmentSync)(playerId, equipmentId, { protection: newProtection });
+        yield (0, persistence_coordinator_1.runPersistenceTransaction)({
+            domain: "player", playerId, operation: "equipment_set_protection",
+        }, () => {
+            for (const equipmentId of body.equipment_ids) {
+                if ((0, equipment_1.playerOwnsEquipmentSync)(playerId, equipmentId)) {
+                    (0, equipment_1.updatePlayerEquipmentSync)(playerId, equipmentId, { protection: newProtection });
+                }
             }
-        }
+        });
         reply.header("content-type", "application/x-msgpack");
         return reply.status(200).send({
             "data_headers": (0, utils_1.generateDataHeaders)({ viewer_id: viewerId }),

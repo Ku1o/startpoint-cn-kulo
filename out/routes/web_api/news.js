@@ -12,6 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const news_1 = require("../../data/domains/news");
 const news_config_1 = require("../../lib/news-config");
 const utils_1 = require("../../utils");
+const persistence_coordinator_1 = require("../../lib/persistence-coordinator");
 function isRecord(value) {
     return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -87,7 +88,9 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             ? Object.assign(Object.assign({}, config.popup), { enabled: false, news_id: null }) : config.popup;
         try {
             (0, news_config_1.saveNewsConfig)(Object.assign(Object.assign({}, config), { popup, news: config.news.filter(item => item.id !== id) }));
-            (0, news_1.deleteNewsReceiptsSync)(id);
+            (0, persistence_coordinator_1.runPersistenceTransactionSync)({
+                domain: "admin", operation: "delete_news_receipts",
+            }, () => (0, news_1.deleteNewsReceiptsSync)(id));
             return sendOverview(reply);
         }
         catch (error) {
@@ -115,10 +118,14 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             const newsId = Number(requestedId);
             if (!Number.isSafeInteger(newsId) || newsId <= 0)
                 return fail(reply, "公告 ID 无效");
-            const deleted = (0, news_1.deleteNewsReceiptsSync)(newsId, "popup");
+            const deleted = (0, persistence_coordinator_1.runPersistenceTransactionSync)({
+                domain: "admin", operation: "reset_news_popup_receipts",
+            }, () => (0, news_1.deleteNewsReceiptsSync)(newsId, "popup"));
             return reply.send({ ok: true, deleted, news_id: newsId });
         }
-        const deleted = (0, news_1.deleteAllPopupNewsReceiptsSync)();
+        const deleted = (0, persistence_coordinator_1.runPersistenceTransactionSync)({
+            domain: "admin", operation: "reset_all_news_popup_receipts",
+        }, () => (0, news_1.deleteAllPopupNewsReceiptsSync)());
         return reply.send({ ok: true, deleted, news_id: null });
     }));
 });

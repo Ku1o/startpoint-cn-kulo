@@ -42,6 +42,7 @@ const competition_1 = require("../../lib/leaderboard/competition");
 const presentation_1 = require("../../lib/leaderboard/presentation");
 const availability_1 = require("../../lib/leaderboard/availability");
 const rush_party_categories_1 = require("../../lib/rush-party-categories");
+const persistence_coordinator_1 = require("../../lib/persistence-coordinator");
 var ResetQuestType;
 (function (ResetQuestType) {
     ResetQuestType[ResetQuestType["EMPTY"] = 0] = "EMPTY";
@@ -107,7 +108,9 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         const playerId = (0, activeAccount_1.resolvePlayerIdSync)(session.accountId);
         if (playerId === null)
             return;
-        (0, abyss_tower_progress_1.refreshPlayerAbyssTowersSync)(playerId);
+        yield (0, persistence_coordinator_1.runPersistenceTransaction)({
+            domain: "event", playerId, operation: "abyss_refresh",
+        }, () => (0, abyss_tower_progress_1.refreshPlayerAbyssTowersSync)(playerId));
         if (eventId === abyss_modes_1.ABYSS_EX_EVENT_ID && !(0, abyss_tower_progress_1.hasAbyssExUnlockSync)(playerId)
             && /\/(select_folder|battle\/start|endless_battle)$/.test(request.url.split("?")[0])) {
             (0, request_diagnostics_1.setRequestOutcome)(request, "rush_ex_locked");
@@ -143,30 +146,30 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         // The client entry is hidden by a forward asset patch.  Keep this
         // server-side guard for clients that still have the old event table
         // cached or retain a stale navigation stack.
-        // get rush event data
-        let rushEventData = (0, rushEvent_1.getPlayerRushEventSync)(playerId, eventId);
-        if (rushEventData === null) {
-            rushEventData = (0, rushEvent_1.getDefaultPlayerRushEventSync)(eventId);
-            (0, rushEvent_1.insertPlayerRushEventSync)(playerId, rushEventData);
-        }
-        // Older or modified clients could persist the endless folder (2) as
-        // the regular Deep Abyss difficulty lock. The client then refuses to
-        // open folder 1 with "challenging another difficulty". Repair only
-        // this known invalid state; every other Rush event remains untouched.
-        rushEventData = repairDeepAbyssEndlessFolderLockSync(playerId, rushEventData);
-        // Older reset builds left the active folder null, while the Fantasy
-        // client now returns straight to folder 1 without calling
-        // /select_folder. Repair those existing saves during summary loading
-        // so the next-round cursor and the visible quest stay in sync.
-        if (eventId === mode15_optional_1.MODE15_RUSH_EVENT_ID
-            && rushEventData.activeRushBattleFolderId === null) {
-            (0, rushEvent_1.updatePlayerRushEventSync)(playerId, {
-                eventId,
-                activeRushBattleFolderId: 1,
-            });
-            rushEventData = Object.assign(Object.assign({}, rushEventData), { activeRushBattleFolderId: 1 });
-            console.log(`[MODE15] repaired active Rush folder: player=${playerId} folder=1`);
-        }
+        // Initialize and repair event state in one player-owned transaction so
+        // summary loading cannot race with a reset or a concurrent login.
+        const rushEventData = yield (0, persistence_coordinator_1.runPersistenceTransaction)({
+            domain: "event", playerId, operation: "rush_summary_maintenance",
+        }, () => {
+            let current = (0, rushEvent_1.getPlayerRushEventSync)(playerId, eventId);
+            if (current === null) {
+                current = (0, rushEvent_1.getDefaultPlayerRushEventSync)(eventId);
+                (0, rushEvent_1.insertPlayerRushEventSync)(playerId, current);
+            }
+            // Older or modified clients could persist the endless folder (2)
+            // as the regular Deep Abyss difficulty lock. The client then
+            // refuses to open folder 1 with "challenging another difficulty".
+            current = repairDeepAbyssEndlessFolderLockSync(playerId, current);
+            // Older reset builds left the active folder null, while the
+            // Fantasy client now returns straight to folder 1 without calling
+            // /select_folder. Repair those saves during summary loading.
+            if (eventId === mode15_optional_1.MODE15_RUSH_EVENT_ID && current.activeRushBattleFolderId === null) {
+                (0, rushEvent_1.updatePlayerRushEventSync)(playerId, { eventId, activeRushBattleFolderId: 1 });
+                current = Object.assign(Object.assign({}, current), { activeRushBattleFolderId: 1 });
+                console.log(`[MODE15] repaired active Rush folder: player=${playerId} folder=1`);
+            }
+            return current;
+        });
         // get cleared folder id list
         const clearedFolderIdList = (0, rushEvent_1.getPlayerRushEventClearedFoldersSync)(playerId, eventId);
         // get serialized parties
@@ -224,7 +227,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             });
         }
         // get existing rush event data
-        let rushEventData = (0, rushEvent_1.getPlayerRushEventSync)(playerId, eventId);
+        const rushEventData = (0, rushEvent_1.getPlayerRushEventSync)(playerId, eventId);
         if (rushEventData === null) {
             (0, request_diagnostics_1.setRequestOutcome)(request, "rush_missing_event");
             return reply.status(400).send({
@@ -232,7 +235,6 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 "message": `No rush event data for rush event with id '${eventId}'`
             });
         }
-        rushEventData = repairDeepAbyssEndlessFolderLockSync(playerId, rushEventData);
         const deepAbyssSelection = (0, rush_event_folder_lock_1.classifyDeepAbyssFolderSelection)(eventId, folderId);
         if (deepAbyssSelection === "invalid") {
             (0, request_diagnostics_1.setRequestOutcome)(request, "rush_invalid_folder");
@@ -242,6 +244,9 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             });
         }
         if (deepAbyssSelection === "endless_compat") {
+            yield (0, persistence_coordinator_1.runPersistenceTransaction)({
+                domain: "event", playerId, operation: "rush_select_folder_maintenance",
+            }, () => { repairDeepAbyssEndlessFolderLockSync(playerId, rushEventData); });
             (0, request_diagnostics_1.setRequestOutcome)(request, "rush_endless_compat");
             // The current client enters endless battle directly and never
             // calls /select_folder. Treat calls from older clients as a
@@ -258,20 +263,35 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 }
             });
         }
-        // A lost response may replay the same selection. Return authority without
-        // reinitializing the tower, parties, rounds or any rewards.
-        if (rushEventData.activeRushBattleFolderId !== null && rushEventData.activeRushBattleFolderId !== folderId) {
+        // A lost response may replay the same selection. Re-read inside the
+        // player queue so concurrent folder selections cannot overwrite each
+        // other after both observed an empty active folder.
+        const selection = yield (0, persistence_coordinator_1.runPersistenceTransaction)({
+            domain: "event", playerId, operation: "rush_select_folder",
+        }, () => {
+            var _a;
+            const current = repairDeepAbyssEndlessFolderLockSync(playerId, (_a = (0, rushEvent_1.getPlayerRushEventSync)(playerId, eventId)) !== null && _a !== void 0 ? _a : rushEventData);
+            if (current.activeRushBattleFolderId !== null
+                && current.activeRushBattleFolderId !== folderId) {
+                return "different";
+            }
+            if (current.activeRushBattleFolderId === null) {
+                (0, rushEvent_1.updatePlayerRushEventSync)(playerId, {
+                    eventId: eventId,
+                    activeRushBattleFolderId: folderId
+                });
+                return "selected";
+            }
+            return "same";
+        });
+        if (selection === "different") {
             (0, request_diagnostics_1.setRequestOutcome)(request, "rush_different_folder");
             return reply.status(400).send({
                 "error": "Bad Request",
                 "message": "Already selected a folder for this rush event."
             });
         }
-        if (rushEventData.activeRushBattleFolderId === null) {
-            (0, rushEvent_1.updatePlayerRushEventSync)(playerId, {
-                eventId: eventId,
-                activeRushBattleFolderId: folderId
-            });
+        if (selection === "selected") {
             (0, request_diagnostics_1.setRequestOutcome)(request, "rush_selected");
         }
         else {
@@ -455,11 +475,13 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 "error": "Internal Server Error",
                 "message": "No player bound to account."
             });
-        const playerPartyGroups = (0, special_event_parties_1.ensureSpecialEventPartyGroupsSync)(playerId, (0, rush_party_categories_1.partyCategoryForRushEvent)(body.event_id), types_1.PartyCategory.RUSH, {
+        const playerPartyGroups = yield (0, persistence_coordinator_1.runPersistenceTransaction)({
+            domain: "player", playerId, operation: "rush_party_defaults",
+        }, () => (0, special_event_parties_1.ensureSpecialEventPartyGroupsSync)(playerId, (0, rush_party_categories_1.partyCategoryForRushEvent)(body.event_id), types_1.PartyCategory.RUSH, {
             getGroups: party_1.getPlayerPartyGroupListSync,
             getDefaults: player_1.getDefaultPlayerPartyGroupsSync,
             ensureGroups: party_1.ensurePlayerPartyGroupListSync,
-        });
+        }));
         // convert to proper format
         const userPartyGroupList = [];
         for (const [idString, group] of Object.entries(playerPartyGroups)) {
@@ -627,26 +649,30 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 });
             }
         }
-        (0, service_1.startLeaderboardQuestSync)(playerId, {
-            category: types_2.QuestCategory.RUSH_EVENT,
-            eventId: questData.rushEventId,
-            folderId: questData.rushEventFolderId,
-            round: questData.rushEventRound,
-            questId,
-            totalRounds: questData.rushEventFolderId === undefined
-                ? 0
-                : getRushEventFolderMaxRounds(questData.rushEventId, questData.rushEventFolderId),
-        });
-        // insert active quest for '/single_battle_quest/finish' endpoint
-        (0, singleBattleQuest_1.insertActiveQuest)(playerId, {
-            questId: questId,
-            category: types_2.QuestCategory.RUSH_EVENT,
-            useBoostPoint: false,
-            useBossBoostPoint: false,
-            isAutoStartMode: isAutoStartMode,
-            isMulti: false,
-            playId: body.play_id,
-            continueCount: 0
+        yield (0, persistence_coordinator_1.runPersistenceTransaction)({
+            domain: "single-quest", playerId, operation: "rush_start",
+        }, () => {
+            (0, service_1.startLeaderboardQuestSync)(playerId, {
+                category: types_2.QuestCategory.RUSH_EVENT,
+                eventId: questData.rushEventId,
+                folderId: questData.rushEventFolderId,
+                round: questData.rushEventRound,
+                questId,
+                totalRounds: questData.rushEventFolderId === undefined
+                    ? 0
+                    : getRushEventFolderMaxRounds(questData.rushEventId, questData.rushEventFolderId),
+            });
+            // Insert the active quest for '/single_battle_quest/finish'.
+            (0, singleBattleQuest_1.insertActiveQuest)(playerId, {
+                questId: questId,
+                category: types_2.QuestCategory.RUSH_EVENT,
+                useBoostPoint: false,
+                useBossBoostPoint: false,
+                isAutoStartMode: isAutoStartMode,
+                isMulti: false,
+                playId: body.play_id,
+                continueCount: 0
+            });
         });
         const headers = (0, utils_1.generateDataHeaders)({
             viewer_id: viewerId
@@ -691,62 +717,65 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 "message": "No player bound to account."
             });
         const rushEventData = (0, rushEvent_1.getPlayerRushEventSync)(playerId, eventId);
-        if (rushEventData !== null) {
-            repairDeepAbyssEndlessFolderLockSync(playerId, rushEventData);
-        }
         if ((0, mode15_optional_1.isMode15RuntimeLoaded)() && eventId === mode15_optional_1.MODE15_RUSH_EVENT_ID) {
-            (0, mode15_optional_1.resetMode15RunSync)(playerId);
+            yield (0, persistence_coordinator_1.runPersistenceTransaction)({
+                domain: "event", playerId, operation: "rush_reset_mode15",
+            }, () => {
+                if (rushEventData !== null)
+                    repairDeepAbyssEndlessFolderLockSync(playerId, rushEventData);
+                (0, mode15_optional_1.resetMode15RunSync)(playerId);
+            });
             reply.header("content-type", "application/x-msgpack");
             return reply.status(200).send({
                 "data_headers": (0, utils_1.generateDataHeaders)({ viewer_id: viewerId }),
                 "data": [],
             });
         }
-        if (questType === ResetQuestType.FOLDER) {
-            if ((0, rush_event_folder_lock_1.classifyDeepAbyssFolderReset)(eventId) === "restart_from_first") {
-                (0, service_1.resetLeaderboardCompetitionSync)(playerId, {
-                    category: types_2.QuestCategory.RUSH_EVENT,
-                    eventId,
-                    folderId: rush_event_folder_lock_1.DEEP_ABYSS_RUSH_FOLDER_ID,
-                });
-                // Deep Abyss always abandons the entire finite run.  Keep
-                // folder 1 selected so the client returns directly to round
-                // 700099001, regardless of reset_target_id.
-                (0, rushEvent_1.updatePlayerRushEventSync)(playerId, {
-                    eventId: eventId,
-                    activeRushBattleFolderId: rush_event_folder_lock_1.DEEP_ABYSS_RUSH_FOLDER_ID
-                });
-                (0, rushEvent_1.deletePlayerRushEventPlayedPartyListSync)(playerId, eventId, types_1.RushEventBattleType.FOLDER);
-                console.log(`[RUSH] Deep Abyss folder reset from first round: `
-                    + `player=${playerId} ignoredResetTargetId=${resetTargetId}`);
+        yield (0, persistence_coordinator_1.runPersistenceTransaction)({
+            domain: "event", playerId, operation: "rush_reset",
+        }, () => {
+            if (rushEventData !== null)
+                repairDeepAbyssEndlessFolderLockSync(playerId, rushEventData);
+            if (questType === ResetQuestType.FOLDER) {
+                if ((0, rush_event_folder_lock_1.classifyDeepAbyssFolderReset)(eventId) === "restart_from_first") {
+                    (0, service_1.resetLeaderboardCompetitionSync)(playerId, {
+                        category: types_2.QuestCategory.RUSH_EVENT,
+                        eventId,
+                        folderId: rush_event_folder_lock_1.DEEP_ABYSS_RUSH_FOLDER_ID,
+                    });
+                    // Deep Abyss always abandons the entire finite run. Keep
+                    // folder 1 selected so the client returns directly to
+                    // round 700099001, regardless of reset_target_id.
+                    (0, rushEvent_1.updatePlayerRushEventSync)(playerId, {
+                        eventId: eventId,
+                        activeRushBattleFolderId: rush_event_folder_lock_1.DEEP_ABYSS_RUSH_FOLDER_ID
+                    });
+                    (0, rushEvent_1.deletePlayerRushEventPlayedPartyListSync)(playerId, eventId, types_1.RushEventBattleType.FOLDER);
+                    console.log(`[RUSH] Deep Abyss folder reset from first round: `
+                        + `player=${playerId} ignoredResetTargetId=${resetTargetId}`);
+                }
+                else if (resetTargetId !== undefined) {
+                    // A reset target keeps the native partial-reset behaviour
+                    // for every Rush event except Deep Abyss.
+                    (0, rushEvent_1.deletePlayerRushEventPlayedPartiesUntilSync)(playerId, eventId, types_1.RushEventBattleType.FOLDER, resetTargetId);
+                }
+                else {
+                    (0, rushEvent_1.updatePlayerRushEventSync)(playerId, {
+                        eventId: eventId,
+                        activeRushBattleFolderId: null
+                    });
+                    (0, rushEvent_1.deletePlayerRushEventPlayedPartyListSync)(playerId, eventId, types_1.RushEventBattleType.FOLDER);
+                }
             }
             else if (resetTargetId !== undefined) {
-                // A reset target keeps the native partial-reset behaviour for
-                // every Rush event except Deep Abyss.
-                (0, rushEvent_1.deletePlayerRushEventPlayedPartiesUntilSync)(playerId, eventId, types_1.RushEventBattleType.FOLDER, resetTargetId);
+                if (isResetAfterTargetRound) {
+                    (0, rushEvent_1.deletePlayerRushEventPlayedPartiesUntilSync)(playerId, eventId, types_1.RushEventBattleType.ENDLESS, resetTargetId);
+                }
+                else {
+                    (0, rushEvent_1.deletePlayerRushEventPlayedPartySync)(playerId, eventId, resetTargetId, types_1.RushEventBattleType.ENDLESS);
+                }
             }
-            else {
-                // reset entire folder
-                // update the active folder value
-                (0, rushEvent_1.updatePlayerRushEventSync)(playerId, {
-                    eventId: eventId,
-                    activeRushBattleFolderId: null
-                });
-                // delete played parties
-                (0, rushEvent_1.deletePlayerRushEventPlayedPartyListSync)(playerId, eventId, types_1.RushEventBattleType.FOLDER);
-            }
-        }
-        else if (resetTargetId !== undefined) {
-            // endless battle resetting
-            if (isResetAfterTargetRound) {
-                // "reset up until here"
-                (0, rushEvent_1.deletePlayerRushEventPlayedPartiesUntilSync)(playerId, eventId, types_1.RushEventBattleType.ENDLESS, resetTargetId);
-            }
-            else {
-                // "reset only here"
-                (0, rushEvent_1.deletePlayerRushEventPlayedPartySync)(playerId, eventId, resetTargetId, types_1.RushEventBattleType.ENDLESS);
-            }
-        }
+        });
         reply.header("content-type", "application/x-msgpack");
         return reply.status(200).send({
             "data_headers": (0, utils_1.generateDataHeaders)({
@@ -797,7 +826,9 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 }
             }
         }
-        const degreeIds = (0, activity_degree_rewards_1.grantEligibleRushEventDegreesSync)(playerId, eventId, maxRound);
+        const degreeIds = yield (0, persistence_coordinator_1.runPersistenceTransaction)({
+            domain: "event", playerId, operation: "rush_reward",
+        }, () => (0, activity_degree_rewards_1.grantEligibleRushEventDegreesSync)(playerId, eventId, maxRound));
         (0, routine_game_logging_1.routineGameLog)("rush", () => `[RUSH] reward: rank=${rankNumber} maxRound=${maxRound} rewards=${rewardList.length}`);
         reply.header("content-type", "application/x-msgpack");
         return reply.status(200).send({

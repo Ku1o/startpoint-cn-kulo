@@ -4,6 +4,7 @@ exports.bulkEditFollowSync = exports.deleteFollowerSync = exports.deleteFollowSy
 const db_1 = require("../db");
 const activeAccount_1 = require("../activeAccount");
 const utils_1 = require("../../utils");
+const persistence_coordinator_1 = require("../../lib/persistence-coordinator");
 exports.MAX_FOLLOWING = 50;
 exports.MAX_FOLLOWERS = 50;
 function getPlayerIdByViewerIdSync(viewerId) {
@@ -124,7 +125,7 @@ function deleteFollowerSync(playerId, followerPlayerId) {
 exports.deleteFollowerSync = deleteFollowerSync;
 function bulkEditFollowSync(playerId, addTargetPlayerIds, deleteTargetPlayerIds) {
     const fullFollowerTargets = new Set();
-    (0, db_1.getDb)().transaction(() => {
+    (0, persistence_coordinator_1.runPersistenceTransactionSync)({ domain: "player", playerId, operation: "bulk_edit_follow" }, () => {
         for (const targetPlayerId of new Set(deleteTargetPlayerIds)) {
             deleteFollowSync(playerId, targetPlayerId);
         }
@@ -135,7 +136,7 @@ function bulkEditFollowSync(playerId, addTargetPlayerIds, deleteTargetPlayerIds)
             if (result === "following_limit")
                 break;
         }
-    })();
+    });
     return [...fullFollowerTargets];
 }
 exports.bulkEditFollowSync = bulkEditFollowSync;

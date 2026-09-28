@@ -926,12 +926,16 @@ const routes = async (fastify: FastifyInstance) => {
         const afterStamina = Math.min(currentStamina + recoveryValue, maxOverflow)
         const actualRecovery = afterStamina - currentStamina
 
-        updatePlayerSync({
-            id: playerId,
-            stamina: afterStamina,
-            staminaHealTime: new Date(),
-            freeVmoney: vmoneyDeduction.freeBalance,
-            vmoney: vmoneyDeduction.paidBalance,
+        await runPersistenceTransaction({
+            domain: "shop", playerId, operation: "recover_stamina",
+        }, () => {
+            updatePlayerSync({
+                id: playerId,
+                stamina: afterStamina,
+                staminaHealTime: new Date(),
+                freeVmoney: vmoneyDeduction.freeBalance,
+                vmoney: vmoneyDeduction.paidBalance,
+            })
         })
 
         gameVerboseLog(() =>

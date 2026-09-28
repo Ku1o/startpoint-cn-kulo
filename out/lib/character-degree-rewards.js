@@ -10,6 +10,7 @@ const db_1 = require("../data/db");
 const degree_1 = require("../data/domains/degree");
 const assets_1 = require("./assets");
 const types_1 = require("./types");
+const persistence_coordinator_1 = require("./persistence-coordinator");
 const character_degree_catalog_1 = require("./character-degree-catalog");
 exports.CHARACTER_DEGREE_CONFIG_PATH = node_path_1.default.resolve(__dirname, "..", "..", "assets", "character_degree_rewards.json");
 /** Deploy the matching .108 resources before enabling this configuration. */
@@ -34,7 +35,9 @@ function grantCharacterDegreeRewardsSync(playerId, characterIds, options = {}) {
     const db = (0, db_1.getDb)();
     if (!db.prepare("SELECT id FROM players WHERE id = ?").get(playerId))
         return [];
-    return db.transaction(() => {
+    return (0, persistence_coordinator_1.runPersistenceTransactionSync)({
+        domain: "player", playerId, operation: "grant_character_degree_rewards",
+    }, () => {
         var _a;
         const newlyGranted = [];
         const owned = db.prepare(`SELECT exp, over_limit_step FROM players_characters
@@ -53,7 +56,7 @@ function grantCharacterDegreeRewardsSync(playerId, characterIds, options = {}) {
             }
         }
         return newlyGranted;
-    })();
+    });
 }
 exports.grantCharacterDegreeRewardsSync = grantCharacterDegreeRewardsSync;
 /** Backfill the entire owned roster after a successful native single-player practice. */

@@ -4,6 +4,7 @@ exports.abortMemberSync = exports.settleMemberSync = exports.backfillMissingFina
 const db_1 = require("../db");
 const player_1 = require("./player");
 const stamina_1 = require("../../lib/stamina");
+const persistence_coordinator_1 = require("../../lib/persistence-coordinator");
 class FiveBossGauntletRunError extends Error {
     constructor(code, message) {
         super(message);
@@ -169,7 +170,7 @@ function startMemberSync(input, persistActiveQuest) {
         fail("invalid_argument", "persistActiveQuest must be a function");
     }
     const db = (0, db_1.getDb)();
-    return db.transaction(() => {
+    return (0, persistence_coordinator_1.runPersistenceTransactionSync)({ domain: "event", playerId: normalized.playerId, operation: "start_five_boss_member" }, () => {
         var _a;
         let rawRun = selectRun(normalized.runId);
         if (rawRun) {
@@ -281,7 +282,7 @@ function startMemberSync(input, persistActiveQuest) {
             isReplay: status === "already_started",
         });
         return { status, run, member, persisted };
-    }).immediate();
+    });
 }
 exports.startMemberSync = startMemberSync;
 /** Records the two official BothBoss client transitions used as the settlement proof chain. */
@@ -293,7 +294,7 @@ function recordMemberBattleSignalSync(input) {
         fail("invalid_argument", "signal must be level_next or finalize");
     }
     const db = (0, db_1.getDb)();
-    return db.transaction(() => {
+    return (0, persistence_coordinator_1.runPersistenceTransactionSync)({ domain: "event", playerId, operation: "record_five_boss_battle_signal" }, () => {
         const rawRun = selectRun(runId);
         if (!rawRun)
             fail("run_conflict", "battle signal points to a missing run");
@@ -330,7 +331,7 @@ function recordMemberBattleSignalSync(input) {
         if (!rawMember)
             fail("roster_conflict", "battle proof member could not be read back");
         return boundMemberFromRaw(rawMember);
-    }).immediate();
+    });
 }
 exports.recordMemberBattleSignalSync = recordMemberBattleSignalSync;
 /**
@@ -365,7 +366,7 @@ function settleMemberSync(input, grantRewards) {
     if (typeof grantRewards !== "function")
         fail("invalid_argument", "grantRewards must be a function");
     const db = (0, db_1.getDb)();
-    return db.transaction(() => {
+    return (0, persistence_coordinator_1.runPersistenceTransactionSync)({ domain: "event", playerId: normalized.playerId, operation: "settle_five_boss_member" }, () => {
         const rawMember = selectMemberByClient(normalized.playerId, normalized.clientPlayId);
         if (!rawMember)
             fail("client_play_not_found", "player/clientPlayId is not bound to a run");
@@ -443,7 +444,7 @@ function settleMemberSync(input, grantRewards) {
             rewardMultiplier,
             reward,
         };
-    }).immediate();
+    });
 }
 exports.settleMemberSync = settleMemberSync;
 /** Clears one member's persisted active quest; only the host aborts the shared run. */
@@ -453,7 +454,7 @@ function abortMemberSync(input, deletePersistentActive) {
         fail("invalid_argument", "deletePersistentActive must be a function");
     }
     const db = (0, db_1.getDb)();
-    return db.transaction(() => {
+    return (0, persistence_coordinator_1.runPersistenceTransactionSync)({ domain: "event", playerId: normalized.playerId, operation: "abort_five_boss_member" }, () => {
         let rawMember = selectMemberByClient(normalized.playerId, normalized.clientPlayId);
         if (!rawMember)
             fail("client_play_not_found", "player/clientPlayId is not bound to a run");
@@ -515,6 +516,6 @@ function abortMemberSync(input, deletePersistentActive) {
             member: boundMemberFromRaw(rawMember),
             deleted,
         };
-    }).immediate();
+    });
 }
 exports.abortMemberSync = abortMemberSync;

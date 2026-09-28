@@ -1,8 +1,9 @@
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { SessionType } from "../../data/types";
-import { generateViewerIdSession, getAccountSessionsOfType, getSession } from "../../data/domains/session"
+import { generateViewerIdSessionSync, getAccountSessionsOfTypeSync, getSession } from "../../data/domains/session"
 import { getPlayerFromAccountIdSync, insertDefaultPlayerSync } from "../../data/domains/player"
 import { generateDataHeaders } from "../../utils";
+import { runPersistenceTransaction } from "../../lib/persistence-coordinator";
 
 interface GetHeaderResponseBody {
     viewer_id: number
@@ -55,16 +56,16 @@ const routes = async (fastify: FastifyInstance) => {
 
         const accountId = session.accountId
 
-        // Create the player data if it doesn't exist.
-        const accountPlayer = getPlayerFromAccountIdSync(accountId)
-        if (accountPlayer === null) {    
-            // create new player account
-            insertDefaultPlayerSync(accountId)
-        }
-
-        // generate viewer id
-        const viewerIds = await getAccountSessionsOfType(accountId, SessionType.VIEWER)
-        const viewerId = !viewerIds[0] ? await generateViewerIdSession(accountId) : viewerIds[0]
+        const viewerId = await runPersistenceTransaction({
+            domain: "account", operation: "legacy_tool_signup",
+        }, () => {
+            // Create the player data if it doesn't exist, then ensure the
+            // account has exactly one viewer session under the same owner.
+            const accountPlayer = getPlayerFromAccountIdSync(accountId)
+            if (accountPlayer === null) insertDefaultPlayerSync(accountId)
+            const viewerIds = getAccountSessionsOfTypeSync(accountId, SessionType.VIEWER)
+            return viewerIds[0] ?? generateViewerIdSessionSync(accountId)
+        })
 
         reply.header("content-type", "application/x-msgpack")
         return reply.status(200).send({

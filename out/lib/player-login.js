@@ -9,6 +9,7 @@ const session_1 = require("../data/domains/session");
 const activeAccount_1 = require("../data/activeAccount");
 const stamina_1 = require("./stamina");
 const utils_1 = require("../utils");
+const persistence_coordinator_1 = require("./persistence-coordinator");
 const DAY = 86400000;
 let initialized = false;
 let nextMaintenanceAt = 0;
@@ -206,7 +207,9 @@ function result(session) {
 function registerPlayerLogin(username, password, remember) {
     input(username, password);
     let newPlayerId = 0;
-    const session = (0, db_1.getDb)().transaction(() => {
+    const session = (0, persistence_coordinator_1.runPersistenceTransactionSync)({
+        domain: "account", operation: "register_player_login",
+    }, () => {
         const account = (0, account_1.insertAccountSync)({ appId: "wf_cn", idpAlias: "", idpCode: "leiting", idpId: "", status: "normal" });
         setCredentials(account.id, username, password);
         const player = (0, player_1.insertDefaultPlayerSync)(account.id);
@@ -216,20 +219,22 @@ function registerPlayerLogin(username, password, remember) {
             viewer = (0, utils_1.generateViewerId)();
         (0, db_1.getDb)().prepare("INSERT INTO sessions(token,account_id,expires,type) VALUES(?,?,?,2)").run(String(viewer), account.id, new Date(Date.now() + 365 * DAY).toISOString());
         return issue(account.id, remember);
-    }).immediate();
+    });
     (0, activeAccount_1.saveAccountDefaultPlayer)(session.account_id, newPlayerId);
     return result(session);
 }
 exports.registerPlayerLogin = registerPlayerLogin;
 function loginPlayer(username, password, remember) {
     const value = input(username, password);
-    const session = (0, db_1.getDb)().transaction(() => {
+    const session = (0, persistence_coordinator_1.runPersistenceTransactionSync)({
+        domain: "account", operation: "login_player",
+    }, () => {
         const row = (0, db_1.getDb)().prepare(`SELECT a.id,c.password FROM accounts a JOIN player_login_credentials c ON c.account_id=a.id
             WHERE lower(a.username)=? AND a.username IS NOT NULL AND a.username<>''`).get(value.username);
         if (!row || !equal(row.password, value.password))
             fail("账号或密码不正确。");
         return issue(row.id, remember);
-    }).immediate();
+    });
     return result(session);
 }
 exports.loginPlayer = loginPlayer;
@@ -244,9 +249,13 @@ function logoutPlayer(value) {
     const session = readPlayerLoginSession(value);
     if (!session)
         return;
-    (0, db_1.getDb)().prepare("DELETE FROM player_login_sessions WHERE token=?").run(session.token);
+    (0, persistence_coordinator_1.runPersistenceTransactionSync)({
+        domain: "account", operation: "logout_player",
+    }, () => {
+        (0, db_1.getDb)().prepare("DELETE FROM player_login_sessions WHERE token=?").run(session.token);
+        audit(session.account_id, "logout");
+    });
     disconnectViewer(session.viewer_id);
-    audit(session.account_id, "logout");
 }
 exports.logoutPlayer = logoutPlayer;
 function createPlayerLoginCode(viewer, purpose) {
@@ -260,11 +269,13 @@ function createPlayerLoginCode(viewer, purpose) {
         fail(purpose === "bind" ? "该存档已经绑定账号。" : "该存档尚未绑定账号。");
     const code = (0, node_crypto_1.randomBytes)(12).toString("hex").toUpperCase();
     const expiresAt = Date.now() + 15 * 60000;
-    (0, db_1.getDb)().transaction(() => {
+    (0, persistence_coordinator_1.runPersistenceTransactionSync)({
+        domain: "account", operation: `create_player_login_${purpose}_code`,
+    }, () => {
         (0, db_1.getDb)().prepare("DELETE FROM player_login_codes WHERE account_id=? AND purpose=?").run(accountId, purpose);
         (0, db_1.getDb)().prepare("INSERT INTO player_login_codes(code,account_id,purpose,expires_at) VALUES(?,?,?,?)").run(code, accountId, purpose, expiresAt);
         audit(accountId, `admin_${purpose}_code`);
-    }).immediate();
+    });
     return { code, expires_at: expiresAt, profile: playerLoginProfile(accountId) };
 }
 exports.createPlayerLoginCode = createPlayerLoginCode;
@@ -306,7 +317,9 @@ function localSaveMatch(evidence) {
 /** First-upgrade discovery only; does not sign up, change device bindings or load a full save. */
 function previewLocalPlayerClaim(body) {
     const evidence = localSaveEvidence(body);
-    return (0, db_1.getDb)().transaction(() => {
+    return (0, persistence_coordinator_1.runPersistenceTransactionSync)({
+        domain: "account", operation: "preview_local_player_claim",
+    }, () => {
         const match = evidence && localSaveMatch(evidence);
         if (!match)
             return { status: "manual_required" };
@@ -318,11 +331,13 @@ function previewLocalPlayerClaim(body) {
             .run(proof, match.accountId, match.source, JSON.stringify(evidence), Date.now() + 5 * 60000);
         audit(match.accountId, "local_claim_preview");
         return { status: "claimable", proof, profile: playerLoginProfile(match.accountId) };
-    }).immediate();
+    });
 }
 exports.previewLocalPlayerClaim = previewLocalPlayerClaim;
 function previewPlayerClaim(body) {
-    return (0, db_1.getDb)().transaction(() => {
+    return (0, persistence_coordinator_1.runPersistenceTransactionSync)({
+        domain: "account", operation: "preview_player_claim",
+    }, () => {
         let accountId, source, original;
         if (body.code) {
             const row = readCode(body.code, "bind");
@@ -346,12 +361,14 @@ function previewPlayerClaim(body) {
         (0, db_1.getDb)().prepare("INSERT INTO player_login_claims(proof,account_id,source,original_value,expires_at) VALUES(?,?,?,?,?)").run(proof, accountId, source, original, Date.now() + 5 * 60000);
         audit(accountId, "claim_preview");
         return { proof, profile: playerLoginProfile(accountId) };
-    }).immediate();
+    });
 }
 exports.previewPlayerClaim = previewPlayerClaim;
 function bindPlayerLogin(proof, username, password, remember) {
     input(username, password);
-    const session = (0, db_1.getDb)().transaction(() => {
+    const session = (0, persistence_coordinator_1.runPersistenceTransactionSync)({
+        domain: "account", operation: "bind_player_login",
+    }, () => {
         const row = (0, db_1.getDb)().prepare("SELECT * FROM player_login_claims WHERE proof=? AND expires_at>?").get(typeof proof === "string" ? proof : "", Date.now());
         if (!row)
             fail("存档验证已过期，请重新验证。");
@@ -378,13 +395,15 @@ function bindPlayerLogin(proof, username, password, remember) {
         (0, db_1.getDb)().prepare("DELETE FROM player_login_claims WHERE account_id=?").run(row.account_id);
         audit(row.account_id, "bind_existing_save");
         return issue(row.account_id, remember);
-    }).immediate();
+    });
     return result(session);
 }
 exports.bindPlayerLogin = bindPlayerLogin;
 function resetPlayerLoginPassword(code, password) {
     input("validation", password);
-    const accountId = (0, db_1.getDb)().transaction(() => {
+    const accountId = (0, persistence_coordinator_1.runPersistenceTransactionSync)({
+        domain: "account", operation: "reset_player_login_password",
+    }, () => {
         const row = readCode(code, "reset");
         if (!playerLoginManaged(row.account_id))
             fail("该存档尚未绑定账号。");
@@ -393,7 +412,7 @@ function resetPlayerLoginPassword(code, password) {
         (0, db_1.getDb)().prepare("UPDATE player_login_codes SET consumed_at=? WHERE code=?").run(Date.now(), row.code);
         audit(row.account_id, "reset_password");
         return row.account_id;
-    }).immediate();
+    });
     disconnectViewer((0, session_1.getViewerIdSync)(accountId));
     return { username: active(accountId).username };
 }

@@ -11,6 +11,7 @@ import { AccountId, PlayerId } from "../../lib/types";
 import { computeRealTimeStamina } from "../../lib/stamina";
 import itemData from "../../../assets/item_data.json";
 import { reconcileAwakeUnlockCharacterList } from "../../lib/mission";
+import { runPersistenceTransaction } from "../../lib/persistence-coordinator";
 
 interface ItemEffectInfo {
     effectKind: number
@@ -122,14 +123,20 @@ const routes = async (fastify: FastifyInstance) => {
 
         const afterStamina = Math.min(currentStamina + totalStaminaRecovery, maxOverflow)
 
-        // Batch update
-        for (const upd of itemUpdates) {
-            updatePlayerItemSync(playerId, upd.id, upd.newCount)
-        }
-        updatePlayerSync({
-            id: playerId,
-            stamina: afterStamina,
-            staminaHealTime: new Date()
+        // Keep item consumption and stamina recovery in one player-owned
+        // persistence transaction so a partial batch cannot consume items
+        // without applying the corresponding recovery.
+        await runPersistenceTransaction({
+            domain: "player", playerId, operation: "use_stamina_items",
+        }, () => {
+            for (const upd of itemUpdates) {
+                updatePlayerItemSync(playerId, upd.id, upd.newCount)
+            }
+            updatePlayerSync({
+                id: playerId,
+                stamina: afterStamina,
+                staminaHealTime: new Date()
+            })
         })
 
         console.log(`[ITEM-USE] player ${playerId}: stamina ${currentStamina}->${afterStamina} (+${totalStaminaRecovery}), items: ${JSON.stringify(itemUpdates)}`)

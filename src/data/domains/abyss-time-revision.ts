@@ -20,6 +20,15 @@ export function refreshPlayerAbyssBestTimesSync(playerId: number, eventId?: numb
     if (!isAbyssEvent(eventId)) return null
     const revision = getAbyssTimeRevision(eventId)
     if (revision === null) return null
+    const hasStaleRows = getDb().prepare(`
+        SELECT 1 AS found
+        FROM players_quest_progress
+        WHERE player_id = ? AND section = ? AND quest_id BETWEEN ? AND ?
+          AND (best_time_revision IS NULL OR best_time_revision != ?)
+        LIMIT 1
+    `).get(playerId, QuestCategory.RUSH_EVENT,
+        eventId * 1000 + 1, eventId * 1000 + (eventId === ABYSS_EX_EVENT_ID ? 30 : 98), revision)
+    if (!hasStaleRows) return revision
     getDb().prepare(`
         UPDATE players_quest_progress
         SET best_elapsed_time_ms = NULL, best_time_revision = ?

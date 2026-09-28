@@ -6,7 +6,6 @@ import type {
     PlayerPartyGroup,
     PlayerQuestProgress,
 } from "../../data/types"
-import { getDb } from "../../data/db"
 import {
     getPlayerActiveMissionsSync,
     updatePlayerActiveMissionStageSync,
@@ -29,6 +28,7 @@ import { getMissionBattleCountersSync } from "../../data/domains/mission_battle_
 import { getPlayerCharacterClearsSync } from "../../data/domains/character_clear"
 import { getActiveMissionConditionalBattleFactsSync } from "../../data/domains/active_mission_battle_condition_facts"
 import { getActiveMissionBattleFactsSync } from "../../data/domains/active_mission_battle_facts"
+import { runPersistenceTransactionSync } from "../persistence-coordinator"
 import {
     getActiveMissionEventMasterDefinition,
     getActiveMissionMasterDefinitions,
@@ -1023,7 +1023,9 @@ export function reconcileActiveMissionFacts(
     const { definitions, definitionById, questReadPlan, requirements } = getReconciliationPlan(input)
     if (definitions.length === 0) return []
 
-    return getDb().transaction(() => {
+    return runPersistenceTransactionSync({
+        domain: "mission", playerId: input.playerId, operation: "reconcile_active_mission_facts",
+    }, () => {
         const player = input.player ?? getPlayerSync(input.playerId)
         if (!player) throw new Error(`Player ${input.playerId} does not exist.`)
         if (player.id !== input.playerId) {
@@ -1147,5 +1149,5 @@ export function reconcileActiveMissionFacts(
                     .sort((left, right) => left - right)
                     .map(stage => ({ stage, received: false as const })),
             }))
-    })()
+    })
 }

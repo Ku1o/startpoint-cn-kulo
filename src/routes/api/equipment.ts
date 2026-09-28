@@ -19,6 +19,7 @@ import { addMissionCounterSync, setMissionCounterMaxSync } from "../../lib/missi
 import { getDegreeMissionIdsForConditionTypes, mergeMissionSettlementResponse, settleMissionCategories } from "../../lib/mission";
 import { gameVerboseLog } from "../../lib/game-logging";
 import { canUseAwakeningSubstitutionItem } from "../../multi/five-boss/rewards";
+import { runPersistenceTransaction } from "../../lib/persistence-coordinator";
 
 interface SetProtectionBody {
     protection: boolean
@@ -110,6 +111,8 @@ const routes = async (fastify: FastifyInstance) => {
 
         const cdnInfo = getEquipmentDissolveSync(equipmentId)
         const maxLevel = cdnInfo?.max_level ?? 5
+        const previousLevel = equipment.level
+        const previousStack = equipment.stack
         const newLevel = equipment.level + upgradeCount
         if (newLevel > maxLevel) return reply.status(400).send({ "error": "Bad Request", "message": "Reached max awakening level." })
 
@@ -128,28 +131,29 @@ const routes = async (fastify: FastifyInstance) => {
 
         const returnItemList: Record<string, number> = {}
 
-        if (!useStack && itemId !== undefined) {
-            returnItemList[itemId] = newItemCount
-            updatePlayerItemSync(playerId, itemId, newItemCount)
-        }
+        await runPersistenceTransaction({
+            domain: "player", playerId, operation: "equipment_upgrade",
+        }, () => {
+            if (!useStack && itemId !== undefined) {
+                returnItemList[itemId] = newItemCount
+                updatePlayerItemSync(playerId, itemId, newItemCount)
+            }
 
-        returnItemList[wrightpieceItemId()] = newWrightPieces
-        updatePlayerItemSync(playerId, wrightpieceItemId(), newWrightPieces)
+            returnItemList[wrightpieceItemId()] = newWrightPieces
+            updatePlayerItemSync(playerId, wrightpieceItemId(), newWrightPieces)
+            updatePlayerEquipmentSync(playerId, equipmentId, { stack: newStack, level: newLevel })
+            recordEquipmentAwakeningProgress(playerId, upgradeCount)
 
-        equipment.level = newLevel
-        equipment.stack = newStack
-        updatePlayerEquipmentSync(playerId, equipmentId, { stack: newStack, level: newLevel })
-        recordEquipmentAwakeningProgress(playerId, upgradeCount)
-
-        // give ability cores (CDN check: only if generate_ability_soul)
-        const dissolveInfo = getEquipmentDissolveSync(equipmentId)
-        if (dissolveInfo && dissolveInfo.generate_ability_soul) {
-            returnItemList[dissolveInfo.ability_soul_id] = givePlayerItemSync(playerId, dissolveInfo.ability_soul_id, upgradeCount)
-        }
+            // give ability cores (CDN check: only if generate_ability_soul)
+            const dissolveInfo = getEquipmentDissolveSync(equipmentId)
+            if (dissolveInfo && dissolveInfo.generate_ability_soul) {
+                returnItemList[dissolveInfo.ability_soul_id] = givePlayerItemSync(playerId, dissolveInfo.ability_soul_id, upgradeCount)
+            }
+        })
 
         const returnEquipmentList = buildFullEquipmentList(playerId)
 
-        gameVerboseLog(() => `[UPGRADE] account=${accountId} player=${playerId}: eid=${equipmentId} rarity=${equipmentRarity} level ${equipment.level-upgradeCount}->${equipment.level} stack ${equipment.stack+upgradeCount}->${equipment.stack} craft -${upgradeCost*upgradeCount}`)
+        gameVerboseLog(() => `[UPGRADE] account=${accountId} player=${playerId}: eid=${equipmentId} rarity=${equipmentRarity} level ${previousLevel}->${newLevel} stack ${previousStack}->${newStack} craft -${upgradeCost*upgradeCount}`)
 
         reply.header("content-type", "application/x-msgpack")
         const responseData: Record<string, unknown> = {
@@ -218,23 +222,26 @@ const routes = async (fastify: FastifyInstance) => {
 
         const returnItemList: Record<number, number> = {}
 
-        for (const { equipmentId, upgradeCount } of upgrades) {
-            const equipment = getPlayerEquipmentSync(playerId, equipmentId)!
-            equipment.level += upgradeCount
-            equipment.stack -= upgradeCount
-            updatePlayerEquipmentSync(playerId, equipmentId, { level: equipment.level, stack: equipment.stack })
-            const dissolveInfo = getEquipmentDissolveSync(equipmentId)
-            if (dissolveInfo && dissolveInfo.generate_ability_soul) {
-                returnItemList[dissolveInfo.ability_soul_id] = givePlayerItemSync(playerId, dissolveInfo.ability_soul_id, upgradeCount)
-            }
-        }
-        recordEquipmentAwakeningProgress(
-            playerId,
-            upgrades.reduce((total, upgrade) => total + upgrade.upgradeCount, 0),
-        )
-
         const newCraftPoints = currentCraftPoints - totalCraftPointCost
-        updatePlayerItemSync(playerId, wrightpieceItemId(), newCraftPoints)
+        await runPersistenceTransaction({
+            domain: "player", playerId, operation: "equipment_bulk_upgrade",
+        }, () => {
+            for (const { equipmentId, upgradeCount } of upgrades) {
+                const equipment = getPlayerEquipmentSync(playerId, equipmentId)!
+                equipment.level += upgradeCount
+                equipment.stack -= upgradeCount
+                updatePlayerEquipmentSync(playerId, equipmentId, { level: equipment.level, stack: equipment.stack })
+                const dissolveInfo = getEquipmentDissolveSync(equipmentId)
+                if (dissolveInfo && dissolveInfo.generate_ability_soul) {
+                    returnItemList[dissolveInfo.ability_soul_id] = givePlayerItemSync(playerId, dissolveInfo.ability_soul_id, upgradeCount)
+                }
+            }
+            recordEquipmentAwakeningProgress(
+                playerId,
+                upgrades.reduce((total, upgrade) => total + upgrade.upgradeCount, 0),
+            )
+            updatePlayerItemSync(playerId, wrightpieceItemId(), newCraftPoints)
+        })
         returnItemList[wrightpieceItemId()] = newCraftPoints
 
         gameVerboseLog(() => `[BULK_UPGRADE] account=${accountId} player=${playerId}: ${upgrades.length} equipment upgraded, craft points ${currentCraftPoints} -> ${newCraftPoints}`)
@@ -271,11 +278,15 @@ const routes = async (fastify: FastifyInstance) => {
         if (!player) return reply.status(500).send({ "error": "Internal Server Error", "message": "No players bound to account." })
 
         const newProtection = body.protection
-        for (const equipmentId of body.equipment_ids) {
-            if (playerOwnsEquipmentSync(playerId, equipmentId)) {
-                updatePlayerEquipmentSync(playerId, equipmentId, { protection: newProtection })
+        await runPersistenceTransaction({
+            domain: "player", playerId, operation: "equipment_set_protection",
+        }, () => {
+            for (const equipmentId of body.equipment_ids) {
+                if (playerOwnsEquipmentSync(playerId, equipmentId)) {
+                    updatePlayerEquipmentSync(playerId, equipmentId, { protection: newProtection })
+                }
             }
-        }
+        })
 
         reply.header("content-type", "application/x-msgpack")
         return reply.status(200).send({

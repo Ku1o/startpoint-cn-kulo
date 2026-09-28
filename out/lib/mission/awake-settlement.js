@@ -4,7 +4,6 @@ exports.settleAwakeMissionRewards = exports.settleAwakeMissionCandidates = expor
 const character_awake_1 = require("../../data/domains/character_awake");
 const mission_1 = require("../../data/domains/mission");
 const player_1 = require("../../data/domains/player");
-const db_1 = require("../../data/db");
 const character_helpers_1 = require("../character-helpers");
 const grants_1 = require("./grants");
 const rewards_1 = require("./rewards");
@@ -13,6 +12,7 @@ const stages_2 = require("./stages");
 const character_queries_1 = require("./character-queries");
 const registry_1 = require("./registry");
 const request_diagnostics_1 = require("../request-diagnostics");
+const persistence_coordinator_1 = require("../persistence-coordinator");
 function getAwakeBattleMissionIds(characterIds, directlyChangedMissionIds = []) {
     const targetCharacterIds = new Set(characterIds.filter(characterId => Number.isSafeInteger(characterId) && characterId > 0));
     const missionIds = new Set(directlyChangedMissionIds.filter(missionId => Number.isSafeInteger(missionId) && missionId > 0));
@@ -85,7 +85,9 @@ function settleAwakeMissionRewards(playerId, progressList, missionSnapshot) {
     // Publish the scoped authoritative state on retries, including higher levels
     // already saved. The mission route no longer needs a second reconciliation.
     const unlockMap = (0, character_awake_1.getPlayerCharacterAwakeUnlocksByCharacterIdsSync)(playerId, unlockCandidateCharacterIds);
-    (0, db_1.getDb)().transaction(() => {
+    (0, persistence_coordinator_1.runPersistenceTransactionSync)({
+        domain: "mission", playerId, operation: "settle_awake_mission_rewards",
+    }, () => {
         var _a, _b, _c, _d, _e, _f;
         for (const entry of aggregatedProgressList) {
             if (((_a = persistedMissions[String(entry.missionId)]) === null || _a === void 0 ? void 0 : _a.progress) !== entry.progress) {
@@ -130,7 +132,7 @@ function settleAwakeMissionRewards(playerId, progressList, missionSnapshot) {
             }
         }
         granter.persistPlayer();
-    })();
+    });
     const unlockCharacterList = unlockMap.size === 0
         ? []
         : (0, character_helpers_1.buildScopedManaBoardAwakeCharacterList)(playerId, unlockMap);

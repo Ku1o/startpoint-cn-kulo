@@ -12,7 +12,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const utils_1 = require("../../data/utils");
 const validation_1 = require("./validation");
 const http_1 = require("./http");
 const player_1 = require("../../data/domains/player");
@@ -26,13 +25,14 @@ const party_1 = require("../../data/domains/party");
 const types_1 = require("../../data/types");
 const snapshot_1 = require("../../lib/mission/snapshot");
 const mission_1 = require("../../data/domains/mission");
-const utils_2 = require("../../utils");
+const utils_1 = require("../../utils");
 const daily_challenge_point_lookup_json_1 = __importDefault(require("../../../assets/daily_challenge_point_lookup.json"));
 const unison_unlock_1 = require("../../lib/validate/unison-unlock");
 const player_snapshot_1 = require("../../data/snapshots/player-snapshot");
 const admin_database_backup_1 = require("../../lib/admin-database-backup");
 const player_save_export_1 = require("../../lib/player-save-export");
 const http_reply_1 = require("../../lib/http-reply");
+const persistence_coordinator_1 = require("../../lib/persistence-coordinator");
 const defaultPerPage = 25;
 const maxSaveUploadBytes = player_save_export_1.DEFAULT_PLAYER_SAVE_EXPORT_MAX_BYTES;
 function applyPlayerImportBackupRetention(directory) {
@@ -184,7 +184,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         }
     }));
     fastify.post("/save", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
-        var _g, _h;
+        var _g;
         const { id } = request.query;
         const playerId = Number(id);
         const json = (0, http_1.wantsJson)(request);
@@ -212,42 +212,28 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             try {
                 parsed = JSON.parse(text);
             }
-            catch (_j) {
+            catch (_h) {
                 return fail("文件不是有效的 JSON");
             }
             if (parsed === null || typeof parsed !== 'object' || parsed.schema !== 'starpoint-cn-save') {
                 return fail("不是有效的存档快照（schema 不符，请使用本面板导出的存档）");
             }
-            if ((0, player_snapshot_1.isPlayerSaveSnapshotV2)(parsed)) {
-                const snapshot = (0, player_snapshot_1.validatePlayerSaveSnapshotV2Sync)(parsed);
-                const rollbackSnapshot = (0, player_snapshot_1.createPlayerSaveSnapshotV2Sync)(playerId);
-                safetyBackup = (0, admin_database_backup_1.createPlayerImportSnapshotBackup)(playerId, rollbackSnapshot, {
-                    sourceSnapshotVersion: 2,
-                    sourcePlayerId: snapshot.playerId,
-                });
-                backupCleanup = applyPlayerImportBackupRetention(safetyBackup.directory);
-                const restored = (0, player_snapshot_1.restorePlayerSaveSnapshotV2Sync)(snapshot, playerId, {
-                    includeArchiveHistory: true,
-                });
-                if (json)
-                    return reply.status(200).send(Object.assign(Object.assign({ ok: true, playerId, snapshotVersion: 2, backup: `.database/admin-backups/${safetyBackup.name}` }, backupCleanup), { restored }));
-                return reply.redirect(`/player/${id}`);
+            if (!(0, player_snapshot_1.isPlayerSaveSnapshotV2)(parsed)) {
+                return fail("仅支持 V2 完整存档；旧版 V1 存档与当前数据库结构不兼容");
             }
-            if (parsed.version !== 1)
-                return fail(`不支持的存档版本：${parsed.version}`);
-            const data = parsed.data;
-            if (!data || typeof data !== 'object' || !data.player)
-                return fail("存档数据缺失 player 字段");
+            const snapshot = (0, player_snapshot_1.validatePlayerSaveSnapshotV2Sync)(parsed);
             const rollbackSnapshot = (0, player_snapshot_1.createPlayerSaveSnapshotV2Sync)(playerId);
             safetyBackup = (0, admin_database_backup_1.createPlayerImportSnapshotBackup)(playerId, rollbackSnapshot, {
-                sourceSnapshotVersion: 1,
-                sourcePlayerId: (_g = parsed.playerId) !== null && _g !== void 0 ? _g : null,
-                legacyPartialSnapshot: true,
+                sourceSnapshotVersion: 2,
+                sourcePlayerId: snapshot.playerId,
             });
             backupCleanup = applyPlayerImportBackupRetention(safetyBackup.directory);
-            (0, utils_1.reviveMergedPlayerDates)(data);
-            data.player.id = playerId;
-            (0, player_1.replacePlayerDataSync)(data);
+            const restored = (0, player_snapshot_1.restorePlayerSaveSnapshotV2Sync)(snapshot, playerId, {
+                includeArchiveHistory: true,
+            });
+            if (json)
+                return reply.status(200).send(Object.assign(Object.assign({ ok: true, playerId, snapshotVersion: 2, backup: `.database/admin-backups/${safetyBackup.name}` }, backupCleanup), { restored }));
+            return reply.redirect(`/player/${id}`);
         }
         catch (error) {
             if ((error === null || error === void 0 ? void 0 : error.code) === "FST_REQ_FILE_TOO_LARGE") {
@@ -259,16 +245,13 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             const cleanupHint = backupCleanup.backupCleanupError
                 ? `；旧回滚备份清理失败：${backupCleanup.backupCleanupError}`
                 : "";
-            return fail(`恢复失败：${(_h = error === null || error === void 0 ? void 0 : error.message) !== null && _h !== void 0 ? _h : error}${backupHint}${cleanupHint}`, 500);
+            return fail(`恢复失败：${(_g = error === null || error === void 0 ? void 0 : error.message) !== null && _g !== void 0 ? _g : error}${backupHint}${cleanupHint}`, 500);
         }
-        if (json)
-            return reply.status(200).send(Object.assign({ ok: true, playerId, snapshotVersion: 1, legacyPartialSnapshot: true, backup: safetyBackup ? `.database/admin-backups/${safetyBackup.name}` : null }, backupCleanup));
-        return reply.redirect(`/player/${id}`);
     }));
     // ====== New: Inline edit endpoints ======
     // Edit single field
     fastify.patch("/:id/field", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
-        var _k;
+        var _j;
         const { id } = request.params;
         const playerId = Number(id);
         if (isNaN(playerId))
@@ -294,12 +277,14 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             // A manually assigned balance is an exact snapshot. Start its
             // regeneration from the current virtual time instead of retaining
             // a checkpoint copied from another clock position.
-            extra.expPooledTime = (0, utils_2.getServerDate)();
-            extra.timeOffset = (_k = (0, utils_2.getTimeOffset)()) !== null && _k !== void 0 ? _k : 0;
+            extra.expPooledTime = (0, utils_1.getServerDate)();
+            extra.timeOffset = (_j = (0, utils_1.getTimeOffset)()) !== null && _j !== void 0 ? _j : 0;
         }
         try {
             const updateData = Object.assign({ id: playerId, [field]: value }, extra);
-            (0, player_1.updatePlayerSync)(updateData);
+            (0, persistence_coordinator_1.runPersistenceTransactionSync)({
+                domain: "admin", playerId, operation: "admin_player_field_edit",
+            }, () => (0, player_1.updatePlayerSync)(updateData));
             return reply.status(200).send({ ok: true, field, value });
         }
         catch (e) {
@@ -311,7 +296,9 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         const playerId = Number(request.params.id);
         if (isNaN(playerId))
             return reply.status(400).send({ error: "Invalid player ID" });
-        (0, db_1.getDb)().prepare(`UPDATE players_characters SET ex_boost_status_id = NULL, ex_boost_ability_id_list = NULL WHERE player_id = ?`).run(playerId);
+        (0, persistence_coordinator_1.runPersistenceTransactionSync)({
+            domain: "admin", playerId, operation: "admin_clear_ex_boost",
+        }, () => (0, db_1.getDb)().prepare(`UPDATE players_characters SET ex_boost_status_id = NULL, ex_boost_ability_id_list = NULL WHERE player_id = ?`).run(playerId));
         if ((0, http_1.wantsJson)(request))
             return reply.status(200).send({ ok: true });
         return reply.redirect(`/player/${playerId}#actions`);
@@ -321,9 +308,13 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         const playerId = Number(request.params.id);
         if (isNaN(playerId))
             return reply.status(400).send({ error: "Invalid player ID" });
-        (0, db_1.getDb)().prepare(`DELETE FROM players_parties WHERE player_id = ?`).run(playerId);
-        (0, db_1.getDb)().prepare(`DELETE FROM players_party_groups WHERE player_id = ?`).run(playerId);
-        (0, party_1.insertPlayerPartyGroupListSync)(playerId, (0, player_1.getDefaultPlayerPartyGroupsSync)(types_1.PartyCategory.NORMAL));
+        (0, persistence_coordinator_1.runPersistenceTransactionSync)({
+            domain: "admin", playerId, operation: "admin_reset_parties",
+        }, () => {
+            (0, db_1.getDb)().prepare(`DELETE FROM players_parties WHERE player_id = ?`).run(playerId);
+            (0, db_1.getDb)().prepare(`DELETE FROM players_party_groups WHERE player_id = ?`).run(playerId);
+            (0, party_1.insertPlayerPartyGroupListSync)(playerId, (0, player_1.getDefaultPlayerPartyGroupsSync)(types_1.PartyCategory.NORMAL));
+        });
         if ((0, http_1.wantsJson)(request))
             return reply.status(200).send({ ok: true });
         return reply.redirect(`/player/${playerId}#actions`);
@@ -333,7 +324,9 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         const playerId = Number(request.params.id);
         if (isNaN(playerId))
             return reply.status(400).send({ error: "Invalid player ID" });
-        (0, mail_1.deleteAllPlayerMailSync)(playerId);
+        (0, persistence_coordinator_1.runPersistenceTransactionSync)({
+            domain: "admin", playerId, operation: "admin_clear_mail",
+        }, () => (0, mail_1.deleteAllPlayerMailSync)(playerId));
         return reply.redirect(`/player/${playerId}#actions`);
     }));
     // Clear receive history
@@ -341,14 +334,16 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         const playerId = Number(request.params.id);
         if (isNaN(playerId))
             return reply.status(400).send({ error: "Invalid player ID" });
-        (0, db_1.getDb)().prepare(`DELETE FROM players_receive_history WHERE player_id = ?`).run(playerId);
+        (0, persistence_coordinator_1.runPersistenceTransactionSync)({
+            domain: "admin", playerId, operation: "admin_clear_receive_history",
+        }, () => (0, db_1.getDb)().prepare(`DELETE FROM players_receive_history WHERE player_id = ?`).run(playerId));
         if ((0, http_1.wantsJson)(request))
             return reply.status(200).send({ ok: true });
         return reply.redirect(`/player/${playerId}#actions`);
     }));
     // Repair legacy saves that progressed past 1-6-1 but lost its completion row.
     fastify.post("/:id/repair_unison_unlock", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
-        var _l;
+        var _k;
         const playerId = Number(request.params.id);
         if (isNaN(playerId))
             return reply.status(400).send({ error: "无效的玩家 ID" });
@@ -370,7 +365,9 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                     message: "第一章 6-1 通关记录已经完整，无需修复",
                 });
             }
-            const changes = (0, unison_unlock_1.repairUnisonUnlockProgressSync)(playerId);
+            const changes = (0, persistence_coordinator_1.runPersistenceTransactionSync)({
+                domain: "admin", playerId, operation: "admin_repair_unison_unlock",
+            }, () => (0, unison_unlock_1.repairUnisonUnlockProgressSync)(playerId));
             if (changes < 1)
                 throw new Error("修复条件已满足，但没有写入任何变更");
             return reply.status(200).send({
@@ -382,7 +379,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             });
         }
         catch (e) {
-            return reply.status(500).send({ error: `合击解锁修复失败：${(_l = e === null || e === void 0 ? void 0 : e.message) !== null && _l !== void 0 ? _l : e}` });
+            return reply.status(500).send({ error: `合击解锁修复失败：${(_k = e === null || e === void 0 ? void 0 : e.message) !== null && _k !== void 0 ? _k : e}` });
         }
     }));
     // Add character
@@ -398,7 +395,9 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         if (!validation_1.VALID_CHARACTER_IDS.has(code))
             return reply.status(400).send({ error: `角色 ID ${code} 不存在于资源表中` });
         try {
-            (0, character_1.insertDefaultPlayerCharacterSync)(playerId, code);
+            (0, persistence_coordinator_1.runPersistenceTransactionSync)({
+                domain: "admin", playerId, operation: "admin_add_character",
+            }, () => (0, character_1.insertDefaultPlayerCharacterSync)(playerId, code));
             return reply.status(200).send({ ok: true, code });
         }
         catch (e) {
@@ -413,16 +412,20 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         if (isNaN(playerId) || isNaN(charCode))
             return reply.status(400).send({ error: "Invalid params" });
         try {
-            const db = (0, db_1.getDb)();
-            // 1. Delete character data
-            db.prepare(`DELETE FROM players_characters WHERE player_id = ? AND id = ?`).run(playerId, charCode);
-            db.prepare(`DELETE FROM players_characters_bond_tokens WHERE player_id = ? AND character_id = ?`).run(playerId, charCode);
-            db.prepare(`DELETE FROM players_characters_mana_nodes WHERE player_id = ? AND character_id = ?`).run(playerId, charCode);
-            // 2. Clear all party references to this character
-            for (const col of ['character_id_1', 'character_id_2', 'character_id_3',
-                'unison_character_1', 'unison_character_2', 'unison_character_3']) {
-                db.prepare(`UPDATE players_parties SET ${col} = NULL WHERE player_id = ? AND ${col} = ?`).run(playerId, charCode);
-            }
+            (0, persistence_coordinator_1.runPersistenceTransactionSync)({
+                domain: "admin", playerId, operation: "admin_delete_character",
+            }, () => {
+                const db = (0, db_1.getDb)();
+                // 1. Delete character data
+                db.prepare(`DELETE FROM players_characters WHERE player_id = ? AND id = ?`).run(playerId, charCode);
+                db.prepare(`DELETE FROM players_characters_bond_tokens WHERE player_id = ? AND character_id = ?`).run(playerId, charCode);
+                db.prepare(`DELETE FROM players_characters_mana_nodes WHERE player_id = ? AND character_id = ?`).run(playerId, charCode);
+                // 2. Clear all party references to this character
+                for (const col of ['character_id_1', 'character_id_2', 'character_id_3',
+                    'unison_character_1', 'unison_character_2', 'unison_character_3']) {
+                    db.prepare(`UPDATE players_parties SET ${col} = NULL WHERE player_id = ? AND ${col} = ?`).run(playerId, charCode);
+                }
+            });
             return reply.status(200).send({ ok: true });
         }
         catch (e) {
@@ -445,7 +448,9 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         if (count < 0 || count > validation_1.MAX_INT)
             return reply.status(400).send({ error: `count 超出范围（需 0 ~ ${validation_1.MAX_INT}）` });
         try {
-            (0, item_1.setPlayerItemSync)(playerId, itemId, count);
+            (0, persistence_coordinator_1.runPersistenceTransactionSync)({
+                domain: "admin", playerId, operation: "admin_set_item",
+            }, () => (0, item_1.setPlayerItemSync)(playerId, itemId, count));
             return reply.status(200).send({ ok: true, itemId, count });
         }
         catch (e) {
@@ -460,8 +465,9 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         if (isNaN(playerId) || isNaN(iid))
             return reply.status(400).send({ error: "Invalid params" });
         try {
-            const db = (0, db_1.getDb)();
-            db.prepare(`DELETE FROM players_items WHERE player_id = ? AND id = ?`).run(playerId, iid);
+            (0, persistence_coordinator_1.runPersistenceTransactionSync)({
+                domain: "admin", playerId, operation: "admin_delete_item",
+            }, () => (0, db_1.getDb)().prepare(`DELETE FROM players_items WHERE player_id = ? AND id = ?`).run(playerId, iid));
             return reply.status(200).send({ ok: true });
         }
         catch (e) {
@@ -477,8 +483,9 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         if (isNaN(playerId) || isNaN(sec) || isNaN(qid))
             return reply.status(400).send({ error: "Invalid params" });
         try {
-            const db = (0, db_1.getDb)();
-            db.prepare(`DELETE FROM players_quest_progress WHERE player_id = ? AND section = ? AND quest_id = ?`).run(playerId, sec, qid);
+            (0, persistence_coordinator_1.runPersistenceTransactionSync)({
+                domain: "admin", playerId, operation: "admin_delete_quest_progress",
+            }, () => (0, db_1.getDb)().prepare(`DELETE FROM players_quest_progress WHERE player_id = ? AND section = ? AND quest_id = ?`).run(playerId, sec, qid));
             return reply.status(200).send({ ok: true });
         }
         catch (e) {
@@ -491,8 +498,9 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         if (isNaN(playerId))
             return reply.status(400).send({ error: "Invalid params" });
         try {
-            const db = (0, db_1.getDb)();
-            db.prepare(`DELETE FROM players_quest_progress WHERE player_id = ?`).run(playerId);
+            (0, persistence_coordinator_1.runPersistenceTransactionSync)({
+                domain: "admin", playerId, operation: "admin_delete_all_quest_progress",
+            }, () => (0, db_1.getDb)().prepare(`DELETE FROM players_quest_progress WHERE player_id = ?`).run(playerId));
             return reply.status(200).send({ ok: true });
         }
         catch (e) {
@@ -508,8 +516,9 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         if (isNaN(playerId) || isNaN(cat) || isNaN(qid))
             return reply.status(400).send({ error: "Invalid params" });
         try {
-            const db = (0, db_1.getDb)();
-            db.prepare(`DELETE FROM players_drawn_quests WHERE player_id = ? AND category_id = ? AND quest_id = ?`).run(playerId, cat, qid);
+            (0, persistence_coordinator_1.runPersistenceTransactionSync)({
+                domain: "admin", playerId, operation: "admin_delete_drawn_quest",
+            }, () => (0, db_1.getDb)().prepare(`DELETE FROM players_drawn_quests WHERE player_id = ? AND category_id = ? AND quest_id = ?`).run(playerId, cat, qid));
             return reply.status(200).send({ ok: true });
         }
         catch (e) {
@@ -522,8 +531,9 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         if (isNaN(playerId))
             return reply.status(400).send({ error: "Invalid params" });
         try {
-            const db = (0, db_1.getDb)();
-            db.prepare(`DELETE FROM players_drawn_quests WHERE player_id = ?`).run(playerId);
+            (0, persistence_coordinator_1.runPersistenceTransactionSync)({
+                domain: "admin", playerId, operation: "admin_delete_all_drawn_quests",
+            }, () => (0, db_1.getDb)().prepare(`DELETE FROM players_drawn_quests WHERE player_id = ?`).run(playerId));
             return reply.status(200).send({ ok: true });
         }
         catch (e) {
@@ -531,7 +541,6 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         }
     }));
     fastify.post("/:id/reset_challenge", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
-        var _m, _o;
         const playerId = Number(request.params.id);
         if (isNaN(playerId))
             return reply.status(400).send({ error: "Invalid params" });
@@ -545,13 +554,20 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                     point: data.maxPoint,
                     campaignList: []
                 }));
-                (0, player_1.insertPlayerDailyChallengePointListSync)(playerId, defaults);
+                (0, persistence_coordinator_1.runPersistenceTransactionSync)({
+                    domain: "admin", playerId, operation: "admin_reset_daily_challenge",
+                }, () => (0, player_1.insertPlayerDailyChallengePointListSync)(playerId, defaults));
                 return reply.status(200).send({ ok: true, count: defaults.length, created: true });
             }
-            for (const entry of entries) {
-                const maxPoint = (_o = (_m = lookup[String(entry.id)]) === null || _m === void 0 ? void 0 : _m.maxPoint) !== null && _o !== void 0 ? _o : entry.point;
-                (0, player_1.updatePlayerDailyChallengePointSync)(playerId, entry.id, maxPoint);
-            }
+            (0, persistence_coordinator_1.runPersistenceTransactionSync)({
+                domain: "admin", playerId, operation: "admin_reset_daily_challenge",
+            }, () => {
+                var _a, _b;
+                for (const entry of entries) {
+                    const maxPoint = (_b = (_a = lookup[String(entry.id)]) === null || _a === void 0 ? void 0 : _a.maxPoint) !== null && _b !== void 0 ? _b : entry.point;
+                    (0, player_1.updatePlayerDailyChallengePointSync)(playerId, entry.id, maxPoint);
+                }
+            });
             return reply.status(200).send({ ok: true, count: entries.length });
         }
         catch (e) {
@@ -566,7 +582,9 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         if (!(0, player_1.getPlayerSync)(playerId))
             return reply.status(404).send({ error: "Player not found" });
         try {
-            const deleted = (0, mail_1.deleteAllPlayerMailSync)(playerId);
+            const deleted = (0, persistence_coordinator_1.runPersistenceTransactionSync)({
+                domain: "admin", playerId, operation: "admin_delete_mail",
+            }, () => (0, mail_1.deleteAllPlayerMailSync)(playerId));
             return reply.status(200).send({ ok: true, deleted });
         }
         catch (e) {
@@ -599,8 +617,12 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                     }
                 }
             }
-            (0, snapshot_1.takeSnapshot)(playerId, 'daily', (0, snapshot_1.buildPeriodicSnapshotData)(playerId, player, totalClears));
-            (0, mission_1.deletePlayerCategoryMissionsSync)(playerId, 2);
+            (0, persistence_coordinator_1.runPersistenceTransactionSync)({
+                domain: "admin", playerId, operation: "admin_daily_reset",
+            }, () => {
+                (0, snapshot_1.takeSnapshot)(playerId, 'daily', (0, snapshot_1.buildPeriodicSnapshotData)(playerId, player, totalClears));
+                (0, mission_1.deletePlayerCategoryMissionsSync)(playerId, 2);
+            });
             return reply.status(200).send({ ok: true });
         }
         catch (e) {
@@ -633,8 +655,12 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                     }
                 }
             }
-            (0, snapshot_1.takeSnapshot)(playerId, 'weekly', (0, snapshot_1.buildPeriodicSnapshotData)(playerId, player, totalClears));
-            (0, mission_1.deletePlayerCategoryMissionsSync)(playerId, 10);
+            (0, persistence_coordinator_1.runPersistenceTransactionSync)({
+                domain: "admin", playerId, operation: "admin_weekly_reset",
+            }, () => {
+                (0, snapshot_1.takeSnapshot)(playerId, 'weekly', (0, snapshot_1.buildPeriodicSnapshotData)(playerId, player, totalClears));
+                (0, mission_1.deletePlayerCategoryMissionsSync)(playerId, 10);
+            });
             return reply.status(200).send({ ok: true });
         }
         catch (e) {

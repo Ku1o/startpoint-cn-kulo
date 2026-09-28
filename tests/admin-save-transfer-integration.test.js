@@ -9,7 +9,6 @@ process.env.ADMIN_PANEL_PASSWORD = 'save-transfer-admin-fixture'
 const { getDb } = require('../out/data/db')
 const { insertAccountSync, updateAccountSync } = require('../out/data/domains/account')
 const { insertDefaultPlayerSync } = require('../out/data/domains/player')
-const { getMergedPlayerDataSync } = require('../out/data/utils')
 const { insertDeviceBindingSync } = require('../out/data/domains/session')
 const { saveAccountDefaultPlayer } = require('../out/data/activeAccount')
 const snapshots = require('../out/data/snapshots/player-snapshot')
@@ -20,6 +19,7 @@ const db = getDb()
 const app = require('fastify')({ logger: false, bodyLimit: 262144 })
 const ledgerTables = [
     'abyss_floor_records',
+    'player_payment_receipts', 'player_operation_receipts',
     'five_boss_continue_receipts', 'five_boss_solo_runs', 'five_boss_gauntlet_runs',
     'five_boss_gauntlet_members', 'five_boss_gauntlet_receipts',
 ]
@@ -72,6 +72,17 @@ async function main() {
     const member = bound('transfermember', 910012)
     const unbound = legacy('unbound-target')
     const other = legacy('other-player')
+    // Nonempty receipts ensure a complete save import preserves server-owned
+    // ledgers; these rows must never travel inside a player archive.
+    for (const owner of [source, host, member, unbound, other]) {
+        db.prepare(`INSERT INTO player_payment_receipts
+            (player_id,payment_key,product_id,paid_vmoney,free_vmoney,after_vmoney,after_free_vmoney,purchase_count,created_at)
+            VALUES (?,?,?,10,20,30,40,1,123456789)`)
+            .run(owner.playerId, 'payment-' + owner.playerId, 'fixture-product')
+        db.prepare(`INSERT INTO player_operation_receipts
+            (player_id,operation,request_key,response_json,created_at) VALUES (?,?,?, ?,123456789)`)
+            .run(owner.playerId, 'mail_claim', 'request-' + owner.playerId, JSON.stringify({ owner: owner.playerId }))
+    }
     seedRun('target-host', host.playerId, other.playerId)
     seedRun('target-member', other.playerId, member.playerId)
     seedRun('source-run', source.playerId, other.playerId)
@@ -134,7 +145,7 @@ async function main() {
         assert.equal(result.snapshotVersion, 2)
         assert.deepEqual(backupSnapshot(result).data.tables, before.data.tables)
         assert.deepEqual(identityState(), identityBefore, 'V2 must preserve login, UID, notes and device bindings')
-        assert.deepEqual(ledgerState(), ledgersBefore, 'V2 must preserve server battle ledgers')
+        assert.deepEqual(ledgerState(), ledgersBefore, 'V2 must preserve server battle and idempotency ledgers')
         const reexported = await getSave(target.playerId)
         assert.equal(reexported.status, 200)
         const restored = await reexported.json()
@@ -143,22 +154,13 @@ async function main() {
         const row = restored.data.tables.players
         assert.equal(row.rows[0][row.columns.indexOf('account_id')], target.accountId)
     }
-    for (const target of [host, member]) {
-        const before = snapshots.createPlayerSaveSnapshotV2Sync(target.playerId)
-        const legacyV1 = { schema: 'starpoint-cn-save', version: 1, exportedAt: new Date().toISOString(), playerId: source.playerId, data: getMergedPlayerDataSync(source.playerId) }
-        const imported = await putSave(target.playerId, legacyV1)
-        assert.equal(imported.status, 200, await imported.clone().text())
-        const result = await imported.json()
-        assert.equal(result.snapshotVersion, 1)
-        assert.equal(result.legacyPartialSnapshot, true)
-        assert.deepEqual(backupSnapshot(result).data.tables, before.data.tables)
-        // V1 rebuilds the player row. Keep host-owned members AND other-host
-        // memberships, including every affected teammate's reward receipts.
-        const normalize = state => Object.fromEntries(Object.entries(state).map(([name, rows]) => [name, rows.map(row => JSON.stringify(row)).sort()]))
-        assert.deepEqual(normalize(ledgerState()), normalize(ledgersBefore))
-        assert.deepEqual(identityState(), identityBefore)
-        assert.equal(auth.resumePlayerLogin(target.login.token).profile.viewer_id, target.login.profile.viewer_id)
-    }
+    const targetBeforeLegacy = snapshots.createPlayerSaveSnapshotV2Sync(host.playerId)
+    const legacyV1 = { schema: 'starpoint-cn-save', version: 1, exportedAt: new Date().toISOString(), playerId: source.playerId, data: {} }
+    const rejectedLegacy = await putSave(host.playerId, legacyV1)
+    assert.equal(rejectedLegacy.status, 400)
+    assert.match(await rejectedLegacy.text(), /仅支持 V2 完整存档/)
+    assert.deepEqual(snapshots.createPlayerSaveSnapshotV2Sync(host.playerId).data.tables, targetBeforeLegacy.data.tables)
+    assert.deepEqual(identityState(), identityBefore)
     const targetBeforeInvalid = snapshots.createPlayerSaveSnapshotV2Sync(host.playerId)
     assert.equal((await putSave(host.playerId, 'invalid-json')).status, 400)
     assert.deepEqual(snapshots.createPlayerSaveSnapshotV2Sync(host.playerId).data.tables, targetBeforeInvalid.data.tables)
@@ -168,7 +170,7 @@ async function main() {
     assert.equal(db.prepare('SELECT free_vmoney FROM players WHERE id=?').get(other.playerId).free_vmoney, 24680)
     assert.equal(db.pragma('integrity_check', { simple: true }), 'ok')
     assert.deepEqual(db.pragma('foreign_key_check'), [])
-    console.log('admin save transfer passed: real HTTP auth/download/multipart; V2 bound/unbound; V1 host/member; exact rollback snapshots; identities and five-boss ledgers preserved; unknown tables still rejected')
+    console.log('admin save transfer passed: real HTTP auth/download/multipart; V2 bound/unbound; V1 rejected without mutation; exact rollback snapshots; identities and server ledgers preserved; unknown tables still rejected')
 }
 
 main().catch(error => { console.error(error); process.exitCode = 1 }).finally(async () => {

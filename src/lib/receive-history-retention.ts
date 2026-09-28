@@ -1,4 +1,5 @@
 import type { Database } from "better-sqlite3"
+import type { PersistenceContext } from "./persistence-coordinator"
 import { acquireHistoryLease, finishHistoryLease, initializeMaintenanceState, isHistoryCatchupNeeded, readHistoryPolicy, refreshHistoryLease } from "./maintenance-state"
 
 const DEFAULT_MAX_ROWS = 500
@@ -21,6 +22,8 @@ export interface ReceiveHistoryRetentionLogger {
 }
 
 export interface ReceiveHistoryRetentionOptions {
+    /** The live server supplies its main-database owner; offline tools keep their own connection. */
+    executeTransaction?: <T>(context: PersistenceContext, operation: () => T) => Promise<T>
     enabled?: boolean
     maxRows?: number
     maxDays?: number
@@ -36,6 +39,7 @@ export interface ReceiveHistoryRetentionOptions {
 }
 
 interface ResolvedReceiveHistoryRetentionOptions {
+    executeTransaction: ReceiveHistoryRetentionOptions["executeTransaction"]
     enabled: boolean
     maxRows: number
     maxDays: number
@@ -122,6 +126,7 @@ export function millisecondsUntilNextReceiveHistoryRetentionRun(
 function resolveOptions(options: ReceiveHistoryRetentionOptions): ResolvedReceiveHistoryRetentionOptions {
     const schedule = getReceiveHistoryRetentionSchedule()
     return {
+        executeTransaction: options.executeTransaction,
         enabled: options.enabled ?? isReceiveHistoryRetentionEnabled(),
         maxRows: normalizedInteger(options.maxRows, DEFAULT_MAX_ROWS, 1),
         maxDays: normalizedInteger(options.maxDays, 7, 1),
@@ -169,6 +174,9 @@ async function prunePlayerWithRetry(
     maxAttempts: number,
     retryDelayMs: number,
     cutoff: string,
+    executeTransaction: ReceiveHistoryRetentionOptions["executeTransaction"],
+    shouldStop: () => boolean,
+    beforePrune: () => void,
 ): Promise<number> {
     const prune = database.prepare(`
         DELETE FROM players_receive_history
@@ -182,13 +190,24 @@ async function prunePlayerWithRetry(
           )) LIMIT ${DELETE_BATCH_ROWS})
     `)
 
+    const operation = (): number => {
+        // Recheck after queuing: shutdown can start while a player's earlier
+        // write is still running. Refresh the lease in this same transaction.
+        if (shouldStop()) return 0
+        beforePrune()
+        return prune.run(playerId, cutoff, playerId, maxRows).changes
+    }
+    if (executeTransaction) {
+        return executeTransaction({ domain: "maintenance", playerId, operation: "receive_history_prune" }, operation)
+    }
+
     let lastError: unknown
     for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
         let began = false
         try {
             database.exec("BEGIN IMMEDIATE")
             began = true
-            const deletedRows = prune.run(playerId, cutoff, playerId, maxRows).changes
+            const deletedRows = operation()
             database.exec("COMMIT")
             return deletedRows
         } catch (error) {
@@ -207,6 +226,7 @@ export async function runReceiveHistoryRetentionPass(
     database: Database,
     options: ReceiveHistoryRetentionOptions = {},
     shouldStop: () => boolean = () => false,
+    beforePrune: () => void = () => {},
 ): Promise<ReceiveHistoryRetentionPassResult> {
     const config = resolveOptions(options)
     const cutoff = new Date(config.nowMs - config.maxDays * 86400_000).toISOString()
@@ -264,6 +284,9 @@ export async function runReceiveHistoryRetentionPass(
                     config.busyRetryAttempts,
                     config.busyRetryDelayMs,
                     cutoff,
+                    config.executeTransaction,
+                    shouldStop,
+                    beforePrune,
                 )
                 deletedRows += batchRows
                 result.deletedRows += batchRows
@@ -297,6 +320,12 @@ export function createReceiveHistoryRetentionService(
     let stopped = true
     let timer: NodeJS.Timeout | null = null
     let activePass: Promise<void> | null = null
+    const write = async <T>(operation: string, action: () => T): Promise<T> => {
+        if (config.executeTransaction) {
+            return config.executeTransaction({ domain: "maintenance", operation }, action)
+        }
+        return database.transaction(action).immediate()
+    }
 
     const schedule = (overrideDelayMs: number | null = null): void => {
         if (stopped || !config.enabled || timer !== null) return
@@ -316,7 +345,7 @@ export function createReceiveHistoryRetentionService(
             activePass = (async () => {
                 let lease: ReturnType<typeof acquireHistoryLease> = null
                 try {
-                    lease = acquireHistoryLease(database)
+                    lease = await write("receive_history_acquire", () => stopped ? null : acquireHistoryLease(database))
                     if (!lease) return
                     const result = await runReceiveHistoryRetentionPass(
                         database,
@@ -329,21 +358,25 @@ export function createReceiveHistoryRetentionService(
                             busyRetryAttempts: config.busyRetryAttempts,
                             busyRetryDelayMs: config.busyRetryDelayMs,
                             logger: config.logger,
+                            executeTransaction: config.executeTransaction,
                         },
-                        () => {
-                            if (!stopped && lease) refreshHistoryLease(database, lease)
-                            return stopped
-                        },
+                        () => stopped,
+                        () => { if (lease) refreshHistoryLease(database, lease) },
                     )
-                    finishHistoryLease(database, lease, result, !result.stopped && result.failedPlayers === 0,
-                        result.failedPlayers > 0 ? `${result.failedPlayers} players failed` : result.stopped ? "interrupted" : null)
+                    const completedLease = lease
+                    await write("receive_history_complete", () => finishHistoryLease(database, completedLease, result,
+                        !result.stopped && result.failedPlayers === 0,
+                        result.failedPlayers > 0 ? `${result.failedPlayers} players failed` : result.stopped ? "interrupted" : null))
                     lease = null
                     config.logger.log(
                         `[DB_MAINTENANCE] receive history retention completed: candidates=${result.candidatePlayers} prunedPlayers=${result.prunedPlayers} deletedRows=${result.deletedRows} failures=${result.failedPlayers} stopped=${result.stopped} elapsedMs=${result.elapsedMs}`,
                     )
                 } catch (error) {
                     if (lease) {
-                        try { finishHistoryLease(database, lease, undefined, false, describeError(error)) } catch {}
+                        const failedLease = lease
+                        try {
+                            await write("receive_history_failed", () => finishHistoryLease(database, failedLease, undefined, false, describeError(error)))
+                        } catch {}
                     }
                     config.logger.warn(
                         `[DB_MAINTENANCE] receive history retention pass failed: ${describeError(error)}`,

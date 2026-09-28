@@ -4,6 +4,7 @@ import { deserializeBoolean, deserializeNumberList, serializeBoolean, serializeN
 import { getCharacterDataSync } from "../../lib/assets";
 import type { Statement } from "better-sqlite3";
 import { cachedStatement } from "../../lib/cached-statement";
+import { runPersistenceTransactionSync } from "../../lib/persistence-coordinator";
 
 function prepareCharacterMissionQuery(sql: string): Statement {
     return cachedStatement(getDb(), sql)
@@ -410,11 +411,11 @@ export function insertPlayerCharactersSync(
     playerId: number,
     characters: Record<string, PlayerCharacter>
 ) {
-    getDb().transaction(() => {
+    runPersistenceTransactionSync({ domain: "player", playerId, operation: "insert_player_characters" }, () => {
         for (const [characterId, data] of Object.entries(characters)) {
             insertPlayerCharacterSync(playerId, characterId, data)
         }
-    })()
+    })
 }
 
 /**
@@ -696,11 +697,11 @@ export function insertPlayerCharactersManaNodesSync(
     playerId: number,
     charactersManaNodes: Record<string, number[]>
 ) {
-    getDb().transaction(() => {
+    runPersistenceTransactionSync({ domain: "player", playerId, operation: "insert_player_character_mana_nodes" }, () => {
         for (const [characterId, manaNodes] of Object.entries(charactersManaNodes)) {
             insertPlayerCharacterManaNodesSync(playerId, characterId, manaNodes)
         }
-    })()
+    })
 }
 
 /**

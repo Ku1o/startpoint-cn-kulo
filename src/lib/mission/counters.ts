@@ -1,6 +1,7 @@
 import { cachedStatement } from "../cached-statement"
 import { getDb } from "../../data/db"
 import { isCompactStorage, writeCompactMissionCounter } from "../storage-layout"
+import { runPersistenceTransactionSync } from "../persistence-coordinator"
 
 export type MissionCounterScopeType = "lifetime" | "event" | "character"
 export type MissionCounterPeriod = "daily" | "weekly"
@@ -169,9 +170,10 @@ export function snapshotAllMissionCountersSync(playerId: number, periodType: Mis
     `)
 
     const timestamp = nowSql()
-    const tx = getDb().transaction(() => {
+    runPersistenceTransactionSync({
+        domain: "mission", playerId, operation: "snapshot_all_mission_counters",
+    }, () => {
         for (const row of rows) insert.run(playerId, periodType, row.counter_key, row.value, timestamp)
     })
-    tx()
     return rows.length
 }

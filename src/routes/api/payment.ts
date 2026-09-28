@@ -2,12 +2,15 @@
 // Private server: accepts any valid request, no real payment validation.
 
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
+import { createHash } from "node:crypto";
 import { getPlayerSync, updatePlayerSync } from "../../data/domains/player"
+import { getPaymentProductCountSync, getPaymentReceiptSync, insertPaymentReceiptSync } from "../../data/domains/payment"
 import { getSession } from "../../data/domains/session"
 import { resolvePlayerIdSync } from "../../data/activeAccount";
 import { generateDataHeaders, getServerTime } from "../../utils";
 import { getConfigSync } from "../../lib/assets";
 import paymentProducts from "../../../assets/payment_products.json";
+import { runPersistenceTransaction } from "../../lib/persistence-coordinator";
 
 interface PaymentProduct {
     store_product_id: string
@@ -21,7 +24,8 @@ interface PaymentProduct {
 
 const PRODUCTS: Record<string, PaymentProduct> = paymentProducts as Record<string, PaymentProduct>
 
-// In-memory purchase tracking (resets on server restart)
+// Fallback for clients that do not send a stable transaction identity. Native
+// callbacks with a receipt or transaction_id use the durable table below.
 const purchaseHistory: Record<string, number> = {}
 
 const routes = async (fastify: FastifyInstance) => {
@@ -158,23 +162,50 @@ const routes = async (fastify: FastifyInstance) => {
             console.warn(`[PAYMENT-FINISH] product ${productId} has zero vmoney`)
         }
 
-        const config = getConfigSync()
-        const maxVmoney = config.max_virtual_money
-        const afterPaid = Math.min(player.vmoney + paidVmoney, maxVmoney)
-        const afterFree = Math.min(player.freeVmoney + freeVmoney, maxVmoney)
+        const rawPaymentIdentity = body.payment?.transaction_id || receipt
+        const paymentKey = rawPaymentIdentity
+            ? createHash("sha256").update(`${productId}\u0000${rawPaymentIdentity}`).digest("hex")
+            : null
+        const result = await runPersistenceTransaction({
+            domain: "player", playerId, operation: "payment_finish",
+        }, () => {
+            const current = getPlayerSync(playerId)
+            if (!current) throw new Error("Player not found.")
+            if (paymentKey) {
+                const previous = getPaymentReceiptSync(playerId, paymentKey)
+                if (previous) {
+                    return {
+                        beforePaid: previous.afterVmoney,
+                        beforeFree: previous.afterFreeVmoney,
+                        afterPaid: previous.afterVmoney,
+                        afterFree: previous.afterFreeVmoney,
+                        times: previous.purchaseCount,
+                        duplicate: true,
+                    }
+                }
+            }
 
-        updatePlayerSync({
-            id: playerId,
-            vmoney: afterPaid,
-            freeVmoney: afterFree
+            const maxVmoney = getConfigSync().max_virtual_money
+            const afterPaid = Math.min(current.vmoney + paidVmoney, maxVmoney)
+            const afterFree = Math.min(current.freeVmoney + freeVmoney, maxVmoney)
+            updatePlayerSync({ id: playerId, vmoney: afterPaid, freeVmoney: afterFree })
+
+            const purchaseKey = `${playerId}_${productId}`
+            const times = paymentKey
+                ? getPaymentProductCountSync(playerId, productId) + 1
+                : (purchaseHistory[purchaseKey] ?? 0) + 1
+            purchaseHistory[purchaseKey] = times
+            if (paymentKey) {
+                insertPaymentReceiptSync({
+                    playerId, paymentKey, productId, paidVmoney, freeVmoney,
+                    afterVmoney: afterPaid, afterFreeVmoney: afterFree, purchaseCount: times,
+                })
+            }
+            return { beforePaid: current.vmoney, beforeFree: current.freeVmoney, afterPaid, afterFree, times, duplicate: false }
         })
+        const { afterPaid, afterFree, times } = result
 
-        // Track purchase count per player+product
-        const purchaseKey = `${playerId}_${productId}`
-        const times = (purchaseHistory[purchaseKey] ?? 0) + 1
-        purchaseHistory[purchaseKey] = times
-
-        console.log(`[PAYMENT-FINISH] player ${playerId}: paid ${player.vmoney}->${afterPaid} (+${paidVmoney}), free ${player.freeVmoney}->${afterFree} (+${freeVmoney}), product: ${productId}, times: ${times}`)
+        console.log(`[PAYMENT-FINISH] player ${playerId}: paid ${result.beforePaid}->${afterPaid} (+${result.duplicate ? 0 : paidVmoney}), free ${result.beforeFree}->${afterFree} (+${result.duplicate ? 0 : freeVmoney}), product: ${productId}, times: ${times}${result.duplicate ? " duplicate=1" : ""}`)
 
         reply.header("content-type", "application/x-msgpack")
         return reply.status(200).send({

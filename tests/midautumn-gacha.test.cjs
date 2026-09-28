@@ -139,13 +139,12 @@ test('a failed settlement rolls back mooncakes, rewards, history and exchange po
     assert.deepEqual(state(p.id),before);
 });
 
-test('V1/V2 HTTP save import/export and automatic rollback backups retain mooncakes and pool points', async () => {
+test('V2 HTTP save import/export and automatic rollback backups retain mooncakes and pool points', async () => {
     const source=await player(), target=await player();
     items.setPlayerItemSync(source.id,IID,23);points(source.id,170);
     const exported=await app.inject({url:`/player/save?id=${source.id}`});assert.equal(exported.statusCode,200);
     const v2=exported.json();snapshots.validatePlayerSaveSnapshotV2Sync(v2);
-    const v1={schema:'starpoint-cn-save',version:1,exportedAt:new Date().toISOString(),playerId:source.id,data:require('../out/data/utils').getMergedPlayerDataSync(source.id)};
-    for(const payload of [v2,v1]) {
+    for(const payload of [v2]) {
         items.setPlayerItemSync(target.id,IID,7);points(target.id,80);const before=state(target.id);
         const boundary='holiday-save-boundary';
         const body=`--${boundary}\r\nContent-Disposition: form-data; name="file"; filename="save.json"\r\nContent-Type: application/json\r\n\r\n${JSON.stringify(payload)}\r\n--${boundary}--\r\n`;

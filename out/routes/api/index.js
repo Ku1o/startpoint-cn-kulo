@@ -16,6 +16,7 @@ const session_1 = require("../../data/domains/session");
 const activeAccount_1 = require("../../data/activeAccount");
 const utils_2 = require("../../utils");
 const validate_1 = require("../../lib/validate");
+const persistence_coordinator_1 = require("../../lib/persistence-coordinator");
 const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
     fastify.post("/load", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
         const body = request.body;
@@ -40,19 +41,25 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             });
         const accountId = session.accountId;
         const playerId = (0, activeAccount_1.resolvePlayerIdSync)(accountId);
-        const player = playerId !== null ? (0, player_1.getPlayerSync)(playerId) : null;
-        if (player === null)
+        if (playerId === null)
             return reply.status(500).send({
                 "error": "Internal Server Error",
                 "message": "No players bound to account."
             });
-        // get last login time
-        (0, player_1.dailyResetPlayerDataSync)(player);
-        // collect the player's pooled exp
-        (0, player_1.collectPlayerDataPooledExpSync)(player);
-        // Repair legacy save inconsistencies before serializing client data.
-        (0, validate_1.runPermanentValidators)(playerId);
-        const clientData = (0, utils_1.getClientSerializedData)(playerId, { viewerId: viewerId });
+        const player = (0, player_1.getPlayerSync)(playerId);
+        if (player === null)
+            return reply.status(500).send({
+                "error": "Internal Server Error",
+                "message": "No player data."
+            });
+        yield (0, persistence_coordinator_1.runPersistenceTransaction)({
+            domain: "player", playerId, operation: "legacy_load_snapshot",
+        }, () => {
+            (0, player_1.dailyResetPlayerDataSync)(player);
+            (0, player_1.collectPlayerDataPooledExpSync)(player);
+            (0, validate_1.runPermanentValidators)(playerId);
+        });
+        const clientData = (0, utils_1.getClientSerializedData)(playerId, { viewerId });
         if (clientData === null)
             return reply.status(500).send({
                 "error": "Internal Server Error",

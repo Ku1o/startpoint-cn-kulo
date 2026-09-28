@@ -15,6 +15,8 @@ import { reconcileAwakeUnlockCharacterList } from "../../lib/mission";
 import { calculateFreeManaGrant } from "../../lib/mana";
 import { runPersistenceTransaction } from "../../lib/persistence-coordinator";
 import type { Player } from "../../data/types";
+import { createHash } from "node:crypto";
+import { getPlayerOperationReceiptSync, insertPlayerOperationReceiptSync } from "../../data/domains/player-operation-receipt";
 
 interface IndexBody {
     api_count: number
@@ -26,15 +28,26 @@ interface ReceiveBody {
     api_count: number
     viewer_id: number
     mail_id: number
+    request_id?: string
 }
 
 interface ReceiveAllBody {
     api_count: number
     viewer_id: number
     mail_ids: number[]
+    request_id?: string
 }
 
 const MAX_MAIL_CLAIM_IDS = 1000
+
+function buildMailClaimRequestKey(mailIds: readonly number[], requestId?: string): string | null {
+    if (typeof requestId !== "string" || requestId.length === 0 || requestId.length > 256) return null
+    const normalized = [...new Set(mailIds.filter(
+        mailId => Number.isSafeInteger(mailId) && mailId > 0,
+    ))].sort((left, right) => left - right)
+    if (normalized.length === 0) return null
+    return createHash("sha256").update(`${requestId}\u0000${normalized.join(",")}`).digest("hex")
+}
 
 function formatMailResponse(mail: RawPlayerMail) {
     return {
@@ -200,13 +213,21 @@ function applyMailReward(playerId: number, player: Player, mail: RawPlayerMail):
 export async function claimPlayerMailRewards(
     playerId: number,
     requestedMailIds: readonly number[],
+    requestId?: string,
 ): Promise<ClaimedMailRewards> {
     if (requestedMailIds.length > MAX_MAIL_CLAIM_IDS) {
         throw new RangeError(`A mail claim may contain at most ${MAX_MAIL_CLAIM_IDS} IDs.`)
     }
+    const requestKey = buildMailClaimRequestKey(requestedMailIds, requestId)
     return runPersistenceTransaction({
         domain: "mail", playerId, operation: "claim_rewards",
     }, () => {
+        if (requestKey) {
+            const previous = getPlayerOperationReceiptSync<ClaimedMailRewards>(
+                playerId, "mail_claim", requestKey,
+            )
+            if (previous) return previous.response
+        }
         const uniqueMailIds = [...new Set(requestedMailIds.filter(
             mailId => Number.isSafeInteger(mailId) && mailId > 0,
         ))]
@@ -237,7 +258,7 @@ export async function claimPlayerMailRewards(
             for (const degreeId of reward.degreeIds) degreeIds.add(degreeId)
         }
 
-        return {
+        const result: ClaimedMailRewards = {
             claimedMailIds,
             alreadyCount: requestedMailIds.length - claimedMailIds.length,
             characterList,
@@ -246,6 +267,13 @@ export async function claimPlayerMailRewards(
             userInfo,
             degreeIds: [...degreeIds],
         }
+        if (requestKey) insertPlayerOperationReceiptSync({
+            playerId,
+            operation: "mail_claim",
+            requestKey,
+            response: result,
+        })
+        return result
     })
 }
 
@@ -305,7 +333,7 @@ const routes = async (fastify: FastifyInstance) => {
             message: "No player bound to account"
         })
 
-        const claim = await claimPlayerMailRewards(playerId, [mailId])
+        const claim = await claimPlayerMailRewards(playerId, [mailId], body.request_id)
         if (claim.claimedMailIds.length === 0) return reply.status(400).send({
             error: "Bad Request",
             message: "Mail not found or already received"
@@ -362,7 +390,7 @@ const routes = async (fastify: FastifyInstance) => {
             message: "No player bound to account"
         })
 
-        const claim = await claimPlayerMailRewards(playerId, mailIds)
+        const claim = await claimPlayerMailRewards(playerId, mailIds, body.request_id)
         const {
             alreadyCount,
             characterList,

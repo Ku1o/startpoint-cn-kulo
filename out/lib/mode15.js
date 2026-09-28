@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.settleMode15BattleSync = exports.resetMode15RunSync = exports.cleanupLegacyMode15RescueProgressSync = exports.canJoinMode15RescueSync = exports.canStartMode15QuestSync = exports.getExpectedMode15StageSync = exports.getMode15ExclusiveGlobalPartyItemsSync = exports.getMode15ExclusivePartyItemsSync = exports.isMode15Quest = exports.getMode15QuestRef = exports.MODE15_SOLO_FIXED_REWARDS = exports.MODE15_BOSS_TOKEN_REWARDS = exports.getMode15ExclusiveItemIds = exports.MODE15_EXCLUSIVE_EQUIPMENT_IDS = exports.MODE15_PRACTICE_QUEST_ID = exports.MODE15_SOLO_REWARD_GROUP_BASE_ID = exports.MODE15_FULL_CLEAR_REWARD_GROUP_ID = exports.MODE15_BOSS_TOKEN_REWARD_GROUP_ID = exports.MODE15_DREAM_EMBLEM_ID = exports.MODE15_FULL_CLEAR_TICKET_ID = exports.MODE15_FULL_CLEAR_TOKEN_ID = exports.MODE15_TOKEN_ID = exports.MODE15_LEGACY_HARD_MULTI_EVENT_ID = exports.MODE15_MULTI_EVENT_ID = exports.MODE15_RUSH_EVENT_ID = void 0;
 const db_1 = require("../data/db");
+const persistence_coordinator_1 = require("./persistence-coordinator");
 const types_1 = require("../data/types");
 const quest_1 = require("./quest");
 const types_2 = require("./types");
@@ -186,7 +187,9 @@ function cleanupLegacyMode15RescueProgressSync(playerId) {
 exports.cleanupLegacyMode15RescueProgressSync = cleanupLegacyMode15RescueProgressSync;
 /** Reset only run progress; token balances and shop purchase history persist. */
 function resetMode15RunSync(playerId) {
-    (0, db_1.getDb)().transaction(() => {
+    (0, persistence_coordinator_1.runPersistenceTransactionSync)({
+        domain: "event", playerId, operation: "reset_mode15_run",
+    }, () => {
         // Keep the Rush quest rows as permanent clear history.  The native
         // EventFolder classifier reads those rows for its completed tab, while
         // current-run ordering is tracked by played-party markers above.
@@ -241,7 +244,7 @@ function resetMode15RunSync(playerId) {
                 endless_battle_max_round_character_evolution_img_lvl_2 = NULL,
                 endless_battle_max_round_character_evolution_img_lvl_3 = NULL
         `).run(playerId, exports.MODE15_RUSH_EVENT_ID);
-    })();
+    });
 }
 exports.resetMode15RunSync = resetMode15RunSync;
 /**

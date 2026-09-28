@@ -2,6 +2,7 @@ import { getDb } from "../db";
 import { randomBytes } from "crypto";
 import { RawSession, Session, SessionType } from "../types";
 import { generateViewerId } from "../../utils";
+import { runPersistenceTransactionSync } from "../../lib/persistence-coordinator";
 
 const MULTI_COM_VIEWER_ID_MIN = 900000000;
 
@@ -45,7 +46,9 @@ function getSessionSync(
     // viewer tokens don't expire.
     if (session.type !== SessionType.VIEWER && new Date() >= session.expires) {
         console.log(`session of type (${session.type}) expired:`, session)
-        deleteSessionSync(session.token)
+        runPersistenceTransactionSync({
+            domain: "account", operation: "expire_session",
+        }, () => deleteSessionSync(session.token))
         return null
     }
 
@@ -107,7 +110,7 @@ export function migrateUnsafeViewerIdsSync(): number {
         WHERE token = ? AND account_id = ? AND type = ?
     `);
 
-    return db.transaction(() => {
+    return runPersistenceTransactionSync({ domain: "account", operation: "migrate_unsafe_viewer_ids" }, () => {
         let migrated = 0;
         for (const session of unsafeSessions) {
             let replacement = "";
@@ -125,7 +128,7 @@ export function migrateUnsafeViewerIdsSync(): number {
             migrated += 1;
         }
         return migrated;
-    })();
+    })
 }
 
 /**
@@ -220,7 +223,7 @@ export function getAccountSessionsOfType(
  * 
  * @param session The session to insert.
  */
-function insertSessionWithTokenSync(
+export function insertSessionWithTokenSync(
     session: Session
 ): Session {
     getDb().prepare(`
@@ -382,25 +385,26 @@ export function deleteAccountSessionsOfType(
     })
 }
 
+export function generateViewerIdSessionSync(
+    accountId: number
+): Session {
+    return runPersistenceTransactionSync({ domain: "account", operation: "generate_viewer_session" }, () => {
+        // Delete any existing viewer ID sessions and insert the replacement
+        // under one explicit account-owned transaction.
+        deleteAccountSessionsOfTypeSync(accountId, SessionType.VIEWER)
+        return insertSessionWithTokenSync({
+            token: generateViewerId().toString(),
+            expires: new Date(new Date().getTime()),
+            accountId,
+            type: SessionType.VIEWER,
+        })
+    })
+}
+
 export function generateViewerIdSession(
     accountId: number
 ): Promise<Session> {
-    return new Promise<Session>((resolve, reject) => {
-        try {
-            // delete any existing viewer ID sessions
-            deleteAccountSessionsOfTypeSync(accountId, SessionType.VIEWER)
-
-            // insert new session
-            resolve(insertSessionWithTokenSync({
-                token: generateViewerId().toString(),
-                expires: new Date(new Date().getTime()),
-                accountId: accountId,
-                type: SessionType.VIEWER
-            }))
-        } catch (error) {
-            reject(error)
-        }
-    })
+    return Promise.resolve().then(() => generateViewerIdSessionSync(accountId))
 }
 
 // player

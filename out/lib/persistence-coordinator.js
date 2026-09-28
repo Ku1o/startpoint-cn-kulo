@@ -16,13 +16,17 @@ const memory_diagnostics_1 = require("./memory-diagnostics");
 const server_work_performance_1 = require("./server-work-performance");
 const sqlite_write_coordinator_1 = require("./sqlite-write-coordinator");
 let globalWriteTail = Promise.resolve();
+// The first migration step keeps SQLite in the main process. Nested domain
+// transactions belong to the outer command for metrics, but retain savepoints
+// so a caught inner error cannot leave partial writes in the outer transaction.
+let activePersistenceContext;
 const persistenceStats = new Map();
 function statsFor(domain) {
     const existing = persistenceStats.get(domain);
     if (existing)
         return existing;
     const created = {
-        queued: 0, committed: 0, failed: 0, queueMs: 0, transactionMs: 0,
+        queued: 0, committed: 0, failed: 0, maxPending: 0, queueMs: 0, transactionMs: 0,
         maxQueueMs: 0, maxTransactionMs: 0,
     };
     persistenceStats.set(domain, created);
@@ -34,6 +38,9 @@ function statsFor(domain) {
         counters[`domain.${domain}.queued`] = value.queued;
         counters[`domain.${domain}.committed`] = value.committed;
         counters[`domain.${domain}.failed`] = value.failed;
+        const pending = Math.max(0, value.queued - value.committed - value.failed);
+        counters[`domain.${domain}.pending`] = pending;
+        counters[`domain.${domain}.maxPending`] = value.maxPending;
         counters[`domain.${domain}.avgQueueMs`] = value.queued === 0 ? 0 : value.queueMs / value.queued;
         counters[`domain.${domain}.avgTransactionMs`] = value.committed + value.failed === 0
             ? 0 : value.transactionMs / (value.committed + value.failed);
@@ -56,6 +63,16 @@ function enqueueGlobalWrite(operation) {
         }
     }));
 }
+function withPersistenceContext(context, operation) {
+    const previous = activePersistenceContext;
+    activePersistenceContext = context;
+    try {
+        return operation();
+    }
+    finally {
+        activePersistenceContext = previous;
+    }
+}
 /**
  * Execute one complete main-database transaction under an explicit domain.
  *
@@ -68,6 +85,7 @@ function runPersistenceTransaction(context, operation) {
         const queuedAt = node_perf_hooks_1.performance.now();
         const stats = statsFor(context.domain);
         stats.queued++;
+        stats.maxPending = Math.max(stats.maxPending, stats.queued - stats.committed - stats.failed);
         const execute = () => __awaiter(this, void 0, void 0, function* () {
             const queueMs = node_perf_hooks_1.performance.now() - queuedAt;
             stats.queueMs += queueMs;
@@ -75,7 +93,7 @@ function runPersistenceTransaction(context, operation) {
             (0, server_work_performance_1.recordServerWork)("persistence.queue", queueMs);
             const startedAt = node_perf_hooks_1.performance.now();
             try {
-                const result = yield (0, sqlite_write_coordinator_1.runImmediateTransactionWithRetry)(operation);
+                const result = yield (0, sqlite_write_coordinator_1.runImmediateTransactionWithRetry)(() => (withPersistenceContext(context, operation)));
                 stats.committed++;
                 return result;
             }
@@ -105,11 +123,17 @@ exports.runPersistenceTransaction = runPersistenceTransaction;
  * the same domain metrics. New request paths should use the async variant.
  */
 function runPersistenceTransactionSync(context, operation) {
+    // better-sqlite3 creates a savepoint when already inside a transaction.
+    // Do not replace this with operation(): some callers catch an inner failure
+    // and continue, and still require that inner operation to roll back.
+    if (activePersistenceContext)
+        return (0, db_1.getDb)().transaction(operation)();
     const stats = statsFor(context.domain);
     stats.queued++;
+    stats.maxPending = Math.max(stats.maxPending, stats.queued - stats.committed - stats.failed);
     const startedAt = node_perf_hooks_1.performance.now();
     try {
-        const result = (0, db_1.getDb)().transaction(operation).immediate();
+        const result = (0, db_1.getDb)().transaction(() => (withPersistenceContext(context, operation))).immediate();
         stats.committed++;
         return result;
     }
@@ -129,6 +153,7 @@ exports.runPersistenceTransactionSync = runPersistenceTransactionSync;
 function drainPersistence() {
     return __awaiter(this, void 0, void 0, function* () {
         yield globalWriteTail;
+        yield (0, sqlite_write_coordinator_1.drainPlayerWriteQueues)();
     });
 }
 exports.drainPersistence = drainPersistence;

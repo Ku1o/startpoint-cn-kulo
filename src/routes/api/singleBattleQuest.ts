@@ -364,7 +364,14 @@ const routes = async (fastify: FastifyInstance) => {
         let useBoostPoint = (activeQuestData.useBoostPoint && (newBoostPoint >= 0)) || (activeQuestData.useBossBoostPoint && (newBossBoostPoint >= 0))
 
         // check current quest progress
-        const questProgress = getPlayerSingleQuestProgressSync(playerId, questCategory, questId);
+        // This lookup refreshes published Abyss best-time revisions and is
+        // therefore a write-capable operation. Keep it under the same
+        // persistence coordinator as settlement preparation.
+        const questProgress = await measureSettlementPhaseAsync("single", "progress_refresh", () => (
+            runPersistenceTransaction({
+                domain: "single-quest", playerId, operation: "progress_refresh",
+            }, () => getPlayerSingleQuestProgressSync(playerId, questCategory, questId))
+        ));
         const questPreviouslyCompleted = questProgress !== null
 
         let questAccomplished = body.is_accomplished
@@ -1224,12 +1231,10 @@ const routes = async (fastify: FastifyInstance) => {
                     "message": `Not enough entry items (need ${entryCost.itemCount} of ${entryCost.itemId}, have ${playerItemCount}).`
                 })
             }
-            updatePlayerItemSync(playerId, entryCost.itemId, playerItemCount - entryCost.itemCount)
         }
 
         // Deduct stamina cost
         const staminaCost = 0
-        let afterStamina = 0
         if (staminaCost > 0) {
             const currentStamina = computeRealTimeStamina(player)
             if (currentStamina < staminaCost) {
@@ -1239,24 +1244,10 @@ const routes = async (fastify: FastifyInstance) => {
                     "message": "Insufficient stamina."
                 })
             }
-            const newStamina = Math.max(0, currentStamina - staminaCost)
-            updatePlayerSync({
-                id: playerId,
-                stamina: newStamina,
-                staminaHealTime: new Date(),
-                totalStaminaUsed: (player.totalStaminaUsed ?? 0) + staminaCost
-            })
-            afterStamina = newStamina
-            gameVerboseLog(() => `[BATTLE-START] stamina: ${currentStamina} -> ${newStamina} (cost: ${staminaCost}, rate: ${staminaInfo.rate})`)
-        } else {
-            // No stamina deduction, read current stamina for response
-            const player = getPlayerSync(playerId)
-            afterStamina = player?.stamina ?? 0
         }
 
-        // add to active quests table
-        delete activeQuests[playerId]
-        activeQuests[playerId] = {
+        const previousMemory = activeQuests[playerId]
+        const activeQuest: ActiveQuest = {
             questId: questId,
             category: category,
             useBoostPoint: useBoostPoint,
@@ -1269,40 +1260,77 @@ const routes = async (fastify: FastifyInstance) => {
             startedAtMs: getServerTime() * 1000,
         }
 
+        let afterStamina = 0
         let missionSettlement: MissionSettlementResult | undefined
-        await runPersistenceTransaction({
-            domain: "single-quest", playerId, operation: "start",
-        }, () => {
-            const playerUpdate: any = {
-                id: playerId,
-                totalStaminaUsed: (player.totalStaminaUsed ?? 0) + nominalStaminaCost,
-            }
-            if (questData.fixedParty === undefined) playerUpdate.partySlot = partyId
-            updatePlayerSync(playerUpdate)
-            const activeQuest = activeQuests[playerId]
-            insertPlayerActiveQuestSync(playerId, {
-                playerId,
-                playId: activeQuest.playId,
-                questId: activeQuest.questId,
-                category: activeQuest.category,
-                useBossBoostPoint: activeQuest.useBossBoostPoint,
-                useBoostPoint: activeQuest.useBoostPoint,
-                isAutoStartMode: activeQuest.isAutoStartMode,
-                isMulti: activeQuest.isMulti,
-                isMultiHost: activeQuest.isMultiHost ?? false,
-                roomNumber: activeQuest.roomNumber ?? null,
-                entryItemId: null,
-                eventId: activeQuest.eventId ?? null,
-                continueCount: activeQuest.continueCount,
-                startedAtMs: activeQuest.startedAtMs ?? null,
+        try {
+            await runPersistenceTransaction({
+                domain: "single-quest", playerId, operation: "start",
+            }, () => {
+                const currentPlayer = getPlayerSync(playerId) ?? player
+                if (entryCost && entryCost.itemId > 0) {
+                    const playerItemCount = getPlayerItemSync(playerId, entryCost.itemId) ?? 0
+                    if (playerItemCount < entryCost.itemCount) {
+                        throw new Error(
+                            `Not enough entry items (need ${entryCost.itemCount} of ${entryCost.itemId}, have ${playerItemCount}).`,
+                        )
+                    }
+                    updatePlayerItemSync(playerId, entryCost.itemId, playerItemCount - entryCost.itemCount)
+                }
+
+                const playerUpdate: any = {
+                    id: playerId,
+                    totalStaminaUsed: (currentPlayer.totalStaminaUsed ?? 0) + nominalStaminaCost,
+                }
+                if (staminaCost > 0) {
+                    const currentStamina = computeRealTimeStamina(currentPlayer)
+                    if (currentStamina < staminaCost) {
+                        throw new Error("Insufficient stamina.")
+                    }
+                    const newStamina = Math.max(0, currentStamina - staminaCost)
+                    playerUpdate.stamina = newStamina
+                    playerUpdate.staminaHealTime = new Date()
+                    playerUpdate.totalStaminaUsed = (currentPlayer.totalStaminaUsed ?? 0) + staminaCost
+                    afterStamina = newStamina
+                    gameVerboseLog(() => `[BATTLE-START] stamina: ${currentStamina} -> ${newStamina} (cost: ${staminaCost}, rate: ${staminaInfo.rate})`)
+                } else {
+                    afterStamina = currentPlayer.stamina ?? 0
+                }
+                if (questData.fixedParty === undefined) playerUpdate.partySlot = partyId
+                updatePlayerSync(playerUpdate)
+
+                activeQuests[playerId] = activeQuest
+                insertPlayerActiveQuestSync(playerId, {
+                    playerId,
+                    playId: activeQuest.playId,
+                    questId: activeQuest.questId,
+                    category: activeQuest.category,
+                    useBossBoostPoint: activeQuest.useBossBoostPoint,
+                    useBoostPoint: activeQuest.useBoostPoint,
+                    isAutoStartMode: activeQuest.isAutoStartMode,
+                    isMulti: activeQuest.isMulti,
+                    isMultiHost: activeQuest.isMultiHost ?? false,
+                    roomNumber: activeQuest.roomNumber ?? null,
+                    entryItemId: null,
+                    eventId: activeQuest.eventId ?? null,
+                    continueCount: activeQuest.continueCount,
+                    startedAtMs: activeQuest.startedAtMs ?? null,
+                })
+                recordActiveMissionQuestChallengeFactSync(playerId, category)
+                missionSettlement = settleMissionCategories(
+                    playerId,
+                    [1, 2, 10],
+                    new Date(getServerTime() * 1000),
+                )
             })
-            recordActiveMissionQuestChallengeFactSync(playerId, category)
-            missionSettlement = settleMissionCategories(
-                playerId,
-                [1, 2, 10],
-                new Date(getServerTime() * 1000),
-            )
-        })
+        } catch (error) {
+            if (previousMemory) activeQuests[playerId] = previousMemory
+            else delete activeQuests[playerId]
+            const message = error instanceof Error ? error.message : String(error)
+            if (message === "Insufficient stamina." || message.startsWith("Not enough entry items")) {
+                return reply.status(400).send({ error: "Bad Request", message })
+            }
+            throw error
+        }
 
         const dataHeaders = generateDataHeaders({
             viewer_id: viewerId

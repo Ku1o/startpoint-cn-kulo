@@ -3,6 +3,7 @@ import { cachedStatement } from "../../cached-statement"
 // When 3+ specific characters must be in the same party, this tracks their co-appearances
 
 import { getDb } from "../../../data/db"
+import { runPersistenceTransactionSync } from "../../persistence-coordinator"
 import { incrementPlayerCategoryMissionSync } from "../../../data/domains/mission"
 import {
     getMatchedAwakeDirectBattleMissionIds,
@@ -37,7 +38,9 @@ export function trackPartyCoClears(ctx: FinishContext): number[] {
         ON CONFLICT(player_id, char_id_a, char_id_b) DO UPDATE SET
             co_clear_count = co_clear_count + 1
         `)
-        const tx = db.transaction(() => {
+        runPersistenceTransactionSync({
+            domain: "mission", playerId: ctx.playerId, operation: "track_party_co_clears",
+        }, () => {
             for (let i = 0; i < unique.length - 1; i++) {
                 for (let j = i + 1; j < unique.length; j++) {
                     const [charIdA, charIdB] = normalizeCharacterPair(unique[i], unique[j])
@@ -45,7 +48,6 @@ export function trackPartyCoClears(ctx: FinishContext): number[] {
                 }
             }
         })
-        tx()
     }
 
     // Race clears (unique race set)

@@ -4,6 +4,7 @@ import { getDb } from "../data/db"
 import { grantPlayerDegreeSync } from "../data/domains/degree"
 import { getCharacterDataSync, getPracticeQuestSync } from "./assets"
 import { QuestCategory } from "./types"
+import { runPersistenceTransactionSync } from "./persistence-coordinator"
 import type { BattleFinishMissionEvent } from "./mission/events"
 import {
     CHARACTER_DEGREE_CATALOG,
@@ -44,7 +45,9 @@ export function grantCharacterDegreeRewardsSync(
 
     const db = getDb()
     if (!db.prepare("SELECT id FROM players WHERE id = ?").get(playerId)) return []
-    return db.transaction(() => {
+    return runPersistenceTransactionSync({
+        domain: "player", playerId, operation: "grant_character_degree_rewards",
+    }, () => {
         const newlyGranted: number[] = []
         const owned = db.prepare(`SELECT exp, over_limit_step FROM players_characters
             WHERE player_id = ? AND id = ?`)
@@ -60,7 +63,7 @@ export function grantCharacterDegreeRewardsSync(
             }
         }
         return newlyGranted
-    })()
+    })
 }
 
 /** Backfill the entire owned roster after a successful native single-player practice. */

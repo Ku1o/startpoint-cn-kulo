@@ -25,6 +25,8 @@ import { gameVerboseLog } from "../../lib/game-logging";
 import { getPlayerOptionSync } from "../../data/domains/option";
 import { measureSettlementPhase, measureSettlementPhaseAsync, recordGachaRequest } from "../../lib/settlement-performance";
 import { runPersistenceTransaction } from "../../lib/persistence-coordinator";
+import { createHash } from "node:crypto";
+import { getPlayerOperationReceiptSync, insertPlayerOperationReceiptSync } from "../../data/domains/player-operation-receipt";
 
 interface ExecBody {
     api_count: number,
@@ -40,13 +42,15 @@ interface ExchangeCharacterBody {
     api_count: number,
     gacha_id: number,
     viewer_id: number
+    request_id?: string
 }
 
 interface ExchangeEquipmentBody {
     equipment_id: number,
     gacha_id: number,
     viewer_id: number,
-    api_count: number
+    api_count: number,
+    request_id?: string
 }
 
 enum GachaPaymentType {
@@ -76,6 +80,32 @@ enum GachaExecType {
 
 const exchangeRequiredPoints = 250
 
+function buildExchangeRequestKey(
+    operation: string,
+    requestId: unknown,
+    gachaId: number,
+    rewardId: number,
+): string | null {
+    // api_count is only a legacy sequence value and may reset between client
+    // sessions. It is deliberately not used as a durable idempotency key.
+    if (typeof requestId !== "string" || requestId.length === 0 || requestId.length > 256) return null
+    return createHash("sha256")
+        .update(`${operation}\u0000${requestId}\u0000${gachaId}\u0000${rewardId}`)
+        .digest("hex")
+}
+
+function sendExchangeResponse(
+    reply: FastifyReply,
+    viewerId: number,
+    responseData: Record<string, any>,
+) {
+    reply.header("content-type", "application/x-msgpack")
+    return reply.status(200).send({
+        "data_headers": generateDataHeaders({ viewer_id: viewerId }),
+        "data": responseData,
+    })
+}
+
 const routes = async (fastify: FastifyInstance) => {
     fastify.post("/exchange_equipment", async (request: FastifyRequest, reply: FastifyReply) => {
         const body = request.body as ExchangeEquipmentBody
@@ -101,12 +131,12 @@ const routes = async (fastify: FastifyInstance) => {
             "message": "No players bound to account."
         })
 
-        // get gacha info
-        const gachaInfo = getPlayerGachaInfoSync(playerId, gachaId)
-        if (gachaInfo === null) return reply.status(400).send({
-            "error": "Bad Request",
-            "message": "No data for gacha with provided id."
-        })
+        const operation = "gacha_exchange_equipment"
+        const requestKey = buildExchangeRequestKey(operation, body.request_id, gachaId, equipmentId)
+        const previous = requestKey
+            ? getPlayerOperationReceiptSync<Record<string, any>>(playerId, operation, requestKey)
+            : null
+        if (previous) return sendExchangeResponse(reply, viewerId, previous.response)
 
         const gachaData = getGachaSync(gachaId)
         if (gachaData === null || gachaData.type !== GachaType.WEAPON) return reply.status(400).send({
@@ -118,43 +148,44 @@ const routes = async (fastify: FastifyInstance) => {
             "message": "Equipment is not exchangeable from this gacha."
         })
 
-        const newExchangePoints = (gachaInfo.gachaExchangePoint ?? 0) - exchangeRequiredPoints
-        if (0 > newExchangePoints) return reply.status(400).send({
-            "error": "Bad Request",
-            "message": "Not enough exchange points."
-        })
+        const settlement = await runPersistenceTransaction({
+            domain: "gacha", playerId, operation,
+        }, () => {
+            const duplicate = requestKey
+                ? getPlayerOperationReceiptSync<Record<string, any>>(playerId, operation, requestKey)
+                : null
+            if (duplicate) return { responseData: duplicate.response, errorMessage: undefined }
 
-        // reward equipment
-        const giveResult = givePlayerEquipmentSync(playerId, equipmentId, 1)
-        insertReceiveHistorySync(playerId, { type: MailType.EQUIPMENT, type_id: equipmentId, number: 1 })
+            const gachaInfo = getPlayerGachaInfoSync(playerId, gachaId)
+            if (gachaInfo === null) return { responseData: null, errorMessage: "No data for gacha with provided id." }
+            const newExchangePoints = (gachaInfo.gachaExchangePoint ?? 0) - exchangeRequiredPoints
+            if (0 > newExchangePoints) return { responseData: null, errorMessage: "Not enough exchange points." }
 
-        // update gacha info
-        updatePlayerGachaInfoSync(playerId, {
-            gachaId: gachaId,
-            gachaExchangePoint: newExchangePoints
-        })
+            const giveResult = givePlayerEquipmentSync(playerId, equipmentId, 1)
+            insertReceiveHistorySync(playerId, { type: MailType.EQUIPMENT, type_id: equipmentId, number: 1 })
+            updatePlayerGachaInfoSync(playerId, { gachaId, gachaExchangePoint: newExchangePoints })
 
-        reply.header("content-type", "application/x-msgpack")
-        return reply.status(200).send({
-            "data_headers": generateDataHeaders({
-                viewer_id: viewerId
-            }),
-            "data": {
-                "equipment_list": [
-                    giveResult
-                ],
-                "gacha_info_list": [
-                    {
-                        "gacha_id": gachaId,
-                        "is_account_first": gachaInfo.isAccountFirst,
-                        "is_daily_first": gachaInfo.isDailyFirst,
-                        "gacha_exchange_point": newExchangePoints
-                    }
-                ],
+            const responseData: Record<string, any> = {
+                "equipment_list": [giveResult],
+                "gacha_info_list": [{
+                    "gacha_id": gachaId,
+                    "is_account_first": gachaInfo.isAccountFirst,
+                    "is_daily_first": gachaInfo.isDailyFirst,
+                    "gacha_exchange_point": newExchangePoints
+                }],
                 "encyclopedia_info": [],
                 "mail_arrived": false
             }
+            if (requestKey) insertPlayerOperationReceiptSync({
+                playerId, operation, requestKey, response: responseData,
+            })
+            return { responseData, errorMessage: undefined }
         })
+        if (!settlement.responseData) return reply.status(400).send({
+            "error": "Bad Request",
+            "message": settlement.errorMessage ?? "Exchange failed."
+        })
+        return sendExchangeResponse(reply, viewerId, settlement.responseData)
 
     })
 
@@ -182,12 +213,12 @@ const routes = async (fastify: FastifyInstance) => {
             "message": "No players bound to account."
         })
 
-        // get gacha info
-        const gachaInfo = getPlayerGachaInfoSync(playerId, gachaId)
-        if (gachaInfo === null) return reply.status(400).send({
-            "error": "Bad Request",
-            "message": "No data for gacha with provided id."
-        })
+        const operation = "gacha_exchange_character"
+        const requestKey = buildExchangeRequestKey(operation, body.request_id, gachaId, characterId)
+        const previous = requestKey
+            ? getPlayerOperationReceiptSync<Record<string, any>>(playerId, operation, requestKey)
+            : null
+        if (previous) return sendExchangeResponse(reply, viewerId, previous.response)
 
         const gachaData = getGachaSync(gachaId)
         if (gachaData === null || gachaData.type !== GachaType.CHARACTER) return reply.status(400).send({
@@ -199,57 +230,56 @@ const routes = async (fastify: FastifyInstance) => {
             "message": "Character is not exchangeable from this gacha."
         })
 
-        const newExchangePoints = (gachaInfo.gachaExchangePoint ?? 0) - exchangeRequiredPoints
-        if (0 > newExchangePoints) return reply.status(400).send({
-            "error": "Bad Request",
-            "message": "Not enough exchange points."
-        })
+        const settlement = await runPersistenceTransaction({
+            domain: "gacha", playerId, operation,
+        }, () => {
+            const duplicate = requestKey
+                ? getPlayerOperationReceiptSync<Record<string, any>>(playerId, operation, requestKey)
+                : null
+            if (duplicate) return { responseData: duplicate.response, errorMessage: undefined }
 
-        // reward character
-        const giveResult = givePlayerCharacterSync(playerId, characterId)
-        if (giveResult === null) return reply.status(400).send({
-            "error": "Bad Request",
-            "message": "Could not give player character."
-        })
-        insertReceiveHistorySync(playerId, { type: MailType.CHARACTER, type_id: characterId, number: 1 })
+            const gachaInfo = getPlayerGachaInfoSync(playerId, gachaId)
+            if (gachaInfo === null) return { responseData: null, errorMessage: "No data for gacha with provided id." }
+            const newExchangePoints = (gachaInfo.gachaExchangePoint ?? 0) - exchangeRequiredPoints
+            if (0 > newExchangePoints) return { responseData: null, errorMessage: "Not enough exchange points." }
 
-        // update gacha info
-        updatePlayerGachaInfoSync(playerId, {
-            gachaId: gachaId,
-            gachaExchangePoint: newExchangePoints
-        })
-        const existingCharacterList: Record<string, unknown>[] = giveResult.character
-            ? [giveResult.character as Record<string, unknown>]
-            : []
-        const characterList = existingCharacterList.length > 0
-            ? reconcileAwakeUnlockCharacterList(playerId, existingCharacterList)
-            : existingCharacterList
+            const giveResult = givePlayerCharacterSync(playerId, characterId)
+            if (giveResult === null) return { responseData: null, errorMessage: "Could not give player character." }
+            insertReceiveHistorySync(playerId, { type: MailType.CHARACTER, type_id: characterId, number: 1 })
+            updatePlayerGachaInfoSync(playerId, { gachaId, gachaExchangePoint: newExchangePoints })
 
-        const responseData: Record<string, any> = {
-            "character_list": characterList,
-            "item_list": giveResult.item !== undefined ? {
-                [giveResult.item.id]: giveResult.item.inventoryCount
-            } : [],
-            "gacha_info_list": [
-                {
+            const existingCharacterList: Record<string, unknown>[] = giveResult.character
+                ? [giveResult.character as Record<string, unknown>]
+                : []
+            const characterList = existingCharacterList.length > 0
+                ? reconcileAwakeUnlockCharacterList(playerId, existingCharacterList)
+                : existingCharacterList
+
+            const responseData: Record<string, any> = {
+                "character_list": characterList,
+                "item_list": giveResult.item !== undefined ? {
+                    [giveResult.item.id]: giveResult.item.inventoryCount
+                } : [],
+                "gacha_info_list": [{
                     "gacha_id": gachaId,
                     "is_account_first": gachaInfo.isAccountFirst,
                     "is_daily_first": gachaInfo.isDailyFirst,
                     "gacha_exchange_point": newExchangePoints
-                }
-            ],
-            "encyclopedia_info": [],
-            "mail_arrived": false
-        }
-        settleDegreeMissionResponse(playerId, viewerId, responseData, undefined, [4])
-
-        reply.header("content-type", "application/x-msgpack")
-        return reply.status(200).send({
-            "data_headers": generateDataHeaders({
-                viewer_id: viewerId
-            }),
-            "data": responseData
+                }],
+                "encyclopedia_info": [],
+                "mail_arrived": false
+            }
+            settleDegreeMissionResponse(playerId, viewerId, responseData, undefined, [4])
+            if (requestKey) insertPlayerOperationReceiptSync({
+                playerId, operation, requestKey, response: responseData,
+            })
+            return { responseData, errorMessage: undefined }
         })
+        if (!settlement.responseData) return reply.status(400).send({
+            "error": "Bad Request",
+            "message": settlement.errorMessage ?? "Exchange failed."
+        })
+        return sendExchangeResponse(reply, viewerId, settlement.responseData)
 
     })
 

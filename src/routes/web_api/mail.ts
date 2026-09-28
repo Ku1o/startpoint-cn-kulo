@@ -23,6 +23,7 @@ import {
     updateDailyVmoneyMailConfigSync,
     validateDailyVmoneyMailConfigUpdate,
 } from "../../lib/daily-vmoney-mail"
+import { runPersistenceTransactionSync } from "../../lib/persistence-coordinator"
 
 // Pre-built CDN validation sets
 const CDN_CHAR_IDS: Set<number> = new Set(Object.keys(characterData).map(Number))
@@ -94,7 +95,9 @@ const routes = async (fastify: FastifyInstance) => {
     fastify.patch("/daily", async (request: FastifyRequest, reply: FastifyReply) => {
         try {
             const update = validateDailyVmoneyMailConfigUpdate(request.body)
-            updateDailyVmoneyMailConfigSync(update)
+            runPersistenceTransactionSync({
+                domain: "mail", operation: "admin_daily_vmoney_config",
+            }, () => updateDailyVmoneyMailConfigSync(update))
             return reply.send(getDailyVmoneyMailOverviewSync())
         } catch (error) {
             const detail = error instanceof Error ? error.message : String(error)
@@ -104,7 +107,9 @@ const routes = async (fastify: FastifyInstance) => {
 
     fastify.post("/daily/run", async (_request: FastifyRequest, reply: FastifyReply) => {
         try {
-            const result = dispatchDailyVmoneyMailSync(Date.now(), "manual", true)
+            const result = runPersistenceTransactionSync({
+                domain: "mail", operation: "admin_daily_vmoney_dispatch",
+            }, () => dispatchDailyVmoneyMailSync(Date.now(), "manual", true))
             if (result.status === "disabled") {
                 return reply.status(400).send({ error: "请先启用每日自动邮件" })
             }
@@ -216,7 +221,9 @@ const routes = async (fastify: FastifyInstance) => {
 
         for (const playerId of targetPlayerIds) {
             try {
-                insertMailSync(playerId, {
+                runPersistenceTransactionSync({
+                    domain: "mail", playerId, operation: "admin_send_mail",
+                }, () => insertMailSync(playerId, {
                     reason_id: 0,
                     subject,
                     description: desc,
@@ -227,7 +234,7 @@ const routes = async (fastify: FastifyInstance) => {
                     create_time: timestamps.databaseTime,
                     reward_period_limited: 0,
                     reward_limit_time: null,
-                })
+                }))
                 sentCount++
             } catch {
                 // skip invalid players

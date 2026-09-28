@@ -27,6 +27,7 @@ import { getCarnivalSaveStateSync } from "../../lib/carnival-save-state"
 import { getContentSnapshot } from "../../content/runtime/content-snapshot"
 import { collectLinkedManaNodeAwakeUpdates } from "../../lib/character-awake-extension"
 import { getPlayerPortableDegreesSync } from "../domains/degree"
+import { runPersistenceTransactionSync } from "../../lib/persistence-coordinator"
 
 export interface ClientSerializedDataOptions extends SerializePlayerDataOptions {
     /** Fresh request-local snapshot; callers remain responsible for invalidating stale data. */
@@ -166,7 +167,7 @@ export function getClientSerializedData(
         if (updates.length > 0) nodeAwakeLevels[characterIdText] = characterNodeLevels
     }
     if (linkedBoardUpdates.length > 0) {
-        getDb().transaction(() => {
+        runPersistenceTransactionSync({ domain: "player", playerId, operation: "load_linked_board_repair" }, () => {
             for (const update of linkedBoardUpdates) {
                 updatePlayerCharacterManaNodeAwakeLevelSync(
                     playerId,
@@ -175,7 +176,7 @@ export function getClientSerializedData(
                     update.awakeLevel,
                 )
             }
-        })()
+        })
     }
     const missionAwakeMap = new Map<string, Record<number, number>>()
     for (const [characterId, levels] of awakeSummary.manaBoardAwakeMap) {

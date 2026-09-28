@@ -779,12 +779,16 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         // Calculate recovery amount (capped at overflow)
         const afterStamina = Math.min(currentStamina + recoveryValue, maxOverflow);
         const actualRecovery = afterStamina - currentStamina;
-        (0, player_1.updatePlayerSync)({
-            id: playerId,
-            stamina: afterStamina,
-            staminaHealTime: new Date(),
-            freeVmoney: vmoneyDeduction.freeBalance,
-            vmoney: vmoneyDeduction.paidBalance,
+        yield (0, persistence_coordinator_1.runPersistenceTransaction)({
+            domain: "shop", playerId, operation: "recover_stamina",
+        }, () => {
+            (0, player_1.updatePlayerSync)({
+                id: playerId,
+                stamina: afterStamina,
+                staminaHealTime: new Date(),
+                freeVmoney: vmoneyDeduction.freeBalance,
+                vmoney: vmoneyDeduction.paidBalance,
+            });
         });
         (0, game_logging_1.gameVerboseLog)(() => `[RECOVER-STAMINA] player ${playerId}: stamina ${currentStamina}->${afterStamina} (+${actualRecovery}), ` +
             `freeVmoney ${player.freeVmoney}->${vmoneyDeduction.freeBalance}, ` +

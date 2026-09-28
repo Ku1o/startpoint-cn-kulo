@@ -33,3 +33,25 @@
 `tools/analyze-memory-log.cjs` 兼容轻量和旧版 `[MEM]`。SQL 执行总数、采样时间、错误累计值和编码工作线程累计完成/失败次数不再列入容器增长排名；队列数量和 retainedBytes 仍属于可观察的当前状态。
 
 本改动不触及持久化格式、玩家表、账号归属、存档导入导出或客户端资源，不需要数据库迁移或客户端更新。
+
+## 运行时实时房间追踪
+
+基础性能汇总常驻运行，不需要反复修改 `.env` 或重启服务。管理会话可以通过以下接口为单个房间临时开启有界追踪：
+
+```text
+GET  /api/server/diagnostics/realtime
+POST /api/server/diagnostics/realtime
+```
+
+开启请求示例：
+
+```json
+{
+  "mode": "room-trace",
+  "roomNumber": "目标房间号",
+  "ttlMs": 600000,
+  "maxEvents": 256
+}
+```
+
+追踪只记录 barrier 和广播的时间、计数、房间号等有限元数据，不记录完整战斗帧；最长保留 30 分钟，事件数量有上限，到期自动回到 `basic`。发送 `{ "mode": "basic" }` 可以立即关闭。接口受管理面板会话保护，游戏客户端不能访问。

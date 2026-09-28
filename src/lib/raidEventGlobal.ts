@@ -1,5 +1,6 @@
 import { getDb } from "../data/db"
 import { getRaidQuestCounts } from "./raid-event-counts"
+import { runPersistenceTransactionSync } from "./persistence-coordinator"
 import { cachedStatement } from "./cached-statement"
 import { givePlayerRewardsSync } from "./quest"
 import { Reward, RewardType } from "./types"
@@ -343,7 +344,9 @@ export function recordRaidEventClearSync(params: {
         }
     }
 
-    return getDb().transaction(() => {
+    return runPersistenceTransactionSync({
+        domain: "event", playerId, operation: "record_raid_event_clear",
+    }, () => {
         const currentBoss = getRaidEventGlobalBossSync(eventId)
         const rule = getRaidEventProgressRule(eventId)
         const questWeight = rule.questWeights[questId] ?? 0
@@ -402,7 +405,7 @@ export function recordRaidEventClearSync(params: {
             questKillCount: getRaidEventQuestKillCountSync(eventId, questId),
             boss,
         }
-    })()
+    })
 }
 
 export function claimRaidEventOverallRewardsSync(
@@ -410,7 +413,9 @@ export function claimRaidEventOverallRewardsSync(
     eventId: number,
     totalKillCount: number,
 ): RaidEventRewardClaimResult {
-    return getDb().transaction(() => {
+    return runPersistenceTransactionSync({
+        domain: "event", playerId, operation: "claim_raid_event_overall_rewards",
+    }, () => {
         const receipt = cachedStatement(getDb(), `
             SELECT received_up_to
             FROM players_raid_event_overall_rewards
@@ -444,5 +449,5 @@ export function claimRaidEventOverallRewardsSync(
             rewardList,
             rewardResult,
         }
-    })()
+    })
 }

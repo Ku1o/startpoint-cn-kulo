@@ -4,12 +4,15 @@ import { getPlayerActiveQuestSync } from "../../data/domains/quest_active"
 import { getPlayerOptionSync } from "../../data/domains/option"
 import { FiveBossGauntletRunError } from "../../data/domains/fiveBossGauntletRun"
 import { computeRealTimeStamina } from "../../lib/stamina"
+import { runPersistenceTransactionSync } from "../../lib/persistence-coordinator"
 import { FIVE_BOSS_GAUNTLET, isFiveBossGauntletQuest } from "./contract"
 
 export function startFiveBossSoloSync<T>(playerId: number, playId: string, persist: () => T): T | null {
     if (typeof playId !== "string" || !playId.length || playId.length > 255) throw new Error("Invalid play id.")
     const db = getDb()
-    return db.transaction(() => {
+    return runPersistenceTransactionSync({
+        domain: "single-quest", playerId, operation: "five_boss_solo_start",
+    }, () => {
         const active = getPlayerActiveQuestSync(playerId)
         if (active?.isMulti && isFiveBossGauntletQuest(active.category, active.questId)) {
             throw new Error("Finish or abort the multiplayer run before starting solo.")
@@ -37,7 +40,7 @@ export function startFiveBossSoloSync<T>(playerId: number, playId: string, persi
         db.prepare(`INSERT INTO five_boss_solo_runs(player_id, play_id, status, auto_at_start, auto_used)
             VALUES (?, ?, 'active', ?, ?)`).run(playerId, playId, autoAtStart ? 1 : 0, autoAtStart ? 1 : 0)
         return persist()
-    }).immediate()
+    })
 }
 
 /** Monotone marker, bound to the persistent current solo play, never a retry snapshot. */
@@ -59,7 +62,9 @@ export function getFiveBossSoloRewardMultiplierSync(playerId: number, playId: st
 
 /** An explicit new multiplayer start abandons the old solo run without inventing a room. */
 export function abandonFiveBossSoloForMultiSync(playerId: number, playId: string): boolean {
-    return getDb().transaction(() => {
+    return runPersistenceTransactionSync({
+        domain: "multi-settlement", playerId, operation: "abandon_five_boss_solo_for_multi",
+    }, () => {
         const active = getPlayerActiveQuestSync(playerId)
         if (!active || active.isMulti || active.playId !== playId
             || !isFiveBossGauntletQuest(active.category, active.questId)) return false
@@ -67,7 +72,7 @@ export function abandonFiveBossSoloForMultiSync(playerId: number, playId: string
         getDb().prepare("DELETE FROM players_active_quests WHERE player_id = ? AND play_id = ? AND is_multi = 0")
             .run(playerId, playId)
         return true
-    }).immediate()
+    })
 }
 
 /** Called in the single-abort transaction before its active quest is cleared. */

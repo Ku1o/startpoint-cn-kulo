@@ -1,4 +1,5 @@
 import { getDb } from "../db"
+import { runPersistenceTransactionSync } from "../../lib/persistence-coordinator";
 
 export type NewsReceiptKind = "list" | "popup"
 
@@ -57,9 +58,9 @@ export function markAccountNewsReceiptsSync(
             seen_at = excluded.seen_at
     `)
     const now = Date.now()
-    getDb().transaction(() => {
+    runPersistenceTransactionSync({ domain: "account", operation: "mark_account_news_receipts" }, () => {
         for (const newsId of newsIds) insert.run(accountId, newsId, kind, now)
-    })()
+    })
 }
 
 export function deleteNewsReceiptsSync(newsId: number, kind?: NewsReceiptKind): number {

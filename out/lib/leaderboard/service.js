@@ -8,6 +8,7 @@ const availability_1 = require("./availability");
 const types_1 = require("../types");
 const abyss_endurance_degree_rewards_1 = require("../abyss-endurance-degree-rewards");
 const abyss_spheal_degree_reward_1 = require("../abyss-spheal-degree-reward");
+const persistence_coordinator_1 = require("../persistence-coordinator");
 function startLeaderboardQuestSync(playerId, quest, startedAtMs = Date.now()) {
     (0, abyss_endurance_degree_rewards_1.startAbyssEnduranceQuestSync)(playerId, quest, startedAtMs);
     const competition = (0, competition_1.getLeaderboardCompetitionForQuest)(quest);
@@ -23,7 +24,7 @@ function startLeaderboardQuestSync(playerId, quest, startedAtMs = Date.now()) {
         || quest.totalRounds < 1) {
         return null;
     }
-    return getDbTransaction(() => {
+    return getDbTransaction(playerId, () => {
         var _a;
         const season = (0, competition_1.getLeaderboardCompetitionSeasonSync)(competition.key, startedAtMs);
         const active = (0, leaderboard_1.getActiveLeaderboardRunSync)(playerId, competition.key);
@@ -102,10 +103,12 @@ function resetLeaderboardCompetitionSync(playerId, quest, endedAtMs = Date.now()
     return (0, leaderboard_1.abandonLeaderboardRunsSync)({ competitionKey: competition.key, playerId, endedAtMs });
 }
 exports.resetLeaderboardCompetitionSync = resetLeaderboardCompetitionSync;
-function getDbTransaction(operation) {
+function getDbTransaction(playerId, operation) {
     // Keep the transaction boundary in one place without exposing better-sqlite3
     // from the public leaderboard service API.
     const { getDb } = require("../../data/db");
     const db = getDb();
-    return db.inTransaction ? operation() : db.transaction(operation)();
+    return db.inTransaction ? operation() : (0, persistence_coordinator_1.runPersistenceTransactionSync)({
+        domain: "leaderboard", playerId, operation: "start_leaderboard_quest",
+    }, operation);
 }

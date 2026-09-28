@@ -1,7 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.reconcileActiveMissionFacts = exports.computeActiveMissionFactProgress = exports.estimateActiveMissionCharacterLevel = exports.resolveActiveMissionQuestIds = exports.matchesActiveMissionQuestRange = void 0;
-const db_1 = require("../../data/db");
 const mission_1 = require("../../data/domains/mission");
 const character_1 = require("../../data/domains/character");
 const equipment_1 = require("../../data/domains/equipment");
@@ -14,6 +13,7 @@ const mission_battle_facts_1 = require("../../data/domains/mission_battle_facts"
 const character_clear_1 = require("../../data/domains/character_clear");
 const active_mission_battle_condition_facts_1 = require("../../data/domains/active_mission_battle_condition_facts");
 const active_mission_battle_facts_1 = require("../../data/domains/active_mission_battle_facts");
+const persistence_coordinator_1 = require("../persistence-coordinator");
 const active_master_data_1 = require("./active-master-data");
 const active_core_1 = require("./active-core");
 const rewards_1 = require("./rewards");
@@ -813,7 +813,9 @@ function reconcileActiveMissionFacts(input) {
     const { definitions, definitionById, questReadPlan, requirements } = getReconciliationPlan(input);
     if (definitions.length === 0)
         return [];
-    return (0, db_1.getDb)().transaction(() => {
+    return (0, persistence_coordinator_1.runPersistenceTransactionSync)({
+        domain: "mission", playerId: input.playerId, operation: "reconcile_active_mission_facts",
+    }, () => {
         var _a, _b, _c, _d, _e;
         const player = (_a = input.player) !== null && _a !== void 0 ? _a : (0, player_1.getPlayerSync)(input.playerId);
         if (!player)
@@ -910,6 +912,6 @@ function reconcileActiveMissionFacts(input) {
                 .sort((left, right) => left - right)
                 .map(stage => ({ stage, received: false })),
         }));
-    })();
+    });
 }
 exports.reconcileActiveMissionFacts = reconcileActiveMissionFacts;

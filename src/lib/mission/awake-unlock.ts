@@ -2,12 +2,12 @@ import { getOwnedAwakeCharacterIdsSync, getPlayerCharacterAwakeUnlocksSync, upse
 import { recordUnownedAwakeMission } from "../request-diagnostics"
 import type { CharacterAwakeUnlockMap } from "../../data/domains/character_awake"
 import { getPlayerCharactersByIdsSync } from "../../data/domains/character"
-import { getDb } from "../../data/db"
 import { getCharacterIdFromMission } from "./character-queries"
 import { getComputer } from "./registry"
 import { getAwakeMissionRewardStageDefinition } from "./rewards"
 import { getCompletedStageNumbers, getMissionIdsByCategory, getMissionStageIds } from "./stages"
 import { getServerDate } from "../../utils"
+import { runPersistenceTransactionSync } from "../persistence-coordinator"
 
 export interface AwakeUnlockReconciliationResult {
     all: CharacterAwakeUnlockMap
@@ -37,7 +37,9 @@ export function reconcileAwakeUnlocksFromProgress(
     if (missing.length === 0) return { all: persistedUnlocks, changed }
     const ownedIds = getOwnedAwakeCharacterIdsSync(playerId, missing.map(reward => reward.characterId))
 
-    getDb().transaction(() => {
+    runPersistenceTransactionSync({
+        domain: "mission", playerId, operation: "reconcile_awake_unlocks",
+    }, () => {
         for (const reward of missing) {
             if (!ownedIds.has(reward.characterId)) {
                 recordUnownedAwakeMission(reward.missionId, reward.characterId)
@@ -51,7 +53,7 @@ export function reconcileAwakeUnlocksFromProgress(
             levels[reward.boardIndex] = Math.max(levels[reward.boardIndex] ?? 0, reward.awakeLevel)
             changed.set(characterId, levels)
         }
-    })()
+    })
 
     return {
         all: getPlayerCharacterAwakeUnlocksSync(playerId),

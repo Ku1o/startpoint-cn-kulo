@@ -278,7 +278,7 @@ function handleFiveBossStart(body, playerId, reply) {
                 domain: "multi-settlement", playerId, operation: "five_boss_start",
             }, () => {
                 abandonStaleFiveBossRun(body, playerId);
-                return (0, battle_runtime_1.startFiveBossBattle)({
+                const result = (0, battle_runtime_1.startFiveBossBattle)({
                     playerId,
                     clientPlayId: body.play_id,
                     room,
@@ -291,6 +291,10 @@ function handleFiveBossStart(body, playerId, reply) {
                     matePlayerIds: body.mate_player_ids,
                     mateComIds: room.mates.map(mate => mate.com_id),
                 });
+                // Keep the selected party update inside the same persistence owner as
+                // the run ledger and active quest writes.
+                (0, player_1.updatePlayerSync)({ id: playerId, partySlot: body.party_id });
+                return result;
             });
         }
         catch (error) {
@@ -303,7 +307,6 @@ function handleFiveBossStart(body, playerId, reply) {
         singleBattleQuest_1.activeQuests[playerId] = result.activeQuest;
         connection_diagnostic_1.fiveBossConnectionDiagnostics.begin(room);
         connection_diagnostic_1.fiveBossConnectionDiagnostics.memberEvent(result.runId, playerId, "http_start", result.startStatus);
-        (0, player_1.updatePlayerSync)({ id: playerId, partySlot: body.party_id });
         const player = requirePlayer(playerId);
         reply.header("content-type", "application/x-msgpack");
         return reply.status(200).send({
@@ -327,17 +330,19 @@ function handleFiveBossFinish(body, playerId, reply, buildFollowInfo) {
             connection_diagnostic_1.fiveBossConnectionDiagnostics.memberEvent(boundRun.runId, playerId, "http_finish", body.is_accomplished === true ? "success_requested" : "failure_requested");
         const roomNumber = resolveFiveBossRoomNumber(body.room_number, playerId, body.play_id, boundRun);
         const party = (_b = (_a = body.statistics) === null || _a === void 0 ? void 0 : _a.party) !== null && _b !== void 0 ? _b : (_c = body.quest_statistics) === null || _c === void 0 ? void 0 : _c.party;
-        if (body.is_accomplished === true && (0, contract_1.isFiveBossGauntletQuest)(body.category, body.quest_id)
-            && (boundRun === null || boundRun === void 0 ? void 0 : boundRun.roomNumber) === roomNumber) {
-            const backfill = (0, fiveBossGauntletRun_1.backfillMissingFinalizeSync)({ playerId, clientPlayId: body.play_id });
-            if (backfill.backfilled) {
-                connection_diagnostic_1.fiveBossConnectionDiagnostics.memberEvent(boundRun.runId, playerId, "finalize_recorded", "http_backfill");
-                console.warn(`[MULTI] five-boss finish: finalize signal never reached the battle channel;`
-                    + ` backfilled from HTTP finish player=${playerId} run=${backfill.runId} room=${backfill.roomNumber}`);
-            }
-        }
-        const result = (0, settlement_performance_1.measureSettlementPhase)("multi", "five_boss_settlement", () => {
+        const result = yield (0, settlement_performance_1.measureSettlementPhaseAsync)("multi", "five_boss_settlement", () => (0, persistence_coordinator_1.runPersistenceTransaction)({
+            domain: "multi-settlement", playerId, operation: "five_boss_finish",
+        }, () => {
             var _a, _b, _c, _d, _e, _f;
+            if (body.is_accomplished === true && (0, contract_1.isFiveBossGauntletQuest)(body.category, body.quest_id)
+                && (boundRun === null || boundRun === void 0 ? void 0 : boundRun.roomNumber) === roomNumber) {
+                const backfill = (0, fiveBossGauntletRun_1.backfillMissingFinalizeSync)({ playerId, clientPlayId: body.play_id });
+                if (backfill.backfilled) {
+                    connection_diagnostic_1.fiveBossConnectionDiagnostics.memberEvent(boundRun.runId, playerId, "finalize_recorded", "http_backfill");
+                    console.warn(`[MULTI] five-boss finish: finalize signal never reached the battle channel;`
+                        + ` backfilled from HTTP finish player=${playerId} run=${backfill.runId} room=${backfill.roomNumber}`);
+                }
+            }
             return (0, battle_runtime_1.finishFiveBossBattle)({
                 playerId,
                 clientPlayId: body.play_id,
@@ -349,7 +354,7 @@ function handleFiveBossFinish(body, playerId, reply, buildFollowInfo) {
                 highScore: (_c = body.score) !== null && _c !== void 0 ? _c : 0,
                 leaderCharacterId: (_f = (_e = (_d = party === null || party === void 0 ? void 0 : party.characters) === null || _d === void 0 ? void 0 : _d[0]) === null || _e === void 0 ? void 0 : _e.id) !== null && _f !== void 0 ? _f : null,
             });
-        });
+        }));
         clearMatchingMemoryActive(playerId, body.play_id);
         terminalRoomTransition(roomNumber, result.runId, result.runStatus);
         const matePlayerResult = (_d = body.mate_player_result) !== null && _d !== void 0 ? _d : [];
@@ -370,13 +375,15 @@ function handleFiveBossFinish(body, playerId, reply, buildFollowInfo) {
 exports.handleFiveBossFinish = handleFiveBossFinish;
 function handleFiveBossAbort(body, playerId, reply) {
     const roomNumber = resolveFiveBossRoomNumber(body.room_number, playerId, body.play_id);
-    const result = (0, battle_runtime_1.abortFiveBossBattle)({
+    const result = (0, persistence_coordinator_1.runPersistenceTransactionSync)({
+        domain: "multi-settlement", playerId, operation: "five_boss_abort",
+    }, () => (0, battle_runtime_1.abortFiveBossBattle)({
         playerId,
         clientPlayId: body.play_id,
         requestRoomNumber: roomNumber,
         requestCategory: body.category,
         requestQuestId: body.quest_id,
-    });
+    }));
     clearMatchingMemoryActive(playerId, body.play_id);
     terminalRoomTransition(roomNumber, result.runId, result.runStatus);
     const headers = (0, utils_1.generateDataHeaders)({ viewer_id: body.viewer_id });

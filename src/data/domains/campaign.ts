@@ -6,6 +6,7 @@ import {
     RawPlayerStartDashExchangeCampaign,
     RawPlayerMultiSpecialExchangeCampaign,
 } from "../types";
+import { runPersistenceTransactionSync } from "../../lib/persistence-coordinator";
 
 // ─── Periodic Reward Points ───
 
@@ -42,11 +43,11 @@ export function insertPlayerPeriodicRewardPointsListSync(
     periodicRewards: PlayerPeriodicRewardPoint[]
 ) {
     const db = getDb();
-    db.transaction(() => {
+    runPersistenceTransactionSync({ domain: "player", playerId, operation: "insert_periodic_reward_points" }, () => {
         for (const periodicReward of periodicRewards) {
             insertPlayerPeriodicRewardPointsSync(playerId, periodicReward)
         }
-    })()
+    })
 }
 
 // ─── Start Dash Exchange Campaign ───
@@ -99,11 +100,11 @@ export function insertPlayerStartDashExchangeCampaignsSync(
     campaigns: PlayerStartDashExchangeCampaign[]
 ) {
     const db = getDb();
-    db.transaction(() => {
+    runPersistenceTransactionSync({ domain: "player", playerId, operation: "insert_start_dash_campaigns" }, () => {
         for (const campaign of campaigns) {
             insertPlayerStartDashExchangeCampaignSync(playerId, campaign)
         }
-    })()
+    })
 }
 
 // ─── Multi Special Exchange Campaign ───
@@ -161,9 +162,9 @@ export function insertPlayerMultiSpecialExchangeCampaignsSync(
     campaigns: PlayerMultiSpecialExchangeCampaign[]
 ) {
     const db = getDb();
-    db.transaction(() => {
+    runPersistenceTransactionSync({ domain: "player", playerId, operation: "insert_multi_special_exchange_campaigns" }, () => {
         for (const campaign of campaigns) {
             insertPlayerMultiSpecialExchangeCampaignSync(playerId, campaign)
         }
-    })()
+    })
 }

@@ -4,6 +4,7 @@ exports.updatePlayerActiveMissionStageSync = exports.deletePlayerCategoryMission
 const cached_statement_1 = require("../../lib/cached-statement");
 const db_1 = require("../db");
 const utils_1 = require("../utils");
+const persistence_coordinator_1 = require("../../lib/persistence-coordinator");
 /**
  * Retrieve a list of a player's cleared regular missions.
  *
@@ -43,11 +44,11 @@ function insertPlayerClearedRegularMissionSync(playerId, missionId, value) {
  * @param missionList The list of missions that were cleared.
  */
 function insertPlayerClearedRegularMissionListSync(playerId, missionList) {
-    (0, db_1.getDb)().transaction(() => {
+    (0, persistence_coordinator_1.runPersistenceTransactionSync)({ domain: "mission", playerId, operation: "insert_cleared_regular_missions" }, () => {
         for (const [missionId, value] of Object.entries(missionList)) {
             insertPlayerClearedRegularMissionSync(playerId, missionId, value);
         }
-    })();
+    });
 }
 exports.insertPlayerClearedRegularMissionListSync = insertPlayerClearedRegularMissionListSync;
 /**
@@ -152,11 +153,11 @@ function insertPlayerActiveMissionSync(playerId, missionId, mission) {
  * @param missions The record of active missions to insert.
  */
 function insertPlayerActiveMissionsSync(playerId, missions) {
-    (0, db_1.getDb)().transaction(() => {
+    (0, persistence_coordinator_1.runPersistenceTransactionSync)({ domain: "mission", playerId, operation: "insert_active_missions" }, () => {
         for (const [missionId, mission] of Object.entries(missions)) {
             insertPlayerActiveMissionSync(playerId, missionId, mission);
         }
-    })();
+    });
 }
 exports.insertPlayerActiveMissionsSync = insertPlayerActiveMissionsSync;
 /**
@@ -325,7 +326,7 @@ function getPlayerClearedCollectItemEventMissionListSync(playerId) {
 }
 exports.getPlayerClearedCollectItemEventMissionListSync = getPlayerClearedCollectItemEventMissionListSync;
 function insertPlayerCategoryMissionListSync(playerId, categories) {
-    (0, db_1.getDb)().transaction(() => {
+    (0, persistence_coordinator_1.runPersistenceTransactionSync)({ domain: "mission", playerId, operation: "insert_category_missions" }, () => {
         for (const [categoryKey, missions] of Object.entries(categories)) {
             const category = Number(categoryKey);
             if (!Number.isInteger(category))
@@ -339,7 +340,7 @@ function insertPlayerCategoryMissionListSync(playerId, categories) {
                 }
             }
         }
-    })();
+    });
 }
 exports.insertPlayerCategoryMissionListSync = insertPlayerCategoryMissionListSync;
 function updatePlayerCategoryMissionSync(playerId, category, missionId, progress) {
@@ -393,10 +394,10 @@ function updatePlayerCategoryMissionStageBatchSync(playerId, updates) {
 }
 exports.updatePlayerCategoryMissionStageBatchSync = updatePlayerCategoryMissionStageBatchSync;
 function deletePlayerCategoryMissionsSync(playerId, category) {
-    (0, db_1.getDb)().transaction(() => {
+    (0, persistence_coordinator_1.runPersistenceTransactionSync)({ domain: "mission", playerId, operation: "delete_category_missions" }, () => {
         (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `DELETE FROM players_category_mission_stages WHERE player_id = ? AND category = ?`).run(playerId, category);
         (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `DELETE FROM players_category_missions WHERE player_id = ? AND category = ?`).run(playerId, category);
-    })();
+    });
 }
 exports.deletePlayerCategoryMissionsSync = deletePlayerCategoryMissionsSync;
 /**

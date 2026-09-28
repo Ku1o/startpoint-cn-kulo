@@ -45,7 +45,7 @@ import storyQuestApiPlugin from "./routes/api/storyQuest";
 import optionApiPlugin from "./routes/api/option";
 import singleBattleQuestApiPlugin from "./routes/api/singleBattleQuest";
 import questApiPlugin from "./routes/api/quest";
-import { multiBattleRoutes } from "./multi";
+import { multiBattleRoutes, startSessionServer, stopSessionServer } from "./multi";
 import attentionApiPlugin from "./routes/api/attention";
 import characterApiPlugin from "./routes/api/character";
 import characterManaPlugin from "./routes/api/character/mana";
@@ -81,7 +81,6 @@ import questUnlockApiPlugin from "./routes/api/questUnlock";
 import itemApiPlugin from "./routes/api/item";
 import loungeApiPlugin from "./routes/api/lounge";
 import multiSpecialExchangeApiPlugin from "./routes/api/multiSpecialExchange";
-import { startSessionServer } from "./multi";
 import {
     startQuestNpcPartyPoolWorker,
     stopQuestNpcPartyPoolWorker,
@@ -92,7 +91,7 @@ import { createReceiveHistoryRetentionService } from "./lib/receive-history-rete
 import { createLeaderboardSettlementScheduler } from "./lib/leaderboard/settlement";
 import { createDailyVmoneyMailScheduler } from "./lib/daily-vmoney-mail";
 import { startSqliteCheckpointWorker, stopSqliteCheckpointWorker } from "./lib/sqlite-checkpoint-worker";
-import { drainPersistence } from "./lib/persistence-coordinator";
+import { drainPersistence, runPersistenceTransaction } from "./lib/persistence-coordinator";
 
 const fastify = Fastify({
     logger: {
@@ -131,12 +130,26 @@ installManagementAuth(fastify);
 const rateLimitMap = new Map<string, { count: number; reset: number }>();
 const RATE_LIMIT_MAX = 30;
 const RATE_LIMIT_WINDOW = 60000;
+// A hostile client can rotate source IPs; expiry alone must not make this map
+// grow for the lifetime of the process.
+const RATE_LIMIT_MAP_MAX = 4096;
+let nextRateLimitSweep = 0;
 fastify.addHook("onRequest", async (request, reply) => {
     if (request.url === "/crash") {
         const ip = (request.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim()
             || request.ip;
         const now = Date.now();
-        const entry = rateLimitMap.get(ip) || { count: 0, reset: now + RATE_LIMIT_WINDOW };
+        if (now >= nextRateLimitSweep) {
+            for (const [key, value] of rateLimitMap) {
+                if (value.reset <= now) rateLimitMap.delete(key);
+            }
+            nextRateLimitSweep = now + RATE_LIMIT_WINDOW;
+        }
+        const existing = rateLimitMap.get(ip);
+        if (!existing && rateLimitMap.size >= RATE_LIMIT_MAP_MAX) {
+            return reply.status(429).send("Too Many Requests");
+        }
+        const entry = existing || { count: 0, reset: now + RATE_LIMIT_WINDOW };
         if (now > entry.reset) { entry.count = 0; entry.reset = now + RATE_LIMIT_WINDOW; }
         if (++entry.count > RATE_LIMIT_MAX) {
             return reply.status(429).send("Too Many Requests");
@@ -493,11 +506,17 @@ fastify.setNotFoundHandler((request, reply) => {
 
 const host = process.env.CN_LISTEN_HOST ?? "127.0.0.1";
 const port = parseInt(process.env.CN_LISTEN_PORT ?? "8001");
-const receiveHistoryRetention = createReceiveHistoryRetentionService(getDb());
+const receiveHistoryRetention = createReceiveHistoryRetentionService(getDb(), {
+    executeTransaction: runPersistenceTransaction,
+});
 const leaderboardSettlementScheduler = createLeaderboardSettlementScheduler();
 const dailyVmoneyMailScheduler = createDailyVmoneyMailScheduler(getDb());
 
 fastify.addHook("onClose", async () => {
+    // The multiplayer TCP listener is not owned by Fastify. Stop it first so
+    // no new realtime callback can enqueue a database write while the queues
+    // below are draining.
+    await stopSessionServer();
     await seedValidator.close();
     dailyVmoneyMailScheduler.stop();
     leaderboardSettlementScheduler.stop();
@@ -506,6 +525,41 @@ fastify.addHook("onClose", async () => {
     await drainPersistence();
     await stopSqliteCheckpointWorker();
 });
+
+// Ctrl+C and a normal service-manager stop must enter Fastify's close hooks;
+// terminating the process forcibly still bypasses every cleanup callback.
+let gracefulShutdown: Promise<void> | null = null;
+const shutdownTimeoutMs = Math.max(
+    5_000,
+    Number.parseInt(process.env.GRACEFUL_SHUTDOWN_TIMEOUT_MS ?? "15000", 10) || 15_000,
+);
+function requestGracefulShutdown(signal: NodeJS.Signals): void {
+    if (gracefulShutdown) return;
+    console.warn(`[SHUTDOWN] ${signal} received; draining realtime and persistence work`);
+    gracefulShutdown = (async () => {
+        let timeout: NodeJS.Timeout | undefined;
+        try {
+            await Promise.race([
+                fastify.close(),
+                new Promise<never>((_, reject) => {
+                    timeout = setTimeout(() => reject(new Error(
+                        `graceful shutdown timed out after ${shutdownTimeoutMs}ms`,
+                    )), shutdownTimeoutMs);
+                }),
+            ]);
+            console.log("[SHUTDOWN] graceful shutdown complete");
+        } catch (error) {
+            process.exitCode = 1;
+            console.error(`[SHUTDOWN] graceful shutdown failed: ${(error as Error).message}`);
+        } finally {
+            if (timeout) clearTimeout(timeout);
+        }
+    })();
+    void gracefulShutdown;
+}
+process.once("SIGINT", () => requestGracefulShutdown("SIGINT"));
+process.once("SIGTERM", () => requestGracefulShutdown("SIGTERM"));
+process.once("SIGBREAK", () => requestGracefulShutdown("SIGBREAK"));
 startQuestNpcPartyPoolWorker();
 
 fastify.listen({ port, host }, (err, address) => {

@@ -1,6 +1,7 @@
 import { getDb } from "../db";
 import { RawPlayerOption } from "../types";
 import { serializeBoolean, deserializeBoolean } from "../utils";
+import { runPersistenceTransactionSync } from "../../lib/persistence-coordinator";
 
 export interface PlayerProfileSettings {
     showOpenedManaBoardSecondCount: boolean
@@ -56,12 +57,12 @@ export function insertPlayerOptionsSync(
     options: Record<string, boolean>
 ) {
     const db = getDb();
-    db.transaction(() => {
+    runPersistenceTransactionSync({ domain: "player", playerId, operation: "insert_player_options" }, () => {
         for (const [key, value] of Object.entries(options)) {
             if (!isClientOptionKey(key)) continue
             insertPlayerOptionSync(playerId, key, value)
         }
-    })()
+    })
 }
 
 /**
@@ -137,7 +138,7 @@ export function updatePlayerOptionsSync(
     playerId: number,
     options: Record<string, boolean>
 ) {
-    getDb().transaction(() => updatePlayerOptionsInTransactionSync(playerId, options))()
+    runPersistenceTransactionSync({ domain: "player", playerId, operation: "update_player_options" }, () => updatePlayerOptionsInTransactionSync(playerId, options))
 }
 
 /** The caller must roll back its transaction if any option or AUTO update fails. */
@@ -184,7 +185,7 @@ export function updatePlayerProfileSettingsSync(
     playerId: number,
     settings: PlayerProfileSettingsUpdate,
 ): PlayerProfileSettings {
-    getDb().transaction(() => {
+    runPersistenceTransactionSync({ domain: "player", playerId, operation: "update_player_profile_settings" }, () => {
         const upsert = getDb().prepare(`
             INSERT INTO players_options (key, value, player_id)
             VALUES (?, ?, ?)
@@ -195,6 +196,6 @@ export function updatePlayerProfileSettingsSync(
         >) {
             upsert.run(PROFILE_SETTING_KEYS[property], serializeBoolean(value), playerId)
         }
-    })()
+    })
     return getPlayerProfileSettingsSync(playerId)
 }

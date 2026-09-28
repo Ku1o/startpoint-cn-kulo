@@ -1,6 +1,7 @@
 import { getDb } from "../db";
 import { resolvePlayerIdSync } from "../activeAccount";
 import { getServerTime } from "../../utils";
+import { runPersistenceTransactionSync } from "../../lib/persistence-coordinator";
 
 export const MAX_FOLLOWING = 50;
 export const MAX_FOLLOWERS = 50;
@@ -141,7 +142,7 @@ export function bulkEditFollowSync(
     deleteTargetPlayerIds: number[],
 ): number[] {
     const fullFollowerTargets = new Set<number>();
-    getDb().transaction(() => {
+    runPersistenceTransactionSync({ domain: "player", playerId, operation: "bulk_edit_follow" }, () => {
         for (const targetPlayerId of new Set(deleteTargetPlayerIds)) {
             deleteFollowSync(playerId, targetPlayerId);
         }
@@ -150,6 +151,6 @@ export function bulkEditFollowSync(
             if (result === "follower_limit") fullFollowerTargets.add(targetPlayerId);
             if (result === "following_limit") break;
         }
-    })();
+    })
     return [...fullFollowerTargets];
 }

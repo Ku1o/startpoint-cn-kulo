@@ -27,6 +27,7 @@ import {
 import { getQuestFromCategorySync } from "../../lib/assets";
 import { QuestCategory } from "../../lib/types";
 import { grantEligibleRaidEventDegreesSync } from "../../lib/activity-degree-rewards";
+import { runPersistenceTransaction } from "../../lib/persistence-coordinator";
 
 interface EventIdBody {
     event_id: number,
@@ -92,14 +93,31 @@ const routes = async (fastify: FastifyInstance) => {
         // Rush event data for played party tracking
         let rushEventData = getPlayerRushEventSync(playerId, eventId)
         if (rushEventData === null) {
-            rushEventData = getDefaultPlayerRushEventSync(eventId)
-            insertPlayerRushEventSync(playerId, rushEventData)
+            await runPersistenceTransaction({
+                domain: "event", playerId, operation: "raid_summary_initialize",
+            }, () => {
+                if (getPlayerRushEventSync(playerId, eventId) === null) {
+                    insertPlayerRushEventSync(playerId, getDefaultPlayerRushEventSync(eventId))
+                }
+            })
+            rushEventData = getPlayerRushEventSync(playerId, eventId)
+        }
+        if (rushEventData === null) {
+            throw new Error(`Rush event ${eventId} could not be initialized for player ${playerId}.`)
         }
         const clearedFolderIdList = getPlayerRushEventClearedFoldersSync(playerId, eventId)
         const serializedPlayedParties = getSerializedPlayerRushEventPlayedPartiesSync(playerId, eventId)
-        const raidBoss = getRaidEventGlobalBossSync(eventId)
-        const totalKillCount = raidBoss.totalKillCount
-        const rewardClaim = claimRaidEventOverallRewardsSync(playerId, eventId, totalKillCount)
+        const settlement = await runPersistenceTransaction({
+            domain: "event", playerId, operation: "raid_summary_rewards",
+        }, () => {
+            const raidBoss = getRaidEventGlobalBossSync(eventId)
+            return {
+                raidBoss,
+                rewardClaim: claimRaidEventOverallRewardsSync(playerId, eventId, raidBoss.totalKillCount),
+            }
+        })
+        const raidBoss = settlement.raidBoss
+        const rewardClaim = settlement.rewardClaim
         const playerAfterClaim = rewardClaim.rewardResult ? getPlayerSync(playerId) : null
         if (rewardClaim.rewardResult && playerAfterClaim === null) {
             throw new Error(`Player ${playerId} disappeared during Raid reward settlement.`)
@@ -120,7 +138,7 @@ const routes = async (fastify: FastifyInstance) => {
                 "quest_list": questKillCounts,
                 "raid_boss": {
                     "hp_percentage": raidBoss.hpPercentage,
-                    "total_kill_count": totalKillCount,
+                    "total_kill_count": raidBoss.totalKillCount,
                 },
                 ...(rewardClaim.rewardResult && playerAfterClaim ? {
                     "user_info": {
@@ -198,7 +216,9 @@ const routes = async (fastify: FastifyInstance) => {
         if (playerId === null) return reply.status(500).send({
             "error": "Internal Server Error", "message": "No player bound to account."
         })
-        const degreeIds = grantEligibleRaidEventDegreesSync(playerId, eventId)
+        const degreeIds = await runPersistenceTransaction({
+            domain: "event", playerId, operation: "raid_ranking_reward",
+        }, () => grantEligibleRaidEventDegreesSync(playerId, eventId))
 
         reply.header("content-type", "application/x-msgpack");
         return reply.status(200).send({
@@ -238,7 +258,9 @@ const routes = async (fastify: FastifyInstance) => {
 
         // Category 4 used to be shared by Raid and Rush. Copy it only as a
         // one-time fallback; existing category 3 Raid parties always win.
-        const playerPartyGroups = ensureSpecialEventPartyGroupsSync(
+        const playerPartyGroups = await runPersistenceTransaction({
+            domain: "player", playerId, operation: "raid_party_defaults",
+        }, () => ensureSpecialEventPartyGroupsSync(
             playerId,
             PartyCategory.RAID,
             PartyCategory.RUSH,
@@ -247,7 +269,7 @@ const routes = async (fastify: FastifyInstance) => {
                 getDefaults: getDefaultPlayerPartyGroupsSync,
                 ensureGroups: ensurePlayerPartyGroupListSync,
             },
-        )
+        ))
         const group1 = playerPartyGroups['1']
         const partyList: RushParty[] = []
 
@@ -407,7 +429,9 @@ const routes = async (fastify: FastifyInstance) => {
         }
 
         // Register active quest for /single_battle_quest/finish
-        insertActiveQuest(playerId, {
+        await runPersistenceTransaction({
+            domain: "single-quest", playerId, operation: "raid_start",
+        }, () => insertActiveQuest(playerId, {
             questId: body.quest_id,
             category: QuestCategory.RAID_EVENT,
             useBossBoostPoint: false,
@@ -417,7 +441,7 @@ const routes = async (fastify: FastifyInstance) => {
             eventId: questEventId,
             playId: body.play_id,
             continueCount: 0
-        })
+        }))
 
         reply.header("content-type", "application/x-msgpack");
         return reply.status(200).send({
@@ -445,7 +469,11 @@ const routes = async (fastify: FastifyInstance) => {
         if (playerId === null) return reply.status(500).send({
             "error": "Internal Server Error", "message": "No player bound to account."
         })
-        updatePlayerRushEventSync(playerId, { eventId: body.event_id, activeRushBattleFolderId: body.folder_id })
+        await runPersistenceTransaction({
+            domain: "event", playerId, operation: "raid_select_folder",
+        }, () => updatePlayerRushEventSync(playerId, {
+            eventId: body.event_id, activeRushBattleFolderId: body.folder_id,
+        }))
         reply.header("content-type", "application/x-msgpack");
         return reply.status(200).send({ "data_headers": generateDataHeaders({ viewer_id: viewerId }), "data": {} });
     });
@@ -474,20 +502,24 @@ const routes = async (fastify: FastifyInstance) => {
         if (playerId === null) return reply.status(500).send({
             "error": "Internal Server Error", "message": "No player bound to account."
         })
-        if (questType === ResetQuestType.FOLDER) {
-            if (resetTargetId !== undefined) {
-                deletePlayerRushEventPlayedPartiesUntilSync(playerId, eventId, RushEventBattleType.FOLDER, resetTargetId)
-            } else {
-                updatePlayerRushEventSync(playerId, { eventId: eventId, activeRushBattleFolderId: null })
-                deletePlayerRushEventPlayedPartyListSync(playerId, eventId, RushEventBattleType.FOLDER)
+        await runPersistenceTransaction({
+            domain: "event", playerId, operation: "raid_reset",
+        }, () => {
+            if (questType === ResetQuestType.FOLDER) {
+                if (resetTargetId !== undefined) {
+                    deletePlayerRushEventPlayedPartiesUntilSync(playerId, eventId, RushEventBattleType.FOLDER, resetTargetId)
+                } else {
+                    updatePlayerRushEventSync(playerId, { eventId: eventId, activeRushBattleFolderId: null })
+                    deletePlayerRushEventPlayedPartyListSync(playerId, eventId, RushEventBattleType.FOLDER)
+                }
+            } else if (resetTargetId !== undefined) {
+                if (isResetAfterTargetRound) {
+                    deletePlayerRushEventPlayedPartiesUntilSync(playerId, eventId, RushEventBattleType.ENDLESS, resetTargetId)
+                } else {
+                    deletePlayerRushEventPlayedPartySync(playerId, eventId, resetTargetId, RushEventBattleType.ENDLESS)
+                }
             }
-        } else if (resetTargetId !== undefined) {
-            if (isResetAfterTargetRound) {
-                deletePlayerRushEventPlayedPartiesUntilSync(playerId, eventId, RushEventBattleType.ENDLESS, resetTargetId)
-            } else {
-                deletePlayerRushEventPlayedPartySync(playerId, eventId, resetTargetId, RushEventBattleType.ENDLESS)
-            }
-        }
+        })
         reply.header("content-type", "application/x-msgpack");
         return reply.status(200).send({ "data_headers": generateDataHeaders({ viewer_id: viewerId }), "data": {} });
     });

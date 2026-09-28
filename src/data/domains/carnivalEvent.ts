@@ -1,6 +1,7 @@
 import { getDb } from "../db";
 import { PlayerCarnivalEventRecord, RawPlayerCarnivalEventRecord } from "../types";
 import { serializeNumberList } from "../utils";
+import { runPersistenceTransactionSync } from "../../lib/persistence-coordinator";
 
 /**
  * Carnival record parties have three fixed slots.  Empty slots are persisted
@@ -67,7 +68,7 @@ export function migrateCarnivalEventFolderRecordsSync(
 ): void {
     const db = getDb()
 
-    db.transaction(() => {
+    runPersistenceTransactionSync({ domain: "event", operation: "migrate_carnival_event_folder_records" }, () => {
         db.prepare(`
         CREATE TABLE IF NOT EXISTS carnival_event_folder_migrations (
             event_id INTEGER PRIMARY KEY,
@@ -128,7 +129,7 @@ export function migrateCarnivalEventFolderRecordsSync(
         INSERT INTO carnival_event_folder_migrations (event_id, migrated_at)
         VALUES (?, ?)
         `).run(eventId, Date.now())
-    })()
+    })
 }
 
 export function upsertPlayerCarnivalEventRecordSync(
@@ -141,7 +142,7 @@ export function upsertPlayerCarnivalEventRecordSync(
 ): PlayerCarnivalEventRecord {
     const db = getDb()
 
-    return db.transaction((): PlayerCarnivalEventRecord => {
+    return runPersistenceTransactionSync({ domain: "event", playerId, operation: "upsert_carnival_event_record" }, (): PlayerCarnivalEventRecord => {
         const records = getPlayerCarnivalEventRecordsSync(playerId, eventId)
         const existing = records.find(record => record.folderId === folderId) ?? null
 
@@ -231,5 +232,5 @@ export function upsertPlayerCarnivalEventRecordSync(
             previousCharacterIds: characterIds,
             previousUnisonCharacterIds: unisonCharacterIds,
         }
-    })()
+    })
 }

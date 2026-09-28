@@ -8,6 +8,7 @@ import { getDefaultPlayerPartyGroupsSync } from "../../data/domains/player";
 import { serializePartyGroupList } from "../../data/utils";
 import { generateDataHeaders } from "../../utils";
 import { PartyCategory } from "../../data/types";
+import { runPersistenceTransactionSync } from "../../lib/persistence-coordinator";
 
 interface IndexBody {
     event_id: number,
@@ -56,12 +57,26 @@ function buildCarnivalPartyGroupList(playerId: number): any[] {
         }
         for (const [slot, defaultParty] of Object.entries(defaultGroup.list)) {
             if (existingGroup.list[slot]) continue
-            updatePlayerPartySync(playerId, Number(slot), defaultParty, Number(groupId))
             insertedMissingSlots = true
         }
     }
-    if (Object.keys(missingGroups).length > 0) {
-        insertPlayerPartyGroupListSync(playerId, missingGroups)
+    if (insertedMissingSlots || Object.keys(missingGroups).length > 0) {
+        runPersistenceTransactionSync({
+            domain: "player", playerId, operation: "carnival_party_defaults",
+        }, () => {
+            for (const [slot, defaultParty] of Object.entries(defaults)) {
+                if (Number(slot) > CARNIVAL_PARTY_GROUP_COUNT) continue
+                const existingGroup = groups[slot]
+                if (!existingGroup) continue
+                for (const [partySlot, party] of Object.entries(defaultParty.list)) {
+                    if (existingGroup.list[partySlot]) continue
+                    updatePlayerPartySync(playerId, Number(partySlot), party, Number(slot))
+                }
+            }
+            if (Object.keys(missingGroups).length > 0) {
+                insertPlayerPartyGroupListSync(playerId, missingGroups)
+            }
+        })
     }
     if (insertedMissingSlots || Object.keys(missingGroups).length > 0) {
         groups = getPlayerPartyGroupListSync(playerId, carnivalCategory)

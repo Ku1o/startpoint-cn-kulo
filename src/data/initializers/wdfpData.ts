@@ -200,6 +200,42 @@ export default function init(
         ON account_news_receipts (news_id, receipt_kind)
     `).run()
 
+    // Payment callbacks may be retried after a network timeout. Keep a
+    // player-scoped receipt so the same transaction can never credit vmoney
+    // twice, even after the process restarts.
+    database.prepare(`CREATE TABLE IF NOT EXISTS player_payment_receipts (
+        player_id INTEGER NOT NULL,
+        payment_key TEXT NOT NULL,
+        product_id TEXT NOT NULL,
+        paid_vmoney INTEGER NOT NULL,
+        free_vmoney INTEGER NOT NULL,
+        after_vmoney INTEGER NOT NULL,
+        after_free_vmoney INTEGER NOT NULL,
+        purchase_count INTEGER NOT NULL,
+        created_at INTEGER NOT NULL,
+        PRIMARY KEY (player_id, payment_key),
+        FOREIGN KEY (player_id) REFERENCES players (id) ON DELETE CASCADE
+    )`).run()
+    database.prepare(`CREATE INDEX IF NOT EXISTS idx_player_payment_receipts_product
+        ON player_payment_receipts (player_id, product_id, created_at)
+    `).run()
+
+    // Durable request receipts let retryable player commands return their
+    // original response without applying rewards a second time. The operation
+    // name keeps request keys from different protocol endpoints separate.
+    database.prepare(`CREATE TABLE IF NOT EXISTS player_operation_receipts (
+        player_id INTEGER NOT NULL,
+        operation TEXT NOT NULL,
+        request_key TEXT NOT NULL,
+        response_json TEXT NOT NULL,
+        created_at INTEGER NOT NULL,
+        PRIMARY KEY (player_id, operation, request_key),
+        FOREIGN KEY (player_id) REFERENCES players (id) ON DELETE CASCADE
+    )`).run()
+    database.prepare(`CREATE INDEX IF NOT EXISTS idx_player_operation_receipts_created
+        ON player_operation_receipts (player_id, created_at)
+    `).run()
+
     // create players table
     database.prepare(`CREATE TABLE IF NOT EXISTS players (
         id INTEGER PRIMARY KEY AUTOINCREMENT,

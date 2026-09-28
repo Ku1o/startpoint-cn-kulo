@@ -1,4 +1,5 @@
 import { getDb } from "../../data/db"
+import { runPersistenceTransactionSync } from "../persistence-coordinator"
 import { PartyCategory } from "../../data/types"
 import { parseGlobalPartyId } from "../special-event-parties"
 import { QuestCategory } from "../types"
@@ -295,7 +296,9 @@ export function recordQuestRecommendedPartySync(context: FinishContext): boolean
     if (!isCompleteParty(party) || !isPartyAllowedForQuest(party, context.questCategory, context.questId)) return false
     const clearedAt = Date.now()
     const db = getDb()
-    return db.transaction(() => {
+    return runPersistenceTransactionSync({
+        domain: "player", playerId: context.playerId, operation: "record_quest_recommended_party",
+    }, () => {
         // A malformed or now-forbidden historical entry must not block a genuine
         // lower-power clear forever. Valid snapshots retain the best-power rule.
         const previous = db.prepare(`
@@ -333,7 +336,7 @@ export function recordQuestRecommendedPartySync(context: FinishContext): boolean
             replaceInvalid ? 1 : 0,
         )
         return result.changes > 0
-    })()
+    })
 }
 
 /** Recommendation history must never make an otherwise valid settlement fail. */

@@ -2,7 +2,7 @@ import { performance } from "node:perf_hooks"
 import { getDb } from "../data/db"
 import { registerMemoryCounters } from "./memory-diagnostics"
 import { recordServerWork } from "./server-work-performance"
-import { runImmediateTransactionWithRetry, withPlayerWriteQueue } from "./sqlite-write-coordinator"
+import { drainPlayerWriteQueues, runImmediateTransactionWithRetry, withPlayerWriteQueue } from "./sqlite-write-coordinator"
 
 /**
  * Stable ownership labels for the main database write path.
@@ -34,10 +34,15 @@ export interface PersistenceContext {
 }
 
 let globalWriteTail = Promise.resolve()
+// The first migration step keeps SQLite in the main process. Nested domain
+// transactions belong to the outer command for metrics, but retain savepoints
+// so a caught inner error cannot leave partial writes in the outer transaction.
+let activePersistenceContext: PersistenceContext | undefined
 type PersistenceStats = {
     queued: number
     committed: number
     failed: number
+    maxPending: number
     queueMs: number
     transactionMs: number
     maxQueueMs: number
@@ -49,7 +54,7 @@ function statsFor(domain: PersistenceDomain): PersistenceStats {
     const existing = persistenceStats.get(domain)
     if (existing) return existing
     const created: PersistenceStats = {
-        queued: 0, committed: 0, failed: 0, queueMs: 0, transactionMs: 0,
+        queued: 0, committed: 0, failed: 0, maxPending: 0, queueMs: 0, transactionMs: 0,
         maxQueueMs: 0, maxTransactionMs: 0,
     }
     persistenceStats.set(domain, created)
@@ -62,6 +67,9 @@ registerMemoryCounters("persistence", () => {
         counters[`domain.${domain}.queued`] = value.queued
         counters[`domain.${domain}.committed`] = value.committed
         counters[`domain.${domain}.failed`] = value.failed
+        const pending = Math.max(0, value.queued - value.committed - value.failed)
+        counters[`domain.${domain}.pending`] = pending
+        counters[`domain.${domain}.maxPending`] = value.maxPending
         counters[`domain.${domain}.avgQueueMs`] = value.queued === 0 ? 0 : value.queueMs / value.queued
         counters[`domain.${domain}.avgTransactionMs`] = value.committed + value.failed === 0
             ? 0 : value.transactionMs / (value.committed + value.failed)
@@ -82,6 +90,13 @@ function enqueueGlobalWrite<T>(operation: () => Promise<T>): Promise<T> {
     })
 }
 
+function withPersistenceContext<T>(context: PersistenceContext, operation: () => T): T {
+    const previous = activePersistenceContext
+    activePersistenceContext = context
+    try { return operation() }
+    finally { activePersistenceContext = previous }
+}
+
 /**
  * Execute one complete main-database transaction under an explicit domain.
  *
@@ -96,6 +111,7 @@ export async function runPersistenceTransaction<T>(
     const queuedAt = performance.now()
     const stats = statsFor(context.domain)
     stats.queued++
+    stats.maxPending = Math.max(stats.maxPending, stats.queued - stats.committed - stats.failed)
     const execute = async (): Promise<T> => {
         const queueMs = performance.now() - queuedAt
         stats.queueMs += queueMs
@@ -103,7 +119,9 @@ export async function runPersistenceTransaction<T>(
         recordServerWork("persistence.queue", queueMs)
         const startedAt = performance.now()
         try {
-            const result = await runImmediateTransactionWithRetry(operation)
+            const result = await runImmediateTransactionWithRetry(() => (
+                withPersistenceContext(context, operation)
+            ))
             stats.committed++
             return result
         } catch (error) {
@@ -134,11 +152,19 @@ export function runPersistenceTransactionSync<T>(
     context: PersistenceContext,
     operation: () => T,
 ): T {
+    // better-sqlite3 creates a savepoint when already inside a transaction.
+    // Do not replace this with operation(): some callers catch an inner failure
+    // and continue, and still require that inner operation to roll back.
+    if (activePersistenceContext) return getDb().transaction(operation)()
+
     const stats = statsFor(context.domain)
     stats.queued++
+    stats.maxPending = Math.max(stats.maxPending, stats.queued - stats.committed - stats.failed)
     const startedAt = performance.now()
     try {
-        const result = getDb().transaction(operation).immediate()
+        const result = getDb().transaction(() => (
+            withPersistenceContext(context, operation)
+        )).immediate()
         stats.committed++
         return result
     } catch (error) {
@@ -155,4 +181,5 @@ export function runPersistenceTransactionSync<T>(
 /** Wait for queued asynchronous persistence work before a graceful shutdown. */
 export async function drainPersistence(): Promise<void> {
     await globalWriteTail
+    await drainPlayerWriteQueues()
 }

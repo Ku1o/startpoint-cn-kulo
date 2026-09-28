@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getRecommendedQuestPartiesSync = exports.recordQuestRecommendedPartySafe = exports.recordQuestRecommendedPartySync = void 0;
 const db_1 = require("../../data/db");
+const persistence_coordinator_1 = require("../persistence-coordinator");
 const types_1 = require("../../data/types");
 const special_event_parties_1 = require("../special-event-parties");
 const types_2 = require("../types");
@@ -226,7 +227,9 @@ function recordQuestRecommendedPartySync(context) {
         return false;
     const clearedAt = Date.now();
     const db = (0, db_1.getDb)();
-    return db.transaction(() => {
+    return (0, persistence_coordinator_1.runPersistenceTransactionSync)({
+        domain: "player", playerId: context.playerId, operation: "record_quest_recommended_party",
+    }, () => {
         // A malformed or now-forbidden historical entry must not block a genuine
         // lower-power clear forever. Valid snapshots retain the best-power rule.
         const previous = db.prepare(`
@@ -255,7 +258,7 @@ function recordQuestRecommendedPartySync(context) {
                )
         `).run(context.questCategory, context.questId, context.playerId, matched.party_slot, party.power, JSON.stringify(party), clearedAt, replaceInvalid ? 1 : 0);
         return result.changes > 0;
-    })();
+    });
 }
 exports.recordQuestRecommendedPartySync = recordQuestRecommendedPartySync;
 /** Recommendation history must never make an otherwise valid settlement fail. */

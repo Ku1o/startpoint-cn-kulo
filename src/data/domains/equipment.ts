@@ -2,6 +2,7 @@ import { cachedStatement } from "../../lib/cached-statement"
 import { getDb } from "../db";
 import { PlayerEquipment, RawPlayerEquipment } from "../types";
 import { deserializeBoolean, serializeBoolean } from "../utils";
+import { runPersistenceTransactionSync } from "../../lib/persistence-coordinator";
 
 /**
  * Converts a RawPlayerEquipment object into a PlayerEquipment object.
@@ -59,11 +60,11 @@ export function insertPlayerEquipmentSync(playerId: number, equipmentId: string 
 
 export function insertPlayerEquipmentListSync(playerId: number, equipment: Record<string, PlayerEquipment>) {
     const db = getDb();
-    db.transaction(() => {
+    runPersistenceTransactionSync({ domain: "player", playerId, operation: "insert_player_equipment_list" }, () => {
         for (const [equipmentId, data] of Object.entries(equipment)) {
             insertPlayerEquipmentSync(playerId, equipmentId, data)
         }
-    })()
+    })
 }
 
 export function updatePlayerEquipmentSync(playerId: number, equipmentId: string | number, equipment: Partial<PlayerEquipment>) {

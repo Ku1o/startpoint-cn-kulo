@@ -1,6 +1,15 @@
 "use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createLeaderboardSettlementScheduler = exports.runDueLeaderboardSettlementsSync = exports.getLeaderboardSettlementOverviewSync = exports.rolloverLeaderboardSeasonSync = exports.settleLeaderboardSeasonSync = exports.getLeaderboardSeasonRewardViewSync = exports.getLeaderboardRewardRankFilter = exports.validateRewardTiers = exports.putLeaderboardSettlementConfigSync = exports.getLeaderboardSettlementConfigSync = void 0;
+exports.createLeaderboardSettlementScheduler = exports.runDueLeaderboardSettlements = exports.runDueLeaderboardSettlementsSync = exports.getLeaderboardSettlementOverviewSync = exports.rolloverLeaderboardSeasonSync = exports.settleLeaderboardSeasonSync = exports.getLeaderboardSeasonRewardViewSync = exports.getLeaderboardRewardRankFilter = exports.validateRewardTiers = exports.putLeaderboardSettlementConfigSync = exports.getLeaderboardSettlementConfigSync = void 0;
 const db_1 = require("../../data/db");
 const leaderboard_1 = require("../../data/domains/leaderboard");
 const content_master_1 = require("../content-master");
@@ -8,6 +17,7 @@ const mail_1 = require("../../data/domains/mail");
 const competition_1 = require("./competition");
 const rewards_1 = require("./rewards");
 const availability_1 = require("./availability");
+const persistence_coordinator_1 = require("../persistence-coordinator");
 function defaultConfig(competitionKey, nowMs) {
     var _a, _b;
     const displayName = (_b = (_a = (0, competition_1.getLeaderboardCompetition)(competitionKey)) === null || _a === void 0 ? void 0 : _a.displayName) !== null && _b !== void 0 ? _b : competitionKey;
@@ -243,7 +253,9 @@ function settleLeaderboardSeasonSync(competitionKey, source, nowMs = Date.now())
         };
     const config = getLeaderboardSettlementConfigSync(competitionKey, nowMs);
     const filter = getLeaderboardRewardRankFilter(config);
-    return (0, db_1.getDb)().transaction(() => {
+    return (0, persistence_coordinator_1.runPersistenceTransactionSync)({
+        domain: "leaderboard", operation: "settle_leaderboard_season",
+    }, () => {
         var _a, _b, _c, _d;
         const total = (0, leaderboard_1.countLeaderboardRanksSync)(competitionKey, season, filter);
         const records = (0, leaderboard_1.getLeaderboardRankPageSync)({
@@ -319,7 +331,7 @@ function settleLeaderboardSeasonSync(competitionKey, source, nowMs = Date.now())
             rankedPlayers: records.length,
             rewardedPlayers,
         };
-    })();
+    });
 }
 exports.settleLeaderboardSeasonSync = settleLeaderboardSeasonSync;
 function rolloverLeaderboardSeasonSync(competitionKey, source, nowMs = Date.now()) {
@@ -338,7 +350,9 @@ function rolloverLeaderboardSeasonSync(competitionKey, source, nowMs = Date.now(
             reason: "season-not-settled",
         };
     const nextSeason = season + 1;
-    (0, db_1.getDb)().transaction(() => {
+    (0, persistence_coordinator_1.runPersistenceTransactionSync)({
+        domain: "leaderboard", operation: "rollover_leaderboard_season",
+    }, () => {
         const result = (0, db_1.getDb)().prepare(`
             UPDATE leaderboard_seasons
             SET season = ?, started_at_ms = ?, source = ?
@@ -347,7 +361,7 @@ function rolloverLeaderboardSeasonSync(competitionKey, source, nowMs = Date.now(
         if (result.changes !== 1)
             throw new Error("Leaderboard season changed concurrently.");
         (0, leaderboard_1.abandonLeaderboardRunsSync)({ competitionKey, endedAtMs: nowMs });
-    })();
+    });
     return { ok: true, competitionKey, season, rolled: true, nextSeason };
 }
 exports.rolloverLeaderboardSeasonSync = rolloverLeaderboardSeasonSync;
@@ -371,38 +385,79 @@ function getLeaderboardSettlementOverviewSync(competitionKey) {
     };
 }
 exports.getLeaderboardSettlementOverviewSync = getLeaderboardSettlementOverviewSync;
+function runDueLeaderboardSettlementSync(competitionKey, nowMs) {
+    const config = getLeaderboardSettlementConfigSync(competitionKey, nowMs);
+    if ((!config.freezeEnabled && !config.autoEnabled)
+        || config.settleAtMs === null || config.settleAtMs > nowMs)
+        return;
+    (0, availability_1.getLeaderboardAvailabilitySync)(competitionKey, nowMs);
+    if (!config.autoEnabled)
+        return;
+    const outcome = settleLeaderboardSeasonSync(competitionKey, "scheduler", nowMs);
+    if (!outcome.ok)
+        return;
+    const nextSettleAtMs = config.repeatIntervalMs === null
+        ? null
+        : config.settleAtMs + (Math.floor((nowMs - config.settleAtMs) / config.repeatIntervalMs) + 1) * config.repeatIntervalMs;
+    putLeaderboardSettlementConfigSync(Object.assign(Object.assign({}, config), { settleAtMs: nextSettleAtMs, autoEnabled: config.repeatIntervalMs !== null, freezeEnabled: config.repeatIntervalMs !== null, updatedAtMs: nowMs }));
+}
 function runDueLeaderboardSettlementsSync(nowMs = Date.now()) {
+    for (const competition of (0, competition_1.getLeaderboardCompetitions)()) {
+        runDueLeaderboardSettlementSync(competition.key, nowMs);
+    }
+}
+exports.runDueLeaderboardSettlementsSync = runDueLeaderboardSettlementsSync;
+/**
+ * Run scheduled leaderboard writes through the persistence ownership queue.
+ * The SQLite work is still synchronous inside the queued operation today, but
+ * the scheduler no longer starts overlapping runs or calls the write path
+ * directly from the timer callback. This is the seam for a future worker
+ * executor without changing the scheduler or leaderboard business rules.
+ */
+function runDueLeaderboardSettlements() {
+    return __awaiter(this, arguments, void 0, function* (nowMs = Date.now()) {
+        for (const competition of (0, competition_1.getLeaderboardCompetitions)()) {
+            yield (0, persistence_coordinator_1.runPersistenceTransaction)({
+                domain: "leaderboard",
+                operation: `scheduler:${competition.key}`,
+            }, () => runDueLeaderboardSettlementSync(competition.key, nowMs));
+        }
+    });
+}
+exports.runDueLeaderboardSettlements = runDueLeaderboardSettlements;
+/** Freeze overdue seasons synchronously so clients observe the deadline immediately. */
+function freezeDueLeaderboardSeasonsSync(nowMs) {
     for (const competition of (0, competition_1.getLeaderboardCompetitions)()) {
         const config = getLeaderboardSettlementConfigSync(competition.key, nowMs);
         if ((!config.freezeEnabled && !config.autoEnabled)
             || config.settleAtMs === null || config.settleAtMs > nowMs)
             continue;
         (0, availability_1.getLeaderboardAvailabilitySync)(competition.key, nowMs);
-        if (!config.autoEnabled)
-            continue;
-        const outcome = settleLeaderboardSeasonSync(competition.key, "scheduler", nowMs);
-        if (!outcome.ok)
-            continue;
-        const nextSettleAtMs = config.repeatIntervalMs === null
-            ? null
-            : config.settleAtMs + (Math.floor((nowMs - config.settleAtMs) / config.repeatIntervalMs) + 1) * config.repeatIntervalMs;
-        putLeaderboardSettlementConfigSync(Object.assign(Object.assign({}, config), { settleAtMs: nextSettleAtMs, autoEnabled: config.repeatIntervalMs !== null, freezeEnabled: config.repeatIntervalMs !== null, updatedAtMs: nowMs }));
     }
 }
-exports.runDueLeaderboardSettlementsSync = runDueLeaderboardSettlementsSync;
 function createLeaderboardSettlementScheduler(intervalMs = 60000) {
     let timer = null;
+    let running = false;
     return {
         start() {
             if (timer !== null)
                 return;
             const tick = () => {
+                if (running)
+                    return;
+                running = true;
+                const nowMs = Date.now();
                 try {
-                    runDueLeaderboardSettlementsSync();
+                    freezeDueLeaderboardSeasonsSync(nowMs);
                 }
                 catch (error) {
-                    console.error("[LEADERBOARD] settlement scheduler failed", error);
+                    running = false;
+                    console.error("[LEADERBOARD] settlement deadline freeze failed", error);
+                    return;
                 }
+                void runDueLeaderboardSettlements(nowMs)
+                    .catch(error => console.error("[LEADERBOARD] settlement scheduler failed", error))
+                    .finally(() => { running = false; });
             };
             // Catch up an overdue schedule immediately when the service starts.
             tick();

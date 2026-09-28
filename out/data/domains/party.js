@@ -7,6 +7,7 @@ const types_1 = require("../types");
 const utils_1 = require("../utils");
 const party_group_persistence_1 = require("../../lib/party-group-persistence");
 const game_logging_1 = require("../../lib/game-logging");
+const persistence_coordinator_1 = require("../../lib/persistence-coordinator");
 const PARTY_DISPLAY_BATCH_SIZE = 900;
 function resolveEvolutionImgLevel(evolutionLevel, illustrationSettings) {
     if (evolutionLevel === null)
@@ -160,15 +161,17 @@ function insertPlayerPartyGroupSync(playerId, groupId, group) {
 }
 function insertPlayerPartyGroupListSync(playerId, groups) {
     const db = (0, db_1.getDb)();
-    db.transaction(() => {
+    (0, persistence_coordinator_1.runPersistenceTransactionSync)({ domain: "player", playerId, operation: "insert_player_party_groups" }, () => {
         for (const [groupId, group] of Object.entries(groups)) {
             insertPlayerPartyGroupSync(playerId, groupId, group);
         }
-    })();
+    });
 }
 exports.insertPlayerPartyGroupListSync = insertPlayerPartyGroupListSync;
 function ensurePlayerPartyGroupListSync(playerId, groups) {
-    (0, party_group_persistence_1.insertMissingPartyGroupListSync)((0, db_1.getDb)(), playerId, groups);
+    (0, persistence_coordinator_1.runPersistenceTransactionSync)({ domain: "player", playerId, operation: "ensure_player_party_groups" }, () => {
+        (0, party_group_persistence_1.insertMissingPartyGroupListSync)((0, db_1.getDb)(), playerId, groups);
+    });
 }
 exports.ensurePlayerPartyGroupListSync = ensurePlayerPartyGroupListSync;
 function updatePlayerPartySync(playerId, slot, party, groupId = 1) {

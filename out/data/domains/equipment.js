@@ -4,6 +4,7 @@ exports.deletePlayerEquipmentSync = exports.updatePlayerEquipmentSync = exports.
 const cached_statement_1 = require("../../lib/cached-statement");
 const db_1 = require("../db");
 const utils_1 = require("../utils");
+const persistence_coordinator_1 = require("../../lib/persistence-coordinator");
 /**
  * Converts a RawPlayerEquipment object into a PlayerEquipment object.
  */
@@ -57,11 +58,11 @@ function insertPlayerEquipmentSync(playerId, equipmentId, equipment) {
 exports.insertPlayerEquipmentSync = insertPlayerEquipmentSync;
 function insertPlayerEquipmentListSync(playerId, equipment) {
     const db = (0, db_1.getDb)();
-    db.transaction(() => {
+    (0, persistence_coordinator_1.runPersistenceTransactionSync)({ domain: "player", playerId, operation: "insert_player_equipment_list" }, () => {
         for (const [equipmentId, data] of Object.entries(equipment)) {
             insertPlayerEquipmentSync(playerId, equipmentId, data);
         }
-    })();
+    });
 }
 exports.insertPlayerEquipmentListSync = insertPlayerEquipmentListSync;
 function updatePlayerEquipmentSync(playerId, equipmentId, equipment) {

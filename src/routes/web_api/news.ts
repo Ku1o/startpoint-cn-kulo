@@ -10,6 +10,7 @@ import {
     saveNewsConfig,
 } from "../../lib/news-config"
 import { getServerDate } from "../../utils"
+import { runPersistenceTransactionSync } from "../../lib/persistence-coordinator"
 
 function isRecord(value: unknown): value is Record<string, unknown> {
     return typeof value === "object" && value !== null && !Array.isArray(value)
@@ -88,7 +89,9 @@ const routes = async (fastify: FastifyInstance) => {
             : config.popup
         try {
             saveNewsConfig({ ...config, popup, news: config.news.filter(item => item.id !== id) })
-            deleteNewsReceiptsSync(id)
+            runPersistenceTransactionSync({
+                domain: "admin", operation: "delete_news_receipts",
+            }, () => deleteNewsReceiptsSync(id))
             return sendOverview(reply)
         } catch (error) {
             return fail(reply, error)
@@ -113,10 +116,14 @@ const routes = async (fastify: FastifyInstance) => {
         if (requestedId !== undefined && requestedId !== null && requestedId !== "") {
             const newsId = Number(requestedId)
             if (!Number.isSafeInteger(newsId) || newsId <= 0) return fail(reply, "公告 ID 无效")
-            const deleted = deleteNewsReceiptsSync(newsId, "popup")
+            const deleted = runPersistenceTransactionSync({
+                domain: "admin", operation: "reset_news_popup_receipts",
+            }, () => deleteNewsReceiptsSync(newsId, "popup"))
             return reply.send({ ok: true, deleted, news_id: newsId })
         }
-        const deleted = deleteAllPopupNewsReceiptsSync()
+        const deleted = runPersistenceTransactionSync({
+            domain: "admin", operation: "reset_all_news_popup_receipts",
+        }, () => deleteAllPopupNewsReceiptsSync())
         return reply.send({ ok: true, deleted, news_id: null })
     })
 }

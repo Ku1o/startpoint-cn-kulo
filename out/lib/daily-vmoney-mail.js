@@ -1,4 +1,13 @@
 "use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createDailyVmoneyMailScheduler = exports.getDailyVmoneyMailOverviewSync = exports.ensureDailyVmoneyMailForPlayerSync = exports.dispatchDailyVmoneyMailSync = exports.updateDailyVmoneyMailConfigSync = exports.validateDailyVmoneyMailConfigUpdate = exports.getDailyVmoneyMailConfigSync = void 0;
 const CHINA_UTC_OFFSET_MS = 8 * 60 * 60 * 1000;
@@ -15,6 +24,27 @@ function productionDatabase() {
     // Keep the database import lazy so isolated unit tests can inject an
     // in-memory database without initializing the repository's local DB.
     return require("../data/db").getDb();
+}
+function isProductionDatabase(database) {
+    // Do not initialize the production database merely by importing this
+    // module: isolated tests pass their own in-memory connection. Once the
+    // server has loaded data/db, compare the actual connection objects.
+    const modulePath = require.resolve("../data/db");
+    const cached = require.cache[modulePath];
+    if (!cached)
+        return false;
+    const getDb = cached.exports.getDb;
+    return typeof getDb === "function" && getDb() === database;
+}
+function runDailyVmoneyPersistence(database, operation) {
+    return __awaiter(this, void 0, void 0, function* () {
+        if (!isProductionDatabase(database))
+            return operation();
+        const { runPersistenceTransaction } = require("./persistence-coordinator");
+        return runPersistenceTransaction({
+            domain: "mail", operation: "daily_vmoney_mail_scheduler",
+        }, operation);
+    });
 }
 function twoDigits(value) {
     return String(value).padStart(2, "0");
@@ -278,17 +308,19 @@ function createDailyVmoneyMailScheduler(database = productionDatabase(), options
     const intervalMs = (_a = options.intervalMs) !== null && _a !== void 0 ? _a : 60000;
     const logger = (_b = options.logger) !== null && _b !== void 0 ? _b : console;
     let timer = null;
+    let running = false;
     const tick = () => {
-        try {
-            const result = dispatchDailyVmoneyMailSync(Date.now(), "scheduler", false, database);
+        if (running)
+            return;
+        running = true;
+        void runDailyVmoneyPersistence(database, () => dispatchDailyVmoneyMailSync(Date.now(), "scheduler", false, database)).then(result => {
             if (result.status === "sent" && result.run) {
                 logger.log(`[DAILY_VMONEY_MAIL] bucket=${result.run.bucket} amount=${result.run.amount} sent=${result.run.sentCount}`);
             }
-        }
-        catch (error) {
+        }).catch(error => {
             const detail = error instanceof Error ? error.message : String(error);
             logger.warn(`[DAILY_VMONEY_MAIL] scheduler failed: ${detail}`);
-        }
+        }).finally(() => { running = false; });
     };
     return {
         start() {

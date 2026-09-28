@@ -1,4 +1,5 @@
 import { getDb } from "../../../data/db"
+import { runPersistenceTransactionSync } from "../../persistence-coordinator"
 import { givePlayerRewardsSync } from "../../quest"
 import { PlayerRewardResult, Reward, RewardType } from "../../types"
 import rewardTableJson from "../../../../assets/carnival_event_total_score_rewards.json"
@@ -96,7 +97,9 @@ export function grantCarnivalTotalScoreRewardsSync(
     if (tiers.length === 0) return emptyResult()
 
     const db = getDb()
-    return db.transaction((): CarnivalRewardGrantResult => {
+    return runPersistenceTransactionSync({
+        domain: "event", playerId, operation: "grant_carnival_total_score_rewards",
+    }, (): CarnivalRewardGrantResult => {
         ensureClaimTableSync()
         const restoredDegreeIds = ensurePlayerClaimedCarnivalDegreesSync(playerId)
 
@@ -164,5 +167,5 @@ export function grantCarnivalTotalScoreRewardsSync(
         const rewardIds = reached.map(([rewardId]) => rewardId)
         console.log(`[CARNIVAL] granted event=${eventId} player=${playerId} total=${totalBestScore} tiers=${JSON.stringify(rewardIds)}`)
         return { rewardIds, newDegreeIds, rewards: result }
-    })()
+    })
 }

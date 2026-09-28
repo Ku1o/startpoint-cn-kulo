@@ -38,6 +38,7 @@ const daily_vmoney_mail_1 = require("../../lib/daily-vmoney-mail");
 const news_delivery_1 = require("../../lib/news-delivery");
 const node_perf_hooks_1 = require("node:perf_hooks");
 const server_work_performance_1 = require("../../lib/server-work-performance");
+const persistence_coordinator_1 = require("../../lib/persistence-coordinator");
 function wrapOptionFields(d, playerId, resVer) {
     var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q;
     var _r, _s, _t, _u, _v, _w, _x, _y, _z, _0, _1, _2, _3, _4;
@@ -128,17 +129,23 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 return reply.status(500).send({ error: "Internal Server Error", message: "No player data." });
             }
             const now = (0, utils_1.getServerDate)();
-            (0, daily_vmoney_mail_1.ensureDailyVmoneyMailForPlayerSync)(playerId, now.getTime());
-            (0, player_1.dailyResetPlayerDataSync)(player, now);
-            (0, player_1.collectPlayerDataPooledExpSync)(player, now);
+            yield (0, persistence_coordinator_1.runPersistenceTransaction)({
+                domain: "player", playerId, operation: "load_maintenance",
+            }, () => {
+                (0, daily_vmoney_mail_1.ensureDailyVmoneyMailForPlayerSync)(playerId, now.getTime());
+                (0, player_1.dailyResetPlayerDataSync)(player, now);
+                (0, player_1.collectPlayerDataPooledExpSync)(player, now);
+                // Keep the login timestamp with the same player-owned transaction
+                // as the other load maintenance writes.
+                if (now.toDateString() !== player.lastLoginTime.toDateString()) {
+                    (0, player_1.updatePlayerSync)({ id: player.id, lastLoginTime: now });
+                }
+            });
+            markLoadPhase("load.maintenance");
             // Equipment is needed by both validation and serialization. Validators
             // mutate this request-local object when they repair a row.
             const equipmentList = (0, equipment_1.getPlayerEquipmentListSync)(playerId);
             (0, validate_1.runPermanentValidators)(playerId, { player, equipmentList });
-            // 若自定义时间与 lastLogin 不同步，强制对齐（防止客户端弹"日期变了"）
-            if (now.toDateString() !== player.lastLoginTime.toDateString()) {
-                (0, player_1.updatePlayerSync)({ id: player.id, lastLoginTime: now });
-            }
             // Daily reset and pooled EXP collection may update the base row. Read
             // it once after those mutations, then reuse the fresh snapshot through
             // the remaining synchronous /load pipeline.

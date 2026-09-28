@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.claimRaidEventOverallRewardsSync = exports.recordRaidEventClearSync = exports.getRaidEventQuestKillCountSync = exports.getRaidEventQuestKillCountsSync = exports.getRaidEventGlobalKillCountSync = exports.getRaidEventGlobalBossSync = void 0;
 const db_1 = require("../data/db");
 const raid_event_counts_1 = require("./raid-event-counts");
+const persistence_coordinator_1 = require("./persistence-coordinator");
 const cached_statement_1 = require("./cached-statement");
 const quest_1 = require("./quest");
 const types_1 = require("./types");
@@ -274,7 +275,9 @@ function recordRaidEventClearSync(params) {
             },
         };
     }
-    return (0, db_1.getDb)().transaction(() => {
+    return (0, persistence_coordinator_1.runPersistenceTransactionSync)({
+        domain: "event", playerId, operation: "record_raid_event_clear",
+    }, () => {
         var _a;
         const currentBoss = getRaidEventGlobalBossSync(eventId);
         const rule = (0, raid_event_config_1.getRaidEventProgressRule)(eventId);
@@ -321,11 +324,13 @@ function recordRaidEventClearSync(params) {
             questKillCount: getRaidEventQuestKillCountSync(eventId, questId),
             boss,
         };
-    })();
+    });
 }
 exports.recordRaidEventClearSync = recordRaidEventClearSync;
 function claimRaidEventOverallRewardsSync(playerId, eventId, totalKillCount) {
-    return (0, db_1.getDb)().transaction(() => {
+    return (0, persistence_coordinator_1.runPersistenceTransactionSync)({
+        domain: "event", playerId, operation: "claim_raid_event_overall_rewards",
+    }, () => {
         var _a;
         const receipt = (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
             SELECT received_up_to
@@ -355,6 +360,6 @@ function claimRaidEventOverallRewardsSync(playerId, eventId, totalKillCount) {
             rewardList,
             rewardResult,
         };
-    })();
+    });
 }
 exports.claimRaidEventOverallRewardsSync = claimRaidEventOverallRewardsSync;

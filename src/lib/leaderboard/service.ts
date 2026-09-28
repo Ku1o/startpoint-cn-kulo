@@ -16,6 +16,7 @@ import { QuestCategory } from "../types"
 import { startAbyssEnduranceQuestSync, finishAbyssEnduranceQuestSync,
     resetAbyssEnduranceQuestSync } from "../abyss-endurance-degree-rewards"
 import { grantAbyssSphealDegreeSync } from "../abyss-spheal-degree-reward"
+import { runPersistenceTransactionSync } from "../persistence-coordinator"
 
 export interface LeaderboardQuestIdentity {
     category: number
@@ -48,7 +49,7 @@ export function startLeaderboardQuestSync(
         return null
     }
 
-    return getDbTransaction(() => {
+    return getDbTransaction(playerId, () => {
         const season = getLeaderboardCompetitionSeasonSync(competition.key, startedAtMs)
         const active = getActiveLeaderboardRunSync(playerId, competition.key)
         const canContinue = active !== null
@@ -137,10 +138,12 @@ export function resetLeaderboardCompetitionSync(
     return abandonLeaderboardRunsSync({ competitionKey: competition.key, playerId, endedAtMs })
 }
 
-function getDbTransaction<T>(operation: () => T): T {
+function getDbTransaction<T>(playerId: number, operation: () => T): T {
     // Keep the transaction boundary in one place without exposing better-sqlite3
     // from the public leaderboard service API.
     const { getDb } = require("../../data/db") as typeof import("../../data/db")
     const db = getDb()
-    return db.inTransaction ? operation() : db.transaction(operation)()
+    return db.inTransaction ? operation() : runPersistenceTransactionSync({
+        domain: "leaderboard", playerId, operation: "start_leaderboard_quest",
+    }, operation)
 }

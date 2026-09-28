@@ -19,6 +19,7 @@ const player_history_catalog_1 = require("../../lib/player-history-catalog");
 const player_history_aggregates_1 = require("../../lib/player-history-aggregates");
 const profileFavorite_1 = require("../../lib/profileFavorite");
 const utils_1 = require("../../utils");
+const persistence_coordinator_1 = require("../../lib/persistence-coordinator");
 function isPositiveInteger(value) {
     return Number.isSafeInteger(value) && value > 0;
 }
@@ -198,7 +199,9 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             }
             update.topicVisibility = visibility;
         }
-        (0, player_history_1.updatePlayerHistorySettingsSync)(resolved.playerId, getDefaults(resolved.playerId, resolved.player, catalog), update);
+        yield (0, persistence_coordinator_1.runPersistenceTransaction)({
+            domain: "player", playerId: resolved.playerId, operation: "player_history_edit",
+        }, () => (0, player_history_1.updatePlayerHistorySettingsSync)(resolved.playerId, getDefaults(resolved.playerId, resolved.player, catalog), update));
         reply.header("content-type", "application/x-msgpack");
         return reply.status(200).send({
             data_headers: (0, utils_1.generateDataHeaders)({ viewer_id: resolved.viewerId }),

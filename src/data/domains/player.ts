@@ -1,5 +1,4 @@
 import { cachedStatement } from "../../lib/cached-statement"
-import { getDb } from "../db";
 import { getPlayerPortableDegreesSync, grantPlayerDegreeSync, validatePortableDegreeList } from "./degree";
 import { Player, RawPlayer, MergedPlayerData, PartyCategory, PlayerPartyGroup, Account, PlayerParty, DailyChallengePointListEntry, DailyChallengePointListCampaign, RawDailyChallengePointListEntry, RawDailyChallengePointListCampaign, PlayerRushEventPlayedParty, RawPlayerRushEventPlayedParty, UserRushEventPlayedParty } from "../types";
 import { getServerDate, getTimeOffset } from "../../utils";
@@ -12,6 +11,7 @@ import { getMissionMasterDefinitions, isMissionDefinitionEnabledAt } from "../..
 import { ensurePlayerPassCardLoginProgressSync } from "./pass-card";
 import dailyChallengePointLookup from "../../../assets/daily_challenge_point_lookup.json";
 import { gameVerboseLog } from "../../lib/game-logging";
+import { runPersistenceTransactionSync } from "../../lib/persistence-coordinator";
 
 type DailyChallengePointLookup = Record<string, { maxPoint: number, isRecovery: boolean, name: string }>
 
@@ -178,11 +178,11 @@ export function insertPlayerDailyChallengePointListSync(
     playerId: number,
     entries: DailyChallengePointListEntry[]
 ) {
-    getDb().transaction(() => {
+    runPersistenceTransactionSync({ domain: "player", playerId, operation: "insert_daily_challenge_points" }, () => {
         for (const entry of entries) {
             insertPlayerDailyChallengePointListEntrySync(playerId, entry)
         }
-    })()
+    })
 }
 
 /**
@@ -616,8 +616,7 @@ export function insertDefaultPlayerSync(
 ): Player {
     const player: Omit<Player, 'id'> = getDefaultPlayerData()
 
-    const db = getDb()
-    const insertAll = db.transaction((): number => {
+    const insertAll = () => runPersistenceTransactionSync({ domain: "account", operation: "insert_default_player" }, (): number => {
         const playerId = insertPlayerSync(accountId, player)
 
     // daily challenge point list — initialize all 282 CDN entries
@@ -1253,6 +1252,19 @@ const LEGACY_REPLACE_PRESERVED_RELATIONS = [
         where: "player_id = ?",
         parameters: (playerId: number) => [playerId],
     },
+    // These are server-owned retry ledgers. V1 replacement deletes the player
+    // row and would otherwise cascade them, allowing a replayed payment or
+    // mail/gacha request to apply twice after import.
+    {
+        table: "player_payment_receipts",
+        where: "player_id = ?",
+        parameters: (playerId: number) => [playerId],
+    },
+    {
+        table: "player_operation_receipts",
+        where: "player_id = ?",
+        parameters: (playerId: number) => [playerId],
+    },
     // Deleting a host cascades through the entire shared run. Preserve every
     // affected member and receipt, then restore parent rows before children.
     {
@@ -1327,7 +1339,7 @@ export function replacePlayerDataSync(
         replaceWith.characterManaNodeAwakeLevels = restoredLevels
     }
 
-    const replace = getDb().transaction(() => {
+    const replace = () => runPersistenceTransactionSync({ domain: "player", playerId, operation: "replace_player_data" }, () => {
         const preservedRelations = LEGACY_REPLACE_PRESERVED_RELATIONS.map(specification => ({
             table: specification.table,
             rows: getDb().prepare(`
@@ -1461,7 +1473,7 @@ export function dailyResetPlayerDataSync(
     const crossedWeek = isNewWeek(loginDate, lastLoginTime)
 
     if (crossedDay) {
-        return getDb().transaction(() => {
+        return runPersistenceTransactionSync({ domain: "player", playerId, operation: "daily_reset_player" }, () => {
             updatePlayerSync({
                 id: playerId,
                 lastLoginTime: loginDate,
@@ -1548,7 +1560,7 @@ export function dailyResetPlayerDataSync(
             }
 
             return true
-        })()
+        })
     } else {
         updatePlayerSync({
             id: playerId,
@@ -1572,3 +1584,4 @@ export function dailyResetPlayerSync(
 
     return dailyResetPlayerDataSync(playerData)
 }
+import { getDb } from "../db";

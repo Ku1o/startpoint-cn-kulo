@@ -5,7 +5,9 @@ const cached_statement_1 = require("../../lib/cached-statement");
 const db_1 = require("../db");
 const utils_1 = require("../utils");
 const abyss_time_revision_1 = require("./abyss-time-revision");
+const abyss_modes_1 = require("../../lib/abyss-modes");
 const abyss_time_revision_2 = require("../../lib/abyss-time-revision");
+const persistence_coordinator_1 = require("../../lib/persistence-coordinator");
 /**
  * Converts a RawPlayerQuestProgress object into a PlayerQuestProgress object.
  *
@@ -149,8 +151,11 @@ exports.countFinishedPlayerQuestsSync = countFinishedPlayerQuestsSync;
  * @returns The quest's progress data, or null if it doesn't exist.
  */
 function getPlayerSingleQuestProgressSync(playerId, section, questId) {
-    if ((0, abyss_time_revision_2.isAbyssFiniteQuest)(section, questId))
-        (0, abyss_time_revision_1.refreshPlayerAbyssBestTimesSync)(playerId);
+    const abyssEventId = (0, abyss_time_revision_2.isAbyssFiniteQuest)(section, questId)
+        ? (0, abyss_modes_1.abyssEventFromQuest)(section, questId)
+        : null;
+    if (abyssEventId !== null)
+        (0, abyss_time_revision_1.refreshPlayerAbyssBestTimesSync)(playerId, abyssEventId);
     const rawProgress = (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
     SELECT section, quest_id, finished, host_finished, unlocked, high_score, clear_rank, best_elapsed_time_ms, leader_character_id, multi_clear_count, s_plus_reward_received
     FROM players_quest_progress
@@ -207,13 +212,13 @@ exports.insertPlayerQuestProgressSync = insertPlayerQuestProgressSync;
  * @param progressList The record of quest progress.
  */
 function insertPlayerQuestProgressListSync(playerId, progressList) {
-    (0, db_1.getDb)().transaction(() => {
+    (0, persistence_coordinator_1.runPersistenceTransactionSync)({ domain: "single-quest", playerId, operation: "insert_quest_progress_list" }, () => {
         for (const [section, progresses] of Object.entries(progressList)) {
             for (const progress of progresses) {
                 insertPlayerQuestProgressSync(playerId, section, progress);
             }
         }
-    })();
+    });
 }
 exports.insertPlayerQuestProgressListSync = insertPlayerQuestProgressListSync;
 /**
@@ -313,11 +318,11 @@ function insertPlayerDrawnQuestSync(playerId, drawnQuest) {
  * @param drawnQuests The list of drawn quests to insert.
  */
 function insertPlayerDrawnQuestsSync(playerId, drawnQuests) {
-    (0, db_1.getDb)().transaction(() => {
+    (0, persistence_coordinator_1.runPersistenceTransactionSync)({ domain: "single-quest", playerId, operation: "insert_drawn_quests" }, () => {
         for (const drawnQuest of drawnQuests) {
             insertPlayerDrawnQuestSync(playerId, drawnQuest);
         }
-    })();
+    });
 }
 exports.insertPlayerDrawnQuestsSync = insertPlayerDrawnQuestsSync;
 /**

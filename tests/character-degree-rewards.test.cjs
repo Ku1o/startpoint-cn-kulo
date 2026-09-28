@@ -250,7 +250,7 @@ test('native title list does not grant on read; only owners can equip and owners
     assert.equal(persisted.equipped, 9910002)
 })
 
-test('V2 and old V1 HTTP import/export preserve identity, title progress, and the pre-import rollback backup', async t => {
+test('V2 HTTP import/export preserves identity, title progress, and the pre-import rollback backup while V1 is rejected', async t => {
     const app = Fastify({ logger: false })
     await app.register(require('@fastify/multipart'))
     await app.register(require('../out/routes/web_api/player').default, { prefix: '/player' })
@@ -315,17 +315,13 @@ test('V2 and old V1 HTTP import/export preserve identity, title progress, and th
         assert.equal(degreeApi.getPlayerDegreeIdsSync(target.id).includes(9911101), false)
         recordBattleMissionDimensions(practice(target))
         assert.deepEqual(owned(target), allIds)
+        const beforeLegacy = snapshots.createPlayerSaveSnapshotV2Sync(target.id)
         const legacy = { schema: 'starpoint-cn-save', version: 1, exportedAt: new Date().toISOString(),
-            playerId: source.id, data: require('../out/data/utils').getMergedPlayerDataSync(source.id) }
-        await importAndCheckBackup(target, legacy)
-        assert.ok(degreeApi.getPlayerDegreeIdsSync(target.id).includes(9911101))
-        assert.equal(playerApi.getPlayerSync(target.id).degreeId, 9910048)
-        recordBattleMissionDimensions(practice(target))
-        assert.deepEqual(owned(target), allIds)
-        const oldLegacy = JSON.parse(JSON.stringify(legacy))
-        delete oldLegacy.data.degreeList
-        await importAndCheckBackup(target, oldLegacy)
-        assert.ok(degreeApi.getPlayerDegreeIdsSync(target.id).includes(9911101))
+            playerId: source.id, data: {} }
+        const rejectedLegacy = await upload(target, legacy)
+        assert.equal(rejectedLegacy.statusCode, 400)
+        assert.match(rejectedLegacy.json().error, /仅支持 V2 完整存档/)
+        assert.deepEqual(snapshots.createPlayerSaveSnapshotV2Sync(target.id).data.tables, beforeLegacy.data.tables)
         const beforeBadDegree = snapshots.createPlayerSaveSnapshotV2Sync(target.id)
         const malformedLegacy = JSON.parse(JSON.stringify(legacy))
         malformedLegacy.data.degreeList = [{ degreeId: 9911101, acquiredAt: -1 }]

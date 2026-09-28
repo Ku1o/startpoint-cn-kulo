@@ -8,6 +8,7 @@ const node_fs_1 = require("node:fs");
 const node_path_1 = __importDefault(require("node:path"));
 const db_1 = require("../data/db");
 const degree_1 = require("../data/domains/degree");
+const persistence_coordinator_1 = require("./persistence-coordinator");
 exports.ABYSS_SPHEAL_DEGREE = 9911301;
 exports.SPHEAL_CHARACTER = 129990;
 exports.ABYSS_SPHEAL_CONFIG_PATH = node_path_1.default.resolve(__dirname, "..", "..", "assets", "abyss_spheal_degree_reward.json");
@@ -41,7 +42,9 @@ function grantAbyssSphealDegreeSync(playerId, options = {}) {
     if (config === null)
         return [];
     const db = (0, db_1.getDb)();
-    return db.transaction(() => {
+    return (0, persistence_coordinator_1.runPersistenceTransactionSync)({
+        domain: "event", playerId, operation: "grant_abyss_spheal_degree",
+    }, () => {
         if (!db.prepare("SELECT id FROM players WHERE id = ?").get(playerId))
             return [];
         if (db.prepare("SELECT 1 FROM players_degrees WHERE player_id = ? AND degree_id = ?")
@@ -70,6 +73,6 @@ function grantAbyssSphealDegreeSync(playerId, options = {}) {
                 ? [config.degree_id] : [];
         }
         return [];
-    })();
+    });
 }
 exports.grantAbyssSphealDegreeSync = grantAbyssSphealDegreeSync;

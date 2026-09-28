@@ -5,6 +5,7 @@ const db_1 = require("../db");
 const utils_1 = require("../utils");
 const assets_1 = require("../../lib/assets");
 const cached_statement_1 = require("../../lib/cached-statement");
+const persistence_coordinator_1 = require("../../lib/persistence-coordinator");
 function prepareCharacterMissionQuery(sql) {
     return (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), sql);
 }
@@ -306,11 +307,11 @@ exports.insertDefaultPlayerCharacterSync = insertDefaultPlayerCharacterSync;
  * @param characters The record of characters to insert.
  */
 function insertPlayerCharactersSync(playerId, characters) {
-    (0, db_1.getDb)().transaction(() => {
+    (0, persistence_coordinator_1.runPersistenceTransactionSync)({ domain: "player", playerId, operation: "insert_player_characters" }, () => {
         for (const [characterId, data] of Object.entries(characters)) {
             insertPlayerCharacterSync(playerId, characterId, data);
         }
-    })();
+    });
 }
 exports.insertPlayerCharactersSync = insertPlayerCharactersSync;
 /**
@@ -547,11 +548,11 @@ exports.insertPlayerCharacterManaNodesSync = insertPlayerCharacterManaNodesSync;
  * @param charactersManaNodes The record of character mana node values.
  */
 function insertPlayerCharactersManaNodesSync(playerId, charactersManaNodes) {
-    (0, db_1.getDb)().transaction(() => {
+    (0, persistence_coordinator_1.runPersistenceTransactionSync)({ domain: "player", playerId, operation: "insert_player_character_mana_nodes" }, () => {
         for (const [characterId, manaNodes] of Object.entries(charactersManaNodes)) {
             insertPlayerCharacterManaNodesSync(playerId, characterId, manaNodes);
         }
-    })();
+    });
 }
 exports.insertPlayerCharactersManaNodesSync = insertPlayerCharactersManaNodesSync;
 /**

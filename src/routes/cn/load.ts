@@ -38,6 +38,7 @@ import { ensureDailyVmoneyMailForPlayerSync } from "../../lib/daily-vmoney-mail"
 import { getNewsDeliveryState, getNewsInterruptFlag } from "../../lib/news-delivery";
 import { performance } from "node:perf_hooks";
 import { recordServerWork } from "../../lib/server-work-performance";
+import { runPersistenceTransaction } from "../../lib/persistence-coordinator";
 
 interface CnLoadBody {
     device_id: number;
@@ -128,7 +129,7 @@ const routes = async (fastify: FastifyInstance) => {
     fastify.post("/load", async (request: FastifyRequest, reply: FastifyReply) => {
         try {
         let phaseStartedAt = performance.now()
-        const markLoadPhase = (phase: "load.session" | "load.player" | "load.snapshot" | "load.reconcile" | "load.serialize" | "load.active") => {
+        const markLoadPhase = (phase: "load.session" | "load.player" | "load.maintenance" | "load.snapshot" | "load.reconcile" | "load.serialize" | "load.active") => {
             const now = performance.now()
             recordServerWork(phase, now - phaseStartedAt)
             phaseStartedAt = now
@@ -154,19 +155,25 @@ const routes = async (fastify: FastifyInstance) => {
         }
 
         const now = getServerDate();
-        ensureDailyVmoneyMailForPlayerSync(playerId, now.getTime());
-        dailyResetPlayerDataSync(player, now);
-        collectPlayerDataPooledExpSync(player, now);
+        await runPersistenceTransaction({
+            domain: "player", playerId, operation: "load_maintenance",
+        }, () => {
+            ensureDailyVmoneyMailForPlayerSync(playerId, now.getTime());
+            dailyResetPlayerDataSync(player, now);
+            collectPlayerDataPooledExpSync(player, now);
+
+            // Keep the login timestamp with the same player-owned transaction
+            // as the other load maintenance writes.
+            if (now.toDateString() !== player.lastLoginTime.toDateString()) {
+                updatePlayerSync({ id: player.id, lastLoginTime: now });
+            }
+        });
+        markLoadPhase("load.maintenance")
 
         // Equipment is needed by both validation and serialization. Validators
         // mutate this request-local object when they repair a row.
         const equipmentList = getPlayerEquipmentListSync(playerId)
         runPermanentValidators(playerId, { player, equipmentList });
-
-        // 若自定义时间与 lastLogin 不同步，强制对齐（防止客户端弹"日期变了"）
-        if (now.toDateString() !== player.lastLoginTime.toDateString()) {
-            updatePlayerSync({ id: player.id, lastLoginTime: now });
-        }
 
         // Daily reset and pooled EXP collection may update the base row. Read
         // it once after those mutations, then reuse the fresh snapshot through

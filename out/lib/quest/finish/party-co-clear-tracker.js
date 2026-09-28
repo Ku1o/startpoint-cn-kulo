@@ -5,6 +5,7 @@ const cached_statement_1 = require("../../cached-statement");
 // Tracks party member co-clears (pairwise) for multi-character awake missions
 // When 3+ specific characters must be in the same party, this tracks their co-appearances
 const db_1 = require("../../../data/db");
+const persistence_coordinator_1 = require("../../persistence-coordinator");
 const mission_1 = require("../../../data/domains/mission");
 const awake_battle_rules_1 = require("../../mission/awake-battle-rules");
 const race_utils_1 = require("./race-utils");
@@ -33,7 +34,9 @@ function trackPartyCoClears(ctx) {
         ON CONFLICT(player_id, char_id_a, char_id_b) DO UPDATE SET
             co_clear_count = co_clear_count + 1
         `);
-        const tx = db.transaction(() => {
+        (0, persistence_coordinator_1.runPersistenceTransactionSync)({
+            domain: "mission", playerId: ctx.playerId, operation: "track_party_co_clears",
+        }, () => {
             for (let i = 0; i < unique.length - 1; i++) {
                 for (let j = i + 1; j < unique.length; j++) {
                     const [charIdA, charIdB] = (0, awake_battle_rules_1.normalizeCharacterPair)(unique[i], unique[j]);
@@ -41,7 +44,6 @@ function trackPartyCoClears(ctx) {
                 }
             }
         });
-        tx();
     }
     // Race clears (unique race set)
     const raceKey = (0, race_utils_1.getRaceKeyString)(allRaces);

@@ -22,7 +22,6 @@ const account_1 = require("../../data/domains/account");
 const player_1 = require("../../data/domains/player");
 const session_1 = require("../../data/domains/session");
 const admin_player_1 = require("../../data/domains/admin-player");
-const utils_2 = require("../../data/utils");
 const activeAccount_1 = require("../../data/activeAccount");
 const defaultSave_1 = require("../../data/defaultSave");
 const version_1 = require("../../lib/version");
@@ -567,15 +566,9 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             }
             if (!parsed || typeof parsed !== "object" || parsed.schema !== "starpoint-cn-save")
                 return reply.status(400).send({ error: "不是有效的存档快照（请使用本面板导出的存档）" });
-            if ((0, player_snapshot_1.isPlayerSaveSnapshotV2)(parsed)) {
-                (0, player_snapshot_1.validatePlayerSaveSnapshotV2Sync)(parsed);
-            }
-            else {
-                if (parsed.version !== 1)
-                    return reply.status(400).send({ error: `不支持的存档版本：${parsed.version}` });
-                if (!parsed.data || typeof parsed.data !== "object" || !parsed.data.player)
-                    return reply.status(400).send({ error: "存档数据缺失 player 字段" });
-            }
+            if (!(0, player_snapshot_1.isPlayerSaveSnapshotV2)(parsed))
+                return reply.status(400).send({ error: "仅支持 V2 完整存档；旧版 V1 存档与当前数据库结构不兼容" });
+            (0, player_snapshot_1.validatePlayerSaveSnapshotV2Sync)(parsed);
             (0, defaultSave_1.saveDefaultSaveTemplate)(parsed);
             return reply.send(Object.assign({ ok: true }, (0, defaultSave_1.getDefaultSaveMeta)()));
         }
@@ -629,7 +622,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
     }));
     // Create new empty save under the given account
     fastify.post("/newSave", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
-        var _f, _g;
+        var _f;
         const { accountId: aid } = (request.query || {});
         const accId = parseInt(aid);
         if (isNaN(accId)) {
@@ -637,31 +630,34 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 return reply.status(400).send({ error: "Invalid accountId" });
             return reply.redirect('/player');
         }
-        const player = (0, player_1.insertDefaultPlayerSync)(accId);
+        const player = (0, persistence_coordinator_1.runPersistenceTransactionSync)({
+            domain: "admin", operation: "admin_create_save",
+        }, () => (0, player_1.insertDefaultPlayerSync)(accId));
         // 若管理员配置了默认存档模板，用它替换新建的空存档
         let appliedTemplate = false;
         try {
             const template = (0, defaultSave_1.loadDefaultSaveTemplate)();
-            if ((0, player_snapshot_1.isPlayerSaveSnapshotV2)(template)) {
+            if (template !== null) {
+                if (!(0, player_snapshot_1.isPlayerSaveSnapshotV2)(template)) {
+                    throw new Error("默认存档模板不是受支持的 V2 完整存档，请重新上传");
+                }
                 const snapshot = (0, player_snapshot_1.validatePlayerSaveSnapshotV2Sync)(template);
-                (0, player_snapshot_1.restorePlayerSaveSnapshotV2Sync)(snapshot, player.id, {
+                (0, persistence_coordinator_1.runPersistenceTransactionSync)({
+                    domain: "admin", playerId: player.id, operation: "admin_apply_save_template_v2",
+                }, () => (0, player_snapshot_1.restorePlayerSaveSnapshotV2Sync)(snapshot, player.id, {
                     includeArchiveHistory: false,
-                });
-                appliedTemplate = true;
-            }
-            else if ((_f = template === null || template === void 0 ? void 0 : template.data) === null || _f === void 0 ? void 0 : _f.player) {
-                const data = (0, utils_2.reviveMergedPlayerDates)(template.data);
-                data.player.id = player.id;
-                (0, player_1.replacePlayerDataSync)(data);
+                }));
                 appliedTemplate = true;
             }
         }
         catch (error) {
             try {
-                (0, player_1.deletePlayerSync)(player.id);
+                (0, persistence_coordinator_1.runPersistenceTransactionSync)({
+                    domain: "admin", playerId: player.id, operation: "admin_rollback_new_save",
+                }, () => (0, player_1.deletePlayerSync)(player.id));
             }
-            catch ( /* preserve template error */_h) { /* preserve template error */ }
-            const message = `默认存档应用失败，未创建新存档：${(_g = error === null || error === void 0 ? void 0 : error.message) !== null && _g !== void 0 ? _g : error}`;
+            catch ( /* preserve template error */_g) { /* preserve template error */ }
+            const message = `默认存档应用失败，未创建新存档：${(_f = error === null || error === void 0 ? void 0 : error.message) !== null && _f !== void 0 ? _f : error}`;
             if ((0, http_1.wantsJson)(request))
                 return reply.status(409).send({ error: message });
             return reply.redirect(`/player?error=${encodeURIComponent(message)}`);
@@ -690,12 +686,16 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             }
         }
         if (accountId && (0, account_1.getAccountPlayersSync)(accountId).length <= 1) {
-            const deletedPlayerIds = deleteAccountDataSync(accountId);
+            const deletedPlayerIds = (0, persistence_coordinator_1.runPersistenceTransactionSync)({
+                domain: "admin", operation: `admin_delete_save_account:${accountId}`,
+            }, () => deleteAccountDataSync(accountId));
             (0, activeAccount_1.removeDeletedAccountFromState)(accountId, deletedPlayerIds);
             yield cleanupDeletedPlayerAiSnapshots(deletedPlayerIds, `save ${pid} and account ${accountId} deletion`);
         }
         else {
-            (0, player_1.deletePlayerSync)(pid);
+            (0, persistence_coordinator_1.runPersistenceTransactionSync)({
+                domain: "admin", playerId: pid, operation: "admin_delete_save",
+            }, () => (0, player_1.deletePlayerSync)(pid));
             yield cleanupDeletedPlayerAiSnapshots([pid], `save ${pid} deletion`);
             const remainingPlayerIds = (0, account_1.getAccountPlayersSync)(accountId);
             if ((0, activeAccount_1.getAccountDefaultPlayer)(accountId) === pid && remainingPlayerIds.length > 0) {
@@ -715,7 +715,9 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         const accountId = parseInt(id);
         if (isNaN(accountId))
             return reply.status(400).send({ error: "Missing or invalid 'id'" });
-        const playerIds = deleteAccountDataSync(accountId);
+        const playerIds = (0, persistence_coordinator_1.runPersistenceTransactionSync)({
+            domain: "admin", operation: `admin_delete_account:${accountId}`,
+        }, () => deleteAccountDataSync(accountId));
         (0, activeAccount_1.removeDeletedAccountFromState)(accountId, playerIds);
         yield cleanupDeletedPlayerAiSnapshots(playerIds, `account ${accountId} deletion`);
         if ((0, http_1.wantsJson)(request))
@@ -785,14 +787,16 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         const name = body.name;
         if (isNaN(playerId) || !name)
             return reply.status(400).send({ error: "Missing params" });
-        (0, player_1.updatePlayerSync)({ id: playerId, name: String(name) });
+        (0, persistence_coordinator_1.runPersistenceTransactionSync)({
+            domain: "admin", playerId, operation: "rename_save",
+        }, () => (0, player_1.updatePlayerSync)({ id: playerId, name: String(name) }));
         if ((0, http_1.wantsJson)(request))
             return reply.send({ ok: true, playerId, name: String(name) });
         return reply.redirect('/player');
     }));
     // Clone a save to another account
     fastify.post("/cloneSave", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
-        var _j, _k;
+        var _h, _j;
         const { playerId: pid, accountId: aid } = (request.query || {});
         const playerId = parseInt(pid);
         const accountId = parseInt(aid);
@@ -812,29 +816,42 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         }
         catch (error) {
             if ((0, http_1.wantsJson)(request))
-                return reply.status(500).send({ error: `克隆前导出失败：${(_j = error === null || error === void 0 ? void 0 : error.message) !== null && _j !== void 0 ? _j : error}` });
+                return reply.status(500).send({ error: `克隆前导出失败：${(_h = error === null || error === void 0 ? void 0 : error.message) !== null && _h !== void 0 ? _h : error}` });
             return reply.redirect('/player');
         }
-        const newPlayer = (0, player_1.insertDefaultPlayerSync)(accountId);
+        let newPlayerId = 0;
         let restored;
         try {
-            restored = (0, player_snapshot_1.restorePlayerSaveSnapshotV2Sync)(snapshot, newPlayer.id, {
-                includeArchiveHistory: false,
-            });
+            ({ newPlayerId, restored } = (0, persistence_coordinator_1.runPersistenceTransactionSync)({
+                domain: "admin", operation: "clone_save",
+            }, () => {
+                const newPlayer = (0, player_1.insertDefaultPlayerSync)(accountId);
+                try {
+                    return {
+                        newPlayerId: newPlayer.id,
+                        restored: (0, player_snapshot_1.restorePlayerSaveSnapshotV2Sync)(snapshot, newPlayer.id, {
+                            includeArchiveHistory: false,
+                        }),
+                    };
+                }
+                catch (error) {
+                    try {
+                        (0, player_1.deletePlayerSync)(newPlayer.id);
+                    }
+                    catch ( /* preserve original clone error */_a) { /* preserve original clone error */ }
+                    throw error;
+                }
+            }));
         }
         catch (error) {
-            try {
-                (0, player_1.deletePlayerSync)(newPlayer.id);
-            }
-            catch ( /* preserve original clone error */_l) { /* preserve original clone error */ }
             if ((0, http_1.wantsJson)(request))
-                return reply.status(500).send({ error: `克隆恢复失败：${(_k = error === null || error === void 0 ? void 0 : error.message) !== null && _k !== void 0 ? _k : error}` });
+                return reply.status(500).send({ error: `克隆恢复失败：${(_j = error === null || error === void 0 ? void 0 : error.message) !== null && _j !== void 0 ? _j : error}` });
             return reply.redirect('/player');
         }
-        (0, activeAccount_1.setActivePlayerId)(newPlayer.id);
-        (0, activeAccount_1.saveAccountDefaultPlayer)(accountId, newPlayer.id);
+        (0, activeAccount_1.setActivePlayerId)(newPlayerId);
+        (0, activeAccount_1.saveAccountDefaultPlayer)(accountId, newPlayerId);
         if ((0, http_1.wantsJson)(request))
-            return reply.send({ ok: true, newPlayerId: newPlayer.id, snapshotVersion: 2, restored });
+            return reply.send({ ok: true, newPlayerId, snapshotVersion: 2, restored });
         return reply.redirect('/player');
     }));
     // Account-scoped note: it survives device replacement and account recovery.
@@ -848,7 +865,9 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         if (!account)
             return reply.status(404).send({ error: "Account not found" });
         const note = typeof body.name === "string" ? body.name.trim().slice(0, 100) : "";
-        (0, account_1.updateAccountSync)({ id: accountId, adminNote: note || null });
+        (0, persistence_coordinator_1.runPersistenceTransactionSync)({
+            domain: "admin", operation: "rename_account",
+        }, () => (0, account_1.updateAccountSync)({ id: accountId, adminNote: note || null }));
         return reply.status(200).send({ ok: true, accountId, note: note || null });
     }));
     fastify.post("/account/takeover-password/reset", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
@@ -867,7 +886,9 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         if (!account)
             return reply.status(404).send({ error: "Account not found" });
         const replacementPassword = `R${(0, crypto_1.randomBytes)(6).toString("hex")}a1`;
-        (0, account_1.updateAccountSync)({ id: accountId, takeoverPassword: replacementPassword });
+        (0, persistence_coordinator_1.runPersistenceTransactionSync)({
+            domain: "admin", operation: "reset_takeover_password",
+        }, () => (0, account_1.updateAccountSync)({ id: accountId, takeoverPassword: replacementPassword }));
         const viewerSession = (0, session_1.getSessionByAccountIdSync)(accountId, types_1.SessionType.VIEWER);
         if (viewerSession)
             (0, takeOver_1.clearRecoveryFailuresForViewer)(viewerSession.token);
@@ -885,7 +906,9 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         if (!binding)
             return reply.status(404).send({ error: "Device binding not found" });
         const note = typeof body.name === "string" ? body.name.trim().slice(0, 100) : "";
-        (0, account_1.updateAccountSync)({ id: binding.account_id, adminNote: note || null });
+        (0, persistence_coordinator_1.runPersistenceTransactionSync)({
+            domain: "admin", operation: "rename_device_account",
+        }, () => (0, account_1.updateAccountSync)({ id: binding.account_id, adminNote: note || null }));
         return reply.status(200).send({ ok: true });
     }));
 });

@@ -18,6 +18,7 @@ import {
     upgradeLeaderboardRewardRules,
 } from "./rewards"
 import { getLeaderboardAvailabilitySync, setLeaderboardAvailabilitySync } from "./availability"
+import { runPersistenceTransaction, runPersistenceTransactionSync } from "../persistence-coordinator"
 
 export interface LeaderboardSettlementConfig {
     competitionKey: string
@@ -341,7 +342,9 @@ export function settleLeaderboardSeasonSync(
 
     const config = getLeaderboardSettlementConfigSync(competitionKey, nowMs)
     const filter = getLeaderboardRewardRankFilter(config)
-    return getDb().transaction(() => {
+    return runPersistenceTransactionSync({
+        domain: "leaderboard", operation: "settle_leaderboard_season",
+    }, () => {
         const total = countLeaderboardRanksSync(competitionKey, season, filter)
         const records = getLeaderboardRankPageSync({
             competitionKey,
@@ -439,7 +442,7 @@ export function settleLeaderboardSeasonSync(
             rankedPlayers: records.length,
             rewardedPlayers,
         }
-    })()
+    })
 }
 
 export interface LeaderboardRolloverOutcome {
@@ -470,7 +473,9 @@ export function rolloverLeaderboardSeasonSync(
         reason: "season-not-settled",
     }
     const nextSeason = season + 1
-    getDb().transaction(() => {
+    runPersistenceTransactionSync({
+        domain: "leaderboard", operation: "rollover_leaderboard_season",
+    }, () => {
         const result = getDb().prepare(`
             UPDATE leaderboard_seasons
             SET season = ?, started_at_ms = ?, source = ?
@@ -478,7 +483,7 @@ export function rolloverLeaderboardSeasonSync(
         `).run(nextSeason, nowMs, source, competitionKey, season)
         if (result.changes !== 1) throw new Error("Leaderboard season changed concurrently.")
         abandonLeaderboardRunsSync({ competitionKey, endedAtMs: nowMs })
-    })()
+    })
     return { ok: true, competitionKey, season, rolled: true, nextSeason }
 }
 
@@ -502,27 +507,60 @@ export function getLeaderboardSettlementOverviewSync(competitionKey: string): ob
     }
 }
 
+function runDueLeaderboardSettlementSync(
+    competitionKey: string,
+    nowMs: number,
+): void {
+    const config = getLeaderboardSettlementConfigSync(competitionKey, nowMs)
+    if ((!config.freezeEnabled && !config.autoEnabled)
+        || config.settleAtMs === null || config.settleAtMs > nowMs) return
+    getLeaderboardAvailabilitySync(competitionKey, nowMs)
+    if (!config.autoEnabled) return
+    const outcome = settleLeaderboardSeasonSync(competitionKey, "scheduler", nowMs)
+    if (!outcome.ok) return
+    const nextSettleAtMs = config.repeatIntervalMs === null
+        ? null
+        : config.settleAtMs + (
+            Math.floor((nowMs - config.settleAtMs) / config.repeatIntervalMs) + 1
+        ) * config.repeatIntervalMs
+    putLeaderboardSettlementConfigSync({
+        ...config,
+        settleAtMs: nextSettleAtMs,
+        autoEnabled: config.repeatIntervalMs !== null,
+        freezeEnabled: config.repeatIntervalMs !== null,
+        updatedAtMs: nowMs,
+    })
+}
+
 export function runDueLeaderboardSettlementsSync(nowMs: number = Date.now()): void {
+    for (const competition of getLeaderboardCompetitions()) {
+        runDueLeaderboardSettlementSync(competition.key, nowMs)
+    }
+}
+
+/**
+ * Run scheduled leaderboard writes through the persistence ownership queue.
+ * The SQLite work is still synchronous inside the queued operation today, but
+ * the scheduler no longer starts overlapping runs or calls the write path
+ * directly from the timer callback. This is the seam for a future worker
+ * executor without changing the scheduler or leaderboard business rules.
+ */
+export async function runDueLeaderboardSettlements(nowMs: number = Date.now()): Promise<void> {
+    for (const competition of getLeaderboardCompetitions()) {
+        await runPersistenceTransaction({
+            domain: "leaderboard",
+            operation: `scheduler:${competition.key}`,
+        }, () => runDueLeaderboardSettlementSync(competition.key, nowMs))
+    }
+}
+
+/** Freeze overdue seasons synchronously so clients observe the deadline immediately. */
+function freezeDueLeaderboardSeasonsSync(nowMs: number): void {
     for (const competition of getLeaderboardCompetitions()) {
         const config = getLeaderboardSettlementConfigSync(competition.key, nowMs)
         if ((!config.freezeEnabled && !config.autoEnabled)
             || config.settleAtMs === null || config.settleAtMs > nowMs) continue
         getLeaderboardAvailabilitySync(competition.key, nowMs)
-        if (!config.autoEnabled) continue
-        const outcome = settleLeaderboardSeasonSync(competition.key, "scheduler", nowMs)
-        if (!outcome.ok) continue
-        const nextSettleAtMs = config.repeatIntervalMs === null
-            ? null
-            : config.settleAtMs + (
-                Math.floor((nowMs - config.settleAtMs) / config.repeatIntervalMs) + 1
-            ) * config.repeatIntervalMs
-        putLeaderboardSettlementConfigSync({
-            ...config,
-            settleAtMs: nextSettleAtMs,
-            autoEnabled: config.repeatIntervalMs !== null,
-            freezeEnabled: config.repeatIntervalMs !== null,
-            updatedAtMs: nowMs,
-        })
     }
 }
 
@@ -531,12 +569,23 @@ export function createLeaderboardSettlementScheduler(intervalMs: number = 60_000
     stop(): void
 } {
     let timer: NodeJS.Timeout | null = null
+    let running = false
     return {
         start() {
             if (timer !== null) return
             const tick = () => {
-                try { runDueLeaderboardSettlementsSync() }
-                catch (error) { console.error("[LEADERBOARD] settlement scheduler failed", error) }
+                if (running) return
+                running = true
+                const nowMs = Date.now()
+                try { freezeDueLeaderboardSeasonsSync(nowMs) }
+                catch (error) {
+                    running = false
+                    console.error("[LEADERBOARD] settlement deadline freeze failed", error)
+                    return
+                }
+                void runDueLeaderboardSettlements(nowMs)
+                    .catch(error => console.error("[LEADERBOARD] settlement scheduler failed", error))
+                    .finally(() => { running = false })
             }
             // Catch up an overdue schedule immediately when the service starts.
             tick()

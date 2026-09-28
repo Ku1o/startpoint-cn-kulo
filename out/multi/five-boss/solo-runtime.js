@@ -7,12 +7,15 @@ const quest_active_1 = require("../../data/domains/quest_active");
 const option_1 = require("../../data/domains/option");
 const fiveBossGauntletRun_1 = require("../../data/domains/fiveBossGauntletRun");
 const stamina_1 = require("../../lib/stamina");
+const persistence_coordinator_1 = require("../../lib/persistence-coordinator");
 const contract_1 = require("./contract");
 function startFiveBossSoloSync(playerId, playId, persist) {
     if (typeof playId !== "string" || !playId.length || playId.length > 255)
         throw new Error("Invalid play id.");
     const db = (0, db_1.getDb)();
-    return db.transaction(() => {
+    return (0, persistence_coordinator_1.runPersistenceTransactionSync)({
+        domain: "single-quest", playerId, operation: "five_boss_solo_start",
+    }, () => {
         var _a;
         const active = (0, quest_active_1.getPlayerActiveQuestSync)(playerId);
         if ((active === null || active === void 0 ? void 0 : active.isMulti) && (0, contract_1.isFiveBossGauntletQuest)(active.category, active.questId)) {
@@ -45,7 +48,7 @@ function startFiveBossSoloSync(playerId, playId, persist) {
         db.prepare(`INSERT INTO five_boss_solo_runs(player_id, play_id, status, auto_at_start, auto_used)
             VALUES (?, ?, 'active', ?, ?)`).run(playerId, playId, autoAtStart ? 1 : 0, autoAtStart ? 1 : 0);
         return persist();
-    }).immediate();
+    });
 }
 exports.startFiveBossSoloSync = startFiveBossSoloSync;
 /** Monotone marker, bound to the persistent current solo play, never a retry snapshot. */
@@ -67,7 +70,9 @@ function getFiveBossSoloRewardMultiplierSync(playerId, playId) {
 exports.getFiveBossSoloRewardMultiplierSync = getFiveBossSoloRewardMultiplierSync;
 /** An explicit new multiplayer start abandons the old solo run without inventing a room. */
 function abandonFiveBossSoloForMultiSync(playerId, playId) {
-    return (0, db_1.getDb)().transaction(() => {
+    return (0, persistence_coordinator_1.runPersistenceTransactionSync)({
+        domain: "multi-settlement", playerId, operation: "abandon_five_boss_solo_for_multi",
+    }, () => {
         const active = (0, quest_active_1.getPlayerActiveQuestSync)(playerId);
         if (!active || active.isMulti || active.playId !== playId
             || !(0, contract_1.isFiveBossGauntletQuest)(active.category, active.questId))
@@ -76,7 +81,7 @@ function abandonFiveBossSoloForMultiSync(playerId, playId) {
         (0, db_1.getDb)().prepare("DELETE FROM players_active_quests WHERE player_id = ? AND play_id = ? AND is_multi = 0")
             .run(playerId, playId);
         return true;
-    }).immediate();
+    });
 }
 exports.abandonFiveBossSoloForMultiSync = abandonFiveBossSoloForMultiSync;
 /** Called in the single-abort transaction before its active quest is cleared. */

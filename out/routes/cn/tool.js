@@ -25,23 +25,6 @@ function generateLoginToken() {
     }
     return token;
 }
-const viewerIdToAccountId = new Map();
-function createAccountForDevice(deviceId) {
-    const created = (0, persistence_coordinator_1.runPersistenceTransactionSync)({
-        domain: "account", operation: "create_account_for_device",
-    }, () => {
-        const account = (0, account_1.insertAccountSync)({
-            appId: "wf_cn", idpAlias: "", idpCode: "leiting", idpId: "", status: "normal"
-        });
-        const player = (0, player_1.insertDefaultPlayerSync)(account.id);
-        (0, session_1.insertDeviceBindingSync)(deviceId, account.id);
-        return { accountId: account.id, playerId: player.id };
-    });
-    // Persist the management-panel preference only after the database commit.
-    // A failed player materialization must not leave an account with no save.
-    (0, activeAccount_1.saveAccountDefaultPlayer)(created.accountId, created.playerId);
-    return created.accountId;
-}
 const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
     fastify.post("/get_header_response", (request, reply) => {
         const body = request.body;
@@ -77,46 +60,61 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         const loginToken = generateLoginToken();
         let accountId;
         let newAccount = true;
-        let viewerId; // set when reusing existing session
         if (!deviceId) {
             return reply.status(400).send({ error: "Missing device_id" });
         }
-        // Device binding: each device gets its own account
-        const binding = (0, session_1.getDeviceBindingSync)(deviceId);
-        if (binding) {
-            // Known device — verify account still exists
-            const accountExists = (0, account_1.getAccountSync)(binding.account_id);
-            if (accountExists) {
-                accountId = binding.account_id;
-                newAccount = false;
-                (0, account_1.updateAccountSync)(Object.assign({ id: accountId, lastLoginTime: new Date() }, (accountExists.takeoverUdid ? { takeoverUdid: udid } : {})));
-                // Clean all old sessions for this account, reuse first token
-                const sessions = (0, session_1.getAccountSessionsOfTypeSync)(accountId, types_1.SessionType.VIEWER);
-                if (sessions.length > 0) {
-                    viewerId = parseInt(sessions[0].token);
-                    (0, session_1.deleteAccountSessionsOfTypeSync)(accountId, types_1.SessionType.VIEWER);
+        const signup = (0, persistence_coordinator_1.runPersistenceTransactionSync)({
+            domain: "account", operation: "signup_device",
+        }, () => {
+            let resolvedAccountId;
+            let createdPlayerId;
+            let viewerId;
+            // Device binding: each device gets its own account.
+            const binding = (0, session_1.getDeviceBindingSync)(deviceId);
+            if (binding) {
+                // Known device — verify account still exists.
+                const accountExists = (0, account_1.getAccountSync)(binding.account_id);
+                if (accountExists) {
+                    resolvedAccountId = binding.account_id;
+                    newAccount = false;
+                    (0, account_1.updateAccountSync)(Object.assign({ id: resolvedAccountId, lastLoginTime: new Date() }, (accountExists.takeoverUdid ? { takeoverUdid: udid } : {})));
+                    const sessions = (0, session_1.getAccountSessionsOfTypeSync)(resolvedAccountId, types_1.SessionType.VIEWER);
+                    if (sessions.length > 0) {
+                        viewerId = parseInt(sessions[0].token);
+                        (0, session_1.deleteAccountSessionsOfTypeSync)(resolvedAccountId, types_1.SessionType.VIEWER);
+                    }
+                }
+                else {
+                    // Account was deleted — clean up the stale binding in the
+                    // same transaction that creates its replacement.
+                    (0, session_1.deleteDeviceBindingSync)(deviceId);
                 }
             }
-            else {
-                // Account was deleted — clean up stale binding and create new account
-                (0, session_1.deleteDeviceBindingSync)(deviceId);
-                accountId = createAccountForDevice(deviceId);
+            if (resolvedAccountId === undefined) {
+                const account = (0, account_1.insertAccountSync)({
+                    appId: "wf_cn", idpAlias: "", idpCode: "leiting", idpId: "", status: "normal",
+                });
+                const player = (0, player_1.insertDefaultPlayerSync)(account.id);
+                (0, session_1.insertDeviceBindingSync)(deviceId, account.id);
+                resolvedAccountId = account.id;
+                createdPlayerId = player.id;
             }
-        }
-        else {
-            // New device → create account
-            accountId = createAccountForDevice(deviceId);
-        }
-        if (!viewerId) {
-            viewerId = (0, utils_1.generateViewerId)();
-        }
-        yield (0, session_1.insertSessionWithToken)({
-            token: String(viewerId),
-            accountId: accountId,
-            type: types_1.SessionType.VIEWER,
-            expires: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)
+            viewerId !== null && viewerId !== void 0 ? viewerId : (viewerId = (0, utils_1.generateViewerId)());
+            (0, session_1.insertSessionWithTokenSync)({
+                token: String(viewerId),
+                accountId: resolvedAccountId,
+                type: types_1.SessionType.VIEWER,
+                expires: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+            });
+            return { accountId: resolvedAccountId, viewerId, createdPlayerId, newAccount };
         });
-        viewerIdToAccountId.set(viewerId, accountId);
+        accountId = signup.accountId;
+        const viewerId = signup.viewerId;
+        newAccount = signup.newAccount;
+        if (signup.createdPlayerId !== undefined) {
+            // Update the management-panel preference only after the DB commit.
+            (0, activeAccount_1.saveAccountDefaultPlayer)(accountId, signup.createdPlayerId);
+        }
         reply.header("content-type", "application/x-msgpack");
         return reply.status(200).send({
             data_headers: (0, utils_1.generateDataHeaders)({

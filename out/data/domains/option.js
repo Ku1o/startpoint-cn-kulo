@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.updatePlayerProfileSettingsSync = exports.getPlayerProfileSettingsSync = exports.updatePlayerOptionsInTransactionSync = exports.updatePlayerOptionsSync = exports.updatePlayerOptionSync = exports.getPlayerOptionSync = exports.getPlayerOptionsSync = exports.insertPlayerOptionsSync = exports.insertPlayerOptionSync = void 0;
 const db_1 = require("../db");
 const utils_1 = require("../utils");
+const persistence_coordinator_1 = require("../../lib/persistence-coordinator");
 const PROFILE_SETTING_KEYS = {
     showOpenedManaBoardSecondCount: "profile.show_opened_mana_board_second_count",
     showOwnedCharacterCount: "profile.show_owned_character_count",
@@ -39,13 +40,13 @@ exports.insertPlayerOptionSync = insertPlayerOptionSync;
  */
 function insertPlayerOptionsSync(playerId, options) {
     const db = (0, db_1.getDb)();
-    db.transaction(() => {
+    (0, persistence_coordinator_1.runPersistenceTransactionSync)({ domain: "player", playerId, operation: "insert_player_options" }, () => {
         for (const [key, value] of Object.entries(options)) {
             if (!isClientOptionKey(key))
                 continue;
             insertPlayerOptionSync(playerId, key, value);
         }
-    })();
+    });
 }
 exports.insertPlayerOptionsSync = insertPlayerOptionsSync;
 /**
@@ -105,7 +106,7 @@ exports.updatePlayerOptionSync = updatePlayerOptionSync;
  * @param options A record of options to update the values of.
  */
 function updatePlayerOptionsSync(playerId, options) {
-    (0, db_1.getDb)().transaction(() => updatePlayerOptionsInTransactionSync(playerId, options))();
+    (0, persistence_coordinator_1.runPersistenceTransactionSync)({ domain: "player", playerId, operation: "update_player_options" }, () => updatePlayerOptionsInTransactionSync(playerId, options));
 }
 exports.updatePlayerOptionsSync = updatePlayerOptionsSync;
 /** The caller must roll back its transaction if any option or AUTO update fails. */
@@ -143,7 +144,7 @@ function getPlayerProfileSettingsSync(playerId) {
 }
 exports.getPlayerProfileSettingsSync = getPlayerProfileSettingsSync;
 function updatePlayerProfileSettingsSync(playerId, settings) {
-    (0, db_1.getDb)().transaction(() => {
+    (0, persistence_coordinator_1.runPersistenceTransactionSync)({ domain: "player", playerId, operation: "update_player_profile_settings" }, () => {
         const upsert = (0, db_1.getDb)().prepare(`
             INSERT INTO players_options (key, value, player_id)
             VALUES (?, ?, ?)
@@ -152,7 +153,7 @@ function updatePlayerProfileSettingsSync(playerId, settings) {
         for (const [property, value] of Object.entries(settings)) {
             upsert.run(PROFILE_SETTING_KEYS[property], (0, utils_1.serializeBoolean)(value), playerId);
         }
-    })();
+    });
     return getPlayerProfileSettingsSync(playerId);
 }
 exports.updatePlayerProfileSettingsSync = updatePlayerProfileSettingsSync;

@@ -18,6 +18,9 @@ const TAKEOVER_INPUT_ID_OR_PASSWORD_ERROR = 3204
 const SOCIAL_ACCOUNT_NOT_FOUND = 3205
 const FAILURE_LIMIT = 5
 const FAILURE_WINDOW_MS = 10 * 60 * 1000
+// Keep attacker-controlled IP/viewer keys and their last password bounded.
+const FAILURE_MAP_MAX = 4096
+let nextFailureSweepAt = 0
 // The native client may submit the same recovery lookup more than once while
 // closing its processing dialog. Treat that burst as one human attempt.
 const FAILURE_DUPLICATE_WINDOW_MS = 5 * 1000
@@ -123,7 +126,7 @@ function failureKey(request: FastifyRequest, viewerId: string): string {
 function isRateLimited(request: FastifyRequest, viewerId: string): boolean {
     const key = failureKey(request, viewerId)
     const entry = failures.get(key)
-    if (!entry) return false
+    if (!entry) return failures.size >= FAILURE_MAP_MAX
     if (Date.now() >= entry.resetAt) {
         failures.delete(key)
         return false
@@ -134,8 +137,15 @@ function isRateLimited(request: FastifyRequest, viewerId: string): boolean {
 function recordFailure(request: FastifyRequest, viewerId: string, password: string): void {
     const key = failureKey(request, viewerId)
     const now = Date.now()
+    if (now >= nextFailureSweepAt) {
+        for (const [entryKey, entry] of failures) {
+            if (entry.resetAt <= now) failures.delete(entryKey)
+        }
+        nextFailureSweepAt = now + FAILURE_WINDOW_MS
+    }
     const previous = failures.get(key)
     if (!previous || now >= previous.resetAt) {
+        if (failures.size >= FAILURE_MAP_MAX) return
         failures.set(key, {
             count: 1,
             resetAt: now + FAILURE_WINDOW_MS,

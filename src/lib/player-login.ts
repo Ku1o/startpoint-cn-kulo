@@ -6,6 +6,7 @@ import { getViewerIdSync } from "../data/domains/session"
 import { resolvePlayerIdSync, saveAccountDefaultPlayer } from "../data/activeAccount"
 import { getRankDegree } from "./stamina"
 import { generateViewerId } from "../utils"
+import { runPersistenceTransactionSync } from "./persistence-coordinator"
 
 const DAY = 86400000
 let initialized = false
@@ -170,7 +171,9 @@ function result(session: PlayerLoginSession) {
 export function registerPlayerLogin(username: unknown, password: unknown, remember: boolean) {
     input(username, password)
     let newPlayerId = 0
-    const session = getDb().transaction(() => {
+    const session = runPersistenceTransactionSync({
+        domain: "account", operation: "register_player_login",
+    }, () => {
         const account = insertAccountSync({ appId: "wf_cn", idpAlias: "", idpCode: "leiting", idpId: "", status: "normal" })
         setCredentials(account.id, username, password)
         const player = insertDefaultPlayerSync(account.id)
@@ -179,18 +182,20 @@ export function registerPlayerLogin(username: unknown, password: unknown, rememb
         while (getDb().prepare("SELECT 1 FROM sessions WHERE token=?").get(String(viewer))) viewer = generateViewerId()
         getDb().prepare("INSERT INTO sessions(token,account_id,expires,type) VALUES(?,?,?,2)").run(String(viewer), account.id, new Date(Date.now() + 365 * DAY).toISOString())
         return issue(account.id, remember)
-    }).immediate()
+    })
     saveAccountDefaultPlayer(session.account_id, newPlayerId)
     return result(session)
 }
 export function loginPlayer(username: unknown, password: unknown, remember: boolean) {
     const value = input(username, password)
-    const session = getDb().transaction(() => {
+    const session = runPersistenceTransactionSync({
+        domain: "account", operation: "login_player",
+    }, () => {
         const row = getDb().prepare(`SELECT a.id,c.password FROM accounts a JOIN player_login_credentials c ON c.account_id=a.id
             WHERE lower(a.username)=? AND a.username IS NOT NULL AND a.username<>''`).get(value.username) as { id: number; password: string } | undefined
         if (!row || !equal(row.password, value.password)) fail("账号或密码不正确。")
         return issue(row.id, remember)
-    }).immediate()
+    })
     return result(session)
 }
 export function resumePlayerLogin(value: unknown) {
@@ -201,9 +206,13 @@ export function resumePlayerLogin(value: unknown) {
 export function logoutPlayer(value: unknown): void {
     const session = readPlayerLoginSession(value)
     if (!session) return
-    getDb().prepare("DELETE FROM player_login_sessions WHERE token=?").run(session.token)
+    runPersistenceTransactionSync({
+        domain: "account", operation: "logout_player",
+    }, () => {
+        getDb().prepare("DELETE FROM player_login_sessions WHERE token=?").run(session.token)
+        audit(session.account_id, "logout")
+    })
     disconnectViewer(session.viewer_id)
-    audit(session.account_id, "logout")
 }
 export function createPlayerLoginCode(viewer: unknown, purpose: unknown) {
     if (purpose !== "bind" && purpose !== "reset") fail("绑定码用途无效。")
@@ -213,11 +222,13 @@ export function createPlayerLoginCode(viewer: unknown, purpose: unknown) {
     if (playerLoginManaged(accountId) !== (purpose === "reset")) fail(purpose === "bind" ? "该存档已经绑定账号。" : "该存档尚未绑定账号。")
     const code = randomBytes(12).toString("hex").toUpperCase()
     const expiresAt = Date.now() + 15 * 60000
-    getDb().transaction(() => {
+    runPersistenceTransactionSync({
+        domain: "account", operation: `create_player_login_${purpose}_code`,
+    }, () => {
         getDb().prepare("DELETE FROM player_login_codes WHERE account_id=? AND purpose=?").run(accountId, purpose)
         getDb().prepare("INSERT INTO player_login_codes(code,account_id,purpose,expires_at) VALUES(?,?,?,?)").run(code, accountId, purpose, expiresAt)
         audit(accountId, `admin_${purpose}_code`)
-    }).immediate()
+    })
     return { code, expires_at: expiresAt, profile: playerLoginProfile(accountId) }
 }
 function readCode(value: unknown, purpose: string): ClaimCode {
@@ -255,7 +266,9 @@ function localSaveMatch(evidence: LocalSaveEvidence) {
 /** First-upgrade discovery only; does not sign up, change device bindings or load a full save. */
 export function previewLocalPlayerClaim(body: Record<string, unknown>) {
     const evidence = localSaveEvidence(body)
-    return getDb().transaction(() => {
+    return runPersistenceTransactionSync({
+        domain: "account", operation: "preview_local_player_claim",
+    }, () => {
         const match = evidence && localSaveMatch(evidence)
         if (!match) return { status: "manual_required" }
         // Do not reveal an existing username or profile from public UID input.
@@ -265,10 +278,12 @@ export function previewLocalPlayerClaim(body: Record<string, unknown>) {
             .run(proof, match.accountId, match.source, JSON.stringify(evidence), Date.now() + 5 * 60000)
         audit(match.accountId, "local_claim_preview")
         return { status: "claimable", proof, profile: playerLoginProfile(match.accountId) }
-    }).immediate()
+    })
 }
 export function previewPlayerClaim(body: Record<string, unknown>) {
-    return getDb().transaction(() => {
+    return runPersistenceTransactionSync({
+        domain: "account", operation: "preview_player_claim",
+    }, () => {
         let accountId: number, source: string, original: string
         if (body.code) {
             const row = readCode(body.code, "bind")
@@ -284,11 +299,13 @@ export function previewPlayerClaim(body: Record<string, unknown>) {
         getDb().prepare("INSERT INTO player_login_claims(proof,account_id,source,original_value,expires_at) VALUES(?,?,?,?,?)").run(proof, accountId, source, original, Date.now() + 5 * 60000)
         audit(accountId, "claim_preview")
         return { proof, profile: playerLoginProfile(accountId) }
-    }).immediate()
+    })
 }
 export function bindPlayerLogin(proof: unknown, username: unknown, password: unknown, remember: boolean) {
     input(username, password)
-    const session = getDb().transaction(() => {
+    const session = runPersistenceTransactionSync({
+        domain: "account", operation: "bind_player_login",
+    }, () => {
         const row = getDb().prepare("SELECT * FROM player_login_claims WHERE proof=? AND expires_at>?").get(typeof proof === "string" ? proof : "", Date.now()) as { account_id: number; source: string; original_value: string } | undefined
         if (!row) fail("存档验证已过期，请重新验证。")
         const acc = active(row.account_id)
@@ -307,12 +324,14 @@ export function bindPlayerLogin(proof: unknown, username: unknown, password: unk
         getDb().prepare("DELETE FROM player_login_claims WHERE account_id=?").run(row.account_id)
         audit(row.account_id, "bind_existing_save")
         return issue(row.account_id, remember)
-    }).immediate()
+    })
     return result(session)
 }
 export function resetPlayerLoginPassword(code: unknown, password: unknown) {
     input("validation", password)
-    const accountId = getDb().transaction(() => {
+    const accountId = runPersistenceTransactionSync({
+        domain: "account", operation: "reset_player_login_password",
+    }, () => {
         const row = readCode(code, "reset")
         if (!playerLoginManaged(row.account_id)) fail("该存档尚未绑定账号。")
         getDb().prepare("UPDATE player_login_credentials SET password=? WHERE account_id=?").run(password, row.account_id)
@@ -320,7 +339,7 @@ export function resetPlayerLoginPassword(code: unknown, password: unknown) {
         getDb().prepare("UPDATE player_login_codes SET consumed_at=? WHERE code=?").run(Date.now(), row.code)
         audit(row.account_id, "reset_password")
         return row.account_id
-    }).immediate()
+    })
     disconnectViewer(getViewerIdSync(accountId))
     return { username: active(accountId).username }
 }

@@ -4,6 +4,7 @@ exports.snapshotAllMissionCountersSync = exports.getMissionCounterDeltaSync = ex
 const cached_statement_1 = require("../cached-statement");
 const db_1 = require("../../data/db");
 const storage_layout_1 = require("../storage-layout");
+const persistence_coordinator_1 = require("../persistence-coordinator");
 function normalizeMissionCounterQualifier(qualifier = {}) {
     const normalized = {};
     for (const key of Object.keys(qualifier).sort()) {
@@ -158,11 +159,12 @@ function snapshotAllMissionCountersSync(playerId, periodType) {
         updated_at = excluded.updated_at
     `);
     const timestamp = nowSql();
-    const tx = (0, db_1.getDb)().transaction(() => {
+    (0, persistence_coordinator_1.runPersistenceTransactionSync)({
+        domain: "mission", playerId, operation: "snapshot_all_mission_counters",
+    }, () => {
         for (const row of rows)
             insert.run(playerId, periodType, row.counter_key, row.value, timestamp);
     });
-    tx();
     return rows.length;
 }
 exports.snapshotAllMissionCountersSync = snapshotAllMissionCountersSync;

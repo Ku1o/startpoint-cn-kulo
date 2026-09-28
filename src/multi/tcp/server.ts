@@ -33,6 +33,7 @@ export const SESSION_MAX_BUFFER_BYTES = positiveInteger("SESSION_MAX_BUFFER_BYTE
 export const SESSION_TCP_KEEPALIVE_MS = positiveInteger("SESSION_TCP_KEEPALIVE_MS", 10_000, 1_000)
 
 let server: net.Server | null = null
+const activeSockets = new Set<net.Socket>()
 
 export function startSessionServer(): Promise<void> {
     return new Promise((resolve) => {
@@ -41,6 +42,8 @@ export function startSessionServer(): Promise<void> {
             return
         }
         server = net.createServer((socket) => {
+            activeSockets.add(socket)
+            socket.once("close", () => activeSockets.delete(socket))
             const remoteAddr = `${socket.remoteAddress}:${socket.remotePort}`
             gameVerboseLog(() => `[TCP] new connection from ${remoteAddr}`)
 
@@ -191,11 +194,16 @@ export function startSessionServer(): Promise<void> {
 
 export function stopSessionServer(): Promise<void> {
     return new Promise((resolve) => {
-        if (!server) {
+        const current = server
+        if (!current) {
             resolve()
             return
         }
-        server.close(() => {
+        // net.Server.close() stops accepts but waits forever for established
+        // clients. Shutdown is already an explicit service stop, so release
+        // those sockets now and let their normal cleanup enqueue room leases.
+        for (const socket of activeSockets) socket.destroy()
+        current.close(() => {
             server = null
             resolve()
         })

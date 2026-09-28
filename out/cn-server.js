@@ -34,7 +34,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
-var _a, _b;
+var _a, _b, _c;
 Object.defineProperty(exports, "__esModule", { value: true });
 const file_exists_1 = require("./lib/file-exists");
 const fastify_1 = __importDefault(require("fastify"));
@@ -117,7 +117,6 @@ const questUnlock_1 = __importDefault(require("./routes/api/questUnlock"));
 const item_1 = __importDefault(require("./routes/api/item"));
 const lounge_1 = __importDefault(require("./routes/api/lounge"));
 const multiSpecialExchange_1 = __importDefault(require("./routes/api/multiSpecialExchange"));
-const multi_2 = require("./multi");
 const player_party_pool_1 = require("./multi/npc/player-party-pool");
 const ios_compat_1 = require("./lib/ios-compat");
 const db_1 = require("./data/db");
@@ -154,13 +153,28 @@ if (migratedUnsafeViewerIds > 0) {
 const rateLimitMap = new Map();
 const RATE_LIMIT_MAX = 30;
 const RATE_LIMIT_WINDOW = 60000;
+// A hostile client can rotate source IPs; expiry alone must not make this map
+// grow for the lifetime of the process.
+const RATE_LIMIT_MAP_MAX = 4096;
+let nextRateLimitSweep = 0;
 fastify.addHook("onRequest", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
-    var _c, _d;
+    var _d, _e;
     if (request.url === "/crash") {
-        const ip = ((_d = (_c = request.headers["x-forwarded-for"]) === null || _c === void 0 ? void 0 : _c.split(",")[0]) === null || _d === void 0 ? void 0 : _d.trim())
+        const ip = ((_e = (_d = request.headers["x-forwarded-for"]) === null || _d === void 0 ? void 0 : _d.split(",")[0]) === null || _e === void 0 ? void 0 : _e.trim())
             || request.ip;
         const now = Date.now();
-        const entry = rateLimitMap.get(ip) || { count: 0, reset: now + RATE_LIMIT_WINDOW };
+        if (now >= nextRateLimitSweep) {
+            for (const [key, value] of rateLimitMap) {
+                if (value.reset <= now)
+                    rateLimitMap.delete(key);
+            }
+            nextRateLimitSweep = now + RATE_LIMIT_WINDOW;
+        }
+        const existing = rateLimitMap.get(ip);
+        if (!existing && rateLimitMap.size >= RATE_LIMIT_MAP_MAX) {
+            return reply.status(429).send("Too Many Requests");
+        }
+        const entry = existing || { count: 0, reset: now + RATE_LIMIT_WINDOW };
         if (now > entry.reset) {
             entry.count = 0;
             entry.reset = now + RATE_LIMIT_WINDOW;
@@ -279,9 +293,9 @@ function persistSeedFeedback() {
     });
 }
 fastify.get("/debug", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
-    var _e;
+    var _f;
     const ts = new Date().toISOString();
-    const loc = ((_e = request.query) === null || _e === void 0 ? void 0 : _e.loc) || "unknown";
+    const loc = ((_f = request.query) === null || _f === void 0 ? void 0 : _f.loc) || "unknown";
     // Parse C3032 from beacon query string (04e patch sends via CrashUtil.debugBeacon)
     try {
         parseC3032Beacon(loc);
@@ -365,9 +379,9 @@ function parsePlayBeacon(loc) {
     }
 }
 fastify.post("/debug", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
-    var _f;
+    var _g;
     const ts = new Date().toISOString();
-    const loc = ((_f = request.body) === null || _f === void 0 ? void 0 : _f.loc) || "unknown";
+    const loc = ((_g = request.body) === null || _g === void 0 ? void 0 : _g.loc) || "unknown";
     console.log(`[BEACON ${ts}] ${loc}`);
     // Parse C3032 beacons for auto-purification (04e patch skips throw but keeps beacon)
     try {
@@ -511,10 +525,16 @@ fastify.setNotFoundHandler((request, reply) => {
 });
 const host = (_a = process.env.CN_LISTEN_HOST) !== null && _a !== void 0 ? _a : "127.0.0.1";
 const port = parseInt((_b = process.env.CN_LISTEN_PORT) !== null && _b !== void 0 ? _b : "8001");
-const receiveHistoryRetention = (0, receive_history_retention_1.createReceiveHistoryRetentionService)((0, db_1.getDb)());
+const receiveHistoryRetention = (0, receive_history_retention_1.createReceiveHistoryRetentionService)((0, db_1.getDb)(), {
+    executeTransaction: persistence_coordinator_1.runPersistenceTransaction,
+});
 const leaderboardSettlementScheduler = (0, settlement_1.createLeaderboardSettlementScheduler)();
 const dailyVmoneyMailScheduler = (0, daily_vmoney_mail_1.createDailyVmoneyMailScheduler)((0, db_1.getDb)());
 fastify.addHook("onClose", () => __awaiter(void 0, void 0, void 0, function* () {
+    // The multiplayer TCP listener is not owned by Fastify. Stop it first so
+    // no new realtime callback can enqueue a database write while the queues
+    // below are draining.
+    yield (0, multi_1.stopSessionServer)();
     yield seed_validator_1.default.close();
     dailyVmoneyMailScheduler.stop();
     leaderboardSettlementScheduler.stop();
@@ -523,6 +543,39 @@ fastify.addHook("onClose", () => __awaiter(void 0, void 0, void 0, function* () 
     yield (0, persistence_coordinator_1.drainPersistence)();
     yield (0, sqlite_checkpoint_worker_1.stopSqliteCheckpointWorker)();
 }));
+// Ctrl+C and a normal service-manager stop must enter Fastify's close hooks;
+// terminating the process forcibly still bypasses every cleanup callback.
+let gracefulShutdown = null;
+const shutdownTimeoutMs = Math.max(5000, Number.parseInt((_c = process.env.GRACEFUL_SHUTDOWN_TIMEOUT_MS) !== null && _c !== void 0 ? _c : "15000", 10) || 15000);
+function requestGracefulShutdown(signal) {
+    if (gracefulShutdown)
+        return;
+    console.warn(`[SHUTDOWN] ${signal} received; draining realtime and persistence work`);
+    gracefulShutdown = (() => __awaiter(this, void 0, void 0, function* () {
+        let timeout;
+        try {
+            yield Promise.race([
+                fastify.close(),
+                new Promise((_, reject) => {
+                    timeout = setTimeout(() => reject(new Error(`graceful shutdown timed out after ${shutdownTimeoutMs}ms`)), shutdownTimeoutMs);
+                }),
+            ]);
+            console.log("[SHUTDOWN] graceful shutdown complete");
+        }
+        catch (error) {
+            process.exitCode = 1;
+            console.error(`[SHUTDOWN] graceful shutdown failed: ${error.message}`);
+        }
+        finally {
+            if (timeout)
+                clearTimeout(timeout);
+        }
+    }))();
+    void gracefulShutdown;
+}
+process.once("SIGINT", () => requestGracefulShutdown("SIGINT"));
+process.once("SIGTERM", () => requestGracefulShutdown("SIGTERM"));
+process.once("SIGBREAK", () => requestGracefulShutdown("SIGBREAK"));
 (0, player_party_pool_1.startQuestNpcPartyPoolWorker)();
 fastify.listen({ port, host }, (err, address) => {
     if (err) {
@@ -534,7 +587,7 @@ fastify.listen({ port, host }, (err, address) => {
     leaderboardSettlementScheduler.start();
     dailyVmoneyMailScheduler.start();
     // Start multi battle TCP session server
-    (0, multi_2.startSessionServer)();
+    (0, multi_1.startSessionServer)();
     (0, sqlite_checkpoint_worker_1.startSqliteCheckpointWorker)((0, db_1.getDb)().name);
     const logDirectory = path_1.default.resolve(__dirname, "../.logs");
     (0, fs_1.mkdirSync)(logDirectory, { recursive: true });

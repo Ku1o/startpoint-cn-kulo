@@ -62,6 +62,7 @@ export function installRoutePerformanceMonitor(fastify: FastifyInstance): void {
         const settlements = drainSingleSettlementDiagnostics()
         if (requestCount === 0 && phases === "none" && admission === "none"
             && awake.skippedUnownedMissions === 0 && commits.n === 0
+            && gacha === "none" && Object.keys(work).length === 0
             && Object.keys(settlements).length === 0) return
         console.warn(
             `[PERF] interval=${intervalMs}ms requests=${requestCount} cpu=${cpuMs.toFixed(0)}ms `

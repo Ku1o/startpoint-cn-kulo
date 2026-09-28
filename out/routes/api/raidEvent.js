@@ -29,6 +29,7 @@ const raid_event_config_1 = require("../../lib/raid-event-config");
 const assets_1 = require("../../lib/assets");
 const types_2 = require("../../lib/types");
 const activity_degree_rewards_1 = require("../../lib/activity-degree-rewards");
+const persistence_coordinator_1 = require("../../lib/persistence-coordinator");
 var ResetQuestType;
 (function (ResetQuestType) {
     ResetQuestType[ResetQuestType["EMPTY"] = 0] = "EMPTY";
@@ -60,14 +61,31 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         // Rush event data for played party tracking
         let rushEventData = (0, rushEvent_1.getPlayerRushEventSync)(playerId, eventId);
         if (rushEventData === null) {
-            rushEventData = (0, rushEvent_1.getDefaultPlayerRushEventSync)(eventId);
-            (0, rushEvent_1.insertPlayerRushEventSync)(playerId, rushEventData);
+            yield (0, persistence_coordinator_1.runPersistenceTransaction)({
+                domain: "event", playerId, operation: "raid_summary_initialize",
+            }, () => {
+                if ((0, rushEvent_1.getPlayerRushEventSync)(playerId, eventId) === null) {
+                    (0, rushEvent_1.insertPlayerRushEventSync)(playerId, (0, rushEvent_1.getDefaultPlayerRushEventSync)(eventId));
+                }
+            });
+            rushEventData = (0, rushEvent_1.getPlayerRushEventSync)(playerId, eventId);
+        }
+        if (rushEventData === null) {
+            throw new Error(`Rush event ${eventId} could not be initialized for player ${playerId}.`);
         }
         const clearedFolderIdList = (0, rushEvent_1.getPlayerRushEventClearedFoldersSync)(playerId, eventId);
         const serializedPlayedParties = (0, rush_1.getSerializedPlayerRushEventPlayedPartiesSync)(playerId, eventId);
-        const raidBoss = (0, raidEventGlobal_1.getRaidEventGlobalBossSync)(eventId);
-        const totalKillCount = raidBoss.totalKillCount;
-        const rewardClaim = (0, raidEventGlobal_1.claimRaidEventOverallRewardsSync)(playerId, eventId, totalKillCount);
+        const settlement = yield (0, persistence_coordinator_1.runPersistenceTransaction)({
+            domain: "event", playerId, operation: "raid_summary_rewards",
+        }, () => {
+            const raidBoss = (0, raidEventGlobal_1.getRaidEventGlobalBossSync)(eventId);
+            return {
+                raidBoss,
+                rewardClaim: (0, raidEventGlobal_1.claimRaidEventOverallRewardsSync)(playerId, eventId, raidBoss.totalKillCount),
+            };
+        });
+        const raidBoss = settlement.raidBoss;
+        const rewardClaim = settlement.rewardClaim;
         const playerAfterClaim = rewardClaim.rewardResult ? (0, player_1.getPlayerSync)(playerId) : null;
         if (rewardClaim.rewardResult && playerAfterClaim === null) {
             throw new Error(`Player ${playerId} disappeared during Raid reward settlement.`);
@@ -82,7 +100,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                     "reward_list": rewardClaim.rewardList,
                 }, "quest_list": questKillCounts, "raid_boss": {
                     "hp_percentage": raidBoss.hpPercentage,
-                    "total_kill_count": totalKillCount,
+                    "total_kill_count": raidBoss.totalKillCount,
                 } }, (rewardClaim.rewardResult && playerAfterClaim ? {
                 "user_info": {
                     "free_mana": playerAfterClaim.freeMana,
@@ -148,7 +166,9 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             return reply.status(500).send({
                 "error": "Internal Server Error", "message": "No player bound to account."
             });
-        const degreeIds = (0, activity_degree_rewards_1.grantEligibleRaidEventDegreesSync)(playerId, eventId);
+        const degreeIds = yield (0, persistence_coordinator_1.runPersistenceTransaction)({
+            domain: "event", playerId, operation: "raid_ranking_reward",
+        }, () => (0, activity_degree_rewards_1.grantEligibleRaidEventDegreesSync)(playerId, eventId));
         reply.header("content-type", "application/x-msgpack");
         return reply.status(200).send({
             "data_headers": (0, utils_1.generateDataHeaders)({ viewer_id: viewerId }),
@@ -187,11 +207,13 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             });
         // Category 4 used to be shared by Raid and Rush. Copy it only as a
         // one-time fallback; existing category 3 Raid parties always win.
-        const playerPartyGroups = (0, special_event_parties_1.ensureSpecialEventPartyGroupsSync)(playerId, types_1.PartyCategory.RAID, types_1.PartyCategory.RUSH, {
+        const playerPartyGroups = yield (0, persistence_coordinator_1.runPersistenceTransaction)({
+            domain: "player", playerId, operation: "raid_party_defaults",
+        }, () => (0, special_event_parties_1.ensureSpecialEventPartyGroupsSync)(playerId, types_1.PartyCategory.RAID, types_1.PartyCategory.RUSH, {
             getGroups: party_1.getPlayerPartyGroupListSync,
             getDefaults: player_1.getDefaultPlayerPartyGroupsSync,
             ensureGroups: party_1.ensurePlayerPartyGroupListSync,
-        });
+        }));
         const group1 = playerPartyGroups['1'];
         const partyList = [];
         if (group1 && group1.list) {
@@ -325,7 +347,9 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             });
         }
         // Register active quest for /single_battle_quest/finish
-        (0, singleBattleQuest_1.insertActiveQuest)(playerId, {
+        yield (0, persistence_coordinator_1.runPersistenceTransaction)({
+            domain: "single-quest", playerId, operation: "raid_start",
+        }, () => (0, singleBattleQuest_1.insertActiveQuest)(playerId, {
             questId: body.quest_id,
             category: types_2.QuestCategory.RAID_EVENT,
             useBossBoostPoint: false,
@@ -335,7 +359,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             eventId: questEventId,
             playId: body.play_id,
             continueCount: 0
-        });
+        }));
         reply.header("content-type", "application/x-msgpack");
         return reply.status(200).send({
             "data_headers": (0, utils_1.generateDataHeaders)({ viewer_id: viewerId }),
@@ -362,7 +386,11 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             return reply.status(500).send({
                 "error": "Internal Server Error", "message": "No player bound to account."
             });
-        (0, rushEvent_1.updatePlayerRushEventSync)(playerId, { eventId: body.event_id, activeRushBattleFolderId: body.folder_id });
+        yield (0, persistence_coordinator_1.runPersistenceTransaction)({
+            domain: "event", playerId, operation: "raid_select_folder",
+        }, () => (0, rushEvent_1.updatePlayerRushEventSync)(playerId, {
+            eventId: body.event_id, activeRushBattleFolderId: body.folder_id,
+        }));
         reply.header("content-type", "application/x-msgpack");
         return reply.status(200).send({ "data_headers": (0, utils_1.generateDataHeaders)({ viewer_id: viewerId }), "data": {} });
     }));
@@ -391,23 +419,27 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             return reply.status(500).send({
                 "error": "Internal Server Error", "message": "No player bound to account."
             });
-        if (questType === ResetQuestType.FOLDER) {
-            if (resetTargetId !== undefined) {
-                (0, rushEvent_1.deletePlayerRushEventPlayedPartiesUntilSync)(playerId, eventId, types_1.RushEventBattleType.FOLDER, resetTargetId);
+        yield (0, persistence_coordinator_1.runPersistenceTransaction)({
+            domain: "event", playerId, operation: "raid_reset",
+        }, () => {
+            if (questType === ResetQuestType.FOLDER) {
+                if (resetTargetId !== undefined) {
+                    (0, rushEvent_1.deletePlayerRushEventPlayedPartiesUntilSync)(playerId, eventId, types_1.RushEventBattleType.FOLDER, resetTargetId);
+                }
+                else {
+                    (0, rushEvent_1.updatePlayerRushEventSync)(playerId, { eventId: eventId, activeRushBattleFolderId: null });
+                    (0, rushEvent_1.deletePlayerRushEventPlayedPartyListSync)(playerId, eventId, types_1.RushEventBattleType.FOLDER);
+                }
             }
-            else {
-                (0, rushEvent_1.updatePlayerRushEventSync)(playerId, { eventId: eventId, activeRushBattleFolderId: null });
-                (0, rushEvent_1.deletePlayerRushEventPlayedPartyListSync)(playerId, eventId, types_1.RushEventBattleType.FOLDER);
+            else if (resetTargetId !== undefined) {
+                if (isResetAfterTargetRound) {
+                    (0, rushEvent_1.deletePlayerRushEventPlayedPartiesUntilSync)(playerId, eventId, types_1.RushEventBattleType.ENDLESS, resetTargetId);
+                }
+                else {
+                    (0, rushEvent_1.deletePlayerRushEventPlayedPartySync)(playerId, eventId, resetTargetId, types_1.RushEventBattleType.ENDLESS);
+                }
             }
-        }
-        else if (resetTargetId !== undefined) {
-            if (isResetAfterTargetRound) {
-                (0, rushEvent_1.deletePlayerRushEventPlayedPartiesUntilSync)(playerId, eventId, types_1.RushEventBattleType.ENDLESS, resetTargetId);
-            }
-            else {
-                (0, rushEvent_1.deletePlayerRushEventPlayedPartySync)(playerId, eventId, resetTargetId, types_1.RushEventBattleType.ENDLESS);
-            }
-        }
+        });
         reply.header("content-type", "application/x-msgpack");
         return reply.status(200).send({ "data_headers": (0, utils_1.generateDataHeaders)({ viewer_id: viewerId }), "data": {} });
     }));

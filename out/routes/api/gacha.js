@@ -30,6 +30,8 @@ const game_logging_1 = require("../../lib/game-logging");
 const option_1 = require("../../data/domains/option");
 const settlement_performance_1 = require("../../lib/settlement-performance");
 const persistence_coordinator_1 = require("../../lib/persistence-coordinator");
+const node_crypto_1 = require("node:crypto");
+const player_operation_receipt_1 = require("../../data/domains/player-operation-receipt");
 var GachaPaymentType;
 (function (GachaPaymentType) {
     GachaPaymentType[GachaPaymentType["EMPTY"] = 0] = "EMPTY";
@@ -56,6 +58,22 @@ var GachaExecType;
     GachaExecType[GachaExecType["MULTI_WEAPON_TICKET"] = 13] = "MULTI_WEAPON_TICKET";
 })(GachaExecType || (GachaExecType = {}));
 const exchangeRequiredPoints = 250;
+function buildExchangeRequestKey(operation, requestId, gachaId, rewardId) {
+    // api_count is only a legacy sequence value and may reset between client
+    // sessions. It is deliberately not used as a durable idempotency key.
+    if (typeof requestId !== "string" || requestId.length === 0 || requestId.length > 256)
+        return null;
+    return (0, node_crypto_1.createHash)("sha256")
+        .update(`${operation}\u0000${requestId}\u0000${gachaId}\u0000${rewardId}`)
+        .digest("hex");
+}
+function sendExchangeResponse(reply, viewerId, responseData) {
+    reply.header("content-type", "application/x-msgpack");
+    return reply.status(200).send({
+        "data_headers": (0, utils_1.generateDataHeaders)({ viewer_id: viewerId }),
+        "data": responseData,
+    });
+}
 const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
     fastify.post("/exchange_equipment", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
         var _a;
@@ -81,13 +99,13 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 "error": "Internal Server Error",
                 "message": "No players bound to account."
             });
-        // get gacha info
-        const gachaInfo = (0, gacha_1.getPlayerGachaInfoSync)(playerId, gachaId);
-        if (gachaInfo === null)
-            return reply.status(400).send({
-                "error": "Bad Request",
-                "message": "No data for gacha with provided id."
-            });
+        const operation = "gacha_exchange_equipment";
+        const requestKey = buildExchangeRequestKey(operation, body.request_id, gachaId, equipmentId);
+        const previous = requestKey
+            ? (0, player_operation_receipt_1.getPlayerOperationReceiptSync)(playerId, operation, requestKey)
+            : null;
+        if (previous)
+            return sendExchangeResponse(reply, viewerId, previous.response);
         const gachaData = (0, assets_1.getGachaSync)(gachaId);
         if (gachaData === null || gachaData.type !== types_1.GachaType.WEAPON)
             return reply.status(400).send({
@@ -99,41 +117,47 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 "error": "Bad Request",
                 "message": "Equipment is not exchangeable from this gacha."
             });
-        const newExchangePoints = ((_a = gachaInfo.gachaExchangePoint) !== null && _a !== void 0 ? _a : 0) - exchangeRequiredPoints;
-        if (0 > newExchangePoints)
-            return reply.status(400).send({
-                "error": "Bad Request",
-                "message": "Not enough exchange points."
-            });
-        // reward equipment
-        const giveResult = (0, equipment_1.givePlayerEquipmentSync)(playerId, equipmentId, 1);
-        (0, mail_1.insertReceiveHistorySync)(playerId, { type: mail_1.MailType.EQUIPMENT, type_id: equipmentId, number: 1 });
-        // update gacha info
-        (0, gacha_1.updatePlayerGachaInfoSync)(playerId, {
-            gachaId: gachaId,
-            gachaExchangePoint: newExchangePoints
-        });
-        reply.header("content-type", "application/x-msgpack");
-        return reply.status(200).send({
-            "data_headers": (0, utils_1.generateDataHeaders)({
-                viewer_id: viewerId
-            }),
-            "data": {
-                "equipment_list": [
-                    giveResult
-                ],
-                "gacha_info_list": [
-                    {
+        const settlement = yield (0, persistence_coordinator_1.runPersistenceTransaction)({
+            domain: "gacha", playerId, operation,
+        }, () => {
+            var _a;
+            const duplicate = requestKey
+                ? (0, player_operation_receipt_1.getPlayerOperationReceiptSync)(playerId, operation, requestKey)
+                : null;
+            if (duplicate)
+                return { responseData: duplicate.response, errorMessage: undefined };
+            const gachaInfo = (0, gacha_1.getPlayerGachaInfoSync)(playerId, gachaId);
+            if (gachaInfo === null)
+                return { responseData: null, errorMessage: "No data for gacha with provided id." };
+            const newExchangePoints = ((_a = gachaInfo.gachaExchangePoint) !== null && _a !== void 0 ? _a : 0) - exchangeRequiredPoints;
+            if (0 > newExchangePoints)
+                return { responseData: null, errorMessage: "Not enough exchange points." };
+            const giveResult = (0, equipment_1.givePlayerEquipmentSync)(playerId, equipmentId, 1);
+            (0, mail_1.insertReceiveHistorySync)(playerId, { type: mail_1.MailType.EQUIPMENT, type_id: equipmentId, number: 1 });
+            (0, gacha_1.updatePlayerGachaInfoSync)(playerId, { gachaId, gachaExchangePoint: newExchangePoints });
+            const responseData = {
+                "equipment_list": [giveResult],
+                "gacha_info_list": [{
                         "gacha_id": gachaId,
                         "is_account_first": gachaInfo.isAccountFirst,
                         "is_daily_first": gachaInfo.isDailyFirst,
                         "gacha_exchange_point": newExchangePoints
-                    }
-                ],
+                    }],
                 "encyclopedia_info": [],
                 "mail_arrived": false
-            }
+            };
+            if (requestKey)
+                (0, player_operation_receipt_1.insertPlayerOperationReceiptSync)({
+                    playerId, operation, requestKey, response: responseData,
+                });
+            return { responseData, errorMessage: undefined };
         });
+        if (!settlement.responseData)
+            return reply.status(400).send({
+                "error": "Bad Request",
+                "message": (_a = settlement.errorMessage) !== null && _a !== void 0 ? _a : "Exchange failed."
+            });
+        return sendExchangeResponse(reply, viewerId, settlement.responseData);
     }));
     fastify.post("/exchange_character", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
         var _b;
@@ -159,13 +183,13 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 "error": "Internal Server Error",
                 "message": "No players bound to account."
             });
-        // get gacha info
-        const gachaInfo = (0, gacha_1.getPlayerGachaInfoSync)(playerId, gachaId);
-        if (gachaInfo === null)
-            return reply.status(400).send({
-                "error": "Bad Request",
-                "message": "No data for gacha with provided id."
-            });
+        const operation = "gacha_exchange_character";
+        const requestKey = buildExchangeRequestKey(operation, body.request_id, gachaId, characterId);
+        const previous = requestKey
+            ? (0, player_operation_receipt_1.getPlayerOperationReceiptSync)(playerId, operation, requestKey)
+            : null;
+        if (previous)
+            return sendExchangeResponse(reply, viewerId, previous.response);
         const gachaData = (0, assets_1.getGachaSync)(gachaId);
         if (gachaData === null || gachaData.type !== types_1.GachaType.CHARACTER)
             return reply.status(400).send({
@@ -177,55 +201,59 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 "error": "Bad Request",
                 "message": "Character is not exchangeable from this gacha."
             });
-        const newExchangePoints = ((_b = gachaInfo.gachaExchangePoint) !== null && _b !== void 0 ? _b : 0) - exchangeRequiredPoints;
-        if (0 > newExchangePoints)
+        const settlement = yield (0, persistence_coordinator_1.runPersistenceTransaction)({
+            domain: "gacha", playerId, operation,
+        }, () => {
+            var _a;
+            const duplicate = requestKey
+                ? (0, player_operation_receipt_1.getPlayerOperationReceiptSync)(playerId, operation, requestKey)
+                : null;
+            if (duplicate)
+                return { responseData: duplicate.response, errorMessage: undefined };
+            const gachaInfo = (0, gacha_1.getPlayerGachaInfoSync)(playerId, gachaId);
+            if (gachaInfo === null)
+                return { responseData: null, errorMessage: "No data for gacha with provided id." };
+            const newExchangePoints = ((_a = gachaInfo.gachaExchangePoint) !== null && _a !== void 0 ? _a : 0) - exchangeRequiredPoints;
+            if (0 > newExchangePoints)
+                return { responseData: null, errorMessage: "Not enough exchange points." };
+            const giveResult = (0, character_1.givePlayerCharacterSync)(playerId, characterId);
+            if (giveResult === null)
+                return { responseData: null, errorMessage: "Could not give player character." };
+            (0, mail_1.insertReceiveHistorySync)(playerId, { type: mail_1.MailType.CHARACTER, type_id: characterId, number: 1 });
+            (0, gacha_1.updatePlayerGachaInfoSync)(playerId, { gachaId, gachaExchangePoint: newExchangePoints });
+            const existingCharacterList = giveResult.character
+                ? [giveResult.character]
+                : [];
+            const characterList = existingCharacterList.length > 0
+                ? (0, mission_1.reconcileAwakeUnlockCharacterList)(playerId, existingCharacterList)
+                : existingCharacterList;
+            const responseData = {
+                "character_list": characterList,
+                "item_list": giveResult.item !== undefined ? {
+                    [giveResult.item.id]: giveResult.item.inventoryCount
+                } : [],
+                "gacha_info_list": [{
+                        "gacha_id": gachaId,
+                        "is_account_first": gachaInfo.isAccountFirst,
+                        "is_daily_first": gachaInfo.isDailyFirst,
+                        "gacha_exchange_point": newExchangePoints
+                    }],
+                "encyclopedia_info": [],
+                "mail_arrived": false
+            };
+            (0, mission_1.settleDegreeMissionResponse)(playerId, viewerId, responseData, undefined, [4]);
+            if (requestKey)
+                (0, player_operation_receipt_1.insertPlayerOperationReceiptSync)({
+                    playerId, operation, requestKey, response: responseData,
+                });
+            return { responseData, errorMessage: undefined };
+        });
+        if (!settlement.responseData)
             return reply.status(400).send({
                 "error": "Bad Request",
-                "message": "Not enough exchange points."
+                "message": (_b = settlement.errorMessage) !== null && _b !== void 0 ? _b : "Exchange failed."
             });
-        // reward character
-        const giveResult = (0, character_1.givePlayerCharacterSync)(playerId, characterId);
-        if (giveResult === null)
-            return reply.status(400).send({
-                "error": "Bad Request",
-                "message": "Could not give player character."
-            });
-        (0, mail_1.insertReceiveHistorySync)(playerId, { type: mail_1.MailType.CHARACTER, type_id: characterId, number: 1 });
-        // update gacha info
-        (0, gacha_1.updatePlayerGachaInfoSync)(playerId, {
-            gachaId: gachaId,
-            gachaExchangePoint: newExchangePoints
-        });
-        const existingCharacterList = giveResult.character
-            ? [giveResult.character]
-            : [];
-        const characterList = existingCharacterList.length > 0
-            ? (0, mission_1.reconcileAwakeUnlockCharacterList)(playerId, existingCharacterList)
-            : existingCharacterList;
-        const responseData = {
-            "character_list": characterList,
-            "item_list": giveResult.item !== undefined ? {
-                [giveResult.item.id]: giveResult.item.inventoryCount
-            } : [],
-            "gacha_info_list": [
-                {
-                    "gacha_id": gachaId,
-                    "is_account_first": gachaInfo.isAccountFirst,
-                    "is_daily_first": gachaInfo.isDailyFirst,
-                    "gacha_exchange_point": newExchangePoints
-                }
-            ],
-            "encyclopedia_info": [],
-            "mail_arrived": false
-        };
-        (0, mission_1.settleDegreeMissionResponse)(playerId, viewerId, responseData, undefined, [4]);
-        reply.header("content-type", "application/x-msgpack");
-        return reply.status(200).send({
-            "data_headers": (0, utils_1.generateDataHeaders)({
-                viewer_id: viewerId
-            }),
-            "data": responseData
-        });
+        return sendExchangeResponse(reply, viewerId, settlement.responseData);
     }));
     fastify.post("/exec", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
         var _c, _d;

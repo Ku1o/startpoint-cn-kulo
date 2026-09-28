@@ -21,6 +21,7 @@ const character_helpers_1 = require("../../../lib/character-helpers");
 const character_2 = require("../../../lib/character");
 const mission_1 = require("../../../lib/mission");
 const game_logging_1 = require("../../../lib/game-logging");
+const persistence_coordinator_1 = require("../../../lib/persistence-coordinator");
 const openManaBoardRequiredUncaps = {
     [1]: 10, [2]: 8, [3]: 6, [4]: 4, [5]: 2
 };
@@ -43,51 +44,45 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         const sess = yield (0, character_helpers_1.validateSessionAndPlayer)(viewerId, reply);
         if (!sess)
             return reply;
-        const { playerId, player } = sess;
-        const characterData = (0, character_helpers_1.validateCharacterOwnership)(playerId, characterId, reply);
-        if (!characterData)
-            return reply;
-        const bondToken = characterData.bondTokenList
-            .find(token => token.manaBoardIndex === manaBoardIndex);
-        if (!bondToken || bondToken.status === 0)
-            return reply.status(400).send({
-                "error": "Bad Request", "message": "Cannot receive bond token."
-            });
-        // Already claimed — return current state
-        if (bondToken.status === 2) {
-            return (0, character_helpers_1.sendCharacterResponse)(reply, viewerId, {
-                user_info: { bond_token: player.bondToken },
-                character_list: [(0, character_helpers_1.buildCharacterListEntry)(characterId, characterData, {
-                        bond_token_list: characterData.bondTokenList.map(e => ({ mana_board_index: e.manaBoardIndex, status: e.status })),
-                    })],
-                user_character_mana_node_list: {},
-                item_list: {},
-                evolution: [],
-                mail_arrived: false,
-            }, playerId);
+        const { playerId } = sess;
+        const result = yield (0, persistence_coordinator_1.runPersistenceTransaction)({
+            domain: "player", playerId, operation: "character_receive_bond_token",
+        }, () => {
+            const player = (0, player_1.getPlayerSync)(playerId);
+            if (!player)
+                throw new Error("Player not found.");
+            const character = (0, character_1.getPlayerCharacterSync)(playerId, characterId);
+            if (!character)
+                return { error: "Character not owned." };
+            const token = character.bondTokenList.find(entry => entry.manaBoardIndex === manaBoardIndex);
+            if (!token || token.status === 0)
+                return { error: "Cannot receive bond token." };
+            // Replays read the committed claim marker inside the same player queue.
+            const shouldClaim = token.status !== 2;
+            const balance = player.bondToken + (shouldClaim ? 1 : 0);
+            if (shouldClaim) {
+                (0, player_1.updatePlayerSync)({ id: playerId, bondToken: balance });
+                (0, character_1.updatePlayerCharacterBondTokenSync)(playerId, characterId, { manaBoardIndex, status: 2 });
+            }
+            const entries = [(0, character_helpers_1.buildCharacterListEntry)(characterId, character, {
+                    bond_token_list: character.bondTokenList.map(entry => ({
+                        mana_board_index: entry.manaBoardIndex,
+                        status: entry.manaBoardIndex === manaBoardIndex ? 2 : entry.status,
+                    })),
+                })];
+            const data = {
+                user_info: { bond_token: balance },
+                character_list: shouldClaim ? (0, mission_1.reconcileAwakeUnlockCharacterList)(playerId, entries) : entries,
+                user_character_mana_node_list: {}, item_list: {}, evolution: [], mail_arrived: false,
+            };
+            return { data };
+        });
+        if (result.error !== undefined) {
+            return reply.status(400).send({ error: "Bad Request", message: result.error });
         }
-        // Claim the bond token
-        const newBondTokens = player.bondToken + 1;
-        (0, player_1.updatePlayerSync)({ id: playerId, bondToken: newBondTokens });
-        (0, character_1.updatePlayerCharacterBondTokenSync)(playerId, characterId, { manaBoardIndex, status: 2 });
-        const bondTokenList = [];
-        for (const entry of characterData.bondTokenList) {
-            bondTokenList.push({ "mana_board_index": entry.manaBoardIndex, "status": entry.manaBoardIndex === manaBoardIndex ? 2 : entry.status });
-        }
-        const characterList = (0, mission_1.reconcileAwakeUnlockCharacterList)(playerId, [
-            (0, character_helpers_1.buildCharacterListEntry)(characterId, characterData, { bond_token_list: bondTokenList })
-        ]);
-        return (0, character_helpers_1.sendCharacterResponse)(reply, viewerId, {
-            user_info: { bond_token: newBondTokens },
-            character_list: characterList,
-            user_character_mana_node_list: {},
-            item_list: {},
-            evolution: [],
-            mail_arrived: false,
-        }, playerId);
+        return (0, character_helpers_1.sendCharacterResponse)(reply, viewerId, result.data, playerId);
     }));
     fastify.post("/open_mana_board", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
-        var _a;
         const body = request.body;
         const viewerId = body.viewer_id;
         const characterId = body.character_id;
@@ -107,68 +102,55 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             return reply.status(500).send({
                 "error": "Internal Server Error", "message": "No players bound to account."
             });
-        // get character data
-        const characterData = (0, character_1.getPlayerCharacterSync)(playerId, characterId);
-        if (characterData === null)
-            return reply.status(400).send({
-                "error": "Bad Request", "message": "Character not owned."
-            });
-        // get character asset data
         const characterAssetData = (0, assets_1.getCharacterDataSync)(characterId);
         if (characterAssetData === null)
             return reply.status(500).send({
-                "error": "Internal Server Error", "message": "No character asset data found."
+                error: "Internal Server Error", message: "No character asset data found."
             });
-        // make sure that the mana board index is valid, auto-create missing bond tokens
-        if (!characterData.bondTokenList.some(token => token.manaBoardIndex === manaBoardIndex)) {
-            const boardCount = (0, assets_1.getCharacterManaBoardCountSync)(characterId);
-            (0, game_logging_1.gameVerboseLog)(() => `[MANA] open_mana_board: auto-creating bond tokens, bondListLen=${characterData.bondTokenList.length} boardCount=${boardCount}`);
-            const existingBoards = new Set(characterData.bondTokenList.map(token => token.manaBoardIndex));
-            for (let i = 1; i <= boardCount; i++) {
-                if (existingBoards.has(i))
-                    continue;
-                (0, character_1.insertPlayerCharacterBondTokenSync)(playerId, characterId, { manaBoardIndex: i, status: 0 });
-                characterData.bondTokenList.push({ manaBoardIndex: i, status: 0 });
+        const result = yield (0, persistence_coordinator_1.runPersistenceTransaction)({
+            domain: "player", playerId, operation: "character_open_mana_board",
+        }, () => {
+            var _a;
+            const character = (0, character_1.getPlayerCharacterSync)(playerId, characterId);
+            if (!character)
+                return { error: "Character not owned." };
+            const requiredExp = openManaBoardRequiredExp[characterAssetData.rarity];
+            if (requiredExp !== undefined && requiredExp > character.exp) {
+                return { error: "Character level is too low to unlock mana board." };
             }
-            characterData.bondTokenList.sort((left, right) => left.manaBoardIndex - right.manaBoardIndex);
+            if (openManaBoardRequiredUncaps[characterAssetData.rarity] > character.overLimitStep) {
+                return { error: "Character is not uncapped enough to unlock mana board." };
+            }
+            const previous = character.bondTokenList.find(token => token.manaBoardIndex === manaBoardIndex - 1);
+            if (manaBoardIndex > 1 && ((_a = previous === null || previous === void 0 ? void 0 : previous.status) !== null && _a !== void 0 ? _a : 0) < 1) {
+                return { error: "Must unlock all previous mana board nodes." };
+            }
+            if (!character.bondTokenList.some(token => token.manaBoardIndex === manaBoardIndex)) {
+                const boardCount = (0, assets_1.getCharacterManaBoardCountSync)(characterId);
+                const existingBoards = new Set(character.bondTokenList.map(token => token.manaBoardIndex));
+                for (let i = 1; i <= boardCount; i++) {
+                    if (!existingBoards.has(i)) {
+                        (0, character_1.insertPlayerCharacterBondTokenSync)(playerId, characterId, { manaBoardIndex: i, status: 0 });
+                    }
+                }
+            }
+            (0, character_1.updatePlayerCharacterSync)(playerId, characterId, { manaBoardIndex });
+            return { data: {
+                    character_list: [{
+                            viewer_id: viewerId, character_id: characterId, mana_board_index: manaBoardIndex,
+                            create_time: (0, utils_2.clientSerializeDate)(character.joinTime),
+                            update_time: (0, utils_2.clientSerializeDate)(character.updateTime),
+                            join_time: (0, utils_2.clientSerializeDate)(character.joinTime),
+                        }],
+                    mail_arrived: false,
+                } };
+        });
+        if (result.error !== undefined) {
+            return reply.status(400).send({ error: "Bad Request", message: result.error });
         }
-        // ensure that the mana board can be opened
-        const requiredLevelExp = openManaBoardRequiredExp[characterAssetData.rarity];
-        if (requiredLevelExp !== undefined && requiredLevelExp > characterData.exp) {
-            console.warn(`[MANA] open_mana_board FAIL: exp too low, need=${requiredLevelExp} have=${characterData.exp}`);
-            return reply.status(400).send({
-                "error": "Bad Request", "message": `Character level is too low to unlock mana board.`
-            });
-        }
-        if (openManaBoardRequiredUncaps[characterAssetData.rarity] > characterData.overLimitStep) {
-            console.warn(`[MANA] open_mana_board FAIL: uncap too low, need=${openManaBoardRequiredUncaps[characterAssetData.rarity]} have=${characterData.overLimitStep}`);
-            return reply.status(400).send({
-                "error": "Bad Request", "message": `Character is not uncapped enough to unlock mana board.`
-            });
-        }
-        const previousBoardToken = characterData.bondTokenList
-            .find(token => token.manaBoardIndex === manaBoardIndex - 1);
-        if (manaBoardIndex > 1 && 1 > ((_a = previousBoardToken === null || previousBoardToken === void 0 ? void 0 : previousBoardToken.status) !== null && _a !== void 0 ? _a : 0)) {
-            console.warn(`[MANA] open_mana_board FAIL: prev board bond not claimed, prevBoard=${manaBoardIndex - 1} prevStatus=${previousBoardToken === null || previousBoardToken === void 0 ? void 0 : previousBoardToken.status}`);
-            return reply.status(400).send({
-                "error": "Bad Request", "message": `Must unlock all previous mana board nodes.`
-            });
-        }
-        (0, character_1.updatePlayerCharacterSync)(playerId, characterId, { manaBoardIndex: manaBoardIndex });
         reply.header("content-type", "application/x-msgpack");
         return reply.status(200).send({
-            "data_headers": (0, utils_1.generateDataHeaders)({ viewer_id: viewerId }),
-            "data": {
-                "character_list": [{
-                        "viewer_id": viewerId,
-                        "character_id": characterId,
-                        "mana_board_index": manaBoardIndex,
-                        "create_time": (0, utils_2.clientSerializeDate)(characterData.joinTime),
-                        "update_time": (0, utils_2.clientSerializeDate)(characterData.updateTime),
-                        "join_time": (0, utils_2.clientSerializeDate)(characterData.joinTime)
-                    }],
-                "mail_arrived": false
-            }
+            data_headers: (0, utils_1.generateDataHeaders)({ viewer_id: viewerId }), data: result.data,
         });
     }));
 });

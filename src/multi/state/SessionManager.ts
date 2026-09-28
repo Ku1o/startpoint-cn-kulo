@@ -4,6 +4,7 @@ import { routineGameLog } from "../../lib/routine-game-logging"
 // Protocol arrays follow typepacker useEnumIndex=true format (see sessionServer.ts).
 
 import * as net from "net"
+import { performance } from "node:perf_hooks"
 import { Result, ClientState, BattleState } from "../types"
 import { ClientStateMachine } from "./ClientStateMachine"
 import { gameVerboseLog } from "../../lib/game-logging"
@@ -14,6 +15,8 @@ import { embeddedMultiCoordinator } from "../coordinator/embedded"
 import { roomAdmissionRegistry } from "../room/admission"
 import { fiveBossConnectionDiagnostics } from "../five-boss/connection-diagnostic"
 import { registerMemoryCounters } from "../../lib/memory-diagnostics"
+import { recordServerWork } from "../../lib/server-work-performance"
+import { recordRealtimeDiagnostic } from "../../lib/realtime-diagnostics"
 
 export interface SessionClient {
     socket: net.Socket
@@ -60,6 +63,7 @@ interface BattleBarrierCycle {
     timers: Map<string, NodeJS.Timeout>
     missing: Map<string, BattleSeat>
     arrived: Set<string>
+    startedAt: number
 }
 
 export class SessionManager {
@@ -319,6 +323,13 @@ export class SessionManager {
         const signature = `${generation}:${expected}:${connected}:${ready}:${reason}`
         if (this.battleBarrierLogState.get(roomNumber) === signature) return
         this.battleBarrierLogState.set(roomNumber, signature)
+        recordRealtimeDiagnostic(roomNumber, "barrier", {
+            reason,
+            expected,
+            connected,
+            ready,
+            generation,
+        })
         routineGameLog("multiBarrier", () => `[MULTI-BARRIER] room=${roomNumber} generation=${generation}`
             + ` expected=${expected} connected=${connected} ready=${ready} reason=${reason}`)
     }
@@ -330,6 +341,16 @@ export class SessionManager {
         const ready = this.sceneReadyClients.get(roomNumber)?.size ?? 0
         this.logBattleBarrierState(roomNumber, reason)
         if (connected <= 0 || ready < expected || ready < connected) return false
+        const cycle = this.battleBarrierCycles.get(roomNumber)
+        const waitMs = cycle ? performance.now() - cycle.startedAt : 0
+        if (cycle) recordServerWork("multi.barrier", waitMs)
+        recordRealtimeDiagnostic(roomNumber, "barrier_released", {
+            reason,
+            expected,
+            connected,
+            ready,
+            waitMs: Math.round(waitMs * 1000) / 1000,
+        })
         this.battleExpectedCount.set(roomNumber, 0)
         this.clearBattleBarrierCycle(roomNumber)
         this.battleLevelNextClients.delete(roomNumber)
@@ -356,6 +377,7 @@ export class SessionManager {
             timers: new Map(), missing: new Map(),
             arrived: new Set(this.getConnectedBattleClients(roomNumber)
                 .flatMap(client => [this.battleSeatKey(client), `connection:${client.connectionId}`])),
+            startedAt: performance.now(),
         }
         this.battleBarrierCycles.set(roomNumber, cycle)
         return cycle
@@ -1385,6 +1407,7 @@ export class SessionManager {
     ): void {
         const set = this.roomClients.get(roomNumber)
         if (!set) return
+        const broadcastStarted = performance.now()
         let expectedGeneration = roomGeneration
         if (expectedGeneration === undefined) {
             try {
@@ -1413,6 +1436,7 @@ export class SessionManager {
                 })
             }
         }
+        recordServerWork("multi.lobby.broadcast", performance.now() - broadcastStarted)
     }
 
     getRoomClientCount(roomNumber: string, roomGeneration?: number): number {

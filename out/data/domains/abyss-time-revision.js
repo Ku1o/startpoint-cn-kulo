@@ -21,6 +21,15 @@ function refreshPlayerAbyssBestTimesSync(playerId, eventId) {
     const revision = (0, abyss_time_revision_1.getAbyssTimeRevision)(eventId);
     if (revision === null)
         return null;
+    const hasStaleRows = (0, db_1.getDb)().prepare(`
+        SELECT 1 AS found
+        FROM players_quest_progress
+        WHERE player_id = ? AND section = ? AND quest_id BETWEEN ? AND ?
+          AND (best_time_revision IS NULL OR best_time_revision != ?)
+        LIMIT 1
+    `).get(playerId, quest_1.QuestCategory.RUSH_EVENT, eventId * 1000 + 1, eventId * 1000 + (eventId === abyss_modes_1.ABYSS_EX_EVENT_ID ? 30 : 98), revision);
+    if (!hasStaleRows)
+        return revision;
     (0, db_1.getDb)().prepare(`
         UPDATE players_quest_progress
         SET best_elapsed_time_ms = NULL, best_time_revision = ?

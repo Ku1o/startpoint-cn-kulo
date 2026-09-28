@@ -23,6 +23,7 @@ const utils_2 = require("../../data/utils");
 const activeAccount_1 = require("../../data/activeAccount");
 const mission_1 = require("../../lib/mission");
 const game_logging_1 = require("../../lib/game-logging");
+const persistence_coordinator_1 = require("../../lib/persistence-coordinator");
 exports.characterMaxOverLimits = {
     [1]: 12, // 1* max over limit count
     [2]: 10, // 2* max over limit count
@@ -54,9 +55,12 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 "error": "Internal Server Error",
                 "message": "No players bound to account."
             });
-        // update character
-        (0, character_1.updatePlayerCharacterSync)(playerId, characterId, {
-            illustrationSettings: illustration_settings.slice(0, 6)
+        yield (0, persistence_coordinator_1.runPersistenceTransaction)({
+            domain: "player", playerId, operation: "character_illustration_settings",
+        }, () => {
+            (0, character_1.updatePlayerCharacterSync)(playerId, characterId, {
+                illustrationSettings: illustration_settings.slice(0, 6)
+            });
         });
         reply.header("content-type", "application/x-msgpack");
         return reply.status(200).send({
@@ -88,96 +92,69 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 "error": "Internal Server Error",
                 "message": "No players bound to account."
             });
-        // get character data
         const characterId = body.character_id;
-        const playerCharacterData = (0, character_1.getPlayerCharacterSync)(playerId, characterId);
-        if (playerCharacterData === null)
-            return reply.status(400).send({
-                "error": "Bad Request",
-                "message": "Character not owned."
-            });
-        // get character asset data
+        const overLimitCount = body.over_limit_count;
+        if (!Number.isSafeInteger(overLimitCount) || overLimitCount <= 0) {
+            return reply.status(400).send({ error: "Bad Request", message: "Invalid over limit count." });
+        }
         const characterAssetData = (0, assets_1.getCharacterDataSync)(characterId);
         if (characterAssetData === null)
             return reply.status(500).send({
-                "error": "Internal Server Error",
-                "message": "No character asset data found."
+                error: "Internal Server Error", message: "No character asset data found."
             });
-        // calculate new over limit
-        const overLimitCount = body.over_limit_count;
-        const newOverLimit = playerCharacterData.overLimitStep + overLimitCount;
-        const characterRarity = characterAssetData.rarity;
-        if (newOverLimit > exports.characterMaxOverLimits[characterRarity])
-            return reply.status(400).send({
-                "error": "Bad Request",
-                "message": "Character cannot be uncapped further."
-            });
-        let stack = playerCharacterData.stack;
-        const item_list = {};
-        if (body.use_stack) {
-            // stack uncapping
-            // ensure that the character has enough stack
-            stack = stack - overLimitCount;
-            if (0 > stack)
-                return reply.status(400).send({
-                    "error": "Bad Request",
-                    "message": "Character does not have enough duplicates to uncap."
-                });
-            // update the character
-            (0, character_1.updatePlayerCharacterSync)(playerId, characterId, {
-                overLimitStep: newOverLimit,
-                stack: stack
-            });
-        }
-        else {
-            // item uncapping
-            const itemId = body.item_id;
-            // ensure that the item trying to be used is valid
-            // 5* characters can only be uncapped by item 10003 (awaking_crystal_5)
-            // 4* characters and below can only be uncapped by items 10002 (awaking_crystal_4) and 10001 (awaking_crystal_3)
-            if ((characterRarity === 5 && itemId !== 10003)
-                || (4 >= characterRarity && (itemId !== 10002 && itemId !== 10001)))
-                return reply.status(400).send({
-                    "error": "Bad Request",
-                    "message": "Attempted to use invalid item."
-                });
-            const itemData = (0, item_1.getPlayerItemSync)(playerId, itemId);
-            if (itemData === null)
-                return reply.status(400).send({
-                    "error": "Bad Request",
-                    "message": "Attempted to use unowned item."
-                });
-            // make sure that the player has enough of the item
-            const newAmount = itemData - overLimitCount;
-            if (0 > newAmount)
-                return reply.status(400).send({
-                    "error": "Bad Request",
-                    "message": "Not enough of item to uncap."
-                });
-            // update the item count
-            (0, item_1.updatePlayerItemSync)(playerId, itemId, newAmount);
-            item_list[itemId] = newAmount; // add to items table
-            // update the character
-            (0, character_1.updatePlayerCharacterSync)(playerId, characterId, {
-                overLimitStep: newOverLimit
-            });
-        }
-        (0, character_degree_rewards_1.grantCharacterDegreeRewardsSync)(playerId, [characterId]);
-        const responseData = {
-            "character_list": [
-                {
-                    "over_limit_step": newOverLimit,
-                    "character_id": characterId,
-                    "stack": stack,
-                    "create_time": (0, utils_2.clientSerializeDate)(playerCharacterData.joinTime),
-                    "update_time": (0, utils_2.clientSerializeDate)(new Date()),
-                    "join_time": (0, utils_2.clientSerializeDate)(playerCharacterData.joinTime)
+        const result = yield (0, persistence_coordinator_1.runPersistenceTransaction)({
+            domain: "player", playerId, operation: "character_over_limit",
+        }, () => {
+            // Read balances and progress after reaching the head of the player queue.
+            const character = (0, character_1.getPlayerCharacterSync)(playerId, characterId);
+            if (!character)
+                return { error: "Character not owned." };
+            const newOverLimit = character.overLimitStep + overLimitCount;
+            const rarity = characterAssetData.rarity;
+            if (newOverLimit > exports.characterMaxOverLimits[rarity]) {
+                return { error: "Character cannot be uncapped further." };
+            }
+            let stack = character.stack;
+            const itemList = {};
+            if (body.use_stack) {
+                stack -= overLimitCount;
+                if (stack < 0)
+                    return { error: "Character does not have enough duplicates to uncap." };
+                (0, character_1.updatePlayerCharacterSync)(playerId, characterId, { overLimitStep: newOverLimit, stack });
+            }
+            else {
+                const itemId = body.item_id;
+                if ((rarity === 5 && itemId !== 10003)
+                    || (rarity <= 4 && itemId !== 10002 && itemId !== 10001)) {
+                    return { error: "Attempted to use invalid item." };
                 }
-            ],
-            "item_list": item_list,
-            "mail_arrived": false
-        };
-        (0, mission_1.settleDegreeMissionResponse)(playerId, viewerId, responseData, undefined, [9]);
+                const count = (0, item_1.getPlayerItemSync)(playerId, itemId);
+                if (count === null)
+                    return { error: "Attempted to use unowned item." };
+                const remaining = count - overLimitCount;
+                if (remaining < 0)
+                    return { error: "Not enough of item to uncap." };
+                (0, item_1.updatePlayerItemSync)(playerId, itemId, remaining);
+                itemList[itemId] = remaining;
+                (0, character_1.updatePlayerCharacterSync)(playerId, characterId, { overLimitStep: newOverLimit });
+            }
+            (0, character_degree_rewards_1.grantCharacterDegreeRewardsSync)(playerId, [characterId]);
+            const data = {
+                character_list: [{
+                        over_limit_step: newOverLimit, character_id: characterId, stack,
+                        create_time: (0, utils_2.clientSerializeDate)(character.joinTime),
+                        update_time: (0, utils_2.clientSerializeDate)(new Date()),
+                        join_time: (0, utils_2.clientSerializeDate)(character.joinTime),
+                    }],
+                item_list: itemList, mail_arrived: false,
+            };
+            (0, mission_1.settleDegreeMissionResponse)(playerId, viewerId, data, undefined, [9]);
+            return { data };
+        });
+        if (result.error !== undefined) {
+            return reply.status(400).send({ error: "Bad Request", message: result.error });
+        }
+        const responseData = result.data;
         reply.header("content-type", "application/x-msgpack");
         return reply.status(200).send({
             "data_headers": (0, utils_1.generateDataHeaders)({
@@ -204,44 +181,46 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             return reply.status(500).send({
                 error: "Internal Server Error", message: "No players bound to account.",
             });
-        const characters = (0, character_1.getPlayerCharactersSync)(playerId);
-        (0, game_logging_1.gameVerboseLog)(() => `[bulk_over_limit] player=${playerId} totalChars=${Object.keys(characters).length}`);
-        const characterList = [];
-        for (const [charId, charData] of Object.entries(characters)) {
-            if (charData.stack <= 0)
-                continue;
-            const assetData = (0, assets_1.getCharacterDataSync)(Number(charId));
-            if (!assetData)
-                continue;
-            const maxOver = exports.characterMaxOverLimits[assetData.rarity];
-            if (maxOver === undefined)
-                continue;
-            const rest = maxOver - charData.overLimitStep;
-            if (rest <= 0)
-                continue;
-            const count = Math.min(charData.stack, rest);
-            const newOverLimit = charData.overLimitStep + count;
-            const newStack = charData.stack - count;
-            (0, character_1.updatePlayerCharacterSync)(playerId, Number(charId), {
-                overLimitStep: newOverLimit,
-                stack: newStack,
-            });
-            (0, character_degree_rewards_1.grantCharacterDegreeRewardsSync)(playerId, [Number(charId)]);
-            characterList.push({
-                character_id: Number(charId),
-                over_limit_step: newOverLimit,
-                stack: newStack,
-                create_time: (0, utils_2.clientSerializeDate)(charData.joinTime),
-                update_time: (0, utils_2.clientSerializeDate)(new Date()),
-                join_time: (0, utils_2.clientSerializeDate)(charData.joinTime),
-            });
-        }
-        (0, game_logging_1.gameVerboseLog)(() => `[bulk_over_limit] done: ${characterList.length} characters modified`);
-        const responseData = {
-            character_list: characterList,
-            mail_arrived: false,
-        };
-        (0, mission_1.settleDegreeMissionResponse)(playerId, viewerId, responseData, undefined, [9]);
+        const responseData = yield (0, persistence_coordinator_1.runPersistenceTransaction)({
+            domain: "player", playerId, operation: "character_bulk_over_limit",
+        }, () => {
+            const characters = (0, character_1.getPlayerCharactersSync)(playerId);
+            const characterList = [];
+            (0, game_logging_1.gameVerboseLog)(() => `[bulk_over_limit] player=${playerId} totalChars=${Object.keys(characters).length}`);
+            for (const [charId, charData] of Object.entries(characters)) {
+                if (charData.stack <= 0)
+                    continue;
+                const assetData = (0, assets_1.getCharacterDataSync)(Number(charId));
+                if (!assetData)
+                    continue;
+                const maxOver = exports.characterMaxOverLimits[assetData.rarity];
+                if (maxOver === undefined)
+                    continue;
+                const rest = maxOver - charData.overLimitStep;
+                if (rest <= 0)
+                    continue;
+                const count = Math.min(charData.stack, rest);
+                const newOverLimit = charData.overLimitStep + count;
+                const newStack = charData.stack - count;
+                (0, character_1.updatePlayerCharacterSync)(playerId, Number(charId), {
+                    overLimitStep: newOverLimit,
+                    stack: newStack,
+                });
+                (0, character_degree_rewards_1.grantCharacterDegreeRewardsSync)(playerId, [Number(charId)]);
+                characterList.push({
+                    character_id: Number(charId),
+                    over_limit_step: newOverLimit,
+                    stack: newStack,
+                    create_time: (0, utils_2.clientSerializeDate)(charData.joinTime),
+                    update_time: (0, utils_2.clientSerializeDate)(new Date()),
+                    join_time: (0, utils_2.clientSerializeDate)(charData.joinTime),
+                });
+            }
+            (0, game_logging_1.gameVerboseLog)(() => `[bulk_over_limit] done: ${characterList.length} characters modified`);
+            const data = { character_list: characterList, mail_arrived: false };
+            (0, mission_1.settleDegreeMissionResponse)(playerId, viewerId, data, undefined, [9]);
+            return data;
+        });
         reply.header("content-type", "application/x-msgpack");
         return reply.status(200).send({
             data_headers: (0, utils_1.generateDataHeaders)({ viewer_id: viewerId }),
@@ -266,22 +245,21 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             return reply.status(500).send({
                 "error": "Internal Server Error", "message": "No player bound to account."
             });
-        const giveResult = (0, character_2.givePlayerCharacterSync)(playerId, characterId);
-        const existingCharacterList = (giveResult === null || giveResult === void 0 ? void 0 : giveResult.character)
-            ? [giveResult.character]
-            : [];
-        const itemList = (giveResult === null || giveResult === void 0 ? void 0 : giveResult.item)
-            ? { [giveResult.item.id]: giveResult.item.inventoryCount }
-            : {};
-        const characterList = existingCharacterList.length > 0
-            ? (0, mission_1.reconcileAwakeUnlockCharacterList)(playerId, existingCharacterList)
-            : existingCharacterList;
-        const responseData = {
-            "character_list": characterList,
-            "item_list": itemList,
-            "mail_arrived": false
-        };
-        (0, mission_1.settleDegreeMissionResponse)(playerId, viewerId, responseData, undefined, [4]);
+        const responseData = yield (0, persistence_coordinator_1.runPersistenceTransaction)({
+            domain: "player", playerId, operation: "character_add_from_town",
+        }, () => {
+            const giveResult = (0, character_2.givePlayerCharacterSync)(playerId, characterId);
+            const existing = (giveResult === null || giveResult === void 0 ? void 0 : giveResult.character)
+                ? [giveResult.character] : [];
+            const data = {
+                character_list: existing.length > 0
+                    ? (0, mission_1.reconcileAwakeUnlockCharacterList)(playerId, existing) : existing,
+                item_list: (giveResult === null || giveResult === void 0 ? void 0 : giveResult.item) ? { [giveResult.item.id]: giveResult.item.inventoryCount } : {},
+                mail_arrived: false,
+            };
+            (0, mission_1.settleDegreeMissionResponse)(playerId, viewerId, data, undefined, [4]);
+            return data;
+        });
         reply.header("content-type", "application/x-msgpack");
         return reply.status(200).send({
             "data_headers": (0, utils_1.generateDataHeaders)({ viewer_id: viewerId }),

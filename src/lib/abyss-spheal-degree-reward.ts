@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs"
 import path from "node:path"
 import { getDb } from "../data/db"
 import { grantPlayerDegreeSync } from "../data/domains/degree"
+import { runPersistenceTransactionSync } from "./persistence-coordinator"
 
 export const ABYSS_SPHEAL_DEGREE = 9_911_301
 export const SPHEAL_CHARACTER = 129990
@@ -49,7 +50,9 @@ export function grantAbyssSphealDegreeSync(
     if (config === null) return []
 
     const db = getDb()
-    return db.transaction(() => {
+    return runPersistenceTransactionSync({
+        domain: "event", playerId, operation: "grant_abyss_spheal_degree",
+    }, () => {
         if (!db.prepare("SELECT id FROM players WHERE id = ?").get(playerId)) return []
         if (db.prepare("SELECT 1 FROM players_degrees WHERE player_id = ? AND degree_id = ?")
             .get(playerId, config.degree_id)) return []
@@ -78,5 +81,5 @@ export function grantAbyssSphealDegreeSync(
                 ? [config.degree_id] : []
         }
         return []
-    })()
+    })
 }

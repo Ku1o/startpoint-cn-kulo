@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.setLeaderboardAvailabilitySync = exports.isLeaderboardEnabledSync = exports.getLeaderboardAvailabilitySync = exports.isLeaderboardDeadlineDueSync = void 0;
 const db_1 = require("../../data/db");
 const leaderboard_1 = require("../../data/domains/leaderboard");
+const persistence_coordinator_1 = require("../persistence-coordinator");
 function isLeaderboardDeadlineDueSync(competitionKey, nowMs = Date.now()) {
     const config = (0, db_1.getDb)().prepare(`
         SELECT settle_at_ms, freeze_enabled, auto_enabled
@@ -63,6 +64,8 @@ function setLeaderboardAvailabilitySync(competitionKey, enabled, updatedAtMs = D
             abandonedRuns,
         };
     };
-    return db.inTransaction ? operation() : db.transaction(operation)();
+    return db.inTransaction ? operation() : (0, persistence_coordinator_1.runPersistenceTransactionSync)({
+        domain: "leaderboard", operation: "set_leaderboard_availability",
+    }, operation);
 }
 exports.setLeaderboardAvailabilitySync = setLeaderboardAvailabilitySync;

@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.runMeasuredSingleTransaction = exports.runImmediateTransactionWithRetry = exports.withPlayerWriteQueue = exports.isSqliteBusyError = void 0;
+exports.runMeasuredSingleTransaction = exports.runImmediateTransactionWithRetry = exports.drainPlayerWriteQueues = exports.withPlayerWriteQueue = exports.isSqliteBusyError = void 0;
 const db_1 = require("../data/db");
 const node_perf_hooks_1 = require("node:perf_hooks");
 const server_work_performance_1 = require("./server-work-performance");
@@ -50,6 +50,18 @@ function withPlayerWriteQueue(playerId, operation) {
     });
 }
 exports.withPlayerWriteQueue = withPlayerWriteQueue;
+/** Wait for every currently queued player mutation before closing the database. */
+function drainPlayerWriteQueues() {
+    return __awaiter(this, void 0, void 0, function* () {
+        // A request may enqueue another player while the first snapshot drains.
+        // Keep taking snapshots until the map stays empty so shutdown cannot race
+        // the final per-player transaction.
+        while (playerWriteTails.size > 0) {
+            yield Promise.all([...playerWriteTails.values()]);
+        }
+    });
+}
+exports.drainPlayerWriteQueues = drainPlayerWriteQueues;
 /** Run a short write transaction and retry the complete mutation on snapshot contention. */
 function runImmediateTransactionWithRetry(operation_1) {
     return __awaiter(this, arguments, void 0, function* (operation, maxAttempts = 3) {

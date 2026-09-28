@@ -5,6 +5,18 @@ const os = require('node:os')
 const path = require('node:path')
 const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'startpoint-five-boss-test-'))
 process.env.DATA_DIR = dataDir
+// The source checkout intentionally does not carry the deployment-only
+// admission key file.  Give this integration test an explicit transition
+// policy so the TCP case exercises the room handshake instead of failing
+// before the first frame because the local gate has no policy to load.
+process.env.CLIENT_ADMISSION_CONFIG = path.join(dataDir, 'client-admission.json')
+process.env.CLIENT_ADMISSION_KEYS = path.join(dataDir, 'client-admission.keys.json')
+fs.writeFileSync(process.env.CLIENT_ADMISSION_CONFIG, JSON.stringify({
+    enforce: false,
+    updateMessage: 'test transition policy',
+    builds: [],
+}))
+fs.writeFileSync(process.env.CLIENT_ADMISSION_KEYS, '{}')
 const output = process.env.LENS_BUILD_OUT || path.resolve(__dirname, '../out')
 const load = name => require(path.join(output, name))
 const originalInterval = global.setInterval
@@ -600,7 +612,7 @@ test('real TCP disconnect and later proof arrival explain HTTP H400 without gran
             sockets.push(serverSocket)
             socket.on('data', () => {})
             socket.write(JSON.stringify({ socklet: 'cooperation_battle', room_number: room.room_number,
-                connection_id: connectionId }) + '\0')
+                connection_id: connectionId, sp_session: `five-boss-${p.id}` }) + '\0')
             await waitFor(() => manager.getBattleClient(connectionId)?.socket === serverSocket)
             return { socket, serverSocket }
         }
@@ -957,26 +969,55 @@ function funded(p, free = 100, paid = 20) {
     players.updatePlayerSync({ id: p.id, freeVmoney: free, vmoney: paid })
 }
 
-test('effective Abyss final rewards guarantee 1..2 tickets and remove both five-star materials', () => {
+test('effective Abyss final rewards follow the normal 30-floor pools without legacy five-star materials', () => {
     const assets = load('lib/assets')
     const cfg = assets.getRogueEventConfig(700099)
-    assert.deepEqual(cfg.folder_clear_chance, [{ type: 0, id: 999014, count: 1, chance: 0.1 }])
+    assert.deepEqual(cfg.folder_clear_chance, [{ type: 0, id: 999014, count: 1, chance: 0.07 }])
     const random = Math.random
     try {
-        for (const [roll, tickets] of [[0, 1], [0.999999, 2]]) {
+        for (const [roll, tickets] of [[0, 1], [0.999999, 0]]) {
             Math.random = () => roll
             const result = assets.getRushEventFolderClearRewards(700099, 1)
             const count = id => result.filter(x => x.id === id).reduce((n, x) => n + x.count, 0)
             assert.equal(count(10000143), tickets)
             assert.equal(count(11003), 0)
             assert.equal(count(13001), 0)
-            for (const [id, n] of [[99, 1000], [2370099, 100], [10002, 2], [12001, 2]]) assert.equal(count(id), n)
+            for (const [id, n] of [[99, 800], [2370099, 70], [10002, 2], [12001, 2]]) assert.equal(count(id), n)
             assert.equal(count(999014), roll === 0 ? 1 : 0, 'base/extension must not duplicate the ten-pull ticket')
         }
     } finally { Math.random = random }
 })
 
 function seedRewardFinish(p, category, questId, host = true) {
+    if (category === 24) {
+        const eventId = 700099
+        const rush = load('data/domains/rushEvent')
+        const abyssRevision = load('lib/abyss-time-revision').getAbyssTimeRevision(eventId)
+        if (!rush.getPlayerRushEventSync(p.id, eventId)) {
+            rush.insertPlayerRushEventSync(p.id, {
+                ...rush.getDefaultPlayerRushEventSync(eventId),
+                towerRevision: abyssRevision,
+            })
+        }
+        const round = questId % 1000
+        const party = {
+            characterIds: [111001, null, null],
+            unisonCharacterIds: [null, null, null],
+            equipmentIds: [null, null, null],
+            abilitySoulIds: [null, null, null],
+            evolutionImgLevels: [null, null, null],
+            unisonEvolutionImgLevels: [null, null, null],
+            battleType: 0,
+        }
+        for (let previous = 1; previous < round; previous++) {
+            const row = getDb().prepare(`SELECT 1 FROM players_rush_events_played_parties
+                WHERE player_id=? AND event_id=? AND round=? AND battle_type=0`)
+                .get(p.id, eventId, eventId * 1000 + previous)
+            if (!row) rush.insertPlayerRushEventPlayedPartySync(p.id, eventId, {
+                ...party, round: eventId * 1000 + previous,
+            })
+        }
+    }
     const quest = { playId: p.playId, category, questId, useBoostPoint: false,
         useBossBoostPoint: false, isAutoStartMode: true, isMulti: category === 7,
         isMultiHost: host, continueCount: 0, startedAtMs: Date.now(), matePlayerIds: [], mateComIds: [],
@@ -998,6 +1039,8 @@ test('Abyss HTTP settlement awards tickets only on successful floor 30, once per
     const p = player(0)
     const app = await httpApp(p, load('routes/api/singleBattleQuest').default)
     const headers = { res_ver: require('../assets/asset-patch/manifest.json').cdn_version }
+    const random = Math.random
+    Math.random = () => 0
     try {
         for (const [round, accomplished, shouldGrant] of [[29, true, false], [30, false, false], [30, true, true], [30, true, true]]) {
             p.playId += '-next'
@@ -1017,7 +1060,7 @@ test('Abyss HTTP settlement awards tickets only on successful floor 30, once per
             assert.equal(retry.statusCode, 200, retry.body)
             assert.equal(items.getPlayerItemSync(p.id, 10000143), now)
         }
-    } finally { await app.close() }
+    } finally { Math.random = random; await app.close() }
 })
 
 test('Fantasy real multiplayer finish grants one ticket for full host clear; not for 5/10, rescue, failure or retry', async () => {

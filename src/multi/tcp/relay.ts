@@ -1,6 +1,9 @@
 import { sessionManager } from "../state/SessionManager"
 import type { SessionClient } from "../state/SessionManager"
 import { recordBattleRelay } from "./chain-diagnostic"
+import { performance } from "node:perf_hooks"
+import { recordServerWork } from "../../lib/server-work-performance"
+import { recordRealtimeDiagnostic } from "../../lib/realtime-diagnostics"
 
 export function relayToBattleRoom(
     source: SessionClient,
@@ -16,7 +19,10 @@ export function relayToBattleRoom(
     if (recipients.length === 0) return
     // Every recipient receives the same immutable protocol payload. Serialize
     // once per logical fan-out instead of once per teammate.
+    const encodeStarted = performance.now()
     const frame = JSON.stringify(data) + "\0"
+    recordServerWork("multi.relay.encode", performance.now() - encodeStarted)
+    const sendStarted = performance.now()
     for (const client of recipients) {
         sessionManager.sendFrame(client.socket, frame, {
             roomNumber: source.roomNumber,
@@ -26,4 +32,11 @@ export function relayToBattleRoom(
             channel: `battle_${relayKind}`,
         })
     }
+    const sendMs = performance.now() - sendStarted
+    recordServerWork("multi.relay.send", sendMs)
+    recordRealtimeDiagnostic(source.roomNumber, "relay", {
+        kind: relayKind,
+        recipients: recipients.length,
+        sendMs: Math.round(sendMs * 1000) / 1000,
+    })
 }

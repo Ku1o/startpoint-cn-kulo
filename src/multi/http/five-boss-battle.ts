@@ -22,10 +22,10 @@ import { FIVE_BOSS_GAUNTLET, isFiveBossGauntletQuest } from "../five-boss/contra
 import { buildFiveBossAdditionalRewardDrops } from "../five-boss/rewards"
 import { abandonFiveBossSoloForMultiSync } from "../five-boss/solo-runtime"
 import { getDb } from "../../data/db"
-import { measureSettlementPhase, measureSettlementPhaseAsync } from "../../lib/settlement-performance"
+import { measureSettlementPhaseAsync } from "../../lib/settlement-performance"
 import { fiveBossDiagnostics } from "../../lib/coalesced-diagnostics"
 import { fiveBossConnectionDiagnostics } from "../five-boss/connection-diagnostic"
-import { runPersistenceTransaction } from "../../lib/persistence-coordinator"
+import { runPersistenceTransaction, runPersistenceTransactionSync } from "../../lib/persistence-coordinator"
 
 /** Small structured evidence, without logging tokens, party data or the full request. */
 export function logFiveBossRequestFailure(operation: "start" | "finish" | "abort", body: MultiStartBody | MultiFinishBody | MultiAbortBody,
@@ -319,7 +319,7 @@ export async function handleFiveBossStart(
             domain: "multi-settlement", playerId, operation: "five_boss_start",
         }, () => {
             abandonStaleFiveBossRun(body, playerId)
-            return startFiveBossBattle({
+            const result = startFiveBossBattle({
                 playerId,
                 clientPlayId: body.play_id,
                 room,
@@ -332,6 +332,10 @@ export async function handleFiveBossStart(
                 matePlayerIds: body.mate_player_ids,
                 mateComIds: room.mates.map(mate => mate.com_id),
             })
+            // Keep the selected party update inside the same persistence owner as
+            // the run ledger and active quest writes.
+            updatePlayerSync({ id: playerId, partySlot: body.party_id })
+            return result
         })
     } catch (error) {
         if (previousMemory) activeQuests[playerId] = previousMemory
@@ -341,7 +345,6 @@ export async function handleFiveBossStart(
     activeQuests[playerId] = result.activeQuest
     fiveBossConnectionDiagnostics.begin(room)
     fiveBossConnectionDiagnostics.memberEvent(result.runId, playerId, "http_start", result.startStatus)
-    updatePlayerSync({ id: playerId, partySlot: body.party_id })
     const player = requirePlayer(playerId)
 
     reply.header("content-type", "application/x-msgpack")
@@ -369,25 +372,29 @@ export async function handleFiveBossFinish(
         body.is_accomplished === true ? "success_requested" : "failure_requested")
     const roomNumber = resolveFiveBossRoomNumber(body.room_number, playerId, body.play_id, boundRun)
     const party = body.statistics?.party ?? body.quest_statistics?.party
-    if (body.is_accomplished === true && isFiveBossGauntletQuest(body.category, body.quest_id)
-        && boundRun?.roomNumber === roomNumber) {
-        const backfill = backfillMissingFinalizeSync({ playerId, clientPlayId: body.play_id })
-        if (backfill.backfilled) {
-            fiveBossConnectionDiagnostics.memberEvent(boundRun.runId, playerId, "finalize_recorded", "http_backfill")
-            console.warn(`[MULTI] five-boss finish: finalize signal never reached the battle channel;`
-                + ` backfilled from HTTP finish player=${playerId} run=${backfill.runId} room=${backfill.roomNumber}`)
+    const result = await measureSettlementPhaseAsync("multi", "five_boss_settlement", () => runPersistenceTransaction({
+        domain: "multi-settlement", playerId, operation: "five_boss_finish",
+    }, () => {
+        if (body.is_accomplished === true && isFiveBossGauntletQuest(body.category, body.quest_id)
+            && boundRun?.roomNumber === roomNumber) {
+            const backfill = backfillMissingFinalizeSync({ playerId, clientPlayId: body.play_id })
+            if (backfill.backfilled) {
+                fiveBossConnectionDiagnostics.memberEvent(boundRun.runId, playerId, "finalize_recorded", "http_backfill")
+                console.warn(`[MULTI] five-boss finish: finalize signal never reached the battle channel;`
+                    + ` backfilled from HTTP finish player=${playerId} run=${backfill.runId} room=${backfill.roomNumber}`)
+            }
         }
-    }
-    const result = measureSettlementPhase("multi", "five_boss_settlement", () => finishFiveBossBattle({
-        playerId,
-        clientPlayId: body.play_id,
-        requestRoomNumber: roomNumber,
-        requestCategory: body.category,
-        requestQuestId: body.quest_id,
-        accomplished: body.is_accomplished as boolean,
-        elapsedTimeMs: body.elapsed_time_ms ?? body.battle_time ?? 0,
-        highScore: body.score ?? 0,
-        leaderCharacterId: party?.characters?.[0]?.id ?? null,
+        return finishFiveBossBattle({
+            playerId,
+            clientPlayId: body.play_id,
+            requestRoomNumber: roomNumber,
+            requestCategory: body.category,
+            requestQuestId: body.quest_id,
+            accomplished: body.is_accomplished as boolean,
+            elapsedTimeMs: body.elapsed_time_ms ?? body.battle_time ?? 0,
+            highScore: body.score ?? 0,
+            leaderCharacterId: party?.characters?.[0]?.id ?? null,
+        })
     }))
     clearMatchingMemoryActive(playerId, body.play_id)
     terminalRoomTransition(roomNumber, result.runId, result.runStatus)
@@ -423,13 +430,15 @@ export function handleFiveBossAbort(
     reply: FastifyReply,
 ) {
     const roomNumber = resolveFiveBossRoomNumber(body.room_number, playerId, body.play_id)
-    const result = abortFiveBossBattle({
+    const result = runPersistenceTransactionSync({
+        domain: "multi-settlement", playerId, operation: "five_boss_abort",
+    }, () => abortFiveBossBattle({
         playerId,
         clientPlayId: body.play_id,
         requestRoomNumber: roomNumber,
         requestCategory: body.category,
         requestQuestId: body.quest_id,
-    })
+    }))
     clearMatchingMemoryActive(playerId, body.play_id)
     terminalRoomTransition(roomNumber, result.runId, result.runStatus)
 

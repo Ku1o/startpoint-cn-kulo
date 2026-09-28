@@ -3,7 +3,9 @@ import { getDb } from "../db";
 import { PlayerQuestProgress, PlayerDrawnQuest, RawPlayerQuestProgress, RawPlayerDrawnQuest } from "../types";
 import { deserializeBoolean, serializeBoolean } from "../utils";
 import { refreshPlayerAbyssBestTimesSync } from "./abyss-time-revision";
+import { abyssEventFromQuest } from "../../lib/abyss-modes";
 import { isAbyssFiniteQuest } from "../../lib/abyss-time-revision";
+import { runPersistenceTransactionSync } from "../../lib/persistence-coordinator";
 
 /**
  * Converts a RawPlayerQuestProgress object into a PlayerQuestProgress object.
@@ -180,7 +182,10 @@ export function getPlayerSingleQuestProgressSync(
     section: number | string,
     questId: number | string
 ): PlayerQuestProgress | null {
-    if (isAbyssFiniteQuest(section, questId)) refreshPlayerAbyssBestTimesSync(playerId)
+    const abyssEventId = isAbyssFiniteQuest(section, questId)
+        ? abyssEventFromQuest(section, questId)
+        : null
+    if (abyssEventId !== null) refreshPlayerAbyssBestTimesSync(playerId, abyssEventId)
     const rawProgress = cachedStatement(getDb(), `
     SELECT section, quest_id, finished, host_finished, unlocked, high_score, clear_rank, best_elapsed_time_ms, leader_character_id, multi_clear_count, s_plus_reward_received
     FROM players_quest_progress
@@ -259,13 +264,13 @@ export function insertPlayerQuestProgressListSync(
     playerId: number,
     progressList: Record<string, PlayerQuestProgress[]>
 ) {
-    getDb().transaction(() => {
+    runPersistenceTransactionSync({ domain: "single-quest", playerId, operation: "insert_quest_progress_list" }, () => {
         for (const [section, progresses] of Object.entries(progressList)) {
             for (const progress of progresses) {
                 insertPlayerQuestProgressSync(playerId, section, progress)
             }
         }
-    })()
+    })
 }
 
 /**
@@ -387,11 +392,11 @@ export function insertPlayerDrawnQuestsSync(
     playerId: number,
     drawnQuests: PlayerDrawnQuest[]
 ) {
-    getDb().transaction(() => {
+    runPersistenceTransactionSync({ domain: "single-quest", playerId, operation: "insert_drawn_quests" }, () => {
         for (const drawnQuest of drawnQuests) {
             insertPlayerDrawnQuestSync(playerId, drawnQuest)
         }
-    })()
+    })
 }
 
 /**

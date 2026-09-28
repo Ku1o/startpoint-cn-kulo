@@ -35,6 +35,16 @@ export async function withPlayerWriteQueue<T>(playerId: number, operation: () =>
     }
 }
 
+/** Wait for every currently queued player mutation before closing the database. */
+export async function drainPlayerWriteQueues(): Promise<void> {
+    // A request may enqueue another player while the first snapshot drains.
+    // Keep taking snapshots until the map stays empty so shutdown cannot race
+    // the final per-player transaction.
+    while (playerWriteTails.size > 0) {
+        await Promise.all([...playerWriteTails.values()])
+    }
+}
+
 /** Run a short write transaction and retry the complete mutation on snapshot contention. */
 export async function runImmediateTransactionWithRetry<T>(
     operation: () => T,

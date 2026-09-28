@@ -11,6 +11,7 @@ import { generateDataHeaders } from "../../utils"
 import { randomInt } from "crypto"
 import { clientSerializeDate } from "../../data/utils"
 import { resolvePlayerIdSync } from "../../data/activeAccount";
+import { runPersistenceTransaction } from "../../lib/persistence-coordinator";
 import { characterMaxOverLimits } from "./character"
 import orderedExAbility from "../../../assets/ex_ability.json"
 
@@ -216,9 +217,6 @@ const drawExpBoost = async (request: FastifyRequest, reply: FastifyReply, autoAc
         "error": "Internal Server Error", "message": "Status pool not found."
     })
 
-    // deduct
-    updatePlayerItemSync(playerId, costItemId, afterCostItemAmount)
-
     const draw = drawExBoostAbilities(costItemId, exStatusPool)
     const drawResult: ExBoostDrawResult = {
         characterId, statusId: draw.statusId, abilityIdList: draw.abilityIdList
@@ -227,10 +225,17 @@ const drawExpBoost = async (request: FastifyRequest, reply: FastifyReply, autoAc
     const headers = generateDataHeaders({ viewer_id: viewerId })
 
     reply.header("content-type", "application/x-msgpack")
+    await runPersistenceTransaction({
+        domain: "player", playerId, operation: autoAccept ? "ex_boost_first_draw" : "ex_boost_draw",
+    }, () => {
+        updatePlayerItemSync(playerId, costItemId, afterCostItemAmount)
+        if (autoAccept) {
+            updatePlayerCharacterSync(playerId, characterId, {
+                exBoost: { statusId: drawResult.statusId, abilityIdList: drawResult.abilityIdList }
+            })
+        }
+    })
     if (autoAccept) {
-        updatePlayerCharacterSync(playerId, characterId, {
-            exBoost: { statusId: drawResult.statusId, abilityIdList: drawResult.abilityIdList }
-        })
         return reply.status(200).send({
             data_headers: headers,
             data: {
@@ -299,8 +304,12 @@ const routes = async (fastify: FastifyInstance) => {
         if (characterData === null) return reply.status(400).send({
             "error": "Bad Request", "message": "Player does not own character."
         })
-        updatePlayerCharacterSync(playerId, characterId, {
-            exBoost: { statusId: drawResult.statusId, abilityIdList: drawResult.abilityIdList }
+        await runPersistenceTransaction({
+            domain: "player", playerId, operation: "ex_boost_select",
+        }, () => {
+            updatePlayerCharacterSync(playerId, characterId, {
+                exBoost: { statusId: drawResult.statusId, abilityIdList: drawResult.abilityIdList }
+            })
         })
         return reply.status(200).send({
             data_headers: headers,
