@@ -9,7 +9,11 @@ const DEFAULT_BATCH_PLAYERS = 5
 const DEFAULT_PAUSE_MS = 100
 const DEFAULT_BUSY_RETRY_ATTEMPTS = 5
 const DEFAULT_BUSY_RETRY_DELAY_MS = 20
-const DELETE_BATCH_ROWS = 1000
+// Keep each synchronous SQLite delete short enough for realtime callbacks to
+// run between batches. The old 1000-row batch made a large cleanup hold the
+// main event loop for too long on the production database.
+const DEFAULT_DELETE_BATCH_ROWS = 250
+const MAX_DELETE_BATCH_ROWS = 5_000
 
 interface ReceiveHistoryCandidateRow {
     player_id: number
@@ -35,6 +39,7 @@ export interface ReceiveHistoryRetentionOptions {
     pauseMs?: number
     busyRetryAttempts?: number
     busyRetryDelayMs?: number
+    deleteBatchRows?: number
     logger?: ReceiveHistoryRetentionLogger
 }
 
@@ -51,6 +56,7 @@ interface ResolvedReceiveHistoryRetentionOptions {
     pauseMs: number
     busyRetryAttempts: number
     busyRetryDelayMs: number
+    deleteBatchRows: number
     logger: ReceiveHistoryRetentionLogger
 }
 
@@ -89,6 +95,11 @@ function normalizedBoundedInteger(
         return fallback
     }
     return value
+}
+
+function environmentInteger(name: string): number | undefined {
+    const value = Number.parseInt(process.env[name] ?? "", 10)
+    return Number.isSafeInteger(value) ? value : undefined
 }
 
 export function isReceiveHistoryRetentionEnabled(
@@ -148,13 +159,22 @@ function resolveOptions(options: ReceiveHistoryRetentionOptions): ResolvedReceiv
             DEFAULT_BUSY_RETRY_DELAY_MS,
             0,
         ),
+        deleteBatchRows: normalizedBoundedInteger(
+            options.deleteBatchRows ?? environmentInteger("RECEIVE_HISTORY_RETENTION_DELETE_BATCH_ROWS"),
+            DEFAULT_DELETE_BATCH_ROWS,
+            1,
+            MAX_DELETE_BATCH_ROWS,
+        ),
         logger: options.logger ?? console,
     }
 }
 
 function delay(milliseconds: number): Promise<void> {
-    if (milliseconds <= 0) return Promise.resolve()
-    return new Promise(resolve => setTimeout(resolve, milliseconds))
+    if (milliseconds > 0) return new Promise(resolve => setTimeout(resolve, milliseconds))
+    // Promise.resolve() only yields to the microtask queue. Since
+    // better-sqlite3 runs synchronously, use libuv's check phase even when the
+    // configured pause is zero so HTTP/TCP callbacks get a scheduling chance.
+    return new Promise(resolve => setImmediate(resolve))
 }
 
 function isSqliteBusyError(error: unknown): boolean {
@@ -173,6 +193,7 @@ async function prunePlayerWithRetry(
     maxRows: number,
     maxAttempts: number,
     retryDelayMs: number,
+    deleteBatchRows: number,
     cutoff: string,
     executeTransaction: ReceiveHistoryRetentionOptions["executeTransaction"],
     shouldStop: () => boolean,
@@ -187,7 +208,7 @@ async function prunePlayerWithRetry(
               WHERE player_id = ?
               ORDER BY create_time DESC, id DESC
               LIMIT ?
-          )) LIMIT ${DELETE_BATCH_ROWS})
+          )) LIMIT ${deleteBatchRows})
     `)
 
     const operation = (): number => {
@@ -283,6 +304,7 @@ export async function runReceiveHistoryRetentionPass(
                     config.maxRows,
                     config.busyRetryAttempts,
                     config.busyRetryDelayMs,
+                    config.deleteBatchRows,
                     cutoff,
                     config.executeTransaction,
                     shouldStop,
@@ -290,8 +312,8 @@ export async function runReceiveHistoryRetentionPass(
                 )
                 deletedRows += batchRows
                 result.deletedRows += batchRows
-                if (batchRows === DELETE_BATCH_ROWS) await delay(config.pauseMs)
-                } while (batchRows === DELETE_BATCH_ROWS)
+                if (batchRows === config.deleteBatchRows) await delay(config.pauseMs)
+                } while (batchRows === config.deleteBatchRows)
                 result.processedPlayers += 1
                 if (deletedRows > 0) result.prunedPlayers += 1
             } catch (error) {
@@ -357,6 +379,7 @@ export function createReceiveHistoryRetentionService(
                             pauseMs: config.pauseMs,
                             busyRetryAttempts: config.busyRetryAttempts,
                             busyRetryDelayMs: config.busyRetryDelayMs,
+                            deleteBatchRows: config.deleteBatchRows,
                             logger: config.logger,
                             executeTransaction: config.executeTransaction,
                         },

@@ -53,12 +53,14 @@ export function trackPartyCoClears(ctx: FinishContext): number[] {
     // Race clears (unique race set)
     const raceKey = getRaceKeyString(allRaces)
     if (raceKey) {
-        cachedStatement(getDb(), `
-        INSERT INTO players_party_race_clears (player_id, race_key, clear_count)
-        VALUES (?, ?, 1)
-        ON CONFLICT(player_id, race_key) DO UPDATE SET
-            clear_count = clear_count + 1
-        `).run(ctx.playerId, raceKey)
+        runPersistenceTransactionSync({
+            domain: "mission", playerId: ctx.playerId, operation: "track_party_race_clear",
+        }, () => cachedStatement(getDb(), `
+            INSERT INTO players_party_race_clears (player_id, race_key, clear_count)
+            VALUES (?, ?, 1)
+            ON CONFLICT(player_id, race_key) DO UPDATE SET
+                clear_count = clear_count + 1
+        `).run(ctx.playerId, raceKey))
     }
 
     const matchedMissionIds = getMatchedAwakeDirectBattleMissionIds(ctx, raceKey)

@@ -731,7 +731,7 @@ function registerBattleRoutes(fastify) {
         const { playerId, player } = ctx;
         if ((0, five_boss_battle_1.shouldHandleFiveBossMemberRequest)(body, playerId)) {
             try {
-                return (0, five_boss_battle_1.handleFiveBossAbort)(body, playerId, reply);
+                return yield (0, five_boss_battle_1.handleFiveBossAbort)(body, playerId, reply);
             }
             catch (error) {
                 if (!(0, five_boss_battle_1.isFiveBossBattleRequestError)(error))

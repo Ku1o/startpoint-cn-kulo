@@ -2,6 +2,7 @@
 // Accumulates zone powerflips to the leader character's counter
 
 import { getDb } from "../../../data/db"
+import { runPersistenceTransactionSync } from "../../persistence-coordinator"
 import type { FinishContext } from "./types"
 
 export function trackLeaderPowerflip(ctx: FinishContext): void {
@@ -15,11 +16,14 @@ export function trackLeaderPowerflip(ctx: FinishContext): void {
     const leaderId = ctx.party.characters[0]?.id
     if (!leaderId) return
 
-    const db = getDb()
-    db.prepare(`
-    INSERT INTO players_character_quest_clears (player_id, character_id, clear_count, multi_count, leader_clear_count, leader_multi_count, leader_power_flip_count)
-    VALUES (?, ?, 0, 0, 0, 0, ?)
-    ON CONFLICT(player_id, character_id) DO UPDATE SET
-        leader_power_flip_count = leader_power_flip_count + ?
-    `).run(ctx.playerId, leaderId, powerFlipCount, powerFlipCount)
+    runPersistenceTransactionSync({
+        domain: "mission", playerId: ctx.playerId, operation: "track_leader_powerflip",
+    }, () => {
+        getDb().prepare(`
+        INSERT INTO players_character_quest_clears (player_id, character_id, clear_count, multi_count, leader_clear_count, leader_multi_count, leader_power_flip_count)
+        VALUES (?, ?, 0, 0, 0, 0, ?)
+        ON CONFLICT(player_id, character_id) DO UPDATE SET
+            leader_power_flip_count = leader_power_flip_count + ?
+        `).run(ctx.playerId, leaderId, powerFlipCount, powerFlipCount)
+    })
 }

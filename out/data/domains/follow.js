@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.bulkEditFollowSync = exports.deleteFollowerSync = exports.deleteFollowSync = exports.addFollowSync = exports.getFollowerCountSync = exports.getFollowingCountSync = exports.getFollowRelationSync = exports.getRelatedPlayerIdsSync = exports.getViewerIdByPlayerIdSync = exports.getPlayerIdByViewerIdSync = exports.MAX_FOLLOWERS = exports.MAX_FOLLOWING = void 0;
+exports.bulkEditFollow = exports.bulkEditFollowSync = exports.deleteFollower = exports.deleteFollowerSync = exports.deleteFollow = exports.deleteFollowSync = exports.addFollow = exports.addFollowSync = exports.getFollowerCountSync = exports.getFollowingCountSync = exports.getFollowRelationSync = exports.getRelatedPlayerIdsSync = exports.getViewerIdByPlayerIdSync = exports.getPlayerIdByViewerIdSync = exports.MAX_FOLLOWERS = exports.MAX_FOLLOWING = void 0;
 const db_1 = require("../db");
 const activeAccount_1 = require("../activeAccount");
 const utils_1 = require("../../utils");
@@ -86,7 +86,7 @@ function getFollowerCountSync(playerId) {
     return row.count;
 }
 exports.getFollowerCountSync = getFollowerCountSync;
-function addFollowSync(playerId, targetPlayerId) {
+function addFollowInTransaction(playerId, targetPlayerId) {
     if (playerId === targetPlayerId)
         return "self";
     const target = (0, db_1.getDb)().prepare(`SELECT id FROM players WHERE id = ?`).get(targetPlayerId);
@@ -108,35 +108,61 @@ function addFollowSync(playerId, targetPlayerId) {
     `).run(playerId, targetPlayerId, (0, utils_1.getServerTime)());
     return "added";
 }
+function addFollowSync(playerId, targetPlayerId) {
+    return (0, persistence_coordinator_1.runPersistenceTransactionSync)({ domain: "player", playerId, operation: "add_follow" }, () => (addFollowInTransaction(playerId, targetPlayerId)));
+}
 exports.addFollowSync = addFollowSync;
-function deleteFollowSync(playerId, targetPlayerId) {
+function addFollow(playerId, targetPlayerId) {
+    return (0, persistence_coordinator_1.runPersistenceTransaction)({ domain: "player", playerId, operation: "add_follow" }, () => (addFollowInTransaction(playerId, targetPlayerId)));
+}
+exports.addFollow = addFollow;
+function deleteFollowInTransaction(playerId, targetPlayerId) {
     (0, db_1.getDb)().prepare(`
         DELETE FROM players_follows
         WHERE follower_player_id = ? AND followed_player_id = ?
     `).run(playerId, targetPlayerId);
 }
+function deleteFollowSync(playerId, targetPlayerId) {
+    (0, persistence_coordinator_1.runPersistenceTransactionSync)({ domain: "player", playerId, operation: "delete_follow" }, () => (deleteFollowInTransaction(playerId, targetPlayerId)));
+}
 exports.deleteFollowSync = deleteFollowSync;
-function deleteFollowerSync(playerId, followerPlayerId) {
+function deleteFollow(playerId, targetPlayerId) {
+    return (0, persistence_coordinator_1.runPersistenceTransaction)({ domain: "player", playerId, operation: "delete_follow" }, () => (deleteFollowInTransaction(playerId, targetPlayerId)));
+}
+exports.deleteFollow = deleteFollow;
+function deleteFollowerInTransaction(playerId, followerPlayerId) {
     (0, db_1.getDb)().prepare(`
         DELETE FROM players_follows
         WHERE follower_player_id = ? AND followed_player_id = ?
     `).run(followerPlayerId, playerId);
 }
+function deleteFollowerSync(playerId, followerPlayerId) {
+    (0, persistence_coordinator_1.runPersistenceTransactionSync)({ domain: "player", playerId, operation: "delete_follower" }, () => (deleteFollowerInTransaction(playerId, followerPlayerId)));
+}
 exports.deleteFollowerSync = deleteFollowerSync;
-function bulkEditFollowSync(playerId, addTargetPlayerIds, deleteTargetPlayerIds) {
+function deleteFollower(playerId, followerPlayerId) {
+    return (0, persistence_coordinator_1.runPersistenceTransaction)({ domain: "player", playerId, operation: "delete_follower" }, () => (deleteFollowerInTransaction(playerId, followerPlayerId)));
+}
+exports.deleteFollower = deleteFollower;
+function bulkEditFollowInTransaction(playerId, addTargetPlayerIds, deleteTargetPlayerIds) {
     const fullFollowerTargets = new Set();
-    (0, persistence_coordinator_1.runPersistenceTransactionSync)({ domain: "player", playerId, operation: "bulk_edit_follow" }, () => {
-        for (const targetPlayerId of new Set(deleteTargetPlayerIds)) {
-            deleteFollowSync(playerId, targetPlayerId);
-        }
-        for (const targetPlayerId of new Set(addTargetPlayerIds)) {
-            const result = addFollowSync(playerId, targetPlayerId);
-            if (result === "follower_limit")
-                fullFollowerTargets.add(targetPlayerId);
-            if (result === "following_limit")
-                break;
-        }
-    });
+    for (const targetPlayerId of new Set(deleteTargetPlayerIds)) {
+        deleteFollowInTransaction(playerId, targetPlayerId);
+    }
+    for (const targetPlayerId of new Set(addTargetPlayerIds)) {
+        const result = addFollowInTransaction(playerId, targetPlayerId);
+        if (result === "follower_limit")
+            fullFollowerTargets.add(targetPlayerId);
+        if (result === "following_limit")
+            break;
+    }
     return [...fullFollowerTargets];
 }
+function bulkEditFollowSync(playerId, addTargetPlayerIds, deleteTargetPlayerIds) {
+    return (0, persistence_coordinator_1.runPersistenceTransactionSync)({ domain: "player", playerId, operation: "bulk_edit_follow" }, () => (bulkEditFollowInTransaction(playerId, addTargetPlayerIds, deleteTargetPlayerIds)));
+}
 exports.bulkEditFollowSync = bulkEditFollowSync;
+function bulkEditFollow(playerId, addTargetPlayerIds, deleteTargetPlayerIds) {
+    return (0, persistence_coordinator_1.runPersistenceTransaction)({ domain: "player", playerId, operation: "bulk_edit_follow" }, () => (bulkEditFollowInTransaction(playerId, addTargetPlayerIds, deleteTargetPlayerIds)));
+}
+exports.bulkEditFollow = bulkEditFollow;

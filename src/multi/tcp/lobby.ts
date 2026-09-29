@@ -16,10 +16,9 @@ import {
     getMode15ExclusiveGlobalPartyItemsSync,
     isMode15Quest,
 } from "../../lib/mode15-optional"
-import { getPlayerSync, updatePlayerSync } from "../../data/domains/player"
+import { getPlayerSync, updatePlayerPartySlotAsync } from "../../data/domains/player"
 import { embeddedMultiCoordinator } from "../coordinator/embedded"
 import { handleAutoplayModeChange } from "./autoplay-mode"
-import { runPersistenceTransaction } from "../../lib/persistence-coordinator"
 import { setRealPartySnapshot } from "../party-snapshot"
 import {
     recordRoomAdmissionDenial,
@@ -956,9 +955,7 @@ function handleChangeParty(_socket: net.Socket, client: SessionClient, data: any
             // Defer the low-priority save so the TCP callback can broadcast the
             // roster without synchronously waiting on SQLite.
             setImmediate(() => {
-                void runPersistenceTransaction({
-                    domain: "player", playerId, operation: "multi_change_party",
-                }, () => updatePlayerSync({ id: playerId, partySlot })).catch(error => {
+                void updatePlayerPartySlotAsync(playerId, partySlot).catch(error => {
                     console.warn(`[MULTI] deferred party persistence failed player=${playerId}`, error)
                 })
             })

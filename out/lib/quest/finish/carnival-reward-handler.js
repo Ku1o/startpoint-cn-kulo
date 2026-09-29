@@ -10,21 +10,28 @@ const quest_1 = require("../../quest");
 const types_1 = require("../../types");
 const carnival_event_total_score_rewards_json_1 = __importDefault(require("../../../../assets/carnival_event_total_score_rewards.json"));
 const degree_1 = require("../../../data/domains/degree");
+const claimTablesReady = new WeakSet();
 const rewardTable = carnival_event_total_score_rewards_json_1.default;
 function emptyResult() {
     return { rewardIds: [], newDegreeIds: [], rewards: null };
 }
 function ensureClaimTableSync() {
-    (0, db_1.getDb)().prepare(`
-    CREATE TABLE IF NOT EXISTS players_carnival_event_reward_claims (
-        player_id INTEGER NOT NULL,
-        event_id INTEGER NOT NULL,
-        reward_id INTEGER NOT NULL,
-        claimed_at INTEGER NOT NULL,
-        PRIMARY KEY (player_id, event_id, reward_id),
-        FOREIGN KEY (player_id) REFERENCES players (id) ON DELETE CASCADE
-    )
-    `).run();
+    const db = (0, db_1.getDb)();
+    if (claimTablesReady.has(db))
+        return;
+    (0, persistence_coordinator_1.runPersistenceTransactionSync)({
+        domain: "event", operation: "ensure_carnival_reward_claims",
+    }, () => db.prepare(`
+        CREATE TABLE IF NOT EXISTS players_carnival_event_reward_claims (
+            player_id INTEGER NOT NULL,
+            event_id INTEGER NOT NULL,
+            reward_id INTEGER NOT NULL,
+            claimed_at INTEGER NOT NULL,
+            PRIMARY KEY (player_id, event_id, reward_id),
+            FOREIGN KEY (player_id) REFERENCES players (id) ON DELETE CASCADE
+        )
+    `).run());
+    claimTablesReady.add(db);
 }
 const carnivalDegreeByClaim = new Map();
 for (const [eventId, tiers] of Object.entries(rewardTable)) {

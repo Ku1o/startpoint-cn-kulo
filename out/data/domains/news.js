@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteAllPopupNewsReceiptsSync = exports.deleteNewsReceiptsSync = exports.markAccountNewsReceiptsSync = exports.markAccountNewsReceiptSync = exports.hasAccountNewsReceiptSync = exports.getAccountNewsReceiptIdsSync = void 0;
+exports.deleteAllPopupNewsReceiptsSync = exports.deleteNewsReceiptsSync = exports.markAccountNewsReceipts = exports.markAccountNewsReceiptsSync = exports.markAccountNewsReceipt = exports.markAccountNewsReceiptSync = exports.hasAccountNewsReceiptSync = exports.getAccountNewsReceiptIdsSync = void 0;
 const db_1 = require("../db");
 const persistence_coordinator_1 = require("../../lib/persistence-coordinator");
 function getAccountNewsReceiptIdsSync(accountId, kind) {
@@ -22,14 +22,36 @@ function hasAccountNewsReceiptSync(accountId, newsId, kind) {
 }
 exports.hasAccountNewsReceiptSync = hasAccountNewsReceiptSync;
 function markAccountNewsReceiptSync(accountId, newsId, kind) {
-    (0, db_1.getDb)().prepare(`
+    (0, persistence_coordinator_1.runPersistenceTransactionSync)({ domain: "account", operation: "mark_account_news_receipt" }, () => {
+        (0, db_1.getDb)().prepare(`
+            INSERT INTO account_news_receipts (account_id, news_id, receipt_kind, seen_at)
+            VALUES (?, ?, ?, ?)
+            ON CONFLICT(account_id, news_id, receipt_kind) DO UPDATE SET
+                seen_at = excluded.seen_at
+        `).run(accountId, newsId, kind, Date.now());
+    });
+}
+exports.markAccountNewsReceiptSync = markAccountNewsReceiptSync;
+function markAccountNewsReceipt(accountId, newsId, kind) {
+    const sql = `
         INSERT INTO account_news_receipts (account_id, news_id, receipt_kind, seen_at)
         VALUES (?, ?, ?, ?)
         ON CONFLICT(account_id, news_id, receipt_kind) DO UPDATE SET
             seen_at = excluded.seen_at
-    `).run(accountId, newsId, kind, Date.now());
+    `;
+    return (0, persistence_coordinator_1.runPersistenceSqlCommand)({ domain: "account", operation: "mark_account_news_receipt" }, [{
+            sql,
+            params: [accountId, newsId, kind, Date.now()],
+        }], () => {
+        (0, db_1.getDb)().prepare(`
+            INSERT INTO account_news_receipts (account_id, news_id, receipt_kind, seen_at)
+            VALUES (?, ?, ?, ?)
+            ON CONFLICT(account_id, news_id, receipt_kind) DO UPDATE SET
+                seen_at = excluded.seen_at
+        `).run(accountId, newsId, kind, Date.now());
+    });
 }
-exports.markAccountNewsReceiptSync = markAccountNewsReceiptSync;
+exports.markAccountNewsReceipt = markAccountNewsReceipt;
 function markAccountNewsReceiptsSync(accountId, newsIds, kind) {
     if (newsIds.length === 0)
         return;
@@ -46,6 +68,31 @@ function markAccountNewsReceiptsSync(accountId, newsIds, kind) {
     });
 }
 exports.markAccountNewsReceiptsSync = markAccountNewsReceiptsSync;
+function markAccountNewsReceipts(accountId, newsIds, kind) {
+    if (newsIds.length === 0)
+        return Promise.resolve();
+    const sql = `
+        INSERT INTO account_news_receipts (account_id, news_id, receipt_kind, seen_at)
+        VALUES (?, ?, ?, ?)
+        ON CONFLICT(account_id, news_id, receipt_kind) DO UPDATE SET
+            seen_at = excluded.seen_at
+    `;
+    const now = Date.now();
+    return (0, persistence_coordinator_1.runPersistenceSqlCommand)({ domain: "account", operation: "mark_account_news_receipts" }, newsIds.map(newsId => ({
+        sql,
+        params: [accountId, newsId, kind, now],
+    })), () => {
+        const insert = (0, db_1.getDb)().prepare(`
+            INSERT INTO account_news_receipts (account_id, news_id, receipt_kind, seen_at)
+            VALUES (?, ?, ?, ?)
+            ON CONFLICT(account_id, news_id, receipt_kind) DO UPDATE SET
+                seen_at = excluded.seen_at
+        `);
+        for (const newsId of newsIds)
+            insert.run(accountId, newsId, kind, now);
+    });
+}
+exports.markAccountNewsReceipts = markAccountNewsReceipts;
 function deleteNewsReceiptsSync(newsId, kind) {
     if (kind === undefined) {
         return (0, db_1.getDb)().prepare(`

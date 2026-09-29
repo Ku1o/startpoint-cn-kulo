@@ -58,6 +58,10 @@ test('checkpoint worker handles backlog, pinned readers, cooldown and lifecycle 
                 const before = state().truncateCompleted
                 checkpoint.startSqliteCheckpointWorker(db.name, environment)
                 await until(() => state().truncateCompleted > before, 'startup truncate')
+                await until(() => {
+                    const worker = collectMemoryDiagnostics().workers.find(row => row.name === 'sqlite-checkpoint')
+                    return worker && !worker.stale && worker.pendingMs === 0
+                }, 'checkpoint memory probe')
                 assert.equal(fs.statSync(db.name + '-wal').size, 0)
                 assert.equal(db.prepare('SELECT count(*) FROM payloads').pluck().get(), 1301)
                 assert.equal(db.pragma('integrity_check', { simple: true }), 'ok')

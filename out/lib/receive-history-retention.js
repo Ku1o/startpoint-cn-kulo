@@ -18,7 +18,11 @@ const DEFAULT_BATCH_PLAYERS = 5;
 const DEFAULT_PAUSE_MS = 100;
 const DEFAULT_BUSY_RETRY_ATTEMPTS = 5;
 const DEFAULT_BUSY_RETRY_DELAY_MS = 20;
-const DELETE_BATCH_ROWS = 1000;
+// Keep each synchronous SQLite delete short enough for realtime callbacks to
+// run between batches. The old 1000-row batch made a large cleanup hold the
+// main event loop for too long on the production database.
+const DEFAULT_DELETE_BATCH_ROWS = 250;
+const MAX_DELETE_BATCH_ROWS = 5000;
 function normalizedInteger(value, fallback, minimum) {
     if (!Number.isSafeInteger(value) || value === undefined || value < minimum)
         return fallback;
@@ -29,6 +33,11 @@ function normalizedBoundedInteger(value, fallback, minimum, maximum) {
         return fallback;
     }
     return value;
+}
+function environmentInteger(name) {
+    var _a;
+    const value = Number.parseInt((_a = process.env[name]) !== null && _a !== void 0 ? _a : "", 10);
+    return Number.isSafeInteger(value) ? value : undefined;
 }
 function isReceiveHistoryRetentionEnabled(env = process.env) {
     var _a;
@@ -59,7 +68,7 @@ function millisecondsUntilNextReceiveHistoryRetentionRun(now, hour, minute) {
 }
 exports.millisecondsUntilNextReceiveHistoryRetentionRun = millisecondsUntilNextReceiveHistoryRetentionRun;
 function resolveOptions(options) {
-    var _a, _b, _c;
+    var _a, _b, _c, _d;
     const schedule = getReceiveHistoryRetentionSchedule();
     return {
         executeTransaction: options.executeTransaction,
@@ -76,13 +85,17 @@ function resolveOptions(options) {
         pauseMs: normalizedInteger(options.pauseMs, DEFAULT_PAUSE_MS, 0),
         busyRetryAttempts: normalizedInteger(options.busyRetryAttempts, DEFAULT_BUSY_RETRY_ATTEMPTS, 1),
         busyRetryDelayMs: normalizedInteger(options.busyRetryDelayMs, DEFAULT_BUSY_RETRY_DELAY_MS, 0),
-        logger: (_c = options.logger) !== null && _c !== void 0 ? _c : console,
+        deleteBatchRows: normalizedBoundedInteger((_c = options.deleteBatchRows) !== null && _c !== void 0 ? _c : environmentInteger("RECEIVE_HISTORY_RETENTION_DELETE_BATCH_ROWS"), DEFAULT_DELETE_BATCH_ROWS, 1, MAX_DELETE_BATCH_ROWS),
+        logger: (_d = options.logger) !== null && _d !== void 0 ? _d : console,
     };
 }
 function delay(milliseconds) {
-    if (milliseconds <= 0)
-        return Promise.resolve();
-    return new Promise(resolve => setTimeout(resolve, milliseconds));
+    if (milliseconds > 0)
+        return new Promise(resolve => setTimeout(resolve, milliseconds));
+    // Promise.resolve() only yields to the microtask queue. Since
+    // better-sqlite3 runs synchronously, use libuv's check phase even when the
+    // configured pause is zero so HTTP/TCP callbacks get a scheduling chance.
+    return new Promise(resolve => setImmediate(resolve));
 }
 function isSqliteBusyError(error) {
     var _a;
@@ -94,7 +107,7 @@ function isSqliteBusyError(error) {
 function describeError(error) {
     return error instanceof Error ? error.message : String(error);
 }
-function prunePlayerWithRetry(database, playerId, maxRows, maxAttempts, retryDelayMs, cutoff, executeTransaction, shouldStop, beforePrune) {
+function prunePlayerWithRetry(database, playerId, maxRows, maxAttempts, retryDelayMs, deleteBatchRows, cutoff, executeTransaction, shouldStop, beforePrune) {
     return __awaiter(this, void 0, void 0, function* () {
         const prune = database.prepare(`
         DELETE FROM players_receive_history
@@ -105,7 +118,7 @@ function prunePlayerWithRetry(database, playerId, maxRows, maxAttempts, retryDel
               WHERE player_id = ?
               ORDER BY create_time DESC, id DESC
               LIMIT ?
-          )) LIMIT ${DELETE_BATCH_ROWS})
+          )) LIMIT ${deleteBatchRows})
     `);
         const operation = () => {
             // Recheck after queuing: shutdown can start while a player's earlier
@@ -191,12 +204,12 @@ function runReceiveHistoryRetentionPass(database_1) {
                             result.stopped = true;
                             break;
                         }
-                        batchRows = yield prunePlayerWithRetry(database, candidate.player_id, config.maxRows, config.busyRetryAttempts, config.busyRetryDelayMs, cutoff, config.executeTransaction, shouldStop, beforePrune);
+                        batchRows = yield prunePlayerWithRetry(database, candidate.player_id, config.maxRows, config.busyRetryAttempts, config.busyRetryDelayMs, config.deleteBatchRows, cutoff, config.executeTransaction, shouldStop, beforePrune);
                         deletedRows += batchRows;
                         result.deletedRows += batchRows;
-                        if (batchRows === DELETE_BATCH_ROWS)
+                        if (batchRows === config.deleteBatchRows)
                             yield delay(config.pauseMs);
-                    } while (batchRows === DELETE_BATCH_ROWS);
+                    } while (batchRows === config.deleteBatchRows);
                     result.processedPlayers += 1;
                     if (deletedRows > 0)
                         result.prunedPlayers += 1;
@@ -257,6 +270,7 @@ function createReceiveHistoryRetentionService(database, options = {}) {
                         pauseMs: config.pauseMs,
                         busyRetryAttempts: config.busyRetryAttempts,
                         busyRetryDelayMs: config.busyRetryDelayMs,
+                        deleteBatchRows: config.deleteBatchRows,
                         logger: config.logger,
                         executeTransaction: config.executeTransaction,
                     }, () => stopped, () => { if (lease)

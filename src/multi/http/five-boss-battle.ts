@@ -25,7 +25,7 @@ import { getDb } from "../../data/db"
 import { measureSettlementPhaseAsync } from "../../lib/settlement-performance"
 import { fiveBossDiagnostics } from "../../lib/coalesced-diagnostics"
 import { fiveBossConnectionDiagnostics } from "../five-boss/connection-diagnostic"
-import { runPersistenceTransaction, runPersistenceTransactionSync } from "../../lib/persistence-coordinator"
+import { runPersistenceTransaction } from "../../lib/persistence-coordinator"
 
 /** Small structured evidence, without logging tokens, party data or the full request. */
 export function logFiveBossRequestFailure(operation: "start" | "finish" | "abort", body: MultiStartBody | MultiFinishBody | MultiAbortBody,
@@ -424,13 +424,13 @@ export async function handleFiveBossFinish(
 }
 
 
-export function handleFiveBossAbort(
+export async function handleFiveBossAbort(
     body: MultiAbortBody,
     playerId: number,
     reply: FastifyReply,
 ) {
     const roomNumber = resolveFiveBossRoomNumber(body.room_number, playerId, body.play_id)
-    const result = runPersistenceTransactionSync({
+    const result = await runPersistenceTransaction({
         domain: "multi-settlement", playerId, operation: "five_boss_abort",
     }, () => abortFiveBossBattle({
         playerId,

@@ -911,7 +911,7 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
 
         const { playerId, player } = ctx;
         if (shouldHandleFiveBossMemberRequest(body, playerId)) {
-            try { return handleFiveBossAbort(body, playerId, reply); }
+            try { return await handleFiveBossAbort(body, playerId, reply); }
             catch (error) {
                 if (!isFiveBossBattleRequestError(error)) throw error;
                 logFiveBossRequestFailure("abort", body, playerId, error);

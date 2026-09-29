@@ -91,7 +91,17 @@ import { createReceiveHistoryRetentionService } from "./lib/receive-history-rete
 import { createLeaderboardSettlementScheduler } from "./lib/leaderboard/settlement";
 import { createDailyVmoneyMailScheduler } from "./lib/daily-vmoney-mail";
 import { startSqliteCheckpointWorker, stopSqliteCheckpointWorker } from "./lib/sqlite-checkpoint-worker";
-import { drainPersistence, runPersistenceTransaction } from "./lib/persistence-coordinator";
+import {
+    configurePersistenceSqlExecutor,
+    drainPersistence,
+    runPersistenceTransaction,
+} from "./lib/persistence-coordinator";
+import {
+    executeSqlitePersistenceCommand,
+    isSqlitePersistenceWorkerStarted,
+    startSqlitePersistenceWorker,
+    stopSqlitePersistenceWorker,
+} from "./lib/sqlite-persistence-worker";
 
 const fastify = Fastify({
     logger: {
@@ -523,6 +533,8 @@ fastify.addHook("onClose", async () => {
     await receiveHistoryRetention.stop();
     await stopQuestNpcPartyPoolWorker();
     await drainPersistence();
+    await stopSqlitePersistenceWorker();
+    configurePersistenceSqlExecutor(null);
     await stopSqliteCheckpointWorker();
 });
 
@@ -561,6 +573,15 @@ process.once("SIGINT", () => requestGracefulShutdown("SIGINT"));
 process.once("SIGTERM", () => requestGracefulShutdown("SIGTERM"));
 process.once("SIGBREAK", () => requestGracefulShutdown("SIGBREAK"));
 startQuestNpcPartyPoolWorker();
+const persistenceWorkerStarted = startSqlitePersistenceWorker(getDb().name);
+if (persistenceWorkerStarted && isSqlitePersistenceWorkerStarted()) {
+    configurePersistenceSqlExecutor(async (_context, statements) => {
+        await executeSqlitePersistenceCommand({
+            operation: _context.operation,
+            statements,
+        });
+    });
+}
 
 fastify.listen({ port, host }, (err, address) => {
     if (err) {

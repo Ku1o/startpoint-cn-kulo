@@ -262,6 +262,19 @@ test('solo cannot overwrite an active cooperative run; aborted solo cannot finis
     } finally { await app.close() }
 })
 
+test('multiplayer five-boss abort waits for the async persistence boundary', async () => {
+    const p = player(), room = run([p])
+    const app = await httpApp(p, load('multi/http/battle').registerBattleRoutes)
+    try {
+        const started = await app.inject({ method: 'POST', url: '/start', payload: httpStart(p, room) })
+        assert.equal(started.statusCode, 200, started.body)
+        const aborted = await app.inject({ method: 'POST', url: '/abort', payload: httpFinish(p) })
+        assert.equal(aborted.statusCode, 200, aborted.body)
+        assert.equal(active.getPlayerActiveQuestSync(p.id), null)
+        assert.equal(ledger.getFiveBossRunByClientSync({ playerId: p.id, clientPlayId: p.playId }).status, 'aborted')
+    } finally { await app.close() }
+})
+
 test('lobby snapshot requires three ready slots, owned characters and the bound battle connection', () => {
     const host = player(), guest = player(), room = run([host, guest])
     delete room.five_boss_runtime

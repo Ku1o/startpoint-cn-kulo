@@ -96,7 +96,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         // unread badge for the whole announcement feed.  Mark every published
         // item here so returning to the main city does not reopen the panel
         // merely because another category was not selected yet.
-        (0, news_1.markAccountNewsReceiptsSync)(viewer.accountId, publishedNews.map(item => item.id), "list");
+        yield (0, news_1.markAccountNewsReceipts)(viewer.accountId, publishedNews.map(item => item.id), "list");
         return sendMsgpack(reply, viewer.viewerId, {
             current_page: page,
             news: pageItems.map(toClientNews),
@@ -116,7 +116,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 message: `News with id '${body.news_id}' not found.`,
             });
         }
-        (0, news_1.markAccountNewsReceiptSync)(viewer.accountId, item.id, "list");
+        yield (0, news_1.markAccountNewsReceipt)(viewer.accountId, item.id, "list");
         return sendMsgpack(reply, viewer.viewerId, toClientNews(item));
     });
     const sendForced = (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
@@ -137,7 +137,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 + `reason=${item === null ? "no-active-popup" : "popup-already-read"}`);
             return sendMsgpack(reply, viewer.viewerId, EMPTY_FORCED_NEWS);
         }
-        (0, news_1.markAccountNewsReceiptSync)(viewer.accountId, item.id, "popup");
+        yield (0, news_1.markAccountNewsReceipt)(viewer.accountId, item.id, "popup");
         return sendMsgpack(reply, viewer.viewerId, toClientNews(item));
     });
     fastify.post("/index", (request, reply) => sendIndex(request, reply, 1));

@@ -3,6 +3,13 @@ import { PlayerCarnivalEventRecord, RawPlayerCarnivalEventRecord } from "../type
 import { serializeNumberList } from "../utils";
 import { runPersistenceTransactionSync } from "../../lib/persistence-coordinator";
 
+// The migration is idempotent in SQLite, but checking its marker still takes
+// a write transaction. Keep the completed event IDs per database connection so
+// repeated /carnival_event/index and finish requests do not enqueue the same
+// maintenance transaction over and over. A WeakMap keeps test/runtime
+// database lifetimes isolated when the connection is replaced.
+const migratedCarnivalEvents = new WeakMap<object, Set<number>>()
+
 /**
  * Carnival record parties have three fixed slots.  Empty slots are persisted
  * by Array#join as empty CSV fields (for example `149998,,`).  The generic
@@ -67,6 +74,12 @@ export function migrateCarnivalEventFolderRecordsSync(
     difficultiesPerFolder: number = 3
 ): void {
     const db = getDb()
+    let migratedEvents = migratedCarnivalEvents.get(db)
+    if (!migratedEvents) {
+        migratedEvents = new Set<number>()
+        migratedCarnivalEvents.set(db, migratedEvents)
+    }
+    if (migratedEvents.has(eventId)) return
 
     runPersistenceTransactionSync({ domain: "event", operation: "migrate_carnival_event_folder_records" }, () => {
         db.prepare(`
@@ -130,6 +143,9 @@ export function migrateCarnivalEventFolderRecordsSync(
         VALUES (?, ?)
         `).run(eventId, Date.now())
     })
+    // Mark only after the coordinator reports a successful commit. If a disk
+    // or locking error aborts the transaction, the next request must retry.
+    migratedEvents.add(eventId)
 }
 
 export function upsertPlayerCarnivalEventRecordSync(

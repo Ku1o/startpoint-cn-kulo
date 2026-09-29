@@ -24,7 +24,6 @@ const mode15_optional_1 = require("../../lib/mode15-optional");
 const player_1 = require("../../data/domains/player");
 const embedded_1 = require("../coordinator/embedded");
 const autoplay_mode_1 = require("./autoplay-mode");
-const persistence_coordinator_1 = require("../../lib/persistence-coordinator");
 const party_snapshot_1 = require("../party-snapshot");
 const admission_1 = require("../room/admission");
 const NPC_JOIN_DELAY_MS = parseInt(process.env.NPC_JOIN_DELAY_MS || "2000");
@@ -897,9 +896,7 @@ function handleChangeParty(_socket, client, data) {
             // Defer the low-priority save so the TCP callback can broadcast the
             // roster without synchronously waiting on SQLite.
             setImmediate(() => {
-                void (0, persistence_coordinator_1.runPersistenceTransaction)({
-                    domain: "player", playerId, operation: "multi_change_party",
-                }, () => (0, player_1.updatePlayerSync)({ id: playerId, partySlot })).catch(error => {
+                void (0, player_1.updatePlayerPartySlotAsync)(playerId, partySlot).catch(error => {
                     console.warn(`[MULTI] deferred party persistence failed player=${playerId}`, error);
                 });
             });

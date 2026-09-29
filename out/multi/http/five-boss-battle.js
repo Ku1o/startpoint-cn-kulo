@@ -374,34 +374,36 @@ function handleFiveBossFinish(body, playerId, reply, buildFollowInfo) {
 }
 exports.handleFiveBossFinish = handleFiveBossFinish;
 function handleFiveBossAbort(body, playerId, reply) {
-    const roomNumber = resolveFiveBossRoomNumber(body.room_number, playerId, body.play_id);
-    const result = (0, persistence_coordinator_1.runPersistenceTransactionSync)({
-        domain: "multi-settlement", playerId, operation: "five_boss_abort",
-    }, () => (0, battle_runtime_1.abortFiveBossBattle)({
-        playerId,
-        clientPlayId: body.play_id,
-        requestRoomNumber: roomNumber,
-        requestCategory: body.category,
-        requestQuestId: body.quest_id,
-    }));
-    clearMatchingMemoryActive(playerId, body.play_id);
-    terminalRoomTransition(roomNumber, result.runId, result.runStatus);
-    const headers = (0, utils_1.generateDataHeaders)({ viewer_id: body.viewer_id });
-    reply.header("content-type", "application/x-msgpack");
-    return reply.status(200).send({
-        data_headers: headers,
-        data: {
-            user_info: {},
-            category_id: body.category,
-            is_multi: "multi",
-            start_time: headers.servertime,
-            quest_name: "",
-            aborted_play_id: null,
-            unfinished_play_id: null,
-            drawn_quest: null,
-            party_info: null,
-            presigned_url: null,
-        },
+    return __awaiter(this, void 0, void 0, function* () {
+        const roomNumber = resolveFiveBossRoomNumber(body.room_number, playerId, body.play_id);
+        const result = yield (0, persistence_coordinator_1.runPersistenceTransaction)({
+            domain: "multi-settlement", playerId, operation: "five_boss_abort",
+        }, () => (0, battle_runtime_1.abortFiveBossBattle)({
+            playerId,
+            clientPlayId: body.play_id,
+            requestRoomNumber: roomNumber,
+            requestCategory: body.category,
+            requestQuestId: body.quest_id,
+        }));
+        clearMatchingMemoryActive(playerId, body.play_id);
+        terminalRoomTransition(roomNumber, result.runId, result.runStatus);
+        const headers = (0, utils_1.generateDataHeaders)({ viewer_id: body.viewer_id });
+        reply.header("content-type", "application/x-msgpack");
+        return reply.status(200).send({
+            data_headers: headers,
+            data: {
+                user_info: {},
+                category_id: body.category,
+                is_multi: "multi",
+                start_time: headers.servertime,
+                quest_name: "",
+                aborted_play_id: null,
+                unfinished_play_id: null,
+                drawn_quest: null,
+                party_info: null,
+                presigned_url: null,
+            },
+        });
     });
 }
 exports.handleFiveBossAbort = handleFiveBossAbort;

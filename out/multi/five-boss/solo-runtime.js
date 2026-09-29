@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.saveFiveBossSoloReceiptSync = exports.isActiveFiveBossSoloSync = exports.getFiveBossSoloReceiptSync = exports.abortFiveBossSoloSync = exports.abandonFiveBossSoloForMultiSync = exports.getFiveBossSoloRewardMultiplierSync = exports.markFiveBossSoloAutoUsedSync = exports.startFiveBossSoloSync = void 0;
+exports.saveFiveBossSoloReceiptSync = exports.isActiveFiveBossSoloSync = exports.getFiveBossSoloReceiptSync = exports.abortFiveBossSoloSync = exports.abandonFiveBossSoloForMultiSync = exports.getFiveBossSoloRewardMultiplierSync = exports.markFiveBossSoloAutoUsedSync = exports.startFiveBossSolo = exports.startFiveBossSoloSync = void 0;
 const db_1 = require("../../data/db");
 const player_1 = require("../../data/domains/player");
 const quest_active_1 = require("../../data/domains/quest_active");
@@ -9,48 +9,56 @@ const fiveBossGauntletRun_1 = require("../../data/domains/fiveBossGauntletRun");
 const stamina_1 = require("../../lib/stamina");
 const persistence_coordinator_1 = require("../../lib/persistence-coordinator");
 const contract_1 = require("./contract");
-function startFiveBossSoloSync(playerId, playId, persist) {
+function startFiveBossSoloInTransaction(playerId, playId, persist) {
+    var _a;
     if (typeof playId !== "string" || !playId.length || playId.length > 255)
         throw new Error("Invalid play id.");
     const db = (0, db_1.getDb)();
+    const active = (0, quest_active_1.getPlayerActiveQuestSync)(playerId);
+    if ((active === null || active === void 0 ? void 0 : active.isMulti) && (0, contract_1.isFiveBossGauntletQuest)(active.category, active.questId)) {
+        throw new Error("Finish or abort the multiplayer run before starting solo.");
+    }
+    const old = db.prepare("SELECT status FROM five_boss_solo_runs WHERE player_id = ? AND play_id = ?")
+        .get(playerId, playId);
+    if (old) {
+        if (old.status !== "active" || (active === null || active === void 0 ? void 0 : active.playId) !== playId)
+            throw new Error("This play id has ended.");
+        return null;
+    }
+    const player = (0, player_1.getPlayerSync)(playerId);
+    if (!player)
+        throw new Error("Player does not exist.");
+    // The legacy helper rounds now to seconds. Subsecond heal timestamps
+    // must not make its negative fraction consume an extra stamina point.
+    const stamina = Math.max(player.stamina, (0, stamina_1.computeRealTimeStamina)(player));
+    const staminaCost = contract_1.FIVE_BOSS_GAUNTLET.staminaCost;
+    if (stamina < staminaCost)
+        throw new Error("Insufficient stamina.");
+    const debit = db.prepare(`UPDATE players_items SET amount = amount - 1
+        WHERE player_id = ? AND id = ? AND amount >= 1`).run(playerId, contract_1.FIVE_BOSS_GAUNTLET.ticketItemId);
+    if (debit.changes !== 1)
+        throw new fiveBossGauntletRun_1.FiveBossGauntletRunError("insufficient_ticket", "Not enough entry tickets.");
+    (0, player_1.updatePlayerSync)({ id: playerId, stamina: stamina - staminaCost, staminaHealTime: new Date(),
+        totalStaminaUsed: ((_a = player.totalStaminaUsed) !== null && _a !== void 0 ? _a : 0) + staminaCost });
+    db.prepare("UPDATE five_boss_solo_runs SET status = 'aborted' WHERE player_id = ? AND status = 'active'").run(playerId);
+    const autoAtStart = (0, option_1.getPlayerOptionSync)(playerId, "auto_play", true);
+    db.prepare(`INSERT INTO five_boss_solo_runs(player_id, play_id, status, auto_at_start, auto_used)
+        VALUES (?, ?, 'active', ?, ?)`).run(playerId, playId, autoAtStart ? 1 : 0, autoAtStart ? 1 : 0);
+    return persist();
+}
+function startFiveBossSoloSync(playerId, playId, persist) {
     return (0, persistence_coordinator_1.runPersistenceTransactionSync)({
         domain: "single-quest", playerId, operation: "five_boss_solo_start",
-    }, () => {
-        var _a;
-        const active = (0, quest_active_1.getPlayerActiveQuestSync)(playerId);
-        if ((active === null || active === void 0 ? void 0 : active.isMulti) && (0, contract_1.isFiveBossGauntletQuest)(active.category, active.questId)) {
-            throw new Error("Finish or abort the multiplayer run before starting solo.");
-        }
-        const old = db.prepare("SELECT status FROM five_boss_solo_runs WHERE player_id = ? AND play_id = ?")
-            .get(playerId, playId);
-        if (old) {
-            if (old.status !== "active" || (active === null || active === void 0 ? void 0 : active.playId) !== playId)
-                throw new Error("This play id has ended.");
-            return null;
-        }
-        const player = (0, player_1.getPlayerSync)(playerId);
-        if (!player)
-            throw new Error("Player does not exist.");
-        // The legacy helper rounds now to seconds. Subsecond heal timestamps
-        // must not make its negative fraction consume an extra stamina point.
-        const stamina = Math.max(player.stamina, (0, stamina_1.computeRealTimeStamina)(player));
-        const staminaCost = contract_1.FIVE_BOSS_GAUNTLET.staminaCost;
-        if (stamina < staminaCost)
-            throw new Error("Insufficient stamina.");
-        const debit = db.prepare(`UPDATE players_items SET amount = amount - 1
-            WHERE player_id = ? AND id = ? AND amount >= 1`).run(playerId, contract_1.FIVE_BOSS_GAUNTLET.ticketItemId);
-        if (debit.changes !== 1)
-            throw new fiveBossGauntletRun_1.FiveBossGauntletRunError("insufficient_ticket", "Not enough entry tickets.");
-        (0, player_1.updatePlayerSync)({ id: playerId, stamina: stamina - staminaCost, staminaHealTime: new Date(),
-            totalStaminaUsed: ((_a = player.totalStaminaUsed) !== null && _a !== void 0 ? _a : 0) + staminaCost });
-        db.prepare("UPDATE five_boss_solo_runs SET status = 'aborted' WHERE player_id = ? AND status = 'active'").run(playerId);
-        const autoAtStart = (0, option_1.getPlayerOptionSync)(playerId, "auto_play", true);
-        db.prepare(`INSERT INTO five_boss_solo_runs(player_id, play_id, status, auto_at_start, auto_used)
-            VALUES (?, ?, 'active', ?, ?)`).run(playerId, playId, autoAtStart ? 1 : 0, autoAtStart ? 1 : 0);
-        return persist();
-    });
+    }, () => startFiveBossSoloInTransaction(playerId, playId, persist));
 }
 exports.startFiveBossSoloSync = startFiveBossSoloSync;
+/** Async HTTP entry point; keeps the single-player start off the request's synchronous transaction path. */
+function startFiveBossSolo(playerId, playId, persist) {
+    return (0, persistence_coordinator_1.runPersistenceTransaction)({
+        domain: "single-quest", playerId, operation: "five_boss_solo_start",
+    }, () => startFiveBossSoloInTransaction(playerId, playId, persist));
+}
+exports.startFiveBossSolo = startFiveBossSolo;
 /** Monotone marker, bound to the persistent current solo play, never a retry snapshot. */
 function markFiveBossSoloAutoUsedSync(playerId) {
     (0, db_1.getDb)().prepare(`UPDATE five_boss_solo_runs SET auto_used = 1

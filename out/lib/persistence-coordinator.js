@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.drainPersistence = exports.runPersistenceTransactionSync = exports.runPersistenceTransaction = void 0;
+exports.drainPersistence = exports.runPersistenceTransactionSync = exports.runPersistenceSqlCommand = exports.runPersistenceTransaction = exports.configurePersistenceSqlExecutor = void 0;
 const node_perf_hooks_1 = require("node:perf_hooks");
 const db_1 = require("../data/db");
 const memory_diagnostics_1 = require("./memory-diagnostics");
@@ -21,6 +21,10 @@ let globalWriteTail = Promise.resolve();
 // so a caught inner error cannot leave partial writes in the outer transaction.
 let activePersistenceContext;
 const persistenceStats = new Map();
+let persistenceSqlExecutor = null;
+function yieldToEventLoop() {
+    return new Promise(resolve => setImmediate(resolve));
+}
 function statsFor(domain) {
     const existing = persistenceStats.get(domain);
     if (existing)
@@ -74,6 +78,15 @@ function withPersistenceContext(context, operation) {
     }
 }
 /**
+ * Install the optional worker-backed SQL command executor. The normal
+ * transaction callback path remains available for commands that still need
+ * in-process domain logic. Only explicitly commandized writes use this hook.
+ */
+function configurePersistenceSqlExecutor(executor) {
+    persistenceSqlExecutor = executor;
+}
+exports.configurePersistenceSqlExecutor = configurePersistenceSqlExecutor;
+/**
  * Execute one complete main-database transaction under an explicit domain.
  *
  * The operation remains synchronous from better-sqlite3's point of view. The
@@ -87,6 +100,10 @@ function runPersistenceTransaction(context, operation) {
         stats.queued++;
         stats.maxPending = Math.max(stats.maxPending, stats.queued - stats.committed - stats.failed);
         const execute = () => __awaiter(this, void 0, void 0, function* () {
+            // A burst of queued SQLite commands otherwise chains through promise
+            // microtasks without returning to libuv. Give TCP heartbeats and HTTP
+            // callbacks one scheduling turn between transactions.
+            yield yieldToEventLoop();
             const queueMs = node_perf_hooks_1.performance.now() - queuedAt;
             stats.queueMs += queueMs;
             stats.maxQueueMs = Math.max(stats.maxQueueMs, queueMs);
@@ -115,6 +132,46 @@ function runPersistenceTransaction(context, operation) {
     });
 }
 exports.runPersistenceTransaction = runPersistenceTransaction;
+/**
+ * Execute a serializable write command through the optional persistence
+ * worker. When the worker is disabled, use the same in-process coordinator so
+ * local development and existing deployments keep identical semantics.
+ */
+function runPersistenceSqlCommand(context, statements, fallback) {
+    if (persistenceSqlExecutor === null) {
+        return runPersistenceTransaction(context, () => { fallback(); }).then(() => undefined);
+    }
+    const queuedAt = node_perf_hooks_1.performance.now();
+    const stats = statsFor(context.domain);
+    stats.queued++;
+    stats.maxPending = Math.max(stats.maxPending, stats.queued - stats.committed - stats.failed);
+    const execute = () => __awaiter(this, void 0, void 0, function* () {
+        yield yieldToEventLoop();
+        const queueMs = node_perf_hooks_1.performance.now() - queuedAt;
+        stats.queueMs += queueMs;
+        stats.maxQueueMs = Math.max(stats.maxQueueMs, queueMs);
+        (0, server_work_performance_1.recordServerWork)("persistence.queue", queueMs);
+        const startedAt = node_perf_hooks_1.performance.now();
+        try {
+            yield persistenceSqlExecutor(context, statements);
+            stats.committed++;
+        }
+        catch (error) {
+            stats.failed++;
+            throw error;
+        }
+        finally {
+            const transactionMs = node_perf_hooks_1.performance.now() - startedAt;
+            stats.transactionMs += transactionMs;
+            stats.maxTransactionMs = Math.max(stats.maxTransactionMs, transactionMs);
+            (0, server_work_performance_1.recordServerWork)("persistence.transaction", transactionMs);
+        }
+    });
+    if (context.playerId !== undefined)
+        return (0, sqlite_write_coordinator_1.withPlayerWriteQueue)(context.playerId, execute);
+    return enqueueGlobalWrite(execute);
+}
+exports.runPersistenceSqlCommand = runPersistenceSqlCommand;
 /**
  * Compatibility boundary for legacy synchronous callers.
  *

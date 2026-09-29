@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.dailyResetPlayerSync = exports.dailyResetPlayerDataSync = exports.collectPlayerPooledExpSync = exports.collectPlayerDataPooledExpSync = exports.deletePlayerSync = exports.replacePlayerDataSync = exports.adjustPlayerExpPoolSync = exports.updatePlayerSync = exports.insertDefaultPlayerSync = exports.getDefaultPlayerPartyGroupsSync = exports.insertMergedPlayerDataSync = exports.insertPlayerSync = exports.getAllPlayersSync = exports.getPlayerSync = exports.getAccountFromPlayerIdSync = exports.getPlayerFromAccountIdSync = exports.serializePlayerRushEventPlayedParty = exports.deserializePlayerRushEventPlayedParty = exports.updatePlayerDailyChallengePointSync = exports.insertPlayerDailyChallengePointListSync = exports.getPlayerDailyChallengePointListSync = void 0;
+exports.dailyResetPlayerSync = exports.dailyResetPlayerDataSync = exports.collectPlayerPooledExpSync = exports.collectPlayerDataPooledExpSync = exports.deletePlayerSync = exports.replacePlayerDataSync = exports.adjustPlayerExpPoolSync = exports.updatePlayerPartySlotAsync = exports.updatePlayerSync = exports.insertDefaultPlayerSync = exports.getDefaultPlayerPartyGroupsSync = exports.insertMergedPlayerDataSync = exports.insertPlayerSync = exports.getAllPlayersSync = exports.getPlayerSync = exports.getAccountFromPlayerIdSync = exports.getPlayerFromAccountIdSync = exports.serializePlayerRushEventPlayedParty = exports.deserializePlayerRushEventPlayedParty = exports.updatePlayerDailyChallengePointSync = exports.insertPlayerDailyChallengePointListSync = exports.getPlayerDailyChallengePointListSync = void 0;
 const cached_statement_1 = require("../../lib/cached-statement");
 const degree_1 = require("./degree");
 const types_1 = require("../types");
@@ -1048,6 +1048,20 @@ function updatePlayerSync(player) {
         `).run([...values, id]);
 }
 exports.updatePlayerSync = updatePlayerSync;
+/**
+ * Low-priority party selection update used by the realtime lobby. It is
+ * deliberately a serializable command so an optional SQLite persistence
+ * worker can execute it without importing the whole player domain.
+ */
+function updatePlayerPartySlotAsync(playerId, partySlot) {
+    const sql = "UPDATE players SET party_slot = ? WHERE id = ?";
+    return (0, persistence_coordinator_1.runPersistenceSqlCommand)({
+        domain: "player", playerId, operation: "multi_change_party",
+    }, [{ sql, params: [partySlot, playerId] }], () => {
+        (0, db_1.getDb)().prepare(sql).run(partySlot, playerId);
+    });
+}
+exports.updatePlayerPartySlotAsync = updatePlayerPartySlotAsync;
 /**
  * Atomically changes a player's pooled experience.
  *

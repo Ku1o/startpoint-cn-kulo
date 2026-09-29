@@ -33,6 +33,16 @@ export interface PersistenceContext {
     operation: string
 }
 
+export interface PersistenceSqlStatement {
+    sql: string
+    params: readonly unknown[]
+}
+
+export type PersistenceSqlExecutor = (
+    context: PersistenceContext,
+    statements: readonly PersistenceSqlStatement[],
+) => Promise<void>
+
 let globalWriteTail = Promise.resolve()
 // The first migration step keeps SQLite in the main process. Nested domain
 // transactions belong to the outer command for metrics, but retain savepoints
@@ -49,6 +59,11 @@ type PersistenceStats = {
     maxTransactionMs: number
 }
 const persistenceStats = new Map<PersistenceDomain, PersistenceStats>()
+let persistenceSqlExecutor: PersistenceSqlExecutor | null = null
+
+function yieldToEventLoop(): Promise<void> {
+    return new Promise(resolve => setImmediate(resolve))
+}
 
 function statsFor(domain: PersistenceDomain): PersistenceStats {
     const existing = persistenceStats.get(domain)
@@ -98,6 +113,15 @@ function withPersistenceContext<T>(context: PersistenceContext, operation: () =>
 }
 
 /**
+ * Install the optional worker-backed SQL command executor. The normal
+ * transaction callback path remains available for commands that still need
+ * in-process domain logic. Only explicitly commandized writes use this hook.
+ */
+export function configurePersistenceSqlExecutor(executor: PersistenceSqlExecutor | null): void {
+    persistenceSqlExecutor = executor
+}
+
+/**
  * Execute one complete main-database transaction under an explicit domain.
  *
  * The operation remains synchronous from better-sqlite3's point of view. The
@@ -113,6 +137,10 @@ export async function runPersistenceTransaction<T>(
     stats.queued++
     stats.maxPending = Math.max(stats.maxPending, stats.queued - stats.committed - stats.failed)
     const execute = async (): Promise<T> => {
+        // A burst of queued SQLite commands otherwise chains through promise
+        // microtasks without returning to libuv. Give TCP heartbeats and HTTP
+        // callbacks one scheduling turn between transactions.
+        await yieldToEventLoop()
         const queueMs = performance.now() - queuedAt
         stats.queueMs += queueMs
         stats.maxQueueMs = Math.max(stats.maxQueueMs, queueMs)
@@ -138,6 +166,48 @@ export async function runPersistenceTransaction<T>(
     if (context.playerId !== undefined) {
         return withPlayerWriteQueue(context.playerId, execute)
     }
+    return enqueueGlobalWrite(execute)
+}
+
+/**
+ * Execute a serializable write command through the optional persistence
+ * worker. When the worker is disabled, use the same in-process coordinator so
+ * local development and existing deployments keep identical semantics.
+ */
+export function runPersistenceSqlCommand(
+    context: PersistenceContext,
+    statements: readonly PersistenceSqlStatement[],
+    fallback: () => void,
+): Promise<void> {
+    if (persistenceSqlExecutor === null) {
+        return runPersistenceTransaction(context, () => { fallback() }).then(() => undefined)
+    }
+
+    const queuedAt = performance.now()
+    const stats = statsFor(context.domain)
+    stats.queued++
+    stats.maxPending = Math.max(stats.maxPending, stats.queued - stats.committed - stats.failed)
+    const execute = async (): Promise<void> => {
+        await yieldToEventLoop()
+        const queueMs = performance.now() - queuedAt
+        stats.queueMs += queueMs
+        stats.maxQueueMs = Math.max(stats.maxQueueMs, queueMs)
+        recordServerWork("persistence.queue", queueMs)
+        const startedAt = performance.now()
+        try {
+            await persistenceSqlExecutor!(context, statements)
+            stats.committed++
+        } catch (error) {
+            stats.failed++
+            throw error
+        } finally {
+            const transactionMs = performance.now() - startedAt
+            stats.transactionMs += transactionMs
+            stats.maxTransactionMs = Math.max(stats.maxTransactionMs, transactionMs)
+            recordServerWork("persistence.transaction", transactionMs)
+        }
+    }
+    if (context.playerId !== undefined) return withPlayerWriteQueue(context.playerId, execute)
     return enqueueGlobalWrite(execute)
 }
 

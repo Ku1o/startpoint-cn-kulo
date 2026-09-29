@@ -22,8 +22,12 @@ function handleRaidEventFinish(params) {
         battleType: types_1.RushEventBattleType.FOLDER,
         round: questId
     });
-    let boss = (0, raidEventGlobal_1.getRaidEventGlobalBossSync)(activeEventId);
-    let questKillCount = (0, raidEventGlobal_1.getRaidEventQuestKillCountSync)(activeEventId, questId);
+    // A successful clear gets both values from the atomic ledger update below.
+    // Avoid reading the global state and the quest count once before entering
+    // that transaction and then reading them again inside it. Failed battles
+    // still use the read-only path because no ledger update is needed.
+    let boss;
+    let questKillCount;
     let newDegreeIds = [];
     if (questAccomplished) {
         const result = (0, raidEventGlobal_1.recordRaidEventClearSync)({
@@ -39,6 +43,10 @@ function handleRaidEventFinish(params) {
             `playId=${playId} counted=${result.counted} weight=${result.questWeight} ` +
             `weighted=${boss.weightedKillCount}/${boss.requiredKillCount} ` +
             `hp=${boss.hpPercentage} total=${boss.totalKillCount}`);
+    }
+    else {
+        boss = (0, raidEventGlobal_1.getRaidEventGlobalBossSync)(activeEventId);
+        questKillCount = (0, raidEventGlobal_1.getRaidEventQuestKillCountSync)(activeEventId, questId);
     }
     return {
         auto_start_point: 0,

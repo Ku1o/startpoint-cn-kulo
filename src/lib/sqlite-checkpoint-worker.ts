@@ -72,9 +72,10 @@ export function startSqliteCheckpointWorker(databasePath: string, environment: N
     const truncateFrames = positiveInteger(environment.SQLITE_CHECKPOINT_TRUNCATE_FRAMES, 131_072, 1_000)
     const truncateBytes = positiveInteger(environment.SQLITE_CHECKPOINT_TRUNCATE_BYTES, 536_870_912, 4 * 1024 * 1024)
     const truncateCooldownMs = positiveInteger(environment.SQLITE_CHECKPOINT_TRUNCATE_COOLDOWN_MS, 60_000, 5_000)
+    const busyTimeoutMs = Math.max(0, Number.parseInt(environment.SQLITE_CHECKPOINT_BUSY_TIMEOUT_MS ?? "0", 10) || 0)
     const current = new Worker(location.filename, {
         ...(location.execArgv ? { execArgv: location.execArgv } : {}),
-        workerData: { databasePath, intervalMs, truncateFrames, truncateBytes, truncateCooldownMs },
+        workerData: { databasePath, intervalMs, truncateFrames, truncateBytes, truncateCooldownMs, busyTimeoutMs },
     })
     worker = current
     observeWorkerMemory("sqlite-checkpoint", current)
@@ -114,7 +115,7 @@ export function startSqliteCheckpointWorker(databasePath: string, environment: N
     })
     console.log(`[DB] sqlite checkpoint worker enabled intervalMs=${intervalMs}`
         + ` truncateFrames=${truncateFrames} truncateBytes=${truncateBytes}`
-        + ` truncateCooldownMs=${truncateCooldownMs}`)
+        + ` truncateCooldownMs=${truncateCooldownMs} busyTimeoutMs=${busyTimeoutMs}`)
 }
 
 export async function stopSqliteCheckpointWorker(): Promise<void> {

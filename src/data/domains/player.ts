@@ -11,7 +11,7 @@ import { getMissionMasterDefinitions, isMissionDefinitionEnabledAt } from "../..
 import { ensurePlayerPassCardLoginProgressSync } from "./pass-card";
 import dailyChallengePointLookup from "../../../assets/daily_challenge_point_lookup.json";
 import { gameVerboseLog } from "../../lib/game-logging";
-import { runPersistenceTransactionSync } from "../../lib/persistence-coordinator";
+import { runPersistenceSqlCommand, runPersistenceTransactionSync } from "../../lib/persistence-coordinator";
 
 type DailyChallengePointLookup = Record<string, { maxPoint: number, isRecovery: boolean, name: string }>
 
@@ -1170,6 +1170,20 @@ export function updatePlayerSync(
         SET ${sets.join(', ')}
         WHERE id = ?
         `).run([...values, id]);
+}
+
+/**
+ * Low-priority party selection update used by the realtime lobby. It is
+ * deliberately a serializable command so an optional SQLite persistence
+ * worker can execute it without importing the whole player domain.
+ */
+export function updatePlayerPartySlotAsync(playerId: number, partySlot: number): Promise<void> {
+    const sql = "UPDATE players SET party_slot = ? WHERE id = ?"
+    return runPersistenceSqlCommand({
+        domain: "player", playerId, operation: "multi_change_party",
+    }, [{ sql, params: [partySlot, playerId] }], () => {
+        getDb().prepare(sql).run(partySlot, playerId)
+    })
 }
 
 /**

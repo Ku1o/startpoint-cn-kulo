@@ -9,8 +9,8 @@
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify"
 import {
     hasAccountNewsReceiptSync,
-    markAccountNewsReceiptSync,
-    markAccountNewsReceiptsSync,
+    markAccountNewsReceipt,
+    markAccountNewsReceipts,
 } from "../../data/domains/news"
 import { getSession } from "../../data/domains/session"
 import {
@@ -115,7 +115,7 @@ const routes = async (fastify: FastifyInstance) => {
         // unread badge for the whole announcement feed.  Mark every published
         // item here so returning to the main city does not reopen the panel
         // merely because another category was not selected yet.
-        markAccountNewsReceiptsSync(viewer.accountId, publishedNews.map(item => item.id), "list")
+        await markAccountNewsReceipts(viewer.accountId, publishedNews.map(item => item.id), "list")
         return sendMsgpack(reply, viewer.viewerId, {
             current_page: page,
             news: pageItems.map(toClientNews),
@@ -141,7 +141,7 @@ const routes = async (fastify: FastifyInstance) => {
                 message: `News with id '${body.news_id}' not found.`,
             })
         }
-        markAccountNewsReceiptSync(viewer.accountId, item.id, "list")
+        await markAccountNewsReceipt(viewer.accountId, item.id, "list")
         return sendMsgpack(reply, viewer.viewerId, toClientNews(item))
     }
 
@@ -168,7 +168,7 @@ const routes = async (fastify: FastifyInstance) => {
             )
             return sendMsgpack(reply, viewer.viewerId, EMPTY_FORCED_NEWS)
         }
-        markAccountNewsReceiptSync(viewer.accountId, item.id, "popup")
+        await markAccountNewsReceipt(viewer.accountId, item.id, "popup")
         return sendMsgpack(reply, viewer.viewerId, toClientNews(item))
     }
 

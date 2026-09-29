@@ -4,6 +4,12 @@ exports.upsertPlayerCarnivalEventRecordSync = exports.migrateCarnivalEventFolder
 const db_1 = require("../db");
 const utils_1 = require("../utils");
 const persistence_coordinator_1 = require("../../lib/persistence-coordinator");
+// The migration is idempotent in SQLite, but checking its marker still takes
+// a write transaction. Keep the completed event IDs per database connection so
+// repeated /carnival_event/index and finish requests do not enqueue the same
+// maintenance transaction over and over. A WeakMap keeps test/runtime
+// database lifetimes isolated when the connection is replaced.
+const migratedCarnivalEvents = new WeakMap();
 /**
  * Carnival record parties have three fixed slots.  Empty slots are persisted
  * by Array#join as empty CSV fields (for example `149998,,`).  The generic
@@ -56,6 +62,13 @@ exports.getPlayerCarnivalEventRecordSync = getPlayerCarnivalEventRecordSync;
  */
 function migrateCarnivalEventFolderRecordsSync(eventId, difficultiesPerFolder = 3) {
     const db = (0, db_1.getDb)();
+    let migratedEvents = migratedCarnivalEvents.get(db);
+    if (!migratedEvents) {
+        migratedEvents = new Set();
+        migratedCarnivalEvents.set(db, migratedEvents);
+    }
+    if (migratedEvents.has(eventId))
+        return;
     (0, persistence_coordinator_1.runPersistenceTransactionSync)({ domain: "event", operation: "migrate_carnival_event_folder_records" }, () => {
         var _a, _b;
         db.prepare(`
@@ -103,6 +116,9 @@ function migrateCarnivalEventFolderRecordsSync(eventId, difficultiesPerFolder = 
         VALUES (?, ?)
         `).run(eventId, Date.now());
     });
+    // Mark only after the coordinator reports a successful commit. If a disk
+    // or locking error aborts the transaction, the next request must retry.
+    migratedEvents.add(eventId);
 }
 exports.migrateCarnivalEventFolderRecordsSync = migrateCarnivalEventFolderRecordsSync;
 function upsertPlayerCarnivalEventRecordSync(playerId, eventId, folderId, score, characterIds, unisonCharacterIds) {

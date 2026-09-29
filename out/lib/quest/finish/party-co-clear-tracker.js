@@ -48,12 +48,14 @@ function trackPartyCoClears(ctx) {
     // Race clears (unique race set)
     const raceKey = (0, race_utils_1.getRaceKeyString)(allRaces);
     if (raceKey) {
-        (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
-        INSERT INTO players_party_race_clears (player_id, race_key, clear_count)
-        VALUES (?, ?, 1)
-        ON CONFLICT(player_id, race_key) DO UPDATE SET
-            clear_count = clear_count + 1
-        `).run(ctx.playerId, raceKey);
+        (0, persistence_coordinator_1.runPersistenceTransactionSync)({
+            domain: "mission", playerId: ctx.playerId, operation: "track_party_race_clear",
+        }, () => (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
+            INSERT INTO players_party_race_clears (player_id, race_key, clear_count)
+            VALUES (?, ?, 1)
+            ON CONFLICT(player_id, race_key) DO UPDATE SET
+                clear_count = clear_count + 1
+        `).run(ctx.playerId, raceKey));
     }
     const matchedMissionIds = (0, awake_battle_rules_1.getMatchedAwakeDirectBattleMissionIds)(ctx, raceKey);
     for (const missionId of matchedMissionIds) {

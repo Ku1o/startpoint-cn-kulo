@@ -6,6 +6,7 @@ import {
     getAbyssTimeRevision,
 } from "../../lib/abyss-time-revision"
 import { QuestCategory } from "../../lib/types/quest"
+import { runPersistenceTransactionSync } from "../../lib/persistence-coordinator"
 
 /** Clear only the finite tower's times, including legacy saves and restored saves. */
 export function refreshPlayerAbyssBestTimesSync(playerId: number, eventId?: number): string | null {
@@ -29,12 +30,14 @@ export function refreshPlayerAbyssBestTimesSync(playerId: number, eventId?: numb
     `).get(playerId, QuestCategory.RUSH_EVENT,
         eventId * 1000 + 1, eventId * 1000 + (eventId === ABYSS_EX_EVENT_ID ? 30 : 98), revision)
     if (!hasStaleRows) return revision
-    getDb().prepare(`
-        UPDATE players_quest_progress
-        SET best_elapsed_time_ms = NULL, best_time_revision = ?
-        WHERE player_id = ? AND section = ? AND quest_id BETWEEN ? AND ?
-          AND (best_time_revision IS NULL OR best_time_revision != ?)
-    `).run(revision, playerId, QuestCategory.RUSH_EVENT,
-        eventId * 1000 + 1, eventId * 1000 + (eventId === ABYSS_EX_EVENT_ID ? 30 : 98), revision)
+    runPersistenceTransactionSync({
+        domain: "single-quest", playerId, operation: "refresh_abyss_best_times",
+    }, () => getDb().prepare(`
+            UPDATE players_quest_progress
+            SET best_elapsed_time_ms = NULL, best_time_revision = ?
+            WHERE player_id = ? AND section = ? AND quest_id BETWEEN ? AND ?
+              AND (best_time_revision IS NULL OR best_time_revision != ?)
+        `).run(revision, playerId, QuestCategory.RUSH_EVENT,
+            eventId * 1000 + 1, eventId * 1000 + (eventId === ABYSS_EX_EVENT_ID ? 30 : 98), revision))
     return revision
 }

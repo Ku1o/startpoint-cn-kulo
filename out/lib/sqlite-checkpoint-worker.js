@@ -59,7 +59,7 @@ function workerLocation() {
     };
 }
 function startSqliteCheckpointWorker(databasePath, environment = process.env) {
-    var _a;
+    var _a, _b;
     if (worker || !enabled(environment))
         return;
     state.enabled = true;
@@ -69,7 +69,8 @@ function startSqliteCheckpointWorker(databasePath, environment = process.env) {
     const truncateFrames = positiveInteger(environment.SQLITE_CHECKPOINT_TRUNCATE_FRAMES, 131072, 1000);
     const truncateBytes = positiveInteger(environment.SQLITE_CHECKPOINT_TRUNCATE_BYTES, 536870912, 4 * 1024 * 1024);
     const truncateCooldownMs = positiveInteger(environment.SQLITE_CHECKPOINT_TRUNCATE_COOLDOWN_MS, 60000, 5000);
-    const current = new node_worker_threads_1.Worker(location.filename, Object.assign(Object.assign({}, (location.execArgv ? { execArgv: location.execArgv } : {})), { workerData: { databasePath, intervalMs, truncateFrames, truncateBytes, truncateCooldownMs } }));
+    const busyTimeoutMs = Math.max(0, Number.parseInt((_b = environment.SQLITE_CHECKPOINT_BUSY_TIMEOUT_MS) !== null && _b !== void 0 ? _b : "0", 10) || 0);
+    const current = new node_worker_threads_1.Worker(location.filename, Object.assign(Object.assign({}, (location.execArgv ? { execArgv: location.execArgv } : {})), { workerData: { databasePath, intervalMs, truncateFrames, truncateBytes, truncateCooldownMs, busyTimeoutMs } }));
     worker = current;
     (0, memory_diagnostics_1.observeWorkerMemory)("sqlite-checkpoint", current);
     current.on("online", () => { state.started = true; });
@@ -113,7 +114,7 @@ function startSqliteCheckpointWorker(databasePath, environment = process.env) {
     });
     console.log(`[DB] sqlite checkpoint worker enabled intervalMs=${intervalMs}`
         + ` truncateFrames=${truncateFrames} truncateBytes=${truncateBytes}`
-        + ` truncateCooldownMs=${truncateCooldownMs}`);
+        + ` truncateCooldownMs=${truncateCooldownMs} busyTimeoutMs=${busyTimeoutMs}`);
 }
 exports.startSqliteCheckpointWorker = startSqliteCheckpointWorker;
 function stopSqliteCheckpointWorker() {

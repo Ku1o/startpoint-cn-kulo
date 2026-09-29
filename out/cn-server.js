@@ -125,6 +125,7 @@ const settlement_1 = require("./lib/leaderboard/settlement");
 const daily_vmoney_mail_1 = require("./lib/daily-vmoney-mail");
 const sqlite_checkpoint_worker_1 = require("./lib/sqlite-checkpoint-worker");
 const persistence_coordinator_1 = require("./lib/persistence-coordinator");
+const sqlite_persistence_worker_1 = require("./lib/sqlite-persistence-worker");
 const fastify = (0, fastify_1.default)({
     logger: {
         // Default remains compatible with the existing development behavior.
@@ -541,6 +542,8 @@ fastify.addHook("onClose", () => __awaiter(void 0, void 0, void 0, function* () 
     yield receiveHistoryRetention.stop();
     yield (0, player_party_pool_1.stopQuestNpcPartyPoolWorker)();
     yield (0, persistence_coordinator_1.drainPersistence)();
+    yield (0, sqlite_persistence_worker_1.stopSqlitePersistenceWorker)();
+    (0, persistence_coordinator_1.configurePersistenceSqlExecutor)(null);
     yield (0, sqlite_checkpoint_worker_1.stopSqliteCheckpointWorker)();
 }));
 // Ctrl+C and a normal service-manager stop must enter Fastify's close hooks;
@@ -577,6 +580,15 @@ process.once("SIGINT", () => requestGracefulShutdown("SIGINT"));
 process.once("SIGTERM", () => requestGracefulShutdown("SIGTERM"));
 process.once("SIGBREAK", () => requestGracefulShutdown("SIGBREAK"));
 (0, player_party_pool_1.startQuestNpcPartyPoolWorker)();
+const persistenceWorkerStarted = (0, sqlite_persistence_worker_1.startSqlitePersistenceWorker)((0, db_1.getDb)().name);
+if (persistenceWorkerStarted && (0, sqlite_persistence_worker_1.isSqlitePersistenceWorkerStarted)()) {
+    (0, persistence_coordinator_1.configurePersistenceSqlExecutor)((_context, statements) => __awaiter(void 0, void 0, void 0, function* () {
+        yield (0, sqlite_persistence_worker_1.executeSqlitePersistenceCommand)({
+            operation: _context.operation,
+            statements,
+        });
+    }));
+}
 fastify.listen({ port, host }, (err, address) => {
     if (err) {
         console.error(err);

@@ -8,6 +8,8 @@ import { grantPlayerDegreeSync } from "../../../data/domains/degree"
 type RawReward = [kind: number, id: number, count: number]
 type RewardTier = [rewardId: number, score: number, rewards: RawReward[]]
 
+const claimTablesReady = new WeakSet<object>()
+
 export interface CarnivalRewardGrantResult {
     rewardIds: number[]
     newDegreeIds: number[]
@@ -21,16 +23,21 @@ function emptyResult(): CarnivalRewardGrantResult {
 }
 
 function ensureClaimTableSync(): void {
-    getDb().prepare(`
-    CREATE TABLE IF NOT EXISTS players_carnival_event_reward_claims (
-        player_id INTEGER NOT NULL,
-        event_id INTEGER NOT NULL,
-        reward_id INTEGER NOT NULL,
-        claimed_at INTEGER NOT NULL,
-        PRIMARY KEY (player_id, event_id, reward_id),
-        FOREIGN KEY (player_id) REFERENCES players (id) ON DELETE CASCADE
-    )
-    `).run()
+    const db = getDb()
+    if (claimTablesReady.has(db)) return
+    runPersistenceTransactionSync({
+        domain: "event", operation: "ensure_carnival_reward_claims",
+    }, () => db.prepare(`
+        CREATE TABLE IF NOT EXISTS players_carnival_event_reward_claims (
+            player_id INTEGER NOT NULL,
+            event_id INTEGER NOT NULL,
+            reward_id INTEGER NOT NULL,
+            claimed_at INTEGER NOT NULL,
+            PRIMARY KEY (player_id, event_id, reward_id),
+            FOREIGN KEY (player_id) REFERENCES players (id) ON DELETE CASCADE
+        )
+    `).run())
+    claimTablesReady.add(db)
 }
 
 const carnivalDegreeByClaim = new Map<string, number>()
