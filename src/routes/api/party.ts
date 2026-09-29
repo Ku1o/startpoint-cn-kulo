@@ -1,8 +1,9 @@
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { getPlayerSync, updatePlayerSync } from "../../data/domains/player"
 import { getSession } from "../../data/domains/session"
-import { playerOwnsCharacterSync } from "../../data/domains/character"
-import { playerOwnsEquipmentSync } from "../../data/domains/equipment"
+import { getPlayerCharacterManaNodesSync, getPlayerCharactersSync, playerOwnsCharacterSync } from "../../data/domains/character"
+import { getPlayerEquipmentListSync, playerOwnsEquipmentSync } from "../../data/domains/equipment"
+import { getPlayerItemsSync } from "../../data/domains/item"
 import { updatePlayerPartySync } from "../../data/domains/party"
 import { getDb } from "../../data/db"
 import { incrementActiveMissionPartyActionCountsSync } from "../../data/domains/active_mission_counters"
@@ -18,6 +19,8 @@ import { settleDegreeMissionResponse } from "../../lib/mission/degree-response";
 import { countNewAbilitySoulEquipments } from "../../lib/mission/ability-soul-facts";
 import { runPersistenceTransaction } from "../../lib/persistence-coordinator";
 import { invalidateRealPartySnapshot } from "../../multi/party-snapshot";
+import { createTeamCodeClient, GAME_CODE_PATTERN, TeamCodeError, TeamCodeLimiter } from "../../lib/wiki-team-code-client";
+import { loadTeamCodeAssets, nativeBattleParty, resolvePublicTeam, TeamAssets, TeamInventory } from "../../lib/wiki-team-code-inventory";
 
 interface PartyInfoListItem {
     party_edited: boolean
@@ -560,6 +563,23 @@ function sendPartyResponse(reply: FastifyReply, viewerId: number, data: unknown,
     })
 }
 
+const wikiTeamCodeLookup = createTeamCodeClient()
+const wikiTeamCodeLimiter = new TeamCodeLimiter()
+let wikiTeamCodeAssets: TeamAssets | undefined
+
+function getWikiTeamCodeAssets(): TeamAssets {
+    return wikiTeamCodeAssets || (wikiTeamCodeAssets = loadTeamCodeAssets())
+}
+
+function getPlayerTeamInventory(playerId: number): TeamInventory {
+    return {
+        characters: getPlayerCharactersSync(playerId),
+        equipment: getPlayerEquipmentListSync(playerId),
+        items: getPlayerItemsSync(playerId),
+        nodes: characterId => getPlayerCharacterManaNodesSync(playerId, characterId),
+    }
+}
+
 const routes = async (fastify: FastifyInstance) => {
     fastify.post("/publish", async (request: FastifyRequest, reply: FastifyReply) => {
         const body = request.body as PublishBody
@@ -584,22 +604,50 @@ const routes = async (fastify: FastifyInstance) => {
         if (!context) return reply.status(400).send({ error: "Bad Request", message: "Invalid viewer id." })
 
         const partyCode = typeof body.party_code === "string" ? body.party_code.trim().toUpperCase() : ""
-        if (!/^[2-9A-HJ-NP-Z]{10}$/.test(partyCode)) {
-            return sendPartyResponse(reply, context.viewerId, {}, 3404)
+        if (/^[2-9A-HJ-NP-Z]{10}$/.test(partyCode)) {
+            const publishedParty = getPublishedPartySync(partyCode)
+            if (!publishedParty) return sendPartyResponse(reply, context.viewerId, {}, 3404)
+            if (publishedParty.schemaVersion !== 1) return sendPartyResponse(reply, context.viewerId, {}, 3403)
+
+            const battleParty = sanitizeBattleParty(publishedParty.battleParty)
+            if (!battleParty) return sendPartyResponse(reply, context.viewerId, {}, 3403)
+
+            console.log(`[PARTY CODE] refer player=${context.playerId} code=${partyCode}`)
+            return sendPartyResponse(reply, context.viewerId, {
+                party_name: publishedParty.partyName,
+                battle_party: battleParty,
+            })
         }
 
-        const publishedParty = getPublishedPartySync(partyCode)
-        if (!publishedParty) return sendPartyResponse(reply, context.viewerId, {}, 3404)
-        if (publishedParty.schemaVersion !== 1) return sendPartyResponse(reply, context.viewerId, {}, 3403)
-
-        const battleParty = sanitizeBattleParty(publishedParty.battleParty)
-        if (!battleParty) return sendPartyResponse(reply, context.viewerId, {}, 3403)
-
-        console.log(`[PARTY CODE] refer player=${context.playerId} code=${partyCode}`)
-        return sendPartyResponse(reply, context.viewerId, {
-            party_name: publishedParty.partyName,
-            battle_party: battleParty,
-        })
+        // Wiki-managed administrator codes use the same native response as a
+        // local code, but are projected onto the requesting player's inventory.
+        if (!GAME_CODE_PATTERN.test(partyCode)) {
+            return sendPartyResponse(reply, context.viewerId, {}, 3404)
+        }
+        if (!wikiTeamCodeLimiter.take(`ip:${request.ip}`, 60)
+            || !wikiTeamCodeLimiter.take(`viewer:${context.viewerId}`, 12)
+            || !wikiTeamCodeLimiter.take(`player:${context.playerId}`, 12)) {
+            reply.header("Retry-After", "60")
+            return sendPartyResponse(reply, context.viewerId, {}, 3404)
+        }
+        try {
+            const entry = await wikiTeamCodeLookup(partyCode)
+            const assets = getWikiTeamCodeAssets()
+            const battleParty = nativeBattleParty(
+                resolvePublicTeam(entry.team, assets),
+                getPlayerTeamInventory(context.playerId),
+                assets,
+            )
+            return sendPartyResponse(reply, context.viewerId, {
+                party_name: entry.title,
+                battle_party: battleParty,
+            })
+        } catch (error) {
+            const resultCode = error instanceof TeamCodeError && error.kind === "not-found"
+                ? 3404
+                : 3403
+            return sendPartyResponse(reply, context.viewerId, {}, resultCode)
+        }
     })
 
     fastify.post("/edit", async (request: FastifyRequest, reply: FastifyReply) => {

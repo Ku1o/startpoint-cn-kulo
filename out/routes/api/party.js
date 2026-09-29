@@ -13,6 +13,7 @@ const player_1 = require("../../data/domains/player");
 const session_1 = require("../../data/domains/session");
 const character_1 = require("../../data/domains/character");
 const equipment_1 = require("../../data/domains/equipment");
+const item_1 = require("../../data/domains/item");
 const party_1 = require("../../data/domains/party");
 const db_1 = require("../../data/db");
 const active_mission_counters_1 = require("../../data/domains/active_mission_counters");
@@ -27,6 +28,8 @@ const degree_response_1 = require("../../lib/mission/degree-response");
 const ability_soul_facts_1 = require("../../lib/mission/ability-soul-facts");
 const persistence_coordinator_1 = require("../../lib/persistence-coordinator");
 const party_snapshot_1 = require("../../multi/party-snapshot");
+const wiki_team_code_client_1 = require("../../lib/wiki-team-code-client");
+const wiki_team_code_inventory_1 = require("../../lib/wiki-team-code-inventory");
 function hasEditablePartyCategory(value) {
     if (value !== null
         && typeof value === "object"
@@ -176,6 +179,20 @@ function sendPartyResponse(reply, viewerId, data, resultCode = 1) {
         data,
     });
 }
+const wikiTeamCodeLookup = (0, wiki_team_code_client_1.createTeamCodeClient)();
+const wikiTeamCodeLimiter = new wiki_team_code_client_1.TeamCodeLimiter();
+let wikiTeamCodeAssets;
+function getWikiTeamCodeAssets() {
+    return wikiTeamCodeAssets || (wikiTeamCodeAssets = (0, wiki_team_code_inventory_1.loadTeamCodeAssets)());
+}
+function getPlayerTeamInventory(playerId) {
+    return {
+        characters: (0, character_1.getPlayerCharactersSync)(playerId),
+        equipment: (0, equipment_1.getPlayerEquipmentListSync)(playerId),
+        items: (0, item_1.getPlayerItemsSync)(playerId),
+        nodes: characterId => (0, character_1.getPlayerCharacterManaNodesSync)(playerId, characterId),
+    };
+}
 const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
     fastify.post("/publish", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
         const body = request.body;
@@ -199,22 +216,47 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         if (!context)
             return reply.status(400).send({ error: "Bad Request", message: "Invalid viewer id." });
         const partyCode = typeof body.party_code === "string" ? body.party_code.trim().toUpperCase() : "";
-        if (!/^[2-9A-HJ-NP-Z]{10}$/.test(partyCode)) {
+        if (/^[2-9A-HJ-NP-Z]{10}$/.test(partyCode)) {
+            const publishedParty = (0, publishedParty_1.getPublishedPartySync)(partyCode);
+            if (!publishedParty)
+                return sendPartyResponse(reply, context.viewerId, {}, 3404);
+            if (publishedParty.schemaVersion !== 1)
+                return sendPartyResponse(reply, context.viewerId, {}, 3403);
+            const battleParty = sanitizeBattleParty(publishedParty.battleParty);
+            if (!battleParty)
+                return sendPartyResponse(reply, context.viewerId, {}, 3403);
+            console.log(`[PARTY CODE] refer player=${context.playerId} code=${partyCode}`);
+            return sendPartyResponse(reply, context.viewerId, {
+                party_name: publishedParty.partyName,
+                battle_party: battleParty,
+            });
+        }
+        // Wiki-managed administrator codes use the same native response as a
+        // local code, but are projected onto the requesting player's inventory.
+        if (!wiki_team_code_client_1.GAME_CODE_PATTERN.test(partyCode)) {
             return sendPartyResponse(reply, context.viewerId, {}, 3404);
         }
-        const publishedParty = (0, publishedParty_1.getPublishedPartySync)(partyCode);
-        if (!publishedParty)
+        if (!wikiTeamCodeLimiter.take(`ip:${request.ip}`, 60)
+            || !wikiTeamCodeLimiter.take(`viewer:${context.viewerId}`, 12)
+            || !wikiTeamCodeLimiter.take(`player:${context.playerId}`, 12)) {
+            reply.header("Retry-After", "60");
             return sendPartyResponse(reply, context.viewerId, {}, 3404);
-        if (publishedParty.schemaVersion !== 1)
-            return sendPartyResponse(reply, context.viewerId, {}, 3403);
-        const battleParty = sanitizeBattleParty(publishedParty.battleParty);
-        if (!battleParty)
-            return sendPartyResponse(reply, context.viewerId, {}, 3403);
-        console.log(`[PARTY CODE] refer player=${context.playerId} code=${partyCode}`);
-        return sendPartyResponse(reply, context.viewerId, {
-            party_name: publishedParty.partyName,
-            battle_party: battleParty,
-        });
+        }
+        try {
+            const entry = yield wikiTeamCodeLookup(partyCode);
+            const assets = getWikiTeamCodeAssets();
+            const battleParty = (0, wiki_team_code_inventory_1.nativeBattleParty)((0, wiki_team_code_inventory_1.resolvePublicTeam)(entry.team, assets), getPlayerTeamInventory(context.playerId), assets);
+            return sendPartyResponse(reply, context.viewerId, {
+                party_name: entry.title,
+                battle_party: battleParty,
+            });
+        }
+        catch (error) {
+            const resultCode = error instanceof wiki_team_code_client_1.TeamCodeError && error.kind === "not-found"
+                ? 3404
+                : 3403;
+            return sendPartyResponse(reply, context.viewerId, {}, resultCode);
+        }
     }));
     fastify.post("/edit", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
         const body = request.body;

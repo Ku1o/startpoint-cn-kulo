@@ -1,0 +1,105 @@
+const assert = require("node:assert/strict")
+const fs = require("node:fs")
+const os = require("node:os")
+const path = require("node:path")
+const { test, after } = require("node:test")
+
+const databaseDir = fs.mkdtempSync(path.join(os.tmpdir(), "wiki-team-route-"))
+process.env.DATA_DIR = databaseDir
+process.env.COMMUNITY_TEAM_CODES_URL = "https://wiki.example/api/community/game-codes"
+require("ts-node/register/transpile-only")
+
+const Fastify = require("fastify")
+const { SessionType } = require("../src/data/types")
+const { insertAccountSync } = require("../src/data/domains/account")
+const { insertDefaultPlayerSync } = require("../src/data/domains/player")
+const { publishPartySync } = require("../src/data/domains/publishedParty")
+const { insertSessionWithTokenSync } = require("../src/data/domains/session")
+const { getDb } = require("../src/data/db")
+const { wikiPublicId } = require("../src/lib/wiki-team-code-client")
+const { loadTeamCodeAssets, resolvePublicTeam } = require("../src/lib/wiki-team-code-inventory")
+
+const viewerId = 710000001
+const code = "23456789ABCD"
+const knownCharacters = [...loadTeamCodeAssets().characters.values()]
+    .filter(id => id !== 1)
+    .slice(0, 2)
+const originalFetch = global.fetch
+global.fetch = async url => {
+    assert.equal(url, `https://wiki.example/api/community/game-codes/${code}`)
+    return new Response(JSON.stringify({
+        title: "Wiki 阵容",
+        active: true,
+        team: {
+            main: [1, ...knownCharacters].map(id => wikiPublicId("c", id)),
+            unison: ["", "", ""],
+            weapon: ["", "", ""],
+            soul: ["", "", ""],
+        },
+    }), { headers: { "content-type": "application/json" } })
+}
+const partyRoutes = require("../src/routes/api/party").default
+
+const account = insertAccountSync({
+    appId: "wiki-route-test",
+    idpAlias: "test",
+    idpCode: "test",
+    idpId: "wiki-route-test",
+    status: "active",
+})
+const player = insertDefaultPlayerSync(account.id)
+insertSessionWithTokenSync({
+    token: String(viewerId),
+    accountId: account.id,
+    expires: new Date(),
+    type: SessionType.VIEWER,
+})
+
+const app = Fastify()
+app.addHook("onSend", (_request, reply, payload, done) => {
+    done(null, reply.getHeader("content-type") === "application/x-msgpack"
+        ? JSON.stringify(payload)
+        : payload)
+})
+app.register(partyRoutes, { prefix: "/party" })
+
+after(async () => {
+    await app.close()
+    global.fetch = originalFetch
+    getDb().close()
+    fs.rmSync(databaseDir, { recursive: true, force: true })
+})
+
+test("existing /party/refer accepts a Wiki code without writing player data", async () => {
+    await app.ready()
+    const response = await app.inject({
+        method: "POST",
+        url: "/party/refer",
+        payload: { viewer_id: viewerId, party_code: code },
+    })
+    assert.equal(response.statusCode, 200, response.body)
+    const body = response.json()
+    assert.equal(body.data_headers.result_code, 1)
+    assert.equal(body.data.party_name, "Wiki 阵容")
+    assert.equal(body.data.battle_party.characters[0].id, 1)
+    assert.equal(body.data.battle_party.characters[1], null)
+    assert.equal(body.data.battle_party.characters[2], null)
+})
+
+test("existing local 10-character party codes still use the local store", async () => {
+    const localCode = publishPartySync(player.id, "本地阵容", {
+        characters: [null, null, null],
+        unison_characters: [null, null, null],
+        equipments: [null, null, null],
+        ability_soul_ids: [null, null, null],
+    })
+    const response = await app.inject({
+        method: "POST",
+        url: "/party/refer",
+        payload: { viewer_id: viewerId, party_code: localCode },
+    })
+    assert.equal(response.statusCode, 200, response.body)
+    const body = response.json()
+    assert.equal(body.data_headers.result_code, 1)
+    assert.equal(body.data.party_name, "本地阵容")
+})
