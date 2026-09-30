@@ -638,6 +638,14 @@ const routes = async (fastify: FastifyInstance) => {
                 getPlayerTeamInventory(context.playerId),
                 assets,
             )
+            // A public code may reference a leader that this player does not
+            // own. Inventory projection turns that slot into null, but the
+            // game cannot save or battle a party without a leader. Reject the
+            // code at the import boundary instead of returning a successful
+            // response that later fails as C2330 during /party/edit.
+            if (battleParty.characters[0] === null) {
+                return sendPartyResponse(reply, context.viewerId, {}, 3403)
+            }
             return sendPartyResponse(reply, context.viewerId, {
                 party_name: entry.title,
                 battle_party: battleParty,

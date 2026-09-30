@@ -246,6 +246,14 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             const entry = yield wikiTeamCodeLookup(partyCode);
             const assets = getWikiTeamCodeAssets();
             const battleParty = (0, wiki_team_code_inventory_1.nativeBattleParty)((0, wiki_team_code_inventory_1.resolvePublicTeam)(entry.team, assets), getPlayerTeamInventory(context.playerId), assets);
+            // A public code may reference a leader that this player does not
+            // own. Inventory projection turns that slot into null, but the
+            // game cannot save or battle a party without a leader. Reject the
+            // code at the import boundary instead of returning a successful
+            // response that later fails as C2330 during /party/edit.
+            if (battleParty.characters[0] === null) {
+                return sendPartyResponse(reply, context.viewerId, {}, 3403);
+            }
             return sendPartyResponse(reply, context.viewerId, {
                 party_name: entry.title,
                 battle_party: battleParty,

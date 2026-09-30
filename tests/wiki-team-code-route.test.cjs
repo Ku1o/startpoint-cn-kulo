@@ -21,17 +21,23 @@ const { loadTeamCodeAssets, resolvePublicTeam } = require("../src/lib/wiki-team-
 
 const viewerId = 710000001
 const code = "23456789ABCD"
+const missingLeaderCode = "23456789ABCE"
 const knownCharacters = [...loadTeamCodeAssets().characters.values()]
     .filter(id => id !== 1)
     .slice(0, 2)
 const originalFetch = global.fetch
 global.fetch = async url => {
-    assert.equal(url, `https://wiki.example/api/community/game-codes/${code}`)
+    assert.ok([
+        `https://wiki.example/api/community/game-codes/${code}`,
+        `https://wiki.example/api/community/game-codes/${missingLeaderCode}`,
+    ].includes(url))
+    const missingLeader = url.endsWith(missingLeaderCode)
     return new Response(JSON.stringify({
-        title: "Wiki 阵容",
+        title: missingLeader ? "缺少队长的 Wiki 阵容" : "Wiki 阵容",
         active: true,
         team: {
-            main: [1, ...knownCharacters].map(id => wikiPublicId("c", id)),
+            main: (missingLeader ? [knownCharacters[0], 1, knownCharacters[1]] : [1, ...knownCharacters])
+                .map(id => wikiPublicId("c", id)),
             unison: ["", "", ""],
             weapon: ["", "", ""],
             soul: ["", "", ""],
@@ -102,4 +108,16 @@ test("existing local 10-character party codes still use the local store", async 
     const body = response.json()
     assert.equal(body.data_headers.result_code, 1)
     assert.equal(body.data.party_name, "本地阵容")
+})
+
+test("Wiki code with an unowned leader is rejected before returning an empty leader", async () => {
+    const response = await app.inject({
+        method: "POST",
+        url: "/party/refer",
+        payload: { viewer_id: viewerId, party_code: missingLeaderCode },
+    })
+    assert.equal(response.statusCode, 200, response.body)
+    const body = response.json()
+    assert.equal(body.data_headers.result_code, 3403)
+    assert.deepEqual(body.data, {})
 })
