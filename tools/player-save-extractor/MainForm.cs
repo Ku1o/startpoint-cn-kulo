@@ -13,6 +13,7 @@ internal sealed class SaveExtractorForm : Form
 {
     private readonly TextBox database = new TextBox();
     private readonly TextBox viewer = new TextBox();
+    private readonly ComboBox lookupMode = new ComboBox();
     private readonly ComboBox players = new ComboBox();
     private readonly Button browse = new Button();
     private readonly Button lookup = new Button();
@@ -26,7 +27,8 @@ internal sealed class SaveExtractorForm : Form
     private Task<string> stderr;
     private bool listing;
     private string lookupDatabase;
-    private string lookupViewer;
+    private string lookupType;
+    private string lookupValue;
     private readonly string projectRoot;
 
     private sealed class PlayerChoice
@@ -48,15 +50,22 @@ internal sealed class SaveExtractorForm : Form
         Font = new Font("Microsoft YaHei UI", 10F);
         BackColor = Color.FromArgb(247, 249, 252);
         AddLabel("从数据库提取玩家存档", 24, 22, 660, 35, 19F);
-        AddLabel("选择数据库，按游戏内 viewer id 将单个玩家的存档复制为 JSON。", 26, 66, 665, 30, 10F);
+        AddLabel("选择数据库，按 viewer id 或登录账号将单个玩家的存档复制为 JSON。", 26, 66, 665, 30, 10F);
         AddLabel("1  数据库文件", 26, 110, 640, 25, 10F);
         database.SetBounds(26, 141, 553, 30);
         database.AccessibleName = "数据库路径";
         Controls.Add(database);
         ConfigureButton(browse, "选择文件", 588, 139, 105, 34);
-        AddLabel("2  Viewer ID", 26, 189, 185, 25, 10F);
-        viewer.SetBounds(26, 220, 432, 30);
-        viewer.AccessibleName = "Viewer ID";
+        AddLabel("2  检索条件（选择一种）", 26, 189, 300, 25, 10F);
+        lookupMode.SetBounds(26, 218, 150, 34);
+        lookupMode.DropDownStyle = ComboBoxStyle.DropDownList;
+        lookupMode.Items.Add("Viewer ID");
+        lookupMode.Items.Add("登录账号");
+        lookupMode.SelectedIndex = 0;
+        lookupMode.AccessibleName = "存档检索方式";
+        Controls.Add(lookupMode);
+        viewer.SetBounds(186, 220, 272, 30);
+        viewer.AccessibleName = "Viewer ID 或登录账号";
         Controls.Add(viewer);
         ConfigureButton(lookup, "查询玩家存档", 474, 218, 219, 34);
         AddLabel("3  选择要提取的存档", 26, 268, 400, 25, 10F);
@@ -78,7 +87,7 @@ internal sealed class SaveExtractorForm : Form
         status.BorderStyle = BorderStyle.None;
         status.BackColor = BackColor;
         status.AccessibleName = "操作结果";
-        status.Text = "请选择数据库并输入 viewer id。\r\n数据库文件或目录路径也可直接粘贴到路径框。";
+        status.Text = "请选择数据库，并输入 viewer id 或登录账号。\r\n数据库文件或目录路径也可直接粘贴到路径框。";
         Controls.Add(status);
         progress.SetBounds(26, 478, 667, 5);
         progress.Style = ProgressBarStyle.Marquee;
@@ -87,6 +96,11 @@ internal sealed class SaveExtractorForm : Form
         AddLabel("只读提取 · 只生成单人存档 JSON · 不修改原数据库", 26, 495, 667, 25, 9F);
         database.TextChanged += delegate { InvalidateLookup(); };
         viewer.TextChanged += delegate { InvalidateLookup(); };
+        lookupMode.SelectedIndexChanged += delegate {
+            viewer.AccessibleName = lookupMode.SelectedIndex == 0 ? "Viewer ID" : "登录账号";
+            viewer.Clear();
+            InvalidateLookup();
+        };
         players.SelectedIndexChanged += delegate { export.Enabled = worker == null && players.SelectedItem != null; };
         browse.Click += delegate { ChooseDatabase(); };
         lookup.Click += delegate { FindPlayers(); };
@@ -118,8 +132,8 @@ internal sealed class SaveExtractorForm : Form
     {
         players.Items.Clear();
         export.Enabled = false;
-        lookupDatabase = lookupViewer = null;
-        status.Text = "选择数据库并输入 viewer id 后，点击“查询玩家存档”。";
+        lookupDatabase = lookupType = lookupValue = null;
+        status.Text = "选择数据库并输入 viewer id 或登录账号后，点击“查询玩家存档”。";
     }
 
     private void ChooseDatabase()
@@ -130,14 +144,16 @@ internal sealed class SaveExtractorForm : Form
 
     private Dictionary<string, object> Request()
     {
-        return new Dictionary<string, object> { { "database", database.Text.Trim() }, { "viewerId", viewer.Text.Trim() } };
+        var request = new Dictionary<string, object> { { "database", database.Text.Trim() } };
+        request[lookupMode.SelectedIndex == 0 ? "viewerId" : "username"] = viewer.Text.Trim();
+        return request;
     }
 
     private void FindPlayers()
     {
         if (worker != null) return;
         if (String.IsNullOrWhiteSpace(database.Text) || String.IsNullOrWhiteSpace(viewer.Text)) {
-            status.Text = "请先选择数据库，并填写游戏内的 viewer id。";
+            status.Text = lookupMode.SelectedIndex == 0 ? "请先选择数据库，并填写游戏内的 viewer id。" : "请先选择数据库，并填写登录账号。";
             return;
         }
         players.Items.Clear();
@@ -151,11 +167,11 @@ internal sealed class SaveExtractorForm : Form
     {
         var player = players.SelectedItem as PlayerChoice;
         if (worker != null || player == null) return;
-        if (lookupDatabase != database.Text.Trim() || lookupViewer != viewer.Text.Trim()) { InvalidateLookup(); return; }
+        if (lookupDatabase != database.Text.Trim() || lookupType != CurrentLookupType() || lookupValue != viewer.Text.Trim()) { InvalidateLookup(); return; }
         using (var dialog = new SaveFileDialog {
             Title = "保存提取的玩家存档", Filter = "玩家存档 (*.json)|*.json", DefaultExt = "json", AddExtension = true,
             CheckPathExists = true, OverwritePrompt = false,
-            FileName = "save_" + lookupViewer + "_" + player.Id + "_" + DateTime.Now.ToString("yyyyMMdd-HHmmss") + ".json"
+            FileName = "save_" + lookupValue + "_" + player.Id + "_" + DateTime.Now.ToString("yyyyMMdd-HHmmss") + ".json"
         }) {
             if (dialog.ShowDialog(this) != DialogResult.OK) return;
             if (File.Exists(dialog.FileName)) { status.Text = "该输出文件已存在，请重新选择一个文件名。已有文件未被覆盖。"; return; }
@@ -164,6 +180,11 @@ internal sealed class SaveExtractorForm : Form
             request["output"] = dialog.FileName;
             StartWorker(request, false);
         }
+    }
+
+    private string CurrentLookupType()
+    {
+        return lookupMode.SelectedIndex == 0 ? "viewerId" : "username";
     }
 
     private string NodePath()
@@ -177,7 +198,7 @@ internal sealed class SaveExtractorForm : Form
 
     private void Busy(bool value)
     {
-        database.Enabled = viewer.Enabled = browse.Enabled = lookup.Enabled = players.Enabled = !value;
+        database.Enabled = viewer.Enabled = lookupMode.Enabled = browse.Enabled = lookup.Enabled = players.Enabled = !value;
         export.Enabled = !value && players.SelectedItem != null;
         progress.Visible = value;
     }
@@ -223,7 +244,8 @@ internal sealed class SaveExtractorForm : Form
                 foreach (Dictionary<string, object> row in (IEnumerable)result["candidates"])
                     players.Items.Add(new PlayerChoice { Id = Convert.ToInt64(row["id"]), Name = Convert.ToString(row["name"]) });
                 lookupDatabase = database.Text.Trim();
-                lookupViewer = viewer.Text.Trim();
+                lookupType = CurrentLookupType();
+                lookupValue = viewer.Text.Trim();
                 if (players.Items.Count == 1) players.SelectedIndex = 0;
                 status.Text = players.Items.Count == 1 ? "已找到玩家存档。请核对名称，然后点击“选择位置并导出”。" : "找到 " + players.Items.Count + " 个存档，请在列表中明确选择需要恢复的一个。";
             } else {

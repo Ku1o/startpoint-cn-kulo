@@ -13,10 +13,19 @@ function positiveId(value, label) {
     return Number(text)
 }
 
+function loginUsername(value) {
+    const text = String(value ?? '').trim().toLowerCase()
+    if (!/^[a-z0-9_]{4,24}$/.test(text)) {
+        throw new Error('登录账号必须是 4–24 位字母、数字或下划线')
+    }
+    return text
+}
+
 function parseArgs(argv) {
     const args = {}
     const names = new Map([
         ['--database', 'database'], ['--viewer-id', 'viewerId'],
+        ['--username', 'username'], ['--login-account', 'username'], ['--account', 'username'],
         ['--player-id', 'playerId'], ['--output', 'output'],
     ])
     for (let index = 0; index < argv.length; index++) {
@@ -34,18 +43,20 @@ function parseArgs(argv) {
 }
 
 function printHelp() {
-    console.log(`从备份数据库按 viewer id 提取单人存档（只读）
+    console.log(`从备份数据库按 viewer id 或登录账号提取单人存档（只读）
 
   node tools/extract_player_save.cjs --database "F:/backup/wdfp_data.db" --viewer-id 123456789 --output "F:/recovery/save.json"
+  node tools/extract_player_save.cjs --database "F:/backup/wdfp_data.db" --username player_001 --output "F:/recovery/save.json"
 
 --database   必填：SQLite 数据库文件，或含 wdfp_data.db 的备份目录
---viewer-id  必填：游戏内玩家序号，通过 sessions 的 viewer 记录定位账号
+--viewer-id  与 --username 二选一：游戏内玩家序号，通过 sessions 的 viewer 记录定位账号
+--username   与 --viewer-id 二选一：玩家登录账号名（--login-account、--account 也可）
 --list       仅列出该账号下的存档，不导出文件
 --player-id  该账号有多个存档时，明确选择其中一个内部玩家 ID
---output     JSON 输出路径；省略时写入当前目录，文件名含 viewer id / 玩家 ID / 时间
+--output     JSON 输出路径；省略时写入当前目录，文件名含检索值 / 玩家 ID / 时间
 
 不会初始化、升级或覆盖备份数据库，也不会连接正在运行的服务。
-输出为后台可导入的 V2 单人存档，不包含账号密码、设备绑定或登录令牌。
+输出为后台可导入的 V2 单人存档，不包含账号密码、设备绑定或登录令牌；登录账号只用于定位账号，不会写入存档。
 已有输出文件不会覆盖；旧库缺表或出现未分类玩家表时拒绝导出。
 请先解压数据库备份。若备份带有 -wal / -shm 文件，请保留同目录同名配套文件。
 恢复误删进度：先让玩家创建目标存档，再在后台该存档页面导入 JSON；目标 UID 保留。`)
@@ -81,8 +92,30 @@ function loadSnapshotApi() {
     return require(built)
 }
 
+function lookupAccount(db, { viewerId, username }) {
+    const accounts = viewerId === undefined
+        ? db.prepare(`SELECT id AS account_id FROM accounts
+            WHERE username IS NOT NULL AND username <> '' AND lower(username) = ?`).all(username)
+        : db.prepare('SELECT DISTINCT account_id FROM sessions WHERE token = ? AND type = 2').all(String(viewerId))
+    if (accounts.length === 0) {
+        throw new Error(viewerId === undefined
+            ? `备份中找不到登录账号 ${username}；请确认账号名、备份日期及账号绑定状态`
+            : `备份中找不到 viewer id ${viewerId} 的账号映射；请确认备份日期及玩家序号`)
+    }
+    if (accounts.length !== 1) {
+        throw new Error(viewerId === undefined
+            ? `登录账号 ${username} 对应多个账号，拒绝猜测归属`
+            : 'viewer id 对应多个账号，拒绝猜测归属')
+    }
+    return accounts[0].account_id
+}
+
 function extractPlayerSave(options) {
-    const viewerId = positiveId(options.viewerId, 'viewer id')
+    const hasViewer = options.viewerId !== undefined && String(options.viewerId).trim() !== ''
+    const hasUsername = options.username !== undefined && String(options.username).trim() !== ''
+    if (hasViewer === hasUsername) throw new Error('必须且只能指定 viewer id 或登录账号')
+    const viewerId = hasViewer ? positiveId(options.viewerId, 'viewer id') : undefined
+    const username = hasUsername ? loginUsername(options.username) : undefined
     const selectedPlayerId = options.playerId === undefined ? undefined : positiveId(options.playerId, 'player id')
     const databasePath = resolveDatabase(options.database)
     const db = new Database(databasePath, { readonly: true, fileMustExist: true })
@@ -92,17 +125,16 @@ function extractPlayerSave(options) {
         db.pragma('busy_timeout = 5000')
         // The viewer lookup and every portable table share a consistent read transaction.
         result = db.transaction(() => {
-            const accounts = db.prepare('SELECT DISTINCT account_id FROM sessions WHERE token = ? AND type = 2').all(String(viewerId))
-            if (accounts.length === 0) throw new Error(`备份中找不到 viewer id ${viewerId} 的账号映射；请确认备份日期及玩家序号`)
-            if (accounts.length !== 1) throw new Error('viewer id 对应多个账号，拒绝猜测归属')
-            const candidates = db.prepare('SELECT id, name FROM players WHERE account_id = ? ORDER BY id').all(accounts[0].account_id)
-            if (candidates.length === 0) throw new Error(`viewer id ${viewerId} 的账号在此备份中已没有存档，请使用误删前的备份`)
-            if (options.list) return { viewerId, candidates }
+            const accountId = lookupAccount(db, { viewerId, username })
+            const candidates = db.prepare('SELECT id, name FROM players WHERE account_id = ? ORDER BY id').all(accountId)
+            const lookupLabel = viewerId === undefined ? `登录账号 ${username}` : `viewer id ${viewerId}`
+            if (candidates.length === 0) throw new Error(`${lookupLabel} 的账号在此备份中已没有存档，请使用误删前的备份`)
+            if (options.list) return { ...(viewerId === undefined ? { username } : { viewerId }), candidates }
             if (selectedPlayerId === undefined && candidates.length > 1) {
                 throw new Error(`该账号有多个存档，请用 --player-id 明确选择：${JSON.stringify(candidates)}`)
             }
             const player = selectedPlayerId === undefined ? candidates[0] : candidates.find(row => row.id === selectedPlayerId)
-            if (!player) throw new Error(`player id ${selectedPlayerId} 不属于 viewer id ${viewerId}，拒绝提取`)
+            if (!player) throw new Error(`player id ${selectedPlayerId} 不属于${lookupLabel}，拒绝提取`)
             const { createPlayerSaveSnapshotV2Sync } = loadSnapshotApi()
             let snapshot
             try {
@@ -110,7 +142,7 @@ function extractPlayerSave(options) {
             } catch (error) {
                 throw new Error(`备份存档校验失败：${error.message}；请使用匹配数据库结构的工具版本，或先在独立副本上完成受支持的迁移`)
             }
-            return { viewerId, playerId: player.id, snapshot }
+            return { ...(viewerId === undefined ? { username } : { viewerId }), playerId: player.id, snapshot }
         })()
     } finally {
         db.close()
@@ -118,7 +150,7 @@ function extractPlayerSave(options) {
     if (options.list) return result
     const payload = Buffer.from(JSON.stringify(result.snapshot), 'utf8')
     if (payload.length > MAX_BYTES) throw new Error('存档超过后台导入的 64 MB 上限，未生成输出文件')
-    const filename = outputPath(options.output, viewerId, result.playerId)
+    const filename = outputPath(options.output, viewerId ?? username, result.playerId)
     // Exclusive creation also protects existing files/hardlinks if another process races us.
     const fd = fs.openSync(filename, 'wx', 0o600)
     try {
@@ -131,7 +163,8 @@ function extractPlayerSave(options) {
     }
     fs.closeSync(fd)
     return {
-        viewerId, playerId: result.playerId, playerName: result.snapshot.summary.playerName,
+        ...(viewerId === undefined ? { username } : { viewerId }),
+        playerId: result.playerId, playerName: result.snapshot.summary.playerName,
         output: filename, byteLength: payload.length, rowCount: result.snapshot.summary.rowCount,
         schemaFingerprint: result.snapshot.schemaFingerprint,
     }
