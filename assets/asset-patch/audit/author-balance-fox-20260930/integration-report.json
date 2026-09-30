@@ -1,0 +1,363 @@
+{
+  "schema_version": 1,
+  "status": "local_source_integrated",
+  "generated_at": "2026-09-30T14:50:43",
+  "baseline": "1.4.121 effective active chain",
+  "target": "1.4.122",
+  "inputs": [
+    {
+      "path": "F:\\平衡调整增量包-1.4.1056-20260927.zip",
+      "size": 13574216,
+      "sha256": "90d51dc57b14d3b4046a92cce3fb0f3677c035732614fd6577879b96a7fdce53"
+    },
+    {
+      "path": "F:\\月狐狸调整包-159991-20260927.zip",
+      "size": 1549957,
+      "sha256": "d88819250e876542dd424e138ac7400ed79a5d1c8dbb3c81960f67fc3a0f1878"
+    }
+  ],
+  "archive": {
+    "path": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.121-1.4.122-1-author-balance-fox-20260930.zip",
+    "sha256": "14430ddab51335c0757fc9c6357584aa79ade4766e539794bb20084514a58272",
+    "size": 1016816,
+    "members": 91
+  },
+  "changes": {
+    "balance": {
+      "client_apply_exact": 282,
+      "client_already": 15,
+      "server_apply_exact": 10,
+      "server_already": 3,
+      "media": {
+        "already": 37,
+        "apply_media": 79,
+        "conflict_media": 7
+      }
+    },
+    "fox": {
+      "client_apply_exact": 18,
+      "server_apply_exact": 1,
+      "media": {
+        "apply_media": 5
+      }
+    }
+  },
+  "retained_conflicts": {
+    "client_tables": [
+      {
+        "package": "balance",
+        "logical": "master/string/custom_ability_string.orderedmap",
+        "path": [
+          "desc_override_fox_oracle_autumn"
+        ],
+        "status": "cell_conflict",
+        "detail": {
+          "conflicts": [
+            {
+              "row": 0,
+              "col": 0,
+              "current": "雷属性共鸣时，战斗开始时自身FEVER获得量提升160％\n雷属性共鸣时，FEVER模式开始时雷属性角色的技能槽增加20％／首次进入时技能槽最大值提升20％\n雷属性共鸣时，每进入一次FEVER模式「余辉」累积1层（最多99层）\n雷属性共鸣时，「余辉」10层以上且非FEVER模式中，强化弹射时FEVER槽增加15％\n雷属性共鸣时，「余辉」每1层：自身FEVER获得量提升40％、强化弹射伤害提升160％、独立乘区的强化弹射伤害提升5％、雷属性角色的攻击力与能力伤害提升160％",
+              "before": "雷属性共鸣时，战斗开始时自身FEVER获得量提升160％\n雷属性共鸣时，FEVER模式开始时雷属性角色的技能槽增加20％／首次进入时技能槽最大值提升20％\n雷属性共鸣时，每进入一次FEVER模式「余辉」累积1层（最多99层）\n雷属性共鸣时，「余辉」10层以上且非FEVER模式中，强化弹射时FEVER槽增加15％\n雷属性共鸣时，「余辉」每1层：雷属性角色的FEVER获得量提升40％、强化弹射伤害提升160％、独立乘区的强化弹射伤害提升5％、雷属性角色的攻击力与能力伤害提升160％",
+              "after": "雷属性共鸣时，战斗开始时自身FEVER获得量提升160％\n雷属性共鸣时，FEVER模式开始时雷属性角色的技能槽增加20％\n雷属性共鸣时，首次进入FEVER模式时雷属性角色的技能槽最大值提升20％\n雷属性共鸣时，每进入一次FEVER模式「余辉」累积1层（最多99层）\n「余辉」10层以上且非FEVER模式中，强化弹射时FEVER槽增加15％\n「余辉」每1层：雷属性角色的FEVER获得量提升30％，强化弹射伤害提升110％、独立乘区的强化弹射伤害提升3.5％、雷属性角色的攻击力与能力伤害提升130％"
+            }
+          ],
+          "changed_cells": 0
+        }
+      },
+      {
+        "package": "balance",
+        "logical": "master/string/custom_ability_string.orderedmap",
+        "path": [
+          "desc_override_ruin_girl_campus_1"
+        ],
+        "status": "cell_conflict",
+        "detail": {
+          "conflicts": [
+            {
+              "row": 0,
+              "col": 0,
+              "current": " <icon id='main'>  战斗开始时，自身技能槽+50%。\n <icon id='main'>  暗属性共鸣时，强化技能，额外赋予暗属性角色及协力球攻击力提升250%效果，持续20秒。\n <icon id='main'>  暗属性共鸣时，Fever 模式中，发动技能时，自身获得或刷新「星夜茶会」，持续20秒，并赋予暗属性角色及协力球各自最大生命值10%的护盾。\n <icon id='main'>  暗属性共鸣时，Fever 模式中，持有「星夜茶会」时，每经过1.5秒交替召唤1个光、暗属性协力球，各持续25秒且无法回复生命值，协力球最多同时存在9个；再次发动技能不会延长已有协力球的存在时间。\n <icon id='main'>  暗属性共鸣时，Fever 模式中，持有「星夜茶会」时，协力球已达9个时，该次召唤改为自身攻击力+25%，持续20秒，可叠加。\n <icon id='main'>  Fever 结束或自身倒下时，「星夜茶会」解除。",
+              "before": " <icon id='main'>  战斗开始时，自身技能槽+50%。\n <icon id='main'>  暗属性共鸣时，强化『午后星轨·甜蜜续杯』：额外赋予暗属性角色及协力球攻击力提升效果。\n <icon id='main'>  暗属性共鸣时，Fever 模式中，强化后的技能发动时，自身获得或刷新「星夜茶会」，并赋予暗属性角色及协力球护盾。\n <icon id='main'>  暗属性共鸣时，Fever 模式中，持有「星夜茶会」时，每经过1.5秒交替召唤1个光、暗属性协力球，各持续25秒且无法回复生命值，协力球最多同时存在9个；再次发动技能不会延长已有协力球的存在时间。\n <icon id='main'>  暗属性共鸣时，Fever 模式中，持有「星夜茶会」时，协力球已达9个时，该次召唤改为自身攻击力+25%，持续20秒，可叠加。\n <icon id='main'>  Fever 结束或自身倒下时，「星夜茶会」解除。",
+              "after": " <icon id='main'>  战斗开始时，自身技能槽+50%。\n <icon id='main'>  Fever 模式中，持有「星夜茶会」时，每经过2秒交替召唤1个光、暗属性协力球，各持续25秒且无法回复生命值，协力球最多同时存在9个；再次发动技能不会延长已有协力球的存在时间。\n <icon id='main'>  Fever 模式中，持有「星夜茶会」时，协力球已达9个时，该次召唤改为自身攻击力+25%，持续20秒，可叠加。\n <icon id='main'>  Fever 结束或自身倒下时，「星夜茶会」解除。"
+            }
+          ],
+          "changed_cells": 0
+        }
+      },
+      {
+        "package": "balance",
+        "logical": "master/string/custom_ability_string.orderedmap",
+        "path": [
+          "desc_override_ruin_girl_campus_3"
+        ],
+        "status": "cell_conflict",
+        "detail": {
+          "conflicts": [
+            {
+              "row": 0,
+              "col": 0,
+              "current": " <icon id='main'>  暗属性共鸣时，Fever 模式中，当前每有1连击，暗属性角色直接攻击造成的伤害+2.5%（独立乘区）、攻击力+2.5%（均无上限）。\n <icon id='main'>  暗属性共鸣时，Fever 模式中，处于贯穿效果的时间每累计2秒，暗属性角色攻击力+10%、直接攻击伤害+10%。\n <icon id='main'>  暗属性共鸣时，暗属性角色合计每直接攻击45次，Fever 槽+15%。\n <icon id='main'>  暗属性共鸣时，每有1个协力球存在时，全队及协力球对敌人造成的直接攻击伤害+25%（独立乘区）。",
+              "before": " <icon id='main'>  暗属性共鸣时，Fever 模式中，当前每有1连击，暗属性角色直接攻击造成的伤害+2.5%（独立乘区）、攻击力+2.5%。\n <icon id='main'>  暗属性共鸣时，Fever 模式中，处于贯穿效果的时间每累计2秒，暗属性角色攻击力+10%、直接攻击伤害+10%。\n <icon id='main'>  暗属性共鸣时，暗属性角色合计每直接攻击45次，Fever 槽+15%。\n <icon id='main'>  暗属性共鸣时，每有1个协力球存在时，全队及协力球对敌人造成的直接攻击伤害+25%（独立乘区）。",
+              "after": " <icon id='main'>  暗属性共鸣时，Fever 模式中，当前每有1连击，暗属性角色直接攻击造成的伤害+2.5%（独立乘区）、攻击力+2.5%。\n <icon id='main'>  暗属性共鸣时，Fever 模式中，处于贯穿效果的时间每累计2秒，暗属性角色攻击力+5%、直接攻击伤害+10%（最多10次）。\n <icon id='main'>  暗属性共鸣时，暗属性角色合计每直接攻击45次，Fever 槽+15%。\n <icon id='main'>  暗属性共鸣时，每有1个协力球存在时，全队及协力球对敌人造成的直接攻击伤害+25%（独立乘区）。"
+            }
+          ],
+          "changed_cells": 0
+        }
+      },
+      {
+        "package": "balance",
+        "logical": "master/string/custom_ability_string.orderedmap",
+        "path": [
+          "desc_override_white_tiger_summer_1"
+        ],
+        "status": "cell_conflict",
+        "detail": {
+          "conflicts": [
+            {
+              "row": 0,
+              "col": 0,
+              "current": "战斗开始时，自身技能槽＋50%\n风属性共鸣时，强化技能『盛夏咆哮』：追加效果与能力伤害，并强制赋予自身无法消除的「假日」\n「假日」期间，风属性角色对敌人造成的能力伤害额外乘区＋20%（技能斩击本体除外）",
+              "before": " <icon id='main'>  战斗开始时，自身技能槽＋50%\n <icon id='main'>  风属性共鸣时，强化技能『盛夏咆哮』：追加效果与能力伤害，并强制赋予自身无法消除的「假日」\n <icon id='main'>  「假日」期间，风属性角色对敌人造成的能力伤害额外乘区＋20%（技能斩击本体除外）",
+              "after": " <icon id='main'>  战斗开始时，自身技能槽＋50%\n <icon id='main'>  风属性共鸣时，强化『盛夏咆哮』：追加全队贯穿与最大速度固定效果，对最近的敌人追加能力伤害，并强制赋予自身无法消除的「假日」\n <icon id='main'>  「假日」期间，风属性角色对敌人造成的能力伤害额外乘区＋20%（技能斩击本体除外）"
+            }
+          ],
+          "changed_cells": 0
+        }
+      }
+    ],
+    "media": [
+      {
+        "package": "balance",
+        "logical": "battle/action/power_flip/action/override/claude_wolf_assassin_ex_pf$claude_wolf_assassin_ex_pf_lv1.action.dsl.amf3.deflate",
+        "character_id": "129997",
+        "status": "conflict_media"
+      },
+      {
+        "package": "balance",
+        "logical": "battle/action/power_flip/action/override/claude_wolf_assassin_ex_pf$claude_wolf_assassin_ex_pf_lv2.action.dsl.amf3.deflate",
+        "character_id": "129997",
+        "status": "conflict_media"
+      },
+      {
+        "package": "balance",
+        "logical": "battle/action/power_flip/action/override/claude_wolf_assassin_ex_pf$claude_wolf_assassin_ex_pf_lv3.action.dsl.amf3.deflate",
+        "character_id": "129997",
+        "status": "conflict_media"
+      },
+      {
+        "package": "balance",
+        "logical": "battle/action/power_flip/action/override/lion_swordman_reborn_pf$lion_swordman_reborn_pf_lv2.action.dsl.amf3.deflate",
+        "character_id": "119996",
+        "status": "conflict_media"
+      },
+      {
+        "package": "balance",
+        "logical": "battle/action/power_flip/action/override/lion_swordman_reborn_pf$lion_swordman_reborn_pf_lv3.action.dsl.amf3.deflate",
+        "character_id": "119996",
+        "status": "conflict_media"
+      },
+      {
+        "package": "balance",
+        "logical": "battle/action/skill/action/rare5/claude_wolf_assassin_ex$claude_wolf_assassin_ex_1.action.dsl.amf3.deflate",
+        "character_id": "129997",
+        "status": "conflict_media"
+      },
+      {
+        "package": "balance",
+        "logical": "battle/action/skill/action/rare5/claude_wolf_assassin_ex$claude_wolf_assassin_ex_2.action.dsl.amf3.deflate",
+        "character_id": "129997",
+        "status": "conflict_media"
+      }
+    ]
+  },
+  "validation": {
+    "candidate_table_and_media_overlay": "passed",
+    "zip_crc_and_member_readback": "passed",
+    "manifest_edge_and_integrity": "passed",
+    "server_json_parse": "passed",
+    "apk_swf_changed": false,
+    "client_device_battle_tested": false,
+    "runtime_sync": "passed",
+    "cloud_delivery": false,
+    "server_operation_readback": "passed",
+    "post_apply_effective_chain": "passed; all non-conflicting package operations are already at target values",
+    "local_http_asset_check": "passed"
+  },
+  "backup": "F:\\codex\\work\\author-review-20260930\\integration-backup-final",
+  "post_apply_census": {
+    "balance-effective-122-census.json": {
+      "ready": false,
+      "counts": {
+        "client": {
+          "apply": 0,
+          "already": 297,
+          "conflict": 4
+        },
+        "media": {
+          "apply": 0,
+          "already": 116,
+          "new": 0,
+          "conflict": 7
+        },
+        "server": {
+          "apply": 0,
+          "already": 13,
+          "conflict": 0
+        }
+      },
+      "retained_conflicts": [
+        {
+          "kind": "client",
+          "logical": "master/string/custom_ability_string.orderedmap",
+          "path": [
+            "desc_override_fox_oracle_autumn"
+          ],
+          "root": null,
+          "character_id": null
+        },
+        {
+          "kind": "client",
+          "logical": "master/string/custom_ability_string.orderedmap",
+          "path": [
+            "desc_override_ruin_girl_campus_1"
+          ],
+          "root": null,
+          "character_id": null
+        },
+        {
+          "kind": "client",
+          "logical": "master/string/custom_ability_string.orderedmap",
+          "path": [
+            "desc_override_ruin_girl_campus_3"
+          ],
+          "root": null,
+          "character_id": null
+        },
+        {
+          "kind": "client",
+          "logical": "master/string/custom_ability_string.orderedmap",
+          "path": [
+            "desc_override_white_tiger_summer_1"
+          ],
+          "root": null,
+          "character_id": null
+        },
+        {
+          "kind": "media",
+          "logical": "battle/action/power_flip/action/override/claude_wolf_assassin_ex_pf$claude_wolf_assassin_ex_pf_lv1.action.dsl.amf3.deflate",
+          "path": null,
+          "root": "common",
+          "character_id": "129997"
+        },
+        {
+          "kind": "media",
+          "logical": "battle/action/power_flip/action/override/claude_wolf_assassin_ex_pf$claude_wolf_assassin_ex_pf_lv2.action.dsl.amf3.deflate",
+          "path": null,
+          "root": "common",
+          "character_id": "129997"
+        },
+        {
+          "kind": "media",
+          "logical": "battle/action/power_flip/action/override/claude_wolf_assassin_ex_pf$claude_wolf_assassin_ex_pf_lv3.action.dsl.amf3.deflate",
+          "path": null,
+          "root": "common",
+          "character_id": "129997"
+        },
+        {
+          "kind": "media",
+          "logical": "battle/action/power_flip/action/override/lion_swordman_reborn_pf$lion_swordman_reborn_pf_lv2.action.dsl.amf3.deflate",
+          "path": null,
+          "root": "common",
+          "character_id": "119996"
+        },
+        {
+          "kind": "media",
+          "logical": "battle/action/power_flip/action/override/lion_swordman_reborn_pf$lion_swordman_reborn_pf_lv3.action.dsl.amf3.deflate",
+          "path": null,
+          "root": "common",
+          "character_id": "119996"
+        },
+        {
+          "kind": "media",
+          "logical": "battle/action/skill/action/rare5/claude_wolf_assassin_ex$claude_wolf_assassin_ex_1.action.dsl.amf3.deflate",
+          "path": null,
+          "root": "common",
+          "character_id": "129997"
+        },
+        {
+          "kind": "media",
+          "logical": "battle/action/skill/action/rare5/claude_wolf_assassin_ex$claude_wolf_assassin_ex_2.action.dsl.amf3.deflate",
+          "path": null,
+          "root": "common",
+          "character_id": "129997"
+        }
+      ]
+    },
+    "fox-effective-122-census.json": {
+      "ready": true,
+      "counts": {
+        "client": {
+          "apply": 0,
+          "already": 18,
+          "conflict": 0
+        },
+        "media": {
+          "apply": 0,
+          "already": 5,
+          "new": 0,
+          "conflict": 0
+        },
+        "server": {
+          "apply": 0,
+          "already": 1,
+          "conflict": 0
+        }
+      },
+      "retained_conflicts": []
+    }
+  },
+  "runtime_sync": {
+    "schema_version": 1,
+    "status": "local_runtime_synced",
+    "synced_at": "2026-09-30T16:34:47+08:00",
+    "runtime_root": "F:\\startpoint-cn-main",
+    "backup": "F:\\startpoint-cn-main\\.codex-backups\\20260930-162528-author-balance-fox-sync",
+    "service": {
+      "http_port": 8001,
+      "tcp_port": 8003,
+      "pid": 24856
+    },
+    "files": [
+      {
+        "path": "F:\\startpoint-cn-main\\assets\\asset-patch\\manifest.json",
+        "size": 1696762,
+        "sha256": "94568968687e234124a387995dcc92bca2b810217ad1085dda8d66e790b91bdb"
+      },
+      {
+        "path": "F:\\startpoint-cn-main\\assets\\cdndata\\character_text.json",
+        "size": 450635,
+        "sha256": "e6c9933ddf4593dbcbe456a726f42f0073039abdd85537cc9559af3b7ef5bae6"
+      },
+      {
+        "path": "F:\\startpoint-cn-main\\assets\\asset-patch\\active\\pinball-1.4.121-1.4.122-1-author-balance-fox-20260930.zip",
+        "size": 1016816,
+        "sha256": "14430ddab51335c0757fc9c6357584aa79ade4766e539794bb20084514a58272"
+      }
+    ],
+    "http_asset_check": {
+      "checked_at": "2026-09-30T08:34:47.973Z",
+      "service": "http://127.0.0.1:8001",
+      "platforms": [
+        "android",
+        "ios"
+      ],
+      "from_version": "1.4.121",
+      "target_version": "1.4.122",
+      "archive": "pinball-1.4.121-1.4.122-1-author-balance-fox-20260930.zip",
+      "archive_size": 1016816,
+      "archive_sha256": "14430ddab51335c0757fc9c6357584aa79ade4766e539794bb20084514a58272",
+      "from_version_update": "passed",
+      "current_version_no_update": "passed"
+    }
+  }
+}
