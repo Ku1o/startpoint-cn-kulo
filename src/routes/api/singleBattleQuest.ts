@@ -3,7 +3,7 @@ import { FIVE_BOSS_GAUNTLET, isFiveBossGauntletQuest, isFiveBossHiddenQuest } fr
 import { continueFiveBoss, FiveBossContinueError, isFiveBossContinueRequest } from "../../multi/five-boss/continue-runtime";
 import { grantFiveBossSoloRewardsSync } from "../../multi/five-boss/solo-rewards";
 import { isFiveBossTicketShortage, sendFiveBossTicketShortage } from "../../multi/five-boss/entry-response";
-import { startFiveBossSoloSync, abortFiveBossSoloSync, getFiveBossSoloReceiptSync, isActiveFiveBossSoloSync,
+import { startFiveBossSolo, abortFiveBossSoloSync, getFiveBossSoloReceiptSync, isActiveFiveBossSoloSync,
     saveFiveBossSoloReceiptSync, getFiveBossSoloRewardMultiplierSync } from "../../multi/five-boss/solo-runtime";
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { deletePlayerActiveQuestSync, getPlayerActiveQuestSync, insertPlayerActiveQuestSync, updatePlayerActiveQuestContinueCountSync } from "../../data/domains/quest_active"
@@ -1183,7 +1183,7 @@ const routes = async (fastify: FastifyInstance) => {
             const previousMemory = activeQuests[playerId]
             let mission: MissionSettlementResult | undefined
             try {
-                startFiveBossSoloSync(playerId, body.play_id, () => {
+                await startFiveBossSolo(playerId, body.play_id, () => {
                     insertActiveQuest(playerId, {
                         questId, category, useBoostPoint: false, useBossBoostPoint: false,
                         isAutoStartMode, isMulti: false, entryItemId: FIVE_BOSS_GAUNTLET.ticketItemId,

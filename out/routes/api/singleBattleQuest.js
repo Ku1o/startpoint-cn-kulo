@@ -887,7 +887,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             const previousMemory = exports.activeQuests[playerId];
             let mission;
             try {
-                (0, solo_runtime_1.startFiveBossSoloSync)(playerId, body.play_id, () => {
+                yield (0, solo_runtime_1.startFiveBossSolo)(playerId, body.play_id, () => {
                     insertActiveQuest(playerId, {
                         questId, category, useBoostPoint: false, useBossBoostPoint: false,
                         isAutoStartMode, isMulti: false, entryItemId: contract_1.FIVE_BOSS_GAUNTLET.ticketItemId,
