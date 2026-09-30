@@ -1182,10 +1182,12 @@ function init(database, exists) {
         event_id INTEGER,
         continue_count INTEGER NOT NULL DEFAULT 0,
         started_at_ms INTEGER,
+        party_slot INTEGER,
         FOREIGN KEY (player_id) REFERENCES players (id) ON DELETE CASCADE
     )`).run();
     (0, schema_1.ensureSchemaColumn)(database, "players_active_quests.is_multi_host");
     (0, schema_1.ensureSchemaColumn)(database, "players_active_quests.started_at_ms");
+    (0, schema_1.ensureSchemaColumn)(database, "players_active_quests.party_slot");
     database.prepare(`CREATE TABLE IF NOT EXISTS leaderboard_seasons (
         competition_key TEXT PRIMARY KEY,
         season INTEGER NOT NULL DEFAULT 1,

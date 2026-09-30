@@ -73,6 +73,7 @@ function fromPersisted(row: PlayerActiveQuest): ActiveQuest {
         roomNumber: row.roomNumber ?? undefined,
         entryItemId: row.entryItemId ?? undefined,
         eventId: row.eventId ?? undefined,
+        partySlot: row.partySlot ?? undefined,
         playId: row.playId,
         continueCount: row.continueCount,
         startedAtMs: row.startedAtMs ?? undefined,

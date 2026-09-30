@@ -4,7 +4,7 @@ import { getSession } from "../../data/domains/session"
 import { getPlayerCharacterManaNodesSync, getPlayerCharactersSync, playerOwnsCharacterSync } from "../../data/domains/character"
 import { getPlayerEquipmentListSync, playerOwnsEquipmentSync } from "../../data/domains/equipment"
 import { getPlayerItemsSync } from "../../data/domains/item"
-import { updatePlayerPartySync } from "../../data/domains/party"
+import { findValidNormalPartySlotSync, updatePlayerPartySync } from "../../data/domains/party"
 import { getDb } from "../../data/db"
 import { incrementActiveMissionPartyActionCountsSync } from "../../data/domains/active_mission_counters"
 import { generateDataHeaders } from "../../utils";
@@ -731,6 +731,15 @@ const routes = async (fastify: FastifyInstance) => {
             }
         })
 
+        // A battle party cannot have an empty leader. Profile favorites are
+        // presentation-only and retain their existing empty-slot semantics.
+        if (mappedParties.some(({ party }) =>
+            party.category !== PROFILE_FAVORITE_PARTY_CATEGORY
+            && party.characterIds[0] === null,
+        )) {
+            return sendPartyResponse(reply, viewerId, {}, 2330)
+        }
+
         await runPersistenceTransaction({
             domain: "player", playerId, operation: "edit_party",
         }, () => {
@@ -746,11 +755,13 @@ const routes = async (fastify: FastifyInstance) => {
             // store full global PartyId so /load returns the correct group+slot combo
             // Editing profile favorites is independent from the battle SET selected
             // by the player. Empty edits are still used by the client to switch SETs.
+            const normalPartySlot = findValidNormalPartySlotSync(playerId, body.main_party_id)
             if ((mappedParties.length === 0 || battleParties.length > 0)
-                && player.partySlot !== body.main_party_id) {
+                && normalPartySlot !== null
+                && player.partySlot !== normalPartySlot) {
                 updatePlayerSync({
                     id: playerId,
-                    partySlot: body.main_party_id,
+                    partySlot: normalPartySlot,
                 })
             }
             for (const { parsed, party } of mappedParties) {

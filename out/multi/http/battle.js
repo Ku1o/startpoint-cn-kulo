@@ -51,6 +51,8 @@ const mana_1 = require("../../lib/mana");
 const player_context_1 = require("../player-context");
 const recruitment_1 = require("../recruitment");
 const recommended_party_history_1 = require("../../lib/quest/recommended-party-history");
+const party_1 = require("../../data/domains/party");
+const party_current_slot_1 = require("../../lib/party-current-slot");
 function buildFinishFollowInfo(requesterPlayerId_1, viewerId_1, mateResults_1) {
     return __awaiter(this, arguments, void 0, function* (requesterPlayerId, viewerId, mateResults, fallbackMateIds = []) {
         const ids = new Set();
@@ -214,7 +216,9 @@ function registerBattleRoutes(fastify) {
                 domain: "multi-settlement", playerId: ctx.playerId, operation: "start",
             }, () => {
                 (0, singleBattleQuest_1.insertActiveQuest)(ctx.playerId, activeQuest);
-                if (questData.fixedParty === undefined) {
+                if (questData.fixedParty === undefined
+                    && (0, party_current_slot_1.usesNormalCurrentPartySlot)(category)
+                    && (0, party_1.isValidNormalPartySlotSync)(ctx.playerId, party_id)) {
                     (0, player_1.updatePlayerSync)({ id: ctx.playerId, partySlot: party_id });
                 }
             });

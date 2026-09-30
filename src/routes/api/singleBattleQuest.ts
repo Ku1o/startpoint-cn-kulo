@@ -85,6 +85,8 @@ import { calculateFreeManaGrant } from "../../lib/mana";
 import { canStartAbyssQuestSync } from "../../data/domains/abyss-tower-progress";
 import { isAbyssExEndlessQuest } from "../../lib/abyss-modes";
 import { recordQuestRecommendedPartySafe } from "../../lib/quest/recommended-party-history";
+import { isValidNormalPartySlotSync } from "../../data/domains/party";
+import { usesNormalCurrentPartySlot } from "../../lib/party-current-slot";
 
 // Load carnival quest score data
 let carnivalScoreLookup: Record<string, { difficulty_score: number, time_limit_ms: number, folder_id: number, event_id: number }> = {}
@@ -243,6 +245,7 @@ export function insertActiveQuest(playerId: number, quest: ActiveQuest) {
         eventId: quest.eventId ?? null,
         continueCount: quest.continueCount,
         startedAtMs,
+        partySlot: quest.partySlot ?? null,
         questTimeRevision,
     })
 }
@@ -576,7 +579,7 @@ const routes = async (fastify: FastifyInstance) => {
             player: playerData,
             questPreviouslyCompleted,
             questProgress,
-            partySlot: playerData.partySlot,
+            partySlot: activeQuestData.partySlot ?? playerData.partySlot,
         }
 
         // Mission progress is recorded once by recordMissionBattleFacts below.
@@ -1187,9 +1190,13 @@ const routes = async (fastify: FastifyInstance) => {
                     insertActiveQuest(playerId, {
                         questId, category, useBoostPoint: false, useBossBoostPoint: false,
                         isAutoStartMode, isMulti: false, entryItemId: FIVE_BOSS_GAUNTLET.ticketItemId,
+                        partySlot: partyId,
                         playId: body.play_id, continueCount: 0,
                     })
-                    updatePlayerSync({ id: playerId, partySlot: partyId })
+                    if (usesNormalCurrentPartySlot(category)
+                        && isValidNormalPartySlotSync(playerId, partyId)) {
+                        updatePlayerSync({ id: playerId, partySlot: partyId })
+                    }
                     recordActiveMissionQuestChallengeFactSync(playerId, category)
                     mission = settleMissionCategories(playerId, [1, 2, 10], new Date(getServerTime() * 1000))
                     return true
@@ -1255,6 +1262,7 @@ const routes = async (fastify: FastifyInstance) => {
             isAutoStartMode: isAutoStartMode,
             isMulti: false,
             entryItemId: entryCost?.itemId,
+            partySlot: questData.fixedParty === undefined ? partyId : undefined,
             playId: body.play_id,
             continueCount: 0,
             startedAtMs: getServerTime() * 1000,
@@ -1295,7 +1303,11 @@ const routes = async (fastify: FastifyInstance) => {
                 } else {
                     afterStamina = currentPlayer.stamina ?? 0
                 }
-                if (questData.fixedParty === undefined) playerUpdate.partySlot = partyId
+                if (questData.fixedParty === undefined
+                    && usesNormalCurrentPartySlot(category)
+                    && isValidNormalPartySlotSync(playerId, partyId)) {
+                    playerUpdate.partySlot = partyId
+                }
                 updatePlayerSync(playerUpdate)
 
                 activeQuests[playerId] = activeQuest
@@ -1314,6 +1326,7 @@ const routes = async (fastify: FastifyInstance) => {
                     eventId: activeQuest.eventId ?? null,
                     continueCount: activeQuest.continueCount,
                     startedAtMs: activeQuest.startedAtMs ?? null,
+                    partySlot: activeQuest.partySlot ?? null,
                 })
                 recordActiveMissionQuestChallengeFactSync(playerId, category)
                 missionSettlement = settleMissionCategories(

@@ -823,6 +823,7 @@ export interface RawPlayerActiveQuest {
     event_id: number | null
     continue_count: number
     started_at_ms: number | null
+    party_slot: number | null
     quest_time_revision?: string | null
 }
 
@@ -841,5 +842,6 @@ export interface PlayerActiveQuest {
     eventId: number | null
     continueCount: number
     startedAtMs: number | null
+    partySlot?: number | null
     questTimeRevision?: string | null
 }

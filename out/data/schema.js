@@ -92,6 +92,11 @@ const schemaColumns = {
         column: "started_at_ms",
         definition: "INTEGER DEFAULT NULL",
     },
+    "players_active_quests.party_slot": {
+        table: "players_active_quests",
+        column: "party_slot",
+        definition: "INTEGER DEFAULT NULL",
+    },
     "leaderboard_seasons.content_revision": {
         table: "leaderboard_seasons",
         column: "content_revision",

@@ -78,6 +78,8 @@ import { calculateFreeManaGrant } from "../../lib/mana";
 import { resolveMultiPlayerContext } from "../player-context";
 import { validateRandomRecruitmentAttention } from "../recruitment";
 import { recordQuestRecommendedPartySafe } from "../../lib/quest/recommended-party-history";
+import { isValidNormalPartySlotSync } from "../../data/domains/party";
+import { usesNormalCurrentPartySlot } from "../../lib/party-current-slot";
 
 async function buildFinishFollowInfo(
     requesterPlayerId: number,
@@ -254,7 +256,9 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
                 domain: "multi-settlement", playerId: ctx.playerId, operation: "start",
             }, () => {
                 insertActiveQuest(ctx.playerId, activeQuest);
-                if (questData.fixedParty === undefined) {
+                if (questData.fixedParty === undefined
+                    && usesNormalCurrentPartySlot(category)
+                    && isValidNormalPartySlotSync(ctx.playerId, party_id)) {
                     updatePlayerSync({ id: ctx.playerId, partySlot: party_id });
                 }
             });

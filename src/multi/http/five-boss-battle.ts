@@ -6,6 +6,7 @@ import { getPlayerActiveQuestSync } from "../../data/domains/quest_active"
 import { FiveBossGauntletRunError, backfillMissingFinalizeSync, getFiveBossRunByClientSync } from "../../data/domains/fiveBossGauntletRun"
 import { getPlayerItemSync } from "../../data/domains/item"
 import { getPlayerSync, updatePlayerSync } from "../../data/domains/player"
+import { isValidNormalPartySlotSync } from "../../data/domains/party"
 import type { RewardPlayerCharacterExpResult } from "../../lib/types/character"
 import { generateDataHeaders, getServerTime, realToVirtual } from "../../utils"
 import { activeQuests } from "../../routes/api/singleBattleQuest"
@@ -334,7 +335,9 @@ export async function handleFiveBossStart(
             })
             // Keep the selected party update inside the same persistence owner as
             // the run ledger and active quest writes.
-            updatePlayerSync({ id: playerId, partySlot: body.party_id })
+            if (isValidNormalPartySlotSync(playerId, body.party_id)) {
+                updatePlayerSync({ id: playerId, partySlot: body.party_id })
+            }
             return result
         })
     } catch (error) {

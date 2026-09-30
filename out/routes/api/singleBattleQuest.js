@@ -74,6 +74,8 @@ const mana_1 = require("../../lib/mana");
 const abyss_tower_progress_1 = require("../../data/domains/abyss-tower-progress");
 const abyss_modes_1 = require("../../lib/abyss-modes");
 const recommended_party_history_1 = require("../../lib/quest/recommended-party-history");
+const party_1 = require("../../data/domains/party");
+const party_current_slot_1 = require("../../lib/party-current-slot");
 // Load carnival quest score data
 let carnivalScoreLookup = {};
 try {
@@ -90,7 +92,7 @@ const rush_party_categories_1 = require("../../lib/rush-party-categories");
 const continueVmoneyCost = 50;
 exports.activeQuests = {};
 function insertActiveQuest(playerId, quest) {
-    var _a, _b, _c, _d, _e;
+    var _a, _b, _c, _d, _e, _f;
     const startedAtMs = (_a = quest.startedAtMs) !== null && _a !== void 0 ? _a : (0, utils_1.getServerTime)() * 1000;
     const questTimeRevision = (0, abyss_time_revision_1.isAbyssFiniteQuest)(quest.category, quest.questId)
         ? (0, abyss_time_revision_1.getAbyssTimeRevision)(Math.floor(quest.questId / 1000)) : null;
@@ -111,6 +113,7 @@ function insertActiveQuest(playerId, quest) {
         eventId: (_e = quest.eventId) !== null && _e !== void 0 ? _e : null,
         continueCount: quest.continueCount,
         startedAtMs,
+        partySlot: (_f = quest.partySlot) !== null && _f !== void 0 ? _f : null,
         questTimeRevision,
     });
 }
@@ -244,7 +247,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         const finishResponse = yield (0, settlement_performance_1.measureSettlementPhaseAsync)("single", "transaction", () => (0, persistence_coordinator_1.runPersistenceTransaction)({
             domain: "single-quest", playerId, operation: "finish",
         }, () => {
-            var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x;
+            var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y;
             const bodyTiming = (0, single_settlement_diagnostics_1.createSingleSettlementBodyTimer)(questCategory, !!fiveBossSoloQuest);
             let bodySucceeded = false;
             try {
@@ -397,7 +400,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                     player: playerData,
                     questPreviouslyCompleted,
                     questProgress,
-                    partySlot: playerData.partySlot,
+                    partySlot: (_g = activeQuestData.partySlot) !== null && _g !== void 0 ? _g : playerData.partySlot,
                 };
                 // Mission progress is recorded once by recordMissionBattleFacts below.
                 const singleBattleParty = (0, mission_1.collectPartyCharacterIds)(finishCtx.party);
@@ -573,7 +576,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 const fiveBossSolo = fiveBossSoloQuest && questAccomplished
                     ? (0, solo_rewards_1.grantFiveBossSoloRewardsSync)({ playerId, firstClear: !(questProgress === null || questProgress === void 0 ? void 0 : questProgress.finished),
                         rewardMultiplier: (0, solo_runtime_1.getFiveBossSoloRewardMultiplierSync)(playerId, activeQuestData.playId) }) : null;
-                const itemList = Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign({}, ((_g = fiveBossSolo === null || fiveBossSolo === void 0 ? void 0 : fiveBossSolo.items) !== null && _g !== void 0 ? _g : {})), (activeQuestData.entryItemId ? { [activeQuestData.entryItemId]: (_h = (0, item_1.getPlayerItemSync)(playerId, activeQuestData.entryItemId)) !== null && _h !== void 0 ? _h : 0 } : {})), ((_j = clearReward === null || clearReward === void 0 ? void 0 : clearReward.items) !== null && _j !== void 0 ? _j : {})), ((_k = sPlusClearReward === null || sPlusClearReward === void 0 ? void 0 : sPlusClearReward.items) !== null && _k !== void 0 ? _k : {})), scoreRewardsResult.items), ((_l = rushEventRewardsResult === null || rushEventRewardsResult === void 0 ? void 0 : rushEventRewardsResult.items) !== null && _l !== void 0 ? _l : {})), ((_m = rogueDrops === null || rogueDrops === void 0 ? void 0 : rogueDrops.rewardResult.items) !== null && _m !== void 0 ? _m : {})), ((_o = carnivalRewardsResult === null || carnivalRewardsResult === void 0 ? void 0 : carnivalRewardsResult.items) !== null && _o !== void 0 ? _o : {})), ((_p = mode15RewardsResult === null || mode15RewardsResult === void 0 ? void 0 : mode15RewardsResult.items) !== null && _p !== void 0 ? _p : {}));
+                const itemList = Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign({}, ((_h = fiveBossSolo === null || fiveBossSolo === void 0 ? void 0 : fiveBossSolo.items) !== null && _h !== void 0 ? _h : {})), (activeQuestData.entryItemId ? { [activeQuestData.entryItemId]: (_j = (0, item_1.getPlayerItemSync)(playerId, activeQuestData.entryItemId)) !== null && _j !== void 0 ? _j : 0 } : {})), ((_k = clearReward === null || clearReward === void 0 ? void 0 : clearReward.items) !== null && _k !== void 0 ? _k : {})), ((_l = sPlusClearReward === null || sPlusClearReward === void 0 ? void 0 : sPlusClearReward.items) !== null && _l !== void 0 ? _l : {})), scoreRewardsResult.items), ((_m = rushEventRewardsResult === null || rushEventRewardsResult === void 0 ? void 0 : rushEventRewardsResult.items) !== null && _m !== void 0 ? _m : {})), ((_o = rogueDrops === null || rogueDrops === void 0 ? void 0 : rogueDrops.rewardResult.items) !== null && _o !== void 0 ? _o : {})), ((_p = carnivalRewardsResult === null || carnivalRewardsResult === void 0 ? void 0 : carnivalRewardsResult.items) !== null && _p !== void 0 ? _p : {})), ((_q = mode15RewardsResult === null || mode15RewardsResult === void 0 ? void 0 : mode15RewardsResult.items) !== null && _q !== void 0 ? _q : {}));
                 const characterList = [
                     ...rewardCharacterExpResult.character_list,
                     ...((clearReward === null || clearReward === void 0 ? void 0 : clearReward.character_list) || []),
@@ -601,12 +604,12 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 const finalPlayerData = (0, player_1.getPlayerSync)(playerId);
                 const responseData = {
                     "user_info": {
-                        "free_mana": (_q = finalPlayerData === null || finalPlayerData === void 0 ? void 0 : finalPlayerData.freeMana) !== null && _q !== void 0 ? _q : newMana,
-                        "exp_pool": (_r = finalPlayerData === null || finalPlayerData === void 0 ? void 0 : finalPlayerData.expPool) !== null && _r !== void 0 ? _r : rewardCharacterExpResult.exp_pool,
+                        "free_mana": (_r = finalPlayerData === null || finalPlayerData === void 0 ? void 0 : finalPlayerData.freeMana) !== null && _r !== void 0 ? _r : newMana,
+                        "exp_pool": (_s = finalPlayerData === null || finalPlayerData === void 0 ? void 0 : finalPlayerData.expPool) !== null && _s !== void 0 ? _s : rewardCharacterExpResult.exp_pool,
                         "exp_pooled_time": (0, utils_1.getServerTime)(playerData.expPooledTime),
-                        "free_vmoney": (_s = finalPlayerData === null || finalPlayerData === void 0 ? void 0 : finalPlayerData.freeVmoney) !== null && _s !== void 0 ? _s : playerData.freeVmoney,
+                        "free_vmoney": (_t = finalPlayerData === null || finalPlayerData === void 0 ? void 0 : finalPlayerData.freeVmoney) !== null && _t !== void 0 ? _t : playerData.freeVmoney,
                         "rank_point": newRankPoint,
-                        "degree_id": (_t = playerData.degreeId) !== null && _t !== void 0 ? _t : 1,
+                        "degree_id": (_u = playerData.degreeId) !== null && _u !== void 0 ? _u : 1,
                         "stamina": playerData.stamina,
                         "stamina_heal_time": (0, utils_1.realToVirtual)(playerData.staminaHealTime),
                         "boost_point": newBoostPoint,
@@ -644,9 +647,9 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                     "drop_score_reward_ids": scoreRewardsResult.drop_score_reward_ids,
                     "drop_rare_reward_ids": scoreRewardsResult.drop_rare_reward_ids,
                     "drop_additional_reward_ids": [
-                        ...((_u = fiveBossSolo === null || fiveBossSolo === void 0 ? void 0 : fiveBossSolo.dropAdditionalRewardIds) !== null && _u !== void 0 ? _u : []),
-                        ...((_v = rogueDrops === null || rogueDrops === void 0 ? void 0 : rogueDrops.additionalRewardEntries) !== null && _v !== void 0 ? _v : []),
-                        ...((_w = mode15RewardsResult === null || mode15RewardsResult === void 0 ? void 0 : mode15RewardsResult.mode15_additional_reward_ids) !== null && _w !== void 0 ? _w : []),
+                        ...((_v = fiveBossSolo === null || fiveBossSolo === void 0 ? void 0 : fiveBossSolo.dropAdditionalRewardIds) !== null && _v !== void 0 ? _v : []),
+                        ...((_w = rogueDrops === null || rogueDrops === void 0 ? void 0 : rogueDrops.additionalRewardEntries) !== null && _w !== void 0 ? _w : []),
+                        ...((_x = mode15RewardsResult === null || mode15RewardsResult === void 0 ? void 0 : mode15RewardsResult.mode15_additional_reward_ids) !== null && _x !== void 0 ? _x : []),
                     ],
                     "drop_periodic_reward_ids": [],
                     "equipment_list": [
@@ -678,7 +681,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 }
                 if (abyssEnduranceDegrees.length) {
                     responseData.degree_list = [
-                        ...((_x = responseData.degree_list) !== null && _x !== void 0 ? _x : []),
+                        ...((_y = responseData.degree_list) !== null && _y !== void 0 ? _y : []),
                         ...abyssEnduranceDegrees.map(degreeId => ({ viewer_id: viewerId, degree_id: degreeId })),
                     ];
                 }
@@ -891,9 +894,13 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                     insertActiveQuest(playerId, {
                         questId, category, useBoostPoint: false, useBossBoostPoint: false,
                         isAutoStartMode, isMulti: false, entryItemId: contract_1.FIVE_BOSS_GAUNTLET.ticketItemId,
+                        partySlot: partyId,
                         playId: body.play_id, continueCount: 0,
                     });
-                    (0, player_1.updatePlayerSync)({ id: playerId, partySlot: partyId });
+                    if ((0, party_current_slot_1.usesNormalCurrentPartySlot)(category)
+                        && (0, party_1.isValidNormalPartySlotSync)(playerId, partyId)) {
+                        (0, player_1.updatePlayerSync)({ id: playerId, partySlot: partyId });
+                    }
                     (0, active_entry_facts_1.recordActiveMissionQuestChallengeFactSync)(playerId, category);
                     mission = (0, mission_2.settleMissionCategories)(playerId, [1, 2, 10], new Date((0, utils_1.getServerTime)() * 1000));
                     return true;
@@ -961,6 +968,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             isAutoStartMode: isAutoStartMode,
             isMulti: false,
             entryItemId: entryCost === null || entryCost === void 0 ? void 0 : entryCost.itemId,
+            partySlot: questData.fixedParty === undefined ? partyId : undefined,
             playId: body.play_id,
             continueCount: 0,
             startedAtMs: (0, utils_1.getServerTime)() * 1000,
@@ -971,7 +979,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             yield (0, persistence_coordinator_1.runPersistenceTransaction)({
                 domain: "single-quest", playerId, operation: "start",
             }, () => {
-                var _a, _b, _c, _d, _e, _f, _g, _h, _j;
+                var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
                 const currentPlayer = (_a = (0, player_1.getPlayerSync)(playerId)) !== null && _a !== void 0 ? _a : player;
                 if (entryCost && entryCost.itemId > 0) {
                     const playerItemCount = (_b = (0, item_1.getPlayerItemSync)(playerId, entryCost.itemId)) !== null && _b !== void 0 ? _b : 0;
@@ -999,8 +1007,11 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 else {
                     afterStamina = (_e = currentPlayer.stamina) !== null && _e !== void 0 ? _e : 0;
                 }
-                if (questData.fixedParty === undefined)
+                if (questData.fixedParty === undefined
+                    && (0, party_current_slot_1.usesNormalCurrentPartySlot)(category)
+                    && (0, party_1.isValidNormalPartySlotSync)(playerId, partyId)) {
                     playerUpdate.partySlot = partyId;
+                }
                 (0, player_1.updatePlayerSync)(playerUpdate);
                 exports.activeQuests[playerId] = activeQuest;
                 (0, quest_active_1.insertPlayerActiveQuestSync)(playerId, {
@@ -1018,6 +1029,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                     eventId: (_h = activeQuest.eventId) !== null && _h !== void 0 ? _h : null,
                     continueCount: activeQuest.continueCount,
                     startedAtMs: (_j = activeQuest.startedAtMs) !== null && _j !== void 0 ? _j : null,
+                    partySlot: (_k = activeQuest.partySlot) !== null && _k !== void 0 ? _k : null,
                 });
                 (0, active_entry_facts_1.recordActiveMissionQuestChallengeFactSync)(playerId, category);
                 missionSettlement = (0, mission_2.settleMissionCategories)(playerId, [1, 2, 10], new Date((0, utils_1.getServerTime)() * 1000));

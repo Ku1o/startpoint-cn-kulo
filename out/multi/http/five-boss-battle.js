@@ -14,6 +14,7 @@ const quest_active_1 = require("../../data/domains/quest_active");
 const fiveBossGauntletRun_1 = require("../../data/domains/fiveBossGauntletRun");
 const item_1 = require("../../data/domains/item");
 const player_1 = require("../../data/domains/player");
+const party_1 = require("../../data/domains/party");
 const utils_1 = require("../../utils");
 const singleBattleQuest_1 = require("../../routes/api/singleBattleQuest");
 const manager_1 = require("../room/manager");
@@ -293,7 +294,9 @@ function handleFiveBossStart(body, playerId, reply) {
                 });
                 // Keep the selected party update inside the same persistence owner as
                 // the run ledger and active quest writes.
-                (0, player_1.updatePlayerSync)({ id: playerId, partySlot: body.party_id });
+                if ((0, party_1.isValidNormalPartySlotSync)(playerId, body.party_id)) {
+                    (0, player_1.updatePlayerSync)({ id: playerId, partySlot: body.party_id });
+                }
                 return result;
             });
         }

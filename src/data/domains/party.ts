@@ -5,6 +5,7 @@ import { deserializeBoolean, serializeBoolean } from "../utils";
 import { insertMissingPartyGroupListSync } from "../../lib/party-group-persistence";
 import { gameVerboseLog } from "../../lib/game-logging";
 import { runPersistenceTransactionSync } from "../../lib/persistence-coordinator";
+import { parseGlobalPartyId } from "../../lib/special-event-parties";
 
 export interface PlayerPartyDisplaySelection {
     characterIds: (number | null)[];
@@ -176,6 +177,45 @@ export function getPlayerPartyGroupListSync(
     // Log group summary
     gameVerboseLog(() => `[PARTY-READ] player=${playerId} groups=${Object.keys(final).length} totalParties=${rawParties.length}`)
     return final
+}
+
+/**
+ * The player row's party_slot is the legacy home/normal-party pointer.  Event
+ * party categories reuse the same global group/slot numbers, so callers must
+ * validate this pointer against NORMAL instead of treating its numeric range
+ * as sufficient.
+ */
+export function isValidNormalPartySlotSync(playerId: number, partySlot: number): boolean {
+    const parsed = parseGlobalPartyId(partySlot)
+    if (parsed === null) return false
+    const row = cachedStatement(getDb(), `
+        SELECT 1 AS valid
+        FROM players_parties
+        WHERE player_id = ? AND category = ? AND group_id = ? AND slot = ?
+            AND character_id_1 IS NOT NULL
+        LIMIT 1
+    `).get(playerId, PartyCategory.NORMAL, parsed.groupId, parsed.slot) as { valid: number } | undefined
+    return row?.valid === 1
+}
+
+/** Resolve a safe normal-party pointer, preferring the caller's selection. */
+export function findValidNormalPartySlotSync(
+    playerId: number,
+    preferredPartySlot?: number,
+): number | null {
+    if (preferredPartySlot !== undefined
+        && isValidNormalPartySlotSync(playerId, preferredPartySlot)) {
+        return preferredPartySlot
+    }
+    const row = cachedStatement(getDb(), `
+        SELECT group_id, slot
+        FROM players_parties
+        WHERE player_id = ? AND category = ? AND character_id_1 IS NOT NULL
+        ORDER BY group_id ASC, slot ASC
+        LIMIT 1
+    `).get(playerId, PartyCategory.NORMAL) as { group_id: number; slot: number } | undefined
+    if (!row) return null
+    return (Number(row.group_id) - 1) * 10 + Number(row.slot)
 }
 
 function insertPlayerPartySync(playerId: number, slot: number | string, groupId: number | string, party: PlayerParty) {

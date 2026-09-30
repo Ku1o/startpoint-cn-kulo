@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.countEquippedAbilitySoulSlotsSync = exports.countAbilitySoulUsedInPartiesSync = exports.updatePlayerPartyGroupSync = exports.updatePlayerPartySync = exports.ensurePlayerPartyGroupListSync = exports.insertPlayerPartyGroupListSync = exports.getPlayerPartyGroupListSync = exports.getFirstPlayerPartyDisplaySelectionsSync = void 0;
+exports.countEquippedAbilitySoulSlotsSync = exports.countAbilitySoulUsedInPartiesSync = exports.updatePlayerPartyGroupSync = exports.updatePlayerPartySync = exports.ensurePlayerPartyGroupListSync = exports.insertPlayerPartyGroupListSync = exports.findValidNormalPartySlotSync = exports.isValidNormalPartySlotSync = exports.getPlayerPartyGroupListSync = exports.getFirstPlayerPartyDisplaySelectionsSync = void 0;
 const cached_statement_1 = require("../../lib/cached-statement");
 const db_1 = require("../db");
 const types_1 = require("../types");
@@ -8,6 +8,7 @@ const utils_1 = require("../utils");
 const party_group_persistence_1 = require("../../lib/party-group-persistence");
 const game_logging_1 = require("../../lib/game-logging");
 const persistence_coordinator_1 = require("../../lib/persistence-coordinator");
+const special_event_parties_1 = require("../../lib/special-event-parties");
 const PARTY_DISPLAY_BATCH_SIZE = 900;
 function resolveEvolutionImgLevel(evolutionLevel, illustrationSettings) {
     if (evolutionLevel === null)
@@ -138,6 +139,44 @@ function getPlayerPartyGroupListSync(playerId, category = types_1.PartyCategory.
     return final;
 }
 exports.getPlayerPartyGroupListSync = getPlayerPartyGroupListSync;
+/**
+ * The player row's party_slot is the legacy home/normal-party pointer.  Event
+ * party categories reuse the same global group/slot numbers, so callers must
+ * validate this pointer against NORMAL instead of treating its numeric range
+ * as sufficient.
+ */
+function isValidNormalPartySlotSync(playerId, partySlot) {
+    const parsed = (0, special_event_parties_1.parseGlobalPartyId)(partySlot);
+    if (parsed === null)
+        return false;
+    const row = (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
+        SELECT 1 AS valid
+        FROM players_parties
+        WHERE player_id = ? AND category = ? AND group_id = ? AND slot = ?
+            AND character_id_1 IS NOT NULL
+        LIMIT 1
+    `).get(playerId, types_1.PartyCategory.NORMAL, parsed.groupId, parsed.slot);
+    return (row === null || row === void 0 ? void 0 : row.valid) === 1;
+}
+exports.isValidNormalPartySlotSync = isValidNormalPartySlotSync;
+/** Resolve a safe normal-party pointer, preferring the caller's selection. */
+function findValidNormalPartySlotSync(playerId, preferredPartySlot) {
+    if (preferredPartySlot !== undefined
+        && isValidNormalPartySlotSync(playerId, preferredPartySlot)) {
+        return preferredPartySlot;
+    }
+    const row = (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
+        SELECT group_id, slot
+        FROM players_parties
+        WHERE player_id = ? AND category = ? AND character_id_1 IS NOT NULL
+        ORDER BY group_id ASC, slot ASC
+        LIMIT 1
+    `).get(playerId, types_1.PartyCategory.NORMAL);
+    if (!row)
+        return null;
+    return (Number(row.group_id) - 1) * 10 + Number(row.slot);
+}
+exports.findValidNormalPartySlotSync = findValidNormalPartySlotSync;
 function insertPlayerPartySync(playerId, slot, groupId, party) {
     var _a, _b;
     const db = (0, db_1.getDb)();
