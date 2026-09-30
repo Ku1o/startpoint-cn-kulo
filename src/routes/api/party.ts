@@ -537,7 +537,8 @@ function sanitizeBattleParty(value: unknown): PublishedBattleParty | null {
     const unisonCharacters = sanitizeCharacterArray(value.unison_characters)
     const equipments = sanitizeEquipmentArray(value.equipments)
     const abilitySoulIds = sanitizeAbilitySoulArray(value.ability_soul_ids)
-    if (!characters || !unisonCharacters || !equipments || !abilitySoulIds) return null
+    if (!characters || characters[0] === null
+        || !unisonCharacters || !equipments || !abilitySoulIds) return null
     return {
         characters,
         unison_characters: unisonCharacters,
@@ -561,6 +562,13 @@ function sendPartyResponse(reply: FastifyReply, viewerId: number, data: unknown,
         data_headers: generateDataHeaders({ viewer_id: viewerId, result_code: resultCode }),
         data,
     })
+}
+
+function isCharacterIdTriplet(value: unknown): value is (number | null)[] {
+    return Array.isArray(value)
+        && value.length === 3
+        && value.every(id => id === null
+            || (typeof id === "number" && Number.isSafeInteger(id) && id > 0))
 }
 
 const wikiTeamCodeLookup = createTeamCodeClient()
@@ -674,6 +682,14 @@ const routes = async (fastify: FastifyInstance) => {
                 "message": "Invalid party category or party ID."
             })
         }
+        // Check the wire shape before inventory mapping or SQL bindings. Empty
+        // favorites remain legal; battle parties require exactly three slots.
+        if (body.party_info_list.some(info =>
+            info.party_category !== PROFILE_FAVORITE_PARTY_CATEGORY
+            && !isCharacterIdTriplet(info.character_ids),
+        )) {
+            return sendPartyResponse(reply, viewerId, {}, 2330)
+        }
 
         const viewerIdSession = await getSession(viewerId.toString())
         if (!viewerIdSession) return reply.status(400).send({
@@ -748,30 +764,27 @@ const routes = async (fastify: FastifyInstance) => {
             return sendPartyResponse(reply, viewerId, {}, 2330)
         }
 
-        await runPersistenceTransaction({
+        const saved = await runPersistenceTransaction({
             domain: "player", playerId, operation: "edit_party",
         }, () => {
             const battleParties = mappedParties.filter(
                 ({ party }) => party.category !== PROFILE_FAVORITE_PARTY_CATEGORY,
             )
+            const hasOwnedLeader = (id: unknown): id is number =>
+                typeof id === "number"
+                && Number.isSafeInteger(id)
+                && id > 0
+                && playerOwnsCharacterSync(playerId, id)
+            if (battleParties.some(({ party }) => !hasOwnedLeader(party.characterIds[0]))) {
+                return false
+            }
+
             let abilitySoulEquipCount = 0
             const getPreviousSouls = getDb().prepare(`
                 SELECT ability_soul_1, ability_soul_2, ability_soul_3
                 FROM players_parties
                 WHERE player_id = ? AND group_id = ? AND slot = ? AND category = ?
             `)
-            // store full global PartyId so /load returns the correct group+slot combo
-            // Editing profile favorites is independent from the battle SET selected
-            // by the player. Empty edits are still used by the client to switch SETs.
-            const normalPartySlot = findValidNormalPartySlotSync(playerId, body.main_party_id)
-            if ((mappedParties.length === 0 || battleParties.length > 0)
-                && normalPartySlot !== null
-                && player.partySlot !== normalPartySlot) {
-                updatePlayerSync({
-                    id: playerId,
-                    partySlot: normalPartySlot,
-                })
-            }
             for (const { parsed, party } of mappedParties) {
                 if (party.category !== PROFILE_FAVORITE_PARTY_CATEGORY) {
                     const previous = getPreviousSouls.get(
@@ -794,6 +807,16 @@ const routes = async (fastify: FastifyInstance) => {
                 }
                 updatePlayerPartySync(playerId, parsed.slot, party, parsed.groupId)
             }
+            // Resolve after the protected writes, so the last edit in this
+            // request is visible when repairing and selecting the same SET.
+            // Favorites remain independent; an empty batch still switches SET.
+            if (mappedParties.length === 0 || battleParties.length > 0) {
+                const normalPartySlot = findValidNormalPartySlotSync(playerId, body.main_party_id)
+                const currentPlayer = getPlayerSync(playerId)
+                if (normalPartySlot !== null && currentPlayer?.partySlot !== normalPartySlot) {
+                    updatePlayerSync({ id: playerId, partySlot: normalPartySlot })
+                }
+            }
             if (abilitySoulEquipCount > 0) {
                 addMissionCounterSync(playerId, {
                     dimension: "party.ability_soul_equip",
@@ -809,7 +832,9 @@ const routes = async (fastify: FastifyInstance) => {
                     partyCharacterSetCount: battleParties.some(({ party }) => party.characterIds.some(id => id !== null)) ? 1 : 0,
                 })
             }
+            return true
         })
+        if (!saved) return sendPartyResponse(reply, viewerId, {}, 2330)
         // A party edit can happen while the player is still on the lobby
         // screen. Drop the pre-handshake snapshot so a later reconnect reads
         // the newly persisted party instead of waiting for its TTL.

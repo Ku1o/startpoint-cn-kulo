@@ -126,6 +126,29 @@ test("inventory projection leaves missing resources empty without mutation", () 
     assert.equal(native.characters[2], null)
 })
 
+test("native party conversion rejects a projected empty leader", () => {
+    const assets = {
+        characters: new Map([[wikiPublicId("c", 1), 1]]),
+        equipment: new Map(),
+        souls: new Map(),
+        maxLevels: {},
+    }
+    const inventory = {
+        characters: {},
+        equipment: {},
+        items: {},
+        nodes: () => [],
+    }
+    assert.throws(
+        () => nativeBattleParty(
+            { main: [1, null, null], unison: [null, null, null], weapon: [null, null, null], soul: [null, null, null] },
+            inventory,
+            assets,
+        ),
+        error => error instanceof TeamCodeError && error.kind === "incompatible",
+    )
+})
+
 test("per-identity limiter expires independently", () => {
     const limiter = new TeamCodeLimiter()
     assert.equal(limiter.take("player:1", 2, 0), true)

@@ -151,9 +151,16 @@ function isValidNormalPartySlotSync(playerId, partySlot) {
         return false;
     const row = (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
         SELECT 1 AS valid
-        FROM players_parties
-        WHERE player_id = ? AND category = ? AND group_id = ? AND slot = ?
-            AND character_id_1 IS NOT NULL
+        FROM players_parties party
+        JOIN players_party_groups party_group
+            ON party_group.player_id = party.player_id
+            AND party_group.id = party.group_id
+            AND party_group.category = party.category
+        JOIN players_characters character
+            ON character.player_id = party.player_id
+            AND character.id = party.character_id_1
+        WHERE party.player_id = ? AND party.category = ?
+            AND party.group_id = ? AND party.slot = ?
         LIMIT 1
     `).get(playerId, types_1.PartyCategory.NORMAL, parsed.groupId, parsed.slot);
     return (row === null || row === void 0 ? void 0 : row.valid) === 1;
@@ -166,10 +173,17 @@ function findValidNormalPartySlotSync(playerId, preferredPartySlot) {
         return preferredPartySlot;
     }
     const row = (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
-        SELECT group_id, slot
-        FROM players_parties
-        WHERE player_id = ? AND category = ? AND character_id_1 IS NOT NULL
-        ORDER BY group_id ASC, slot ASC
+        SELECT party.group_id, party.slot
+        FROM players_parties party
+        JOIN players_party_groups party_group
+            ON party_group.player_id = party.player_id
+            AND party_group.id = party.group_id
+            AND party_group.category = party.category
+        JOIN players_characters character
+            ON character.player_id = party.player_id
+            AND character.id = party.character_id_1
+        WHERE party.player_id = ? AND party.category = ?
+        ORDER BY party.group_id ASC, party.slot ASC
         LIMIT 1
     `).get(playerId, types_1.PartyCategory.NORMAL);
     if (!row)

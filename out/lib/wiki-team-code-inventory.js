@@ -113,6 +113,10 @@ function ownedTeam(team, inventory, assets) {
 exports.ownedTeam = ownedTeam;
 function nativeBattleParty(team, inventory, assets) {
     const own = ownedTeam(team, inventory, assets);
+    // A native battle party without a projected leader cannot be consumed by
+    // the client. Reject it before reading any other character data.
+    if (own.main[0] === null)
+        throw new wiki_team_code_client_1.TeamCodeError("incompatible");
     const character = (id) => {
         if (id === null)
             return null;

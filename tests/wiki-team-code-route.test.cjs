@@ -94,7 +94,15 @@ test("existing /party/refer accepts a Wiki code without writing player data", as
 
 test("existing local 10-character party codes still use the local store", async () => {
     const localCode = publishPartySync(player.id, "本地阵容", {
-        characters: [null, null, null],
+        characters: [{
+            id: 1,
+            mana_node_ids: [],
+            evolution_level: 1,
+            exp: 0,
+            over_limit_step: 0,
+            illustration_settings: null,
+            ex_boost: null,
+        }, null, null],
         unison_characters: [null, null, null],
         equipments: [null, null, null],
         ability_soul_ids: [null, null, null],
@@ -108,6 +116,42 @@ test("existing local 10-character party codes still use the local store", async 
     const body = response.json()
     assert.equal(body.data_headers.result_code, 1)
     assert.equal(body.data.party_name, "本地阵容")
+})
+
+test("local 10-character party codes with an empty leader are rejected", async () => {
+    const localCode = publishPartySync(player.id, "空队长阵容", {
+        characters: [null, null, null],
+        unison_characters: [null, null, null],
+        equipments: [null, null, null],
+        ability_soul_ids: [null, null, null],
+    })
+    const response = await app.inject({
+        method: "POST",
+        url: "/party/refer",
+        payload: { viewer_id: viewerId, party_code: localCode },
+    })
+    assert.equal(response.statusCode, 200, response.body)
+    const body = response.json()
+    assert.equal(body.data_headers.result_code, 3403)
+    assert.deepEqual(body.data, {})
+})
+
+test("publishing a local party with an empty leader is rejected", async () => {
+    const response = await app.inject({
+        method: "POST",
+        url: "/party/publish",
+        payload: {
+            viewer_id: viewerId,
+            party_name: "空队长阵容",
+            battle_party: {
+                characters: [null, null, null],
+                unison_characters: [null, null, null],
+                equipments: [null, null, null],
+                ability_soul_ids: [null, null, null],
+            },
+        },
+    })
+    assert.equal(response.statusCode, 400, response.body)
 })
 
 test("Wiki code with an unowned leader is rejected before returning an empty leader", async () => {

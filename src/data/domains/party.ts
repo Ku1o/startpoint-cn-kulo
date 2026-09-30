@@ -190,9 +190,16 @@ export function isValidNormalPartySlotSync(playerId: number, partySlot: number):
     if (parsed === null) return false
     const row = cachedStatement(getDb(), `
         SELECT 1 AS valid
-        FROM players_parties
-        WHERE player_id = ? AND category = ? AND group_id = ? AND slot = ?
-            AND character_id_1 IS NOT NULL
+        FROM players_parties party
+        JOIN players_party_groups party_group
+            ON party_group.player_id = party.player_id
+            AND party_group.id = party.group_id
+            AND party_group.category = party.category
+        JOIN players_characters character
+            ON character.player_id = party.player_id
+            AND character.id = party.character_id_1
+        WHERE party.player_id = ? AND party.category = ?
+            AND party.group_id = ? AND party.slot = ?
         LIMIT 1
     `).get(playerId, PartyCategory.NORMAL, parsed.groupId, parsed.slot) as { valid: number } | undefined
     return row?.valid === 1
@@ -208,10 +215,17 @@ export function findValidNormalPartySlotSync(
         return preferredPartySlot
     }
     const row = cachedStatement(getDb(), `
-        SELECT group_id, slot
-        FROM players_parties
-        WHERE player_id = ? AND category = ? AND character_id_1 IS NOT NULL
-        ORDER BY group_id ASC, slot ASC
+        SELECT party.group_id, party.slot
+        FROM players_parties party
+        JOIN players_party_groups party_group
+            ON party_group.player_id = party.player_id
+            AND party_group.id = party.group_id
+            AND party_group.category = party.category
+        JOIN players_characters character
+            ON character.player_id = party.player_id
+            AND character.id = party.character_id_1
+        WHERE party.player_id = ? AND party.category = ?
+        ORDER BY party.group_id ASC, party.slot ASC
         LIMIT 1
     `).get(playerId, PartyCategory.NORMAL) as { group_id: number; slot: number } | undefined
     if (!row) return null

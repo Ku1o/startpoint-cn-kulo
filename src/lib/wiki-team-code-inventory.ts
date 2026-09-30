@@ -137,6 +137,9 @@ export function nativeBattleParty(
     assets: TeamAssets,
 ) {
     const own = ownedTeam(team, inventory, assets)
+    // A native battle party without a projected leader cannot be consumed by
+    // the client. Reject it before reading any other character data.
+    if (own.main[0] === null) throw new TeamCodeError("incompatible")
     const character = (id: number | null) => {
         if (id === null) return null
         const data = inventory.characters[id]
