@@ -1,0 +1,120 @@
+{
+  "patch_id": "cursed-weapon-awakening-icon-preload-1.4.129",
+  "base_version": "1.4.128",
+  "version": "1.4.129",
+  "source_archive": "pinball-1.4.122-1.4.123-1-author-weapons-fiveboss-20261001.zip",
+  "source_archive_sha256": "967dd40c45a9b5c7c6ad0ba164a2a413b82217c33fa0e3f510ac0a760ea02a06",
+  "item_id": 10000311,
+  "thumbnail_logical": "item/materials/mod/cursed/forbidden_star_steel",
+  "source_icon_logical": "item/materials/mod/cursed/forbidden_star_steel.png",
+  "source_icon_sha256": "a7cd320e7ebb8ceecdb2c6452be16322606cab7526974c89118506179b97c035",
+  "source_icon_dimensions": [
+    20,
+    20
+  ],
+  "baseline_sheet_dimensions": [
+    505,
+    1836
+  ],
+  "output_sheet_dimensions": [
+    505,
+    1858
+  ],
+  "baseline_frame_count": 1525,
+  "output_frame_count": 1526,
+  "added_frame": {
+    "n": "item/materials/mod/cursed/forbidden_star_steel",
+    "w": 20,
+    "h": 20,
+    "x": 1,
+    "y": 1837
+  },
+  "baseline_pixels_preserved": true,
+  "baseline_frame_metadata_preserved": true,
+  "source_icon_pixels_preserved": true,
+  "item_table_changed": false,
+  "common_android_ios_pair": true,
+  "platform_atf_required": false,
+  "output_members": [
+    {
+      "logical": "item/sprite_sheet.png",
+      "member": "production/upload/6d/4d576b424178c5b2b253a2dd5aa3d78fa74ef3",
+      "sha256": "91e5af97a4901425d9ed3b06b2f724ae20b3b6527079dfba3697d807e1c014a2"
+    },
+    {
+      "logical": "item/sprite_sheet.atlas.amf3.deflate",
+      "member": "production/upload/7b/5e0efc0e0691038ca52fe282501dfd3a1b5ae3",
+      "sha256": "11b2ccb9a8069691e21d2c9ef5fa2a9e8d744273014a135ecdf8bd11ad048d38"
+    }
+  ],
+  "validation": "static atlas decode, PNG signature, pixel preservation and archive readback; no device test",
+  "archive": {
+    "id": "cursed-weapon-awakening-icon-preload-1.4.129",
+    "type": "patch",
+    "name": "诅咒武器觉醒素材缩略图预加载修复",
+    "description": "将禁忌星铁已有的 20×20 原图补入常驻 item/sprite_sheet 图集，修复觉醒弹窗同步取图 C8004；不改玩法表或服务端。",
+    "version": "1.4.129",
+    "depends_on": "1.4.128",
+    "enabled": true,
+    "candidate_only": true,
+    "archive": "pinball-1.4.128-1.4.129-1-cursed-weapon-awakening-icon-preload-20261002.zip",
+    "archive_size": 761417,
+    "files": [
+      "production/upload/6d/4d576b424178c5b2b253a2dd5aa3d78fa74ef3",
+      "production/upload/7b/5e0efc0e0691038ca52fe282501dfd3a1b5ae3"
+    ],
+    "changes": [
+      "保留当前 1525 个物品图集帧及全部原始像素，仅追加 item/materials/mod/cursed/forbidden_star_steel。",
+      "复用现有禁忌星铁 PNG 像素，补齐 DialogVariationTitleView 的同步预加载闭包。",
+      "common PNG 与 atlas 同时供 Android 和 iOS 使用，不增加平台专属 ATF。"
+    ],
+    "created_at": "2026-10-02",
+    "audit": {
+      "directory": "assets/asset-patch/audit/cursed-weapon-awakening-icon-preload-1.4.129",
+      "report": "report.json"
+    },
+    "archive_integrity": [
+      {
+        "name": "pinball-1.4.128-1.4.129-1-cursed-weapon-awakening-icon-preload-20261002.zip",
+        "size": 761417,
+        "sha256": "552b61e793ef9605b88355d36d388f9ebb19f708807291cc703f6e59d79df80d",
+        "members": 2
+      }
+    ],
+    "chain": [
+      "pinball-1.4.128-1.4.129-1-cursed-weapon-awakening-icon-preload-20261002.zip"
+    ]
+  },
+  "manifest_registration": {
+    "path": "assets/asset-patch/manifest.json",
+    "before_sha256": "7167e4e6c60b0addd2054cf21c6a90ba8b38d0588d2a395f2329e917e99b1f81",
+    "after_sha256": "44dc3496d74b592c7bef1f229623f02e2cddc849d301852f25a1701ad4482173",
+    "before_cdn_version": "1.4.128",
+    "after_cdn_version": "1.4.129",
+    "prior_entry_count": 89,
+    "final_entry_count": 90,
+    "appended_id": "cursed-weapon-awakening-icon-preload-1.4.129",
+    "preexisting_worktree_changes_preserved": true,
+    "runtime_sync": false
+  },
+  "static_validation": {
+    "archive_sha256": "552b61e793ef9605b88355d36d388f9ebb19f708807291cc703f6e59d79df80d",
+    "archive_size": 761417,
+    "zip_member_count": 2,
+    "zip_crc_passed": true,
+    "baseline_sheet_dimensions": [
+      505,
+      1836
+    ],
+    "output_sheet_dimensions": [
+      505,
+      1858
+    ],
+    "baseline_frame_count": 1525,
+    "output_frame_count": 1526,
+    "baseline_pixels_preserved": true,
+    "added_frame_pixels_preserved": true,
+    "stored_png_signature": true,
+    "c4_atlas_frame_present": true
+  }
+}

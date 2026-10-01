@@ -1,5 +1,5 @@
 {
-  "cdn_version": "1.4.128",
+  "cdn_version": "1.4.129",
   "patches": [
     {
       "id": "base-1.4.54-to-1.4.55-mod07141843",
@@ -24804,6 +24804,43 @@
         "fb2_affix$sig_king_seal 与 fb2_affix$sig_king_purge 的自定义 Repeat 上限分别由 1500、1800 帧收敛为 1000 帧。"
       ],
       "created_at": "2026-10-02"
+    },
+    {
+      "id": "cursed-weapon-awakening-icon-preload-1.4.129",
+      "type": "patch",
+      "name": "诅咒武器觉醒素材缩略图预加载修复",
+      "description": "将禁忌星铁已有的 20×20 原图补入常驻 item/sprite_sheet 图集，修复觉醒弹窗同步取图 C8004；不改玩法表或服务端。",
+      "version": "1.4.129",
+      "depends_on": "1.4.128",
+      "enabled": true,
+      "candidate_only": true,
+      "archive": "pinball-1.4.128-1.4.129-1-cursed-weapon-awakening-icon-preload-20261002.zip",
+      "archive_size": 761417,
+      "files": [
+        "production/upload/6d/4d576b424178c5b2b253a2dd5aa3d78fa74ef3",
+        "production/upload/7b/5e0efc0e0691038ca52fe282501dfd3a1b5ae3"
+      ],
+      "changes": [
+        "保留当前 1525 个物品图集帧及全部原始像素，仅追加 item/materials/mod/cursed/forbidden_star_steel。",
+        "复用现有禁忌星铁 PNG 像素，补齐 DialogVariationTitleView 的同步预加载闭包。",
+        "common PNG 与 atlas 同时供 Android 和 iOS 使用，不增加平台专属 ATF。"
+      ],
+      "created_at": "2026-10-02",
+      "audit": {
+        "directory": "assets/asset-patch/audit/cursed-weapon-awakening-icon-preload-1.4.129",
+        "report": "report.json"
+      },
+      "archive_integrity": [
+        {
+          "name": "pinball-1.4.128-1.4.129-1-cursed-weapon-awakening-icon-preload-20261002.zip",
+          "size": 761417,
+          "sha256": "552b61e793ef9605b88355d36d388f9ebb19f708807291cc703f6e59d79df80d",
+          "members": 2
+        }
+      ],
+      "chain": [
+        "pinball-1.4.128-1.4.129-1-cursed-weapon-awakening-icon-preload-20261002.zip"
+      ]
     }
   ],
   "generated_for": "official active chain"
