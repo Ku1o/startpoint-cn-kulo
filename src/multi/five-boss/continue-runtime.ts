@@ -37,7 +37,12 @@ function stableJson(value: unknown): string {
     return JSON.stringify(value) ?? "null"
 }
 
-/** Debit and count commit together. Native HTTP retries keep api_count and statistics. */
+/**
+ * Debit and count commit together. A legacy client can resend a recovery
+ * request with a new api_count/statistics pair after a scene transition or
+ * reconnect. Once a receipt exists, acknowledge that resend without charging
+ * again; the old client has no local business-error path for a 400 response.
+ */
 function continueFiveBossInTransaction(input: ContinueRequest) {
     const apiCount = Number(input.apiCount)
     if (!isFiveBossGauntletQuest(input.category, input.questId)
@@ -71,9 +76,13 @@ function continueFiveBossInTransaction(input: ContinueRequest) {
         const receipt = db.prepare(`SELECT request_key FROM five_boss_continue_receipts
             WHERE player_id = ? AND play_id = ? AND is_multi = ?`)
             .get(input.playerId, playId, Number(input.isMulti)) as { request_key: string } | undefined
-        if (receipt && receipt.request_key !== requestKey
-            || !receipt && active.continueCount >= FIVE_BOSS_GAUNTLET.maxContinueCount) {
+        if (!receipt && active.continueCount >= FIVE_BOSS_GAUNTLET.maxContinueCount) {
             throw new FiveBossContinueError("Each player can continue only once per five-boss run.")
+        }
+        if (receipt && active.continueCount < FIVE_BOSS_GAUNTLET.maxContinueCount) {
+            // Repair a stale active-quest row left by an interrupted recovery;
+            // the receipt is authoritative and no second debit is allowed.
+            updatePlayerActiveQuestContinueCountSync(input.playerId, FIVE_BOSS_GAUNTLET.maxContinueCount)
         }
         const player = getPlayerSync(input.playerId)
         if (!player) throw new FiveBossContinueError("Player does not exist.")

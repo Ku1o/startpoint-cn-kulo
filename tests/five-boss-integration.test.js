@@ -1176,8 +1176,12 @@ test('solo continue costs 50 once for the whole run; retry, new start and recove
         delete load('routes/api/singleBattleQuest').activeQuests[p.id]
         assert.equal((await send(payload)).statusCode, 200)
         assert.equal(load('routes/api/singleBattleQuest').activeQuests[p.id].continueCount, 1)
-        assert.equal((await send(continuePayload(p, 11))).statusCode, 400)
-        assert.equal((await send({ ...payload, statistics: { continue_count: 1, playthrough_frame: 9000 } })).statusCode, 400)
+        // A legacy client can resend after a scene transition with a changed
+        // api_count/statistics pair. The existing receipt makes this a
+        // no-charge recovery acknowledgement instead of an H400 response.
+        assert.equal((await send(continuePayload(p, 11))).statusCode, 200)
+        assert.equal((await send({ ...payload, statistics: { continue_count: 1, playthrough_frame: 9000 } })).statusCode, 200)
+        assert.equal(active.getPlayerActiveQuestSync(p.id).continueCount, 1)
         assert.equal((await send({ ...payload, quest_id: 1099003 })).statusCode, 400)
         assert.deepEqual(wallet(p), [0, 80])
         solo.abortFiveBossSoloSync(p.id, p.playId)
@@ -1216,18 +1220,18 @@ test('multiplayer each member gets one paid continue across level_next, start re
             const request = ${JSON.stringify({ playerId: host.id, isMulti: true, category: mode.category,
                 questId: mode.visibleQuestId, playId: host.playId, apiCount: 10, statistics: payload.statistics })};
             assert.equal(continueFiveBossSync(request).continue_count, 1);
-            assert.throws(() => continueFiveBossSync({ ...request, apiCount: 11 }), /only once/);
+            assert.equal(continueFiveBossSync({ ...request, apiCount: 11 }).continue_count, 1);
             require(${JSON.stringify(path.join(output, 'data/db'))}).getDb().close();
             process.stdout.write('fresh-process-continue-passed');
             process.exit(0);`
         const childResult = require('node:child_process').execFileSync(process.execPath, ['-e', childCode], {
             env: { ...process.env, DATA_DIR: dataDir }, timeout: 15000, encoding: 'utf8' })
         assert.match(childResult, /fresh-process-continue-passed/)
-        assert.equal((await send(continuePayload(host, 11))).statusCode, 400)
+        assert.equal((await send(continuePayload(host, 11))).statusCode, 200)
         assert.equal((await send(continuePayload(guest), guestApp)).statusCode, 200)
         assert.deepEqual(wallet(host), [50, 20]); assert.deepEqual(wallet(guest), [50, 20])
         assert.equal(active.getPlayerActiveQuestSync(guest.id).continueCount, 1)
-        assert.equal((await send(continuePayload(guest, 12), guestApp)).statusCode, 400)
+        assert.equal((await send(continuePayload(guest, 12), guestApp)).statusCode, 200)
         ledger.recordMemberBattleSignalSync({ runId: room.five_boss_runtime.runId, playerId: host.id,
             roomNumber: room.room_number, signal: 'finalize' })
         assert.equal((await send(payload)).statusCode, 400)

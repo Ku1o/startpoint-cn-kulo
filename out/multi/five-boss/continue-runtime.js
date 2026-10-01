@@ -34,7 +34,12 @@ function stableJson(value) {
     }
     return (_a = JSON.stringify(value)) !== null && _a !== void 0 ? _a : "null";
 }
-/** Debit and count commit together. Native HTTP retries keep api_count and statistics. */
+/**
+ * Debit and count commit together. A legacy client can resend a recovery
+ * request with a new api_count/statistics pair after a scene transition or
+ * reconnect. Once a receipt exists, acknowledge that resend without charging
+ * again; the old client has no local business-error path for a 400 response.
+ */
 function continueFiveBossInTransaction(input) {
     const apiCount = Number(input.apiCount);
     if (!(0, contract_1.isFiveBossGauntletQuest)(input.category, input.questId)
@@ -68,9 +73,13 @@ function continueFiveBossInTransaction(input) {
         const receipt = db.prepare(`SELECT request_key FROM five_boss_continue_receipts
             WHERE player_id = ? AND play_id = ? AND is_multi = ?`)
             .get(input.playerId, playId, Number(input.isMulti));
-        if (receipt && receipt.request_key !== requestKey
-            || !receipt && active.continueCount >= contract_1.FIVE_BOSS_GAUNTLET.maxContinueCount) {
+        if (!receipt && active.continueCount >= contract_1.FIVE_BOSS_GAUNTLET.maxContinueCount) {
             throw new FiveBossContinueError("Each player can continue only once per five-boss run.");
+        }
+        if (receipt && active.continueCount < contract_1.FIVE_BOSS_GAUNTLET.maxContinueCount) {
+            // Repair a stale active-quest row left by an interrupted recovery;
+            // the receipt is authoritative and no second debit is allowed.
+            (0, quest_active_1.updatePlayerActiveQuestContinueCountSync)(input.playerId, contract_1.FIVE_BOSS_GAUNTLET.maxContinueCount);
         }
         const player = (0, player_1.getPlayerSync)(input.playerId);
         if (!player)
