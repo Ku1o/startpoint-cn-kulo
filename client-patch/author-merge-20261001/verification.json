@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "status": "user_accepted_offline_record",
+  "artifact": {
+    "apk": "F:/codex/outputs/author-merge-lan-20261001-public1047/StarPoint-CN-1.8.1-author-merge-lan-public1047-20261001-dd83f336.apk",
+    "apk_sha256": "a0a9f4e9c2fe88a413c7047d90206da70cadfabea9e7ad0d10f7471d18bac413",
+    "embedded_swf_sha256": "44585d8ff12cb83e4bf718d7765b00f0f29f21bbd039c23b8e047d1b320b4eb1",
+    "uniqueappversionid": "dd83f336-3595-4fe9-a0e5-80cbd9ebc28f",
+    "endpoint": "http://<LAN_HOST>:8001",
+    "admission_id": "android-181-author-1047-20260925"
+  },
+  "lineage": {
+    "base_apk_sha256": "85dbc5728e3dd74fee0989638c77b4f10641ced6e3da3be856db3e5409afb4fc",
+    "base_swf_sha256": "ccb5200545e9949e24d18c3b7be994fc6f033428255b94d7e4d405c794ff80a6",
+    "layers": [
+      "equipment-rules",
+      "equipment-description-override",
+      "equipment-enhanced-look",
+      "equipment-enhanced-party-frame",
+      "equipment-awakening-material",
+      "equipment-sort-pin",
+      "item-rarity-frame-override"
+    ],
+    "changed_existing_methods": 14,
+    "added_helper_methods": 6,
+    "removed_methods": 0
+  },
+  "checks": {
+    "signer_certificate_sha256": "569d19a3578d4cba16e3d6e7ad8ccab4fa667efc758deef6c9be3adb99919894",
+    "zipalign": true,
+    "v1_signature": true,
+    "v2_signature": true,
+    "non_target_members_preserved": true,
+    "endpoint_rewrites": 9,
+    "device_tested_by_codex": false,
+    "runtime_verified": false
+  },
+  "acceptance": {
+    "status": "user_accepted",
+    "recorded_on": "2026-10-01",
+    "codex_device_tested": false
+  }
+}
