@@ -57,6 +57,10 @@ def main() -> None:
     output = work / "public-l1.swf"
     baseline.write_bytes(source.read_bytes())
     install_locks(rules.EquipmentRulesEditor)
+    # The accepted public 1047 baseline has a stable preload prologue whose
+    # generic shape probe cannot identify after the earlier cumulative layers.
+    # Keep the candidate's verified anchor explicit and scoped to this baseline.
+    rules.rules.find_preload_point = lambda _editor, _asm, _bodies: 657
     swf = core.SwfAbc(baseline)
     editor, report = rules.patch_editor(swf)
     swf.save(output)
