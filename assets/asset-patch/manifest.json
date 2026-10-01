@@ -1,5 +1,5 @@
 {
-  "cdn_version": "1.4.127",
+  "cdn_version": "1.4.128",
   "patches": [
     {
       "id": "base-1.4.54-to-1.4.55-mod07141843",
@@ -24759,6 +24759,51 @@
         "只更新 master/ability/ability.orderedmap；不修改角色文本、主动技能、SWF、服务端或准入配置。"
       ],
       "created_at": "2026-10-01"
+    },
+    {
+      "id": "five-boss-c8016-preload-frame-cap-1.4.128",
+      "type": "patch",
+      "name": "五重决战 C8016 预载与计时修复",
+      "description": "为暗属性深界王补入风属性骷髅犬炮击的预载垫片，并将两个自定义印记循环上限收敛到 1000 帧，修复 enemy_shot_cannon_green 预载缺项和过长循环风险。",
+      "version": "1.4.128",
+      "depends_on": "1.4.127",
+      "enabled": true,
+      "candidate_only": true,
+      "archive": "pinball-1.4.127-1.4.128-1-five-boss-c8016-preload-frame-cap-20261001.zip",
+      "archive_size": 359466,
+      "archive_integrity": [
+        {
+          "name": "pinball-1.4.127-1.4.128-1-five-boss-c8016-preload-frame-cap-20261001.zip",
+          "size": 359466,
+          "sha256": "ea3ceb51f3ad0faf7eba7978224855dac8a5e8adf867ac7a975818b150922af3",
+          "members": 4,
+          "files": [
+            "production/upload/55/0e78143229f8bac85b8c33a0b9563c857d108e",
+            "production/upload/f1/922d6e8f156f08fa526170b956659c6dc40f3b",
+            "production/upload/f5/21b86f382364c0dea96fadaeb7ac8d98b63f80",
+            "production/upload/ec/d8f66b60947ca05643c4080a6cc925c750b9d6"
+          ]
+        }
+      ],
+      "files": [
+        "production/upload/55/0e78143229f8bac85b8c33a0b9563c857d108e",
+        "production/upload/f1/922d6e8f156f08fa526170b956659c6dc40f3b",
+        "production/upload/f5/21b86f382364c0dea96fadaeb7ac8d98b63f80",
+        "production/upload/ec/d8f66b60947ca05643c4080a6cc925c750b9d6"
+      ],
+      "chain": [
+        "pinball-1.4.127-1.4.128-1-five-boss-c8016-preload-frame-cap-20261001.zip"
+      ],
+      "audit": {
+        "directory": "assets/asset-patch/audit/five-boss-c8016-preload-frame-cap-1.4.128",
+        "report": "report.json"
+      },
+      "changes": [
+        "mod_fb2_051_deep_king_w10 至 mod_fb2_057_deep_king_w10 的空闲 action39 接入固定风属性的 funnel_lich_wind_expert 预载垫片，深界王暗属性保持不变。",
+        "新增 fb2_preload$deep_king_funnel_lich_wind_expert_0，递归覆盖骷髅犬炮击所需的风属性特效变体。",
+        "fb2_affix$sig_king_seal 与 fb2_affix$sig_king_purge 的自定义 Repeat 上限分别由 1500、1800 帧收敛为 1000 帧。"
+      ],
+      "created_at": "2026-10-02"
     }
   ],
   "generated_for": "official active chain"
