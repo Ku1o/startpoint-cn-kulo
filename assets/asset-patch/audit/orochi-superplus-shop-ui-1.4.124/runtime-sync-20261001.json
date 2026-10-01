@@ -2,8 +2,8 @@
   "task": "orochi-superplus-shop-ui-1.4.124",
   "sourceRoot": "F:\\codex\\startpoint-cn-private-clean",
   "runtimeRoot": "F:\\startpoint-cn-main",
-  "backup": "F:\\startpoint-cn-main\\.codex-backups\\20261001-195857-orochi-1.4.124-remove-failed-rescue",
-  "serverPid": 22616,
+  "backup": "F:\\startpoint-cn-main\\.codex-backups\\20261001-201215-orochi-1.4.124-committed-manifest",
+  "serverPid": 22448,
   "port": 8001,
   "paths": [
     "assets/asset-patch/manifest.json",
@@ -28,5 +28,6 @@
     "模拟器战斗/UI验收",
     "带正式客户端准入的版本更新请求",
     "云服部署"
-  ]
+  ],
+  "manifestRuntimeHash": "8acae3025205a0c2f2ee2d7d157fe520997c931ba34bf14ac4a74366d37d9733"
 }
