@@ -69910,6 +69910,24 @@
       "availableFrom": "2025-06-12 12:00:00",
       "availableUntil": "2025-06-26 23:59:59",
       "stock": 5
+    },
+    "202049": {
+      "costs": [
+        {
+          "id": 40193,
+          "amount": 500
+        }
+      ],
+      "rewards": [
+        {
+          "type": 3,
+          "id": 129990,
+          "count": 1
+        }
+      ],
+      "availableFrom": "2000-01-01 00:00:00",
+      "availableUntil": null,
+      "stock": 1
     }
   },
   "21": {

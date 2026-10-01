@@ -1,0 +1,45 @@
+{
+  "status": "prepared_for_merge",
+  "base_tail": "1.4.123",
+  "target_edge": "1.4.123->1.4.124",
+  "manifest_modified": false,
+  "active_archive_modified": false,
+  "shop": {
+    "category": 20,
+    "shop_item_id": 202049,
+    "currency_item_id": 40193,
+    "currency_amount": 500,
+    "reward_type": 3,
+    "reward_character_id": 129990,
+    "reward_count": 1,
+    "stock": 1,
+    "available_from": "2000-01-01 00:00:00",
+    "available_until": null,
+    "acquisition_index": "omitted_by_request"
+  },
+  "server_files": {
+    "assets\\boss_coin_shop.json": "6ea117ad9776c4282e0deb39ccf19af20c2879568936de125fb59769b1a81ce6",
+    "assets\\boss_coin_shop_item_category_map.json": "0b95e2e5db521ea2fba78f646598d8150d1b7268c2895672ed3fb7fe3655b1b8",
+    "assets\\cdndata\\boss_coin_shop.json": "3d8b1f537268347323a8c7f107f36dcbac5075baabadc70cbec7691988193856"
+  },
+  "client_payload": {
+    "logical": "master/shop/boss_coin_shop.orderedmap",
+    "member": "production/upload/a5/35aaa48a5290e76d07c40e497742e4a407a0d0",
+    "before_sha256": "998d41e6fb436b8371bd6af7bff3f369d024124d28f4b2f574050a3a22e3abcb",
+    "after_sha256": "e0a62161fd78fab8e720a800d53f5c47da4b692acf151ceee4149b519769db75",
+    "before_rows": 6575,
+    "after_rows": 6576,
+    "appended_key": "202049",
+    "archive": "orochi-shop-sealball-payload-1.4.123-1.4.124.zip",
+    "archive_sha256": "2af3a458a8c2694282ff4764208c406ffa1e26073569dcb47e27c92e00abdd72",
+    "archive_size": 813922
+  },
+  "checks": [
+    "server shop row and category map added",
+    "cdndata mirror row added",
+    "effective 1.4.123 client table read through live CDN chain",
+    "orderedmap round-trip preserved all existing keys/rows and appended 202049",
+    "payload ZIP has one safe production/upload member and passes testzip",
+    "manifest and active directory intentionally untouched; parent merges payload into the single .123->.124 edge"
+  ]
+}

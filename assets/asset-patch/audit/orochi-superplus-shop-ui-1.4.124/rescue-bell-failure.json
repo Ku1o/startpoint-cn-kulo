@@ -1,0 +1,6 @@
+{
+  "status": "unresolved_after_emulator_retest",
+  "logical": "battle/common/attention/hud_attention_label.parts.amf3.deflate",
+  "attempt_payload_sha256": "ae22aa9378937c8328dfe6e51a81e81a445a3230685eadfdfe736f0226c34a54",
+  "note": "结构回读通过，但模拟器显示仍与修复前一致；该 payload 已从 1.4.124 可交付 ZIP 排除。"
+}

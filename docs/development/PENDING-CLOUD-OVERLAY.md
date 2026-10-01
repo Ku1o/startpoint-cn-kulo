@@ -295,3 +295,11 @@
 - 新号分别为 `android-181-author-1043-20260924` 和 `ios-184-author-1043-20260924`。原有 `android-181-independent-party-20260923`、`ios-184-independent-party-20260923` 及各自密钥继续启用，无新增淘汰期限，严格模式保持。
 - 本批需同时交付资源运行文件和完整 `config/client-admission.json`、`config/client-admission.keys.json`。完整准入配对由仓库外私有主记录提供，不纳入 Git，也不覆盖准入 rollout/激活状态。客户端 APK/IPA 不放入服务器覆盖包。
 - 双端公网成品通过离线载荷与配对检查；iOS 未真机测试。覆盖配套并重启服务端后使用新包登录；无依赖或数据库迁移。本地成品、提交或同步均不代表云服已部署。
+
+## 八岐大蛇超级+与商店/UI修复（1.4.124，待后续授权交付）
+
+- 由 1.4.123 衔接生成单一增量 `pinball-1.4.123-1.4.124-1-orochi-superplus-shop-ui-20261001.zip`，登记为 1.4.124 candidate-only；包含八岐大蛇超级+韧性 50 倍、蛇头重生冷却 300 帧、蛇神残响商店兑换与货币列表补齐。
+- 商店商品 202049 为 500 个蛇神残响兑换角色 129990 海豹球×1，库存 1，永久有效；按当前要求不加入“如何获得”索引。
+- 救援铃铛展开红框的“超级+”问题经模拟器复测仍未修复，失败尝试不纳入本次可交付 ZIP；后续需单独排查。
+- 当前可交付 ZIP 4 个成员，SHA-256 `2efdb302c36fc582a5fff4282a25e2d5af62a57d1290f1b9678498e4b753318d`。没有修改 SWF、APK/IPA；本地运行目录已同步并重启，云服仍待后续授权交付。
+- 后续授权交付时使用 source `assets/asset-patch/active/` 中的最终 ZIP、manifest 和商店服务端三份源文件；审计位于 `assets/asset-patch/audit/orochi-superplus-shop-ui-1.4.124/`。

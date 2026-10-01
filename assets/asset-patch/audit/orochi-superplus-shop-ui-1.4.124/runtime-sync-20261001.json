@@ -1,0 +1,32 @@
+{
+  "task": "orochi-superplus-shop-ui-1.4.124",
+  "sourceRoot": "F:\\codex\\startpoint-cn-private-clean",
+  "runtimeRoot": "F:\\startpoint-cn-main",
+  "backup": "F:\\startpoint-cn-main\\.codex-backups\\20261001-195857-orochi-1.4.124-remove-failed-rescue",
+  "serverPid": 22616,
+  "port": 8001,
+  "paths": [
+    "assets/asset-patch/manifest.json",
+    "assets/asset-patch/active/pinball-1.4.123-1.4.124-1-orochi-superplus-shop-ui-20261001.zip",
+    "assets/boss_coin_shop.json",
+    "assets/boss_coin_shop_item_category_map.json",
+    "assets/cdndata/boss_coin_shop.json"
+  ],
+  "runtimeShopAccessor": "202049 -> category 20; 40193 x500 -> character 129990 x1; stock 1; availableUntil null",
+  "httpArchive": {
+    "status": 200,
+    "bytes": 837749,
+    "sha256": "2efdb302c36fc582a5fff4282a25e2d5af62a57d1290f1b9678498e4b753318d"
+  },
+  "checks": [
+    "每个同步路径源/运行端 SHA-256 一致",
+    "运行端 Node accessor 读取新增商店商品",
+    "8001 直接 GET .124 ZIP 并核对 SHA-256",
+    "本地 8001 已重启加载静态商店 JSON"
+  ],
+  "notRun": [
+    "模拟器战斗/UI验收",
+    "带正式客户端准入的版本更新请求",
+    "云服部署"
+  ]
+}

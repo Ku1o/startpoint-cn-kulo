@@ -1,0 +1,16 @@
+{
+  "logical": "master/quest/boss_battle_stage_node.orderedmap",
+  "member": "production/upload/97/efacb322621f7bf6671dad3bdf7bdc55cb350b",
+  "source_archive": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.122-1.4.123-1-author-weapons-fiveboss-20261001.zip",
+  "before_size": 8069,
+  "before_sha256": "85d7f0658de34e9d6fa7b2161a204aaa0de28d7feba2b50e63830b293e6660a3",
+  "after_size": 8067,
+  "after_sha256": "52eb6a4378ddfd81e6aebbc9a05044fb1d16de86930681178003dfc43aef6520",
+  "change": {
+    "row": "1/20",
+    "drop_item_index": 10,
+    "before": "(None)",
+    "after": "40193"
+  },
+  "sha1_path": "97efacb322621f7bf6671dad3bdf7bdc55cb350b"
+}
