@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "status": "passed",
+  "checked_at": "2026-10-01T16:23:36+08:00",
+  "scope": "in_place_candidate_repair",
+  "resource_edge": {
+    "from": "1.4.122",
+    "to": "1.4.123",
+    "archive": "pinball-1.4.122-1.4.123-1-author-weapons-fiveboss-20261001.zip",
+    "archive_size": 9159838,
+    "archive_sha256": "967dd40c45a9b5c7c6ad0ba164a2a413b82217c33fa0e3f510ac0a760ea02a06",
+    "members": 259,
+    "next_increment_generated": false
+  },
+  "shop_reference": {
+    "product_id": "990099001",
+    "reward_equipment_id": 5900101,
+    "logical_thumbnail": "item/equipment/mod/five_boss/deathbringer_final_shop",
+    "shop_thumbnail_member": "production/upload/0d/227c8e7bcb1222c7cb2d4fb82ace96fe605cef",
+    "source_new_lv0_member": "production/upload/f0/de168aad4299c068f3427535f469a49ff9cbbb",
+    "source_and_shop_bytes_equal": true,
+    "shop_thumbnail_size": 436,
+    "shop_thumbnail_sha256": "ceca3cd41df61c5b30d854bb3e101a1816fafd1d834d79faf512a608499afb00",
+    "previous_effective_chain_sha256": "f5a8bf6cc2aee87ae13b8a4da25edaddf5982b5712b2f21566e8063e33119f47",
+    "new_expected_sha256": "ceca3cd41df61c5b30d854bb3e101a1816fafd1d834d79faf512a608499afb00"
+  },
+  "manifest": {
+    "version": "1.4.123",
+    "candidate_only": true,
+    "archive_size_matches": true,
+    "archive_sha256_matches": true,
+    "member_count_matches": true,
+    "new_member_list_count": 1
+  },
+  "unchanged": {
+    "shop_id_price_and_reward_data": true,
+    "existing_258_archive_members": true,
+    "version_edge_and_dependency": true,
+    "runtime_sync": false,
+    "commit_or_push": false
+  }
+}
