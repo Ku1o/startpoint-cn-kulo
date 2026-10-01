@@ -346,13 +346,21 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                     getEntries: (pid) => (0, player_1.getPlayerDailyChallengePointListSync)(pid),
                     updatePoint: (pid, id, pt) => (0, player_1.updatePlayerDailyChallengePointSync)(pid, id, pt),
                 });
+                // 五重单人使用独立奖励计划，不再叠加 1099001 的旧 score reward 组
+                // （其中包含猫头鹰货币及其稀有池）。多人专用结算也不走这条普通奖励链。
+                const effectiveScoreRewardGroupId = fiveBossSoloQuest
+                    ? undefined
+                    : questData.scoreRewardGroupId;
+                const effectiveScoreRewardGroup = fiveBossSoloQuest
+                    ? undefined
+                    : questData.scoreRewardGroup;
                 // reward score rewards
                 if (isScoreAttackEvent) {
                     (0, game_logging_1.gameVerboseLog)(() => `[SCORE_ATTACK] questId=${questId} body={score:${body.score}, elapsed:${body.elapsed_time_ms}, accomplished:${body.is_accomplished}, addMana:${body.add_mana}, continue:${body.continue_count}}`);
                     (0, game_logging_1.gameVerboseLog)(() => `[SCORE_ATTACK] questData={localQuest:${questData.scoreAttackQuestId}, bRank:${questData.bRankScore}, aRank:${questData.aRankScore}, sRank:${questData.sRankScore}, ssRank:${questData.ssRankScore}, rankPt:${questData.rankPointReward}, charExp:${questData.characterExpReward}, mana:${questData.manaReward}, poolExp:${questData.poolExpReward}}`);
                 }
-                (0, game_logging_1.gameVerboseLog)(() => { var _a, _b; return `[BATTLE] scoreReward groupId=${questData.scoreRewardGroupId} groupLen=${(_b = (_a = questData.scoreRewardGroup) === null || _a === void 0 ? void 0 : _a.length) !== null && _b !== void 0 ? _b : 'null'} questId=${questId} category=${questCategory}`; });
-                const scoreRewardsResult = (0, quest_2.givePlayerScoreRewardsSync)(playerId, questData.scoreRewardGroupId, questData.scoreRewardGroup, useBoostPoint, questData.element, { questId, mode: "solo" });
+                (0, game_logging_1.gameVerboseLog)(() => { var _a; return `[BATTLE] scoreReward groupId=${effectiveScoreRewardGroupId !== null && effectiveScoreRewardGroupId !== void 0 ? effectiveScoreRewardGroupId : (fiveBossSoloQuest ? 'skipped-five-boss-solo' : 'null')} groupLen=${(_a = effectiveScoreRewardGroup === null || effectiveScoreRewardGroup === void 0 ? void 0 : effectiveScoreRewardGroup.length) !== null && _a !== void 0 ? _a : 'null'} questId=${questId} category=${questCategory}`; });
+                const scoreRewardsResult = (0, quest_2.givePlayerScoreRewardsSync)(playerId, effectiveScoreRewardGroupId, effectiveScoreRewardGroup, useBoostPoint, questData.element, { questId, mode: "solo" });
                 let scoreAttackEventData = null;
                 if (isScoreAttackEvent) {
                     const previousHighScore = (_f = questProgress === null || questProgress === void 0 ? void 0 : questProgress.highScore) !== null && _f !== void 0 ? _f : 0;

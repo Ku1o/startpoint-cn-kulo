@@ -438,7 +438,12 @@ test('solo full-manual rewards use the whole-run AUTO record and replay exactly 
         assert.equal(solo.getFiveBossSoloRewardMultiplierSync(p.id, p.playId), 2)
         const result = await app.inject({ method: 'POST', url: '/quest/finish', payload: httpFinish(p) })
         assert.equal(result.statusCode, 200, result.body)
-        assert.equal(result.json().data.item_list['10000145'], 10)
+        const data = result.json().data
+        assert.equal(data.item_list['10000145'], 10)
+        assert.equal(items.getPlayerItemSync(p.id, 40001), null)
+        assert.equal(items.getPlayerItemSync(p.id, 40002), null)
+        assert.deepEqual(data.drop_score_reward_ids, [])
+        assert.deepEqual(data.drop_rare_reward_ids, [])
         const exp = characters.getPlayerCharacterSync(p.id, 111001).exp
         const again = await app.inject({ method: 'POST', url: '/quest/finish', payload: httpFinish(p) })
         assert.deepEqual(again.json(), result.json())

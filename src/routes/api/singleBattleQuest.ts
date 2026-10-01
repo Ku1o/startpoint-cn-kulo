@@ -511,16 +511,24 @@ const routes = async (fastify: FastifyInstance) => {
             updatePoint: (pid, id, pt) => updatePlayerDailyChallengePointSync(pid, id, pt),
         })
 
+        // 五重单人使用独立奖励计划，不再叠加 1099001 的旧 score reward 组
+        // （其中包含猫头鹰货币及其稀有池）。多人专用结算也不走这条普通奖励链。
+        const effectiveScoreRewardGroupId = fiveBossSoloQuest
+            ? undefined
+            : questData.scoreRewardGroupId
+        const effectiveScoreRewardGroup = fiveBossSoloQuest
+            ? undefined
+            : questData.scoreRewardGroup
         // reward score rewards
         if (isScoreAttackEvent) {
             gameVerboseLog(() => `[SCORE_ATTACK] questId=${questId} body={score:${body.score}, elapsed:${body.elapsed_time_ms}, accomplished:${body.is_accomplished}, addMana:${body.add_mana}, continue:${body.continue_count}}`)
             gameVerboseLog(() => `[SCORE_ATTACK] questData={localQuest:${questData.scoreAttackQuestId}, bRank:${questData.bRankScore}, aRank:${questData.aRankScore}, sRank:${questData.sRankScore}, ssRank:${questData.ssRankScore}, rankPt:${questData.rankPointReward}, charExp:${questData.characterExpReward}, mana:${questData.manaReward}, poolExp:${questData.poolExpReward}}`)
         }
-        gameVerboseLog(() => `[BATTLE] scoreReward groupId=${questData.scoreRewardGroupId} groupLen=${questData.scoreRewardGroup?.length ?? 'null'} questId=${questId} category=${questCategory}`)
+        gameVerboseLog(() => `[BATTLE] scoreReward groupId=${effectiveScoreRewardGroupId ?? (fiveBossSoloQuest ? 'skipped-five-boss-solo' : 'null')} groupLen=${effectiveScoreRewardGroup?.length ?? 'null'} questId=${questId} category=${questCategory}`)
         const scoreRewardsResult = givePlayerScoreRewardsSync(
             playerId,
-            questData.scoreRewardGroupId,
-            questData.scoreRewardGroup,
+            effectiveScoreRewardGroupId,
+            effectiveScoreRewardGroup,
             useBoostPoint,
             questData.element,
             { questId, mode: "solo" },
