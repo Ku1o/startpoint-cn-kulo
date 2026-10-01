@@ -99,8 +99,21 @@ test('990004 keeps special cursed weapons and only official weapon-pool entries'
     assert.equal(target.pool['1'].find(row => row.id === 5920001).odds, 0);
 
     const patch = manifest.patches.find(item => item.id === 'cursed-weapon-pool-20261001');
-    assert.equal(manifest.cdn_version, '1.4.126');
+    assert.ok(patch.enabled);
     assert.equal(patch.version, '1.4.125');
     assert.equal(patch.depends_on, '1.4.124');
     assert.equal(patch.archive, archiveName);
+
+    // Later resource fixes may extend the chain while this pool stays effective.
+    let version = patch.version;
+    const visited = new Set();
+    while (version !== manifest.cdn_version) {
+        assert.ok(!visited.has(version), `cycle after cursed weapon patch at ${version}`);
+        visited.add(version);
+        const nextVersions = [...new Set(manifest.patches
+            .filter(item => item.enabled && item.depends_on === version)
+            .map(item => item.version))];
+        assert.equal(nextVersions.length, 1, `missing or ambiguous successor for ${version}`);
+        version = nextVersions[0];
+    }
 });
