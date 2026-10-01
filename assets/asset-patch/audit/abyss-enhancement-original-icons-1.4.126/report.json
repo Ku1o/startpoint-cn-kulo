@@ -1,0 +1,186 @@
+{
+  "schema": "abyss-enhancement-original-icons/v1",
+  "status": "built_verified",
+  "patch_id": "abyss-enhancement-original-icons-1.4.126",
+  "base_version": "1.4.125",
+  "target_version": "1.4.126",
+  "source": {
+    "manifest_before_sha256": "8c617df0e1eb3ecea91d96ad50c2f3075a11926495090b5ceea56c2b5de13c17",
+    "manifest_after_sha256": "d891db0290a76a1d60a1b62b0b7546bf5215c80b0bb6ab6215be0c17668b3690",
+    "chain_tail": "1.4.125",
+    "table_archive": "pinball-1.4.122-1.4.123-1-author-weapons-fiveboss-20261001.zip",
+    "table_member": "production/upload/3f/7deacd3130269e59c5b44a9bd68901be13e960",
+    "equipment_archive": "pinball-1.4.122-1.4.123-1-author-weapons-fiveboss-20261001.zip",
+    "equipment_member": "production/upload/49/a073fdd109e00ac9daf801113cb5e19f64a8cf"
+  },
+  "logical_path": "master/equipment_enhancement/equipment_enhancement.orderedmap",
+  "target_equipment_ids": [
+    8000101,
+    8000102,
+    8000103,
+    8000104,
+    8000105,
+    8000106,
+    8000107,
+    8000108,
+    8000109,
+    8000110,
+    8000111,
+    8000112,
+    8000113,
+    8000114,
+    8000115
+  ],
+  "rows_total": 83,
+  "rows_changed": 15,
+  "changes": [
+    {
+      "equipment_id": 8000101,
+      "before_path": "item/equipment/mod/abyss/fire_01_lv120",
+      "after_path": "item/equipment/mod/abyss/fire_01",
+      "before_row_sha256": "f65a06fd961da104243b587accc00100f27dcfc0adbfb362f3e69e70eb89a615",
+      "after_row_sha256": "947054b470eae6fdcd702a9f1da921c378f5ca5b0e38687869ae61ccb354ac5f",
+      "changed_column": 4
+    },
+    {
+      "equipment_id": 8000102,
+      "before_path": "item/equipment/mod/abyss/fire_02_lv120",
+      "after_path": "item/equipment/mod/abyss/fire_02",
+      "before_row_sha256": "4e2c1c12f090bcc28a9190dff222a8fc8937971aa8e93cced6703707184e5fa0",
+      "after_row_sha256": "6d50b4da0c02b9ba574b21f83fce99b36d84b66019a90ec7c5c08ecf7652ce2c",
+      "changed_column": 4
+    },
+    {
+      "equipment_id": 8000103,
+      "before_path": "item/equipment/mod/abyss/water_01_lv120",
+      "after_path": "item/equipment/mod/abyss/water_01",
+      "before_row_sha256": "e2586dc31559d7c7423b9ceb3d809be7ff698055b77f80c0507f6c64c215cdf3",
+      "after_row_sha256": "7ef114d124fb08c31b7148c6c5efb43b4053771ef04264cdbfadadb6ceb63d86",
+      "changed_column": 4
+    },
+    {
+      "equipment_id": 8000104,
+      "before_path": "item/equipment/mod/abyss/water_02_lv120",
+      "after_path": "item/equipment/mod/abyss/water_02",
+      "before_row_sha256": "370bb52d37420ad60f45a45586f963f564ec41211139a1f0bbab61f557ac4851",
+      "after_row_sha256": "9f224e116ae7f722f6576a7090bc808713b400dd64cb013db24076745f4628f5",
+      "changed_column": 4
+    },
+    {
+      "equipment_id": 8000105,
+      "before_path": "item/equipment/mod/abyss/thunder_01_lv120",
+      "after_path": "item/equipment/mod/abyss/thunder_01",
+      "before_row_sha256": "3744d13034f7fc2f9a2619b6ff3b16606afc4b3ae5826bfb6efb0ec008ddeafa",
+      "after_row_sha256": "ea1435b10bd983065f35e93dbafe91363db07067141f5a8d43b72c21815e2731",
+      "changed_column": 4
+    },
+    {
+      "equipment_id": 8000106,
+      "before_path": "item/equipment/mod/abyss/thunder_02_lv120",
+      "after_path": "item/equipment/mod/abyss/thunder_02",
+      "before_row_sha256": "eea45311c77844e866f0faf3ecfded086710f333a85b51855c0b4c91fc9faaf4",
+      "after_row_sha256": "ffe4233bcdc63996b5138a1d7b70af07a57a841bd89c221c3e4c8ae78bd4c670",
+      "changed_column": 4
+    },
+    {
+      "equipment_id": 8000107,
+      "before_path": "item/equipment/mod/abyss/wind_01_lv120",
+      "after_path": "item/equipment/mod/abyss/wind_01",
+      "before_row_sha256": "bdf0947900f60622f72f578339cbf30ede63a4a6fc234284cd8fee0bec8588ed",
+      "after_row_sha256": "b7a9b5819f97418e17b310445ca5e7546232ac5624ad39eb57ff96b2e8457f27",
+      "changed_column": 4
+    },
+    {
+      "equipment_id": 8000108,
+      "before_path": "item/equipment/mod/abyss/wind_02_lv120",
+      "after_path": "item/equipment/mod/abyss/wind_02",
+      "before_row_sha256": "5a2d4133738dc66bf33472956e78d9c5633a39e2b34fa9fa390b703426df2e71",
+      "after_row_sha256": "2dc68579aaab897e117c7ad1e79e8d65aa1e73cd20be97dbc58068a2861700fd",
+      "changed_column": 4
+    },
+    {
+      "equipment_id": 8000109,
+      "before_path": "item/equipment/mod/abyss/light_01_lv120",
+      "after_path": "item/equipment/mod/abyss/light_01",
+      "before_row_sha256": "dd8a7612e2df5b1c831b80608a7d9d1c0194644d780b7d80c7242ef9dd707ddb",
+      "after_row_sha256": "3ee44b6958b4a578a1d7b0d3811a277ce4040eb10e3803342a6d096e702f8bf8",
+      "changed_column": 4
+    },
+    {
+      "equipment_id": 8000110,
+      "before_path": "item/equipment/mod/abyss/light_02_lv120",
+      "after_path": "item/equipment/mod/abyss/light_02",
+      "before_row_sha256": "616ae6ca29133433d21f7e953c96c73315a988c58a30014a5359931d98896a44",
+      "after_row_sha256": "18e2de2d1d669e0adf52e6fbe74f35b9ac475eb6316a0ee46cf34a0ac6093d12",
+      "changed_column": 4
+    },
+    {
+      "equipment_id": 8000111,
+      "before_path": "item/equipment/mod/abyss/dark_01_lv120",
+      "after_path": "item/equipment/mod/abyss/dark_01",
+      "before_row_sha256": "567b8ac19bf26c082c355e7ea1d1ba2e624ac4014d1a4906ee2926ba94d88730",
+      "after_row_sha256": "95d05e676d05da9e74cc16f48725b90cf2053e17f98f1704c641a64662d98116",
+      "changed_column": 4
+    },
+    {
+      "equipment_id": 8000112,
+      "before_path": "item/equipment/mod/abyss/dark_02_lv120",
+      "after_path": "item/equipment/mod/abyss/dark_02",
+      "before_row_sha256": "88fb5584c4d27758aa05e7bdae057ce19e635115a4c84051f6abe05e63b21e38",
+      "after_row_sha256": "2c6098b9998bebc07c5d9ed469892615cdd83a3ac7c6953ec5616f70430feae3",
+      "changed_column": 4
+    },
+    {
+      "equipment_id": 8000113,
+      "before_path": "item/equipment/mod/abyss/universal_01_lv120",
+      "after_path": "item/equipment/mod/abyss/universal_01",
+      "before_row_sha256": "7bff9cd5e6ca97525f9ac6150651531a33fb3eaf7f3c164896b1df969f1538a7",
+      "after_row_sha256": "d32f26a3294c1707148ea6b2bd8e2fe5bd75cd878c0560f7a697d573125fdeff",
+      "changed_column": 4
+    },
+    {
+      "equipment_id": 8000114,
+      "before_path": "item/equipment/mod/abyss/universal_02_lv120",
+      "after_path": "item/equipment/mod/abyss/universal_02",
+      "before_row_sha256": "d68da5c8b08882655920b288939520174cdf737c3b7b6439d554e6951099af9a",
+      "after_row_sha256": "c4b0c72d5522ea55d6cbb6cf8d3b0094f44edf90e9a53b40a054b28875fe7612",
+      "changed_column": 4
+    },
+    {
+      "equipment_id": 8000115,
+      "before_path": "item/equipment/mod/abyss/universal_03_lv120",
+      "after_path": "item/equipment/mod/abyss/universal_03",
+      "before_row_sha256": "aa570775740d78fd254a3f4d2fa2c96f09f605ba0e43945d7da522a277989f8b",
+      "after_row_sha256": "c29a7c85f77079df67cccd515d372eddd8eeb0ba149a1e492e7e6d49b0cb1dd6",
+      "changed_column": 4
+    }
+  ],
+  "archive": {
+    "name": "pinball-1.4.125-1.4.126-1-abyss-enhancement-original-icons-20261001.zip",
+    "size": 14776,
+    "sha256": "31b736745ad2e1c9a98801446a22ec9e64e856baf65f7962e163b2f801cd0be3",
+    "members": 1,
+    "files": [
+      "production/upload/3f/7deacd3130269e59c5b44a9bd68901be13e960"
+    ]
+  },
+  "verification": {
+    "archive_crc_ok": true,
+    "archive_member_readback_equal": true,
+    "target_rows_all_repointed": true,
+    "target_row_only_column_4_changed": true,
+    "untouched_orderedmap_rows_byte_identical": true,
+    "equipment_base_paths_used": true,
+    "source_runtime_sync": false,
+    "device_ui_test": false
+  },
+  "save_impact": "none: icon-path-only client resource table change; no saved IDs, schema, rewards or acquisition changes",
+  "delivery": {
+    "source_archive_written": true,
+    "manifest_updated": true,
+    "runtime_sync": false,
+    "commit": false,
+    "push": false,
+    "cloud_overlay": false
+  }
+}

@@ -1,5 +1,5 @@
 {
-  "cdn_version": "1.4.124",
+  "cdn_version": "1.4.126",
   "patches": [
     {
       "id": "base-1.4.54-to-1.4.55-mod07141843",
@@ -24639,6 +24639,87 @@
       ],
       "created_at": "2026-10-01",
       "candidate_only": true
+    },
+    {
+      "id": "cursed-weapon-pool-20261001",
+      "type": "patch",
+      "name": "诅咒武器池按武器扭蛋收敛",
+      "description": "保留死亡使者概率UP、29把诅咒武器和PARADOX；其余条目收敛到现行装备扭蛋25043的可抽武器列表。",
+      "version": "1.4.125",
+      "depends_on": "1.4.124",
+      "enabled": true,
+      "archive": "pinball-1.4.124-1.4.125-1-cursed-weapon-pool-20261001.zip",
+      "archive_size": 2337,
+      "archive_integrity": [
+        {
+          "name": "pinball-1.4.124-1.4.125-1-cursed-weapon-pool-20261001.zip",
+          "size": 2337,
+          "sha256": "f661d4330f5c6ac2aed7c4dbb21c617536ad4889ac6a92d0852449780403ad67",
+          "members": 3,
+          "files": [
+            "production/upload/9a/519eae06b5d10d0169fdb864dbddc0462b3cfd",
+            "production/upload/c1/bd23ceee5536ffe22b0380aee50d8fa1b02632",
+            "production/upload/d6/20f722c0927974936396f664359987a95c2e60"
+          ]
+        }
+      ],
+      "files": [
+        "production/upload/9a/519eae06b5d10d0169fdb864dbddc0462b3cfd",
+        "production/upload/c1/bd23ceee5536ffe22b0380aee50d8fa1b02632",
+        "production/upload/d6/20f722c0927974936396f664359987a95c2e60"
+      ],
+      "chain": [
+        "pinball-1.4.124-1.4.125-1-cursed-weapon-pool-20261001.zip"
+      ],
+      "audit": {
+        "directory": "assets/asset-patch/audit/cursed-weapon-pool-20261001",
+        "report": "report.json"
+      },
+      "changes": [
+        "990004 五星池保留死亡使者概率UP、29把诅咒武器、PARADOX及25043中的16把五星武器。",
+        "990004 四星池收敛为25043中的24把武器，三星池收敛为25043中的30把武器。",
+        "客户端同步裁剪五星、四星、三星武器概率表，保留现有权重和诅咒武器的客户端UP显示。"
+      ],
+      "created_at": "2026-10-01",
+      "candidate_only": true
+    },
+    {
+      "id": "abyss-enhancement-original-icons-1.4.126",
+      "type": "patch",
+      "name": "深渊武器强化回指原版图标",
+      "description": "15 把深渊武器的强化主表图标路径由 *_lv120 回指对应基础图标；保留强化等级、词条、消耗和其他客户端资源。",
+      "version": "1.4.126",
+      "depends_on": "1.4.125",
+      "enabled": true,
+      "candidate_only": true,
+      "archive": "pinball-1.4.125-1.4.126-1-abyss-enhancement-original-icons-20261001.zip",
+      "archive_size": 14776,
+      "archive_integrity": [
+        {
+          "name": "pinball-1.4.125-1.4.126-1-abyss-enhancement-original-icons-20261001.zip",
+          "size": 14776,
+          "sha256": "31b736745ad2e1c9a98801446a22ec9e64e856baf65f7962e163b2f801cd0be3",
+          "members": 1,
+          "files": [
+            "production/upload/3f/7deacd3130269e59c5b44a9bd68901be13e960"
+          ]
+        }
+      ],
+      "files": [
+        "production/upload/3f/7deacd3130269e59c5b44a9bd68901be13e960"
+      ],
+      "chain": [
+        "pinball-1.4.125-1.4.126-1-abyss-enhancement-original-icons-20261001.zip"
+      ],
+      "audit": {
+        "directory": "assets/asset-patch/audit/abyss-enhancement-original-icons-1.4.126",
+        "report": "report.json"
+      },
+      "changes": [
+        "8000101–8000115 共 15 行的 pixelart0 图标路径改为对应 equipment 基础图标。",
+        "强化等级、强化词条、消耗、装备主表和其他 orderedmap 行保持不变。"
+      ],
+      "created_at": "2026-10-01"
     }
   ],
   "generated_for": "official active chain"
