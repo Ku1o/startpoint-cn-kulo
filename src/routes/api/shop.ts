@@ -17,7 +17,11 @@ import { generateDataHeaders, getServerDate, getServerTime, realToVirtual } from
 import { givePlayerRewardsSync } from "../../lib/quest";
 import { computeRealTimeStamina } from "../../lib/stamina";
 import { clientSerializeEquipment } from "../../lib/equipment";
-import { findCurrentEquipmentEnhancementStage, planEquipmentEnhancementPurchase } from "../../lib/equipment-enhancement";
+import {
+    findCurrentEquipmentEnhancementStage,
+    planEquipmentEnhancementPurchase,
+    resolveEquipmentEnhancementPurchaseMode,
+} from "../../lib/equipment-enhancement";
 import CDN_GENERAL_SHOP_WHITELIST from "../../../assets/cdn_general_shop_whitelist.json";
 import { gameVerboseLog } from "../../lib/game-logging";
 import { reconcileAwakeUnlockCharacterList } from "../../lib/mission";
@@ -464,7 +468,10 @@ const routes = async (fastify: FastifyInstance) => {
                 stageMaxLevel,
                 currentEquipment.level,
                 requiredAwakeningLevel,
-                shopItemData.enhancementPurchaseMode,
+                resolveEquipmentEnhancementPurchaseMode(
+                    shopCategoryId,
+                    shopItemData.enhancementPurchaseMode,
+                ),
             )
             if (!plan.ok) return reply.status(400).send({
                 "error": "Bad Request",

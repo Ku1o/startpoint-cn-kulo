@@ -928,7 +928,8 @@ const routes = async (fastify: FastifyInstance) => {
                     ...(rushEventRewardsResult?.equipment_list || []),
                     ...(rogueDrops?.rewardResult.equipment_list || []),
                     ...(carnivalRewardsResult?.equipment_list || []),
-                    ...(mode15RewardsResult?.equipment_list || [])
+                    ...(mode15RewardsResult?.equipment_list || []),
+                    ...(fiveBossSolo?.equipment_list ?? [])
                 ],
                 "category_id": body.category,
                 "start_time": dataHeaders['servertime'],

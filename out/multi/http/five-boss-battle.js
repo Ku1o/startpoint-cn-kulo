@@ -13,8 +13,10 @@ exports.handleFiveBossAbort = exports.handleFiveBossFinish = exports.handleFiveB
 const quest_active_1 = require("../../data/domains/quest_active");
 const fiveBossGauntletRun_1 = require("../../data/domains/fiveBossGauntletRun");
 const item_1 = require("../../data/domains/item");
+const equipment_1 = require("../../data/domains/equipment");
 const player_1 = require("../../data/domains/player");
 const party_1 = require("../../data/domains/party");
+const equipment_2 = require("../../lib/equipment");
 const utils_1 = require("../../utils");
 const singleBattleQuest_1 = require("../../routes/api/singleBattleQuest");
 const manager_1 = require("../room/manager");
@@ -201,6 +203,29 @@ function finishItemList(result, playerId) {
         ];
     }));
 }
+/** 旧 receipt 在武器掉落字段加入前已经落盘；缺失时按当年无武器处理。 */
+function receiptGrantedEquipment(result) {
+    if (result.kind !== "success")
+        return [];
+    const granted = result.reward.grantedEquipment;
+    return Array.isArray(granted) ? granted : [];
+}
+/** 按 receipt 的命中顺序去重，回读当前持有状态，保证重放不重复发放。 */
+function finishEquipmentList(result, playerId) {
+    if (result.kind !== "success")
+        return [];
+    const seen = new Set();
+    const list = [];
+    for (const equipmentId of receiptGrantedEquipment(result)) {
+        if (seen.has(equipmentId))
+            continue;
+        seen.add(equipmentId);
+        const owned = (0, equipment_1.getPlayerEquipmentSync)(playerId, equipmentId);
+        if (owned)
+            list.push((0, equipment_2.clientSerializeEquipment)(equipmentId, owned));
+    }
+    return list;
+}
 function buildFinishData(player, body, result, dataHeaders, matePlayerResult, followInfo, exp) {
     var _a, _b, _c, _d;
     return {
@@ -236,10 +261,13 @@ function buildFinishData(player, body, result, dataHeaders, matePlayerResult, fo
         drop_score_reward_ids: [],
         drop_rare_reward_ids: [],
         drop_additional_reward_ids: result.kind === "success"
-            ? (0, rewards_1.buildFiveBossAdditionalRewardDrops)(result.reward.grantedItems)
+            ? [
+                ...(0, rewards_1.buildFiveBossAdditionalRewardDrops)(result.reward.grantedItems),
+                ...(0, rewards_1.buildFiveBossWeaponAdditionalRewardDrops)(receiptGrantedEquipment(result)),
+            ]
             : [],
         drop_periodic_reward_ids: [],
-        equipment_list: [],
+        equipment_list: finishEquipmentList(result, player.id),
         category_id: body.category,
         start_time: dataHeaders.servertime,
         is_multi: "multi",

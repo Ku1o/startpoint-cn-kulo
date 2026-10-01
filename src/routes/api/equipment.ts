@@ -12,7 +12,10 @@ import { getPlayerSync } from "../../data/domains/player";
 import { getSession } from "../../data/domains/session";
 import { generateDataHeaders, getServerTime } from "../../utils";
 import { clientSerializeEquipment, buildFullEquipmentList } from "../../lib/equipment";
-import { getEquipmentDissolveSync, getConfigSync, getEquipmentCraftSync } from "../../lib/assets";
+import {
+    getEquipmentDissolveSync, getConfigSync, getEquipmentCraftSync, getEquipmentAwakeningRulesSync,
+} from "../../lib/assets";
+import { checkAwakeningItem } from "../../lib/equipment-awakening-rules";
 import { AccountId, PlayerId } from "../../lib/types";
 import { resolvePlayerIdSync } from "../../data/activeAccount";
 import { addMissionCounterSync, setMissionCounterMaxSync } from "../../lib/mission/counters";
@@ -82,6 +85,8 @@ function mergeEquipmentDegreeSettlement(
 }
 
 const routes = async (fastify: FastifyInstance) => {
+    // Parse once at registration so a malformed awakening asset stops startup.
+    const awakeningRules = getEquipmentAwakeningRulesSync()
 
     // ── upgrade (single equipment awakening) ───────────────────────────
     fastify.post("/upgrade", async (request: FastifyRequest, reply: FastifyReply) => {
@@ -108,6 +113,8 @@ const routes = async (fastify: FastifyInstance) => {
         if (!useStack && !canUseAwakeningSubstitutionItem(equipmentId)) {
             return reply.status(400).send({ error: "Bad Request", message: "This equipment requires duplicate bodies for awakening." })
         }
+        const itemCheck = checkAwakeningItem(awakeningRules, { equipmentId, useStack, itemId })
+        if (!itemCheck.ok) return reply.status(400).send({ "error": "Bad Request", "message": itemCheck.message })
 
         const cdnInfo = getEquipmentDissolveSync(equipmentId)
         const maxLevel = cdnInfo?.max_level ?? 5

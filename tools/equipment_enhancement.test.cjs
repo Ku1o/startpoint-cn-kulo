@@ -5,15 +5,31 @@ const enhancementShop = require("../assets/equipment_enhancement_shop.json")
 const {
     findCurrentEquipmentEnhancementStage,
     planEquipmentEnhancementPurchase,
+    resolveEquipmentEnhancementPurchaseMode,
 } = require("../out/lib/equipment-enhancement")
 
-test("enhancement purchase keeps the one-material stage benefit", () => {
+test("unmarked enhancement purchases default to per-level charging", () => {
     assert.deepEqual(planEquipmentEnhancementPurchase(1, 11, 12, 1, 1), {
+        ok: true,
+        newLevel: 12,
+        chargedPurchaseAmount: 11,
+        grantedLevelCount: 11,
+    })
+})
+
+test("official enhancement rows retain the explicit stage benefit", () => {
+    assert.deepEqual(planEquipmentEnhancementPurchase(1, 11, 12, 1, 1, "stage_benefit"), {
         ok: true,
         newLevel: 12,
         chargedPurchaseAmount: 1,
         grantedLevelCount: 11,
     })
+    assert.equal(resolveEquipmentEnhancementPurchaseMode(1, "stage_benefit"), "stage_benefit")
+    assert.equal(resolveEquipmentEnhancementPurchaseMode(1), "per_level")
+    assert.equal(resolveEquipmentEnhancementPurchaseMode(4, "per_level"), "per_level")
+    assert.equal(resolveEquipmentEnhancementPurchaseMode(6), "per_level")
+    assert.equal(resolveEquipmentEnhancementPurchaseMode(6, "stage_benefit"), "per_level")
+    assert.equal(resolveEquipmentEnhancementPurchaseMode(7, "stage_benefit"), "per_level")
 })
 
 test("enhancement purchase rejects completed stages and unmet awakening", () => {
@@ -58,7 +74,7 @@ test("new special weapons advance one level per requested purchase", () => {
     assert.equal(planEquipmentEnhancementPurchase(68, 2, 69, 5, 5, "per_level").ok, false)
 })
 
-test("grey abyss weapon rows add materials per level without enabling Death Bringer mode", () => {
+test("all custom special weapons use per-level materials, including Death Bringer", () => {
     const rows = Object.values(enhancementShop).filter(row => row.equipmentId >= 8000101 && row.equipmentId <= 8000115)
     assert.equal(rows.length, 90)
     assert.equal(rows.filter(row => row.enhancementPurchaseMode === "per_level").length, 90)
@@ -93,7 +109,19 @@ test("grey abyss weapon rows add materials per level without enabling Death Brin
 
     const deathRows = Object.values(enhancementShop).filter(row => row.equipmentId === 5900101)
     assert.equal(deathRows.length, 6)
-    assert.equal(deathRows.some(row => row.enhancementPurchaseMode !== undefined), false)
+    assert.equal(deathRows.every(row => row.enhancementPurchaseMode === "per_level"), true)
+})
+
+test("enhancement mode is explicit for every official and author row", () => {
+    const rows = Object.values(enhancementShop)
+    assert.equal(rows.length, 543)
+    assert.equal(rows.some(row => row.enhancementPurchaseMode === undefined), false)
+    for (const row of rows) {
+        const expected = row.shopCategoryId >= 1 && row.shopCategoryId <= 4
+            ? "stage_benefit"
+            : "per_level"
+        assert.equal(row.enhancementPurchaseMode, expected, `equipment ${row.equipmentId} stage ${row.stage}`)
+    }
 })
 
 test("each grey abyss weapon reaches level 120 for exactly 2000 abyss tokens", () => {

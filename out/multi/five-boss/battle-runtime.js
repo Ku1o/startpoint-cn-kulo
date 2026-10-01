@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.abortFiveBossBattle = exports.finishFiveBossBattle = exports.startFiveBossBattle = exports.createFiveBossBattleRuntime = exports.FiveBossBattleRuntimeError = void 0;
 const character_1 = require("../../lib/character");
 const assets_1 = require("../../lib/assets");
+const equipment_1 = require("../../lib/equipment");
 const db_1 = require("../../data/db");
 const item_1 = require("../../data/domains/item");
 const quest_1 = require("../../data/domains/quest");
@@ -193,8 +194,10 @@ function samePersistentActive(left, right) {
         && left.continueCount === right.continueCount;
 }
 function createFiveBossBattleRuntime(overrides = {}) {
-    var _a;
+    var _a, _b;
     const givePlayerItemSync = (_a = overrides.givePlayerItemSync) !== null && _a !== void 0 ? _a : item_1.givePlayerItemSync;
+    const givePlayerEquipmentSync = (_b = overrides.givePlayerEquipmentSync) !== null && _b !== void 0 ? _b : equipment_1.givePlayerEquipmentSync;
+    const cursedWeaponPool = overrides.cursedWeaponPool;
     function start(input) {
         const frozen = validateFrozenStart(input);
         const result = (0, fiveBossGauntletRun_1.startMemberSync)({
@@ -296,6 +299,16 @@ function createFiveBossBattleRuntime(overrides = {}) {
                 itemTotals[String(item.itemId)] = total;
                 return Object.assign(Object.assign({}, item), { total });
             });
+            // 武器与材料共用本次结算的随机序列；命中 id 写入 receipt，重放时由 HTTP
+            // 层读取并序列化当前持有状态，避免重复发放。
+            const weaponPlan = (0, rewards_1.buildFiveBossCursedWeaponDropPlan)({
+                rewardMultiplier: context.rewardMultiplier,
+                availableEquipmentIds: cursedWeaponPool !== null && cursedWeaponPool !== void 0 ? cursedWeaponPool : (0, rewards_1.getFiveBossCursedWeaponPool)(),
+                randomFloat: input.randomFloat,
+            });
+            for (const equipmentId of weaponPlan.equipmentIds) {
+                givePlayerEquipmentSync(input.playerId, equipmentId, 1);
+            }
             const storedParty = (0, db_1.getDb)().prepare(`SELECT party_character_ids_json
                 FROM five_boss_gauntlet_members WHERE run_id = ? AND player_id = ?`)
                 .get(context.run.runId, input.playerId);
@@ -306,7 +319,13 @@ function createFiveBossBattleRuntime(overrides = {}) {
                 : null;
             updateSuccessfulQuestProgress(input.playerId, Object.assign(Object.assign({}, input), { leaderCharacterId: (_b = ids[0]) !== null && _b !== void 0 ? _b : null }), previous);
             (0, quest_active_1.deletePlayerActiveQuestSync)(input.playerId);
-            return { firstClear, grantedItems, itemTotals, characterExp };
+            return {
+                firstClear,
+                grantedItems,
+                itemTotals,
+                characterExp,
+                grantedEquipment: weaponPlan.equipmentIds,
+            };
         });
         assertRunIdentity(result.run, input);
         return {

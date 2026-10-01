@@ -44,6 +44,8 @@ import itemSaleData from "../../assets/item_sale.json"
 import equipmentCraftData from "../../assets/equipment_craft.json"
 import equipmentMaxLevels from "../../assets/equipment_max_level.json"
 import equipmentElements from "../../assets/equipment_element.json"
+import equipmentAwakeningMaterialData from "../../assets/equipment_awakening_material.json"
+import { AwakeningMaterialRules, parseAwakeningMaterialRules } from "./equipment-awakening-rules"
 import { readFileSync } from "fs"
 import { join as joinPath } from "path"
 import { AssetCharacter, BattleQuest, BossCoinShopItems, BoxGacha, ClearRewards, ConfigValues, EquipmentCraftEntry, EquipmentDissolveEntry, EquipmentItemReward, EventItemShopIdMapItem, EventShopItems, ExAbilities, ExBoostItem, ExBoostItems, ExStatus, Gacha, Gachas, ItemSaleEntry, ManaNode, ManaNodes, QuestCategory, RareScoreReward, RareScoreRewardGroups, RawAssetCharacters, RawBoxGachas, RawBoxRewards, RawQuests, Reward, RushEventFolders, ScoreReward, ScoreRewardGroups, ShopItem, ShopItems, ShopType, StoryQuest } from "./types";
@@ -1027,4 +1029,14 @@ export function getItemSaleSync(id: number | string): ItemSaleEntry | null {
 export function getEquipmentCraftSync(rarity: number): EquipmentCraftEntry | null {
     const entry = (equipmentCraftData as Record<string, EquipmentCraftEntry>)[String(Math.max(1, Math.min(5, rarity)))]
     return entry ?? null
+}
+
+// ─── Equipment awakening material rules ────────────────────────────────
+
+let equipmentAwakeningRules: AwakeningMaterialRules | null = null
+
+/** Parsed once from the static asset; malformed rules fail during route registration. */
+export function getEquipmentAwakeningRulesSync(): AwakeningMaterialRules {
+    equipmentAwakeningRules ??= parseAwakeningMaterialRules(equipmentAwakeningMaterialData)
+    return equipmentAwakeningRules
 }

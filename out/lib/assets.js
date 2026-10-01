@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getEquipmentCraftSync = exports.getItemSaleSync = exports.getEquipmentDissolveSync = exports.getStaminaRecoverySeconds = exports.getConfigSync = exports.getEquipmentElement = exports.getEquipmentMaxLevel = exports.getRogueEventConfig = exports.getRushEventFolderClearRewards = exports.getShopItemSync = exports.getBossCoinShopItemsSync = exports.getEventShopItemsSync = exports.getGenericShopItemsSync = exports.getGachaCampaignIdSync = exports.getGachaSync = exports.getBoxGachaSync = exports.getExBoostItemSync = exports.getExStatusPoolSync = exports.getExAbilityPoolsSync = exports.getManaNodeAwakeCost = exports.getCharacterManaNodeSync = exports.getCharacterManaBoardCountSync = exports.getCharacterManaNodesSync = exports.getCharacterDataSync = exports.getQuestFromCategorySync = exports.getHardMultiEventQuest = exports.getAdventEventQuest = exports.getWorldStoryEventBossBattleQuestSync = exports.getWorldStoryEventQuestSync = exports.getCharacterQuestSync = exports.getBossBattleQuestSync = exports.getPracticeQuestSync = exports.getExQuestSync = exports.getMainQuestSync = exports.getRushEventFolderMaxRoundSync = exports.getScoreRewardGroup = exports.getRareScoreRewardGroup = exports.getClearRewardSync = exports.reloadRogueEventConfig = void 0;
+exports.getEquipmentAwakeningRulesSync = exports.getEquipmentCraftSync = exports.getItemSaleSync = exports.getEquipmentDissolveSync = exports.getStaminaRecoverySeconds = exports.getConfigSync = exports.getEquipmentElement = exports.getEquipmentMaxLevel = exports.getRogueEventConfig = exports.getRushEventFolderClearRewards = exports.getShopItemSync = exports.getBossCoinShopItemsSync = exports.getEventShopItemsSync = exports.getGenericShopItemsSync = exports.getGachaCampaignIdSync = exports.getGachaSync = exports.getBoxGachaSync = exports.getExBoostItemSync = exports.getExStatusPoolSync = exports.getExAbilityPoolsSync = exports.getManaNodeAwakeCost = exports.getCharacterManaNodeSync = exports.getCharacterManaBoardCountSync = exports.getCharacterManaNodesSync = exports.getCharacterDataSync = exports.getQuestFromCategorySync = exports.getHardMultiEventQuest = exports.getAdventEventQuest = exports.getWorldStoryEventBossBattleQuestSync = exports.getWorldStoryEventQuestSync = exports.getCharacterQuestSync = exports.getBossBattleQuestSync = exports.getPracticeQuestSync = exports.getExQuestSync = exports.getMainQuestSync = exports.getRushEventFolderMaxRoundSync = exports.getScoreRewardGroup = exports.getRareScoreRewardGroup = exports.getClearRewardSync = exports.reloadRogueEventConfig = void 0;
 const advent_event_quest_json_1 = __importDefault(require("../../assets/advent_event_quest.json"));
 const abyss_modes_1 = require("./abyss-modes");
 const box_gacha_json_1 = __importDefault(require("../../assets/box_gacha.json"));
@@ -50,6 +50,8 @@ const item_sale_json_1 = __importDefault(require("../../assets/item_sale.json"))
 const equipment_craft_json_1 = __importDefault(require("../../assets/equipment_craft.json"));
 const equipment_max_level_json_1 = __importDefault(require("../../assets/equipment_max_level.json"));
 const equipment_element_json_1 = __importDefault(require("../../assets/equipment_element.json"));
+const equipment_awakening_material_json_1 = __importDefault(require("../../assets/equipment_awakening_material.json"));
+const equipment_awakening_rules_1 = require("./equipment-awakening-rules");
 const fs_1 = require("fs");
 const path_1 = require("path");
 const types_1 = require("./types");
@@ -925,3 +927,11 @@ function getEquipmentCraftSync(rarity) {
     return entry !== null && entry !== void 0 ? entry : null;
 }
 exports.getEquipmentCraftSync = getEquipmentCraftSync;
+// ─── Equipment awakening material rules ────────────────────────────────
+let equipmentAwakeningRules = null;
+/** Parsed once from the static asset; malformed rules fail during route registration. */
+function getEquipmentAwakeningRulesSync() {
+    equipmentAwakeningRules !== null && equipmentAwakeningRules !== void 0 ? equipmentAwakeningRules : (equipmentAwakeningRules = (0, equipment_awakening_rules_1.parseAwakeningMaterialRules)(equipment_awakening_material_json_1.default));
+    return equipmentAwakeningRules;
+}
+exports.getEquipmentAwakeningRulesSync = getEquipmentAwakeningRulesSync;

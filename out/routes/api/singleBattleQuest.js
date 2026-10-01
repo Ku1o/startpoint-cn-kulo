@@ -247,7 +247,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         const finishResponse = yield (0, settlement_performance_1.measureSettlementPhaseAsync)("single", "transaction", () => (0, persistence_coordinator_1.runPersistenceTransaction)({
             domain: "single-quest", playerId, operation: "finish",
         }, () => {
-            var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y;
+            var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z;
             const bodyTiming = (0, single_settlement_diagnostics_1.createSingleSettlementBodyTimer)(questCategory, !!fiveBossSoloQuest);
             let bodySucceeded = false;
             try {
@@ -659,7 +659,8 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                         ...((rushEventRewardsResult === null || rushEventRewardsResult === void 0 ? void 0 : rushEventRewardsResult.equipment_list) || []),
                         ...((rogueDrops === null || rogueDrops === void 0 ? void 0 : rogueDrops.rewardResult.equipment_list) || []),
                         ...((carnivalRewardsResult === null || carnivalRewardsResult === void 0 ? void 0 : carnivalRewardsResult.equipment_list) || []),
-                        ...((mode15RewardsResult === null || mode15RewardsResult === void 0 ? void 0 : mode15RewardsResult.equipment_list) || [])
+                        ...((mode15RewardsResult === null || mode15RewardsResult === void 0 ? void 0 : mode15RewardsResult.equipment_list) || []),
+                        ...((_y = fiveBossSolo === null || fiveBossSolo === void 0 ? void 0 : fiveBossSolo.equipment_list) !== null && _y !== void 0 ? _y : [])
                     ],
                     "category_id": body.category,
                     "start_time": dataHeaders['servertime'],
@@ -681,7 +682,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 }
                 if (abyssEnduranceDegrees.length) {
                     responseData.degree_list = [
-                        ...((_y = responseData.degree_list) !== null && _y !== void 0 ? _y : []),
+                        ...((_z = responseData.degree_list) !== null && _z !== void 0 ? _z : []),
                         ...abyssEnduranceDegrees.map(degreeId => ({ viewer_id: viewerId, degree_id: degreeId })),
                     ];
                 }

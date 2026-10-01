@@ -92,7 +92,7 @@ test('multiplayer charges only host once; pins Auto; retries do not grant items 
     const h = finish(host, room)
     const exp = characters.getPlayerCharacterSync(host.id, 111001).exp
     assert.ok(exp > 0)
-    assert.equal(h.reward.itemTotals['10000145'], 10)
+    assert.equal(h.reward.itemTotals['10000145'], 20)
     assert.equal(h.reward.itemTotals['10000144'], 1)
     const retry = finish(host, room)
     assert.equal(retry.receiptStatus, 'already_settled')
@@ -100,7 +100,7 @@ test('multiplayer charges only host once; pins Auto; retries do not grant items 
     assert.equal(characters.getPlayerCharacterSync(host.id, 111001).exp, exp)
     assert.throws(() => start(host, room), /settled member/)
     const g = finish(guest, room)
-    assert.equal(g.reward.itemTotals['10000145'], 5)
+    assert.equal(g.reward.itemTotals['10000145'], 10)
     assert.equal(g.runStatus, 'settled')
     assert.equal(ledger.getFiveBossRunByClientSync({ playerId: host.id, clientPlayId: host.playId }).roomNumber, room.room_number)
 })
@@ -235,12 +235,58 @@ test('five-boss new multiplayer rounds charge another 35, while a persisted pre-
 
 test('drop boundaries and weapon duplicate requirement match approved rules', () => {
     const hit = rewards.buildFiveBossGauntletRewardPlan({ firstClear: true, rewardMultiplier: 2, randomFloat: () => 0.249999 })
-    assert.deepEqual(hit.items.map(i => [i.itemId, i.amount]), [[10000144, 1], [10000145, 10], [10000146, 1], [10000147, 2]])
+    assert.deepEqual(hit.items.map(i => [i.itemId, i.amount]), [[10000144, 1], [10000145, 20], [10000146, 1], [10000147, 4], [10000310, 11]])
     const miss = rewards.buildFiveBossGauntletRewardPlan({ firstClear: false, rewardMultiplier: 1, randomFloat: () => 0.5 })
-    assert.deepEqual(miss.items.map(i => [i.itemId, i.amount]), [[10000145, 5]])
+    assert.deepEqual(miss.items.map(i => [i.itemId, i.amount]), [[10000144, 1], [10000145, 10], [10000147, 1], [10000310, 13]])
     assert.equal(rewards.canUseAwakeningSubstitutionItem(5900101), false)
     assert.equal(rewards.canUseAwakeningSubstitutionItem(5010070), true)
     assert.deepEqual(getDb().pragma('foreign_key_check'), [])
+})
+
+test('solo five-boss rewards use half quantities and lower probabilities without changing multiplayer rules', () => {
+    const values = [0.14, 0.3, 0.99]
+    const soloHit = rewards.buildFiveBossSoloGauntletRewardPlan({
+        firstClear: true,
+        rewardMultiplier: 1,
+        randomFloat: () => values.shift(),
+    })
+    assert.deepEqual(soloHit.items.map(i => [i.itemId, i.amount]), [
+        [10000144, 1], [10000145, 5], [10000146, 1], [10000147, 1], [10000310, 8],
+    ])
+
+    const misses = [0.3, 0.625, 0]
+    const soloMiss = rewards.buildFiveBossSoloGauntletRewardPlan({
+        firstClear: false,
+        rewardMultiplier: 1,
+        randomFloat: () => misses.shift(),
+    })
+    assert.deepEqual(soloMiss.items.map(i => [i.itemId, i.amount]), [
+        [10000145, 5], [10000310, 5],
+    ])
+
+    const manualCoreHitValues = [0.3, 0.624999, 0.99]
+    const manualCoreHit = rewards.buildFiveBossSoloGauntletRewardPlan({
+        firstClear: false,
+        rewardMultiplier: 2,
+        randomFloat: () => manualCoreHitValues.shift(),
+    })
+    assert.deepEqual(manualCoreHit.items.map(i => [i.itemId, i.amount]), [
+        [10000145, 10], [10000147, 1], [10000310, 8],
+    ])
+
+    const noSoloWeapon = rewards.buildFiveBossCursedWeaponDropPlan({
+        rewardMultiplier: 1,
+        dropRate: 0.025,
+        availableEquipmentIds: [5910101],
+        randomFloat: () => 0.03,
+    })
+    assert.deepEqual(noSoloWeapon.equipmentIds, [])
+    const multiplayerWeapon = rewards.buildFiveBossCursedWeaponDropPlan({
+        rewardMultiplier: 1,
+        availableEquipmentIds: [5910101],
+        randomFloat: () => 0.03,
+    })
+    assert.deepEqual(multiplayerWeapon.equipmentIds, [5910101])
 })
 
 test('solo cannot overwrite an active cooperative run; aborted solo cannot finish', async () => {
@@ -511,7 +557,7 @@ test('AUTO at start stays 1x; aborted marker cannot contaminate a fresh manual p
         playerId: p.id, firstClear: true, rewardMultiplier: 2, randomFloat: () => 0,
         givePlayerItemSync: (_p, _id, amount) => amount })
     assert.equal(planned.items[10000145], 10)
-    assert.equal(planned.items[10000147], 2)
+    assert.equal(planned.items[10000147], 1)
     assert.equal(planned.items[10000144], 1)
     assert.equal(planned.items[10000146], 1)
 })

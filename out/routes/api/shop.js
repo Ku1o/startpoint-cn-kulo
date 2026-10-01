@@ -380,7 +380,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                     "message": "Enhancement item is not the current stage."
                 });
             }
-            const plan = (0, equipment_enhancement_1.planEquipmentEnhancementPurchase)(currentEquipment.enhancementLevel, rawPurchaseAmount, stageMaxLevel, currentEquipment.level, requiredAwakeningLevel, shopItemData.enhancementPurchaseMode);
+            const plan = (0, equipment_enhancement_1.planEquipmentEnhancementPurchase)(currentEquipment.enhancementLevel, rawPurchaseAmount, stageMaxLevel, currentEquipment.level, requiredAwakeningLevel, (0, equipment_enhancement_1.resolveEquipmentEnhancementPurchaseMode)(shopCategoryId, shopItemData.enhancementPurchaseMode));
             if (!plan.ok)
                 return reply.status(400).send({
                     "error": "Bad Request",

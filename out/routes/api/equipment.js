@@ -18,6 +18,7 @@ const session_1 = require("../../data/domains/session");
 const utils_1 = require("../../utils");
 const equipment_2 = require("../../lib/equipment");
 const assets_1 = require("../../lib/assets");
+const equipment_awakening_rules_1 = require("../../lib/equipment-awakening-rules");
 const activeAccount_1 = require("../../data/activeAccount");
 const counters_1 = require("../../lib/mission/counters");
 const mission_1 = require("../../lib/mission");
@@ -51,6 +52,8 @@ function mergeEquipmentDegreeSettlement(responseData, playerId, viewerId) {
         }], new Date((0, utils_1.getServerTime)() * 1000)), viewerId);
 }
 const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
+    // Parse once at registration so a malformed awakening asset stops startup.
+    const awakeningRules = (0, assets_1.getEquipmentAwakeningRulesSync)();
     // ── upgrade (single equipment awakening) ───────────────────────────
     fastify.post("/upgrade", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
         var _a, _b, _c, _d;
@@ -76,6 +79,9 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         if (!useStack && !(0, rewards_1.canUseAwakeningSubstitutionItem)(equipmentId)) {
             return reply.status(400).send({ error: "Bad Request", message: "This equipment requires duplicate bodies for awakening." });
         }
+        const itemCheck = (0, equipment_awakening_rules_1.checkAwakeningItem)(awakeningRules, { equipmentId, useStack, itemId });
+        if (!itemCheck.ok)
+            return reply.status(400).send({ "error": "Bad Request", "message": itemCheck.message });
         const cdnInfo = (0, assets_1.getEquipmentDissolveSync)(equipmentId);
         const maxLevel = (_b = cdnInfo === null || cdnInfo === void 0 ? void 0 : cdnInfo.max_level) !== null && _b !== void 0 ? _b : 5;
         const previousLevel = equipment.level;

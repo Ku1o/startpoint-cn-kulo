@@ -5,8 +5,10 @@ import type { MultiAbortBody, MultiFinishBody, MultiStartBody } from "../types"
 import { getPlayerActiveQuestSync } from "../../data/domains/quest_active"
 import { FiveBossGauntletRunError, backfillMissingFinalizeSync, getFiveBossRunByClientSync } from "../../data/domains/fiveBossGauntletRun"
 import { getPlayerItemSync } from "../../data/domains/item"
+import { getPlayerEquipmentSync } from "../../data/domains/equipment"
 import { getPlayerSync, updatePlayerSync } from "../../data/domains/player"
 import { isValidNormalPartySlotSync } from "../../data/domains/party"
+import { clientSerializeEquipment } from "../../lib/equipment"
 import type { RewardPlayerCharacterExpResult } from "../../lib/types/character"
 import { generateDataHeaders, getServerTime, realToVirtual } from "../../utils"
 import { activeQuests } from "../../routes/api/singleBattleQuest"
@@ -20,7 +22,7 @@ import {
     type FinishFiveBossBattleResult,
 } from "../five-boss/battle-runtime"
 import { FIVE_BOSS_GAUNTLET, isFiveBossGauntletQuest } from "../five-boss/contract"
-import { buildFiveBossAdditionalRewardDrops } from "../five-boss/rewards"
+import { buildFiveBossAdditionalRewardDrops, buildFiveBossWeaponAdditionalRewardDrops } from "../five-boss/rewards"
 import { abandonFiveBossSoloForMultiSync } from "../five-boss/solo-runtime"
 import { getDb } from "../../data/db"
 import { measureSettlementPhaseAsync } from "../../lib/settlement-performance"
@@ -230,6 +232,32 @@ function finishItemList(
 }
 
 
+/** 旧 receipt 在武器掉落字段加入前已经落盘；缺失时按当年无武器处理。 */
+function receiptGrantedEquipment(result: FinishFiveBossBattleResult): number[] {
+    if (result.kind !== "success") return []
+    const granted: unknown = result.reward.grantedEquipment
+    return Array.isArray(granted) ? granted : []
+}
+
+
+/** 按 receipt 的命中顺序去重，回读当前持有状态，保证重放不重复发放。 */
+function finishEquipmentList(
+    result: FinishFiveBossBattleResult,
+    playerId: number,
+): Object[] {
+    if (result.kind !== "success") return []
+    const seen = new Set<number>()
+    const list: Object[] = []
+    for (const equipmentId of receiptGrantedEquipment(result)) {
+        if (seen.has(equipmentId)) continue
+        seen.add(equipmentId)
+        const owned = getPlayerEquipmentSync(playerId, equipmentId)
+        if (owned) list.push(clientSerializeEquipment(equipmentId, owned))
+    }
+    return list
+}
+
+
 function buildFinishData(
     player: Player,
     body: MultiFinishBody,
@@ -272,10 +300,13 @@ function buildFinishData(
         drop_score_reward_ids: [],
         drop_rare_reward_ids: [],
         drop_additional_reward_ids: result.kind === "success"
-            ? buildFiveBossAdditionalRewardDrops(result.reward.grantedItems)
+            ? [
+                ...buildFiveBossAdditionalRewardDrops(result.reward.grantedItems),
+                ...buildFiveBossWeaponAdditionalRewardDrops(receiptGrantedEquipment(result)),
+            ]
             : [],
         drop_periodic_reward_ids: [],
-        equipment_list: [],
+        equipment_list: finishEquipmentList(result, player.id),
         category_id: body.category,
         start_time: dataHeaders.servertime,
         is_multi: "multi",
