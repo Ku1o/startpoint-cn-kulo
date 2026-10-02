@@ -472,6 +472,8 @@ td.ldesc{color:var(--okfg);font-size:11px;white-space:normal;max-width:250px;lin
 .rgeff.imm input{display:none}
 .rglegend{display:flex;gap:14px;flex-wrap:wrap;font-size:11px;color:var(--dim);margin:2px 0 8px}
 .rglegend b{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:4px;vertical-align:middle}
+
+.studio-module-open #left,.studio-module-open #logwrap{display:none}.studio-module-open #content{padding:8px;min-height:0;overflow:hidden}.studio-module-open #right{min-width:0}.studio-module-open section[data-t="studio"]{height:100%;display:flex;flex-direction:column}.studio-module-open #studioModuleFrame{flex:1;min-height:0;height:100%!important}.studio-module-open #studioModuleMessage:empty{display:none}
 </style>
 </head>
 <body>
@@ -514,6 +516,7 @@ td.ldesc{color:var(--okfg);font-size:11px;white-space:normal;max-width:250px;lin
         <div class="tab" data-t="profile">资料</div>
         <div class="tab" data-t="assets">资产</div>
         <div class="tab" data-t="newchar">新建</div>
+        <div class="tab" data-t="studio">角色工坊</div>
       </div>
       <div class="navgrp">
         <span class="ngl">武器</span>
@@ -541,6 +544,7 @@ td.ldesc{color:var(--okfg);font-size:11px;white-space:normal;max-width:250px;lin
       </div>
     </nav>
     <div id="content">
+      <section data-t="studio"><div id="studioModuleMessage" class="hint">加载角色工坊…</div><iframe id="studioModuleFrame" title="角色工坊" allow="autoplay; fullscreen" style="display:none;width:100%;height:calc(100vh - 175px);border:0;border-radius:10px"></iframe></section>
       <section data-t="edit" class="sel">
         <div class="row" id="editBtns" style="display:none">
           <b id="editTitle"></b>
@@ -3602,7 +3606,32 @@ $('#rjKey').oninput=()=>{clearTimeout(rjKeyTimer);rjKeyTimer=setTimeout(rjSugges
 $('#rjKey').onkeydown=e=>{if(e.key==='Enter')$('#btnRjLoad').click();};
 $('#rjTable').onchange=()=>{$('#rjKeyOpts').innerHTML='';rjSuggest();};
 
-function switchTab(name){
+let studioModuleOrigin='',studioModuleReady=false,studioLeaving=false;
+async function loadStudioModule(){
+  if(studioModuleOrigin)return;
+  try{const state=await api('/studio/open',{});studioModuleOrigin=new URL(state.url).origin;
+    const frame=$('#studioModuleFrame');frame.src=state.url;frame.style.display='block';$('#studioModuleMessage').textContent='同一份工程也可在独立角色工坊中继续编辑。';
+  }catch(e){$('#studioModuleMessage').textContent=e.message||'角色工坊暂时无法打开';}
+}
+function saveStudioBeforeLeaving(name){
+  if(studioLeaving)return;studioLeaving=true;
+  const requestId='leave-'+Date.now();
+  const timer=setTimeout(()=>{window.removeEventListener('message',done);studioLeaving=false;$('#studioModuleMessage').textContent='等待保存响应超时，请在工坊中保存后再切换。';},10000);
+  function done(e){if(e.origin!==studioModuleOrigin||e.source!==$('#studioModuleFrame').contentWindow||e.data?.type!=='character-studio-saved'||e.data.requestId!==requestId)return;
+    clearTimeout(timer);window.removeEventListener('message',done);studioLeaving=false;
+    if(e.data.ok)switchTab(name,true);else $('#studioModuleMessage').textContent=e.data.error;
+  }
+  window.addEventListener('message',done);$('#studioModuleFrame').contentWindow.postMessage({type:'character-studio-save',requestId},studioModuleOrigin);
+}
+window.addEventListener('message',e=>{
+  if(e.origin!==studioModuleOrigin||e.source!==$('#studioModuleFrame').contentWindow)return;
+  if(e.data?.type==='character-studio-ready'){studioModuleReady=true;$('#studioModuleMessage').textContent='';}
+  if(e.data?.type==='character-studio-saved'&&e.data.requestId==='return'&&e.data.ok)switchTab('edit',true);
+});
+function switchTab(name,studioSaved=false){
+  if(curTab()==='studio'&&name!=='studio'&&studioModuleReady&&!studioSaved){saveStudioBeforeLeaving(name);return;}
+  document.body.classList.toggle('studio-module-open',name==='studio');
+  if(name==='studio')loadStudioModule();
   $$('nav .tab').forEach(x=>x.classList.toggle('sel',x.dataset.t===name));
   $$('#content > section').forEach(s=>s.classList.toggle('sel',s.dataset.t===name));
   try{localStorage.setItem('wfTab.'+mode,name);}catch(e){}

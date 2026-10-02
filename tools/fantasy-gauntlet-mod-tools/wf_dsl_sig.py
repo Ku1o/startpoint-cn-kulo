@@ -1835,6 +1835,19 @@ def _dsl_type_ok(value, expected: str) -> bool:
         return isinstance(value, str)
     if expected == "Array":
         return isinstance(value, list)
+    if expected == "Option<SLvValue>":
+        # Native TypePacker retains this generic argument; the AS3 constructor
+        # signature only says Option. Some(number) reaches concreteArray and
+        # raises F1034 before the action can run.
+        return (value == ["None"] or (
+            isinstance(value, list) and len(value) == 2 and value[0] == "Some"
+            and isinstance(value[1], list) and all(
+                isinstance(term, dict) and all(
+                    _dsl_type_ok(term.get(bound), "Number")
+                    for bound in ("min", "max")
+                ) for term in value[1]
+            )
+        ))
     if expected == "Object":
         return isinstance(value, dict)
     if expected == "Dynamic":
@@ -1881,6 +1894,9 @@ def _validate_expression(node, path: str) -> None:
         raise DslSignatureError(
             f"{path}/{tag}:{name}: 参数数量 {len(args)} != {len(signature)}")
     for index, (value, expected) in enumerate(zip(args, signature), start=1):
+        if tag == "Command" and ((name == "ShowEffect" and index == 12)
+                                 or (name == "CreateHitArea" and index == 15)):
+            expected = "Option<SLvValue>"
         # ActionEvaluator CreateCondition passes p8 through as nullable
         # linkedHitCheckKind (official shark actions use null here).
         # This does not make other enum parameters nullable.

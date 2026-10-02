@@ -48,6 +48,19 @@ class DslSignatureGuardTest(unittest.TestCase):
                 wf_dsl_sig.DslSignatureError, "对象ID.*类型不符"):
             wf_dsl_sig.validate_action_dsl(tree)
 
+    def test_show_effect_scalar_option_reproduces_native_f1034(self) -> None:
+        tree = skill_tree()
+        tree[11][1] = [["Command", ["ShowEffect", "moonwave",
+            ["SpecifyEffectDirectly", "battle/effect/test/moonwave"], -1,
+            ["ForesideOfCharacter"], ["PlayOnlyFirstSequence"], ["AB"],
+            0, 0, 0, False, False, ["Some", 9]]]]
+        with self.assertRaisesRegex(wf_dsl_sig.DslSignatureError, "Option<SLvValue>"):
+            wf_dsl_sig.validate_action_dsl(tree)
+        tree[11][1][0][1][12] = ["Some", fixed(9)]
+        wf_dsl_sig.validate_action_dsl(tree)
+        tree[11][1][0][1][12] = ["None"]
+        wf_dsl_sig.validate_action_dsl(tree)
+
 
 if __name__ == "__main__":
     unittest.main()
