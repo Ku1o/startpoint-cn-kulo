@@ -24,3 +24,7 @@ python client-patch/orochi-rescue-bell-superplus/build_embedded_layout.py `
 脚本会回读 AMF3 结构，确认第 6 帧根节点段和“超/级/+”三段存在，验证内层目标资源 SHA-256，以及 `assets/bundle.zip.sha1` 与实际 bundle 的 SHA-1 一致。APK、SWF、签名材料和临时 bundle 不提交 Git。
 
 排查顺序、缓存失效原因、APK 与 CDN 的载体区别，以及公网/内网共用方法的经验记录见 [LESSONS.md](./LESSONS.md)。
+
+## 后续客户端组合
+
+排版修复之后的客户端步骤不能漏掉累计功能：先按 [C8016-PRELOAD.md](./C8016-PRELOAD.md) 替换现有 SWF helper，再按 [`startup-cache/PERIODIC-10M.md`](../startup-cache/PERIODIC-10M.md) 叠加十分钟 AIR 缓存清理。组合顺序是“紧凑排版 → C8016 v3 helper → 10 分钟缓存”，每一步都生成新的 AIR `uniqueappversionid`；公网地址转换只在确有发布需求时复用同一方法。

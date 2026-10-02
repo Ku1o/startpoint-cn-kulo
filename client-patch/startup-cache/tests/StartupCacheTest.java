@@ -27,6 +27,14 @@ public final class StartupCacheTest {
         check(failed);check(next.delete());put(cached);
         StartupCache.clean(root,apk,"payload-3");check(!cached.exists());
         for(File f:kept)check(f.exists());
+        // Periodic cleanup uses the same allowlist while the process remains alive.
+        put(cached);put(air);StartupCache.periodicPurge(root);
+        check(!cached.exists()&&!air.exists());
+        String diagnostic=new String(Files.readAllBytes(new File(root,"sp-cache-periodic.diag").toPath()),"UTF-8");
+        check(diagnostic.contains("stage=complete")&&diagnostic.contains("appDelete=true")
+            &&diagnostic.contains(".AIRDelete=true"));
+        check(StartupCache.PERIOD_MS==600000L);
+        for(File f:kept)check(f.exists());
         // Delete only the verified JVM-created temporary fixture.
         check(base.getCanonicalFile().getParentFile().equals(new File(System.getProperty("java.io.tmpdir")).getCanonicalFile()));
         try(java.util.stream.Stream<Path> paths=Files.walk(base.toPath())) {
