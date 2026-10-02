@@ -1,6 +1,7 @@
 import { cachedStatement } from "../cached-statement"
 import { getDb } from "../../data/db"
 import { isCompactStorage, writeCompactMissionCounter } from "../storage-layout"
+import { runPersistenceTransactionSync } from "../persistence-coordinator"
 
 export type MissionCounterScopeType = "lifetime" | "event" | "character"
 export type MissionCounterPeriod = "daily" | "weekly"
@@ -82,9 +83,11 @@ export function setMissionCounterMaxSync(playerId: number, query: MissionCounter
     ON CONFLICT(player_id, counter_key) DO UPDATE SET
         value = MAX(value, excluded.value),
         updated_at = excluded.updated_at
+        WHERE excluded.value > value
     RETURNING value
-    `).get(playerId, counterKey, query.dimension, query.scopeType, query.scopeKey, qualifierJson, value, nowSql()) as { value: number }
-    return row.value
+    `).get(playerId, counterKey, query.dimension, query.scopeType, query.scopeKey, qualifierJson, value, nowSql()) as { value: number } | undefined
+    if (row) return row.value
+    return getMissionCounterValueSync(playerId, query)
 }
 
 export function setMissionCounterMinSync(playerId: number, query: MissionCounterQuery, value: number): number {
@@ -101,9 +104,11 @@ export function setMissionCounterMinSync(playerId: number, query: MissionCounter
     ON CONFLICT(player_id, counter_key) DO UPDATE SET
         value = MIN(value, excluded.value),
         updated_at = excluded.updated_at
+        WHERE excluded.value < value
     RETURNING value
-    `).get(playerId, counterKey, query.dimension, query.scopeType, query.scopeKey, qualifierJson, value, nowSql()) as { value: number }
-    return row.value
+    `).get(playerId, counterKey, query.dimension, query.scopeType, query.scopeKey, qualifierJson, value, nowSql()) as { value: number } | undefined
+    if (row) return row.value
+    return getMissionCounterValueSync(playerId, query)
 }
 
 export function getMissionCounterValueSync(playerId: number, query: MissionCounterQuery): number {
@@ -165,9 +170,10 @@ export function snapshotAllMissionCountersSync(playerId: number, periodType: Mis
     `)
 
     const timestamp = nowSql()
-    const tx = getDb().transaction(() => {
+    runPersistenceTransactionSync({
+        domain: "mission", playerId, operation: "snapshot_all_mission_counters",
+    }, () => {
         for (const row of rows) insert.run(playerId, periodType, row.counter_key, row.value, timestamp)
     })
-    tx()
     return rows.length
 }

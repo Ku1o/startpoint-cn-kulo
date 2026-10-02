@@ -17,16 +17,18 @@ const manager_1 = require("../room/manager");
 const controller_1 = require("../npc/controller");
 const recruitment_1 = require("../recruitment");
 const game_logging_1 = require("../../lib/game-logging");
+const online_presence_1 = require("../../lib/online-presence");
 const player_party_pool_1 = require("../npc/player-party-pool");
 const mode15_room_gate_1 = require("../mode15-room-gate");
 const mode15_optional_1 = require("../../lib/mode15-optional");
 const player_1 = require("../../data/domains/player");
 const embedded_1 = require("../coordinator/embedded");
 const autoplay_mode_1 = require("./autoplay-mode");
+const party_snapshot_1 = require("../party-snapshot");
 const admission_1 = require("../room/admission");
 const NPC_JOIN_DELAY_MS = parseInt(process.env.NPC_JOIN_DELAY_MS || "2000");
 const NPC_READY_DELAY_MS = parseInt(process.env.NPC_READY_DELAY_MS || "500");
-const REMATCH_RECONNECT_GRACE_MS = parseInt(process.env.REMATCH_RECONNECT_GRACE_MS || "25000");
+const REMATCH_RECONNECT_GRACE_MS = parseInt(process.env.REMATCH_RECONNECT_GRACE_MS || "60000");
 const npcRecruitingRooms = new Set();
 const npcReconcilePendingRooms = new Set();
 const npcReconcileTimers = new Map();
@@ -353,7 +355,10 @@ function checkAllReadyAndStart(roomNumber) {
         const realCount = countRealPlayers(hostClient.mates);
         const presentNpcCount = hostClient.mates.filter(mate => !!mate.comId).length;
         const desiredNpcCount = Math.max(0, 3 - realCount);
-        if (presentNpcCount < desiredNpcCount) {
+        // Every multiplayer room can start with two ready real players. A
+        // pending AI seat must only hold a one-real-player room; it must not
+        // turn an otherwise valid two-player party into a silent wait.
+        if (presentNpcCount < desiredNpcCount && realCount < 2) {
             scheduleNpcReconcile(roomNumber);
             return;
         }
@@ -389,6 +394,8 @@ function handleEnterComs(client, coms) {
         if ((0, contract_1.isFiveBossGauntletQuest)(room.category, room.quest_id)) {
             const remaining = room.created_at + contract_1.FIVE_BOSS_GAUNTLET.aiFillTimeoutMs - Date.now();
             if (remaining > 0) {
+                (0, game_logging_1.gameVerboseLog)(() => `[LOBBY] AI recruitment delayed: room=${client.roomNumber}`
+                    + ` remainingMs=${remaining}`);
                 scheduleNpcReconcile(room.room_number, remaining);
                 return;
             }
@@ -871,6 +878,11 @@ function handleChangeParty(_socket, client, data) {
             if (pd[field] !== undefined)
                 client.yourself[field] = pd[field];
         }
+        if (client.playerId && pd.party !== undefined) {
+            // Keep reconnect handshakes aligned with the in-memory room
+            // roster immediately; the low-priority DB save may finish later.
+            (0, party_snapshot_1.setRealPartySnapshot)(client.playerId, pd.party);
+        }
         if (currentPartyId !== undefined) {
             client.yourself.currentPartyId = currentPartyId;
         }
@@ -878,11 +890,16 @@ function handleChangeParty(_socket, client, data) {
     const mate = client.mates.find(m => m.viewerId === client.viewerId);
     if (mate) {
         if (client.playerId && currentPartyId !== undefined) {
-            try {
-                const up = require("../../data/domains/player").updatePlayerSync;
-                up({ id: client.playerId, partySlot: currentPartyId });
-            }
-            catch (e) { }
+            const playerId = client.playerId;
+            const partySlot = currentPartyId;
+            // Party selection is already authoritative in the in-memory room.
+            // Defer the low-priority save so the TCP callback can broadcast the
+            // roster without synchronously waiting on SQLite.
+            setImmediate(() => {
+                void (0, player_1.updatePlayerPartySlotAsync)(playerId, partySlot).catch(error => {
+                    console.warn(`[MULTI] deferred party persistence failed player=${playerId}`, error);
+                });
+            });
         }
         const room = (0, manager_1.getRoom)(client.roomNumber);
         if (room && room.host_viewer_id === client.viewerId && currentPartyId !== undefined)
@@ -971,8 +988,12 @@ function handleStartBattle(_socket, client, _data) {
     const realViewerIds = [...new Set(members
             .filter(mate => !mate.comId && Number.isFinite(Number(mate.viewerId)))
             .map(mate => Number(mate.viewerId)))];
-    if (!(0, lobby_runtime_1.freezeFiveBossLobby)(room, members))
+    if (!(0, lobby_runtime_1.freezeFiveBossLobby)(room, members)) {
+        (0, game_logging_1.gameVerboseLog)(() => `[LOBBY] StartBattle deferred: five-boss roster invalid`
+            + ` room=${client.roomNumber} roster=${members.length}`
+            + ` ready=${members.filter(mate => { var _a; return ((_a = mate.state) === null || _a === void 0 ? void 0 : _a[0]) === 1; }).length}`);
         return;
+    }
     const expectedCount = realViewerIds.length;
     for (const viewerId of realViewerIds) {
         SessionManager_1.sessionManager.clearRescueGuestLobbyWait(client.roomNumber, viewerId);
@@ -1109,6 +1130,9 @@ function handleMessage(socket, data) {
         const current = findClientBySocket(socket);
         if (!current || current.superseded)
             return;
+        if (!socket.destroyed && (tag === 0 || tag === 1 || tag === 2)) {
+            (0, online_presence_1.markPlayerOnlineFromTcp)(current.viewerId);
+        }
         switch (tag) {
             case 0:
                 yield handleNotify(socket, current, data);

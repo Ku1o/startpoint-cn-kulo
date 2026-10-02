@@ -9,10 +9,13 @@ const memory_diagnostics_1 = require("./memory-diagnostics");
 const { directory, pools, recover } = worker_threads_1.workerData;
 const dirty = new Set(recover ? ["confirmed", "purified", "verified"] : []);
 let writeCount = 0, writeBytes = 0, batches = 0;
-(0, memory_diagnostics_1.installWorkerMemoryProbe)(() => {
-    let entries = 0;
-    for (const pool of pools.values())
-        entries += pool.confirmPool.size + pool.pendingPool.size + pool.playPool.size + pool.verifiedPool.size;
+(0, memory_diagnostics_1.installWorkerMemoryProbe)(detailed => {
+    let entries = null;
+    if (detailed) {
+        entries = 0;
+        for (const pool of pools.values())
+            entries += pool.confirmPool.size + pool.pendingPool.size + pool.playPool.size + pool.verifiedPool.size;
+    }
     return { poolCount: pools.size, entries, dirtyFiles: dirty.size, writeCount, writeBytes, batches };
 });
 function updateMap(map, seed, value) {

@@ -1,6 +1,7 @@
 import { getDb } from "../db";
 import { getPlayerSync, updatePlayerSync } from "./player";
 import { computeRealTimeStamina } from "../../lib/stamina";
+import { runPersistenceTransactionSync } from "../../lib/persistence-coordinator";
 
 
 export type FiveBossGauntletRunStatus = "active" | "settled" | "aborted";
@@ -344,7 +345,7 @@ export function startMemberSync<T>(
     }
     const db = getDb();
 
-    return db.transaction(() => {
+    return runPersistenceTransactionSync({ domain: "event", playerId: normalized.playerId, operation: "start_five_boss_member" }, () => {
         let rawRun = selectRun(normalized.runId);
         if (rawRun) {
             assertExistingRunContract(rawRun, normalized);
@@ -468,7 +469,7 @@ export function startMemberSync<T>(
             isReplay: status === "already_started",
         });
         return { status, run, member, persisted };
-    }).immediate();
+    })
 }
 
 
@@ -484,7 +485,7 @@ export function recordMemberBattleSignalSync(
     }
     const db = getDb();
 
-    return db.transaction(() => {
+    return runPersistenceTransactionSync({ domain: "event", playerId, operation: "record_five_boss_battle_signal" }, () => {
         const rawRun = selectRun(runId);
         if (!rawRun) fail("run_conflict", "battle signal points to a missing run");
         if (rawRun.room_number !== roomNumber) {
@@ -518,7 +519,7 @@ export function recordMemberBattleSignalSync(
         rawMember = selectMember(runId, playerId);
         if (!rawMember) fail("roster_conflict", "battle proof member could not be read back");
         return boundMemberFromRaw(rawMember);
-    }).immediate();
+    })
 }
 
 
@@ -566,7 +567,7 @@ export function settleMemberSync<T>(
     if (typeof grantRewards !== "function") fail("invalid_argument", "grantRewards must be a function");
     const db = getDb();
 
-    return db.transaction(() => {
+    return runPersistenceTransactionSync({ domain: "event", playerId: normalized.playerId, operation: "settle_five_boss_member" }, () => {
         const rawMember = selectMemberByClient(normalized.playerId, normalized.clientPlayId);
         if (!rawMember) fail("client_play_not_found", "player/clientPlayId is not bound to a run");
 
@@ -641,7 +642,7 @@ export function settleMemberSync<T>(
             rewardMultiplier,
             reward,
         };
-    }).immediate();
+    })
 }
 
 
@@ -661,7 +662,7 @@ export function abortMemberSync<T>(
     }
     const db = getDb();
 
-    return db.transaction(() => {
+    return runPersistenceTransactionSync({ domain: "event", playerId: normalized.playerId, operation: "abort_five_boss_member" }, () => {
         let rawMember = selectMemberByClient(normalized.playerId, normalized.clientPlayId);
         if (!rawMember) fail("client_play_not_found", "player/clientPlayId is not bound to a run");
         let rawRun = selectRun(rawMember.run_id);
@@ -722,5 +723,5 @@ export function abortMemberSync<T>(
             member: boundMemberFromRaw(rawMember),
             deleted,
         };
-    }).immediate();
+    })
 }

@@ -1,0 +1,62 @@
+{
+  "task": "orochi-superplus-shop-ui-1.4.124",
+  "base_version": "1.4.123",
+  "target_version": "1.4.124",
+  "archive": "pinball-1.4.123-1.4.124-1-orochi-superplus-shop-ui-20261001.zip",
+  "archive_size": 837749,
+  "archive_sha256": "2efdb302c36fc582a5fff4282a25e2d5af62a57d1290f1b9678498e4b753318d",
+  "members": [
+    {
+      "name": "production/upload/19/a4aa442b3249499356e7a3f6370e530bfe355e",
+      "size": 55437,
+      "sha256": "53aae93bae984807dee713f517883566f58c69623685ad3f45c35cb17bea192a"
+    },
+    {
+      "name": "production/upload/7c/0159ffd7078028b1c2eec135beb1884f7224fb",
+      "size": 2231,
+      "sha256": "bd821f515b8204beda703898dc933e8adaacf9eddc5a35df435f67abc77bcd96"
+    },
+    {
+      "name": "production/upload/97/efacb322621f7bf6671dad3bdf7bdc55cb350b",
+      "size": 8067,
+      "sha256": "52eb6a4378ddfd81e6aebbc9a05044fb1d16de86930681178003dfc43aef6520"
+    },
+    {
+      "name": "production/upload/a5/35aaa48a5290e76d07c40e497742e4a407a0d0",
+      "size": 1771542,
+      "sha256": "e0a62161fd78fab8e720a800d53f5c47da4b692acf151ceee4149b519769db75"
+    }
+  ],
+  "changes": [
+    "八岐大蛇超级+韧性按50倍基准写入父体与六个蛇头。",
+    "八岐大蛇专用 head_cooltime 由1800帧改为300帧，不修改SWF。",
+    "八岐大蛇商店永久商品202049：500蛇神残响兑换海豹球129990×1，库存1；不加入如何获得索引。",
+    "八岐大蛇阶段节点货币列表第20节点第4个掉落位由空值改为蛇神残响40193。",
+    "救援铃铛展开红框的超级+问题实机复测仍未修复，本次不将该尝试作为有效修复交付。"
+  ],
+  "provenance": {
+    "orochi_balance": "F:\\codex\\work\\orochi-cdn-1.4.124\\pinball-1.4.123-1.4.124-1-orochi-balance-cooldown-20261001.zip",
+    "shop": "F:\\codex\\work\\orochi-shop-1.4.124-sealball\\orochi-shop-sealball-payload-1.4.123-1.4.124.zip",
+    "rescue": "F:\\codex\\work\\orochi-cdn-ui-payload-20261001\\hud_attention_label.parts.amf3.deflate",
+    "stage_node": "F:\\codex\\work\\orochi-stage-node-payload-20261001\\boss_battle_stage_node.orderedmap"
+  },
+  "not_validated": [
+    "8001运行镜像下载",
+    "设备战斗/UI实机验收",
+    "部署/发布"
+  ],
+  "static_validation": [
+    "ZIP CRC/member/hash readback",
+    "orderedmap target field readback",
+    "effective 1.4.123 stage-node base retained",
+    "server shop row lookup",
+    "manifest single-edge 1.4.123 to 1.4.124"
+  ],
+  "runtime_mirror_modified": false,
+  "save_impact": {
+    "status": "no_schema_or_save_format_change",
+    "detail": "商品新增沿用现有 shop_item_id 购买记录路径，未新增数据库表/列或存档标识迁移。"
+  },
+  "rescue_bell_status": "unresolved_after_emulator_retest",
+  "rescue_bell_payload_excluded": true
+}

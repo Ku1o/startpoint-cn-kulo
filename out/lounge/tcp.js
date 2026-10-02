@@ -12,6 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.detachLoungeSocket = exports.handleLoungeMessage = exports.handleLoungeHandshake = void 0;
 const session_1 = require("../data/domains/session");
 const player_login_1 = require("../lib/player-login");
+const online_presence_1 = require("../lib/online-presence");
 const state_1 = require("./state");
 Object.defineProperty(exports, "detachLoungeSocket", { enumerable: true, get: function () { return state_1.detachLoungeSocket; } });
 const protocol_1 = require("./protocol");
@@ -62,6 +63,7 @@ function handleLoungeMessage(socket, value) {
         const entered = (0, state_1.enterLounge)(socket, profile);
         if (!entered)
             return;
+        (0, online_presence_1.markPlayerOnlineFromTcp)(entered.member.viewerId);
         const mates = (0, state_1.serializeLoungeMates)(entered.room);
         (0, state_1.sendLoungeFrame)(socket, [1, [3, mates]]);
         (0, state_1.broadcastLoungeFrame)(entered.room, [1, [4, mates]]);
@@ -70,6 +72,9 @@ function handleLoungeMessage(socket, value) {
     const context = (0, state_1.getLoungeSocketContext)(socket);
     if (!context || !context.member)
         return;
+    if (!socket.destroyed && context.member.socket === socket && kind >= 1 && kind <= 6) {
+        (0, online_presence_1.markPlayerOnlineFromTcp)(context.viewerId);
+    }
     switch (kind) {
         case 1:
             (0, state_1.touchLoungeActivity)(context.room);

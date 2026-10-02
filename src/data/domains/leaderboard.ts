@@ -1,4 +1,5 @@
 import { getDb } from "../db"
+import { runPersistenceTransactionSync } from "../../lib/persistence-coordinator";
 
 export type LeaderboardRunStatus = "active" | "completed" | "abandoned"
 
@@ -93,7 +94,7 @@ export function getLeaderboardSeasonSync(
         throw new Error("contentRevision must be a non-empty string when provided.")
     }
     const db = getDb()
-    return db.transaction(() => {
+    return runPersistenceTransactionSync({ domain: "leaderboard", operation: "get_leaderboard_season" }, () => {
         db.prepare(`
             INSERT OR IGNORE INTO leaderboard_seasons
                 (competition_key, season, started_at_ms, source, content_revision)
@@ -125,7 +126,7 @@ export function getLeaderboardSeasonSync(
         )
         abandonLeaderboardRunsSync({ competitionKey, endedAtMs: nowMs })
         return nextSeason
-    })()
+    })
 }
 
 export function getActiveLeaderboardRunSync(
@@ -244,7 +245,7 @@ export function finishLeaderboardRoundSync(input: {
     const abilitySoulIds = normalizePartySlots(party.abilitySoulIds)
     const evolutionImgLevels = normalizePartySlots(party.evolutionImgLevels)
     const unisonEvolutionImgLevels = normalizePartySlots(party.unisonEvolutionImgLevels)
-    return getDb().transaction(() => {
+    return runPersistenceTransactionSync({ domain: "leaderboard", playerId: run.playerId, operation: "finish_leaderboard_round" }, () => {
         const current = getActiveLeaderboardRunSync(run.playerId, run.competitionKey)
         if (
             current === null
@@ -301,7 +302,7 @@ export function finishLeaderboardRoundSync(input: {
         const raw = getDb().prepare(`SELECT ${RUN_COLUMNS} FROM leaderboard_runs WHERE id = ?`)
             .get(current.id) as RawRun | undefined
         return raw === undefined ? null : deserializeRun(raw)
-    })()
+    })
 }
 
 export interface LeaderboardRankRecord extends LeaderboardRun {

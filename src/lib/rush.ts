@@ -10,6 +10,7 @@ import {
     shouldUnlockMode15MultiplayerPlayedParty,
 } from "./mode15-optional";
 import { getRogueEventConfig } from "./assets";
+import { partyCategoryForRushEvent } from "./rush-party-categories";
 
 function clearSerializedPlayedPartyMembers(
     party: UserRushEventPlayedParty,
@@ -22,8 +23,14 @@ function clearSerializedPlayedPartyMembers(
 
 function getMode15LegacyPartyFallbackSync(
     playerId: number,
+    eventId: number,
 ): Omit<PlayerRushEventPlayedParty, "round" | "battleType"> | null {
-    for (const category of [PartyCategory.RUSH, PartyCategory.NORMAL]) {
+    const categories = [
+        partyCategoryForRushEvent(eventId),
+        PartyCategory.RUSH,
+        PartyCategory.NORMAL,
+    ].filter((category, index, all) => all.indexOf(category) === index)
+    for (const category of categories) {
         const groups = getPlayerPartyGroupListSync(playerId, category);
         for (const group of Object.values(groups)) {
             for (const party of Object.values(group.list)) {
@@ -67,7 +74,7 @@ export function getSerializedPlayerRushEventPlayedPartiesSync(
             eventId === MODE15_RUSH_EVENT_ID
             && !party.characterIds.some(id => id !== null)
         ) {
-            mode15LegacyFallback ??= getMode15LegacyPartyFallbackSync(playerId);
+            mode15LegacyFallback ??= getMode15LegacyPartyFallbackSync(playerId, eventId);
             if (mode15LegacyFallback === null) {
                 // Omitting an invalid legacy marker lets the user replay the
                 // boundary floor. Sending character id 0 crashes the client.

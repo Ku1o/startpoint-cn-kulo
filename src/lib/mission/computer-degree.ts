@@ -5,7 +5,7 @@ import {
     getPlayerCharacterFavorFactsSync,
     getPlayerCharacterMissionStatsSync,
     getPlayerCompletedManaBoardCharacterIdsSync,
-    getPlayerCharactersSync,
+    type PlayerCharacterMissionFacts,
 } from "../../data/domains/character"
 import { getPlayerEquipmentListSync } from "../../data/domains/equipment"
 import {
@@ -16,8 +16,12 @@ import { countEquippedAbilitySoulSlotsSync } from "../../data/domains/party"
 import { getPlayerShopPurchasesMapSync } from "../../data/domains/shopPurchase"
 import {
     countFinishedPlayerQuestsByCategorySync,
+    getPlayerQuestProgressSubsetSync,
+    getPlayerSingleQuestHistorySummarySync,
+    type PlayerQuestProgressScope,
+    type PlayerSingleQuestHistorySummary,
 } from "../../data/domains/quest"
-import type { PlayerCharacter, PlayerEquipment } from "../../data/types"
+import type { PlayerEquipment } from "../../data/types"
 import { getCharacterDataSync, getCharacterManaNodesSync } from "../assets"
 import { serverManaNodes } from "../content-master"
 import { characterExpCaps } from "../character"
@@ -50,7 +54,8 @@ interface QuestFilter {
 }
 
 interface DegreeContext extends CategoryContext {
-    characters: Record<string, PlayerCharacter>
+    singleQuestHistory?: PlayerSingleQuestHistorySummary
+    characters: Record<string, PlayerCharacterMissionFacts>
     characterFavorProgress: ReadonlyMap<number, number>
     equipment: Record<string, PlayerEquipment>
     items: Record<string, number>
@@ -143,7 +148,7 @@ function addQuestIdByChapter(target: Map<number, number[]>, questIdText: string)
 
     const mainQuests = require("../../../assets/main_quest.json") as Record<string, unknown>
     const exQuests = require("../../../assets/ex_quest.json") as Record<string, unknown>
-    const bossQuests = require("../../../assets/boss_battle_quest.json") as Record<string, unknown>
+    const bossQuests = require("../boss/boss-tables").serverBossBattleQuests as Record<string, unknown>
     for (const questId of Object.keys(mainQuests)) addQuestIdByChapter(mainQuestIdsByChapter, questId)
     for (const questId of Object.keys(exQuests)) addQuestIdByChapter(exQuestIdsByChapter, questId)
     for (const questIdText of Object.keys(bossQuests)) {
@@ -301,8 +306,15 @@ function buildStats(
         .filter(definition => definition.conditionType === 37)
         .map(definition => optionalNumber(definition.row[13]))
         .filter((itemId): itemId is number => itemId !== undefined))]
+    const questReadScope = planDegreeQuestRead(selectedDefinitions)
     const needsQuestProgress = [14, 15, 16, 22, 23, 25, 26]
         .some(conditionType => conditionTypes.has(conditionType))
+    const needsSingleQuestHistory = selectedDefinitions.some(definition => (
+        definition.conditionType === 15 || definition.conditionType === 25
+        || (definition.conditionType === 26
+            && !definition.pattern.startsWith(SUPPORTED_FAMILIES.singleSsCount)
+            && !resolveQuestFilter(definition.row).exactQuestIds?.size)
+    ))
     const needsAllCharacters = [4, 5, 9].some(conditionType => conditionTypes.has(conditionType))
         || selectedDefinitions.some(definition => (
             definition.conditionType === 44
@@ -323,7 +335,7 @@ function buildStats(
         || conditionTypes.has(17)
         || conditionTypes.has(26)
     const player = shared.player
-    const characters = needsAllCharacters ? getPlayerCharactersSync(playerId) : {}
+    const characters = needsAllCharacters ? shared.characterFacts : {}
     const favorFacts = needsAllCharacters
         ? Object.fromEntries(Object.entries(characters).map(([id, character]) => [id, {
             exp: character.exp, hasReceivedBondToken: character.bondTokenList.some(token => token.status >= 2),
@@ -354,7 +366,12 @@ function buildStats(
             rankACount: 0,
             rankBCount: 0,
         }
-    const rawQuestProgress = needsQuestProgress ? shared.questProgress : {}
+    const singleQuestHistory = needsSingleQuestHistory
+        ? getPlayerSingleQuestHistorySummarySync(playerId) : undefined
+    const rawQuestProgress = questReadScope === undefined ? shared.questProgress
+        : !questReadScope.sections?.length && !questReadScope.questIds?.length
+            && (!needsQuestProgress || singleQuestHistory) ? {}
+            : getPlayerQuestProgressSubsetSync(playerId, questReadScope)
     const questProgress: Record<string, PlayerQuestProgressEntry[]> = {}
     const flatQuestProgress: DegreeQuestProgressEntry[] = []
     const questProgressBySection = new Map<number, DegreeQuestProgressEntry[]>()
@@ -403,6 +420,7 @@ function buildStats(
     const shopPurchases = conditionTypes.has(45) ? getPlayerShopPurchasesMapSync(playerId) : {}
     return {
         category,
+        singleQuestHistory,
         playerId,
         player,
         questProgress,
@@ -565,6 +583,33 @@ function matchesQuest(filter: QuestFilter, section: number, questId: number): bo
     return true
 }
 
+/** Union of the rows used by selected conditions. Unknown ranges keep the full read. */
+function planDegreeQuestRead(definitions: readonly DegreeDefinition[]): PlayerQuestProgressScope | undefined {
+    const sections = new Set<number>()
+    const questIds = new Set<number>()
+    for (const definition of definitions) {
+        if (definition.conditionType === 22) {
+            const chapter = optionalNumber(definition.row[9])
+            if (chapter !== undefined) {
+                for (const id of mainQuestIdsByChapter.get(chapter) ?? []) questIds.add(id)
+                for (const id of exQuestIdsByChapter.get(chapter) ?? []) questIds.add(id)
+            }
+            continue
+        }
+        if (![14, 23, 26].includes(definition.conditionType)) continue
+        if (definition.conditionType === 26
+            && definition.pattern.startsWith(SUPPORTED_FAMILIES.singleSsCount)) continue
+        const filter = resolveQuestFilter(definition.row)
+        if (filter.exactQuestIds?.size) {
+            for (const id of filter.exactQuestIds) questIds.add(id)
+        } else if (definition.conditionType !== 26) {
+            if (filter.categories.length === 0) return undefined
+            for (const section of filter.categories) sections.add(section)
+        }
+    }
+    return { sections: [...sections], questIds: [...questIds] }
+}
+
 function requestedBattleMode(row: DegreeRow): "single" | "multi" | "any" {
     const battleKind = optionalNumber(row[6])
     if (battleKind === 1) return "single"
@@ -637,7 +682,9 @@ function bestSingleClearTimeMs(ctx: DegreeContext): number | undefined {
         return ctx.questMetricCache.get("bestSingleClearTimeMs")
     }
     const counter = readCounter(ctx, "battle.best_clear_time_ms", { mode: "single" })
-    const times = ctx.flatQuestProgress
+    const times = ctx.singleQuestHistory
+        ? [ctx.singleQuestHistory.bestElapsedTimeMs].filter((value): value is number => value !== null)
+        : ctx.flatQuestProgress
         .filter(entry => entry.finished
             && isHistoricallySingleOnly(entry.section)
             && entry.bestElapsedTimeMs !== undefined)
@@ -655,9 +702,9 @@ function maxHighScore(ctx: DegreeContext): number {
     const result = Math.max(
         readCounter(ctx, "battle.max_score", { mode: "single" }),
         0,
-        ...ctx.flatQuestProgress
+        ...(ctx.singleQuestHistory ? [ctx.singleQuestHistory.highScore] : ctx.flatQuestProgress
             .filter(entry => isHistoricallySingleOnly(entry.section))
-            .map(entry => Number(entry.highScore) || 0),
+            .map(entry => Number(entry.highScore) || 0)),
     )
     ctx.questMetricCache.set("maxHighScore", result)
     return result
@@ -667,7 +714,8 @@ function maxClearRankCount(ctx: DegreeContext, rank: number, mode: "single" | "a
     const cacheKey = `maxClearRankCount:${rank}:${mode}`
     const cached = ctx.questMetricCache.get(cacheKey)
     if (cached !== undefined) return cached
-    const historical = ctx.flatQuestProgress
+    const historical = ctx.singleQuestHistory && rank === 5 && mode === "single"
+        ? ctx.singleQuestHistory.ssCount : ctx.flatQuestProgress
         .filter(entry => entry.finished
             && entry.clearRank === rank
             && (mode === "any" || isHistoricallySingleOnly(entry.section)))

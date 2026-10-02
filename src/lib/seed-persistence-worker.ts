@@ -14,9 +14,12 @@ const { directory, pools, recover } = workerData as {
 type FileKind = "confirmed" | "purified" | "verified";
 const dirty = new Set<FileKind>(recover ? ["confirmed", "purified", "verified"] : []);
 let writeCount = 0, writeBytes = 0, batches = 0;
-installWorkerMemoryProbe(() => {
-    let entries = 0;
-    for (const pool of pools.values()) entries += pool.confirmPool.size + pool.pendingPool.size + pool.playPool.size + pool.verifiedPool.size;
+installWorkerMemoryProbe(detailed => {
+    let entries: number | null = null;
+    if (detailed) {
+        entries = 0;
+        for (const pool of pools.values()) entries += pool.confirmPool.size + pool.pendingPool.size + pool.playPool.size + pool.verifiedPool.size;
+    }
     return { poolCount: pools.size, entries, dirtyFiles: dirty.size, writeCount, writeBytes, batches };
 });
 

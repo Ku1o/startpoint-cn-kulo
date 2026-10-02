@@ -52,9 +52,9 @@ export interface ShopItem {
     enhancementMaxLevel?: number
     requireAwakeningLevel?: number
     /**
-     * New special weapons use the real per-level material flow.  Legacy
-     * enhancement rows intentionally omit this flag and retain the existing
-     * one-purchase stage benefit.
+     * All enhancement rows declare their material charging mode explicitly.
+     * Only official-origin category 1-4 rows may use the private-server
+     * stage benefit; unmarked and author-added rows default to per-level.
      */
     enhancementPurchaseMode?: "per_level" | "stage_benefit"
     maxFrequency?: number

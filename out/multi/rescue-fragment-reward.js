@@ -6,10 +6,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.getRescueFragmentAdditionalReward = exports.getEligibleRescueFragmentReward = exports.getRescueFragmentReward = exports.RESCUE_PURPLE_FRAGMENT_ADDITIONAL_REWARD_GROUP_ID = exports.RESCUE_GOLD_FRAGMENT_ADDITIONAL_REWARD_GROUP_ID = exports.RESCUE_SILVER_FRAGMENT_ADDITIONAL_REWARD_GROUP_ID = exports.RESCUE_PURPLE_FRAGMENT_ITEM_ID = exports.RESCUE_GOLD_FRAGMENT_ITEM_ID = exports.RESCUE_SILVER_FRAGMENT_ITEM_ID = void 0;
 const types_1 = require("../lib/types");
 const advent_event_quest_json_1 = __importDefault(require("../../assets/advent_event_quest.json"));
-const boss_battle_quest_json_1 = __importDefault(require("../../assets/boss_battle_quest.json"));
 const hard_multi_event_quest_json_1 = __importDefault(require("../../assets/hard_multi_event_quest.json"));
 const raid_event_quest_json_1 = __importDefault(require("../../assets/raid_event_quest.json"));
 const world_story_event_boss_battle_quest_json_1 = __importDefault(require("../../assets/world_story_event_boss_battle_quest.json"));
+const boss_tables_1 = require("../lib/boss/boss-tables");
 exports.RESCUE_SILVER_FRAGMENT_ITEM_ID = 49000;
 exports.RESCUE_GOLD_FRAGMENT_ITEM_ID = 49001;
 exports.RESCUE_PURPLE_FRAGMENT_ITEM_ID = 49002;
@@ -77,7 +77,7 @@ function registerSequentialDifficultyRewards(category, table) {
     }
 }
 // Normal and later-added permanent bosses.
-for (const questIds of groupBattleQuestIds(boss_battle_quest_json_1.default)) {
+for (const questIds of groupBattleQuestIds(boss_tables_1.serverBossBattleQuests)) {
     const bossId = Math.floor(questIds[0] / 1000);
     for (const questId of questIds) {
         const difficulty = questId % 1000;

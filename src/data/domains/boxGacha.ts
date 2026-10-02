@@ -1,6 +1,7 @@
 import { getDb } from "../db";
 import { PlayerBoxGacha, PlayerBoxGachaDrawnReward, RawPlayerBoxGacha } from "../types";
 import { deserializeBoolean, serializeBoolean, deserializeNumberList } from "../utils";
+import { runPersistenceTransactionSync } from "../../lib/persistence-coordinator";
 
 /**
  * Converts a RawPlayerBoxGacha object into a PlayerBoxGacha object.
@@ -109,13 +110,13 @@ export function insertPlayerBoxGachasSync(
     playerId: number,
     boxGachas: Record<string, PlayerBoxGacha[]>
 ) {
-    getDb().transaction(() => {
+    runPersistenceTransactionSync({ domain: "gacha", playerId, operation: "insert_player_box_gachas" }, () => {
         for (const [section, list] of Object.entries(boxGachas)) {
             for (const boxGacha of list) {
                 insertPlayerBoxGachaSync(playerId, section, boxGacha)
             }
         }
-    })()
+    })
 }
 
 /**
@@ -175,7 +176,7 @@ export function resetPlayerBoxGachaSync(
     boxId: number,
     remainingNumber: number
 ): boolean {
-    return getDb().transaction(() => {
+    return runPersistenceTransactionSync({ domain: "gacha", playerId, operation: "reset_player_box_gacha" }, () => {
         getDb().prepare(`
         DELETE FROM players_box_gacha_drawn_rewards
         WHERE player_id = ? AND gacha_id = ? AND box_id = ?
@@ -196,7 +197,7 @@ export function resetPlayerBoxGachaSync(
         )
 
         return result.changes === 1
-    })()
+    })
 }
 
 /**

@@ -7,6 +7,7 @@ const chain_diagnostic_1 = require("./chain-diagnostic");
 const manager_1 = require("../room/manager");
 const lobby_runtime_1 = require("../five-boss/lobby-runtime");
 const connection_diagnostic_1 = require("../five-boss/connection-diagnostic");
+const online_presence_1 = require("../../lib/online-presence");
 function findBattleClientBySocket(socket) {
     const client = SessionManager_1.sessionManager.findClientBySocket(socket);
     return (client === null || client === void 0 ? void 0 : client.isBattle) ? client : undefined;
@@ -20,12 +21,15 @@ function sendToBattleClient(client, data, channel) {
         channel,
     });
 }
-function handleBattleNotify(socket, data) {
+function handleBattleNotify(socket, data, indexedClient) {
     var _a, _b;
     if (!Array.isArray(data))
         return;
     const tag = data[0];
-    const client = findBattleClientBySocket(socket);
+    // The outer packet handler already resolved this socket. Reuse that
+    // lookup for notify/relay handling so a high-rate battle connection does
+    // not perform the same Map lookup three times for every frame.
+    const client = indexedClient !== null && indexedClient !== void 0 ? indexedClient : findBattleClientBySocket(socket);
     if (client)
         (0, chain_diagnostic_1.recordBattleNotify)(client, tag, data);
     if (tag === 0 || tag === 1 || tag === 2) {
@@ -80,14 +84,18 @@ function handleBattleMessage(socket, data) {
     const tag = data[0];
     const activityClient = findBattleClientBySocket(socket);
     connection_diagnostic_1.fiveBossConnectionDiagnostics.packet(socket, !!activityClient);
-    if (activityClient)
+    if (activityClient) {
         SessionManager_1.sessionManager.noteBattleActivity(activityClient.connectionId);
+        if (!socket.destroyed && SessionManager_1.sessionManager.isCurrentBattleClient(activityClient)) {
+            (0, online_presence_1.markPlayerOnlineFromTcp)(activityClient.viewerId);
+        }
+    }
     switch (tag) {
         case 0: // Notify
-            handleBattleNotify(socket, data[1]);
+            handleBattleNotify(socket, data[1], activityClient);
             break;
         case 1: { // Broadcast → relay as BattleServer2Client.Messages(2, senderId, array)
-            const client = findBattleClientBySocket(socket);
+            const client = activityClient;
             if (client) {
                 const bcData = data[1];
                 (0, relay_1.relayToBattleRoom)(client, [2, client.connectionId, bcData], "broadcast", tag);
@@ -96,7 +104,7 @@ function handleBattleMessage(socket, data) {
             break;
         }
         case 2: { // Send → relay as BattleServer2Client.Send(3, senderId, message)
-            const client = findBattleClientBySocket(socket);
+            const client = activityClient;
             if (client) {
                 const sendMsg = data[2];
                 if (sendMsg !== undefined && sendMsg !== null) {

@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.sessionManager = exports.SessionManager = void 0;
 const routine_game_logging_1 = require("../../lib/routine-game-logging");
+const node_perf_hooks_1 = require("node:perf_hooks");
 const types_1 = require("../types");
 const ClientStateMachine_1 = require("./ClientStateMachine");
 const game_logging_1 = require("../../lib/game-logging");
@@ -11,6 +12,8 @@ const embedded_1 = require("../coordinator/embedded");
 const admission_1 = require("../room/admission");
 const connection_diagnostic_1 = require("../five-boss/connection-diagnostic");
 const memory_diagnostics_1 = require("../../lib/memory-diagnostics");
+const server_work_performance_1 = require("../../lib/server-work-performance");
+const realtime_diagnostics_1 = require("../../lib/realtime-diagnostics");
 class SessionManager {
     constructor() {
         this.clients = new Map();
@@ -270,6 +273,13 @@ class SessionManager {
         if (this.battleBarrierLogState.get(roomNumber) === signature)
             return;
         this.battleBarrierLogState.set(roomNumber, signature);
+        (0, realtime_diagnostics_1.recordRealtimeDiagnostic)(roomNumber, "barrier", {
+            reason,
+            expected,
+            connected,
+            ready,
+            generation,
+        });
         (0, routine_game_logging_1.routineGameLog)("multiBarrier", () => `[MULTI-BARRIER] room=${roomNumber} generation=${generation}`
             + ` expected=${expected} connected=${connected} ready=${ready} reason=${reason}`);
     }
@@ -283,6 +293,17 @@ class SessionManager {
         this.logBattleBarrierState(roomNumber, reason);
         if (connected <= 0 || ready < expected || ready < connected)
             return false;
+        const cycle = this.battleBarrierCycles.get(roomNumber);
+        const waitMs = cycle ? node_perf_hooks_1.performance.now() - cycle.startedAt : 0;
+        if (cycle)
+            (0, server_work_performance_1.recordServerWork)("multi.barrier", waitMs);
+        (0, realtime_diagnostics_1.recordRealtimeDiagnostic)(roomNumber, "barrier_released", {
+            reason,
+            expected,
+            connected,
+            ready,
+            waitMs: Math.round(waitMs * 1000) / 1000,
+        });
         this.battleExpectedCount.set(roomNumber, 0);
         this.clearBattleBarrierCycle(roomNumber);
         this.battleLevelNextClients.delete(roomNumber);
@@ -309,6 +330,7 @@ class SessionManager {
             timers: new Map(), missing: new Map(),
             arrived: new Set(this.getConnectedBattleClients(roomNumber)
                 .flatMap(client => [this.battleSeatKey(client), `connection:${client.connectionId}`])),
+            startedAt: node_perf_hooks_1.performance.now(),
         };
         this.battleBarrierCycles.set(roomNumber, cycle);
         return cycle;
@@ -1361,6 +1383,7 @@ class SessionManager {
         const set = this.roomClients.get(roomNumber);
         if (!set)
             return;
+        const broadcastStarted = node_perf_hooks_1.performance.now();
         let expectedGeneration = roomGeneration;
         if (expectedGeneration === undefined) {
             try {
@@ -1391,6 +1414,7 @@ class SessionManager {
                 });
             }
         }
+        (0, server_work_performance_1.recordServerWork)("multi.lobby.broadcast", node_perf_hooks_1.performance.now() - broadcastStarted);
     }
     getRoomClientCount(roomNumber, roomGeneration) {
         var _a, _b;

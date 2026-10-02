@@ -9,7 +9,7 @@ interface SpecialEventPartyDependencies {
 export function isPartyCategory(value: number): value is PartyCategory {
     return Number.isInteger(value)
         && value >= PartyCategory.NORMAL
-        && value <= PartyCategory.RUSH
+        && value <= PartyCategory.FANTASY
 }
 
 export function hasValidPartyCategory(

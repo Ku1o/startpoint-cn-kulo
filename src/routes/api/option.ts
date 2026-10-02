@@ -3,8 +3,8 @@ import { getSession } from "../../data/domains/session"
 import { updatePlayerOptionsInTransactionSync } from "../../data/domains/option"
 import { resolvePlayerIdSync } from "../../data/activeAccount";
 import { generateDataHeaders } from "../../utils";
-import { getDb } from "../../data/db";
 import { markFiveBossSoloAutoUsedSync } from "../../multi/five-boss/solo-runtime";
+import { runPersistenceTransaction } from "../../lib/persistence-coordinator";
 
 interface UpdateBody {
     viewer_id: number
@@ -37,11 +37,13 @@ const updateRoute = async (request: FastifyRequest, reply: FastifyReply) => {
 
     // update options
     const updatedOptions = body.option_params
-    getDb().transaction(() => {
+    await runPersistenceTransaction({
+        domain: "player", playerId, operation: "update_options",
+    }, () => {
         updatePlayerOptionsInTransactionSync(playerId, updatedOptions)
         // Match the option store's boolean coercion for values received on the wire.
         if (updatedOptions.auto_play) markFiveBossSoloAutoUsedSync(playerId)
-    }).immediate()
+    })
     
     reply.header("content-type", "application/x-msgpack")
     return reply.status(200).send({

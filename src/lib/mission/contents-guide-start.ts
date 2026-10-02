@@ -1,11 +1,11 @@
 import type { ReadonlyContentRepository } from "../../content/runtime/content-snapshot"
-import { getDb } from "../../data/db"
 import {
     getPlayerActiveMissionsSync,
     updatePlayerActiveMissionStageSync,
     updatePlayerActiveMissionSync,
 } from "../../data/domains/mission"
 import { getPlayerQuestProgressSync } from "../../data/domains/quest"
+import { runPersistenceTransactionSync } from "../persistence-coordinator"
 import {
     getActiveMissionEventMasterDefinition,
     getActiveMissionMasterDefinitions,
@@ -77,7 +77,9 @@ export function startContentsGuideMission(
         return { ok: false, message: "Invalid contents guide event." }
     }
 
-    return getDb().transaction((): StartContentsGuideMissionResult => {
+    return runPersistenceTransactionSync({
+        domain: "mission", playerId: input.playerId, operation: "start_contents_guide_mission",
+    }, (): StartContentsGuideMissionResult => {
         const activeMissions = normalizeActiveMissions(getPlayerActiveMissionsSync(input.playerId))
         const questProgress = getPlayerQuestProgressSync(input.playerId)
         if (!isActiveMissionAvailable(missionId, {
@@ -102,5 +104,5 @@ export function startContentsGuideMission(
             updatePlayerActiveMissionStageSync(input.playerId, stage.stage, missionId, false)
         }
         return { ok: true, delta: settlement.delta }
-    })()
+    })
 }

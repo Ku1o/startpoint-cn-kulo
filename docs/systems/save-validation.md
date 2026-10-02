@@ -4,11 +4,12 @@
 
 Web 管理面板对玩家数据的写入安全设计。核心原则:**只做结构安全校验,不卡游戏平衡**——挡住会真正坏档/崩溃的输入(未知字段、类型错误、整数 ≥ 2³¹、负的货币/数量),不限制数值大小;不合理的值靠"导出→微调→重导入"闭环纠正。
 
-## 存档导出 / 导入(MergedPlayerData 快照)
+## 存档导出 / 导入（V2 完整快照）
 
-- **导出 `GET /api/player/save?id=<pid>`**:`getMergedPlayerDataSync` 组装玩家完整服务端状态 → `{schema:"starpoint-cn-save", version:1, exportedAt, playerId, data}`,下载为 `save_<id>.json`。
-- **导入 `POST /api/player/save?id=<pid>`**:校验 `schema/version` → 复活 Date 字段(`player.{staminaHealTime,lastLoginTime,expPooledTime}`、`characterList[*].{joinTime,updateTime}`、`startDashExchangeCampaignList[*].{periodStartTime,periodEndTime}`)→ `replacePlayerDataSync`(删玩家 + `insertMergedPlayerDataSync`)。
-- 绕开游戏客户端的严格反序列化(`deserializePlayerData`,35 处 throw),往返同 schema、稳健;失败逐步明确报错。
+- **导出 `GET /api/player/save?id=<pid>`**：由存档导出 worker 生成 `{schema:"starpoint-cn-save", version:2, scope:"player-archive", schemaFingerprint, data.tables}`，下载为 `save_<id>.json`。
+- **导入 `POST /api/player/save?id=<pid>`**：只接受当前结构指纹匹配的 V2 完整快照；导入前生成目标玩家的 V2 回滚备份，并按表事务化恢复。
+- 旧版 V1 是不完整的 `MergedPlayerData` 快照，缺少当前数据库结构，线上导入直接拒绝；需要历史迁移时应在隔离数据库中使用专门工具处理。
+- 导入继续绕开游戏客户端的严格反序列化（`deserializePlayerData`），并保留账号身份、设备会话和服务器侧账本。
 - 覆盖域:玩家行 + 角色/魔晶/装备/物品/编队/任务进度+已抽/抽卡 info+campaign/箱抽/狂热活动/任务清单/每日点数/教程/选项。
 - **仅用于管理面板备份/恢复**,不保证被游戏客户端直接 load。
 

@@ -3,6 +3,7 @@ import { PlayerRushEvent, RawPlayerRushEvent, PlayerRushEventClearedFolders, Raw
 import { serializeBoolean, deserializeBoolean, deserializeNumberList } from "../utils";
 import { getServerTime } from "../../utils";
 import { getPlayerRushEventEndlessBattleRankingSync } from "../../lib/rush";
+import { runPersistenceTransactionSync } from "../../lib/persistence-coordinator";
 
 /**
  * Deserializes a RawPlayerRushEvent into a PlayerRushEvent
@@ -215,11 +216,11 @@ export function insertPlayerRushEventListSync(
     playerId: number,
     eventList: PlayerRushEvent[]
 ) {
-    getDb().transaction(() => {
+    runPersistenceTransactionSync({ domain: "event", playerId, operation: "insert_rush_events" }, () => {
         for (const event of eventList) {
             insertPlayerRushEventSync(playerId, event)
         }
-    })()
+    })
 }
 
 /**
@@ -345,14 +346,14 @@ export function insertPlayerRushEventClearedFolderListSync(
     playerId: number,
     folderList: Record<string, PlayerRushEventClearedFolders>
 ) {
-    getDb().transaction(() => {
+    runPersistenceTransactionSync({ domain: "event", playerId, operation: "insert_rush_cleared_folders" }, () => {
         for (const [rawEventId, folders] of Object.entries(folderList)) {
             const eventId = Number(rawEventId)
             for (const folderId of folders) {
                 insertPlayerRushEventClearedFolderSync(playerId, eventId, folderId)
             }
         }
-    })()
+    })
 }
 
 /**
@@ -572,14 +573,14 @@ export function insertPlayerRushEventPlayedPartyListSync(
     playerId: number,
     partyList: Record<string, PlayerRushEventPlayedParty[]>
 ) {
-    getDb().transaction(() => {
+    runPersistenceTransactionSync({ domain: "event", playerId, operation: "insert_rush_played_parties" }, () => {
         for (const [rawEventId, parties] of Object.entries(partyList)) {
             const eventId = Number(rawEventId)
             for (const party of parties) {
                 insertPlayerRushEventPlayedPartySync(playerId, eventId, party)
             }
         }
-    })()
+    })
 }
 
 /**

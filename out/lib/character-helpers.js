@@ -16,7 +16,7 @@ const character_1 = require("../data/domains/character");
 const session_1 = require("../data/domains/session");
 const activeAccount_1 = require("../data/activeAccount");
 const item_1 = require("../data/domains/item");
-const db_1 = require("../data/db");
+const persistence_coordinator_1 = require("./persistence-coordinator");
 const utils_1 = require("../utils");
 const utils_2 = require("../data/utils");
 const assets_1 = require("./assets");
@@ -260,7 +260,9 @@ function reconcilePlayerManaBoardCompletionSync(playerId, candidateCharacterIds,
     const candidates = candidateCharacterIds ? new Set(candidateCharacterIds.map(String)) : null;
     const repairedCharacterIds = new Set();
     const evolutionCharacterIds = new Set();
-    (0, db_1.getDb)().transaction(() => {
+    (0, persistence_coordinator_1.runPersistenceTransactionSync)({
+        domain: "player", playerId, operation: "reconcile_mana_board_completion",
+    }, () => {
         var _a;
         for (const [characterIdText, character] of Object.entries(characters)) {
             if (candidates && !candidates.has(characterIdText))
@@ -291,7 +293,7 @@ function reconcilePlayerManaBoardCompletionSync(playerId, candidateCharacterIds,
                 }
             }
         }
-    })();
+    });
     return {
         repairedCharacterIds: [...repairedCharacterIds],
         evolutionCharacterIds: [...evolutionCharacterIds],

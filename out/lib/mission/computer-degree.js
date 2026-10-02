@@ -95,7 +95,7 @@ function addQuestIdByChapter(target, questIdText) {
     }
     const mainQuests = require("../../../assets/main_quest.json");
     const exQuests = require("../../../assets/ex_quest.json");
-    const bossQuests = require("../../../assets/boss_battle_quest.json");
+    const bossQuests = require("../boss/boss-tables").serverBossBattleQuests;
     for (const questId of Object.keys(mainQuests))
         addQuestIdByChapter(mainQuestIdsByChapter, questId);
     for (const questId of Object.keys(exQuests))
@@ -230,7 +230,7 @@ const secondBoardRequirements = Object.fromEntries(Object.keys(content_master_1.
     return nodes.length > 0 ? [[characterId, nodes]] : [];
 }));
 function buildStats(playerId, category, missionIds, shared = new evaluation_context_1.MissionEvaluationReadContext(playerId)) {
-    var _a, _b;
+    var _a, _b, _c, _d;
     const selectedDefinitions = missionIds === undefined
         ? [...degreeDefinitions.values()]
         : missionIds
@@ -245,8 +245,16 @@ function buildStats(playerId, category, missionIds, shared = new evaluation_cont
             .filter(definition => definition.conditionType === 37)
             .map(definition => optionalNumber(definition.row[13]))
             .filter((itemId) => itemId !== undefined))];
+    const questReadScope = planDegreeQuestRead(selectedDefinitions);
     const needsQuestProgress = [14, 15, 16, 22, 23, 25, 26]
         .some(conditionType => conditionTypes.has(conditionType));
+    const needsSingleQuestHistory = selectedDefinitions.some(definition => {
+        var _a;
+        return (definition.conditionType === 15 || definition.conditionType === 25
+            || (definition.conditionType === 26
+                && !definition.pattern.startsWith(SUPPORTED_FAMILIES.singleSsCount)
+                && !((_a = resolveQuestFilter(definition.row).exactQuestIds) === null || _a === void 0 ? void 0 : _a.size)));
+    });
     const needsAllCharacters = [4, 5, 9].some(conditionType => conditionTypes.has(conditionType))
         || selectedDefinitions.some(definition => (definition.conditionType === 44
             && optionalNumber(definition.row[15]) === undefined));
@@ -265,7 +273,7 @@ function buildStats(playerId, category, missionIds, shared = new evaluation_cont
         || conditionTypes.has(17)
         || conditionTypes.has(26);
     const player = shared.player;
-    const characters = needsAllCharacters ? (0, character_1.getPlayerCharactersSync)(playerId) : {};
+    const characters = needsAllCharacters ? shared.characterFacts : {};
     const favorFacts = needsAllCharacters
         ? Object.fromEntries(Object.entries(characters).map(([id, character]) => [id, {
                 exp: character.exp, hasReceivedBondToken: character.bondTokenList.some(token => token.status >= 2),
@@ -296,7 +304,12 @@ function buildStats(playerId, category, missionIds, shared = new evaluation_cont
             rankACount: 0,
             rankBCount: 0,
         };
-    const rawQuestProgress = needsQuestProgress ? shared.questProgress : {};
+    const singleQuestHistory = needsSingleQuestHistory
+        ? (0, quest_1.getPlayerSingleQuestHistorySummarySync)(playerId) : undefined;
+    const rawQuestProgress = questReadScope === undefined ? shared.questProgress
+        : !((_a = questReadScope.sections) === null || _a === void 0 ? void 0 : _a.length) && !((_b = questReadScope.questIds) === null || _b === void 0 ? void 0 : _b.length)
+            && (!needsQuestProgress || singleQuestHistory) ? {}
+            : (0, quest_1.getPlayerQuestProgressSubsetSync)(playerId, questReadScope);
     const questProgress = {};
     const flatQuestProgress = [];
     const questProgressBySection = new Map();
@@ -325,10 +338,10 @@ function buildStats(playerId, category, missionIds, shared = new evaluation_cont
                 multiClearCount: entry.multiClearCount,
             };
             flatQuestProgress.push(flattened);
-            const sectionEntries = (_a = questProgressBySection.get(section)) !== null && _a !== void 0 ? _a : [];
+            const sectionEntries = (_c = questProgressBySection.get(section)) !== null && _c !== void 0 ? _c : [];
             sectionEntries.push(flattened);
             questProgressBySection.set(section, sectionEntries);
-            const questEntries = (_b = questProgressByQuestId.get(entry.questId)) !== null && _b !== void 0 ? _b : [];
+            const questEntries = (_d = questProgressByQuestId.get(entry.questId)) !== null && _d !== void 0 ? _d : [];
             questEntries.push(flattened);
             questProgressByQuestId.set(entry.questId, questEntries);
             if (entry.finished)
@@ -345,6 +358,7 @@ function buildStats(playerId, category, missionIds, shared = new evaluation_cont
         : { questClearCounters: new Map(), counterValues: new Map() };
     const shopPurchases = conditionTypes.has(45) ? (0, shopPurchase_1.getPlayerShopPurchasesMapSync)(playerId) : {};
     return Object.assign(Object.assign({ category,
+        singleQuestHistory,
         playerId,
         player,
         questProgress, totalQuestClears: 0, totalStories: 0, rankCounts: {}, characters,
@@ -482,6 +496,41 @@ function matchesQuest(filter, section, questId) {
     }
     return true;
 }
+/** Union of the rows used by selected conditions. Unknown ranges keep the full read. */
+function planDegreeQuestRead(definitions) {
+    var _a, _b, _c;
+    const sections = new Set();
+    const questIds = new Set();
+    for (const definition of definitions) {
+        if (definition.conditionType === 22) {
+            const chapter = optionalNumber(definition.row[9]);
+            if (chapter !== undefined) {
+                for (const id of (_a = mainQuestIdsByChapter.get(chapter)) !== null && _a !== void 0 ? _a : [])
+                    questIds.add(id);
+                for (const id of (_b = exQuestIdsByChapter.get(chapter)) !== null && _b !== void 0 ? _b : [])
+                    questIds.add(id);
+            }
+            continue;
+        }
+        if (![14, 23, 26].includes(definition.conditionType))
+            continue;
+        if (definition.conditionType === 26
+            && definition.pattern.startsWith(SUPPORTED_FAMILIES.singleSsCount))
+            continue;
+        const filter = resolveQuestFilter(definition.row);
+        if ((_c = filter.exactQuestIds) === null || _c === void 0 ? void 0 : _c.size) {
+            for (const id of filter.exactQuestIds)
+                questIds.add(id);
+        }
+        else if (definition.conditionType !== 26) {
+            if (filter.categories.length === 0)
+                return undefined;
+            for (const section of filter.categories)
+                sections.add(section);
+        }
+    }
+    return { sections: [...sections], questIds: [...questIds] };
+}
 function requestedBattleMode(row) {
     const battleKind = optionalNumber(row[6]);
     if (battleKind === 1)
@@ -546,12 +595,14 @@ function bestSingleClearTimeMs(ctx) {
         return ctx.questMetricCache.get("bestSingleClearTimeMs");
     }
     const counter = readCounter(ctx, "battle.best_clear_time_ms", { mode: "single" });
-    const times = ctx.flatQuestProgress
-        .filter(entry => entry.finished
-        && isHistoricallySingleOnly(entry.section)
-        && entry.bestElapsedTimeMs !== undefined)
-        .map(entry => Number(entry.bestElapsedTimeMs))
-        .filter(value => Number.isFinite(value) && value > 0);
+    const times = ctx.singleQuestHistory
+        ? [ctx.singleQuestHistory.bestElapsedTimeMs].filter((value) => value !== null)
+        : ctx.flatQuestProgress
+            .filter(entry => entry.finished
+            && isHistoricallySingleOnly(entry.section)
+            && entry.bestElapsedTimeMs !== undefined)
+            .map(entry => Number(entry.bestElapsedTimeMs))
+            .filter(value => Number.isFinite(value) && value > 0);
     if (counter > 0)
         times.push(counter);
     const result = times.length > 0 ? Math.min(...times) : undefined;
@@ -562,9 +613,9 @@ function maxHighScore(ctx) {
     const cached = ctx.questMetricCache.get("maxHighScore");
     if (cached !== undefined)
         return cached;
-    const result = Math.max(readCounter(ctx, "battle.max_score", { mode: "single" }), 0, ...ctx.flatQuestProgress
+    const result = Math.max(readCounter(ctx, "battle.max_score", { mode: "single" }), 0, ...(ctx.singleQuestHistory ? [ctx.singleQuestHistory.highScore] : ctx.flatQuestProgress
         .filter(entry => isHistoricallySingleOnly(entry.section))
-        .map(entry => Number(entry.highScore) || 0));
+        .map(entry => Number(entry.highScore) || 0)));
     ctx.questMetricCache.set("maxHighScore", result);
     return result;
 }
@@ -573,7 +624,8 @@ function maxClearRankCount(ctx, rank, mode = "any") {
     const cached = ctx.questMetricCache.get(cacheKey);
     if (cached !== undefined)
         return cached;
-    const historical = ctx.flatQuestProgress
+    const historical = ctx.singleQuestHistory && rank === 5 && mode === "single"
+        ? ctx.singleQuestHistory.ssCount : ctx.flatQuestProgress
         .filter(entry => entry.finished
         && entry.clearRank === rank
         && (mode === "any" || isHistoricallySingleOnly(entry.section)))

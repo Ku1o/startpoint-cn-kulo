@@ -3,6 +3,7 @@ import { getDb } from "../../data/db"
 import { getPlayerSync, updatePlayerSync } from "../../data/domains/player"
 import { getPlayerActiveQuestSync, updatePlayerActiveQuestContinueCountSync } from "../../data/domains/quest_active"
 import { FIVE_BOSS_GAUNTLET, isFiveBossGauntletQuest } from "./contract"
+import { runPersistenceTransaction, runPersistenceTransactionSync } from "../../lib/persistence-coordinator"
 
 export class FiveBossContinueError extends Error {}
 
@@ -36,8 +37,13 @@ function stableJson(value: unknown): string {
     return JSON.stringify(value) ?? "null"
 }
 
-/** Debit and count commit together. Native HTTP retries keep api_count and statistics. */
-export function continueFiveBossSync(input: ContinueRequest) {
+/**
+ * Debit and count commit together. A legacy client can resend a recovery
+ * request with a new api_count/statistics pair after a scene transition or
+ * reconnect. Once a receipt exists, acknowledge that resend without charging
+ * again; the old client has no local business-error path for a 400 response.
+ */
+function continueFiveBossInTransaction(input: ContinueRequest) {
     const apiCount = Number(input.apiCount)
     if (!isFiveBossGauntletQuest(input.category, input.questId)
         || typeof input.playId !== "string" || !input.playId.length || input.playId.length > 255
@@ -48,7 +54,7 @@ export function continueFiveBossSync(input: ContinueRequest) {
     const playId = input.playId
     const requestKey = apiCount + ":" + createHash("sha256").update(stableJson(input.statistics)).digest("hex")
     const db = getDb()
-    return db.transaction(() => {
+    {
         // Persistent state is authoritative even if an in-memory entry is stale after reconnect.
         const active = getPlayerActiveQuestSync(input.playerId)
         if (!active || active.playId !== playId || active.isMulti !== input.isMulti
@@ -70,9 +76,13 @@ export function continueFiveBossSync(input: ContinueRequest) {
         const receipt = db.prepare(`SELECT request_key FROM five_boss_continue_receipts
             WHERE player_id = ? AND play_id = ? AND is_multi = ?`)
             .get(input.playerId, playId, Number(input.isMulti)) as { request_key: string } | undefined
-        if (receipt && receipt.request_key !== requestKey
-            || !receipt && active.continueCount >= FIVE_BOSS_GAUNTLET.maxContinueCount) {
+        if (!receipt && active.continueCount >= FIVE_BOSS_GAUNTLET.maxContinueCount) {
             throw new FiveBossContinueError("Each player can continue only once per five-boss run.")
+        }
+        if (receipt && active.continueCount < FIVE_BOSS_GAUNTLET.maxContinueCount) {
+            // Repair a stale active-quest row left by an interrupted recovery;
+            // the receipt is authoritative and no second debit is allowed.
+            updatePlayerActiveQuestContinueCountSync(input.playerId, FIVE_BOSS_GAUNTLET.maxContinueCount)
         }
         const player = getPlayerSync(input.playerId)
         if (!player) throw new FiveBossContinueError("Player does not exist.")
@@ -89,5 +99,19 @@ export function continueFiveBossSync(input: ContinueRequest) {
         }
         return { continue_count: FIVE_BOSS_GAUNTLET.maxContinueCount,
             user_info: { free_vmoney: player.freeVmoney, vmoney: player.vmoney }, mail_arrived: false }
-    }).immediate()
+    }
+}
+
+/** Synchronous compatibility API for legacy callers and isolated tests. */
+export function continueFiveBossSync(input: ContinueRequest) {
+    return runPersistenceTransactionSync({
+        domain: "multi-settlement", playerId: input.playerId, operation: "five_boss_continue_sync",
+    }, () => continueFiveBossInTransaction(input))
+}
+
+/** Async HTTP path; the transaction is owned by the persistence boundary. */
+export function continueFiveBoss(input: ContinueRequest) {
+    return runPersistenceTransaction({
+        domain: "multi-settlement", playerId: input.playerId, operation: "five_boss_continue",
+    }, () => continueFiveBossInTransaction(input))
 }

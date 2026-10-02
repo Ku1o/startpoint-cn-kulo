@@ -6,6 +6,7 @@ import { getPlayerSync } from "../../data/domains/player"
 import { getSession } from "../../data/domains/session"
 import { updatePlayerPartyGroupSync } from "../../data/domains/party"
 import { resolvePlayerIdSync } from "../../data/activeAccount";
+import { runPersistenceTransaction } from "../../lib/persistence-coordinator";
 import { generateDataHeaders } from "../../utils";
 import { PartyCategory } from "../../data/types";
 import { hasValidPartyCategory } from "../../lib/special-event-parties";
@@ -53,15 +54,19 @@ const routes = async (fastify: FastifyInstance) => {
             "message": "No players bound to account."
         })
 
-        // update party groups
-        for (const editParamsList of body.party_group_edit_params_list) {
-            updatePlayerPartyGroupSync(
-                playerId,
-                editParamsList.party_group_id,
-                editParamsList.party_group_color_id,
-                editParamsList.party_category as PartyCategory,
-            )
-        }
+        // update party groups as one player-owned persistence operation
+        await runPersistenceTransaction({
+            domain: "player", playerId, operation: "party_group_edit",
+        }, () => {
+            for (const editParamsList of body.party_group_edit_params_list) {
+                updatePlayerPartyGroupSync(
+                    playerId,
+                    editParamsList.party_group_id,
+                    editParamsList.party_group_color_id,
+                    editParamsList.party_category as PartyCategory,
+                )
+            }
+        })
         
         reply.header("content-type", "application/x-msgpack")
         return reply.status(200).send({

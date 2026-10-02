@@ -16,6 +16,24 @@ export interface EquipmentEnhancementStageQuery {
 
 export type EquipmentEnhancementPurchaseMode = "stage_benefit" | "per_level"
 
+/**
+ * Resolves the purchase mode from the authoritative enhancement category.
+ *
+ * Only explicitly marked rows in the official-origin categories 1-4 may use
+ * the private-server one-purchase stage benefit. Unmarked and author-added
+ * rows use the per-level material flow.
+ */
+export function resolveEquipmentEnhancementPurchaseMode(
+    shopCategoryId: number,
+    configuredMode?: EquipmentEnhancementPurchaseMode,
+): EquipmentEnhancementPurchaseMode {
+    if (Number.isInteger(shopCategoryId) && shopCategoryId >= 1 && shopCategoryId <= 4
+        && configuredMode === "stage_benefit") {
+        return "stage_benefit"
+    }
+    return "per_level"
+}
+
 export type EquipmentEnhancementPurchasePlan =
     | {
         ok: true
@@ -54,9 +72,11 @@ export function findCurrentEquipmentEnhancementStage(
 /**
  * Plans one special-equipment enhancement purchase.
  *
- * Legacy rows retain the existing stage-benefit behavior. Newly-added special
- * weapons opt into `per_level`, where the requested amount advances exactly
- * that many levels and the caller charges the row's materials per level.
+ * Explicitly marked official-origin rows retain the private-server stage benefit.
+ * Author-added rows use `per_level`, where the requested amount advances
+ * exactly that many levels and the caller charges the row's materials per level.
+ * Callers should resolve a shop row with
+ * `resolveEquipmentEnhancementPurchaseMode` before planning a purchase.
  */
 export function planEquipmentEnhancementPurchase(
     currentLevel: number,
@@ -64,7 +84,7 @@ export function planEquipmentEnhancementPurchase(
     stageMaxLevel: number,
     currentAwakeningLevel: number,
     requiredAwakeningLevel: number,
-    mode: EquipmentEnhancementPurchaseMode = "stage_benefit",
+    mode: EquipmentEnhancementPurchaseMode = "per_level",
 ): EquipmentEnhancementPurchasePlan {
     if (!Number.isSafeInteger(requestedPurchaseAmount) || requestedPurchaseAmount <= 0) {
         return { ok: false, message: "Invalid enhancement purchase amount." }

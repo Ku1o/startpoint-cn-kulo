@@ -18,7 +18,11 @@ const DEFAULT_BATCH_PLAYERS = 5;
 const DEFAULT_PAUSE_MS = 100;
 const DEFAULT_BUSY_RETRY_ATTEMPTS = 5;
 const DEFAULT_BUSY_RETRY_DELAY_MS = 20;
-const DELETE_BATCH_ROWS = 1000;
+// Keep each synchronous SQLite delete short enough for realtime callbacks to
+// run between batches. The old 1000-row batch made a large cleanup hold the
+// main event loop for too long on the production database.
+const DEFAULT_DELETE_BATCH_ROWS = 250;
+const MAX_DELETE_BATCH_ROWS = 5000;
 function normalizedInteger(value, fallback, minimum) {
     if (!Number.isSafeInteger(value) || value === undefined || value < minimum)
         return fallback;
@@ -29,6 +33,11 @@ function normalizedBoundedInteger(value, fallback, minimum, maximum) {
         return fallback;
     }
     return value;
+}
+function environmentInteger(name) {
+    var _a;
+    const value = Number.parseInt((_a = process.env[name]) !== null && _a !== void 0 ? _a : "", 10);
+    return Number.isSafeInteger(value) ? value : undefined;
 }
 function isReceiveHistoryRetentionEnabled(env = process.env) {
     var _a;
@@ -59,9 +68,10 @@ function millisecondsUntilNextReceiveHistoryRetentionRun(now, hour, minute) {
 }
 exports.millisecondsUntilNextReceiveHistoryRetentionRun = millisecondsUntilNextReceiveHistoryRetentionRun;
 function resolveOptions(options) {
-    var _a, _b, _c;
+    var _a, _b, _c, _d;
     const schedule = getReceiveHistoryRetentionSchedule();
     return {
+        executeTransaction: options.executeTransaction,
         enabled: (_a = options.enabled) !== null && _a !== void 0 ? _a : isReceiveHistoryRetentionEnabled(),
         maxRows: normalizedInteger(options.maxRows, DEFAULT_MAX_ROWS, 1),
         maxDays: normalizedInteger(options.maxDays, 7, 1),
@@ -75,13 +85,17 @@ function resolveOptions(options) {
         pauseMs: normalizedInteger(options.pauseMs, DEFAULT_PAUSE_MS, 0),
         busyRetryAttempts: normalizedInteger(options.busyRetryAttempts, DEFAULT_BUSY_RETRY_ATTEMPTS, 1),
         busyRetryDelayMs: normalizedInteger(options.busyRetryDelayMs, DEFAULT_BUSY_RETRY_DELAY_MS, 0),
-        logger: (_c = options.logger) !== null && _c !== void 0 ? _c : console,
+        deleteBatchRows: normalizedBoundedInteger((_c = options.deleteBatchRows) !== null && _c !== void 0 ? _c : environmentInteger("RECEIVE_HISTORY_RETENTION_DELETE_BATCH_ROWS"), DEFAULT_DELETE_BATCH_ROWS, 1, MAX_DELETE_BATCH_ROWS),
+        logger: (_d = options.logger) !== null && _d !== void 0 ? _d : console,
     };
 }
 function delay(milliseconds) {
-    if (milliseconds <= 0)
-        return Promise.resolve();
-    return new Promise(resolve => setTimeout(resolve, milliseconds));
+    if (milliseconds > 0)
+        return new Promise(resolve => setTimeout(resolve, milliseconds));
+    // Promise.resolve() only yields to the microtask queue. Since
+    // better-sqlite3 runs synchronously, use libuv's check phase even when the
+    // configured pause is zero so HTTP/TCP callbacks get a scheduling chance.
+    return new Promise(resolve => setImmediate(resolve));
 }
 function isSqliteBusyError(error) {
     var _a;
@@ -93,7 +107,7 @@ function isSqliteBusyError(error) {
 function describeError(error) {
     return error instanceof Error ? error.message : String(error);
 }
-function prunePlayerWithRetry(database, playerId, maxRows, maxAttempts, retryDelayMs, cutoff) {
+function prunePlayerWithRetry(database, playerId, maxRows, maxAttempts, retryDelayMs, deleteBatchRows, cutoff, executeTransaction, shouldStop, beforePrune) {
     return __awaiter(this, void 0, void 0, function* () {
         const prune = database.prepare(`
         DELETE FROM players_receive_history
@@ -104,15 +118,26 @@ function prunePlayerWithRetry(database, playerId, maxRows, maxAttempts, retryDel
               WHERE player_id = ?
               ORDER BY create_time DESC, id DESC
               LIMIT ?
-          )) LIMIT ${DELETE_BATCH_ROWS})
+          )) LIMIT ${deleteBatchRows})
     `);
+        const operation = () => {
+            // Recheck after queuing: shutdown can start while a player's earlier
+            // write is still running. Refresh the lease in this same transaction.
+            if (shouldStop())
+                return 0;
+            beforePrune();
+            return prune.run(playerId, cutoff, playerId, maxRows).changes;
+        };
+        if (executeTransaction) {
+            return executeTransaction({ domain: "maintenance", playerId, operation: "receive_history_prune" }, operation);
+        }
         let lastError;
         for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
             let began = false;
             try {
                 database.exec("BEGIN IMMEDIATE");
                 began = true;
-                const deletedRows = prune.run(playerId, cutoff, playerId, maxRows).changes;
+                const deletedRows = operation();
                 database.exec("COMMIT");
                 return deletedRows;
             }
@@ -133,7 +158,7 @@ function prunePlayerWithRetry(database, playerId, maxRows, maxAttempts, retryDel
     });
 }
 function runReceiveHistoryRetentionPass(database_1) {
-    return __awaiter(this, arguments, void 0, function* (database, options = {}, shouldStop = () => false) {
+    return __awaiter(this, arguments, void 0, function* (database, options = {}, shouldStop = () => false, beforePrune = () => { }) {
         const config = resolveOptions(options);
         const cutoff = new Date(config.nowMs - config.maxDays * 86400000).toISOString();
         const startedAt = Date.now();
@@ -179,12 +204,12 @@ function runReceiveHistoryRetentionPass(database_1) {
                             result.stopped = true;
                             break;
                         }
-                        batchRows = yield prunePlayerWithRetry(database, candidate.player_id, config.maxRows, config.busyRetryAttempts, config.busyRetryDelayMs, cutoff);
+                        batchRows = yield prunePlayerWithRetry(database, candidate.player_id, config.maxRows, config.busyRetryAttempts, config.busyRetryDelayMs, config.deleteBatchRows, cutoff, config.executeTransaction, shouldStop, beforePrune);
                         deletedRows += batchRows;
                         result.deletedRows += batchRows;
-                        if (batchRows === DELETE_BATCH_ROWS)
+                        if (batchRows === config.deleteBatchRows)
                             yield delay(config.pauseMs);
-                    } while (batchRows === DELETE_BATCH_ROWS);
+                    } while (batchRows === config.deleteBatchRows);
                     result.processedPlayers += 1;
                     if (deletedRows > 0)
                         result.prunedPlayers += 1;
@@ -214,6 +239,12 @@ function createReceiveHistoryRetentionService(database, options = {}) {
     let stopped = true;
     let timer = null;
     let activePass = null;
+    const write = (operation, action) => __awaiter(this, void 0, void 0, function* () {
+        if (config.executeTransaction) {
+            return config.executeTransaction({ domain: "maintenance", operation }, action);
+        }
+        return database.transaction(action).immediate();
+    });
     const schedule = (overrideDelayMs = null) => {
         if (stopped || !config.enabled || timer !== null)
             return;
@@ -228,7 +259,7 @@ function createReceiveHistoryRetentionService(database, options = {}) {
             activePass = (() => __awaiter(this, void 0, void 0, function* () {
                 let lease = null;
                 try {
-                    lease = (0, maintenance_state_1.acquireHistoryLease)(database);
+                    lease = yield write("receive_history_acquire", () => stopped ? null : (0, maintenance_state_1.acquireHistoryLease)(database));
                     if (!lease)
                         return;
                     const result = yield runReceiveHistoryRetentionPass(database, {
@@ -239,20 +270,21 @@ function createReceiveHistoryRetentionService(database, options = {}) {
                         pauseMs: config.pauseMs,
                         busyRetryAttempts: config.busyRetryAttempts,
                         busyRetryDelayMs: config.busyRetryDelayMs,
+                        deleteBatchRows: config.deleteBatchRows,
                         logger: config.logger,
-                    }, () => {
-                        if (!stopped && lease)
-                            (0, maintenance_state_1.refreshHistoryLease)(database, lease);
-                        return stopped;
-                    });
-                    (0, maintenance_state_1.finishHistoryLease)(database, lease, result, !result.stopped && result.failedPlayers === 0, result.failedPlayers > 0 ? `${result.failedPlayers} players failed` : result.stopped ? "interrupted" : null);
+                        executeTransaction: config.executeTransaction,
+                    }, () => stopped, () => { if (lease)
+                        (0, maintenance_state_1.refreshHistoryLease)(database, lease); });
+                    const completedLease = lease;
+                    yield write("receive_history_complete", () => (0, maintenance_state_1.finishHistoryLease)(database, completedLease, result, !result.stopped && result.failedPlayers === 0, result.failedPlayers > 0 ? `${result.failedPlayers} players failed` : result.stopped ? "interrupted" : null));
                     lease = null;
                     config.logger.log(`[DB_MAINTENANCE] receive history retention completed: candidates=${result.candidatePlayers} prunedPlayers=${result.prunedPlayers} deletedRows=${result.deletedRows} failures=${result.failedPlayers} stopped=${result.stopped} elapsedMs=${result.elapsedMs}`);
                 }
                 catch (error) {
                     if (lease) {
+                        const failedLease = lease;
                         try {
-                            (0, maintenance_state_1.finishHistoryLease)(database, lease, undefined, false, describeError(error));
+                            yield write("receive_history_failed", () => (0, maintenance_state_1.finishHistoryLease)(database, failedLease, undefined, false, describeError(error)));
                         }
                         catch (_a) { }
                     }

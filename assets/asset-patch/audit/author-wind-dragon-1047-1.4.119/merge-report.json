@@ -1,0 +1,700 @@
+{
+  "source_chain": "1.4.118",
+  "source_manifest_sha256": "6ba94ec9424db5ba31374d75b3317cabab8d10eb567c34fffb8d94c7c64728b0",
+  "package_sha256": "22fba102f82595062b7ea951c3a56eb835b5f84b7155699d334b9b6743ea04b6",
+  "assets": [
+    {
+      "root": "common",
+      "logical": "battle/action/skill/action/rare5/wind_spgirl_campus$wind_spgirl_campus_1.action.dsl.amf3.deflate",
+      "member": "production/upload/a7/125ea34d293bf30ec77725b43d233db8bbb768",
+      "current_sha256": "6206396b2abdcabce7b48799bae7328f1b7cc25a67e5bb7f2cc335112a1a0df3",
+      "incoming_sha256": "61b99c8e468ebfa85c4d7da692e4d70f67b008a6092290c61198a62548a62844",
+      "size": 1863,
+      "classification": "dependency"
+    },
+    {
+      "root": "common",
+      "logical": "battle/action/skill/action/rare5/wind_spgirl_campus$wind_spgirl_campus_2.action.dsl.amf3.deflate",
+      "member": "production/upload/60/98235735eb9fb1b69ba6f8ec8a90394494ffd7",
+      "current_sha256": "6206396b2abdcabce7b48799bae7328f1b7cc25a67e5bb7f2cc335112a1a0df3",
+      "incoming_sha256": "61b99c8e468ebfa85c4d7da692e4d70f67b008a6092290c61198a62548a62844",
+      "size": 1863,
+      "classification": "dependency"
+    },
+    {
+      "root": "common",
+      "logical": "battle/action/skill/action/rare5/ruin_girl_campus$ruin_girl_campus_1.action.dsl.amf3.deflate",
+      "member": "production/upload/a1/c5eb7286e3886b84f18204e5437ebfc79f5a6a",
+      "current_sha256": "55fbcb20b287279a5a1dbf6cd1b8f181f3816cf6f3399e626c9b1b9e40730486",
+      "incoming_sha256": "374f429a8c61424f9079f638ae2c4c520ca70271bad9ce412c7c02b41c6396f2",
+      "size": 704,
+      "classification": "dependency"
+    },
+    {
+      "root": "common",
+      "logical": "battle/action/skill/action/rare5/ruin_girl_campus$ruin_girl_campus_2.action.dsl.amf3.deflate",
+      "member": "production/upload/5a/b60d3221af3ce1082db6c4f42cce500a7a75d0",
+      "current_sha256": "55fbcb20b287279a5a1dbf6cd1b8f181f3816cf6f3399e626c9b1b9e40730486",
+      "incoming_sha256": "374f429a8c61424f9079f638ae2c4c520ca70271bad9ce412c7c02b41c6396f2",
+      "size": 704,
+      "classification": "dependency"
+    },
+    {
+      "root": "common",
+      "logical": "battle/action/skill/action/ability_skill/ruin_girl_campus$ruin_girl_campus_fever_spawn.action.dsl.amf3.deflate",
+      "member": "production/upload/6e/4dd6850c01c218a8408c59f26f44a75c4cb469",
+      "current_sha256": "51d568016da990783df13474b3eb4c979cd0280f38d339f1e7b68f9aef79573b",
+      "incoming_sha256": "8a06eaf0b7749c52673fcb6c531580e8269751994494fdb285a68f14313bfa34",
+      "size": 670,
+      "classification": "dependency"
+    },
+    {
+      "root": "common",
+      "logical": "battle/action/skill/action/ability_skill/ruin_girl_campus$ruin_girl_campus_ball_hit_count.action.dsl.amf3.deflate",
+      "member": "production/upload/00/111ac0b58bdfc785649ffae42bd8e98baef6dc",
+      "current_sha256": null,
+      "incoming_sha256": "8eecae164e917356d0e5a738b63a02bde0ec90a23d7b8d097d92bae11811e82a",
+      "size": 272,
+      "classification": "dependency"
+    },
+    {
+      "root": "common",
+      "logical": "battle/action/skill/action/rare5/land_dragon_wind_playable$land_dragon_wind_playable_1.action.dsl.amf3.deflate",
+      "member": "production/upload/cd/6200616511286a58dc91e430e50304201f833b",
+      "current_sha256": "c9696dbe558c8092219ff9e826eab64e7810930aad48c4b98a796e30d9bd60b9",
+      "incoming_sha256": "79b1c025eea84a6fa1b0308c5f6b62456a70384c0a7d2d5de3b66759a8ce78dd",
+      "size": 1868,
+      "classification": "dependency"
+    },
+    {
+      "root": "common",
+      "logical": "battle/action/skill/action/rare5/land_dragon_wind_playable$land_dragon_wind_playable_2.action.dsl.amf3.deflate",
+      "member": "production/upload/25/d5cb23efedb8a582a862eca2ff2b7fc21a447f",
+      "current_sha256": "c9696dbe558c8092219ff9e826eab64e7810930aad48c4b98a796e30d9bd60b9",
+      "incoming_sha256": "79b1c025eea84a6fa1b0308c5f6b62456a70384c0a7d2d5de3b66759a8ce78dd",
+      "size": 1868,
+      "classification": "dependency"
+    },
+    {
+      "root": "medium",
+      "logical": "character/land_dragon_wind_playable/ui/full_shot_1440_1920_0.png",
+      "member": "production/medium_upload/f3/e3e81ff3b057c208dca7ac0e01767a57445415",
+      "current_sha256": "36466743a92bd4368b32382bcfc4b77d23cf6223a60d3a5219a6864855097a45",
+      "incoming_sha256": "a13393f2c2a6c4a42eba9b07a12b8c8d4bc23dabd28f401b4e0a11c4d43a1641",
+      "size": 1887998,
+      "classification": "dependency"
+    },
+    {
+      "root": "medium",
+      "logical": "character/land_dragon_wind_playable/ui/square_0.png",
+      "member": "production/medium_upload/1c/436000f7cf2f76ae94f93551b5da855c43519a",
+      "current_sha256": "74ac2ab03ccd127396f4d60b146d0f005f1748349da345b7c55687cc718ef51e",
+      "incoming_sha256": "7752ea869792c9c520951b28cd4966c4788796babff4f0c286e1bb77ec29b218",
+      "size": 67442,
+      "classification": "dependency"
+    },
+    {
+      "root": "medium",
+      "logical": "character/land_dragon_wind_playable/ui/square_132_132_0.png",
+      "member": "production/medium_upload/60/9ce3ed4c87b12892c67d2444ae6b320d6d65e5",
+      "current_sha256": "f73717eb5770971c1901545fa9579589bbb42fbf65a5a8334ee0f61e35107321",
+      "incoming_sha256": "f27520e6e5b7adfaa9d5bac3a3333a28ca33a97b4de8a26a65a8cf1f00ef6074",
+      "size": 30480,
+      "classification": "dependency"
+    },
+    {
+      "root": "medium",
+      "logical": "character/land_dragon_wind_playable/ui/square_round_136_136_0.png",
+      "member": "production/medium_upload/d3/ae6b1cdacf6121cb2923a5c6016d0f21722f21",
+      "current_sha256": "d8bc1bcc0be9e0c7a885f22276d72910f0c9e67148bd94c935205988fb539cd1",
+      "incoming_sha256": "237159d45bfbc4affb864a1cf10d697bc50809fa3ecb488724bc59aaf99cba69",
+      "size": 32002,
+      "classification": "dependency"
+    },
+    {
+      "root": "medium",
+      "logical": "character/land_dragon_wind_playable/ui/square_round_95_95_0.png",
+      "member": "production/medium_upload/a1/e655c6446e0564ad2ec4e8e7cdc9f9b06ed94e",
+      "current_sha256": "f959b555f9f9c4e3896df966a3b8e0be2e30af4673ae4e0af3f84d932f8bf60f",
+      "incoming_sha256": "2b361fcd018f17c709343c678f2c58882aafd7b0ed2ec6114603c7f3fd0c9a85",
+      "size": 17242,
+      "classification": "dependency"
+    },
+    {
+      "root": "medium",
+      "logical": "character/land_dragon_wind_playable/ui/thumb_level_up_0.png",
+      "member": "production/medium_upload/dc/c808eda3a7d1399ee3962a89c12dd0c9a6be59",
+      "current_sha256": "91c53ba7da4e5dc653aebb7fac47a623304b9f031318eedc5d7a60c612ea36d9",
+      "incoming_sha256": "5fbceb3ccb0fe107956398adaa4485e8baf5ae18ad158eda8dcc1c6a9fdbff24",
+      "size": 115398,
+      "classification": "dependency"
+    },
+    {
+      "root": "medium",
+      "logical": "character/land_dragon_wind_playable/ui/thumb_party_unison_0.png",
+      "member": "production/medium_upload/63/1eb5ffa0f29a52eb2d5949d89a0acd3d028776",
+      "current_sha256": "98ba6cacb74553f6d355c271e09cf5ddb751281d39268a41eea3f308a12d86b4",
+      "incoming_sha256": "77e51cf20d7045c4b302258c5686119f39a6704287ea768426ab6b1a18714c42",
+      "size": 44978,
+      "classification": "dependency"
+    },
+    {
+      "root": "medium",
+      "logical": "character/land_dragon_wind_playable/ui/battle_member_status_0.png",
+      "member": "production/medium_upload/b7/e0e02912b651377afd009df9e81120bb1aab86",
+      "current_sha256": "108420f206217ed1ce9b4ce7c6464449d5bbd30526690e8061f089674672a5e3",
+      "incoming_sha256": "e17303d601214edcaf4d1e4f3a9f124549213fcb4fcaa9230c87912a2d2063cf",
+      "size": 7581,
+      "classification": "dependency"
+    },
+    {
+      "root": "medium",
+      "logical": "character/land_dragon_wind_playable/ui/battle_control_board_0.png",
+      "member": "production/medium_upload/14/a8002b274e85696655390af37e48270fe194fb",
+      "current_sha256": "48142ef061322552307e110d5a714b0738f7ff0fe0462fde3d222010582c3b4a",
+      "incoming_sha256": "cc1989b657dd1a61233e22008c41c4e5609fb3ba966c6a8b35514b9097f47fac",
+      "size": 51848,
+      "classification": "dependency"
+    },
+    {
+      "root": "medium",
+      "logical": "character/land_dragon_wind_playable/ui/cutin_skill_chain_0.png",
+      "member": "production/medium_upload/ec/baba2ba9d9cddef5dd71d2d9411f495e8be786",
+      "current_sha256": "69f569b094e7353454dd43f596f66de3e3085d0567ef88e452e8064c70694a03",
+      "incoming_sha256": "9e135c05dc66352ad3d3c22c82598f7a4c6591f4f884ae9e5068e3759cd17c28",
+      "size": 120544,
+      "classification": "dependency"
+    },
+    {
+      "root": "medium",
+      "logical": "character/land_dragon_wind_playable/ui/thumb_party_main_0.png",
+      "member": "production/medium_upload/f9/e3a300b4f1fd8542e28acbfc5ec307a1bb40ca",
+      "current_sha256": "b68ed28097b8d3615dd052ebcd8c7aa28b07e73210a34e41af76f32cbe0cf7aa",
+      "incoming_sha256": "954e08b2955966d3e61dfedf8971c53c813bae19b2c7de5ecdb3f64e3d226b9a",
+      "size": 114647,
+      "classification": "dependency"
+    },
+    {
+      "root": "medium",
+      "logical": "character/land_dragon_wind_playable/ui/skill_cutin_0.png",
+      "member": "production/medium_upload/88/11b303ffa1ee6e5da74e7518da49027cd9f2bf",
+      "current_sha256": "300e3ad76251e595198db1c2059399f2757aea7ccf99c8c26ea0cdc9c869a516",
+      "incoming_sha256": "f9210f57309e317db28f8d96c9963bec171e961717bec911bdb86cfbe10fb555",
+      "size": 362669,
+      "classification": "dependency"
+    },
+    {
+      "root": "android",
+      "logical": "character/land_dragon_wind_playable/ui/skill_cutin_0.atf.deflate",
+      "member": "production/android_upload/31/94c5d899390a197ed6bb9a7b06206df8ca689e",
+      "current_sha256": "bc12a6b41084f68b3966ecf9395f426f64a0991628f2849032082033100f2296",
+      "incoming_sha256": "a714cc9d5e50368a3f4e60e489f30ff1279d13f1afc363147dc13c323c582158",
+      "size": 115613,
+      "classification": "dependency"
+    },
+    {
+      "root": "medium",
+      "logical": "character/land_dragon_wind_playable/ui/full_shot_1440_1920_1.png",
+      "member": "production/medium_upload/48/50252b1f788fb6b6b0ed06f75b82e412aac39c",
+      "current_sha256": "89556e55fb974c2aec06e9fff9682e7b62b0c057b5df3a0024e7d185d3e275eb",
+      "incoming_sha256": "84ae1f4a98ffa0416a92e72e491a4ee6e6146cfb77ca255da1ce74f3dae118bc",
+      "size": 2426103,
+      "classification": "dependency"
+    },
+    {
+      "root": "medium",
+      "logical": "character/land_dragon_wind_playable/ui/square_1.png",
+      "member": "production/medium_upload/50/cdec4b82c4858620cd7525187481c7ded5289c",
+      "current_sha256": "a3c9d989f3130fedf78338026d21d07df7e2bc1098a1e7eabc9327ebbf303817",
+      "incoming_sha256": "aa8bcf8116efb3bbc801f270e32971c40f194f39edc2fa3c408ee97b93a03d40",
+      "size": 89135,
+      "classification": "dependency"
+    },
+    {
+      "root": "medium",
+      "logical": "character/land_dragon_wind_playable/ui/square_132_132_1.png",
+      "member": "production/medium_upload/87/8f86ad6bf6108eab5a7560610c0e5d5d242a6f",
+      "current_sha256": "fc81976645e30e28eada1326730c3b0687b668107fc935b0081134970be168e4",
+      "incoming_sha256": "1bcffa3347b9ba9187f59b61c7583d9e3be8c39166bfb4df85fe00c2e34c575f",
+      "size": 39959,
+      "classification": "dependency"
+    },
+    {
+      "root": "medium",
+      "logical": "character/land_dragon_wind_playable/ui/square_round_136_136_1.png",
+      "member": "production/medium_upload/c3/cc81e3aedba858f012044a235eb6e1da6e0dd2",
+      "current_sha256": "f7d8175dd4dfe864de2e98be0beeb8f1686d14af0a2fba9f8352d031a08c1198",
+      "incoming_sha256": "1aaaced7ef1f63fcd0f3cd0f49e53e59a9e08793d5de40c1a80b23de7d115d93",
+      "size": 42091,
+      "classification": "dependency"
+    },
+    {
+      "root": "medium",
+      "logical": "character/land_dragon_wind_playable/ui/square_round_95_95_1.png",
+      "member": "production/medium_upload/00/15e73f28fd80c8586f3ac6c16ecdf8a78bd753",
+      "current_sha256": "022e108e6777a3039fc666512384f7961107bc41656131f61c41b3c725fed136",
+      "incoming_sha256": "680b7b0a9fe826a92f5fd94d3c4fbc99f5d01c0fefc61019ace441f2ed8569c2",
+      "size": 22579,
+      "classification": "dependency"
+    },
+    {
+      "root": "medium",
+      "logical": "character/land_dragon_wind_playable/ui/thumb_level_up_1.png",
+      "member": "production/medium_upload/9d/75769eebf4ea22233aaadbf766679da1c3948e",
+      "current_sha256": "841a2fb69e9d8bd33c3a406b293cd94d0d8b6bb7476a1d5d1400fb47175a42eb",
+      "incoming_sha256": "64f2c4e5e478b5975f21b3889c1ced8eef8bcbb4718902b8115acb9d73b0c3a0",
+      "size": 151035,
+      "classification": "dependency"
+    },
+    {
+      "root": "medium",
+      "logical": "character/land_dragon_wind_playable/ui/thumb_party_unison_1.png",
+      "member": "production/medium_upload/a7/dd97be99239ed9051d6e5be62b0e998f7b6099",
+      "current_sha256": "9646b29a03efd2acd6ffe91e27313cee53d10bb4222c4bc8db5d0a4b5a55e304",
+      "incoming_sha256": "660f6b05355b676ebe4d9b8aceb29b653fcd5fc05bd454173f7f9f1d2ea18a71",
+      "size": 58503,
+      "classification": "dependency"
+    },
+    {
+      "root": "medium",
+      "logical": "character/land_dragon_wind_playable/ui/battle_member_status_1.png",
+      "member": "production/medium_upload/d6/ffeeb03758e8e927f1ed45eff977ae71c54ade",
+      "current_sha256": "121096641ea22a315789b2bc3d1d8bf039b2dd5cf13eca7d709e5bec5803632d",
+      "incoming_sha256": "1e2ec0f095636a40376cc6005e1ad368f3a335e79707794d4619c62812be4cd4",
+      "size": 9643,
+      "classification": "dependency"
+    },
+    {
+      "root": "medium",
+      "logical": "character/land_dragon_wind_playable/ui/battle_control_board_1.png",
+      "member": "production/medium_upload/78/611c21779b7f7c0c5fa747bf89799b36d43ed1",
+      "current_sha256": "5b977b69ede48425a7cd8aab3e4f82f24bb8a8fa6764f2dfb66636a7a203a953",
+      "incoming_sha256": "c2239efd7f6f1c7cb1b1e2a13d14d583de3f88f5278c04260f88202449789c02",
+      "size": 64386,
+      "classification": "dependency"
+    },
+    {
+      "root": "medium",
+      "logical": "character/land_dragon_wind_playable/ui/cutin_skill_chain_1.png",
+      "member": "production/medium_upload/6b/0603ffa8e13a0ed1e6e4abcb43776cd393ff98",
+      "current_sha256": "e1ae309ea06bc6846f5a79b65fcee3b20180dc0e5a7e02473604b4e7538ba657",
+      "incoming_sha256": "6c221ff1464a8c26e022d1e53f6136c1cdd9d6dcaf2d003116f74f87f6de0dd1",
+      "size": 156312,
+      "classification": "dependency"
+    },
+    {
+      "root": "medium",
+      "logical": "character/land_dragon_wind_playable/ui/thumb_party_main_1.png",
+      "member": "production/medium_upload/dc/81f8225265ba29e5f07f6cb154c4d94a4eb1ed",
+      "current_sha256": "bbb7da6d034e44eeacbae3851fed5e85b0a30212c8b8eaebff6611a95b4370e3",
+      "incoming_sha256": "16626203470732b944e996bf7571aca54da9a93813dd698b892ae5eebe3d0192",
+      "size": 147920,
+      "classification": "dependency"
+    },
+    {
+      "root": "medium",
+      "logical": "character/land_dragon_wind_playable/ui/skill_cutin_1.png",
+      "member": "production/medium_upload/2c/27b192addd571b29ca255950dbf91217e96eeb",
+      "current_sha256": "479c5589ede9af84aab5e817ce76d0f0c7786fc593095fae8cad63e4740da5bd",
+      "incoming_sha256": "63d22ada57202d2772f82033f2bb053831e0c0454cbf8e8393a7cf6694b68179",
+      "size": 529744,
+      "classification": "dependency"
+    },
+    {
+      "root": "android",
+      "logical": "character/land_dragon_wind_playable/ui/skill_cutin_1.atf.deflate",
+      "member": "production/android_upload/17/b9a5dfae0310f093f659d31b801770a0fba7a7",
+      "current_sha256": "1f86d747957f1f7f1c7a5dca17b8561d107ba4ca4990cd325404947c4c78f3f0",
+      "incoming_sha256": "637154d1c2756efe17fc13d39a6908c079126b1eb2e190cabf96a2ac956e3fa4",
+      "size": 172545,
+      "classification": "dependency"
+    },
+    {
+      "root": "medium",
+      "logical": "character/land_dragon_wind_playable/ui/illustration_setting_sprite_sheet.png",
+      "member": "production/medium_upload/13/88700050499d7b8d6ad3e27ab427b15549c876",
+      "current_sha256": "a61748ddb0d824bd4b3af95d2a4676452efe51392f0cb65535de4abb50bca40c",
+      "incoming_sha256": "0a4d5c3ffb470f6109bc0efb0de544d71b2ae96167f325fc499cba26539bc909",
+      "size": 357089,
+      "classification": "dependency"
+    },
+    {
+      "root": "common",
+      "logical": "battle/action/skill/action/rare5/white_wolf_gerald$white_wolf_gerald_1.action.dsl.amf3.deflate",
+      "member": "production/upload/03/d2cf46a0dce90bf3ae48fd6ec833e401337991",
+      "current_sha256": "7170a23521756e478047d9a2d691be27a953458b2ca1594c66482590488a673c",
+      "incoming_sha256": "8d323968ea077bf0d3c2d18d819b85d8923acaccacbc55df003e05929bb2b2e4",
+      "size": 1772,
+      "classification": "dependency"
+    },
+    {
+      "root": "common",
+      "logical": "battle/action/skill/action/rare5/white_wolf_gerald$white_wolf_gerald_2.action.dsl.amf3.deflate",
+      "member": "production/upload/47/98be368c8a6fda2bb10efe13ec03044745e966",
+      "current_sha256": "82fe717a427edb2e4a01a8d0a7b501584855d969d01a0282ca2acebfe9be51ce",
+      "incoming_sha256": "f27b8a14af3b9252396be515fcc45d189b24698d542aab1a3147a1cee7d88c47",
+      "size": 1721,
+      "classification": "dependency"
+    }
+  ],
+  "tables": {
+    "master/ability/ability.orderedmap": {
+      "operations": 12,
+      "merged_rows": [
+        {
+          "path": "master/ability/ability.orderedmap|1499983",
+          "cells": [
+            [
+              0,
+              6,
+              "202",
+              "0"
+            ],
+            [
+              1,
+              6,
+              "202",
+              "0"
+            ],
+            [
+              1,
+              109,
+              "2",
+              "154"
+            ],
+            [
+              2,
+              6,
+              "202",
+              "0"
+            ],
+            [
+              3,
+              6,
+              "202",
+              "0"
+            ],
+            [
+              4,
+              6,
+              "202",
+              "0"
+            ]
+          ]
+        },
+        {
+          "path": "master/ability/ability.orderedmap|1499986",
+          "cells": [
+            [
+              0,
+              1,
+              "true",
+              "false"
+            ],
+            [
+              0,
+              6,
+              "203",
+              "0"
+            ],
+            [
+              0,
+              47,
+              "34",
+              "388"
+            ],
+            [
+              1,
+              1,
+              "true",
+              "false"
+            ],
+            [
+              1,
+              6,
+              "203",
+              "0"
+            ],
+            [
+              2,
+              1,
+              "true",
+              "false"
+            ],
+            [
+              2,
+              6,
+              "203",
+              "0"
+            ],
+            [
+              2,
+              109,
+              "411",
+              "412"
+            ]
+          ]
+        }
+      ],
+      "exact_rows": [
+        "master/ability/ability.orderedmap|1199903",
+        "master/ability/ability.orderedmap|1399953",
+        "master/ability/ability.orderedmap|1499893",
+        "master/ability/ability.orderedmap|1499981",
+        "master/ability/ability.orderedmap|1499985",
+        "master/ability/ability.orderedmap|1499991",
+        "master/ability/ability.orderedmap|1499992",
+        "master/ability/ability.orderedmap|1499993"
+      ],
+      "already_after": [
+        "master/ability/ability.orderedmap|1499872"
+      ],
+      "added": [],
+      "preserved_cells": [],
+      "preserved_receiver": [
+        "master/ability/ability.orderedmap|1499982:shape"
+      ],
+      "current_sha256": "9bf4930473910130ed0a86731c55fb35d79f61a077e7b289331bba76d571f4df",
+      "merged_sha256": "5aec15e73f4b49104af6318f8a8e128c645e7f1e5e9b5174f726c6a545d7be0f",
+      "archive_member": "production/upload/1e/664c1cc8d80f4f9a69aae2c49ae8c01d1c4001",
+      "main_only_applied": [
+        "1499983",
+        "1499986"
+      ]
+    },
+    "master/string/custom_ability_string.orderedmap": {
+      "operations": 7,
+      "merged_rows": [],
+      "exact_rows": [
+        "master/string/custom_ability_string.orderedmap|desc_override_lion_swordman_moon_3",
+        "master/string/custom_ability_string.orderedmap|change_skill_white_wolf_gerald",
+        "master/string/custom_ability_string.orderedmap|desc_override_ruin_girl_campus",
+        "master/string/custom_ability_string.orderedmap|desc_override_wind_spgirl_campus_3"
+      ],
+      "already_after": [],
+      "added": [
+        "master/string/custom_ability_string.orderedmap|desc_override_land_dragon_wind_playable_2",
+        "master/string/custom_ability_string.orderedmap|desc_override_white_wolf_gerald_1",
+        "master/string/custom_ability_string.orderedmap|ruin_girl_campus_ball_hit_count"
+      ],
+      "preserved_cells": [],
+      "preserved_receiver": [],
+      "current_sha256": "ac03ee71a279819418a0b6a25843a74a15ea49fe4923bec21e48fdb5ec97f921",
+      "merged_sha256": "3d07b8c05724bfe8d182a6d14877da5e5819000d30dd4187179ca7913cd04d9e",
+      "archive_member": "production/upload/07/0c6e214359ccf27b1cb8078d3fc51aecfe0149"
+    },
+    "master/ability/leader_ability.orderedmap": {
+      "operations": 3,
+      "merged_rows": [
+        {
+          "path": "master/ability/leader_ability.orderedmap|149998",
+          "cells": [
+            [
+              1,
+              45,
+              "34",
+              "388"
+            ],
+            [
+              5,
+              107,
+              "2",
+              "154"
+            ]
+          ]
+        }
+      ],
+      "exact_rows": [
+        "master/ability/leader_ability.orderedmap|149999",
+        "master/ability/leader_ability.orderedmap|169989"
+      ],
+      "already_after": [],
+      "added": [],
+      "preserved_cells": [],
+      "preserved_receiver": [],
+      "current_sha256": "e4ef82d7097a406d09af1c426c47d90488697d1bf8e027d0f9011b5ee765bec1",
+      "merged_sha256": "9576ca420dbbcf95a7ce1825bd12e340637406ab775ab87f3beb5c948acfa269",
+      "archive_member": "production/upload/ff/84353774cb95e8d7dc90c679f96a5bca7f42e5"
+    },
+    "master/character/character_text.orderedmap": {
+      "operations": 3,
+      "merged_rows": [],
+      "exact_rows": [
+        "master/character/character_text.orderedmap|149989",
+        "master/character/character_text.orderedmap|149998",
+        "master/character/character_text.orderedmap|169989"
+      ],
+      "already_after": [],
+      "added": [],
+      "preserved_cells": [],
+      "preserved_receiver": [],
+      "current_sha256": "fa51032d5e204e79803604629394e546ada69265560b7adf88f85de3db4cdb38",
+      "merged_sha256": "c0dd454cd3c351690aaeb3fbcc08766eda26ad740eab875d4f9a6b1d2c0457c9",
+      "archive_member": "production/upload/8b/035728b2151de044fb245988ec5f33ebb544ab"
+    },
+    "master/character/full_shot_image_attribute.orderedmap": {
+      "operations": 1,
+      "merged_rows": [],
+      "exact_rows": [
+        "master/character/full_shot_image_attribute.orderedmap|149998/0",
+        "master/character/full_shot_image_attribute.orderedmap|149998/1"
+      ],
+      "already_after": [],
+      "added": [],
+      "preserved_cells": [],
+      "preserved_receiver": [],
+      "current_sha256": "385373b20425c447dc6958bf32e1427a777a34896109938cc9b4985f6b65744c",
+      "merged_sha256": "9c403f7d2bc4b8687836922bb4e301f583ef7be82fd74c86b34429ca9ebbdd45",
+      "archive_member": "production/upload/b9/132d27178d27f9d91df89fc47e106bbaf2d5b5"
+    },
+    "master/character/unique_condition.orderedmap": {
+      "operations": 1,
+      "merged_rows": [],
+      "exact_rows": [],
+      "already_after": [],
+      "added": [
+        "master/character/unique_condition.orderedmap|14999903"
+      ],
+      "preserved_cells": [],
+      "preserved_receiver": [],
+      "current_sha256": "bef1e7c6a9b04952bc4156aa319d12f8b36cad446e16cc26bb3c846c57dd38cd",
+      "merged_sha256": "4a2621fdea353e8eaf7bf80d020a2238136ad0dbd4d2da851f753df9ff210ba0",
+      "archive_member": "production/upload/30/cbcd99de1aa6e8d245221619b393721df551b4"
+    },
+    "master/generated/character_image.orderedmap": {
+      "operations": 1,
+      "merged_rows": [],
+      "exact_rows": [
+        "master/generated/character_image.orderedmap|149998/0",
+        "master/generated/character_image.orderedmap|149998/1"
+      ],
+      "already_after": [],
+      "added": [],
+      "preserved_cells": [],
+      "preserved_receiver": [],
+      "current_sha256": "b96f55b12a613f6bcc60ce9752a26c6e6ef8abf6d6aac17f085ca55c3bea3a95",
+      "merged_sha256": "fff394450aadc8eb36481fa58f8ef99dbd7eee5703b8eaaca4c6d74db0a1859d",
+      "archive_member": "production/upload/3e/b411841802398d5b21d422579f2eaa65d30c0e"
+    },
+    "master/generated/trimmed_image.orderedmap": {
+      "operations": 3,
+      "merged_rows": [],
+      "exact_rows": [
+        "master/generated/trimmed_image.orderedmap|character/land_dragon_wind_playable/ui/full_shot_1440_1920_0",
+        "master/generated/trimmed_image.orderedmap|character/land_dragon_wind_playable/ui/full_shot_1440_1920_1",
+        "master/generated/trimmed_image.orderedmap|character/land_dragon_wind_playable/ui/skill_cutin_0"
+      ],
+      "already_after": [],
+      "added": [],
+      "preserved_cells": [],
+      "preserved_receiver": [],
+      "current_sha256": "9f8c3fb76693f4ae8bc8d43f4d482348c9d584651aaccaa1ede4f50c2a63f7fb",
+      "merged_sha256": "bc8f24345c0c21f8b76cfffd8649d3ebeaaaf8df68b59d05834072645ed17ddb",
+      "archive_member": "production/upload/fb/ab4344a7456dca88f3ce06f01208922f37e395"
+    },
+    "master/skill/action_skill.orderedmap": {
+      "operations": 3,
+      "merged_rows": [],
+      "exact_rows": [
+        "master/skill/action_skill.orderedmap|land_dragon_wind_playable/1",
+        "master/skill/action_skill.orderedmap|land_dragon_wind_playable/2",
+        "master/skill/action_skill.orderedmap|ruin_girl_campus/1",
+        "master/skill/action_skill.orderedmap|ruin_girl_campus/2",
+        "master/skill/action_skill.orderedmap|wind_spgirl_campus/1",
+        "master/skill/action_skill.orderedmap|wind_spgirl_campus/2"
+      ],
+      "already_after": [],
+      "added": [],
+      "preserved_cells": [],
+      "preserved_receiver": [],
+      "current_sha256": "636354fe4ba4b6965e1e129c8c7da27d5dafbe4f5281bdf336b90fa60f848d4e",
+      "merged_sha256": "a37f1becd60d07c20d521f874bc12e8a4e9b1ed9ec3c897c018625300abaa3ff",
+      "archive_member": "production/upload/91/79892d704f88d98191c00548bce106402ad5b5"
+    }
+  },
+  "server": {
+    "cdndata/character_text.json": {
+      "operations": 3,
+      "changed": [
+        [
+          "149989"
+        ],
+        [
+          "169989"
+        ],
+        [
+          "149998"
+        ]
+      ],
+      "preserved": [],
+      "current_sha256": "f07663bc806904161d305f4506ffb5379d519bba8d873492ac35f3ab2b6db70d",
+      "merged_sha256": "e97053b90805e8f9c1fbab0e67d21ad9174a992265ef38cf20a68abc061749be",
+      "path": "F:\\codex\\work\\starpoint-cn-merge-20260925\\candidate\\server\\cdndata\\character_text.json"
+    },
+    "cdndata/character_text_rank_p5b.json": {
+      "changed": [
+        [
+          "149998"
+        ]
+      ],
+      "current_sha256": "df3952b02941dadee3c8d8fb926854f653ab25fa5e6b562ca3c3e43d91ab8b14",
+      "merged_sha256": "aafcb41ea0891662d8cbe5b530f1c67b2c5aeebb11e26f1d68c5657d228242f7",
+      "path": "F:\\codex\\work\\starpoint-cn-merge-20260925\\candidate\\server\\cdndata\\character_text_rank_p5b.json"
+    }
+  },
+  "archive": {
+    "path": "F:\\codex\\work\\starpoint-cn-merge-20260925\\candidate\\archive\\pinball-1.4.118-1.4.119-1-author-1047-wind-dragon.zip",
+    "name": "pinball-1.4.118-1.4.119-1-author-1047-wind-dragon.zip",
+    "sha256": "5a93f4f1b097db3f9274e35e3d50c59e6757718a7e4e827412a286eb6855f208",
+    "size": 8834697,
+    "members": 46,
+    "member_names": [
+      "production/android_upload/17/b9a5dfae0310f093f659d31b801770a0fba7a7",
+      "production/android_upload/31/94c5d899390a197ed6bb9a7b06206df8ca689e",
+      "production/medium_upload/00/15e73f28fd80c8586f3ac6c16ecdf8a78bd753",
+      "production/medium_upload/13/88700050499d7b8d6ad3e27ab427b15549c876",
+      "production/medium_upload/14/a8002b274e85696655390af37e48270fe194fb",
+      "production/medium_upload/1c/436000f7cf2f76ae94f93551b5da855c43519a",
+      "production/medium_upload/2c/27b192addd571b29ca255950dbf91217e96eeb",
+      "production/medium_upload/48/50252b1f788fb6b6b0ed06f75b82e412aac39c",
+      "production/medium_upload/50/cdec4b82c4858620cd7525187481c7ded5289c",
+      "production/medium_upload/60/9ce3ed4c87b12892c67d2444ae6b320d6d65e5",
+      "production/medium_upload/63/1eb5ffa0f29a52eb2d5949d89a0acd3d028776",
+      "production/medium_upload/6b/0603ffa8e13a0ed1e6e4abcb43776cd393ff98",
+      "production/medium_upload/78/611c21779b7f7c0c5fa747bf89799b36d43ed1",
+      "production/medium_upload/87/8f86ad6bf6108eab5a7560610c0e5d5d242a6f",
+      "production/medium_upload/88/11b303ffa1ee6e5da74e7518da49027cd9f2bf",
+      "production/medium_upload/9d/75769eebf4ea22233aaadbf766679da1c3948e",
+      "production/medium_upload/a1/e655c6446e0564ad2ec4e8e7cdc9f9b06ed94e",
+      "production/medium_upload/a7/dd97be99239ed9051d6e5be62b0e998f7b6099",
+      "production/medium_upload/b7/e0e02912b651377afd009df9e81120bb1aab86",
+      "production/medium_upload/c3/cc81e3aedba858f012044a235eb6e1da6e0dd2",
+      "production/medium_upload/d3/ae6b1cdacf6121cb2923a5c6016d0f21722f21",
+      "production/medium_upload/d6/ffeeb03758e8e927f1ed45eff977ae71c54ade",
+      "production/medium_upload/dc/81f8225265ba29e5f07f6cb154c4d94a4eb1ed",
+      "production/medium_upload/dc/c808eda3a7d1399ee3962a89c12dd0c9a6be59",
+      "production/medium_upload/ec/baba2ba9d9cddef5dd71d2d9411f495e8be786",
+      "production/medium_upload/f3/e3e81ff3b057c208dca7ac0e01767a57445415",
+      "production/medium_upload/f9/e3a300b4f1fd8542e28acbfc5ec307a1bb40ca",
+      "production/upload/00/111ac0b58bdfc785649ffae42bd8e98baef6dc",
+      "production/upload/03/d2cf46a0dce90bf3ae48fd6ec833e401337991",
+      "production/upload/07/0c6e214359ccf27b1cb8078d3fc51aecfe0149",
+      "production/upload/1e/664c1cc8d80f4f9a69aae2c49ae8c01d1c4001",
+      "production/upload/25/d5cb23efedb8a582a862eca2ff2b7fc21a447f",
+      "production/upload/30/cbcd99de1aa6e8d245221619b393721df551b4",
+      "production/upload/3e/b411841802398d5b21d422579f2eaa65d30c0e",
+      "production/upload/47/98be368c8a6fda2bb10efe13ec03044745e966",
+      "production/upload/5a/b60d3221af3ce1082db6c4f42cce500a7a75d0",
+      "production/upload/60/98235735eb9fb1b69ba6f8ec8a90394494ffd7",
+      "production/upload/6e/4dd6850c01c218a8408c59f26f44a75c4cb469",
+      "production/upload/8b/035728b2151de044fb245988ec5f33ebb544ab",
+      "production/upload/91/79892d704f88d98191c00548bce106402ad5b5",
+      "production/upload/a1/c5eb7286e3886b84f18204e5437ebfc79f5a6a",
+      "production/upload/a7/125ea34d293bf30ec77725b43d233db8bbb768",
+      "production/upload/b9/132d27178d27f9d91df89fc47e106bbaf2d5b5",
+      "production/upload/cd/6200616511286a58dc91e430e50304201f833b",
+      "production/upload/fb/ab4344a7456dca88f3ce06f01208922f37e395",
+      "production/upload/ff/84353774cb95e8d7dc90c679f96a5bca7f42e5"
+    ]
+  }
+}

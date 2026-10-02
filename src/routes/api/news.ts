@@ -9,8 +9,8 @@
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify"
 import {
     hasAccountNewsReceiptSync,
-    markAccountNewsReceiptSync,
-    markAccountNewsReceiptsSync,
+    markAccountNewsReceipt,
+    markAccountNewsReceipts,
 } from "../../data/domains/news"
 import { getSession } from "../../data/domains/session"
 import {
@@ -102,7 +102,7 @@ const routes = async (fastify: FastifyInstance) => {
         fallbackCategory: NewsCategory,
     ) => {
         const viewer = await requireViewer(request, reply)
-        if (!viewer) return
+        if (!viewer) return reply
         const body = request.body as Record<string, unknown>
         const publishedNews = getPublishedNews(loadNewsConfig())
         const category = parseCategory(body.category, fallbackCategory)
@@ -115,7 +115,7 @@ const routes = async (fastify: FastifyInstance) => {
         // unread badge for the whole announcement feed.  Mark every published
         // item here so returning to the main city does not reopen the panel
         // merely because another category was not selected yet.
-        markAccountNewsReceiptsSync(viewer.accountId, publishedNews.map(item => item.id), "list")
+        await markAccountNewsReceipts(viewer.accountId, publishedNews.map(item => item.id), "list")
         return sendMsgpack(reply, viewer.viewerId, {
             current_page: page,
             news: pageItems.map(toClientNews),
@@ -129,7 +129,7 @@ const routes = async (fastify: FastifyInstance) => {
         systemOnly: boolean,
     ) => {
         const viewer = await requireViewer(request, reply)
-        if (!viewer) return
+        if (!viewer) return reply
         const body = request.body as Record<string, unknown>
         const newsId = Number(body.news_id)
         const item = getPublishedNews(loadNewsConfig()).find(candidate => (
@@ -141,13 +141,13 @@ const routes = async (fastify: FastifyInstance) => {
                 message: `News with id '${body.news_id}' not found.`,
             })
         }
-        markAccountNewsReceiptSync(viewer.accountId, item.id, "list")
+        await markAccountNewsReceipt(viewer.accountId, item.id, "list")
         return sendMsgpack(reply, viewer.viewerId, toClientNews(item))
     }
 
     const sendForced = async (request: FastifyRequest, reply: FastifyReply) => {
         const viewer = await requireViewer(request, reply)
-        if (!viewer) return
+        if (!viewer) return reply
         const config = loadNewsConfig()
         const item = getActivePopupNews(config, getServerDate())
         // The client may ask for the forced announcement again when returning
@@ -168,7 +168,7 @@ const routes = async (fastify: FastifyInstance) => {
             )
             return sendMsgpack(reply, viewer.viewerId, EMPTY_FORCED_NEWS)
         }
-        markAccountNewsReceiptSync(viewer.accountId, item.id, "popup")
+        await markAccountNewsReceipt(viewer.accountId, item.id, "popup")
         return sendMsgpack(reply, viewer.viewerId, toClientNews(item))
     }
 

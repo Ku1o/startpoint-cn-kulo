@@ -1,0 +1,47 @@
+{
+  "id": "orochi-superplus-shop-ui-1.4.124",
+  "type": "patch",
+  "name": "八岐大蛇超级+与商店/UI修复",
+  "description": "衔接 1.4.123：八岐大蛇超级+韧性50倍、蛇头重生冷却300帧、蛇神残响商店兑换与货币列表。客户端数据修复，不修改SWF；救援铃铛文字问题仍待后续修复。",
+  "version": "1.4.124",
+  "depends_on": "1.4.123",
+  "enabled": true,
+  "archive": "pinball-1.4.123-1.4.124-1-orochi-superplus-shop-ui-20261001.zip",
+  "archive_size": 837749,
+  "archive_integrity": [
+    {
+      "name": "pinball-1.4.123-1.4.124-1-orochi-superplus-shop-ui-20261001.zip",
+      "size": 837749,
+      "sha256": "2efdb302c36fc582a5fff4282a25e2d5af62a57d1290f1b9678498e4b753318d",
+      "members": 4,
+      "files": [
+        "production/upload/19/a4aa442b3249499356e7a3f6370e530bfe355e",
+        "production/upload/7c/0159ffd7078028b1c2eec135beb1884f7224fb",
+        "production/upload/97/efacb322621f7bf6671dad3bdf7bdc55cb350b",
+        "production/upload/a5/35aaa48a5290e76d07c40e497742e4a407a0d0"
+      ]
+    }
+  ],
+  "files": [
+    "production/upload/19/a4aa442b3249499356e7a3f6370e530bfe355e",
+    "production/upload/7c/0159ffd7078028b1c2eec135beb1884f7224fb",
+    "production/upload/97/efacb322621f7bf6671dad3bdf7bdc55cb350b",
+    "production/upload/a5/35aaa48a5290e76d07c40e497742e4a407a0d0"
+  ],
+  "chain": [
+    "pinball-1.4.123-1.4.124-1-orochi-superplus-shop-ui-20261001.zip"
+  ],
+  "audit": {
+    "directory": "assets/asset-patch/audit/orochi-superplus-shop-ui-1.4.124",
+    "report": "report.json"
+  },
+  "changes": [
+    "八岐大蛇超级+韧性按50倍基准写入父体与六个蛇头。",
+    "八岐大蛇专用 head_cooltime 由1800帧改为300帧，不修改SWF。",
+    "八岐大蛇商店永久商品202049：500蛇神残响兑换海豹球129990×1，库存1；不加入如何获得索引。",
+    "八岐大蛇阶段节点货币列表第20节点第4个掉落位由空值改为蛇神残响40193。",
+    "救援铃铛展开红框的超级+问题实机复测仍未修复，本次不将该尝试作为有效修复交付。"
+  ],
+  "created_at": "2026-10-01",
+  "candidate_only": true
+}

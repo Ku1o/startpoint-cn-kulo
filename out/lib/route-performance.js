@@ -15,6 +15,9 @@ const settlement_performance_1 = require("./settlement-performance");
 const admission_1 = require("../multi/room/admission");
 const memory_diagnostics_1 = require("./memory-diagnostics");
 const request_diagnostics_1 = require("./request-diagnostics");
+const server_work_performance_1 = require("./server-work-performance");
+const sqlite_commit_diagnostics_1 = require("./sqlite-commit-diagnostics");
+const single_settlement_diagnostics_1 = require("./single-settlement-diagnostics");
 function isEnabled() {
     var _a;
     return !/^(0|false|no|off)$/i.test((_a = process.env.ROUTE_PERF_SUMMARY) !== null && _a !== void 0 ? _a : "true");
@@ -35,7 +38,11 @@ function installRoutePerformanceMonitor(fastify) {
     eventLoopDelay.enable();
     let previousElu = perf_hooks_1.performance.eventLoopUtilization();
     let previousCpu = process.cpuUsage();
+    let previousSampleAt = perf_hooks_1.performance.now();
     const timer = setInterval(() => {
+        const sampledAt = perf_hooks_1.performance.now();
+        const actualIntervalMs = sampledAt - previousSampleAt;
+        previousSampleAt = sampledAt;
         const { routes: snapshot, summary } = diagnostics.drain();
         const awake = (0, request_diagnostics_1.drainAwakeDiagnostics)();
         const requestCount = summary.n;
@@ -55,13 +62,26 @@ function installRoutePerformanceMonitor(fastify) {
         const phases = (0, settlement_performance_1.drainSettlementPerformanceSummary)();
         const gacha = (0, settlement_performance_1.drainGachaRequestSummary)();
         const admission = (0, admission_1.drainRoomAdmissionPerformanceSummary)();
-        if (requestCount === 0 && phases === "none" && admission === "none" && awake.skippedUnownedMissions === 0)
+        const work = (0, server_work_performance_1.drainServerWorkPerformance)();
+        const commits = (0, sqlite_commit_diagnostics_1.drainSqliteCommitDiagnostics)();
+        const settlements = (0, single_settlement_diagnostics_1.drainSingleSettlementDiagnostics)();
+        if (requestCount === 0 && phases === "none" && admission === "none"
+            && awake.skippedUnownedMissions === 0 && commits.n === 0
+            && gacha === "none" && Object.keys(work).length === 0
+            && Object.keys(settlements).length === 0)
             return;
         console.warn(`[PERF] interval=${intervalMs}ms requests=${requestCount} cpu=${cpuMs.toFixed(0)}ms `
+            + `actualInterval=${actualIntervalMs.toFixed(1)}ms `
             + `elu=${(elu.utilization * 100).toFixed(1)}% loopP99=${loopP99Ms.toFixed(1)}ms `
             + `loopMax=${loopMaxMs.toFixed(1)}ms top=${top || "none"}`
             + ` phases=${phases} gacha=${gacha} admission=${admission}`);
         console.warn(`[REQUEST-PERF] ${JSON.stringify(Object.assign(Object.assign({}, summary), { awake }))}`);
+        if (Object.keys(work).length > 0)
+            console.warn(`[WORK-PERF] ${JSON.stringify(work)}`);
+        if (commits.n > 0)
+            console.warn(`[SQLITE-COMMIT] ${JSON.stringify(commits)}`);
+        if (Object.keys(settlements).length > 0)
+            console.warn(`[SINGLE-SETTLEMENT] ${JSON.stringify(settlements)}`);
     }, intervalMs);
     timer.unref();
     fastify.addHook("onClose", () => __awaiter(this, void 0, void 0, function* () { clearInterval(timer); eventLoopDelay.disable(); }));

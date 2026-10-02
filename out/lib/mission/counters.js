@@ -4,6 +4,7 @@ exports.snapshotAllMissionCountersSync = exports.getMissionCounterDeltaSync = ex
 const cached_statement_1 = require("../cached-statement");
 const db_1 = require("../../data/db");
 const storage_layout_1 = require("../storage-layout");
+const persistence_coordinator_1 = require("../persistence-coordinator");
 function normalizeMissionCounterQualifier(qualifier = {}) {
     const normalized = {};
     for (const key of Object.keys(qualifier).sort()) {
@@ -66,9 +67,12 @@ function setMissionCounterMaxSync(playerId, query, value) {
     ON CONFLICT(player_id, counter_key) DO UPDATE SET
         value = MAX(value, excluded.value),
         updated_at = excluded.updated_at
+        WHERE excluded.value > value
     RETURNING value
     `).get(playerId, counterKey, query.dimension, query.scopeType, query.scopeKey, qualifierJson, value, nowSql());
-    return row.value;
+    if (row)
+        return row.value;
+    return getMissionCounterValueSync(playerId, query);
 }
 exports.setMissionCounterMaxSync = setMissionCounterMaxSync;
 function setMissionCounterMinSync(playerId, query, value) {
@@ -87,9 +91,12 @@ function setMissionCounterMinSync(playerId, query, value) {
     ON CONFLICT(player_id, counter_key) DO UPDATE SET
         value = MIN(value, excluded.value),
         updated_at = excluded.updated_at
+        WHERE excluded.value < value
     RETURNING value
     `).get(playerId, counterKey, query.dimension, query.scopeType, query.scopeKey, qualifierJson, value, nowSql());
-    return row.value;
+    if (row)
+        return row.value;
+    return getMissionCounterValueSync(playerId, query);
 }
 exports.setMissionCounterMinSync = setMissionCounterMinSync;
 function getMissionCounterValueSync(playerId, query) {
@@ -152,11 +159,12 @@ function snapshotAllMissionCountersSync(playerId, periodType) {
         updated_at = excluded.updated_at
     `);
     const timestamp = nowSql();
-    const tx = (0, db_1.getDb)().transaction(() => {
+    (0, persistence_coordinator_1.runPersistenceTransactionSync)({
+        domain: "mission", playerId, operation: "snapshot_all_mission_counters",
+    }, () => {
         for (const row of rows)
             insert.run(playerId, periodType, row.counter_key, row.value, timestamp);
     });
-    tx();
     return rows.length;
 }
 exports.snapshotAllMissionCountersSync = snapshotAllMissionCountersSync;

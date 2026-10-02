@@ -3,7 +3,9 @@ import { getDb } from "../db";
 import { PlayerQuestProgress, PlayerDrawnQuest, RawPlayerQuestProgress, RawPlayerDrawnQuest } from "../types";
 import { deserializeBoolean, serializeBoolean } from "../utils";
 import { refreshPlayerAbyssBestTimesSync } from "./abyss-time-revision";
+import { abyssEventFromQuest } from "../../lib/abyss-modes";
 import { isAbyssFiniteQuest } from "../../lib/abyss-time-revision";
+import { runPersistenceTransactionSync } from "../../lib/persistence-coordinator";
 
 /**
  * Converts a RawPlayerQuestProgress object into a PlayerQuestProgress object.
@@ -64,6 +66,26 @@ export interface PlayerQuestProgressScope {
     readonly sections?: readonly number[]
     /** Normalized or stored quest ids required by exact mission conditions. */
     readonly questIds?: readonly number[]
+}
+
+export interface PlayerSingleQuestHistorySummary {
+    bestElapsedTimeMs: number | null
+    highScore: number
+    ssCount: number
+}
+
+/** Historical single-only facts; shared single/co-op categories cannot prove the mode. */
+export function getPlayerSingleQuestHistorySummarySync(playerId: number): PlayerSingleQuestHistorySummary {
+    refreshPlayerAbyssBestTimesSync(playerId)
+    return cachedStatement(getDb(), `
+        SELECT MIN(CASE WHEN finished = 1 AND best_elapsed_time_ms > 0
+                       AND best_elapsed_time_ms <= 1.7976931348623157e308
+                       THEN best_elapsed_time_ms END) AS bestElapsedTimeMs,
+               MAX(0, COALESCE(MAX(high_score), 0)) AS highScore,
+               COALESCE(SUM(CASE WHEN finished = 1 AND clear_rank = 5 THEN 1 ELSE 0 END), 0) AS ssCount
+        FROM players_quest_progress
+        WHERE player_id = ? AND section NOT IN (2, 8, 19, 26)
+    `).get(playerId) as PlayerSingleQuestHistorySummary
 }
 
 /**
@@ -160,7 +182,10 @@ export function getPlayerSingleQuestProgressSync(
     section: number | string,
     questId: number | string
 ): PlayerQuestProgress | null {
-    if (isAbyssFiniteQuest(section, questId)) refreshPlayerAbyssBestTimesSync(playerId)
+    const abyssEventId = isAbyssFiniteQuest(section, questId)
+        ? abyssEventFromQuest(section, questId)
+        : null
+    if (abyssEventId !== null) refreshPlayerAbyssBestTimesSync(playerId, abyssEventId)
     const rawProgress = cachedStatement(getDb(), `
     SELECT section, quest_id, finished, host_finished, unlocked, high_score, clear_rank, best_elapsed_time_ms, leader_character_id, multi_clear_count, s_plus_reward_received
     FROM players_quest_progress
@@ -239,13 +264,13 @@ export function insertPlayerQuestProgressListSync(
     playerId: number,
     progressList: Record<string, PlayerQuestProgress[]>
 ) {
-    getDb().transaction(() => {
+    runPersistenceTransactionSync({ domain: "single-quest", playerId, operation: "insert_quest_progress_list" }, () => {
         for (const [section, progresses] of Object.entries(progressList)) {
             for (const progress of progresses) {
                 insertPlayerQuestProgressSync(playerId, section, progress)
             }
         }
-    })()
+    })
 }
 
 /**
@@ -367,11 +392,11 @@ export function insertPlayerDrawnQuestsSync(
     playerId: number,
     drawnQuests: PlayerDrawnQuest[]
 ) {
-    getDb().transaction(() => {
+    runPersistenceTransactionSync({ domain: "single-quest", playerId, operation: "insert_drawn_quests" }, () => {
         for (const drawnQuest of drawnQuests) {
             insertPlayerDrawnQuestSync(playerId, drawnQuest)
         }
-    })()
+    })
 }
 
 /**

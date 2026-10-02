@@ -138,6 +138,60 @@ function optionalDateString(value: unknown, field: string): string | null {
     return normalized
 }
 
+function normalizeXmlVoidElements(html: string): string {
+    // The client uses flash.Xml.parse, so HTML void elements must use XML
+    // self-closing syntax. Browser innerHTML and older saved announcements
+    // commonly serialize these as <img>, <br>, or <hr> instead.
+    return html.replace(/<(img|br|hr)\b([^>]*)>/gi, (full, tag: string, attributes: string) => {
+        const trimmed = attributes.trimEnd()
+        return trimmed.endsWith("/")
+            ? `<${tag}${attributes}>`
+            : `<${tag}${attributes} />`
+    })
+}
+
+function normalizeNewsImagePlacement(html: string): string {
+    // RichTextLayoutParser only walks child nodes for container elements such
+    // as div. A standalone image inside p is treated as paragraph text and is
+    // therefore silently omitted. Move the editor's image-only paragraphs to
+    // the supported centered container shape.
+    return html.replace(/<p>\s*(<img\b[^>]*\/>)\s*<\/p>/gi, '<div class="center">$1</div>')
+}
+
+function normalizeNewsHtml(html: string): string {
+    const trimmed = normalizeNewsImagePlacement(normalizeXmlVoidElements(html.trim()))
+    if (!trimmed) return ""
+    if (/<!doctype|<html[\s>]/i.test(trimmed)) return trimmed
+    if (/^<body[\s>]/i.test(trimmed)) return `<html lang="zh">${trimmed}</html>`
+    return `<html lang="zh"><body>${trimmed}</body></html>`
+}
+
+/**
+ * The shipped CN client renders announcement HTML with RichTextLayoutParser.
+ * Its remote image loader accepts HTTPS (and local `file:` resources) only;
+ * an HTTP image URL reaches the client but fails with unsupported URL error
+ * 7612. Validate image sources while saving so a bad announcement cannot be
+ * published successfully and then crash when a player opens it.
+ */
+function validateNewsHtml(html: string, index: number): void {
+    const imageTags = html.match(/<img\b[^>]*>/gi) ?? []
+    imageTags.forEach((tag, imageIndex) => {
+        const sourceMatch = /\bsrc\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/i.exec(tag)
+        const source = sourceMatch?.[1] ?? sourceMatch?.[2] ?? sourceMatch?.[3] ?? ""
+        if (!source) throw new Error(`news[${index}].html 中的第 ${imageIndex + 1} 张图片缺少 src`)
+        if (source.length > 2048) throw new Error(`news[${index}].html 中的图片 URL 过长`)
+        let protocol: string
+        try {
+            protocol = new URL(source).protocol.toLowerCase()
+        } catch {
+            throw new Error(`news[${index}].html 中的图片 URL 无效：${source}`)
+        }
+        if (protocol !== "https:" && protocol !== "file:") {
+            throw new Error(`news[${index}].html 中的图片必须使用 HTTPS URL（当前：${protocol || "无协议"}）`)
+        }
+    })
+}
+
 function normalizeNewsItem(value: unknown, index: number): NewsItem {
     if (!isRecord(value)) throw new Error(`news[${index}] 必须是对象`)
     // These values are enums in the shipped CN client, not arbitrary asset
@@ -152,7 +206,10 @@ function normalizeNewsItem(value: unknown, index: number): NewsItem {
         4,
     ) as NewsCategory
     if (typeof value.html !== "string") throw new Error(`news[${index}].html 必须是字符串`)
+    if (!value.html.trim()) throw new Error(`news[${index}].html 不能为空`)
     if (value.html.length > 1_000_000) throw new Error(`news[${index}].html 最多 1000000 个字符`)
+    validateNewsHtml(value.html, index)
+    const html = normalizeNewsHtml(value.html)
     if (value.published !== undefined && typeof value.published !== "boolean") {
         throw new Error(`news[${index}].published 必须是布尔值`)
     }
@@ -171,7 +228,7 @@ function normalizeNewsItem(value: unknown, index: number): NewsItem {
         thumbnail: integerInRange(value.thumbnail ?? 1, `news[${index}].thumbnail`, 1, 13),
         thumbnail_path: null,
         added_time: optionalDateString(value.added_time, `news[${index}].added_time`),
-        html: value.html,
+        html,
         published: value.published ?? true,
     }
 }

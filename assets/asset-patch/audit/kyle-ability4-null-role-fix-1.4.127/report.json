@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "status": "candidate",
+  "patch_id": "kyle-ability4-null-role-fix-1.4.127",
+  "character_id": "139990",
+  "character_code": "kyle_moon",
+  "ability_id": "1399904",
+  "logical_path": "master/ability/ability.orderedmap",
+  "archive_member": "production/upload/1e/664c1cc8d80f4f9a69aae2c49ae8c01d1c4001",
+  "manifest_before_version": "1.4.126",
+  "published_version": "1.4.127",
+  "depends_on": "1.4.126",
+  "source_archive": "pinball-1.4.121-1.4.122-1-author-balance-fox-20260930.zip",
+  "source_sha256": "99d5fa42c20ce770fe00c527f7e73d73033b3f544320afc44d55627aa1bb3b42",
+  "source_size": 388249,
+  "patched_sha256": "6001908d0100bf8bfd2f71454499d0421d93d37ca38d162346ce13d87ff9995a",
+  "patched_size": 388241,
+  "archive": "pinball-1.4.126-1.4.127-1-kyle-ability4-null-role-fix-20261001.zip",
+  "archive_sha256": "e317b50bf60ff46e325bfc95a6f301231bc564b379e6f55a47a20dde4ae7e62e",
+  "archive_size": 196186,
+  "archive_members": [
+    "production/upload/1e/664c1cc8d80f4f9a69aae2c49ae8c01d1c4001"
+  ],
+  "changed_rows": [
+    "1399904#0",
+    "1399904#1"
+  ],
+  "changed_column": "c49 target.character_groups",
+  "before": [
+    "",
+    ""
+  ],
+  "after": [
+    "Yellow",
+    "Yellow"
+  ],
+  "preserved": {
+    "trigger_group": "Yellow",
+    "target": "Party",
+    "by_each_trigger_puller": true
+  },
+  "source_chain_note": "1.4.125 and 1.4.126 enabled patches do not contain this member; the enabled 1.4.122 archive is the final source covering ability. The loose production/upload copy is an older 1.4.116 byte set and was not used.",
+  "device_verified": false,
+  "runtime_synced": false,
+  "cloud_deployed": false,
+  "checks": [
+    "orderedmap readback",
+    "only key 1399904 changed",
+    "both target rows c49=Yellow",
+    "ZIP member and CRC readback",
+    "SHA-256 recorded"
+  ]
+}

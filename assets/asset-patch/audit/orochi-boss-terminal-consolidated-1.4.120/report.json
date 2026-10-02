@@ -1,0 +1,310 @@
+{
+  "status": "applied",
+  "base_version": "1.4.119",
+  "target_version": "1.4.120",
+  "patch_id": "orochi-boss-v3-1.4.120",
+  "archive": "F:\\codex\\work\\orochi-boss-v2-1047-20260925\\consolidate-orochi-cdn-20260926\\rollback-1.4.120\\pinball-1.4.119-1.4.120-1-orochi-boss-terminal-consolidated.zip",
+  "archive_sha256": "3aedbddd3486c571deab81791b4576077f678ff6605fc733d33547ad9f531ecb",
+  "archive_size": 2577869,
+  "members": 17,
+  "inputs": [
+    {
+      "id": "orochi-boss-v3-1.4.120",
+      "archive": "pinball-1.4.119-1.4.120-3-orochi-boss-v3.zip",
+      "integrity": {
+        "name": "pinball-1.4.119-1.4.120-3-orochi-boss-v3.zip",
+        "size": 1714639,
+        "sha256": "1aeb3ed775297f62d2cbd5775d8286e1fc38666c71f3e69a4f5ac440e8a03ef4",
+        "members": 14,
+        "testzip": null
+      }
+    },
+    {
+      "id": "orochi-multi-pickup-1.4.121",
+      "archive": "pinball-1.4.120-1.4.121-1-orochi-multi-pickup.zip",
+      "integrity": {
+        "name": "pinball-1.4.120-1.4.121-1-orochi-multi-pickup.zip",
+        "size": 50271,
+        "sha256": "792dcebb9309a92361d961b7b3c7c20c592b903f14c26d4841c8e1803eee62cc",
+        "members": 2,
+        "testzip": null
+      }
+    },
+    {
+      "id": "orochi-shop-exchange-1.4.122",
+      "archive": "pinball-1.4.121-1.4.122-1-orochi-shop-exchange.zip",
+      "integrity": {
+        "name": "pinball-1.4.121-1.4.122-1-orochi-shop-exchange.zip",
+        "size": 812970,
+        "sha256": "67c5593ee3bbf54529fa06ccf5a819fe798bbd8d5af2e08884d4625ebdff59b4",
+        "members": 1,
+        "testzip": null
+      }
+    },
+    {
+      "id": "orochi-boss-crlf-fix-1.4.123",
+      "archive": "pinball-1.4.122-1.4.123-1-orochi-boss-crlf-fix.zip",
+      "integrity": {
+        "name": "pinball-1.4.122-1.4.123-1-orochi-boss-crlf-fix.zip",
+        "size": 350729,
+        "sha256": "92b197557393efc25336e0343a264f324cac8d0241a2c5cdf2a3f8f3bc06e05e",
+        "members": 5,
+        "testzip": null
+      }
+    },
+    {
+      "id": "orochi-boss-profile-off-diagnostic-1.4.124",
+      "archive": "pinball-1.4.123-1.4.124-1-orochi-boss-profile-off-diagnostic.zip",
+      "integrity": {
+        "name": "pinball-1.4.123-1.4.124-1-orochi-boss-profile-off-diagnostic.zip",
+        "size": 2261,
+        "sha256": "76723f9c0a669ed29d6c888f12d7068a2dac2b8b7387b29609bf5e7f3a86adb7",
+        "members": 1,
+        "testzip": null
+      }
+    },
+    {
+      "id": "orochi-native-field-diagnostic-1.4.125",
+      "archive": "pinball-1.4.124-1.4.125-1-orochi-native-field-diagnostic.zip",
+      "integrity": {
+        "name": "pinball-1.4.124-1.4.125-1-orochi-native-field-diagnostic.zip",
+        "size": 74951,
+        "sha256": "046bd1be43b40f78919bfdc4f20e0fcc582702559610deea5ae6194ffeb5cd4b",
+        "members": 1,
+        "testzip": null
+      }
+    },
+    {
+      "id": "orochi-custom-mechanics-1.4.126",
+      "archive": "pinball-1.4.125-1.4.126-1-orochi-custom-mechanics.zip",
+      "integrity": {
+        "name": "pinball-1.4.125-1.4.126-1-orochi-custom-mechanics.zip",
+        "size": 77314,
+        "sha256": "8a0ee7005a2611e8ea08ef5c343d03fce83cd02ecb893848b2da21bd3b063d47",
+        "members": 2,
+        "testzip": null
+      }
+    },
+    {
+      "id": "orochi-boss-balance-1.4.127",
+      "archive": "pinball-1.4.126-1.4.127-1-orochi-boss-balance.zip",
+      "integrity": {
+        "name": "pinball-1.4.126-1.4.127-1-orochi-boss-balance.zip",
+        "size": 92791,
+        "sha256": "75ce72e49d7eb7523fec0017775cd66e2b3340d853b85cdfdb4c95ee02985fe8",
+        "members": 3,
+        "testzip": null
+      }
+    },
+    {
+      "id": "orochi-boss-c7050-fix-1.4.128",
+      "archive": "pinball-1.4.127-1.4.128-1-orochi-boss-c7050-fix.zip",
+      "integrity": {
+        "name": "pinball-1.4.127-1.4.128-1-orochi-boss-c7050-fix.zip",
+        "size": 74920,
+        "sha256": "836f1da618d5757180c8777f7955385a42b18ae6177b61592612fc14dc68b562",
+        "members": 1,
+        "testzip": null
+      }
+    },
+    {
+      "id": "orochi-boss-stun-capacity-1.4.129",
+      "archive": "pinball-1.4.128-1.4.129-1-orochi-stun-capacity.zip",
+      "integrity": {
+        "name": "pinball-1.4.128-1.4.129-1-orochi-stun-capacity.zip",
+        "size": 15533,
+        "sha256": "f72cd4cbe88ae2a56cf9f54af322c8e73767bf3947e3f3fc692c4de971f1e513",
+        "members": 1,
+        "testzip": null
+      }
+    },
+    {
+      "id": "orochi-p4-timing-1.4.130",
+      "archive": "pinball-1.4.129-1.4.130-1-orochi-p4-timing.zip",
+      "integrity": {
+        "name": "pinball-1.4.129-1.4.130-1-orochi-p4-timing.zip",
+        "size": 2430,
+        "sha256": "1f54696aeda025ec2585d8be8bbc06bb2cc0451d9a40f348d3bc3e7529946869",
+        "members": 1,
+        "testzip": null
+      }
+    }
+  ],
+  "conflict_paths": [
+    {
+      "member": "production/upload/19/a4aa442b3249499356e7a3f6370e530bfe355e",
+      "previous_sha256": "0d2349d26da5d55ea202af25b80d17a7f130c1f884716b26270e853f0f609165",
+      "new_sha256": "84714b370f008f272ff7a374049cb6b0e9d100a1fc33628c90278752625b841d",
+      "new_archive": "pinball-1.4.122-1.4.123-1-orochi-boss-crlf-fix.zip"
+    },
+    {
+      "member": "production/upload/30/363f8364e183905b2d0b48b8718b7165135bc2",
+      "previous_sha256": "ddd1a1fe7d344fcd4696656e65e0b1f444477cb786cbcf7a97f84f87f1919bee",
+      "new_sha256": "c5fd268d046883d2b979420231e7c479e5c390704318da12c0911cc25dbe4617",
+      "new_archive": "pinball-1.4.122-1.4.123-1-orochi-boss-crlf-fix.zip"
+    },
+    {
+      "member": "production/upload/7c/0159ffd7078028b1c2eec135beb1884f7224fb",
+      "previous_sha256": "7260869c2f16692383c77083fd21c4bd45dff7e49a5093a2a43e89739223d164",
+      "new_sha256": "ee6fe34227ff4afc358ef4479853597489921f7386997d94bfcbfc3dcbad89ae",
+      "new_archive": "pinball-1.4.122-1.4.123-1-orochi-boss-crlf-fix.zip"
+    },
+    {
+      "member": "production/upload/cd/6336795a27ea33bf8d0c5d5a9bfb466bedcf1e",
+      "previous_sha256": "08f3363494baf6a30a6881215c5df355c305f4e33ab54b1fafc2d87277b1ee1e",
+      "new_sha256": "a6f899984accaaed23d9009f6625a951cd81b965cbdb28a1d24b883843a94054",
+      "new_archive": "pinball-1.4.122-1.4.123-1-orochi-boss-crlf-fix.zip"
+    },
+    {
+      "member": "production/upload/eb/f8ef19148af9c1330b78c7fb3ce75e3f202e64",
+      "previous_sha256": "20e7857a078243065028417f287d15dbb1a2555d50a3cf187b66909c94acd702",
+      "new_sha256": "d996b9178e930042f1a131ff03f6cc25eedbb7ac2afbeac1bd494686f37b0e97",
+      "new_archive": "pinball-1.4.122-1.4.123-1-orochi-boss-crlf-fix.zip"
+    },
+    {
+      "member": "production/upload/7c/0159ffd7078028b1c2eec135beb1884f7224fb",
+      "previous_sha256": "ee6fe34227ff4afc358ef4479853597489921f7386997d94bfcbfc3dcbad89ae",
+      "new_sha256": "4880628ce41cdef597e8f3e6337b921fc48c7a8169f4707dbe304d541d58b382",
+      "new_archive": "pinball-1.4.123-1.4.124-1-orochi-boss-profile-off-diagnostic.zip"
+    },
+    {
+      "member": "production/upload/eb/f8ef19148af9c1330b78c7fb3ce75e3f202e64",
+      "previous_sha256": "d996b9178e930042f1a131ff03f6cc25eedbb7ac2afbeac1bd494686f37b0e97",
+      "new_sha256": "bba392650577a93127a0e8db14e5b65ee66ed44c526a4cbdffd0d9465ea1bb39",
+      "new_archive": "pinball-1.4.124-1.4.125-1-orochi-native-field-diagnostic.zip"
+    },
+    {
+      "member": "production/upload/7c/0159ffd7078028b1c2eec135beb1884f7224fb",
+      "previous_sha256": "4880628ce41cdef597e8f3e6337b921fc48c7a8169f4707dbe304d541d58b382",
+      "new_sha256": "ee6fe34227ff4afc358ef4479853597489921f7386997d94bfcbfc3dcbad89ae",
+      "new_archive": "pinball-1.4.125-1.4.126-1-orochi-custom-mechanics.zip"
+    },
+    {
+      "member": "production/upload/eb/f8ef19148af9c1330b78c7fb3ce75e3f202e64",
+      "previous_sha256": "bba392650577a93127a0e8db14e5b65ee66ed44c526a4cbdffd0d9465ea1bb39",
+      "new_sha256": "d996b9178e930042f1a131ff03f6cc25eedbb7ac2afbeac1bd494686f37b0e97",
+      "new_archive": "pinball-1.4.125-1.4.126-1-orochi-custom-mechanics.zip"
+    },
+    {
+      "member": "production/upload/19/a4aa442b3249499356e7a3f6370e530bfe355e",
+      "previous_sha256": "84714b370f008f272ff7a374049cb6b0e9d100a1fc33628c90278752625b841d",
+      "new_sha256": "3e1125e2df78479ad8f061f8105e39f0673b1216b448d30536b7a8856da566bb",
+      "new_archive": "pinball-1.4.126-1.4.127-1-orochi-boss-balance.zip"
+    },
+    {
+      "member": "production/upload/7c/0159ffd7078028b1c2eec135beb1884f7224fb",
+      "previous_sha256": "ee6fe34227ff4afc358ef4479853597489921f7386997d94bfcbfc3dcbad89ae",
+      "new_sha256": "5b691676fe7cd3955bda7d8959f28ac1e1b35d82e4a49b6c5009cdf2bd38a7c6",
+      "new_archive": "pinball-1.4.126-1.4.127-1-orochi-boss-balance.zip"
+    },
+    {
+      "member": "production/upload/eb/f8ef19148af9c1330b78c7fb3ce75e3f202e64",
+      "previous_sha256": "d996b9178e930042f1a131ff03f6cc25eedbb7ac2afbeac1bd494686f37b0e97",
+      "new_sha256": "f98793345c7cf780f63f95b4dbba30c1d697c93bcf6c0fdca07a49221e25badf",
+      "new_archive": "pinball-1.4.126-1.4.127-1-orochi-boss-balance.zip"
+    },
+    {
+      "member": "production/upload/eb/f8ef19148af9c1330b78c7fb3ce75e3f202e64",
+      "previous_sha256": "f98793345c7cf780f63f95b4dbba30c1d697c93bcf6c0fdca07a49221e25badf",
+      "new_sha256": "8b9b9db9b54b4c018a1e2c65bd2afd035516a783997256c1fa589aef343ef656",
+      "new_archive": "pinball-1.4.127-1.4.128-1-orochi-boss-c7050-fix.zip"
+    },
+    {
+      "member": "production/upload/19/a4aa442b3249499356e7a3f6370e530bfe355e",
+      "previous_sha256": "3e1125e2df78479ad8f061f8105e39f0673b1216b448d30536b7a8856da566bb",
+      "new_sha256": "3710d87f7c7422212477aa9f74b1a615063f9e4beefc2016888865469bc2402a",
+      "new_archive": "pinball-1.4.128-1.4.129-1-orochi-stun-capacity.zip"
+    },
+    {
+      "member": "production/upload/7c/0159ffd7078028b1c2eec135beb1884f7224fb",
+      "previous_sha256": "5b691676fe7cd3955bda7d8959f28ac1e1b35d82e4a49b6c5009cdf2bd38a7c6",
+      "new_sha256": "b4a1c5c1e6ac04aba986f4a67854f069a4ea9bc147b2d4d3245a994f7dc27412",
+      "new_archive": "pinball-1.4.129-1.4.130-1-orochi-p4-timing.zip"
+    }
+  ],
+  "superseded_patch_ids": [
+    "orochi-boss-balance-1.4.127",
+    "orochi-boss-c7050-fix-1.4.128",
+    "orochi-boss-crlf-fix-1.4.123",
+    "orochi-boss-profile-off-diagnostic-1.4.124",
+    "orochi-boss-stun-capacity-1.4.129",
+    "orochi-boss-v3-1.4.120",
+    "orochi-custom-mechanics-1.4.126",
+    "orochi-multi-pickup-1.4.121",
+    "orochi-native-field-diagnostic-1.4.125",
+    "orochi-p4-timing-1.4.130",
+    "orochi-shop-exchange-1.4.122"
+  ],
+  "source_backup": "F:\\codex\\work\\orochi-boss-v2-1047-20260925\\consolidate-orochi-cdn-20260926\\rollback-1.4.120\\source-backup",
+  "source_apply": true,
+  "runtime_sync": true,
+  "device_tested": false,
+  "swf_changed": false,
+  "server_changed": false,
+  "source_applied": {
+    "tail": "1.4.120",
+    "enabled_tail_entries": [
+      [
+        "midautumn-national-2026",
+        "1.4.118",
+        "pinball-1.4.117-1.4.118-1-midautumn-national-2026.zip",
+        [
+          "pinball-1.4.117-1.4.118-1-midautumn-national-2026.zip"
+        ]
+      ],
+      [
+        "author-wind-dragon-1047",
+        "1.4.119",
+        "pinball-1.4.118-1.4.119-1-author-1047-wind-dragon.zip",
+        [
+          "pinball-1.4.118-1.4.119-1-author-1047-wind-dragon.zip"
+        ]
+      ],
+      [
+        "orochi-boss-v3-1.4.120",
+        "1.4.120",
+        "pinball-1.4.119-1.4.120-1-orochi-boss-terminal-consolidated.zip",
+        [
+          "pinball-1.4.119-1.4.120-1-orochi-boss-terminal-consolidated.zip"
+        ]
+      ]
+    ],
+    "active_archive": "pinball-1.4.119-1.4.120-1-orochi-boss-terminal-consolidated.zip"
+  },
+  "runtime_backup": "F:\\startpoint-cn-main\\.codex-backups\\20260926-010515-orochi-cdn-rollback-1.4.120",
+  "runtime_info": {
+    "retired": "F:\\startpoint-cn-main\\assets\\asset-patch\\retired\\orochi-terminal-rollback-1.4.120",
+    "manifest": "F:\\startpoint-cn-main\\assets\\asset-patch\\manifest.json",
+    "archive": "F:\\startpoint-cn-main\\assets\\asset-patch\\active\\pinball-1.4.119-1.4.120-1-orochi-boss-terminal-consolidated.zip"
+  },
+  "runtime_applied": {
+    "tail": "1.4.120",
+    "enabled_tail_entries": [
+      [
+        "midautumn-national-2026",
+        "1.4.118",
+        "pinball-1.4.117-1.4.118-1-midautumn-national-2026.zip",
+        [
+          "pinball-1.4.117-1.4.118-1-midautumn-national-2026.zip"
+        ]
+      ],
+      [
+        "author-wind-dragon-1047",
+        "1.4.119",
+        "pinball-1.4.118-1.4.119-1-author-1047-wind-dragon.zip",
+        [
+          "pinball-1.4.118-1.4.119-1-author-1047-wind-dragon.zip"
+        ]
+      ],
+      [
+        "orochi-boss-v3-1.4.120",
+        "1.4.120",
+        "pinball-1.4.119-1.4.120-1-orochi-boss-terminal-consolidated.zip",
+        [
+          "pinball-1.4.119-1.4.120-1-orochi-boss-terminal-consolidated.zip"
+        ]
+      ]
+    ],
+    "active_archive": "pinball-1.4.119-1.4.120-1-orochi-boss-terminal-consolidated.zip"
+  }
+}

@@ -1,6 +1,7 @@
 import { cachedStatement } from "../../lib/cached-statement"
 import { getDb } from "../db";
 import { RawPlayerItem } from "../types";
+import { runPersistenceTransactionSync } from "../../lib/persistence-coordinator";
 
 /**
  * Gets the amount of a singular item that a player owns.
@@ -146,11 +147,11 @@ export function insertPlayerItemsSync(
     items: Record<string, number>
 ) {
     const db = getDb();
-    db.transaction(() => {
+    runPersistenceTransactionSync({ domain: "player", playerId, operation: "insert_player_items" }, () => {
         for (const [itemId, amount] of Object.entries(items)) {
             insertPlayerItemSync(playerId, itemId, amount)
         }
-    })()
+    })
 }
 
 /**
@@ -210,12 +211,12 @@ export function givePlayerItemSync(
     itemId: string | number,
     giveAmount: number
 ): number {
-    return getDb().transaction(() => {
+    return runPersistenceTransactionSync({ domain: "player", playerId, operation: "give_player_item" }, () => {
         const ownedAmount = getPlayerItemSync(playerId, itemId)
         const newAmount = (ownedAmount ?? 0) + giveAmount
         if (ownedAmount === null) insertPlayerItemSync(playerId, itemId, newAmount)
         else updatePlayerItemSync(playerId, itemId, newAmount)
         recordPlayerCollectedItemSync(playerId, itemId, giveAmount)
         return newAmount
-    })()
+    })
 }

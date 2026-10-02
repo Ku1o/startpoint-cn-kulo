@@ -1,0 +1,47 @@
+# 作者机制双端公网客户端
+
+本批从已验收的 Android 作者机制内网 APK 与 iOS 独立编队 SET 编辑 C8601 公网修正版接续，提供回槽限制、统一伤害类型及扩展满槽语音，配套合并后的 1.4.117 资源。
+
+Android 保留全部游戏方法和 trait，只替换公网端点、真实准入常量与编译折叠的 HMAC 前缀，生成新 AIR UUID，并更新两个 DEX 缓存身份位置。包名、1.8.1 版本和固定签名证书保持。最终载荷回读、常量逆向恢复、全部非目标成员、ZIP 对齐与 v1/v2 签名均核验。
+
+iOS 以 `64edf9ada1c0cb1dd8ebff00978394907b93174b519f0106fd41b55f2949917a` 的 C8601 IPA 为直接基线，保留 1.8.4 / 1.8.46 身份、独立编队、iOS 既有轮播与标题行为。最终 IPA 为 TrollStore unsigned；只变更主可执行文件和 SWF 的 AOT 摘要。完整 ABC 有 101,387 个方法；原生表注册到同一数量。
+
+## 原生移植
+
+- 原生 629 调用 ActionDSL，作者 423/424 提供回槽限制和伤害分类。旧伤害装饰、来源、结算三个入口移除，稻穗视觉由独立 `InahoAbilityVisuals` 提供。iOS 旧 helper 二进制保留以维持历史布局，当前游戏入口不再调用旧伤害分类。
+- 两个能力规则数组使用弱引用字典与访问器，静态回槽上下文存于新 helper；不为已有类追加引用槽。能力地址的四个整数使用尾部 Number 存储，读取时显式转为整数，保留旧字段偏移。
+- 能力地址构造器显式初始化原生 `__enum__=true` 默认值，避免将构造器作为静态编译 hook 时丢失隐式初始化。原构造器的 `index@0x20`、`__enum__@0x24`、`tag@0x28`、`params@0x30` 由实际 ARM64 指令核对。HUD 保留既有 Number 尾部计数器及 R4 字段布局。
+- 三处能力说明与 ActionDSL 伤害目标 getter 只执行新增早退分支，其余情况返回保留的原生实现。前者保留所有旧原生闭包，后者保留原有枚举异常分支。
+- 扩充现有可写段内的 AOT 方法和 activation 表，新增指针全部登记 dyld rebase；代码扩展现有可执行段。超范围跳转使用已验证为空的可执行节尾部空间，未增加 Mach-O 段。
+- LINKEDIT 新数据放在符号字符串表之前；三种 ldid 签名大小模型及历史坏布局负例验证通过。新方法无编译器校验错误；旧未使用的 `formalHook_52468` 编译警告未参与此次链接，保留原生字节。
+
+## 准入和服务器配套
+
+| 平台 | 内网及前一正式号 | 本批新正式号 |
+| --- | --- | --- |
+| Android | `android-181-author-1047-20260925` | latest accepted |
+| iOS | `ios-184-author-1047-20260925` | latest accepted |
+
+两端使用最新 1047 配对，旧构建条目和旧密钥已从当前准入配置移除，严格模式保持。完整私有配置已在仓库外维护，不包含准入 rollout 状态。本批服务器交付以上一个 1.4.116 正式交付为基线，仅包含合并 1.4.117 ZIP、完整 manifest、两个兑换池 JSON、角色文字和完整准入配对，共七个文件。外层无松散 production、changelog、签名材料或 .cdn；资源 ZIP 字节不变。
+
+`release.json` 记录成品身份和本地交付位置；密钥与签名凭据不进入源码、报告或 Git。新号需在服务器覆盖配套后才能登录。本批未部署云服务器。
+
+服务器运行还依赖 `src/routes/cn/asset.ts` 与 `out/routes/cn/asset.js` 的启用清单筛选：目录中留存的旧分包不再作为发布依据。后续整合须包含这两个文件；上述七文件成品未含此接口，`package_server.py` 仅保留该固定成品的生成过程。
+
+## 验证范围
+
+Android 已验收内网输入和公网成品分别核验。iOS 完成 18,000 余处原生重定位核验、四个 ARM64 分支包装器的八个执行场景、移植后实际字节码的十项规则测试、十五个目标分类分支、四个构造默认值场景与签名布局检查。原三十七项机制及语音用例通过；双端完整准入配对通过二十六项隔离 HTTP 协议检查，含平台/密钥错误、旧号并存及单端撤销。
+
+原有 C8601 方法入口及其他未修改原生字节保持。构建时成品为离线验证候选，原报告保持该状态；2026-09-25 已补做验收并登记 `accepted_offline`，详见 [八岐大蛇高难 V2 验收](../ACCEPTANCE-OROCHI-BOSS-20260926.md)。Android 另完成模拟器安装和冷启动至登录面板，最新双端通过实际公网握手；旧构建被准入接口拒绝；iOS 真机、多人或长时间联机未测。此批无保存 ID、数据库、存档格式或账号归属变化，不需要存档迁移。
+
+构建入口：`prepare_admission.py` → `build_android.py`；`prepare_ios.py` → `compile_ios.py compile-final-defaults` → `link_ios.py` → `verify_ios.py` / `test_ios_rules.py`；`verify_pair.cjs` 与 `package_server.py` 生成配套。精确输入与私有材料位置由 `common.py` 固定；已完成批次不重新分配准入材料。
+## 1.4.1047 客户端性能补丁
+
+2026-09-25 在已验收作者机制双端公网累计包上追加回槽特效性能修复：施技前拦截无效回槽演出，能力伤害总计按来源规则筛选，保留开场与正常跑条。Android 与 iOS 分别生成并确认最新公网成品，iOS 通过已有 AOT 编译 hook 接入；原生目标方法、包身份、公共地址和准入号保持。
+
+最新验收记录见 [`ACCEPTANCE-AUTHOR-1047-20260925.md`](../ACCEPTANCE-AUTHOR-1047-20260925.md)。
+
+
+## 八岐大蛇高难 V2 corrected client 2026-09-26
+
+本批客户端改为使用八岐大蛇高难 Boss 成品：Android `F:\codex\outputs\orochi-boss-public-20260926\android\StarPoint-CN-1.8.1-author-1047-orochi-boss-public-20260926.apk`，iOS corrected IPA `F:\codex\outputs\orochi-boss-public-20260926\ios\StarPoint-iOS-1.8.4-author-1047-orochi-boss-public-20260926-corrected-unsigned.ipa`。iOS 静态验收报告为 `F:\codex\outputs\orochi-boss-public-20260926\ios\boss-ios-verification.json`，完整 ABC/AOT 方法数 101433，新增 AOT 入口 46，未做真机测试。上一份 iOS 仅准入重打包候选已从当前成品登记中排除。

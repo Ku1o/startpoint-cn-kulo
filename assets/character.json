@@ -3316,5 +3316,89 @@
     "name": "见岛勇希",
     "rarity": 5,
     "skill_count": 6
+  },
+  "159991": {
+    "name": "稻穗",
+    "element": 4,
+    "rarity": 5,
+    "skill_count": 6
+  },
+  "129990": {
+    "element": 1,
+    "name": "海豹球",
+    "rarity": 5,
+    "skill_count": 6
+  },
+  "119992": {
+    "element": 0,
+    "name": "米娅",
+    "rarity": 5,
+    "skill_count": 6
+  },
+  "119990": {
+    "element": 0,
+    "name": "玛格诺斯",
+    "rarity": 5,
+    "skill_count": 6
+  },
+  "169988": {
+    "element": 5,
+    "name": "澄波响",
+    "rarity": 5,
+    "skill_count": 6
+  },
+  "169991": {
+    "element": 5,
+    "name": "蕾贝卡",
+    "rarity": 5,
+    "skill_count": 6
+  },
+  "149987": {
+    "element": 3,
+    "name": "芙拉菲",
+    "rarity": 5,
+    "skill_count": 6
+  },
+  "159995": {
+    "element": 4,
+    "name": "丝缇涅尔",
+    "rarity": 5,
+    "skill_count": 6
+  },
+  "119991": {
+    "element": 0,
+    "name": "妮可拉",
+    "rarity": 5,
+    "skill_count": 6
+  },
+  "139992": {
+    "element": 2,
+    "name": "夏琳",
+    "rarity": 5,
+    "skill_count": 6
+  },
+  "139991": {
+    "element": 2,
+    "name": "黑",
+    "rarity": 5,
+    "skill_count": 6
+  },
+  "149986": {
+    "element": 3,
+    "name": "罗尔夫",
+    "rarity": 5,
+    "skill_count": 6
+  },
+  "139990": {
+    "element": 2,
+    "name": "凯尔",
+    "rarity": 5,
+    "skill_count": 6
+  },
+  "159994": {
+    "element": 4,
+    "name": "索恩",
+    "rarity": 5,
+    "skill_count": 6
   }
 }

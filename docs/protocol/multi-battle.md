@@ -805,9 +805,10 @@ const NPC_TEMPLATES = {
 |------|--------|------|
 | `SESSION_PORT` | 8003 | TCP 会话端口 |
 | `SESSION_HOST` | 0.0.0.0 | TCP 绑定地址 |
-| `MULTI_ROOM_INCOMPLETE_EXPIRY_MS` | 900000 | 未满 3 人过期（ms），默认 15min |
+| `MULTI_ROOM_INCOMPLETE_EXPIRY_MS` | 600000 | 未满 3 人过期（ms），默认 10min |
 | `MULTI_ROOM_FULL_EXPIRY_MS` | 1800000 | 满 3 人过期（ms），默认 30min（兜底） |
 | `MULTI_ROOM_CLEAN_INTERVAL_MS` | 60000 | 过期检查间隔（ms） |
+| `REMATCH_RECONNECT_GRACE_MS` | 60000 | 续战返回大厅后的真人回连宽限（ms），默认 60s |
 | 存活时机 | — | 解散前 30s 发 RemainingTime(tag 7) 浮窗 |
 | `QUEST_RESULT_DISBAND_DELAY_MS` | 60000 | 结算后返回房间等待窗口（ms），对齐 CDN `room_config.json` |
 | `NPC_JOIN_DELAY_MS` | 2000 | NPC 加入房间延迟（ms） |

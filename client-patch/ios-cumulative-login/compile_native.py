@@ -1,6 +1,29 @@
 """Run only the headless arm64 AIR compiler, with a bounded process tree."""
 from prepare import WORK,LEGACY,SDK,dump,sha
-import argparse,json,subprocess,time
+import argparse,json,re,subprocess,time
+
+def verify_new_method_warnings(log_path,port):
+    """Reject verifier warnings for methods introduced by the current port.
+
+    compile-abc continues to report a historical baseline warning for method
+    101312.  New helper/hook methods are tracked in port.json so a verifier
+    failure cannot silently become a fail-fast AOT stub again.
+    """
+    tracked=set()
+    tracked.update(int(x) for x in port.get('compiled_helpers',[]))
+    for key in ('method_redirects','methods'):
+        for row in port.get(key,[]):
+            value=row.get('compiled') if key=='methods' else row.get('compiled')
+            if value is None:value=row.get('compiled_method')
+            if value is not None:tracked.add(int(value))
+    lines=log_path.read_text('utf8',errors='replace').splitlines()
+    verifier=[line for line in lines if 'Verify error:' in line]
+    unexpected=[]
+    for line in verifier:
+        match=re.search(r'Verify error:\s*[^:]+:(\d+):',line)
+        if match and int(match.group(1)) in tracked:unexpected.append(line)
+    if unexpected:raise AssertionError(('verifier warnings for new methods',unexpected,str(log_path)))
+    return verifier
 
 def main():
     ap=argparse.ArgumentParser();ap.add_argument('--attempt',default='compile');ap.add_argument('--optimization',choices=['0','1'],default='1');ap.add_argument('--raw-ir',action='store_true');args0=ap.parse_args()
@@ -27,7 +50,8 @@ def main():
             assert code==0,('compiler failed',code,str(log_path))
         finally:
             if p.poll() is None:subprocess.run(['taskkill','/PID',str(p.pid),'/T','/F'],capture_output=True,timeout=15)
-    result=dict(elapsed_seconds=round(time.monotonic()-started,2),headless=True,directory=str(directory),optimization=args0.optimization,objects=[dict(name=p.name,bytes=p.stat().st_size,sha256=sha(p.read_bytes())) for p in sorted(directory.glob('cumulative*.o'))])
+    verifier_warnings=verify_new_method_warnings(log_path,port)
+    result=dict(elapsed_seconds=round(time.monotonic()-started,2),headless=True,directory=str(directory),optimization=args0.optimization,verifier_warnings=verifier_warnings,objects=[dict(name=p.name,bytes=p.stat().st_size,sha256=sha(p.read_bytes())) for p in sorted(directory.glob('cumulative*.o'))])
     dump(WORK/(args0.attempt+'-report.json'),result)
     print('Compiled native objects:',len(result['objects']),'elapsed:',result['elapsed_seconds'])
 

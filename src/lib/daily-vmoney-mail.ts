@@ -109,6 +109,28 @@ function productionDatabase(): Database {
     return require("../data/db").getDb() as Database
 }
 
+function isProductionDatabase(database: Database): boolean {
+    // Do not initialize the production database merely by importing this
+    // module: isolated tests pass their own in-memory connection. Once the
+    // server has loaded data/db, compare the actual connection objects.
+    const modulePath = require.resolve("../data/db")
+    const cached = require.cache[modulePath]
+    if (!cached) return false
+    const getDb = (cached.exports as { getDb?: () => Database }).getDb
+    return typeof getDb === "function" && getDb() === database
+}
+
+async function runDailyVmoneyPersistence<T>(
+    database: Database,
+    operation: () => T,
+): Promise<T> {
+    if (!isProductionDatabase(database)) return operation()
+    const { runPersistenceTransaction } = require("./persistence-coordinator") as typeof import("./persistence-coordinator")
+    return runPersistenceTransaction({
+        domain: "mail", operation: "daily_vmoney_mail_scheduler",
+    }, operation)
+}
+
 function twoDigits(value: number): string {
     return String(value).padStart(2, "0")
 }
@@ -444,18 +466,23 @@ export function createDailyVmoneyMailScheduler(
     const intervalMs = options.intervalMs ?? 60_000
     const logger = options.logger ?? console
     let timer: NodeJS.Timeout | null = null
+    let running = false
     const tick = () => {
-        try {
-            const result = dispatchDailyVmoneyMailSync(Date.now(), "scheduler", false, database)
+        if (running) return
+        running = true
+        void runDailyVmoneyPersistence(
+            database,
+            () => dispatchDailyVmoneyMailSync(Date.now(), "scheduler", false, database),
+        ).then(result => {
             if (result.status === "sent" && result.run) {
                 logger.log(
                     `[DAILY_VMONEY_MAIL] bucket=${result.run.bucket} amount=${result.run.amount} sent=${result.run.sentCount}`,
                 )
             }
-        } catch (error) {
+        }).catch(error => {
             const detail = error instanceof Error ? error.message : String(error)
             logger.warn(`[DAILY_VMONEY_MAIL] scheduler failed: ${detail}`)
-        }
+        }).finally(() => { running = false })
     }
     return {
         start() {

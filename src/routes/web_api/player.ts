@@ -1,8 +1,7 @@
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
-import { reviveMergedPlayerDates } from "../../data/utils";
 import { validatePlayerField, VALID_CHARACTER_IDS, VALID_ITEM_IDS, MAX_INT } from "./validation";
 import { wantsJson } from "./http";
-import { dailyResetPlayerDataSync, getAllPlayersSync, getDefaultPlayerPartyGroupsSync, getPlayerDailyChallengePointListSync, getPlayerSync, insertPlayerDailyChallengePointListSync, replacePlayerDataSync, updatePlayerDailyChallengePointSync, updatePlayerSync } from "../../data/domains/player"
+import { dailyResetPlayerDataSync, getAllPlayersSync, getDefaultPlayerPartyGroupsSync, getPlayerDailyChallengePointListSync, getPlayerSync, insertPlayerDailyChallengePointListSync, updatePlayerDailyChallengePointSync, updatePlayerSync } from "../../data/domains/player"
 import { deleteAllPlayerMailSync } from "../../data/domains/mail"
 import { getDb } from "../../data/db"
 import { getPlayerCharactersSync, insertDefaultPlayerCharacterSync, insertPlayerCharacterSync } from "../../data/domains/character"
@@ -32,6 +31,7 @@ import {
     PlayerSaveExportError,
 } from "../../lib/player-save-export";
 import { hijackUnavailableReply } from "../../lib/http-reply";
+import { runPersistenceTransactionSync } from "../../lib/persistence-coordinator";
 
 interface SaveQuery {
     id: string | undefined
@@ -230,41 +230,28 @@ const routes = async (fastify: FastifyInstance) => {
             if (parsed === null || typeof parsed !== 'object' || parsed.schema !== 'starpoint-cn-save') {
                 return fail("不是有效的存档快照（schema 不符，请使用本面板导出的存档）")
             }
-            if (isPlayerSaveSnapshotV2(parsed)) {
-                const snapshot = validatePlayerSaveSnapshotV2Sync(parsed)
-                const rollbackSnapshot = createPlayerSaveSnapshotV2Sync(playerId)
-                safetyBackup = createPlayerImportSnapshotBackup(playerId, rollbackSnapshot, {
-                    sourceSnapshotVersion: 2,
-                    sourcePlayerId: snapshot.playerId,
-                })
-                backupCleanup = applyPlayerImportBackupRetention(safetyBackup.directory)
-                const restored = restorePlayerSaveSnapshotV2Sync(snapshot, playerId, {
-                    includeArchiveHistory: true,
-                })
-                if (json) return reply.status(200).send({
-                    ok: true,
-                    playerId,
-                    snapshotVersion: 2,
-                    backup: `.database/admin-backups/${safetyBackup.name}`,
-                    ...backupCleanup,
-                    restored,
-                })
-                return reply.redirect(`/player/${id}`)
+            if (!isPlayerSaveSnapshotV2(parsed)) {
+                return fail("仅支持 V2 完整存档；旧版 V1 存档与当前数据库结构不兼容")
             }
-            if (parsed.version !== 1) return fail(`不支持的存档版本：${parsed.version}`)
-
-            const data = parsed.data
-            if (!data || typeof data !== 'object' || !data.player) return fail("存档数据缺失 player 字段")
+            const snapshot = validatePlayerSaveSnapshotV2Sync(parsed)
             const rollbackSnapshot = createPlayerSaveSnapshotV2Sync(playerId)
             safetyBackup = createPlayerImportSnapshotBackup(playerId, rollbackSnapshot, {
-                sourceSnapshotVersion: 1,
-                sourcePlayerId: parsed.playerId ?? null,
-                legacyPartialSnapshot: true,
+                sourceSnapshotVersion: 2,
+                sourcePlayerId: snapshot.playerId,
             })
             backupCleanup = applyPlayerImportBackupRetention(safetyBackup.directory)
-            reviveMergedPlayerDates(data)
-            data.player.id = playerId
-            replacePlayerDataSync(data)
+            const restored = restorePlayerSaveSnapshotV2Sync(snapshot, playerId, {
+                includeArchiveHistory: true,
+            })
+            if (json) return reply.status(200).send({
+                ok: true,
+                playerId,
+                snapshotVersion: 2,
+                backup: `.database/admin-backups/${safetyBackup.name}`,
+                ...backupCleanup,
+                restored,
+            })
+            return reply.redirect(`/player/${id}`)
         } catch (error: any) {
             if (error?.code === "FST_REQ_FILE_TOO_LARGE") {
                 return fail(`存档超过 ${maxSaveUploadBytes / 1024 / 1024} MB 安全上限`, 413)
@@ -277,15 +264,6 @@ const routes = async (fastify: FastifyInstance) => {
                 : ""
             return fail(`恢复失败：${error?.message ?? error}${backupHint}${cleanupHint}`, 500)
         }
-        if (json) return reply.status(200).send({
-            ok: true,
-            playerId,
-            snapshotVersion: 1,
-            legacyPartialSnapshot: true,
-            backup: safetyBackup ? `.database/admin-backups/${safetyBackup.name}` : null,
-            ...backupCleanup,
-        })
-        return reply.redirect(`/player/${id}`);
     })
 
     // ====== New: Inline edit endpoints ======
@@ -323,7 +301,9 @@ const routes = async (fastify: FastifyInstance) => {
 
         try {
             const updateData = { id: playerId, [field]: value, ...extra }
-            updatePlayerSync(updateData)
+            runPersistenceTransactionSync({
+                domain: "admin", playerId, operation: "admin_player_field_edit",
+            }, () => updatePlayerSync(updateData))
             return reply.status(200).send({ ok: true, field, value })
         } catch (e: any) {
             return reply.status(500).send({ error: e.message })
@@ -334,7 +314,9 @@ const routes = async (fastify: FastifyInstance) => {
     fastify.post("/:id/clear_ex_boost", async (request: FastifyRequest, reply: FastifyReply) => {
         const playerId = Number((request.params as any).id)
         if (isNaN(playerId)) return reply.status(400).send({ error: "Invalid player ID" })
-        getDb().prepare(`UPDATE players_characters SET ex_boost_status_id = NULL, ex_boost_ability_id_list = NULL WHERE player_id = ?`).run(playerId)
+        runPersistenceTransactionSync({
+            domain: "admin", playerId, operation: "admin_clear_ex_boost",
+        }, () => getDb().prepare(`UPDATE players_characters SET ex_boost_status_id = NULL, ex_boost_ability_id_list = NULL WHERE player_id = ?`).run(playerId))
         if (wantsJson(request)) return reply.status(200).send({ ok: true })
         return reply.redirect(`/player/${playerId}#actions`)
     })
@@ -343,9 +325,13 @@ const routes = async (fastify: FastifyInstance) => {
     fastify.post("/:id/reset_parties", async (request: FastifyRequest, reply: FastifyReply) => {
         const playerId = Number((request.params as any).id)
         if (isNaN(playerId)) return reply.status(400).send({ error: "Invalid player ID" })
-        getDb().prepare(`DELETE FROM players_parties WHERE player_id = ?`).run(playerId)
-        getDb().prepare(`DELETE FROM players_party_groups WHERE player_id = ?`).run(playerId)
-        insertPlayerPartyGroupListSync(playerId, getDefaultPlayerPartyGroupsSync(PartyCategory.NORMAL))
+        runPersistenceTransactionSync({
+            domain: "admin", playerId, operation: "admin_reset_parties",
+        }, () => {
+            getDb().prepare(`DELETE FROM players_parties WHERE player_id = ?`).run(playerId)
+            getDb().prepare(`DELETE FROM players_party_groups WHERE player_id = ?`).run(playerId)
+            insertPlayerPartyGroupListSync(playerId, getDefaultPlayerPartyGroupsSync(PartyCategory.NORMAL))
+        })
         if (wantsJson(request)) return reply.status(200).send({ ok: true })
         return reply.redirect(`/player/${playerId}#actions`)
     })
@@ -354,7 +340,9 @@ const routes = async (fastify: FastifyInstance) => {
     fastify.post("/:id/clear_mail", async (request: FastifyRequest, reply: FastifyReply) => {
         const playerId = Number((request.params as any).id)
         if (isNaN(playerId)) return reply.status(400).send({ error: "Invalid player ID" })
-        deleteAllPlayerMailSync(playerId)
+        runPersistenceTransactionSync({
+            domain: "admin", playerId, operation: "admin_clear_mail",
+        }, () => deleteAllPlayerMailSync(playerId))
         return reply.redirect(`/player/${playerId}#actions`)
     })
 
@@ -362,7 +350,9 @@ const routes = async (fastify: FastifyInstance) => {
     fastify.post("/:id/clear_receive_history", async (request: FastifyRequest, reply: FastifyReply) => {
         const playerId = Number((request.params as any).id)
         if (isNaN(playerId)) return reply.status(400).send({ error: "Invalid player ID" })
-        getDb().prepare(`DELETE FROM players_receive_history WHERE player_id = ?`).run(playerId)
+        runPersistenceTransactionSync({
+            domain: "admin", playerId, operation: "admin_clear_receive_history",
+        }, () => getDb().prepare(`DELETE FROM players_receive_history WHERE player_id = ?`).run(playerId))
         if (wantsJson(request)) return reply.status(200).send({ ok: true })
         return reply.redirect(`/player/${playerId}#actions`)
     })
@@ -390,7 +380,9 @@ const routes = async (fastify: FastifyInstance) => {
                 })
             }
 
-            const changes = repairUnisonUnlockProgressSync(playerId)
+            const changes = runPersistenceTransactionSync({
+                domain: "admin", playerId, operation: "admin_repair_unison_unlock",
+            }, () => repairUnisonUnlockProgressSync(playerId))
             if (changes < 1) throw new Error("修复条件已满足，但没有写入任何变更")
             return reply.status(200).send({
                 ok: true,
@@ -416,7 +408,9 @@ const routes = async (fastify: FastifyInstance) => {
         if (!VALID_CHARACTER_IDS.has(code)) return reply.status(400).send({ error: `角色 ID ${code} 不存在于资源表中` })
 
         try {
-            insertDefaultPlayerCharacterSync(playerId, code)
+            runPersistenceTransactionSync({
+                domain: "admin", playerId, operation: "admin_add_character",
+            }, () => insertDefaultPlayerCharacterSync(playerId, code))
             return reply.status(200).send({ ok: true, code })
         } catch (e: any) {
             return reply.status(500).send({ error: e.message })
@@ -431,16 +425,20 @@ const routes = async (fastify: FastifyInstance) => {
         if (isNaN(playerId) || isNaN(charCode)) return reply.status(400).send({ error: "Invalid params" })
 
         try {
-        const db = getDb();
-        // 1. Delete character data
-        db.prepare(`DELETE FROM players_characters WHERE player_id = ? AND id = ?`).run(playerId, charCode)
-        db.prepare(`DELETE FROM players_characters_bond_tokens WHERE player_id = ? AND character_id = ?`).run(playerId, charCode)
-        db.prepare(`DELETE FROM players_characters_mana_nodes WHERE player_id = ? AND character_id = ?`).run(playerId, charCode)
-        // 2. Clear all party references to this character
-        for (const col of ['character_id_1', 'character_id_2', 'character_id_3',
-                            'unison_character_1', 'unison_character_2', 'unison_character_3']) {
-            db.prepare(`UPDATE players_parties SET ${col} = NULL WHERE player_id = ? AND ${col} = ?`).run(playerId, charCode)
-        }
+        runPersistenceTransactionSync({
+            domain: "admin", playerId, operation: "admin_delete_character",
+        }, () => {
+            const db = getDb();
+            // 1. Delete character data
+            db.prepare(`DELETE FROM players_characters WHERE player_id = ? AND id = ?`).run(playerId, charCode)
+            db.prepare(`DELETE FROM players_characters_bond_tokens WHERE player_id = ? AND character_id = ?`).run(playerId, charCode)
+            db.prepare(`DELETE FROM players_characters_mana_nodes WHERE player_id = ? AND character_id = ?`).run(playerId, charCode)
+            // 2. Clear all party references to this character
+            for (const col of ['character_id_1', 'character_id_2', 'character_id_3',
+                                'unison_character_1', 'unison_character_2', 'unison_character_3']) {
+                db.prepare(`UPDATE players_parties SET ${col} = NULL WHERE player_id = ? AND ${col} = ?`).run(playerId, charCode)
+            }
+        })
         return reply.status(200).send({ ok: true })
         } catch (e: any) {
             return reply.status(500).send({ error: e.message })
@@ -461,7 +459,9 @@ const routes = async (fastify: FastifyInstance) => {
         if (count < 0 || count > MAX_INT) return reply.status(400).send({ error: `count 超出范围（需 0 ~ ${MAX_INT}）` })
 
         try {
-            setPlayerItemSync(playerId, itemId, count)
+            runPersistenceTransactionSync({
+                domain: "admin", playerId, operation: "admin_set_item",
+            }, () => setPlayerItemSync(playerId, itemId, count))
             return reply.status(200).send({ ok: true, itemId, count })
         } catch (e: any) {
             return reply.status(500).send({ error: e.message })
@@ -476,8 +476,9 @@ const routes = async (fastify: FastifyInstance) => {
         if (isNaN(playerId) || isNaN(iid)) return reply.status(400).send({ error: "Invalid params" })
 
         try {
-            const db = getDb();
-        db.prepare(`DELETE FROM players_items WHERE player_id = ? AND id = ?`).run(playerId, iid)
+            runPersistenceTransactionSync({
+                domain: "admin", playerId, operation: "admin_delete_item",
+            }, () => getDb().prepare(`DELETE FROM players_items WHERE player_id = ? AND id = ?`).run(playerId, iid))
             return reply.status(200).send({ ok: true })
         } catch (e: any) {
             return reply.status(500).send({ error: e.message })
@@ -492,8 +493,9 @@ const routes = async (fastify: FastifyInstance) => {
         const qid = Number(quest_id)
         if (isNaN(playerId) || isNaN(sec) || isNaN(qid)) return reply.status(400).send({ error: "Invalid params" })
         try {
-            const db = getDb()
-            db.prepare(`DELETE FROM players_quest_progress WHERE player_id = ? AND section = ? AND quest_id = ?`).run(playerId, sec, qid)
+            runPersistenceTransactionSync({
+                domain: "admin", playerId, operation: "admin_delete_quest_progress",
+            }, () => getDb().prepare(`DELETE FROM players_quest_progress WHERE player_id = ? AND section = ? AND quest_id = ?`).run(playerId, sec, qid))
             return reply.status(200).send({ ok: true })
         } catch (e: any) { return reply.status(500).send({ error: e.message }) }
     })
@@ -503,8 +505,9 @@ const routes = async (fastify: FastifyInstance) => {
         const playerId = Number((request.params as any).id)
         if (isNaN(playerId)) return reply.status(400).send({ error: "Invalid params" })
         try {
-            const db = getDb()
-            db.prepare(`DELETE FROM players_quest_progress WHERE player_id = ?`).run(playerId)
+            runPersistenceTransactionSync({
+                domain: "admin", playerId, operation: "admin_delete_all_quest_progress",
+            }, () => getDb().prepare(`DELETE FROM players_quest_progress WHERE player_id = ?`).run(playerId))
             return reply.status(200).send({ ok: true })
         } catch (e: any) { return reply.status(500).send({ error: e.message }) }
     })
@@ -517,8 +520,9 @@ const routes = async (fastify: FastifyInstance) => {
         const qid = Number(quest_id)
         if (isNaN(playerId) || isNaN(cat) || isNaN(qid)) return reply.status(400).send({ error: "Invalid params" })
         try {
-            const db = getDb()
-            db.prepare(`DELETE FROM players_drawn_quests WHERE player_id = ? AND category_id = ? AND quest_id = ?`).run(playerId, cat, qid)
+            runPersistenceTransactionSync({
+                domain: "admin", playerId, operation: "admin_delete_drawn_quest",
+            }, () => getDb().prepare(`DELETE FROM players_drawn_quests WHERE player_id = ? AND category_id = ? AND quest_id = ?`).run(playerId, cat, qid))
             return reply.status(200).send({ ok: true })
         } catch (e: any) { return reply.status(500).send({ error: e.message }) }
     })
@@ -528,8 +532,9 @@ const routes = async (fastify: FastifyInstance) => {
         const playerId = Number((request.params as any).id)
         if (isNaN(playerId)) return reply.status(400).send({ error: "Invalid params" })
         try {
-            const db = getDb()
-            db.prepare(`DELETE FROM players_drawn_quests WHERE player_id = ?`).run(playerId)
+            runPersistenceTransactionSync({
+                domain: "admin", playerId, operation: "admin_delete_all_drawn_quests",
+            }, () => getDb().prepare(`DELETE FROM players_drawn_quests WHERE player_id = ?`).run(playerId))
             return reply.status(200).send({ ok: true })
         } catch (e: any) { return reply.status(500).send({ error: e.message }) }
     })
@@ -546,13 +551,19 @@ const routes = async (fastify: FastifyInstance) => {
                     point: data.maxPoint,
                     campaignList: [] as any[]
                 }))
-                insertPlayerDailyChallengePointListSync(playerId, defaults)
+                runPersistenceTransactionSync({
+                    domain: "admin", playerId, operation: "admin_reset_daily_challenge",
+                }, () => insertPlayerDailyChallengePointListSync(playerId, defaults))
                 return reply.status(200).send({ ok: true, count: defaults.length, created: true })
             }
-            for (const entry of entries) {
-                const maxPoint = lookup[String(entry.id)]?.maxPoint ?? entry.point
-                updatePlayerDailyChallengePointSync(playerId, entry.id, maxPoint)
-            }
+            runPersistenceTransactionSync({
+                domain: "admin", playerId, operation: "admin_reset_daily_challenge",
+            }, () => {
+                for (const entry of entries) {
+                    const maxPoint = lookup[String(entry.id)]?.maxPoint ?? entry.point
+                    updatePlayerDailyChallengePointSync(playerId, entry.id, maxPoint)
+                }
+            })
             return reply.status(200).send({ ok: true, count: entries.length })
         } catch (e: any) { return reply.status(500).send({ error: e.message }) }
     })
@@ -563,7 +574,9 @@ const routes = async (fastify: FastifyInstance) => {
         if (isNaN(playerId)) return reply.status(400).send({ error: "Invalid player ID" })
         if (!getPlayerSync(playerId)) return reply.status(404).send({ error: "Player not found" })
         try {
-            const deleted = deleteAllPlayerMailSync(playerId)
+            const deleted = runPersistenceTransactionSync({
+                domain: "admin", playerId, operation: "admin_delete_mail",
+            }, () => deleteAllPlayerMailSync(playerId))
             return reply.status(200).send({ ok: true, deleted })
         } catch (e: any) {
             return reply.status(500).send({ error: e.message })
@@ -590,8 +603,12 @@ const routes = async (fastify: FastifyInstance) => {
                     }
                 }
             }
-            takeSnapshot(playerId, 'daily', buildPeriodicSnapshotData(playerId, player, totalClears))
-            deletePlayerCategoryMissionsSync(playerId, 2)
+            runPersistenceTransactionSync({
+                domain: "admin", playerId, operation: "admin_daily_reset",
+            }, () => {
+                takeSnapshot(playerId, 'daily', buildPeriodicSnapshotData(playerId, player, totalClears))
+                deletePlayerCategoryMissionsSync(playerId, 2)
+            })
             return reply.status(200).send({ ok: true })
         } catch (e: any) { return reply.status(500).send({ error: e.message }) }
     })
@@ -616,8 +633,12 @@ const routes = async (fastify: FastifyInstance) => {
                     }
                 }
             }
-            takeSnapshot(playerId, 'weekly', buildPeriodicSnapshotData(playerId, player, totalClears))
-            deletePlayerCategoryMissionsSync(playerId, 10)
+            runPersistenceTransactionSync({
+                domain: "admin", playerId, operation: "admin_weekly_reset",
+            }, () => {
+                takeSnapshot(playerId, 'weekly', buildPeriodicSnapshotData(playerId, player, totalClears))
+                deletePlayerCategoryMissionsSync(playerId, 10)
+            })
             return reply.status(200).send({ ok: true })
         } catch (e: any) { return reply.status(500).send({ error: e.message }) }
     })

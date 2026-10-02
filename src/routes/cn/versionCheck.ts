@@ -32,13 +32,13 @@ const routes = async (fastify: FastifyInstance, options: VersionCheckPluginOptio
     fastify.get("/shijtswy/version/client_release_android.dis",
         async (_request: FastifyRequest, reply: FastifyReply) => {
         reply.header("content-type", "text/plain; charset=utf-8");
-        reply.status(200).send(versionDataAndroid);
+        return reply.status(200).send(versionDataAndroid);
     });
 
     fastify.get("/shijtswy/version/client_release_ios.dis",
         async (_request: FastifyRequest, reply: FastifyReply) => {
         reply.header("content-type", "text/plain; charset=utf-8");
-        reply.status(200).send(versionDataIos);
+        return reply.status(200).send(versionDataIos);
     });
 };
 

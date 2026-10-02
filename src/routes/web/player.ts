@@ -163,7 +163,7 @@ const routes = async (fastify: FastifyInstance) => {
 
         html = html.replace("{{listContent}}", listContent)
         reply.header("content-type", "text/html; charset=utf-8")
-        reply.send(html)
+        return reply.send(html)
     })
 
     fastify.get("/:playerId", async (request: FastifyRequest, reply: FastifyReply) => {
@@ -313,7 +313,7 @@ const routes = async (fastify: FastifyInstance) => {
         html = html.replace("{{leaderCharacterId}}", String(player.leaderCharacterId));
 
         reply.header("content-type", "text/html; charset=utf-8")
-        reply.send(html)
+        return reply.send(html)
     })
 }
 

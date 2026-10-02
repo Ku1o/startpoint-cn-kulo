@@ -4,7 +4,7 @@ import { getPlayerCharacterSync, getPlayerCharacterManaNodesSync } from "../../d
 import { incrementActiveMissionConditionalBattleFactSync } from "../../data/domains/active_mission_battle_condition_facts"
 import { getCharacterDataSync, getCharacterManaNodesSync } from "../assets"
 import type { FinishContext } from "../quest/finish/types"
-import { getActiveMissionMasterDefinitions, type ActiveMissionMasterDefinition } from "./active-master-data"
+import { getActiveMissionMasterDefinitionsByPatterns, type ActiveMissionMasterDefinition } from "./active-master-data"
 import {
     estimateActiveMissionCharacterLevel,
     matchesActiveMissionQuestRange,
@@ -97,11 +97,11 @@ function resolveRepository(): ReadonlyContentRepository | undefined {
 function resolveDefinitions(
     repository?: ReadonlyContentRepository,
 ): readonly ActiveMissionMasterDefinition[] {
-    if (!repository) return getActiveMissionMasterDefinitions()
+    if (!repository) return getActiveMissionMasterDefinitionsByPatterns([71, 72, 73])
     try {
-        return getActiveMissionMasterDefinitions(repository)
+        return getActiveMissionMasterDefinitionsByPatterns([71, 72, 73], repository)
     } catch {
-        return getActiveMissionMasterDefinitions()
+        return getActiveMissionMasterDefinitionsByPatterns([71, 72, 73])
     }
 }
 

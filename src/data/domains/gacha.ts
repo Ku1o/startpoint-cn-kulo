@@ -1,6 +1,7 @@
 import { getDb } from "../db";
 import { PlayerGachaInfo, PlayerGachaCampaign, RawPlayerGachaInfo, RawPlayerGachaCampaign } from "../types";
 import { deserializeBoolean, serializeBoolean, deserializeNumberList } from "../utils";
+import { runPersistenceTransactionSync } from "../../lib/persistence-coordinator";
 
 /**
  * Converts a RawPlayerGachaInfo object into a PlayerGachaInfo object.
@@ -91,11 +92,11 @@ export function insertPlayerGachaInfoListSync(
     playerId: number,
     gachaInfoList: PlayerGachaInfo[]
 ) {
-    getDb().transaction(() => {
+    runPersistenceTransactionSync({ domain: "gacha", playerId, operation: "insert_player_gacha_info_list" }, () => {
         for (const gachaInfo of gachaInfoList) {
             insertPlayerGachaInfoSync(playerId, gachaInfo)
         }
-    })()
+    })
 }
 
 /**
@@ -219,11 +220,11 @@ export function insertPlayerGachaCampaignListSync(
     playerId: number,
     campaigns: PlayerGachaCampaign[]
 ) {
-    getDb().transaction(() => {
+    runPersistenceTransactionSync({ domain: "gacha", playerId, operation: "insert_player_gacha_campaign_list" }, () => {
         for (const campaign of campaigns) {
             insertPlayerGachaCampaignSync(playerId, campaign)
         }
-    })()
+    })
 }
 
 /**

@@ -19,6 +19,7 @@ function buildActiveQuest(raw) {
         eventId: raw.event_id,
         continueCount: raw.continue_count,
         startedAtMs: raw.started_at_ms,
+        partySlot: raw.party_slot,
         questTimeRevision: (_a = raw.quest_time_revision) !== null && _a !== void 0 ? _a : null,
     };
 }
@@ -30,14 +31,14 @@ function getPlayerActiveQuestSync(playerId) {
 }
 exports.getPlayerActiveQuestSync = getPlayerActiveQuestSync;
 function insertPlayerActiveQuestSync(playerId, quest) {
-    var _a, _b, _c, _d;
+    var _a, _b, _c, _d, _e;
     (0, db_1.getDb)().prepare(`
         INSERT OR REPLACE INTO players_active_quests
             (player_id, play_id, quest_id, category, use_boss_boost_point,
              use_boost_point, is_auto_start_mode, is_multi, room_number,
-             is_multi_host, entry_item_id, event_id, continue_count, started_at_ms, quest_time_revision)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(playerId, quest.playId, quest.questId, quest.category, quest.useBossBoostPoint ? 1 : 0, quest.useBoostPoint ? 1 : 0, quest.isAutoStartMode ? 1 : 0, quest.isMulti ? 1 : 0, (_a = quest.roomNumber) !== null && _a !== void 0 ? _a : null, quest.isMultiHost ? 1 : 0, (_b = quest.entryItemId) !== null && _b !== void 0 ? _b : null, (_c = quest.eventId) !== null && _c !== void 0 ? _c : null, quest.continueCount, quest.startedAtMs, (_d = quest.questTimeRevision) !== null && _d !== void 0 ? _d : null);
+             is_multi_host, entry_item_id, event_id, continue_count, started_at_ms, party_slot, quest_time_revision)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(playerId, quest.playId, quest.questId, quest.category, quest.useBossBoostPoint ? 1 : 0, quest.useBoostPoint ? 1 : 0, quest.isAutoStartMode ? 1 : 0, quest.isMulti ? 1 : 0, (_a = quest.roomNumber) !== null && _a !== void 0 ? _a : null, quest.isMultiHost ? 1 : 0, (_b = quest.entryItemId) !== null && _b !== void 0 ? _b : null, (_c = quest.eventId) !== null && _c !== void 0 ? _c : null, quest.continueCount, quest.startedAtMs, (_d = quest.partySlot) !== null && _d !== void 0 ? _d : null, (_e = quest.questTimeRevision) !== null && _e !== void 0 ? _e : null);
 }
 exports.insertPlayerActiveQuestSync = insertPlayerActiveQuestSync;
 function deletePlayerActiveQuestSync(playerId) {

@@ -5,7 +5,6 @@ import {
     updatePlayerCategoryMissionStageBatchSync,
 } from "../../data/domains/mission"
 import type { Player } from "../../data/types"
-import { getDb } from "../../data/db"
 import { getPlayerDegreeIdsSync } from "../../data/domains/degree"
 import { getComputer } from "./registry"
 import { getCategoryMissionRewardStageDefinition } from "./rewards"
@@ -13,7 +12,7 @@ import { getCompletedStageNumbers, getMissionFinalTargetProgress, getMissionIdsB
 import { getMissionPattern, isMissionEnabledAt } from "./patterns"
 import { MissionRewardGranter } from "./grants"
 import { getMissionMasterDefinition } from "./master-data"
-import { runImmediateTransactionWithRetry, withPlayerWriteQueue } from "../sqlite-write-coordinator"
+import { runPersistenceTransaction, runPersistenceTransactionSync } from "../persistence-coordinator"
 import { MissionEvaluationReadContext } from "./evaluation-context"
 
 export interface MissionSettlementInfo {
@@ -281,11 +280,13 @@ export function settleMissionCategoriesWithProgress(
         && prepared.pendingRewards.length === 0
         && prepared.missingLegacyDegreeIds.length === 0
         ? emptyMissionSettlementResult()
-        : getDb().transaction(() => persistMissionEvaluation(
+        : runPersistenceTransactionSync({
+            domain: "mission", playerId, operation: "settle_categories_sync",
+        }, () => persistMissionEvaluation(
             playerId,
             evaluation.player,
             prepared,
-        ))()
+        ))
     return {
         settlement,
         evaluatedProgress: evaluatedProgressOf(evaluation.evaluatedMissions),
@@ -305,19 +306,19 @@ export async function settleMissionCategoriesAsync(
     categories: readonly (number | MissionSettlementScope)[],
     evaluationTime: Date,
 ): Promise<MissionSettlementResult> {
-    return withPlayerWriteQueue(playerId, async () => {
-        // The expensive context scan is deliberately outside the write lock.
-        const evaluation = evaluateMissionCategories(playerId, categories, evaluationTime)
-        const prepared = prepareMissionPersistence(playerId, evaluation.evaluatedMissions)
-        if (prepared.progressUpdates.length === 0
-            && prepared.pendingRewards.length === 0
-            && prepared.missingLegacyDegreeIds.length === 0) {
-            return emptyMissionSettlementResult()
-        }
-        return runImmediateTransactionWithRetry(() => persistMissionEvaluation(
+    // The expensive context scan is deliberately outside the write lock.
+    const evaluation = evaluateMissionCategories(playerId, categories, evaluationTime)
+    const prepared = prepareMissionPersistence(playerId, evaluation.evaluatedMissions)
+    if (prepared.progressUpdates.length === 0
+        && prepared.pendingRewards.length === 0
+        && prepared.missingLegacyDegreeIds.length === 0) {
+        return Promise.resolve(emptyMissionSettlementResult())
+    }
+    return runPersistenceTransaction({
+        domain: "mission", playerId, operation: "settle_categories",
+    }, () => persistMissionEvaluation(
             playerId,
             evaluation.player,
             prepared,
         ))
-    })
 }

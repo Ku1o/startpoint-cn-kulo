@@ -11,7 +11,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.settleMissionCategoriesAsync = exports.settleMissionCategories = exports.settleMissionCategoriesWithProgress = void 0;
 const mission_1 = require("../../data/domains/mission");
-const db_1 = require("../../data/db");
 const degree_1 = require("../../data/domains/degree");
 const registry_1 = require("./registry");
 const rewards_1 = require("./rewards");
@@ -19,7 +18,7 @@ const stages_1 = require("./stages");
 const patterns_1 = require("./patterns");
 const grants_1 = require("./grants");
 const master_data_1 = require("./master-data");
-const sqlite_write_coordinator_1 = require("../sqlite-write-coordinator");
+const persistence_coordinator_1 = require("../persistence-coordinator");
 const evaluation_context_1 = require("./evaluation-context");
 function isDailyCoreMission(pattern) {
     return /^single_battle_play(?:_[23])?$/.test(pattern)
@@ -199,7 +198,9 @@ function settleMissionCategoriesWithProgress(playerId, categories, evaluationTim
         && prepared.pendingRewards.length === 0
         && prepared.missingLegacyDegreeIds.length === 0
         ? emptyMissionSettlementResult()
-        : (0, db_1.getDb)().transaction(() => persistMissionEvaluation(playerId, evaluation.player, prepared))();
+        : (0, persistence_coordinator_1.runPersistenceTransactionSync)({
+            domain: "mission", playerId, operation: "settle_categories_sync",
+        }, () => persistMissionEvaluation(playerId, evaluation.player, prepared));
     return {
         settlement,
         evaluatedProgress: evaluatedProgressOf(evaluation.evaluatedMissions),
@@ -212,17 +213,17 @@ function settleMissionCategories(playerId, categories, evaluationTime) {
 exports.settleMissionCategories = settleMissionCategories;
 function settleMissionCategoriesAsync(playerId, categories, evaluationTime) {
     return __awaiter(this, void 0, void 0, function* () {
-        return (0, sqlite_write_coordinator_1.withPlayerWriteQueue)(playerId, () => __awaiter(this, void 0, void 0, function* () {
-            // The expensive context scan is deliberately outside the write lock.
-            const evaluation = evaluateMissionCategories(playerId, categories, evaluationTime);
-            const prepared = prepareMissionPersistence(playerId, evaluation.evaluatedMissions);
-            if (prepared.progressUpdates.length === 0
-                && prepared.pendingRewards.length === 0
-                && prepared.missingLegacyDegreeIds.length === 0) {
-                return emptyMissionSettlementResult();
-            }
-            return (0, sqlite_write_coordinator_1.runImmediateTransactionWithRetry)(() => persistMissionEvaluation(playerId, evaluation.player, prepared));
-        }));
+        // The expensive context scan is deliberately outside the write lock.
+        const evaluation = evaluateMissionCategories(playerId, categories, evaluationTime);
+        const prepared = prepareMissionPersistence(playerId, evaluation.evaluatedMissions);
+        if (prepared.progressUpdates.length === 0
+            && prepared.pendingRewards.length === 0
+            && prepared.missingLegacyDegreeIds.length === 0) {
+            return Promise.resolve(emptyMissionSettlementResult());
+        }
+        return (0, persistence_coordinator_1.runPersistenceTransaction)({
+            domain: "mission", playerId, operation: "settle_categories",
+        }, () => persistMissionEvaluation(playerId, evaluation.player, prepared));
     });
 }
 exports.settleMissionCategoriesAsync = settleMissionCategoriesAsync;

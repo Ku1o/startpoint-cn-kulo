@@ -1,0 +1,60 @@
+{
+  "status": "applied",
+  "from_version": "1.4.120",
+  "version": "1.4.121",
+  "patch_id": "orochi-p4-hard-weakpoint-3s-1.4.121",
+  "archive": "F:\\codex\\work\\orochi-boss-v2-1047-20260925\\p4-hard-weakpoint-3s-20260926\\cdn-1.4.121\\pinball-1.4.120-1.4.121-1-orochi-p4-hard-weakpoint-3s.zip",
+  "archive_sha256": "9ac3a0e5eac6ad21a49bbc9f40a34b310a933068f7094b513f9a428ceaa3b859",
+  "archive_size": 2428,
+  "payloads": {
+    "production/upload/7c/0159ffd7078028b1c2eec135beb1884f7224fb": {
+      "sha256": "8643b23fb083a918deab0c59c077d6e1ba2caa3b9ca002c1b6771d8eed89f164",
+      "size": 2228
+    }
+  },
+  "details": {
+    "logical": "master/battle/boss/orochi_ex.orderedmap",
+    "parent_id": "mod_rogue_orochi_ex_native_v1",
+    "row_key": "100",
+    "timeout": {
+      "column": 122,
+      "before_frames": 240,
+      "after_frames": 180,
+      "before_seconds": 4.0,
+      "after_seconds": 3.0
+    },
+    "profile": {
+      "revision_before": 3,
+      "revision_after": 4,
+      "output_window_frames": 600,
+      "close_transition_frames": 30,
+      "reset_frames": 60,
+      "rearm_awake_frames": 180,
+      "required_targets": 5
+    },
+    "changed_columns": [
+      122,
+      128
+    ],
+    "swf_changed": false,
+    "server_changed": false
+  },
+  "source_apply": true,
+  "runtime_sync": true,
+  "device_tested": false,
+  "swf_changed": false,
+  "server_changed": false,
+  "source_backup": "F:\\codex\\work\\orochi-boss-v2-1047-20260925\\p4-hard-weakpoint-3s-20260926\\cdn-1.4.121\\source-backup",
+  "runtime_backup": "F:\\startpoint-cn-main\\.codex-backups\\20260926-010906-orochi-p4-hard-weakpoint-3s",
+  "runtime_manifest_sha256": "a742ace8bfb6779fda06f55217c5901c39ce3b8517b4ee8f199f82edfec1c29d",
+  "verification": {
+    "live_tail": "1.4.121",
+    "hard_weakpoint_timeout_frames": 180,
+    "hard_weakpoint_timeout_seconds": 3,
+    "archive_crc": "passed",
+    "source_runtime_archive_equal": true,
+    "source_runtime_manifest_equal": true,
+    "http_archive_fetch": "passed",
+    "device_tested": false
+  }
+}

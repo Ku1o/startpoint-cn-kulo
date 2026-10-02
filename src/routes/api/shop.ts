@@ -17,7 +17,11 @@ import { generateDataHeaders, getServerDate, getServerTime, realToVirtual } from
 import { givePlayerRewardsSync } from "../../lib/quest";
 import { computeRealTimeStamina } from "../../lib/stamina";
 import { clientSerializeEquipment } from "../../lib/equipment";
-import { findCurrentEquipmentEnhancementStage, planEquipmentEnhancementPurchase } from "../../lib/equipment-enhancement";
+import {
+    findCurrentEquipmentEnhancementStage,
+    planEquipmentEnhancementPurchase,
+    resolveEquipmentEnhancementPurchaseMode,
+} from "../../lib/equipment-enhancement";
 import CDN_GENERAL_SHOP_WHITELIST from "../../../assets/cdn_general_shop_whitelist.json";
 import { gameVerboseLog } from "../../lib/game-logging";
 import { reconcileAwakeUnlockCharacterList } from "../../lib/mission";
@@ -27,6 +31,7 @@ import { computeFreeFirstDeduction } from "../../lib/free-first-deduction";
 import { buildShopSalesEntry, getShopPurchaseKey, isShopItemAvailable } from "../../lib/shop-sales";
 import { grantEquipmentDegreeRewardsSync } from "../../lib/equipment-degree-rewards";
 import { grantPurchasedAbyssShopDegreeRewardSync } from "../../lib/abyss-shop-degree-reward";
+import { runPersistenceTransaction } from "../../lib/persistence-coordinator";
 
 const GENERAL_SHOP_CDN_KEYS: Set<number> = new Set(CDN_GENERAL_SHOP_WHITELIST);
 
@@ -463,7 +468,10 @@ const routes = async (fastify: FastifyInstance) => {
                 stageMaxLevel,
                 currentEquipment.level,
                 requiredAwakeningLevel,
-                shopItemData.enhancementPurchaseMode,
+                resolveEquipmentEnhancementPurchaseMode(
+                    shopCategoryId,
+                    shopItemData.enhancementPurchaseMode,
+                ),
             )
             if (!plan.ok) return reply.status(400).send({
                 "error": "Bad Request",
@@ -569,7 +577,9 @@ const routes = async (fastify: FastifyInstance) => {
         if (enhancementPurchase !== null) {
             const { equipmentId, newLevel, grantedLevelCount } = enhancementPurchase
             let equipmentDegreeIds: number[] = []
-            getDb().transaction(() => {
+            await runPersistenceTransaction({
+                domain: "shop", playerId, operation: "enhancement_purchase",
+            }, () => {
                 applyPurchaseCosts()
                 updatePlayerEquipmentSync(playerId, equipmentId, { enhancementLevel: newLevel })
                 addEffectiveShopPurchaseCountSync(
@@ -579,7 +589,7 @@ const routes = async (fastify: FastifyInstance) => {
                     chargedPurchaseAmount,
                 )
                 equipmentDegreeIds = grantEquipmentDegreeRewardsSync(playerId, [equipmentId])
-            })()
+            })
 
             const currentEquipment = getPlayerEquipmentSync(playerId, equipmentId)!
             gameVerboseLog(() =>
@@ -671,7 +681,9 @@ const routes = async (fastify: FastifyInstance) => {
         // Costs, ordinary rewards, title ownership and stock history must commit
         // together. A title product must never charge the player and then fail
         // between the reward and ownership writes.
-        const rewardResult = getDb().transaction(() => {
+        const rewardResult = await runPersistenceTransaction({
+            domain: "shop", playerId, operation: "purchase",
+        }, () => {
             applyPurchaseCosts()
             const result = givePlayerRewardsSync(playerId, rewards)
             if (result === null) throw new Error("Failed to grant shop rewards.")
@@ -683,7 +695,7 @@ const routes = async (fastify: FastifyInstance) => {
             addEffectiveShopPurchaseCountSync(playerId, shopType, shopItemId, purchaseAmount)
             degreeIds.push(...grantPurchasedAbyssShopDegreeRewardSync(playerId, shopType, [{ shopItemId }]))
             return result
-        })()
+        })
 
         recordTreasureShopProgress(playerId, shopType, purchaseAmount, manaSpent)
         const characterList = reconcileAwakeUnlockCharacterList(
@@ -921,12 +933,16 @@ const routes = async (fastify: FastifyInstance) => {
         const afterStamina = Math.min(currentStamina + recoveryValue, maxOverflow)
         const actualRecovery = afterStamina - currentStamina
 
-        updatePlayerSync({
-            id: playerId,
-            stamina: afterStamina,
-            staminaHealTime: new Date(),
-            freeVmoney: vmoneyDeduction.freeBalance,
-            vmoney: vmoneyDeduction.paidBalance,
+        await runPersistenceTransaction({
+            domain: "shop", playerId, operation: "recover_stamina",
+        }, () => {
+            updatePlayerSync({
+                id: playerId,
+                stamina: afterStamina,
+                staminaHealTime: new Date(),
+                freeVmoney: vmoneyDeduction.freeBalance,
+                vmoney: vmoneyDeduction.paidBalance,
+            })
         })
 
         gameVerboseLog(() =>
@@ -1248,7 +1264,9 @@ const routes = async (fastify: FastifyInstance) => {
 
         let rewardResult: ReturnType<typeof givePlayerRewardsSync>
         try {
-            rewardResult = getDb().transaction(() => {
+            rewardResult = await runPersistenceTransaction({
+                domain: "shop", playerId, operation: "bulk_purchase",
+            }, () => {
                 for (const [itemId, newAmount] of Object.entries(costItemList)) {
                     updatePlayerItemSync(playerId, itemId, newAmount)
                 }
@@ -1291,7 +1309,7 @@ const routes = async (fastify: FastifyInstance) => {
                 )
 
                 return result
-            })()
+            })
         } catch (error) {
             console.error(`[shop:bulk_buy] transaction failed player=${playerId}`, error)
             return reply.status(500).send({

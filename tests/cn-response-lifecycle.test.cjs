@@ -12,8 +12,7 @@ const msgpack = require('msgpackr')
 const diagnostics = require('../out/lib/request-diagnostics')
 const compression = require('../out/lib/cn-load-http-compression')
 
-// Exercise the exact built entry-point hook and inline routes without importing
-// the production database, workers, schedules or admission secrets.
+// Exercise the built production hook and inline routes without starting the service.
 function installEntryPoint(app, mode, failCompression = false) {
     const filename = process.env.CN_RESPONSE_TEST_ENTRY || path.join(__dirname, '../out/cn-server.js')
     const source = fs.readFileSync(filename, 'utf8')
@@ -24,8 +23,17 @@ function installEntryPoint(app, mode, failCompression = false) {
     }
     const helper = source.match(/var __awaiter = [\s\S]*?\r?\n};/)
     const capturedErrors = []
+    const capturedConsole = {log(){}, warn(){}, error: (...args)=>capturedErrors.push(args.map(String).join(' '))}
+    assert.ok(source.includes('installCnResponseEncoding)(fastify)'), 'Entry point must install the production encoder')
+    const hookFilename = path.join(__dirname, '../out/lib/cn-response-hook.js')
+    vm.runInNewContext(fs.readFileSync(hookFilename, 'utf8')
+        + '\nexports.installCnResponseEncoding(fastify, {compression: compressionConfig});', {
+        exports: {}, fastify: app, console: capturedConsole,
+        compressionConfig: {...compression.getCnLoadHttpCompressionConfig({CN_LOAD_HTTP_COMPRESSION:mode, CN_LOAD_HTTP_COMPRESSION_MIN_BYTES:'0'}),
+            ...(failCompression ? {gzipLevel: 999} : {})},
+        require(name) { return name.startsWith('.') ? require(path.resolve(path.dirname(hookFilename), name)) : require(name) },
+    }, {filename: hookFilename})
     vm.runInNewContext((helper?.[0] || '') + '\n'
-        + section('function fixUint32Tags(', 'function jsonParser(')
         + section('function stubMsgpackReply(', 'fastify.register(tool_1.default'), {
         Buffer, Promise, fastify: app, apiPrefix: '/api/index.php', CDN_BASE_URL: 'http://cdn.invalid',
         request_diagnostics_1: diagnostics, perf_hooks_1: require('node:perf_hooks'), msgpackr_1: msgpack,
@@ -33,7 +41,7 @@ function installEntryPoint(app, mode, failCompression = false) {
         cnLoadCompressionConfig: compression.getCnLoadHttpCompressionConfig({CN_LOAD_HTTP_COMPRESSION:mode, CN_LOAD_HTTP_COMPRESSION_MIN_BYTES:'0'}),
         utils_1: {getServerTime:()=>1, getServerTimeForPlayer:()=>1},
         seed_validator_1: {default:{flushPersistence: async()=>{}}},
-        console: {log(){}, warn(){}, error: (...args)=>capturedErrors.push(args.map(String).join(' '))},
+        console: capturedConsole,
         require(name) {
             assert.equal(name, './routes/cn/asset')
             return {getAssetDownloadSize:()=>0, getVersionInfo:()=>({res_ver:'fixture'})}

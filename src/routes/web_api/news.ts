@@ -10,6 +10,7 @@ import {
     saveNewsConfig,
 } from "../../lib/news-config"
 import { getServerDate } from "../../utils"
+import { runPersistenceTransactionSync } from "../../lib/persistence-coordinator"
 
 function isRecord(value: unknown): value is Record<string, unknown> {
     return typeof value === "object" && value !== null && !Array.isArray(value)
@@ -45,7 +46,7 @@ const routes = async (fastify: FastifyInstance) => {
 
     fastify.post("/items", async (request: FastifyRequest, reply: FastifyReply) => {
         const config = requireEditableConfig(reply)
-        if (!config) return
+        if (!config) return reply
         if (!isRecord(request.body)) return fail(reply, "请求正文必须是公告对象")
         const body = request.body
         const requestedId = body.id
@@ -63,7 +64,7 @@ const routes = async (fastify: FastifyInstance) => {
 
     fastify.patch("/items/:id", async (request: FastifyRequest, reply: FastifyReply) => {
         const config = requireEditableConfig(reply)
-        if (!config) return
+        if (!config) return reply
         if (!isRecord(request.body)) return fail(reply, "请求正文必须是公告对象")
         const id = Number((request.params as { id: string }).id)
         const index = config.news.findIndex(item => item.id === id)
@@ -80,7 +81,7 @@ const routes = async (fastify: FastifyInstance) => {
 
     fastify.delete("/items/:id", async (request: FastifyRequest, reply: FastifyReply) => {
         const config = requireEditableConfig(reply)
-        if (!config) return
+        if (!config) return reply
         const id = Number((request.params as { id: string }).id)
         if (!config.news.some(item => item.id === id)) return fail(reply, `公告 ID ${id} 不存在`, 404)
         const popup = config.popup.news_id === id
@@ -88,7 +89,9 @@ const routes = async (fastify: FastifyInstance) => {
             : config.popup
         try {
             saveNewsConfig({ ...config, popup, news: config.news.filter(item => item.id !== id) })
-            deleteNewsReceiptsSync(id)
+            runPersistenceTransactionSync({
+                domain: "admin", operation: "delete_news_receipts",
+            }, () => deleteNewsReceiptsSync(id))
             return sendOverview(reply)
         } catch (error) {
             return fail(reply, error)
@@ -97,7 +100,7 @@ const routes = async (fastify: FastifyInstance) => {
 
     fastify.put("/popup", async (request: FastifyRequest, reply: FastifyReply) => {
         const config = requireEditableConfig(reply)
-        if (!config) return
+        if (!config) return reply
         if (!isRecord(request.body)) return fail(reply, "请求正文必须是弹窗配置对象")
         try {
             saveNewsConfig({ ...config, popup: { ...config.popup, ...request.body } })
@@ -113,10 +116,14 @@ const routes = async (fastify: FastifyInstance) => {
         if (requestedId !== undefined && requestedId !== null && requestedId !== "") {
             const newsId = Number(requestedId)
             if (!Number.isSafeInteger(newsId) || newsId <= 0) return fail(reply, "公告 ID 无效")
-            const deleted = deleteNewsReceiptsSync(newsId, "popup")
+            const deleted = runPersistenceTransactionSync({
+                domain: "admin", operation: "reset_news_popup_receipts",
+            }, () => deleteNewsReceiptsSync(newsId, "popup"))
             return reply.send({ ok: true, deleted, news_id: newsId })
         }
-        const deleted = deleteAllPopupNewsReceiptsSync()
+        const deleted = runPersistenceTransactionSync({
+            domain: "admin", operation: "reset_all_news_popup_receipts",
+        }, () => deleteAllPopupNewsReceiptsSync())
         return reply.send({ ok: true, deleted, news_id: null })
     })
 }

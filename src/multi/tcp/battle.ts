@@ -6,6 +6,7 @@ import { recordBattleNotify } from "./chain-diagnostic"
 import { getRoom } from "../room/manager"
 import { recordFiveBossSignal } from "../five-boss/lobby-runtime"
 import { fiveBossConnectionDiagnostics } from "../five-boss/connection-diagnostic"
+import { markPlayerOnlineFromTcp } from "../../lib/online-presence"
 
 function findBattleClientBySocket(socket: net.Socket): SessionClient | undefined {
     const client = sessionManager.findClientBySocket(socket)
@@ -22,10 +23,13 @@ function sendToBattleClient(client: SessionClient, data: unknown, channel: strin
     })
 }
 
-function handleBattleNotify(socket: net.Socket, data: unknown): void {
+function handleBattleNotify(socket: net.Socket, data: unknown, indexedClient?: SessionClient): void {
     if (!Array.isArray(data)) return
     const tag = data[0] as number
-    const client = findBattleClientBySocket(socket)
+    // The outer packet handler already resolved this socket. Reuse that
+    // lookup for notify/relay handling so a high-rate battle connection does
+    // not perform the same Map lookup three times for every frame.
+    const client = indexedClient ?? findBattleClientBySocket(socket)
     if (client) recordBattleNotify(client, tag, data)
     if (tag === 0 || tag === 1 || tag === 2) {
         fiveBossConnectionDiagnostics.socketEvent(socket, tag === 0 ? "scene_ready" : tag === 1 ? "level_next" : "finalize",
@@ -76,14 +80,19 @@ export function handleBattleMessage(socket: net.Socket, data: unknown): void {
     const tag = data[0] as number
     const activityClient = findBattleClientBySocket(socket)
     fiveBossConnectionDiagnostics.packet(socket, !!activityClient)
-    if (activityClient) sessionManager.noteBattleActivity(activityClient.connectionId)
+    if (activityClient) {
+        sessionManager.noteBattleActivity(activityClient.connectionId)
+        if (!socket.destroyed && sessionManager.isCurrentBattleClient(activityClient)) {
+            markPlayerOnlineFromTcp(activityClient.viewerId)
+        }
+    }
 
     switch (tag) {
         case 0: // Notify
-            handleBattleNotify(socket, data[1])
+            handleBattleNotify(socket, data[1], activityClient)
             break
         case 1: { // Broadcast → relay as BattleServer2Client.Messages(2, senderId, array)
-            const client = findBattleClientBySocket(socket)
+            const client = activityClient
             if (client) {
                 const bcData = data[1]
                 relayToBattleRoom(client, [2, client.connectionId, bcData], "broadcast", tag)
@@ -92,7 +101,7 @@ export function handleBattleMessage(socket: net.Socket, data: unknown): void {
             break
         }
         case 2: { // Send → relay as BattleServer2Client.Send(3, senderId, message)
-            const client = findBattleClientBySocket(socket)
+            const client = activityClient
             if (client) {
                 const sendMsg = data[2]
                 if (sendMsg !== undefined && sendMsg !== null) {

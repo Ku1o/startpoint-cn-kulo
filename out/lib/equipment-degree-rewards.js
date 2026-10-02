@@ -11,6 +11,7 @@ const degree_1 = require("../data/domains/degree");
 const assets_1 = require("./assets");
 const abyss_shop_degree_reward_1 = require("./abyss-shop-degree-reward");
 const types_1 = require("./types");
+const persistence_coordinator_1 = require("./persistence-coordinator");
 exports.EQUIPMENT_DEGREE_CATALOG = Object.freeze([
     Object.freeze({
         degree_id: 9911002,
@@ -68,7 +69,9 @@ function grantEquipmentDegreeRewardsSync(playerId, updatedEquipmentIds, options 
     if (targets.length === 0)
         return [];
     const db = (0, db_1.getDb)();
-    return db.transaction(() => {
+    return (0, persistence_coordinator_1.runPersistenceTransactionSync)({
+        domain: "player", playerId, operation: "grant_equipment_degree_rewards",
+    }, () => {
         if (!db.prepare("SELECT id FROM players WHERE id = ?").get(playerId))
             return [];
         const lookup = db.prepare(`
@@ -83,7 +86,7 @@ function grantEquipmentDegreeRewardsSync(playerId, updatedEquipmentIds, options 
         return eligible
             .filter(entry => (0, degree_1.grantPlayerDegreeSync)(playerId, entry.degree_id))
             .map(entry => entry.degree_id);
-    })();
+    });
 }
 exports.grantEquipmentDegreeRewardsSync = grantEquipmentDegreeRewardsSync;
 /** A successful single-player practice is the retroactive backfill trigger. */

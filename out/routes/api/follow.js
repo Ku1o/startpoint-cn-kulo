@@ -58,7 +58,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         const targetPlayerId = resolveTargetPlayerId(body.follow_id);
         if (targetPlayerId === null)
             return send(reply, ctx.viewerId, {}, 1457);
-        const result = (0, follow_1.addFollowSync)(ctx.playerId, targetPlayerId);
+        const result = yield (0, follow_1.addFollow)(ctx.playerId, targetPlayerId);
         if (result === "following_limit")
             return send(reply, ctx.viewerId, {}, 1451);
         if (result === "follower_limit")
@@ -75,7 +75,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             return reply.status(400).send({ error: "Bad Request", message: "Invalid viewer id." });
         const targetPlayerId = resolveTargetPlayerId(body.follow_id);
         if (targetPlayerId !== null)
-            (0, follow_1.deleteFollowSync)(ctx.playerId, targetPlayerId);
+            yield (0, follow_1.deleteFollow)(ctx.playerId, targetPlayerId);
         console.log(`[FOLLOW] delete viewer=${ctx.viewerId} target=${Number(body.follow_id)}`);
         return send(reply, ctx.viewerId, {});
     }));
@@ -86,7 +86,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             return reply.status(400).send({ error: "Bad Request", message: "Invalid viewer id." });
         const followerPlayerId = resolveTargetPlayerId(body.followed_id);
         if (followerPlayerId !== null)
-            (0, follow_1.deleteFollowerSync)(ctx.playerId, followerPlayerId);
+            yield (0, follow_1.deleteFollower)(ctx.playerId, followerPlayerId);
         console.log(`[FOLLOW] delete_follower viewer=${ctx.viewerId} follower=${Number(body.followed_id)}`);
         return send(reply, ctx.viewerId, {});
     }));
@@ -101,7 +101,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         const deletePlayerIds = (body.delete_follow_id_list || [])
             .map(id => resolveTargetPlayerId(id))
             .filter((id) => id !== null);
-        const fullPlayerIds = (0, follow_1.bulkEditFollowSync)(ctx.playerId, addPlayerIds, deletePlayerIds);
+        const fullPlayerIds = yield (0, follow_1.bulkEditFollow)(ctx.playerId, addPlayerIds, deletePlayerIds);
         const fullViewerIds = fullPlayerIds
             .map(follow_1.getViewerIdByPlayerIdSync)
             .filter((id) => id !== null);

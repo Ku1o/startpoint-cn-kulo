@@ -5,6 +5,18 @@ const os = require('node:os')
 const path = require('node:path')
 const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'startpoint-five-boss-test-'))
 process.env.DATA_DIR = dataDir
+// The source checkout intentionally does not carry the deployment-only
+// admission key file.  Give this integration test an explicit transition
+// policy so the TCP case exercises the room handshake instead of failing
+// before the first frame because the local gate has no policy to load.
+process.env.CLIENT_ADMISSION_CONFIG = path.join(dataDir, 'client-admission.json')
+process.env.CLIENT_ADMISSION_KEYS = path.join(dataDir, 'client-admission.keys.json')
+fs.writeFileSync(process.env.CLIENT_ADMISSION_CONFIG, JSON.stringify({
+    enforce: false,
+    updateMessage: 'test transition policy',
+    builds: [],
+}))
+fs.writeFileSync(process.env.CLIENT_ADMISSION_KEYS, '{}')
 const output = process.env.LENS_BUILD_OUT || path.resolve(__dirname, '../out')
 const load = name => require(path.join(output, name))
 const originalInterval = global.setInterval
@@ -80,7 +92,7 @@ test('multiplayer charges only host once; pins Auto; retries do not grant items 
     const h = finish(host, room)
     const exp = characters.getPlayerCharacterSync(host.id, 111001).exp
     assert.ok(exp > 0)
-    assert.equal(h.reward.itemTotals['10000145'], 10)
+    assert.equal(h.reward.itemTotals['10000145'], 20)
     assert.equal(h.reward.itemTotals['10000144'], 1)
     const retry = finish(host, room)
     assert.equal(retry.receiptStatus, 'already_settled')
@@ -88,7 +100,7 @@ test('multiplayer charges only host once; pins Auto; retries do not grant items 
     assert.equal(characters.getPlayerCharacterSync(host.id, 111001).exp, exp)
     assert.throws(() => start(host, room), /settled member/)
     const g = finish(guest, room)
-    assert.equal(g.reward.itemTotals['10000145'], 5)
+    assert.equal(g.reward.itemTotals['10000145'], 10)
     assert.equal(g.runStatus, 'settled')
     assert.equal(ledger.getFiveBossRunByClientSync({ playerId: host.id, clientPlayId: host.playId }).roomNumber, room.room_number)
 })
@@ -223,12 +235,58 @@ test('five-boss new multiplayer rounds charge another 35, while a persisted pre-
 
 test('drop boundaries and weapon duplicate requirement match approved rules', () => {
     const hit = rewards.buildFiveBossGauntletRewardPlan({ firstClear: true, rewardMultiplier: 2, randomFloat: () => 0.249999 })
-    assert.deepEqual(hit.items.map(i => [i.itemId, i.amount]), [[10000144, 1], [10000145, 10], [10000146, 1], [10000147, 2]])
+    assert.deepEqual(hit.items.map(i => [i.itemId, i.amount]), [[10000144, 1], [10000145, 20], [10000146, 1], [10000147, 4], [10000310, 11]])
     const miss = rewards.buildFiveBossGauntletRewardPlan({ firstClear: false, rewardMultiplier: 1, randomFloat: () => 0.5 })
-    assert.deepEqual(miss.items.map(i => [i.itemId, i.amount]), [[10000145, 5]])
+    assert.deepEqual(miss.items.map(i => [i.itemId, i.amount]), [[10000144, 1], [10000145, 10], [10000147, 1], [10000310, 13]])
     assert.equal(rewards.canUseAwakeningSubstitutionItem(5900101), false)
     assert.equal(rewards.canUseAwakeningSubstitutionItem(5010070), true)
     assert.deepEqual(getDb().pragma('foreign_key_check'), [])
+})
+
+test('solo five-boss rewards use half quantities and lower probabilities without changing multiplayer rules', () => {
+    const values = [0.14, 0.3, 0.99]
+    const soloHit = rewards.buildFiveBossSoloGauntletRewardPlan({
+        firstClear: true,
+        rewardMultiplier: 1,
+        randomFloat: () => values.shift(),
+    })
+    assert.deepEqual(soloHit.items.map(i => [i.itemId, i.amount]), [
+        [10000144, 1], [10000145, 5], [10000146, 1], [10000147, 1], [10000310, 8],
+    ])
+
+    const misses = [0.3, 0.625, 0]
+    const soloMiss = rewards.buildFiveBossSoloGauntletRewardPlan({
+        firstClear: false,
+        rewardMultiplier: 1,
+        randomFloat: () => misses.shift(),
+    })
+    assert.deepEqual(soloMiss.items.map(i => [i.itemId, i.amount]), [
+        [10000145, 5], [10000310, 5],
+    ])
+
+    const manualCoreHitValues = [0.3, 0.624999, 0.99]
+    const manualCoreHit = rewards.buildFiveBossSoloGauntletRewardPlan({
+        firstClear: false,
+        rewardMultiplier: 2,
+        randomFloat: () => manualCoreHitValues.shift(),
+    })
+    assert.deepEqual(manualCoreHit.items.map(i => [i.itemId, i.amount]), [
+        [10000145, 10], [10000147, 1], [10000310, 8],
+    ])
+
+    const noSoloWeapon = rewards.buildFiveBossCursedWeaponDropPlan({
+        rewardMultiplier: 1,
+        dropRate: 0.025,
+        availableEquipmentIds: [5910101],
+        randomFloat: () => 0.03,
+    })
+    assert.deepEqual(noSoloWeapon.equipmentIds, [])
+    const multiplayerWeapon = rewards.buildFiveBossCursedWeaponDropPlan({
+        rewardMultiplier: 1,
+        availableEquipmentIds: [5910101],
+        randomFloat: () => 0.03,
+    })
+    assert.deepEqual(multiplayerWeapon.equipmentIds, [5910101])
 })
 
 test('solo cannot overwrite an active cooperative run; aborted solo cannot finish', async () => {
@@ -247,6 +305,19 @@ test('solo cannot overwrite an active cooperative run; aborted solo cannot finis
         const late = await app.inject({ method: 'POST', url: '/finish', payload: httpFinish(single) })
         assert.equal(late.statusCode, 400, late.body)
         assert.equal(items.getPlayerItemSync(single.id, 10000145), null)
+    } finally { await app.close() }
+})
+
+test('multiplayer five-boss abort waits for the async persistence boundary', async () => {
+    const p = player(), room = run([p])
+    const app = await httpApp(p, load('multi/http/battle').registerBattleRoutes)
+    try {
+        const started = await app.inject({ method: 'POST', url: '/start', payload: httpStart(p, room) })
+        assert.equal(started.statusCode, 200, started.body)
+        const aborted = await app.inject({ method: 'POST', url: '/abort', payload: httpFinish(p) })
+        assert.equal(aborted.statusCode, 200, aborted.body)
+        assert.equal(active.getPlayerActiveQuestSync(p.id), null)
+        assert.equal(ledger.getFiveBossRunByClientSync({ playerId: p.id, clientPlayId: p.playId }).status, 'aborted')
     } finally { await app.close() }
 })
 
@@ -367,7 +438,12 @@ test('solo full-manual rewards use the whole-run AUTO record and replay exactly 
         assert.equal(solo.getFiveBossSoloRewardMultiplierSync(p.id, p.playId), 2)
         const result = await app.inject({ method: 'POST', url: '/quest/finish', payload: httpFinish(p) })
         assert.equal(result.statusCode, 200, result.body)
-        assert.equal(result.json().data.item_list['10000145'], 10)
+        const data = result.json().data
+        assert.equal(data.item_list['10000145'], 10)
+        assert.equal(items.getPlayerItemSync(p.id, 40001), null)
+        assert.equal(items.getPlayerItemSync(p.id, 40002), null)
+        assert.deepEqual(data.drop_score_reward_ids, [])
+        assert.deepEqual(data.drop_rare_reward_ids, [])
         const exp = characters.getPlayerCharacterSync(p.id, 111001).exp
         const again = await app.inject({ method: 'POST', url: '/quest/finish', payload: httpFinish(p) })
         assert.deepEqual(again.json(), result.json())
@@ -486,7 +562,7 @@ test('AUTO at start stays 1x; aborted marker cannot contaminate a fresh manual p
         playerId: p.id, firstClear: true, rewardMultiplier: 2, randomFloat: () => 0,
         givePlayerItemSync: (_p, _id, amount) => amount })
     assert.equal(planned.items[10000145], 10)
-    assert.equal(planned.items[10000147], 2)
+    assert.equal(planned.items[10000147], 1)
     assert.equal(planned.items[10000144], 1)
     assert.equal(planned.items[10000146], 1)
 })
@@ -600,7 +676,7 @@ test('real TCP disconnect and later proof arrival explain HTTP H400 without gran
             sockets.push(serverSocket)
             socket.on('data', () => {})
             socket.write(JSON.stringify({ socklet: 'cooperation_battle', room_number: room.room_number,
-                connection_id: connectionId }) + '\0')
+                connection_id: connectionId, sp_session: `five-boss-${p.id}` }) + '\0')
             await waitFor(() => manager.getBattleClient(connectionId)?.socket === serverSocket)
             return { socket, serverSocket }
         }
@@ -957,26 +1033,55 @@ function funded(p, free = 100, paid = 20) {
     players.updatePlayerSync({ id: p.id, freeVmoney: free, vmoney: paid })
 }
 
-test('effective Abyss final rewards guarantee 1..2 tickets and remove both five-star materials', () => {
+test('effective Abyss final rewards follow the normal 30-floor pools without legacy five-star materials', () => {
     const assets = load('lib/assets')
     const cfg = assets.getRogueEventConfig(700099)
-    assert.deepEqual(cfg.folder_clear_chance, [{ type: 0, id: 999014, count: 1, chance: 0.1 }])
+    assert.deepEqual(cfg.folder_clear_chance, [{ type: 0, id: 999014, count: 1, chance: 0.07 }])
     const random = Math.random
     try {
-        for (const [roll, tickets] of [[0, 1], [0.999999, 2]]) {
+        for (const [roll, tickets] of [[0, 1], [0.999999, 0]]) {
             Math.random = () => roll
             const result = assets.getRushEventFolderClearRewards(700099, 1)
             const count = id => result.filter(x => x.id === id).reduce((n, x) => n + x.count, 0)
             assert.equal(count(10000143), tickets)
             assert.equal(count(11003), 0)
             assert.equal(count(13001), 0)
-            for (const [id, n] of [[99, 1000], [2370099, 100], [10002, 2], [12001, 2]]) assert.equal(count(id), n)
+            for (const [id, n] of [[99, 800], [2370099, 70], [10002, 2], [12001, 2]]) assert.equal(count(id), n)
             assert.equal(count(999014), roll === 0 ? 1 : 0, 'base/extension must not duplicate the ten-pull ticket')
         }
     } finally { Math.random = random }
 })
 
 function seedRewardFinish(p, category, questId, host = true) {
+    if (category === 24) {
+        const eventId = 700099
+        const rush = load('data/domains/rushEvent')
+        const abyssRevision = load('lib/abyss-time-revision').getAbyssTimeRevision(eventId)
+        if (!rush.getPlayerRushEventSync(p.id, eventId)) {
+            rush.insertPlayerRushEventSync(p.id, {
+                ...rush.getDefaultPlayerRushEventSync(eventId),
+                towerRevision: abyssRevision,
+            })
+        }
+        const round = questId % 1000
+        const party = {
+            characterIds: [111001, null, null],
+            unisonCharacterIds: [null, null, null],
+            equipmentIds: [null, null, null],
+            abilitySoulIds: [null, null, null],
+            evolutionImgLevels: [null, null, null],
+            unisonEvolutionImgLevels: [null, null, null],
+            battleType: 0,
+        }
+        for (let previous = 1; previous < round; previous++) {
+            const row = getDb().prepare(`SELECT 1 FROM players_rush_events_played_parties
+                WHERE player_id=? AND event_id=? AND round=? AND battle_type=0`)
+                .get(p.id, eventId, eventId * 1000 + previous)
+            if (!row) rush.insertPlayerRushEventPlayedPartySync(p.id, eventId, {
+                ...party, round: eventId * 1000 + previous,
+            })
+        }
+    }
     const quest = { playId: p.playId, category, questId, useBoostPoint: false,
         useBossBoostPoint: false, isAutoStartMode: true, isMulti: category === 7,
         isMultiHost: host, continueCount: 0, startedAtMs: Date.now(), matePlayerIds: [], mateComIds: [],
@@ -998,6 +1103,8 @@ test('Abyss HTTP settlement awards tickets only on successful floor 30, once per
     const p = player(0)
     const app = await httpApp(p, load('routes/api/singleBattleQuest').default)
     const headers = { res_ver: require('../assets/asset-patch/manifest.json').cdn_version }
+    const random = Math.random
+    Math.random = () => 0
     try {
         for (const [round, accomplished, shouldGrant] of [[29, true, false], [30, false, false], [30, true, true], [30, true, true]]) {
             p.playId += '-next'
@@ -1017,7 +1124,7 @@ test('Abyss HTTP settlement awards tickets only on successful floor 30, once per
             assert.equal(retry.statusCode, 200, retry.body)
             assert.equal(items.getPlayerItemSync(p.id, 10000143), now)
         }
-    } finally { await app.close() }
+    } finally { Math.random = random; await app.close() }
 })
 
 test('Fantasy real multiplayer finish grants one ticket for full host clear; not for 5/10, rescue, failure or retry', async () => {
@@ -1069,8 +1176,12 @@ test('solo continue costs 50 once for the whole run; retry, new start and recove
         delete load('routes/api/singleBattleQuest').activeQuests[p.id]
         assert.equal((await send(payload)).statusCode, 200)
         assert.equal(load('routes/api/singleBattleQuest').activeQuests[p.id].continueCount, 1)
-        assert.equal((await send(continuePayload(p, 11))).statusCode, 400)
-        assert.equal((await send({ ...payload, statistics: { continue_count: 1, playthrough_frame: 9000 } })).statusCode, 400)
+        // A legacy client can resend after a scene transition with a changed
+        // api_count/statistics pair. The existing receipt makes this a
+        // no-charge recovery acknowledgement instead of an H400 response.
+        assert.equal((await send(continuePayload(p, 11))).statusCode, 200)
+        assert.equal((await send({ ...payload, statistics: { continue_count: 1, playthrough_frame: 9000 } })).statusCode, 200)
+        assert.equal(active.getPlayerActiveQuestSync(p.id).continueCount, 1)
         assert.equal((await send({ ...payload, quest_id: 1099003 })).statusCode, 400)
         assert.deepEqual(wallet(p), [0, 80])
         solo.abortFiveBossSoloSync(p.id, p.playId)
@@ -1109,18 +1220,18 @@ test('multiplayer each member gets one paid continue across level_next, start re
             const request = ${JSON.stringify({ playerId: host.id, isMulti: true, category: mode.category,
                 questId: mode.visibleQuestId, playId: host.playId, apiCount: 10, statistics: payload.statistics })};
             assert.equal(continueFiveBossSync(request).continue_count, 1);
-            assert.throws(() => continueFiveBossSync({ ...request, apiCount: 11 }), /only once/);
+            assert.equal(continueFiveBossSync({ ...request, apiCount: 11 }).continue_count, 1);
             require(${JSON.stringify(path.join(output, 'data/db'))}).getDb().close();
             process.stdout.write('fresh-process-continue-passed');
             process.exit(0);`
         const childResult = require('node:child_process').execFileSync(process.execPath, ['-e', childCode], {
             env: { ...process.env, DATA_DIR: dataDir }, timeout: 15000, encoding: 'utf8' })
         assert.match(childResult, /fresh-process-continue-passed/)
-        assert.equal((await send(continuePayload(host, 11))).statusCode, 400)
+        assert.equal((await send(continuePayload(host, 11))).statusCode, 200)
         assert.equal((await send(continuePayload(guest), guestApp)).statusCode, 200)
         assert.deepEqual(wallet(host), [50, 20]); assert.deepEqual(wallet(guest), [50, 20])
         assert.equal(active.getPlayerActiveQuestSync(guest.id).continueCount, 1)
-        assert.equal((await send(continuePayload(guest, 12), guestApp)).statusCode, 400)
+        assert.equal((await send(continuePayload(guest, 12), guestApp)).statusCode, 200)
         ledger.recordMemberBattleSignalSync({ runId: room.five_boss_runtime.runId, playerId: host.id,
             roomNumber: room.room_number, signal: 'finalize' })
         assert.equal((await send(payload)).statusCode, 400)

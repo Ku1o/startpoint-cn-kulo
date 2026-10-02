@@ -22,6 +22,7 @@ const crypto_1 = require("crypto");
 const mission_1 = require("../../lib/mission");
 const start_tutorial_state_1 = require("../../lib/start-tutorial-state");
 const quest_1 = require("../../data/domains/quest");
+const persistence_coordinator_1 = require("../../lib/persistence-coordinator");
 const freeTutorialCharacterId = 243001;
 const tutorialGachaCharacterIds = [251001, 251002, 251003, 251004, 251005, 251006, 251007, 251008];
 const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
@@ -48,14 +49,18 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 "message": "No players bound to account."
             });
         // Mark tutorial as having been completed (skip already triggered)
-        const existing = (0, tutorial_1.getPlayerTriggeredTutorialsSync)(playerId);
-        for (const tutorialId of tutorialIds) {
-            if (!existing.find((v) => v === tutorialId)) {
-                (0, tutorial_1.insertPlayerTriggeredTutorialSync)(playerId, tutorialId);
+        yield (0, persistence_coordinator_1.runPersistenceTransaction)({
+            domain: "player", playerId, operation: "tutorial_finish_trigger",
+        }, () => {
+            const existing = (0, tutorial_1.getPlayerTriggeredTutorialsSync)(playerId);
+            for (const tutorialId of tutorialIds) {
+                if (!existing.find((v) => v === tutorialId)) {
+                    (0, tutorial_1.insertPlayerTriggeredTutorialSync)(playerId, tutorialId);
+                }
             }
-        }
+        });
         reply.header("content-type", "application/x-msgpack");
-        reply.status(200).send({
+        return reply.status(200).send({
             "data_headers": (0, utils_1.generateDataHeaders)({
                 viewer_id: viewerId
             }),
@@ -102,11 +107,15 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 "error": "Bad Request",
                 "message": "Attempt to redo previous tutorial step."
             });
-        (0, player_1.updatePlayerSync)({
-            id: playerId,
-            tutorialStep: nextStep,
-            tutorialSkipFlag: skip,
-            name: body.name
+        yield (0, persistence_coordinator_1.runPersistenceTransaction)({
+            domain: "player", playerId, operation: "tutorial_step",
+        }, () => {
+            (0, player_1.updatePlayerSync)({
+                id: playerId,
+                tutorialStep: nextStep,
+                tutorialSkipFlag: skip,
+                name: body.name
+            });
         });
         // offset nextStep by 11 if skipped, to keep steps the same.
         nextStep += (body.skip ? 11 : 0);
@@ -127,13 +136,18 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             const randomCharacterId = tutorialGachaCharacterIds[randomCharacterIndex];
             const drawResult = [randomCharacterId];
             // reward pull
-            const rewardResult = (0, gacha_1.rewardPlayerGachaDrawResultSync)(playerId, gachaData, drawResult);
-            (0, mail_1.insertReceiveHistorySync)(playerId, { type: mail_1.MailType.CHARACTER, type_id: randomCharacterId, number: 1 });
             const newFreeVmoney = player.freeVmoney - gachaData.singleCost;
-            (0, player_1.updatePlayerSync)({
-                id: playerId,
-                freeVmoney: newFreeVmoney,
-                tutorialGachaCharacterId: randomCharacterId
+            const rewardResult = yield (0, persistence_coordinator_1.runPersistenceTransaction)({
+                domain: "gacha", playerId, operation: "tutorial_gacha",
+            }, () => {
+                const result = (0, gacha_1.rewardPlayerGachaDrawResultSync)(playerId, gachaData, drawResult);
+                (0, mail_1.insertReceiveHistorySync)(playerId, { type: mail_1.MailType.CHARACTER, type_id: randomCharacterId, number: 1 });
+                (0, player_1.updatePlayerSync)({
+                    id: playerId,
+                    freeVmoney: newFreeVmoney,
+                    tutorialGachaCharacterId: randomCharacterId
+                });
+                return result;
             });
             const draw = rewardResult.draw[0];
             draw.movie_id = "normal_guarantee";
@@ -173,37 +187,42 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         else if (nextStep === 16) {
             // give 1500 vmoney
             const newVMoney = player.freeVmoney + 1500;
-            (0, player_1.updatePlayerSync)({
-                id: playerId,
-                freeVmoney: newVMoney
+            const giveResult = yield (0, persistence_coordinator_1.runPersistenceTransaction)({
+                domain: "mail", playerId, operation: "tutorial_complete_reward",
+            }, () => {
+                (0, player_1.updatePlayerSync)({
+                    id: playerId,
+                    freeVmoney: newVMoney
+                });
+                (0, mail_1.insertReceiveHistorySync)(playerId, { type: mail_1.MailType.FREE_VMONEY, type_id: null, number: 1500 });
+                // give free character directly (required for tutorial popup)
+                const result = (0, character_1.givePlayerCharacterSync)(playerId, freeTutorialCharacterId);
+                (0, mail_1.insertReceiveHistorySync)(playerId, { type: mail_1.MailType.CHARACTER, type_id: freeTutorialCharacterId, number: 1 });
+                // also send a mail with tutorial gift (gacha ticket, etc.)
+                (0, mail_1.insertMailSync)(playerId, {
+                    reason_id: 0,
+                    subject: null,
+                    description: null,
+                    type: mail_1.MailType.FREE_VMONEY,
+                    type_id: null,
+                    number: 500,
+                    receive_time: '0000-00-00 00:00:00',
+                    create_time: new Date().toISOString().replace('T', ' ').substring(0, 19),
+                    reward_period_limited: 0,
+                    reward_limit_time: null,
+                });
+                return result;
             });
-            (0, mail_1.insertReceiveHistorySync)(playerId, { type: mail_1.MailType.FREE_VMONEY, type_id: null, number: 1500 });
-            // give free character directly (required for tutorial popup)
-            const giveResult = (0, character_1.givePlayerCharacterSync)(playerId, freeTutorialCharacterId);
             const existingCharacterList = (giveResult === null || giveResult === void 0 ? void 0 : giveResult.character)
                 ? [giveResult.character]
                 : [];
             const itemList = (giveResult === null || giveResult === void 0 ? void 0 : giveResult.item)
                 ? { [giveResult.item.id]: giveResult.item.inventoryCount }
                 : {};
-            (0, mail_1.insertReceiveHistorySync)(playerId, { type: mail_1.MailType.CHARACTER, type_id: freeTutorialCharacterId, number: 1 });
-            // also send a mail with tutorial gift (gacha ticket, etc.)
-            (0, mail_1.insertMailSync)(playerId, {
-                reason_id: 0,
-                subject: null,
-                description: null,
-                type: mail_1.MailType.FREE_VMONEY,
-                type_id: null,
-                number: 500,
-                receive_time: '0000-00-00 00:00:00',
-                create_time: new Date().toISOString().replace('T', ' ').substring(0, 19),
-                reward_period_limited: 0,
-                reward_limit_time: null,
-            });
             const characterList = existingCharacterList.length > 0
                 ? (0, mission_1.reconcileAwakeUnlockCharacterList)(playerId, existingCharacterList)
                 : existingCharacterList;
-            reply.status(200).send({
+            return reply.status(200).send({
                 "data_headers": headers,
                 "data": {
                     "step": nextStep,
@@ -223,7 +242,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             });
         }
         else {
-            reply.status(200).send({
+            return reply.status(200).send({
                 "data_headers": headers,
                 "data": {
                     "step": nextStep,

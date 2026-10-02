@@ -1,6 +1,21 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.planEquipmentEnhancementPurchase = exports.findCurrentEquipmentEnhancementStage = void 0;
+exports.planEquipmentEnhancementPurchase = exports.findCurrentEquipmentEnhancementStage = exports.resolveEquipmentEnhancementPurchaseMode = void 0;
+/**
+ * Resolves the purchase mode from the authoritative enhancement category.
+ *
+ * Only explicitly marked rows in the official-origin categories 1-4 may use
+ * the private-server one-purchase stage benefit. Unmarked and author-added
+ * rows use the per-level material flow.
+ */
+function resolveEquipmentEnhancementPurchaseMode(shopCategoryId, configuredMode) {
+    if (Number.isInteger(shopCategoryId) && shopCategoryId >= 1 && shopCategoryId <= 4
+        && configuredMode === "stage_benefit") {
+        return "stage_benefit";
+    }
+    return "per_level";
+}
+exports.resolveEquipmentEnhancementPurchaseMode = resolveEquipmentEnhancementPurchaseMode;
 /**
  * Resolves the next purchasable row inside one enhancement category.
  *
@@ -23,11 +38,13 @@ exports.findCurrentEquipmentEnhancementStage = findCurrentEquipmentEnhancementSt
 /**
  * Plans one special-equipment enhancement purchase.
  *
- * Legacy rows retain the existing stage-benefit behavior. Newly-added special
- * weapons opt into `per_level`, where the requested amount advances exactly
- * that many levels and the caller charges the row's materials per level.
+ * Explicitly marked official-origin rows retain the private-server stage benefit.
+ * Author-added rows use `per_level`, where the requested amount advances
+ * exactly that many levels and the caller charges the row's materials per level.
+ * Callers should resolve a shop row with
+ * `resolveEquipmentEnhancementPurchaseMode` before planning a purchase.
  */
-function planEquipmentEnhancementPurchase(currentLevel, requestedPurchaseAmount, stageMaxLevel, currentAwakeningLevel, requiredAwakeningLevel, mode = "stage_benefit") {
+function planEquipmentEnhancementPurchase(currentLevel, requestedPurchaseAmount, stageMaxLevel, currentAwakeningLevel, requiredAwakeningLevel, mode = "per_level") {
     if (!Number.isSafeInteger(requestedPurchaseAmount) || requestedPurchaseAmount <= 0) {
         return { ok: false, message: "Invalid enhancement purchase amount." };
     }

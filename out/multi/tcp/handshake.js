@@ -20,133 +20,19 @@ const player_login_1 = require("../../lib/player-login");
 const contract_1 = require("../five-boss/contract");
 const lobby_runtime_1 = require("../five-boss/lobby-runtime");
 const connection_diagnostic_1 = require("../five-boss/connection-diagnostic");
-const party_1 = require("../../data/domains/party");
-const character_1 = require("../../data/domains/character");
-const equipment_1 = require("../../data/domains/equipment");
-const types_1 = require("../../data/types");
 const stamina_1 = require("../../lib/stamina");
 const manager_1 = require("../room/manager");
 const SessionManager_1 = require("../state/SessionManager");
 const game_logging_1 = require("../../lib/game-logging");
-const types_2 = require("../types");
+const types_1 = require("../types");
 const embedded_1 = require("../coordinator/embedded");
 const admission_1 = require("../room/admission");
 const player_context_1 = require("../player-context");
-function buildRealParty(playerId, targetParty) {
-    var _a, _b, _c, _d;
-    const emptyChar = [1];
-    const filledChars = [];
-    const filledUnison = [];
-    const filledEquips = [];
-    const filledSouls = [];
-    // Search for an NPC-named party across NORMAL and EVENT categories
-    let selectedParty = targetParty !== null && targetParty !== void 0 ? targetParty : null;
-    if (!selectedParty) {
-        for (const category of [types_1.PartyCategory.NORMAL, types_1.PartyCategory.EVENT]) {
-            const groups = (0, party_1.getPlayerPartyGroupListSync)(playerId, category);
-            for (const g of Object.values(groups)) {
-                for (const party of Object.values(g.list)) {
-                    if (party.name && party.name.includes("NPC")) {
-                        selectedParty = party;
-                        break;
-                    }
-                }
-                if (selectedParty)
-                    break;
-            }
-            if (selectedParty)
-                break;
-        }
-    }
-    for (let i = 0; i < 3; i++) {
-        const charId = (_a = selectedParty === null || selectedParty === void 0 ? void 0 : selectedParty.characterIds[i]) !== null && _a !== void 0 ? _a : null;
-        if (!charId) {
-            filledChars.push([1]);
-            filledUnison.push([1]);
-        }
-        else {
-            const dbChar = (0, character_1.getPlayerCharacterSync)(playerId, charId);
-            if (!dbChar) {
-                filledChars.push([1]);
-                filledUnison.push([1]);
-            }
-            else {
-                const rawManaNodes = (0, character_1.getPlayerCharacterManaNodesSync)(playerId, charId);
-                const manaNodeMap = {};
-                for (const id of rawManaNodes)
-                    manaNodeMap[String(id)] = 0;
-                let exBoost = [1];
-                if (dbChar.exBoost && dbChar.exBoost.abilityIdList && dbChar.exBoost.abilityIdList.length > 0) {
-                    exBoost = [0, { ability_id_list: dbChar.exBoost.abilityIdList, status_id: dbChar.exBoost.statusId }];
-                }
-                const charObj = {
-                    id: charId,
-                    evolution_level: dbChar.evolutionLevel,
-                    exp: dbChar.exp,
-                    over_limit_step: dbChar.overLimitStep,
-                    mana_node_ids: manaNodeMap,
-                    ex_boost: exBoost,
-                    illustration_settings: [1],
-                };
-                filledChars.push([0, charObj]);
-            }
-            const unisonId = (_b = selectedParty === null || selectedParty === void 0 ? void 0 : selectedParty.unisonCharacterIds[i]) !== null && _b !== void 0 ? _b : null;
-            if (!unisonId) {
-                filledUnison.push([1]);
-            }
-            else {
-                const dbUnison = (0, character_1.getPlayerCharacterSync)(playerId, unisonId);
-                if (!dbUnison) {
-                    filledUnison.push([1]);
-                }
-                else {
-                    const rawNodes = (0, character_1.getPlayerCharacterManaNodesSync)(playerId, unisonId);
-                    const nodeMap = {};
-                    for (const id of rawNodes)
-                        nodeMap[String(id)] = 0;
-                    let ubEx = [1];
-                    if (dbUnison.exBoost && dbUnison.exBoost.abilityIdList && dbUnison.exBoost.abilityIdList.length > 0) {
-                        ubEx = [0, { ability_id_list: dbUnison.exBoost.abilityIdList, status_id: dbUnison.exBoost.statusId }];
-                    }
-                    filledUnison.push([0, {
-                            id: unisonId,
-                            evolution_level: dbUnison.evolutionLevel,
-                            exp: dbUnison.exp,
-                            over_limit_step: dbUnison.overLimitStep,
-                            mana_node_ids: nodeMap,
-                            ex_boost: ubEx,
-                            illustration_settings: [1],
-                        }]);
-                }
-            }
-        }
-        const equipId = (_c = selectedParty === null || selectedParty === void 0 ? void 0 : selectedParty.equipmentIds[i]) !== null && _c !== void 0 ? _c : null;
-        if (!equipId) {
-            filledEquips.push([1]);
-        }
-        else {
-            const dbEquip = (0, equipment_1.getPlayerEquipmentSync)(playerId, equipId);
-            if (!dbEquip) {
-                filledEquips.push([1]);
-            }
-            else {
-                filledEquips.push([0, { equipmentId: equipId, level: dbEquip.level, enhancementLevel: dbEquip.enhancementLevel }]);
-            }
-        }
-        const soulId = (_d = selectedParty === null || selectedParty === void 0 ? void 0 : selectedParty.abilitySoulIds[i]) !== null && _d !== void 0 ? _d : null;
-        filledSouls.push(soulId ? [0, soulId] : [1]);
-    }
-    return {
-        characters: filledChars,
-        unison_characters: filledUnison,
-        equipments: filledEquips,
-        abilitySoulIds: filledSouls,
-    };
-}
-exports.buildRealParty = buildRealParty;
+const party_snapshot_1 = require("../party-snapshot");
+Object.defineProperty(exports, "buildRealParty", { enumerable: true, get: function () { return party_snapshot_1.buildRealParty; } });
 function handleHandshake(socket, data) {
     return __awaiter(this, void 0, void 0, function* () {
-        var _a, _b, _c, _d, _e, _f;
+        var _a, _b, _c, _d, _e, _f, _g;
         (0, game_logging_1.gameVerboseLog)(() => `[TCP] handshake: ${JSON.stringify({ socklet: data.socklet, viewerId: data.viewerId, room_number: data.room_number || data.roomNumber })}`);
         const socklet = data.socklet;
         const roomNumber = data.room_number || data.roomNumber;
@@ -216,7 +102,10 @@ function handleHandshake(socket, data) {
                 socket.end();
                 return;
             }
-            const ctx = yield (0, player_context_1.resolveMultiPlayerContext)(Number(viewerId));
+            // playerSocketAllowed above still performs the authoritative session
+            // check. A context warmed by create/select_room can therefore be used
+            // here without another synchronous session/player lookup.
+            const ctx = (_e = (0, player_context_1.getCachedMultiPlayerContext)(Number(viewerId))) !== null && _e !== void 0 ? _e : yield (0, player_context_1.resolveMultiPlayerContext)(Number(viewerId));
             if (!ctx) {
                 SessionManager_1.sessionManager.sendJson(socket, [3, "HANDSHAKE_DENIED"]);
                 socket.end();
@@ -250,8 +139,8 @@ function handleHandshake(socket, data) {
                 && client.socket.writable);
             const liveViewerIds = new Set(liveClients.map(client => client.viewerId));
             const viewerAlreadyConnected = liveViewerIds.has(Number(viewerId));
-            const requestedCategory = (_e = data.questCategory) !== null && _e !== void 0 ? _e : data.quest_category;
-            const requestedQuestId = (_f = data.questId) !== null && _f !== void 0 ? _f : data.quest_id;
+            const requestedCategory = (_f = data.questCategory) !== null && _f !== void 0 ? _f : data.quest_category;
+            const requestedQuestId = (_g = data.questId) !== null && _g !== void 0 ? _g : data.quest_id;
             const categoryMismatch = requestedCategory !== undefined
                 && Number(requestedCategory) !== currentRoom.category;
             const questMismatch = requestedQuestId !== undefined
@@ -289,7 +178,10 @@ function handleHandshake(socket, data) {
             }
             const { playerId, player } = ctx;
             const connectionId = String(data.connection_id || data.connectionId || `${socket.remoteAddress}:${socket.remotePort}`);
-            const party = buildRealParty(playerId);
+            // The HTTP room-selection path primes this snapshot before opening the
+            // socket. Direct legacy clients still get a safe synchronous fallback,
+            // but normal handshakes now stay on the in-memory path.
+            const party = (0, party_snapshot_1.getRealPartySnapshot)(playerId);
             if (isReturningMember)
                 (0, admission_1.recordRoomAdmissionBypass)("returning_member");
             const admissionClaim = isReturningMember
@@ -309,7 +201,7 @@ function handleHandshake(socket, data) {
             client.admissionGeneration = (admissionClaim === null || admissionClaim === void 0 ? void 0 : admissionClaim.ok) === true
                 ? currentRoom.lobby_generation
                 : undefined;
-            client.clientState.tryTransition(types_2.ClientState.Handshaking);
+            client.clientState.tryTransition(types_1.ClientState.Handshaking);
             const yourSelf = {
                 viewerId: Number(viewerId),
                 playerId: playerId,

@@ -28,6 +28,7 @@ const admission_1 = require("../room/admission");
 const select_denial_1 = require("../room/select-denial");
 const embedded_1 = require("../coordinator/embedded");
 const player_context_1 = require("../player-context");
+const party_snapshot_1 = require("../party-snapshot");
 const ROOM_CAPACITY = 3;
 function isReturningMember(room, viewerId) {
     return room.host_viewer_id === viewerId
@@ -124,6 +125,11 @@ function registerLobbyRoutes(fastify) {
             return reply.status(400).send({
                 "error": "Bad Request", "message": "Invalid viewer id or no player bound."
             });
+        // Warm the party snapshot while this HTTP request is already doing
+        // database work. The subsequent TCP room handshake can then read the
+        // complete party from memory instead of blocking the event loop.
+        (0, player_context_1.cacheMultiPlayerContext)(viewer_id, ctx);
+        (0, party_snapshot_1.primeRealPartySnapshot)(ctx.playerId);
         const quest = (0, assets_1.getQuestFromCategorySync)(category, quest_id);
         if (!quest)
             return reply.status(400).send({
@@ -291,6 +297,10 @@ function registerLobbyRoutes(fastify) {
                 }
             });
         }
+        // select_room is the last HTTP step before the client opens the lobby
+        // socket. Make the party snapshot authoritative before that boundary.
+        (0, player_context_1.cacheMultiPlayerContext)(viewerId, ctx);
+        (0, party_snapshot_1.primeRealPartySnapshot)(ctx.playerId);
         // A Fantasy room-code/follow entrant is also a helper for lifecycle
         // and progression purposes, but only a delivered rescue selection is
         // eligible for the repeatable fragment reward.

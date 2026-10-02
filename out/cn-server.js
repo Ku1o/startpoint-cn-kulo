@@ -34,11 +34,12 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
-var _a, _b;
+var _a, _b, _c;
 Object.defineProperty(exports, "__esModule", { value: true });
 const file_exists_1 = require("./lib/file-exists");
 const fastify_1 = __importDefault(require("fastify"));
 const msgpackr_1 = require("msgpackr");
+const cn_response_hook_1 = require("./lib/cn-response-hook");
 const static_1 = __importDefault(require("@fastify/static"));
 const path_1 = __importDefault(require("path"));
 const fs_1 = require("fs");
@@ -49,8 +50,6 @@ const activeAccount_1 = require("./data/activeAccount");
 const session_1 = require("./data/domains/session");
 const management_auth_1 = require("./lib/management-auth");
 const route_performance_1 = require("./lib/route-performance");
-const request_diagnostics_1 = require("./lib/request-diagnostics");
-const perf_hooks_1 = require("perf_hooks");
 const online_presence_1 = require("./lib/online-presence");
 const takeover_access_1 = require("./lib/takeover-access");
 const player_login_1 = require("./lib/player-login");
@@ -118,14 +117,15 @@ const questUnlock_1 = __importDefault(require("./routes/api/questUnlock"));
 const item_1 = __importDefault(require("./routes/api/item"));
 const lounge_1 = __importDefault(require("./routes/api/lounge"));
 const multiSpecialExchange_1 = __importDefault(require("./routes/api/multiSpecialExchange"));
-const multi_2 = require("./multi");
 const player_party_pool_1 = require("./multi/npc/player-party-pool");
 const ios_compat_1 = require("./lib/ios-compat");
 const db_1 = require("./data/db");
 const receive_history_retention_1 = require("./lib/receive-history-retention");
-const cn_load_http_compression_1 = require("./lib/cn-load-http-compression");
 const settlement_1 = require("./lib/leaderboard/settlement");
 const daily_vmoney_mail_1 = require("./lib/daily-vmoney-mail");
+const sqlite_checkpoint_worker_1 = require("./lib/sqlite-checkpoint-worker");
+const persistence_coordinator_1 = require("./lib/persistence-coordinator");
+const sqlite_persistence_worker_1 = require("./lib/sqlite-persistence-worker");
 const fastify = (0, fastify_1.default)({
     logger: {
         // Default remains compatible with the existing development behavior.
@@ -135,7 +135,6 @@ const fastify = (0, fastify_1.default)({
     },
     bodyLimit: 262144 // 256KB — covers /single_battle_quest/finish large battle stats
 });
-const cnLoadCompressionConfig = (0, cn_load_http_compression_1.getCnLoadHttpCompressionConfig)();
 (0, local_client_compat_1.installLocalClientCompat)(fastify, process.env.CN_LOCAL_CLIENT_PLATFORM || ((0, version_1.getPatchManifest)().patches.some(p => p.enabled && p.local_test_only
     && p.required_local_platform === "android") ? "android" : undefined));
 (0, route_performance_1.installRoutePerformanceMonitor)(fastify);
@@ -155,13 +154,28 @@ if (migratedUnsafeViewerIds > 0) {
 const rateLimitMap = new Map();
 const RATE_LIMIT_MAX = 30;
 const RATE_LIMIT_WINDOW = 60000;
+// A hostile client can rotate source IPs; expiry alone must not make this map
+// grow for the lifetime of the process.
+const RATE_LIMIT_MAP_MAX = 4096;
+let nextRateLimitSweep = 0;
 fastify.addHook("onRequest", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
-    var _c, _d;
+    var _d, _e;
     if (request.url === "/crash") {
-        const ip = ((_d = (_c = request.headers["x-forwarded-for"]) === null || _c === void 0 ? void 0 : _c.split(",")[0]) === null || _d === void 0 ? void 0 : _d.trim())
+        const ip = ((_e = (_d = request.headers["x-forwarded-for"]) === null || _d === void 0 ? void 0 : _d.split(",")[0]) === null || _e === void 0 ? void 0 : _e.trim())
             || request.ip;
         const now = Date.now();
-        const entry = rateLimitMap.get(ip) || { count: 0, reset: now + RATE_LIMIT_WINDOW };
+        if (now >= nextRateLimitSweep) {
+            for (const [key, value] of rateLimitMap) {
+                if (value.reset <= now)
+                    rateLimitMap.delete(key);
+            }
+            nextRateLimitSweep = now + RATE_LIMIT_WINDOW;
+        }
+        const existing = rateLimitMap.get(ip);
+        if (!existing && rateLimitMap.size >= RATE_LIMIT_MAP_MAX) {
+            return reply.status(429).send("Too Many Requests");
+        }
+        const entry = existing || { count: 0, reset: now + RATE_LIMIT_WINDOW };
         if (now > entry.reset) {
             entry.count = 0;
             entry.reset = now + RATE_LIMIT_WINDOW;
@@ -184,269 +198,7 @@ fastify.addHook("onResponse", (request) => __awaiter(void 0, void 0, void 0, fun
         return;
     (0, online_presence_1.markPlayerOnline)(body.viewer_id);
 }));
-/**
- * Walk a MsgPack buffer in a single pass. Replaces uint32 tags (0xCE) with
- * int32 (0xD2) for values < 2^31, and with float64 (0xCB) for values ≥ 2^31.
- * All other bytes are copied verbatim.  Handles nested arrays/maps recursively.
- * Returns a new Buffer (may be larger than input when float64 replaces int32).
- */
-function fixUint32Tags(buf) {
-    const out = Buffer.allocUnsafe(buf.length * 2); // worst-case: all 0xCE → 0xCB (+80%)
-    let w = 0; // write position
-    const put = (b) => { out[w++] = b; };
-    const copy = (off, len) => {
-        for (let i = 0; i < len; i++)
-            out[w++] = buf[off + i];
-    };
-    function walk(off) {
-        const tag = buf[off];
-        let pos = off + 1;
-        // positive fixint  0x00..0x7f
-        if (tag <= 0x7f) {
-            put(tag);
-            return pos;
-        }
-        // negative fixint  0xe0..0xff
-        if (tag >= 0xe0) {
-            put(tag);
-            return pos;
-        }
-        switch (tag) {
-            case 0xc0:
-            case 0xc2:
-            case 0xc3: // nil / false / true
-                put(tag);
-                return pos;
-            case 0xcc:
-            case 0xd0: // uint8 / int8
-                copy(off, 2);
-                return pos + 1;
-            case 0xcd:
-            case 0xd1: // uint16 / int16
-                copy(off, 3);
-                return pos + 2;
-            case 0xce: { // uint32 → int32 (< 2^31) or float64 (≥ 2^31)
-                const u32 = buf.readUint32BE(pos);
-                if (u32 < 0x80000000) {
-                    put(0xd2); // int32 tag
-                    copy(pos, 4); // data bytes unchanged
-                }
-                else {
-                    put(0xcb); // float64 tag
-                    const f64 = Buffer.allocUnsafe(8);
-                    f64.writeDoubleBE(u32);
-                    for (let j = 0; j < 8; j++)
-                        put(f64[j]);
-                }
-                return pos + 4;
-            }
-            case 0xd2: // int32
-                copy(off, 5);
-                return pos + 4;
-            case 0xcf:
-            case 0xd3: // uint64 / int64
-                copy(off, 9);
-                return pos + 8;
-            case 0xca: // float32
-                copy(off, 5);
-                return pos + 4;
-            case 0xcb: // float64
-                copy(off, 9);
-                return pos + 8;
-            case 0xd9: { // str8
-                const len = buf[pos];
-                copy(off, 2 + len);
-                return pos + 1 + len;
-            }
-            case 0xda: { // str16
-                const len = buf.readUint16BE(pos);
-                copy(off, 3 + len);
-                return pos + 2 + len;
-            }
-            case 0xdb: { // str32
-                const len = buf.readUint32BE(pos);
-                copy(off, 5 + len);
-                return pos + 4 + len;
-            }
-            case 0xc4: { // bin8
-                const len = buf[pos];
-                copy(off, 2 + len);
-                return pos + 1 + len;
-            }
-            case 0xc5: { // bin16
-                const len = buf.readUint16BE(pos);
-                copy(off, 3 + len);
-                return pos + 2 + len;
-            }
-            case 0xc6: { // bin32
-                const len = buf.readUint32BE(pos);
-                copy(off, 5 + len);
-                return pos + 4 + len;
-            }
-            case 0xdc: { // array16
-                const count = buf.readUint16BE(pos);
-                put(tag);
-                put(buf[off + 1]);
-                put(buf[off + 2]); // count bytes
-                pos += 2;
-                for (let i = 0; i < count; i++)
-                    pos = walk(pos);
-                return pos;
-            }
-            case 0xdd: { // array32
-                const count = buf.readUint32BE(pos);
-                put(tag);
-                copy(off + 1, 4); // count bytes
-                pos += 4;
-                for (let i = 0; i < count; i++)
-                    pos = walk(pos);
-                return pos;
-            }
-            case 0xde: { // map16
-                const count = buf.readUint16BE(pos);
-                put(tag);
-                put(buf[off + 1]);
-                put(buf[off + 2]); // count bytes
-                pos += 2;
-                for (let i = 0; i < count; i++) {
-                    pos = walk(pos);
-                    pos = walk(pos);
-                }
-                return pos;
-            }
-            case 0xdf: { // map32
-                const count = buf.readUint32BE(pos);
-                put(tag);
-                copy(off + 1, 4); // count bytes
-                pos += 4;
-                for (let i = 0; i < count; i++) {
-                    pos = walk(pos);
-                    pos = walk(pos);
-                }
-                return pos;
-            }
-            // ext family (copy verbatim)
-            case 0xc7: { // ext8
-                const len = buf[pos];
-                copy(off, 2 + len + 1);
-                return pos + 1 + len + 1;
-            }
-            case 0xc8: { // ext16
-                const len = buf.readUint16BE(pos);
-                copy(off, 3 + len + 1);
-                return pos + 2 + len + 1;
-            }
-            case 0xc9: { // ext32
-                const len = buf.readUint32BE(pos);
-                copy(off, 5 + len + 1);
-                return pos + 4 + len + 1;
-            }
-            case 0xd4:
-                copy(off, 2);
-                return pos + 1; // fixext1
-            case 0xd5:
-                copy(off, 3);
-                return pos + 2; // fixext2
-            case 0xd6:
-                copy(off, 5);
-                return pos + 4; // fixext4
-            case 0xd7:
-                copy(off, 9);
-                return pos + 8; // fixext8
-            case 0xd8:
-                copy(off, 17);
-                return pos + 16; // fixext16
-            default: {
-                // fixstr   0xa0..0xbf
-                if (tag >= 0xa0 && tag <= 0xbf) {
-                    const len = tag & 0x1f;
-                    copy(off, 1 + len);
-                    return pos + len;
-                }
-                // fixarray 0x90..0x9f
-                if (tag >= 0x90 && tag <= 0x9f) {
-                    put(tag);
-                    const count = tag & 0x0f;
-                    for (let i = 0; i < count; i++)
-                        pos = walk(pos);
-                    return pos;
-                }
-                // fixmap   0x80..0x8f
-                if (tag >= 0x80 && tag <= 0x8f) {
-                    put(tag);
-                    const count = tag & 0x0f;
-                    for (let i = 0; i < count; i++) {
-                        pos = walk(pos);
-                        pos = walk(pos);
-                    }
-                    return pos;
-                }
-                put(tag); // unknown, copy defensively
-                return pos;
-            }
-        }
-    }
-    let i = 0;
-    while (i < buf.length)
-        i = walk(i);
-    return out.subarray(0, w);
-}
-function appendVaryAcceptEncoding(reply) {
-    const current = reply.getHeader("vary");
-    const values = String(current !== null && current !== void 0 ? current : "").split(",").map(value => value.trim()).filter(Boolean);
-    if (!values.some(value => value.toLowerCase() === "accept-encoding")) {
-        reply.header("vary", [...values, "Accept-Encoding"].join(", "));
-    }
-}
-function safeCompressionLogValue(value) {
-    return String(value !== null && value !== void 0 ? value : "none").replace(/[\r\n\t]/g, " ").slice(0, 120);
-}
-fastify.addHook("onSend", (request, reply, payload) => __awaiter(void 0, void 0, void 0, function* () {
-    var _e;
-    const encodingStarted = perf_hooks_1.performance.now();
-    let encodedPayload = payload;
-    try {
-        if (reply.getHeader("content-type") === "application/x-msgpack") {
-            const packed = fixUint32Tags((0, msgpackr_1.pack)(payload));
-            const base64 = packed.toString("base64");
-            if (request.url.split("?", 1)[0].endsWith("/load")
-                && cnLoadCompressionConfig.mode !== "off") {
-                appendVaryAcceptEncoding(reply);
-                let result;
-                try {
-                    result = yield (0, cn_load_http_compression_1.compressCnLoadHttpBody)(Buffer.from(base64, "ascii"), request.headers["accept-encoding"], cnLoadCompressionConfig);
-                }
-                catch (error) {
-                    console.error("[CN-LOAD-COMPRESS] compression failed; sending identity response:", error);
-                    return encodedPayload = base64;
-                }
-                if (result.encoding) {
-                    reply.header("content-encoding", result.encoding);
-                    reply.removeHeader("content-length");
-                }
-                if (cnLoadCompressionConfig.log) {
-                    const reduction = result.originalBytes > 0
-                        ? ((1 - result.wireBytes / result.originalBytes) * 100).toFixed(1)
-                        : "0.0";
-                    console.warn(`[CN-LOAD-COMPRESS] mode=${cnLoadCompressionConfig.mode} `
-                        + `encoding=${(_e = result.encoding) !== null && _e !== void 0 ? _e : "identity"} reason=${result.reason} `
-                        + `accept=${safeCompressionLogValue(request.headers["accept-encoding"])} `
-                        + `device=${safeCompressionLogValue(request.headers.device)} `
-                        + `before=${result.originalBytes} after=${result.wireBytes} saved=${reduction}%`);
-                }
-                return encodedPayload = result.encoding ? result.body : base64;
-            }
-            return encodedPayload = base64;
-        }
-    }
-    catch (error) {
-        console.error("[CN-LOAD-COMPRESS] response serialization failed; using normal serializer:", error);
-    }
-    finally {
-        (0, request_diagnostics_1.recordResponseEncoding)(request, perf_hooks_1.performance.now() - encodingStarted, encodedPayload);
-    }
-    return payload;
-}));
+(0, cn_response_hook_1.installCnResponseEncoding)(fastify);
 function jsonParser(_, body, done) {
     try {
         done(null, JSON.parse(body));
@@ -774,17 +526,69 @@ fastify.setNotFoundHandler((request, reply) => {
 });
 const host = (_a = process.env.CN_LISTEN_HOST) !== null && _a !== void 0 ? _a : "127.0.0.1";
 const port = parseInt((_b = process.env.CN_LISTEN_PORT) !== null && _b !== void 0 ? _b : "8001");
-const receiveHistoryRetention = (0, receive_history_retention_1.createReceiveHistoryRetentionService)((0, db_1.getDb)());
+const receiveHistoryRetention = (0, receive_history_retention_1.createReceiveHistoryRetentionService)((0, db_1.getDb)(), {
+    executeTransaction: persistence_coordinator_1.runPersistenceTransaction,
+});
 const leaderboardSettlementScheduler = (0, settlement_1.createLeaderboardSettlementScheduler)();
 const dailyVmoneyMailScheduler = (0, daily_vmoney_mail_1.createDailyVmoneyMailScheduler)((0, db_1.getDb)());
 fastify.addHook("onClose", () => __awaiter(void 0, void 0, void 0, function* () {
+    // The multiplayer TCP listener is not owned by Fastify. Stop it first so
+    // no new realtime callback can enqueue a database write while the queues
+    // below are draining.
+    yield (0, multi_1.stopSessionServer)();
     yield seed_validator_1.default.close();
     dailyVmoneyMailScheduler.stop();
     leaderboardSettlementScheduler.stop();
     yield receiveHistoryRetention.stop();
     yield (0, player_party_pool_1.stopQuestNpcPartyPoolWorker)();
+    yield (0, persistence_coordinator_1.drainPersistence)();
+    yield (0, sqlite_persistence_worker_1.stopSqlitePersistenceWorker)();
+    (0, persistence_coordinator_1.configurePersistenceSqlExecutor)(null);
+    yield (0, sqlite_checkpoint_worker_1.stopSqliteCheckpointWorker)();
 }));
+// Ctrl+C and a normal service-manager stop must enter Fastify's close hooks;
+// terminating the process forcibly still bypasses every cleanup callback.
+let gracefulShutdown = null;
+const shutdownTimeoutMs = Math.max(5000, Number.parseInt((_c = process.env.GRACEFUL_SHUTDOWN_TIMEOUT_MS) !== null && _c !== void 0 ? _c : "15000", 10) || 15000);
+function requestGracefulShutdown(signal) {
+    if (gracefulShutdown)
+        return;
+    console.warn(`[SHUTDOWN] ${signal} received; draining realtime and persistence work`);
+    gracefulShutdown = (() => __awaiter(this, void 0, void 0, function* () {
+        let timeout;
+        try {
+            yield Promise.race([
+                fastify.close(),
+                new Promise((_, reject) => {
+                    timeout = setTimeout(() => reject(new Error(`graceful shutdown timed out after ${shutdownTimeoutMs}ms`)), shutdownTimeoutMs);
+                }),
+            ]);
+            console.log("[SHUTDOWN] graceful shutdown complete");
+        }
+        catch (error) {
+            process.exitCode = 1;
+            console.error(`[SHUTDOWN] graceful shutdown failed: ${error.message}`);
+        }
+        finally {
+            if (timeout)
+                clearTimeout(timeout);
+        }
+    }))();
+    void gracefulShutdown;
+}
+process.once("SIGINT", () => requestGracefulShutdown("SIGINT"));
+process.once("SIGTERM", () => requestGracefulShutdown("SIGTERM"));
+process.once("SIGBREAK", () => requestGracefulShutdown("SIGBREAK"));
 (0, player_party_pool_1.startQuestNpcPartyPoolWorker)();
+const persistenceWorkerStarted = (0, sqlite_persistence_worker_1.startSqlitePersistenceWorker)((0, db_1.getDb)().name);
+if (persistenceWorkerStarted && (0, sqlite_persistence_worker_1.isSqlitePersistenceWorkerStarted)()) {
+    (0, persistence_coordinator_1.configurePersistenceSqlExecutor)((_context, statements) => __awaiter(void 0, void 0, void 0, function* () {
+        yield (0, sqlite_persistence_worker_1.executeSqlitePersistenceCommand)({
+            operation: _context.operation,
+            statements,
+        });
+    }));
+}
 fastify.listen({ port, host }, (err, address) => {
     if (err) {
         console.error(err);
@@ -795,7 +599,8 @@ fastify.listen({ port, host }, (err, address) => {
     leaderboardSettlementScheduler.start();
     dailyVmoneyMailScheduler.start();
     // Start multi battle TCP session server
-    (0, multi_2.startSessionServer)();
+    (0, multi_1.startSessionServer)();
+    (0, sqlite_checkpoint_worker_1.startSqliteCheckpointWorker)((0, db_1.getDb)().name);
     const logDirectory = path_1.default.resolve(__dirname, "../.logs");
     (0, fs_1.mkdirSync)(logDirectory, { recursive: true });
     (0, atomic_json_file_1.writeJsonAtomicSync)(path_1.default.join(logDirectory, "cn-server-ready.json"), {

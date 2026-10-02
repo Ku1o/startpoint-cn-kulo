@@ -152,6 +152,12 @@ export enum PartyCategory {
     CARNIVAL,
     RAID,
     RUSH,
+    // Rush-event party sets are kept in their own slots so Abyss normal,
+    // Abyss EX, and Fantasy can be edited independently.  Existing values
+    // remain stable for save compatibility.
+    ABYSS_NORMAL = 5,
+    ABYSS_EX = 6,
+    FANTASY = 7,
     EVENT = RUSH
 }
 
@@ -817,6 +823,7 @@ export interface RawPlayerActiveQuest {
     event_id: number | null
     continue_count: number
     started_at_ms: number | null
+    party_slot: number | null
     quest_time_revision?: string | null
 }
 
@@ -835,5 +842,6 @@ export interface PlayerActiveQuest {
     eventId: number | null
     continueCount: number
     startedAtMs: number | null
+    partySlot?: number | null
     questTimeRevision?: string | null
 }

@@ -1,4 +1,5 @@
 import { getDb } from "../db"
+import { runPersistenceTransactionSync } from "../../lib/persistence-coordinator";
 
 export interface EncyclopediaKeywordState {
     read: boolean
@@ -57,7 +58,7 @@ export function unlockPlayerEncyclopediaKeywordsSync(
     const db = getDb()
     const ids = normalizeIds(encyclopediaIds)
 
-    return db.transaction(() => {
+    return runPersistenceTransactionSync({ domain: "player", playerId, operation: "unlock_encyclopedia_keywords" }, () => {
         const placeholders = ids.map(() => "?").join(", ")
         const existingRows = db.prepare(`
             SELECT encyclopedia_id, read
@@ -109,7 +110,7 @@ export function unlockPlayerEncyclopediaKeywordsSync(
             itemAmount: currentItemAmount - 1,
             consumedKey: true,
         }
-    })()
+    })
 }
 
 export function readPlayerEncyclopediaKeywordsSync(
@@ -124,11 +125,11 @@ export function readPlayerEncyclopediaKeywordsSync(
         WHERE player_id = ? AND encyclopedia_id = ?
     `)
 
-    db.transaction(() => {
+    runPersistenceTransactionSync({ domain: "player", playerId, operation: "read_encyclopedia_keywords" }, () => {
         for (const id of ids) {
             update.run(playerId, id)
         }
-    })()
+    })
 
     const output: EncyclopediaKeywordList = {}
     for (const id of ids) {

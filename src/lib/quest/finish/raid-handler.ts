@@ -69,8 +69,12 @@ export function handleRaidEventFinish(params: {
         round: questId
     })
 
-    let boss = getRaidEventGlobalBossSync(activeEventId)
-    let questKillCount = getRaidEventQuestKillCountSync(activeEventId, questId)
+    // A successful clear gets both values from the atomic ledger update below.
+    // Avoid reading the global state and the quest count once before entering
+    // that transaction and then reading them again inside it. Failed battles
+    // still use the read-only path because no ledger update is needed.
+    let boss: ReturnType<typeof getRaidEventGlobalBossSync>
+    let questKillCount: number
     let newDegreeIds: number[] = []
     if (questAccomplished) {
         const result = recordRaidEventClearSync({
@@ -88,6 +92,9 @@ export function handleRaidEventFinish(params: {
             `weighted=${boss.weightedKillCount}/${boss.requiredKillCount} ` +
             `hp=${boss.hpPercentage} total=${boss.totalKillCount}`,
         )
+    } else {
+        boss = getRaidEventGlobalBossSync(activeEventId)
+        questKillCount = getRaidEventQuestKillCountSync(activeEventId, questId)
     }
 
     return {

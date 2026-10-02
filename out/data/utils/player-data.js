@@ -34,6 +34,7 @@ const carnival_save_state_1 = require("../../lib/carnival-save-state");
 const content_snapshot_1 = require("../../content/runtime/content-snapshot");
 const character_awake_extension_1 = require("../../lib/character-awake-extension");
 const degree_1 = require("../domains/degree");
+const persistence_coordinator_1 = require("../../lib/persistence-coordinator");
 /**
  * Generates default player data.
  *
@@ -136,11 +137,11 @@ function getClientSerializedData(playerId, options) {
             nodeAwakeLevels[characterIdText] = characterNodeLevels;
     }
     if (linkedBoardUpdates.length > 0) {
-        (0, db_1.getDb)().transaction(() => {
+        (0, persistence_coordinator_1.runPersistenceTransactionSync)({ domain: "player", playerId, operation: "load_linked_board_repair" }, () => {
             for (const update of linkedBoardUpdates) {
                 (0, character_1.updatePlayerCharacterManaNodeAwakeLevelSync)(playerId, update.characterId, update.nodeId, update.awakeLevel);
             }
-        })();
+        });
     }
     const missionAwakeMap = new Map();
     for (const [characterId, levels] of awakeSummary.manaBoardAwakeMap) {

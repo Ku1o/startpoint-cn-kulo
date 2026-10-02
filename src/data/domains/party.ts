@@ -1,8 +1,11 @@
+import { cachedStatement } from "../../lib/cached-statement"
 import { getDb } from "../db";
 import { PartyCategory, PlayerParty, PlayerPartyGroup, RawPlayerParty, RawPlayerPartyGroup } from "../types";
 import { deserializeBoolean, serializeBoolean } from "../utils";
 import { insertMissingPartyGroupListSync } from "../../lib/party-group-persistence";
 import { gameVerboseLog } from "../../lib/game-logging";
+import { runPersistenceTransactionSync } from "../../lib/persistence-coordinator";
+import { parseGlobalPartyId } from "../../lib/special-event-parties";
 
 export interface PlayerPartyDisplaySelection {
     characterIds: (number | null)[];
@@ -58,7 +61,7 @@ export function getFirstPlayerPartyDisplaySelectionsSync(
     for (let offset = 0; offset < uniquePlayerIds.length; offset += PARTY_DISPLAY_BATCH_SIZE) {
         const batch = uniquePlayerIds.slice(offset, offset + PARTY_DISPLAY_BATCH_SIZE);
         const placeholders = batch.map(() => "?").join(", ");
-        const rows = getDb().prepare(`
+        const rows = cachedStatement(getDb(), `
             WITH ordered_parties AS (
                 SELECT player_id, character_id_1, character_id_2, character_id_3,
                     ROW_NUMBER() OVER (
@@ -123,13 +126,13 @@ export function getPlayerPartyGroupListSync(
     category: PartyCategory = PartyCategory.NORMAL
 ): Record<string, PlayerPartyGroup> {
     const db = getDb();
-    const rawPartyGroups = db.prepare(`
+    const rawPartyGroups = cachedStatement(db, `
     SELECT id, color_id, category
     FROM players_party_groups
     WHERE player_id = ? AND category = ?
     `).all(playerId, category) as RawPlayerPartyGroup[]
 
-    const rawParties = db.prepare(`
+    const rawParties = cachedStatement(db, `
     SELECT slot, name, character_id_1, character_id_2, character_id_3, unison_character_1,
         unison_character_2, unison_character_3, equipment_1, equipment_2, equipment_3,
         ability_soul_1, ability_soul_2, ability_soul_3, edited, group_id, category,
@@ -176,9 +179,62 @@ export function getPlayerPartyGroupListSync(
     return final
 }
 
+/**
+ * The player row's party_slot is the legacy home/normal-party pointer.  Event
+ * party categories reuse the same global group/slot numbers, so callers must
+ * validate this pointer against NORMAL instead of treating its numeric range
+ * as sufficient.
+ */
+export function isValidNormalPartySlotSync(playerId: number, partySlot: number): boolean {
+    const parsed = parseGlobalPartyId(partySlot)
+    if (parsed === null) return false
+    const row = cachedStatement(getDb(), `
+        SELECT 1 AS valid
+        FROM players_parties party
+        JOIN players_party_groups party_group
+            ON party_group.player_id = party.player_id
+            AND party_group.id = party.group_id
+            AND party_group.category = party.category
+        JOIN players_characters character
+            ON character.player_id = party.player_id
+            AND character.id = party.character_id_1
+        WHERE party.player_id = ? AND party.category = ?
+            AND party.group_id = ? AND party.slot = ?
+        LIMIT 1
+    `).get(playerId, PartyCategory.NORMAL, parsed.groupId, parsed.slot) as { valid: number } | undefined
+    return row?.valid === 1
+}
+
+/** Resolve a safe normal-party pointer, preferring the caller's selection. */
+export function findValidNormalPartySlotSync(
+    playerId: number,
+    preferredPartySlot?: number,
+): number | null {
+    if (preferredPartySlot !== undefined
+        && isValidNormalPartySlotSync(playerId, preferredPartySlot)) {
+        return preferredPartySlot
+    }
+    const row = cachedStatement(getDb(), `
+        SELECT party.group_id, party.slot
+        FROM players_parties party
+        JOIN players_party_groups party_group
+            ON party_group.player_id = party.player_id
+            AND party_group.id = party.group_id
+            AND party_group.category = party.category
+        JOIN players_characters character
+            ON character.player_id = party.player_id
+            AND character.id = party.character_id_1
+        WHERE party.player_id = ? AND party.category = ?
+        ORDER BY party.group_id ASC, party.slot ASC
+        LIMIT 1
+    `).get(playerId, PartyCategory.NORMAL) as { group_id: number; slot: number } | undefined
+    if (!row) return null
+    return (Number(row.group_id) - 1) * 10 + Number(row.slot)
+}
+
 function insertPlayerPartySync(playerId: number, slot: number | string, groupId: number | string, party: PlayerParty) {
     const db = getDb();
-    db.prepare(`
+    cachedStatement(db, `
     INSERT INTO players_parties (slot, name, character_id_1, character_id_2, character_id_3,
         unison_character_1, unison_character_2, unison_character_3, equipment_1, equipment_2,
         equipment_3, ability_soul_1, ability_soul_2, ability_soul_3, edited, player_id, group_id, category,
@@ -197,7 +253,7 @@ function insertPlayerPartySync(playerId: number, slot: number | string, groupId:
 
 function insertPlayerPartyGroupSync(playerId: number, groupId: number | string, group: PlayerPartyGroup) {
     const db = getDb();
-    db.prepare(`
+    cachedStatement(db, `
     INSERT INTO players_party_groups (id, color_id, player_id, category)
     VALUES (?, ?, ?, ?)
     `).run(Number(groupId), group.colorId, playerId, group.category)
@@ -209,24 +265,26 @@ function insertPlayerPartyGroupSync(playerId: number, groupId: number | string, 
 
 export function insertPlayerPartyGroupListSync(playerId: number, groups: Record<string, PlayerPartyGroup>) {
     const db = getDb();
-    db.transaction(() => {
+    runPersistenceTransactionSync({ domain: "player", playerId, operation: "insert_player_party_groups" }, () => {
         for (const [groupId, group] of Object.entries(groups)) {
             insertPlayerPartyGroupSync(playerId, groupId, group)
         }
-    })()
+    })
 }
 
 export function ensurePlayerPartyGroupListSync(
     playerId: number,
     groups: Record<string, PlayerPartyGroup>,
 ) {
-    insertMissingPartyGroupListSync(getDb(), playerId, groups)
+    runPersistenceTransactionSync({ domain: "player", playerId, operation: "ensure_player_party_groups" }, () => {
+        insertMissingPartyGroupListSync(getDb(), playerId, groups)
+    })
 }
 
 export function updatePlayerPartySync(playerId: number, slot: number, party: PlayerParty, groupId: number = 1) {
     const db = getDb();
     // Upsert: try update first, insert if not exists
-    const result = db.prepare(`
+    const result = cachedStatement(db, `
     UPDATE players_parties SET name = ?, character_id_1 = ?, character_id_2 = ?, character_id_3 = ?,
         unison_character_1 = ?, unison_character_2 = ?, unison_character_3 = ?,
         equipment_1 = ?, equipment_2 = ?, equipment_3 = ?,
@@ -246,10 +304,10 @@ export function updatePlayerPartySync(playerId: number, slot: number, party: Pla
     if (result.changes === 0) {
         gameVerboseLog(() => `[PARTY-DB] insert: player=${playerId} group=${groupId} slot=${slot} name="${party.name}" chars=${party.characterIds.filter(Boolean).length}`)
         // Ensure group exists
-        const groupExists = db.prepare('SELECT id FROM players_party_groups WHERE id = ? AND player_id = ? AND category = ?').get(groupId, playerId, party.category)
+        const groupExists = cachedStatement(db, 'SELECT id FROM players_party_groups WHERE id = ? AND player_id = ? AND category = ?').get(groupId, playerId, party.category)
         if (!groupExists) {
                 gameVerboseLog(() => `[PARTY-DB] new group: player=${playerId} id=${groupId}`)
-                    db.prepare('INSERT INTO players_party_groups (id, color_id, player_id, category) VALUES (?, ?, ?, ?)').run(groupId, 15, playerId, party.category)
+                    cachedStatement(db, 'INSERT INTO players_party_groups (id, color_id, player_id, category) VALUES (?, ?, ?, ?)').run(groupId, 15, playerId, party.category)
         }
         insertPlayerPartySync(playerId, slot, groupId, party)
     } else {
@@ -262,7 +320,7 @@ export function updatePlayerPartyGroupSync(
     category: PartyCategory = PartyCategory.NORMAL
 ) {
     const db = getDb();
-    db.prepare(`
+    cachedStatement(db, `
     UPDATE players_party_groups SET color_id = ?
     WHERE id = ? AND player_id = ? AND category = ?
     `).run(colorId, groupId, playerId, category)
@@ -277,7 +335,7 @@ export function countAbilitySoulUsedInPartiesSync(
     abilitySoulId: number
 ): number {
     const db = getDb()
-    const row = db.prepare(`
+    const row = cachedStatement(db, `
     SELECT COUNT(*) AS cnt FROM players_parties
     WHERE player_id = ?
     AND (ability_soul_1 = ? OR ability_soul_2 = ? OR ability_soul_3 = ?)
@@ -287,7 +345,7 @@ export function countAbilitySoulUsedInPartiesSync(
 
 /** Counts occupied ability-soul slots, used as a conservative historical floor. */
 export function countEquippedAbilitySoulSlotsSync(playerId: number): number {
-    const row = getDb().prepare(`
+    const row = cachedStatement(getDb(), `
     SELECT
         SUM(CASE WHEN ability_soul_1 IS NOT NULL THEN 1 ELSE 0 END)
         + SUM(CASE WHEN ability_soul_2 IS NOT NULL THEN 1 ELSE 0 END)

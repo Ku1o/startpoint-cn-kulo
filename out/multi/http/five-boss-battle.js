@@ -13,7 +13,10 @@ exports.handleFiveBossAbort = exports.handleFiveBossFinish = exports.handleFiveB
 const quest_active_1 = require("../../data/domains/quest_active");
 const fiveBossGauntletRun_1 = require("../../data/domains/fiveBossGauntletRun");
 const item_1 = require("../../data/domains/item");
+const equipment_1 = require("../../data/domains/equipment");
 const player_1 = require("../../data/domains/player");
+const party_1 = require("../../data/domains/party");
+const equipment_2 = require("../../lib/equipment");
 const utils_1 = require("../../utils");
 const singleBattleQuest_1 = require("../../routes/api/singleBattleQuest");
 const manager_1 = require("../room/manager");
@@ -26,6 +29,7 @@ const db_1 = require("../../data/db");
 const settlement_performance_1 = require("../../lib/settlement-performance");
 const coalesced_diagnostics_1 = require("../../lib/coalesced-diagnostics");
 const connection_diagnostic_1 = require("../five-boss/connection-diagnostic");
+const persistence_coordinator_1 = require("../../lib/persistence-coordinator");
 /** Small structured evidence, without logging tokens, party data or the full request. */
 function logFiveBossRequestFailure(operation, body, playerId, error) {
     const code = error === null || error === void 0 ? void 0 : error.code;
@@ -199,6 +203,29 @@ function finishItemList(result, playerId) {
         ];
     }));
 }
+/** 旧 receipt 在武器掉落字段加入前已经落盘；缺失时按当年无武器处理。 */
+function receiptGrantedEquipment(result) {
+    if (result.kind !== "success")
+        return [];
+    const granted = result.reward.grantedEquipment;
+    return Array.isArray(granted) ? granted : [];
+}
+/** 按 receipt 的命中顺序去重，回读当前持有状态，保证重放不重复发放。 */
+function finishEquipmentList(result, playerId) {
+    if (result.kind !== "success")
+        return [];
+    const seen = new Set();
+    const list = [];
+    for (const equipmentId of receiptGrantedEquipment(result)) {
+        if (seen.has(equipmentId))
+            continue;
+        seen.add(equipmentId);
+        const owned = (0, equipment_1.getPlayerEquipmentSync)(playerId, equipmentId);
+        if (owned)
+            list.push((0, equipment_2.clientSerializeEquipment)(equipmentId, owned));
+    }
+    return list;
+}
 function buildFinishData(player, body, result, dataHeaders, matePlayerResult, followInfo, exp) {
     var _a, _b, _c, _d;
     return {
@@ -234,10 +261,13 @@ function buildFinishData(player, body, result, dataHeaders, matePlayerResult, fo
         drop_score_reward_ids: [],
         drop_rare_reward_ids: [],
         drop_additional_reward_ids: result.kind === "success"
-            ? (0, rewards_1.buildFiveBossAdditionalRewardDrops)(result.reward.grantedItems)
+            ? [
+                ...(0, rewards_1.buildFiveBossAdditionalRewardDrops)(result.reward.grantedItems),
+                ...(0, rewards_1.buildFiveBossWeaponAdditionalRewardDrops)(receiptGrantedEquipment(result)),
+            ]
             : [],
         drop_periodic_reward_ids: [],
-        equipment_list: [],
+        equipment_list: finishEquipmentList(result, player.id),
         category_id: body.category,
         start_time: dataHeaders.servertime,
         is_multi: "multi",
@@ -252,64 +282,73 @@ function buildFinishData(player, body, result, dataHeaders, matePlayerResult, fo
     };
 }
 function handleFiveBossStart(body, playerId, reply) {
-    var _a;
-    const room = (0, manager_1.getRoom)(body.room_number);
-    if (!room) {
-        return reply.status(400).send({
-            error: "Bad Request",
-            message: "Room doesn't exist.",
-        });
-    }
-    // 五重决战不消耗、不结算任何强化点:客户端在"降临讨伐"页签建房时会按官方 boss 战
-    // 习惯默认勾上领主强化点(use_boss_boost_point=true),真机实测直接被 runtime 的
-    // boost_not_allowed 拒成 H400 进不了战斗(2026-09-04)。这里把两个开关一律当 false
-    // 交给 runtime(冻结契约不变:runtime 仍只接受 false),只留一行日志说明被忽略。
-    if (body.use_boost_point === true || body.use_boss_boost_point === true) {
-        console.log(`[MULTI] five-boss start: ignoring client boost flags`
-            + ` viewer=${body.viewer_id} room=${body.room_number}`
-            + ` boost=${body.use_boost_point}/${body.use_boss_boost_point}`);
-    }
-    const previousMemory = singleBattleQuest_1.activeQuests[playerId];
-    let result;
-    try {
-        result = (0, db_1.getDb)().transaction(() => {
-            abandonStaleFiveBossRun(body, playerId);
-            return (0, battle_runtime_1.startFiveBossBattle)({
-                playerId,
-                clientPlayId: body.play_id,
-                room,
-                requestRoomNumber: body.room_number,
-                requestCategory: body.category,
-                requestQuestId: body.quest_id,
-                useBoostPoint: false,
-                useBossBoostPoint: false,
-                httpIsAutoStartMode: body.is_auto_start_mode,
-                matePlayerIds: body.mate_player_ids,
-                mateComIds: room.mates.map(mate => mate.com_id),
+    return __awaiter(this, void 0, void 0, function* () {
+        var _a;
+        const room = (0, manager_1.getRoom)(body.room_number);
+        if (!room) {
+            return reply.status(400).send({
+                error: "Bad Request",
+                message: "Room doesn't exist.",
             });
-        }).immediate();
-    }
-    catch (error) {
-        if (previousMemory)
-            singleBattleQuest_1.activeQuests[playerId] = previousMemory;
-        else
-            delete singleBattleQuest_1.activeQuests[playerId];
-        throw error;
-    }
-    singleBattleQuest_1.activeQuests[playerId] = result.activeQuest;
-    connection_diagnostic_1.fiveBossConnectionDiagnostics.begin(room);
-    connection_diagnostic_1.fiveBossConnectionDiagnostics.memberEvent(result.runId, playerId, "http_start", result.startStatus);
-    (0, player_1.updatePlayerSync)({ id: playerId, partySlot: body.party_id });
-    const player = requirePlayer(playerId);
-    reply.header("content-type", "application/x-msgpack");
-    return reply.status(200).send({
-        data_headers: (0, utils_1.generateDataHeaders)({ viewer_id: body.viewer_id }),
-        data: {
-            is_multi: "multi",
-            play_id: body.play_id,
-            user_info: { stamina: player.stamina, stamina_heal_time: (0, utils_1.realToVirtual)(player.staminaHealTime) },
-            item_list: { [contract_1.FIVE_BOSS_GAUNTLET.ticketItemId]: (_a = (0, item_1.getPlayerItemSync)(playerId, contract_1.FIVE_BOSS_GAUNTLET.ticketItemId)) !== null && _a !== void 0 ? _a : 0 },
-        },
+        }
+        // 五重决战不消耗、不结算任何强化点:客户端在"降临讨伐"页签建房时会按官方 boss 战
+        // 习惯默认勾上领主强化点(use_boss_boost_point=true),真机实测直接被 runtime 的
+        // boost_not_allowed 拒成 H400 进不了战斗(2026-09-04)。这里把两个开关一律当 false
+        // 交给 runtime(冻结契约不变:runtime 仍只接受 false),只留一行日志说明被忽略。
+        if (body.use_boost_point === true || body.use_boss_boost_point === true) {
+            console.log(`[MULTI] five-boss start: ignoring client boost flags`
+                + ` viewer=${body.viewer_id} room=${body.room_number}`
+                + ` boost=${body.use_boost_point}/${body.use_boss_boost_point}`);
+        }
+        const previousMemory = singleBattleQuest_1.activeQuests[playerId];
+        let result;
+        try {
+            result = yield (0, persistence_coordinator_1.runPersistenceTransaction)({
+                domain: "multi-settlement", playerId, operation: "five_boss_start",
+            }, () => {
+                abandonStaleFiveBossRun(body, playerId);
+                const result = (0, battle_runtime_1.startFiveBossBattle)({
+                    playerId,
+                    clientPlayId: body.play_id,
+                    room,
+                    requestRoomNumber: body.room_number,
+                    requestCategory: body.category,
+                    requestQuestId: body.quest_id,
+                    useBoostPoint: false,
+                    useBossBoostPoint: false,
+                    httpIsAutoStartMode: body.is_auto_start_mode,
+                    matePlayerIds: body.mate_player_ids,
+                    mateComIds: room.mates.map(mate => mate.com_id),
+                });
+                // Keep the selected party update inside the same persistence owner as
+                // the run ledger and active quest writes.
+                if ((0, party_1.isValidNormalPartySlotSync)(playerId, body.party_id)) {
+                    (0, player_1.updatePlayerSync)({ id: playerId, partySlot: body.party_id });
+                }
+                return result;
+            });
+        }
+        catch (error) {
+            if (previousMemory)
+                singleBattleQuest_1.activeQuests[playerId] = previousMemory;
+            else
+                delete singleBattleQuest_1.activeQuests[playerId];
+            throw error;
+        }
+        singleBattleQuest_1.activeQuests[playerId] = result.activeQuest;
+        connection_diagnostic_1.fiveBossConnectionDiagnostics.begin(room);
+        connection_diagnostic_1.fiveBossConnectionDiagnostics.memberEvent(result.runId, playerId, "http_start", result.startStatus);
+        const player = requirePlayer(playerId);
+        reply.header("content-type", "application/x-msgpack");
+        return reply.status(200).send({
+            data_headers: (0, utils_1.generateDataHeaders)({ viewer_id: body.viewer_id }),
+            data: {
+                is_multi: "multi",
+                play_id: body.play_id,
+                user_info: { stamina: player.stamina, stamina_heal_time: (0, utils_1.realToVirtual)(player.staminaHealTime) },
+                item_list: { [contract_1.FIVE_BOSS_GAUNTLET.ticketItemId]: (_a = (0, item_1.getPlayerItemSync)(playerId, contract_1.FIVE_BOSS_GAUNTLET.ticketItemId)) !== null && _a !== void 0 ? _a : 0 },
+            },
+        });
     });
 }
 exports.handleFiveBossStart = handleFiveBossStart;
@@ -322,17 +361,19 @@ function handleFiveBossFinish(body, playerId, reply, buildFollowInfo) {
             connection_diagnostic_1.fiveBossConnectionDiagnostics.memberEvent(boundRun.runId, playerId, "http_finish", body.is_accomplished === true ? "success_requested" : "failure_requested");
         const roomNumber = resolveFiveBossRoomNumber(body.room_number, playerId, body.play_id, boundRun);
         const party = (_b = (_a = body.statistics) === null || _a === void 0 ? void 0 : _a.party) !== null && _b !== void 0 ? _b : (_c = body.quest_statistics) === null || _c === void 0 ? void 0 : _c.party;
-        if (body.is_accomplished === true && (0, contract_1.isFiveBossGauntletQuest)(body.category, body.quest_id)
-            && (boundRun === null || boundRun === void 0 ? void 0 : boundRun.roomNumber) === roomNumber) {
-            const backfill = (0, fiveBossGauntletRun_1.backfillMissingFinalizeSync)({ playerId, clientPlayId: body.play_id });
-            if (backfill.backfilled) {
-                connection_diagnostic_1.fiveBossConnectionDiagnostics.memberEvent(boundRun.runId, playerId, "finalize_recorded", "http_backfill");
-                console.warn(`[MULTI] five-boss finish: finalize signal never reached the battle channel;`
-                    + ` backfilled from HTTP finish player=${playerId} run=${backfill.runId} room=${backfill.roomNumber}`);
-            }
-        }
-        const result = (0, settlement_performance_1.measureSettlementPhase)("multi", "five_boss_settlement", () => {
+        const result = yield (0, settlement_performance_1.measureSettlementPhaseAsync)("multi", "five_boss_settlement", () => (0, persistence_coordinator_1.runPersistenceTransaction)({
+            domain: "multi-settlement", playerId, operation: "five_boss_finish",
+        }, () => {
             var _a, _b, _c, _d, _e, _f;
+            if (body.is_accomplished === true && (0, contract_1.isFiveBossGauntletQuest)(body.category, body.quest_id)
+                && (boundRun === null || boundRun === void 0 ? void 0 : boundRun.roomNumber) === roomNumber) {
+                const backfill = (0, fiveBossGauntletRun_1.backfillMissingFinalizeSync)({ playerId, clientPlayId: body.play_id });
+                if (backfill.backfilled) {
+                    connection_diagnostic_1.fiveBossConnectionDiagnostics.memberEvent(boundRun.runId, playerId, "finalize_recorded", "http_backfill");
+                    console.warn(`[MULTI] five-boss finish: finalize signal never reached the battle channel;`
+                        + ` backfilled from HTTP finish player=${playerId} run=${backfill.runId} room=${backfill.roomNumber}`);
+                }
+            }
             return (0, battle_runtime_1.finishFiveBossBattle)({
                 playerId,
                 clientPlayId: body.play_id,
@@ -344,7 +385,7 @@ function handleFiveBossFinish(body, playerId, reply, buildFollowInfo) {
                 highScore: (_c = body.score) !== null && _c !== void 0 ? _c : 0,
                 leaderCharacterId: (_f = (_e = (_d = party === null || party === void 0 ? void 0 : party.characters) === null || _d === void 0 ? void 0 : _d[0]) === null || _e === void 0 ? void 0 : _e.id) !== null && _f !== void 0 ? _f : null,
             });
-        });
+        }));
         clearMatchingMemoryActive(playerId, body.play_id);
         terminalRoomTransition(roomNumber, result.runId, result.runStatus);
         const matePlayerResult = (_d = body.mate_player_result) !== null && _d !== void 0 ? _d : [];
@@ -364,32 +405,36 @@ function handleFiveBossFinish(body, playerId, reply, buildFollowInfo) {
 }
 exports.handleFiveBossFinish = handleFiveBossFinish;
 function handleFiveBossAbort(body, playerId, reply) {
-    const roomNumber = resolveFiveBossRoomNumber(body.room_number, playerId, body.play_id);
-    const result = (0, battle_runtime_1.abortFiveBossBattle)({
-        playerId,
-        clientPlayId: body.play_id,
-        requestRoomNumber: roomNumber,
-        requestCategory: body.category,
-        requestQuestId: body.quest_id,
-    });
-    clearMatchingMemoryActive(playerId, body.play_id);
-    terminalRoomTransition(roomNumber, result.runId, result.runStatus);
-    const headers = (0, utils_1.generateDataHeaders)({ viewer_id: body.viewer_id });
-    reply.header("content-type", "application/x-msgpack");
-    return reply.status(200).send({
-        data_headers: headers,
-        data: {
-            user_info: {},
-            category_id: body.category,
-            is_multi: "multi",
-            start_time: headers.servertime,
-            quest_name: "",
-            aborted_play_id: null,
-            unfinished_play_id: null,
-            drawn_quest: null,
-            party_info: null,
-            presigned_url: null,
-        },
+    return __awaiter(this, void 0, void 0, function* () {
+        const roomNumber = resolveFiveBossRoomNumber(body.room_number, playerId, body.play_id);
+        const result = yield (0, persistence_coordinator_1.runPersistenceTransaction)({
+            domain: "multi-settlement", playerId, operation: "five_boss_abort",
+        }, () => (0, battle_runtime_1.abortFiveBossBattle)({
+            playerId,
+            clientPlayId: body.play_id,
+            requestRoomNumber: roomNumber,
+            requestCategory: body.category,
+            requestQuestId: body.quest_id,
+        }));
+        clearMatchingMemoryActive(playerId, body.play_id);
+        terminalRoomTransition(roomNumber, result.runId, result.runStatus);
+        const headers = (0, utils_1.generateDataHeaders)({ viewer_id: body.viewer_id });
+        reply.header("content-type", "application/x-msgpack");
+        return reply.status(200).send({
+            data_headers: headers,
+            data: {
+                user_info: {},
+                category_id: body.category,
+                is_multi: "multi",
+                start_time: headers.servertime,
+                quest_name: "",
+                aborted_play_id: null,
+                unfinished_play_id: null,
+                drawn_quest: null,
+                party_info: null,
+                presigned_url: null,
+            },
+        });
     });
 }
 exports.handleFiveBossAbort = handleFiveBossAbort;

@@ -1,3 +1,4 @@
+import { cachedStatement } from "../cached-statement"
 // Periodic snapshot — stores counter baselines for daily/weekly mission reset
 
 import { getDb } from "../../data/db"
@@ -67,7 +68,7 @@ export function initializePeriodicMissionSnapshots(
 }
 
 export function takeSnapshot(playerId: number, periodType: string, data: SnapshotData): void {
-    getDb().prepare(`
+    cachedStatement(getDb(), `
     INSERT OR REPLACE INTO players_periodic_snapshots
         (player_id, period_type, quest_clears, stamina_used, rank_ss, rank_s, rank_a, rank_b,
          single_play_count, single_clear_count, multi_play_count, multi_clear_count,
@@ -86,7 +87,7 @@ export function takeSnapshot(playerId: number, periodType: string, data: Snapsho
 }
 
 export function getSnapshot(playerId: number, periodType: string): SnapshotData | null {
-    const row = getDb().prepare(`
+    const row = cachedStatement(getDb(), `
     SELECT quest_clears, stamina_used, rank_ss, rank_s, rank_a, rank_b,
            single_play_count, single_clear_count, multi_play_count, multi_clear_count,
            multi_host_clear_count, multi_guest_clear_count, dash_count, power_flip_count,

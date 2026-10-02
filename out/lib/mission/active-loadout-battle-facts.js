@@ -205,12 +205,12 @@ function resolveRepository() {
 }
 function resolveDefinitions(repository) {
     if (!repository)
-        return (0, active_master_data_1.getActiveMissionMasterDefinitions)();
+        return (0, active_master_data_1.getActiveMissionMasterDefinitionsByPatterns)([89, 90, 91]);
     try {
-        return (0, active_master_data_1.getActiveMissionMasterDefinitions)(repository);
+        return (0, active_master_data_1.getActiveMissionMasterDefinitionsByPatterns)([89, 90, 91], repository);
     }
     catch (_a) {
-        return (0, active_master_data_1.getActiveMissionMasterDefinitions)();
+        return (0, active_master_data_1.getActiveMissionMasterDefinitionsByPatterns)([89, 90, 91]);
     }
 }
 function recordActiveMissionLoadoutBattleFactsSync(context) {

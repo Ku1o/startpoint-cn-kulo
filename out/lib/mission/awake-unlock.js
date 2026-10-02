@@ -4,12 +4,12 @@ exports.reconcileAwakeUnlocks = exports.reconcileAwakeUnlocksFromProgress = void
 const character_awake_1 = require("../../data/domains/character_awake");
 const request_diagnostics_1 = require("../request-diagnostics");
 const character_1 = require("../../data/domains/character");
-const db_1 = require("../../data/db");
 const character_queries_1 = require("./character-queries");
 const registry_1 = require("./registry");
 const rewards_1 = require("./rewards");
 const stages_1 = require("./stages");
 const utils_1 = require("../../utils");
+const persistence_coordinator_1 = require("../persistence-coordinator");
 function reconcileAwakeUnlocksFromProgress(playerId, progressList, persistedUnlocks = (0, character_awake_1.getPlayerCharacterAwakeUnlocksSync)(playerId)) {
     const changed = new Map();
     const missing = progressList.flatMap(entry => {
@@ -25,7 +25,9 @@ function reconcileAwakeUnlocksFromProgress(playerId, progressList, persistedUnlo
     if (missing.length === 0)
         return { all: persistedUnlocks, changed };
     const ownedIds = (0, character_awake_1.getOwnedAwakeCharacterIdsSync)(playerId, missing.map(reward => reward.characterId));
-    (0, db_1.getDb)().transaction(() => {
+    (0, persistence_coordinator_1.runPersistenceTransactionSync)({
+        domain: "mission", playerId, operation: "reconcile_awake_unlocks",
+    }, () => {
         var _a, _b;
         for (const reward of missing) {
             if (!ownedIds.has(reward.characterId)) {
@@ -39,7 +41,7 @@ function reconcileAwakeUnlocksFromProgress(playerId, progressList, persistedUnlo
             levels[reward.boardIndex] = Math.max((_b = levels[reward.boardIndex]) !== null && _b !== void 0 ? _b : 0, reward.awakeLevel);
             changed.set(characterId, levels);
         }
-    })();
+    });
     return {
         all: (0, character_awake_1.getPlayerCharacterAwakeUnlocksSync)(playerId),
         changed,

@@ -36,6 +36,9 @@ import { refreshPlayerAbyssTowersSync } from "../../data/domains/abyss-tower-pro
 import { hijackUnavailableReply } from "../../lib/http-reply";
 import { ensureDailyVmoneyMailForPlayerSync } from "../../lib/daily-vmoney-mail";
 import { getNewsDeliveryState, getNewsInterruptFlag } from "../../lib/news-delivery";
+import { performance } from "node:perf_hooks";
+import { recordServerWork } from "../../lib/server-work-performance";
+import { runPersistenceTransaction } from "../../lib/persistence-coordinator";
 
 interface CnLoadBody {
     device_id: number;
@@ -125,10 +128,17 @@ function wrapOptionFields(d: any, playerId: number, resVer?: string) {
 const routes = async (fastify: FastifyInstance) => {
     fastify.post("/load", async (request: FastifyRequest, reply: FastifyReply) => {
         try {
+        let phaseStartedAt = performance.now()
+        const markLoadPhase = (phase: "load.session" | "load.player" | "load.maintenance" | "load.snapshot" | "load.reconcile" | "load.serialize" | "load.active") => {
+            const now = performance.now()
+            recordServerWork(phase, now - phaseStartedAt)
+            phaseStartedAt = now
+        }
         const body = request.body as CnLoadBody;
         const viewerId = body.viewer_id || body.keychain;
 
         const session = await getSession(String(viewerId));
+        markLoadPhase("load.session")
         if (!session || session.type !== 2) {
             reply.type("application/x-msgpack")
             return reply.send({ data_headers: generateDataHeaders({ result_code: 516 }), data: {} })
@@ -145,19 +155,25 @@ const routes = async (fastify: FastifyInstance) => {
         }
 
         const now = getServerDate();
-        ensureDailyVmoneyMailForPlayerSync(playerId, now.getTime());
-        dailyResetPlayerDataSync(player, now);
-        collectPlayerDataPooledExpSync(player, now);
+        await runPersistenceTransaction({
+            domain: "player", playerId, operation: "load_maintenance",
+        }, () => {
+            ensureDailyVmoneyMailForPlayerSync(playerId, now.getTime());
+            dailyResetPlayerDataSync(player, now);
+            collectPlayerDataPooledExpSync(player, now);
+
+            // Keep the login timestamp with the same player-owned transaction
+            // as the other load maintenance writes.
+            if (now.toDateString() !== player.lastLoginTime.toDateString()) {
+                updatePlayerSync({ id: player.id, lastLoginTime: now });
+            }
+        });
+        markLoadPhase("load.maintenance")
 
         // Equipment is needed by both validation and serialization. Validators
         // mutate this request-local object when they repair a row.
         const equipmentList = getPlayerEquipmentListSync(playerId)
         runPermanentValidators(playerId, { player, equipmentList });
-
-        // 若自定义时间与 lastLogin 不同步，强制对齐（防止客户端弹"日期变了"）
-        if (now.toDateString() !== player.lastLoginTime.toDateString()) {
-            updatePlayerSync({ id: player.id, lastLoginTime: now });
-        }
 
         // Daily reset and pooled EXP collection may update the base row. Read
         // it once after those mutations, then reuse the fresh snapshot through
@@ -166,11 +182,13 @@ const routes = async (fastify: FastifyInstance) => {
         if (currentPlayer === null) {
             return reply.status(500).send({ error: "Internal Server Error", message: "No player data." });
         }
+        markLoadPhase("load.player")
 
         const characterList = getPlayerCharactersSync(playerId)
         const characterManaNodeList = getPlayerCharactersManaNodesSync(playerId)
         const partyGroupList = getPlayerPartyGroupListSync(playerId)
         const questProgress = getPlayerQuestProgressSync(playerId)
+        markLoadPhase("load.snapshot")
 
         reconcileActiveMissionFacts({
             playerId,
@@ -214,6 +232,7 @@ const routes = async (fastify: FastifyInstance) => {
             || repairedGauntletCompletions.length > 0
             ? getPlayerQuestProgressSync(playerId)
             : questProgress
+        markLoadPhase("load.reconcile")
         // Include Rush state in the initial payload so the legacy client can
         // evaluate cross-event clear conditions on a cold visit. Optional
         // saved party slots are normalized to null before packing (rather than
@@ -238,6 +257,7 @@ const routes = async (fastify: FastifyInstance) => {
         wrapOptionFields(clientData, playerId, resVer);
         const newsDelivery = getNewsDeliveryState(accountId, now);
         clientData.has_unread_news_item = newsDelivery.hasUnreadNews;
+        markLoadPhase("load.serialize")
 
         // Inject unfinished quest lists for battle recovery
         const activeQuest = getPlayerActiveQuestSync(playerId);
@@ -286,6 +306,7 @@ const routes = async (fastify: FastifyInstance) => {
             clientData.unfinished_quest_list = [];
             clientData.unfinished_multi_quest_list = [];
         }
+        markLoadPhase("load.active")
 
         reply.header("content-type", "application/x-msgpack");
         return reply.status(200).send({

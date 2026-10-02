@@ -9,12 +9,11 @@
 This folder currently contains configuration files for:
 
 - Nginx reverse proxy configuration
-- SSL self-signed certificate and key generation script (for POSIX shell (Linux/Unix/Mac) and Windows) (requires installing OpenSSL)
-  - Automatic certificate installation for Linux systems, to the paths the nginx file expects
-- dnsmasq DNS redirection
-- systemd service file
-- Installation script
-- Utilities shell script file, to be imported by other scripts for extra functions
+- SSL self-signed certificate and key generation scripts for POSIX shells and Windows (requires OpenSSL)
+- Development-container setup
+- Environment setup utilities used by the supported startup scripts
+
+The former Linux-only installer, systemd unit, and dnsmasq configuration are no longer part of this repository. The remaining POSIX helpers are kept because the project startup path still supports POSIX environments such as macOS and WSL.
 
 Ensure you have the required dependencies for the scripts you want to run. Note that npm must be run on the target system to build dependencies. Running build tasks on another system and copying the output over may not work.
 

@@ -7,6 +7,14 @@ const fs = require("node:fs")
 const { pack, unpack } = require("msgpackr")
 const os = require("node:os")
 const path = require("node:path")
+// Own the room manager's import-time timer, which /load pulls in transitively.
+const setIntervalOriginal = global.setInterval
+const roomTimers = []
+global.setInterval = (callback, ...args) => {
+    const timer = setIntervalOriginal(callback, ...args)
+    if (callback.name === "cleanExpiredRooms") roomTimers.push(timer)
+    return timer
+}
 
 const reconciliationPath = path.resolve(
     __dirname,
@@ -29,6 +37,8 @@ let restoreSnapshot = () => {}
 let restoreTime = () => {}
 
 function cleanup() {
+    global.setInterval = setIntervalOriginal
+    roomTimers.forEach(clearInterval)
     if (db?.open) db.close()
     restoreSnapshot()
     restoreTime()

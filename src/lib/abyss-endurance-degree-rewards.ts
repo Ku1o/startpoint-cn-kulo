@@ -11,6 +11,7 @@ import {
 import { compareVersion, getPatchManifest } from "./version"
 import { QuestCategory } from "./types"
 import type { LeaderboardQuestIdentity } from "./leaderboard/service"
+import { runPersistenceTransactionSync } from "./persistence-coordinator"
 
 export const ABYSS_ENDURANCE_CONFIG_PATH = path.resolve(__dirname, "..", "..", "assets", "abyss_endurance_degree_reward.json")
 const REWARDS = Object.freeze([
@@ -66,7 +67,9 @@ export function startAbyssEnduranceQuestSync(playerId: number, quest: Leaderboar
     if (!mode || !validQuest(quest) || !Number.isSafeInteger(startedAtMs) || startedAtMs < 0) return
     const tower = revision(mode)
     if (tower === null) return
-    getDb().transaction(() => {
+    runPersistenceTransactionSync({
+        domain: "event", playerId, operation: "start_abyss_endurance_quest",
+    }, () => {
         const competitionKey = key(mode)
         const season = getLeaderboardSeasonSync(competitionKey, startedAtMs, tower)
         const active = getActiveLeaderboardRunSync(playerId, competitionKey)
@@ -81,7 +84,7 @@ export function startAbyssEnduranceQuestSync(playerId: number, quest: Leaderboar
         insertLeaderboardRunSync({ competitionKey, playerId, playerName: player.name, season,
             startedAtMs, totalRounds: 30, trackedFromRound: quest.round!,
             pendingRound: quest.round!, pendingQuestId: quest.questId })
-    })()
+    })
 }
 
 function grantCompletedRun(playerId: number, run: LeaderboardRun, acquiredAt: number): number[] {
@@ -109,14 +112,16 @@ export function finishAbyssEnduranceQuestSync(input: {
         || input.clientBattleMs > 2_147_483_647) return []
     const tower = revision(mode)
     if (tower === null) return []
-    return getDb().transaction(() => {
+    return runPersistenceTransactionSync({
+        domain: "event", playerId: input.playerId, operation: "finish_abyss_endurance_quest",
+    }, () => {
         const season = getLeaderboardSeasonSync(key(mode), finishedAtMs, tower)
         const run = getActiveLeaderboardRunSync(input.playerId, key(mode))
         if (!run || run.season !== season) return []
         const completed = finishLeaderboardRoundSync({ run, round: input.quest.round!,
             questId: input.quest.questId, clientBattleMs: input.clientBattleMs, finishedAtMs, party: input.party })
         return completed === null ? [] : grantCompletedRun(input.playerId, completed, finishedAtMs)
-    })()
+    })
 }
 
 export function resetAbyssEnduranceQuestSync(playerId: number,

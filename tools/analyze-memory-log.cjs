@@ -10,7 +10,9 @@ const CUMULATIVE_FIELDS = new Set(['revision', 'savedRevision', 'writeCount', 'w
     'batches', 'records', 'publishedEntries', 'fullRefreshes', 'hits', 'misses', 'evictions',
     'busyBypasses', 'perConnectionLimit', 'droppedBeforeReady', 'prepareCalls', 'prepareErrors',
     'sampledPrepareCalls', 'sampledPrepareMs', 'maxSampledPrepareMs', 'ageMs', 'pendingMs',
-    'cache_size', 'page_size', 'mmap_size', 'temp_store'])
+    'cache_size', 'page_size', 'mmap_size', 'temp_store', 'busy_timeout', 'synchronous', 'wal_autocheckpoint',
+    'executeCalls', 'executeErrors', 'busyErrors', 'sampledExecuteCalls', 'sampledExecuteMs', 'maxSampledExecuteMs',
+    'completed', 'failed', 'rejected', 'fallback', 'timeouts', 'maxPending', 'maxBytes'])
 
 class MemoryLogSummary {
     constructor() {

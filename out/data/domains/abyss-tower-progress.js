@@ -8,6 +8,7 @@ const abyss_time_revision_1 = require("../../lib/abyss-time-revision");
 const version_1 = require("../../lib/version");
 const quest_1 = require("../../lib/types/quest");
 const service_1 = require("../../lib/leaderboard/service");
+const persistence_coordinator_1 = require("../../lib/persistence-coordinator");
 /** An explicit publication marker prevents ordinary asset updates from resetting runs. */
 function getAbyssTowerResetRevision(eventId) {
     var _a, _b, _c, _d, _e, _f;
@@ -67,7 +68,7 @@ function refreshPlayerAbyssTowerSync(playerId, eventId) {
     if (revision === null)
         return false;
     const db = (0, db_1.getDb)();
-    return db.transaction(() => {
+    return (0, persistence_coordinator_1.runPersistenceTransactionSync)({ domain: "event", playerId, operation: "refresh_abyss_tower" }, () => {
         const row = db.prepare(`SELECT tower_revision FROM players_rush_events
             WHERE player_id=? AND event_id=?`).get(playerId, eventId);
         if (row === undefined || row.tower_revision === revision)
@@ -79,14 +80,14 @@ function refreshPlayerAbyssTowerSync(playerId, eventId) {
             WHERE player_id=? AND event_id=?`).run(revision, playerId, eventId);
         // Keep an old active battle's revision intact: settlement/load reject it as stale.
         return true;
-    })();
+    });
 }
 exports.refreshPlayerAbyssTowerSync = refreshPlayerAbyssTowerSync;
 function refreshPlayerAbyssTowersSync(playerId) {
-    (0, db_1.getDb)().transaction(() => {
+    (0, persistence_coordinator_1.runPersistenceTransactionSync)({ domain: "event", playerId, operation: "refresh_abyss_towers" }, () => {
         for (const eventId of abyss_modes_1.ABYSS_EVENT_IDS)
             refreshPlayerAbyssTowerSync(playerId, eventId);
-    })();
+    });
 }
 exports.refreshPlayerAbyssTowersSync = refreshPlayerAbyssTowersSync;
 function canStartAbyssQuestSync(playerId, category, questId) {

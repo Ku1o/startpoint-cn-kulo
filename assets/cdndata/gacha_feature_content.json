@@ -41574,5 +41574,35 @@
         ""
       ]
     ]
+  },
+  "990003": {
+    "1": [
+      [
+        "0",
+        "",
+        "gacha/feature_movie/cnmod_midautumn_national_2026/top/feature",
+        "",
+        "",
+        "",
+        "(None)",
+        "",
+        ""
+      ]
+    ]
+  },
+  "990004": {
+    "1": [
+      [
+        "1",
+        "dynamic/gacha_banner/cnmod_weapon_gacha",
+        "",
+        "",
+        "",
+        "",
+        "(None)",
+        "",
+        ""
+      ]
+    ]
   }
 }

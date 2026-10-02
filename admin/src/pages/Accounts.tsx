@@ -71,7 +71,6 @@ interface ImportSaveResult {
     retainedBackups?: number | null
     removedBackups?: number
     backupCleanupError?: string | null
-    legacyPartialSnapshot?: boolean
 }
 
 const REPORTED_CLEANUP_JOB_STORAGE_KEY = "admin:unnoted-account-cleanup:last-reported-job"
@@ -239,11 +238,7 @@ export default function Accounts() {
             apiUpload<ImportSaveResult>(`/api/player/save?id=${playerId}`, file),
         onSuccess: (result, { playerId }) => {
             const backup = result.backup ? `；原存档回滚备份：${result.backup}` : ""
-            if (result.legacyPartialSnapshot) {
-                message.warning(`旧版 V1 存档已导入到 #${playerId}，来源文件不包含全部新版进度${backup}`, 10)
-            } else {
-                message.success(`完整存档 V${result.snapshotVersion} 已导入到 #${playerId}${backup}`, 10)
-            }
+            message.success(`完整存档 V${result.snapshotVersion} 已导入到 #${playerId}${backup}`, 10)
             if (result.backupCleanupError) {
                 message.warning(`存档已成功导入，但旧个人回滚备份清理失败：${result.backupCleanupError}`, 10)
             }
@@ -336,17 +331,14 @@ export default function Accounts() {
         })
     }
 
-    const openImportSaveConfirmation = (player: PlayerBrief, file: File, snapshotVersion?: number) => {
-        const legacyV1 = snapshotVersion === 1
+    const openImportSaveConfirmation = (player: PlayerBrief, file: File) => {
         Modal.confirm({
-            title: legacyV1 ? `确认导入旧版 V1 到存档 #${player.id}？` : `确认覆盖存档 #${player.id}？`,
+            title: `确认覆盖存档 #${player.id}？`,
             content: (
                 <Space direction="vertical">
                     <Typography.Text>将使用“{file.name}”覆盖“{player.name}”的持久化数据。</Typography.Text>
                     <Typography.Text type="secondary">导入前会把目标玩家当前存档导出为完整 V2 个人回滚备份，不会备份整个数据库。</Typography.Text>
-                    {legacyV1 && (
-                        <Typography.Text type="danger">旧版 V1 来源文件不完整，导入结果可能缺少后来新增的任务、活动或统计进度。</Typography.Text>
-                    )}
+                    <Typography.Text type="secondary">仅接受与当前数据库结构匹配的完整 V2 存档；旧版 V1 文件会被拒绝。</Typography.Text>
                     <Typography.Text type="secondary">账号绑定、设备会话和跨玩家关系保留；未完成的战斗恢复数据会清除。</Typography.Text>
                 </Space>
             ),
@@ -364,17 +356,7 @@ export default function Accounts() {
     }
 
     const confirmImportSave = (player: PlayerBrief, file: File) => {
-        void file.text()
-            .then(text => {
-                try {
-                    const parsed = JSON.parse(text) as { version?: unknown }
-                    return typeof parsed.version === "number" ? parsed.version : undefined
-                } catch {
-                    return undefined
-                }
-            })
-            .catch(() => undefined)
-            .then(version => openImportSaveConfirmation(player, file, version))
+        openImportSaveConfirmation(player, file)
         return Upload.LIST_IGNORE
     }
 

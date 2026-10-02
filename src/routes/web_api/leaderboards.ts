@@ -20,6 +20,7 @@ import {
     isLeaderboardDeadlineDueSync,
     setLeaderboardAvailabilitySync,
 } from "../../lib/leaderboard/availability"
+import { runPersistenceTransactionSync } from "../../lib/persistence-coordinator"
 
 interface KeyParams { key: string }
 
@@ -41,7 +42,7 @@ const routes = async (fastify: FastifyInstance) => {
 
     fastify.get("/:key", async (request, reply) => {
         const key = resolveKey(request, reply)
-        if (key === null) return
+        if (key === null) return reply
         const competition = getLeaderboardCompetition(key)!
         const season = getLeaderboardCompetitionSeasonSync(key)
         const { total, filter } = getLeaderboardSeasonRewardViewSync(key, season)
@@ -65,12 +66,13 @@ const routes = async (fastify: FastifyInstance) => {
 
     fastify.patch("/:key/availability", async (request, reply) => {
         const key = resolveKey(request, reply)
-        if (key === null) return
+        if (key === null) return reply
         const body = (request.body ?? {}) as Record<string, unknown>
         if (typeof body.enabled !== "boolean") {
             return reply.status(400).send({ error: "enabled must be a boolean." })
         }
-        if (body.enabled) {
+        const enabled = body.enabled
+        if (enabled) {
             const season = getLeaderboardCompetitionSeasonSync(key)
             if (getLeaderboardSeasonRewardViewSync(key, season).settled) {
                 return reply.status(409).send({ error: "当前赛季已结算，请先换季再开启排行榜。" })
@@ -81,13 +83,15 @@ const routes = async (fastify: FastifyInstance) => {
         }
         return reply.send({
             ok: true,
-            ...setLeaderboardAvailabilitySync(key, body.enabled),
+            ...runPersistenceTransactionSync({
+                domain: "leaderboard", operation: `admin_availability:${key}`,
+            }, () => setLeaderboardAvailabilitySync(key, enabled)),
         })
     })
 
     fastify.patch("/:key/config", async (request, reply) => {
         const key = resolveKey(request, reply)
-        if (key === null) return
+        if (key === null) return reply
         const current = getLeaderboardSettlementConfigSync(key)
         const body = (request.body ?? {}) as Record<string, unknown>
         const rewardTiers = body.rewardTiers === undefined
@@ -108,23 +112,25 @@ const routes = async (fastify: FastifyInstance) => {
                 throw new Error("开启定时冻结或自动发奖时必须设置截止时间。")
             }
             validateRewardTiers(rewardTiers)
-            putLeaderboardSettlementConfigSync({
-                ...current,
-                autoEnabled,
-                freezeEnabled,
-                settleAtMs,
-                repeatIntervalMs: body.repeatIntervalMs === undefined
-                    ? current.repeatIntervalMs
-                    : body.repeatIntervalMs === null ? null : Number(body.repeatIntervalMs),
-                rewardTiers,
-                mailSubject: typeof body.mailSubject === "string"
-                    ? body.mailSubject : current.mailSubject,
-                mailBody: typeof body.mailBody === "string"
-                    ? body.mailBody : current.mailBody,
-                excludeBots: body.excludeBots === undefined
-                    ? current.excludeBots : Boolean(body.excludeBots),
-                updatedAtMs: Date.now(),
-            })
+            runPersistenceTransactionSync({
+                domain: "leaderboard", operation: `admin_config:${key}`,
+            }, () => putLeaderboardSettlementConfigSync({
+                    ...current,
+                    autoEnabled,
+                    freezeEnabled,
+                    settleAtMs,
+                    repeatIntervalMs: body.repeatIntervalMs === undefined
+                        ? current.repeatIntervalMs
+                        : body.repeatIntervalMs === null ? null : Number(body.repeatIntervalMs),
+                    rewardTiers,
+                    mailSubject: typeof body.mailSubject === "string"
+                        ? body.mailSubject : current.mailSubject,
+                    mailBody: typeof body.mailBody === "string"
+                        ? body.mailBody : current.mailBody,
+                    excludeBots: body.excludeBots === undefined
+                        ? current.excludeBots : Boolean(body.excludeBots),
+                    updatedAtMs: Date.now(),
+                }))
         } catch (error) {
             return reply.status(400).send({
                 error: error instanceof Error ? error.message : "Invalid settlement config.",
@@ -135,15 +141,19 @@ const routes = async (fastify: FastifyInstance) => {
 
     fastify.post("/:key/settle", async (request, reply) => {
         const key = resolveKey(request, reply)
-        if (key === null) return
-        const outcome = settleLeaderboardSeasonSync(key, "admin-manual")
+        if (key === null) return reply
+        const outcome = runPersistenceTransactionSync({
+            domain: "leaderboard", operation: `admin_settle:${key}`,
+        }, () => settleLeaderboardSeasonSync(key, "admin-manual"))
         return reply.status(outcome.ok ? 200 : 409).send(outcome)
     })
 
     fastify.post("/:key/rollover", async (request, reply) => {
         const key = resolveKey(request, reply)
-        if (key === null) return
-        const outcome = rolloverLeaderboardSeasonSync(key, "admin-rollover")
+        if (key === null) return reply
+        const outcome = runPersistenceTransactionSync({
+            domain: "leaderboard", operation: `admin_rollover:${key}`,
+        }, () => rolloverLeaderboardSeasonSync(key, "admin-rollover"))
         return reply.status(outcome.ok ? 200 : 409).send(outcome.ok ? outcome : {
             ...outcome,
             error: "当前赛季尚未结算，不能换季。",

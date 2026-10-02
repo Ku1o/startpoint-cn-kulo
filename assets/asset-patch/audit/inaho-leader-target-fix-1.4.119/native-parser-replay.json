@@ -1,0 +1,1219 @@
+{
+  "before": "C7050: 不存在的构造函数。",
+  "after": "pinball.common.data.ability.instant::InstantAbilityContentMasterValue.SkillGauge({'strength': {'first_max': 1500.0, 'power1': 1500.0}, 'target': pinball.common.data.ability::AbilityTargetMasterValue.Myself()},)",
+  "rows": [
+    {
+      "table": "ability",
+      "key": "1599911",
+      "row": 0,
+      "parsed": {
+        "6": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.OwnerIsMain()",
+        "13": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "20": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "27": "pinball.common.data.ability.instant::InstantAbilityTriggerMasterValue.Initial()",
+        "39": "haxe.ds::Option.None()",
+        "46": "0",
+        "47": "pinball.common.data.ability.instant::InstantAbilityContentMasterValue.SkillGauge({'strength': {'first_max': 100000.0, 'power1': 100000.0}, 'target': pinball.common.data.ability::AbilityTargetMasterValue.Party({'character_groups': haxe.ds::Option.None()},)},)"
+      }
+    },
+    {
+      "table": "ability",
+      "key": "1599911",
+      "row": 1,
+      "parsed": {
+        "6": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.OwnerIsMain()",
+        "13": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "20": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "27": "pinball.common.data.ability.instant::InstantAbilityTriggerMasterValue.Initial()",
+        "39": "haxe.ds::Option.None()",
+        "46": "0",
+        "47": "pinball.common.data.ability.instant::InstantAbilityContentMasterValue.ConditionRegeneration({'multiply_trigger': haxe.ds::Option.None(), 'initial_multiply': 1, 'by_each_trigger_puller': False, 'cancelable': 0, 'end_power_flip_accepted_levels': haxe.ds::Option.None(), 'end_power_flip_limit': haxe.ds::Option.None(), 'power_flip_limit': haxe.ds::Option.None(), 'flip_limit': haxe.ds::Option.None(), 'number': {'first_max': 100000.0, 'power1': 100000.0}, 'frame': {'first_max': 60000000.0, 'power1': 60000000.0}, 'strength': {'first_max': 10000000.0, 'power1': 10000000.0}, 'target': pinball.common.data.ability::AbilityTargetMasterValue.Party({'character_groups': haxe.ds::Option.None()},)},)"
+      }
+    },
+    {
+      "table": "ability",
+      "key": "1599911",
+      "row": 2,
+      "parsed": {
+        "6": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.OwnerIsMain()",
+        "13": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "20": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "27": "pinball.common.data.ability.instant::InstantAbilityTriggerMasterValue.Initial()",
+        "39": "haxe.ds::Option.None()",
+        "46": "0",
+        "47": "pinball.common.data.ability.instant::InstantAbilityContentMasterValue.AttackPoint({'strength': {'first_max': 150000.0, 'power1': 150000.0}, 'target': pinball.common.data.ability::AbilityTargetMasterValue.Party({'character_groups': haxe.ds::Option.None()},)},)"
+      }
+    },
+    {
+      "table": "ability",
+      "key": "1599911",
+      "row": 3,
+      "parsed": {
+        "6": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.OwnerIsMain()",
+        "13": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "20": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "27": "pinball.common.data.ability.instant::InstantAbilityTriggerMasterValue.Initial()",
+        "39": "haxe.ds::Option.None()",
+        "46": "0",
+        "47": "pinball.common.data.ability.instant::InstantAbilityContentMasterValue.ConditionSkillDamage({'multiply_trigger': haxe.ds::Option.None(), 'initial_multiply': 1, 'by_each_trigger_puller': False, 'cancelable': 0, 'end_power_flip_accepted_levels': haxe.ds::Option.None(), 'end_power_flip_limit': haxe.ds::Option.None(), 'power_flip_limit': haxe.ds::Option.None(), 'flip_limit': haxe.ds::Option.None(), 'max_accumulation': haxe.ds::Option.Some(1,), 'number': {'first_max': 100000.0, 'power1': 100000.0}, 'frame': {'first_max': 60000000.0, 'power1': 60000000.0}, 'strength': {'first_max': 50000.0, 'power1': 50000.0}, 'target': pinball.common.data.ability::AbilityTargetMasterValue.Party({'character_groups': haxe.ds::Option.Some([pinball.common.data.ability._CharacterGroupId::CharacterGroupId_Impl_._new('White',)],)},)},)"
+      }
+    },
+    {
+      "table": "ability",
+      "key": "1599911",
+      "row": 4,
+      "parsed": {
+        "6": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.OwnerIsMain()",
+        "13": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "20": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "27": "pinball.common.data.ability.instant::InstantAbilityTriggerMasterValue.SkillInvoke({'cooltime': 0, 'trigger_limit': haxe.ds::Option.Some(4,), 'threshold': {'first_max': 100000.0, 'power1': 100000.0}, 'trigger_puller': pinball.common.data.ability.instant::InstantAbilityTriggerPullerMasterValue.Myself()},)",
+        "39": "haxe.ds::Option.None()",
+        "46": "0",
+        "47": "pinball.common.data.ability.instant::InstantAbilityContentMasterValue.SkillGauge({'strength': {'first_max': 40000.0, 'power1': 40000.0}, 'target': pinball.common.data.ability::AbilityTargetMasterValue.Myself()},)"
+      }
+    },
+    {
+      "table": "ability",
+      "key": "1599911",
+      "row": 5,
+      "parsed": {
+        "6": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Member({'character_groups': [pinball.common.data.ability._CharacterGroupId::CharacterGroupId_Impl_._new('White',)], 'threshold': {'first_max': 600000.0, 'power1': 600000.0}},)",
+        "13": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.OwnerIsMain()",
+        "20": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "27": "pinball.common.data.ability.instant::InstantAbilityTriggerMasterValue.SkillInvoke({'cooltime': 0, 'trigger_limit': haxe.ds::Option.Some(3,), 'threshold': {'first_max': 100000.0, 'power1': 100000.0}, 'trigger_puller': pinball.common.data.ability.instant::InstantAbilityTriggerPullerMasterValue.Myself()},)",
+        "39": "haxe.ds::Option.None()",
+        "46": "0",
+        "47": "pinball.common.data.ability.instant::InstantAbilityContentMasterValue.SkillGauge({'strength': {'first_max': 15000.0, 'power1': 15000.0}, 'target': pinball.common.data.ability::AbilityTargetMasterValue.Party({'character_groups': haxe.ds::Option.None()},)},)"
+      }
+    },
+    {
+      "table": "ability",
+      "key": "1599911",
+      "row": 6,
+      "parsed": {
+        "6": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.OwnerIsMain()",
+        "13": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "20": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "85": "haxe.ds::Option.None()",
+        "97": "pinball.common.data.ability.during::DuringAbilityTriggerMasterValue.ConditionCountUnique({'unique_condition_id': 15999101, 'trigger_limit': haxe.ds::Option.Some(1,), 'threshold': {'first_max': 100000.0, 'power1': 100000.0}, 'trigger_puller': pinball.common.data.ability.during::DuringAbilityTriggerPullerMasterValue.Myself()},)",
+        "108": "False",
+        "109": "pinball.common.data.ability.during::CommonAbilityContentMasterValue('DashParameter', 422, [{'strength': {'first_max': -40000.0, 'power1': -40000.0}, 'unique_condition_id': 0}])"
+      }
+    },
+    {
+      "table": "ability",
+      "key": "1599911",
+      "row": 7,
+      "parsed": {
+        "6": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "13": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "20": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "27": "pinball.common.data.ability.instant::InstantAbilityTriggerMasterValue.HealCount({'cooltime': 0, 'trigger_limit': haxe.ds::Option.None(), 'threshold': {'first_max': 100000.0, 'power1': 100000.0}, 'trigger_puller': pinball.common.data.ability.instant::InstantAbilityTriggerPullerMasterValue.Myself()},)",
+        "39": "haxe.ds::Option.None()",
+        "46": "0",
+        "47": "pinball.common.data.ability.instant::InstantAbilityContentMasterValue.AddFeverPoint({'strength': {'first_max': 5000000.0, 'power1': 5000000.0}},)"
+      }
+    },
+    {
+      "table": "ability",
+      "key": "1599912",
+      "row": 0,
+      "parsed": {
+        "6": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "13": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "20": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "27": "pinball.common.data.ability.instant::InstantAbilityTriggerMasterValue.Initial()",
+        "39": "haxe.ds::Option.None()",
+        "46": "0",
+        "47": "pinball.common.data.ability.instant::InstantAbilityContentMasterValue.DirectDamage({'strength': {'first_max': 150000.0, 'power1': 150000.0}, 'target': pinball.common.data.ability::AbilityTargetMasterValue.Party({'character_groups': haxe.ds::Option.None()},)},)"
+      }
+    },
+    {
+      "table": "ability",
+      "key": "1599912",
+      "row": 1,
+      "parsed": {
+        "6": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "13": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "20": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "85": "haxe.ds::Option.None()",
+        "97": "pinball.common.data.ability.during::DuringAbilityTriggerMasterValue.Fever()",
+        "108": "False",
+        "109": "pinball.common.data.ability.during::CommonAbilityContentMasterValue.DirectAttack3({'strength': {'first_max': 100000.0, 'power1': 100000.0}, 'target': pinball.common.data.ability::AbilityTargetMasterValue.Party({'character_groups': haxe.ds::Option.None()},)},)"
+      }
+    },
+    {
+      "table": "ability",
+      "key": "1599912",
+      "row": 2,
+      "parsed": {
+        "6": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "13": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "20": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "27": "pinball.common.data.ability.instant::InstantAbilityTriggerMasterValue.MemberDirectAttack({'cooltime': 60, 'trigger_limit': haxe.ds::Option.None(), 'threshold': {'first_max': 100000.0, 'power1': 100000.0}, 'trigger_puller': pinball.common.data.ability.instant::InstantAbilityTriggerPullerMasterValue.TotalOfParty({'character_groups': haxe.ds::Option.None()},)},)",
+        "39": "haxe.ds::Option.None()",
+        "46": "0",
+        "47": "pinball.common.data.ability.instant::InstantAbilityContentMasterValue.NearestEnemyDamageByAttackWhite({'time': haxe.ds::Option.Some(1,), 'strength': {'first_max': 1500000.0, 'power1': 1500000.0}, 'target': pinball.common.data.ability::AbilityTargetMasterValue.Myself()},)"
+      }
+    },
+    {
+      "table": "ability",
+      "key": "1599912",
+      "row": 3,
+      "parsed": {
+        "6": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Member({'character_groups': [pinball.common.data.ability._CharacterGroupId::CharacterGroupId_Impl_._new('White',)], 'threshold': {'first_max': 600000.0, 'power1': 600000.0}},)",
+        "13": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Fever()",
+        "20": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "27": "pinball.common.data.ability.instant::InstantAbilityTriggerMasterValue.HealCount({'cooltime': 0, 'trigger_limit': haxe.ds::Option.Some(10,), 'threshold': {'first_max': 100000.0, 'power1': 100000.0}, 'trigger_puller': pinball.common.data.ability.instant::InstantAbilityTriggerPullerMasterValue.Myself()},)",
+        "39": "haxe.ds::Option.None()",
+        "46": "0",
+        "47": "pinball.common.data.ability.instant::InstantAbilityContentMasterValue.AttackPoint({'strength': {'first_max': 20000.0, 'power1': 20000.0}, 'target': pinball.common.data.ability::AbilityTargetMasterValue.Party({'character_groups': haxe.ds::Option.None()},)},)"
+      }
+    },
+    {
+      "table": "ability",
+      "key": "1599912",
+      "row": 4,
+      "parsed": {
+        "6": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "13": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "20": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "27": "pinball.common.data.ability.instant::InstantAbilityTriggerMasterValue.Initial()",
+        "39": "haxe.ds::Option.None()",
+        "46": "0",
+        "47": "pinball.common.data.ability.instant::InstantAbilityContentMasterValue.SeparatedTermDirectDamage({'strength': {'first_max': 100000.0, 'power1': 100000.0}, 'target': pinball.common.data.ability::AbilityTargetMasterValue.Party({'character_groups': haxe.ds::Option.None()},)},)"
+      }
+    },
+    {
+      "table": "ability",
+      "key": "1599912",
+      "row": 5,
+      "parsed": {
+        "6": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Member({'character_groups': [pinball.common.data.ability._CharacterGroupId::CharacterGroupId_Impl_._new('White',)], 'threshold': {'first_max': 600000.0, 'power1': 600000.0}},)",
+        "13": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Fever()",
+        "20": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "27": "pinball.common.data.ability.instant::InstantAbilityTriggerMasterValue.HealCount({'cooltime': 0, 'trigger_limit': haxe.ds::Option.Some(10,), 'threshold': {'first_max': 100000.0, 'power1': 100000.0}, 'trigger_puller': pinball.common.data.ability.instant::InstantAbilityTriggerPullerMasterValue.Myself()},)",
+        "39": "haxe.ds::Option.None()",
+        "46": "0",
+        "47": "pinball.common.data.ability.instant::InstantAbilityContentMasterValue.AbilityDamage({'strength': {'first_max': 30000.0, 'power1': 30000.0}, 'target': pinball.common.data.ability::AbilityTargetMasterValue.Myself()},)"
+      }
+    },
+    {
+      "table": "ability",
+      "key": "1599913",
+      "row": 0,
+      "parsed": {
+        "6": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "13": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "20": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "27": "pinball.common.data.ability.instant::InstantAbilityTriggerMasterValue.Initial()",
+        "39": "haxe.ds::Option.None()",
+        "46": "0",
+        "47": "pinball.common.data.ability.instant::InstantAbilityContentMasterValue.SkillDamage({'strength': {'first_max': 200000.0, 'power1': 200000.0}, 'target': pinball.common.data.ability::AbilityTargetMasterValue.Party({'character_groups': haxe.ds::Option.None()},)},)"
+      }
+    },
+    {
+      "table": "ability",
+      "key": "1599913",
+      "row": 1,
+      "parsed": {
+        "6": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "13": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "20": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "85": "haxe.ds::Option.None()",
+        "97": "pinball.common.data.ability.during::DuringAbilityTriggerMasterValue.Fever()",
+        "108": "False",
+        "109": "pinball.common.data.ability.during::CommonAbilityContentMasterValue.AbilityDamage({'strength': {'first_max': 500000.0, 'power1': 500000.0}, 'target': pinball.common.data.ability::AbilityTargetMasterValue.Party({'character_groups': haxe.ds::Option.None()},)},)"
+      }
+    },
+    {
+      "table": "ability",
+      "key": "1599913",
+      "row": 2,
+      "parsed": {
+        "6": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "13": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "20": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "85": "haxe.ds::Option.None()",
+        "97": "pinball.common.data.ability.during::DuringAbilityTriggerMasterValue.Fever()",
+        "108": "False",
+        "109": "pinball.common.data.ability.during::CommonAbilityContentMasterValue.SeparatedTermDamage({'strength': {'first_max': 15000.0, 'power1': 15000.0}, 'target': pinball.common.data.ability::AbilityTargetMasterValue.Party({'character_groups': haxe.ds::Option.None()},)},)"
+      }
+    },
+    {
+      "table": "ability",
+      "key": "1599913",
+      "row": 3,
+      "parsed": {
+        "6": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Member({'character_groups': [pinball.common.data.ability._CharacterGroupId::CharacterGroupId_Impl_._new('White',)], 'threshold': {'first_max': 600000.0, 'power1': 600000.0}},)",
+        "13": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Fever()",
+        "20": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "27": "pinball.common.data.ability.instant::InstantAbilityTriggerMasterValue.AbilityDamage({'cooltime': 0, 'trigger_limit': haxe.ds::Option.Some(10,), 'threshold': {'first_max': 100000.0, 'power1': 100000.0}, 'trigger_puller': pinball.common.data.ability.instant::InstantAbilityTriggerPullerMasterValue.TotalOfParty({'character_groups': haxe.ds::Option.Some([pinball.common.data.ability._CharacterGroupId::CharacterGroupId_Impl_._new('White',)],)},)},)",
+        "39": "haxe.ds::Option.None()",
+        "46": "0",
+        "47": "pinball.common.data.ability.instant::InstantAbilityContentMasterValue.DebuffSlayer({'strength': {'first_max': 3000.0, 'power1': 3000.0}, 'target': pinball.common.data.ability::AbilityTargetMasterValue.Party({'character_groups': haxe.ds::Option.None()},)},)"
+      }
+    },
+    {
+      "table": "ability",
+      "key": "1599913",
+      "row": 4,
+      "parsed": {
+        "6": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "13": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "20": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "27": "pinball.common.data.ability.instant::InstantAbilityTriggerMasterValue.SkillInvoke({'cooltime': 0, 'trigger_limit': haxe.ds::Option.Some(3,), 'threshold': {'first_max': 100000.0, 'power1': 100000.0}, 'trigger_puller': pinball.common.data.ability.instant::InstantAbilityTriggerPullerMasterValue.Myself()},)",
+        "39": "haxe.ds::Option.None()",
+        "46": "0",
+        "47": "pinball.common.data.ability.instant::InstantAbilityContentMasterValue.SkillDamage({'strength': {'first_max': 100000.0, 'power1': 100000.0}, 'target': pinball.common.data.ability::AbilityTargetMasterValue.Party({'character_groups': haxe.ds::Option.None()},)},)"
+      }
+    },
+    {
+      "table": "ability",
+      "key": "1599913",
+      "row": 5,
+      "parsed": {
+        "6": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "13": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "20": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "27": "pinball.common.data.ability.instant::InstantAbilityTriggerMasterValue.SkillInvoke({'cooltime': 0, 'trigger_limit': haxe.ds::Option.Some(2,), 'threshold': {'first_max': 100000.0, 'power1': 100000.0}, 'trigger_puller': pinball.common.data.ability.instant::InstantAbilityTriggerPullerMasterValue.Myself()},)",
+        "39": "haxe.ds::Option.None()",
+        "46": "0",
+        "47": "pinball.common.data.ability.instant::InstantAbilityContentMasterValue.AttackPoint({'strength': {'first_max': 200000.0, 'power1': 200000.0}, 'target': pinball.common.data.ability::AbilityTargetMasterValue.Myself()},)"
+      }
+    },
+    {
+      "table": "ability",
+      "key": "1599913",
+      "row": 6,
+      "parsed": {
+        "6": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "13": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "20": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "27": "pinball.common.data.ability.instant::InstantAbilityTriggerMasterValue.AbilityDamage({'cooltime': 0, 'trigger_limit': haxe.ds::Option.Some(10,), 'threshold': {'first_max': 100000.0, 'power1': 100000.0}, 'trigger_puller': pinball.common.data.ability.instant::InstantAbilityTriggerPullerMasterValue.TotalOfParty({'character_groups': haxe.ds::Option.Some([pinball.common.data.ability._CharacterGroupId::CharacterGroupId_Impl_._new('White',)],)},)},)",
+        "39": "haxe.ds::Option.None()",
+        "46": "0",
+        "47": "pinball.common.data.ability.instant::InstantAbilityContentMasterValue.AttackPoint({'strength': {'first_max': 10000.0, 'power1': 10000.0}, 'target': pinball.common.data.ability::AbilityTargetMasterValue.Party({'character_groups': haxe.ds::Option.None()},)},)"
+      }
+    },
+    {
+      "table": "ability",
+      "key": "1599913",
+      "row": 7,
+      "parsed": {
+        "6": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "13": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "20": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "27": "pinball.common.data.ability.instant::InstantAbilityTriggerMasterValue.AbilityDamage({'cooltime': 0, 'trigger_limit': haxe.ds::Option.Some(8,), 'threshold': {'first_max': 100000.0, 'power1': 100000.0}, 'trigger_puller': pinball.common.data.ability.instant::InstantAbilityTriggerPullerMasterValue.TotalOfParty({'character_groups': haxe.ds::Option.Some([pinball.common.data.ability._CharacterGroupId::CharacterGroupId_Impl_._new('White',)],)},)},)",
+        "39": "haxe.ds::Option.None()",
+        "46": "0",
+        "47": "pinball.common.data.ability.instant::InstantAbilityContentMasterValue.SeparatedTermAbilityDamage({'strength': {'first_max': 5000.0, 'power1': 5000.0}, 'target': pinball.common.data.ability::AbilityTargetMasterValue.Party({'character_groups': haxe.ds::Option.None()},)},)"
+      }
+    },
+    {
+      "table": "ability",
+      "key": "1599914",
+      "row": 0,
+      "parsed": {
+        "6": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "13": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "20": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "27": "pinball.common.data.ability.instant::InstantAbilityTriggerMasterValue.Initial()",
+        "39": "haxe.ds::Option.None()",
+        "46": "0",
+        "47": "pinball.common.data.ability.instant::InstantAbilityContentMasterValue.DebuffSlayer({'strength': {'first_max': 10000.0, 'power1': 10000.0}, 'target': pinball.common.data.ability::AbilityTargetMasterValue.Party({'character_groups': haxe.ds::Option.None()},)},)"
+      }
+    },
+    {
+      "table": "ability",
+      "key": "1599914",
+      "row": 1,
+      "parsed": {
+        "6": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "13": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "20": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "27": "pinball.common.data.ability.instant::InstantAbilityTriggerMasterValue.Initial()",
+        "39": "haxe.ds::Option.None()",
+        "46": "0",
+        "47": "pinball.common.data.ability.instant::InstantAbilityContentMasterValue.DebuffExtend({'strength': {'first_max': 10000.0, 'power1': 10000.0}, 'target': pinball.common.data.ability::AbilityTargetMasterValue.Party({'character_groups': haxe.ds::Option.None()},)},)"
+      }
+    },
+    {
+      "table": "ability",
+      "key": "1599914",
+      "row": 2,
+      "parsed": {
+        "6": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "13": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "20": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "27": "pinball.common.data.ability.instant::InstantAbilityTriggerMasterValue.HealCount({'cooltime': 180, 'trigger_limit': haxe.ds::Option.None(), 'threshold': {'first_max': 100000.0, 'power1': 100000.0}, 'trigger_puller': pinball.common.data.ability.instant::InstantAbilityTriggerPullerMasterValue.Myself()},)",
+        "39": "haxe.ds::Option.None()",
+        "46": "0",
+        "47": "pinball.common.data.ability.instant::InstantAbilityContentMasterValue.NearestEnemyDamageByAttackWhite({'time': haxe.ds::Option.Some(1,), 'strength': {'first_max': 3000000.0, 'power1': 3000000.0}, 'target': pinball.common.data.ability::AbilityTargetMasterValue.Myself()},)"
+      }
+    },
+    {
+      "table": "ability",
+      "key": "1599914",
+      "row": 3,
+      "parsed": {
+        "6": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Member({'character_groups': [pinball.common.data.ability._CharacterGroupId::CharacterGroupId_Impl_._new('White',)], 'threshold': {'first_max': 600000.0, 'power1': 600000.0}},)",
+        "13": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "20": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "27": "pinball.common.data.ability.instant::InstantAbilityTriggerMasterValue.Initial()",
+        "39": "haxe.ds::Option.None()",
+        "46": "0",
+        "47": "pinball.common.data.ability.instant::InstantAbilityContentMasterValue.ResistanceBlack({'strength': {'first_max': 10000.0, 'power1': 10000.0}, 'target': pinball.common.data.ability::AbilityTargetMasterValue.Party({'character_groups': haxe.ds::Option.None()},)},)"
+      }
+    },
+    {
+      "table": "ability",
+      "key": "1599914",
+      "row": 4,
+      "parsed": {
+        "6": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "13": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "20": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "27": "pinball.common.data.ability.instant::InstantAbilityTriggerMasterValue.Initial()",
+        "39": "haxe.ds::Option.None()",
+        "46": "0",
+        "47": "pinball.common.data.ability.instant::InstantAbilityContentMasterValue.ChangeSkillFlag({'string_id': 'cnmod_inaho_midautumn_enhance_buffs'},)"
+      }
+    },
+    {
+      "table": "ability",
+      "key": "1599915",
+      "row": 0,
+      "parsed": {
+        "6": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "13": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "20": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "27": "pinball.common.data.ability.instant::InstantAbilityTriggerMasterValue.Initial()",
+        "39": "haxe.ds::Option.None()",
+        "46": "0",
+        "47": "pinball.common.data.ability.instant::InstantAbilityContentMasterValue.AttackPoint({'strength': {'first_max': 150000.0, 'power1': 150000.0}, 'target': pinball.common.data.ability::AbilityTargetMasterValue.Party({'character_groups': haxe.ds::Option.Some([pinball.common.data.ability._CharacterGroupId::CharacterGroupId_Impl_._new('White',)],)},)},)"
+      }
+    },
+    {
+      "table": "ability",
+      "key": "1599915",
+      "row": 1,
+      "parsed": {
+        "6": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "13": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "20": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "27": "pinball.common.data.ability.instant::InstantAbilityTriggerMasterValue.Initial()",
+        "39": "haxe.ds::Option.None()",
+        "46": "0",
+        "47": "pinball.common.data.ability.instant::InstantAbilityContentMasterValue.SkillDamage({'strength': {'first_max': 50000.0, 'power1': 50000.0}, 'target': pinball.common.data.ability::AbilityTargetMasterValue.Party({'character_groups': haxe.ds::Option.Some([pinball.common.data.ability._CharacterGroupId::CharacterGroupId_Impl_._new('White',)],)},)},)"
+      }
+    },
+    {
+      "table": "ability",
+      "key": "1599915",
+      "row": 2,
+      "parsed": {
+        "6": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Member({'character_groups': [pinball.common.data.ability._CharacterGroupId::CharacterGroupId_Impl_._new('White',)], 'threshold': {'first_max': 600000.0, 'power1': 600000.0}},)",
+        "13": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "20": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "27": "pinball.common.data.ability.instant::InstantAbilityTriggerMasterValue.Initial()",
+        "39": "haxe.ds::Option.None()",
+        "46": "0",
+        "47": "pinball.common.data.ability.instant::InstantAbilityContentMasterValue.SeparatedTermDamage({'strength': {'first_max': 5000.0, 'power1': 5000.0}, 'target': pinball.common.data.ability::AbilityTargetMasterValue.Party({'character_groups': haxe.ds::Option.None()},)},)"
+      }
+    },
+    {
+      "table": "ability",
+      "key": "1599915",
+      "row": 3,
+      "parsed": {
+        "6": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Member({'character_groups': [pinball.common.data.ability._CharacterGroupId::CharacterGroupId_Impl_._new('White',)], 'threshold': {'first_max': 600000.0, 'power1': 600000.0}},)",
+        "13": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Fever()",
+        "20": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "27": "pinball.common.data.ability.instant::InstantAbilityTriggerMasterValue.HealCount({'cooltime': 0, 'trigger_limit': haxe.ds::Option.Some(8,), 'threshold': {'first_max': 100000.0, 'power1': 100000.0}, 'trigger_puller': pinball.common.data.ability.instant::InstantAbilityTriggerPullerMasterValue.Myself()},)",
+        "39": "haxe.ds::Option.None()",
+        "46": "0",
+        "47": "pinball.common.data.ability.instant::InstantAbilityContentMasterValue.DirectDamage({'strength': {'first_max': 50000.0, 'power1': 50000.0}, 'target': pinball.common.data.ability::AbilityTargetMasterValue.Party({'character_groups': haxe.ds::Option.None()},)},)"
+      }
+    },
+    {
+      "table": "ability",
+      "key": "1599915",
+      "row": 4,
+      "parsed": {
+        "6": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "13": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "20": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "27": "pinball.common.data.ability.instant::InstantAbilityTriggerMasterValue.HealCount({'cooltime': 0, 'trigger_limit': haxe.ds::Option.None(), 'threshold': {'first_max': 100000.0, 'power1': 100000.0}, 'trigger_puller': pinball.common.data.ability.instant::InstantAbilityTriggerPullerMasterValue.TotalOfParty({'character_groups': haxe.ds::Option.Some([pinball.common.data.ability._CharacterGroupId::CharacterGroupId_Impl_._new('White',)],)},)},)",
+        "39": "haxe.ds::Option.None()",
+        "46": "0",
+        "47": "pinball.common.data.ability.instant::InstantAbilityContentMasterValue.AddFeverPoint({'strength': {'first_max': 2000000.0, 'power1': 2000000.0}},)"
+      }
+    },
+    {
+      "table": "ability",
+      "key": "1599916",
+      "row": 0,
+      "parsed": {
+        "6": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "13": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "20": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "85": "haxe.ds::Option.None()",
+        "97": "pinball.common.data.ability.during::DuringAbilityTriggerMasterValue.Fever()",
+        "108": "False",
+        "109": "pinball.common.data.ability.during::CommonAbilityContentMasterValue.AttackPoint({'strength': {'first_max': 150000.0, 'power1': 150000.0}, 'target': pinball.common.data.ability::AbilityTargetMasterValue.Party({'character_groups': haxe.ds::Option.None()},)},)"
+      }
+    },
+    {
+      "table": "ability",
+      "key": "1599916",
+      "row": 1,
+      "parsed": {
+        "6": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "13": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "20": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "85": "haxe.ds::Option.None()",
+        "97": "pinball.common.data.ability.during::DuringAbilityTriggerMasterValue.Fever()",
+        "108": "False",
+        "109": "pinball.common.data.ability.during::CommonAbilityContentMasterValue.SkillDamage({'strength': {'first_max': 35000.0, 'power1': 35000.0}, 'target': pinball.common.data.ability::AbilityTargetMasterValue.Party({'character_groups': haxe.ds::Option.None()},)},)"
+      }
+    },
+    {
+      "table": "ability",
+      "key": "1599916",
+      "row": 2,
+      "parsed": {
+        "6": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "13": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "20": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "27": "pinball.common.data.ability.instant::InstantAbilityTriggerMasterValue.Initial()",
+        "39": "haxe.ds::Option.None()",
+        "46": "0",
+        "47": "pinball.common.data.ability.instant::InstantAbilityContentMasterValue.BuffExtend({'strength': {'first_max': 15000.0, 'power1': 15000.0}, 'target': pinball.common.data.ability::AbilityTargetMasterValue.Party({'character_groups': haxe.ds::Option.None()},)},)"
+      }
+    },
+    {
+      "table": "ability",
+      "key": "1599916",
+      "row": 3,
+      "parsed": {
+        "6": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Member({'character_groups': [pinball.common.data.ability._CharacterGroupId::CharacterGroupId_Impl_._new('White',)], 'threshold': {'first_max': 600000.0, 'power1': 600000.0}},)",
+        "13": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "20": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "27": "pinball.common.data.ability.instant::InstantAbilityTriggerMasterValue.Initial()",
+        "39": "haxe.ds::Option.None()",
+        "46": "0",
+        "47": "pinball.common.data.ability.instant::InstantAbilityContentMasterValue.SkillGaugeCharging({'strength': {'first_max': 15000.0, 'power1': 15000.0}, 'target': pinball.common.data.ability::AbilityTargetMasterValue.Party({'character_groups': haxe.ds::Option.Some([pinball.common.data.ability._CharacterGroupId::CharacterGroupId_Impl_._new('White',)],)},)},)"
+      }
+    },
+    {
+      "table": "ability",
+      "key": "1599916",
+      "row": 4,
+      "parsed": {
+        "6": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Member({'character_groups': [pinball.common.data.ability._CharacterGroupId::CharacterGroupId_Impl_._new('White',)], 'threshold': {'first_max': 600000.0, 'power1': 600000.0}},)",
+        "13": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "20": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "27": "pinball.common.data.ability.instant::InstantAbilityTriggerMasterValue.Initial()",
+        "39": "haxe.ds::Option.None()",
+        "46": "0",
+        "47": "pinball.common.data.ability.instant::InstantAbilityContentMasterValue.FeverTimeExtension({'strength': {'first_max': 10000.0, 'power1': 10000.0}},)"
+      }
+    },
+    {
+      "table": "ability",
+      "key": "1599916",
+      "row": 5,
+      "parsed": {
+        "6": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "13": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "20": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "27": "pinball.common.data.ability.instant::InstantAbilityTriggerMasterValue.Fever({'cooltime': 0, 'trigger_limit': haxe.ds::Option.None(), 'threshold': {'first_max': 100000.0, 'power1': 100000.0}},)",
+        "39": "haxe.ds::Option.None()",
+        "46": "0",
+        "47": "pinball.common.data.ability.instant::InstantAbilityContentMasterValue.ConditionSkillDamage({'multiply_trigger': haxe.ds::Option.None(), 'initial_multiply': 1, 'by_each_trigger_puller': False, 'cancelable': 0, 'end_power_flip_accepted_levels': haxe.ds::Option.None(), 'end_power_flip_limit': haxe.ds::Option.None(), 'power_flip_limit': haxe.ds::Option.None(), 'flip_limit': haxe.ds::Option.None(), 'max_accumulation': haxe.ds::Option.Some(1,), 'number': {'first_max': 100000.0, 'power1': 100000.0}, 'frame': {'first_max': 60000000.0, 'power1': 60000000.0}, 'strength': {'first_max': 30000.0, 'power1': 30000.0}, 'target': pinball.common.data.ability::AbilityTargetMasterValue.Party({'character_groups': haxe.ds::Option.None()},)},)"
+      }
+    },
+    {
+      "table": "ability",
+      "key": "1599916",
+      "row": 6,
+      "parsed": {
+        "6": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "13": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "20": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "27": "pinball.common.data.ability.instant::InstantAbilityTriggerMasterValue.Fever({'cooltime': 0, 'trigger_limit': haxe.ds::Option.None(), 'threshold': {'first_max': 100000.0, 'power1': 100000.0}},)",
+        "39": "haxe.ds::Option.None()",
+        "46": "0",
+        "47": "pinball.common.data.ability.instant::InstantAbilityContentMasterValue.ConditionRegeneration({'multiply_trigger': haxe.ds::Option.None(), 'initial_multiply': 1, 'by_each_trigger_puller': False, 'cancelable': 0, 'end_power_flip_accepted_levels': haxe.ds::Option.None(), 'end_power_flip_limit': haxe.ds::Option.None(), 'power_flip_limit': haxe.ds::Option.None(), 'flip_limit': haxe.ds::Option.None(), 'number': {'first_max': 100000.0, 'power1': 100000.0}, 'frame': {'first_max': 180000000.0, 'power1': 180000000.0}, 'strength': {'first_max': 10000000.0, 'power1': 10000000.0}, 'target': pinball.common.data.ability::AbilityTargetMasterValue.Party({'character_groups': haxe.ds::Option.None()},)},)"
+      }
+    },
+    {
+      "table": "ability",
+      "key": "1599916",
+      "row": 7,
+      "parsed": {
+        "6": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "13": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "20": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "27": "pinball.common.data.ability.instant::InstantAbilityTriggerMasterValue.Initial()",
+        "39": "haxe.ds::Option.None()",
+        "46": "0",
+        "47": "pinball.common.data.ability.instant::InstantAbilityContentMasterValue.ChangeSkillFlag2({'string_id': 'cnmod_inaho_midautumn_enhance_skill'},)"
+      }
+    },
+    {
+      "table": "ability",
+      "key": "1599916",
+      "row": 8,
+      "parsed": {
+        "6": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Member({'character_groups': [pinball.common.data.ability._CharacterGroupId::CharacterGroupId_Impl_._new('White',)], 'threshold': {'first_max': 600000.0, 'power1': 600000.0}},)",
+        "13": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "20": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "27": "pinball.common.data.ability.instant::InstantAbilityTriggerMasterValue.Initial()",
+        "39": "haxe.ds::Option.None()",
+        "46": "0",
+        "47": "pinball.common.data.ability.instant::InstantAbilityContentMasterValue.FeverPoint({'strength': {'first_max': 20000.0, 'power1': 20000.0}, 'target': pinball.common.data.ability::AbilityTargetMasterValue.Party({'character_groups': haxe.ds::Option.Some([pinball.common.data.ability._CharacterGroupId::CharacterGroupId_Impl_._new('White',)],)},)},)"
+      }
+    },
+    {
+      "table": "ability",
+      "key": "1499872",
+      "row": 0,
+      "parsed": {
+        "6": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Member({'character_groups': [pinball.common.data.ability._CharacterGroupId::CharacterGroupId_Impl_._new('Green',)], 'threshold': {'first_max': 600000.0, 'power1': 600000.0}},)",
+        "13": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "20": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "27": "pinball.common.data.ability.instant::InstantAbilityTriggerMasterValue.Dash({'cooltime': 0, 'trigger_limit': haxe.ds::Option.None(), 'threshold': {'first_max': 100000.0, 'power1': 100000.0}},)",
+        "39": "haxe.ds::Option.None()",
+        "46": "0",
+        "47": "pinball.common.data.ability.instant::InstantAbilityContentMasterValue.ConditionAttackPoint({'multiply_trigger': haxe.ds::Option.Some(pinball.common.data.ability.instant::InstantAbilityMultiplyTriggerMasterValue.None(),), 'initial_multiply': 1, 'by_each_trigger_puller': False, 'cancelable': 0, 'end_power_flip_accepted_levels': haxe.ds::Option.None(), 'end_power_flip_limit': haxe.ds::Option.None(), 'power_flip_limit': haxe.ds::Option.None(), 'flip_limit': haxe.ds::Option.None(), 'max_accumulation': haxe.ds::Option.Some(4,), 'number': {'first_max': 100000.0, 'power1': 100000.0}, 'frame': {'first_max': 36000000.0, 'power1': 36000000.0}, 'strength': {'first_max': 25000.0, 'power1': 25000.0}, 'target': pinball.common.data.ability::AbilityTargetMasterValue.Myself()},)"
+      }
+    },
+    {
+      "table": "ability",
+      "key": "1499872",
+      "row": 1,
+      "parsed": {
+        "6": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Member({'character_groups': [pinball.common.data.ability._CharacterGroupId::CharacterGroupId_Impl_._new('Green',)], 'threshold': {'first_max': 600000.0, 'power1': 600000.0}},)",
+        "13": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "20": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "27": "pinball.common.data.ability.instant::InstantAbilityTriggerMasterValue.Dash({'cooltime': 0, 'trigger_limit': haxe.ds::Option.None(), 'threshold': {'first_max': 100000.0, 'power1': 100000.0}},)",
+        "39": "haxe.ds::Option.None()",
+        "46": "0",
+        "47": "pinball.common.data.ability.instant::InstantAbilityContentMasterValue.AddCombo({'strength': {'first_max': 500000.0, 'power1': 500000.0}},)"
+      }
+    },
+    {
+      "table": "ability",
+      "key": "1499872",
+      "row": 2,
+      "parsed": {
+        "6": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Member({'character_groups': [pinball.common.data.ability._CharacterGroupId::CharacterGroupId_Impl_._new('Green',)], 'threshold': {'first_max': 600000.0, 'power1': 600000.0}},)",
+        "13": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "20": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "27": "pinball.common.data.ability.instant::InstantAbilityTriggerMasterValue.SkillInvoke({'cooltime': 0, 'trigger_limit': haxe.ds::Option.Some(5,), 'threshold': {'first_max': 100000.0, 'power1': 100000.0}, 'trigger_puller': pinball.common.data.ability.instant::InstantAbilityTriggerPullerMasterValue.TotalOfParty({'character_groups': haxe.ds::Option.Some([pinball.common.data.ability._CharacterGroupId::CharacterGroupId_Impl_._new('Green',)],)},)},)",
+        "39": "haxe.ds::Option.None()",
+        "46": "0",
+        "47": "pinball.common.data.ability.instant::InstantAbilityContentMasterValue.SkillDamage({'strength': {'first_max': 40000.0, 'power1': 40000.0}, 'target': pinball.common.data.ability::AbilityTargetMasterValue.Myself()},)"
+      }
+    },
+    {
+      "table": "ability",
+      "key": "1499872",
+      "row": 3,
+      "parsed": {
+        "6": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "13": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "20": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "85": "haxe.ds::Option.None()",
+        "97": "pinball.common.data.ability.during::DuringAbilityTriggerMasterValue.HpHigh({'threshold': {'first_max': 0.0, 'power1': 0.0}, 'trigger_puller': pinball.common.data.ability.during::DuringAbilityTriggerPullerMasterValue.Myself()},)",
+        "108": "False",
+        "109": "pinball.common.data.ability.during::CommonAbilityContentMasterValue('GaugeGainRestriction', 423, [{'unique_condition_id': 12, 'target': pinball.common.data.ability::AbilityTargetMasterValue.Party({'character_groups': haxe.ds::Option.None()},)}])"
+      }
+    },
+    {
+      "table": "leader_ability",
+      "key": "159991",
+      "row": 0,
+      "parsed": {
+        "4": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "11": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "18": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "25": "pinball.common.data.ability.instant::InstantAbilityTriggerMasterValue.Initial()",
+        "37": "haxe.ds::Option.None()",
+        "44": "0",
+        "45": "pinball.common.data.ability.instant::InstantAbilityContentMasterValue.AttackPoint({'strength': {'first_max': 200000.0, 'power1': 200000.0}, 'target': pinball.common.data.ability::AbilityTargetMasterValue.Party({'character_groups': haxe.ds::Option.Some([pinball.common.data.ability._CharacterGroupId::CharacterGroupId_Impl_._new('White',)],)},)},)"
+      }
+    },
+    {
+      "table": "leader_ability",
+      "key": "159991",
+      "row": 1,
+      "parsed": {
+        "4": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "11": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "18": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "25": "pinball.common.data.ability.instant::InstantAbilityTriggerMasterValue.Initial()",
+        "37": "haxe.ds::Option.None()",
+        "44": "0",
+        "45": "pinball.common.data.ability.instant::InstantAbilityContentMasterValue.SkillDamage({'strength': {'first_max': 50000.0, 'power1': 50000.0}, 'target': pinball.common.data.ability::AbilityTargetMasterValue.Party({'character_groups': haxe.ds::Option.Some([pinball.common.data.ability._CharacterGroupId::CharacterGroupId_Impl_._new('White',)],)},)},)"
+      }
+    },
+    {
+      "table": "leader_ability",
+      "key": "159991",
+      "row": 2,
+      "parsed": {
+        "4": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "11": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "18": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "25": "pinball.common.data.ability.instant::InstantAbilityTriggerMasterValue.Initial()",
+        "37": "haxe.ds::Option.None()",
+        "44": "0",
+        "45": "pinball.common.data.ability.instant::InstantAbilityContentMasterValue.AbilityDamage({'strength': {'first_max': 150000.0, 'power1': 150000.0}, 'target': pinball.common.data.ability::AbilityTargetMasterValue.Party({'character_groups': haxe.ds::Option.Some([pinball.common.data.ability._CharacterGroupId::CharacterGroupId_Impl_._new('White',)],)},)},)"
+      }
+    },
+    {
+      "table": "leader_ability",
+      "key": "159991",
+      "row": 3,
+      "parsed": {
+        "4": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "11": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "18": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "25": "pinball.common.data.ability.instant::InstantAbilityTriggerMasterValue.Initial()",
+        "37": "haxe.ds::Option.None()",
+        "44": "0",
+        "45": "pinball.common.data.ability.instant::InstantAbilityContentMasterValue.ConditionPiercing({'by_each_trigger_puller': False, 'cancelable': 0, 'end_power_flip_accepted_levels': haxe.ds::Option.None(), 'end_power_flip_limit': haxe.ds::Option.None(), 'power_flip_limit': haxe.ds::Option.None(), 'flip_limit': haxe.ds::Option.None(), 'number': {'first_max': 100000.0, 'power1': 100000.0}, 'frame': {'first_max': 60000000.0, 'power1': 60000000.0}},)"
+      }
+    },
+    {
+      "table": "leader_ability",
+      "key": "159991",
+      "row": 4,
+      "parsed": {
+        "4": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "11": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "18": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "25": "pinball.common.data.ability.instant::InstantAbilityTriggerMasterValue.Initial()",
+        "37": "haxe.ds::Option.None()",
+        "44": "0",
+        "45": "pinball.common.data.ability.instant::InstantAbilityContentMasterValue.ConditionFlying({'by_each_trigger_puller': False, 'cancelable': 0, 'end_power_flip_accepted_levels': haxe.ds::Option.None(), 'end_power_flip_limit': haxe.ds::Option.None(), 'power_flip_limit': haxe.ds::Option.None(), 'flip_limit': haxe.ds::Option.None(), 'number': {'first_max': 100000.0, 'power1': 100000.0}, 'frame': {'first_max': 60000000.0, 'power1': 60000000.0}},)"
+      }
+    },
+    {
+      "table": "leader_ability",
+      "key": "159991",
+      "row": 5,
+      "parsed": {
+        "4": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "11": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "18": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "25": "pinball.common.data.ability.instant::InstantAbilityTriggerMasterValue.Initial()",
+        "37": "haxe.ds::Option.None()",
+        "44": "0",
+        "45": "pinball.common.data.ability.instant::InstantAbilityContentMasterValue.ConditionRegeneration({'multiply_trigger': haxe.ds::Option.None(), 'initial_multiply': 1, 'by_each_trigger_puller': False, 'cancelable': 0, 'end_power_flip_accepted_levels': haxe.ds::Option.None(), 'end_power_flip_limit': haxe.ds::Option.None(), 'power_flip_limit': haxe.ds::Option.None(), 'flip_limit': haxe.ds::Option.None(), 'number': {'first_max': 100000.0, 'power1': 100000.0}, 'frame': {'first_max': 60000000.0, 'power1': 60000000.0}, 'strength': {'first_max': 5000000.0, 'power1': 5000000.0}, 'target': pinball.common.data.ability::AbilityTargetMasterValue.Myself()},)"
+      }
+    },
+    {
+      "table": "leader_ability",
+      "key": "159991",
+      "row": 6,
+      "parsed": {
+        "4": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "11": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "18": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "83": "haxe.ds::Option.None()",
+        "95": "pinball.common.data.ability.during::DuringAbilityTriggerMasterValue.Fever()",
+        "106": "False",
+        "107": "pinball.common.data.ability.during::CommonAbilityContentMasterValue.DirectDamage({'strength': {'first_max': 300000.0, 'power1': 300000.0}, 'target': pinball.common.data.ability::AbilityTargetMasterValue.Party({'character_groups': haxe.ds::Option.Some([pinball.common.data.ability._CharacterGroupId::CharacterGroupId_Impl_._new('White',)],)},)},)"
+      }
+    },
+    {
+      "table": "leader_ability",
+      "key": "159991",
+      "row": 7,
+      "parsed": {
+        "4": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "11": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "18": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "25": "pinball.common.data.ability.instant::InstantAbilityTriggerMasterValue.HealCount({'cooltime': 0, 'trigger_limit': haxe.ds::Option.Some(10,), 'threshold': {'first_max': 100000.0, 'power1': 100000.0}, 'trigger_puller': pinball.common.data.ability.instant::InstantAbilityTriggerPullerMasterValue.Myself()},)",
+        "37": "haxe.ds::Option.None()",
+        "44": "0",
+        "45": "pinball.common.data.ability.instant::InstantAbilityContentMasterValue.AttackPoint({'strength': {'first_max': 15000.0, 'power1': 15000.0}, 'target': pinball.common.data.ability::AbilityTargetMasterValue.Party({'character_groups': haxe.ds::Option.Some([pinball.common.data.ability._CharacterGroupId::CharacterGroupId_Impl_._new('White',)],)},)},)"
+      }
+    },
+    {
+      "table": "leader_ability",
+      "key": "159991",
+      "row": 8,
+      "parsed": {
+        "4": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Member({'character_groups': [pinball.common.data.ability._CharacterGroupId::CharacterGroupId_Impl_._new('White',)], 'threshold': {'first_max': 600000.0, 'power1': 600000.0}},)",
+        "11": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "18": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "25": "pinball.common.data.ability.instant::InstantAbilityTriggerMasterValue.AbilityDamage({'cooltime': 1, 'trigger_limit': haxe.ds::Option.None(), 'threshold': {'first_max': 500000.0, 'power1': 500000.0}, 'trigger_puller': pinball.common.data.ability.instant::InstantAbilityTriggerPullerMasterValue.Myself()},)",
+        "37": "haxe.ds::Option.None()",
+        "44": "0",
+        "45": "pinball.common.data.ability.instant::InstantAbilityContentMasterValue.EnemyDamageByAttackWhite({'time': haxe.ds::Option.None(), 'strength': {'first_max': 10000000.0, 'power1': 10000000.0}, 'target': pinball.common.data.ability::AbilityTargetMasterValue.Myself()},)"
+      }
+    },
+    {
+      "table": "leader_ability",
+      "key": "159991",
+      "row": 9,
+      "parsed": {
+        "4": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Member({'character_groups': [pinball.common.data.ability._CharacterGroupId::CharacterGroupId_Impl_._new('White',)], 'threshold': {'first_max': 600000.0, 'power1': 600000.0}},)",
+        "11": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "18": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "25": "pinball.common.data.ability.instant::InstantAbilityTriggerMasterValue.AbilityDamage({'cooltime': 1, 'trigger_limit': haxe.ds::Option.None(), 'threshold': {'first_max': 500000.0, 'power1': 500000.0}, 'trigger_puller': pinball.common.data.ability.instant::InstantAbilityTriggerPullerMasterValue.Myself()},)",
+        "37": "haxe.ds::Option.None()",
+        "44": "0",
+        "45": "pinball.common.data.ability.instant::InstantAbilityContentMasterValue.ConditionAttackPoint({'multiply_trigger': haxe.ds::Option.None(), 'initial_multiply': 1, 'by_each_trigger_puller': False, 'cancelable': 0, 'end_power_flip_accepted_levels': haxe.ds::Option.None(), 'end_power_flip_limit': haxe.ds::Option.None(), 'power_flip_limit': haxe.ds::Option.None(), 'flip_limit': haxe.ds::Option.None(), 'max_accumulation': haxe.ds::Option.Some(1,), 'number': {'first_max': 100000.0, 'power1': 100000.0}, 'frame': {'first_max': 90000000.0, 'power1': 90000000.0}, 'strength': {'first_max': 150000.0, 'power1': 150000.0}, 'target': pinball.common.data.ability::AbilityTargetMasterValue.Myself()},)"
+      }
+    },
+    {
+      "table": "leader_ability",
+      "key": "159991",
+      "row": 10,
+      "parsed": {
+        "4": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Member({'character_groups': [pinball.common.data.ability._CharacterGroupId::CharacterGroupId_Impl_._new('White',)], 'threshold': {'first_max': 600000.0, 'power1': 600000.0}},)",
+        "11": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "18": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "25": "pinball.common.data.ability.instant::InstantAbilityTriggerMasterValue.AbilityDamage({'cooltime': 1, 'trigger_limit': haxe.ds::Option.None(), 'threshold': {'first_max': 500000.0, 'power1': 500000.0}, 'trigger_puller': pinball.common.data.ability.instant::InstantAbilityTriggerPullerMasterValue.Myself()},)",
+        "37": "haxe.ds::Option.None()",
+        "44": "0",
+        "45": "pinball.common.data.ability.instant::InstantAbilityContentMasterValue.ConditionAbilityDamage({'multiply_trigger': haxe.ds::Option.None(), 'initial_multiply': 1, 'by_each_trigger_puller': False, 'cancelable': 0, 'end_power_flip_accepted_levels': haxe.ds::Option.None(), 'end_power_flip_limit': haxe.ds::Option.None(), 'power_flip_limit': haxe.ds::Option.None(), 'flip_limit': haxe.ds::Option.None(), 'max_accumulation': haxe.ds::Option.Some(1,), 'number': {'first_max': 100000.0, 'power1': 100000.0}, 'frame': {'first_max': 90000000.0, 'power1': 90000000.0}, 'strength': {'first_max': 150000.0, 'power1': 150000.0}, 'target': pinball.common.data.ability::AbilityTargetMasterValue.Myself()},)"
+      }
+    },
+    {
+      "table": "leader_ability",
+      "key": "159991",
+      "row": 11,
+      "parsed": {
+        "4": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.ConditionUnique({'unique_condition_id': 15999100, 'trigger_puller': pinball.common.data.ability.during::DuringAbilityTriggerPullerMasterValue.Myself()},)",
+        "11": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "18": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "25": "pinball.common.data.ability.instant::InstantAbilityTriggerMasterValue.Combo({'cooltime': 0, 'trigger_limit': haxe.ds::Option.None(), 'threshold': {'first_max': 4500000.0, 'power1': 4500000.0}},)",
+        "37": "haxe.ds::Option.None()",
+        "44": "0",
+        "45": "pinball.common.data.ability.instant::InstantAbilityContentMasterValue.ConditionPiercing({'by_each_trigger_puller': False, 'cancelable': 0, 'end_power_flip_accepted_levels': haxe.ds::Option.None(), 'end_power_flip_limit': haxe.ds::Option.None(), 'power_flip_limit': haxe.ds::Option.None(), 'flip_limit': haxe.ds::Option.None(), 'number': {'first_max': 100000.0, 'power1': 100000.0}, 'frame': {'first_max': 12000000.0, 'power1': 12000000.0}},)"
+      }
+    },
+    {
+      "table": "leader_ability",
+      "key": "159991",
+      "row": 12,
+      "parsed": {
+        "4": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.ConditionUnique({'unique_condition_id': 15999100, 'trigger_puller': pinball.common.data.ability.during::DuringAbilityTriggerPullerMasterValue.Myself()},)",
+        "11": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "18": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "25": "pinball.common.data.ability.instant::InstantAbilityTriggerMasterValue.Combo({'cooltime': 0, 'trigger_limit': haxe.ds::Option.None(), 'threshold': {'first_max': 4500000.0, 'power1': 4500000.0}},)",
+        "37": "haxe.ds::Option.None()",
+        "44": "0",
+        "45": "pinball.common.data.ability.instant::InstantAbilityContentMasterValue.ConditionFlying({'by_each_trigger_puller': False, 'cancelable': 0, 'end_power_flip_accepted_levels': haxe.ds::Option.None(), 'end_power_flip_limit': haxe.ds::Option.None(), 'power_flip_limit': haxe.ds::Option.None(), 'flip_limit': haxe.ds::Option.None(), 'number': {'first_max': 100000.0, 'power1': 100000.0}, 'frame': {'first_max': 12000000.0, 'power1': 12000000.0}},)"
+      }
+    },
+    {
+      "table": "leader_ability",
+      "key": "159991",
+      "row": 13,
+      "parsed": {
+        "4": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "11": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "18": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "25": "pinball.common.data.ability.instant::InstantAbilityTriggerMasterValue.Initial()",
+        "37": "haxe.ds::Option.None()",
+        "44": "0",
+        "45": "pinball.common.data.ability.instant::InstantAbilityContentMasterValue.PowerFlipOverride({'powerflip_override': haxe.ds::Option.Some({'description_id': 'cnmod_inaho_midautumn_powerflip', 'levels': [1, 2, 3], 'id': 'cnmod_inaho_midautumn'},)},)"
+      }
+    },
+    {
+      "table": "leader_ability",
+      "key": "159991",
+      "row": 14,
+      "parsed": {
+        "4": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Member({'character_groups': [pinball.common.data.ability._CharacterGroupId::CharacterGroupId_Impl_._new('White',)], 'threshold': {'first_max': 600000.0, 'power1': 600000.0}},)",
+        "11": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Fever()",
+        "18": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "25": "pinball.common.data.ability.instant::InstantAbilityTriggerMasterValue.HealCount({'cooltime': 360, 'trigger_limit': haxe.ds::Option.None(), 'threshold': {'first_max': 100000.0, 'power1': 100000.0}, 'trigger_puller': pinball.common.data.ability.instant::InstantAbilityTriggerPullerMasterValue.Myself()},)",
+        "37": "haxe.ds::Option.None()",
+        "44": "0",
+        "45": "pinball.common.data.ability.instant::InstantAbilityContentMasterValue.SkillGauge({'strength': {'first_max': 10000.0, 'power1': 10000.0}, 'target': pinball.common.data.ability::AbilityTargetMasterValue.Party({'character_groups': haxe.ds::Option.None()},)},)"
+      }
+    },
+    {
+      "table": "leader_ability",
+      "key": "159991",
+      "row": 15,
+      "parsed": {
+        "4": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.ConditionUnique({'unique_condition_id': 15999100, 'trigger_puller': pinball.common.data.ability.during::DuringAbilityTriggerPullerMasterValue.Myself()},)",
+        "11": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "18": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "25": "pinball.common.data.ability.instant::InstantAbilityTriggerMasterValue.Combo({'cooltime': 0, 'trigger_limit': haxe.ds::Option.None(), 'threshold': {'first_max': 4500000.0, 'power1': 4500000.0}},)",
+        "37": "haxe.ds::Option.None()",
+        "44": "0",
+        "45": "pinball.common.data.ability.instant::InstantAbilityContentMasterValue.SkillGauge({'strength': {'first_max': 1500.0, 'power1': 1500.0}, 'target': pinball.common.data.ability::AbilityTargetMasterValue.Myself()},)"
+      }
+    },
+    {
+      "table": "leader_ability",
+      "key": "159991",
+      "row": 16,
+      "parsed": {
+        "4": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Member({'character_groups': [pinball.common.data.ability._CharacterGroupId::CharacterGroupId_Impl_._new('White',)], 'threshold': {'first_max': 600000.0, 'power1': 600000.0}},)",
+        "11": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "18": "pinball.common.data.ability.pre::AbilityPreconditionMasterValue.Always()",
+        "83": "haxe.ds::Option.None()",
+        "95": "pinball.common.data.ability.during::DuringAbilityTriggerMasterValue.ConditionCountUnique({'unique_condition_id': 15999100, 'trigger_limit': haxe.ds::Option.Some(1,), 'threshold': {'first_max': 100000.0, 'power1': 100000.0}, 'trigger_puller': pinball.common.data.ability.during::DuringAbilityTriggerPullerMasterValue.Myself()},)",
+        "106": "False",
+        "107": "pinball.common.data.ability.during::CommonAbilityContentMasterValue.DebuffPrevent({'target': pinball.common.data.ability::AbilityTargetMasterValue.Myself()},)"
+      }
+    }
+  ],
+  "swf_sha256": "2e806d30ad3e2f9b71f63085e03ca3d41886bb81a7b8e01a19133eaea3828ed2",
+  "methods": {
+    "LeaderAbilityValues$/parseAt45": {
+      "body": 42081,
+      "sha256": "474c8ba057534de3f2bceac423d3d244e5f648948f101c5faa26077e897e2ca3"
+    },
+    "LeaderAbilityValues$/parseAt46": {
+      "body": 42054,
+      "sha256": "caf6f0f0fc38bd9dba3dcbf70a5d50f3acb5ce10b2f02cd9d38cf4a709e62fb4"
+    },
+    "LeaderAbilityValues$/parseAt49": {
+      "body": 42055,
+      "sha256": "6ac845a26fb2f2ea4cd5dee8e00af598e71d1973d6b73e298d17e5b843d3f58f"
+    },
+    "Decimal_Impl_$/_new": {
+      "body": 26260,
+      "sha256": "4564a50847d96b68d4467ee13d0767df03f49b7b6d3924a7e465d0f8d100348a"
+    },
+    "AbilityValues$/parseAt6": {
+      "body": 38971,
+      "sha256": "23b2229a6b58336ae0dae3d89d56b0c4c898648776ff63322286e44282cd433c"
+    },
+    "AbilityValues$/parseAt13": {
+      "body": 38977,
+      "sha256": "30da1389eb3943576d952e1157531b99a4fbad4ea83017b68a10676c0822296c"
+    },
+    "AbilityValues$/parseAt20": {
+      "body": 38983,
+      "sha256": "8a540c89f6c5fca76ab28b9d1f23800827b4ec112bfdddb1f3e1a4c4e5a6a9e7"
+    },
+    "AbilityValues$/parseAt27": {
+      "body": 38993,
+      "sha256": "46049863af00c88ce5469ad2edc3fe561750821c77e46feb1fabf2689219dcd8"
+    },
+    "AbilityValues$/parseAt39": {
+      "body": 38999,
+      "sha256": "3261fcd9012ffb42ea9f10e0adc1df5d6c195048dbeb7fd226fc9c0155838c49"
+    },
+    "AbilityValues$/parseAt46": {
+      "body": 39000,
+      "sha256": "c209ee4fe3de783bef3bc6347218260b27d87caf45696341ff6fcec191750d5a"
+    },
+    "AbilityValues$/parseAt47": {
+      "body": 39030,
+      "sha256": "9c32845d494c25b0f15009205b38e0cbdd2d4ab1b65ddfaa91e89a3b4deb0943"
+    },
+    "AbilityValues$/parseAt48": {
+      "body": 39003,
+      "sha256": "d25b7fe25afc0c75291d04c0189b69e5ff81083773980d75a95787e81723a1ff"
+    },
+    "AbilityValues$/parseAt49": {
+      "body": 39001,
+      "sha256": "9b1b7df7c9a7bff9a240db5f487580c67763404e1694c5064287afe969af7939"
+    },
+    "AbilityValues$/parseAt51": {
+      "body": 39004,
+      "sha256": "e92bb568d43281556d2d58820e241f11b17e8fb5f39df58cdefe79205916ff6f"
+    },
+    "AbilityValues$/parseAt57": {
+      "body": 39007,
+      "sha256": "f6685d0f08a5ea316fa4360ff312be38f36000554016b366f9e4c680380008ce"
+    },
+    "AbilityValues$/parseAt59": {
+      "body": 39008,
+      "sha256": "4e4b12ca0c836d360d5f2efdfeca20d671350f0d2a80db7550f650fb324c39f6"
+    },
+    "AbilityValues$/parseAt62": {
+      "body": 39010,
+      "sha256": "c9192331cb4c3d07501f20f1ab00613ef4656f8b172de7f0809f47bba381bb2e"
+    },
+    "AbilityValues$/parseAt63": {
+      "body": 39011,
+      "sha256": "e0de1aa8ca04c1ca99acea94c8a99a89477c1b1d2f67e1b53894076b94e96195"
+    },
+    "AbilityValues$/parseAt64": {
+      "body": 39012,
+      "sha256": "24634f127aec5681f08ca8f87e6eacf5b696f926262cadf31241c5f8d17628cb"
+    },
+    "AbilityValues$/parseAt65": {
+      "body": 39013,
+      "sha256": "552b16b92eef1d7266229a25c5d963fb770090a6485963c4ace4822282bd873d"
+    },
+    "AbilityValues$/parseAt67": {
+      "body": 39015,
+      "sha256": "dc2a11f7b5402ec4bb199b602d2726e0114d70011128657a42242348f74e0a2f"
+    },
+    "AbilityValues$/parseAt72": {
+      "body": 39020,
+      "sha256": "ecaf73f64756879583ebb509956f6f8c2157d682433832e31f634f27743a6f78"
+    },
+    "AbilityValues$/parseAt74": {
+      "body": 39022,
+      "sha256": "b6a1c1ca9a75cc35d63ef996f923e849364c34263afb1f7addb0bdb5d1207e5d"
+    },
+    "AbilityValues$/parseAt75": {
+      "body": 39028,
+      "sha256": "18e968f08029cd62babc65d3abf42705e89c0572f800cc29397e8fc267dd3de4"
+    },
+    "AbilityValues$/parseAt61": {
+      "body": 39009,
+      "sha256": "242f63fc6ce21509df848589a4897c807bd32ac75efbd7a01d013664f7c8bebf"
+    },
+    "AbilityValues$/parseAt28": {
+      "body": 38985,
+      "sha256": "65df54a0455a48e56ae459a617c9f1254ba13ef3f297688948f7dfc34dcc48b0"
+    },
+    "AbilityValues$/parseAt30": {
+      "body": 38986,
+      "sha256": "54561e51037636f9b6eae3da988758b403c522e18c4c490b1c9b6200912514f1"
+    },
+    "AbilityValues$/parseAt34": {
+      "body": 38988,
+      "sha256": "853cbc3c2a0d6ba08fe2070d1a31dfaabb83337b3ff644b96e88de03fd4eb3bb"
+    },
+    "AbilityValues$/parseAt35": {
+      "body": 38989,
+      "sha256": "a7ce071eaf4b2acde838fd60ed1bcd58e4bd86c361c17150ea3cbf8650c11440"
+    },
+    "AbilityValues$/parseAt9": {
+      "body": 38968,
+      "sha256": "1d85f07acab746aedb3d0f40c3e377fb902bfd153e50e391c60be73a79af1a41"
+    },
+    "AbilityValues$/parseAt11": {
+      "body": 38969,
+      "sha256": "c75c75104d46a72880acf1efb9b4f07178ebd628e647b86f8b40c44a135bc97e"
+    },
+    "AbilityValues$/parseAt85": {
+      "body": 39040,
+      "sha256": "3d0a9aa645b7868cb50d966c16302b82179730dcae473798a08cb2bb2c3f014a"
+    },
+    "AbilityValues$/parseAt97": {
+      "body": 39049,
+      "sha256": "1e9898a1956ef950e4000b013a212118f618b9d5a1dbfe0182fbe71785b0822c"
+    },
+    "AbilityValues$/parseAt98": {
+      "body": 39042,
+      "sha256": "74b55be6c28f96707f93988ab2b78e0ce974d5e5a7756e2749a983c800bb862c"
+    },
+    "AbilityValues$/parseAt100": {
+      "body": 39043,
+      "sha256": "574a3940c70ba78e43191370ab5ae6218cf42da7958813160bbf5689757abbe4"
+    },
+    "AbilityValues$/parseAt102": {
+      "body": 39044,
+      "sha256": "bc321ccb3bdea701e81a88792b44a2bfbadf0173555811b81b2dfed98e36fd64"
+    },
+    "AbilityValues$/parseAt104": {
+      "body": 39046,
+      "sha256": "984465f110b6bc48fc4f27ee4ddea3def948315b2ca8534c2952cca8e670f0e9"
+    },
+    "AbilityValues$/parseAt108": {
+      "body": 39050,
+      "sha256": "e77edf994b603ef615a14023f3c8cf7373366d52c9baf1d37fd965bfff85eafd"
+    },
+    "AbilityValues$/parseAt109": {
+      "body": 39060,
+      "sha256": "3e42c85d4ee45ce33be9a7aec70e350a2303ce3cb7132dd0e8183c02310516eb"
+    },
+    "AbilityValues$/parseAt118": {
+      "body": 39057,
+      "sha256": "ebff754ab1776955d15169626560dc7d9b893a5b20a2b8f91a6bebe6941318dd"
+    },
+    "AbilityValues$/parseAt113": {
+      "body": 39054,
+      "sha256": "5d39188e48e07e82dbffc166c719cf50892206d26a48bc79ab88425c8efd7b68"
+    },
+    "AbilityValues$/parseAt110": {
+      "body": 39053,
+      "sha256": "dd7b96eef3cd77d19f0d229d88ab8c50d1e30eecaed2f4be6e1c4ff27a315d29"
+    },
+    "AbilityValues$/parseAt111": {
+      "body": 39051,
+      "sha256": "e4000ffc01108ad3bab48cf1c90fcaad12fdd3425534be94472b80413a43c9c9"
+    },
+    "AbilityValues$/parseAt29": {
+      "body": 38984,
+      "sha256": "4f0d7a02c4a169b94cc592c02f535fd2ac3c9eb27a920d8c2bd43f30e0770ff8"
+    },
+    "AbilityValues$/parseAt69": {
+      "body": 39017,
+      "sha256": "a38af318df58747cc7bbc23a36dad8e28741ed4812360f6a4b2c11118d7f9bd6"
+    },
+    "AbilityValues$/parseAt70": {
+      "body": 39018,
+      "sha256": "3e93a414113643a2fc01b8a408b0e2459ee6a4c957a5cbff8a93f87bb1fc799e"
+    },
+    "LeaderAbilityValues$/parseAt4": {
+      "body": 42022,
+      "sha256": "62f862cae0d2e55f087eb6c2c84e20921e3228ab2bb05243eeeb6f03d3f6420c"
+    },
+    "LeaderAbilityValues$/parseAt11": {
+      "body": 42028,
+      "sha256": "eaf33c2073e1c2b193853b295882b0740594f609480da0be4cd8c642be783f7c"
+    },
+    "LeaderAbilityValues$/parseAt18": {
+      "body": 42034,
+      "sha256": "fd4e1488ab268a148b5028edebc573501a5c566a8ecd65af75e77f3a50f84d59"
+    },
+    "LeaderAbilityValues$/parseAt25": {
+      "body": 42044,
+      "sha256": "9b6bada4fdb9c3ec29698a663cc62a6962a42cc6ceb70ea9c8954fcced357e5f"
+    },
+    "LeaderAbilityValues$/parseAt37": {
+      "body": 42050,
+      "sha256": "128c37ef69718858d6deb0a68e6beb752e550b9de0b90de8992011425507a87d"
+    },
+    "LeaderAbilityValues$/parseAt44": {
+      "body": 42051,
+      "sha256": "c400e883759fad6b757763f53d380794f010e851126caa1210810b898b5f8723"
+    },
+    "LeaderAbilityValues$/parseAt47": {
+      "body": 42052,
+      "sha256": "0816268628d62d314b2a1f04b7353aa95dc1d0daaf087dcd3e88a932fd7adbd7"
+    },
+    "LeaderAbilityValues$/parseAt55": {
+      "body": 42058,
+      "sha256": "1c14ab69b9ca8b4c4da7aceda08729b8801d7a7ce300cb315de27d6c9e607edf"
+    },
+    "LeaderAbilityValues$/parseAt57": {
+      "body": 42059,
+      "sha256": "f6685d0f08a5ea316fa4360ff312be38f36000554016b366f9e4c680380008ce"
+    },
+    "LeaderAbilityValues$/parseAt60": {
+      "body": 42061,
+      "sha256": "00f2d4ca2006f5128962e32c885789639d453eb5b72bb3f6dd1e88c77cfc7e1d"
+    },
+    "LeaderAbilityValues$/parseAt61": {
+      "body": 42062,
+      "sha256": "242f63fc6ce21509df848589a4897c807bd32ac75efbd7a01d013664f7c8bebf"
+    },
+    "LeaderAbilityValues$/parseAt62": {
+      "body": 42063,
+      "sha256": "c9192331cb4c3d07501f20f1ab00613ef4656f8b172de7f0809f47bba381bb2e"
+    },
+    "LeaderAbilityValues$/parseAt63": {
+      "body": 42064,
+      "sha256": "fbfa1c85c8846f8195fa39fc85fd8dd29f4dcfb5ee276769dd854323e723f65d"
+    },
+    "LeaderAbilityValues$/parseAt65": {
+      "body": 42066,
+      "sha256": "9159d1710751f7c6baa898650b5b0255a18d3874d86429d0079cac7b8f35809b"
+    },
+    "LeaderAbilityValues$/parseAt70": {
+      "body": 42071,
+      "sha256": "26f5e75204767b00f7b2dfea46bc32923c347f1654ef98d4a5b88ebb2dc00b6c"
+    },
+    "LeaderAbilityValues$/parseAt72": {
+      "body": 42073,
+      "sha256": "84d05ebb00a997b2728fbfef5882329dc42ed49e1f27ef1bf854097250ca2893"
+    },
+    "LeaderAbilityValues$/parseAt73": {
+      "body": 42079,
+      "sha256": "8668b9546d2179457d5ef407f62ee9376b63909782dd1db8209c05f4416fdbb7"
+    },
+    "LeaderAbilityValues$/parseAt83": {
+      "body": 42091,
+      "sha256": "f6d9e3ab63e4095be0d3ceba379ec3e2c3c495475a736ab8897902d1491960f0"
+    },
+    "LeaderAbilityValues$/parseAt95": {
+      "body": 42100,
+      "sha256": "42ecff720c16bcaca0ee62b1577a357bd5edd51dce96fc953a2188e8412f9759"
+    },
+    "LeaderAbilityValues$/parseAt106": {
+      "body": 42101,
+      "sha256": "952785317409cfa9a6803f31d6453747ba34ad86467aef8d64f406ccbe56dd31"
+    },
+    "LeaderAbilityValues$/parseAt107": {
+      "body": 42111,
+      "sha256": "6ac1142ec798f5ad9ef82552a15c45158a23013d250fcf6648b1e81c114759f0"
+    },
+    "LeaderAbilityValues$/parseAt108": {
+      "body": 42104,
+      "sha256": "e1a49641dc1f28e13009d006a29ee573413709a14a3603b239ce8b3af2c88998"
+    },
+    "LeaderAbilityValues$/parseAt109": {
+      "body": 42102,
+      "sha256": "f504f1b599cab983d6d9592f12affbbe22acdcc2c5c145b35a04da4abdb95bd1"
+    },
+    "LeaderAbilityValues$/parseAt111": {
+      "body": 42105,
+      "sha256": "f9ad8a0b36f67780abac4827fe3acd8ba12729faf7b4db1adea11ebd66f5b626"
+    },
+    "LeaderAbilityValues$/parseAt26": {
+      "body": 42036,
+      "sha256": "413f1ff4a5392633e5dd80b8b5347414bee52eb52ae28cc44dee731baec1ab74"
+    },
+    "LeaderAbilityValues$/parseAt28": {
+      "body": 42037,
+      "sha256": "34bca79511108fa87aac75c4b0926c2423cc1d99f35f505a0ba0625fd382db4a"
+    },
+    "LeaderAbilityValues$/parseAt32": {
+      "body": 42039,
+      "sha256": "ed207855438799918c5f5930b147b41faa74278408bfa330039eaabb0896fac4"
+    },
+    "LeaderAbilityValues$/parseAt33": {
+      "body": 42040,
+      "sha256": "e9ca56e8dfdd4f3774e2aa010a2043fb1a6524d593ac79f0f6e5fbb3278f02ce"
+    },
+    "LeaderAbilityValues$/parseAt7": {
+      "body": 42019,
+      "sha256": "40d00ece03f1457a2fcfe2c7e8a535857b7bcd4b095849e740bb74be1258f666"
+    },
+    "LeaderAbilityValues$/parseAt9": {
+      "body": 42020,
+      "sha256": "96060ab29e30dca5133b4a2ea7e0224c0392bb10ec5a2803b26a6712660f95c7"
+    },
+    "LeaderAbilityValues$/parseAt67": {
+      "body": 42068,
+      "sha256": "00c6540cb95460418d79e39c73eecd1f2ae109e0d93f6fd12160e7e14a0df91b"
+    },
+    "LeaderAbilityValues$/parseAt59": {
+      "body": 42060,
+      "sha256": "82fc463649f8d347efc71538756e80cb103018720ec11d61043c03bc38e475f7"
+    },
+    "LeaderAbilityValues$/parseAt5": {
+      "body": 42018,
+      "sha256": "275e282c8630ee5b754e34c0b075b1e9e93ab5a44b3099d5452847398c783fd9"
+    },
+    "LeaderAbilityValues$/parseAt10": {
+      "body": 42021,
+      "sha256": "f7d91b0cb39170841c68f14af8e9746d2ce47ddcc4a7f8de514dfc077c572cf6"
+    },
+    "LeaderAbilityValues$/parseAt80": {
+      "body": 42080,
+      "sha256": "ff7f6677a4b06c40e77b8686516a213c3409b5bf8b2dc4ec482bc8801bbad45e"
+    },
+    "LeaderAbilityValues$/parseAt96": {
+      "body": 42093,
+      "sha256": "fd3a9d51f4b3807431e45ebcee7fd7eba99a2a60e929d12de084a2d600c82201"
+    },
+    "LeaderAbilityValues$/parseAt98": {
+      "body": 42094,
+      "sha256": "f320209068fd07d10a01203de727ea8c17eb0518cc913b76f7c3c4542f1963a0"
+    },
+    "LeaderAbilityValues$/parseAt100": {
+      "body": 42095,
+      "sha256": "4333b76e2e63a2138fa2591509a7048795422a6078c07804c3599dbac660fb99"
+    },
+    "LeaderAbilityValues$/parseAt102": {
+      "body": 42097,
+      "sha256": "4bf12f4f0e95ca38a5c3230154e7030ce73c2b292d88e1310ea4ba1dccdf4ca4"
+    }
+  },
+  "device_tested": false,
+  "limitation": "Original generated parser bytecode with inert enum factories; not a full client or battle execution."
+}

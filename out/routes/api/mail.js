@@ -23,8 +23,18 @@ const client_display_time_1 = require("../../lib/client-display-time");
 const degree_1 = require("../../data/domains/degree");
 const mission_1 = require("../../lib/mission");
 const mana_1 = require("../../lib/mana");
-const sqlite_write_coordinator_1 = require("../../lib/sqlite-write-coordinator");
+const persistence_coordinator_1 = require("../../lib/persistence-coordinator");
+const node_crypto_1 = require("node:crypto");
+const player_operation_receipt_1 = require("../../data/domains/player-operation-receipt");
 const MAX_MAIL_CLAIM_IDS = 1000;
+function buildMailClaimRequestKey(mailIds, requestId) {
+    if (typeof requestId !== "string" || requestId.length === 0 || requestId.length > 256)
+        return null;
+    const normalized = [...new Set(mailIds.filter(mailId => Number.isSafeInteger(mailId) && mailId > 0))].sort((left, right) => left - right);
+    if (normalized.length === 0)
+        return null;
+    return (0, node_crypto_1.createHash)("sha256").update(`${requestId}\u0000${normalized.join(",")}`).digest("hex");
+}
 function formatMailResponse(mail) {
     return {
         id: mail.id,
@@ -175,49 +185,63 @@ function applyMailReward(playerId, player, mail) {
  * The per-player queue prevents duplicate grants between concurrent requests in this process;
  * BEGIN IMMEDIATE also protects the read/mark/reward sequence from other writers.
  */
-function claimPlayerMailRewards(playerId, requestedMailIds) {
+function claimPlayerMailRewards(playerId, requestedMailIds, requestId) {
     return __awaiter(this, void 0, void 0, function* () {
         if (requestedMailIds.length > MAX_MAIL_CLAIM_IDS) {
             throw new RangeError(`A mail claim may contain at most ${MAX_MAIL_CLAIM_IDS} IDs.`);
         }
-        return (0, sqlite_write_coordinator_1.withPlayerWriteQueue)(playerId, () => __awaiter(this, void 0, void 0, function* () {
-            return (0, sqlite_write_coordinator_1.runImmediateTransactionWithRetry)(() => {
-                const uniqueMailIds = [...new Set(requestedMailIds.filter(mailId => Number.isSafeInteger(mailId) && mailId > 0))];
-                const mails = (0, mail_1.getUnreceivedPlayerMailsByIdsSync)(playerId, uniqueMailIds);
-                const mailById = new Map(mails.map(mail => [mail.id, mail]));
-                const player = (0, player_1.getPlayerSync)(playerId);
-                if (!player)
-                    throw new Error(`Player ${playerId} does not exist.`);
-                // Mark first inside the transaction. Any reward failure rolls this update back.
-                const claimedMailIds = (0, mail_1.receiveAllMailsSync)(playerId, uniqueMailIds.filter(mailId => mailById.has(mailId)));
-                const characterList = [];
-                const equipmentList = [];
-                const itemList = {};
-                const userInfo = {};
-                const degreeIds = new Set();
-                for (const mailId of claimedMailIds) {
-                    const mail = mailById.get(mailId);
-                    if (!mail)
-                        continue;
-                    const reward = applyMailReward(playerId, player, mail);
-                    characterList.push(...reward.characterList);
-                    equipmentList.push(...reward.equipmentList);
-                    Object.assign(itemList, reward.itemList);
-                    Object.assign(userInfo, reward.userInfo);
-                    for (const degreeId of reward.degreeIds)
-                        degreeIds.add(degreeId);
-                }
-                return {
-                    claimedMailIds,
-                    alreadyCount: requestedMailIds.length - claimedMailIds.length,
-                    characterList,
-                    equipmentList,
-                    itemList,
-                    userInfo,
-                    degreeIds: [...degreeIds],
-                };
-            });
-        }));
+        const requestKey = buildMailClaimRequestKey(requestedMailIds, requestId);
+        return (0, persistence_coordinator_1.runPersistenceTransaction)({
+            domain: "mail", playerId, operation: "claim_rewards",
+        }, () => {
+            if (requestKey) {
+                const previous = (0, player_operation_receipt_1.getPlayerOperationReceiptSync)(playerId, "mail_claim", requestKey);
+                if (previous)
+                    return previous.response;
+            }
+            const uniqueMailIds = [...new Set(requestedMailIds.filter(mailId => Number.isSafeInteger(mailId) && mailId > 0))];
+            const mails = (0, mail_1.getUnreceivedPlayerMailsByIdsSync)(playerId, uniqueMailIds);
+            const mailById = new Map(mails.map(mail => [mail.id, mail]));
+            const player = (0, player_1.getPlayerSync)(playerId);
+            if (!player)
+                throw new Error(`Player ${playerId} does not exist.`);
+            // Mark first inside the transaction. Any reward failure rolls this update back.
+            const claimedMailIds = (0, mail_1.receiveAllMailsSync)(playerId, uniqueMailIds.filter(mailId => mailById.has(mailId)));
+            const characterList = [];
+            const equipmentList = [];
+            const itemList = {};
+            const userInfo = {};
+            const degreeIds = new Set();
+            for (const mailId of claimedMailIds) {
+                const mail = mailById.get(mailId);
+                if (!mail)
+                    continue;
+                const reward = applyMailReward(playerId, player, mail);
+                characterList.push(...reward.characterList);
+                equipmentList.push(...reward.equipmentList);
+                Object.assign(itemList, reward.itemList);
+                Object.assign(userInfo, reward.userInfo);
+                for (const degreeId of reward.degreeIds)
+                    degreeIds.add(degreeId);
+            }
+            const result = {
+                claimedMailIds,
+                alreadyCount: requestedMailIds.length - claimedMailIds.length,
+                characterList,
+                equipmentList,
+                itemList,
+                userInfo,
+                degreeIds: [...degreeIds],
+            };
+            if (requestKey)
+                (0, player_operation_receipt_1.insertPlayerOperationReceiptSync)({
+                    playerId,
+                    operation: "mail_claim",
+                    requestKey,
+                    response: result,
+                });
+            return result;
+        });
     });
 }
 exports.claimPlayerMailRewards = claimPlayerMailRewards;
@@ -275,7 +299,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 error: "Bad Request",
                 message: "No player bound to account"
             });
-        const claim = yield claimPlayerMailRewards(playerId, [mailId]);
+        const claim = yield claimPlayerMailRewards(playerId, [mailId], body.request_id);
         if (claim.claimedMailIds.length === 0)
             return reply.status(400).send({
                 error: "Bad Request",
@@ -331,7 +355,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 error: "Bad Request",
                 message: "No player bound to account"
             });
-        const claim = yield claimPlayerMailRewards(playerId, mailIds);
+        const claim = yield claimPlayerMailRewards(playerId, mailIds, body.request_id);
         const { alreadyCount, characterList, equipmentList, itemList, userInfo, degreeIds, claimedMailIds: claimed, } = claim;
         const reconciledCharacterList = (0, mission_1.reconcileAwakeUnlockCharacterList)(playerId, characterList);
         const responseData = {

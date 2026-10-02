@@ -1,44 +1,52 @@
 {
   "schema_version": 6,
-  "status": "accepted_offline",
-  "accepted_on": "2026-09-18",
+  "status": "user_accepted",
+  "accepted_on": "2026-10-02",
   "acceptance": {
-    "result": "accepted_offline",
-    "scope": "offline_artifact_lineage_and_public_admission",
+    "result": "user_accepted",
+    "scope": "ios_real_device_acceptance_and_offline_artifact_lineage",
+    "audit": "client-patch/ACCEPTANCE-AUTHOR-EQUIPMENT-F1009-20261002.md",
     "device_tested_by_codex": false,
-    "per_feature_device_results": "not_recorded",
+    "per_feature_device_results": "user_confirmed_real_device_acceptance; codex_device_tested=false",
     "build_reports_are_immutable": true,
-    "audit": "client-patch/ACCEPTANCE-ABYSS-EX-20260918.md"
+    "public_admission_http_verified": true,
+    "local_acceptance_report": "F:\\codex\\outputs\\ios-equipment-f1009-fix-20261002\\ios\\ios-verification-report.json",
+    "user_confirmed_artifacts": true
   },
   "artifact": {
-    "ipa": "F:\\codex\\outputs\\abyss-ex-admission-fix-20260918\\StarPoint-iOS-1.8.4-abyss-ex-admission-fix-20260918-unsigned.ipa",
-    "ipa_sha256": "068bd0cc82cd4c5c38380fe72b8c29e6807a8481e2c27613030c6f07769c67c2",
-    "size_bytes": 154707017,
+    "ipa": "F:\\codex\\outputs\\ios-equipment-f1009-fix-20261002\\ios\\StarPoint-iOS-1.8.4-author-equipment-standalone-20261002-unsigned.ipa",
+    "ipa_sha256": "4ce93ffe967331b088032fa4d3e169c7d58b2c1cef4b10cf727e28906811bf40",
+    "size_bytes": 165067215,
     "native_member": "Payload/worldflipper.app/worldflipper",
-    "native_sha256": "2d8dab5f453cf5d37e3bc2caa8143eea4a05198bf158b69deafea737602fe298",
+    "native_sha256": "1a427b648fc62297effb0dbc9982611b7f0e6e9d0e0623d46cebdbe72872b1dc",
     "swf_member": "Payload/worldflipper.app/worldflipper_ios_release.swf",
-    "swf_sha256": "7c69e0cf7d04013d9982df4658472454d79dd26165feb54f87bf521ce71acce1",
+    "swf_sha256": "7e7e3642f19d59b3471bd6b09f344cf83b097924bc7a4bd094780deb7b793e72",
     "bundle_id": "com.kulo.wf",
     "version": "1.8.4",
     "build": "1.8.46",
     "signing": "unsigned",
     "profile_debug_overlay": false,
     "title_cntips_b_unchanged": true,
-    "endpoint_policy": "R3/R4 初始 API 与版本配置均为 http://175.178.160.158，公网默认端口 80",
-    "full_abc": "F:\\codex\\outputs\\abyss-ex-admission-fix-20260918\\abyss-ex-ios-admission-fixed-full.abc",
-    "full_abc_sha256": "43bed2279c157df96920d6eafbeb69bcdac59f7e88da62a2cb0b6ed94f2146f2",
-    "full_abc_sha1": "507a95b5ec5e4bada216c90d2b8a16f123656953",
+    "endpoint_policy": "初始 API 与版本查询均使用 http://175.178.160.158 公网地址",
+    "full_abc": "F:\\codex\\work\\f1009-fullfix\\equipment-ios-full.abc",
+    "full_abc_sha256": "83149cffbef675fb0661a3072725473e4c49817c645bc069516124dc094b1097",
+    "full_abc_sha1": "c6709644d46642a7b4444e68fd372b8679c6c34d",
     "aot_info_file_offset": 104549248,
-    "aot_method_count": 101287,
-    "build_id": "ios-184-abyss-ex-20260917",
-    "diagnostic_export": false
+    "aot_method_count": 101458,
+    "build_id": "ios-184-author-1047-public-20261001",
+    "diagnostic_export": false,
+    "accepted_on": "2026-10-02",
+    "acceptance_audit": "client-patch/ACCEPTANCE-AUTHOR-EQUIPMENT-F1009-20261002.md",
+    "static_verification_report": "F:\\codex\\outputs\\ios-equipment-f1009-fix-20261002\\ios\\ios-verification-report.json",
+    "acceptance_status": "user_accepted",
+    "device_acceptance": "user_confirmed_real_device; codex_device_tested=false"
   },
   "lineage": {
-    "previous_accepted_ipa_sha256": "f1d9f41f0b9c16ec79efa5664833fe5dea13038bc844a25f22dbafda367316dc",
-    "documentation": "client-patch/ACCEPTANCE-ABYSS-EX-20260918.md",
-    "build_entry": "client-patch/abyss-ex/build_ios.py",
-    "verification_script": "client-patch/abyss-ex/verify_ios.py",
-    "previous_method_source_commit": "20a416027089686f1ec0b03f3a0f778154f3fb30",
+    "previous_accepted_ipa_sha256": "123fdafd38caff60b64bebf4bd2d7dc8f73a48de2e08ba5f99f8d9a79a20d769",
+    "documentation": "client-patch/ACCEPTANCE-OROCHI-BOSS-20260926.md",
+    "build_entry": "client-patch/author-public-release/link_ios.py",
+    "verification_script": "client-patch/author-public-release/verify_ios.py",
+    "previous_method_source_commit": "9740c3e9",
     "preserved": [
       "MOD 五合一",
       "幻想连战和幻想魂珠纹理",
@@ -77,9 +85,17 @@
       "空账号文件进入登录流程；账号记录采用同目录临时文件写完后替换，设备扩展存储保持",
       "幻想连战三个多人节点结算及房间退出时重建返回路径，修复 C2120 及连带 G1002",
       "独立普通深渊和 EX 活动入口、续战及装备限制",
-      "EX 正式准入号与 HMAC 签名前缀一致"
+      "EX 正式准入号与 HMAC 签名前缀一致",
+      "普通深渊、深渊 EX、幻想连战分别保存编队；SET 编辑标题处理空值及范围外分类，保留运输分类",
+      "作者 423 按充能来源限制技能槽增长，保留配置允许的开场与移动充能",
+      "作者 424 与原生 629 + ActionDSL 统一伤害分类，支持技能、能力、直击及 PF1/PF2/PF3；移除旧重复分类入口",
+      "稻穗特效选择与必要预加载由独立视觉 helper 保留",
+      "杰拉尔 6 条、特克托 3 条、斩铁 4 条满槽语音轮换、战斗预加载与详情试听",
+      "作者机制公网正式准入号与 HMAC 前缀配对，保留旧独立编队正式号兼容",
+      "1.4.1047 回槽特效性能修复：iOS 已有编译 hook 加入施技前拦截和能力伤害总计筛选。",
+      "作者装备规则 iOS F1009 修复：修正 AuthorState 静态 helper 调用 ABI，保留装备规则、原生 BattleCharacterLogic 布局和预加载桥；AOT 方法表新增 22 个入口，已完成 iOS 实机验收。"
     ],
-    "method_archive": "保留幻想连战返回修复；EX 方法 AOT 累计移植及准入签名前缀修复。",
+    "method_archive": "作者装备规则 iOS F1009 修复接续 startup-download r2 iOS 载体；完整 ABC/AOT 方法表 101458 项。",
     "intermediate_candidates": [
       {
         "name": "cumulative_initial",
@@ -102,77 +118,123 @@
         "role": "exact_r4_reproduction_input_not_current_baseline"
       }
     ],
-    "direct_input_ipa_sha256": "f1d9f41f0b9c16ec79efa5664833fe5dea13038bc844a25f22dbafda367316dc",
-    "source_artifact_record": "client-patch/abyss-ex/source-artifacts.json",
-    "repair_entry": "client-patch/abyss-ex/repair_admission_prefix.py"
-  },
-  "local_build_report": "F:\\codex\\outputs\\abyss-ex-admission-fix-20260918\\ios-repair.json",
-  "local_acceptance_checks": {
-    "status": "offline_structure_and_public_protocol_verified",
-    "device_tested": false,
-    "native_code_pointers_and_relocations_unchanged_by_prefix_repair": true,
-    "ldid_replacement_models": 3,
-    "signature_layout": {
-      "signature_offset": 178926160,
-      "signature_size": 2711920,
-      "signature_is_last": true,
-      "loader_metadata_before_signature": true,
-      "ldid_code_limit": 178926160,
-      "ldid_metadata_preserved": true,
-      "metadata_ranges": [
-        {
-          "name": "rebase",
-          "offset": 178738032,
-          "size": 147771
-        },
-        {
-          "name": "bind",
-          "offset": 177905120,
-          "size": 59712
-        },
-        {
-          "name": "lazy_bind",
-          "offset": 177964832,
-          "size": 26368
-        },
-        {
-          "name": "export",
-          "offset": 177991200,
-          "size": 536
-        },
-        {
-          "name": "symbols",
-          "offset": 178240632,
-          "size": 25392
-        },
-        {
-          "name": "strings",
-          "offset": 178885808,
-          "size": 40352
-        },
-        {
-          "name": "indirect_symbols",
-          "offset": 178266024,
-          "size": 8728
-        },
-        {
-          "name": "0x26",
-          "offset": 177991736,
-          "size": 248864
-        },
-        {
-          "name": "0x29",
-          "offset": 178240600,
-          "size": 32
-        }
-      ]
+    "direct_input_ipa_sha256": "123fdafd38caff60b64bebf4bd2d7dc8f73a48de2e08ba5f99f8d9a79a20d769",
+    "source_artifact_record": "F:\\codex\\outputs\\author-equipment-ios-public-20261001\\ios\\ios-build-report.json",
+    "repair_entry": "client-patch/author-merge-20261001/ios/prepare_ios.py",
+    "previous_accepted_artifact": {
+      "ipa": "F:\\codex\\outputs\\author-public-release-20260924\\ios\\StarPoint-iOS-1.8.4-author-unified-damage-public-20260924-r2-unsigned.ipa",
+      "ipa_sha256": "310aa3665b6ea0bc621186c76550bd3bd36aeb122bf6670e32de511539488ecd",
+      "size_bytes": 160905608,
+      "native_member": "Payload/worldflipper.app/worldflipper",
+      "native_sha256": "2a2ea7249cc54c9f5674b2c4be37a681d0b333c315393188b94986bc471b08d9",
+      "swf_member": "Payload/worldflipper.app/worldflipper_ios_release.swf",
+      "swf_sha256": "912331c84132dba18d942a1d10b40078102119764f3cd4f17be134e019b6affb",
+      "bundle_id": "com.kulo.wf",
+      "version": "1.8.4",
+      "build": "1.8.46",
+      "signing": "unsigned",
+      "profile_debug_overlay": false,
+      "title_cntips_b_unchanged": true,
+      "endpoint_policy": "初始 API 与版本查询均使用 http://175.178.160.158 公网地址",
+      "full_abc": "F:\\codex\\outputs\\author-public-release-20260924\\ios\\author-full.abc",
+      "full_abc_sha256": "441accc0c86b0e8526574f73c50cb0867d0a6731965601194ff323c51a094767",
+      "full_abc_sha1": "db5dd9069810d0a1a29b900b9f6ceef143c575b8",
+      "aot_info_file_offset": 104549248,
+      "aot_method_count": 101387,
+      "build_id": "ios-184-author-1043-20260924",
+      "diagnostic_export": false
     },
-    "save_schema_changed": false,
-    "admission_build_id": "ios-184-abyss-ex-20260917",
-    "public_protocol_report": "F:\\codex\\outputs\\abyss-ex-admission-fix-20260918\\public-admission-verification.json"
+    "superseded_gauge_overlay_report": "F:\\codex\\outputs\\starpoint-cn-merge-20260925\\ios\\ios-gauge-overlay-report.json",
+    "corrected_boss_artifact": {
+      "ipa": "F:\\codex\\outputs\\orochi-boss-public-20260926\\ios\\StarPoint-iOS-1.8.4-author-1047-orochi-boss-public-20260926-corrected-unsigned.ipa",
+      "ipa_sha256": "f7c43c3b6ced56ba2cade636ac818cd7d7dc944aefe50573a05ec942ae6ffe4a",
+      "build_id": "ios-184-author-1047-20260925",
+      "static_report": "F:\\codex\\outputs\\orochi-boss-public-20260926\\ios\\boss-ios-verification.json",
+      "device_tested": false
+    },
+    "previous_accepted_boss_artifact": {
+      "ipa": "F:\\codex\\outputs\\orochi-boss-public-20260926\\ios\\StarPoint-iOS-1.8.4-author-1047-orochi-boss-public-20260926-corrected-unsigned.ipa",
+      "ipa_sha256": "f7c43c3b6ced56ba2cade636ac818cd7d7dc944aefe50573a05ec942ae6ffe4a",
+      "size_bytes": 162889649,
+      "native_member": "Payload/worldflipper.app/worldflipper",
+      "native_sha256": "b5d81eab1351e6c554b680b92c935e9d586b5d609cb08147c4b17afad16a28dd",
+      "swf_member": "Payload/worldflipper.app/worldflipper_ios_release.swf",
+      "swf_sha256": "500686c2dffceb2c25dcf387df6b5d0f73f0ea8fab7ecb32e1a9461c722cc477",
+      "bundle_id": "com.kulo.wf",
+      "version": "1.8.4",
+      "build": "1.8.46",
+      "signing": "unsigned",
+      "profile_debug_overlay": false,
+      "title_cntips_b_unchanged": true,
+      "endpoint_policy": "初始 API 与版本查询均使用 http://175.178.160.158 公网地址",
+      "full_abc": "F:\\codex\\work\\client-public-20260926\\build\\ios-boss\\boss-full.abc",
+      "full_abc_sha256": "618a32efc4c53c1f3f177308d133322e8ae473bda8bd237865ce679dc5d8c4da",
+      "full_abc_sha1": "02f2d61a39d222b86c80c0a225e37e5a11fc42dd",
+      "aot_info_file_offset": 104549248,
+      "aot_method_count": 101433,
+      "build_id": "ios-184-author-1047-20260925",
+      "diagnostic_export": false,
+      "accepted_on": "2026-09-26",
+      "acceptance_audit": "client-patch/ACCEPTANCE-OROCHI-BOSS-20260926.md"
+    },
+    "previous_accepted_ipa_path": "F:\\codex\\outputs\\orochi-boss-public-20260926\\ios\\StarPoint-iOS-1.8.4-author-1047-orochi-boss-public-20260926-corrected-unsigned.ipa",
+    "startup_download_repair": {
+      "source_ipa": "F:\\codex\\outputs\\orochi-boss-public-20260927-f2007-fix-r3\\ios\\StarPoint-iOS-1.8.4-author-1047-orochi-boss-public-20260926-corrected-unsigned.ipa",
+      "source_ipa_sha256": "e76617b7179e18dc89f1539ce5a60c857d2973daf02de9c3e7a8baa12aed6112",
+      "build_entry": "client-patch/ios-startup-download/build_candidate.py",
+      "full_abc_preparation": "client-patch/ios-startup-download/prepare_full_abc.py",
+      "verification_report": "F:\\codex\\outputs\\ios-startup-download-20260927-r2\\ios\\ios-startup-download-static-verification.json",
+      "behavior": "CDN applyLoad 入口不再被 needsDownloadAsset 结果阻断；保留 isDownloaded/isAssetComplete 与既有下载/恢复路径",
+      "device_tested": false,
+      "cloud_deployed": false
+    },
+    "author_equipment_ios": {
+      "source_ipa_sha256": "123fdafd38caff60b64bebf4bd2d7dc8f73a48de2e08ba5f99f8d9a79a20d769",
+      "donor_swf_sha256": "2eebe2196d5cbe51388efda7ce50bb8eb050da4bcc22eab1a0af85bb680f8845",
+      "changed_existing_methods": 13,
+      "added_battle_character_helpers": 8,
+      "added_closures": 1,
+      "new_aot_methods": 22,
+      "activation_redirects": 0,
+      "source_entry": "client-patch/author-merge-20261001/ios/prepare_ios.py",
+      "device_tested": false,
+      "cloud_deployed": false,
+      "native_preload_bridge_method": 101444,
+      "native_resolve_method": 17701,
+      "user_device_accepted": true
+    },
+    "superseded_artifact": {
+      "ipa": "F:\\codex\\outputs\\ios-equipment-standalone-20261002\\ios\\StarPoint-iOS-1.8.4-author-equipment-standalone-20261002-unsigned.ipa",
+      "ipa_sha256": "710147c6fcef3cb46ac53d91c4b28203dc18591e3694b941434d04bda73a4f2b",
+      "status": "superseded_f1009_runtime_failure",
+      "superseded_by": "4ce93ffe967331b088032fa4d3e169c7d58b2c1cef4b10cf727e28906811bf40"
+    }
+  },
+  "local_build_report": "F:\\codex\\outputs\\ios-equipment-f1009-fix-20261002\\ios\\ios-build-report.json",
+  "local_acceptance_checks": {
+    "status": "ios_equipment_f1009_fix_offline_verified",
+    "device_tested": false,
+    "user_confirmed_artifact": true,
+    "only_native_and_swf_ipa_members_changed": true,
+    "full_abc_identity_verified": true,
+    "runtime_full_abc_methods": 101458,
+    "aot_method_table_methods": 101458,
+    "new_aot_methods": 22,
+    "changed_existing_methods": 13,
+    "added_battle_character_helpers": 8,
+    "added_closures": 1,
+    "public_admission_id": "ios-184-author-1047-public-20261001",
+    "previous_admission_id": "ios-184-author-1047-20260925",
+    "old_ios_id_embedded": false,
+    "origin": "http://175.178.160.158",
+    "signed": false,
+    "cloud_deployed": false,
+    "verification_report": "F:\\codex\\outputs\\ios-equipment-f1009-fix-20261002\\ios\\ios-verification-report.json",
+    "user_device_accepted": true,
+    "old_admission_id_embedded": false
   },
   "excluded_diagnostic": {
     "status": "diagnostic_only_not_current_baseline",
-    "reason": "诊断包不属于正式已验收基线。"
+    "reason": "诊断包不属于当前已验收基线。"
   }
 }

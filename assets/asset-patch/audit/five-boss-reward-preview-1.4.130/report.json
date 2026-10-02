@@ -1,0 +1,50 @@
+{
+  "status": "prepared_local_resource_update",
+  "base_version": "1.4.129",
+  "target_version": "1.4.130",
+  "archive": {
+    "name": "pinball-1.4.129-1.4.130-1-five-boss-reward-preview.zip",
+    "size": 256314,
+    "sha256": "bf6e0d7b02460cf6de7ca98b5f0446b891bb6cb30e19a0afc0f68a3c71578417",
+    "members": 2,
+    "files": [
+      "production/upload/93/a3763bc243c7178e1d97a3acd9dab2e9406a5e",
+      "production/upload/eb/f8ef19148af9c1330b78c7fb3ce75e3f202e64"
+    ]
+  },
+  "source_changes": {
+    "score_reward_group": "590010000",
+    "quest_ids": [
+      1099001
+    ],
+    "preview_rows": [
+      "10000144:1",
+      "10000145:10",
+      "10000146:1",
+      "10000147:1",
+      "10000310:10"
+    ]
+  },
+  "before_resources": {
+    "master/reward/score_reward.orderedmap": {
+      "sha256": "04d217fc121918035e4c4cf41cece1dd8f59f6d749fff46b03d694ee4cb37b36",
+      "size": 572175
+    },
+    "master/quest/boss_battle_quest.orderedmap": {
+      "sha256": "143cc082c31c8c64f366e53fdd18fcb1247e868379a425f487bbd45b837d7753",
+      "size": 85375
+    }
+  },
+  "after_resources": {
+    "master/reward/score_reward.orderedmap": {
+      "sha256": "a49865dc068e339915ba40fcb69e4449ff8dbe21a63d2b2958287831a3e70eaa",
+      "size": 572463
+    },
+    "master/quest/boss_battle_quest.orderedmap": {
+      "sha256": "56a1406b4577ed34e8dfcebb5452f6175ec093a74ff04f1382f2278b17a1c542",
+      "size": 85380
+    }
+  },
+  "runtime_deployed": false,
+  "device_tested": false
+}

@@ -83855,5 +83855,52 @@
       "id": 11000358,
       "rarity": 0.2
     }
+  ],
+  "590010000": [
+    {
+      "position": 1,
+      "name": "five_boss_blueprint_fragment",
+      "type": 0,
+      "reward_type": 0,
+      "count": 1,
+      "field5": 0,
+      "id": 10000144
+    },
+    {
+      "position": 2,
+      "name": "five_boss_deep_crystal",
+      "type": 0,
+      "reward_type": 0,
+      "count": 10,
+      "field5": 0,
+      "id": 10000145
+    },
+    {
+      "position": 3,
+      "name": "five_boss_first_clear_badge",
+      "type": 0,
+      "reward_type": 0,
+      "count": 1,
+      "field5": 0,
+      "id": 10000146
+    },
+    {
+      "position": 4,
+      "name": "five_boss_five_king_core",
+      "type": 0,
+      "reward_type": 0,
+      "count": 1,
+      "field5": 0,
+      "id": 10000147
+    },
+    {
+      "position": 5,
+      "name": "five_boss_king_coin",
+      "type": 0,
+      "reward_type": 0,
+      "count": 10,
+      "field5": 0,
+      "id": 10000310
+    }
   ]
 }

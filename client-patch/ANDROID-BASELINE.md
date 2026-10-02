@@ -1,15 +1,15 @@
 # Android APK/SWF：当前已验收基线
 
-2026-09-18，双端深渊 EX 准入修正版完成离线验收。身份以
+2026-09-25，双端作者机制公网包完成离线验收；Android 另完成模拟器安装、首次及冷启动至登录面板，iOS 未真机测试。作者机制内网包的 `user_accepted` 状态保持，见 [作者机制内网验收](./ACCEPTANCE-AUTHOR-UNIFIED-LAN-20260924.md)。精确身份以
 [android-accepted.json](./android-accepted.json) 和 [ios-accepted.json](./ios-accepted.json) 为准，
-范围见 [双端 EX 验收](./ACCEPTANCE-ABYSS-EX-20260918.md)。
+范围见 [作者机制公网验收](./ACCEPTANCE-AUTHOR-PUBLIC-20260925.md)。旧 SET / EX 成品与方法保留在历史验收记录中。
 
 | 环境 | 成品 | 状态 |
 | --- | --- | --- |
-| Android 公网 | `F:/codex/outputs/abyss-ex-admission-fix-20260918/StarPoint-CN-1.8.1-abyss-ex-admission-fix-20260918.apk` | `accepted_offline`，实际包准入协议通过，未新增设备测试 |
-| Android 内网 | `outputs/r10-admission-lan-reopen-fix-20260915/StarPoint-CN-1.8.1-r10-admission-lan-reopen-fix-20260915.apk` | 原 `accepted_offline` 登记保持 |
+| Android 公网 | `F:/codex/outputs/author-public-release-20260924/android/StarPoint-CN-1.8.1-author-unified-damage-public-20260924-68bc1d3a.apk` | `accepted_offline`，模拟器安装和启动至登录面板通过，未重新实战 |
+| Android 内网 | `F:/codex/outputs/author-unified-damage-lan-20260924/StarPoint-CN-1.8.1-author-unified-damage-lan-20260924-eac4a37d.apk` | `user_accepted` 保持 |
 
-公网保留 R10 累计功能，增加 EX 活动、续战和装备门控，并修复实际 HMAC 消息中的旧号残留。主 ABC 索引 296，全 SWF 共 96,635 个方法体；无诊断导出。公网准入号为 `android-181-abyss-ex-20260917`，内网仍沿用原 R10 号。iOS 使用独立注册表，AOT 方法数 101,287。
+公网保留 R10、EX、独立编队、SET C8601 与作者机制累计功能。主 ABC 索引 361，全 SWF 共 96,654 个方法体；无诊断导出。公网准入号为 `android-181-author-1043-20260924`。iOS 使用独立注册表，完整 ABC 与 AOT 方法表均为 101,387 项，准入号为 `ios-184-author-1043-20260924`。两端旧独立编队正式号仍可通过公网准入。
 
 在仓库根目录运行：
 

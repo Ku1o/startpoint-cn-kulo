@@ -78,7 +78,11 @@ test('OS memory ignores failed and stale measurements; SQL totals cannot masquer
     summary.addLine(line(180,{osProcess:os(900*MiB,false,true)}))
     summary.addLine(line(660,{osProcess:os(120*MiB),counters:{'sqlite.main':{
         prepareCalls:100000,prepareErrors:2,sampledPrepareCalls:2000,sampledPrepareMs:9000,
-        maxSampledPrepareMs:12,page_size:4096,nativeBytesAvailable:false},stdio:{stdoutQueuedBytes:64}},
+        maxSampledPrepareMs:12,page_size:4096,nativeBytesAvailable:false,
+        executeCalls:1000000,executeErrors:5,busyErrors:2,sampledExecuteCalls:100,
+        sampledExecuteMs:300,maxSampledExecuteMs:9,busy_timeout:1000,synchronous:2,wal_autocheckpoint:1000},
+        responseWorkers:{completed:10000,fallback:20,rejected:20,failed:1,timeouts:1,maxPending:16,
+            maxBytes:33554432,retainedBytes:1024,active:1},stdio:{stdoutQueuedBytes:64}},
         workers:[{name:'npc',threadId:2,ageMs:10,stale:false,memory:{heapUsed:10},
             diagnostics:{'sqlite.npc':{prepareCalls:10000},stdio:{stdoutQueuedBytes:32}}}]}))
     const run=summary.report().runs[0]
@@ -87,7 +91,9 @@ test('OS memory ignores failed and stale measurements; SQL totals cannot masquer
     assert.equal(metric(run,'osProcess.threadCount').last,5)
     assert.equal(metric(run,'osProcess.regions.privateCommittedBytes').delta,20*MiB)
     assert.equal(metric(run,'osProcess.regions.mappedCommittedBytes').last,20*MiB)
-    assert.equal(run.metrics.some(m=>/prepare|Prepare|page_size/.test(m.name)),false)
+    assert.equal(run.metrics.some(m=>/prepare|Prepare|page_size|execute|Execute|busyErrors|busy_timeout|synchronous|wal_autocheckpoint/.test(m.name)),false)
+    assert.equal(run.metrics.some(m=>/completed|fallback|rejected|failed|timeouts|maxPending|maxBytes/.test(m.name)),false)
+    assert.equal(metric(run,'counters.responseWorkers.retainedBytes').last,1024)
     assert.equal(metric(run,'counters.stdio.stdoutQueuedBytes').last,64)
     assert.equal(metric(run,'worker.npc#2.diagnostics.stdio.stdoutQueuedBytes').last,32)
 })

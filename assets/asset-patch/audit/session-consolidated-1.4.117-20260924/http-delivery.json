@@ -1,0 +1,17 @@
+{
+  "status": "local_download_verified",
+  "baseline": "1.4.116",
+  "version": "1.4.117",
+  "download": {
+    "location": "http://<LAN_HOST>:8001/patch/cn/asset-patch/active/pinball-1.4.116-1.4.117-1-author-inaho-fluffy-consolidated.zip",
+    "size": 115762086,
+    "sha256": ""
+  },
+  "actual_sha256": "52beab7461f750dc2a386f6f30a1873b606b2724b28e27af148e32aaad70b555",
+  "bytes": 115762086,
+  "members": 2072,
+  "only_one_consolidated_archive": true,
+  "already_current_no_update": true,
+  "device_tested": false,
+  "service_restarted": false
+}

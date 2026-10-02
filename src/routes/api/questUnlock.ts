@@ -7,6 +7,7 @@ import { resolvePlayerIdSync } from "../../data/activeAccount";
 import { getQuestFromCategorySync } from "../../lib/assets";
 import { generateDataHeaders } from "../../utils";
 import questUnlockCosts from "../../../assets/quest_unlock_costs.json";
+import { runPersistenceTransaction } from "../../lib/persistence-coordinator";
 
 interface UnlockBody {
     category: number
@@ -63,42 +64,33 @@ const routes = async (fastify: FastifyInstance) => {
             })
         }
 
-        // Check if already unlocked
-        const progress = getPlayerQuestProgressSync(playerId)
-        const sectionProg = progress[String(category)] ?? []
-        const existing = sectionProg.find(p => p.questId === questId)
-        if (existing?.unlocked) {
-            return reply.status(400).send({
-                "error": "Bad Request",
-                "message": "Quest already unlocked."
-            })
-        }
+        const result = await runPersistenceTransaction({
+            domain: "player", playerId, operation: "quest_unlock",
+        }, () => {
+            const progress = getPlayerQuestProgressSync(playerId)
+            const sectionProg = progress[String(category)] ?? []
+            const existing = sectionProg.find(p => p.questId === questId)
+            if (existing?.unlocked) return { error: "Quest already unlocked." }
 
-        // Deduct unlock items
-        const unlockCost = (questUnlockCosts as Record<string, {itemIds: number[], itemCounts: number[]}>)[String(questId)]
-        const itemList: Record<string, number> = {}
-        if (unlockCost) {
-            for (let i = 0; i < unlockCost.itemIds.length; i++) {
-                const itemId = unlockCost.itemIds[i]
-                const cost = unlockCost.itemCounts[i] ?? 1
-                const current = getPlayerItemSync(playerId, itemId) ?? 0
-                if (current < cost) {
-                    return reply.status(400).send({
-                        "error": "Bad Request",
-                        "message": `Not enough of item ${itemId} to unlock quest.`
-                    })
+            const unlockCost = (questUnlockCosts as Record<string, {itemIds: number[], itemCounts: number[]}>)[String(questId)]
+            const itemList: Record<string, number> = {}
+            if (unlockCost) {
+                for (let i = 0; i < unlockCost.itemIds.length; i++) {
+                    const itemId = unlockCost.itemIds[i]
+                    const cost = unlockCost.itemCounts[i] ?? 1
+                    const current = getPlayerItemSync(playerId, itemId) ?? 0
+                    if (current < cost) return { error: `Not enough of item ${itemId} to unlock quest.` }
+                    updatePlayerItemSync(playerId, itemId, current - cost)
+                    itemList[String(itemId)] = current - cost
                 }
-                updatePlayerItemSync(playerId, itemId, current - cost)
-                itemList[String(itemId)] = current - cost
             }
-        }
-
-        // Save unlock state
-        if (existing) {
-            updatePlayerQuestProgressSync(playerId, category, { questId, unlocked: true })
-        } else {
-            insertPlayerQuestProgressSync(playerId, category, { questId, finished: false, unlocked: true })
-        }
+            if (existing) updatePlayerQuestProgressSync(playerId, category, { questId, unlocked: true })
+            else insertPlayerQuestProgressSync(playerId, category, { questId, finished: false, unlocked: true })
+            return { itemList }
+        })
+        if (result.error !== undefined) return reply.status(400).send({
+            "error": "Bad Request", "message": result.error,
+        })
 
         reply.header("content-type", "application/x-msgpack")
         return reply.status(200).send({
@@ -106,7 +98,7 @@ const routes = async (fastify: FastifyInstance) => {
                 viewer_id: viewerId
             }),
             "data": {
-                "item_list": itemList,
+                "item_list": result.itemList,
                 "mail_arrived": false
             }
         })

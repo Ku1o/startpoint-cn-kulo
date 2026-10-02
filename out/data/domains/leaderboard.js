@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getLeaderboardRunRoundsSync = exports.getLeaderboardPlayerRankSync = exports.getLeaderboardRankPageSync = exports.countLeaderboardRanksSync = exports.finishLeaderboardRoundSync = exports.markLeaderboardRoundStartedSync = exports.abandonLeaderboardRunsSync = exports.insertLeaderboardRunSync = exports.getActiveLeaderboardRunSync = exports.getLeaderboardSeasonSync = void 0;
 const db_1 = require("../db");
+const persistence_coordinator_1 = require("../../lib/persistence-coordinator");
 const RUN_COLUMNS = `id, competition_key, player_id, player_name, season, status,
     started_at_ms, finished_at_ms, server_duration_ms, client_battle_ms,
     rounds_cleared, total_rounds, tracked_from_round, pending_round,
@@ -37,7 +38,7 @@ function getLeaderboardSeasonSync(competitionKey, nowMs = Date.now(), contentRev
         throw new Error("contentRevision must be a non-empty string when provided.");
     }
     const db = (0, db_1.getDb)();
-    return db.transaction(() => {
+    return (0, persistence_coordinator_1.runPersistenceTransactionSync)({ domain: "leaderboard", operation: "get_leaderboard_season" }, () => {
         db.prepare(`
             INSERT OR IGNORE INTO leaderboard_seasons
                 (competition_key, season, started_at_ms, source, content_revision)
@@ -58,7 +59,7 @@ function getLeaderboardSeasonSync(competitionKey, nowMs = Date.now(), contentRev
         `).run(nextSeason, nowMs, `content:${contentRevision}`, contentRevision, competitionKey, row.season);
         abandonLeaderboardRunsSync({ competitionKey, endedAtMs: nowMs });
         return nextSeason;
-    })();
+    });
 }
 exports.getLeaderboardSeasonSync = getLeaderboardSeasonSync;
 function getActiveLeaderboardRunSync(playerId, competitionKey) {
@@ -126,7 +127,7 @@ function finishLeaderboardRoundSync(input) {
     const abilitySoulIds = normalizePartySlots(party.abilitySoulIds);
     const evolutionImgLevels = normalizePartySlots(party.evolutionImgLevels);
     const unisonEvolutionImgLevels = normalizePartySlots(party.unisonEvolutionImgLevels);
-    return (0, db_1.getDb)().transaction(() => {
+    return (0, persistence_coordinator_1.runPersistenceTransactionSync)({ domain: "leaderboard", playerId: run.playerId, operation: "finish_leaderboard_round" }, () => {
         var _a, _b;
         const current = getActiveLeaderboardRunSync(run.playerId, run.competitionKey);
         if (current === null
@@ -164,7 +165,7 @@ function finishLeaderboardRoundSync(input) {
         const raw = (0, db_1.getDb)().prepare(`SELECT ${RUN_COLUMNS} FROM leaderboard_runs WHERE id = ?`)
             .get(current.id);
         return raw === undefined ? null : deserializeRun(raw);
-    })();
+    });
 }
 exports.finishLeaderboardRoundSync = finishLeaderboardRoundSync;
 // Reuse the ranking eligibility rules for live counts and legacy snapshots.

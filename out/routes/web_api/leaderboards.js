@@ -13,6 +13,7 @@ const leaderboard_1 = require("../../data/domains/leaderboard");
 const competition_1 = require("../../lib/leaderboard/competition");
 const settlement_1 = require("../../lib/leaderboard/settlement");
 const availability_1 = require("../../lib/leaderboard/availability");
+const persistence_coordinator_1 = require("../../lib/persistence-coordinator");
 function resolveKey(request, reply) {
     const key = request.params.key;
     if ((0, competition_1.getLeaderboardCompetition)(key) !== null)
@@ -32,7 +33,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         var _a;
         const key = resolveKey(request, reply);
         if (key === null)
-            return;
+            return reply;
         const competition = (0, competition_1.getLeaderboardCompetition)(key);
         const season = (0, competition_1.getLeaderboardCompetitionSeasonSync)(key);
         const { total, filter } = (0, settlement_1.getLeaderboardSeasonRewardViewSync)(key, season);
@@ -57,12 +58,13 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         var _b;
         const key = resolveKey(request, reply);
         if (key === null)
-            return;
+            return reply;
         const body = ((_b = request.body) !== null && _b !== void 0 ? _b : {});
         if (typeof body.enabled !== "boolean") {
             return reply.status(400).send({ error: "enabled must be a boolean." });
         }
-        if (body.enabled) {
+        const enabled = body.enabled;
+        if (enabled) {
             const season = (0, competition_1.getLeaderboardCompetitionSeasonSync)(key);
             if ((0, settlement_1.getLeaderboardSeasonRewardViewSync)(key, season).settled) {
                 return reply.status(409).send({ error: "当前赛季已结算，请先换季再开启排行榜。" });
@@ -71,13 +73,15 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 return reply.status(409).send({ error: "已到截止时间，请先修改截止时间或关闭定时开关，再开启排行榜。" });
             }
         }
-        return reply.send(Object.assign({ ok: true }, (0, availability_1.setLeaderboardAvailabilitySync)(key, body.enabled)));
+        return reply.send(Object.assign({ ok: true }, (0, persistence_coordinator_1.runPersistenceTransactionSync)({
+            domain: "leaderboard", operation: `admin_availability:${key}`,
+        }, () => (0, availability_1.setLeaderboardAvailabilitySync)(key, enabled))));
     }));
     fastify.patch("/:key/config", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
         var _c;
         const key = resolveKey(request, reply);
         if (key === null)
-            return;
+            return reply;
         const current = (0, settlement_1.getLeaderboardSettlementConfigSync)(key);
         const body = ((_c = request.body) !== null && _c !== void 0 ? _c : {});
         const rewardTiers = body.rewardTiers === undefined
@@ -98,14 +102,16 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 throw new Error("开启定时冻结或自动发奖时必须设置截止时间。");
             }
             (0, settlement_1.validateRewardTiers)(rewardTiers);
-            (0, settlement_1.putLeaderboardSettlementConfigSync)(Object.assign(Object.assign({}, current), { autoEnabled,
+            (0, persistence_coordinator_1.runPersistenceTransactionSync)({
+                domain: "leaderboard", operation: `admin_config:${key}`,
+            }, () => (0, settlement_1.putLeaderboardSettlementConfigSync)(Object.assign(Object.assign({}, current), { autoEnabled,
                 freezeEnabled,
                 settleAtMs, repeatIntervalMs: body.repeatIntervalMs === undefined
                     ? current.repeatIntervalMs
                     : body.repeatIntervalMs === null ? null : Number(body.repeatIntervalMs), rewardTiers, mailSubject: typeof body.mailSubject === "string"
                     ? body.mailSubject : current.mailSubject, mailBody: typeof body.mailBody === "string"
                     ? body.mailBody : current.mailBody, excludeBots: body.excludeBots === undefined
-                    ? current.excludeBots : Boolean(body.excludeBots), updatedAtMs: Date.now() }));
+                    ? current.excludeBots : Boolean(body.excludeBots), updatedAtMs: Date.now() })));
         }
         catch (error) {
             return reply.status(400).send({
@@ -117,15 +123,19 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
     fastify.post("/:key/settle", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
         const key = resolveKey(request, reply);
         if (key === null)
-            return;
-        const outcome = (0, settlement_1.settleLeaderboardSeasonSync)(key, "admin-manual");
+            return reply;
+        const outcome = (0, persistence_coordinator_1.runPersistenceTransactionSync)({
+            domain: "leaderboard", operation: `admin_settle:${key}`,
+        }, () => (0, settlement_1.settleLeaderboardSeasonSync)(key, "admin-manual"));
         return reply.status(outcome.ok ? 200 : 409).send(outcome);
     }));
     fastify.post("/:key/rollover", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
         const key = resolveKey(request, reply);
         if (key === null)
-            return;
-        const outcome = (0, settlement_1.rolloverLeaderboardSeasonSync)(key, "admin-rollover");
+            return reply;
+        const outcome = (0, persistence_coordinator_1.runPersistenceTransactionSync)({
+            domain: "leaderboard", operation: `admin_rollover:${key}`,
+        }, () => (0, settlement_1.rolloverLeaderboardSeasonSync)(key, "admin-rollover"));
         return reply.status(outcome.ok ? 200 : 409).send(outcome.ok ? outcome : Object.assign(Object.assign({}, outcome), { error: "当前赛季尚未结算，不能换季。" }));
     }));
 });

@@ -41,7 +41,7 @@ class ProcessMemoryProbe {
     constructor(enabled, read, now) {
         var _a;
         if (enabled === void 0) { enabled = process.platform === "win32" && process.arch === "x64"
-            && !/^(0|false|no|off)$/i.test((_a = process.env.PROCESS_MEMORY_DIAGNOSTICS) !== null && _a !== void 0 ? _a : "true"); }
+            && /^(1|true|yes|on)$/i.test((_a = process.env.PROCESS_MEMORY_DIAGNOSTICS) !== null && _a !== void 0 ? _a : "false"); }
         if (read === void 0) { read = readWindowsProcessMemory; }
         if (now === void 0) { now = () => node_perf_hooks_1.performance.now(); }
         this.enabled = enabled;

@@ -1,7 +1,8 @@
 import { existsSync } from "./lib/file-exists";
 import Fastify, { FastifyReply, FastifyRequest } from "fastify";
 import { ContentTypeParserDoneFunction } from "fastify/types/content-type-parser";
-import { pack, unpack } from "msgpackr";
+import { unpack } from "msgpackr";
+import { installCnResponseEncoding } from "./lib/cn-response-hook";
 import fastifyStatic from "@fastify/static";
 import path from "path";
 import { mkdirSync, readFileSync } from "fs";
@@ -12,8 +13,6 @@ import { restoreTimeOffset } from "./data/activeAccount";
 import { migrateUnsafeViewerIdsSync } from "./data/domains/session";
 import { installManagementAuth } from "./lib/management-auth";
 import { installRoutePerformanceMonitor } from "./lib/route-performance";
-import { recordResponseEncoding } from "./lib/request-diagnostics";
-import { performance } from "perf_hooks";
 import { markPlayerOnline } from "./lib/online-presence";
 import { installTakeoverUdidGuard } from "./lib/takeover-access";
 import { initializePlayerLogin } from "./lib/player-login";
@@ -46,7 +45,7 @@ import storyQuestApiPlugin from "./routes/api/storyQuest";
 import optionApiPlugin from "./routes/api/option";
 import singleBattleQuestApiPlugin from "./routes/api/singleBattleQuest";
 import questApiPlugin from "./routes/api/quest";
-import { multiBattleRoutes } from "./multi";
+import { multiBattleRoutes, startSessionServer, stopSessionServer } from "./multi";
 import attentionApiPlugin from "./routes/api/attention";
 import characterApiPlugin from "./routes/api/character";
 import characterManaPlugin from "./routes/api/character/mana";
@@ -82,7 +81,6 @@ import questUnlockApiPlugin from "./routes/api/questUnlock";
 import itemApiPlugin from "./routes/api/item";
 import loungeApiPlugin from "./routes/api/lounge";
 import multiSpecialExchangeApiPlugin from "./routes/api/multiSpecialExchange";
-import { startSessionServer } from "./multi";
 import {
     startQuestNpcPartyPoolWorker,
     stopQuestNpcPartyPoolWorker,
@@ -90,12 +88,20 @@ import {
 import { parseIosCompatConfig } from "./lib/ios-compat";
 import { getDb } from "./data/db";
 import { createReceiveHistoryRetentionService } from "./lib/receive-history-retention";
-import {
-    compressCnLoadHttpBody,
-    getCnLoadHttpCompressionConfig,
-} from "./lib/cn-load-http-compression";
 import { createLeaderboardSettlementScheduler } from "./lib/leaderboard/settlement";
 import { createDailyVmoneyMailScheduler } from "./lib/daily-vmoney-mail";
+import { startSqliteCheckpointWorker, stopSqliteCheckpointWorker } from "./lib/sqlite-checkpoint-worker";
+import {
+    configurePersistenceSqlExecutor,
+    drainPersistence,
+    runPersistenceTransaction,
+} from "./lib/persistence-coordinator";
+import {
+    executeSqlitePersistenceCommand,
+    isSqlitePersistenceWorkerStarted,
+    startSqlitePersistenceWorker,
+    stopSqlitePersistenceWorker,
+} from "./lib/sqlite-persistence-worker";
 
 const fastify = Fastify({
     logger: {
@@ -107,7 +113,6 @@ const fastify = Fastify({
     bodyLimit: 262144  // 256KB — covers /single_battle_quest/finish large battle stats
 });
 
-const cnLoadCompressionConfig = getCnLoadHttpCompressionConfig();
 
 installLocalClientCompat(fastify, process.env.CN_LOCAL_CLIENT_PLATFORM || (
     getPatchManifest().patches.some(p => p.enabled && p.local_test_only
@@ -135,12 +140,26 @@ installManagementAuth(fastify);
 const rateLimitMap = new Map<string, { count: number; reset: number }>();
 const RATE_LIMIT_MAX = 30;
 const RATE_LIMIT_WINDOW = 60000;
+// A hostile client can rotate source IPs; expiry alone must not make this map
+// grow for the lifetime of the process.
+const RATE_LIMIT_MAP_MAX = 4096;
+let nextRateLimitSweep = 0;
 fastify.addHook("onRequest", async (request, reply) => {
     if (request.url === "/crash") {
         const ip = (request.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim()
             || request.ip;
         const now = Date.now();
-        const entry = rateLimitMap.get(ip) || { count: 0, reset: now + RATE_LIMIT_WINDOW };
+        if (now >= nextRateLimitSweep) {
+            for (const [key, value] of rateLimitMap) {
+                if (value.reset <= now) rateLimitMap.delete(key);
+            }
+            nextRateLimitSweep = now + RATE_LIMIT_WINDOW;
+        }
+        const existing = rateLimitMap.get(ip);
+        if (!existing && rateLimitMap.size >= RATE_LIMIT_MAP_MAX) {
+            return reply.status(429).send("Too Many Requests");
+        }
+        const entry = existing || { count: 0, reset: now + RATE_LIMIT_WINDOW };
         if (now > entry.reset) { entry.count = 0; entry.reset = now + RATE_LIMIT_WINDOW; }
         if (++entry.count > RATE_LIMIT_MAX) {
             return reply.status(429).send("Too Many Requests");
@@ -160,241 +179,7 @@ fastify.addHook("onResponse", async request => {
     markPlayerOnline((body as Record<string, unknown>).viewer_id)
 });
 
-/**
- * Walk a MsgPack buffer in a single pass. Replaces uint32 tags (0xCE) with
- * int32 (0xD2) for values < 2^31, and with float64 (0xCB) for values ≥ 2^31.
- * All other bytes are copied verbatim.  Handles nested arrays/maps recursively.
- * Returns a new Buffer (may be larger than input when float64 replaces int32).
- */
-function fixUint32Tags(buf: Buffer): Buffer {
-    const out = Buffer.allocUnsafe(buf.length * 2); // worst-case: all 0xCE → 0xCB (+80%)
-    let w = 0; // write position
-
-    const put = (b: number) => { out[w++] = b; };
-
-    const copy = (off: number, len: number) => {
-        for (let i = 0; i < len; i++) out[w++] = buf[off + i]!;
-    };
-
-    function walk(off: number): number {
-        const tag = buf[off]!;
-        let pos = off + 1;
-
-        // positive fixint  0x00..0x7f
-        if (tag <= 0x7f) { put(tag); return pos; }
-        // negative fixint  0xe0..0xff
-        if (tag >= 0xe0) { put(tag); return pos; }
-
-        switch (tag) {
-            case 0xc0: case 0xc2: case 0xc3: // nil / false / true
-                put(tag);
-                return pos;
-            case 0xcc: case 0xd0: // uint8 / int8
-                copy(off, 2);
-                return pos + 1;
-            case 0xcd: case 0xd1: // uint16 / int16
-                copy(off, 3);
-                return pos + 2;
-            case 0xce: {            // uint32 → int32 (< 2^31) or float64 (≥ 2^31)
-                const u32 = buf.readUint32BE(pos);
-                if (u32 < 0x80000000) {
-                    put(0xd2);     // int32 tag
-                    copy(pos, 4);  // data bytes unchanged
-                } else {
-                    put(0xcb);     // float64 tag
-                    const f64 = Buffer.allocUnsafe(8);
-                    f64.writeDoubleBE(u32);
-                    for (let j = 0; j < 8; j++) put(f64[j]!);
-                }
-                return pos + 4;
-            }
-            case 0xd2: // int32
-                copy(off, 5);
-                return pos + 4;
-            case 0xcf: case 0xd3: // uint64 / int64
-                copy(off, 9);
-                return pos + 8;
-            case 0xca: // float32
-                copy(off, 5);
-                return pos + 4;
-            case 0xcb: // float64
-                copy(off, 9);
-                return pos + 8;
-            case 0xd9: { // str8
-                const len = buf[pos]!;
-                copy(off, 2 + len);
-                return pos + 1 + len;
-            }
-            case 0xda: { // str16
-                const len = buf.readUint16BE(pos);
-                copy(off, 3 + len);
-                return pos + 2 + len;
-            }
-            case 0xdb: { // str32
-                const len = buf.readUint32BE(pos);
-                copy(off, 5 + len);
-                return pos + 4 + len;
-            }
-            case 0xc4: { // bin8
-                const len = buf[pos]!;
-                copy(off, 2 + len);
-                return pos + 1 + len;
-            }
-            case 0xc5: { // bin16
-                const len = buf.readUint16BE(pos);
-                copy(off, 3 + len);
-                return pos + 2 + len;
-            }
-            case 0xc6: { // bin32
-                const len = buf.readUint32BE(pos);
-                copy(off, 5 + len);
-                return pos + 4 + len;
-            }
-            case 0xdc: { // array16
-                const count = buf.readUint16BE(pos);
-                put(tag);
-                put(buf[off + 1]!); put(buf[off + 2]!); // count bytes
-                pos += 2;
-                for (let i = 0; i < count; i++) pos = walk(pos);
-                return pos;
-            }
-            case 0xdd: { // array32
-                const count = buf.readUint32BE(pos);
-                put(tag);
-                copy(off + 1, 4); // count bytes
-                pos += 4;
-                for (let i = 0; i < count; i++) pos = walk(pos);
-                return pos;
-            }
-            case 0xde: { // map16
-                const count = buf.readUint16BE(pos);
-                put(tag);
-                put(buf[off + 1]!); put(buf[off + 2]!); // count bytes
-                pos += 2;
-                for (let i = 0; i < count; i++) { pos = walk(pos); pos = walk(pos); }
-                return pos;
-            }
-            case 0xdf: { // map32
-                const count = buf.readUint32BE(pos);
-                put(tag);
-                copy(off + 1, 4); // count bytes
-                pos += 4;
-                for (let i = 0; i < count; i++) { pos = walk(pos); pos = walk(pos); }
-                return pos;
-            }
-            // ext family (copy verbatim)
-            case 0xc7: { // ext8
-                const len = buf[pos]!;
-                copy(off, 2 + len + 1);
-                return pos + 1 + len + 1;
-            }
-            case 0xc8: { // ext16
-                const len = buf.readUint16BE(pos);
-                copy(off, 3 + len + 1);
-                return pos + 2 + len + 1;
-            }
-            case 0xc9: { // ext32
-                const len = buf.readUint32BE(pos);
-                copy(off, 5 + len + 1);
-                return pos + 4 + len + 1;
-            }
-            case 0xd4: copy(off, 2);  return pos + 1;   // fixext1
-            case 0xd5: copy(off, 3);  return pos + 2;   // fixext2
-            case 0xd6: copy(off, 5);  return pos + 4;   // fixext4
-            case 0xd7: copy(off, 9);  return pos + 8;   // fixext8
-            case 0xd8: copy(off, 17); return pos + 16;  // fixext16
-            default: {
-                // fixstr   0xa0..0xbf
-                if (tag >= 0xa0 && tag <= 0xbf) {
-                    const len = tag & 0x1f;
-                    copy(off, 1 + len);
-                    return pos + len;
-                }
-                // fixarray 0x90..0x9f
-                if (tag >= 0x90 && tag <= 0x9f) {
-                    put(tag);
-                    const count = tag & 0x0f;
-                    for (let i = 0; i < count; i++) pos = walk(pos);
-                    return pos;
-                }
-                // fixmap   0x80..0x8f
-                if (tag >= 0x80 && tag <= 0x8f) {
-                    put(tag);
-                    const count = tag & 0x0f;
-                    for (let i = 0; i < count; i++) { pos = walk(pos); pos = walk(pos); }
-                    return pos;
-                }
-                put(tag); // unknown, copy defensively
-                return pos;
-            }
-        }
-    }
-
-    let i = 0;
-    while (i < buf.length) i = walk(i);
-    return out.subarray(0, w);
-}
-
-function appendVaryAcceptEncoding(reply: FastifyReply): void {
-    const current = reply.getHeader("vary")
-    const values = String(current ?? "").split(",").map(value => value.trim()).filter(Boolean)
-    if (!values.some(value => value.toLowerCase() === "accept-encoding")) {
-        reply.header("vary", [...values, "Accept-Encoding"].join(", "))
-    }
-}
-
-function safeCompressionLogValue(value: unknown): string {
-    return String(value ?? "none").replace(/[\r\n\t]/g, " ").slice(0, 120)
-}
-
-fastify.addHook("onSend", async (request, reply, payload) => {
-    const encodingStarted = performance.now();
-    let encodedPayload = payload;
-    try {
-        if (reply.getHeader("content-type") === "application/x-msgpack") {
-            const packed = fixUint32Tags(pack(payload));
-            const base64 = packed.toString("base64");
-            if (request.url.split("?", 1)[0].endsWith("/load")
-                && cnLoadCompressionConfig.mode !== "off") {
-                appendVaryAcceptEncoding(reply);
-                let result: Awaited<ReturnType<typeof compressCnLoadHttpBody>>;
-                try {
-                    result = await compressCnLoadHttpBody(
-                        Buffer.from(base64, "ascii"),
-                        request.headers["accept-encoding"],
-                        cnLoadCompressionConfig,
-                    );
-                } catch (error) {
-                    console.error("[CN-LOAD-COMPRESS] compression failed; sending identity response:", error);
-                    return encodedPayload = base64;
-                }
-                if (result.encoding) {
-                    reply.header("content-encoding", result.encoding);
-                    reply.removeHeader("content-length");
-                }
-                if (cnLoadCompressionConfig.log) {
-                    const reduction = result.originalBytes > 0
-                        ? ((1 - result.wireBytes / result.originalBytes) * 100).toFixed(1)
-                        : "0.0";
-                    console.warn(
-                        `[CN-LOAD-COMPRESS] mode=${cnLoadCompressionConfig.mode} `
-                        + `encoding=${result.encoding ?? "identity"} reason=${result.reason} `
-                        + `accept=${safeCompressionLogValue(request.headers["accept-encoding"])} `
-                        + `device=${safeCompressionLogValue(request.headers.device)} `
-                        + `before=${result.originalBytes} after=${result.wireBytes} saved=${reduction}%`,
-                    );
-                }
-                return encodedPayload = result.encoding ? result.body : base64;
-            }
-            return encodedPayload = base64;
-        }
-    } catch (error) {
-        console.error("[CN-LOAD-COMPRESS] response serialization failed; using normal serializer:", error)
-    } finally {
-        recordResponseEncoding(request, performance.now() - encodingStarted, encodedPayload);
-    }
-    return payload;
-});
+installCnResponseEncoding(fastify);
 
 function jsonParser(_: FastifyRequest, body: string, done: ContentTypeParserDoneFunction) {
     try {
@@ -731,18 +516,72 @@ fastify.setNotFoundHandler((request, reply) => {
 
 const host = process.env.CN_LISTEN_HOST ?? "127.0.0.1";
 const port = parseInt(process.env.CN_LISTEN_PORT ?? "8001");
-const receiveHistoryRetention = createReceiveHistoryRetentionService(getDb());
+const receiveHistoryRetention = createReceiveHistoryRetentionService(getDb(), {
+    executeTransaction: runPersistenceTransaction,
+});
 const leaderboardSettlementScheduler = createLeaderboardSettlementScheduler();
 const dailyVmoneyMailScheduler = createDailyVmoneyMailScheduler(getDb());
 
 fastify.addHook("onClose", async () => {
+    // The multiplayer TCP listener is not owned by Fastify. Stop it first so
+    // no new realtime callback can enqueue a database write while the queues
+    // below are draining.
+    await stopSessionServer();
     await seedValidator.close();
     dailyVmoneyMailScheduler.stop();
     leaderboardSettlementScheduler.stop();
     await receiveHistoryRetention.stop();
     await stopQuestNpcPartyPoolWorker();
+    await drainPersistence();
+    await stopSqlitePersistenceWorker();
+    configurePersistenceSqlExecutor(null);
+    await stopSqliteCheckpointWorker();
 });
+
+// Ctrl+C and a normal service-manager stop must enter Fastify's close hooks;
+// terminating the process forcibly still bypasses every cleanup callback.
+let gracefulShutdown: Promise<void> | null = null;
+const shutdownTimeoutMs = Math.max(
+    5_000,
+    Number.parseInt(process.env.GRACEFUL_SHUTDOWN_TIMEOUT_MS ?? "15000", 10) || 15_000,
+);
+function requestGracefulShutdown(signal: NodeJS.Signals): void {
+    if (gracefulShutdown) return;
+    console.warn(`[SHUTDOWN] ${signal} received; draining realtime and persistence work`);
+    gracefulShutdown = (async () => {
+        let timeout: NodeJS.Timeout | undefined;
+        try {
+            await Promise.race([
+                fastify.close(),
+                new Promise<never>((_, reject) => {
+                    timeout = setTimeout(() => reject(new Error(
+                        `graceful shutdown timed out after ${shutdownTimeoutMs}ms`,
+                    )), shutdownTimeoutMs);
+                }),
+            ]);
+            console.log("[SHUTDOWN] graceful shutdown complete");
+        } catch (error) {
+            process.exitCode = 1;
+            console.error(`[SHUTDOWN] graceful shutdown failed: ${(error as Error).message}`);
+        } finally {
+            if (timeout) clearTimeout(timeout);
+        }
+    })();
+    void gracefulShutdown;
+}
+process.once("SIGINT", () => requestGracefulShutdown("SIGINT"));
+process.once("SIGTERM", () => requestGracefulShutdown("SIGTERM"));
+process.once("SIGBREAK", () => requestGracefulShutdown("SIGBREAK"));
 startQuestNpcPartyPoolWorker();
+const persistenceWorkerStarted = startSqlitePersistenceWorker(getDb().name);
+if (persistenceWorkerStarted && isSqlitePersistenceWorkerStarted()) {
+    configurePersistenceSqlExecutor(async (_context, statements) => {
+        await executeSqlitePersistenceCommand({
+            operation: _context.operation,
+            statements,
+        });
+    });
+}
 
 fastify.listen({ port, host }, (err, address) => {
     if (err) {
@@ -756,6 +595,7 @@ fastify.listen({ port, host }, (err, address) => {
 
     // Start multi battle TCP session server
     startSessionServer();
+    startSqliteCheckpointWorker(getDb().name);
     const logDirectory = path.resolve(__dirname,"../.logs");
     mkdirSync(logDirectory,{recursive:true});
     writeJsonAtomicSync(path.join(logDirectory,"cn-server-ready.json"),{

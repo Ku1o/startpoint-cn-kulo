@@ -2,7 +2,7 @@ import { existsSync } from "../lib/file-exists";
 /**
  * 默认存档模板：管理员上传一份存档快照，作为「账户新建存档」时的初始内容。
  * 持久化到 .database/default_save.json（与 active_account.json 同目录，均 gitignored）。
- * 快照格式与 GET /api/player/save 导出一致。兼容旧版 V1，并优先使用完整存档 V2。
+ * 快照格式与 GET /api/player/save 导出一致，只接受完整存档 V2。
  */
 import * as fs from "fs";
 import * as path from "path";
@@ -46,7 +46,13 @@ export function saveDefaultSaveTemplate(snapshot: DefaultSaveSnapshot): void {
 export function loadDefaultSaveTemplate(): DefaultSaveSnapshot | null {
     try {
         if (!existsSync(FILE)) return null;
-        return JSON.parse(fs.readFileSync(FILE, "utf-8")) as DefaultSaveSnapshot;
+        const parsed = JSON.parse(fs.readFileSync(FILE, "utf-8")) as DefaultSaveSnapshot;
+        // A stale V1 template may remain on disk after an upgrade. Ignore it
+        // instead of silently applying a partial snapshot to new accounts.
+        if (parsed?.schema !== "starpoint-cn-save" || parsed.version !== 2 || parsed.scope !== "player-archive") {
+            return null;
+        }
+        return parsed;
     } catch {
         return null;
     }

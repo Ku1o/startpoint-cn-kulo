@@ -6,6 +6,7 @@ import {
 } from "../data/domains/shopPurchase"
 import { grantPlayerDegreeSync } from "../data/domains/degree"
 import { ShopType } from "./types"
+import { runPersistenceTransactionSync } from "./persistence-coordinator"
 
 export const ABYSS_SHOP_DEGREE_ID = 9_911_001
 export const ABYSS_SHOP_TICKET_IDS = Object.freeze([9_700_116, 9_700_117] as const)
@@ -60,7 +61,9 @@ export function grantAbyssShopDegreeRewardSync(
 ): number[] {
     if (!Number.isSafeInteger(playerId) || playerId <= 0
         || !abyssShopDegreeRewardEnabled(options.configPath)) return []
-    return getDb().transaction(() => grantEligibleAbyssShopDegreeSync(playerId))()
+    return runPersistenceTransactionSync({
+        domain: "shop", playerId, operation: "grant_abyss_shop_degree",
+    }, () => grantEligibleAbyssShopDegreeSync(playerId))
 }
 
 /** The shop route calls this after counters change, inside its purchase transaction. */

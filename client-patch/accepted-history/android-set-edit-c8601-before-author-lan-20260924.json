@@ -1,0 +1,142 @@
+{
+  "schema_version": 6,
+  "status": "accepted_offline",
+  "accepted_on": "2026-09-24",
+  "acceptance": {
+    "result": "accepted_offline",
+    "scope": "offline_artifact_lineage_and_public_admission",
+    "device_tested_by_codex": false,
+    "per_feature_device_results": "not_recorded",
+    "build_reports_are_immutable": true,
+    "audit": "client-patch/ACCEPTANCE-SET-EDIT-C8601-20260924.md"
+  },
+  "variants": {
+    "public": {
+      "apk": "F:\\codex\\outputs\\set-edit-c8601-public-20260924\\StarPoint-CN-1.8.1-independent-formations-set-edit-c8601-public-20260924-0fcf027e.apk",
+      "apk_sha256": "f24f469c1be0cb3d2d16520a739ace52b58055ce65621f5243404026beba6066",
+      "swf_sha256": "1785d16b430ea7008e7d70cf1bca106f3f5410bbf86566063e83ad856d9a0a49",
+      "uniqueappversionid": "0fcf027e-c219-4d6c-9221-7e10db70b513",
+      "endpoint": "http://175.178.160.158:8001",
+      "local_build_report": "F:\\codex\\outputs\\set-edit-c8601-public-20260924\\package-report.json",
+      "local_build_checks": {
+        "method_bodies_checked": 96653,
+        "all_other_abc_bodies_unchanged_from_fixed_lan_source": true,
+        "endpoint_pool_rewrites": 9,
+        "zipalign": true,
+        "v1_signature": true,
+        "v2_signature": true,
+        "signer_certificate_sha256": "569d19a3578d4cba16e3d6e7ad8ccab4fa667efc758deef6c9be3adb99919894"
+      },
+      "accepted_on": "2026-09-24",
+      "acceptance_audit": "client-patch/ACCEPTANCE-SET-EDIT-C8601-20260924.md",
+      "main_abc_index": 361,
+      "size_bytes": 170040515,
+      "dex_sha256": "31f367a7aef3c4e310fa3c2cfa2ac5815ee8d351e3aa45a4b66c5cdb5ba03fdd",
+      "native_build_identity": "0fcf027e-c219-4d6c-9221-7e10db70b513",
+      "package_name": "com.leiting.wf",
+      "version_name": "1.8.1",
+      "version_code": 1008001,
+      "acceptance_status": "accepted_offline",
+      "device_acceptance": "not_device_tested",
+      "derived_from_apk_sha256": "e531534d9548d6e1cac5cc412d3bf9aad6d5df8330565ce022f54b0fe8180d51",
+      "build_id": "android-181-independent-party-20260923",
+      "diagnostic_export": false
+    },
+    "lan": {
+      "apk": "outputs/r10-admission-lan-reopen-fix-20260915/StarPoint-CN-1.8.1-r10-admission-lan-reopen-fix-20260915.apk",
+      "apk_sha256": "229ccd907f3a9909764032abf7e046e5688573206dc35d2bbc9cb8f67cd44ca9",
+      "swf_sha256": "a0c6408006e5eefef5664c27e5b1fea3673c7107596e798a7f0e45136d65488b",
+      "uniqueappversionid": "afed68d1-7a84-4ef7-8037-ef978683fbf9",
+      "endpoint": "http://<LAN_HOST>:8001",
+      "local_build_report": "outputs/r10-admission-lan-reopen-fix-20260915/StarPoint-CN-1.8.1-r10-admission-lan-reopen-fix-20260915.json",
+      "local_build_checks": {
+        "method_bodies_checked": 96635,
+        "original_methods": 96631,
+        "changed_original_methods": [
+          29386,
+          29390,
+          29456
+        ],
+        "added_helper_methods": 4,
+        "all_other_original_methods_preserved": true,
+        "zipalign": true,
+        "v1_signature": true,
+        "v2_signature": true,
+        "signer_certificate_sha256": "569d19a3578d4cba16e3d6e7ad8ccab4fa667efc758deef6c9be3adb99919894"
+      },
+      "accepted_on": "2026-09-15",
+      "acceptance_audit": "client-patch/ACCEPTANCE-LOCAL-RECORD-RECOVERY-20260916.md",
+      "main_abc_index": 296,
+      "size_bytes": 170036419,
+      "dex_sha256": "a4d23f633d525cb6d05d7900facbb59b057679da926e9063fe1cb4d4907f4fdc",
+      "native_build_identity": "afed68d1-7a84-4ef7-8037-ef978683fbf9",
+      "package_name": "com.leiting.wf",
+      "version_name": "1.8.1",
+      "version_code": 1008001,
+      "acceptance_status": "accepted_offline",
+      "device_acceptance": "startup_and_local_filesystem_only",
+      "derived_from_apk_sha256": "af2699ea9a2e8792b4f84dd72aea0c08cb1da6a5448a572896139150e6d51d4f",
+      "build_id": "android-181-r10-20260915",
+      "diagnostic_export": false,
+      "endpoint_sha256": "a32f84d19ceda3b4a466952f7deab7fbf1db96029ba70777a2cbd4a1ef79f521"
+    }
+  },
+  "lineage": {
+    "documentation": "client-patch/ACCEPTANCE-SET-EDIT-C8601-20260924.md",
+    "build_entry": "client-patch/independent-formations/package_set_edit_public_android.py",
+    "previous_method_source_commit": "9740c3e9",
+    "preserved": [
+      "此前 MOD、幻想连战、轮播、排行榜、继承入口、深渊装备门控",
+      "关注和取消关注按钮、原生本人资料路由",
+      "Android CNtips_b 隐藏",
+      "对应公网/内网地址及固定签名身份",
+      "724 Fever 满槽比例增减",
+      "422 冲刺参数的解析、描述、汇总和战斗执行",
+      "稻穗 PF 弹射前连击数",
+      "基诺维配置冲刺参数",
+      "五重决战随机地图与联机房号种子",
+      "五重联机手动开战后的 Auto 锁及暂停菜单状态",
+      "5900101 不使用五星铁钢替代觉醒材料",
+      "深渊活动 700099 续战队伍跨关复用角色，逐关选队与其他活动原限制保持"
+    ],
+    "added": [
+      "公网与内网均保留关卡属性通道、深渊详情、Lens 0910 与玩家登录累计功能",
+      "兼容旧服务端空更新响应；账号切换保留下载模式和设备偏好",
+      "覆盖安装首次启动清理 AIR 启动缓存；普通重开跳过",
+      "深渊连战详情按钮四角曲线",
+      "切队先初始化目标队伍，再绑定触摸及更新名称；无角色格子的触摸安全返回；保留仅更新当前队伍的优化",
+      "深渊关卡详情本期全服最快用时和纪录保持者当前公开昵称",
+      "入手方法支持已解锁且开放的常驻活动文件夹，保留关卡准入检查",
+      "活动商品按活动类型与 ID 建立成员索引，保留库存、兑换期、过滤及原顺序",
+      "商店首页与常驻活动文件夹存在性检查找到首个可用活动即返回",
+      "觉醒任务响应后重新获取角色及觉醒等级，并刷新能力页签",
+      "R8 能力计算优化、R9 队伍派生缓存及五参数回调/F1063 修复",
+      "R10 完整队伍键、分批预计算及缓存生命周期处理",
+      "Android 构建准入、握手续期与账号恢复",
+      "空账号文件进入登录流程；账号与设备记录采用同目录临时文件写完后替换",
+      "独立普通深渊和 EX 活动入口、续战及装备限制",
+      "EX 正式准入号与 HMAC 签名前缀一致",
+      "普通深渊、深渊 EX、幻想连战分别保存编队；SET 编辑标题处理空值及范围外分类，保留运输分类"
+    ],
+    "method_archive": "独立编队分类与 SET 编辑标题回退，公网 Android 从已修复内网包转换端点。",
+    "previous_accepted_registry_revision": "bfef8dd7",
+    "previous_accepted_registry_path": "client-patch/android-accepted.json",
+    "repair_entry": "client-patch/independent-formations/build_swf.py",
+    "direct_input_apk_sha256": "e531534d9548d6e1cac5cc412d3bf9aad6d5df8330565ce022f54b0fe8180d51",
+    "source_artifact_record": "F:\\codex\\outputs\\set-edit-c8601-public-20260924\\package-report.json"
+  },
+  "excluded_artifacts": [
+    {
+      "apk": "outputs/abyss-autostart-public-test-20260909/StarPoint-CN-1.8.1-abyss-autostart-public-test-20260909.apk",
+      "apk_sha256": "c0823d0e5ad6c8677de7ee7dddf2094e527c498c0972ae6d0b9ede5180754bc7",
+      "status": "rejected_baseline_regression",
+      "reason": "从 2026-09-06 旧包制作，遗漏 Lens 422/724 等累计内容；禁止继续测试、交付或作为基线。"
+    },
+    {
+      "apk": "outputs/abyss-autostart-lan-test-20260909/StarPoint-CN-1.8.1-abyss-autostart-lan-test-20260909.apk",
+      "apk_sha256": "111a396cd8a80cbb6a64ce27be37639c33a2a876addec41f0832ac78726ebd5d",
+      "status": "rejected_baseline_regression",
+      "reason": "从 2026-09-06 旧包制作，缺少基诺维 422 能力解析，点击角色可能报 C7050；禁止继续测试、交付或作为基线。"
+    }
+  ]
+}

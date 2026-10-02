@@ -1,6 +1,14 @@
 import { getDb } from "../db";
 import { PlayerCarnivalEventRecord, RawPlayerCarnivalEventRecord } from "../types";
 import { serializeNumberList } from "../utils";
+import { runPersistenceTransactionSync } from "../../lib/persistence-coordinator";
+
+// The migration is idempotent in SQLite, but checking its marker still takes
+// a write transaction. Keep the completed event IDs per database connection so
+// repeated /carnival_event/index and finish requests do not enqueue the same
+// maintenance transaction over and over. A WeakMap keeps test/runtime
+// database lifetimes isolated when the connection is replaced.
+const migratedCarnivalEvents = new WeakMap<object, Set<number>>()
 
 /**
  * Carnival record parties have three fixed slots.  Empty slots are persisted
@@ -66,8 +74,14 @@ export function migrateCarnivalEventFolderRecordsSync(
     difficultiesPerFolder: number = 3
 ): void {
     const db = getDb()
+    let migratedEvents = migratedCarnivalEvents.get(db)
+    if (!migratedEvents) {
+        migratedEvents = new Set<number>()
+        migratedCarnivalEvents.set(db, migratedEvents)
+    }
+    if (migratedEvents.has(eventId)) return
 
-    db.transaction(() => {
+    runPersistenceTransactionSync({ domain: "event", operation: "migrate_carnival_event_folder_records" }, () => {
         db.prepare(`
         CREATE TABLE IF NOT EXISTS carnival_event_folder_migrations (
             event_id INTEGER PRIMARY KEY,
@@ -128,7 +142,10 @@ export function migrateCarnivalEventFolderRecordsSync(
         INSERT INTO carnival_event_folder_migrations (event_id, migrated_at)
         VALUES (?, ?)
         `).run(eventId, Date.now())
-    })()
+    })
+    // Mark only after the coordinator reports a successful commit. If a disk
+    // or locking error aborts the transaction, the next request must retry.
+    migratedEvents.add(eventId)
 }
 
 export function upsertPlayerCarnivalEventRecordSync(
@@ -141,7 +158,7 @@ export function upsertPlayerCarnivalEventRecordSync(
 ): PlayerCarnivalEventRecord {
     const db = getDb()
 
-    return db.transaction((): PlayerCarnivalEventRecord => {
+    return runPersistenceTransactionSync({ domain: "event", playerId, operation: "upsert_carnival_event_record" }, (): PlayerCarnivalEventRecord => {
         const records = getPlayerCarnivalEventRecordsSync(playerId, eventId)
         const existing = records.find(record => record.folderId === folderId) ?? null
 
@@ -231,5 +248,5 @@ export function upsertPlayerCarnivalEventRecordSync(
             previousCharacterIds: characterIds,
             previousUnisonCharacterIds: unisonCharacterIds,
         }
-    })()
+    })
 }

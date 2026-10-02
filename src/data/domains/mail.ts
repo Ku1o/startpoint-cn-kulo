@@ -1,5 +1,6 @@
 import { getDb } from "../db";
 import { getServerTime } from "../../utils";
+import { runPersistenceTransactionSync } from "../../lib/persistence-coordinator";
 
 /**
  * Mail attachment types matching the client's MailKind enum.
@@ -184,7 +185,9 @@ export function receiveAllMailsSync(
         return normalized.filter(mailId => claimed.has(mailId))
     }
     const db = getDb()
-    return db.inTransaction ? claim() : db.transaction(claim)()
+    return db.inTransaction
+        ? claim()
+        : runPersistenceTransactionSync({ domain: "mail", playerId, operation: "receive_all_mails" }, claim)
 }
 
 /**

@@ -14,6 +14,7 @@ import { asAccountId, asPlayerId, AccountId, PlayerId } from "../../lib/types";
 import { resolvePlayerIdSync } from "../../data/activeAccount";
 import { getConfigSync } from "../../lib/assets";
 import { gameVerboseLog } from "../../lib/game-logging";
+import { runPersistenceTransaction } from "../../lib/persistence-coordinator";
 
 interface SellEquipmentListItem {
     equipment_id: number
@@ -80,20 +81,27 @@ const routes = async (fastify: FastifyInstance) => {
                 totalAbilitySouls[parseInt(soulId)] = (totalAbilitySouls[parseInt(soulId)] ?? 0) + count
             }
 
-            updatePlayerEquipmentSync(playerId, equipmentId, { stack: 0 })
             soldIds.push(equipmentId)
         }
 
-        const returnItemList: Record<number, number> = {}
-        if (totalCraftPoints > 0) {
-            returnItemList[wrightpieceItemId()] = givePlayerItemSync(playerId, wrightpieceItemId(), totalCraftPoints)
-        }
-        if (totalStarGrains > 0) {
-            returnItemList[starGrainItemId()] = givePlayerItemSync(playerId, starGrainItemId(), totalStarGrains)
-        }
-        for (const [soulId, count] of Object.entries(totalAbilitySouls)) {
-            returnItemList[parseInt(soulId)] = givePlayerItemSync(playerId, parseInt(soulId), count)
-        }
+        const returnItemList = await runPersistenceTransaction({
+            domain: "player", playerId, operation: "sell_equipment",
+        }, () => {
+            for (const equipmentId of soldIds) {
+                updatePlayerEquipmentSync(playerId, equipmentId, { stack: 0 })
+            }
+            const result: Record<number, number> = {}
+            if (totalCraftPoints > 0) {
+                result[wrightpieceItemId()] = givePlayerItemSync(playerId, wrightpieceItemId(), totalCraftPoints)
+            }
+            if (totalStarGrains > 0) {
+                result[starGrainItemId()] = givePlayerItemSync(playerId, starGrainItemId(), totalStarGrains)
+            }
+            for (const [soulId, count] of Object.entries(totalAbilitySouls)) {
+                result[parseInt(soulId)] = givePlayerItemSync(playerId, parseInt(soulId), count)
+            }
+            return result
+        })
 
         const returnEquipmentList = buildFullEquipmentList(playerId)
 
@@ -134,6 +142,8 @@ const routes = async (fastify: FastifyInstance) => {
         let totalCraftPoints = 0
         let totalStarGrains = 0
         const totalAbilitySouls: Record<number, number> = {}
+        const plannedStacks: { equipmentId: number, newStack: number }[] = []
+        const projectedStacks = new Map<number, number>()
 
         for (const toSell of toSellEquipmentList) {
             const equipmentId = toSell.equipment_id
@@ -143,7 +153,8 @@ const routes = async (fastify: FastifyInstance) => {
                 return reply.status(400).send({ "error": "Bad Request", "message": "Player does not own equipment." })
             }
 
-            const newStack = equipment.stack - sellCount
+            const currentStack = projectedStacks.get(equipmentId) ?? equipment.stack
+            const newStack = currentStack - sellCount
             if (newStack < 0) {
                 return reply.status(400).send({ "error": "Bad Request", "message": "Attempt to sell more stacks than owned." })
             }
@@ -155,20 +166,28 @@ const routes = async (fastify: FastifyInstance) => {
                 totalAbilitySouls[parseInt(soulId)] = (totalAbilitySouls[parseInt(soulId)] ?? 0) + count
             }
 
-            equipment.stack = newStack
-            updatePlayerEquipmentSync(playerId, equipmentId, { stack: newStack })
+            projectedStacks.set(equipmentId, newStack)
+            plannedStacks.push({ equipmentId, newStack })
         }
 
-        const returnItemList: Record<number, number> = {}
-        if (totalCraftPoints > 0) {
-            returnItemList[wrightpieceItemId()] = givePlayerItemSync(playerId, wrightpieceItemId(), totalCraftPoints)
-        }
-        if (totalStarGrains > 0) {
-            returnItemList[starGrainItemId()] = givePlayerItemSync(playerId, starGrainItemId(), totalStarGrains)
-        }
-        for (const [soulId, count] of Object.entries(totalAbilitySouls)) {
-            returnItemList[parseInt(soulId)] = givePlayerItemSync(playerId, parseInt(soulId), count)
-        }
+        const returnItemList = await runPersistenceTransaction({
+            domain: "player", playerId, operation: "sell_equipment_stack",
+        }, () => {
+            for (const { equipmentId, newStack } of plannedStacks) {
+                updatePlayerEquipmentSync(playerId, equipmentId, { stack: newStack })
+            }
+            const result: Record<number, number> = {}
+            if (totalCraftPoints > 0) {
+                result[wrightpieceItemId()] = givePlayerItemSync(playerId, wrightpieceItemId(), totalCraftPoints)
+            }
+            if (totalStarGrains > 0) {
+                result[starGrainItemId()] = givePlayerItemSync(playerId, starGrainItemId(), totalStarGrains)
+            }
+            for (const [soulId, count] of Object.entries(totalAbilitySouls)) {
+                result[parseInt(soulId)] = givePlayerItemSync(playerId, parseInt(soulId), count)
+            }
+            return result
+        })
 
         const returnEquipmentList = buildFullEquipmentList(playerId)
 
@@ -239,21 +258,25 @@ const routes = async (fastify: FastifyInstance) => {
             })
         }
 
-        // Phase 2: set stack to 0 (persist equipment row), give items
-        for (const equipmentId of toSell) {
-            updatePlayerEquipmentSync(playerId, equipmentId, { stack: 0 })
-        }
-
-        const returnItemList: Record<number, number> = {}
-        if (totalCraftPoints > 0) {
-            returnItemList[wrightpieceItemId()] = givePlayerItemSync(playerId, wrightpieceItemId(), totalCraftPoints)
-        }
-        if (totalStarGrains > 0) {
-            returnItemList[starGrainItemId()] = givePlayerItemSync(playerId, starGrainItemId(), totalStarGrains)
-        }
-        for (const [soulId, count] of Object.entries(totalAbilitySouls)) {
-            returnItemList[parseInt(soulId)] = givePlayerItemSync(playerId, parseInt(soulId), count)
-        }
+        // Phase 2: set stack to 0 and grant all dissolve rewards atomically.
+        const returnItemList = await runPersistenceTransaction({
+            domain: "player", playerId, operation: "bulk_sell_equipment_stack",
+        }, () => {
+            for (const equipmentId of toSell) {
+                updatePlayerEquipmentSync(playerId, equipmentId, { stack: 0 })
+            }
+            const result: Record<number, number> = {}
+            if (totalCraftPoints > 0) {
+                result[wrightpieceItemId()] = givePlayerItemSync(playerId, wrightpieceItemId(), totalCraftPoints)
+            }
+            if (totalStarGrains > 0) {
+                result[starGrainItemId()] = givePlayerItemSync(playerId, starGrainItemId(), totalStarGrains)
+            }
+            for (const [soulId, count] of Object.entries(totalAbilitySouls)) {
+                result[parseInt(soulId)] = givePlayerItemSync(playerId, parseInt(soulId), count)
+            }
+            return result
+        })
 
         const returnEquipmentList = buildFullEquipmentList(playerId)
 

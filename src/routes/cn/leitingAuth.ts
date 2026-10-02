@@ -21,7 +21,7 @@ const routes = async (fastify: FastifyInstance) => {
         const body = request.body as LoginBody;
 
         reply.header("content-type", "application/x-msgpack");
-        reply.status(200).send({
+        return reply.status(200).send({
             data_headers: generateDataHeaders(),
             data: {
                 status: "success",
@@ -41,7 +41,7 @@ const routes = async (fastify: FastifyInstance) => {
     fastify.post("/channels/channel_leiting/leiting_antiaddiction_login",
         async (_request: FastifyRequest, reply: FastifyReply) => {
         reply.header("content-type", "application/x-msgpack");
-        reply.status(200).send({
+        return reply.status(200).send({
             data_headers: generateDataHeaders(),
             data: {
                 status: 0,
@@ -58,7 +58,7 @@ const routes = async (fastify: FastifyInstance) => {
     fastify.post("/channels/channel_leiting/leiting_antiaddiction_logout",
         async (_request: FastifyRequest, reply: FastifyReply) => {
         reply.header("content-type", "application/x-msgpack");
-        reply.status(200).send({
+        return reply.status(200).send({
             data_headers: generateDataHeaders(),
             data: {}
         });
@@ -67,7 +67,7 @@ const routes = async (fastify: FastifyInstance) => {
     fastify.post("/channels/channel_leiting/leiting_update",
         async (_request: FastifyRequest, reply: FastifyReply) => {
         reply.header("content-type", "application/x-msgpack");
-        reply.status(200).send({
+        return reply.status(200).send({
             data_headers: generateDataHeaders(),
             data: {}
         });

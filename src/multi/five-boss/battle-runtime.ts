@@ -3,6 +3,7 @@ import type { PlayerQuestProgress } from "../../data/types"
 import type { ActiveQuest } from "../../routes/api/singleBattleQuest"
 import { givePlayerCharactersExpSync } from "../../lib/character"
 import { getQuestFromCategorySync } from "../../lib/assets"
+import { givePlayerEquipmentSync as givePlayerEquipmentSyncDefault } from "../../lib/equipment"
 import type { RewardPlayerCharacterExpResult } from "../../lib/types/character"
 import { getDb } from "../../data/db"
 import { givePlayerItemSync as givePlayerItemSyncDefault } from "../../data/domains/item"
@@ -25,7 +26,9 @@ import {
 } from "../../data/domains/fiveBossGauntletRun"
 import { FIVE_BOSS_GAUNTLET, isFiveBossGauntletQuest } from "./contract"
 import {
+    buildFiveBossCursedWeaponDropPlan,
     buildFiveBossGauntletRewardPlan,
+    getFiveBossCursedWeaponPool,
     type FiveBossGauntletRewardItem,
 } from "./rewards"
 
@@ -101,6 +104,8 @@ export interface FiveBossBattleRewardReceipt {
     firstClear: boolean
     grantedItems: FiveBossGrantedRewardItem[]
     itemTotals: Record<string, number>
+    /** 诅咒武器命中顺序；持久化 receipt 重放时不重新掷骰或重复发放。 */
+    grantedEquipment: number[]
 }
 
 export interface SuccessfulFiveBossBattleFinish {
@@ -131,6 +136,8 @@ export interface AbortFiveBossBattleResult {
 
 export interface FiveBossBattleRuntimeDependencyOverrides {
     givePlayerItemSync?: (playerId: number, itemId: number, amount: number) => number
+    givePlayerEquipmentSync?: (playerId: number, equipmentId: number, amount: number) => Object
+    cursedWeaponPool?: readonly number[]
 }
 
 export interface FiveBossBattleRuntime {
@@ -373,6 +380,8 @@ export function createFiveBossBattleRuntime(
     overrides: FiveBossBattleRuntimeDependencyOverrides = {},
 ): FiveBossBattleRuntime {
     const givePlayerItemSync = overrides.givePlayerItemSync ?? givePlayerItemSyncDefault
+    const givePlayerEquipmentSync = overrides.givePlayerEquipmentSync ?? givePlayerEquipmentSyncDefault
+    const cursedWeaponPool = overrides.cursedWeaponPool
 
     function start(input: StartFiveBossBattleInput): StartFiveBossBattleResult {
         const frozen = validateFrozenStart(input)
@@ -484,6 +493,17 @@ export function createFiveBossBattleRuntime(
                 return { ...item, total }
             })
 
+            // 武器与材料共用本次结算的随机序列；命中 id 写入 receipt，重放时由 HTTP
+            // 层读取并序列化当前持有状态，避免重复发放。
+            const weaponPlan = buildFiveBossCursedWeaponDropPlan({
+                rewardMultiplier: context.rewardMultiplier,
+                availableEquipmentIds: cursedWeaponPool ?? getFiveBossCursedWeaponPool(),
+                randomFloat: input.randomFloat,
+            })
+            for (const equipmentId of weaponPlan.equipmentIds) {
+                givePlayerEquipmentSync(input.playerId, equipmentId, 1)
+            }
+
             const storedParty = getDb().prepare(`SELECT party_character_ids_json
                 FROM five_boss_gauntlet_members WHERE run_id = ? AND player_id = ?`)
                 .get(context.run.runId, input.playerId) as { party_character_ids_json: string }
@@ -495,7 +515,13 @@ export function createFiveBossBattleRuntime(
                 : null
             updateSuccessfulQuestProgress(input.playerId, { ...input, leaderCharacterId: ids[0] ?? null }, previous)
             deletePlayerActiveQuestSync(input.playerId)
-            return { firstClear, grantedItems, itemTotals, characterExp }
+            return {
+                firstClear,
+                grantedItems,
+                itemTotals,
+                characterExp,
+                grantedEquipment: weaponPlan.equipmentIds,
+            }
         })
         assertRunIdentity(result.run, input)
         return {

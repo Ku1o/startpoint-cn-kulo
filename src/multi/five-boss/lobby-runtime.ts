@@ -4,9 +4,10 @@ import { getRoomMemberPlayerId } from "../room/manager"
 import { sessionManager, type SessionClient } from "../state/SessionManager"
 import { recordMemberBattleSignalSync } from "../../data/domains/fiveBossGauntletRun"
 import { getPlayerCharacterSync } from "../../data/domains/character"
-import { isFiveBossGauntletQuest } from "./contract"
+import { FIVE_BOSS_GAUNTLET, isFiveBossGauntletQuest } from "./contract"
 import { fiveBossDiagnostics } from "../../lib/coalesced-diagnostics"
 import { fiveBossConnectionDiagnostics } from "./connection-diagnostic"
+import { runPersistenceTransaction } from "../../lib/persistence-coordinator"
 
 /** Freeze the canonical live lobby before either HTTP or TCP starts the battle. */
 export function freezeFiveBossLobby(room: MultiRoom, members?: any[]): boolean {
@@ -22,7 +23,10 @@ export function freezeFiveBossLobby(room: MultiRoom, members?: any[]): boolean {
         if (mate) canonical.set(mate.comId ? `com:${mate.comId}` : `viewer:${mate.viewerId}`, mate)
     }
     const roster = [...canonical.values()]
-    if (!host || roster.length !== 3 || !roster.every(mate => mate.state?.[0] === 1)) return false
+    // A two-player room is valid. AI may fill the third slot, but it is not a
+    // prerequisite for starting when two real players are ready.
+    if (!host || roster.length < 2 || roster.length > FIVE_BOSS_GAUNTLET.roomMemberLimit
+        || !roster.every(mate => mate.state?.[0] === 1)) return false
     const frozen: NonNullable<MultiRoom["five_boss_runtime"]> = {
         runId: randomUUID(), expectedRealPlayerIds: [], autoplayModeByPlayerId: {},
         partyCharacterIdsByPlayerId: {}, battleIdentityByViewerId: {},
@@ -69,17 +73,26 @@ export function recordFiveBossSignal(room: MultiRoom, client: SessionClient, sig
             + ` run=${room.five_boss_runtime?.runId} player=${client.playerId} connection=${client.connectionId} signal=${signal}`)
         return
     }
-    try {
-        recordMemberBattleSignalSync({ runId: room.five_boss_runtime!.runId,
-            playerId: client.playerId!, roomNumber: room.room_number, signal })
-        fiveBossConnectionDiagnostics.socketEvent(client.socket,
-            signal === "level_next" ? "level_next_recorded" : "finalize_recorded", "tcp")
-    } catch (error) {
-        const code = (error as { code?: string }).code ?? "unknown"
-        fiveBossConnectionDiagnostics.socketEvent(client.socket, "signal_rejected", `${signal}:${code}`)
-        fiveBossDiagnostics.report(JSON.stringify(["signal", room.five_boss_runtime!.runId, room.room_number,
-            client.playerId, signal, code]), () => `[FIVE-BOSS-SIGNAL] rejected=${code}`
-            + ` room=${room.room_number} run=${room.five_boss_runtime!.runId}`
-            + ` player=${client.playerId} connection=${client.connectionId} signal=${signal}: ${(error as Error).message}`)
-    }
+    const runId = room.five_boss_runtime!.runId
+    const playerId = client.playerId!
+    const roomNumber = room.room_number
+    // The TCP handler must only update the in-memory barrier and return. The
+    // proof row is durable evidence, but it is not part of the realtime ACK.
+    fiveBossConnectionDiagnostics.socketEvent(client.socket,
+        signal === "level_next" ? "level_next_queued" : "finalize_queued", "tcp")
+    void runPersistenceTransaction({
+        domain: "multi-settlement", playerId, operation: `five_boss_${signal}`,
+    }, () => recordMemberBattleSignalSync({ runId, playerId, roomNumber, signal }))
+        .then(() => {
+            fiveBossConnectionDiagnostics.socketEvent(client.socket,
+                signal === "level_next" ? "level_next_recorded" : "finalize_recorded", "tcp")
+        })
+        .catch(error => {
+            const code = (error as { code?: string }).code ?? "unknown"
+            fiveBossConnectionDiagnostics.socketEvent(client.socket, "signal_rejected", `${signal}:${code}`)
+            fiveBossDiagnostics.report(JSON.stringify(["signal", runId, roomNumber,
+                playerId, signal, code]), () => `[FIVE-BOSS-SIGNAL] rejected=${code}`
+                + ` room=${roomNumber} run=${runId}`
+                + ` player=${playerId} connection=${client.connectionId} signal=${signal}: ${(error as Error).message}`)
+        })
 }

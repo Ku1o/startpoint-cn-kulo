@@ -18,6 +18,7 @@ import {
     hasPlayerDegreeSync,
 } from "../../data/domains/degree";
 import { ensurePlayerClaimedCarnivalDegreesSync } from "../../lib/quest/finish/carnival-reward-handler";
+import { runPersistenceTransaction } from "../../lib/persistence-coordinator";
 import { gameVerboseLog } from "../../lib/game-logging";
 import {
     getPlayerProfileSettingsSync,
@@ -27,6 +28,7 @@ import { getPlayerProfileStatsSync } from "../../lib/profile-stats";
 import { getConfigSync } from "../../lib/assets";
 import { ensurePlayerActivityDegreesSync } from "../../lib/activity-degree-rewards";
 import { grantAbyssShopDegreeRewardSync } from "../../lib/abyss-shop-degree-reward";
+import { grantAbyssSphealDegreeSync } from "../../lib/abyss-spheal-degree-reward";
 
 const PROFILE_SETTING_FIELDS = [
     "show_opened_mana_board_second_count",
@@ -73,6 +75,7 @@ const routes = async (fastify: FastifyInstance) => {
         ensurePlayerClaimedCarnivalDegreesSync(playerId)
         ensurePlayerActivityDegreesSync(playerId)
         grantAbyssShopDegreeRewardSync(playerId)
+        grantAbyssSphealDegreeSync(playerId)
         const stats = getPlayerProfileStatsSync(playerId)
         const profileSettings = getPlayerProfileSettingsSync(playerId)
 
@@ -190,6 +193,7 @@ const routes = async (fastify: FastifyInstance) => {
         ensurePlayerClaimedCarnivalDegreesSync(playerId)
         ensurePlayerActivityDegreesSync(playerId)
         grantAbyssShopDegreeRewardSync(playerId)
+        grantAbyssSphealDegreeSync(playerId)
         const degreeIds = getPlayerDegreeIdsSync(playerId)
 
         reply.header("content-type", "application/x-msgpack")
@@ -231,19 +235,25 @@ const routes = async (fastify: FastifyInstance) => {
             message: "Player not found."
         })
 
-        ensurePlayerLegacyDegreesSync(playerId, player.degreeId || 1)
-        ensurePlayerSoloTimeAttackDegreesSync(playerId)
-        ensurePlayerClaimedCarnivalDegreesSync(playerId)
-        ensurePlayerActivityDegreesSync(playerId)
-        grantAbyssShopDegreeRewardSync(playerId)
-        if (!hasPlayerDegreeSync(playerId, Number(degreeId))) {
+        const degreeUpdate = await runPersistenceTransaction({
+            domain: "player", playerId, operation: "profile_update_degree",
+        }, () => {
+            ensurePlayerLegacyDegreesSync(playerId, player.degreeId || 1)
+            ensurePlayerSoloTimeAttackDegreesSync(playerId)
+            ensurePlayerClaimedCarnivalDegreesSync(playerId)
+            ensurePlayerActivityDegreesSync(playerId)
+            grantAbyssShopDegreeRewardSync(playerId)
+            grantAbyssSphealDegreeSync(playerId)
+            if (!hasPlayerDegreeSync(playerId, Number(degreeId))) return false
+            updatePlayerSync({ id: playerId, degreeId: Number(degreeId) })
+            return true
+        })
+        if (!degreeUpdate) {
             return reply.status(400).send({
                 error: "Bad Request",
                 message: "Degree is not owned."
             })
         }
-
-        updatePlayerSync({ id: playerId, degreeId: Number(degreeId) })
 
         gameVerboseLog(() => `[PROFILE] update_degree viewer=${viewerId} degree=${degreeId}`)
 
@@ -287,7 +297,9 @@ const routes = async (fastify: FastifyInstance) => {
             error: "Bad Request",
             message: "No player bound to account.",
         })
-        const updated = updatePlayerProfileSettingsSync(playerId, {
+        const updated = await runPersistenceTransaction({
+            domain: "player", playerId, operation: "profile_update_settings",
+        }, () => updatePlayerProfileSettingsSync(playerId, {
             ...(typeof settings.show_opened_mana_board_second_count === "boolean"
                 ? { showOpenedManaBoardSecondCount: settings.show_opened_mana_board_second_count }
                 : {}),
@@ -297,7 +309,7 @@ const routes = async (fastify: FastifyInstance) => {
             ...(typeof settings.show_owned_degree_count === "boolean"
                 ? { showOwnedDegreeCount: settings.show_owned_degree_count }
                 : {}),
-        })
+        }))
         reply.header("content-type", "application/x-msgpack")
         return reply.status(200).send({
             data_headers: generateDataHeaders({ viewer_id: viewerId }),
@@ -333,7 +345,9 @@ const routes = async (fastify: FastifyInstance) => {
             message: "Invalid comment.",
         })
         const comment = body.comment.substring(0, getConfigSync().max_player_comment_length)
-        updatePlayerSync({ id: playerId, comment })
+        await runPersistenceTransaction({
+            domain: "player", playerId, operation: "profile_update_comment",
+        }, () => updatePlayerSync({ id: playerId, comment }))
 
         reply.header("content-type", "application/x-msgpack")
         return reply.status(200).send({
@@ -368,7 +382,9 @@ const routes = async (fastify: FastifyInstance) => {
             message: "Invalid name.",
         })
         const name = body.name.substring(0, getConfigSync().max_player_name_length)
-        updatePlayerSync({ id: playerId, name })
+        await runPersistenceTransaction({
+            domain: "player", playerId, operation: "profile_rename",
+        }, () => updatePlayerSync({ id: playerId, name }))
 
         reply.header("content-type", "application/x-msgpack")
         return reply.status(200).send({

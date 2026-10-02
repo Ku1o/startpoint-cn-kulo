@@ -94,6 +94,64 @@ function optionalDateString(value, field) {
     }
     return normalized;
 }
+function normalizeXmlVoidElements(html) {
+    // The client uses flash.Xml.parse, so HTML void elements must use XML
+    // self-closing syntax. Browser innerHTML and older saved announcements
+    // commonly serialize these as <img>, <br>, or <hr> instead.
+    return html.replace(/<(img|br|hr)\b([^>]*)>/gi, (full, tag, attributes) => {
+        const trimmed = attributes.trimEnd();
+        return trimmed.endsWith("/")
+            ? `<${tag}${attributes}>`
+            : `<${tag}${attributes} />`;
+    });
+}
+function normalizeNewsImagePlacement(html) {
+    // RichTextLayoutParser only walks child nodes for container elements such
+    // as div. A standalone image inside p is treated as paragraph text and is
+    // therefore silently omitted. Move the editor's image-only paragraphs to
+    // the supported centered container shape.
+    return html.replace(/<p>\s*(<img\b[^>]*\/>)\s*<\/p>/gi, '<div class="center">$1</div>');
+}
+function normalizeNewsHtml(html) {
+    const trimmed = normalizeNewsImagePlacement(normalizeXmlVoidElements(html.trim()));
+    if (!trimmed)
+        return "";
+    if (/<!doctype|<html[\s>]/i.test(trimmed))
+        return trimmed;
+    if (/^<body[\s>]/i.test(trimmed))
+        return `<html lang="zh">${trimmed}</html>`;
+    return `<html lang="zh"><body>${trimmed}</body></html>`;
+}
+/**
+ * The shipped CN client renders announcement HTML with RichTextLayoutParser.
+ * Its remote image loader accepts HTTPS (and local `file:` resources) only;
+ * an HTTP image URL reaches the client but fails with unsupported URL error
+ * 7612. Validate image sources while saving so a bad announcement cannot be
+ * published successfully and then crash when a player opens it.
+ */
+function validateNewsHtml(html, index) {
+    var _a;
+    const imageTags = (_a = html.match(/<img\b[^>]*>/gi)) !== null && _a !== void 0 ? _a : [];
+    imageTags.forEach((tag, imageIndex) => {
+        var _a, _b, _c;
+        const sourceMatch = /\bsrc\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/i.exec(tag);
+        const source = (_c = (_b = (_a = sourceMatch === null || sourceMatch === void 0 ? void 0 : sourceMatch[1]) !== null && _a !== void 0 ? _a : sourceMatch === null || sourceMatch === void 0 ? void 0 : sourceMatch[2]) !== null && _b !== void 0 ? _b : sourceMatch === null || sourceMatch === void 0 ? void 0 : sourceMatch[3]) !== null && _c !== void 0 ? _c : "";
+        if (!source)
+            throw new Error(`news[${index}].html 中的第 ${imageIndex + 1} 张图片缺少 src`);
+        if (source.length > 2048)
+            throw new Error(`news[${index}].html 中的图片 URL 过长`);
+        let protocol;
+        try {
+            protocol = new URL(source).protocol.toLowerCase();
+        }
+        catch (_d) {
+            throw new Error(`news[${index}].html 中的图片 URL 无效：${source}`);
+        }
+        if (protocol !== "https:" && protocol !== "file:") {
+            throw new Error(`news[${index}].html 中的图片必须使用 HTTPS URL（当前：${protocol || "无协议"}）`);
+        }
+    });
+}
 function normalizeNewsItem(value, index) {
     var _a, _b, _c, _d;
     if (!isRecord(value))
@@ -106,8 +164,12 @@ function normalizeNewsItem(value, index) {
     const category = integerInRange((_b = value.category) !== null && _b !== void 0 ? _b : fallbackCategory, `news[${index}].category`, 1, 4);
     if (typeof value.html !== "string")
         throw new Error(`news[${index}].html 必须是字符串`);
+    if (!value.html.trim())
+        throw new Error(`news[${index}].html 不能为空`);
     if (value.html.length > 1000000)
         throw new Error(`news[${index}].html 最多 1000000 个字符`);
+    validateNewsHtml(value.html, index);
+    const html = normalizeNewsHtml(value.html);
     if (value.published !== undefined && typeof value.published !== "boolean") {
         throw new Error(`news[${index}].published 必须是布尔值`);
     }
@@ -124,7 +186,7 @@ function normalizeNewsItem(value, index) {
         thumbnail: integerInRange((_c = value.thumbnail) !== null && _c !== void 0 ? _c : 1, `news[${index}].thumbnail`, 1, 13),
         thumbnail_path: null,
         added_time: optionalDateString(value.added_time, `news[${index}].added_time`),
-        html: value.html,
+        html,
         published: (_d = value.published) !== null && _d !== void 0 ? _d : true,
     };
 }

@@ -8,6 +8,7 @@ import { givePlayerRewardSync } from "../../lib/quest";
 import { generateDataHeaders } from "../../utils";
 import { QuestCategory } from "../../lib/types";
 import { reconcileAwakeUnlockCharacterList } from "../../lib/mission";
+import { runPersistenceTransaction } from "../../lib/persistence-coordinator";
 
 interface FinishBody {
     party_id: number,
@@ -25,10 +26,7 @@ interface FinishWithSkipBody {
     api_count: number
 }
 
-function processStoryQuestFinish(playerId: number, viewerId: number, questSection: number, questId: number) {
-    const playerData = getPlayerSync(playerId)
-    if (playerData === null) return null
-
+async function processStoryQuestFinish(playerId: number, viewerId: number, questSection: number, questId: number) {
     const questData = getQuestFromCategorySync(questSection, questId)
     if (questData === null) {
         console.log(`[STORY] quest not found: category=${questSection} questId=${questId}`)
@@ -39,39 +37,47 @@ function processStoryQuestFinish(playerId: number, viewerId: number, questSectio
         return null
     }
 
-    const questProgress = getPlayerSingleQuestProgressSync(playerId, questSection, questId);
-    const finished = questProgress !== null ? questProgress.finished : false
-    const rewardResult = !finished && questData.clearReward !== undefined ? givePlayerRewardSync(playerId, questData.clearReward) : null
+    return runPersistenceTransaction({
+        domain: "single-quest", playerId, operation: "story_finish",
+    }, () => {
+        const playerData = getPlayerSync(playerId)
+        if (playerData === null) return null
 
-    if (finished) return { data: [] }
+        const questProgress = getPlayerSingleQuestProgressSync(playerId, questSection, questId)
+        const finished = questProgress !== null ? questProgress.finished : false
+        if (finished) return { data: [] }
 
-    if (questProgress === null) {
-        insertPlayerQuestProgressSync(playerId, questSection, {
-            questId: questId,
-            finished: true,
-            clearRank: 5
-        })
-    } else {
-        updatePlayerQuestProgressSync(playerId, questSection, {
-            questId: questId,
-            finished: true,
-            clearRank: 5
-        })
-    }
-
-    return {
-        data: {
-            "user_info": {
-                "free_vmoney": playerData.freeVmoney + (rewardResult?.user_info.free_vmoney || 0),
-                "free_mana": playerData.freeMana + (rewardResult?.user_info.free_mana || 0)
-            },
-            "character_list": reconcileAwakeUnlockCharacterList(playerId, rewardResult?.character_list || []),
-            "joined_character_id_list": rewardResult?.joined_character_id_list || [],
-            "equipment_list": rewardResult?.equipment_list || [],
-            "items": rewardResult?.items || {},
-            "presigned_quest_category": []
+        const rewardResult = questData.clearReward !== undefined
+            ? givePlayerRewardSync(playerId, questData.clearReward)
+            : null
+        if (questProgress === null) {
+            insertPlayerQuestProgressSync(playerId, questSection, {
+                questId: questId,
+                finished: true,
+                clearRank: 5
+            })
+        } else {
+            updatePlayerQuestProgressSync(playerId, questSection, {
+                questId: questId,
+                finished: true,
+                clearRank: 5
+            })
         }
-    }
+
+        return {
+            data: {
+                "user_info": {
+                    "free_vmoney": playerData.freeVmoney + (rewardResult?.user_info.free_vmoney || 0),
+                    "free_mana": playerData.freeMana + (rewardResult?.user_info.free_mana || 0)
+                },
+                "character_list": reconcileAwakeUnlockCharacterList(playerId, rewardResult?.character_list || []),
+                "joined_character_id_list": rewardResult?.joined_character_id_list || [],
+                "equipment_list": rewardResult?.equipment_list || [],
+                "items": rewardResult?.items || {},
+                "presigned_quest_category": []
+            }
+        }
+    })
 }
 
 const routes = async (fastify: FastifyInstance) => {
@@ -96,7 +102,7 @@ const routes = async (fastify: FastifyInstance) => {
             "message": "No player bound to account."
         })
 
-        const result = processStoryQuestFinish(playerId, viewerId, body.category, body.quest_id)
+        const result = await processStoryQuestFinish(playerId, viewerId, body.category, body.quest_id)
         if (result === null) return reply.status(400).send({
             "error": "Bad Request",
             "message": "Invalid quest ID provided."
@@ -131,7 +137,7 @@ const routes = async (fastify: FastifyInstance) => {
             "message": "No player bound to account."
         })
 
-        const result = processStoryQuestFinish(playerId, viewerId, body.category, body.quest_id)
+        const result = await processStoryQuestFinish(playerId, viewerId, body.category, body.quest_id)
         if (result === null) return reply.status(400).send({
             "error": "Bad Request",
             "message": "Invalid quest ID provided."

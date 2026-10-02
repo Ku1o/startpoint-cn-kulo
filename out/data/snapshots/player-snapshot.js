@@ -110,6 +110,11 @@ const EXCLUDED_PLAYER_STATE = Object.freeze([
         policy: "preserve-target",
         reason: "五王挑战的场次、成员和扣费/奖励回执绑定本服对局，不随存档迁移；覆盖时保留目标侧账本，避免影响同局其他玩家或重复结算。",
     },
+    {
+        tables: ["player_payment_receipts", "player_operation_receipts"],
+        policy: "preserve-target",
+        reason: "支付和协议请求回执属于服务器幂等账本，不是便携玩家进度；覆盖存档时保留目标侧记录，避免重试再次发放奖励。",
+    },
 ]);
 const REMAPPED_AUTOINCREMENT_IDS = new Map([
     ["players_mails", new Set(["id"])],

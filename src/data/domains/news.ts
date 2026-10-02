@@ -1,4 +1,8 @@
 import { getDb } from "../db"
+import {
+    runPersistenceSqlCommand,
+    runPersistenceTransactionSync,
+} from "../../lib/persistence-coordinator";
 
 export type NewsReceiptKind = "list" | "popup"
 
@@ -36,12 +40,38 @@ export function markAccountNewsReceiptSync(
     newsId: number,
     kind: NewsReceiptKind,
 ): void {
-    getDb().prepare(`
+    runPersistenceTransactionSync({ domain: "account", operation: "mark_account_news_receipt" }, () => {
+        getDb().prepare(`
+            INSERT INTO account_news_receipts (account_id, news_id, receipt_kind, seen_at)
+            VALUES (?, ?, ?, ?)
+            ON CONFLICT(account_id, news_id, receipt_kind) DO UPDATE SET
+                seen_at = excluded.seen_at
+        `).run(accountId, newsId, kind, Date.now())
+    })
+}
+
+export function markAccountNewsReceipt(
+    accountId: number,
+    newsId: number,
+    kind: NewsReceiptKind,
+): Promise<void> {
+    const sql = `
         INSERT INTO account_news_receipts (account_id, news_id, receipt_kind, seen_at)
         VALUES (?, ?, ?, ?)
         ON CONFLICT(account_id, news_id, receipt_kind) DO UPDATE SET
             seen_at = excluded.seen_at
-    `).run(accountId, newsId, kind, Date.now())
+    `
+    return runPersistenceSqlCommand({ domain: "account", operation: "mark_account_news_receipt" }, [{
+        sql,
+        params: [accountId, newsId, kind, Date.now()],
+    }], () => {
+        getDb().prepare(`
+            INSERT INTO account_news_receipts (account_id, news_id, receipt_kind, seen_at)
+            VALUES (?, ?, ?, ?)
+            ON CONFLICT(account_id, news_id, receipt_kind) DO UPDATE SET
+                seen_at = excluded.seen_at
+        `).run(accountId, newsId, kind, Date.now())
+    })
 }
 
 export function markAccountNewsReceiptsSync(
@@ -57,9 +87,36 @@ export function markAccountNewsReceiptsSync(
             seen_at = excluded.seen_at
     `)
     const now = Date.now()
-    getDb().transaction(() => {
+    runPersistenceTransactionSync({ domain: "account", operation: "mark_account_news_receipts" }, () => {
         for (const newsId of newsIds) insert.run(accountId, newsId, kind, now)
-    })()
+    })
+}
+
+export function markAccountNewsReceipts(
+    accountId: number,
+    newsIds: readonly number[],
+    kind: NewsReceiptKind,
+): Promise<void> {
+    if (newsIds.length === 0) return Promise.resolve()
+    const sql = `
+        INSERT INTO account_news_receipts (account_id, news_id, receipt_kind, seen_at)
+        VALUES (?, ?, ?, ?)
+        ON CONFLICT(account_id, news_id, receipt_kind) DO UPDATE SET
+            seen_at = excluded.seen_at
+    `
+    const now = Date.now()
+    return runPersistenceSqlCommand({ domain: "account", operation: "mark_account_news_receipts" }, newsIds.map(newsId => ({
+        sql,
+        params: [accountId, newsId, kind, now],
+    })), () => {
+        const insert = getDb().prepare(`
+            INSERT INTO account_news_receipts (account_id, news_id, receipt_kind, seen_at)
+            VALUES (?, ?, ?, ?)
+            ON CONFLICT(account_id, news_id, receipt_kind) DO UPDATE SET
+                seen_at = excluded.seen_at
+        `)
+        for (const newsId of newsIds) insert.run(accountId, newsId, kind, now)
+    })
 }
 
 export function deleteNewsReceiptsSync(newsId: number, kind?: NewsReceiptKind): number {

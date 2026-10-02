@@ -25,7 +25,6 @@ const player_1 = require("../../data/domains/player");
 const item_1 = require("../../data/domains/item");
 const quest_1 = require("../../data/domains/quest");
 const unison_unlock_1 = require("../../lib/validate/unison-unlock");
-const db_1 = require("../../data/db");
 const equipment_1 = require("../../data/domains/equipment");
 const practice_battle_history_1 = require("../../data/domains/practice-battle-history");
 const carnivalEvent_1 = require("../../data/domains/carnivalEvent");
@@ -65,7 +64,9 @@ const quest_entry_costs_json_1 = __importDefault(require("../../../assets/quest_
 const score_attack_border_reward_json_1 = __importDefault(require("../../../assets/score_attack_border_reward.json"));
 const event_challenge_point_map_json_1 = __importDefault(require("../../../assets/event_challenge_point_map.json"));
 const game_logging_1 = require("../../lib/game-logging");
+const persistence_coordinator_1 = require("../../lib/persistence-coordinator");
 const settlement_performance_1 = require("../../lib/settlement-performance");
+const single_settlement_diagnostics_1 = require("../../lib/single-settlement-diagnostics");
 const gauntlet_completion_classification_1 = require("../../lib/gauntlet-completion-classification");
 const finish_response_cache_1 = require("../../lib/finish-response-cache");
 const practice_battle_history_2 = require("../../lib/quest/practice-battle-history");
@@ -73,6 +74,8 @@ const mana_1 = require("../../lib/mana");
 const abyss_tower_progress_1 = require("../../data/domains/abyss-tower-progress");
 const abyss_modes_1 = require("../../lib/abyss-modes");
 const recommended_party_history_1 = require("../../lib/quest/recommended-party-history");
+const party_1 = require("../../data/domains/party");
+const party_current_slot_1 = require("../../lib/party-current-slot");
 // Load carnival quest score data
 let carnivalScoreLookup = {};
 try {
@@ -85,10 +88,11 @@ catch (_a) { } // Init failed silently; carnival scoring won't work
 const rush_1 = require("../../lib/rush");
 const degree_1 = require("../../data/domains/degree");
 const mode15_optional_1 = require("../../lib/mode15-optional");
+const rush_party_categories_1 = require("../../lib/rush-party-categories");
 const continueVmoneyCost = 50;
 exports.activeQuests = {};
 function insertActiveQuest(playerId, quest) {
-    var _a, _b, _c, _d, _e;
+    var _a, _b, _c, _d, _e, _f;
     const startedAtMs = (_a = quest.startedAtMs) !== null && _a !== void 0 ? _a : (0, utils_1.getServerTime)() * 1000;
     const questTimeRevision = (0, abyss_time_revision_1.isAbyssFiniteQuest)(quest.category, quest.questId)
         ? (0, abyss_time_revision_1.getAbyssTimeRevision)(Math.floor(quest.questId / 1000)) : null;
@@ -109,6 +113,7 @@ function insertActiveQuest(playerId, quest) {
         eventId: (_e = quest.eventId) !== null && _e !== void 0 ? _e : null,
         continueCount: quest.continueCount,
         startedAtMs,
+        partySlot: (_f = quest.partySlot) !== null && _f !== void 0 ? _f : null,
         questTimeRevision,
     });
 }
@@ -217,7 +222,12 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         let newBossBoostPoint = playerData.bossBoostPoint - (activeQuestData.useBossBoostPoint ? 1 : 0);
         let useBoostPoint = (activeQuestData.useBoostPoint && (newBoostPoint >= 0)) || (activeQuestData.useBossBoostPoint && (newBossBoostPoint >= 0));
         // check current quest progress
-        const questProgress = (0, quest_1.getPlayerSingleQuestProgressSync)(playerId, questCategory, questId);
+        // This lookup refreshes published Abyss best-time revisions and is
+        // therefore a write-capable operation. Keep it under the same
+        // persistence coordinator as settlement preparation.
+        const questProgress = yield (0, settlement_performance_1.measureSettlementPhaseAsync)("single", "progress_refresh", () => ((0, persistence_coordinator_1.runPersistenceTransaction)({
+            domain: "single-quest", playerId, operation: "progress_refresh",
+        }, () => (0, quest_1.getPlayerSingleQuestProgressSync)(playerId, questCategory, questId))));
         const questPreviouslyCompleted = questProgress !== null;
         let questAccomplished = body.is_accomplished;
         let scoreAttackBorderTiers = [];
@@ -234,448 +244,474 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             }
             questAccomplished = body.score >= scoreAttackBorderTiers[0].score;
         }
-        const finishResponse = (0, settlement_performance_1.measureSettlementPhase)("single", "transaction", () => (0, db_1.getDb)().transaction(() => {
-            var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x;
-            (0, quest_active_1.deletePlayerActiveQuestSync)(playerId);
-            const missionEvaluationTime = new Date((0, utils_1.getServerTime)() * 1000);
-            let clearReward = null;
-            let sPlusClearReward = null;
-            const leaderId = (_a = body.statistics.party.characters[0]) === null || _a === void 0 ? void 0 : _a.id;
-            if (questAccomplished) {
-                (0, abyss_records_1.recordAbyssFloorFinishSync)({
-                    category: questCategory, questId, revision: activeQuestData.questTimeRevision,
-                    viewerId, elapsedTimeMs: clearTime, startedAtMs: activeQuestData.startedAtMs,
-                    nowMs: (0, utils_1.getServerTime)() * 1000, accomplished: true,
-                    registered: (resolvedActiveQuest === null || resolvedActiveQuest === void 0 ? void 0 : resolvedActiveQuest.source) !== "rebuilt",
-                    matchingPlay: body.play_id === activeQuestData.playId
-                        && Number(body.quest_id) === questId && Number(body.category) === questCategory,
-                    isMulti: activeQuestData.isMulti,
-                });
-                // update quest progress
-                if (questPreviouslyCompleted) {
-                    // simply update the quest progress if it already exists.
-                    const updateData = {
-                        questId: questId,
-                        finished: true,
-                        bestElapsedTimeMs: questProgress.bestElapsedTimeMs === undefined || questProgress.bestElapsedTimeMs === null ? clearTime : Math.min(clearTime, questProgress.bestElapsedTimeMs),
-                        highScore: questProgress.highScore === undefined ? body.score : Math.max(body.score, questProgress.highScore),
-                        leaderCharacterId: leaderId !== null && leaderId !== void 0 ? leaderId : null
-                    };
-                    if (clearRank !== null) {
-                        updateData.clearRank = questProgress.clearRank === undefined ? clearRank : Math.max(clearRank, questProgress.clearRank);
+        const finishResponse = yield (0, settlement_performance_1.measureSettlementPhaseAsync)("single", "transaction", () => (0, persistence_coordinator_1.runPersistenceTransaction)({
+            domain: "single-quest", playerId, operation: "finish",
+        }, () => {
+            var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z;
+            const bodyTiming = (0, single_settlement_diagnostics_1.createSingleSettlementBodyTimer)(questCategory, !!fiveBossSoloQuest);
+            let bodySucceeded = false;
+            try {
+                (0, quest_active_1.deletePlayerActiveQuestSync)(playerId);
+                const missionEvaluationTime = new Date((0, utils_1.getServerTime)() * 1000);
+                let clearReward = null;
+                let sPlusClearReward = null;
+                const leaderId = (_a = body.statistics.party.characters[0]) === null || _a === void 0 ? void 0 : _a.id;
+                if (questAccomplished) {
+                    (0, abyss_records_1.recordAbyssFloorFinishSync)({
+                        category: questCategory, questId, revision: activeQuestData.questTimeRevision,
+                        viewerId, elapsedTimeMs: clearTime, startedAtMs: activeQuestData.startedAtMs,
+                        nowMs: (0, utils_1.getServerTime)() * 1000, accomplished: true,
+                        registered: (resolvedActiveQuest === null || resolvedActiveQuest === void 0 ? void 0 : resolvedActiveQuest.source) !== "rebuilt",
+                        matchingPlay: body.play_id === activeQuestData.playId
+                            && Number(body.quest_id) === questId && Number(body.category) === questCategory,
+                        isMulti: activeQuestData.isMulti,
+                    });
+                    // update quest progress
+                    if (questPreviouslyCompleted) {
+                        // simply update the quest progress if it already exists.
+                        const updateData = {
+                            questId: questId,
+                            finished: true,
+                            bestElapsedTimeMs: questProgress.bestElapsedTimeMs === undefined || questProgress.bestElapsedTimeMs === null ? clearTime : Math.min(clearTime, questProgress.bestElapsedTimeMs),
+                            highScore: questProgress.highScore === undefined ? body.score : Math.max(body.score, questProgress.highScore),
+                            leaderCharacterId: leaderId !== null && leaderId !== void 0 ? leaderId : null
+                        };
+                        if (clearRank !== null) {
+                            updateData.clearRank = questProgress.clearRank === undefined ? clearRank : Math.max(clearRank, questProgress.clearRank);
+                        }
+                        (0, quest_1.updatePlayerQuestProgressSync)(playerId, questCategory, updateData);
                     }
-                    (0, quest_1.updatePlayerQuestProgressSync)(playerId, questCategory, updateData);
-                }
-                else {
-                    // insert if it doesn't already exist.
-                    const insertData = {
-                        questId: questId,
-                        finished: true,
-                        bestElapsedTimeMs: clearTime,
-                        highScore: body.score,
-                        clearRank: clearRank !== null && clearRank !== void 0 ? clearRank : 5,
-                        leaderCharacterId: leaderId !== null && leaderId !== void 0 ? leaderId : null
-                    };
-                    (0, quest_1.insertPlayerQuestProgressSync)(playerId, questCategory, insertData);
-                }
-                // Legacy saves may be missing the 1-6-1 story completion row even
-                // though a later main quest was cleared. Repair it immediately so
-                // unison becomes available without requiring another login.
-                if (questCategory === types_1.QuestCategory.MAIN && questId >= 1006001) {
-                    (0, unison_unlock_1.repairUnisonUnlockProgressSync)(playerId);
-                }
-                if (questCategory === types_1.QuestCategory.SOLO_TIME_ATTACK_EVENT) {
-                    const newDegreeIds = (0, degree_1.grantPlayerSoloTimeAttackDegreesSync)(playerId, questId, clearTime);
-                    if (newDegreeIds.length > 0) {
-                        console.log(`[DEGREE] solo time attack granted: player=${playerId} quest=${questId} elapsed=${clearTime} degrees=${newDegreeIds.join(",")}`);
+                    else {
+                        // insert if it doesn't already exist.
+                        const insertData = {
+                            questId: questId,
+                            finished: true,
+                            bestElapsedTimeMs: clearTime,
+                            highScore: body.score,
+                            clearRank: clearRank !== null && clearRank !== void 0 ? clearRank : 5,
+                            leaderCharacterId: leaderId !== null && leaderId !== void 0 ? leaderId : null
+                        };
+                        (0, quest_1.insertPlayerQuestProgressSync)(playerId, questCategory, insertData);
+                    }
+                    // Legacy saves may be missing the 1-6-1 story completion row even
+                    // though a later main quest was cleared. Repair it immediately so
+                    // unison becomes available without requiring another login.
+                    if (questCategory === types_1.QuestCategory.MAIN && questId >= 1006001) {
+                        (0, unison_unlock_1.repairUnisonUnlockProgressSync)(playerId);
+                    }
+                    if (questCategory === types_1.QuestCategory.SOLO_TIME_ATTACK_EVENT) {
+                        const newDegreeIds = (0, degree_1.grantPlayerSoloTimeAttackDegreesSync)(playerId, questId, clearTime);
+                        if (newDegreeIds.length > 0) {
+                            console.log(`[DEGREE] solo time attack granted: player=${playerId} quest=${questId} elapsed=${clearTime} degrees=${newDegreeIds.join(",")}`);
+                        }
                     }
                 }
-            }
-            // update player
-            const oldRkDegree = (0, stamina_1.getRankDegree)(beforeRankPoint);
-            const newDegreeId = (0, stamina_1.getRankDegree)(newRankPoint);
-            const didLevelUp = newDegreeId > oldRkDegree;
-            (0, player_1.updatePlayerSync)(Object.assign({ id: playerId, freeMana: newMana, rankPoint: newRankPoint, boostPoint: newBoostPoint, bossBoostPoint: newBossBoostPoint, totalManaObtained: ((_b = playerData.totalManaObtained) !== null && _b !== void 0 ? _b : 0) + manaObtained, maxComboAchieved: Math.max((_c = playerData.maxComboAchieved) !== null && _c !== void 0 ? _c : 0, (_e = (_d = body.statistics) === null || _d === void 0 ? void 0 : _d.max_combo_count) !== null && _e !== void 0 ? _e : 0) }, (didLevelUp ? { stamina: playerData.stamina + (0, stamina_1.getMaxStamina)(newDegreeId), staminaHealTime: new Date() } : {})));
-            if ((0, player_1.adjustPlayerExpPoolSync)(playerId, questData.poolExpReward, 'single_battle_base_reward') === null) {
-                throw new Error(`Failed to grant single battle EXP to player ${playerId}`);
-            }
-            clearReward = !isScoreAttackEvent && !questPreviouslyCompleted && questData.clearReward !== undefined
-                ? (0, quest_2.givePlayerRewardSync)(playerId, questData.clearReward)
-                : null;
-            const isExpertSingleEvent = questCategory === types_1.QuestCategory.EXPERT_SINGLE_EVENT;
-            const shouldGrantSPlusReward = isExpertSingleEvent
-                ? (questProgress === null || questProgress === void 0 ? void 0 : questProgress.sPlusRewardReceived) !== true
-                : (questProgress === null || questProgress === void 0 ? void 0 : questProgress.clearRank) !== 5;
-            sPlusClearReward = !isScoreAttackEvent && (clearRank === 5)
-                && shouldGrantSPlusReward && (questData.sPlusReward !== undefined)
-                ? (0, quest_2.givePlayerRewardSync)(playerId, questData.sPlusReward)
-                : null;
-            if (isExpertSingleEvent && sPlusClearReward !== null) {
-                (0, quest_1.updatePlayerQuestProgressSync)(playerId, questCategory, {
-                    questId,
-                    sPlusRewardReceived: true,
-                });
-                console.log(`[EXPERT_SINGLE_EVENT] SS reward granted: player=${playerId} quest=${questId} item=14040 count=3`);
-            }
-            if (didLevelUp) {
-                playerData.stamina = playerData.stamina + (0, stamina_1.getMaxStamina)(newDegreeId);
-                playerData.staminaHealTime = new Date();
-                console.log(`[BATTLE-FINISH] player ${playerId} leveled up: ${oldRkDegree} -> ${newDegreeId}, stamina refilled`);
-            }
-            // Consume daily challenge point
-            const dailyChallengePointList = (0, challenge_point_1.handleDailyChallengePoint)({
-                questCategory,
-                eventId: questData.eventId,
-                playerId,
-                challengePointMap: event_challenge_point_map_json_1.default,
-                getEntries: (pid) => (0, player_1.getPlayerDailyChallengePointListSync)(pid),
-                updatePoint: (pid, id, pt) => (0, player_1.updatePlayerDailyChallengePointSync)(pid, id, pt),
-            });
-            // reward score rewards
-            if (isScoreAttackEvent) {
-                (0, game_logging_1.gameVerboseLog)(() => `[SCORE_ATTACK] questId=${questId} body={score:${body.score}, elapsed:${body.elapsed_time_ms}, accomplished:${body.is_accomplished}, addMana:${body.add_mana}, continue:${body.continue_count}}`);
-                (0, game_logging_1.gameVerboseLog)(() => `[SCORE_ATTACK] questData={localQuest:${questData.scoreAttackQuestId}, bRank:${questData.bRankScore}, aRank:${questData.aRankScore}, sRank:${questData.sRankScore}, ssRank:${questData.ssRankScore}, rankPt:${questData.rankPointReward}, charExp:${questData.characterExpReward}, mana:${questData.manaReward}, poolExp:${questData.poolExpReward}}`);
-            }
-            (0, game_logging_1.gameVerboseLog)(() => { var _a, _b; return `[BATTLE] scoreReward groupId=${questData.scoreRewardGroupId} groupLen=${(_b = (_a = questData.scoreRewardGroup) === null || _a === void 0 ? void 0 : _a.length) !== null && _b !== void 0 ? _b : 'null'} questId=${questId} category=${questCategory}`; });
-            const scoreRewardsResult = (0, quest_2.givePlayerScoreRewardsSync)(playerId, questData.scoreRewardGroupId, questData.scoreRewardGroup, useBoostPoint, questData.element);
-            let scoreAttackEventData = null;
-            if (isScoreAttackEvent) {
-                const previousHighScore = (_f = questProgress === null || questProgress === void 0 ? void 0 : questProgress.highScore) !== null && _f !== void 0 ? _f : 0;
-                const mainCharacterIds = (0, score_attack_handler_1.collectScoreAttackMainCharacterIds)(body.statistics.party.characters);
-                const resolved = (0, score_attack_handler_1.resolveNewScoreAttackBorderRewards)(scoreAttackBorderTiers, previousHighScore, body.score);
-                for (const [itemIdText, count] of Object.entries(resolved.itemCounts)) {
-                    scoreRewardsResult.items[itemIdText] = (0, item_1.givePlayerItemSync)(playerId, Number(itemIdText), count);
+                // update player
+                const oldRkDegree = (0, stamina_1.getRankDegree)(beforeRankPoint);
+                const newDegreeId = (0, stamina_1.getRankDegree)(newRankPoint);
+                const didLevelUp = newDegreeId > oldRkDegree;
+                (0, player_1.updatePlayerSync)(Object.assign({ id: playerId, freeMana: newMana, rankPoint: newRankPoint, boostPoint: newBoostPoint, bossBoostPoint: newBossBoostPoint, totalManaObtained: ((_b = playerData.totalManaObtained) !== null && _b !== void 0 ? _b : 0) + manaObtained, maxComboAchieved: Math.max((_c = playerData.maxComboAchieved) !== null && _c !== void 0 ? _c : 0, (_e = (_d = body.statistics) === null || _d === void 0 ? void 0 : _d.max_combo_count) !== null && _e !== void 0 ? _e : 0) }, (didLevelUp ? { stamina: playerData.stamina + (0, stamina_1.getMaxStamina)(newDegreeId), staminaHealTime: new Date() } : {})));
+                if ((0, player_1.adjustPlayerExpPoolSync)(playerId, questData.poolExpReward, 'single_battle_base_reward') === null) {
+                    throw new Error(`Failed to grant single battle EXP to player ${playerId}`);
                 }
-                scoreAttackEventData = {
-                    reward_ids: resolved.rewardIds,
-                    main_character_ids: mainCharacterIds,
-                };
-                (0, game_logging_1.gameVerboseLog)(() => `[SCORE_ATTACK] borderRewards: event=${questData.eventId} folder=${questData.folderId} oldScore=${previousHighScore} newScore=${body.score} crossed=${resolved.rewardIds.length} items=${JSON.stringify(resolved.itemCounts)}`);
-                (0, game_logging_1.gameVerboseLog)(() => { var _a, _b; return `[SCORE_ATTACK] afterReward: dropIds=${JSON.stringify(scoreRewardsResult.drop_score_reward_ids)}, drops=${scoreRewardsResult.drop_score_reward_ids.length}, items=${JSON.stringify(scoreRewardsResult.items)}, equipList=${(_b = (_a = scoreRewardsResult.equipment_list) === null || _a === void 0 ? void 0 : _a.length) !== null && _b !== void 0 ? _b : 0}`; });
-                (0, game_logging_1.gameVerboseLog)(() => `[SCORE_ATTACK] response: accomplished=${questAccomplished}, clearRank=${clearRank}, score=${body.score}, elapsed=${body.elapsed_time_ms}, items=${JSON.stringify(scoreRewardsResult.items)}, clientCategory=${questCategory}`);
-            }
-            // reward character exp
-            const bodyPartyStatistics = body.statistics.party;
-            const partyCharacterIds = [...bodyPartyStatistics.characters, ...bodyPartyStatistics.unison_characters];
-            if (questCategory === types_1.QuestCategory.PRACTICE) {
-                (0, practice_battle_history_1.insertPlayerPracticeBattleHistorySync)((0, practice_battle_history_2.buildPracticeBattleHistoryRecord)({
+                clearReward = !isScoreAttackEvent && !questPreviouslyCompleted && questData.clearReward !== undefined
+                    ? (0, quest_2.givePlayerRewardSync)(playerId, questData.clearReward)
+                    : null;
+                const isExpertSingleEvent = questCategory === types_1.QuestCategory.EXPERT_SINGLE_EVENT;
+                const shouldGrantSPlusReward = isExpertSingleEvent
+                    ? (questProgress === null || questProgress === void 0 ? void 0 : questProgress.sPlusRewardReceived) !== true
+                    : (questProgress === null || questProgress === void 0 ? void 0 : questProgress.clearRank) !== 5;
+                sPlusClearReward = !isScoreAttackEvent && (clearRank === 5)
+                    && shouldGrantSPlusReward && (questData.sPlusReward !== undefined)
+                    ? (0, quest_2.givePlayerRewardSync)(playerId, questData.sPlusReward)
+                    : null;
+                if (isExpertSingleEvent && sPlusClearReward !== null) {
+                    (0, quest_1.updatePlayerQuestProgressSync)(playerId, questCategory, {
+                        questId,
+                        sPlusRewardReceived: true,
+                    });
+                    console.log(`[EXPERT_SINGLE_EVENT] SS reward granted: player=${playerId} quest=${questId} item=14040 count=3`);
+                }
+                if (didLevelUp) {
+                    playerData.stamina = playerData.stamina + (0, stamina_1.getMaxStamina)(newDegreeId);
+                    playerData.staminaHealTime = new Date();
+                    console.log(`[BATTLE-FINISH] player ${playerId} leveled up: ${oldRkDegree} -> ${newDegreeId}, stamina refilled`);
+                }
+                // Consume daily challenge point
+                const dailyChallengePointList = (0, challenge_point_1.handleDailyChallengePoint)({
+                    questCategory,
+                    eventId: questData.eventId,
                     playerId,
-                    playId: activeQuestData.playId,
-                    categoryId: questCategory,
-                    questId,
-                    finishKind: questAccomplished ? 0 : 1,
-                    createdAt: new Date(),
-                    elapsedTimeMs: clearTime,
-                    score: body.score,
-                    clearRank: questAccomplished ? clearRank : null,
-                    party: bodyPartyStatistics,
+                    challengePointMap: event_challenge_point_map_json_1.default,
+                    getEntries: (pid) => (0, player_1.getPlayerDailyChallengePointListSync)(pid),
+                    updatePoint: (pid, id, pt) => (0, player_1.updatePlayerDailyChallengePointSync)(pid, id, pt),
+                });
+                // 五重单人使用独立奖励计划，不再叠加 1099001 的旧 score reward 组
+                // （其中包含猫头鹰货币及其稀有池）。多人专用结算也不走这条普通奖励链。
+                const effectiveScoreRewardGroupId = fiveBossSoloQuest
+                    ? undefined
+                    : questData.scoreRewardGroupId;
+                const effectiveScoreRewardGroup = fiveBossSoloQuest
+                    ? undefined
+                    : questData.scoreRewardGroup;
+                // reward score rewards
+                if (isScoreAttackEvent) {
+                    (0, game_logging_1.gameVerboseLog)(() => `[SCORE_ATTACK] questId=${questId} body={score:${body.score}, elapsed:${body.elapsed_time_ms}, accomplished:${body.is_accomplished}, addMana:${body.add_mana}, continue:${body.continue_count}}`);
+                    (0, game_logging_1.gameVerboseLog)(() => `[SCORE_ATTACK] questData={localQuest:${questData.scoreAttackQuestId}, bRank:${questData.bRankScore}, aRank:${questData.aRankScore}, sRank:${questData.sRankScore}, ssRank:${questData.ssRankScore}, rankPt:${questData.rankPointReward}, charExp:${questData.characterExpReward}, mana:${questData.manaReward}, poolExp:${questData.poolExpReward}}`);
+                }
+                (0, game_logging_1.gameVerboseLog)(() => { var _a; return `[BATTLE] scoreReward groupId=${effectiveScoreRewardGroupId !== null && effectiveScoreRewardGroupId !== void 0 ? effectiveScoreRewardGroupId : (fiveBossSoloQuest ? 'skipped-five-boss-solo' : 'null')} groupLen=${(_a = effectiveScoreRewardGroup === null || effectiveScoreRewardGroup === void 0 ? void 0 : effectiveScoreRewardGroup.length) !== null && _a !== void 0 ? _a : 'null'} questId=${questId} category=${questCategory}`; });
+                const scoreRewardsResult = (0, quest_2.givePlayerScoreRewardsSync)(playerId, effectiveScoreRewardGroupId, effectiveScoreRewardGroup, useBoostPoint, questData.element, { questId, mode: "solo" });
+                let scoreAttackEventData = null;
+                if (isScoreAttackEvent) {
+                    const previousHighScore = (_f = questProgress === null || questProgress === void 0 ? void 0 : questProgress.highScore) !== null && _f !== void 0 ? _f : 0;
+                    const mainCharacterIds = (0, score_attack_handler_1.collectScoreAttackMainCharacterIds)(body.statistics.party.characters);
+                    const resolved = (0, score_attack_handler_1.resolveNewScoreAttackBorderRewards)(scoreAttackBorderTiers, previousHighScore, body.score);
+                    for (const [itemIdText, count] of Object.entries(resolved.itemCounts)) {
+                        scoreRewardsResult.items[itemIdText] = (0, item_1.givePlayerItemSync)(playerId, Number(itemIdText), count);
+                    }
+                    scoreAttackEventData = {
+                        reward_ids: resolved.rewardIds,
+                        main_character_ids: mainCharacterIds,
+                    };
+                    (0, game_logging_1.gameVerboseLog)(() => `[SCORE_ATTACK] borderRewards: event=${questData.eventId} folder=${questData.folderId} oldScore=${previousHighScore} newScore=${body.score} crossed=${resolved.rewardIds.length} items=${JSON.stringify(resolved.itemCounts)}`);
+                    (0, game_logging_1.gameVerboseLog)(() => { var _a, _b; return `[SCORE_ATTACK] afterReward: dropIds=${JSON.stringify(scoreRewardsResult.drop_score_reward_ids)}, drops=${scoreRewardsResult.drop_score_reward_ids.length}, items=${JSON.stringify(scoreRewardsResult.items)}, equipList=${(_b = (_a = scoreRewardsResult.equipment_list) === null || _a === void 0 ? void 0 : _a.length) !== null && _b !== void 0 ? _b : 0}`; });
+                    (0, game_logging_1.gameVerboseLog)(() => `[SCORE_ATTACK] response: accomplished=${questAccomplished}, clearRank=${clearRank}, score=${body.score}, elapsed=${body.elapsed_time_ms}, items=${JSON.stringify(scoreRewardsResult.items)}, clientCategory=${questCategory}`);
+                }
+                // reward character exp
+                bodyTiming.step("battle_facts");
+                const bodyPartyStatistics = body.statistics.party;
+                const partyCharacterIds = [...bodyPartyStatistics.characters, ...bodyPartyStatistics.unison_characters];
+                if (questCategory === types_1.QuestCategory.PRACTICE) {
+                    (0, practice_battle_history_1.insertPlayerPracticeBattleHistorySync)((0, practice_battle_history_2.buildPracticeBattleHistoryRecord)({
+                        playerId,
+                        playId: activeQuestData.playId,
+                        categoryId: questCategory,
+                        questId,
+                        finishKind: questAccomplished ? 0 : 1,
+                        createdAt: new Date(),
+                        elapsedTimeMs: clearTime,
+                        score: body.score,
+                        clearRank: questAccomplished ? clearRank : null,
+                        party: bodyPartyStatistics,
+                        statistics: body.statistics,
+                        equipmentList: (0, equipment_1.getPlayerEquipmentListSync)(playerId),
+                    }));
+                }
+                // Build finish context for mission trackers
+                const finishCtx = {
+                    playerId, questCategory, questId,
+                    questAccomplished,
+                    clearTime: body.elapsed_time_ms,
+                    clearRank,
+                    party: body.statistics.party,
                     statistics: body.statistics,
-                    equipmentList: (0, equipment_1.getPlayerEquipmentListSync)(playerId),
-                }));
-            }
-            // Build finish context for mission trackers
-            const finishCtx = {
-                playerId, questCategory, questId,
-                questAccomplished,
-                clearTime: body.elapsed_time_ms,
-                clearRank,
-                party: body.statistics.party,
-                statistics: body.statistics,
-                player: playerData,
-                questPreviouslyCompleted,
-                questProgress,
-                partySlot: playerData.partySlot,
-            };
-            // Mission progress is recorded once by recordMissionBattleFacts below.
-            const singleBattleParty = (0, mission_1.collectPartyCharacterIds)(finishCtx.party);
-            (0, mission_1.recordBattleMissionDimensionsSafe)(Object.assign(Object.assign({ type: "battle_finish", playerId,
-                questCategory,
-                questId, accomplished: questAccomplished, mode: "single", clearRank, clearTimeMs: clearTime, score: Number(body.score) || 0 }, singleBattleParty), { statistics: (0, mission_1.summarizeBattleStatistics)(finishCtx.statistics) }));
-            const missionBattleFacts = (0, battle_facts_1.recordMissionBattleFacts)(finishCtx, missionEvaluationTime);
-            if (questData.fixedParty === undefined) {
-                (0, recommended_party_history_1.recordQuestRecommendedPartySafe)(finishCtx);
-            }
-            const steamRobotMissionId = (0, steam_robot_challenge_1.trackSteamRobotChallengeMission)({
-                playerId,
-                questCategory,
-                questId,
-                questAccomplished,
-                clearRank,
-                statistics: finishCtx.statistics,
-            });
-            if (steamRobotMissionId !== null) {
-                console.log(`[MISSION] steam robot challenge cleared: player=${playerId} quest=${questId} mission=${steamRobotMissionId}`);
-            }
-            const partyCharacterIdsArray = [];
-            for (const value of partyCharacterIds.values()) {
-                if (value !== null && value.id !== null)
-                    partyCharacterIdsArray.push(value.id);
-            }
-            const addExpAmount = questData.characterExpReward;
-            const rewardCharacterExpResult = (0, character_1.givePlayerCharactersExpSync)(playerId, partyCharacterIdsArray, addExpAmount, questData.fixedParty !== undefined);
-            const dataHeaders = (0, utils_1.generateDataHeaders)({
-                viewer_id: viewerId
-            });
-            // At the three solo-to-multiplayer boundaries, do not expose the
-            // just-written Rush round in *this* generic quest-result response.
-            // The legacy client uses that response to decide whether to draw
-            // "Continue challenge"; exposing it would make the 5/10/15
-            // placeholder open as a normal single-player Rush quest.
-            //
-            // The real marker is still persisted by the handler.  Pressing OK
-            // returns to the Rush page, whose subsequent summary load receives
-            // the real marker and correctly exposes the multiplayer Boss.
-            const mode15BoundaryStage = Number(questId) % 1000;
-            const withholdMode15BoundaryAdvance = questAccomplished
-                && questCategory === types_1.QuestCategory.RUSH_EVENT
-                && questData.rushEventId === mode15_optional_1.MODE15_RUSH_EVENT_ID
-                && (mode15BoundaryStage === 4
-                    || mode15BoundaryStage === 9
-                    || mode15BoundaryStage === 14);
-            const rushPartiesBeforeBoundaryAdvance = withholdMode15BoundaryAdvance
-                ? (0, rush_1.getSerializedPlayerRushEventPlayedPartiesSync)(playerId, mode15_optional_1.MODE15_RUSH_EVENT_ID)
-                : null;
-            // handle event quest-specific data & rewards
-            const { rushEventData, rushEventRewardsResult } = (0, rush_handler_1.handleRushEventFinish)({
-                questCategory,
-                questAccomplished,
-                questData,
-                clearTime,
-                party: bodyPartyStatistics,
-                playerId,
-                questId,
-                getEvoLevels: (pid, chars) => (0, character_1.getCharactersEvolutionImgLevels)(pid, chars),
-                getFolderMaxRounds: rushEvent_2.getRushEventFolderMaxRounds,
-                getRushEvent: (pid, eid) => (0, rushEvent_1.getPlayerRushEventSync)(pid, eid),
-                updateRushEvent: (pid, data) => (0, rushEvent_1.updatePlayerRushEventSync)(pid, data),
-                // Never save a content-less marker. The legacy result/quest UI
-                // dereferences the first character of every recorded party; a row
-                // made entirely of NULL values becomes character id 0 and crashes
-                // immediately after boundary floors such as stage 5.
-                insertParty: (pid, eid, p) => (0, rushEvent_1.insertPlayerRushEventPlayedPartySync)(pid, eid, p),
-                insertClearedFolder: (pid, eid, fid) => (0, rushEvent_1.insertPlayerRushEventClearedFolderSync)(pid, eid, fid),
-                deletePartyList: (pid, eid, bt) => (0, rushEvent_1.deletePlayerRushEventPlayedPartyListSync)(pid, eid, bt),
-                getSerializedParties: (pid, eid) => (0, rush_1.getSerializedPlayerRushEventPlayedPartiesSync)(pid, eid),
-                getFolderRewards: (eid, fid) => (0, assets_1.getRushEventFolderClearRewards)(eid, fid),
-                giveRewards: (pid, r) => (0, quest_2.givePlayerRewardsSync)(pid, r),
-            });
-            const abyssEnduranceDegrees = (0, service_1.finishLeaderboardQuestSync)({
-                playerId,
-                quest: {
-                    category: questCategory,
-                    eventId: questData.rushEventId,
-                    folderId: questData.rushEventFolderId,
-                    round: questData.rushEventRound,
+                    player: playerData,
+                    questPreviouslyCompleted,
+                    questProgress,
+                    partySlot: (_g = activeQuestData.partySlot) !== null && _g !== void 0 ? _g : playerData.partySlot,
+                };
+                // Mission progress is recorded once by recordMissionBattleFacts below.
+                const singleBattleParty = (0, mission_1.collectPartyCharacterIds)(finishCtx.party);
+                (0, mission_1.recordBattleMissionDimensionsSafe)(Object.assign(Object.assign({ type: "battle_finish", playerId,
+                    questCategory,
+                    questId, accomplished: questAccomplished, mode: "single", clearRank, clearTimeMs: clearTime, score: Number(body.score) || 0 }, singleBattleParty), { statistics: (0, mission_1.summarizeBattleStatistics)(finishCtx.statistics) }));
+                const missionBattleFacts = (0, battle_facts_1.recordMissionBattleFacts)(finishCtx, missionEvaluationTime);
+                if (questData.fixedParty === undefined) {
+                    (0, recommended_party_history_1.recordQuestRecommendedPartySafe)(finishCtx);
+                }
+                const steamRobotMissionId = (0, steam_robot_challenge_1.trackSteamRobotChallengeMission)({
+                    playerId,
+                    questCategory,
                     questId,
-                    totalRounds: questData.rushEventId === undefined
-                        || questData.rushEventFolderId === undefined
-                        ? 0
-                        : (0, rushEvent_2.getRushEventFolderMaxRounds)(questData.rushEventId, questData.rushEventFolderId),
-                },
-                accomplished: questAccomplished,
-                clientBattleMs: clearTime,
-                party: {
-                    characterIds: bodyPartyStatistics.characters.map(value => { var _a; return (_a = value === null || value === void 0 ? void 0 : value.id) !== null && _a !== void 0 ? _a : null; }),
-                    unisonCharacterIds: bodyPartyStatistics.unison_characters.map(value => { var _a; return (_a = value === null || value === void 0 ? void 0 : value.id) !== null && _a !== void 0 ? _a : null; }),
-                    equipmentIds: bodyPartyStatistics.equipments.map(value => { var _a; return (_a = value === null || value === void 0 ? void 0 : value.id) !== null && _a !== void 0 ? _a : null; }),
-                    abilitySoulIds: bodyPartyStatistics.ability_soul_ids,
-                    evolutionImgLevels: (0, character_1.getCharactersEvolutionImgLevels)(playerId, bodyPartyStatistics.characters.map(value => { var _a; return (_a = value === null || value === void 0 ? void 0 : value.id) !== null && _a !== void 0 ? _a : null; })),
-                    unisonEvolutionImgLevels: (0, character_1.getCharactersEvolutionImgLevels)(playerId, bodyPartyStatistics.unison_characters.map(value => { var _a; return (_a = value === null || value === void 0 ? void 0 : value.id) !== null && _a !== void 0 ? _a : null; })),
-                },
-            });
-            if (questAccomplished
-                && questCategory === types_1.QuestCategory.RUSH_EVENT
-                && questData.rushEventId !== undefined
-                && (0, gauntlet_completion_classification_1.repairGauntletCompletionClassificationSync)(playerId, questData.rushEventId)) {
-                console.log(`[RUSH] completed classification repaired: `
-                    + `player=${playerId} event=${questData.rushEventId}`);
-            }
-            if (rushEventData !== null && rushPartiesBeforeBoundaryAdvance !== null) {
-                rushEventData.rush_battle_played_party_list = rushPartiesBeforeBoundaryAdvance.folderParties;
-                rushEventData.endless_battle_played_party_list = rushPartiesBeforeBoundaryAdvance.endlessParties;
-                console.log(`[MODE15] deferred Rush result visibility: player=${playerId} stage=${mode15BoundaryStage}`);
-            }
-            const rogueFolderMaxRounds = {};
-            if (questData.rushEventId !== undefined
-                && questData.rushEventFolderId !== undefined) {
-                rogueFolderMaxRounds[questData.rushEventFolderId] =
-                    (0, rushEvent_2.getRushEventFolderMaxRounds)(questData.rushEventId, questData.rushEventFolderId);
-            }
-            const rogueDrops = (0, rogue_drops_1.handleRoguePerRoundDrops)({
-                questCategory,
-                questAccomplished,
-                playerId,
-                questData,
-                folderMaxRounds: rogueFolderMaxRounds,
-                partyCharacterIds: partyCharacterIdsArray,
-            });
-            if (rogueDrops !== null
-                && rushEventData !== null
-                && rogueDrops.showInRewardList) {
-                rushEventData.rush_battle_reward_list = [
-                    ...rushEventData.rush_battle_reward_list,
-                    ...rogueDrops.rewardListEntries,
+                    questAccomplished,
+                    clearRank,
+                    statistics: finishCtx.statistics,
+                });
+                if (steamRobotMissionId !== null) {
+                    console.log(`[MISSION] steam robot challenge cleared: player=${playerId} quest=${questId} mission=${steamRobotMissionId}`);
+                }
+                const partyCharacterIdsArray = [];
+                bodyTiming.step("experience");
+                for (const value of partyCharacterIds.values()) {
+                    if (value !== null && value.id !== null)
+                        partyCharacterIdsArray.push(value.id);
+                }
+                const addExpAmount = questData.characterExpReward;
+                const rewardCharacterExpResult = (0, character_1.givePlayerCharactersExpSync)(playerId, partyCharacterIdsArray, addExpAmount, questData.fixedParty !== undefined);
+                bodyTiming.step("mode_rewards");
+                const dataHeaders = (0, utils_1.generateDataHeaders)({
+                    viewer_id: viewerId
+                });
+                // At the three solo-to-multiplayer boundaries, do not expose the
+                // just-written Rush round in *this* generic quest-result response.
+                // The legacy client uses that response to decide whether to draw
+                // "Continue challenge"; exposing it would make the 5/10/15
+                // placeholder open as a normal single-player Rush quest.
+                //
+                // The real marker is still persisted by the handler.  Pressing OK
+                // returns to the Rush page, whose subsequent summary load receives
+                // the real marker and correctly exposes the multiplayer Boss.
+                const mode15BoundaryStage = Number(questId) % 1000;
+                const withholdMode15BoundaryAdvance = questAccomplished
+                    && questCategory === types_1.QuestCategory.RUSH_EVENT
+                    && questData.rushEventId === mode15_optional_1.MODE15_RUSH_EVENT_ID
+                    && (mode15BoundaryStage === 4
+                        || mode15BoundaryStage === 9
+                        || mode15BoundaryStage === 14);
+                const rushPartiesBeforeBoundaryAdvance = withholdMode15BoundaryAdvance
+                    ? (0, rush_1.getSerializedPlayerRushEventPlayedPartiesSync)(playerId, mode15_optional_1.MODE15_RUSH_EVENT_ID)
+                    : null;
+                // handle event quest-specific data & rewards
+                const { rushEventData, rushEventRewardsResult } = (0, rush_handler_1.handleRushEventFinish)({
+                    questCategory,
+                    questAccomplished,
+                    questData,
+                    clearTime,
+                    party: bodyPartyStatistics,
+                    playerId,
+                    questId,
+                    getEvoLevels: (pid, chars) => (0, character_1.getCharactersEvolutionImgLevels)(pid, chars),
+                    getFolderMaxRounds: rushEvent_2.getRushEventFolderMaxRounds,
+                    getRushEvent: (pid, eid) => (0, rushEvent_1.getPlayerRushEventSync)(pid, eid),
+                    updateRushEvent: (pid, data) => (0, rushEvent_1.updatePlayerRushEventSync)(pid, data),
+                    // Never save a content-less marker. The legacy result/quest UI
+                    // dereferences the first character of every recorded party; a row
+                    // made entirely of NULL values becomes character id 0 and crashes
+                    // immediately after boundary floors such as stage 5.
+                    insertParty: (pid, eid, p) => (0, rushEvent_1.insertPlayerRushEventPlayedPartySync)(pid, eid, p),
+                    insertClearedFolder: (pid, eid, fid) => (0, rushEvent_1.insertPlayerRushEventClearedFolderSync)(pid, eid, fid),
+                    deletePartyList: (pid, eid, bt) => (0, rushEvent_1.deletePlayerRushEventPlayedPartyListSync)(pid, eid, bt),
+                    getSerializedParties: (pid, eid) => (0, rush_1.getSerializedPlayerRushEventPlayedPartiesSync)(pid, eid),
+                    getFolderRewards: (eid, fid) => (0, assets_1.getRushEventFolderClearRewards)(eid, fid),
+                    giveRewards: (pid, r) => (0, quest_2.givePlayerRewardsSync)(pid, r),
+                });
+                const abyssEnduranceDegrees = (0, service_1.finishLeaderboardQuestSync)({
+                    playerId,
+                    quest: {
+                        category: questCategory,
+                        eventId: questData.rushEventId,
+                        folderId: questData.rushEventFolderId,
+                        round: questData.rushEventRound,
+                        questId,
+                        totalRounds: questData.rushEventId === undefined
+                            || questData.rushEventFolderId === undefined
+                            ? 0
+                            : (0, rushEvent_2.getRushEventFolderMaxRounds)(questData.rushEventId, questData.rushEventFolderId),
+                    },
+                    accomplished: questAccomplished,
+                    clientBattleMs: clearTime,
+                    party: {
+                        characterIds: bodyPartyStatistics.characters.map(value => { var _a; return (_a = value === null || value === void 0 ? void 0 : value.id) !== null && _a !== void 0 ? _a : null; }),
+                        unisonCharacterIds: bodyPartyStatistics.unison_characters.map(value => { var _a; return (_a = value === null || value === void 0 ? void 0 : value.id) !== null && _a !== void 0 ? _a : null; }),
+                        equipmentIds: bodyPartyStatistics.equipments.map(value => { var _a; return (_a = value === null || value === void 0 ? void 0 : value.id) !== null && _a !== void 0 ? _a : null; }),
+                        abilitySoulIds: bodyPartyStatistics.ability_soul_ids,
+                        evolutionImgLevels: (0, character_1.getCharactersEvolutionImgLevels)(playerId, bodyPartyStatistics.characters.map(value => { var _a; return (_a = value === null || value === void 0 ? void 0 : value.id) !== null && _a !== void 0 ? _a : null; })),
+                        unisonEvolutionImgLevels: (0, character_1.getCharactersEvolutionImgLevels)(playerId, bodyPartyStatistics.unison_characters.map(value => { var _a; return (_a = value === null || value === void 0 ? void 0 : value.id) !== null && _a !== void 0 ? _a : null; })),
+                    },
+                });
+                if (questAccomplished
+                    && questCategory === types_1.QuestCategory.RUSH_EVENT
+                    && questData.rushEventId !== undefined
+                    && (0, gauntlet_completion_classification_1.repairGauntletCompletionClassificationSync)(playerId, questData.rushEventId)) {
+                    console.log(`[RUSH] completed classification repaired: `
+                        + `player=${playerId} event=${questData.rushEventId}`);
+                }
+                if (rushEventData !== null && rushPartiesBeforeBoundaryAdvance !== null) {
+                    rushEventData.rush_battle_played_party_list = rushPartiesBeforeBoundaryAdvance.folderParties;
+                    rushEventData.endless_battle_played_party_list = rushPartiesBeforeBoundaryAdvance.endlessParties;
+                    console.log(`[MODE15] deferred Rush result visibility: player=${playerId} stage=${mode15BoundaryStage}`);
+                }
+                const rogueFolderMaxRounds = {};
+                if (questData.rushEventId !== undefined
+                    && questData.rushEventFolderId !== undefined) {
+                    rogueFolderMaxRounds[questData.rushEventFolderId] =
+                        (0, rushEvent_2.getRushEventFolderMaxRounds)(questData.rushEventId, questData.rushEventFolderId);
+                }
+                const rogueDrops = (0, rogue_drops_1.handleRoguePerRoundDrops)({
+                    questCategory,
+                    questAccomplished,
+                    playerId,
+                    questData,
+                    folderMaxRounds: rogueFolderMaxRounds,
+                    partyCharacterIds: partyCharacterIdsArray,
+                });
+                if (rogueDrops !== null
+                    && rushEventData !== null
+                    && rogueDrops.showInRewardList) {
+                    rushEventData.rush_battle_reward_list = [
+                        ...rushEventData.rush_battle_reward_list,
+                        ...rogueDrops.rewardListEntries,
+                    ];
+                }
+                // Record played party for RAID_EVENT
+                const raidEventData = (0, raid_handler_1.handleRaidEventFinish)({
+                    questCategory,
+                    questAccomplished,
+                    activeEventId: activeQuestData.eventId,
+                    playId: activeQuestData.playId,
+                    party: bodyPartyStatistics,
+                    playerId,
+                    questId,
+                    getEvoLevelsFn: (pid, chars) => (0, character_1.getCharactersEvolutionImgLevels)(pid, chars),
+                    insertPartyFn: (pid, eid, p) => (0, rushEvent_1.insertPlayerRushEventPlayedPartySync)(pid, eid, p),
+                });
+                // handle carnival event score & records
+                const carnivalInfo = carnivalScoreLookup[String(questId)];
+                if (carnivalInfo)
+                    (0, carnivalEvent_1.migrateCarnivalEventFolderRecordsSync)(carnivalInfo.event_id);
+                const carnivalEventData = (0, carnival_handler_1.handleCarnivalEventFinish)({
+                    questCategory,
+                    questAccomplished,
+                    questId,
+                    battleScore: body.score,
+                    clearTime,
+                    party: bodyPartyStatistics,
+                    playerId,
+                    carnivalLookup: carnivalScoreLookup,
+                    getRecordsFn: (pid, eid) => (0, carnivalEvent_1.getPlayerCarnivalEventRecordsSync)(pid, eid),
+                    upsertFn: (pid, eid, fid, score, chars, unisons) => (0, carnivalEvent_1.upsertPlayerCarnivalEventRecordSync)(pid, eid, fid, score, chars, unisons),
+                });
+                let carnivalRewardsResult = null;
+                if (carnivalEventData && carnivalInfo) {
+                    const totalBestScore = (0, carnivalEvent_1.getPlayerCarnivalEventRecordsSync)(playerId, carnivalInfo.event_id)
+                        .reduce((sum, record) => { var _a; return sum + ((_a = record.bestScore) !== null && _a !== void 0 ? _a : 0); }, 0);
+                    const granted = (0, carnival_reward_handler_1.grantCarnivalTotalScoreRewardsSync)(playerId, carnivalInfo.event_id, totalBestScore);
+                    carnivalEventData.reward_ids = granted.rewardIds;
+                    carnivalEventData.new_degree_ids = granted.newDegreeIds;
+                    carnivalRewardsResult = granted.rewards;
+                }
+                const mode15RewardsResult = (0, mode15_optional_1.settleMode15BattleSync)(playerId, questCategory, questId, questAccomplished);
+                const fiveBossSolo = fiveBossSoloQuest && questAccomplished
+                    ? (0, solo_rewards_1.grantFiveBossSoloRewardsSync)({ playerId, firstClear: !(questProgress === null || questProgress === void 0 ? void 0 : questProgress.finished),
+                        rewardMultiplier: (0, solo_runtime_1.getFiveBossSoloRewardMultiplierSync)(playerId, activeQuestData.playId) }) : null;
+                const itemList = Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign({}, ((_h = fiveBossSolo === null || fiveBossSolo === void 0 ? void 0 : fiveBossSolo.items) !== null && _h !== void 0 ? _h : {})), (activeQuestData.entryItemId ? { [activeQuestData.entryItemId]: (_j = (0, item_1.getPlayerItemSync)(playerId, activeQuestData.entryItemId)) !== null && _j !== void 0 ? _j : 0 } : {})), ((_k = clearReward === null || clearReward === void 0 ? void 0 : clearReward.items) !== null && _k !== void 0 ? _k : {})), ((_l = sPlusClearReward === null || sPlusClearReward === void 0 ? void 0 : sPlusClearReward.items) !== null && _l !== void 0 ? _l : {})), scoreRewardsResult.items), ((_m = rushEventRewardsResult === null || rushEventRewardsResult === void 0 ? void 0 : rushEventRewardsResult.items) !== null && _m !== void 0 ? _m : {})), ((_o = rogueDrops === null || rogueDrops === void 0 ? void 0 : rogueDrops.rewardResult.items) !== null && _o !== void 0 ? _o : {})), ((_p = carnivalRewardsResult === null || carnivalRewardsResult === void 0 ? void 0 : carnivalRewardsResult.items) !== null && _p !== void 0 ? _p : {})), ((_q = mode15RewardsResult === null || mode15RewardsResult === void 0 ? void 0 : mode15RewardsResult.items) !== null && _q !== void 0 ? _q : {}));
+                const characterList = [
+                    ...rewardCharacterExpResult.character_list,
+                    ...((clearReward === null || clearReward === void 0 ? void 0 : clearReward.character_list) || []),
+                    ...((sPlusClearReward === null || sPlusClearReward === void 0 ? void 0 : sPlusClearReward.character_list) || []),
+                    ...scoreRewardsResult.character_list,
+                    ...((rogueDrops === null || rogueDrops === void 0 ? void 0 : rogueDrops.rewardResult.character_list) || []),
+                    ...((rogueDrops === null || rogueDrops === void 0 ? void 0 : rogueDrops.expCharacterList) || []),
+                    ...((carnivalRewardsResult === null || carnivalRewardsResult === void 0 ? void 0 : carnivalRewardsResult.character_list) || []),
+                    ...((mode15RewardsResult === null || mode15RewardsResult === void 0 ? void 0 : mode15RewardsResult.character_list) || []),
                 ];
+                bodyTiming.step("missions");
+                const missionSettlement = (0, settlement_performance_1.measureSettlementPhase)("single", "mission", () => ((0, mission_2.settleMissionCategories)(playerId, (0, battle_facts_1.buildBattleMissionSettlementScopes)(missionBattleFacts, Object.keys(itemList).map(Number), steamRobotMissionId === null ? [] : [steamRobotMissionId], partyCharacterIdsArray), missionEvaluationTime)));
+                bodyTiming.step("awake");
+                const awakeMissionSettlement = (0, settlement_performance_1.measureSettlementPhase)("single", "awake_mission", () => ((0, mission_2.settleAwakeMissionCandidates)(playerId, questAccomplished
+                    ? (0, mission_2.getAwakeBattleMissionIds)(partyCharacterIdsArray, missionBattleFacts.awakeMissionIds)
+                    : [], missionEvaluationTime)));
+                bodyTiming.step("active");
+                const activeMissionSettlement = (0, settlement_performance_1.measureSettlementPhase)("single", "active_mission", () => ((0, active_reconciliation_1.reconcileActiveMissionFacts)({
+                    playerId,
+                    repository: (0, content_snapshot_1.getContentSnapshot)().repository,
+                    now: missionEvaluationTime,
+                    patterns: (0, battle_facts_1.getBattleActiveMissionPatterns)(questCategory),
+                })));
+                bodyTiming.step("response");
+                const finalPlayerData = (0, player_1.getPlayerSync)(playerId);
+                const responseData = {
+                    "user_info": {
+                        "free_mana": (_r = finalPlayerData === null || finalPlayerData === void 0 ? void 0 : finalPlayerData.freeMana) !== null && _r !== void 0 ? _r : newMana,
+                        "exp_pool": (_s = finalPlayerData === null || finalPlayerData === void 0 ? void 0 : finalPlayerData.expPool) !== null && _s !== void 0 ? _s : rewardCharacterExpResult.exp_pool,
+                        "exp_pooled_time": (0, utils_1.getServerTime)(playerData.expPooledTime),
+                        "free_vmoney": (_t = finalPlayerData === null || finalPlayerData === void 0 ? void 0 : finalPlayerData.freeVmoney) !== null && _t !== void 0 ? _t : playerData.freeVmoney,
+                        "rank_point": newRankPoint,
+                        "degree_id": (_u = playerData.degreeId) !== null && _u !== void 0 ? _u : 1,
+                        "stamina": playerData.stamina,
+                        "stamina_heal_time": (0, utils_1.realToVirtual)(playerData.staminaHealTime),
+                        "boost_point": newBoostPoint,
+                        "boss_boost_point": newBossBoostPoint
+                    },
+                    "add_exp_list": [
+                        ...rewardCharacterExpResult.add_exp_list,
+                        ...((rogueDrops === null || rogueDrops === void 0 ? void 0 : rogueDrops.addExpList) || []),
+                    ],
+                    "character_list": characterList,
+                    "bond_token_status_list": Object.assign(Object.assign({}, rewardCharacterExpResult.bond_token_status_list), ((rogueDrops === null || rogueDrops === void 0 ? void 0 : rogueDrops.bondTokenStatusList) || {})),
+                    "rewards": {
+                        "overflow_pool_exp": 0,
+                        "converted_pool_exp": 0,
+                        "reward_pool_exp": questData.poolExpReward,
+                        // Rush result panels do not render reward_mana in the
+                        // acquired-item area.  Mode15 presents the same credited
+                        // amount through the native field-mana slot so the Mana
+                        // icon and quantity are visible; user_info.free_mana
+                        // remains authoritative and the award is not duplicated.
+                        "reward_mana": displayMode15ManaAsFieldDrop ? 0 : questData.manaReward,
+                        "field_mana": body.add_mana
+                            + (displayMode15ManaAsFieldDrop ? questData.manaReward : 0)
+                    },
+                    "old_high_score": questProgress === null ? 0 : questProgress.highScore || 0,
+                    "joined_character_id_list": [
+                        ...((clearReward === null || clearReward === void 0 ? void 0 : clearReward.joined_character_id_list) || []),
+                        ...((sPlusClearReward === null || sPlusClearReward === void 0 ? void 0 : sPlusClearReward.joined_character_id_list) || []),
+                        ...scoreRewardsResult.joined_character_id_list,
+                        ...((carnivalRewardsResult === null || carnivalRewardsResult === void 0 ? void 0 : carnivalRewardsResult.joined_character_id_list) || []),
+                        ...((mode15RewardsResult === null || mode15RewardsResult === void 0 ? void 0 : mode15RewardsResult.joined_character_id_list) || [])
+                    ],
+                    "before_rank_point": beforeRankPoint,
+                    "clear_rank": clearRank !== null && clearRank !== void 0 ? clearRank : 5,
+                    "drop_score_reward_ids": scoreRewardsResult.drop_score_reward_ids,
+                    "drop_rare_reward_ids": scoreRewardsResult.drop_rare_reward_ids,
+                    "drop_additional_reward_ids": [
+                        ...((_v = fiveBossSolo === null || fiveBossSolo === void 0 ? void 0 : fiveBossSolo.dropAdditionalRewardIds) !== null && _v !== void 0 ? _v : []),
+                        ...((_w = rogueDrops === null || rogueDrops === void 0 ? void 0 : rogueDrops.additionalRewardEntries) !== null && _w !== void 0 ? _w : []),
+                        ...((_x = mode15RewardsResult === null || mode15RewardsResult === void 0 ? void 0 : mode15RewardsResult.mode15_additional_reward_ids) !== null && _x !== void 0 ? _x : []),
+                    ],
+                    "drop_periodic_reward_ids": [],
+                    "equipment_list": [
+                        ...scoreRewardsResult.equipment_list,
+                        ...((clearReward === null || clearReward === void 0 ? void 0 : clearReward.equipment_list) || []),
+                        ...((sPlusClearReward === null || sPlusClearReward === void 0 ? void 0 : sPlusClearReward.equipment_list) || []),
+                        ...((rushEventRewardsResult === null || rushEventRewardsResult === void 0 ? void 0 : rushEventRewardsResult.equipment_list) || []),
+                        ...((rogueDrops === null || rogueDrops === void 0 ? void 0 : rogueDrops.rewardResult.equipment_list) || []),
+                        ...((carnivalRewardsResult === null || carnivalRewardsResult === void 0 ? void 0 : carnivalRewardsResult.equipment_list) || []),
+                        ...((mode15RewardsResult === null || mode15RewardsResult === void 0 ? void 0 : mode15RewardsResult.equipment_list) || []),
+                        ...((_y = fiveBossSolo === null || fiveBossSolo === void 0 ? void 0 : fiveBossSolo.equipment_list) !== null && _y !== void 0 ? _y : [])
+                    ],
+                    "category_id": body.category,
+                    "start_time": dataHeaders['servertime'],
+                    "is_multi": "single",
+                    "quest_name": "",
+                    "item_list": itemList,
+                    "rush_event": rushEventData,
+                    "raid_event": raidEventData,
+                    "carnival_event": carnivalEventData,
+                    "score_attack_event": scoreAttackEventData,
+                    "user_daily_challenge_point_list": dailyChallengePointList !== null && dailyChallengePointList !== void 0 ? dailyChallengePointList : [],
+                    "presigned_quest_category": []
+                };
+                if (raidEventData === null || raidEventData === void 0 ? void 0 : raidEventData.new_degree_ids.length) {
+                    responseData.degree_list = raidEventData.new_degree_ids.map(degreeId => ({
+                        viewer_id: viewerId,
+                        degree_id: degreeId,
+                    }));
+                }
+                if (abyssEnduranceDegrees.length) {
+                    responseData.degree_list = [
+                        ...((_z = responseData.degree_list) !== null && _z !== void 0 ? _z : []),
+                        ...abyssEnduranceDegrees.map(degreeId => ({ viewer_id: viewerId, degree_id: degreeId })),
+                    ];
+                }
+                (0, mission_2.mergeMissionSettlementResponse)(responseData, missionSettlement, viewerId);
+                // Awake settlement re-publishes completed special unlocks itself,
+                // including already-persisted rows whose earlier response was lost.
+                (0, mission_2.mergeMissionSettlementResponse)(responseData, awakeMissionSettlement, viewerId);
+                if (activeMissionSettlement.length > 0) {
+                    responseData.active_mission_list = activeMissionSettlement;
+                }
+                responseData.mail_arrived = (0, mail_1.getPlayerMailCountSync)(playerId, true) > 0;
+                const response = { data_headers: dataHeaders, data: responseData };
+                if (fiveBossSoloQuest)
+                    (0, solo_runtime_1.saveFiveBossSoloReceiptSync)(playerId, activeQuestData.playId, finishCacheKey, response);
+                bodySucceeded = true;
+                return response;
             }
-            // Record played party for RAID_EVENT
-            const raidEventData = (0, raid_handler_1.handleRaidEventFinish)({
-                questCategory,
-                questAccomplished,
-                activeEventId: activeQuestData.eventId,
-                playId: activeQuestData.playId,
-                party: bodyPartyStatistics,
-                playerId,
-                questId,
-                getEvoLevelsFn: (pid, chars) => (0, character_1.getCharactersEvolutionImgLevels)(pid, chars),
-                insertPartyFn: (pid, eid, p) => (0, rushEvent_1.insertPlayerRushEventPlayedPartySync)(pid, eid, p),
-            });
-            // handle carnival event score & records
-            const carnivalInfo = carnivalScoreLookup[String(questId)];
-            if (carnivalInfo)
-                (0, carnivalEvent_1.migrateCarnivalEventFolderRecordsSync)(carnivalInfo.event_id);
-            const carnivalEventData = (0, carnival_handler_1.handleCarnivalEventFinish)({
-                questCategory,
-                questAccomplished,
-                questId,
-                battleScore: body.score,
-                clearTime,
-                party: bodyPartyStatistics,
-                playerId,
-                carnivalLookup: carnivalScoreLookup,
-                getRecordsFn: (pid, eid) => (0, carnivalEvent_1.getPlayerCarnivalEventRecordsSync)(pid, eid),
-                upsertFn: (pid, eid, fid, score, chars, unisons) => (0, carnivalEvent_1.upsertPlayerCarnivalEventRecordSync)(pid, eid, fid, score, chars, unisons),
-            });
-            let carnivalRewardsResult = null;
-            if (carnivalEventData && carnivalInfo) {
-                const totalBestScore = (0, carnivalEvent_1.getPlayerCarnivalEventRecordsSync)(playerId, carnivalInfo.event_id)
-                    .reduce((sum, record) => { var _a; return sum + ((_a = record.bestScore) !== null && _a !== void 0 ? _a : 0); }, 0);
-                const granted = (0, carnival_reward_handler_1.grantCarnivalTotalScoreRewardsSync)(playerId, carnivalInfo.event_id, totalBestScore);
-                carnivalEventData.reward_ids = granted.rewardIds;
-                carnivalEventData.new_degree_ids = granted.newDegreeIds;
-                carnivalRewardsResult = granted.rewards;
+            finally {
+                bodyTiming.finish(bodySucceeded);
             }
-            const mode15RewardsResult = (0, mode15_optional_1.settleMode15BattleSync)(playerId, questCategory, questId, questAccomplished);
-            const fiveBossSolo = fiveBossSoloQuest && questAccomplished
-                ? (0, solo_rewards_1.grantFiveBossSoloRewardsSync)({ playerId, firstClear: !(questProgress === null || questProgress === void 0 ? void 0 : questProgress.finished),
-                    rewardMultiplier: (0, solo_runtime_1.getFiveBossSoloRewardMultiplierSync)(playerId, activeQuestData.playId) }) : null;
-            const itemList = Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign({}, ((_g = fiveBossSolo === null || fiveBossSolo === void 0 ? void 0 : fiveBossSolo.items) !== null && _g !== void 0 ? _g : {})), (activeQuestData.entryItemId ? { [activeQuestData.entryItemId]: (_h = (0, item_1.getPlayerItemSync)(playerId, activeQuestData.entryItemId)) !== null && _h !== void 0 ? _h : 0 } : {})), ((_j = clearReward === null || clearReward === void 0 ? void 0 : clearReward.items) !== null && _j !== void 0 ? _j : {})), ((_k = sPlusClearReward === null || sPlusClearReward === void 0 ? void 0 : sPlusClearReward.items) !== null && _k !== void 0 ? _k : {})), scoreRewardsResult.items), ((_l = rushEventRewardsResult === null || rushEventRewardsResult === void 0 ? void 0 : rushEventRewardsResult.items) !== null && _l !== void 0 ? _l : {})), ((_m = rogueDrops === null || rogueDrops === void 0 ? void 0 : rogueDrops.rewardResult.items) !== null && _m !== void 0 ? _m : {})), ((_o = carnivalRewardsResult === null || carnivalRewardsResult === void 0 ? void 0 : carnivalRewardsResult.items) !== null && _o !== void 0 ? _o : {})), ((_p = mode15RewardsResult === null || mode15RewardsResult === void 0 ? void 0 : mode15RewardsResult.items) !== null && _p !== void 0 ? _p : {}));
-            const characterList = [
-                ...rewardCharacterExpResult.character_list,
-                ...((clearReward === null || clearReward === void 0 ? void 0 : clearReward.character_list) || []),
-                ...((sPlusClearReward === null || sPlusClearReward === void 0 ? void 0 : sPlusClearReward.character_list) || []),
-                ...scoreRewardsResult.character_list,
-                ...((rogueDrops === null || rogueDrops === void 0 ? void 0 : rogueDrops.rewardResult.character_list) || []),
-                ...((rogueDrops === null || rogueDrops === void 0 ? void 0 : rogueDrops.expCharacterList) || []),
-                ...((carnivalRewardsResult === null || carnivalRewardsResult === void 0 ? void 0 : carnivalRewardsResult.character_list) || []),
-                ...((mode15RewardsResult === null || mode15RewardsResult === void 0 ? void 0 : mode15RewardsResult.character_list) || []),
-            ];
-            const missionSettlement = (0, settlement_performance_1.measureSettlementPhase)("single", "mission", () => ((0, mission_2.settleMissionCategories)(playerId, (0, battle_facts_1.buildBattleMissionSettlementScopes)(missionBattleFacts, Object.keys(itemList).map(Number), steamRobotMissionId === null ? [] : [steamRobotMissionId], partyCharacterIdsArray), missionEvaluationTime)));
-            const awakeMissionSettlement = (0, settlement_performance_1.measureSettlementPhase)("single", "awake_mission", () => ((0, mission_2.settleAwakeMissionCandidates)(playerId, questAccomplished
-                ? (0, mission_2.getAwakeBattleMissionIds)(partyCharacterIdsArray, missionBattleFacts.awakeMissionIds)
-                : [], missionEvaluationTime)));
-            const activeMissionSettlement = (0, settlement_performance_1.measureSettlementPhase)("single", "active_mission", () => ((0, active_reconciliation_1.reconcileActiveMissionFacts)({
-                playerId,
-                repository: (0, content_snapshot_1.getContentSnapshot)().repository,
-                now: missionEvaluationTime,
-                patterns: (0, battle_facts_1.getBattleActiveMissionPatterns)(questCategory),
-            })));
-            const finalPlayerData = (0, player_1.getPlayerSync)(playerId);
-            const responseData = {
-                "user_info": {
-                    "free_mana": (_q = finalPlayerData === null || finalPlayerData === void 0 ? void 0 : finalPlayerData.freeMana) !== null && _q !== void 0 ? _q : newMana,
-                    "exp_pool": (_r = finalPlayerData === null || finalPlayerData === void 0 ? void 0 : finalPlayerData.expPool) !== null && _r !== void 0 ? _r : rewardCharacterExpResult.exp_pool,
-                    "exp_pooled_time": (0, utils_1.getServerTime)(playerData.expPooledTime),
-                    "free_vmoney": (_s = finalPlayerData === null || finalPlayerData === void 0 ? void 0 : finalPlayerData.freeVmoney) !== null && _s !== void 0 ? _s : playerData.freeVmoney,
-                    "rank_point": newRankPoint,
-                    "degree_id": (_t = playerData.degreeId) !== null && _t !== void 0 ? _t : 1,
-                    "stamina": playerData.stamina,
-                    "stamina_heal_time": (0, utils_1.realToVirtual)(playerData.staminaHealTime),
-                    "boost_point": newBoostPoint,
-                    "boss_boost_point": newBossBoostPoint
-                },
-                "add_exp_list": [
-                    ...rewardCharacterExpResult.add_exp_list,
-                    ...((rogueDrops === null || rogueDrops === void 0 ? void 0 : rogueDrops.addExpList) || []),
-                ],
-                "character_list": characterList,
-                "bond_token_status_list": Object.assign(Object.assign({}, rewardCharacterExpResult.bond_token_status_list), ((rogueDrops === null || rogueDrops === void 0 ? void 0 : rogueDrops.bondTokenStatusList) || {})),
-                "rewards": {
-                    "overflow_pool_exp": 0,
-                    "converted_pool_exp": 0,
-                    "reward_pool_exp": questData.poolExpReward,
-                    // Rush result panels do not render reward_mana in the
-                    // acquired-item area.  Mode15 presents the same credited
-                    // amount through the native field-mana slot so the Mana
-                    // icon and quantity are visible; user_info.free_mana
-                    // remains authoritative and the award is not duplicated.
-                    "reward_mana": displayMode15ManaAsFieldDrop ? 0 : questData.manaReward,
-                    "field_mana": body.add_mana
-                        + (displayMode15ManaAsFieldDrop ? questData.manaReward : 0)
-                },
-                "old_high_score": questProgress === null ? 0 : questProgress.highScore || 0,
-                "joined_character_id_list": [
-                    ...((clearReward === null || clearReward === void 0 ? void 0 : clearReward.joined_character_id_list) || []),
-                    ...((sPlusClearReward === null || sPlusClearReward === void 0 ? void 0 : sPlusClearReward.joined_character_id_list) || []),
-                    ...scoreRewardsResult.joined_character_id_list,
-                    ...((carnivalRewardsResult === null || carnivalRewardsResult === void 0 ? void 0 : carnivalRewardsResult.joined_character_id_list) || []),
-                    ...((mode15RewardsResult === null || mode15RewardsResult === void 0 ? void 0 : mode15RewardsResult.joined_character_id_list) || [])
-                ],
-                "before_rank_point": beforeRankPoint,
-                "clear_rank": clearRank !== null && clearRank !== void 0 ? clearRank : 5,
-                "drop_score_reward_ids": scoreRewardsResult.drop_score_reward_ids,
-                "drop_rare_reward_ids": scoreRewardsResult.drop_rare_reward_ids,
-                "drop_additional_reward_ids": [
-                    ...((_u = fiveBossSolo === null || fiveBossSolo === void 0 ? void 0 : fiveBossSolo.dropAdditionalRewardIds) !== null && _u !== void 0 ? _u : []),
-                    ...((_v = rogueDrops === null || rogueDrops === void 0 ? void 0 : rogueDrops.additionalRewardEntries) !== null && _v !== void 0 ? _v : []),
-                    ...((_w = mode15RewardsResult === null || mode15RewardsResult === void 0 ? void 0 : mode15RewardsResult.mode15_additional_reward_ids) !== null && _w !== void 0 ? _w : []),
-                ],
-                "drop_periodic_reward_ids": [],
-                "equipment_list": [
-                    ...scoreRewardsResult.equipment_list,
-                    ...((clearReward === null || clearReward === void 0 ? void 0 : clearReward.equipment_list) || []),
-                    ...((sPlusClearReward === null || sPlusClearReward === void 0 ? void 0 : sPlusClearReward.equipment_list) || []),
-                    ...((rushEventRewardsResult === null || rushEventRewardsResult === void 0 ? void 0 : rushEventRewardsResult.equipment_list) || []),
-                    ...((rogueDrops === null || rogueDrops === void 0 ? void 0 : rogueDrops.rewardResult.equipment_list) || []),
-                    ...((carnivalRewardsResult === null || carnivalRewardsResult === void 0 ? void 0 : carnivalRewardsResult.equipment_list) || []),
-                    ...((mode15RewardsResult === null || mode15RewardsResult === void 0 ? void 0 : mode15RewardsResult.equipment_list) || [])
-                ],
-                "category_id": body.category,
-                "start_time": dataHeaders['servertime'],
-                "is_multi": "single",
-                "quest_name": "",
-                "item_list": itemList,
-                "rush_event": rushEventData,
-                "raid_event": raidEventData,
-                "carnival_event": carnivalEventData,
-                "score_attack_event": scoreAttackEventData,
-                "user_daily_challenge_point_list": dailyChallengePointList !== null && dailyChallengePointList !== void 0 ? dailyChallengePointList : [],
-                "presigned_quest_category": []
-            };
-            if (raidEventData === null || raidEventData === void 0 ? void 0 : raidEventData.new_degree_ids.length) {
-                responseData.degree_list = raidEventData.new_degree_ids.map(degreeId => ({
-                    viewer_id: viewerId,
-                    degree_id: degreeId,
-                }));
-            }
-            if (abyssEnduranceDegrees.length) {
-                responseData.degree_list = [
-                    ...((_x = responseData.degree_list) !== null && _x !== void 0 ? _x : []),
-                    ...abyssEnduranceDegrees.map(degreeId => ({ viewer_id: viewerId, degree_id: degreeId })),
-                ];
-            }
-            (0, mission_2.mergeMissionSettlementResponse)(responseData, missionSettlement, viewerId);
-            // Awake settlement re-publishes completed special unlocks itself,
-            // including already-persisted rows whose earlier response was lost.
-            (0, mission_2.mergeMissionSettlementResponse)(responseData, awakeMissionSettlement, viewerId);
-            if (activeMissionSettlement.length > 0) {
-                responseData.active_mission_list = activeMissionSettlement;
-            }
-            responseData.mail_arrived = (0, mail_1.getPlayerMailCountSync)(playerId, true) > 0;
-            const response = { data_headers: dataHeaders, data: responseData };
-            if (fiveBossSoloQuest)
-                (0, solo_runtime_1.saveFiveBossSoloReceiptSync)(playerId, activeQuestData.playId, finishCacheKey, response);
-            return response;
-        })());
+        }));
         delete exports.activeQuests[playerId];
         (0, finish_response_cache_1.cacheFinishResponse)(finishCacheKey, finishResponse);
         reply.header("content-type", "application/x-msgpack");
@@ -708,9 +744,19 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         const abortQuest = resolvedAbortQuest === null || resolvedAbortQuest === void 0 ? void 0 : resolvedAbortQuest.quest;
         let practiceHistoryRecord = null;
         if ((abortQuest === null || abortQuest === void 0 ? void 0 : abortQuest.category) === types_1.QuestCategory.PRACTICE) {
-            if (body.category !== abortQuest.category
-                || body.quest_id !== abortQuest.questId
-                || body.play_id !== abortQuest.playId) {
+            const requestedPlayId = typeof body.play_id === "string" ? body.play_id.trim() : "";
+            const categoryMatches = body.category === undefined || body.category === abortQuest.category;
+            const questMatches = body.quest_id === undefined || body.quest_id === abortQuest.questId;
+            const playMatches = requestedPlayId.length === 0 || requestedPlayId === abortQuest.playId;
+            if (!categoryMatches
+                || !questMatches
+                || !playMatches) {
+                // Keep the diagnostic bounded to identifiers; never log
+                // statistics or session material. This distinguishes a real
+                // stale quest from the legacy empty-play-id abort shape.
+                console.warn(`[PRACTICE-ABORT] request does not match active quest: `
+                    + `player=${playerId} request=${body.category}/${body.quest_id}/${requestedPlayId || "(empty)"} `
+                    + `active=${abortQuest.category}/${abortQuest.questId}/${abortQuest.playId}`);
                 return reply.status(400).send({
                     "error": "Bad Request",
                     "message": "Active practice quest does not match abort request.",
@@ -757,7 +803,9 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         }
         // Keep the failure transition, history row, and active-quest deletion
         // atomic so a partial settlement cannot erase the recoverable battle.
-        (0, db_1.getDb)().transaction(() => {
+        yield (0, persistence_coordinator_1.runPersistenceTransaction)({
+            domain: "single-quest", playerId, operation: "abort",
+        }, () => {
             if (abortQuest && !abortQuest.isMulti && (0, contract_1.isFiveBossGauntletQuest)(abortQuest.category, abortQuest.questId)) {
                 (0, solo_runtime_1.abortFiveBossSoloSync)(playerId, abortQuest.playId);
             }
@@ -768,7 +816,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 (0, practice_battle_history_1.insertPlayerPracticeBattleHistorySync)(practiceHistoryRecord);
             }
             (0, quest_active_1.deletePlayerActiveQuestSync)(playerId);
-        })();
+        });
         delete exports.activeQuests[playerId];
         if (abortQuest && (0, mode15_optional_1.isMode15Quest)(abortQuest.category, abortQuest.questId)) {
             console.log(`[MODE15] single battle aborted; run reset: player=${playerId} category=${abortQuest.category} quest=${abortQuest.questId}`);
@@ -785,7 +833,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         });
     }));
     fastify.post("/start", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
-        var _c, _d, _e, _f;
+        var _c, _d;
         const body = request.body;
         const viewerId = body.viewer_id;
         const partyId = body.party_id;
@@ -818,7 +866,9 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             // though the selected Carnival party actually contained it.
             const partyCategory = category === types_1.QuestCategory.CARNIVAL_EVENT
                 ? types_2.PartyCategory.CARNIVAL
-                : types_2.PartyCategory.NORMAL;
+                : category === types_1.QuestCategory.RUSH_EVENT
+                    ? (0, rush_party_categories_1.partyCategoryForRushEvent)(Math.floor(Number(questId) / 1000))
+                    : types_2.PartyCategory.NORMAL;
             const restricted = (0, mode15_optional_1.getMode15ExclusiveGlobalPartyItemsSync)(playerId, partyCategory, partyId);
             if (restricted.length > 0) {
                 console.log(`[MODE15] exclusive equipment denied in single battle: player=${playerId} quest=${questId} questCategory=${category} partyCategory=${partyCategory} party=${partyId} items=${restricted.join(",")}`);
@@ -849,13 +899,17 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             const previousMemory = exports.activeQuests[playerId];
             let mission;
             try {
-                (0, solo_runtime_1.startFiveBossSoloSync)(playerId, body.play_id, () => {
+                yield (0, solo_runtime_1.startFiveBossSolo)(playerId, body.play_id, () => {
                     insertActiveQuest(playerId, {
                         questId, category, useBoostPoint: false, useBossBoostPoint: false,
                         isAutoStartMode, isMulti: false, entryItemId: contract_1.FIVE_BOSS_GAUNTLET.ticketItemId,
+                        partySlot: partyId,
                         playId: body.play_id, continueCount: 0,
                     });
-                    (0, player_1.updatePlayerSync)({ id: playerId, partySlot: partyId });
+                    if ((0, party_current_slot_1.usesNormalCurrentPartySlot)(category)
+                        && (0, party_1.isValidNormalPartySlotSync)(playerId, partyId)) {
+                        (0, player_1.updatePlayerSync)({ id: playerId, partySlot: partyId });
+                    }
                     (0, active_entry_facts_1.recordActiveMissionQuestChallengeFactSync)(playerId, category);
                     mission = (0, mission_2.settleMissionCategories)(playerId, [1, 2, 10], new Date((0, utils_1.getServerTime)() * 1000));
                     return true;
@@ -901,11 +955,9 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                     "message": `Not enough entry items (need ${entryCost.itemCount} of ${entryCost.itemId}, have ${playerItemCount}).`
                 });
             }
-            (0, item_1.updatePlayerItemSync)(playerId, entryCost.itemId, playerItemCount - entryCost.itemCount);
         }
         // Deduct stamina cost
         const staminaCost = 0;
-        let afterStamina = 0;
         if (staminaCost > 0) {
             const currentStamina = (0, stamina_1.computeRealTimeStamina)(player);
             if (currentStamina < staminaCost) {
@@ -915,24 +967,9 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                     "message": "Insufficient stamina."
                 });
             }
-            const newStamina = Math.max(0, currentStamina - staminaCost);
-            (0, player_1.updatePlayerSync)({
-                id: playerId,
-                stamina: newStamina,
-                staminaHealTime: new Date(),
-                totalStaminaUsed: ((_e = player.totalStaminaUsed) !== null && _e !== void 0 ? _e : 0) + staminaCost
-            });
-            afterStamina = newStamina;
-            (0, game_logging_1.gameVerboseLog)(() => `[BATTLE-START] stamina: ${currentStamina} -> ${newStamina} (cost: ${staminaCost}, rate: ${staminaInfo.rate})`);
         }
-        else {
-            // No stamina deduction, read current stamina for response
-            const player = (0, player_1.getPlayerSync)(playerId);
-            afterStamina = (_f = player === null || player === void 0 ? void 0 : player.stamina) !== null && _f !== void 0 ? _f : 0;
-        }
-        // add to active quests table
-        delete exports.activeQuests[playerId];
-        exports.activeQuests[playerId] = {
+        const previousMemory = exports.activeQuests[playerId];
+        const activeQuest = {
             questId: questId,
             category: category,
             useBoostPoint: useBoostPoint,
@@ -940,40 +977,84 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             isAutoStartMode: isAutoStartMode,
             isMulti: false,
             entryItemId: entryCost === null || entryCost === void 0 ? void 0 : entryCost.itemId,
+            partySlot: questData.fixedParty === undefined ? partyId : undefined,
             playId: body.play_id,
             continueCount: 0,
             startedAtMs: (0, utils_1.getServerTime)() * 1000,
         };
+        let afterStamina = 0;
         let missionSettlement;
-        (0, db_1.getDb)().transaction(() => {
-            var _a, _b, _c, _d, _e;
-            const playerUpdate = {
-                id: playerId,
-                totalStaminaUsed: ((_a = player.totalStaminaUsed) !== null && _a !== void 0 ? _a : 0) + nominalStaminaCost,
-            };
-            if (questData.fixedParty === undefined)
-                playerUpdate.partySlot = partyId;
-            (0, player_1.updatePlayerSync)(playerUpdate);
-            const activeQuest = exports.activeQuests[playerId];
-            (0, quest_active_1.insertPlayerActiveQuestSync)(playerId, {
-                playerId,
-                playId: activeQuest.playId,
-                questId: activeQuest.questId,
-                category: activeQuest.category,
-                useBossBoostPoint: activeQuest.useBossBoostPoint,
-                useBoostPoint: activeQuest.useBoostPoint,
-                isAutoStartMode: activeQuest.isAutoStartMode,
-                isMulti: activeQuest.isMulti,
-                isMultiHost: (_b = activeQuest.isMultiHost) !== null && _b !== void 0 ? _b : false,
-                roomNumber: (_c = activeQuest.roomNumber) !== null && _c !== void 0 ? _c : null,
-                entryItemId: null,
-                eventId: (_d = activeQuest.eventId) !== null && _d !== void 0 ? _d : null,
-                continueCount: activeQuest.continueCount,
-                startedAtMs: (_e = activeQuest.startedAtMs) !== null && _e !== void 0 ? _e : null,
+        try {
+            yield (0, persistence_coordinator_1.runPersistenceTransaction)({
+                domain: "single-quest", playerId, operation: "start",
+            }, () => {
+                var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
+                const currentPlayer = (_a = (0, player_1.getPlayerSync)(playerId)) !== null && _a !== void 0 ? _a : player;
+                if (entryCost && entryCost.itemId > 0) {
+                    const playerItemCount = (_b = (0, item_1.getPlayerItemSync)(playerId, entryCost.itemId)) !== null && _b !== void 0 ? _b : 0;
+                    if (playerItemCount < entryCost.itemCount) {
+                        throw new Error(`Not enough entry items (need ${entryCost.itemCount} of ${entryCost.itemId}, have ${playerItemCount}).`);
+                    }
+                    (0, item_1.updatePlayerItemSync)(playerId, entryCost.itemId, playerItemCount - entryCost.itemCount);
+                }
+                const playerUpdate = {
+                    id: playerId,
+                    totalStaminaUsed: ((_c = currentPlayer.totalStaminaUsed) !== null && _c !== void 0 ? _c : 0) + nominalStaminaCost,
+                };
+                if (staminaCost > 0) {
+                    const currentStamina = (0, stamina_1.computeRealTimeStamina)(currentPlayer);
+                    if (currentStamina < staminaCost) {
+                        throw new Error("Insufficient stamina.");
+                    }
+                    const newStamina = Math.max(0, currentStamina - staminaCost);
+                    playerUpdate.stamina = newStamina;
+                    playerUpdate.staminaHealTime = new Date();
+                    playerUpdate.totalStaminaUsed = ((_d = currentPlayer.totalStaminaUsed) !== null && _d !== void 0 ? _d : 0) + staminaCost;
+                    afterStamina = newStamina;
+                    (0, game_logging_1.gameVerboseLog)(() => `[BATTLE-START] stamina: ${currentStamina} -> ${newStamina} (cost: ${staminaCost}, rate: ${staminaInfo.rate})`);
+                }
+                else {
+                    afterStamina = (_e = currentPlayer.stamina) !== null && _e !== void 0 ? _e : 0;
+                }
+                if (questData.fixedParty === undefined
+                    && (0, party_current_slot_1.usesNormalCurrentPartySlot)(category)
+                    && (0, party_1.isValidNormalPartySlotSync)(playerId, partyId)) {
+                    playerUpdate.partySlot = partyId;
+                }
+                (0, player_1.updatePlayerSync)(playerUpdate);
+                exports.activeQuests[playerId] = activeQuest;
+                (0, quest_active_1.insertPlayerActiveQuestSync)(playerId, {
+                    playerId,
+                    playId: activeQuest.playId,
+                    questId: activeQuest.questId,
+                    category: activeQuest.category,
+                    useBossBoostPoint: activeQuest.useBossBoostPoint,
+                    useBoostPoint: activeQuest.useBoostPoint,
+                    isAutoStartMode: activeQuest.isAutoStartMode,
+                    isMulti: activeQuest.isMulti,
+                    isMultiHost: (_f = activeQuest.isMultiHost) !== null && _f !== void 0 ? _f : false,
+                    roomNumber: (_g = activeQuest.roomNumber) !== null && _g !== void 0 ? _g : null,
+                    entryItemId: null,
+                    eventId: (_h = activeQuest.eventId) !== null && _h !== void 0 ? _h : null,
+                    continueCount: activeQuest.continueCount,
+                    startedAtMs: (_j = activeQuest.startedAtMs) !== null && _j !== void 0 ? _j : null,
+                    partySlot: (_k = activeQuest.partySlot) !== null && _k !== void 0 ? _k : null,
+                });
+                (0, active_entry_facts_1.recordActiveMissionQuestChallengeFactSync)(playerId, category);
+                missionSettlement = (0, mission_2.settleMissionCategories)(playerId, [1, 2, 10], new Date((0, utils_1.getServerTime)() * 1000));
             });
-            (0, active_entry_facts_1.recordActiveMissionQuestChallengeFactSync)(playerId, category);
-            missionSettlement = (0, mission_2.settleMissionCategories)(playerId, [1, 2, 10], new Date((0, utils_1.getServerTime)() * 1000));
-        })();
+        }
+        catch (error) {
+            if (previousMemory)
+                exports.activeQuests[playerId] = previousMemory;
+            else
+                delete exports.activeQuests[playerId];
+            const message = error instanceof Error ? error.message : String(error);
+            if (message === "Insufficient stamina." || message.startsWith("Not enough entry items")) {
+                return reply.status(400).send({ error: "Bad Request", message });
+            }
+            throw error;
+        }
         const dataHeaders = (0, utils_1.generateDataHeaders)({
             viewer_id: viewerId
         });
@@ -1004,15 +1085,15 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         method: ["GET", "POST"],
         url: "/play_continue",
         handler: (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
-            var _g, _h;
+            var _e, _f;
             // Some legacy builds submit this endpoint as GET, while newer builds
             // use POST. Normalize both forms so a revive is not treated as an
             // unknown route by the client.
-            const raw = ((_g = (request.method === "GET" ? request.query : request.body)) !== null && _g !== void 0 ? _g : {});
+            const raw = ((_e = (request.method === "GET" ? request.query : request.body)) !== null && _e !== void 0 ? _e : {});
             const viewerId = Number(raw.viewer_id);
             const questId = Number(raw.quest_id);
             const category = Number(raw.category);
-            const playId = (_h = raw.play_id) !== null && _h !== void 0 ? _h : raw.paly_id;
+            const playId = (_f = raw.play_id) !== null && _f !== void 0 ? _f : raw.paly_id;
             if (!Number.isSafeInteger(viewerId)
                 || !Number.isSafeInteger(questId)
                 || !Number.isSafeInteger(category))
@@ -1027,7 +1108,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             const { playerId, playerData: player } = sessionResult;
             if ((0, continue_runtime_1.isFiveBossContinueRequest)(playerId, category, questId, playId)) {
                 try {
-                    const data = (0, continue_runtime_1.continueFiveBossSync)({ playerId, category, questId, playId,
+                    const data = yield (0, continue_runtime_1.continueFiveBoss)({ playerId, category, questId, playId,
                         isMulti: false, apiCount: raw.api_count, statistics: raw.statistics });
                     const recovered = (0, active_quest_resolver_1.resolveActiveQuest)({ playerId, hint: { category, quest_id: questId, play_id: playId },
                         memory: exports.activeQuests, allowRebuild: false });

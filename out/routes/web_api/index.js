@@ -18,6 +18,7 @@ const mail_1 = __importDefault(require("./mail"));
 const lookup_1 = __importDefault(require("./lookup"));
 const leaderboards_1 = __importDefault(require("./leaderboards"));
 const news_1 = __importDefault(require("./news"));
+const diagnostics_1 = __importDefault(require("./diagnostics"));
 const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
     fastify.register(require('@fastify/multipart'), {
         limits: {
@@ -36,5 +37,6 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
     fastify.register(lookup_1.default, { prefix: "/lookup" });
     fastify.register(leaderboards_1.default, { prefix: "/leaderboards" });
     fastify.register(news_1.default, { prefix: "/news" });
+    fastify.register(diagnostics_1.default, { prefix: "/server/diagnostics" });
 });
 exports.default = routes;

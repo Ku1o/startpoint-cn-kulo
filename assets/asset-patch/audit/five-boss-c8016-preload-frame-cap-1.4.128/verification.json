@@ -1,0 +1,156 @@
+{
+  "candidate": "F:\\codex\\work\\five-boss-c8016-fix-20261001\\candidate\\pinball-1.4.127-1.4.128-1-five-boss-c8016-preload-frame-cap-20261001.zip",
+  "zip_members": 4,
+  "deep_king_rows": [
+    {
+      "key": "mod_fb2_051_deep_king_w10",
+      "element": "6",
+      "slot39": "battle/action/enemy/action/mod/five_boss_v2/fb2_preload$deep_king_funnel_lich_wind_expert_0",
+      "funnels": [
+        "funnel_lich_wind_expert",
+        "funnel_lich_wind_expert2",
+        "funnel_lich_wind_strong_expert"
+      ]
+    },
+    {
+      "key": "mod_fb2_052_deep_king_w10",
+      "element": "6",
+      "slot39": "battle/action/enemy/action/mod/five_boss_v2/fb2_preload$deep_king_funnel_lich_wind_expert_0",
+      "funnels": [
+        "funnel_lich_wind_expert",
+        "funnel_lich_wind_expert2",
+        "funnel_lich_wind_strong_expert"
+      ]
+    },
+    {
+      "key": "mod_fb2_053_deep_king_w10",
+      "element": "6",
+      "slot39": "battle/action/enemy/action/mod/five_boss_v2/fb2_preload$deep_king_funnel_lich_wind_expert_0",
+      "funnels": [
+        "funnel_lich_wind_expert",
+        "funnel_lich_wind_expert2",
+        "funnel_lich_wind_strong_expert"
+      ]
+    },
+    {
+      "key": "mod_fb2_054_deep_king_w10",
+      "element": "6",
+      "slot39": "battle/action/enemy/action/mod/five_boss_v2/fb2_preload$deep_king_funnel_lich_wind_expert_0",
+      "funnels": [
+        "funnel_lich_wind_expert",
+        "funnel_lich_wind_expert2",
+        "funnel_lich_wind_strong_expert"
+      ]
+    },
+    {
+      "key": "mod_fb2_055_deep_king_w10",
+      "element": "6",
+      "slot39": "battle/action/enemy/action/mod/five_boss_v2/fb2_preload$deep_king_funnel_lich_wind_expert_0",
+      "funnels": [
+        "funnel_lich_wind_expert",
+        "funnel_lich_wind_expert2",
+        "funnel_lich_wind_strong_expert"
+      ]
+    },
+    {
+      "key": "mod_fb2_056_deep_king_w10",
+      "element": "6",
+      "slot39": "battle/action/enemy/action/mod/five_boss_v2/fb2_preload$deep_king_funnel_lich_wind_expert_0",
+      "funnels": [
+        "funnel_lich_wind_expert",
+        "funnel_lich_wind_expert2",
+        "funnel_lich_wind_strong_expert"
+      ]
+    },
+    {
+      "key": "mod_fb2_057_deep_king_w10",
+      "element": "6",
+      "slot39": "battle/action/enemy/action/mod/five_boss_v2/fb2_preload$deep_king_funnel_lich_wind_expert_0",
+      "funnels": [
+        "funnel_lich_wind_expert",
+        "funnel_lich_wind_expert2",
+        "funnel_lich_wind_strong_expert"
+      ]
+    }
+  ],
+  "funnel_codes": [
+    "funnel_lich_wind_expert",
+    "funnel_lich_wind_expert2",
+    "funnel_lich_wind_strong_expert"
+  ],
+  "recursive_effect_bases": [
+    "battle/effect/enemy_general/enemy_shot_burst_cannon",
+    "battle/effect/enemy_general/enemy_shot_burst_middle_cannon",
+    "battle/effect/enemy_general/enemy_shot_cannon",
+    "battle/effect/enemy_general/enemy_shot_wiry"
+  ],
+  "fixed_wind_effect_bases": [
+    "battle/effect/enemy_general/enemy_shot_burst_cannon",
+    "battle/effect/enemy_general/enemy_shot_burst_middle_cannon",
+    "battle/effect/enemy_general/enemy_shot_cannon",
+    "battle/effect/enemy_general/enemy_shot_wiry"
+  ],
+  "missing_effects": [],
+  "wind_asset_checks": [
+    {
+      "effect": "battle/effect/enemy_general/enemy_shot_burst_cannon",
+      "wind_animation": "battle/effect/enemy_general/enemy_shot_burst_cannon/enemy_shot_burst_cannon_green/enemy_shot_burst_cannon_green",
+      "timeline_present": true
+    },
+    {
+      "effect": "battle/effect/enemy_general/enemy_shot_burst_middle_cannon",
+      "wind_animation": "battle/effect/enemy_general/enemy_shot_burst_middle_cannon/enemy_shot_burst_middle_cannon_green/enemy_shot_burst_middle_cannon_green",
+      "timeline_present": true
+    },
+    {
+      "effect": "battle/effect/enemy_general/enemy_shot_cannon",
+      "wind_animation": "battle/effect/enemy_general/enemy_shot_cannon/enemy_shot_cannon_green/enemy_shot_cannon_green",
+      "timeline_present": false
+    },
+    {
+      "effect": "battle/effect/enemy_general/enemy_shot_wiry",
+      "wind_animation": "battle/effect/enemy_general/enemy_shot_wiry/enemy_shot_wiry_green/enemy_shot_wiry_green",
+      "timeline_present": true
+    }
+  ],
+  "state_max_frames": 600,
+  "official_marker_max_frames": 2038,
+  "custom_repeat_audit": [
+    {
+      "program": "battle/action/enemy/action/mod/five_boss_v2/fb2_affix$sig_king_seal",
+      "changes": [
+        {
+          "path": [
+            11,
+            1,
+            0,
+            1
+          ],
+          "key": "mod_fb2_sig_king_seal",
+          "before": 1500,
+          "after": 1000
+        }
+      ],
+      "max_after": 1000
+    },
+    {
+      "program": "battle/action/enemy/action/mod/five_boss_v2/fb2_affix$sig_king_purge",
+      "changes": [
+        {
+          "path": [
+            11,
+            1,
+            1,
+            1
+          ],
+          "key": "mod_fb2_sig_king_purge",
+          "before": 1800,
+          "after": 1000
+        }
+      ],
+      "max_after": 1000
+    }
+  ],
+  "manifest_or_active_modified": false,
+  "runtime_synced": false
+}

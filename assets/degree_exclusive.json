@@ -19,5 +19,12 @@
     "kana": "degree_mod_deathbringer_master",
     "condition": "获得条件：将死亡使者·终式强化至120级。",
     "category_id": 8
+  },
+  "9911301": {
+    "string_id": "degree_mod_abyss_spheal_clear",
+    "name": "滚到深渊尽头",
+    "kana": "abyss_spheal_clear",
+    "condition": "获得条件：完整通关深渊主塔，最终通关队伍携带海豹球（主位或辅助位均可）。",
+    "category_id": 8
   }
 }

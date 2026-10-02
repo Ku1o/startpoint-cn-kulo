@@ -1,0 +1,16 @@
+{
+  "status": "local_download_verified",
+  "baseline": "1.4.117",
+  "version": "1.4.118",
+  "download": {
+    "location": "http://<LAN_HOST>:8001/patch/cn/asset-patch/active/pinball-1.4.117-1.4.118-1-inaho-redesign-fluffy-gauge.zip",
+    "size": 830256,
+    "sha256": ""
+  },
+  "actual_sha256": "8f619c3d82ce0bd89d6bff0e01895893bd1da2ae8834d2b1d02e789303410f9e",
+  "bytes": 830256,
+  "members": 8,
+  "already_current_no_update": true,
+  "device_tested": false,
+  "service_restarted": false
+}

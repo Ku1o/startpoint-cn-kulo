@@ -4,6 +4,7 @@ import { generateDataHeaders } from "../../utils";
 
 import path from "path";
 import { getZipArchiveMetadata, invalidateZipCache } from "../../lib/zip-summary-cache";
+import { getPatchManifest } from "../../lib/version";
 
 const CN_PORT = process.env.CN_LISTEN_PORT || "8001";
 
@@ -157,6 +158,37 @@ function compareVersion(a: string, b: string): number {
     return 0;
 }
 
+/**
+ * Return the archive names explicitly published by enabled manifest entries.
+ *
+ * The active directory also contains held local-test and superseded archives.
+ * Scanning that directory as the source of truth can make a clean client
+ * download multiple archives for the same version edge; whichever archive is
+ * applied last then wins for overlapping resources.  The manifest is the
+ * release boundary, while the directory is only the storage location.
+ */
+function getEnabledPatchArchiveNames(): Set<string> {
+    const names = new Set<string>();
+    const manifest = getPatchManifest() as {
+        patches?: Array<{
+            type?: string;
+            enabled?: boolean;
+            archive?: unknown;
+            chain?: unknown;
+        }>;
+    };
+    for (const patch of manifest.patches ?? []) {
+        if (patch.type !== "patch" || patch.enabled !== true) continue;
+        const archives = Array.isArray(patch.chain)
+            ? patch.chain
+            : [patch.archive];
+        for (const archive of archives) {
+            if (typeof archive === "string" && archive.length > 0) names.add(archive);
+        }
+    }
+    return names;
+}
+
 function buildDiffList(
     baseUrl: string,
     cdnDir: string,
@@ -187,9 +219,11 @@ function buildDiffList(
     
     // Asset patch archives (active patches only)
     const patchDir = path.join(__dirname, "..", "..", "..", "assets", "asset-patch", "active");
+    const publishedArchives = getEnabledPatchArchiveNames();
     try {
         for (const archive of getAssetArchiveMetadata(patchDir)) {
             const f = archive.filename;
+            if (!publishedArchives.has(f)) continue;
             const match = f.match(/pinball-(\d+\.\d+\.\d+)-(\d+\.\d+\.\d+)-\d+-/);
             if (match) {
                 const from = match[1];
@@ -256,7 +290,7 @@ const routes = async (fastify: FastifyInstance) => {
         const resVer = request.headers['res_ver'] as string | undefined;
         const device = headerValue(request, "device");
         reply.type("application/json");
-        reply.status(200).send({
+        return reply.status(200).send({
             data_headers: generateDataHeaders(),
             data: getVersionInfo(baseUrl, getAssetDownloadSize(resVer, device), device)
         });
@@ -298,7 +332,7 @@ const routes = async (fastify: FastifyInstance) => {
             && fullArchives.length === 0 && diffArchives.length === 0;
 
         reply.type("application/json");
-        reply.status(200).send({
+        return reply.status(200).send({
             data_headers: generateDataHeaders({ asset_update: !noUpdate }),
             data: {
                 info: {

@@ -20,6 +20,8 @@ interface RouteTiming extends Timing {
 }
 interface RequestState {
     start: number
+    socketBytesAtStart: number
+    contentLength: number | null
     parsed?: number
     prepared?: number
     sending?: number
@@ -117,6 +119,8 @@ export function installRequestDiagnostics(app: FastifyInstance, options: { slowM
         states.delete(request) // close/abort/timeout/response must count once.
         const end = performance.now()
         const ms = end - state.start
+        const socketBytesAtEnd = request.raw.socket?.bytesRead ?? state.socketBytesAtStart
+        const wireBytes = Math.max(0, socketBytesAtEnd - state.socketBytesAtStart)
         const method = ["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"].includes(request.method)
             ? request.method : "OTHER"
         let route = `${method} ${request.routeOptions?.url ?? "<unmatched>"}`
@@ -132,6 +136,9 @@ export function installRequestDiagnostics(app: FastifyInstance, options: { slowM
         if (kind === "timeout") { row.timeouts++; timeouts++ }
         if (state.outcome) { increment(row.outcomes, state.outcome); increment(outcomes, state.outcome) }
         const stages: Record<string, number> = {}
+        // preValidation runs after Fastify has received and parsed the body.
+        // Keep this separate from application so a slow public upload cannot
+        // be mistaken for a slow settlement transaction.
         if (state.parsed !== undefined) stages.receiveParse = state.parsed - state.start
         if (state.parsed !== undefined && (state.prepared ?? state.sending) !== undefined) {
             stages.application = (state.prepared ?? state.sending)! - state.parsed
@@ -148,13 +155,26 @@ export function installRequestDiagnostics(app: FastifyInstance, options: { slowM
                 requestId: String(request.id).replace(/[^A-Za-z0-9_.:-]/g, "_").slice(0, 64),
                 status: statusKey, ms: +ms.toFixed(1), outcome: state.outcome,
                 stages: Object.fromEntries(Object.entries(stages).map(([key, value]) => [key, +value.toFixed(1)])),
+                contentLength: state.contentLength,
+                wireBytes,
                 responseBytes: state.responseBytes })
             else omittedSlowSamples++
         }
     }
 
     app.addHook("onRequest", (request, reply, done) => {
-        states.set(request, { start: performance.now(), encodingMs: 0, responseBytes: 0 })
+        const contentLengthHeader = request.headers["content-length"]
+        const parsedContentLength = typeof contentLengthHeader === "string"
+            ? Number.parseInt(contentLengthHeader, 10)
+            : NaN
+        states.set(request, {
+            start: performance.now(),
+            socketBytesAtStart: request.raw.socket?.bytesRead ?? 0,
+            contentLength: Number.isFinite(parsedContentLength) && parsedContentLength >= 0
+                ? parsedContentLength : null,
+            encodingMs: 0,
+            responseBytes: 0,
+        })
         const onClose = () => {
             if (!reply.raw.writableFinished) finish(request, reply.statusCode, "aborted")
         }

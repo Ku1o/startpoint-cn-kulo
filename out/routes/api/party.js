@@ -13,6 +13,7 @@ const player_1 = require("../../data/domains/player");
 const session_1 = require("../../data/domains/session");
 const character_1 = require("../../data/domains/character");
 const equipment_1 = require("../../data/domains/equipment");
+const item_1 = require("../../data/domains/item");
 const party_1 = require("../../data/domains/party");
 const db_1 = require("../../data/db");
 const active_mission_counters_1 = require("../../data/domains/active_mission_counters");
@@ -25,6 +26,10 @@ const profileFavorite_1 = require("../../lib/profileFavorite");
 const counters_1 = require("../../lib/mission/counters");
 const degree_response_1 = require("../../lib/mission/degree-response");
 const ability_soul_facts_1 = require("../../lib/mission/ability-soul-facts");
+const persistence_coordinator_1 = require("../../lib/persistence-coordinator");
+const party_snapshot_1 = require("../../multi/party-snapshot");
+const wiki_team_code_client_1 = require("../../lib/wiki-team-code-client");
+const wiki_team_code_inventory_1 = require("../../lib/wiki-team-code-inventory");
 function hasEditablePartyCategory(value) {
     if (value !== null
         && typeof value === "object"
@@ -146,7 +151,8 @@ function sanitizeBattleParty(value) {
     const unisonCharacters = sanitizeCharacterArray(value.unison_characters);
     const equipments = sanitizeEquipmentArray(value.equipments);
     const abilitySoulIds = sanitizeAbilitySoulArray(value.ability_soul_ids);
-    if (!characters || !unisonCharacters || !equipments || !abilitySoulIds)
+    if (!characters || characters[0] === null
+        || !unisonCharacters || !equipments || !abilitySoulIds)
         return null;
     return {
         characters,
@@ -174,6 +180,26 @@ function sendPartyResponse(reply, viewerId, data, resultCode = 1) {
         data,
     });
 }
+function isCharacterIdTriplet(value) {
+    return Array.isArray(value)
+        && value.length === 3
+        && value.every(id => id === null
+            || (typeof id === "number" && Number.isSafeInteger(id) && id > 0));
+}
+const wikiTeamCodeLookup = (0, wiki_team_code_client_1.createTeamCodeClient)();
+const wikiTeamCodeLimiter = new wiki_team_code_client_1.TeamCodeLimiter();
+let wikiTeamCodeAssets;
+function getWikiTeamCodeAssets() {
+    return wikiTeamCodeAssets || (wikiTeamCodeAssets = (0, wiki_team_code_inventory_1.loadTeamCodeAssets)());
+}
+function getPlayerTeamInventory(playerId) {
+    return {
+        characters: (0, character_1.getPlayerCharactersSync)(playerId),
+        equipment: (0, equipment_1.getPlayerEquipmentListSync)(playerId),
+        items: (0, item_1.getPlayerItemsSync)(playerId),
+        nodes: characterId => (0, character_1.getPlayerCharacterManaNodesSync)(playerId, characterId),
+    };
+}
 const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
     fastify.post("/publish", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
         const body = request.body;
@@ -197,22 +223,55 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         if (!context)
             return reply.status(400).send({ error: "Bad Request", message: "Invalid viewer id." });
         const partyCode = typeof body.party_code === "string" ? body.party_code.trim().toUpperCase() : "";
-        if (!/^[2-9A-HJ-NP-Z]{10}$/.test(partyCode)) {
+        if (/^[2-9A-HJ-NP-Z]{10}$/.test(partyCode)) {
+            const publishedParty = (0, publishedParty_1.getPublishedPartySync)(partyCode);
+            if (!publishedParty)
+                return sendPartyResponse(reply, context.viewerId, {}, 3404);
+            if (publishedParty.schemaVersion !== 1)
+                return sendPartyResponse(reply, context.viewerId, {}, 3403);
+            const battleParty = sanitizeBattleParty(publishedParty.battleParty);
+            if (!battleParty)
+                return sendPartyResponse(reply, context.viewerId, {}, 3403);
+            console.log(`[PARTY CODE] refer player=${context.playerId} code=${partyCode}`);
+            return sendPartyResponse(reply, context.viewerId, {
+                party_name: publishedParty.partyName,
+                battle_party: battleParty,
+            });
+        }
+        // Wiki-managed administrator codes use the same native response as a
+        // local code, but are projected onto the requesting player's inventory.
+        if (!wiki_team_code_client_1.GAME_CODE_PATTERN.test(partyCode)) {
             return sendPartyResponse(reply, context.viewerId, {}, 3404);
         }
-        const publishedParty = (0, publishedParty_1.getPublishedPartySync)(partyCode);
-        if (!publishedParty)
+        if (!wikiTeamCodeLimiter.take(`ip:${request.ip}`, 60)
+            || !wikiTeamCodeLimiter.take(`viewer:${context.viewerId}`, 12)
+            || !wikiTeamCodeLimiter.take(`player:${context.playerId}`, 12)) {
+            reply.header("Retry-After", "60");
             return sendPartyResponse(reply, context.viewerId, {}, 3404);
-        if (publishedParty.schemaVersion !== 1)
-            return sendPartyResponse(reply, context.viewerId, {}, 3403);
-        const battleParty = sanitizeBattleParty(publishedParty.battleParty);
-        if (!battleParty)
-            return sendPartyResponse(reply, context.viewerId, {}, 3403);
-        console.log(`[PARTY CODE] refer player=${context.playerId} code=${partyCode}`);
-        return sendPartyResponse(reply, context.viewerId, {
-            party_name: publishedParty.partyName,
-            battle_party: battleParty,
-        });
+        }
+        try {
+            const entry = yield wikiTeamCodeLookup(partyCode);
+            const assets = getWikiTeamCodeAssets();
+            const battleParty = (0, wiki_team_code_inventory_1.nativeBattleParty)((0, wiki_team_code_inventory_1.resolvePublicTeam)(entry.team, assets), getPlayerTeamInventory(context.playerId), assets);
+            // A public code may reference a leader that this player does not
+            // own. Inventory projection turns that slot into null, but the
+            // game cannot save or battle a party without a leader. Reject the
+            // code at the import boundary instead of returning a successful
+            // response that later fails as C2330 during /party/edit.
+            if (battleParty.characters[0] === null) {
+                return sendPartyResponse(reply, context.viewerId, {}, 3403);
+            }
+            return sendPartyResponse(reply, context.viewerId, {
+                party_name: entry.title,
+                battle_party: battleParty,
+            });
+        }
+        catch (error) {
+            const resultCode = error instanceof wiki_team_code_client_1.TeamCodeError && error.kind === "not-found"
+                ? 3404
+                : 3403;
+            return sendPartyResponse(reply, context.viewerId, {}, resultCode);
+        }
     }));
     fastify.post("/edit", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
         const body = request.body;
@@ -229,6 +288,12 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 "error": "Bad Request",
                 "message": "Invalid party category or party ID."
             });
+        }
+        // Check the wire shape before inventory mapping or SQL bindings. Empty
+        // favorites remain legal; battle parties require exactly three slots.
+        if (body.party_info_list.some(info => info.party_category !== profileFavorite_1.PROFILE_FAVORITE_PARTY_CATEGORY
+            && !isCharacterIdTriplet(info.character_ids))) {
+            return sendPartyResponse(reply, viewerId, {}, 2330);
         }
         const viewerIdSession = yield (0, session_1.getSession)(viewerId.toString());
         if (!viewerIdSession)
@@ -288,24 +353,29 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 },
             };
         });
-        (0, db_1.getDb)().transaction(() => {
+        // A battle party cannot have an empty leader. Profile favorites are
+        // presentation-only and retain their existing empty-slot semantics.
+        if (mappedParties.some(({ party }) => party.category !== profileFavorite_1.PROFILE_FAVORITE_PARTY_CATEGORY
+            && party.characterIds[0] === null)) {
+            return sendPartyResponse(reply, viewerId, {}, 2330);
+        }
+        const saved = yield (0, persistence_coordinator_1.runPersistenceTransaction)({
+            domain: "player", playerId, operation: "edit_party",
+        }, () => {
             const battleParties = mappedParties.filter(({ party }) => party.category !== profileFavorite_1.PROFILE_FAVORITE_PARTY_CATEGORY);
+            const hasOwnedLeader = (id) => typeof id === "number"
+                && Number.isSafeInteger(id)
+                && id > 0
+                && (0, character_1.playerOwnsCharacterSync)(playerId, id);
+            if (battleParties.some(({ party }) => !hasOwnedLeader(party.characterIds[0]))) {
+                return false;
+            }
             let abilitySoulEquipCount = 0;
             const getPreviousSouls = (0, db_1.getDb)().prepare(`
                 SELECT ability_soul_1, ability_soul_2, ability_soul_3
                 FROM players_parties
                 WHERE player_id = ? AND group_id = ? AND slot = ? AND category = ?
             `);
-            // store full global PartyId so /load returns the correct group+slot combo
-            // Editing profile favorites is independent from the battle SET selected
-            // by the player. Empty edits are still used by the client to switch SETs.
-            if ((mappedParties.length === 0 || battleParties.length > 0)
-                && player.partySlot !== body.main_party_id) {
-                (0, player_1.updatePlayerSync)({
-                    id: playerId,
-                    partySlot: body.main_party_id,
-                });
-            }
             for (const { parsed, party } of mappedParties) {
                 if (party.category !== profileFavorite_1.PROFILE_FAVORITE_PARTY_CATEGORY) {
                     const previous = getPreviousSouls.get(playerId, parsed.groupId, parsed.slot, party.category);
@@ -315,6 +385,16 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                     abilitySoulEquipCount += (0, ability_soul_facts_1.countNewAbilitySoulEquipments)(previousIds, party.abilitySoulIds);
                 }
                 (0, party_1.updatePlayerPartySync)(playerId, parsed.slot, party, parsed.groupId);
+            }
+            // Resolve after the protected writes, so the last edit in this
+            // request is visible when repairing and selecting the same SET.
+            // Favorites remain independent; an empty batch still switches SET.
+            if (mappedParties.length === 0 || battleParties.length > 0) {
+                const normalPartySlot = (0, party_1.findValidNormalPartySlotSync)(playerId, body.main_party_id);
+                const currentPlayer = (0, player_1.getPlayerSync)(playerId);
+                if (normalPartySlot !== null && (currentPlayer === null || currentPlayer === void 0 ? void 0 : currentPlayer.partySlot) !== normalPartySlot) {
+                    (0, player_1.updatePlayerSync)({ id: playerId, partySlot: normalPartySlot });
+                }
             }
             if (abilitySoulEquipCount > 0) {
                 (0, counters_1.addMissionCounterSync)(playerId, {
@@ -331,7 +411,14 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                     partyCharacterSetCount: battleParties.some(({ party }) => party.characterIds.some(id => id !== null)) ? 1 : 0,
                 });
             }
-        })();
+            return true;
+        });
+        if (!saved)
+            return sendPartyResponse(reply, viewerId, {}, 2330);
+        // A party edit can happen while the player is still on the lobby
+        // screen. Drop the pre-handshake snapshot so a later reconnect reads
+        // the newly persisted party instead of waiting for its TTL.
+        (0, party_snapshot_1.invalidateRealPartySnapshot)(playerId);
         const responseData = { mail_arrived: false };
         (0, degree_response_1.settleDegreeMissionResponse)(playerId, viewerId, responseData, undefined, [35]);
         reply.header("content-type", "application/x-msgpack");

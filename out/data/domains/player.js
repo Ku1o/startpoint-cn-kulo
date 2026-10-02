@@ -3,9 +3,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.dailyResetPlayerSync = exports.dailyResetPlayerDataSync = exports.collectPlayerPooledExpSync = exports.collectPlayerDataPooledExpSync = exports.deletePlayerSync = exports.replacePlayerDataSync = exports.adjustPlayerExpPoolSync = exports.updatePlayerSync = exports.insertDefaultPlayerSync = exports.getDefaultPlayerPartyGroupsSync = exports.insertMergedPlayerDataSync = exports.insertPlayerSync = exports.getAllPlayersSync = exports.getPlayerSync = exports.getAccountFromPlayerIdSync = exports.getPlayerFromAccountIdSync = exports.serializePlayerRushEventPlayedParty = exports.deserializePlayerRushEventPlayedParty = exports.updatePlayerDailyChallengePointSync = exports.insertPlayerDailyChallengePointListSync = exports.getPlayerDailyChallengePointListSync = void 0;
+exports.dailyResetPlayerSync = exports.dailyResetPlayerDataSync = exports.collectPlayerPooledExpSync = exports.collectPlayerDataPooledExpSync = exports.deletePlayerSync = exports.replacePlayerDataSync = exports.adjustPlayerExpPoolSync = exports.updatePlayerPartySlotAsync = exports.updatePlayerSync = exports.insertDefaultPlayerSync = exports.getDefaultPlayerPartyGroupsSync = exports.insertMergedPlayerDataSync = exports.insertPlayerSync = exports.getAllPlayersSync = exports.getPlayerSync = exports.getAccountFromPlayerIdSync = exports.getPlayerFromAccountIdSync = exports.serializePlayerRushEventPlayedParty = exports.deserializePlayerRushEventPlayedParty = exports.updatePlayerDailyChallengePointSync = exports.insertPlayerDailyChallengePointListSync = exports.getPlayerDailyChallengePointListSync = void 0;
 const cached_statement_1 = require("../../lib/cached-statement");
-const db_1 = require("../db");
 const degree_1 = require("./degree");
 const types_1 = require("../types");
 const utils_1 = require("../../utils");
@@ -18,6 +17,7 @@ const master_data_1 = require("../../lib/mission/master-data");
 const pass_card_1 = require("./pass-card");
 const daily_challenge_point_lookup_json_1 = __importDefault(require("../../../assets/daily_challenge_point_lookup.json"));
 const game_logging_1 = require("../../lib/game-logging");
+const persistence_coordinator_1 = require("../../lib/persistence-coordinator");
 function getDailyChallengePointDefaults() {
     const lookup = daily_challenge_point_lookup_json_1.default;
     const entries = [];
@@ -134,11 +134,11 @@ function insertPlayerDailyChallengePointListEntrySync(playerId, entry) {
  * @param entries The entries to insert.
  */
 function insertPlayerDailyChallengePointListSync(playerId, entries) {
-    (0, db_1.getDb)().transaction(() => {
+    (0, persistence_coordinator_1.runPersistenceTransactionSync)({ domain: "player", playerId, operation: "insert_daily_challenge_points" }, () => {
         for (const entry of entries) {
             insertPlayerDailyChallengePointListEntrySync(playerId, entry);
         }
-    })();
+    });
 }
 exports.insertPlayerDailyChallengePointListSync = insertPlayerDailyChallengePointListSync;
 /**
@@ -511,8 +511,7 @@ exports.getDefaultPlayerPartyGroupsSync = getDefaultPlayerPartyGroupsSync;
  */
 function insertDefaultPlayerSync(accountId) {
     const player = (0, utils_2.getDefaultPlayerData)();
-    const db = (0, db_1.getDb)();
-    const insertAll = db.transaction(() => {
+    const insertAll = () => (0, persistence_coordinator_1.runPersistenceTransactionSync)({ domain: "account", operation: "insert_default_player" }, () => {
         var _a;
         const playerId = insertPlayerSync(accountId, player);
         // daily challenge point list — initialize all 282 CDN entries
@@ -1050,6 +1049,20 @@ function updatePlayerSync(player) {
 }
 exports.updatePlayerSync = updatePlayerSync;
 /**
+ * Low-priority party selection update used by the realtime lobby. It is
+ * deliberately a serializable command so an optional SQLite persistence
+ * worker can execute it without importing the whole player domain.
+ */
+function updatePlayerPartySlotAsync(playerId, partySlot) {
+    const sql = "UPDATE players SET party_slot = ? WHERE id = ?";
+    return (0, persistence_coordinator_1.runPersistenceSqlCommand)({
+        domain: "player", playerId, operation: "multi_change_party",
+    }, [{ sql, params: [partySlot, playerId] }], () => {
+        (0, db_1.getDb)().prepare(sql).run(partySlot, playerId);
+    });
+}
+exports.updatePlayerPartySlotAsync = updatePlayerPartySlotAsync;
+/**
  * Atomically changes a player's pooled experience.
  *
  * Returns the new balance, or null when the player does not exist or the
@@ -1114,6 +1127,19 @@ const LEGACY_REPLACE_PRESERVED_RELATIONS = [
     },
     {
         table: "five_boss_solo_runs",
+        where: "player_id = ?",
+        parameters: (playerId) => [playerId],
+    },
+    // These are server-owned retry ledgers. V1 replacement deletes the player
+    // row and would otherwise cascade them, allowing a replayed payment or
+    // mail/gacha request to apply twice after import.
+    {
+        table: "player_payment_receipts",
+        where: "player_id = ?",
+        parameters: (playerId) => [playerId],
+    },
+    {
+        table: "player_operation_receipts",
         where: "player_id = ?",
         parameters: (playerId) => [playerId],
     },
@@ -1185,7 +1211,7 @@ function replacePlayerDataSync(replaceWith) {
         }
         replaceWith.characterManaNodeAwakeLevels = restoredLevels;
     }
-    const replace = (0, db_1.getDb)().transaction(() => {
+    const replace = () => (0, persistence_coordinator_1.runPersistenceTransactionSync)({ domain: "player", playerId, operation: "replace_player_data" }, () => {
         const preservedRelations = LEGACY_REPLACE_PRESERVED_RELATIONS.map(specification => ({
             table: specification.table,
             rows: (0, db_1.getDb)().prepare(`
@@ -1303,7 +1329,7 @@ function dailyResetPlayerDataSync(player, loginDate = new Date()) {
     const crossedDay = (0, time_utils_1.isNewDay)(loginDate, lastLoginTime);
     const crossedWeek = (0, time_utils_1.isNewWeek)(loginDate, lastLoginTime);
     if (crossedDay) {
-        return (0, db_1.getDb)().transaction(() => {
+        return (0, persistence_coordinator_1.runPersistenceTransactionSync)({ domain: "player", playerId, operation: "daily_reset_player" }, () => {
             var _a, _b, _c, _d;
             updatePlayerSync({
                 id: playerId,
@@ -1383,7 +1409,7 @@ function dailyResetPlayerDataSync(player, loginDate = new Date()) {
                 (0, mission_1.deletePlayerCategoryMissionsSync)(playerId, 10);
             }
             return true;
-        })();
+        });
     }
     else {
         updatePlayerSync({
@@ -1407,3 +1433,4 @@ function dailyResetPlayerSync(playerId) {
     return dailyResetPlayerDataSync(playerData);
 }
 exports.dailyResetPlayerSync = dailyResetPlayerSync;
+const db_1 = require("../db");

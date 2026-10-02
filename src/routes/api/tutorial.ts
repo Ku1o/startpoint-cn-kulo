@@ -13,6 +13,7 @@ import { GachaCharacterDraw } from "../../lib/types";
 import { reconcileAwakeUnlockCharacterList } from "../../lib/mission";
 import { isStartTutorialActive } from "../../lib/start-tutorial-state";
 import { countFinishedPlayerQuestsByCategorySync } from "../../data/domains/quest";
+import { runPersistenceTransaction } from "../../lib/persistence-coordinator";
 
 interface UpdateStepBody {
     viewer_id: number
@@ -59,15 +60,19 @@ const routes = async (fastify: FastifyInstance) => {
         })
 
         // Mark tutorial as having been completed (skip already triggered)
-        const existing = getPlayerTriggeredTutorialsSync(playerId)
-        for (const tutorialId of tutorialIds) {
-            if (!existing.find((v: number) => v === tutorialId)) {
-                insertPlayerTriggeredTutorialSync(playerId, tutorialId)
+        await runPersistenceTransaction({
+            domain: "player", playerId, operation: "tutorial_finish_trigger",
+        }, () => {
+            const existing = getPlayerTriggeredTutorialsSync(playerId)
+            for (const tutorialId of tutorialIds) {
+                if (!existing.find((v: number) => v === tutorialId)) {
+                    insertPlayerTriggeredTutorialSync(playerId, tutorialId)
+                }
             }
-        }
+        })
 
         reply.header("content-type", "application/x-msgpack")
-        reply.status(200).send({
+        return reply.status(200).send({
             "data_headers": generateDataHeaders({
                 viewer_id: viewerId
             }),
@@ -122,11 +127,15 @@ const routes = async (fastify: FastifyInstance) => {
             "message": "Attempt to redo previous tutorial step."
         })
 
-        updatePlayerSync({
-            id: playerId,
-            tutorialStep: nextStep,
-            tutorialSkipFlag: skip,
-            name: body.name
+        await runPersistenceTransaction({
+            domain: "player", playerId, operation: "tutorial_step",
+        }, () => {
+            updatePlayerSync({
+                id: playerId,
+                tutorialStep: nextStep,
+                tutorialSkipFlag: skip,
+                name: body.name
+            })
         })
         
         // offset nextStep by 11 if skipped, to keep steps the same.
@@ -151,14 +160,18 @@ const routes = async (fastify: FastifyInstance) => {
             const drawResult = [randomCharacterId]
 
             // reward pull
-            const rewardResult = rewardPlayerGachaDrawResultSync(playerId, gachaData, drawResult)
-            insertReceiveHistorySync(playerId, { type: MailType.CHARACTER, type_id: randomCharacterId, number: 1 })
-
             const newFreeVmoney = player.freeVmoney - gachaData.singleCost
-            updatePlayerSync({
-                id: playerId,
-                freeVmoney: newFreeVmoney,
-                tutorialGachaCharacterId: randomCharacterId
+            const rewardResult = await runPersistenceTransaction({
+                domain: "gacha", playerId, operation: "tutorial_gacha",
+            }, () => {
+                const result = rewardPlayerGachaDrawResultSync(playerId, gachaData, drawResult)
+                insertReceiveHistorySync(playerId, { type: MailType.CHARACTER, type_id: randomCharacterId, number: 1 })
+                updatePlayerSync({
+                    id: playerId,
+                    freeVmoney: newFreeVmoney,
+                    tutorialGachaCharacterId: randomCharacterId
+                })
+                return result
             })
 
             const draw = rewardResult.draw[0] as GachaCharacterDraw
@@ -202,40 +215,45 @@ const routes = async (fastify: FastifyInstance) => {
         } else if (nextStep === 16) {
             // give 1500 vmoney
             const newVMoney = player.freeVmoney + 1500
-            updatePlayerSync({
-                id: playerId,
-                freeVmoney: newVMoney
-            })
-            insertReceiveHistorySync(playerId, { type: MailType.FREE_VMONEY, type_id: null, number: 1500 })
+            const giveResult = await runPersistenceTransaction({
+                domain: "mail", playerId, operation: "tutorial_complete_reward",
+            }, () => {
+                updatePlayerSync({
+                    id: playerId,
+                    freeVmoney: newVMoney
+                })
+                insertReceiveHistorySync(playerId, { type: MailType.FREE_VMONEY, type_id: null, number: 1500 })
 
-            // give free character directly (required for tutorial popup)
-            const giveResult = givePlayerCharacterSync(playerId, freeTutorialCharacterId)
+                // give free character directly (required for tutorial popup)
+                const result = givePlayerCharacterSync(playerId, freeTutorialCharacterId)
+                insertReceiveHistorySync(playerId, { type: MailType.CHARACTER, type_id: freeTutorialCharacterId, number: 1 })
+
+                // also send a mail with tutorial gift (gacha ticket, etc.)
+                insertMailSync(playerId, {
+                    reason_id: 0,
+                    subject: null,
+                    description: null,
+                    type: MailType.FREE_VMONEY,
+                    type_id: null,
+                    number: 500,
+                    receive_time: '0000-00-00 00:00:00',
+                    create_time: new Date().toISOString().replace('T', ' ').substring(0, 19),
+                    reward_period_limited: 0,
+                    reward_limit_time: null,
+                })
+                return result
+            })
             const existingCharacterList: Record<string, unknown>[] = giveResult?.character
                 ? [giveResult.character as Record<string, unknown>]
                 : []
             const itemList = giveResult?.item
                 ? { [giveResult.item.id]: giveResult.item.inventoryCount }
                 : {}
-            insertReceiveHistorySync(playerId, { type: MailType.CHARACTER, type_id: freeTutorialCharacterId, number: 1 })
-
-            // also send a mail with tutorial gift (gacha ticket, etc.)
-            insertMailSync(playerId, {
-                reason_id: 0,
-                subject: null,
-                description: null,
-                type: MailType.FREE_VMONEY,
-                type_id: null,
-                number: 500,
-                receive_time: '0000-00-00 00:00:00',
-                create_time: new Date().toISOString().replace('T', ' ').substring(0, 19),
-                reward_period_limited: 0,
-                reward_limit_time: null,
-            })
             const characterList = existingCharacterList.length > 0
                 ? reconcileAwakeUnlockCharacterList(playerId, existingCharacterList)
                 : existingCharacterList
 
-            reply.status(200).send({
+            return reply.status(200).send({
                 "data_headers": headers,
                 "data": {
                     "step": nextStep,
@@ -255,7 +273,7 @@ const routes = async (fastify: FastifyInstance) => {
             })
         } else {
             
-            reply.status(200).send({
+            return reply.status(200).send({
                 "data_headers": headers,
                 "data": {
                     "step": nextStep,

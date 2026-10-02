@@ -39,6 +39,17 @@ function insertQuestProgress(section, questId, playerId = 1) {
     `).run(section, questId, playerId)
 }
 
+function insertPracticeProgress(section, questId, playerId) {
+    db.prepare(`
+        INSERT INTO players_quest_progress (
+            section, quest_id, finished, host_finished, unlocked,
+            high_score, clear_rank, best_elapsed_time_ms,
+            leader_character_id, multi_clear_count,
+            s_plus_reward_received, player_id
+        ) VALUES (?, ?, 1, 0, 0, 123, 5, 456, NULL, 0, 0, ?)
+    `).run(section, questId, playerId)
+}
+
 function insertRunMarker(stage) {
     db.prepare(`
         INSERT INTO players_rush_events_played_parties (
@@ -136,6 +147,49 @@ test("finite Gauntlet clears synthesize only the optional classification row", (
         FROM players_quest_progress
         WHERE player_id = 3 AND section = 24 AND quest_id = 700099099
     `).get().finished, 1)
+
+    for (let stage = 1; stage <= 29; stage += 1) {
+        insertQuestProgress(24, 700100000 + stage, 4)
+    }
+    insertPracticeProgress(24, 700100099, 4)
+    assert.equal(
+        completion.repairGauntletCompletionClassificationSync(4, 700100),
+        false,
+    )
+    insertQuestProgress(24, 700100030, 4)
+    assert.deepEqual(
+        completion.repairAllGauntletCompletionClassificationsSync(4),
+        [700100],
+    )
+    assert.deepEqual(db.prepare(`
+        SELECT finished, unlocked, clear_rank, high_score, best_elapsed_time_ms
+        FROM players_quest_progress
+        WHERE player_id = 4 AND section = 24 AND quest_id = 700100099
+    `).get(), {
+        finished: 1,
+        unlocked: 1,
+        clear_rank: 5,
+        high_score: 123,
+        best_elapsed_time_ms: 456,
+    })
+    assert.equal(
+        completion.repairGauntletCompletionClassificationSync(4, 700100),
+        false,
+    )
+
+    for (let stage = 1; stage <= 30; stage += 1) {
+        insertQuestProgress(24, 700100000 + stage, 5)
+    }
+    assert.equal(
+        completion.repairGauntletCompletionClassificationSync(5, 700100),
+        true,
+    )
+    assert.equal(db.prepare(`
+        SELECT unlocked
+        FROM players_quest_progress
+        WHERE player_id = 5 AND section = 24 AND quest_id = 700100099
+    `).get().unlocked, 1)
+
     assert.equal(db.prepare(`
         SELECT COUNT(*) AS count
         FROM players_rush_events_played_parties

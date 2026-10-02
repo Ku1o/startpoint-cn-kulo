@@ -12,6 +12,7 @@ const player_1 = require("../data/domains/player");
 const leaderboard_1 = require("../data/domains/leaderboard");
 const version_1 = require("./version");
 const types_1 = require("./types");
+const persistence_coordinator_1 = require("./persistence-coordinator");
 exports.ABYSS_ENDURANCE_CONFIG_PATH = node_path_1.default.resolve(__dirname, "..", "..", "assets", "abyss_endurance_degree_reward.json");
 const REWARDS = Object.freeze([
     { degree_id: 9911101, battle_ms: 60 * 60000 },
@@ -75,7 +76,9 @@ function startAbyssEnduranceQuestSync(playerId, quest, startedAtMs = Date.now(),
     const tower = revision(mode);
     if (tower === null)
         return;
-    (0, db_1.getDb)().transaction(() => {
+    (0, persistence_coordinator_1.runPersistenceTransactionSync)({
+        domain: "event", playerId, operation: "start_abyss_endurance_quest",
+    }, () => {
         const competitionKey = key(mode);
         const season = (0, leaderboard_1.getLeaderboardSeasonSync)(competitionKey, startedAtMs, tower);
         const active = (0, leaderboard_1.getActiveLeaderboardRunSync)(playerId, competitionKey);
@@ -91,7 +94,7 @@ function startAbyssEnduranceQuestSync(playerId, quest, startedAtMs = Date.now(),
         (0, leaderboard_1.insertLeaderboardRunSync)({ competitionKey, playerId, playerName: player.name, season,
             startedAtMs, totalRounds: 30, trackedFromRound: quest.round,
             pendingRound: quest.round, pendingQuestId: quest.questId });
-    })();
+    });
 }
 exports.startAbyssEnduranceQuestSync = startAbyssEnduranceQuestSync;
 function grantCompletedRun(playerId, run, acquiredAt) {
@@ -121,7 +124,9 @@ function finishAbyssEnduranceQuestSync(input, options = {}) {
     const tower = revision(mode);
     if (tower === null)
         return [];
-    return (0, db_1.getDb)().transaction(() => {
+    return (0, persistence_coordinator_1.runPersistenceTransactionSync)({
+        domain: "event", playerId: input.playerId, operation: "finish_abyss_endurance_quest",
+    }, () => {
         const season = (0, leaderboard_1.getLeaderboardSeasonSync)(key(mode), finishedAtMs, tower);
         const run = (0, leaderboard_1.getActiveLeaderboardRunSync)(input.playerId, key(mode));
         if (!run || run.season !== season)
@@ -129,7 +134,7 @@ function finishAbyssEnduranceQuestSync(input, options = {}) {
         const completed = (0, leaderboard_1.finishLeaderboardRoundSync)({ run, round: input.quest.round,
             questId: input.quest.questId, clientBattleMs: input.clientBattleMs, finishedAtMs, party: input.party });
         return completed === null ? [] : grantCompletedRun(input.playerId, completed, finishedAtMs);
-    })();
+    });
 }
 exports.finishAbyssEnduranceQuestSync = finishAbyssEnduranceQuestSync;
 function resetAbyssEnduranceQuestSync(playerId, quest, endedAtMs = Date.now(), options = {}) {

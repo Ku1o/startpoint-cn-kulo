@@ -1,6 +1,7 @@
 import { getDb } from "../db";
 import { resolvePlayerIdSync } from "../activeAccount";
 import { getServerTime } from "../../utils";
+import { runPersistenceTransaction, runPersistenceTransactionSync } from "../../lib/persistence-coordinator";
 
 export const MAX_FOLLOWING = 50;
 export const MAX_FOLLOWERS = 50;
@@ -101,7 +102,7 @@ export function getFollowerCountSync(playerId: number): number {
     return row.count;
 }
 
-export function addFollowSync(playerId: number, targetPlayerId: number): AddFollowResult {
+function addFollowInTransaction(playerId: number, targetPlayerId: number): AddFollowResult {
     if (playerId === targetPlayerId) return "self";
     const target = getDb().prepare(`SELECT id FROM players WHERE id = ?`).get(targetPlayerId);
     if (!target) return "target_not_found";
@@ -121,18 +122,71 @@ export function addFollowSync(playerId: number, targetPlayerId: number): AddFoll
     return "added";
 }
 
-export function deleteFollowSync(playerId: number, targetPlayerId: number): void {
+export function addFollowSync(playerId: number, targetPlayerId: number): AddFollowResult {
+    return runPersistenceTransactionSync({ domain: "player", playerId, operation: "add_follow" }, () => (
+        addFollowInTransaction(playerId, targetPlayerId)
+    ))
+}
+
+export function addFollow(playerId: number, targetPlayerId: number): Promise<AddFollowResult> {
+    return runPersistenceTransaction({ domain: "player", playerId, operation: "add_follow" }, () => (
+        addFollowInTransaction(playerId, targetPlayerId)
+    ))
+}
+
+function deleteFollowInTransaction(playerId: number, targetPlayerId: number): void {
     getDb().prepare(`
         DELETE FROM players_follows
         WHERE follower_player_id = ? AND followed_player_id = ?
     `).run(playerId, targetPlayerId);
 }
 
-export function deleteFollowerSync(playerId: number, followerPlayerId: number): void {
+export function deleteFollowSync(playerId: number, targetPlayerId: number): void {
+    runPersistenceTransactionSync({ domain: "player", playerId, operation: "delete_follow" }, () => (
+        deleteFollowInTransaction(playerId, targetPlayerId)
+    ))
+}
+
+export function deleteFollow(playerId: number, targetPlayerId: number): Promise<void> {
+    return runPersistenceTransaction({ domain: "player", playerId, operation: "delete_follow" }, () => (
+        deleteFollowInTransaction(playerId, targetPlayerId)
+    ))
+}
+
+function deleteFollowerInTransaction(playerId: number, followerPlayerId: number): void {
     getDb().prepare(`
         DELETE FROM players_follows
         WHERE follower_player_id = ? AND followed_player_id = ?
     `).run(followerPlayerId, playerId);
+}
+
+export function deleteFollowerSync(playerId: number, followerPlayerId: number): void {
+    runPersistenceTransactionSync({ domain: "player", playerId, operation: "delete_follower" }, () => (
+        deleteFollowerInTransaction(playerId, followerPlayerId)
+    ))
+}
+
+export function deleteFollower(playerId: number, followerPlayerId: number): Promise<void> {
+    return runPersistenceTransaction({ domain: "player", playerId, operation: "delete_follower" }, () => (
+        deleteFollowerInTransaction(playerId, followerPlayerId)
+    ))
+}
+
+function bulkEditFollowInTransaction(
+    playerId: number,
+    addTargetPlayerIds: number[],
+    deleteTargetPlayerIds: number[],
+): number[] {
+    const fullFollowerTargets = new Set<number>();
+    for (const targetPlayerId of new Set(deleteTargetPlayerIds)) {
+        deleteFollowInTransaction(playerId, targetPlayerId);
+    }
+    for (const targetPlayerId of new Set(addTargetPlayerIds)) {
+        const result = addFollowInTransaction(playerId, targetPlayerId);
+        if (result === "follower_limit") fullFollowerTargets.add(targetPlayerId);
+        if (result === "following_limit") break;
+    }
+    return [...fullFollowerTargets];
 }
 
 export function bulkEditFollowSync(
@@ -140,16 +194,17 @@ export function bulkEditFollowSync(
     addTargetPlayerIds: number[],
     deleteTargetPlayerIds: number[],
 ): number[] {
-    const fullFollowerTargets = new Set<number>();
-    getDb().transaction(() => {
-        for (const targetPlayerId of new Set(deleteTargetPlayerIds)) {
-            deleteFollowSync(playerId, targetPlayerId);
-        }
-        for (const targetPlayerId of new Set(addTargetPlayerIds)) {
-            const result = addFollowSync(playerId, targetPlayerId);
-            if (result === "follower_limit") fullFollowerTargets.add(targetPlayerId);
-            if (result === "following_limit") break;
-        }
-    })();
-    return [...fullFollowerTargets];
+    return runPersistenceTransactionSync({ domain: "player", playerId, operation: "bulk_edit_follow" }, () => (
+        bulkEditFollowInTransaction(playerId, addTargetPlayerIds, deleteTargetPlayerIds)
+    ))
+}
+
+export function bulkEditFollow(
+    playerId: number,
+    addTargetPlayerIds: number[],
+    deleteTargetPlayerIds: number[],
+): Promise<number[]> {
+    return runPersistenceTransaction({ domain: "player", playerId, operation: "bulk_edit_follow" }, () => (
+        bulkEditFollowInTransaction(playerId, addTargetPlayerIds, deleteTargetPlayerIds)
+    ))
 }

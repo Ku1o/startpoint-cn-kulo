@@ -6,6 +6,7 @@ import { getAbyssTimeRevision } from "../../lib/abyss-time-revision"
 import { compareVersion, getPatchManifest } from "../../lib/version"
 import { QuestCategory } from "../../lib/types/quest"
 import { resetLeaderboardCompetitionSync } from "../../lib/leaderboard/service"
+import { runPersistenceTransactionSync } from "../../lib/persistence-coordinator";
 
 /** An explicit publication marker prevents ordinary asset updates from resetting runs. */
 export function getAbyssTowerResetRevision(eventId: number): string | null {
@@ -57,7 +58,7 @@ export function refreshPlayerAbyssTowerSync(playerId: number, eventId: number): 
     const revision = getAbyssTowerResetRevision(eventId)
     if (revision === null) return false
     const db = getDb()
-    return db.transaction(() => {
+    return runPersistenceTransactionSync({ domain: "event", playerId, operation: "refresh_abyss_tower" }, () => {
         const row = db.prepare(`SELECT tower_revision FROM players_rush_events
             WHERE player_id=? AND event_id=?`).get(playerId, eventId) as { tower_revision: string | null } | undefined
         if (row === undefined || row.tower_revision === revision) return false
@@ -68,13 +69,13 @@ export function refreshPlayerAbyssTowerSync(playerId: number, eventId: number): 
             WHERE player_id=? AND event_id=?`).run(revision, playerId, eventId)
         // Keep an old active battle's revision intact: settlement/load reject it as stale.
         return true
-    })()
+    })
 }
 
 export function refreshPlayerAbyssTowersSync(playerId: number): void {
-    getDb().transaction(() => {
+    runPersistenceTransactionSync({ domain: "event", playerId, operation: "refresh_abyss_towers" }, () => {
         for (const eventId of ABYSS_EVENT_IDS) refreshPlayerAbyssTowerSync(playerId, eventId)
-    })()
+    })
 }
 
 export function canStartAbyssQuestSync(playerId: number, category: number, questId: number): boolean {

@@ -10,6 +10,7 @@ const db_1 = require("../data/db");
 const shopPurchase_1 = require("../data/domains/shopPurchase");
 const degree_1 = require("../data/domains/degree");
 const types_1 = require("./types");
+const persistence_coordinator_1 = require("./persistence-coordinator");
 exports.ABYSS_SHOP_DEGREE_ID = 9911001;
 exports.ABYSS_SHOP_TICKET_IDS = Object.freeze([9700116, 9700117]);
 exports.ABYSS_SHOP_REQUIRED_PURCHASES = 9999;
@@ -53,7 +54,9 @@ function grantAbyssShopDegreeRewardSync(playerId, options = {}) {
     if (!Number.isSafeInteger(playerId) || playerId <= 0
         || !abyssShopDegreeRewardEnabled(options.configPath))
         return [];
-    return (0, db_1.getDb)().transaction(() => grantEligibleAbyssShopDegreeSync(playerId))();
+    return (0, persistence_coordinator_1.runPersistenceTransactionSync)({
+        domain: "shop", playerId, operation: "grant_abyss_shop_degree",
+    }, () => grantEligibleAbyssShopDegreeSync(playerId));
 }
 exports.grantAbyssShopDegreeRewardSync = grantAbyssShopDegreeRewardSync;
 /** The shop route calls this after counters change, inside its purchase transaction. */

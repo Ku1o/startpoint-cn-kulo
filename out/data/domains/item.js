@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.givePlayerItemSync = exports.setPlayerItemSync = exports.updatePlayerItemSync = exports.insertPlayerItemsSync = exports.getPlayerCollectedItemTotalsByIdsSync = exports.getPlayerCollectedItemTotalsSync = exports.getPlayerCollectedItemTotalSync = exports.getPlayerItemsByIdsSync = exports.getPlayerItemsSync = exports.getPlayerItemSync = void 0;
 const cached_statement_1 = require("../../lib/cached-statement");
 const db_1 = require("../db");
+const persistence_coordinator_1 = require("../../lib/persistence-coordinator");
 /**
  * Gets the amount of a singular item that a player owns.
  *
@@ -119,11 +120,11 @@ function insertPlayerItemSync(playerId, itemId, amount) {
  */
 function insertPlayerItemsSync(playerId, items) {
     const db = (0, db_1.getDb)();
-    db.transaction(() => {
+    (0, persistence_coordinator_1.runPersistenceTransactionSync)({ domain: "player", playerId, operation: "insert_player_items" }, () => {
         for (const [itemId, amount] of Object.entries(items)) {
             insertPlayerItemSync(playerId, itemId, amount);
         }
-    })();
+    });
 }
 exports.insertPlayerItemsSync = insertPlayerItemsSync;
 /**
@@ -172,7 +173,7 @@ exports.setPlayerItemSync = setPlayerItemSync;
  * @returns The new total amount of the item that the player owns.
  */
 function givePlayerItemSync(playerId, itemId, giveAmount) {
-    return (0, db_1.getDb)().transaction(() => {
+    return (0, persistence_coordinator_1.runPersistenceTransactionSync)({ domain: "player", playerId, operation: "give_player_item" }, () => {
         const ownedAmount = getPlayerItemSync(playerId, itemId);
         const newAmount = (ownedAmount !== null && ownedAmount !== void 0 ? ownedAmount : 0) + giveAmount;
         if (ownedAmount === null)
@@ -181,6 +182,6 @@ function givePlayerItemSync(playerId, itemId, giveAmount) {
             updatePlayerItemSync(playerId, itemId, newAmount);
         recordPlayerCollectedItemSync(playerId, itemId, giveAmount);
         return newAmount;
-    })();
+    });
 }
 exports.givePlayerItemSync = givePlayerItemSync;

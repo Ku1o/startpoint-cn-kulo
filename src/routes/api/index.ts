@@ -17,6 +17,7 @@ import { getSession } from "../../data/domains/session"
 import { resolvePlayerIdSync } from "../../data/activeAccount";
 import { generateDataHeaders } from "../../utils";
 import { runPermanentValidators } from "../../lib/validate";
+import { runPersistenceTransaction } from "../../lib/persistence-coordinator";
 
 interface LoadBody {
     app_secret: string,
@@ -57,30 +58,32 @@ const routes = async (fastify: FastifyInstance) => {
         const accountId = session.accountId
 
         const playerId = resolvePlayerIdSync(accountId)!
-        const player = playerId !== null ? getPlayerSync(playerId) : null
-
-        if (player === null) return reply.status(500).send({
+        if (playerId === null) return reply.status(500).send({
             "error": "Internal Server Error",
             "message": "No players bound to account."
         })
 
-        // get last login time
-        dailyResetPlayerDataSync(player)
+        const player = getPlayerSync(playerId)
+        if (player === null) return reply.status(500).send({
+            "error": "Internal Server Error",
+            "message": "No player data."
+        })
 
-        // collect the player's pooled exp
-        collectPlayerDataPooledExpSync(player)
-
-        // Repair legacy save inconsistencies before serializing client data.
-        runPermanentValidators(playerId)
-
-        const clientData = getClientSerializedData(playerId, { viewerId: viewerId })
+        await runPersistenceTransaction({
+            domain: "player", playerId, operation: "legacy_load_snapshot",
+        }, () => {
+            dailyResetPlayerDataSync(player)
+            collectPlayerDataPooledExpSync(player)
+            runPermanentValidators(playerId)
+        })
+        const clientData = getClientSerializedData(playerId, { viewerId })
         if (clientData === null) return reply.status(500).send({
             "error": "Internal Server Error",
             "message": "No player data."
         })
 
         reply.header("content-type", "application/x-msgpack")
-        reply.status(200).send({
+        return reply.status(200).send({
             "data_headers": generateDataHeaders({
                 asset_update: true,
                 viewer_id: viewerId

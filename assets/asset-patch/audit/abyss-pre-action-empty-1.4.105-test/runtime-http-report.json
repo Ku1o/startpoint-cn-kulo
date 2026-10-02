@@ -30,7 +30,7 @@
             "version": "1.4.104",
             "archive": [
               {
-                "location": "http://<LAN_HOST>/patch/cn/asset-patch/active/pinball-1.4.103-1.4.104-1-abyss-element-sponsor-laite-test.zip",
+                "location": "http://LOCAL_RUNTIME_HOST:8001/patch/cn/asset-patch/active/pinball-1.4.103-1.4.104-1-abyss-element-sponsor-laite-test.zip",
                 "size": 3778769,
                 "sha256": ""
               }
@@ -41,7 +41,7 @@
             "version": "1.4.105",
             "archive": [
               {
-                "location": "http://<LAN_HOST>/patch/cn/asset-patch/active/pinball-1.4.104-1.4.105-1-abyss-pre-action-empty-test.zip",
+                "location": "http://LOCAL_RUNTIME_HOST:8001/patch/cn/asset-patch/active/pinball-1.4.104-1.4.105-1-abyss-pre-action-empty-test.zip",
                 "size": 279544,
                 "sha256": ""
               }
@@ -79,7 +79,7 @@
             "version": "1.4.105",
             "archive": [
               {
-                "location": "http://<LAN_HOST>/patch/cn/asset-patch/active/pinball-1.4.104-1.4.105-1-abyss-pre-action-empty-test.zip",
+                "location": "http://LOCAL_RUNTIME_HOST:8001/patch/cn/asset-patch/active/pinball-1.4.104-1.4.105-1-abyss-pre-action-empty-test.zip",
                 "size": 279544,
                 "sha256": ""
               }
@@ -117,7 +117,7 @@
     }
   },
   "archive": {
-    "location": "http://<LAN_HOST>/patch/cn/asset-patch/active/pinball-1.4.104-1.4.105-1-abyss-pre-action-empty-test.zip",
+    "location": "http://LOCAL_RUNTIME_HOST:8001/patch/cn/asset-patch/active/pinball-1.4.104-1.4.105-1-abyss-pre-action-empty-test.zip",
     "size": 279544,
     "sha256": ""
   },

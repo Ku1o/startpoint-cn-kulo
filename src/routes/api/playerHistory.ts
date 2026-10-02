@@ -22,6 +22,7 @@ import {
 } from "../../lib/player-history-aggregates"
 import { getFavoritePartySelectionSync } from "../../lib/profileFavorite"
 import { generateDataHeaders, getServerTimeForPlayer, getTimeOffset } from "../../utils"
+import { runPersistenceTransaction } from "../../lib/persistence-coordinator"
 
 interface RequestBody {
     viewer_id?: unknown
@@ -123,7 +124,7 @@ function getStartGameDate(playerId: number, offsetMs: number): string {
 const routes = async (fastify: FastifyInstance) => {
     fastify.post("/index", async (request: FastifyRequest, reply: FastifyReply) => {
         const resolved = await resolvePlayer(request, reply)
-        if (!resolved) return
+        if (!resolved) return reply
 
         const catalog = getPlayerHistoryCatalog(getServerTimeForPlayer(resolved.playerId) * 1000)
         if (!catalog) return sendResultCode(reply, resolved.viewerId, 11101)
@@ -167,7 +168,7 @@ const routes = async (fastify: FastifyInstance) => {
 
     fastify.post("/edit", async (request: FastifyRequest, reply: FastifyReply) => {
         const resolved = await resolvePlayer(request, reply)
-        if (!resolved) return
+        if (!resolved) return reply
 
         const catalog = getPlayerHistoryCatalog(getServerTimeForPlayer(resolved.playerId) * 1000)
         if (!catalog) return sendResultCode(reply, resolved.viewerId, 11101)
@@ -233,11 +234,13 @@ const routes = async (fastify: FastifyInstance) => {
             update.topicVisibility = visibility
         }
 
-        updatePlayerHistorySettingsSync(
+        await runPersistenceTransaction({
+            domain: "player", playerId: resolved.playerId, operation: "player_history_edit",
+        }, () => updatePlayerHistorySettingsSync(
             resolved.playerId,
             getDefaults(resolved.playerId, resolved.player, catalog),
             update,
-        )
+        ))
         reply.header("content-type", "application/x-msgpack")
         return reply.status(200).send({
             data_headers: generateDataHeaders({ viewer_id: resolved.viewerId }),

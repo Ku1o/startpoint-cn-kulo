@@ -1,0 +1,131 @@
+{
+  "schema_version": 1,
+  "status": "passed",
+  "checked_at": "2026-10-01T15:08:45+08:00",
+  "resource_edge": {
+    "from": "1.4.122",
+    "to": "1.4.123",
+    "archive": "pinball-1.4.122-1.4.123-1-author-weapons-fiveboss-20261001.zip",
+    "size": 9159203,
+    "sha256": "b420edffa3f37c88e71816c33b937a49fab73a543a85f2d9c7503b9e463f3395",
+    "members": 258,
+    "crc_passed": true
+  },
+  "manifest": {
+    "prior_entry_count": 74,
+    "final_entry_count": 75,
+    "prior_entries_unchanged": true,
+    "root_change_only_cdn_version": true,
+    "source_runtime_semantically_equal": true,
+    "source_runtime_archive_bytes_equal": true,
+    "source_sha256": "06c128cb5f2f37fa85348dbdaaefcb9707223707481922af669742b8cebbf312",
+    "runtime_sha256": "06c128cb5f2f37fa85348dbdaaefcb9707223707481922af669742b8cebbf312"
+  },
+  "bond_supplement": {
+    "source_version": "1.4.1111",
+    "resource_count": 10,
+    "present_count": 10,
+    "byte_match_count": 10
+  },
+  "cursed_weapon_up": {
+    "equipment_ids": [
+      5910101,
+      5910102,
+      5910103,
+      5910104,
+      5910105,
+      5910106,
+      5910107,
+      5910108,
+      5910109,
+      5910110,
+      5910111,
+      5910112,
+      5910113,
+      5910114,
+      5910115,
+      5910116,
+      5910117,
+      5910118,
+      5910119,
+      5910120,
+      5910121,
+      5910122,
+      5910123,
+      5910124,
+      5910125,
+      5910126,
+      5910127,
+      5910128,
+      5910129
+    ],
+    "changed_column": "isRateUp",
+    "changed_count": 29,
+    "weights_unchanged": true,
+    "other_odds_columns_unchanged": true,
+    "five_star_total_weight": 22800
+  },
+  "item_icon_closure": {
+    "covered_items": [
+      {
+        "item_id": 10000143,
+        "thumbnail": "item/materials/mod/five_boss/deep_realm_ticket",
+        "small_icon": "item_icon/materials/mod/five_boss/deep_realm_ticket",
+        "thumbnail_dimensions": [
+          20,
+          20
+        ],
+        "small_icon_dimensions": [
+          41,
+          41
+        ]
+      },
+      {
+        "item_id": 10000144,
+        "thumbnail": "item/materials/mod/five_boss/deathbringer_blueprint_v2",
+        "small_icon": "item_icon/materials/mod/five_boss/deathbringer_blueprint_v2",
+        "thumbnail_dimensions": [
+          20,
+          20
+        ],
+        "small_icon_dimensions": [
+          40,
+          40
+        ]
+      },
+      {
+        "item_id": 10000146,
+        "thumbnail": "item/materials/mod/five_boss/fivefold_clear_badge_v2",
+        "small_icon": "item_icon/materials/mod/five_boss/fivefold_clear_badge_v2",
+        "thumbnail_dimensions": [
+          20,
+          20
+        ],
+        "small_icon_dimensions": [
+          40,
+          40
+        ]
+      }
+    ],
+    "stored_png_validation_count": 139,
+    "stored_png_signature": "89 70 6e 67 0d 0a 1a 0a",
+    "atlas_existing_geometry_preserved": true,
+    "atlas_unrelated_pixels_preserved": true,
+    "replaced_thumbnail_frames": [
+      "item/materials/mod/five_boss/deathbringer_blueprint_v2",
+      "item/materials/mod/five_boss/fivefold_clear_badge_v2"
+    ],
+    "appended_thumbnail_frame": "item/materials/mod/five_boss/deep_realm_ticket",
+    "source_atlas_receipt": "outputs/author-merge-fix-20261001/verification.json"
+  },
+  "acceptance": {
+    "device_accepted_scope": [
+      "three_item_icons",
+      "cursed_weapon_red_up_marker"
+    ],
+    "other_equipment_mechanics_device_accepted": false,
+    "archive_and_loader_checks": "offline_static"
+  },
+  "persistence_impact": "art_and_display_flags_only; no_saved_identifiers_or_schema_change",
+  "cloud_deployment_verified": false
+}

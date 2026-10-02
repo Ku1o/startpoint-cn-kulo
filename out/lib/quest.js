@@ -14,6 +14,7 @@ const types_1 = require("./types");
 const reward_element_map_json_1 = __importDefault(require("../../assets/reward_element_map.json"));
 const game_logging_1 = require("./game-logging");
 const mana_1 = require("./mana");
+const reward_profile_1 = require("./boss/reward-profile");
 const ELEMENT_TO_ENEMY_MAP = {
     0: 3, 1: 0, 2: 1, 3: 2, 4: 5, 5: 4,
 };
@@ -35,9 +36,12 @@ function resolveAetherItemId(rarity, questElement) {
  * @param playerId The ID of the player.
  * @param groupId The ID of the score reward group.
  * @param scoreRewards The score rewards inside of the group.
+ * @param bossRewardContext Optional permanent-boss reward context. When it
+ * is present, only the matching profile applies its mode-specific token count
+ * and exact rare-pool roll.
  * @returns A result detailing what was added/changed.
  */
-function givePlayerScoreRewardsSync(playerId, groupId, scoreRewards, boostPointUsed = false, questElement) {
+function givePlayerScoreRewardsSync(playerId, groupId, scoreRewards, boostPointUsed = false, questElement, bossRewardContext) {
     var _a, _b, _c;
     const dropScoreRewardIds = [];
     const dropRareRewardIds = [];
@@ -50,6 +54,7 @@ function givePlayerScoreRewardsSync(playerId, groupId, scoreRewards, boostPointU
     let items = {};
     if (scoreRewards != null && groupId != null) {
         const dropMultiplier = parseFloat(process.env.DROP_MULTIPLIER || '1');
+        const bossRewardProfile = (0, reward_profile_1.getBossRewardProfile)(bossRewardContext === null || bossRewardContext === void 0 ? void 0 : bossRewardContext.questId, groupId);
         (0, game_logging_1.gameVerboseLog)(() => `[QUEST] givePlayerScoreRewards group=${groupId} items=${scoreRewards.length} pid=${playerId}`);
         let seqIndex = 0;
         for (const scoreReward of scoreRewards) {
@@ -63,10 +68,23 @@ function givePlayerScoreRewardsSync(playerId, groupId, scoreRewards, boostPointU
                         case types_1.RewardType.ITEM: {
                             const itemReward = reward;
                             const itemId = itemReward.id;
-                            const itemDropMultiplier = itemReward.ignore_drop_multiplier ? 1 : dropMultiplier;
-                            rewardAmount = itemReward.count * itemDropMultiplier * (boostPointUsed ? 2 : 1);
+                            const isBossToken = bossRewardProfile !== null
+                                && (bossRewardContext === null || bossRewardContext === void 0 ? void 0 : bossRewardContext.mode) !== undefined
+                                && bossRewardProfile.tokenItemId === itemId;
+                            if (isBossToken) {
+                                // The boss contract is per clear: an enabled
+                                // drop multiplier or boost never changes the
+                                // advertised 1/3 token count.
+                                rewardAmount = (0, reward_profile_1.resolveBossTokenCount)(bossRewardProfile, bossRewardContext.mode);
+                            }
+                            else {
+                                const itemDropMultiplier = itemReward.ignore_drop_multiplier ? 1 : dropMultiplier;
+                                rewardAmount = itemReward.count * itemDropMultiplier * (boostPointUsed ? 2 : 1);
+                            }
                             items[String(itemId)] = (0, item_1.givePlayerItemSync)(playerId, itemId, rewardAmount);
-                            (0, game_logging_1.gameVerboseLog)(() => `[QUEST-ITEM] id=${itemId} cdnCount=${itemReward.count} ×drop=${itemDropMultiplier} ×boost=${boostPointUsed ? 2 : 1} → ${rewardAmount}`);
+                            (0, game_logging_1.gameVerboseLog)(() => isBossToken
+                                ? `[QUEST-ITEM] bossProfile=${bossRewardProfile.profileId} mode=${bossRewardContext.mode} id=${itemId} fixedCount=${rewardAmount}`
+                                : `[QUEST-ITEM] id=${itemId} cdnCount=${itemReward.count} ×drop=${itemReward.ignore_drop_multiplier ? 1 : dropMultiplier} ×boost=${boostPointUsed ? 2 : 1} → ${rewardAmount}`);
                             break;
                         }
                         case types_1.RewardType.MANA: {
@@ -118,13 +136,22 @@ function givePlayerScoreRewardsSync(playerId, groupId, scoreRewards, boostPointU
                 }
                 case types_1.ScoreRewardType.RARE_POOL: {
                     const reward = scoreReward;
-                    const roll = (0, crypto_1.randomInt)(0, 100) / 100;
-                    if (reward.rarity >= roll) {
+                    const exactBossRarePool = bossRewardProfile !== null
+                        && bossRewardProfile.rareGroupId === reward.id;
+                    const rarePoolHit = exactBossRarePool
+                        ? (0, crypto_1.randomInt)(0, 10000) < bossRewardProfile.rareChanceBasisPoints
+                        : reward.rarity >= (0, crypto_1.randomInt)(0, 100) / 100;
+                    if (rarePoolHit) {
                         // give reward from group
                         // TODO: implement RareScoreReward rarity using .rarity field instead of having an even chance between all items in pool
                         const rareGroupId = reward.id;
                         const group = (0, assets_1.getRareScoreRewardGroup)(rareGroupId);
-                        (0, game_logging_1.gameVerboseLog)(() => { var _a; return `[QUEST] RARE_POOL rareGroup=${rareGroupId} found=${group !== null} items=${(_a = group === null || group === void 0 ? void 0 : group.length) !== null && _a !== void 0 ? _a : 0}`; });
+                        (0, game_logging_1.gameVerboseLog)(() => {
+                            var _a, _b;
+                            return exactBossRarePool
+                                ? `[QUEST] RARE_POOL profile=${bossRewardProfile.profileId} rareGroup=${rareGroupId} chanceBp=${bossRewardProfile.rareChanceBasisPoints} found=${group !== null} items=${(_a = group === null || group === void 0 ? void 0 : group.length) !== null && _a !== void 0 ? _a : 0}`
+                                : `[QUEST] RARE_POOL rareGroup=${rareGroupId} found=${group !== null} items=${(_b = group === null || group === void 0 ? void 0 : group.length) !== null && _b !== void 0 ? _b : 0}`;
+                        });
                         if (group !== null) {
                             const random_index = 1 >= group.length ? 0 : (0, crypto_1.randomInt)(group.length);
                             const reward = group[random_index];

@@ -2,6 +2,7 @@ import { cachedStatement } from "../../lib/cached-statement"
 import { getDb } from "../db";
 import { PlayerActiveMission, RawPlayerClearedRegularMission, RawPlayerActiveMission, RawPlayerActiveMissionStage } from "../types";
 import { deserializeBoolean, serializeBoolean } from "../utils";
+import { runPersistenceTransactionSync } from "../../lib/persistence-coordinator";
 
 /**
  * Retrieve a list of a player's cleared regular missions.
@@ -60,11 +61,11 @@ export function insertPlayerClearedRegularMissionListSync(
     playerId: number,
     missionList: Record<string, number>
 ) {
-    getDb().transaction(() => {
+    runPersistenceTransactionSync({ domain: "mission", playerId, operation: "insert_cleared_regular_missions" }, () => {
         for (const [missionId, value] of Object.entries(missionList)) {
             insertPlayerClearedRegularMissionSync(playerId, missionId, value)
         }
-    })()
+    })
 }
 /**
 /**
@@ -210,11 +211,11 @@ export function insertPlayerActiveMissionsSync(
     playerId: number,
     missions: Record<string, PlayerActiveMission>
 ) {
-    getDb().transaction(() => {
+    runPersistenceTransactionSync({ domain: "mission", playerId, operation: "insert_active_missions" }, () => {
         for (const [missionId, mission] of Object.entries(missions)) {
             insertPlayerActiveMissionSync(playerId, missionId, mission)
         }
-    })()
+    })
 }
 
 /**
@@ -410,7 +411,7 @@ export function insertPlayerCategoryMissionListSync(
     playerId: number,
     categories: Record<string, Record<string, PlayerActiveMission>>
 ) {
-    getDb().transaction(() => {
+    runPersistenceTransactionSync({ domain: "mission", playerId, operation: "insert_category_missions" }, () => {
         for (const [categoryKey, missions] of Object.entries(categories)) {
             const category = Number(categoryKey)
             if (!Number.isInteger(category)) continue
@@ -422,7 +423,7 @@ export function insertPlayerCategoryMissionListSync(
                 }
             }
         }
-    })()
+    })
 }
 
 export function updatePlayerCategoryMissionSync(
@@ -515,10 +516,10 @@ export function updatePlayerCategoryMissionStageBatchSync(
 }
 
 export function deletePlayerCategoryMissionsSync(playerId: number, category: number) {
-    getDb().transaction(() => {
+    runPersistenceTransactionSync({ domain: "mission", playerId, operation: "delete_category_missions" }, () => {
         cachedStatement(getDb(), `DELETE FROM players_category_mission_stages WHERE player_id = ? AND category = ?`).run(playerId, category)
         cachedStatement(getDb(), `DELETE FROM players_category_missions WHERE player_id = ? AND category = ?`).run(playerId, category)
-    })()
+    })
 }
 
 /**

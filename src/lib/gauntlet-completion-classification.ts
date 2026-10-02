@@ -19,6 +19,11 @@ const GAUNTLET_COMPLETION_RULES: Readonly<Record<number, GauntletCompletionRule>
         lastRegularQuestId: 700099030,
         completionQuestId: 700099099,
     },
+    700100: {
+        firstRegularQuestId: 700100001,
+        lastRegularQuestId: 700100030,
+        completionQuestId: 700100099,
+    },
 };
 
 /**
@@ -55,15 +60,23 @@ export function repairGauntletCompletionClassificationSync(
     }
 
     const completionProgress = getDb().prepare(`
-        SELECT finished
+        SELECT finished, unlocked, clear_rank
         FROM players_quest_progress
         WHERE player_id = ? AND section = ? AND quest_id = ?
     `).get(
         playerId,
         Number(QuestCategory.RUSH_EVENT),
         rule.completionQuestId,
-    ) as { finished?: number } | undefined;
-    if (Number(completionProgress?.finished ?? 0) === 1) return false;
+    ) as {
+        finished?: number;
+        unlocked?: number;
+        clear_rank?: number | null;
+    } | undefined;
+    const isClassifiedAsCompleted =
+        Number(completionProgress?.finished ?? 0) === 1
+        && Number(completionProgress?.unlocked ?? 0) === 1
+        && Number(completionProgress?.clear_rank ?? 0) >= 5;
+    if (isClassifiedAsCompleted) return false;
 
     getDb().prepare(`
         INSERT INTO players_quest_progress (

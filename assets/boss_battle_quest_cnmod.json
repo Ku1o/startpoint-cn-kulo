@@ -1,0 +1,17 @@
+{
+  "1020004": {
+    "name": "",
+    "clearRewardId": 1,
+    "sPlusRewardId": 1,
+    "scoreRewardGroupId": 209990,
+    "bRankTime": 1860000,
+    "aRankTime": 1410000,
+    "sRankTime": 960000,
+    "sPlusRankTime": 600000,
+    "rankPointReward": 1013,
+    "characterExpReward": 2435,
+    "manaReward": 2490,
+    "poolExpReward": 2435,
+    "element": 4
+  }
+}

@@ -17,6 +17,7 @@ const file_exists_1 = require("../../lib/file-exists");
 const utils_1 = require("../../utils");
 const path_1 = __importDefault(require("path"));
 const zip_summary_cache_1 = require("../../lib/zip-summary-cache");
+const version_1 = require("../../lib/version");
 const CN_PORT = process.env.CN_LISTEN_PORT || "8001";
 /** Validates the configured origin and removes trailing slashes before path joins. */
 function normalizeCdnBaseUrl(value) {
@@ -167,6 +168,32 @@ function compareVersion(a, b) {
     }
     return 0;
 }
+/**
+ * Return the archive names explicitly published by enabled manifest entries.
+ *
+ * The active directory also contains held local-test and superseded archives.
+ * Scanning that directory as the source of truth can make a clean client
+ * download multiple archives for the same version edge; whichever archive is
+ * applied last then wins for overlapping resources.  The manifest is the
+ * release boundary, while the directory is only the storage location.
+ */
+function getEnabledPatchArchiveNames() {
+    var _a;
+    const names = new Set();
+    const manifest = (0, version_1.getPatchManifest)();
+    for (const patch of (_a = manifest.patches) !== null && _a !== void 0 ? _a : []) {
+        if (patch.type !== "patch" || patch.enabled !== true)
+            continue;
+        const archives = Array.isArray(patch.chain)
+            ? patch.chain
+            : [patch.archive];
+        for (const archive of archives) {
+            if (typeof archive === "string" && archive.length > 0)
+                names.add(archive);
+        }
+    }
+    return names;
+}
 function buildDiffList(baseUrl, cdnDir, clientVersion, targetVersion, device) {
     const groups = new Map();
     // CDN diff archives
@@ -191,9 +218,12 @@ function buildDiffList(baseUrl, cdnDir, clientVersion, targetVersion, device) {
     }
     // Asset patch archives (active patches only)
     const patchDir = path_1.default.join(__dirname, "..", "..", "..", "assets", "asset-patch", "active");
+    const publishedArchives = getEnabledPatchArchiveNames();
     try {
         for (const archive of getAssetArchiveMetadata(patchDir)) {
             const f = archive.filename;
+            if (!publishedArchives.has(f))
+                continue;
             const match = f.match(/pinball-(\d+\.\d+\.\d+)-(\d+\.\d+\.\d+)-\d+-/);
             if (match) {
                 const from = match[1];
@@ -256,7 +286,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         const resVer = request.headers['res_ver'];
         const device = headerValue(request, "device");
         reply.type("application/json");
-        reply.status(200).send({
+        return reply.status(200).send({
             data_headers: (0, utils_1.generateDataHeaders)(),
             data: getVersionInfo(baseUrl, getAssetDownloadSize(resVer, device), device)
         });
@@ -286,7 +316,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         const noUpdate = !first && resVer === targetVersion
             && fullArchives.length === 0 && diffArchives.length === 0;
         reply.type("application/json");
-        reply.status(200).send({
+        return reply.status(200).send({
             data_headers: (0, utils_1.generateDataHeaders)({ asset_update: !noUpdate }),
             data: {
                 info: {

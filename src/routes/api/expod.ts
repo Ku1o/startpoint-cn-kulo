@@ -12,10 +12,10 @@ import { generateDataHeaders, getServerDate, getServerTime } from "../../utils";
 import { getCharacterDataSync } from "../../lib/assets";
 import { clientSerializeDate } from "../../data/utils";
 import { resolvePlayerIdSync } from "../../data/activeAccount";
-import { getDb } from "../../data/db";
 import { incrementActiveMissionInjectedExpCountSync } from "../../data/domains/active_mission_counters"
 import { validateCharacterStackConversion } from "../../lib/character-stack";
 import { settleDegreeMissionResponse } from "../../lib/mission";
+import { runPersistenceTransaction } from "../../lib/persistence-coordinator";
 
 interface InjectExpBody {
     character_id: number,
@@ -113,13 +113,15 @@ const routes = async (fastify: FastifyInstance) => {
 
         let afterExp = player.expPool
         let afterItemCount = getPlayerItemsSync(playerId)[String(rewardItemId)] ?? 0
-        getDb().transaction(() => {
+        await runPersistenceTransaction({
+            domain: "player", playerId, operation: "convert_stack_to_exp",
+        }, () => {
             updatePlayerCharacterSync(playerId, characterId, { stack: afterStack })
             const adjustedExp = adjustPlayerExpPoolSync(playerId, increaseExp, 'stack_to_exp')
             if (adjustedExp === null) throw new Error(`Failed to update EXP pool for player ${playerId}`)
             afterExp = adjustedExp
             afterItemCount = givePlayerItemSync(playerId, rewardItemId, increaseItemCount)
-        })()
+        })
 
         reply.header("content-type", "application/x-msgpack")
         return reply.status(200).send({
@@ -236,7 +238,9 @@ const routes = async (fastify: FastifyInstance) => {
 
         let newExpPool = player.expPool
         let newStarGrainTotal = 0
-        getDb().transaction(() => {
+        await runPersistenceTransaction({
+            domain: "player", playerId, operation: "bulk_convert_stack_to_exp",
+        }, () => {
             for (const conversion of conversions) {
                 updatePlayerCharacterSync(playerId, conversion.characterId, { stack: 0 })
             }
@@ -246,7 +250,7 @@ const routes = async (fastify: FastifyInstance) => {
             if (totalStarGrains > 0) {
                 newStarGrainTotal = givePlayerItemSync(playerId, rewardItemId, totalStarGrains)
             }
-        })()
+        })
 
         const items = getPlayerItemsSync(playerId)
         if (totalStarGrains > 0) {
@@ -317,7 +321,9 @@ const routes = async (fastify: FastifyInstance) => {
         const requestTime = getServerDate()
         let expPooledTime = player.expPooledTime
 
-        const rewardResult = getDb().transaction(() => {
+        const rewardResult = await runPersistenceTransaction({
+            domain: "player", playerId, operation: "inject_exp",
+        }, () => {
             // Refresh passive pooled EXP before comparing with the amount the
             // client displayed, then read and deduct the authoritative balance
             // in the same transaction. A stale client may request slightly
@@ -346,7 +352,7 @@ const routes = async (fastify: FastifyInstance) => {
             if (spendExp > 0) incrementActiveMissionInjectedExpCountSync(playerId)
             expPooledTime = getPlayerSync(playerId)?.expPooledTime ?? refreshedPlayer.expPooledTime
             return result
-        })()
+        })
 
         const responseData: Record<string, any> = {
             "add_exp_list": rewardResult.add_exp_list,

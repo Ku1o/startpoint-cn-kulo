@@ -436,26 +436,26 @@
   "direct_resources": [
     {
       "logical": "master/battle/boss/boss_level.orderedmap",
-      "url": "http://<LAN_HOST>/patch/cn/dummy/download/production/upload/19/a4aa442b3249499356e7a3f6370e530bfe355e",
+      "url": "http://LOCAL_RUNTIME_HOST:8001/patch/cn/dummy/download/production/upload/19/a4aa442b3249499356e7a3f6370e530bfe355e",
       "sha256": "597648a2a4b2498b7376b4ed84a461b3c24457fb2c8d9e41241b7cb8dcdc8ef1",
       "bytes": 45963
     },
     {
       "logical": "master/battle/boss/general_boss_state.orderedmap",
-      "url": "http://<LAN_HOST>/patch/cn/dummy/download/production/upload/0b/97162ce6d40c473cbac39fa21427688922a48a",
+      "url": "http://LOCAL_RUNTIME_HOST:8001/patch/cn/dummy/download/production/upload/0b/97162ce6d40c473cbac39fa21427688922a48a",
       "sha256": "93c1bf42e64de2afe98fb603100d38dfd5240b2ec2f64ee2f26c9684ed2a6002",
       "bytes": 5317928
     },
     {
       "logical": "master/quest/event/rush_event_quest.orderedmap",
-      "url": "http://<LAN_HOST>/patch/cn/dummy/download/production/upload/b6/595dedd9cfa79b7e6eccab25dd9a2a81b066a2",
+      "url": "http://LOCAL_RUNTIME_HOST:8001/patch/cn/dummy/download/production/upload/b6/595dedd9cfa79b7e6eccab25dd9a2a81b066a2",
       "sha256": "025cbe53c8ad7ce3c7f5f091f25daf303acc2a9edd8df584c0f7e433bead8bb6",
       "bytes": 45753
     }
   ],
   "archive_http_sha256": "17ecf7182e783a69600bb1542c0e3681cdb830467c88dae8394834e5e3cd61e8",
   "apk_sha256_unchanged": "8e21b793091415be13d13ac170a1dc53e89fb92a3d688c135deb86644a71bbcb",
-  "server_listening": "<LAN_HOST>",
+  "server_listening": "LOCAL_RUNTIME_HOST:8001",
   "android_gameplay_verified": false,
   "ios_gameplay_verified": false,
   "apk_reinstall_required": false,

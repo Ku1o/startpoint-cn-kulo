@@ -152,5 +152,194 @@
     "kana": "degree_abyss_campus_participation",
     "condition": "获得条件：深渊连战EX新赛季排行榜结算奖励，具体条件见排行报酬。",
     "category_id": 8
+  },
+  "9910063": {
+    "string_id": "degree_mod_character_119992_awake0",
+    "name": "米娅·桂灯寻宝虎娘",
+    "kana": "degree_mod_character_119992_awake0",
+    "condition": "获得条件：将米娅突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+    "category_id": 2
+  },
+  "9910064": {
+    "string_id": "degree_mod_character_119992_awake1",
+    "name": "米娅·满载而归的好夜晚",
+    "kana": "degree_mod_character_119992_awake1",
+    "condition": "获得条件：将米娅突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+    "category_id": 2
+  },
+  "9910065": {
+    "string_id": "degree_mod_character_119991_awake0",
+    "name": "妮可拉·月相夜课的导师",
+    "kana": "degree_mod_character_119991_awake0",
+    "condition": "获得条件：将妮可拉突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+    "category_id": 2
+  },
+  "9910066": {
+    "string_id": "degree_mod_character_119991_awake1",
+    "name": "妮可拉·今夜特别授课",
+    "kana": "degree_mod_character_119991_awake1",
+    "condition": "获得条件：将妮可拉突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+    "category_id": 2
+  },
+  "9910067": {
+    "string_id": "degree_mod_character_119990_awake0",
+    "name": "玛格诺斯·月下归途的机车骑士",
+    "kana": "degree_mod_character_119990_awake0",
+    "condition": "获得条件：将玛格诺斯突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+    "category_id": 2
+  },
+  "9910068": {
+    "string_id": "degree_mod_character_119990_awake1",
+    "name": "玛格诺斯·后座为你而留",
+    "kana": "degree_mod_character_119990_awake1",
+    "condition": "获得条件：将玛格诺斯突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+    "category_id": 2
+  },
+  "9910069": {
+    "string_id": "degree_mod_character_139992_awake0",
+    "name": "夏琳·代号·月兔",
+    "kana": "degree_mod_character_139992_awake0",
+    "condition": "获得条件：将夏琳突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+    "category_id": 2
+  },
+  "9910070": {
+    "string_id": "degree_mod_character_139992_awake1",
+    "name": "夏琳·今夜为你守望",
+    "kana": "degree_mod_character_139992_awake1",
+    "condition": "获得条件：将夏琳突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+    "category_id": 2
+  },
+  "9910071": {
+    "string_id": "degree_mod_character_139991_awake0",
+    "name": "黑·月下博饼的黑豹",
+    "kana": "degree_mod_character_139991_awake0",
+    "condition": "获得条件：将黑突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+    "category_id": 2
+  },
+  "9910072": {
+    "string_id": "degree_mod_character_139991_awake1",
+    "name": "黑·今宵骰运正旺",
+    "kana": "degree_mod_character_139991_awake1",
+    "condition": "获得条件：将黑突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+    "category_id": 2
+  },
+  "9910073": {
+    "string_id": "degree_mod_character_139990_awake0",
+    "name": "凯尔·苍雷中的狼骑士",
+    "kana": "degree_mod_character_139990_awake0",
+    "condition": "获得条件：将凯尔突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+    "category_id": 2
+  },
+  "9910074": {
+    "string_id": "degree_mod_character_139990_awake1",
+    "name": "凯尔·为你劈开长夜",
+    "kana": "degree_mod_character_139990_awake1",
+    "condition": "获得条件：将凯尔突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+    "category_id": 2
+  },
+  "9910075": {
+    "string_id": "degree_mod_character_149987_awake0",
+    "name": "芙拉菲·捣月玉杵的兔拳士",
+    "kana": "degree_mod_character_149987_awake0",
+    "condition": "获得条件：将芙拉菲突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+    "category_id": 2
+  },
+  "9910076": {
+    "string_id": "degree_mod_character_149987_awake1",
+    "name": "芙拉菲·把祝福捣进馅里",
+    "kana": "degree_mod_character_149987_awake1",
+    "condition": "获得条件：将芙拉菲突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+    "category_id": 2
+  },
+  "9910077": {
+    "string_id": "degree_mod_character_149986_awake0",
+    "name": "罗尔夫·月下独奏的黑狼",
+    "kana": "degree_mod_character_149986_awake0",
+    "condition": "获得条件：将罗尔夫突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+    "category_id": 2
+  },
+  "9910078": {
+    "string_id": "degree_mod_character_149986_awake1",
+    "name": "罗尔夫·为你献上安可",
+    "kana": "degree_mod_character_149986_awake1",
+    "condition": "获得条件：将罗尔夫突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+    "category_id": 2
+  },
+  "9910079": {
+    "string_id": "degree_mod_character_159995_awake0",
+    "name": "丝缇涅尔·月轮机巧调律师",
+    "kana": "degree_mod_character_159995_awake0",
+    "condition": "获得条件：将丝缇涅尔突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+    "category_id": 2
+  },
+  "9910080": {
+    "string_id": "degree_mod_character_159995_awake1",
+    "name": "丝缇涅尔·把夜空点亮",
+    "kana": "degree_mod_character_159995_awake1",
+    "condition": "获得条件：将丝缇涅尔突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+    "category_id": 2
+  },
+  "9910081": {
+    "string_id": "degree_mod_character_159994_awake0",
+    "name": "索恩·十天众·二王弓",
+    "kana": "degree_mod_character_159994_awake0",
+    "condition": "获得条件：将索恩突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+    "category_id": 2
+  },
+  "9910082": {
+    "string_id": "degree_mod_character_159994_awake1",
+    "name": "索恩·一箭直抵天穹",
+    "kana": "degree_mod_character_159994_awake1",
+    "condition": "获得条件：将索恩突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+    "category_id": 2
+  },
+  "9910083": {
+    "string_id": "degree_mod_character_169991_awake0",
+    "name": "蕾贝卡·灯影戏兔的魔法师",
+    "kana": "degree_mod_character_169991_awake0",
+    "condition": "获得条件：将蕾贝卡突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+    "category_id": 2
+  },
+  "9910084": {
+    "string_id": "degree_mod_character_169991_awake1",
+    "name": "蕾贝卡·今夜不再独行",
+    "kana": "degree_mod_character_169991_awake1",
+    "condition": "获得条件：将蕾贝卡突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+    "category_id": 2
+  },
+  "9910085": {
+    "string_id": "degree_mod_character_169988_awake0",
+    "name": "澄波响·月下重奏的回响",
+    "kana": "degree_mod_character_169988_awake0",
+    "condition": "获得条件：将澄波响突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+    "category_id": 2
+  },
+  "9910086": {
+    "string_id": "degree_mod_character_169988_awake1",
+    "name": "澄波响·与你同频的节拍",
+    "kana": "degree_mod_character_169988_awake1",
+    "condition": "获得条件：将澄波响突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+    "category_id": 2
+  },
+  "9910087": {
+    "string_id": "degree_mod_character_139990_awake2",
+    "name": "凯尔·毛茸异世界来客",
+    "kana": "degree_mod_character_139990_awake2",
+    "condition": "获得条件：将凯尔突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+    "category_id": 2
+  },
+  "9910088": {
+    "string_id": "degree_mod_character_139990_awake3",
+    "name": "凯尔·海崖的蓝白约定",
+    "kana": "degree_mod_character_139990_awake3",
+    "condition": "获得条件：将凯尔突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+    "category_id": 2
+  },
+  "9910089": {
+    "string_id": "degree_mod_character_139990_awake4",
+    "name": "凯尔·与羅蔔同行",
+    "kana": "degree_mod_character_139990_awake4",
+    "condition": "获得条件：将凯尔突破至上限并升至100级；已满足者完成一次木桩练习补领。",
+    "category_id": 2
   }
 }

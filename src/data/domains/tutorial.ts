@@ -1,5 +1,6 @@
 import { getDb } from "../db";
 import { RawPlayerTriggeredTutorial } from "../types";
+import { runPersistenceTransactionSync } from "../../lib/persistence-coordinator";
 
 /**
  * Gets a player's triggered tutorials.
@@ -48,9 +49,9 @@ export function insertPlayerTriggeredTutorialsSync(
     tutorialIds: number[]
 ) {
     const db = getDb();
-    db.transaction(() => {
+    runPersistenceTransactionSync({ domain: "player", playerId, operation: "insert_triggered_tutorials" }, () => {
         for (const tutorialId of tutorialIds) {
             insertPlayerTriggeredTutorialSync(playerId, tutorialId)
         }
-    })()
+    })
 }

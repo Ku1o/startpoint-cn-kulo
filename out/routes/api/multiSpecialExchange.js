@@ -15,10 +15,10 @@ const campaign_1 = require("../../data/domains/campaign");
 const item_1 = require("../../data/domains/item");
 const player_1 = require("../../data/domains/player");
 const session_1 = require("../../data/domains/session");
-const db_1 = require("../../data/db");
 const mission_1 = require("../../lib/mission");
 const character_1 = require("../../lib/character");
 const multi_special_exchange_1 = require("../../lib/multi-special-exchange");
+const persistence_coordinator_1 = require("../../lib/persistence-coordinator");
 const utils_1 = require("../../utils");
 function positiveSafeInteger(value) {
     const parsed = Number(value);
@@ -44,23 +44,27 @@ function sendResultCode(reply, viewerId, resultCode) {
     });
 }
 function drawTicket(playerId, campaignId) {
-    const definition = (0, multi_special_exchange_1.getMultiSpecialExchangeCampaignDefinition)(campaignId);
-    if (!definition)
-        return null;
-    return (0, db_1.getDb)().transaction(() => {
-        const campaign = (0, campaign_1.getPlayerMultiSpecialExchangeCampaignsSync)(playerId)
-            .find(value => value.campaignId === campaignId);
-        if (!campaign || campaign.status !== 1)
+    return __awaiter(this, void 0, void 0, function* () {
+        const definition = (0, multi_special_exchange_1.getMultiSpecialExchangeCampaignDefinition)(campaignId);
+        if (!definition)
             return null;
-        const ticketItemId = definition.ticketItemIds[(0, crypto_1.randomInt)(definition.ticketItemIds.length)];
-        const itemAmount = (0, item_1.givePlayerItemSync)(playerId, ticketItemId, 1);
-        (0, campaign_1.updatePlayerMultiSpecialExchangeCampaignSync)(playerId, {
-            campaignId,
-            status: 3,
-            ticketItemId,
+        return (0, persistence_coordinator_1.runPersistenceTransaction)({
+            domain: "event", playerId, operation: "draw_multi_special_ticket",
+        }, () => {
+            const campaign = (0, campaign_1.getPlayerMultiSpecialExchangeCampaignsSync)(playerId)
+                .find(value => value.campaignId === campaignId);
+            if (!campaign || campaign.status !== 1)
+                return null;
+            const ticketItemId = definition.ticketItemIds[(0, crypto_1.randomInt)(definition.ticketItemIds.length)];
+            const itemAmount = (0, item_1.givePlayerItemSync)(playerId, ticketItemId, 1);
+            (0, campaign_1.updatePlayerMultiSpecialExchangeCampaignSync)(playerId, {
+                campaignId,
+                status: 3,
+                ticketItemId,
+            });
+            return { ticketItemId, itemAmount };
         });
-        return { ticketItemId, itemAmount };
-    })();
+    });
 }
 const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
     const registerDrawRoute = (path) => {
@@ -76,7 +80,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             const definition = (0, multi_special_exchange_1.getMultiSpecialExchangeCampaignDefinition)(campaignId);
             if (!definition)
                 return sendResultCode(reply, context.viewerId, 4901);
-            const drawn = drawTicket(context.playerId, campaignId);
+            const drawn = yield drawTicket(context.playerId, campaignId);
             if (!drawn)
                 return sendResultCode(reply, context.viewerId, 4902);
             reply.header("content-type", "application/x-msgpack");
@@ -109,7 +113,9 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         if (!definition || !definition.ticketItemIds.includes(ticketItemId)) {
             return sendResultCode(reply, context.viewerId, 4901);
         }
-        const exchangeResult = (0, db_1.getDb)().transaction(() => {
+        const exchangeResult = yield (0, persistence_coordinator_1.runPersistenceTransaction)({
+            domain: "event", playerId: context.playerId, operation: "exchange_character",
+        }, () => {
             var _a;
             const campaign = (0, campaign_1.getPlayerMultiSpecialExchangeCampaignsSync)(context.playerId)
                 .find(value => value.campaignId === campaignId);
@@ -128,7 +134,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 ticketItemId: null,
             });
             return { reward, newTicketAmount };
-        })();
+        });
         if (!exchangeResult)
             return sendResultCode(reply, context.viewerId, 4902);
         const characterList = exchangeResult.reward.character

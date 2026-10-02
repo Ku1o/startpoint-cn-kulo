@@ -4,7 +4,6 @@
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { getPlayerCategoryMissionsSync, updatePlayerCategoryMissionSync } from "../../data/domains/mission"
 import { getSession } from "../../data/domains/session"
-import { getDb } from "../../data/db"
 import { getPlayerMailCountSync } from "../../data/domains/mail"
 import { generateDataHeaders, getServerTime } from "../../utils";
 import { getComputer, getMissionIdsByCategory, getCurrentStage, getCharacterIdFromMission, getMissionFinalTargetProgress, isMissionEnabledAt, mergeMissionSettlementResponse, reconcileAwakeUnlockCharacterList, settleAwakeMissionRewards, settleMissionCategories, settleMissionCategoriesWithProgress } from "../../lib/mission/index";
@@ -14,6 +13,7 @@ import { resolvePlayerIdSync } from "../../data/activeAccount";
 import type { CategoryContext } from "../../lib/mission/index";
 import { addMissionProgressDelta } from "../../lib/mission/progress";
 import { gameVerboseLog } from "../../lib/game-logging";
+import { runPersistenceTransaction } from "../../lib/persistence-coordinator";
 
 interface GetMissionProgressBody {
     api_count: number,
@@ -236,7 +236,9 @@ const routes = async (fastify: FastifyInstance) => {
         const updatedMissionIdsByCategory = new Map<number, Set<number>>()
         const evaluationTime = new Date(getServerTime() * 1000)
 
-        getDb().transaction(() => {
+        await runPersistenceTransaction({
+            domain: "mission", playerId, operation: "update_progress",
+        }, () => {
             const categoryMissionCache = new Map<number, ReturnType<typeof getPlayerCategoryMissionsSync>>()
             for (const param of missionParams) {
                 const delta = addMissionProgressDelta(0, param.progress_value)
@@ -274,7 +276,7 @@ const routes = async (fastify: FastifyInstance) => {
                     updatedCount++
                 }
             }
-        })()
+        })
 
         const characterList = reconcileAwakeUnlockCharacterList(playerId, [])
         const responseData: Record<string, unknown> = {

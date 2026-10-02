@@ -50,7 +50,7 @@ let inFlightRecords = 0, droppedBeforeReady = 0, reloadRequested = false;
 let reloadTimer = null;
 const pendingCleanupMessages = [];
 const pendingCleanupRequests = new Map();
-(0, memory_diagnostics_1.registerMemoryCounters)("npcPool", () => (Object.assign(Object.assign({}, questPoolCache.stats()), { cachedParties: cachedParties.length, pendingRecords: pendingClearRecords.length, inFlightRecords, pendingCleanups: pendingCleanupRequests.size, droppedBeforeReady, workerReady: questPartyPoolWorkerReady })));
+(0, memory_diagnostics_1.registerMemoryCounters)("npcPool", detailed => (Object.assign(Object.assign({}, (detailed ? questPoolCache.stats() : { pools: questPoolCache.pools.size })), { cachedParties: cachedParties.length, pendingRecords: pendingClearRecords.length, inFlightRecords, pendingCleanups: pendingCleanupRequests.size, droppedBeforeReady, workerReady: questPartyPoolWorkerReady })));
 function postRecord(worker, snapshot) {
     worker.postMessage({ type: "record", snapshot });
     inFlightRecords++;

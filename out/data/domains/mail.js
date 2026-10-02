@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getReceiveHistorySync = exports.insertReceiveHistorySync = exports.deleteAllPlayerMailSync = exports.receiveAllMailsSync = exports.receiveMailSync = exports.getUnreceivedPlayerMailsByIdsSync = exports.getPlayerMailCountSync = exports.getPlayerMailsSync = exports.insertMailSync = exports.MailType = void 0;
 const db_1 = require("../db");
+const persistence_coordinator_1 = require("../../lib/persistence-coordinator");
 /**
  * Mail attachment types matching the client's MailKind enum.
  */
@@ -129,7 +130,9 @@ function receiveAllMailsSync(playerId, mailIds) {
         return normalized.filter(mailId => claimed.has(mailId));
     };
     const db = (0, db_1.getDb)();
-    return db.inTransaction ? claim() : db.transaction(claim)();
+    return db.inTransaction
+        ? claim()
+        : (0, persistence_coordinator_1.runPersistenceTransactionSync)({ domain: "mail", playerId, operation: "receive_all_mails" }, claim);
 }
 exports.receiveAllMailsSync = receiveAllMailsSync;
 /**

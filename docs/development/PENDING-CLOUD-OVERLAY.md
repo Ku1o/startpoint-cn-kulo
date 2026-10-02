@@ -278,3 +278,28 @@
 - 尚未核查云服已有其他名单和私有材料；按成品说明用完整现有配对合并，保留管理员设置。先部署配套再分发，保证公网端口 80 与 Android 8001 的准入路由可达；不自动切严格模式。
 - 3568 成员、9 个既有准入入口、69 个 helper、78 个原生函数、2175 重定位、61 跳转桥接及 3 种 ldid 签名模型通过；56 项 AIR 生命周期、37 项双端正式配对/真实账号 HTTP 协议、5 项历史 iOS 失败回归通过。为离线与隔离模拟时间验证，没有 iOS 真机、云服或长时间实战验收。
 - 无存档 ID、表/列、账号归属、V1/V2 格式或 CDN 变更；未操作 MuMu/Android 安装，未提交、推送、同步正式运行镜像、部署/重启云服或制作统一 ZIP，未提升 accepted registry。实现和完整未测边界见 `client-patch/ios-admission-release/README.md`。
+
+## 作者角色、稻穗与芙拉菲最终资源（1.4.117，待云服覆盖）
+
+- 从 1.4.116 追加合并后的 1.4.117，最终分包为 `pinball-1.4.116-1.4.117-1-author-inaho-fluffy-consolidated.zip`；2,072 个成员，SHA-256 `52beab7461f750dc2a386f6f30a1873b606b2724b28e27af148e32aaad70b555`。Git 通过 LFS 管理，部署必须使用真实 ZIP 字节。
+- 包含作者 1043 的十二角色数据、语音、立绘和双平台资源，稻穗技能/队长技/能力调整、分段说明与 C7050 自身目标修复，芙拉菲全队回槽限制目标筛选，以及普通深渊十五个旧 MOD 角色兑换。抽取权重和既有存档结构保持。
+- 运行文件为上述合并 ZIP、完整 `assets/asset-patch/manifest.json`、`assets/gacha.json`、`assets/gacha_cnmod.json`、`assets/cdndata/character_text.json`。旧的独立 1.4.117、1.4.118、1.4.119 分包已被合并条目替代，不重复交付；此前 1.4.116 及更早有效内容保留。
+- 资源字节等价、必填能力目标、胜出的兑换配置和双平台下载已有检查记录。没有新增保存 ID、数据库或存档格式变更；不提供旧测试版本缓存迁移。
+- 客户端机制需作者 423/424、原生 629 与对应 ActionDSL 分类支持。Android 内网成品已验收；此前的直击触发 PF 诊断增量已移除，不属于正式资源。
+- 资源更新接口还需 `src/routes/cn/asset.ts` 与 `out/routes/cn/asset.js`，按已启用 manifest 筛选归档；留存旧包不再重复下发。两个接口文件与前述五个资源文件共同交付，重启服务端加载接口。
+- 资源来源与检查记录见 `assets/asset-patch/audit/session-consolidated-1.4.117-20260924/`；客户端机制见 `client-patch/author-content-1043/`、`client-patch/author-unified-damage/`。
+
+### 双端公网客户端准入配套（待云服覆盖）
+
+- 公网 Android 从已验收作者机制内网版转换；iOS 从 1.8.4 C8601 编队 SET 修复版接续，保留独立编队、原生对象布局及累计功能。成品路径、哈希和准入 ID 见 `client-patch/author-public-release/release.json`。
+- 新号分别为 `android-181-author-1043-20260924` 和 `ios-184-author-1043-20260924`。原有 `android-181-independent-party-20260923`、`ios-184-independent-party-20260923` 及各自密钥继续启用，无新增淘汰期限，严格模式保持。
+- 本批需同时交付资源运行文件和完整 `config/client-admission.json`、`config/client-admission.keys.json`。完整准入配对由仓库外私有主记录提供，不纳入 Git，也不覆盖准入 rollout/激活状态。客户端 APK/IPA 不放入服务器覆盖包。
+- 双端公网成品通过离线载荷与配对检查；iOS 未真机测试。覆盖配套并重启服务端后使用新包登录；无依赖或数据库迁移。本地成品、提交或同步均不代表云服已部署。
+
+## 八岐大蛇超级+与商店/UI修复（1.4.124，待后续授权交付）
+
+- 由 1.4.123 衔接生成单一增量 `pinball-1.4.123-1.4.124-1-orochi-superplus-shop-ui-20261001.zip`，登记为 1.4.124 candidate-only；包含八岐大蛇超级+韧性 50 倍、蛇头重生冷却 300 帧、蛇神残响商店兑换与货币列表补齐。
+- 商店商品 202049 为 500 个蛇神残响兑换角色 129990 海豹球×1，库存 1，永久有效；按当前要求不加入“如何获得”索引。
+- 救援铃铛展开红框的“超级+”问题经模拟器复测仍未修复，失败尝试不纳入本次可交付 ZIP；后续需单独排查。
+- 当前可交付 ZIP 4 个成员，SHA-256 `2efdb302c36fc582a5fff4282a25e2d5af62a57d1290f1b9678498e4b753318d`。没有修改 SWF、APK/IPA；本地运行目录已同步并重启，云服仍待后续授权交付。
+- 后续授权交付时使用 source `assets/asset-patch/active/` 中的最终 ZIP、manifest 和商店服务端三份源文件；审计位于 `assets/asset-patch/audit/orochi-superplus-shop-ui-1.4.124/`。

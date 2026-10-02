@@ -1,0 +1,1311 @@
+{
+  "schema": "inaho-terminal-resources-v1",
+  "baseline": "1.4.115",
+  "version": "1.4.116",
+  "inputs": {
+    "base_sha256": "2a81e2f01066da6ee71ea175349211c9ce8348daa7ef2a4425a9138755768782",
+    "supplement_sha256": "fc58b8a7e34dae45e2ba708a309a20593bfc8e3098d859b31e344907674a5431",
+    "supplement_terminal_version": "1.4.139"
+  },
+  "client": {
+    "apk_sha256": "0934165fcabdea00ecbf96dca7a9e732d6218e8e31a7d7d2f9d401feb440691f",
+    "swf_sha256": "f1f6a76821033fcae70bb9ea232e2de699f2a4766c9c5da9b0bcfa6c7b1241ea",
+    "resource_constants": [
+      "battle/effect/ability_damage/inaho_midautumn_wip/",
+      "battle/effect/skill_unique/inaho_midautumn_wip/midautumn_native/effect",
+      "moonlight_shot_gold_jade",
+      "moonlight_launch",
+      "moonlight_hit"
+    ]
+  },
+  "files": [
+    {
+      "member": "production/android_upload/1f/b888615a4006ae8dd70ad9f10c1f63e3c333db",
+      "logical": "character/cnmod_inaho_midautumn/ui/skill_cutin_0.atf.deflate",
+      "size": 157811,
+      "sha256": "be595e6978cce9f2fdb34710db3eb4d35137a96423f29243d01b262c57600943",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/android_upload/3b/e0a9e2faea8e8444df9456021502ead8e39ce6",
+      "logical": "character/cnmod_inaho_midautumn/ui/skill_cutin_1.atf.deflate",
+      "size": 191473,
+      "sha256": "7dc59338b2313cab52dd2e5d3279c2c3691cb9dfca09ccf6389b651af633eb9a",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/ios_upload/1f/b888615a4006ae8dd70ad9f10c1f63e3c333db",
+      "logical": "character/cnmod_inaho_midautumn/ui/skill_cutin_0.atf.deflate",
+      "size": 211089,
+      "sha256": "2ebdc3455af19791264e4df24b947bd601902855e54fb1e8d05ba4bb76b8db2e",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/ios_upload/3b/e0a9e2faea8e8444df9456021502ead8e39ce6",
+      "logical": "character/cnmod_inaho_midautumn/ui/skill_cutin_1.atf.deflate",
+      "size": 255293,
+      "sha256": "bf9b85f7918b4ed5a7536c109869def96b64f7726561ed3f9656566c64d7c5d1",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/medium_upload/11/d51a7e66ac25232bfc4b3363b76b056ed45c20",
+      "logical": "character/cnmod_inaho_midautumn/ui/square_132_132_1.png",
+      "size": 45428,
+      "sha256": "f2ae8f24b15dc6be689edc322e8d0b8a0294315a842b923d0bb2e40dd08b7e8b",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/medium_upload/13/85c44659e9be55cc06118b5ed2fc1c233ecdc9",
+      "logical": "character/cnmod_inaho_midautumn/ui/full_shot_1440_1920_0.png",
+      "size": 1615529,
+      "sha256": "72feaa9d3392ed648014db2302a12d15d787e2cdcb69c691c270923c03dad7c6",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/medium_upload/21/350238ed0393b6ea058fcbd3d818b79e435608",
+      "logical": "character/cnmod_inaho_midautumn/ui/full_shot_1440_1920_1.png",
+      "size": 2197307,
+      "sha256": "b62363a4eefd54b2aa69bbaf0b05e8e95cb6cf1900ee43d03c9fcbc0b39765fa",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/medium_upload/24/12bd3f2afc351ae44ca0236e2abd26fcc2220c",
+      "logical": "character/cnmod_inaho_midautumn/ui/thumb_party_unison_0.png",
+      "size": 69660,
+      "sha256": "3aae361dff3e937b3b2a92301e151dff9104f675dc525839b15bf636e19b899a",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/medium_upload/24/1b7caa3d2ca5181bb4a96c2c0983834d556895",
+      "logical": "character/cnmod_inaho_midautumn/ui/illustration_setting_sprite_sheet.png",
+      "size": 512907,
+      "sha256": "9e598b7520eeff52988029e48dedd53839e481abb4cf363c2875c228a0efc15d",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/medium_upload/28/f1f504b16624a1718cd51c2a079f50b4c9c32f",
+      "logical": "character/cnmod_inaho_midautumn/ui/square_1.png",
+      "size": 106675,
+      "sha256": "e652358ab61b3d14acee9debdd87018a8a0dab11784fe1b04518aff7a364e870",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/medium_upload/30/149d3a31900f002ebab71a040d22feffa7fcd3",
+      "logical": "character/cnmod_inaho_midautumn/ui/square_round_95_95_0.png",
+      "size": 25584,
+      "sha256": "e2a72be59bbf6614f9f7dd68c889619aeb7c6fdfd4ef67e49997f5e257d2bcec",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/medium_upload/43/5a7147a1fa8003912314e1c9a08ae0bc2122ee",
+      "logical": "character/cnmod_inaho_midautumn/ui/thumb_party_unison_1.png",
+      "size": 71208,
+      "sha256": "f7f399bda959f3d76ed666f71565e38793161f359739b5ae41315c947da627f5",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/medium_upload/4d/6d046d2932ab0f8bece106928dab3cce30243c",
+      "logical": "character/cnmod_inaho_midautumn/ui/battle_member_status_1.png",
+      "size": 9528,
+      "sha256": "311e454b17003ac0476079dfa2a7ec2a4fd3ff4f14dbe39726bcc7e03ff69182",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/medium_upload/5b/7327151b3b6b49d858571b0590610251c7e0b8",
+      "logical": "character/cnmod_inaho_midautumn/ui/battle_control_board_1.png",
+      "size": 71737,
+      "sha256": "23fcc2d2efb9fc213a863230ff089c34323db418b9442abee80e568c4db5ffcb",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/medium_upload/60/30590105715faca80e8741a56f6b8803ac934a",
+      "logical": "character/cnmod_inaho_midautumn/ui/thumb_party_main_1.png",
+      "size": 177453,
+      "sha256": "b4e935704144d22bf96d11dce0659bce400ae02e158f60432a0975c10f19a07e",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/medium_upload/6c/078681c247585b9fba210787c1d863da11bd6d",
+      "logical": "character/cnmod_inaho_midautumn/ui/battle_member_status_0.png",
+      "size": 9817,
+      "sha256": "674561c71dccec70dc0b65c59b578c5342bec2a4fa48774cfc4dd2a9043e755b",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/medium_upload/6f/432f30a373df43f12bd63b10cf1be2c6bcafa1",
+      "logical": "character/cnmod_inaho_midautumn/ui/thumb_level_up_0.png",
+      "size": 188094,
+      "sha256": "de9510036dc4e3dba89787a3d7c261d457f0bc54db4970b4da68437776dddb64",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/medium_upload/7a/46a8bbf8b2f058d1f5cd4615a3a5ab871ee659",
+      "logical": "character/cnmod_inaho_midautumn/ui/battle_control_board_0.png",
+      "size": 74145,
+      "sha256": "6acadcbdc923805d4b1059e3c2c775b8c3e7e2aa32ef6a018a5a0ccaf526425d",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/medium_upload/7f/e196bf0de19d037f5d03b3717076e961f35911",
+      "logical": "character/cnmod_inaho_midautumn/ui/thumb_level_up_1.png",
+      "size": 198500,
+      "sha256": "0416de8670f485cd9f241805b00c9fc7818311898f45c075abd30925d6caf3ce",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/medium_upload/86/e3b97cd7f7fde8293d027d307eef42ea5aeb7a",
+      "logical": "character/cnmod_inaho_midautumn/ui/square_132_132_0.png",
+      "size": 45852,
+      "sha256": "e9e09217cde78d26b905cd17e3ed3806b946de2f016c45c4838803d37b7e9d53",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/medium_upload/8c/13fcfec38d35d285060444ff321a4dc3e6c3ee",
+      "logical": "character/cnmod_inaho_midautumn/ui/square_round_136_136_1.png",
+      "size": 47955,
+      "sha256": "4417b576ff68f910027e0b8d33a336cd88ada56a2763c7231b3cdeb258f01348",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/medium_upload/9a/b678e7023c53fb0e96609243cf5dd5142746a9",
+      "logical": "character/cnmod_inaho_midautumn/ui/square_round_95_95_1.png",
+      "size": 25092,
+      "sha256": "a9b667651ace34831df70097b0514c79212795f0d7c4835c47e381deb0bce591",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/medium_upload/9d/996cf5982fffe97a81112b43c4a61afc65595e",
+      "logical": "character/cnmod_inaho_midautumn/ui/square_round_136_136_0.png",
+      "size": 48454,
+      "sha256": "c7e918f85efade1d3ba0b0860add00b9049a4613a836d0ef7de39467629d1fd4",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/medium_upload/a4/abd6e3f417e8aaaa673375ea6e7d721ef99377",
+      "logical": "character/cnmod_inaho_midautumn/ui/cutin_skill_chain_1.png",
+      "size": 199086,
+      "sha256": "d17cddab8b5068fd6f925612301da54a45ef53d05f5e5b205254623ff1b94ff5",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/medium_upload/e3/4a70dff8c3928be7cafefbdf13c7cc3e9b7b6a",
+      "logical": "character/cnmod_inaho_midautumn/ui/square_0.png",
+      "size": 106009,
+      "sha256": "abda20909086ade15ce750cf8c7fa98f862d58bf28dfe82c96da91049f38d3dc",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/medium_upload/eb/6fc28ea98ffd0807562d96bb51fa2c5e0902be",
+      "logical": "character/cnmod_inaho_midautumn/ui/thumb_party_main_0.png",
+      "size": 174065,
+      "sha256": "f568cd45614c502976c348e1e174bcd5bf6b35dbbca83d5241f1a07baf94c757",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/medium_upload/f4/17d8be8e26ae879bec76eb92f00dad6bf546bb",
+      "logical": "character/cnmod_inaho_midautumn/ui/cutin_skill_chain_0.png",
+      "size": 193707,
+      "sha256": "ddcc4184da89edbc13dd9bd9e163985ccf4dd998b42ff26b503676a55284d450",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/small_upload/11/d51a7e66ac25232bfc4b3363b76b056ed45c20",
+      "logical": "character/cnmod_inaho_midautumn/ui/square_132_132_1.png",
+      "size": 23865,
+      "sha256": "041e19381290c9a9734e8a2c239f336d54ba09209cff9a1c6e5828b2210209cd",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/small_upload/13/85c44659e9be55cc06118b5ed2fc1c233ecdc9",
+      "logical": "character/cnmod_inaho_midautumn/ui/full_shot_1440_1920_0.png",
+      "size": 906373,
+      "sha256": "d3719a3fe45c5c63c2e892ec57bf35059c0d70c028fe231be44086232c90ba10",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/small_upload/21/350238ed0393b6ea058fcbd3d818b79e435608",
+      "logical": "character/cnmod_inaho_midautumn/ui/full_shot_1440_1920_1.png",
+      "size": 1223905,
+      "sha256": "2edbd3f1b94f4f883fec653a4dd0f6dae125dc5aee126284369ebb298993bfb1",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/small_upload/24/12bd3f2afc351ae44ca0236e2abd26fcc2220c",
+      "logical": "character/cnmod_inaho_midautumn/ui/thumb_party_unison_0.png",
+      "size": 37725,
+      "sha256": "f6d6d62ce6e75f51e567365af21d45811a8f515f386f3cd1618b575952400808",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/small_upload/24/1b7caa3d2ca5181bb4a96c2c0983834d556895",
+      "logical": "character/cnmod_inaho_midautumn/ui/illustration_setting_sprite_sheet.png",
+      "size": 283452,
+      "sha256": "c34fa6bd629bc6de5b675fe380e4870a98891c92ca2c52c89e441b5dec11aee2",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/small_upload/28/f1f504b16624a1718cd51c2a079f50b4c9c32f",
+      "logical": "character/cnmod_inaho_midautumn/ui/square_1.png",
+      "size": 56689,
+      "sha256": "7c99e0c05c066f16acff1b36578f061cac245233515c6b74b682ea335cf20640",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/small_upload/30/149d3a31900f002ebab71a040d22feffa7fcd3",
+      "logical": "character/cnmod_inaho_midautumn/ui/square_round_95_95_0.png",
+      "size": 13854,
+      "sha256": "94533b2b715f9ef4dcd1886d73c9b0fb04ece0c7c202aa9cf32d1bca457472b9",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/small_upload/43/5a7147a1fa8003912314e1c9a08ae0bc2122ee",
+      "logical": "character/cnmod_inaho_midautumn/ui/thumb_party_unison_1.png",
+      "size": 37959,
+      "sha256": "539ca7a8fb71fbfd42c086e768668a2f1e4a1a9260120781470b1e3465206ca8",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/small_upload/4d/6d046d2932ab0f8bece106928dab3cce30243c",
+      "logical": "character/cnmod_inaho_midautumn/ui/battle_member_status_1.png",
+      "size": 4808,
+      "sha256": "1600c3da33cece1d12a5034d9447f1a02762cc4a67d0f6f88b565db7544a6431",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/small_upload/5b/7327151b3b6b49d858571b0590610251c7e0b8",
+      "logical": "character/cnmod_inaho_midautumn/ui/battle_control_board_1.png",
+      "size": 29532,
+      "sha256": "e92b3094c6dd96507a0bd495f50815d4032722037bd47b06f07d43a2a4557c1f",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/small_upload/60/30590105715faca80e8741a56f6b8803ac934a",
+      "logical": "character/cnmod_inaho_midautumn/ui/thumb_party_main_1.png",
+      "size": 93914,
+      "sha256": "9936994e0da51a92e8e9fe5cc2f13e09ed02a5427ead2ddbea77d19edfe8ab77",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/small_upload/6c/078681c247585b9fba210787c1d863da11bd6d",
+      "logical": "character/cnmod_inaho_midautumn/ui/battle_member_status_0.png",
+      "size": 4930,
+      "sha256": "981ad39decf265260a600240c32530f30d975c3d64d348e7b5f2c45edcfd2040",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/small_upload/6f/432f30a373df43f12bd63b10cf1be2c6bcafa1",
+      "logical": "character/cnmod_inaho_midautumn/ui/thumb_level_up_0.png",
+      "size": 101570,
+      "sha256": "2053e4fdb47311495cbbdc2a7dc102ba8f1bf142bc16cf4b90712abe2943b672",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/small_upload/7a/46a8bbf8b2f058d1f5cd4615a3a5ab871ee659",
+      "logical": "character/cnmod_inaho_midautumn/ui/battle_control_board_0.png",
+      "size": 30782,
+      "sha256": "9e2081fc93f9aa3457345861fcc3b37ef04c991f6f816ef3fbd8e602f221619e",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/small_upload/7f/e196bf0de19d037f5d03b3717076e961f35911",
+      "logical": "character/cnmod_inaho_midautumn/ui/thumb_level_up_1.png",
+      "size": 105381,
+      "sha256": "d36427a25397e83910678a7eb3a7ee58f78f9ac252103ec8996f05677cdd63bb",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/small_upload/86/e3b97cd7f7fde8293d027d307eef42ea5aeb7a",
+      "logical": "character/cnmod_inaho_midautumn/ui/square_132_132_0.png",
+      "size": 24369,
+      "sha256": "52a609ae8b9ed5a93d0124085d785075e7a61e70267ade28e96b18e33880e835",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/small_upload/8c/13fcfec38d35d285060444ff321a4dc3e6c3ee",
+      "logical": "character/cnmod_inaho_midautumn/ui/square_round_136_136_1.png",
+      "size": 25312,
+      "sha256": "c90005460b6f2d71cdebaa92438292dfb6b2095f7f82351d6b2d5f854782a5f5",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/small_upload/9a/b678e7023c53fb0e96609243cf5dd5142746a9",
+      "logical": "character/cnmod_inaho_midautumn/ui/square_round_95_95_1.png",
+      "size": 13361,
+      "sha256": "12b81b742942ee5336569f046974e2d68285003a0611ddd3b3040fd4022d03a7",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/small_upload/9d/996cf5982fffe97a81112b43c4a61afc65595e",
+      "logical": "character/cnmod_inaho_midautumn/ui/square_round_136_136_0.png",
+      "size": 25916,
+      "sha256": "8233e7ba7d6688de66df5cd567a8da58c97676c927840579b2064a4343a904be",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/small_upload/a4/abd6e3f417e8aaaa673375ea6e7d721ef99377",
+      "logical": "character/cnmod_inaho_midautumn/ui/cutin_skill_chain_1.png",
+      "size": 88550,
+      "sha256": "4081a14f3a654e9e5d8c5e99ae6810a982d54d08364267a05f441c928b75a443",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/small_upload/e3/4a70dff8c3928be7cafefbdf13c7cc3e9b7b6a",
+      "logical": "character/cnmod_inaho_midautumn/ui/square_0.png",
+      "size": 57024,
+      "sha256": "92cd854fa9c2c064765f1aeab20b28fa65afec6b1a4aa3dc93be9ee053206607",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/small_upload/eb/6fc28ea98ffd0807562d96bb51fa2c5e0902be",
+      "logical": "character/cnmod_inaho_midautumn/ui/thumb_party_main_0.png",
+      "size": 93491,
+      "sha256": "e843718901f00becb9fc3541ceb00c1c26ae15bf708780078d037d4ebc568cb8",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/small_upload/f4/17d8be8e26ae879bec76eb92f00dad6bf546bb",
+      "logical": "character/cnmod_inaho_midautumn/ui/cutin_skill_chain_0.png",
+      "size": 86497,
+      "sha256": "9b101c0ea731fd56323177d5ab0f65439e225debf5cf161a36c651bde1ba2a25",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/upload/01/444ac2a2a0eea81551c0c4307c3837592b7f67",
+      "logical": "battle/effect/ability_damage/inaho_midautumn_wip/moonlight_launch.parts.amf3.deflate",
+      "size": 801,
+      "sha256": "2729a9807f3ae31eb4131e060bbc3618b4e459967da520dc489efc087b9bf530",
+      "source": "supplement",
+      "change": "added"
+    },
+    {
+      "member": "production/upload/06/3c47fa5a30c4e5e7fb91d125db2291b9b62a15",
+      "logical": "battle/effect/ability_damage/inaho_midautumn_wip/moonlight_launch.timeline.amf3.deflate",
+      "size": 94,
+      "sha256": "d55d98fac24b6da5705cc0c6718eed62c437871368995d6694836645792ee4b0",
+      "source": "supplement",
+      "change": "added"
+    },
+    {
+      "member": "production/upload/07/0c6e214359ccf27b1cb8078d3fc51aecfe0149",
+      "logical": "master/string/custom_ability_string.orderedmap",
+      "size": 48453,
+      "sha256": "30c7a24160b770c39c2d10823ede6eef9b56372fa7fd6594274d8b2c496c04ef",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/upload/08/33e4ac8cb7970141f0766e3e9e451b68c2714a",
+      "logical": "battle/action/skill/action/rare5/cnmod_inaho_midautumn$cnmod_inaho_midautumn_2.action.dsl.amf3.deflate",
+      "size": 1246,
+      "sha256": "22a566c867b96856fa3e52c9552d97c23c9df39769cefa0a5dcf2600400f0af3",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/upload/0b/ed6c281e15ea76f1f73f667161d3b7d5db69fb",
+      "logical": "battle/effect/powerflip/inaho_midautumn_moonwake/mote_lv1.parts.amf3.deflate",
+      "size": 780,
+      "sha256": "b533256a8f7712ebfa95af2fcda2fd955c461acadb3ccb9978d87f1abdb14999",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/upload/11/d51a7e66ac25232bfc4b3363b76b056ed45c20",
+      "logical": "character/cnmod_inaho_midautumn/ui/square_132_132_1.png",
+      "size": 45428,
+      "sha256": "f2ae8f24b15dc6be689edc322e8d0b8a0294315a842b923d0bb2e40dd08b7e8b",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/upload/13/1bf011c6056c7dd7e660e3fa297cb5e6d69992",
+      "logical": "character/cnmod_inaho_midautumn/voice/home/moon.mp3",
+      "size": 308496,
+      "sha256": "89947acf9bdcc25534b1a4e46d68973020c9f8b6185af6b607213e8ab5ea6233",
+      "source": "supplement",
+      "change": "updated"
+    },
+    {
+      "member": "production/upload/13/85c44659e9be55cc06118b5ed2fc1c233ecdc9",
+      "logical": "character/cnmod_inaho_midautumn/ui/full_shot_1440_1920_0.png",
+      "size": 1615529,
+      "sha256": "72feaa9d3392ed648014db2302a12d15d787e2cdcb69c691c270923c03dad7c6",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/upload/13/b76e2279a1280b03b291922e9b3773968cc83a",
+      "logical": "battle/effect/powerflip/inaho_midautumn_moonwake/aura_lv3.timeline.amf3.deflate",
+      "size": 96,
+      "sha256": "d1f2278776df94404ceb4b00a367dd95153e3fca12879d16836e2aadd1c97a0d",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/upload/19/a89c7adeb623e9aca01a81c83472982b88b2df",
+      "logical": "character/cnmod_inaho_midautumn/voice/home/wish.mp3",
+      "size": 226368,
+      "sha256": "9d90d7222201fdb8bf1940d9f60c3e65f7e3faf1df45968501b82817ab612d99",
+      "source": "supplement",
+      "change": "updated"
+    },
+    {
+      "member": "production/upload/1c/8c7f90d9a3cf54fa70b5c0834d15a6e3a425d6",
+      "logical": "battle/effect/ability_damage/inaho_midautumn_wip/moonlight_hit.timeline.amf3.deflate",
+      "size": 96,
+      "sha256": "a3201a682dabab58f847ffe5cd66d2bbb514fa291cb0226b360c74b2d430943d",
+      "source": "supplement",
+      "change": "added"
+    },
+    {
+      "member": "production/upload/1d/222e5126fc7ebe3f22c7efe87325f73742eb4f",
+      "logical": "master/mana_board/mana_node.orderedmap",
+      "size": 1185742,
+      "sha256": "9351ad5ab3192d200a5179c4050ac5c0728e9e2ebd0aac1b49592f0a72acc03b",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/upload/1e/664c1cc8d80f4f9a69aae2c49ae8c01d1c4001",
+      "logical": "master/ability/ability.orderedmap",
+      "size": 377010,
+      "sha256": "0214d544c5f91d5acc8b5faf475a1f6430499b9ed2dcddf689959c4f9c332dd8",
+      "source": "supplement",
+      "change": "preserved"
+    },
+    {
+      "member": "production/upload/21/350238ed0393b6ea058fcbd3d818b79e435608",
+      "logical": "character/cnmod_inaho_midautumn/ui/full_shot_1440_1920_1.png",
+      "size": 2197307,
+      "sha256": "b62363a4eefd54b2aa69bbaf0b05e8e95cb6cf1900ee43d03c9fcbc0b39765fa",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/upload/21/36e76a3fba9bff257079ec89ce0c08fa9c89c6",
+      "logical": "battle/effect/powerflip/inaho_midautumn_moonwake/aura_lv2.parts.amf3.deflate",
+      "size": 4215,
+      "sha256": "b6c738cdf9584777758f74cdf584c766c60c7c77a450fd295fe1a384b4bb098b",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/upload/21/7af3b4a3036ecd8bcf8158487a2d1950534dc5",
+      "logical": "battle/effect/powerflip/inaho_midautumn_moonwake/mote_lv2.parts.amf3.deflate",
+      "size": 1198,
+      "sha256": "de9405106739471224c1715bfbc7dde116eb2609be9ef231a1cac80b49bed68b",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/upload/23/0850fb3e1d729cddcdcf82d91ddd47223874a4",
+      "logical": "battle/effect/powerflip/inaho_midautumn_moonwake/mote_lv2.timeline.amf3.deflate",
+      "size": 94,
+      "sha256": "a62a90d933f2417436d4bf927b97ed5297264cd5ae47ef3909566a12053d1137",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/upload/24/12bd3f2afc351ae44ca0236e2abd26fcc2220c",
+      "logical": "character/cnmod_inaho_midautumn/ui/thumb_party_unison_0.png",
+      "size": 69660,
+      "sha256": "3aae361dff3e937b3b2a92301e151dff9104f675dc525839b15bf636e19b899a",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/upload/24/1b7caa3d2ca5181bb4a96c2c0983834d556895",
+      "logical": "character/cnmod_inaho_midautumn/ui/illustration_setting_sprite_sheet.png",
+      "size": 512907,
+      "sha256": "9e598b7520eeff52988029e48dedd53839e481abb4cf363c2875c228a0efc15d",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/upload/24/430aefd98cdbe3638904c15e49effb9ce09762",
+      "logical": "battle/effect/skill_unique/cnmod_inaho_midautumn/midautumn_native/midautumn_native.atlas.amf3.deflate",
+      "size": 302,
+      "sha256": "f5d4b094a80c4bb7bee25d070404fe13c2b60afc2d4dcda8bdba06c5eeb38ab6",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/upload/25/d661e53a10c0b373a03ba4271011a6f3958b00",
+      "logical": "battle/effect/skill_unique/inaho_midautumn_wip/midautumn_native/effect.timeline.amf3.deflate",
+      "size": 97,
+      "sha256": "f887bcc91830c0011e35906448f6dfc15e7c3f86d4fed514c09be03ba92cf151",
+      "source": "supplement",
+      "change": "added"
+    },
+    {
+      "member": "production/upload/27/7b65484214436114201ae654fefa60fdc822ea",
+      "logical": "master/generated/mana_board.orderedmap",
+      "size": 944631,
+      "sha256": "d5b0234724dcd036e756242caa86cdb4db8a6a2b383de273c211d92e7d08c74d",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/upload/28/173b6178855e649d7a94bbc8db0ac91061dc7e",
+      "logical": "character/cnmod_inaho_midautumn/voice/battle/skill_0.mp3",
+      "size": 37377,
+      "sha256": "586fd32c58a7321a1631d00e20b0889a702cdcac70e144a15a21fea90893a10e",
+      "source": "supplement",
+      "change": "preserved"
+    },
+    {
+      "member": "production/upload/28/f1f504b16624a1718cd51c2a079f50b4c9c32f",
+      "logical": "character/cnmod_inaho_midautumn/ui/square_1.png",
+      "size": 106675,
+      "sha256": "e652358ab61b3d14acee9debdd87018a8a0dab11784fe1b04518aff7a364e870",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/upload/29/b9578c94dda50162fd1024b9a019d340d4e188",
+      "logical": "character/cnmod_inaho_midautumn/pixelart/special.frame.amf3.deflate",
+      "size": 85,
+      "sha256": "cd8e8a2564e4f0829d0758baa3c4ae1fcfc7ab06ac93e0fa154f4c4351e59a1e",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/upload/2c/51a0cdaa4f283b25cb4ab3d3b1c809ca4d3ce7",
+      "logical": "character/cnmod_inaho_midautumn/pixelart/special_sprite_sheet.png",
+      "size": 14295,
+      "sha256": "2e582c6b24b34be5f750470cd51f9517b6d3d6ba96844c522d0eaafead20a87d",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/upload/2c/c11fd9572e7e8ec259c93b37441a70f7412e80",
+      "logical": "character/cnmod_inaho_midautumn/voice/battle/battle_start_1.mp3",
+      "size": 20426,
+      "sha256": "de2d049889061018c0fa35a05f6907c95c92337494e15c020255122c91b11c77",
+      "source": "supplement",
+      "change": "preserved"
+    },
+    {
+      "member": "production/upload/2d/5cb9b28d18f984a51b345a4d7aab03d77bddfc",
+      "logical": "master/character/character.orderedmap",
+      "size": 85534,
+      "sha256": "a101333e00d4843742462541e64868d2e4cb21cba1b9981fd2dcfcd16fad0111",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/upload/2f/9ab06e526f7161a4df666e143a71661172552c",
+      "logical": "battle/effect/ability_damage/inaho_midautumn_wip/moonlight_hit.parts.amf3.deflate",
+      "size": 4210,
+      "sha256": "789203674e9c17b6de1003b4a1a421c6c5072a701d99b4980d8f566d792c4708",
+      "source": "supplement",
+      "change": "added"
+    },
+    {
+      "member": "production/upload/30/149d3a31900f002ebab71a040d22feffa7fcd3",
+      "logical": "character/cnmod_inaho_midautumn/ui/square_round_95_95_0.png",
+      "size": 25584,
+      "sha256": "e2a72be59bbf6614f9f7dd68c889619aeb7c6fdfd4ef67e49997f5e257d2bcec",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/upload/30/cbcd99de1aa6e8d245221619b393721df551b4",
+      "logical": "master/character/unique_condition.orderedmap",
+      "size": 13696,
+      "sha256": "7488599dc043ba4dfe9aa65bad4b590aa84dd95d61cb9c64ef2342938aa052b3",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/upload/33/e98992d7d219358289cb48464ae94668ddecdb",
+      "logical": "character/cnmod_inaho_midautumn/voice/battle/skill_ready.mp3",
+      "size": 21975,
+      "sha256": "59662e0b9ed7838816399f27fd35e6d9ffbfc8552846f9fa22d33cb28cfe4edc",
+      "source": "supplement",
+      "change": "preserved"
+    },
+    {
+      "member": "production/upload/38/dbe3524fee49989cccd10f2204238d25600cc8",
+      "logical": "master/skill/power_flip_action.orderedmap",
+      "size": 3368,
+      "sha256": "7e2e86e9ec605b33d7e78c750ebecd5afb4dda14272ad6f2d5133d0529bca7c5",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/upload/3e/b411841802398d5b21d422579f2eaa65d30c0e",
+      "logical": "master/generated/character_image.orderedmap",
+      "size": 47185,
+      "sha256": "25cb91d6988c089bc486c5d9d5adcdc871e1116f2d0069f30f3b95606a326c22",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/upload/3f/c51f8d63becd1630c20b3ab0a66d44abd3aa83",
+      "logical": "battle/action/power_flip/action/override/cnmod_inaho_midautumn$cnmod_inaho_midautumn_lv1.action.dsl.amf3.deflate",
+      "size": 501,
+      "sha256": "142fccd72024980101a1008479b8e64d95ce9128b33ff95a922a4716d8f6508f",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/upload/3f/f9de60da428044745d1dd6e68eb592242d39e0",
+      "logical": "character/cnmod_inaho_midautumn/pixelart/sprite_sheet.atlas.amf3.deflate",
+      "size": 1199,
+      "sha256": "52d458c5e782bee7048d3a066044f428b81153e367c603967b806303f1917147",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/upload/41/0d63f2e4c91b66d22b38caf4e7b886633cd373",
+      "logical": "battle/effect/powerflip/inaho_midautumn_moonwake/aura_lv2.timeline.amf3.deflate",
+      "size": 96,
+      "sha256": "d1f2278776df94404ceb4b00a367dd95153e3fca12879d16836e2aadd1c97a0d",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/upload/41/69e203a7dd36a6f324820fa7a65115c4ffad28",
+      "logical": "battle/effect/powerflip/inaho_midautumn_moonwake/aura_lv3.parts.amf3.deflate",
+      "size": 6578,
+      "sha256": "4be15f9806ea5e85099d8e11bf35eb04e9064fffe7be8e25b7167e559a7e6736",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/upload/42/1b2ce91697eb9563c37e00503dbfe1b9b01a26",
+      "logical": "character/cnmod_inaho_midautumn/voice/ally/join.mp3",
+      "size": 454573,
+      "sha256": "304e52db37dce6ba8c0308e888670ab8c74af5e7c47dc2c2079996e78a4726a0",
+      "source": "supplement",
+      "change": "updated"
+    },
+    {
+      "member": "production/upload/43/5a7147a1fa8003912314e1c9a08ae0bc2122ee",
+      "logical": "character/cnmod_inaho_midautumn/ui/thumb_party_unison_1.png",
+      "size": 71208,
+      "sha256": "f7f399bda959f3d76ed666f71565e38793161f359739b5ae41315c947da627f5",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/upload/4d/6d046d2932ab0f8bece106928dab3cce30243c",
+      "logical": "character/cnmod_inaho_midautumn/ui/battle_member_status_1.png",
+      "size": 9528,
+      "sha256": "311e454b17003ac0476079dfa2a7ec2a4fd3ff4f14dbe39726bcc7e03ff69182",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/upload/4d/79b6b8ff674975b4ebd6b54051de0b2a3ad0d1",
+      "logical": "character/cnmod_inaho_midautumn/battle/character_detail_skill_preview.battle.amf3.deflate",
+      "size": 143,
+      "sha256": "1815174862202ab6e8878ee1590dc2bc0e2cd2bf91cc242f887cf6f835a2b23b",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/upload/4e/256dbf9666efd23101b24ca80f48c7aefa5b9a",
+      "logical": "battle/effect/powerflip/inaho_midautumn_moonwake/inaho_midautumn_moonwake.png",
+      "size": 5413,
+      "sha256": "a39e871d6f4301eb86b4214582ee7a9309d7fd5bf42e320959b73c99fa2182a9",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/upload/52/daf4bb3f2d68b492a4ac6c409f3c8f985d6639",
+      "logical": "character/cnmod_inaho_midautumn/voice/home/gift.mp3",
+      "size": 214456,
+      "sha256": "3291b96f59cc8b2c720bd708fbe47c5a07a505bb23bb37adb4897a8ca7d8dcb4",
+      "source": "supplement",
+      "change": "updated"
+    },
+    {
+      "member": "production/upload/57/8872ecbc78561807e6846b3980c5dea980d8ce",
+      "logical": "master/mana_board/upskill.orderedmap",
+      "size": 24476,
+      "sha256": "e48479870f14c34f4cdd0de92a9ded0673027617d41901454c9a9c81aa16d952",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/upload/5b/7327151b3b6b49d858571b0590610251c7e0b8",
+      "logical": "character/cnmod_inaho_midautumn/ui/battle_control_board_1.png",
+      "size": 71737,
+      "sha256": "23fcc2d2efb9fc213a863230ff089c34323db418b9442abee80e568c4db5ffcb",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/upload/5c/6a4f0e2ceb1dbcf60f9b306b0f7bfd0eca55c9",
+      "logical": "master/character/character_status.orderedmap",
+      "size": 64188,
+      "sha256": "1bc3e214c34602c95a4c9219f99a7b6fdc040b2cccfffa0fdc4135a28dec6b16",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/upload/5e/755f968ce68dd8f4117866e760b3883baf1512",
+      "logical": "character/cnmod_inaho_midautumn/voice/battle/win_1.mp3",
+      "size": 59601,
+      "sha256": "8fd6d1c3f65194dd2d0e99b58aac471720745607a741dca3d585235648dfd36e",
+      "source": "supplement",
+      "change": "preserved"
+    },
+    {
+      "member": "production/upload/60/30590105715faca80e8741a56f6b8803ac934a",
+      "logical": "character/cnmod_inaho_midautumn/ui/thumb_party_main_1.png",
+      "size": 177453,
+      "sha256": "b4e935704144d22bf96d11dce0659bce400ae02e158f60432a0975c10f19a07e",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/upload/61/4e65bdcfd9063ebd611519f986db1cd2d4e1f2",
+      "logical": "character/cnmod_inaho_midautumn/voice/home/mooncake.mp3",
+      "size": 258968,
+      "sha256": "7280352a3d70aadcc1333fb215396c94ed805722df2ec0dce0f82d4bdac02b94",
+      "source": "supplement",
+      "change": "updated"
+    },
+    {
+      "member": "production/upload/64/91cb4c9d1ff9646006295bf573802a2d1d46c7",
+      "logical": "battle/effect/skill_unique/inaho_midautumn_wip/midautumn_native/midautumn_native.png",
+      "size": 3204,
+      "sha256": "e7f70e5d2139521de60dcbc02de01aec08f8277e2a65d0951b53d00f0421694e",
+      "source": "supplement",
+      "change": "added"
+    },
+    {
+      "member": "production/upload/6b/964c1951a003b91c5fc35d6aed3343e360373b",
+      "logical": "character/cnmod_inaho_midautumn/pixelart/sprite_sheet.png",
+      "size": 8841,
+      "sha256": "c97d1c058c5df831f7c6b223d23de4cabb19d8783b4b097db636644032333e2a",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/upload/6c/078681c247585b9fba210787c1d863da11bd6d",
+      "logical": "character/cnmod_inaho_midautumn/ui/battle_member_status_0.png",
+      "size": 9817,
+      "sha256": "674561c71dccec70dc0b65c59b578c5342bec2a4fa48774cfc4dd2a9043e755b",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/upload/6f/432f30a373df43f12bd63b10cf1be2c6bcafa1",
+      "logical": "character/cnmod_inaho_midautumn/ui/thumb_level_up_0.png",
+      "size": 188094,
+      "sha256": "de9510036dc4e3dba89787a3d7c261d457f0bc54db4970b4da68437776dddb64",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/upload/76/0607e702b57b7dbe2e95de68e05fead953dd7d",
+      "logical": "character/cnmod_inaho_midautumn/voice/battle/win_0.mp3",
+      "size": 36083,
+      "sha256": "f4d49a6e696ecd2e470d69b0702f245d76ad036d55948cdcdb08aea2265e7bd7",
+      "source": "supplement",
+      "change": "preserved"
+    },
+    {
+      "member": "production/upload/77/4e5f74ad53b57e0c7af071ae99c472580cef20",
+      "logical": "battle/effect/powerflip/inaho_midautumn_moonwake/inaho_midautumn_moonwake.atlas.amf3.deflate",
+      "size": 187,
+      "sha256": "fd4520c1cf32a9f0bff658846e42d80cd42270a439b8c4c45bd693dab7ce9f31",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/upload/77/54d660798707add896d0890bbac619aab4e3fe",
+      "logical": "battle/effect/skill_unique/cnmod_inaho_midautumn/midautumn_native/full_field_moonwave.timeline.amf3.deflate",
+      "size": 96,
+      "sha256": "f43c9d4707dedfdaefd73acb4e5131a9e403abb8875b9e27c07ce0f29db4d8ba",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/upload/7a/46a8bbf8b2f058d1f5cd4615a3a5ab871ee659",
+      "logical": "character/cnmod_inaho_midautumn/ui/battle_control_board_0.png",
+      "size": 74145,
+      "sha256": "6acadcbdc923805d4b1059e3c2c775b8c3e7e2aa32ef6a018a5a0ccaf526425d",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/upload/7a/7be1addd068a84c18c9e389cfde6adc9f356bb",
+      "logical": "battle/effect/ability_damage/inaho_midautumn_wip/inaho_midautumn_wip.png",
+      "size": 11904,
+      "sha256": "113703b5a5fd681aa757c01443fae86769374200e00fc8b1fb132028ac0b50fb",
+      "source": "supplement",
+      "change": "added"
+    },
+    {
+      "member": "production/upload/7e/21c1c86d2000a7b1a747ba6c994020066875ad",
+      "logical": "battle/effect/powerflip/inaho_midautumn_moonwake/aura_lv1.timeline.amf3.deflate",
+      "size": 96,
+      "sha256": "d1f2278776df94404ceb4b00a367dd95153e3fca12879d16836e2aadd1c97a0d",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/upload/7f/e196bf0de19d037f5d03b3717076e961f35911",
+      "logical": "character/cnmod_inaho_midautumn/ui/thumb_level_up_1.png",
+      "size": 198500,
+      "sha256": "0416de8670f485cd9f241805b00c9fc7818311898f45c075abd30925d6caf3ce",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/upload/80/37dd1a581aeffcdfaa26e1183949723437d234",
+      "logical": "battle/effect/powerflip/inaho_midautumn_moonwake/mote_lv1.timeline.amf3.deflate",
+      "size": 94,
+      "sha256": "8fea41d7f1cdf9aea431b9676f62d47949f86261e71ece71779a2ce41e05232a",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/upload/82/83441e248949397bb896126be9fc211fd617fb",
+      "logical": "character/cnmod_inaho_midautumn/ui/illustration_setting_sprite_sheet.atlas.amf3.deflate",
+      "size": 157,
+      "sha256": "eaed40bf85fb1adadf22a6302144bb2b1bedd42e3b58e4da2e291b910ff9ebb0",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/upload/84/c5f5297bf90884f513c5f61ed40fdb3e52fa59",
+      "logical": "battle/action/power_flip/action/override/cnmod_inaho_midautumn$cnmod_inaho_midautumn_lv3.action.dsl.amf3.deflate",
+      "size": 728,
+      "sha256": "8f7819f6b38a549330c5980236699bc0df6482583ca49efd9def990bb2879e69",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/upload/86/e3b97cd7f7fde8293d027d307eef42ea5aeb7a",
+      "logical": "character/cnmod_inaho_midautumn/ui/square_132_132_0.png",
+      "size": 45852,
+      "sha256": "e9e09217cde78d26b905cd17e3ed3806b946de2f016c45c4838803d37b7e9d53",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/upload/8b/035728b2151de044fb245988ec5f33ebb544ab",
+      "logical": "master/character/character_text.orderedmap",
+      "size": 214305,
+      "sha256": "c930457d6e70e2a849605a14035f5794151551692be82b19586fad3bdcfe20d6",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/upload/8c/13fcfec38d35d285060444ff321a4dc3e6c3ee",
+      "logical": "character/cnmod_inaho_midautumn/ui/square_round_136_136_1.png",
+      "size": 47955,
+      "sha256": "4417b576ff68f910027e0b8d33a336cd88ada56a2763c7231b3cdeb258f01348",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/upload/8c/ac49100a2602346d9e06838531548e388601c1",
+      "logical": "battle/effect/powerflip/inaho_midautumn_moonwake/mote_lv3.parts.amf3.deflate",
+      "size": 1776,
+      "sha256": "ca5c4b395904a750b5caf88310b995ec26986b721f6dd642d58d179d936552f0",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/upload/8d/cf00d00b1c910181576748066845bf31a11d7f",
+      "logical": "battle/effect/powerflip/inaho_midautumn_moonwake/mote_lv3.timeline.amf3.deflate",
+      "size": 94,
+      "sha256": "cf2d32ff32dbf3a0971d06596c518e5186f6faa049fe8de146183383935c83c8",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/upload/91/79892d704f88d98191c00548bce106402ad5b5",
+      "logical": "master/skill/action_skill.orderedmap",
+      "size": 355460,
+      "sha256": "5aca354d33c627ae48d1ee8f85c830921e89a0bd70501704a39766975201013c",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/upload/9a/b678e7023c53fb0e96609243cf5dd5142746a9",
+      "logical": "character/cnmod_inaho_midautumn/ui/square_round_95_95_1.png",
+      "size": 25092,
+      "sha256": "a9b667651ace34831df70097b0514c79212795f0d7c4835c47e381deb0bce591",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/upload/9d/996cf5982fffe97a81112b43c4a61afc65595e",
+      "logical": "character/cnmod_inaho_midautumn/ui/square_round_136_136_0.png",
+      "size": 48454,
+      "sha256": "c7e918f85efade1d3ba0b0860add00b9049a4613a836d0ef7de39467629d1fd4",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/upload/9d/f1638c7d14d53beeddf5a848a38f35e9e3de94",
+      "logical": "battle/effect/ability_damage/inaho_midautumn_wip/inaho_midautumn_wip.atlas.amf3.deflate",
+      "size": 428,
+      "sha256": "2938e74ca3414b481fe5a361c7694dad7e3124c6e18692900a169fd7824a7a72",
+      "source": "supplement",
+      "change": "added"
+    },
+    {
+      "member": "production/upload/a4/abd6e3f417e8aaaa673375ea6e7d721ef99377",
+      "logical": "character/cnmod_inaho_midautumn/ui/cutin_skill_chain_1.png",
+      "size": 199086,
+      "sha256": "d17cddab8b5068fd6f925612301da54a45ef53d05f5e5b205254623ff1b94ff5",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/upload/a7/bd7eee6d117b9f8bba83f729d34d4120b5d3f3",
+      "logical": "character/cnmod_inaho_midautumn/voice/battle/power_flip_1.mp3",
+      "size": 8821,
+      "sha256": "1b55d478fa35dd2ea62e16ed53055a416674c5af71bd446a1138912c7edb81d3",
+      "source": "supplement",
+      "change": "preserved"
+    },
+    {
+      "member": "production/upload/a8/4cf58059f62d3f3067f2d484a6caac8fc1dfdf",
+      "logical": "character/cnmod_inaho_midautumn/pixelart/special_sprite_sheet.atlas.amf3.deflate",
+      "size": 796,
+      "sha256": "bc3d467dbd8394b17a4eb926965a24ef7c847881409de7cb652b4af580c5b3cd",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/upload/aa/abdd2e178d62dba4997034aab8c236a4422154",
+      "logical": "master/skill_preview/skill_preview_character.orderedmap",
+      "size": 30744,
+      "sha256": "f8ca8d781103afc16dac562857f6f0db966da5a94fbe74e22e07efb2705aacec",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/upload/ac/67ffe5c115c4f6b6fe67e026b14d45c5d9cb01",
+      "logical": "battle/effect/skill_unique/cnmod_inaho_midautumn/midautumn_native/full_field_moonwave.parts.amf3.deflate",
+      "size": 1234,
+      "sha256": "2e79136de1f2ebf40cb3a01f6c8eef7bc0818fa55ea53e8b2cdc57195e659a1d",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/upload/ac/b038c35f3048ba7ca07a6a84307b2fb10c041c",
+      "logical": "master/character/character_gacha_sound.orderedmap",
+      "size": 113821,
+      "sha256": "c2bde1ce6d5ca362ed51333164f6360ea98310662467d33d9409007228b8d7a7",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/upload/ad/b0637277f8d09065178efa7da583a0085dfbcf",
+      "logical": "character/cnmod_inaho_midautumn/voice/ally/evolution.mp3",
+      "size": 448931,
+      "sha256": "d32267d25f93a6d856b1e77c42cf354242a91229f79f94a5483c1d75447a0c2c",
+      "source": "supplement",
+      "change": "updated"
+    },
+    {
+      "member": "production/upload/b3/8b737bb39e6c325ec40aa6dc7082f26a77663b",
+      "logical": "character/cnmod_inaho_midautumn/pixelart/pixelart.frame.amf3.deflate",
+      "size": 82,
+      "sha256": "8895fd777b1bb98622f4a4e55d1f5bc07954ac5a7ba6cea4d1ca5301aad6175e",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/upload/b4/a28679b8eeefdbdcbe6071fd4f2ff85e5b3415",
+      "logical": "master/character/character_speech.orderedmap",
+      "size": 404470,
+      "sha256": "7a6b2befd8d37c138f052c0c90731ed484eea301564da547fb5d46cd57c72434",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/upload/b9/132d27178d27f9d91df89fc47e106bbaf2d5b5",
+      "logical": "master/character/full_shot_image_attribute.orderedmap",
+      "size": 46398,
+      "sha256": "c313690fbeee6809b3e39b8b7ee631eb4cad66663549bbf5eea86533b77bdad3",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/upload/bb/67980dd70ca8a8e754d82c230f18b7db8cf3b2",
+      "logical": "character/cnmod_inaho_midautumn/ui/skill_cutin_1.png",
+      "size": 733169,
+      "sha256": "af019f88e466017bd9e768e92b61a09f67432623f085748f51ff06dc16fa0e37",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/upload/bc/0bc800f482670f3ec8a7f2fee9b9deeeca3a04",
+      "logical": "master/mana_board/mana_board2_open_condition.orderedmap",
+      "size": 28603,
+      "sha256": "3c226a3d1b7d0a63d6926e64f862580aa9205aafdcf96cabb844421c383f1e7d",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/upload/c0/11524c640fd5da0f2598cb3f6cdab92229cfb1",
+      "logical": "character/cnmod_inaho_midautumn/voice/battle/battle_start_0.mp3",
+      "size": 9732,
+      "sha256": "fa0fb9f0a1eb2d179586c7ccddcddf42b647fb0986fcf7e692e0fb30b88ea5ae",
+      "source": "supplement",
+      "change": "preserved"
+    },
+    {
+      "member": "production/upload/c1/51855b462f6877404bc72ce12d0de016308167",
+      "logical": "battle/action/power_flip/action/override/cnmod_inaho_midautumn$cnmod_inaho_midautumn_lv2.action.dsl.amf3.deflate",
+      "size": 503,
+      "sha256": "9275d5f8b6638a88b8c04be563f96c7653ff42e290f4aa960ae9606d11f2bdd5",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/upload/c3/1b1915abbbd75eb098dfac580f5209e3df77d9",
+      "logical": "battle/effect/skill_unique/inaho_midautumn_wip/midautumn_native/midautumn_native.atlas.amf3.deflate",
+      "size": 300,
+      "sha256": "5e4febcf041b348bc1755b3c3d699d5f4aa3012d0412dc38627a3eaac6ec7b39",
+      "source": "supplement",
+      "change": "added"
+    },
+    {
+      "member": "production/upload/c5/2e9981001da881a0c20e4c2130d4e11550eb07",
+      "logical": "character/cnmod_inaho_midautumn/voice/battle/outhole_1.mp3",
+      "size": 12264,
+      "sha256": "5e268b3d2bcd2501fde3aeccbe79c3f02bdda16cac752ba7050e0c5393f9377b",
+      "source": "supplement",
+      "change": "preserved"
+    },
+    {
+      "member": "production/upload/ca/84bc7c7f590cbbc52da1ae24504c0e49a5d12f",
+      "logical": "character/cnmod_inaho_midautumn/pixelart/special.timeline.amf3.deflate",
+      "size": 108,
+      "sha256": "d9911b8a249658c506914055495be735fa2b61089eaedb97400cc9b4a735bfaa",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/upload/cd/4a61cca03d2790727d1d5bba1ad86d271e78a5",
+      "logical": "character/cnmod_inaho_midautumn/voice/home/robe.mp3",
+      "size": 337336,
+      "sha256": "908b8788fd4613a95612754dfeeee3fdf186ed1ae43e074161b584ac03903b5b",
+      "source": "supplement",
+      "change": "updated"
+    },
+    {
+      "member": "production/upload/cd/57312ea92ccdd486069ec35839198cfd085796",
+      "logical": "battle/effect/skill_unique/cnmod_inaho_midautumn/midautumn_native/midautumn_native.png",
+      "size": 3204,
+      "sha256": "e7f70e5d2139521de60dcbc02de01aec08f8277e2a65d0951b53d00f0421694e",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/upload/d1/8d03037e1a0b7329b1ac415038b5e47a0d922c",
+      "logical": "battle/common/unique_condition/cnmod_inaho_midautumn_full_moon.png",
+      "size": 5011,
+      "sha256": "d5cf3bc54896819757db0a40b0be23cbe71b2fc2d3166d6e3b797d704d40f317",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/upload/d4/55ef6a08ee72f46ec1d153ca91ca9e5b716328",
+      "logical": "character/cnmod_inaho_midautumn/ui/skill_cutin_0.png",
+      "size": 601725,
+      "sha256": "02e27b62843608fffa4f571d162cc21b6bf8d9c131b77cfdabb7c1e88022fbf9",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/upload/d4/56921a8569385d652e623c3a2da29c3d52f6d7",
+      "logical": "battle/action/skill/action/rare5/cnmod_inaho_midautumn$cnmod_inaho_midautumn_1.action.dsl.amf3.deflate",
+      "size": 1246,
+      "sha256": "22a566c867b96856fa3e52c9552d97c23c9df39769cefa0a5dcf2600400f0af3",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/upload/d5/19f83890d29696f1bfceb3d3081cf4fcb7f7d5",
+      "logical": "character/cnmod_inaho_midautumn/voice/battle/skill_1.mp3",
+      "size": 37651,
+      "sha256": "f0228f1e01da24326e9388e7963ef43f39480f325ea2dc0ec47b8f3821df948e",
+      "source": "supplement",
+      "change": "preserved"
+    },
+    {
+      "member": "production/upload/d6/6f7e72a2370aa954280195e4cc33f022c11e10",
+      "logical": "battle/effect/powerflip/inaho_midautumn_moonwake/aura_lv1.parts.amf3.deflate",
+      "size": 2673,
+      "sha256": "a71fbf1a2816ded298521e4161a1951f9385c193d2a4f9fc5c37bbcb77674049",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/upload/d7/50c2f94f83dd053bfc79039a709f1ec6f766cb",
+      "logical": "master/stance_detail/character_stance_detail.orderedmap",
+      "size": 15743,
+      "sha256": "fd2b6f232ea16e910b4f26389b0fb6d715de5a472be2c75eece0e342c82f5305",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/upload/dc/5158f4555739d036fca710d31d63873ca0b4b3",
+      "logical": "battle/effect/ability_damage/inaho_midautumn_wip/moonlight_shot_gold_jade.parts.amf3.deflate",
+      "size": 4784,
+      "sha256": "6a5e6d2a255740f9553b97595aca9c528f6ddb66870f20db0cf47565cedd3139",
+      "source": "supplement",
+      "change": "added"
+    },
+    {
+      "member": "production/upload/e0/5fd1007b09f2f3f66f3ba40c1fad65633dee54",
+      "logical": "character/cnmod_inaho_midautumn/voice/battle/power_flip_0.mp3",
+      "size": 13206,
+      "sha256": "6a284e57a236f35a44dfc9f1d7a56453b142de0a0ade79bcef4530fd27b1f4c9",
+      "source": "supplement",
+      "change": "preserved"
+    },
+    {
+      "member": "production/upload/e3/4a70dff8c3928be7cafefbdf13c7cc3e9b7b6a",
+      "logical": "character/cnmod_inaho_midautumn/ui/square_0.png",
+      "size": 106009,
+      "sha256": "abda20909086ade15ce750cf8c7fa98f862d58bf28dfe82c96da91049f38d3dc",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/upload/e5/cfa6a9358db3bfbe54a83ae9588c3954a0979d",
+      "logical": "character/cnmod_inaho_midautumn/voice/battle/outhole_0.mp3",
+      "size": 29814,
+      "sha256": "638ee653bfa4446d7d7b28793e1ed518d798b9d47a2f5da8255e1d7c4bd21a4a",
+      "source": "supplement",
+      "change": "preserved"
+    },
+    {
+      "member": "production/upload/e9/4b595f4f7a4ff887225120ff6520e1850d302a",
+      "logical": "character/cnmod_inaho_midautumn/pixelart/pixelart.timeline.amf3.deflate",
+      "size": 474,
+      "sha256": "a3e526af2fac888567bc54fbf4b659fca512d9920983e7d7b731fa6db033242b",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/upload/eb/6fc28ea98ffd0807562d96bb51fa2c5e0902be",
+      "logical": "character/cnmod_inaho_midautumn/ui/thumb_party_main_0.png",
+      "size": 174065,
+      "sha256": "f568cd45614c502976c348e1e174bcd5bf6b35dbbca83d5241f1a07baf94c757",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/upload/eb/d421268960aee427987ad62aca783486998c8f",
+      "logical": "battle/effect/skill_unique/cnmod_inaho_midautumn/midautumn_native/effect.parts.amf3.deflate",
+      "size": 8893,
+      "sha256": "ab27ae1517e79060e3db42e2d4ebd75d4e0e0fabacc86dcd90d03381e91739d6",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/upload/f4/17d8be8e26ae879bec76eb92f00dad6bf546bb",
+      "logical": "character/cnmod_inaho_midautumn/ui/cutin_skill_chain_0.png",
+      "size": 193707,
+      "sha256": "ddcc4184da89edbc13dd9bd9e163985ccf4dd998b42ff26b503676a55284d450",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/upload/f5/130ea4677bb3482bd23627cff4431a80611b49",
+      "logical": "battle/effect/skill_unique/cnmod_inaho_midautumn/midautumn_native/effect.timeline.amf3.deflate",
+      "size": 97,
+      "sha256": "f887bcc91830c0011e35906448f6dfc15e7c3f86d4fed514c09be03ba92cf151",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/upload/f7/014bb3ab91ce80978bf43402be8aefa115c47c",
+      "logical": "battle/effect/ability_damage/inaho_midautumn_wip/moonlight_shot_gold_jade.timeline.amf3.deflate",
+      "size": 108,
+      "sha256": "ed9d91f87f9c3e6c54d98aba31fc257ba10b0b102765df87a834ec0ad61456a2",
+      "source": "supplement",
+      "change": "added"
+    },
+    {
+      "member": "production/upload/f8/53f7b4a89dd0ad11d5ab99f20d913f17ad8a2d",
+      "logical": "battle/effect/skill_unique/inaho_midautumn_wip/midautumn_native/effect.parts.amf3.deflate",
+      "size": 8889,
+      "sha256": "6cc1239e48e8131524595ec9a45b4f9ac4fcda233d55f4eb4d4abf47b46a58d7",
+      "source": "supplement",
+      "change": "added"
+    },
+    {
+      "member": "production/upload/f9/b0f96acad29d81417a4d388c953813a6a99ccd",
+      "logical": "battle/common/unique_condition/cnmod_inaho_midautumn_harvest.png",
+      "size": 5022,
+      "sha256": "114f03d6e90384681f2982b024498fe7aa8cc2a3b9ece7152e8e2af40e025a2b",
+      "source": "base",
+      "change": "preserved"
+    },
+    {
+      "member": "production/upload/ff/84353774cb95e8d7dc90c679f96a5bca7f42e5",
+      "logical": "master/ability/leader_ability.orderedmap",
+      "size": 66495,
+      "sha256": "2ac7f38000b41e229a30cf68d06fcc6fe8e0fd95fcaf2fd94a6e36d6257a8d98",
+      "source": "supplement",
+      "change": "preserved"
+    }
+  ]
+}

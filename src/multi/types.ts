@@ -196,6 +196,7 @@ export interface ActiveQuest {
     mateComIds?: number[]
     entryItemId?: number
     eventId?: number
+    partySlot?: number
     playId: string
     continueCount: number
 }

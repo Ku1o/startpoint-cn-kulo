@@ -13,7 +13,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 const mission_1 = require("../../data/domains/mission");
 const session_1 = require("../../data/domains/session");
-const db_1 = require("../../data/db");
 const mail_1 = require("../../data/domains/mail");
 const utils_1 = require("../../utils");
 const index_1 = require("../../lib/mission/index");
@@ -21,6 +20,7 @@ const client_progress_1 = require("../../lib/mission/client-progress");
 const activeAccount_1 = require("../../data/activeAccount");
 const progress_1 = require("../../lib/mission/progress");
 const game_logging_1 = require("../../lib/game-logging");
+const persistence_coordinator_1 = require("../../lib/persistence-coordinator");
 const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
     fastify.post("/get_mission_progress", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
         var _a, _b, _c, _d, _e, _f, _g;
@@ -197,7 +197,9 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         let updatedCount = 0;
         const updatedMissionIdsByCategory = new Map();
         const evaluationTime = new Date((0, utils_1.getServerTime)() * 1000);
-        (0, db_1.getDb)().transaction(() => {
+        yield (0, persistence_coordinator_1.runPersistenceTransaction)({
+            domain: "mission", playerId, operation: "update_progress",
+        }, () => {
             var _a, _b, _c;
             const categoryMissionCache = new Map();
             for (const param of missionParams) {
@@ -229,7 +231,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                     updatedCount++;
                 }
             }
-        })();
+        });
         const characterList = (0, index_1.reconcileAwakeUnlockCharacterList)(playerId, []);
         const responseData = {
             "mission_info": [],

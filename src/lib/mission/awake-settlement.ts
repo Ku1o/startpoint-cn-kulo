@@ -9,7 +9,6 @@ import {
     updatePlayerCategoryMissionSync,
 } from "../../data/domains/mission"
 import { getPlayerSync } from "../../data/domains/player"
-import { getDb } from "../../data/db"
 import { buildScopedManaBoardAwakeCharacterList } from "../character-helpers"
 import { MissionRewardGranter } from "./grants"
 import { getAwakeMissionRewardStageDefinition } from "./rewards"
@@ -19,6 +18,7 @@ import { getCharacterIdFromMission } from "./character-queries"
 import { getComputer } from "./registry"
 import type { PlayerActiveMission } from "../../data/types"
 import { recordUnownedAwakeMission } from "../request-diagnostics"
+import { runPersistenceTransactionSync } from "../persistence-coordinator"
 
 export interface AwakeMissionComputedProgress {
     missionId: number
@@ -133,7 +133,9 @@ export function settleAwakeMissionRewards(
     // already saved. The mission route no longer needs a second reconciliation.
     const unlockMap = getPlayerCharacterAwakeUnlocksByCharacterIdsSync(playerId, unlockCandidateCharacterIds)
 
-    getDb().transaction(() => {
+    runPersistenceTransactionSync({
+        domain: "mission", playerId, operation: "settle_awake_mission_rewards",
+    }, () => {
         for (const entry of aggregatedProgressList) {
             if (persistedMissions[String(entry.missionId)]?.progress !== entry.progress) {
                 updatePlayerCategoryMissionSync(playerId, 9, entry.missionId, entry.progress)
@@ -189,7 +191,7 @@ export function settleAwakeMissionRewards(
         }
 
         granter.persistPlayer()
-    })()
+    })
 
     const unlockCharacterList = unlockMap.size === 0
         ? []

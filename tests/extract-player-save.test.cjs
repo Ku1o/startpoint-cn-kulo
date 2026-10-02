@@ -26,6 +26,8 @@ test('备份 viewer id 提取及恢复的隔离集成验证', async t => {
     const source = make('备份来源')
     const target = make('恢复目标')
     const other = make('其他玩家')
+    const username = 'Source_Account'
+    db.prepare('UPDATE accounts SET username = ? WHERE id = ?').run(username, source.account.id)
     const viewerId = 123456789
     db.prepare('INSERT INTO sessions(token, account_id, expires, type) VALUES (?, ?, ?, 2)')
         .run(String(viewerId), source.account.id, '2000-01-01') // Viewer tokens do not expire.
@@ -73,6 +75,25 @@ test('备份 viewer id 提取及恢复的隔离集成验证', async t => {
         assert.equal(digest(backup), backupHash)
     })
 
+    await t.test('CLI 通过登录账号名定位同一账号；大小写不敏感且不读取密码', () => {
+        const accountOutput = path.join(root, 'recovered-by-account.json')
+        const child = spawnSync(process.execPath, [path.resolve(__dirname, '../tools/extract_player_save.cjs'),
+            '--database', backup, '--username', username.toLowerCase(), '--output', accountOutput], {
+            cwd: root, encoding: 'utf8', env: { ...process.env, DATA_DIR: path.join(root, 'must-not-open-account') }, timeout: 30000,
+        })
+        assert.equal(child.status, 0, child.stdout + child.stderr)
+        const directOutput = path.join(root, 'recovered-by-account-direct.json')
+        const result = extractPlayerSave({ database: backup, username, output: directOutput })
+        assert.equal(result.username, username.toLowerCase())
+        assert.equal(result.playerId, source.player.id)
+        assert.deepEqual(JSON.parse(fs.readFileSync(accountOutput, 'utf8')).data.tables, beforeSource.data.tables)
+        assert.deepEqual(JSON.parse(fs.readFileSync(directOutput, 'utf8')).data.tables, beforeSource.data.tables)
+        assert.equal(fs.existsSync(path.join(root, 'must-not-open-account')), false)
+        assert.throws(() => extractPlayerSave({ database: backup, username, viewerId, output: path.join(root, 'both.json') }), /必须且只能指定/)
+        assert.throws(() => extractPlayerSave({ database: backup, username: 'missing_account', output: path.join(root, 'missing-account.json') }), /找不到登录账号/)
+        assert.equal(digest(backup), backupHash)
+    })
+
     await t.test('窗口进程协议支持中文路径，只生成指定 JSON；查询和错误均不创建备份', () => {
         const guiOutput = path.join(root, '中文 存档 & 测试.json')
         const run = request => {
@@ -110,6 +131,8 @@ test('备份 viewer id 提取及恢复的隔离集成验证', async t => {
             [{ viewerId: 234567891 }, /找不到 viewer/],
             [{ viewerId: '1 OR 1=1' }, /正整数/],
             [{ viewerId: '9007199254740992' }, /正整数/],
+            [{ username: 'bad name' }, /登录账号/],
+            [{ username: 'a' }, /登录账号/],
             [{ playerId: other.player.id }, /不属于/],
             [{ database: path.join(root, 'missing.db') }, /ENOENT/],
         ]) {

@@ -31,8 +31,18 @@ export const SESSION_HANDSHAKE_TIMEOUT_MS = positiveInteger("SESSION_HANDSHAKE_T
 export const SESSION_MAX_FRAME_BYTES = positiveInteger("SESSION_MAX_FRAME_BYTES", 262_144, 1_024)
 export const SESSION_MAX_BUFFER_BYTES = positiveInteger("SESSION_MAX_BUFFER_BYTES", 1_048_576, SESSION_MAX_FRAME_BYTES)
 export const SESSION_TCP_KEEPALIVE_MS = positiveInteger("SESSION_TCP_KEEPALIVE_MS", 10_000, 1_000)
+// A client can deliver many complete frames in one `data` callback. Keep one
+// noisy socket from monopolizing the Node event loop while another player's
+// heartbeat or room broadcast is waiting to run. Frames for one socket remain
+// ordered; the remainder is resumed with setImmediate below.
+export const SESSION_MAX_FRAMES_PER_TICK = positiveInteger(
+    "SESSION_MAX_FRAMES_PER_TICK",
+    128,
+    1,
+)
 
 let server: net.Server | null = null
+const activeSockets = new Set<net.Socket>()
 
 export function startSessionServer(): Promise<void> {
     return new Promise((resolve) => {
@@ -41,6 +51,8 @@ export function startSessionServer(): Promise<void> {
             return
         }
         server = net.createServer((socket) => {
+            activeSockets.add(socket)
+            socket.once("close", () => activeSockets.delete(socket))
             const remoteAddr = `${socket.remoteAddress}:${socket.remotePort}`
             gameVerboseLog(() => `[TCP] new connection from ${remoteAddr}`)
 
@@ -53,6 +65,8 @@ export function startSessionServer(): Promise<void> {
             let isLoungeSocket = false
             let socketRemoved = false
             let protocolClosed = false
+            let processingFrames = false
+            let processFramesScheduled = false
             let admissionToken: unknown, admissionSession: unknown
 
             const closeForProtocolViolation = (reason: string) => {
@@ -92,6 +106,88 @@ export function startSessionServer(): Promise<void> {
                 }
             }
 
+            const processFrames = (): void => {
+                if (protocolClosed || processingFrames || processFramesScheduled) return
+                processingFrames = true
+                let processed = 0
+                try {
+                    while (!protocolClosed && processed < SESSION_MAX_FRAMES_PER_TICK) {
+                        const idx = buffer.indexOf("\0")
+                        if (idx < 0) break
+                        const raw = buffer.substring(0, idx)
+                        buffer = buffer.substring(idx + 1)
+                        processed++
+                        if (raw.trim().length === 0) continue
+                        const frameBytes = Buffer.byteLength(raw, "utf8")
+                        if (frameBytes > SESSION_MAX_FRAME_BYTES) {
+                            closeForProtocolViolation(`frame exceeded ${SESSION_MAX_FRAME_BYTES} bytes`)
+                            return
+                        }
+
+                        let data: any
+                        try {
+                            data = JSON.parse(raw)
+                        } catch (e) {
+                            closeForProtocolViolation(`invalid JSON frame: ${(e as Error).message}`)
+                            return
+                        }
+                        try {
+                            if (!handshakeDone) {
+                                if (!data || typeof data !== "object" || typeof data.socklet !== "string") {
+                                    closeForProtocolViolation("first frame was not a valid handshake")
+                                    return
+                                }
+                                admissionToken = data.sp_admission
+                                admissionSession = data.sp_session
+                                if (!clientAdmission().checkActivity(admissionToken, admissionSession).ok) {
+                                    socket.end(JSON.stringify([1, "CLIENT_ADMISSION_REQUIRED"]) + "\0")
+                                    protocolClosed = true
+                                    clearHandshakeTimer()
+                                    return
+                                }
+                                handshakeDone = true
+                                clearHandshakeTimer()
+                                isBattleSocket = data.socklet === "cooperation_battle"
+                                isLoungeSocket = data.socklet === "multi_special_exchange_socklet"
+                                const handshake = isLoungeSocket
+                                    ? handleLoungeHandshake(socket, data)
+                                    : handleHandshake(socket, data)
+                                handshake.catch((err) => {
+                                    console.error(`[TCP] handshake failed:`, err)
+                                    socket.destroy()
+                                })
+                            } else if (!clientAdmission().checkActivity(admissionToken, admissionSession).ok) {
+                                closeForProtocolViolation("client build no longer admitted")
+                                return
+                            } else if (isBattleSocket) {
+                                handleBattleMessage(socket, data)
+                            } else if (isLoungeSocket) {
+                                handleLoungeMessage(socket, data)
+                            } else {
+                                const lobby = require("./lobby")
+                                lobby.handleMessage(socket, data)
+                            }
+                        } catch (e) {
+                            console.warn(`[TCP] message rejected from ${remoteAddr}:`, (e as Error).message)
+                            socket.destroy()
+                            return
+                        }
+                    }
+                } finally {
+                    processingFrames = false
+                    if (!protocolClosed && buffer.includes("\0") && !processFramesScheduled) {
+                        processFramesScheduled = true
+                        setImmediate(() => {
+                            processFramesScheduled = false
+                            processFrames()
+                        })
+                    }
+                }
+                if (!protocolClosed && Buffer.byteLength(buffer, "utf8") > SESSION_MAX_FRAME_BYTES) {
+                    closeForProtocolViolation(`unterminated frame exceeded ${SESSION_MAX_FRAME_BYTES} bytes`)
+                }
+            }
+
             socket.on("data", (chunk: string) => {
                 if (protocolClosed) return
                 buffer += chunk
@@ -99,69 +195,7 @@ export function startSessionServer(): Promise<void> {
                     closeForProtocolViolation(`receive buffer exceeded ${SESSION_MAX_BUFFER_BYTES} bytes`)
                     return
                 }
-                while (buffer.includes("\0")) {
-                    const idx = buffer.indexOf("\0")
-                    const raw = buffer.substring(0, idx)
-                    buffer = buffer.substring(idx + 1)
-                    if (raw.trim().length === 0) continue
-                    const frameBytes = Buffer.byteLength(raw, "utf8")
-                    if (frameBytes > SESSION_MAX_FRAME_BYTES) {
-                        closeForProtocolViolation(`frame exceeded ${SESSION_MAX_FRAME_BYTES} bytes`)
-                        return
-                    }
-
-                    let data: any
-                    try {
-                        data = JSON.parse(raw)
-                    } catch (e) {
-                        closeForProtocolViolation(`invalid JSON frame: ${(e as Error).message}`)
-                        return
-                    }
-                    try {
-                        if (!handshakeDone) {
-                            if (!data || typeof data !== "object" || typeof data.socklet !== "string") {
-                                closeForProtocolViolation("first frame was not a valid handshake")
-                                return
-                            }
-                            admissionToken = data.sp_admission
-                            admissionSession = data.sp_session
-                            if (!clientAdmission().checkActivity(admissionToken, admissionSession).ok) {
-                                socket.end(JSON.stringify([1, "CLIENT_ADMISSION_REQUIRED"]) + "\0")
-                                protocolClosed = true
-                                clearHandshakeTimer()
-                                return
-                            }
-                            handshakeDone = true
-                            clearHandshakeTimer()
-                            isBattleSocket = data.socklet === "cooperation_battle"
-                            isLoungeSocket = data.socklet === "multi_special_exchange_socklet"
-                            const handshake = isLoungeSocket
-                                ? handleLoungeHandshake(socket, data)
-                                : handleHandshake(socket, data)
-                            handshake.catch((err) => {
-                                console.error(`[TCP] handshake failed:`, err)
-                                socket.destroy()
-                            })
-                        } else if (!clientAdmission().checkActivity(admissionToken, admissionSession).ok) {
-                            closeForProtocolViolation("client build no longer admitted")
-                            return
-                        } else if (isBattleSocket) {
-                            handleBattleMessage(socket, data)
-                        } else if (isLoungeSocket) {
-                            handleLoungeMessage(socket, data)
-                        } else {
-                            const lobby = require("./lobby")
-                            lobby.handleMessage(socket, data)
-                        }
-                    } catch (e) {
-                        console.warn(`[TCP] message rejected from ${remoteAddr}:`, (e as Error).message)
-                        socket.destroy()
-                        return
-                    }
-                }
-                if (Buffer.byteLength(buffer, "utf8") > SESSION_MAX_FRAME_BYTES) {
-                    closeForProtocolViolation(`unterminated frame exceeded ${SESSION_MAX_FRAME_BYTES} bytes`)
-                }
+                processFrames()
             })
 
             socket.on("end", () => fiveBossConnectionDiagnostics.socketEvent(socket, "socket_end", "peer_fin"))
@@ -191,11 +225,16 @@ export function startSessionServer(): Promise<void> {
 
 export function stopSessionServer(): Promise<void> {
     return new Promise((resolve) => {
-        if (!server) {
+        const current = server
+        if (!current) {
             resolve()
             return
         }
-        server.close(() => {
+        // net.Server.close() stops accepts but waits forever for established
+        // clients. Shutdown is already an explicit service stop, so release
+        // those sockets now and let their normal cleanup enqueue room leases.
+        for (const socket of activeSockets) socket.destroy()
+        current.close(() => {
             server = null
             resolve()
         })

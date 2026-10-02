@@ -44,13 +44,15 @@ const rescue_fragment_reward_1 = require("../rescue-fragment-reward");
 const mode15_room_gate_1 = require("../mode15-room-gate");
 const mode15_optional_1 = require("../../lib/mode15-optional");
 const player_party_pool_1 = require("../npc/player-party-pool");
-const sqlite_write_coordinator_1 = require("../../lib/sqlite-write-coordinator");
+const persistence_coordinator_1 = require("../../lib/persistence-coordinator");
 const settlement_snapshot_1 = require("../settlement-snapshot");
 const embedded_1 = require("../coordinator/embedded");
 const mana_1 = require("../../lib/mana");
 const player_context_1 = require("../player-context");
 const recruitment_1 = require("../recruitment");
 const recommended_party_history_1 = require("../../lib/quest/recommended-party-history");
+const party_1 = require("../../data/domains/party");
+const party_current_slot_1 = require("../../lib/party-current-slot");
 function buildFinishFollowInfo(requesterPlayerId_1, viewerId_1, mateResults_1) {
     return __awaiter(this, arguments, void 0, function* (requesterPlayerId, viewerId, mateResults, fallbackMateIds = []) {
         const ids = new Set();
@@ -177,7 +179,7 @@ function registerBattleRoutes(fastify) {
         const room = roomStart.room;
         if ((0, five_boss_battle_1.shouldHandleFiveBossStart)(body)) {
             try {
-                return (0, five_boss_battle_1.handleFiveBossStart)(body, ctx.playerId, reply);
+                return yield (0, five_boss_battle_1.handleFiveBossStart)(body, ctx.playerId, reply);
             }
             catch (error) {
                 if (!(0, five_boss_battle_1.isFiveBossBattleRequestError)(error))
@@ -204,7 +206,30 @@ function registerBattleRoutes(fastify) {
             playId: play_id,
             continueCount: 0,
         };
-        (0, singleBattleQuest_1.insertActiveQuest)(ctx.playerId, activeQuest);
+        // The active quest is part of the same durable start command as the
+        // selected party. Keeping this write outside the coordinator lets a
+        // busy settlement or checkpoint race it and surface SQLITE_BUSY on
+        // /multi_battle_quest/start.
+        const previousActiveQuest = singleBattleQuest_1.activeQuests[ctx.playerId];
+        try {
+            yield (0, persistence_coordinator_1.runPersistenceTransaction)({
+                domain: "multi-settlement", playerId: ctx.playerId, operation: "start",
+            }, () => {
+                (0, singleBattleQuest_1.insertActiveQuest)(ctx.playerId, activeQuest);
+                if (questData.fixedParty === undefined
+                    && (0, party_current_slot_1.usesNormalCurrentPartySlot)(category)
+                    && (0, party_1.isValidNormalPartySlotSync)(ctx.playerId, party_id)) {
+                    (0, player_1.updatePlayerSync)({ id: ctx.playerId, partySlot: party_id });
+                }
+            });
+        }
+        catch (error) {
+            if (previousActiveQuest)
+                singleBattleQuest_1.activeQuests[ctx.playerId] = previousActiveQuest;
+            else
+                delete singleBattleQuest_1.activeQuests[ctx.playerId];
+            throw error;
+        }
         const frozenParticipants = room.mates
             .map(mate => ({
             viewerId: Number(mate.viewer_id),
@@ -229,9 +254,6 @@ function registerBattleRoutes(fastify) {
             isRescueFragmentEligible: SessionManager_1.sessionManager.isRescueFragmentEligibleGuest(room_number, viewer_id),
             isNewbieRescueGuest: SessionManager_1.sessionManager.isNewbieRescueGuest(room_number, viewer_id),
         });
-        if (questData.fixedParty === undefined) {
-            (0, player_1.updatePlayerSync)({ id: ctx.playerId, partySlot: party_id });
-        }
         reply.header("content-type", "application/x-msgpack");
         return reply.status(200).send({
             "data_headers": (0, utils_1.generateDataHeaders)({ viewer_id }),
@@ -244,7 +266,7 @@ function registerBattleRoutes(fastify) {
     }));
     // ---- finish ----
     fastify.post("/finish", (request, reply) => __awaiter(this, void 0, void 0, function* () {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _0, _1, _2, _3, _4, _5, _6;
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _0, _1, _2, _3, _4, _5, _6, _7;
         const finishHandlerStartedAt = process.hrtime.bigint();
         const body = request.body;
         const viewerId = body.viewer_id;
@@ -278,7 +300,9 @@ function registerBattleRoutes(fastify) {
             reply.header("content-type", "application/x-msgpack");
             return reply.status(200).send(cachedFinishResponse);
         }
+        const executionWaitStartedAt = process.hrtime.bigint();
         const releaseFinishExecution = yield (0, finish_response_cache_1.acquireFinishExecution)(finishCacheKey);
+        (0, settlement_performance_1.recordSettlementPhase)("multi", "finish_execution_wait", Number(process.hrtime.bigint() - executionWaitStartedAt) / 1000000);
         reply.raw.once("finish", releaseFinishExecution);
         reply.raw.once("close", releaseFinishExecution);
         // A matching request may have completed while this one waited.
@@ -384,11 +408,20 @@ function registerBattleRoutes(fastify) {
         let newBossBoostPoint = player.bossBoostPoint - (activeQuestData.useBossBoostPoint ? 1 : 0);
         const useBoostPoint = (activeQuestData.useBoostPoint && (newBoostPoint >= 0)) || (activeQuestData.useBossBoostPoint && (newBossBoostPoint >= 0));
         // quest progress
-        const questProgress = (0, quest_1.getPlayerSingleQuestProgressSync)(playerId, questCategory, questId);
+        // Abyss progress refresh can update legacy best-time rows. It must
+        // share the persistence owner with the rest of the finish path;
+        // otherwise this apparently read-only lookup races another writer and
+        // becomes the SQLITE_BUSY stack seen in cloud logs.
+        const questProgress = yield (0, settlement_performance_1.measureSettlementPhaseAsync)("multi", "progress_refresh", () => ((0, persistence_coordinator_1.runPersistenceTransaction)({
+            domain: "multi-settlement", playerId, operation: "progress_refresh",
+        }, () => (0, quest_1.getPlayerSingleQuestProgressSync)(playerId, questCategory, questId))));
         const questPreviouslyCompleted = questProgress !== null;
         const questAccomplished = body.is_accomplished;
         const leaderId = (_q = (_p = (_o = (((_l = body.statistics) === null || _l === void 0 ? void 0 : _l.party) || ((_m = body.quest_statistics) === null || _m === void 0 ? void 0 : _m.party))) === null || _o === void 0 ? void 0 : _o.characters) === null || _p === void 0 ? void 0 : _p[0]) === null || _q === void 0 ? void 0 : _q.id;
         const eligibleRescueFragmentReward = (0, rescue_fragment_reward_1.getEligibleRescueFragmentReward)(questCategory, questId, questAccomplished, finishedAsRescueFragmentEligible);
+        const bodyPartyStatistics = ((_r = body.statistics) === null || _r === void 0 ? void 0 : _r.party)
+            || ((_s = body.quest_statistics) === null || _s === void 0 ? void 0 : _s.party)
+            || { characters: [], unison_characters: [] };
         let clearReward = null;
         let sPlusClearReward = null;
         let rescueFragmentReward = null;
@@ -397,7 +430,9 @@ function registerBattleRoutes(fastify) {
         const newDegreeId = (0, stamina_1.getRankDegree)(newRankPoint);
         const didLevelUp = newDegreeId > oldRkDegree;
         const playerData = player;
-        yield (0, settlement_performance_1.measureSettlementPhaseAsync)("multi", "reward_transaction", () => (0, sqlite_write_coordinator_1.withPlayerWriteQueue)(playerId, () => (0, sqlite_write_coordinator_1.runImmediateTransactionWithRetry)(() => {
+        const mode15RewardsResult = yield (0, settlement_performance_1.measureSettlementPhaseAsync)("multi", "reward_transaction", () => (0, persistence_coordinator_1.runPersistenceTransaction)({
+            domain: "multi-settlement", playerId, operation: "reward_transaction",
+        }, () => {
             var _a, _b, _c, _d;
             if (questAccomplished) {
                 if (questPreviouslyCompleted) {
@@ -449,18 +484,32 @@ function registerBattleRoutes(fastify) {
                 playerData.stamina = playerData.stamina + (0, stamina_1.getMaxStamina)(newDegreeId);
                 playerData.staminaHealTime = new Date();
             }
-            scoreRewardsResult = (0, quest_2.givePlayerScoreRewardsSync)(playerId, questData.scoreRewardGroupId || 0, questData.scoreRewardGroup, useBoostPoint, questData.element);
+            scoreRewardsResult = (0, quest_2.givePlayerScoreRewardsSync)(playerId, questData.scoreRewardGroupId || 0, questData.scoreRewardGroup, useBoostPoint, questData.element, { questId, mode: "multi" });
             if (eligibleRescueFragmentReward !== null) {
                 rescueFragmentReward = (0, quest_2.givePlayerRewardSync)(playerId, eligibleRescueFragmentReward);
                 (0, game_logging_1.gameVerboseLog)(() => `[MULTI] rescue fragment granted: player=${playerId} quest=${questId} `
                     + `item=${eligibleRescueFragmentReward.id} count=${eligibleRescueFragmentReward.count}`);
             }
-        })));
+            // Mode15 settlement writes the cross-event progress marker and extra
+            // rewards. Keep it inside the same transaction as the ordinary multi
+            // rewards so this path cannot reopen the main database without the
+            // persistence owner.
+            return (0, mode15_optional_1.settleMode15BattleSync)(playerId, questCategory, questId, questAccomplished, {
+                rescue: !finishedAsHost,
+                playedParty: {
+                    characterIds: (bodyPartyStatistics.characters || []).map((value) => { var _a; return (_a = value === null || value === void 0 ? void 0 : value.id) !== null && _a !== void 0 ? _a : null; }),
+                    unisonCharacterIds: (bodyPartyStatistics.unison_characters || []).map((value) => { var _a; return (_a = value === null || value === void 0 ? void 0 : value.id) !== null && _a !== void 0 ? _a : null; }),
+                    equipmentIds: (bodyPartyStatistics.equipments || []).map((value) => { var _a; return (_a = value === null || value === void 0 ? void 0 : value.id) !== null && _a !== void 0 ? _a : null; }),
+                    abilitySoulIds: [...(bodyPartyStatistics.ability_soul_ids || [])],
+                    evolutionImgLevels: (0, character_1.getCharactersEvolutionImgLevels)(playerId, (bodyPartyStatistics.characters || []).map((value) => { var _a; return (_a = value === null || value === void 0 ? void 0 : value.id) !== null && _a !== void 0 ? _a : null; })),
+                    unisonEvolutionImgLevels: (0, character_1.getCharactersEvolutionImgLevels)(playerId, (bodyPartyStatistics.unison_characters || []).map((value) => { var _a; return (_a = value === null || value === void 0 ? void 0 : value.id) !== null && _a !== void 0 ? _a : null; })),
+                },
+            });
+        }));
         const settledClearReward = clearReward;
         const settledSPlusClearReward = sPlusClearReward;
         const settledRescueFragmentReward = rescueFragmentReward;
         const rescueFragmentAdditionalReward = (0, rescue_fragment_reward_1.getRescueFragmentAdditionalReward)(eligibleRescueFragmentReward);
-        const bodyPartyStatistics = ((_r = body.statistics) === null || _r === void 0 ? void 0 : _r.party) || ((_s = body.quest_statistics) === null || _s === void 0 ? void 0 : _s.party) || { characters: [], unison_characters: [] };
         const partyCharacterIdsArray = [];
         for (const value of [...(bodyPartyStatistics.characters || []), ...(bodyPartyStatistics.unison_characters || [])]) {
             if (value !== null && value.id !== null && value.id !== undefined)
@@ -485,7 +534,9 @@ function registerBattleRoutes(fastify) {
         let missionBattleFacts;
         let steamRobotMissionId = null;
         let rewardCharacterExpResult;
-        yield (0, settlement_performance_1.measureSettlementPhaseAsync)("multi", "facts_transaction", () => (0, sqlite_write_coordinator_1.withPlayerWriteQueue)(playerId, () => (0, sqlite_write_coordinator_1.runImmediateTransactionWithRetry)(() => {
+        yield (0, settlement_performance_1.measureSettlementPhaseAsync)("multi", "facts_transaction", () => (0, persistence_coordinator_1.runPersistenceTransaction)({
+            domain: "multi-settlement", playerId, operation: "facts_transaction",
+        }, () => {
             missionBattleFacts = (0, battle_facts_1.recordMissionBattleFacts)(finishCtx, missionEvaluationTime);
             if (questData.fixedParty === undefined) {
                 (0, recommended_party_history_1.recordQuestRecommendedPartySafe)(finishCtx);
@@ -502,18 +553,7 @@ function registerBattleRoutes(fastify) {
                 console.log(`[MISSION] steam robot challenge cleared: player=${playerId} quest=${questId} mission=${steamRobotMissionId}`);
             }
             rewardCharacterExpResult = (0, character_1.givePlayerCharactersExpSync)(playerId, partyCharacterIdsArray, questData.characterExpReward || 0, questData.fixedParty !== undefined);
-        })));
-        const mode15RewardsResult = (0, mode15_optional_1.settleMode15BattleSync)(playerId, questCategory, questId, questAccomplished, {
-            rescue: !finishedAsHost,
-            playedParty: {
-                characterIds: (bodyPartyStatistics.characters || []).map((value) => { var _a; return (_a = value === null || value === void 0 ? void 0 : value.id) !== null && _a !== void 0 ? _a : null; }),
-                unisonCharacterIds: (bodyPartyStatistics.unison_characters || []).map((value) => { var _a; return (_a = value === null || value === void 0 ? void 0 : value.id) !== null && _a !== void 0 ? _a : null; }),
-                equipmentIds: (bodyPartyStatistics.equipments || []).map((value) => { var _a; return (_a = value === null || value === void 0 ? void 0 : value.id) !== null && _a !== void 0 ? _a : null; }),
-                abilitySoulIds: [...(bodyPartyStatistics.ability_soul_ids || [])],
-                evolutionImgLevels: (0, character_1.getCharactersEvolutionImgLevels)(playerId, (bodyPartyStatistics.characters || []).map((value) => { var _a; return (_a = value === null || value === void 0 ? void 0 : value.id) !== null && _a !== void 0 ? _a : null; })),
-                unisonEvolutionImgLevels: (0, character_1.getCharactersEvolutionImgLevels)(playerId, (bodyPartyStatistics.unison_characters || []).map((value) => { var _a; return (_a = value === null || value === void 0 ? void 0 : value.id) !== null && _a !== void 0 ? _a : null; })),
-            },
-        });
+        }));
         const dataHeaders = (0, utils_1.generateDataHeaders)({ viewer_id: viewerId });
         const rawMatePlayerResult = (body.mate_player_result || []);
         (0, settlement_performance_1.recordSettlementPhase)("multi", "core", Number(process.hrtime.bigint() - coreStartedAt) / 1000000);
@@ -655,8 +695,12 @@ function registerBattleRoutes(fastify) {
         // Clear only the quest that produced this response.  A late retry from
         // the previous battle must never delete a newer rematch's active quest.
         if (((_6 = singleBattleQuest_1.activeQuests[playerId]) === null || _6 === void 0 ? void 0 : _6.playId) === activeQuestData.playId) {
-            delete singleBattleQuest_1.activeQuests[playerId];
-            (0, quest_active_1.deletePlayerActiveQuestSync)(playerId);
+            yield (0, settlement_performance_1.measureSettlementPhaseAsync)("multi", "active_quest_cleanup", () => (0, persistence_coordinator_1.runPersistenceTransaction)({
+                domain: "multi-settlement", playerId, operation: "active_quest_cleanup",
+            }, () => (0, quest_active_1.deletePlayerActiveQuestSync)(playerId)));
+            if (((_7 = singleBattleQuest_1.activeQuests[playerId]) === null || _7 === void 0 ? void 0 : _7.playId) === activeQuestData.playId) {
+                delete singleBattleQuest_1.activeQuests[playerId];
+            }
         }
         (0, settlement_performance_1.recordSettlementPhase)("multi", "post_barrier", Number(process.hrtime.bigint() - postBarrierStartedAt) / 1000000);
         const responseStartedAt = process.hrtime.bigint();
@@ -673,6 +717,7 @@ function registerBattleRoutes(fastify) {
     }));
     // ---- abort ----
     fastify.post("/abort", (request, reply) => __awaiter(this, void 0, void 0, function* () {
+        var _8;
         const body = request.body;
         const viewerId = body.viewer_id;
         (0, game_logging_1.gameVerboseLog)(() => `[MULTI] abort: viewer=${viewerId} quest=${body.quest_id} category=${body.category}`);
@@ -690,7 +735,7 @@ function registerBattleRoutes(fastify) {
         const { playerId, player } = ctx;
         if ((0, five_boss_battle_1.shouldHandleFiveBossMemberRequest)(body, playerId)) {
             try {
-                return (0, five_boss_battle_1.handleFiveBossAbort)(body, playerId, reply);
+                return yield (0, five_boss_battle_1.handleFiveBossAbort)(body, playerId, reply);
             }
             catch (error) {
                 if (!(0, five_boss_battle_1.isFiveBossBattleRequestError)(error))
@@ -701,20 +746,29 @@ function registerBattleRoutes(fastify) {
         }
         const activeQuestData = singleBattleQuest_1.activeQuests[playerId];
         if (activeQuestData) {
-            if (activeQuestData.roomNumber) {
-                const room = (0, manager_1.getRoom)(activeQuestData.roomNumber);
-                if (room && room.host_player_id === playerId) {
-                    // A multiplayer defeat is reported by the legacy client
-                    // through /abort rather than /finish(is_accomplished=false).
-                    // Reset only the room owner's Mode15 run; rescue guests may
-                    // leave or fail without changing their own sequence.
+            const abortRoomNumber = activeQuestData.roomNumber;
+            const abortRoom = abortRoomNumber ? (0, manager_1.getRoom)(abortRoomNumber) : undefined;
+            const hostAborted = (abortRoom === null || abortRoom === void 0 ? void 0 : abortRoom.host_player_id) === playerId;
+            const abortedPlayId = activeQuestData.playId;
+            yield (0, persistence_coordinator_1.runPersistenceTransaction)({
+                domain: "multi-settlement", playerId, operation: "abort",
+            }, () => {
+                // A multiplayer defeat is reported by the legacy client
+                // through /abort rather than /finish(is_accomplished=false).
+                // Keep the Mode15 reset and active-quest deletion under the
+                // same database owner as every other multiplayer write.
+                if (hostAborted) {
                     (0, mode15_optional_1.settleMode15BattleSync)(playerId, activeQuestData.category, activeQuestData.questId, false);
-                    yield embedded_1.embeddedMultiCoordinator.enqueueRoomCommand(activeQuestData.roomNumber, () => SessionManager_1.sessionManager.commitRoomDisband(activeQuestData.roomNumber, "host_aborted_battle"));
-                    (0, game_logging_1.gameVerboseLog)(() => `[MULTI] abort: room ${activeQuestData.roomNumber} disbanded (host abandoned)`);
                 }
+                (0, quest_active_1.deletePlayerActiveQuestSync)(playerId);
+            });
+            if (((_8 = singleBattleQuest_1.activeQuests[playerId]) === null || _8 === void 0 ? void 0 : _8.playId) === abortedPlayId) {
+                delete singleBattleQuest_1.activeQuests[playerId];
             }
-            delete singleBattleQuest_1.activeQuests[playerId];
-            (0, quest_active_1.deletePlayerActiveQuestSync)(playerId);
+            if (hostAborted && abortRoomNumber) {
+                yield embedded_1.embeddedMultiCoordinator.enqueueRoomCommand(abortRoomNumber, () => SessionManager_1.sessionManager.commitRoomDisband(abortRoomNumber, "host_aborted_battle"));
+                (0, game_logging_1.gameVerboseLog)(() => `[MULTI] abort: room ${abortRoomNumber} disbanded (host abandoned)`);
+            }
             if (activeQuestData.roomNumber) {
                 SessionManager_1.sessionManager.clearBattleExpectedCount(activeQuestData.roomNumber);
             }
@@ -756,7 +810,7 @@ function registerBattleRoutes(fastify) {
         const { playerId } = ctx;
         if ((0, continue_runtime_1.isFiveBossContinueRequest)(playerId, Number(body.category), Number(body.quest_id), body.play_id)) {
             try {
-                const data = (0, continue_runtime_1.continueFiveBossSync)({ playerId, category: Number(body.category), questId: Number(body.quest_id),
+                const data = yield (0, continue_runtime_1.continueFiveBoss)({ playerId, category: Number(body.category), questId: Number(body.quest_id),
                     playId: body.play_id, isMulti: true, apiCount: body.api_count, statistics: body.statistics });
                 const recovered = (0, active_quest_resolver_1.resolveActiveQuest)({ playerId, hint: body, memory: singleBattleQuest_1.activeQuests, allowRebuild: false });
                 if ((recovered === null || recovered === void 0 ? void 0 : recovered.quest.playId) === body.play_id)
@@ -776,13 +830,16 @@ function registerBattleRoutes(fastify) {
             });
         }
         const activeData = singleBattleQuest_1.activeQuests[playerId];
-        activeData.continueCount++;
-        (0, quest_active_1.updatePlayerActiveQuestContinueCountSync)(playerId, activeData.continueCount);
+        const nextContinueCount = activeData.continueCount + 1;
+        yield (0, persistence_coordinator_1.runPersistenceTransaction)({
+            domain: "multi-settlement", playerId, operation: "continue",
+        }, () => (0, quest_active_1.updatePlayerActiveQuestContinueCountSync)(playerId, nextContinueCount));
+        activeData.continueCount = nextContinueCount;
         reply.header("content-type", "application/x-msgpack");
         return reply.status(200).send({
             "data_headers": (0, utils_1.generateDataHeaders)({ viewer_id: viewerId }),
             "data": {
-                continue_count: activeData.continueCount,
+                continue_count: nextContinueCount,
             }
         });
     }));

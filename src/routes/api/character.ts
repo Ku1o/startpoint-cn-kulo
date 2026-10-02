@@ -13,6 +13,7 @@ import { clientSerializeDate } from "../../data/utils";
 import { resolvePlayerIdSync } from "../../data/activeAccount";
 import { reconcileAwakeUnlockCharacterList, settleDegreeMissionResponse } from "../../lib/mission";
 import { gameVerboseLog } from "../../lib/game-logging";
+import { runPersistenceTransaction } from "../../lib/persistence-coordinator";
 
 interface OverLimitBody {
     viewer_id: number
@@ -63,9 +64,12 @@ const routes = async (fastify: FastifyInstance) => {
             "message": "No players bound to account."
         })
 
-        // update character
-        updatePlayerCharacterSync(playerId, characterId, {
-            illustrationSettings: illustration_settings.slice(0, 6)
+        await runPersistenceTransaction({
+            domain: "player", playerId, operation: "character_illustration_settings",
+        }, () => {
+            updatePlayerCharacterSync(playerId, characterId, {
+                illustrationSettings: illustration_settings.slice(0, 6)
+            })
         })
 
         reply.header("content-type", "application/x-msgpack")
@@ -101,102 +105,64 @@ const routes = async (fastify: FastifyInstance) => {
             "message": "No players bound to account."
         })
 
-        // get character data
         const characterId = body.character_id
-        const playerCharacterData = getPlayerCharacterSync(playerId, characterId)
-        if (playerCharacterData === null) return reply.status(400).send({
-            "error": "Bad Request",
-            "message": "Character not owned."
-        })
-
-        // get character asset data
+        const overLimitCount = body.over_limit_count
+        if (!Number.isSafeInteger(overLimitCount) || overLimitCount <= 0) {
+            return reply.status(400).send({ error: "Bad Request", message: "Invalid over limit count." })
+        }
         const characterAssetData = getCharacterDataSync(characterId)
         if (characterAssetData === null) return reply.status(500).send({
-            "error": "Internal Server Error",
-            "message": "No character asset data found."
+            error: "Internal Server Error", message: "No character asset data found."
         })
 
-        // calculate new over limit
-        const overLimitCount = body.over_limit_count
-        const newOverLimit = playerCharacterData.overLimitStep + overLimitCount
-        const characterRarity = characterAssetData.rarity
-        if (newOverLimit > characterMaxOverLimits[characterRarity]) return reply.status(400).send({
-            "error": "Bad Request",
-            "message": "Character cannot be uncapped further."
-        })
-
-        let stack = playerCharacterData.stack
-        const item_list: Record<number, number> = {}
-
-        if (body.use_stack) {
-            // stack uncapping
-            
-            // ensure that the character has enough stack
-            stack = stack - overLimitCount
-            if (0 > stack) return reply.status(400).send({
-                "error": "Bad Request",
-                "message": "Character does not have enough duplicates to uncap."
-            })
-
-            // update the character
-            updatePlayerCharacterSync(playerId, characterId, {
-                overLimitStep: newOverLimit,
-                stack: stack
-            })
-        } else {
-            // item uncapping
-            const itemId = body.item_id
-
-            // ensure that the item trying to be used is valid
-            // 5* characters can only be uncapped by item 10003 (awaking_crystal_5)
-            // 4* characters and below can only be uncapped by items 10002 (awaking_crystal_4) and 10001 (awaking_crystal_3)
-            if ( (characterRarity === 5 && itemId !== 10003) 
-                || ( 4 >= characterRarity && (itemId !== 10002 && itemId !== 10001)) 
-            ) return reply.status(400).send({
-                "error": "Bad Request",
-                "message": "Attempted to use invalid item."
-            })
-
-            const itemData = getPlayerItemSync(playerId, itemId)
-            if (itemData === null) return reply.status(400).send({
-                "error": "Bad Request",
-                "message": "Attempted to use unowned item."
-            })
-
-            // make sure that the player has enough of the item
-            const newAmount = itemData - overLimitCount
-            if (0 > newAmount) return reply.status(400).send({
-                "error": "Bad Request",
-                "message": "Not enough of item to uncap."
-            })
-
-            // update the item count
-            updatePlayerItemSync(playerId, itemId, newAmount)
-            item_list[itemId] = newAmount // add to items table
-
-            // update the character
-            updatePlayerCharacterSync(playerId, characterId, {
-                overLimitStep: newOverLimit
-            })
-        }
-
-        grantCharacterDegreeRewardsSync(playerId, [characterId])
-
-        const responseData: Record<string, any> = {
-            "character_list": [
-                {
-                    "over_limit_step": newOverLimit,
-                    "character_id": characterId,
-                    "stack": stack,
-                    "create_time": clientSerializeDate(playerCharacterData.joinTime),
-                    "update_time": clientSerializeDate(new Date()),
-                    "join_time": clientSerializeDate(playerCharacterData.joinTime)
+        const result = await runPersistenceTransaction({
+            domain: "player", playerId, operation: "character_over_limit",
+        }, () => {
+            // Read balances and progress after reaching the head of the player queue.
+            const character = getPlayerCharacterSync(playerId, characterId)
+            if (!character) return { error: "Character not owned." }
+            const newOverLimit = character.overLimitStep + overLimitCount
+            const rarity = characterAssetData.rarity
+            if (newOverLimit > characterMaxOverLimits[rarity]) {
+                return { error: "Character cannot be uncapped further." }
+            }
+            let stack = character.stack
+            const itemList: Record<number, number> = {}
+            if (body.use_stack) {
+                stack -= overLimitCount
+                if (stack < 0) return { error: "Character does not have enough duplicates to uncap." }
+                updatePlayerCharacterSync(playerId, characterId, { overLimitStep: newOverLimit, stack })
+            } else {
+                const itemId = body.item_id
+                if ((rarity === 5 && itemId !== 10003)
+                    || (rarity <= 4 && itemId !== 10002 && itemId !== 10001)) {
+                    return { error: "Attempted to use invalid item." }
                 }
-            ],
-            "item_list": item_list,
-            "mail_arrived": false
+                const count = getPlayerItemSync(playerId, itemId)
+                if (count === null) return { error: "Attempted to use unowned item." }
+                const remaining = count - overLimitCount
+                if (remaining < 0) return { error: "Not enough of item to uncap." }
+                updatePlayerItemSync(playerId, itemId, remaining)
+                itemList[itemId] = remaining
+                updatePlayerCharacterSync(playerId, characterId, { overLimitStep: newOverLimit })
+            }
+            grantCharacterDegreeRewardsSync(playerId, [characterId])
+            const data: Record<string, any> = {
+                character_list: [{
+                    over_limit_step: newOverLimit, character_id: characterId, stack,
+                    create_time: clientSerializeDate(character.joinTime),
+                    update_time: clientSerializeDate(new Date()),
+                    join_time: clientSerializeDate(character.joinTime),
+                }],
+                item_list: itemList, mail_arrived: false,
+            }
+            settleDegreeMissionResponse(playerId, viewerId, data, undefined, [9])
+            return { data }
+        })
+        if (result.error !== undefined) {
+            return reply.status(400).send({ error: "Bad Request", message: result.error })
         }
-        settleDegreeMissionResponse(playerId, viewerId, responseData, undefined, [9])
+        const responseData = result.data
 
         reply.header("content-type", "application/x-msgpack")
         return reply.status(200).send({
@@ -226,50 +192,48 @@ const routes = async (fastify: FastifyInstance) => {
             error: "Internal Server Error", message: "No players bound to account.",
         })
 
-        const characters = getPlayerCharactersSync(playerId)
-        gameVerboseLog(() => `[bulk_over_limit] player=${playerId} totalChars=${Object.keys(characters).length}`)
+        const responseData = await runPersistenceTransaction({
+            domain: "player", playerId, operation: "character_bulk_over_limit",
+        }, () => {
+            const characters = getPlayerCharactersSync(playerId)
+            const characterList: any[] = []
+            gameVerboseLog(() => `[bulk_over_limit] player=${playerId} totalChars=${Object.keys(characters).length}`)
+            for (const [charId, charData] of Object.entries(characters)) {
+                if (charData.stack <= 0) continue
 
-        const characterList: any[] = []
+                const assetData = getCharacterDataSync(Number(charId))
+                if (!assetData) continue
 
-        for (const [charId, charData] of Object.entries(characters)) {
-            if (charData.stack <= 0) continue
+                const maxOver = characterMaxOverLimits[assetData.rarity]
+                if (maxOver === undefined) continue
 
-            const assetData = getCharacterDataSync(Number(charId))
-            if (!assetData) continue
+                const rest = maxOver - charData.overLimitStep
+                if (rest <= 0) continue
 
-            const maxOver = characterMaxOverLimits[assetData.rarity]
-            if (maxOver === undefined) continue
+                const count = Math.min(charData.stack, rest)
+                const newOverLimit = charData.overLimitStep + count
+                const newStack = charData.stack - count
 
-            const rest = maxOver - charData.overLimitStep
-            if (rest <= 0) continue
+                updatePlayerCharacterSync(playerId, Number(charId), {
+                    overLimitStep: newOverLimit,
+                    stack: newStack,
+                })
+                grantCharacterDegreeRewardsSync(playerId, [Number(charId)])
 
-            const count = Math.min(charData.stack, rest)
-            const newOverLimit = charData.overLimitStep + count
-            const newStack = charData.stack - count
-
-            updatePlayerCharacterSync(playerId, Number(charId), {
-                overLimitStep: newOverLimit,
-                stack: newStack,
-            })
-            grantCharacterDegreeRewardsSync(playerId, [Number(charId)])
-
-            characterList.push({
-                character_id: Number(charId),
-                over_limit_step: newOverLimit,
-                stack: newStack,
-                create_time: clientSerializeDate(charData.joinTime),
-                update_time: clientSerializeDate(new Date()),
-                join_time: clientSerializeDate(charData.joinTime),
-            })
-        }
-
-        gameVerboseLog(() => `[bulk_over_limit] done: ${characterList.length} characters modified`)
-
-        const responseData: Record<string, any> = {
-            character_list: characterList,
-            mail_arrived: false,
-        }
-        settleDegreeMissionResponse(playerId, viewerId, responseData, undefined, [9])
+                characterList.push({
+                    character_id: Number(charId),
+                    over_limit_step: newOverLimit,
+                    stack: newStack,
+                    create_time: clientSerializeDate(charData.joinTime),
+                    update_time: clientSerializeDate(new Date()),
+                    join_time: clientSerializeDate(charData.joinTime),
+                })
+            }
+            gameVerboseLog(() => `[bulk_over_limit] done: ${characterList.length} characters modified`)
+            const data: Record<string, any> = { character_list: characterList, mail_arrived: false }
+            settleDegreeMissionResponse(playerId, viewerId, data, undefined, [9])
+            return data
+        })
 
         reply.header("content-type", "application/x-msgpack")
         return reply.status(200).send({
@@ -296,23 +260,21 @@ const routes = async (fastify: FastifyInstance) => {
             "error": "Internal Server Error", "message": "No player bound to account."
         })
 
-        const giveResult = givePlayerCharacterSync(playerId, characterId)
-        const existingCharacterList: Record<string, unknown>[] = giveResult?.character
-            ? [giveResult.character as Record<string, unknown>]
-            : []
-        const itemList = giveResult?.item
-            ? { [giveResult.item.id]: giveResult.item.inventoryCount }
-            : {}
-        const characterList = existingCharacterList.length > 0
-            ? reconcileAwakeUnlockCharacterList(playerId, existingCharacterList)
-            : existingCharacterList
-
-        const responseData: Record<string, any> = {
-            "character_list": characterList,
-            "item_list": itemList,
-            "mail_arrived": false
-        }
-        settleDegreeMissionResponse(playerId, viewerId, responseData, undefined, [4])
+        const responseData = await runPersistenceTransaction({
+            domain: "player", playerId, operation: "character_add_from_town",
+        }, () => {
+            const giveResult = givePlayerCharacterSync(playerId, characterId)
+            const existing: Record<string, unknown>[] = giveResult?.character
+                ? [giveResult.character as Record<string, unknown>] : []
+            const data: Record<string, any> = {
+                character_list: existing.length > 0
+                    ? reconcileAwakeUnlockCharacterList(playerId, existing) : existing,
+                item_list: giveResult?.item ? { [giveResult.item.id]: giveResult.item.inventoryCount } : {},
+                mail_arrived: false,
+            }
+            settleDegreeMissionResponse(playerId, viewerId, data, undefined, [4])
+            return data
+        })
 
         reply.header("content-type", "application/x-msgpack")
         return reply.status(200).send({

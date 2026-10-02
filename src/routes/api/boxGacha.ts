@@ -15,6 +15,7 @@ import { drawBoxGachaSync, rewardPlayerBoxGachaResultSync } from "../../lib/gach
 import { reconcileAwakeUnlockCharacterList } from "../../lib/mission";
 import { BoxGachaBox, BoxGachaBoxes } from "../../lib/types";
 import { PlayerBoxGacha, PlayerBoxGachaDrawnReward } from "../../data/types";
+import { runPersistenceTransaction } from "../../lib/persistence-coordinator";
 
 interface GetBoxListBody {
     box_gacha_id: number
@@ -174,28 +175,32 @@ const routes = async (fastify: FastifyInstance) => {
             "message": "Invalid box gacha or box id."
         })
 
-        const playerDrawnRewards = getPlayerBoxGachaDrawnRewardsSync(playerId, boxGachaId, boxId)
-        const playerBoxData = reconcileExpandedEmptyBox(
-            playerId,
-            boxGachaId,
-            boxId,
-            boxRewards,
-            playerDrawnRewards,
-            getPlayerBoxGachaSync(playerId, boxGachaId, boxId)
-        )
-        if (playerBoxData === null) return reply.status(400).send({
-            "error": "Bad Request",
-            "message": "Box doesn't exist."
+        const resetResult = await runPersistenceTransaction({
+            domain: "gacha", playerId, operation: "box_reset",
+        }, () => {
+            const playerDrawnRewards = getPlayerBoxGachaDrawnRewardsSync(playerId, boxGachaId, boxId)
+            const playerBoxData = reconcileExpandedEmptyBox(
+                playerId,
+                boxGachaId,
+                boxId,
+                boxRewards,
+                playerDrawnRewards,
+                getPlayerBoxGachaSync(playerId, boxGachaId, boxId)
+            )
+            if (playerBoxData === null) return { allBoxInfo: null, errorMessage: "Box doesn't exist." }
+            if (!playerBoxData.isClosed && playerBoxData.remainingNumber > 0) {
+                return { allBoxInfo: null, errorMessage: "Box still has remaining rewards." }
+            }
+            if (!resetPlayerBoxGachaSync(playerId, boxGachaId, boxId, availableCount)) {
+                return { allBoxInfo: null, errorMessage: "Failed to reset box." }
+            }
+            return { allBoxInfo: getAllBoxList(playerId, boxGachaId, boxGachaData.boxes) }
         })
-
-        if (!playerBoxData.isClosed && playerBoxData.remainingNumber > 0) return reply.status(400).send({
-            "error": "Bad Request",
-            "message": "Box still has remaining rewards."
-        })
-
-        if (!resetPlayerBoxGachaSync(playerId, boxGachaId, boxId, availableCount)) return reply.status(500).send({
-            "error": "Internal Server Error",
-            "message": "Failed to reset box."
+        if (resetResult.allBoxInfo === null) return reply.status(
+            resetResult.errorMessage === "Failed to reset box." ? 500 : 400
+        ).send({
+            "error": resetResult.errorMessage === "Failed to reset box." ? "Internal Server Error" : "Bad Request",
+            "message": resetResult.errorMessage,
         })
 
         reply.header("content-type", "application/x-msgpack")
@@ -204,7 +209,7 @@ const routes = async (fastify: FastifyInstance) => {
                 viewer_id: viewerId
             }),
             "data": {
-                "all_box_info": getAllBoxList(playerId, boxGachaId, boxGachaData.boxes)
+                "all_box_info": resetResult.allBoxInfo
             }
         })
     })
@@ -242,41 +247,18 @@ const routes = async (fastify: FastifyInstance) => {
             "message": "Invalid box gacha id."
         })
 
-        // get the box's data.
-        const playerBoxData = getPlayerBoxGachaSync(playerId, boxGachaId, boxId)
-        if (playerBoxData === null) return reply.status(400).send({
+        const closeResult = await runPersistenceTransaction({
+            domain: "gacha", playerId, operation: "box_close",
+        }, () => {
+            const playerBoxData = getPlayerBoxGachaSync(playerId, boxGachaId, boxId)
+            if (playerBoxData === null) return { allBoxInfo: null, errorMessage: "Box doesn't exist" }
+            if (playerBoxData.isClosed) return { allBoxInfo: null, errorMessage: "Box is already closed." }
+            updatePlayerBoxGachaSync(playerId, boxGachaId, { boxId, isClosed: true })
+            return { allBoxInfo: getAllBoxList(playerId, boxGachaId, boxGachaData.boxes) }
+        })
+        if (closeResult.allBoxInfo === null) return reply.status(400).send({
             "error": "Bad Request",
-            "message": "Box doesn't exist"
-        })
-
-        // check if the box is already closed
-        if (playerBoxData.isClosed) return reply.status(400).send({
-            "error": "Bad Request",
-            "message": "Box is already closed."
-        })
-
-        // set box to be closed
-        updatePlayerBoxGachaSync(playerId, boxGachaId, {
-            boxId: boxId,
-            isClosed: true
-        })
-
-        // get all boxes
-        const allBoxDataList = getAllBoxList(playerId, boxGachaId, boxGachaData.boxes, boxId);
-
-        // add box that we just closed to all box data.
-        const playerDrawnRewards = getPlayerBoxGachaDrawnRewardsSync(playerId, boxGachaId, boxId)
-        allBoxDataList.push({
-            "box_id": boxId,
-            "reset_times": playerBoxData?.resetTimes ?? 0,
-            "all_drawn_reward_list": playerDrawnRewards.map(reward => {
-                return {
-                    "reward_id": reward.id,
-                    "number": reward.number
-                }
-            }),
-            "coming_next_reward_list": [],
-            "is_closed": true
+            "message": closeResult.errorMessage,
         })
 
         reply.header("content-type", "application/x-msgpack")
@@ -285,7 +267,7 @@ const routes = async (fastify: FastifyInstance) => {
                 viewer_id: viewerId
             }),
             "data": {
-                "all_box_info": getAllBoxList(playerId, boxGachaId, boxGachaData.boxes)
+                "all_box_info": closeResult.allBoxInfo
             }
         })
     })
@@ -360,73 +342,82 @@ const routes = async (fastify: FastifyInstance) => {
             "message": "Box is closed."
         })
 
-        // perform the draws
-        const drawResult = drawBoxGachaSync(boxRewards, playerDrawnRewards, pullCount, stopOnFeaturedRewards)
+        const settlement = await runPersistenceTransaction({
+            domain: "gacha", playerId, operation: "box_exec",
+        }, () => {
+            const currentDrawnRewards = getPlayerBoxGachaDrawnRewardsSync(playerId, boxGachaId, boxId)
+            const currentBoxData = reconcileExpandedEmptyBox(
+                playerId, boxGachaId, boxId, boxRewards, currentDrawnRewards,
+                getPlayerBoxGachaSync(playerId, boxGachaId, boxId),
+            )
+            if (currentBoxData?.isClosed) throw new Error("Box is closed.")
+            const currentCurrency = getPlayerItemSync(playerId, pullCurrencyId)
+            if (currentCurrency === null) throw new Error("No pull currency.")
+
+            const drawResult = drawBoxGachaSync(boxRewards, currentDrawnRewards, pullCount, stopOnFeaturedRewards)
+            const actualPullCost = drawResult.drawCount * boxGachaData.redeemItemCount
+            const newPullCurrency = currentCurrency - actualPullCost
+            if (newPullCurrency < 0) throw new Error("Not enough pull currency.")
+            console.log(
+                `[BOX] exec result: boxGachaId=${boxGachaId} boxId=${boxId} requested=${pullCount} actual=${drawResult.drawCount} cost=${actualPullCost} stopOnFeatured=${stopOnFeaturedRewards}`
+            )
+
+            const rewardResult = rewardPlayerBoxGachaResultSync(playerId, drawResult)
+            const playerDrawnRewardMap = new Map(currentDrawnRewards.map(reward => [reward.id, reward.number]))
+            const totalDrawCount = currentDrawnRewards.reduce((total, reward) => total + reward.number, 0)
+                + drawResult.rewards.reduce((total, reward) => total + reward.number, 0)
+            const remainingDrawsNumber = (boxGachaData.availableCounts[boxId] ?? totalDrawCount) - totalDrawCount
+            const shouldClose = remainingDrawsNumber === 0
+            if (currentBoxData === null) {
+                insertPlayerBoxGachaSync(playerId, boxGachaId, {
+                    boxId, isClosed: shouldClose, remainingNumber: remainingDrawsNumber, resetTimes: 0,
+                })
+            } else {
+                updatePlayerBoxGachaSync(playerId, boxGachaId, {
+                    boxId, isClosed: shouldClose, remainingNumber: remainingDrawsNumber,
+                })
+            }
+            for (const drawnReward of drawResult.rewards) {
+                const existing = playerDrawnRewardMap.get(drawnReward.id)
+                if (existing === undefined) {
+                    insertPlayerBoxGachaDrawnRewardSync(playerId, boxGachaId, boxId, {
+                        id: drawnReward.id, number: drawnReward.number,
+                    })
+                } else {
+                    updatePlayerBoxGachaDrawnRewardSync(
+                        playerId, boxGachaId, boxId, drawnReward.id, existing + drawnReward.number,
+                    )
+                }
+            }
+            updatePlayerItemSync(playerId, pullCurrencyId, newPullCurrency)
+            return {
+                drawResult, rewardResult, newPullCurrency,
+                playerBoxData: currentBoxData ?? {
+                    boxId, resetTimes: 0, remainingNumber: remainingDrawsNumber, isClosed: shouldClose,
+                },
+                currentDrawnRewards,
+            }
+        })
+        const { drawResult, rewardResult, newPullCurrency, currentDrawnRewards } = settlement
         const drawnRewards = drawResult.rewards
-        const actualPullCost = drawResult.drawCount * boxGachaData.redeemItemCount
-        const newPullCurrency = playerPullCurrency - actualPullCost
-        console.log(
-            `[BOX] exec result: boxGachaId=${boxGachaId} boxId=${boxId} requested=${pullCount} actual=${drawResult.drawCount} cost=${actualPullCost} stopOnFeatured=${stopOnFeaturedRewards}`
-        )
-
-        // reward the player
-        const rewardResult = rewardPlayerBoxGachaResultSync(playerId, drawResult)
-
-        // calculate all drawn reward list
-        const playerDrawnRewardMap: Map<number, number> = new Map()
         const allDrawResultMap: Map<number, number> = new Map()
         let totalDrawCount = 0
         for (const drawnReward of drawnRewards) {
-            const number = drawnReward.number
-            totalDrawCount += number
-            allDrawResultMap.set(drawnReward.id, number);
+            totalDrawCount += drawnReward.number
+            allDrawResultMap.set(drawnReward.id, drawnReward.number)
         }
-        for (const playerDrawnReward of playerDrawnRewards) {
-            const id = playerDrawnReward.id
-            const number = playerDrawnReward.number
-            totalDrawCount += number
-            allDrawResultMap.set(id, (allDrawResultMap.get(id) ?? 0) + number);
-            playerDrawnRewardMap.set(id, number)
+        for (const playerDrawnReward of currentDrawnRewards) {
+            totalDrawCount += playerDrawnReward.number
+            allDrawResultMap.set(playerDrawnReward.id, (allDrawResultMap.get(playerDrawnReward.id) ?? 0) + playerDrawnReward.number)
         }
-
-        // update box gacha data
         const remainingDrawsNumber = (boxGachaData.availableCounts[boxId] ?? totalDrawCount) - totalDrawCount
         const shouldClose = remainingDrawsNumber === 0
-        if (playerBoxData === null) {
-            insertPlayerBoxGachaSync(playerId, boxGachaId, {
-                boxId: boxId,
-                isClosed: shouldClose,
-                remainingNumber: remainingDrawsNumber,
-                resetTimes: 0
-            })
-        } else {
-            // auto close the box if the remaining draws are 0
-            updatePlayerBoxGachaSync(playerId, boxGachaId, {
-                boxId: boxId,
-                isClosed: shouldClose,
-                remainingNumber: remainingDrawsNumber
-            })
-        }
-
-        // upsert drawn rewards
-        for (const drawnReward of drawnRewards) {
-            const id = drawnReward.id
-            const existing = playerDrawnRewardMap.get(drawnReward.id)
-            if (existing === undefined) {
-                insertPlayerBoxGachaDrawnRewardSync(playerId, boxGachaId, boxId, {
-                    id: id,
-                    number: drawnReward.number
-                })
-            } else {
-                updatePlayerBoxGachaDrawnRewardSync(playerId, boxGachaId, boxId, id, existing + drawnReward.number)
-            }
-        }
-
-        // update currency
-        updatePlayerItemSync(playerId, pullCurrencyId, newPullCurrency)
+        const responsePlayerBoxData = settlement.playerBoxData
 
         // generate totalDrawnRewards array
-        const allBoxInfo: Object[] = getAllBoxList(playerId, boxGachaId, boxGachaData.boxes, boxId)
+        const allBoxInfo: Object[] = await runPersistenceTransaction({
+            domain: "gacha", playerId, operation: "box_response_reconcile",
+        }, () => getAllBoxList(playerId, boxGachaId, boxGachaData.boxes, boxId))
 
         // add current box to allBoxInfo
         {
@@ -441,10 +432,10 @@ const routes = async (fastify: FastifyInstance) => {
 
             allBoxInfo.push({
                 "box_id": boxId,
-                "reset_times": playerBoxData?.resetTimes ?? 0,
+                "reset_times": responsePlayerBoxData?.resetTimes ?? 0,
                 "all_drawn_reward_list": allDrawnRewardList,
                 "coming_next_reward_list": [],
-                "is_closed": shouldClose ? true : playerBoxData?.isClosed ?? false
+                "is_closed": shouldClose ? true : responsePlayerBoxData?.isClosed ?? false
             })
         }
 

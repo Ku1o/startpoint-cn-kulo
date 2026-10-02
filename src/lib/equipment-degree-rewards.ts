@@ -6,6 +6,7 @@ import { getPracticeQuestSync } from "./assets"
 import { grantAbyssShopDegreeRewardSync } from "./abyss-shop-degree-reward"
 import type { BattleFinishMissionEvent } from "./mission/events"
 import { QuestCategory } from "./types"
+import { runPersistenceTransactionSync } from "./persistence-coordinator"
 
 export const EQUIPMENT_DEGREE_CATALOG = Object.freeze([
     Object.freeze({
@@ -79,7 +80,9 @@ export function grantEquipmentDegreeRewardsSync(
     if (targets.length === 0) return []
 
     const db = getDb()
-    return db.transaction(() => {
+    return runPersistenceTransactionSync({
+        domain: "player", playerId, operation: "grant_equipment_degree_rewards",
+    }, () => {
         if (!db.prepare("SELECT id FROM players WHERE id = ?").get(playerId)) return []
         const lookup = db.prepare(`
             SELECT enhancement_level
@@ -93,7 +96,7 @@ export function grantEquipmentDegreeRewardsSync(
         return eligible
             .filter(entry => grantPlayerDegreeSync(playerId, entry.degree_id))
             .map(entry => entry.degree_id)
-    })()
+    })
 }
 
 /** A successful single-player practice is the retroactive backfill trigger. */

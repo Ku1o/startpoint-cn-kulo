@@ -1,5 +1,6 @@
 import { randomInt } from "crypto";
 import { getDb } from "../db";
+import { runPersistenceTransactionSync } from "../../lib/persistence-coordinator";
 
 const PARTY_CODE_ALPHABET = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ";
 const PARTY_CODE_LENGTH = 10;
@@ -40,7 +41,7 @@ export function publishPartySync(
     const battlePartyJson = JSON.stringify(battleParty);
     const createdAt = Date.now();
 
-    return db.transaction(() => {
+    return runPersistenceTransactionSync({ domain: "player", playerId: ownerPlayerId, operation: "publish_party" }, () => {
         let code = "";
         for (let attempt = 0; attempt < 20; attempt++) {
             const candidate = generatePartyCode();
@@ -72,7 +73,7 @@ export function publishPartySync(
         `).run(ownerPlayerId, MAX_PUBLISHED_PARTIES_PER_PLAYER);
 
         return code;
-    })();
+    })
 }
 
 export function getPublishedPartySync(code: string): PublishedPartyRecord | null {

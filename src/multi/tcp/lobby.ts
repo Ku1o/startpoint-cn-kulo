@@ -6,6 +6,7 @@ import { addRoomMember, getRoom, removeRoomMember } from "../room/manager"
 import { NpcMateProvider, selectStableNpcSlots } from "../npc/controller"
 import { stopRandomRecruitment } from "../recruitment"
 import { gameVerboseLog } from "../../lib/game-logging"
+import { markPlayerOnlineFromTcp } from "../../lib/online-presence"
 import {
     getNpcPartySelectionOptions,
     getRandomPlayerNpcPartiesSync,
@@ -15,9 +16,10 @@ import {
     getMode15ExclusiveGlobalPartyItemsSync,
     isMode15Quest,
 } from "../../lib/mode15-optional"
-import { getPlayerSync } from "../../data/domains/player"
+import { getPlayerSync, updatePlayerPartySlotAsync } from "../../data/domains/player"
 import { embeddedMultiCoordinator } from "../coordinator/embedded"
 import { handleAutoplayModeChange } from "./autoplay-mode"
+import { setRealPartySnapshot } from "../party-snapshot"
 import {
     recordRoomAdmissionDenial,
     roomAdmissionRegistry,
@@ -25,7 +27,7 @@ import {
 
 const NPC_JOIN_DELAY_MS = parseInt(process.env.NPC_JOIN_DELAY_MS || "2000")
 const NPC_READY_DELAY_MS = parseInt(process.env.NPC_READY_DELAY_MS || "500")
-const REMATCH_RECONNECT_GRACE_MS = parseInt(process.env.REMATCH_RECONNECT_GRACE_MS || "25000")
+const REMATCH_RECONNECT_GRACE_MS = parseInt(process.env.REMATCH_RECONNECT_GRACE_MS || "60000")
 const npcRecruitingRooms = new Set<string>()
 const npcReconcilePendingRooms = new Set<string>()
 const npcReconcileTimers = new Map<string, NodeJS.Timeout>()
@@ -368,7 +370,10 @@ function checkAllReadyAndStart(roomNumber: string): void {
         const realCount = countRealPlayers(hostClient.mates)
         const presentNpcCount = hostClient.mates.filter(mate => !!mate.comId).length
         const desiredNpcCount = Math.max(0, 3 - realCount)
-        if (presentNpcCount < desiredNpcCount) {
+        // Every multiplayer room can start with two ready real players. A
+        // pending AI seat must only hold a one-real-player room; it must not
+        // turn an otherwise valid two-player party into a silent wait.
+        if (presentNpcCount < desiredNpcCount && realCount < 2) {
             scheduleNpcReconcile(roomNumber)
             return
         }
@@ -403,6 +408,8 @@ async function handleEnterComs(client: SessionClient, coms: { name: string }[]):
     if (isFiveBossGauntletQuest(room.category, room.quest_id)) {
         const remaining = room.created_at + FIVE_BOSS_GAUNTLET.aiFillTimeoutMs - Date.now()
         if (remaining > 0) {
+            gameVerboseLog(() => `[LOBBY] AI recruitment delayed: room=${client.roomNumber}`
+                + ` remainingMs=${remaining}`)
             scheduleNpcReconcile(room.room_number, remaining)
             return
         }
@@ -930,13 +937,29 @@ function handleChangeParty(_socket: net.Socket, client: SessionClient, data: any
         for (const field of mutableMateFields) {
             if (pd[field] !== undefined) client.yourself[field] = pd[field]
         }
+        if (client.playerId && pd.party !== undefined) {
+            // Keep reconnect handshakes aligned with the in-memory room
+            // roster immediately; the low-priority DB save may finish later.
+            setRealPartySnapshot(client.playerId, pd.party)
+        }
         if (currentPartyId !== undefined) {
             client.yourself.currentPartyId = currentPartyId
         }
     }
     const mate = client.mates.find(m => m.viewerId === client.viewerId)
     if (mate) {
-        if (client.playerId && currentPartyId !== undefined) { try { const up = require("../../data/domains/player").updatePlayerSync; up({ id: client.playerId, partySlot: currentPartyId }); } catch(e) {} }
+        if (client.playerId && currentPartyId !== undefined) {
+            const playerId = client.playerId
+            const partySlot = currentPartyId
+            // Party selection is already authoritative in the in-memory room.
+            // Defer the low-priority save so the TCP callback can broadcast the
+            // roster without synchronously waiting on SQLite.
+            setImmediate(() => {
+                void updatePlayerPartySlotAsync(playerId, partySlot).catch(error => {
+                    console.warn(`[MULTI] deferred party persistence failed player=${playerId}`, error)
+                })
+            })
+        }
         const room = getRoom(client.roomNumber)
         if (room && room.host_viewer_id === client.viewerId && currentPartyId !== undefined) room.host_party_id = currentPartyId
         const roster = collectCanonicalRoomRoster(client.roomNumber)
@@ -1034,7 +1057,12 @@ function handleStartBattle(_socket: net.Socket, client: SessionClient, _data: an
             .filter(mate => !mate.comId && Number.isFinite(Number(mate.viewerId)))
             .map(mate => Number(mate.viewerId)),
     )]
-    if (!freezeFiveBossLobby(room, members)) return
+    if (!freezeFiveBossLobby(room, members)) {
+        gameVerboseLog(() => `[LOBBY] StartBattle deferred: five-boss roster invalid`
+            + ` room=${client.roomNumber} roster=${members.length}`
+            + ` ready=${members.filter(mate => mate.state?.[0] === 1).length}`)
+        return
+    }
     const expectedCount = realViewerIds.length
     for (const viewerId of realViewerIds) {
         sessionManager.clearRescueGuestLobbyWait(client.roomNumber, viewerId)
@@ -1157,6 +1185,9 @@ export function handleMessage(socket: net.Socket, data: unknown): void {
     void embeddedMultiCoordinator.enqueueRoomCommand(client.roomNumber, async () => {
         const current = findClientBySocket(socket)
         if (!current || current.superseded) return
+        if (!socket.destroyed && (tag === 0 || tag === 1 || tag === 2)) {
+            markPlayerOnlineFromTcp(current.viewerId)
+        }
         switch (tag) {
             case 0: await handleNotify(socket, current, data); break
             case 1: handleBroadcast(socket, current, data); break

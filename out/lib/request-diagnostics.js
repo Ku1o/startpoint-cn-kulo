@@ -107,20 +107,22 @@ function installRequestDiagnostics(app, options = {}) {
     const knownErrors = new Set(["SQLITE_CONSTRAINT_FOREIGNKEY", "SQLITE_BUSY", "SQLITE_LOCKED",
         "FST_ERR_CTP_BODY_TOO_LARGE", "FST_ERR_CTP_INVALID_JSON_BODY", "FST_ERR_VALIDATION"]);
     function finish(request, status, kind) {
-        var _a, _b, _c, _d, _e, _f;
-        var _g;
+        var _a, _b, _c, _d, _e, _f, _g, _h;
+        var _j;
         const state = states.get(request);
         if (!state)
             return;
         states.delete(request); // close/abort/timeout/response must count once.
         const end = perf_hooks_1.performance.now();
         const ms = end - state.start;
+        const socketBytesAtEnd = (_b = (_a = request.raw.socket) === null || _a === void 0 ? void 0 : _a.bytesRead) !== null && _b !== void 0 ? _b : state.socketBytesAtStart;
+        const wireBytes = Math.max(0, socketBytesAtEnd - state.socketBytesAtStart);
         const method = ["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"].includes(request.method)
             ? request.method : "OTHER";
-        let route = `${method} ${(_b = (_a = request.routeOptions) === null || _a === void 0 ? void 0 : _a.url) !== null && _b !== void 0 ? _b : "<unmatched>"}`;
+        let route = `${method} ${(_d = (_c = request.routeOptions) === null || _c === void 0 ? void 0 : _c.url) !== null && _d !== void 0 ? _d : "<unmatched>"}`;
         if (!routes.has(route) && routes.size >= maxRoutes - 1)
             route = "<overflow>";
-        const row = (_c = routes.get(route)) !== null && _c !== void 0 ? _c : Object.assign(Object.assign({}, timing()), { statuses: {}, outcomes: {}, stages: {}, responseBytes: 0, aborted: 0, timeouts: 0 });
+        const row = (_e = routes.get(route)) !== null && _e !== void 0 ? _e : Object.assign(Object.assign({}, timing()), { statuses: {}, outcomes: {}, stages: {}, responseBytes: 0, aborted: 0, timeouts: 0 });
         routes.set(route, row);
         add(row, ms);
         add(total, ms);
@@ -141,10 +143,13 @@ function installRequestDiagnostics(app, options = {}) {
             increment(outcomes, state.outcome);
         }
         const stages = {};
+        // preValidation runs after Fastify has received and parsed the body.
+        // Keep this separate from application so a slow public upload cannot
+        // be mistaken for a slow settlement transaction.
         if (state.parsed !== undefined)
             stages.receiveParse = state.parsed - state.start;
-        if (state.parsed !== undefined && ((_d = state.prepared) !== null && _d !== void 0 ? _d : state.sending) !== undefined) {
-            stages.application = ((_e = state.prepared) !== null && _e !== void 0 ? _e : state.sending) - state.parsed;
+        if (state.parsed !== undefined && ((_f = state.prepared) !== null && _f !== void 0 ? _f : state.sending) !== undefined) {
+            stages.application = ((_g = state.prepared) !== null && _g !== void 0 ? _g : state.sending) - state.parsed;
         }
         if (state.prepared !== undefined && state.sending !== undefined)
             stages.serialize = state.sending - state.prepared;
@@ -153,7 +158,7 @@ function installRequestDiagnostics(app, options = {}) {
             stages.sendRemainder = Math.max(0, end - state.sending - state.encodingMs);
         }
         for (const [name, value] of Object.entries(stages))
-            add((_f = (_g = row.stages)[name]) !== null && _f !== void 0 ? _f : (_g[name] = timing()), value);
+            add((_h = (_j = row.stages)[name]) !== null && _h !== void 0 ? _h : (_j[name] = timing()), value);
         row.responseBytes += state.responseBytes;
         if (ms >= slowMs || kind !== "complete" || status >= 500) {
             if (slow.length < maxSlowSamples)
@@ -161,13 +166,27 @@ function installRequestDiagnostics(app, options = {}) {
                     requestId: String(request.id).replace(/[^A-Za-z0-9_.:-]/g, "_").slice(0, 64),
                     status: statusKey, ms: +ms.toFixed(1), outcome: state.outcome,
                     stages: Object.fromEntries(Object.entries(stages).map(([key, value]) => [key, +value.toFixed(1)])),
+                    contentLength: state.contentLength,
+                    wireBytes,
                     responseBytes: state.responseBytes });
             else
                 omittedSlowSamples++;
         }
     }
     app.addHook("onRequest", (request, reply, done) => {
-        states.set(request, { start: perf_hooks_1.performance.now(), encodingMs: 0, responseBytes: 0 });
+        var _a, _b;
+        const contentLengthHeader = request.headers["content-length"];
+        const parsedContentLength = typeof contentLengthHeader === "string"
+            ? Number.parseInt(contentLengthHeader, 10)
+            : NaN;
+        states.set(request, {
+            start: perf_hooks_1.performance.now(),
+            socketBytesAtStart: (_b = (_a = request.raw.socket) === null || _a === void 0 ? void 0 : _a.bytesRead) !== null && _b !== void 0 ? _b : 0,
+            contentLength: Number.isFinite(parsedContentLength) && parsedContentLength >= 0
+                ? parsedContentLength : null,
+            encodingMs: 0,
+            responseBytes: 0,
+        });
         const onClose = () => {
             if (!reply.raw.writableFinished)
                 finish(request, reply.statusCode, "aborted");

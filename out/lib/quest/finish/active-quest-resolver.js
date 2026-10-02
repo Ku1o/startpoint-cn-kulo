@@ -34,7 +34,7 @@ function resolveRebuildCategory(clientCategory, questId, findQuest) {
 }
 exports.resolveRebuildCategory = resolveRebuildCategory;
 function fromPersisted(row) {
-    var _a, _b, _c, _d, _e;
+    var _a, _b, _c, _d, _e, _f;
     return {
         questId: row.questId,
         category: row.category,
@@ -45,10 +45,11 @@ function fromPersisted(row) {
         roomNumber: (_a = row.roomNumber) !== null && _a !== void 0 ? _a : undefined,
         entryItemId: (_b = row.entryItemId) !== null && _b !== void 0 ? _b : undefined,
         eventId: (_c = row.eventId) !== null && _c !== void 0 ? _c : undefined,
+        partySlot: (_d = row.partySlot) !== null && _d !== void 0 ? _d : undefined,
         playId: row.playId,
         continueCount: row.continueCount,
-        startedAtMs: (_d = row.startedAtMs) !== null && _d !== void 0 ? _d : undefined,
-        questTimeRevision: (_e = row.questTimeRevision) !== null && _e !== void 0 ? _e : null,
+        startedAtMs: (_e = row.startedAtMs) !== null && _e !== void 0 ? _e : undefined,
+        questTimeRevision: (_f = row.questTimeRevision) !== null && _f !== void 0 ? _f : null,
     };
 }
 function rebuildFromHint(hint, findQuest) {

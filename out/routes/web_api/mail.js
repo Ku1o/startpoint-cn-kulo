@@ -23,6 +23,7 @@ const carnival_event_total_score_rewards_json_1 = __importDefault(require("../..
 const admin_mail_rules_1 = require("../../lib/admin-mail-rules");
 const admin_mail_time_1 = require("../../lib/admin-mail-time");
 const daily_vmoney_mail_1 = require("../../lib/daily-vmoney-mail");
+const persistence_coordinator_1 = require("../../lib/persistence-coordinator");
 // Pre-built CDN validation sets
 const CDN_CHAR_IDS = new Set(Object.keys(content_master_1.serverCharacters).map(Number));
 const CDN_ITEM_IDS = new Set(content_master_1.serverItemIds);
@@ -69,7 +70,9 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
     fastify.patch("/daily", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
         try {
             const update = (0, daily_vmoney_mail_1.validateDailyVmoneyMailConfigUpdate)(request.body);
-            (0, daily_vmoney_mail_1.updateDailyVmoneyMailConfigSync)(update);
+            (0, persistence_coordinator_1.runPersistenceTransactionSync)({
+                domain: "mail", operation: "admin_daily_vmoney_config",
+            }, () => (0, daily_vmoney_mail_1.updateDailyVmoneyMailConfigSync)(update));
             return reply.send((0, daily_vmoney_mail_1.getDailyVmoneyMailOverviewSync)());
         }
         catch (error) {
@@ -79,7 +82,9 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
     }));
     fastify.post("/daily/run", (_request, reply) => __awaiter(void 0, void 0, void 0, function* () {
         try {
-            const result = (0, daily_vmoney_mail_1.dispatchDailyVmoneyMailSync)(Date.now(), "manual", true);
+            const result = (0, persistence_coordinator_1.runPersistenceTransactionSync)({
+                domain: "mail", operation: "admin_daily_vmoney_dispatch",
+            }, () => (0, daily_vmoney_mail_1.dispatchDailyVmoneyMailSync)(Date.now(), "manual", true));
             if (result.status === "disabled") {
                 return reply.status(400).send({ error: "请先启用每日自动邮件" });
             }
@@ -187,7 +192,9 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         let sentCount = 0;
         for (const playerId of targetPlayerIds) {
             try {
-                (0, mail_1.insertMailSync)(playerId, {
+                (0, persistence_coordinator_1.runPersistenceTransactionSync)({
+                    domain: "mail", playerId, operation: "admin_send_mail",
+                }, () => (0, mail_1.insertMailSync)(playerId, {
                     reason_id: 0,
                     subject,
                     description: desc,
@@ -198,7 +205,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                     create_time: timestamps.databaseTime,
                     reward_period_limited: 0,
                     reward_limit_time: null,
-                });
+                }));
                 sentCount++;
             }
             catch (_c) {

@@ -5,6 +5,7 @@ import mailApiPlugin from "./mail"
 import lookupApiPlugin from "./lookup"
 import leaderboardApiPlugin from "./leaderboards"
 import newsApiPlugin from "./news"
+import diagnosticsApiPlugin from "./diagnostics"
 
 const routes = async (fastify: FastifyInstance) => {
     fastify.register(require('@fastify/multipart'), {
@@ -25,6 +26,7 @@ const routes = async (fastify: FastifyInstance) => {
     fastify.register(lookupApiPlugin, { prefix: "/lookup" })
     fastify.register(leaderboardApiPlugin, { prefix: "/leaderboards" })
     fastify.register(newsApiPlugin, { prefix: "/news" })
+    fastify.register(diagnosticsApiPlugin, { prefix: "/server/diagnostics" })
 }
 
 export default routes;

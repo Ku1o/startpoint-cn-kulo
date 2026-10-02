@@ -19,12 +19,14 @@ const profile_target_1 = require("../../lib/profile-target");
 const profileFavorite_1 = require("../../lib/profileFavorite");
 const degree_1 = require("../../data/domains/degree");
 const carnival_reward_handler_1 = require("../../lib/quest/finish/carnival-reward-handler");
+const persistence_coordinator_1 = require("../../lib/persistence-coordinator");
 const game_logging_1 = require("../../lib/game-logging");
 const option_1 = require("../../data/domains/option");
 const profile_stats_1 = require("../../lib/profile-stats");
 const assets_1 = require("../../lib/assets");
 const activity_degree_rewards_1 = require("../../lib/activity-degree-rewards");
 const abyss_shop_degree_reward_1 = require("../../lib/abyss-shop-degree-reward");
+const abyss_spheal_degree_reward_1 = require("../../lib/abyss-spheal-degree-reward");
 const PROFILE_SETTING_FIELDS = [
     "show_opened_mana_board_second_count",
     "show_owned_character_count",
@@ -66,6 +68,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         (0, carnival_reward_handler_1.ensurePlayerClaimedCarnivalDegreesSync)(playerId);
         (0, activity_degree_rewards_1.ensurePlayerActivityDegreesSync)(playerId);
         (0, abyss_shop_degree_reward_1.grantAbyssShopDegreeRewardSync)(playerId);
+        (0, abyss_spheal_degree_reward_1.grantAbyssSphealDegreeSync)(playerId);
         const stats = (0, profile_stats_1.getPlayerProfileStatsSync)(playerId);
         const profileSettings = (0, option_1.getPlayerProfileSettingsSync)(playerId);
         const partyGroupList = (0, profileFavorite_1.getFavoritePartyGroupListSync)(playerId, player.leaderCharacterId);
@@ -173,6 +176,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         (0, carnival_reward_handler_1.ensurePlayerClaimedCarnivalDegreesSync)(playerId);
         (0, activity_degree_rewards_1.ensurePlayerActivityDegreesSync)(playerId);
         (0, abyss_shop_degree_reward_1.grantAbyssShopDegreeRewardSync)(playerId);
+        (0, abyss_spheal_degree_reward_1.grantAbyssSphealDegreeSync)(playerId);
         const degreeIds = (0, degree_1.getPlayerDegreeIdsSync)(playerId);
         reply.header("content-type", "application/x-msgpack");
         return reply.status(200).send({
@@ -211,18 +215,26 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 error: "Internal Server Error",
                 message: "Player not found."
             });
-        (0, degree_1.ensurePlayerLegacyDegreesSync)(playerId, player.degreeId || 1);
-        (0, degree_1.ensurePlayerSoloTimeAttackDegreesSync)(playerId);
-        (0, carnival_reward_handler_1.ensurePlayerClaimedCarnivalDegreesSync)(playerId);
-        (0, activity_degree_rewards_1.ensurePlayerActivityDegreesSync)(playerId);
-        (0, abyss_shop_degree_reward_1.grantAbyssShopDegreeRewardSync)(playerId);
-        if (!(0, degree_1.hasPlayerDegreeSync)(playerId, Number(degreeId))) {
+        const degreeUpdate = yield (0, persistence_coordinator_1.runPersistenceTransaction)({
+            domain: "player", playerId, operation: "profile_update_degree",
+        }, () => {
+            (0, degree_1.ensurePlayerLegacyDegreesSync)(playerId, player.degreeId || 1);
+            (0, degree_1.ensurePlayerSoloTimeAttackDegreesSync)(playerId);
+            (0, carnival_reward_handler_1.ensurePlayerClaimedCarnivalDegreesSync)(playerId);
+            (0, activity_degree_rewards_1.ensurePlayerActivityDegreesSync)(playerId);
+            (0, abyss_shop_degree_reward_1.grantAbyssShopDegreeRewardSync)(playerId);
+            (0, abyss_spheal_degree_reward_1.grantAbyssSphealDegreeSync)(playerId);
+            if (!(0, degree_1.hasPlayerDegreeSync)(playerId, Number(degreeId)))
+                return false;
+            (0, player_1.updatePlayerSync)({ id: playerId, degreeId: Number(degreeId) });
+            return true;
+        });
+        if (!degreeUpdate) {
             return reply.status(400).send({
                 error: "Bad Request",
                 message: "Degree is not owned."
             });
         }
-        (0, player_1.updatePlayerSync)({ id: playerId, degreeId: Number(degreeId) });
         (0, game_logging_1.gameVerboseLog)(() => `[PROFILE] update_degree viewer=${viewerId} degree=${degreeId}`);
         reply.header("content-type", "application/x-msgpack");
         return reply.status(200).send({
@@ -262,13 +274,15 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 error: "Bad Request",
                 message: "No player bound to account.",
             });
-        const updated = (0, option_1.updatePlayerProfileSettingsSync)(playerId, Object.assign(Object.assign(Object.assign({}, (typeof settings.show_opened_mana_board_second_count === "boolean"
+        const updated = yield (0, persistence_coordinator_1.runPersistenceTransaction)({
+            domain: "player", playerId, operation: "profile_update_settings",
+        }, () => (0, option_1.updatePlayerProfileSettingsSync)(playerId, Object.assign(Object.assign(Object.assign({}, (typeof settings.show_opened_mana_board_second_count === "boolean"
             ? { showOpenedManaBoardSecondCount: settings.show_opened_mana_board_second_count }
             : {})), (typeof settings.show_owned_character_count === "boolean"
             ? { showOwnedCharacterCount: settings.show_owned_character_count }
             : {})), (typeof settings.show_owned_degree_count === "boolean"
             ? { showOwnedDegreeCount: settings.show_owned_degree_count }
-            : {})));
+            : {}))));
         reply.header("content-type", "application/x-msgpack");
         return reply.status(200).send({
             data_headers: (0, utils_1.generateDataHeaders)({ viewer_id: viewerId }),
@@ -304,7 +318,9 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 message: "Invalid comment.",
             });
         const comment = body.comment.substring(0, (0, assets_1.getConfigSync)().max_player_comment_length);
-        (0, player_1.updatePlayerSync)({ id: playerId, comment });
+        yield (0, persistence_coordinator_1.runPersistenceTransaction)({
+            domain: "player", playerId, operation: "profile_update_comment",
+        }, () => (0, player_1.updatePlayerSync)({ id: playerId, comment }));
         reply.header("content-type", "application/x-msgpack");
         return reply.status(200).send({
             data_headers: (0, utils_1.generateDataHeaders)({ viewer_id: viewerId }),
@@ -338,7 +354,9 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 message: "Invalid name.",
             });
         const name = body.name.substring(0, (0, assets_1.getConfigSync)().max_player_name_length);
-        (0, player_1.updatePlayerSync)({ id: playerId, name });
+        yield (0, persistence_coordinator_1.runPersistenceTransaction)({
+            domain: "player", playerId, operation: "profile_rename",
+        }, () => (0, player_1.updatePlayerSync)({ id: playerId, name }));
         reply.header("content-type", "application/x-msgpack");
         return reply.status(200).send({
             data_headers: (0, utils_1.generateDataHeaders)({ viewer_id: viewerId }),

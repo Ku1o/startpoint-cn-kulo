@@ -1,10 +1,10 @@
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { resolvePlayerIdSync } from "../../data/activeAccount";
 import {
-    addFollowSync,
-    bulkEditFollowSync,
-    deleteFollowerSync,
-    deleteFollowSync,
+    addFollow,
+    bulkEditFollow,
+    deleteFollower,
+    deleteFollow,
     getFollowerCountSync,
     getPlayerIdByViewerIdSync,
     getRelatedPlayerIdsSync,
@@ -62,7 +62,7 @@ const routes = async (fastify: FastifyInstance) => {
         const targetPlayerId = resolveTargetPlayerId(body.follow_id);
         if (targetPlayerId === null) return send(reply, ctx.viewerId, {}, 1457);
 
-        const result = addFollowSync(ctx.playerId, targetPlayerId);
+        const result = await addFollow(ctx.playerId, targetPlayerId);
         if (result === "following_limit") return send(reply, ctx.viewerId, {}, 1451);
         if (result === "follower_limit") return send(reply, ctx.viewerId, {}, 1452);
         if (result === "self" || result === "target_not_found") return send(reply, ctx.viewerId, {}, 1457);
@@ -75,7 +75,7 @@ const routes = async (fastify: FastifyInstance) => {
         const ctx = await resolveContext(body);
         if (!ctx) return reply.status(400).send({ error: "Bad Request", message: "Invalid viewer id." });
         const targetPlayerId = resolveTargetPlayerId(body.follow_id);
-        if (targetPlayerId !== null) deleteFollowSync(ctx.playerId, targetPlayerId);
+        if (targetPlayerId !== null) await deleteFollow(ctx.playerId, targetPlayerId);
         console.log(`[FOLLOW] delete viewer=${ctx.viewerId} target=${Number(body.follow_id)}`);
         return send(reply, ctx.viewerId, {});
     });
@@ -85,7 +85,7 @@ const routes = async (fastify: FastifyInstance) => {
         const ctx = await resolveContext(body);
         if (!ctx) return reply.status(400).send({ error: "Bad Request", message: "Invalid viewer id." });
         const followerPlayerId = resolveTargetPlayerId(body.followed_id);
-        if (followerPlayerId !== null) deleteFollowerSync(ctx.playerId, followerPlayerId);
+        if (followerPlayerId !== null) await deleteFollower(ctx.playerId, followerPlayerId);
         console.log(`[FOLLOW] delete_follower viewer=${ctx.viewerId} follower=${Number(body.followed_id)}`);
         return send(reply, ctx.viewerId, {});
     });
@@ -101,7 +101,7 @@ const routes = async (fastify: FastifyInstance) => {
         const deletePlayerIds = ((body.delete_follow_id_list || []) as any[])
             .map(id => resolveTargetPlayerId(id))
             .filter((id): id is number => id !== null);
-        const fullPlayerIds = bulkEditFollowSync(ctx.playerId, addPlayerIds, deletePlayerIds);
+        const fullPlayerIds = await bulkEditFollow(ctx.playerId, addPlayerIds, deletePlayerIds);
         const fullViewerIds = fullPlayerIds
             .map(getViewerIdByPlayerIdSync)
             .filter((id): id is number => id !== null);

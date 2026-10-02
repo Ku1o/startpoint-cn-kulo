@@ -1,9 +1,9 @@
 import { existsSync } from "../../lib/file-exists";
 import { FIVE_BOSS_GAUNTLET, isFiveBossGauntletQuest, isFiveBossHiddenQuest } from "../../multi/five-boss/contract";
-import { continueFiveBossSync, FiveBossContinueError, isFiveBossContinueRequest } from "../../multi/five-boss/continue-runtime";
+import { continueFiveBoss, FiveBossContinueError, isFiveBossContinueRequest } from "../../multi/five-boss/continue-runtime";
 import { grantFiveBossSoloRewardsSync } from "../../multi/five-boss/solo-rewards";
 import { isFiveBossTicketShortage, sendFiveBossTicketShortage } from "../../multi/five-boss/entry-response";
-import { startFiveBossSoloSync, abortFiveBossSoloSync, getFiveBossSoloReceiptSync, isActiveFiveBossSoloSync,
+import { startFiveBossSolo, abortFiveBossSoloSync, getFiveBossSoloReceiptSync, isActiveFiveBossSoloSync,
     saveFiveBossSoloReceiptSync, getFiveBossSoloRewardMultiplierSync } from "../../multi/five-boss/solo-runtime";
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { deletePlayerActiveQuestSync, getPlayerActiveQuestSync, insertPlayerActiveQuestSync, updatePlayerActiveQuestContinueCountSync } from "../../data/domains/quest_active"
@@ -13,7 +13,6 @@ import { getPlayerItemSync, givePlayerItemSync, updatePlayerItemSync } from "../
 import { getPlayerSingleQuestProgressSync, insertPlayerQuestProgressSync, updatePlayerQuestProgressSync } from "../../data/domains/quest"
 import { repairUnisonUnlockProgressSync } from "../../lib/validate/unison-unlock"
 import { getSession } from "../../data/domains/session"
-import { getDb } from "../../data/db"
 import { incrementPlayerCharacterClearSync } from "../../data/domains/character_clear"
 import { getPlayerEquipmentListSync, updatePlayerEquipmentSync } from "../../data/domains/equipment"
 import { insertPlayerPracticeBattleHistorySync } from "../../data/domains/practice-battle-history"
@@ -72,7 +71,9 @@ import questEntryCosts from "../../../assets/quest_entry_costs.json";
 import scoreAttackBorderRewards from "../../../assets/score_attack_border_reward.json";
 import eventChallengePointMap from "../../../assets/event_challenge_point_map.json";
 import { gameVerboseLog } from "../../lib/game-logging";
-import { measureSettlementPhase } from "../../lib/settlement-performance";
+import { runPersistenceTransaction } from "../../lib/persistence-coordinator";
+import { measureSettlementPhase, measureSettlementPhaseAsync } from "../../lib/settlement-performance";
+import { createSingleSettlementBodyTimer } from "../../lib/single-settlement-diagnostics";
 import { repairGauntletCompletionClassificationSync } from "../../lib/gauntlet-completion-classification";
 import {
     buildFinishResponseCacheKey,
@@ -84,6 +85,8 @@ import { calculateFreeManaGrant } from "../../lib/mana";
 import { canStartAbyssQuestSync } from "../../data/domains/abyss-tower-progress";
 import { isAbyssExEndlessQuest } from "../../lib/abyss-modes";
 import { recordQuestRecommendedPartySafe } from "../../lib/quest/recommended-party-history";
+import { isValidNormalPartySlotSync } from "../../data/domains/party";
+import { usesNormalCurrentPartySlot } from "../../lib/party-current-slot";
 
 // Load carnival quest score data
 let carnivalScoreLookup: Record<string, { difficulty_score: number, time_limit_ms: number, folder_id: number, event_id: number }> = {}
@@ -101,6 +104,7 @@ import {
     MODE15_RUSH_EVENT_ID,
     settleMode15BattleSync,
 } from "../../lib/mode15-optional";
+import { partyCategoryForRushEvent } from "../../lib/rush-party-categories";
 
 interface StartBody {
     quest_id: number
@@ -170,7 +174,11 @@ interface AbortBody {
     statistics?: QuestStatistics | null,
     viewer_id: number,
     quest_id: number,
-    play_id: string,
+    // Some shipped clients omit play_id when the player explicitly leaves a
+    // practice battle from the recovery dialog. The active row is the
+    // authoritative identity in that case; an empty/missing value must not
+    // turn a valid abort into the next-login H400 loop.
+    play_id?: string,
     category: number
 }
 
@@ -237,6 +245,7 @@ export function insertActiveQuest(playerId: number, quest: ActiveQuest) {
         eventId: quest.eventId ?? null,
         continueCount: quest.continueCount,
         startedAtMs,
+        partySlot: quest.partySlot ?? null,
         questTimeRevision,
     })
 }
@@ -358,7 +367,14 @@ const routes = async (fastify: FastifyInstance) => {
         let useBoostPoint = (activeQuestData.useBoostPoint && (newBoostPoint >= 0)) || (activeQuestData.useBossBoostPoint && (newBossBoostPoint >= 0))
 
         // check current quest progress
-        const questProgress = getPlayerSingleQuestProgressSync(playerId, questCategory, questId);
+        // This lookup refreshes published Abyss best-time revisions and is
+        // therefore a write-capable operation. Keep it under the same
+        // persistence coordinator as settlement preparation.
+        const questProgress = await measureSettlementPhaseAsync("single", "progress_refresh", () => (
+            runPersistenceTransaction({
+                domain: "single-quest", playerId, operation: "progress_refresh",
+            }, () => getPlayerSingleQuestProgressSync(playerId, questCategory, questId))
+        ));
         const questPreviouslyCompleted = questProgress !== null
 
         let questAccomplished = body.is_accomplished
@@ -380,7 +396,12 @@ const routes = async (fastify: FastifyInstance) => {
             questAccomplished = body.score >= scoreAttackBorderTiers[0].score
         }
 
-        const finishResponse = measureSettlementPhase("single", "transaction", () => getDb().transaction(() => {
+        const finishResponse = await measureSettlementPhaseAsync("single", "transaction", () => runPersistenceTransaction({
+            domain: "single-quest", playerId, operation: "finish",
+        }, () => {
+            const bodyTiming = createSingleSettlementBodyTimer(questCategory, !!fiveBossSoloQuest)
+            let bodySucceeded = false
+            try {
             deletePlayerActiveQuestSync(playerId)
             const missionEvaluationTime = new Date(getServerTime() * 1000)
 
@@ -490,13 +511,28 @@ const routes = async (fastify: FastifyInstance) => {
             updatePoint: (pid, id, pt) => updatePlayerDailyChallengePointSync(pid, id, pt),
         })
 
+        // 五重单人使用独立奖励计划，不再叠加 1099001 的旧 score reward 组
+        // （其中包含猫头鹰货币及其稀有池）。多人专用结算也不走这条普通奖励链。
+        const effectiveScoreRewardGroupId = fiveBossSoloQuest
+            ? undefined
+            : questData.scoreRewardGroupId
+        const effectiveScoreRewardGroup = fiveBossSoloQuest
+            ? undefined
+            : questData.scoreRewardGroup
         // reward score rewards
         if (isScoreAttackEvent) {
             gameVerboseLog(() => `[SCORE_ATTACK] questId=${questId} body={score:${body.score}, elapsed:${body.elapsed_time_ms}, accomplished:${body.is_accomplished}, addMana:${body.add_mana}, continue:${body.continue_count}}`)
             gameVerboseLog(() => `[SCORE_ATTACK] questData={localQuest:${questData.scoreAttackQuestId}, bRank:${questData.bRankScore}, aRank:${questData.aRankScore}, sRank:${questData.sRankScore}, ssRank:${questData.ssRankScore}, rankPt:${questData.rankPointReward}, charExp:${questData.characterExpReward}, mana:${questData.manaReward}, poolExp:${questData.poolExpReward}}`)
         }
-        gameVerboseLog(() => `[BATTLE] scoreReward groupId=${questData.scoreRewardGroupId} groupLen=${questData.scoreRewardGroup?.length ?? 'null'} questId=${questId} category=${questCategory}`)
-        const scoreRewardsResult = givePlayerScoreRewardsSync(playerId, questData.scoreRewardGroupId, questData.scoreRewardGroup, useBoostPoint, questData.element)
+        gameVerboseLog(() => `[BATTLE] scoreReward groupId=${effectiveScoreRewardGroupId ?? (fiveBossSoloQuest ? 'skipped-five-boss-solo' : 'null')} groupLen=${effectiveScoreRewardGroup?.length ?? 'null'} questId=${questId} category=${questCategory}`)
+        const scoreRewardsResult = givePlayerScoreRewardsSync(
+            playerId,
+            effectiveScoreRewardGroupId,
+            effectiveScoreRewardGroup,
+            useBoostPoint,
+            questData.element,
+            { questId, mode: "solo" },
+        )
         let scoreAttackEventData: { reward_ids: number[], main_character_ids: Record<string, number> } | null = null
         if (isScoreAttackEvent) {
             const previousHighScore = questProgress?.highScore ?? 0
@@ -519,6 +555,7 @@ const routes = async (fastify: FastifyInstance) => {
         }
 
         // reward character exp
+        bodyTiming.step("battle_facts")
         const bodyPartyStatistics = body.statistics.party
         const partyCharacterIds = [...bodyPartyStatistics.characters, ...bodyPartyStatistics.unison_characters]
 
@@ -550,7 +587,7 @@ const routes = async (fastify: FastifyInstance) => {
             player: playerData,
             questPreviouslyCompleted,
             questProgress,
-            partySlot: playerData.partySlot,
+            partySlot: activeQuestData.partySlot ?? playerData.partySlot,
         }
 
         // Mission progress is recorded once by recordMissionBattleFacts below.
@@ -584,6 +621,7 @@ const routes = async (fastify: FastifyInstance) => {
             console.log(`[MISSION] steam robot challenge cleared: player=${playerId} quest=${questId} mission=${steamRobotMissionId}`)
         }
         const partyCharacterIdsArray: number[] = []
+        bodyTiming.step("experience")
         for (const value of partyCharacterIds.values()) {
             if (value !== null && value.id !== null) partyCharacterIdsArray.push(value.id);
         }
@@ -596,6 +634,7 @@ const routes = async (fastify: FastifyInstance) => {
             questData.fixedParty !== undefined
         )
 
+        bodyTiming.step("mode_rewards")
         const dataHeaders = generateDataHeaders({
             viewer_id: viewerId
         })
@@ -800,6 +839,7 @@ const routes = async (fastify: FastifyInstance) => {
             ...((carnivalRewardsResult?.character_list || []) as Record<string, unknown>[]),
             ...((mode15RewardsResult?.character_list || []) as Record<string, unknown>[]),
         ]
+        bodyTiming.step("missions")
         const missionSettlement = measureSettlementPhase("single", "mission", () => (
             settleMissionCategories(
                 playerId,
@@ -812,6 +852,7 @@ const routes = async (fastify: FastifyInstance) => {
                 missionEvaluationTime,
             )
         ))
+        bodyTiming.step("awake")
         const awakeMissionSettlement = measureSettlementPhase("single", "awake_mission", () => (
             settleAwakeMissionCandidates(
                 playerId,
@@ -824,6 +865,7 @@ const routes = async (fastify: FastifyInstance) => {
                 missionEvaluationTime,
             )
         ))
+        bodyTiming.step("active")
         const activeMissionSettlement = measureSettlementPhase("single", "active_mission", () => (
             reconcileActiveMissionFacts({
                 playerId,
@@ -832,6 +874,7 @@ const routes = async (fastify: FastifyInstance) => {
                 patterns: getBattleActiveMissionPatterns(questCategory),
             })
         ))
+        bodyTiming.step("response")
         const finalPlayerData = getPlayerSync(playerId)
         const responseData: Record<string, any> = {
                 "user_info": {
@@ -893,7 +936,8 @@ const routes = async (fastify: FastifyInstance) => {
                     ...(rushEventRewardsResult?.equipment_list || []),
                     ...(rogueDrops?.rewardResult.equipment_list || []),
                     ...(carnivalRewardsResult?.equipment_list || []),
-                    ...(mode15RewardsResult?.equipment_list || [])
+                    ...(mode15RewardsResult?.equipment_list || []),
+                    ...(fiveBossSolo?.equipment_list ?? [])
                 ],
                 "category_id": body.category,
                 "start_time": dataHeaders['servertime'],
@@ -929,8 +973,12 @@ const routes = async (fastify: FastifyInstance) => {
         responseData.mail_arrived = getPlayerMailCountSync(playerId, true) > 0
         const response = { data_headers: dataHeaders, data: responseData }
         if (fiveBossSoloQuest) saveFiveBossSoloReceiptSync(playerId, activeQuestData.playId, finishCacheKey, response)
+        bodySucceeded = true
         return response
-        })())
+            } finally {
+                bodyTiming.finish(bodySucceeded)
+            }
+        }))
 
         delete activeQuests[playerId]
         cacheFinishResponse(finishCacheKey, finishResponse)
@@ -967,11 +1015,23 @@ const routes = async (fastify: FastifyInstance) => {
         const abortQuest = resolvedAbortQuest?.quest
         let practiceHistoryRecord: ReturnType<typeof buildPracticeBattleHistoryRecord> | null = null
         if (abortQuest?.category === QuestCategory.PRACTICE) {
+            const requestedPlayId = typeof body.play_id === "string" ? body.play_id.trim() : ""
+            const categoryMatches = body.category === undefined || body.category === abortQuest.category
+            const questMatches = body.quest_id === undefined || body.quest_id === abortQuest.questId
+            const playMatches = requestedPlayId.length === 0 || requestedPlayId === abortQuest.playId
             if (
-                body.category !== abortQuest.category
-                || body.quest_id !== abortQuest.questId
-                || body.play_id !== abortQuest.playId
+                !categoryMatches
+                || !questMatches
+                || !playMatches
             ) {
+                // Keep the diagnostic bounded to identifiers; never log
+                // statistics or session material. This distinguishes a real
+                // stale quest from the legacy empty-play-id abort shape.
+                console.warn(
+                    `[PRACTICE-ABORT] request does not match active quest: `
+                    + `player=${playerId} request=${body.category}/${body.quest_id}/${requestedPlayId || "(empty)"} `
+                    + `active=${abortQuest.category}/${abortQuest.questId}/${abortQuest.playId}`,
+                )
                 return reply.status(400).send({
                     "error": "Bad Request",
                     "message": "Active practice quest does not match abort request.",
@@ -1022,7 +1082,9 @@ const routes = async (fastify: FastifyInstance) => {
 
         // Keep the failure transition, history row, and active-quest deletion
         // atomic so a partial settlement cannot erase the recoverable battle.
-        getDb().transaction(() => {
+        await runPersistenceTransaction({
+            domain: "single-quest", playerId, operation: "abort",
+        }, () => {
             if (abortQuest && !abortQuest.isMulti && isFiveBossGauntletQuest(abortQuest.category, abortQuest.questId)) {
                 abortFiveBossSoloSync(playerId, abortQuest.playId)
             }
@@ -1038,7 +1100,7 @@ const routes = async (fastify: FastifyInstance) => {
                 insertPlayerPracticeBattleHistorySync(practiceHistoryRecord)
             }
             deletePlayerActiveQuestSync(playerId)
-        })()
+        })
 
         delete activeQuests[playerId]
         if (abortQuest && isMode15Quest(abortQuest.category, abortQuest.questId)) {
@@ -1096,7 +1158,9 @@ const routes = async (fastify: FastifyInstance) => {
             // though the selected Carnival party actually contained it.
             const partyCategory = category === QuestCategory.CARNIVAL_EVENT
                 ? PartyCategory.CARNIVAL
-                : PartyCategory.NORMAL;
+                : category === QuestCategory.RUSH_EVENT
+                    ? partyCategoryForRushEvent(Math.floor(Number(questId) / 1000))
+                    : PartyCategory.NORMAL;
             const restricted = getMode15ExclusiveGlobalPartyItemsSync(
                 playerId, partyCategory, partyId,
             );
@@ -1131,13 +1195,17 @@ const routes = async (fastify: FastifyInstance) => {
             const previousMemory = activeQuests[playerId]
             let mission: MissionSettlementResult | undefined
             try {
-                startFiveBossSoloSync(playerId, body.play_id, () => {
+                await startFiveBossSolo(playerId, body.play_id, () => {
                     insertActiveQuest(playerId, {
                         questId, category, useBoostPoint: false, useBossBoostPoint: false,
                         isAutoStartMode, isMulti: false, entryItemId: FIVE_BOSS_GAUNTLET.ticketItemId,
+                        partySlot: partyId,
                         playId: body.play_id, continueCount: 0,
                     })
-                    updatePlayerSync({ id: playerId, partySlot: partyId })
+                    if (usesNormalCurrentPartySlot(category)
+                        && isValidNormalPartySlotSync(playerId, partyId)) {
+                        updatePlayerSync({ id: playerId, partySlot: partyId })
+                    }
                     recordActiveMissionQuestChallengeFactSync(playerId, category)
                     mission = settleMissionCategories(playerId, [1, 2, 10], new Date(getServerTime() * 1000))
                     return true
@@ -1179,12 +1247,10 @@ const routes = async (fastify: FastifyInstance) => {
                     "message": `Not enough entry items (need ${entryCost.itemCount} of ${entryCost.itemId}, have ${playerItemCount}).`
                 })
             }
-            updatePlayerItemSync(playerId, entryCost.itemId, playerItemCount - entryCost.itemCount)
         }
 
         // Deduct stamina cost
         const staminaCost = 0
-        let afterStamina = 0
         if (staminaCost > 0) {
             const currentStamina = computeRealTimeStamina(player)
             if (currentStamina < staminaCost) {
@@ -1194,24 +1260,10 @@ const routes = async (fastify: FastifyInstance) => {
                     "message": "Insufficient stamina."
                 })
             }
-            const newStamina = Math.max(0, currentStamina - staminaCost)
-            updatePlayerSync({
-                id: playerId,
-                stamina: newStamina,
-                staminaHealTime: new Date(),
-                totalStaminaUsed: (player.totalStaminaUsed ?? 0) + staminaCost
-            })
-            afterStamina = newStamina
-            gameVerboseLog(() => `[BATTLE-START] stamina: ${currentStamina} -> ${newStamina} (cost: ${staminaCost}, rate: ${staminaInfo.rate})`)
-        } else {
-            // No stamina deduction, read current stamina for response
-            const player = getPlayerSync(playerId)
-            afterStamina = player?.stamina ?? 0
         }
 
-        // add to active quests table
-        delete activeQuests[playerId]
-        activeQuests[playerId] = {
+        const previousMemory = activeQuests[playerId]
+        const activeQuest: ActiveQuest = {
             questId: questId,
             category: category,
             useBoostPoint: useBoostPoint,
@@ -1219,43 +1271,88 @@ const routes = async (fastify: FastifyInstance) => {
             isAutoStartMode: isAutoStartMode,
             isMulti: false,
             entryItemId: entryCost?.itemId,
+            partySlot: questData.fixedParty === undefined ? partyId : undefined,
             playId: body.play_id,
             continueCount: 0,
             startedAtMs: getServerTime() * 1000,
         }
 
+        let afterStamina = 0
         let missionSettlement: MissionSettlementResult | undefined
-        getDb().transaction(() => {
-            const playerUpdate: any = {
-                id: playerId,
-                totalStaminaUsed: (player.totalStaminaUsed ?? 0) + nominalStaminaCost,
-            }
-            if (questData.fixedParty === undefined) playerUpdate.partySlot = partyId
-            updatePlayerSync(playerUpdate)
-            const activeQuest = activeQuests[playerId]
-            insertPlayerActiveQuestSync(playerId, {
-                playerId,
-                playId: activeQuest.playId,
-                questId: activeQuest.questId,
-                category: activeQuest.category,
-                useBossBoostPoint: activeQuest.useBossBoostPoint,
-                useBoostPoint: activeQuest.useBoostPoint,
-                isAutoStartMode: activeQuest.isAutoStartMode,
-                isMulti: activeQuest.isMulti,
-                isMultiHost: activeQuest.isMultiHost ?? false,
-                roomNumber: activeQuest.roomNumber ?? null,
-                entryItemId: null,
-                eventId: activeQuest.eventId ?? null,
-                continueCount: activeQuest.continueCount,
-                startedAtMs: activeQuest.startedAtMs ?? null,
+        try {
+            await runPersistenceTransaction({
+                domain: "single-quest", playerId, operation: "start",
+            }, () => {
+                const currentPlayer = getPlayerSync(playerId) ?? player
+                if (entryCost && entryCost.itemId > 0) {
+                    const playerItemCount = getPlayerItemSync(playerId, entryCost.itemId) ?? 0
+                    if (playerItemCount < entryCost.itemCount) {
+                        throw new Error(
+                            `Not enough entry items (need ${entryCost.itemCount} of ${entryCost.itemId}, have ${playerItemCount}).`,
+                        )
+                    }
+                    updatePlayerItemSync(playerId, entryCost.itemId, playerItemCount - entryCost.itemCount)
+                }
+
+                const playerUpdate: any = {
+                    id: playerId,
+                    totalStaminaUsed: (currentPlayer.totalStaminaUsed ?? 0) + nominalStaminaCost,
+                }
+                if (staminaCost > 0) {
+                    const currentStamina = computeRealTimeStamina(currentPlayer)
+                    if (currentStamina < staminaCost) {
+                        throw new Error("Insufficient stamina.")
+                    }
+                    const newStamina = Math.max(0, currentStamina - staminaCost)
+                    playerUpdate.stamina = newStamina
+                    playerUpdate.staminaHealTime = new Date()
+                    playerUpdate.totalStaminaUsed = (currentPlayer.totalStaminaUsed ?? 0) + staminaCost
+                    afterStamina = newStamina
+                    gameVerboseLog(() => `[BATTLE-START] stamina: ${currentStamina} -> ${newStamina} (cost: ${staminaCost}, rate: ${staminaInfo.rate})`)
+                } else {
+                    afterStamina = currentPlayer.stamina ?? 0
+                }
+                if (questData.fixedParty === undefined
+                    && usesNormalCurrentPartySlot(category)
+                    && isValidNormalPartySlotSync(playerId, partyId)) {
+                    playerUpdate.partySlot = partyId
+                }
+                updatePlayerSync(playerUpdate)
+
+                activeQuests[playerId] = activeQuest
+                insertPlayerActiveQuestSync(playerId, {
+                    playerId,
+                    playId: activeQuest.playId,
+                    questId: activeQuest.questId,
+                    category: activeQuest.category,
+                    useBossBoostPoint: activeQuest.useBossBoostPoint,
+                    useBoostPoint: activeQuest.useBoostPoint,
+                    isAutoStartMode: activeQuest.isAutoStartMode,
+                    isMulti: activeQuest.isMulti,
+                    isMultiHost: activeQuest.isMultiHost ?? false,
+                    roomNumber: activeQuest.roomNumber ?? null,
+                    entryItemId: null,
+                    eventId: activeQuest.eventId ?? null,
+                    continueCount: activeQuest.continueCount,
+                    startedAtMs: activeQuest.startedAtMs ?? null,
+                    partySlot: activeQuest.partySlot ?? null,
+                })
+                recordActiveMissionQuestChallengeFactSync(playerId, category)
+                missionSettlement = settleMissionCategories(
+                    playerId,
+                    [1, 2, 10],
+                    new Date(getServerTime() * 1000),
+                )
             })
-            recordActiveMissionQuestChallengeFactSync(playerId, category)
-            missionSettlement = settleMissionCategories(
-                playerId,
-                [1, 2, 10],
-                new Date(getServerTime() * 1000),
-            )
-        })()
+        } catch (error) {
+            if (previousMemory) activeQuests[playerId] = previousMemory
+            else delete activeQuests[playerId]
+            const message = error instanceof Error ? error.message : String(error)
+            if (message === "Insufficient stamina." || message.startsWith("Not enough entry items")) {
+                return reply.status(400).send({ error: "Bad Request", message })
+            }
+            throw error
+        }
 
         const dataHeaders = generateDataHeaders({
             viewer_id: viewerId
@@ -1313,7 +1410,7 @@ const routes = async (fastify: FastifyInstance) => {
 
         if (isFiveBossContinueRequest(playerId, category, questId, playId)) {
             try {
-                const data = continueFiveBossSync({ playerId, category, questId, playId,
+                const data = await continueFiveBoss({ playerId, category, questId, playId,
                     isMulti: false, apiCount: raw.api_count, statistics: raw.statistics })
                 const recovered = resolveActiveQuest({ playerId, hint: { category, quest_id: questId, play_id: playId },
                     memory: activeQuests, allowRebuild: false })

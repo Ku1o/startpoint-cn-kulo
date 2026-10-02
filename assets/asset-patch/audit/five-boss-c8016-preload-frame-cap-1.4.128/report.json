@@ -1,0 +1,142 @@
+{
+  "base_tail": "1.4.127",
+  "candidate_tail": "1.4.128",
+  "candidate": "F:\\codex\\work\\five-boss-c8016-fix-20261001\\candidate\\pinball-1.4.127-1.4.128-1-five-boss-c8016-preload-frame-cap-20261001.zip",
+  "candidate_bytes": 359466,
+  "candidate_sha256": "ea3ceb51f3ad0faf7eba7978224855dac8a5e8adf867ac7a975818b150922af3",
+  "source": "F:\\codex\\startpoint-cn-private-clean",
+  "changed_table": "master/battle/boss/general_boss.orderedmap",
+  "changed_rows": [
+    {
+      "key": "mod_fb2_051_deep_king_w10",
+      "tier": "100",
+      "element": "6",
+      "slot": 39,
+      "column": 149,
+      "program": "battle/action/enemy/action/mod/five_boss_v2/fb2_preload$deep_king_funnel_lich_wind_expert_0"
+    },
+    {
+      "key": "mod_fb2_052_deep_king_w10",
+      "tier": "100",
+      "element": "6",
+      "slot": 39,
+      "column": 149,
+      "program": "battle/action/enemy/action/mod/five_boss_v2/fb2_preload$deep_king_funnel_lich_wind_expert_0"
+    },
+    {
+      "key": "mod_fb2_053_deep_king_w10",
+      "tier": "100",
+      "element": "6",
+      "slot": 39,
+      "column": 149,
+      "program": "battle/action/enemy/action/mod/five_boss_v2/fb2_preload$deep_king_funnel_lich_wind_expert_0"
+    },
+    {
+      "key": "mod_fb2_054_deep_king_w10",
+      "tier": "100",
+      "element": "6",
+      "slot": 39,
+      "column": 149,
+      "program": "battle/action/enemy/action/mod/five_boss_v2/fb2_preload$deep_king_funnel_lich_wind_expert_0"
+    },
+    {
+      "key": "mod_fb2_055_deep_king_w10",
+      "tier": "100",
+      "element": "6",
+      "slot": 39,
+      "column": 149,
+      "program": "battle/action/enemy/action/mod/five_boss_v2/fb2_preload$deep_king_funnel_lich_wind_expert_0"
+    },
+    {
+      "key": "mod_fb2_056_deep_king_w10",
+      "tier": "100",
+      "element": "6",
+      "slot": 39,
+      "column": 149,
+      "program": "battle/action/enemy/action/mod/five_boss_v2/fb2_preload$deep_king_funnel_lich_wind_expert_0"
+    },
+    {
+      "key": "mod_fb2_057_deep_king_w10",
+      "tier": "100",
+      "element": "6",
+      "slot": 39,
+      "column": 149,
+      "program": "battle/action/enemy/action/mod/five_boss_v2/fb2_preload$deep_king_funnel_lich_wind_expert_0"
+    }
+  ],
+  "new_preload_shim": {
+    "program": "battle/action/enemy/action/mod/five_boss_v2/fb2_preload$deep_king_funnel_lich_wind_expert_0",
+    "source": "battle/action/enemy/action/boss_lich/funnel_lich_wind$difficulity20_shot1",
+    "element_code": 4,
+    "element_name": "wind/green",
+    "fixed_operands": 2,
+    "sha256": "7ad753d651ff44e2c0b7152e9ccd9d72c2c4e27c10e09355748b71974191786a"
+  },
+  "changed_dsl": [
+    {
+      "program": "battle/action/enemy/action/mod/five_boss_v2/fb2_affix$sig_king_seal",
+      "changes": [
+        {
+          "path": [
+            11,
+            1,
+            0,
+            1
+          ],
+          "key": "mod_fb2_sig_king_seal",
+          "before": 1500,
+          "after": 1000
+        }
+      ]
+    },
+    {
+      "program": "battle/action/enemy/action/mod/five_boss_v2/fb2_affix$sig_king_purge",
+      "changes": [
+        {
+          "path": [
+            11,
+            1,
+            1,
+            1
+          ],
+          "key": "mod_fb2_sig_king_purge",
+          "before": 1800,
+          "after": 1000
+        }
+      ]
+    }
+  ],
+  "files": [
+    {
+      "logical": "battle/action/enemy/action/mod/five_boss_v2/fb2_affix$sig_king_purge.action.dsl.amf3.deflate",
+      "member": "production/upload/55/0e78143229f8bac85b8c33a0b9563c857d108e",
+      "bytes": 198,
+      "sha256": "7cae0949694f27c3210f687911a47f9d145cdfe1a4ce2262e9a2f9580938cb32"
+    },
+    {
+      "logical": "battle/action/enemy/action/mod/five_boss_v2/fb2_affix$sig_king_seal.action.dsl.amf3.deflate",
+      "member": "production/upload/f1/922d6e8f156f08fa526170b956659c6dc40f3b",
+      "bytes": 258,
+      "sha256": "cc91e11e8ed02b2dd4f365c77ef875bf5e45add1dd5b5753aa21cf205d7e2880"
+    },
+    {
+      "logical": "battle/action/enemy/action/mod/five_boss_v2/fb2_preload$deep_king_funnel_lich_wind_expert_0.action.dsl.amf3.deflate",
+      "member": "production/upload/f5/21b86f382364c0dea96fadaeb7ac8d98b63f80",
+      "bytes": 484,
+      "sha256": "7ad753d651ff44e2c0b7152e9ccd9d72c2c4e27c10e09355748b71974191786a"
+    },
+    {
+      "logical": "master/battle/boss/general_boss.orderedmap",
+      "member": "production/upload/ec/d8f66b60947ca05643c4080a6cc925c750b9d6",
+      "bytes": 467314,
+      "sha256": "5ab7a6e9febc174a172aca23e0f03c91a9e9504dcf969ad85a218762500ad07d"
+    }
+  ],
+  "scope": {
+    "deep_king_element_preserved": true,
+    "official_shared_attack_dsl_untouched": true,
+    "official_lich_marker_timeline_untouched": true,
+    "manifest_or_active_modified": false,
+    "runtime_synced": false
+  }
+}

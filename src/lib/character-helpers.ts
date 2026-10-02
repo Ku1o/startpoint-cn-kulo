@@ -16,7 +16,7 @@ import {
 import { getSession } from "../data/domains/session"
 import { resolvePlayerIdSync } from "../data/activeAccount"
 import { getPlayerItemSync } from "../data/domains/item"
-import { getDb } from "../data/db"
+import { runPersistenceTransactionSync } from "./persistence-coordinator"
 import { generateDataHeaders } from "../utils"
 import { clientSerializeDate } from "../data/utils"
 import { getCharacterManaBoardCountSync, getCharacterManaNodesSync } from "./assets"
@@ -381,7 +381,9 @@ export function reconcilePlayerManaBoardCompletionSync(
     const repairedCharacterIds = new Set<number>()
     const evolutionCharacterIds = new Set<number>()
 
-    getDb().transaction(() => {
+    runPersistenceTransactionSync({
+        domain: "player", playerId, operation: "reconcile_mana_board_completion",
+    }, () => {
         for (const [characterIdText, character] of Object.entries(characters)) {
             if (candidates && !candidates.has(characterIdText)) continue
             const characterId = Number(characterIdText)
@@ -422,7 +424,7 @@ export function reconcilePlayerManaBoardCompletionSync(
                 }
             }
         }
-    })()
+    })
 
     return {
         repairedCharacterIds: [...repairedCharacterIds],

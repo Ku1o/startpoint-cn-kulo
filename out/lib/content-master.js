@@ -24,6 +24,7 @@ const event_item_shop_id_map_rank_p5b_json_1 = __importDefault(require("../../as
 const gacha_json_1 = __importDefault(require("../../assets/gacha.json"));
 const gacha_cnmod_json_1 = __importDefault(require("../../assets/gacha_cnmod.json"));
 const gacha_rank_p5b_json_1 = __importDefault(require("../../assets/gacha_rank_p5b.json"));
+const gacha_midautumn_2026_json_1 = __importDefault(require("../../assets/gacha_midautumn_2026.json"));
 const item_ids_json_1 = __importDefault(require("../../assets/item_ids.json"));
 const item_ids_rank_p5b_json_1 = __importDefault(require("../../assets/item_ids_rank_p5b.json"));
 const mana_node_json_1 = __importDefault(require("../../assets/mana_node.json"));
@@ -33,7 +34,7 @@ exports.serverCharacters = Object.assign(Object.assign({}, character_json_1.defa
 exports.cdnCharacters = Object.assign(Object.assign({}, character_json_2.default), character_rank_p5b_json_2.default);
 exports.cdnCharacterTexts = Object.assign(Object.assign({}, character_text_json_1.default), character_text_rank_p5b_json_1.default);
 exports.degreeDefinitions = Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign({}, degree_json_1.default), degree_rank_p5b_json_1.default), degree_sponsor_json_1.default), degree_character_mod_json_1.default), degree_exclusive_json_1.default), degree_author926_json_1.default);
-exports.serverGachas = Object.assign(Object.assign(Object.assign({}, gacha_json_1.default), gacha_cnmod_json_1.default), gacha_rank_p5b_json_1.default);
+exports.serverGachas = Object.assign(Object.assign(Object.assign(Object.assign({}, gacha_json_1.default), gacha_cnmod_json_1.default), gacha_rank_p5b_json_1.default), gacha_midautumn_2026_json_1.default);
 exports.serverManaNodes = Object.assign(Object.assign(Object.assign({}, mana_node_json_1.default), mana_node_cnmod_json_1.default), mana_node_rank_p5b_json_1.default);
 exports.serverItemIds = [...new Set([...item_ids_json_1.default, ...item_ids_rank_p5b_json_1.default])];
 // Retain the retired event-shop row as source data. Five Boss now uses the

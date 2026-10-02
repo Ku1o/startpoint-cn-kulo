@@ -1,4 +1,5 @@
 import { getDb } from "../data/db";
+import { runPersistenceTransactionSync } from "./persistence-coordinator";
 import type { PlayerRushEventPlayedParty } from "../data/types";
 import { RushEventBattleType } from "../data/types";
 import { givePlayerRewardsSync } from "./quest";
@@ -252,7 +253,9 @@ export function cleanupLegacyMode15RescueProgressSync(playerId: number): number 
 
 /** Reset only run progress; token balances and shop purchase history persist. */
 export function resetMode15RunSync(playerId: number): void {
-    getDb().transaction(() => {
+    runPersistenceTransactionSync({
+        domain: "event", playerId, operation: "reset_mode15_run",
+    }, () => {
         // Keep the Rush quest rows as permanent clear history.  The native
         // EventFolder classifier reads those rows for its completed tab, while
         // current-run ordering is tracked by played-party markers above.
@@ -318,7 +321,7 @@ export function resetMode15RunSync(playerId: number): void {
                 endless_battle_max_round_character_evolution_img_lvl_2 = NULL,
                 endless_battle_max_round_character_evolution_img_lvl_3 = NULL
         `).run(playerId, MODE15_RUSH_EVENT_ID);
-    })();
+    });
 }
 
 /**

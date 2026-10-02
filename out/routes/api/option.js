@@ -13,8 +13,8 @@ const session_1 = require("../../data/domains/session");
 const option_1 = require("../../data/domains/option");
 const activeAccount_1 = require("../../data/activeAccount");
 const utils_1 = require("../../utils");
-const db_1 = require("../../data/db");
 const solo_runtime_1 = require("../../multi/five-boss/solo-runtime");
+const persistence_coordinator_1 = require("../../lib/persistence-coordinator");
 const updateRoute = (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
     const body = request.body;
     const viewerId = body.viewer_id;
@@ -38,12 +38,14 @@ const updateRoute = (request, reply) => __awaiter(void 0, void 0, void 0, functi
         });
     // update options
     const updatedOptions = body.option_params;
-    (0, db_1.getDb)().transaction(() => {
+    yield (0, persistence_coordinator_1.runPersistenceTransaction)({
+        domain: "player", playerId, operation: "update_options",
+    }, () => {
         (0, option_1.updatePlayerOptionsInTransactionSync)(playerId, updatedOptions);
         // Match the option store's boolean coercion for values received on the wire.
         if (updatedOptions.auto_play)
             (0, solo_runtime_1.markFiveBossSoloAutoUsedSync)(playerId);
-    }).immediate();
+    });
     reply.header("content-type", "application/x-msgpack");
     return reply.status(200).send({
         "data_headers": (0, utils_1.generateDataHeaders)({
