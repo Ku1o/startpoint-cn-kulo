@@ -13,16 +13,19 @@ function observeSqliteDatabase(db, name) {
         sampledPrepareMs: 0, maxSampledPrepareMs: 0,
         executeCalls: 0, executeErrors: 0, busyErrors: 0, sampledExecuteCalls: 0,
         sampledExecuteMs: 0, maxSampledExecuteMs: 0 };
-    const settings = { nativeBytesAvailable: false };
-    for (const pragma of ["cache_size", "page_size", "mmap_size", "temp_store", "busy_timeout", "synchronous", "wal_autocheckpoint"]) {
-        try {
-            const value = db.pragma(pragma, { simple: true });
-            settings[pragma] = typeof value === "number" ? value : null;
+    const readSettings = () => {
+        const settings = { nativeBytesAvailable: false };
+        for (const pragma of ["cache_size", "page_size", "mmap_size", "temp_store", "busy_timeout", "synchronous", "wal_autocheckpoint"]) {
+            try {
+                const value = db.pragma(pragma, { simple: true });
+                settings[pragma] = typeof value === "number" ? value : null;
+            }
+            catch (_a) {
+                settings[pragma] = null;
+            }
         }
-        catch (_a) {
-            settings[pragma] = null;
-        }
-    }
+        return settings;
+    };
     const prepare = db.prepare;
     db.prepare = function (sql) {
         stats.prepareCalls++;
@@ -79,7 +82,7 @@ function observeSqliteDatabase(db, name) {
             unregister();
             return { unavailable: true };
         }
-        return Object.assign(Object.assign(Object.assign({}, settings), stats), { inTransaction: connection.inTransaction });
+        return Object.assign(Object.assign(Object.assign({}, readSettings()), stats), { inTransaction: connection.inTransaction });
     }, "sqlite");
 }
 exports.observeSqliteDatabase = observeSqliteDatabase;

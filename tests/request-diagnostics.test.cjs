@@ -119,3 +119,45 @@ test('socket timeout remains distinct from abort and late handler completion', a
         assert.deepEqual(summary.statuses, { timeout: 1 })
     } finally { await app.close() }
 })
+
+test('compact monitoring preserves plugin outcomes and custom encoding time', async () => {
+    const app = Fastify()
+    const monitor = installRequestDiagnostics(app, { detailed: false })
+    await app.register(async child => {
+        child.get('/plugin', async request => {
+            setRequestOutcome(request, 'rush_selected')
+            return measureResponseEncoding(request, async () => {
+                await delay(15)
+                return 'encoded'
+            })
+        })
+    })
+    try {
+        assert.equal((await app.inject('/plugin')).statusCode, 200)
+        const row = monitor.drain().summary.top[0]
+        assert.equal(row.outcomes.rush_selected, 1)
+        assert.ok(row.stages.customEncoding.avgMs >= 10)
+        assert.ok(row.responseBytes > 0)
+    } finally { await app.close() }
+})
+
+test('compact monitoring records nonzero duration for delayed aborts', async () => {
+    const app = Fastify()
+    const monitor = installRequestDiagnostics(app, { detailed: false })
+    let received
+    const started = new Promise(resolve => { received = resolve })
+    app.addHook('onRequest', (_request, _reply, done) => { received(); done() })
+    app.post('/compact-abort', async () => ({ ok: true }))
+    await app.listen({ port: 0, host: '127.0.0.1' })
+    const socket = net.connect(app.server.address().port, '127.0.0.1')
+    try {
+        socket.write('POST /compact-abort HTTP/1.1\r\nHost: localhost\r\nContent-Type: application/json\r\nContent-Length: 100\r\n\r\n{')
+        await started
+        await delay(20)
+        socket.destroy()
+        await delay(20)
+        const summary = monitor.drain().summary
+        assert.equal(summary.aborted, 1)
+        assert.ok(summary.maxMs >= 10)
+    } finally { socket.destroy(); await app.close() }
+})

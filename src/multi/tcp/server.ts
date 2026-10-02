@@ -45,7 +45,7 @@ let server: net.Server | null = null
 const activeSockets = new Set<net.Socket>()
 
 export function startSessionServer(): Promise<void> {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
         if (server) {
             resolve()
             return
@@ -216,7 +216,16 @@ export function startSessionServer(): Promise<void> {
         })
 
         observeServerConnections("tcp", server)
+        const handleListenError = (error: Error) => {
+            if (server) {
+                try { server.close() } catch {}
+                server = null
+            }
+            reject(error)
+        }
+        server.once("error", handleListenError)
         server.listen(SESSION_PORT, SESSION_HOST, () => {
+            server?.off("error", handleListenError)
             console.log(`[TCP] session server listening on ${SESSION_HOST}:${SESSION_PORT}`)
             resolve()
         })

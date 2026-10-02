@@ -1,4 +1,5 @@
 import { getDb } from "../db";
+import { cachedStatement } from "../../lib/cached-statement";
 import { randomBytes } from "crypto";
 import { RawSession, Session, SessionType } from "../types";
 import { generateViewerId } from "../../utils";
@@ -33,7 +34,7 @@ function getSessionSync(
     token: string
 ): Session | null {
 
-    const raw = getDb().prepare(`
+    const raw = cachedStatement(getDb(), `
     SELECT token, account_id, expires, type
     FROM sessions
     WHERE token = ?
@@ -78,7 +79,7 @@ export function getSession(
  * Returns 0 if no viewer session exists.
  */
 export function getViewerIdSync(accountId: number): number {
-    const row = getDb().prepare(`
+    const row = cachedStatement(getDb(), `
         SELECT token FROM sessions WHERE account_id = ? AND type = 2 LIMIT 1
     `).get(accountId) as { token: string | number } | undefined
     const viewerId = Number(row?.token ?? 0)
@@ -135,7 +136,7 @@ export function migrateUnsafeViewerIdsSync(): number {
  * Device binding: maps device_id → account_id
  */
 export function getDeviceBindingSync(deviceId: number): { device_id: number, account_id: number, name: string | null } | null {
-    const row = getDb().prepare(`SELECT device_id, account_id, name FROM device_bindings WHERE device_id = ?`).get(deviceId) as any
+    const row = cachedStatement(getDb(), `SELECT device_id, account_id, name FROM device_bindings WHERE device_id = ?`).get(deviceId) as any
     return row ?? null
 }
 
@@ -172,7 +173,7 @@ export function updateDeviceBindingNameSync(deviceId: number, name: string | nul
  * Synchronously gets a session by account_id and type (for viewer_id reuse).
  */
 export function getSessionByAccountIdSync(accountId: number, type: SessionType): Session | null {
-    const raw = getDb().prepare(`
+    const raw = cachedStatement(getDb(), `
     SELECT token, account_id, expires, type FROM sessions WHERE account_id = ? AND type = ?
     `).get(accountId, type) as RawSession | undefined
     return raw ? buildSession(raw) : null
@@ -189,7 +190,7 @@ export function getAccountSessionsOfTypeSync(
     accountId: number,
     type: SessionType
 ): Session[] {
-    const rawResult = getDb().prepare(`
+    const rawResult = cachedStatement(getDb(), `
     SELECT token, account_id, expires, type
     FROM sessions
     WHERE account_id = ? AND type = ?    

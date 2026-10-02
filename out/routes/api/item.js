@@ -23,6 +23,7 @@ const stamina_1 = require("../../lib/stamina");
 const item_data_json_1 = __importDefault(require("../../../assets/item_data.json"));
 const mission_1 = require("../../lib/mission");
 const persistence_coordinator_1 = require("../../lib/persistence-coordinator");
+const game_logging_1 = require("../../lib/game-logging");
 const ITEM_EFFECTS = item_data_json_1.default;
 const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
     fastify.post("/use_item", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
@@ -122,7 +123,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 staminaHealTime: new Date()
             });
         });
-        console.log(`[ITEM-USE] player ${playerId}: stamina ${currentStamina}->${afterStamina} (+${totalStaminaRecovery}), items: ${JSON.stringify(itemUpdates)}`);
+        (0, game_logging_1.gameVerboseLog)(() => `[ITEM-USE] player ${playerId}: stamina ${currentStamina}->${afterStamina} (+${totalStaminaRecovery}), items: ${JSON.stringify(itemUpdates)}`);
         // Build item_list as IntMap<int> (client expects { itemId: count })
         const itemListMap = {};
         for (const upd of itemUpdates) {
@@ -162,7 +163,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             return reply.status(400).send({ "error": "Bad Request", "code": code, "message": result.error });
         }
         const characterList = (0, mission_1.reconcileAwakeUnlockCharacterList)(playerId, []);
-        console.log(`[ITEM_SELL] account=${accountId} player=${playerId}: item ${itemId} ×${sellNumber} sold, mana +${result.manaGained} (${result.freeMana - result.manaGained} -> ${result.freeMana})`);
+        (0, game_logging_1.gameVerboseLog)(() => `[ITEM_SELL] account=${accountId} player=${playerId}: item ${itemId} ×${sellNumber} sold, mana +${result.manaGained} (${result.freeMana - result.manaGained} -> ${result.freeMana})`);
         reply.header("content-type", "application/x-msgpack");
         const responseData = {
             "item_list": { [itemId]: result.newCount },

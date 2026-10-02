@@ -12,6 +12,7 @@ import { initializeFiveBossGauntlet } from "./initializers/five-boss-gauntlet";
 import { ensureCascadeDeleteIndexes } from "../lib/admin-account-cleanup";
 import { assertStorageLayout, WDFP_DATA_VERSION } from "../lib/storage-layout";
 import { observeSqliteDatabase } from "../lib/sqlite-diagnostics";
+import { applySqliteSettings } from "../lib/sqlite-settings";
 
 // Use __dirname so DB path is relative to the source file, not process.cwd()
 const dataDir = process.env.DATA_DIR
@@ -92,9 +93,12 @@ export default function getDatabase(
     db.pragma('temp_store = FILE')
     console.log(`[DB] temp_store=${db.pragma('temp_store', { simple: true })} (1=FILE)`)
     db.pragma('journal_mode = WAL')
+    applySqliteSettings(db)
     db.pragma('busy_timeout = 1000')
-    const externalCheckpointWorker = /^(1|true|yes|on)$/i.test(process.env.SQLITE_CHECKPOINT_WORKER ?? "")
-    db.pragma(`wal_autocheckpoint = ${externalCheckpointWorker ? 0 : 1000}`)
+    // Keep offline tools safe. The CN server disables this only when it starts
+    // the external checkpoint owner.
+    const externalCheckpointWorker = false
+    db.pragma('wal_autocheckpoint = 1000')
     console.log(`[DB] wal_autocheckpoint=${db.pragma('wal_autocheckpoint', { simple: true })}`
         + ` externalCheckpointWorker=${externalCheckpointWorker}`)
     db.pragma('foreign_keys = OFF')

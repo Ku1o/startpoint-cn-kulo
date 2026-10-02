@@ -2,6 +2,8 @@
 
 服务默认保留每分钟的内存、队列与性能汇总，关闭 Windows 原生内存区域扫描和详细内存统计。内存与 SQL 诊断可分别控制；诊断开关不修改数据库结构、存档格式、奖励、事务或 SQL statement 缓存。
 
+> 2026-10-02 的 CPU 成本对照和完整实施台账见 [四核服务器 CPU 优化实施记录](MULTICORE-CPU-OPTIMIZATION-20261002.md)。
+
 ## 默认配置
 
 | 环境变量 | 默认值 | 行为 |
@@ -9,12 +11,17 @@
 | `MEMORY_DIAGNOSTICS` | `true` | 每分钟输出 `[MEM]`，含 RSS、主线程和 worker 堆、连接与业务队列 |
 | `MEMORY_DIAGNOSTICS_DETAIL` | `false` | `true` 恢复 V8 附加统计、活跃资源枚举、房间阶段分类、NPC/种子池条目遍历 |
 | `PROCESS_MEMORY_DIAGNOSTICS` | `false` | Windows x64 上显式设置 `true` 后才启动 PowerShell 进程内存区域探测，且需要内存采集开启 |
-| `SQLITE_DIAGNOSTICS` | `true` | SQL prepare/get/all/run 计数与每 64 次一次的计时采样，用于结算性能定位；稳定后可独立关闭 |
+| `SQLITE_DIAGNOSTICS` | `false` | `true` 临时开启 SQL prepare/get/all/run 计数与每 64 次一次的计时采样 |
 | `ROUTE_PERF_SUMMARY` | `true` | 保留 CPU、事件循环、请求状态/耗时及结算、编码、数据库提交等阶段汇总 |
+| `ROUTE_PERF_DETAIL` | `false` | `true` 开启 receive/application/serialize 等每请求阶段细分 |
 
 详细内存和原生内存开关只接受 `1/true/yes/on` 开启；未配置或无效值保持关闭。环境变量须在服务启动前设置，修改后重启生效。现有 `.env` 若显式写了 `PROCESS_MEMORY_DIAGNOSTICS=true`，该值仍会覆盖新的默认值，须改成 `false` 才能停用。仅更新 `.env.example` 不会更改现有 `.env`。
 
-服务启动时输出一次 `[DIAGNOSTICS]`，列出实际 memory 模式、sqlite、nativeMemory 和周期。内存与 SQL 均关闭时不安装这个采集器；基础性能监测仍由 `ROUTE_PERF_SUMMARY` 单独决定。
+服务启动时输出一次 `[DIAGNOSTICS]`，列出实际 memory 模式、sqlite、nativeMemory 和周期。内存与 SQL 均关闭时不安装这个采集器；基础性能监测仍由 `ROUTE_PERF_SUMMARY` 单独决定。默认请求汇总只使用 Fastify 已有的总耗时，在错误/超时/中止和响应结束处计数；`ROUTE_PERF_DETAIL=true` 才安装完整阶段 hook。
+
+紧凑模式仍在根 Fastify 实例为全部请求建立状态，因此通过 plugin 注册的路由不会丢失 outcome 或自定义编码耗时。abort 和 timeout 保留请求真实开始时间，同一个请求即使同时触发 abort、socket close 和迟到的 handler 完成也只计数一次。相关回归覆盖 plugin route、自定义编码、延迟 abort、timeout 和固定基数路由统计。
+
+SQLite PRAGMA 不在连接注册时永久缓存。每次诊断采样都会重新读取 `cache_size`、`mmap_size`、`synchronous` 和 `wal_autocheckpoint`，因此 checkpoint worker 接管或故障回退后的所有权状态可以被正确观察。persistence worker 也报告自身实际 PRAGMA。
 
 ## 轻量模式的边界
 

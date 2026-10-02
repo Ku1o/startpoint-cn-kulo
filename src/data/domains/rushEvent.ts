@@ -4,6 +4,7 @@ import { serializeBoolean, deserializeBoolean, deserializeNumberList } from "../
 import { getServerTime } from "../../utils";
 import { getPlayerRushEventEndlessBattleRankingSync } from "../../lib/rush";
 import { runPersistenceTransactionSync } from "../../lib/persistence-coordinator";
+import { cachedStatement } from "../../lib/cached-statement";
 
 /**
  * Deserializes a RawPlayerRushEvent into a PlayerRushEvent
@@ -67,7 +68,7 @@ export function getPlayerRushEventSync(
     eventId: number
 ): PlayerRushEvent | null {
 
-    const rawData = getDb().prepare(`
+    const rawData = cachedStatement(getDb(), `
     SELECT *
     FROM players_rush_events
     WHERE player_id = ? AND event_id = ?
@@ -281,7 +282,7 @@ export function getPlayerRushEventClearedFoldersSync(
     playerId: number,
     eventId: number
 ): PlayerRushEventClearedFolders {
-    const rawCleared = getDb().prepare(`
+    const rawCleared = cachedStatement(getDb(), `
     SELECT player_id, event_id, folder_id
     FROM players_rush_events_cleared_folders
     WHERE player_id = ? AND event_id = ?
@@ -409,32 +410,8 @@ export function deserializePlayerRushEventPlayedParty(
  * @param deserialized The deserialized rush party to convert.
  * @returns A RawPlayerRushEventPlayedParty
  */
-export function serializePlayerRushEventPlayedParty(
-    deserialized: PlayerRushEventPlayedParty
-): UserRushEventPlayedParty {
-    return {
-        // The legacy client cannot decode MessagePack's undefined extension
-        // (fixext1, 0xD4). Optional saved party slots must be explicit nulls.
-        character_id_1: deserialized.characterIds[0] ?? null,
-        character_id_2: deserialized.characterIds[1] ?? null,
-        character_id_3: deserialized.characterIds[2] ?? null,
-        unison_character_id_1: deserialized.unisonCharacterIds[0] ?? null,
-        unison_character_id_2: deserialized.unisonCharacterIds[1] ?? null,
-        unison_character_id_3: deserialized.unisonCharacterIds[2] ?? null,
-        equipment_id_1: deserialized.equipmentIds[0] ?? null,
-        equipment_id_2: deserialized.equipmentIds[1] ?? null,
-        equipment_id_3: deserialized.equipmentIds[2] ?? null,
-        ability_soul_id_1: deserialized.abilitySoulIds[0] ?? null,
-        ability_soul_id_2: deserialized.abilitySoulIds[1] ?? null,
-        ability_soul_id_3: deserialized.abilitySoulIds[2] ?? null,
-        evolution_img_level_1: deserialized.evolutionImgLevels[0] ?? null,
-        evolution_img_level_2: deserialized.evolutionImgLevels[1] ?? null,
-        evolution_img_level_3: deserialized.evolutionImgLevels[2] ?? null,
-        unison_evolution_img_level_1: deserialized.unisonEvolutionImgLevels[0] ?? null,
-        unison_evolution_img_level_2: deserialized.unisonEvolutionImgLevels[1] ?? null,
-        unison_evolution_img_level_3: deserialized.unisonEvolutionImgLevels[2] ?? null,
-    }
-}
+export { serializePlayerRushEventPlayedParty } from "../utils/client-player-snapshot"
+
 
 /**
  * Gets an array of all of a player's parties that they have used to clear rush events.
@@ -447,7 +424,7 @@ export function getPlayerRushEventPlayedPartiesSync(
     playerId: number,
     eventId: number,
 ): PlayerRushEventPlayedParty[] {
-    const rawParties = getDb().prepare(`
+    const rawParties = cachedStatement(getDb(), `
     SELECT character_id_1, character_id_2, character_id_3,
         unison_character_id_1, unison_character_id_2, unison_character_id_3,
         equipment_id_1, equipment_id_2, equipment_id_3, ability_soul_id_1,

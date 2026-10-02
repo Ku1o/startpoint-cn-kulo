@@ -1,5 +1,5 @@
 import path from "node:path"
-import { availableParallelism } from "node:os"
+import { multicoreConfig } from "./multicore-config"
 import { Worker } from "node:worker_threads"
 import { performance } from "node:perf_hooks"
 import { pack } from "msgpackr"
@@ -256,8 +256,7 @@ export class CnResponseWorkerPool {
 }
 
 export function createCnResponseWorkerPool(environment: NodeJS.ProcessEnv = process.env): CnResponseWorkerPool {
-    const configured = Number(environment.CN_RESPONSE_WORKERS)
     return new CnResponseWorkerPool({
-        size: Number.isFinite(configured) ? configured : Math.min(2, Math.max(0, availableParallelism() - 1)),
+        size: multicoreConfig(environment).responseWorkers,
     })
 }

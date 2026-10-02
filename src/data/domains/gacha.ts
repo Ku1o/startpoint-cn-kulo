@@ -2,6 +2,7 @@ import { getDb } from "../db";
 import { PlayerGachaInfo, PlayerGachaCampaign, RawPlayerGachaInfo, RawPlayerGachaCampaign } from "../types";
 import { deserializeBoolean, serializeBoolean, deserializeNumberList } from "../utils";
 import { runPersistenceTransactionSync } from "../../lib/persistence-coordinator";
+import { cachedStatement } from "../../lib/cached-statement";
 
 /**
  * Converts a RawPlayerGachaInfo object into a PlayerGachaInfo object.
@@ -29,7 +30,7 @@ function buildPlayerGachaInfo(
 export function getPlayerGachaInfoListSync(
     playerId: number
 ): PlayerGachaInfo[] {
-    const rawInfo = getDb().prepare(`
+    const rawInfo = cachedStatement(getDb(), `
     SELECT gacha_id, is_daily_first, is_account_first, gacha_exchange_point
     FROM players_gacha_info
     WHERE player_id = ?
@@ -186,7 +187,7 @@ export function getPlayerGachaCampaignSync(
 export function getPlayerGachaCampaignListSync(
     playerId: number
 ): PlayerGachaCampaign[] {
-    const rawList = getDb().prepare(`
+    const rawList = cachedStatement(getDb(), `
     SELECT gacha_id, campaign_id, count
     FROM players_gacha_campaigns
     WHERE player_id = ?

@@ -5,7 +5,7 @@ import { unpack } from "msgpackr";
 import { installCnResponseEncoding } from "./lib/cn-response-hook";
 import fastifyStatic from "@fastify/static";
 import path from "path";
-import { mkdirSync, readFileSync } from "fs";
+import { mkdirSync, readFileSync, rmSync } from "fs";
 import { writeJsonAtomicSync } from "./lib/atomic-json-file";
 import { getStorageLayoutVersion } from "./lib/storage-layout";
 import { getServerTime, getServerTimeForPlayer } from "./utils";
@@ -99,16 +99,17 @@ import {
 import {
     executeSqlitePersistenceCommand,
     isSqlitePersistenceWorkerStarted,
+    setSqlitePersistenceCheckpointOwner,
     startSqlitePersistenceWorker,
     stopSqlitePersistenceWorker,
 } from "./lib/sqlite-persistence-worker";
+import { gameVerboseLog } from "./lib/game-logging";
 
 const fastify = Fastify({
     logger: {
-        // Default remains compatible with the existing development behavior.
-        // Startup BAT files may set LOG_LEVEL=warn to suppress per-request
-        // Fastify access logs during normal low-overhead operation.
-        level: process.env.LOG_LEVEL || "info"
+        // Production-safe default avoids per-request access-log formatting.
+        // Debug launchers explicitly opt back into info.
+        level: process.env.LOG_LEVEL || "warn"
     },
     bodyLimit: 262144  // 256KB — covers /single_battle_quest/finish large battle stats
 });
@@ -310,7 +311,7 @@ function parseC3032Beacon(loc: string): void {
     const badSeed = parseInt(seedMatch[1], 10);
     const movieMatch = loc.match(/movie_id=(\w+)/);
     const movieId = movieMatch ? movieMatch[1] : "normal";
-    console.log(`[DBG-BCN] C3032 seed=${badSeed} movieId=${movieId}`);
+    gameVerboseLog(() => `[DBG-BCN] C3032 seed=${badSeed} movieId=${movieId}`);
     const starDigits = [...loc.matchAll(/â(\d)/g)];
     // first match = ball rarity (結果レア度), second = char rarity (キャラクターレア度)
     const ballRarity = starDigits.length > 0 ? parseInt(starDigits[0][1], 10) : 3;
@@ -320,14 +321,14 @@ function parseC3032Beacon(loc: string): void {
     const r = ballRarity - 3; // 0=★3, 1=★4, 2=★5
     if (didPlay !== null) seedValidator.recordPlay(movieId, badSeed, didPlay);  // record for flushAll
     // C3032 = client-verified rarity → verifiedPool (superset of playPool/confirmPool)
-    console.log(`[DBG-BCN] C3032 → moveToVerified [${movieId}] seed=${badSeed} ★${ballRarity}`);
+    gameVerboseLog(() => `[DBG-BCN] C3032 → moveToVerified [${movieId}] seed=${badSeed} ★${ballRarity}`);
     seedValidator.moveToVerified(movieId, badSeed, r);
     if (didPlay === false) {
-        console.log(`[DBG-BCN] C3032 → confirm [${movieId}] seed=${badSeed} ★${ballRarity}`);
+        gameVerboseLog(() => `[DBG-BCN] C3032 → confirm [${movieId}] seed=${badSeed} ★${ballRarity}`);
         seedValidator.confirm(movieId, badSeed, r);  // play=0 → confirmPool
     }
     const playStr = didPlay === true ? ' play=1' : didPlay === false ? ' play=0' : '';
-    console.log(`[BEACON] C3032 → ${didPlay === true ? 'play' : 'confirm'} seed ${badSeed} ★${ballRarity}${playStr} [${movieId}]`);
+    gameVerboseLog(() => `[BEACON] C3032 → ${didPlay === true ? 'play' : 'confirm'} seed ${badSeed} ★${ballRarity}${playStr} [${movieId}]`);
     if (didPlay === null) { seedValidator.addPending(movieId, badSeed, r); }
 }
 
@@ -336,26 +337,26 @@ function parseC3032Beacon(loc: string): void {
 function parsePlayBeacon(loc: string): void {
     if (loc.startsWith("PLAY|")) {
         const seedMatch = loc.match(/seed=(\d+)/);
-        if (!seedMatch) { console.log(`[PLAY] no seed in: ${loc.substring(0,80)}`); return; }
+        if (!seedMatch) { gameVerboseLog(() => `[PLAY] no seed in: ${loc.substring(0,80)}`); return; }
         const seed = parseInt(seedMatch[1], 10);
         const movieMatch = loc.match(/movie_id=(\w+)/);
         const movieId = movieMatch ? movieMatch[1] : "normal";
         const playMatch = loc.match(/play=(\d)/);
         const didPlay = playMatch ? playMatch[1] === '1' : false;
-        console.log(`[DBG-BCN] PLAY seed=${seed} play=${didPlay?'1':'0'} movieId=${movieId}`);
+        gameVerboseLog(() => `[DBG-BCN] PLAY seed=${seed} play=${didPlay?'1':'0'} movieId=${movieId}`);
         seedValidator.recordPlay(movieId, seed, didPlay);  // record for flushAll
         if (didPlay) {
             const r = seedValidator.getSentR(movieId, seed);
             if (r !== undefined && r !== null) {
                 seedValidator.addPlay(movieId, seed, r, true);
                 seedValidator.moveToVerified(movieId, seed, r);
-                console.log(`[PLAY] playPool seed=${seed} movie=${movieId}`);
+                gameVerboseLog(() => `[PLAY] playPool seed=${seed} movie=${movieId}`);
             } else {
-                console.log(`[PLAY] play=1 skipped seed=${seed} getSentR=${r === null ? 'null' : 'undefined'} (already cleaned up by prior beacon)`);
+                gameVerboseLog(() => `[PLAY] play=1 skipped seed=${seed} getSentR=${r === null ? 'null' : 'undefined'} (already cleaned up by prior beacon)`);
             }
         } else {
             const r = seedValidator.getSentR(movieId, seed);
-            console.log(`[DBG-BCN] PLAY play=0 → confirm [${movieId}] seed=${seed} r=${r !== undefined && r !== null ? '★'+(r+3) : r === null ? 'null' : 'undefined'}`);
+            gameVerboseLog(() => `[DBG-BCN] PLAY play=0 → confirm [${movieId}] seed=${seed} r=${r !== undefined && r !== null ? '★'+(r+3) : r === null ? 'null' : 'undefined'}`);
             if (r !== undefined) seedValidator.confirm(movieId, seed, r);
         }
     }
@@ -364,7 +365,7 @@ function parsePlayBeacon(loc: string): void {
 fastify.post("/debug", async (request, reply) => {
     const ts = new Date().toISOString();
     const loc = (request.body as any)?.loc || "unknown";
-    console.log(`[BEACON ${ts}] ${loc}`);
+    gameVerboseLog(() => `[BEACON ${ts}] ${loc}`);
 
     // Parse C3032 beacons for auto-purification (04e patch skips throw but keeps beacon)
     try { parseC3032Beacon(loc); } catch (_) {}
@@ -510,12 +511,16 @@ fastify.setNotFoundHandler((request, reply) => {
         reply.send(readFileSync(path.join(adminDistDir, "index.html")));
         return;
     }
-    console.log(`[UNKNOWN] ${request.method} ${request.url}`);
+    gameVerboseLog(() => `[UNKNOWN] ${request.method} ${request.url}`);
     reply.status(404).send({ error: "Not Found" });
 });
 
 const host = process.env.CN_LISTEN_HOST ?? "127.0.0.1";
 const port = parseInt(process.env.CN_LISTEN_PORT ?? "8001");
+const logDirectory = path.resolve(__dirname,"../.logs");
+const readyFilePath = path.join(logDirectory,"cn-server-ready.json");
+mkdirSync(logDirectory,{recursive:true});
+rmSync(readyFilePath,{force:true});
 const receiveHistoryRetention = createReceiveHistoryRetentionService(getDb(), {
     executeTransaction: runPersistenceTransaction,
 });
@@ -523,6 +528,7 @@ const leaderboardSettlementScheduler = createLeaderboardSettlementScheduler();
 const dailyVmoneyMailScheduler = createDailyVmoneyMailScheduler(getDb());
 
 fastify.addHook("onClose", async () => {
+    rmSync(readyFilePath,{force:true});
     // The multiplayer TCP listener is not owned by Fastify. Stop it first so
     // no new realtime callback can enqueue a database write while the queues
     // below are draining.
@@ -563,6 +569,9 @@ function requestGracefulShutdown(signal: NodeJS.Signals): void {
         } catch (error) {
             process.exitCode = 1;
             console.error(`[SHUTDOWN] graceful shutdown failed: ${(error as Error).message}`);
+            // A timed-out close means at least one live handle cannot be
+            // drained. Enforce the service-manager shutdown bound.
+            process.exit(1);
         } finally {
             if (timeout) clearTimeout(timeout);
         }
@@ -593,13 +602,28 @@ fastify.listen({ port, host }, (err, address) => {
     leaderboardSettlementScheduler.start();
     dailyVmoneyMailScheduler.start();
 
-    // Start multi battle TCP session server
-    startSessionServer();
-    startSqliteCheckpointWorker(getDb().name);
-    const logDirectory = path.resolve(__dirname,"../.logs");
-    mkdirSync(logDirectory,{recursive:true});
-    writeJsonAtomicSync(path.join(logDirectory,"cn-server-ready.json"),{
-        pid:process.pid,readyAt:new Date().toISOString(),port,
-        database:path.resolve(getDb().name),storageLayoutVersion:getStorageLayoutVersion(getDb()),
-    });
+    void (async () => {
+        try {
+            // Do not publish readiness until both public listeners are bound.
+            await startSessionServer();
+            startSqliteCheckpointWorker(getDb().name, process.env, {
+                onReady: () => {
+                    getDb().pragma("wal_autocheckpoint = 0")
+                    setSqlitePersistenceCheckpointOwner(true)
+                },
+                onStopped: () => {
+                    if (getDb().open) getDb().pragma("wal_autocheckpoint = 1000")
+                    setSqlitePersistenceCheckpointOwner(false)
+                },
+            });
+            writeJsonAtomicSync(readyFilePath,{
+                pid:process.pid,readyAt:new Date().toISOString(),port,
+                database:path.resolve(getDb().name),storageLayoutVersion:getStorageLayoutVersion(getDb()),
+            });
+        } catch (startupError) {
+            console.error(`[STARTUP] realtime listener failed: ${(startupError as Error).message}`);
+            process.exitCode = 1;
+            await fastify.close();
+        }
+    })();
 });

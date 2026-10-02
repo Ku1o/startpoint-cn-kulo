@@ -4,6 +4,7 @@ exports.updatePlayerBoxGachaDrawnRewardSync = exports.insertPlayerBoxGachaDrawnR
 const db_1 = require("../db");
 const utils_1 = require("../utils");
 const persistence_coordinator_1 = require("../../lib/persistence-coordinator");
+const cached_statement_1 = require("../../lib/cached-statement");
 /**
  * Converts a RawPlayerBoxGacha object into a PlayerBoxGacha object.
  *
@@ -27,7 +28,7 @@ function buildPlayerBoxGacha(raw) {
  * @returns A PlayerBoxGacha object or null.
  */
 function getPlayerBoxGachaSync(playerId, gachaId, boxId) {
-    const rawBox = (0, db_1.getDb)().prepare(`
+    const rawBox = (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
     SELECT id, box_id, reset_times, remaining_number, is_closed
     FROM players_box_gacha
     WHERE player_id = ? AND id = ? AND box_id = ?
@@ -44,7 +45,7 @@ exports.getPlayerBoxGachaSync = getPlayerBoxGachaSync;
  * @returns A record containing the status of the player's box gachas.
  */
 function getPlayerBoxGachasSync(playerId) {
-    const rawBoxes = (0, db_1.getDb)().prepare(`
+    const rawBoxes = (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
     SELECT id, box_id, reset_times, remaining_number, is_closed
     FROM players_box_gacha
     WHERE player_id = ?

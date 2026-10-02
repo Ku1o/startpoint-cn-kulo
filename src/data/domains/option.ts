@@ -2,6 +2,7 @@ import { getDb } from "../db";
 import { RawPlayerOption } from "../types";
 import { serializeBoolean, deserializeBoolean } from "../utils";
 import { runPersistenceTransactionSync } from "../../lib/persistence-coordinator";
+import { cachedStatement } from "../../lib/cached-statement";
 
 export interface PlayerProfileSettings {
     showOpenedManaBoardSecondCount: boolean
@@ -75,7 +76,7 @@ export function getPlayerOptionsSync(
     playerId: number
 ): Record<string, boolean> {
     const db = getDb();
-    const rawOptions = db.prepare(`
+    const rawOptions = cachedStatement(db, `
         SELECT key, value
         FROM players_options
         WHERE player_id = ?

@@ -58,7 +58,7 @@ exports.SESSION_MAX_FRAMES_PER_TICK = positiveInteger("SESSION_MAX_FRAMES_PER_TI
 let server = null;
 const activeSockets = new Set();
 function startSessionServer() {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
         if (server) {
             resolve();
             return;
@@ -230,7 +230,19 @@ function startSessionServer() {
             });
         });
         (0, memory_diagnostics_1.observeServerConnections)("tcp", server);
+        const handleListenError = (error) => {
+            if (server) {
+                try {
+                    server.close();
+                }
+                catch (_a) { }
+                server = null;
+            }
+            reject(error);
+        };
+        server.once("error", handleListenError);
         server.listen(exports.SESSION_PORT, exports.SESSION_HOST, () => {
+            server === null || server === void 0 ? void 0 : server.off("error", handleListenError);
             console.log(`[TCP] session server listening on ${exports.SESSION_HOST}:${exports.SESSION_PORT}`);
             resolve();
         });

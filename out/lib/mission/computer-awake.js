@@ -1,7 +1,7 @@
 "use strict";
 // Character awakening mission computer (category 9)
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AwakeComputer = void 0;
+exports.AwakeComputer = exports.buildAwakeContext = void 0;
 const character_clear_1 = require("../../data/domains/character_clear");
 const character_1 = require("../../data/domains/character");
 const quest_1 = require("../../data/domains/quest");
@@ -63,9 +63,9 @@ function expandAwakeMissionIds(missionIds) {
     }
     return [...expanded];
 }
-function buildAwakeContext(playerId, missionIds) {
-    var _a, _b;
-    const player = (0, player_1.getPlayerSync)(playerId);
+function buildAwakeContext(playerId, missionIds, snapshot = {}) {
+    var _a, _b, _c, _d, _e;
+    const player = (_a = snapshot.player) !== null && _a !== void 0 ? _a : (0, player_1.getPlayerSync)(playerId);
     const scopedMissionIds = expandAwakeMissionIds(missionIds);
     const targetCharacterIds = scopedMissionIds === undefined
         ? undefined
@@ -103,7 +103,7 @@ function buildAwakeContext(playerId, missionIds) {
             bClears++;
     };
     if (scopedMissionIds === undefined) {
-        const questProgressRaw = (0, quest_1.getPlayerQuestProgressSync)(playerId);
+        const questProgressRaw = (_b = snapshot.questProgress) !== null && _b !== void 0 ? _b : (0, quest_1.getPlayerQuestProgressSync)(playerId);
         for (const [section, quests] of Object.entries(questProgressRaw)) {
             for (const qp of quests)
                 appendQuestProgress(section, qp);
@@ -123,7 +123,7 @@ function buildAwakeContext(playerId, missionIds) {
             if (target) {
                 for (const questId of target.questIds)
                     addRequestedQuest(target.category, questId);
-                for (const alternate of (_a = target.alternateTargets) !== null && _a !== void 0 ? _a : []) {
+                for (const alternate of (_c = target.alternateTargets) !== null && _c !== void 0 ? _c : []) {
                     for (const questId of alternate.questIds) {
                         addRequestedQuest(alternate.category, questId);
                     }
@@ -152,7 +152,7 @@ function buildAwakeContext(playerId, missionIds) {
     const charData = new Map();
     const clearRows = (0, character_clear_1.getPlayerCharacterClearsSync)(playerId, targetCharacterIds && [...targetCharacterIds]);
     const chars = targetCharacterIds === undefined
-        ? (0, character_1.getPlayerCharactersSync)(playerId)
+        ? (_d = snapshot.characterList) !== null && _d !== void 0 ? _d : (0, character_1.getPlayerCharactersSync)(playerId)
         : (0, character_1.getPlayerCharactersByIdsSync)(playerId, [...targetCharacterIds]);
     for (const [cid, char] of Object.entries(chars)) {
         charData.set(cid, char);
@@ -166,7 +166,7 @@ function buildAwakeContext(playerId, missionIds) {
     }
     const pairs = new Map();
     for (const missionId of scopedMissionIds !== null && scopedMissionIds !== void 0 ? scopedMissionIds : []) {
-        const ids = (_b = MULTI_CHAR_MISSIONS.get(missionId)) !== null && _b !== void 0 ? _b : [];
+        const ids = (_e = MULTI_CHAR_MISSIONS.get(missionId)) !== null && _e !== void 0 ? _e : [];
         for (let i = 0; i < ids.length; i++) {
             for (let j = i + 1; j < ids.length; j++) {
                 // Both orientations remain readable for legacy, unnormalised rows.
@@ -181,7 +181,9 @@ function buildAwakeContext(playerId, missionIds) {
         : pairs.size === 0 ? [] : (0, db_1.getDb)().prepare([...pairs].map(() => (`${coClearSelect} AND char_id_a = ? AND char_id_b = ?`)).join(" UNION ALL ")).all(...[...pairs.values()].flatMap(([a, b]) => [playerId, a, b])));
     const coClears = (0, awake_battle_rules_1.mergePartyCoClearRows)(rows);
     const categoryMissionProgress = new Map();
-    const persistedMissions = (0, mission_1.getPlayerCategoryMissionsSync)(playerId, 9, scopedMissionIds);
+    const persistedMissions = scopedMissionIds === undefined && snapshot.persistedMissions
+        ? snapshot.persistedMissions
+        : (0, mission_1.getPlayerCategoryMissionsSync)(playerId, 9, scopedMissionIds);
     for (const [missionId, progress] of Object.entries(persistedMissions)) {
         categoryMissionProgress.set(Number(missionId), progress.progress);
     }
@@ -195,6 +197,7 @@ function buildAwakeContext(playerId, missionIds) {
         finishedQuestIds, persistedMissions,
     };
 }
+exports.buildAwakeContext = buildAwakeContext;
 exports.AwakeComputer = {
     name: "Awake",
     buildContext(playerId, _category, _evaluationTime, missionIds) {

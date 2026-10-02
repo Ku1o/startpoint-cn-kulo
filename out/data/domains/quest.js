@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.insertPlayerDrawnQuestsSync = exports.getPlayerDrawnQuestsSync = exports.incrementPlayerQuestMultiClearSync = exports.updatePlayerQuestProgressSync = exports.insertPlayerQuestProgressListSync = exports.insertPlayerQuestProgressSync = exports.getPlayerQuestProgressBySectionAndIdsSync = exports.getPlayerSingleQuestProgressSync = exports.countFinishedPlayerQuestsSync = exports.countFinishedPlayerQuestsByCategorySync = exports.getPlayerQuestProgressSubsetSync = exports.getPlayerSingleQuestHistorySummarySync = exports.getPlayerQuestProgressSync = void 0;
+const load_snapshot_1 = require("../readers/load-snapshot");
 const cached_statement_1 = require("../../lib/cached-statement");
 const db_1 = require("../db");
 const utils_1 = require("../utils");
@@ -14,21 +15,6 @@ const persistence_coordinator_1 = require("../../lib/persistence-coordinator");
  * @param raw The raw object to convert.
  * @returns The converted object.
  */
-function buildPlayerQuestProgress(raw) {
-    var _a, _b;
-    return {
-        questId: raw.quest_id,
-        finished: (0, utils_1.deserializeBoolean)(raw.finished),
-        hostFinished: (0, utils_1.deserializeBoolean)((_a = raw.host_finished) !== null && _a !== void 0 ? _a : 0),
-        unlocked: (0, utils_1.deserializeBoolean)(raw.unlocked),
-        highScore: raw.high_score,
-        clearRank: raw.clear_rank,
-        bestElapsedTimeMs: raw.best_elapsed_time_ms,
-        leaderCharacterId: raw.leader_character_id,
-        multiClearCount: raw.multi_clear_count,
-        sPlusRewardReceived: (0, utils_1.deserializeBoolean)((_b = raw.s_plus_reward_received) !== null && _b !== void 0 ? _b : 0)
-    };
-}
 /**
  * Gets a player's overall quest progressfrom the database.
  *
@@ -37,22 +23,7 @@ function buildPlayerQuestProgress(raw) {
  */
 function getPlayerQuestProgressSync(playerId) {
     (0, abyss_time_revision_1.refreshPlayerAbyssBestTimesSync)(playerId);
-    const rawProgress = (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
-    SELECT section, quest_id, finished, host_finished, unlocked, high_score, clear_rank, best_elapsed_time_ms, leader_character_id, multi_clear_count, s_plus_reward_received
-    FROM players_quest_progress
-    WHERE player_id = ?
-    `).all(playerId);
-    const mapped = {};
-    for (const raw of rawProgress) {
-        const section = raw.section.toString();
-        let bucket = mapped[section];
-        if (!bucket) {
-            bucket = [];
-            mapped[section] = bucket;
-        }
-        bucket.push(buildPlayerQuestProgress(raw));
-    }
-    return mapped;
+    return (0, load_snapshot_1.readPlayerQuestProgressSync)((0, db_1.getDb)(), playerId);
 }
 exports.getPlayerQuestProgressSync = getPlayerQuestProgressSync;
 /** Historical single-only facts; shared single/co-op categories cannot prove the mode. */
@@ -117,7 +88,7 @@ function getPlayerQuestProgressSubsetSync(playerId, scope) {
     const mapped = {};
     for (const raw of rows.values()) {
         const section = String(raw.section);
-        ((_c = mapped[section]) !== null && _c !== void 0 ? _c : (mapped[section] = [])).push(buildPlayerQuestProgress(raw));
+        ((_c = mapped[section]) !== null && _c !== void 0 ? _c : (mapped[section] = [])).push((0, load_snapshot_1.buildPlayerQuestProgress)(raw));
     }
     return mapped;
 }
@@ -163,7 +134,7 @@ function getPlayerSingleQuestProgressSync(playerId, section, questId) {
     `).get(playerId, Number(section), Number(questId));
     if (rawProgress === undefined)
         return null;
-    return buildPlayerQuestProgress(rawProgress);
+    return (0, load_snapshot_1.buildPlayerQuestProgress)(rawProgress);
 }
 exports.getPlayerSingleQuestProgressSync = getPlayerSingleQuestProgressSync;
 /** Reads exact ids in one section without broadening to other quest categories. */
@@ -183,7 +154,7 @@ function getPlayerQuestProgressBySectionAndIdsSync(playerId, section, questIds) 
             FROM players_quest_progress
             WHERE player_id = ? AND section = ? AND quest_id IN (${chunk.map(() => "?").join(", ")})
         `).all(playerId, sectionId, ...chunk);
-        result.push(...rows.map(buildPlayerQuestProgress));
+        result.push(...rows.map(load_snapshot_1.buildPlayerQuestProgress));
     }
     return result;
 }

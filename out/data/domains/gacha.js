@@ -4,6 +4,7 @@ exports.updatePlayerGachaCampaignSync = exports.insertPlayerGachaCampaignListSyn
 const db_1 = require("../db");
 const utils_1 = require("../utils");
 const persistence_coordinator_1 = require("../../lib/persistence-coordinator");
+const cached_statement_1 = require("../../lib/cached-statement");
 /**
  * Converts a RawPlayerGachaInfo object into a PlayerGachaInfo object.
  *
@@ -25,7 +26,7 @@ function buildPlayerGachaInfo(rawInfo) {
  * @returns A list of PlayerGachaInfo.
  */
 function getPlayerGachaInfoListSync(playerId) {
-    const rawInfo = (0, db_1.getDb)().prepare(`
+    const rawInfo = (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
     SELECT gacha_id, is_daily_first, is_account_first, gacha_exchange_point
     FROM players_gacha_info
     WHERE player_id = ?
@@ -151,7 +152,7 @@ exports.getPlayerGachaCampaignSync = getPlayerGachaCampaignSync;
  * @returns The list of gacha campaigns.
  */
 function getPlayerGachaCampaignListSync(playerId) {
-    const rawList = (0, db_1.getDb)().prepare(`
+    const rawList = (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
     SELECT gacha_id, campaign_id, count
     FROM players_gacha_campaigns
     WHERE player_id = ?

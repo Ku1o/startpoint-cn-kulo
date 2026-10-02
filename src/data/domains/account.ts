@@ -1,4 +1,5 @@
 import { getDb } from "../db";
+import { cachedStatement } from "../../lib/cached-statement";
 import { Account, RawAccount } from "../types";
 
 // Account
@@ -125,7 +126,7 @@ export function getAccountPlayersSync(
     accountId: number
 ): number[] {
     const db = getDb();
-    const raw = db.prepare(`
+    const raw = cachedStatement(db, `
     SELECT id
     FROM players
     WHERE account_id = ?
@@ -133,6 +134,21 @@ export function getAccountPlayersSync(
     `).all(accountId) as { id: number }[]
 
     return raw.map(player => player.id)
+}
+
+/** Selects the preferred player when owned, otherwise the account's first player. */
+export function resolveAccountPlayerIdSync(
+    accountId: number,
+    preferredPlayerId: number | null,
+): number | null {
+    const row = cachedStatement(getDb(), `
+        SELECT id
+        FROM players
+        WHERE account_id = ?
+        ORDER BY CASE WHEN id = ? THEN 0 ELSE 1 END, id
+        LIMIT 1
+    `).get(accountId, preferredPlayerId ?? 0) as { id: number } | undefined
+    return row?.id ?? null
 }
 
 /**

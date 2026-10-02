@@ -4,6 +4,7 @@ exports.updatePlayerProfileSettingsSync = exports.getPlayerProfileSettingsSync =
 const db_1 = require("../db");
 const utils_1 = require("../utils");
 const persistence_coordinator_1 = require("../../lib/persistence-coordinator");
+const cached_statement_1 = require("../../lib/cached-statement");
 const PROFILE_SETTING_KEYS = {
     showOpenedManaBoardSecondCount: "profile.show_opened_mana_board_second_count",
     showOwnedCharacterCount: "profile.show_owned_character_count",
@@ -57,7 +58,7 @@ exports.insertPlayerOptionsSync = insertPlayerOptionsSync;
  */
 function getPlayerOptionsSync(playerId) {
     const db = (0, db_1.getDb)();
-    const rawOptions = db.prepare(`
+    const rawOptions = (0, cached_statement_1.cachedStatement)(db, `
         SELECT key, value
         FROM players_options
         WHERE player_id = ?

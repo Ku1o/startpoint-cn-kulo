@@ -18,6 +18,7 @@ const five_boss_gauntlet_1 = require("./initializers/five-boss-gauntlet");
 const admin_account_cleanup_1 = require("../lib/admin-account-cleanup");
 const storage_layout_1 = require("../lib/storage-layout");
 const sqlite_diagnostics_1 = require("../lib/sqlite-diagnostics");
+const sqlite_settings_1 = require("../lib/sqlite-settings");
 // Use __dirname so DB path is relative to the source file, not process.cwd()
 const dataDir = process.env.DATA_DIR
     ? path_1.default.resolve(process.env.DATA_DIR)
@@ -43,7 +44,6 @@ const databasesMetadata = {
 };
 const loadedDatabases = {};
 function getDatabase(database) {
-    var _a;
     // don't try to load an already-loaded database
     const isLoaded = loadedDatabases[database];
     if (isLoaded)
@@ -76,9 +76,12 @@ function getDatabase(database) {
     db.pragma('temp_store = FILE');
     console.log(`[DB] temp_store=${db.pragma('temp_store', { simple: true })} (1=FILE)`);
     db.pragma('journal_mode = WAL');
+    (0, sqlite_settings_1.applySqliteSettings)(db);
     db.pragma('busy_timeout = 1000');
-    const externalCheckpointWorker = /^(1|true|yes|on)$/i.test((_a = process.env.SQLITE_CHECKPOINT_WORKER) !== null && _a !== void 0 ? _a : "");
-    db.pragma(`wal_autocheckpoint = ${externalCheckpointWorker ? 0 : 1000}`);
+    // Keep offline tools safe. The CN server disables this only when it starts
+    // the external checkpoint owner.
+    const externalCheckpointWorker = false;
+    db.pragma('wal_autocheckpoint = 1000');
     console.log(`[DB] wal_autocheckpoint=${db.pragma('wal_autocheckpoint', { simple: true })}`
         + ` externalCheckpointWorker=${externalCheckpointWorker}`);
     db.pragma('foreign_keys = OFF');

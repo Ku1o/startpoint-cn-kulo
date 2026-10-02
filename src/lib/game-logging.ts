@@ -1,5 +1,5 @@
 const GAME_VERBOSE_LOGS_ENABLED = !/^(0|false|no|off)$/i.test(
-    process.env.GAME_VERBOSE_LOGS ?? "true",
+    process.env.GAME_VERBOSE_LOGS ?? "false",
 )
 
 export function gameVerboseLog(message: string | (() => string)): void {
