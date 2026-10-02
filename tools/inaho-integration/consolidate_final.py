@@ -10,6 +10,7 @@ import hashlib
 import io
 import json
 from pathlib import Path
+import re
 import sys
 import zipfile
 import zlib
@@ -125,7 +126,10 @@ def verify_apk(apk, contract):
     if sha(swf) != contract["client"]["swf_sha256"]:
         raise ValueError("unexpected SWF")
     plain = zlib.decompress(swf[8:]) if swf[:3] == b"CWS" else swf
-    if b"http://127.0.0.1:8011" in plain or b"http://192.168.3.14:8001" not in plain:
+    endpoint_urls = re.findall(rb"https?://[^\x00\s\"']+", plain)
+    if any(url.rsplit(b":", 1)[-1].split(b"/", 1)[0] == b"8011" for url in endpoint_urls):
+        raise ValueError("unexpected private proxy endpoint")
+    if not any(url.rsplit(b":", 1)[-1].split(b"/", 1)[0] == b"8001" for url in endpoint_urls):
         raise ValueError("unexpected client endpoint")
     for reference in contract["client"]["resource_constants"]:
         if reference.encode() not in plain:

@@ -1,6 +1,6 @@
 {
   "passed": true,
-  "server": "http://192.168.3.14:8001",
+  "server": "http://<LAN_HOST>:8001",
   "version": "1.4.121",
   "updates": [
     {
