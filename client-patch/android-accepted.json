@@ -55,7 +55,7 @@
       "apk_sha256": "8ab2533469bb88d1292db9c2406b7ff696cb1d1064c027bd83b4985f5e19dcc1",
       "swf_sha256": "457d148d55f8cf6b85d8d144e14a12ab12feff1e5561018a9de1fa08c05fc836",
       "uniqueappversionid": "08f205a0-4fdc-4faf-9201-16aade2e174f",
-      "endpoint": "http://192.168.3.14:8001",
+      "endpoint": "http://<LAN_HOST>:8001",
       "local_build_report": "F:\\codex\\outputs\\orochi-rescue-bell-client-20261002-layout-compact\\package-report.json",
       "local_build_checks": {
         "method_bodies_checked": 96699,
