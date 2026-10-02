@@ -12,7 +12,7 @@ export const FIVE_BOSS_GAUNTLET_REWARD_IDS = Object.freeze({
 /**
  * 结算页只认 drop_additional_reward_ids 里的「客户端 additional_reward 组 + 序号」,
  * item_list 只更新背包数字不上屏(真机 2026-09-04:材料到账但结算页空白)。
- * 组 590010000 的四行在客户端 master/reward/event/additional_reward.orderedmap(1.4.725),
+ * 组 590010000 的五行在客户端 master/reward/event/additional_reward.orderedmap(1.4.725),
  * 序号顺序与这里必须一致。
  */
 export const FIVE_BOSS_GAUNTLET_REWARD_DISPLAY = Object.freeze({
