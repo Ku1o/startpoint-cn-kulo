@@ -37,7 +37,13 @@ package cn.mod {
                 var content:Object = source.content;
                 if (content == null || int(content.index) != 4) return false;
                 var instant:Object = content.params[1];
-                if (instant == null || int(instant.index) != 19) return false;
+                if (instant == null) return false;
+                var index:int = int(instant.index);
+                // AllEnemyDamage/GeneralEnemyDamage create AbilityDamageShot directly.
+                // Their runtime shot selector can choose the Inaho timeline even though
+                // the content has no InvokeSkill marker to identify the character.
+                if (index == 13 || index == 14) return true;
+                if (index != 19) return false;
                 var path:String = String(instant.params[1]);
                 return path.indexOf(INAHO_MARKER) >= 0;
             } catch (error:Error) {
