@@ -52,6 +52,9 @@ wdfp_data*
 
 # Local-only runtime configuration and signing material
 /config/
+
+# Local-only runtime learning state
+/assets/confirmed_seeds.json
 *.pem
 *.key
 *.p12
