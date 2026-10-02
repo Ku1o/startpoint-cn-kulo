@@ -50,8 +50,8 @@ save_*.json
 assets/save_data.json
 wdfp_data*
 
-# Local secrets and signing material
-config/client-admission.keys.json
+# Local-only runtime configuration and signing material
+/config/
 *.pem
 *.key
 *.p12
