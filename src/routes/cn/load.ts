@@ -3,7 +3,7 @@ import { generateDataHeaders, getServerTime, getServerDate } from "../../utils";
 import { collectPlayerDataPooledExpSync, dailyResetPlayerDataSync, getPlayerSync, updatePlayerSync } from "../../data/domains/player"
 import { deletePlayerActiveQuestSync, getPlayerActiveQuestSync } from "../../data/domains/quest_active"
 import { getSession } from "../../data/domains/session"
-import { getClientSerializedData } from "../../data/utils";
+import { prepareClientSerializedData } from "../../data/utils/player-data";
 import { getContentSnapshot } from "../../content/runtime/content-snapshot";
 import { reconcileActiveMissionFacts } from "../../lib/mission/active-reconciliation";
 import { resolvePlayerIdSync } from "../../data/activeAccount";
@@ -39,6 +39,7 @@ import { getNewsDeliveryState, getNewsInterruptFlag } from "../../lib/news-deliv
 import { performance } from "node:perf_hooks";
 import { recordServerWork } from "../../lib/server-work-performance";
 import { runPersistenceTransaction } from "../../lib/persistence-coordinator";
+import { serializePlayerSnapshot } from "../../data/utils/client-player-snapshot";
 
 interface CnLoadBody {
     device_id: number;
@@ -54,11 +55,7 @@ interface CnLoadBody {
     viewer_id?: number;
 }
 
-function wrapOptionFields(d: any, playerId: number, resVer?: string) {
-    // Report effective server version (CDN + patches) to trigger client update
-    const { getEffectiveVersion } = require("../../lib/version");
-    d.available_asset_version = getEffectiveVersion();
-
+function fillClientDefaults(d: any) {
     if (d.user_info) {
         if (typeof d.user_info.last_login_time === 'number') {
             const dt = new Date(d.user_info.last_login_time * 1000);
@@ -83,7 +80,12 @@ function wrapOptionFields(d: any, playerId: number, resVer?: string) {
         d.user_option.server_push ??= false;
         d.user_option.stamina ??= false;
     }
+}
 
+function wrapOptionFields(d: any, playerId: number, resVer?: string) {
+    const { getEffectiveVersion } = require("../../lib/version");
+    d.available_asset_version = getEffectiveVersion();
+    fillClientDefaults(d);
     d.cn_crash_url = `http://${getDisplayHost()}:${process.env.CN_LISTEN_PORT || "8001"}/crash`;
     d.survey_url = "";
     d.qq_group_url = "";
@@ -238,7 +240,8 @@ const routes = async (fastify: FastifyInstance) => {
         // saved party slots are normalized to null before packing (rather than
         // MessagePack's unsupported undefined extension, 0xD4).
         refreshPlayerAbyssTowersSync(playerId)
-        const clientData = getClientSerializedData(playerId, {
+        const assemblyStartedAt = performance.now()
+        const prepared = prepareClientSerializedData(playerId, {
             viewerId: accountId,
             serializeRushEventData: true,
             preloadedPlayer: currentPlayer,
@@ -247,13 +250,21 @@ const routes = async (fastify: FastifyInstance) => {
             preloadedEquipmentList: equipmentList,
             preloadedPartyGroupList: partyGroupList,
             preloadedQuestProgress: serializedQuestProgress,
-        }) as any;
-        if (clientData === null) {
+        });
+        recordServerWork("load.assemble", performance.now() - assemblyStartedAt)
+        if (prepared === null) {
             return reply.status(500).send({ error: "Internal Server Error", message: "No player data." });
         }
+        const conversionStartedAt = performance.now()
+        const clientData: any = serializePlayerSnapshot(
+            prepared.data,
+            prepared.context,
+            prepared.options,
+        );
+        recordServerWork("load.convert", performance.now() - conversionStartedAt)
 
         const resVer = request.headers['res_ver'] as string | undefined;
-        gameVerboseLog(() => `[CN-LOAD] res_ver=${resVer || '(not sent)'} account=${accountId} player=${playerId} party_slot=${clientData?.user_info?.party_slot}`);
+        gameVerboseLog(() => `[CN-LOAD] res_ver=${resVer || '(not sent)'} account=${accountId} player=${playerId} party_slot=${prepared.data.player.partySlot}`);
         wrapOptionFields(clientData, playerId, resVer);
         const newsDelivery = getNewsDeliveryState(accountId, now);
         clientData.has_unread_news_item = newsDelivery.hasUnreadNews;

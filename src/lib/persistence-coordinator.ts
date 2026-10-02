@@ -43,6 +43,11 @@ export type PersistenceSqlExecutor = (
     statements: readonly PersistenceSqlStatement[],
 ) => Promise<void>
 
+export interface PersistenceTransactionOptions<T> {
+    /** Runs after SQLite COMMIT succeeds, before the per-player queue is released. */
+    afterCommit?: (result: T) => void
+}
+
 let globalWriteTail = Promise.resolve()
 // The first migration step keeps SQLite in the main process. Nested domain
 // transactions belong to the outer command for metrics, but retain savepoints
@@ -131,6 +136,7 @@ export function configurePersistenceSqlExecutor(executor: PersistenceSqlExecutor
 export async function runPersistenceTransaction<T>(
     context: PersistenceContext,
     operation: () => T,
+    options: PersistenceTransactionOptions<T> = {},
 ): Promise<T> {
     const queuedAt = performance.now()
     const stats = statsFor(context.domain)
@@ -151,6 +157,18 @@ export async function runPersistenceTransaction<T>(
                 withPersistenceContext(context, operation)
             ))
             stats.committed++
+            if (options.afterCommit) {
+                try {
+                    options.afterCommit(result)
+                } catch (error) {
+                    // The database is already committed. Observability or
+                    // non-durable side effects must not turn success into a retry.
+                    console.error(
+                        `[PERSISTENCE] afterCommit failed: domain=${context.domain} operation=${context.operation}`,
+                        error,
+                    )
+                }
+            }
             return result
         } catch (error) {
             stats.failed++

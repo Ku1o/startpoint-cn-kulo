@@ -13,12 +13,15 @@ export function observeSqliteDatabase(db: Database, name: string): void {
         sampledPrepareMs: 0, maxSampledPrepareMs: 0,
         executeCalls: 0, executeErrors: 0, busyErrors: 0, sampledExecuteCalls: 0,
         sampledExecuteMs: 0, maxSampledExecuteMs: 0 }
-    const settings: Record<string, number | boolean | null> = { nativeBytesAvailable: false }
-    for (const pragma of ["cache_size", "page_size", "mmap_size", "temp_store", "busy_timeout", "synchronous", "wal_autocheckpoint"]) {
-        try {
-            const value = db.pragma(pragma, { simple: true })
-            settings[pragma] = typeof value === "number" ? value : null
-        } catch { settings[pragma] = null }
+    const readSettings = (): Record<string, number | boolean | null> => {
+        const settings: Record<string, number | boolean | null> = { nativeBytesAvailable: false }
+        for (const pragma of ["cache_size", "page_size", "mmap_size", "temp_store", "busy_timeout", "synchronous", "wal_autocheckpoint"]) {
+            try {
+                const value = db.pragma(pragma, { simple: true })
+                settings[pragma] = typeof value === "number" ? value : null
+            } catch { settings[pragma] = null }
+        }
+        return settings
     }
     const prepare = db.prepare
     db.prepare = function (this: Database, sql: string) {
@@ -66,6 +69,6 @@ export function observeSqliteDatabase(db: Database, name: string): void {
     const unregister = registerMemoryCounters(`sqlite.${name}`, (): Record<string, number | boolean | null> => {
         const connection = reference.deref()
         if (!connection?.open) { unregister(); return { unavailable: true } }
-        return { ...settings, ...stats, inTransaction: connection.inTransaction }
+        return { ...readSettings(), ...stats, inTransaction: connection.inTransaction }
     }, "sqlite")
 }

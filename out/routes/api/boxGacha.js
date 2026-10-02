@@ -20,6 +20,7 @@ const assets_1 = require("../../lib/assets");
 const gacha_1 = require("../../lib/gacha");
 const mission_1 = require("../../lib/mission");
 const persistence_coordinator_1 = require("../../lib/persistence-coordinator");
+const game_logging_1 = require("../../lib/game-logging");
 /**
  * Calculates the remaining stock from the current reward master and the
  * player's per-reward draw history. This remains correct when a patch expands
@@ -91,7 +92,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         const viewerId = Number(body.viewer_id);
         const boxGachaId = Number(body.box_gacha_id);
         const boxId = Number(body.box_id);
-        console.log(`[BOX] reset: boxGachaId=${boxGachaId} boxId=${boxId}`);
+        (0, game_logging_1.gameVerboseLog)(() => `[BOX] reset: boxGachaId=${boxGachaId} boxId=${boxId}`);
         if (!Number.isFinite(viewerId) || !Number.isFinite(boxGachaId) || !Number.isFinite(boxId))
             return reply.status(400).send({
                 "error": "Bad Request",
@@ -211,7 +212,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         const boxId = body.box_id;
         const pullCount = body.number;
         const stopOnFeaturedRewards = body.stop_on_featured_rewards;
-        console.log(`[BOX] exec: boxGachaId=${boxGachaId} boxId=${boxId} pullCount=${pullCount}`);
+        (0, game_logging_1.gameVerboseLog)(() => `[BOX] exec: boxGachaId=${boxGachaId} boxId=${boxId} pullCount=${pullCount}`);
         if (isNaN(viewerId) || isNaN(boxGachaId) || isNaN(boxId) || isNaN(pullCount) || stopOnFeaturedRewards === undefined)
             return reply.status(400).send({
                 "error": "Bad Request",
@@ -282,7 +283,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             const newPullCurrency = currentCurrency - actualPullCost;
             if (newPullCurrency < 0)
                 throw new Error("Not enough pull currency.");
-            console.log(`[BOX] exec result: boxGachaId=${boxGachaId} boxId=${boxId} requested=${pullCount} actual=${drawResult.drawCount} cost=${actualPullCost} stopOnFeatured=${stopOnFeaturedRewards}`);
+            (0, game_logging_1.gameVerboseLog)(() => `[BOX] exec result: boxGachaId=${boxGachaId} boxId=${boxId} requested=${pullCount} actual=${drawResult.drawCount} cost=${actualPullCost} stopOnFeatured=${stopOnFeaturedRewards}`);
             const rewardResult = (0, gacha_1.rewardPlayerBoxGachaResultSync)(playerId, drawResult);
             const playerDrawnRewardMap = new Map(currentDrawnRewards.map(reward => [reward.id, reward.number]));
             const totalDrawCount = currentDrawnRewards.reduce((total, reward) => total + reward.number, 0)
@@ -390,7 +391,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         const body = request.body;
         const viewerId = body.viewer_id;
         const boxGachaId = body.box_gacha_id;
-        console.log(`[BOX] get_box_list: boxGachaId=${boxGachaId}`);
+        (0, game_logging_1.gameVerboseLog)(() => `[BOX] get_box_list: boxGachaId=${boxGachaId}`);
         if (isNaN(viewerId) || isNaN(boxGachaId))
             return reply.status(400).send({
                 "error": "Bad Request",

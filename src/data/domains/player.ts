@@ -91,13 +91,13 @@ export function getPlayerDailyChallengePointListSync(
     playerId: number
 ): DailyChallengePointListEntry[] {
 
-    const rawEntries = getDb().prepare(`
+    const rawEntries = cachedStatement(getDb(), `
     SELECT id, point
     FROM daily_challenge_point_list_entries
     WHERE player_id = ?
     `).all(playerId) as RawDailyChallengePointListEntry[]
 
-    const rawCampaigns = getDb().prepare(`
+    const rawCampaigns = cachedStatement(getDb(), `
     SELECT campaign_id, additional_point, list_entry_id
     FROM daily_challenge_point_list_campaigns
     WHERE player_id = ?

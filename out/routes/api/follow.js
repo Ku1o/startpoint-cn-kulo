@@ -15,6 +15,7 @@ const session_1 = require("../../data/domains/session");
 const follow_2 = require("../../lib/follow");
 const profile_target_1 = require("../../lib/profile-target");
 const utils_1 = require("../../utils");
+const game_logging_1 = require("../../lib/game-logging");
 function resolveContext(body) {
     return __awaiter(this, void 0, void 0, function* () {
         const viewerId = Number(body === null || body === void 0 ? void 0 : body.viewer_id);
@@ -65,7 +66,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             return send(reply, ctx.viewerId, {}, 1452);
         if (result === "self" || result === "target_not_found")
             return send(reply, ctx.viewerId, {}, 1457);
-        console.log(`[FOLLOW] add viewer=${ctx.viewerId} target=${Number(body.follow_id)} result=${result}`);
+        (0, game_logging_1.gameVerboseLog)(() => `[FOLLOW] add viewer=${ctx.viewerId} target=${Number(body.follow_id)} result=${result}`);
         return send(reply, ctx.viewerId, {});
     }));
     fastify.post("/delete", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
@@ -76,7 +77,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         const targetPlayerId = resolveTargetPlayerId(body.follow_id);
         if (targetPlayerId !== null)
             yield (0, follow_1.deleteFollow)(ctx.playerId, targetPlayerId);
-        console.log(`[FOLLOW] delete viewer=${ctx.viewerId} target=${Number(body.follow_id)}`);
+        (0, game_logging_1.gameVerboseLog)(() => `[FOLLOW] delete viewer=${ctx.viewerId} target=${Number(body.follow_id)}`);
         return send(reply, ctx.viewerId, {});
     }));
     fastify.post("/delete_followed", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
@@ -87,7 +88,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         const followerPlayerId = resolveTargetPlayerId(body.followed_id);
         if (followerPlayerId !== null)
             yield (0, follow_1.deleteFollower)(ctx.playerId, followerPlayerId);
-        console.log(`[FOLLOW] delete_follower viewer=${ctx.viewerId} follower=${Number(body.followed_id)}`);
+        (0, game_logging_1.gameVerboseLog)(() => `[FOLLOW] delete_follower viewer=${ctx.viewerId} follower=${Number(body.followed_id)}`);
         return send(reply, ctx.viewerId, {});
     }));
     fastify.post("/bulk_edit", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {

@@ -5,6 +5,7 @@ const db_1 = require("../db");
 const types_1 = require("../types");
 const rush_1 = require("../../lib/rush");
 const persistence_coordinator_1 = require("../../lib/persistence-coordinator");
+const cached_statement_1 = require("../../lib/cached-statement");
 /**
  * Deserializes a RawPlayerRushEvent into a PlayerRushEvent
  *
@@ -59,7 +60,7 @@ exports.getDefaultPlayerRushEventSync = getDefaultPlayerRushEventSync;
  * @returns The rush event data or null.
  */
 function getPlayerRushEventSync(playerId, eventId) {
-    const rawData = (0, db_1.getDb)().prepare(`
+    const rawData = (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
     SELECT *
     FROM players_rush_events
     WHERE player_id = ? AND event_id = ?
@@ -227,7 +228,7 @@ exports.updatePlayerRushEventSync = updatePlayerRushEventSync;
  * @returns An array of cleared folder IDs.
  */
 function getPlayerRushEventClearedFoldersSync(playerId, eventId) {
-    const rawCleared = (0, db_1.getDb)().prepare(`
+    const rawCleared = (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
     SELECT player_id, event_id, folder_id
     FROM players_rush_events_cleared_folders
     WHERE player_id = ? AND event_id = ?
@@ -341,32 +342,8 @@ exports.deserializePlayerRushEventPlayedParty = deserializePlayerRushEventPlayed
  * @param deserialized The deserialized rush party to convert.
  * @returns A RawPlayerRushEventPlayedParty
  */
-function serializePlayerRushEventPlayedParty(deserialized) {
-    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t;
-    return {
-        // The legacy client cannot decode MessagePack's undefined extension
-        // (fixext1, 0xD4). Optional saved party slots must be explicit nulls.
-        character_id_1: (_a = deserialized.characterIds[0]) !== null && _a !== void 0 ? _a : null,
-        character_id_2: (_b = deserialized.characterIds[1]) !== null && _b !== void 0 ? _b : null,
-        character_id_3: (_c = deserialized.characterIds[2]) !== null && _c !== void 0 ? _c : null,
-        unison_character_id_1: (_d = deserialized.unisonCharacterIds[0]) !== null && _d !== void 0 ? _d : null,
-        unison_character_id_2: (_e = deserialized.unisonCharacterIds[1]) !== null && _e !== void 0 ? _e : null,
-        unison_character_id_3: (_f = deserialized.unisonCharacterIds[2]) !== null && _f !== void 0 ? _f : null,
-        equipment_id_1: (_g = deserialized.equipmentIds[0]) !== null && _g !== void 0 ? _g : null,
-        equipment_id_2: (_h = deserialized.equipmentIds[1]) !== null && _h !== void 0 ? _h : null,
-        equipment_id_3: (_j = deserialized.equipmentIds[2]) !== null && _j !== void 0 ? _j : null,
-        ability_soul_id_1: (_k = deserialized.abilitySoulIds[0]) !== null && _k !== void 0 ? _k : null,
-        ability_soul_id_2: (_l = deserialized.abilitySoulIds[1]) !== null && _l !== void 0 ? _l : null,
-        ability_soul_id_3: (_m = deserialized.abilitySoulIds[2]) !== null && _m !== void 0 ? _m : null,
-        evolution_img_level_1: (_o = deserialized.evolutionImgLevels[0]) !== null && _o !== void 0 ? _o : null,
-        evolution_img_level_2: (_p = deserialized.evolutionImgLevels[1]) !== null && _p !== void 0 ? _p : null,
-        evolution_img_level_3: (_q = deserialized.evolutionImgLevels[2]) !== null && _q !== void 0 ? _q : null,
-        unison_evolution_img_level_1: (_r = deserialized.unisonEvolutionImgLevels[0]) !== null && _r !== void 0 ? _r : null,
-        unison_evolution_img_level_2: (_s = deserialized.unisonEvolutionImgLevels[1]) !== null && _s !== void 0 ? _s : null,
-        unison_evolution_img_level_3: (_t = deserialized.unisonEvolutionImgLevels[2]) !== null && _t !== void 0 ? _t : null,
-    };
-}
-exports.serializePlayerRushEventPlayedParty = serializePlayerRushEventPlayedParty;
+var client_player_snapshot_1 = require("../utils/client-player-snapshot");
+Object.defineProperty(exports, "serializePlayerRushEventPlayedParty", { enumerable: true, get: function () { return client_player_snapshot_1.serializePlayerRushEventPlayedParty; } });
 /**
  * Gets an array of all of a player's parties that they have used to clear rush events.
  *
@@ -375,7 +352,7 @@ exports.serializePlayerRushEventPlayedParty = serializePlayerRushEventPlayedPart
  * @returns
  */
 function getPlayerRushEventPlayedPartiesSync(playerId, eventId) {
-    const rawParties = (0, db_1.getDb)().prepare(`
+    const rawParties = (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
     SELECT character_id_1, character_id_2, character_id_3,
         unison_character_id_1, unison_character_id_2, unison_character_id_3,
         equipment_id_1, equipment_id_2, equipment_id_3, ability_soul_id_1,

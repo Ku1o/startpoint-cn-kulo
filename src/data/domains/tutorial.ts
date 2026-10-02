@@ -1,6 +1,7 @@
 import { getDb } from "../db";
 import { RawPlayerTriggeredTutorial } from "../types";
 import { runPersistenceTransactionSync } from "../../lib/persistence-coordinator";
+import { cachedStatement } from "../../lib/cached-statement";
 
 /**
  * Gets a player's triggered tutorials.
@@ -12,7 +13,7 @@ export function getPlayerTriggeredTutorialsSync(
     playerId: number
 ): number[] {
     const db = getDb();
-    const raw = db.prepare(`
+    const raw = cachedStatement(db, `
     SELECT id
     FROM players_triggered_tutorials
     WHERE player_id = ?

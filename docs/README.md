@@ -23,6 +23,10 @@
 - [端点实现状态](./reference/routes-status.md) · [路由抓包索引](./routes/README.md)
 - [已知问题](./status/known-issues.md) · [变更日志](./status/changelog.md) · [测试进度](./status/test-progress.md)
 
+## 性能与运维
+- [四核服务器 CPU 优化实施记录](./development/MULTICORE-CPU-OPTIMIZATION-20261002.md)
+- [多人共斗断线排查与修复记录](./development/MULTIPLAYER-DISCONNECT-INVESTIGATION-20261003.md)
+
 ## 贡献流程
 
 ### 实现一个端点

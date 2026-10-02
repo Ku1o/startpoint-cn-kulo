@@ -24,6 +24,7 @@ import {
     recordRoomAdmissionDenial,
     roomAdmissionRegistry,
 } from "../room/admission"
+import { markTcpDisconnectReason } from "./disconnect-diagnostics"
 
 const NPC_JOIN_DELAY_MS = parseInt(process.env.NPC_JOIN_DELAY_MS || "2000")
 const NPC_READY_DELAY_MS = parseInt(process.env.NPC_READY_DELAY_MS || "500")
@@ -711,6 +712,7 @@ function rejectClaimedAdmission(
     client.admissionClaimed = false
     sessionManager.sendJson(socket, [1, [6, "multibattle_room_dismissed"]])
     sessionManager.removeClient(client)
+    markTcpDisconnectReason(socket, "room_rejected")
     socket.end()
     console.warn(
         `[LOBBY] claimed admission rejected: viewer=${client.viewerId}`
@@ -761,6 +763,7 @@ function handleEnter(socket: net.Socket, client: SessionClient, data: any[]): vo
         sessionManager.sendJson(socket, [1, [0, client.yourself, [client.yourself]]])
         sessionManager.sendJson(socket, [1, [6, "room_not_found"]])
         sessionManager.removeClient(client)
+        markTcpDisconnectReason(socket, "room_rejected")
         socket.end()
         return
     }
@@ -835,6 +838,7 @@ function handleEnter(socket: net.Socket, client: SessionClient, data: any[]): vo
                 sessionManager.sendJson(socket, [1, [0, client.yourself, [client.yourself]]])
                 sessionManager.sendJson(socket, [1, [6, "room_full"]])
                 sessionManager.removeClient(client)
+                markTcpDisconnectReason(socket, "room_rejected")
                 socket.end()
                 console.warn(`[LOBBY] overflow guest rejected before Mates: viewer=${client.viewerId} room=${client.roomNumber}`)
                 return
@@ -875,6 +879,7 @@ function handleEnter(socket: net.Socket, client: SessionClient, data: any[]): vo
 }
 
 function handleBye(_socket: net.Socket, client: SessionClient, _data: any[]): void {
+    markTcpDisconnectReason(client.socket, "client_bye")
     const set = (sessionManager as any).roomClients?.get?.(client.roomNumber) as Set<string> | undefined
     if (set) {
         const clientsMap = (sessionManager as any).clients as Map<string, SessionClient> | undefined
@@ -1197,6 +1202,9 @@ export function handleMessage(socket: net.Socket, data: unknown): void {
         }
     }).catch(error => {
         console.error(`[LOBBY] room command failed: room=${client.roomNumber} tag=${tag}`, error)
-        if (!socket.destroyed) socket.destroy()
+        if (!socket.destroyed) {
+            markTcpDisconnectReason(socket, "message_error")
+            socket.destroy()
+        }
     })
 }

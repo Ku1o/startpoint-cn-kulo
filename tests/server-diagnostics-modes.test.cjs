@@ -6,7 +6,8 @@ const { spawnSync } = require('node:child_process')
 function scenario(source, settings = {}) {
     const env = { ...process.env }
     for (const key of ['MEMORY_DIAGNOSTICS', 'MEMORY_DIAGNOSTICS_DETAIL', 'PROCESS_MEMORY_DIAGNOSTICS',
-        'SQLITE_DIAGNOSTICS', 'SQL_STATEMENT_CACHE', 'ROUTE_PERF_SUMMARY', 'ROUTE_PERF_INTERVAL_MS']) delete env[key]
+        'SQLITE_DIAGNOSTICS', 'SQL_STATEMENT_CACHE', 'ROUTE_PERF_SUMMARY', 'ROUTE_PERF_DETAIL',
+        'ROUTE_PERF_INTERVAL_MS', 'GAME_VERBOSE_LOGS']) delete env[key]
     Object.assign(env, settings)
     const result = spawnSync(process.execPath, ['-e', source], {
         cwd: path.resolve(__dirname, '..'), env, encoding: 'utf8', timeout: 20000,
@@ -85,10 +86,10 @@ function retainsPerformanceAndErrors(result) {
     assert.equal(result.allTimersCleared, true)
 }
 
-test('default monitoring retains queues and SQL/error metrics without native or detailed scans', () => {
+test('default monitoring retains queues and request errors without SQL or detailed scans', () => {
     const result = scenario(monitoringScenario)
     retainsPerformanceAndErrors(result)
-    assert.deepEqual(result.startup, { memory: 'basic', sqlite: true, nativeMemory: false, intervalMs: 60000 })
+    assert.deepEqual(result.startup, { memory: 'basic', sqlite: false, nativeMemory: false, intervalMs: 60000 })
     assert.equal(result.nativeCalls, 0)
     assert.equal(result.heapDetails, 0)
     assert.equal(result.resourceScans, 0)
@@ -96,7 +97,28 @@ test('default monitoring retains queues and SQL/error metrics without native or 
     assert.ok(result.memory.rss > 0 && result.memory.main.heapUsed > 0)
     assert.equal(result.memory.counters.fixtureQueue.pending, 3)
     assert.equal(result.memory.counters.responseWorkers.active, 0)
-    assert.equal(result.memory.counters['sqlite.fixture'].executeErrors, 1)
+    assert.equal(result.memory.counters['sqlite.fixture'], undefined)
+})
+
+test('production defaults suppress hot-path detail while preserving opt-in controls', () => {
+    const defaults = scenario(`
+        const game = require('./out/lib/game-logging');
+        const diagnostics = require('./out/lib/memory-diagnostics');
+        process.stdout.write(JSON.stringify({
+            game: game.isGameVerboseLoggingEnabled(),
+            sqlite: diagnostics.sqliteDiagnosticsEnabled(),
+        }));
+    `)
+    assert.deepEqual(defaults, { game: false, sqlite: false })
+    const enabled = scenario(`
+        const game = require('./out/lib/game-logging');
+        const diagnostics = require('./out/lib/memory-diagnostics');
+        process.stdout.write(JSON.stringify({
+            game: game.isGameVerboseLoggingEnabled(),
+            sqlite: diagnostics.sqliteDiagnosticsEnabled(),
+        }));
+    `, { GAME_VERBOSE_LOGS: 'true', SQLITE_DIAGNOSTICS: 'true' })
+    assert.deepEqual(enabled, { game: true, sqlite: true })
 })
 
 test('detailed collection is opt-in and does not implicitly launch PowerShell', () => {
@@ -122,7 +144,9 @@ test('SQL diagnostics can be disabled without removing memory, queue, error or t
 })
 
 test('SQL-only monitoring works without memory collection or OS probing', () => {
-    const result = scenario(monitoringScenario, { MEMORY_DIAGNOSTICS: 'false', PROCESS_MEMORY_DIAGNOSTICS: 'true' })
+    const result = scenario(monitoringScenario, {
+        MEMORY_DIAGNOSTICS: 'false', SQLITE_DIAGNOSTICS: 'true', PROCESS_MEMORY_DIAGNOSTICS: 'true',
+    })
     retainsPerformanceAndErrors(result)
     assert.equal(result.memory, null)
     assert.equal(result.startup.memory, 'off')

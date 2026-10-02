@@ -1,6 +1,7 @@
 import * as net from "net"
 import { recordBattleSendAnomaly } from "./chain-diagnostic"
 import { registerMemoryCounters } from "../../lib/memory-diagnostics"
+import { markTcpDisconnectReason } from "./disconnect-diagnostics"
 
 export type ReliableSendResult = "sent" | "queued" | "closed"
 
@@ -142,6 +143,8 @@ function disconnectSlowSocket(socket: net.Socket, state: SocketSendState, reason
     console.warn(`[MULTI] slow battle connection removed: reason=${reason}`
         + ` queuedMessages=${queuedMessages} queuedBytes=${queuedBytes}`
         + describe(state.context))
+    markTcpDisconnectReason(socket, reason === "queue_limit"
+        ? "send_queue_limit" : "send_backpressure")
     if (!socket.destroyed) socket.destroy()
 }
 
@@ -200,6 +203,7 @@ function listenForDrain(socket: net.Socket, state: SocketSendState): void {
                 })
                 console.warn(`[MULTI] battle socket write failed:${describe(next.context)}`,
                     error instanceof Error ? error.message : String(error))
+                markTcpDisconnectReason(socket, "send_write_error")
                 if (!socket.destroyed) socket.destroy()
                 return
             }
@@ -266,6 +270,7 @@ export function sendFrameReliably(
         })
         console.warn(`[MULTI] battle socket write failed:${describe(context)}`,
             error instanceof Error ? error.message : String(error))
+        markTcpDisconnectReason(socket, "send_write_error")
         if (!socket.destroyed) socket.destroy()
         return "closed"
     }

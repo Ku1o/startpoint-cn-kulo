@@ -26,6 +26,7 @@ const embedded_1 = require("../coordinator/embedded");
 const autoplay_mode_1 = require("./autoplay-mode");
 const party_snapshot_1 = require("../party-snapshot");
 const admission_1 = require("../room/admission");
+const disconnect_diagnostics_1 = require("./disconnect-diagnostics");
 const NPC_JOIN_DELAY_MS = parseInt(process.env.NPC_JOIN_DELAY_MS || "2000");
 const NPC_READY_DELAY_MS = parseInt(process.env.NPC_READY_DELAY_MS || "500");
 const REMATCH_RECONNECT_GRACE_MS = parseInt(process.env.REMATCH_RECONNECT_GRACE_MS || "60000");
@@ -659,6 +660,7 @@ function rejectClaimedAdmission(socket, client, reason) {
     client.admissionClaimed = false;
     SessionManager_1.sessionManager.sendJson(socket, [1, [6, "multibattle_room_dismissed"]]);
     SessionManager_1.sessionManager.removeClient(client);
+    (0, disconnect_diagnostics_1.markTcpDisconnectReason)(socket, "room_rejected");
     socket.end();
     console.warn(`[LOBBY] claimed admission rejected: viewer=${client.viewerId}`
         + ` room=${client.roomNumber} reason=${reason}`);
@@ -709,6 +711,7 @@ function handleEnter(socket, client, data) {
         SessionManager_1.sessionManager.sendJson(socket, [1, [0, client.yourself, [client.yourself]]]);
         SessionManager_1.sessionManager.sendJson(socket, [1, [6, "room_not_found"]]);
         SessionManager_1.sessionManager.removeClient(client);
+        (0, disconnect_diagnostics_1.markTcpDisconnectReason)(socket, "room_rejected");
         socket.end();
         return;
     }
@@ -777,6 +780,7 @@ function handleEnter(socket, client, data) {
                 SessionManager_1.sessionManager.sendJson(socket, [1, [0, client.yourself, [client.yourself]]]);
                 SessionManager_1.sessionManager.sendJson(socket, [1, [6, "room_full"]]);
                 SessionManager_1.sessionManager.removeClient(client);
+                (0, disconnect_diagnostics_1.markTcpDisconnectReason)(socket, "room_rejected");
                 socket.end();
                 console.warn(`[LOBBY] overflow guest rejected before Mates: viewer=${client.viewerId} room=${client.roomNumber}`);
                 return;
@@ -817,6 +821,7 @@ function handleEnter(socket, client, data) {
 }
 function handleBye(_socket, client, _data) {
     var _a, _b;
+    (0, disconnect_diagnostics_1.markTcpDisconnectReason)(client.socket, "client_bye");
     const set = (_b = (_a = SessionManager_1.sessionManager.roomClients) === null || _a === void 0 ? void 0 : _a.get) === null || _b === void 0 ? void 0 : _b.call(_a, client.roomNumber);
     if (set) {
         const clientsMap = SessionManager_1.sessionManager.clients;
@@ -1148,8 +1153,10 @@ function handleMessage(socket, data) {
         }
     })).catch(error => {
         console.error(`[LOBBY] room command failed: room=${client.roomNumber} tag=${tag}`, error);
-        if (!socket.destroyed)
+        if (!socket.destroyed) {
+            (0, disconnect_diagnostics_1.markTcpDisconnectReason)(socket, "message_error");
             socket.destroy();
+        }
     });
 }
 exports.handleMessage = handleMessage;

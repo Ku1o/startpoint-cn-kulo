@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.insertPlayerMultiSpecialExchangeCampaignsSync = exports.updatePlayerMultiSpecialExchangeCampaignSync = exports.getPlayerMultiSpecialExchangeCampaignsSync = exports.insertPlayerStartDashExchangeCampaignsSync = exports.getPlayerStartDashExchangeCampaignsSync = exports.insertPlayerPeriodicRewardPointsListSync = exports.getPlayerPeriodicRewardPointsSync = void 0;
 const db_1 = require("../db");
 const persistence_coordinator_1 = require("../../lib/persistence-coordinator");
+const cached_statement_1 = require("../../lib/cached-statement");
 // ─── Periodic Reward Points ───
 /**
  * Gets all of a player's periodic reward points.
@@ -12,7 +13,7 @@ const persistence_coordinator_1 = require("../../lib/persistence-coordinator");
  */
 function getPlayerPeriodicRewardPointsSync(playerId) {
     const db = (0, db_1.getDb)();
-    return db.prepare(`
+    return (0, cached_statement_1.cachedStatement)(db, `
     SELECT id, point
     FROM players_periodic_reward_points
     WHERE player_id = ?
@@ -44,7 +45,7 @@ exports.insertPlayerPeriodicRewardPointsListSync = insertPlayerPeriodicRewardPoi
  */
 function getPlayerStartDashExchangeCampaignsSync(playerId) {
     const db = (0, db_1.getDb)();
-    const rawCampaigns = db.prepare(`
+    const rawCampaigns = (0, cached_statement_1.cachedStatement)(db, `
     SELECT campaign_id, gacha_id, term_index, status, period_start_time, period_end_time
     FROM players_start_dash_exchange_campaigns
     WHERE player_id = ?
@@ -84,7 +85,7 @@ exports.insertPlayerStartDashExchangeCampaignsSync = insertPlayerStartDashExchan
  */
 function getPlayerMultiSpecialExchangeCampaignsSync(playerId) {
     const db = (0, db_1.getDb)();
-    const rawCampaigns = db.prepare(`
+    const rawCampaigns = (0, cached_statement_1.cachedStatement)(db, `
     SELECT campaign_id, status, ticket_item_id
     FROM players_multi_special_exchange_campaigns
     WHERE player_id = ?

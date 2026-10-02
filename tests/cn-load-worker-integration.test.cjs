@@ -6,6 +6,7 @@ const path = require('node:path')
 const http = require('node:http')
 const { execFile } = require('node:child_process')
 const { promisify } = require('node:util')
+const { performance } = require('node:perf_hooks')
 
 async function scenario(mode) {
     const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'cn-load-worker-'))
@@ -16,6 +17,7 @@ async function scenario(mode) {
     const { encodeCnResponse } = require(path.join(responseRoot,'out/lib/cn-response-encoding'))
     const { CnResponseWorkerPool } = require(path.join(responseRoot,'out/lib/cn-response-worker-pool'))
     const { installCnResponseEncoding } = require(path.join(responseRoot,'out/lib/cn-response-hook'))
+    const { drainServerWorkPerformance } = require(path.join(responseRoot,'out/lib/server-work-performance'))
     const { getCnLoadHttpCompressionConfig } = require('../out/lib/cn-load-http-compression')
     const { getDb } = require('../out/data/db')
     const players = require('../out/data/domains/player')
@@ -28,7 +30,8 @@ async function scenario(mode) {
     db.prepare('INSERT INTO sessions (token,account_id,expires,type) VALUES (?,?,?,2)').run(String(viewerId),account.id,'2099-01-01T00:00:00Z')
     const ids = Object.keys(require('../assets/character.json')).map(Number)
     db.transaction(() => { for (const id of ids) if (!characters.playerOwnsCharacterSync(player.id,id)) characters.insertDefaultPlayerCharacterSync(player.id,id) })()
-    const pool = new CnResponseWorkerPool({ size: mode === 'disabled' ? 0 : 2 })
+    const configuredWorkers = Number(process.env.PERF_RESPONSE_WORKERS || 2)
+    const pool = new CnResponseWorkerPool({ size: mode === 'disabled' ? 0 : configuredWorkers })
     const compression = getCnLoadHttpCompressionConfig({ CN_LOAD_HTTP_COMPRESSION: ['gzip','br'].includes(mode) ? mode : 'off' })
     const errors = [], expected = new Map()
     const app = Fastify({ logger: { level:'warn', stream:{ write: line => errors.push(line) } } })
@@ -70,8 +73,10 @@ async function scenario(mode) {
         req.setTimeout(10000,()=>req.destroy(Error('fixture timeout')));req.on('error',reject);req.end(body)
     })
     try {
-        const count=10
+        const count=Math.max(1,Number(process.env.PERF_LOAD_REQUESTS||10))
+        const cpu=process.cpuUsage(), elu=performance.eventLoopUtilization(), started=performance.now()
         const results=await Promise.all(Array.from({length:count},(_,i)=>request(i)))
+        const cpuUsed=process.cpuUsage(cpu), loop=performance.eventLoopUtilization(elu)
         for(let i=0;i<count;i++) {
             assert.equal(results[i].status,200)
             const reference=expected.get(String(i));assert.ok(reference)
@@ -81,16 +86,20 @@ async function scenario(mode) {
         assert.equal(writes,count);assert.equal(responses,count)
         assert.doesNotMatch(errors.join('\n'),/already sent|ERR_HTTP_HEADERS_SENT/)
         const state=pool.snapshot()
-        assert.equal(state.completed,mode==='disabled'?0:count,'actual /load must execute in workers')
-        assert.equal(state.completedObjects,mode==='disabled'?0:count)
+        const work=drainServerWorkPerformance()
+        const expectedWorkerCount=mode==='disabled'||configuredWorkers===0?0:count
+        assert.equal(state.completed,expectedWorkerCount,'actual /load must execute in configured workers')
+        assert.equal(state.completedObjects,expectedWorkerCount)
         assert.equal(state.fallback,0);assert.equal(state.retainedBytes,0)
         assert.equal(Object.keys(characters.getPlayerCharactersSync(player.id)).length,ids.length)
-        console.log('RESULT '+JSON.stringify({mode,requests:count,characters:ids.length,writeHeads:writes,...state}))
+        console.log('RESULT '+JSON.stringify({mode,requests:count,characters:ids.length,writeHeads:writes,
+            wallMs:performance.now()-started,cpuMs:(cpuUsed.user+cpuUsed.system)/1000,
+            mainEluPct:loop.utilization*100,...state,work}))
     } finally {await app.close();db.close()}
 }
 
 if(process.argv[2]==='--child') scenario(process.argv[3]).then(()=>process.exit(0),error=>{console.error(error);process.exit(1)})
-else for(const mode of ['off','gzip','br','disabled','delayed']) test(`real CN load object uses production worker path (${mode})`,{timeout:30000},async()=>{
+else for(const mode of (process.env.PERF_LOAD_MODES?.split(',').filter(Boolean) ?? ['off','gzip','br','disabled','delayed'])) test(`real CN load object uses production worker path (${mode})`,{timeout:30000},async()=>{
     const {stdout}=await promisify(execFile)(process.execPath,[__filename,'--child',mode],{windowsHide:true,timeout:25000,maxBuffer:1000000})
     console.log(stdout.split('\n').find(line=>line.startsWith('RESULT ')))
 })

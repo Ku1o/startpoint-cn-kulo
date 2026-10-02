@@ -17,6 +17,7 @@ import { fiveBossConnectionDiagnostics } from "../five-boss/connection-diagnosti
 import { registerMemoryCounters } from "../../lib/memory-diagnostics"
 import { recordServerWork } from "../../lib/server-work-performance"
 import { recordRealtimeDiagnostic } from "../../lib/realtime-diagnostics"
+import { markTcpDisconnectReason } from "../tcp/disconnect-diagnostics"
 
 export interface SessionClient {
     socket: net.Socket
@@ -77,7 +78,10 @@ export class SessionManager {
     /** An account login replacement revokes both lobby and battle transports. */
     public disconnectPlayerLogin(viewerId: number): void {
         for (const client of Array.from(this.clients.values())) {
-            if (client.viewerId === viewerId) client.socket.destroy()
+            if (client.viewerId === viewerId) {
+                markTcpDisconnectReason(client.socket, "login_replaced")
+                client.socket.destroy()
+            }
         }
     }
     private clients = new Map<string, SessionClient>()
@@ -141,6 +145,7 @@ export class SessionManager {
                 retry.unref()
                 return
             }
+            markTcpDisconnectReason(socket, "superseded")
             socket.destroy()
         }
         const timer = setTimeout(closeWhenSafe, checkMs)
@@ -172,7 +177,10 @@ export class SessionManager {
             const oldest = bucket.sockets.values().next().value as net.Socket | undefined
             if (!oldest) break
             bucket.sockets.delete(oldest)
-            if (!oldest.destroyed) oldest.destroy()
+            if (!oldest.destroyed) {
+                markTcpDisconnectReason(oldest, "superseded")
+                oldest.destroy()
+            }
         }
         return this.deferSupersededSocketClose(socket, replacementIsLive)
     }
@@ -182,7 +190,10 @@ export class SessionManager {
             if (bucket.roomNumber !== roomNumber) continue
             this.supersededSocketBuckets.delete(ownerKey)
             for (const socket of bucket.sockets) {
-                if (!socket.destroyed) socket.destroy()
+                if (!socket.destroyed) {
+                    markTcpDisconnectReason(socket, "room_disband")
+                    socket.destroy()
+                }
             }
         }
     }
@@ -204,6 +215,7 @@ export class SessionManager {
             if (socket.destroyed) return
             gameVerboseLog(() => `[MULTI] forcing retired lobby socket closed: room=${roomNumber}`
                 + ` graceMs=${graceMs}`)
+            markTcpDisconnectReason(socket, "room_disband")
             socket.destroy()
         }, graceMs)
         timer.unref()
@@ -227,14 +239,22 @@ export class SessionManager {
         this.battleConnectionPhase.set(connectionId, "loading")
         this.battleLastActivityAt.set(connectionId, Date.now())
         const timer = setTimeout(() => {
-            this.battleHeartbeatTimers.delete(connectionId)
-            const current = this.cidToBattleClient.get(connectionId)
-            if (!current || current.socket.destroyed
-                || this.battleConnectionPhase.get(connectionId) !== "loading") return
-            console.warn(`[MULTI] battle loading timed out: room=${current.roomNumber}`
-                + ` viewer=${current.viewerId} connection=${connectionId} timeoutMs=${leaseMs}`)
-            fiveBossConnectionDiagnostics.socketEvent(current.socket, "loading_timeout", String(leaseMs))
-            current.socket.destroy()
+            // Timers run before the poll phase on a busy loop. Give a SceneReady
+            // frame that is already waiting in the kernel one I/O turn to
+            // replace this lease before deciding that loading really expired.
+            const check = setImmediate(() => {
+                if (this.battleHeartbeatTimers.get(connectionId) !== timer) return
+                this.battleHeartbeatTimers.delete(connectionId)
+                const current = this.cidToBattleClient.get(connectionId)
+                if (!current || current.socket.destroyed
+                    || this.battleConnectionPhase.get(connectionId) !== "loading") return
+                console.warn(`[MULTI] battle loading timed out: room=${current.roomNumber}`
+                    + ` viewer=${current.viewerId} connection=${connectionId} timeoutMs=${leaseMs}`)
+                fiveBossConnectionDiagnostics.socketEvent(current.socket, "loading_timeout", String(leaseMs))
+                markTcpDisconnectReason(current.socket, "loading_timeout")
+                current.socket.destroy()
+            })
+            check.unref()
         }, leaseMs)
         timer.unref()
         this.battleHeartbeatTimers.set(connectionId, timer)
@@ -247,24 +267,29 @@ export class SessionManager {
         const previous = this.battleHeartbeatTimers.get(connectionId)
         if (previous) clearTimeout(previous)
         const timer = setTimeout(() => {
-            this.battleHeartbeatTimers.delete(connectionId)
-            const current = this.cidToBattleClient.get(connectionId)
-            if (!current || current.socket.destroyed) {
-                this.battleLastActivityAt.delete(connectionId)
-                return
-            }
-            const inactiveMs = Date.now() - (this.battleLastActivityAt.get(connectionId) ?? 0)
-            if (inactiveMs < leaseMs) {
-                this.scheduleBattleActivityLease(connectionId, Math.max(1, leaseMs - inactiveMs))
-                return
-            }
-            console.warn(`[MULTI] real battle connection heartbeat expired: room=${current.roomNumber}`
-                + ` viewer=${current.viewerId} connection=${connectionId} inactiveMs=${inactiveMs}`)
-            fiveBossConnectionDiagnostics.socketEvent(current.socket, "heartbeat_timeout", String(inactiveMs))
-            // Destroy only a battle socket that completed the real handshake.
-            // Its normal close handler performs the native Leave path using the
-            // connection id already known by every remaining client.
-            current.socket.destroy()
+            const check = setImmediate(() => {
+                if (this.battleHeartbeatTimers.get(connectionId) !== timer) return
+                this.battleHeartbeatTimers.delete(connectionId)
+                const current = this.cidToBattleClient.get(connectionId)
+                if (!current || current.socket.destroyed) {
+                    this.battleLastActivityAt.delete(connectionId)
+                    return
+                }
+                const inactiveMs = Date.now() - (this.battleLastActivityAt.get(connectionId) ?? 0)
+                if (inactiveMs < leaseMs) {
+                    this.scheduleBattleActivityLease(connectionId, Math.max(1, leaseMs - inactiveMs))
+                    return
+                }
+                console.warn(`[MULTI] real battle connection heartbeat expired: room=${current.roomNumber}`
+                    + ` viewer=${current.viewerId} connection=${connectionId} inactiveMs=${inactiveMs}`)
+                fiveBossConnectionDiagnostics.socketEvent(current.socket, "heartbeat_timeout", String(inactiveMs))
+                // Destroy only a battle socket that completed the real handshake.
+                // Its normal close handler performs the native Leave path using the
+                // connection id already known by every remaining client.
+                markTcpDisconnectReason(current.socket, "heartbeat_timeout")
+                current.socket.destroy()
+            })
+            check.unref()
         }, delayMs)
         timer.unref()
         this.battleHeartbeatTimers.set(connectionId, timer)
@@ -668,6 +693,7 @@ export class SessionManager {
         const current = this.getClient(viewerId, roomNumber)
         if (current && !current.isBattle) {
             this.removeClient(current)
+            markTcpDisconnectReason(current.socket, "rescue_timeout")
             try { current.socket.end() } catch (e) {}
             setTimeout(() => {
                 try { current.socket.destroy() } catch (e) {}
@@ -775,6 +801,7 @@ export class SessionManager {
             if (!client.isBattle && notifiedLobbySockets.has(client.socket)) {
                 this.retireDisbandedLobbySocket(client.socket, roomNumber)
             } else {
+                markTcpDisconnectReason(client.socket, "room_disband")
                 try { client.socket.end() } catch (e) {}
                 setTimeout(() => {
                     try { client.socket.destroy() } catch (e) {}

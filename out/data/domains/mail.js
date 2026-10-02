@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.getReceiveHistorySync = exports.insertReceiveHistorySync = exports.deleteAllPlayerMailSync = exports.receiveAllMailsSync = exports.receiveMailSync = exports.getUnreceivedPlayerMailsByIdsSync = exports.getPlayerMailCountSync = exports.getPlayerMailsSync = exports.insertMailSync = exports.MailType = void 0;
 const db_1 = require("../db");
 const persistence_coordinator_1 = require("../../lib/persistence-coordinator");
+const cached_statement_1 = require("../../lib/cached-statement");
 /**
  * Mail attachment types matching the client's MailKind enum.
  */
@@ -58,7 +59,7 @@ function getPlayerMailCountSync(playerId, unreceivedOnly = false) {
     if (unreceivedOnly) {
         query += ` AND receive_time = '0000-00-00 00:00:00'`;
     }
-    const row = (0, db_1.getDb)().prepare(query).get(playerId);
+    const row = (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), query).get(playerId);
     return row.count;
 }
 exports.getPlayerMailCountSync = getPlayerMailCountSync;

@@ -6,6 +6,9 @@ const {
     getReliableSendQueueStats,
     sendFrameReliably,
 } = require("../out/multi/tcp/reliable-send.js")
+const {
+    finishTcpDisconnect,
+} = require("../out/multi/tcp/disconnect-diagnostics.js")
 
 class FakeSocket extends EventEmitter {
     constructor(writeResults = []) {
@@ -47,4 +50,22 @@ assert.deepEqual(getReliableSendQueueStats(slow), { messages: 0, bytes: 0, block
 
 clearReliableSendState(slow)
 clearReliableSendState(fast)
+
+const saturated = new FakeSocket([false])
+assert.equal(sendFrameReliably(saturated, "head\0", { connectionId: "saturated" }), "sent")
+for (let index = 0; index < 512; index++) {
+    assert.equal(
+        sendFrameReliably(saturated, `queued-${index}\0`, { connectionId: "saturated" }),
+        "queued",
+    )
+}
+assert.equal(getReliableSendQueueStats(saturated).messages, 512)
+assert.equal(
+    sendFrameReliably(saturated, "overflow\0", { connectionId: "saturated" }),
+    "closed",
+)
+assert.equal(saturated.destroyed, true)
+assert.equal(finishTcpDisconnect(saturated, false), "send_queue_limit")
+assert.deepEqual(saturated.frames, ["head\0"], "write(false) already accepted the head frame")
+
 console.log("multi_chain_reliable_send.test: ok")

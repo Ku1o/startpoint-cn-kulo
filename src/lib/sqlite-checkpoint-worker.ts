@@ -2,6 +2,7 @@ import path from "node:path"
 import { existsSync } from "../lib/file-exists"
 import { Worker } from "node:worker_threads"
 import { observeWorkerMemory, registerMemoryCounters } from "./memory-diagnostics"
+import { multicoreConfig } from "./multicore-config"
 
 interface CheckpointState {
     enabled: boolean
@@ -20,6 +21,44 @@ interface CheckpointState {
     lastLogFrames: number | null
     lastCheckpointedFrames: number | null
     lastError: string | null
+}
+
+interface CheckpointOwnershipCallbacks {
+    onReady?: () => void
+    onStopped?: () => void
+}
+
+export function createCheckpointOwnershipController(
+    callbacks: CheckpointOwnershipCallbacks = {},
+    failureThreshold = 3,
+): {
+    checkpointSucceeded: () => void
+    checkpointFailed: () => void
+    workerStopped: () => void
+} {
+    let externalOwner = false
+    let consecutiveErrors = 0
+    const threshold = Math.max(1, Math.trunc(failureThreshold))
+
+    return {
+        checkpointSucceeded: () => {
+            consecutiveErrors = 0
+            if (externalOwner) return
+            externalOwner = true
+            callbacks.onReady?.()
+        },
+        checkpointFailed: () => {
+            consecutiveErrors++
+            if (!externalOwner || consecutiveErrors < threshold) return
+            externalOwner = false
+            callbacks.onStopped?.()
+        },
+        workerStopped: () => {
+            if (!externalOwner) return
+            externalOwner = false
+            callbacks.onStopped?.()
+        },
+    }
 }
 
 let worker: Worker | null = null
@@ -46,7 +85,7 @@ registerMemoryCounters("sqliteCheckpoint", () => ({
 }), "sqlite")
 
 function enabled(environment: NodeJS.ProcessEnv = process.env): boolean {
-    return /^(1|true|yes|on)$/i.test(environment.SQLITE_CHECKPOINT_WORKER ?? "")
+    return multicoreConfig(environment).checkpointWorker
 }
 
 function positiveInteger(value: string | undefined, fallback: number, minimum: number): number {
@@ -63,8 +102,13 @@ function workerLocation(): { filename: string, execArgv?: string[] } {
     }
 }
 
-export function startSqliteCheckpointWorker(databasePath: string, environment: NodeJS.ProcessEnv = process.env): void {
+export function startSqliteCheckpointWorker(
+    databasePath: string,
+    environment: NodeJS.ProcessEnv = process.env,
+    callbacks: CheckpointOwnershipCallbacks = {},
+): void {
     if (worker || !enabled(environment)) return
+    const ownership = createCheckpointOwnershipController(callbacks)
     state.enabled = true
     state.started = false
     const location = workerLocation()
@@ -83,6 +127,7 @@ export function startSqliteCheckpointWorker(databasePath: string, environment: N
     current.on("message", message => {
         if (worker !== current) return
         if (message?.type === "checkpoint") {
+            ownership.checkpointSucceeded()
             state.completed++
             state.busy += message.busy === 1 ? 1 : 0
             state.truncateAttempts += message.truncateAttempted === true ? 1 : 0
@@ -102,6 +147,7 @@ export function startSqliteCheckpointWorker(databasePath: string, environment: N
             state.errors++
             state.lastDurationMs = Number(message.durationMs) || 0
             state.lastError = String(message.error ?? "checkpoint failed").slice(0, 240)
+            ownership.checkpointFailed()
         }
     })
     current.on("error", error => {
@@ -110,8 +156,13 @@ export function startSqliteCheckpointWorker(databasePath: string, environment: N
         state.lastError = error.message.slice(0, 240)
     })
     current.once("exit", () => {
+        const replaced = worker !== null && worker !== current
         if (worker === current) worker = null
-        state.started = false
+        if (!replaced) {
+            state.enabled = false
+            state.started = false
+        }
+        if (!replaced) ownership.workerStopped()
     })
     console.log(`[DB] sqlite checkpoint worker enabled intervalMs=${intervalMs}`
         + ` truncateFrames=${truncateFrames} truncateBytes=${truncateBytes}`
@@ -121,9 +172,28 @@ export function startSqliteCheckpointWorker(databasePath: string, environment: N
 export async function stopSqliteCheckpointWorker(): Promise<void> {
     const current = worker
     if (!current) return
-    worker = null
-    try { current.postMessage({ type: "close" }) } catch {}
+    await new Promise<void>(resolve => {
+        let settled = false
+        const finish = () => {
+            if (settled) return
+            settled = true
+            clearTimeout(timer)
+            current.off("message", receive)
+            current.off("exit", finish)
+            resolve()
+        }
+        const receive = (message: unknown) => {
+            if ((message as { type?: string })?.type === "closed") finish()
+        }
+        const timer = setTimeout(finish, 5_000)
+        timer.unref()
+        current.on("message", receive)
+        current.once("exit", finish)
+        try { current.postMessage({ type: "close" }) } catch { finish() }
+    })
+    if (worker === current) worker = null
     await current.terminate()
+    state.enabled = false
     state.started = false
 }
 
