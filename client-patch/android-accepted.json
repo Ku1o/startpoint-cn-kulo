@@ -51,17 +51,21 @@
       "local_acceptance_report": "F:\\codex\\outputs\\author-public-merge-20261001\\acceptance-report.json"
     },
     "lan": {
-      "apk": "F:\\\\codex\\\\outputs\\\\author-merge-lan-20261001-public1047\\\\StarPoint-CN-1.8.1-author-merge-lan-public1047-20261001-dd83f336.apk",
-      "apk_sha256": "a0a9f4e9c2fe88a413c7047d90206da70cadfabea9e7ad0d10f7471d18bac413",
-      "swf_sha256": "44585d8ff12cb83e4bf718d7765b00f0f29f21bbd039c23b8e047d1b320b4eb1",
-      "uniqueappversionid": "dd83f336-3595-4fe9-a0e5-80cbd9ebc28f",
-      "endpoint": "http://<LAN_HOST>:8001",
-      "local_build_report": "F:\\\\codex\\\\outputs\\\\author-merge-lan-20261001-public1047\\\\package-report.json",
+      "apk": "F:\\codex\\outputs\\orochi-rescue-bell-client-20261002-layout-compact\\StarPoint-CN-1.8.1-orochi-rescue-bell-superplus-layout-compact-lan-20261002-08f205a0.apk",
+      "apk_sha256": "8ab2533469bb88d1292db9c2406b7ff696cb1d1064c027bd83b4985f5e19dcc1",
+      "swf_sha256": "457d148d55f8cf6b85d8d144e14a12ab12feff1e5561018a9de1fa08c05fc836",
+      "uniqueappversionid": "08f205a0-4fdc-4faf-9201-16aade2e174f",
+      "endpoint": "http://192.168.3.14:8001",
+      "local_build_report": "F:\\codex\\outputs\\orochi-rescue-bell-client-20261002-layout-compact\\package-report.json",
       "local_build_checks": {
         "method_bodies_checked": 96699,
-        "changed_existing_methods": 14,
-        "added_helper_methods": 6,
+        "changed_existing_methods": 0,
+        "added_helper_methods": 0,
         "removed_methods": 0,
+        "embedded_bundle_target": "production/android_bundle/dc/bcccb129122c0189c8eab004ecc4516a077f3e",
+        "embedded_bundle_payload_sha256": "f9cba755d3c5d63f334989fd0a0a21b7f169f0fbede9e77e3178f4efa5568125",
+        "bundle_marker_matches": true,
+        "resource_only_change": true,
         "zipalign": true,
         "v1_signature": true,
         "v2_signature": true,
@@ -69,10 +73,11 @@
         "preserved_non_target_members": true,
         "endpoint_rewrites": 9,
         "device_tested_by_codex": false,
-        "runtime_verified": false
+        "runtime_verified": true,
+        "user_device_accepted": true
       },
-      "accepted_on": "2026-10-01",
-      "acceptance_audit": "client-patch/author-merge-20261001/README.md",
+      "accepted_on": "2026-10-02",
+      "acceptance_audit": "client-patch/ACCEPTANCE-OROCHI-RESCUE-BELL-20261002.md",
       "main_abc_index": 361,
       "size_bytes": 170060995,
       "package_name": "com.leiting.wf",
@@ -80,10 +85,18 @@
       "version_code": 1008001,
       "acceptance_status": "user_accepted",
       "device_acceptance": "user_confirmed; codex_device_tested=false",
-      "derived_from_apk_sha256": "85dbc5728e3dd74fee0989638c77b4f10641ced6e3da3be856db3e5409afb4fc",
-      "build_id": "android-181-author-1047-20260925",
+      "derived_from_apk_sha256": "0658138ac9b0a2afad06474d17bd3f404e2bfe2ff7c9cb6b04b739ec1fefb36d",
+      "build_id": "android-181-orochi-rescue-bell-layout-compact-lan-20261002",
       "diagnostic_export": false,
-      "endpoint_sha256": "a32f84d19ceda3b4a466952f7deab7fbf1db96029ba70777a2cbd4a1ef79f521"
+      "endpoint_sha256": "a32f84d19ceda3b4a466952f7deab7fbf1db96029ba70777a2cbd4a1ef79f521",
+      "dex_sha256": "ccba17e23926c1b0cdf945570e162cbc58297d37bc61fd91aa4ff64d653d691e",
+      "resource_source": "APK embedded bundle",
+      "cdn_increment_used": false,
+      "embedded_bundle_target": "production/android_bundle/dc/bcccb129122c0189c8eab004ecc4516a077f3e",
+      "embedded_bundle_payload_sha256": "f9cba755d3c5d63f334989fd0a0a21b7f169f0fbede9e77e3178f4efa5568125",
+      "embedded_bundle_payload_bytes": 480,
+      "bundle_sha1_marker": "8c1ac688d7d83d58e27e41c640ef2f46655c74de",
+      "layout_variant": "compact-centered"
     }
   },
   "lineage": {
@@ -128,7 +141,8 @@
       "杰拉尔 6 条、特克托 3 条、斩铁 4 条满槽语音轮换、战斗预加载与详情试听",
       "作者机制公网正式准入号与 HMAC 前缀配对，保留旧独立编队正式号兼容",
       "1.4.1047 回槽特效性能修复：施技前按规则提前拦截无效回槽，能力伤害总计按来源筛选，保留开场和正常跑条。",
-      "作者机制公网 Android 1047 端口：从已验收内网载体切换公网地址，轮换新的准入号并更新 AIR 缓存身份；保留既有 SWF/DEX 内容。"
+      "作者机制公网 Android 1047 端口：从已验收内网载体切换公网地址，轮换新的准入号并更新 AIR 缓存身份；保留既有 SWF/DEX 内容。",
+      "救援铃铛超级+窄难度条：APK 内置 Flatomo 第6帧采用紧凑居中排版并更新 bundle 校验标记；内网 APK 已实机验收，公网 Android 与 iOS 暂缓。"
     ],
     "method_archive": "作者机制公网 Android 1047 作者装备端口成品，接续已验收内网 Android 1047 载体；保留既有累计功能。",
     "previous_accepted_registry_revision": "3a02a8737a77337e2c30048a62b22a6c0fc96416",
@@ -230,7 +244,11 @@
       "device_tested": false,
       "user_confirmed_artifact": true,
       "cloud_deployed": false
-    }
+    },
+    "latest_android_method": "client-patch/orochi-rescue-bell-superplus/README.md",
+    "latest_android_builder": "client-patch/orochi-rescue-bell-superplus/build_embedded_layout.py",
+    "latest_lan_acceptance": "client-patch/ACCEPTANCE-OROCHI-RESCUE-BELL-20261002.md",
+    "public_release_deferred": true
   },
   "excluded_artifacts": [
     {
