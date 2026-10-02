@@ -1,7 +1,7 @@
 {
     "version": 1,
     "popup": {
-        "enabled": false,
+        "enabled": true,
         "news_id": 1,
         "mode": "once_per_news",
         "start_time": null,
@@ -10,14 +10,14 @@
     "news": [
         {
             "id": 1,
-            "title": "欢迎来到世界弹射物语",
-            "date": "2023-08-31 12:00:00",
-            "category": 1,
-            "label": 1,
+            "title": "中秋国庆·八岐大蛇高难",
+            "date": "2026-09-25 18:11:41",
+            "category": 2,
+            "label": 3,
             "thumbnail": 1,
             "thumbnail_path": null,
-            "added_time": "2023-08-31 12:00:00",
-            "html": "<html lang=\"zh\"><body><h2>欢迎来到星见镇！</h2><p>感谢您游玩世界弹射物语。</p><p>通过扭蛋获取新角色，挑战单人任务！</p></body></html>",
+            "added_time": "2026-09-25 18:11:41",
+            "html": "<html lang=\"zh\"><body><h1>中秋快乐</h1><p>中秋与国庆双节将至，八岐大蛇超级+挑战开启！</p><p>准备好队伍，与伙伴一起迎战蛇神，完成挑战并领取节日活动奖励吧！<br /></p><div class=\"center\"><img src=\"https://r2.kulo323.site/Event/exec-660f0b34-5740-4dc5-82c6-88d12f7e2b5f.png\" width=\"100%\" height=\"660\" /></div></body></html>",
             "published": true
         },
         {
