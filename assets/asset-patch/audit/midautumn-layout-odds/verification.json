@@ -1,0 +1,65 @@
+{
+  "effective_version": "1.4.119",
+  "changed_resource_hashes_passed": 3,
+  "unchanged_original_resources": 16,
+  "server_client_odds_agree": true,
+  "mod_total": "1%",
+  "mod_each": "1/1200",
+  "permanent_five_total": "4%",
+  "five_star_total": "5%",
+  "layout": {
+    "failures": [],
+    "stable_frames": 241,
+    "face_bounds": {
+      "1": [
+        469.25,
+        375.63,
+        615.65,
+        500.85
+      ],
+      "2": [
+        995.6,
+        387.21,
+        1146.0,
+        532.79
+      ],
+      "3": [
+        406.69,
+        680.97,
+        558.39,
+        792.88
+      ],
+      "4": [
+        890.16,
+        635.17,
+        1082.31,
+        780.26
+      ]
+    },
+    "title_bounds": [
+      367.42,
+      1032.96,
+      1051.96,
+      1263.3
+    ]
+  },
+  "stored_sprite_png": "strict decode passed; unchanged",
+  "save_impact": "No IDs, schema or real player data changes",
+  "device_acceptance": "pending",
+  "actual_http_archive_members_verified": 3,
+  "platforms": {
+    "android": {
+      "target_version": "1.4.119",
+      "bytes": 10050,
+      "sha256": "440768c52814c293194dfc46d48107447d4dce362e70b60d34cd164d3b1849dc",
+      "latest_version_no_update": true
+    },
+    "ios": {
+      "target_version": "1.4.119",
+      "bytes": 10050,
+      "sha256": "440768c52814c293194dfc46d48107447d4dce362e70b60d34cd164d3b1849dc",
+      "latest_version_no_update": true
+    }
+  },
+  "server_tests": "14 passed; includes all 3300 five-star weight rolls for normal and guaranteed slots"
+}

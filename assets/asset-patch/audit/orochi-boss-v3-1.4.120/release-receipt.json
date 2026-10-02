@@ -1,0 +1,20 @@
+{
+  "status": "official_active",
+  "base_version": "1.4.119",
+  "published_version": "1.4.120",
+  "patch_id": "orochi-boss-v3-1.4.120",
+  "archive": "pinball-1.4.119-1.4.120-3-orochi-boss-v3.zip",
+  "archive_sha256": "1aeb3ed775297f62d2cbd5775d8286e1fc38666c71f3e69a4f5ac440e8a03ef4",
+  "archive_size": 1714639,
+  "members": 14,
+  "source_manifest_sha256_before": "bfa477a1fc2512fe5dfd3506595aa6e3826a71c504da8d64b9927fc29377e581",
+  "source_manifest_sha256_after": "d484380c9dc8da0815092b2c7140ae3c36950576a4abdfc58d1d7cec558c6b6e",
+  "source_active_archive_count_after": 108,
+  "source_active_written": true,
+  "source_manifest_written": true,
+  "candidate_archive": "F:\\codex\\outputs\\orochi-boss-v2-1047-20260925\\cdn\\pinball-1.4.119-1.4.120-3-orochi-boss-v3-candidate.zip",
+  "candidate_sha256": "1aeb3ed775297f62d2cbd5775d8286e1fc38666c71f3e69a4f5ac440e8a03ef4",
+  "server_changes_are_separate": true,
+  "created_at": "2026-09-25",
+  "manifest_generated_for": "official active chain"
+}

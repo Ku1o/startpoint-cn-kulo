@@ -1,0 +1,231 @@
+{
+  "status": "validated_offline",
+  "base": "1.4.119",
+  "version": "1.4.120",
+  "character_id": 159991,
+  "archive": {
+    "name": "pinball-1.4.119-1.4.120-1-inaho-icons-copy-pf.zip",
+    "size": 570550,
+    "sha256": "26de038cf4c74c438acb2d7500914a5b3f9729affb6eb5ecc7592bad624e5818",
+    "members": 10
+  },
+  "resources": [
+    {
+      "root": "upload",
+      "logical": "battle/action/skill/action/rare5/cnmod_inaho_midautumn$cnmod_inaho_midautumn_1.action.dsl.amf3.deflate",
+      "member": "production/upload/d4/56921a8569385d652e623c3a2da29c3d52f6d7",
+      "size": 1266,
+      "sha256": "3a6ecf23412617b467c3598c1bd8ae28e9751cea71e1a7bf8e111408230f6e47",
+      "before_sha256": "7d3deb2c5c38c8e110e69d9b6cb4966cf4943db69e6d5ae53a75b976b56d66f3"
+    },
+    {
+      "root": "upload",
+      "logical": "battle/action/skill/action/rare5/cnmod_inaho_midautumn$cnmod_inaho_midautumn_2.action.dsl.amf3.deflate",
+      "member": "production/upload/08/33e4ac8cb7970141f0766e3e9e451b68c2714a",
+      "size": 1266,
+      "sha256": "3a6ecf23412617b467c3598c1bd8ae28e9751cea71e1a7bf8e111408230f6e47",
+      "before_sha256": "7d3deb2c5c38c8e110e69d9b6cb4966cf4943db69e6d5ae53a75b976b56d66f3"
+    },
+    {
+      "root": "upload",
+      "logical": "battle/action/power_flip/action/override/cnmod_inaho_midautumn$cnmod_inaho_midautumn_lv1.action.dsl.amf3.deflate",
+      "member": "production/upload/3f/c51f8d63becd1630c20b3ab0a66d44abd3aa83",
+      "size": 501,
+      "sha256": "142fccd72024980101a1008479b8e64d95ce9128b33ff95a922a4716d8f6508f",
+      "before_sha256": "2ca16766115d13b8a33e2d2a1b576f684f428682e063772a437be62877415d39"
+    },
+    {
+      "root": "upload",
+      "logical": "battle/action/power_flip/action/override/cnmod_inaho_midautumn$cnmod_inaho_midautumn_lv2.action.dsl.amf3.deflate",
+      "member": "production/upload/c1/51855b462f6877404bc72ce12d0de016308167",
+      "size": 503,
+      "sha256": "9275d5f8b6638a88b8c04be563f96c7653ff42e290f4aa960ae9606d11f2bdd5",
+      "before_sha256": "a787f020ab55bb29409ef486765f0c66a60d6fb0e428039338b5d7d277d60ba7"
+    },
+    {
+      "root": "upload",
+      "logical": "battle/action/power_flip/action/override/cnmod_inaho_midautumn$cnmod_inaho_midautumn_lv3.action.dsl.amf3.deflate",
+      "member": "production/upload/84/c5f5297bf90884f513c5f61ed40fdb3e52fa59",
+      "size": 728,
+      "sha256": "8f7819f6b38a549330c5980236699bc0df6482583ca49efd9def990bb2879e69",
+      "before_sha256": "5ead9aa6b0a249322e73f0940aa6a87b2d152acb4540ed26ac5e2e3b5e91d401"
+    },
+    {
+      "root": "upload",
+      "logical": "battle/common/unique_condition/cnmod_inaho_midautumn_harvest.png",
+      "member": "production/upload/f9/b0f96acad29d81417a4d388c953813a6a99ccd",
+      "size": 5022,
+      "sha256": "114f03d6e90384681f2982b024498fe7aa8cc2a3b9ece7152e8e2af40e025a2b",
+      "before_sha256": "019f2f2faeee1c90301623f274fd7637cbcd230d84ab4e9c34ca8295be53b1fd",
+      "dimensions": [
+        48,
+        48
+      ],
+      "alpha_preserved": true
+    },
+    {
+      "root": "upload",
+      "logical": "battle/common/unique_condition/cnmod_inaho_midautumn_full_moon.png",
+      "member": "production/upload/d1/8d03037e1a0b7329b1ac415038b5e47a0d922c",
+      "size": 5011,
+      "sha256": "d5cf3bc54896819757db0a40b0be23cbe71b2fc2d3166d6e3b797d704d40f317",
+      "before_sha256": "ff5a4634c984fb272e343c99c5b924f1eff0e25ce2954e0bc2cbdab2fb884783",
+      "dimensions": [
+        48,
+        48
+      ],
+      "alpha_preserved": true
+    },
+    {
+      "root": "upload",
+      "logical": "master/string/custom_ability_string.orderedmap",
+      "member": "production/upload/07/0c6e214359ccf27b1cb8078d3fc51aecfe0149",
+      "size": 50020,
+      "sha256": "1208a4b45082fc21f2e006906384fbf58a30a26866d4071b4112c49423323cdd",
+      "before_sha256": "71ed1b2485822f9d1cfde1ff2ff92bf3b84b8bfdbfb923954b433ef90a69680c",
+      "changed_keys": [
+        "cnmod_inaho_midautumn_enhance_buffs",
+        "cnmod_inaho_midautumn_enhance_skill",
+        "cnmod_inaho_midautumn_powerflip",
+        "desc_override_cnmod_inaho_midautumn",
+        "desc_override_cnmod_inaho_midautumn_1",
+        "desc_override_cnmod_inaho_midautumn_2",
+        "desc_override_cnmod_inaho_midautumn_3",
+        "desc_override_cnmod_inaho_midautumn_4",
+        "desc_override_cnmod_inaho_midautumn_5",
+        "desc_override_cnmod_inaho_midautumn_6"
+      ]
+    },
+    {
+      "root": "upload",
+      "logical": "master/character/character_text.orderedmap",
+      "member": "production/upload/8b/035728b2151de044fb245988ec5f33ebb544ab",
+      "size": 214212,
+      "sha256": "6738afe193d389526b444b544bd0c6d5174d9e9b4ee2f36e97c01da7de602646",
+      "before_sha256": "ed0780d18e21b95f838b2ef9f33ce7a4ce728bc52adc25e190e9b23760fa9ea0",
+      "changed_keys": [
+        "159991"
+      ]
+    },
+    {
+      "root": "upload",
+      "logical": "master/skill/action_skill.orderedmap",
+      "member": "production/upload/91/79892d704f88d98191c00548bce106402ad5b5",
+      "size": 355277,
+      "sha256": "539ce34bbc46abd1cf1ae2e39e9e7feaad4df709e7111a98f31a835f2c16b538",
+      "before_sha256": "90ab7a848876ba8f5957945783fc0ede2dc775ae82f98d87fc1cba56ec030ec7",
+      "changed_keys": [
+        "cnmod_inaho_midautumn"
+      ]
+    }
+  ],
+  "server_assets": [
+    {
+      "path": "assets/cdndata/character_text.json",
+      "before_sha256": "649d01d2c72081e09290838c3055bccd2815863218639cf64e632399f2bc4268",
+      "sha256": "f8682432d6af213639592467be711d25886e6d4c361ae80fb01bf67e897e723e"
+    }
+  ],
+  "native_script_checks": [
+    {
+      "kind": "skill1",
+      "native_types_and_subjects": true,
+      "bounded_delta": true
+    },
+    {
+      "kind": "skill2",
+      "native_types_and_subjects": true,
+      "bounded_delta": true
+    },
+    {
+      "kind": "pf1",
+      "native_types_and_subjects": true,
+      "bounded_delta": true
+    },
+    {
+      "kind": "pf2",
+      "native_types_and_subjects": true,
+      "bounded_delta": true
+    },
+    {
+      "kind": "pf3",
+      "native_types_and_subjects": true,
+      "bounded_delta": true
+    }
+  ],
+  "table_checks": [
+    {
+      "table": "master/string/custom_ability_string.orderedmap",
+      "changed_keys": [
+        "cnmod_inaho_midautumn_enhance_buffs",
+        "cnmod_inaho_midautumn_enhance_skill",
+        "cnmod_inaho_midautumn_powerflip",
+        "desc_override_cnmod_inaho_midautumn",
+        "desc_override_cnmod_inaho_midautumn_1",
+        "desc_override_cnmod_inaho_midautumn_2",
+        "desc_override_cnmod_inaho_midautumn_3",
+        "desc_override_cnmod_inaho_midautumn_4",
+        "desc_override_cnmod_inaho_midautumn_5",
+        "desc_override_cnmod_inaho_midautumn_6"
+      ],
+      "unrelated_rows_byte_identical": true
+    },
+    {
+      "table": "master/character/character_text.orderedmap",
+      "changed_keys": [
+        "159991"
+      ],
+      "unrelated_rows_byte_identical": true
+    },
+    {
+      "table": "master/skill/action_skill.orderedmap",
+      "changed_keys": [
+        "cnmod_inaho_midautumn"
+      ],
+      "unrelated_rows_byte_identical": true
+    }
+  ],
+  "client_swf_sha256": "a0c6408006e5eefef5664c27e5b1fea3673c7107596e798a7f0e45136d65488b",
+  "save_impact": "none; existing IDs, progression and persistence unchanged",
+  "device_tested": false,
+  "server_source_changes": false,
+  "skill_moon": {
+    "scale_before": 2.7,
+    "scale_after": 3.0,
+    "diameter_ratio": 1.111111111111111,
+    "anchor": [
+      540,
+      755
+    ],
+    "opaque_moon_union": [
+      357.3046875,
+      176.3046875,
+      722.6953125,
+      609.705810546875
+    ],
+    "layer": "BacksideOfCharacter"
+  },
+  "pf3": {
+    "duration_extension_removed": true,
+    "extension_budget_and_polling_removed": true,
+    "base_mobility_seconds": [
+      1,
+      3,
+      5
+    ],
+    "lv3_attack_buff_seconds": 8,
+    "damage_and_vfx_unchanged": true,
+    "added_texture_pixels": 0
+  },
+  "descriptions": {
+    "override_keys": 7,
+    "skill_characters_before": 222,
+    "skill_characters_after": 127,
+    "combat_ability_rows_unchanged": true,
+    "current_lan_override_reader_verified": true
+  },
+  "known_limitations": [
+    "Device appearance needs review.",
+    "Existing single-icon hidden-state lifetime/dash semantics remain separately unresolved."
+  ]
+}

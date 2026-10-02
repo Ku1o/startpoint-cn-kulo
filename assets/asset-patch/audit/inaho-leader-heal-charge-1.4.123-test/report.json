@@ -1,0 +1,61 @@
+{
+  "status": "validated_offline",
+  "base": "1.4.122",
+  "version": "1.4.123",
+  "character_id": 159991,
+  "archive": {
+    "name": "pinball-1.4.122-1.4.123-1-inaho-leader-heal-charge.zip",
+    "size": 233618,
+    "sha256": "9c23f53789c16a6d06200e7923dbc7b54b911cffba2ba673255e377efebdbe91",
+    "members": 2
+  },
+  "resources": [
+    {
+      "root": "upload",
+      "logical": "master/ability/ability.orderedmap",
+      "member": "production/upload/1e/664c1cc8d80f4f9a69aae2c49ae8c01d1c4001",
+      "size": 377010,
+      "sha256": "0214d544c5f91d5acc8b5faf475a1f6430499b9ed2dcddf689959c4f9c332dd8",
+      "before_sha256": "fcf0b4e26fb02bcc558e6c4362ab30d6f7883e9b67d796a2195617171346657e",
+      "changed_keys": [
+        "1599915"
+      ],
+      "unrelated_rows_byte_identical": true
+    },
+    {
+      "root": "upload",
+      "logical": "master/ability/leader_ability.orderedmap",
+      "member": "production/upload/ff/84353774cb95e8d7dc90c679f96a5bca7f42e5",
+      "size": 66495,
+      "sha256": "2ac7f38000b41e229a30cf68d06fcc6fe8e0fd95fcaf2fd94a6e36d6257a8d98",
+      "before_sha256": "2769dcc91bda4efe9c15659a818c747fa7d9290216b5f0e1abe93d6faa02b309",
+      "changed_keys": [
+        "159991"
+      ],
+      "unrelated_rows_byte_identical": true
+    }
+  ],
+  "server_assets": [],
+  "change": {
+    "from": "ability 5",
+    "to": "leader ability",
+    "scope": "leader only",
+    "light_resonance_required": true,
+    "fever_required": true,
+    "trigger": "owner heals",
+    "target": "whole party",
+    "charge_percent": 10,
+    "cooldown_frames": 300,
+    "cooldown_seconds": 5,
+    "duplicate_removed": true,
+    "all_other_rows_unchanged": true,
+    "native_description_modes_preserved": true,
+    "ability5_unlock_no_longer_required": true
+  },
+  "client_swf_sha256": "a0c6408006e5eefef5664c27e5b1fea3673c7107596e798a7f0e45136d65488b",
+  "device_tested": false,
+  "save_impact": "no IDs, progression, saved skill levels or persistence changed; existing ability 5 unlock retained",
+  "source_code_modified": false,
+  "action_dsl_modified": false,
+  "textures_modified": false
+}

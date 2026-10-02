@@ -1,0 +1,73 @@
+{
+  "patch_id": "orochi-multi-pickup-1.4.121",
+  "base_version": "1.4.120",
+  "target_version": "1.4.121",
+  "event_id": 90000023,
+  "schedule_id": 1,
+  "boss": "八岐大蛇讨伐",
+  "chapter_id": 1,
+  "stage_node_id": 20,
+  "stage_node_composite_id": 1020,
+  "quest_ids": [
+    1020001,
+    1020002,
+    1020003,
+    1020004
+  ],
+  "event_row": "boss_battle_multi_pickup_event_orochi_visual,quest/event/background/bossbattle_multi_pickup_event/multi_boss_pickup_top_03,rich_text/bossbattle_multi_pickup_schedule5,1.0,1,(None),2000-01-01 00:00:00,2099-12-31 23:59:59",
+  "schedule_row": "1,20,quest/event/background/bossbattle_multi_pickup_event/boss_quest_background/bossbattle_multi_pickup_orochi,(None),,1,2000-01-01 00:00:00,2099-12-31 23:59:59",
+  "additional_score_reward": null,
+  "period": {
+    "start": "2000-01-01 00:00:00",
+    "end": "2099-12-31 23:59:59"
+  },
+  "archive": {
+    "path": "F:\\codex\\startpoint-cn-private-clean\\assets\\asset-patch\\active\\pinball-1.4.120-1.4.121-1-orochi-multi-pickup.zip",
+    "size": 50271,
+    "sha256": "792dcebb9309a92361d961b7b3c7c20c592b903f14c26d4841c8e1803eee62cc",
+    "members": [
+      "production/upload/14/591cf18d67e538e2c2107a2731b912447f0661",
+      "production/upload/b1/bc047d89ff6f94e30a96f941caad0e4eccda7d"
+    ]
+  },
+  "source_tables": {
+    "master/quest/boss_battle/boss_battle_multi_pickup_event.orderedmap": {
+      "tail": "1.4.120",
+      "root": "common",
+      "archive": "pinball-1.4.41-1.4.42-1-b67ea542.zip",
+      "member": "production/upload/14/591cf18d67e538e2c2107a2731b912447f0661",
+      "sha256": "814899428ade6eaa5ab648c22d980d947585beed87ddfef5bfc5b0947d2bc32e",
+      "size": 5816
+    },
+    "master/quest/boss_battle/boss_battle_multi_pickup_event_schedule.orderedmap": {
+      "tail": "1.4.120",
+      "root": "common",
+      "archive": "pinball-1.4.41-1.4.42-1-b67ea542.zip",
+      "member": "production/upload/b1/bc047d89ff6f94e30a96f941caad0e4eccda7d",
+      "sha256": "8b4f10733f6c5209cd3afc7e434f4d177c7d5073cf82bc139eb8b416ab655f40",
+      "size": 74623
+    },
+    "master/quest/boss_battle_stage_node.orderedmap": {
+      "tail": "1.4.120",
+      "root": "common",
+      "archive": "pinball-1.4.104-1.4.105-1-five-boss-ui-art.zip",
+      "member": "production/upload/97/efacb322621f7bf6671dad3bdf7bdc55cb350b",
+      "sha256": "614141e24e977255045b8e44dde571c2f6bf9dd9ce6e97ebce6345c0353afb6d",
+      "size": 8022
+    }
+  },
+  "manifest_before_sha256": "d484380c9dc8da0815092b2c7140ae3c36950576a4abdfc58d1d7cec558c6b6e",
+  "manifest_after_sha256": "55387bf07c6dc1d69bdf37109ce755407bf4e4af5a6c5810a0358e5ace43961b",
+  "static_assertions": {
+    "stage_node_is_orochi": true,
+    "event_round_trip": true,
+    "schedule_round_trip": true,
+    "only_new_event_rows_changed": true,
+    "no_additional_reward_group": true,
+    "manifest_registered_once": true,
+    "private_event_id": true,
+    "display_rate_is_one_without_rewards": true
+  },
+  "runtime_sync": "not performed",
+  "created_at": "2026-09-25"
+}

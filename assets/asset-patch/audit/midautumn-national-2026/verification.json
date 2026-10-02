@@ -1,0 +1,39 @@
+{
+  "checks": [
+    "preserved_unrelated_rows:master/gacha/gacha.orderedmap",
+    "preserved_unrelated_rows:master/gacha/gacha_feature_content.orderedmap",
+    "preserved_unrelated_rows:master/item/item.orderedmap",
+    "preserved_unrelated_rows:master/rich_text/rich_text_html.orderedmap",
+    "server_client_odds_identical",
+    "native_guarantee_5_95",
+    "twelve_mods_share_exactly_4_percent",
+    "ten_ticket_only_master_and_exchange_ui",
+    "shared_item_atlas_all_old_pixels_preserved",
+    "new_icon_standalone_and_preloaded_atlas_identical",
+    "movie_embedded_timeline_and_loop",
+    "all_movie_images_in_required_sprite_sheet",
+    "instance_capacities_sufficient",
+    "common_png_no_platform_dependent_path",
+    "source_mirrors_preserve_all_unrelated_rows"
+  ],
+  "asset_count": 19,
+  "movie_instance_profile": {
+    "frames": 302,
+    "per_image_peaks": [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    "visible_instance_peak": 6,
+    "visible_instance_total": 1812,
+    "peak_frame": 0
+  },
+  "limitations": [
+    "No runtime sync or device acceptance.",
+    "No mooncake acquisition source until the deferred shop is implemented.",
+    "CDN-only closure hides the entrance for updated clients; it is not a server-time restriction."
+  ]
+}

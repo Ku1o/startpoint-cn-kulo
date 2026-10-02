@@ -1,0 +1,302 @@
+{
+  "status": "repair_validated_offline",
+  "base": "1.4.117",
+  "version": "1.4.118",
+  "character_id": 159991,
+  "archive": {
+    "name": "pinball-1.4.117-1.4.118-1-inaho-action-targets-ui.zip",
+    "size": 897755,
+    "sha256": "7f3ad8ff037c34d1ce085b86eddae928ee3c412cdfcaa571a3509aa350381d65",
+    "members": 11
+  },
+  "resources": [
+    {
+      "root": "upload",
+      "logical": "battle/action/power_flip/action/override/cnmod_inaho_midautumn$cnmod_inaho_midautumn_lv1.action.dsl.amf3.deflate",
+      "member": "production/upload/3f/c51f8d63becd1630c20b3ab0a66d44abd3aa83",
+      "size": 649,
+      "sha256": "2ca16766115d13b8a33e2d2a1b576f684f428682e063772a437be62877415d39",
+      "before_sha256": "7f77f5fe5d29d1836beb0ecdef053cf501c3ac67cb8d07ff14b85bf45c754501",
+      "changes": [
+        {
+          "command": "ConditionalsConditionExist",
+          "parameter": 1,
+          "from": -18,
+          "to": -17
+        },
+        {
+          "command": "ConditionalsConditionExist",
+          "parameter": 1,
+          "from": -18,
+          "to": -17
+        },
+        {
+          "command": "CreateCondition",
+          "parameter": 1,
+          "from": -18,
+          "to": -17
+        },
+        {
+          "command": "ConditionalsConditionExist",
+          "parameter": 1,
+          "from": -18,
+          "to": -17
+        },
+        {
+          "command": "ConditionalsConditionExist",
+          "parameter": 1,
+          "from": -18,
+          "to": -17
+        }
+      ]
+    },
+    {
+      "root": "upload",
+      "logical": "battle/action/power_flip/action/override/cnmod_inaho_midautumn$cnmod_inaho_midautumn_lv2.action.dsl.amf3.deflate",
+      "member": "production/upload/c1/51855b462f6877404bc72ce12d0de016308167",
+      "size": 650,
+      "sha256": "a787f020ab55bb29409ef486765f0c66a60d6fb0e428039338b5d7d277d60ba7",
+      "before_sha256": "614721202025e46d5bd37ead56854d41b2257c8f2a0646fa3383df8cf6ba0b88",
+      "changes": [
+        {
+          "command": "ConditionalsConditionExist",
+          "parameter": 1,
+          "from": -18,
+          "to": -17
+        },
+        {
+          "command": "ConditionalsConditionExist",
+          "parameter": 1,
+          "from": -18,
+          "to": -17
+        },
+        {
+          "command": "CreateCondition",
+          "parameter": 1,
+          "from": -18,
+          "to": -17
+        },
+        {
+          "command": "ConditionalsConditionExist",
+          "parameter": 1,
+          "from": -18,
+          "to": -17
+        },
+        {
+          "command": "ConditionalsConditionExist",
+          "parameter": 1,
+          "from": -18,
+          "to": -17
+        }
+      ]
+    },
+    {
+      "root": "upload",
+      "logical": "battle/action/power_flip/action/override/cnmod_inaho_midautumn$cnmod_inaho_midautumn_lv3.action.dsl.amf3.deflate",
+      "member": "production/upload/84/c5f5297bf90884f513c5f61ed40fdb3e52fa59",
+      "size": 968,
+      "sha256": "5ead9aa6b0a249322e73f0940aa6a87b2d152acb4540ed26ac5e2e3b5e91d401",
+      "before_sha256": "cee9eb8aa40dd840d1760b8261d6b295557b2d8a22035f22f5a727b2f7df5744",
+      "changes": [
+        {
+          "command": "ConditionalsConditionExist",
+          "parameter": 1,
+          "from": -18,
+          "to": -17
+        },
+        {
+          "command": "ConditionalsConditionExist",
+          "parameter": 1,
+          "from": -18,
+          "to": -17
+        },
+        {
+          "command": "CreateCondition",
+          "parameter": 1,
+          "from": -18,
+          "to": -17
+        },
+        {
+          "command": "ExtendCondition",
+          "parameter": 1,
+          "from": -18,
+          "to": -17
+        },
+        {
+          "command": "ExtendCondition",
+          "parameter": 1,
+          "from": -18,
+          "to": -17
+        },
+        {
+          "command": "ConditionalsConditionExist",
+          "parameter": 1,
+          "from": -18,
+          "to": -17
+        },
+        {
+          "command": "ConditionalsConditionExist",
+          "parameter": 1,
+          "from": -18,
+          "to": -17
+        }
+      ]
+    },
+    {
+      "root": "upload",
+      "logical": "battle/action/skill/action/rare5/cnmod_inaho_midautumn$cnmod_inaho_midautumn_1.action.dsl.amf3.deflate",
+      "member": "production/upload/d4/56921a8569385d652e623c3a2da29c3d52f6d7",
+      "size": 1267,
+      "sha256": "1867686e2492f80ad2968b9e8f869f40ae7982ef2b103bec52358024de1d6b76",
+      "before_sha256": "c0f09903fef46156e3caa9aecb45a99937a3f717cbb66863c70e9a0a83242d37",
+      "changes": [
+        {
+          "command": "CreateCondition",
+          "parameter": 1,
+          "from": -18,
+          "to": -17
+        }
+      ]
+    },
+    {
+      "root": "upload",
+      "logical": "battle/action/skill/action/rare5/cnmod_inaho_midautumn$cnmod_inaho_midautumn_2.action.dsl.amf3.deflate",
+      "member": "production/upload/08/33e4ac8cb7970141f0766e3e9e451b68c2714a",
+      "size": 1267,
+      "sha256": "1867686e2492f80ad2968b9e8f869f40ae7982ef2b103bec52358024de1d6b76",
+      "before_sha256": "c0f09903fef46156e3caa9aecb45a99937a3f717cbb66863c70e9a0a83242d37",
+      "changes": [
+        {
+          "command": "CreateCondition",
+          "parameter": 1,
+          "from": -18,
+          "to": -17
+        }
+      ]
+    },
+    {
+      "root": "upload",
+      "logical": "character/cnmod_inaho_midautumn/ui/thumb_party_main_0.png",
+      "member": "production/upload/eb/6fc28ea98ffd0807562d96bb51fa2c5e0902be",
+      "size": 174065,
+      "sha256": "f568cd45614c502976c348e1e174bcd5bf6b35dbbca83d5241f1a07baf94c757",
+      "before_sha256": "6a2f62269d8587eaf3d1f026dfe1d7559ba7c8c227dcb9a5a9e3a8705b6240ff",
+      "dimensions": [
+        186,
+        392
+      ],
+      "color_adjustments": false
+    },
+    {
+      "root": "medium_upload",
+      "logical": "character/cnmod_inaho_midautumn/ui/thumb_party_main_0.png",
+      "member": "production/medium_upload/eb/6fc28ea98ffd0807562d96bb51fa2c5e0902be",
+      "size": 174065,
+      "sha256": "f568cd45614c502976c348e1e174bcd5bf6b35dbbca83d5241f1a07baf94c757",
+      "before_sha256": "6a2f62269d8587eaf3d1f026dfe1d7559ba7c8c227dcb9a5a9e3a8705b6240ff",
+      "dimensions": [
+        186,
+        392
+      ],
+      "color_adjustments": false
+    },
+    {
+      "root": "small_upload",
+      "logical": "character/cnmod_inaho_midautumn/ui/thumb_party_main_0.png",
+      "member": "production/small_upload/eb/6fc28ea98ffd0807562d96bb51fa2c5e0902be",
+      "size": 93491,
+      "sha256": "e843718901f00becb9fc3541ceb00c1c26ae15bf708780078d037d4ebc568cb8",
+      "before_sha256": "6af865451cb2489260ea8b3350439bcea7005bc259f2a79bc5a752c2c5d57c10",
+      "dimensions": [
+        130,
+        274
+      ],
+      "color_adjustments": false
+    },
+    {
+      "root": "upload",
+      "logical": "character/cnmod_inaho_midautumn/ui/thumb_party_main_1.png",
+      "member": "production/upload/60/30590105715faca80e8741a56f6b8803ac934a",
+      "size": 177453,
+      "sha256": "b4e935704144d22bf96d11dce0659bce400ae02e158f60432a0975c10f19a07e",
+      "before_sha256": "4de9e3d991e4403a034514b2c6c6b1449c4368f0df383b87df3f69d48b1000d3",
+      "dimensions": [
+        186,
+        392
+      ],
+      "color_adjustments": false
+    },
+    {
+      "root": "medium_upload",
+      "logical": "character/cnmod_inaho_midautumn/ui/thumb_party_main_1.png",
+      "member": "production/medium_upload/60/30590105715faca80e8741a56f6b8803ac934a",
+      "size": 177453,
+      "sha256": "b4e935704144d22bf96d11dce0659bce400ae02e158f60432a0975c10f19a07e",
+      "before_sha256": "4de9e3d991e4403a034514b2c6c6b1449c4368f0df383b87df3f69d48b1000d3",
+      "dimensions": [
+        186,
+        392
+      ],
+      "color_adjustments": false
+    },
+    {
+      "root": "small_upload",
+      "logical": "character/cnmod_inaho_midautumn/ui/thumb_party_main_1.png",
+      "member": "production/small_upload/60/30590105715faca80e8741a56f6b8803ac934a",
+      "size": 93914,
+      "sha256": "9936994e0da51a92e8e9fe5cc2f13e09ed02a5427ead2ddbea77d19edfe8ab77",
+      "before_sha256": "75d5573abedef6a76266ed2ad46f2287f83c4587c8b270dfdb489b1831944f5e",
+      "dimensions": [
+        130,
+        274
+      ],
+      "color_adjustments": false
+    }
+  ],
+  "native_script_checks": [
+    {
+      "logical": "battle/action/power_flip/action/override/cnmod_inaho_midautumn$cnmod_inaho_midautumn_lv1.action.dsl.amf3.deflate",
+      "old_subject_rejected": true,
+      "native_types_and_capabilities": true,
+      "changed_targets": 5
+    },
+    {
+      "logical": "battle/action/power_flip/action/override/cnmod_inaho_midautumn$cnmod_inaho_midautumn_lv2.action.dsl.amf3.deflate",
+      "old_subject_rejected": true,
+      "native_types_and_capabilities": true,
+      "changed_targets": 5
+    },
+    {
+      "logical": "battle/action/power_flip/action/override/cnmod_inaho_midautumn$cnmod_inaho_midautumn_lv3.action.dsl.amf3.deflate",
+      "old_subject_rejected": true,
+      "native_types_and_capabilities": true,
+      "changed_targets": 7
+    },
+    {
+      "logical": "battle/action/skill/action/rare5/cnmod_inaho_midautumn$cnmod_inaho_midautumn_1.action.dsl.amf3.deflate",
+      "old_subject_rejected": true,
+      "native_types_and_capabilities": true,
+      "changed_targets": 1
+    },
+    {
+      "logical": "battle/action/skill/action/rare5/cnmod_inaho_midautumn$cnmod_inaho_midautumn_2.action.dsl.amf3.deflate",
+      "old_subject_rejected": true,
+      "native_types_and_capabilities": true,
+      "changed_targets": 1
+    }
+  ],
+  "client_swf_sha256": "a0c6408006e5eefef5664c27e5b1fea3673c7107596e798a7f0e45136d65488b",
+  "save_impact": "none; existing character IDs, progress and schema unchanged",
+  "device_tested": false,
+  "server_source_changes": false,
+  "semantics": {
+    "member_subject": -17,
+    "physical_ball_subject": -18,
+    "member_mobility_routes_to_squad": true,
+    "effect_follow_and_pf_end_ball_unchanged": true,
+    "damage_and_durations_unchanged": true
+  },
+  "known_limitations": [
+    "Hidden conditions are excluded from native condition queries, accumulation and extension; single-icon lifecycle/counter handling needs a separate repair."
+  ]
+}

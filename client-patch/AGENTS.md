@@ -1,6 +1,6 @@
 # Android APK/SWF 工作入口
 
-最新 Android 登记（2026-09-25）：作者机制统一入口公网 APK 为 `accepted_offline`，另完成模拟器安装、首次及冷启动至登录面板。主 ABC 索引 361，全 SWF 96,654 方法体，准入号 `android-181-author-1043-20260924`。作者机制内网 `user_accepted` 登记保持。精确成品以 `android-accepted.json` 为准，范围见 `ACCEPTANCE-AUTHOR-PUBLIC-20260925.md`。下文旧日期内容仅作历史方法保留说明。
+最新 Android 登记（2026-09-25）：作者机制 1.4.1047 回槽性能修复公网 APK 为 `accepted_offline`，保留主 ABC 索引 361、96,654 方法体、准入号 `android-181-author-1043-20260924`。验收范围为离线检查，未新增真机战斗测试。精确成品以 `android-accepted.json` 为准，范围见 `ACCEPTANCE-AUTHOR-1047-20260925.md`。下文旧日期内容仅作历史方法保留说明。
 
 
 - 开始 Android APK/SWF 任务前，先读本目录 `ANDROID-BASELINE.md` 和 `android-accepted.json`，再读具体补丁文档。JSON 中登记的已验收公网/内网成品是当前直接基线；其他文档中的旧哈希只代表历史步骤。
@@ -12,7 +12,7 @@
 
 # iOS IPA 工作入口
 
-最新 iOS 登记（2026-09-25）：作者机制公网 r2 unsigned IPA 为 `accepted_offline`，未真机测试。保留 SET C8601、幻想连战返回、EX 和独立编队累计功能，完整 ABC 与 AOT 方法表均为 101,387 项，准入号 `ios-184-author-1043-20260924`。精确成品以 `ios-accepted.json` 为准，范围见 `ACCEPTANCE-AUTHOR-PUBLIC-20260925.md`。下文旧日期内容仅作历史方法保留说明。
+最新 iOS 登记（2026-09-25）：作者机制 1.4.1047 回槽性能修复公网 unsigned IPA 为 `accepted_offline`，验收范围为离线检查，未新增真机测试。保留 SET C8601、幻想连战返回、EX 和独立编队累计功能，完整 ABC 与 AOT 方法表均为 101,387 项，准入号 `ios-184-author-1043-20260924`。精确成品以 `ios-accepted.json` 为准，范围见 `ACCEPTANCE-AUTHOR-1047-20260925.md`。下文旧日期内容仅作历史方法保留说明。
 
 
 - 开始 iOS IPA/SWF/AOT 工作前，先读 `ios-accepted.json` 和其中指定的方法文档，运行 `python client-patch/verify_ios_baseline.py` 回读实际 IPA、主可执行文件、主 SWF 的 SHA-256 和包身份。输入缺失或不匹配时不得改用旧包、诊断包或按文件名推测最新包。

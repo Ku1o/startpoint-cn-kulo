@@ -115,7 +115,8 @@ def main():
     redirects={int(row['original']):int(row['compiled']) for row in port.get('method_redirects',[])}
     guards={row['original']:row for row in port['method_redirects'] if row['strategy']=='guard_then_original'}
     aliases={row['original']:row['compiled'] for row in port['native_aliases']}
-    wanted=(set(redirects.values())|set(range(OLD_COUNT,count)))-set(aliases)
+    aliases.update({row['original']:row['compiled'] for row in port.get('activation_aliases',[])})
+    wanted=(set(redirects.values())|set(port.get('compiled_helpers',[]))|set(range(OLD_COUNT,count)))-set(aliases)
     compiled_report=json.loads((WORK/'compile-final-defaults-report.json').read_text(encoding='utf8'));objects={};funcs={};meta=None
     for row in compiled_report['objects']:
         path=Path(compiled_report['directory'])/row['name'];assert sha(path.read_bytes())==row['sha256']

@@ -1,0 +1,39 @@
+{
+  "passed": true,
+  "server": "http://<LAN_HOST>:8001",
+  "version": "1.4.121",
+  "updates": [
+    {
+      "device": "android",
+      "from": "1.4.120",
+      "to": "1.4.121",
+      "update": true
+    },
+    {
+      "device": "android",
+      "from": "1.4.121",
+      "to": "1.4.121",
+      "update": false
+    },
+    {
+      "device": "ios",
+      "from": "1.4.120",
+      "to": "1.4.121",
+      "update": true
+    },
+    {
+      "device": "ios",
+      "from": "1.4.121",
+      "to": "1.4.121",
+      "update": false
+    }
+  ],
+  "archive_bytes": 752015,
+  "archive_sha256": "f68d84ecf8498c702dae985e8f562b44889a8341d15aab67a858f59bee2572b7",
+  "archive_members": 7,
+  "direct_resources_verified": 7,
+  "small_resources_verified_via_archive": 0,
+  "save_test_skipped": "state lifecycle and native description restoration; no persistence or saved-ID changes",
+  "character_id": 159991,
+  "device_gameplay_tested": false
+}

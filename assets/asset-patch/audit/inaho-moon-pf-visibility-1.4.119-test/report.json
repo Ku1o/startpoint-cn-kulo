@@ -1,0 +1,129 @@
+{
+  "status": "presentation_validated_offline",
+  "base": "1.4.118",
+  "version": "1.4.119",
+  "character_id": 159991,
+  "archive": {
+    "name": "pinball-1.4.118-1.4.119-1-inaho-moon-pf-visibility.zip",
+    "size": 4680,
+    "sha256": "7f25188084cdd4b66062f31bb229224c8a6939c13290cba9bd7ae227549970e3",
+    "members": 4
+  },
+  "resources": [
+    {
+      "root": "upload",
+      "logical": "battle/action/skill/action/rare5/cnmod_inaho_midautumn$cnmod_inaho_midautumn_1.action.dsl.amf3.deflate",
+      "member": "production/upload/d4/56921a8569385d652e623c3a2da29c3d52f6d7",
+      "size": 1266,
+      "sha256": "7d3deb2c5c38c8e110e69d9b6cb4966cf4943db69e6d5ae53a75b976b56d66f3",
+      "before_sha256": "1867686e2492f80ad2968b9e8f869f40ae7982ef2b103bec52358024de1d6b76",
+      "changes": {
+        "ShowEffect": [
+          4,
+          8,
+          12
+        ]
+      }
+    },
+    {
+      "root": "upload",
+      "logical": "battle/action/skill/action/rare5/cnmod_inaho_midautumn$cnmod_inaho_midautumn_2.action.dsl.amf3.deflate",
+      "member": "production/upload/08/33e4ac8cb7970141f0766e3e9e451b68c2714a",
+      "size": 1266,
+      "sha256": "7d3deb2c5c38c8e110e69d9b6cb4966cf4943db69e6d5ae53a75b976b56d66f3",
+      "before_sha256": "1867686e2492f80ad2968b9e8f869f40ae7982ef2b103bec52358024de1d6b76",
+      "changes": {
+        "ShowEffect": [
+          4,
+          8,
+          12
+        ]
+      }
+    },
+    {
+      "root": "upload",
+      "logical": "battle/effect/skill_unique/cnmod_inaho_midautumn/midautumn_native/full_field_moonwave.parts.amf3.deflate",
+      "member": "production/upload/ac/67ffe5c115c4f6b6fe67e026b14d45c5d9cb01",
+      "size": 1234,
+      "sha256": "2e79136de1f2ebf40cb3a01f6c8eef7bc0818fa55ea53e8b2cdc57195e659a1d",
+      "before_sha256": "fbbc4605f52612160f2613278cd0e0f9d4be24463cb9a24790c9466b10773ac0"
+    },
+    {
+      "root": "upload",
+      "logical": "battle/effect/skill_unique/cnmod_inaho_midautumn/midautumn_native/full_field_moonwave.timeline.amf3.deflate",
+      "member": "production/upload/77/54d660798707add896d0890bbac619aab4e3fe",
+      "size": 96,
+      "sha256": "f43c9d4707dedfdaefd73acb4e5131a9e403abb8875b9e27c07ce0f29db4d8ba",
+      "before_sha256": "4501476084dbe6a7b89a63340519001cc611fea41bead13da6d6c55b7b51366d"
+    }
+  ],
+  "native_script_checks": [
+    {
+      "kind": "skill1",
+      "native_type_and_subjects": true,
+      "gameplay_unchanged": true
+    },
+    {
+      "kind": "skill2",
+      "native_type_and_subjects": true,
+      "gameplay_unchanged": true
+    },
+    {
+      "kind": "pf1",
+      "native_type_and_subjects": true,
+      "gameplay_unchanged": true
+    },
+    {
+      "kind": "pf2",
+      "native_type_and_subjects": true,
+      "gameplay_unchanged": true
+    },
+    {
+      "kind": "pf3",
+      "native_type_and_subjects": true,
+      "gameplay_unchanged": true
+    }
+  ],
+  "client_swf_sha256": "a0c6408006e5eefef5664c27e5b1fea3673c7107596e798a7f0e45136d65488b",
+  "save_impact": "none; no saved ID, data, schema or persistence change",
+  "device_tested": false,
+  "server_source_changes": false,
+  "skill_moon": {
+    "scale_before": 4.8,
+    "scale_after": 2.7,
+    "size_ratio": 0.5625000000000001,
+    "anchor": [
+      540,
+      740
+    ],
+    "layer": "BacksideOfCharacter",
+    "opaque_moon_union": [
+      375.57421875,
+      219.1742187499999,
+      704.42578125,
+      609.2352294921875
+    ]
+  },
+  "pf3": {
+    "expansion_ticks_before": 17,
+    "expansion_ticks_after": 30,
+    "lifetime_ticks_before": 43,
+    "lifetime_ticks_after": 51,
+    "readable_sweep_ticks_before": 5,
+    "readable_sweep_ticks_after": 17,
+    "allocated_instances": 3,
+    "atlas": [
+      128,
+      128
+    ],
+    "added_texture_pixels": 0,
+    "png_sha256_unchanged": "e7f70e5d2139521de60dcbc02de01aec08f8277e2a65d0951b53d00f0421694e",
+    "atlas_sha256_unchanged": "f5d4b094a80c4bb7bee25d070404fe13c2b60afc2d4dcda8bdba06c5eeb38ab6",
+    "preload_names_valid": true,
+    "native_trigger_unchanged": true
+  },
+  "known_limitations": [
+    "Device visibility still needs review.",
+    "Single-icon hidden-state semantics remain separately unresolved; no state changes in this patch."
+  ]
+}

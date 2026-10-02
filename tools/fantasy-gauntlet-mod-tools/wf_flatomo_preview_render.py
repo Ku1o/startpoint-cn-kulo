@@ -34,6 +34,7 @@ class State:
     item_id: int
     child_frame: int
     parameters: Parameters
+    segment_id: int = -1
 
 
 @dataclass(frozen=True)
@@ -162,7 +163,7 @@ def _build_frames(parts: dict[str, Any]) -> list[list[list[State]]]:
     ]
     for group_index, group in enumerate(groups):
         frames = all_frames[group_index]
-        for segment in group["s"]:
+        for segment_id, segment in enumerate(group["s"]):
             packed_start = _u32(segment["s"])
             kind = packed_start >> 30
             start = packed_start & MASK_30
@@ -195,7 +196,7 @@ def _build_frames(parts: dict[str, Any]) -> list[list[list[State]]]:
                         if child_frame >= child_total:
                             continue
                     frames[frame_index].append(
-                        State(kind=kind, item_id=child_id, child_frame=child_frame, parameters=parameters)
+                        State(kind=kind, item_id=child_id, child_frame=child_frame, parameters=parameters, segment_id=segment_id)
                     )
                 elapsed += duration
     return all_frames

@@ -1,0 +1,36 @@
+{
+  "id": "orochi-multi-pickup-1.4.121",
+  "version": "1.4.121",
+  "depends_on": "1.4.120",
+  "archive": "pinball-1.4.120-1.4.121-1-orochi-multi-pickup.zip",
+  "enabled": true,
+  "description": "八岐大蛇讨伐长期启用原生多人领主特选标记与置顶；不配置额外掉落。",
+  "archive_integrity": [
+    {
+      "name": "pinball-1.4.120-1.4.121-1-orochi-multi-pickup.zip",
+      "size": 50271,
+      "sha256": "792dcebb9309a92361d961b7b3c7c20c592b903f14c26d4841c8e1803eee62cc",
+      "members": 2
+    }
+  ],
+  "audit": {
+    "directory": "assets/asset-patch/audit/orochi-multi-pickup-1.4.121"
+  },
+  "changes": [
+    "为 chapter_id=1、stage_node_id=20（复合节点1020，对应八岐大蛇讨伐 1020001-1020004）增加 BossBattleMultiPickupEventSchedule。",
+    "使用原生 Pickup 状态驱动特殊图标和领主战置顶。",
+    "不填写 boss_battle_additional_score_reward，不增加额外掉落。",
+    "使用 90000023 作为私有活动编号，避免占用后续官方活动编号。"
+  ],
+  "type": "patch",
+  "name": "八岐大蛇讨伐·多人领主特选标记",
+  "archive_size": 50271,
+  "files": [
+    "production/upload/14/591cf18d67e538e2c2107a2731b912447f0661",
+    "production/upload/b1/bc047d89ff6f94e30a96f941caad0e4eccda7d"
+  ],
+  "chain": [
+    "pinball-1.4.120-1.4.121-1-orochi-multi-pickup.zip"
+  ],
+  "created_at": "2026-09-25"
+}

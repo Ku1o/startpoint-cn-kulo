@@ -1,0 +1,48 @@
+{
+  "id": "orochi-boss-v3-1.4.120",
+  "version": "1.4.120",
+  "depends_on": "1.4.119",
+  "archive": "pinball-1.4.119-1.4.120-3-orochi-boss-v3.zip",
+  "enabled": true,
+  "description": "八岐大蛇EX多人 Boss 机制、蛇神残响代币与海豹球稀有掉落；保留后续新增 Boss 的独立扩展入口。",
+  "archive_integrity": [
+    {
+      "name": "pinball-1.4.119-1.4.120-3-orochi-boss-v3.zip",
+      "size": 1714639,
+      "sha256": "1aeb3ed775297f62d2cbd5775d8286e1fc38666c71f3e69a4f5ac440e8a03ef4",
+      "members": 14
+    }
+  ],
+  "audit": {
+    "directory": "assets/asset-patch/audit/orochi-boss-v3-1.4.120"
+  },
+  "changes": [
+    "新增八岐大蛇EX Boss 命名机制档案：200亿阶段血量、双阶段、硬弱点窗口与原生结算适配。",
+    "新增蛇神残响 40193；单人固定1个、多人每名玩家固定3个，不再混入八岐金币。",
+    "稀有池新增海豹球 129990，独立玩家概率1%。",
+    "补丁按新增 Boss 方式登记，后续 Boss 使用新 ID、档案和奖励组追加，不修改本条目。"
+  ],
+  "type": "patch",
+  "name": "八岐大蛇EX Boss与蛇神残响",
+  "archive_size": 1714639,
+  "files": [
+    "production/upload/01/313477f2616628879b578fa78722fbb54dd69c",
+    "production/upload/0c/4561a50deb7b22c977212a62ac8409074bddbe",
+    "production/upload/19/a4aa442b3249499356e7a3f6370e530bfe355e",
+    "production/upload/30/363f8364e183905b2d0b48b8718b7165135bc2",
+    "production/upload/56/7d81eea3c08fac7b1b69cbeabe2b9fd7b9591e",
+    "production/upload/68/6c1822fcaa320f71e8245ae7be98d553b84cb7",
+    "production/upload/6d/4d576b424178c5b2b253a2dd5aa3d78fa74ef3",
+    "production/upload/7b/5e0efc0e0691038ca52fe282501dfd3a1b5ae3",
+    "production/upload/7c/0159ffd7078028b1c2eec135beb1884f7224fb",
+    "production/upload/93/a3763bc243c7178e1d97a3acd9dab2e9406a5e",
+    "production/upload/a1/96e15706a47e7bd6214f62b390a7fa4d58bf35",
+    "production/upload/a4/731a843d4dc0c84120bf8c88784c1e74c03baa",
+    "production/upload/cd/6336795a27ea33bf8d0c5d5a9bfb466bedcf1e",
+    "production/upload/eb/f8ef19148af9c1330b78c7fb3ce75e3f202e64"
+  ],
+  "chain": [
+    "pinball-1.4.119-1.4.120-3-orochi-boss-v3.zip"
+  ],
+  "created_at": "2026-09-25"
+}

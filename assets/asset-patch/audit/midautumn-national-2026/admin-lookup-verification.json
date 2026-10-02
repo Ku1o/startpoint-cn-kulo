@@ -1,0 +1,50 @@
+{
+  "cause": "New ticket omitted from the separate admin item lookup catalog.",
+  "file": {
+    "path": "assets/item_lookup_cnmod.json",
+    "bytes": 239,
+    "sha256": "46a1d4afcdf91418dddb6e058e6990a0d76b33e8678f118403239fcf4983d39b"
+  },
+  "http_before": {
+    "phase": "before",
+    "checked_at": "2026-09-24T17:12:58.293Z",
+    "route": "/api/lookup/items",
+    "status": 200,
+    "item_999019_present": false,
+    "count": 1301,
+    "player_data_modified": false
+  },
+  "http_after": {
+    "phase": "after",
+    "checked_at": "2026-09-24T17:14:11.590Z",
+    "route": "/api/lookup/items",
+    "status": 200,
+    "item_999019_present": true,
+    "count": 1302,
+    "unrelated_entries_preserved": true,
+    "player_data_modified": false
+  },
+  "resource_checks": [
+    "preserved_unrelated_rows:master/gacha/gacha.orderedmap",
+    "preserved_unrelated_rows:master/gacha/gacha_feature_content.orderedmap",
+    "preserved_unrelated_rows:master/item/item.orderedmap",
+    "preserved_unrelated_rows:master/rich_text/rich_text_html.orderedmap",
+    "server_client_odds_identical",
+    "native_guarantee_5_95",
+    "twelve_mods_share_exactly_4_percent",
+    "ten_ticket_only_master_and_exchange_ui",
+    "admin_item_lookup_matches_client_ticket_name",
+    "shared_item_atlas_all_old_pixels_preserved",
+    "new_icon_standalone_and_preloaded_atlas_identical",
+    "movie_embedded_timeline_and_loop",
+    "all_movie_images_in_required_sprite_sheet",
+    "instance_capacities_sufficient",
+    "common_png_no_platform_dependent_path",
+    "source_mirrors_preserve_all_unrelated_rows"
+  ],
+  "cdn_version": "1.4.118 unchanged",
+  "save_impact": "None; display/search catalog only; no player inventory writes.",
+  "build_required": false,
+  "source_head": "f1e6cd968261301b67deae89a4b2399e7a56c276",
+  "cloud_deployed": false
+}

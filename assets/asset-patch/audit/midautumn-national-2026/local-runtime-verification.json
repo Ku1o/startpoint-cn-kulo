@@ -1,0 +1,127 @@
+{
+  "status": "local runtime verified; device acceptance pending; cloud not deployed",
+  "checked_at": "2026-09-24T16:37:10.244Z",
+  "asset_version": "1.4.118",
+  "gacha_id": 990003,
+  "ticket_id": 999019,
+  "runtime_port": 8001,
+  "files": [
+    {
+      "path": "assets/gacha_midautumn_2026.json",
+      "sha256": "f1605b1b710e35335b1d680a72a9c56912eb190d175953d1a520f02e2c8cc6e9"
+    },
+    {
+      "path": "assets/item_ids.json",
+      "sha256": "9c0802cdb66539116a1a75ee0b26d3b2c36c8d7618d92c5212e41a605860292b"
+    },
+    {
+      "path": "assets/cdndata/gacha.json",
+      "sha256": "d50f1d35f0fc82a8dc908a2e63eb1eebf6eea84eb76c84988f3aae9323ad94e5"
+    },
+    {
+      "path": "assets/cdndata/gacha_feature_content.json",
+      "sha256": "e8bfa575fd3e41a0e770b10ccc27b9458b1f6ba2cda0707f29c1ea743c7387bb"
+    },
+    {
+      "path": "src/lib/content-master.ts",
+      "sha256": "ba8e82607dee0921d251c9d6cc30ea819e5b94fc8c9cf47d03a8fbfee38aea62"
+    },
+    {
+      "path": "out/lib/content-master.js",
+      "sha256": "c246a66d3c5997a16dd1be78d8e5770132c08d3af4837c2d8076e21830e7d4b9"
+    },
+    {
+      "path": "assets/asset-patch/manifest.json",
+      "sha256": "344eb87e2febd6b33965f9b3f7ef1392fcea3c4b08c52136f494e0ad3d2b7749"
+    },
+    {
+      "path": "assets/asset-patch/active/pinball-1.4.117-1.4.118-1-midautumn-national-2026.zip",
+      "sha256": "4a5050ec9e78472ef61e5b7028071fc537017b8639d5785409e12f7b175bb57e"
+    }
+  ],
+  "platforms": {
+    "android": {
+      "target_asset_version": "1.4.118",
+      "archive_bytes": 8890395,
+      "archive_sha256": "4a5050ec9e78472ef61e5b7028071fc537017b8639d5785409e12f7b175bb57e",
+      "current_version_no_update": true
+    },
+    "ios": {
+      "target_asset_version": "1.4.118",
+      "archive_bytes": 8890395,
+      "archive_sha256": "4a5050ec9e78472ef61e5b7028071fc537017b8639d5785409e12f7b175bb57e",
+      "current_version_no_update": true
+    }
+  },
+  "readonly_save_export": {
+    "passed": true,
+    "version": 2,
+    "has_item_table": true,
+    "has_gacha_table": true
+  },
+  "resources": {
+    "downloaded_archive_member_hashes_passed": 19,
+    "strict_png_checks": [
+      {
+        "root": "common",
+        "logical": "dynamic/gacha_banner/cnmod_midautumn_national_2026.png",
+        "size": [
+          1440,
+          1789
+        ],
+        "mode": "RGBA"
+      },
+      {
+        "root": "common",
+        "logical": "gacha/feature_movie/cnmod_midautumn_national_2026/top/sprite_sheet.png",
+        "size": [
+          2048,
+          2048
+        ],
+        "mode": "RGBA"
+      },
+      {
+        "root": "common",
+        "logical": "item/sprite_sheet.png",
+        "size": [
+          505,
+          1792
+        ],
+        "mode": "RGBA"
+      },
+      {
+        "root": "common",
+        "logical": "item/spends/tickets/midautumn_mooncake_ten_ticket.png",
+        "size": [
+          20,
+          20
+        ],
+        "mode": "RGBA"
+      },
+      {
+        "root": "common",
+        "logical": "dynamic/gacha_list_banner/cnmod_midautumn_national_2026.png",
+        "size": [
+          510,
+          180
+        ],
+        "mode": "RGBA"
+      },
+      {
+        "root": "medium",
+        "logical": "dynamic/gacha_banner/cnmod_midautumn_national_2026.png",
+        "size": [
+          720,
+          895
+        ],
+        "mode": "RGBA"
+      }
+    ],
+    "all_8_runtime_files_match": true,
+    "env_and_admission_unchanged": true,
+    "pristine_cdn_written": false
+  },
+  "player_inventory_modified": false,
+  "cloud_deployed": false,
+  "device_acceptance": "pending"
+}

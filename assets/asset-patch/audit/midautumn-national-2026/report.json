@@ -1,0 +1,269 @@
+{
+  "base_version": "1.4.117",
+  "version": "1.4.118",
+  "gacha_id": 990003,
+  "item_id": 999019,
+  "mod_ids": [
+    119992,
+    119990,
+    169988,
+    169991,
+    149987,
+    159995,
+    119991,
+    139992,
+    139991,
+    149986,
+    139990,
+    159994
+  ],
+  "permanent_donor": 1675,
+  "pool_counts": {
+    "1": 122,
+    "2": 95,
+    "3": 73
+  },
+  "rank_rates": {
+    "normal": [
+      50,
+      350,
+      600
+    ],
+    "multiGuarantee": [
+      50,
+      950
+    ]
+  },
+  "mod_each_rate": "1/300",
+  "exchange_cost": 250,
+  "asset_sources": {
+    "common|15/83d96aad4b9a46d19d19b6555d3f4232b29e25": {
+      "archive": "assets/asset-patch/active/pinball-1.4.95-1.4.96-1-cdn-consolidated-gerald0903.zip",
+      "member": "production/upload/15/83d96aad4b9a46d19d19b6555d3f4232b29e25",
+      "sha256": "298ee667abf7f9602d99d71a2deae363f08075474d728d24effa2a16c074bbee"
+    },
+    "common|a3/bd0149ebd029ce5488ec0a33ec9138ec628bd7": {
+      "archive": "assets/asset-patch/active/pinball-1.4.105-1.4.106-1-mech-item-sources.zip",
+      "member": "production/upload/a3/bd0149ebd029ce5488ec0a33ec9138ec628bd7",
+      "sha256": "5b81fbf8b7a4777f553ebdfd2da8078a4fb0b9507e1490e5e4bd127747f266e4"
+    },
+    "common|56/216de7888df4c8f07f48a795cc8ade05064374": {
+      "archive": "assets/asset-patch/active/pinball-1.4.105-1.4.106-1-mech-item-sources.zip",
+      "member": "production/upload/56/216de7888df4c8f07f48a795cc8ade05064374",
+      "sha256": "2d1f59b686c3e6f8fc367d39a78e7d68288a9d313d746085c8b8b101a0e76ce5"
+    },
+    "common|16/083ccbfd98143403570bec5c9e958db8b3a43f": {
+      "archive": ".cdn/cn/archive-common-diff/pinball-1.4.31-1.4.32-1-071a4d0c.zip",
+      "member": "production/upload/16/083ccbfd98143403570bec5c9e958db8b3a43f",
+      "sha256": "76b4068092bbcdb0d5ae105cf886a37babb73cd409fceb6111afd457affb988c"
+    },
+    "common|c8/79a1b712ae753afb0b5e796737fd141c8fa0ea": {
+      "archive": "assets/asset-patch/active/pinball-1.4.91-1.4.92-2-0829-home-load-rank-p5b.zip",
+      "member": "production/upload/c8/79a1b712ae753afb0b5e796737fd141c8fa0ea",
+      "sha256": "33b474fd8efe37c55062cf4562e76d89ea93215b4506cff725562c5f88963309"
+    },
+    "common|72/2a8a0dbb6bb1386faa4d29bcdf0064c64bc03e": {
+      "archive": "assets/asset-patch/active/pinball-1.4.91-1.4.92-2-0829-home-load-rank-p5b.zip",
+      "member": "production/upload/72/2a8a0dbb6bb1386faa4d29bcdf0064c64bc03e",
+      "sha256": "a0021e4a36837b93ea3f285cfae133c58614e63ab7d094f75328f577a8b40103"
+    },
+    "common|a4/731a843d4dc0c84120bf8c88784c1e74c03baa": {
+      "archive": "assets/asset-patch/active/pinball-1.4.115-1.4.116-3-abyss-reward-and-description-cleanup.zip",
+      "member": "production/upload/a4/731a843d4dc0c84120bf8c88784c1e74c03baa",
+      "sha256": "fd1d7c54e190263d29b5536302b355b703efc3822fc0c10ce924a3ab88c404c3"
+    },
+    "common|6d/4d576b424178c5b2b253a2dd5aa3d78fa74ef3": {
+      "archive": "assets/asset-patch/active/pinball-1.4.106-1.4.107-2-author858-selected.zip",
+      "member": "production/upload/6d/4d576b424178c5b2b253a2dd5aa3d78fa74ef3",
+      "sha256": "08650493e656b5d735a23ae7ce80c8c55899dd5d3ca58307899c0c551d288f49"
+    },
+    "common|7b/5e0efc0e0691038ca52fe282501dfd3a1b5ae3": {
+      "archive": "assets/asset-patch/active/pinball-1.4.102-1.4.103-1-lens0909-consolidated-cn.zip",
+      "member": "production/upload/7b/5e0efc0e0691038ca52fe282501dfd3a1b5ae3",
+      "sha256": "fad7044c6a883835a97bedd7aa1f332969145b1091507108ca76b37f3ed1517b"
+    }
+  },
+  "art_sources": [
+    {
+      "file": "midautumn-list-v2.png",
+      "sha256": "67eaf761bdc0fcd5183cbcc0f5e495803bfe85133199fd9e8a39ad705f0249b3"
+    },
+    {
+      "file": "main-four-characters-v3.png",
+      "sha256": "0421f46985bc14221182896d9a03011c7a27be282407d5e9f9c270e4437550aa"
+    },
+    {
+      "file": "animation-background.png",
+      "sha256": "df10218080ede060809b81c35f823b5e0c2a44ba10c345dc88f232c0f9e10691",
+      "size": [
+        1126,
+        1397
+      ]
+    },
+    {
+      "file": "character-references/169988-1.png",
+      "sha256": "7cf2e646d4f3f6c3b707ecebfacc7931eff973cd8498b7d2f0e56361780cde07",
+      "size": [
+        994,
+        1637
+      ]
+    },
+    {
+      "file": "character-references/139991-1.png",
+      "sha256": "2975a382934f7cfe7ca1b0f7beec2758aeb607e4bc3c4048e2b4adc7114a9abf",
+      "size": [
+        1155,
+        1583
+      ]
+    },
+    {
+      "file": "character-references/149987-1.png",
+      "sha256": "1b29d85b4f575e14c378e790f2f0c9a215d5ec7b6128f4442f944734131f3ed7",
+      "size": [
+        1181,
+        1557
+      ]
+    },
+    {
+      "file": "character-references/119992-1.png",
+      "sha256": "d6482e35e05a0ea6334a946af73b0bac931e7c5a6f781b92751d0bdb861ad490",
+      "size": [
+        1154,
+        1593
+      ]
+    },
+    {
+      "file": "animation-title.png",
+      "sha256": "cb78abe4467343635ec19f31eddb025a822d862ca91e288ef34583b94f72049a",
+      "size": [
+        2172,
+        724
+      ]
+    }
+  ],
+  "assets": [
+    {
+      "root": "common",
+      "logical": "master/gacha/gacha.orderedmap",
+      "member": "production/upload/15/83d96aad4b9a46d19d19b6555d3f4232b29e25",
+      "sha256": "b91a36af2808feb6cab03ead0ddfbc050c3b27b637c0eb2cc4d6ed5589c87e9f"
+    },
+    {
+      "root": "common",
+      "logical": "dynamic/gacha_banner/cnmod_midautumn_national_2026.png",
+      "member": "production/upload/28/31d8ef6f9805e5edcb3d191cf77716a7f72454",
+      "sha256": "4ba81f58659fe52a05cc2c1ff92f22c2c2fee9a5c175b83f56d9d1de3fc178a8"
+    },
+    {
+      "root": "common",
+      "logical": "gacha/feature_movie/cnmod_midautumn_national_2026/top/sprite_sheet.png",
+      "member": "production/upload/3c/3047ca7805de26f7bbd9d55fdad5b9cbef939b",
+      "sha256": "2ecba483773c76ff6db3a1f224011510bb5cea3d6a5698af7c20d7c9e6726706"
+    },
+    {
+      "root": "common",
+      "logical": "master/gacha_odds/cnmod_midautumn_national_2026_rarity.orderedmap",
+      "member": "production/upload/42/65142b1a7bea40010f383e0b4328dd0a8fc66b",
+      "sha256": "fa8f2f58c58b3be30202b51f0fc9efa066b7f3a0020192a7e0d48ded077e73fc"
+    },
+    {
+      "root": "common",
+      "logical": "rich_text/cnmod_midautumn_national_2026_note.html.deflate",
+      "member": "production/upload/53/12c3e9d3d48469cd1c4f1a1f9af9c6cf24310d",
+      "sha256": "66ef4c1341f23b5fe5280eae1f9fc9e11b4163af5eac10250703b046e496f8b2"
+    },
+    {
+      "root": "common",
+      "logical": "item/sprite_sheet.png",
+      "member": "production/upload/6d/4d576b424178c5b2b253a2dd5aa3d78fa74ef3",
+      "sha256": "01bc8a955ecd2455346de61adabbdf101669d7ec76d22916b887e23ba6ca482d"
+    },
+    {
+      "root": "common",
+      "logical": "master/rich_text/rich_text_html.orderedmap",
+      "member": "production/upload/72/2a8a0dbb6bb1386faa4d29bcdf0064c64bc03e",
+      "sha256": "26cdef1fd583112ed89b7efd5d68a163cf6a8b20618318d311f4bdbdb889bf94"
+    },
+    {
+      "root": "common",
+      "logical": "item/spends/tickets/midautumn_mooncake_ten_ticket.png",
+      "member": "production/upload/77/ddc5632fbc174c626de5ec665cd57d01eb474c",
+      "sha256": "8457a8a334c8c860bb92ec6bfac41af87f7182f67484b4ce6c21f8e859239272"
+    },
+    {
+      "root": "common",
+      "logical": "gacha/feature_movie/cnmod_midautumn_national_2026/top/feature.timeline.amf3.deflate",
+      "member": "production/upload/78/33d63da07cac42cd0ae6e119574c9872c92740",
+      "sha256": "9e8d77c9d5bbeb0761cbc6467d52d0d9e1e014bf838a11e2d58f76363d412c7f"
+    },
+    {
+      "root": "common",
+      "logical": "item/sprite_sheet.atlas.amf3.deflate",
+      "member": "production/upload/7b/5e0efc0e0691038ca52fe282501dfd3a1b5ae3",
+      "sha256": "f2fbc4c24bdabbcdb1dde0f63fe024631918d8d18154bcd6a20ae6622a81e14a"
+    },
+    {
+      "root": "common",
+      "logical": "master/gacha_odds/cnmod_midautumn_national_2026_character_3.orderedmap",
+      "member": "production/upload/7e/d47d84c6648dd1d8e288ac16a1cf205b2bb7fd",
+      "sha256": "390a7f1854754f8781e1482950a7000791a88d71ca31af019d429c2f60031278"
+    },
+    {
+      "root": "common",
+      "logical": "master/gacha_odds/cnmod_midautumn_national_2026_character_4.orderedmap",
+      "member": "production/upload/8c/464ddab6453211f9ac4165ede4dbe59fae7e13",
+      "sha256": "d92e908d78cf9334d8232d612eeb669bbebe63e63a32a925217d8f2afa4404d3"
+    },
+    {
+      "root": "common",
+      "logical": "master/item/item.orderedmap",
+      "member": "production/upload/a4/731a843d4dc0c84120bf8c88784c1e74c03baa",
+      "sha256": "17eac1b0009dcd7c2739db7d75072f20d945c8d807c13b78df7a310a04cff560"
+    },
+    {
+      "root": "common",
+      "logical": "dynamic/gacha_list_banner/cnmod_midautumn_national_2026.png",
+      "member": "production/upload/b3/3f5084d979a37aabcdc54da2c25b30bf587661",
+      "sha256": "c9ffc1fa3aa6e3e271076acd15dce682e9991cf8bccf82aa9fe52726aaddf9b0"
+    },
+    {
+      "root": "common",
+      "logical": "gacha/feature_movie/cnmod_midautumn_national_2026/top/sprite_sheet.atlas.amf3.deflate",
+      "member": "production/upload/c0/21ef6589f76979a13f9832d91d49d3178436b3",
+      "sha256": "f9049ea417edb118c2c05dd0d1920247871fada0f6b81b7d2bc85dbb30156907"
+    },
+    {
+      "root": "common",
+      "logical": "gacha/feature_movie/cnmod_midautumn_national_2026/top/feature.movie.amf3.deflate",
+      "member": "production/upload/c6/b890b1d0ca570658830e8f6b995d313d0a3e66",
+      "sha256": "a9e24df76e29b7ee906ca90a68eaf0e1f4d76830638fcd7af02084d5f3cf9ef7"
+    },
+    {
+      "root": "common",
+      "logical": "master/gacha/gacha_feature_content.orderedmap",
+      "member": "production/upload/c8/79a1b712ae753afb0b5e796737fd141c8fa0ea",
+      "sha256": "2740a2a16c3e6fc09acf8b2651e4d381c33faf2d995e3808b1d70c8c526b237b"
+    },
+    {
+      "root": "common",
+      "logical": "master/gacha_odds/cnmod_midautumn_national_2026_character_5.orderedmap",
+      "member": "production/upload/fa/edf7d82340cf455a68a54bc49f393b1c3eed2c",
+      "sha256": "2be18dcefa615bf1f228b33333bc76a1e1fa861422ca00631432a1b104cbb5bf"
+    },
+    {
+      "root": "medium",
+      "logical": "dynamic/gacha_banner/cnmod_midautumn_national_2026.png",
+      "member": "production/medium_upload/28/31d8ef6f9805e5edcb3d191cf77716a7f72454",
+      "sha256": "f2b82df09e03654c0dc95c26ae2b1ab6a67d26e60264e630eec1c5e4a0636846"
+    }
+  ],
+  "server_preimages": {
+    "assets/gacha_midautumn_2026.json": null,
+    "assets/cdndata/gacha.json": "ec24dc972e16009c9990a99cdb8322d74e12ade464071e717ad9836899aa1879",
+    "assets/cdndata/gacha_feature_content.json": "60d119ae6252d24913f04753816351f63e9be830340f69288cdb3e20d8e72ef2",
+    "assets/item_ids.json": "6cdced1b17c56844cfe8a4c3faad7708af3fb020e0744a42a31545e015f81c44",
+    "assets/asset-patch/manifest.json": "d1beccf82da187964213f1046ac928a9489be333c2f1f999ccbcf7665bc94bf5"
+  },
+  "status": "offline candidate; device and runtime deployment not performed",
+  "save_impact": "Existing portable players_items and players_gacha_info tables; no schema change. Acquisition shop deferred; no source navigation invented."
+}

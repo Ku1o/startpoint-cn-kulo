@@ -1,0 +1,239 @@
+{
+  "status": "validated_offline",
+  "base": "1.4.120",
+  "version": "1.4.121",
+  "character_id": 159991,
+  "archive": {
+    "name": "pinball-1.4.120-1.4.121-1-inaho-state-native-text.zip",
+    "size": 752015,
+    "sha256": "f68d84ecf8498c702dae985e8f562b44889a8341d15aab67a858f59bee2572b7",
+    "members": 7
+  },
+  "resources": [
+    {
+      "root": "upload",
+      "logical": "battle/action/skill/action/rare5/cnmod_inaho_midautumn$cnmod_inaho_midautumn_1.action.dsl.amf3.deflate",
+      "member": "production/upload/d4/56921a8569385d652e623c3a2da29c3d52f6d7",
+      "size": 1246,
+      "sha256": "22a566c867b96856fa3e52c9552d97c23c9df39769cefa0a5dcf2600400f0af3",
+      "before_sha256": "3a6ecf23412617b467c3598c1bd8ae28e9751cea71e1a7bf8e111408230f6e47"
+    },
+    {
+      "root": "upload",
+      "logical": "battle/action/skill/action/rare5/cnmod_inaho_midautumn$cnmod_inaho_midautumn_2.action.dsl.amf3.deflate",
+      "member": "production/upload/08/33e4ac8cb7970141f0766e3e9e451b68c2714a",
+      "size": 1246,
+      "sha256": "22a566c867b96856fa3e52c9552d97c23c9df39769cefa0a5dcf2600400f0af3",
+      "before_sha256": "3a6ecf23412617b467c3598c1bd8ae28e9751cea71e1a7bf8e111408230f6e47"
+    },
+    {
+      "root": "upload",
+      "logical": "master/ability/ability.orderedmap",
+      "member": "production/upload/1e/664c1cc8d80f4f9a69aae2c49ae8c01d1c4001",
+      "size": 377019,
+      "sha256": "5dff69dcded855a6064737ee83427c923e8c9a7cf65414e5b40edd700a0c33e2",
+      "before_sha256": "63ebbfde7acfa0b3bc5f6d211fac6a6a8d09fb3e916f8a968b55a6daa52ca839",
+      "changed_keys": [
+        "1599911",
+        "1599912",
+        "1599913"
+      ],
+      "removed_keys": []
+    },
+    {
+      "root": "upload",
+      "logical": "master/character/unique_condition.orderedmap",
+      "member": "production/upload/30/cbcd99de1aa6e8d245221619b393721df551b4",
+      "size": 13696,
+      "sha256": "7488599dc043ba4dfe9aa65bad4b590aa84dd95d61cb9c64ef2342938aa052b3",
+      "before_sha256": "4348d01bd2334419453ba002f5e8eca81bba3685d87bb8f72d28e5bab983a06a",
+      "changed_keys": [
+        "15999101"
+      ],
+      "removed_keys": []
+    },
+    {
+      "root": "upload",
+      "logical": "master/string/custom_ability_string.orderedmap",
+      "member": "production/upload/07/0c6e214359ccf27b1cb8078d3fc51aecfe0149",
+      "size": 48459,
+      "sha256": "82f49381d788024ef9da91d1f7a2e57c46d767e8d623cd940948a919f97bb309",
+      "before_sha256": "1208a4b45082fc21f2e006906384fbf58a30a26866d4071b4112c49423323cdd",
+      "changed_keys": [
+        "cnmod_inaho_midautumn_enhance_buffs",
+        "cnmod_inaho_midautumn_enhance_skill",
+        "cnmod_inaho_midautumn_powerflip"
+      ],
+      "removed_keys": [
+        "desc_override_cnmod_inaho_midautumn",
+        "desc_override_cnmod_inaho_midautumn_1",
+        "desc_override_cnmod_inaho_midautumn_2",
+        "desc_override_cnmod_inaho_midautumn_3",
+        "desc_override_cnmod_inaho_midautumn_4",
+        "desc_override_cnmod_inaho_midautumn_5",
+        "desc_override_cnmod_inaho_midautumn_6"
+      ]
+    },
+    {
+      "root": "upload",
+      "logical": "master/character/character_text.orderedmap",
+      "member": "production/upload/8b/035728b2151de044fb245988ec5f33ebb544ab",
+      "size": 214354,
+      "sha256": "e01b0316bc37131663fc4bee9164c49f1f9d60c298c42b8b722d652918507151",
+      "before_sha256": "6738afe193d389526b444b544bd0c6d5174d9e9b4ee2f36e97c01da7de602646",
+      "changed_keys": [
+        "159991"
+      ],
+      "removed_keys": []
+    },
+    {
+      "root": "upload",
+      "logical": "master/skill/action_skill.orderedmap",
+      "member": "production/upload/91/79892d704f88d98191c00548bce106402ad5b5",
+      "size": 355561,
+      "sha256": "4fb94e8ab9df7e7eaf2e3cdb56e47e7f1019f76a57e051aa1a208ccfd6f3a71b",
+      "before_sha256": "539ce34bbc46abd1cf1ae2e39e9e7feaad4df709e7111a98f31a835f2c16b538",
+      "changed_keys": [
+        "cnmod_inaho_midautumn"
+      ],
+      "removed_keys": []
+    }
+  ],
+  "server_assets": [
+    {
+      "path": "assets/cdndata/character_text.json",
+      "before_sha256": "f8682432d6af213639592467be711d25886e6d4c361ae80fb01bf67e897e723e",
+      "sha256": "9ecfe0b9266afe308e269376898ece5b354389a71fff8be64e4079de5f87f4f0"
+    }
+  ],
+  "native_script_checks": [
+    {
+      "kind": "skill1",
+      "native_types_and_subjects": true,
+      "visuals_and_damage_unchanged": true,
+      "patched": true
+    },
+    {
+      "kind": "skill2",
+      "native_types_and_subjects": true,
+      "visuals_and_damage_unchanged": true,
+      "patched": true
+    },
+    {
+      "kind": "pf1",
+      "native_types_and_subjects": true,
+      "visuals_and_damage_unchanged": true,
+      "patched": false
+    },
+    {
+      "kind": "pf2",
+      "native_types_and_subjects": true,
+      "visuals_and_damage_unchanged": true,
+      "patched": false
+    },
+    {
+      "kind": "pf3",
+      "native_types_and_subjects": true,
+      "visuals_and_damage_unchanged": true,
+      "patched": false
+    }
+  ],
+  "table_checks": [
+    {
+      "table": "master/ability/ability.orderedmap",
+      "changed_keys": [
+        "1599911",
+        "1599912",
+        "1599913"
+      ],
+      "removed_keys": [],
+      "unrelated_rows_byte_identical": true
+    },
+    {
+      "table": "master/character/unique_condition.orderedmap",
+      "changed_keys": [
+        "15999101"
+      ],
+      "removed_keys": [],
+      "unrelated_rows_byte_identical": true
+    },
+    {
+      "table": "master/string/custom_ability_string.orderedmap",
+      "changed_keys": [
+        "cnmod_inaho_midautumn_enhance_buffs",
+        "cnmod_inaho_midautumn_enhance_skill",
+        "cnmod_inaho_midautumn_powerflip"
+      ],
+      "removed_keys": [
+        "desc_override_cnmod_inaho_midautumn",
+        "desc_override_cnmod_inaho_midautumn_1",
+        "desc_override_cnmod_inaho_midautumn_2",
+        "desc_override_cnmod_inaho_midautumn_3",
+        "desc_override_cnmod_inaho_midautumn_4",
+        "desc_override_cnmod_inaho_midautumn_5",
+        "desc_override_cnmod_inaho_midautumn_6"
+      ],
+      "unrelated_rows_byte_identical": true
+    },
+    {
+      "table": "master/character/character_text.orderedmap",
+      "changed_keys": [
+        "159991"
+      ],
+      "removed_keys": [],
+      "unrelated_rows_byte_identical": true
+    },
+    {
+      "table": "master/skill/action_skill.orderedmap",
+      "changed_keys": [
+        "cnmod_inaho_midautumn"
+      ],
+      "removed_keys": [],
+      "unrelated_rows_byte_identical": true
+    }
+  ],
+  "semantic_regressions": {
+    "native_source_contracts": true,
+    "old_infinite_hidden_state_failure_reproduced": true,
+    "timer_refresh_and_coffin_scenarios": 24,
+    "dash_visible_marker_linked": true,
+    "main_unison_equivalence": true,
+    "ordinary_duration_bonus_unchanged": true,
+    "no_periodic_reapplication_or_regeneration_clock_reset": true,
+    "kind": "offline native-semantics model; not device execution"
+  },
+  "client_swf_sha256": "a0c6408006e5eefef5664c27e5b1fea3673c7107596e798a7f0e45136d65488b",
+  "save_impact": "none; existing IDs, progression and persistence unchanged",
+  "device_tested": false,
+  "server_source_changes": false,
+  "state_contract": {
+    "moon_frames": 1200,
+    "dash_frames": 480,
+    "visible_statuses": [
+      "月满丰穰",
+      "月行"
+    ],
+    "special_states_duration_extension": false,
+    "ordinary_buff_extension": 0.15,
+    "infinite_hidden_payload_removed": true,
+    "hidden_state_queries_removed": true,
+    "periodic_polling_removed": true
+  },
+  "descriptions": {
+    "native_ability_renderer_restored": true,
+    "removed_override_keys": [
+      "desc_override_cnmod_inaho_midautumn",
+      "desc_override_cnmod_inaho_midautumn_1",
+      "desc_override_cnmod_inaho_midautumn_2",
+      "desc_override_cnmod_inaho_midautumn_3",
+      "desc_override_cnmod_inaho_midautumn_4",
+      "desc_override_cnmod_inaho_midautumn_5",
+      "desc_override_cnmod_inaho_midautumn_6"
+    ],
+    "redundant_main_preconditions_removed": 18,
+    "numerical_ability_effects_unchanged": true
+  },
+  "known_limitations": [
+    "Device combat and layout acceptance pending; queued impact boundaries can differ by one simulation frame."
+  ]
+}

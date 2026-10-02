@@ -1,0 +1,9 @@
+{
+  "rejected": [
+    "eternal_payload",
+    "hidden_dash",
+    "missing_refresh_cancel",
+    "short_deadline"
+  ],
+  "passed": true
+}
