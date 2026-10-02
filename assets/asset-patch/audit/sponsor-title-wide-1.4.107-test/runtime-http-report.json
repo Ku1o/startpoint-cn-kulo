@@ -1,7 +1,7 @@
 {
   "status": "http_verified",
   "version": "1.4.107",
-  "archive_url": "http://<LAN_HOST>/patch/cn/asset-patch/active/pinball-1.4.106-1.4.107-1-sponsor-title-wide-test.zip",
+  "archive_url": "http://LOCAL_RUNTIME_HOST:8001/patch/cn/asset-patch/active/pinball-1.4.106-1.4.107-1-sponsor-title-wide-test.zip",
   "archive_size": 34501,
   "archive_sha256": "25598d1475baa39c98f66493b0c224cca73e7f1199c14e57d6633da6cf7e2c8b",
   "update_checks": [
@@ -21,7 +21,7 @@
           "version": "1.4.106",
           "archive": [
             {
-              "location": "http://<LAN_HOST>/patch/cn/asset-patch/active/pinball-1.4.105-1.4.106-1-abyss-standard-links-test.zip",
+              "location": "http://LOCAL_RUNTIME_HOST:8001/patch/cn/asset-patch/active/pinball-1.4.105-1.4.106-1-abyss-standard-links-test.zip",
               "size": 230640,
               "sha256": ""
             }
@@ -32,7 +32,7 @@
           "version": "1.4.107",
           "archive": [
             {
-              "location": "http://<LAN_HOST>/patch/cn/asset-patch/active/pinball-1.4.106-1.4.107-1-sponsor-title-wide-test.zip",
+              "location": "http://LOCAL_RUNTIME_HOST:8001/patch/cn/asset-patch/active/pinball-1.4.106-1.4.107-1-sponsor-title-wide-test.zip",
               "size": 34501,
               "sha256": ""
             }
@@ -56,7 +56,7 @@
           "version": "1.4.107",
           "archive": [
             {
-              "location": "http://<LAN_HOST>/patch/cn/asset-patch/active/pinball-1.4.106-1.4.107-1-sponsor-title-wide-test.zip",
+              "location": "http://LOCAL_RUNTIME_HOST:8001/patch/cn/asset-patch/active/pinball-1.4.106-1.4.107-1-sponsor-title-wide-test.zip",
               "size": 34501,
               "sha256": ""
             }
@@ -92,7 +92,7 @@
           "version": "1.4.106",
           "archive": [
             {
-              "location": "http://<LAN_HOST>/patch/cn/asset-patch/active/pinball-1.4.105-1.4.106-1-abyss-standard-links-test.zip",
+              "location": "http://LOCAL_RUNTIME_HOST:8001/patch/cn/asset-patch/active/pinball-1.4.105-1.4.106-1-abyss-standard-links-test.zip",
               "size": 230640,
               "sha256": ""
             }
@@ -103,7 +103,7 @@
           "version": "1.4.107",
           "archive": [
             {
-              "location": "http://<LAN_HOST>/patch/cn/asset-patch/active/pinball-1.4.106-1.4.107-1-sponsor-title-wide-test.zip",
+              "location": "http://LOCAL_RUNTIME_HOST:8001/patch/cn/asset-patch/active/pinball-1.4.106-1.4.107-1-sponsor-title-wide-test.zip",
               "size": 34501,
               "sha256": ""
             }
@@ -127,7 +127,7 @@
           "version": "1.4.107",
           "archive": [
             {
-              "location": "http://<LAN_HOST>/patch/cn/asset-patch/active/pinball-1.4.106-1.4.107-1-sponsor-title-wide-test.zip",
+              "location": "http://LOCAL_RUNTIME_HOST:8001/patch/cn/asset-patch/active/pinball-1.4.106-1.4.107-1-sponsor-title-wide-test.zip",
               "size": 34501,
               "sha256": ""
             }

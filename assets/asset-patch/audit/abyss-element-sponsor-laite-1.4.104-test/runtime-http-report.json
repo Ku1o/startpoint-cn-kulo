@@ -2,7 +2,7 @@
   "status": "runtime_http_verified",
   "target_version": "1.4.104",
   "archive": {
-    "location": "http://<LAN_HOST>/patch/cn/asset-patch/active/pinball-1.4.103-1.4.104-1-abyss-element-sponsor-laite-test.zip",
+    "location": "http://LOCAL_RUNTIME_HOST:8001/patch/cn/asset-patch/active/pinball-1.4.103-1.4.104-1-abyss-element-sponsor-laite-test.zip",
     "size": 3778769,
     "sha256": ""
   },

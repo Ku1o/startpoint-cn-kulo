@@ -1,7 +1,7 @@
 {
   "status": "runtime_http_verified",
   "version": "1.4.106",
-  "advertised_archive_url": "http://<LAN_HOST>/patch/cn/asset-patch/active/pinball-1.4.105-1.4.106-1-abyss-standard-links-test.zip",
+  "advertised_archive_url": "http://LOCAL_RUNTIME_HOST:8001/patch/cn/asset-patch/active/pinball-1.4.105-1.4.106-1-abyss-standard-links-test.zip",
   "archive_sha256": "3bcf6c1c032db6d49ae837ba42c67e751e3d9f5c39c94552786db63ea6067ecf",
   "archive_bytes": 230640,
   "update_checks": [
@@ -21,7 +21,7 @@
           "version": "1.4.105",
           "archive": [
             {
-              "location": "http://<LAN_HOST>/patch/cn/asset-patch/active/pinball-1.4.104-1.4.105-1-abyss-pre-action-empty-test.zip",
+              "location": "http://LOCAL_RUNTIME_HOST:8001/patch/cn/asset-patch/active/pinball-1.4.104-1.4.105-1-abyss-pre-action-empty-test.zip",
               "size": 279544,
               "sha256": ""
             }
@@ -32,7 +32,7 @@
           "version": "1.4.106",
           "archive": [
             {
-              "location": "http://<LAN_HOST>/patch/cn/asset-patch/active/pinball-1.4.105-1.4.106-1-abyss-standard-links-test.zip",
+              "location": "http://LOCAL_RUNTIME_HOST:8001/patch/cn/asset-patch/active/pinball-1.4.105-1.4.106-1-abyss-standard-links-test.zip",
               "size": 230640,
               "sha256": ""
             }
@@ -56,7 +56,7 @@
           "version": "1.4.106",
           "archive": [
             {
-              "location": "http://<LAN_HOST>/patch/cn/asset-patch/active/pinball-1.4.105-1.4.106-1-abyss-standard-links-test.zip",
+              "location": "http://LOCAL_RUNTIME_HOST:8001/patch/cn/asset-patch/active/pinball-1.4.105-1.4.106-1-abyss-standard-links-test.zip",
               "size": 230640,
               "sha256": ""
             }
@@ -92,7 +92,7 @@
           "version": "1.4.105",
           "archive": [
             {
-              "location": "http://<LAN_HOST>/patch/cn/asset-patch/active/pinball-1.4.104-1.4.105-1-abyss-pre-action-empty-test.zip",
+              "location": "http://LOCAL_RUNTIME_HOST:8001/patch/cn/asset-patch/active/pinball-1.4.104-1.4.105-1-abyss-pre-action-empty-test.zip",
               "size": 279544,
               "sha256": ""
             }
@@ -103,7 +103,7 @@
           "version": "1.4.106",
           "archive": [
             {
-              "location": "http://<LAN_HOST>/patch/cn/asset-patch/active/pinball-1.4.105-1.4.106-1-abyss-standard-links-test.zip",
+              "location": "http://LOCAL_RUNTIME_HOST:8001/patch/cn/asset-patch/active/pinball-1.4.105-1.4.106-1-abyss-standard-links-test.zip",
               "size": 230640,
               "sha256": ""
             }
@@ -127,7 +127,7 @@
           "version": "1.4.106",
           "archive": [
             {
-              "location": "http://<LAN_HOST>/patch/cn/asset-patch/active/pinball-1.4.105-1.4.106-1-abyss-standard-links-test.zip",
+              "location": "http://LOCAL_RUNTIME_HOST:8001/patch/cn/asset-patch/active/pinball-1.4.105-1.4.106-1-abyss-standard-links-test.zip",
               "size": 230640,
               "sha256": ""
             }

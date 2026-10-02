@@ -1,6 +1,6 @@
 {
   "status": "passed",
-  "server": "<LAN_HOST>",
+  "server": "LOCAL_RUNTIME_HOST:8001",
   "version": "1.4.111",
   "real_http_checks": [
     {

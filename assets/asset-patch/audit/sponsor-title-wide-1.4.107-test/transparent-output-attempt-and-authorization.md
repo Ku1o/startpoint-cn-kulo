@@ -2,7 +2,7 @@
 
 已选构图由内置 image_gen 生成，提示词见 `approved-preview-prompt.md`。本任务再次请求内置工具提供 alpha，但输出为 RGB，含可见棋盘格，因此弃用该结果，未放入正式图或增量包。
 
-弃用文件：`<USER_HOME>/.codex/generated_images/01a08662-dc5d-7360-bf14-fd3e253f838d/exec-c928f889-bb48-4dd1-8da2-9d58b6dd3fc8.png`。
+弃用文件：`work/generated_images/01a08662-dc5d-7360-bf14-fd3e253f838d/exec-c928f889-bb48-4dd1-8da2-9d58b6dd3fc8.png`。
 
 用户随后明确回复：**允许本地脚本处理，保留已选构图（推荐）**。最终输入重新选择用户批准的白底宽版（SHA-256 `91af3cc31e0cccdcfc50d3c11f660f5c1700c0aeaf1c2d1520da4beba63bbf29`），未采用弃用图片。
 
