@@ -1,26 +1,26 @@
 {
   "schema_version": 6,
-  "status": "accepted_offline",
-  "accepted_on": "2026-10-01",
+  "status": "user_accepted",
+  "accepted_on": "2026-10-02",
   "acceptance": {
-    "result": "accepted_offline",
-    "scope": "offline_artifact_lineage_and_public_admission",
-    "audit": "client-patch/ACCEPTANCE-AUTHOR-EQUIPMENT-20261001.md",
+    "result": "user_accepted",
+    "scope": "ios_real_device_acceptance_and_offline_artifact_lineage",
+    "audit": "client-patch/ACCEPTANCE-AUTHOR-EQUIPMENT-F1009-20261002.md",
     "device_tested_by_codex": false,
-    "per_feature_device_results": "not_device_tested; native/SWF and admission identity statically verified",
+    "per_feature_device_results": "user_confirmed_real_device_acceptance; codex_device_tested=false",
     "build_reports_are_immutable": true,
     "public_admission_http_verified": true,
-    "local_acceptance_report": "F:\\codex\\outputs\\author-equipment-ios-public-20261001\\ios\\ios-verification-report.json",
+    "local_acceptance_report": "F:\\codex\\outputs\\ios-equipment-f1009-fix-20261002\\ios\\ios-verification-report.json",
     "user_confirmed_artifacts": true
   },
   "artifact": {
-    "ipa": "F:\\codex\\outputs\\author-equipment-ios-public-20261001\\ios\\StarPoint-iOS-1.8.4-author-equipment-public-20261001-unsigned.ipa",
-    "ipa_sha256": "1ebe19e1d70dee51f1d6933d2c93cecca7380df4b5504cdf0019addb3e0fd850",
-    "size_bytes": 165073201,
+    "ipa": "F:\\codex\\outputs\\ios-equipment-f1009-fix-20261002\\ios\\StarPoint-iOS-1.8.4-author-equipment-standalone-20261002-unsigned.ipa",
+    "ipa_sha256": "4ce93ffe967331b088032fa4d3e169c7d58b2c1cef4b10cf727e28906811bf40",
+    "size_bytes": 165067215,
     "native_member": "Payload/worldflipper.app/worldflipper",
-    "native_sha256": "183636a9c9241f8cf085208c652daac1576cd212c75f7756f959fe0a32b26abf",
+    "native_sha256": "1a427b648fc62297effb0dbc9982611b7f0e6e9d0e0623d46cebdbe72872b1dc",
     "swf_member": "Payload/worldflipper.app/worldflipper_ios_release.swf",
-    "swf_sha256": "62c569f526e801ddf350140c78089049fd4b4c7f00cca0d1e7b28309f5ef228c",
+    "swf_sha256": "7e7e3642f19d59b3471bd6b09f344cf83b097924bc7a4bd094780deb7b793e72",
     "bundle_id": "com.kulo.wf",
     "version": "1.8.4",
     "build": "1.8.46",
@@ -28,16 +28,18 @@
     "profile_debug_overlay": false,
     "title_cntips_b_unchanged": true,
     "endpoint_policy": "初始 API 与版本查询均使用 http://175.178.160.158 公网地址",
-    "full_abc": "F:\\codex\\work\\author-equipment-ios-public-20261001\\equipment-ios-full.abc",
-    "full_abc_sha256": "efc8e337f0bd74df73d847f1b8dc8e2533bd1d9181d6a6214627cc48298aad04",
-    "full_abc_sha1": "e779c681937fe9d386e759e758e1670fe5208cfb",
+    "full_abc": "F:\\codex\\work\\f1009-fullfix\\equipment-ios-full.abc",
+    "full_abc_sha256": "83149cffbef675fb0661a3072725473e4c49817c645bc069516124dc094b1097",
+    "full_abc_sha1": "c6709644d46642a7b4444e68fd372b8679c6c34d",
     "aot_info_file_offset": 104549248,
-    "aot_method_count": 101464,
+    "aot_method_count": 101458,
     "build_id": "ios-184-author-1047-public-20261001",
     "diagnostic_export": false,
-    "accepted_on": "2026-10-01",
-    "acceptance_audit": "client-patch/ACCEPTANCE-AUTHOR-EQUIPMENT-20261001.md",
-    "static_verification_report": "F:\\codex\\outputs\\author-equipment-ios-public-20261001\\ios-verification-report.json"
+    "accepted_on": "2026-10-02",
+    "acceptance_audit": "client-patch/ACCEPTANCE-AUTHOR-EQUIPMENT-F1009-20261002.md",
+    "static_verification_report": "F:\\codex\\outputs\\ios-equipment-f1009-fix-20261002\\ios\\ios-verification-report.json",
+    "acceptance_status": "user_accepted",
+    "device_acceptance": "user_confirmed_real_device; codex_device_tested=false"
   },
   "lineage": {
     "previous_accepted_ipa_sha256": "123fdafd38caff60b64bebf4bd2d7dc8f73a48de2e08ba5f99f8d9a79a20d769",
@@ -91,9 +93,9 @@
       "杰拉尔 6 条、特克托 3 条、斩铁 4 条满槽语音轮换、战斗预加载与详情试听",
       "作者机制公网正式准入号与 HMAC 前缀配对，保留旧独立编队正式号兼容",
       "1.4.1047 回槽特效性能修复：iOS 已有编译 hook 加入施技前拦截和能力伤害总计筛选。",
-      "作者装备规则 iOS 端口：14 个既有方法、6 个 BattleCharacterLogic 辅助方法和 2 个闭包，AOT 方法表新增 28 个入口；保留既有方法布局并对 activation 不同的方法使用重定向。"
+      "作者装备规则 iOS F1009 修复：修正 AuthorState 静态 helper 调用 ABI，保留装备规则、原生 BattleCharacterLogic 布局和预加载桥；AOT 方法表新增 22 个入口，已完成 iOS 实机验收。"
     ],
-    "method_archive": "作者装备规则 iOS 端口接续已验收的 startup-download r2 载体；完整 ABC/AOT 方法表 101464 项。",
+    "method_archive": "作者装备规则 iOS F1009 修复接续 startup-download r2 iOS 载体；完整 ABC/AOT 方法表 101458 项。",
     "intermediate_candidates": [
       {
         "name": "cumulative_initial",
@@ -189,40 +191,50 @@
     "author_equipment_ios": {
       "source_ipa_sha256": "123fdafd38caff60b64bebf4bd2d7dc8f73a48de2e08ba5f99f8d9a79a20d769",
       "donor_swf_sha256": "2eebe2196d5cbe51388efda7ce50bb8eb050da4bcc22eab1a0af85bb680f8845",
-      "changed_existing_methods": 14,
-      "added_battle_character_helpers": 6,
-      "added_closures": 2,
-      "new_aot_methods": 28,
-      "activation_redirects": 1,
+      "changed_existing_methods": 13,
+      "added_battle_character_helpers": 8,
+      "added_closures": 1,
+      "new_aot_methods": 22,
+      "activation_redirects": 0,
       "source_entry": "client-patch/author-merge-20261001/ios/prepare_ios.py",
       "device_tested": false,
-      "cloud_deployed": false
+      "cloud_deployed": false,
+      "native_preload_bridge_method": 101444,
+      "native_resolve_method": 17701,
+      "user_device_accepted": true
+    },
+    "superseded_artifact": {
+      "ipa": "F:\\codex\\outputs\\ios-equipment-standalone-20261002\\ios\\StarPoint-iOS-1.8.4-author-equipment-standalone-20261002-unsigned.ipa",
+      "ipa_sha256": "710147c6fcef3cb46ac53d91c4b28203dc18591e3694b941434d04bda73a4f2b",
+      "status": "superseded_f1009_runtime_failure",
+      "superseded_by": "4ce93ffe967331b088032fa4d3e169c7d58b2c1cef4b10cf727e28906811bf40"
     }
   },
-  "local_build_report": "F:\\codex\\outputs\\author-equipment-ios-public-20261001\\ios\\ios-build-report.json",
+  "local_build_report": "F:\\codex\\outputs\\ios-equipment-f1009-fix-20261002\\ios\\ios-build-report.json",
   "local_acceptance_checks": {
-    "status": "author_equipment_port_static_verification_passed",
+    "status": "ios_equipment_f1009_fix_offline_verified",
     "device_tested": false,
     "user_confirmed_artifact": true,
     "only_native_and_swf_ipa_members_changed": true,
     "full_abc_identity_verified": true,
-    "runtime_full_abc_methods": 101464,
-    "aot_method_table_methods": 101464,
-    "new_aot_methods": 28,
-    "changed_existing_methods": 14,
-    "added_battle_character_helpers": 6,
-    "added_closures": 2,
+    "runtime_full_abc_methods": 101458,
+    "aot_method_table_methods": 101458,
+    "new_aot_methods": 22,
+    "changed_existing_methods": 13,
+    "added_battle_character_helpers": 8,
+    "added_closures": 1,
     "public_admission_id": "ios-184-author-1047-public-20261001",
     "previous_admission_id": "ios-184-author-1047-20260925",
     "old_ios_id_embedded": false,
     "origin": "http://175.178.160.158",
     "signed": false,
     "cloud_deployed": false,
-    "verification_report": "F:\\codex\\outputs\\author-equipment-ios-public-20261001\\ios\\ios-verification-report.json"
+    "verification_report": "F:\\codex\\outputs\\ios-equipment-f1009-fix-20261002\\ios\\ios-verification-report.json",
+    "user_device_accepted": true,
+    "old_admission_id_embedded": false
   },
   "excluded_diagnostic": {
     "status": "diagnostic_only_not_current_baseline",
     "reason": "诊断包不属于当前已验收基线。"
   }
 }
-
