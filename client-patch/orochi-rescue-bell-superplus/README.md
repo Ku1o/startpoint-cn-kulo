@@ -22,3 +22,5 @@ python client-patch/orochi-rescue-bell-superplus/build_embedded_layout.py `
 ## 校验
 
 脚本会回读 AMF3 结构，确认第 6 帧根节点段和“超/级/+”三段存在，验证内层目标资源 SHA-256，以及 `assets/bundle.zip.sha1` 与实际 bundle 的 SHA-1 一致。APK、SWF、签名材料和临时 bundle 不提交 Git。
+
+排查顺序、缓存失效原因、APK 与 CDN 的载体区别，以及公网/内网共用方法的经验记录见 [LESSONS.md](./LESSONS.md)。
