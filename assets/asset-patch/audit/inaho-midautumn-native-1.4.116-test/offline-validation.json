@@ -1,0 +1,364 @@
+{
+  "character_id": "159991",
+  "status": "offline native test candidate",
+  "device_tested": false,
+  "tables": [
+    {
+      "logical": "master/ability/ability.orderedmap",
+      "existing_rows_preserved": 3435,
+      "new_keys": [
+        "1599911",
+        "1599912",
+        "1599913",
+        "1599914",
+        "1599915",
+        "1599916"
+      ]
+    },
+    {
+      "logical": "master/ability/leader_ability.orderedmap",
+      "existing_rows_preserved": 573,
+      "new_keys": [
+        "159991"
+      ]
+    },
+    {
+      "logical": "master/character/character.orderedmap",
+      "existing_rows_preserved": 582,
+      "new_keys": [
+        "159991"
+      ]
+    },
+    {
+      "logical": "master/character/character_gacha_sound.orderedmap",
+      "existing_rows_preserved": 451,
+      "new_keys": [
+        "159991"
+      ]
+    },
+    {
+      "logical": "master/character/character_speech.orderedmap",
+      "existing_rows_preserved": 571,
+      "new_keys": [
+        "159991"
+      ]
+    },
+    {
+      "logical": "master/character/character_status.orderedmap",
+      "existing_rows_preserved": 582,
+      "new_keys": [
+        "159991"
+      ]
+    },
+    {
+      "logical": "master/character/character_text.orderedmap",
+      "existing_rows_preserved": 582,
+      "new_keys": [
+        "159991"
+      ]
+    },
+    {
+      "logical": "master/character/full_shot_image_attribute.orderedmap",
+      "existing_rows_preserved": 577,
+      "new_keys": [
+        "159991"
+      ]
+    },
+    {
+      "logical": "master/character/unique_condition.orderedmap",
+      "existing_rows_preserved": 113,
+      "new_keys": [
+        "15999100",
+        "15999101",
+        "15999102",
+        "15999103",
+        "15999104",
+        "15999105"
+      ]
+    },
+    {
+      "logical": "master/generated/character_image.orderedmap",
+      "existing_rows_preserved": 571,
+      "new_keys": [
+        "159991"
+      ]
+    },
+    {
+      "logical": "master/generated/mana_board.orderedmap",
+      "existing_rows_preserved": 571,
+      "new_keys": [
+        "159991"
+      ]
+    },
+    {
+      "logical": "master/mana_board/mana_board2_open_condition.orderedmap",
+      "existing_rows_preserved": 582,
+      "new_keys": [
+        "159991"
+      ]
+    },
+    {
+      "logical": "master/mana_board/mana_node.orderedmap",
+      "existing_rows_preserved": 572,
+      "new_keys": [
+        "159991"
+      ]
+    },
+    {
+      "logical": "master/mana_board/upskill.orderedmap",
+      "existing_rows_preserved": 418,
+      "new_keys": [
+        "159991"
+      ]
+    },
+    {
+      "logical": "master/skill/action_skill.orderedmap",
+      "existing_rows_preserved": 646,
+      "new_keys": [
+        "cnmod_inaho_midautumn"
+      ]
+    },
+    {
+      "logical": "master/skill/power_flip_action.orderedmap",
+      "existing_rows_preserved": 35,
+      "new_keys": [
+        "cnmod_inaho_midautumn"
+      ]
+    },
+    {
+      "logical": "master/skill_preview/skill_preview_character.orderedmap",
+      "existing_rows_preserved": 564,
+      "new_keys": [
+        "159991"
+      ]
+    },
+    {
+      "logical": "master/stance_detail/character_stance_detail.orderedmap",
+      "existing_rows_preserved": 566,
+      "new_keys": [
+        "159991"
+      ]
+    },
+    {
+      "logical": "master/string/custom_ability_string.orderedmap",
+      "existing_rows_preserved": 397,
+      "new_keys": [
+        "cnmod_inaho_midautumn_enhance_buffs",
+        "cnmod_inaho_midautumn_enhance_skill",
+        "cnmod_inaho_midautumn_powerflip"
+      ]
+    }
+  ],
+  "atlases": [
+    {
+      "path": "battle/effect/powerflip/inaho_midautumn_moonwake/inaho_midautumn_moonwake",
+      "size": [
+        96,
+        80
+      ],
+      "frames": 5
+    },
+    {
+      "path": "battle/effect/powerflip/inaho_midautumn_moonwake/moonwake",
+      "size": [
+        96,
+        80
+      ],
+      "frames": 5
+    },
+    {
+      "path": "battle/effect/skill_unique/cnmod_inaho_midautumn/midautumn_native/midautumn_native",
+      "size": [
+        128,
+        128
+      ],
+      "frames": 11
+    },
+    {
+      "path": "character/cnmod_inaho_midautumn/pixelart/special_sprite_sheet",
+      "size": [
+        255,
+        249
+      ],
+      "frames": 57
+    },
+    {
+      "path": "character/cnmod_inaho_midautumn/pixelart/sprite_sheet",
+      "size": [
+        158,
+        178
+      ],
+      "frames": 158
+    },
+    {
+      "path": "character/cnmod_inaho_midautumn/ui/illustration_setting_sprite_sheet",
+      "size": [
+        380,
+        838
+      ],
+      "frames": 2
+    }
+  ],
+  "animation_preloads": [
+    {
+      "layout": "battle/effect/powerflip/inaho_midautumn_moonwake/aura_lv1",
+      "native_sheet": "battle/effect/powerflip/inaho_midautumn_moonwake/inaho_midautumn_moonwake",
+      "all_textures_present": true
+    },
+    {
+      "layout": "battle/effect/powerflip/inaho_midautumn_moonwake/aura_lv2",
+      "native_sheet": "battle/effect/powerflip/inaho_midautumn_moonwake/inaho_midautumn_moonwake",
+      "all_textures_present": true
+    },
+    {
+      "layout": "battle/effect/powerflip/inaho_midautumn_moonwake/aura_lv3",
+      "native_sheet": "battle/effect/powerflip/inaho_midautumn_moonwake/inaho_midautumn_moonwake",
+      "all_textures_present": true
+    },
+    {
+      "layout": "battle/effect/powerflip/inaho_midautumn_moonwake/mote_lv1",
+      "native_sheet": "battle/effect/powerflip/inaho_midautumn_moonwake/inaho_midautumn_moonwake",
+      "all_textures_present": true
+    },
+    {
+      "layout": "battle/effect/powerflip/inaho_midautumn_moonwake/mote_lv2",
+      "native_sheet": "battle/effect/powerflip/inaho_midautumn_moonwake/inaho_midautumn_moonwake",
+      "all_textures_present": true
+    },
+    {
+      "layout": "battle/effect/powerflip/inaho_midautumn_moonwake/mote_lv3",
+      "native_sheet": "battle/effect/powerflip/inaho_midautumn_moonwake/inaho_midautumn_moonwake",
+      "all_textures_present": true
+    },
+    {
+      "layout": "battle/effect/skill_unique/cnmod_inaho_midautumn/midautumn_native/effect",
+      "native_sheet": "battle/effect/skill_unique/cnmod_inaho_midautumn/midautumn_native/midautumn_native",
+      "all_textures_present": true
+    },
+    {
+      "layout": "battle/effect/skill_unique/cnmod_inaho_midautumn/midautumn_native/full_field_moonwave",
+      "native_sheet": "battle/effect/skill_unique/cnmod_inaho_midautumn/midautumn_native/midautumn_native",
+      "all_textures_present": true
+    }
+  ],
+  "official_ability_assets": [
+    {
+      "path": "battle/effect/ability_damage/ability_damage_white/ability_damage_white.png",
+      "sha256": "752f09256933bbdf7ccd10b93807a9f7e427b509bd9828b3b1958059dfbdd9f1"
+    },
+    {
+      "path": "battle/effect/ability_damage/ability_damage_white/ability_damage_white.atlas.amf3.deflate",
+      "sha256": "73f5ead9dfeb85551a522d7934459031570f54362eabef446ce3499d753f45e7"
+    },
+    {
+      "path": "battle/effect/ability_damage/ability_damage_white/ability_damage_hit_white.parts.amf3.deflate",
+      "sha256": "24b92620e0826a2892d6026c091b25dbd991befa250bc0275669a648df454f80"
+    },
+    {
+      "path": "battle/effect/ability_damage/ability_damage_white/ability_damage_hit_white.timeline.amf3.deflate",
+      "sha256": "6be9627c45557efce6aed642b55d0bee00234d01fd62005f25412f88334a0b81"
+    },
+    {
+      "path": "battle/effect/ability_damage/ability_damage_white/ability_damage_player_white.parts.amf3.deflate",
+      "sha256": "b66fcbe81f26f56b71332deef8379026ad3f0461f1e928002ee846d15bab706f"
+    },
+    {
+      "path": "battle/effect/ability_damage/ability_damage_white/ability_damage_player_white.timeline.amf3.deflate",
+      "sha256": "699e7bc2f151d4ed9accaed70accaa0c1d2511b00c0118b2caf253153b4c3fdf"
+    },
+    {
+      "path": "battle/effect/ability_damage/ability_damage_white/ability_damage_shot_white.parts.amf3.deflate",
+      "sha256": "84a0f44b7b32b01560792930adda4cf8c406075165c27ef901738e0c053def11"
+    },
+    {
+      "path": "battle/effect/ability_damage/ability_damage_white/ability_damage_shot_white.timeline.amf3.deflate",
+      "sha256": "ed9d91f87f9c3e6c54d98aba31fc257ba10b0b102765df87a834ec0ad61456a2"
+    }
+  ],
+  "audio": [
+    {
+      "id": "T01",
+      "frames": 655,
+      "tail": 0,
+      "srates": [
+        44100
+      ],
+      "listening_approved": false
+    },
+    {
+      "id": "T04",
+      "frames": 600,
+      "tail": 0,
+      "srates": [
+        44100
+      ],
+      "listening_approved": false
+    },
+    {
+      "id": "H01",
+      "frames": 456,
+      "tail": 0,
+      "srates": [
+        44100
+      ],
+      "listening_approved": false
+    },
+    {
+      "id": "H02",
+      "frames": 398,
+      "tail": 0,
+      "srates": [
+        44100
+      ],
+      "listening_approved": false
+    },
+    {
+      "id": "H03",
+      "frames": 486,
+      "tail": 0,
+      "srates": [
+        44100
+      ],
+      "listening_approved": false
+    },
+    {
+      "id": "H04",
+      "frames": 303,
+      "tail": 0,
+      "srates": [
+        44100
+      ],
+      "listening_approved": false
+    },
+    {
+      "id": "H05",
+      "frames": 373,
+      "tail": 0,
+      "srates": [
+        44100
+      ],
+      "listening_approved": false
+    }
+  ],
+  "file_count": 107,
+  "payload_bytes": 20141761,
+  "save_validation": {
+    "passed": true,
+    "character_id": 159991,
+    "real_asset_accessors": true,
+    "v1_progress_preserved": true,
+    "v2_progress_preserved": true,
+    "target_account_preserved": true,
+    "pre_import_snapshot_created": true,
+    "schema_fingerprint_unchanged": true,
+    "foreign_key_check": [],
+    "scope": "isolated database; no HTTP route or live player mutation"
+  },
+  "runtime_gates": [
+    "cold load and actual animation playback",
+    "skill hit values and condition lifetime ordering",
+    "PF3 before first skill, repeated PF, expiration and wave transition",
+    "leader self-recursion guard and dash ability unlock behavior",
+    "new voice listening approval"
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "passed": true,
+  "server": "http://192.168.3.14:8001",
+  "version": "1.4.120",
+  "updates": [
+    {
+      "device": "android",
+      "from": "1.4.119",
+      "to": "1.4.120",
+      "update": true
+    },
+    {
+      "device": "android",
+      "from": "1.4.120",
+      "to": "1.4.120",
+      "update": false
+    },
+    {
+      "device": "ios",
+      "from": "1.4.119",
+      "to": "1.4.120",
+      "update": true
+    },
+    {
+      "device": "ios",
+      "from": "1.4.120",
+      "to": "1.4.120",
+      "update": false
+    }
+  ],
+  "archive_bytes": 570550,
+  "archive_sha256": "26de038cf4c74c438acb2d7500914a5b3f9729affb6eb5ecc7592bad624e5818",
+  "archive_members": 10,
+  "direct_resources_verified": 10,
+  "small_resources_verified_via_archive": 0,
+  "save_test_skipped": "art/text and removal of PF duration extension; no persistence or saved-ID changes",
+  "character_id": 159991,
+  "device_gameplay_tested": false
+}

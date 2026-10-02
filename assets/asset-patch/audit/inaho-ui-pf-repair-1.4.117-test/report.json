@@ -1,0 +1,604 @@
+{
+  "status": "repair_validated_offline",
+  "base": "1.4.116",
+  "version": "1.4.117",
+  "character_id": 159991,
+  "archive": {
+    "name": "pinball-1.4.116-1.4.117-1-inaho-ui-pf-repair.zip",
+    "size": 9548862,
+    "sha256": "f505c88b6a18815bb428846b07e4ddfee5748e05bc885ca0bd80dfa42b7e9940",
+    "members": 47
+  },
+  "resources": [
+    {
+      "root": "upload",
+      "logical": "battle/action/power_flip/action/override/cnmod_inaho_midautumn$cnmod_inaho_midautumn_lv3.action.dsl.amf3.deflate",
+      "member": "production/upload/84/c5f5297bf90884f513c5f61ed40fdb3e52fa59",
+      "size": 970,
+      "sha256": "cee9eb8aa40dd840d1760b8261d6b295557b2d8a22035f22f5a727b2f7df5744",
+      "before_sha256": "f5e8775191c775ec1db3661ecbfb40499575fce6859bf55613d97a6da1e1e3e9",
+      "changed_parameter": "ShowEffect p12 Option<SLvValue>; scale remains 9"
+    },
+    {
+      "root": "medium_upload",
+      "logical": "character/cnmod_inaho_midautumn/ui/battle_control_board_0.png",
+      "member": "production/medium_upload/7a/46a8bbf8b2f058d1f5cd4615a3a5ab871ee659",
+      "size": 74145,
+      "sha256": "6acadcbdc923805d4b1059e3c2c775b8c3e7e2aa32ef6a018a5a0ccaf526425d",
+      "dimensions": [
+        104,
+        268
+      ],
+      "original_pixels_preserved": true
+    },
+    {
+      "root": "small_upload",
+      "logical": "character/cnmod_inaho_midautumn/ui/battle_control_board_0.png",
+      "member": "production/small_upload/7a/46a8bbf8b2f058d1f5cd4615a3a5ab871ee659",
+      "size": 30782,
+      "sha256": "9e2081fc93f9aa3457345861fcc3b37ef04c991f6f816ef3fbd8e602f221619e",
+      "dimensions": [
+        73,
+        188
+      ],
+      "original_pixels_preserved": false
+    },
+    {
+      "root": "medium_upload",
+      "logical": "character/cnmod_inaho_midautumn/ui/battle_control_board_1.png",
+      "member": "production/medium_upload/5b/7327151b3b6b49d858571b0590610251c7e0b8",
+      "size": 71737,
+      "sha256": "23fcc2d2efb9fc213a863230ff089c34323db418b9442abee80e568c4db5ffcb",
+      "dimensions": [
+        104,
+        268
+      ],
+      "original_pixels_preserved": true
+    },
+    {
+      "root": "small_upload",
+      "logical": "character/cnmod_inaho_midautumn/ui/battle_control_board_1.png",
+      "member": "production/small_upload/5b/7327151b3b6b49d858571b0590610251c7e0b8",
+      "size": 29532,
+      "sha256": "e92b3094c6dd96507a0bd495f50815d4032722037bd47b06f07d43a2a4557c1f",
+      "dimensions": [
+        73,
+        188
+      ],
+      "original_pixels_preserved": false
+    },
+    {
+      "root": "medium_upload",
+      "logical": "character/cnmod_inaho_midautumn/ui/battle_member_status_0.png",
+      "member": "production/medium_upload/6c/078681c247585b9fba210787c1d863da11bd6d",
+      "size": 9817,
+      "sha256": "674561c71dccec70dc0b65c59b578c5342bec2a4fa48774cfc4dd2a9043e755b",
+      "dimensions": [
+        58,
+        58
+      ],
+      "original_pixels_preserved": true
+    },
+    {
+      "root": "small_upload",
+      "logical": "character/cnmod_inaho_midautumn/ui/battle_member_status_0.png",
+      "member": "production/small_upload/6c/078681c247585b9fba210787c1d863da11bd6d",
+      "size": 4930,
+      "sha256": "981ad39decf265260a600240c32530f30d975c3d64d348e7b5f2c45edcfd2040",
+      "dimensions": [
+        41,
+        41
+      ],
+      "original_pixels_preserved": false
+    },
+    {
+      "root": "medium_upload",
+      "logical": "character/cnmod_inaho_midautumn/ui/battle_member_status_1.png",
+      "member": "production/medium_upload/4d/6d046d2932ab0f8bece106928dab3cce30243c",
+      "size": 9528,
+      "sha256": "311e454b17003ac0476079dfa2a7ec2a4fd3ff4f14dbe39726bcc7e03ff69182",
+      "dimensions": [
+        58,
+        58
+      ],
+      "original_pixels_preserved": true
+    },
+    {
+      "root": "small_upload",
+      "logical": "character/cnmod_inaho_midautumn/ui/battle_member_status_1.png",
+      "member": "production/small_upload/4d/6d046d2932ab0f8bece106928dab3cce30243c",
+      "size": 4808,
+      "sha256": "1600c3da33cece1d12a5034d9447f1a02762cc4a67d0f6f88b565db7544a6431",
+      "dimensions": [
+        41,
+        41
+      ],
+      "original_pixels_preserved": false
+    },
+    {
+      "root": "medium_upload",
+      "logical": "character/cnmod_inaho_midautumn/ui/cutin_skill_chain_0.png",
+      "member": "production/medium_upload/f4/17d8be8e26ae879bec76eb92f00dad6bf546bb",
+      "size": 193707,
+      "sha256": "ddcc4184da89edbc13dd9bd9e163985ccf4dd998b42ff26b503676a55284d450",
+      "dimensions": [
+        276,
+        319
+      ],
+      "original_pixels_preserved": true
+    },
+    {
+      "root": "small_upload",
+      "logical": "character/cnmod_inaho_midautumn/ui/cutin_skill_chain_0.png",
+      "member": "production/small_upload/f4/17d8be8e26ae879bec76eb92f00dad6bf546bb",
+      "size": 86497,
+      "sha256": "9b101c0ea731fd56323177d5ab0f65439e225debf5cf161a36c651bde1ba2a25",
+      "dimensions": [
+        193,
+        223
+      ],
+      "original_pixels_preserved": false
+    },
+    {
+      "root": "medium_upload",
+      "logical": "character/cnmod_inaho_midautumn/ui/cutin_skill_chain_1.png",
+      "member": "production/medium_upload/a4/abd6e3f417e8aaaa673375ea6e7d721ef99377",
+      "size": 199086,
+      "sha256": "d17cddab8b5068fd6f925612301da54a45ef53d05f5e5b205254623ff1b94ff5",
+      "dimensions": [
+        276,
+        319
+      ],
+      "original_pixels_preserved": true
+    },
+    {
+      "root": "small_upload",
+      "logical": "character/cnmod_inaho_midautumn/ui/cutin_skill_chain_1.png",
+      "member": "production/small_upload/a4/abd6e3f417e8aaaa673375ea6e7d721ef99377",
+      "size": 88550,
+      "sha256": "4081a14f3a654e9e5d8c5e99ae6810a982d54d08364267a05f441c928b75a443",
+      "dimensions": [
+        193,
+        223
+      ],
+      "original_pixels_preserved": false
+    },
+    {
+      "root": "medium_upload",
+      "logical": "character/cnmod_inaho_midautumn/ui/full_shot_1440_1920_0.png",
+      "member": "production/medium_upload/13/85c44659e9be55cc06118b5ed2fc1c233ecdc9",
+      "size": 1615529,
+      "sha256": "72feaa9d3392ed648014db2302a12d15d787e2cdcb69c691c270923c03dad7c6",
+      "dimensions": [
+        1086,
+        1448
+      ],
+      "original_pixels_preserved": true
+    },
+    {
+      "root": "small_upload",
+      "logical": "character/cnmod_inaho_midautumn/ui/full_shot_1440_1920_0.png",
+      "member": "production/small_upload/13/85c44659e9be55cc06118b5ed2fc1c233ecdc9",
+      "size": 906373,
+      "sha256": "d3719a3fe45c5c63c2e892ec57bf35059c0d70c028fe231be44086232c90ba10",
+      "dimensions": [
+        760,
+        1014
+      ],
+      "original_pixels_preserved": false
+    },
+    {
+      "root": "medium_upload",
+      "logical": "character/cnmod_inaho_midautumn/ui/full_shot_1440_1920_1.png",
+      "member": "production/medium_upload/21/350238ed0393b6ea058fcbd3d818b79e435608",
+      "size": 2197307,
+      "sha256": "b62363a4eefd54b2aa69bbaf0b05e8e95cb6cf1900ee43d03c9fcbc0b39765fa",
+      "dimensions": [
+        1192,
+        1319
+      ],
+      "original_pixels_preserved": true
+    },
+    {
+      "root": "small_upload",
+      "logical": "character/cnmod_inaho_midautumn/ui/full_shot_1440_1920_1.png",
+      "member": "production/small_upload/21/350238ed0393b6ea058fcbd3d818b79e435608",
+      "size": 1223905,
+      "sha256": "2edbd3f1b94f4f883fec653a4dd0f6dae125dc5aee126284369ebb298993bfb1",
+      "dimensions": [
+        834,
+        923
+      ],
+      "original_pixels_preserved": false
+    },
+    {
+      "root": "medium_upload",
+      "logical": "character/cnmod_inaho_midautumn/ui/illustration_setting_sprite_sheet.png",
+      "member": "production/medium_upload/24/1b7caa3d2ca5181bb4a96c2c0983834d556895",
+      "size": 512907,
+      "sha256": "9e598b7520eeff52988029e48dedd53839e481abb4cf363c2875c228a0efc15d",
+      "dimensions": [
+        380,
+        838
+      ],
+      "original_pixels_preserved": true
+    },
+    {
+      "root": "small_upload",
+      "logical": "character/cnmod_inaho_midautumn/ui/illustration_setting_sprite_sheet.png",
+      "member": "production/small_upload/24/1b7caa3d2ca5181bb4a96c2c0983834d556895",
+      "size": 283452,
+      "sha256": "c34fa6bd629bc6de5b675fe380e4870a98891c92ca2c52c89e441b5dec11aee2",
+      "dimensions": [
+        266,
+        587
+      ],
+      "original_pixels_preserved": false
+    },
+    {
+      "root": "medium_upload",
+      "logical": "character/cnmod_inaho_midautumn/ui/square_0.png",
+      "member": "production/medium_upload/e3/4a70dff8c3928be7cafefbdf13c7cc3e9b7b6a",
+      "size": 106009,
+      "sha256": "abda20909086ade15ce750cf8c7fa98f862d58bf28dfe82c96da91049f38d3dc",
+      "dimensions": [
+        212,
+        212
+      ],
+      "original_pixels_preserved": true
+    },
+    {
+      "root": "small_upload",
+      "logical": "character/cnmod_inaho_midautumn/ui/square_0.png",
+      "member": "production/small_upload/e3/4a70dff8c3928be7cafefbdf13c7cc3e9b7b6a",
+      "size": 57024,
+      "sha256": "92cd854fa9c2c064765f1aeab20b28fa65afec6b1a4aa3dc93be9ee053206607",
+      "dimensions": [
+        148,
+        148
+      ],
+      "original_pixels_preserved": false
+    },
+    {
+      "root": "medium_upload",
+      "logical": "character/cnmod_inaho_midautumn/ui/square_1.png",
+      "member": "production/medium_upload/28/f1f504b16624a1718cd51c2a079f50b4c9c32f",
+      "size": 106675,
+      "sha256": "e652358ab61b3d14acee9debdd87018a8a0dab11784fe1b04518aff7a364e870",
+      "dimensions": [
+        212,
+        212
+      ],
+      "original_pixels_preserved": true
+    },
+    {
+      "root": "small_upload",
+      "logical": "character/cnmod_inaho_midautumn/ui/square_1.png",
+      "member": "production/small_upload/28/f1f504b16624a1718cd51c2a079f50b4c9c32f",
+      "size": 56689,
+      "sha256": "7c99e0c05c066f16acff1b36578f061cac245233515c6b74b682ea335cf20640",
+      "dimensions": [
+        148,
+        148
+      ],
+      "original_pixels_preserved": false
+    },
+    {
+      "root": "medium_upload",
+      "logical": "character/cnmod_inaho_midautumn/ui/square_132_132_0.png",
+      "member": "production/medium_upload/86/e3b97cd7f7fde8293d027d307eef42ea5aeb7a",
+      "size": 45852,
+      "sha256": "e9e09217cde78d26b905cd17e3ed3806b946de2f016c45c4838803d37b7e9d53",
+      "dimensions": [
+        132,
+        132
+      ],
+      "original_pixels_preserved": true
+    },
+    {
+      "root": "small_upload",
+      "logical": "character/cnmod_inaho_midautumn/ui/square_132_132_0.png",
+      "member": "production/small_upload/86/e3b97cd7f7fde8293d027d307eef42ea5aeb7a",
+      "size": 24369,
+      "sha256": "52a609ae8b9ed5a93d0124085d785075e7a61e70267ade28e96b18e33880e835",
+      "dimensions": [
+        92,
+        92
+      ],
+      "original_pixels_preserved": false
+    },
+    {
+      "root": "medium_upload",
+      "logical": "character/cnmod_inaho_midautumn/ui/square_132_132_1.png",
+      "member": "production/medium_upload/11/d51a7e66ac25232bfc4b3363b76b056ed45c20",
+      "size": 45428,
+      "sha256": "f2ae8f24b15dc6be689edc322e8d0b8a0294315a842b923d0bb2e40dd08b7e8b",
+      "dimensions": [
+        132,
+        132
+      ],
+      "original_pixels_preserved": true
+    },
+    {
+      "root": "small_upload",
+      "logical": "character/cnmod_inaho_midautumn/ui/square_132_132_1.png",
+      "member": "production/small_upload/11/d51a7e66ac25232bfc4b3363b76b056ed45c20",
+      "size": 23865,
+      "sha256": "041e19381290c9a9734e8a2c239f336d54ba09209cff9a1c6e5828b2210209cd",
+      "dimensions": [
+        92,
+        92
+      ],
+      "original_pixels_preserved": false
+    },
+    {
+      "root": "medium_upload",
+      "logical": "character/cnmod_inaho_midautumn/ui/square_round_136_136_0.png",
+      "member": "production/medium_upload/9d/996cf5982fffe97a81112b43c4a61afc65595e",
+      "size": 48454,
+      "sha256": "c7e918f85efade1d3ba0b0860add00b9049a4613a836d0ef7de39467629d1fd4",
+      "dimensions": [
+        136,
+        136
+      ],
+      "original_pixels_preserved": true
+    },
+    {
+      "root": "small_upload",
+      "logical": "character/cnmod_inaho_midautumn/ui/square_round_136_136_0.png",
+      "member": "production/small_upload/9d/996cf5982fffe97a81112b43c4a61afc65595e",
+      "size": 25916,
+      "sha256": "8233e7ba7d6688de66df5cd567a8da58c97676c927840579b2064a4343a904be",
+      "dimensions": [
+        95,
+        95
+      ],
+      "original_pixels_preserved": false
+    },
+    {
+      "root": "medium_upload",
+      "logical": "character/cnmod_inaho_midautumn/ui/square_round_136_136_1.png",
+      "member": "production/medium_upload/8c/13fcfec38d35d285060444ff321a4dc3e6c3ee",
+      "size": 47955,
+      "sha256": "4417b576ff68f910027e0b8d33a336cd88ada56a2763c7231b3cdeb258f01348",
+      "dimensions": [
+        136,
+        136
+      ],
+      "original_pixels_preserved": true
+    },
+    {
+      "root": "small_upload",
+      "logical": "character/cnmod_inaho_midautumn/ui/square_round_136_136_1.png",
+      "member": "production/small_upload/8c/13fcfec38d35d285060444ff321a4dc3e6c3ee",
+      "size": 25312,
+      "sha256": "c90005460b6f2d71cdebaa92438292dfb6b2095f7f82351d6b2d5f854782a5f5",
+      "dimensions": [
+        95,
+        95
+      ],
+      "original_pixels_preserved": false
+    },
+    {
+      "root": "medium_upload",
+      "logical": "character/cnmod_inaho_midautumn/ui/square_round_95_95_0.png",
+      "member": "production/medium_upload/30/149d3a31900f002ebab71a040d22feffa7fcd3",
+      "size": 25584,
+      "sha256": "e2a72be59bbf6614f9f7dd68c889619aeb7c6fdfd4ef67e49997f5e257d2bcec",
+      "dimensions": [
+        95,
+        95
+      ],
+      "original_pixels_preserved": true
+    },
+    {
+      "root": "small_upload",
+      "logical": "character/cnmod_inaho_midautumn/ui/square_round_95_95_0.png",
+      "member": "production/small_upload/30/149d3a31900f002ebab71a040d22feffa7fcd3",
+      "size": 13854,
+      "sha256": "94533b2b715f9ef4dcd1886d73c9b0fb04ece0c7c202aa9cf32d1bca457472b9",
+      "dimensions": [
+        67,
+        67
+      ],
+      "original_pixels_preserved": false
+    },
+    {
+      "root": "medium_upload",
+      "logical": "character/cnmod_inaho_midautumn/ui/square_round_95_95_1.png",
+      "member": "production/medium_upload/9a/b678e7023c53fb0e96609243cf5dd5142746a9",
+      "size": 25092,
+      "sha256": "a9b667651ace34831df70097b0514c79212795f0d7c4835c47e381deb0bce591",
+      "dimensions": [
+        95,
+        95
+      ],
+      "original_pixels_preserved": true
+    },
+    {
+      "root": "small_upload",
+      "logical": "character/cnmod_inaho_midautumn/ui/square_round_95_95_1.png",
+      "member": "production/small_upload/9a/b678e7023c53fb0e96609243cf5dd5142746a9",
+      "size": 13361,
+      "sha256": "12b81b742942ee5336569f046974e2d68285003a0611ddd3b3040fd4022d03a7",
+      "dimensions": [
+        67,
+        67
+      ],
+      "original_pixels_preserved": false
+    },
+    {
+      "root": "medium_upload",
+      "logical": "character/cnmod_inaho_midautumn/ui/thumb_level_up_0.png",
+      "member": "production/medium_upload/6f/432f30a373df43f12bd63b10cf1be2c6bcafa1",
+      "size": 188094,
+      "sha256": "de9510036dc4e3dba89787a3d7c261d457f0bc54db4970b4da68437776dddb64",
+      "dimensions": [
+        252,
+        329
+      ],
+      "original_pixels_preserved": true
+    },
+    {
+      "root": "small_upload",
+      "logical": "character/cnmod_inaho_midautumn/ui/thumb_level_up_0.png",
+      "member": "production/small_upload/6f/432f30a373df43f12bd63b10cf1be2c6bcafa1",
+      "size": 101570,
+      "sha256": "2053e4fdb47311495cbbdc2a7dc102ba8f1bf142bc16cf4b90712abe2943b672",
+      "dimensions": [
+        176,
+        230
+      ],
+      "original_pixels_preserved": false
+    },
+    {
+      "root": "medium_upload",
+      "logical": "character/cnmod_inaho_midautumn/ui/thumb_level_up_1.png",
+      "member": "production/medium_upload/7f/e196bf0de19d037f5d03b3717076e961f35911",
+      "size": 198500,
+      "sha256": "0416de8670f485cd9f241805b00c9fc7818311898f45c075abd30925d6caf3ce",
+      "dimensions": [
+        252,
+        329
+      ],
+      "original_pixels_preserved": true
+    },
+    {
+      "root": "small_upload",
+      "logical": "character/cnmod_inaho_midautumn/ui/thumb_level_up_1.png",
+      "member": "production/small_upload/7f/e196bf0de19d037f5d03b3717076e961f35911",
+      "size": 105381,
+      "sha256": "d36427a25397e83910678a7eb3a7ee58f78f9ac252103ec8996f05677cdd63bb",
+      "dimensions": [
+        176,
+        230
+      ],
+      "original_pixels_preserved": false
+    },
+    {
+      "root": "medium_upload",
+      "logical": "character/cnmod_inaho_midautumn/ui/thumb_party_main_0.png",
+      "member": "production/medium_upload/eb/6fc28ea98ffd0807562d96bb51fa2c5e0902be",
+      "size": 170785,
+      "sha256": "6a2f62269d8587eaf3d1f026dfe1d7559ba7c8c227dcb9a5a9e3a8705b6240ff",
+      "dimensions": [
+        186,
+        392
+      ],
+      "original_pixels_preserved": true
+    },
+    {
+      "root": "small_upload",
+      "logical": "character/cnmod_inaho_midautumn/ui/thumb_party_main_0.png",
+      "member": "production/small_upload/eb/6fc28ea98ffd0807562d96bb51fa2c5e0902be",
+      "size": 91979,
+      "sha256": "6af865451cb2489260ea8b3350439bcea7005bc259f2a79bc5a752c2c5d57c10",
+      "dimensions": [
+        130,
+        274
+      ],
+      "original_pixels_preserved": false
+    },
+    {
+      "root": "medium_upload",
+      "logical": "character/cnmod_inaho_midautumn/ui/thumb_party_main_1.png",
+      "member": "production/medium_upload/60/30590105715faca80e8741a56f6b8803ac934a",
+      "size": 168989,
+      "sha256": "4de9e3d991e4403a034514b2c6c6b1449c4368f0df383b87df3f69d48b1000d3",
+      "dimensions": [
+        186,
+        392
+      ],
+      "original_pixels_preserved": true
+    },
+    {
+      "root": "small_upload",
+      "logical": "character/cnmod_inaho_midautumn/ui/thumb_party_main_1.png",
+      "member": "production/small_upload/60/30590105715faca80e8741a56f6b8803ac934a",
+      "size": 90156,
+      "sha256": "75d5573abedef6a76266ed2ad46f2287f83c4587c8b270dfdb489b1831944f5e",
+      "dimensions": [
+        130,
+        274
+      ],
+      "original_pixels_preserved": false
+    },
+    {
+      "root": "medium_upload",
+      "logical": "character/cnmod_inaho_midautumn/ui/thumb_party_unison_0.png",
+      "member": "production/medium_upload/24/12bd3f2afc351ae44ca0236e2abd26fcc2220c",
+      "size": 69660,
+      "sha256": "3aae361dff3e937b3b2a92301e151dff9104f675dc525839b15bf636e19b899a",
+      "dimensions": [
+        144,
+        188
+      ],
+      "original_pixels_preserved": true
+    },
+    {
+      "root": "small_upload",
+      "logical": "character/cnmod_inaho_midautumn/ui/thumb_party_unison_0.png",
+      "member": "production/small_upload/24/12bd3f2afc351ae44ca0236e2abd26fcc2220c",
+      "size": 37725,
+      "sha256": "f6d6d62ce6e75f51e567365af21d45811a8f515f386f3cd1618b575952400808",
+      "dimensions": [
+        101,
+        132
+      ],
+      "original_pixels_preserved": false
+    },
+    {
+      "root": "medium_upload",
+      "logical": "character/cnmod_inaho_midautumn/ui/thumb_party_unison_1.png",
+      "member": "production/medium_upload/43/5a7147a1fa8003912314e1c9a08ae0bc2122ee",
+      "size": 71208,
+      "sha256": "f7f399bda959f3d76ed666f71565e38793161f359739b5ae41315c947da627f5",
+      "dimensions": [
+        144,
+        188
+      ],
+      "original_pixels_preserved": true
+    },
+    {
+      "root": "small_upload",
+      "logical": "character/cnmod_inaho_midautumn/ui/thumb_party_unison_1.png",
+      "member": "production/small_upload/43/5a7147a1fa8003912314e1c9a08ae0bc2122ee",
+      "size": 37959,
+      "sha256": "539ca7a8fb71fbfd42c086e768668a2f1e4a1a9260120781470b1e3465206ca8",
+      "dimensions": [
+        101,
+        132
+      ],
+      "original_pixels_preserved": false
+    }
+  ],
+  "native_script_checks": [
+    {
+      "logical": "battle/action/power_flip/action/override/cnmod_inaho_midautumn$cnmod_inaho_midautumn_lv1.action.dsl.amf3.deflate",
+      "native_generic_validation": true
+    },
+    {
+      "logical": "battle/action/power_flip/action/override/cnmod_inaho_midautumn$cnmod_inaho_midautumn_lv2.action.dsl.amf3.deflate",
+      "native_generic_validation": true
+    },
+    {
+      "logical": "battle/action/power_flip/action/override/cnmod_inaho_midautumn$cnmod_inaho_midautumn_lv3.action.dsl.amf3.deflate",
+      "native_generic_validation": true
+    },
+    {
+      "logical": "battle/action/skill/action/rare5/cnmod_inaho_midautumn$cnmod_inaho_midautumn_1.action.dsl.amf3.deflate",
+      "native_generic_validation": true
+    },
+    {
+      "logical": "battle/action/skill/action/rare5/cnmod_inaho_midautumn$cnmod_inaho_midautumn_2.action.dsl.amf3.deflate",
+      "native_generic_validation": true
+    }
+  ],
+  "regression_common_only_missing_roots": 46,
+  "regression_old_pf3_rejected": true,
+  "approved_medium_pixels_unchanged": true,
+  "client_swf_sha256": "a0c6408006e5eefef5664c27e5b1fea3673c7107596e798a7f0e45136d65488b",
+  "save_impact": "none; existing character IDs, progress and schema unchanged",
+  "device_tested": false,
+  "server_source_changes": false
+}

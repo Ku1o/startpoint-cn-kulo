@@ -1,0 +1,174 @@
+{
+  "base_version": "1.4.118",
+  "version": "1.4.119",
+  "manifest_preimage_sha256": "344eb87e2febd6b33965f9b3f7ef1392fcea3c4b08c52136f494e0ad3d2b7749",
+  "archive": {
+    "id": "midautumn-layout-odds",
+    "type": "patch",
+    "name": "中秋国庆卡池排版与概率调整",
+    "description": "四角色面部避开顶部轮播横幅，标题缩小下移；12位MOD合计1%，常驻五星合计4%。",
+    "version": "1.4.119",
+    "depends_on": "1.4.118",
+    "enabled": true,
+    "archive": "pinball-1.4.118-1.4.119-1-midautumn-layout-odds.zip",
+    "archive_size": 10050,
+    "archive_integrity": [
+      {
+        "name": "pinball-1.4.118-1.4.119-1-midautumn-layout-odds.zip",
+        "size": 10050,
+        "sha256": "440768c52814c293194dfc46d48107447d4dce362e70b60d34cd164d3b1849dc",
+        "members": 3
+      }
+    ],
+    "files": [
+      "production/upload/53/12c3e9d3d48469cd1c4f1a1f9af9c6cf24310d",
+      "production/upload/c6/b890b1d0ca570658830e8f6b995d313d0a3e66",
+      "production/upload/fa/edf7d82340cf455a68a54bc49f393b1c3eed2c"
+    ],
+    "chain": [
+      "pinball-1.4.118-1.4.119-1-midautumn-layout-odds.zip"
+    ],
+    "created_at": "2026-09-25",
+    "audit": {
+      "directory": "assets/asset-patch/audit/midautumn-layout-odds"
+    },
+    "changes": [
+      "调整四角色位置与标题比例，保留图集及动画时序。",
+      "12位MOD等权合计1%，五星总概率保持5%；同步客户端概率和说明。"
+    ]
+  },
+  "assets": [
+    {
+      "logical": "gacha/feature_movie/cnmod_midautumn_national_2026/top/feature.movie.amf3.deflate",
+      "member": "production/upload/c6/b890b1d0ca570658830e8f6b995d313d0a3e66",
+      "sha256": "6816bb1dc8e7d2ff5ff474c80e2ff752860c4026689abe55ff898073f76107f4"
+    },
+    {
+      "logical": "master/gacha_odds/cnmod_midautumn_national_2026_character_5.orderedmap",
+      "member": "production/upload/fa/edf7d82340cf455a68a54bc49f393b1c3eed2c",
+      "sha256": "98477d3fadf87f5111faefc8b02bcccd51ea88173d839b40ae20d175ad8fdb33"
+    },
+    {
+      "logical": "rich_text/cnmod_midautumn_national_2026_note.html.deflate",
+      "member": "production/upload/53/12c3e9d3d48469cd1c4f1a1f9af9c6cf24310d",
+      "sha256": "3b2954214d7c93ea015d3fbf72bd53aabe19ddad1a9925081ddd5530c04b6b21"
+    }
+  ],
+  "movie_before_sha256": "a9e24df76e29b7ee906ca90a68eaf0e1f4d76830638fcd7af02084d5f3cf9ef7",
+  "asset_sources": {
+    "common|c6/b890b1d0ca570658830e8f6b995d313d0a3e66": {
+      "archive": "assets/asset-patch/active/pinball-1.4.117-1.4.118-1-midautumn-national-2026.zip",
+      "member": "production/upload/c6/b890b1d0ca570658830e8f6b995d313d0a3e66",
+      "sha256": "a9e24df76e29b7ee906ca90a68eaf0e1f4d76830638fcd7af02084d5f3cf9ef7"
+    },
+    "common|c0/21ef6589f76979a13f9832d91d49d3178436b3": {
+      "archive": "assets/asset-patch/active/pinball-1.4.117-1.4.118-1-midautumn-national-2026.zip",
+      "member": "production/upload/c0/21ef6589f76979a13f9832d91d49d3178436b3",
+      "sha256": "f9049ea417edb118c2c05dd0d1920247871fada0f6b81b7d2bc85dbb30156907"
+    },
+    "common|3c/3047ca7805de26f7bbd9d55fdad5b9cbef939b": {
+      "archive": "assets/asset-patch/active/pinball-1.4.117-1.4.118-1-midautumn-national-2026.zip",
+      "member": "production/upload/3c/3047ca7805de26f7bbd9d55fdad5b9cbef939b",
+      "sha256": "2ecba483773c76ff6db3a1f224011510bb5cea3d6a5698af7c20d7c9e6726706"
+    },
+    "common|78/33d63da07cac42cd0ae6e119574c9872c92740": {
+      "archive": "assets/asset-patch/active/pinball-1.4.117-1.4.118-1-midautumn-national-2026.zip",
+      "member": "production/upload/78/33d63da07cac42cd0ae6e119574c9872c92740",
+      "sha256": "9e8d77c9d5bbeb0761cbc6467d52d0d9e1e014bf838a11e2d58f76363d412c7f"
+    },
+    "common|fa/edf7d82340cf455a68a54bc49f393b1c3eed2c": {
+      "archive": "assets/asset-patch/active/pinball-1.4.117-1.4.118-1-midautumn-national-2026.zip",
+      "member": "production/upload/fa/edf7d82340cf455a68a54bc49f393b1c3eed2c",
+      "sha256": "2be18dcefa615bf1f228b33333bc76a1e1fa861422ca00631432a1b104cbb5bf"
+    },
+    "common|53/12c3e9d3d48469cd1c4f1a1f9af9c6cf24310d": {
+      "archive": "assets/asset-patch/active/pinball-1.4.117-1.4.118-1-midautumn-national-2026.zip",
+      "member": "production/upload/53/12c3e9d3d48469cd1c4f1a1f9af9c6cf24310d",
+      "sha256": "66ef4c1341f23b5fe5280eae1f9fc9e11b4163af5eac10250703b046e496f8b2"
+    }
+  },
+  "layout": {
+    "hibiki": [
+      210,
+      280,
+      610
+    ],
+    "black": [
+      650,
+      300,
+      640
+    ],
+    "fluffy": [
+      70,
+      515,
+      740
+    ],
+    "mia": [
+      640,
+      515,
+      725
+    ],
+    "title": [
+      310,
+      1005,
+      820
+    ]
+  },
+  "layout_validation": {
+    "failures": [],
+    "stable_frames": 241,
+    "face_bounds": {
+      "1": [
+        469.25,
+        375.63,
+        615.65,
+        500.85
+      ],
+      "2": [
+        995.6,
+        387.21,
+        1146.0,
+        532.79
+      ],
+      "3": [
+        406.69,
+        680.97,
+        558.39,
+        792.88
+      ],
+      "4": [
+        890.16,
+        635.17,
+        1082.31,
+        780.26
+      ]
+    },
+    "title_bounds": [
+      367.42,
+      1032.96,
+      1051.96,
+      1263.3
+    ]
+  },
+  "old_layout_rejected": true,
+  "odds": {
+    "file": "assets/gacha_midautumn_2026.json",
+    "before_sha256": "f1605b1b710e35335b1d680a72a9c56912eb190d175953d1a520f02e2c8cc6e9",
+    "after_sha256": "a9c22e7e47b05655702fef6c67a0b85601fb68ddc46751eb903364130090476c",
+    "five_star_total": "5%",
+    "mod_total": "1%",
+    "mod_each": "1/1200",
+    "permanent_five_total": "4%",
+    "mod_weight": 55,
+    "permanent_weight": 24,
+    "five_star_weight_sum": 3300
+  },
+  "unchanged": [
+    "sprite_sheet PNG/atlas",
+    "timeline",
+    "rarity odds",
+    "item and exchange settings",
+    "save IDs and data"
+  ],
+  "device_acceptance": "pending"
+}

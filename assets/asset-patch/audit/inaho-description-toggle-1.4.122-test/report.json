@@ -1,0 +1,118 @@
+{
+  "status": "validated_offline",
+  "base": "1.4.121",
+  "version": "1.4.122",
+  "character_id": 159991,
+  "archive": {
+    "name": "pinball-1.4.121-1.4.122-1-inaho-description-toggle.zip",
+    "size": 742124,
+    "sha256": "02375be41ec2100cde0652fe7ebae9bf3ae55713259654b7c59ae9dad37cec41",
+    "members": 4
+  },
+  "resources": [
+    {
+      "root": "upload",
+      "logical": "master/ability/ability.orderedmap",
+      "member": "production/upload/1e/664c1cc8d80f4f9a69aae2c49ae8c01d1c4001",
+      "size": 377026,
+      "sha256": "fcf0b4e26fb02bcc558e6c4362ab30d6f7883e9b67d796a2195617171346657e",
+      "before_sha256": "5dff69dcded855a6064737ee83427c923e8c9a7cf65414e5b40edd700a0c33e2",
+      "changed_keys": [
+        "1599914",
+        "1599916"
+      ]
+    },
+    {
+      "root": "upload",
+      "logical": "master/string/custom_ability_string.orderedmap",
+      "member": "production/upload/07/0c6e214359ccf27b1cb8078d3fc51aecfe0149",
+      "size": 48453,
+      "sha256": "30c7a24160b770c39c2d10823ede6eef9b56372fa7fd6594274d8b2c496c04ef",
+      "before_sha256": "82f49381d788024ef9da91d1f7a2e57c46d767e8d623cd940948a919f97bb309",
+      "changed_keys": [
+        "cnmod_inaho_midautumn_enhance_buffs",
+        "cnmod_inaho_midautumn_enhance_skill"
+      ]
+    },
+    {
+      "root": "upload",
+      "logical": "master/character/character_text.orderedmap",
+      "member": "production/upload/8b/035728b2151de044fb245988ec5f33ebb544ab",
+      "size": 214305,
+      "sha256": "c930457d6e70e2a849605a14035f5794151551692be82b19586fad3bdcfe20d6",
+      "before_sha256": "e01b0316bc37131663fc4bee9164c49f1f9d60c298c42b8b722d652918507151",
+      "changed_keys": [
+        "159991"
+      ]
+    },
+    {
+      "root": "upload",
+      "logical": "master/skill/action_skill.orderedmap",
+      "member": "production/upload/91/79892d704f88d98191c00548bce106402ad5b5",
+      "size": 355460,
+      "sha256": "5aca354d33c627ae48d1ee8f85c830921e89a0bd70501704a39766975201013c",
+      "before_sha256": "4fb94e8ab9df7e7eaf2e3cdb56e47e7f1019f76a57e051aa1a208ccfd6f3a71b",
+      "changed_keys": [
+        "cnmod_inaho_midautumn"
+      ]
+    }
+  ],
+  "server_assets": [
+    {
+      "path": "assets/cdndata/character_text.json",
+      "before_sha256": "9ecfe0b9266afe308e269376898ece5b354389a71fff8be64e4079de5f87f4f0",
+      "sha256": "6f68d1cc73f93933f654a02506c2fbec7467e6372ad65ce60766d1f6e25e700a"
+    }
+  ],
+  "table_checks": [
+    {
+      "table": "master/ability/ability.orderedmap",
+      "changed_keys": [
+        "1599914",
+        "1599916"
+      ],
+      "unrelated_rows_byte_identical": true
+    },
+    {
+      "table": "master/string/custom_ability_string.orderedmap",
+      "changed_keys": [
+        "cnmod_inaho_midautumn_enhance_buffs",
+        "cnmod_inaho_midautumn_enhance_skill"
+      ],
+      "unrelated_rows_byte_identical": true
+    },
+    {
+      "table": "master/character/character_text.orderedmap",
+      "changed_keys": [
+        "159991"
+      ],
+      "unrelated_rows_byte_identical": true
+    },
+    {
+      "table": "master/skill/action_skill.orderedmap",
+      "changed_keys": [
+        "cnmod_inaho_midautumn"
+      ],
+      "unrelated_rows_byte_identical": true
+    }
+  ],
+  "ability_trigger_columns_unchanged": true,
+  "group_unison_availability_unchanged": true,
+  "action_dsl_unchanged": true,
+  "textures_unchanged": true,
+  "native_description_mode_projection": {
+    "4": {
+      "normal": "作为主要角色编成：光属性共鸣时，强化「月满丰穰」的攻击力、技能伤害、能力伤害、直接攻击伤害提升效果[提升量各+50%]",
+      "graphical": " <icon id='main'>  <icon id='white'>  共鸣时，强化「月满丰穰」的攻击力、技能伤害、能力伤害、直接攻击伤害提升效果[提升量各+50%]"
+    },
+    "6": {
+      "normal": "作为主要角色编成：光属性共鸣时，强化『月满稻穗·星屑幻梦』的伤害效果[合计75倍，共3段]",
+      "graphical": " <icon id='main'>  <icon id='white'>  共鸣时，强化『月满稻穗·星屑幻梦』的伤害效果[合计75倍，共3段]"
+    }
+  },
+  "old_fixed_icon_failure_reproduced": true,
+  "client_swf_sha256": "a0c6408006e5eefef5664c27e5b1fea3673c7107596e798a7f0e45136d65488b",
+  "save_impact": "none; no saved ID, progression, database or persistence changes",
+  "device_tested": false,
+  "source_code_modified": false
+}
