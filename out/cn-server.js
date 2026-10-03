@@ -126,6 +126,10 @@ const daily_vmoney_mail_1 = require("./lib/daily-vmoney-mail");
 const sqlite_checkpoint_worker_1 = require("./lib/sqlite-checkpoint-worker");
 const persistence_coordinator_1 = require("./lib/persistence-coordinator");
 const sqlite_persistence_worker_1 = require("./lib/sqlite-persistence-worker");
+// Side-effect import: binds command names to domain code for the in-process
+// fallback path. The writer worker loads the same module on its own thread.
+require("./lib/persistence/commands");
+const writer_client_1 = require("./lib/persistence/writer-client");
 const game_logging_1 = require("./lib/game-logging");
 const fastify = (0, fastify_1.default)({
     logger: {
@@ -547,8 +551,12 @@ fastify.addHook("onClose", () => __awaiter(void 0, void 0, void 0, function* () 
     yield receiveHistoryRetention.stop();
     yield (0, player_party_pool_1.stopQuestNpcPartyPoolWorker)();
     yield (0, persistence_coordinator_1.drainPersistence)();
+    // Drain the writer thread before its connections and the checkpoint owner
+    // are stopped, so no accepted command is lost at shutdown.
+    yield (0, writer_client_1.drainSqliteWriter)();
     yield (0, sqlite_persistence_worker_1.stopSqlitePersistenceWorker)();
     (0, persistence_coordinator_1.configurePersistenceSqlExecutor)(null);
+    yield (0, writer_client_1.stopSqliteWriter)();
     yield (0, sqlite_checkpoint_worker_1.stopSqliteCheckpointWorker)();
 }));
 // Ctrl+C and a normal service-manager stop must enter Fastify's close hooks;
@@ -597,6 +605,11 @@ if (persistenceWorkerStarted && (0, sqlite_persistence_worker_1.isSqlitePersiste
         });
     }));
 }
+// Optional single-writer thread. When enabled, registered business commands run
+// on their own thread instead of blocking HTTP and realtime callbacks here.
+if ((0, writer_client_1.startSqliteWriter)((0, db_1.getDb)().name)) {
+    console.log("[DB] CN_WRITER_THREAD=1: registered business writes route through the SQLite writer thread");
+}
 fastify.listen({ port, host }, (err, address) => {
     if (err) {
         console.error(err);
@@ -614,11 +627,13 @@ fastify.listen({ port, host }, (err, address) => {
                 onReady: () => {
                     (0, db_1.getDb)().pragma("wal_autocheckpoint = 0");
                     (0, sqlite_persistence_worker_1.setSqlitePersistenceCheckpointOwner)(true);
+                    (0, writer_client_1.setSqliteWriterCheckpointOwner)(true);
                 },
                 onStopped: () => {
                     if ((0, db_1.getDb)().open)
                         (0, db_1.getDb)().pragma("wal_autocheckpoint = 1000");
                     (0, sqlite_persistence_worker_1.setSqlitePersistenceCheckpointOwner)(false);
+                    (0, writer_client_1.setSqliteWriterCheckpointOwner)(false);
                 },
             });
             (0, atomic_json_file_1.writeJsonAtomicSync)(readyFilePath, {

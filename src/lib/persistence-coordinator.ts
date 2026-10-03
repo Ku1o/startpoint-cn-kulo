@@ -1,6 +1,14 @@
 import { performance } from "node:perf_hooks"
 import { getDb } from "../data/db"
 import { registerMemoryCounters } from "./memory-diagnostics"
+import { createWriterCommandContext, getWriterCommand } from "./persistence/command-registry"
+import {
+    executeSqliteWriterCommand,
+    isSqliteWriterEnabled,
+    isSqliteWriterReady,
+    waitForSqliteWriterReady,
+    writerThreadSettings,
+} from "./persistence/writer-client"
 import { recordServerWork } from "./server-work-performance"
 import { drainPlayerWriteQueues, runImmediateTransactionWithRetry, withPlayerWriteQueue } from "./sqlite-write-coordinator"
 
@@ -65,6 +73,8 @@ type PersistenceStats = {
 }
 const persistenceStats = new Map<PersistenceDomain, PersistenceStats>()
 let persistenceSqlExecutor: PersistenceSqlExecutor | null = null
+let writerFallbackCount = 0
+let writerStartupWaitCount = 0
 
 function yieldToEventLoop(): Promise<void> {
     return new Promise(resolve => setImmediate(resolve))
@@ -83,6 +93,8 @@ function statsFor(domain: PersistenceDomain): PersistenceStats {
 
 registerMemoryCounters("persistence", () => {
     const counters: Record<string, number | boolean | null> = {}
+    counters["writer.fallbacks"] = writerFallbackCount
+    counters["writer.startupWaits"] = writerStartupWaitCount
     for (const [domain, value] of persistenceStats) {
         counters[`domain.${domain}.queued`] = value.queued
         counters[`domain.${domain}.committed`] = value.committed
@@ -227,6 +239,139 @@ export function runPersistenceSqlCommand(
     }
     if (context.playerId !== undefined) return withPlayerWriteQueue(context.playerId, execute)
     return enqueueGlobalWrite(execute)
+}
+
+/**
+ * Execute a registered write command.
+ *
+ * The command runs in the SQLite writer thread when `CN_WRITER_THREAD` is
+ * enabled and the thread is ready, and in-process otherwise. Both paths share
+ * the same registry entry, the same per-player/global ordering and the same
+ * domain metrics, so flipping the switch cannot change business results.
+ *
+ * The command implementation owns its transaction: the writer thread already
+ * wraps every command in the batch transaction, and the in-process path leaves
+ * the existing `runPersistenceTransactionSync` contract untouched.
+ */
+export async function runWriterCommand<Args, Result>(
+    name: string,
+    args: Args,
+    context: PersistenceContext,
+): Promise<Result> {
+    const queuedAt = performance.now()
+    const stats = statsFor(context.domain)
+    stats.queued++
+    stats.maxPending = Math.max(stats.maxPending, stats.queued - stats.committed - stats.failed)
+    const execute = async (): Promise<Result> => {
+        await yieldToEventLoop()
+        const queueMs = performance.now() - queuedAt
+        stats.queueMs += queueMs
+        stats.maxQueueMs = Math.max(stats.maxQueueMs, queueMs)
+        recordServerWork("persistence.queue", queueMs)
+        const startedAt = performance.now()
+        try {
+            const result = await executeRegisteredWriterCommand<Args, Result>(name, args, context)
+            stats.committed++
+            return result
+        } catch (error) {
+            stats.failed++
+            throw error
+        } finally {
+            const transactionMs = performance.now() - startedAt
+            stats.transactionMs += transactionMs
+            stats.maxTransactionMs = Math.max(stats.maxTransactionMs, transactionMs)
+            recordServerWork("persistence.transaction", transactionMs)
+        }
+    }
+
+    if (context.playerId !== undefined) {
+        return withPlayerWriteQueue(context.playerId, execute)
+    }
+    return enqueueGlobalWrite(execute)
+}
+
+/** Bounded wait so the first requests after a restart do not fail on warm-up. */
+const WRITER_STARTUP_WAIT_MS = 10_000
+
+async function executeRegisteredWriterCommand<Args, Result>(
+    name: string,
+    args: Args,
+    context: PersistenceContext,
+): Promise<Result> {
+    if (isSqliteWriterEnabled()) {
+        if (!isSqliteWriterReady()) {
+            writerStartupWaitCount++
+            await waitForSqliteWriterReady(WRITER_STARTUP_WAIT_MS)
+        }
+        if (isSqliteWriterReady()) {
+            const value = await executeSqliteWriterCommand({
+                name,
+                args,
+                meta: {
+                    domain: context.domain,
+                    operation: context.operation,
+                    playerId: context.playerId,
+                },
+            })
+            return value as Result
+        }
+        // The worker is configured but never became ready. An explicit
+        // fallback switch may continue in-process; otherwise the caller must
+        // see the failure instead of an unverified write.
+        const reason = `SQLite writer thread is not ready; command ${name} was not executed.`
+        if (!writerThreadSettings().fallback) throw new Error(reason)
+        writerFallbackCount++
+        console.error(`[PERSISTENCE] ${reason} Falling back to the in-process implementation.`)
+    }
+    return runRegisteredWriterCommandInProcess<Args, Result>(name, args, context)
+}
+
+let writerCommandsLoaded = false
+
+/**
+ * Bind command names to domain code on first use.
+ *
+ * The requirement is intentionally lazy: `commands` imports domain modules
+ * that import this coordinator, so a top-level import would create a
+ * module-load cycle. Requiring it here keeps the import graph acyclic while
+ * still letting any entry point (server, test or script) run a command
+ * in-process without remembering to import the registry.
+ */
+function ensureWriterCommandsLoaded(): void {
+    if (writerCommandsLoaded) return
+    writerCommandsLoaded = true
+    require("./persistence/commands")
+}
+
+function runRegisteredWriterCommandInProcess<Args, Result>(
+    name: string,
+    args: Args,
+    context: PersistenceContext,
+): Result {
+    ensureWriterCommandsLoaded()
+    const handler = getWriterCommand(name)
+    if (handler === undefined) {
+        throw new Error(`Writer command is not registered: ${name}`)
+    }
+    const effects: Array<() => void> = []
+    const commandContext = createWriterCommandContext(
+        { domain: context.domain, operation: context.operation, playerId: context.playerId },
+        effect => effects.push(effect),
+    )
+    const result = handler(args, commandContext) as Result
+    for (const effect of effects) {
+        try {
+            effect()
+        } catch (error) {
+            // Mirrors runPersistenceTransaction: an already committed command
+            // must not be reported as failed because a side effect threw.
+            console.error(
+                `[PERSISTENCE] afterCommit failed: domain=${context.domain} operation=${context.operation}`,
+                error,
+            )
+        }
+    }
+    return result
 }
 
 /**

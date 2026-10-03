@@ -103,6 +103,15 @@ import {
     startSqlitePersistenceWorker,
     stopSqlitePersistenceWorker,
 } from "./lib/sqlite-persistence-worker";
+// Side-effect import: binds command names to domain code for the in-process
+// fallback path. The writer worker loads the same module on its own thread.
+import "./lib/persistence/commands";
+import {
+    drainSqliteWriter,
+    setSqliteWriterCheckpointOwner,
+    startSqliteWriter,
+    stopSqliteWriter,
+} from "./lib/persistence/writer-client";
 import { gameVerboseLog } from "./lib/game-logging";
 
 const fastify = Fastify({
@@ -539,8 +548,12 @@ fastify.addHook("onClose", async () => {
     await receiveHistoryRetention.stop();
     await stopQuestNpcPartyPoolWorker();
     await drainPersistence();
+    // Drain the writer thread before its connections and the checkpoint owner
+    // are stopped, so no accepted command is lost at shutdown.
+    await drainSqliteWriter();
     await stopSqlitePersistenceWorker();
     configurePersistenceSqlExecutor(null);
+    await stopSqliteWriter();
     await stopSqliteCheckpointWorker();
 });
 
@@ -591,6 +604,11 @@ if (persistenceWorkerStarted && isSqlitePersistenceWorkerStarted()) {
         });
     });
 }
+// Optional single-writer thread. When enabled, registered business commands run
+// on their own thread instead of blocking HTTP and realtime callbacks here.
+if (startSqliteWriter(getDb().name)) {
+    console.log("[DB] CN_WRITER_THREAD=1: registered business writes route through the SQLite writer thread");
+}
 
 fastify.listen({ port, host }, (err, address) => {
     if (err) {
@@ -610,10 +628,12 @@ fastify.listen({ port, host }, (err, address) => {
                 onReady: () => {
                     getDb().pragma("wal_autocheckpoint = 0")
                     setSqlitePersistenceCheckpointOwner(true)
+                    setSqliteWriterCheckpointOwner(true)
                 },
                 onStopped: () => {
                     if (getDb().open) getDb().pragma("wal_autocheckpoint = 1000")
                     setSqlitePersistenceCheckpointOwner(false)
+                    setSqliteWriterCheckpointOwner(false)
                 },
             });
             writeJsonAtomicSync(readyFilePath,{
