@@ -9,6 +9,20 @@ import { fiveBossDiagnostics } from "../../lib/coalesced-diagnostics"
 import { fiveBossConnectionDiagnostics } from "./connection-diagnostic"
 import { runPersistenceTransaction } from "../../lib/persistence-coordinator"
 
+// TCP proof notifications are acknowledged before their SQLite write has
+// necessarily committed.  Keep the tail for each frozen member so HTTP
+// settlement can wait for notifications that already reached this process.
+const pendingFiveBossSignalWrites = new Map<string, Promise<void>>()
+
+function fiveBossSignalKey(runId: string, playerId: number): string {
+    return `${runId}:${playerId}`
+}
+
+/** Wait for proof notifications already accepted from this member's socket. */
+export function waitForFiveBossSignalPersistence(runId: string, playerId: number): Promise<void> {
+    return pendingFiveBossSignalWrites.get(fiveBossSignalKey(runId, playerId)) ?? Promise.resolve()
+}
+
 /** Freeze the canonical live lobby before either HTTP or TCP starts the battle. */
 export function freezeFiveBossLobby(room: MultiRoom, members?: any[]): boolean {
     if (!isFiveBossGauntletQuest(room.category, room.quest_id)) return true
@@ -80,9 +94,11 @@ export function recordFiveBossSignal(room: MultiRoom, client: SessionClient, sig
     // proof row is durable evidence, but it is not part of the realtime ACK.
     fiveBossConnectionDiagnostics.socketEvent(client.socket,
         signal === "level_next" ? "level_next_queued" : "finalize_queued", "tcp")
-    void runPersistenceTransaction({
+    const key = fiveBossSignalKey(runId, playerId)
+    const previous = pendingFiveBossSignalWrites.get(key) ?? Promise.resolve()
+    const pending = previous.then(() => runPersistenceTransaction({
         domain: "multi-settlement", playerId, operation: `five_boss_${signal}`,
-    }, () => recordMemberBattleSignalSync({ runId, playerId, roomNumber, signal }))
+    }, () => recordMemberBattleSignalSync({ runId, playerId, roomNumber, signal })))
         .then(() => {
             fiveBossConnectionDiagnostics.socketEvent(client.socket,
                 signal === "level_next" ? "level_next_recorded" : "finalize_recorded", "tcp")
@@ -95,4 +111,8 @@ export function recordFiveBossSignal(room: MultiRoom, client: SessionClient, sig
                 + ` room=${roomNumber} run=${runId}`
                 + ` player=${playerId} connection=${client.connectionId} signal=${signal}: ${(error as Error).message}`)
         })
+    pendingFiveBossSignalWrites.set(key, pending)
+    void pending.finally(() => {
+        if (pendingFiveBossSignalWrites.get(key) === pending) pendingFiveBossSignalWrites.delete(key)
+    })
 }

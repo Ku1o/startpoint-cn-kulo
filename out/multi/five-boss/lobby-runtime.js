@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.recordFiveBossSignal = exports.isFrozenFiveBossBattleClient = exports.freezeFiveBossLobby = void 0;
+exports.recordFiveBossSignal = exports.isFrozenFiveBossBattleClient = exports.freezeFiveBossLobby = exports.waitForFiveBossSignalPersistence = void 0;
 const crypto_1 = require("crypto");
 const manager_1 = require("../room/manager");
 const SessionManager_1 = require("../state/SessionManager");
@@ -10,6 +10,19 @@ const contract_1 = require("./contract");
 const coalesced_diagnostics_1 = require("../../lib/coalesced-diagnostics");
 const connection_diagnostic_1 = require("./connection-diagnostic");
 const persistence_coordinator_1 = require("../../lib/persistence-coordinator");
+// TCP proof notifications are acknowledged before their SQLite write has
+// necessarily committed.  Keep the tail for each frozen member so HTTP
+// settlement can wait for notifications that already reached this process.
+const pendingFiveBossSignalWrites = new Map();
+function fiveBossSignalKey(runId, playerId) {
+    return `${runId}:${playerId}`;
+}
+/** Wait for proof notifications already accepted from this member's socket. */
+function waitForFiveBossSignalPersistence(runId, playerId) {
+    var _a;
+    return (_a = pendingFiveBossSignalWrites.get(fiveBossSignalKey(runId, playerId))) !== null && _a !== void 0 ? _a : Promise.resolve();
+}
+exports.waitForFiveBossSignalPersistence = waitForFiveBossSignalPersistence;
 /** Freeze the canonical live lobby before either HTTP or TCP starts the battle. */
 function freezeFiveBossLobby(room, members) {
     var _a, _b, _c, _d;
@@ -77,7 +90,7 @@ function isFrozenFiveBossBattleClient(room, client) {
 }
 exports.isFrozenFiveBossBattleClient = isFrozenFiveBossBattleClient;
 function recordFiveBossSignal(room, client, signal) {
-    var _a;
+    var _a, _b;
     if (!isFrozenFiveBossBattleClient(room, client)) {
         connection_diagnostic_1.fiveBossConnectionDiagnostics.socketEvent(client.socket, "signal_rejected", `${signal}:identity`);
         coalesced_diagnostics_1.fiveBossDiagnostics.report(JSON.stringify(["signal", (_a = room.five_boss_runtime) === null || _a === void 0 ? void 0 : _a.runId, room.room_number,
@@ -94,9 +107,11 @@ function recordFiveBossSignal(room, client, signal) {
     // The TCP handler must only update the in-memory barrier and return. The
     // proof row is durable evidence, but it is not part of the realtime ACK.
     connection_diagnostic_1.fiveBossConnectionDiagnostics.socketEvent(client.socket, signal === "level_next" ? "level_next_queued" : "finalize_queued", "tcp");
-    void (0, persistence_coordinator_1.runPersistenceTransaction)({
+    const key = fiveBossSignalKey(runId, playerId);
+    const previous = (_b = pendingFiveBossSignalWrites.get(key)) !== null && _b !== void 0 ? _b : Promise.resolve();
+    const pending = previous.then(() => (0, persistence_coordinator_1.runPersistenceTransaction)({
         domain: "multi-settlement", playerId, operation: `five_boss_${signal}`,
-    }, () => (0, fiveBossGauntletRun_1.recordMemberBattleSignalSync)({ runId, playerId, roomNumber, signal }))
+    }, () => (0, fiveBossGauntletRun_1.recordMemberBattleSignalSync)({ runId, playerId, roomNumber, signal })))
         .then(() => {
         connection_diagnostic_1.fiveBossConnectionDiagnostics.socketEvent(client.socket, signal === "level_next" ? "level_next_recorded" : "finalize_recorded", "tcp");
     })
@@ -108,6 +123,11 @@ function recordFiveBossSignal(room, client, signal) {
             playerId, signal, code]), () => `[FIVE-BOSS-SIGNAL] rejected=${code}`
             + ` room=${roomNumber} run=${runId}`
             + ` player=${playerId} connection=${client.connectionId} signal=${signal}: ${error.message}`);
+    });
+    pendingFiveBossSignalWrites.set(key, pending);
+    void pending.finally(() => {
+        if (pendingFiveBossSignalWrites.get(key) === pending)
+            pendingFiveBossSignalWrites.delete(key);
     });
 }
 exports.recordFiveBossSignal = recordFiveBossSignal;

@@ -723,6 +723,42 @@ test('real TCP disconnect and later proof arrival explain HTTP H400 without gran
     }
 })
 
+test('finish waits for proof writes already accepted before the battle socket closes', async () => {
+    const p = player(), room = run([p])
+    room.lifecycle.phase = 'BATTLE'
+    room.lobby_generation = 1
+    const connectionId = `proof-race-${p.id}`
+    room.five_boss_runtime.battleIdentityByViewerId[String(p.viewerId)] = {
+        playerId: p.id, connectionId, remoteAddress: '127.0.0.1',
+    }
+    start(p, room)
+    const app = await httpApp(p, load('multi/http/battle').registerBattleRoutes)
+    const persistence = load('lib/persistence-coordinator')
+    const lobby = load('multi/five-boss/lobby-runtime')
+    const manager = load('multi/room/manager')
+    const originalRunPersistenceTransaction = persistence.runPersistenceTransaction
+    const delayed = async (...args) => {
+        await new Promise(resolve => setTimeout(resolve, 20))
+        return originalRunPersistenceTransaction(...args)
+    }
+    persistence.runPersistenceTransaction = delayed
+    const client = {
+        socket: { remoteAddress: '127.0.0.1', destroyed: true },
+        viewerId: p.viewerId, playerId: p.id, connectionId, superseded: false,
+    }
+    try {
+        lobby.recordFiveBossSignal(room, client, 'level_next')
+        lobby.recordFiveBossSignal(room, client, 'finalize')
+        const response = await app.inject({ method: 'POST', url: '/finish', payload: httpFinish(p) })
+        assert.equal(response.statusCode, 200, response.body)
+        assert.ok(items.getPlayerItemSync(p.id, 10000145) > 0)
+    } finally {
+        persistence.runPersistenceTransaction = originalRunPersistenceTransaction
+        manager.disbandRoom(room.room_number)
+        await app.close()
+    }
+})
+
 test('finish reports missing individual proof and forged finish cannot create finalize evidence', async () => {
     const p = player(), room = run([p]);start(p, room)
     const app = await httpApp(p, load('multi/http/battle').registerBattleRoutes)
@@ -775,7 +811,7 @@ test('multiplayer finish keeps the authenticated requester and distinct real tea
     } finally { await app.close(); await mateApp.close() }
 })
 
-test('real multiplayer HTTP routes reject forged identities and replay after room disband', async () => {
+test('real multiplayer HTTP routes reject forged identities and retain the room for rematch', async () => {
     const p = player(), room = run([p])
     const app = await httpApp(p, async app => {
         load('multi/http/battle').registerBattleRoutes(app)
@@ -791,7 +827,11 @@ test('real multiplayer HTTP routes reject forged identities and replay after roo
         proof(p, room)
         const finish = await app.inject({ method: 'POST', url: '/finish', payload })
         assert.equal(finish.statusCode, 200, finish.body)
-        assert.equal(load('multi/room/manager').getRoom(room.room_number), undefined)
+        const retainedRoom = load('multi/room/manager').getRoom(room.room_number)
+        assert.equal(retainedRoom, room)
+        assert.equal(retainedRoom.lifecycle.phase, 'RETURNING')
+        assert.equal(retainedRoom.settlement_return_pending, true)
+        assert.equal(retainedRoom.raising_state, 1)
         const exp = characters.getPlayerCharacterSync(p.id, 111001).exp
         const crystalCount = items.getPlayerItemSync(p.id, 10000145)
         const nextRoom = createRoom(p.viewerId, p.id, 1, mode.category, mode.visibleQuestId, 0, 111001)
@@ -811,6 +851,53 @@ test('real multiplayer HTTP routes reject forged identities and replay after roo
         assert.equal(characters.getPlayerCharacterSync(p.id, 111001).exp, exp)
         assert.deepEqual(retry.json().data.add_exp_list, finish.json().data.add_exp_list)
     } finally { await app.close() }
+})
+
+test('a returning five-boss guest can restore the original room after settlement', async () => {
+    const host = player(), guest = player(), room = run([host, guest])
+    const hostApp = await httpApp(host, async app => {
+        load('multi/http/battle').registerBattleRoutes(app)
+        load('multi/http/room').registerRoomRoutes(app)
+        load('multi/http/lobby').registerLobbyRoutes(app)
+    })
+    const guestApp = await httpApp(guest, async app => {
+        load('multi/http/battle').registerBattleRoutes(app)
+        load('multi/http/room').registerRoomRoutes(app)
+        load('multi/http/lobby').registerLobbyRoutes(app)
+    })
+    const manager = load('multi/room/manager')
+    try {
+        assert.equal((await hostApp.inject({ method: 'POST', url: '/start', payload: httpStart(host, room) })).statusCode, 200)
+        assert.equal((await guestApp.inject({ method: 'POST', url: '/start', payload: httpStart(guest, room) })).statusCode, 200)
+        proof(host, room); proof(guest, room)
+        assert.equal((await hostApp.inject({ method: 'POST', url: '/finish', payload: httpFinish(host) })).statusCode, 200)
+        assert.equal((await guestApp.inject({ method: 'POST', url: '/finish', payload: httpFinish(guest) })).statusCode, 200)
+        assert.equal(room.lifecycle.phase, 'RETURNING')
+
+        const search = await guestApp.inject({ method: 'POST', url: '/search_room', payload: {
+            viewer_id: guest.viewerId, room_number: room.room_number, api_count: 1,
+        } })
+        assert.equal(search.statusCode, 200, search.body)
+        assert.equal(search.json().data.room_exists, true)
+
+        const select = await guestApp.inject({ method: 'POST', url: '/select_room', payload: {
+            viewer_id: guest.viewerId, room_number: room.room_number,
+            category: mode.category, quest_id: mode.visibleQuestId,
+            party_id: 1, accepted_type: 0, api_count: 1,
+        } })
+        assert.equal(select.statusCode, 200, select.body)
+        assert.equal(select.json().data.room_number, room.room_number)
+
+        const restored = await guestApp.inject({ method: 'POST', url: '/restore_room', payload: {
+            viewer_id: guest.viewerId, room_number: room.room_number,
+        } })
+        assert.equal(restored.statusCode, 200, restored.body)
+        assert.equal(restored.json().data.room_number, room.room_number)
+        assert.notEqual(restored.json().data.raising_state, 9)
+    } finally {
+        manager.disbandRoom(room.room_number)
+        await hostApp.close(); await guestApp.close()
+    }
 })
 
 test('room disband accepts repeated host cleanup but retains authentication and live-room ownership', async () => {
