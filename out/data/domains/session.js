@@ -176,7 +176,7 @@ function getAccountSessionsOfTypeSync(accountId, type) {
     const rawResult = (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
     SELECT token, account_id, expires, type
     FROM sessions
-    WHERE account_id = ? AND type = ?
+    WHERE account_id = ? AND type = ?    
     `).all(accountId, type);
     return rawResult.map(raw => buildSession(raw));
 }
@@ -207,7 +207,7 @@ exports.getAccountSessionsOfType = getAccountSessionsOfType;
 function insertSessionWithTokenSync(session) {
     (0, db_1.getDb)().prepare(`
     INSERT INTO sessions (token, account_id, expires, type)
-    VALUES (?, ?, ?, ?)
+    VALUES (?, ?, ?, ?)    
     `).run(session.token, session.accountId, session.expires.toISOString(), session.type);
     return session;
 }

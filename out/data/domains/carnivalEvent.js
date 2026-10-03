@@ -95,7 +95,7 @@ function migrateCarnivalEventFolderRecordsSync(eventId, difficultiesPerFolder = 
             const key = `${raw.player_id}:${folderId}`;
             const existing = records.get(key);
             if (!existing || ((_a = raw.best_score) !== null && _a !== void 0 ? _a : 0) > ((_b = existing.best_score) !== null && _b !== void 0 ? _b : 0)) {
-                records.set(key, Object.assign(Object.assign({}, raw), { folder_id: folderId,
+                records.set(key, Object.assign(Object.assign({}, raw), { folder_id: folderId, 
                     // The party stored in this row produced the retained best
                     // score, so expose that score alongside it after migration.
                     previous_score: raw.best_score }));
