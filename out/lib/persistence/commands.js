@@ -9,6 +9,7 @@ const battle_facts_1 = require("../mission/battle-facts");
 const steam_robot_challenge_1 = require("../mission/steam-robot-challenge");
 const recommended_party_history_1 = require("../quest/recommended-party-history");
 const character_1 = require("../character");
+const single_finish_transaction_1 = require("../quest/finish/single-finish-transaction");
 const persistence_coordinator_1 = require("../persistence-coordinator");
 /**
  * Domain command implementations.
@@ -47,3 +48,4 @@ const persistence_coordinator_1 = require("../persistence-coordinator");
     const rewardCharacterExpResult = (0, character_1.givePlayerCharactersExpSync)(args.finishCtx.playerId, args.partyCharacterIdsArray, args.characterExpReward, !args.fixedParty);
     return { missionBattleFacts, steamRobotMissionId, rewardCharacterExpResult };
 }));
+(0, command_registry_1.registerWriterCommand)(command_names_1.SINGLE_SETTLE_FINISH, args => (0, persistence_coordinator_1.runPersistenceTransactionSync)({ domain: "single-quest", playerId: args.playerId, operation: "finish" }, () => (0, single_finish_transaction_1.settleSingleQuestFinishInTransaction)(args)));

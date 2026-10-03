@@ -12,6 +12,7 @@
 const { isMainThread } = require('node:worker_threads')
 const { registerWriterCommand } = require('../../out/lib/persistence/command-registry.js')
 const { getDb } = require('../../out/data/db.js')
+const { getServerTime, getTimeOffset } = require('../../out/utils.js')
 
 const effects = []
 
@@ -64,6 +65,14 @@ registerWriterCommand('test.rows', () => (
 registerWriterCommand('test.pure', args => ({
     value: args.value,
     thread: isMainThread ? 'main' : 'worker',
+}))
+
+// The writer thread owns its own copy of the clock module, so the command
+// reports the time it would use for settlement timestamps.
+registerWriterCommand('test.clock', () => ({
+    thread: isMainThread ? 'main' : 'worker',
+    serverTime: getServerTime(),
+    offset: getTimeOffset(),
 }))
 
 registerWriterCommand('test.slow', args => {

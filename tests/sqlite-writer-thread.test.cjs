@@ -26,6 +26,7 @@ require(extraCommands)
 
 const writerClient = require('../out/lib/persistence/writer-client.js')
 const { runWriterCommand } = require('../out/lib/persistence-coordinator.js')
+const { getServerTime, getTimeOffset, setServerTimeOffset } = require('../out/utils.js')
 
 before(async () => {
     const setup = new Database(databasePath)
@@ -123,6 +124,38 @@ test('the writer thread executes commands and survives a command deadline', asyn
     assert.equal(await writerClient.waitForSqliteWriterReady(30_000), true)
     const recovered = await runWriterCommand('test.pure', { value: 2 }, { domain: 'player', operation: 'test.pure' })
     assert.equal(recovered.thread, 'worker')
+})
+
+test('the writer thread shares the main thread virtual clock', async () => {
+    // The worker is a separate thread with its own copy of the clock module,
+    // so the main thread has to push the offset before commands run.
+    const originalOffset = getTimeOffset()
+    await writerClient.stopSqliteWriter()
+    const startupOffset = -421 * 24 * 60 * 60 * 1000 - 12_345
+    setServerTimeOffset(startupOffset)
+    assert.equal(writerClient.startSqliteWriter(databasePath), true)
+    assert.equal(await writerClient.waitForSqliteWriterReady(30_000), true)
+
+    const fromWorker = await runWriterCommand('test.clock', {}, { domain: 'player', operation: 'test.clock' })
+    assert.equal(fromWorker.thread, 'worker')
+    assert.equal(fromWorker.offset, startupOffset)
+    assert.ok(Math.abs(fromWorker.serverTime - getServerTime()) <= 2,
+        `worker serverTime=${fromWorker.serverTime} main serverTime=${getServerTime()}`)
+
+    // A management-panel time change must reach the already running worker.
+    const changedOffset = -90 * 24 * 60 * 60 * 1000
+    setServerTimeOffset(changedOffset)
+    const afterChange = await runWriterCommand('test.clock', {}, { domain: 'player', operation: 'test.clock' })
+    assert.equal(afterChange.offset, changedOffset)
+    assert.ok(Math.abs(afterChange.serverTime - getServerTime()) <= 2)
+
+    // Resetting to system time is a change too (null is not "keep previous").
+    setServerTimeOffset(null)
+    const afterReset = await runWriterCommand('test.clock', {}, { domain: 'player', operation: 'test.clock' })
+    assert.equal(afterReset.offset, null)
+    assert.ok(Math.abs(afterReset.serverTime - getServerTime()) <= 2)
+
+    setServerTimeOffset(originalOffset)
 })
 
 test('an unavailable writer fails loudly instead of writing in-process', async () => {

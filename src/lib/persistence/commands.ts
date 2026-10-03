@@ -4,12 +4,15 @@ import {
     MULTI_CLEANUP_ACTIVE_QUEST,
     MULTI_RECORD_BATTLE_FACTS,
     SINGLE_REFRESH_QUEST_PROGRESS,
+    SINGLE_SETTLE_FINISH,
     type MissionSettleCategoriesArgs,
     type MultiCleanupActiveQuestArgs,
     type MultiRecordBattleFactsArgs,
     type MultiRecordBattleFactsResult,
     type SingleRefreshQuestProgressArgs,
     type SingleRefreshQuestProgressResult,
+    type SingleSettleFinishArgs,
+    type SingleSettleFinishResult,
 } from "./command-names"
 import { settleMissionCategories, type MissionSettlementResult } from "../mission/settlement"
 import { getPlayerSingleQuestProgressSync } from "../../data/domains/quest"
@@ -18,6 +21,7 @@ import { recordMissionBattleFacts } from "../mission/battle-facts"
 import { trackSteamRobotChallengeMission } from "../mission/steam-robot-challenge"
 import { recordQuestRecommendedPartySafe } from "../quest/recommended-party-history"
 import { givePlayerCharactersExpSync } from "../character"
+import { settleSingleQuestFinishInTransaction } from "../quest/finish/single-finish-transaction"
 import { runPersistenceTransactionSync } from "../persistence-coordinator"
 
 /**
@@ -94,5 +98,13 @@ registerWriterCommand<MultiRecordBattleFactsArgs, MultiRecordBattleFactsResult>(
             )
             return { missionBattleFacts, steamRobotMissionId, rewardCharacterExpResult }
         },
+    ),
+)
+
+registerWriterCommand<SingleSettleFinishArgs, SingleSettleFinishResult>(
+    SINGLE_SETTLE_FINISH,
+    args => runPersistenceTransactionSync(
+        { domain: "single-quest", playerId: args.playerId, operation: "finish" },
+        () => settleSingleQuestFinishInTransaction(args),
     ),
 )

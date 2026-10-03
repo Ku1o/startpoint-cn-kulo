@@ -1,6 +1,10 @@
 import type { MissionSettlementScope } from "../mission/settlement"
 import type { PlayerQuestProgress } from "../../data/types"
 import type { FinishContext } from "../../lib/quest/finish/types"
+import type {
+    SingleFinishTransactionArgs,
+    SingleFinishTransactionResult,
+} from "../quest/finish/single-finish-transaction"
 
 /**
  * Stable command names and their argument shapes.
@@ -59,3 +63,14 @@ export interface MultiRecordBattleFactsResult {
     steamRobotMissionId: number | null
     rewardCharacterExpResult: unknown
 }
+
+/**
+ * 单人副本 /finish 的完整结算事务体。原先整段闭包在主线程执行，2026-10-03
+ * 原样搬进写线程：参数全部是准备与校验阶段产生的派生值（数据库行、master
+ * data、请求体、已算好的段位与魔力等），返回值是原来直接回给客户端的响应
+ * 对象加上结算体分段计时，两者都是结构化克隆安全的数据。
+ */
+export const SINGLE_SETTLE_FINISH = "single.settle_finish"
+
+export type SingleSettleFinishArgs = SingleFinishTransactionArgs
+export type SingleSettleFinishResult = SingleFinishTransactionResult

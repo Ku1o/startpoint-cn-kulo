@@ -39,6 +39,7 @@ const memory_diagnostics_1 = require("../lib/memory-diagnostics");
 const command_registry_1 = require("../lib/persistence/command-registry");
 const writer_connection_1 = require("../lib/persistence/writer-connection");
 const writer_config_1 = require("../lib/persistence/writer-config");
+const utils_1 = require("../utils");
 const input = node_worker_threads_1.workerData;
 if ((input === null || input === void 0 ? void 0 : input.protocolVersion) !== writer_config_1.WRITER_PROTOCOL_VERSION) {
     throw new Error(`SQLite writer worker protocol mismatch: worker=${input === null || input === void 0 ? void 0 : input.protocolVersion} expected=${writer_config_1.WRITER_PROTOCOL_VERSION}`);
@@ -301,6 +302,13 @@ function handleMessage(raw) {
             catch (error) {
                 console.error("[WRITER] checkpoint ownership handoff failed", messageOf(error));
             }
+            return;
+        case "set_time_offset":
+            // Both threads must evaluate the same virtual clock: commands that
+            // settle player progress run here, and their timestamps were
+            // previously read with this thread's own (null) offset.
+            (0, utils_1.setServerTimeOffset)(typeof message.offset === "number" && Number.isFinite(message.offset)
+                ? message.offset : null);
             return;
         case "close":
             closeRequested = true;

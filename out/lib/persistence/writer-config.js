@@ -8,7 +8,9 @@
  */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.writerThreadConfig = exports.WRITER_PROTOCOL_VERSION = void 0;
-exports.WRITER_PROTOCOL_VERSION = 1;
+// 2: the client pushes the main thread's virtual-clock offset to the worker
+//    (`set_time_offset`) before dispatching commands.
+exports.WRITER_PROTOCOL_VERSION = 2;
 function integer(value, fallback, min, max) {
     if (!(value === null || value === void 0 ? void 0 : value.trim()))
         return fallback;

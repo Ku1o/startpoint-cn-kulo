@@ -10,6 +10,7 @@ import {
 } from "../lib/persistence/command-registry"
 import { openWriterConnection } from "../lib/persistence/writer-connection"
 import { WRITER_PROTOCOL_VERSION } from "../lib/persistence/writer-config"
+import { setServerTimeOffset } from "../utils"
 
 export interface WriterWorkerInput {
     databasePath: string
@@ -31,6 +32,7 @@ type WriterWorkerMessage =
     | WriterCommandMessage
     | { type: "close" }
     | { type: "checkpoint_owner", external: boolean }
+    | { type: "set_time_offset", offset: number | null }
 
 interface QueuedCommand extends WriterCommandMessage {
     receivedAt: number
@@ -298,6 +300,15 @@ function handleMessage(raw: unknown): void {
             } catch (error) {
                 console.error("[WRITER] checkpoint ownership handoff failed", messageOf(error))
             }
+            return
+        case "set_time_offset":
+            // Both threads must evaluate the same virtual clock: commands that
+            // settle player progress run here, and their timestamps were
+            // previously read with this thread's own (null) offset.
+            setServerTimeOffset(
+                typeof message.offset === "number" && Number.isFinite(message.offset)
+                    ? message.offset : null,
+            )
             return
         case "close":
             closeRequested = true

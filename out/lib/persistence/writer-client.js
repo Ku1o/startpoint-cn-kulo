@@ -18,6 +18,7 @@ const node_worker_threads_1 = require("node:worker_threads");
 const file_exists_1 = require("../file-exists");
 const memory_diagnostics_1 = require("../memory-diagnostics");
 const writer_config_1 = require("./writer-config");
+const utils_1 = require("../../utils");
 class SqliteWriterError extends Error {
     constructor(message, code) {
         super(message);
@@ -210,6 +211,9 @@ function startWorker(targetDatabasePath) {
         switch (message === null || message === void 0 ? void 0 : message.type) {
             case "ready":
                 state.ready = true;
+                // Commands executed here must read the same virtual clock as
+                // the main thread; push before any queued command is sent.
+                pushTimeOffset();
                 pump();
                 return;
             case "result":
@@ -285,11 +289,32 @@ function isSqliteWriterReady() {
     return worker !== null && state.ready;
 }
 exports.isSqliteWriterReady = isSqliteWriterReady;
+/** Forward the main thread's global virtual-clock offset to the writer thread. */
+function pushTimeOffset() {
+    const current = worker;
+    if (current === null)
+        return;
+    try {
+        current.postMessage({ type: "set_time_offset", offset: (0, utils_1.getTimeOffset)() });
+    }
+    catch (error) {
+        console.error(`[WRITER] failed to push the time offset: ${error instanceof Error ? error.message : String(error)}`);
+    }
+}
+let timeOffsetListenerRegistered = false;
+/** Keep later management-panel time changes in sync with the writer thread. */
+function registerTimeOffsetListener() {
+    if (timeOffsetListenerRegistered)
+        return;
+    timeOffsetListenerRegistered = true;
+    (0, utils_1.onServerTimeOffsetChanged)(() => pushTimeOffset());
+}
 function startSqliteWriter(targetDatabasePath, environment = process.env) {
     config = (0, writer_config_1.writerThreadConfig)(environment);
     state.enabled = config.enabled;
     if (!config.enabled)
         return false;
+    registerTimeOffsetListener();
     if (worker !== null)
         return true;
     // A previous stop() leaves the client closing; an explicit restart must

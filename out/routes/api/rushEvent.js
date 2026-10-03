@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getRushEventFolderMaxRounds = exports.rushEventFolderMaxRounds = void 0;
+exports.rushEventFolderMaxRounds = exports.getRushEventFolderMaxRounds = void 0;
 const routine_game_logging_1 = require("../../lib/routine-game-logging");
 const types_1 = require("../../data/types");
 const rushEvent_1 = require("../../data/domains/rushEvent");
@@ -35,6 +35,9 @@ const special_event_parties_1 = require("../../lib/special-event-parties");
 const rush_event_folder_lock_1 = require("../../lib/rush-event-folder-lock");
 const mode15_optional_1 = require("../../lib/mode15-optional");
 const stamina_1 = require("../../lib/stamina");
+const rush_event_folder_rounds_1 = require("../../lib/rush-event-folder-rounds");
+Object.defineProperty(exports, "getRushEventFolderMaxRounds", { enumerable: true, get: function () { return rush_event_folder_rounds_1.getRushEventFolderMaxRounds; } });
+Object.defineProperty(exports, "rushEventFolderMaxRounds", { enumerable: true, get: function () { return rush_event_folder_rounds_1.rushEventFolderMaxRounds; } });
 const gauntlet_entry_rank_1 = require("../../lib/gauntlet-entry-rank");
 const activity_degree_rewards_1 = require("../../lib/activity-degree-rewards");
 const service_1 = require("../../lib/leaderboard/service");
@@ -62,37 +65,6 @@ function repairDeepAbyssEndlessFolderLockSync(playerId, rushEventData) {
         + `player=${playerId} eventId=${rushEventData.eventId} folderId=2`);
     return Object.assign(Object.assign({}, rushEventData), { activeRushBattleFolderId: null });
 }
-exports.rushEventFolderMaxRounds = {
-    [types_2.RushEventFolder.INTERMEDIATE]: 2,
-    [types_2.RushEventFolder.ADVANCED]: 2,
-    [types_2.RushEventFolder.GODLY]: 2
-};
-function getRushEventFolderMaxRounds(eventId, folderId) {
-    var _a, _b;
-    // Deep Abyss is a data-driven 30-floor tower.  The legacy fallback map
-    // only knows the three official two-round folders, so keep its finite
-    // folder open for the configured roguelike run.
-    if ((0, abyss_modes_1.isAbyssEvent)(eventId) && folderId === types_2.RushEventFolder.INTERMEDIATE) {
-        const configured = Number((_a = (0, assets_1.getRogueEventConfig)(eventId)) === null || _a === void 0 ? void 0 : _a.rounds);
-        return Number.isInteger(configured) && configured > 0 ? configured : 30;
-    }
-    if ((0, mode15_optional_1.isMode15RuntimeLoaded)()
-        && eventId === mode15_optional_1.MODE15_RUSH_EVENT_ID
-        && folderId === types_2.RushEventFolder.INTERMEDIATE) {
-        // Mode15 exposes all fifteen rounds in the Rush folder.  The three
-        // boss rows are placeholders completed by AdventEvent settlement.
-        // Keep one sentinel round beyond stage 15 so native Rush completion
-        // never closes the folder before stage-15 settlement resets the run.
-        return 16;
-    }
-    const configuredMaxRound = (0, assets_1.getRushEventFolderMaxRoundSync)(eventId, folderId);
-    if (configuredMaxRound > 0)
-        return configuredMaxRound;
-    // Retain the legacy defaults only for old/custom rows that have no quest
-    // master data. Official event folders are resolved from their actual rows.
-    return (_b = exports.rushEventFolderMaxRounds[folderId]) !== null && _b !== void 0 ? _b : 0;
-}
-exports.getRushEventFolderMaxRounds = getRushEventFolderMaxRounds;
 const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
     fastify.addHook("preHandler", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
         var _a;
@@ -660,7 +632,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 questId,
                 totalRounds: questData.rushEventFolderId === undefined
                     ? 0
-                    : getRushEventFolderMaxRounds(questData.rushEventId, questData.rushEventFolderId),
+                    : (0, rush_event_folder_rounds_1.getRushEventFolderMaxRounds)(questData.rushEventId, questData.rushEventFolderId),
             });
             // Insert the active quest for '/single_battle_quest/finish'.
             (0, singleBattleQuest_1.insertActiveQuest)(playerId, {

@@ -4,6 +4,7 @@ import { existsSync } from "../file-exists"
 import { observeWorkerMemory, registerMemoryCounters } from "../memory-diagnostics"
 import type { WriterCommandMeta } from "./command-registry"
 import { WRITER_PROTOCOL_VERSION, writerThreadConfig, type WriterThreadConfig } from "./writer-config"
+import { getTimeOffset, onServerTimeOffsetChanged } from "../../utils"
 
 export interface SqliteWriterCommand {
     name: string
@@ -221,6 +222,9 @@ function startWorker(targetDatabasePath: string): void {
         switch (message?.type) {
             case "ready":
                 state.ready = true
+                // Commands executed here must read the same virtual clock as
+                // the main thread; push before any queued command is sent.
+                pushTimeOffset()
                 pump()
                 return
             case "result":
@@ -301,10 +305,33 @@ export function isSqliteWriterReady(): boolean {
     return worker !== null && state.ready
 }
 
+/** Forward the main thread's global virtual-clock offset to the writer thread. */
+function pushTimeOffset(): void {
+    const current = worker
+    if (current === null) return
+    try {
+        current.postMessage({ type: "set_time_offset", offset: getTimeOffset() })
+    } catch (error) {
+        console.error(
+            `[WRITER] failed to push the time offset: ${error instanceof Error ? error.message : String(error)}`,
+        )
+    }
+}
+
+let timeOffsetListenerRegistered = false
+
+/** Keep later management-panel time changes in sync with the writer thread. */
+function registerTimeOffsetListener(): void {
+    if (timeOffsetListenerRegistered) return
+    timeOffsetListenerRegistered = true
+    onServerTimeOffsetChanged(() => pushTimeOffset())
+}
+
 export function startSqliteWriter(targetDatabasePath: string, environment: NodeJS.ProcessEnv = process.env): boolean {
     config = writerThreadConfig(environment)
     state.enabled = config.enabled
     if (!config.enabled) return false
+    registerTimeOffsetListener()
     if (worker !== null) return true
     // A previous stop() leaves the client closing; an explicit restart must
     // clear that so commands are accepted again.

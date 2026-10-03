@@ -57,6 +57,7 @@
 | 数据库 schema、版本文件、迁移 | 主进程 | 写线程只开连接，不跑初始化 |
 | 业务写事务 | 写线程 | 通过命令注册表执行 |
 | master data（`assets/*.json`） | 各自线程内独立副本 | 管理端重载后需要让写线程重新加载，属于后续工作项 |
+| 全局虚拟时间偏移 | 主进程 | 写线程在 ready 后及每次偏移变化时通过 `set_time_offset` 同步（协议版本 2）；每玩家偏移写线程自行查库，不需要同步 |
 | `active_account.json` 缓存 | 主进程 | 写线程不直接读写该文件 |
 | 内存副作用（seed、抽卡 movie 等） | 命令所在线程 | 必须通过 `afterCommit` 注册 |
 
@@ -80,11 +81,20 @@ SQLITE_WRITER_FALLBACK=0
 
 ## 8. 目前迁移范围
 
-已迁移：
+已迁移（5 个命令）：
 
 - `mission.settle_categories`：多人战斗结算使用的任务结算入口（`settleMissionCategoriesAsync`）。
+- `single.refresh_quest_progress`：单人副本结算前的关卡进度刷新（兼深渊最好成绩修正）。
+- `multi.cleanup_active_quest`：多人结算后清理本场战斗的进行中关卡记录。
+- `multi.record_battle_facts`：多人结算的战斗事实写入（任务战斗事实、推荐队伍、蒸气机器人挑战、角色经验）。
+- `single.settle_finish`：单人 `/finish` 的完整结算事务体与响应组装（`settleSingleQuestFinishInTransaction`）。
 
-待迁移（按已知阻塞时间排序）：单人或单人副本结算、多人结算其余事务、抽卡、邮件/排行榜/领取历史维护、登录与会话、管理后台与工具类写入。
+写线程与主线程共用同一虚拟时钟：worker ready 后及每次时间偏移变化时，主线程推送
+`set_time_offset`（协议版本 2），worker 收到即调用 `setServerTimeOffset()`；每玩家偏移
+仍由写线程自行查库。时间口径规则、数据库时间列归属与写线程迁移前检查清单见
+`docs/development/time-base-policy.md`。
+
+待迁移（按已知阻塞时间排序）：多人结算其余事务、抽卡、邮件/排行榜/领取历史维护、登录与会话、管理后台与工具类写入。
 
 ## 9. 验证
 
@@ -106,5 +116,6 @@ CN_WRITER_THREAD=0
 ## 11. 已知限制与后续工作
 
 - master data 重载尚未广播到写线程；在管理端热重载资源后，需要重启写线程或补充重载命令。
+- 时间列存储口径、写线程迁移前检查清单与待定项见 `docs/development/time-base-policy.md`。
 - 仍未消除主线程的 CPU 长尾（大对象组装、GC、MessagePack 编码）；是否需要把实时层拆到独立线程/进程，按事件循环长尾与 TCP 断线计数决定。
 - 单写线程意味着写吞吐仍受单写者限制；只有多进程 HTTP 落地且指标证明 SQLite 单写者是瓶颈时才评估外部数据库。
