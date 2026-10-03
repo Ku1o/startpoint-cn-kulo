@@ -66,7 +66,14 @@ import {
     settleMode15BattleSync,
 } from "../../lib/mode15-optional";
 import { recordSuccessfulQuestNpcParty } from "../npc/player-party-pool";
-import { runPersistenceTransaction } from "../../lib/persistence-coordinator";
+import { runPersistenceTransaction, runWriterCommand } from "../../lib/persistence-coordinator";
+import {
+    MULTI_CLEANUP_ACTIVE_QUEST,
+    MULTI_RECORD_BATTLE_FACTS,
+    type MultiCleanupActiveQuestArgs,
+    type MultiRecordBattleFactsArgs,
+    type MultiRecordBattleFactsResult,
+} from "../../lib/persistence/command-names";
 import {
     buildBattleInstanceId,
     getMultiSettlementSnapshot,
@@ -641,30 +648,22 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
         let missionBattleFacts!: ReturnType<typeof recordMissionBattleFacts>;
         let steamRobotMissionId: number | null = null;
         let rewardCharacterExpResult!: ReturnType<typeof givePlayerCharactersExpSync>;
-        await measureSettlementPhaseAsync("multi", "facts_transaction", () => runPersistenceTransaction({
-            domain: "multi-settlement", playerId, operation: "facts_transaction",
-        }, () => {
-        missionBattleFacts = recordMissionBattleFacts(finishCtx, missionEvaluationTime)
-        if (questData.fixedParty === undefined) {
-            recordQuestRecommendedPartySafe(finishCtx)
-        }
-        steamRobotMissionId = trackSteamRobotChallengeMission({
-            playerId,
-            questCategory,
-            questId,
-            questAccomplished,
-            clearRank,
-            statistics: finishCtx.statistics,
-        })
-        if (steamRobotMissionId !== null) {
-            console.log(`[MISSION] steam robot challenge cleared: player=${playerId} quest=${questId} mission=${steamRobotMissionId}`)
-        }
-
-        rewardCharacterExpResult = givePlayerCharactersExpSync(
-            playerId, partyCharacterIdsArray, questData.characterExpReward || 0,
-            questData.fixedParty !== undefined
-        );
-        }));
+        await measureSettlementPhaseAsync("multi", "facts_transaction", async () => {
+            const factsResult = await runWriterCommand<MultiRecordBattleFactsArgs, MultiRecordBattleFactsResult>(
+                MULTI_RECORD_BATTLE_FACTS,
+                {
+                    finishCtx,
+                    partyCharacterIdsArray,
+                    characterExpReward: questData.characterExpReward || 0,
+                    fixedParty: questData.fixedParty !== undefined,
+                    evaluationTimeMs: missionEvaluationTime.getTime(),
+                },
+                { domain: "multi-settlement", playerId, operation: "facts_transaction" },
+            )
+            missionBattleFacts = factsResult.missionBattleFacts as ReturnType<typeof recordMissionBattleFacts>
+            steamRobotMissionId = factsResult.steamRobotMissionId
+            rewardCharacterExpResult = factsResult.rewardCharacterExpResult as ReturnType<typeof givePlayerCharactersExpSync>
+        });
 
         const dataHeaders = generateDataHeaders({ viewer_id: viewerId });
         const rawMatePlayerResult = ((body as any).mate_player_result || []) as Array<{ viewer_id?: number }>;
@@ -866,9 +865,11 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
         // Clear only the quest that produced this response.  A late retry from
         // the previous battle must never delete a newer rematch's active quest.
         if (activeQuests[playerId]?.playId === activeQuestData.playId) {
-            await measureSettlementPhaseAsync("multi", "active_quest_cleanup", () => runPersistenceTransaction({
-                domain: "multi-settlement", playerId, operation: "active_quest_cleanup",
-            }, () => deletePlayerActiveQuestSync(playerId)));
+            await measureSettlementPhaseAsync("multi", "active_quest_cleanup", () => runWriterCommand<MultiCleanupActiveQuestArgs, null>(
+                MULTI_CLEANUP_ACTIVE_QUEST,
+                { playerId },
+                { domain: "multi-settlement", playerId, operation: "active_quest_cleanup" },
+            ));
             if (activeQuests[playerId]?.playId === activeQuestData.playId) {
                 delete activeQuests[playerId];
             }

@@ -65,6 +65,7 @@ const score_attack_border_reward_json_1 = __importDefault(require("../../../asse
 const event_challenge_point_map_json_1 = __importDefault(require("../../../assets/event_challenge_point_map.json"));
 const game_logging_1 = require("../../lib/game-logging");
 const persistence_coordinator_1 = require("../../lib/persistence-coordinator");
+const command_names_1 = require("../../lib/persistence/command-names");
 const settlement_performance_1 = require("../../lib/settlement-performance");
 const single_settlement_diagnostics_1 = require("../../lib/single-settlement-diagnostics");
 const gauntlet_completion_classification_1 = require("../../lib/gauntlet-completion-classification");
@@ -225,9 +226,9 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         // This lookup refreshes published Abyss best-time revisions and is
         // therefore a write-capable operation. Keep it under the same
         // persistence coordinator as settlement preparation.
-        const questProgress = yield (0, settlement_performance_1.measureSettlementPhaseAsync)("single", "progress_refresh", () => ((0, persistence_coordinator_1.runPersistenceTransaction)({
-            domain: "single-quest", playerId, operation: "progress_refresh",
-        }, () => (0, quest_1.getPlayerSingleQuestProgressSync)(playerId, questCategory, questId))));
+        // 深渊最好成绩刷新是"读+写"，整段按注册命令执行：开启写线程时在写线程内
+        // 完成，关闭时保持原进程内语义，调用方看到的返回值不变。
+        const questProgress = yield (0, settlement_performance_1.measureSettlementPhaseAsync)("single", "progress_refresh", () => ((0, persistence_coordinator_1.runWriterCommand)(command_names_1.SINGLE_REFRESH_QUEST_PROGRESS, { playerId, section: questCategory, questId }, { domain: "single-quest", playerId, operation: "progress_refresh" })));
         const questPreviouslyCompleted = questProgress !== null;
         let questAccomplished = body.is_accomplished;
         let scoreAttackBorderTiers = [];

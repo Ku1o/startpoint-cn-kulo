@@ -45,12 +45,12 @@ const mode15_room_gate_1 = require("../mode15-room-gate");
 const mode15_optional_1 = require("../../lib/mode15-optional");
 const player_party_pool_1 = require("../npc/player-party-pool");
 const persistence_coordinator_1 = require("../../lib/persistence-coordinator");
+const command_names_1 = require("../../lib/persistence/command-names");
 const settlement_snapshot_1 = require("../settlement-snapshot");
 const embedded_1 = require("../coordinator/embedded");
 const mana_1 = require("../../lib/mana");
 const player_context_1 = require("../player-context");
 const recruitment_1 = require("../recruitment");
-const recommended_party_history_1 = require("../../lib/quest/recommended-party-history");
 const party_1 = require("../../data/domains/party");
 const party_current_slot_1 = require("../../lib/party-current-slot");
 function buildFinishFollowInfo(requesterPlayerId_1, viewerId_1, mateResults_1) {
@@ -534,25 +534,17 @@ function registerBattleRoutes(fastify) {
         let missionBattleFacts;
         let steamRobotMissionId = null;
         let rewardCharacterExpResult;
-        yield (0, settlement_performance_1.measureSettlementPhaseAsync)("multi", "facts_transaction", () => (0, persistence_coordinator_1.runPersistenceTransaction)({
-            domain: "multi-settlement", playerId, operation: "facts_transaction",
-        }, () => {
-            missionBattleFacts = (0, battle_facts_1.recordMissionBattleFacts)(finishCtx, missionEvaluationTime);
-            if (questData.fixedParty === undefined) {
-                (0, recommended_party_history_1.recordQuestRecommendedPartySafe)(finishCtx);
-            }
-            steamRobotMissionId = (0, steam_robot_challenge_1.trackSteamRobotChallengeMission)({
-                playerId,
-                questCategory,
-                questId,
-                questAccomplished,
-                clearRank,
-                statistics: finishCtx.statistics,
-            });
-            if (steamRobotMissionId !== null) {
-                console.log(`[MISSION] steam robot challenge cleared: player=${playerId} quest=${questId} mission=${steamRobotMissionId}`);
-            }
-            rewardCharacterExpResult = (0, character_1.givePlayerCharactersExpSync)(playerId, partyCharacterIdsArray, questData.characterExpReward || 0, questData.fixedParty !== undefined);
+        yield (0, settlement_performance_1.measureSettlementPhaseAsync)("multi", "facts_transaction", () => __awaiter(this, void 0, void 0, function* () {
+            const factsResult = yield (0, persistence_coordinator_1.runWriterCommand)(command_names_1.MULTI_RECORD_BATTLE_FACTS, {
+                finishCtx,
+                partyCharacterIdsArray,
+                characterExpReward: questData.characterExpReward || 0,
+                fixedParty: questData.fixedParty !== undefined,
+                evaluationTimeMs: missionEvaluationTime.getTime(),
+            }, { domain: "multi-settlement", playerId, operation: "facts_transaction" });
+            missionBattleFacts = factsResult.missionBattleFacts;
+            steamRobotMissionId = factsResult.steamRobotMissionId;
+            rewardCharacterExpResult = factsResult.rewardCharacterExpResult;
         }));
         const dataHeaders = (0, utils_1.generateDataHeaders)({ viewer_id: viewerId });
         const rawMatePlayerResult = (body.mate_player_result || []);
@@ -695,9 +687,7 @@ function registerBattleRoutes(fastify) {
         // Clear only the quest that produced this response.  A late retry from
         // the previous battle must never delete a newer rematch's active quest.
         if (((_6 = singleBattleQuest_1.activeQuests[playerId]) === null || _6 === void 0 ? void 0 : _6.playId) === activeQuestData.playId) {
-            yield (0, settlement_performance_1.measureSettlementPhaseAsync)("multi", "active_quest_cleanup", () => (0, persistence_coordinator_1.runPersistenceTransaction)({
-                domain: "multi-settlement", playerId, operation: "active_quest_cleanup",
-            }, () => (0, quest_active_1.deletePlayerActiveQuestSync)(playerId)));
+            yield (0, settlement_performance_1.measureSettlementPhaseAsync)("multi", "active_quest_cleanup", () => (0, persistence_coordinator_1.runWriterCommand)(command_names_1.MULTI_CLEANUP_ACTIVE_QUEST, { playerId }, { domain: "multi-settlement", playerId, operation: "active_quest_cleanup" }));
             if (((_7 = singleBattleQuest_1.activeQuests[playerId]) === null || _7 === void 0 ? void 0 : _7.playId) === activeQuestData.playId) {
                 delete singleBattleQuest_1.activeQuests[playerId];
             }

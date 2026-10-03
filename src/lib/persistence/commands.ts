@@ -1,6 +1,24 @@
 import { registerWriterCommand } from "./command-registry"
-import { MISSION_SETTLE_CATEGORIES, type MissionSettleCategoriesArgs } from "./command-names"
+import {
+    MISSION_SETTLE_CATEGORIES,
+    MULTI_CLEANUP_ACTIVE_QUEST,
+    MULTI_RECORD_BATTLE_FACTS,
+    SINGLE_REFRESH_QUEST_PROGRESS,
+    type MissionSettleCategoriesArgs,
+    type MultiCleanupActiveQuestArgs,
+    type MultiRecordBattleFactsArgs,
+    type MultiRecordBattleFactsResult,
+    type SingleRefreshQuestProgressArgs,
+    type SingleRefreshQuestProgressResult,
+} from "./command-names"
 import { settleMissionCategories, type MissionSettlementResult } from "../mission/settlement"
+import { getPlayerSingleQuestProgressSync } from "../../data/domains/quest"
+import { deletePlayerActiveQuestSync } from "../../data/domains/quest_active"
+import { recordMissionBattleFacts } from "../mission/battle-facts"
+import { trackSteamRobotChallengeMission } from "../mission/steam-robot-challenge"
+import { recordQuestRecommendedPartySafe } from "../quest/recommended-party-history"
+import { givePlayerCharactersExpSync } from "../character"
+import { runPersistenceTransactionSync } from "../persistence-coordinator"
 
 /**
  * Domain command implementations.
@@ -20,5 +38,61 @@ registerWriterCommand<MissionSettleCategoriesArgs, MissionSettlementResult>(
         args.playerId,
         args.categories,
         new Date(args.evaluationTimeMs),
+    ),
+)
+
+registerWriterCommand<SingleRefreshQuestProgressArgs, SingleRefreshQuestProgressResult>(
+    SINGLE_REFRESH_QUEST_PROGRESS,
+    args => runPersistenceTransactionSync(
+        { domain: "single-quest", playerId: args.playerId, operation: "progress_refresh" },
+        () => getPlayerSingleQuestProgressSync(args.playerId, args.section, args.questId),
+    ),
+)
+
+registerWriterCommand<MultiCleanupActiveQuestArgs, null>(
+    MULTI_CLEANUP_ACTIVE_QUEST,
+    args => runPersistenceTransactionSync(
+        { domain: "multi-settlement", playerId: args.playerId, operation: "active_quest_cleanup" },
+        () => {
+            deletePlayerActiveQuestSync(args.playerId)
+            return null
+        },
+    ),
+)
+
+registerWriterCommand<MultiRecordBattleFactsArgs, MultiRecordBattleFactsResult>(
+    MULTI_RECORD_BATTLE_FACTS,
+    args => runPersistenceTransactionSync(
+        { domain: "multi-settlement", playerId: args.finishCtx.playerId, operation: "facts_transaction" },
+        () => {
+            const missionBattleFacts = recordMissionBattleFacts(
+                args.finishCtx,
+                new Date(args.evaluationTimeMs),
+            )
+            if (!args.fixedParty) {
+                recordQuestRecommendedPartySafe(args.finishCtx)
+            }
+            const steamRobotMissionId = trackSteamRobotChallengeMission({
+                playerId: args.finishCtx.playerId,
+                questCategory: args.finishCtx.questCategory,
+                questId: args.finishCtx.questId,
+                questAccomplished: args.finishCtx.questAccomplished,
+                clearRank: args.finishCtx.clearRank,
+                statistics: args.finishCtx.statistics,
+            })
+            if (steamRobotMissionId !== null) {
+                console.log(
+                    `[MISSION] steam robot challenge cleared: player=${args.finishCtx.playerId}`
+                    + ` quest=${args.finishCtx.questId} mission=${steamRobotMissionId}`,
+                )
+            }
+            const rewardCharacterExpResult = givePlayerCharactersExpSync(
+                args.finishCtx.playerId,
+                args.partyCharacterIdsArray,
+                args.characterExpReward,
+                !args.fixedParty,
+            )
+            return { missionBattleFacts, steamRobotMissionId, rewardCharacterExpResult }
+        },
     ),
 )

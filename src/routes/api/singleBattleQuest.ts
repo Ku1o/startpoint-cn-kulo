@@ -71,7 +71,12 @@ import questEntryCosts from "../../../assets/quest_entry_costs.json";
 import scoreAttackBorderRewards from "../../../assets/score_attack_border_reward.json";
 import eventChallengePointMap from "../../../assets/event_challenge_point_map.json";
 import { gameVerboseLog } from "../../lib/game-logging";
-import { runPersistenceTransaction } from "../../lib/persistence-coordinator";
+import { runPersistenceTransaction, runWriterCommand } from "../../lib/persistence-coordinator";
+import {
+    SINGLE_REFRESH_QUEST_PROGRESS,
+    type SingleRefreshQuestProgressArgs,
+    type SingleRefreshQuestProgressResult,
+} from "../../lib/persistence/command-names";
 import { measureSettlementPhase, measureSettlementPhaseAsync } from "../../lib/settlement-performance";
 import { createSingleSettlementBodyTimer } from "../../lib/single-settlement-diagnostics";
 import { repairGauntletCompletionClassificationSync } from "../../lib/gauntlet-completion-classification";
@@ -370,10 +375,14 @@ const routes = async (fastify: FastifyInstance) => {
         // This lookup refreshes published Abyss best-time revisions and is
         // therefore a write-capable operation. Keep it under the same
         // persistence coordinator as settlement preparation.
+        // 深渊最好成绩刷新是"读+写"，整段按注册命令执行：开启写线程时在写线程内
+        // 完成，关闭时保持原进程内语义，调用方看到的返回值不变。
         const questProgress = await measureSettlementPhaseAsync("single", "progress_refresh", () => (
-            runPersistenceTransaction({
-                domain: "single-quest", playerId, operation: "progress_refresh",
-            }, () => getPlayerSingleQuestProgressSync(playerId, questCategory, questId))
+            runWriterCommand<SingleRefreshQuestProgressArgs, SingleRefreshQuestProgressResult>(
+                SINGLE_REFRESH_QUEST_PROGRESS,
+                { playerId, section: questCategory, questId },
+                { domain: "single-quest", playerId, operation: "progress_refresh" },
+            )
         ));
         const questPreviouslyCompleted = questProgress !== null
 
