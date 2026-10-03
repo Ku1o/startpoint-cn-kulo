@@ -3,7 +3,11 @@ import type { Player } from "../../data/types"
 import type { MultiRoom } from "../../lib/types/multi"
 import type { MultiAbortBody, MultiFinishBody, MultiStartBody } from "../types"
 import { getPlayerActiveQuestSync } from "../../data/domains/quest_active"
-import { FiveBossGauntletRunError, backfillMissingFinalizeSync, getFiveBossRunByClientSync } from "../../data/domains/fiveBossGauntletRun"
+import {
+    FiveBossGauntletRunError,
+    backfillMissingFinalizeSync,
+    getFiveBossRunByClientSync,
+} from "../../data/domains/fiveBossGauntletRun"
 import { getPlayerItemSync } from "../../data/domains/item"
 import { getPlayerEquipmentSync } from "../../data/domains/equipment"
 import { getPlayerSync, updatePlayerSync } from "../../data/domains/player"
@@ -12,7 +16,7 @@ import { clientSerializeEquipment } from "../../lib/equipment"
 import type { RewardPlayerCharacterExpResult } from "../../lib/types/character"
 import { generateDataHeaders, getServerTime, realToVirtual } from "../../utils"
 import { activeQuests } from "../../routes/api/singleBattleQuest"
-import { getRoom, disbandRoom } from "../room/manager"
+import { getRoom } from "../room/manager"
 import { sessionManager } from "../state/SessionManager"
 import {
     abortFiveBossBattle,
@@ -39,7 +43,8 @@ export function logFiveBossRequestFailure(operation: "start" | "finish" | "abort
         body.category, body.quest_id, code, message?.slice(0, 160)])
     fiveBossDiagnostics.report(key, () => {
         const run = getFiveBossRunByClientSync({ playerId, clientPlayId: body.play_id })
-        const member = run ? getDb().prepare(`SELECT started_at, aborted_at, level_next_at, finalized_at
+        const member = run ? getDb().prepare(`SELECT started_at, battle_entered_at, aborted_at,
+            level_next_at, finalized_at
             FROM five_boss_gauntlet_members WHERE run_id = ? AND player_id = ?`).get(run.runId, playerId) : null
         const active = getPlayerActiveQuestSync(playerId)
         if (run && operation === "finish") fiveBossConnectionDiagnostics.memberEvent(run.runId, playerId, "finish_rejected", code)
@@ -114,16 +119,30 @@ function terminalRoomTransition(
 
     sessionManager.clearBattleExpectedCount(roomNumber)
     if (runStatus === "settled") {
-        delete room.five_boss_runtime
         // 结算后不再把房间退回 raising_state=1 复用,而是直接解散:
         // V7 客户端补丁 five-boss-random-map 的选图种子 = 房间号,同一房间再战
         // 会抽到同一套变体;解散逼房主重建房间 = 新房号 = 新一轮随机。
         // 代价是结算页点「再战」会提示房间已解散,回到关卡页重建(作者接受随机性优先)。
         console.log(`[MULTI] five-boss settled: disbanding room ${roomNumber} so the next run rerolls its map seed`)
-        disbandRoom(roomNumber)
+        sessionManager.commitRoomDisband(roomNumber, "five_boss_settled")
         return
     }
-    disbandRoom(roomNumber)
+    sessionManager.commitRoomDisband(roomNumber, "five_boss_aborted")
+}
+
+
+function afterResponse(reply: FastifyReply, operation: () => void): void {
+    let completed = false
+    const run = () => {
+        if (completed) return
+        completed = true
+        try { operation() }
+        catch (error) {
+            console.error(`[MULTI] five-boss post-response cleanup failed: ${(error as Error).message}`)
+        }
+    }
+    reply.raw.once("finish", run)
+    reply.raw.once("close", run)
 }
 
 
@@ -431,7 +450,9 @@ export async function handleFiveBossFinish(
         })
     }))
     clearMatchingMemoryActive(playerId, body.play_id)
-    terminalRoomTransition(roomNumber, result.runId, result.runStatus)
+    if (result.runStatus !== "active") {
+        afterResponse(reply, () => terminalRoomTransition(roomNumber, result.runId, result.runStatus))
+    }
 
     const matePlayerResult = body.mate_player_result ?? []
     const followInfo = await measureSettlementPhaseAsync("multi", "five_boss_follow", () => buildFollowInfo(
@@ -474,7 +495,9 @@ export async function handleFiveBossAbort(
         requestQuestId: body.quest_id,
     }))
     clearMatchingMemoryActive(playerId, body.play_id)
-    terminalRoomTransition(roomNumber, result.runId, result.runStatus)
+    if (result.runStatus !== "active") {
+        afterResponse(reply, () => terminalRoomTransition(roomNumber, result.runId, result.runStatus))
+    }
 
     const headers = generateDataHeaders({ viewer_id: body.viewer_id })
     reply.header("content-type", "application/x-msgpack")

@@ -38,7 +38,8 @@ function logFiveBossRequestFailure(operation, body, playerId, error) {
         body.category, body.quest_id, code, message === null || message === void 0 ? void 0 : message.slice(0, 160)]);
     coalesced_diagnostics_1.fiveBossDiagnostics.report(key, () => {
         const run = (0, fiveBossGauntletRun_1.getFiveBossRunByClientSync)({ playerId, clientPlayId: body.play_id });
-        const member = run ? (0, db_1.getDb)().prepare(`SELECT started_at, aborted_at, level_next_at, finalized_at
+        const member = run ? (0, db_1.getDb)().prepare(`SELECT started_at, battle_entered_at, aborted_at,
+            level_next_at, finalized_at
             FROM five_boss_gauntlet_members WHERE run_id = ? AND player_id = ?`).get(run.runId, playerId) : null;
         const active = (0, quest_active_1.getPlayerActiveQuestSync)(playerId);
         if (run && operation === "finish")
@@ -94,16 +95,31 @@ function terminalRoomTransition(roomNumber, runId, runStatus) {
     }
     SessionManager_1.sessionManager.clearBattleExpectedCount(roomNumber);
     if (runStatus === "settled") {
-        delete room.five_boss_runtime;
         // 结算后不再把房间退回 raising_state=1 复用,而是直接解散:
         // V7 客户端补丁 five-boss-random-map 的选图种子 = 房间号,同一房间再战
         // 会抽到同一套变体;解散逼房主重建房间 = 新房号 = 新一轮随机。
         // 代价是结算页点「再战」会提示房间已解散,回到关卡页重建(作者接受随机性优先)。
         console.log(`[MULTI] five-boss settled: disbanding room ${roomNumber} so the next run rerolls its map seed`);
-        (0, manager_1.disbandRoom)(roomNumber);
+        SessionManager_1.sessionManager.commitRoomDisband(roomNumber, "five_boss_settled");
         return;
     }
-    (0, manager_1.disbandRoom)(roomNumber);
+    SessionManager_1.sessionManager.commitRoomDisband(roomNumber, "five_boss_aborted");
+}
+function afterResponse(reply, operation) {
+    let completed = false;
+    const run = () => {
+        if (completed)
+            return;
+        completed = true;
+        try {
+            operation();
+        }
+        catch (error) {
+            console.error(`[MULTI] five-boss post-response cleanup failed: ${error.message}`);
+        }
+    };
+    reply.raw.once("finish", run);
+    reply.raw.once("close", run);
 }
 /**
  * CN 客户端的 multi finish / abort 请求体**不带 room_number**(官方
@@ -387,7 +403,9 @@ function handleFiveBossFinish(body, playerId, reply, buildFollowInfo) {
             });
         }));
         clearMatchingMemoryActive(playerId, body.play_id);
-        terminalRoomTransition(roomNumber, result.runId, result.runStatus);
+        if (result.runStatus !== "active") {
+            afterResponse(reply, () => terminalRoomTransition(roomNumber, result.runId, result.runStatus));
+        }
         const matePlayerResult = (_d = body.mate_player_result) !== null && _d !== void 0 ? _d : [];
         const followInfo = yield (0, settlement_performance_1.measureSettlementPhaseAsync)("multi", "five_boss_follow", () => {
             var _a, _b;
@@ -417,7 +435,9 @@ function handleFiveBossAbort(body, playerId, reply) {
             requestQuestId: body.quest_id,
         }));
         clearMatchingMemoryActive(playerId, body.play_id);
-        terminalRoomTransition(roomNumber, result.runId, result.runStatus);
+        if (result.runStatus !== "active") {
+            afterResponse(reply, () => terminalRoomTransition(roomNumber, result.runId, result.runStatus));
+        }
         const headers = (0, utils_1.generateDataHeaders)({ viewer_id: body.viewer_id });
         reply.header("content-type", "application/x-msgpack");
         return reply.status(200).send({

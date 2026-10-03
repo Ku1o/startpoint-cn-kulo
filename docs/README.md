@@ -28,6 +28,7 @@
 - [多人共斗断线排查与修复记录](./development/MULTIPLAYER-DISCONNECT-INVESTIGATION-20261003.md)
 - [云服运行日志复盘与第二轮优化](./development/RUNTIME-LOG-FOLLOWUP-20261003.md)
 - [PR #15 上线后六小时日志复盘](./development/RUNTIME-LOG2-FOLLOWUP-20261003.md)
+- [五重决战共斗掉线与 H400 修复](./development/FIVE-BOSS-DISCONNECT-H400-FIX-20261004.md)
 - [SQLite 单写线程实施记录](./development/SQLITE-WRITER-THREAD-20261003.md)
 
 ## 贡献流程

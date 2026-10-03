@@ -57,6 +57,7 @@ export interface MultiRoom {
     five_boss_runtime?: {
         runId: string
         expectedRealPlayerIds: number[]
+        battleEnteredPlayerIds?: number[]
         autoplayModeByPlayerId: Record<string, boolean>
         partyCharacterIdsByPlayerId: Record<string, number[]>
         battleIdentityByViewerId: Record<string, { playerId: number, remoteAddress: string, connectionId: string }>

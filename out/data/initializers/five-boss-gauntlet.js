@@ -39,6 +39,7 @@ function initializeFiveBossGauntlet(database) {
             client_play_id TEXT,
             is_auto_mode INTEGER CHECK(is_auto_mode IN (0, 1)),
             started_at TEXT,
+            battle_entered_at TEXT,
             aborted_at TEXT,
             level_next_at TEXT,
             finalized_at TEXT,
@@ -65,6 +66,10 @@ function initializeFiveBossGauntlet(database) {
     }
     if (!soloColumns.has("auto_used")) {
         database.exec("ALTER TABLE five_boss_solo_runs ADD COLUMN auto_used INTEGER NOT NULL DEFAULT 1 CHECK(auto_used IN (0, 1))");
+    }
+    const memberInfo = database.prepare("PRAGMA table_info(five_boss_gauntlet_members)").all();
+    if (!memberInfo.some(column => column.name === "battle_entered_at")) {
+        database.exec("ALTER TABLE five_boss_gauntlet_members ADD COLUMN battle_entered_at TEXT");
     }
 }
 exports.initializeFiveBossGauntlet = initializeFiveBossGauntlet;
