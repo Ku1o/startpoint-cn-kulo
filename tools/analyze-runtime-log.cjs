@@ -14,6 +14,8 @@ const memory = lines.filter(line => line.startsWith('[MEM] '))
 const perf = lines.filter(line => line.startsWith('[PERF] '))
 const settlements = lines.filter(line => line.startsWith('[SINGLE-SETTLEMENT] '))
     .map(line => JSON.parse(line.slice('[SINGLE-SETTLEMENT] '.length)))
+const requestSummaries = lines.filter(line => line.startsWith('[REQUEST-PERF] '))
+    .map(line => JSON.parse(line.slice('[REQUEST-PERF] '.length)))
 const crashLines = stdoutPath && fs.existsSync(stdoutPath)
     ? fs.readFileSync(stdoutPath, 'utf8').split(/\r?\n/).filter(line => line.startsWith('[CRASH] '))
     : []
@@ -68,6 +70,35 @@ const trend = [0, 1, 2].map(part => {
         loopMaxMs: average('loopMaxMs'),
     }
 })
+const totalRequests = perfRows.reduce((total, row) => total + row.requests, 0)
+const totalCpuMs = perfRows.reduce((total, row) => total + row.cpuMs, 0)
+const routeTotals = {}
+for (const summary of requestSummaries) {
+    for (const route of summary.top ?? []) {
+        const current = routeTotals[route.route] ?? {
+            n: 0,
+            totalMs: 0,
+            maxMs: 0,
+            statuses: {},
+        }
+        current.n += route.n
+        current.totalMs += route.avgMs * route.n
+        current.maxMs = Math.max(current.maxMs, route.maxMs)
+        for (const [status, count] of Object.entries(route.statuses ?? {})) {
+            current.statuses[status] = (current.statuses[status] ?? 0) + count
+        }
+        routeTotals[route.route] = current
+    }
+}
+const routes = Object.entries(routeTotals)
+    .map(([route, value]) => ({
+        route,
+        n: value.n,
+        avgMs: value.n === 0 ? 0 : value.totalMs / value.n,
+        maxMs: value.maxMs,
+        statuses: value.statuses,
+    }))
+    .sort((left, right) => right.n * right.avgMs - left.n * left.avgMs)
 const disconnects = {}
 for (const key of Object.keys(last?.counters?.tcpDisconnects ?? {})) {
     disconnects[key] = Number(last.counters.tcpDisconnects[key] ?? 0)
@@ -116,6 +147,10 @@ console.log(JSON.stringify({
         maxMedianMs: median(perf.map(line => number(line, 'loopMax'))),
         maxMs: Math.max(0, ...perf.map(line => number(line, 'loopMax'))),
         eluMedianPct: median(perf.map(line => number(line, 'elu'))),
+        requestsTotal: totalRequests,
+        requestsPerMinute: perfRows.length === 0 ? null : totalRequests / perfRows.length,
+        cpuMsPerMinute: perfRows.length === 0 ? null : totalCpuMs / perfRows.length,
+        cpuMsPerRequest: totalRequests === 0 ? null : totalCpuMs / totalRequests,
     },
     trend,
     disconnects,
@@ -137,5 +172,6 @@ console.log(JSON.stringify({
         startDays: crashStartDays,
         uploadMinutes: crashUploadMinutes,
     },
+    busiestRoutes: routes.slice(0, 20),
     slowestSettlementCategories: slowest.slice(0, 8),
 }, null, 2))

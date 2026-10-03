@@ -108,8 +108,8 @@ function installRequestDiagnostics(app, options = {}) {
     const knownErrors = new Set(["SQLITE_CONSTRAINT_FOREIGNKEY", "SQLITE_BUSY", "SQLITE_LOCKED",
         "FST_ERR_CTP_BODY_TOO_LARGE", "FST_ERR_CTP_INVALID_JSON_BODY", "FST_ERR_VALIDATION"]);
     function finish(request, status, kind, ms, state) {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q;
-        var _r;
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r;
+        var _s;
         if (completedRequests.has(request))
             return;
         if (kind !== "complete")
@@ -152,27 +152,33 @@ function installRequestDiagnostics(app, options = {}) {
         if ((state === null || state === void 0 ? void 0 : state.parsed) !== undefined && ((_g = state.prepared) !== null && _g !== void 0 ? _g : state.sending) !== undefined) {
             stages.application = ((_h = state.prepared) !== null && _h !== void 0 ? _h : state.sending) - state.parsed;
         }
+        else if ((state === null || state === void 0 ? void 0 : state.parsed) !== undefined && state.start !== undefined) {
+            // Compact mode intentionally omits serialization/send hooks. The
+            // remaining post-parse wall time still distinguishes a slow
+            // client upload from work performed after Fastify parsed the body.
+            stages.application = Math.max(0, state.start + ms - state.parsed - ((_j = state.encodingMs) !== null && _j !== void 0 ? _j : 0));
+        }
         if ((state === null || state === void 0 ? void 0 : state.prepared) !== undefined && state.sending !== undefined)
             stages.serialize = state.sending - state.prepared;
         if ((state === null || state === void 0 ? void 0 : state.sending) !== undefined && state.start !== undefined) {
-            stages.customEncoding = (_j = state.encodingMs) !== null && _j !== void 0 ? _j : 0;
-            stages.sendRemainder = Math.max(0, state.start + ms - state.sending - ((_k = state.encodingMs) !== null && _k !== void 0 ? _k : 0));
+            stages.customEncoding = (_k = state.encodingMs) !== null && _k !== void 0 ? _k : 0;
+            stages.sendRemainder = Math.max(0, state.start + ms - state.sending - ((_l = state.encodingMs) !== null && _l !== void 0 ? _l : 0));
         }
-        else if (((_l = state === null || state === void 0 ? void 0 : state.encodingMs) !== null && _l !== void 0 ? _l : 0) > 0) {
+        else if (((_m = state === null || state === void 0 ? void 0 : state.encodingMs) !== null && _m !== void 0 ? _m : 0) > 0) {
             stages.customEncoding = state.encodingMs;
         }
         for (const [name, value] of Object.entries(stages))
-            add((_m = (_r = row.stages)[name]) !== null && _m !== void 0 ? _m : (_r[name] = timing()), value);
-        row.responseBytes += (_o = state === null || state === void 0 ? void 0 : state.responseBytes) !== null && _o !== void 0 ? _o : 0;
+            add((_o = (_s = row.stages)[name]) !== null && _o !== void 0 ? _o : (_s[name] = timing()), value);
+        row.responseBytes += (_p = state === null || state === void 0 ? void 0 : state.responseBytes) !== null && _p !== void 0 ? _p : 0;
         if (ms >= slowMs || kind !== "complete" || status >= 500) {
             if (slow.length < maxSlowSamples)
                 slow.push({ route,
                     requestId: String(request.id).replace(/[^A-Za-z0-9_.:-]/g, "_").slice(0, 64),
                     status: statusKey, ms: +ms.toFixed(1), outcome: state === null || state === void 0 ? void 0 : state.outcome,
                     stages: Object.fromEntries(Object.entries(stages).map(([key, value]) => [key, +value.toFixed(1)])),
-                    contentLength: (_p = state === null || state === void 0 ? void 0 : state.contentLength) !== null && _p !== void 0 ? _p : null,
+                    contentLength: (_q = state === null || state === void 0 ? void 0 : state.contentLength) !== null && _q !== void 0 ? _q : null,
                     wireBytes,
-                    responseBytes: (_q = state === null || state === void 0 ? void 0 : state.responseBytes) !== null && _q !== void 0 ? _q : 0 });
+                    responseBytes: (_r = state === null || state === void 0 ? void 0 : state.responseBytes) !== null && _r !== void 0 ? _r : 0 });
             else
                 omittedSlowSamples++;
         }
@@ -204,6 +210,17 @@ function installRequestDiagnostics(app, options = {}) {
         done();
     });
     if (options.detailed === false) {
+        // Keep one low-cost boundary in compact mode. Without it, a client
+        // that spends minutes uploading a large battle-finish body is
+        // indistinguishable from an equally slow application handler.
+        if (options.compactReceiveBoundary !== false) {
+            app.addHook("preValidation", (request, _reply, done) => {
+                const state = states.get(request);
+                if (state)
+                    state.parsed = perf_hooks_1.performance.now();
+                done();
+            });
+        }
         app.addHook("onError", (request, _reply, error, done) => {
             var _a;
             const state = states.get(request);

@@ -104,7 +104,7 @@ function increment(target: Record<string, number>, key: string): void { target[k
 /** One bounded collector per server; no raw URL, body, IP or player identifiers. */
 export function installRequestDiagnostics(
     app: FastifyInstance,
-    options: { slowMs?: number, detailed?: boolean } = {},
+    options: { slowMs?: number, detailed?: boolean, compactReceiveBoundary?: boolean } = {},
 ) {
     const configuredSlowMs = Number(options.slowMs ?? process.env.ROUTE_PERF_SLOW_MS ?? 2000)
     const slowMs = Number.isFinite(configuredSlowMs) ? Math.max(100, configuredSlowMs) : 2000
@@ -151,6 +151,14 @@ export function installRequestDiagnostics(
         if (state?.parsed !== undefined && state.start !== undefined) stages.receiveParse = state.parsed - state.start
         if (state?.parsed !== undefined && (state.prepared ?? state.sending) !== undefined) {
             stages.application = (state.prepared ?? state.sending)! - state.parsed
+        } else if (state?.parsed !== undefined && state.start !== undefined) {
+            // Compact mode intentionally omits serialization/send hooks. The
+            // remaining post-parse wall time still distinguishes a slow
+            // client upload from work performed after Fastify parsed the body.
+            stages.application = Math.max(
+                0,
+                state.start + ms - state.parsed - (state.encodingMs ?? 0),
+            )
         }
         if (state?.prepared !== undefined && state.sending !== undefined) stages.serialize = state.sending - state.prepared
         if (state?.sending !== undefined && state.start !== undefined) {
@@ -199,6 +207,16 @@ export function installRequestDiagnostics(
         done()
     })
     if (options.detailed === false) {
+        // Keep one low-cost boundary in compact mode. Without it, a client
+        // that spends minutes uploading a large battle-finish body is
+        // indistinguishable from an equally slow application handler.
+        if (options.compactReceiveBoundary !== false) {
+            app.addHook("preValidation", (request, _reply, done) => {
+                const state = states.get(request)
+                if (state) state.parsed = performance.now()
+                done()
+            })
+        }
         app.addHook("onError", (request, _reply, error, done) => {
             const state = states.get(request)
             if (state && !state.outcome) {
