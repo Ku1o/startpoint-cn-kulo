@@ -1,4 +1,5 @@
-import { serializePlayerData, SerializePlayerDataOptions } from "./serialize-player"
+import { preparePlayerSerialization, SerializePlayerDataOptions } from "./serialize-player"
+import { serializePlayerSnapshot } from "./client-player-snapshot"
 import { getDateFromServerTime, getServerTime, getServerDate, getTimeOffset, realToVirtual } from "../../utils"
 import { ClientPlayerData, DailyChallengePointListEntry, MergedPlayerData, PartyCategory, Player, PlayerBoxGacha, PlayerCharacter, PlayerCharacterBondToken, PlayerDrawnQuest, PlayerEquipment, PlayerGachaCampaign, PlayerGachaInfo, PlayerMultiSpecialExchangeCampaign, PlayerParty, PlayerPartyGroup, PlayerQuestProgress, PlayerRushEvent, PlayerRushEventPlayedParty, PlayerStartDashExchangeCampaign, RushEventBattleType, UserBoxGacha, UserCharacter, UserCharacterBondTokenStatus, UserEquipment, UserGachaCampaign, UserPartyGroup, UserPartyGroupTeam, UserQuestProgress, UserRushEvent, UserRushEventPlayedParty, UserRushEventPlayedPartyList, UserTutorial } from "../types"
 import { deserializePlayerRushEventPlayedParty, deserializeRushEvent, getPlayerRushEventListClearedFoldersSync, getPlayerRushEventListPlayedPartiesSync, getPlayerRushEventListSync, serializePlayerRushEventPlayedParty } from "../domains/rushEvent"
@@ -100,6 +101,14 @@ export function getClientSerializedData(
     playerId: number,
     options: ClientSerializedDataOptions
 ): ClientPlayerData | null {
+    const prepared = prepareClientSerializedData(playerId, options)
+    return prepared ? serializePlayerSnapshot(prepared.data, prepared.context, prepared.options) : null
+}
+
+export function prepareClientSerializedData(
+    playerId: number,
+    options: ClientSerializedDataOptions,
+) {
     const {
         preloadedPlayer,
         preloadedCharacterList,
@@ -131,19 +140,23 @@ export function getClientSerializedData(
     const characterList = preloadedCharacterList ?? getPlayerCharactersSync(playerId)
     const learnedManaNodes = preloadedCharacterManaNodeList
         ?? getPlayerCharactersManaNodesSync(playerId)
+    const playerQuestProgress = preloadedQuestProgress ?? getPlayerQuestProgressSync(playerId)
 
     const doSerializeRushEventData = serializeOptions.serializeRushEventData ?? false
 
     // Compute awake mission summary for /load injection
     const awakeSummary = computeAwakeSummary(playerId, {
+        player: playerData,
         characterList,
+        questProgress: playerQuestProgress,
     })
     awakeSummary.manaBoardAwakeMap = reconcileAwakeUnlocksFromProgress(
         playerId,
         awakeSummary.activeMissionList.map(mission => ({
             missionId: mission.mission_id,
             progress: mission.progress_value,
-        }))
+        })),
+        awakeSummary.manaBoardAwakeMap,
     ).all
 
     // The client uses mana_board_awake both to unlock the Awake tab and as the
@@ -192,7 +205,7 @@ export function getClientSerializedData(
         computeManaBoardAwakeFromNodes(nodeAwakeLevels)
     )
 
-    return serializePlayerData({
+    return preparePlayerSerialization({
         player: playerData,
         dailyChallengePointList: getPlayerDailyChallengePointListSync(playerId),
         triggeredTutorial: getPlayerTriggeredTutorialsSync(playerId),
@@ -204,7 +217,7 @@ export function getClientSerializedData(
         partyGroupList: preloadedPartyGroupList ?? getPlayerPartyGroupListSync(playerId),
         itemList: getPlayerItemsSync(playerId),
         equipmentList: preloadedEquipmentList ?? getPlayerEquipmentListSync(playerId),
-        questProgress: preloadedQuestProgress ?? getPlayerQuestProgressSync(playerId),
+        questProgress: playerQuestProgress,
         gachaInfoList: getPlayerGachaInfoListSync(playerId),
         gachaCampaignList: getPlayerGachaCampaignListSync(playerId),
         drawnQuestList: getPlayerDrawnQuestsSync(playerId),

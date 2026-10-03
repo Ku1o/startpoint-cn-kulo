@@ -23,7 +23,7 @@ interface RawCharacterAwakeUnlock {
 export function getPlayerCharacterAwakeUnlocksSync(
     playerId: number
 ): CharacterAwakeUnlockMap {
-    const rows = getDb().prepare(`
+    const rows = cachedStatement(getDb(), `
         SELECT character_id, board_index, awake_level
         FROM players_character_awake_unlocks
         WHERE player_id = ?
@@ -49,12 +49,12 @@ export function getPlayerCharacterAwakeUnlocksByCharacterIdsSync(
     )
     if (ids.length === 0) return new Map()
 
-    const placeholders = ids.map(() => "?").join(", ")
-    const rows = getDb().prepare(`
+    const rows = cachedStatement(getDb(), `
         SELECT character_id, board_index, awake_level
         FROM players_character_awake_unlocks
-        WHERE player_id = ? AND character_id IN (${placeholders})
-    `).all(playerId, ...ids) as RawCharacterAwakeUnlock[]
+        WHERE player_id = ?
+        AND character_id IN (SELECT CAST(value AS INTEGER) FROM json_each(?))
+    `).all(playerId, JSON.stringify(ids)) as RawCharacterAwakeUnlock[]
     const result: CharacterAwakeUnlockMap = new Map()
     for (const row of rows) {
         const characterId = String(row.character_id)
@@ -71,7 +71,7 @@ export function upsertPlayerCharacterAwakeUnlockSync(
     boardIndex: number,
     awakeLevel: number
 ): boolean {
-    const result = getDb().prepare(`
+    const result = cachedStatement(getDb(), `
         INSERT INTO players_character_awake_unlocks
             (player_id, character_id, board_index, awake_level)
         VALUES (?, ?, ?, ?)

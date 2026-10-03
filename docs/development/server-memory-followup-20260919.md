@@ -45,7 +45,7 @@ Windows x64 上每次探测启动一个隐藏 PowerShell，最多保留一个在
 | `MISSION_SCOPED_READS` | `true` | `false` 恢复按整个任务类别读取 |
 | `SQL_STATEMENT_CACHE` | `true` | `false` 每次重新 prepare |
 | `GAME_ROUTINE_LOGS` | `summary` | `full` 恢复逐条普通日志；`off` 关闭这三类普通日志 |
-| `PROCESS_MEMORY_DIAGNOSTICS` | Windows x64 开启 | `false` 停止新增 PowerShell 进程诊断 |
+| `PROCESS_MEMORY_DIAGNOSTICS` | `false` | Windows x64 排障时设为 `true`，会启动隐藏 PowerShell 进程诊断 |
 | `MEMORY_DIAGNOSTICS` | `true` | `false` 停止内存诊断，包括 SQLite 统计 |
 | `SEED_STREAM_WRITES` | `true` | `false` 使用原有 Object/JSON 写入路径 |
 

@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.countEquippedAbilitySoulSlotsSync = exports.countAbilitySoulUsedInPartiesSync = exports.updatePlayerPartyGroupSync = exports.updatePlayerPartySync = exports.ensurePlayerPartyGroupListSync = exports.insertPlayerPartyGroupListSync = exports.findValidNormalPartySlotSync = exports.isValidNormalPartySlotSync = exports.getPlayerPartyGroupListSync = exports.getFirstPlayerPartyDisplaySelectionsSync = void 0;
+const load_snapshot_1 = require("../readers/load-snapshot");
 const cached_statement_1 = require("../../lib/cached-statement");
 const db_1 = require("../db");
 const types_1 = require("../types");
@@ -87,56 +88,7 @@ function getFirstPlayerPartyDisplaySelectionsSync(playerIds, category) {
 }
 exports.getFirstPlayerPartyDisplaySelectionsSync = getFirstPlayerPartyDisplaySelectionsSync;
 function getPlayerPartyGroupListSync(playerId, category = types_1.PartyCategory.NORMAL) {
-    var _a, _b;
-    const db = (0, db_1.getDb)();
-    const rawPartyGroups = (0, cached_statement_1.cachedStatement)(db, `
-    SELECT id, color_id, category
-    FROM players_party_groups
-    WHERE player_id = ? AND category = ?
-    `).all(playerId, category);
-    const rawParties = (0, cached_statement_1.cachedStatement)(db, `
-    SELECT slot, name, character_id_1, character_id_2, character_id_3, unison_character_1,
-        unison_character_2, unison_character_3, equipment_1, equipment_2, equipment_3,
-        ability_soul_1, ability_soul_2, ability_soul_3, edited, group_id, category,
-        current_battle_power, before_battle_power
-    FROM players_parties
-    WHERE player_id = ? AND category = ?
-    `).all(playerId, category);
-    const groupLists = {};
-    for (const rawParty of rawParties) {
-        const groupId = rawParty.group_id.toString();
-        let bucket = groupLists[groupId];
-        if (!bucket) {
-            bucket = {};
-            groupLists[groupId] = bucket;
-        }
-        bucket[rawParty.slot.toString()] = {
-            name: rawParty.name,
-            characterIds: [rawParty.character_id_1, rawParty.character_id_2, rawParty.character_id_3],
-            unisonCharacterIds: [rawParty.unison_character_1, rawParty.unison_character_2, rawParty.unison_character_3],
-            equipmentIds: [rawParty.equipment_1, rawParty.equipment_2, rawParty.equipment_3],
-            abilitySoulIds: [rawParty.ability_soul_1, rawParty.ability_soul_2, rawParty.ability_soul_3],
-            edited: (0, utils_1.deserializeBoolean)(rawParty.edited),
-            options: {
-                allowOtherPlayersToHealMe: true
-            },
-            category: rawParty.category,
-            currentBattlePower: (_a = rawParty.current_battle_power) !== null && _a !== void 0 ? _a : 0,
-            beforeBattlePower: (_b = rawParty.before_battle_power) !== null && _b !== void 0 ? _b : 0
-        };
-    }
-    const final = {};
-    for (const rawPartyGroup of rawPartyGroups) {
-        const id = rawPartyGroup.id.toString();
-        final[id] = {
-            list: groupLists[id] || [],
-            colorId: rawPartyGroup.color_id,
-            category: rawPartyGroup.category
-        };
-    }
-    // Log group summary
-    (0, game_logging_1.gameVerboseLog)(() => `[PARTY-READ] player=${playerId} groups=${Object.keys(final).length} totalParties=${rawParties.length}`);
-    return final;
+    return (0, load_snapshot_1.readPlayerPartyGroupListSync)((0, db_1.getDb)(), playerId, category);
 }
 exports.getPlayerPartyGroupListSync = getPlayerPartyGroupListSync;
 /**

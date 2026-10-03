@@ -14,6 +14,7 @@ const connection_diagnostic_1 = require("../five-boss/connection-diagnostic");
 const memory_diagnostics_1 = require("../../lib/memory-diagnostics");
 const server_work_performance_1 = require("../../lib/server-work-performance");
 const realtime_diagnostics_1 = require("../../lib/realtime-diagnostics");
+const disconnect_diagnostics_1 = require("../tcp/disconnect-diagnostics");
 class SessionManager {
     constructor() {
         this.clients = new Map();
@@ -57,8 +58,10 @@ class SessionManager {
     /** An account login replacement revokes both lobby and battle transports. */
     disconnectPlayerLogin(viewerId) {
         for (const client of Array.from(this.clients.values())) {
-            if (client.viewerId === viewerId)
+            if (client.viewerId === viewerId) {
+                (0, disconnect_diagnostics_1.markTcpDisconnectReason)(client.socket, "login_replaced");
                 client.socket.destroy();
+            }
         }
     }
     addr(viewerId, roomNumber) {
@@ -86,6 +89,7 @@ class SessionManager {
                 retry.unref();
                 return;
             }
+            (0, disconnect_diagnostics_1.markTcpDisconnectReason)(socket, "superseded");
             socket.destroy();
         };
         const timer = setTimeout(closeWhenSafe, checkMs);
@@ -112,8 +116,10 @@ class SessionManager {
             if (!oldest)
                 break;
             bucket.sockets.delete(oldest);
-            if (!oldest.destroyed)
+            if (!oldest.destroyed) {
+                (0, disconnect_diagnostics_1.markTcpDisconnectReason)(oldest, "superseded");
                 oldest.destroy();
+            }
         }
         return this.deferSupersededSocketClose(socket, replacementIsLive);
     }
@@ -123,8 +129,10 @@ class SessionManager {
                 continue;
             this.supersededSocketBuckets.delete(ownerKey);
             for (const socket of bucket.sockets) {
-                if (!socket.destroyed)
+                if (!socket.destroyed) {
+                    (0, disconnect_diagnostics_1.markTcpDisconnectReason)(socket, "room_disband");
                     socket.destroy();
+                }
             }
         }
     }
@@ -146,6 +154,7 @@ class SessionManager {
                 return;
             (0, game_logging_1.gameVerboseLog)(() => `[MULTI] forcing retired lobby socket closed: room=${roomNumber}`
                 + ` graceMs=${graceMs}`);
+            (0, disconnect_diagnostics_1.markTcpDisconnectReason)(socket, "room_disband");
             socket.destroy();
         }, graceMs);
         timer.unref();
@@ -170,15 +179,24 @@ class SessionManager {
         this.battleConnectionPhase.set(connectionId, "loading");
         this.battleLastActivityAt.set(connectionId, Date.now());
         const timer = setTimeout(() => {
-            this.battleHeartbeatTimers.delete(connectionId);
-            const current = this.cidToBattleClient.get(connectionId);
-            if (!current || current.socket.destroyed
-                || this.battleConnectionPhase.get(connectionId) !== "loading")
-                return;
-            console.warn(`[MULTI] battle loading timed out: room=${current.roomNumber}`
-                + ` viewer=${current.viewerId} connection=${connectionId} timeoutMs=${leaseMs}`);
-            connection_diagnostic_1.fiveBossConnectionDiagnostics.socketEvent(current.socket, "loading_timeout", String(leaseMs));
-            current.socket.destroy();
+            // Timers run before the poll phase on a busy loop. Give a SceneReady
+            // frame that is already waiting in the kernel one I/O turn to
+            // replace this lease before deciding that loading really expired.
+            const check = setImmediate(() => {
+                if (this.battleHeartbeatTimers.get(connectionId) !== timer)
+                    return;
+                this.battleHeartbeatTimers.delete(connectionId);
+                const current = this.cidToBattleClient.get(connectionId);
+                if (!current || current.socket.destroyed
+                    || this.battleConnectionPhase.get(connectionId) !== "loading")
+                    return;
+                console.warn(`[MULTI] battle loading timed out: room=${current.roomNumber}`
+                    + ` viewer=${current.viewerId} connection=${connectionId} timeoutMs=${leaseMs}`);
+                connection_diagnostic_1.fiveBossConnectionDiagnostics.socketEvent(current.socket, "loading_timeout", String(leaseMs));
+                (0, disconnect_diagnostics_1.markTcpDisconnectReason)(current.socket, "loading_timeout");
+                current.socket.destroy();
+            });
+            check.unref();
         }, leaseMs);
         timer.unref();
         this.battleHeartbeatTimers.set(connectionId, timer);
@@ -192,25 +210,31 @@ class SessionManager {
         if (previous)
             clearTimeout(previous);
         const timer = setTimeout(() => {
-            var _a;
-            this.battleHeartbeatTimers.delete(connectionId);
-            const current = this.cidToBattleClient.get(connectionId);
-            if (!current || current.socket.destroyed) {
-                this.battleLastActivityAt.delete(connectionId);
-                return;
-            }
-            const inactiveMs = Date.now() - ((_a = this.battleLastActivityAt.get(connectionId)) !== null && _a !== void 0 ? _a : 0);
-            if (inactiveMs < leaseMs) {
-                this.scheduleBattleActivityLease(connectionId, Math.max(1, leaseMs - inactiveMs));
-                return;
-            }
-            console.warn(`[MULTI] real battle connection heartbeat expired: room=${current.roomNumber}`
-                + ` viewer=${current.viewerId} connection=${connectionId} inactiveMs=${inactiveMs}`);
-            connection_diagnostic_1.fiveBossConnectionDiagnostics.socketEvent(current.socket, "heartbeat_timeout", String(inactiveMs));
-            // Destroy only a battle socket that completed the real handshake.
-            // Its normal close handler performs the native Leave path using the
-            // connection id already known by every remaining client.
-            current.socket.destroy();
+            const check = setImmediate(() => {
+                var _a;
+                if (this.battleHeartbeatTimers.get(connectionId) !== timer)
+                    return;
+                this.battleHeartbeatTimers.delete(connectionId);
+                const current = this.cidToBattleClient.get(connectionId);
+                if (!current || current.socket.destroyed) {
+                    this.battleLastActivityAt.delete(connectionId);
+                    return;
+                }
+                const inactiveMs = Date.now() - ((_a = this.battleLastActivityAt.get(connectionId)) !== null && _a !== void 0 ? _a : 0);
+                if (inactiveMs < leaseMs) {
+                    this.scheduleBattleActivityLease(connectionId, Math.max(1, leaseMs - inactiveMs));
+                    return;
+                }
+                console.warn(`[MULTI] real battle connection heartbeat expired: room=${current.roomNumber}`
+                    + ` viewer=${current.viewerId} connection=${connectionId} inactiveMs=${inactiveMs}`);
+                connection_diagnostic_1.fiveBossConnectionDiagnostics.socketEvent(current.socket, "heartbeat_timeout", String(inactiveMs));
+                // Destroy only a battle socket that completed the real handshake.
+                // Its normal close handler performs the native Leave path using the
+                // connection id already known by every remaining client.
+                (0, disconnect_diagnostics_1.markTcpDisconnectReason)(current.socket, "heartbeat_timeout");
+                current.socket.destroy();
+            });
+            check.unref();
         }, delayMs);
         timer.unref();
         this.battleHeartbeatTimers.set(connectionId, timer);
@@ -615,6 +639,7 @@ class SessionManager {
         const current = this.getClient(viewerId, roomNumber);
         if (current && !current.isBattle) {
             this.removeClient(current);
+            (0, disconnect_diagnostics_1.markTcpDisconnectReason)(current.socket, "rescue_timeout");
             try {
                 current.socket.end();
             }
@@ -740,6 +765,7 @@ class SessionManager {
                 this.retireDisbandedLobbySocket(client.socket, roomNumber);
             }
             else {
+                (0, disconnect_diagnostics_1.markTcpDisconnectReason)(client.socket, "room_disband");
                 try {
                     client.socket.end();
                 }

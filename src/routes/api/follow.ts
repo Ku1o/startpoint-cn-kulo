@@ -14,6 +14,7 @@ import { getSession } from "../../data/domains/session";
 import { buildFollowUserInfoSync } from "../../lib/follow";
 import { resolveProfileTargetPlayerIdSync } from "../../lib/profile-target";
 import { generateDataHeaders } from "../../utils";
+import { gameVerboseLog } from "../../lib/game-logging";
 
 interface RequestContext {
     viewerId: number;
@@ -66,7 +67,7 @@ const routes = async (fastify: FastifyInstance) => {
         if (result === "following_limit") return send(reply, ctx.viewerId, {}, 1451);
         if (result === "follower_limit") return send(reply, ctx.viewerId, {}, 1452);
         if (result === "self" || result === "target_not_found") return send(reply, ctx.viewerId, {}, 1457);
-        console.log(`[FOLLOW] add viewer=${ctx.viewerId} target=${Number(body.follow_id)} result=${result}`);
+        gameVerboseLog(() => `[FOLLOW] add viewer=${ctx.viewerId} target=${Number(body.follow_id)} result=${result}`);
         return send(reply, ctx.viewerId, {});
     });
 
@@ -76,7 +77,7 @@ const routes = async (fastify: FastifyInstance) => {
         if (!ctx) return reply.status(400).send({ error: "Bad Request", message: "Invalid viewer id." });
         const targetPlayerId = resolveTargetPlayerId(body.follow_id);
         if (targetPlayerId !== null) await deleteFollow(ctx.playerId, targetPlayerId);
-        console.log(`[FOLLOW] delete viewer=${ctx.viewerId} target=${Number(body.follow_id)}`);
+        gameVerboseLog(() => `[FOLLOW] delete viewer=${ctx.viewerId} target=${Number(body.follow_id)}`);
         return send(reply, ctx.viewerId, {});
     });
 
@@ -86,7 +87,7 @@ const routes = async (fastify: FastifyInstance) => {
         if (!ctx) return reply.status(400).send({ error: "Bad Request", message: "Invalid viewer id." });
         const followerPlayerId = resolveTargetPlayerId(body.followed_id);
         if (followerPlayerId !== null) await deleteFollower(ctx.playerId, followerPlayerId);
-        console.log(`[FOLLOW] delete_follower viewer=${ctx.viewerId} follower=${Number(body.followed_id)}`);
+        gameVerboseLog(() => `[FOLLOW] delete_follower viewer=${ctx.viewerId} follower=${Number(body.followed_id)}`);
         return send(reply, ctx.viewerId, {});
     });
 

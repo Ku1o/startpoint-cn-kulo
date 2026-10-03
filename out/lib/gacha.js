@@ -7,7 +7,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 var _a;
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.rewardPlayerBoxGachaResultSync = exports.drawBoxGachaSync = exports.rewardPlayerGachaDrawResultSync = exports.planCharacterGachaMovies = exports.drawGachaSync = exports.drawGachaWithMetadataSync = exports.randomPoolItem = exports.selectWeightedIndexByRoll = void 0;
+exports.rewardPlayerBoxGachaResultSync = exports.drawBoxGachaSync = exports.rewardPlayerGachaDrawResultSync = exports.commitPlannedCharacterGachaMovies = exports.planCharacterGachaMovies = exports.drawGachaSync = exports.drawGachaWithMetadataSync = exports.randomPoolItem = exports.selectWeightedIndexByRoll = void 0;
 const crypto_1 = require("crypto");
 const seed_validator_1 = __importDefault(require("./seed-validator"));
 const gacha_physics_1 = require("./gacha-physics");
@@ -156,7 +156,8 @@ function selectLegacyMovieSeed(movieId, movieType, rarity, characterId, drawInde
  * performs cached catalog lookup and array indexing; physics stays offline.
  */
 function planCharacterGachaMovies(gacha, characterIds, options) {
-    seed_validator_1.default.flushAll();
+    if (options.flushPrevious !== false)
+        seed_validator_1.default.flushAll();
     const usedSeeds = new Set();
     return characterIds.map((characterId, drawIndex) => {
         var _a, _b, _c;
@@ -225,7 +226,16 @@ function planCharacterGachaMovies(gacha, characterIds, options) {
     });
 }
 exports.planCharacterGachaMovies = planCharacterGachaMovies;
-function rewardPlayerGachaDrawResultSync(playerId, gacha, gachaDrawResult, gachaDrawMetadata, plannedCharacterMovies) {
+function commitPlannedCharacterGachaMovies(plannedMovies) {
+    seed_validator_1.default.flushAll();
+    for (const movie of plannedMovies) {
+        if (movie.requiresVerification) {
+            seed_validator_1.default.markSent(movie.movieId, movie.seed, movie.rarity);
+        }
+    }
+}
+exports.commitPlannedCharacterGachaMovies = commitPlannedCharacterGachaMovies;
+function rewardPlayerGachaDrawResultSync(playerId, gacha, gachaDrawResult, gachaDrawMetadata, plannedCharacterMovies, markMovieSeedsSent = true) {
     var _a, _b;
     const characterMoviePlan = gacha.type === types_1.GachaType.CHARACTER
         ? plannedCharacterMovies !== null && plannedCharacterMovies !== void 0 ? plannedCharacterMovies : planCharacterGachaMovies(gacha, gachaDrawResult, { skipNoRarityUpMovie: false })
@@ -248,7 +258,9 @@ function rewardPlayerGachaDrawResultSync(playerId, gacha, gachaDrawResult, gacha
             const giveResult = (0, character_1.givePlayerCharacterSync)(playerId, characterId);
             if (giveResult !== null) {
                 if (plannedMovie.requiresVerification) {
-                    seed_validator_1.default.markSent(plannedMovie.movieId, plannedMovie.seed, plannedMovie.rarity);
+                    if (markMovieSeedsSent) {
+                        seed_validator_1.default.markSent(plannedMovie.movieId, plannedMovie.seed, plannedMovie.rarity);
+                    }
                     const movieFlags = [
                         plannedMovie.moviePlayable ? "PLAY" : "SKIP",
                         plannedMovie.rarityUp ? "RARITY-UP" : "NO-RARITY-UP",

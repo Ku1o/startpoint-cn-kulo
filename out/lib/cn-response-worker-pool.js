@@ -14,7 +14,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createCnResponseWorkerPool = exports.CnResponseWorkerPool = void 0;
 const node_path_1 = __importDefault(require("node:path"));
-const node_os_1 = require("node:os");
+const multicore_config_1 = require("./multicore-config");
 const node_worker_threads_1 = require("node:worker_threads");
 const node_perf_hooks_1 = require("node:perf_hooks");
 const msgpackr_1 = require("msgpackr");
@@ -261,9 +261,8 @@ class CnResponseWorkerPool {
 }
 exports.CnResponseWorkerPool = CnResponseWorkerPool;
 function createCnResponseWorkerPool(environment = process.env) {
-    const configured = Number(environment.CN_RESPONSE_WORKERS);
     return new CnResponseWorkerPool({
-        size: Number.isFinite(configured) ? configured : Math.min(2, Math.max(0, (0, node_os_1.availableParallelism)() - 1)),
+        size: (0, multicore_config_1.multicoreConfig)(environment).responseWorkers,
     });
 }
 exports.createCnResponseWorkerPool = createCnResponseWorkerPool;

@@ -37,6 +37,7 @@ function setup(t, count = 2, initialCount = count) {
     for (const client of clients) assert.equal(manager.addBattleClient(client.connectionId, client), true)
     const fire = async timer => {
         assert.ok(timer, 'timer must exist'); timer.fn()
+        await new Promise(resolve => setImmediate(resolve))
         await coordinator.enqueueRoomCommand(roomNumber, () => {})
     }
     const ready = c => manager.markSceneReady(c.connectionId, roomNumber)
@@ -71,6 +72,25 @@ test('five-boss diagnostics identify loading timeout, seat expiry and heartbeat 
     await x.fire(heartbeat)
     assert.equal(a.socket.destroyed, true)
     assert.equal(trace.snapshot('diagnostic-timeouts', 1).counts.heartbeat_timeout.count, 1)
+})
+
+test('lease expiry rechecks socket I/O before disconnecting a live client', async t => {
+    const x = setup(t), [a,b] = x.clients
+
+    const loading = x.manager.battleHeartbeatTimers.get(a.connectionId)
+    loading.fn()
+    assert.equal(x.ready(a), false)
+    await new Promise(resolve => setImmediate(resolve))
+    assert.equal(a.socket.destroyed, false, 'SceneReady waiting behind the timer must replace the loading lease')
+
+    assert.equal(x.ready(b), true)
+    const heartbeat = x.manager.battleHeartbeatTimers.get(a.connectionId)
+    const future = Date.now() + 120000
+    t.mock.method(Date, 'now', () => future)
+    heartbeat.fn()
+    x.manager.noteBattleActivity(a.connectionId)
+    await new Promise(resolve => setImmediate(resolve))
+    assert.equal(a.socket.destroyed, false, 'activity waiting behind the timer must renew the heartbeat lease')
 })
 
 test('two-player loading: grace then BattleStart before AI Leave; late peer denied', async t => {

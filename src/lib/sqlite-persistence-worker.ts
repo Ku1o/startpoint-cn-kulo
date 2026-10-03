@@ -2,6 +2,7 @@ import path from "node:path"
 import { existsSync } from "../lib/file-exists"
 import { Worker } from "node:worker_threads"
 import { observeWorkerMemory, registerMemoryCounters } from "./memory-diagnostics"
+import { sqliteSettings } from "./sqlite-settings"
 
 export interface SqlitePersistenceStatement {
     sql: string
@@ -34,6 +35,10 @@ interface WorkerState {
     busyRetries: number
     lastDurationMs: number | null
     lastError: string | null
+    synchronous: number | null
+    cacheSize: number | null
+    mmapSize: number | null
+    walAutocheckpoint: number | null
 }
 
 let worker: Worker | null = null
@@ -53,6 +58,10 @@ const state: WorkerState = {
     busyRetries: 0,
     lastDurationMs: null,
     lastError: null,
+    synchronous: null,
+    cacheSize: null,
+    mmapSize: null,
+    walAutocheckpoint: null,
 }
 
 registerMemoryCounters("sqlitePersistence", () => ({
@@ -66,6 +75,10 @@ registerMemoryCounters("sqlitePersistence", () => ({
     lastDurationMs: state.lastDurationMs,
     lastError: state.lastError !== null,
     lastErrorLength: state.lastError?.length ?? 0,
+    synchronous: state.synchronous,
+    cacheSize: state.cacheSize,
+    mmapSize: state.mmapSize,
+    walAutocheckpoint: state.walAutocheckpoint,
 }), "sqlite")
 
 function enabled(environment: NodeJS.ProcessEnv = process.env): boolean {
@@ -125,9 +138,10 @@ export function startSqlitePersistenceWorker(
     const parsedBusyTimeoutMs = Number.parseInt(environment.SQLITE_PERSISTENCE_BUSY_TIMEOUT_MS ?? "1000", 10)
     const busyTimeoutMs = Number.isFinite(parsedBusyTimeoutMs) ? Math.max(0, parsedBusyTimeoutMs) : 1_000
     const maxAttempts = Math.max(1, Number.parseInt(environment.SQLITE_PERSISTENCE_MAX_ATTEMPTS ?? "3", 10) || 3)
+    const settings = sqliteSettings(environment)
     const current = new Worker(location.filename, {
         ...(location.execArgv ? { execArgv: location.execArgv } : {}),
-        workerData: { databasePath, busyTimeoutMs, maxAttempts },
+        workerData: { databasePath, busyTimeoutMs, maxAttempts, settings },
     })
     worker = current
     observeWorkerMemory("sqlite-persistence", current)
@@ -139,6 +153,17 @@ export function startSqlitePersistenceWorker(
     })
     current.on("message", message => {
         if (worker !== current) return
+        if (message?.type === "settings") {
+            state.synchronous = Number.isFinite(Number(message.synchronous))
+                ? Number(message.synchronous) : null
+            state.cacheSize = Number.isFinite(Number(message.cacheSize))
+                ? Number(message.cacheSize) : null
+            state.mmapSize = Number.isFinite(Number(message.mmapSize))
+                ? Number(message.mmapSize) : null
+            state.walAutocheckpoint = Number.isFinite(Number(message.walAutocheckpoint))
+                ? Number(message.walAutocheckpoint) : null
+            return
+        }
         if (message?.type === "result" || message?.type === "error") {
             const command = active
             if (!command || command.id !== message.id) return
@@ -190,6 +215,18 @@ export function startSqlitePersistenceWorker(
 
 export function isSqlitePersistenceWorkerStarted(): boolean {
     return worker !== null
+}
+
+export function setSqlitePersistenceCheckpointOwner(external: boolean): void {
+    try {
+        worker?.postMessage({
+            type: "checkpoint_owner",
+            external,
+        })
+    } catch {
+        // A worker exiting during ownership handoff will be replaced or the
+        // main connection will retain automatic checkpointing.
+    }
 }
 
 export function executeSqlitePersistenceCommand(

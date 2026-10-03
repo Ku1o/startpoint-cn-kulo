@@ -602,7 +602,7 @@ const routes = async (fastify: FastifyInstance) => {
         }
 
         const partyCode = publishPartySync(context.playerId, body.party_name, battleParty)
-        console.log(`[PARTY CODE] publish player=${context.playerId} code=${partyCode}`)
+        gameVerboseLog(() => `[PARTY CODE] publish player=${context.playerId} code=${partyCode}`)
         return sendPartyResponse(reply, context.viewerId, { party_code: partyCode })
     })
 
@@ -620,7 +620,7 @@ const routes = async (fastify: FastifyInstance) => {
             const battleParty = sanitizeBattleParty(publishedParty.battleParty)
             if (!battleParty) return sendPartyResponse(reply, context.viewerId, {}, 3403)
 
-            console.log(`[PARTY CODE] refer player=${context.playerId} code=${partyCode}`)
+            gameVerboseLog(() => `[PARTY CODE] refer player=${context.playerId} code=${partyCode}`)
             return sendPartyResponse(reply, context.viewerId, {
                 party_name: publishedParty.partyName,
                 battle_party: battleParty,

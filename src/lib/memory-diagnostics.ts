@@ -29,7 +29,7 @@ export function memoryDiagnosticsEnabled(): boolean {
     return !/^(0|false|no|off)$/i.test(process.env.MEMORY_DIAGNOSTICS ?? "true")
 }
 export function sqliteDiagnosticsEnabled(): boolean {
-    return !/^(0|false|no|off)$/i.test(process.env.SQLITE_DIAGNOSTICS ?? "true")
+    return !/^(0|false|no|off)$/i.test(process.env.SQLITE_DIAGNOSTICS ?? "false")
 }
 export function detailedMemoryDiagnosticsEnabled(): boolean {
     return memoryDiagnosticsEnabled() && /^(1|true|yes|on)$/i.test(process.env.MEMORY_DIAGNOSTICS_DETAIL ?? "false")

@@ -1,5 +1,6 @@
 const test = require('node:test')
 const assert = require('node:assert/strict')
+process.env.SQLITE_DIAGNOSTICS = 'true'
 const { setImmediate: nextTick } = require('node:timers/promises')
 const net = require('node:net')
 const Database = require('better-sqlite3')

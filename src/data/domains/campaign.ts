@@ -7,6 +7,7 @@ import {
     RawPlayerMultiSpecialExchangeCampaign,
 } from "../types";
 import { runPersistenceTransactionSync } from "../../lib/persistence-coordinator";
+import { cachedStatement } from "../../lib/cached-statement";
 
 // ─── Periodic Reward Points ───
 
@@ -20,7 +21,7 @@ export function getPlayerPeriodicRewardPointsSync(
     playerId: number
 ): PlayerPeriodicRewardPoint[] {
     const db = getDb();
-    return db.prepare(`
+    return cachedStatement(db, `
     SELECT id, point
     FROM players_periodic_reward_points
     WHERE player_id = ?
@@ -62,7 +63,7 @@ export function getPlayerStartDashExchangeCampaignsSync(
     playerId: number
 ): PlayerStartDashExchangeCampaign[] {
     const db = getDb();
-    const rawCampaigns = db.prepare(`
+    const rawCampaigns = cachedStatement(db, `
     SELECT campaign_id, gacha_id, term_index, status, period_start_time, period_end_time
     FROM players_start_dash_exchange_campaigns
     WHERE player_id = ?
@@ -119,7 +120,7 @@ export function getPlayerMultiSpecialExchangeCampaignsSync(
     playerId: number
 ): PlayerMultiSpecialExchangeCampaign[] {
     const db = getDb();
-    const rawCampaigns = db.prepare(`
+    const rawCampaigns = cachedStatement(db, `
     SELECT campaign_id, status, ticket_item_id
     FROM players_multi_special_exchange_campaigns
     WHERE player_id = ?

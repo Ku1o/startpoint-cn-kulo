@@ -93,8 +93,8 @@ exports.configurePersistenceSqlExecutor = configurePersistenceSqlExecutor;
  * queue and timing seam are deliberate: business modules can migrate here one
  * by one, while a future worker-backed executor can preserve the same contract.
  */
-function runPersistenceTransaction(context, operation) {
-    return __awaiter(this, void 0, void 0, function* () {
+function runPersistenceTransaction(context_1, operation_1) {
+    return __awaiter(this, arguments, void 0, function* (context, operation, options = {}) {
         const queuedAt = node_perf_hooks_1.performance.now();
         const stats = statsFor(context.domain);
         stats.queued++;
@@ -112,6 +112,16 @@ function runPersistenceTransaction(context, operation) {
             try {
                 const result = yield (0, sqlite_write_coordinator_1.runImmediateTransactionWithRetry)(() => (withPersistenceContext(context, operation)));
                 stats.committed++;
+                if (options.afterCommit) {
+                    try {
+                        options.afterCommit(result);
+                    }
+                    catch (error) {
+                        // The database is already committed. Observability or
+                        // non-durable side effects must not turn success into a retry.
+                        console.error(`[PERSISTENCE] afterCommit failed: domain=${context.domain} operation=${context.operation}`, error);
+                    }
+                }
                 return result;
             }
             catch (error) {

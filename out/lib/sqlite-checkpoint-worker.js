@@ -12,11 +12,43 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.requestSqliteCheckpoint = exports.stopSqliteCheckpointWorker = exports.startSqliteCheckpointWorker = void 0;
+exports.requestSqliteCheckpoint = exports.stopSqliteCheckpointWorker = exports.startSqliteCheckpointWorker = exports.createCheckpointOwnershipController = void 0;
 const node_path_1 = __importDefault(require("node:path"));
 const file_exists_1 = require("../lib/file-exists");
 const node_worker_threads_1 = require("node:worker_threads");
 const memory_diagnostics_1 = require("./memory-diagnostics");
+const multicore_config_1 = require("./multicore-config");
+function createCheckpointOwnershipController(callbacks = {}, failureThreshold = 3) {
+    let externalOwner = false;
+    let consecutiveErrors = 0;
+    const threshold = Math.max(1, Math.trunc(failureThreshold));
+    return {
+        checkpointSucceeded: () => {
+            var _a;
+            consecutiveErrors = 0;
+            if (externalOwner)
+                return;
+            externalOwner = true;
+            (_a = callbacks.onReady) === null || _a === void 0 ? void 0 : _a.call(callbacks);
+        },
+        checkpointFailed: () => {
+            var _a;
+            consecutiveErrors++;
+            if (!externalOwner || consecutiveErrors < threshold)
+                return;
+            externalOwner = false;
+            (_a = callbacks.onStopped) === null || _a === void 0 ? void 0 : _a.call(callbacks);
+        },
+        workerStopped: () => {
+            var _a;
+            if (!externalOwner)
+                return;
+            externalOwner = false;
+            (_a = callbacks.onStopped) === null || _a === void 0 ? void 0 : _a.call(callbacks);
+        },
+    };
+}
+exports.createCheckpointOwnershipController = createCheckpointOwnershipController;
 let worker = null;
 const state = {
     enabled: false, started: false, completed: 0, errors: 0, busy: 0,
@@ -42,8 +74,7 @@ const state = {
     });
 }, "sqlite");
 function enabled(environment = process.env) {
-    var _a;
-    return /^(1|true|yes|on)$/i.test((_a = environment.SQLITE_CHECKPOINT_WORKER) !== null && _a !== void 0 ? _a : "");
+    return (0, multicore_config_1.multicoreConfig)(environment).checkpointWorker;
 }
 function positiveInteger(value, fallback, minimum) {
     const parsed = Number.parseInt(value !== null && value !== void 0 ? value : "", 10);
@@ -58,10 +89,11 @@ function workerLocation() {
         execArgv: ["-r", require.resolve("ts-node/register/transpile-only")],
     };
 }
-function startSqliteCheckpointWorker(databasePath, environment = process.env) {
+function startSqliteCheckpointWorker(databasePath, environment = process.env, callbacks = {}) {
     var _a, _b;
     if (worker || !enabled(environment))
         return;
+    const ownership = createCheckpointOwnershipController(callbacks);
     state.enabled = true;
     state.started = false;
     const location = workerLocation();
@@ -79,6 +111,7 @@ function startSqliteCheckpointWorker(databasePath, environment = process.env) {
         if (worker !== current)
             return;
         if ((message === null || message === void 0 ? void 0 : message.type) === "checkpoint") {
+            ownership.checkpointSucceeded();
             state.completed++;
             state.busy += message.busy === 1 ? 1 : 0;
             state.truncateAttempts += message.truncateAttempted === true ? 1 : 0;
@@ -99,6 +132,7 @@ function startSqliteCheckpointWorker(databasePath, environment = process.env) {
             state.errors++;
             state.lastDurationMs = Number(message.durationMs) || 0;
             state.lastError = String((_a = message.error) !== null && _a !== void 0 ? _a : "checkpoint failed").slice(0, 240);
+            ownership.checkpointFailed();
         }
     });
     current.on("error", error => {
@@ -108,9 +142,15 @@ function startSqliteCheckpointWorker(databasePath, environment = process.env) {
         state.lastError = error.message.slice(0, 240);
     });
     current.once("exit", () => {
+        const replaced = worker !== null && worker !== current;
         if (worker === current)
             worker = null;
-        state.started = false;
+        if (!replaced) {
+            state.enabled = false;
+            state.started = false;
+        }
+        if (!replaced)
+            ownership.workerStopped();
     });
     console.log(`[DB] sqlite checkpoint worker enabled intervalMs=${intervalMs}`
         + ` truncateFrames=${truncateFrames} truncateBytes=${truncateBytes}`
@@ -122,12 +162,36 @@ function stopSqliteCheckpointWorker() {
         const current = worker;
         if (!current)
             return;
-        worker = null;
-        try {
-            current.postMessage({ type: "close" });
-        }
-        catch (_a) { }
+        yield new Promise(resolve => {
+            let settled = false;
+            const finish = () => {
+                if (settled)
+                    return;
+                settled = true;
+                clearTimeout(timer);
+                current.off("message", receive);
+                current.off("exit", finish);
+                resolve();
+            };
+            const receive = (message) => {
+                if ((message === null || message === void 0 ? void 0 : message.type) === "closed")
+                    finish();
+            };
+            const timer = setTimeout(finish, 5000);
+            timer.unref();
+            current.on("message", receive);
+            current.once("exit", finish);
+            try {
+                current.postMessage({ type: "close" });
+            }
+            catch (_a) {
+                finish();
+            }
+        });
+        if (worker === current)
+            worker = null;
         yield current.terminate();
+        state.enabled = false;
         state.started = false;
     });
 }

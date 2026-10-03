@@ -85,7 +85,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         const starLog = totalStarGrains > 0 ? `star +${totalStarGrains} ` : "";
         const soulTypes = Object.keys(totalAbilitySouls).length;
         const soulDetail = Object.entries(totalAbilitySouls).map(([id, c]) => `${id}×${c}`).join(' ');
-        console.log(`[SELL_EQUIP] account=${accountId} player=${playerId}: ${soldIds.length} equipment sold (${soldIds.join(',')}), ${craftLog}${starLog}ability souls: ${soulTypes} types [${soulDetail}]`);
+        (0, game_logging_1.gameVerboseLog)(() => `[SELL_EQUIP] account=${accountId} player=${playerId}: ${soldIds.length} equipment sold (${soldIds.join(',')}), ${craftLog}${starLog}ability souls: ${soulTypes} types [${soulDetail}]`);
         reply.header("content-type", "application/x-msgpack");
         return reply.status(200).send({
             "data_headers": (0, utils_1.generateDataHeaders)({ viewer_id: viewerId }),
@@ -159,7 +159,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
         const returnEquipmentList = (0, equipment_2.buildFullEquipmentList)(playerId);
         const soulTypes = Object.keys(totalAbilitySouls).length;
         const soulDetail = Object.entries(totalAbilitySouls).map(([id, c]) => `${id}×${c}`).join(' ');
-        console.log(`[SELL_STACK] account=${accountId} player=${playerId}: ${toSellEquipmentList.length} equipment stack sold, craft +${totalCraftPoints} star +${totalStarGrains} ability souls: ${soulTypes} types [${soulDetail}]`);
+        (0, game_logging_1.gameVerboseLog)(() => `[SELL_STACK] account=${accountId} player=${playerId}: ${toSellEquipmentList.length} equipment stack sold, craft +${totalCraftPoints} star +${totalStarGrains} ability souls: ${soulTypes} types [${soulDetail}]`);
         reply.header("content-type", "application/x-msgpack");
         return reply.status(200).send({
             "data_headers": (0, utils_1.generateDataHeaders)({ viewer_id: viewerId }),

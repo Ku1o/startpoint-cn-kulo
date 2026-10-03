@@ -8,14 +8,28 @@ save();fs.writeFileSync(process.env.CLIENT_ADMISSION_KEYS,JSON.stringify({'tcp-b
 require('ts-node/register/transpile-only')
 const prefix=process.env.ADMISSION_TEST_BUILT==='1'?'../out/':'../src/'
 const {clientAdmission,proofMessage}=require(prefix+'lib/client-admission')
-let dispatched=0,checks=0
+const {sessionManager}=require(prefix+'multi/state/SessionManager')
+const indexedSockets=new WeakSet();let delayedHandshake=false,closedHandshakeStarted,closedHandshakeSocket,dispatched=0,checks=0
 const check=(v,m)=>{assert.ok(v,m);checks++}
 async function main(){
   const reserve=net.createServer();await new Promise(r=>reserve.listen(0,'127.0.0.1',r));const port=reserve.address().port;await new Promise(r=>reserve.close(r));process.env.SESSION_PORT=String(port)
   // Real wire parser and admission checks; only game room handlers are replaced
   // so no unrelated combat state is required for this protocol-boundary test.
-  require(prefix+'multi/tcp/handshake').handleHandshake=async socket=>socket.write('[0]\0')
-  require(prefix+'multi/tcp/battle').handleBattleMessage=socket=>{dispatched++;socket.write('[99]\0')}
+  require(prefix+'multi/tcp/handshake').handleHandshake=async (socket,data)=>{
+    if(data.close_during_handshake){
+      closedHandshakeSocket=socket;closedHandshakeStarted?.()
+      await new Promise(resolve=>setTimeout(resolve,25))
+      const client=sessionManager.createClient(socket,999,'closed-handshake-room','closed-handshake-cid',999)
+      sessionManager.addClientToRoom(client)
+      return
+    }
+    if(delayedHandshake)await new Promise(resolve=>setImmediate(resolve))
+    indexedSockets.add(socket);socket.write('[0]\0')
+  }
+  require(prefix+'multi/tcp/battle').handleBattleMessage=socket=>{
+    if(!indexedSockets.has(socket))return
+    dispatched++;socket.write('[99]\0')
+  }
   const server=require(prefix+'multi/tcp/server');await server.startSessionServer()
   const gate=clientAdmission();let now=Date.now();gate.now=()=>now
   const c=gate.challenge({build:'tcp-build',protocol:1},'local').data
@@ -25,6 +39,31 @@ async function main(){
   let r=await connect({socklet:'cooperation_battle',sp_session:'tcp-account-session'});check(r.data[0]===1&&r.data[1]==='CLIENT_ADMISSION_REQUIRED','missing ticket rejected at real TCP boundary');r.socket.destroy()
   r=await connect({socklet:'cooperation_battle',sp_session:'wrong',sp_admission:ticket});check(r.data[0]===1,'session substitution rejected');r.socket.destroy()
   r=await connect({socklet:'cooperation_battle',sp_session:'tcp-account-session',sp_admission:ticket});check(r.data[0]===0,'valid ticket reaches room handshake')
+  delayedHandshake=true
+  const coalesced=await new Promise((resolve,reject)=>{
+    const frames=[],socket=net.connect(port,'127.0.0.1',()=>{
+      socket.write(JSON.stringify({socklet:'cooperation_battle',sp_session:'tcp-account-session',sp_admission:ticket})+'\0[0]\0')
+    })
+    const timer=setTimeout(()=>{socket.destroy();reject(Error('coalesced handshake timeout'))},3000)
+    socket.on('data',buf=>{
+      for(const raw of buf.toString().split('\0').filter(Boolean))frames.push(JSON.parse(raw))
+      if(frames.some(frame=>frame[0]===99)){clearTimeout(timer);resolve({socket,frames})}
+    })
+    socket.once('error',reject)
+  })
+  check(coalesced.frames.some(frame=>frame[0]===0)&&coalesced.frames.some(frame=>frame[0]===99),
+    'coalesced post-handshake frame waits for async socket indexing')
+  coalesced.socket.destroy();delayedHandshake=false
+  const handshakeStarted=new Promise(resolve=>{closedHandshakeStarted=resolve})
+  const closing=net.connect(port,'127.0.0.1',()=>closing.write(JSON.stringify({
+    socklet:'cooperation_battle',sp_session:'tcp-account-session',sp_admission:ticket,
+    close_during_handshake:true,
+  })+'\0'))
+  await handshakeStarted;closing.destroy()
+  await new Promise(resolve=>setTimeout(resolve,60))
+  check(sessionManager.findClientBySocket(closedHandshakeSocket)===undefined
+      && sessionManager.getClient(999,'closed-handshake-room')===undefined,
+    'peer close during async handshake cannot leave a stale indexed client')
   const ic=gate.challenge({build:'ios-build',platform:'ios',protocol:1},'local').data
   const iproof=crypto.createHmac('sha256',Buffer.from(iosKey,'hex')).update(proofMessage('ios-build',ic.challenge,ic.nonce)).digest('hex')
   const iticket=gate.prove({challenge:ic.challenge,proof:iproof},'local').data.token;gate.bind(iticket,'ios-session')
@@ -32,8 +71,9 @@ async function main(){
   async function ping(socket){const received=new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(Error('ping timeout')),2000);socket.once('data',buf=>{clearTimeout(timer);resolve(JSON.parse(buf.toString().split('\0')[0]))})});socket.write('[0]\0');check((await received)[0]===99,'valid post-handshake traffic dispatched')}
   // Advance only the injected admission clock: real sockets stay open for three simulated hours.
   // No HTTP or explicit renewal is made while both platforms are actively sending frames.
+  const dispatchedBeforePings=dispatched
   for(let i=0;i<12;i++){now+=15*60000;await ping(r.socket);await ping(ir.socket)}
-  check(dispatched===24,'both platforms survive repeated 30-minute boundaries without explicit renew')
+  check(dispatched-dispatchedBeforePings===24,'both platforms survive repeated 30-minute boundaries without explicit renew')
   now+=2*60000;const renewed=gate.renew(iticket,'ios-session','local')
   check(renewed.ok&&renewed.data.token===iticket,'short network gap and renewal preserve TCP token')
   await ping(ir.socket)

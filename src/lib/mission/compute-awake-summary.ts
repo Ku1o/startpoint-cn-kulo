@@ -4,12 +4,12 @@
 import { getPlayerCategoryMissionsSync } from "../../data/domains/mission"
 import { getPlayerCharactersSync } from "../../data/domains/character"
 import { getPlayerCharacterAwakeUnlocksSync } from "../../data/domains/character_awake"
-import { getComputer } from "./registry"
 import { getMissionIdsByCategory, getMissionStageIds } from "./stages"
 import { getCharacterIdFromMission } from "./character-queries"
 import type { CategoryContext } from "./types"
 import { getServerDate } from "../../utils"
-import type { PlayerCharacter } from "../../data/types"
+import type { Player, PlayerActiveMission, PlayerCharacter, PlayerQuestProgress } from "../../data/types"
+import { AwakeComputer, buildAwakeContext } from "./computer-awake"
 
 export interface AwakeMissionEntry {
     mission_id: number
@@ -22,34 +22,44 @@ export interface AwakeSummary {
     manaBoardAwakeMap: Map<string, Record<number, number>>
 }
 
+const awakeMissionIds = Object.freeze(getMissionIdsByCategory(9))
+const awakeMissionIdsByCharacter = new Map<string, readonly number[]>()
+const awakeStageIdsByMission = new Map<number, readonly number[]>()
+for (const missionId of awakeMissionIds) {
+    const characterId = getCharacterIdFromMission(missionId)
+    const missionIds = awakeMissionIdsByCharacter.get(characterId) ?? []
+    awakeMissionIdsByCharacter.set(characterId, Object.freeze([...missionIds, missionId]))
+    awakeStageIdsByMission.set(missionId, Object.freeze(getMissionStageIds(9, missionId)))
+}
+
 export function computeAwakeSummary(
     playerId: number,
-    snapshot: { readonly characterList?: Record<string, PlayerCharacter> } = {},
+    snapshot: {
+        readonly player?: Player
+        readonly characterList?: Record<string, PlayerCharacter>
+        readonly questProgress?: Record<string, PlayerQuestProgress[]>
+        readonly activeMissions?: Record<string, PlayerActiveMission>
+    } = {},
 ): AwakeSummary {
-    const activeMissions = getPlayerCategoryMissionsSync(playerId, 9)
+    const activeMissions = snapshot.activeMissions ?? getPlayerCategoryMissionsSync(playerId, 9)
     const playerChars = snapshot.characterList ?? getPlayerCharactersSync(playerId)
-    const awakeMissionIds = getMissionIdsByCategory(9)
-
-    const charMissionMap = new Map<string, number[]>()
-    for (const mid of awakeMissionIds) {
-        const charId = getCharacterIdFromMission(mid)
-        if (!charMissionMap.has(charId)) charMissionMap.set(charId, [])
-        charMissionMap.get(charId)!.push(mid)
-    }
-
-    const computer = getComputer(9)
-    const ctx = computer.buildContext(playerId, 9, getServerDate()) as CategoryContext
+    const ctx = buildAwakeContext(playerId, undefined, {
+        player: snapshot.player,
+        characterList: playerChars,
+        questProgress: snapshot.questProgress,
+        persistedMissions: activeMissions,
+    }) as CategoryContext
 
     const activeMissionList: AwakeMissionEntry[] = []
     const manaBoardAwakeMap = getPlayerCharacterAwakeUnlocksSync(playerId)
 
-    for (const [charKId, missionIds] of charMissionMap) {
+    for (const [charKId, missionIds] of awakeMissionIdsByCharacter) {
         if (!playerChars[charKId]) continue
 
         for (const missionId of missionIds) {
             const dbProgress = activeMissions[String(missionId)]?.progress ?? 0
-            const progress = computer.compute(missionId, ctx, dbProgress)
-            const allStageIds = getMissionStageIds(9, missionId)
+            const progress = AwakeComputer.compute(missionId, ctx, dbProgress)
+            const allStageIds = awakeStageIdsByMission.get(missionId) ?? []
             const persistedStages = activeMissions[String(missionId)]?.stages
 
             const stages = allStageIds.map(sid => ({

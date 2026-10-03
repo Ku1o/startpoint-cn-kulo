@@ -71,12 +71,12 @@ const campaign_1 = require("./campaign");
  * @returns The player's daily challenge point list.
  */
 function getPlayerDailyChallengePointListSync(playerId) {
-    const rawEntries = (0, db_1.getDb)().prepare(`
+    const rawEntries = (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
     SELECT id, point
     FROM daily_challenge_point_list_entries
     WHERE player_id = ?
     `).all(playerId);
-    const rawCampaigns = (0, db_1.getDb)().prepare(`
+    const rawCampaigns = (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
     SELECT campaign_id, additional_point, list_entry_id
     FROM daily_challenge_point_list_campaigns
     WHERE player_id = ?

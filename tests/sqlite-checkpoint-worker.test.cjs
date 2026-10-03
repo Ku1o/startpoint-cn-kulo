@@ -40,6 +40,34 @@ function append(db) {
     assert.ok(fs.statSync(db.name + '-wal').size >= 4 * 1024 * 1024)
 }
 
+test('checkpoint ownership falls back after repeated errors and recovers on success', () => {
+    const transitions = []
+    const ownership = checkpoint.createCheckpointOwnershipController({
+        onReady: () => transitions.push('external'),
+        onStopped: () => transitions.push('automatic'),
+    })
+
+    ownership.checkpointFailed()
+    ownership.checkpointFailed()
+    ownership.checkpointFailed()
+    assert.deepEqual(transitions, [])
+
+    ownership.checkpointSucceeded()
+    ownership.checkpointSucceeded()
+    ownership.checkpointFailed()
+    ownership.checkpointFailed()
+    assert.deepEqual(transitions, ['external'])
+
+    ownership.checkpointFailed()
+    ownership.checkpointFailed()
+    assert.deepEqual(transitions, ['external', 'automatic'])
+
+    ownership.checkpointSucceeded()
+    ownership.workerStopped()
+    ownership.workerStopped()
+    assert.deepEqual(transitions, ['external', 'automatic', 'external', 'automatic'])
+})
+
 test('checkpoint worker handles backlog, pinned readers, cooldown and lifecycle on isolated databases', async t => {
     const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'sp-checkpoint-worker-'))
     try {
@@ -53,11 +81,16 @@ test('checkpoint worker handles backlog, pinned readers, cooldown and lifecycle 
         })
         await t.test('startup reclaims existing WAL without losing committed rows', async () => {
             const db = open(path.join(directory, 'backlog.db'))
+            let ready = 0, stopped = 0
             try {
                 append(db)
                 const before = state().truncateCompleted
-                checkpoint.startSqliteCheckpointWorker(db.name, environment)
+                checkpoint.startSqliteCheckpointWorker(db.name, environment, {
+                    onReady: () => { ready++ },
+                    onStopped: () => { stopped++ },
+                })
                 await until(() => state().truncateCompleted > before, 'startup truncate')
+                assert.equal(ready, 1)
                 await until(() => {
                     const worker = collectMemoryDiagnostics().workers.find(row => row.name === 'sqlite-checkpoint')
                     return worker && !worker.stale && worker.pendingMs === 0
@@ -68,6 +101,7 @@ test('checkpoint worker handles backlog, pinned readers, cooldown and lifecycle 
             } finally {
                 await checkpoint.stopSqliteCheckpointWorker()
                 assert.equal(state().started, false)
+                await until(() => stopped === 1, 'checkpoint owner release')
                 assert.ok(!collectMemoryDiagnostics().workers.some(worker => worker.name === 'sqlite-checkpoint'))
                 db.close()
             }

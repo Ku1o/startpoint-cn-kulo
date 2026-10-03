@@ -1,7 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updateAccount = exports.updateAccountSync = exports.insertAccount = exports.insertAccountSync = exports.getAccountPlayers = exports.getAccountPlayersSync = exports.deleteAccountSync = exports.getAllAccountsSync = exports.getAccount = exports.getAccountFromIdpIdSync = exports.getAccountSync = void 0;
+exports.updateAccount = exports.updateAccountSync = exports.insertAccount = exports.insertAccountSync = exports.getAccountPlayers = exports.resolveAccountPlayerIdSync = exports.getAccountPlayersSync = exports.deleteAccountSync = exports.getAllAccountsSync = exports.getAccount = exports.getAccountFromIdpIdSync = exports.getAccountSync = void 0;
 const db_1 = require("../db");
+const cached_statement_1 = require("../../lib/cached-statement");
 // Account
 /**
  * Converts a RawAccount into a Account
@@ -112,7 +113,7 @@ exports.deleteAccountSync = deleteAccountSync;
  */
 function getAccountPlayersSync(accountId) {
     const db = (0, db_1.getDb)();
-    const raw = db.prepare(`
+    const raw = (0, cached_statement_1.cachedStatement)(db, `
     SELECT id
     FROM players
     WHERE account_id = ?
@@ -121,6 +122,19 @@ function getAccountPlayersSync(accountId) {
     return raw.map(player => player.id);
 }
 exports.getAccountPlayersSync = getAccountPlayersSync;
+/** Selects the preferred player when owned, otherwise the account's first player. */
+function resolveAccountPlayerIdSync(accountId, preferredPlayerId) {
+    var _a;
+    const row = (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
+        SELECT id
+        FROM players
+        WHERE account_id = ?
+        ORDER BY CASE WHEN id = ? THEN 0 ELSE 1 END, id
+        LIMIT 1
+    `).get(accountId, preferredPlayerId !== null && preferredPlayerId !== void 0 ? preferredPlayerId : 0);
+    return (_a = row === null || row === void 0 ? void 0 : row.id) !== null && _a !== void 0 ? _a : null;
+}
+exports.resolveAccountPlayerIdSync = resolveAccountPlayerIdSync;
 /**
  * Gets all of the players that are bound to an account.
  *

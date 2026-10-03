@@ -1,10 +1,10 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify"
-import { getDb } from "../../data/db"
 import { generateDataHeaders } from "../../utils"
-import { bindPlayerLogin, createPlayerLoginCode, loginPlayer, logoutPlayer, playerAccountByViewer,
-    playerLoginManaged, PlayerLoginError, previewPlayerClaim, readPlayerLoginSession,
+import { bindPlayerLogin, createPlayerLoginCode, loginPlayer, logoutPlayer,
+    PlayerLoginError, previewPlayerClaim, readPlayerLoginSession,
     registerPlayerLogin, resetPlayerLoginPassword, resumePlayerLogin, readPlayerLoginAccess,
-    rememberVerifiedPlayerLogin, finishPlayerLoginSwitch, previewLocalPlayerClaim } from "../../lib/player-login"
+    rememberVerifiedPlayerLogin, finishPlayerLoginSwitch, previewLocalPlayerClaim,
+    readPlayerLoginDeviceAccess, readPlayerLoginViewerAccess } from "../../lib/player-login"
 
 export function installPlayerLoginGuard(app: FastifyInstance): void {
     app.addHook("preHandler", async (request, reply) => {
@@ -15,18 +15,17 @@ export function installPlayerLoginGuard(app: FastifyInstance): void {
         const viewer = body.viewer_id || body.keychain
         const session = readPlayerLoginAccess(supplied, viewer)
         let denied = Boolean(supplied && !session)
-        const accountId = session ? session.request_account_id : playerAccountByViewer(viewer)
+        const viewerAccess = session ? null : readPlayerLoginViewerAccess(viewer)
+        const accountId = session ? session.request_account_id : viewerAccess?.accountId ?? null
         if (session && viewer && Number(viewer) !== 0 && accountId !== session.account_id) denied = true
-        if (!session && accountId && playerLoginManaged(accountId)) denied = true
+        if (!session && viewerAccess?.managed) denied = true
         // Bound saves are recovered via player login; legacy transfer must never delete a signed-up account.
         if (path.includes("/take_over")) {
-            const legacyTarget = playerAccountByViewer(body.input_viewer_id)
-            if (session || (accountId && playerLoginManaged(accountId))
-                || (legacyTarget && playerLoginManaged(legacyTarget))) denied = true
+            const legacyTarget = readPlayerLoginViewerAccess(body.input_viewer_id)
+            if (session || viewerAccess?.managed || legacyTarget?.managed) denied = true
         }
         if (path.endsWith("/tool/signup") && !session) {
-            const row = getDb().prepare("SELECT account_id FROM device_bindings WHERE device_id=?").get(Number(body.device_id) || 0) as { account_id: number } | undefined
-            if (row && playerLoginManaged(row.account_id)) denied = true
+            if (readPlayerLoginDeviceAccess(body.device_id)?.managed) denied = true
         }
         if (!denied) {
             if (session) rememberVerifiedPlayerLogin(request, session)

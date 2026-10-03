@@ -13,7 +13,7 @@ import { getDb } from "../../data/db"
 import { getCharacterStoryQuestIds, getCharacterIdFromMission } from "./character-queries"
 import { isMissionProgressComplete } from "./stages"
 import type { MissionComputer, CategoryContext } from "./types"
-import type { PlayerCharacter, PlayerQuestProgress } from "../../data/types"
+import type { Player, PlayerActiveMission, PlayerCharacter, PlayerQuestProgress } from "../../data/types"
 import { characterAwakeDefinitions } from "./awake-master-assets"
 import {
     AWAKE_DIRECT_BATTLE_MISSION_IDS,
@@ -42,6 +42,13 @@ interface AwakeContext extends CategoryContext {
     charData: Map<string, PlayerCharacter>
     categoryMissionProgress: Map<number, number>
     finishedQuestIds: Set<number>
+}
+
+export interface AwakeContextSnapshot {
+    readonly player?: Player
+    readonly characterList?: Record<string, PlayerCharacter>
+    readonly questProgress?: Record<string, PlayerQuestProgress[]>
+    readonly persistedMissions?: Record<string, PlayerActiveMission>
 }
 
 // ─── Special mission tables ───
@@ -109,8 +116,12 @@ function expandAwakeMissionIds(missionIds?: readonly number[]): number[] | undef
     return [...expanded]
 }
 
-function buildAwakeContext(playerId: number, missionIds?: readonly number[]): AwakeContext {
-    const player = getPlayerSync(playerId)!
+export function buildAwakeContext(
+    playerId: number,
+    missionIds?: readonly number[],
+    snapshot: AwakeContextSnapshot = {},
+): AwakeContext {
+    const player = snapshot.player ?? getPlayerSync(playerId)!
     const scopedMissionIds = expandAwakeMissionIds(missionIds)
     const targetCharacterIds = scopedMissionIds === undefined
         ? undefined
@@ -143,7 +154,7 @@ function buildAwakeContext(playerId: number, missionIds?: readonly number[]): Aw
     }
 
     if (scopedMissionIds === undefined) {
-        const questProgressRaw = getPlayerQuestProgressSync(playerId)
+        const questProgressRaw = snapshot.questProgress ?? getPlayerQuestProgressSync(playerId)
         for (const [section, quests] of Object.entries(questProgressRaw)) {
             for (const qp of quests) appendQuestProgress(section, qp)
         }
@@ -189,7 +200,7 @@ function buildAwakeContext(playerId: number, missionIds?: readonly number[]): Aw
     const charData = new Map<string, PlayerCharacter>()
     const clearRows = getPlayerCharacterClearsSync(playerId, targetCharacterIds && [...targetCharacterIds])
     const chars = targetCharacterIds === undefined
-        ? getPlayerCharactersSync(playerId)
+        ? snapshot.characterList ?? getPlayerCharactersSync(playerId)
         : getPlayerCharactersByIdsSync(playerId, [...targetCharacterIds])
     for (const [cid, char] of Object.entries(chars)) {
         charData.set(cid, char)
@@ -224,7 +235,9 @@ function buildAwakeContext(playerId: number, missionIds?: readonly number[]): Aw
     const coClears = mergePartyCoClearRows(rows)
 
     const categoryMissionProgress = new Map<number, number>()
-    const persistedMissions = getPlayerCategoryMissionsSync(playerId, 9, scopedMissionIds)
+    const persistedMissions = scopedMissionIds === undefined && snapshot.persistedMissions
+        ? snapshot.persistedMissions
+        : getPlayerCategoryMissionsSync(playerId, 9, scopedMissionIds)
     for (const [missionId, progress] of Object.entries(persistedMissions)) {
         categoryMissionProgress.set(Number(missionId), progress.progress)
     }

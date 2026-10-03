@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.updatePlayerCharacterManaNodeAwakeLevelSync = exports.getPlayerCharactersManaNodeAwakeLevelsSync = exports.insertPlayerCharactersManaNodesSync = exports.insertPlayerCharacterManaNodesSync = exports.hasPlayerUnlockedCharacterManaNodeSync = exports.getPlayerCharacterManaNodesSync = exports.getPlayerCharactersManaNodesByIdsSync = exports.getPlayerCharacterManaNodeAwakeLevelsSync = exports.getPlayerCompletedManaBoardCharacterIdsSync = exports.countPlayerReceivedBondTokensSync = exports.countPlayerCharacterManaNodesSync = exports.getPlayerCharacterMissionStatsSync = exports.getPlayerCharactersManaNodesSync = exports.updatePlayerCharacterSync = exports.insertPlayerCharactersSync = exports.insertDefaultPlayerCharacterSync = exports.insertPlayerCharacterSync = exports.updatePlayerCharacterBondTokenSync = exports.insertPlayerCharacterBondTokenSync = exports.getPlayerCharacterFavorFactsSync = exports.getPlayerCharactersByIdsSync = exports.getPlayerCharactersSync = exports.getPlayerCharacterMissionFactsSync = exports.getPlayerCharacterSync = exports.playerOwnsCharacterSync = void 0;
+const load_snapshot_1 = require("../readers/load-snapshot");
 const db_1 = require("../db");
 const utils_1 = require("../utils");
 const assets_1 = require("../../lib/assets");
@@ -15,12 +16,6 @@ function prepareCharacterMissionQuery(sql) {
  * @param rawBondToken The raw bond token to build/deserialize
  * @returns The built/deserialized PlayerCharacterBondToken
  */
-function buildCharacterBondToken(rawBondToken) {
-    return {
-        manaBoardIndex: rawBondToken.mana_board_index,
-        status: rawBondToken.status
-    };
-}
 /**
  * Builds a PlayerCharacterExBoost object.
  *
@@ -28,37 +23,6 @@ function buildCharacterBondToken(rawBondToken) {
  * @param exBoostAbilityIdList The serialized string representing the ex boost's ability id list.
  * @returns A PlayerCharacterExBoost object or undefined.
  */
-function buildPlayerCharacterExBoost(exBoostStatusId, exBoostAbilityIdList) {
-    if (exBoostStatusId === null || exBoostAbilityIdList === null)
-        return undefined;
-    return {
-        statusId: exBoostStatusId,
-        abilityIdList: (0, utils_1.deserializeNumberList)(exBoostAbilityIdList)
-    };
-}
-/**
- * Converts a RawPlayerCharacter into a PlayerCharacter
- *
- * @param rawCharacter The RawPlayerCharacter to convert.
- * @param bondTokens The character's bond tokens
- * @returns The converted PlayerCharacter
- */
-function buildPlayerCharacter(rawCharacter, bondTokens) {
-    return {
-        entryCount: rawCharacter.entry_count,
-        evolutionLevel: rawCharacter.evolution_level,
-        overLimitStep: rawCharacter.over_limit_step,
-        protection: (0, utils_1.deserializeBoolean)(rawCharacter.protection),
-        joinTime: new Date(rawCharacter.join_time),
-        updateTime: new Date(rawCharacter.update_time),
-        exp: rawCharacter.exp,
-        stack: rawCharacter.stack,
-        manaBoardIndex: rawCharacter.mana_board_index,
-        exBoost: buildPlayerCharacterExBoost(rawCharacter.ex_boost_status_id, rawCharacter.ex_boost_ability_id_list),
-        illustrationSettings: rawCharacter.illustration_settings === null ? undefined : (0, utils_1.deserializeNumberList)(rawCharacter.illustration_settings),
-        bondTokenList: bondTokens
-    };
-}
 /**
  * Checks whether a player owns a given character or not.
  *
@@ -98,7 +62,7 @@ function getPlayerCharacterSync(playerId, characterId) {
     WHERE player_id = ? AND character_id = ?
     ORDER BY mana_board_index
     `).all(playerId, characterId);
-    return buildPlayerCharacter(rawCharacter, rawBondTokens.map(raw => buildCharacterBondToken(raw)));
+    return (0, load_snapshot_1.buildPlayerCharacter)(rawCharacter, rawBondTokens.map(raw => (0, load_snapshot_1.buildCharacterBondToken)(raw)));
 }
 exports.getPlayerCharacterSync = getPlayerCharacterSync;
 /** Facts used by mission computers; no dates, cosmetic state or boost payloads. */
@@ -122,41 +86,12 @@ function getPlayerCharacterMissionFactsSync(playerId) {
         ORDER BY character_id, mana_board_index
     `).all(playerId);
     for (const token of tokens)
-        (_a = result[String(token.character_id)]) === null || _a === void 0 ? void 0 : _a.bondTokenList.push(buildCharacterBondToken(token));
+        (_a = result[String(token.character_id)]) === null || _a === void 0 ? void 0 : _a.bondTokenList.push((0, load_snapshot_1.buildCharacterBondToken)(token));
     return result;
 }
 exports.getPlayerCharacterMissionFactsSync = getPlayerCharacterMissionFactsSync;
 function getPlayerCharactersSync(playerId) {
-    const rawCharacters = (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
-    SELECT id, entry_count, evolution_level, over_limit_step, protection,
-        join_time, update_time, exp, stack, mana_board_index, ex_boost_status_id,
-        ex_boost_ability_id_list, illustration_settings
-    FROM players_characters
-    WHERE player_id = ?
-    `).all(playerId);
-    // get bond tokens
-    const rawBondTokens = (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
-    SELECT mana_board_index, status, character_id
-    FROM players_characters_bond_tokens
-    WHERE player_id = ?
-    ORDER BY character_id, mana_board_index
-    `).all(playerId);
-    const bondBuckets = {};
-    for (const rawBondToken of rawBondTokens) {
-        const characterId = rawBondToken.character_id.toString();
-        let bucket = bondBuckets[characterId];
-        if (!bucket) {
-            bucket = [];
-            bondBuckets[characterId] = bucket;
-        }
-        bucket.push(buildCharacterBondToken(rawBondToken));
-    }
-    const out = {};
-    for (const rawCharacter of rawCharacters) {
-        const id = rawCharacter.id.toString();
-        out[id] = buildPlayerCharacter(rawCharacter, bondBuckets[id] || []);
-    }
-    return out;
+    return (0, load_snapshot_1.readPlayerCharactersSync)((0, db_1.getDb)(), playerId);
 }
 exports.getPlayerCharactersSync = getPlayerCharactersSync;
 /** Retrieves only the requested owned characters with two bounded reads. */
@@ -183,13 +118,13 @@ function getPlayerCharactersByIdsSync(playerId, characterIds) {
     for (const rawBondToken of rawBondTokens) {
         const characterId = String(rawBondToken.character_id);
         const bucket = (_a = bondBuckets[characterId]) !== null && _a !== void 0 ? _a : [];
-        bucket.push(buildCharacterBondToken(rawBondToken));
+        bucket.push((0, load_snapshot_1.buildCharacterBondToken)(rawBondToken));
         bondBuckets[characterId] = bucket;
     }
     const result = {};
     for (const rawCharacter of rawCharacters) {
         const characterId = String(rawCharacter.id);
-        result[characterId] = buildPlayerCharacter(rawCharacter, (_b = bondBuckets[characterId]) !== null && _b !== void 0 ? _b : []);
+        result[characterId] = (0, load_snapshot_1.buildPlayerCharacter)(rawCharacter, (_b = bondBuckets[characterId]) !== null && _b !== void 0 ? _b : []);
     }
     return result;
 }
@@ -380,22 +315,7 @@ exports.updatePlayerCharacterSync = updatePlayerCharacterSync;
  * @returns A record containing the statuses of the player's characters.
  */
 function getPlayerCharactersManaNodesSync(playerId) {
-    const rawNodes = (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
-    SELECT value, character_id
-    FROM players_characters_mana_nodes
-    WHERE player_id = ?
-    `).all(playerId);
-    const buckets = {};
-    for (const rawNode of rawNodes) {
-        const characterId = rawNode.character_id.toString();
-        let bucket = buckets[characterId];
-        if (!bucket) {
-            bucket = [];
-            buckets[characterId] = bucket;
-        }
-        bucket.push(rawNode.value);
-    }
-    return buckets;
+    return (0, load_snapshot_1.readPlayerCharactersManaNodesSync)((0, db_1.getDb)(), playerId);
 }
 exports.getPlayerCharactersManaNodesSync = getPlayerCharactersManaNodesSync;
 /** Scalar counts and an optional compact id list; no full character/node objects. */
