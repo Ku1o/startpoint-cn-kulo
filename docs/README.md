@@ -26,6 +26,7 @@
 ## 性能与运维
 - [四核服务器 CPU 优化实施记录](./development/MULTICORE-CPU-OPTIMIZATION-20261002.md)
 - [多人共斗断线排查与修复记录](./development/MULTIPLAYER-DISCONNECT-INVESTIGATION-20261003.md)
+- [云服运行日志复盘与第二轮优化](./development/RUNTIME-LOG-FOLLOWUP-20261003.md)
 - [SQLite 单写线程实施记录](./development/SQLITE-WRITER-THREAD-20261003.md)
 
 ## 贡献流程

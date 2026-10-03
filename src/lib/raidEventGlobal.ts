@@ -1,5 +1,5 @@
 import { getDb } from "../data/db"
-import { getRaidQuestCounts } from "./raid-event-counts"
+import { getRaidQuestCount, getRaidQuestCounts } from "./raid-event-counts"
 import { runPersistenceTransactionSync } from "./persistence-coordinator"
 import { cachedStatement } from "./cached-statement"
 import { givePlayerRewardsSync } from "./quest"
@@ -311,7 +311,7 @@ export function getRaidEventQuestKillCountsSync(eventId: number): Record<string,
 }
 
 export function getRaidEventQuestKillCountSync(eventId: number, questId: number): number {
-    return getRaidQuestCounts(getDb(), eventId)[String(questId)]?.kill_count ?? 0
+    return getRaidQuestCount(getDb(), eventId, questId)
 }
 
 export function recordRaidEventClearSync(params: {

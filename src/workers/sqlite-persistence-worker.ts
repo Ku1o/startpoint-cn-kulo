@@ -124,9 +124,13 @@ installWorkerMemoryProbe(() => ({ completed, failed, busyRetries, executing }))
 reportSettings()
 
 parentPort?.on("message", (
-    message: PersistenceCommand | { type: "close" } | { type: "checkpoint_owner", external: boolean },
+    message: PersistenceCommand
+        | { type: "close" }
+        | { type: "checkpoint_owner", external: boolean }
+        | { type: "memory_probe" },
 ) => {
     if (typeof message === "object" && "type" in message) {
+        if (message.type === "memory_probe") return
         if (message.type === "checkpoint_owner") {
             database.pragma(`wal_autocheckpoint = ${message.external ? 0 : 1000}`)
             reportSettings()

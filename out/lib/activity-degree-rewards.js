@@ -7,6 +7,7 @@ exports.ensurePlayerActivityDegreesSync = exports.grantEligibleRushEventDegreesS
 const rush_event_ranking_reward_json_1 = __importDefault(require("../../assets/rush_event_ranking_reward.json"));
 const db_1 = require("../data/db");
 const degree_1 = require("../data/domains/degree");
+const cached_statement_1 = require("./cached-statement");
 exports.rankingEventIdQuestMap = {
     1: 1001,
     2: 2001,
@@ -140,7 +141,7 @@ const RAID_DEGREE_RULES = [
 function getEligibleRaidDegreeIdsSync(playerId, eventId) {
     if (!Number.isInteger(eventId) || eventId < 1 || eventId > 7)
         return [];
-    const rows = (0, db_1.getDb)().prepare(`
+    const rows = (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
         SELECT quest_id, COUNT(*) AS clear_count
         FROM raid_event_global_kill_ledger
         WHERE player_id = ? AND event_id = ?

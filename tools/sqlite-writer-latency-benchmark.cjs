@@ -15,10 +15,10 @@
 
 const { spawnSync } = require('node:child_process')
 const fs = require('node:fs')
-const os = require('node:os')
 const path = require('node:path')
 
 const repoRoot = path.resolve(__dirname, '..')
+const temporaryRoot = path.join(repoRoot, 'tmp')
 const commandModule = path.join(__dirname, 'writer-benchmark-commands.cjs')
 
 function parseLength(name, fallback) {
@@ -46,7 +46,8 @@ async function runSingleMode(mode) {
     const commandCount = parseLength('commands', 400)
     const concurrency = parseLength('concurrency', 16)
     const payloadBytes = parseLength('payload', 256)
-    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), `writer-benchmark-${mode}-`))
+    fs.mkdirSync(temporaryRoot, { recursive: true })
+    const tempRoot = fs.mkdtempSync(path.join(temporaryRoot, `writer-benchmark-${mode}-`))
     const databasePath = path.join(tempRoot, 'bench.db')
 
     process.env.DATA_DIR = tempRoot
@@ -127,6 +128,7 @@ async function runSingleMode(mode) {
     // Windows keeps the temporary directory locked while a connection is open.
     try { inProcessConnection?.close() } catch { /* already closed */ }
     fs.rmSync(tempRoot, { recursive: true, force: true })
+    try { fs.rmdirSync(temporaryRoot) } catch {}
     return metrics
 }
 

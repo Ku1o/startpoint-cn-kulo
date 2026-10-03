@@ -19,6 +19,7 @@
     "test:multicore": "npm run typecheck && tsc && node tools/run-isolated-check.cjs --test tests/multicore-snapshot.test.cjs tests/server-response-workers.test.cjs tests/cn-load-worker-integration.test.cjs tests/sqlite-checkpoint-worker.test.cjs tests/sqlite-persistence-worker.test.cjs tests/sqlite-writer-thread.test.cjs tests/sqlite-writer-inprocess.test.cjs tests/tcp-server-lifecycle.test.cjs tests/server-diagnostics-modes.test.cjs tests/request-diagnostics.test.cjs tests/mission-performance-safety.test.cjs tests/character-awake-query-scope.test.js tests/gacha-exec-preservation.test.js tests/gacha-exchange-consistency.test.cjs tests/player-login-integration.test.js",
     "test:multiplayer-connectivity": "npm run typecheck && tsc && node tools/run-multiplayer-connectivity-check.cjs",
     "bench:multicore": "npm run typecheck && tsc && node tools/multicore-load-benchmark.cjs && node tools/run-isolated-check.cjs tools/active-account-benchmark.cjs && node tools/run-isolated-check.cjs tests/player-login-performance.js && node tools/runtime-overhead-benchmark.cjs",
+    "bench:raid-count": "npm run typecheck && tsc && node tools/raid-single-count-benchmark.cjs",
     "raid:reset": "node tools/reset_raid_event.cjs",
     "build:admin": "cd admin && npm install && npm run build",
     "dev:admin": "cd admin && npm run dev"

@@ -117,6 +117,8 @@ function execute(command) {
 reportSettings();
 node_worker_threads_1.parentPort === null || node_worker_threads_1.parentPort === void 0 ? void 0 : node_worker_threads_1.parentPort.on("message", (message) => {
     if (typeof message === "object" && "type" in message) {
+        if (message.type === "memory_probe")
+            return;
         if (message.type === "checkpoint_owner") {
             database.pragma(`wal_autocheckpoint = ${message.external ? 0 : 1000}`);
             reportSettings();
