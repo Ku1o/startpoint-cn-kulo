@@ -5,6 +5,8 @@ const types_1 = require("../../../data/types");
 const types_2 = require("../../types");
 const raidEventGlobal_1 = require("../../raidEventGlobal");
 const activity_degree_rewards_1 = require("../../activity-degree-rewards");
+const game_logging_1 = require("../../game-logging");
+const server_work_performance_1 = require("../../server-work-performance");
 function handleRaidEventFinish(params) {
     const { questCategory, questAccomplished, activeEventId, playId, party, playerId, questId, getEvoLevelsFn, insertPartyFn, } = params;
     if (questCategory !== types_2.QuestCategory.RAID_EVENT || !activeEventId)
@@ -30,19 +32,19 @@ function handleRaidEventFinish(params) {
     let questKillCount;
     let newDegreeIds = [];
     if (questAccomplished) {
-        const result = (0, raidEventGlobal_1.recordRaidEventClearSync)({
+        const result = (0, server_work_performance_1.measureServerWork)("raid.finish", () => (0, raidEventGlobal_1.recordRaidEventClearSync)({
             eventId: activeEventId,
             playId,
             playerId,
             questId,
-        });
+        }));
         boss = result.boss;
         questKillCount = result.questKillCount;
-        newDegreeIds = (0, activity_degree_rewards_1.grantEligibleRaidEventDegreesSync)(playerId, activeEventId);
-        console.log(`[RAID] clear: eventId=${activeEventId} questId=${questId} ` +
-            `playId=${playId} counted=${result.counted} weight=${result.questWeight} ` +
-            `weighted=${boss.weightedKillCount}/${boss.requiredKillCount} ` +
-            `hp=${boss.hpPercentage} total=${boss.totalKillCount}`);
+        newDegreeIds = (0, server_work_performance_1.measureServerWork)("raid.degree", () => (0, activity_degree_rewards_1.grantEligibleRaidEventDegreesSync)(playerId, activeEventId));
+        (0, game_logging_1.gameVerboseLog)(() => `[RAID] clear: eventId=${activeEventId} questId=${questId} `
+            + `playId=${playId} counted=${result.counted} weight=${result.questWeight} `
+            + `weighted=${boss.weightedKillCount}/${boss.requiredKillCount} `
+            + `hp=${boss.hpPercentage} total=${boss.totalKillCount}`);
     }
     else {
         boss = (0, raidEventGlobal_1.getRaidEventGlobalBossSync)(activeEventId);

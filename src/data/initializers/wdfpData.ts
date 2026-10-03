@@ -1163,6 +1163,8 @@ export default function init(
 
     database.prepare(`CREATE INDEX IF NOT EXISTS idx_raid_event_global_kill_ledger_event_quest
         ON raid_event_global_kill_ledger (event_id, quest_id)`).run()
+    database.prepare(`CREATE INDEX IF NOT EXISTS idx_raid_event_global_kill_ledger_player_event_quest
+        ON raid_event_global_kill_ledger (player_id, event_id, quest_id)`).run()
 
     database.prepare(`CREATE TABLE IF NOT EXISTS players_raid_event_overall_rewards (
         player_id INTEGER NOT NULL,

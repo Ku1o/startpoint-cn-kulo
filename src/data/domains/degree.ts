@@ -1,5 +1,6 @@
 import { getDb } from "../db"
 import { getPlayerQuestProgressSync } from "./quest"
+import { cachedStatement } from "../../lib/cached-statement"
 
 export interface RawPlayerDegree {
     player_id: number
@@ -39,7 +40,7 @@ export function grantPlayerDegreeSync(
     if (!Number.isInteger(playerId) || playerId <= 0) return false
     if (!Number.isInteger(degreeId) || degreeId <= 0) return false
 
-    const result = getDb().prepare(`
+    const result = cachedStatement(getDb(), `
         INSERT OR IGNORE INTO players_degrees (player_id, degree_id, acquired_at)
         VALUES (?, ?, ?)
     `).run(playerId, degreeId, acquiredAt)

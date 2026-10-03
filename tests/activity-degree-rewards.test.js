@@ -48,6 +48,24 @@ test("ranking time titles are restored from the persisted best clear", () => {
 })
 
 test("raid titles use the player's deduplicated clear ledger by difficulty", () => {
+    const indexes = getDb().prepare(`
+        SELECT name
+        FROM sqlite_master
+        WHERE type = 'index' AND tbl_name = 'raid_event_global_kill_ledger'
+    `).pluck().all()
+    assert.ok(indexes.includes("idx_raid_event_global_kill_ledger_player_event_quest"))
+    const playerPlan = getDb().prepare(`
+        EXPLAIN QUERY PLAN
+        SELECT quest_id, COUNT(*)
+        FROM raid_event_global_kill_ledger
+        WHERE player_id = ? AND event_id = ?
+        GROUP BY quest_id
+    `).all(player.id, 7)
+    assert.match(
+        playerPlan.map(row => row.detail).join("\n"),
+        /idx_raid_event_global_kill_ledger_player_event_quest/,
+    )
+
     const insert = getDb().prepare(`
         INSERT INTO raid_event_global_kill_ledger
             (event_id, play_id, player_id, quest_id, created_at)
@@ -58,6 +76,20 @@ test("raid titles use the player's deduplicated clear ledger by difficulty", () 
     }
 
     assert.deepEqual(getEligibleRaidDegreeIdsSync(player.id, 7), [63081])
+    let prepares = 0
+    const originalPrepare = getDb().prepare
+    getDb().prepare = function (...args) {
+        prepares++
+        return originalPrepare.apply(this, args)
+    }
+    try {
+        for (let index = 0; index < 100; index++) {
+            assert.deepEqual(getEligibleRaidDegreeIdsSync(player.id, 7), [63081])
+        }
+        assert.equal(prepares, 0)
+    } finally {
+        getDb().prepare = originalPrepare
+    }
     assert.deepEqual(grantEligibleRaidEventDegreesSync(player.id, 7), [63081])
     assert.equal(hasPlayerDegreeSync(player.id, 63081), true)
 })

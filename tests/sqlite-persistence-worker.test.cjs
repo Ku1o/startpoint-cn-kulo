@@ -44,6 +44,15 @@ test('persistence worker serializes commands and rolls back a failed command', a
         assert.fail(`worker settings unavailable: ${JSON.stringify(settings())}`)
     }
     await until(() => settings()?.walAutocheckpoint === 1000)
+    collectMemoryDiagnostics()
+    await new Promise(resolve => setTimeout(resolve, 50))
+    const firstWorkerSample = collectMemoryDiagnostics().workers
+        .find(worker => worker.name === 'sqlite-persistence')
+    await new Promise(resolve => setTimeout(resolve, 50))
+    const secondWorkerSample = collectMemoryDiagnostics().workers
+        .find(worker => worker.name === 'sqlite-persistence')
+    assert.equal(firstWorkerSample?.counters.failed, 0)
+    assert.equal(secondWorkerSample?.counters.failed, 0)
     assert.equal(settings().synchronous, 2)
     assert.equal(settings().cacheSize, -32768)
     assert.equal(settings().mmapSize, 64 * 1024 * 1024)

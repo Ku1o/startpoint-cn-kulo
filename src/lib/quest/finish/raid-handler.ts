@@ -6,6 +6,8 @@ import {
     recordRaidEventClearSync,
 } from "../../raidEventGlobal"
 import { grantEligibleRaidEventDegreesSync } from "../../activity-degree-rewards"
+import { gameVerboseLog } from "../../game-logging"
+import { measureServerWork } from "../../server-work-performance"
 
 export interface RaidEventFinishData {
     auto_start_point: number
@@ -77,20 +79,23 @@ export function handleRaidEventFinish(params: {
     let questKillCount: number
     let newDegreeIds: number[] = []
     if (questAccomplished) {
-        const result = recordRaidEventClearSync({
+        const result = measureServerWork("raid.finish", () => recordRaidEventClearSync({
             eventId: activeEventId,
             playId,
             playerId,
             questId,
-        })
+        }))
         boss = result.boss
         questKillCount = result.questKillCount
-        newDegreeIds = grantEligibleRaidEventDegreesSync(playerId, activeEventId)
-        console.log(
-            `[RAID] clear: eventId=${activeEventId} questId=${questId} ` +
-            `playId=${playId} counted=${result.counted} weight=${result.questWeight} ` +
-            `weighted=${boss.weightedKillCount}/${boss.requiredKillCount} ` +
-            `hp=${boss.hpPercentage} total=${boss.totalKillCount}`,
+        newDegreeIds = measureServerWork(
+            "raid.degree",
+            () => grantEligibleRaidEventDegreesSync(playerId, activeEventId),
+        )
+        gameVerboseLog(() =>
+            `[RAID] clear: eventId=${activeEventId} questId=${questId} `
+            + `playId=${playId} counted=${result.counted} weight=${result.questWeight} `
+            + `weighted=${boss.weightedKillCount}/${boss.requiredKillCount} `
+            + `hp=${boss.hpPercentage} total=${boss.totalKillCount}`
         )
     } else {
         boss = getRaidEventGlobalBossSync(activeEventId)

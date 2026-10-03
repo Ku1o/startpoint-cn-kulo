@@ -252,8 +252,7 @@ function getRaidEventQuestKillCountsSync(eventId) {
 }
 exports.getRaidEventQuestKillCountsSync = getRaidEventQuestKillCountsSync;
 function getRaidEventQuestKillCountSync(eventId, questId) {
-    var _a, _b;
-    return (_b = (_a = (0, raid_event_counts_1.getRaidQuestCounts)((0, db_1.getDb)(), eventId)[String(questId)]) === null || _a === void 0 ? void 0 : _a.kill_count) !== null && _b !== void 0 ? _b : 0;
+    return (0, raid_event_counts_1.getRaidQuestCount)((0, db_1.getDb)(), eventId, questId);
 }
 exports.getRaidEventQuestKillCountSync = getRaidEventQuestKillCountSync;
 function recordRaidEventClearSync(params) {

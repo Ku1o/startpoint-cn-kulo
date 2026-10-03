@@ -7,6 +7,7 @@ export type ServerWorkPhase = "encode.pack" | "encode.fix" | "encode.base64"
     | "persistence.queue" | "persistence.transaction"
     | "load.session" | "load.player" | "load.maintenance" | "load.snapshot" | "load.reconcile" | "load.serialize" | "load.active"
     | "load.assemble" | "load.convert"
+    | "raid.finish" | "raid.degree"
     | "multi.relay.encode" | "multi.relay.send" | "multi.lobby.broadcast" | "multi.barrier"
 
 const timings = new Map<ServerWorkPhase, { n: number, totalMs: number, maxMs: number }>()

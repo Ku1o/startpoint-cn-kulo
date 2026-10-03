@@ -4,7 +4,7 @@ const Database = require('better-sqlite3')
 const fs = require('node:fs')
 const os = require('node:os')
 const path = require('node:path')
-const { getRaidQuestCounts } = require('../out/lib/raid-event-counts')
+const { getRaidQuestCount, getRaidQuestCounts } = require('../out/lib/raid-event-counts')
 
 test('incremental raid counts follow inserts, duplicates, rollback, reset and external writers', () => {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'raid-count-cache-'))
@@ -20,17 +20,22 @@ test('incremental raid counts follow inserts, duplicates, rollback, reset and ex
             db.prepare('SELECT quest_id, COUNT(*) AS n FROM raid_event_global_kill_ledger WHERE event_id = ? GROUP BY quest_id ORDER BY quest_id')
                 .all(event).map(row => [String(row.quest_id), {kill_count: row.n}]),
         ))
+        const checkOne = (event, quest) => assert.equal(
+            getRaidQuestCount(db, event, quest),
+            db.prepare('SELECT COUNT(*) FROM raid_event_global_kill_ledger WHERE event_id = ? AND quest_id = ?')
+                .pluck().get(event, quest),
+        )
         assert.throws(() => db.transaction(() => { check(7); insert.run(7, 10, 'rollback-schema'); check(7); throw Error('rollback') })(), /rollback/)
         check(7)
         insert.run(7, 10, 'a'); insert.run(7, 10, 'a'); insert.run(7, 11, 'b'); insert.run(8, 12, 'c')
-        check(7); check(8)
+        check(7); check(8); checkOne(7, 10); checkOne(7, 11)
         assert.throws(() => db.transaction(() => { insert.run(7, 10, 'rollback-row'); check(7); throw Error('rollback') })(), /rollback/)
         check(7)
         db.prepare('UPDATE raid_event_global_kill_ledger SET event_id = 9, quest_id = 42 WHERE play_id = ?').run('b')
-        check(7); check(9)
+        check(7); check(9); checkOne(7, 11); checkOne(9, 42)
         other = new Database(filename)
         other.prepare('INSERT INTO raid_event_global_kill_ledger VALUES (7, 10, ?)').run('external')
-        check(7); check(8)
+        check(7); check(8); checkOne(7, 10)
         db.prepare('DELETE FROM raid_event_global_kill_ledger WHERE event_id = ?').run(7)
         check(7)
         insert.run(7, 10, 'restart-event'); check(7)
