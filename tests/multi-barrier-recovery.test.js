@@ -285,6 +285,29 @@ test('room identity reuse and settlement invalidate pending grace', async t => {
     }
 })
 
+test('rematch lobby host grace does not expire before the guest reconnect window', t => {
+    const timers = []
+    t.mock.method(global, 'setTimeout', (fn, ms) => {
+        const timer = { fn, ms, cancelled: false, unref() {} }
+        timers.push(timer)
+        return timer
+    })
+    t.mock.method(global, 'clearTimeout', timer => { if (timer) timer.cancelled = true })
+    const room = {
+        room_number: '701002',
+        host_viewer_id: 1,
+        lobby_generation: 1,
+        expected_real_viewer_ids: [1, 2],
+        lifecycle: { instanceId: 'instance-rematch', phase: 'LOBBY', version: 1 },
+    }
+    t.mock.method(rooms, 'getRoom', () => room)
+    const manager = new SessionManager()
+    manager.beginHostReconnectGrace(room.room_number)
+    const reconnectTimer = timers.at(-1)
+    assert.ok(reconnectTimer)
+    assert.ok(reconnectTimer.ms >= 60_000)
+})
+
 test('retirement resets only with a new round; empty rooms never broadcast BattleStart', async t => {
     const x = setup(t), [a,b] = x.clients
     x.drop(a); x.drop(b)

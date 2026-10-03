@@ -18,6 +18,7 @@ import { generateDataHeaders, getServerTime, realToVirtual } from "../../utils"
 import { activeQuests } from "../../routes/api/singleBattleQuest"
 import { getRoom } from "../room/manager"
 import { sessionManager } from "../state/SessionManager"
+import { embeddedMultiCoordinator } from "../coordinator/embedded"
 import {
     abortFiveBossBattle,
     finishFiveBossBattle,
@@ -28,6 +29,7 @@ import {
 import { FIVE_BOSS_GAUNTLET, isFiveBossGauntletQuest } from "../five-boss/contract"
 import { buildFiveBossAdditionalRewardDrops, buildFiveBossWeaponAdditionalRewardDrops } from "../five-boss/rewards"
 import { abandonFiveBossSoloForMultiSync } from "../five-boss/solo-runtime"
+import { waitForFiveBossSignalPersistence } from "../five-boss/lobby-runtime"
 import { getDb } from "../../data/db"
 import { measureSettlementPhaseAsync } from "../../lib/settlement-performance"
 import { fiveBossDiagnostics } from "../../lib/coalesced-diagnostics"
@@ -119,12 +121,22 @@ function terminalRoomTransition(
 
     sessionManager.clearBattleExpectedCount(roomNumber)
     if (runStatus === "settled") {
-        // 结算后不再把房间退回 raising_state=1 复用,而是直接解散:
-        // V7 客户端补丁 five-boss-random-map 的选图种子 = 房间号,同一房间再战
-        // 会抽到同一套变体;解散逼房主重建房间 = 新房号 = 新一轮随机。
-        // 代价是结算页点「再战」会提示房间已解散,回到关卡页重建(作者接受随机性优先)。
-        console.log(`[MULTI] five-boss settled: disbanding room ${roomNumber} so the next run rerolls its map seed`)
-        sessionManager.commitRoomDisband(roomNumber, "five_boss_settled")
+        const wasSettlementReturnPending = room.settlement_return_pending
+        const transition = embeddedMultiCoordinator.beginSettlementReturn(room, room.lobby_generation)
+        if (!transition.ok) {
+            console.warn(`[MULTI] five-boss settled: unable to retain room ${roomNumber}`
+                + ` generation=${room.lobby_generation} reason=${transition.reason}`)
+            sessionManager.commitRoomDisband(roomNumber, "five_boss_settlement_return_failed")
+            return
+        }
+        delete room.five_boss_runtime
+        // Keep the room through the settlement return handshake.  The CN
+        // client closes the battle socket before HTTP finish and then uses
+        // the original room code for the rematch.  Disbanding here makes that
+        // returning guest receive room_not_found before the host can re-enter.
+        if (!wasSettlementReturnPending) sessionManager.beginSettlementReturnGrace(roomNumber)
+        console.log(`[MULTI] five-boss settled: room ${roomNumber} entered RETURNING`
+            + ` generation=${room.lobby_generation}`)
         return
     }
     sessionManager.commitRoomDisband(roomNumber, "five_boss_aborted")
@@ -425,30 +437,38 @@ export async function handleFiveBossFinish(
         body.is_accomplished === true ? "success_requested" : "failure_requested")
     const roomNumber = resolveFiveBossRoomNumber(body.room_number, playerId, body.play_id, boundRun)
     const party = body.statistics?.party ?? body.quest_statistics?.party
-    const result = await measureSettlementPhaseAsync("multi", "five_boss_settlement", () => runPersistenceTransaction({
-        domain: "multi-settlement", playerId, operation: "five_boss_finish",
-    }, () => {
-        if (body.is_accomplished === true && isFiveBossGauntletQuest(body.category, body.quest_id)
-            && boundRun?.roomNumber === roomNumber) {
-            const backfill = backfillMissingFinalizeSync({ playerId, clientPlayId: body.play_id })
-            if (backfill.backfilled) {
-                fiveBossConnectionDiagnostics.memberEvent(boundRun.runId, playerId, "finalize_recorded", "http_backfill")
-                console.warn(`[MULTI] five-boss finish: finalize signal never reached the battle channel;`
-                    + ` backfilled from HTTP finish player=${playerId} run=${backfill.runId} room=${backfill.roomNumber}`)
-            }
+    const result = await measureSettlementPhaseAsync("multi", "five_boss_settlement", async () => {
+        // Failed finishes become aborts and do not need successful battle
+        // proof.  Waiting here would make an abort depend on an unrelated
+        // proof write that may be queued behind a closing socket.
+        if (boundRun && body.is_accomplished === true) {
+            await waitForFiveBossSignalPersistence(boundRun.runId, playerId)
         }
-        return finishFiveBossBattle({
-            playerId,
-            clientPlayId: body.play_id,
-            requestRoomNumber: roomNumber,
-            requestCategory: body.category,
-            requestQuestId: body.quest_id,
-            accomplished: body.is_accomplished as boolean,
-            elapsedTimeMs: body.elapsed_time_ms ?? body.battle_time ?? 0,
-            highScore: body.score ?? 0,
-            leaderCharacterId: party?.characters?.[0]?.id ?? null,
+        return runPersistenceTransaction({
+            domain: "multi-settlement", playerId, operation: "five_boss_finish",
+        }, () => {
+            if (body.is_accomplished === true && isFiveBossGauntletQuest(body.category, body.quest_id)
+                && boundRun?.roomNumber === roomNumber) {
+                const backfill = backfillMissingFinalizeSync({ playerId, clientPlayId: body.play_id })
+                if (backfill.backfilled) {
+                    fiveBossConnectionDiagnostics.memberEvent(boundRun.runId, playerId, "finalize_recorded", "http_backfill")
+                    console.warn(`[MULTI] five-boss finish: finalize signal never reached the battle channel;`
+                        + ` backfilled from HTTP finish player=${playerId} run=${backfill.runId} room=${backfill.roomNumber}`)
+                }
+            }
+            return finishFiveBossBattle({
+                playerId,
+                clientPlayId: body.play_id,
+                requestRoomNumber: roomNumber,
+                requestCategory: body.category,
+                requestQuestId: body.quest_id,
+                accomplished: body.is_accomplished as boolean,
+                elapsedTimeMs: body.elapsed_time_ms ?? body.battle_time ?? 0,
+                highScore: body.score ?? 0,
+                leaderCharacterId: party?.characters?.[0]?.id ?? null,
+            })
         })
-    }))
+    })
     clearMatchingMemoryActive(playerId, body.play_id)
     if (result.runStatus !== "active") {
         afterResponse(reply, () => terminalRoomTransition(roomNumber, result.runId, result.runStatus))

@@ -123,9 +123,14 @@ battle_entered_at
 - 所有 battle socket 都关闭时，现有 15 分钟 abandoned-battle watchdog 仍负责回收永远没有 finish/abort 的房间；
 - 普通共斗、握手拒绝、加载超时、heartbeat 超时和发送背压策略不变。
 
-最后一名成员完成结算或房主放弃时，房间不再由 HTTP handler 直接删除。服务端先完成
-`/finish` 或 `/abort` 响应，再通过 `SessionManager.commitRoomDisband()` 发送合法的大厅
-`Disbanded` 通知并统一清理 lobby/battle socket、房间索引和计时器，避免响应尚未送达时房间先消失。
+最后一名成员完成结算或房主放弃时，房间不再由 HTTP handler 在响应发送前直接转换或删除：
+
+- 成功结算先完成 `/finish` 响应，再进入 `RETURNING`，保留原房号供房主与队友执行再战回连；
+- `RETURNING` 转换失败或成员 `/abort` 时，再通过 `SessionManager.commitRoomDisband()`
+  发送合法的大厅 `Disbanded` 通知并统一清理 lobby/battle socket、房间索引和计时器；
+- 再战 generation 的房主回连宽限不短于队友的回连窗口，避免房主短暂掉线提前删除房间。
+
+这既避免响应尚未送达时房间先消失，也保留最新 `staging` 已建立的五重续战流程。
 
 ## 未采用方案
 
@@ -153,7 +158,9 @@ battle_entered_at
 - 五重首轮 BattleStart 后关闭 battle socket不发送普通 Leave；
 - 五重重建 battle socket 后仍保持已进入战斗状态；
 - 第二场景 loading barrier 的缺席处理保持原行为；
-- 终局先发送 HTTP 响应，再通过标准房间协议清理连接；
+- 成功结算先发送 HTTP 响应，再进入 `RETURNING` 并允许队友搜索、选中和恢复原房间；
+- abort 或续战转换失败时，通过标准房间协议清理连接；
+- 再战 generation 的房主回连宽限覆盖队友回连窗口；
 - 旧数据库迁移重复执行不改写旧行；
 - 存档导入导出保留服务端五重账本。
 
@@ -174,7 +181,7 @@ node tools/run-isolated-check.cjs --test \
 2026-10-04 最终验证结果：
 
 - `npm run typecheck` 与完整 `tsc` 编译通过；
-- `npm run test:multiplayer-connectivity` 通过，其中五重集成 40/40、屏障与重连 21/21；
+- `npm run test:multiplayer-connectivity` 通过，其中五重集成 42/42、屏障与重连 22/22；
 - `npm run test:multicore` 通过，覆盖四核默认配置、响应 worker、SQLite checkpoint、
   persistence worker、writer thread、事务回滚及热点查询；
 - 补充验证了保留首场五重入场标记时，第二场景掉线仍执行原有 8 秒缺席宽限、

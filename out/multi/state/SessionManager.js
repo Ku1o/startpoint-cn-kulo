@@ -712,7 +712,15 @@ class SessionManager {
         catch (e) {
             return;
         }
-        const reconnectMs = this.parsePositiveDuration("MULTI_HOST_RECONNECT_GRACE_MS", 25000);
+        const baseReconnectMs = this.parsePositiveDuration("MULTI_HOST_RECONNECT_GRACE_MS", 25000);
+        // After a rematch generation, guests are allowed the longer
+        // REMATCH_RECONNECT_GRACE_MS to return.  A host that briefly drops
+        // after entering that lobby must not make the room disappear sooner
+        // than the guest's own reconnect window.
+        const rematchReconnectMs = roomGeneration > 0
+            ? this.parsePositiveDuration("REMATCH_RECONNECT_GRACE_MS", 60000)
+            : 0;
+        const reconnectMs = Math.max(baseReconnectMs, rematchReconnectMs);
         const timer = setTimeout(() => {
             void embedded_1.embeddedMultiCoordinator.enqueueRoomCommand(roomNumber, () => {
                 if (this.hostReconnectTimers.get(roomNumber) !== timer)
