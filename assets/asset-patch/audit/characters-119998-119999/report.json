@@ -1,0 +1,1138 @@
+{
+  "schema_version": 1,
+  "id": "characters-119998-119999",
+  "created_at": "2026-10-04",
+  "source": {
+    "repo": "kuronzzhan-droid/startpoint-cn",
+    "branch": "custom/characters-1.4.407",
+    "commit": "19a418d0bb862a3e4fa91de2aaa828adb8124743",
+    "chain_terminal": "1.4.427"
+  },
+  "baseline": {
+    "repo": "Ku1o/startpoint-cn-kulo",
+    "branch": "staging",
+    "commit": "c08dd5f",
+    "manifest_cdn_version": "1.4.130"
+  },
+  "conclusion": "客户端表行与角色资源均已在当前主线增量链中，与来源分支逐行/逐字节一致；本次只补服务端四张表，不需要新的候选 ZIP。",
+  "client_tables": [
+    {
+      "logical_path": "master/ability/ability.orderedmap",
+      "keys": [
+        "1199991",
+        "1199992",
+        "1199993",
+        "1199994",
+        "1199995",
+        "1199996",
+        "1199981",
+        "1199982",
+        "1199983",
+        "1199984",
+        "1199985",
+        "1199986"
+      ],
+      "carried_by": "pinball-1.4.126-1.4.127-1-kyle-ability4-null-role-fix-20261001.zip",
+      "member": "production/upload/1e/664c1cc8d80f4f9a69aae2c49ae8c01d1c4001",
+      "semantically_identical_to_source": true
+    },
+    {
+      "logical_path": "master/ability/leader_ability.orderedmap",
+      "keys": [
+        "119999",
+        "119998"
+      ],
+      "carried_by": "pinball-1.4.121-1.4.122-1-author-balance-fox-20260930.zip",
+      "member": "production/upload/ff/84353774cb95e8d7dc90c679f96a5bca7f42e5",
+      "semantically_identical_to_source": true
+    },
+    {
+      "logical_path": "master/character/character.orderedmap",
+      "keys": [
+        "119999",
+        "119998"
+      ],
+      "carried_by": "pinball-1.4.122-1.4.123-1-author-weapons-fiveboss-20261001.zip",
+      "member": "production/upload/2d/5cb9b28d18f984a51b345a4d7aab03d77bddfc",
+      "semantically_identical_to_source": true
+    },
+    {
+      "logical_path": "master/character/character_gacha_sound.orderedmap",
+      "keys": [
+        "119999",
+        "119998"
+      ],
+      "carried_by": "pinball-1.4.115-1.4.116-2-author-characters-1033.zip",
+      "member": "production/upload/ac/b038c35f3048ba7ca07a6a84307b2fb10c041c",
+      "semantically_identical_to_source": true
+    },
+    {
+      "logical_path": "master/character/character_speech.orderedmap",
+      "keys": [
+        "119999",
+        "119998"
+      ],
+      "carried_by": "pinball-1.4.116-1.4.117-1-author-inaho-fluffy-consolidated.zip",
+      "member": "production/upload/b4/a28679b8eeefdbdcbe6071fd4f2ff85e5b3415",
+      "semantically_identical_to_source": true
+    },
+    {
+      "logical_path": "master/character/character_status.orderedmap",
+      "keys": [
+        "119999",
+        "119998"
+      ],
+      "carried_by": "pinball-1.4.115-1.4.116-2-author-characters-1033.zip",
+      "member": "production/upload/5c/6a4f0e2ceb1dbcf60f9b306b0f7bfd0eca55c9",
+      "semantically_identical_to_source": true
+    },
+    {
+      "logical_path": "master/character/character_text.orderedmap",
+      "keys": [
+        "119999",
+        "119998"
+      ],
+      "carried_by": "pinball-1.4.121-1.4.122-1-author-balance-fox-20260930.zip",
+      "member": "production/upload/8b/035728b2151de044fb245988ec5f33ebb544ab",
+      "semantically_identical_to_source": true
+    },
+    {
+      "logical_path": "master/character/full_shot_image_attribute.orderedmap",
+      "keys": [
+        "119999",
+        "119998"
+      ],
+      "carried_by": "pinball-1.4.118-1.4.119-1-author-1047-wind-dragon.zip",
+      "member": "production/upload/b9/132d27178d27f9d91df89fc47e106bbaf2d5b5",
+      "semantically_identical_to_source": true
+    },
+    {
+      "logical_path": "master/generated/character_image.orderedmap",
+      "keys": [
+        "119999",
+        "119998"
+      ],
+      "carried_by": "pinball-1.4.118-1.4.119-1-author-1047-wind-dragon.zip",
+      "member": "production/upload/3e/b411841802398d5b21d422579f2eaa65d30c0e",
+      "semantically_identical_to_source": true
+    },
+    {
+      "logical_path": "master/generated/mana_board.orderedmap",
+      "keys": [
+        "119999",
+        "119998"
+      ],
+      "carried_by": "pinball-1.4.115-1.4.116-2-author-characters-1033.zip",
+      "member": "production/upload/27/7b65484214436114201ae654fefa60fdc822ea",
+      "semantically_identical_to_source": true
+    },
+    {
+      "logical_path": "master/generated/trimmed_image.orderedmap",
+      "keys": [
+        "character/kyle_wolf_knight/ui/full_shot_1440_1920_0",
+        "character/kyle_wolf_knight/ui/skill_cutin_0",
+        "character/kyle_wolf_knight/ui/full_shot_1440_1920_1",
+        "character/kyle_wolf_knight/ui/skill_cutin_1",
+        "character/kyle_wolf_knight/ui/story/anger",
+        "character/kyle_wolf_knight/ui/story/base_0",
+        "character/kyle_wolf_knight/ui/story/base_1",
+        "character/kyle_wolf_knight/ui/story/normal",
+        "character/kyle_wolf_knight/ui/story/sad",
+        "character/kyle_wolf_knight/ui/story/surprise",
+        "character/kyle_wolf_knight/ui/story/surprise_b"
+      ],
+      "carried_by": "pinball-1.4.118-1.4.119-1-author-1047-wind-dragon.zip",
+      "member": "production/upload/fb/ab4344a7456dca88f3ce06f01208922f37e395",
+      "semantically_identical_to_source": true
+    },
+    {
+      "logical_path": "master/mana_board/mana_board2_open_condition.orderedmap",
+      "keys": [
+        "119999",
+        "119998"
+      ],
+      "carried_by": "pinball-1.4.115-1.4.116-2-author-characters-1033.zip",
+      "member": "production/upload/bc/0bc800f482670f3ec8a7f2fee9b9deeeca3a04",
+      "semantically_identical_to_source": true
+    },
+    {
+      "logical_path": "master/mana_board/mana_node.orderedmap",
+      "keys": [
+        "119999",
+        "119998"
+      ],
+      "carried_by": "pinball-1.4.115-1.4.116-2-author-characters-1033.zip",
+      "member": "production/upload/1d/222e5126fc7ebe3f22c7efe87325f73742eb4f",
+      "semantically_identical_to_source": true
+    },
+    {
+      "logical_path": "master/skill/action_skill.orderedmap",
+      "keys": [
+        "resistance_princess_canary2"
+      ],
+      "carried_by": "pinball-1.4.121-1.4.122-1-author-balance-fox-20260930.zip",
+      "member": "production/upload/91/79892d704f88d98191c00548bce106402ad5b5",
+      "semantically_identical_to_source": true
+    },
+    {
+      "logical_path": "master/skill_preview/skill_preview_character.orderedmap",
+      "keys": [
+        "119999",
+        "119998"
+      ],
+      "carried_by": "pinball-1.4.115-1.4.116-2-author-characters-1033.zip",
+      "member": "production/upload/aa/abdd2e178d62dba4997034aab8c236a4422154",
+      "semantically_identical_to_source": true
+    },
+    {
+      "logical_path": "master/stance_detail/character_stance_detail.orderedmap",
+      "keys": [
+        "119999",
+        "119998"
+      ],
+      "carried_by": "pinball-1.4.115-1.4.116-2-author-characters-1033.zip",
+      "member": "production/upload/d7/50c2f94f83dd053bfc79039a709f1ec6f766cb",
+      "semantically_identical_to_source": true
+    }
+  ],
+  "client_assets": [
+    {
+      "logical_path": "character/resistance_princess_canary2/battle/character_detail_skill_preview.battle.amf3.deflate",
+      "member": "production/upload/d3/56609388f7b534b5cb41c7667e5ca45651a9f6",
+      "carried_by": "pinball-1.4.60-1.4.61-6-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "222712fb22686d95a466c43ca5bcb5c70d9f4c46c097b5744fe5a785fbad8cb9",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/resistance_princess_canary2/pixelart/pixelart.frame.amf3.deflate",
+      "member": "production/upload/b3/b510ef892c767070760f6828028cb101dfdb3f",
+      "carried_by": "pinball-1.4.60-1.4.61-6-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "24eacac8f2af0244010d3747fc4a7b9bcbce3f3a700290320c0ca52e47c8884d",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/resistance_princess_canary2/pixelart/pixelart.timeline.amf3.deflate",
+      "member": "production/upload/2b/6d96b38f69b67ba76775b60c076adc581e8ecf",
+      "carried_by": "pinball-1.4.60-1.4.61-4-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "23bee417315db0b49fa4bd87d62af39682a3ce9dd07b1409e01bf1c813232d8b",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/resistance_princess_canary2/pixelart/special_sprite_sheet.png",
+      "member": "production/upload/0a/a7c34f9849903b5b2e609ee7ac122937387f02",
+      "carried_by": "pinball-1.4.60-1.4.61-4-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "41bc58ad49cd9150ad1b97788f37b557a18888ee31b25a37256094625660cc81",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/resistance_princess_canary2/pixelart/sprite_sheet.atlas.amf3.deflate",
+      "member": "production/upload/6c/d724b442a052b8005bccff9ceb9966d3a61395",
+      "carried_by": "pinball-1.4.60-1.4.61-5-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "fcc4ca41bfa0887c7630bd1f403223dc8d952adb8cab84a5286e59d099466834",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/resistance_princess_canary2/pixelart/sprite_sheet.png",
+      "member": "production/upload/c4/a3bf4d5162e2ee2725bf9ce198f758946b630c",
+      "carried_by": "pinball-1.4.60-1.4.61-6-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "c2e88ed6b0a91c10f82ba24bc7c9a1c1a9039b3bbe1f49ee270bde7e396ae914",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/resistance_princess_canary2/ui/battle_control_board_0.png",
+      "member": "production/medium_upload/96/3b9ca4c80413bdc82f11953e1fd0f0d190e373",
+      "carried_by": "pinball-1.4.60-1.4.61-2-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "7ba3eb92ad16d6b6dfcab1c443f5a9013f86b2ddb5e4c550772509dcd45f53ab",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/resistance_princess_canary2/ui/battle_control_board_1.png",
+      "member": "production/medium_upload/5a/e2a4cc8b2d588eda373b71e1dd7cc02e6362d1",
+      "carried_by": "pinball-1.4.60-1.4.61-1-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "8766d49945c1316a9bc328bc4a4c7bc745e363619aca98a20260cc65e02b9b76",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/resistance_princess_canary2/ui/battle_member_status_0.png",
+      "member": "production/medium_upload/eb/d7804ed31c2146e8ee80aa633080039a3d7230",
+      "carried_by": "pinball-1.4.60-1.4.61-4-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "90bc4cbe38c16cba833b8e4eaae59b390bb2bcd99653260944235013aaca3462",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/resistance_princess_canary2/ui/battle_member_status_1.png",
+      "member": "production/medium_upload/46/ec82f8177ebe457dfe2326ca26ea7a829255c8",
+      "carried_by": "pinball-1.4.60-1.4.61-1-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "bbe820bf8d47ee0a7bcc73059be50d36921cf81afc820bb53988d034d7c7d4df",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/resistance_princess_canary2/ui/cutin_skill_chain_0.png",
+      "member": "production/medium_upload/c9/1c45465490d9b4babe468681bff0d345e32396",
+      "carried_by": "pinball-1.4.60-1.4.61-3-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "2246d9f43cfacf489dcbcee1af6a43afe3b43fbc8c87c76c8fe08908b5263bcf",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/resistance_princess_canary2/ui/cutin_skill_chain_1.png",
+      "member": "production/medium_upload/ac/b64bab0f5dbf595dd05cdc82f894856147be89",
+      "carried_by": "pinball-1.4.60-1.4.61-2-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "8a0d822fe09b6ab62466de4dc0700eb07ccfd95516c25b829520cd6a0394069a",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/resistance_princess_canary2/ui/episode_banner_0.png",
+      "member": "production/medium_upload/60/205d4f899589891e7b0d21b0e735f2a080265d",
+      "carried_by": "pinball-1.4.60-1.4.61-1-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "fb8c6c8abd61183e0b14843743ad8f8e8219ee9b50a75446e64e53f25ca34872",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/resistance_princess_canary2/ui/full_shot_1440_1920_0.png",
+      "member": "production/medium_upload/e7/af138085ab809a96f745ca6ae1b372a315a42d",
+      "carried_by": "pinball-1.4.60-1.4.61-4-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "593b0c37769f9d59058a1788b8531981731a67b19eadb5492498edd7ed7f520f",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/resistance_princess_canary2/ui/full_shot_1440_1920_1.png",
+      "member": "production/medium_upload/eb/eab3c3ef0d16e7081b26eceb726259c30d7fb7",
+      "carried_by": "pinball-1.4.60-1.4.61-4-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "efe545bfb9f4ad412d72b7858f5a3d4e81f7822dea17d71b6792e1e315ad933b",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/resistance_princess_canary2/ui/illustration_setting_sprite_sheet.png",
+      "member": "production/medium_upload/c2/f855520f6904bdd758696df7f3872c17de7e84",
+      "carried_by": "pinball-1.4.60-1.4.61-3-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "bae30d5a65a565889f7b9835e4bac3b57f9c4b7c9364be34be7cd47a9c5004d6",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/resistance_princess_canary2/ui/skill_cutin_0.atf.deflate",
+      "member": "production/android_upload/0d/345d3b3ae096c4574169efff38341e09276469",
+      "carried_by": "pinball-1.4.60-1.4.61-1-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "c1deb048e2e6a20dba9bc2b6f75e763702411754b76e118f6fc3e23782b708ff",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/resistance_princess_canary2/ui/skill_cutin_0.png",
+      "member": "production/medium_upload/de/914614384369f64a89bc24f69a865fc006a095",
+      "carried_by": "pinball-1.4.60-1.4.61-3-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "86693c62e37c341d85f7da8c7259daff468c22b3e1c43622557d90a990acb9ef",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/resistance_princess_canary2/ui/skill_cutin_1.atf.deflate",
+      "member": "production/android_upload/ee/87a19dd438b4f1d472644aae5c19acf8c5a507",
+      "carried_by": "pinball-1.4.60-1.4.61-1-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "e9130e425f1f4f9a95995c6828a89e4218c176c7eb923dd2e52e5f535a0d1573",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/resistance_princess_canary2/ui/skill_cutin_1.png",
+      "member": "production/medium_upload/6f/8f7266e4013441faaf5db4f44f9778441d0cbd",
+      "carried_by": "pinball-1.4.60-1.4.61-2-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "ca6db033345e74f0a4fd62c23beb46f9b03dd2ae6da5faa733754e351fbc7691",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/resistance_princess_canary2/ui/square_0.png",
+      "member": "production/medium_upload/bd/e1def6e2a8d7851228d0cd853000daf4b7828e",
+      "carried_by": "pinball-1.4.60-1.4.61-3-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "6462d7b8c1079847663629067670fa0a0f9fd433716d546d772210b9fde30f38",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/resistance_princess_canary2/ui/square_1.png",
+      "member": "production/medium_upload/44/2427ff71019884b859ba65732c3a18de606408",
+      "carried_by": "pinball-1.4.60-1.4.61-1-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "5d0ccd3db4b2d339b931e1008af0c325b7fc29f3f53db98dea462389bd323191",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/resistance_princess_canary2/ui/square_132_132_0.png",
+      "member": "production/medium_upload/ca/4aff5e2a1e249852f9607c321c328016026d1e",
+      "carried_by": "pinball-1.4.60-1.4.61-3-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "193f0884e7a9d2e4471cfc99f0ce1a48bfeb9c7f64bff8f5ee397250e3e455cb",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/resistance_princess_canary2/ui/square_132_132_1.png",
+      "member": "production/medium_upload/9b/5e3cdd11e1642482d75378b1c42b393133138e",
+      "carried_by": "pinball-1.4.60-1.4.61-2-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "68d62c92c9607ce06192ae1be583fee1360a8ddbd0db298fed4e946b1232c864",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/resistance_princess_canary2/ui/square_round_136_136_0.png",
+      "member": "production/medium_upload/5a/783b1b14e2e33589552d9be41945c904dba03b",
+      "carried_by": "pinball-1.4.60-1.4.61-1-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "21ae668d06f9f896e7d80646963b93cff9f096c32e5b3fe6807ef9b80c8da738",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/resistance_princess_canary2/ui/square_round_136_136_1.png",
+      "member": "production/medium_upload/98/d60034e03db83991abb200e5983b0638cca9d9",
+      "carried_by": "pinball-1.4.60-1.4.61-2-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "202bbafa29f10561c48c4351ca7dc566b41d95ede00b312c4b1abc258befe7da",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/resistance_princess_canary2/ui/square_round_95_95_0.png",
+      "member": "production/medium_upload/5e/638f87a99cc135582ba594d257b25026491792",
+      "carried_by": "pinball-1.4.60-1.4.61-1-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "2df5cc935010fad89fde6c5787923fc7bf0771c1792b0efd3d1910a99e7d1294",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/resistance_princess_canary2/ui/square_round_95_95_1.png",
+      "member": "production/medium_upload/78/d3b1a0114697c399ab56623f05cb2c1731f593",
+      "carried_by": "pinball-1.4.60-1.4.61-2-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "9ccdcfbb187fb886f815bc28e560499058c01f9c1689f41451b3629717778e65",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/resistance_princess_canary2/ui/story/anger.png",
+      "member": "production/medium_upload/9a/5508b0832e8667f0ebec733a5ce1ca5e6e0792",
+      "carried_by": "pinball-1.4.60-1.4.61-2-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "ad89f6167e745110a6fef615acbf94c15747484f6201e9c6d258e7795cb783b5",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/resistance_princess_canary2/ui/story/base_0.png",
+      "member": "production/medium_upload/ed/a76622f6f5500bba0cfa4f97b2f5149a06ead3",
+      "carried_by": "pinball-1.4.60-1.4.61-4-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "86efe48383478343a7be9ab4014f0f969b99c949bec9247025f48140ace972bb",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/resistance_princess_canary2/ui/story/base_1.png",
+      "member": "production/medium_upload/06/7794802bfbbe253bc927f963f0e16d286edbcb",
+      "carried_by": "pinball-1.4.60-1.4.61-1-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "fa8b733abdd6546632970397a929d02eebab98937a71dd664701ee0e15363e6d",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/resistance_princess_canary2/ui/story/normal.png",
+      "member": "production/medium_upload/e7/acb5249af10daa31d8de7c7dd83050844f2332",
+      "carried_by": "pinball-1.4.60-1.4.61-3-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "6c290f159809c4d707ad28a9070d1de2f89701ecb5f448bb70756f7f994ce16c",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/resistance_princess_canary2/ui/story/normal_b.png",
+      "member": "production/medium_upload/91/e3bd7c35ec1616dcd7d1eb24145fb666a055ce",
+      "carried_by": "pinball-1.4.60-1.4.61-2-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "11ecddcce669965babe8cc147d551a1e76d13c28d5d19f9656815484f57896f6",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/resistance_princess_canary2/ui/story/sad.png",
+      "member": "production/medium_upload/a8/9a75ca01b9557fa1757b0c3a770b112c9213e2",
+      "carried_by": "pinball-1.4.60-1.4.61-2-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "019faa65074be41322a3975bb703e9fce3fd9faf7d190597fd0e1bb2d2a821d7",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/resistance_princess_canary2/ui/story/sad_b.png",
+      "member": "production/medium_upload/0b/c6913929517434a5dd1f84c9bb0622c6551de1",
+      "carried_by": "pinball-1.4.60-1.4.61-1-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "ef5cf23c7cf5f8e62f0037a1c58cb6c5bff5c3845dbbe5e5225b559e7261f926",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/resistance_princess_canary2/ui/story/serious.png",
+      "member": "production/medium_upload/7a/a6d49dbb33ebdf3f93f3e908cdcbb359c1d7a3",
+      "carried_by": "pinball-1.4.60-1.4.61-2-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "25ef4fa06ef2dd0fdf4810e6c70c8cdac955c05e06652d4adfa72126f859a6f8",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/resistance_princess_canary2/ui/story/serious_b.png",
+      "member": "production/medium_upload/b4/ec8bfde68512136a3462ff021b83a063934c14",
+      "carried_by": "pinball-1.4.60-1.4.61-3-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "2e344148264619e89fc62bd6ccdcf808716cc5efa0646580fd561cb0de4478d6",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/resistance_princess_canary2/ui/story/shame.png",
+      "member": "production/medium_upload/e8/dc2dee9117185d90116c05540ef9c791232b5d",
+      "carried_by": "pinball-1.4.60-1.4.61-4-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "bcefd9e9145805bb1dd3f4f02561a6784ee0d0c1051494dabbb06469591c1e50",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/resistance_princess_canary2/ui/story/smile.png",
+      "member": "production/medium_upload/1c/b484fcd4a731fc27090bc5ca069d9be3e4b1ec",
+      "carried_by": "pinball-1.4.60-1.4.61-1-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "7312b87845112568ae59181f27a0ff416cb33cad17c39e651e48cb9e8aef2961",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/resistance_princess_canary2/ui/story/smile_b.png",
+      "member": "production/medium_upload/a6/34c2375b1ca0136be6b7ca46c771cdb17691ce",
+      "carried_by": "pinball-1.4.60-1.4.61-2-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "fb34ef9c78e451d2f1289750ec3d308a0b3907105542f15ea3f3514967cef4f6",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/resistance_princess_canary2/ui/story/smile_c.png",
+      "member": "production/medium_upload/c0/c70fff77c4136b2bff91286f2ff7753b27eb57",
+      "carried_by": "pinball-1.4.60-1.4.61-3-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "4e4256a055e91ec842a826a00a273a5db9767c74200ce6c3cadf35b09b9248bf",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/resistance_princess_canary2/ui/story/smile_d.png",
+      "member": "production/medium_upload/fa/9a1987c88f3bd21f4f37d815e300935974b5f0",
+      "carried_by": "pinball-1.4.60-1.4.61-4-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "2c292ef15c6ad7e9c069e6d14c0699aefcbeaf5f4861459a2c8103a080a25116",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/resistance_princess_canary2/ui/story/surprise.png",
+      "member": "production/medium_upload/ee/4423cea3a91f9745c824b85f24453f0a63c4cf",
+      "carried_by": "pinball-1.4.60-1.4.61-4-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "7916baefa15ffdc2e113ec3deb4b42659562f2b405234c6b0f85c33555235534",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/resistance_princess_canary2/ui/story/sweat.png",
+      "member": "production/medium_upload/2a/6580ff72adbfb370a2d12bc70baeca35fca316",
+      "carried_by": "pinball-1.4.60-1.4.61-1-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "1943d3986e85c6dfc0f89293cb5b52f1b453c4eab22c43da193f82fdcb325169",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/resistance_princess_canary2/ui/story/think.png",
+      "member": "production/medium_upload/e1/55c64f7b83da4b07283fafe803933063266b31",
+      "carried_by": "pinball-1.4.60-1.4.61-3-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "bfa0e60ceb1d5be4c10fe867748bf3ad948bc7ae07a47e617311a7e3c8c20f2d",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/resistance_princess_canary2/ui/thumb_level_up_0.png",
+      "member": "production/medium_upload/27/ce028a1de070c0014e79e38ce6ee0127213f35",
+      "carried_by": "pinball-1.4.60-1.4.61-1-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "2da21cccae1514086d4547d9f7b0522b305802ba49bf7f5ace9c626b1c97b94d",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/resistance_princess_canary2/ui/thumb_level_up_1.png",
+      "member": "production/medium_upload/52/9f778d792b14cfba464268bd618c6f8edd3ad4",
+      "carried_by": "pinball-1.4.60-1.4.61-1-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "3129c9de104b6bb9e6b3625153d06dc066cec347057b6d70abd29020d6e1dfa7",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/resistance_princess_canary2/ui/thumb_party_main_0.png",
+      "member": "production/medium_upload/42/6588cf605a756569d25e0df506e2bf19e62631",
+      "carried_by": "pinball-1.4.60-1.4.61-1-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "59c15138e0bf504c006ea837e5fc8692dc962da1a5ef78de7adaf59859ef2e71",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/resistance_princess_canary2/ui/thumb_party_main_1.png",
+      "member": "production/medium_upload/16/eec985d8881d2664a63ebab352ae9aebf3341b",
+      "carried_by": "pinball-1.4.60-1.4.61-1-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "de0f09fe9d96212c6ad331b57b4c479d5a0c98517feb5a1a1e8d9dbf3e4b512a",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/resistance_princess_canary2/ui/thumb_party_unison_0.png",
+      "member": "production/medium_upload/eb/fd39d833f95aabe6a47af9c5a2981b0442b2ba",
+      "carried_by": "pinball-1.4.60-1.4.61-4-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "a056b0058527c668a33518254575e5599ede79369bce9e1e38c31376f62214b6",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/resistance_princess_canary2/ui/thumb_party_unison_1.png",
+      "member": "production/medium_upload/75/a3290e1491b3a9f92093d163e3d987094e10e5",
+      "carried_by": "pinball-1.4.60-1.4.61-2-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "03b78b9e4cca15724528e9d7431cec384194d8de82d2c4d7b7b9199adb194d8a",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/resistance_princess_canary2/voice/ally/evolution.mp3",
+      "member": "production/upload/78/7da616b2f6bb9c3de0bf3d64588d63b9e90f07",
+      "carried_by": "pinball-1.4.60-1.4.61-5-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "aab7ff1f17028275a79545df6e049e74b91f7f675e173227c5c8071a8b8693fb",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/resistance_princess_canary2/voice/ally/join.mp3",
+      "member": "production/upload/88/553079da5935f0362675623c50a3374483ac4c",
+      "carried_by": "pinball-1.4.60-1.4.61-5-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "c27bcfae668f8fc804166c21900214cd19f0384b0e81f4b3a89e87844c7649cf",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/resistance_princess_canary2/voice/battle/battle_start_0.mp3",
+      "member": "production/upload/65/6645fc3f8cedc12d47fa308901ecfc120d2ec8",
+      "carried_by": "pinball-1.4.60-1.4.61-5-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "a94b267ab198a9c94b905b92df9a2eb5a20c600a0e0a1133700aead7d87802ee",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/resistance_princess_canary2/voice/battle/battle_start_1.mp3",
+      "member": "production/upload/47/c9a077685f89ccdbabf4205a48e41fed6044b2",
+      "carried_by": "pinball-1.4.60-1.4.61-5-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "5523e62a86e1b9f4c304763480a58571db9b3a1eb532aa65312b9952cf3b773f",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/resistance_princess_canary2/voice/battle/outhole_0.mp3",
+      "member": "production/upload/58/d6e721af470cfc1676d4ac661e02481e2d6304",
+      "carried_by": "pinball-1.4.60-1.4.61-5-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "d9408d506bd716b268bc5796ae54c5d75b90f5c2f9030dd0901faaa8b2c9234e",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/resistance_princess_canary2/voice/battle/outhole_1.mp3",
+      "member": "production/upload/e1/85aa548974faa36dfd595d7885cc88687cafdd",
+      "carried_by": "pinball-1.4.60-1.4.61-6-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "16c1595eab3869d17d63f04fa99a33db453f7ba4cdf6f31c36df2a941d6ce86e",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/resistance_princess_canary2/voice/battle/power_flip_0.mp3",
+      "member": "production/upload/36/dce7b9a9d60c8eecd1ec2c0d235057b509b51f",
+      "carried_by": "pinball-1.4.60-1.4.61-4-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "06c59aed468c17cab7c529ad9df4c47c1bfb0cef7223025a8a3cd6c2e74a16f4",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/resistance_princess_canary2/voice/battle/power_flip_1.mp3",
+      "member": "production/upload/2c/dec7452621b06017d59e2b55e089e678b21993",
+      "carried_by": "pinball-1.4.60-1.4.61-4-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "ff034a1bfd7dd6607003d971198d27ceb4522cf968ad6a07840c895ac05cde69",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/resistance_princess_canary2/voice/battle/skill_0.mp3",
+      "member": "production/upload/da/77ea46bcdceea3103189b6620e597373b368e3",
+      "carried_by": "pinball-1.4.60-1.4.61-6-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "7ca96f646e10bcff3f300d4901ede1a58a0bea0c1cc766e00ec55644a4bedea1",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/resistance_princess_canary2/voice/battle/skill_1.mp3",
+      "member": "production/upload/02/62d6f802c7b5dc2284a3f000545e6cd87fe18f",
+      "carried_by": "pinball-1.4.60-1.4.61-4-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "ed2ba2f36baefbe9254ee364ccc17a70ad0628e3b53860d6ac89bd82687e6563",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/resistance_princess_canary2/voice/battle/skill_ready.mp3",
+      "member": "production/upload/4a/c3a1c39e1568571b010cdab443690d40cf2bfe",
+      "carried_by": "pinball-1.4.60-1.4.61-5-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "627e9c8a956b1ba597028fb9972e6a280dc88e0089efb70122e46d99f8a60e63",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/resistance_princess_canary2/voice/battle/win_0.mp3",
+      "member": "production/upload/90/4acf618c5fae7da60b415c5c5c03672b338590",
+      "carried_by": "pinball-1.4.60-1.4.61-5-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "30c2cb6f5793b9a2150240ad27286fe539d91c4412301a84f003326e8be5faff",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/resistance_princess_canary2/voice/battle/win_1.mp3",
+      "member": "production/upload/f6/bfb1ed3c8a40056a941e6b65c5a1fdbb09921e",
+      "carried_by": "pinball-1.4.60-1.4.61-6-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "91d0b33090ee992e8f02908e61914650e86df3508d997b70fa0606ca1f7cf496",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/resistance_princess_canary2/voice/home/fufufu_shintenchi.mp3",
+      "member": "production/upload/09/423ec2fb136a68a407ab64b0fc44cbaf993c64",
+      "carried_by": "pinball-1.4.60-1.4.61-4-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "1a38142b2fa5c461d914db0580caf138fa5b1bfedd94cb8bc2f948f1ca811e13",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/resistance_princess_canary2/voice/home/maunto.mp3",
+      "member": "production/upload/0d/83dc33b100021d594e682179ba77b6516667be",
+      "carried_by": "pinball-1.4.60-1.4.61-4-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "842617b7c997edd627bd5074d2612dd41b618f9bd72e2bb760e9a9bb24229efb",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/resistance_princess_canary2/voice/home/roakutekina.mp3",
+      "member": "production/upload/ef/41da227976d162e859b7d0e3aae588a69691b4",
+      "carried_by": "pinball-1.4.60-1.4.61-6-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "1a7959bcae6227091cdb2871ceedb6a00f04e1b78c7b62c654582d540e712c48",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/resistance_princess_canary2/voice/home/tamiomichibiku.mp3",
+      "member": "production/upload/bd/e10375ea4d0da09bfa70b0d32ba73ebe418e1e",
+      "carried_by": "pinball-1.4.60-1.4.61-6-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "fb3bc3a1f00f595312bf1d799247d31f57b1347156ca6639453e9483207254a4",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/resistance_princess_canary2/voice/home/teotazusaeru.mp3",
+      "member": "production/upload/03/b659118dd01bc20b3b1b4b019a6f830467b588",
+      "carried_by": "pinball-1.4.60-1.4.61-4-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "37639b42e29b115de1d641c62c1592a33172772cb4d6b314c74dae1531b9efba",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/resistance_princess_canary2/voice/home/watashiwayokubukaki.mp3",
+      "member": "production/upload/ca/7740d168813ce7103353050905ff0e16280779",
+      "carried_by": "pinball-1.4.60-1.4.61-6-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "1a7f98e8fab88f4c78fb2054eba6cc9a24027a98e4feb9bb61a93a5c3ced2bb2",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/kyle_wolf_knight/battle/character_detail_skill_preview.battle.amf3.deflate",
+      "member": "production/upload/0e/1e50fb919a2edacda64022afe8bb4c9e1ef9b7",
+      "carried_by": "pinball-1.4.60-1.4.61-4-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "40a135235761693662f511a0cde09e7d7241d171ffe900eea2cb7a4a6682ccf7",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/kyle_wolf_knight/pixelart/pixelart.frame.amf3.deflate",
+      "member": "production/upload/29/69c76f7b8f4daf3bda2f4cb018181438036a9c",
+      "carried_by": "pinball-1.4.60-1.4.61-4-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "876cbc2853e216eac58bc7737c3c41248bb7f7fc58fa64093eca8ced04981175",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/kyle_wolf_knight/pixelart/pixelart.timeline.amf3.deflate",
+      "member": "production/upload/0b/ac9901d618b04007b3f0d5281d6e7e492b42db",
+      "carried_by": "pinball-1.4.60-1.4.61-4-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "23bee417315db0b49fa4bd87d62af39682a3ce9dd07b1409e01bf1c813232d8b",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/kyle_wolf_knight/pixelart/special_sprite_sheet.png",
+      "member": "production/upload/ed/63bb555c7cb454664e9b3710ad3f5272ffb3cb",
+      "carried_by": "pinball-1.4.60-1.4.61-6-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "58198b47fcd1b78697791ff360185fb3f584bb16d49364cbbe7434179974904d",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/kyle_wolf_knight/pixelart/sprite_sheet.atlas.amf3.deflate",
+      "member": "production/upload/9f/bc8be6a649ef1c998f13aad298cfcc50d36cca",
+      "carried_by": "pinball-1.4.60-1.4.61-6-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "9f223b3f638bfbeedcd6bde96b35c19b6053db349f9d0c807ea8efdc9dc92588",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/kyle_wolf_knight/pixelart/sprite_sheet.png",
+      "member": "production/upload/12/c7c208039ad153ca303e52e555cfaaf6f0ffe7",
+      "carried_by": "pinball-1.4.60-1.4.61-4-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "558b1c8e82e1ce325e32c9f58cd59c162bdf2edbe2f6285078d84af980af80a4",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/kyle_wolf_knight/ui/battle_control_board_0.png",
+      "member": "production/medium_upload/f4/1eb53eac33ce14c9e45e74928c36c20374bae8",
+      "carried_by": "pinball-1.4.60-1.4.61-4-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "9bbd2d6ac2155766d595fc72aff24f26b74353aca1b58f7ae1f622167bf381ac",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/kyle_wolf_knight/ui/battle_control_board_1.png",
+      "member": "production/medium_upload/b6/5ead5cbfd1a82e36aa2a15a490ec5fc725cc67",
+      "carried_by": "pinball-1.4.60-1.4.61-3-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "fb386e1606a571d1f4534ce7889546ad334661e0dc419fc565fb608c7de01199",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/kyle_wolf_knight/ui/battle_member_status_0.png",
+      "member": "production/medium_upload/ba/8cbca1e1e9c717f5d8988b409d8009e7371b8e",
+      "carried_by": "pinball-1.4.60-1.4.61-3-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "59028d3afff2dfba6e99a0d6ce5307c7e489cac9b5826661284905a77856c5bf",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/kyle_wolf_knight/ui/battle_member_status_1.png",
+      "member": "production/medium_upload/42/be79a84589a0ba6de10ec0cafa1b48d4b57025",
+      "carried_by": "pinball-1.4.60-1.4.61-1-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "46f03f5ffb21a0e16eb30cab1305193ca197d3d3f3ef934cbfa289147843d921",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/kyle_wolf_knight/ui/cutin_skill_chain_0.png",
+      "member": "production/medium_upload/05/9c78ad44c15a1b53442197f3a8dca4d508fa89",
+      "carried_by": "pinball-1.4.60-1.4.61-1-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "b356d74ed19317ecd1b53bfb5621bd2e69e6c6e0fa5e74c19f9214067b9d9bea",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/kyle_wolf_knight/ui/cutin_skill_chain_1.png",
+      "member": "production/medium_upload/bc/38711aa66c5aa6c7eacaec9154cd44628a16d2",
+      "carried_by": "pinball-1.4.60-1.4.61-3-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "fd611a7ee4cebc2866934513d5cd33fa3ff62b90e16697618dae8598aec0b4d6",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/kyle_wolf_knight/ui/episode_banner_0.png",
+      "member": "production/medium_upload/a1/7b78dc6c762b418de35fe1cb6539f8c0d44605",
+      "carried_by": "pinball-1.4.60-1.4.61-2-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "95b76948b4bef0aa6168b38234c1c8b01ddbb7071b578dcf6a7456c6a78c70f8",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/kyle_wolf_knight/ui/full_shot_1440_1920_0.png",
+      "member": "production/medium_upload/8f/4620582ae1edba9be853ab303a3a3b809aa0cf",
+      "carried_by": "pinball-1.4.60-1.4.61-2-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "33739291794650d1a55e43d5b0c10dc8d99592a3e3e0bf9fcd6556cdfb7eaa42",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/kyle_wolf_knight/ui/full_shot_1440_1920_1.png",
+      "member": "production/medium_upload/8d/4c5e2460db9a3d970059e48f4721cda377a721",
+      "carried_by": "pinball-1.4.60-1.4.61-2-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "970fe73c12f8c72503c8ec1bedd31e9558bf717b3ae0d751a7f919e46f4a70e1",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/kyle_wolf_knight/ui/illustration_setting_sprite_sheet.png",
+      "member": "production/medium_upload/71/2e620c4e7095381a63759ef5f0f004a5f9407b",
+      "carried_by": "pinball-1.4.60-1.4.61-2-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "49ac46e6be6479ef985fe57db609905c3088355ff3f2e8de1ff108a45e52d1fe",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/kyle_wolf_knight/ui/skill_cutin_0.atf.deflate",
+      "member": "production/android_upload/c2/87f6955034266a656aae94d11833d8186ce1d7",
+      "carried_by": "pinball-1.4.60-1.4.61-1-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "dbbb32e1c3cb293bff744b59b53df6ebe48195ae2d7eace22583dfe45e315a82",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/kyle_wolf_knight/ui/skill_cutin_0.png",
+      "member": "production/medium_upload/90/6d8c1b43803de7f697bf8fe27a16ea782f2560",
+      "carried_by": "pinball-1.4.60-1.4.61-2-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "420a7093b4a4eb3e4c9fd5f66705dd606dc943fd7c6cbc4ccb41237625eb445d",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/kyle_wolf_knight/ui/skill_cutin_1.atf.deflate",
+      "member": "production/android_upload/c4/2cacec60bfb57ce88bb1fe7d379391fb4f212d",
+      "carried_by": "pinball-1.4.60-1.4.61-1-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "e19607b9172f9f211b685ccf03786381470e22c6565343cf49aa12743a5ea067",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/kyle_wolf_knight/ui/skill_cutin_1.png",
+      "member": "production/medium_upload/42/6538e9dfbd7672340acccc537153c826813bec",
+      "carried_by": "pinball-1.4.60-1.4.61-1-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "593717f7c519ea7d96fe25c8022547d58b1b6eec8da2c39a88dabfc1ace68cb2",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/kyle_wolf_knight/ui/square_0.png",
+      "member": "production/medium_upload/fe/7c58d9d167116521c8c3b625515b50a2782147",
+      "carried_by": "pinball-1.4.60-1.4.61-4-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "8ca4c3e6f4a89f4e47319766ddd53a366be0598c9e3d69f5dfa6c7d0d7b3defc",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/kyle_wolf_knight/ui/square_1.png",
+      "member": "production/medium_upload/65/92e451a21a231ca492b4e0fee7486f32da5e3e",
+      "carried_by": "pinball-1.4.60-1.4.61-1-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "5848fac3e7a6fdcf703a7d55a692e0a0d8216ad107048791f123ddf60c7633b0",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/kyle_wolf_knight/ui/square_132_132_0.png",
+      "member": "production/medium_upload/9f/417e4ff55ef35122237d612dff1c9db627fc75",
+      "carried_by": "pinball-1.4.60-1.4.61-2-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "de5434baf503d8f2294cb6bd5d0be050a9c16bc997738b16e003f3b0cf27c3f4",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/kyle_wolf_knight/ui/square_132_132_1.png",
+      "member": "production/medium_upload/14/1aa6326445bb30fa73ce1ea87ccb083359a2a2",
+      "carried_by": "pinball-1.4.60-1.4.61-1-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "8e275947d48da40727f3314e12b44c7951528805c93017fa165e7d79d32d97f8",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/kyle_wolf_knight/ui/square_round_136_136_0.png",
+      "member": "production/medium_upload/4b/0799846505ecc6515a31ad582fba8c4e117a35",
+      "carried_by": "pinball-1.4.60-1.4.61-1-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "646a942d270af21c2f667ee9b7ba21bf3e128aa513f23848b2e36d5512d82a57",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/kyle_wolf_knight/ui/square_round_136_136_1.png",
+      "member": "production/medium_upload/87/728cc87635a955d98fd748dc385d521bf320aa",
+      "carried_by": "pinball-1.4.60-1.4.61-2-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "86c293868eaff97dbafd3967440b23ca18fd0e8aa70d71e68b9aadc7b9c9999e",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/kyle_wolf_knight/ui/square_round_95_95_0.png",
+      "member": "production/medium_upload/06/b88245318a127f9180d492d6a845cb127dc662",
+      "carried_by": "pinball-1.4.60-1.4.61-1-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "ed5304fa687dd86faa40f196067210dcf9e80738fc0fbdbdb0db8b1da2390721",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/kyle_wolf_knight/ui/square_round_95_95_1.png",
+      "member": "production/medium_upload/5a/5b74fd2bf8918882886718e20978b27171a586",
+      "carried_by": "pinball-1.4.60-1.4.61-1-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "6fa81664818f4fd563a6502f5d095d3a5f27c698c169758ff62be2be1203cd77",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/kyle_wolf_knight/ui/story/anger.png",
+      "member": "production/medium_upload/c9/a179f1896ca00b7bb988dc133c902bd8eed8cd",
+      "carried_by": "pinball-1.4.60-1.4.61-3-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "9ab9422d6767c9a83a805eebbd764289e7f91a41d096b836372f8fa1f012d8ab",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/kyle_wolf_knight/ui/story/base_0.png",
+      "member": "production/medium_upload/22/0aefa6cc951353e84d2847b7facaa53fdf8572",
+      "carried_by": "pinball-1.4.60-1.4.61-1-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "0bf246f5019a55b10f23fa51b67df7870043ef08f127e101d89c460359b285e0",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/kyle_wolf_knight/ui/story/base_1.png",
+      "member": "production/medium_upload/1f/01915e10a0898848176e12035fe32c31e4e2b8",
+      "carried_by": "pinball-1.4.60-1.4.61-1-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "da0a31f40cfdf83e6c9cf2333c8c8ffc91bb54b595b826344c35f78417519309",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/kyle_wolf_knight/ui/story/normal.png",
+      "member": "production/medium_upload/63/5dcbb50476d8f90a93eb8f224fa922769c2897",
+      "carried_by": "pinball-1.4.60-1.4.61-1-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "8dd868474dce874c75a9e134cd9a7cdd025cac84104f521f029f4bc55ae4a1d2",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/kyle_wolf_knight/ui/story/sad.png",
+      "member": "production/medium_upload/e7/5b3b4cebc04ec1190211b44a221e12170abdbe",
+      "carried_by": "pinball-1.4.60-1.4.61-3-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "6156c95ebca5c31ba182860576b5a1b180d2cf007f81ba9c96333ec803c3a7fc",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/kyle_wolf_knight/ui/story/surprise.png",
+      "member": "production/medium_upload/d3/d385aa9d49d073cc0e06b6d7749ac3b8944b1d",
+      "carried_by": "pinball-1.4.60-1.4.61-3-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "5b68a67a875dcfd357b10f10d0b6820f05000e60cabd073d078d54369dfb2d17",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/kyle_wolf_knight/ui/story/surprise_b.png",
+      "member": "production/medium_upload/35/eb656dd06c11693e712c5bc83adaa0f669df07",
+      "carried_by": "pinball-1.4.60-1.4.61-1-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "5b68a67a875dcfd357b10f10d0b6820f05000e60cabd073d078d54369dfb2d17",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/kyle_wolf_knight/ui/thumb_level_up_0.png",
+      "member": "production/medium_upload/99/e80d0dff79e96d13b1bad8a8487cf9001bbf58",
+      "carried_by": "pinball-1.4.60-1.4.61-2-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "4e57ee9ba54a0c849b7fb423fa0d6cb5b076730eeaabbb51644a4ec646493261",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/kyle_wolf_knight/ui/thumb_level_up_1.png",
+      "member": "production/medium_upload/86/8b82f15a7e9a39a15962d4b2296a66fa6cd750",
+      "carried_by": "pinball-1.4.60-1.4.61-2-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "9a18649737a1b649f08ff91ef996522dd03e3283c81f1157ea3ab455ed5af6b4",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/kyle_wolf_knight/ui/thumb_party_main_0.png",
+      "member": "production/medium_upload/45/8ff0bf4316eca93df0bb6ed93bf0151b3ec1ee",
+      "carried_by": "pinball-1.4.60-1.4.61-1-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "2f71da2e0b73de98860d5844ec9126d7666b71931df781ae2d978c8a3c39ae57",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/kyle_wolf_knight/ui/thumb_party_main_1.png",
+      "member": "production/medium_upload/ff/cc4f2fcec5842e0b604ff462d44bbbab07a3a8",
+      "carried_by": "pinball-1.4.60-1.4.61-4-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "df8b9342ae35adc42c74e9f22593adc1e63eaad995c94b4d4dd7cde102efd4f5",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/kyle_wolf_knight/ui/thumb_party_unison_0.png",
+      "member": "production/medium_upload/76/e21b034d8d2ded3f2244e1f562b0d347f23f70",
+      "carried_by": "pinball-1.4.60-1.4.61-2-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "5503de89ce857a613f1207c8da6c2e9c30fd087ae74ea642f7580ec427ae0eff",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/kyle_wolf_knight/ui/thumb_party_unison_1.png",
+      "member": "production/medium_upload/2e/2536978fa43b289f1e00072851ed2a8c8460a0",
+      "carried_by": "pinball-1.4.60-1.4.61-1-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "d45dd3c33163ce2f009fa51da5a1125be6345a4ce4ae8a084ebb59c276b5a761",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/kyle_wolf_knight/voice/ally/evolution.mp3",
+      "member": "production/upload/bf/9d497e936aa5358d5bc915aa1f588928f57073",
+      "carried_by": "pinball-1.4.60-1.4.61-6-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "aab7ff1f17028275a79545df6e049e74b91f7f675e173227c5c8071a8b8693fb",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/kyle_wolf_knight/voice/ally/join.mp3",
+      "member": "production/upload/54/2ab1751cad6277031155a57c39b537948ee563",
+      "carried_by": "pinball-1.4.60-1.4.61-5-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "c27bcfae668f8fc804166c21900214cd19f0384b0e81f4b3a89e87844c7649cf",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/kyle_wolf_knight/voice/battle/battle_start_0.mp3",
+      "member": "production/upload/53/1547d3f45b34d0d60a3c2063e804045c3d9513",
+      "carried_by": "pinball-1.4.60-1.4.61-5-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "a94b267ab198a9c94b905b92df9a2eb5a20c600a0e0a1133700aead7d87802ee",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/kyle_wolf_knight/voice/battle/battle_start_1.mp3",
+      "member": "production/upload/3e/defcadb8fab65dae3105837201dfdbe5012cec",
+      "carried_by": "pinball-1.4.60-1.4.61-4-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "5523e62a86e1b9f4c304763480a58571db9b3a1eb532aa65312b9952cf3b773f",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/kyle_wolf_knight/voice/battle/outhole_0.mp3",
+      "member": "production/upload/12/bc98ccdea9f9dfc276a1ac92b1a1c43bb7ca55",
+      "carried_by": "pinball-1.4.60-1.4.61-4-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "d9408d506bd716b268bc5796ae54c5d75b90f5c2f9030dd0901faaa8b2c9234e",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/kyle_wolf_knight/voice/battle/outhole_1.mp3",
+      "member": "production/upload/03/9573714d5d3f3b30e1c6b689bcb8b4904e5cd0",
+      "carried_by": "pinball-1.4.60-1.4.61-4-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "16c1595eab3869d17d63f04fa99a33db453f7ba4cdf6f31c36df2a941d6ce86e",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/kyle_wolf_knight/voice/battle/power_flip_0.mp3",
+      "member": "production/upload/06/dcce2fdafe67535acf61759a53898b97cf302b",
+      "carried_by": "pinball-1.4.60-1.4.61-4-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "06c59aed468c17cab7c529ad9df4c47c1bfb0cef7223025a8a3cd6c2e74a16f4",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/kyle_wolf_knight/voice/battle/power_flip_1.mp3",
+      "member": "production/upload/c9/24e61a5fc8361f527d8c4f7fd909becdd46037",
+      "carried_by": "pinball-1.4.60-1.4.61-6-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "ff034a1bfd7dd6607003d971198d27ceb4522cf968ad6a07840c895ac05cde69",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/kyle_wolf_knight/voice/battle/skill_0.mp3",
+      "member": "production/upload/4d/e091c11de1d51594d3df75721cd8d398520970",
+      "carried_by": "pinball-1.4.60-1.4.61-5-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "7ca96f646e10bcff3f300d4901ede1a58a0bea0c1cc766e00ec55644a4bedea1",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/kyle_wolf_knight/voice/battle/skill_1.mp3",
+      "member": "production/upload/b1/ca90d7eedc64bf1c43b13ad3df8864cbfb8127",
+      "carried_by": "pinball-1.4.60-1.4.61-6-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "ed2ba2f36baefbe9254ee364ccc17a70ad0628e3b53860d6ac89bd82687e6563",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/kyle_wolf_knight/voice/battle/skill_ready.mp3",
+      "member": "production/upload/dd/346270358a61a0474a8f03d4fbed266ab1133a",
+      "carried_by": "pinball-1.4.60-1.4.61-6-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "627e9c8a956b1ba597028fb9972e6a280dc88e0089efb70122e46d99f8a60e63",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/kyle_wolf_knight/voice/battle/win_0.mp3",
+      "member": "production/upload/85/53eca404cb999c1141dd10ff27b9a6e9ddc5ed",
+      "carried_by": "pinball-1.4.60-1.4.61-5-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "30c2cb6f5793b9a2150240ad27286fe539d91c4412301a84f003326e8be5faff",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/kyle_wolf_knight/voice/battle/win_1.mp3",
+      "member": "production/upload/8f/6914de157c5626aaa869e7302bda40f509e58b",
+      "carried_by": "pinball-1.4.60-1.4.61-5-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "91d0b33090ee992e8f02908e61914650e86df3508d997b70fa0606ca1f7cf496",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/kyle_wolf_knight/voice/home/fufufu_shintenchi.mp3",
+      "member": "production/upload/95/2b5aae08a1d9432f0f08289378f28bcc6660c2",
+      "carried_by": "pinball-1.4.60-1.4.61-5-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "1a38142b2fa5c461d914db0580caf138fa5b1bfedd94cb8bc2f948f1ca811e13",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/kyle_wolf_knight/voice/home/maunto.mp3",
+      "member": "production/upload/d0/ad1cd2a74bce1ecf861d0cddecfb7e2d41ef9c",
+      "carried_by": "pinball-1.4.60-1.4.61-6-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "842617b7c997edd627bd5074d2612dd41b618f9bd72e2bb760e9a9bb24229efb",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/kyle_wolf_knight/voice/home/roakutekina.mp3",
+      "member": "production/upload/ef/4dcacd3b1a2110fcc9783efdedefd09380fea7",
+      "carried_by": "pinball-1.4.60-1.4.61-6-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "1a7959bcae6227091cdb2871ceedb6a00f04e1b78c7b62c654582d540e712c48",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/kyle_wolf_knight/voice/home/tamiomichibiku.mp3",
+      "member": "production/upload/ac/98af1eea04f5b1aa03a797807040c8f990040a",
+      "carried_by": "pinball-1.4.60-1.4.61-6-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "fb3bc3a1f00f595312bf1d799247d31f57b1347156ca6639453e9483207254a4",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/kyle_wolf_knight/voice/home/teotazusaeru.mp3",
+      "member": "production/upload/71/b12080ff22207bee359438f5fc3e5ee49c1e15",
+      "carried_by": "pinball-1.4.60-1.4.61-5-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "37639b42e29b115de1d641c62c1592a33172772cb4d6b314c74dae1531b9efba",
+      "identical_to_source": true
+    },
+    {
+      "logical_path": "character/kyle_wolf_knight/voice/home/watashiwayokubukaki.mp3",
+      "member": "production/upload/07/dd52c2d6a1aed701bf714a3c0e9a3a287c8c36",
+      "carried_by": "pinball-1.4.60-1.4.61-4-post60-terminal-overlay-sixpack-v2.zip",
+      "sha256": "1a7f98e8fab88f4c78fb2054eba6cc9a24027a98e4feb9bb61a93a5c3ced2bb2",
+      "identical_to_source": true
+    }
+  ],
+  "server_rows_added": {
+    "assets/character.json": [
+      "119998",
+      "119999"
+    ],
+    "assets/cdndata/character.json": [
+      "119998",
+      "119999"
+    ],
+    "assets/cdndata/character_text.json": [
+      "119998",
+      "119999"
+    ],
+    "assets/mana_node.json": [
+      "119998",
+      "119999"
+    ]
+  },
+  "server_row_corrections": [
+    {
+      "file": "assets/cdndata/character.json",
+      "key": "119999",
+      "field_index": 5,
+      "source_value": "",
+      "new_value": "OmniElement",
+      "reason": "与主线客户端 character.orderedmap 一致"
+    }
+  ]
+}
