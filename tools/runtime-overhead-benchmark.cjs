@@ -13,9 +13,10 @@ async function httpScenario(mode) {
     const logger = mode === 'info' ? { level: 'info', stream: sink }
         : mode === 'warn' ? { level: 'warn', stream: sink } : false
     const app = Fastify({ logger })
-    if (mode === 'diagnostics' || mode === 'compact') {
+    if (mode === 'diagnostics' || mode === 'compact' || mode === 'compact-legacy') {
         require('../out/lib/request-diagnostics').installRequestDiagnostics(app, {
             detailed: mode === 'diagnostics',
+            compactReceiveBoundary: mode !== 'compact-legacy',
         })
     }
     app.post('/hot', async request => ({ ok: true, value: request.body.value + 1 }))
@@ -78,7 +79,7 @@ if (process.argv[2] === '--child') {
         process.exitCode = 1
     })
 } else {
-    const scenarios = ['bare', 'compact', 'diagnostics', 'warn', 'info', 'sql-off', 'sql-on']
+    const scenarios = ['bare', 'compact', 'compact-legacy', 'diagnostics', 'warn', 'info', 'sql-off', 'sql-on']
     const report = { node: process.version, requests, sqlIterations, rounds, scenarios: {} }
     for (const scenario of scenarios) {
         const samples = []
