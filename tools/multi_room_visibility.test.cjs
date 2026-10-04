@@ -16,10 +16,13 @@ const { insertDefaultPlayerSync, updatePlayerSync } = require(`${serverModuleRoo
 const { addFollowSync } = require(`${serverModuleRoot}/data/domains/follow`)
 const { serializeRoom } = require(`${serverModuleRoot}/multi/room/serializer`)
 const {
+    FOLLOWER_SHARE_TYPE,
     MUTUAL_FOLLOW_SHARE_TYPE,
     RANDOM_RECRUITMENT_SHARE_TYPE,
+    decodeRoomShareOptions,
     encodeRoomShareOptions,
     isRoomSharedWithPlayer,
+    mergeRoomShareTypes,
     normalizeRoomShareTypes,
 } = require(`${serverModuleRoot}/multi/room/sharing`)
 
@@ -80,15 +83,37 @@ try {
 
     assert.deepEqual(shareTypes, [MUTUAL_FOLLOW_SHARE_TYPE])
     assert.equal(isRoomSharedWithPlayer(room, mutualPlayerId), true)
-    assert.equal(isRoomSharedWithPlayer(room, oneWayPlayerId), true)
+    assert.equal(isRoomSharedWithPlayer(room, oneWayPlayerId), false)
     assert.equal(isRoomSharedWithPlayer(room, followerOnlyPlayerId), false)
     assert.equal(isRoomSharedWithPlayer(room, strangerPlayerId), false)
 
     const oneWaySerialized = serializeRoom(room, oneWayPlayerId)
     assert.equal(oneWaySerialized.establisher_follow, 2)
 
+    room.share_room_options = encodeRoomShareOptions([FOLLOWER_SHARE_TYPE])
+    assert.equal(isRoomSharedWithPlayer(room, mutualPlayerId), true)
+    assert.equal(isRoomSharedWithPlayer(room, oneWayPlayerId), true)
+    assert.equal(isRoomSharedWithPlayer(room, followerOnlyPlayerId), false)
+    assert.equal(isRoomSharedWithPlayer(room, strangerPlayerId), false)
+
     room.share_room_options = encodeRoomShareOptions([RANDOM_RECRUITMENT_SHARE_TYPE])
     assert.equal(isRoomSharedWithPlayer(room, mutualPlayerId), false)
+
+    // The legacy dialog submits only the newly enabled share types, so the
+    // server must merge them: enabling random recruitment after mutual-follow
+    // sharing must not drop the follower visibility again.
+    assert.deepEqual(decodeRoomShareOptions(encodeRoomShareOptions([1, 3])), [1, 3])
+    const merged = mergeRoomShareTypes(encodeRoomShareOptions([RANDOM_RECRUITMENT_SHARE_TYPE]), [1, 2])
+    assert.deepEqual(merged, [1, 2, 3])
+    assert.equal(encodeRoomShareOptions(merged), 7)
+    assert.deepEqual(
+        mergeRoomShareTypes(encodeRoomShareOptions(merged), [1, 2, 3]),
+        [1, 2, 3],
+    )
+    const mergedRoom = { ...room, share_room_options: encodeRoomShareOptions(merged) }
+    assert.equal(isRoomSharedWithPlayer(mergedRoom, mutualPlayerId), true)
+    assert.equal(isRoomSharedWithPlayer(mergedRoom, oneWayPlayerId), true)
+    assert.equal(isRoomSharedWithPlayer(mergedRoom, strangerPlayerId), false)
 
     const serialized = serializeRoom(room, mutualPlayerId)
     assert.equal(serialized.establisher_name, "自定义房主名")
@@ -106,6 +131,7 @@ try {
     assert.match(lobbySource, /isRoomSharedWithPlayer/)
     assert.match(lobbySource, /serializeRoom\(r, viewerPlayerId\)/)
     assert.match(roomSource, /room\.share_room_options = encodeRoomShareOptions/)
+    assert.match(roomSource, /mergeRoomShareTypes\(room\.share_room_options/)
 
     console.log("multi room visibility tests passed")
 } finally {

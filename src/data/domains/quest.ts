@@ -1,3 +1,4 @@
+import { buildPlayerQuestProgress, readPlayerQuestProgressSync } from "../readers/load-snapshot"
 import { cachedStatement } from "../../lib/cached-statement"
 import { getDb } from "../db";
 import { PlayerQuestProgress, PlayerDrawnQuest, RawPlayerQuestProgress, RawPlayerDrawnQuest } from "../types";
@@ -13,22 +14,7 @@ import { runPersistenceTransactionSync } from "../../lib/persistence-coordinator
  * @param raw The raw object to convert.
  * @returns The converted object.
  */
-function buildPlayerQuestProgress(
-    raw: RawPlayerQuestProgress
-): PlayerQuestProgress {
-    return {
-        questId: raw.quest_id,
-        finished: deserializeBoolean(raw.finished),
-        hostFinished: deserializeBoolean(raw.host_finished ?? 0),
-        unlocked: deserializeBoolean(raw.unlocked),
-        highScore: raw.high_score,
-        clearRank: raw.clear_rank,
-        bestElapsedTimeMs: raw.best_elapsed_time_ms,
-        leaderCharacterId: raw.leader_character_id,
-        multiClearCount: raw.multi_clear_count,
-        sPlusRewardReceived: deserializeBoolean(raw.s_plus_reward_received ?? 0)
-    }
-}
+
 
 /**
  * Gets a player's overall quest progressfrom the database.
@@ -40,25 +26,7 @@ export function getPlayerQuestProgressSync(
     playerId: number
 ): Record<string, PlayerQuestProgress[]> {
     refreshPlayerAbyssBestTimesSync(playerId)
-    const rawProgress = cachedStatement(getDb(), `
-    SELECT section, quest_id, finished, host_finished, unlocked, high_score, clear_rank, best_elapsed_time_ms, leader_character_id, multi_clear_count, s_plus_reward_received
-    FROM players_quest_progress
-    WHERE player_id = ?
-    `).all(playerId) as RawPlayerQuestProgress[]
-
-    const mapped: Record<string, PlayerQuestProgress[]> = {}
-
-    for (const raw of rawProgress) {
-        const section = raw.section.toString()
-        let bucket: PlayerQuestProgress[] = mapped[section]
-        if (!bucket) {
-            bucket = []
-            mapped[section] = bucket
-        }
-        bucket.push(buildPlayerQuestProgress(raw))
-    }
-
-    return mapped
+    return readPlayerQuestProgressSync(getDb(), playerId)
 }
 
 export interface PlayerQuestProgressScope {

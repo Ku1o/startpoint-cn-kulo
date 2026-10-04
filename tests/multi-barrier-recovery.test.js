@@ -37,6 +37,7 @@ function setup(t, count = 2, initialCount = count) {
     for (const client of clients) assert.equal(manager.addBattleClient(client.connectionId, client), true)
     const fire = async timer => {
         assert.ok(timer, 'timer must exist'); timer.fn()
+        await new Promise(resolve => setImmediate(resolve))
         await coordinator.enqueueRoomCommand(roomNumber, () => {})
     }
     const ready = c => manager.markSceneReady(c.connectionId, roomNumber)
@@ -45,7 +46,7 @@ function setup(t, count = 2, initialCount = count) {
     return { manager, clients, make, ready, fire, grace, drop, roomNumber, room, timers }
 }
 
-test('five-boss diagnostics identify loading timeout, seat expiry and heartbeat expiry by player', async t => {
+test('five-boss diagnostics identify loading timeout and seat expiry without an active heartbeat', async t => {
     const x = setup(t), [a,b] = x.clients
     const trace = require('../out/multi/five-boss/connection-diagnostic').fiveBossConnectionDiagnostics
     Object.assign(x.room, { room_number: x.roomNumber, lobby_generation: 1, five_boss_runtime: {
@@ -65,12 +66,28 @@ test('five-boss diagnostics identify loading timeout, seat expiry and heartbeat 
     assert.equal(missing.counts.seat_expired.count, 1)
     assert.equal(trace.snapshot('diagnostic-timeouts', 1).counts.seat_expired, undefined)
     x.ready(a)
+    assert.equal(x.manager.battleHeartbeatTimers.get(a.connectionId), undefined)
+    assert.equal(a.socket.destroyed, false)
+    assert.equal(trace.snapshot('diagnostic-timeouts', 1).counts.heartbeat_timeout, undefined)
+})
+
+test('lease expiry rechecks socket I/O before disconnecting a live client', async t => {
+    const x = setup(t), [a,b] = x.clients
+
+    const loading = x.manager.battleHeartbeatTimers.get(a.connectionId)
+    loading.fn()
+    assert.equal(x.ready(a), false)
+    await new Promise(resolve => setImmediate(resolve))
+    assert.equal(a.socket.destroyed, false, 'SceneReady waiting behind the timer must replace the loading lease')
+
+    assert.equal(x.ready(b), true)
     const heartbeat = x.manager.battleHeartbeatTimers.get(a.connectionId)
     const future = Date.now() + 120000
     t.mock.method(Date, 'now', () => future)
-    await x.fire(heartbeat)
-    assert.equal(a.socket.destroyed, true)
-    assert.equal(trace.snapshot('diagnostic-timeouts', 1).counts.heartbeat_timeout.count, 1)
+    heartbeat.fn()
+    x.manager.noteBattleActivity(a.connectionId)
+    await new Promise(resolve => setImmediate(resolve))
+    assert.equal(a.socket.destroyed, false, 'activity waiting behind the timer must renew the heartbeat lease')
 })
 
 test('two-player loading: grace then BattleStart before AI Leave; late peer denied', async t => {
@@ -86,6 +103,32 @@ test('two-player loading: grace then BattleStart before AI Leave; late peer deni
     assert.equal(x.manager.battleExpectedCount.get(x.roomNumber), 0)
 })
 
+test('five-boss survivor records battle entry when a missing peer becomes AI', async t => {
+    const x = setup(t), [a,b] = x.clients
+    const calls = []
+    const runtime = require('../out/multi/five-boss/lobby-runtime')
+    t.mock.method(runtime, 'recordFiveBossSignal', (_room, client, signal) => {
+        calls.push({ viewerId: client.viewerId, signal })
+        client.fiveBossBattleEntered = true
+        return true
+    })
+    Object.assign(x.room, {
+        room_number: x.roomNumber,
+        lobby_generation: 1,
+        five_boss_runtime: {
+            runId: 'survivor-run',
+            expectedRealPlayerIds: [1, 2],
+            autoplayModeByPlayerId: { 1: false, 2: false },
+            partyCharacterIdsByPlayerId: { 1: [1], 2: [1] },
+            battleIdentityByViewerId: {},
+        },
+    })
+    x.ready(a); x.drop(b)
+    await x.fire(x.grace())
+    assert.deepEqual(calls, [{ viewerId: a.viewerId, signal: 'scene_ready' }])
+    assert.equal(a.fiveBossBattleEntered, true)
+})
+
 test('reconnect within grace cancels retirement and deferred Leave', async t => {
     const x = setup(t), [a,b] = x.clients
     x.ready(a); x.drop(b); const oldTimer = x.grace()
@@ -95,6 +138,26 @@ test('reconnect within grace cancels retirement and deferred Leave', async t => 
     assert.equal(x.manager.battleExpectedCount.get(x.roomNumber), 2)
     assert.equal(x.ready(replacement), true)
     assert.deepEqual(a.socket.frames, [[1,[1]]])
+})
+
+test('entered five-boss peer does not publish ordinary Leave', async t => {
+    const x = setup(t), [a,b] = x.clients
+    x.ready(a); x.ready(b); a.socket.frames = []
+    b.fiveBossBattleEntered = true
+    x.drop(b)
+    assert.deepEqual(a.socket.frames, [])
+})
+
+test('five-boss replacement remains current after the old socket closes', async t => {
+    const x = setup(t), [a,b] = x.clients
+    x.ready(a); x.ready(b); a.socket.frames = []
+    b.fiveBossBattleEntered = true
+    x.drop(b)
+    const replacement = x.make(2)
+    assert.equal(x.manager.addBattleClient(replacement.connectionId, replacement), true)
+    x.manager.removeClient(b)
+    assert.deepEqual(a.socket.frames, [])
+    assert.equal(x.manager.getBattleClient(replacement.connectionId), replacement)
 })
 
 test('superseded and repeated socket close cannot remove a replacement or subtract twice', async t => {
@@ -126,9 +189,41 @@ test('next-scene loading lease starts only on each peer LevelNext; duplicates do
     assert.equal(x.ready(b), true)
 })
 
+test('five-boss active scene may stay silent beyond the ordinary heartbeat lease', async t => {
+    const x = setup(t), [a,b] = x.clients
+    Object.assign(x.room, { room_number: x.roomNumber, category: 2, quest_id: 1099001,
+        lobby_generation: 1, five_boss_runtime: {
+            runId: 'silent-five-boss', expectedRealPlayerIds: [1, 2],
+            autoplayModeByPlayerId: { 1: false, 2: false },
+            partyCharacterIdsByPlayerId: { 1: [1], 2: [1] },
+            battleIdentityByViewerId: {},
+        } })
+    const runtime = require('../out/multi/five-boss/lobby-runtime')
+    t.mock.method(runtime, 'recordFiveBossSignal', (_room, client, signal) => {
+        if (signal === 'scene_ready') client.fiveBossBattleEntered = true
+        return true
+    })
+    x.ready(a); x.ready(b)
+    assert.equal(x.manager.battleHeartbeatTimers.get(a.connectionId), undefined)
+    assert.equal(x.manager.battleHeartbeatTimers.get(b.connectionId), undefined)
+    const future = Date.now() + 120000
+    t.mock.method(Date, 'now', () => future)
+    await new Promise(resolve => setImmediate(resolve))
+    assert.equal(a.socket.destroyed, false)
+    assert.equal(b.socket.destroyed, false)
+    x.manager.beginBattleLevelNext(a.connectionId, x.roomNumber)
+    assert.equal(x.manager.battleConnectionPhase.get(a.connectionId), 'loading')
+    assert.ok(x.manager.battleHeartbeatTimers.get(a.connectionId))
+    x.ready(a)
+    assert.equal(x.manager.battleHeartbeatTimers.get(a.connectionId), undefined)
+    assert.equal(a.socket.destroyed, false)
+})
+
 test('next-scene disconnected peer does not strand the remaining ready player', async t => {
     const x = setup(t), [a,b] = x.clients
     x.ready(a); x.ready(b); a.socket.frames = []
+    a.fiveBossBattleEntered = true
+    b.fiveBossBattleEntered = true
     x.manager.beginBattleLevelNext(a.connectionId, x.roomNumber)
     x.drop(b); x.ready(a); await x.fire(x.grace())
     assert.deepEqual(a.socket.frames, [[1,[1]], [1,[0,b.connectionId]]])
@@ -215,6 +310,68 @@ test('room identity reuse and settlement invalidate pending grace', async t => {
         assert.equal(x.manager.battleExpectedCount.get(x.roomNumber), 2)
         assert.deepEqual(a.socket.frames, [])
     }
+})
+
+test('rematch lobby host grace does not expire before the guest reconnect window', t => {
+    const timers = []
+    t.mock.method(global, 'setTimeout', (fn, ms) => {
+        const timer = { fn, ms, cancelled: false, unref() {} }
+        timers.push(timer)
+        return timer
+    })
+    t.mock.method(global, 'clearTimeout', timer => { if (timer) timer.cancelled = true })
+    const room = {
+        room_number: '701002',
+        host_viewer_id: 1,
+        lobby_generation: 1,
+        expected_real_viewer_ids: [1, 2],
+        lifecycle: { instanceId: 'instance-rematch', phase: 'LOBBY', version: 1 },
+    }
+    t.mock.method(rooms, 'getRoom', () => room)
+    const manager = new SessionManager()
+    manager.beginHostReconnectGrace(room.room_number)
+    const reconnectTimer = timers.at(-1)
+    assert.ok(reconnectTimer)
+    assert.ok(reconnectTimer.ms >= 60_000)
+})
+
+test('five-boss settlement recognizes an already-entered host lobby connection', t => {
+    const timers = []
+    t.mock.method(global, 'setTimeout', (fn, ms) => {
+        const timer = { fn, ms, cancelled: false, unref() {} }
+        timers.push(timer)
+        return timer
+    })
+    t.mock.method(global, 'clearTimeout', timer => { if (timer) timer.cancelled = true })
+    const room = {
+        room_number: '701003',
+        category: 2,
+        quest_id: 1099001,
+        host_viewer_id: 1,
+        lobby_generation: 1,
+        settlement_return_pending: true,
+        raising_state: 1,
+        lifecycle: {
+            instanceId: 'instance-five-boss-return',
+            battleSessionId: 'battle-five-boss-return',
+            phase: 'RETURNING',
+            version: 3,
+        },
+    }
+    t.mock.method(rooms, 'getRoom', () => room)
+    const manager = new SessionManager()
+    const host = manager.createClient(new Socket(), 1, room.room_number, 'host-lobby', 1)
+    host.roomGeneration = 0
+    host.enterData = {}
+    manager.addClientToRoom(host)
+
+    manager.beginSettlementReturnGrace(room.room_number)
+
+    assert.equal(room.lifecycle.phase, 'LOBBY')
+    assert.equal(room.settlement_return_pending, false)
+    assert.equal(room.lifecycle.battleSessionId, null)
+    assert.equal(host.roomGeneration, room.lobby_generation)
+    assert.equal(manager.settlementReturnTimers.has(room.room_number), false)
 })
 
 test('retirement resets only with a new round; empty rooms never broadcast BattleStart', async t => {

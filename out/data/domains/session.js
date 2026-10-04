@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.generateViewerIdSession = exports.generateViewerIdSessionSync = exports.deleteAccountSessionsOfType = exports.deleteAccountSessionsOfTypeSync = exports.deleteAccountSessions = exports.deleteSession = exports.deleteSessionSync = exports.insertSession = exports.insertSessionWithToken = exports.insertSessionWithTokenSync = exports.getAccountSessionsOfType = exports.getAccountSessionsOfTypeSync = exports.getSessionByAccountIdSync = exports.updateDeviceBindingNameSync = exports.getAllViewerSessionsSync = exports.getAllDeviceBindingsSync = exports.deleteDeviceBindingSync = exports.insertDeviceBindingSync = exports.getDeviceBindingSync = exports.migrateUnsafeViewerIdsSync = exports.getViewerIdSync = exports.getSession = void 0;
 const db_1 = require("../db");
+const cached_statement_1 = require("../../lib/cached-statement");
 const crypto_1 = require("crypto");
 const types_1 = require("../types");
 const utils_1 = require("../../utils");
@@ -28,7 +29,7 @@ function buildSession(rawSession) {
  * @returns The session that was found or null
  */
 function getSessionSync(token) {
-    const raw = (0, db_1.getDb)().prepare(`
+    const raw = (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
     SELECT token, account_id, expires, type
     FROM sessions
     WHERE token = ?
@@ -69,7 +70,7 @@ exports.getSession = getSession;
  */
 function getViewerIdSync(accountId) {
     var _a;
-    const row = (0, db_1.getDb)().prepare(`
+    const row = (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
         SELECT token FROM sessions WHERE account_id = ? AND type = 2 LIMIT 1
     `).get(accountId);
     const viewerId = Number((_a = row === null || row === void 0 ? void 0 : row.token) !== null && _a !== void 0 ? _a : 0);
@@ -121,7 +122,7 @@ exports.migrateUnsafeViewerIdsSync = migrateUnsafeViewerIdsSync;
  * Device binding: maps device_id → account_id
  */
 function getDeviceBindingSync(deviceId) {
-    const row = (0, db_1.getDb)().prepare(`SELECT device_id, account_id, name FROM device_bindings WHERE device_id = ?`).get(deviceId);
+    const row = (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `SELECT device_id, account_id, name FROM device_bindings WHERE device_id = ?`).get(deviceId);
     return row !== null && row !== void 0 ? row : null;
 }
 exports.getDeviceBindingSync = getDeviceBindingSync;
@@ -158,7 +159,7 @@ exports.updateDeviceBindingNameSync = updateDeviceBindingNameSync;
  * Synchronously gets a session by account_id and type (for viewer_id reuse).
  */
 function getSessionByAccountIdSync(accountId, type) {
-    const raw = (0, db_1.getDb)().prepare(`
+    const raw = (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
     SELECT token, account_id, expires, type FROM sessions WHERE account_id = ? AND type = ?
     `).get(accountId, type);
     return raw ? buildSession(raw) : null;
@@ -172,10 +173,10 @@ exports.getSessionByAccountIdSync = getSessionByAccountIdSync;
  * @returns An array of sessions.
  */
 function getAccountSessionsOfTypeSync(accountId, type) {
-    const rawResult = (0, db_1.getDb)().prepare(`
+    const rawResult = (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
     SELECT token, account_id, expires, type
     FROM sessions
-    WHERE account_id = ? AND type = ?
+    WHERE account_id = ? AND type = ?    
     `).all(accountId, type);
     return rawResult.map(raw => buildSession(raw));
 }
@@ -206,7 +207,7 @@ exports.getAccountSessionsOfType = getAccountSessionsOfType;
 function insertSessionWithTokenSync(session) {
     (0, db_1.getDb)().prepare(`
     INSERT INTO sessions (token, account_id, expires, type)
-    VALUES (?, ?, ?, ?)
+    VALUES (?, ?, ?, ?)    
     `).run(session.token, session.accountId, session.expires.toISOString(), session.type);
     return session;
 }

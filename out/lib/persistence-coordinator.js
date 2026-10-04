@@ -9,10 +9,12 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.drainPersistence = exports.runPersistenceTransactionSync = exports.runPersistenceSqlCommand = exports.runPersistenceTransaction = exports.configurePersistenceSqlExecutor = void 0;
+exports.drainPersistence = exports.runPersistenceTransactionSync = exports.runWriterCommand = exports.runPersistenceSqlCommand = exports.runPersistenceTransaction = exports.configurePersistenceSqlExecutor = void 0;
 const node_perf_hooks_1 = require("node:perf_hooks");
 const db_1 = require("../data/db");
 const memory_diagnostics_1 = require("./memory-diagnostics");
+const command_registry_1 = require("./persistence/command-registry");
+const writer_client_1 = require("./persistence/writer-client");
 const server_work_performance_1 = require("./server-work-performance");
 const sqlite_write_coordinator_1 = require("./sqlite-write-coordinator");
 let globalWriteTail = Promise.resolve();
@@ -22,6 +24,8 @@ let globalWriteTail = Promise.resolve();
 let activePersistenceContext;
 const persistenceStats = new Map();
 let persistenceSqlExecutor = null;
+let writerFallbackCount = 0;
+let writerStartupWaitCount = 0;
 function yieldToEventLoop() {
     return new Promise(resolve => setImmediate(resolve));
 }
@@ -38,6 +42,8 @@ function statsFor(domain) {
 }
 (0, memory_diagnostics_1.registerMemoryCounters)("persistence", () => {
     const counters = {};
+    counters["writer.fallbacks"] = writerFallbackCount;
+    counters["writer.startupWaits"] = writerStartupWaitCount;
     for (const [domain, value] of persistenceStats) {
         counters[`domain.${domain}.queued`] = value.queued;
         counters[`domain.${domain}.committed`] = value.committed;
@@ -93,8 +99,8 @@ exports.configurePersistenceSqlExecutor = configurePersistenceSqlExecutor;
  * queue and timing seam are deliberate: business modules can migrate here one
  * by one, while a future worker-backed executor can preserve the same contract.
  */
-function runPersistenceTransaction(context, operation) {
-    return __awaiter(this, void 0, void 0, function* () {
+function runPersistenceTransaction(context_1, operation_1) {
+    return __awaiter(this, arguments, void 0, function* (context, operation, options = {}) {
         const queuedAt = node_perf_hooks_1.performance.now();
         const stats = statsFor(context.domain);
         stats.queued++;
@@ -112,6 +118,16 @@ function runPersistenceTransaction(context, operation) {
             try {
                 const result = yield (0, sqlite_write_coordinator_1.runImmediateTransactionWithRetry)(() => (withPersistenceContext(context, operation)));
                 stats.committed++;
+                if (options.afterCommit) {
+                    try {
+                        options.afterCommit(result);
+                    }
+                    catch (error) {
+                        // The database is already committed. Observability or
+                        // non-durable side effects must not turn success into a retry.
+                        console.error(`[PERSISTENCE] afterCommit failed: domain=${context.domain} operation=${context.operation}`, error);
+                    }
+                }
                 return result;
             }
             catch (error) {
@@ -172,6 +188,124 @@ function runPersistenceSqlCommand(context, statements, fallback) {
     return enqueueGlobalWrite(execute);
 }
 exports.runPersistenceSqlCommand = runPersistenceSqlCommand;
+/**
+ * Execute a registered write command.
+ *
+ * The command runs in the SQLite writer thread when `CN_WRITER_THREAD` is
+ * enabled and the thread is ready, and in-process otherwise. Both paths share
+ * the same registry entry, the same per-player/global ordering and the same
+ * domain metrics, so flipping the switch cannot change business results.
+ *
+ * The command implementation owns its transaction: the writer thread already
+ * wraps every command in the batch transaction, and the in-process path leaves
+ * the existing `runPersistenceTransactionSync` contract untouched.
+ */
+function runWriterCommand(name, args, context) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const queuedAt = node_perf_hooks_1.performance.now();
+        const stats = statsFor(context.domain);
+        stats.queued++;
+        stats.maxPending = Math.max(stats.maxPending, stats.queued - stats.committed - stats.failed);
+        const execute = () => __awaiter(this, void 0, void 0, function* () {
+            yield yieldToEventLoop();
+            const queueMs = node_perf_hooks_1.performance.now() - queuedAt;
+            stats.queueMs += queueMs;
+            stats.maxQueueMs = Math.max(stats.maxQueueMs, queueMs);
+            (0, server_work_performance_1.recordServerWork)("persistence.queue", queueMs);
+            const startedAt = node_perf_hooks_1.performance.now();
+            try {
+                const result = yield executeRegisteredWriterCommand(name, args, context);
+                stats.committed++;
+                return result;
+            }
+            catch (error) {
+                stats.failed++;
+                throw error;
+            }
+            finally {
+                const transactionMs = node_perf_hooks_1.performance.now() - startedAt;
+                stats.transactionMs += transactionMs;
+                stats.maxTransactionMs = Math.max(stats.maxTransactionMs, transactionMs);
+                (0, server_work_performance_1.recordServerWork)("persistence.transaction", transactionMs);
+            }
+        });
+        if (context.playerId !== undefined) {
+            return (0, sqlite_write_coordinator_1.withPlayerWriteQueue)(context.playerId, execute);
+        }
+        return enqueueGlobalWrite(execute);
+    });
+}
+exports.runWriterCommand = runWriterCommand;
+/** Bounded wait so the first requests after a restart do not fail on warm-up. */
+const WRITER_STARTUP_WAIT_MS = 10000;
+function executeRegisteredWriterCommand(name, args, context) {
+    return __awaiter(this, void 0, void 0, function* () {
+        if ((0, writer_client_1.isSqliteWriterEnabled)()) {
+            if (!(0, writer_client_1.isSqliteWriterReady)()) {
+                writerStartupWaitCount++;
+                yield (0, writer_client_1.waitForSqliteWriterReady)(WRITER_STARTUP_WAIT_MS);
+            }
+            if ((0, writer_client_1.isSqliteWriterReady)()) {
+                const value = yield (0, writer_client_1.executeSqliteWriterCommand)({
+                    name,
+                    args,
+                    meta: {
+                        domain: context.domain,
+                        operation: context.operation,
+                        playerId: context.playerId,
+                    },
+                });
+                return value;
+            }
+            // The worker is configured but never became ready. An explicit
+            // fallback switch may continue in-process; otherwise the caller must
+            // see the failure instead of an unverified write.
+            const reason = `SQLite writer thread is not ready; command ${name} was not executed.`;
+            if (!(0, writer_client_1.writerThreadSettings)().fallback)
+                throw new Error(reason);
+            writerFallbackCount++;
+            console.error(`[PERSISTENCE] ${reason} Falling back to the in-process implementation.`);
+        }
+        return runRegisteredWriterCommandInProcess(name, args, context);
+    });
+}
+let writerCommandsLoaded = false;
+/**
+ * Bind command names to domain code on first use.
+ *
+ * The requirement is intentionally lazy: `commands` imports domain modules
+ * that import this coordinator, so a top-level import would create a
+ * module-load cycle. Requiring it here keeps the import graph acyclic while
+ * still letting any entry point (server, test or script) run a command
+ * in-process without remembering to import the registry.
+ */
+function ensureWriterCommandsLoaded() {
+    if (writerCommandsLoaded)
+        return;
+    writerCommandsLoaded = true;
+    require("./persistence/commands");
+}
+function runRegisteredWriterCommandInProcess(name, args, context) {
+    ensureWriterCommandsLoaded();
+    const handler = (0, command_registry_1.getWriterCommand)(name);
+    if (handler === undefined) {
+        throw new Error(`Writer command is not registered: ${name}`);
+    }
+    const effects = [];
+    const commandContext = (0, command_registry_1.createWriterCommandContext)({ domain: context.domain, operation: context.operation, playerId: context.playerId }, effect => effects.push(effect));
+    const result = handler(args, commandContext);
+    for (const effect of effects) {
+        try {
+            effect();
+        }
+        catch (error) {
+            // Mirrors runPersistenceTransaction: an already committed command
+            // must not be reported as failed because a side effect threw.
+            console.error(`[PERSISTENCE] afterCommit failed: domain=${context.domain} operation=${context.operation}`, error);
+        }
+    }
+    return result;
+}
 /**
  * Compatibility boundary for legacy synchronous callers.
  *

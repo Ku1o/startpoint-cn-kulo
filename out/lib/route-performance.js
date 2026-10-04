@@ -28,12 +28,13 @@ function isEnabled() {
  * production servers while still exposing the routes consuming the CPU core.
  */
 function installRoutePerformanceMonitor(fastify) {
-    var _a;
+    var _a, _b;
     (0, memory_diagnostics_1.installMemoryDiagnostics)(fastify);
     if (!isEnabled())
         return;
-    const diagnostics = (0, request_diagnostics_1.installRequestDiagnostics)(fastify);
-    const intervalMs = Math.max(10000, Number.parseInt((_a = process.env.ROUTE_PERF_INTERVAL_MS) !== null && _a !== void 0 ? _a : "60000", 10) || 60000);
+    const detailed = /^(1|true|yes|on)$/i.test((_a = process.env.ROUTE_PERF_DETAIL) !== null && _a !== void 0 ? _a : "false");
+    const diagnostics = (0, request_diagnostics_1.installRequestDiagnostics)(fastify, { detailed });
+    const intervalMs = Math.max(10000, Number.parseInt((_b = process.env.ROUTE_PERF_INTERVAL_MS) !== null && _b !== void 0 ? _b : "60000", 10) || 60000);
     const eventLoopDelay = (0, perf_hooks_1.monitorEventLoopDelay)({ resolution: 20 });
     eventLoopDelay.enable();
     let previousElu = perf_hooks_1.performance.eventLoopUtilization();

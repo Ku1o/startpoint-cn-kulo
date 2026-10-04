@@ -1,5 +1,5 @@
 import path from "path";
-import type { PlayerRewardResult } from "./types";
+import { QuestCategory, type PlayerRewardResult } from "./types";
 
 
 interface Mode15Gate {
@@ -21,6 +21,10 @@ interface Mode15Runtime {
     MODE15_TOKEN_ID?: number;
     MODE15_PRACTICE_QUEST_ID?: number;
     isMode15Quest?: (category: number, questId: number) => boolean;
+    isMode15EquipmentAllowedQuest?: (
+        category: number,
+        questId: number,
+    ) => boolean;
     getExpectedMode15StageSync?: (playerId: number) => number;
     canStartMode15QuestSync?: (
         playerId: number,
@@ -69,7 +73,7 @@ const DEFAULTS = Object.freeze({
     multiEventId: 300098,
     legacyHardMultiEventId: 100098,
     tokenId: 2370098,
-    practiceQuestId: 700098013,
+    practiceQuestId: 700098016,
 });
 
 function isMissingRequestedModule(error: unknown, requested: string): boolean {
@@ -122,6 +126,19 @@ export function isMode15RuntimeLoaded(): boolean {
 
 export function isMode15Quest(category: number, questId: number): boolean {
     return runtime?.isMode15Quest?.(category, questId) ?? false;
+}
+
+export function isMode15EquipmentAllowedQuest(
+    category: number,
+    questId: number,
+): boolean {
+    return runtime?.isMode15EquipmentAllowedQuest?.(category, questId)
+        ?? (
+            isMode15Quest(category, questId)
+            || (Number(category) === Number(QuestCategory.RUSH_EVENT)
+                && Number(questId) >= MODE15_RUSH_EVENT_ID * 1000 + 1
+                && Number(questId) <= MODE15_PRACTICE_QUEST_ID)
+        );
 }
 
 export function getMode15ExclusiveItemIds(itemIds: readonly unknown[]): number[] {

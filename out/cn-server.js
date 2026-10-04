@@ -126,12 +126,16 @@ const daily_vmoney_mail_1 = require("./lib/daily-vmoney-mail");
 const sqlite_checkpoint_worker_1 = require("./lib/sqlite-checkpoint-worker");
 const persistence_coordinator_1 = require("./lib/persistence-coordinator");
 const sqlite_persistence_worker_1 = require("./lib/sqlite-persistence-worker");
+// Side-effect import: binds command names to domain code for the in-process
+// fallback path. The writer worker loads the same module on its own thread.
+require("./lib/persistence/commands");
+const writer_client_1 = require("./lib/persistence/writer-client");
+const game_logging_1 = require("./lib/game-logging");
 const fastify = (0, fastify_1.default)({
     logger: {
-        // Default remains compatible with the existing development behavior.
-        // Startup BAT files may set LOG_LEVEL=warn to suppress per-request
-        // Fastify access logs during normal low-overhead operation.
-        level: process.env.LOG_LEVEL || "info"
+        // Production-safe default avoids per-request access-log formatting.
+        // Debug launchers explicitly opt back into info.
+        level: process.env.LOG_LEVEL || "warn"
     },
     bodyLimit: 262144 // 256KB — covers /single_battle_quest/finish large battle stats
 });
@@ -321,7 +325,7 @@ function parseC3032Beacon(loc) {
     const badSeed = parseInt(seedMatch[1], 10);
     const movieMatch = loc.match(/movie_id=(\w+)/);
     const movieId = movieMatch ? movieMatch[1] : "normal";
-    console.log(`[DBG-BCN] C3032 seed=${badSeed} movieId=${movieId}`);
+    (0, game_logging_1.gameVerboseLog)(() => `[DBG-BCN] C3032 seed=${badSeed} movieId=${movieId}`);
     const starDigits = [...loc.matchAll(/â(\d)/g)];
     // first match = ball rarity (結果レア度), second = char rarity (キャラクターレア度)
     const ballRarity = starDigits.length > 0 ? parseInt(starDigits[0][1], 10) : 3;
@@ -332,14 +336,14 @@ function parseC3032Beacon(loc) {
     if (didPlay !== null)
         seed_validator_1.default.recordPlay(movieId, badSeed, didPlay); // record for flushAll
     // C3032 = client-verified rarity → verifiedPool (superset of playPool/confirmPool)
-    console.log(`[DBG-BCN] C3032 → moveToVerified [${movieId}] seed=${badSeed} ★${ballRarity}`);
+    (0, game_logging_1.gameVerboseLog)(() => `[DBG-BCN] C3032 → moveToVerified [${movieId}] seed=${badSeed} ★${ballRarity}`);
     seed_validator_1.default.moveToVerified(movieId, badSeed, r);
     if (didPlay === false) {
-        console.log(`[DBG-BCN] C3032 → confirm [${movieId}] seed=${badSeed} ★${ballRarity}`);
+        (0, game_logging_1.gameVerboseLog)(() => `[DBG-BCN] C3032 → confirm [${movieId}] seed=${badSeed} ★${ballRarity}`);
         seed_validator_1.default.confirm(movieId, badSeed, r); // play=0 → confirmPool
     }
     const playStr = didPlay === true ? ' play=1' : didPlay === false ? ' play=0' : '';
-    console.log(`[BEACON] C3032 → ${didPlay === true ? 'play' : 'confirm'} seed ${badSeed} ★${ballRarity}${playStr} [${movieId}]`);
+    (0, game_logging_1.gameVerboseLog)(() => `[BEACON] C3032 → ${didPlay === true ? 'play' : 'confirm'} seed ${badSeed} ★${ballRarity}${playStr} [${movieId}]`);
     if (didPlay === null) {
         seed_validator_1.default.addPending(movieId, badSeed, r);
     }
@@ -350,7 +354,7 @@ function parsePlayBeacon(loc) {
     if (loc.startsWith("PLAY|")) {
         const seedMatch = loc.match(/seed=(\d+)/);
         if (!seedMatch) {
-            console.log(`[PLAY] no seed in: ${loc.substring(0, 80)}`);
+            (0, game_logging_1.gameVerboseLog)(() => `[PLAY] no seed in: ${loc.substring(0, 80)}`);
             return;
         }
         const seed = parseInt(seedMatch[1], 10);
@@ -358,22 +362,22 @@ function parsePlayBeacon(loc) {
         const movieId = movieMatch ? movieMatch[1] : "normal";
         const playMatch = loc.match(/play=(\d)/);
         const didPlay = playMatch ? playMatch[1] === '1' : false;
-        console.log(`[DBG-BCN] PLAY seed=${seed} play=${didPlay ? '1' : '0'} movieId=${movieId}`);
+        (0, game_logging_1.gameVerboseLog)(() => `[DBG-BCN] PLAY seed=${seed} play=${didPlay ? '1' : '0'} movieId=${movieId}`);
         seed_validator_1.default.recordPlay(movieId, seed, didPlay); // record for flushAll
         if (didPlay) {
             const r = seed_validator_1.default.getSentR(movieId, seed);
             if (r !== undefined && r !== null) {
                 seed_validator_1.default.addPlay(movieId, seed, r, true);
                 seed_validator_1.default.moveToVerified(movieId, seed, r);
-                console.log(`[PLAY] playPool seed=${seed} movie=${movieId}`);
+                (0, game_logging_1.gameVerboseLog)(() => `[PLAY] playPool seed=${seed} movie=${movieId}`);
             }
             else {
-                console.log(`[PLAY] play=1 skipped seed=${seed} getSentR=${r === null ? 'null' : 'undefined'} (already cleaned up by prior beacon)`);
+                (0, game_logging_1.gameVerboseLog)(() => `[PLAY] play=1 skipped seed=${seed} getSentR=${r === null ? 'null' : 'undefined'} (already cleaned up by prior beacon)`);
             }
         }
         else {
             const r = seed_validator_1.default.getSentR(movieId, seed);
-            console.log(`[DBG-BCN] PLAY play=0 → confirm [${movieId}] seed=${seed} r=${r !== undefined && r !== null ? '★' + (r + 3) : r === null ? 'null' : 'undefined'}`);
+            (0, game_logging_1.gameVerboseLog)(() => `[DBG-BCN] PLAY play=0 → confirm [${movieId}] seed=${seed} r=${r !== undefined && r !== null ? '★' + (r + 3) : r === null ? 'null' : 'undefined'}`);
             if (r !== undefined)
                 seed_validator_1.default.confirm(movieId, seed, r);
         }
@@ -383,7 +387,7 @@ fastify.post("/debug", (request, reply) => __awaiter(void 0, void 0, void 0, fun
     var _g;
     const ts = new Date().toISOString();
     const loc = ((_g = request.body) === null || _g === void 0 ? void 0 : _g.loc) || "unknown";
-    console.log(`[BEACON ${ts}] ${loc}`);
+    (0, game_logging_1.gameVerboseLog)(() => `[BEACON ${ts}] ${loc}`);
     // Parse C3032 beacons for auto-purification (04e patch skips throw but keeps beacon)
     try {
         parseC3032Beacon(loc);
@@ -521,17 +525,22 @@ fastify.setNotFoundHandler((request, reply) => {
         reply.send((0, fs_1.readFileSync)(path_1.default.join(adminDistDir, "index.html")));
         return;
     }
-    console.log(`[UNKNOWN] ${request.method} ${request.url}`);
+    (0, game_logging_1.gameVerboseLog)(() => `[UNKNOWN] ${request.method} ${request.url}`);
     reply.status(404).send({ error: "Not Found" });
 });
 const host = (_a = process.env.CN_LISTEN_HOST) !== null && _a !== void 0 ? _a : "127.0.0.1";
 const port = parseInt((_b = process.env.CN_LISTEN_PORT) !== null && _b !== void 0 ? _b : "8001");
+const logDirectory = path_1.default.resolve(__dirname, "../.logs");
+const readyFilePath = path_1.default.join(logDirectory, "cn-server-ready.json");
+(0, fs_1.mkdirSync)(logDirectory, { recursive: true });
+(0, fs_1.rmSync)(readyFilePath, { force: true });
 const receiveHistoryRetention = (0, receive_history_retention_1.createReceiveHistoryRetentionService)((0, db_1.getDb)(), {
     executeTransaction: persistence_coordinator_1.runPersistenceTransaction,
 });
 const leaderboardSettlementScheduler = (0, settlement_1.createLeaderboardSettlementScheduler)();
 const dailyVmoneyMailScheduler = (0, daily_vmoney_mail_1.createDailyVmoneyMailScheduler)((0, db_1.getDb)());
 fastify.addHook("onClose", () => __awaiter(void 0, void 0, void 0, function* () {
+    (0, fs_1.rmSync)(readyFilePath, { force: true });
     // The multiplayer TCP listener is not owned by Fastify. Stop it first so
     // no new realtime callback can enqueue a database write while the queues
     // below are draining.
@@ -542,8 +551,12 @@ fastify.addHook("onClose", () => __awaiter(void 0, void 0, void 0, function* () 
     yield receiveHistoryRetention.stop();
     yield (0, player_party_pool_1.stopQuestNpcPartyPoolWorker)();
     yield (0, persistence_coordinator_1.drainPersistence)();
+    // Drain the writer thread before its connections and the checkpoint owner
+    // are stopped, so no accepted command is lost at shutdown.
+    yield (0, writer_client_1.drainSqliteWriter)();
     yield (0, sqlite_persistence_worker_1.stopSqlitePersistenceWorker)();
     (0, persistence_coordinator_1.configurePersistenceSqlExecutor)(null);
+    yield (0, writer_client_1.stopSqliteWriter)();
     yield (0, sqlite_checkpoint_worker_1.stopSqliteCheckpointWorker)();
 }));
 // Ctrl+C and a normal service-manager stop must enter Fastify's close hooks;
@@ -568,6 +581,9 @@ function requestGracefulShutdown(signal) {
         catch (error) {
             process.exitCode = 1;
             console.error(`[SHUTDOWN] graceful shutdown failed: ${error.message}`);
+            // A timed-out close means at least one live handle cannot be
+            // drained. Enforce the service-manager shutdown bound.
+            process.exit(1);
         }
         finally {
             if (timeout)
@@ -589,6 +605,11 @@ if (persistenceWorkerStarted && (0, sqlite_persistence_worker_1.isSqlitePersiste
         });
     }));
 }
+// Optional single-writer thread. When enabled, registered business commands run
+// on their own thread instead of blocking HTTP and realtime callbacks here.
+if ((0, writer_client_1.startSqliteWriter)((0, db_1.getDb)().name)) {
+    console.log("[DB] CN_WRITER_THREAD=1: registered business writes route through the SQLite writer thread");
+}
 fastify.listen({ port, host }, (err, address) => {
     if (err) {
         console.error(err);
@@ -598,13 +619,32 @@ fastify.listen({ port, host }, (err, address) => {
     receiveHistoryRetention.start();
     leaderboardSettlementScheduler.start();
     dailyVmoneyMailScheduler.start();
-    // Start multi battle TCP session server
-    (0, multi_1.startSessionServer)();
-    (0, sqlite_checkpoint_worker_1.startSqliteCheckpointWorker)((0, db_1.getDb)().name);
-    const logDirectory = path_1.default.resolve(__dirname, "../.logs");
-    (0, fs_1.mkdirSync)(logDirectory, { recursive: true });
-    (0, atomic_json_file_1.writeJsonAtomicSync)(path_1.default.join(logDirectory, "cn-server-ready.json"), {
-        pid: process.pid, readyAt: new Date().toISOString(), port,
-        database: path_1.default.resolve((0, db_1.getDb)().name), storageLayoutVersion: (0, storage_layout_1.getStorageLayoutVersion)((0, db_1.getDb)()),
-    });
+    void (() => __awaiter(void 0, void 0, void 0, function* () {
+        try {
+            // Do not publish readiness until both public listeners are bound.
+            yield (0, multi_1.startSessionServer)();
+            (0, sqlite_checkpoint_worker_1.startSqliteCheckpointWorker)((0, db_1.getDb)().name, process.env, {
+                onReady: () => {
+                    (0, db_1.getDb)().pragma("wal_autocheckpoint = 0");
+                    (0, sqlite_persistence_worker_1.setSqlitePersistenceCheckpointOwner)(true);
+                    (0, writer_client_1.setSqliteWriterCheckpointOwner)(true);
+                },
+                onStopped: () => {
+                    if ((0, db_1.getDb)().open)
+                        (0, db_1.getDb)().pragma("wal_autocheckpoint = 1000");
+                    (0, sqlite_persistence_worker_1.setSqlitePersistenceCheckpointOwner)(false);
+                    (0, writer_client_1.setSqliteWriterCheckpointOwner)(false);
+                },
+            });
+            (0, atomic_json_file_1.writeJsonAtomicSync)(readyFilePath, {
+                pid: process.pid, readyAt: new Date().toISOString(), port,
+                database: path_1.default.resolve((0, db_1.getDb)().name), storageLayoutVersion: (0, storage_layout_1.getStorageLayoutVersion)((0, db_1.getDb)()),
+            });
+        }
+        catch (startupError) {
+            console.error(`[STARTUP] realtime listener failed: ${startupError.message}`);
+            process.exitCode = 1;
+            yield fastify.close();
+        }
+    }))();
 });

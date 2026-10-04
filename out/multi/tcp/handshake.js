@@ -30,15 +30,18 @@ const admission_1 = require("../room/admission");
 const player_context_1 = require("../player-context");
 const party_snapshot_1 = require("../party-snapshot");
 Object.defineProperty(exports, "buildRealParty", { enumerable: true, get: function () { return party_snapshot_1.buildRealParty; } });
+const disconnect_diagnostics_1 = require("./disconnect-diagnostics");
+const guest_eligibility_1 = require("../guest-eligibility");
 function handleHandshake(socket, data) {
     return __awaiter(this, void 0, void 0, function* () {
-        var _a, _b, _c, _d, _e, _f, _g;
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j;
         (0, game_logging_1.gameVerboseLog)(() => `[TCP] handshake: ${JSON.stringify({ socklet: data.socklet, viewerId: data.viewerId, room_number: data.room_number || data.roomNumber })}`);
         const socklet = data.socklet;
         const roomNumber = data.room_number || data.roomNumber;
         if (socklet === "cooperation_battle") {
             const connectionId = data.connection_id || data.connectionId || `${socket.remoteAddress}:${socket.remotePort}`;
             if (!roomNumber) {
+                (0, disconnect_diagnostics_1.markTcpDisconnectReason)(socket, "handshake_denied");
                 SessionManager_1.sessionManager.sendJson(socket, [3, "HANDSHAKE_DENIED"]);
                 socket.end();
                 return;
@@ -50,6 +53,7 @@ function handleHandshake(socket, data) {
             // like duplicate connections and causes one side to be replaced.
             const roomClient = SessionManager_1.sessionManager.getRoomClientByConnectionId(roomId, String(connectionId));
             if (roomClient && !(0, player_login_1.playerSocketAllowed)(roomClient.viewerId, data.sp_session)) {
+                (0, disconnect_diagnostics_1.markTcpDisconnectReason)(socket, "handshake_denied");
                 SessionManager_1.sessionManager.sendJson(socket, [3, "HANDSHAKE_DENIED"]);
                 socket.end();
                 return;
@@ -61,6 +65,7 @@ function handleHandshake(socket, data) {
                 connection_diagnostic_1.fiveBossConnectionDiagnostics.bind(battleRoom, battleClient);
             if (!battleRoom || battleRoom.lifecycle.phase !== "BATTLE") {
                 connection_diagnostic_1.fiveBossConnectionDiagnostics.socketEvent(socket, "handshake_denied", "room_not_in_battle");
+                (0, disconnect_diagnostics_1.markTcpDisconnectReason)(socket, "handshake_denied");
                 SessionManager_1.sessionManager.sendJson(socket, [3, "HANDSHAKE_DENIED"]);
                 socket.end();
                 return;
@@ -68,13 +73,19 @@ function handleHandshake(socket, data) {
             if (battleRoom && (0, contract_1.isFiveBossGauntletQuest)(battleRoom.category, battleRoom.quest_id)
                 && !(0, lobby_runtime_1.isFrozenFiveBossBattleClient)(battleRoom, battleClient)) {
                 connection_diagnostic_1.fiveBossConnectionDiagnostics.socketEvent(socket, "handshake_denied", "frozen_identity_mismatch");
+                (0, disconnect_diagnostics_1.markTcpDisconnectReason)(socket, "handshake_denied");
                 SessionManager_1.sessionManager.sendJson(socket, [3, "HANDSHAKE_DENIED"]);
                 socket.end();
                 return;
             }
+            if (battleClient.playerId !== null
+                && ((_f = (_e = battleRoom === null || battleRoom === void 0 ? void 0 : battleRoom.five_boss_runtime) === null || _e === void 0 ? void 0 : _e.battleEnteredPlayerIds) === null || _f === void 0 ? void 0 : _f.includes(battleClient.playerId))) {
+                battleClient.fiveBossBattleEntered = true;
+            }
             battleClient.isBattle = true;
             if (!SessionManager_1.sessionManager.addBattleClient(String(connectionId), battleClient)) {
                 connection_diagnostic_1.fiveBossConnectionDiagnostics.socketEvent(socket, "handshake_denied", "retired_seat");
+                (0, disconnect_diagnostics_1.markTcpDisconnectReason)(socket, "handshake_denied");
                 SessionManager_1.sessionManager.sendJson(socket, [3, "HANDSHAKE_DENIED"]);
                 socket.end();
                 return;
@@ -85,11 +96,13 @@ function handleHandshake(socket, data) {
         if (socklet === "cooperation_room") {
             const viewerId = data.viewerId;
             if (!(0, player_login_1.playerSocketAllowed)(viewerId, data.sp_session)) {
+                (0, disconnect_diagnostics_1.markTcpDisconnectReason)(socket, "handshake_denied");
                 SessionManager_1.sessionManager.sendJson(socket, [3, "HANDSHAKE_DENIED"]);
                 socket.end();
                 return;
             }
             if (!viewerId || !roomNumber) {
+                (0, disconnect_diagnostics_1.markTcpDisconnectReason)(socket, "handshake_denied");
                 SessionManager_1.sessionManager.sendJson(socket, [3, "HANDSHAKE_DENIED"]);
                 socket.end();
                 return;
@@ -98,6 +111,7 @@ function handleHandshake(socket, data) {
             if (!(0, manager_1.getRoom)(roomId)) {
                 // CN does not ship the room_not_found UiString used by this denied
                 // packet. A stale notice must never turn into client error C8601.
+                (0, disconnect_diagnostics_1.markTcpDisconnectReason)(socket, "handshake_denied");
                 SessionManager_1.sessionManager.sendJson(socket, [3, "HANDSHAKE_DENIED"]);
                 socket.end();
                 return;
@@ -105,8 +119,9 @@ function handleHandshake(socket, data) {
             // playerSocketAllowed above still performs the authoritative session
             // check. A context warmed by create/select_room can therefore be used
             // here without another synchronous session/player lookup.
-            const ctx = (_e = (0, player_context_1.getCachedMultiPlayerContext)(Number(viewerId))) !== null && _e !== void 0 ? _e : yield (0, player_context_1.resolveMultiPlayerContext)(Number(viewerId));
+            const ctx = (_g = (0, player_context_1.getCachedMultiPlayerContext)(Number(viewerId))) !== null && _g !== void 0 ? _g : yield (0, player_context_1.resolveMultiPlayerContext)(Number(viewerId));
             if (!ctx) {
+                (0, disconnect_diagnostics_1.markTcpDisconnectReason)(socket, "handshake_denied");
                 SessionManager_1.sessionManager.sendJson(socket, [3, "HANDSHAKE_DENIED"]);
                 socket.end();
                 return;
@@ -116,6 +131,7 @@ function handleHandshake(socket, data) {
             // live room atomically immediately before accepting this socket.
             const currentRoom = (0, manager_1.getRoom)(roomId);
             if (!currentRoom) {
+                (0, disconnect_diagnostics_1.markTcpDisconnectReason)(socket, "handshake_denied");
                 SessionManager_1.sessionManager.sendJson(socket, [3, "HANDSHAKE_DENIED"]);
                 socket.end();
                 return;
@@ -139,8 +155,8 @@ function handleHandshake(socket, data) {
                 && client.socket.writable);
             const liveViewerIds = new Set(liveClients.map(client => client.viewerId));
             const viewerAlreadyConnected = liveViewerIds.has(Number(viewerId));
-            const requestedCategory = (_f = data.questCategory) !== null && _f !== void 0 ? _f : data.quest_category;
-            const requestedQuestId = (_g = data.questId) !== null && _g !== void 0 ? _g : data.quest_id;
+            const requestedCategory = (_h = data.questCategory) !== null && _h !== void 0 ? _h : data.quest_category;
+            const requestedQuestId = (_j = data.questId) !== null && _j !== void 0 ? _j : data.quest_id;
             const categoryMismatch = requestedCategory !== undefined
                 && Number(requestedCategory) !== currentRoom.category;
             const questMismatch = requestedQuestId !== undefined
@@ -153,6 +169,11 @@ function handleHandshake(socket, data) {
             const roomPhase = embedded_1.embeddedMultiCoordinator.ensureLifecycle(currentRoom).phase;
             const restoreBlocked = SessionManager_1.sessionManager.isRoomRestoreBlocked(roomId, Number(viewerId));
             const recordedPlayerId = (0, manager_1.getRoomMemberPlayerId)(currentRoom, Number(viewerId));
+            const guestAdmissionIsRescue = !isReturningMember
+                && admission_1.roomAdmissionRegistry.isRescue(roomId, currentRoom.lobby_generation, Number(viewerId));
+            const guestEligibility = !isReturningMember
+                ? (0, guest_eligibility_1.canJoinMultiGuestQuestSync)(ctx.playerId, currentRoom.category, currentRoom.quest_id)
+                : null;
             const structuralReasons = [
                 categoryMismatch ? "category_mismatch" : "",
                 questMismatch ? "quest_mismatch" : "",
@@ -160,6 +181,9 @@ function handleHandshake(socket, data) {
                 !viewerAlreadyConnected && liveClients.length >= 3 ? "full" : "",
                 !isReturningMember && (roomPhase === "STARTING" || roomPhase === "BATTLE") ? "battle_started" : "",
                 !isReturningMember && waitingForExpectedMember ? "waiting_for_returning_member" : "",
+                (guestEligibility === null || guestEligibility === void 0 ? void 0 : guestEligibility.allowed) === false
+                    ? `${guestAdmissionIsRescue ? "rescue" : "guest"}_${guestEligibility.reason}`
+                    : "",
                 restoreBlocked ? "restore_blocked" : "",
             ].filter(Boolean);
             if (structuralReasons.length > 0) {
@@ -172,6 +196,7 @@ function handleHandshake(socket, data) {
                 // Normal stale/full cases are filtered before the TCP handshake.
                 // Keep a protocol-level race fallback without looking up a missing
                 // CN UiString key (room_full/room_not_found both cause C8601).
+                (0, disconnect_diagnostics_1.markTcpDisconnectReason)(socket, "handshake_denied");
                 SessionManager_1.sessionManager.sendJson(socket, [3, "HANDSHAKE_DENIED"]);
                 socket.end();
                 return;
@@ -191,6 +216,7 @@ function handleHandshake(socket, data) {
                 console.warn(`[TCP] room handshake unavailable: viewer=${viewerId} room=${roomId}`
                     + ` live=${liveClients.length} state=${currentRoom.raising_state}`
                     + ` reason=not_reserved_${admissionClaim.reason}`);
+                (0, disconnect_diagnostics_1.markTcpDisconnectReason)(socket, "handshake_denied");
                 SessionManager_1.sessionManager.sendJson(socket, [3, "HANDSHAKE_DENIED"]);
                 socket.end();
                 return;
@@ -231,6 +257,7 @@ function handleHandshake(socket, data) {
             return;
         }
         // Unknown socklet
+        (0, disconnect_diagnostics_1.markTcpDisconnectReason)(socket, "handshake_denied");
         SessionManager_1.sessionManager.sendJson(socket, [1, "DENIED"]);
         socket.end();
     });

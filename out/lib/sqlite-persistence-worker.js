@@ -12,11 +12,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.stopSqlitePersistenceWorker = exports.drainSqlitePersistenceWorker = exports.executeSqlitePersistenceCommand = exports.isSqlitePersistenceWorkerStarted = exports.startSqlitePersistenceWorker = void 0;
+exports.stopSqlitePersistenceWorker = exports.drainSqlitePersistenceWorker = exports.executeSqlitePersistenceCommand = exports.setSqlitePersistenceCheckpointOwner = exports.isSqlitePersistenceWorkerStarted = exports.startSqlitePersistenceWorker = void 0;
 const node_path_1 = __importDefault(require("node:path"));
 const file_exists_1 = require("../lib/file-exists");
 const node_worker_threads_1 = require("node:worker_threads");
 const memory_diagnostics_1 = require("./memory-diagnostics");
+const sqlite_settings_1 = require("./sqlite-settings");
 let worker = null;
 let workerReady = false;
 let closing = false;
@@ -33,6 +34,10 @@ const state = {
     busyRetries: 0,
     lastDurationMs: null,
     lastError: null,
+    synchronous: null,
+    cacheSize: null,
+    mmapSize: null,
+    walAutocheckpoint: null,
 };
 (0, memory_diagnostics_1.registerMemoryCounters)("sqlitePersistence", () => {
     var _a, _b;
@@ -47,6 +52,10 @@ const state = {
         lastDurationMs: state.lastDurationMs,
         lastError: state.lastError !== null,
         lastErrorLength: (_b = (_a = state.lastError) === null || _a === void 0 ? void 0 : _a.length) !== null && _b !== void 0 ? _b : 0,
+        synchronous: state.synchronous,
+        cacheSize: state.cacheSize,
+        mmapSize: state.mmapSize,
+        walAutocheckpoint: state.walAutocheckpoint,
     });
 }, "sqlite");
 function enabled(environment = process.env) {
@@ -107,7 +116,8 @@ function startSqlitePersistenceWorker(databasePath, environment = process.env) {
     const parsedBusyTimeoutMs = Number.parseInt((_a = environment.SQLITE_PERSISTENCE_BUSY_TIMEOUT_MS) !== null && _a !== void 0 ? _a : "1000", 10);
     const busyTimeoutMs = Number.isFinite(parsedBusyTimeoutMs) ? Math.max(0, parsedBusyTimeoutMs) : 1000;
     const maxAttempts = Math.max(1, Number.parseInt((_b = environment.SQLITE_PERSISTENCE_MAX_ATTEMPTS) !== null && _b !== void 0 ? _b : "3", 10) || 3);
-    const current = new node_worker_threads_1.Worker(location.filename, Object.assign(Object.assign({}, (location.execArgv ? { execArgv: location.execArgv } : {})), { workerData: { databasePath, busyTimeoutMs, maxAttempts } }));
+    const settings = (0, sqlite_settings_1.sqliteSettings)(environment);
+    const current = new node_worker_threads_1.Worker(location.filename, Object.assign(Object.assign({}, (location.execArgv ? { execArgv: location.execArgv } : {})), { workerData: { databasePath, busyTimeoutMs, maxAttempts, settings } }));
     worker = current;
     (0, memory_diagnostics_1.observeWorkerMemory)("sqlite-persistence", current);
     current.once("online", () => {
@@ -121,6 +131,17 @@ function startSqlitePersistenceWorker(databasePath, environment = process.env) {
         var _a;
         if (worker !== current)
             return;
+        if ((message === null || message === void 0 ? void 0 : message.type) === "settings") {
+            state.synchronous = Number.isFinite(Number(message.synchronous))
+                ? Number(message.synchronous) : null;
+            state.cacheSize = Number.isFinite(Number(message.cacheSize))
+                ? Number(message.cacheSize) : null;
+            state.mmapSize = Number.isFinite(Number(message.mmapSize))
+                ? Number(message.mmapSize) : null;
+            state.walAutocheckpoint = Number.isFinite(Number(message.walAutocheckpoint))
+                ? Number(message.walAutocheckpoint) : null;
+            return;
+        }
         if ((message === null || message === void 0 ? void 0 : message.type) === "result" || (message === null || message === void 0 ? void 0 : message.type) === "error") {
             const command = active;
             if (!command || command.id !== message.id)
@@ -178,6 +199,19 @@ function isSqlitePersistenceWorkerStarted() {
     return worker !== null;
 }
 exports.isSqlitePersistenceWorkerStarted = isSqlitePersistenceWorkerStarted;
+function setSqlitePersistenceCheckpointOwner(external) {
+    try {
+        worker === null || worker === void 0 ? void 0 : worker.postMessage({
+            type: "checkpoint_owner",
+            external,
+        });
+    }
+    catch (_a) {
+        // A worker exiting during ownership handoff will be replaced or the
+        // main connection will retain automatic checkpointing.
+    }
+}
+exports.setSqlitePersistenceCheckpointOwner = setSqlitePersistenceCheckpointOwner;
 function executeSqlitePersistenceCommand(command) {
     if (!worker || closing)
         return Promise.reject(new Error("SQLite persistence worker is not running."));

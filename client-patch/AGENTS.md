@@ -1,18 +1,18 @@
 # Android APK/SWF 工作入口
 
-最新 Android 登记（2026-09-25）：作者机制 1.4.1047 回槽性能修复公网 APK 为 `accepted_offline`，保留主 ABC 索引 361、96,654 方法体、准入号 `android-181-author-1043-20260924`。验收范围为离线检查，未新增真机战斗测试。精确成品以 `android-accepted.json` 为准，范围见 `ACCEPTANCE-AUTHOR-1047-20260925.md`。下文旧日期内容仅作历史方法保留说明。
+最新 Android 登记（2026-10-04）：救援铃铛 C8016 v3 + 10 分钟缓存清理的公网迁移版 `cd840c20…`（`http://124.222.203.221:8001`）登记为 `accepted_offline`，主 ABC 索引 361、96,706 方法体、准入号 `android-181-author-1047-public-20261001`；内网版 `4f62b899…` 保持 `user_accepted`。公网版由内网版只替换地址、更新 AIR `uniqueappversionid` 并重签，离线身份与血缘校验通过、未真机测试。精确成品以 `android-accepted.json` 为准，范围见 `ACCEPTANCE-OROCHI-RESCUE-BELL-PUBLIC-20261004.md`。下文旧日期内容仅作历史方法保留说明。
 
 
 - 开始 Android APK/SWF 任务前，先读本目录 `ANDROID-BASELINE.md` 和 `android-accepted.json`，再读具体补丁文档。JSON 中登记的已验收公网/内网成品是当前直接基线；其他文档中的旧哈希只代表历史步骤。
 - 在修改前运行 `python client-patch/verify_android_baseline.py --variant public` 或 `--variant lan`，回读实际 APK、内嵌 SWF 和 AIR UUID。输入缺失或不匹配时不得按日期、文件名或旧报告另选 APK，也不得跳过哈希保护。
-- 当前公网/内网直接基线均为 2026-09-12 用户验收的缓存/圆角 + 切队 F1009 累计包，主 ABC 288、96520 方法体，见 `ACCEPTANCE-CACHE-PARTY-20260912.md`。保留玩家登录、Lens 0910、属性通道、深渊详情、旧服空更新兼容、覆盖安装首次启动缓存清理、圆角按钮与切队初始化/触摸保护，以及此前全部 MOD、幻想连战、排行榜、关注/本人资料路由、CNtips_b 隐藏、422/724、五重决战及 700099 续战队伍复用。9 月 9/10 日登记是归档复现输入，不再作为新任务基线。
+- 当前直接基线以 `android-accepted.json` 的 `variants` 为准：内网 = 2026-10-02 用户验收的救援铃铛 C8016 v3 + 10 分钟缓存清理包；公网 = 2026-10-04 迁移到新公网 IP 的同一批次。累计功能保留玩家登录、Lens 0910、属性通道、深渊详情、旧服空更新兼容、覆盖安装首次启动缓存清理、圆角按钮与切队初始化/触摸保护，以及此前全部 MOD、幻想连战、排行榜、关注/本人资料路由、CNtips_b 隐藏、422/724、五重决战及 700099 续战队伍复用。9 月 9/10 日登记是归档复现输入，不再作为新任务基线。
 - 旧步骤构建器锁定各自的历史输入，用于解释或复现该步骤；不能把任一中间产物直接当成最新成品。不同 UUID 会改变 APK 哈希，串联重建时不得为通过旧步骤的哈希检查而复用 UUID。
 - 改动 SWF 时分配新 `uniqueappversionid`，保持包名、版本身份和签名证书；回读最终载荷、方法差异、UUID、ZIP 对齐和签名。完整类重编译产物只能用于提取 P-code，不能直接发版。
 - 构建报告只记录本地校验；用户明确验收或明确要求执行验收后，按实际证据更新 `android-accepted.json`、方法文档和检查器，再按用户授权提交。离线验收记为 `accepted_offline`，不得记成用户已真机验收。APK、SWF 成品、临时产物和签名凭据不提交 Git；IPA 必须单独授权。
 
 # iOS IPA 工作入口
 
-最新 iOS 登记（2026-09-25）：作者机制 1.4.1047 回槽性能修复公网 unsigned IPA 为 `accepted_offline`，验收范围为离线检查，未新增真机测试。保留 SET C8601、幻想连战返回、EX 和独立编队累计功能，完整 ABC 与 AOT 方法表均为 101,387 项，准入号 `ios-184-author-1043-20260924`。精确成品以 `ios-accepted.json` 为准，范围见 `ACCEPTANCE-AUTHOR-1047-20260925.md`。下文旧日期内容仅作历史方法保留说明。
+最新 iOS 登记（2026-10-04）：救援铃铛 iOS 修复与新公网迁移版 `66b1057c…`（`http://124.222.203.221`）登记为 `accepted_offline` 并已批准为后续基线，验收范围为离线身份与血缘校验，未新增真机测试。内容 = 2026-10-02 用户验收载体 + 超级+ 紧凑内置排版 + 10 分钟缓存清理（状态放在新类 `cn.mod::CacheCleanupState`，`GlobalLoading/applyLoad` 原生入口包装器）+ F1009 静态槽修复；保留 SET C8601、幻想连战返回、EX 和独立编队等全部累计功能，完整 ABC 与 AOT 方法表均为 101,466 项，准入号 `ios-184-author-1047-public-20261001` 沿用不变。10-04 旧候选（`284f725c…`）进入副本触发 F1009，已停用。精确成品以 `ios-accepted.json` 为准，范围见 `ACCEPTANCE-OROCHI-RESCUE-BELL-IOS-FIX-20261004.md`。下文旧日期内容仅作历史方法保留说明。
 
 
 - 开始 iOS IPA/SWF/AOT 工作前，先读 `ios-accepted.json` 和其中指定的方法文档，运行 `python client-patch/verify_ios_baseline.py` 回读实际 IPA、主可执行文件、主 SWF 的 SHA-256 和包身份。输入缺失或不匹配时不得改用旧包、诊断包或按文件名推测最新包。

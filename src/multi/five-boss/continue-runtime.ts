@@ -5,7 +5,38 @@ import { getPlayerActiveQuestSync, updatePlayerActiveQuestContinueCountSync } fr
 import { FIVE_BOSS_GAUNTLET, isFiveBossGauntletQuest } from "./contract"
 import { runPersistenceTransaction, runPersistenceTransactionSync } from "../../lib/persistence-coordinator"
 
-export class FiveBossContinueError extends Error {}
+export class FiveBossContinueError extends Error {
+    /**
+     * A stale recovery request: the run already ended (settled/aborted) or the
+     * persistent active quest no longer matches it. The legacy CN client has
+     * no business-error path for this route and renders any HTTP 400 as a
+     * fatal H400 dialog that drops the player back to the login screen, so
+     * callers answer these with a benign acknowledgement that grants nothing.
+     */
+    readonly stale: boolean
+
+    constructor(message: string, stale = false) {
+        super(message)
+        this.stale = stale
+    }
+}
+
+/**
+ * Neutral continue response used when the request cannot be honored. Mirrors
+ * the success shape so every client build can parse it; the battle itself is
+ * already gone server-side, so nothing is debited and no receipt is written.
+ */
+export function fiveBossContinueAcknowledgement(playerId: number) {
+    const player = getPlayerSync(playerId)
+    return {
+        continue_count: FIVE_BOSS_GAUNTLET.maxContinueCount,
+        user_info: {
+            free_vmoney: player?.freeVmoney ?? 0,
+            vmoney: player?.vmoney ?? 0,
+        },
+        mail_arrived: false,
+    }
+}
 
 interface ContinueRequest {
     playerId: number
@@ -21,7 +52,9 @@ interface ContinueRequest {
 export function isFiveBossContinueRequest(playerId: number, category: number, questId: number, playId: unknown): boolean {
     if (isFiveBossGauntletQuest(category, questId)) return true
     const active = getPlayerActiveQuestSync(playerId)
-    if (active && isFiveBossGauntletQuest(active.category, active.questId)) return true
+    if (active !== null
+        && active.playId === playId
+        && isFiveBossGauntletQuest(active.category, active.questId)) return true
     if (typeof playId !== "string") return false
     return !!getDb().prepare(`SELECT 1 FROM five_boss_solo_runs WHERE player_id = ? AND play_id = ?
         UNION ALL SELECT 1 FROM five_boss_gauntlet_members WHERE player_id = ? AND client_play_id = ? LIMIT 1`)
@@ -59,7 +92,7 @@ function continueFiveBossInTransaction(input: ContinueRequest) {
         const active = getPlayerActiveQuestSync(input.playerId)
         if (!active || active.playId !== playId || active.isMulti !== input.isMulti
             || !isFiveBossGauntletQuest(active.category, active.questId)) {
-            throw new FiveBossContinueError("No matching active five-boss quest to continue.")
+            throw new FiveBossContinueError("No matching active five-boss quest to continue.", true)
         }
         const registered = input.isMulti
             ? db.prepare(`SELECT 1 FROM five_boss_gauntlet_members m
@@ -71,7 +104,7 @@ function continueFiveBossInTransaction(input: ContinueRequest) {
                 .get(input.playerId, playId, active.roomNumber)
             : db.prepare(`SELECT 1 FROM five_boss_solo_runs WHERE player_id = ? AND play_id = ? AND status = 'active'`)
                 .get(input.playerId, playId)
-        if (!registered) throw new FiveBossContinueError("Five-boss run is no longer active.")
+        if (!registered) throw new FiveBossContinueError("Five-boss run is no longer active.", true)
 
         const receipt = db.prepare(`SELECT request_key FROM five_boss_continue_receipts
             WHERE player_id = ? AND play_id = ? AND is_multi = ?`)

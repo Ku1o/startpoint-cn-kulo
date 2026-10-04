@@ -16,7 +16,7 @@ const serializer_1 = require("../room/serializer");
 const SessionManager_1 = require("../state/SessionManager");
 const builder_1 = require("../npc/builder");
 const recruitment_1 = require("../recruitment");
-const lobby_1 = require("../tcp/lobby");
+const ai_fill_1 = require("../ai-fill");
 const sharing_1 = require("../room/sharing");
 const game_logging_1 = require("../../lib/game-logging");
 const mode15_room_gate_1 = require("../mode15-room-gate");
@@ -32,6 +32,35 @@ function forbidden(reply) {
     return reply.status(403).send({
         "error": "Forbidden",
         "message": "Room permission denied.",
+    });
+}
+function sendShareRoomAcknowledgement(reply, viewerId, reason) {
+    console.warn(`[MULTI] stale share_room acknowledged: viewer=${viewerId} reason=${reason}`);
+    reply.header("content-type", "application/x-msgpack");
+    return reply.status(200).send({
+        data_headers: (0, utils_1.generateDataHeaders)({ viewer_id: viewerId }),
+        data: { config: (0, attention_config_1.getAttentionConfig)() },
+    });
+}
+function sendUnavailableRoomConnection(reply, viewerId, roomNumber, reason) {
+    console.warn(`[MULTI] room connection acknowledged as unavailable:`
+        + ` viewer=${viewerId} room=${roomNumber} reason=${reason}`);
+    reply.header("content-type", "application/x-msgpack");
+    return reply.status(200).send({
+        data_headers: (0, utils_1.generateDataHeaders)({ viewer_id: viewerId }),
+        data: {
+            application_update_url: "",
+            category_id: 0,
+            host_entry_time: 0,
+            ip_address: "",
+            port: 0,
+            quest_id: 0,
+            raising_state: 9,
+            room_number: roomNumber,
+            room_sequence: 0,
+            share_room_options: 0,
+            is_pickup: null,
+        },
     });
 }
 function registerRoomRoutes(fastify) {
@@ -53,28 +82,11 @@ function registerRoomRoutes(fastify) {
             if (mode15RoomClosed) {
                 console.log(`[MODE15] prepare denied: completed host room=${room === null || room === void 0 ? void 0 : room.room_number} viewer=${viewerId}`);
             }
-            reply.header("content-type", "application/x-msgpack");
-            return reply.status(200).send({
-                "data_headers": (0, utils_1.generateDataHeaders)({ viewer_id: viewerId }),
-                "data": {
-                    application_update_url: "",
-                    category_id: 0,
-                    host_entry_time: 0,
-                    ip_address: "",
-                    port: 0,
-                    quest_id: 0,
-                    raising_state: 9,
-                    room_number: (room === null || room === void 0 ? void 0 : room.room_number) || body.room_number || "",
-                    room_sequence: 0,
-                    share_room_options: 0,
-                    is_pickup: null,
-                }
-            });
+            return sendUnavailableRoomConnection(reply, viewerId, (room === null || room === void 0 ? void 0 : room.room_number) || body.room_number || "", !room ? "room_missing"
+                : mode15RoomClosed ? "mode15_closed" : "restore_blocked");
         }
         if (room.category !== Number(body.category) || room.quest_id !== Number(body.quest_id)) {
-            return reply.status(400).send({
-                "error": "Bad Request", "message": "Room quest mismatch."
-            });
+            return sendUnavailableRoomConnection(reply, viewerId, room.room_number, "quest_mismatch");
         }
         if (viewerId === room.host_viewer_id)
             (0, manager_1.updateHostEntryTime)(room.room_number);
@@ -104,15 +116,23 @@ function registerRoomRoutes(fastify) {
         }
         const room = (0, manager_1.getRoom)(body.room_number);
         if (!room || (0, mode15_room_gate_1.isMode15RoomClosed)(room) || SessionManager_1.sessionManager.isRoomRestoreBlocked(body.room_number, viewerId)) {
-            return reply.status(400).send({
-                "error": "Bad Request", "message": "Room doesn't exist."
+            console.warn(`[MULTI] stale summon acknowledged: viewer=${viewerId}`
+                + ` room=${body.room_number} reason=room_unavailable`);
+            reply.header("content-type", "application/x-msgpack");
+            return reply.status(200).send({
+                data_headers: (0, utils_1.generateDataHeaders)({ viewer_id: viewerId }),
+                data: { mate1: null, mate2: null },
             });
         }
         if (room.host_viewer_id !== viewerId)
             return forbidden(reply);
         if (room.category !== Number(body.category_id) || room.quest_id !== Number(body.quest_id)) {
-            return reply.status(400).send({
-                "error": "Bad Request", "message": "Room quest mismatch."
+            console.warn(`[MULTI] stale summon acknowledged: viewer=${viewerId}`
+                + ` room=${body.room_number} reason=quest_mismatch`);
+            reply.header("content-type", "application/x-msgpack");
+            return reply.status(200).send({
+                data_headers: (0, utils_1.generateDataHeaders)({ viewer_id: viewerId }),
+                data: { mate1: null, mate2: null },
             });
         }
         // Random recruitment is a real-player broadcast.  The client still calls
@@ -211,17 +231,13 @@ function registerRoomRoutes(fastify) {
         }
         const room = (0, manager_1.getRoom)(body.room_number);
         if (!room) {
-            return reply.status(400).send({
-                "error": "Bad Request", "message": "Room doesn't exist."
-            });
+            return sendShareRoomAcknowledgement(reply, viewerId, "room_missing");
         }
         if (room.host_viewer_id !== viewerId)
             return forbidden(reply);
         if ((body.category !== undefined && room.category !== Number(body.category))
             || (body.quest_id !== undefined && room.quest_id !== Number(body.quest_id))) {
-            return reply.status(400).send({
-                "error": "Bad Request", "message": "Room quest mismatch."
-            });
+            return sendShareRoomAcknowledgement(reply, viewerId, "quest_mismatch");
         }
         if ((0, mode15_room_gate_1.isMode15RoomClosed)(room)) {
             (0, recruitment_1.stopRandomRecruitment)(room.room_number);
@@ -232,29 +248,31 @@ function registerRoomRoutes(fastify) {
                 "data": { "config": (0, attention_config_1.getAttentionConfig)() }
             });
         }
-        const shareTypes = (0, sharing_1.normalizeRoomShareTypes)(body.share_type_list);
-        const aiSelected = shareTypes.includes(sharing_1.AI_RECRUITMENT_SHARE_TYPE);
-        const aiAlreadyActive = room.is_npc_mode;
-        if (aiAlreadyActive && !aiSelected)
-            shareTypes.push(sharing_1.AI_RECRUITMENT_SHARE_TYPE);
+        // The client's share_type_list is a delta: it contains only the types
+        // enabled by this dialog confirmation, and already-shared entries are
+        // disabled client-side. Merge instead of replace so enabling random
+        // recruitment cannot silently drop the follow-based visibility that
+        // was granted earlier in the same room.
+        const shareTypes = (0, sharing_1.mergeRoomShareTypes)(room.share_room_options, body.share_type_list);
+        const randomSelected = shareTypes.includes(sharing_1.RANDOM_RECRUITMENT_SHARE_TYPE);
         room.share_room_options = (0, sharing_1.encodeRoomShareOptions)(shareTypes);
-        // Option 2 is intentionally repurposed as the private-server AI switch.
-        // Once AI has been selected, keep it authoritative for this room. The
-        // client may send several share_room refreshes with stale subsets
-        // while the three checkboxes are enabled; treating a later [1, 3]
-        // refresh as a cancellation leaves the delayed AI reconcile stranded.
-        if (aiSelected || aiAlreadyActive) {
-            room.is_npc_mode = true;
-            (0, recruitment_1.stopRandomRecruitment)(room.room_number);
-            (0, lobby_1.recruitNpcMatesForRoom)(room.room_number);
-            (0, game_logging_1.gameVerboseLog)(() => `[MULTI] share_room: AI recruitment enabled/preserved room=${room.room_number}`);
-        }
-        else if (shareTypes.includes(sharing_1.RANDOM_RECRUITMENT_SHARE_TYPE)) {
+        (0, game_logging_1.gameVerboseLog)(() => {
+            var _a;
+            return `[MULTI] share_room: requested=${JSON.stringify((_a = body.share_type_list) !== null && _a !== void 0 ? _a : null)}`
+                + ` options=${room.share_room_options}`;
+        });
+        // The client cannot turn random recruitment off after enabling it.
+        // Treat it as sticky: a later refresh without type 3 must not stop the
+        // active recruitment or its AI fallback. Battle start, room disband
+        // and the fallback itself own the stop path.
+        if (randomSelected && !room.is_npc_mode) {
+            const wasRecruiting = (0, recruitment_1.isRandomRecruiting)(room.room_number);
             const recruitment = (0, recruitment_1.publishRandomRecruitment)(room.room_number);
+            if (!wasRecruiting)
+                (0, ai_fill_1.scheduleAiFallback)(room.room_number);
             (0, game_logging_1.gameVerboseLog)(() => `[MULTI] share_room: random recruitment published room=${room.room_number} key=${recruitment.attentionKey}`);
         }
         else {
-            (0, recruitment_1.stopRandomRecruitment)(room.room_number);
             (0, game_logging_1.gameVerboseLog)(() => `[MULTI] share_room: scoped visibility updated room=${room.room_number} options=${room.share_room_options}`);
         }
         reply.header("content-type", "application/x-msgpack");

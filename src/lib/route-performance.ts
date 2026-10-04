@@ -21,7 +21,8 @@ export function installRoutePerformanceMonitor(fastify: FastifyInstance): void {
     installMemoryDiagnostics(fastify)
     if (!isEnabled()) return
 
-    const diagnostics = installRequestDiagnostics(fastify)
+    const detailed = /^(1|true|yes|on)$/i.test(process.env.ROUTE_PERF_DETAIL ?? "false")
+    const diagnostics = installRequestDiagnostics(fastify, { detailed })
     const intervalMs = Math.max(
         10_000,
         Number.parseInt(process.env.ROUTE_PERF_INTERVAL_MS ?? "60000", 10) || 60_000,

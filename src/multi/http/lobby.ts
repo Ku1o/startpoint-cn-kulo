@@ -5,7 +5,8 @@ import { getFollowRelationSync } from "../../data/domains/follow"
 import { getQuestFromCategorySync } from "../../lib/assets"
 import { generateDataHeaders } from "../../utils"
 import { getFavoritePartySelectionSync } from "../../lib/profileFavorite"
-import { createRoom, getRoom, getRoomByToken, getRooms, isRoomWaitingForExpectedMember } from "../room/manager"
+import { createRoom, getRoom, getRoomAcceptedSeatCount, getRoomByToken, getRooms,
+    isRoomWaitingForExpectedMember } from "../room/manager"
 import { serializeRoom, serializeRoomConnection } from "../room/serializer"
 import { isRoomSharedWithPlayer } from "../room/sharing"
 import { sessionManager } from "../state/SessionManager"
@@ -17,13 +18,14 @@ import {
 } from "../recruitment"
 import { gameVerboseLog } from "../../lib/game-logging"
 import { isNewbiePlayerSync } from "../../lib/newbie"
-import { canJoinMode15RescueSync, canStartMode15QuestSync, isMode15Quest } from "../../lib/mode15-optional"
+import { canStartMode15QuestSync, isMode15Quest } from "../../lib/mode15-optional"
 import { isMode15RoomClosed } from "../mode15-room-gate"
 import { roomAdmissionRegistry } from "../room/admission"
-import { getSelectRoomDenialRaisingState } from "../room/select-denial"
+import { getSelectRoomDenialRaisingState, SELECT_ROOM_FILLED_STATE } from "../room/select-denial"
 import { embeddedMultiCoordinator } from "../coordinator/embedded"
 import { cacheMultiPlayerContext, resolveMultiPlayerContext } from "../player-context"
 import { primeRealPartySnapshot } from "../party-snapshot"
+import { canJoinMultiGuestQuestSync } from "../guest-eligibility"
 
 const ROOM_CAPACITY = 3
 
@@ -58,9 +60,12 @@ function canEnterMode15Room(playerId: number, room: Pick<MultiRoom, "category" |
     return canStartMode15QuestSync(playerId, room.category, room.quest_id).allowed
 }
 
-function canJoinRoomAsGuest(playerId: number, room: Pick<MultiRoom, "category" | "quest_id">): boolean {
-    if (!isMode15Quest(room.category, room.quest_id)) return true
-    return canJoinMode15RescueSync(playerId, room.category, room.quest_id).allowed
+function canJoinRoomAsGuest(
+    playerId: number,
+    player: Parameters<typeof canJoinMultiGuestQuestSync>[3],
+    room: Pick<MultiRoom, "category" | "quest_id">,
+): boolean {
+    return canJoinMultiGuestQuestSync(playerId, room.category, room.quest_id, player).allowed
 }
 
 export function registerLobbyRoutes(fastify: FastifyInstance): void {
@@ -100,8 +105,11 @@ export function registerLobbyRoutes(fastify: FastifyInstance): void {
                 r,
                 viewerPlayerId,
             ))
-            .filter(r => !r.is_npc_mode
-                && !["STARTING", "BATTLE"].includes(embeddedMultiCoordinator.ensureLifecycle(r).phase))
+            // AI-filled rooms stay visible to viewers who pass the share
+            // check, but a roster completed with COM seats is reported as
+            // full so the client shows its native "room is full" state
+            // instead of attempting an entry that would be rejected.
+            .filter(r => !["STARTING", "BATTLE"].includes(embeddedMultiCoordinator.ensureLifecycle(r).phase))
             .filter(r => !isMode15RoomClosed(r))
             .filter(r => sessionManager.isHostOnline(r.host_viewer_id, r.room_number, r.lobby_generation))
             .filter(r => getCurrentLobbyOccupancy(r) < ROOM_CAPACITY)
@@ -109,8 +117,15 @@ export function registerLobbyRoutes(fastify: FastifyInstance): void {
             // code, follow sharing and random recruitment must therefore use
             // the same repeatable rescue gate instead of the helper's own run
             // position.
-            .filter(r => canJoinRoomAsGuest(viewerPlayerId, r))
-            .map(r => serializeRoom(r, viewerPlayerId))
+            .filter(r => canJoinRoomAsGuest(viewerPlayerId, ctx.player, r))
+            .map(r => {
+                const serialized = serializeRoom(r, viewerPlayerId)
+                if (!isReturningMember(r, viewerId)
+                    && getRoomAcceptedSeatCount(r) >= ROOM_CAPACITY) {
+                    serialized.raising_state = SELECT_ROOM_FILLED_STATE
+                }
+                return serialized
+            })
 
         reply.header("content-type", "application/x-msgpack")
         return reply.status(200).send({
@@ -137,9 +152,15 @@ export function registerLobbyRoutes(fastify: FastifyInstance): void {
         primeRealPartySnapshot(ctx.playerId)
 
         const quest = getQuestFromCategorySync(category, quest_id)
-        if (!quest) return reply.status(400).send({
-            "error": "Bad Request", "message": "Quest doesn't exist."
-        })
+        if (!quest) {
+            console.warn(`[MULTI] create_room acknowledged as unavailable:`
+                + ` viewer=${viewer_id} category=${category} quest=${quest_id}`)
+            reply.header("content-type", "application/x-msgpack")
+            return reply.status(200).send({
+                data_headers: generateDataHeaders({ viewer_id, result_code: 4507 }),
+                data: {},
+            })
+        }
 
         if (isMode15Quest(category, quest_id)) {
             const gate = canStartMode15QuestSync(ctx.playerId, category, quest_id)
@@ -205,7 +226,7 @@ export function registerLobbyRoutes(fastify: FastifyInstance): void {
             && !isMode15RoomClosed(room)
             && !sessionManager.isRoomRestoreBlocked(room.room_number, viewerId)
             && (returningMember || (
-                canJoinRoomAsGuest(viewerPlayerId, room)
+                canJoinRoomAsGuest(viewerPlayerId, ctx.player, room)
                 && !["STARTING", "BATTLE"].includes(embeddedMultiCoordinator.ensureLifecycle(room).phase)
                 && !isRoomWaitingForExpectedMember(room)
                 && getCurrentLobbyOccupancy(room) < ROOM_CAPACITY
@@ -244,20 +265,22 @@ export function registerLobbyRoutes(fastify: FastifyInstance): void {
         })
 
         const room = body.room_number ? getRoom(body.room_number) : getRoomByToken(body.access_token || "")
-        if (room && (room.category !== Number(body.category) || room.quest_id !== Number(body.quest_id))) {
-            return reply.status(400).send({
-                "error": "Bad Request", "message": "Room quest mismatch."
-            })
-        }
+        const roomQuestMismatch = !!room
+            && (room.category !== Number(body.category) || room.quest_id !== Number(body.quest_id))
         const returningMember = !!room && isReturningMember(room, viewerId)
         const rescueSelection = Number(body.accepted_type) === 2
         const randomRescue = !!room
             && !returningMember
             && rescueSelection
             && wasRandomRecruitmentDeliveredTo(room.room_number, viewerId)
-        const mode15Blocked = !!room
+        const invalidRescueSelection = !!room
             && !returningMember
-            && !canJoinRoomAsGuest(ctx.playerId, room)
+            && rescueSelection
+            && !randomRescue
+        const guestEligibility = room && !returningMember
+            ? canJoinMultiGuestQuestSync(ctx.playerId, room.category, room.quest_id, ctx.player)
+            : null
+        const guestIneligible = guestEligibility?.allowed === false
         const mode15RoomClosed = !!room && isMode15RoomClosed(room)
         // A rescue notice remains visible on the client for roughly 30 seconds.
         // If the host enabled AI or started/stopped recruitment after delivery,
@@ -274,13 +297,23 @@ export function registerLobbyRoutes(fastify: FastifyInstance): void {
         const waitingForExpectedMember = !!room
             && !returningMember
             && isRoomWaitingForExpectedMember(room)
+        // COM seats count as occupied: a room that filled its free seats with
+        // AI is full for anyone outside the original party. Only the host,
+        // expected members and recorded mates may take a seat back.
+        const lobbySeatsFull = !!room
+            && !returningMember
+            && getRoomAcceptedSeatCount(room) >= ROOM_CAPACITY
         const isUnavailableWithoutCapacity = !!room && (
+            roomQuestMismatch
+            ||
             mode15RoomClosed
             || (!returningMember && (
                 battleStarted
                 || waitingForExpectedMember
+                || lobbySeatsFull
                 || staleRescueNotice
-                || mode15Blocked
+                || invalidRescueSelection
+                || guestIneligible
             ))
         )
         const restoreBlocked = !!room && sessionManager.isRoomRestoreBlocked(room.room_number, viewerId)
@@ -294,6 +327,8 @@ export function registerLobbyRoutes(fastify: FastifyInstance): void {
                 viewerId,
                 getCurrentLobbyViewerIds(room),
                 ROOM_CAPACITY,
+                Date.now(),
+                randomRescue ? "rescue" : "direct",
             )
         if (!room || isUnavailableWithoutCapacity || restoreBlocked || capacityDenied) {
             if (room && !returningMember) {
@@ -304,17 +339,50 @@ export function registerLobbyRoutes(fastify: FastifyInstance): void {
                     `[MODE15] select_room denied: completed host room=${room?.room_number} viewer=${viewerId}`,
                 )
             }
+            if (roomQuestMismatch) {
+                console.log(
+                    `[MULTI] select_room denied before TCP: viewer=${viewerId}`
+                    + ` room=${room?.room_number} reason=quest_mismatch`,
+                )
+            }
             if (capacityDenied) {
                 console.log(
                     `[MULTI] select_room denied before TCP: viewer=${viewerId}`
                     + ` room=${room?.room_number} reason=capacity_reserved`,
                 )
             }
+            if (lobbySeatsFull) {
+                console.log(
+                    `[MULTI] select_room denied before TCP: viewer=${viewerId}`
+                    + ` room=${room?.room_number} reason=room_seats_full`,
+                )
+            }
+            if (guestIneligible) {
+                console.log(
+                    `[MULTI] guest select denied: viewer=${viewerId}`
+                    + ` room=${room?.room_number} category=${room?.category} quest=${room?.quest_id}`
+                    + ` source=${rescueSelection ? "rescue" : "direct"}`
+                    + ` reason=${guestEligibility?.reason}`
+                    + ` rank=${guestEligibility?.playerRank ?? "unknown"}`
+                    + ` requiredRank=${guestEligibility?.minimumPlayerRank ?? "none"}`
+                    + ` prerequisite=${guestEligibility?.requiredQuestCategories?.join("|") ?? "none"}`
+                    + `:${guestEligibility?.requiredQuestId ?? "none"}`
+                    + ` requiredItem=${guestEligibility?.requiredItemId ?? "none"}`
+                    + ` itemCount=${guestEligibility?.currentItemCount ?? "unknown"}`,
+                )
+            }
+            if (invalidRescueSelection) {
+                console.log(
+                    `[MULTI] rescue select denied: viewer=${viewerId}`
+                    + ` room=${room?.room_number} reason=notice_not_delivered`,
+                )
+            }
             const denialRaisingState = getSelectRoomDenialRaisingState({
                 battleStarted,
                 // A disconnected expected member still owns that seat, so the
-                // room is full from a new entrant's point of view.
-                roomFull: capacityDenied || waitingForExpectedMember,
+                // room is full from a new entrant's point of view. The same
+                // applies once COM mates occupy the remaining seats.
+                roomFull: capacityDenied || waitingForExpectedMember || lobbySeatsFull,
             })
             reply.header("content-type", "application/x-msgpack")
             return reply.status(200).send({

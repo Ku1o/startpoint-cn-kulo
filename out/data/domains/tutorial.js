@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.insertPlayerTriggeredTutorialsSync = exports.insertPlayerTriggeredTutorialSync = exports.getPlayerTriggeredTutorialsSync = void 0;
 const db_1 = require("../db");
 const persistence_coordinator_1 = require("../../lib/persistence-coordinator");
+const cached_statement_1 = require("../../lib/cached-statement");
 /**
  * Gets a player's triggered tutorials.
  *
@@ -11,7 +12,7 @@ const persistence_coordinator_1 = require("../../lib/persistence-coordinator");
  */
 function getPlayerTriggeredTutorialsSync(playerId) {
     const db = (0, db_1.getDb)();
-    const raw = db.prepare(`
+    const raw = (0, cached_statement_1.cachedStatement)(db, `
     SELECT id
     FROM players_triggered_tutorials
     WHERE player_id = ?

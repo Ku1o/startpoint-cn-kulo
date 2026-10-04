@@ -2,6 +2,7 @@ import { getDb } from "../db";
 import { PlayerBoxGacha, PlayerBoxGachaDrawnReward, RawPlayerBoxGacha } from "../types";
 import { deserializeBoolean, serializeBoolean, deserializeNumberList } from "../utils";
 import { runPersistenceTransactionSync } from "../../lib/persistence-coordinator";
+import { cachedStatement } from "../../lib/cached-statement";
 
 /**
  * Converts a RawPlayerBoxGacha object into a PlayerBoxGacha object.
@@ -33,7 +34,7 @@ export function getPlayerBoxGachaSync(
     gachaId: number,
     boxId: number
 ): PlayerBoxGacha | null {
-    const rawBox = getDb().prepare(`
+    const rawBox = cachedStatement(getDb(), `
     SELECT id, box_id, reset_times, remaining_number, is_closed
     FROM players_box_gacha
     WHERE player_id = ? AND id = ? AND box_id = ?
@@ -54,7 +55,7 @@ export function getPlayerBoxGachasSync(
     playerId: number
 ): Record<string, PlayerBoxGacha[]> {
 
-    const rawBoxes = getDb().prepare(`
+    const rawBoxes = cachedStatement(getDb(), `
     SELECT id, box_id, reset_times, remaining_number, is_closed
     FROM players_box_gacha
     WHERE player_id = ?

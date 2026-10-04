@@ -4,12 +4,15 @@ const fs = require('node:fs')
 const os = require('node:os')
 const path = require('node:path')
 const Database = require('better-sqlite3')
+process.env.SQLITE_DIAGNOSTICS = 'true'
 
 const {
     executeSqlitePersistenceCommand,
     startSqlitePersistenceWorker,
     stopSqlitePersistenceWorker,
+    setSqlitePersistenceCheckpointOwner,
 } = require('../out/lib/sqlite-persistence-worker.js')
+const { collectMemoryDiagnostics } = require('../out/lib/memory-diagnostics')
 const {
     configurePersistenceSqlExecutor,
     runPersistenceSqlCommand,
@@ -27,7 +30,36 @@ test('persistence worker serializes commands and rolls back a failed command', a
         SQLITE_PERSISTENCE_WORKER: '1',
         SQLITE_PERSISTENCE_BUSY_TIMEOUT_MS: '0',
         SQLITE_PERSISTENCE_MAX_ATTEMPTS: '2',
+        SQLITE_SYNCHRONOUS: 'FULL',
+        SQLITE_CACHE_KIB: '32768',
+        SQLITE_MMAP_MIB: '64',
     }), true)
+    const settings = () => collectMemoryDiagnostics().counters.sqlitePersistence
+    const until = async predicate => {
+        const deadline = Date.now() + 5000
+        while (Date.now() < deadline) {
+            if (predicate()) return
+            await new Promise(resolve => setTimeout(resolve, 20))
+        }
+        assert.fail(`worker settings unavailable: ${JSON.stringify(settings())}`)
+    }
+    await until(() => settings()?.walAutocheckpoint === 1000)
+    collectMemoryDiagnostics()
+    await new Promise(resolve => setTimeout(resolve, 50))
+    const firstWorkerSample = collectMemoryDiagnostics().workers
+        .find(worker => worker.name === 'sqlite-persistence')
+    await new Promise(resolve => setTimeout(resolve, 50))
+    const secondWorkerSample = collectMemoryDiagnostics().workers
+        .find(worker => worker.name === 'sqlite-persistence')
+    assert.equal(firstWorkerSample?.counters.failed, 0)
+    assert.equal(secondWorkerSample?.counters.failed, 0)
+    assert.equal(settings().synchronous, 2)
+    assert.equal(settings().cacheSize, -32768)
+    assert.equal(settings().mmapSize, 64 * 1024 * 1024)
+    setSqlitePersistenceCheckpointOwner(true)
+    await until(() => settings()?.walAutocheckpoint === 0)
+    setSqlitePersistenceCheckpointOwner(false)
+    await until(() => settings()?.walAutocheckpoint === 1000)
 
     const first = executeSqlitePersistenceCommand({
         operation: 'test_first',

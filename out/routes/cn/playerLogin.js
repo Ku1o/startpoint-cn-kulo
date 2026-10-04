@@ -10,11 +10,11 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.installPlayerLoginGuard = void 0;
-const db_1 = require("../../data/db");
 const utils_1 = require("../../utils");
 const player_login_1 = require("../../lib/player-login");
 function installPlayerLoginGuard(app) {
     app.addHook("preHandler", (request, reply) => __awaiter(this, void 0, void 0, function* () {
+        var _a, _b;
         if (!request.url.startsWith("/api/index.php/"))
             return;
         const path = request.url.split("?")[0];
@@ -23,21 +23,20 @@ function installPlayerLoginGuard(app) {
         const viewer = body.viewer_id || body.keychain;
         const session = (0, player_login_1.readPlayerLoginAccess)(supplied, viewer);
         let denied = Boolean(supplied && !session);
-        const accountId = session ? session.request_account_id : (0, player_login_1.playerAccountByViewer)(viewer);
+        const viewerAccess = session ? null : (0, player_login_1.readPlayerLoginViewerAccess)(viewer);
+        const accountId = session ? session.request_account_id : (_a = viewerAccess === null || viewerAccess === void 0 ? void 0 : viewerAccess.accountId) !== null && _a !== void 0 ? _a : null;
         if (session && viewer && Number(viewer) !== 0 && accountId !== session.account_id)
             denied = true;
-        if (!session && accountId && (0, player_login_1.playerLoginManaged)(accountId))
+        if (!session && (viewerAccess === null || viewerAccess === void 0 ? void 0 : viewerAccess.managed))
             denied = true;
         // Bound saves are recovered via player login; legacy transfer must never delete a signed-up account.
         if (path.includes("/take_over")) {
-            const legacyTarget = (0, player_login_1.playerAccountByViewer)(body.input_viewer_id);
-            if (session || (accountId && (0, player_login_1.playerLoginManaged)(accountId))
-                || (legacyTarget && (0, player_login_1.playerLoginManaged)(legacyTarget)))
+            const legacyTarget = (0, player_login_1.readPlayerLoginViewerAccess)(body.input_viewer_id);
+            if (session || (viewerAccess === null || viewerAccess === void 0 ? void 0 : viewerAccess.managed) || (legacyTarget === null || legacyTarget === void 0 ? void 0 : legacyTarget.managed))
                 denied = true;
         }
         if (path.endsWith("/tool/signup") && !session) {
-            const row = (0, db_1.getDb)().prepare("SELECT account_id FROM device_bindings WHERE device_id=?").get(Number(body.device_id) || 0);
-            if (row && (0, player_login_1.playerLoginManaged)(row.account_id))
+            if ((_b = (0, player_login_1.readPlayerLoginDeviceAccess)(body.device_id)) === null || _b === void 0 ? void 0 : _b.managed)
                 denied = true;
         }
         if (!denied) {

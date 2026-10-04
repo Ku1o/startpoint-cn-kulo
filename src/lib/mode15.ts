@@ -141,6 +141,17 @@ export function isMode15Quest(category: number, questId: number): boolean {
     return getMode15QuestRef(category, questId) !== null;
 }
 
+/** Quests where Fantasy weapons and their ability souls may be equipped. */
+export function isMode15EquipmentAllowedQuest(
+    category: number,
+    questId: number,
+): boolean {
+    return isMode15Quest(category, questId)
+        || (Number(category) === Number(QuestCategory.RUSH_EVENT)
+            && Number(questId) >= MODE15_RUSH_EVENT_ID * 1000 + 1
+            && Number(questId) <= MODE15_PRACTICE_QUEST_ID);
+}
+
 export function getMode15ExclusivePartyItemsSync(
     playerId: number,
     category: number,
@@ -377,8 +388,10 @@ export function settleMode15BattleSync(
     if (ref === null) return null;
 
     if (!accomplished) {
-        if (!options.rescue) resetMode15RunSync(playerId);
-        console.log(`[MODE15] failed: player=${playerId} stage=${ref.stage}; rescue=${!!options.rescue}`);
+        const preserveBoundaryStage = ref.category === MODE15_MULTI_CATEGORY;
+        if (!options.rescue && !preserveBoundaryStage) resetMode15RunSync(playerId);
+        console.log(`[MODE15] failed: player=${playerId} stage=${ref.stage}`
+            + ` rescue=${!!options.rescue} preserved=${preserveBoundaryStage}`);
         return null;
     }
 

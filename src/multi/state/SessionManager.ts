@@ -14,9 +14,11 @@ import { clearChainDiagnosticRoom } from "../tcp/chain-diagnostic"
 import { embeddedMultiCoordinator } from "../coordinator/embedded"
 import { roomAdmissionRegistry } from "../room/admission"
 import { fiveBossConnectionDiagnostics } from "../five-boss/connection-diagnostic"
+import { isFiveBossGauntletQuest } from "../five-boss/contract"
 import { registerMemoryCounters } from "../../lib/memory-diagnostics"
 import { recordServerWork } from "../../lib/server-work-performance"
 import { recordRealtimeDiagnostic } from "../../lib/realtime-diagnostics"
+import { markTcpDisconnectReason } from "../tcp/disconnect-diagnostics"
 
 export interface SessionClient {
     socket: net.Socket
@@ -34,6 +36,7 @@ export interface SessionClient {
     connectionGeneration: number
     superseded: boolean
     connectedAt: number
+    fiveBossBattleEntered: boolean
     admissionClaimed: boolean
     admissionGeneration?: number
     clientState: ClientStateMachine
@@ -77,7 +80,10 @@ export class SessionManager {
     /** An account login replacement revokes both lobby and battle transports. */
     public disconnectPlayerLogin(viewerId: number): void {
         for (const client of Array.from(this.clients.values())) {
-            if (client.viewerId === viewerId) client.socket.destroy()
+            if (client.viewerId === viewerId) {
+                markTcpDisconnectReason(client.socket, "login_replaced")
+                client.socket.destroy()
+            }
         }
     }
     private clients = new Map<string, SessionClient>()
@@ -141,6 +147,7 @@ export class SessionManager {
                 retry.unref()
                 return
             }
+            markTcpDisconnectReason(socket, "superseded")
             socket.destroy()
         }
         const timer = setTimeout(closeWhenSafe, checkMs)
@@ -172,7 +179,10 @@ export class SessionManager {
             const oldest = bucket.sockets.values().next().value as net.Socket | undefined
             if (!oldest) break
             bucket.sockets.delete(oldest)
-            if (!oldest.destroyed) oldest.destroy()
+            if (!oldest.destroyed) {
+                markTcpDisconnectReason(oldest, "superseded")
+                oldest.destroy()
+            }
         }
         return this.deferSupersededSocketClose(socket, replacementIsLive)
     }
@@ -182,7 +192,10 @@ export class SessionManager {
             if (bucket.roomNumber !== roomNumber) continue
             this.supersededSocketBuckets.delete(ownerKey)
             for (const socket of bucket.sockets) {
-                if (!socket.destroyed) socket.destroy()
+                if (!socket.destroyed) {
+                    markTcpDisconnectReason(socket, "room_disband")
+                    socket.destroy()
+                }
             }
         }
     }
@@ -204,6 +217,7 @@ export class SessionManager {
             if (socket.destroyed) return
             gameVerboseLog(() => `[MULTI] forcing retired lobby socket closed: room=${roomNumber}`
                 + ` graceMs=${graceMs}`)
+            markTcpDisconnectReason(socket, "room_disband")
             socket.destroy()
         }, graceMs)
         timer.unref()
@@ -227,14 +241,22 @@ export class SessionManager {
         this.battleConnectionPhase.set(connectionId, "loading")
         this.battleLastActivityAt.set(connectionId, Date.now())
         const timer = setTimeout(() => {
-            this.battleHeartbeatTimers.delete(connectionId)
-            const current = this.cidToBattleClient.get(connectionId)
-            if (!current || current.socket.destroyed
-                || this.battleConnectionPhase.get(connectionId) !== "loading") return
-            console.warn(`[MULTI] battle loading timed out: room=${current.roomNumber}`
-                + ` viewer=${current.viewerId} connection=${connectionId} timeoutMs=${leaseMs}`)
-            fiveBossConnectionDiagnostics.socketEvent(current.socket, "loading_timeout", String(leaseMs))
-            current.socket.destroy()
+            // Timers run before the poll phase on a busy loop. Give a SceneReady
+            // frame that is already waiting in the kernel one I/O turn to
+            // replace this lease before deciding that loading really expired.
+            const check = setImmediate(() => {
+                if (this.battleHeartbeatTimers.get(connectionId) !== timer) return
+                this.battleHeartbeatTimers.delete(connectionId)
+                const current = this.cidToBattleClient.get(connectionId)
+                if (!current || current.socket.destroyed
+                    || this.battleConnectionPhase.get(connectionId) !== "loading") return
+                console.warn(`[MULTI] battle loading timed out: room=${current.roomNumber}`
+                    + ` viewer=${current.viewerId} connection=${connectionId} timeoutMs=${leaseMs}`)
+                fiveBossConnectionDiagnostics.socketEvent(current.socket, "loading_timeout", String(leaseMs))
+                markTcpDisconnectReason(current.socket, "loading_timeout")
+                current.socket.destroy()
+            })
+            check.unref()
         }, leaseMs)
         timer.unref()
         this.battleHeartbeatTimers.set(connectionId, timer)
@@ -247,24 +269,29 @@ export class SessionManager {
         const previous = this.battleHeartbeatTimers.get(connectionId)
         if (previous) clearTimeout(previous)
         const timer = setTimeout(() => {
-            this.battleHeartbeatTimers.delete(connectionId)
-            const current = this.cidToBattleClient.get(connectionId)
-            if (!current || current.socket.destroyed) {
-                this.battleLastActivityAt.delete(connectionId)
-                return
-            }
-            const inactiveMs = Date.now() - (this.battleLastActivityAt.get(connectionId) ?? 0)
-            if (inactiveMs < leaseMs) {
-                this.scheduleBattleActivityLease(connectionId, Math.max(1, leaseMs - inactiveMs))
-                return
-            }
-            console.warn(`[MULTI] real battle connection heartbeat expired: room=${current.roomNumber}`
-                + ` viewer=${current.viewerId} connection=${connectionId} inactiveMs=${inactiveMs}`)
-            fiveBossConnectionDiagnostics.socketEvent(current.socket, "heartbeat_timeout", String(inactiveMs))
-            // Destroy only a battle socket that completed the real handshake.
-            // Its normal close handler performs the native Leave path using the
-            // connection id already known by every remaining client.
-            current.socket.destroy()
+            const check = setImmediate(() => {
+                if (this.battleHeartbeatTimers.get(connectionId) !== timer) return
+                this.battleHeartbeatTimers.delete(connectionId)
+                const current = this.cidToBattleClient.get(connectionId)
+                if (!current || current.socket.destroyed) {
+                    this.battleLastActivityAt.delete(connectionId)
+                    return
+                }
+                const inactiveMs = Date.now() - (this.battleLastActivityAt.get(connectionId) ?? 0)
+                if (inactiveMs < leaseMs) {
+                    this.scheduleBattleActivityLease(connectionId, Math.max(1, leaseMs - inactiveMs))
+                    return
+                }
+                console.warn(`[MULTI] real battle connection heartbeat expired: room=${current.roomNumber}`
+                    + ` viewer=${current.viewerId} connection=${connectionId} inactiveMs=${inactiveMs}`)
+                fiveBossConnectionDiagnostics.socketEvent(current.socket, "heartbeat_timeout", String(inactiveMs))
+                // Destroy only a battle socket that completed the real handshake.
+                // Its normal close handler performs the native Leave path using the
+                // connection id already known by every remaining client.
+                markTcpDisconnectReason(current.socket, "heartbeat_timeout")
+                current.socket.destroy()
+            })
+            check.unref()
         }, delayMs)
         timer.unref()
         this.battleHeartbeatTimers.set(connectionId, timer)
@@ -441,6 +468,22 @@ export class SessionManager {
         pending.add(connectionId)
     }
 
+    private publishBattleDeparture(client: SessionClient): void {
+        if (client.fiveBossBattleEntered) {
+            // The CN five-boss client normally closes cooperation_battle after
+            // BattleStart and continues the fight client-side. Publishing the
+            // ordinary Leave frame here creates a false communication-loss
+            // dialog for peers. A later LevelNext barrier still owns its normal
+            // missing-seat grace and publishes Leave only after retiring the
+            // absent seat.
+            return
+        } else if (this.battleSceneStartedRooms.has(client.roomNumber)) {
+            this.broadcastBattleLeave(client.roomNumber, client.connectionId)
+        } else {
+            this.queueBattleLeave(client.roomNumber, client.connectionId)
+        }
+    }
+
     private broadcastBattleLeave(roomNumber: string, connectionId: string): void {
         for (const client of this.getConnectedBattleClients(roomNumber)) {
             if (client.connectionId === connectionId) continue
@@ -451,12 +494,21 @@ export class SessionManager {
     private activateBattleScene(roomNumber: string): void {
         const clients = this.getConnectedBattleClients(roomNumber)
         this.battleSceneStartedRooms.add(roomNumber)
+        this.recordFiveBossBattleEntry(roomNumber, clients)
 
         // Promote the entire room together. SceneReady means only that one
         // client finished loading; treating it as active before this point can
         // publish Leave to peers that are still constructing their battle.
         for (const client of clients) {
-            this.armActiveBattleHeartbeatLease(client.connectionId)
+            if (client.fiveBossBattleEntered) {
+                // The CN five-boss client can stay silent for longer than the
+                // ordinary heartbeat lease while a boss is active. Keep the
+                // authenticated socket for LevelNext; the next loading phase
+                // and the room watchdog still provide bounded cleanup.
+                this.clearBattleHeartbeatLease(client.connectionId)
+            } else {
+                this.armActiveBattleHeartbeatLease(client.connectionId)
+            }
         }
         for (const client of clients) {
             this.sendJson(client.socket, [1, [1]])
@@ -469,6 +521,19 @@ export class SessionManager {
         this.pendingBattleLeaves.delete(roomNumber)
         for (const connectionId of pending ?? []) {
             this.broadcastBattleLeave(roomNumber, connectionId)
+        }
+    }
+
+    private recordFiveBossBattleEntry(roomNumber: string, clients: SessionClient[]): void {
+        let room
+        try { room = require("../room/manager").getRoom(roomNumber) }
+        catch { return }
+        if (!room?.five_boss_runtime) return
+        try {
+            const { recordFiveBossSignal } = require("../five-boss/lobby-runtime")
+            for (const client of clients) recordFiveBossSignal(room, client, "scene_ready")
+        } catch (error) {
+            console.error(`[FIVE-BOSS-SIGNAL] battle entry dispatch failed: room=${roomNumber}`, error)
         }
     }
 
@@ -553,6 +618,10 @@ export class SessionManager {
 
     isRoomRestoreBlocked(roomNumber: string, viewerId: number): boolean {
         return this.blockedRoomRestores.get(roomNumber)?.has(viewerId) ?? false
+    }
+
+    isBattleSeatRetired(roomNumber: string, viewerId: number): boolean {
+        return this.retiredBattleSeats.get(roomNumber)?.has(`viewer:${viewerId}`) ?? false
     }
 
     beginRescueGuestWait(client: SessionClient): void {
@@ -668,6 +737,7 @@ export class SessionManager {
         const current = this.getClient(viewerId, roomNumber)
         if (current && !current.isBattle) {
             this.removeClient(current)
+            markTcpDisconnectReason(current.socket, "rescue_timeout")
             try { current.socket.end() } catch (e) {}
             setTimeout(() => {
                 try { current.socket.destroy() } catch (e) {}
@@ -694,7 +764,15 @@ export class SessionManager {
         } catch (e) {
             return
         }
-        const reconnectMs = this.parsePositiveDuration("MULTI_HOST_RECONNECT_GRACE_MS", 25_000)
+        const baseReconnectMs = this.parsePositiveDuration("MULTI_HOST_RECONNECT_GRACE_MS", 25_000)
+        // After a rematch generation, guests are allowed the longer
+        // REMATCH_RECONNECT_GRACE_MS to return.  A host that briefly drops
+        // after entering that lobby must not make the room disappear sooner
+        // than the guest's own reconnect window.
+        const rematchReconnectMs = roomGeneration > 0
+            ? this.parsePositiveDuration("REMATCH_RECONNECT_GRACE_MS", 60_000)
+            : 0
+        const reconnectMs = Math.max(baseReconnectMs, rematchReconnectMs)
         const timer = setTimeout(() => {
             void embeddedMultiCoordinator.enqueueRoomCommand(roomNumber, () => {
                 if (this.hostReconnectTimers.get(roomNumber) !== timer) return
@@ -775,6 +853,7 @@ export class SessionManager {
             if (!client.isBattle && notifiedLobbySockets.has(client.socket)) {
                 this.retireDisbandedLobbySocket(client.socket, roomNumber)
             } else {
+                markTcpDisconnectReason(client.socket, "room_disband")
                 try { client.socket.end() } catch (e) {}
                 setTimeout(() => {
                     try { client.socket.destroy() } catch (e) {}
@@ -870,6 +949,11 @@ export class SessionManager {
             const lifecycle = embeddedMultiCoordinator.ensureLifecycle(room)
             roomInstanceId = lifecycle.instanceId
             lifecycleVersion = lifecycle.version
+            if (isFiveBossGauntletQuest(room.category, room.quest_id)
+                && this.isHostOnline(room.host_viewer_id, roomNumber)) {
+                this.completeSettlementReturn(roomNumber)
+                return
+            }
         } catch (e) {
             return
         }
@@ -900,17 +984,26 @@ export class SessionManager {
         gameVerboseLog(() => `[MULTI] waiting for settlement lobby return: room=${roomNumber} graceMs=${settlementReturnGraceMs}`)
     }
 
-    completeSettlementReturn(roomNumber: string): void {
+    completeSettlementReturn(roomNumber: string): boolean {
         const pendingTimer = this.settlementReturnTimers.get(roomNumber)
         if (pendingTimer) clearTimeout(pendingTimer)
         this.settlementReturnTimers.delete(roomNumber)
         let roomGeneration: number | undefined
+        let completed = false
         try {
             const { getRoom } = require("../room/manager")
             const room = getRoom(roomNumber)
             if (room) {
-                embeddedMultiCoordinator.completeSettlementReturn(room)
-                roomGeneration = room.lobby_generation
+                const transition = embeddedMultiCoordinator.completeSettlementReturn(room)
+                if (transition.ok) {
+                    roomGeneration = room.lobby_generation
+                    for (const client of this.getClientsInRoom(roomNumber)) {
+                        if (!client.isBattle && !client.superseded && !client.socket.destroyed) {
+                            client.roomGeneration = room.lobby_generation
+                        }
+                    }
+                    completed = true
+                }
             }
         } catch (e) {}
         try {
@@ -922,7 +1015,8 @@ export class SessionManager {
                 transitionRoomSettlementSnapshots(roomNumber, "LOBBY", roomGeneration)
             }
         } catch (e) {}
-        gameVerboseLog(() => `[MULTI] settlement host returned: room=${roomNumber}`)
+        if (completed) gameVerboseLog(() => `[MULTI] settlement host returned: room=${roomNumber}`)
+        return completed
     }
 
     createClient(socket: net.Socket, viewerId: number, roomNumber: string, connectionId: string, playerId: number | null): SessionClient {
@@ -941,6 +1035,7 @@ export class SessionManager {
             connectionGeneration: 0,
             superseded: false,
             connectedAt: Date.now(),
+            fiveBossBattleEntered: false,
             admissionClaimed: false,
             clientState: new ClientStateMachine(ClientState.Connecting),
             battleState: BattleState.Initializing,
@@ -1022,11 +1117,7 @@ export class SessionManager {
             if (isCurrentBattleConnection) this.clearBattleHeartbeatLease(client.connectionId)
             const bSet = this.battleClients.get(client.roomNumber)
             if (bSet && !superseded && isCurrentBattleConnection) {
-                if (this.battleSceneStartedRooms.has(client.roomNumber)) {
-                    this.broadcastBattleLeave(client.roomNumber, client.connectionId)
-                } else {
-                    this.queueBattleLeave(client.roomNumber, client.connectionId)
-                }
+                this.publishBattleDeparture(client)
             }
             if (isCurrentBattleConnection) {
                 this.battleClients.get(client.roomNumber)?.delete(client.connectionId)
@@ -1210,11 +1301,7 @@ export class SessionManager {
         const client = this.cidToBattleClient.get(connectionId)
         if (client) {
             fiveBossConnectionDiagnostics.socketEvent(client.socket, "removed", "remove_battle_client")
-            if (this.battleSceneStartedRooms.has(client.roomNumber)) {
-                this.broadcastBattleLeave(client.roomNumber, connectionId)
-            } else {
-                this.queueBattleLeave(client.roomNumber, connectionId)
-            }
+            this.publishBattleDeparture(client)
             this.unindexClientSocket(client)
             this.battleClients.get(client.roomNumber)?.delete(connectionId)
             this.sceneReadyClients.get(client.roomNumber)?.delete(connectionId)
@@ -1268,14 +1355,29 @@ export class SessionManager {
         const client = this.cidToBattleClient.get(connectionId)
         if (!client || client.roomNumber !== roomNumber || client.socket.destroyed) return false
         const expected = this.battleExpectedCount.get(roomNumber) ?? 0
-        if (expected <= 0) return false
+        if (expected <= 0) {
+            if (this.battleSceneStartedRooms.has(roomNumber)) {
+                this.recordFiveBossBattleEntry(roomNumber, this.getConnectedBattleClients(roomNumber))
+                if (client.fiveBossBattleEntered) {
+                    this.clearBattleHeartbeatLease(connectionId)
+                }
+            }
+            return false
+        }
         let readySet = this.sceneReadyClients.get(roomNumber)
         if (!readySet) {
             readySet = new Set()
             this.sceneReadyClients.set(roomNumber, readySet)
         }
         readySet.add(connectionId)
-        this.armBattleReadyHeartbeatLease(connectionId)
+        if (client.fiveBossBattleEntered) {
+            // During the next-boss barrier, the ready peer may legitimately
+            // wait longer than 25 seconds for another peer's loading lease.
+            // The slow peer's fixed deadline owns that wait.
+            this.clearBattleHeartbeatLease(connectionId)
+        } else {
+            this.armBattleReadyHeartbeatLease(connectionId)
+        }
         const released = this.releaseSceneReadyBarrierIfSatisfied(roomNumber, "scene_ready")
         if (released) this.activateBattleScene(roomNumber)
         return released

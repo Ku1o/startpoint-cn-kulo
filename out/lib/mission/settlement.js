@@ -19,6 +19,7 @@ const patterns_1 = require("./patterns");
 const grants_1 = require("./grants");
 const master_data_1 = require("./master-data");
 const persistence_coordinator_1 = require("../persistence-coordinator");
+const command_names_1 = require("../persistence/command-names");
 const evaluation_context_1 = require("./evaluation-context");
 function isDailyCoreMission(pattern) {
     return /^single_battle_play(?:_[23])?$/.test(pattern)
@@ -213,17 +214,15 @@ function settleMissionCategories(playerId, categories, evaluationTime) {
 exports.settleMissionCategories = settleMissionCategories;
 function settleMissionCategoriesAsync(playerId, categories, evaluationTime) {
     return __awaiter(this, void 0, void 0, function* () {
-        // The expensive context scan is deliberately outside the write lock.
-        const evaluation = evaluateMissionCategories(playerId, categories, evaluationTime);
-        const prepared = prepareMissionPersistence(playerId, evaluation.evaluatedMissions);
-        if (prepared.progressUpdates.length === 0
-            && prepared.pendingRewards.length === 0
-            && prepared.missingLegacyDegreeIds.length === 0) {
-            return Promise.resolve(emptyMissionSettlementResult());
-        }
-        return (0, persistence_coordinator_1.runPersistenceTransaction)({
-            domain: "mission", playerId, operation: "settle_categories",
-        }, () => persistMissionEvaluation(playerId, evaluation.player, prepared));
+        // The whole settlement (context scan plus persistence) is a registered
+        // command so it can run inside the SQLite writer thread without holding the
+        // main event loop. With the writer disabled the same registry entry runs
+        // in-process and keeps the previous behaviour.
+        return (0, persistence_coordinator_1.runWriterCommand)(command_names_1.MISSION_SETTLE_CATEGORIES, {
+            playerId,
+            categories: [...categories],
+            evaluationTimeMs: evaluationTime.getTime(),
+        }, { domain: "mission", playerId, operation: "settle_categories" });
     });
 }
 exports.settleMissionCategoriesAsync = settleMissionCategoriesAsync;

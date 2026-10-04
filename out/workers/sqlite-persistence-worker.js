@@ -18,12 +18,24 @@ const memory_diagnostics_1 = require("../lib/memory-diagnostics");
 const input = node_worker_threads_1.workerData;
 const database = new better_sqlite3_1.default(input.databasePath);
 database.pragma("journal_mode = WAL");
-database.pragma("synchronous = NORMAL");
+database.pragma(`cache_size = -${input.settings.cacheKiB}`);
+database.pragma(`mmap_size = ${input.settings.mmapBytes}`);
+database.pragma(`synchronous = ${input.settings.synchronous}`);
 database.pragma(`busy_timeout = ${Math.max(0, input.busyTimeoutMs)}`);
-// Checkpoint ownership remains with the optional checkpoint worker or the
-// main connection. This connection only executes business write commands.
-database.pragma("wal_autocheckpoint = 0");
+// Keep a safety owner even if the external checkpoint worker exits. These
+// commandized writes are low-volume, so an occasional automatic checkpoint is
+// preferable to unbounded WAL growth.
+database.pragma("wal_autocheckpoint = 1000");
 database.pragma("foreign_keys = ON");
+function reportSettings() {
+    node_worker_threads_1.parentPort === null || node_worker_threads_1.parentPort === void 0 ? void 0 : node_worker_threads_1.parentPort.postMessage({
+        type: "settings",
+        synchronous: database.pragma("synchronous", { simple: true }),
+        cacheSize: database.pragma("cache_size", { simple: true }),
+        mmapSize: database.pragma("mmap_size", { simple: true }),
+        walAutocheckpoint: database.pragma("wal_autocheckpoint", { simple: true }),
+    });
+}
 let closed = false;
 let executing = false;
 let completed = 0;
@@ -102,17 +114,27 @@ function execute(command) {
     });
 }
 (0, memory_diagnostics_1.installWorkerMemoryProbe)(() => ({ completed, failed, busyRetries, executing }));
+reportSettings();
 node_worker_threads_1.parentPort === null || node_worker_threads_1.parentPort === void 0 ? void 0 : node_worker_threads_1.parentPort.on("message", (message) => {
-    if (typeof message === "object" && "type" in message && message.type === "close") {
-        if (executing || closed)
+    if (typeof message === "object" && "type" in message) {
+        if (message.type === "memory_probe")
             return;
-        closed = true;
-        try {
-            database.close();
+        if (message.type === "checkpoint_owner") {
+            database.pragma(`wal_autocheckpoint = ${message.external ? 0 : 1000}`);
+            reportSettings();
+            return;
         }
-        catch (_a) { }
-        node_worker_threads_1.parentPort === null || node_worker_threads_1.parentPort === void 0 ? void 0 : node_worker_threads_1.parentPort.postMessage({ type: "closed" });
-        return;
+        if (message.type === "close") {
+            if (executing || closed)
+                return;
+            closed = true;
+            try {
+                database.close();
+            }
+            catch (_a) { }
+            node_worker_threads_1.parentPort === null || node_worker_threads_1.parentPort === void 0 ? void 0 : node_worker_threads_1.parentPort.postMessage({ type: "closed" });
+            return;
+        }
     }
     void execute(message);
 });

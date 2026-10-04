@@ -214,7 +214,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             return reply.status(400).send({ error: "Bad Request", message: "Invalid battle party." });
         }
         const partyCode = (0, publishedParty_1.publishPartySync)(context.playerId, body.party_name, battleParty);
-        console.log(`[PARTY CODE] publish player=${context.playerId} code=${partyCode}`);
+        (0, game_logging_1.gameVerboseLog)(() => `[PARTY CODE] publish player=${context.playerId} code=${partyCode}`);
         return sendPartyResponse(reply, context.viewerId, { party_code: partyCode });
     }));
     fastify.post("/refer", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
@@ -232,7 +232,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
             const battleParty = sanitizeBattleParty(publishedParty.battleParty);
             if (!battleParty)
                 return sendPartyResponse(reply, context.viewerId, {}, 3403);
-            console.log(`[PARTY CODE] refer player=${context.playerId} code=${partyCode}`);
+            (0, game_logging_1.gameVerboseLog)(() => `[PARTY CODE] refer player=${context.playerId} code=${partyCode}`);
             return sendPartyResponse(reply, context.viewerId, {
                 party_name: publishedParty.partyName,
                 battle_party: battleParty,

@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.continueFiveBoss = exports.continueFiveBossSync = exports.isFiveBossContinueRequest = exports.FiveBossContinueError = void 0;
+exports.continueFiveBoss = exports.continueFiveBossSync = exports.isFiveBossContinueRequest = exports.fiveBossContinueAcknowledgement = exports.FiveBossContinueError = void 0;
 const crypto_1 = require("crypto");
 const db_1 = require("../../data/db");
 const player_1 = require("../../data/domains/player");
@@ -8,14 +8,38 @@ const quest_active_1 = require("../../data/domains/quest_active");
 const contract_1 = require("./contract");
 const persistence_coordinator_1 = require("../../lib/persistence-coordinator");
 class FiveBossContinueError extends Error {
+    constructor(message, stale = false) {
+        super(message);
+        this.stale = stale;
+    }
 }
 exports.FiveBossContinueError = FiveBossContinueError;
+/**
+ * Neutral continue response used when the request cannot be honored. Mirrors
+ * the success shape so every client build can parse it; the battle itself is
+ * already gone server-side, so nothing is debited and no receipt is written.
+ */
+function fiveBossContinueAcknowledgement(playerId) {
+    var _a, _b;
+    const player = (0, player_1.getPlayerSync)(playerId);
+    return {
+        continue_count: contract_1.FIVE_BOSS_GAUNTLET.maxContinueCount,
+        user_info: {
+            free_vmoney: (_a = player === null || player === void 0 ? void 0 : player.freeVmoney) !== null && _a !== void 0 ? _a : 0,
+            vmoney: (_b = player === null || player === void 0 ? void 0 : player.vmoney) !== null && _b !== void 0 ? _b : 0,
+        },
+        mail_arrived: false,
+    };
+}
+exports.fiveBossContinueAcknowledgement = fiveBossContinueAcknowledgement;
 /** Also catches a forged ordinary-quest request during a registered gauntlet. */
 function isFiveBossContinueRequest(playerId, category, questId, playId) {
     if ((0, contract_1.isFiveBossGauntletQuest)(category, questId))
         return true;
     const active = (0, quest_active_1.getPlayerActiveQuestSync)(playerId);
-    if (active && (0, contract_1.isFiveBossGauntletQuest)(active.category, active.questId))
+    if (active !== null
+        && active.playId === playId
+        && (0, contract_1.isFiveBossGauntletQuest)(active.category, active.questId))
         return true;
     if (typeof playId !== "string")
         return false;
@@ -56,7 +80,7 @@ function continueFiveBossInTransaction(input) {
         const active = (0, quest_active_1.getPlayerActiveQuestSync)(input.playerId);
         if (!active || active.playId !== playId || active.isMulti !== input.isMulti
             || !(0, contract_1.isFiveBossGauntletQuest)(active.category, active.questId)) {
-            throw new FiveBossContinueError("No matching active five-boss quest to continue.");
+            throw new FiveBossContinueError("No matching active five-boss quest to continue.", true);
         }
         const registered = input.isMulti
             ? db.prepare(`SELECT 1 FROM five_boss_gauntlet_members m
@@ -69,7 +93,7 @@ function continueFiveBossInTransaction(input) {
             : db.prepare(`SELECT 1 FROM five_boss_solo_runs WHERE player_id = ? AND play_id = ? AND status = 'active'`)
                 .get(input.playerId, playId);
         if (!registered)
-            throw new FiveBossContinueError("Five-boss run is no longer active.");
+            throw new FiveBossContinueError("Five-boss run is no longer active.", true);
         const receipt = db.prepare(`SELECT request_key FROM five_boss_continue_receipts
             WHERE player_id = ? AND play_id = ? AND is_multi = ?`)
             .get(input.playerId, playId, Number(input.isMulti));

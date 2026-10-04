@@ -277,8 +277,8 @@ function isMissionComplete(missionId, activeMissions, repository) {
         return reward !== null && progress >= reward.targetProgress;
     });
 }
-function estimateActiveMissionCharacterLevel(character) {
-    const rarity = character.rarity;
+function estimateActiveMissionCharacterLevel(character, rarityOverride) {
+    const rarity = rarityOverride !== null && rarityOverride !== void 0 ? rarityOverride : character.rarity;
     if (rarity === undefined)
         return 0;
     const caps = character_2.characterExpCaps[rarity];
@@ -343,6 +343,8 @@ function computeActiveMissionFactProgress(pattern, row, state, missionId) {
         case PATTERN_BATTLE_CLEAR_WITH_FULL_SKILL_START:
             return missionId === undefined ? null : (_b = state.loadoutBattleFacts[String(missionId)]) !== null && _b !== void 0 ? _b : 0;
         case PATTERN_EPISODE_CLEAR_COUNT: {
+            if (state.aggregate)
+                return state.aggregate.episodeClearCount;
             const storyQuestIds = new Set(Object.keys(state.characters).flatMap(characterId => { var _a; return (_a = state.characterStoryQuestIds[characterId]) !== null && _a !== void 0 ? _a : []; }));
             let count = 0;
             for (const questId of storyQuestIds) {
@@ -352,6 +354,8 @@ function computeActiveMissionFactProgress(pattern, row, state, missionId) {
             return count;
         }
         case PATTERN_CHARACTER_LEVEL_ACHIEVEMENT:
+            if (state.aggregate)
+                return state.aggregate.maxCharacterLevel;
             return Object.values(state.characters).reduce((maximum, character) => (Math.max(maximum, estimateActiveMissionCharacterLevel(character))), 0);
         case PATTERN_CHARACTERS_COUNT: {
             const targetCharacterId = row[43];
@@ -361,10 +365,16 @@ function computeActiveMissionFactProgress(pattern, row, state, missionId) {
             return state.characters[String(targetCharacterId)] === undefined ? 0 : 1;
         }
         case PATTERN_EVOLVED_CHARACTER_COUNT:
+            if (state.aggregate)
+                return state.aggregate.evolvedCharacterCount;
             return Object.values(state.characters).filter(character => character.evolutionLevel > 0).length;
         case PATTERN_LEVEL_MAX_EQUIPMENT_COUNT:
+            if (state.aggregate)
+                return state.aggregate.maxLevelEquipmentCount;
             return state.equipment.filter(equipment => equipment.level >= equipment.maxLevel).length;
         case PATTERN_UPGRADE_EQUIPMENT_COUNT:
+            if (state.aggregate)
+                return state.aggregate.equipmentUpgradeCount;
             return state.equipment.reduce((total, equipment) => total + Math.max(0, equipment.level - 1), 0);
         case PATTERN_SET_SOUL_SPHERE_COUNT:
             return state.partyAbilitySoulCount;
@@ -375,12 +385,20 @@ function computeActiveMissionFactProgress(pattern, row, state, missionId) {
         case PATTERN_BOSS_COIN_EXCHANGE:
             return state.bossCoinShopPurchaseCount;
         case PATTERN_OVER_LIMIT_TOTAL_COUNT:
+            if (state.aggregate)
+                return state.aggregate.overLimitTotalCount;
             return Object.values(state.characters).reduce((total, character) => total + Math.max(0, character.overLimitStep), 0);
         case PATTERN_TOTAL_OBTAINED_BOND_TOKEN_COUNT:
+            if (state.aggregate)
+                return state.aggregate.obtainedBondTokenCount;
             return Object.values(state.characters).reduce((total, character) => (total + character.bondTokenList.filter(token => token.status >= 1).length), 0);
         case PATTERN_TOTAL_RELEASED_MANA_NODE_COUNT:
+            if (state.aggregate)
+                return state.aggregate.releasedManaNodeCount;
             return Object.values(state.manaNodes).reduce((total, nodes) => total + nodes.length, 0);
         case PATTERN_TOTAL_RELEASED_ABILITY_NODE_COUNT:
+            if (state.aggregate)
+                return state.aggregate.releasedAbilityNodeCount;
             return Object.entries(state.manaNodes).reduce((total, [characterId, nodes]) => {
                 var _a;
                 const slots = (_a = state.manaNodeSlots[characterId]) !== null && _a !== void 0 ? _a : {};
@@ -390,6 +408,8 @@ function computeActiveMissionFactProgress(pattern, row, state, missionId) {
                 }).length;
             }, 0);
         case PATTERN_MANA_BOARD_2ND_COMPLETE_COUNT:
+            if (state.aggregate)
+                return state.aggregate.secondManaBoardCompleteCount;
             return Object.entries(state.manaBoardNodes).filter(([characterId, boards]) => {
                 var _a, _b;
                 const secondBoard = (_a = boards["2"]) !== null && _a !== void 0 ? _a : [];
@@ -467,39 +487,72 @@ const EMPTY_ACTIVE_COUNTERS = Object.freeze({
     totalInjectedExpCount: 0,
     totalGachaCampaignCount: 0,
 });
+const characterManaBoardFactCache = new Map();
+const activeMissionShopFactsCache = new WeakMap();
+function getCharacterManaBoardFacts(characterId) {
+    const cached = characterManaBoardFactCache.get(characterId);
+    if (cached)
+        return cached;
+    const boards = {};
+    const slots = {};
+    for (let level = 1; level <= 2; level++) {
+        const board = (0, assets_1.getCharacterManaNodesSync)(characterId, level);
+        if (!board)
+            continue;
+        boards[String(level)] = Object.freeze(Object.keys(board).map(Number));
+        for (const [nodeId, node] of Object.entries(board)) {
+            slots[nodeId] = node.field6 === "1" ? 1 : node.field6 === "2" ? 2 : node.field6 === "3" ? 3 : 4;
+        }
+    }
+    const facts = Object.freeze({
+        boards: Object.freeze(boards),
+        slots: Object.freeze(slots),
+    });
+    characterManaBoardFactCache.set(characterId, facts);
+    return facts;
+}
+function getActiveMissionShopFacts(repository) {
+    var _a;
+    const cached = activeMissionShopFactsCache.get(repository);
+    if (cached)
+        return cached;
+    const treasureItemIds = new Set(Object.keys(readRepositoryTable(repository, "treasure_shop.json")));
+    const bossCoinItemIds = new Set(Object.keys(readRepositoryTable(repository, "boss_coin_shop_item_category_map.json")));
+    const bossCoinEquipmentItemIds = new Set();
+    const bossCoinShop = readRepositoryTable(repository, "boss_coin_shop.json");
+    for (const category of Object.values(bossCoinShop)) {
+        for (const [itemId, item] of Object.entries(category !== null && category !== void 0 ? category : {})) {
+            if ((_a = item.rewards) === null || _a === void 0 ? void 0 : _a.some(reward => reward.type === 4)) {
+                bossCoinEquipmentItemIds.add(itemId);
+            }
+        }
+    }
+    const facts = Object.freeze({
+        treasureItemIds,
+        bossCoinItemIds,
+        bossCoinEquipmentItemIds,
+    });
+    activeMissionShopFactsCache.set(repository, facts);
+    return facts;
+}
 function buildActiveMissionFactState(playerId, player, finishedQuestIds, questProgress, repository, requirements, snapshot) {
-    var _a, _b, _c, _d, _e;
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j;
     const characterList = requirements.characters || requirements.manaNodes
         ? (_a = snapshot.characterList) !== null && _a !== void 0 ? _a : (0, character_1.getPlayerCharacterMissionFactsSync)(playerId)
         : {};
-    const characterTable = readRepositoryTable(repository, "character.json");
-    const characters = Object.fromEntries(Object.entries(characterList).map(([characterId, character]) => {
-        var _a;
-        return [
-            characterId,
-            Object.assign(Object.assign({}, character), { rarity: (_a = characterTable[characterId]) === null || _a === void 0 ? void 0 : _a.rarity }),
-        ];
-    }));
+    const characterTable = requirements.patterns.has(PATTERN_CHARACTER_LEVEL_ACHIEVEMENT)
+        ? readRepositoryTable(repository, "character.json")
+        : {};
+    const characters = characterList;
     const manaNodes = requirements.manaNodes
         ? (_b = snapshot.characterManaNodeList) !== null && _b !== void 0 ? _b : (0, character_1.getPlayerCharactersManaNodesSync)(playerId)
         : {};
     const manaBoardNodes = {};
     const manaNodeSlots = {};
     for (const characterId of requirements.manaNodes ? Object.keys(characters) : []) {
-        const boards = {};
-        const slots = {};
-        for (let level = 1; level <= 2; level++) {
-            const board = (0, assets_1.getCharacterManaNodesSync)(characterId, level);
-            if (!board)
-                continue;
-            boards[String(level)] = Object.keys(board).map(Number);
-            for (const [nodeId, node] of Object.entries(board)) {
-                const slot = node.field6 === "1" ? 1 : node.field6 === "2" ? 2 : node.field6 === "3" ? 3 : 4;
-                slots[nodeId] = slot;
-            }
-        }
-        manaBoardNodes[characterId] = boards;
-        manaNodeSlots[characterId] = slots;
+        const facts = getCharacterManaBoardFacts(characterId);
+        manaBoardNodes[characterId] = facts.boards;
+        manaNodeSlots[characterId] = facts.slots;
     }
     const equipmentMaxLevels = requirements.equipment
         ? readRepositoryTable(repository, "equipment_dissolve.json")
@@ -520,19 +573,11 @@ function buildActiveMissionFactState(playerId, player, finishedQuestIds, questPr
     const battleCounters = requirements.battleCounters
         ? (0, mission_battle_facts_1.getMissionBattleCountersSync)(playerId)
         : EMPTY_BATTLE_COUNTERS;
-    const treasureShopItemIds = new Set(Object.keys(requirements.purchases ? readRepositoryTable(repository, "treasure_shop.json") : {}));
-    const bossCoinShopItemIds = new Set(Object.keys(requirements.purchases ? readRepositoryTable(repository, "boss_coin_shop_item_category_map.json") : {}));
-    const bossCoinShopItems = requirements.purchases ? readRepositoryTable(repository, "boss_coin_shop.json") : {};
-    const bossCoinEquipmentShopItemIds = new Set();
-    for (const category of Object.values(bossCoinShopItems)) {
-        for (const [itemId, item] of Object.entries(category !== null && category !== void 0 ? category : {})) {
-            if ((_d = item.rewards) === null || _d === void 0 ? void 0 : _d.some(reward => reward.type === 4)) {
-                bossCoinEquipmentShopItemIds.add(itemId);
-            }
-        }
-    }
+    const shopFacts = requirements.purchases
+        ? getActiveMissionShopFacts(repository)
+        : { treasureItemIds: new Set(), bossCoinItemIds: new Set(), bossCoinEquipmentItemIds: new Set() };
     const partyGroups = requirements.party
-        ? (_e = snapshot.partyGroupList) !== null && _e !== void 0 ? _e : (0, party_1.getPlayerPartyGroupListSync)(playerId)
+        ? (_d = snapshot.partyGroupList) !== null && _d !== void 0 ? _d : (0, party_1.getPlayerPartyGroupListSync)(playerId)
         : {};
     const partyAbilitySoulCount = Object.values(partyGroups).reduce((total, group) => {
         var _a;
@@ -541,6 +586,87 @@ function buildActiveMissionFactState(playerId, player, finishedQuestIds, questPr
             return (partyTotal + ((_a = party.abilitySoulIds) !== null && _a !== void 0 ? _a : []).filter(id => id !== null && id !== undefined).length);
         }, 0));
     }, 0);
+    const characterStoryQuestIds = Object.fromEntries((requirements.characterStories ? Object.keys(characters) : []).map(characterId => [
+        characterId,
+        (0, character_queries_1.getCharacterStoryQuestIds)(characterId),
+    ]));
+    let episodeClearCount = 0;
+    let maxCharacterLevel = 0;
+    let evolvedCharacterCount = 0;
+    let overLimitTotalCount = 0;
+    let obtainedBondTokenCount = 0;
+    const storyQuestIds = new Set();
+    for (const [characterId, character] of Object.entries(characters)) {
+        if (requirements.patterns.has(PATTERN_CHARACTER_LEVEL_ACHIEVEMENT)) {
+            maxCharacterLevel = Math.max(maxCharacterLevel, estimateActiveMissionCharacterLevel(character, (_e = characterTable[characterId]) === null || _e === void 0 ? void 0 : _e.rarity));
+        }
+        if (requirements.patterns.has(PATTERN_EVOLVED_CHARACTER_COUNT) && character.evolutionLevel > 0) {
+            evolvedCharacterCount++;
+        }
+        if (requirements.patterns.has(PATTERN_OVER_LIMIT_TOTAL_COUNT)) {
+            overLimitTotalCount += Math.max(0, character.overLimitStep);
+        }
+        if (requirements.patterns.has(PATTERN_TOTAL_OBTAINED_BOND_TOKEN_COUNT)) {
+            for (const token of character.bondTokenList) {
+                if (token.status >= 1)
+                    obtainedBondTokenCount++;
+            }
+        }
+        if (requirements.characterStories) {
+            for (const questId of (_f = characterStoryQuestIds[characterId]) !== null && _f !== void 0 ? _f : [])
+                storyQuestIds.add(questId);
+        }
+    }
+    if (requirements.characterStories) {
+        for (const questId of storyQuestIds) {
+            if (finishedQuestIds.has(questId))
+                episodeClearCount++;
+        }
+    }
+    let maxLevelEquipmentCount = 0;
+    let equipmentUpgradeCount = 0;
+    for (const item of equipment) {
+        if (requirements.patterns.has(PATTERN_LEVEL_MAX_EQUIPMENT_COUNT) && item.level >= item.maxLevel) {
+            maxLevelEquipmentCount++;
+        }
+        if (requirements.patterns.has(PATTERN_UPGRADE_EQUIPMENT_COUNT)) {
+            equipmentUpgradeCount += Math.max(0, item.level - 1);
+        }
+    }
+    let releasedManaNodeCount = 0;
+    let releasedAbilityNodeCount = 0;
+    let secondManaBoardCompleteCount = 0;
+    for (const [characterId, nodes] of Object.entries(manaNodes)) {
+        releasedManaNodeCount += nodes.length;
+        if (requirements.patterns.has(PATTERN_TOTAL_RELEASED_ABILITY_NODE_COUNT)) {
+            const slots = (_g = manaNodeSlots[characterId]) !== null && _g !== void 0 ? _g : {};
+            for (const nodeId of nodes) {
+                const slot = slots[String(nodeId)];
+                if (slot !== undefined && slot >= 1 && slot <= 3)
+                    releasedAbilityNodeCount++;
+            }
+        }
+        if (requirements.patterns.has(PATTERN_MANA_BOARD_2ND_COMPLETE_COUNT)) {
+            const secondBoard = (_j = (_h = manaBoardNodes[characterId]) === null || _h === void 0 ? void 0 : _h["2"]) !== null && _j !== void 0 ? _j : [];
+            if (secondBoard.length > 0) {
+                const unlocked = new Set(nodes);
+                if (secondBoard.every(nodeId => unlocked.has(nodeId)))
+                    secondManaBoardCompleteCount++;
+            }
+        }
+    }
+    let treasureShopPurchaseCount = 0;
+    let bossCoinShopPurchaseCount = 0;
+    let bossCoinEquipmentShopPurchaseCount = 0;
+    for (const [itemId, count] of Object.entries(purchases)) {
+        const amount = Math.max(0, count);
+        if (shopFacts.treasureItemIds.has(itemId))
+            treasureShopPurchaseCount += amount;
+        if (shopFacts.bossCoinItemIds.has(itemId))
+            bossCoinShopPurchaseCount += amount;
+        if (shopFacts.bossCoinEquipmentItemIds.has(itemId))
+            bossCoinEquipmentShopPurchaseCount += amount;
+    }
     return {
         player,
         battleCounters,
@@ -560,19 +686,16 @@ function buildActiveMissionFactState(playerId, player, finishedQuestIds, questPr
         loadoutBattleFacts: requirements.loadoutBattleFacts
             ? (0, active_mission_battle_facts_1.getActiveMissionBattleFactsSync)(playerId)
             : {},
-        characterStoryQuestIds: Object.fromEntries((requirements.characterStories ? Object.keys(characters) : []).map(characterId => [
-            characterId,
-            (0, character_queries_1.getCharacterStoryQuestIds)(characterId),
-        ])),
+        characterStoryQuestIds,
         characters,
         equipment,
         manaNodes,
         manaBoardNodes,
         manaNodeSlots,
         partyAbilitySoulCount,
-        treasureShopPurchaseCount: Object.entries(purchases).reduce((total, [itemId, count]) => (treasureShopItemIds.has(itemId) ? total + Math.max(0, count) : total), 0),
-        bossCoinShopPurchaseCount: Object.entries(purchases).reduce((total, [itemId, count]) => (bossCoinShopItemIds.has(itemId) ? total + Math.max(0, count) : total), 0),
-        bossCoinEquipmentShopPurchaseCount: Object.entries(purchases).reduce((total, [itemId, count]) => (bossCoinEquipmentShopItemIds.has(itemId) ? total + Math.max(0, count) : total), 0),
+        treasureShopPurchaseCount,
+        bossCoinShopPurchaseCount,
+        bossCoinEquipmentShopPurchaseCount,
         totalUsedManaCount: counters.totalUsedManaCount,
         totalGachaCharacterCount: counters.totalGachaCharacterCount,
         totalEquipmentEquipCount: counters.totalEquipmentEquipCount,
@@ -580,6 +703,18 @@ function buildActiveMissionFactState(playerId, player, finishedQuestIds, questPr
         totalPartyCharacterSetCount: counters.totalPartyCharacterSetCount,
         totalInjectedExpCount: counters.totalInjectedExpCount,
         totalGachaCampaignCount: counters.totalGachaCampaignCount,
+        aggregate: {
+            episodeClearCount,
+            maxCharacterLevel,
+            evolvedCharacterCount,
+            maxLevelEquipmentCount,
+            equipmentUpgradeCount,
+            overLimitTotalCount,
+            obtainedBondTokenCount,
+            releasedManaNodeCount,
+            releasedAbilityNodeCount,
+            secondManaBoardCompleteCount,
+        },
     };
 }
 function planActiveMissionQuestRead(definitions, repository) {
@@ -816,7 +951,7 @@ function reconcileActiveMissionFacts(input) {
     return (0, persistence_coordinator_1.runPersistenceTransactionSync)({
         domain: "mission", playerId: input.playerId, operation: "reconcile_active_mission_facts",
     }, () => {
-        var _a, _b, _c, _d, _e;
+        var _a, _b, _c, _d, _e, _f;
         const player = (_a = input.player) !== null && _a !== void 0 ? _a : (0, player_1.getPlayerSync)(input.playerId);
         if (!player)
             throw new Error(`Player ${input.playerId} does not exist.`);
@@ -829,20 +964,24 @@ function reconcileActiveMissionFacts(input) {
                 sections: [...((_c = questReadPlan === null || questReadPlan === void 0 ? void 0 : questReadPlan.sections) !== null && _c !== void 0 ? _c : [])],
                 questIds: [...((_d = questReadPlan === null || questReadPlan === void 0 ? void 0 : questReadPlan.questIds) !== null && _d !== void 0 ? _d : [])],
             }));
-        const questProgressFacts = Object.entries(questProgress).flatMap(([category, progressList]) => progressList.map(progress => {
-            var _a;
-            return ({
-                category: Number(category),
-                questId: progress.questId,
-                finished: progress.finished,
-                clearRank: progress.clearRank,
-                leaderCharacterId: progress.leaderCharacterId,
-                multiClearCount: Math.max(0, (_a = progress.multiClearCount) !== null && _a !== void 0 ? _a : 0),
-            });
-        }));
-        const finishedQuestIds = new Set(Object.entries(questProgress).flatMap(([category, progressList]) => (progressList
-            .filter(progress => progress.finished)
-            .map(progress => normalizeActiveMissionQuestId(Number(category), progress.questId)))));
+        const questProgressFacts = [];
+        const finishedQuestIds = new Set();
+        for (const [categoryText, progressList] of Object.entries(questProgress)) {
+            const category = Number(categoryText);
+            for (const progress of progressList) {
+                questProgressFacts.push({
+                    category,
+                    questId: progress.questId,
+                    finished: progress.finished,
+                    clearRank: progress.clearRank,
+                    leaderCharacterId: progress.leaderCharacterId,
+                    multiClearCount: Math.max(0, (_e = progress.multiClearCount) !== null && _e !== void 0 ? _e : 0),
+                });
+                if (progress.finished) {
+                    finishedQuestIds.add(normalizeActiveMissionQuestId(category, progress.questId));
+                }
+            }
+        }
         const activeMissions = normalizeActiveMissions((0, mission_1.getPlayerActiveMissionsSync)(input.playerId));
         const factState = buildActiveMissionFactState(input.playerId, player, finishedQuestIds, questProgressFacts, input.repository, requirements, input);
         const deltas = new Map();
@@ -879,7 +1018,7 @@ function reconcileActiveMissionFacts(input) {
                     continue;
                 authoritativeProgress = computeAuthoritativeProgress(definition.missionId, definition.row, player, finishedQuestIds, activeMissions, input.repository, factState);
             }
-            catch (_f) {
+            catch (_g) {
                 continue;
             }
             if (authoritativeProgress === null)
@@ -896,7 +1035,7 @@ function reconcileActiveMissionFacts(input) {
             }
             activeMissions[String(definition.missionId)] = settlement.state;
             mergeDelta(deltas, settlement.delta);
-            for (const dependentMissionId of (_e = dependents.get(definition.missionId)) !== null && _e !== void 0 ? _e : []) {
+            for (const dependentMissionId of (_f = dependents.get(definition.missionId)) !== null && _f !== void 0 ? _f : []) {
                 if (!definitionById.has(dependentMissionId) || queued.has(dependentMissionId))
                     continue;
                 queue.push(dependentMissionId);

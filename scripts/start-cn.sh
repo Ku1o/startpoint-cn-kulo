@@ -18,23 +18,24 @@ fi
 
 # Build
 echo "[build] npm run build..."
-npm run build 2>&1 | grep -v "Browserslist\|caniuse" || true
+npm run build 2>&1 | sed '/Browserslist/d;/caniuse/d'
 
 # Start
 echo "[start] node --env-file=.env out/cn-server.js"
-nohup node --env-file=.env out/cn-server.js > /tmp/cn-server.log 2>&1 &
+mkdir -p "$ROOT/.logs"
+nohup node --env-file=.env out/cn-server.js > "$ROOT/.logs/cn-server.log" 2>&1 &
 
 sleep 2
 if pgrep -f "cn-server.js" > /dev/null; then
     echo ""
-    grep "CN StarPoint\|SEED\|Mode:\|SESSION" /tmp/cn-server.log | tail -5
+    grep "CN StarPoint\|SEED\|Mode:\|SESSION" "$ROOT/.logs/cn-server.log" | tail -5
     echo ""
     echo "=== 启动成功 ==="
     echo "  Web:  http://$(hostname -s):8001"
-    echo "  Log:  tail -f /tmp/cn-server.log"
+    echo "  Log:  tail -f $ROOT/.logs/cn-server.log"
 else
     echo ""
-    echo "=== 启动失败 — 检查 /tmp/cn-server.log ==="
-    tail -10 /tmp/cn-server.log
+    echo "=== 启动失败 — 检查 $ROOT/.logs/cn-server.log ==="
+    tail -10 "$ROOT/.logs/cn-server.log"
     exit 1
 fi

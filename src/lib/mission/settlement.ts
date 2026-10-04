@@ -12,7 +12,8 @@ import { getCompletedStageNumbers, getMissionFinalTargetProgress, getMissionIdsB
 import { getMissionPattern, isMissionEnabledAt } from "./patterns"
 import { MissionRewardGranter } from "./grants"
 import { getMissionMasterDefinition } from "./master-data"
-import { runPersistenceTransaction, runPersistenceTransactionSync } from "../persistence-coordinator"
+import { runPersistenceTransaction, runPersistenceTransactionSync, runWriterCommand } from "../persistence-coordinator"
+import { MISSION_SETTLE_CATEGORIES, type MissionSettleCategoriesArgs } from "../persistence/command-names"
 import { MissionEvaluationReadContext } from "./evaluation-context"
 
 export interface MissionSettlementInfo {
@@ -306,19 +307,17 @@ export async function settleMissionCategoriesAsync(
     categories: readonly (number | MissionSettlementScope)[],
     evaluationTime: Date,
 ): Promise<MissionSettlementResult> {
-    // The expensive context scan is deliberately outside the write lock.
-    const evaluation = evaluateMissionCategories(playerId, categories, evaluationTime)
-    const prepared = prepareMissionPersistence(playerId, evaluation.evaluatedMissions)
-    if (prepared.progressUpdates.length === 0
-        && prepared.pendingRewards.length === 0
-        && prepared.missingLegacyDegreeIds.length === 0) {
-        return Promise.resolve(emptyMissionSettlementResult())
-    }
-    return runPersistenceTransaction({
-        domain: "mission", playerId, operation: "settle_categories",
-    }, () => persistMissionEvaluation(
+    // The whole settlement (context scan plus persistence) is a registered
+    // command so it can run inside the SQLite writer thread without holding the
+    // main event loop. With the writer disabled the same registry entry runs
+    // in-process and keeps the previous behaviour.
+    return runWriterCommand<MissionSettleCategoriesArgs, MissionSettlementResult>(
+        MISSION_SETTLE_CATEGORIES,
+        {
             playerId,
-            evaluation.player,
-            prepared,
-        ))
+            categories: [...categories],
+            evaluationTimeMs: evaluationTime.getTime(),
+        },
+        { domain: "mission", playerId, operation: "settle_categories" },
+    )
 }

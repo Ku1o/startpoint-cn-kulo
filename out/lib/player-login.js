@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.resetPlayerLoginPassword = exports.bindPlayerLogin = exports.previewPlayerClaim = exports.previewLocalPlayerClaim = exports.createPlayerLoginCode = exports.logoutPlayer = exports.resumePlayerLogin = exports.loginPlayer = exports.registerPlayerLogin = exports.finishPlayerLoginSwitch = exports.playerLoginAdminOverview = exports.playerLoginProfile = exports.playerSocketAllowed = exports.readPlayerLoginAccess = exports.readPlayerLoginSession = exports.playerAccountByViewer = exports.playerLoginManaged = exports.maintainPlayerLogin = exports.initializePlayerLogin = exports.PlayerLoginError = exports.disconnectDeletedPlayerLogin = exports.rememberVerifiedPlayerLogin = exports.verifiedPlayerLogin = void 0;
+exports.resetPlayerLoginPassword = exports.bindPlayerLogin = exports.previewPlayerClaim = exports.previewLocalPlayerClaim = exports.createPlayerLoginCode = exports.logoutPlayer = exports.resumePlayerLogin = exports.loginPlayer = exports.registerPlayerLogin = exports.finishPlayerLoginSwitch = exports.playerLoginAdminOverview = exports.playerLoginProfile = exports.playerSocketAllowed = exports.readPlayerLoginAccess = exports.readPlayerLoginSession = exports.playerAccountByViewer = exports.readPlayerLoginDeviceAccess = exports.readPlayerLoginViewerAccess = exports.playerLoginManaged = exports.maintainPlayerLogin = exports.initializePlayerLogin = exports.PlayerLoginError = exports.disconnectDeletedPlayerLogin = exports.rememberVerifiedPlayerLogin = exports.verifiedPlayerLogin = void 0;
 const node_crypto_1 = require("node:crypto");
 const db_1 = require("../data/db");
 const account_1 = require("../data/domains/account");
@@ -126,6 +126,38 @@ function playerLoginManaged(accountId) {
     return initialized && Boolean(sql("SELECT 1 FROM player_login_credentials WHERE account_id=?").get(accountId));
 }
 exports.playerLoginManaged = playerLoginManaged;
+/** One indexed read for the legacy viewer identity and its login-binding state. */
+function readPlayerLoginViewerAccess(viewer) {
+    if (!/^\d{1,15}$/.test(String(viewer !== null && viewer !== void 0 ? viewer : "")))
+        return null;
+    if (!initialized) {
+        const accountId = playerAccountByViewer(viewer);
+        return accountId === null ? null : { accountId, managed: false };
+    }
+    const row = sql(`SELECT v.account_id,
+            CASE WHEN c.account_id IS NULL THEN 0 ELSE 1 END AS managed
+        FROM sessions v
+        LEFT JOIN player_login_credentials c ON c.account_id=v.account_id
+        WHERE v.token=? AND v.type=2`).get(String(viewer));
+    return row ? { accountId: row.account_id, managed: row.managed === 1 } : null;
+}
+exports.readPlayerLoginViewerAccess = readPlayerLoginViewerAccess;
+function readPlayerLoginDeviceAccess(device) {
+    const deviceId = Number(device);
+    if (!Number.isSafeInteger(deviceId) || deviceId <= 0)
+        return null;
+    if (!initialized) {
+        const row = sql("SELECT account_id FROM device_bindings WHERE device_id=?").get(deviceId);
+        return row ? { accountId: row.account_id, managed: false } : null;
+    }
+    const row = sql(`SELECT d.account_id,
+            CASE WHEN c.account_id IS NULL THEN 0 ELSE 1 END AS managed
+        FROM device_bindings d
+        LEFT JOIN player_login_credentials c ON c.account_id=d.account_id
+        WHERE d.device_id=?`).get(deviceId);
+    return row ? { accountId: row.account_id, managed: row.managed === 1 } : null;
+}
+exports.readPlayerLoginDeviceAccess = readPlayerLoginDeviceAccess;
 function playerAccountByViewer(viewer) {
     var _a;
     if (!/^\d{1,15}$/.test(String(viewer !== null && viewer !== void 0 ? viewer : "")))
@@ -156,10 +188,10 @@ function readPlayerLoginAccess(value, viewer) {
 exports.readPlayerLoginAccess = readPlayerLoginAccess;
 function playerSocketAllowed(viewer, value) {
     var _a;
-    const accountId = playerAccountByViewer(viewer);
-    if (!accountId || !playerLoginManaged(accountId))
+    const access = readPlayerLoginViewerAccess(viewer);
+    if (!(access === null || access === void 0 ? void 0 : access.managed))
         return true;
-    return ((_a = readPlayerLoginSession(value)) === null || _a === void 0 ? void 0 : _a.account_id) === accountId;
+    return ((_a = readPlayerLoginSession(value)) === null || _a === void 0 ? void 0 : _a.account_id) === access.accountId;
 }
 exports.playerSocketAllowed = playerSocketAllowed;
 function playerLoginProfile(accountId) {

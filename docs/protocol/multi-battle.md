@@ -797,6 +797,7 @@ const NPC_TEMPLATES = {
 | 房间断线恢复 | ✅ | TCP 断线→disband，restore_room 返回 9 |
 | 自动招募 NPC（进入房间时） | ✅ | `npc_count > 0` 时自动 EnterComs，首次计算 NPC 数量并持久化，Rematch 恢复固定数量 |
 | NPC 数量持久化 | ✅ | `npc_count` 字段：首次招募写入 `3-realPlayers`，Rematch 恢复。真人不齐时 `checkAllReadyAndStart` 等待。|
+| NPC 编队固定 | ✅ | 首次为 COM1/COM2 选中的队伍按房间保存；自动续战及真人补位后的席位恢复复用同一队伍，不重新随机高资源组合。 |
 | 战斗协议完善 | ✅ | SceneReady(tag=0)+Finalize(tag=1)+Measurement(tag=2) |
 
 ### 9.3 环境变量
@@ -832,7 +833,8 @@ state=1 (Ready: 可加入/可招募)
   │     ├─ 60s 内 prepare/select_room → 新 TCP → 取消定时器 → 回到 state=1
   │     └─ 60s 无人 → disband
   │     ↓
-  │   abort → disbandRoom, 删 ActiveQuest
+  │   abort → （房主/客端同为离场成员）删 ActiveQuest，房间保留给其余玩家
+  │            打完；无人返回时由结算宽限/战斗看门狗解散
   │
   ├─ 不招募 → is_npc_mode=false → 等待
   │
@@ -849,7 +851,8 @@ state=1 (Ready: 可加入/可招募)
 | `select_room`/`prepare` | guest | 2 | 返回 2（真实值） |
 | `start` | — | 1 | 4 |
 | `finish` | host | 4 | 1 |
-| `abort` | host | 4 | disband |
+| `abort` | host | 4 | 4（按离场处理，房间保留至其余成员结算后解散） |
+| `abort` | guest | 4 | 4（广播 Leave，其余成员继续） |
 | `disband_room` | — | any | disband |
 | TCP 断线 | isBattle + state=1 | 1 | 60s 后 disband |
 | TCP 断线 | isBattle + state=4 | 4 | 保留（过期清理） |
@@ -921,7 +924,7 @@ state=1 (Ready: 可加入/可招募)
 | Disband 广播 Disbanded(6) | ✅ | `notifyRoomDisbanded` → `multibattle_room_dismissed`（CN 客户端本地化 key） |
 | 房主返回同步 | ✅ | 房主 Enter→合并已有客端 mates→广播更新 |
 | Finish 同步 | ✅ | 各玩家独立 finish HTTP，房主管理 room state |
-| Abort 同步 | ✅ | G10+G11 覆盖，房主 abort→Disbanded，客端→Mates 广播 |
+| Abort 同步 | ✅ | 房主与客端都按离场成员处理：battle 通道广播 Leave，其余玩家继续战斗并正常结算 |
 
 ### 9.7.6 帧 relay 架构
 
@@ -1011,6 +1014,25 @@ Client B → Broadcast(frameCmd) → Server → relayToBattleRoom → BattleServ
   → 无匹配: 返回 data.multi: null（自己入队等待）
 客端: 铃铛通知 → accept → select_room(room_number, accepted_type=2) → TCP → co-op
 ```
+
+所有新队友加入多人房间时都会执行副本资格校验，包括随机招募铃铛、房间码、
+好友/关注房列表和直接选房。当前可审计的正式客户端
+`hard_multi_event_quest` 规则包含：
+
+- 玩家 Rank 必须达到副本的 `selectable_player_rank`（当前 12 个高难多人副本均为 120）；
+- 玩家必须已经通关该副本记录的精确前置领主战或联动降临副本；
+- 幻想连战继续叠加其既有的助力阶段条件。
+- 五重决战新队友必须达到玩家 Rank 130，并持有至少 1 张五重门票 `10000143`；
+  资格检查只读等级和库存，列表/搜索、选房、TCP 入房和作为队友开战都不扣队友
+  门票，五重 run 仍只扣房主。
+
+不满足条件的房间不会出现在 `attention/check` 的铃铛列表中。即使客户端伪造
+`select_room(accepted_type=2)`，HTTP 选房仍返回原生房间不可用状态；选房和 TCP
+之间资格发生变化时，lobby handshake 再次拒绝。房间码搜索会返回房间不可用，
+好友/关注房列表会隐藏不合格房间，直接 `select_room` 也不能绕过。房主和已经属于
+该房间的续战/断线回连成员不重复执行新队友资格检查。未知或自定义副本没有经过
+客户端 master 证明的规则时默认放行，避免服务端凭推荐等级误封。规则数据见
+`assets/multi_guest_entry_requirements.json`。
 
 #### 9.9.2 关键协议格式
 

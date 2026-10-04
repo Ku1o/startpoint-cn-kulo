@@ -182,6 +182,7 @@ export interface PlannedCharacterGachaMovie {
 
 export interface PlanCharacterGachaMoviesOptions {
     skipNoRarityUpMovie: boolean;
+    flushPrevious?: boolean;
 }
 
 function selectLegacyMovieSeed(
@@ -219,7 +220,7 @@ export function planCharacterGachaMovies(
     characterIds: number[],
     options: PlanCharacterGachaMoviesOptions
 ): PlannedCharacterGachaMovie[] {
-    seedValidator.flushAll()
+    if (options.flushPrevious !== false) seedValidator.flushAll()
 
     const usedSeeds = new Set<number>()
     return characterIds.map((characterId, drawIndex) => {
@@ -300,12 +301,24 @@ export function planCharacterGachaMovies(
     })
 }
 
+export function commitPlannedCharacterGachaMovies(
+    plannedMovies: readonly PlannedCharacterGachaMovie[],
+): void {
+    seedValidator.flushAll()
+    for (const movie of plannedMovies) {
+        if (movie.requiresVerification) {
+            seedValidator.markSent(movie.movieId, movie.seed, movie.rarity)
+        }
+    }
+}
+
 export function rewardPlayerGachaDrawResultSync(
     playerId: number,
     gacha: Gacha,
     gachaDrawResult: number[],
     gachaDrawMetadata?: GachaDrawMetadata[],
-    plannedCharacterMovies?: PlannedCharacterGachaMovie[]
+    plannedCharacterMovies?: PlannedCharacterGachaMovie[],
+    markMovieSeedsSent = true,
 ): RewardPlayerGachaDrawResult {
 
     const characterMoviePlan = gacha.type === GachaType.CHARACTER
@@ -336,7 +349,9 @@ export function rewardPlayerGachaDrawResultSync(
             
             if (giveResult !== null) {
                 if (plannedMovie.requiresVerification) {
-                    seedValidator.markSent(plannedMovie.movieId, plannedMovie.seed, plannedMovie.rarity)
+                    if (markMovieSeedsSent) {
+                        seedValidator.markSent(plannedMovie.movieId, plannedMovie.seed, plannedMovie.rarity)
+                    }
 
                     const movieFlags = [
                         plannedMovie.moviePlayable ? "PLAY" : "SKIP",

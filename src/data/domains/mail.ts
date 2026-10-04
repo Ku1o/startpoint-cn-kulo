@@ -1,6 +1,7 @@
 import { getDb } from "../db";
 import { getServerTime } from "../../utils";
 import { runPersistenceTransactionSync } from "../../lib/persistence-coordinator";
+import { cachedStatement } from "../../lib/cached-statement";
 
 /**
  * Mail attachment types matching the client's MailKind enum.
@@ -102,7 +103,7 @@ export function getPlayerMailCountSync(
     if (unreceivedOnly) {
         query += ` AND receive_time = '0000-00-00 00:00:00'`
     }
-    const row = getDb().prepare(query).get(playerId) as { count: number }
+    const row = cachedStatement(getDb(), query).get(playerId) as { count: number }
     return row.count
 }
 

@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.getReliableSendQueueStats = exports.clearReliableSendState = exports.sendFrameReliably = void 0;
 const chain_diagnostic_1 = require("./chain-diagnostic");
 const memory_diagnostics_1 = require("../../lib/memory-diagnostics");
+const disconnect_diagnostics_1 = require("./disconnect-diagnostics");
 const socketStates = new WeakMap();
 const closedAttemptLogged = new WeakSet();
 let queuedMessages = 0, queuedBytes = 0;
@@ -96,6 +97,8 @@ function disconnectSlowSocket(socket, state, reason) {
     console.warn(`[MULTI] slow battle connection removed: reason=${reason}`
         + ` queuedMessages=${queuedMessages} queuedBytes=${queuedBytes}`
         + describe(state.context));
+    (0, disconnect_diagnostics_1.markTcpDisconnectReason)(socket, reason === "queue_limit"
+        ? "send_queue_limit" : "send_backpressure");
     if (!socket.destroyed)
         socket.destroy();
 }
@@ -156,6 +159,7 @@ function listenForDrain(socket, state) {
                     error: error instanceof Error ? error.message : String(error),
                 });
                 console.warn(`[MULTI] battle socket write failed:${describe(next.context)}`, error instanceof Error ? error.message : String(error));
+                (0, disconnect_diagnostics_1.markTcpDisconnectReason)(socket, "send_write_error");
                 if (!socket.destroyed)
                     socket.destroy();
                 return;
@@ -215,6 +219,7 @@ function sendFrameReliably(socket, frame, context) {
             error: error instanceof Error ? error.message : String(error),
         });
         console.warn(`[MULTI] battle socket write failed:${describe(context)}`, error instanceof Error ? error.message : String(error));
+        (0, disconnect_diagnostics_1.markTcpDisconnectReason)(socket, "send_write_error");
         if (!socket.destroyed)
             socket.destroy();
         return "closed";

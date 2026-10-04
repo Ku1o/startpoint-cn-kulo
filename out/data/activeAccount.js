@@ -25,6 +25,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getPlayerTimeOffsetSync = exports.resolvePlayerIdSync = exports.removeDeletedAccountsFromState = exports.removeDeletedAccountFromState = exports.saveAccountDefaultPlayer = exports.getAccountDefaultPlayer = exports.restoreTimeOffset = exports.saveTimeOffset = exports.setSelectedAccountId = exports.getSelectedAccountId = exports.setActivePlayerId = exports.getAdminPlayerSelectionState = exports.getActivePlayerId = void 0;
 const file_exists_1 = require("../lib/file-exists");
+const cached_statement_1 = require("../lib/cached-statement");
 /**
  * Web 面板状态管理：当前活跃存档。
  * 持久化到 .database/active_account.json
@@ -37,28 +38,44 @@ const STATE_DIRECTORY = process.env.DATA_DIR
     ? path.resolve(process.env.DATA_DIR)
     : path.join(__dirname, "..", "..", ".database");
 const STATE_FILE = path.join(STATE_DIRECTORY, "active_account.json");
+let cachedState = null;
 function readState() {
     var _a, _b, _c, _d, _e;
+    if (cachedState !== null)
+        return cachedState;
     try {
         if ((0, file_exists_1.existsSync)(STATE_FILE)) {
             const raw = JSON.parse(fs.readFileSync(STATE_FILE, "utf-8"));
-            return {
+            cachedState = {
                 activePlayerId: (_a = raw.activePlayerId) !== null && _a !== void 0 ? _a : null,
                 selectedAccountId: (_b = raw.selectedAccountId) !== null && _b !== void 0 ? _b : null,
                 timeOffset: (_c = raw.timeOffset) !== null && _c !== void 0 ? _c : null,
                 lastSetTime: (_d = raw.lastSetTime) !== null && _d !== void 0 ? _d : null,
                 defaultPlayers: (_e = raw.defaultPlayers) !== null && _e !== void 0 ? _e : {},
             };
+            return cachedState;
         }
     }
     catch ( /* ignore corrupt file */_f) { /* ignore corrupt file */ }
-    return { activePlayerId: null, selectedAccountId: null, timeOffset: null, lastSetTime: null, defaultPlayers: {} };
+    cachedState = {
+        activePlayerId: null,
+        selectedAccountId: null,
+        timeOffset: null,
+        lastSetTime: null,
+        defaultPlayers: {},
+    };
+    return cachedState;
+}
+function mutableState() {
+    const state = readState();
+    return Object.assign(Object.assign({}, state), { defaultPlayers: Object.assign({}, state.defaultPlayers) });
 }
 function writeState(state) {
     const dir = path.dirname(STATE_FILE);
     if (!(0, file_exists_1.existsSync)(dir))
         fs.mkdirSync(dir, { recursive: true });
     fs.writeFileSync(STATE_FILE, JSON.stringify(state));
+    cachedState = state;
 }
 function getActivePlayerId() {
     return readState().activePlayerId;
@@ -76,7 +93,7 @@ function getAdminPlayerSelectionState() {
 }
 exports.getAdminPlayerSelectionState = getAdminPlayerSelectionState;
 function setActivePlayerId(id) {
-    const state = readState();
+    const state = mutableState();
     state.activePlayerId = id;
     writeState(state);
 }
@@ -86,7 +103,7 @@ function getSelectedAccountId() {
 }
 exports.getSelectedAccountId = getSelectedAccountId;
 function setSelectedAccountId(id) {
-    const state = readState();
+    const state = mutableState();
     state.selectedAccountId = id;
     writeState(state);
 }
@@ -99,7 +116,7 @@ exports.setSelectedAccountId = setSelectedAccountId;
  * virtual-clock jump into elapsed EXP-pool time.
  */
 function saveTimeOffset(offset) {
-    const state = readState();
+    const state = mutableState();
     state.timeOffset = offset;
     state.lastSetTime = offset !== null ? new Date(Date.now() + offset).toISOString() : null;
     writeState(state);
@@ -110,7 +127,7 @@ exports.saveTimeOffset = saveTimeOffset;
  * Uses saved offset, or defaults to 2024-08-14 12:00 UTC if not set.
  */
 function restoreTimeOffset() {
-    const state = readState();
+    const state = mutableState();
     if (state.timeOffset !== null) {
         (0, utils_1.setServerTimeOffset)(state.timeOffset);
     }
@@ -138,7 +155,7 @@ exports.getAccountDefaultPlayer = getAccountDefaultPlayer;
  * Save the default player ID for a specific account.
  */
 function saveAccountDefaultPlayer(accountId, playerId) {
-    const state = readState();
+    const state = mutableState();
     state.defaultPlayers[accountId] = playerId;
     writeState(state);
 }
@@ -156,7 +173,7 @@ exports.removeDeletedAccountFromState = removeDeletedAccountFromState;
 function removeDeletedAccountsFromState(entries) {
     if (entries.length === 0)
         return;
-    const state = readState();
+    const state = mutableState();
     for (const { accountId, playerIds } of entries) {
         delete state.defaultPlayers[accountId];
         if (state.selectedAccountId === accountId)
@@ -174,12 +191,9 @@ exports.removeDeletedAccountsFromState = removeDeletedAccountsFromState;
  * Returns null if the account has no players.
  */
 function resolvePlayerIdSync(accountId) {
-    const playerIds = (0, account_1.getAccountPlayersSync)(accountId);
-    if (!playerIds.length)
-        return null;
+    var _a;
     const state = readState();
-    const preferredId = state.defaultPlayers[accountId];
-    return (preferredId && playerIds.includes(preferredId)) ? preferredId : playerIds[0];
+    return (0, account_1.resolveAccountPlayerIdSync)(accountId, (_a = state.defaultPlayers[accountId]) !== null && _a !== void 0 ? _a : null);
 }
 exports.resolvePlayerIdSync = resolvePlayerIdSync;
 /**
@@ -189,7 +203,7 @@ function getPlayerTimeOffsetSync(playerId) {
     var _a;
     try {
         const { getDb } = require("./db");
-        const row = getDb().prepare(`SELECT time_offset FROM players WHERE id = ?`).get(playerId);
+        const row = (0, cached_statement_1.cachedStatement)(getDb(), `SELECT time_offset FROM players WHERE id = ?`).get(playerId);
         return (_a = row === null || row === void 0 ? void 0 : row.time_offset) !== null && _a !== void 0 ? _a : null;
     }
     catch (_b) {

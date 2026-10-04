@@ -6,6 +6,31 @@ let timeOffset: number | null = null;  // milliseconds, null = use system time
 console.log(`[TIME] startup offset=${timeOffset ?? 'null(system)'}`);
 
 /**
+ * In-process consumers that must share the main thread's virtual clock.
+ *
+ * The SQLite writer thread is a separate thread with its own copy of this
+ * module, so it receives the offset over the worker protocol; this hook is how
+ * it hears about later changes (management-panel time changes) without the
+ * utility module depending on the writer client.
+ */
+const timeOffsetListeners = new Set<(offset: number | null) => void>()
+
+export function onServerTimeOffsetChanged(listener: (offset: number | null) => void): () => void {
+    timeOffsetListeners.add(listener)
+    return () => { timeOffsetListeners.delete(listener) }
+}
+
+function publishTimeOffset(): void {
+    for (const listener of timeOffsetListeners) {
+        try {
+            listener(timeOffset)
+        } catch (error) {
+            console.error("[TIME] offset listener failed", error instanceof Error ? error.message : String(error))
+        }
+    }
+}
+
+/**
  * Returns the current server time as a unix epoch.
  * Without argument: returns simulated current time.
  * With argument: converts the given Date to epoch (ignoring offset for serialization).
@@ -44,6 +69,7 @@ export function realToVirtual(date: Date): number {
 export function setServerTime(date: Date | null) {
     timeOffset = date ? date.getTime() - Date.now() : null;
     console.log(`[TIME] setServerTime → ${date?.toISOString() || 'null(system)'} offset=${timeOffset}`);
+    publishTimeOffset();
 }
 
 /**
@@ -52,6 +78,7 @@ export function setServerTime(date: Date | null) {
 export function setServerTimeOffset(offset: number | null) {
     timeOffset = offset;
     console.log(`[TIME] startup restore offset=${offset ?? 'null(system)'}`);
+    publishTimeOffset();
 }
 
 /**

@@ -19,30 +19,6 @@
             "added_time": "2026-09-25 18:11:41",
             "html": "<html lang=\"zh\"><body><h1>中秋快乐</h1><p>中秋与国庆双节将至，八岐大蛇超级+挑战开启！</p><p>准备好队伍，与伙伴一起迎战蛇神，完成挑战并领取节日活动奖励吧！<br /></p><div class=\"center\"><img src=\"https://r2.kulo323.site/Event/exec-660f0b34-5740-4dc5-82c6-88d12f7e2b5f.png\" width=\"100%\" height=\"660\" /></div></body></html>",
             "published": true
-        },
-        {
-            "id": 2,
-            "title": "新手应援活动开启",
-            "date": "2023-08-31 12:00:00",
-            "category": 2,
-            "label": 2,
-            "thumbnail": 1,
-            "thumbnail_path": null,
-            "added_time": "2023-08-31 12:00:00",
-            "html": "<html lang=\"zh\"><body><h2>新手应援活动</h2><p>新角色登场！PU角色出现率提升！</p><p>完成每日任务可获得丰厚奖励。</p></body></html>",
-            "published": true
-        },
-        {
-            "id": 3,
-            "title": "多人领主战 火热进行中",
-            "date": "2023-09-01 00:00:00",
-            "category": 3,
-            "label": 3,
-            "thumbnail": 2,
-            "thumbnail_path": null,
-            "added_time": "2023-09-01 00:00:00",
-            "html": "<html lang=\"zh\"><body><h2>多人领主战</h2><p>与其他玩家一起挑战强大的领主！</p><p>收集领主币兑换限定装备。</p></body></html>",
-            "published": true
         }
     ]
 }

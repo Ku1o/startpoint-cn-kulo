@@ -36,6 +36,7 @@ const battle_1 = require("./battle");
 const SessionManager_1 = require("../state/SessionManager");
 const game_logging_1 = require("../../lib/game-logging");
 const reliable_send_1 = require("./reliable-send");
+const disconnect_diagnostics_1 = require("./disconnect-diagnostics");
 const embedded_1 = require("../coordinator/embedded");
 const connection_diagnostic_1 = require("../five-boss/connection-diagnostic");
 const tcp_1 = require("../../lounge/tcp");
@@ -58,7 +59,7 @@ exports.SESSION_MAX_FRAMES_PER_TICK = positiveInteger("SESSION_MAX_FRAMES_PER_TI
 let server = null;
 const activeSockets = new Set();
 function startSessionServer() {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
         if (server) {
             resolve();
             return;
@@ -79,12 +80,15 @@ function startSessionServer() {
             let protocolClosed = false;
             let processingFrames = false;
             let processFramesScheduled = false;
+            let handshakePending = null;
             let admissionToken, admissionSession;
             const closeForProtocolViolation = (reason) => {
                 if (protocolClosed)
                     return;
                 protocolClosed = true;
                 buffer = "";
+                (0, disconnect_diagnostics_1.markTcpDisconnectReason)(socket, reason === "client build no longer admitted"
+                    ? "admission" : "protocol");
                 console.warn(`[TCP] protocol violation from ${remoteAddr}: ${reason}`);
                 connection_diagnostic_1.fiveBossConnectionDiagnostics.socketEvent(socket, "protocol_close", reason.split(":", 1)[0]);
                 socket.destroy();
@@ -100,10 +104,10 @@ function startSessionServer() {
                 (0, tcp_1.detachLoungeSocket)(socket);
                 if (socketRemoved)
                     return;
-                socketRemoved = true;
                 try {
                     const client = SessionManager_1.sessionManager.findClientBySocket(socket);
                     if (client) {
+                        socketRemoved = true;
                         void embedded_1.embeddedMultiCoordinator.enqueueRoomCommand(client.roomNumber, () => SessionManager_1.sessionManager.removeClient(client)).catch(error => {
                             console.error(`[TCP] queued socket cleanup failed: room=${client.roomNumber}`, error);
                         });
@@ -115,7 +119,7 @@ function startSessionServer() {
                 }
             };
             const processFrames = () => {
-                if (protocolClosed || processingFrames || processFramesScheduled)
+                if (protocolClosed || processingFrames || processFramesScheduled || handshakePending)
                     return;
                 processingFrames = true;
                 let processed = 0;
@@ -151,22 +155,42 @@ function startSessionServer() {
                                 admissionToken = data.sp_admission;
                                 admissionSession = data.sp_session;
                                 if (!(0, client_admission_1.clientAdmission)().checkActivity(admissionToken, admissionSession).ok) {
+                                    (0, disconnect_diagnostics_1.markTcpDisconnectReason)(socket, "admission");
                                     socket.end(JSON.stringify([1, "CLIENT_ADMISSION_REQUIRED"]) + "\0");
                                     protocolClosed = true;
                                     clearHandshakeTimer();
                                     return;
                                 }
-                                handshakeDone = true;
-                                clearHandshakeTimer();
                                 isBattleSocket = data.socklet === "cooperation_battle";
                                 isLoungeSocket = data.socklet === "multi_special_exchange_socklet";
                                 const handshake = isLoungeSocket
                                     ? (0, tcp_1.handleLoungeHandshake)(socket, data)
                                     : (0, handshake_1.handleHandshake)(socket, data);
-                                handshake.catch((err) => {
+                                handshakePending = Promise.resolve(handshake).then(() => {
+                                    handshakePending = null;
+                                    clearHandshakeTimer();
+                                    if (protocolClosed || socket.destroyed || socket.writableEnded) {
+                                        // The peer can close while an uncached
+                                        // handshake is still resolving. If the
+                                        // handler indexed the socket after the
+                                        // close callback ran, clean it now.
+                                        removeSocketClient();
+                                        return;
+                                    }
+                                    handshakeDone = true;
+                                    processFrames();
+                                }, (err) => {
+                                    handshakePending = null;
+                                    (0, disconnect_diagnostics_1.markTcpDisconnectReason)(socket, "handshake_error");
                                     console.error(`[TCP] handshake failed:`, err);
+                                    removeSocketClient();
                                     socket.destroy();
                                 });
+                                // A client may coalesce Enter/heartbeat with its
+                                // handshake in one TCP chunk. Do not dispatch
+                                // those frames before the async handshake has
+                                // indexed this socket in SessionManager.
+                                return;
                             }
                             else if (!(0, client_admission_1.clientAdmission)().checkActivity(admissionToken, admissionSession).ok) {
                                 closeForProtocolViolation("client build no longer admitted");
@@ -184,6 +208,7 @@ function startSessionServer() {
                             }
                         }
                         catch (e) {
+                            (0, disconnect_diagnostics_1.markTcpDisconnectReason)(socket, "message_error");
                             console.warn(`[TCP] message rejected from ${remoteAddr}:`, e.message);
                             socket.destroy();
                             return;
@@ -192,7 +217,8 @@ function startSessionServer() {
                 }
                 finally {
                     processingFrames = false;
-                    if (!protocolClosed && buffer.includes("\0") && !processFramesScheduled) {
+                    if (!protocolClosed && !handshakePending
+                        && buffer.includes("\0") && !processFramesScheduled) {
                         processFramesScheduled = true;
                         setImmediate(() => {
                             processFramesScheduled = false;
@@ -214,15 +240,20 @@ function startSessionServer() {
                 }
                 processFrames();
             });
-            socket.on("end", () => connection_diagnostic_1.fiveBossConnectionDiagnostics.socketEvent(socket, "socket_end", "peer_fin"));
+            socket.on("end", () => {
+                (0, disconnect_diagnostics_1.markTcpDisconnectReason)(socket, "peer_fin");
+                connection_diagnostic_1.fiveBossConnectionDiagnostics.socketEvent(socket, "socket_end", "peer_fin");
+            });
             socket.on("close", (hadError) => {
+                const reason = (0, disconnect_diagnostics_1.finishTcpDisconnect)(socket, hadError);
                 connection_diagnostic_1.fiveBossConnectionDiagnostics.socketEvent(socket, "socket_close", hadError ? "with_error" : "without_error");
                 clearHandshakeTimer();
-                (0, game_logging_1.gameVerboseLog)(() => `[TCP] connection closed: ${remoteAddr}`);
+                (0, game_logging_1.gameVerboseLog)(() => `[TCP] connection closed: ${remoteAddr} reason=${reason}`);
                 removeSocketClient();
             });
             socket.on("error", (err) => {
                 var _a;
+                (0, disconnect_diagnostics_1.markTcpDisconnectReason)(socket, "socket_error");
                 connection_diagnostic_1.fiveBossConnectionDiagnostics.socketEvent(socket, "socket_error", (_a = err.code) !== null && _a !== void 0 ? _a : "unknown");
                 clearHandshakeTimer();
                 console.warn(`[TCP] socket error from ${remoteAddr}:`, err.message);
@@ -230,7 +261,19 @@ function startSessionServer() {
             });
         });
         (0, memory_diagnostics_1.observeServerConnections)("tcp", server);
+        const handleListenError = (error) => {
+            if (server) {
+                try {
+                    server.close();
+                }
+                catch (_a) { }
+                server = null;
+            }
+            reject(error);
+        };
+        server.once("error", handleListenError);
         server.listen(exports.SESSION_PORT, exports.SESSION_HOST, () => {
+            server === null || server === void 0 ? void 0 : server.off("error", handleListenError);
             console.log(`[TCP] session server listening on ${exports.SESSION_HOST}:${exports.SESSION_PORT}`);
             resolve();
         });
@@ -247,8 +290,10 @@ function stopSessionServer() {
         // net.Server.close() stops accepts but waits forever for established
         // clients. Shutdown is already an explicit service stop, so release
         // those sockets now and let their normal cleanup enqueue room leases.
-        for (const socket of activeSockets)
+        for (const socket of activeSockets) {
+            (0, disconnect_diagnostics_1.markTcpDisconnectReason)(socket, "server_shutdown");
             socket.destroy();
+        }
         current.close(() => {
             server = null;
             resolve();

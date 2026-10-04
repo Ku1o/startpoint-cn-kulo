@@ -59,6 +59,12 @@ export function publishRandomRecruitment(roomNumber: string): RandomRecruitment 
 }
 
 export function stopRandomRecruitment(roomNumber: string): void {
+    try {
+        // Lazy require avoids a load-time cycle: ai-fill loads the room
+        // manager, while this module is loaded by the HTTP/room layer.
+        const { cancelAiFallback } = require("./ai-fill") as typeof import("./ai-fill")
+        cancelAiFallback(roomNumber)
+    } catch {}
     const recruitment = recruitments.get(roomNumber)
     if (recruitment && recruitment.deliveredTo.size > 0) {
         const stoppedNotice = {

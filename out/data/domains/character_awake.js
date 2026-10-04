@@ -17,7 +17,7 @@ function getOwnedAwakeCharacterIdsSync(playerId, characterIds) {
 exports.getOwnedAwakeCharacterIdsSync = getOwnedAwakeCharacterIdsSync;
 function getPlayerCharacterAwakeUnlocksSync(playerId) {
     var _a;
-    const rows = (0, db_1.getDb)().prepare(`
+    const rows = (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
         SELECT character_id, board_index, awake_level
         FROM players_character_awake_unlocks
         WHERE player_id = ?
@@ -38,12 +38,12 @@ function getPlayerCharacterAwakeUnlocksByCharacterIdsSync(playerId, characterIds
     const ids = [...new Set(characterIds)].filter(characterId => Number.isSafeInteger(characterId) && characterId > 0);
     if (ids.length === 0)
         return new Map();
-    const placeholders = ids.map(() => "?").join(", ");
-    const rows = (0, db_1.getDb)().prepare(`
+    const rows = (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
         SELECT character_id, board_index, awake_level
         FROM players_character_awake_unlocks
-        WHERE player_id = ? AND character_id IN (${placeholders})
-    `).all(playerId, ...ids);
+        WHERE player_id = ?
+        AND character_id IN (SELECT CAST(value AS INTEGER) FROM json_each(?))
+    `).all(playerId, JSON.stringify(ids));
     const result = new Map();
     for (const row of rows) {
         const characterId = String(row.character_id);
@@ -55,7 +55,7 @@ function getPlayerCharacterAwakeUnlocksByCharacterIdsSync(playerId, characterIds
 }
 exports.getPlayerCharacterAwakeUnlocksByCharacterIdsSync = getPlayerCharacterAwakeUnlocksByCharacterIdsSync;
 function upsertPlayerCharacterAwakeUnlockSync(playerId, characterId, boardIndex, awakeLevel) {
-    const result = (0, db_1.getDb)().prepare(`
+    const result = (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
         INSERT INTO players_character_awake_unlocks
             (player_id, character_id, board_index, awake_level)
         VALUES (?, ?, ?, ?)

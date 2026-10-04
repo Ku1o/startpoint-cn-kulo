@@ -11,6 +11,10 @@ import { handleBattleMessage } from "./battle"
 import { sessionManager } from "../state/SessionManager"
 import { gameVerboseLog } from "../../lib/game-logging"
 import { clearReliableSendState } from "./reliable-send"
+import {
+    finishTcpDisconnect,
+    markTcpDisconnectReason,
+} from "./disconnect-diagnostics"
 import { embeddedMultiCoordinator } from "../coordinator/embedded"
 import { fiveBossConnectionDiagnostics } from "../five-boss/connection-diagnostic"
 import {
@@ -45,7 +49,7 @@ let server: net.Server | null = null
 const activeSockets = new Set<net.Socket>()
 
 export function startSessionServer(): Promise<void> {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
         if (server) {
             resolve()
             return
@@ -67,12 +71,15 @@ export function startSessionServer(): Promise<void> {
             let protocolClosed = false
             let processingFrames = false
             let processFramesScheduled = false
+            let handshakePending: Promise<void> | null = null
             let admissionToken: unknown, admissionSession: unknown
 
             const closeForProtocolViolation = (reason: string) => {
                 if (protocolClosed) return
                 protocolClosed = true
                 buffer = ""
+                markTcpDisconnectReason(socket, reason === "client build no longer admitted"
+                    ? "admission" : "protocol")
                 console.warn(`[TCP] protocol violation from ${remoteAddr}: ${reason}`)
                 fiveBossConnectionDiagnostics.socketEvent(socket, "protocol_close", reason.split(":", 1)[0])
                 socket.destroy()
@@ -89,10 +96,10 @@ export function startSessionServer(): Promise<void> {
                 clearReliableSendState(socket)
                 detachLoungeSocket(socket)
                 if (socketRemoved) return
-                socketRemoved = true
                 try {
                     const client = sessionManager.findClientBySocket(socket)
                     if (client) {
+                        socketRemoved = true
                         void embeddedMultiCoordinator.enqueueRoomCommand(
                             client.roomNumber,
                             () => sessionManager.removeClient(client),
@@ -107,7 +114,7 @@ export function startSessionServer(): Promise<void> {
             }
 
             const processFrames = (): void => {
-                if (protocolClosed || processingFrames || processFramesScheduled) return
+                if (protocolClosed || processingFrames || processFramesScheduled || handshakePending) return
                 processingFrames = true
                 let processed = 0
                 try {
@@ -140,22 +147,42 @@ export function startSessionServer(): Promise<void> {
                                 admissionToken = data.sp_admission
                                 admissionSession = data.sp_session
                                 if (!clientAdmission().checkActivity(admissionToken, admissionSession).ok) {
+                                    markTcpDisconnectReason(socket, "admission")
                                     socket.end(JSON.stringify([1, "CLIENT_ADMISSION_REQUIRED"]) + "\0")
                                     protocolClosed = true
                                     clearHandshakeTimer()
                                     return
                                 }
-                                handshakeDone = true
-                                clearHandshakeTimer()
                                 isBattleSocket = data.socklet === "cooperation_battle"
                                 isLoungeSocket = data.socklet === "multi_special_exchange_socklet"
                                 const handshake = isLoungeSocket
                                     ? handleLoungeHandshake(socket, data)
                                     : handleHandshake(socket, data)
-                                handshake.catch((err) => {
+                                handshakePending = Promise.resolve(handshake).then(() => {
+                                    handshakePending = null
+                                    clearHandshakeTimer()
+                                    if (protocolClosed || socket.destroyed || socket.writableEnded) {
+                                        // The peer can close while an uncached
+                                        // handshake is still resolving. If the
+                                        // handler indexed the socket after the
+                                        // close callback ran, clean it now.
+                                        removeSocketClient()
+                                        return
+                                    }
+                                    handshakeDone = true
+                                    processFrames()
+                                }, (err) => {
+                                    handshakePending = null
+                                    markTcpDisconnectReason(socket, "handshake_error")
                                     console.error(`[TCP] handshake failed:`, err)
+                                    removeSocketClient()
                                     socket.destroy()
                                 })
+                                // A client may coalesce Enter/heartbeat with its
+                                // handshake in one TCP chunk. Do not dispatch
+                                // those frames before the async handshake has
+                                // indexed this socket in SessionManager.
+                                return
                             } else if (!clientAdmission().checkActivity(admissionToken, admissionSession).ok) {
                                 closeForProtocolViolation("client build no longer admitted")
                                 return
@@ -168,6 +195,7 @@ export function startSessionServer(): Promise<void> {
                                 lobby.handleMessage(socket, data)
                             }
                         } catch (e) {
+                            markTcpDisconnectReason(socket, "message_error")
                             console.warn(`[TCP] message rejected from ${remoteAddr}:`, (e as Error).message)
                             socket.destroy()
                             return
@@ -175,7 +203,8 @@ export function startSessionServer(): Promise<void> {
                     }
                 } finally {
                     processingFrames = false
-                    if (!protocolClosed && buffer.includes("\0") && !processFramesScheduled) {
+                    if (!protocolClosed && !handshakePending
+                        && buffer.includes("\0") && !processFramesScheduled) {
                         processFramesScheduled = true
                         setImmediate(() => {
                             processFramesScheduled = false
@@ -198,16 +227,21 @@ export function startSessionServer(): Promise<void> {
                 processFrames()
             })
 
-            socket.on("end", () => fiveBossConnectionDiagnostics.socketEvent(socket, "socket_end", "peer_fin"))
+            socket.on("end", () => {
+                markTcpDisconnectReason(socket, "peer_fin")
+                fiveBossConnectionDiagnostics.socketEvent(socket, "socket_end", "peer_fin")
+            })
 
             socket.on("close", (hadError: boolean) => {
+                const reason = finishTcpDisconnect(socket, hadError)
                 fiveBossConnectionDiagnostics.socketEvent(socket, "socket_close", hadError ? "with_error" : "without_error")
                 clearHandshakeTimer()
-                gameVerboseLog(() => `[TCP] connection closed: ${remoteAddr}`)
+                gameVerboseLog(() => `[TCP] connection closed: ${remoteAddr} reason=${reason}`)
                 removeSocketClient()
             })
 
             socket.on("error", (err) => {
+                markTcpDisconnectReason(socket, "socket_error")
                 fiveBossConnectionDiagnostics.socketEvent(socket, "socket_error", (err as NodeJS.ErrnoException).code ?? "unknown")
                 clearHandshakeTimer()
                 console.warn(`[TCP] socket error from ${remoteAddr}:`, err.message)
@@ -216,7 +250,16 @@ export function startSessionServer(): Promise<void> {
         })
 
         observeServerConnections("tcp", server)
+        const handleListenError = (error: Error) => {
+            if (server) {
+                try { server.close() } catch {}
+                server = null
+            }
+            reject(error)
+        }
+        server.once("error", handleListenError)
         server.listen(SESSION_PORT, SESSION_HOST, () => {
+            server?.off("error", handleListenError)
             console.log(`[TCP] session server listening on ${SESSION_HOST}:${SESSION_PORT}`)
             resolve()
         })
@@ -233,7 +276,10 @@ export function stopSessionServer(): Promise<void> {
         // net.Server.close() stops accepts but waits forever for established
         // clients. Shutdown is already an explicit service stop, so release
         // those sockets now and let their normal cleanup enqueue room leases.
-        for (const socket of activeSockets) socket.destroy()
+        for (const socket of activeSockets) {
+            markTcpDisconnectReason(socket, "server_shutdown")
+            socket.destroy()
+        }
         current.close(() => {
             server = null
             resolve()

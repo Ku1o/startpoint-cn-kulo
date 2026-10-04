@@ -109,6 +109,41 @@ function setCredentials(accountId: number, username: unknown, password: unknown)
 export function playerLoginManaged(accountId: number): boolean {
     return initialized && Boolean(sql("SELECT 1 FROM player_login_credentials WHERE account_id=?").get(accountId))
 }
+export interface PlayerLoginViewerAccess {
+    accountId: number
+    managed: boolean
+}
+/** One indexed read for the legacy viewer identity and its login-binding state. */
+export function readPlayerLoginViewerAccess(viewer: unknown): PlayerLoginViewerAccess | null {
+    if (!/^\d{1,15}$/.test(String(viewer ?? ""))) return null
+    if (!initialized) {
+        const accountId = playerAccountByViewer(viewer)
+        return accountId === null ? null : { accountId, managed: false }
+    }
+    const row = sql(`SELECT v.account_id,
+            CASE WHEN c.account_id IS NULL THEN 0 ELSE 1 END AS managed
+        FROM sessions v
+        LEFT JOIN player_login_credentials c ON c.account_id=v.account_id
+        WHERE v.token=? AND v.type=2`).get(String(viewer)) as
+        { account_id: number; managed: number } | undefined
+    return row ? { accountId: row.account_id, managed: row.managed === 1 } : null
+}
+export function readPlayerLoginDeviceAccess(device: unknown): PlayerLoginViewerAccess | null {
+    const deviceId = Number(device)
+    if (!Number.isSafeInteger(deviceId) || deviceId <= 0) return null
+    if (!initialized) {
+        const row = sql("SELECT account_id FROM device_bindings WHERE device_id=?").get(deviceId) as
+            { account_id: number } | undefined
+        return row ? { accountId: row.account_id, managed: false } : null
+    }
+    const row = sql(`SELECT d.account_id,
+            CASE WHEN c.account_id IS NULL THEN 0 ELSE 1 END AS managed
+        FROM device_bindings d
+        LEFT JOIN player_login_credentials c ON c.account_id=d.account_id
+        WHERE d.device_id=?`).get(deviceId) as
+        { account_id: number; managed: number } | undefined
+    return row ? { accountId: row.account_id, managed: row.managed === 1 } : null
+}
 export function playerAccountByViewer(viewer: unknown): number | null {
     if (!/^\d{1,15}$/.test(String(viewer ?? ""))) return null
     const row = sql("SELECT account_id FROM sessions WHERE token=? AND type=2").get(String(viewer)) as { account_id: number } | undefined
@@ -129,9 +164,9 @@ export function readPlayerLoginAccess(value: unknown, viewer: unknown): (PlayerL
         WHERE s.token=? AND s.expires_at>? AND a.status='normal'`).get(viewerKey, value, Date.now()) as (PlayerLoginSession & { request_account_id: number | null }) | undefined) ?? null
 }
 export function playerSocketAllowed(viewer: unknown, value: unknown): boolean {
-    const accountId = playerAccountByViewer(viewer)
-    if (!accountId || !playerLoginManaged(accountId)) return true
-    return readPlayerLoginSession(value)?.account_id === accountId
+    const access = readPlayerLoginViewerAccess(viewer)
+    if (!access?.managed) return true
+    return readPlayerLoginSession(value)?.account_id === access.accountId
 }
 export function playerLoginProfile(accountId: number) {
     const acc = active(accountId)

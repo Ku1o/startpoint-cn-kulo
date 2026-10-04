@@ -16,6 +16,7 @@ import { reconcileAwakeUnlockCharacterList } from "../../lib/mission";
 import { BoxGachaBox, BoxGachaBoxes } from "../../lib/types";
 import { PlayerBoxGacha, PlayerBoxGachaDrawnReward } from "../../data/types";
 import { runPersistenceTransaction } from "../../lib/persistence-coordinator";
+import { gameVerboseLog } from "../../lib/game-logging";
 
 interface GetBoxListBody {
     box_gacha_id: number
@@ -148,7 +149,7 @@ const routes = async (fastify: FastifyInstance) => {
         const viewerId = Number(body.viewer_id)
         const boxGachaId = Number(body.box_gacha_id)
         const boxId = Number(body.box_id)
-        console.log(`[BOX] reset: boxGachaId=${boxGachaId} boxId=${boxId}`)
+        gameVerboseLog(() => `[BOX] reset: boxGachaId=${boxGachaId} boxId=${boxId}`)
 
         if (!Number.isFinite(viewerId) || !Number.isFinite(boxGachaId) || !Number.isFinite(boxId)) return reply.status(400).send({
             "error": "Bad Request",
@@ -280,7 +281,7 @@ const routes = async (fastify: FastifyInstance) => {
         const boxId = body.box_id
         const pullCount = body.number
         const stopOnFeaturedRewards = body.stop_on_featured_rewards
-        console.log(`[BOX] exec: boxGachaId=${boxGachaId} boxId=${boxId} pullCount=${pullCount}`)
+        gameVerboseLog(() => `[BOX] exec: boxGachaId=${boxGachaId} boxId=${boxId} pullCount=${pullCount}`)
         if (isNaN(viewerId) || isNaN(boxGachaId) || isNaN(boxId) || isNaN(pullCount) || stopOnFeaturedRewards === undefined) return reply.status(400).send({
             "error": "Bad Request",
             "message": "Invalid request body."
@@ -358,7 +359,7 @@ const routes = async (fastify: FastifyInstance) => {
             const actualPullCost = drawResult.drawCount * boxGachaData.redeemItemCount
             const newPullCurrency = currentCurrency - actualPullCost
             if (newPullCurrency < 0) throw new Error("Not enough pull currency.")
-            console.log(
+            gameVerboseLog(() =>
                 `[BOX] exec result: boxGachaId=${boxGachaId} boxId=${boxId} requested=${pullCount} actual=${drawResult.drawCount} cost=${actualPullCost} stopOnFeatured=${stopOnFeaturedRewards}`
             )
 
@@ -479,7 +480,7 @@ const routes = async (fastify: FastifyInstance) => {
 
         const viewerId = body.viewer_id
         const boxGachaId = body.box_gacha_id
-        console.log(`[BOX] get_box_list: boxGachaId=${boxGachaId}`)
+        gameVerboseLog(() => `[BOX] get_box_list: boxGachaId=${boxGachaId}`)
         if (isNaN(viewerId) || isNaN(boxGachaId)) return reply.status(400).send({
             "error": "Bad Request",
             "message": "Invalid request body."

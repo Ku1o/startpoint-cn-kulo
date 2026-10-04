@@ -84,6 +84,7 @@ function memberFromRaw(row) {
         clientPlayId: row.client_play_id,
         isAutoMode: row.is_auto_mode === null ? null : row.is_auto_mode === 1,
         startedAt: row.started_at,
+        battleEnteredAt: row.battle_entered_at,
         abortedAt: row.aborted_at,
         levelNextAt: row.level_next_at,
         finalizedAt: row.finalized_at,
@@ -105,7 +106,7 @@ function selectRun(runId) {
 }
 function selectMember(runId, playerId) {
     return (0, db_1.getDb)().prepare(`
-        SELECT run_id, player_id, client_play_id, is_auto_mode, started_at, aborted_at,
+        SELECT run_id, player_id, client_play_id, is_auto_mode, started_at, battle_entered_at, aborted_at,
                level_next_at, finalized_at
         FROM five_boss_gauntlet_members
         WHERE run_id = ? AND player_id = ?
@@ -113,7 +114,7 @@ function selectMember(runId, playerId) {
 }
 function selectMemberByClient(playerId, clientPlayId) {
     return (0, db_1.getDb)().prepare(`
-        SELECT run_id, player_id, client_play_id, is_auto_mode, started_at, aborted_at,
+        SELECT run_id, player_id, client_play_id, is_auto_mode, started_at, battle_entered_at, aborted_at,
                level_next_at, finalized_at
         FROM five_boss_gauntlet_members
         WHERE player_id = ? AND client_play_id = ?
@@ -249,7 +250,7 @@ function startMemberSync(input, persistActiveQuest) {
             db.prepare(`
                 UPDATE five_boss_gauntlet_members
                 SET client_play_id = ?, is_auto_mode = ?, started_at = ?, aborted_at = NULL,
-                    level_next_at = NULL, finalized_at = NULL
+                    battle_entered_at = NULL, level_next_at = NULL, finalized_at = NULL
                 WHERE run_id = ? AND player_id = ? AND client_play_id IS NULL
             `).run(normalized.clientPlayId, normalized.isAutoMode ? 1 : 0, now, normalized.runId, normalized.playerId);
             status = "started";
@@ -262,7 +263,8 @@ function startMemberSync(input, persistActiveQuest) {
             if (rawMember.aborted_at !== null) {
                 db.prepare(`
                     UPDATE five_boss_gauntlet_members
-                    SET aborted_at = NULL, level_next_at = NULL, finalized_at = NULL
+                    SET aborted_at = NULL, battle_entered_at = NULL,
+                        level_next_at = NULL, finalized_at = NULL
                     WHERE run_id = ? AND player_id = ?
                 `).run(normalized.runId, normalized.playerId);
                 status = "resumed";
@@ -285,13 +287,13 @@ function startMemberSync(input, persistActiveQuest) {
     });
 }
 exports.startMemberSync = startMemberSync;
-/** Records the two official BothBoss client transitions used as the settlement proof chain. */
+/** Records authenticated battle lifecycle notifications for diagnostics and settlement recovery. */
 function recordMemberBattleSignalSync(input) {
     const runId = boundedText("runId", input.runId);
     const roomNumber = boundedText("roomNumber", input.roomNumber);
     const playerId = positiveInteger("playerId", input.playerId);
-    if (input.signal !== "level_next" && input.signal !== "finalize") {
-        fail("invalid_argument", "signal must be level_next or finalize");
+    if (!["scene_ready", "level_next", "finalize"].includes(input.signal)) {
+        fail("invalid_argument", "signal must be scene_ready, level_next or finalize");
     }
     const db = (0, db_1.getDb)();
     return (0, persistence_coordinator_1.runPersistenceTransactionSync)({ domain: "event", playerId, operation: "record_five_boss_battle_signal" }, () => {
@@ -310,7 +312,14 @@ function recordMemberBattleSignalSync(input) {
         if (rawMember.aborted_at !== null)
             fail("member_not_active", "member has aborted this run");
         const now = new Date().toISOString();
-        if (input.signal === "level_next") {
+        if (input.signal === "scene_ready") {
+            db.prepare(`
+                UPDATE five_boss_gauntlet_members
+                SET battle_entered_at = COALESCE(battle_entered_at, ?)
+                WHERE run_id = ? AND player_id = ?
+            `).run(now, runId, playerId);
+        }
+        else if (input.signal === "level_next") {
             db.prepare(`
                 UPDATE five_boss_gauntlet_members
                 SET level_next_at = COALESCE(level_next_at, ?)
@@ -393,8 +402,11 @@ function settleMemberSync(input, grantRewards) {
             fail("run_not_active", `run is ${rawRun.status}`);
         if (rawMember.aborted_at !== null)
             fail("member_not_active", "member has aborted this run");
-        if (rawMember.level_next_at === null || rawMember.finalized_at === null) {
-            fail("battle_proof_missing", "BothBoss level-next/finalize proof is incomplete");
+        const hasBattleEntry = rawMember.battle_entered_at !== null;
+        const hasLegacyCompleteProof = rawMember.level_next_at !== null
+            && rawMember.finalized_at !== null;
+        if (!hasBattleEntry && !hasLegacyCompleteProof) {
+            fail("battle_proof_missing", "authenticated battle entry was not recorded");
         }
         const member = boundMemberFromRaw(rawMember);
         const rewardMultiplier = member.isAutoMode ? 1 : 2;
@@ -447,7 +459,12 @@ function settleMemberSync(input, grantRewards) {
     });
 }
 exports.settleMemberSync = settleMemberSync;
-/** Clears one member's persisted active quest; only the host aborts the shared run. */
+/**
+ * Clears one member's persisted active quest. Every member, including the
+ * host, retires as an individual leaver: the remaining members keep fighting
+ * and settle normally, and the run closes once no member is left without a
+ * receipt or an abort record.
+ */
 function abortMemberSync(input, deletePersistentActive) {
     const normalized = validateClientKey(input);
     if (typeof deletePersistentActive !== "function") {
@@ -489,29 +506,47 @@ function abortMemberSync(input, deletePersistentActive) {
             WHERE run_id = ? AND player_id = ? AND aborted_at IS NULL
         `).run(now, rawMember.run_id, normalized.playerId);
         const isHost = rawRun.host_player_id === normalized.playerId;
-        if (isHost && rawRun.status === "active") {
-            db.prepare(`
-                UPDATE five_boss_gauntlet_runs
-                SET status = 'aborted', updated_at = ?
-                WHERE run_id = ? AND status = 'active'
-            `).run(now, rawRun.run_id);
-        }
-        if (!isHost && rawRun.status === "active") {
-            db.prepare(`UPDATE five_boss_gauntlet_runs SET status = 'settled', updated_at = ?
-                WHERE run_id = ? AND status = 'active' AND NOT EXISTS (
-                    SELECT 1 FROM five_boss_gauntlet_members member
-                    LEFT JOIN five_boss_gauntlet_receipts receipt
-                        ON receipt.run_id = member.run_id AND receipt.player_id = member.player_id
-                    WHERE member.run_id = five_boss_gauntlet_runs.run_id
-                        AND member.aborted_at IS NULL AND receipt.player_id IS NULL
-                )`).run(now, rawRun.run_id);
+        if (rawRun.status === "active") {
+            const remainingMember = db.prepare(`
+                SELECT 1
+                FROM five_boss_gauntlet_members member
+                LEFT JOIN five_boss_gauntlet_receipts receipt
+                    ON receipt.run_id = member.run_id AND receipt.player_id = member.player_id
+                WHERE member.run_id = ? AND member.aborted_at IS NULL AND receipt.player_id IS NULL
+                LIMIT 1
+            `).get(rawRun.run_id);
+            if (isHost && !remainingMember) {
+                // The host was the last member still in the run: nobody is left
+                // to continue, so close it as aborted and let the room dissolve
+                // immediately instead of waiting out the return grace.
+                db.prepare(`
+                    UPDATE five_boss_gauntlet_runs
+                    SET status = 'aborted', updated_at = ?
+                    WHERE run_id = ? AND status = 'active'
+                `).run(now, rawRun.run_id);
+            }
+            else {
+                db.prepare(`UPDATE five_boss_gauntlet_runs SET status = 'settled', updated_at = ?
+                    WHERE run_id = ? AND status = 'active' AND NOT EXISTS (
+                        SELECT 1 FROM five_boss_gauntlet_members member
+                        LEFT JOIN five_boss_gauntlet_receipts receipt
+                            ON receipt.run_id = member.run_id AND receipt.player_id = member.player_id
+                        WHERE member.run_id = five_boss_gauntlet_runs.run_id
+                            AND member.aborted_at IS NULL AND receipt.player_id IS NULL
+                    )`).run(now, rawRun.run_id);
+            }
         }
         rawMember = selectMember(rawRun.run_id, normalized.playerId);
         rawRun = selectRun(rawRun.run_id);
         if (!rawMember || !rawRun)
             fail("run_conflict", "abort state could not be read back");
         return {
-            status: isHost ? "run_aborted" : "member_aborted",
+            // "run_aborted" only when this host abort actually closed the run
+            // (the host was the last member); an ordinary host leave is the
+            // same as any other member leave.
+            status: isHost && rawRun.status === "aborted"
+                ? "run_aborted"
+                : "member_aborted",
             run: runFromRaw(rawRun),
             member: boundMemberFromRaw(rawMember),
             deleted,

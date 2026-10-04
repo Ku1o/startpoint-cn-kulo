@@ -122,11 +122,18 @@ test('a failure after character grant rolls back ticket debit, rewards, history 
     items.setPlayerItemSync(p.id, assets.getGachaSync(990001).tenTicketItemId, 10);
     const before = snapshot(p.id);
     const original = mail.insertReceiveHistorySync;
+    const originalMarkSent = seed.markSent;
+    let markedSeeds = 0;
     try {
+        seed.markSent = (...args) => { markedSeeds++; return originalMarkSent.apply(seed, args); };
         mail.insertReceiveHistorySync = () => { throw new Error('injected history failure'); };
         assert.equal((await request(p, 990001, 3, 4)).statusCode, 500);
-    } finally { mail.insertReceiveHistorySync = original; }
+    } finally {
+        mail.insertReceiveHistorySync = original;
+        seed.markSent = originalMarkSent;
+    }
     assert.deepEqual(snapshot(p.id), before);
+    assert.equal(markedSeeds, 0);
 });
 
 test('interleaved accounts keep separate inventories and points, and insufficient funds do not mutate saves', async () => {
@@ -140,6 +147,18 @@ test('interleaved accounts keep separate inventories and points, and insufficien
         assert.equal(gachaState.getPlayerGachaInfoSync(p.id, 990002).gachaExchangePoint, 20);
         const before = snapshot(p.id);
         assert.equal((await request(p, 990002, 3, 4, 2)).statusCode, 400);
+        assert.deepEqual(snapshot(p.id), before);
+    }
+});
+
+test('invalid execution counts are rejected before draws or persistence', async () => {
+    const p = await player();
+    const ticket = assets.getGachaSync(990002).tenTicketItemId;
+    items.setPlayerItemSync(p.id, ticket, 20);
+    for (const count of [0, -1, 2.5, 11, Number.MAX_SAFE_INTEGER + 1]) {
+        const before = snapshot(p.id);
+        const response = await request(p, 990002, 3, 4, count);
+        assert.equal(response.statusCode, 400);
         assert.deepEqual(snapshot(p.id), before);
     }
 });

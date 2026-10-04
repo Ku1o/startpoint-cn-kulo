@@ -12,6 +12,7 @@ import { computeRealTimeStamina } from "../../lib/stamina";
 import itemData from "../../../assets/item_data.json";
 import { reconcileAwakeUnlockCharacterList } from "../../lib/mission";
 import { runPersistenceTransaction } from "../../lib/persistence-coordinator";
+import { gameVerboseLog } from "../../lib/game-logging";
 
 interface ItemEffectInfo {
     effectKind: number
@@ -139,7 +140,7 @@ const routes = async (fastify: FastifyInstance) => {
             })
         })
 
-        console.log(`[ITEM-USE] player ${playerId}: stamina ${currentStamina}->${afterStamina} (+${totalStaminaRecovery}), items: ${JSON.stringify(itemUpdates)}`)
+        gameVerboseLog(() => `[ITEM-USE] player ${playerId}: stamina ${currentStamina}->${afterStamina} (+${totalStaminaRecovery}), items: ${JSON.stringify(itemUpdates)}`)
 
         // Build item_list as IntMap<int> (client expects { itemId: count })
         const itemListMap: Record<number, number> = {}
@@ -190,7 +191,7 @@ const routes = async (fastify: FastifyInstance) => {
         }
         const characterList = reconcileAwakeUnlockCharacterList(playerId, [])
 
-        console.log(`[ITEM_SELL] account=${accountId} player=${playerId}: item ${itemId} ×${sellNumber} sold, mana +${result.manaGained} (${result.freeMana - result.manaGained} -> ${result.freeMana})`)
+        gameVerboseLog(() => `[ITEM_SELL] account=${accountId} player=${playerId}: item ${itemId} ×${sellNumber} sold, mana +${result.manaGained} (${result.freeMana - result.manaGained} -> ${result.freeMana})`)
 
         reply.header("content-type", "application/x-msgpack")
         const responseData: Record<string, unknown> = {

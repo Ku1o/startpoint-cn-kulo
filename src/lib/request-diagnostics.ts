@@ -30,6 +30,7 @@ interface RequestState {
     outcome?: string
 }
 const states = new WeakMap<FastifyRequest, RequestState>()
+const completedRequests = new WeakSet<FastifyRequest>()
 let awakeSkipped = 0
 let awakeExamples: { missionId: number; characterId: number }[] = []
 
@@ -101,7 +102,10 @@ function describe(value: Timing) {
 function increment(target: Record<string, number>, key: string): void { target[key] = (target[key] ?? 0) + 1 }
 
 /** One bounded collector per server; no raw URL, body, IP or player identifiers. */
-export function installRequestDiagnostics(app: FastifyInstance, options: { slowMs?: number } = {}) {
+export function installRequestDiagnostics(
+    app: FastifyInstance,
+    options: { slowMs?: number, detailed?: boolean, compactReceiveBoundary?: boolean } = {},
+) {
     const configuredSlowMs = Number(options.slowMs ?? process.env.ROUTE_PERF_SLOW_MS ?? 2000)
     const slowMs = Number.isFinite(configuredSlowMs) ? Math.max(100, configuredSlowMs) : 2000
     let routes = new Map<string, RouteTiming>()
@@ -113,14 +117,19 @@ export function installRequestDiagnostics(app: FastifyInstance, options: { slowM
     const knownErrors = new Set(["SQLITE_CONSTRAINT_FOREIGNKEY", "SQLITE_BUSY", "SQLITE_LOCKED",
         "FST_ERR_CTP_BODY_TOO_LARGE", "FST_ERR_CTP_INVALID_JSON_BODY", "FST_ERR_VALIDATION"])
 
-    function finish(request: FastifyRequest, status: number, kind: "complete" | "aborted" | "timeout") {
-        const state = states.get(request)
-        if (!state) return
-        states.delete(request) // close/abort/timeout/response must count once.
-        const end = performance.now()
-        const ms = end - state.start
-        const socketBytesAtEnd = request.raw.socket?.bytesRead ?? state.socketBytesAtStart
-        const wireBytes = Math.max(0, socketBytesAtEnd - state.socketBytesAtStart)
+    function finish(
+        request: FastifyRequest,
+        status: number,
+        kind: "complete" | "aborted" | "timeout",
+        ms: number,
+        state?: Partial<RequestState>,
+    ) {
+        if (completedRequests.has(request)) return
+        if (kind !== "complete") completedRequests.add(request)
+        states.delete(request)
+        const socketBytesAtEnd = request.raw.socket?.bytesRead ?? state?.socketBytesAtStart ?? 0
+        const wireBytes = state?.socketBytesAtStart === undefined
+            ? 0 : Math.max(0, socketBytesAtEnd - state.socketBytesAtStart)
         const method = ["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"].includes(request.method)
             ? request.method : "OTHER"
         let route = `${method} ${request.routeOptions?.url ?? "<unmatched>"}`
@@ -134,30 +143,40 @@ export function installRequestDiagnostics(app: FastifyInstance, options: { slowM
         increment(row.statuses, statusKey); increment(statuses, statusKey)
         if (kind === "aborted") { row.aborted++; aborted++ }
         if (kind === "timeout") { row.timeouts++; timeouts++ }
-        if (state.outcome) { increment(row.outcomes, state.outcome); increment(outcomes, state.outcome) }
+        if (state?.outcome) { increment(row.outcomes, state.outcome); increment(outcomes, state.outcome) }
         const stages: Record<string, number> = {}
         // preValidation runs after Fastify has received and parsed the body.
         // Keep this separate from application so a slow public upload cannot
         // be mistaken for a slow settlement transaction.
-        if (state.parsed !== undefined) stages.receiveParse = state.parsed - state.start
-        if (state.parsed !== undefined && (state.prepared ?? state.sending) !== undefined) {
+        if (state?.parsed !== undefined && state.start !== undefined) stages.receiveParse = state.parsed - state.start
+        if (state?.parsed !== undefined && (state.prepared ?? state.sending) !== undefined) {
             stages.application = (state.prepared ?? state.sending)! - state.parsed
+        } else if (state?.parsed !== undefined && state.start !== undefined) {
+            // Compact mode intentionally omits serialization/send hooks. The
+            // remaining post-parse wall time still distinguishes a slow
+            // client upload from work performed after Fastify parsed the body.
+            stages.application = Math.max(
+                0,
+                state.start + ms - state.parsed - (state.encodingMs ?? 0),
+            )
         }
-        if (state.prepared !== undefined && state.sending !== undefined) stages.serialize = state.sending - state.prepared
-        if (state.sending !== undefined) {
-            stages.customEncoding = state.encodingMs
-            stages.sendRemainder = Math.max(0, end - state.sending - state.encodingMs)
+        if (state?.prepared !== undefined && state.sending !== undefined) stages.serialize = state.sending - state.prepared
+        if (state?.sending !== undefined && state.start !== undefined) {
+            stages.customEncoding = state.encodingMs ?? 0
+            stages.sendRemainder = Math.max(0, state.start + ms - state.sending - (state.encodingMs ?? 0))
+        } else if ((state?.encodingMs ?? 0) > 0) {
+            stages.customEncoding = state!.encodingMs!
         }
         for (const [name, value] of Object.entries(stages)) add(row.stages[name] ??= timing(), value)
-        row.responseBytes += state.responseBytes
+        row.responseBytes += state?.responseBytes ?? 0
         if (ms >= slowMs || kind !== "complete" || status >= 500) {
             if (slow.length < maxSlowSamples) slow.push({ route,
                 requestId: String(request.id).replace(/[^A-Za-z0-9_.:-]/g, "_").slice(0, 64),
-                status: statusKey, ms: +ms.toFixed(1), outcome: state.outcome,
+                status: statusKey, ms: +ms.toFixed(1), outcome: state?.outcome,
                 stages: Object.fromEntries(Object.entries(stages).map(([key, value]) => [key, +value.toFixed(1)])),
-                contentLength: state.contentLength,
+                contentLength: state?.contentLength ?? null,
                 wireBytes,
-                responseBytes: state.responseBytes })
+                responseBytes: state?.responseBytes ?? 0 })
             else omittedSlowSamples++
         }
     }
@@ -175,33 +194,86 @@ export function installRequestDiagnostics(app: FastifyInstance, options: { slowM
             encodingMs: 0,
             responseBytes: 0,
         })
-        const onClose = () => {
-            if (!reply.raw.writableFinished) finish(request, reply.statusCode, "aborted")
+        if (options.detailed !== false) {
+            const onClose = () => {
+                const state = states.get(request)
+                if (!reply.raw.writableFinished && state) {
+                    finish(request, reply.statusCode, "aborted", performance.now() - state.start, state)
+                }
+            }
+            reply.raw.once("close", onClose)
+            reply.raw.once("finish", () => reply.raw.removeListener("close", onClose))
         }
-        reply.raw.once("close", onClose)
-        reply.raw.once("finish", () => reply.raw.removeListener("close", onClose))
         done()
     })
-    app.addHook("preValidation", (request, _reply, done) => { const s = states.get(request); if (s) s.parsed = performance.now(); done() })
-    app.addHook("preSerialization", (request, _reply, payload, done) => {
-        const s = states.get(request); if (s) s.prepared = performance.now(); done(null, payload)
-    })
-    app.addHook("onSend", (request, _reply, payload, done) => {
-        const s = states.get(request)
-        if (s) {
-            s.sending = performance.now()
-            s.responseBytes = typeof payload === "string" ? Buffer.byteLength(payload) : Buffer.isBuffer(payload) ? payload.length : 0
+    if (options.detailed === false) {
+        // Keep one low-cost boundary in compact mode. Without it, a client
+        // that spends minutes uploading a large battle-finish body is
+        // indistinguishable from an equally slow application handler.
+        if (options.compactReceiveBoundary !== false) {
+            app.addHook("preValidation", (request, _reply, done) => {
+                const state = states.get(request)
+                if (state) state.parsed = performance.now()
+                done()
+            })
         }
-        done(null, payload)
-    })
-    app.addHook("onError", (request, _reply, error, done) => {
-        const s = states.get(request)
-        if (s && !s.outcome) s.outcome = knownErrors.has(error.code ?? "") ? error.code! : "unclassified_error"
-        done()
-    })
-    app.addHook("onRequestAbort", (request, done) => { finish(request, 0, "aborted"); done() })
-    app.addHook("onTimeout", (request, _reply, done) => { finish(request, 0, "timeout"); done() })
-    app.addHook("onResponse", (request, reply, done) => { finish(request, reply.statusCode, "complete"); done() })
+        app.addHook("onError", (request, _reply, error, done) => {
+            const state = states.get(request)
+            if (state && !state.outcome) {
+                state.outcome = knownErrors.has(error.code ?? "") ? error.code! : "unclassified_error"
+            }
+            done()
+        })
+        app.addHook("onRequestAbort", (request, done) => {
+            const state = states.get(request)
+            if (state) finish(request, 0, "aborted", performance.now() - state.start, state)
+            done()
+        })
+        app.addHook("onTimeout", (request, _reply, done) => {
+            const state = states.get(request)
+            if (state) finish(request, 0, "timeout", performance.now() - state.start, state)
+            done()
+        })
+        app.addHook("onResponse", (request, reply, done) => {
+            const state = states.get(request)
+            if (state) finish(request, reply.statusCode, "complete", performance.now() - state.start, state)
+            done()
+        })
+    }
+    if (options.detailed !== false) {
+        app.addHook("preValidation", (request, _reply, done) => { const s = states.get(request); if (s) s.parsed = performance.now(); done() })
+        app.addHook("preSerialization", (request, _reply, payload, done) => {
+            const s = states.get(request); if (s) s.prepared = performance.now(); done(null, payload)
+        })
+        app.addHook("onSend", (request, _reply, payload, done) => {
+            const s = states.get(request)
+            if (s) {
+                s.sending = performance.now()
+                s.responseBytes = typeof payload === "string" ? Buffer.byteLength(payload) : Buffer.isBuffer(payload) ? payload.length : 0
+            }
+            done(null, payload)
+        })
+        app.addHook("onError", (request, _reply, error, done) => {
+            const s = states.get(request)
+            if (s && !s.outcome) s.outcome = knownErrors.has(error.code ?? "") ? error.code! : "unclassified_error"
+            done()
+        })
+        app.addHook("onRequestAbort", (request, done) => {
+            const state = states.get(request)
+            if (state) finish(request, 0, "aborted", performance.now() - state.start, state)
+            done()
+        })
+        app.addHook("onTimeout", (request, _reply, done) => {
+            const state = states.get(request)
+            if (state) finish(request, 0, "timeout", performance.now() - state.start, state)
+            done()
+        })
+        app.addHook("onResponse", (request, reply, done) => {
+            const state = states.get(request)
+            if (state) finish(request, reply.statusCode, "complete", performance.now() - state.start, state)
+            done()
+        })
+    }
 
     return {
         drain() {

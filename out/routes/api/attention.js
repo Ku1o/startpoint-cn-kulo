@@ -24,8 +24,8 @@ const admission_1 = require("../../multi/room/admission");
 const player_context_1 = require("../../multi/player-context");
 const attention_config_1 = require("../../multi/attention-config");
 const mode15_room_gate_1 = require("../../multi/mode15-room-gate");
-const mode15_optional_1 = require("../../lib/mode15-optional");
 const embedded_1 = require("../../multi/coordinator/embedded");
+const guest_eligibility_1 = require("../../multi/guest-eligibility");
 const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
     fastify.post("/check", (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
         const body = request.body;
@@ -41,10 +41,11 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 "error": "Bad Request",
                 "message": "Invalid viewer id or no player bound."
             });
-        const { playerId } = ctx;
+        const { playerId, player } = ctx;
         const requested = Number.isFinite(body.request_number) ? body.request_number : 3;
         const holding = Number.isFinite(body.holding_number) ? body.holding_number : 0;
         const availableSlots = Math.max(0, Math.min(3, requested) - Math.max(0, holding));
+        const guestEligibilityByQuest = new Map();
         const recruitments = (0, recruitment_1.takeRandomRecruitments)(viewerId, availableSlots, recruitment => {
             var _a;
             const room = (0, manager_1.getRoom)(recruitment.roomNumber);
@@ -54,8 +55,13 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 return false;
             if (["STARTING", "BATTLE"].includes(embedded_1.embeddedMultiCoordinator.ensureLifecycle(room).phase))
                 return false;
-            if ((0, mode15_optional_1.isMode15Quest)(room.category, room.quest_id)
-                && !(0, mode15_optional_1.canJoinMode15RescueSync)(playerId, room.category, room.quest_id).allowed)
+            const eligibilityKey = `${room.category}:${room.quest_id}`;
+            let guestEligible = guestEligibilityByQuest.get(eligibilityKey);
+            if (guestEligible === undefined) {
+                guestEligible = (0, guest_eligibility_1.canJoinMultiGuestQuestSync)(playerId, room.category, room.quest_id, player).allowed;
+                guestEligibilityByQuest.set(eligibilityKey, guestEligible);
+            }
+            if (!guestEligible)
                 return false;
             if (!SessionManager_1.sessionManager.isHostOnline(room.host_viewer_id, room.room_number, room.lobby_generation))
                 return false;

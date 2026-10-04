@@ -10,8 +10,8 @@ import { getPlayerCharacterSync } from "../../data/domains/character"
 import { ensurePlayerPartyGroupListSync, getPlayerPartyGroupListSync } from "../../data/domains/party"
 import { getSession } from "../../data/domains/session"
 import { setRequestOutcome } from "../../lib/request-diagnostics"
-import { getQuestFromCategorySync, getRogueEventConfig, getRushEventFolderMaxRoundSync } from "../../lib/assets";
-import { BattleQuest, QuestCategory, RushEventFolder } from "../../lib/types";
+import { getQuestFromCategorySync } from "../../lib/assets";
+import { BattleQuest, QuestCategory } from "../../lib/types";
 import { isStaleAbyssClient } from "../../lib/abyss-time-revision";
 import { ABYSS_EX_EVENT_ID, isAbyssEvent } from "../../lib/abyss-modes";
 import { canStartAbyssQuestSync, hasAbyssExUnlockSync, refreshPlayerAbyssTowersSync } from "../../data/domains/abyss-tower-progress";
@@ -31,12 +31,14 @@ import {
 import {
     canStartMode15QuestSync,
     getMode15ExclusiveGlobalPartyItemsSync,
+    isMode15EquipmentAllowedQuest,
     isMode15RuntimeLoaded,
     MODE15_PRACTICE_QUEST_ID,
     MODE15_RUSH_EVENT_ID,
     resetMode15RunSync,
 } from "../../lib/mode15-optional";
 import { getRankDegree } from "../../lib/stamina";
+import { getRushEventFolderMaxRounds, rushEventFolderMaxRounds } from "../../lib/rush-event-folder-rounds";
 import {
     canStartRankGatedGauntletRush,
     GAUNTLET_MIN_PLAYER_RANK,
@@ -169,39 +171,7 @@ function repairDeepAbyssEndlessFolderLockSync(
     };
 }
 
-export const rushEventFolderMaxRounds: { [key in RushEventFolder]?: number } = {
-    [RushEventFolder.INTERMEDIATE]: 2,
-    [RushEventFolder.ADVANCED]: 2,
-    [RushEventFolder.GODLY]: 2
-}
-
-export function getRushEventFolderMaxRounds(eventId: number, folderId: number): number {
-    // Deep Abyss is a data-driven 30-floor tower.  The legacy fallback map
-    // only knows the three official two-round folders, so keep its finite
-    // folder open for the configured roguelike run.
-    if (isAbyssEvent(eventId) && folderId === RushEventFolder.INTERMEDIATE) {
-        const configured = Number((getRogueEventConfig(eventId) as any)?.rounds)
-        return Number.isInteger(configured) && configured > 0 ? configured : 30
-    }
-    if (
-        isMode15RuntimeLoaded()
-        && eventId === MODE15_RUSH_EVENT_ID
-        && folderId === RushEventFolder.INTERMEDIATE
-    ) {
-        // Mode15 exposes all fifteen rounds in the Rush folder.  The three
-        // boss rows are placeholders completed by AdventEvent settlement.
-        // Keep one sentinel round beyond stage 15 so native Rush completion
-        // never closes the folder before stage-15 settlement resets the run.
-        return 16;
-    }
-
-    const configuredMaxRound = getRushEventFolderMaxRoundSync(eventId, folderId)
-    if (configuredMaxRound > 0) return configuredMaxRound
-
-    // Retain the legacy defaults only for old/custom rows that have no quest
-    // master data. Official event folders are resolved from their actual rows.
-    return rushEventFolderMaxRounds[folderId as RushEventFolder] ?? 0;
-}
+export { getRushEventFolderMaxRounds, rushEventFolderMaxRounds };
 
 const routes = async (fastify: FastifyInstance) => {
     fastify.addHook("preHandler", async (request, reply) => {
@@ -802,7 +772,7 @@ const routes = async (fastify: FastifyInstance) => {
             }
         }
 
-        if (questData.rushEventId !== MODE15_RUSH_EVENT_ID) {
+        if (!isMode15EquipmentAllowedQuest(QuestCategory.RUSH_EVENT, questId)) {
             const partyCategory = partyCategoryForRushEvent(questData.rushEventId)
             const restricted = getMode15ExclusiveGlobalPartyItemsSync(
                 playerId, partyCategory, partyId,

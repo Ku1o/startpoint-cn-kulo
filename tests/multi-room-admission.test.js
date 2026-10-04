@@ -52,6 +52,14 @@ test("capacity counts reservations and claims without double-counting viewers", 
     assert.equal(registry.reserve("100003", 1, 40, [10, 20], 3, 3_400), false)
 })
 
+test("the latest reserved selection records whether this TCP admission is rescue", () => {
+    const registry = new RoomAdmissionRegistry(15_000)
+    assert.equal(registry.reserve("100007", 1, 20, [10], 3, 8_000, "rescue"), true)
+    assert.equal(registry.isRescue("100007", 1, 20, 8_100), true)
+    assert.equal(registry.reserve("100007", 1, 20, [10], 3, 8_200, "direct"), true)
+    assert.equal(registry.isRescue("100007", 1, 20, 8_300), false)
+})
+
 test("expired and previous-generation reservations are never claimed", () => {
     const registry = new RoomAdmissionRegistry(1_000)
     assert.equal(registry.reserve("100004", 2, 20, [10], 3, 4_000), true)

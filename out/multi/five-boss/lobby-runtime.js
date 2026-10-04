@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.recordFiveBossSignal = exports.isFrozenFiveBossBattleClient = exports.freezeFiveBossLobby = void 0;
+exports.recordFiveBossSignal = exports.isFrozenFiveBossBattleClient = exports.freezeFiveBossLobby = exports.waitForFiveBossSignalPersistence = void 0;
 const crypto_1 = require("crypto");
 const manager_1 = require("../room/manager");
 const SessionManager_1 = require("../state/SessionManager");
@@ -10,6 +10,19 @@ const contract_1 = require("./contract");
 const coalesced_diagnostics_1 = require("../../lib/coalesced-diagnostics");
 const connection_diagnostic_1 = require("./connection-diagnostic");
 const persistence_coordinator_1 = require("../../lib/persistence-coordinator");
+// TCP proof notifications are acknowledged before their SQLite write has
+// necessarily committed.  Keep the tail for each frozen member so HTTP
+// settlement can wait for notifications that already reached this process.
+const pendingFiveBossSignalWrites = new Map();
+function fiveBossSignalKey(runId, playerId) {
+    return `${runId}:${playerId}`;
+}
+/** Wait for proof notifications already accepted from this member's socket. */
+function waitForFiveBossSignalPersistence(runId, playerId) {
+    var _a;
+    return (_a = pendingFiveBossSignalWrites.get(fiveBossSignalKey(runId, playerId))) !== null && _a !== void 0 ? _a : Promise.resolve();
+}
+exports.waitForFiveBossSignalPersistence = waitForFiveBossSignalPersistence;
 /** Freeze the canonical live lobby before either HTTP or TCP starts the battle. */
 function freezeFiveBossLobby(room, members) {
     var _a, _b, _c, _d;
@@ -34,7 +47,8 @@ function freezeFiveBossLobby(room, members) {
         || !roster.every(mate => { var _a; return ((_a = mate.state) === null || _a === void 0 ? void 0 : _a[0]) === 1; }))
         return false;
     const frozen = {
-        runId: (0, crypto_1.randomUUID)(), expectedRealPlayerIds: [], autoplayModeByPlayerId: {},
+        runId: (0, crypto_1.randomUUID)(), expectedRealPlayerIds: [], battleEnteredPlayerIds: [],
+        autoplayModeByPlayerId: {},
         partyCharacterIdsByPlayerId: {}, battleIdentityByViewerId: {},
     };
     for (const mate of roster.filter(m => !m.comId)) {
@@ -72,12 +86,11 @@ function isFrozenFiveBossBattleClient(room, client) {
     var _a;
     const identity = (_a = room.five_boss_runtime) === null || _a === void 0 ? void 0 : _a.battleIdentityByViewerId[String(client.viewerId)];
     return !!identity && identity.playerId === client.playerId
-        && identity.remoteAddress === client.socket.remoteAddress
         && identity.connectionId === client.connectionId && !client.superseded;
 }
 exports.isFrozenFiveBossBattleClient = isFrozenFiveBossBattleClient;
 function recordFiveBossSignal(room, client, signal) {
-    var _a;
+    var _a, _b;
     if (!isFrozenFiveBossBattleClient(room, client)) {
         connection_diagnostic_1.fiveBossConnectionDiagnostics.socketEvent(client.socket, "signal_rejected", `${signal}:identity`);
         coalesced_diagnostics_1.fiveBossDiagnostics.report(JSON.stringify(["signal", (_a = room.five_boss_runtime) === null || _a === void 0 ? void 0 : _a.runId, room.room_number,
@@ -86,22 +99,39 @@ function recordFiveBossSignal(room, client, signal) {
             return `[FIVE-BOSS-SIGNAL] rejected=identity room=${room.room_number}`
                 + ` run=${(_a = room.five_boss_runtime) === null || _a === void 0 ? void 0 : _a.runId} player=${client.playerId} connection=${client.connectionId} signal=${signal}`;
         });
-        return;
+        return false;
     }
+    if (signal === "scene_ready" && client.fiveBossBattleEntered)
+        return true;
     const runId = room.five_boss_runtime.runId;
     const playerId = client.playerId;
     const roomNumber = room.room_number;
+    if (signal === "scene_ready")
+        client.fiveBossBattleEntered = true;
     // The TCP handler must only update the in-memory barrier and return. The
     // proof row is durable evidence, but it is not part of the realtime ACK.
-    connection_diagnostic_1.fiveBossConnectionDiagnostics.socketEvent(client.socket, signal === "level_next" ? "level_next_queued" : "finalize_queued", "tcp");
-    void (0, persistence_coordinator_1.runPersistenceTransaction)({
+    connection_diagnostic_1.fiveBossConnectionDiagnostics.socketEvent(client.socket, signal === "scene_ready" ? "battle_entry_queued"
+        : signal === "level_next" ? "level_next_queued" : "finalize_queued", "tcp");
+    const key = fiveBossSignalKey(runId, playerId);
+    const previous = (_b = pendingFiveBossSignalWrites.get(key)) !== null && _b !== void 0 ? _b : Promise.resolve();
+    const pending = previous.then(() => (0, persistence_coordinator_1.runPersistenceTransaction)({
         domain: "multi-settlement", playerId, operation: `five_boss_${signal}`,
-    }, () => (0, fiveBossGauntletRun_1.recordMemberBattleSignalSync)({ runId, playerId, roomNumber, signal }))
+    }, () => (0, fiveBossGauntletRun_1.recordMemberBattleSignalSync)({ runId, playerId, roomNumber, signal })))
         .then(() => {
-        connection_diagnostic_1.fiveBossConnectionDiagnostics.socketEvent(client.socket, signal === "level_next" ? "level_next_recorded" : "finalize_recorded", "tcp");
+        var _a, _b;
+        const currentRuntime = room.five_boss_runtime;
+        if (signal === "scene_ready"
+            && (currentRuntime === null || currentRuntime === void 0 ? void 0 : currentRuntime.runId) === runId
+            && !((_a = currentRuntime.battleEnteredPlayerIds) === null || _a === void 0 ? void 0 : _a.includes(playerId))) {
+            ((_b = currentRuntime.battleEnteredPlayerIds) !== null && _b !== void 0 ? _b : (currentRuntime.battleEnteredPlayerIds = [])).push(playerId);
+        }
+        connection_diagnostic_1.fiveBossConnectionDiagnostics.socketEvent(client.socket, signal === "scene_ready" ? "battle_entry_recorded"
+            : signal === "level_next" ? "level_next_recorded" : "finalize_recorded", "tcp");
     })
         .catch(error => {
         var _a;
+        if (signal === "scene_ready")
+            client.fiveBossBattleEntered = false;
         const code = (_a = error.code) !== null && _a !== void 0 ? _a : "unknown";
         connection_diagnostic_1.fiveBossConnectionDiagnostics.socketEvent(client.socket, "signal_rejected", `${signal}:${code}`);
         coalesced_diagnostics_1.fiveBossDiagnostics.report(JSON.stringify(["signal", runId, roomNumber,
@@ -109,5 +139,11 @@ function recordFiveBossSignal(room, client, signal) {
             + ` room=${roomNumber} run=${runId}`
             + ` player=${playerId} connection=${client.connectionId} signal=${signal}: ${error.message}`);
     });
+    pendingFiveBossSignalWrites.set(key, pending);
+    void pending.finally(() => {
+        if (pendingFiveBossSignalWrites.get(key) === pending)
+            pendingFiveBossSignalWrites.delete(key);
+    });
+    return true;
 }
 exports.recordFiveBossSignal = recordFiveBossSignal;

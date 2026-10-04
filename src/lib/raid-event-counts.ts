@@ -59,3 +59,12 @@ export function getRaidQuestCounts(db: Database, eventId: number): Record<string
         return Object.fromEntries(rows.map(row => [String(row.quest_id), { kill_count: row.kills }]))
     })()
 }
+
+export function getRaidQuestCount(db: Database, eventId: number, questId: number): number {
+    const row = cachedStatement(db, `
+        SELECT COUNT(*) AS kill_count
+        FROM raid_event_global_kill_ledger
+        WHERE event_id = ? AND quest_id = ?
+    `).get(eventId, questId) as { kill_count: number }
+    return Math.max(0, Number(row.kill_count) || 0)
+}

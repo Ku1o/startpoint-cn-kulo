@@ -1,7 +1,8 @@
+import { readPlayerPartyGroupListSync } from "../readers/load-snapshot"
 import { cachedStatement } from "../../lib/cached-statement"
 import { getDb } from "../db";
-import { PartyCategory, PlayerParty, PlayerPartyGroup, RawPlayerParty, RawPlayerPartyGroup } from "../types";
-import { deserializeBoolean, serializeBoolean } from "../utils";
+import { PartyCategory, PlayerParty, PlayerPartyGroup } from "../types";
+import { serializeBoolean } from "../utils";
 import { insertMissingPartyGroupListSync } from "../../lib/party-group-persistence";
 import { gameVerboseLog } from "../../lib/game-logging";
 import { runPersistenceTransactionSync } from "../../lib/persistence-coordinator";
@@ -125,58 +126,7 @@ export function getPlayerPartyGroupListSync(
     playerId: number,
     category: PartyCategory = PartyCategory.NORMAL
 ): Record<string, PlayerPartyGroup> {
-    const db = getDb();
-    const rawPartyGroups = cachedStatement(db, `
-    SELECT id, color_id, category
-    FROM players_party_groups
-    WHERE player_id = ? AND category = ?
-    `).all(playerId, category) as RawPlayerPartyGroup[]
-
-    const rawParties = cachedStatement(db, `
-    SELECT slot, name, character_id_1, character_id_2, character_id_3, unison_character_1,
-        unison_character_2, unison_character_3, equipment_1, equipment_2, equipment_3,
-        ability_soul_1, ability_soul_2, ability_soul_3, edited, group_id, category,
-        current_battle_power, before_battle_power
-    FROM players_parties
-    WHERE player_id = ? AND category = ?
-    `).all(playerId, category) as RawPlayerParty[]
-
-    const groupLists: Record<string, Record<string, PlayerParty>> = {}
-    for (const rawParty of rawParties) {
-        const groupId = rawParty.group_id.toString()
-        let bucket: Record<string, PlayerParty> = groupLists[groupId]
-        if (!bucket) {
-            bucket = {}
-            groupLists[groupId] = bucket
-        }
-        bucket[rawParty.slot.toString()] = {
-            name: rawParty.name,
-            characterIds: [rawParty.character_id_1, rawParty.character_id_2, rawParty.character_id_3],
-            unisonCharacterIds: [rawParty.unison_character_1, rawParty.unison_character_2, rawParty.unison_character_3],
-            equipmentIds: [rawParty.equipment_1, rawParty.equipment_2, rawParty.equipment_3],
-            abilitySoulIds: [rawParty.ability_soul_1, rawParty.ability_soul_2, rawParty.ability_soul_3],
-            edited: deserializeBoolean(rawParty.edited),
-            options: {
-                allowOtherPlayersToHealMe: true
-            },
-            category: rawParty.category,
-            currentBattlePower: rawParty.current_battle_power ?? 0,
-            beforeBattlePower: rawParty.before_battle_power ?? 0
-        }
-    }
-
-    const final: Record<string, PlayerPartyGroup> = {}
-    for (const rawPartyGroup of rawPartyGroups) {
-        const id = rawPartyGroup.id.toString()
-        final[id] = {
-            list: groupLists[id] || [],
-            colorId: rawPartyGroup.color_id,
-            category: rawPartyGroup.category
-        }
-    }
-    // Log group summary
-    gameVerboseLog(() => `[PARTY-READ] player=${playerId} groups=${Object.keys(final).length} totalParties=${rawParties.length}`)
-    return final
+    return readPlayerPartyGroupListSync(getDb(), playerId, category)
 }
 
 /**

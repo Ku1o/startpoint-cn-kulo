@@ -1,6 +1,7 @@
 import { freezeFiveBossLobby } from "../five-boss/lobby-runtime";
 import { isFiveBossTicketShortage, sendFiveBossTicketShortage } from "../five-boss/entry-response";
-import { continueFiveBoss, FiveBossContinueError, isFiveBossContinueRequest } from "../five-boss/continue-runtime";
+import { continueFiveBoss, fiveBossContinueAcknowledgement, FiveBossContinueError,
+    isFiveBossContinueRequest } from "../five-boss/continue-runtime";
 import { resolveActiveQuest } from "../../lib/quest/finish/active-quest-resolver";
 import { isFiveBossHiddenQuest } from "../five-boss/contract";
 import { shouldHandleFiveBossStart, shouldHandleFiveBossMemberRequest,
@@ -11,10 +12,11 @@ import { MultiStartBody, MultiFinishBody, MultiAbortBody, PlayContinueBody } fro
 import { generateDataHeaders, getServerTime, realToVirtual } from "../../utils";
 import { getRoom, getRoomMemberPlayerId, isRoomMember, setRoomBattle } from "../room/manager";
 import { sessionManager } from "../state/SessionManager";
-import { insertActiveQuest, activeQuests } from "../../routes/api/singleBattleQuest";
+import { insertActiveQuest, activeQuests, type ActiveQuest } from "../../routes/api/singleBattleQuest";
 import {
-    deletePlayerActiveQuestSync,
-    updatePlayerActiveQuestContinueCountSync,
+    deletePlayerActiveQuestIfPlayIdSync,
+    getPlayerActiveQuestSync,
+    updatePlayerActiveQuestContinueCountIfPlayIdSync,
 } from "../../data/domains/quest_active";
 import { incrementPlayerCharacterClearSync } from "../../data/domains/character_clear";
 import {
@@ -62,11 +64,19 @@ import {
 import { isMode15RoomClosed } from "../mode15-room-gate";
 import {
     getMode15ExclusiveGlobalPartyItemsSync,
+    isMode15EquipmentAllowedQuest,
     isMode15Quest,
     settleMode15BattleSync,
 } from "../../lib/mode15-optional";
 import { recordSuccessfulQuestNpcParty } from "../npc/player-party-pool";
-import { runPersistenceTransaction } from "../../lib/persistence-coordinator";
+import { runPersistenceTransaction, runWriterCommand } from "../../lib/persistence-coordinator";
+import {
+    MULTI_CLEANUP_ACTIVE_QUEST,
+    MULTI_RECORD_BATTLE_FACTS,
+    type MultiCleanupActiveQuestArgs,
+    type MultiRecordBattleFactsArgs,
+    type MultiRecordBattleFactsResult,
+} from "../../lib/persistence/command-names";
 import {
     buildBattleInstanceId,
     getMultiSettlementSnapshot,
@@ -110,6 +120,121 @@ async function buildFinishFollowInfo(
     return followInfo;
 }
 
+function sendMultiStartUnavailable(
+    reply: FastifyReply,
+    viewerId: number,
+    reason: string,
+) {
+    console.warn(`[MULTI] start acknowledged as unavailable: viewer=${viewerId} reason=${reason}`)
+    reply.header("content-type", "application/x-msgpack")
+    return reply.status(200).send({
+        data_headers: generateDataHeaders({ viewer_id: viewerId, result_code: 4050 }),
+        data: {},
+    })
+}
+
+function buildTerminalMultiFinishAcknowledgement(
+    player: NonNullable<ReturnType<typeof getPlayerSync>>,
+    body: MultiFinishBody,
+) {
+    const dataHeaders = generateDataHeaders({ viewer_id: body.viewer_id })
+    return {
+        data_headers: dataHeaders,
+        data: {
+            user_info: {
+                free_mana: player.freeMana,
+                exp_pool: player.expPool,
+                exp_pooled_time: getServerTime(player.expPooledTime),
+                free_vmoney: player.freeVmoney,
+                rank_point: player.rankPoint,
+                degree_id: player.degreeId ?? 1,
+                stamina: player.stamina,
+                stamina_heal_time: realToVirtual(player.staminaHealTime),
+                boost_point: player.boostPoint,
+                boss_boost_point: player.bossBoostPoint,
+            },
+            add_exp_list: [],
+            character_list: [],
+            bond_token_status_list: [],
+            rewards: {
+                overflow_pool_exp: 0,
+                converted_pool_exp: 0,
+                reward_pool_exp: 0,
+                reward_mana: 0,
+                field_mana: 0,
+            },
+            old_high_score: 0,
+            joined_character_id_list: [],
+            before_rank_point: player.rankPoint,
+            clear_rank: 0,
+            drop_score_reward_ids: [],
+            drop_rare_reward_ids: [],
+            drop_additional_reward_ids: [],
+            drop_periodic_reward_ids: [],
+            equipment_list: [],
+            category_id: Number(body.category) || 0,
+            start_time: dataHeaders.servertime,
+            is_multi: "multi",
+            quest_name: "",
+            item_list: {},
+            presigned_quest_category: [],
+            mate_player_result: body.mate_player_result ?? [],
+            follow_info: [],
+            contribution_score: Number(body.contribution_score) || 0,
+            host_finished: false,
+            aborted_play_id: null,
+            unfinished_play_id: null,
+            mail_arrived: getPlayerMailCountSync(player.id, true) > 0,
+        },
+    }
+}
+
+function activeQuestFromPersistent(
+    quest: NonNullable<ReturnType<typeof getPlayerActiveQuestSync>>,
+): ActiveQuest {
+    return {
+        questId: quest.questId,
+        category: quest.category,
+        useBossBoostPoint: quest.useBossBoostPoint,
+        useBoostPoint: quest.useBoostPoint,
+        isAutoStartMode: quest.isAutoStartMode,
+        isMulti: quest.isMulti,
+        isMultiHost: quest.isMultiHost,
+        roomNumber: quest.roomNumber ?? undefined,
+        entryItemId: quest.entryItemId ?? undefined,
+        eventId: quest.eventId ?? undefined,
+        partySlot: quest.partySlot ?? undefined,
+        playId: quest.playId,
+        continueCount: quest.continueCount,
+        startedAtMs: quest.startedAtMs ?? undefined,
+        questTimeRevision: quest.questTimeRevision ?? null,
+    }
+}
+
+async function clearMatchingMultiActiveQuest(
+    playerId: number,
+    playId: unknown,
+    operation: string,
+): Promise<boolean> {
+    if (typeof playId !== "string" || playId.length === 0) return false
+    let deleted = false
+    await runPersistenceTransaction({
+        domain: "multi-settlement",
+        playerId,
+        operation,
+    }, () => {
+        const persisted = getPlayerActiveQuestSync(playerId)
+        if (persisted?.isMulti && persisted.playId === playId) {
+            deleted = deletePlayerActiveQuestIfPlayIdSync(playerId, playId)
+        }
+    })
+    if (activeQuests[playerId]?.isMulti && activeQuests[playerId]?.playId === playId) {
+        delete activeQuests[playerId]
+        deleted = true
+    }
+    return deleted
+}
+
 export function registerBattleRoutes(fastify: FastifyInstance): void {
 
     // ---- start ----
@@ -131,11 +256,16 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
             });
         }
 
+        // A rescue guest who already entered the room keeps the client-side
+        // attention key, but the key's stopped-notice grace can expire during
+        // a long lobby wait. Room membership is the stronger proof at this
+        // point, so only validate the key for viewers who are not members yet.
+        const attentionRoom = room_number ? getRoom(room_number) : undefined
+        const alreadyRoomMember = !!attentionRoom && isRoomMember(attentionRoom, viewer_id)
         if (body.attention_key
+            && !alreadyRoomMember
             && !validateRandomRecruitmentAttention(room_number, viewer_id, body.attention_key)) {
-            return reply.status(400).send({
-                "error": "Bad Request", "message": "Invalid attention key."
-            });
+            return sendMultiStartUnavailable(reply, viewer_id, "attention_expired")
         }
 
         if (isFiveBossHiddenQuest(category, quest_id)) {
@@ -143,12 +273,10 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
         }
         const questData = getQuestFromCategorySync(category, quest_id) as BattleQuest | null;
         if (questData === null || !('rankPointReward' in questData)) {
-            return reply.status(400).send({
-                "error": "Bad Request", "message": "Quest doesn't exist."
-            });
+            return sendMultiStartUnavailable(reply, viewer_id, "quest_missing")
         }
 
-        if (!isMode15Quest(category, quest_id)) {
+        if (!isMode15EquipmentAllowedQuest(category, quest_id)) {
             const restricted = getMode15ExclusiveGlobalPartyItemsSync(
                 ctx.playerId, 1, party_id,
             );
@@ -186,22 +314,20 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
         });
         if (roomStart.status === "forbidden") {
             return reply.status(403).send({
-                "error": "Forbidden", "message": "Room permission denied."
-            });
+                error: "Forbidden",
+                message: "Room permission denied.",
+            })
+        }
+        if (roomStart.status === "player_mismatch") {
+            return reply.status(400).send({
+                error: "Bad Request",
+                message: "Room player mismatch.",
+            })
         }
         if (roomStart.status === "missing"
             || roomStart.status === "unavailable"
-            || roomStart.status === "quest_mismatch"
-            || roomStart.status === "player_mismatch") {
-            return reply.status(400).send({
-                "error": "Bad Request", "message": roomStart.status === "missing"
-                    ? "Room doesn't exist."
-                    : roomStart.status === "quest_mismatch"
-                        ? "Room quest mismatch."
-                        : roomStart.status === "player_mismatch"
-                            ? "Room player mismatch."
-                        : "Room is not available for battle."
-            });
+            || roomStart.status === "quest_mismatch") {
+            return sendMultiStartUnavailable(reply, viewer_id, roomStart.status)
         }
 
         // The host's first successful settlement advances Mode15 immediately.
@@ -225,7 +351,11 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
                 if (!isFiveBossBattleRequestError(error)) throw error;
                 logFiveBossRequestFailure("start", body, ctx.playerId, error);
                 if (isFiveBossTicketShortage(error)) return sendFiveBossTicketShortage(reply, viewer_id);
-                return reply.status(400).send({ error: "Bad Request", message: (error as Error).message });
+                return sendMultiStartUnavailable(
+                    reply,
+                    viewer_id,
+                    `five_boss_${(error as { code?: string }).code ?? "rejected"}`,
+                )
             }
         }
 
@@ -367,16 +497,26 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
 
         const settlementSnapshot = getMultiSettlementSnapshot(playerId, body.play_id);
         const currentActiveQuest = activeQuests[playerId];
+        const persistentActiveQuest = getPlayerActiveQuestSync(playerId);
         // A delayed finish from the previous generation must use its frozen
         // snapshot. Taking the current active quest first can settle or clear a
         // rematch that merely happens to belong to the same player.
-        const activeQuestData = currentActiveQuest?.playId === body.play_id
-            ? currentActiveQuest
-            : settlementSnapshot?.activeQuest;
+        const persistentMatches = persistentActiveQuest?.isMulti
+            && persistentActiveQuest.playId === body.play_id
+        const activeQuestData: ActiveQuest | undefined = settlementSnapshot?.activeQuest
+            ?? (persistentMatches
+                ? activeQuestFromPersistent(persistentActiveQuest)
+                : persistentActiveQuest === null
+                    && currentActiveQuest?.playId === body.play_id
+                    ? currentActiveQuest
+                    : undefined);
         if (activeQuestData === undefined) {
-            return reply.status(400).send({
-                "error": "Bad Request", "message": "No active quest to finish."
-            });
+            const terminal = buildTerminalMultiFinishAcknowledgement(player, body)
+            cacheFinishResponse(finishCacheKey, terminal)
+            console.warn(`[MULTI] stale finish acknowledged: viewer=${viewerId}`
+                + ` play=${body.play_id} reason=active_quest_missing`)
+            reply.header("content-type", "application/x-msgpack")
+            return reply.status(200).send(terminal)
         }
 
         const finishRoom = activeQuestData.roomNumber
@@ -408,9 +548,17 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
         const questId = activeQuestData.questId;
         const questData = getQuestFromCategorySync(questCategory, questId) as BattleQuest | null;
         if (questData === null || !('rankPointReward' in questData)) {
-            return reply.status(400).send({
-                "error": "Bad Request", "message": "Quest doesn't exist."
-            });
+            await clearMatchingMultiActiveQuest(
+                playerId,
+                body.play_id,
+                "stale_finish_unknown_quest",
+            )
+            const terminal = buildTerminalMultiFinishAcknowledgement(player, body)
+            cacheFinishResponse(finishCacheKey, terminal)
+            console.warn(`[MULTI] stale finish acknowledged: viewer=${viewerId}`
+                + ` play=${body.play_id} reason=quest_missing category=${questCategory} quest=${questId}`)
+            reply.header("content-type", "application/x-msgpack")
+            return reply.status(200).send(terminal)
         }
 
         recordSettlementPhase(
@@ -641,30 +789,22 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
         let missionBattleFacts!: ReturnType<typeof recordMissionBattleFacts>;
         let steamRobotMissionId: number | null = null;
         let rewardCharacterExpResult!: ReturnType<typeof givePlayerCharactersExpSync>;
-        await measureSettlementPhaseAsync("multi", "facts_transaction", () => runPersistenceTransaction({
-            domain: "multi-settlement", playerId, operation: "facts_transaction",
-        }, () => {
-        missionBattleFacts = recordMissionBattleFacts(finishCtx, missionEvaluationTime)
-        if (questData.fixedParty === undefined) {
-            recordQuestRecommendedPartySafe(finishCtx)
-        }
-        steamRobotMissionId = trackSteamRobotChallengeMission({
-            playerId,
-            questCategory,
-            questId,
-            questAccomplished,
-            clearRank,
-            statistics: finishCtx.statistics,
-        })
-        if (steamRobotMissionId !== null) {
-            console.log(`[MISSION] steam robot challenge cleared: player=${playerId} quest=${questId} mission=${steamRobotMissionId}`)
-        }
-
-        rewardCharacterExpResult = givePlayerCharactersExpSync(
-            playerId, partyCharacterIdsArray, questData.characterExpReward || 0,
-            questData.fixedParty !== undefined
-        );
-        }));
+        await measureSettlementPhaseAsync("multi", "facts_transaction", async () => {
+            const factsResult = await runWriterCommand<MultiRecordBattleFactsArgs, MultiRecordBattleFactsResult>(
+                MULTI_RECORD_BATTLE_FACTS,
+                {
+                    finishCtx,
+                    partyCharacterIdsArray,
+                    characterExpReward: questData.characterExpReward || 0,
+                    fixedParty: questData.fixedParty !== undefined,
+                    evaluationTimeMs: missionEvaluationTime.getTime(),
+                },
+                { domain: "multi-settlement", playerId, operation: "facts_transaction" },
+            )
+            missionBattleFacts = factsResult.missionBattleFacts as ReturnType<typeof recordMissionBattleFacts>
+            steamRobotMissionId = factsResult.steamRobotMissionId
+            rewardCharacterExpResult = factsResult.rewardCharacterExpResult as ReturnType<typeof givePlayerCharactersExpSync>
+        });
 
         const dataHeaders = generateDataHeaders({ viewer_id: viewerId });
         const rawMatePlayerResult = ((body as any).mate_player_result || []) as Array<{ viewer_id?: number }>;
@@ -865,13 +1005,13 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
         transitionMultiSettlementSnapshot(playerId, body.play_id, "RETURN_PENDING");
         // Clear only the quest that produced this response.  A late retry from
         // the previous battle must never delete a newer rematch's active quest.
+        await measureSettlementPhaseAsync("multi", "active_quest_cleanup", () => runWriterCommand<MultiCleanupActiveQuestArgs, boolean>(
+            MULTI_CLEANUP_ACTIVE_QUEST,
+            { playerId, expectedPlayId: activeQuestData.playId },
+            { domain: "multi-settlement", playerId, operation: "active_quest_cleanup" },
+        ));
         if (activeQuests[playerId]?.playId === activeQuestData.playId) {
-            await measureSettlementPhaseAsync("multi", "active_quest_cleanup", () => runPersistenceTransaction({
-                domain: "multi-settlement", playerId, operation: "active_quest_cleanup",
-            }, () => deletePlayerActiveQuestSync(playerId)));
-            if (activeQuests[playerId]?.playId === activeQuestData.playId) {
-                delete activeQuests[playerId];
-            }
+            delete activeQuests[playerId];
         }
         recordSettlementPhase(
             "multi",
@@ -923,21 +1063,34 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
             }
         }
 
-        const activeQuestData = activeQuests[playerId];
+        const memoryActiveQuest = activeQuests[playerId];
+        const persistedActiveQuest = getPlayerActiveQuestSync(playerId);
+        const activeQuestData = memoryActiveQuest?.isMulti
+            && memoryActiveQuest.playId === body.play_id
+            ? memoryActiveQuest
+            : persistedActiveQuest?.isMulti
+                && persistedActiveQuest.playId === body.play_id
+                ? activeQuestFromPersistent(persistedActiveQuest)
+                : undefined;
 
         if (activeQuestData) {
             const abortRoomNumber = activeQuestData.roomNumber;
             const abortRoom = abortRoomNumber ? getRoom(abortRoomNumber) : undefined;
             const hostAborted = abortRoom?.host_player_id === playerId;
             const abortedPlayId = activeQuestData.playId;
+            let abortedCurrentPlay = false;
             await runPersistenceTransaction({
                 domain: "multi-settlement", playerId, operation: "abort",
             }, () => {
+                abortedCurrentPlay = deletePlayerActiveQuestIfPlayIdSync(
+                    playerId,
+                    abortedPlayId,
+                );
                 // A multiplayer defeat is reported by the legacy client
                 // through /abort rather than /finish(is_accomplished=false).
-                // Keep the Mode15 reset and active-quest deletion under the
-                // same database owner as every other multiplayer write.
-                if (hostAborted) {
+                // Mode15 boundary aborts clear only this battle; the settlement
+                // runtime preserves the current 5/10/15 stage without rewards.
+                if (abortedCurrentPlay && hostAborted) {
                     settleMode15BattleSync(
                         playerId,
                         activeQuestData.category,
@@ -945,21 +1098,30 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
                         false,
                     );
                 }
-                deletePlayerActiveQuestSync(playerId);
             });
-            if (activeQuests[playerId]?.playId === abortedPlayId) {
+            if (abortedCurrentPlay && activeQuests[playerId]?.playId === abortedPlayId) {
                 delete activeQuests[playerId];
             }
-            if (hostAborted && abortRoomNumber) {
-                await embeddedMultiCoordinator.enqueueRoomCommand(
-                    abortRoomNumber,
-                    () => sessionManager.commitRoomDisband(abortRoomNumber, "host_aborted_battle"),
-                );
-                gameVerboseLog(() => `[MULTI] abort: room ${abortRoomNumber} disbanded (host abandoned)`);
+            if (abortedCurrentPlay && hostAborted && abortRoomNumber) {
+                // Retiring as the host no longer dissolves the room. The host
+                // is treated as a leaving member: closing its battle socket
+                // retires the seat (publishing Leave to the peers), the
+                // remaining members keep fighting and settle normally, and the
+                // hostless room is dissolved by its own settlement-return or
+                // abandoned-battle watchdog.
+                gameVerboseLog(() => `[MULTI] abort: host ${viewerId} left room ${abortRoomNumber};`
+                    + ` remaining members continue`);
             }
-            if (activeQuestData.roomNumber) {
+            if (abortedCurrentPlay && activeQuestData.roomNumber) {
                 sessionManager.clearBattleExpectedCount(activeQuestData.roomNumber);
             }
+            if (!abortedCurrentPlay) {
+                console.warn(`[MULTI] stale abort acknowledged: viewer=${viewerId}`
+                    + ` play=${body.play_id} reason=persistent_play_replaced`)
+            }
+        } else {
+            console.warn(`[MULTI] stale abort acknowledged: viewer=${viewerId}`
+                + ` play=${body.play_id} reason=active_quest_missing_or_replaced`)
         }
 
         const headers = generateDataHeaders({ viewer_id: viewerId });
@@ -968,7 +1130,7 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
             "data_headers": headers,
             "data": {
                 "user_info": {},
-                "category_id": body.category,
+                "category_id": activeQuestData?.category ?? body.category ?? 0,
                 "is_multi": "multi",
                 "start_time": headers['servertime'],
                 "quest_name": "",
@@ -1012,21 +1174,61 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
                 return reply.status(200).send({ data_headers: generateDataHeaders({ viewer_id: viewerId }), data })
             } catch (error) {
                 if (!(error instanceof FiveBossContinueError)) throw error
+                if (error.stale) {
+                    // The run ended before this client recovered it. The CN
+                    // client treats a 400 here as a fatal H400 and logs out,
+                    // so acknowledge without charging or reviving anything.
+                    gameVerboseLog(() => `[MULTI] play_continue: stale ack viewer=${viewerId}`
+                        + ` quest=${body.quest_id} reason=${error.message}`)
+                    reply.header("content-type", "application/x-msgpack")
+                    return reply.status(200).send({
+                        data_headers: generateDataHeaders({ viewer_id: viewerId }),
+                        data: fiveBossContinueAcknowledgement(playerId),
+                    })
+                }
+                gameVerboseLog(() => `[MULTI] play_continue: rejected viewer=${viewerId}`
+                    + ` quest=${body.quest_id} reason=${error.message}`)
                 return reply.status(400).send({ error: "Bad Request", message: error.message })
             }
         }
 
-        if (activeQuests[playerId] === undefined) {
-            return reply.status(400).send({
-                "error": "Bad Request", "message": "No active quest to continue."
-            });
+        const persisted = getPlayerActiveQuestSync(playerId)
+        let activeData: ActiveQuest | undefined = persisted?.isMulti
+            && persisted.playId === body.play_id
+            ? activeQuests[playerId]?.playId === body.play_id
+                ? activeQuests[playerId]
+                : activeQuestFromPersistent(persisted)
+            : undefined
+        if (activeData) activeQuests[playerId] = activeData
+        if (!activeData) {
+            console.warn(`[MULTI] stale continue acknowledged: viewer=${viewerId}`
+                + ` play=${body.play_id} reason=active_quest_missing_or_replaced`)
+            reply.header("content-type", "application/x-msgpack")
+            return reply.status(200).send({
+                data_headers: generateDataHeaders({ viewer_id: viewerId }),
+                data: { continue_count: 0 },
+            })
         }
-
-        const activeData = activeQuests[playerId];
         const nextContinueCount = activeData.continueCount + 1;
-        await runPersistenceTransaction({
+        const updated = await runPersistenceTransaction({
             domain: "multi-settlement", playerId, operation: "continue",
-        }, () => updatePlayerActiveQuestContinueCountSync(playerId, nextContinueCount));
+        }, () => updatePlayerActiveQuestContinueCountIfPlayIdSync(
+            playerId,
+            activeData!.playId,
+            nextContinueCount,
+        ));
+        if (!updated) {
+            if (activeQuests[playerId]?.playId === body.play_id) {
+                delete activeQuests[playerId]
+            }
+            console.warn(`[MULTI] stale continue acknowledged after race: viewer=${viewerId}`
+                + ` play=${body.play_id}`)
+            reply.header("content-type", "application/x-msgpack")
+            return reply.status(200).send({
+                data_headers: generateDataHeaders({ viewer_id: viewerId }),
+                data: { continue_count: 0 },
+            })
+        }
         activeData.continueCount = nextContinueCount;
 
         reply.header("content-type", "application/x-msgpack");

@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getRaidQuestCounts = void 0;
+exports.getRaidQuestCount = exports.getRaidQuestCounts = void 0;
 const cached_statement_1 = require("./cached-statement");
 /**
  * Connection-local derived counts. TEMP triggers participate in the caller's
@@ -61,3 +61,12 @@ function getRaidQuestCounts(db, eventId) {
     })();
 }
 exports.getRaidQuestCounts = getRaidQuestCounts;
+function getRaidQuestCount(db, eventId, questId) {
+    const row = (0, cached_statement_1.cachedStatement)(db, `
+        SELECT COUNT(*) AS kill_count
+        FROM raid_event_global_kill_ledger
+        WHERE event_id = ? AND quest_id = ?
+    `).get(eventId, questId);
+    return Math.max(0, Number(row.kill_count) || 0);
+}
+exports.getRaidQuestCount = getRaidQuestCount;

@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ensurePlayerSoloTimeAttackDegreesSync = exports.grantPlayerSoloTimeAttackDegreesSync = exports.ensurePlayerLegacyDegreesSync = exports.getPlayerDegreeIdsSync = exports.hasPlayerDegreeSync = exports.givePlayerDegreeSync = exports.grantPlayerDegreeSync = exports.validatePortableDegreeList = exports.getPlayerPortableDegreesSync = void 0;
 const db_1 = require("../db");
 const quest_1 = require("./quest");
+const cached_statement_1 = require("../../lib/cached-statement");
 function getPlayerPortableDegreesSync(playerId) {
     return (0, db_1.getDb)().prepare(`SELECT degree_id AS degreeId, acquired_at AS acquiredAt
         FROM players_degrees WHERE player_id = ? ORDER BY degree_id`).all(playerId);
@@ -34,7 +35,7 @@ function grantPlayerDegreeSync(playerId, degreeId, acquiredAt = Date.now()) {
         return false;
     if (!Number.isInteger(degreeId) || degreeId <= 0)
         return false;
-    const result = (0, db_1.getDb)().prepare(`
+    const result = (0, cached_statement_1.cachedStatement)((0, db_1.getDb)(), `
         INSERT OR IGNORE INTO players_degrees (player_id, degree_id, acquired_at)
         VALUES (?, ?, ?)
     `).run(playerId, degreeId, acquiredAt);

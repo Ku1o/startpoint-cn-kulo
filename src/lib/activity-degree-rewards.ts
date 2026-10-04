@@ -1,6 +1,7 @@
 import rushEventRankingRewards from "../../assets/rush_event_ranking_reward.json"
 import { getDb } from "../data/db"
 import { grantPlayerDegreeSync } from "../data/domains/degree"
+import { cachedStatement } from "./cached-statement"
 
 export const rankingEventIdQuestMap: Readonly<Record<number, number>> = {
     1: 1001,
@@ -150,7 +151,7 @@ const RAID_DEGREE_RULES: readonly { difficulty: RaidDifficulty; count: number; o
 
 export function getEligibleRaidDegreeIdsSync(playerId: number, eventId: number): number[] {
     if (!Number.isInteger(eventId) || eventId < 1 || eventId > 7) return []
-    const rows = getDb().prepare(`
+    const rows = cachedStatement(getDb(), `
         SELECT quest_id, COUNT(*) AS clear_count
         FROM raid_event_global_kill_ledger
         WHERE player_id = ? AND event_id = ?

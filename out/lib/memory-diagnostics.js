@@ -42,7 +42,7 @@ function memoryDiagnosticsEnabled() {
 exports.memoryDiagnosticsEnabled = memoryDiagnosticsEnabled;
 function sqliteDiagnosticsEnabled() {
     var _a;
-    return !/^(0|false|no|off)$/i.test((_a = process.env.SQLITE_DIAGNOSTICS) !== null && _a !== void 0 ? _a : "true");
+    return !/^(0|false|no|off)$/i.test((_a = process.env.SQLITE_DIAGNOSTICS) !== null && _a !== void 0 ? _a : "false");
 }
 exports.sqliteDiagnosticsEnabled = sqliteDiagnosticsEnabled;
 function detailedMemoryDiagnosticsEnabled() {

@@ -12,6 +12,21 @@
 - 多人房间已经有进程内 `EmbeddedMultiCoordinator`，因此房间状态不应被拆成逐战斗帧 RPC。
 - 代码库仍有若干领域直接调用 `db.transaction()`；这些调用属于后续迁移清单，不能通过只迁移共斗来宣称完成。
 
+## 2026-10-02 四核 CPU 优化补充
+
+本节记录本轮与持久化边界直接相关的最终状态。完整动作、基准、测试和部署参数见 [四核服务器 CPU 优化实施记录](MULTICORE-CPU-OPTIMIZATION-20261002.md)。
+
+- 主连接和 persistence worker 启动时都保留 `wal_autocheckpoint=1000`，不会因为“计划启动外部 worker”而提前放弃安全 owner。
+- checkpoint worker 首次成功后才通知主连接和 persistence worker 切换为 `wal_autocheckpoint=0`。
+- checkpoint worker 连续三次执行异常或退出后，两个业务连接恢复 `wal_autocheckpoint=1000`；后续 checkpoint 成功可以重新接管。
+- checkpoint worker 关闭时先等待 `closed` 或线程退出，最长 5 秒后才强制 terminate。
+- persistence worker 不再固定使用 `synchronous=NORMAL`，而是继承统一的 `FULL/NORMAL`、`cache_size` 和 `mmap_size` 配置，并向诊断层报告实际 PRAGMA。
+- `runPersistenceTransaction` 新增 `afterCommit`。数据库 COMMIT 成功后才执行 seed/movie 等非持久副作用；该回调失败只记录错误，不把已提交事务伪装成失败重试。
+- 抽卡的扣费、奖励、历史、积分、任务、Awake、Degree Mission 和响应组装已收进同一玩家事务；资金、票券和 campaign 也在玩家队列内重新读取。
+- 当前 persistence worker 仍只覆盖已命令化的少量写入，不能据此启动多个完整 CN 业务进程。
+
+专项测试覆盖 PRAGMA 继承、1000/0 所有权切换、事务回滚、checkpoint backlog、固定读事务、busy/cooldown、启动失败恢复、连续异常降级、重新接管和优雅关闭。
+
 ## 本次高负载优化
 
 - TCP 每个连接每次事件循环最多处理有限数量的完整帧，剩余帧通过 `setImmediate` 继续处理，避免单个连接的消息突发延迟其他房间的心跳和广播；同一连接内的帧顺序保持不变。
@@ -27,7 +42,7 @@
 - TCP 大厅的 `ChangeParty` 只先更新房间内存态并广播，partySlot 保存改为低优先级异步持久化；五重决战 continue 也增加异步 HTTP 入口，保留同步兼容函数给旧测试和内部调用方。多人房间人数上限仍为三人。
 - Node 24 worker 诊断增加每个 worker 的累计 CPU 时间和采样窗口增量，同时记录主进程同一时间窗的 CPU 增量，用于验证多核心是否实际被使用。
 - 仍需保留同步 API 的旧调用方通过兼容入口接入；这些调用不会伪装成异步 worker，后续需要命令化后才能真正搬离主事件循环。
-- 新增可选的 SQLite checkpoint worker（`SQLITE_CHECKPOINT_WORKER=1`）；默认关闭，开启后每 5 秒执行 `PASSIVE` checkpoint，并在 WAL 达到默认 131072 帧或 512 MiB 时，以至少 60 秒间隔尝试 `TRUNCATE`，防止 WAL 只回填不回收而无限增大。阈值可通过 `SQLITE_CHECKPOINT_TRUNCATE_FRAMES`、`SQLITE_CHECKPOINT_TRUNCATE_BYTES` 和 `SQLITE_CHECKPOINT_TRUNCATE_COOLDOWN_MS` 调整；维护连接默认 `busy_timeout=0`，遇到活动读写立即记为 busy 并留给下一轮重试，避免 checkpoint 反过来长时间占用 SQLite 锁；`[MEM]` 中同时记录物理 WAL 字节数、截断尝试/成功/busy 次数和截断前的 PASSIVE 帧数。checkpoint worker 也响应内存诊断探针，避免把“未响应探针”误报为 worker 停滞。
+- 新增 SQLite checkpoint worker（`SQLITE_CHECKPOINT_WORKER`）；4 核多核模式默认开启，可显式设为 `0` 关闭。开启后每 5 秒执行 `PASSIVE` checkpoint，并在 WAL 达到默认 131072 帧或 512 MiB 时，以至少 60 秒间隔尝试 `TRUNCATE`，防止 WAL 只回填不回收而无限增大。阈值可通过 `SQLITE_CHECKPOINT_TRUNCATE_FRAMES`、`SQLITE_CHECKPOINT_TRUNCATE_BYTES` 和 `SQLITE_CHECKPOINT_TRUNCATE_COOLDOWN_MS` 调整；维护连接默认 `busy_timeout=0`，遇到活动读写立即记为 busy 并留给下一轮重试，避免 checkpoint 反过来长时间占用 SQLite 锁；`[MEM]` 中同时记录物理 WAL 字节数、截断尝试/成功/busy 次数和截断前的 PASSIVE 帧数。checkpoint worker 也响应内存诊断探针，避免把“未响应探针”误报为 worker 停滞。
 - 持久化协调器在连续异步事务之间通过 `setImmediate` 让出一次事件循环，保持同一全局/玩家队列的顺序，同时避免大量结算写入以微任务链形式连续占用 TCP/HTTP 回调。
 - 五重多人 `/abort` 和五重单人 `/start` 的 HTTP 路径已改用异步持久化协调器；原有同步函数仍保留给旧测试及已处于外层事务的内部调用，避免放弃或入场请求在主事件循环中直接执行完整 SQLite 事务。
 - 公告列表、公告详情和强制公告的已读回执也改用异步持久化入口；同步函数只保留给公告投放查询和管理清理等兼容调用，避免普通客户端浏览公告时直接执行 SQLite 写入。

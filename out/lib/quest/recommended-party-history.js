@@ -153,8 +153,7 @@ function isCompleteParty(party) {
         && party.character_id_3 !== null;
 }
 function isPartyAllowedForQuest(party, category, questId) {
-    const fantasyPractice = category === types_2.QuestCategory.RUSH_EVENT && questId === mode15_optional_1.MODE15_PRACTICE_QUEST_ID;
-    return (0, mode15_optional_1.isMode15Quest)(category, questId) || fantasyPractice || (0, mode15_optional_1.getMode15ExclusiveItemIds)([
+    return (0, mode15_optional_1.isMode15EquipmentAllowedQuest)(category, questId) || (0, mode15_optional_1.getMode15ExclusiveItemIds)([
         party.equipment_id_1, party.equipment_id_2, party.equipment_id_3,
         party.ability_soul_id_1, party.ability_soul_id_2, party.ability_soul_id_3,
     ]).length === 0;
