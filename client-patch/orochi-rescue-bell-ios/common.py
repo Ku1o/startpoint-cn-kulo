@@ -11,9 +11,9 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parents[1]
 WORK = Path(os.environ.get("OROCHI_IOS_PORT_WORK",
-                           r"F:/codex/work/orochi-ios-port-20261004"))
+                           r"F:/codex/work/orochi-ios-cachefix-20261004"))
 OUT = Path(os.environ.get("OROCHI_IOS_PORT_OUT",
-                          r"F:/codex/outputs/orochi-rescue-bell-ios-20261004"))
+                          r"F:/codex/outputs/orochi-rescue-bell-ios-fix-20261004"))
 LEGACY = Path(r"F:/codex/ios-rush-leaderboard-port-20260830")
 SDK = LEGACY / "AIRSDK_51.2.1.5"
 JAVA = Path(r"D:/java/bin/java.exe")
@@ -36,7 +36,8 @@ EMBEDDED_OFFICIAL_SHA = "bf37fe2fa8b7f25b2924bed0093f8f2b53970dd62162532099d04d3
 EMBEDDED_COMPACT_SHA = "f9cba755d3c5d63f334989fd0a0a21b7f169f0fbede9e77e3178f4efa5568125"
 EMBEDDED_COMPACT_BYTES = 480
 
-BUILD_ID = "ios-184-orochi-rescue-bell-cache-10m-20261004"
+BUILD_ID = "ios-184-orochi-rescue-bell-cache-10m-fix-20261004"
+IPA_NAME = "StarPoint-iOS-1.8.4-orochi-rescue-bell-cache-10m-fix-20261004-unsigned.ipa"
 PREVIOUS_BUILD_ID = "ios-184-author-1047-public-20261001"
 PRIVATE = Path(r"F:/codex/.codex/secrets/starpoint-client-admission")
 PAIR = PRIVATE / "releases/author-1047-public-20261001"

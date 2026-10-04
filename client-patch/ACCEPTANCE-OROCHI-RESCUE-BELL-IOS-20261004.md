@@ -2,6 +2,11 @@
 
 日期：2026-10-04。平台：iOS unsigned IPA（TrollStore 安装流程）。登记状态：`accepted_offline`。
 
+> 状态更新（2026-10-04）：该候选在公网客户端进入副本时触发 `TypeError #1009`（`cn.mod::AuthorState$/getGauge()`），
+> 已由新类方案修复并迁移到新公网地址；当前基线见
+> [修复与新公网迁移验收记录](./ACCEPTANCE-OROCHI-RESCUE-BELL-IOS-FIX-20261004.md) 与
+> [类静态槽 F1009 记录](./IOS-STATIC-SLOT-F1009-20261004.md)。本文保留为问题候选的历史记录，不再作为基线。
+
 ## 范围
 
 在用户已验收的 iOS 作者装备 F1009 成品（IPA `4ce93ffe…`）上补做 Android 内网救援铃铛批次

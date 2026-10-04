@@ -12,8 +12,8 @@ import sys
 import zipfile
 from pathlib import Path
 
-from common import (BUILD_ID, HERE, IDS, IPA, LEGACY, OLD_IDS, OUT, PAIR,
-                    PREVIOUS_BUILD_ID, REPO, WORK, load, pair, sha)
+from common import (BUILD_ID, HERE, IDS, IPA, IPA_NAME, LEGACY, OLD_IDS, OUT,
+                    PAIR, PREVIOUS_BUILD_ID, REPO, WORK, load, pair, sha)
 
 OUT_DIR = OUT
 sys.path[:0] = [str(REPO / "client-patch/ios-cumulative-login"),
@@ -143,7 +143,7 @@ def main():
     aliases = {row['original']: row['compiled'] for row in port.get('native_aliases', [])}
     wanted = (set(redirects.values()) | set(port.get('compiled_helpers', [])) |
               set(range(OLD_COUNT, count))) - set(aliases)
-    compiled_report = json.loads((WORK / 'compile-cache-r1-report.json').read_text("utf-8"))
+    compiled_report = json.loads((WORK / 'compile-cachefix-r1-report.json').read_text("utf-8"))
     objects, funcs, meta = {}, {}, None
     for row in compiled_report['objects']:
         path = Path(compiled_report['directory']) / row['name']
@@ -565,8 +565,7 @@ def main():
     assert sha(payload) == port['embedded_payload']['after_sha256']
     out.mkdir()
     OUT_DIR.mkdir(parents=True, exist_ok=True)
-    ipa = OUT_DIR / ('StarPoint-iOS-1.8.4-orochi-rescue-bell-cache-10m-20261004-'
-                     'unsigned.ipa')
+    ipa = OUT_DIR / IPA_NAME
     (out / 'worldflipper').write_bytes(patched)
     (out / 'worldflipper_ios_release.swf').write_bytes(newswf)
     with zipfile.ZipFile(reg['ipa']) as left, zipfile.ZipFile(ipa, 'w', allowZip64=True) as right:
@@ -598,6 +597,9 @@ def main():
                   activation_offset=activationoff, registered_prior_methods=retained,
                   guard_wrappers=wrappers, entry_bridges=entry_bridges,
                   native_aliases=aliases,
+                  helper_class=port['helper_class'],
+                  added_methods=port['added_methods'],
+                  accessor_slot_guard=compiled_report['accessor_slot_guard'],
                   embedded_payload=dict(port['embedded_payload'], member=EMBEDDED_MEMBER),
                   native_start_wrapper=wrapper_record,
                   inaho_helper=port['inaho_helper'],

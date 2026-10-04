@@ -98,13 +98,45 @@ def main():
         link.freeze(abc.instances) == link.freeze(prepared.instances))
     checks["runtime_classes_equal_prepared"] = (
         link.freeze(abc.classes) == link.freeze(prepared.classes))
+    # The cleanup state must live in its own class: cn.mod::AuthorState keeps
+    # the accepted carrier traits, so every previously linked AOT accessor
+    # still reads the slot it was compiled against.
+    def class_snapshot(abc_, name):
+        index = next(i for i, row in enumerate(abc_.instances)
+                     if abc_.mn_name(row[0]) == name)
+        return link.freeze(abc_.classes[index][1]), link.freeze(abc_.instances[index])
+
+    carrier_full = link.abcfmt.ABC(FULL_ABC.read_bytes())
+    checks["authorstate_untouched"] = (
+        class_snapshot(carrier_full, "cn.mod::AuthorState")
+        == class_snapshot(prepared, "cn.mod::AuthorState")
+        == class_snapshot(abc, "cn.mod::AuthorState"))
+    helper_name = port["helper_class"]
+    helper_i = next((i for i, row in enumerate(prepared.instances)
+                     if prepared.mn_name(row[0]) == helper_name), None)
+    checks["cleanup_class_present"] = helper_i is not None
+    checks["cleanup_class_runtime_present"] = any(
+        abc.mn_name(row[0]) == helper_name for row in abc.instances)
+    if helper_i is not None:
+        traits = prepared.classes[helper_i][1]
+        checks["cleanup_class_slots"] = sorted(
+            prepared.mn_name(t.name).rsplit("::", 1)[-1]
+            for t in traits if t.data[0] == "slot")
+        checks["cleanup_class_methods"] = sorted(
+            prepared.mn_name(t.name).rsplit("::", 1)[-1]
+            for t in traits if t.data[0] == "method")
+    compile_report = json.loads((WORK / "compile-cachefix-r1-report.json").read_text("utf-8"))
+    guard = compile_report["accessor_slot_guard"]
+    checks["accessor_slot_guard_frozen"] = guard["frozen"]
+    checks["accessor_slot_guard_recompiled"] = guard["recompiled"]
+    checks["accessor_slot_guard_matches"] = guard["frozen"] == guard["recompiled"]
     old_bodies = {b[0]: b for b in baseline_abc.bodies}
     mismatched_old = [b[0] for b in abc.bodies
                       if b[0] < OLD_COUNT and link.freeze(b) != link.freeze(old_bodies[b[0]])]
     checks["old_bodies_unchanged"] = not mismatched_old
     new_ids = sorted(b[0] for b in abc.bodies if b[0] >= OLD_COUNT)
     checks["new_body_ids"] = new_ids
-    checks["new_body_ids_expected"] = new_ids == list(range(OLD_COUNT, OLD_COUNT + 5))
+    checks["new_body_ids_expected"] = new_ids == port["new_method_ids"]
     prepared_bodies = {b[0]: b for b in prepared.bodies}
     # The accepted carrier stores stripped bodies in the runtime ABC; the new
     # methods execute from their AOT table entries.  Compare the compiler

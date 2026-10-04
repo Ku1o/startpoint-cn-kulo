@@ -8,6 +8,15 @@ from a native entry wrapper on
 ``native_preload_wrapper`` pattern): the wrapper calls a compiled bridge whose
 four parameters mirror applyLoad's native argument registers, then continues
 the original function.
+
+The cleanup state lives in the dedicated new class ``cn.mod.CacheCleanupState``.
+It must not be attached to an existing class: AIR arm64 lays class-object
+static slots out by type (32-bit scalars before references), so one new Boolean
+static moved ``cn.mod.AuthorState``'s ``gauge``/``damage`` slots by 8 bytes
+while the already linked AOT accessors kept their old offsets and raised
+TypeError #1009 when a battle started.  Importing a whole new class leaves
+every existing class trait list, and therefore every existing baked slot
+offset, byte-identical.
 """
 from __future__ import annotations
 import copy
@@ -22,25 +31,29 @@ from pathlib import Path
 
 from common import (EMBEDDED_COMPACT_BYTES, EMBEDDED_COMPACT_SHA,
                     EMBEDDED_MEMBER, EMBEDDED_OFFICIAL_SHA, FULL_ABC,
-                    FULL_ABC_SHA, IPA, IPA_SHA, JAVA, NATIVE_MEMBER, NATIVE_SHA,
-                    HERE, OLD_METHODS, REPO, SDK, SWF_MEMBER, SWF_SHA, WORK, dump,
-                    load, sha)
+                    FULL_ABC_SHA, HERE, IPA, IPA_SHA, JAVA, NATIVE_MEMBER,
+                    NATIVE_SHA, OLD_METHODS, REPO, SDK, SWF_MEMBER, SWF_SHA,
+                    WORK, dump, load, sha)
 
 sys.path[:0] = [str(REPO / "client-patch/lens0907-0908"),
-                str(REPO / "client-patch/lens0907-0908/vendor/abcasm")]
+                str(REPO / "client-patch/lens0907-0908/vendor/abcasm"),
+                str(REPO / "tools/lens-integration")]
 import build_swf as p  # type: ignore
 
 sc = load("task_sc_swf", REPO / "client-patch/startup-cache/build_swf.py")
+iosprep = load("ios_cumulative_prepare",
+               REPO / "client-patch/ios-cumulative-login/prepare.py")
 abcfmt = p.abcfmt
 
-HELPER = "cn.mod::AuthorState"
+HELPER = "cn.mod::CacheCleanupState"
+LEGACY_CLASS = "cn.mod::AuthorState"
 APPLY_LOAD = "pinball.loading.global::GlobalLoading/applyLoad|1"
 APPLY_LOAD_MID = 41998
 INFO_OFFSET = 104549248
-NEW_METHODS = ("ensurePeriodicCacheCleanup", "periodicCacheTick",
-               "purgePeriodicCache", "writePeriodicCacheDiag",
-               "ensurePeriodicCacheCleanupBridge")
-NEW_SLOTS = ("periodicStarted", "periodicTimer")
+NAMED_METHODS = ("ensurePeriodicCacheCleanup", "periodicCacheTick",
+                 "purgePeriodicCache", "writePeriodicCacheDiag",
+                 "ensurePeriodicCacheCleanupBridge")
+SLOT_FIELDS = ("periodicStarted", "periodicTimer")
 
 
 def view(abc):
@@ -51,27 +64,22 @@ def class_index(abc, name):
     return next(i for i, row in enumerate(abc.instances) if abc.mn_name(row[0]) == name)
 
 
-def trait_by_name(abc, traits, name, kind=None):
-    matches = [t for t in traits
-               if abc.mn_name(t.name).rsplit("::", 1)[-1] == name
-               and (kind is None or t.kind == kind)]
-    if len(matches) != 1:
-        raise AssertionError(("trait", name, len(matches)))
-    return matches[0]
+def trait_short_name(abc, trait):
+    return abc.mn_name(trait.name).rsplit("::", 1)[-1]
 
 
 def compile_state_helper(work):
-    swc = work / "author-state.swc"
+    swc = work / "cache-cleanup-state.swc"
     command = [str(JAVA), "-Dflexlib=" + str(SDK / "frameworks"), "-Xmx512m",
                "-jar", str(SDK / "lib/compc-cli.jar"), "+configname=air",
                "-swf-version=44", "-target-player=32.0", "-debug=false",
                "-compiler.source-path=" + str(HERE / "src"),
-               "-include-classes=cn.mod.AuthorState", "-output=" + str(swc)]
+               "-include-classes=cn.mod.CacheCleanupState", "-output=" + str(swc)]
     result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                             timeout=180)
     (work / "compile-state.log").write_bytes(result.stdout)
     if result.returncode != 0:
-        raise AssertionError("AuthorState compiler failed; inspect compile-state.log")
+        raise AssertionError("CacheCleanupState compiler failed; inspect compile-state.log")
     return swc
 
 
@@ -110,9 +118,9 @@ def main():
     before = copy.deepcopy(a)
     if len(a.methods) != OLD_METHODS:
         raise AssertionError(("unexpected accepted iOS method count", len(a.methods)))
-    helper_i = class_index(a, HELPER)
-    helper_traits = a.classes[helper_i][1]
-    helper_traits_before = copy.deepcopy(helper_traits)
+    legacy_i = class_index(a, LEGACY_CLASS)
+    legacy_class_traits = copy.deepcopy(a.classes[legacy_i][1])
+    legacy_instance = copy.deepcopy(a.instances[legacy_i])
     apply_load_body, = target.by_label[APPLY_LOAD]
     apply_load_mid = a.bodies[apply_load_body][0]
     if apply_load_mid != APPLY_LOAD_MID:
@@ -120,33 +128,19 @@ def main():
 
     swc = compile_state_helper(WORK)
     source = view(sc.helper_abc(swc))
-    source_i = class_index(source.a, HELPER)
-    source_traits = list(source.a.instances[source_i][6]) + list(source.a.classes[source_i][1])
-    importer = p.Importer(target, source)
-    compiled = {}
-    for name in NEW_METHODS:
-        trait = trait_by_name(source.a, source_traits, name, kind=1)
-        source_mid = trait.data[2]
-        source_bi, = [i for i, b in enumerate(source.a.bodies) if b[0] == source_mid]
-        target_mid = len(a.methods)
-        importer.methods[source_mid] = target_mid
-        a.methods.append(importer.info(source_mid))
-        body = importer.body(source_bi, target_mid)
-        p.check_body(body, a)
-        a.bodies.append(body)
-        helper_traits.append(importer.trait(trait))
-        compiled[name] = target_mid
-    for name in NEW_SLOTS:
-        trait = trait_by_name(source.a, source_traits, name, kind=0)
-        helper_traits.append(importer.trait(trait))
-    bridge_mid = compiled["ensurePeriodicCacheCleanupBridge"]
-    bridge_info = a.methods[bridge_mid]
-    if len(bridge_info[1]) != 4:
-        raise AssertionError(("bridge parameter count", bridge_info))
-    for type_mn in bridge_info[1]:
-        if a.mn_name(type_mn) in ("Number", "Number?", "double"):
-            raise AssertionError("bridge parameter must stay in integer registers")
+    if len(source.a.instances) != 1 or source.a.mn_name(source.a.instances[0][0]) != HELPER:
+        raise AssertionError("helper SWC must contain exactly the cleanup class")
+    if len(source.a.classes) != 1 or len(source.a.scripts) != 1:
+        raise AssertionError("helper SWC structure changed")
+    iosprep.ClassImporter(target, source).merge()
 
+    if (len(a.instances) != len(before.instances) + 1
+            or len(a.classes) != len(before.classes) + 1
+            or len(a.scripts) != len(before.scripts) + 1):
+        raise AssertionError("helper import changed the ABC structure")
+    if (p.freeze(a.classes[legacy_i][1]) != p.freeze(legacy_class_traits)
+            or p.freeze(a.instances[legacy_i]) != p.freeze(legacy_instance)):
+        raise AssertionError(f"{LEGACY_CLASS} must stay identical to the accepted carrier")
     for pool in ("ints", "uints", "doubles", "strings", "namespaces", "ns_sets", "multinames"):
         old = getattr(before, pool)
         if p.freeze(old) != p.freeze(getattr(a, pool)[:len(old)]):
@@ -158,31 +152,49 @@ def main():
         if p.freeze(old) != p.freeze(getattr(a, field)[:len(old)]):
             raise AssertionError(("prefix changed", field))
     for ci, old_class in enumerate(before.classes):
-        new_class = a.classes[ci]
-        if ci == helper_i:
-            if p.freeze(old_class[0]) != p.freeze(new_class[0]):
-                raise AssertionError("AuthorState class ctor changed")
-            if p.freeze(old_class[1]) != p.freeze(new_class[1][:len(old_class[1])]):
-                raise AssertionError("AuthorState class traits prefix changed")
-        elif p.freeze(old_class) != p.freeze(new_class):
-            raise AssertionError(("unrelated class changed", ci))
+        if p.freeze(old_class) != p.freeze(a.classes[ci]):
+            raise AssertionError(("existing class changed", ci))
     for i, old in enumerate(before.instances):
-        new = a.instances[i]
-        if p.freeze(old[:-1]) != p.freeze(new[:-1]):
-            raise AssertionError(("instance header changed", i))
-        if p.freeze(old[-1]) != p.freeze(new[-1][:len(old[-1])]):
-            raise AssertionError(("instance traits changed", i))
-    actual_changed = {i for i, (x, y) in enumerate(zip(before.bodies, a.bodies))
-                      if p.freeze(x) != p.freeze(y)}
-    if actual_changed:
-        raise AssertionError(("existing bodies must stay untouched", sorted(actual_changed)))
-    if len(a.methods) != OLD_METHODS + len(NEW_METHODS):
-        raise AssertionError("unexpected new method count")
+        if p.freeze(old) != p.freeze(a.instances[i]):
+            raise AssertionError(("existing instance changed", i))
+    changed = {i for i, (x, y) in enumerate(zip(before.bodies, a.bodies[:len(before.bodies)]))
+               if p.freeze(x) != p.freeze(y)}
+    if changed:
+        raise AssertionError(("existing bodies must stay untouched", sorted(changed)))
+
+    helper_i = class_index(a, HELPER)
+    helper_traits = a.classes[helper_i][1]
+    bodies = {b[0]: b for b in a.bodies}
+    added = {}
+    for trait in helper_traits:
+        name = trait_short_name(a, trait)
+        if trait.data[0] == "method" and name in NAMED_METHODS:
+            added[name] = trait.data[2]
+    if sorted(added) != sorted(NAMED_METHODS):
+        raise AssertionError(("named cleanup methods missing", sorted(added)))
+    slots = sorted(trait_short_name(a, trait) for trait in helper_traits
+                   if trait.data[0] == "slot")
+    if slots != sorted(SLOT_FIELDS):
+        raise AssertionError(("cleanup slots", slots))
+    method_ids = {trait.data[2] for trait in helper_traits if trait.data[0] == "method"}
+    script_ids = {mid for mid, _ in a.scripts[len(before.scripts):]}
+    cinit_ids = {a.classes[ci][0] for ci in range(len(before.classes), len(a.classes))}
+    ctor_ids = {a.instances[i][5] for i in range(len(before.instances), len(a.instances))}
+    new_ids = list(range(OLD_METHODS, len(a.methods)))
+    if set(new_ids) != method_ids | script_ids | cinit_ids | ctor_ids:
+        raise AssertionError(("unexpected new method ids",
+                              sorted(set(new_ids) - (method_ids | script_ids | cinit_ids | ctor_ids))))
+    for mid in new_ids:
+        body = bodies.get(mid)
+        if body is None:
+            raise AssertionError(("new method without a body", mid))
+        if p.activation_traits(target, body):
+            raise AssertionError(("new method requires an activation link", mid))
 
     full = a.serialize()
     if abcfmt.ABC(full).serialize() != full:
         raise AssertionError("full ABC roundtrip failed")
-    out_full = WORK / "cache-ios-full.abc"
+    out_full = WORK / "cache-cleanup-full.abc"
     out_full.write_bytes(full)
 
     layout_builder = load(
@@ -210,16 +222,18 @@ def main():
         "method_redirects": [],
         "compiled_helpers": [],
         "native_aliases": [],
-        "added_methods": {name: mid for name, mid in compiled.items()},
+        "added_methods": {name: mid for name, mid in sorted(added.items())},
+        "new_method_ids": new_ids,
         "hook_method": None,
         "helper_class": HELPER,
-        "new_traits": len(helper_traits) - len(helper_traits_before),
+        "legacy_untouched_class": LEGACY_CLASS,
+        "new_traits": len(helper_traits),
         "period_ms": 600000,
         "periodic_targets": ["<File.cacheDirectory>/app", "<File.cacheDirectory>/.AIR"],
         "diagnostic_file": "<File.cacheDirectory>/sp-cache-periodic.diag",
         "native_start_wrapper": {
             "label": APPLY_LOAD, "method": APPLY_LOAD_MID,
-            "bridge_method": bridge_mid, "bridge_params": 4,
+            "bridge_method": added["ensurePeriodicCacheCleanupBridge"], "bridge_params": 4,
             "original_entry": apply_load_entry,
             "displaced_instruction": displaced.hex(),
             "env_register": "x5",
@@ -238,8 +252,9 @@ def main():
     dump(WORK / "port.json", port)
     print(json.dumps({k: port[k] for k in ("old_methods", "total_methods",
                                            "full_abc_sha256", "full_abc_sha1",
-                                           "added_methods", "native_start_wrapper",
-                                           "new_traits")}, ensure_ascii=False, indent=2))
+                                           "added_methods", "new_method_ids",
+                                           "native_start_wrapper", "new_traits")},
+                     ensure_ascii=False, indent=2))
 
 
 if __name__ == "__main__":
