@@ -33,7 +33,7 @@ Object.defineProperty(exports, "buildRealParty", { enumerable: true, get: functi
 const disconnect_diagnostics_1 = require("./disconnect-diagnostics");
 function handleHandshake(socket, data) {
     return __awaiter(this, void 0, void 0, function* () {
-        var _a, _b, _c, _d, _e, _f, _g;
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j;
         (0, game_logging_1.gameVerboseLog)(() => `[TCP] handshake: ${JSON.stringify({ socklet: data.socklet, viewerId: data.viewerId, room_number: data.room_number || data.roomNumber })}`);
         const socklet = data.socklet;
         const roomNumber = data.room_number || data.roomNumber;
@@ -77,6 +77,10 @@ function handleHandshake(socket, data) {
                 socket.end();
                 return;
             }
+            if (battleClient.playerId !== null
+                && ((_f = (_e = battleRoom === null || battleRoom === void 0 ? void 0 : battleRoom.five_boss_runtime) === null || _e === void 0 ? void 0 : _e.battleEnteredPlayerIds) === null || _f === void 0 ? void 0 : _f.includes(battleClient.playerId))) {
+                battleClient.fiveBossBattleEntered = true;
+            }
             battleClient.isBattle = true;
             if (!SessionManager_1.sessionManager.addBattleClient(String(connectionId), battleClient)) {
                 connection_diagnostic_1.fiveBossConnectionDiagnostics.socketEvent(socket, "handshake_denied", "retired_seat");
@@ -114,7 +118,7 @@ function handleHandshake(socket, data) {
             // playerSocketAllowed above still performs the authoritative session
             // check. A context warmed by create/select_room can therefore be used
             // here without another synchronous session/player lookup.
-            const ctx = (_e = (0, player_context_1.getCachedMultiPlayerContext)(Number(viewerId))) !== null && _e !== void 0 ? _e : yield (0, player_context_1.resolveMultiPlayerContext)(Number(viewerId));
+            const ctx = (_g = (0, player_context_1.getCachedMultiPlayerContext)(Number(viewerId))) !== null && _g !== void 0 ? _g : yield (0, player_context_1.resolveMultiPlayerContext)(Number(viewerId));
             if (!ctx) {
                 (0, disconnect_diagnostics_1.markTcpDisconnectReason)(socket, "handshake_denied");
                 SessionManager_1.sessionManager.sendJson(socket, [3, "HANDSHAKE_DENIED"]);
@@ -150,8 +154,8 @@ function handleHandshake(socket, data) {
                 && client.socket.writable);
             const liveViewerIds = new Set(liveClients.map(client => client.viewerId));
             const viewerAlreadyConnected = liveViewerIds.has(Number(viewerId));
-            const requestedCategory = (_f = data.questCategory) !== null && _f !== void 0 ? _f : data.quest_category;
-            const requestedQuestId = (_g = data.questId) !== null && _g !== void 0 ? _g : data.quest_id;
+            const requestedCategory = (_h = data.questCategory) !== null && _h !== void 0 ? _h : data.quest_category;
+            const requestedQuestId = (_j = data.questId) !== null && _j !== void 0 ? _j : data.quest_id;
             const categoryMismatch = requestedCategory !== undefined
                 && Number(requestedCategory) !== currentRoom.category;
             const questMismatch = requestedQuestId !== undefined

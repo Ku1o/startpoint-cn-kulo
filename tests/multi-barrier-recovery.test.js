@@ -106,6 +106,32 @@ test('two-player loading: grace then BattleStart before AI Leave; late peer deni
     assert.equal(x.manager.battleExpectedCount.get(x.roomNumber), 0)
 })
 
+test('five-boss survivor records battle entry when a missing peer becomes AI', async t => {
+    const x = setup(t), [a,b] = x.clients
+    const calls = []
+    const runtime = require('../out/multi/five-boss/lobby-runtime')
+    t.mock.method(runtime, 'recordFiveBossSignal', (_room, client, signal) => {
+        calls.push({ viewerId: client.viewerId, signal })
+        client.fiveBossBattleEntered = true
+        return true
+    })
+    Object.assign(x.room, {
+        room_number: x.roomNumber,
+        lobby_generation: 1,
+        five_boss_runtime: {
+            runId: 'survivor-run',
+            expectedRealPlayerIds: [1, 2],
+            autoplayModeByPlayerId: { 1: false, 2: false },
+            partyCharacterIdsByPlayerId: { 1: [1], 2: [1] },
+            battleIdentityByViewerId: {},
+        },
+    })
+    x.ready(a); x.drop(b)
+    await x.fire(x.grace())
+    assert.deepEqual(calls, [{ viewerId: a.viewerId, signal: 'scene_ready' }])
+    assert.equal(a.fiveBossBattleEntered, true)
+})
+
 test('reconnect within grace cancels retirement and deferred Leave', async t => {
     const x = setup(t), [a,b] = x.clients
     x.ready(a); x.drop(b); const oldTimer = x.grace()
@@ -115,6 +141,26 @@ test('reconnect within grace cancels retirement and deferred Leave', async t => 
     assert.equal(x.manager.battleExpectedCount.get(x.roomNumber), 2)
     assert.equal(x.ready(replacement), true)
     assert.deepEqual(a.socket.frames, [[1,[1]]])
+})
+
+test('entered five-boss peer does not publish ordinary Leave', async t => {
+    const x = setup(t), [a,b] = x.clients
+    x.ready(a); x.ready(b); a.socket.frames = []
+    b.fiveBossBattleEntered = true
+    x.drop(b)
+    assert.deepEqual(a.socket.frames, [])
+})
+
+test('five-boss replacement remains current after the old socket closes', async t => {
+    const x = setup(t), [a,b] = x.clients
+    x.ready(a); x.ready(b); a.socket.frames = []
+    b.fiveBossBattleEntered = true
+    x.drop(b)
+    const replacement = x.make(2)
+    assert.equal(x.manager.addBattleClient(replacement.connectionId, replacement), true)
+    x.manager.removeClient(b)
+    assert.deepEqual(a.socket.frames, [])
+    assert.equal(x.manager.getBattleClient(replacement.connectionId), replacement)
 })
 
 test('superseded and repeated socket close cannot remove a replacement or subtract twice', async t => {
@@ -149,6 +195,8 @@ test('next-scene loading lease starts only on each peer LevelNext; duplicates do
 test('next-scene disconnected peer does not strand the remaining ready player', async t => {
     const x = setup(t), [a,b] = x.clients
     x.ready(a); x.ready(b); a.socket.frames = []
+    a.fiveBossBattleEntered = true
+    b.fiveBossBattleEntered = true
     x.manager.beginBattleLevelNext(a.connectionId, x.roomNumber)
     x.drop(b); x.ready(a); await x.fire(x.grace())
     assert.deepEqual(a.socket.frames, [[1,[1]], [1,[0,b.connectionId]]])

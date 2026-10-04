@@ -82,6 +82,10 @@ export async function handleHandshake(socket: net.Socket, data: any): Promise<vo
             socket.end()
             return
         }
+        if (battleClient.playerId !== null
+            && battleRoom?.five_boss_runtime?.battleEnteredPlayerIds?.includes(battleClient.playerId)) {
+            battleClient.fiveBossBattleEntered = true
+        }
         battleClient.isBattle = true
         if (!sessionManager.addBattleClient(String(connectionId), battleClient)) {
             fiveBossConnectionDiagnostics.socketEvent(socket, "handshake_denied", "retired_seat")

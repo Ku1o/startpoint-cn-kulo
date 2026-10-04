@@ -87,8 +87,11 @@ test('multiplayer charges only host once; pins Auto; retries do not grant items 
     assert.equal(players.getPlayerSync(host.id).totalStaminaUsed, 35)
     assert.equal(players.getPlayerSync(guest.id).stamina, 100)
     assert.equal(active.getPlayerActiveQuestSync(host.id).isAutoStartMode, false)
-    assert.throws(() => finish(host, room), /proof is incomplete/)
-    proof(host, room); proof(guest, room)
+    assert.throws(() => finish(host, room), /battle entry was not recorded/)
+    ledger.recordMemberBattleSignalSync({ runId: room.five_boss_runtime.runId,
+        playerId: host.id, roomNumber: room.room_number, signal: 'scene_ready' })
+    ledger.recordMemberBattleSignalSync({ runId: room.five_boss_runtime.runId,
+        playerId: guest.id, roomNumber: room.room_number, signal: 'scene_ready' })
     const h = finish(host, room)
     const exp = characters.getPlayerCharacterSync(host.id, 111001).exp
     assert.ok(exp > 0)
@@ -583,6 +586,36 @@ test('solo ledger migration is additive, repeatable, and old active runs stay 1x
     } finally { db.close() }
 })
 
+test('multiplayer ledger migration adds battle entry evidence without rewriting old rows', () => {
+    const Database = require('better-sqlite3'), db = new Database(':memory:')
+    try {
+        db.exec(`CREATE TABLE players (id INTEGER PRIMARY KEY);
+            INSERT INTO players VALUES (1);
+            CREATE TABLE five_boss_gauntlet_runs (
+                run_id TEXT PRIMARY KEY, host_player_id INTEGER NOT NULL,
+                route_id TEXT NOT NULL, room_number TEXT NOT NULL,
+                ticket_item_id INTEGER NOT NULL, expected_member_count INTEGER NOT NULL,
+                status TEXT NOT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL);
+            CREATE TABLE five_boss_gauntlet_members (
+                run_id TEXT NOT NULL, player_id INTEGER NOT NULL, client_play_id TEXT,
+                is_auto_mode INTEGER, started_at TEXT, aborted_at TEXT,
+                level_next_at TEXT, finalized_at TEXT,
+                party_character_ids_json TEXT NOT NULL DEFAULT '[]',
+                PRIMARY KEY(run_id, player_id), UNIQUE(player_id, client_play_id));
+            INSERT INTO five_boss_gauntlet_runs VALUES
+                ('legacy',1,'five_boss','123456',10000143,1,'active','before','before');
+            INSERT INTO five_boss_gauntlet_members VALUES
+                ('legacy',1,'play',0,'before',NULL,NULL,NULL,'[]');`)
+        const init = load('data/initializers/five-boss-gauntlet').initializeFiveBossGauntlet
+        init(db); init(db)
+        assert.deepEqual(db.prepare(`SELECT started_at, battle_entered_at
+            FROM five_boss_gauntlet_members`).get(), {
+            started_at: 'before',
+            battle_entered_at: null,
+        })
+    } finally { db.close() }
+})
+
 test('new valid multiplayer start abandons solo atomically; invalid start preserves solo', async () => {
     const p = player(3), soloApp = await httpApp(p, load('routes/api/singleBattleQuest').default)
     const multiApp = await httpApp(p, load('multi/http/battle').registerBattleRoutes, true)
@@ -629,7 +662,7 @@ test('stale multiplayer with a missing room field is recovered from its immutabl
     } finally { await app.close() }
 })
 
-test('real TCP disconnect and later proof arrival explain HTTP H400 without granting unproven rewards', { timeout: 15000 }, async () => {
+test('authenticated SceneReady survives a later TCP close and prevents finish H400', { timeout: 15000 }, async () => {
     const p = player(), room = run([p]), connectionId = `trace-${p.id}`
     room.lifecycle.phase = 'BATTLE'
     room.lobby_generation = 1
@@ -682,32 +715,20 @@ test('real TCP disconnect and later proof arrival explain HTTP H400 without gran
         }
         const first = await connect()
         first.socket.write(JSON.stringify([0, [0]]) + '\0')
-        await waitFor(() => trace.snapshot(runId, p.id).counts?.scene_ready)
+        await waitFor(() => trace.snapshot(runId, p.id).counts?.battle_entry_recorded)
         const closed = once(first.serverSocket, 'close')
         first.socket.end()
         await closed
         await coordinator.enqueueRoomCommand(room.room_number, () => {})
-        const response = await app.inject({ method: 'POST', url: '/finish', payload: httpFinish(p) })
-        assert.equal(response.statusCode, 400)
-        assert.equal(items.getPlayerItemSync(p.id, 10000145), null)
-        const failure = JSON.parse(messages.find(line => line.startsWith('[FIVE-BOSS-REJECT]')).split('] ')[1])
-        assert.equal(failure.code, 'battle_proof_missing')
-        assert.equal(failure.proof.level_next_at, null)
-        for (const event of ['http_start', 'handshake', 'accepted', 'scene_ready', 'socket_end', 'socket_close', 'removed']) {
-            assert.ok(failure.transport.counts[event], `missing diagnostic ${event}`)
-        }
-        assert.equal(failure.transport.counts.level_next, undefined)
-        assert.equal(failure.transport.counts.finalize, undefined)
-        assert.equal(failure.transport.connections[0].packets, 1)
-        const restored = await connect()
-        restored.socket.write(JSON.stringify([0, [1]]) + '\0' + JSON.stringify([0, [2]]) + '\0')
-        await waitFor(() => trace.snapshot(runId, p.id).counts?.finalize_recorded)
-        assert.ok(messages.some(line => line.startsWith('[FIVE-BOSS-TRANSPORT]') && line.includes('level_next_recorded')))
-        assert.ok(messages.some(line => line.startsWith('[FIVE-BOSS-TRANSPORT]') && line.includes('"event":"finalize_recorded"')))
         const settled = await app.inject({ method: 'POST', url: '/finish', payload: httpFinish(p) })
         assert.equal(settled.statusCode, 200, settled.body)
         const crystals = items.getPlayerItemSync(p.id, 10000145)
         assert.ok(crystals > 0)
+        const evidence = getDb().prepare(`SELECT battle_entered_at, level_next_at, finalized_at
+            FROM five_boss_gauntlet_members WHERE run_id = ? AND player_id = ?`).get(runId, p.id)
+        assert.ok(evidence.battle_entered_at)
+        assert.equal(evidence.level_next_at, null)
+        assert.equal(evidence.finalized_at, null)
         assert.equal((await app.inject({ method: 'POST', url: '/finish', payload: httpFinish(p) })).statusCode, 200)
         assert.equal(items.getPlayerItemSync(p.id, 10000145), crystals)
     } finally {
@@ -720,6 +741,66 @@ test('real TCP disconnect and later proof arrival explain HTTP H400 without gran
         load('multi/room/manager').disbandRoom(room.room_number)
         await app.close()
         console.warn = originalWarn
+    }
+})
+
+test('five-boss battle entry is recorded only after every real member is ready', async () => {
+    const host = player(), guest = player(0), room = run([host, guest])
+    start(host, room); start(guest, room)
+    room.lifecycle.phase = 'BATTLE'
+    room.lifecycle.battleSessionId = `battle-${room.room_number}`
+    room.lobby_generation = 1
+    const manager = load('multi/state/SessionManager').sessionManager
+    const clients = [host, guest].map(member => {
+        const socket = new (require('node:events').EventEmitter)()
+        Object.assign(socket, {
+            remoteAddress: `127.0.0.${member.id}`,
+            destroyed: false,
+            readable: true,
+            writable: true,
+            write: () => true,
+            end() { this.destroyed = true },
+            destroy() { this.destroyed = true },
+        })
+        const connectionId = `barrier-${member.id}`
+        room.five_boss_runtime.battleIdentityByViewerId[String(member.viewerId)] = {
+            playerId: member.id,
+            remoteAddress: socket.remoteAddress,
+            connectionId,
+        }
+        const client = manager.createClient(
+            socket,
+            member.viewerId,
+            room.room_number,
+            connectionId,
+            member.id,
+        )
+        client.isBattle = true
+        client.roomGeneration = room.lobby_generation
+        assert.equal(manager.addBattleClient(connectionId, client), true)
+        return client
+    })
+    manager.setBattleExpectedCount(room.room_number, 2, clients.map(client => ({
+        viewerId: client.viewerId,
+        connectionId: client.connectionId,
+    })))
+    try {
+        assert.equal(manager.markSceneReady(clients[0].connectionId, room.room_number), false)
+        assert.equal(getDb().prepare(`SELECT battle_entered_at FROM five_boss_gauntlet_members
+            WHERE run_id = ? AND player_id = ?`).get(room.five_boss_runtime.runId, host.id).battle_entered_at, null)
+
+        assert.equal(manager.markSceneReady(clients[1].connectionId, room.room_number), true)
+        const waitForSignals = load('multi/five-boss/lobby-runtime').waitForFiveBossSignalPersistence
+        await Promise.all([host, guest].map(member =>
+            waitForSignals(room.five_boss_runtime.runId, member.id)))
+        const rows = getDb().prepare(`SELECT player_id, battle_entered_at
+            FROM five_boss_gauntlet_members WHERE run_id = ? ORDER BY player_id`)
+            .all(room.five_boss_runtime.runId)
+        assert.equal(rows.length, 2)
+        assert.ok(rows.every(row => row.battle_entered_at))
+    } finally {
+        for (const client of clients) manager.removeClient(client)
+        load('multi/room/manager').disbandRoom(room.room_number)
     }
 })
 
@@ -759,7 +840,7 @@ test('finish waits for proof writes already accepted before the battle socket cl
     }
 })
 
-test('finish reports missing individual proof and forged finish cannot create finalize evidence', async () => {
+test('finish requires authenticated battle entry and forged identity cannot create it', async () => {
     const p = player(), room = run([p]);start(p, room)
     const app = await httpApp(p, load('multi/http/battle').registerBattleRoutes)
     const originalWarn = console.warn, messages = []
@@ -769,12 +850,11 @@ test('finish reports missing individual proof and forged finish cannot create fi
         assert.equal(rejected.statusCode, 400)
         const evidence = JSON.parse(messages.find(line => line.startsWith('[FIVE-BOSS-REJECT]')).split('] ')[1])
         assert.equal(evidence.code, 'battle_proof_missing')
-        assert.equal(evidence.proof.level_next_at, null)
-        assert.equal(evidence.proof.finalized_at, null)
+        assert.equal(evidence.proof.battle_entered_at, null)
         const prepare = getDb().prepare
         let diagnosticReads = 0
         getDb().prepare = function (sql) {
-            if (/SELECT started_at, aborted_at, level_next_at, finalized_at/.test(sql)) diagnosticReads++
+            if (/SELECT started_at, battle_entered_at, aborted_at, level_next_at, finalized_at/.test(sql)) diagnosticReads++
             return prepare.call(this, sql)
         }
         try {
@@ -785,7 +865,7 @@ test('finish reports missing individual proof and forged finish cannot create fi
             assert.equal(messages.filter(line => line.startsWith('[FIVE-BOSS-REJECT]')).length, 1)
         } finally { getDb().prepare = prepare }
         ledger.recordMemberBattleSignalSync({ runId: room.five_boss_runtime.runId,
-            playerId: p.id, roomNumber: room.room_number, signal: 'level_next' })
+            playerId: p.id, roomNumber: room.room_number, signal: 'scene_ready' })
         const forged = await app.inject({ method: 'POST', url: '/finish', payload: { ...httpFinish(p), quest_id: 1000101 } })
         assert.equal(forged.statusCode, 400)
         assert.equal(getDb().prepare('SELECT finalized_at FROM five_boss_gauntlet_members WHERE run_id = ? AND player_id = ?')

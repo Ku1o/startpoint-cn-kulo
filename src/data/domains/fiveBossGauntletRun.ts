@@ -50,6 +50,7 @@ export interface FiveBossGauntletMember {
     clientPlayId: string | null;
     isAutoMode: boolean | null;
     startedAt: string | null;
+    battleEnteredAt: string | null;
     abortedAt: string | null;
     levelNextAt: string | null;
     finalizedAt: string | null;
@@ -93,7 +94,7 @@ export interface MemberBattleSignalInput {
     runId: string;
     playerId: number;
     roomNumber: string;
-    signal: "level_next" | "finalize";
+    signal: "scene_ready" | "level_next" | "finalize";
 }
 
 export interface StartMemberContext {
@@ -132,6 +133,7 @@ interface RawMember {
     client_play_id: string | null;
     is_auto_mode: number | null;
     started_at: string | null;
+    battle_entered_at: string | null;
     aborted_at: string | null;
     level_next_at: string | null;
     finalized_at: string | null;
@@ -222,6 +224,7 @@ function memberFromRaw(row: RawMember): FiveBossGauntletMember {
         clientPlayId: row.client_play_id,
         isAutoMode: row.is_auto_mode === null ? null : row.is_auto_mode === 1,
         startedAt: row.started_at,
+        battleEnteredAt: row.battle_entered_at,
         abortedAt: row.aborted_at,
         levelNextAt: row.level_next_at,
         finalizedAt: row.finalized_at,
@@ -254,7 +257,7 @@ function selectRun(runId: string): RawRun | undefined {
 
 function selectMember(runId: string, playerId: number): RawMember | undefined {
     return getDb().prepare(`
-        SELECT run_id, player_id, client_play_id, is_auto_mode, started_at, aborted_at,
+        SELECT run_id, player_id, client_play_id, is_auto_mode, started_at, battle_entered_at, aborted_at,
                level_next_at, finalized_at
         FROM five_boss_gauntlet_members
         WHERE run_id = ? AND player_id = ?
@@ -264,7 +267,7 @@ function selectMember(runId: string, playerId: number): RawMember | undefined {
 
 function selectMemberByClient(playerId: number, clientPlayId: string): RawMember | undefined {
     return getDb().prepare(`
-        SELECT run_id, player_id, client_play_id, is_auto_mode, started_at, aborted_at,
+        SELECT run_id, player_id, client_play_id, is_auto_mode, started_at, battle_entered_at, aborted_at,
                level_next_at, finalized_at
         FROM five_boss_gauntlet_members
         WHERE player_id = ? AND client_play_id = ?
@@ -430,7 +433,7 @@ export function startMemberSync<T>(
             db.prepare(`
                 UPDATE five_boss_gauntlet_members
                 SET client_play_id = ?, is_auto_mode = ?, started_at = ?, aborted_at = NULL,
-                    level_next_at = NULL, finalized_at = NULL
+                    battle_entered_at = NULL, level_next_at = NULL, finalized_at = NULL
                 WHERE run_id = ? AND player_id = ? AND client_play_id IS NULL
             `).run(
                 normalized.clientPlayId,
@@ -450,7 +453,8 @@ export function startMemberSync<T>(
             if (rawMember.aborted_at !== null) {
                 db.prepare(`
                     UPDATE five_boss_gauntlet_members
-                    SET aborted_at = NULL, level_next_at = NULL, finalized_at = NULL
+                    SET aborted_at = NULL, battle_entered_at = NULL,
+                        level_next_at = NULL, finalized_at = NULL
                     WHERE run_id = ? AND player_id = ?
                 `).run(normalized.runId, normalized.playerId);
                 status = "resumed";
@@ -473,15 +477,15 @@ export function startMemberSync<T>(
 }
 
 
-/** Records the two official BothBoss client transitions used as the settlement proof chain. */
+/** Records authenticated battle lifecycle notifications for diagnostics and settlement recovery. */
 export function recordMemberBattleSignalSync(
     input: MemberBattleSignalInput,
 ): BoundFiveBossGauntletMember {
     const runId = boundedText("runId", input.runId);
     const roomNumber = boundedText("roomNumber", input.roomNumber);
     const playerId = positiveInteger("playerId", input.playerId);
-    if (input.signal !== "level_next" && input.signal !== "finalize") {
-        fail("invalid_argument", "signal must be level_next or finalize");
+    if (!["scene_ready", "level_next", "finalize"].includes(input.signal)) {
+        fail("invalid_argument", "signal must be scene_ready, level_next or finalize");
     }
     const db = getDb();
 
@@ -499,7 +503,13 @@ export function recordMemberBattleSignalSync(
         if (rawMember.aborted_at !== null) fail("member_not_active", "member has aborted this run");
 
         const now = new Date().toISOString();
-        if (input.signal === "level_next") {
+        if (input.signal === "scene_ready") {
+            db.prepare(`
+                UPDATE five_boss_gauntlet_members
+                SET battle_entered_at = COALESCE(battle_entered_at, ?)
+                WHERE run_id = ? AND player_id = ?
+            `).run(now, runId, playerId);
+        } else if (input.signal === "level_next") {
             db.prepare(`
                 UPDATE five_boss_gauntlet_members
                 SET level_next_at = COALESCE(level_next_at, ?)
@@ -521,7 +531,6 @@ export function recordMemberBattleSignalSync(
         return boundMemberFromRaw(rawMember);
     })
 }
-
 
 export interface BackfillFinalizeResult {
     backfilled: boolean;
@@ -591,8 +600,11 @@ export function settleMemberSync<T>(
         if (!rawRun) fail("run_conflict", "member points to a missing run");
         if (rawRun.status !== "active") fail("run_not_active", `run is ${rawRun.status}`);
         if (rawMember.aborted_at !== null) fail("member_not_active", "member has aborted this run");
-        if (rawMember.level_next_at === null || rawMember.finalized_at === null) {
-            fail("battle_proof_missing", "BothBoss level-next/finalize proof is incomplete");
+        const hasBattleEntry = rawMember.battle_entered_at !== null;
+        const hasLegacyCompleteProof = rawMember.level_next_at !== null
+            && rawMember.finalized_at !== null;
+        if (!hasBattleEntry && !hasLegacyCompleteProof) {
+            fail("battle_proof_missing", "authenticated battle entry was not recorded");
         }
         const member = boundMemberFromRaw(rawMember);
         const rewardMultiplier: 1 | 2 = member.isAutoMode ? 1 : 2;

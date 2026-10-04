@@ -425,6 +425,23 @@ class SessionManager {
         }
         pending.add(connectionId);
     }
+    publishBattleDeparture(client) {
+        if (client.fiveBossBattleEntered) {
+            // The CN five-boss client normally closes cooperation_battle after
+            // BattleStart and continues the fight client-side. Publishing the
+            // ordinary Leave frame here creates a false communication-loss
+            // dialog for peers. A later LevelNext barrier still owns its normal
+            // missing-seat grace and publishes Leave only after retiring the
+            // absent seat.
+            return;
+        }
+        else if (this.battleSceneStartedRooms.has(client.roomNumber)) {
+            this.broadcastBattleLeave(client.roomNumber, client.connectionId);
+        }
+        else {
+            this.queueBattleLeave(client.roomNumber, client.connectionId);
+        }
+    }
     broadcastBattleLeave(roomNumber, connectionId) {
         for (const client of this.getConnectedBattleClients(roomNumber)) {
             if (client.connectionId === connectionId)
@@ -435,6 +452,7 @@ class SessionManager {
     activateBattleScene(roomNumber) {
         const clients = this.getConnectedBattleClients(roomNumber);
         this.battleSceneStartedRooms.add(roomNumber);
+        this.recordFiveBossBattleEntry(roomNumber, clients);
         // Promote the entire room together. SceneReady means only that one
         // client finished loading; treating it as active before this point can
         // publish Leave to peers that are still constructing their battle.
@@ -451,6 +469,25 @@ class SessionManager {
         this.pendingBattleLeaves.delete(roomNumber);
         for (const connectionId of pending !== null && pending !== void 0 ? pending : []) {
             this.broadcastBattleLeave(roomNumber, connectionId);
+        }
+    }
+    recordFiveBossBattleEntry(roomNumber, clients) {
+        let room;
+        try {
+            room = require("../room/manager").getRoom(roomNumber);
+        }
+        catch (_a) {
+            return;
+        }
+        if (!(room === null || room === void 0 ? void 0 : room.five_boss_runtime))
+            return;
+        try {
+            const { recordFiveBossSignal } = require("../five-boss/lobby-runtime");
+            for (const client of clients)
+                recordFiveBossSignal(room, client, "scene_ready");
+        }
+        catch (error) {
+            console.error(`[FIVE-BOSS-SIGNAL] battle entry dispatch failed: room=${roomNumber}`, error);
         }
     }
     getConnectedBattleClients(roomNumber) {
@@ -955,6 +992,7 @@ class SessionManager {
             connectionGeneration: 0,
             superseded: false,
             connectedAt: Date.now(),
+            fiveBossBattleEntered: false,
             admissionClaimed: false,
             clientState: new ClientStateMachine_1.ClientStateMachine(types_1.ClientState.Connecting),
             battleState: types_1.BattleState.Initializing,
@@ -1026,12 +1064,7 @@ class SessionManager {
                 this.clearBattleHeartbeatLease(client.connectionId);
             const bSet = this.battleClients.get(client.roomNumber);
             if (bSet && !superseded && isCurrentBattleConnection) {
-                if (this.battleSceneStartedRooms.has(client.roomNumber)) {
-                    this.broadcastBattleLeave(client.roomNumber, client.connectionId);
-                }
-                else {
-                    this.queueBattleLeave(client.roomNumber, client.connectionId);
-                }
+                this.publishBattleDeparture(client);
             }
             if (isCurrentBattleConnection) {
                 (_b = this.battleClients.get(client.roomNumber)) === null || _b === void 0 ? void 0 : _b.delete(client.connectionId);
@@ -1230,12 +1263,7 @@ class SessionManager {
         const client = this.cidToBattleClient.get(connectionId);
         if (client) {
             connection_diagnostic_1.fiveBossConnectionDiagnostics.socketEvent(client.socket, "removed", "remove_battle_client");
-            if (this.battleSceneStartedRooms.has(client.roomNumber)) {
-                this.broadcastBattleLeave(client.roomNumber, connectionId);
-            }
-            else {
-                this.queueBattleLeave(client.roomNumber, connectionId);
-            }
+            this.publishBattleDeparture(client);
             this.unindexClientSocket(client);
             (_a = this.battleClients.get(client.roomNumber)) === null || _a === void 0 ? void 0 : _a.delete(connectionId);
             (_b = this.sceneReadyClients.get(client.roomNumber)) === null || _b === void 0 ? void 0 : _b.delete(connectionId);
@@ -1289,8 +1317,12 @@ class SessionManager {
         if (!client || client.roomNumber !== roomNumber || client.socket.destroyed)
             return false;
         const expected = (_a = this.battleExpectedCount.get(roomNumber)) !== null && _a !== void 0 ? _a : 0;
-        if (expected <= 0)
+        if (expected <= 0) {
+            if (this.battleSceneStartedRooms.has(roomNumber)) {
+                this.recordFiveBossBattleEntry(roomNumber, this.getConnectedBattleClients(roomNumber));
+            }
             return false;
+        }
         let readySet = this.sceneReadyClients.get(roomNumber);
         if (!readySet) {
             readySet = new Set();

@@ -42,7 +42,8 @@ export function freezeFiveBossLobby(room: MultiRoom, members?: any[]): boolean {
     if (!host || roster.length < 2 || roster.length > FIVE_BOSS_GAUNTLET.roomMemberLimit
         || !roster.every(mate => mate.state?.[0] === 1)) return false
     const frozen: NonNullable<MultiRoom["five_boss_runtime"]> = {
-        runId: randomUUID(), expectedRealPlayerIds: [], autoplayModeByPlayerId: {},
+        runId: randomUUID(), expectedRealPlayerIds: [], battleEnteredPlayerIds: [],
+        autoplayModeByPlayerId: {},
         partyCharacterIdsByPlayerId: {}, battleIdentityByViewerId: {},
     }
     for (const mate of roster.filter(m => !m.comId)) {
@@ -79,31 +80,46 @@ export function isFrozenFiveBossBattleClient(room: MultiRoom, client: SessionCli
         && identity.connectionId === client.connectionId && !client.superseded
 }
 
-export function recordFiveBossSignal(room: MultiRoom, client: SessionClient, signal: "level_next" | "finalize"): void {
+export function recordFiveBossSignal(
+    room: MultiRoom,
+    client: SessionClient,
+    signal: "scene_ready" | "level_next" | "finalize",
+): boolean {
     if (!isFrozenFiveBossBattleClient(room, client)) {
         fiveBossConnectionDiagnostics.socketEvent(client.socket, "signal_rejected", `${signal}:identity`)
         fiveBossDiagnostics.report(JSON.stringify(["signal", room.five_boss_runtime?.runId, room.room_number,
             client.playerId, signal, "identity"]), () => `[FIVE-BOSS-SIGNAL] rejected=identity room=${room.room_number}`
             + ` run=${room.five_boss_runtime?.runId} player=${client.playerId} connection=${client.connectionId} signal=${signal}`)
-        return
+        return false
     }
+    if (signal === "scene_ready" && client.fiveBossBattleEntered) return true
     const runId = room.five_boss_runtime!.runId
     const playerId = client.playerId!
     const roomNumber = room.room_number
+    if (signal === "scene_ready") client.fiveBossBattleEntered = true
     // The TCP handler must only update the in-memory barrier and return. The
     // proof row is durable evidence, but it is not part of the realtime ACK.
     fiveBossConnectionDiagnostics.socketEvent(client.socket,
-        signal === "level_next" ? "level_next_queued" : "finalize_queued", "tcp")
+        signal === "scene_ready" ? "battle_entry_queued"
+            : signal === "level_next" ? "level_next_queued" : "finalize_queued", "tcp")
     const key = fiveBossSignalKey(runId, playerId)
     const previous = pendingFiveBossSignalWrites.get(key) ?? Promise.resolve()
     const pending = previous.then(() => runPersistenceTransaction({
         domain: "multi-settlement", playerId, operation: `five_boss_${signal}`,
     }, () => recordMemberBattleSignalSync({ runId, playerId, roomNumber, signal })))
         .then(() => {
+            const currentRuntime = room.five_boss_runtime
+            if (signal === "scene_ready"
+                && currentRuntime?.runId === runId
+                && !currentRuntime.battleEnteredPlayerIds?.includes(playerId)) {
+                (currentRuntime.battleEnteredPlayerIds ??= []).push(playerId)
+            }
             fiveBossConnectionDiagnostics.socketEvent(client.socket,
-                signal === "level_next" ? "level_next_recorded" : "finalize_recorded", "tcp")
+                signal === "scene_ready" ? "battle_entry_recorded"
+                    : signal === "level_next" ? "level_next_recorded" : "finalize_recorded", "tcp")
         })
         .catch(error => {
+            if (signal === "scene_ready") client.fiveBossBattleEntered = false
             const code = (error as { code?: string }).code ?? "unknown"
             fiveBossConnectionDiagnostics.socketEvent(client.socket, "signal_rejected", `${signal}:${code}`)
             fiveBossDiagnostics.report(JSON.stringify(["signal", runId, roomNumber,
@@ -115,4 +131,5 @@ export function recordFiveBossSignal(room: MultiRoom, client: SessionClient, sig
     void pending.finally(() => {
         if (pendingFiveBossSignalWrites.get(key) === pending) pendingFiveBossSignalWrites.delete(key)
     })
+    return true
 }

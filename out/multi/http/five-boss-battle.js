@@ -40,7 +40,8 @@ function logFiveBossRequestFailure(operation, body, playerId, error) {
         body.category, body.quest_id, code, message === null || message === void 0 ? void 0 : message.slice(0, 160)]);
     coalesced_diagnostics_1.fiveBossDiagnostics.report(key, () => {
         const run = (0, fiveBossGauntletRun_1.getFiveBossRunByClientSync)({ playerId, clientPlayId: body.play_id });
-        const member = run ? (0, db_1.getDb)().prepare(`SELECT started_at, aborted_at, level_next_at, finalized_at
+        const member = run ? (0, db_1.getDb)().prepare(`SELECT started_at, battle_entered_at, aborted_at,
+            level_next_at, finalized_at
             FROM five_boss_gauntlet_members WHERE run_id = ? AND player_id = ?`).get(run.runId, playerId) : null;
         const active = (0, quest_active_1.getPlayerActiveQuestSync)(playerId);
         if (run && operation === "finish")
@@ -101,7 +102,7 @@ function terminalRoomTransition(roomNumber, runId, runStatus) {
         if (!transition.ok) {
             console.warn(`[MULTI] five-boss settled: unable to retain room ${roomNumber}`
                 + ` generation=${room.lobby_generation} reason=${transition.reason}`);
-            (0, manager_1.disbandRoom)(roomNumber);
+            SessionManager_1.sessionManager.commitRoomDisband(roomNumber, "five_boss_settlement_return_failed");
             return;
         }
         delete room.five_boss_runtime;
@@ -115,7 +116,23 @@ function terminalRoomTransition(roomNumber, runId, runStatus) {
             + ` generation=${room.lobby_generation}`);
         return;
     }
-    (0, manager_1.disbandRoom)(roomNumber);
+    SessionManager_1.sessionManager.commitRoomDisband(roomNumber, "five_boss_aborted");
+}
+function afterResponse(reply, operation) {
+    let completed = false;
+    const run = () => {
+        if (completed)
+            return;
+        completed = true;
+        try {
+            operation();
+        }
+        catch (error) {
+            console.error(`[MULTI] five-boss post-response cleanup failed: ${error.message}`);
+        }
+    };
+    reply.raw.once("finish", run);
+    reply.raw.once("close", run);
 }
 /**
  * CN 客户端的 multi finish / abort 请求体**不带 room_number**(官方
@@ -407,7 +424,9 @@ function handleFiveBossFinish(body, playerId, reply, buildFollowInfo) {
             });
         }));
         clearMatchingMemoryActive(playerId, body.play_id);
-        terminalRoomTransition(roomNumber, result.runId, result.runStatus);
+        if (result.runStatus !== "active") {
+            afterResponse(reply, () => terminalRoomTransition(roomNumber, result.runId, result.runStatus));
+        }
         const matePlayerResult = (_d = body.mate_player_result) !== null && _d !== void 0 ? _d : [];
         const followInfo = yield (0, settlement_performance_1.measureSettlementPhaseAsync)("multi", "five_boss_follow", () => {
             var _a, _b;
@@ -437,7 +456,9 @@ function handleFiveBossAbort(body, playerId, reply) {
             requestQuestId: body.quest_id,
         }));
         clearMatchingMemoryActive(playerId, body.play_id);
-        terminalRoomTransition(roomNumber, result.runId, result.runStatus);
+        if (result.runStatus !== "active") {
+            afterResponse(reply, () => terminalRoomTransition(roomNumber, result.runId, result.runStatus));
+        }
         const headers = (0, utils_1.generateDataHeaders)({ viewer_id: body.viewer_id });
         reply.header("content-type", "application/x-msgpack");
         return reply.status(200).send({
