@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.handleFiveBossAbort = exports.handleFiveBossFinish = exports.handleFiveBossStart = exports.shouldHandleFiveBossMemberRequest = exports.shouldHandleFiveBossStart = exports.isFiveBossBattleRequestError = exports.logFiveBossRequestFailure = void 0;
+exports.handleFiveBossAbort = exports.handleFiveBossFinish = exports.handleFiveBossStart = exports.shouldHandleFiveBossMemberRequest = exports.shouldHandleFiveBossStart = exports.isFiveBossBattleRequestError = exports.isStaleFiveBossMemberRequestError = exports.logFiveBossRequestFailure = void 0;
 const quest_active_1 = require("../../data/domains/quest_active");
 const fiveBossGauntletRun_1 = require("../../data/domains/fiveBossGauntletRun");
 const item_1 = require("../../data/domains/item");
@@ -33,10 +33,10 @@ const coalesced_diagnostics_1 = require("../../lib/coalesced-diagnostics");
 const connection_diagnostic_1 = require("../five-boss/connection-diagnostic");
 const persistence_coordinator_1 = require("../../lib/persistence-coordinator");
 /** Small structured evidence, without logging tokens, party data or the full request. */
-function logFiveBossRequestFailure(operation, body, playerId, error) {
+function logFiveBossRequestFailure(operation, body, playerId, error, acknowledged = false) {
     const code = error === null || error === void 0 ? void 0 : error.code;
     const message = error === null || error === void 0 ? void 0 : error.message;
-    const key = JSON.stringify(["request", operation, playerId, String(body.play_id).slice(0, 255),
+    const key = JSON.stringify(["request", operation, playerId, acknowledged, String(body.play_id).slice(0, 255),
         body.category, body.quest_id, code, message === null || message === void 0 ? void 0 : message.slice(0, 160)]);
     coalesced_diagnostics_1.fiveBossDiagnostics.report(key, () => {
         const run = (0, fiveBossGauntletRun_1.getFiveBossRunByClientSync)({ playerId, clientPlayId: body.play_id });
@@ -44,9 +44,10 @@ function logFiveBossRequestFailure(operation, body, playerId, error) {
             level_next_at, finalized_at
             FROM five_boss_gauntlet_members WHERE run_id = ? AND player_id = ?`).get(run.runId, playerId) : null;
         const active = (0, quest_active_1.getPlayerActiveQuestSync)(playerId);
-        if (run && operation === "finish")
+        if (run && operation === "finish" && !acknowledged) {
             connection_diagnostic_1.fiveBossConnectionDiagnostics.memberEvent(run.runId, playerId, "finish_rejected", code);
-        return `[FIVE-BOSS-REJECT] ${JSON.stringify({ operation, player: playerId, play: body.play_id,
+        }
+        return `[${acknowledged ? "FIVE-BOSS-ACK" : "FIVE-BOSS-REJECT"}] ${JSON.stringify({ operation, player: playerId, play: body.play_id,
             category: body.category, quest: body.quest_id, run: run === null || run === void 0 ? void 0 : run.runId, room: run === null || run === void 0 ? void 0 : run.roomNumber,
             status: run === null || run === void 0 ? void 0 : run.status, code, message,
             proof: member, active: active ? { play: active.playId, multi: active.isMulti, room: active.roomNumber } : null,
@@ -54,6 +55,24 @@ function logFiveBossRequestFailure(operation, body, playerId, error) {
     });
 }
 exports.logFiveBossRequestFailure = logFiveBossRequestFailure;
+/**
+ * Codes that mean this client is closing out a run the server already ended
+ * (settled/aborted) or a play id that is no longer bound to any run. The CN
+ * client turns any HTTP 400 on finish/abort into a fatal H400 dialog and
+ * drops to login, so these stale requests are acknowledged as a terminal,
+ * reward-less outcome instead of an error.
+ */
+const STALE_MEMBER_REQUEST_CODES = new Set([
+    "run_not_active",
+    "member_not_active",
+    "client_play_not_found",
+    "active_quest_mismatch",
+]);
+function isStaleFiveBossMemberRequestError(error) {
+    const code = error === null || error === void 0 ? void 0 : error.code;
+    return typeof code === "string" && STALE_MEMBER_REQUEST_CODES.has(code);
+}
+exports.isStaleFiveBossMemberRequestError = isStaleFiveBossMemberRequestError;
 function isFiveBossBattleRequestError(error) {
     return error instanceof battle_runtime_1.FiveBossBattleRuntimeError
         || error instanceof fiveBossGauntletRun_1.FiveBossGauntletRunError;
@@ -383,51 +402,83 @@ function handleFiveBossStart(body, playerId, reply) {
 exports.handleFiveBossStart = handleFiveBossStart;
 function handleFiveBossFinish(body, playerId, reply, buildFollowInfo) {
     return __awaiter(this, void 0, void 0, function* () {
-        var _a, _b, _c, _d;
+        var _a, _b, _c, _d, _e, _f, _g;
         const memoryBeforeFinish = singleBattleQuest_1.activeQuests[playerId];
         const boundRun = (0, fiveBossGauntletRun_1.getFiveBossRunByClientSync)({ playerId, clientPlayId: body.play_id });
         if (boundRun)
             connection_diagnostic_1.fiveBossConnectionDiagnostics.memberEvent(boundRun.runId, playerId, "http_finish", body.is_accomplished === true ? "success_requested" : "failure_requested");
         const roomNumber = resolveFiveBossRoomNumber(body.room_number, playerId, body.play_id, boundRun);
         const party = (_b = (_a = body.statistics) === null || _a === void 0 ? void 0 : _a.party) !== null && _b !== void 0 ? _b : (_c = body.quest_statistics) === null || _c === void 0 ? void 0 : _c.party;
-        const result = yield (0, settlement_performance_1.measureSettlementPhaseAsync)("multi", "five_boss_settlement", () => __awaiter(this, void 0, void 0, function* () {
-            // Failed finishes become aborts and do not need successful battle
-            // proof.  Waiting here would make an abort depend on an unrelated
-            // proof write that may be queued behind a closing socket.
-            if (boundRun && body.is_accomplished === true) {
-                yield (0, lobby_runtime_1.waitForFiveBossSignalPersistence)(boundRun.runId, playerId);
-            }
-            return (0, persistence_coordinator_1.runPersistenceTransaction)({
-                domain: "multi-settlement", playerId, operation: "five_boss_finish",
-            }, () => {
-                var _a, _b, _c, _d, _e, _f;
-                if (body.is_accomplished === true && (0, contract_1.isFiveBossGauntletQuest)(body.category, body.quest_id)
-                    && (boundRun === null || boundRun === void 0 ? void 0 : boundRun.roomNumber) === roomNumber) {
-                    const backfill = (0, fiveBossGauntletRun_1.backfillMissingFinalizeSync)({ playerId, clientPlayId: body.play_id });
-                    if (backfill.backfilled) {
-                        connection_diagnostic_1.fiveBossConnectionDiagnostics.memberEvent(boundRun.runId, playerId, "finalize_recorded", "http_backfill");
-                        console.warn(`[MULTI] five-boss finish: finalize signal never reached the battle channel;`
-                            + ` backfilled from HTTP finish player=${playerId} run=${backfill.runId} room=${backfill.roomNumber}`);
-                    }
+        let result;
+        try {
+            result = yield (0, settlement_performance_1.measureSettlementPhaseAsync)("multi", "five_boss_settlement", () => __awaiter(this, void 0, void 0, function* () {
+                // Failed finishes become aborts and do not need successful battle
+                // proof.  Waiting here would make an abort depend on an unrelated
+                // proof write that may be queued behind a closing socket.
+                if (boundRun && body.is_accomplished === true) {
+                    yield (0, lobby_runtime_1.waitForFiveBossSignalPersistence)(boundRun.runId, playerId);
                 }
-                return (0, battle_runtime_1.finishFiveBossBattle)({
-                    playerId,
-                    clientPlayId: body.play_id,
-                    requestRoomNumber: roomNumber,
-                    requestCategory: body.category,
-                    requestQuestId: body.quest_id,
-                    accomplished: body.is_accomplished,
-                    elapsedTimeMs: (_b = (_a = body.elapsed_time_ms) !== null && _a !== void 0 ? _a : body.battle_time) !== null && _b !== void 0 ? _b : 0,
-                    highScore: (_c = body.score) !== null && _c !== void 0 ? _c : 0,
-                    leaderCharacterId: (_f = (_e = (_d = party === null || party === void 0 ? void 0 : party.characters) === null || _d === void 0 ? void 0 : _d[0]) === null || _e === void 0 ? void 0 : _e.id) !== null && _f !== void 0 ? _f : null,
+                return (0, persistence_coordinator_1.runPersistenceTransaction)({
+                    domain: "multi-settlement", playerId, operation: "five_boss_finish",
+                }, () => {
+                    var _a, _b, _c, _d, _e, _f;
+                    if (body.is_accomplished === true && (0, contract_1.isFiveBossGauntletQuest)(body.category, body.quest_id)
+                        && (boundRun === null || boundRun === void 0 ? void 0 : boundRun.roomNumber) === roomNumber) {
+                        const backfill = (0, fiveBossGauntletRun_1.backfillMissingFinalizeSync)({ playerId, clientPlayId: body.play_id });
+                        if (backfill.backfilled) {
+                            connection_diagnostic_1.fiveBossConnectionDiagnostics.memberEvent(boundRun.runId, playerId, "finalize_recorded", "http_backfill");
+                            console.warn(`[MULTI] five-boss finish: finalize signal never reached the battle channel;`
+                                + ` backfilled from HTTP finish player=${playerId} run=${backfill.runId} room=${backfill.roomNumber}`);
+                        }
+                    }
+                    return (0, battle_runtime_1.finishFiveBossBattle)({
+                        playerId,
+                        clientPlayId: body.play_id,
+                        requestRoomNumber: roomNumber,
+                        requestCategory: body.category,
+                        requestQuestId: body.quest_id,
+                        accomplished: body.is_accomplished,
+                        elapsedTimeMs: (_b = (_a = body.elapsed_time_ms) !== null && _a !== void 0 ? _a : body.battle_time) !== null && _b !== void 0 ? _b : 0,
+                        highScore: (_c = body.score) !== null && _c !== void 0 ? _c : 0,
+                        leaderCharacterId: (_f = (_e = (_d = party === null || party === void 0 ? void 0 : party.characters) === null || _d === void 0 ? void 0 : _d[0]) === null || _e === void 0 ? void 0 : _e.id) !== null && _f !== void 0 ? _f : null,
+                    });
                 });
+            }));
+        }
+        catch (error) {
+            if (!isFiveBossBattleRequestError(error) || !isStaleFiveBossMemberRequestError(error))
+                throw error;
+            // The run settled or aborted while this client was still finishing its
+            // local battle. Answer with a reward-less failed finish instead of a
+            // 400: the CN client renders that error as a fatal H400 and logs out.
+            logFiveBossRequestFailure("finish", body, playerId, error, true);
+            clearMatchingMemoryActive(playerId, body.play_id);
+            if (boundRun && boundRun.status !== "active") {
+                afterResponse(reply, () => terminalRoomTransition(roomNumber, boundRun.runId, boundRun.status));
+            }
+            const matePlayerResult = (_d = body.mate_player_result) !== null && _d !== void 0 ? _d : [];
+            const followInfo = yield (0, settlement_performance_1.measureSettlementPhaseAsync)("multi", "five_boss_follow", () => {
+                var _a, _b;
+                return buildFollowInfo(body.viewer_id, matePlayerResult, (_b = (_a = memoryBeforeFinish === null || memoryBeforeFinish === void 0 ? void 0 : memoryBeforeFinish.matePlayerIds) !== null && _a !== void 0 ? _a : body.mate_player_ids) !== null && _b !== void 0 ? _b : []);
             });
-        }));
+            const dataHeaders = (0, utils_1.generateDataHeaders)({ viewer_id: body.viewer_id });
+            const player = requirePlayer(playerId);
+            reply.header("content-type", "application/x-msgpack");
+            return reply.status(200).send({
+                data_headers: dataHeaders,
+                data: buildFinishData(player, body, {
+                    kind: "failed",
+                    abortStatus: "already_aborted",
+                    runId: (_e = boundRun === null || boundRun === void 0 ? void 0 : boundRun.runId) !== null && _e !== void 0 ? _e : "",
+                    runStatus: (_f = boundRun === null || boundRun === void 0 ? void 0 : boundRun.status) !== null && _f !== void 0 ? _f : "aborted",
+                }, dataHeaders, matePlayerResult, followInfo, null),
+            });
+        }
         clearMatchingMemoryActive(playerId, body.play_id);
         if (result.runStatus !== "active") {
             afterResponse(reply, () => terminalRoomTransition(roomNumber, result.runId, result.runStatus));
         }
-        const matePlayerResult = (_d = body.mate_player_result) !== null && _d !== void 0 ? _d : [];
+        const matePlayerResult = (_g = body.mate_player_result) !== null && _g !== void 0 ? _g : [];
         const followInfo = yield (0, settlement_performance_1.measureSettlementPhaseAsync)("multi", "five_boss_follow", () => {
             var _a, _b;
             return buildFollowInfo(body.viewer_id, matePlayerResult, (_b = (_a = memoryBeforeFinish === null || memoryBeforeFinish === void 0 ? void 0 : memoryBeforeFinish.matePlayerIds) !== null && _a !== void 0 ? _a : body.mate_player_ids) !== null && _b !== void 0 ? _b : []);
@@ -446,15 +497,45 @@ exports.handleFiveBossFinish = handleFiveBossFinish;
 function handleFiveBossAbort(body, playerId, reply) {
     return __awaiter(this, void 0, void 0, function* () {
         const roomNumber = resolveFiveBossRoomNumber(body.room_number, playerId, body.play_id);
-        const result = yield (0, persistence_coordinator_1.runPersistenceTransaction)({
-            domain: "multi-settlement", playerId, operation: "five_boss_abort",
-        }, () => (0, battle_runtime_1.abortFiveBossBattle)({
-            playerId,
-            clientPlayId: body.play_id,
-            requestRoomNumber: roomNumber,
-            requestCategory: body.category,
-            requestQuestId: body.quest_id,
-        }));
+        let result;
+        try {
+            result = yield (0, persistence_coordinator_1.runPersistenceTransaction)({
+                domain: "multi-settlement", playerId, operation: "five_boss_abort",
+            }, () => (0, battle_runtime_1.abortFiveBossBattle)({
+                playerId,
+                clientPlayId: body.play_id,
+                requestRoomNumber: roomNumber,
+                requestCategory: body.category,
+                requestQuestId: body.quest_id,
+            }));
+        }
+        catch (error) {
+            if (!isFiveBossBattleRequestError(error) || !isStaleFiveBossMemberRequestError(error))
+                throw error;
+            // Retiring a run the server no longer tracks (already settled/aborted,
+            // or an unrecognized play id) must not 400: the CN client would show a
+            // fatal H400. It is already gone, so answer with the empty terminal
+            // payload the client expects from a successful abort.
+            logFiveBossRequestFailure("abort", body, playerId, error, true);
+            clearMatchingMemoryActive(playerId, body.play_id);
+            const headers = (0, utils_1.generateDataHeaders)({ viewer_id: body.viewer_id });
+            reply.header("content-type", "application/x-msgpack");
+            return reply.status(200).send({
+                data_headers: headers,
+                data: {
+                    user_info: {},
+                    category_id: body.category,
+                    is_multi: "multi",
+                    start_time: headers.servertime,
+                    quest_name: "",
+                    aborted_play_id: null,
+                    unfinished_play_id: null,
+                    drawn_quest: null,
+                    party_info: null,
+                    presigned_url: null,
+                },
+            });
+        }
         clearMatchingMemoryActive(playerId, body.play_id);
         if (result.runStatus !== "active") {
             afterResponse(reply, () => terminalRoomTransition(roomNumber, result.runId, result.runStatus));

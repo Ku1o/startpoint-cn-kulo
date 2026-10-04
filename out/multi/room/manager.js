@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updateHostEntryTime = exports.disbandRoom = exports.setRoomBattle = exports.getRoomMemberPlayerId = exports.removeRoomMember = exports.addRoomMember = exports.isRoomMember = exports.getRooms = exports.getRoomByToken = exports.getRoom = exports.createRoom = exports.isRoomWaitingForExpectedMember = exports.generateRoomAccessToken = exports.generateRoomNumber = void 0;
+exports.updateHostEntryTime = exports.disbandRoom = exports.setRoomBattle = exports.getRoomMemberPlayerId = exports.removeRoomMember = exports.addRoomMember = exports.getRoomAcceptedSeatCount = exports.isRoomMember = exports.getRooms = exports.getRoomByToken = exports.getRoom = exports.createRoom = exports.isRoomWaitingForExpectedMember = exports.generateRoomAccessToken = exports.generateRoomNumber = void 0;
 const crypto_1 = require("crypto");
 const types_1 = require("../../lib/types");
 const utils_1 = require("../../utils");
@@ -119,6 +119,7 @@ function createRoom(hostViewerId, hostPlayerId, hostPartyId, category, questId, 
         share_room_options: 0,
         is_npc_mode: isNpcMode,
         npc_count: 0,
+        rematch_ai_count: 0,
         expected_real_viewer_ids: [],
         lobby_generation: 0,
         rematch_wait_started_at: null,
@@ -189,6 +190,22 @@ function isRoomMember(room, viewerId) {
         .some(client => !client.isBattle && client.viewerId === viewerId);
 }
 exports.isRoomMember = isRoomMember;
+/**
+ * Accepted lobby seats: real members plus COM (AI) mates. COM seats occupy
+ * the room like real ones, so a stranger can take a genuinely empty seat but
+ * cannot replace an AI that was filled or restored for a missing member.
+ * The roster length and the recorded counters can briefly disagree while the
+ * lobby is rebuilt, so the larger value wins.
+ */
+function getRoomAcceptedSeatCount(room) {
+    const rosterSeats = Array.isArray(room.mates) ? room.mates.length : 0;
+    const realSeats = Array.isArray(room.member_viewer_ids) && room.member_viewer_ids.length > 0
+        ? room.member_viewer_ids.length
+        : 1;
+    const recordedSeats = realSeats + Math.max(0, Number(room.npc_count) || 0);
+    return Math.max(rosterSeats, recordedSeats);
+}
+exports.getRoomAcceptedSeatCount = getRoomAcceptedSeatCount;
 function addRoomMember(roomNumber, viewerId, playerId) {
     const room = rooms.get(roomNumber);
     if (!room)

@@ -95,8 +95,11 @@ function registerLobbyRoutes(fastify) {
             .flatMap(categoryId => (0, manager_1.getRooms)(categoryId, body.event_id))
             .filter(r => r.host_viewer_id !== viewerId)
             .filter(r => (0, sharing_1.isRoomSharedWithPlayer)(r, viewerPlayerId))
-            .filter(r => !r.is_npc_mode
-            && !["STARTING", "BATTLE"].includes(embedded_1.embeddedMultiCoordinator.ensureLifecycle(r).phase))
+            // AI-filled rooms stay visible to viewers who pass the share
+            // check, but a roster completed with COM seats is reported as
+            // full so the client shows its native "room is full" state
+            // instead of attempting an entry that would be rejected.
+            .filter(r => !["STARTING", "BATTLE"].includes(embedded_1.embeddedMultiCoordinator.ensureLifecycle(r).phase))
             .filter(r => !(0, mode15_room_gate_1.isMode15RoomClosed)(r))
             .filter(r => SessionManager_1.sessionManager.isHostOnline(r.host_viewer_id, r.room_number, r.lobby_generation))
             .filter(r => getCurrentLobbyOccupancy(r) < ROOM_CAPACITY)
@@ -105,7 +108,14 @@ function registerLobbyRoutes(fastify) {
             // the same repeatable rescue gate instead of the helper's own run
             // position.
             .filter(r => canJoinRoomAsGuest(viewerPlayerId, r))
-            .map(r => (0, serializer_1.serializeRoom)(r, viewerPlayerId));
+            .map(r => {
+            const serialized = (0, serializer_1.serializeRoom)(r, viewerPlayerId);
+            if (!isReturningMember(r, viewerId)
+                && (0, manager_1.getRoomAcceptedSeatCount)(r) >= ROOM_CAPACITY) {
+                serialized.raising_state = select_denial_1.SELECT_ROOM_FILLED_STATE;
+            }
+            return serialized;
+        });
         reply.header("content-type", "application/x-msgpack");
         return reply.status(200).send({
             "data_headers": (0, utils_1.generateDataHeaders)({ viewer_id: viewerId }),
@@ -251,9 +261,16 @@ function registerLobbyRoutes(fastify) {
         const waitingForExpectedMember = !!room
             && !returningMember
             && (0, manager_1.isRoomWaitingForExpectedMember)(room);
+        // COM seats count as occupied: a room that filled its free seats with
+        // AI is full for anyone outside the original party. Only the host,
+        // expected members and recorded mates may take a seat back.
+        const lobbySeatsFull = !!room
+            && !returningMember
+            && (0, manager_1.getRoomAcceptedSeatCount)(room) >= ROOM_CAPACITY;
         const isUnavailableWithoutCapacity = !!room && (mode15RoomClosed
             || (!returningMember && (battleStarted
                 || waitingForExpectedMember
+                || lobbySeatsFull
                 || staleRescueNotice
                 || mode15Blocked)));
         const restoreBlocked = !!room && SessionManager_1.sessionManager.isRoomRestoreBlocked(room.room_number, viewerId);
@@ -273,11 +290,16 @@ function registerLobbyRoutes(fastify) {
                 console.log(`[MULTI] select_room denied before TCP: viewer=${viewerId}`
                     + ` room=${room === null || room === void 0 ? void 0 : room.room_number} reason=capacity_reserved`);
             }
+            if (lobbySeatsFull) {
+                console.log(`[MULTI] select_room denied before TCP: viewer=${viewerId}`
+                    + ` room=${room === null || room === void 0 ? void 0 : room.room_number} reason=room_seats_full`);
+            }
             const denialRaisingState = (0, select_denial_1.getSelectRoomDenialRaisingState)({
                 battleStarted,
                 // A disconnected expected member still owns that seat, so the
-                // room is full from a new entrant's point of view.
-                roomFull: capacityDenied || waitingForExpectedMember,
+                // room is full from a new entrant's point of view. The same
+                // applies once COM mates occupy the remaining seats.
+                roomFull: capacityDenied || waitingForExpectedMember || lobbySeatsFull,
             });
             reply.header("content-type", "application/x-msgpack");
             return reply.status(200).send({

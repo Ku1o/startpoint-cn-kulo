@@ -96,7 +96,14 @@ function registerBattleRoutes(fastify) {
                 "error": "Bad Request", "message": "Invalid viewer id or no player bound."
             });
         }
+        // A rescue guest who already entered the room keeps the client-side
+        // attention key, but the key's stopped-notice grace can expire during
+        // a long lobby wait. Room membership is the stronger proof at this
+        // point, so only validate the key for viewers who are not members yet.
+        const attentionRoom = room_number ? (0, manager_1.getRoom)(room_number) : undefined;
+        const alreadyRoomMember = !!attentionRoom && (0, manager_1.isRoomMember)(attentionRoom, viewer_id);
         if (body.attention_key
+            && !alreadyRoomMember
             && !(0, recruitment_1.validateRandomRecruitmentAttention)(room_number, viewer_id, body.attention_key)) {
             return reply.status(400).send({
                 "error": "Bad Request", "message": "Invalid attention key."
@@ -756,8 +763,14 @@ function registerBattleRoutes(fastify) {
                 delete singleBattleQuest_1.activeQuests[playerId];
             }
             if (hostAborted && abortRoomNumber) {
-                yield embedded_1.embeddedMultiCoordinator.enqueueRoomCommand(abortRoomNumber, () => SessionManager_1.sessionManager.commitRoomDisband(abortRoomNumber, "host_aborted_battle"));
-                (0, game_logging_1.gameVerboseLog)(() => `[MULTI] abort: room ${abortRoomNumber} disbanded (host abandoned)`);
+                // Retiring as the host no longer dissolves the room. The host
+                // is treated as a leaving member: closing its battle socket
+                // retires the seat (publishing Leave to the peers), the
+                // remaining members keep fighting and settle normally, and the
+                // hostless room is dissolved by its own settlement-return or
+                // abandoned-battle watchdog.
+                (0, game_logging_1.gameVerboseLog)(() => `[MULTI] abort: host ${viewerId} left room ${abortRoomNumber};`
+                    + ` remaining members continue`);
             }
             if (activeQuestData.roomNumber) {
                 SessionManager_1.sessionManager.clearBattleExpectedCount(activeQuestData.roomNumber);
@@ -811,6 +824,20 @@ function registerBattleRoutes(fastify) {
             catch (error) {
                 if (!(error instanceof continue_runtime_1.FiveBossContinueError))
                     throw error;
+                if (error.stale) {
+                    // The run ended before this client recovered it. The CN
+                    // client treats a 400 here as a fatal H400 and logs out,
+                    // so acknowledge without charging or reviving anything.
+                    (0, game_logging_1.gameVerboseLog)(() => `[MULTI] play_continue: stale ack viewer=${viewerId}`
+                        + ` quest=${body.quest_id} reason=${error.message}`);
+                    reply.header("content-type", "application/x-msgpack");
+                    return reply.status(200).send({
+                        data_headers: (0, utils_1.generateDataHeaders)({ viewer_id: viewerId }),
+                        data: (0, continue_runtime_1.fiveBossContinueAcknowledgement)(playerId),
+                    });
+                }
+                (0, game_logging_1.gameVerboseLog)(() => `[MULTI] play_continue: rejected viewer=${viewerId}`
+                    + ` quest=${body.quest_id} reason=${error.message}`);
                 return reply.status(400).send({ error: "Bad Request", message: error.message });
             }
         }

@@ -459,7 +459,12 @@ function settleMemberSync(input, grantRewards) {
     });
 }
 exports.settleMemberSync = settleMemberSync;
-/** Clears one member's persisted active quest; only the host aborts the shared run. */
+/**
+ * Clears one member's persisted active quest. Every member, including the
+ * host, retires as an individual leaver: the remaining members keep fighting
+ * and settle normally, and the run closes once no member is left without a
+ * receipt or an abort record.
+ */
 function abortMemberSync(input, deletePersistentActive) {
     const normalized = validateClientKey(input);
     if (typeof deletePersistentActive !== "function") {
@@ -501,29 +506,47 @@ function abortMemberSync(input, deletePersistentActive) {
             WHERE run_id = ? AND player_id = ? AND aborted_at IS NULL
         `).run(now, rawMember.run_id, normalized.playerId);
         const isHost = rawRun.host_player_id === normalized.playerId;
-        if (isHost && rawRun.status === "active") {
-            db.prepare(`
-                UPDATE five_boss_gauntlet_runs
-                SET status = 'aborted', updated_at = ?
-                WHERE run_id = ? AND status = 'active'
-            `).run(now, rawRun.run_id);
-        }
-        if (!isHost && rawRun.status === "active") {
-            db.prepare(`UPDATE five_boss_gauntlet_runs SET status = 'settled', updated_at = ?
-                WHERE run_id = ? AND status = 'active' AND NOT EXISTS (
-                    SELECT 1 FROM five_boss_gauntlet_members member
-                    LEFT JOIN five_boss_gauntlet_receipts receipt
-                        ON receipt.run_id = member.run_id AND receipt.player_id = member.player_id
-                    WHERE member.run_id = five_boss_gauntlet_runs.run_id
-                        AND member.aborted_at IS NULL AND receipt.player_id IS NULL
-                )`).run(now, rawRun.run_id);
+        if (rawRun.status === "active") {
+            const remainingMember = db.prepare(`
+                SELECT 1
+                FROM five_boss_gauntlet_members member
+                LEFT JOIN five_boss_gauntlet_receipts receipt
+                    ON receipt.run_id = member.run_id AND receipt.player_id = member.player_id
+                WHERE member.run_id = ? AND member.aborted_at IS NULL AND receipt.player_id IS NULL
+                LIMIT 1
+            `).get(rawRun.run_id);
+            if (isHost && !remainingMember) {
+                // The host was the last member still in the run: nobody is left
+                // to continue, so close it as aborted and let the room dissolve
+                // immediately instead of waiting out the return grace.
+                db.prepare(`
+                    UPDATE five_boss_gauntlet_runs
+                    SET status = 'aborted', updated_at = ?
+                    WHERE run_id = ? AND status = 'active'
+                `).run(now, rawRun.run_id);
+            }
+            else {
+                db.prepare(`UPDATE five_boss_gauntlet_runs SET status = 'settled', updated_at = ?
+                    WHERE run_id = ? AND status = 'active' AND NOT EXISTS (
+                        SELECT 1 FROM five_boss_gauntlet_members member
+                        LEFT JOIN five_boss_gauntlet_receipts receipt
+                            ON receipt.run_id = member.run_id AND receipt.player_id = member.player_id
+                        WHERE member.run_id = five_boss_gauntlet_runs.run_id
+                            AND member.aborted_at IS NULL AND receipt.player_id IS NULL
+                    )`).run(now, rawRun.run_id);
+            }
         }
         rawMember = selectMember(rawRun.run_id, normalized.playerId);
         rawRun = selectRun(rawRun.run_id);
         if (!rawMember || !rawRun)
             fail("run_conflict", "abort state could not be read back");
         return {
-            status: isHost ? "run_aborted" : "member_aborted",
+            // "run_aborted" only when this host abort actually closed the run
+            // (the host was the last member); an ordinary host leave is the
+            // same as any other member leave.
+            status: isHost && rawRun.status === "aborted"
+                ? "run_aborted"
+                : "member_aborted",
             run: runFromRaw(rawRun),
             member: boundMemberFromRaw(rawMember),
             deleted,

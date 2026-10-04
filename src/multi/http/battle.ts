@@ -1,6 +1,7 @@
 import { freezeFiveBossLobby } from "../five-boss/lobby-runtime";
 import { isFiveBossTicketShortage, sendFiveBossTicketShortage } from "../five-boss/entry-response";
-import { continueFiveBoss, FiveBossContinueError, isFiveBossContinueRequest } from "../five-boss/continue-runtime";
+import { continueFiveBoss, fiveBossContinueAcknowledgement, FiveBossContinueError,
+    isFiveBossContinueRequest } from "../five-boss/continue-runtime";
 import { resolveActiveQuest } from "../../lib/quest/finish/active-quest-resolver";
 import { isFiveBossHiddenQuest } from "../five-boss/contract";
 import { shouldHandleFiveBossStart, shouldHandleFiveBossMemberRequest,
@@ -138,7 +139,14 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
             });
         }
 
+        // A rescue guest who already entered the room keeps the client-side
+        // attention key, but the key's stopped-notice grace can expire during
+        // a long lobby wait. Room membership is the stronger proof at this
+        // point, so only validate the key for viewers who are not members yet.
+        const attentionRoom = room_number ? getRoom(room_number) : undefined
+        const alreadyRoomMember = !!attentionRoom && isRoomMember(attentionRoom, viewer_id)
         if (body.attention_key
+            && !alreadyRoomMember
             && !validateRandomRecruitmentAttention(room_number, viewer_id, body.attention_key)) {
             return reply.status(400).send({
                 "error": "Bad Request", "message": "Invalid attention key."
@@ -952,11 +960,14 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
                 delete activeQuests[playerId];
             }
             if (hostAborted && abortRoomNumber) {
-                await embeddedMultiCoordinator.enqueueRoomCommand(
-                    abortRoomNumber,
-                    () => sessionManager.commitRoomDisband(abortRoomNumber, "host_aborted_battle"),
-                );
-                gameVerboseLog(() => `[MULTI] abort: room ${abortRoomNumber} disbanded (host abandoned)`);
+                // Retiring as the host no longer dissolves the room. The host
+                // is treated as a leaving member: closing its battle socket
+                // retires the seat (publishing Leave to the peers), the
+                // remaining members keep fighting and settle normally, and the
+                // hostless room is dissolved by its own settlement-return or
+                // abandoned-battle watchdog.
+                gameVerboseLog(() => `[MULTI] abort: host ${viewerId} left room ${abortRoomNumber};`
+                    + ` remaining members continue`);
             }
             if (activeQuestData.roomNumber) {
                 sessionManager.clearBattleExpectedCount(activeQuestData.roomNumber);
@@ -1013,6 +1024,20 @@ export function registerBattleRoutes(fastify: FastifyInstance): void {
                 return reply.status(200).send({ data_headers: generateDataHeaders({ viewer_id: viewerId }), data })
             } catch (error) {
                 if (!(error instanceof FiveBossContinueError)) throw error
+                if (error.stale) {
+                    // The run ended before this client recovered it. The CN
+                    // client treats a 400 here as a fatal H400 and logs out,
+                    // so acknowledge without charging or reviving anything.
+                    gameVerboseLog(() => `[MULTI] play_continue: stale ack viewer=${viewerId}`
+                        + ` quest=${body.quest_id} reason=${error.message}`)
+                    reply.header("content-type", "application/x-msgpack")
+                    return reply.status(200).send({
+                        data_headers: generateDataHeaders({ viewer_id: viewerId }),
+                        data: fiveBossContinueAcknowledgement(playerId),
+                    })
+                }
+                gameVerboseLog(() => `[MULTI] play_continue: rejected viewer=${viewerId}`
+                    + ` quest=${body.quest_id} reason=${error.message}`)
                 return reply.status(400).send({ error: "Bad Request", message: error.message })
             }
         }

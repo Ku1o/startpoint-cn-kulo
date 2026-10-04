@@ -10,7 +10,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.handleMessage = exports.scheduleRematchDisconnectCleanup = exports.recruitNpcMatesForRoom = exports.scheduleNpcReconcile = exports.notifyRoomDisbanded = exports.checkHostAutoReady = void 0;
-const contract_1 = require("../five-boss/contract");
 const lobby_runtime_1 = require("../five-boss/lobby-runtime");
 const SessionManager_1 = require("../state/SessionManager");
 const manager_1 = require("../room/manager");
@@ -377,7 +376,7 @@ function notifyRoomDisbanded(roomNumber) {
     SessionManager_1.sessionManager.commitRoomDisband(roomNumber, "lobby_disband_requested");
 }
 exports.notifyRoomDisbanded = notifyRoomDisbanded;
-function handleEnterComs(client, coms) {
+function handleEnterComs(client, coms, maxNpcCount) {
     return __awaiter(this, void 0, void 0, function* () {
         var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m;
         let room = (0, manager_1.getRoom)(client.roomNumber);
@@ -392,15 +391,6 @@ function handleEnterComs(client, coms) {
             return;
         }
         room.is_npc_mode = true;
-        if ((0, contract_1.isFiveBossGauntletQuest)(room.category, room.quest_id)) {
-            const remaining = room.created_at + contract_1.FIVE_BOSS_GAUNTLET.aiFillTimeoutMs - Date.now();
-            if (remaining > 0) {
-                (0, game_logging_1.gameVerboseLog)(() => `[LOBBY] AI recruitment delayed: room=${client.roomNumber}`
-                    + ` remainingMs=${remaining}`);
-                scheduleNpcReconcile(room.room_number, remaining);
-                return;
-            }
-        }
         const hostMate = (_b = (_a = findHostClient(client.roomNumber)) === null || _a === void 0 ? void 0 : _a.yourself) !== null && _b !== void 0 ? _b : client.mates[0];
         if (!hostMate)
             return;
@@ -417,8 +407,10 @@ function handleEnterComs(client, coms) {
         // Always fill the seats not occupied by real players. npc_count may have
         // been reduced when a real player joined, so it cannot be used as a cap
         // when that player later leaves or the return lobby is rebuilt.
-        let needNPCs = 3 - realMates.length;
-        room.npc_count = needNPCs; // persist the actual COM slots for rematch
+        const npcLimit = maxNpcCount === undefined ? 3 : Math.max(0, maxNpcCount);
+        let needNPCs = Math.min(3 - realMates.length, npcLimit);
+        if (maxNpcCount === undefined)
+            room.npc_count = needNPCs; // persist the actual COM slots for rematch
         if (needNPCs <= 0) {
             (0, game_logging_1.gameVerboseLog)(() => `[LOBBY] EnterComs: room full (${realMates.length} players), skip NPCs`);
             return;
@@ -435,20 +427,22 @@ function handleEnterComs(client, coms) {
         // resolving, so take a fresh roster snapshot before creating COM slots.
         realMates = collectCanonicalRoomRoster(client.roomNumber, true)
             .filter(m => !m.comId);
-        needNPCs = Math.max(0, 3 - realMates.length);
-        room.npc_count = needNPCs;
+        needNPCs = Math.min(Math.max(0, 3 - realMates.length), npcLimit);
+        if (maxNpcCount === undefined)
+            room.npc_count = needNPCs;
         if (needNPCs === 0) {
             synchronizeRoomRoster(client.roomNumber, realMates.slice(0, 3), true);
             return;
         }
         // Select valid parties from the cached server-wide player-party pool.
-        // The host is excluded so COM mates do not simply mirror the host. A
-        // complete host party remains the final fallback for very small/new
-        // databases that do not yet contain other valid three-character parties.
+        // The host is intentionally not excluded, matching every other
+        // multiplayer mode. A complete host party remains the final fallback for
+        // very small/new databases that do not yet contain valid three-character
+        // parties.
         let npcParties = [];
         try {
             const selectionOptions = (0, player_party_pool_1.getNpcPartySelectionOptions)(room.category, room.quest_id);
-            npcParties = (0, contract_1.isFiveBossGauntletQuest)(room.category, room.quest_id) ? [] : (0, player_party_pool_1.getRandomPlayerNpcPartiesSync)(client.playerId, needNPCs, selectionOptions)
+            npcParties = (0, player_party_pool_1.getRandomPlayerNpcPartiesSync)(client.playerId, needNPCs, selectionOptions)
                 .map(entry => entry.party);
         }
         catch (error) {
@@ -518,6 +512,7 @@ function handleEnterComs(client, coms) {
 }
 function recruitNpcMatesForRoomAttempt(roomNumber, attempt) {
     return __awaiter(this, void 0, void 0, function* () {
+        var _a, _b;
         const room = (0, manager_1.getRoom)(roomNumber);
         if (!room || !room.is_npc_mode || room.lifecycle.phase !== "LOBBY")
             return;
@@ -546,9 +541,38 @@ function recruitNpcMatesForRoomAttempt(roomNumber, attempt) {
             const liveViewerIds = new Set(SessionManager_1.sessionManager.getClientsInRoom(roomNumber, room.lobby_generation)
                 .filter(connectedClient => !connectedClient.isBattle)
                 .map(connectedClient => connectedClient.viewerId));
-            const waitingForRealPlayer = room.expected_real_viewer_ids
-                .some(viewerId => !liveViewerIds.has(viewerId));
-            if (waitingForRealPlayer) {
+            const missingExpectedViewerIds = room.expected_real_viewer_ids
+                .filter(viewerId => !liveViewerIds.has(viewerId));
+            if (missingExpectedViewerIds.length > 0) {
+                // Two-stage rematch: restore the AI count from the previous
+                // battle immediately, but leave one seat free for every real
+                // player still inside the reconnect grace. The post-grace
+                // cleanup removes expired expectations and fills those seats with
+                // the extra AI. Marking the room AI-capable here is what lets
+                // that post-grace reconcile run even when the previous battle
+                // had no AI at all.
+                room.is_npc_mode = true;
+                const rosterBeforeRestore = collectCanonicalRoomRoster(roomNumber, true);
+                const realCountBeforeRestore = countRealPlayers(rosterBeforeRestore);
+                const presentNpcCountBeforeRestore = rosterBeforeRestore.filter(mate => !!mate.comId).length;
+                const freeSlotsBeforeRestore = Math.max(0, 3 - realCountBeforeRestore - missingExpectedViewerIds.length);
+                const previousAiCount = (_b = (_a = room.rematch_ai_count) !== null && _a !== void 0 ? _a : room.npc_count) !== null && _b !== void 0 ? _b : 0;
+                const restoreCount = Math.min(previousAiCount, freeSlotsBeforeRestore);
+                if (restoreCount > presentNpcCountBeforeRestore) {
+                    const hostClient = findHostClient(roomNumber);
+                    if (hostClient) {
+                        npcRecruitingRooms.add(roomNumber);
+                        try {
+                            yield handleEnterComs(hostClient, chooseNpcNames(2), restoreCount);
+                        }
+                        finally {
+                            npcRecruitingRooms.delete(roomNumber);
+                            if (npcReconcilePendingRooms.delete(roomNumber)) {
+                                scheduleNpcReconcile(roomNumber);
+                            }
+                        }
+                    }
+                }
                 scheduleRematchRosterCleanup(roomNumber);
                 return;
             }
@@ -1006,6 +1030,7 @@ function handleStartBattle(_socket, client, _data) {
     autoStartingRooms.delete(client.roomNumber);
     room.expected_real_viewer_ids = realViewerIds;
     room.npc_count = members.filter(mate => !!mate.comId).length;
+    room.rematch_ai_count = room.npc_count;
     room.mates = members.map(mate => {
         var _a, _b, _c;
         return ({
@@ -1101,7 +1126,17 @@ function handleNotify(socket, client, data) {
     });
 }
 function handleBroadcast(_socket, client, data) {
-    SessionManager_1.sessionManager.broadcastToRoom(client.roomNumber, data);
+    // Client2Server.Broadcast carries MeetingBroadcastMessage entries (the
+    // room protocol only defines Emotion). The sender already renders its own
+    // balloon locally, so relay the payload to the other room members in the
+    // envelope the room parser expects:
+    //   MeetingServer2Client.Messages(senderConnectionId, messages)
+    // Relaying the raw client frame ([1, ...]) made the client parse it as a
+    // server Message instead of Messages, so lobby emotions were dropped.
+    const messages = data[1];
+    if (!Array.isArray(messages) || messages.length === 0)
+        return;
+    SessionManager_1.sessionManager.broadcastToRoom(client.roomNumber, [2, client.connectionId, messages], `${client.viewerId}@${client.roomNumber}`);
 }
 function handleSend(_socket, _client, data) {
     const targetViewerId = data[1];

@@ -16,7 +16,7 @@ const serializer_1 = require("../room/serializer");
 const SessionManager_1 = require("../state/SessionManager");
 const builder_1 = require("../npc/builder");
 const recruitment_1 = require("../recruitment");
-const lobby_1 = require("../tcp/lobby");
+const ai_fill_1 = require("../ai-fill");
 const sharing_1 = require("../room/sharing");
 const game_logging_1 = require("../../lib/game-logging");
 const mode15_room_gate_1 = require("../mode15-room-gate");
@@ -232,29 +232,31 @@ function registerRoomRoutes(fastify) {
                 "data": { "config": (0, attention_config_1.getAttentionConfig)() }
             });
         }
-        const shareTypes = (0, sharing_1.normalizeRoomShareTypes)(body.share_type_list);
-        const aiSelected = shareTypes.includes(sharing_1.AI_RECRUITMENT_SHARE_TYPE);
-        const aiAlreadyActive = room.is_npc_mode;
-        if (aiAlreadyActive && !aiSelected)
-            shareTypes.push(sharing_1.AI_RECRUITMENT_SHARE_TYPE);
+        // The client's share_type_list is a delta: it contains only the types
+        // enabled by this dialog confirmation, and already-shared entries are
+        // disabled client-side. Merge instead of replace so enabling random
+        // recruitment cannot silently drop the follow-based visibility that
+        // was granted earlier in the same room.
+        const shareTypes = (0, sharing_1.mergeRoomShareTypes)(room.share_room_options, body.share_type_list);
+        const randomSelected = shareTypes.includes(sharing_1.RANDOM_RECRUITMENT_SHARE_TYPE);
         room.share_room_options = (0, sharing_1.encodeRoomShareOptions)(shareTypes);
-        // Option 2 is intentionally repurposed as the private-server AI switch.
-        // Once AI has been selected, keep it authoritative for this room. The
-        // client may send several share_room refreshes with stale subsets
-        // while the three checkboxes are enabled; treating a later [1, 3]
-        // refresh as a cancellation leaves the delayed AI reconcile stranded.
-        if (aiSelected || aiAlreadyActive) {
-            room.is_npc_mode = true;
-            (0, recruitment_1.stopRandomRecruitment)(room.room_number);
-            (0, lobby_1.recruitNpcMatesForRoom)(room.room_number);
-            (0, game_logging_1.gameVerboseLog)(() => `[MULTI] share_room: AI recruitment enabled/preserved room=${room.room_number}`);
-        }
-        else if (shareTypes.includes(sharing_1.RANDOM_RECRUITMENT_SHARE_TYPE)) {
+        (0, game_logging_1.gameVerboseLog)(() => {
+            var _a;
+            return `[MULTI] share_room: requested=${JSON.stringify((_a = body.share_type_list) !== null && _a !== void 0 ? _a : null)}`
+                + ` options=${room.share_room_options}`;
+        });
+        // The client cannot turn random recruitment off after enabling it.
+        // Treat it as sticky: a later refresh without type 3 must not stop the
+        // active recruitment or its AI fallback. Battle start, room disband
+        // and the fallback itself own the stop path.
+        if (randomSelected && !room.is_npc_mode) {
+            const wasRecruiting = (0, recruitment_1.isRandomRecruiting)(room.room_number);
             const recruitment = (0, recruitment_1.publishRandomRecruitment)(room.room_number);
+            if (!wasRecruiting)
+                (0, ai_fill_1.scheduleAiFallback)(room.room_number);
             (0, game_logging_1.gameVerboseLog)(() => `[MULTI] share_room: random recruitment published room=${room.room_number} key=${recruitment.attentionKey}`);
         }
         else {
-            (0, recruitment_1.stopRandomRecruitment)(room.room_number);
             (0, game_logging_1.gameVerboseLog)(() => `[MULTI] share_room: scoped visibility updated room=${room.room_number} options=${room.share_room_options}`);
         }
         reply.header("content-type", "application/x-msgpack");

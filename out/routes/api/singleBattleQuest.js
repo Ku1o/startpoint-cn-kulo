@@ -628,6 +628,18 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                 catch (error) {
                     if (!(error instanceof continue_runtime_1.FiveBossContinueError))
                         throw error;
+                    if (error.stale) {
+                        // The solo run already ended; a 400 here makes the CN
+                        // client show a fatal H400 and drop to login. Acknowledge
+                        // without charging so the client can leave the battle.
+                        (0, game_logging_1.gameVerboseLog)(() => `[MULTI] play_continue: stale ack viewer=${viewerId}`
+                            + ` quest=${questId} reason=${error.message}`);
+                        reply.header("content-type", "application/x-msgpack");
+                        return reply.status(200).send({
+                            data_headers: (0, utils_1.generateDataHeaders)({ viewer_id: viewerId }),
+                            data: (0, continue_runtime_1.fiveBossContinueAcknowledgement)(playerId),
+                        });
+                    }
                     return reply.status(400).send({ error: "Bad Request", message: error.message });
                 }
             }

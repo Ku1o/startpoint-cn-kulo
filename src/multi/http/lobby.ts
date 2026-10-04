@@ -5,7 +5,8 @@ import { getFollowRelationSync } from "../../data/domains/follow"
 import { getQuestFromCategorySync } from "../../lib/assets"
 import { generateDataHeaders } from "../../utils"
 import { getFavoritePartySelectionSync } from "../../lib/profileFavorite"
-import { createRoom, getRoom, getRoomByToken, getRooms, isRoomWaitingForExpectedMember } from "../room/manager"
+import { createRoom, getRoom, getRoomAcceptedSeatCount, getRoomByToken, getRooms,
+    isRoomWaitingForExpectedMember } from "../room/manager"
 import { serializeRoom, serializeRoomConnection } from "../room/serializer"
 import { isRoomSharedWithPlayer } from "../room/sharing"
 import { sessionManager } from "../state/SessionManager"
@@ -20,7 +21,7 @@ import { isNewbiePlayerSync } from "../../lib/newbie"
 import { canJoinMode15RescueSync, canStartMode15QuestSync, isMode15Quest } from "../../lib/mode15-optional"
 import { isMode15RoomClosed } from "../mode15-room-gate"
 import { roomAdmissionRegistry } from "../room/admission"
-import { getSelectRoomDenialRaisingState } from "../room/select-denial"
+import { getSelectRoomDenialRaisingState, SELECT_ROOM_FILLED_STATE } from "../room/select-denial"
 import { embeddedMultiCoordinator } from "../coordinator/embedded"
 import { cacheMultiPlayerContext, resolveMultiPlayerContext } from "../player-context"
 import { primeRealPartySnapshot } from "../party-snapshot"
@@ -100,8 +101,11 @@ export function registerLobbyRoutes(fastify: FastifyInstance): void {
                 r,
                 viewerPlayerId,
             ))
-            .filter(r => !r.is_npc_mode
-                && !["STARTING", "BATTLE"].includes(embeddedMultiCoordinator.ensureLifecycle(r).phase))
+            // AI-filled rooms stay visible to viewers who pass the share
+            // check, but a roster completed with COM seats is reported as
+            // full so the client shows its native "room is full" state
+            // instead of attempting an entry that would be rejected.
+            .filter(r => !["STARTING", "BATTLE"].includes(embeddedMultiCoordinator.ensureLifecycle(r).phase))
             .filter(r => !isMode15RoomClosed(r))
             .filter(r => sessionManager.isHostOnline(r.host_viewer_id, r.room_number, r.lobby_generation))
             .filter(r => getCurrentLobbyOccupancy(r) < ROOM_CAPACITY)
@@ -110,7 +114,14 @@ export function registerLobbyRoutes(fastify: FastifyInstance): void {
             // the same repeatable rescue gate instead of the helper's own run
             // position.
             .filter(r => canJoinRoomAsGuest(viewerPlayerId, r))
-            .map(r => serializeRoom(r, viewerPlayerId))
+            .map(r => {
+                const serialized = serializeRoom(r, viewerPlayerId)
+                if (!isReturningMember(r, viewerId)
+                    && getRoomAcceptedSeatCount(r) >= ROOM_CAPACITY) {
+                    serialized.raising_state = SELECT_ROOM_FILLED_STATE
+                }
+                return serialized
+            })
 
         reply.header("content-type", "application/x-msgpack")
         return reply.status(200).send({
@@ -274,11 +285,18 @@ export function registerLobbyRoutes(fastify: FastifyInstance): void {
         const waitingForExpectedMember = !!room
             && !returningMember
             && isRoomWaitingForExpectedMember(room)
+        // COM seats count as occupied: a room that filled its free seats with
+        // AI is full for anyone outside the original party. Only the host,
+        // expected members and recorded mates may take a seat back.
+        const lobbySeatsFull = !!room
+            && !returningMember
+            && getRoomAcceptedSeatCount(room) >= ROOM_CAPACITY
         const isUnavailableWithoutCapacity = !!room && (
             mode15RoomClosed
             || (!returningMember && (
                 battleStarted
                 || waitingForExpectedMember
+                || lobbySeatsFull
                 || staleRescueNotice
                 || mode15Blocked
             ))
@@ -310,11 +328,18 @@ export function registerLobbyRoutes(fastify: FastifyInstance): void {
                     + ` room=${room?.room_number} reason=capacity_reserved`,
                 )
             }
+            if (lobbySeatsFull) {
+                console.log(
+                    `[MULTI] select_room denied before TCP: viewer=${viewerId}`
+                    + ` room=${room?.room_number} reason=room_seats_full`,
+                )
+            }
             const denialRaisingState = getSelectRoomDenialRaisingState({
                 battleStarted,
                 // A disconnected expected member still owns that seat, so the
-                // room is full from a new entrant's point of view.
-                roomFull: capacityDenied || waitingForExpectedMember,
+                // room is full from a new entrant's point of view. The same
+                // applies once COM mates occupy the remaining seats.
+                roomFull: capacityDenied || waitingForExpectedMember || lobbySeatsFull,
             })
             reply.header("content-type", "application/x-msgpack")
             return reply.status(200).send({

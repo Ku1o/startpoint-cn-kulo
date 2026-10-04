@@ -356,7 +356,7 @@ test('lobby snapshot requires three ready slots, owned characters and the bound 
     } finally { manager.getClientsInRoom = original }
 })
 
-test('NPC lobby recruitment waits 120 seconds and clones the host party', async () => {
+test('shared NPC lobby recruitment fills remaining seats without a Five Boss-only delay', async () => {
     const p = player()
     const room = createRoom(p.viewerId, p.id, 1, mode.category, mode.visibleQuestId, 0, 111001)
     room.is_npc_mode = true
@@ -377,13 +377,94 @@ test('NPC lobby recruitment waits 120 seconds and clones the host party', async 
     }
     try {
         await recruit()
-        assert.equal(client.mates.filter(m => m.comId).length, 0)
-        room.created_at = Date.now() - 120001
-        await recruit()
         const npcs = client.mates.filter(m => m.comId)
         assert.equal(npcs.length, 2)
-        for (const npc of npcs) assert.deepEqual(npc.party, client.yourself.party)
+        for (const npc of npcs) {
+            assert.ok(npc.party)
+            assert.ok(Array.isArray(npc.party.characters))
+        }
         await recruit()
+        assert.equal(client.mates.filter(m => m.comId).length, 2)
+        assert.equal(client.mates.length, 3)
+    } finally {
+        manager.removeClient(client)
+        load('multi/room/manager').disbandRoom(room.room_number)
+    }
+})
+
+test('shared random-recruitment fallback fills AI after the configured timeout', async () => {
+    const p = player()
+    const room = createRoom(p.viewerId, p.id, 1, mode.category, mode.visibleQuestId, 0, 111001)
+    const manager = load('multi/state/SessionManager').sessionManager
+    const coordinator = load('multi/coordinator/embedded').embeddedMultiCoordinator
+    const socket = new (require('node:events').EventEmitter)()
+    Object.assign(socket, { destroyed: false, readable: true, writable: true, remoteAddress: '127.0.0.1',
+        write: () => true, end: () => {}, destroy: () => { socket.destroyed = true } })
+    const client = manager.createClient(socket, p.viewerId, room.room_number, `fallback-host-${p.id}`, p.id)
+    client.yourself = { viewerId: p.viewerId, playerId: p.id, comId: 0, state: [1], rank: 1,
+        party: { characters: [[0, { id: 111001 }]], unison_characters: [], marker: 'host-party' } }
+    client.mates = [client.yourself]
+    manager.addClientToRoom(client)
+    const aiFill = load('multi/ai-fill')
+    const previousTimeout = process.env.MULTI_AI_FILL_TIMEOUT_MS
+    process.env.MULTI_AI_FILL_TIMEOUT_MS = '20'
+    try {
+        aiFill.scheduleAiFallback(room.room_number)
+        assert.equal(aiFill.hasAiFallback(room.room_number), true)
+        const deadline = Date.now() + 3000
+        while (Date.now() < deadline && client.mates.filter(m => m.comId).length < 2) {
+            await new Promise(resolve => setTimeout(resolve, 25))
+            await coordinator.enqueueRoomCommand(room.room_number, () => {})
+        }
+        assert.equal(client.mates.filter(m => m.comId).length, 2)
+        assert.equal(aiFill.hasAiFallback(room.room_number), false)
+    } finally {
+        if (previousTimeout === undefined) delete process.env.MULTI_AI_FILL_TIMEOUT_MS
+        else process.env.MULTI_AI_FILL_TIMEOUT_MS = previousTimeout
+        manager.removeClient(client)
+        load('multi/room/manager').disbandRoom(room.room_number)
+    }
+})
+
+test('rematch restores the previous AI count and fills the extra AI after the real-player grace', async () => {
+    const host = player(), guest = player()
+    const room = createRoom(host.viewerId, host.id, 1, mode.category, mode.visibleQuestId, 0, 111001)
+    room.lobby_generation = 1
+    room.expected_real_viewer_ids = [host.viewerId, guest.viewerId]
+    room.rematch_ai_count = 1
+    room.is_npc_mode = true
+    const manager = load('multi/state/SessionManager').sessionManager
+    const coordinator = load('multi/coordinator/embedded').embeddedMultiCoordinator
+    const socket = new (require('node:events').EventEmitter)()
+    Object.assign(socket, { destroyed: false, readable: true, writable: true, remoteAddress: '127.0.0.1',
+        write: () => true, end: () => {}, destroy: () => { socket.destroyed = true } })
+    const client = manager.createClient(socket, host.viewerId, room.room_number, `rematch-host-${host.id}`, host.id)
+    client.roomGeneration = room.lobby_generation
+    client.yourself = { viewerId: host.viewerId, playerId: host.id, comId: 0, state: [1], rank: 1,
+        party: { characters: [[0, { id: 111001 }]], unison_characters: [], marker: 'host-party' } }
+    client.mates = [client.yourself]
+    manager.addClientToRoom(client)
+    const lobby = load('multi/tcp/lobby')
+    const waitForNpcCount = async expected => {
+        const deadline = Date.now() + 3000
+        while (Date.now() < deadline && client.mates.filter(m => m.comId).length < expected) {
+            await new Promise(resolve => setTimeout(resolve, 20))
+            await coordinator.enqueueRoomCommand(room.room_number, () => {})
+        }
+        return client.mates.filter(m => m.comId).length
+    }
+    try {
+        lobby.recruitNpcMatesForRoom(room.room_number)
+        assert.equal(await waitForNpcCount(1), 1)
+        // The missing real player's seat stays reserved during the grace;
+        // only the previous battle's AI count is restored immediately.
+        assert.ok(room.rematch_wait_started_at !== null)
+        assert.equal(client.mates.filter(m => m.comId).length, 1)
+
+        // Simulate the post-grace cleanup removing the missing real player.
+        room.expected_real_viewer_ids = [host.viewerId]
+        lobby.recruitNpcMatesForRoom(room.room_number)
+        assert.equal(await waitForNpcCount(2), 2)
         assert.equal(client.mates.length, 3)
     } finally {
         manager.removeClient(client)
@@ -656,7 +737,11 @@ test('stale multiplayer with a missing room field is recovered from its immutabl
         assert.equal(active.getPlayerActiveQuestSync(p.id).playId, p.playId)
         assert.equal(ledger.getFiveBossRunByClientSync({ playerId: p.id, clientPlayId: oldPlay }).status, 'aborted')
         const late = await app.inject({ method: 'POST', url: '/finish', payload: { ...httpFinish(p), play_id: oldPlay } })
-        assert.equal(late.statusCode, 400, late.body)
+        // A finish for an already-aborted run is answered as a reward-less
+        // failure instead of a 400 so the client cannot end up in a fatal
+        // H400 dialog after its battle socket was gone.
+        assert.equal(late.statusCode, 200, late.body)
+        assert.equal(late.json().data.clear_rank, 0)
         assert.equal(active.getPlayerActiveQuestSync(p.id).playId, p.playId)
         assert.equal(items.getPlayerItemSync(p.id, 10000145), null)
     } finally { await app.close() }
@@ -1352,7 +1437,10 @@ test('solo continue costs 50 once for the whole run; retry, new start and recove
         assert.equal((await send({ ...payload, quest_id: 1099003 })).statusCode, 400)
         assert.deepEqual(wallet(p), [0, 80])
         solo.abortFiveBossSoloSync(p.id, p.playId)
-        assert.equal((await send(payload)).statusCode, 400)
+        // After the run is gone the legacy client would render a 400 as a
+        // fatal H400; the stale continue is acknowledged without charging.
+        assert.equal((await send(payload)).statusCode, 200)
+        assert.deepEqual(wallet(p), [0, 80])
         p.playId += '-next-run'
         assert.equal((await app.inject({ method: 'POST', url: '/start', payload: httpStart(p) })).statusCode, 200)
         assert.equal((await send(continuePayload(p))).statusCode, 200)
@@ -1401,7 +1489,87 @@ test('multiplayer each member gets one paid continue across level_next, start re
         assert.equal((await send(continuePayload(guest, 12), guestApp)).statusCode, 200)
         ledger.recordMemberBattleSignalSync({ runId: room.five_boss_runtime.runId, playerId: host.id,
             roomNumber: room.room_number, signal: 'finalize' })
-        assert.equal((await send(payload)).statusCode, 400)
+        // The finalized run is stale for this play id; acknowledge so the
+        // client does not show a fatal H400, and never charge again.
+        assert.equal((await send(payload)).statusCode, 200)
+        assert.deepEqual(wallet(host), [50, 20])
+        assert.deepEqual(wallet(guest), [50, 20])
+    } finally { await app.close(); await guestApp.close() }
+})
+
+test('host abort mid-battle keeps the five-boss run alive for the remaining members', async () => {
+    const host = player(), guest = player(0), room = run([host, guest])
+    funded(host); funded(guest)
+    start(host, room); start(guest, room)
+    const app = await httpApp(host, load('multi/http/battle').registerBattleRoutes)
+    const guestApp = await httpApp(guest, load('multi/http/battle').registerBattleRoutes)
+    try {
+        const ticketBefore = items.getPlayerItemSync(host.id, mode.ticketItemId)
+        // The host retires mid-run; the run must survive for the other member.
+        const aborted = await app.inject({ method: 'POST', url: '/abort', payload: {
+            viewer_id: host.viewerId, play_id: host.playId, quest_id: mode.visibleQuestId,
+            category: mode.category, api_count: 3 } })
+        assert.equal(aborted.statusCode, 200, aborted.body)
+        assert.equal(active.getPlayerActiveQuestSync(host.id), null)
+        // The ticket was charged at battle start and is never refunded.
+        assert.equal(items.getPlayerItemSync(host.id, mode.ticketItemId), ticketBefore)
+        const runAfterHostLeave = ledger.getFiveBossRunByClientSync({ playerId: guest.id, clientPlayId: guest.playId })
+        assert.equal(runAfterHostLeave.status, 'active')
+        assert.equal(load('multi/room/manager').getRoom(room.room_number), room)
+
+        // The remaining member continues and finishes with a normal, paid
+        // settle even though the host is gone.
+        const continued = await guestApp.inject({ method: 'POST', url: '/play_continue', payload: continuePayload(guest, 20) })
+        assert.equal(continued.statusCode, 200, continued.body)
+        assert.deepEqual(wallet(guest), [50, 20])
+        proof(guest, room)
+        const finished = await guestApp.inject({ method: 'POST', url: '/finish', payload: httpFinish(guest) })
+        assert.equal(finished.statusCode, 200, finished.body)
+        assert.equal(finished.json().data.clear_rank, 5)
+        assert.equal(ledger.getFiveBossRunByClientSync({ playerId: guest.id, clientPlayId: guest.playId }).status, 'settled')
+        assert.equal(getDb().prepare(`SELECT 1 FROM five_boss_gauntlet_receipts WHERE player_id = ?`).get(guest.id) !== undefined, true)
+    } finally {
+        load('multi/room/manager').disbandRoom(room.room_number)
+        await app.close(); await guestApp.close()
+    }
+})
+
+test('stale five-boss continue and finish after a member left acknowledge instead of H400', async () => {
+    const host = player(), guest = player(0), room = run([host, guest])
+    funded(host); funded(guest)
+    start(host, room); start(guest, room)
+    proof(host, room); proof(guest, room)
+    const app = await httpApp(host, load('multi/http/battle').registerBattleRoutes)
+    const guestApp = await httpApp(guest, load('multi/http/battle').registerBattleRoutes)
+    try {
+        // The guest retires; a later recovery retry from the same client can
+        // no longer continue or settle that member.
+        const aborted = await guestApp.inject({ method: 'POST', url: '/abort', payload: {
+            viewer_id: guest.viewerId, play_id: guest.playId, quest_id: mode.visibleQuestId,
+            category: mode.category, api_count: 3 } })
+        assert.equal(aborted.statusCode, 200, aborted.body)
+        assert.equal(active.getPlayerActiveQuestSync(guest.id), null)
+
+        // Recovery continue after the abort: answered, never charged.
+        const lateContinue = await guestApp.inject({ method: 'POST', url: '/play_continue', payload: continuePayload(guest, 30) })
+        assert.equal(lateContinue.statusCode, 200, lateContinue.body)
+        assert.equal(lateContinue.json().data.continue_count, mode.maxContinueCount)
+        assert.deepEqual(wallet(guest), [100, 20])
+
+        // The local battle then reports a clear for the dead run: the client
+        // must still receive a parseable, reward-less result instead of 400.
+        const lateFinish = await guestApp.inject({ method: 'POST', url: '/finish', payload: httpFinish(guest) })
+        assert.equal(lateFinish.statusCode, 200, lateFinish.body)
+        assert.equal(lateFinish.json().data.clear_rank, 0)
+        assert.equal(items.getPlayerItemSync(guest.id, 10000145), null)
+        assert.deepEqual(wallet(guest), [100, 20])
+
+        // Aborting the already-gone guest run is a terminal acknowledgement too.
+        const lateAbort = await guestApp.inject({ method: 'POST', url: '/abort', payload: {
+            viewer_id: guest.viewerId, play_id: guest.playId, quest_id: mode.visibleQuestId,
+            category: mode.category, api_count: 31 } })
+        assert.equal(lateAbort.statusCode, 200, lateAbort.body)
+        assert.equal(active.getPlayerActiveQuestSync(guest.id), null)
     } finally { await app.close(); await guestApp.close() }
 })
 
@@ -1416,10 +1584,14 @@ test('continue rejects wrong identity and mode, insufficient gems, and atomicall
         assert.equal(active.getPlayerActiveQuestSync(p.id).continueCount, 0)
         assert.deepEqual(wallet(p), [20, 29])
         funded(p)
-        for (const change of [{ play_id: 'wrong-play' }, { quest_id: 1000101 }, { category: 1 }, { api_count: null }]) {
+        // A stale play id is acknowledged without state changes (the client
+        // has no business-error path); forged quest/category and malformed
+        // api_count stay hard rejections.
+        assert.equal((await send({ ...payload, play_id: 'wrong-play' })).statusCode, 200)
+        for (const change of [{ quest_id: 1000101 }, { category: 1 }, { api_count: null }]) {
             assert.equal((await send({ ...payload, ...change })).statusCode, 400)
         }
-        assert.equal((await send(payload, soloApp)).statusCode, 400)
+        assert.equal((await send(payload, soloApp)).statusCode, 200)
         assert.deepEqual(wallet(p), [100, 20])
         getDb().exec(`CREATE TEMP TRIGGER fail_continue_receipt BEFORE INSERT ON five_boss_continue_receipts
             BEGIN SELECT RAISE(ABORT, 'injected persistence failure'); END`)

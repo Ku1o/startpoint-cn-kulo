@@ -36,13 +36,14 @@ const {
     validateRandomRecruitmentAttention,
     wasRandomRecruitmentAcceptedBy,
 } = require("../src/multi/recruitment")
-const { encodeRoomShareOptions, MUTUAL_FOLLOW_SHARE_TYPE } = require("../src/multi/room/sharing")
+const { encodeRoomShareOptions, FOLLOWER_SHARE_TYPE } = require("../src/multi/room/sharing")
 const { registerLobbyRoutes } = require("../src/multi/http/lobby")
 const { registerRoomRoutes } = require("../src/multi/http/room")
 const { registerSocialRoutes } = require("../src/multi/http/social")
 const { registerBattleRoutes } = require("../src/multi/http/battle")
 const registerAttentionRoutes = require("../src/routes/api/attention").default
 const { handleHandshake } = require("../src/multi/tcp/handshake")
+const { handleMessage: handleLobbyMessage } = require("../src/multi/tcp/lobby")
 const { sessionManager } = require("../src/multi/state/SessionManager")
 const { roomAdmissionRegistry } = require("../src/multi/room/admission")
 
@@ -127,6 +128,7 @@ async function main() {
         const host = await createIdentity("multi-identity-host", ["旧存档", "当前房主"], 1)
         const guest = await createIdentity("multi-identity-guest", ["访客"])
         const stranger = await createIdentity("multi-identity-stranger", ["陌生人"])
+        const latecomer = await createIdentity("multi-identity-latecomer", ["晚到者"])
 
         const hostContext = await resolveMultiPlayerContext(host.viewerId)
         assert.equal(hostContext.playerId, host.selectedPlayerId)
@@ -224,6 +226,23 @@ async function main() {
         guestClient.enterData = {}
         connectedClients.push(guestClient)
         connectedSockets.push(guestSocket)
+
+        // Lobby emotions: Client2Server.Broadcast([MeetingBroadcastMessage.Emotion])
+        // must reach the other room members as MeetingServer2Client.Messages
+        // (never echoed back to the sender, which renders its own balloon).
+        hostSocket.messages.length = 0
+        guestSocket.messages.length = 0
+        handleLobbyMessage(guestSocket, [1, [[0, 3]]])
+        await new Promise(resolve => setTimeout(resolve, 20))
+        const relayedEmotions = hostSocket.messages
+            .filter(message => Array.isArray(message) && message[0] === 2)
+        assert.equal(relayedEmotions.length, 1)
+        assert.equal(relayedEmotions[0][1], guestClient.connectionId)
+        assert.deepEqual(relayedEmotions[0][2], [[0, 3]])
+        assert.equal(
+            guestSocket.messages.filter(message => Array.isArray(message) && message[0] === 2).length,
+            0,
+        )
 
         fastify = await createServer()
 
@@ -337,7 +356,7 @@ async function main() {
         assert.equal(tokenData.establisher_name, "当前房主")
 
         assert.equal(addFollowSync(guest.selectedPlayerId, host.selectedPlayerId), "added")
-        firstRoom.share_room_options = encodeRoomShareOptions([MUTUAL_FOLLOW_SHARE_TYPE])
+        firstRoom.share_room_options = encodeRoomShareOptions([FOLLOWER_SHARE_TYPE])
 
         const searched = await fastify.inject({
             method: "POST",
@@ -381,6 +400,47 @@ async function main() {
             payload: { viewer_id: stranger.viewerId, holding_number: 0, request_number: 3 },
         })
         assert.equal(decode(strangerAttention).data.multi[0].attention_key, recruitment.attentionKey)
+
+        // COM mates occupy their seats: a seat-complete room rejects a new
+        // entrant with the client's native filled state (3) instead of the
+        // stale-room state, and AI-filled rooms do not advertise recruitment.
+        const savedNpcCount = firstRoom.npc_count
+        firstRoom.is_npc_mode = true
+        firstRoom.npc_count = 1
+        const fullRoomAttention = await fastify.inject({
+            method: "POST",
+            url: "/check",
+            payload: { viewer_id: latecomer.viewerId, holding_number: 0, request_number: 3 },
+        })
+        assert.equal(decode(fullRoomAttention).data.multi, null)
+        const fullRoomSelect = await fastify.inject({
+            method: "POST",
+            url: "/select_room",
+            payload: {
+                viewer_id: latecomer.viewerId,
+                room_number: firstRoom.room_number,
+                category: 1,
+                quest_id: 9001001,
+                party_id: 1,
+                accepted_type: 2,
+                api_count: 12,
+            },
+        })
+        assert.equal(decode(fullRoomSelect).data.raising_state, 3)
+        // A follower still sees the room, but the list entry itself reports
+        // the native filled state so the client does not attempt the entry.
+        assert.equal(addFollowSync(latecomer.selectedPlayerId, host.selectedPlayerId), "added")
+        const latecomerRooms = await fastify.inject({
+            method: "POST",
+            url: "/get_rooms",
+            payload: { viewer_id: latecomer.viewerId, category_id: 1 },
+        })
+        const latecomerEntry = decode(latecomerRooms).data.rooms
+            .find(room => room.room_number === firstRoom.room_number)
+        assert.ok(latecomerEntry, "follower still sees the seat-complete room")
+        assert.equal(latecomerEntry.raising_state, 3)
+        firstRoom.npc_count = savedNpcCount
+        firstRoom.is_npc_mode = false
 
         const delivered = takeRandomRecruitments(guest.viewerId, 1, () => true)
         assert.equal(delivered.length, 1)

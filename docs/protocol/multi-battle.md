@@ -832,7 +832,8 @@ state=1 (Ready: 可加入/可招募)
   │     ├─ 60s 内 prepare/select_room → 新 TCP → 取消定时器 → 回到 state=1
   │     └─ 60s 无人 → disband
   │     ↓
-  │   abort → disbandRoom, 删 ActiveQuest
+  │   abort → （房主/客端同为离场成员）删 ActiveQuest，房间保留给其余玩家
+  │            打完；无人返回时由结算宽限/战斗看门狗解散
   │
   ├─ 不招募 → is_npc_mode=false → 等待
   │
@@ -849,7 +850,8 @@ state=1 (Ready: 可加入/可招募)
 | `select_room`/`prepare` | guest | 2 | 返回 2（真实值） |
 | `start` | — | 1 | 4 |
 | `finish` | host | 4 | 1 |
-| `abort` | host | 4 | disband |
+| `abort` | host | 4 | 4（按离场处理，房间保留至其余成员结算后解散） |
+| `abort` | guest | 4 | 4（广播 Leave，其余成员继续） |
 | `disband_room` | — | any | disband |
 | TCP 断线 | isBattle + state=1 | 1 | 60s 后 disband |
 | TCP 断线 | isBattle + state=4 | 4 | 保留（过期清理） |
@@ -921,7 +923,7 @@ state=1 (Ready: 可加入/可招募)
 | Disband 广播 Disbanded(6) | ✅ | `notifyRoomDisbanded` → `multibattle_room_dismissed`（CN 客户端本地化 key） |
 | 房主返回同步 | ✅ | 房主 Enter→合并已有客端 mates→广播更新 |
 | Finish 同步 | ✅ | 各玩家独立 finish HTTP，房主管理 room state |
-| Abort 同步 | ✅ | G10+G11 覆盖，房主 abort→Disbanded，客端→Mates 广播 |
+| Abort 同步 | ✅ | 房主与客端都按离场成员处理：battle 通道广播 Leave，其余玩家继续战斗并正常结算 |
 
 ### 9.7.6 帧 relay 架构
 

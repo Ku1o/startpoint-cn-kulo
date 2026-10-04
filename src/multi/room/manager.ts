@@ -131,6 +131,7 @@ export function createRoom(
         share_room_options: 0,
         is_npc_mode: isNpcMode,
         npc_count: 0,
+        rematch_ai_count: 0,
         expected_real_viewer_ids: [],
         lobby_generation: 0,
         rematch_wait_started_at: null,
@@ -190,6 +191,22 @@ export function isRoomMember(room: MultiRoom, viewerId: number): boolean {
     if (room.mates.some(mate => mate.viewer_id === viewerId)) return true
     return sessionManager.getClientsInRoom(room.room_number, room.lobby_generation)
         .some(client => !client.isBattle && client.viewerId === viewerId)
+}
+
+/**
+ * Accepted lobby seats: real members plus COM (AI) mates. COM seats occupy
+ * the room like real ones, so a stranger can take a genuinely empty seat but
+ * cannot replace an AI that was filled or restored for a missing member.
+ * The roster length and the recorded counters can briefly disagree while the
+ * lobby is rebuilt, so the larger value wins.
+ */
+export function getRoomAcceptedSeatCount(room: MultiRoom): number {
+    const rosterSeats = Array.isArray(room.mates) ? room.mates.length : 0
+    const realSeats = Array.isArray(room.member_viewer_ids) && room.member_viewer_ids.length > 0
+        ? room.member_viewer_ids.length
+        : 1
+    const recordedSeats = realSeats + Math.max(0, Number(room.npc_count) || 0)
+    return Math.max(rosterSeats, recordedSeats)
 }
 
 export function addRoomMember(roomNumber: string, viewerId: number, playerId: number): boolean {

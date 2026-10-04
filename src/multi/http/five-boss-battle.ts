@@ -24,6 +24,7 @@ import {
     finishFiveBossBattle,
     FiveBossBattleRuntimeError,
     startFiveBossBattle,
+    type AbortFiveBossBattleResult,
     type FinishFiveBossBattleResult,
 } from "../five-boss/battle-runtime"
 import { FIVE_BOSS_GAUNTLET, isFiveBossGauntletQuest } from "../five-boss/contract"
@@ -38,10 +39,10 @@ import { runPersistenceTransaction } from "../../lib/persistence-coordinator"
 
 /** Small structured evidence, without logging tokens, party data or the full request. */
 export function logFiveBossRequestFailure(operation: "start" | "finish" | "abort", body: MultiStartBody | MultiFinishBody | MultiAbortBody,
-    playerId: number, error: unknown): void {
+    playerId: number, error: unknown, acknowledged = false): void {
     const code = (error as { code?: string })?.code
     const message = (error as Error)?.message
-    const key = JSON.stringify(["request", operation, playerId, String(body.play_id).slice(0, 255),
+    const key = JSON.stringify(["request", operation, playerId, acknowledged, String(body.play_id).slice(0, 255),
         body.category, body.quest_id, code, message?.slice(0, 160)])
     fiveBossDiagnostics.report(key, () => {
         const run = getFiveBossRunByClientSync({ playerId, clientPlayId: body.play_id })
@@ -49,13 +50,34 @@ export function logFiveBossRequestFailure(operation: "start" | "finish" | "abort
             level_next_at, finalized_at
             FROM five_boss_gauntlet_members WHERE run_id = ? AND player_id = ?`).get(run.runId, playerId) : null
         const active = getPlayerActiveQuestSync(playerId)
-        if (run && operation === "finish") fiveBossConnectionDiagnostics.memberEvent(run.runId, playerId, "finish_rejected", code)
-        return `[FIVE-BOSS-REJECT] ${JSON.stringify({ operation, player: playerId, play: body.play_id,
+        if (run && operation === "finish" && !acknowledged) {
+            fiveBossConnectionDiagnostics.memberEvent(run.runId, playerId, "finish_rejected", code)
+        }
+        return `[${acknowledged ? "FIVE-BOSS-ACK" : "FIVE-BOSS-REJECT"}] ${JSON.stringify({ operation, player: playerId, play: body.play_id,
             category: body.category, quest: body.quest_id, run: run?.runId, room: run?.roomNumber,
             status: run?.status, code, message,
             proof: member, active: active ? { play: active.playId, multi: active.isMulti, room: active.roomNumber } : null,
             transport: run ? fiveBossConnectionDiagnostics.snapshot(run.runId, playerId) : { available: false, reason: "run_not_found" } })}`
     })
+}
+
+/**
+ * Codes that mean this client is closing out a run the server already ended
+ * (settled/aborted) or a play id that is no longer bound to any run. The CN
+ * client turns any HTTP 400 on finish/abort into a fatal H400 dialog and
+ * drops to login, so these stale requests are acknowledged as a terminal,
+ * reward-less outcome instead of an error.
+ */
+const STALE_MEMBER_REQUEST_CODES = new Set<string>([
+    "run_not_active",
+    "member_not_active",
+    "client_play_not_found",
+    "active_quest_mismatch",
+])
+
+export function isStaleFiveBossMemberRequestError(error: unknown): boolean {
+    const code = (error as { code?: string })?.code
+    return typeof code === "string" && STALE_MEMBER_REQUEST_CODES.has(code)
 }
 
 
@@ -376,7 +398,7 @@ export async function handleFiveBossStart(
             + ` boost=${body.use_boost_point}/${body.use_boss_boost_point}`)
     }
     const previousMemory = activeQuests[playerId]
-    let result
+    let result: ReturnType<typeof startFiveBossBattle>
     try {
         result = await runPersistenceTransaction({
             domain: "multi-settlement", playerId, operation: "five_boss_start",
@@ -437,38 +459,69 @@ export async function handleFiveBossFinish(
         body.is_accomplished === true ? "success_requested" : "failure_requested")
     const roomNumber = resolveFiveBossRoomNumber(body.room_number, playerId, body.play_id, boundRun)
     const party = body.statistics?.party ?? body.quest_statistics?.party
-    const result = await measureSettlementPhaseAsync("multi", "five_boss_settlement", async () => {
-        // Failed finishes become aborts and do not need successful battle
-        // proof.  Waiting here would make an abort depend on an unrelated
-        // proof write that may be queued behind a closing socket.
-        if (boundRun && body.is_accomplished === true) {
-            await waitForFiveBossSignalPersistence(boundRun.runId, playerId)
-        }
-        return runPersistenceTransaction({
-            domain: "multi-settlement", playerId, operation: "five_boss_finish",
-        }, () => {
-            if (body.is_accomplished === true && isFiveBossGauntletQuest(body.category, body.quest_id)
-                && boundRun?.roomNumber === roomNumber) {
-                const backfill = backfillMissingFinalizeSync({ playerId, clientPlayId: body.play_id })
-                if (backfill.backfilled) {
-                    fiveBossConnectionDiagnostics.memberEvent(boundRun.runId, playerId, "finalize_recorded", "http_backfill")
-                    console.warn(`[MULTI] five-boss finish: finalize signal never reached the battle channel;`
-                        + ` backfilled from HTTP finish player=${playerId} run=${backfill.runId} room=${backfill.roomNumber}`)
-                }
+    let result: FinishFiveBossBattleResult
+    try {
+        result = await measureSettlementPhaseAsync("multi", "five_boss_settlement", async () => {
+            // Failed finishes become aborts and do not need successful battle
+            // proof.  Waiting here would make an abort depend on an unrelated
+            // proof write that may be queued behind a closing socket.
+            if (boundRun && body.is_accomplished === true) {
+                await waitForFiveBossSignalPersistence(boundRun.runId, playerId)
             }
-            return finishFiveBossBattle({
-                playerId,
-                clientPlayId: body.play_id,
-                requestRoomNumber: roomNumber,
-                requestCategory: body.category,
-                requestQuestId: body.quest_id,
-                accomplished: body.is_accomplished as boolean,
-                elapsedTimeMs: body.elapsed_time_ms ?? body.battle_time ?? 0,
-                highScore: body.score ?? 0,
-                leaderCharacterId: party?.characters?.[0]?.id ?? null,
+            return runPersistenceTransaction({
+                domain: "multi-settlement", playerId, operation: "five_boss_finish",
+            }, () => {
+                if (body.is_accomplished === true && isFiveBossGauntletQuest(body.category, body.quest_id)
+                    && boundRun?.roomNumber === roomNumber) {
+                    const backfill = backfillMissingFinalizeSync({ playerId, clientPlayId: body.play_id })
+                    if (backfill.backfilled) {
+                        fiveBossConnectionDiagnostics.memberEvent(boundRun.runId, playerId, "finalize_recorded", "http_backfill")
+                        console.warn(`[MULTI] five-boss finish: finalize signal never reached the battle channel;`
+                            + ` backfilled from HTTP finish player=${playerId} run=${backfill.runId} room=${backfill.roomNumber}`)
+                    }
+                }
+                return finishFiveBossBattle({
+                    playerId,
+                    clientPlayId: body.play_id,
+                    requestRoomNumber: roomNumber,
+                    requestCategory: body.category,
+                    requestQuestId: body.quest_id,
+                    accomplished: body.is_accomplished as boolean,
+                    elapsedTimeMs: body.elapsed_time_ms ?? body.battle_time ?? 0,
+                    highScore: body.score ?? 0,
+                    leaderCharacterId: party?.characters?.[0]?.id ?? null,
+                })
             })
         })
-    })
+    } catch (error) {
+        if (!isFiveBossBattleRequestError(error) || !isStaleFiveBossMemberRequestError(error)) throw error
+        // The run settled or aborted while this client was still finishing its
+        // local battle. Answer with a reward-less failed finish instead of a
+        // 400: the CN client renders that error as a fatal H400 and logs out.
+        logFiveBossRequestFailure("finish", body, playerId, error, true)
+        clearMatchingMemoryActive(playerId, body.play_id)
+        if (boundRun && boundRun.status !== "active") {
+            afterResponse(reply, () => terminalRoomTransition(roomNumber, boundRun.runId, boundRun.status))
+        }
+        const matePlayerResult = body.mate_player_result ?? []
+        const followInfo = await measureSettlementPhaseAsync("multi", "five_boss_follow", () => buildFollowInfo(
+            body.viewer_id,
+            matePlayerResult,
+            memoryBeforeFinish?.matePlayerIds ?? body.mate_player_ids ?? [],
+        ))
+        const dataHeaders = generateDataHeaders({ viewer_id: body.viewer_id })
+        const player = requirePlayer(playerId)
+        reply.header("content-type", "application/x-msgpack")
+        return reply.status(200).send({
+            data_headers: dataHeaders,
+            data: buildFinishData(player, body, {
+                kind: "failed",
+                abortStatus: "already_aborted",
+                runId: boundRun?.runId ?? "",
+                runStatus: boundRun?.status ?? "aborted",
+            }, dataHeaders, matePlayerResult, followInfo, null),
+        })
+    }
     clearMatchingMemoryActive(playerId, body.play_id)
     if (result.runStatus !== "active") {
         afterResponse(reply, () => terminalRoomTransition(roomNumber, result.runId, result.runStatus))
@@ -505,15 +558,43 @@ export async function handleFiveBossAbort(
     reply: FastifyReply,
 ) {
     const roomNumber = resolveFiveBossRoomNumber(body.room_number, playerId, body.play_id)
-    const result = await runPersistenceTransaction({
-        domain: "multi-settlement", playerId, operation: "five_boss_abort",
-    }, () => abortFiveBossBattle({
-        playerId,
-        clientPlayId: body.play_id,
-        requestRoomNumber: roomNumber,
-        requestCategory: body.category,
-        requestQuestId: body.quest_id,
-    }))
+    let result: AbortFiveBossBattleResult
+    try {
+        result = await runPersistenceTransaction({
+            domain: "multi-settlement", playerId, operation: "five_boss_abort",
+        }, () => abortFiveBossBattle({
+            playerId,
+            clientPlayId: body.play_id,
+            requestRoomNumber: roomNumber,
+            requestCategory: body.category,
+            requestQuestId: body.quest_id,
+        }))
+    } catch (error) {
+        if (!isFiveBossBattleRequestError(error) || !isStaleFiveBossMemberRequestError(error)) throw error
+        // Retiring a run the server no longer tracks (already settled/aborted,
+        // or an unrecognized play id) must not 400: the CN client would show a
+        // fatal H400. It is already gone, so answer with the empty terminal
+        // payload the client expects from a successful abort.
+        logFiveBossRequestFailure("abort", body, playerId, error, true)
+        clearMatchingMemoryActive(playerId, body.play_id)
+        const headers = generateDataHeaders({ viewer_id: body.viewer_id })
+        reply.header("content-type", "application/x-msgpack")
+        return reply.status(200).send({
+            data_headers: headers,
+            data: {
+                user_info: {},
+                category_id: body.category,
+                is_multi: "multi",
+                start_time: headers.servertime,
+                quest_name: "",
+                aborted_play_id: null,
+                unfinished_play_id: null,
+                drawn_quest: null,
+                party_info: null,
+                presigned_url: null,
+            },
+        })
+    }
     clearMatchingMemoryActive(playerId, body.play_id)
     if (result.runStatus !== "active") {
         afterResponse(reply, () => terminalRoomTransition(roomNumber, result.runId, result.runStatus))
