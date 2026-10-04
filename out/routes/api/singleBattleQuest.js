@@ -411,6 +411,7 @@ const routes = (fastify) => __awaiter(void 0, void 0, void 0, function* () {
                     insertActiveQuest(playerId, {
                         questId, category, useBoostPoint: false, useBossBoostPoint: false,
                         isAutoStartMode, isMulti: false,
+                        entryItemId: contract_1.FIVE_BOSS_GAUNTLET.ticketItemId,
                         partySlot: partyId,
                         playId: body.play_id, continueCount: 0,
                     });

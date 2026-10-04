@@ -256,7 +256,7 @@ assets/multi_guest_entry_requirements.json
 
 | 模式 | 体力 | 门票 |
 |---|---:|---:|
-| 五重单人 | 35 | 0 |
+| 五重单人 | 35 | 1 |
 | 五重多人房主 | 35 | 1 |
 | 五重多人队友 | 0 | 只需持有 1 张，不扣除 |
 
@@ -399,28 +399,22 @@ playerId + play_id
 
 ## 五、五重单人连续战斗
 
-### 5.1 原问题
+### 5.1 核对结论
 
-服务端此前在单人五重开局同时扣：
+单人五重的既定收费是每轮 35 体力 + 1 张深界连战凭证；曾观察到“仍有体力但不能
+继续单人战斗”的现象，核对后确认是被门票不足拦住，而不是 stale active quest 造成。
+客户端凭证说明只描述多人房间由房主支付，不改变单人收费。
 
-```text
-35 体力 + 1 张多人房间凭证
-```
-
-但当前资源将五重单人定义为 35 体力，凭证说明则限定为开启多人连战房间、由房主
-消耗。因此玩家即使还有体力，只要票用完，单人自动或连续战斗也会被隐藏票券条件挡住。
-
-### 5.2 新规则
+### 5.2 现行规则
 
 五重单人：
 
-- 每轮扣 35 体力；
-- 不要求门票；
-- 不扣门票；
-- active quest 不再把多人票券写入 `entryItemId`；
-- start、体力扣除、solo ledger 和 active quest 仍在同一事务中；
-- 同 play ID 重试不重复扣体力；
-- 新 play ID 开始下一轮时再次扣 35 体力。
+- 每轮扣 35 体力和 1 张深界连战凭证；
+- active quest 继续把门票写入 `entryItemId`；
+- start、体力与门票扣除、solo ledger 和 active quest 仍在同一事务中；
+- 同 play ID 重试不重复扣体力和门票；
+- 新 play ID 开始下一轮时再次扣 35 体力和 1 张门票；
+- 门票不足时返回原生 `200/4050`，不扣体力、不建立 run 或 active quest。
 
 五重多人：
 
@@ -560,7 +554,7 @@ npc_party_by_com_id
 | `src/multi/tcp/handshake.ts` | TCP 最终资格复查与防绕过 |
 | `src/multi/five-boss/contract.ts` | 五重 Rank 130、票券和玩法常量 |
 | `src/multi/five-boss/lobby-runtime.ts` | 五重冻结身份与战斗信号 |
-| `src/multi/five-boss/solo-runtime.ts` | 五重单人 35 体力、无门票规则 |
+| `src/multi/five-boss/solo-runtime.ts` | 五重单人 35 体力 + 1 张门票（同轮重试不重复扣） |
 | `src/multi/http/five-boss-battle.ts` | 五重 start/finish/abort、字段恢复与诊断 |
 | `src/multi/state/SessionManager.ts` | battle lease、屏障、回房和房间回收 |
 | `src/multi/tcp/lobby.ts` | 回房确认、StartBattle、AI 固定编队和续战 |
@@ -736,7 +730,7 @@ git diff --check
 ### 有意改变
 
 - 五重新队友必须 Rank 130 且持票；
-- 五重单人不再消耗多人门票；
+- 五重单人维持 35 体力 + 1 张门票，同一整轮内重试不重复扣；
 - 五重 active/next-scene-ready 不再被 25 秒普通 heartbeat 误杀；
 - 五重回房可识别仍在线的原 lobby host；
 - 幻想 5/10/15 未成功不再清整轮；

@@ -139,7 +139,7 @@ test('guest abort does not strand a completed host run', () => {
     assert.equal(items.getPlayerItemSync(guest.id, 10000145), null)
 })
 
-test('solo start charges only 35 stamina atomically and accepts retry without another debit', () => {
+test('solo start charges ticket + 35 stamina atomically and accepts retry without another debit', () => {
     const p = player()
     const persist = () => active.insertPlayerActiveQuestSync(p.id, { playerId: p.id, playId: p.playId,
         category: mode.category, questId: mode.visibleQuestId, useBoostPoint: false, useBossBoostPoint: false,
@@ -151,23 +151,29 @@ test('solo start charges only 35 stamina atomically and accepts retry without an
     solo.startFiveBossSoloSync(p.id, p.playId, persist)
     solo.startFiveBossSoloSync(p.id, p.playId, () => assert.fail('replayed persistence'))
     assert.equal(players.getPlayerSync(p.id).stamina, 65)
-    assert.equal(items.getPlayerItemSync(p.id, mode.ticketItemId), 2)
+    assert.equal(items.getPlayerItemSync(p.id, mode.ticketItemId), 1)
     getDb().transaction(() => solo.saveFiveBossSoloReceiptSync(p.id, p.playId, 'single-retry-key', { ok: 1 }))()
     assert.deepEqual(solo.getFiveBossSoloReceiptSync(p.id, 'single-retry-key'), { ok: 1 })
     assert.throws(() => solo.startFiveBossSoloSync(p.id, p.playId, persist), /ended/)
 })
 
-test('solo five-boss requires 35 stamina without a ticket; multiplayer still charges the host', async () => {
-    const p = player(0)
+test('five-boss starts require 35 stamina and preserve tickets on failure; a zero-stamina guest is acknowledged', async () => {
+    const p = player(1)
     const app = await httpApp(p, load('routes/api/singleBattleQuest').default)
     try {
         players.updatePlayerSync({ id: p.id, stamina: 34, staminaHealTime: new Date() })
         let response = await app.inject({ method: 'POST', url: '/start', payload: httpStart(p) })
         assert.equal(response.statusCode, 400, response.body)
         assert.match(response.body, /Insufficient stamina/)
-        assert.equal(items.getPlayerItemSync(p.id, 10000143), 0)
+        assert.equal(items.getPlayerItemSync(p.id, 10000143), 1)
         assert.equal(players.getPlayerSync(p.id).stamina, 34)
         players.updatePlayerSync({ id: p.id, stamina: 35, staminaHealTime: new Date() })
+        items.setPlayerItemSync(p.id, 10000143, 0)
+        response = await app.inject({ method: 'POST', url: '/start', payload: httpStart(p) })
+        assert.equal(response.statusCode, 200, response.body)
+        assert.equal(response.json().data_headers.result_code, 4050)
+        assert.equal(players.getPlayerSync(p.id).stamina, 35)
+        items.setPlayerItemSync(p.id, 10000143, 1)
         response = await app.inject({ method: 'POST', url: '/start', payload: httpStart(p) })
         assert.equal(response.statusCode, 200, response.body)
         assert.equal(response.json().data.user_info.stamina, 0)
@@ -764,7 +770,7 @@ test('both option endpoints mark AUTO permanently for this solo play across retr
             delete load('routes/api/singleBattleQuest').activeQuests[p.id]
             assert.equal((await app.inject({ method: 'POST', url: '/quest/start', payload: httpStart(p) })).statusCode, 200)
             assert.equal(solo.getFiveBossSoloRewardMultiplierSync(p.id, p.playId), 1)
-            assert.equal(items.getPlayerItemSync(p.id, 10000143), 2)
+            assert.equal(items.getPlayerItemSync(p.id, 10000143), 1)
             const result = await app.inject({ method: 'POST', url: '/quest/finish', payload: httpFinish(p) })
             assert.equal(result.statusCode, 200, result.body)
             assert.equal(result.json().data.item_list['10000145'], 5)
@@ -928,7 +934,7 @@ test('new valid multiplayer start abandons solo atomically; invalid start preser
         assert.equal(response.statusCode, 200, response.body)
         assert.equal(solo.isActiveFiveBossSoloSync(p.id, oldPlay), false)
         assert.equal(active.getPlayerActiveQuestSync(p.id).playId, p.playId)
-        assert.equal(items.getPlayerItemSync(p.id, mode.ticketItemId), 2)
+        assert.equal(items.getPlayerItemSync(p.id, mode.ticketItemId), 1)
         assert.equal(players.getPlayerSync(p.id).stamina, 30)
         assert.equal(solo.abandonFiveBossSoloForMultiSync(p.id, oldPlay), false)
         assert.equal(active.getPlayerActiveQuestSync(p.id).playId, p.playId)
@@ -1410,7 +1416,7 @@ test('real solo HTTP start/finish persists receipt; hidden scene and free finish
         const start = await app.inject({ method: 'POST', url: '/start', payload: httpStart(p) })
         assert.equal(start.statusCode, 200, start.body)
         assert.equal(start.json().data.user_info.stamina, 65)
-        assert.equal(items.getPlayerItemSync(p.id, mode.ticketItemId), 2)
+        assert.equal(items.getPlayerItemSync(p.id, mode.ticketItemId), 1)
         const finish = await app.inject({ method: 'POST', url: '/finish', payload: httpFinish(p) })
         assert.equal(finish.statusCode, 200, finish.body)
         assert.equal(finish.json().data.item_list['10000145'], 5)
@@ -1423,11 +1429,11 @@ test('real solo HTTP start/finish persists receipt; hidden scene and free finish
     } finally { await app.close() }
 })
 
-test('solo five-boss can finish two stamina-funded rounds without a multiplayer ticket', async () => {
-    const p = player(0)
+test('solo five-boss charges one ticket per run and keeps the ticket gate', async () => {
+    const p = player(2)
     players.updatePlayerSync({
         id: p.id,
-        stamina: 70,
+        stamina: 105,
         staminaHealTime: new Date(),
         rankPoint: 999_999_999,
     })
@@ -1435,16 +1441,28 @@ test('solo five-boss can finish two stamina-funded rounds without a multiplayer 
     try {
         for (let round = 0; round < 2; round++) {
             if (round > 0) p.playId += '-next'
+            const expectedStamina = 105 - 35 * (round + 1)
+            const expectedTickets = 2 - (round + 1)
             const started = await app.inject({ method: 'POST', url: '/start', payload: httpStart(p) })
             assert.equal(started.statusCode, 200, started.body)
-            assert.equal(started.json().data.user_info.stamina, 35 - 35 * round)
-            assert.equal(items.getPlayerItemSync(p.id, mode.ticketItemId), 0)
+            assert.equal(started.json().data.user_info.stamina, expectedStamina)
+            assert.equal(items.getPlayerItemSync(p.id, mode.ticketItemId), expectedTickets)
+            const retry = await app.inject({ method: 'POST', url: '/start', payload: httpStart(p) })
+            assert.equal(retry.statusCode, 200, retry.body)
+            assert.equal(players.getPlayerSync(p.id).stamina, expectedStamina)
+            assert.equal(items.getPlayerItemSync(p.id, mode.ticketItemId), expectedTickets)
             const finished = await app.inject({ method: 'POST', url: '/finish', payload: httpFinish(p) })
             assert.equal(finished.statusCode, 200, finished.body)
             assert.equal(active.getPlayerActiveQuestSync(p.id), null)
         }
-        assert.equal(players.getPlayerSync(p.id).stamina, 0)
+        const denied = await app.inject({ method: 'POST', url: '/start',
+            payload: { ...httpStart(p), play_id: p.playId + '-no-ticket' } })
+        assert.equal(denied.statusCode, 200, denied.body)
+        assert.equal(denied.json().data_headers.result_code, 4050)
+        assert.equal(players.getPlayerSync(p.id).stamina, 35)
         assert.equal(players.getPlayerSync(p.id).totalStaminaUsed, 70)
+        assert.equal(items.getPlayerItemSync(p.id, mode.ticketItemId), 0)
+        assert.equal(active.getPlayerActiveQuestSync(p.id), null)
     } finally { await app.close() }
 })
 

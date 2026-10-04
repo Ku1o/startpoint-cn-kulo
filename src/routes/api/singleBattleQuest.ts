@@ -597,6 +597,7 @@ const routes = async (fastify: FastifyInstance) => {
                     insertActiveQuest(playerId, {
                         questId, category, useBoostPoint: false, useBossBoostPoint: false,
                         isAutoStartMode, isMulti: false,
+                        entryItemId: FIVE_BOSS_GAUNTLET.ticketItemId,
                         partySlot: partyId,
                         playId: body.play_id, continueCount: 0,
                     })
