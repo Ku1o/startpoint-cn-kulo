@@ -7,6 +7,10 @@
 交付分支：`fix/multiplayer-stability-h400-recovery`，目标分支为 `staging`；
 未合并 `main`
 
+主要实现提交：`890c8874`
+
+交付 PR：`https://github.com/Ku1o/startpoint-cn-kulo/pull/21`（开放、待评审）
+
 ## 一、问题现象
 
 玩家在创建或进入共斗房间时，偶发出现：

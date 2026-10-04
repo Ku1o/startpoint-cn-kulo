@@ -21,6 +21,10 @@ c08dd5f9
 交付分支：`fix/multiplayer-stability-h400-recovery`，目标分支为 `staging`。本批改动
 不会直接推送 `staging`，也未合并 `main`。
 
+主要实现提交：`890c8874`
+
+交付 PR：`https://github.com/Ku1o/startpoint-cn-kulo/pull/21`（开放、待评审）
+
 ## 一、涉及问题
 
 本批连续处理了以下问题：
